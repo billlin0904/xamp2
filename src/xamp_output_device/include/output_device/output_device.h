@@ -1,0 +1,26 @@
+//=====================================================================================================================
+// Copyright (c) 2018-2019 xamp project. All rights reserved.
+// More license information, please see LICENSE file in module root folder.
+//=====================================================================================================================
+
+#pragma once
+
+#ifdef XAMP_OUTPUT_DEVICE_API_EXPORTS
+#define XAMP_OUTPUT_DEVICE_API __declspec(dllexport)
+#else
+#define XAMP_OUTPUT_DEVICE_API __declspec(dllimport)
+#endif
+
+#include <cstdint>
+
+namespace xamp::output_device {
+
+class DeviceType;
+class Device;
+class AudioCallback;
+class DeviceFactory;
+
+XAMP_OUTPUT_DEVICE_API void InitialDevice();
+XAMP_OUTPUT_DEVICE_API void UnInitialDevice();
+
+}
