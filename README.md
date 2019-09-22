@@ -1,4 +1,4 @@
 # XAMP 2
 
-#Demo
+# Demo
 ![image](https://github.com/billlin0904/xamp2/blob/master/github/demo.JPG)
