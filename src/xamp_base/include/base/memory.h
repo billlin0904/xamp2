@@ -7,10 +7,18 @@
 
 #include <memory>
 
+#include <base/base.h>
+
 namespace xamp::base {
 
 template <typename T>
 using BufferPtr = std::unique_ptr<T[]>;
+
+XAMP_BASE_API size_t GetPageSize() noexcept;
+
+XAMP_BASE_API size_t GetPageAlignSize(size_t value) noexcept;
+
+XAMP_BASE_API void* FastMemcpy(void* dest, const void* src, int32_t size);
 
 }
 

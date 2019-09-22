@@ -58,6 +58,13 @@ public:
 		return (*itr).second();
 	}
 
+	template <typename Function>
+	void ForEach(Function &&fun) {
+		for (const auto& creator : creator_) {
+			fun(creator.second());
+		}
+	}
+
 private:
 	DeviceFactory() = default;
 	std::unordered_map<ID, std::function<std::unique_ptr<DeviceType>()>> creator_;

@@ -1,0 +1,47 @@
+//=====================================================================================================================
+// Copyright (c) 2018-2019 xamp project. All rights reserved.
+// More license information, please see LICENSE file in module root folder.
+//=====================================================================================================================
+
+#pragma once
+
+#include <base/audioformat.h>
+#include <base/memory.h>
+
+#include <stream/stream.h>
+#include <stream/audiostream.h>
+#include <stream/filestream.h>
+
+namespace xamp::stream {
+
+using namespace base;
+
+class XAMP_STREAM_API AvFileStream : public FileStream {
+public:
+	AvFileStream();
+
+	XAMP_PIMPL(AvFileStream)
+
+	void OpenFromFile(const std::wstring & file_path, OpenMode open_mode) override;
+
+	void Close() override;
+
+	double GetDuration() const override;
+
+	AudioFormat GetFormat() const override;
+
+	int32_t GetSamples(void* buffer, int32_t length) const noexcept override;
+
+	void Seek(double stream_time) const override;
+
+	std::wstring GetStreamName() const override;
+
+	int32_t GetSampleSize() const override;
+
+	bool IsDSDFile() const override;
+private:
+	class AvFileStreamImpl;
+	std::unique_ptr<AvFileStreamImpl> impl_;
+};
+
+}

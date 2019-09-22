@@ -1,0 +1,276 @@
+#include <vector>
+#include <sstream>
+#include <functional>
+#include <unordered_set>
+
+#include <base/function_ref.h>
+#include <base/str_utilts.h>
+#include <base/memory.h>
+#include <metadata/taglib.h>
+#include <metadata/taglibmetareader.h>
+
+namespace xamp::metadata {
+
+static bool GetID3V2TagCover(TagLib::ID3v2::Tag* tag, std::vector<uint8_t>& buffer) {
+    if (!tag) {
+        return false;
+    }
+    const auto & frame_list = tag->frameList("APIC");
+    if (frame_list.isEmpty()) {
+        return false;
+    }
+
+    const auto frame = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame*>(frame_list.front());
+    buffer.resize(frame->picture().size());
+    FastMemcpy(buffer.data(), frame->picture().data(), static_cast<int32_t>(frame->picture().size()));
+    return true;
+}
+
+static bool GetApeTagCover(TagLib::APE::Tag* tag, std::vector<uint8_t>& buffer) {
+    const auto& listMap = tag->itemListMap();
+
+    if (!listMap.contains("COVER ART (FRONT)")) {
+        return false;
+    }
+
+    const TagLib::ByteVector nullStringTerminator(1, 0);
+    auto item = listMap["COVER ART (FRONT)"].binaryData();
+    auto pos = item.find(nullStringTerminator);	// Skip the filename
+    if (++pos > 0) {
+        const TagLib::ByteVector& pic = item.mid(pos);
+        buffer.resize(pic.size());
+        FastMemcpy(buffer.data(), pic.data(), static_cast<int32_t>(pic.size()));
+        return true;
+    }
+    return false;
+}
+
+static bool GetMp3Cover(File* file, std::vector<uint8_t>& buffer) {
+    bool found = false;
+    if (const auto mpeg_file = dynamic_cast<TagLib::MPEG::File*>(file)) {
+        if (mpeg_file->ID3v2Tag()) {
+            found = GetID3V2TagCover(mpeg_file->ID3v2Tag(), buffer);
+        }
+        if (!found && mpeg_file->APETag()) {
+            GetApeTagCover(mpeg_file->APETag(), buffer);
+        }
+    }
+    return found;
+}
+
+static bool GetApeCover(File* file, std::vector<uint8_t>& buffer) {
+    if (const auto ape_file = dynamic_cast<TagLib::APE::File*>(file)) {
+        return GetApeTagCover(ape_file->APETag(), buffer);
+    }
+    return false;
+}
+
+static bool GetMp4Cover(File* file, std::vector<uint8_t>& buffer) {
+    if (const auto mp4_file = dynamic_cast<TagLib::MP4::File*>(file)) {
+        const auto tag = mp4_file->tag();
+        if (!tag) {
+            return false;
+        }
+
+        if (!tag->itemListMap().contains("covr")) {
+            return false;
+        }
+
+        auto cover_list = tag->itemListMap()["covr"].toCoverArtList();
+        if (cover_list[0].data().size() > 0) {
+            buffer.resize(cover_list[0].data().size());
+            FastMemcpy(buffer.data(), cover_list[0].data().data(), static_cast<int32_t>(cover_list[0].data().size()));
+            return true;
+        }
+    }
+    return false;
+}
+
+static bool GetFlacCover(File* file, std::vector<uint8_t>& buffer) {
+    if (const auto flac_file = dynamic_cast<TagLib::FLAC::File*>(file)) {
+        const auto picture_list = flac_file->pictureList();
+        if (picture_list.isEmpty()) {
+            return false;
+        }
+
+        for (const auto &picture : picture_list) {
+            if (picture->mimeType() == "image/jpeg") {
+                buffer.resize(picture->data().size());
+                FastMemcpy(buffer.data(), picture->data().data(), static_cast<int32_t>(picture->data().size()));
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+static void SetFileInfo(const Path& path, Metadata& metadata) {
+    metadata.file_path = path;
+    metadata.file_name = path.filename();
+    metadata.parent_path = path.parent_path();
+    metadata.file_ext = path.extension();
+    metadata.file_name_no_ext = path.stem();
+}
+
+static void SetAudioProperties(AudioProperties* audio_properties, Metadata& metadata) {
+    if (audio_properties != nullptr) {
+        metadata.duration = audio_properties->lengthInMilliseconds() / 1000.0;
+        metadata.bitrate = audio_properties->bitrate();
+		metadata.samplerate = audio_properties->sampleRate();
+    }
+}
+
+static void ExtractTag(const Path& path, Tag* tag, AudioProperties*audio_properties, Metadata& metadata) {
+    if (!tag->isEmpty()) {
+        metadata.artist = tag->artist().toWString();
+        metadata.title = tag->title().toWString();
+        metadata.album = tag->album().toWString();
+        metadata.track = tag->track();
+    }
+
+    SetFileInfo(path, metadata);
+    SetAudioProperties(audio_properties, metadata);
+}
+
+class TaglibHelper {
+public:
+	static TaglibHelper& Instance() {
+		static TaglibHelper instance;
+		return instance;
+	}
+
+	const std::unordered_set<std::string>& GetSupportFileExtensions() const {
+		return support_file_extensions_;
+	}
+
+	bool IsSupported(const Path& path) const noexcept {
+		const auto file_ext = ToLower(path.extension().string());
+		return support_file_extensions_.find(file_ext) != support_file_extensions_.end();
+	}
+
+protected:
+	TaglibHelper() {
+		for (const auto& file_exts : TagLib::FileRef::defaultFileExtensions()) {
+			support_file_extensions_.insert(std::string(".") + file_exts.toCString());
+		}
+	}
+private:
+	std::unordered_set<std::string> support_file_extensions_;
+};
+
+class TaglibMetadataReader::TaglibMetadataReaderImpl {
+public:
+    TaglibMetadataReaderImpl() {		
+    }
+
+    void Extract(const Path& path, Metadata& metadata) const {
+        FileRef fileref(path.wstring().c_str(), true, TagLib::AudioProperties::Fast);
+        const auto tag = fileref.tag();
+
+        if (tag != nullptr) {
+            ExtractTag(path, tag, fileref.audioProperties(), metadata);
+        } else {            
+            SetFileInfo(path, metadata);
+            SetAudioProperties(fileref.audioProperties(), metadata);
+        }
+
+        // Tag not empty but title maybe empty!
+        if (metadata.title.empty()) {
+            const auto start_pos = metadata.file_name_no_ext.find(L'.');
+			if (start_pos != std::wstring::npos) {
+				metadata.title = metadata.file_name_no_ext.substr(start_pos + 1);
+				std::wistringstream istr(metadata.file_name_no_ext.substr(0, start_pos));
+				istr >> metadata.track;
+			} else {
+				metadata.title = metadata.file_name_no_ext;
+			}
+        }
+    }
+
+    const std::vector<uint8_t>& ExtractCover(const Path& path) {
+        FileRef fileref(path.wstring().c_str());
+
+        const auto tag = fileref.tag();
+        if (!tag) {
+            cover_.clear();
+            return cover_;
+        }
+
+        cover_.clear();
+        const auto ext = ToUpper(path.extension().string());
+        GetCover(ext, fileref.file(), cover_);
+        return cover_;
+    }
+
+    const std::unordered_set<std::string>& GetSupportFileExtensions() const {
+        return TaglibHelper::Instance().GetSupportFileExtensions();
+    }
+
+    bool IsSupported(const Path& path) const noexcept {
+		return TaglibHelper::Instance().IsSupported(path);
+    }
+
+private:
+    static void GetCover(const std::string& ext, File*file, std::vector<uint8_t>& cover) {
+        static std::unordered_map<std::string, FunctionRef<bool(File *, std::vector<uint8_t> &)>> 
+			parse_cover_table{
+            { ".FLAC", GetFlacCover },
+            { ".MP3",  GetMp3Cover },
+            { ".M4A",  GetMp4Cover },
+            { ".APE",  GetApeCover },
+        };
+        auto itr = parse_cover_table.find(ext);
+        if (itr != parse_cover_table.end()) {
+            (*itr).second(file, cover);
+        }
+    }
+
+    std::vector<uint8_t> cover_;
+};
+
+XAMP_PIMPL_IMPL(TaglibMetadataReader)
+
+TaglibMetadataReader::TaglibMetadataReader()
+    : reader_(std::make_unique<TaglibMetadataReaderImpl>()) {
+}
+
+void TaglibMetadataReader::Extract(const Path& path, Metadata & metadata) {
+    reader_->Extract(path, metadata);
+}
+
+void TaglibMetadataReader::Extract(const Path& path, MetadataExtractAdapter* adapter) {
+    if (is_directory(path)) {
+        for (RecursiveDirectoryIterator itr(path), end; itr != end && !adapter->IsCancel(); ++itr) {
+            const auto current_path = (*itr).path();
+
+            if (!is_directory(current_path) && reader_->IsSupported(current_path)) {
+                Metadata metadata;
+                reader_->Extract(current_path, metadata);
+                adapter->OnWalk(path, metadata);
+            }
+            else if (is_directory(current_path)) {
+				adapter->OnWalkNext();
+            }			
+        }
+		adapter->OnWalkNext();
+    } else {
+        Metadata metadata;
+        reader_->Extract(path, metadata);
+        adapter->OnWalk(path, metadata);
+		adapter->OnWalkNext();
+    }
+}
+
+const std::vector<uint8_t>& TaglibMetadataReader::ExtractEmbeddedCover(const Path & path) {
+    return reader_->ExtractCover(path);
+}
+
+const std::unordered_set<std::string>& TaglibMetadataReader::GetSupportFileExtensions() const {
+    return reader_->GetSupportFileExtensions();
+}
+
+bool TaglibMetadataReader::IsSupported(const Path & path) const {
+    return reader_->IsSupported(path);
+}
+
+}

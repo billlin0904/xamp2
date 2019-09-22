@@ -44,7 +44,7 @@ const ID& ExclusiveWasapiDeviceType::GetTypeId() const {
 }
 
 int32_t ExclusiveWasapiDeviceType::GetDeviceCount() const {
-	return device_list_.size();
+	return static_cast<int32_t>(device_list_.size());
 }
 
 DeviceInfo ExclusiveWasapiDeviceType::GetDeviceInfo(int32_t device) const {

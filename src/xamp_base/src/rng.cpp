@@ -1,0 +1,22 @@
+#include <algorithm>
+#include <vector>
+
+#include <base/rng.h>
+
+namespace xamp::base {
+
+RNG& RNG::Get() {
+    static thread_local RNG rng;
+    return rng;
+}
+
+RNG::RNG() noexcept {
+    std::random_device device;
+    std::vector<std::mt19937_64::result_type> seeds(std::mt19937_64::state_size);
+    std::uniform_int_distribution<typename std::mt19937::result_type> dist;
+    std::generate(std::begin(seeds), std::end(seeds), std::ref(device));
+    const std::seed_seq seq(std::begin(seeds), std::end(seeds));
+	engine_.seed(seq);
+}
+
+}

@@ -29,6 +29,8 @@ enum InterleavedFormat {
 	DEINTERLEAVED
 };
 
+static const int32_t XAMP_MAX_CHANNEL = 2;
+
 class XAMP_BASE_API AudioFormat final {
 public:
 	static const AudioFormat UnknowFormat;
