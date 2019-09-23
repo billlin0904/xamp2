@@ -38,6 +38,8 @@ public:
 
 	int32_t GetVolume() const override;
 
+	bool IsMuted() const override;
+
 	void SetVolume(int32_t volume) const override;
 
 	void SetMute(bool mute) const override;

@@ -6,6 +6,7 @@
 #pragma once
 
 #include <exception>
+#include <ostream>
 
 #include <base/base.h>
 #include <string>
@@ -24,6 +25,8 @@ enum Errors {
 	XAMP_ERROR_NOT_SUPPORT_SAMPLERATE,
 	XAMP_ERROR_NOT_SUPPORT_FORMAT
 };
+
+std::ostream& operator<<(std::ostream& ostr, Errors error);
 
 class XAMP_BASE_API Exception : public std::exception {
 public:

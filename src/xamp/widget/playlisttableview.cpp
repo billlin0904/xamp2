@@ -29,9 +29,9 @@ PlayListEntity PlayListTableView::fromMetadata(const xamp::base::Metadata& metad
 	return item;
 }
 
-PlayListTableView::PlayListTableView(QWidget* parent)
+PlayListTableView::PlayListTableView(QWidget* parent, int32_t playlist_id)
 	: QTableView(parent)
-	, playlist_id_(-1)
+	, playlist_id_(playlist_id)
 	, model_(this)
 	, proxy_model_(this) {
 	initial();

@@ -70,6 +70,8 @@ FramelessWindow::FramelessWindow(QWidget* parent)
 	const MARGINS borderless = { 0 };
 	::DwmExtendFrameIntoClientArea(hwnd, &borderless);
 
+	::DwmEnableMMCSS(true);
+
 	SetBlurMaterial(hwnd);
 #endif
 
@@ -80,7 +82,9 @@ FramelessWindow::FramelessWindow(QWidget* parent)
 	)");
 }
 
-FramelessWindow::~FramelessWindow() = default;
+FramelessWindow::~FramelessWindow() {
+	::DwmEnableMMCSS(false);
+}
 
 void FramelessWindow::initialFontDatabase() {
 	const QStringList fallback_fonts{

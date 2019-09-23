@@ -65,6 +65,8 @@ public:
 		}
 	}
 
+	static bool IsExclusiveDevice(const DeviceInfo &info);
+
 private:
 	DeviceFactory() = default;
 	std::unordered_map<ID, std::function<std::unique_ptr<DeviceType>()>> creator_;

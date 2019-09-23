@@ -173,6 +173,9 @@ int32_t AudioPlayer::GetVolume() const {
 }
 
 bool AudioPlayer::IsMute() const {
+	if (device_->IsStreamOpen()) {
+		return device_->IsMuted();
+	}
 	return is_muted_;
 }
 

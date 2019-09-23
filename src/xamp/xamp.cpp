@@ -4,8 +4,10 @@
 #include <QMenu>
 
 #include "widget/win32/blur_effect_helper.h"
+#include "widget/toast.h"
 #include "widget/image_utiltis.h"
 #include "widget/time_utilts.h"
+#include "widget/database.h"
 #include "widget/pixmapcache.h"
 
 #include "xamp.h"
@@ -85,7 +87,7 @@ void Xamp::initialUI() {
 	)");
 	ui.searchLineEdit->setStyleSheet(R"(
 		QLineEdit#searchLineEdit {
-			background_color: white;
+			background-color: white;
 			border: none;
 		}
 	)");
@@ -201,7 +203,7 @@ void Xamp::initialDeviceList() {
 			background-color: rgba(228, 233, 237, 150);
 		}
 		QMenu::item:selected { 
-			background: transparent;
+			background-color: black;
 		}
 		)");
 	menu->clear();
@@ -229,7 +231,7 @@ void Xamp::initialDeviceList() {
 			device_action_group->addAction(device_action);
 			device_action->setCheckable(true);
 			device_id_action[device_info.device_id] = device_action;
-			QObject::connect(device_action, &QAction::triggered, [device_info, this]() {
+			(void)QObject::connect(device_action, &QAction::triggered, [device_info, this]() {
 				device_info_ = device_info;
 				});
 			menu->addAction(device_action);
@@ -237,9 +239,9 @@ void Xamp::initialDeviceList() {
 
 		if (!is_find_setting_device) {
 			auto itr = std::find_if(device_info_list.begin(), device_info_list.end(), [](const auto& info) {
-				return info.is_default_device;
+				return info.is_default_device && !DeviceFactory::IsExclusiveDevice(info);
 				});
-			if (itr != device_info_list.end()) {
+			if (itr != device_info_list.end()) {			
 				init_device_info = (*itr);
 				device_id_action[init_device_info.device_id]->setChecked(true);
 			}
@@ -253,11 +255,11 @@ void Xamp::initialController() {
 	qRegisterMetaType<xamp::player::PlayerState>("xamp::player::PlayerState");
 	qRegisterMetaType<xamp::base::Errors>("xamp::base::Errors");
 
-	QObject::connect(ui.minWinButton, &QToolButton::pressed, [this]() {
+	(void)QObject::connect(ui.minWinButton, &QToolButton::pressed, [this]() {
 		showMinimized();
 		});
 
-	QObject::connect(ui.maxWinButton, &QToolButton::pressed, [this]() {
+	(void)QObject::connect(ui.maxWinButton, &QToolButton::pressed, [this]() {
 		if (isMaximized()) {
 			showNormal();
 		}
@@ -266,11 +268,11 @@ void Xamp::initialController() {
 		}
 		});
 
-	QObject::connect(ui.closeButton, &QToolButton::pressed, [this]() {
+	(void)QObject::connect(ui.closeButton, &QToolButton::pressed, [this]() {
 		QWidget::close();
 		});
 
-	QObject::connect(ui.seekSlider, &QSlider::sliderMoved, [this](auto value) {
+	(void)QObject::connect(ui.seekSlider, &QSlider::sliderMoved, [this](auto value) {
 		QToolTip::showText(QCursor::pos(), Time::msToString(double(ui.seekSlider->value()) / 1000.0));
 		if (!is_seeking_) {
 			return;
@@ -278,7 +280,7 @@ void Xamp::initialController() {
 		ui.seekSlider->setValue(value);
 		});
 
-	QObject::connect(ui.seekSlider, &QSlider::sliderReleased, [this]() {
+	(void)QObject::connect(ui.seekSlider, &QSlider::sliderReleased, [this]() {
 		QToolTip::showText(QCursor::pos(), Time::msToString(double(ui.seekSlider->value()) / 1000.0));
 		if (!is_seeking_) {
 			return;
@@ -287,7 +289,7 @@ void Xamp::initialController() {
 		is_seeking_ = false;
 		});
 
-	QObject::connect(ui.seekSlider, &QSlider::sliderPressed, [this]() {
+	(void)QObject::connect(ui.seekSlider, &QSlider::sliderPressed, [this]() {
 		QToolTip::showText(QCursor::pos(), Time::msToString(double(ui.seekSlider->value()) / 1000.0));
 		if (is_seeking_) {
 			return;
@@ -299,32 +301,32 @@ void Xamp::initialController() {
 	ui.volumeSlider->setRange(0, 100);
 	ui.volumeSlider->setValue(50);
 
-	QObject::connect(ui.volumeSlider, &QSlider::sliderMoved, [this](auto pos) {
+	(void)QObject::connect(ui.volumeSlider, &QSlider::sliderMoved, [this](auto pos) {
 		});
 
-	QObject::connect(ui.volumeSlider, &QSlider::valueChanged, [this](auto volume) {
+	(void)QObject::connect(ui.volumeSlider, &QSlider::valueChanged, [this](auto volume) {
 		QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + QString("%"));
 		setVolume(volume);
 		});
 
-	QObject::connect(ui.volumeSlider, &QSlider::sliderMoved, [this](auto volume) {
+	(void)QObject::connect(ui.volumeSlider, &QSlider::sliderMoved, [this](auto volume) {
 		QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + QString("%"));
 		setVolume(volume);
 		});
 
-	QObject::connect(state_adapter_.get(),
+	(void)QObject::connect(state_adapter_.get(),
 		&PlayerStateAdapter::stateChanged,
 		this,
 		&Xamp::onPlayerStateChanged,
 		Qt::QueuedConnection);
 
-	QObject::connect(state_adapter_.get(),
+	(void)QObject::connect(state_adapter_.get(),
 		&PlayerStateAdapter::sampleTimeChanged,
 		this,
 		&Xamp::onSampleTimeChanged,
 		Qt::QueuedConnection);
 
-	QObject::connect(ui.searchLineEdit, &QLineEdit::textChanged, [this](const auto &text) {		
+	(void)QObject::connect(ui.searchLineEdit, &QLineEdit::textChanged, [this](const auto &text) {
 		if (ui.currentView->count() > 0) {
 			auto playlist_view = static_cast<PlayListTableView*>(ui.currentView->widget(0));
 			emit playlist_view->search(text, Qt::CaseSensitivity::CaseInsensitive, QRegExp::PatternSyntax());
@@ -377,7 +379,12 @@ void Xamp::play(const PlayListEntity& item) {
 	ui.artistLabel->setText(item.artist);
 
 	player_->Open(item.file_path.toStdWString(), device_info_);
-	player_->SetVolume(ui.volumeSlider->value());
+	
+	if (!player_->IsMute()) {		
+		setVolume(ui.volumeSlider->value());
+	} else {
+		setVolume(0);
+	}
 	
 	ui.seekSlider->setValue(0);
 	ui.seekSlider->setEnabled(true);
@@ -389,20 +396,21 @@ void Xamp::play(const PlayListEntity& item) {
 }
 
 void Xamp::play(const QModelIndex& index, const PlayListEntity& item) {
-	try {
+	try {		
 		playLocalFile(item);
 		setPlayOrPauseButton(true);
 	} catch(const xamp::base::Exception& e) {
 		ui.seekSlider->setEnabled(false);
 		player_->Stop(true, true);
-		qDebug() << e.GetErrorMessage();
+		Toast::showTip(e.GetErrorMessage(), this);
 	} catch (const std::exception& e) {
 		ui.seekSlider->setEnabled(false);
 		player_->Stop(true, true);
-		qDebug() << e.what();
+		Toast::showTip(e.what(), this);
 	} catch (...) {
 		ui.seekSlider->setEnabled(false);
 		player_->Stop(true, true);
+		Toast::showTip(tr("Uknown error!"), this);
 	}
 
 	QPixmap cover;
@@ -421,10 +429,14 @@ void Xamp::addItem(const QString& file_name) {
 	if (!ui.currentView->count()) {
 		playlist_view = new PlayListTableView(nullptr);
 		playlist_view->setStyleSheet(R"(background: transparent;)");
-		QObject::connect(playlist_view, &PlayListTableView::playMusic, [this](auto index, const auto &item) {
+		(void)QObject::connect(playlist_view, &PlayListTableView::playMusic,
+			[this](auto index, const auto &item) {
 			play(index, item);
 			});
 		ui.currentView->addWidget(playlist_view);
+		auto table_id = Database::Instance().addTable("", 0);
+		auto playlist_id = Database::Instance().addPlaylist("", 0);
+		playlist_view->setPlaylistId(playlist_id);
 	}
 	else {
 		playlist_view = static_cast<PlayListTableView*>(ui.currentView->widget(0));

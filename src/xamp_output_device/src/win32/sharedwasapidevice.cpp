@@ -192,6 +192,15 @@ void SharedWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	}
 }
 
+bool SharedWasapiDevice::IsMuted() const {
+	CComPtr<ISimpleAudioVolume> simple_audio_volume;
+	HR_IF_FAILED_THROW(client_->GetService(__uuidof(ISimpleAudioVolume), reinterpret_cast<void**>(&simple_audio_volume)));
+
+	BOOL is_muted = FALSE;
+	HR_IF_FAILED_THROW(simple_audio_volume->GetMute(&is_muted));
+	return is_muted;
+}
+
 int32_t SharedWasapiDevice::GetVolume() const {
 	CComPtr<ISimpleAudioVolume> simple_audio_volume;
 	HR_IF_FAILED_THROW(client_->GetService(__uuidof(ISimpleAudioVolume), reinterpret_cast<void**>(&simple_audio_volume)));

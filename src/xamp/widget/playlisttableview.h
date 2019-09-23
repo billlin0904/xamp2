@@ -19,7 +19,7 @@
 class PlayListTableView : public QTableView {
 	Q_OBJECT
 public:
-	explicit PlayListTableView(QWidget* parent = nullptr);
+	explicit PlayListTableView(QWidget* parent = nullptr, int32_t playlist_id = 1);
 
 	~PlayListTableView() override;
 

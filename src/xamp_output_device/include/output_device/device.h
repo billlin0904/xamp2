@@ -40,6 +40,8 @@ public:
 
 	virtual void SetMute(bool mute) const = 0;
 
+	virtual bool IsMuted() const = 0;
+
 	virtual void DisplayControlPanel() = 0;
 
 	virtual InterleavedFormat GetInterleavedFormat() const = 0;

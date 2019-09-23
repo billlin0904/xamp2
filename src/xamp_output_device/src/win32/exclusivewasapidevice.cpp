@@ -366,6 +366,12 @@ void ExclusiveWasapiDevice::SetVolume(const int32_t volume) const {
 	HR_IF_FAILED_THROW(endpoint_volume_->SetMasterVolumeLevelScalar(channel_volume, &GUID_NULL));
 }
 
+bool ExclusiveWasapiDevice::IsMuted() const {
+	auto is_mute = FALSE;
+	HR_IF_FAILED_THROW(endpoint_volume_->GetMute(&is_mute));
+	return is_mute;
+}
+
 void ExclusiveWasapiDevice::SetMute(const bool mute) const {
 	HR_IF_FAILED_THROW(endpoint_volume_->SetMute(mute, nullptr));
 }

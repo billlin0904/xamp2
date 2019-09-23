@@ -1,25 +1,35 @@
+#include <QSqlTableModel>
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QDebug>
 
-#include <vector>
-
+#include "time_utilts.h"
 #include "database.h"
 
 #define ENSURE_EXEC(query) \
 		if (!query.exec()) {\
-			qDebug() << query.lastError().text();\
-			throw std::invalid_argument("Sql execute fail");\
+			throw SqlException(query.lastError());\
 		}
 
 #define ENSURE_EXEC_SQL(query, sql) \
 		if (!query.exec(sql)) {\
-			qDebug() << query.lastError().text();\
-			throw std::invalid_argument("Sql execute fail");\
+			throw SqlException(query.lastError());\
 		}
 
-Database::Database() {
+SqlException::SqlException(QSqlError error)
+	: message_(error.text().toStdString()) {
+}
 
+const char* SqlException::what() const {
+	return message_.c_str();
+}
+
+Database::Database() {
+	db_ = QSqlDatabase::addDatabase("QSQLITE");
+}
+
+Database::~Database() {	
+	db_.close();
 }
 
 void Database::createTableIfNotExist() {
@@ -127,34 +137,217 @@ void Database::createTableIfNotExist() {
 	}
 }
 
-void Database::open(const QString& file_name) {
-	db_ = QSqlDatabase::addDatabase("QSQLITE");
+void Database::open(const QString& file_name) {	
 	db_.setDatabaseName(file_name);
+
 	if (!db_.open()) {
-		auto message = "Database open fail! " + db_.lastError().text().toStdString();
-		throw std::invalid_argument(message.c_str());
+		throw std::invalid_argument("Database open fail! " + db_.lastError().text().toStdString());
 		return;
 	}
+
 	(void)db_.exec("PRAGMA synchronous = OFF");
 	(void)db_.exec("PRAGMA auto_vacuum = FULL");
 	(void)db_.exec("PRAGMA foreign_keys = ON");
 	(void)db_.exec("PRAGMA journal_mode = MEMORY");
 	(void)db_.exec("PRAGMA cache_size = 100000");
 	(void)db_.exec("PRAGMA temp_store = MEMORY");
+
+	createTableIfNotExist();
 }
 
-int32_t Database::addOrUpdateMusic(const xamp::base::Metadata& medata, int32_t playlist_id) {
-	return 0;
+int32_t Database::addTable(const QString& name, int32_t table_index) {
+	QSqlTableModel model(nullptr, db_);
+
+	model.setEditStrategy(QSqlTableModel::OnManualSubmit);
+	model.setTable("tables");
+	model.select();
+
+	if (!model.insertRows(0, 1)) {
+		return INVALID_DATABASE_ID;
+	}
+
+	model.setData(model.index(0, 0), QVariant());
+	model.setData(model.index(0, 1), table_index);
+	model.setData(model.index(0, 2), 0);
+	model.setData(model.index(0, 3), name);
+
+	if (!model.submitAll()) {
+		return INVALID_DATABASE_ID;
+	}
+
+	model.database().commit();
+	return model.query().lastInsertId().toInt();
+}
+
+int32_t Database::addPlaylist(const QString& name, int32_t playlist_index) {
+	QSqlTableModel model(nullptr, db_);
+
+	model.setEditStrategy(QSqlTableModel::OnManualSubmit);
+	model.setTable("playlist");
+	model.select();
+
+	if (!model.insertRows(0, 1)) {
+		return INVALID_DATABASE_ID;
+	}
+
+	model.setData(model.index(0, 0), QVariant());
+	model.setData(model.index(0, 1), playlist_index);
+	model.setData(model.index(0, 2), name);
+
+	if (!model.submitAll()) {
+		return INVALID_DATABASE_ID;
+	}
+
+	model.database().commit();
+	return model.query().lastInsertId().toInt();
+}
+
+void Database::addTablePlaylist(int32_t tableId, int32_t playlist_id) {
+	QSqlQuery query;
+
+	query.prepare(R"(
+        INSERT INTO tablePlaylist (playlistId, tableId) VALUES (:playlistId, :tableId)
+    )");
+
+	query.bindValue(":playlistId", playlist_id);
+	query.bindValue(":tableId", tableId);
+
+	ENSURE_EXEC(query);
+}
+
+int32_t Database::addOrUpdateMusic(const xamp::base::Metadata& metadata, int32_t playlist_id) {
+	QSqlQuery query;
+
+	query.prepare(
+		R"(
+		INSERT OR REPLACE INTO musics
+		       (musicId, title, track, path, title, fileExt, fileName, duration, durationStr, parentPath, bitrate, samplerate, offset)
+		VALUES ((SELECT musicId FROM musics WHERE path = :path and offset = :offset), :title, :track, :path, :title, :fileExt, :fileName, :duration, :durationStr, :parentPath, :bitrate, :samplerate, :offset)
+		)");
+
+	auto album = QString::fromStdWString(metadata.album);
+	auto artist = QString::fromStdWString(metadata.artist);
+
+	query.bindValue(":title", QString::fromStdWString(metadata.title));
+	query.bindValue(":track", metadata.track);
+	query.bindValue(":path", QString::fromStdWString(metadata.file_path));
+	query.bindValue(":fileExt", QString::fromStdWString(metadata.file_ext));
+	query.bindValue(":fileName", QString::fromStdWString(metadata.file_name));
+	query.bindValue(":parentPath", QString::fromStdWString(metadata.parent_path));
+	query.bindValue(":duration", metadata.duration);
+	query.bindValue(":durationStr", Time::msToString(metadata.duration));
+	query.bindValue(":bitrate", metadata.bitrate);
+	query.bindValue(":samplerate", metadata.samplerate);
+	query.bindValue(":offset", metadata.offset);
+
+	db_.transaction();
+
+	if (!query.exec()) {
+		qDebug() << query.lastError().text();
+		return INVALID_DATABASE_ID;
+	}
+
+	auto music_id = query.lastInsertId().toInt();
+	addMusicToPlaylist(music_id, playlist_id);
+
+	db_.commit();
+	return music_id;
+}
+
+void Database::addMusicToPlaylist(int32_t music_id, int32_t playlist_id) const {
+	QSqlQuery query;
+
+	query.prepare(R"(
+        INSERT INTO playlistMusics (playlistId, musicId) VALUES (:playlistId, :musicId)
+    )");
+
+	query.bindValue(":playlistId", playlist_id);
+	query.bindValue(":musicId", music_id);
+	ENSURE_EXEC(query);
 }
 
 int32_t Database::addOrUpdateArtist(const QString& artist) {
-	return 0;
+	QSqlQuery query;
+
+	query.prepare(
+		R"(
+		INSERT OR REPLACE INTO artists (artistId, artist)
+		VALUES ((SELECT artistId FROM artists WHERE artist = :artist), :artist)
+		)");
+
+	query.bindValue(":artist", artist);
+
+	ENSURE_EXEC(query);
+
+	const auto artist_id = query.lastInsertId().toInt();
+	return artist_id;
 }
 
 int32_t Database::addOrUpdateAlbum(const QString& album, int32_t artist_id) {
-	return 0;
+	QSqlQuery query;
+
+	query.prepare(
+		R"(
+		INSERT OR REPLACE INTO albums (albumId, album, artistId)
+		VALUES ((SELECT albumId FROM albums WHERE album = :album), :album, :artistId)
+		)");
+	
+	query.bindValue(":album", album);
+	query.bindValue(":artistId", artist_id);
+
+	ENSURE_EXEC(query);
+
+	const auto album_id = query.lastInsertId().toInt();
+	return album_id;
 }
 
-int32_t Database::addOrUpdateAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id) {
-	return 0;
+void Database::addOrUpdateAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id) {
+	QSqlQuery query;
+
+	query.prepare(R"(
+	SELECT
+		albumMusicId
+	FROM
+		albumMusic
+	JOIN
+		albums ON albums.albumId = albumMusic.albumId
+	JOIN
+		artists ON artists.artistId = albumMusic.artistId
+	JOIN 
+		musics ON musics.musicId = albumMusic.musicId
+	WHERE
+		albums.albumId = :albumId 
+	AND 
+		artists.artistId = :artistId
+	AND 
+		musics.musicId = :musicId;
+	)");
+
+	query.bindValue(":album", album_id);
+	query.bindValue(":artist", artist_id);
+	query.bindValue(":musicId", music_id);
+
+	db_.transaction();
+
+	ENSURE_EXEC(query);
+
+	if (!query.next()) {
+		addAlbumMusic(album_id, artist_id, music_id);
+		db_.commit();
+	}
+}
+
+void Database::addAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id) const {
+	QSqlQuery query;
+
+	query.prepare(R"(
+		INSERT OR REPLACE INTO albumMusic (albumMusicId, albumId, artistId, musicId) 
+        VALUES ((SELECT albumMusicId from albumMusic where albumId = :albumId AND artistId = :artistId AND musicId = :musicId), :albumId, :artistId, :musicId)
+	)");
+
+	query.bindValue(":albumId", album_id);
+	query.bindValue(":artistId", artist_id);
+	query.bindValue(":musicId", music_id);
+
+	ENSURE_EXEC(query);
 }

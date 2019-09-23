@@ -49,6 +49,8 @@ public:
 
 	void DisplayControlPanel() override;
 
+	bool IsMuted() const override;
+
 	InterleavedFormat GetInterleavedFormat() const override;
 
 	void SetSchedulerService(const std::wstring& mmcss_name, MmcssThreadPriority thread_priority);

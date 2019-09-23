@@ -129,12 +129,14 @@
     <ClCompile Include="widget\playlisttablemodel.cpp" />
     <ClCompile Include="widget\playlisttableproxymodel.cpp" />
     <ClCompile Include="widget\playlisttableview.cpp" />
+    <ClCompile Include="widget\toast.cpp" />
     <ClCompile Include="xamp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="xamp.h" />
   </ItemGroup>
   <ItemGroup>
+    <QtUic Include="toast.ui" />
     <QtUic Include="xamp.ui" />
   </ItemGroup>
   <ItemGroup>
@@ -171,6 +173,10 @@
     <QtMoc Include="widget\playlisttableview.h">
       <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtWidgets;.\..\xamp_base\include;.\..\xamp_stream\include;.\..\xamp_output_device\include;.\..\xamp_player\include;$(QTDIR)\include\QtWinExtras</IncludePath>
       <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtWinExtras</IncludePath>
+    </QtMoc>
+    <QtMoc Include="widget\toast.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtWinExtras;.\..\xamp_base\include;.\..\xamp_stream\include;.\..\xamp_output_device\include;.\..\xamp_player\include;.\..\xamp_metadata\include</IncludePath>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtWinExtras;.\..\xamp_base\include;.\..\xamp_stream\include;.\..\xamp_player\include;.\..\xamp_output_device\include;.\..\xamp_metadata\include</IncludePath>
     </QtMoc>
     <ClInclude Include="widget\win32\blur_effect_helper.h" />
   </ItemGroup>
