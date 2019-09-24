@@ -29,7 +29,7 @@ public:
 
 	Logger& AddFileLogger(const std::string &file_name);
 
-	std::shared_ptr<spdlog::logger> GetLogger(const std::string &name, bool async_logging = false);
+	std::shared_ptr<spdlog::logger> GetLogger(const std::string &name);
 
 private:
 	struct LoggerImpl;

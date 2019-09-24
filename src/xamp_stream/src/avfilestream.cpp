@@ -253,8 +253,8 @@ public:
 		if (avformat_open_input(&format_ctx, nullptr, nullptr, nullptr) != 0) {
 			throw FileNotFoundException();
 		}
-#else
-		auto file_path_ut8 = ToUtf8String(file_path);
+#else		
+		auto file_path_ut8 = ToUtf8String(file_path);		
 		if (avformat_open_input(&format_ctx, file_path_ut8.c_str(), nullptr, nullptr) != 0) {
 			throw FileNotFoundException();
 		}
@@ -463,7 +463,7 @@ void AvFileStream::Seek(double stream_time) const {
 }
 
 std::wstring AvFileStream::GetStreamName() const {
-	return L"LibAv (experiment)";
+	return L"LibAv";
 }
 
 int32_t AvFileStream::GetSampleSize() const {

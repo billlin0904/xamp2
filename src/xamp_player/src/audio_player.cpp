@@ -4,7 +4,7 @@
 namespace xamp::player {
 
 static const int32_t BUFFER_STREAM_COUNT = 20;
-static const std::chrono::milliseconds UPDATE_SAMPLE_INTERVAL(15);
+static const std::chrono::milliseconds UPDATE_SAMPLE_INTERVAL(100);
 
 AudioPlayer::AudioPlayer()
 	: is_muted_(false)
@@ -68,6 +68,7 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, const DeviceInfo& de
 	stream_.Close();
 	if (!IsDSDFile(file_path)) {
 	}
+	PrefactchFile(file_path);
 	stream_.OpenFromFile(file_path, OpenMode::NOT_IN_MEMORY);
 }
 

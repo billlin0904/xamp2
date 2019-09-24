@@ -21,6 +21,7 @@ Xamp::Xamp(QWidget *parent)
 	player_ = std::make_shared<AudioPlayer>();
 	state_adapter_ = std::make_shared<PlayerStateAdapter>();
 	player_->SetStateAdapter(state_adapter_);
+	PixmapCache::Instance();
 	initialUI();
 	initialController();
 	initialDeviceList();
@@ -541,16 +542,20 @@ void Xamp::play(const QModelIndex& index, const PlayListEntity& item) {
 		Toast::showTip(tr("uknown error"), this);
 		return;
 	}
+	
+	auto page = static_cast<PlyalistPage*>(ui.currentView->widget(0));
 
 	QPixmap cover;
 	if (PixmapCache::Instance().find(item.cover_id, cover)) {
 		assert(!cover.isNull());
-		ui.coverLabel->setPixmap(Pixmap::resizeImage(cover, ui.coverLabel->size(), true));
-		auto page = static_cast<PlyalistPage*>(ui.currentView->widget(0));
-		auto page_cover = page->cover();
-		page_cover->setPixmap(Pixmap::resizeImage(cover, page_cover->size(), true));
-		page->title()->setText(item.title);
+		ui.coverLabel->setPixmap(Pixmap::resizeImage(cover, ui.coverLabel->size(), true));		
+		page->cover()->setPixmap(Pixmap::resizeImage(cover, page->cover()->size(), true));
 	}
+	else {
+		ui.coverLabel->setPixmap(QPixmap());
+		page->cover()->setPixmap(QPixmap());
+	}
+	page->title()->setText(item.title);
 }
 
 void Xamp::onPlayerStateChanged(xamp::player::PlayerState play_state) {

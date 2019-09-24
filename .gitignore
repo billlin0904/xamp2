@@ -45,3 +45,6 @@
 /src/xamp_output_device/x64
 /src/xamp_output_device/xamp_output_device.vcxproj.user
 /src/xamp/xamp.db
+/src/xamp/logs/xamp.log
+/src/xamp_metadata/xamp_metadata.vcxproj.user
+/src/xamp_stream/xamp_stream.vcxproj.user

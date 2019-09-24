@@ -67,7 +67,7 @@ private:
 };
 
 MemoryMappedFile::MemoryMappedFile()
-	: impl_(std::unique_ptr<MemoryMappedFileImpl>()) {
+	: impl_(std::make_unique<MemoryMappedFileImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(MemoryMappedFile)

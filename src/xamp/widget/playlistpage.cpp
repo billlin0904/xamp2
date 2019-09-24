@@ -14,40 +14,41 @@ PlyalistPage::PlyalistPage(QWidget* parent)
 void PlyalistPage::initial() {
 	setStyleSheet("background: transparent;");
 
-	auto verticalLayout_4 = new QVBoxLayout(this);
-	verticalLayout_4->setSpacing(0);
-	verticalLayout_4->setContentsMargins(11, 11, 11, 11);
-	verticalLayout_4->setObjectName(QString::fromUtf8("verticalLayout_4"));
-	verticalLayout_4->setContentsMargins(0, 20, 0, 0);
-	auto horizontalLayout_7 = new QHBoxLayout();
-	horizontalLayout_7->setSpacing(0);
-	horizontalLayout_7->setObjectName(QString::fromUtf8("horizontalLayout_7"));
-	horizontalLayout_7->setContentsMargins(20, -1, 20, -1);
-	auto verticalLayout_3 = new QVBoxLayout();
-	verticalLayout_3->setSpacing(0);
-	verticalLayout_3->setObjectName(QString::fromUtf8("verticalLayout_3"));
-	auto verticalSpacer_2 = new QSpacerItem(20, 10, QSizePolicy::Minimum, QSizePolicy::Fixed);
+	auto default_layout = new QVBoxLayout(this);
+	default_layout->setSpacing(0);
+	default_layout->setContentsMargins(11, 11, 11, 11);
+	default_layout->setObjectName(QString::fromUtf8("default_layout"));
+	default_layout->setContentsMargins(0, 20, 0, 0);
 
-	verticalLayout_3->addItem(verticalSpacer_2);
+	auto child_layout = new QHBoxLayout();
+	child_layout->setSpacing(0);
+	child_layout->setObjectName(QString::fromUtf8("horizontalLayout_7"));
+	child_layout->setContentsMargins(20, -1, 20, -1);
+	auto left_space_layout = new QVBoxLayout();
+	left_space_layout->setSpacing(0);
+	left_space_layout->setObjectName(QString::fromUtf8("verticalLayout_3"));
+	auto vertical_spacer = new QSpacerItem(20, 10, QSizePolicy::Minimum, QSizePolicy::Fixed);
+
+	left_space_layout->addItem(vertical_spacer);
 
 	cover_ = new QLabel(this);
 	cover_->setObjectName(QString::fromUtf8("label"));
 	cover_->setMinimumSize(QSize(150, 150));
 	cover_->setMaximumSize(QSize(150, 150));
 
-	verticalLayout_3->addWidget(cover_);
+	left_space_layout->addWidget(cover_);
 
 
-	horizontalLayout_7->addLayout(verticalLayout_3);
+	child_layout->addLayout(left_space_layout);
 
-	auto horizontalSpacer_15 = new QSpacerItem(40, 20, QSizePolicy::Fixed, QSizePolicy::Minimum);
+	auto horizontal_spacer = new QSpacerItem(40, 20, QSizePolicy::Fixed, QSizePolicy::Minimum);
 
-	horizontalLayout_7->addItem(horizontalSpacer_15);
+	child_layout->addItem(horizontal_spacer);
 
-	auto verticalLayout_2 = new QVBoxLayout();
-	verticalLayout_2->setSpacing(0);
-	verticalLayout_2->setObjectName(QString::fromUtf8("verticalLayout_2"));
-	verticalLayout_2->setContentsMargins(-1, 5, -1, -1);
+	auto album_title_layout = new QVBoxLayout();
+	album_title_layout->setSpacing(0);
+	album_title_layout->setObjectName(QString::fromUtf8("verticalLayout_2"));
+	album_title_layout->setContentsMargins(-1, 5, -1, -1);
 	title_ = new QLabel(this);
 	auto f = font();
 	f.setPixelSize(25);
@@ -56,22 +57,21 @@ void PlyalistPage::initial() {
 	title_->setMinimumSize(QSize(0, 30));
 	title_->setMaximumSize(QSize(16777215, 30));
 
-	verticalLayout_2->addWidget(title_);
+	album_title_layout->addWidget(title_);
 
-	auto verticalSpacer = new QSpacerItem(20, 108, QSizePolicy::Minimum, QSizePolicy::Expanding);
+	auto right_spacer = new QSpacerItem(20, 108, QSizePolicy::Minimum, QSizePolicy::Expanding);
+	album_title_layout->addItem(right_spacer);
 
-	verticalLayout_2->addItem(verticalSpacer);
 
+	child_layout->addLayout(album_title_layout);
 
-	horizontalLayout_7->addLayout(verticalLayout_2);
+	child_layout->setStretch(2, 1);
 
-	horizontalLayout_7->setStretch(2, 1);
+	default_layout->addLayout(child_layout);
 
-	verticalLayout_4->addLayout(horizontalLayout_7);
+	auto default_spacer = new QSpacerItem(20, 10, QSizePolicy::Minimum, QSizePolicy::Fixed);
 
-	auto verticalSpacer_3 = new QSpacerItem(20, 10, QSizePolicy::Minimum, QSizePolicy::Fixed);
-
-	verticalLayout_4->addItem(verticalSpacer_3);
+	default_layout->addItem(default_spacer);
 
 	auto horizontalLayout_8 = new QHBoxLayout();
 	horizontalLayout_8->setSpacing(0);
@@ -91,9 +91,9 @@ void PlyalistPage::initial() {
 
 	horizontalLayout_8->setStretch(1, 1);
 
-	verticalLayout_4->addLayout(horizontalLayout_8);
+	default_layout->addLayout(horizontalLayout_8);
 
-	verticalLayout_4->setStretch(2, 1);
+	default_layout->setStretch(2, 1);
 }
 
 QLabel* PlyalistPage::title() {

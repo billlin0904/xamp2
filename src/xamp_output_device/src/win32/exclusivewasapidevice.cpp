@@ -202,7 +202,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	}
 
 	buffer_.reset(new float[frames_per_latency_ * 2]);
-    data_covert_ = MakeConvert(output_format, valid_output_format, frames_per_latency_);
+    data_convert_ = MakeConvert(output_format, valid_output_format, frames_per_latency_);
 }
 
 void ExclusiveWasapiDevice::SetSchedulerService(const std::wstring &mmcss_name, const MmcssThreadPriority thread_priority) {
@@ -241,7 +241,7 @@ HRESULT ExclusiveWasapiDevice::OnSampleReady(IMFAsyncResult *result) {
 
  	if ((*callback_)(buffer_.get(), frames_per_latency_, stream_time_ / mix_format_->nSamplesPerSec) == 0) {
 		DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEAVED>::Convert2432Bit(
-            reinterpret_cast<int32_t*>(data), buffer_.get(), data_covert_);
+            reinterpret_cast<int32_t*>(data), buffer_.get(), data_convert_);
 
         hr = render_client_->ReleaseBuffer(frames_per_latency_, 0);
 		if (FAILED(hr)) {

@@ -47,30 +47,20 @@ Logger & Logger::Instance() {
 }
 
 Logger::Logger() {
-	spdlog::init_thread_pool(8192, 2);
 }
 
 Logger::~Logger() {
 }
 
-std::shared_ptr<spdlog::logger> Logger::GetLogger(const std::string &name, bool async_logging) {
+std::shared_ptr<spdlog::logger> Logger::GetLogger(const std::string &name) {
 	auto logger = spdlog::get(name);
 	if (logger != nullptr) {
 		return logger;
 	}
 
-	if (async_logging) {		
-		logger = std::make_shared<spdlog::async_logger>(name,
-			std::begin(sinks_),
-			std::end(sinks_),
-			spdlog::thread_pool(),
-			spdlog::async_overflow_policy::block);
-	}
-	else {
-		logger = std::make_shared<spdlog::logger>(name,
-			std::begin(sinks_),
-			std::end(sinks_));
-	}
+	logger = std::make_shared<spdlog::logger>(name,
+		std::begin(sinks_),
+		std::end(sinks_));
 
 	logger->set_level(spdlog::level::debug);
 	logger->set_pattern("[%H:%M:%S.%e][%l][%n] %v");
