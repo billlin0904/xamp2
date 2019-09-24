@@ -1,15 +1,12 @@
+#include <system_error>
 #include <output_device/win32/hrexception.h>
 
 namespace xamp::output_device::win32 {
 
-HRException::HRException(HRESULT hresult)
-	: hr_(hresult)
-	, expr_("") {
-}
-
 HRException::HRException(HRESULT hresult, const char* expr)
-	: hr_(hresult)
-	, expr_(expr) {
+	: Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, std::system_category().message(hresult))
+	, hr_(hresult)
+	, expr_("") {
 }
 
 HRException::HRException(HRESULT hresult, Errors error)

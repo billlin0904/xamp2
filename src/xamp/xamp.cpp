@@ -4,6 +4,8 @@
 #include <QMenu>
 
 #include "widget/win32/blur_effect_helper.h"
+
+#include "widget/playlistpage.h"
 #include "widget/toast.h"
 #include "widget/image_utiltis.h"
 #include "widget/time_utilts.h"
@@ -14,7 +16,8 @@
 
 Xamp::Xamp(QWidget *parent)
 	: FramelessWindow(parent)
-	, is_seeking_(false) {
+	, is_seeking_(false)
+	, order_(PLAYER_ORDER_REPEAT_ONE) {
 	player_ = std::make_shared<AudioPlayer>();
 	state_adapter_ = std::make_shared<PlayerStateAdapter>();
 	player_->SetStateAdapter(state_adapter_);
@@ -31,8 +34,9 @@ void Xamp::initialUI() {
 
 	ui.sliderBar->setStyleSheet("background-color: rgba(228, 233, 237, 150);");
 
-	ui.controlFrame->setStyleSheet("background-color: rgba(228, 233, 237, 240);");
-	ui.volumeFrame->setStyleSheet("background-color: rgba(228, 233, 237, 240);");
+	ui.controlFrame->setStyleSheet("background-color: rgba(255, 255, 255, 200);");
+	ui.volumeFrame->setStyleSheet("background-color: rgba(255, 255, 255, 200);");
+
 	ui.playingFrame->setStyleSheet("background-color: rgba(228, 233, 237, 220);");
 	ui.searchLineEdit->setStyleSheet("background: transparent;");
 	
@@ -122,6 +126,12 @@ void Xamp::initialUI() {
 	ui.repeatButton->setStyleSheet(R"(
 		QToolButton#repeatButton {
 			image: url(:/xamp/Resource/White/repeat.png);
+			background: transparent;
+		}
+	)");
+	ui.addPlaylistButton->setStyleSheet(R"(
+		QToolButton#addPlaylistButton {
+			image: url(:/xamp/Resource/White/create_new_folder.png);
 			background: transparent;
 		}
 	)");
@@ -328,9 +338,25 @@ void Xamp::initialController() {
 
 	(void)QObject::connect(ui.searchLineEdit, &QLineEdit::textChanged, [this](const auto &text) {
 		if (ui.currentView->count() > 0) {
-			auto playlist_view = static_cast<PlayListTableView*>(ui.currentView->widget(0));
+			auto playlist_view = static_cast<PlyalistPage*>(ui.currentView->widget(0))->playlist();
 			emit playlist_view->search(text, Qt::CaseSensitivity::CaseInsensitive, QRegExp::PatternSyntax());
 		}
+		});
+
+	(void)QObject::connect(ui.nextButton, &QToolButton::pressed, [this]() {
+		playNextClicked();
+		});
+
+	(void)QObject::connect(ui.prevButton, &QToolButton::pressed, [this]() {
+		playPreviousClicked();
+		});
+
+	(void)QObject::connect(ui.repeatButton, &QToolButton::pressed, [this]() {
+		setPlayerOrder();
+		});
+
+	(void)QObject::connect(ui.playButton, &QToolButton::pressed, [this]() {
+		play();
 		});
 
 	ui.seekSlider->setEnabled(false);
@@ -354,9 +380,79 @@ void Xamp::addMusic(int32_t music_id, PlayListTableView* playlist) {
 }
 
 void Xamp::playNextClicked() {
+	playNextItem(1);
 }
 
 void Xamp::playPreviousClicked() {
+	playNextItem(-1);
+}
+
+void Xamp::setPlayerOrder() {
+	order_ = static_cast<PlayerOrder>((order_ + 1) % _MAX_PLAYER_ORDER_);
+	switch (order_) {
+	case PLAYER_ORDER_REPEAT:
+		ui.repeatButton->setStyleSheet(R"(
+		QToolButton#repeatButton {
+			image: url(:/xamp/Resource/White/repeat.png);
+			background: transparent;
+		}
+		)");
+		break;
+	case PLAYER_ORDER_REPEAT_ONE:
+		ui.repeatButton->setStyleSheet(R"(
+		QToolButton#repeatButton {
+			image: url(:/xamp/Resource/White/repeat_one.png);
+			background: transparent;
+		}
+		)");
+		break;
+	case PLAYER_ORDER_SHUFFLE_ALL:
+		ui.repeatButton->setStyleSheet(R"(
+		QToolButton#repeatButton {
+			image: url(:/xamp/Resource/White/shuffle.png);
+			background: transparent;
+		}
+		)");
+		break;
+	}
+}
+
+void Xamp::playNextItem(int32_t forward) {
+	if (!ui.currentView->count()) {
+		stopPlayedClicked();
+		return;
+	}
+
+	auto playlist_view = static_cast<PlyalistPage*>(ui.currentView->widget(0))->playlist();
+	const auto count = playlist_view->model()->rowCount();
+	if (count == 0) {
+		stopPlayedClicked();
+		return;
+	}
+
+	switch (order_) {
+	case PLAYER_ORDER_REPEAT_ONE:
+		play_index_ = playlist_view->currentIndex();
+		break;
+	case PLAYER_ORDER_REPEAT:
+		play_index_ = playlist_view->model()->index(play_index_.row() + forward, PLAYLIST_PLAYING);
+		if (play_index_.row() == -1) {
+			return;
+		}
+		break;
+	case PLAYER_ORDER_SHUFFLE_ALL:
+		if (count > 1) {
+			play_index_ = playlist_view->shuffeIndex();
+		}
+		break;
+	}
+
+	if (!play_index_.isValid()) {
+		Toast::showTip(tr("Not found any playlist item."), this);
+		return;
+	}
+	playlist_view->setNowPlaying(play_index_, true);
+	playlist_view->play(play_index_);
 }
 
 void Xamp::onSampleTimeChanged(double stream_time) {
@@ -372,6 +468,36 @@ void Xamp::onSampleTimeChanged(double stream_time) {
 void Xamp::playLocalFile(const PlayListEntity& item) {
 	setTaskbarPlayerPlaying();
 	play(item);
+}
+
+void Xamp::play() {
+	if (player_->GetState() == PLAYER_STATE_RUNNING) {
+		setPlayOrPauseButton(false);
+		player_->Pause();
+		setTaskbarPlayerPaused();
+	}
+	else if (player_->GetState() == PLAYER_STATE_PAUSED) {
+		setPlayOrPauseButton(true);
+		player_->Resume();
+		setTaskbarPlayingResume();
+	}
+	else if (player_->GetState() == PLAYER_STATE_STOPPED) {
+		if (!ui.currentView->count()) {
+			return;
+		}
+		auto playlist_page = static_cast<PlyalistPage*>(ui.currentView->widget(0));
+		if (auto select_item = playlist_page->playlist()->selectItem()) {
+			play_index_ = select_item.value();
+		}
+		play_index_ = playlist_page->playlist()->model()->index(
+			play_index_.row(), PLAYLIST_PLAYING);
+		if (play_index_.row() == -1) {
+			Toast::showTip(tr("Not found any playing item."), this);
+			return;
+		}
+		playlist_page->playlist()->setNowPlaying(play_index_, true);
+		playlist_page->playlist()->play(play_index_);
+	}
 }
 
 void Xamp::play(const PlayListEntity& item) {
@@ -403,45 +529,56 @@ void Xamp::play(const QModelIndex& index, const PlayListEntity& item) {
 		ui.seekSlider->setEnabled(false);
 		player_->Stop(true, true);
 		Toast::showTip(e.GetErrorMessage(), this);
+		return;
 	} catch (const std::exception& e) {
 		ui.seekSlider->setEnabled(false);
 		player_->Stop(true, true);
 		Toast::showTip(e.what(), this);
+		return;
 	} catch (...) {
 		ui.seekSlider->setEnabled(false);
 		player_->Stop(true, true);
-		Toast::showTip(tr("Uknown error!"), this);
+		Toast::showTip(tr("uknown error"), this);
+		return;
 	}
 
 	QPixmap cover;
 	if (PixmapCache::Instance().find(item.cover_id, cover)) {
 		assert(!cover.isNull());
-		auto cover_size = ui.coverLabel->size();
-		ui.coverLabel->setPixmap(Pixmap::resizeImage(cover, cover_size, true));
+		ui.coverLabel->setPixmap(Pixmap::resizeImage(cover, ui.coverLabel->size(), true));
+		auto page = static_cast<PlyalistPage*>(ui.currentView->widget(0));
+		auto page_cover = page->cover();
+		page_cover->setPixmap(Pixmap::resizeImage(cover, page_cover->size(), true));
+		page->title()->setText(item.title);
 	}
 }
 
 void Xamp::onPlayerStateChanged(xamp::player::PlayerState play_state) {
+	if (play_state == PlayerState::PLAYER_STATE_STOPPED) {
+		resetTaskbarProgress();
+		ui.seekSlider->setValue(0);
+		ui.startPosLabel->setText(Time::msToString(0));
+		playNextItem(1);
+	}
 }
 
 void Xamp::addItem(const QString& file_name) {
-	PlayListTableView* playlist_view = nullptr;
+	PlyalistPage* playlist_page = nullptr;
 	if (!ui.currentView->count()) {
-		playlist_view = new PlayListTableView(nullptr);
-		playlist_view->setStyleSheet(R"(background: transparent;)");
-		(void)QObject::connect(playlist_view, &PlayListTableView::playMusic,
-			[this](auto index, const auto &item) {
-			play(index, item);
+		playlist_page = new PlyalistPage(nullptr);
+		ui.currentView->addWidget(playlist_page);
+		(void)QObject::connect(playlist_page->playlist(), &PlayListTableView::playMusic,
+			[this](auto index, const auto& item) {
+				play(index, item);
 			});
-		ui.currentView->addWidget(playlist_view);
 		auto table_id = Database::Instance().addTable("", 0);
 		auto playlist_id = Database::Instance().addPlaylist("", 0);
-		playlist_view->setPlaylistId(playlist_id);
+		playlist_page->playlist()->setPlaylistId(playlist_id);
 	}
 	else {
-		playlist_view = static_cast<PlayListTableView*>(ui.currentView->widget(0));
+		playlist_page = static_cast<PlyalistPage*>(ui.currentView->widget(0));
 	}
-	playlist_view->append(file_name);
+	playlist_page->playlist()->append(file_name);
 }
 
 void Xamp::addDropFileItem(const QUrl& url) {

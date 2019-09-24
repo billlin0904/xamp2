@@ -14,6 +14,13 @@
 
 using namespace xamp::player;
 
+enum PlayerOrder {
+	PLAYER_ORDER_REPEAT,
+	PLAYER_ORDER_REPEAT_ONE,
+	PLAYER_ORDER_SHUFFLE_ALL,
+	_MAX_PLAYER_ORDER_,
+};
+
 class Xamp : public FramelessWindow {
 	Q_OBJECT
 
@@ -36,7 +43,9 @@ private:
 
 	void playPreviousClicked();
 
-	void play(const PlayListEntity& item);	
+	void play(const PlayListEntity& item);
+
+	void play();
 
 	void onPlayerStateChanged(xamp::player::PlayerState play_state);
 
@@ -54,7 +63,13 @@ private:
 
 	void initialDeviceList();
 
+	void playNextItem(int32_t forward);
+
+	void setPlayerOrder();
+
 	bool is_seeking_;
+	PlayerOrder order_;
+	QModelIndex play_index_;
 	Ui::XampWindow ui;
 	DeviceInfo device_info_;
 	std::shared_ptr<PlayerStateAdapter> state_adapter_;

@@ -1,0 +1,46 @@
+//=====================================================================================================================
+// Copyright (c) 2018-2019 xamp project. All rights reserved.
+// More license information, please see LICENSE file in module root folder.
+//=====================================================================================================================
+
+#pragma once
+
+#include <memory>
+#include <string>
+
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/sink.h>
+#include <spdlog/fmt/ostr.h>
+
+#include <base/base.h>
+#include <base/memory.h>
+
+namespace xamp::base {
+
+class XAMP_BASE_API Logger {
+public:
+	static Logger & Instance();
+
+	~Logger();
+
+	XAMP_DISABLE_COPY(Logger)
+
+	Logger& AddDebugOutputLogger();
+
+	Logger& AddFileLogger(const std::string &file_name);
+
+	std::shared_ptr<spdlog::logger> GetLogger(const std::string &name, bool async_logging = false);
+
+private:
+	struct LoggerImpl;
+
+	Logger();	
+
+	std::vector<spdlog::sink_ptr> sinks_;
+};
+
+#define XAMP_LOG_DEBUG(...) Logger::Instance().GetLogger("default")->debug(__VA_ARGS__)
+#define XAMP_LOG_INFO(...) Logger::Instance().GetLogger("default")->info(__VA_ARGS__)
+
+}
+

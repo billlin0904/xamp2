@@ -1,6 +1,6 @@
 #include "xamp.h"
 
-#include <iostream>
+#include <base/logger.h>
 
 #include "widget/database.h"
 
@@ -8,9 +8,14 @@
 #include <QtWidgets/QApplication>
 
 int main(int argc, char *argv[]) {
+	Logger::Instance()
+		.AddDebugOutputLogger()
+		.AddFileLogger("xamp.log");
+
 	try {
 		Database::Instance().open("xamp.db");
 	} catch (const std::exception& e) {
+		XAMP_LOG_INFO("Initial database failure! {}", e.what());
 		return -1;
 	}
 

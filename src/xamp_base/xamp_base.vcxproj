@@ -77,7 +77,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>./include/;../thirdparty/FastMemcpy/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../thirdparty/FastMemcpy/;../thirdparty/spdlog/include/</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>BASE_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -118,7 +118,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>./include/;../thirdparty/FastMemcpy/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../thirdparty/FastMemcpy/;../thirdparty/spdlog/include/</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PreprocessorDefinitions>BASE_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <OmitFramePointers>true</OmitFramePointers>
@@ -141,6 +141,7 @@
     <ClInclude Include="include\base\file.h" />
     <ClInclude Include="include\base\function_ref.h" />
     <ClInclude Include="include\base\id.h" />
+    <ClInclude Include="include\base\logger.h" />
     <ClInclude Include="include\base\memory.h" />
     <ClInclude Include="include\base\metadata.h" />
     <ClInclude Include="include\base\rng.h" />
@@ -158,6 +159,7 @@
     <ClCompile Include="src\exception.cpp" />
     <ClCompile Include="src\file.cpp" />
     <ClCompile Include="src\id.cpp" />
+    <ClCompile Include="src\logger.cpp" />
     <ClCompile Include="src\memory.cpp" />
     <ClCompile Include="src\metadata.cpp" />
     <ClCompile Include="src\rng.cpp" />

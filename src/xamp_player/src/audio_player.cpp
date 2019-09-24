@@ -265,7 +265,7 @@ void AudioPlayer::CreateBuffer() {
 		stream_.GetFormat().GetByteFormat(),
 		input_format_.GetSampleRate());
 
-	int32_t require_read_sample = device_->GetBufferSize() * 20;
+	int32_t require_read_sample = device_->GetBufferSize() * 30;
 
 	auto output_format = input_format;
 	if (require_read_sample != num_read_sample_) {

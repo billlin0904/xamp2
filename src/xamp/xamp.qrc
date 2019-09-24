@@ -19,5 +19,6 @@
         <file>Resource/White/maximize.png</file>
         <file>Resource/White/play_arrow.png</file>
         <file>Resource/White/speaker.png</file>
+        <file>Resource/White/create_new_folder.png</file>
     </qresource>
 </RCC>

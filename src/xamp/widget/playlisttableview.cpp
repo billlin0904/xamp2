@@ -187,6 +187,10 @@ int32_t PlayListTableView::playlistId() const {
 	return playlist_id_;
 }
 
+QModelIndex PlayListTableView::currentIndex() const {
+	return play_index_;
+}
+
 QModelIndex PlayListTableView::shuffeIndex() {
 	std::vector<int32_t> indexes;
 	indexes.reserve(proxy_model_.rowCount());

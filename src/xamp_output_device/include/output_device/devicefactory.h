@@ -12,6 +12,8 @@
 
 #include <base/base.h>
 #include <base/id.h>
+#include <base/function_ref.h>
+
 #include <output_device/output_device.h>
 #include <output_device/device_type.h>
 
@@ -69,7 +71,7 @@ public:
 
 private:
 	DeviceFactory() = default;
-	std::unordered_map<ID, std::function<std::unique_ptr<DeviceType>()>> creator_;
+	std::unordered_map<ID, FunctionRef<std::unique_ptr<DeviceType>()>> creator_;
 };
 
 }

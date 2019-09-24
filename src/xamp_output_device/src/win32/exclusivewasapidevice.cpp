@@ -1,3 +1,4 @@
+#include <base/logger.h>
 #include <output_device/win32/hrexception.h>
 #include <output_device/win32/exclusivewasapidevice.h>
 
@@ -121,9 +122,9 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
 	if (FAILED(client_->SetClientProperties(&device_props))) {
 		device_props.Options = AUDCLNT_STREAMOPTIONS_MATCH_FORMAT;
 		HR_IF_FAILED_THROW(client_->SetClientProperties(&device_props));
-		//logger_->debug("Device not support RAW mode");
+		XAMP_LOG_DEBUG("Device not support RAW mode");
 	} else {
-		//logger_->debug("Device support RAW mode");
+		XAMP_LOG_DEBUG("Device support RAW mode");
 	}
 	
     REFERENCE_TIME default_device_period = 0;
@@ -131,14 +132,13 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
     HR_IF_FAILED_THROW(client_->GetDevicePeriod(&default_device_period, &minimum_device_period));
 
 	SetAlignedPeriod(default_device_period, output_format);
-	//logger_->debug("Exclusive mode: default:{} sec, min:{} sec",
-	//	Nano100ToSeconds(default_device_period),
-	//	Nano100ToSeconds(minimum_device_period));
+	XAMP_LOG_DEBUG("Exclusive mode: default:{} sec, min:{} sec",
+		Nano100ToSeconds(default_device_period),
+		Nano100ToSeconds(minimum_device_period));
 
-	//logger_->debug("Frame per latency: {}", frames_per_latency_);	
+	XAMP_LOG_DEBUG("Frame per latency: {}", frames_per_latency_);
 
-	//logger_->debug("Initial aligned period: {} sec",
-    //    Nano100ToSeconds(aligned_period_));
+	XAMP_LOG_DEBUG("Initial aligned period: {} sec", Nano100ToSeconds(aligned_period_));
 
 	const auto hr = client_->Initialize(AUDCLNT_SHAREMODE_EXCLUSIVE,
 		AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
@@ -163,7 +163,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	valid_bits_samples_ = 24;
 
 	if (!client_) {
-		//logger_->debug("Active device format: {}", valid_output_format.ToString());
+		XAMP_LOG_DEBUG("Active device format: {}", valid_output_format);
 
         HR_IF_FAILED_THROW(device_->Activate(__uuidof(IAudioClient2),
 			CLSCTX_ALL,
@@ -188,7 +188,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	LONG priority = 0;
 	HR_IF_FAILED_THROW(MFGetWorkQueueMMCSSPriority(queue_id_, &priority));
 
-	//logger_->debug("MCSS task id:{} queue id:{}, priority:{} ({})", task_id, queue_id_, thread_priority_, priority);
+	XAMP_LOG_DEBUG("MCSS task id:{} queue id:{}, priority:{} ({})", task_id, queue_id_, thread_priority_, priority);
 
     sample_ready_callback_ = new MFAsyncCallback<ExclusiveWasapiDevice>(this,
         &ExclusiveWasapiDevice::OnSampleReady, queue_id_);

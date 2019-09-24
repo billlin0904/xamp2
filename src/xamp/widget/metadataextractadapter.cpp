@@ -103,8 +103,6 @@ void MetadataExtractAdapter::onCompleted(const std::vector<xamp::base::Metadata>
 		entity.cover_id = cover_id;
 
 		playlist->appendItem(entity);
-
-		qApp->processEvents();
 	}	
 	emit finish();
 }

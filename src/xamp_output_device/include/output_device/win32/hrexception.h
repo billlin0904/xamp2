@@ -16,9 +16,7 @@ using namespace base;
 
 class HRException final : public Exception {
 public:
-	explicit HRException(HRESULT hresult);
-
-    HRException(HRESULT hresult, const char * expr);
+    HRException(HRESULT hresult, const char * expr = "");
 
 	HRException(HRESULT hresult, Errors error);
 

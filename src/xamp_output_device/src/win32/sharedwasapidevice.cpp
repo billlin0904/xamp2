@@ -1,3 +1,4 @@
+#include <base/logger.h>
 #include <output_device/audiocallback.h>
 #include <output_device/win32/hrexception.h>
 #include <output_device/win32/wasapi.h>
@@ -115,16 +116,15 @@ void SharedWasapiDevice::InitialDeviceFormat(const AudioFormat& output_format) {
 		throw DeviceUnSupportedFormatException();
 	}
 
-	/*
-	logger_->debug("Initital device format fundamental:{}, current:{}, min:{} max:{}",
+	XAMP_LOG_DEBUG("Initital device format fundamental:{}, current:{}, min:{} max:{}",
 		fundamental_period_in_frame,
 		default_period_in_rame,
 		min_period_in_frame,
-		max_period_in_frame);*/
+		max_period_in_frame);
 
 	latency_ = default_period_in_rame;
 
-	//logger_->debug("Use latency: {}", latency_);
+	XAMP_LOG_DEBUG("Use latency: {}", latency_);
 }
 
 void SharedWasapiDevice::InitialRawMode(const AudioFormat& output_format) {
@@ -139,7 +139,7 @@ void SharedWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	stream_time_ = 0;
 
 	if (!client_) {
-		//logger_->debug("Active device format: {}", output_format);
+		XAMP_LOG_DEBUG("Active device format: {}", output_format);
 
 		HR_IF_FAILED_THROW(device_->Activate(__uuidof(IAudioClient3),
 			CLSCTX_ALL,
@@ -154,10 +154,10 @@ void SharedWasapiDevice::OpenStream(const AudioFormat& output_format) {
 		if (FAILED(client_->SetClientProperties(&device_props))) {
 			device_props.Options = AUDCLNT_STREAMOPTIONS_MATCH_FORMAT;
 			HR_IF_FAILED_THROW(client_->SetClientProperties(&device_props));
-			//logger_->debug("Device not support RAW mode");
+			XAMP_LOG_DEBUG("Device not support RAW mode");
 		}
 		else {
-			//logger_->debug("Device support RAW mode");
+			XAMP_LOG_DEBUG("Device support RAW mode");
 		}
 
 		InitialRawMode(output_format);
@@ -168,7 +168,7 @@ void SharedWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	HR_IF_FAILED_THROW(client_->GetBufferSize(&buffer_frames_));
 	HR_IF_FAILED_THROW(client_->GetService(__uuidof(IAudioRenderClient), reinterpret_cast<void**>(&render_client_)));
 
-	//logger_->debug("Buffer frame size:{}", buffer_frames_);
+	XAMP_LOG_DEBUG("Buffer frame size:{}", buffer_frames_);
 
 	// Enable MCSS
 	DWORD task_id = 0;
@@ -177,7 +177,7 @@ void SharedWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	LONG priority = 0;
 	HR_IF_FAILED_THROW(MFGetWorkQueueMMCSSPriority(queue_id_, &priority));
 
-	//logger_->debug("MCSS task id:{} queue id:{}, priority:{} ({})", task_id, queue_id_, thread_priority_, priority);
+	XAMP_LOG_DEBUG("MCSS task id:{} queue id:{}, priority:{} ({})", task_id, queue_id_, thread_priority_, priority);
 
 	sample_ready_callback_ = new MFAsyncCallback<SharedWasapiDevice>(this,
 		&SharedWasapiDevice::OnSampleReady,

@@ -37,6 +37,8 @@ public:
 
 	QModelIndex shuffeIndex();
 
+	QModelIndex currentIndex() const;
+
 	PlayListEntity& item(const QModelIndex& index);
 
 	std::optional<QModelIndex> selectItem() const;
