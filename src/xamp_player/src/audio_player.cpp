@@ -1,4 +1,6 @@
+#include <base/logger.h>
 #include <output_device/devicefactory.h>
+#include <output_device/asiodevicetype.h>
 #include <player/audio_player.h>
 
 namespace xamp::player {
@@ -6,7 +8,7 @@ namespace xamp::player {
 static const int32_t BUFFER_STREAM_COUNT = 20;
 static const std::chrono::milliseconds UPDATE_SAMPLE_INTERVAL(100);
 
-AudioPlayer::AudioPlayer()
+AudioPlayer::AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter)
 	: is_muted_(false)
 	, dsd_mode_(DSDModes::DSD_MODE_PCM)
 	, state_(PlayerState::PLAYER_STATE_STOPPED)
@@ -15,17 +17,14 @@ AudioPlayer::AudioPlayer()
 	, num_read_sample_(0)
 	, read_sample_size_(0)
 	, is_playing_(false)
-	, is_paused_(false) {
+	, is_paused_(false)
+	, state_adapter_(adapter) {
 	InitialDevice();
 }
 
 AudioPlayer::~AudioPlayer() {
 	CloseDevice();
 	UnInitialDevice();
-}
-
-void AudioPlayer::SetStateAdapter(std::weak_ptr<PlaybackStateAdapter> adapter) {
-	state_adapter_ = adapter;
 }
 
 bool AudioPlayer::IsDSDFile(const std::wstring& file_path) const {
@@ -147,6 +146,7 @@ void AudioPlayer::Seek(double stream_time) {
 			stream_.Seek(stream_time);
 		}
 		catch (const std::exception& e) {
+			XAMP_LOG_DEBUG(e.what());
 			Resume();
 			return;
 		}
@@ -190,7 +190,7 @@ void AudioPlayer::SetMute(bool mute) {
 
 void AudioPlayer::Initial() {
 	if (!timer_) {		
-		timer_ = std::make_unique<Timer>();
+		timer_ = MakeAlign<Timer>();
 		std::weak_ptr<AudioPlayer> player = shared_from_this();
 		timer_->Start(UPDATE_SAMPLE_INTERVAL, [player]() {
 			if (auto p = player.lock()) {
@@ -266,7 +266,13 @@ void AudioPlayer::CreateBuffer() {
 		stream_.GetFormat().GetByteFormat(),
 		input_format_.GetSampleRate());
 
-	int32_t require_read_sample = device_->GetBufferSize() * 30;
+	int32_t require_read_sample = 0;
+	if (dsd_mode_ == DSDModes::DSD_MODE_RAW || device_type_->GetTypeId() == ASIODeviceType::Id) {
+		require_read_sample = 19200;
+	}
+	else {
+		require_read_sample = device_->GetBufferSize() * 30;
+	}
 
 	auto output_format = input_format;
 	if (require_read_sample != num_read_sample_) {
@@ -275,7 +281,7 @@ void AudioPlayer::CreateBuffer() {
  sample_size * BUFFER_STREAM_COUNT));
 		num_buffer_samples_ = allocate_size * 20;
 		num_read_sample_ = require_read_sample;
-		read_sample_buffer_ = std::make_unique<int8_t[]>(allocate_size);
+		read_sample_buffer_ = MakeBuffer<int8_t>(allocate_size);
 		read_sample_size_ = allocate_size;
 	}
 

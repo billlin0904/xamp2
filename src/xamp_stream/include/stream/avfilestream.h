@@ -7,6 +7,7 @@
 
 #include <base/audioformat.h>
 #include <base/memory.h>
+#include <base/align_ptr.h>
 
 #include <stream/stream.h>
 #include <stream/audiostream.h>
@@ -41,7 +42,7 @@ public:
 	bool IsDSDFile() const override;
 private:
 	class AvFileStreamImpl;
-	std::unique_ptr<AvFileStreamImpl> impl_;
+	AlignPtr<AvFileStreamImpl> impl_;
 };
 
 }

@@ -26,6 +26,8 @@ public:
 
 	void erase(const QString &tag_id);
 
+	bool exist(const QString& cover_id) const;
+
 protected:
 	PixmapCache();
 

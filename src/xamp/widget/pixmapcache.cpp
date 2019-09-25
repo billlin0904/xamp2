@@ -77,6 +77,10 @@ bool PixmapCache::insert(const QPixmap &cover, QString *cover_tag_id) {
 	return QPixmapCache::insert(tag_id, cover);
 }
 
+bool PixmapCache::exist(const QString& cover_id) const {
+	return QPixmapCache::find(cover_id) != nullptr;
+}
+
 QString PixmapCache::savePixmap(const QPixmap& pixmap) const {
     QDir dir;
     (void)dir.mkdir(cache_path_);

@@ -6,6 +6,7 @@
 #pragma once
 
 #include <base/memory.h>
+#include <base/align_ptr.h>
 
 #include <metadata/metadata.h>
 #include <metadata/metadatawriter.h>
@@ -33,7 +34,7 @@ public:
 	void WriteEmbeddedCover(const Path& path, const std::vector<uint8_t> &image) const;
 private:
     class TaglibMetadataWriterImpl;
-	std::unique_ptr<TaglibMetadataWriterImpl> writer_;
+	AlignPtr<TaglibMetadataWriterImpl> writer_;
 };
 
 }

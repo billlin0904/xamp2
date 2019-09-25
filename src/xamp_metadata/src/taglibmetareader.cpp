@@ -231,7 +231,7 @@ private:
 XAMP_PIMPL_IMPL(TaglibMetadataReader)
 
 TaglibMetadataReader::TaglibMetadataReader()
-    : reader_(std::make_unique<TaglibMetadataReaderImpl>()) {
+    : reader_(MakeAlign<TaglibMetadataReaderImpl>()) {
 }
 
 void TaglibMetadataReader::Extract(const Path& path, Metadata & metadata) {

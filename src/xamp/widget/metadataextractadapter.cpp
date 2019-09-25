@@ -80,18 +80,21 @@ void MetadataExtractAdapter::onCompleted(const std::vector<xamp::base::Metadata>
 			album_id_cache[album] = album_id;
         }
 
-		QString cover_id;
-		auto cover_itr = cover_id_cache.find(album_id);
-		if (cover_itr == cover_id_cache.end()) {
-			QPixmap pixamp;
-			const auto &buffer = cover_reader.ExtractEmbeddedCover(metadata.file_path);
-			if (!buffer.empty() && pixamp.loadFromData(buffer.data(), buffer.size())) {
-				PixmapCache::Instance().insert(pixamp, &cover_id);
-				cover_id_cache.insert(album_id, cover_id);
+		auto cover_id = Database::Instance().getAlbumCoverId(album_id);
+		if (cover_id.isEmpty()) {
+			auto cover_itr = cover_id_cache.find(album_id);
+			if (cover_itr == cover_id_cache.end()) {
+				QPixmap pixmap;
+				const auto& buffer = cover_reader.ExtractEmbeddedCover(metadata.file_path);
+				if (!buffer.empty() && pixmap.loadFromData(buffer.data(), buffer.size())) {
+					PixmapCache::Instance().insert(pixmap, &cover_id);
+					cover_id_cache.insert(album_id, cover_id);
+					Database::Instance().updateAlbumCover(album_id, album, cover_id);
+				}
 			}
-		}
-		else {
-			cover_id = (*cover_itr);
+			else {
+				cover_id = (*cover_itr);
+			}
 		}
 
 		Database::Instance().addOrUpdateAlbumMusic(album_id, artist_id, music_id);

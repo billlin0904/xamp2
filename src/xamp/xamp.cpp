@@ -2,6 +2,8 @@
 #include <QToolTip>
 #include <QFontDatabase>
 #include <QMenu>
+#include <QCloseEvent>
+#include <QMessageBox>
 
 #include "widget/win32/blur_effect_helper.h"
 
@@ -17,14 +19,33 @@
 Xamp::Xamp(QWidget *parent)
 	: FramelessWindow(parent)
 	, is_seeking_(false)
-	, order_(PLAYER_ORDER_REPEAT_ONE) {
-	player_ = std::make_shared<AudioPlayer>();
-	state_adapter_ = std::make_shared<PlayerStateAdapter>();
-	player_->SetStateAdapter(state_adapter_);
+	, order_(PLAYER_ORDER_REPEAT)
+	, state_adapter_(std::make_shared<PlayerStateAdapter>())
+	, player_(std::make_shared<AudioPlayer>(state_adapter_)) {
 	PixmapCache::Instance();
 	initialUI();
 	initialController();
 	initialDeviceList();
+}
+
+void Xamp::closeEvent(QCloseEvent* event) {
+	/*
+	const auto result_btn = QMessageBox::question(this,
+		"",
+		tr("Are you sure?"),
+		QMessageBox::Yes | QMessageBox::No,
+		QMessageBox::Yes);
+	if (result_btn == QMessageBox::Yes) {
+		player_->Stop(false, true);
+		player_.reset();
+		event->accept();
+	}
+	else {
+		event->ignore();
+	}
+	*/
+	player_->Stop(false, true);
+	player_.reset();
 }
 
 void Xamp::initialUI() {
@@ -528,17 +549,17 @@ void Xamp::play(const QModelIndex& index, const PlayListEntity& item) {
 		setPlayOrPauseButton(true);
 	} catch(const xamp::base::Exception& e) {
 		ui.seekSlider->setEnabled(false);
-		player_->Stop(true, true);
+		player_->Stop(false);
 		Toast::showTip(e.GetErrorMessage(), this);
 		return;
 	} catch (const std::exception& e) {
 		ui.seekSlider->setEnabled(false);
-		player_->Stop(true, true);
+		player_->Stop(false);
 		Toast::showTip(e.what(), this);
 		return;
 	} catch (...) {
 		ui.seekSlider->setEnabled(false);
-		player_->Stop(true, true);
+		player_->Stop(false);
 		Toast::showTip(tr("uknown error"), this);
 		return;
 	}
@@ -546,15 +567,14 @@ void Xamp::play(const QModelIndex& index, const PlayListEntity& item) {
 	auto page = static_cast<PlyalistPage*>(ui.currentView->widget(0));
 
 	QPixmap cover;
-	if (PixmapCache::Instance().find(item.cover_id, cover)) {
-		assert(!cover.isNull());
-		ui.coverLabel->setPixmap(Pixmap::resizeImage(cover, ui.coverLabel->size(), true));		
-		page->cover()->setPixmap(Pixmap::resizeImage(cover, page->cover()->size(), true));
+	if (!PixmapCache::Instance().find(item.cover_id, cover)) {
+		cover = QPixmap(":/xamp/Resource/White/unknown_album.png");
 	}
-	else {
-		ui.coverLabel->setPixmap(QPixmap());
-		page->cover()->setPixmap(QPixmap());
-	}
+
+	assert(!cover.isNull());
+	ui.coverLabel->setPixmap(Pixmap::resizeImage(cover, ui.coverLabel->size(), true));
+	page->cover()->setPixmap(Pixmap::resizeImage(cover, page->cover()->size(), true));
+
 	page->title()->setText(item.title);
 }
 

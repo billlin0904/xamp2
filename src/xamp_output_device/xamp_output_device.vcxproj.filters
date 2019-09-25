@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="src\devicefactory.cpp" />
+    <ClCompile Include="src\output_device.cpp" />
+    <ClCompile Include="src\win32\exclusivewasapidevice.cpp" />
+    <ClCompile Include="src\win32\exclusivewasapidevicetype.cpp" />
+    <ClCompile Include="src\win32\hrexception.cpp" />
+    <ClCompile Include="src\win32\mmcss_types.cpp" />
+    <ClCompile Include="src\win32\sharedwasapidevice.cpp" />
+    <ClCompile Include="src\win32\sharedwasapidevicetype.cpp" />
+    <ClCompile Include="src\win32\wasapi.cpp" />
+    <ClCompile Include="..\thirdparty\asiosdk\common\asio.cpp">
+      <Filter>asiosdk</Filter>
+    </ClCompile>
+    <ClCompile Include="..\thirdparty\asiosdk\host\asiodrivers.cpp">
+      <Filter>asiosdk</Filter>
+    </ClCompile>
+    <ClCompile Include="..\thirdparty\asiosdk\driver\asiolist.cpp">
+      <Filter>asiosdk</Filter>
+    </ClCompile>
+    <ClCompile Include="src\asioexception.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\output_device\audiocallback.h" />
+    <ClInclude Include="include\output_device\device.h" />
+    <ClInclude Include="include\output_device\devicefactory.h" />
+    <ClInclude Include="include\output_device\deviceinfo.h" />
+    <ClInclude Include="include\output_device\device_type.h" />
+    <ClInclude Include="include\output_device\output_device.h" />
+    <ClInclude Include="include\output_device\win32\exclusivewasapidevice.h" />
+    <ClInclude Include="include\output_device\win32\exclusivewasapidevicetype.h" />
+    <ClInclude Include="include\output_device\win32\hrexception.h" />
+    <ClInclude Include="include\output_device\win32\mfasynccallback.h" />
+    <ClInclude Include="include\output_device\win32\mmcss_types.h" />
+    <ClInclude Include="include\output_device\win32\sharedwasapidevicetype.h" />
+    <ClInclude Include="include\output_device\win32\sharedwasapidevice.h" />
+    <ClInclude Include="include\output_device\win32\wasapi.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="asiosdk">
+      <UniqueIdentifier>{9b1b98d9-a941-4df4-93e8-28094d895390}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

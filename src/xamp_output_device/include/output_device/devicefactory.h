@@ -13,6 +13,7 @@
 #include <base/base.h>
 #include <base/id.h>
 #include <base/function_ref.h>
+#include <base/align_ptr.h>
 
 #include <output_device/output_device.h>
 #include <output_device/device_type.h>
@@ -23,7 +24,7 @@ using namespace base;
 
 #define XAMP_REGISTER_DEVICE_TYPE(DeviceTypeClass) \
 	DeviceFactory::Instance().RegisterCreator(DeviceTypeClass::Id, []() {\
-		return std::make_unique<DeviceTypeClass>();\
+		return MakeAlign<DeviceType, DeviceTypeClass>();\
 	})
 
 class XAMP_OUTPUT_DEVICE_API DeviceFactory {
@@ -44,7 +45,7 @@ public:
 		creator_.clear();
 	}
 
-	std::optional<std::unique_ptr<DeviceType>> CreateDefaultDevice() const {
+	std::optional<AlignPtr<DeviceType>> CreateDefaultDevice() const {
 		auto itr = creator_.begin();
 		if (itr == creator_.end()) {
 			return std::nullopt;
@@ -52,7 +53,7 @@ public:
 		return (*itr).second();
 	}
 
-	std::optional<std::unique_ptr<DeviceType>> Create(const ID id) const {
+	std::optional<AlignPtr<DeviceType>> Create(const ID id) const {
 		auto itr = creator_.find(id);
 		if (itr == creator_.end()) {
 			return std::nullopt;
@@ -71,7 +72,7 @@ public:
 
 private:
 	DeviceFactory() = default;
-	std::unordered_map<ID, FunctionRef<std::unique_ptr<DeviceType>()>> creator_;
+	std::unordered_map<ID, FunctionRef<AlignPtr<DeviceType>()>> creator_;
 };
 
 }

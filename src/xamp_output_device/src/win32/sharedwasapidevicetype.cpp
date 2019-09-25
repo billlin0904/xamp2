@@ -25,8 +25,8 @@ CComPtr<IMMDevice> SharedWasapiDeviceType::GetDeviceById(const std::wstring& dev
 	return device;
 }
 
-std::unique_ptr<Device> SharedWasapiDeviceType::MakeDevice(const std::wstring& device_id) {
-	return std::make_unique<SharedWasapiDevice>(GetDeviceById(device_id));
+AlignPtr<Device> SharedWasapiDeviceType::MakeDevice(const std::wstring& device_id) {
+	return MakeAlign<Device, SharedWasapiDevice>(GetDeviceById(device_id));
 }
 
 DeviceInfo SharedWasapiDeviceType::GetDeviceInfo(int32_t device) const {

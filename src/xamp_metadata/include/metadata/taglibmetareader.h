@@ -6,7 +6,9 @@
 #pragma once
 
 #include <unordered_set>
+
 #include <base/memory.h>
+#include <base/align_ptr.h>
 
 #include <metadata/metadata.h>
 #include <metadata/metadatareader.h>
@@ -30,7 +32,7 @@ public:
     bool IsSupported(const Path & path) const override;
 private:
     class TaglibMetadataReaderImpl;
-	std::unique_ptr<TaglibMetadataReaderImpl> reader_;
+	AlignPtr<TaglibMetadataReaderImpl> reader_;
 };
 
 }

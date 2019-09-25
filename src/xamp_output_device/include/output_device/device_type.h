@@ -10,6 +10,8 @@
 #include <vector>
 
 #include <base/base.h>
+#include <base/align_ptr.h>
+
 #include <output_device/deviceinfo.h>
 #include <output_device/device.h>
 #include <output_device/output_device.h>
@@ -30,7 +32,7 @@ public:
 
 	virtual const ID& GetTypeId() const = 0;
 
-	virtual std::unique_ptr<Device> MakeDevice(const std::wstring& device_id) = 0;
+	virtual AlignPtr<Device> MakeDevice(const std::wstring& device_id) = 0;
 
 	virtual int32_t GetDeviceCount() const = 0;
 

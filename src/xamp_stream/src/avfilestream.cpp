@@ -433,7 +433,7 @@ private:
 };
 
 AvFileStream::AvFileStream()
-	: impl_(std::make_unique<AvFileStreamImpl>()) {
+	: impl_(MakeAlign<AvFileStreamImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(AvFileStream)

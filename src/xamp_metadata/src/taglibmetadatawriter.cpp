@@ -116,7 +116,7 @@ private:
 XAMP_PIMPL_IMPL(TaglibMetadataWriter)
 
 TaglibMetadataWriter::TaglibMetadataWriter()
-    : writer_(std::make_unique<TaglibMetadataWriterImpl>()) {
+    : writer_(MakeAlign<TaglibMetadataWriterImpl>()) {
 }
 
 bool TaglibMetadataWriter::IsFileReadOnly(const Path& path) const {

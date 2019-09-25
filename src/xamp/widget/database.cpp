@@ -1,6 +1,7 @@
 #include <QSqlTableModel>
 #include <QSqlQuery>
 #include <QSqlError>
+#include <QSqlRecord>
 #include <QDebug>
 
 #include "time_utilts.h"
@@ -202,6 +203,18 @@ int32_t Database::addPlaylist(const QString& name, int32_t playlist_index) {
 	return model.query().lastInsertId().toInt();
 }
 
+void Database::updateAlbumCover(int32_t album_id, const QString& album, const QString& cover_id) {
+	QSqlQuery query(db_);
+
+	query.prepare("UPDATE albums SET coverId = :coverId WHERE (albumId = :albumId) OR (album = :album)");
+
+	query.bindValue(":albumId", album_id);
+	query.bindValue(":album", album);
+	query.bindValue(":coverId", cover_id);
+
+	ENSURE_EXEC(query);
+}
+
 void Database::addTablePlaylist(int32_t tableId, int32_t playlist_id) {
 	QSqlQuery query;
 
@@ -213,6 +226,21 @@ void Database::addTablePlaylist(int32_t tableId, int32_t playlist_id) {
 	query.bindValue(":tableId", tableId);
 
 	ENSURE_EXEC(query);
+}
+
+QString Database::getAlbumCoverId(int32_t album_id) const {
+	QSqlQuery query;
+
+	query.prepare("SELECT coverId FROM albums WHERE albumId = (:albumId)");
+	query.bindValue(":albumId", album_id);
+
+	ENSURE_EXEC(query);
+
+	const auto album_cover_tag_id_index = query.record().indexOf("coverId");
+	if (query.next()) {
+		return query.value(album_cover_tag_id_index).toString();
+	}
+	return "";
 }
 
 int32_t Database::addOrUpdateMusic(const xamp::base::Metadata& metadata, int32_t playlist_id) {

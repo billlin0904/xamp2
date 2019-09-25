@@ -1,11 +1,11 @@
-#pragma once
-
 //=====================================================================================================================
 // Copyright (c) 2018-2019 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
 #pragma once
+
+#include <base/align_ptr.h>
 
 #include <output_device/win32/wasapi.h>
 #include <output_device/device_type.h>
@@ -14,7 +14,7 @@ namespace xamp::output_device::win32 {
 
 using namespace base;
 
-class XAMP_OUTPUT_DEVICE_API ExclusiveWasapiDeviceType final : public DeviceType{
+class XAMP_OUTPUT_DEVICE_API ExclusiveWasapiDeviceType final : public DeviceType {
 public:
 	static const ID Id;
 
@@ -36,7 +36,7 @@ public:
 
 	std::vector<DeviceInfo> GetDeviceInfo() const override;
 
-	std::unique_ptr<Device> MakeDevice(const std::wstring& device_id) override;
+	AlignPtr<Device> MakeDevice(const std::wstring& device_id) override;
 
 private:
 	CComPtr<IMMDevice> GetDeviceById(const std::wstring& device_id) const;

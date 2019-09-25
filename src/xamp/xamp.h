@@ -31,6 +31,8 @@ public slots:
 	void play(const QModelIndex& index, const PlayListEntity& item);
 
 private:
+	void closeEvent(QCloseEvent* event) override;
+
 	QWidgetAction* createTextSeparator(const QString& text);
 
 	void setPlayOrPauseButton(bool is_playing);

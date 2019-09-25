@@ -31,8 +31,8 @@ CComPtr<IMMDevice> ExclusiveWasapiDeviceType::GetDeviceById(const std::wstring& 
 	return device;
 }
 
-std::unique_ptr<Device> ExclusiveWasapiDeviceType::MakeDevice(const std::wstring& device_id) {
-	return std::make_unique<ExclusiveWasapiDevice>(GetDeviceById(device_id));
+AlignPtr<Device> ExclusiveWasapiDeviceType::MakeDevice(const std::wstring& device_id) {
+	return MakeAlign<Device, ExclusiveWasapiDevice>(GetDeviceById(device_id));
 }
 
 std::wstring ExclusiveWasapiDeviceType::GetName() const {

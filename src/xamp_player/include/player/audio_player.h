@@ -13,6 +13,7 @@
 #include <base/audioformat.h>
 #include <base/timer.h>
 #include <base/dsdsampleformat.h>
+#include <base/align_ptr.h>
 
 #include <stream/avfilestream.h>
 
@@ -35,13 +36,11 @@ class XAMP_PALYER_API AudioPlayer :
 public:
 	XAMP_DISABLE_COPY(AudioPlayer)
 
-	AudioPlayer();
+	explicit AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter);
 
 	virtual ~AudioPlayer();
 
 	void Open(const std::wstring& file_path, const DeviceInfo& device_info);
-
-	void SetStateAdapter(std::weak_ptr<PlaybackStateAdapter> adapter);
 
 	void PlayStream();
 
@@ -137,11 +136,11 @@ private:
 	std::condition_variable stopped_cond_;
 	AudioFormat input_format_;
 	AudioFormat output_format_;
-	std::unique_ptr<int8_t[]> read_sample_buffer_;
-	std::unique_ptr<Timer> timer_;
+	AlignBufferPtr<int8_t> read_sample_buffer_;
+	AlignPtr<Timer> timer_;
 	AvFileStream stream_;
-	std::unique_ptr<DeviceType> device_type_;
-	std::unique_ptr<Device> device_;
+	AlignPtr<DeviceType> device_type_;
+	AlignPtr<Device> device_;
 	std::weak_ptr<PlaybackStateAdapter> state_adapter_;
 	AudioBuffer<int8_t> buffer_;
 	std::future<void> stream_task_;

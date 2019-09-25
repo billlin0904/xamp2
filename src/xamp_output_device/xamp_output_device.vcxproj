@@ -77,8 +77,9 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/spdlog/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/spdlog/include/;../thirdparty/asiosdk/common/;../thirdparty/asiosdk/driver/</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>XAMP_OUTPUT_DEVICE_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4996</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -120,10 +121,11 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/spdlog/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/spdlog/include/;../thirdparty/asiosdk/common/;../thirdparty/asiosdk/driver/</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PreprocessorDefinitions>XAMP_OUTPUT_DEVICE_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <OmitFramePointers>true</OmitFramePointers>
+      <DisableSpecificWarnings>4996</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -134,11 +136,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="include\output_device\asiodevice.h" />
+    <ClInclude Include="include\output_device\asiodevicetype.h" />
+    <ClInclude Include="include\output_device\asioexception.h" />
     <ClInclude Include="include\output_device\audiocallback.h" />
     <ClInclude Include="include\output_device\device.h" />
     <ClInclude Include="include\output_device\devicefactory.h" />
     <ClInclude Include="include\output_device\deviceinfo.h" />
     <ClInclude Include="include\output_device\device_type.h" />
+    <ClInclude Include="include\output_device\dsdoutputable.h" />
     <ClInclude Include="include\output_device\output_device.h" />
     <ClInclude Include="include\output_device\win32\exclusivewasapidevice.h" />
     <ClInclude Include="include\output_device\win32\exclusivewasapidevicetype.h" />
@@ -150,6 +156,12 @@
     <ClInclude Include="include\output_device\win32\wasapi.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\thirdparty\asiosdk\common\asio.cpp" />
+    <ClCompile Include="..\thirdparty\asiosdk\driver\asiolist.cpp" />
+    <ClCompile Include="..\thirdparty\asiosdk\host\asiodrivers.cpp" />
+    <ClCompile Include="include\output_device\asiodevice.cpp" />
+    <ClCompile Include="src\asiodevicetype.cpp" />
+    <ClCompile Include="src\asioexception.cpp" />
     <ClCompile Include="src\devicefactory.cpp" />
     <ClCompile Include="src\output_device.cpp" />
     <ClCompile Include="src\win32\exclusivewasapidevice.cpp" />

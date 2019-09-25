@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <base/align_ptr.h>
+
 #include <output_device/win32/wasapi.h>
 #include <output_device/device_type.h>
 
@@ -32,7 +34,7 @@ public:
 
 	std::vector<DeviceInfo> GetDeviceInfo() const override;
 
-	std::unique_ptr<Device> MakeDevice(const std::wstring& device_id) override;
+	AlignPtr<Device> MakeDevice(const std::wstring& device_id) override;
 private:
 	std::vector<DeviceInfo> GetDeviceInfoList() const;
 

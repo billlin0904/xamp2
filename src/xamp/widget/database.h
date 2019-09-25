@@ -36,6 +36,8 @@ public:
 
 	int32_t addPlaylist(const QString& name, int32_t playlistIndex);
 
+	void updateAlbumCover(int32_t album_id, const QString& album, const QString& cover_id);
+
 	void addTablePlaylist(int32_t tableId, int32_t playlist_id);
 
 	int32_t addOrUpdateMusic(const xamp::base::Metadata& medata, int32_t playlist_id);
@@ -45,6 +47,8 @@ public:
 	int32_t addOrUpdateAlbum(const QString& album, int32_t artist_id);
 
 	void addOrUpdateAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id);
+
+	QString getAlbumCoverId(int32_t album_id) const;
 
 	template <typename Function>
 	void ForEachPlaylistMusic(int32_t playlist_id, Function &&fun) {
