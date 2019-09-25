@@ -83,7 +83,9 @@ FramelessWindow::FramelessWindow(QWidget* parent)
 }
 
 FramelessWindow::~FramelessWindow() {
+#if defined(Q_OS_WIN)
 	::DwmEnableMMCSS(false);
+#endif
 }
 
 void FramelessWindow::initialFontDatabase() {

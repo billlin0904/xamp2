@@ -2,6 +2,7 @@
 #include <iasiodrv.h>
 
 #include <base/memory.h>
+#include <base/align_ptr.h>
 #include <base/str_utilts.h>
 #include <base/dataconverter.h>
 #include <base/logger.h>
@@ -25,7 +26,7 @@ struct AsioCallbackInfo {
     }
 
 	bool asioXRun;
-	AsioDrivers drivers;
+	AlignPtr<AsioDrivers> drivers;
 	ConvertContext data_context;
 	ASIOCallbacks asio_callbacks;
 	AsioDevice* device;
@@ -88,8 +89,8 @@ bool AsioDevice::IsSupportDSDFormat() const {
 }
 
 void AsioDevice::ReOpen() {
-	callbackInfo.drivers.removeCurrentDriver();
-	if (!callbackInfo.drivers.loadDriver(const_cast<char*>(device_id_.c_str()))) {
+	callbackInfo.drivers->removeCurrentDriver();
+	if (!callbackInfo.drivers->loadDriver(const_cast<char*>(device_id_.c_str()))) {
 		throw ASIOException(XAMP_ERROR_DEVICE_NOT_FOUND);
 	}
 	is_removed_driver_ = false;
@@ -362,8 +363,11 @@ void AsioDevice::OpenStream(const AudioFormat& output_format) {
 	asio_driver_info.asioVersion = 2;
 	asio_driver_info.sysRef = GetDesktopWindow();
 
-	// ASIO每次必須要重新建立!
-	ReOpen();
+	// 如果有播放過的話(callbackInfo.device != nullptr), ASIO每次必須要重新建立!
+	if (callbackInfo.device != nullptr) {
+		callbackInfo.drivers = MakeAlign<AsioDrivers>();
+		ReOpen();
+	}
 
 	if (device_id_.length() > sizeof(asio_driver_info.name) - 1) {
 		FastMemcpy(asio_driver_info.name, device_id_.c_str(), sizeof(asio_driver_info.name) - 1);
@@ -451,7 +455,10 @@ void AsioDevice::CloseStream() {
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 		ASIO_IF_FAILED_THROW(ASIODisposeBuffers());
 
-		callbackInfo.drivers.removeCurrentDriver();
+		if (callbackInfo.drivers != nullptr) {
+			callbackInfo.drivers->removeCurrentDriver();
+			callbackInfo.drivers.reset();
+		}
 		is_removed_driver_ = true;
 	}
 	callback_ = nullptr;

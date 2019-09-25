@@ -35,6 +35,9 @@ std::ostream& operator<<(std::ostream& ostr, Errors error) {
 	case XAMP_ERROR_NOT_SUPPORT_FORMAT:
 		ostr << "Not support format.";
 		break;
+	case XAMP_ERROR_LOAD_DLL_FAILURE:
+		ostr << "Load dll failure.";
+		break;
 	}
 	return ostr;
 }

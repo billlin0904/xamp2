@@ -12,8 +12,10 @@
 
 #include <base/base.h>
 #include <base/id.h>
+#include <base/exception.h>
 #include <base/function_ref.h>
 #include <base/align_ptr.h>
+#include <base/logger.h>
 
 #include <output_device/output_device.h>
 #include <output_device/device_type.h>
@@ -64,7 +66,12 @@ public:
 	template <typename Function>
 	void ForEach(Function &&fun) {
 		for (const auto& creator : creator_) {
-			fun(creator.second());
+			try {
+				fun(creator.second());
+			}
+			catch (const Exception& e) {
+				XAMP_LOG_DEBUG("{}", e.GetErrorMessage());
+			}
 		}
 	}
 

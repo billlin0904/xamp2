@@ -119,6 +119,7 @@
     </QtRcc>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\xamp_base\src\dll.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="widget\database.cpp" />
     <ClCompile Include="widget\filetag.cpp" />

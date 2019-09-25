@@ -1,6 +1,7 @@
 #include <base/logger.h>
 #include <output_device/devicefactory.h>
 #include <output_device/asiodevicetype.h>
+#include <stream/bassfilestream.h>
 #include <player/audio_player.h>
 
 namespace xamp::player {
@@ -28,6 +29,15 @@ AudioPlayer::~AudioPlayer() {
 }
 
 bool AudioPlayer::IsDSDFile(const std::wstring& file_path) const {
+	try {
+		BassFileStream bass;
+		bass.SetDSDMode(DSD_MODE_RAW);
+		bass.OpenFromFile(file_path, IN_MEMORY);
+		return bass.IsDSDFile();
+	}
+	catch (...) {
+		return false;
+	}
 	return false;
 }
 
