@@ -526,7 +526,9 @@ void Xamp::play(const PlayListEntity& item) {
 	ui.titleLabel->setText(item.title);
 	ui.artistLabel->setText(item.artist);
 
-	player_->Open(item.file_path.toStdWString(), device_info_);
+	const QString bass_support_ext(".dsd,.dsf,.dff,.m4a");
+	auto use_bass_stream = bass_support_ext.contains(item.file_ext);
+	player_->Open(item.file_path.toStdWString(), use_bass_stream, device_info_);
 	
 	if (!player_->IsMute()) {		
 		setVolume(ui.volumeSlider->value());

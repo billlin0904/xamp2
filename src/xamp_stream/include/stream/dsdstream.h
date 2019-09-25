@@ -31,6 +31,8 @@ public:
     virtual int32_t GetDSDSampleRate() const = 0;
 
 	virtual DSDSampleFormat GetDSDSampleFormat() const = 0;
+
+	virtual bool SetPCMSampleRate(int32_t samplerate) const = 0;
 protected:
     DSDStream() = default;
 };

@@ -15,60 +15,6 @@
 
 namespace xamp::stream {
 
-class BassLib {
-public:
-    static BassLib & Instance() {
-        static BassLib lib;
-        return lib;
-    }
-
-    XAMP_DISABLE_COPY(BassLib)
-
-private:
-	BassLib() try
-		: module_(LoadDll("bass.dll"))
-		, BASS_Init(module_, "BASS_Init")
-		, BASS_SetConfig(module_, "BASS_SetConfig")
-		, BASS_PluginLoad(module_, "BASS_PluginLoad")
-		, BASS_PluginGetInfo(module_, "BASS_PluginGetInfo")
-        , BASS_Free(module_, "BASS_Free")
-        , BASS_StreamCreateFile(module_, "BASS_StreamCreateFile")
-        , BASS_ChannelGetInfo(module_, "BASS_ChannelGetInfo")
-        , BASS_StreamFree(module_, "BASS_StreamFree")
-        , BASS_PluginFree(module_, "BASS_PluginFree")
-        , BASS_ChannelGetData(module_, "BASS_ChannelGetData")
-        , BASS_ChannelGetLength(module_, "BASS_ChannelGetLength")
-        , BASS_ChannelBytes2Seconds(module_, "BASS_ChannelBytes2Seconds")
-        , BASS_ChannelSeconds2Bytes(module_, "BASS_ChannelSeconds2Bytes")
-        , BASS_ChannelSetPosition(module_, "BASS_ChannelSetPosition")
-        , BASS_ErrorGetCode(module_, "BASS_ErrorGetCode")
-        , BASS_ChannelGetAttribute(module_, "BASS_ChannelGetAttribute") {
-	}
-	catch (const Exception &e) {
-		XAMP_LOG_INFO("{}", e.GetErrorMessage());
-	}
-
-    ModuleHandle module_;
-
-public:
-	XAMP_DEFINE_DLL_API(BASS_Init) BASS_Init;
-	XAMP_DEFINE_DLL_API(BASS_SetConfig) BASS_SetConfig;
-	DllFunction<HPLUGIN(const char *, DWORD)> BASS_PluginLoad;
-	XAMP_DEFINE_DLL_API(BASS_PluginGetInfo) BASS_PluginGetInfo;
-	XAMP_DEFINE_DLL_API(BASS_Free) BASS_Free;
-	DllFunction<HSTREAM(BOOL, const void *, QWORD, QWORD, DWORD)> BASS_StreamCreateFile;
-	XAMP_DEFINE_DLL_API(BASS_ChannelGetInfo) BASS_ChannelGetInfo;
-	XAMP_DEFINE_DLL_API(BASS_StreamFree) BASS_StreamFree;
-	XAMP_DEFINE_DLL_API(BASS_PluginFree) BASS_PluginFree;
-	XAMP_DEFINE_DLL_API(BASS_ChannelGetData) BASS_ChannelGetData;
-    XAMP_DEFINE_DLL_API(BASS_ChannelGetLength) BASS_ChannelGetLength;
-    XAMP_DEFINE_DLL_API(BASS_ChannelBytes2Seconds) BASS_ChannelBytes2Seconds;
-    XAMP_DEFINE_DLL_API(BASS_ChannelSeconds2Bytes) BASS_ChannelSeconds2Bytes;
-    XAMP_DEFINE_DLL_API(BASS_ChannelSetPosition) BASS_ChannelSetPosition;
-    XAMP_DEFINE_DLL_API(BASS_ErrorGetCode) BASS_ErrorGetCode;
-    XAMP_DEFINE_DLL_API(BASS_ChannelGetAttribute) BASS_ChannelGetAttribute;
-};
-
 const DWORD BASS_ERROR{ 0xFFFFFFFF };
 
 static Errors TranslateBassError(int error) {
@@ -176,6 +122,60 @@ private:
 		}\
 	} while (false)
 
+class BassLib {
+public:
+    static BassLib & Instance() {
+        static BassLib lib;
+        return lib;
+    }
+
+    XAMP_DISABLE_COPY(BassLib)
+
+private:
+	BassLib() try
+		: module_(LoadDll("bass.dll"))
+		, BASS_Init(module_, "BASS_Init")
+		, BASS_SetConfig(module_, "BASS_SetConfig")
+		, BASS_PluginLoad(module_, "BASS_PluginLoad")
+		, BASS_PluginGetInfo(module_, "BASS_PluginGetInfo")
+        , BASS_Free(module_, "BASS_Free")
+        , BASS_StreamCreateFile(module_, "BASS_StreamCreateFile")
+        , BASS_ChannelGetInfo(module_, "BASS_ChannelGetInfo")
+        , BASS_StreamFree(module_, "BASS_StreamFree")
+        , BASS_PluginFree(module_, "BASS_PluginFree")
+        , BASS_ChannelGetData(module_, "BASS_ChannelGetData")
+        , BASS_ChannelGetLength(module_, "BASS_ChannelGetLength")
+        , BASS_ChannelBytes2Seconds(module_, "BASS_ChannelBytes2Seconds")
+        , BASS_ChannelSeconds2Bytes(module_, "BASS_ChannelSeconds2Bytes")
+        , BASS_ChannelSetPosition(module_, "BASS_ChannelSetPosition")
+        , BASS_ErrorGetCode(module_, "BASS_ErrorGetCode")
+        , BASS_ChannelGetAttribute(module_, "BASS_ChannelGetAttribute") {
+	}
+	catch (const Exception &e) {
+		XAMP_LOG_INFO("{}", e.GetErrorMessage());
+	}
+
+    ModuleHandle module_;
+
+public:
+	XAMP_DEFINE_DLL_API(BASS_Init) BASS_Init;
+	XAMP_DEFINE_DLL_API(BASS_SetConfig) BASS_SetConfig;
+	DllFunction<HPLUGIN(const char *, DWORD)> BASS_PluginLoad;
+	XAMP_DEFINE_DLL_API(BASS_PluginGetInfo) BASS_PluginGetInfo;
+	XAMP_DEFINE_DLL_API(BASS_Free) BASS_Free;
+	DllFunction<HSTREAM(BOOL, const void *, QWORD, QWORD, DWORD)> BASS_StreamCreateFile;
+	XAMP_DEFINE_DLL_API(BASS_ChannelGetInfo) BASS_ChannelGetInfo;
+	XAMP_DEFINE_DLL_API(BASS_StreamFree) BASS_StreamFree;
+	XAMP_DEFINE_DLL_API(BASS_PluginFree) BASS_PluginFree;
+	XAMP_DEFINE_DLL_API(BASS_ChannelGetData) BASS_ChannelGetData;
+    XAMP_DEFINE_DLL_API(BASS_ChannelGetLength) BASS_ChannelGetLength;
+    XAMP_DEFINE_DLL_API(BASS_ChannelBytes2Seconds) BASS_ChannelBytes2Seconds;
+    XAMP_DEFINE_DLL_API(BASS_ChannelSeconds2Bytes) BASS_ChannelSeconds2Bytes;
+    XAMP_DEFINE_DLL_API(BASS_ChannelSetPosition) BASS_ChannelSetPosition;
+    XAMP_DEFINE_DLL_API(BASS_ErrorGetCode) BASS_ErrorGetCode;
+    XAMP_DEFINE_DLL_API(BASS_ChannelGetAttribute) BASS_ChannelGetAttribute;
+};
+
 class BassDSDLib {
 public:
 	static BassDSDLib & Get() {
@@ -188,13 +188,15 @@ public:
 private:
 	BassDSDLib()
 		: module_(LoadDll("bassdsd.dll"))
-		, BASS_DSD_StreamCreateFile(module_, "BASS_DSD_StreamCreateFile") {
+		, BASS_DSD_StreamCreateFile(module_, "BASS_DSD_StreamCreateFile")
+		, BASS_ChannelSetAttribute(module_, "BASS_ChannelSetAttribute") {
 	}
 
 	ModuleHandle module_;
 
 public:
 	DllFunction<HSTREAM(BOOL, const void *, QWORD, QWORD, DWORD, DWORD)> BASS_DSD_StreamCreateFile;
+	XAMP_DEFINE_DLL_API(BASS_ChannelSetAttribute) BASS_ChannelSetAttribute;
 };
 
 struct BassStreamTraits {
@@ -427,6 +429,9 @@ public:
 		enable_file_mapped_ = mode == OpenMode::IN_MEMORY;
 	}
 
+	bool SetPCMSampleRate(int32_t samplerate) const {
+		return BassLib::Instance().BASS_SetConfig(BASS_CONFIG_DSD_FREQ, samplerate);
+	}
 private:
 	XAMP_ALWAYS_INLINE int32_t InternalGetSamples(void *buffer, int32_t length) const noexcept {
 		const auto byte_read = BassLib::Instance().BASS_ChannelGetData(stream_.get(), buffer, length);
@@ -513,6 +518,10 @@ int32_t BassFileStream::GetSampleSize() const {
 
 DSDSampleFormat BassFileStream::GetDSDSampleFormat() const {
 	return stream_->GetDSDSampleFormat();
+}
+
+bool BassFileStream::SetPCMSampleRate(int32_t samplerate) const {
+	return stream_->SetPCMSampleRate(samplerate);
 }
 
 }

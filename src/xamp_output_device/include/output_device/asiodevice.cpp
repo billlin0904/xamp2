@@ -89,6 +89,9 @@ bool AsioDevice::IsSupportDSDFormat() const {
 }
 
 void AsioDevice::ReOpen() {
+	if (!callbackInfo.drivers) {
+		callbackInfo.drivers = MakeAlign<AsioDrivers>();
+	}
 	callbackInfo.drivers->removeCurrentDriver();
 	if (!callbackInfo.drivers->loadDriver(const_cast<char*>(device_id_.c_str()))) {
 		throw ASIOException(XAMP_ERROR_DEVICE_NOT_FOUND);
@@ -364,10 +367,7 @@ void AsioDevice::OpenStream(const AudioFormat& output_format) {
 	asio_driver_info.sysRef = GetDesktopWindow();
 
 	// 如果有播放過的話(callbackInfo.device != nullptr), ASIO每次必須要重新建立!
-	if (callbackInfo.device != nullptr) {
-		callbackInfo.drivers = MakeAlign<AsioDrivers>();
-		ReOpen();
-	}
+	ReOpen();
 
 	if (device_id_.length() > sizeof(asio_driver_info.name) - 1) {
 		FastMemcpy(asio_driver_info.name, device_id_.c_str(), sizeof(asio_driver_info.name) - 1);

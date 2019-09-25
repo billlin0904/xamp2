@@ -15,7 +15,7 @@
 #include <base/dsdsampleformat.h>
 #include <base/align_ptr.h>
 
-#include <stream/avfilestream.h>
+#include <stream/filestream.h>
 
 #include <output_device/audiocallback.h>
 #include <output_device/device.h>
@@ -40,7 +40,7 @@ public:
 
 	virtual ~AudioPlayer();
 
-	void Open(const std::wstring& file_path, const DeviceInfo& device_info);
+	void Open(const std::wstring& file_path, bool use_bass_stream, const DeviceInfo& device_info);
 
 	void PlayStream();
 
@@ -74,11 +74,9 @@ public:
 private:
 	void Initial();
 
-	void OpenStream(const std::wstring& file_path, const DeviceInfo& device_info);
+	void OpenStream(const std::wstring& file_path, bool use_bass_stream, const DeviceInfo& device_info);
 
 	void CreateDevice(const ID& device_type_id, const std::wstring& device_id, const bool open_always);
-
-	bool IsDSDFile(const std::wstring& file_path) const;
 
 	void CloseDevice();
 
@@ -138,7 +136,7 @@ private:
 	AudioFormat output_format_;
 	AlignBufferPtr<int8_t> read_sample_buffer_;
 	AlignPtr<Timer> timer_;
-	AvFileStream stream_;
+	AlignPtr<FileStream> stream_;
 	AlignPtr<DeviceType> device_type_;
 	AlignPtr<Device> device_;
 	std::weak_ptr<PlaybackStateAdapter> state_adapter_;

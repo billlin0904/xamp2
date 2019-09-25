@@ -57,6 +57,8 @@ public:
 	int32_t GetDSDSampleRate() const override;
 
 	DSDSampleFormat GetDSDSampleFormat() const override;
+
+	bool SetPCMSampleRate(int32_t samplerate) const override;
 private:
 	class BassFileStreamImpl;
 	AlignPtr<BassFileStreamImpl> stream_;

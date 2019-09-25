@@ -66,7 +66,7 @@ void ASIODeviceType::ScanNewDevice() {
 			if (device_list_.find(name) != device_list_.end()) {
 				continue;
 			}
-			const auto info = GetDeviceInfo(name);
+			const auto info = GetDeviceInfo(name);			
 			device_list_.insert(std::make_pair(name, info));
 		}
 	}
@@ -77,6 +77,7 @@ DeviceInfo ASIODeviceType::GetDeviceInfo(const std::wstring& device_id) const {
 	info.name = device_id;
 	info.device_id = device_id;
 	info.device_type_id = Id;
+	info.is_support_dsd_raw_mode = true;
 	return info;
 }
 
