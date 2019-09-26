@@ -5,7 +5,7 @@
 
 namespace xamp::output_device::win32 {
 
-const ID SharedWasapiDeviceType::Id("07885EDF-7CCB-4FA6-962D-B66A759978B1");
+const ID SharedWasapiDeviceType::Id = ID("07885EDF-7CCB-4FA6-962D-B66A759978B1");
 
 SharedWasapiDeviceType::SharedWasapiDeviceType() {
 	HR_IF_FAILED_THROW(CoCreateInstance(__uuidof(MMDeviceEnumerator),

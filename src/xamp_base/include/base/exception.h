@@ -31,6 +31,8 @@ std::ostream& operator<<(std::ostream& ostr, Errors error);
 
 class XAMP_BASE_API Exception : public std::exception {
 public:
+	explicit Exception(Errors error = XAMP_ERROR_UNKNOWN, const std::string& message = "");
+
 	virtual ~Exception() = default;
 
 	const char * what() const override;
@@ -41,9 +43,7 @@ public:
 
 	virtual const char * GetExpression() const;
 
-protected:
-	explicit Exception(Errors error = Errors::XAMP_ERROR_UNKNOWN, const std::string& message = "");
-
+protected:	
 	std::string what_;
 	std::string message_;
 

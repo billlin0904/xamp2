@@ -7,6 +7,7 @@
 
 #include <string>
 
+#include <base/align_ptr.h>
 #include <base/memory.h>
 #include <base/base.h>
 
@@ -28,7 +29,7 @@ public:
 
 private:
 	class MemoryMappedFileImpl;
-	std::unique_ptr<MemoryMappedFileImpl> impl_;
+	AlignPtr<MemoryMappedFileImpl> impl_;
 };
 
 }

@@ -3,6 +3,7 @@
 
 #include <Windows.h>
 
+#include <base/exception.h>
 #include <base/id.h>
 
 namespace xamp::base {
@@ -17,7 +18,7 @@ static uint8_t ToChar(const char digital) {
 	if (digital > 64 && digital < 71)
 		return digital - 55;
 
-	throw std::exception("Invalid digital");
+	throw Exception(XAMP_ERROR_UNKNOWN, "Invalid digital");
 }
 
 static uint8_t MakeHex(char a, char b) {
@@ -26,7 +27,7 @@ static uint8_t MakeHex(char a, char b) {
 
 static std::array<uint8_t, XAMP_ID_MAX_SIZE> ParseString(const std::string_view& from_string) {
 	if (from_string.length() != ID::MAX_ID_STR_LEN) {
-		throw std::exception("Invalid UUID");
+		throw Exception(XAMP_ERROR_UNKNOWN, "Invalid UUID");
 	}
 
 	if (from_string[8] != '-'

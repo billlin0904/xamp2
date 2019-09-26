@@ -4,7 +4,6 @@
 
 #include "widget/database.h"
 
-#include <QDebug>
 #include <QtWidgets/QApplication>
 
 int main(int argc, char *argv[]) {

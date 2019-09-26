@@ -24,11 +24,13 @@ public:
 		*(void**)& func_ = ::GetProcAddress(dll.get(), name);
 	}
 
-	operator T* () const noexcept {
+	XAMP_DISABLE_COPY(DllFunction)
+
+	XAMP_NEVER_INLINE operator T* () const noexcept {
 		return func_;
 	}
 
-	operator bool() const noexcept {
+	XAMP_NEVER_INLINE operator bool() const noexcept {
 		return func_ != nullptr;
 	}
 private:
