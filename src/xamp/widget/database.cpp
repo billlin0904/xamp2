@@ -249,8 +249,8 @@ int32_t Database::addOrUpdateMusic(const xamp::base::Metadata& metadata, int32_t
 	query.prepare(
 		R"(
 		INSERT OR REPLACE INTO musics
-		       (musicId, title, track, path, title, fileExt, fileName, duration, durationStr, parentPath, bitrate, samplerate, offset)
-		VALUES ((SELECT musicId FROM musics WHERE path = :path and offset = :offset), :title, :track, :path, :title, :fileExt, :fileName, :duration, :durationStr, :parentPath, :bitrate, :samplerate, :offset)
+		       (musicId, title, track, path, fileExt, fileName, duration, durationStr, parentPath, bitrate, samplerate, offset)
+		VALUES ((SELECT musicId FROM musics WHERE path = :path and offset = :offset), :title, :track, :path, :fileExt, :fileName, :duration, :durationStr, :parentPath, :bitrate, :samplerate, :offset)
 		)");
 
 	auto album = QString::fromStdWString(metadata.album);

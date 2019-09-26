@@ -14,7 +14,7 @@ namespace xamp::base {
 
 class XAMP_BASE_API RNG {
 public:
-    static RNG& Get();
+    static RNG& Instance();
 
     XAMP_DISABLE_COPY(RNG)
 

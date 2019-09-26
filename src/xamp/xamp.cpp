@@ -29,21 +29,6 @@ Xamp::Xamp(QWidget *parent)
 }
 
 void Xamp::closeEvent(QCloseEvent* event) {
-	/*
-	const auto result_btn = QMessageBox::question(this,
-		"",
-		tr("Are you sure?"),
-		QMessageBox::Yes | QMessageBox::No,
-		QMessageBox::Yes);
-	if (result_btn == QMessageBox::Yes) {
-		player_->Stop(false, true);
-		player_.reset();
-		event->accept();
-	}
-	else {
-		event->ignore();
-	}
-	*/
 	player_->Stop(false, true);
 	player_.reset();
 }

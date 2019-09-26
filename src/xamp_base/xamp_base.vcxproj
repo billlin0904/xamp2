@@ -135,6 +135,7 @@
     <ClInclude Include="include\base\audiobuffer.h" />
     <ClInclude Include="include\base\audioformat.h" />
     <ClInclude Include="include\base\base.h" />
+    <ClInclude Include="include\base\bom.h" />
     <ClInclude Include="include\base\dataconverter.h" />
     <ClInclude Include="include\base\defer.h" />
     <ClInclude Include="include\base\dll.h" />

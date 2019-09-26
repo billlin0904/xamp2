@@ -201,8 +201,8 @@ QModelIndex PlayListTableView::shuffeIndex() {
 		}
 	}
 
-	xamp::base::RNG::Get().Shuffle(indexes);
-	auto selected = xamp::base::RNG::Get()(size_t(0), indexes.size() - 1);
+	xamp::base::RNG::Instance().Shuffle(indexes);
+	auto selected = xamp::base::RNG::Instance()(size_t(0), indexes.size() - 1);
 	return model()->index(indexes[selected], PLAYLIST_PLAYING);
 }
 

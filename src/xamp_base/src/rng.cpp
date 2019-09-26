@@ -5,7 +5,7 @@
 
 namespace xamp::base {
 
-RNG& RNG::Get() {
+RNG& RNG::Instance() {
     static thread_local RNG rng;
     return rng;
 }

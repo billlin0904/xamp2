@@ -188,6 +188,11 @@ public:
     }
 
     const std::vector<uint8_t>& ExtractCover(const Path& path) {
+		if (!IsSupported(path)) {
+			cover_.clear();
+			return cover_;
+		}
+
         FileRef fileref(path.wstring().c_str());
 
         const auto tag = fileref.tag();

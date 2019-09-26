@@ -6,6 +6,7 @@
 #include "database.h"
 #include "playlisttableview.h"
 #include "pixmapcache.h"
+#include "pixmapcache.h"
 #include "metadataextractadapter.h"
 
 const size_t MetadataExtractAdapter::PREALLOCATE_SIZE = 100;
@@ -86,11 +87,14 @@ void MetadataExtractAdapter::onCompleted(const std::vector<xamp::base::Metadata>
 			if (cover_itr == cover_id_cache.end()) {
 				QPixmap pixmap;
 				const auto& buffer = cover_reader.ExtractEmbeddedCover(metadata.file_path);
-				if (!buffer.empty() && pixmap.loadFromData(buffer.data(), buffer.size())) {
-					PixmapCache::Instance().insert(pixmap, &cover_id);
-					cover_id_cache.insert(album_id, cover_id);
-					Database::Instance().updateAlbumCover(album_id, album, cover_id);
+				if (!buffer.empty()) {					
+					pixmap.loadFromData(buffer.data(), buffer.size());
+				} else {
+					pixmap = PixmapCache::findDirExistCover(QString::fromStdWString(metadata.file_path));
 				}
+				PixmapCache::Instance().insert(pixmap, &cover_id);
+				cover_id_cache.insert(album_id, cover_id);
+				Database::Instance().updateAlbumCover(album_id, album, cover_id);
 			}
 			else {
 				cover_id = (*cover_itr);

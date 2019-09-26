@@ -124,6 +124,7 @@
     <ClCompile Include="widget\database.cpp" />
     <ClCompile Include="widget\filetag.cpp" />
     <ClCompile Include="widget\framelesswindow.cpp" />
+    <ClCompile Include="widget\lrcparser.cpp" />
     <ClCompile Include="widget\pixmapcache.cpp" />
     <ClCompile Include="widget\metadataextractadapter.cpp" />
     <ClCompile Include="widget\playerstateadapter.cpp" />
@@ -153,6 +154,7 @@
     <ClInclude Include="widget\filetag.h" />
     <ClInclude Include="widget\framelesswindow.h" />
     <ClInclude Include="widget\image_utiltis.h" />
+    <ClInclude Include="widget\lrcparser.h" />
     <ClInclude Include="widget\pixmapcache.h" />
     <QtMoc Include="widget\playerstateadapter.h">
       <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtWidgets;.\..\xamp_base\include;.\..\xamp_stream\include;.\..\xamp_output_device\include;.\..\xamp_player\include;.\..\xamp_metadata\include;$(QTDIR)\include\QtWinExtras</IncludePath>

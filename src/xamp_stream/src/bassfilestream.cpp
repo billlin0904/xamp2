@@ -186,10 +186,13 @@ public:
 	XAMP_DISABLE_COPY(BassDSDLib)
 	
 private:
-	BassDSDLib()
+	BassDSDLib() try
 		: module_(LoadDll("bassdsd.dll"))
 		, BASS_DSD_StreamCreateFile(module_, "BASS_DSD_StreamCreateFile")
 		, BASS_ChannelSetAttribute(module_, "BASS_ChannelSetAttribute") {
+	}
+	catch (const Exception& e) {
+		XAMP_LOG_INFO("{}", e.GetErrorMessage());
 	}
 
 	ModuleHandle module_;
