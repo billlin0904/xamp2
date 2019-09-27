@@ -9,7 +9,7 @@
 - Windows 平台: 支持WASPI(共享/獨佔模式), ASIO
 - 支持原始DSD(RAW DSD)回放
 
-#第三方庫
+# 第三方庫
 - Taglib
 - BASS
 - FFmpeg
