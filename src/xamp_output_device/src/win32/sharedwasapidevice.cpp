@@ -159,7 +159,6 @@ void SharedWasapiDevice::OpenStream(const AudioFormat& output_format) {
 		else {
 			XAMP_LOG_DEBUG("Device support RAW mode");
 		}
-
 		InitialRawMode(output_format);
 	}
 

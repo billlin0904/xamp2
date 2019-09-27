@@ -5,29 +5,21 @@
 
 #pragma once
 
-#include <QString>
 #include <QLabel>
-#include <QWidget>
+#include <QMouseEvent>
 
-#include "ui_toast.h"
-
-class Toast : public QWidget {
+class ClickableLabel : public QLabel {
 	Q_OBJECT
 public:
-	Toast(QWidget* parent = nullptr);
+	explicit ClickableLabel(QWidget* parent = nullptr);
 
-	~Toast();
+	~ClickableLabel() = default;
 
-	void setText(const QString& text);
-
-	void showAnimation(int timeout = 2000);
-
-	void hideAnimation();
-
-	static void showTip(const QString& text, QWidget* parent = nullptr);
+signals:
+	void clicked();
 
 protected:
-	void paintEvent(QPaintEvent* event) override;
+	void mousePressEvent(QMouseEvent* event) override;
 
-	Ui::Toast ui;
+	void mouseMoveEvent(QMouseEvent* event) override;
 };

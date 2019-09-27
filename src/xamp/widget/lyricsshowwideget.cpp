@@ -1,0 +1,210 @@
+#include <sstream>
+#include <QFileDialog>
+
+#include "widget/actionmap.h"
+#include "image_utiltis.h"
+#include "lyricsshowwideget.h"
+
+LyricsShowWideget::LyricsShowWideget(QWidget* parent) 
+	: WheelableWidget(false, parent)
+	, pos_(0)
+	, last_lyric_index_(0)
+	, item_precent_(0)
+	, lrc_color_(Qt::darkGray)
+    , lrc_hightlight_color_(Qt::black) {
+    initial();
+}
+
+void LyricsShowWideget::initial() {
+	lrc_font_ = font();
+    lrc_font_.setPointSize(14);
+}
+
+void LyricsShowWideget::setCurrentTime(const int32_t time, const bool is_adding) {
+	auto time2 = time;
+
+	if (!is_adding) {
+	    time2 = (-time2);
+	}
+
+	for (auto& lrc : lyric_) {
+	    lrc.timestamp += std::chrono::milliseconds(time2);
+	}
+}
+
+void LyricsShowWideget::paintItem(QPainter* painter, const int32_t index, QRect& rect) {
+	const int32_t ih = itemHeight() * 1.2 / 10;
+	const int32_t ch = item_offset_ * 1.2 / 10;
+
+    painter->setPen(lrc_color_);
+    painter->setFont(lrc_font_);
+
+	if (index == item_) {
+		if (item_offset_ == 0) {
+			auto font = lrc_font_;
+            font.setBold(true);
+			font.setPointSize(font.pointSize() + ih);
+			painter->setFont(font);            
+			current_rollrect_ = rect;
+			current_mask_font_ = painter->font();
+		} else {
+			auto font = lrc_font_;
+            font.setBold(true);
+			font.setPointSize(font.pointSize() + ih - ch);
+			painter->setFont(font);
+		}
+	}
+
+	if (index == item_ + 1) {
+		auto font = lrc_font_;
+        font.setBold(true);
+		font.setPointSize(font.pointSize() + ch);
+		painter->setFont(font);
+	}
+
+	QFontMetrics metrics(painter->font());
+	const auto text = QString::fromStdWString(lyric_.LineAt(index).lrc);
+
+	painter->drawText((rect.width() - metrics.width(text)) / 2,
+		rect.y() + (rect.height() - metrics.height()) / 2,
+		metrics.width(text),
+		rect.height(),
+		Qt::AlignLeft, text);
+}
+
+void LyricsShowWideget::paintBackground(QPainter* painter) {
+}
+
+void LyricsShowWideget::paintItemMask(QPainter* painter) {
+	if (item_offset_ == 0) {
+		painter->setFont(current_mask_font_);
+		painter->setPen(lrc_hightlight_color_);
+
+		QFontMetrics metrics(current_mask_font_);
+		painter->drawText((current_rollrect_.width() - metrics.width(real_current_text_)) / 2,
+			current_rollrect_.y() + (current_rollrect_.height() - metrics.height()) / 2,
+			mask_length_,
+			current_rollrect_.height(),
+			Qt::AlignLeft,
+			real_current_text_);
+	}
+}
+
+int32_t LyricsShowWideget::itemHeight() const {
+    QFontMetrics metrics(lrc_font_);
+    return metrics.height() * 1.5;
+}
+
+int32_t LyricsShowWideget::itemCount() const {
+	return lyric_.GetSize();
+}
+
+void LyricsShowWideget::stop() {
+	mask_length_ = -1000;
+	last_lyric_index_ = -1;
+	current_rollrect_ = QRect(0, 0, 0, 0);
+	real_current_text_.clear();
+	lyric_.Clear();
+
+	LyricEntry entry;
+	entry.lrc = tr("Not found lyrics").toStdWString();
+	lyric_.AddLrc(entry);
+	update();
+}
+
+void LyricsShowWideget::loadLrcFile(const QString &file_path) {
+	stop();
+	if (!lyric_.ParseFile(file_path.toStdWString())) {
+		return;
+	}
+	update();
+}
+
+void LyricsShowWideget::addFullLrc(const QString& lrc, std::chrono::milliseconds duration) {
+    auto i = 0;
+	const auto lyrics = lrc.split("\n");
+	const auto min_duration = duration / lyrics.count();
+
+	for (const auto &ly : lyrics) {
+		LyricEntry l;
+		l.index = i++;
+		l.lrc = ly.toStdWString();
+		l.timestamp = min_duration * i;
+		lyric_.AddLrc(l);
+	}
+}
+
+void LyricsShowWideget::loadLrc(const QString& lrc) {
+	std::wistringstream stream{ lrc.toStdWString() };
+	if (!lyric_.Parse(stream)) {
+		return;
+	}
+	update();
+}
+
+void LyricsShowWideget::setLrc(const QString &lrc) {
+	lrc_ = lrc;
+	stop();
+	loadLrc(lrc_);
+}
+
+void LyricsShowWideget::setLrcTime(int32_t stream_time) {
+	stream_time = stream_time + SCROLL_TIME;
+	pos_ = stream_time;
+
+	if (is_scrolled_ || !lyric_.GetSize()) {
+		update();
+		return;
+	}
+
+    const auto &ly = lyric_.GetLyrics(std::chrono::milliseconds(stream_time));
+
+	if (item_ != ly.index && item_offset_ == 0) {
+		mask_length_ = -1000;
+		current_rollrect_ = QRect(0, 0, 0, 0);
+		real_current_text_ = QString::fromStdWString(ly.lrc);
+		item_offset_ = -1;
+		scrollTo(ly.index);
+	}
+
+	if (item_offset_ != 0) {
+		update();
+		return;
+	}
+
+    const auto &post_ly = lyric_.GetLyrics(std::chrono::milliseconds(pos_));
+
+	const auto text = QString::fromStdWString(post_ly.lrc);
+	const auto interval = post_ly.index;
+	const auto precent = float(post_ly.index) / float(lyric_.GetSize());
+
+	QFontMetrics metrics(current_mask_font_);
+
+	if (item_precent_ == precent) {
+		const auto count = double(interval) / 25.0;
+		const float lrc_mask_mini_step = metrics.width(text) / count;
+		mask_length_ += lrc_mask_mini_step;
+	}
+	else {
+		mask_length_ = metrics.width(real_current_text_) * precent;
+	}
+
+	item_precent_ = precent;
+	update();
+}
+
+void LyricsShowWideget::setLrcFont(const QFont & font) {
+	lrc_font_ = font;
+	current_mask_font_ = font;
+	update();
+}
+
+void LyricsShowWideget::setLrcHightLight(const QColor & color) {
+	lrc_hightlight_color_ = color;
+	update();
+}
+
+void LyricsShowWideget::setLrcColor(const QColor& color) {
+	lrc_color_ = color;
+	update();
+}

@@ -89,14 +89,14 @@ FramelessWindow::~FramelessWindow() {
 }
 
 void FramelessWindow::initialFontDatabase() {
-	const QStringList fallback_fonts{
+	const QStringList fallback_fonts{		
 		"SF Pro Text",
 		"SF Pro Icons",
 		"Helvetica Neue",
 		"HelveticaNeue",
 		"Microsoft Yahei",
 		"Helvetica",
-		"Arial"
+		"Arial",
 	};
 
 	QFont::insertSubstitutions("UI", fallback_fonts);

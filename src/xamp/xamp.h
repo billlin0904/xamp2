@@ -9,6 +9,7 @@
 #include "widget/playerstateadapter.h"
 #include "widget/framelesswindow.h"
 #include "widget/playlisttableview.h"
+#include "widget/lyricsshowwideget.h"
 
 #include "ui_xamp.h"
 
@@ -21,6 +22,8 @@ enum PlayerOrder {
 	_MAX_PLAYER_ORDER_,
 };
 
+class LyricsShowWideget;
+
 class Xamp : public FramelessWindow {
 	Q_OBJECT
 
@@ -31,6 +34,8 @@ public slots:
 	void play(const QModelIndex& index, const PlayListEntity& item);
 
 private:
+	void setCover(const QPixmap& cover);
+
 	void closeEvent(QCloseEvent* event) override;
 
 	QWidgetAction* createTextSeparator(const QString& text);
@@ -55,8 +60,6 @@ private:
 
 	void addDropFileItem(const QUrl& url) override;
 
-	void addMusic(int32_t music_id, PlayListTableView* playlist);
-
 	void setVolume(int32_t volume);
 
 	void initialUI();
@@ -74,6 +77,7 @@ private:
 	QModelIndex play_index_;
 	Ui::XampWindow ui;
 	DeviceInfo device_info_;
+	LyricsShowWideget* lrc_page_;
 	std::shared_ptr<PlayerStateAdapter> state_adapter_;
 	std::shared_ptr<AudioPlayer> player_;
 };

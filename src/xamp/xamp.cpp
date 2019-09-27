@@ -4,6 +4,7 @@
 #include <QMenu>
 #include <QCloseEvent>
 #include <QMessageBox>
+#include <QFileInfo>
 
 #include "widget/win32/blur_effect_helper.h"
 
@@ -20,6 +21,7 @@ Xamp::Xamp(QWidget *parent)
 	: FramelessWindow(parent)
 	, is_seeking_(false)
 	, order_(PLAYER_ORDER_REPEAT)
+	, lrc_page_(nullptr)
 	, state_adapter_(std::make_shared<PlayerStateAdapter>())
 	, player_(std::make_shared<AudioPlayer>(state_adapter_)) {
 	PixmapCache::Instance();
@@ -302,7 +304,14 @@ void Xamp::initialController() {
 		if (!is_seeking_) {
 			return;
 		}
-		player_->Seek(static_cast<double>(ui.seekSlider->value() / 1000.0));
+		try {
+			player_->Seek(static_cast<double>(ui.seekSlider->value() / 1000.0));
+		}
+		catch (const xamp::base::Exception& e) {
+			player_->Stop(false);
+			Toast::showTip(e.GetErrorMessage(), this);
+			return;
+		}		
 		is_seeking_ = false;
 		});
 
@@ -366,6 +375,18 @@ void Xamp::initialController() {
 		play();
 		});
 
+	(void)QObject::connect(ui.backPageButton, &QToolButton::pressed, [this]() {
+		auto idx = ui.currentView->currentIndex();
+		if (idx > 0) {
+			ui.currentView->setCurrentIndex(idx - 1);
+		}
+		});
+
+
+	(void)QObject::connect(ui.coverLabel, &ClickableLabel::clicked, [this]() {
+		ui.currentView->setCurrentIndex(1);
+		});
+
 	ui.seekSlider->setEnabled(false);
 	ui.startPosLabel->setText(Time::msToString(0));
 	ui.endPosLabel->setText(Time::msToString(0));
@@ -380,10 +401,14 @@ void Xamp::setVolume(int32_t volume) {
 		player_->SetMute(true);
 		ui.mutedButton->setIcon(QIcon(":/xamp/Resource/White/volume_off.png"));
 	}
-	player_->SetVolume(volume);
-}
-
-void Xamp::addMusic(int32_t music_id, PlayListTableView* playlist) {
+	try {
+		player_->SetVolume(volume);
+	}
+	catch (const xamp::base::Exception& e) {
+		player_->Stop(false);
+		Toast::showTip(e.GetErrorMessage(), this);
+		return;
+	}
 }
 
 void Xamp::playNextClicked() {
@@ -469,6 +494,7 @@ void Xamp::onSampleTimeChanged(double stream_time) {
 		ui.seekSlider->setValue(stream_time_as_ms);
 		ui.startPosLabel->setText(Time::msToString(stream_time));
 		setTaskbarProgress(100.0 * ui.seekSlider->value() / ui.seekSlider->maximum());
+		lrc_page_->setLrcTime(stream_time_as_ms);
 	}
 }
 
@@ -527,7 +553,11 @@ void Xamp::play(const PlayListEntity& item) {
 	ui.startPosLabel->setText(Time::msToString(0));
 	ui.endPosLabel->setText(Time::msToString(player_->GetDuration()));
 
-	player_->PlayStream();
+	QFileInfo file_info(item.file_path);
+	const auto lrc_path = file_info.path() + "/" + file_info.completeBaseName() + ".lrc";
+	lrc_page_->loadLrcFile(lrc_path);
+
+	player_->PlayStream();	
 }
 
 void Xamp::play(const QModelIndex& index, const PlayListEntity& item) {
@@ -551,18 +581,20 @@ void Xamp::play(const QModelIndex& index, const PlayListEntity& item) {
 		return;
 	}
 	
-	auto page = static_cast<PlyalistPage*>(ui.currentView->widget(0));
-
+	auto playlist_page = static_cast<PlyalistPage*>(ui.currentView->widget(0));
 	QPixmap cover;
 	if (!PixmapCache::Instance().find(item.cover_id, cover)) {
 		cover = QPixmap(":/xamp/Resource/White/unknown_album.png");
 	}
+	setCover(cover);
+	playlist_page->title()->setText(item.title);
+}
 
+void Xamp::setCover(const QPixmap& cover) {
 	assert(!cover.isNull());
+	auto playlist_page = static_cast<PlyalistPage*>(ui.currentView->widget(0));
 	ui.coverLabel->setPixmap(Pixmap::resizeImage(cover, ui.coverLabel->size(), true));
-	page->cover()->setPixmap(Pixmap::resizeImage(cover, page->cover()->size(), true));
-
-	page->title()->setText(item.title);
+	playlist_page->cover()->setPixmap(Pixmap::resizeImage(cover, playlist_page->cover()->size(), true));
 }
 
 void Xamp::onPlayerStateChanged(xamp::player::PlayerState play_state) {
@@ -586,6 +618,9 @@ void Xamp::addItem(const QString& file_name) {
 		auto table_id = Database::Instance().addTable("", 0);
 		auto playlist_id = Database::Instance().addPlaylist("", 0);
 		playlist_page->playlist()->setPlaylistId(playlist_id);
+		lrc_page_ = new LyricsShowWideget(this);		
+		ui.currentView->addWidget(lrc_page_);
+		setCover(QPixmap(":/xamp/Resource/White/unknown_album.png"));
 	}
 	else {
 		playlist_page = static_cast<PlyalistPage*>(ui.currentView->widget(0));

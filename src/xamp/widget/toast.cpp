@@ -29,11 +29,11 @@ void Toast::showAnimation(int timeout) {
 	animation->start();
 	show();
 	QTimer::singleShot(timeout, [&]() {
-		HideAnimation();
+		hideAnimation();
 		});
 }
 
-void Toast::HideAnimation() {
+void Toast::hideAnimation() {
 	auto animation = new QPropertyAnimation(this, "windowOpacity");
 	animation->setDuration(1000);
 	animation->setStartValue(1);
