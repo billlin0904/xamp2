@@ -35,20 +35,15 @@ void Xamp::closeEvent(QCloseEvent* event) {
 	player_.reset();
 }
 
-void Xamp::initialUI() {
-	ui.setupUi(this);
-
-	ui.currentView->setStyleSheet("background-color: rgba(228, 233, 237, 230);");	
+void Xamp::setWhiteTheme() {
+	ui.currentView->setStyleSheet("background-color: rgba(228, 233, 237, 230);");
 	ui.titleFrame->setStyleSheet("background-color: rgba(228, 233, 237, 230);");
-
 	ui.sliderBar->setStyleSheet("background-color: rgba(228, 233, 237, 150);");
-
 	ui.controlFrame->setStyleSheet("background-color: rgba(255, 255, 255, 200);");
 	ui.volumeFrame->setStyleSheet("background-color: rgba(255, 255, 255, 200);");
-
 	ui.playingFrame->setStyleSheet("background-color: rgba(228, 233, 237, 220);");
 	ui.searchLineEdit->setStyleSheet("background: transparent;");
-	
+
 	ui.closeButton->setStyleSheet(R"(
 		QToolButton#closeButton { 
 			image: url(:/xamp/Resource/White/close.png);
@@ -56,6 +51,7 @@ void Xamp::initialUI() {
 			background-color: rgba(255, 255, 255, 0);
 		}
 	)");
+
 	ui.minWinButton->setStyleSheet(R"(
 		QToolButton#minWinButton { 
 			image: url(:/xamp/Resource/White/minimize.png);
@@ -63,6 +59,7 @@ void Xamp::initialUI() {
 			background-color: rgba(255, 255, 255, 0);
 		}
 	)");
+
 	ui.maxWinButton->setStyleSheet(R"(
 		QToolButton#maxWinButton { 
 			image: url(:/xamp/Resource/White/maximize.png);
@@ -72,13 +69,14 @@ void Xamp::initialUI() {
 	)");
 
 	setPlayOrPauseButton(false);
-	
+
 	ui.nextButton->setStyleSheet(R"(
 		QToolButton#nextButton { 
 			image: url(:/xamp/Resource/White/next.png);
 			background: transparent;
 		 }
 	)");
+
 	ui.prevButton->setStyleSheet(R"(
 		QToolButton#prevButton {
 			image: url(:/xamp/Resource/White/previous.png);
@@ -92,30 +90,35 @@ void Xamp::initialUI() {
 			background: transparent;
 		}
 	)");
+
 	ui.backPageButton->setStyleSheet(R"(
 		QToolButton#backPageButton {
 			image: url(:/xamp/Resource/White/left_black.png);
 			background: transparent;
 		}
 	)");
+
 	ui.searchLineEdit->setStyleSheet(R"(
 		QLineEdit#searchLineEdit {
 			background-color: white;
 			border: none;
 		}
 	)");
+
 	ui.mutedButton->setStyleSheet(R"(
 		QToolButton#mutedButton {
 			image: url(:/xamp/Resource/White/volume_up.png);
 			background: transparent;
 		}
 	)");
+
 	ui.selectDeviceButton->setStyleSheet(R"(
 		QToolButton#selectDeviceButton {
 			image: url(:/xamp/Resource/White/speaker.png);
 			background: transparent;
 		}
 	)");
+
 	ui.playlistButton->setStyleSheet(R"(
 		QToolButton#playlistButton {
 			background: transparent;
@@ -132,12 +135,14 @@ void Xamp::initialUI() {
 			background: transparent;
 		}
 	)");
+
 	ui.repeatButton->setStyleSheet(R"(
 		QToolButton#repeatButton {
 			image: url(:/xamp/Resource/White/repeat.png);
 			background: transparent;
 		}
 	)");
+
 	ui.addPlaylistButton->setStyleSheet(R"(
 		QToolButton#addPlaylistButton {
 			image: url(:/xamp/Resource/White/create_new_folder.png);
@@ -150,34 +155,44 @@ void Xamp::initialUI() {
 			background: transparent;
 		}
 	)");
+
 	ui.artistLabel->setStyleSheet(R"(
 		QLabel#artistLabel {
 			background: transparent;
 		}
 	)");
+
 	ui.startPosLabel->setStyleSheet(R"(
 		QLabel#startPosLabel {
 			background: transparent;
 			color: gray;
 		}
 	)");
+
 	ui.endPosLabel->setStyleSheet(R"(
 		QLabel#endPosLabel {
 			background: transparent;
 			color: gray;
 		}
 	)");
+
 	ui.seekSlider->setStyleSheet(R"(
 		QSlider#seekSlider {
 			background: transparent;
 		}
 	)");
+
 	ui.artistLabel->setStyleSheet(R"(
 		QLabel#artistLabel {
 			background: transparent;
 			color: gray;
 		}
 	)");
+}
+
+void Xamp::initialUI() {
+	ui.setupUi(this);
+	setWhiteTheme();
 }
 
 void Xamp::setPlayOrPauseButton(bool is_playing) {

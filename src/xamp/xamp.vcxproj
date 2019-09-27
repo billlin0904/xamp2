@@ -119,7 +119,6 @@
     </QtRcc>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\xamp_base\src\dll.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="widget\clickablelabel.cpp" />
     <ClCompile Include="widget\database.cpp" />
@@ -136,6 +135,7 @@
     <ClCompile Include="widget\playlisttableview.cpp" />
     <ClCompile Include="widget\toast.cpp" />
     <ClCompile Include="widget\wheelablewidget.cpp" />
+    <ClCompile Include="widget\win32\blur_effect_helper.cpp" />
     <ClCompile Include="xamp.cpp" />
   </ItemGroup>
   <ItemGroup>

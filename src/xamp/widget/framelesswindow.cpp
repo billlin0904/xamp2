@@ -1,4 +1,5 @@
 #include <QApplication>
+#include <QLayout>
 
 #if defined(Q_OS_WIN)
 #include <Windows.h>
@@ -13,13 +14,12 @@
 #endif
 
 #include <QStyle>
-#include <widget/framelesswindow.h>
+#include "widget/framelesswindow.h"
 
 FramelessWindow::FramelessWindow(QWidget* parent)
     : QWidget(parent)
 	, is_maximized_(false)
-	, border_width_(5)
-	, title_bar_(nullptr) {	
+	, border_width_(5) {	
 	setWindowFlags(Qt::FramelessWindowHint | Qt::WindowMaximizeButtonHint);
     setMouseTracking(true);
     installEventFilter(this);
@@ -40,21 +40,21 @@ FramelessWindow::FramelessWindow(QWidget* parent)
 
     auto play_tool_button = new QWinThumbnailToolButton(thumbnail_tool_bar_.get());
     play_tool_button->setIcon(play_icon_);
-    QObject::connect(play_tool_button,
+	(void)QObject::connect(play_tool_button,
 		&QWinThumbnailToolButton::clicked,
 		this, 
 		&FramelessWindow::play);
 
     auto forward_tool_button = new QWinThumbnailToolButton(thumbnail_tool_bar_.get());
     forward_tool_button->setIcon(seek_forward_icon_);
-    QObject::connect(forward_tool_button,
+	(void)QObject::connect(forward_tool_button,
 		&QWinThumbnailToolButton::clicked, 
 		this,
 		&FramelessWindow::playNextClicked);
 
     auto backward_tool_button = new QWinThumbnailToolButton(thumbnail_tool_bar_.get());
     backward_tool_button->setIcon(seek_backward_icon_);
-    QObject::connect(backward_tool_button,
+    (void)QObject::connect(backward_tool_button,
 		&QWinThumbnailToolButton::clicked,
 		this,
 		&FramelessWindow::playPreviousClicked);
@@ -64,15 +64,25 @@ FramelessWindow::FramelessWindow(QWidget* parent)
     thumbnail_tool_bar_->addButton(forward_tool_button);
 
 	HWND hwnd = (HWND)winId();
+
+	// 使用以下方式可以支援win32視窗的功能, 但是目前會有問題
+	//const LONG style = (WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_THICKFRAME | WS_CLIPCHILDREN);
+	//::SetWindowLongPtr(hwnd, GWL_STYLE, style);
+	//::SetWindowPos(hwnd, 0, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);
+
+	//DWORD style = ::GetWindowLong(hwnd, GWL_STYLE);
+	//::SetWindowLong(hwnd, GWL_STYLE, style | WS_MAXIMIZEBOX | WS_THICKFRAME | WS_CAPTION);
+
 	const DWMNCRENDERINGPOLICY ncrp = DWMNCRP_ENABLED;
 	::DwmSetWindowAttribute(hwnd, DWMWA_NCRENDERING_POLICY, &ncrp, sizeof(ncrp));
 
-	const MARGINS borderless = { 0 };
+	// 保留1個像素系統才會繪製陰影.
+	const MARGINS borderless = { 1, 1, 1, 1 };
 	::DwmExtendFrameIntoClientArea(hwnd, &borderless);
 
 	::DwmEnableMMCSS(true);
 
-	SetBlurMaterial(hwnd);
+	SetBlurMaterial(this);
 #endif
 
 	initialFontDatabase();
@@ -89,11 +99,10 @@ FramelessWindow::~FramelessWindow() {
 }
 
 void FramelessWindow::initialFontDatabase() {
-	const QStringList fallback_fonts{		
+	const QStringList fallback_fonts{
 		"SF Pro Text",
 		"SF Pro Icons",
 		"Helvetica Neue",
-		"HelveticaNeue",
 		"Microsoft Yahei",
 		"Helvetica",
 		"Arial",
@@ -279,7 +288,7 @@ bool FramelessWindow::nativeEvent(const QByteArray & event_type, void * message,
 
 void FramelessWindow::mousePressEvent(QMouseEvent* event) {
 #if defined(Q_OS_WIN)
-    if (ReleaseCapture()) {
+    if (::ReleaseCapture()) {
         const auto widget = window();
         if (widget->isTopLevel()) {
             ::SendMessage(HWND(widget->winId()), WM_SYSCOMMAND, SC_MOVE + HTCAPTION, 0);

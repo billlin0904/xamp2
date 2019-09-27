@@ -46,7 +46,7 @@ private:
 	int32_t GetAvailableRead(int32_t head, int32_t tail) const noexcept;
     
     std::atomic<int32_t> head_;
-	static const int32_t PaddingSize = XAMP_CACHE_LINE_PAD_SIZE - sizeof(int32_t);
+	static const int32_t PaddingSize = XAMP_CACHE_ALIGN_SIZE - sizeof(int32_t);
 	uint8_t pad1_[PaddingSize]{};
     std::atomic<int32_t> tail_;
 	uint8_t pad2_[PaddingSize]{};

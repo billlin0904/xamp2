@@ -56,6 +56,7 @@ void PlayListTableView::initial() {
 
 	setDragDropMode(InternalMove);
 	setFrameShape(NoFrame);
+	setFocusPolicy(Qt::NoFocus);
 
 	hideColumn(PLAYLIST_MUSIC_ID);
 	hideColumn(PLAYLIST_FILEPATH);
@@ -70,7 +71,14 @@ void PlayListTableView::initial() {
 
 	verticalHeader()->setVisible(false);
 	verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
-	verticalHeader()->setDefaultSectionSize(40);	
+	verticalHeader()->setDefaultSectionSize(40);
+
+	setStyleSheet(R"(
+		QTableView {
+			gridline-color: gray;
+			background-color: transparent;
+		}
+	)");
 
 	horizontalHeader()->setStyleSheet(R"(
 		QHeaderView::section {

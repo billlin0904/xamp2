@@ -6,7 +6,6 @@
 #pragma once
 
 #include <QWidget>
-#include <QMainWindow>
 
 #include <QMimeData>
 #include <QDragEnterEvent>
@@ -83,7 +82,6 @@ private:
 	std::unique_ptr<QWinTaskbarButton> taskbar_button_;
 	QWinTaskbarProgress* taskbar_progress_;
 #endif
-	QWidget* title_bar_;
 	QIcon play_icon_;
 	QIcon pause_icon_;
 	QIcon stop_play_icon_;

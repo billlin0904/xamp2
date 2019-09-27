@@ -142,8 +142,7 @@ void Database::open(const QString& file_name) {
 	db_.setDatabaseName(file_name);
 
 	if (!db_.open()) {
-		throw std::invalid_argument("Database open fail! " + db_.lastError().text().toStdString());
-		return;
+		throw SqlException(db_.lastError());
 	}
 
 	(void)db_.exec("PRAGMA synchronous = OFF");

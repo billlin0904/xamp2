@@ -61,7 +61,7 @@
 #endif
 
 // Avoid cache-pollution padding size
-#define XAMP_CACHE_LINE_PAD_SIZE 64
+#define XAMP_CACHE_ALIGN_SIZE 64
 
 // Memory allocate aligned size
 // Assume we need 32-byte alignment for AVX instructions.

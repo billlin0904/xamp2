@@ -34,6 +34,8 @@ public slots:
 	void play(const QModelIndex& index, const PlayListEntity& item);
 
 private:
+	void setWhiteTheme();
+
 	void setCover(const QPixmap& cover);
 
 	void closeEvent(QCloseEvent* event) override;

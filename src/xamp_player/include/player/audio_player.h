@@ -96,7 +96,7 @@ private:
 
 	void SetState(const PlayerState play_state);
 
-	struct AudioSlice {
+	struct alignas(XAMP_CACHE_ALIGN_SIZE) AudioSlice {
 		AudioSlice(const float* samples = nullptr, int32_t sample_size = 0, double stream_time = 0.0) noexcept
 			: samples(samples)
 			, sample_size(sample_size)
