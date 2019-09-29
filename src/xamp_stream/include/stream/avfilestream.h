@@ -23,7 +23,7 @@ public:
 
 	XAMP_PIMPL(AvFileStream)
 
-	void OpenFromFile(const std::wstring & file_path, OpenMode open_mode) override;
+	void OpenFromFile(const std::wstring & file_path) override;
 
 	void Close() override;
 
@@ -39,7 +39,7 @@ public:
 
 	int32_t GetSampleSize() const override;
 
-	bool IsDSDFile() const override;
+	bool IsDSDFile() const noexcept override;
 private:
 	class AvFileStreamImpl;
 	AlignPtr<AvFileStreamImpl> impl_;

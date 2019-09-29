@@ -3,11 +3,10 @@
 #include <QFontDatabase>
 #include <QMenu>
 #include <QCloseEvent>
-#include <QMessageBox>
 #include <QFileInfo>
+#include <QDesktopWidget>
 
-#include "widget/win32/blur_effect_helper.h"
-
+#include "widget/str_utilts.h"
 #include "widget/playlistpage.h"
 #include "widget/toast.h"
 #include "widget/image_utiltis.h"
@@ -17,6 +16,33 @@
 
 #include "xamp.h"
 
+static QString colorToRgba(const QColor& c) {
+	return QString(Q_UTF8("rgba(%1, %2, %3, %4)"))
+		.arg(c.red()).arg(c.green()).arg(c.blue()).arg(c.alpha());
+}
+
+static QString getUIFormat(const AudioFormat& format, const PlayListEntity& item) {
+	auto ext = item.file_ext;
+	ext = ext.remove(Q_UTF8(".")).toUpper();
+	auto is_mhz_samplerate = false;
+	auto precision = 1;
+	if (format.GetSampleRate() / 1000 > 1000) {
+		is_mhz_samplerate = true;
+	}
+	else {
+		precision = format.GetSampleRate() % 1000 == 0 ? 0 : 1;
+	}
+	auto bits = format.GetBitsPerSample();
+	if (is_mhz_samplerate) {
+		bits = 1;
+	}
+	return ext
+		+ Q_UTF8(" | ")
+		+ (is_mhz_samplerate ? QString::number(format.GetSampleRate() / double(1000000), 'f', 2) + Q_UTF8("MHz/")
+		: QString::number(format.GetSampleRate() / double(1000), 'f', precision) + Q_UTF8("kHz/"))
+		+ QString::number(bits) + Q_UTF8("bit");
+}
+
 Xamp::Xamp(QWidget *parent)
 	: FramelessWindow(parent)
 	, is_seeking_(false)
@@ -24,18 +50,29 @@ Xamp::Xamp(QWidget *parent)
 	, lrc_page_(nullptr)
 	, state_adapter_(std::make_shared<PlayerStateAdapter>())
 	, player_(std::make_shared<AudioPlayer>(state_adapter_)) {
-	PixmapCache::Instance();
-	initialUI();
-	initialController();
+	initialDefaultValue();
+	initialUI();	
+	initialController();	
 	initialDeviceList();
+	initialPlaylist();	
+	setCover(QPixmap(QStringLiteral(":/xamp/Resource/White/unknown_album.png")));
+	//setCentralWidget(ui.centralWidget); // For QMainWindow use
 }
 
 void Xamp::closeEvent(QCloseEvent* event) {
-	player_->Stop(false, true);
-	player_.reset();
+	setSettingValue(APP_SETTING_WIDTH, size().width());
+	setSettingValue(APP_SETTING_HEIGHT, size().height());
+
+	if (player_ != nullptr) {
+		player_->Stop(false, true);
+		player_.reset();
+	}
 }
 
-void Xamp::setWhiteTheme() {
+void Xamp::setNightMode() {
+}
+
+void Xamp::setNormalMode() {
 	ui.currentView->setStyleSheet("background-color: rgba(228, 233, 237, 230);");
 	ui.titleFrame->setStyleSheet("background-color: rgba(228, 233, 237, 230);");
 	ui.sliderBar->setStyleSheet("background-color: rgba(228, 233, 237, 150);");
@@ -43,6 +80,13 @@ void Xamp::setWhiteTheme() {
 	ui.volumeFrame->setStyleSheet("background-color: rgba(255, 255, 255, 200);");
 	ui.playingFrame->setStyleSheet("background-color: rgba(228, 233, 237, 220);");
 	ui.searchLineEdit->setStyleSheet("background: transparent;");
+
+	setStyleSheet(R"(
+	QTableView {
+			background-color: transparent;
+			color: black;
+		}
+	)");
 
 	ui.closeButton->setStyleSheet(R"(
 		QToolButton#closeButton { 
@@ -63,6 +107,14 @@ void Xamp::setWhiteTheme() {
 	ui.maxWinButton->setStyleSheet(R"(
 		QToolButton#maxWinButton { 
 			image: url(:/xamp/Resource/White/maximize.png);
+			background: transparent;
+			background-color: rgba(255, 255, 255, 0);
+		}
+	)");
+
+	ui.settingsButton->setStyleSheet(R"(
+		QToolButton#settingsButton { 
+			image: url(:/xamp/Resource/White/settings.png);
 			background: transparent;
 			background-color: rgba(255, 255, 255, 0);
 		}
@@ -190,27 +242,43 @@ void Xamp::setWhiteTheme() {
 	)");
 }
 
+void Xamp::initialDefaultValue() {
+	setDefaultValue(APP_SETTING_DEVICE_TYPE, "");
+	setDefaultValue(APP_SETTING_DEVICE_ID, "");
+	setDefaultValue(APP_SETTING_WIDTH, 600);
+	setDefaultValue(APP_SETTING_HEIGHT, 500);
+	setDefaultValue(APP_SETTING_VOLUME, 50);
+	setDefaultValue(APP_SETTING_NIGHT_MODE, false);
+	setDefaultValue(APP_SETTING_ORDER, PLAYER_ORDER_REPEAT);
+}
+
 void Xamp::initialUI() {
 	ui.setupUi(this);
-	setWhiteTheme();
+	setNormalMode();
+	setGeometry(
+		QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter,
+			AppSettings::settings().getSettingSize(APP_SETTING_WIDTH, APP_SETTING_HEIGHT),
+			qApp->desktop()->availableGeometry()
+		)
+	);
 }
 
 void Xamp::setPlayOrPauseButton(bool is_playing) {
 	if (is_playing) {
-		ui.playButton->setStyleSheet(R"(
+		ui.playButton->setStyleSheet(QStringLiteral(R"(
 		QToolButton#playButton {
 			image: url(:/xamp/Resource/White/pause.png);
 			background: transparent;
 		}
-		)");
+		)"));
 	}
 	else {
-		ui.playButton->setStyleSheet(R"(
+		ui.playButton->setStyleSheet(QStringLiteral(R"(
 		QToolButton#playButton {
 			image: url(:/xamp/Resource/White/play.png);
 			background: transparent;
 		}
-		)");
+		)"));
 	}
 }
 
@@ -232,14 +300,14 @@ void Xamp::initialDeviceList() {
 		ui.selectDeviceButton->setMenu(menu);
 	}
 
-	menu->setStyleSheet(R"(		
+	menu->setStyleSheet(QStringLiteral(R"(		
 		QMenu {
 			background-color: rgba(228, 233, 237, 150);
 		}
 		QMenu::item:selected { 
 			background-color: black;
 		}
-		)");
+		)"));
 	menu->clear();
 
 	DeviceInfo init_device_info;
@@ -267,8 +335,16 @@ void Xamp::initialDeviceList() {
 			device_id_action[device_info.device_id] = device_action;
 			(void)QObject::connect(device_action, &QAction::triggered, [device_info, this]() {
 				device_info_ = device_info;
+				setSettingValue(APP_SETTING_DEVICE_TYPE, QString::fromStdString(device_info_.device_type_id));
+				setSettingValue(APP_SETTING_DEVICE_ID, QString::fromStdWString(device_info_.device_id));
 				});
 			menu->addAction(device_action);
+			if (getSettingID(APP_SETTING_DEVICE_TYPE) == device_info.device_type_id
+				&& getSettingValue(APP_SETTING_DEVICE_ID).toString().toStdWString() == device_info.device_id) {
+				device_info_ = device_info;
+				is_find_setting_device = true;
+				device_action->setChecked(true);
+			}
 		}
 
 		if (!is_find_setting_device) {
@@ -276,13 +352,17 @@ void Xamp::initialDeviceList() {
 				return info.is_default_device && !DeviceFactory::IsExclusiveDevice(info);
 				});
 			if (itr != device_info_list.end()) {			
-				init_device_info = (*itr);
-				device_id_action[init_device_info.device_id]->setChecked(true);
+				init_device_info = (*itr);				
 			}
 		}
 		});
 
-	device_info_ = init_device_info;
+	if (!is_find_setting_device) {
+		device_info_ = init_device_info;
+		device_id_action[device_info_.device_id]->setChecked(true);
+		setSettingValue(APP_SETTING_DEVICE_TYPE, QString::fromStdString(device_info_.device_type_id));
+		setSettingValue(APP_SETTING_DEVICE_ID, QString::fromStdWString(device_info_.device_id));
+	}
 }
 
 void Xamp::initialController() {
@@ -304,6 +384,10 @@ void Xamp::initialController() {
 
 	(void)QObject::connect(ui.closeButton, &QToolButton::pressed, [this]() {
 		QWidget::close();
+		});
+
+	(void)QObject::connect(ui.settingsButton, &QToolButton::pressed, [this]() {
+
 		});
 
 	(void)QObject::connect(ui.seekSlider, &QSlider::sliderMoved, [this](auto value) {
@@ -339,20 +423,20 @@ void Xamp::initialController() {
 		player_->Pause();
 		});
 
-	ui.volumeSlider->setRange(0, 100);
-	ui.volumeSlider->setValue(50);
+	order_ = static_cast<PlayerOrder>(getSettingValue(APP_SETTING_ORDER).toInt());
+	setPlayerOrder();
 
-	(void)QObject::connect(ui.volumeSlider, &QSlider::sliderMoved, [this](auto pos) {
-		});
+	ui.volumeSlider->setRange(0, 100);
+	ui.volumeSlider->setValue(getSettingValue(APP_SETTING_VOLUME).toInt());
 
 	(void)QObject::connect(ui.volumeSlider, &QSlider::valueChanged, [this](auto volume) {
 		QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + QString("%"));
 		setVolume(volume);
+		setSettingValue(APP_SETTING_VOLUME, volume);
 		});
 
 	(void)QObject::connect(ui.volumeSlider, &QSlider::sliderMoved, [this](auto volume) {
 		QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + QString("%"));
-		setVolume(volume);
 		});
 
 	(void)QObject::connect(state_adapter_.get(),
@@ -383,6 +467,7 @@ void Xamp::initialController() {
 		});
 
 	(void)QObject::connect(ui.repeatButton, &QToolButton::pressed, [this]() {
+		order_ = static_cast<PlayerOrder>((order_ + 1) % _MAX_PLAYER_ORDER_);
 		setPlayerOrder();
 		});
 
@@ -410,11 +495,11 @@ void Xamp::initialController() {
 void Xamp::setVolume(int32_t volume) {
 	if (volume > 0) {
 		player_->SetMute(false);
-		ui.mutedButton->setIcon(QIcon(":/xamp/Resource/White/volume_up.png"));
+		ui.mutedButton->setIcon(QIcon(QStringLiteral(":/xamp/Resource/White/volume_up.png")));
 	}
 	else {
 		player_->SetMute(true);
-		ui.mutedButton->setIcon(QIcon(":/xamp/Resource/White/volume_off.png"));
+		ui.mutedButton->setIcon(QIcon(QStringLiteral(":/xamp/Resource/White/volume_off.png")));
 	}
 	try {
 		player_->SetVolume(volume);
@@ -434,42 +519,47 @@ void Xamp::playPreviousClicked() {
 	playNextItem(-1);
 }
 
+void Xamp::onDeleteKeyPress() {
+	if (!ui.currentView->count()) {
+		return;
+	}
+	auto playlist_view = static_cast<PlyalistPage*>(ui.currentView->widget(0))->playlist();
+	playlist_view->removeSelectItems();
+}
+
 void Xamp::setPlayerOrder() {
-	order_ = static_cast<PlayerOrder>((order_ + 1) % _MAX_PLAYER_ORDER_);
 	switch (order_) {
 	case PLAYER_ORDER_REPEAT:
-		ui.repeatButton->setStyleSheet(R"(
+		ui.repeatButton->setStyleSheet(QStringLiteral(R"(
 		QToolButton#repeatButton {
 			image: url(:/xamp/Resource/White/repeat.png);
 			background: transparent;
 		}
-		)");
+		)"));
+		setSettingValue(APP_SETTING_ORDER, PLAYER_ORDER_REPEAT);
 		break;
 	case PLAYER_ORDER_REPEAT_ONE:
-		ui.repeatButton->setStyleSheet(R"(
+		ui.repeatButton->setStyleSheet(QStringLiteral(R"(
 		QToolButton#repeatButton {
 			image: url(:/xamp/Resource/White/repeat_one.png);
 			background: transparent;
 		}
-		)");
+		)"));
+		setSettingValue(APP_SETTING_ORDER, PLAYER_ORDER_REPEAT_ONE);
 		break;
 	case PLAYER_ORDER_SHUFFLE_ALL:
-		ui.repeatButton->setStyleSheet(R"(
+		ui.repeatButton->setStyleSheet(QStringLiteral(R"(
 		QToolButton#repeatButton {
 			image: url(:/xamp/Resource/White/shuffle.png);
 			background: transparent;
 		}
-		)");
+		)"));
+		setSettingValue(APP_SETTING_ORDER, PLAYER_ORDER_SHUFFLE_ALL);
 		break;
 	}
 }
 
 void Xamp::playNextItem(int32_t forward) {
-	if (!ui.currentView->count()) {
-		stopPlayedClicked();
-		return;
-	}
-
 	auto playlist_view = static_cast<PlyalistPage*>(ui.currentView->widget(0))->playlist();
 	const auto count = playlist_view->model()->rowCount();
 	if (count == 0) {
@@ -552,8 +642,7 @@ void Xamp::play(const PlayListEntity& item) {
 	ui.titleLabel->setText(item.title);
 	ui.artistLabel->setText(item.artist);
 
-	const QString bass_support_ext(".dsd,.dsf,.dff,.m4a");
-	auto use_bass_stream = bass_support_ext.contains(item.file_ext);
+	auto use_bass_stream = QStringLiteral(".dsd,.dsf,.dff,.m4a").contains(item.file_ext);
 	player_->Open(item.file_path.toStdWString(), use_bass_stream, device_info_);
 	
 	if (!player_->IsMute()) {		
@@ -567,10 +656,6 @@ void Xamp::play(const PlayListEntity& item) {
 	ui.seekSlider->setRange(0, int32_t(player_->GetDuration() * 1000));
 	ui.startPosLabel->setText(Time::msToString(0));
 	ui.endPosLabel->setText(Time::msToString(player_->GetDuration()));
-
-	QFileInfo file_info(item.file_path);
-	const auto lrc_path = file_info.path() + "/" + file_info.completeBaseName() + ".lrc";
-	lrc_page_->loadLrcFile(lrc_path);
 
 	player_->PlayStream();	
 }
@@ -597,11 +682,19 @@ void Xamp::play(const QModelIndex& index, const PlayListEntity& item) {
 	}
 	
 	auto playlist_page = static_cast<PlyalistPage*>(ui.currentView->widget(0));
-	QPixmap cover;
-	if (!PixmapCache::Instance().find(item.cover_id, cover)) {
-		cover = QPixmap(":/xamp/Resource/White/unknown_album.png");
+	const auto cover = PixmapCache::Instance().find(item.cover_id);
+	if (cover != nullptr) {
+		setCover(*cover);
 	}
-	setCover(cover);
+	else {
+		setCover(QPixmap(QStringLiteral(":/xamp/Resource/White/unknown_album.png")));
+	}
+
+	QFileInfo file_info(item.file_path);
+	const auto lrc_path = file_info.path() + Q_UTF8("/") + file_info.completeBaseName() + Q_UTF8(".lrc");
+	lrc_page_->loadLrcFile(lrc_path);
+
+	playlist_page->format()->setText(getUIFormat(player_->GetStreamFormat(), item));
 	playlist_page->title()->setText(item.title);
 }
 
@@ -621,21 +714,43 @@ void Xamp::onPlayerStateChanged(xamp::player::PlayerState play_state) {
 	}
 }
 
+void Xamp::initialPlaylist() {
+	int32_t playlist_id = 1;
+
+	IF_FAILED_SHOW_TOAST(Database::Instance().addPlaylist("", 1));
+
+	auto playlist_page = newPlaylist(playlist_id);
+	playlist_page->playlist()->setPlaylistId(playlist_id);
+	Database::Instance().forEachPlaylistMusic(playlist_id, [playlist_page, playlist_id](const auto& entityy) {
+		playlist_page->playlist()->appendItem(entityy);
+		});
+}
+
+PlyalistPage* Xamp::newPlaylist(int32_t playlist_id) {
+	auto playlist_page = new PlyalistPage(nullptr);
+	ui.currentView->addWidget(playlist_page);
+	(void)QObject::connect(playlist_page->playlist(), &PlayListTableView::playMusic,
+		[this](auto index, const auto& item) {
+			play(index, item);
+		});
+	(void)QObject::connect(playlist_page->playlist(), &PlayListTableView::removeItems,
+		[this](auto playlist_id, const auto& select_music_ids) {
+			IF_FAILED_SHOW_TOAST(Database::Instance().removePlaylistMusic(playlist_id, select_music_ids));
+		});
+	auto table_id = Database::Instance().addTable("", 0);
+	if (playlist_id == -1) {
+		playlist_id = Database::Instance().addPlaylist("", 0);
+	}	
+	playlist_page->playlist()->setPlaylistId(playlist_id);
+	lrc_page_ = new LyricsShowWideget(this);
+	ui.currentView->addWidget(lrc_page_);
+	return playlist_page;
+}
+
 void Xamp::addItem(const QString& file_name) {
 	PlyalistPage* playlist_page = nullptr;
 	if (!ui.currentView->count()) {
-		playlist_page = new PlyalistPage(nullptr);
-		ui.currentView->addWidget(playlist_page);
-		(void)QObject::connect(playlist_page->playlist(), &PlayListTableView::playMusic,
-			[this](auto index, const auto& item) {
-				play(index, item);
-			});
-		auto table_id = Database::Instance().addTable("", 0);
-		auto playlist_id = Database::Instance().addPlaylist("", 0);
-		playlist_page->playlist()->setPlaylistId(playlist_id);
-		lrc_page_ = new LyricsShowWideget(this);		
-		ui.currentView->addWidget(lrc_page_);
-		setCover(QPixmap(":/xamp/Resource/White/unknown_album.png"));
+		playlist_page = newPlaylist(-1);
 	}
 	else {
 		playlist_page = static_cast<PlyalistPage*>(ui.currentView->widget(0));

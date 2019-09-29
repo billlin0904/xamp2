@@ -16,6 +16,7 @@ class PlayerStateAdapter
 public:
     explicit PlayerStateAdapter(QObject *parent = nullptr);
 
+	~PlayerStateAdapter() override;
 signals:
     void sampleTimeChanged(double stream_time);
 

@@ -22,10 +22,13 @@ public:
 	QLabel* cover();
 
 	QLabel* title();
+
+	QLabel* format();
 private:
 	void initial();
 
 	PlayListTableView* playlist_;
 	QLabel* cover_;
 	QLabel* title_;
+	QLabel* format_;
 };

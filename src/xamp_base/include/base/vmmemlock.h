@@ -5,21 +5,27 @@
 
 #pragma once
 
-#include <string>
-
 #include <base/base.h>
 
 namespace xamp::base {
 
-XAMP_BASE_API size_t GetPageSize() noexcept;
+class XAMP_BASE_API VmMemLock {
+public:
+	VmMemLock() noexcept;
 
-XAMP_BASE_API size_t GetPageAlignSize(size_t value) noexcept;
+	XAMP_DISABLE_COPY(VmMemLock)
 
-XAMP_BASE_API bool PrefetchMemory(void* adddr, size_t length) noexcept;
+	~VmMemLock() noexcept;
 
-XAMP_BASE_API XAMP_RESTRICT void* FastMemcpy(void* dest, const void* src, int32_t size) noexcept;
+	void Lock(void* address, size_t size) noexcept;
 
-XAMP_BASE_API void PrefactchFile(const std::wstring &file_name);
+	void UnLock() noexcept;
+
+	static bool EnableVmMemPrivilege(bool enable) noexcept;
+private:
+	void* address_;
+	size_t size_;
+};
 
 }
 

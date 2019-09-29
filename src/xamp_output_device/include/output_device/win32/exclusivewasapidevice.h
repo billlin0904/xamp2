@@ -86,7 +86,7 @@ private:
 	CComPtr<MFAsyncCallback<ExclusiveWasapiDevice>> sample_ready_callback_;
 	CComPtr<IMFAsyncResult> sample_ready_async_result_;
 	mutable std::mutex mutex_;
-	BufferPtr<float> buffer_;
+	AlignBufferPtr<float> buffer_;
 	std::condition_variable condition_;
 	AudioCallback* callback_;
 };

@@ -8,7 +8,7 @@
 #include <base/windows_handle.h>
 #endif
 
-#include <base/file.h>
+#include <base/memory_mapped_file.h>
 #include <base/logger.h>
 
 #include <stream/bassfilestream.h>
@@ -428,10 +428,6 @@ public:
 		return DSDSampleFormat::DSD_INT8MSB;
 	}
 
-	void SetOpenMode(OpenMode mode) {
-		enable_file_mapped_ = mode == OpenMode::IN_MEMORY;
-	}
-
 	bool SetPCMSampleRate(int32_t samplerate) const {
 		return BassLib::Instance().BASS_SetConfig(BASS_CONFIG_DSD_FREQ, samplerate);
 	}
@@ -458,8 +454,7 @@ BassFileStream::BassFileStream()
 
 XAMP_PIMPL_IMPL(BassFileStream)
 
-void BassFileStream::OpenFromFile(const std::wstring & file_path, OpenMode open_mode)  {
-	stream_->SetOpenMode(open_mode);
+void BassFileStream::OpenFromFile(const std::wstring & file_path)  {
 	stream_->LoadFromFile(file_path);
 }
 
@@ -507,7 +502,7 @@ DSDModes BassFileStream::GetDSDMode() const {
     return stream_->GetDSDMode();
 }
 
-bool BassFileStream::IsDSDFile() const {
+bool BassFileStream::IsDSDFile() const noexcept {
     return stream_->IsDSDFile();
 }
 

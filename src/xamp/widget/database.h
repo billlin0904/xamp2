@@ -7,17 +7,29 @@
 
 #include <QString>
 #include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QSqlError>
 
+#include <base/logger.h>
+#include <base/exception.h>
 #include <base/metadata.h>
 
-class SqlException : public std::exception {
+#include "playlistentity.h"
+
+class SqlException : public xamp::base::Exception {
 public:
 	explicit SqlException(QSqlError error);
 
 	const char* what() const override;
-private:
-	std::string message_;
 };
+
+#define IF_FAILED_SHOW_TOAST(expr) \
+	try {\
+		expr;\
+	}\
+	catch (const xamp::base::Exception& e) {\
+		XAMP_LOG_DEBUG(e.what());\
+	}
 
 class Database {
 public:
@@ -51,18 +63,56 @@ public:
 	QString getAlbumCoverId(int32_t album_id) const;
 
 	template <typename Function>
-	void ForEachPlaylistMusic(int32_t playlist_id, Function &&fun) {
-		/*
-		SELECT * FROM
+	void forEachPlaylistMusic(int32_t playlist_id, Function &&fun) {
+		QSqlQuery query;
+
+		query.prepare(R"(
+		SELECT
+			albumMusic.albumId,
+			albumMusic.artistId,
+			albums.album,
+			albums.coverId,
+			artists.artist,
+			musics.* 
+		FROM
 			playlistMusics
-		JOIN
-			playlist ON playlist.playlistId = playlistMusics.playlistId
-		JOIN
-			musics ON playlistMusics.musicId = musics.musicId
+			JOIN playlist ON playlist.playlistId = playlistMusics.playlistId
+			JOIN albumMusic ON playlistMusics.musicId = albumMusic.musicId 
+			JOIN musics ON playlistMusics.musicId = musics.musicId
+			JOIN albums ON albumMusic.albumId = albums.albumId
+			JOIN artists ON albumMusic.artistId = artists.artistId
 		WHERE
-			playlistMusics.playlistId = 1;
-		*/
+			playlistMusics.playlistId = :playlist_id;
+		)");
+
+		query.bindValue(":playlist_id", playlist_id);
+
+		if (!query.exec()) {
+			XAMP_LOG_DEBUG("{}", query.lastError().text().toStdString());
+		}
+
+		while (query.next()) {
+			PlayListEntity entity;
+			entity.album_id = query.value("albumId").toInt();
+			entity.artist_id = query.value("artistId").toInt();
+			entity.music_id = query.value("musicId").toInt();
+			entity.file_path = query.value("path").toString();
+			entity.track = query.value("track").toInt();
+			entity.title = query.value("title").toString();
+			entity.file_name = query.value("fileName").toString();
+			entity.album = query.value("album").toString();
+			entity.artist = query.value("artist").toString();
+			entity.file_ext = query.value("fileExt").toString();
+			entity.duration = query.value("duration").toDouble();
+			entity.bitrate = query.value("bitrate").toInt();
+			entity.samplerate = query.value("samplerate").toInt();
+			entity.cover_id = query.value("coverId").toString();
+			fun(entity);
+		}
 	}
+
+	void removePlaylistMusic(int32_t playlist_id, const QVector<int>& select_music_ids);
+
 private:
 	Database();
 

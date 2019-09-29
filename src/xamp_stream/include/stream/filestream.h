@@ -19,13 +19,13 @@ class XAMP_STREAM_API FileStream : public AudioStream {
 public:
     XAMP_BASE_CLASS(FileStream)	
 
-	bool IsFile() const override {
+	bool IsFile() const noexcept override {
 		return true;
 	}
 
-    virtual void OpenFromFile(const std::wstring & file_path, OpenMode open_mode) = 0;
+    virtual void OpenFromFile(const std::wstring & file_path) = 0;
 
-	virtual bool IsDSDFile() const = 0;
+	virtual bool IsDSDFile() const noexcept = 0;
 protected:
     FileStream() = default;
 };

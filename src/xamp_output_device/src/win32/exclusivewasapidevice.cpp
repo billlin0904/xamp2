@@ -81,7 +81,7 @@ static int32_t MakeAlignedPeriod(const AudioFormat &format, int32_t frames_per_l
 ExclusiveWasapiDevice::ExclusiveWasapiDevice(const CComPtr<IMMDevice>& device)
 	: is_running_(false)
 	, is_stop_streaming_(false)
-	, thread_priority_(MmcssThreadPriority::MMCSS_THREAD_PRIORITY_HIGH)
+	, thread_priority_(MMCSS_THREAD_PRIORITY_HIGH)
 	, frames_per_latency_(0)
 	, valid_bits_samples_(0)
 	, queue_id_(0)
@@ -201,7 +201,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 		HR_IF_FAILED_THROW(client_->SetEventHandle(sample_ready_.get()));
 	}
 
-	buffer_.reset(new float[frames_per_latency_ * 2]);
+	buffer_ = MakeBuffer<float>(frames_per_latency_ * 2);
     data_convert_ = MakeConvert(output_format, valid_output_format, frames_per_latency_);
 }
 

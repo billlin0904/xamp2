@@ -6,10 +6,11 @@
 #pragma once
 
 #include <QWidget>
-
 #include <QMimeData>
 #include <QDragEnterEvent>
 #include <QSystemTrayIcon>
+
+#include <base/align_ptr.h>
 
 #if defined(Q_OS_WIN)
 class QWinThumbnailToolBar;
@@ -21,25 +22,25 @@ class FramelessWindow : public QWidget {
 public:
     explicit FramelessWindow(QWidget *parent = nullptr);
 
-    virtual ~FramelessWindow();
+	~FramelessWindow();
 
     Q_DISABLE_COPY(FramelessWindow)
 
     virtual void addDropFileItem(const QUrl& url);
 
-    virtual void removeSelectedItem();
+    virtual void onDeleteKeyPress();
 
-	void setTaskbarProgress(double percent) const;
+	void setTaskbarProgress(double percent);
 
-	void resetTaskbarProgress() const;
+	void resetTaskbarProgress();
 
-	void setTaskbarPlayingResume() const;
+	void setTaskbarPlayingResume();
 
-	void setTaskbarPlayerPaused() const;
+	void setTaskbarPlayerPaused();
 
-	void setTaskbarPlayerPlaying() const;
+	void setTaskbarPlayerPlaying();
 
-	void setTaskbarPlayerStop() const;
+	void setTaskbarPlayerStop();
 
 protected:
     bool eventFilter(QObject* object, QEvent* event);
@@ -71,6 +72,8 @@ protected:
 	virtual void stopPlayedClicked();
 
 private:
+	void lazyInitial();
+
 	void initialFontDatabase();
 
 #if defined(Q_OS_WIN)
@@ -78,16 +81,13 @@ private:
 
 	bool is_maximized_;
 	int32_t border_width_;
-	std::unique_ptr<QWinThumbnailToolBar> thumbnail_tool_bar_;
-	std::unique_ptr<QWinTaskbarButton> taskbar_button_;
-	QWinTaskbarProgress* taskbar_progress_;
-#endif
 	QIcon play_icon_;
 	QIcon pause_icon_;
 	QIcon stop_play_icon_;
 	QIcon seek_forward_icon_;
 	QIcon seek_backward_icon_;
-	QMargins frames_;
-	QMargins margins_;
-    QSystemTrayIcon tray_icon_;
+	xamp::base::AlignPtr<QWinThumbnailToolBar> thumbnail_tool_bar_;
+	xamp::base::AlignPtr<QWinTaskbarButton> taskbar_button_;
+	QWinTaskbarProgress* taskbar_progress_;
+#endif
 };

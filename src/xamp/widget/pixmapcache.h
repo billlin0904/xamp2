@@ -22,6 +22,8 @@ public:
 
     bool find(const QString &tag_id, QPixmap &cover) const;
 
+	const QPixmap* find(const QString& tag_id) const;
+
 	bool insert(const QPixmap& cover, QString* cover_tag_id = nullptr);
 
 	void erase(const QString &tag_id);

@@ -16,7 +16,7 @@ class XAMP_STREAM_API AudioStream {
 public:
 	XAMP_BASE_CLASS(AudioStream)
 
-	virtual bool IsFile() const = 0;
+	virtual bool IsFile() const noexcept = 0;
 
 	virtual void Close() = 0;
 

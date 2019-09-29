@@ -3,7 +3,7 @@
 #include <chrono>
 
 #include <base/base.h>
-#include <base/memory.h>
+#include <base/align_ptr.h>
 
 namespace xamp::base {
 
@@ -20,7 +20,7 @@ public:
 	void Wait();
 private:
 	class WaitableTimerImpl;
-	std::unique_ptr<WaitableTimerImpl> impl_;
+	AlignPtr<WaitableTimerImpl> impl_;
 };
 
 }

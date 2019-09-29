@@ -2,6 +2,7 @@
 
 #include <QtWidgets/QMainWindow>
 #include <QWidgetAction>
+#include <QThread>
 
 #include <output_device/devicefactory.h>
 #include <player/audio_player.h>
@@ -10,6 +11,7 @@
 #include "widget/framelesswindow.h"
 #include "widget/playlisttableview.h"
 #include "widget/lyricsshowwideget.h"
+#include "widget/appsettings.h"
 
 #include "ui_xamp.h"
 
@@ -23,8 +25,11 @@ enum PlayerOrder {
 };
 
 class LyricsShowWideget;
+class PlyalistPage;
 
-class Xamp : public FramelessWindow {
+class Xamp : 
+	public FramelessWindow,
+	public AppSettings {
 	Q_OBJECT
 
 public:
@@ -34,7 +39,9 @@ public slots:
 	void play(const QModelIndex& index, const PlayListEntity& item);
 
 private:
-	void setWhiteTheme();
+	void setNormalMode();
+
+	void setNightMode();
 
 	void setCover(const QPixmap& cover);
 
@@ -66,13 +73,21 @@ private:
 
 	void initialUI();
 
+	void initialPlaylist();
+
 	void initialController();
 
 	void initialDeviceList();
 
+	void initialDefaultValue();
+
 	void playNextItem(int32_t forward);
 
 	void setPlayerOrder();
+
+	void onDeleteKeyPress() override;
+
+	PlyalistPage* newPlaylist(int32_t playlist_id);
 
 	bool is_seeking_;
 	PlayerOrder order_;

@@ -14,6 +14,8 @@
 #include <base/timer.h>
 #include <base/dsdsampleformat.h>
 #include <base/align_ptr.h>
+#include <base/vmmemlock.h>
+#include <base/threadpool.h>
 
 #include <stream/filestream.h>
 
@@ -35,6 +37,8 @@ class XAMP_PALYER_API AudioPlayer :
 	public std::enable_shared_from_this<AudioPlayer> {
 public:
 	XAMP_DISABLE_COPY(AudioPlayer)
+
+	AudioPlayer();
 
 	explicit AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter);
 
@@ -70,7 +74,9 @@ public:
 
 	double GetDuration() const;
 
-	PlayerState GetState() const;
+	PlayerState GetState() const noexcept;
+
+	AudioFormat GetStreamFormat() const;
 private:
 	void Initial();
 
@@ -102,8 +108,6 @@ private:
 			, sample_size(sample_size)
 			, stream_time(stream_time) {
 		}
-
-		~AudioSlice() noexcept = default;
 
 		bool operator==(const AudioSlice& other) const noexcept {
 			return samples == other.samples
@@ -141,7 +145,9 @@ private:
 	AlignPtr<Device> device_;
 	std::weak_ptr<PlaybackStateAdapter> state_adapter_;
 	AudioBuffer<int8_t> buffer_;
+	VmMemLock vmlock_;
 	std::future<void> stream_task_;
+	ThreadPool thread_pool_;
 };
 
 }

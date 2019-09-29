@@ -17,7 +17,7 @@ LyricsShowWideget::LyricsShowWideget(QWidget* parent)
 
 void LyricsShowWideget::initial() {
 	lrc_font_ = font();
-    lrc_font_.setPointSize(14);
+    lrc_font_.setPointSize(12);
 }
 
 void LyricsShowWideget::setCurrentTime(const int32_t time, const bool is_adding) {

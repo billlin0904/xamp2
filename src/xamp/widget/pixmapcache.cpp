@@ -5,6 +5,8 @@
 #include <QPixmapCache>
 #include <QPixmap>
 
+#include <base/logger.h>
+
 #include "filetag.h"
 #include "pixmapcache.h"
 
@@ -52,6 +54,26 @@ void PixmapCache::loadCache() const {
 			QPixmapCache::insert(tag_id, read_cover);
         }
     }
+}
+
+const QPixmap* PixmapCache::find(const QString& tag_id) const {
+	while (true) {
+		const auto cache = QPixmapCache::find(tag_id);
+		if (!cache) {
+			QPixmap read_cover(cache_path_ + tag_id + ".cache");
+			if (read_cover.isNull()) {
+				return nullptr;
+			}
+			if (!QPixmapCache::insert(tag_id, read_cover)) {
+				XAMP_LOG_DEBUG("insert image cache failure! tag id:{}", tag_id.toStdString());
+				return nullptr;
+			}
+			else {
+				continue;
+			}
+		}
+		return cache;
+	}
 }
 
 bool PixmapCache::find(const QString& tag_id, QPixmap& cover) const {

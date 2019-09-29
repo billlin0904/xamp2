@@ -21,5 +21,7 @@
         <file>Resource/White/speaker.png</file>
         <file>Resource/White/create_new_folder.png</file>
         <file>Resource/White/unknown_album.png</file>
+        <file>Resource/White/night_mode.png</file>
+        <file>Resource/White/settings.png</file>
     </qresource>
 </RCC>

@@ -141,7 +141,9 @@
     <ClInclude Include="include\base\dll.h" />
     <ClInclude Include="include\base\dsdsampleformat.h" />
     <ClInclude Include="include\base\exception.h" />
-    <ClInclude Include="include\base\file.h" />
+    <ClInclude Include="include\base\threadpool.h" />
+    <ClInclude Include="include\base\vmmemlock.h" />
+    <ClInclude Include="include\base\memory_mapped_file.h" />
     <ClInclude Include="include\base\function_ref.h" />
     <ClInclude Include="include\base\id.h" />
     <ClInclude Include="include\base\logger.h" />
@@ -161,14 +163,16 @@
     <ClCompile Include="src\dataconverter.cpp" />
     <ClCompile Include="src\dll.cpp" />
     <ClCompile Include="src\exception.cpp" />
-    <ClCompile Include="src\file.cpp" />
+    <ClCompile Include="src\memory_mapped_file.cpp" />
     <ClCompile Include="src\id.cpp" />
     <ClCompile Include="src\logger.cpp" />
     <ClCompile Include="src\memory.cpp" />
     <ClCompile Include="src\metadata.cpp" />
     <ClCompile Include="src\rng.cpp" />
+    <ClCompile Include="src\threadpool.cpp" />
     <ClCompile Include="src\timer.cpp" />
     <ClCompile Include="src\unicode.cpp" />
+    <ClCompile Include="src\vmmemlock.cpp" />
     <ClCompile Include="src\waitabletimer.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

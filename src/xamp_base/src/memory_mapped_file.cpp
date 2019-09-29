@@ -4,7 +4,7 @@
 #include <base/exception.h>
 #include <base/unique_handle.h>
 #include <base/memory.h>
-#include <base/file.h>
+#include <base/memory_mapped_file.h>
 
 namespace xamp::base {
 
@@ -19,13 +19,13 @@ public:
 	MemoryMappedFileImpl() {
 	}
 
-	void Open(const std::wstring &file_path, FileAccessMode mode, bool exclusive = false) {
+	void Open(const std::wstring& file_path, FileAccessMode mode, bool exclusive = false) {
 		static const DWORD access_mode = GENERIC_READ;
 		static const DWORD create_type = OPEN_EXISTING;
 		static const DWORD protect = PAGE_READONLY;
 		static const DWORD access = FILE_MAP_READ;
 
-		file_.reset(CreateFileW(file_path.c_str(),
+		file_.reset(::CreateFileW(file_path.c_str(),
 			access_mode,
 			exclusive ? 0 : (FILE_SHARE_READ | (mode == FileAccessMode::READ_WRITE ? FILE_SHARE_WRITE : 0)),
 			0,
@@ -34,9 +34,9 @@ public:
 			0));
 
 		if (file_) {
-			const MappingFileHandle mapping_handle(CreateFileMappingW(file_.get(), 0, protect, 0, 0, 0));
+			const MappingFileHandle mapping_handle(::CreateFileMappingW(file_.get(), 0, protect, 0, 0, 0));
 			if (mapping_handle) {
-				address_.reset(MapViewOfFile(mapping_handle.get(), access, 0, 0, 0));
+				address_.reset(::MapViewOfFile(mapping_handle.get(), access, 0, 0, 0));
 				return;
 			}
 		}
@@ -58,7 +58,7 @@ public:
 
 	int64_t GetLength() const {
 		LARGE_INTEGER li{};
-		GetFileSizeEx(file_.get(), &li);
+		::GetFileSizeEx(file_.get(), &li);
 		return li.QuadPart;
 	}
 private:

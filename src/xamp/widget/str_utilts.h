@@ -5,7 +5,6 @@
 
 #pragma once
 
-#include <QWidget>
+#include <QString>
 
-void setBlurMaterial(const QWidget* widget);
-
+#define Q_UTF8(str) QLatin1String{str}

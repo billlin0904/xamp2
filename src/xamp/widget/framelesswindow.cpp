@@ -1,5 +1,6 @@
 #include <QApplication>
 #include <QLayout>
+#include <QStyle>
 
 #if defined(Q_OS_WIN)
 #include <Windows.h>
@@ -13,7 +14,7 @@
 #include <widget/win32/blur_effect_helper.h>
 #endif
 
-#include <QStyle>
+#include "widget/str_utilts.h"
 #include "widget/framelesswindow.h"
 
 FramelessWindow::FramelessWindow(QWidget* parent)
@@ -25,54 +26,10 @@ FramelessWindow::FramelessWindow(QWidget* parent)
     installEventFilter(this);
     setAcceptDrops(true);
 #if defined(Q_OS_WIN)
-    play_icon_ = style()->standardIcon(QStyle::SP_MediaPlay);
-    pause_icon_ = style()->standardIcon(QStyle::SP_MediaPause);
-    stop_play_icon_ = style()->standardIcon(QStyle::SP_MediaStop);
-    seek_forward_icon_ = style()->standardIcon(QStyle::SP_MediaSeekForward);
-    seek_backward_icon_ = style()->standardIcon(QStyle::SP_MediaSeekBackward);
-
-    taskbar_button_ = std::make_unique<QWinTaskbarButton>();
-    taskbar_button_->setWindow(windowHandle());
-    taskbar_progress_ = taskbar_button_->progress();
-    taskbar_progress_->setVisible(true);
-
-    thumbnail_tool_bar_ = std::make_unique<QWinThumbnailToolBar>();
-
-    auto play_tool_button = new QWinThumbnailToolButton(thumbnail_tool_bar_.get());
-    play_tool_button->setIcon(play_icon_);
-	(void)QObject::connect(play_tool_button,
-		&QWinThumbnailToolButton::clicked,
-		this, 
-		&FramelessWindow::play);
-
-    auto forward_tool_button = new QWinThumbnailToolButton(thumbnail_tool_bar_.get());
-    forward_tool_button->setIcon(seek_forward_icon_);
-	(void)QObject::connect(forward_tool_button,
-		&QWinThumbnailToolButton::clicked, 
-		this,
-		&FramelessWindow::playNextClicked);
-
-    auto backward_tool_button = new QWinThumbnailToolButton(thumbnail_tool_bar_.get());
-    backward_tool_button->setIcon(seek_backward_icon_);
-    (void)QObject::connect(backward_tool_button,
-		&QWinThumbnailToolButton::clicked,
-		this,
-		&FramelessWindow::playPreviousClicked);
-
-    thumbnail_tool_bar_->addButton(backward_tool_button);
-    thumbnail_tool_bar_->addButton(play_tool_button);
-    thumbnail_tool_bar_->addButton(forward_tool_button);
+	QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+	QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 
 	HWND hwnd = (HWND)winId();
-
-	// 使用以下方式可以支援win32視窗的功能, 但是目前會有問題
-	//const LONG style = (WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_THICKFRAME | WS_CLIPCHILDREN);
-	//::SetWindowLongPtr(hwnd, GWL_STYLE, style);
-	//::SetWindowPos(hwnd, 0, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);
-
-	//DWORD style = ::GetWindowLong(hwnd, GWL_STYLE);
-	//::SetWindowLong(hwnd, GWL_STYLE, style | WS_MAXIMIZEBOX | WS_THICKFRAME | WS_CAPTION);
-
 	const DWMNCRENDERINGPOLICY ncrp = DWMNCRP_ENABLED;
 	::DwmSetWindowAttribute(hwnd, DWMWA_NCRENDERING_POLICY, &ncrp, sizeof(ncrp));
 
@@ -80,21 +37,60 @@ FramelessWindow::FramelessWindow(QWidget* parent)
 	const MARGINS borderless = { 1, 1, 1, 1 };
 	::DwmExtendFrameIntoClientArea(hwnd, &borderless);
 
-	::DwmEnableMMCSS(true);
-
-	SetBlurMaterial(this);
+	setBlurMaterial(this);
 #endif
 
 	initialFontDatabase();
-	setStyleSheet(R"(
+	setStyleSheet(Q_UTF8(R"(
 		font-family: "UI";
 		background: transparent;
-	)");
+	)"));
 }
 
 FramelessWindow::~FramelessWindow() {
+}
+
+void FramelessWindow::lazyInitial() {
 #if defined(Q_OS_WIN)
-	::DwmEnableMMCSS(false);
+	if (!taskbar_button_) {
+		play_icon_ = style()->standardIcon(QStyle::SP_MediaPlay);
+		pause_icon_ = style()->standardIcon(QStyle::SP_MediaPause);
+		stop_play_icon_ = style()->standardIcon(QStyle::SP_MediaStop);
+		seek_forward_icon_ = style()->standardIcon(QStyle::SP_MediaSeekForward);
+		seek_backward_icon_ = style()->standardIcon(QStyle::SP_MediaSeekBackward);
+
+		taskbar_button_ = xamp::base::MakeAlign<QWinTaskbarButton>();
+		taskbar_button_->setWindow(windowHandle());
+		taskbar_progress_ = taskbar_button_->progress();
+		taskbar_progress_->setVisible(true);
+
+		thumbnail_tool_bar_ = xamp::base::MakeAlign<QWinThumbnailToolBar>();
+
+		auto play_tool_button = new QWinThumbnailToolButton(thumbnail_tool_bar_.get());
+		play_tool_button->setIcon(play_icon_);
+		(void)QObject::connect(play_tool_button,
+			&QWinThumbnailToolButton::clicked,
+			this,
+			&FramelessWindow::play);
+
+		auto forward_tool_button = new QWinThumbnailToolButton(thumbnail_tool_bar_.get());
+		forward_tool_button->setIcon(seek_forward_icon_);
+		(void)QObject::connect(forward_tool_button,
+			&QWinThumbnailToolButton::clicked,
+			this,
+			&FramelessWindow::playNextClicked);
+
+		auto backward_tool_button = new QWinThumbnailToolButton(thumbnail_tool_bar_.get());
+		backward_tool_button->setIcon(seek_backward_icon_);
+		(void)QObject::connect(backward_tool_button,
+			&QWinThumbnailToolButton::clicked,
+			this,
+			&FramelessWindow::playPreviousClicked);
+
+		thumbnail_tool_bar_->addButton(backward_tool_button);
+		thumbnail_tool_bar_->addButton(play_tool_button);
+		thumbnail_tool_bar_->addButton(forward_tool_button);
+	}
 #endif
 }
 
@@ -116,14 +112,16 @@ void FramelessWindow::initialFontDatabase() {
 	setFont(default_font);
 }
 
-void FramelessWindow::setTaskbarProgress(const double percent) const {
+void FramelessWindow::setTaskbarProgress(const double percent) {
 #if defined(Q_OS_WIN)
+	lazyInitial();
     taskbar_progress_->setValue(percent);
 #endif
 }
 
-void FramelessWindow::resetTaskbarProgress() const {
+void FramelessWindow::resetTaskbarProgress() {
 #if defined(Q_OS_WIN)
+	lazyInitial();
     taskbar_progress_->reset();
     taskbar_progress_->setValue(0);
     taskbar_progress_->setRange(0, 100);
@@ -132,28 +130,32 @@ void FramelessWindow::resetTaskbarProgress() const {
 #endif
 }
 
-void FramelessWindow::setTaskbarPlayingResume() const {
+void FramelessWindow::setTaskbarPlayingResume() {
 #if defined(Q_OS_WIN)
+	lazyInitial();
     taskbar_button_->setOverlayIcon(play_icon_);
     taskbar_progress_->resume();
 #endif
 }
 
-void FramelessWindow::setTaskbarPlayerPaused() const {
+void FramelessWindow::setTaskbarPlayerPaused() {
 #if defined(Q_OS_WIN)
+	lazyInitial();
     taskbar_button_->setOverlayIcon(pause_icon_);
     taskbar_progress_->pause();
 #endif
 }
 
-void FramelessWindow::setTaskbarPlayerPlaying() const {
+void FramelessWindow::setTaskbarPlayerPlaying() {
 #if defined(Q_OS_WIN)
+	lazyInitial();
     resetTaskbarProgress();
 #endif
 }
 
-void FramelessWindow::setTaskbarPlayerStop() const {
+void FramelessWindow::setTaskbarPlayerStop() {
 #if defined(Q_OS_WIN)
+	lazyInitial();
     taskbar_button_->setOverlayIcon(stop_play_icon_);
     taskbar_progress_->hide();
 #endif
@@ -163,7 +165,7 @@ bool FramelessWindow::eventFilter(QObject * object, QEvent * event) {
     if (event->type() == QEvent::KeyPress) {
         const auto key_event = static_cast<QKeyEvent*>(event);
         if (key_event->key() == Qt::Key_Delete) {
-            removeSelectedItem();
+            onDeleteKeyPress();
         }
     }
     return QWidget::eventFilter(object, event);
@@ -307,20 +309,13 @@ void FramelessWindow::mouseMoveEvent(QMouseEvent* event) {
 }
 
 void FramelessWindow::showEvent(QShowEvent* event) {
-#if defined(Q_OS_WIN)
-	if (taskbar_button_ != nullptr) {
-		// Fix Qt 5.4 QWinTaskbarButton / QWinThumbnailToolBar issule.
-		taskbar_button_->setWindow(windowHandle());
-		thumbnail_tool_bar_->setWindow(windowHandle());
-	}    
-#endif
     event->accept();
 }
 
 void FramelessWindow::addDropFileItem(const QUrl& url) {
 }
 
-void FramelessWindow::removeSelectedItem() {
+void FramelessWindow::onDeleteKeyPress() {
 }
 
 void FramelessWindow::play() {

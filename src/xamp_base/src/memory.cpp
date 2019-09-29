@@ -4,15 +4,10 @@
 #include <base/windows_handle.h>
 #endif
 
-#include <base/file.h>
+#include <base/memory_mapped_file.h>
 #include <base/memory.h>
 
 namespace xamp::base {
-
-size_t GetPageAlignSize(size_t value) noexcept {
-	auto align_size = (value + (GetPageSize() - 1)) & ~(GetPageSize() - 1);
-	return align_size;
-}
 
 #ifdef _WIN32
 size_t GetPageSize() noexcept {
@@ -28,13 +23,18 @@ bool PrefetchMemory(void* adddr, size_t length) noexcept {
 }
 #endif
 
+size_t GetPageAlignSize(size_t value) noexcept {
+	auto align_size = (value + (GetPageSize() - 1)) & ~(GetPageSize() - 1);
+	return align_size;
+}
+
 void PrefactchFile(const std::wstring& file_name) {
 	MemoryMappedFile file;
 	file.Open(file_name);
 	PrefetchMemory(const_cast<void*>(file.GetData()), file.GetLength());
 }
 
-__declspec(restrict) void* FastMemcpy(void* dest, const void* src, int32_t size) {
+XAMP_RESTRICT void* FastMemcpy(void* dest, const void* src, int32_t size) noexcept {
 	return memcpy_fast(dest, src, size);
 }
 

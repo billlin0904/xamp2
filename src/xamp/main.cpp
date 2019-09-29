@@ -1,6 +1,7 @@
 #include "xamp.h"
 
 #include <base/logger.h>
+#include <player/audio_player.h>
 
 #include "widget/database.h"
 
@@ -11,9 +12,6 @@ int main(int argc, char *argv[]) {
 		.AddDebugOutputLogger()
 		.AddFileLogger("xamp.log");	
 
-	QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-	QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
-
 	QApplication app(argc, argv);
 
 	try {
@@ -23,6 +21,8 @@ int main(int argc, char *argv[]) {
 		XAMP_LOG_INFO("Initial database failure! {}", e.what());
 		return -1;
 	}
+
+	AppSettings::settings().loadIniFile("xamp.ini");
 
 	Xamp win;
 	win.show();

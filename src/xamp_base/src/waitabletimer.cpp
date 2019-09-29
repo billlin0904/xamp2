@@ -6,7 +6,7 @@ namespace xamp::base {
 class WaitableTimer::WaitableTimerImpl {
 public:
 	WaitableTimerImpl()
-		: timer_(CreateWaitableTimerW(nullptr, FALSE, nullptr))
+		: timer_(::CreateWaitableTimerW(nullptr, FALSE, nullptr))
 		, timeout_(0) {
 	}
 
@@ -19,11 +19,11 @@ public:
 	}
 
 	void Cancel() {
-		CancelWaitableTimer(timer_.get());
+		::CancelWaitableTimer(timer_.get());
 	}
 
 	void Wait() {		
-		WaitForSingleObject(timer_.get(), INFINITE);
+		::WaitForSingleObject(timer_.get(), INFINITE);
 		Reset();
 	}
 
@@ -33,7 +33,7 @@ private:
 		LARGE_INTEGER timespan = { 0 };
 		timespan.LowPart = static_cast<DWORD>(file_times & 0xFFFFFFFF);
 		timespan.HighPart = static_cast<LONG>(file_times >> 32);
-		SetWaitableTimer(timer_.get(), &timespan, 0, nullptr, nullptr, FALSE);
+		::SetWaitableTimer(timer_.get(), &timespan, 0, nullptr, nullptr, FALSE);
 	}	
 
 	WinHandle timer_;
@@ -41,7 +41,7 @@ private:
 };
 
 WaitableTimer::WaitableTimer()
-	: impl_(std::make_unique<WaitableTimerImpl>()) {
+	: impl_(MakeAlign<WaitableTimerImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(WaitableTimer)

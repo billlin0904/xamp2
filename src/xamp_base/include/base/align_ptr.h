@@ -7,6 +7,7 @@
 
 #include <malloc.h>
 #include <memory>
+#include <cassert>
 
 #include <base/base.h>
 
@@ -33,9 +34,12 @@ using AlignPtr = std::unique_ptr<Type, AlignedClassDeleter<Type>>;
 template <typename BaseType, typename ImplType, typename... Args>
 XAMP_BASE_API_ONLY_EXPORT AlignPtr<BaseType> MakeAlign(Args&& ... args) {
 	auto ptr = _aligned_malloc(sizeof(ImplType), XAMP_MALLOC_ALGIGN_SIZE);
+	
 	if (!ptr) {
 		throw std::bad_alloc();
 	}
+
+	assert(((std::size_t)ptr % XAMP_MALLOC_ALGIGN_SIZE) == 0);
 
 	try {
 		BaseType* base = ::new(ptr) ImplType(std::forward<Args>(args)...);
@@ -54,6 +58,8 @@ XAMP_BASE_API_ONLY_EXPORT AlignPtr<Type> MakeAlign(Args&& ... args) {
 		throw std::bad_alloc();
 	}
 
+	assert(((std::size_t)ptr % XAMP_MALLOC_ALGIGN_SIZE) == 0);
+
 	try {
 		auto q = ::new(ptr) Type(std::forward<Args>(args)...);
 		return AlignPtr<Type>(q);
@@ -68,11 +74,14 @@ template <typename Type>
 using AlignBufferPtr = std::unique_ptr<Type[], AlignedDeleter<Type>>;
 
 template <typename Type, typename U = std::enable_if_t<std::is_trivially_copyable<Type>::value>>
-XAMP_BASE_API_ONLY_EXPORT AlignBufferPtr<Type> MakeBuffer(const size_t size, const int32_t alignment = XAMP_MALLOC_ALGIGN_SIZE) {
+XAMP_BASE_API_ONLY_EXPORT AlignBufferPtr<Type> MakeBuffer(size_t size, const int32_t alignment = XAMP_MALLOC_ALGIGN_SIZE) {
 	auto ptr = _aligned_malloc(size * sizeof(Type), alignment);
 	if (!ptr) {
 		throw std::bad_alloc();
 	}
+
+	assert(((std::size_t)ptr % XAMP_MALLOC_ALGIGN_SIZE) == 0);
+
 	return AlignBufferPtr<Type>(static_cast<Type*>(ptr));
 }
 

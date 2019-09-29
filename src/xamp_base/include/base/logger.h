@@ -39,8 +39,8 @@ private:
 	std::vector<spdlog::sink_ptr> sinks_;
 };
 
-#define XAMP_LOG_DEBUG(...) Logger::Instance().GetLogger("default")->debug(__VA_ARGS__)
-#define XAMP_LOG_INFO(...) Logger::Instance().GetLogger("default")->info(__VA_ARGS__)
+#define XAMP_LOG_DEBUG(...) xamp::base::Logger::Instance().GetLogger("default")->debug(__VA_ARGS__)
+#define XAMP_LOG_INFO(...) xamp::base::Logger::Instance().GetLogger("default")->info(__VA_ARGS__)
 
 }
 

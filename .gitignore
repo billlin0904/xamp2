@@ -48,3 +48,6 @@
 /src/xamp/logs/xamp.log
 /src/xamp_metadata/xamp_metadata.vcxproj.user
 /src/xamp_stream/xamp_stream.vcxproj.user
+/.vs
+/src/xamp/deploy
+/src/xamp/xamp.ini

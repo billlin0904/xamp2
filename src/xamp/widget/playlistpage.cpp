@@ -57,7 +57,16 @@ void PlyalistPage::initial() {
 	title_->setMinimumSize(QSize(0, 30));
 	title_->setMaximumSize(QSize(16777215, 30));
 
+	format_ = new QLabel(this);
+	f = font();
+	format_->setFont(f);
+
 	album_title_layout->addWidget(title_);
+
+	auto middle_spacer = new QSpacerItem(20, 20, QSizePolicy::Minimum, QSizePolicy::Expanding);
+	album_title_layout->addItem(middle_spacer);
+
+	album_title_layout->addWidget(format_);
 
 	auto right_spacer = new QSpacerItem(20, 108, QSizePolicy::Minimum, QSizePolicy::Expanding);
 	album_title_layout->addItem(right_spacer);
@@ -94,6 +103,10 @@ void PlyalistPage::initial() {
 	default_layout->addLayout(horizontalLayout_8);
 
 	default_layout->setStretch(2, 1);
+}
+
+QLabel* PlyalistPage::format() {
+	return format_;
 }
 
 QLabel* PlyalistPage::title() {

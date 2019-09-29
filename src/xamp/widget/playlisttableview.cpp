@@ -10,6 +10,7 @@
 #include <base/rng.h>
 #include <metadata/taglibmetareader.h>
 
+#include "str_utilts.h"
 #include "actionmap.h"
 #include "playlisttableview.h"
 
@@ -73,14 +74,9 @@ void PlayListTableView::initial() {
 	verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
 	verticalHeader()->setDefaultSectionSize(40);
 
-	setStyleSheet(R"(
-		QTableView {
-			gridline-color: gray;
-			background-color: transparent;
-		}
-	)");
+	horizontalScrollBar()->setDisabled(true);
 
-	horizontalHeader()->setStyleSheet(R"(
+	horizontalHeader()->setStyleSheet(Q_UTF8(R"(
 		QHeaderView::section {
 			background-color: transparent;
 		}
@@ -88,9 +84,9 @@ void PlayListTableView::initial() {
 			color: gray;
 			background-color: transparent;
 		}
-	 )");
+	 )"));
 
-	verticalScrollBar()->setStyleSheet(R"(
+	verticalScrollBar()->setStyleSheet(Q_UTF8(R"(
     QScrollBar:vertical {
         background: #FFFFFF;
 		width: 9px;
@@ -104,7 +100,7 @@ void PlayListTableView::initial() {
 	QScrollBar::handle:vertical:hover {
 		background: #d0d0d0;
 	}
-	)");
+	)"));
 
 	horizontalHeader()->setHighlightSections(false);
 	horizontalHeader()->setStretchLastSection(true);
@@ -114,16 +110,16 @@ void PlayListTableView::initial() {
 	verticalHeader()->setSectionsMovable(false);
 	horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
 
-	QObject::connect(horizontalHeader(), &QHeaderView::sectionClicked, [this](int logicalIndex) {
+	(void)QObject::connect(horizontalHeader(), &QHeaderView::sectionClicked, [this](int logicalIndex) {
 		sortByColumn(logicalIndex, Qt::AscendingOrder);
 		});
 
-	QObject::connect(this, &QTableView::doubleClicked, [this](const QModelIndex& index) {
+	(void)QObject::connect(this, &QTableView::doubleClicked, [this](const QModelIndex& index) {
 		emit playMusic(index, model_.item(proxy_model_.mapToSource(index)));
 		setNowPlaying(index);
 		});
 
-	QObject::connect(&adapter_, &MetadataExtractAdapter::finish, [this]() {
+	(void)QObject::connect(&adapter_, &MetadataExtractAdapter::finish, [this]() {
 		resizeColumn();
 		});
 
@@ -282,7 +278,7 @@ void PlayListTableView::removeSelectItems() {
 	}
 
 	if (!remove_music_ids.empty()) {
-		emit removeSelectPlaylistItems(playlist_id_, remove_music_ids);
+		emit removeItems(playlist_id_, remove_music_ids);
 	}
 
 	if (model_.isEmpty()) {

@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <cassert>
 #include <base/base.h>
 #include <base/exception.h>
 
@@ -20,17 +21,19 @@ XAMP_BASE_API ModuleHandle LoadDll(const char* name);
 template <typename T>
 class DllFunction {
 public:
-	DllFunction(const ModuleHandle& dll, const char* name)  {		
+	DllFunction(const ModuleHandle& dll, const char* name)  {
+		assert(dll.is_valid());
 		*(void**)& func_ = ::GetProcAddress(dll.get(), name);
 	}
 
 	XAMP_DISABLE_COPY(DllFunction)
 
 	XAMP_NEVER_INLINE operator T* () const noexcept {
+		assert(func_ != nullptr);
 		return func_;
 	}
 
-	XAMP_NEVER_INLINE operator bool() const noexcept {
+	XAMP_NEVER_INLINE operator bool() const noexcept {		
 		return func_ != nullptr;
 	}
 private:

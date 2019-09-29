@@ -9,11 +9,15 @@
 #include <atomic>
 
 #include <base/base.h>
-#include <base/memory.h>
+#include <base/align_ptr.h>
 
 namespace xamp::base {
 
-template <typename Type, typename U = std::enable_if_t<std::is_trivially_copyable<Type>::value>>
+template 
+<
+	typename Type,
+	typename U = std::enable_if_t<std::is_trivially_copyable<Type>::value>
+>
 class XAMP_BASE_API_ONLY_EXPORT AudioBuffer final {
 public:
 	AudioBuffer() noexcept;
@@ -23,6 +27,8 @@ public:
 	~AudioBuffer() noexcept;
 
 	XAMP_DISABLE_COPY(AudioBuffer)
+
+	Type* GetData() const noexcept;
 	
 	void Clear() noexcept;
 
@@ -34,9 +40,9 @@ public:
 
 	int32_t GetAvailableRead() const noexcept;
 
-	bool TryWrite(const Type*data, int32_t count) noexcept;
+	bool TryWrite(const Type* data, int32_t count) noexcept;
 
-	bool TryRead(Type*data, int32_t count) noexcept;
+	bool TryRead(Type* data, int32_t count) noexcept;
 
 	void Fill(Type value) noexcept;
 
@@ -45,13 +51,14 @@ private:
 
 	int32_t GetAvailableRead(int32_t head, int32_t tail) const noexcept;
     
-    std::atomic<int32_t> head_;
 	static const int32_t PaddingSize = XAMP_CACHE_ALIGN_SIZE - sizeof(int32_t);
+
+    std::atomic<int32_t> head_;
 	uint8_t pad1_[PaddingSize]{};
     std::atomic<int32_t> tail_;
 	uint8_t pad2_[PaddingSize]{};
 	int32_t size_;
-    std::unique_ptr<Type[]> buffer_;
+    AlignBufferPtr<Type> buffer_;
 };
 
 template <typename Type, typename U>
@@ -63,6 +70,11 @@ AudioBuffer<Type, U>::AudioBuffer() noexcept
 
 template <typename Type, typename U>
 AudioBuffer<Type, U>::~AudioBuffer() noexcept {
+}
+
+template <typename Type, typename U>
+Type* AudioBuffer<Type, U>::GetData() const noexcept {
+	return buffer_.get();
 }
 
 template <typename Type, typename U>
@@ -79,7 +91,7 @@ AudioBuffer<Type, U>::AudioBuffer(const int32_t size)
 template <typename Type, typename U>
 void AudioBuffer<Type, U>::Resize(const int32_t size) {
 	if (size > size_) {
-        buffer_ = std::make_unique<Type[]>(size);
+        buffer_ = MakeBuffer<Type>(size);
 		size_ = size;
 	}
 }
@@ -92,7 +104,7 @@ void AudioBuffer<Type, U>::Clear() noexcept {
 
 template <typename Type, typename U>
 void AudioBuffer<Type, U>::Fill(Type value) noexcept {
-	memset(buffer_.get(), value, sizeof(Type) * size_);
+	(void)memset(buffer_.get(), value, sizeof(Type) * size_);
 }
 
 template <typename Type, typename U>
@@ -136,11 +148,11 @@ XAMP_ALWAYS_INLINE bool AudioBuffer<Type, U>::TryWrite(const Type* data, int32_t
 	if (next_head > size_) {
         const auto range1 = size_ - head;
         const auto range2 = data_size - range1;
-		FastMemcpy(buffer_.get() + head, data, range1 * sizeof(Type));
-        FastMemcpy(buffer_.get(), data + range1, range2 * sizeof(Type));
+		(void)FastMemcpy(buffer_.get() + head, data, range1 * sizeof(Type));
+		(void)FastMemcpy(buffer_.get(), data + range1, range2 * sizeof(Type));
 		next_head -= size_;
 	} else {
-        FastMemcpy(buffer_.get() + head, data, data_size * sizeof(Type));
+		(void)FastMemcpy(buffer_.get() + head, data, data_size * sizeof(Type));
 		if (next_head == size_) {
 			next_head = 0;
 		}
@@ -163,12 +175,12 @@ XAMP_ALWAYS_INLINE bool AudioBuffer<Type, U>::TryRead(Type* data, const int32_t 
 	if (next_tail > size_) {
         const auto range1 = size_ - tail;
         const auto range2 = data_size - range1;
-        FastMemcpy(data, buffer_.get() + tail, range1 * sizeof(Type));
-        FastMemcpy(data + range1, buffer_.get(), range2 * sizeof(Type));
+        (void)FastMemcpy(data, buffer_.get() + tail, range1 * sizeof(Type));
+		(void)FastMemcpy(data + range1, buffer_.get(), range2 * sizeof(Type));
 		next_tail -= size_;
 	}
 	else {
-        FastMemcpy(data, buffer_.get() + tail, data_size * sizeof(Type));
+		(void)FastMemcpy(data, buffer_.get() + tail, data_size * sizeof(Type));
 		if (next_tail == size_) {
 			next_tail = 0;
 		}

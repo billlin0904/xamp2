@@ -24,13 +24,10 @@ namespace xamp::output_device {
 
 using namespace base;
 
-#define XAMP_REGISTER_DEVICE_TYPE(DeviceTypeClass) \
-	DeviceFactory::Instance().RegisterCreator(DeviceTypeClass::Id, []() {\
-		return MakeAlign<DeviceType, DeviceTypeClass>();\
-	})
-
 class XAMP_OUTPUT_DEVICE_API DeviceFactory {
 public:	
+	~DeviceFactory();
+
 	XAMP_DISABLE_COPY(DeviceFactory)
 
 	static DeviceFactory& Instance() {
@@ -78,7 +75,8 @@ public:
 	static bool IsExclusiveDevice(const DeviceInfo &info);
 
 private:
-	DeviceFactory() = default;
+	DeviceFactory();
+
 	std::unordered_map<ID, FunctionRef<AlignPtr<DeviceType>()>> creator_;
 };
 

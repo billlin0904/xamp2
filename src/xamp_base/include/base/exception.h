@@ -27,7 +27,7 @@ enum Errors {
 	XAMP_ERROR_LOAD_DLL_FAILURE,
 };
 
-std::ostream& operator<<(std::ostream& ostr, Errors error);
+XAMP_BASE_API std::ostream& operator<<(std::ostream& ostr, Errors error);
 
 class XAMP_BASE_API Exception : public std::exception {
 public:

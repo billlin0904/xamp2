@@ -13,7 +13,7 @@ public:
 	}
 
 	bool IsFileReadOnly(const Path& path) const {
-		auto attr = GetFileAttributesW(path.wstring().c_str());
+		auto attr = ::GetFileAttributesW(path.wstring().c_str());
 		if (attr != INVALID_FILE_ATTRIBUTES) {
 			return attr & FILE_ATTRIBUTE_READONLY;
 		}

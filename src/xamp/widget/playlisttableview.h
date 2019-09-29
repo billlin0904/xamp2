@@ -56,7 +56,7 @@ public:
 	static PlayListEntity fromMetadata(const xamp::base::Metadata& metadata);
 
 signals:
-	void removeSelectPlaylistItems(int32_t playlist_id, const QVector<int>& select_music_ids);
+	void removeItems(int32_t playlist_id, const QVector<int>& select_music_ids);
 
 	void playMusic(const QModelIndex& index, const PlayListEntity& item);
 

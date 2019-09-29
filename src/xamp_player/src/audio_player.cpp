@@ -1,4 +1,5 @@
 #include <base/logger.h>
+#include <base/vmmemlock.h>
 
 #include <output_device/devicefactory.h>
 #include <output_device/asiodevicetype.h>
@@ -12,9 +13,12 @@
 namespace xamp::player {
 
 static const int32_t MAX_DSD2PCM_SAMPLERATE = 44100;
-
 static const int32_t BUFFER_STREAM_COUNT = 20;
 static const std::chrono::milliseconds UPDATE_SAMPLE_INTERVAL(100);
+
+AudioPlayer::AudioPlayer()
+	: AudioPlayer(std::weak_ptr<PlaybackStateAdapter>()) {
+}
 
 AudioPlayer::AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter)
 	: is_muted_(false)
@@ -28,12 +32,14 @@ AudioPlayer::AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter)
 	, is_paused_(false)
 	, state_adapter_(adapter)
 	, stream_(MakeAlign<FileStream, AvFileStream>()) {
-	InitialDevice();
+	VmMemLock::EnableVmMemPrivilege(true);
 }
 
 AudioPlayer::~AudioPlayer() {
+	if (timer_ != nullptr) {
+		timer_->Stop();
+	}	
 	CloseDevice();
-	UnInitialDevice();
 }
 
 void AudioPlayer::Open(const std::wstring& file_path, bool use_bass_stream, const DeviceInfo& device_info) {
@@ -84,7 +90,7 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, bool use_bass_stream
 		stream_ = MakeAlign<FileStream, AvFileStream>();
 	}
 	PrefactchFile(file_path);
-	stream_->OpenFromFile(file_path, OpenMode::NOT_IN_MEMORY);
+	stream_->OpenFromFile(file_path);
 }
 
 void AudioPlayer::SetState(const PlayerState play_state) {
@@ -247,8 +253,12 @@ double AudioPlayer::GetDuration() const {
 	return stream_->GetDuration();
 }
 
-PlayerState AudioPlayer::GetState() const {
+PlayerState AudioPlayer::GetState() const noexcept {
 	return state_;
+}
+
+AudioFormat AudioPlayer::GetStreamFormat() const {
+	return stream_->GetFormat();
 }
 
 bool AudioPlayer::IsPlaying() const {
@@ -293,8 +303,7 @@ void AudioPlayer::CreateBuffer() {
 	auto output_format = input_format;
 	if (require_read_sample != num_read_sample_) {
 		size_t sample_size = stream_->GetSampleSize();
-		auto allocate_size = static_cast<int32_t>(GetPageAlignSize(size_t(require_read_sample) *
- sample_size * BUFFER_STREAM_COUNT));
+		auto allocate_size = static_cast<int32_t>(GetPageAlignSize(size_t(require_read_sample) * sample_size * BUFFER_STREAM_COUNT));
 		num_buffer_samples_ = allocate_size * 20;
 		num_read_sample_ = require_read_sample;
 		read_sample_buffer_ = MakeBuffer<int8_t>(allocate_size);
@@ -303,7 +312,9 @@ void AudioPlayer::CreateBuffer() {
 
 	output_format_ = output_format;
 	if (buffer_.GetSize() == 0 || buffer_.GetSize() < num_buffer_samples_) {
+		vmlock_.UnLock();
 		buffer_.Resize(num_buffer_samples_);
+		vmlock_.Lock(buffer_.GetData(), buffer_.GetSize());
 	}
 }
 
@@ -347,7 +358,7 @@ void AudioPlayer::BufferStream() {
 }
 
 bool AudioPlayer::ProcessSamples(int32_t num_samples) noexcept {
-	if (auto dsd_stream = dynamic_cast<DSDStream*>(stream_.get())) {
+	if (stream_->IsDSDFile()) {
 		return buffer_.TryWrite(read_sample_buffer_.get(), num_samples);
 	}
 	return buffer_.TryWrite(read_sample_buffer_.get(), num_samples * sizeof(float));
@@ -355,6 +366,7 @@ bool AudioPlayer::ProcessSamples(int32_t num_samples) noexcept {
 
 void AudioPlayer::OnError(const Exception& e) noexcept {
 	is_playing_ = false;
+	XAMP_LOG_DEBUG(e.what());
 }
 
 void AudioPlayer::OpenDevice(double stream_time) {
@@ -375,7 +387,8 @@ void AudioPlayer::OpenDevice(double stream_time) {
 
 void AudioPlayer::PlayStream() {
 	std::weak_ptr<AudioPlayer> player = shared_from_this();
-	stream_task_ = std::async(std::launch::async, [player]() {
+	//stream_task_ = std::async(std::launch::async, [player]() {
+	stream_task_ = thread_pool_.RunAsync([player]() {
 		const std::chrono::milliseconds SLEEP_OUTPUT_TIME(500);
 
 		if (auto p = player.lock()) {

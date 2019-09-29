@@ -18,7 +18,7 @@ extern "C" {
 
 #include <cassert>
 #include <base/exception.h>
-#include <base/file.h>
+#include <base/memory_mapped_file.h>
 #include <base/memory.h>
 #include <base/exception.h>
 #include <base/unicode.h>
@@ -438,7 +438,7 @@ AvFileStream::AvFileStream()
 
 XAMP_PIMPL_IMPL(AvFileStream)
 
-void AvFileStream::OpenFromFile(const std::wstring& file_path, OpenMode open_mode) {
+void AvFileStream::OpenFromFile(const std::wstring& file_path) {
 	return impl_->LoadFromFile(file_path);
 }
 
@@ -470,7 +470,7 @@ int32_t AvFileStream::GetSampleSize() const {
 	return impl_->GetSampleSize();
 }
 
-bool AvFileStream::IsDSDFile() const {
+bool AvFileStream::IsDSDFile() const noexcept {
 	return false;
 }
 

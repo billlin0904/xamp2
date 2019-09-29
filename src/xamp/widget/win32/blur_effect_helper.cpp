@@ -77,7 +77,7 @@ SetWindowCompositionAttribute(
 
 typedef BOOL(WINAPI* pfnSetWindowCompositionAttribute)(HWND, WINDOWCOMPOSITIONATTRIBDATA*);
 
-void SetBlurMaterial(HWND hWnd) {
+void setBlurMaterial(HWND hWnd) {
 	using namespace xamp::base;
 
 	XAMP_DEFINE_DLL_API(SetWindowCompositionAttribute) SetWindowCompositionAttribute {
@@ -95,9 +95,9 @@ void SetBlurMaterial(HWND hWnd) {
 	}
 }
 
-void SetBlurMaterial(const QWidget* widget) {
+void setBlurMaterial(const QWidget* widget) {
 	HWND hwnd = (HWND)widget->winId();
-	SetBlurMaterial(hwnd);
+	setBlurMaterial(hwnd);
 }
 
 #endif

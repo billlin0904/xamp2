@@ -1,8 +1,10 @@
 #include <QApplication>
 #include <QMap>
 
+#include <execution>
 #include <metadata/taglibmetareader.h>
 
+#include "toast.h"
 #include "database.h"
 #include "playlisttableview.h"
 #include "pixmapcache.h"
@@ -18,13 +20,13 @@ MetadataExtractAdapter::MetadataExtractAdapter()
 	metadatas_.reserve(PREALLOCATE_SIZE);
 }
 
-void MetadataExtractAdapter::OnWalk(const xamp::metadata::Path& path, const xamp::base::Metadata& metadata) {
-    qApp->processEvents();
+void MetadataExtractAdapter::OnWalk(const xamp::metadata::Path& path, const xamp::base::Metadata& metadata) {    
     metadatas_.push_back(metadata);
 }
 
 void MetadataExtractAdapter::OnWalkNext() {    
-	std::stable_sort(metadatas_.begin(), metadatas_.end(), [](const auto & first, const auto & sencond) {
+	std::stable_sort(std::execution::par,
+		metadatas_.begin(), metadatas_.end(), [](const auto & first, const auto & sencond) {
 		return first.track < sencond.track;		
 		});
 	onCompleted(metadatas_);
@@ -101,7 +103,7 @@ void MetadataExtractAdapter::onCompleted(const std::vector<xamp::base::Metadata>
 			}
 		}
 
-		Database::Instance().addOrUpdateAlbumMusic(album_id, artist_id, music_id);
+		IF_FAILED_SHOW_TOAST(Database::Instance().addOrUpdateAlbumMusic(album_id, artist_id, music_id));
 
 		auto entity = PlayListTableView::fromMetadata(metadata);
 		entity.music_id = music_id;
@@ -110,6 +112,7 @@ void MetadataExtractAdapter::onCompleted(const std::vector<xamp::base::Metadata>
 		entity.cover_id = cover_id;
 
 		playlist->appendItem(entity);
+		qApp->processEvents();
 	}	
 	emit finish();
 }

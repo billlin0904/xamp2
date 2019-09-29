@@ -1,7 +1,9 @@
 #include <iomanip>
 #include <sstream>
 
+#ifdef _WIN32
 #include <Windows.h>
+#endif
 
 #include <base/exception.h>
 #include <base/id.h>
@@ -100,6 +102,7 @@ ID::operator std::string() const noexcept {
 }
 
 ID ID::NewId() {
+#ifdef _WIN32
 	GUID new_id{};
 
 	(void) CoCreateGuid(&new_id);
@@ -125,7 +128,7 @@ ID ID::NewId() {
 		new_id.Data4[6],
 		new_id.Data4[7]
 	};
-
+#endif
 	return ID(bytes);
 }
 

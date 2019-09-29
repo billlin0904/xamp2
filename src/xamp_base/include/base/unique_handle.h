@@ -51,6 +51,10 @@ public:
 		return value;
 	}
 
+	bool is_valid() const noexcept {
+		return value_ != Traits::invalid();
+	}
+
 	operator boolean_type() const noexcept {
 		return Traits::invalid() != value_ ? &boolean_struct::member : nullptr;
 	}
