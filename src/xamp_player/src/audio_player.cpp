@@ -85,11 +85,11 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, bool use_bass_stream
 			} else {
 				dsd_stream->SetDSDMode(DSD_MODE_RAW);
 			}
+			PrefactchFile(file_path);
 		}
 	} else {
 		stream_ = MakeAlign<FileStream, AvFileStream>();
 	}
-	PrefactchFile(file_path);
 	stream_->OpenFromFile(file_path);
 }
 
@@ -387,7 +387,6 @@ void AudioPlayer::OpenDevice(double stream_time) {
 
 void AudioPlayer::PlayStream() {
 	std::weak_ptr<AudioPlayer> player = shared_from_this();
-	//stream_task_ = std::async(std::launch::async, [player]() {
 	stream_task_ = thread_pool_.RunAsync([player]() {
 		const std::chrono::milliseconds SLEEP_OUTPUT_TIME(500);
 

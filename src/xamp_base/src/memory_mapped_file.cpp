@@ -1,5 +1,7 @@
 #include <filesystem>
 
+#include <io.h>
+
 #include <base/windows_handle.h>
 #include <base/exception.h>
 #include <base/unique_handle.h>
@@ -16,15 +18,15 @@ enum FileAccessMode {
 
 class MemoryMappedFile::MemoryMappedFileImpl {
 public:
+	static const DWORD access_mode = GENERIC_READ;
+	static const DWORD create_type = OPEN_EXISTING;
+	static const DWORD protect = PAGE_READONLY;
+	static const DWORD access = FILE_MAP_READ;
+
 	MemoryMappedFileImpl() {
 	}
 
-	void Open(const std::wstring& file_path, FileAccessMode mode, bool exclusive = false) {
-		static const DWORD access_mode = GENERIC_READ;
-		static const DWORD create_type = OPEN_EXISTING;
-		static const DWORD protect = PAGE_READONLY;
-		static const DWORD access = FILE_MAP_READ;
-
+	void Open(const std::wstring& file_path, FileAccessMode mode, bool exclusive = false) {		
 		file_.reset(::CreateFileW(file_path.c_str(),
 			access_mode,
 			exclusive ? 0 : (FILE_SHARE_READ | (mode == FileAccessMode::READ_WRITE ? FILE_SHARE_WRITE : 0)),
@@ -34,13 +36,26 @@ public:
 			0));
 
 		if (file_) {
-			const MappingFileHandle mapping_handle(::CreateFileMappingW(file_.get(), 0, protect, 0, 0, 0));
-			if (mapping_handle) {
-				address_.reset(::MapViewOfFile(mapping_handle.get(), access, 0, 0, 0));
-				return;
-			}
+			OpenMappingFile(protect, access);
 		}
 		throw FileNotFoundException();
+	}
+
+	void Open(FILE* file) {
+		auto fd = fileno(file);
+		auto osfhandle = (HANDLE)_get_osfhandle(fd);
+		file_.reset(osfhandle);
+		if (file_) {
+			OpenMappingFile(protect, access);
+		}
+	}
+
+	void OpenMappingFile(DWORD protect, DWORD access) {
+		const MappingFileHandle mapping_handle(::CreateFileMappingW(file_.get(), 0, protect, 0, 0, 0));
+		if (mapping_handle) {
+			address_.reset(::MapViewOfFile(mapping_handle.get(), access, 0, 0, 0));
+			return;
+		}
 	}
 
 	~MemoryMappedFileImpl() {
@@ -71,6 +86,10 @@ MemoryMappedFile::MemoryMappedFile()
 }
 
 XAMP_PIMPL_IMPL(MemoryMappedFile)
+
+void MemoryMappedFile::Open(FILE* file) {
+
+}
 
 void MemoryMappedFile::Open(const std::wstring &file_path) {
 	impl_->Open(file_path, FileAccessMode::READ);

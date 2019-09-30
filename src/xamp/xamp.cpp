@@ -572,6 +572,7 @@ void Xamp::playNextItem(int32_t forward) {
 		play_index_ = playlist_view->currentIndex();
 		break;
 	case PLAYER_ORDER_REPEAT:
+		play_index_ = playlist_view->currentIndex();
 		play_index_ = playlist_view->model()->index(play_index_.row() + forward, PLAYLIST_PLAYING);
 		if (play_index_.row() == -1) {
 			return;

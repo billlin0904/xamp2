@@ -34,6 +34,12 @@ void PrefactchFile(const std::wstring& file_name) {
 	PrefetchMemory(const_cast<void*>(file.GetData()), file.GetLength());
 }
 
+void PrefactchFile(FILE* file) {
+	MemoryMappedFile mapped_file;
+	mapped_file.Open(file);
+	PrefetchMemory(const_cast<void*>(mapped_file.GetData()), mapped_file.GetLength());
+}
+
 XAMP_RESTRICT void* FastMemcpy(void* dest, const void* src, int32_t size) noexcept {
 	return memcpy_fast(dest, src, size);
 }
