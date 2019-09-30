@@ -91,7 +91,7 @@ private:
 	mutable double volume_;
 	int32_t buffer_size_;
 	int32_t buffer_bytes_;
-	std::atomic<int32_t> played_bytes_;
+	std::atomic<int64_t> played_bytes_;
 	std::string device_id_;
 	mutable std::mutex mutex_;
 	std::condition_variable condition_;

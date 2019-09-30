@@ -19,7 +19,7 @@ namespace xamp::base {
 
 class XAMP_BASE_API Logger {
 public:
-	static Logger & Instance();
+	static Logger& Instance();
 
 	~Logger();
 

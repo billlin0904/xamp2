@@ -21,7 +21,7 @@ XAMP_BASE_API XAMP_RESTRICT void* FastMemcpy(void* dest, const void* src, int32_
 
 XAMP_BASE_API void PrefactchFile(const std::wstring &file_name);
 
-XAMP_BASE_API void PrefactchFile(FILE* file);
+XAMP_BASE_API bool PrefetchMemory(void* adddr, size_t length) noexcept;
 
 }
 

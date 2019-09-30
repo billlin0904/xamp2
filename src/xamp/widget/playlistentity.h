@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <base/base.h>
+
 #include <QString>
 #include <QIcon>
 

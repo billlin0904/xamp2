@@ -120,6 +120,8 @@ private:
 		double stream_time;
 	};
 
+	XAMP_ENFORCE_TRIVIAL(AudioSlice);
+
 	bool is_muted_;
 	DSDModes dsd_mode_;
 	PlayerState state_;

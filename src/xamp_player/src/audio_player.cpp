@@ -12,7 +12,7 @@
 
 namespace xamp::player {
 
-static const int32_t MAX_DSD2PCM_SAMPLERATE = 44100;
+static const int32_t MAX_DSD2PCM_SAMPLERATE = 96000;
 static const int32_t BUFFER_STREAM_COUNT = 20;
 static const std::chrono::milliseconds UPDATE_SAMPLE_INTERVAL(100);
 
@@ -76,6 +76,7 @@ void AudioPlayer::CreateDevice(const ID& device_type_id, const std::wstring& dev
 
 void AudioPlayer::OpenStream(const std::wstring& file_path, bool use_bass_stream, const DeviceInfo& device_info) {
 	stream_->Close();
+
 	if (use_bass_stream) {
 		stream_ = MakeAlign<FileStream, BassFileStream>();
 		if (auto dsd_stream = dynamic_cast<DSDStream*>(stream_.get())) {
@@ -85,11 +86,11 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, bool use_bass_stream
 			} else {
 				dsd_stream->SetDSDMode(DSD_MODE_RAW);
 			}
-			PrefactchFile(file_path);
 		}
 	} else {
 		stream_ = MakeAlign<FileStream, AvFileStream>();
 	}
+
 	stream_->OpenFromFile(file_path);
 }
 
@@ -173,6 +174,8 @@ void AudioPlayer::Seek(double stream_time) {
 			return;
 		}
 		device_->SetStreamTime(stream_time);
+		XAMP_LOG_DEBUG("player seeking {} sec.", stream_time);
+		std::atomic_exchange(&slice_, AudioSlice{nullptr, -1, stream_time });
 		buffer_.Clear();
 		buffer_.Fill(0);
 		BufferStream();
@@ -294,7 +297,7 @@ void AudioPlayer::CreateBuffer() {
 
 	int32_t require_read_sample = 0;
 	if (dsd_mode_ == DSDModes::DSD_MODE_RAW || device_type_->GetTypeId() == ASIODeviceType::Id) {
-		require_read_sample = 19200;
+		require_read_sample = AudioFormat::MAX_SAMPLERATE;
 	}
 	else {
 		require_read_sample = device_->GetBufferSize() * 30;

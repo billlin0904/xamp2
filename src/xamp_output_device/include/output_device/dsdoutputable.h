@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include <output_device/device.h>
 #include <base/dsdsampleformat.h>
+#include <output_device/device.h>
 
 namespace xamp::output_device {
 
@@ -17,7 +17,7 @@ enum AsioIoFormat {
 	IO_FORMAT_PCM
 };
 
-class XAMP_OUTPUT_DEVICE_API DSDOutputable {
+class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE DSDOutputable {
 public:
     XAMP_BASE_CLASS(DSDOutputable)
 

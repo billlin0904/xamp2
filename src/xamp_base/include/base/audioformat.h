@@ -41,8 +41,6 @@ public:
 
 	explicit AudioFormat(int32_t number_of_channels, ByteFormat byte_format, int32_t samplerate, InterleavedFormat interleaved_format = InterleavedFormat::INTERLEAVED) noexcept;
 
-	~AudioFormat() noexcept = default;
-
 	void SetSampleRate(int32_t sample_rate) noexcept;
 
 	void SetBitPerSample(int32_t bits_per_sample) noexcept;
@@ -82,6 +80,8 @@ private:
 	int32_t sample_rate_;
 	int32_t bits_per_sample_;
 };
+
+XAMP_ENFORCE_TRIVIAL(AudioFormat);
 
 XAMP_ALWAYS_INLINE AudioFormat::AudioFormat(int32_t number_of_channels, ByteFormat byte_format, int32_t samplerate, InterleavedFormat interleaved_format) noexcept
 	: byte_format_(ByteFormat::INVALID_FORMAT)

@@ -396,6 +396,7 @@ void Xamp::initialController() {
 			return;
 		}
 		ui.seekSlider->setValue(value);
+		XAMP_LOG_DEBUG("seeking {} sec.", value / 1000.0);
 		});
 
 	(void)QObject::connect(ui.seekSlider, &QSlider::sliderReleased, [this]() {
@@ -403,6 +404,7 @@ void Xamp::initialController() {
 		if (!is_seeking_) {
 			return;
 		}
+		XAMP_LOG_DEBUG("final seeking {} sec.", ui.seekSlider->value() / 1000.0);
 		try {
 			player_->Seek(static_cast<double>(ui.seekSlider->value() / 1000.0));
 		}

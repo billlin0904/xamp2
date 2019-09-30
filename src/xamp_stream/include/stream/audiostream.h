@@ -12,7 +12,7 @@ namespace xamp::stream {
 
 using namespace base;
 
-class XAMP_STREAM_API AudioStream {
+class XAMP_STREAM_API XAMP_NO_VTABLE AudioStream {
 public:
 	XAMP_BASE_CLASS(AudioStream)
 

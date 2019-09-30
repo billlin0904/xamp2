@@ -5,11 +5,13 @@
 #include <base/exception.h>
 
 #ifdef _WIN32
-#include <base/windows_handle.h>
+#include <base/unique_handle.h>
 #endif
 
+#include <base/memory.h>
 #include <base/memory_mapped_file.h>
 #include <base/logger.h>
+#include <base/vmmemlock.h>
 
 #include <stream/bassfilestream.h>
 
@@ -348,7 +350,8 @@ public:
 				0,
 				file_.GetLength(),
 				flags | BASS_STREAM_DECODE,
-				0));			
+				0));	
+			PrefetchMemory((void*)file_.GetData(), file_.GetLength());
 		}
 		
 		if (!stream_) {

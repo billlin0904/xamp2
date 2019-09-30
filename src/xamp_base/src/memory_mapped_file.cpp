@@ -18,26 +18,28 @@ enum FileAccessMode {
 
 class MemoryMappedFile::MemoryMappedFileImpl {
 public:
-	static const DWORD access_mode = GENERIC_READ;
-	static const DWORD create_type = OPEN_EXISTING;
-	static const DWORD protect = PAGE_READONLY;
-	static const DWORD access = FILE_MAP_READ;
+	static const DWORD DEFAULT_ACCESS_MODE = GENERIC_READ;
+	static const DWORD DEFAULT_CREATE_TYPE = OPEN_EXISTING;
+	static const DWORD DEFAULT_PROTECT = PAGE_READONLY;
+	static const DWORD DEFAULT_ACCESS = FILE_MAP_READ;
 
 	MemoryMappedFileImpl() {
 	}
 
 	void Open(const std::wstring& file_path, FileAccessMode mode, bool exclusive = false) {		
 		file_.reset(::CreateFileW(file_path.c_str(),
-			access_mode,
+			DEFAULT_ACCESS_MODE,
 			exclusive ? 0 : (FILE_SHARE_READ | (mode == FileAccessMode::READ_WRITE ? FILE_SHARE_WRITE : 0)),
 			0,
-			create_type,
+			DEFAULT_CREATE_TYPE,
 			FILE_FLAG_SEQUENTIAL_SCAN,
 			0));
 
 		if (file_) {
-			OpenMappingFile(protect, access);
+			OpenMappingFile(DEFAULT_PROTECT, DEFAULT_ACCESS);
+			return;
 		}
+
 		throw FileNotFoundException();
 	}
 
@@ -46,7 +48,7 @@ public:
 		auto osfhandle = (HANDLE)_get_osfhandle(fd);
 		file_.reset(osfhandle);
 		if (file_) {
-			OpenMappingFile(protect, access);
+			OpenMappingFile(DEFAULT_PROTECT, DEFAULT_ACCESS);
 		}
 	}
 
@@ -54,7 +56,6 @@ public:
 		const MappingFileHandle mapping_handle(::CreateFileMappingW(file_.get(), 0, protect, 0, 0, 0));
 		if (mapping_handle) {
 			address_.reset(::MapViewOfFile(mapping_handle.get(), access, 0, 0, 0));
-			return;
 		}
 	}
 

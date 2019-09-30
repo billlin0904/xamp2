@@ -15,13 +15,8 @@ namespace xamp::output_device {
 using namespace base;
 
 struct XAMP_OUTPUT_DEVICE_API DeviceInfo final {
-	DeviceInfo()
-		: is_default_device(false)
-		, is_support_dsd_raw_mode(false) {
-	}
-	~DeviceInfo() noexcept = default;
-	bool is_default_device;
-	bool is_support_dsd_raw_mode;
+	bool is_default_device{false};
+	bool is_support_dsd_raw_mode{false};
 	std::wstring name;    
 	std::wstring device_id;
 	ID device_type_id;

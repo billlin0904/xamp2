@@ -10,7 +10,7 @@ static bool ExterndProcessWorkingSetSize(size_t size) noexcept {
     SIZE_T minimum = 0;
     SIZE_T maximum = 0;
 
-    WinHandle current_process(GetCurrentProcess());
+    WinHandle current_process(::GetCurrentProcess());
 
     if (::GetProcessWorkingSetSize(current_process.get(), &minimum, &maximum)) {
         minimum += size;
@@ -23,7 +23,7 @@ static bool ExterndProcessWorkingSetSize(size_t size) noexcept {
 }
 
 static bool EnablePrivilege(const std::string& privilege, bool enable) noexcept {
-	WinHandle current_process(GetCurrentProcess());
+	WinHandle current_process(::GetCurrentProcess());
 
 	WinHandle token;
 	HANDLE process_token;

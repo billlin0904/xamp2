@@ -4,7 +4,6 @@
 
 #pragma comment(lib, "crypt32")
 #pragma comment(lib, "Bcrypt")
-#pragma comment(lib, "ws2_32")
 
 extern "C" {
 #include <libavformat/avformat.h>

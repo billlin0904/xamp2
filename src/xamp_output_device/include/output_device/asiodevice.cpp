@@ -344,7 +344,7 @@ void AsioDevice::OnBufferSwitch(long index) {
 	}
 	else {
 		const auto avg_byte_per_sec = mix_format_.GetAvgBytesPerSec() / 8;
-		if ((*callback_)(buffer_.get(), buffer_bytes_, played_bytes_ / avg_byte_per_sec) == 0) {
+		if ((*callback_)(buffer_.get(), buffer_bytes_, double(played_bytes_) / avg_byte_per_sec) == 0) {
 			DataConverter<InterleavedFormat::DEINTERLEAVED,
 				InterleavedFormat::INTERLEAVED>::Convert(reinterpret_cast<int8_t*>(device_buffer_.get()),
 					reinterpret_cast<const int8_t*>(buffer_.get()),
@@ -475,8 +475,15 @@ bool AsioDevice::IsStreamRunning() const {
 	return is_streaming_;
 }
 
-void AsioDevice::SetStreamTime(const double stream_time) {
-	played_bytes_ = static_cast<int32_t>((stream_time + 0.5) * mix_format_.GetAvgBytesPerSec());
+void AsioDevice::SetStreamTime(double stream_time) {
+	if (io_format_ == AsioIoFormat::IO_FORMAT_PCM) {
+		played_bytes_ = static_cast<int64_t>(stream_time * mix_format_.GetAvgBytesPerSec());
+	}
+	else {
+		const auto avg_byte_per_sec = mix_format_.GetAvgBytesPerSec() / 8;
+		played_bytes_ = stream_time * avg_byte_per_sec;
+		XAMP_LOG_DEBUG("device seaking {} bytes.", played_bytes_);
+	}
 }
 
 double AsioDevice::GetStreamTime() const {

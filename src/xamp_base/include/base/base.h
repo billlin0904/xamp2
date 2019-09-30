@@ -67,5 +67,15 @@
 // Assume we need 32-byte alignment for AVX instructions.
 #define XAMP_MALLOC_ALGIGN_SIZE 32
 
-#define XAMP_ENABLE_FAST_MEMCPY 1
-#define XAMP_ENABLE_ASIO 1
+#define XAMP_ENFORCE_TRIVIAL(t) \
+static_assert(std::is_standard_layout_v<t>);\
+static_assert(std::is_trivially_copyable_v<t>);\
+static_assert(std::is_trivially_copy_assignable_v<t>);\
+static_assert(std::is_trivially_copy_constructible_v<t>);\
+static_assert(std::is_trivially_move_assignable_v<t>);\
+static_assert(std::is_trivially_move_constructible_v<t>);\
+static_assert(std::is_trivially_destructible_v<t>);\
+
+#define XAMP_TRIVIAL_STRUCT(Name, ...)\
+struct Name __VA_ARGS__;\
+XAMP_ENFORCE_TRIVIAL(Name);

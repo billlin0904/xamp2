@@ -20,7 +20,7 @@ namespace xamp::output_device {
 
 using namespace base;
 
-class XAMP_OUTPUT_DEVICE_API DeviceType {
+class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE DeviceType {
 public:
 	XAMP_DISABLE_COPY(DeviceType)
 

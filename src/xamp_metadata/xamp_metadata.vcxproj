@@ -136,7 +136,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="include\metadata\cueparser.h" />
     <ClInclude Include="include\metadata\metadata.h" />
     <ClInclude Include="include\metadata\metadataextractadapter.h" />
     <ClInclude Include="include\metadata\metadatareader.h" />
@@ -146,7 +145,6 @@
     <ClInclude Include="include\metadata\taglibmetawriter.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\cueparser.cpp" />
     <ClCompile Include="src\taglibmetadatawriter.cpp" />
     <ClCompile Include="src\taglibmetareader.cpp" />
   </ItemGroup>
