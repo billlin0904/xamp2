@@ -9,7 +9,7 @@
 #include <QByteArray>
 
 namespace FileTag {
-    QString getTagId(const QByteArray &buffer);
-    QString getTagId(const QString &file_name);
+	QString getTagId(const QByteArray &buffer);
+	QString getTagId(const QString &file_name);
 };
 

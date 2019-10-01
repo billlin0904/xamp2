@@ -38,7 +38,7 @@ QVariant PlayListTableModel::data(const QModelIndex& index, int32_t role) const 
 		case PLAYLIST_DURATION:
 			return Time::msToString(data_[row].duration);
 		case PLAYLIST_BITRATE:
-			return QString("%0 kbps").arg(data_[row].bitrate);
+			return QString(Q_UTF8("%0 kbps")).arg(data_[row].bitrate);
 		case PLAYLIST_SAMPLE_RATE:
 			return data_[row].samplerate;
 		default:

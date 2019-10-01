@@ -4,7 +4,6 @@
 
 #include <base/memory.h>
 
-#include "str_utilts.h"
 #include "time_utilts.h"
 #include "database.h"
 
@@ -35,7 +34,7 @@ Database::~Database() {
 }
 
 void Database::createTableIfNotExist() {
-	std::vector<QString> create_table_sql;
+	std::vector<QLatin1String> create_table_sql;
 
 	create_table_sql.push_back(
 		Q_UTF8(R"(
@@ -236,11 +235,11 @@ QString Database::getAlbumCoverId(int32_t album_id) const {
 
 	ENSURE_EXEC(query);
 
-	const auto album_cover_tag_id_index = query.record().indexOf("coverId");
+	const auto album_cover_tag_id_index = query.record().indexOf(Q_UTF8("coverId"));
 	if (query.next()) {
 		return query.value(album_cover_tag_id_index).toString();
 	}
-	return "";
+	return QString();
 }
 
 int32_t Database::addOrUpdateMusic(const xamp::base::Metadata& metadata, int32_t playlist_id) {
@@ -355,9 +354,9 @@ void Database::addOrUpdateAlbumMusic(int32_t album_id, int32_t artist_id, int32_
 		musics.musicId = :musicId;
 	)"));
 
-	query.bindValue(":album", album_id);
-	query.bindValue(":artist", artist_id);
-	query.bindValue(":musicId", music_id);
+	query.bindValue(Q_UTF8(":album"), album_id);
+	query.bindValue(Q_UTF8(":artist"), artist_id);
+	query.bindValue(Q_UTF8(":musicId"), music_id);
 
 	db_.transaction();
 
@@ -394,7 +393,7 @@ void Database::removePlaylistMusic(int32_t playlist_id, const QVector<int32_t>& 
 		list << QString::number(id);
 	}
 
-	auto q = str.arg(list.join(','));
+	auto q = str.arg(list.join(Q_UTF8(",")));
 	query.prepare(q);
 	
 	query.bindValue(Q_UTF8(":playlistId"), playlist_id);

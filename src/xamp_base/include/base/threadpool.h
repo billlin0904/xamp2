@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <array>
 #include <string>
 #include <sstream>
 #include <memory>
@@ -41,7 +42,7 @@ public:
             if (!lock) {
                 return false;
             }
-            queue_.emplace_back(std::forward<U>(task));
+            queue_.push_back(std::forward<U>(task));
         }
         notify_.notify_one();
         return true;
@@ -50,7 +51,7 @@ public:
     template <typename U>
     void Enqueue(U &&task) {
         std::unique_lock<std::mutex> guard{mutex_};
-        queue_.emplace_back(std::forward<U>(task));
+        queue_.push_back(std::forward<U>(task));
         notify_.notify_one();
     }
 
@@ -118,22 +119,20 @@ XAMP_BASE_API void SetCurrentThreadName(int32_t index);
 
 template 
 <
+	size_t MaxThread,
 	typename TaskType, 
 	template <typename> 
 	class Queue = TaskQueue
 >
 class TaskScheduler {    
 public:
-    explicit TaskScheduler(size_t max_thread)
+    explicit TaskScheduler()
         : is_stopped_(false)
-        , index_(0)
-        , max_thread_(max_thread) {
-        task_queues_.reserve(max_thread);
-        threads_.reserve(max_thread);
-        for (size_t i = 0; i < max_thread; ++i) {
-            task_queues_.push_back(MakeAlign<TaskQueue<TaskType>>());
+        , index_(0) {
+        for (size_t i = 0; i < MaxThread; ++i) {
+			task_queues_[i] = std::move(MakeAlign<TaskQueue<TaskType>>());
         }
-        for (size_t i = 0; i < max_thread; ++i) {
+        for (size_t i = 0; i < MaxThread; ++i) {
             AddThread(i);
         }
     }
@@ -166,28 +165,25 @@ public:
                 threads_[i].join();
             }
         }
-
-        task_queues_.clear();
-		threads_.clear();
     }
 
 private:
-    static const int MAX_THREAD_HT_PAD = 64 * 1024;
+    static const int32_t MAX_THREAD_HT_PAD = 64 * 1024;
 
     void AddThread(size_t i) {
-        threads_.emplace_back([i, this]() mutable {
+        threads_[i] = std::thread([i, this]() mutable {
 			// https://software.intel.com/en-us/articles/multithreaded-game-programming-and-hyper-threading-technology
-			const auto cacheline_pad = alloca(((i + 1) % max_thread_) * MAX_THREAD_HT_PAD);
+			const auto cacheline_pad = alloca(((i + 1) % MaxThread) * MAX_THREAD_HT_PAD);
 
             for (;;) {
                 TaskType task;
 
-                for (size_t n = 0; n != max_thread_; ++n) {
+                for (size_t n = 0; n != MaxThread; ++n) {
                     if (is_stopped_) {
                         return;
                     }
 
-                    const auto index = (i + n) % max_thread_;
+                    const auto index = (i + n) % MaxThread;
                     if (task_queues_[index]->TryDequeue(task)) {
                         break;
                     }
@@ -209,25 +205,25 @@ private:
 
 	std::atomic<bool> is_stopped_;
 	size_t index_;
-    size_t max_thread_;
-    std::vector<std::thread> threads_;
-    std::vector<AlignPtr<Queue<TaskType>>> task_queues_;
+    std::array<std::thread, MaxThread> threads_;
+	std::array<AlignPtr<Queue<TaskType>>, MaxThread> task_queues_;
 };
     
 class XAMP_BASE_API ThreadPool {
 public:
-	explicit ThreadPool(size_t max_thread = std::thread::hardware_concurrency() / 2);
+	ThreadPool();
 
 	XAMP_DISABLE_COPY(ThreadPool)
 
-    template <class F, class... Args>
+    template <typename F, typename... Args>
 	std::future<typename std::result_of<F(Args ...)>::type> RunAsync(F&& f, Args&&... args);
 
 private:
-    TaskScheduler<Task> scheduler_;
+	static const size_t MAX_THREAD = 4;
+    TaskScheduler<MAX_THREAD, Task> scheduler_;
 };
 
-template <class F, class ... Args>
+template <typename F, typename ... Args>
 std::future<typename std::result_of<F(Args ...)>::type> ThreadPool::RunAsync(F&& f, Args&&... args) {
 	typedef typename std::result_of<F(Args ...)>::type ReturnType;
 

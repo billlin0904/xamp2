@@ -27,7 +27,7 @@ struct XAMP_BASE_API Metadata {
     std::wstring artist;
     std::wstring album;
     std::wstring parent_path;
-	std::wstring cover_id;
+	std::string cover_id;
 };
 
 }

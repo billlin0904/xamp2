@@ -1,4 +1,7 @@
+#ifdef _WIN32
 #include <base/windows_handle.h>
+#endif
+
 #include <base/threadpool.h>
 
 #ifdef _WIN32
@@ -49,8 +52,8 @@ void SetCurrentThreadName(int32_t index) {
 	SetCurrentThreadName(thread_name);
 }
 
-ThreadPool::ThreadPool(size_t max_thread)
-    : scheduler_(max_thread) {
+ThreadPool::ThreadPool()
+    : scheduler_() {
 }
 
 }

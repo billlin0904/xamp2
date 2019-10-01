@@ -9,9 +9,9 @@
 #include <QtWidgets/QApplication>
 
 static void loadAndDefaultAppConfig() {
-	AppSettings::settings().loadIniFile("xamp.ini");
-	AppSettings::settings().setDefaultValue(APP_SETTING_DEVICE_TYPE, "");
-	AppSettings::settings().setDefaultValue(APP_SETTING_DEVICE_ID, "");
+	AppSettings::settings().loadIniFile(Q_UTF8("xamp.ini"));
+	AppSettings::settings().setDefaultValue(APP_SETTING_DEVICE_TYPE, Q_UTF8(""));
+	AppSettings::settings().setDefaultValue(APP_SETTING_DEVICE_ID, Q_UTF8(""));
 	AppSettings::settings().setDefaultValue(APP_SETTING_WIDTH, 600);
 	AppSettings::settings().setDefaultValue(APP_SETTING_HEIGHT, 500);
 	AppSettings::settings().setDefaultValue(APP_SETTING_VOLUME, 50);
@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
 	QApplication app(argc, argv);
 
 	try {
-		Database::Instance().open("xamp.db");
+		Database::Instance().open(Q_UTF8("xamp.db"));
 	}
 	catch (const std::exception& e) {
 		XAMP_LOG_INFO("Initial database failure! {}", e.what());

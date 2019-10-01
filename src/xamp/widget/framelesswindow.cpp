@@ -92,18 +92,18 @@ void FramelessWindow::lazyInitial() {
 
 void FramelessWindow::initialFontDatabase() {
 	const QStringList fallback_fonts{
-		"SF Pro Text",
-		"SF Pro Icons",
-		"Helvetica Neue",
-		"Microsoft Yahei",
-		"Helvetica",
-		"Arial",
+		Q_UTF8("SF Pro Text"),
+		Q_UTF8("SF Pro Icons"),
+		Q_UTF8("Helvetica Neue"),
+		Q_UTF8("Microsoft Yahei"),
+		Q_UTF8("Helvetica"),
+		Q_UTF8("Arial"),
 	};
 
-	QFont::insertSubstitutions("UI", fallback_fonts);
+	QFont::insertSubstitutions(Q_UTF8("UI"), fallback_fonts);
 
 	QFont default_font;
-	default_font.setFamily("UI");
+	default_font.setFamily(Q_UTF8("UI"));
 	default_font.setStyleStrategy(QFont::PreferAntialias);
 	setFont(default_font);
 }

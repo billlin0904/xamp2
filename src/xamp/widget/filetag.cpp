@@ -13,7 +13,7 @@ static QByteArray sha1(const QByteArray& data) {
 }
 
 static QString urlSafeBase64Encode(const QByteArray& data) {
-    return QString(data.toBase64(QByteArray::Base64UrlEncoding));
+    return QLatin1String(data.toBase64(QByteArray::Base64UrlEncoding));
 }
 
 QString FileTag::getTagId(const QByteArray &buffer) {
@@ -49,7 +49,7 @@ QString FileTag::getTagId(const QByteArray &buffer) {
 }
 
 QString FileTag::getTagId(const QString& file_name) {
-    QString etag = "";
+	QString etag;
     QFileInfo fi(file_name);
 
     if (fi.exists() && fi.permission(QFile::ReadUser)) {

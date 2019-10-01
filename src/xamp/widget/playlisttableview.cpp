@@ -25,7 +25,7 @@ PlayListEntity PlayListTableView::fromMetadata(const xamp::base::Metadata& metad
 	item.artist = QString::fromStdWString(metadata.artist);
 	item.file_path = QString::fromStdWString(metadata.file_path);
 	item.bitrate = metadata.bitrate;
-	item.cover_id = QString::fromStdWString(metadata.cover_id);
+	item.cover_id = QLatin1String(metadata.cover_id.c_str(), metadata.cover_id.length());
 	item.file_name = QString::fromStdWString(metadata.file_name);
 	return item;
 }

@@ -14,6 +14,7 @@
 #include <base/exception.h>
 #include <base/metadata.h>
 
+#include "str_utilts.h"
 #include "playlistentity.h"
 
 class SqlException : public xamp::base::Exception {
@@ -66,7 +67,7 @@ public:
 	void forEachPlaylistMusic(int32_t playlist_id, Function &&fun) {
 		QSqlQuery query;
 
-		query.prepare(R"(
+		query.prepare(Q_UTF8(R"(
 		SELECT
 			albumMusic.albumId,
 			albumMusic.artistId,
@@ -83,9 +84,9 @@ public:
 			JOIN artists ON albumMusic.artistId = artists.artistId
 		WHERE
 			playlistMusics.playlistId = :playlist_id;
-		)");
+		)"));
 
-		query.bindValue(":playlist_id", playlist_id);
+		query.bindValue(Q_UTF8(":playlist_id"), playlist_id);
 
 		if (!query.exec()) {
 			XAMP_LOG_DEBUG("{}", query.lastError().text().toStdString());
@@ -93,20 +94,20 @@ public:
 
 		while (query.next()) {
 			PlayListEntity entity;
-			entity.album_id = query.value("albumId").toInt();
-			entity.artist_id = query.value("artistId").toInt();
-			entity.music_id = query.value("musicId").toInt();
-			entity.file_path = query.value("path").toString();
-			entity.track = query.value("track").toInt();
-			entity.title = query.value("title").toString();
-			entity.file_name = query.value("fileName").toString();
-			entity.album = query.value("album").toString();
-			entity.artist = query.value("artist").toString();
-			entity.file_ext = query.value("fileExt").toString();
-			entity.duration = query.value("duration").toDouble();
-			entity.bitrate = query.value("bitrate").toInt();
-			entity.samplerate = query.value("samplerate").toInt();
-			entity.cover_id = query.value("coverId").toString();
+			entity.album_id = query.value(Q_UTF8("albumId")).toInt();
+			entity.artist_id = query.value(Q_UTF8("artistId")).toInt();
+			entity.music_id = query.value(Q_UTF8("musicId")).toInt();
+			entity.file_path = query.value(Q_UTF8("path")).toString();
+			entity.track = query.value(Q_UTF8("track")).toInt();
+			entity.title = query.value(Q_UTF8("title")).toString();
+			entity.file_name = query.value(Q_UTF8("fileName")).toString();
+			entity.album = query.value(Q_UTF8("album")).toString();
+			entity.artist = query.value(Q_UTF8("artist")).toString();
+			entity.file_ext = query.value(Q_UTF8("fileExt")).toString();
+			entity.duration = query.value(Q_UTF8("duration")).toDouble();
+			entity.bitrate = query.value(Q_UTF8("bitrate")).toInt();
+			entity.samplerate = query.value(Q_UTF8("samplerate")).toInt();
+			entity.cover_id = query.value(Q_UTF8("coverId")).toString();
 			fun(entity);
 		}
 	}

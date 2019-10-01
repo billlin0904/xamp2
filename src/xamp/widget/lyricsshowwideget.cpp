@@ -1,7 +1,8 @@
 #include <sstream>
 #include <QFileDialog>
 
-#include "widget/actionmap.h"
+#include "actionmap.h"
+#include "str_utilts.h"
 #include "image_utiltis.h"
 #include "lyricsshowwideget.h"
 
@@ -122,7 +123,7 @@ void LyricsShowWideget::loadLrcFile(const QString &file_path) {
 
 void LyricsShowWideget::addFullLrc(const QString& lrc, std::chrono::milliseconds duration) {
     auto i = 0;
-	const auto lyrics = lrc.split("\n");
+	const auto lyrics = lrc.split(Q_UTF8("\n"));
 	const auto min_duration = duration / lyrics.count();
 
 	for (const auto &ly : lyrics) {

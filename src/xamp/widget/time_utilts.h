@@ -8,6 +8,8 @@
 #include <QString>
 #include <QTime>
 
+#include "str_utilts.h"
+
 namespace Time {
 
 static QString msToString(const double stream_time) {
@@ -18,9 +20,9 @@ static QString msToString(const double stream_time) {
 	const auto s = (secs % 3600) % 60;
 	QTime t(h, m, s, ms);
 	if (h > 0) {
-		return t.toString("hh:mm:ss");
+		return t.toString(Q_UTF8("hh:mm:ss"));
 	}
-	return t.toString("mm:ss");
+	return t.toString(Q_UTF8("mm:ss"));
 }
 
 }

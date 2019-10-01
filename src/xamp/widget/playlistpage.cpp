@@ -3,6 +3,7 @@
 #include <QSpacerItem>
 #include <QLabel>
 
+#include "str_utilts.h"
 #include "playlisttableview.h"
 #include "playlistpage.h"
 
@@ -12,7 +13,7 @@ PlyalistPage::PlyalistPage(QWidget* parent)
 }
 
 void PlyalistPage::initial() {
-	setStyleSheet("background: transparent;");
+	setStyleSheet(Q_UTF8("background: transparent;"));
 
 	auto default_layout = new QVBoxLayout(this);
 	default_layout->setSpacing(0);

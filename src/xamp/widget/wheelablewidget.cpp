@@ -2,6 +2,7 @@
 #include <QPainter>
 #include <QKeyEvent>
 
+#include "str_utilts.h"
 #include "wheelablewidget.h"
 
 WheelableWidget::WheelableWidget(const bool touch, QWidget* parent)
@@ -10,7 +11,7 @@ WheelableWidget::WheelableWidget(const bool touch, QWidget* parent)
 	, item_(0)
 	, item_offset_(0)
 	, mask_length_(0) {
-	setStyleSheet("baseWidget { background:transparent; }");
+	setStyleSheet(Q_UTF8("baseWidget { background:transparent; }"));
 	QScroller::grabGesture(this, touch ? QScroller::TouchGesture : QScroller::LeftMouseButtonGesture);
 }
 
@@ -120,7 +121,7 @@ bool WheelableWidget::event(QEvent* event) {
 					if (item_>1)
 						emit changeTo(item_ + 1);
 					mask_length_ = 0;
-					real_current_text_ = "";
+					real_current_text_.clear();
 				}
 				is_scrolled_ = false;
 				do_signal_ = true;

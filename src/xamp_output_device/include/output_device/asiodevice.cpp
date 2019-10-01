@@ -7,6 +7,10 @@
 #include <base/dataconverter.h>
 #include <base/logger.h>
 
+#ifdef _WIN32
+#include <output_device/win32/mmcss_types.h>
+#endif
+
 #include <output_device/asioexception.h>
 #include <output_device/asiodevice.h>
 
@@ -14,9 +18,14 @@ namespace xamp::output_device {
 
 using namespace base;
 
+#ifdef _WIN32
+using namespace win32;
+#endif
+
 struct AsioCallbackInfo {
 	AsioCallbackInfo()
-		: asioXRun(false)
+		: boost_priority(false)
+		, asioXRun(false)
 		, device(nullptr) {
 	}
 
@@ -24,6 +33,7 @@ struct AsioCallbackInfo {
 		// Some asio driver always in system tray.
     }
 
+	bool boost_priority;
 	bool asioXRun;
 	AlignPtr<AsioDrivers> drivers;
 	ConvertContext data_context;
@@ -314,11 +324,17 @@ void AsioDevice::CreateBuffers(const AudioFormat& output_format) {
 }
 
 void AsioDevice::OnBufferSwitch(long index) {
+	if (callbackInfo.boost_priority) {
+		Mmcss::Instance().BoostPriority();
+		callbackInfo.boost_priority = false;
+	}
+
 	played_bytes_ += buffer_bytes_ * mix_format_.GetChannels();
 
 	if (!is_streaming_) {
 		is_stop_streaming_ = true;
 		condition_.notify_all();
+		Mmcss::Instance().RevertPriority();
 		return;
 	}
 
@@ -365,6 +381,11 @@ void AsioDevice::OnBufferSwitch(long index) {
 }
 
 void AsioDevice::OpenStream(const AudioFormat& output_format) {
+#ifdef _WIN32
+	Mmcss::Instance();
+	callbackInfo.boost_priority = true;
+#endif
+
 	ASIODriverInfo asio_driver_info{};
 	asio_driver_info.asioVersion = 2;
 	asio_driver_info.sysRef = ::GetDesktopWindow();
@@ -469,6 +490,7 @@ void AsioDevice::CloseStream() {
 }
 
 void AsioDevice::StartStream() {
+	callbackInfo.boost_priority = true;
 	callbackInfo.device = this;
 	ASIO_IF_FAILED_THROW(ASIOStart());
 	is_streaming_ = true;
