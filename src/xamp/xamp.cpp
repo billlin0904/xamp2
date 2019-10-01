@@ -6,6 +6,7 @@
 #include <QFileInfo>
 #include <QDesktopWidget>
 
+#include "widget/win32/blur_effect_helper.h"
 #include "widget/str_utilts.h"
 #include "widget/playlistpage.h"
 #include "widget/toast.h"
@@ -46,11 +47,10 @@ static QString getUIFormat(const AudioFormat& format, const PlayListEntity& item
 Xamp::Xamp(QWidget *parent)
 	: FramelessWindow(parent)
 	, is_seeking_(false)
-	, order_(PLAYER_ORDER_REPEAT)
+	, order_(PLAYER_ORDER_REPEAT_ONCE)
 	, lrc_page_(nullptr)
 	, state_adapter_(std::make_shared<PlayerStateAdapter>())
 	, player_(std::make_shared<AudioPlayer>(state_adapter_)) {
-	initialDefaultValue();
 	initialUI();	
 	initialController();	
 	initialDeviceList();
@@ -60,8 +60,8 @@ Xamp::Xamp(QWidget *parent)
 }
 
 void Xamp::closeEvent(QCloseEvent* event) {
-	setSettingValue(APP_SETTING_WIDTH, size().width());
-	setSettingValue(APP_SETTING_HEIGHT, size().height());
+	AppSettings::settings().setSettingValue(APP_SETTING_WIDTH, size().width());
+	AppSettings::settings().setSettingValue(APP_SETTING_HEIGHT, size().height());
 
 	if (player_ != nullptr) {
 		player_->Stop(false, true);
@@ -242,16 +242,6 @@ void Xamp::setNormalMode() {
 	)");
 }
 
-void Xamp::initialDefaultValue() {
-	setDefaultValue(APP_SETTING_DEVICE_TYPE, "");
-	setDefaultValue(APP_SETTING_DEVICE_ID, "");
-	setDefaultValue(APP_SETTING_WIDTH, 600);
-	setDefaultValue(APP_SETTING_HEIGHT, 500);
-	setDefaultValue(APP_SETTING_VOLUME, 50);
-	setDefaultValue(APP_SETTING_NIGHT_MODE, false);
-	setDefaultValue(APP_SETTING_ORDER, PLAYER_ORDER_REPEAT);
-}
-
 void Xamp::initialUI() {
 	ui.setupUi(this);
 	setNormalMode();
@@ -335,12 +325,12 @@ void Xamp::initialDeviceList() {
 			device_id_action[device_info.device_id] = device_action;
 			(void)QObject::connect(device_action, &QAction::triggered, [device_info, this]() {
 				device_info_ = device_info;
-				setSettingValue(APP_SETTING_DEVICE_TYPE, QString::fromStdString(device_info_.device_type_id));
-				setSettingValue(APP_SETTING_DEVICE_ID, QString::fromStdWString(device_info_.device_id));
+				AppSettings::settings().setSettingValue(APP_SETTING_DEVICE_TYPE, QString::fromStdString(device_info_.device_type_id));
+				AppSettings::settings().setSettingValue(APP_SETTING_DEVICE_ID, QString::fromStdWString(device_info_.device_id));
 				});
 			menu->addAction(device_action);
-			if (getSettingID(APP_SETTING_DEVICE_TYPE) == device_info.device_type_id
-				&& getSettingValue(APP_SETTING_DEVICE_ID).toString().toStdWString() == device_info.device_id) {
+			if (AppSettings::settings().getSettingID(APP_SETTING_DEVICE_TYPE) == device_info.device_type_id
+				&& AppSettings::settings().getSettingValue(APP_SETTING_DEVICE_ID).toString().toStdWString() == device_info.device_id) {
 				device_info_ = device_info;
 				is_find_setting_device = true;
 				device_action->setChecked(true);
@@ -360,8 +350,8 @@ void Xamp::initialDeviceList() {
 	if (!is_find_setting_device) {
 		device_info_ = init_device_info;
 		device_id_action[device_info_.device_id]->setChecked(true);
-		setSettingValue(APP_SETTING_DEVICE_TYPE, QString::fromStdString(device_info_.device_type_id));
-		setSettingValue(APP_SETTING_DEVICE_ID, QString::fromStdWString(device_info_.device_id));
+		AppSettings::settings().setSettingValue(APP_SETTING_DEVICE_TYPE, QString::fromStdString(device_info_.device_type_id));
+		AppSettings::settings().setSettingValue(APP_SETTING_DEVICE_ID, QString::fromStdWString(device_info_.device_id));
 	}
 }
 
@@ -425,16 +415,16 @@ void Xamp::initialController() {
 		player_->Pause();
 		});
 
-	order_ = static_cast<PlayerOrder>(getSettingValue(APP_SETTING_ORDER).toInt());
+	order_ = static_cast<PlayerOrder>(AppSettings::settings().getSettingValue(APP_SETTING_ORDER).toInt());
 	setPlayerOrder();
 
 	ui.volumeSlider->setRange(0, 100);
-	ui.volumeSlider->setValue(getSettingValue(APP_SETTING_VOLUME).toInt());
+	ui.volumeSlider->setValue(AppSettings::settings().getSettingValue(APP_SETTING_VOLUME).toInt());
 
 	(void)QObject::connect(ui.volumeSlider, &QSlider::valueChanged, [this](auto volume) {
 		QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + QString("%"));
 		setVolume(volume);
-		setSettingValue(APP_SETTING_VOLUME, volume);
+		AppSettings::settings().setSettingValue(APP_SETTING_VOLUME, volume);
 		});
 
 	(void)QObject::connect(ui.volumeSlider, &QSlider::sliderMoved, [this](auto volume) {
@@ -531,14 +521,14 @@ void Xamp::onDeleteKeyPress() {
 
 void Xamp::setPlayerOrder() {
 	switch (order_) {
-	case PLAYER_ORDER_REPEAT:
+	case PLAYER_ORDER_REPEAT_ONCE:
 		ui.repeatButton->setStyleSheet(QStringLiteral(R"(
 		QToolButton#repeatButton {
 			image: url(:/xamp/Resource/White/repeat.png);
 			background: transparent;
 		}
 		)"));
-		setSettingValue(APP_SETTING_ORDER, PLAYER_ORDER_REPEAT);
+		AppSettings::settings().setSettingValue(APP_SETTING_ORDER, PLAYER_ORDER_REPEAT_ONCE);
 		break;
 	case PLAYER_ORDER_REPEAT_ONE:
 		ui.repeatButton->setStyleSheet(QStringLiteral(R"(
@@ -547,7 +537,7 @@ void Xamp::setPlayerOrder() {
 			background: transparent;
 		}
 		)"));
-		setSettingValue(APP_SETTING_ORDER, PLAYER_ORDER_REPEAT_ONE);
+		AppSettings::settings().setSettingValue(APP_SETTING_ORDER, PLAYER_ORDER_REPEAT_ONE);
 		break;
 	case PLAYER_ORDER_SHUFFLE_ALL:
 		ui.repeatButton->setStyleSheet(QStringLiteral(R"(
@@ -556,7 +546,7 @@ void Xamp::setPlayerOrder() {
 			background: transparent;
 		}
 		)"));
-		setSettingValue(APP_SETTING_ORDER, PLAYER_ORDER_SHUFFLE_ALL);
+		AppSettings::settings().setSettingValue(APP_SETTING_ORDER, PLAYER_ORDER_SHUFFLE_ALL);
 		break;
 	}
 }
@@ -573,7 +563,7 @@ void Xamp::playNextItem(int32_t forward) {
 	case PLAYER_ORDER_REPEAT_ONE:
 		play_index_ = playlist_view->currentIndex();
 		break;
-	case PLAYER_ORDER_REPEAT:
+	case PLAYER_ORDER_REPEAT_ONCE:
 		play_index_ = playlist_view->currentIndex();
 		play_index_ = playlist_view->model()->index(play_index_.row() + forward, PLAYLIST_PLAYING);
 		if (play_index_.row() == -1) {
@@ -664,27 +654,26 @@ void Xamp::play(const PlayListEntity& item) {
 }
 
 void Xamp::play(const QModelIndex& index, const PlayListEntity& item) {
+	auto playlist_page = static_cast<PlyalistPage*>(ui.currentView->widget(0));
+
 	try {		
 		playLocalFile(item);
 		setPlayOrPauseButton(true);
+		playlist_page->format()->setText(getUIFormat(player_->GetStreamFormat(), item));
 	} catch(const xamp::base::Exception& e) {
 		ui.seekSlider->setEnabled(false);
-		player_->Stop(false);
+		player_->Stop(false, true);
 		Toast::showTip(e.GetErrorMessage(), this);
-		return;
 	} catch (const std::exception& e) {
 		ui.seekSlider->setEnabled(false);
-		player_->Stop(false);
+		player_->Stop(false, true);
 		Toast::showTip(e.what(), this);
-		return;
 	} catch (...) {
 		ui.seekSlider->setEnabled(false);
-		player_->Stop(false);
+		player_->Stop(false, true);
 		Toast::showTip(tr("uknown error"), this);
-		return;
 	}
-	
-	auto playlist_page = static_cast<PlyalistPage*>(ui.currentView->widget(0));
+
 	const auto cover = PixmapCache::Instance().find(item.cover_id);
 	if (cover != nullptr) {
 		setCover(*cover);
@@ -697,8 +686,11 @@ void Xamp::play(const QModelIndex& index, const PlayListEntity& item) {
 	const auto lrc_path = file_info.path() + Q_UTF8("/") + file_info.completeBaseName() + Q_UTF8(".lrc");
 	lrc_page_->loadLrcFile(lrc_path);
 
-	playlist_page->format()->setText(getUIFormat(player_->GetStreamFormat(), item));
 	playlist_page->title()->setText(item.title);
+
+	if (!player_->IsPlaying()) {
+		playlist_page->format()->setText("");
+	}
 }
 
 void Xamp::setCover(const QPixmap& cover) {

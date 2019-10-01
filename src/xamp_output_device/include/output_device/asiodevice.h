@@ -23,6 +23,8 @@ class XAMP_OUTPUT_DEVICE_API AsioDevice final
 public:
 	explicit AsioDevice(const std::string& device_id);
 
+	~AsioDevice() override;
+
 	void OpenStream(const AudioFormat& output_format) override;
 
 	void SetAudioCallback(AudioCallback* callback) override;

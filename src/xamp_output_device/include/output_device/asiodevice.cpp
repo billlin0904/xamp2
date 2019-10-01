@@ -22,7 +22,6 @@ struct AsioCallbackInfo {
 
     ~AsioCallbackInfo() {
 		// Some asio driver always in system tray.
-        // drivers.removeCurrentDriver();
     }
 
 	bool asioXRun;
@@ -52,6 +51,10 @@ AsioDevice::AsioDevice(const std::string& device_id)
 	, device_id_(device_id)
 	, clock_source_(MAX_CLOCK_SOURCE_SIZE)
 	, callback_(nullptr) {
+}
+
+AsioDevice::~AsioDevice() {
+	CloseStream();
 }
 
 bool AsioDevice::IsMuted() const {
@@ -364,7 +367,7 @@ void AsioDevice::OnBufferSwitch(long index) {
 void AsioDevice::OpenStream(const AudioFormat& output_format) {
 	ASIODriverInfo asio_driver_info{};
 	asio_driver_info.asioVersion = 2;
-	asio_driver_info.sysRef = GetDesktopWindow();
+	asio_driver_info.sysRef = ::GetDesktopWindow();
 
 	// 如果有播放過的話(callbackInfo.device != nullptr), ASIO每次必須要重新建立!
 	ReOpen();
@@ -445,6 +448,7 @@ void AsioDevice::StopStream() {
 
 void AsioDevice::CloseStream() {
 	if (!is_stop_streaming_) {
+		callbackInfo.drivers->removeCurrentDriver();
 		return;
 	}
 

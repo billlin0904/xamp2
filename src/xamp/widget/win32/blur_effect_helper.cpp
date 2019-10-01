@@ -51,6 +51,14 @@ typedef enum _ACCENT_STATE
 	ACCENT_INVALID_STATE = 4
 } ACCENT_STATE;
 
+typedef enum ACCENT_FLAGS {
+	DrawLeftBorder = 0x20,
+	DrawTopBorder = 0x40,
+	DrawRightBorder = 0x80,
+	DrawBottomBorder = 0x100,
+	DrawAllBorders = (DrawLeftBorder | DrawTopBorder | DrawRightBorder | DrawBottomBorder)
+} ACCENT_FLAGS;
+
 typedef struct _ACCENT_POLICY
 {
 	ACCENT_STATE AccentState;

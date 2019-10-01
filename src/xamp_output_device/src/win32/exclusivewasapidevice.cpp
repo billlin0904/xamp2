@@ -183,20 +183,20 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 
     // Enable MCSS
 	DWORD task_id = 0;
-	HR_IF_FAILED_THROW(MFLockSharedWorkQueue(mmcss_name_.c_str(), (LONG)thread_priority_, &task_id, &queue_id_));
+	HR_IF_FAILED_THROW(::MFLockSharedWorkQueue(mmcss_name_.c_str(), (LONG)thread_priority_, &task_id, &queue_id_));
 
 	LONG priority = 0;
-	HR_IF_FAILED_THROW(MFGetWorkQueueMMCSSPriority(queue_id_, &priority));
+	HR_IF_FAILED_THROW(::MFGetWorkQueueMMCSSPriority(queue_id_, &priority));
 
 	XAMP_LOG_DEBUG("MCSS task id:{} queue id:{}, priority:{} ({})", task_id, queue_id_, thread_priority_, priority);
 
     sample_ready_callback_ = new MFAsyncCallback<ExclusiveWasapiDevice>(this,
         &ExclusiveWasapiDevice::OnSampleReady, queue_id_);
 
-	HR_IF_FAILED_THROW(MFCreateAsyncResult(nullptr, sample_ready_callback_, nullptr, &sample_ready_async_result_));
+	HR_IF_FAILED_THROW(::MFCreateAsyncResult(nullptr, sample_ready_callback_, nullptr, &sample_ready_async_result_));
 
 	if (!sample_ready_) {
-		sample_ready_.reset(CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS));
+		sample_ready_.reset(::CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS));
 		assert(sample_ready_);
 		HR_IF_FAILED_THROW(client_->SetEventHandle(sample_ready_.get()));
 	}
@@ -258,7 +258,7 @@ HRESULT ExclusiveWasapiDevice::OnSampleReady(IMFAsyncResult *result) {
 		is_running_ = false;
 	}
 
-    HR_IF_FAILED_THROW(MFPutWaitingWorkItem(sample_ready_.get(), 0, sample_ready_async_result_, &sample_raedy_key_));
+    HR_IF_FAILED_THROW(::MFPutWaitingWorkItem(sample_ready_.get(), 0, sample_ready_async_result_, &sample_raedy_key_));
     
     return S_OK;
 }
@@ -332,7 +332,7 @@ void ExclusiveWasapiDevice::StartStream() {
 	// Note: 必要! 某些音效卡會爆音!
 	FillSilentSample(frames_per_latency_);
 
-	HR_IF_FAILED_THROW(MFPutWaitingWorkItem(sample_ready_.get(), 0, sample_ready_async_result_, &sample_raedy_key_));
+	HR_IF_FAILED_THROW(::MFPutWaitingWorkItem(sample_ready_.get(), 0, sample_ready_async_result_, &sample_raedy_key_));
     is_stop_streaming_ = false;
 }
 

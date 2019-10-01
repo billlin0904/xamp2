@@ -36,9 +36,7 @@ AudioPlayer::AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter)
 }
 
 AudioPlayer::~AudioPlayer() {
-	if (timer_ != nullptr) {
-		timer_->Stop();
-	}	
+	timer_.reset();
 	CloseDevice();
 }
 
@@ -231,9 +229,6 @@ void AudioPlayer::Initial() {
 						return;
 					}
 					if (slice.sample_size > 0) {
-						if (p->dsd_mode_ == DSDModes::DSD_MODE_PCM) {
-							adapter->OnPlayedSample(slice.samples, slice.sample_size);
-						}
 						adapter->OnSampleTime(slice.stream_time);
 					} if (p->is_playing_ && slice.sample_size == -1) {
 						p->SetState(PlayerState::PLAYER_STATE_STOPPED);
@@ -307,7 +302,7 @@ void AudioPlayer::CreateBuffer() {
 	if (require_read_sample != num_read_sample_) {
 		size_t sample_size = stream_->GetSampleSize();
 		auto allocate_size = static_cast<int32_t>(GetPageAlignSize(size_t(require_read_sample) * sample_size * BUFFER_STREAM_COUNT));
-		num_buffer_samples_ = allocate_size * 20;
+		num_buffer_samples_ = allocate_size * 10;
 		num_read_sample_ = require_read_sample;
 		read_sample_buffer_ = MakeBuffer<int8_t>(allocate_size);
 		read_sample_size_ = allocate_size;

@@ -2,23 +2,22 @@
 
 #include <QtWidgets/QMainWindow>
 #include <QWidgetAction>
-#include <QThread>
 
 #include <output_device/devicefactory.h>
 #include <player/audio_player.h>
 
+#include "widget/appsettings.h"
 #include "widget/playerstateadapter.h"
 #include "widget/framelesswindow.h"
 #include "widget/playlisttableview.h"
 #include "widget/lyricsshowwideget.h"
-#include "widget/appsettings.h"
 
 #include "ui_xamp.h"
 
 using namespace xamp::player;
 
 enum PlayerOrder {
-	PLAYER_ORDER_REPEAT,
+	PLAYER_ORDER_REPEAT_ONCE,
 	PLAYER_ORDER_REPEAT_ONE,
 	PLAYER_ORDER_SHUFFLE_ALL,
 	_MAX_PLAYER_ORDER_,
@@ -27,9 +26,7 @@ enum PlayerOrder {
 class LyricsShowWideget;
 class PlyalistPage;
 
-class Xamp : 
-	public FramelessWindow,
-	public AppSettings {
+class Xamp : public FramelessWindow {
 	Q_OBJECT
 
 public:
@@ -78,8 +75,6 @@ private:
 	void initialController();
 
 	void initialDeviceList();
-
-	void initialDefaultValue();
 
 	void playNextItem(int32_t forward);
 

@@ -67,7 +67,7 @@ void SharedWasapiDevice::StopStream() {
 
 	if (mix_format_ != nullptr) {
 		auto sleep_for_stop = REFTIMES_PER_SEC * buffer_frames_ / mix_format_->nSamplesPerSec;
-		Sleep(static_cast<DWORD>(sleep_for_stop / REFTIMES_PER_MILLISEC / 2));
+		::Sleep(static_cast<DWORD>(sleep_for_stop / REFTIMES_PER_MILLISEC / 2));
 	}
 
 	if (client_ != nullptr) {
@@ -75,7 +75,7 @@ void SharedWasapiDevice::StopStream() {
 	}
 
 	if (sample_raedy_key_ != 0) {
-		const auto hr = MFCancelWorkItem(sample_raedy_key_);
+		const auto hr = ::MFCancelWorkItem(sample_raedy_key_);
 		if (hr != MF_E_NOT_FOUND) {
 			HR_IF_FAILED_THROW(hr);
 		}
@@ -85,7 +85,7 @@ void SharedWasapiDevice::StopStream() {
 
 void SharedWasapiDevice::CloseStream() {
 	if (queue_id_ != 0) {
-		HR_IF_FAILED_THROW(MFUnlockWorkQueue(queue_id_));
+		HR_IF_FAILED_THROW(::MFUnlockWorkQueue(queue_id_));
 		queue_id_ = 0;
 	}
 
@@ -171,10 +171,10 @@ void SharedWasapiDevice::OpenStream(const AudioFormat& output_format) {
 
 	// Enable MCSS
 	DWORD task_id = 0;
-	HR_IF_FAILED_THROW(MFLockSharedWorkQueue(mmcss_name_.c_str(), (LONG)thread_priority_, &task_id, &queue_id_));
+	HR_IF_FAILED_THROW(::MFLockSharedWorkQueue(mmcss_name_.c_str(), (LONG)thread_priority_, &task_id, &queue_id_));
 
 	LONG priority = 0;
-	HR_IF_FAILED_THROW(MFGetWorkQueueMMCSSPriority(queue_id_, &priority));
+	HR_IF_FAILED_THROW(::MFGetWorkQueueMMCSSPriority(queue_id_, &priority));
 
 	XAMP_LOG_DEBUG("MCSS task id:{} queue id:{}, priority:{} ({})", task_id, queue_id_, thread_priority_, priority);
 
@@ -182,7 +182,7 @@ void SharedWasapiDevice::OpenStream(const AudioFormat& output_format) {
 		&SharedWasapiDevice::OnSampleReady,
 		queue_id_);
 
-	HR_IF_FAILED_THROW(MFCreateAsyncResult(nullptr, sample_ready_callback_, nullptr, &sample_ready_async_result_));
+	HR_IF_FAILED_THROW(::MFCreateAsyncResult(nullptr, sample_ready_callback_, nullptr, &sample_ready_async_result_));
 
 	if (!sample_ready_) {
 		sample_ready_.reset(CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS));
@@ -307,7 +307,7 @@ HRESULT SharedWasapiDevice::OnSampleReady(IMFAsyncResult* result) {
 	}
 
 	GetSampleRequested(false);
-	HR_IF_FAILED_THROW(MFPutWaitingWorkItem(sample_ready_.get(), 0, sample_ready_async_result_, &sample_raedy_key_));
+	HR_IF_FAILED_THROW(::MFPutWaitingWorkItem(sample_ready_.get(), 0, sample_ready_async_result_, &sample_raedy_key_));
 	return S_OK;
 }
 
@@ -322,7 +322,7 @@ void SharedWasapiDevice::StartStream() {
 
 	is_running_ = true;
 	HR_IF_FAILED_THROW(client_->Start());
-	HR_IF_FAILED_THROW(MFPutWaitingWorkItem(sample_ready_.get(), 0, sample_ready_async_result_, &sample_raedy_key_));
+	HR_IF_FAILED_THROW(::MFPutWaitingWorkItem(sample_ready_.get(), 0, sample_ready_async_result_, &sample_raedy_key_));
 	is_stop_streaming_ = false;
 }
 

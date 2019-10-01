@@ -28,18 +28,14 @@ FramelessWindow::FramelessWindow(QWidget* parent)
 #if defined(Q_OS_WIN)
 	QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 	QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
-
 	HWND hwnd = (HWND)winId();
 	const DWMNCRENDERINGPOLICY ncrp = DWMNCRP_ENABLED;
 	::DwmSetWindowAttribute(hwnd, DWMWA_NCRENDERING_POLICY, &ncrp, sizeof(ncrp));
-
 	// 保留1個像素系統才會繪製陰影.
 	const MARGINS borderless = { 1, 1, 1, 1 };
 	::DwmExtendFrameIntoClientArea(hwnd, &borderless);
-
 	setBlurMaterial(this);
 #endif
-
 	initialFontDatabase();
 	setStyleSheet(Q_UTF8(R"(
 		font-family: "UI";

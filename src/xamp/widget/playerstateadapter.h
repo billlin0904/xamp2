@@ -30,6 +30,4 @@ protected:
     void OnStateChanged(xamp::player::PlayerState play_state) override;
 
     void OnError(const xamp::base::Exception &ex) override;
-
-	void OnPlayedSample(const float* sample, int32_t num_samples) override;
 };

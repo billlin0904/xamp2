@@ -22,8 +22,6 @@ public:
 
 	virtual void OnStateChanged(PlayerState play_state) = 0;
 
-	virtual void OnPlayedSample(const float* sample, int32_t num_samples) = 0;
-
 	virtual void OnSampleTime(double stream_time) = 0;
 
 protected:
