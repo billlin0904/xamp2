@@ -6,6 +6,8 @@
 #pragma once
 
 #include <array>
+
+#include <base/base.h>
 #include <base/audioformat.h>
 
 namespace xamp::base {
@@ -19,11 +21,7 @@ class int24_t {
 public:
 	int24_t() noexcept;
 
-	int24_t(const int24_t& v) noexcept;
-
 	int24_t(float f) noexcept;
-
-	constexpr int24_t& operator=(const int24_t& v) noexcept;
 
 	constexpr int24_t& operator=(const int32_t i) noexcept;
 
@@ -33,27 +31,18 @@ public:
 protected:
 	std::array<uint8_t, 3> c3;
 };
+
+
+XAMP_ENFORCE_TRIVIAL(int24_t)
+
 #pragma pack(pop)
 
 XAMP_ALWAYS_INLINE int24_t::int24_t() noexcept {
 	c3.fill(0);
 }
 
-XAMP_ALWAYS_INLINE int24_t::int24_t(const int24_t& v) noexcept {
-	*this = v;
-}
-
 XAMP_ALWAYS_INLINE int24_t::int24_t(float f) noexcept {	
 	*this = static_cast<int32_t>(f * XAMP_FLOAT_24_SCALER);
-}
-
-XAMP_ALWAYS_INLINE constexpr int24_t& int24_t::operator=(const int24_t& v) noexcept {
-	if (this != &v) {
-		c3[0] = v.c3[0];
-		c3[1] = v.c3[1];
-		c3[2] = v.c3[2];
-	}
-	return *this;
 }
 
 XAMP_ALWAYS_INLINE constexpr int24_t& int24_t::operator=(const float f) noexcept {
@@ -74,7 +63,6 @@ XAMP_ALWAYS_INLINE constexpr int32_t int24_t::to_2432int() const noexcept {
 
 struct XAMP_BASE_API ConvertContext {
 	ConvertContext();
-	~ConvertContext() noexcept = default;
 	int32_t convert_size{};
 	int32_t in_jump{};
 	int32_t out_jump{};
@@ -83,6 +71,8 @@ struct XAMP_BASE_API ConvertContext {
 	std::array<int32_t, XAMP_MAX_CHANNEL> in_offset;
 	std::array<int32_t, XAMP_MAX_CHANNEL> out_offset;
 };
+
+XAMP_ENFORCE_TRIVIAL(ConvertContext)
 
 XAMP_BASE_API ConvertContext MakeConvert(const AudioFormat& in_format, const AudioFormat& out_format, uint32_t convert_size) noexcept;
 

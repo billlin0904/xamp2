@@ -33,27 +33,27 @@ public:
 	}
 
 	template <typename T>
-	void setSettingValue(const QString& key, T value) {		
+	void setValue(const QString& key, T value) {		
 		settings_->setValue(key, value);
 	}
 
-	xamp::base::ID getSettingID(const QString& key) const {
-		auto str = getSettingValue(key).toString();
+	xamp::base::ID getIDValue(const QString& key) const {
+		auto str = getValue(key).toString();
 		if (str.isEmpty()) {
 			return xamp::base::ID::INVALID_ID;
 		}
 		return xamp::base::ID::FromString(str.toStdString());
 	}
 
-	QSize getSettingSize(const QString& width_key,
+	QSize getSizeValue(const QString& width_key,
 		const QString& height_key) const {
 		return QSize{
-			getSettingValue(width_key).toInt(),
-			getSettingValue(height_key).toInt(),
+			getValue(width_key).toInt(),
+			getValue(height_key).toInt(),
 		};
 	}
 
-	QVariant getSettingValue(const QString& key) const {
+	QVariant getValue(const QString& key) const {
 		if (!settings_->contains(key)) {
 			return default_settings_.value(key);
 		}

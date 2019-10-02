@@ -72,10 +72,10 @@ void AudioPlayer::CreateDevice(const ID& device_type_id, const std::wstring& dev
 	device_->SetAudioCallback(this);
 }
 
-void AudioPlayer::OpenStream(const std::wstring& file_path, bool use_bass_stream, const DeviceInfo& device_info) {
+void AudioPlayer::OpenStream(const std::wstring& file_path, bool is_dsd_stream, const DeviceInfo& device_info) {
 	stream_->Close();
 
-	if (use_bass_stream) {
+	if (is_dsd_stream) {
 		stream_ = MakeAlign<FileStream, BassFileStream>();
 		if (auto dsd_stream = dynamic_cast<DSDStream*>(stream_.get())) {
 			if (!device_info.is_support_dsd_raw_mode) {
@@ -385,7 +385,7 @@ void AudioPlayer::OpenDevice(double stream_time) {
 
 void AudioPlayer::PlayStream() {
 	std::weak_ptr<AudioPlayer> player = shared_from_this();
-	stream_task_ = thread_pool_.RunAsync([player]() {
+	stream_task_ = thread_pool_.RunAsync([](std::weak_ptr<AudioPlayer> player) {
 		const std::chrono::milliseconds SLEEP_OUTPUT_TIME(500);
 
 		if (auto p = player.lock()) {
@@ -424,7 +424,7 @@ void AudioPlayer::PlayStream() {
 				}
 			}
 		}
-		});
+		}, player);
 	Play();
 }
 

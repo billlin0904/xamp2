@@ -44,7 +44,7 @@ public:
 
 	virtual ~AudioPlayer();
 
-	void Open(const std::wstring& file_path, bool use_bass_stream, const DeviceInfo& device_info);
+	void Open(const std::wstring& file_path, bool is_dsd_stream, const DeviceInfo& device_info);
 
 	void PlayStream();
 

@@ -60,8 +60,8 @@ Xamp::Xamp(QWidget *parent)
 }
 
 void Xamp::closeEvent(QCloseEvent* event) {
-	AppSettings::settings().setSettingValue(APP_SETTING_WIDTH, size().width());
-	AppSettings::settings().setSettingValue(APP_SETTING_HEIGHT, size().height());
+	AppSettings::settings().setValue(APP_SETTING_WIDTH, size().width());
+	AppSettings::settings().setValue(APP_SETTING_HEIGHT, size().height());
 
 	if (player_ != nullptr) {
 		player_->Stop(false, true);
@@ -247,7 +247,7 @@ void Xamp::initialUI() {
 	setNormalMode();
 	setGeometry(
 		QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter,
-			AppSettings::settings().getSettingSize(APP_SETTING_WIDTH, APP_SETTING_HEIGHT),
+			AppSettings::settings().getSizeValue(APP_SETTING_WIDTH, APP_SETTING_HEIGHT),
 			qApp->desktop()->availableGeometry()
 		)
 	);
@@ -290,7 +290,7 @@ void Xamp::initialDeviceList() {
 		ui.selectDeviceButton->setMenu(menu);
 	}
 
-	menu->setStyleSheet(QStringLiteral(R"(		
+	menu->setStyleSheet(Q_UTF8(R"(		
 		QMenu {
 			background-color: rgba(228, 233, 237, 150);
 		}
@@ -325,12 +325,12 @@ void Xamp::initialDeviceList() {
 			device_id_action[device_info.device_id] = device_action;
 			(void)QObject::connect(device_action, &QAction::triggered, [device_info, this]() {
 				device_info_ = device_info;
-				AppSettings::settings().setSettingValue(APP_SETTING_DEVICE_TYPE, QString::fromStdString(device_info_.device_type_id));
-				AppSettings::settings().setSettingValue(APP_SETTING_DEVICE_ID, QString::fromStdWString(device_info_.device_id));
+				AppSettings::settings().setValue(APP_SETTING_DEVICE_TYPE, QString::fromStdString(device_info_.device_type_id));
+				AppSettings::settings().setValue(APP_SETTING_DEVICE_ID, QString::fromStdWString(device_info_.device_id));
 				});
 			menu->addAction(device_action);
-			if (AppSettings::settings().getSettingID(APP_SETTING_DEVICE_TYPE) == device_info.device_type_id
-				&& AppSettings::settings().getSettingValue(APP_SETTING_DEVICE_ID).toString().toStdWString() == device_info.device_id) {
+			if (AppSettings::settings().getIDValue(APP_SETTING_DEVICE_TYPE) == device_info.device_type_id
+				&& AppSettings::settings().getValue(APP_SETTING_DEVICE_ID).toString().toStdWString() == device_info.device_id) {
 				device_info_ = device_info;
 				is_find_setting_device = true;
 				device_action->setChecked(true);
@@ -350,8 +350,8 @@ void Xamp::initialDeviceList() {
 	if (!is_find_setting_device) {
 		device_info_ = init_device_info;
 		device_id_action[device_info_.device_id]->setChecked(true);
-		AppSettings::settings().setSettingValue(APP_SETTING_DEVICE_TYPE, QString::fromStdString(device_info_.device_type_id));
-		AppSettings::settings().setSettingValue(APP_SETTING_DEVICE_ID, QString::fromStdWString(device_info_.device_id));
+		AppSettings::settings().setValue(APP_SETTING_DEVICE_TYPE, QString::fromStdString(device_info_.device_type_id));
+		AppSettings::settings().setValue(APP_SETTING_DEVICE_ID, QString::fromStdWString(device_info_.device_id));
 	}
 }
 
@@ -415,16 +415,16 @@ void Xamp::initialController() {
 		player_->Pause();
 		});
 
-	order_ = static_cast<PlayerOrder>(AppSettings::settings().getSettingValue(APP_SETTING_ORDER).toInt());
+	order_ = static_cast<PlayerOrder>(AppSettings::settings().getValue(APP_SETTING_ORDER).toInt());
 	setPlayerOrder();
 
 	ui.volumeSlider->setRange(0, 100);
-	ui.volumeSlider->setValue(AppSettings::settings().getSettingValue(APP_SETTING_VOLUME).toInt());
+	ui.volumeSlider->setValue(AppSettings::settings().getValue(APP_SETTING_VOLUME).toInt());
 
 	(void)QObject::connect(ui.volumeSlider, &QSlider::valueChanged, [this](auto volume) {
 		QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + Q_UTF8("%"));
 		setVolume(volume);
-		AppSettings::settings().setSettingValue(APP_SETTING_VOLUME, volume);
+		AppSettings::settings().setValue(APP_SETTING_VOLUME, volume);
 		});
 
 	(void)QObject::connect(ui.volumeSlider, &QSlider::sliderMoved, [this](auto volume) {
@@ -479,6 +479,24 @@ void Xamp::initialController() {
 		ui.currentView->setCurrentIndex(1);
 		});
 
+	auto settings_menu = new QMenu(this);
+	settings_menu->setStyleSheet(Q_UTF8(R"(		
+		QMenu {
+			background-color: rgba(228, 233, 237, 150);
+		}
+		QMenu::item:selected { 
+			background-color: black;
+		}
+		)"));
+	auto settings_action = new QAction(tr("Settings"), this);
+	settings_menu->addAction(settings_action);
+	auto night_mode_action = new QAction(tr("Night mode"), this);
+	settings_menu->addAction(night_mode_action);
+	settings_menu->addSeparator();
+	auto about_action = new QAction(tr("About"), this);
+	settings_menu->addAction(about_action);
+	ui.settingsButton->setMenu(settings_menu);
+
 	ui.seekSlider->setEnabled(false);
 	ui.startPosLabel->setText(Time::msToString(0));
 	ui.endPosLabel->setText(Time::msToString(0));
@@ -528,7 +546,7 @@ void Xamp::setPlayerOrder() {
 			background: transparent;
 		}
 		)"));
-		AppSettings::settings().setSettingValue(APP_SETTING_ORDER, PLAYER_ORDER_REPEAT_ONCE);
+		AppSettings::settings().setValue(APP_SETTING_ORDER, PLAYER_ORDER_REPEAT_ONCE);
 		break;
 	case PLAYER_ORDER_REPEAT_ONE:
 		ui.repeatButton->setStyleSheet(Q_UTF8(R"(
@@ -537,7 +555,7 @@ void Xamp::setPlayerOrder() {
 			background: transparent;
 		}
 		)"));
-		AppSettings::settings().setSettingValue(APP_SETTING_ORDER, PLAYER_ORDER_REPEAT_ONE);
+		AppSettings::settings().setValue(APP_SETTING_ORDER, PLAYER_ORDER_REPEAT_ONE);
 		break;
 	case PLAYER_ORDER_SHUFFLE_ALL:
 		ui.repeatButton->setStyleSheet(Q_UTF8(R"(
@@ -546,7 +564,7 @@ void Xamp::setPlayerOrder() {
 			background: transparent;
 		}
 		)"));
-		AppSettings::settings().setSettingValue(APP_SETTING_ORDER, PLAYER_ORDER_SHUFFLE_ALL);
+		AppSettings::settings().setValue(APP_SETTING_ORDER, PLAYER_ORDER_SHUFFLE_ALL);
 		break;
 	}
 }
@@ -643,11 +661,8 @@ void Xamp::play(const PlayListEntity& item) {
 	} else {
 		setVolume(0);
 	}
-	
-	ui.seekSlider->setValue(0);
-	ui.seekSlider->setEnabled(true);
-	ui.seekSlider->setRange(0, int32_t(player_->GetDuration() * 1000));
-	ui.startPosLabel->setText(Time::msToString(0));
+
+	ui.seekSlider->setRange(0, int32_t(player_->GetDuration() * 1000));	
 	ui.endPosLabel->setText(Time::msToString(player_->GetDuration()));
 
 	player_->PlayStream();	
@@ -675,7 +690,7 @@ void Xamp::play(const QModelIndex& index, const PlayListEntity& item) {
 	}
 
 	const auto cover = PixmapCache::Instance().find(item.cover_id);
-	if (cover != nullptr) {
+	if (cover != nullptr && !cover->isNull()) {
 		setCover(*cover);
 	}
 	else {

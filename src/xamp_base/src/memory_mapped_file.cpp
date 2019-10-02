@@ -89,7 +89,7 @@ MemoryMappedFile::MemoryMappedFile()
 XAMP_PIMPL_IMPL(MemoryMappedFile)
 
 void MemoryMappedFile::Open(FILE* file) {
-
+	impl_->Open(file);
 }
 
 void MemoryMappedFile::Open(const std::wstring &file_path) {
