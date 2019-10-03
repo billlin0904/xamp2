@@ -7,7 +7,7 @@
 
 namespace xamp::player {
 
-enum PlayerState {
+enum class PlayerState {
 	PLAYER_STATE_RUNNING,
 	PLAYER_STATE_PAUSED,
 	PLAYER_STATE_RESUME,

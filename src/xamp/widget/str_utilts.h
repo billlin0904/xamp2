@@ -8,3 +8,4 @@
 #include <QString>
 
 #define Q_UTF8(str) QLatin1String{str}
+#define Q_EMPTY_STR QLatin1String{""}

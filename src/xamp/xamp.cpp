@@ -620,17 +620,17 @@ void Xamp::playLocalFile(const PlayListEntity& item) {
 }
 
 void Xamp::play() {
-	if (player_->GetState() == PLAYER_STATE_RUNNING) {
+	if (player_->GetState() == xamp::player::PlayerState::PLAYER_STATE_RUNNING) {
 		setPlayOrPauseButton(false);
 		player_->Pause();
 		setTaskbarPlayerPaused();
 	}
-	else if (player_->GetState() == PLAYER_STATE_PAUSED) {
+	else if (player_->GetState() == xamp::player::PlayerState::PLAYER_STATE_PAUSED) {
 		setPlayOrPauseButton(true);
 		player_->Resume();
 		setTaskbarPlayingResume();
 	}
-	else if (player_->GetState() == PLAYER_STATE_STOPPED) {
+	else if (player_->GetState() == xamp::player::PlayerState::PLAYER_STATE_STOPPED) {
 		if (!ui.currentView->count()) {
 			return;
 		}
@@ -671,7 +671,8 @@ void Xamp::play(const PlayListEntity& item) {
 void Xamp::play(const QModelIndex& index, const PlayListEntity& item) {
 	auto playlist_page = static_cast<PlyalistPage*>(ui.currentView->widget(0));
 
-	try {		
+	try {
+		ui.seekSlider->setEnabled(true);
 		playLocalFile(item);
 		setPlayOrPauseButton(true);
 		playlist_page->format()->setText(getUIFormat(player_->GetStreamFormat(), item));
@@ -694,7 +695,7 @@ void Xamp::play(const QModelIndex& index, const PlayListEntity& item) {
 		setCover(*cover);
 	}
 	else {
-		setCover(QPixmap(QStringLiteral(":/xamp/Resource/White/unknown_album.png")));
+		setCover(QPixmap(Q_UTF8(":/xamp/Resource/White/unknown_album.png")));
 	}
 
 	QFileInfo file_info(item.file_path);

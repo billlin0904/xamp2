@@ -19,9 +19,9 @@
 
 namespace xamp::metadata {
 	using namespace base;
-    using RecursiveDirectoryIterator = std::experimental::filesystem::recursive_directory_iterator;
-    using DirectoryIterator = std::experimental::filesystem::directory_iterator;
-    using Path = std::experimental::filesystem::path;	
+    using RecursiveDirectoryIterator = std::filesystem::recursive_directory_iterator;
+    using DirectoryIterator = std::filesystem::directory_iterator;
+    using Path = std::filesystem::path;	
 
     class MetadataExtractAdapter;
     class MetadataReader;
