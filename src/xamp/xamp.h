@@ -2,6 +2,7 @@
 
 #include <QtWidgets/QMainWindow>
 #include <QWidgetAction>
+#include <QStack>
 
 #include <output_device/devicefactory.h>
 #include <player/audio_player.h>
@@ -76,6 +77,8 @@ private:
 
 	void initialDeviceList();
 
+	void initialShortcut();
+
 	void playNextItem(int32_t forward);
 
 	void setPlayerOrder();
@@ -84,12 +87,19 @@ private:
 
 	PlyalistPage* newPlaylist(int32_t playlist_id);
 
+	void pushWidget(QWidget* widget);
+
+	QWidget* popWidget();
+
+	QWidget* topWidget();
+
 	bool is_seeking_;
 	PlayerOrder order_;
 	QModelIndex play_index_;
 	Ui::XampWindow ui;
 	DeviceInfo device_info_;
 	LyricsShowWideget* lrc_page_;
+	QStack<int> stack_page_id_;
 	std::shared_ptr<PlayerStateAdapter> state_adapter_;
 	std::shared_ptr<AudioPlayer> player_;
 };

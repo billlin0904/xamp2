@@ -7,6 +7,7 @@
 #include <QDesktopWidget>
 
 #include "widget/win32/blur_effect_helper.h"
+#include "widget/albumview.h"
 #include "widget/str_utilts.h"
 #include "widget/playlistpage.h"
 #include "widget/toast.h"
@@ -83,9 +84,9 @@ void Xamp::setNormalMode() {
 
 	setStyleSheet(Q_UTF8(R"(
 	QTableView {
-			background-color: transparent;
-			color: black;
-		}
+		background-color: transparent;
+		color: black;
+	}
 	)"));
 
 	ui.closeButton->setStyleSheet(Q_UTF8(R"(
@@ -521,6 +522,10 @@ void Xamp::setVolume(int32_t volume) {
 	}
 }
 
+void Xamp::initialShortcut() {
+
+}
+
 void Xamp::playNextClicked() {
 	playNextItem(1);
 }
@@ -727,14 +732,41 @@ void Xamp::onPlayerStateChanged(xamp::player::PlayerState play_state) {
 
 void Xamp::initialPlaylist() {
 	int32_t playlist_id = 1;
-
 	IF_FAILED_SHOW_TOAST(Database::Instance().addPlaylist(Q_UTF8(""), 1));
-
+	
 	auto playlist_page = newPlaylist(playlist_id);
 	playlist_page->playlist()->setPlaylistId(playlist_id);
 	Database::Instance().forEachPlaylistMusic(playlist_id, [playlist_page, playlist_id](const auto& entityy) {
 		playlist_page->playlist()->appendItem(entityy);
 		});
+
+	ui.currentView->addWidget(new AlbumView(this));
+}
+
+void Xamp::pushWidget(QWidget* widget) {
+	auto id = ui.currentView->addWidget(widget);
+	stack_page_id_.push(id);
+	ui.currentView->setCurrentIndex(id);
+}
+
+QWidget* Xamp::topWidget() {
+	if (!stack_page_id_.isEmpty()) {
+		return ui.currentView->widget(stack_page_id_.top());
+	}
+	return nullptr;
+}
+
+QWidget* Xamp::popWidget() {
+	if (!stack_page_id_.isEmpty()) {
+		auto id = stack_page_id_.pop();
+		auto widget = ui.currentView->widget(id);
+		ui.currentView->removeWidget(widget);
+		if (!stack_page_id_.isEmpty()) {
+			ui.currentView->setCurrentIndex(stack_page_id_.top());
+			return widget;
+		}
+	}
+	return nullptr;
 }
 
 PlyalistPage* Xamp::newPlaylist(int32_t playlist_id) {

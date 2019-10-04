@@ -11,11 +11,11 @@
 #include "filetag.h"
 #include "pixmapcache.h"
 
-PixmapCache::PixmapCache() {
+PixmapCache::PixmapCache()
+	: cache_(10 * 1024) {
     cache_path_ = QDir::currentPath() + Q_UTF8("/caches/");
     cover_ext_ << Q_UTF8("*.jpeg") << Q_UTF8("*.jpg") << Q_UTF8("*.png") << Q_UTF8("*.bmp");
     cache_ext_ << Q_UTF8("*.cache");
-	QPixmapCache::setCacheLimit(10 * 1024);
     loadCache();
 }
 
@@ -39,9 +39,9 @@ QPixmap PixmapCache::findDirExistCover(const PlayListEntity& item) {
 }
 
 void PixmapCache::erase(const QString& tag_id) {
-	QPixmapCache::remove(tag_id);
 	QFile file(cache_path_ + tag_id + Q_UTF8(".cache"));
 	file.remove();
+	cache_.erase(tag_id);
 }
 
 void PixmapCache::loadCache() const {
@@ -52,19 +52,20 @@ void PixmapCache::loadCache() const {
         QPixmap read_cover(path);
         if (!read_cover.isNull()) {
             const auto tag_id = image_file_path.baseName();
-			QPixmapCache::insert(tag_id, read_cover);
+			cache_.insert(tag_id, std::move(read_cover));
         }
     }
 }
 
 const QPixmap* PixmapCache::find(const QString& tag_id) const {
 	while (true) {
-		const auto cache = QPixmapCache::find(tag_id);
+		const auto cache = cache_.find_or_null(tag_id);
 		if (!cache) {
 			QPixmap read_cover(cache_path_ + tag_id + Q_UTF8(".cache"));
 			if (read_cover.isNull()) {
 				return nullptr;
 			}
+			/*
 			if (!QPixmapCache::insert(tag_id, read_cover)) {
 				XAMP_LOG_DEBUG("insert image cache failure! tag id:{}", tag_id.toStdString());
 				return nullptr;
@@ -72,24 +73,12 @@ const QPixmap* PixmapCache::find(const QString& tag_id) const {
 			else {
 				continue;
 			}
+			*/
+			cache_.insert(tag_id, std::move(read_cover));
+			continue;
 		}
 		return cache;
 	}
-}
-
-bool PixmapCache::find(const QString& tag_id, QPixmap& cover) const {
-	const auto cache = QPixmapCache::find(tag_id);
-	if (!cache) {
-		QPixmap read_cover(cache_path_ + tag_id + Q_UTF8(".cache"));
-		if (read_cover.isNull()) {
-			return false;
-		}
-		QPixmapCache::insert(tag_id, read_cover);
-		cover = read_cover.copy();
-		return true;
-	}
-	cover = cache->copy();
-    return !cover.isNull();
 }
 
 bool PixmapCache::insert(const QPixmap &cover, QString* cover_tag_id) {
@@ -97,11 +86,8 @@ bool PixmapCache::insert(const QPixmap &cover, QString* cover_tag_id) {
     if (cover_tag_id != nullptr) {
         *cover_tag_id = tag_id;
     }
-	return QPixmapCache::insert(tag_id, cover);
-}
-
-bool PixmapCache::exist(const QString& cover_id) const {
-	return QPixmapCache::find(cover_id) != nullptr;
+	cache_.insert(tag_id, cover);
+	return true;
 }
 
 QString PixmapCache::savePixmap(const QPixmap& pixmap) const {

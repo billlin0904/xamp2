@@ -25,6 +25,7 @@ enum Errors {
 	XAMP_ERROR_NOT_SUPPORT_SAMPLERATE,
 	XAMP_ERROR_NOT_SUPPORT_FORMAT,
 	XAMP_ERROR_LOAD_DLL_FAILURE,
+	_MAX_XAMP_ERROR_,
 };
 
 XAMP_BASE_API std::ostream& operator<<(std::ostream& ostr, Errors error);

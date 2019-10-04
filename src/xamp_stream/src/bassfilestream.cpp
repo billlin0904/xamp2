@@ -431,8 +431,8 @@ public:
 		return DSDSampleFormat::DSD_INT8MSB;
 	}
 
-	bool SetPCMSampleRate(int32_t samplerate) const {
-		return BassLib::Instance().BASS_SetConfig(BASS_CONFIG_DSD_FREQ, samplerate);
+	void SetPCMSampleRate(int32_t samplerate) {
+		BassLib::Instance().BASS_SetConfig(BASS_CONFIG_DSD_FREQ, samplerate);
 	}
 private:
 	XAMP_ALWAYS_INLINE int32_t InternalGetSamples(void *buffer, int32_t length) const noexcept {
@@ -521,8 +521,8 @@ DSDSampleFormat BassFileStream::GetDSDSampleFormat() const {
 	return stream_->GetDSDSampleFormat();
 }
 
-bool BassFileStream::SetPCMSampleRate(int32_t samplerate) const {
-	return stream_->SetPCMSampleRate(samplerate);
+void BassFileStream::SetPCMSampleRate(int32_t samplerate) {
+	stream_->SetPCMSampleRate(samplerate);
 }
 
 }

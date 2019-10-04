@@ -7,7 +7,20 @@
 
 #include <QStringList>
 
+#include "lrucache.h"
 #include "playlistentity.h"
+
+namespace std {
+template <>
+struct hash<QString> {
+	typedef size_t result_type;
+	typedef QString argument_type;
+
+	result_type operator()(const argument_type & s) const {
+		return qHash(s);
+	}
+};
+}
 
 class PixmapCache {
 public:
@@ -20,15 +33,11 @@ public:
 
 	static QPixmap findDirExistCover(const PlayListEntity &item);
 
-    bool find(const QString &tag_id, QPixmap &cover) const;
-
 	const QPixmap* find(const QString& tag_id) const;
 
 	bool insert(const QPixmap& cover, QString* cover_tag_id = nullptr);
 
-	void erase(const QString &tag_id);
-
-	bool exist(const QString& cover_id) const;
+	void erase(const QString& tag_id);
 
 protected:
 	PixmapCache();
@@ -41,4 +50,5 @@ private:
 	QString cache_path_;
     QStringList cover_ext_;
     QStringList cache_ext_;
+	mutable LruCache<QString, QPixmap> cache_;
 };

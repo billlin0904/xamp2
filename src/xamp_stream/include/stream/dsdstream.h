@@ -14,7 +14,7 @@ namespace xamp::stream {
 
 using namespace base;
 
-class XAMP_STREAM_API DSDStream {
+class XAMP_STREAM_API XAMP_NO_VTABLE DSDStream {
 public:
     XAMP_BASE_CLASS(DSDStream)
 
@@ -32,7 +32,7 @@ public:
 
 	virtual DSDSampleFormat GetDSDSampleFormat() const = 0;
 
-	virtual bool SetPCMSampleRate(int32_t samplerate) const = 0;
+	virtual void SetPCMSampleRate(int32_t samplerate) = 0;
 protected:
     DSDStream() = default;
 };
