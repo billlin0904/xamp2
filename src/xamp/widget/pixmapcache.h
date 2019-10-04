@@ -35,7 +35,7 @@ public:
 
 	const QPixmap* find(const QString& tag_id) const;
 
-	bool insert(const QPixmap& cover, QString* cover_tag_id = nullptr);
+	QString emplace(QPixmap&& cover) const;
 
 	void erase(const QString& tag_id);
 
@@ -43,8 +43,6 @@ protected:
 	PixmapCache();
 
 private:
-	QString savePixmap(const QPixmap& pixmap) const;
-
     void loadCache() const;
 
 	QString cache_path_;

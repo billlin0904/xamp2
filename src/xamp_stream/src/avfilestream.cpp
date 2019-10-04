@@ -181,8 +181,7 @@ struct AvStreamContext {
 class AvFileStream::AvFileStreamImpl {
 public:
 	AvFileStreamImpl()
-		: open_mode_(OpenMode::NOT_IN_MEMORY)
-		, video_stream_id_(-1)
+		: video_stream_id_(-1)
 		, audio_stream_id_(-1)
 		, duration_(0) {
 		LibAvInit::Instance();
@@ -253,7 +252,7 @@ public:
 			throw FileNotFoundException();
 		}
 #else		
-		auto file_path_ut8 = ToUtf8String(file_path);		
+		auto file_path_ut8 = ToString(file_path);
 		if (avformat_open_input(&format_ctx, file_path_ut8.c_str(), nullptr, nullptr) != 0) {
 			throw FileNotFoundException();
 		}
@@ -408,13 +407,15 @@ private:
 			audio_context_->nb_samples,
 			const_cast<const uint8_t **>(audio_context_->extended_data),
 			audio_context_->nb_samples);
+		if (result == 0) {
+			return 0;
+		}
 		assert(result > 0);
 		const auto convert_size = result * audio_contex_->channels;
 		assert(convert_size == frame_size && convert_size < length);
 		return frame_size;
 	}
 
-	OpenMode open_mode_;
 	int32_t video_stream_id_;
 	int32_t audio_stream_id_;
 	double duration_;

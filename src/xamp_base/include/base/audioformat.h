@@ -13,7 +13,7 @@
 
 namespace xamp::base {
 
-enum ByteFormat {
+enum class ByteFormat {
 	INVALID_FORMAT,
 	SINT16,
 	SINT24,
@@ -24,7 +24,7 @@ enum ByteFormat {
 	FLOAT64
 };
 
-enum InterleavedFormat {
+enum class InterleavedFormat {
 	INTERLEAVED,
 	DEINTERLEAVED
 };

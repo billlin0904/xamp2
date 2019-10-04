@@ -11,13 +11,13 @@
 template <typename Key, typename Value>
 class LruCache {
 public:
-	using ListNode = typename std::list<std::pair<Key, Value>>::iterator;
+	using NodePtr = typename std::list<std::pair<Key, Value>>::iterator;
 	
 	explicit LruCache(size_t max_size) 
 		: max_size_(max_size) {
 	}
 
-	void insert(const Key& key, Value&& value) {
+	void emplace(const Key& key, Value&& value) {
 		items_list_.emplace_front(key, value);
 		items_map_[key] = items_list_.begin();
 
@@ -37,7 +37,7 @@ public:
 		}
 	}
 
-	Value* find_or_null(const Key& key) {
+	const Value* findOrNull(const Key& key) const {
 		const auto check = items_map_.find(key);
 		if (check == items_map_.end()) {
 			return nullptr;
@@ -48,11 +48,11 @@ public:
 		return &check->second->second;
 	}
 
-	ListNode begin() {
+	NodePtr begin() {
 		return items_list_.begin();
 	}
 
-	ListNode end() { 
+	NodePtr end() { 
 		return items_list_.end(); 
 	}	
 
@@ -67,8 +67,6 @@ public:
 
 private:
 	std::size_t max_size_;
-	std::unordered_map<Key, ListNode> items_map_;
-	std::list<std::pair<Key, Value>> items_list_;
+	mutable std::unordered_map<Key, NodePtr> items_map_;
+	mutable std::list<std::pair<Key, Value>> items_list_;
 };
-
-

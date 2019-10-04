@@ -10,11 +10,6 @@
 
 namespace xamp::stream {
 
-enum OpenMode {
-	IN_MEMORY,
-	NOT_IN_MEMORY
-};
-
 class XAMP_STREAM_API FileStream : public AudioStream {
 public:
     XAMP_BASE_CLASS(FileStream)	

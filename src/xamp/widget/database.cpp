@@ -207,7 +207,7 @@ void Database::updateAlbumCover(int32_t album_id, const QString& album, const QS
 
 	query.prepare(Q_UTF8("UPDATE albums SET coverId = :coverId WHERE (albumId = :albumId) OR (album = :album)"));
 
-	query.bindValue(QLatin1String(":albumId"), album_id);
+	query.bindValue(Q_UTF8(":albumId"), album_id);
 	query.bindValue(Q_UTF8(":album"), album);
 	query.bindValue(Q_UTF8(":coverId"), cover_id);
 

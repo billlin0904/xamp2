@@ -609,6 +609,9 @@ void Xamp::playNextItem(int32_t forward) {
 }
 
 void Xamp::onSampleTimeChanged(double stream_time) {
+	if (!player_) {
+		return;
+	}
 	if (player_->GetState() == PlayerState::PLAYER_STATE_RUNNING) {
 		ui.endPosLabel->setText(Time::msToString(player_->GetDuration() - stream_time));
 		auto stream_time_as_ms = static_cast<int32_t>(stream_time * 1000.0);
@@ -722,6 +725,9 @@ void Xamp::setCover(const QPixmap& cover) {
 }
 
 void Xamp::onPlayerStateChanged(xamp::player::PlayerState play_state) {
+	if (!player_) {
+		return;
+	}
 	if (play_state == PlayerState::PLAYER_STATE_STOPPED) {
 		resetTaskbarProgress();
 		ui.seekSlider->setValue(0);

@@ -12,7 +12,7 @@
 #include "pixmapcache.h"
 
 PixmapCache::PixmapCache()
-	: cache_(10 * 1024) {
+	: cache_(1024) {
     cache_path_ = QDir::currentPath() + Q_UTF8("/caches/");
     cover_ext_ << Q_UTF8("*.jpeg") << Q_UTF8("*.jpg") << Q_UTF8("*.png") << Q_UTF8("*.bmp");
     cache_ext_ << Q_UTF8("*.cache");
@@ -59,7 +59,7 @@ void PixmapCache::loadCache() const {
 
 const QPixmap* PixmapCache::find(const QString& tag_id) const {
 	while (true) {
-		const auto cache = cache_.find_or_null(tag_id);
+		const auto cache = cache_.findOrNull(tag_id);
 		if (!cache) {
 			QPixmap read_cover(cache_path_ + tag_id + Q_UTF8(".cache"));
 			if (read_cover.isNull()) {
@@ -81,28 +81,20 @@ const QPixmap* PixmapCache::find(const QString& tag_id) const {
 	}
 }
 
-bool PixmapCache::insert(const QPixmap &cover, QString* cover_tag_id) {
-    auto tag_id = savePixmap(cover);
-    if (cover_tag_id != nullptr) {
-        *cover_tag_id = tag_id;
-    }
-	cache_.insert(tag_id, cover);
-	return true;
-}
+QString PixmapCache::emplace(QPixmap&& cover) const {
+	QDir dir;
+	(void)dir.mkdir(cache_path_);
 
-QString PixmapCache::savePixmap(const QPixmap& pixmap) const {
-    QDir dir;
-    (void)dir.mkdir(cache_path_);
-
-    QByteArray array;
-    QBuffer buffer(&array);
-    buffer.open(QIODevice::WriteOnly);
+	QByteArray array;
+	QBuffer buffer(&array);
+	buffer.open(QIODevice::WriteOnly);
 
 	QString tag_name;
-    if (pixmap.save(&buffer, "JPG")) {
-        tag_name = FileTag::getTagId(array);
-        (void)pixmap.save(cache_path_ + tag_name + Q_UTF8(".cache"), "JPG", 100);
-    }
+	if (cover.save(&buffer, "JPG")) {
+		tag_name = FileTag::getTagId(array);
+		(void)cover.save(cache_path_ + tag_name + Q_UTF8(".cache"), "JPG", 100);
+	}
 
-    return tag_name;
+	cache_.emplace(tag_name, std::move(cover));
+	return tag_name;
 }

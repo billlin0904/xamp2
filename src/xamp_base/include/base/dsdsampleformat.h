@@ -7,13 +7,13 @@
 
 namespace xamp::base {
 
-enum DSDSampleFormat {
+enum class DSDSampleFormat {
 	DSD_INT8LSB,
 	DSD_INT8MSB, 
 	DSD_INT8NER8
 };
 
-enum DSDModes {
+enum class DSDModes {
 	DSD_MODE_PCM,
 	DSD_MODE_DOP,
 	DSD_MODE_DOP_AA,

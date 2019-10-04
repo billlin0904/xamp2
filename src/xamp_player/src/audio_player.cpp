@@ -79,10 +79,10 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, bool is_dsd_stream, 
 		stream_ = MakeAlign<FileStream, BassFileStream>();
 		if (auto dsd_stream = dynamic_cast<DSDStream*>(stream_.get())) {
 			if (!device_info.is_support_dsd_raw_mode) {
-				dsd_stream->SetDSDMode(DSD_MODE_PCM);
+				dsd_stream->SetDSDMode(DSDModes::DSD_MODE_PCM);
 				dsd_stream->SetPCMSampleRate(MAX_DSD2PCM_SAMPLERATE);
 			} else {
-				dsd_stream->SetDSDMode(DSD_MODE_RAW);
+				dsd_stream->SetDSDMode(DSDModes::DSD_MODE_RAW);
 			}
 		}
 	} else {
@@ -370,7 +370,7 @@ void AudioPlayer::OnError(const Exception& e) noexcept {
 void AudioPlayer::OpenDevice(double stream_time) {
 	if (auto dsd_output = dynamic_cast<DSDOutputable*>(device_.get())) {
 		if (auto dsd_stream = dynamic_cast<DSDStream*>(stream_.get())) {
-			if (dsd_stream->GetDSDMode() == DSD_MODE_RAW) {
+			if (dsd_stream->GetDSDMode() == DSDModes::DSD_MODE_RAW) {
 				dsd_output->SetIoFormat(IO_FORMAT_DSD);
 			}
 			else {
