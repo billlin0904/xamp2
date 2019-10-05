@@ -21,7 +21,9 @@ static void loadAndDefaultAppConfig() {
 
 int main(int argc, char *argv[]) {
 	Logger::Instance()
+#ifdef _DEBUG
 		.AddDebugOutputLogger()
+#endif
 		.AddFileLogger("xamp.log");	
 
 	QApplication app(argc, argv);

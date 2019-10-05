@@ -51,3 +51,5 @@
 /.vs
 /src/xamp/deploy
 /src/xamp/xamp.ini
+/src/xamp_base/VTune Amplifier Results/xamp_base
+/src/xamp/VTune Amplifier Results/xamp/xamp.amplxeproj

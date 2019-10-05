@@ -53,8 +53,10 @@ Xamp::Xamp(QWidget *parent)
 	, state_adapter_(std::make_shared<PlayerStateAdapter>())
 	, player_(std::make_shared<AudioPlayer>(state_adapter_)) {
 	initialUI();	
-	initialController();	
-	initialDeviceList();
+	initialController();
+	QTimer::singleShot(500, [this]() {
+		initialDeviceList();
+		});	
 	initialPlaylist();	
 	setCover(QPixmap(Q_UTF8(":/xamp/Resource/White/unknown_album.png")));
 	//setCentralWidget(ui.centralWidget); // For QMainWindow use
