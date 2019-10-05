@@ -93,13 +93,18 @@ private:
 
 	QWidget* topWidget();
 
+	void goBackPage();
+
+	void getNextPage();
+
 	bool is_seeking_;
 	PlayerOrder order_;
 	QModelIndex play_index_;
 	Ui::XampWindow ui;
 	DeviceInfo device_info_;
 	LyricsShowWideget* lrc_page_;
-	QStack<int> stack_page_id_;
+	PlyalistPage* playlist_page_;
+	QStack<int> stack_page_id_;	
 	std::shared_ptr<PlayerStateAdapter> state_adapter_;
 	std::shared_ptr<AudioPlayer> player_;
 };

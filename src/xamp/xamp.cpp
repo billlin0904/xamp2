@@ -54,7 +54,7 @@ Xamp::Xamp(QWidget *parent)
 	, player_(std::make_shared<AudioPlayer>(state_adapter_)) {
 	initialUI();	
 	initialController();
-	QTimer::singleShot(500, [this]() {
+	QTimer::singleShot(1500, [this]() {
 		initialDeviceList();
 		});	
 	initialPlaylist();	
@@ -448,7 +448,7 @@ void Xamp::initialController() {
 
 	(void)QObject::connect(ui.searchLineEdit, &QLineEdit::textChanged, [this](const auto &text) {
 		if (ui.currentView->count() > 0) {
-			auto playlist_view = static_cast<PlyalistPage*>(ui.currentView->widget(0))->playlist();
+			auto playlist_view = playlist_page_->playlist();
 			emit playlist_view->search(text, Qt::CaseSensitivity::CaseInsensitive, QRegExp::PatternSyntax());
 		}
 		});
@@ -471,10 +471,11 @@ void Xamp::initialController() {
 		});
 
 	(void)QObject::connect(ui.backPageButton, &QToolButton::pressed, [this]() {
-		auto idx = ui.currentView->currentIndex();
-		if (idx > 0) {
-			ui.currentView->setCurrentIndex(idx - 1);
-		}
+		goBackPage();
+		});
+
+	(void)QObject::connect(ui.nextPageButton, &QToolButton::pressed, [this]() {
+		getNextPage();
 		});
 
 
@@ -503,6 +504,22 @@ void Xamp::initialController() {
 	ui.seekSlider->setEnabled(false);
 	ui.startPosLabel->setText(Time::msToString(0));
 	ui.endPosLabel->setText(Time::msToString(0));
+}
+
+void Xamp::getNextPage() {
+	if (stack_page_id_.isEmpty()) {
+		return;
+	}
+	auto idx = ui.currentView->currentIndex();
+	ui.currentView->setCurrentIndex(idx + 1);
+}
+
+void Xamp::goBackPage() {
+	if (stack_page_id_.isEmpty()) {
+		return;
+	}
+	auto idx = ui.currentView->currentIndex();
+	ui.currentView->setCurrentIndex(idx - 1);
 }
 
 void Xamp::setVolume(int32_t volume) {
@@ -577,7 +594,7 @@ void Xamp::setPlayerOrder() {
 }
 
 void Xamp::playNextItem(int32_t forward) {
-	auto playlist_view = static_cast<PlyalistPage*>(ui.currentView->widget(0))->playlist();
+	auto playlist_view = playlist_page_->playlist();
 	const auto count = playlist_view->model()->rowCount();
 	if (count == 0) {
 		stopPlayedClicked();
@@ -644,18 +661,17 @@ void Xamp::play() {
 		if (!ui.currentView->count()) {
 			return;
 		}
-		auto playlist_page = static_cast<PlyalistPage*>(ui.currentView->widget(0));
-		if (auto select_item = playlist_page->playlist()->selectItem()) {
+		if (auto select_item = playlist_page_->playlist()->selectItem()) {
 			play_index_ = select_item.value();
 		}
-		play_index_ = playlist_page->playlist()->model()->index(
+		play_index_ = playlist_page_->playlist()->model()->index(
 			play_index_.row(), PLAYLIST_PLAYING);
 		if (play_index_.row() == -1) {
 			Toast::showTip(tr("Not found any playing item."), this);
 			return;
 		}
-		playlist_page->playlist()->setNowPlaying(play_index_, true);
-		playlist_page->playlist()->play(play_index_);
+		playlist_page_->playlist()->setNowPlaying(play_index_, true);
+		playlist_page_->playlist()->play(play_index_);
 	}
 }
 
@@ -679,13 +695,11 @@ void Xamp::play(const PlayListEntity& item) {
 }
 
 void Xamp::play(const QModelIndex& index, const PlayListEntity& item) {
-	auto playlist_page = static_cast<PlyalistPage*>(ui.currentView->widget(0));
-
 	try {
 		ui.seekSlider->setEnabled(true);
 		playLocalFile(item);
 		setPlayOrPauseButton(true);
-		playlist_page->format()->setText(getUIFormat(player_->GetStreamFormat(), item));
+		playlist_page_->format()->setText(getUIFormat(player_->GetStreamFormat(), item));
 	} catch(const xamp::base::Exception& e) {
 		ui.seekSlider->setEnabled(false);
 		player_->Stop(false, true);
@@ -703,27 +717,27 @@ void Xamp::play(const QModelIndex& index, const PlayListEntity& item) {
 	const auto cover = PixmapCache::Instance().find(item.cover_id);
 	if (cover != nullptr && !cover->isNull()) {
 		setCover(*cover);
+		playlist_page_->cover()->setPixmap(Pixmap::resizeImage(*cover, playlist_page_->cover()->size(), true));
 	}
 	else {
 		setCover(QPixmap(Q_UTF8(":/xamp/Resource/White/unknown_album.png")));
+		playlist_page_->cover()->setPixmap(Pixmap::resizeImage(*cover, playlist_page_->cover()->size(), true));
 	}
 
 	QFileInfo file_info(item.file_path);
 	const auto lrc_path = file_info.path() + Q_UTF8("/") + file_info.completeBaseName() + Q_UTF8(".lrc");
 	lrc_page_->loadLrcFile(lrc_path);
 
-	playlist_page->title()->setText(item.title);
+	playlist_page_->title()->setText(item.title);
 
 	if (!player_->IsPlaying()) {
-		playlist_page->format()->setText(Q_UTF8(""));
+		playlist_page_->format()->setText(Q_UTF8(""));
 	}
 }
 
 void Xamp::setCover(const QPixmap& cover) {
 	assert(!cover.isNull());
-	auto playlist_page = static_cast<PlyalistPage*>(ui.currentView->widget(0));
 	ui.coverLabel->setPixmap(Pixmap::resizeImage(cover, ui.coverLabel->size(), true));
-	playlist_page->cover()->setPixmap(Pixmap::resizeImage(cover, playlist_page->cover()->size(), true));
 }
 
 void Xamp::onPlayerStateChanged(xamp::player::PlayerState play_state) {
@@ -742,13 +756,21 @@ void Xamp::initialPlaylist() {
 	int32_t playlist_id = 1;
 	IF_FAILED_SHOW_TOAST(Database::Instance().addPlaylist(Q_UTF8(""), 1));
 	
-	auto playlist_page = newPlaylist(playlist_id);
-	playlist_page->playlist()->setPlaylistId(playlist_id);
-	Database::Instance().forEachPlaylistMusic(playlist_id, [playlist_page, playlist_id](const auto& entityy) {
-		playlist_page->playlist()->appendItem(entityy);
+	playlist_page_ = newPlaylist(playlist_id);
+	playlist_page_->playlist()->setPlaylistId(playlist_id);
+	Database::Instance().forEachPlaylistMusic(playlist_id, [this, playlist_id](const auto& entityy) {
+		playlist_page_->playlist()->appendItem(entityy);
 		});
+	const QPixmap cover(Q_UTF8(":/xamp/Resource/White/unknown_album.png"));
+	playlist_page_->cover()->setPixmap(Pixmap::resizeImage(cover, playlist_page_->cover()->size(), true));
 
-	ui.currentView->addWidget(new AlbumView(this));
+	pushWidget(playlist_page_);
+	pushWidget(new AlbumView(this));
+	goBackPage();
+}
+
+void Xamp::addItem(const QString& file_name) {
+	playlist_page_->playlist()->append(file_name);
 }
 
 void Xamp::pushWidget(QWidget* widget) {
@@ -796,17 +818,6 @@ PlyalistPage* Xamp::newPlaylist(int32_t playlist_id) {
 	lrc_page_ = new LyricsShowWideget(this);
 	ui.currentView->addWidget(lrc_page_);
 	return playlist_page;
-}
-
-void Xamp::addItem(const QString& file_name) {
-	PlyalistPage* playlist_page = nullptr;
-	if (!ui.currentView->count()) {
-		playlist_page = newPlaylist(-1);
-	}
-	else {
-		playlist_page = static_cast<PlyalistPage*>(ui.currentView->widget(0));
-	}
-	playlist_page->playlist()->append(file_name);
 }
 
 void Xamp::addDropFileItem(const QUrl& url) {

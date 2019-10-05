@@ -8,6 +8,14 @@ AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
 }
 
 void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const {
+	if (!index.isValid()) {
+		return;
+	}
+
+	auto rect = option.rect;
+	auto x = rect.x() + 10;
+	auto y = rect.y() + 10;
+
 	QStyledItemDelegate::paint(painter, option, index);
 }
 
