@@ -8,6 +8,7 @@
 LrcPage::LrcPage(QWidget* parent)
 	: QFrame(parent) {
 	setStyleSheet(Q_UTF8("background-color: white;"));
+	//setStyleSheet(Q_UTF8("background-color: transparent;"));
 	initial();
 }
 
@@ -36,7 +37,7 @@ void LrcPage::initial() {
 	
 	horizontalLayout_10->setSpacing(0);
 	horizontalLayout_10->setObjectName(QString::fromUtf8("horizontalLayout_10"));
-	horizontalLayout_10->setContentsMargins(100, 100, 100, 100);
+	horizontalLayout_10->setContentsMargins(80, 80, 80, 80);
 	horizontalLayout_10->setStretch(1, 1);
 
 	auto verticalLayout_3 = new QVBoxLayout();
@@ -44,9 +45,10 @@ void LrcPage::initial() {
 	verticalLayout_3->setObjectName(QString::fromUtf8("verticalLayout_3"));
 	cover_label_ = new QLabel(this);
 	cover_label_->setObjectName(QString::fromUtf8("label"));
-	cover_label_->setMinimumSize(QSize(300, 300));
-	cover_label_->setMaximumSize(QSize(300, 300));
+	cover_label_->setMinimumSize(QSize(250, 250));
+	cover_label_->setMaximumSize(QSize(250, 250));
 	verticalLayout_3->addWidget(cover_label_);
+	verticalLayout_3->setContentsMargins(0, 20, 0, 0);
 
 	auto verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
 
@@ -65,7 +67,6 @@ void LrcPage::initial() {
 
 	auto f = font();
 	f.setPointSize(24);
-	f.setBold(true);
 
 	title_ = new QLabel(this);
 	title_->setObjectName(QString::fromUtf8("label_2"));

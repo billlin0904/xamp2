@@ -278,7 +278,7 @@ void AsioDevice::CreateBuffers(const AudioFormat& output_format) {
 		buffer_bytes_ = buffer_size_ * mix_format_.GetBytesPerSample();
 		buffer_ = MakeBuffer<int8_t>(allocate_bytes * buffer_size_);
 		device_buffer_ = MakeBuffer<int8_t>(allocate_bytes * buffer_size_);
-		XAMP_LOG_INFO("buffer_size:{}, buffer_bytes:{}, allocate_bytes:{}",
+		XAMP_LOG_INFO("Buffer size:{}, bytes:{}, allocate bytes:{}",
 			ByteSizeToString(buffer_size_),
 			ByteSizeToString(buffer_bytes_),
 			ByteSizeToString(allocate_bytes * buffer_size_));
@@ -304,7 +304,7 @@ void AsioDevice::CreateBuffers(const AudioFormat& output_format) {
 		auto channel_buffer_size = buffer_size_ / 8;
 		buffer_bytes_ = channel_buffer_size;
 		int32_t allocate_bytes = buffer_size_;
-		XAMP_LOG_INFO("io format:{}, sample format:{}, buffer_size:{}, buffer_bytes:{}, allocate_bytes:{}",
+		XAMP_LOG_INFO("IO format:{}, sample format:{}, buffer_size:{}, buffer_bytes:{}, allocate_bytes:{}",
 			io_format_,
 			sample_format_,
 			ByteSizeToString(buffer_size_),
@@ -343,6 +343,12 @@ void AsioDevice::OnBufferSwitch(long index) {
 	if (io_format_ == AsioIoFormat::IO_FORMAT_PCM) {
 		if ((*callback_)(reinterpret_cast<float*>(buffer_.get()), buffer_size_, double(played_bytes_) / mix_format_.GetAvgBytesPerSec()) == 0) {
 			switch (mix_format_.GetByteFormat()) {
+			case ByteFormat::SINT16:
+				DataConverter<InterleavedFormat::DEINTERLEAVED,
+					InterleavedFormat::INTERLEAVED>::Convert(reinterpret_cast<int16_t*>(device_buffer_.get()),
+						reinterpret_cast<const float*>(buffer_.get()),
+						callbackInfo.data_context);
+				break;
 			case ByteFormat::SINT24:
 				DataConverter<InterleavedFormat::DEINTERLEAVED,
 					InterleavedFormat::INTERLEAVED>::Convert(reinterpret_cast<int24_t*>(device_buffer_.get()),
@@ -374,7 +380,9 @@ void AsioDevice::OnBufferSwitch(long index) {
 
 	if (got_samples) {
 		for (int32_t i = 0, j = 0; i < mix_format_.GetChannels(); i++) {
-			FastMemcpy(callbackInfo.buffer_infos[i].buffers[index], &device_buffer_[j++ * buffer_bytes_], buffer_bytes_);
+			(void)FastMemcpy(callbackInfo.buffer_infos[i].buffers[index],
+				&device_buffer_[j++ * buffer_bytes_],
+				buffer_bytes_);
 		}
 		ASIOOutputReady();
 	}
@@ -394,10 +402,10 @@ void AsioDevice::OpenStream(const AudioFormat& output_format) {
 	ReOpen();
 
 	if (device_id_.length() > sizeof(asio_driver_info.name) - 1) {
-		FastMemcpy(asio_driver_info.name, device_id_.c_str(), sizeof(asio_driver_info.name) - 1);
+		(void)FastMemcpy(asio_driver_info.name, device_id_.c_str(), sizeof(asio_driver_info.name) - 1);
 	}
 	else {
-		FastMemcpy(asio_driver_info.name, device_id_.c_str(), device_id_.length());
+		(void)FastMemcpy(asio_driver_info.name, device_id_.c_str(), device_id_.length());
 	}
 
 	ASIO_IF_FAILED_THROW(ASIOInit(&asio_driver_info));

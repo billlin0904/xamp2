@@ -78,20 +78,30 @@ XAMP_BASE_API ConvertContext MakeConvert(const AudioFormat& in_format, const Aud
 
 template <InterleavedFormat InputFormat, InterleavedFormat OutputFormat>
 struct DataConverter {
-	static XAMP_RESTRICT int24_t* Convert(int24_t* output, const float* input, const ConvertContext& context) noexcept {
+	static XAMP_RESTRICT int8_t* Convert(int8_t* output, const int8_t* input, const ConvertContext& context) noexcept {
 		for (int32_t i = 0; i < context.convert_size; ++i) {
-			output[context.out_offset[0]] = static_cast<int32_t>(input[context.in_offset[0]] * XAMP_FLOAT_24_SCALER);
-			output[context.out_offset[1]] = static_cast<int32_t>(input[context.in_offset[1]] * XAMP_FLOAT_24_SCALER);
+			output[context.out_offset[0]] = input[context.in_offset[0]];
+			output[context.out_offset[1]] = input[context.in_offset[1]];
 			input += context.in_jump;
 			output += context.out_jump;
 		}
 		return output;
 	}
 
-	static XAMP_RESTRICT int8_t* Convert(int8_t* output, const int8_t* input, const ConvertContext& context) noexcept {
+	static XAMP_RESTRICT int16_t* Convert(int16_t* output, const float* input, const ConvertContext& context) noexcept {
 		for (int32_t i = 0; i < context.convert_size; ++i) {
-			output[context.out_offset[0]] = input[context.in_offset[0]];
-			output[context.out_offset[1]] = input[context.in_offset[1]];
+			output[context.out_offset[0]] = static_cast<int16_t>(input[context.in_offset[0]] * XAMP_FLOAT_16_SCALER);
+			output[context.out_offset[1]] = static_cast<int16_t>(input[context.in_offset[1]] * XAMP_FLOAT_16_SCALER);
+			input += context.in_jump;
+			output += context.out_jump;
+		}
+		return output;
+	}
+
+	static XAMP_RESTRICT int24_t* Convert(int24_t* output, const float* input, const ConvertContext& context) noexcept {
+		for (int32_t i = 0; i < context.convert_size; ++i) {
+			output[context.out_offset[0]] = static_cast<int32_t>(input[context.in_offset[0]] * XAMP_FLOAT_24_SCALER);
+			output[context.out_offset[1]] = static_cast<int32_t>(input[context.in_offset[1]] * XAMP_FLOAT_24_SCALER);
 			input += context.in_jump;
 			output += context.out_jump;
 		}

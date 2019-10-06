@@ -22,6 +22,7 @@ extern "C" {
 #include <base/exception.h>
 #include <base/unicode.h>
 #include <base/defer.h>
+#include <base/logger.h>
 
 namespace xamp::stream {
 
@@ -107,13 +108,19 @@ public:
 
 protected:
 	LibAvInit() {
+#ifdef _DEBUG
+		av_log_set_level(AV_LOG_VERBOSE);
+		log_level = AV_LOG_VERBOSE;
+#else
 		av_log_set_level(AV_LOG_FATAL);
+		log_level = AV_LOG_FATAL;
+#endif
 		av_log_set_callback(AvLogCallback);
 	}	
 
 private:
 	static void AvLogCallback(void* ptr, int level, const char* fmt, va_list args) {
-		if (level != log_level) {
+		if (level > log_level) {
 			return;
 		}		
 		static const int32_t MSG_BUF_MAX_LEN = 1024;
@@ -123,6 +130,7 @@ private:
 		if (s != nullptr) {
 			s[0] = '\0';
 		}
+		XAMP_LOG_DEBUG(msgbuf);
 	}
 
 	static int log_level;
@@ -168,7 +176,7 @@ struct AvStreamContext {
 			return AVERROR_EOF;
 		}
 
-		FastMemcpy(buf, context->buffer + context->offset, buf_size);
+		(void)FastMemcpy(buf, context->buffer + context->offset, buf_size);
 		context->offset += buf_size;
 		return buf_size;
 	}
@@ -302,16 +310,17 @@ public:
 		const auto output_format = AV_SAMPLE_FMT_FLT;
 
 		switch (audio_contex_->sample_fmt) {
-		case AV_SAMPLE_FMT_U8P:
-		case AV_SAMPLE_FMT_S32P:
-			throw NotSupportFormatException();
+		case AV_SAMPLE_FMT_S16:
+		case AV_SAMPLE_FMT_S32:
+			XAMP_LOG_DEBUG("Stream format => INTERLEAVED");
 			break;
 		case AV_SAMPLE_FMT_S16P:		
 		case AV_SAMPLE_FMT_FLTP:
 			interleaved_format = InterleavedFormat::DEINTERLEAVED;
+			XAMP_LOG_DEBUG("Stream format => DEINTERLEAVED");
 			break;
 		default:
-			break;
+			throw NotSupportFormatException();
 		}
 
 		swr_context_.reset(swr_alloc_set_opts(swr_context_.get(),
