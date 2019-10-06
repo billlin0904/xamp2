@@ -10,7 +10,7 @@ std::wstring ToStdWString(const std::string &utf8) {
     auto len = utf8.length() + 1;
     std::wstring ret(len, 0);
 #ifdef _WIN32
-    auto size = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, &utf8[0], utf8.size(), &ret[0], len);
+    auto size = ::MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, &utf8[0], utf8.size(), &ret[0], len);
     ret.resize(size);
 #else
     size_t size = 0;
@@ -28,9 +28,9 @@ std::string ToUtf8String(const std::wstring &utf16) {
     }
 #ifdef _WIN32
 	const UINT UTF8_CODE_PAGE = 65001;
-    auto size = WideCharToMultiByte(UTF8_CODE_PAGE, WC_ERR_INVALID_CHARS, &utf16[0], utf16.size(), nullptr, 0, nullptr, nullptr);
+    auto size = ::WideCharToMultiByte(UTF8_CODE_PAGE, WC_ERR_INVALID_CHARS, &utf16[0], utf16.size(), nullptr, 0, nullptr, nullptr);
     std::string ret(size, 0);
-    WideCharToMultiByte(UTF8_CODE_PAGE, WC_ERR_INVALID_CHARS, &utf16[0], utf16.size(), &ret[0], size, nullptr, nullptr);
+	::WideCharToMultiByte(UTF8_CODE_PAGE, WC_ERR_INVALID_CHARS, &utf16[0], utf16.size(), &ret[0], size, nullptr, nullptr);
 #else
     size_t size = 0;
     _locale_t lc = _create_locale(LC_ALL, "en_US.UTF-8");

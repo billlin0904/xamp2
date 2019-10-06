@@ -18,7 +18,7 @@
 		}
 
 SqlException::SqlException(QSqlError error)
-	: xamp::base::Exception(xamp::base::XAMP_ERROR_PLATFORM_SPEC_ERROR, error.text().toStdString()) {
+	: xamp::base::Exception(xamp::base::Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, error.text().toStdString()) {
 }
 
 const char* SqlException::what() const {

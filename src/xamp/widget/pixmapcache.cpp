@@ -65,15 +65,6 @@ const QPixmap* PixmapCache::find(const QString& tag_id) const {
 			if (read_cover.isNull()) {
 				return nullptr;
 			}
-			/*
-			if (!QPixmapCache::insert(tag_id, read_cover)) {
-				XAMP_LOG_DEBUG("insert image cache failure! tag id:{}", tag_id.toStdString());
-				return nullptr;
-			}
-			else {
-				continue;
-			}
-			*/
 			cache_.insert(tag_id, std::move(read_cover));
 			continue;
 		}

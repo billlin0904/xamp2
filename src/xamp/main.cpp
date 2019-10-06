@@ -16,7 +16,7 @@ static void loadAndDefaultAppConfig() {
 	AppSettings::settings().setDefaultValue(APP_SETTING_HEIGHT, 500);
 	AppSettings::settings().setDefaultValue(APP_SETTING_VOLUME, 50);
 	AppSettings::settings().setDefaultValue(APP_SETTING_NIGHT_MODE, false);
-	AppSettings::settings().setDefaultValue(APP_SETTING_ORDER, PLAYER_ORDER_REPEAT_ONCE);
+	AppSettings::settings().setDefaultValue(APP_SETTING_ORDER, PlayerOrder::PLAYER_ORDER_REPEAT_ONCE);
 }
 
 int main(int argc, char *argv[]) {

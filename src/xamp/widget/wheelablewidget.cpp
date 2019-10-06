@@ -11,7 +11,6 @@ WheelableWidget::WheelableWidget(const bool touch, QWidget* parent)
 	, item_(0)
 	, item_offset_(0)
 	, mask_length_(0) {
-	setStyleSheet(Q_UTF8("baseWidget { background:transparent; }"));
 	QScroller::grabGesture(this, touch ? QScroller::TouchGesture : QScroller::LeftMouseButtonGesture);
 }
 
@@ -80,7 +79,6 @@ void WheelableWidget::mouseReleaseEvent(QMouseEvent* event) {
 void WheelableWidget::scrollTo(const int32_t index) {
 	do_signal_ = false;
 	auto scroller = QScroller::scroller(this);
-
 	scroller->scrollTo(QPointF(0, WHEEL_SCROLL_OFFSET + index * itemHeight()), SCROLL_TIME);
 }
 

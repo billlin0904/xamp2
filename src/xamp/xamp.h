@@ -3,6 +3,7 @@
 #include <QtWidgets/QMainWindow>
 #include <QWidgetAction>
 #include <QStack>
+#include <QHash>
 
 #include <output_device/devicefactory.h>
 #include <player/audio_player.h>
@@ -24,7 +25,7 @@ enum PlayerOrder {
 	_MAX_PLAYER_ORDER_,
 };
 
-class LyricsShowWideget;
+class LrcPage;
 class PlyalistPage;
 
 class Xamp : public FramelessWindow {
@@ -102,9 +103,9 @@ private:
 	QModelIndex play_index_;
 	Ui::XampWindow ui;
 	DeviceInfo device_info_;
-	LyricsShowWideget* lrc_page_;
+	LrcPage* lrc_page_;
 	PlyalistPage* playlist_page_;
-	QStack<int> stack_page_id_;	
+	QStack<int32_t> stack_page_id_;
 	std::shared_ptr<PlayerStateAdapter> state_adapter_;
 	std::shared_ptr<AudioPlayer> player_;
 };

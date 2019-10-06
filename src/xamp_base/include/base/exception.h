@@ -13,7 +13,7 @@
 
 namespace xamp::base {
 
-enum Errors {
+enum class Errors {
 	XAMP_ERROR_UNKNOWN,
 	XAMP_ERROR_PLATFORM_SPEC_ERROR,
 	XAMP_ERROR_LIBRARY_SPEC_ERROR,
@@ -32,7 +32,7 @@ XAMP_BASE_API std::ostream& operator<<(std::ostream& ostr, Errors error);
 
 class XAMP_BASE_API Exception : public std::exception {
 public:
-	explicit Exception(Errors error = XAMP_ERROR_UNKNOWN, const std::string& message = "");
+	explicit Exception(Errors error = Errors::XAMP_ERROR_UNKNOWN, const std::string& message = "");
 
 	virtual ~Exception() = default;
 

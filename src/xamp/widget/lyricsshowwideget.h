@@ -5,8 +5,6 @@
 
 #pragma once
 
-#include <QTimer>
-
 #include "lrcparser.h"
 #include "wheelablewidget.h"
 

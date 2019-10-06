@@ -37,28 +37,14 @@ public:
 
 	template <typename Function>
 	void RegisterCreator(const ID id, Function &&fun) {
-		creator_[id] = std::move(fun);
+		creator_[id] = std::forward<Function>(fun);
 	}
 
-	void Clear() {
-		creator_.clear();
-	}
+	void Clear();
 
-	std::optional<AlignPtr<DeviceType>> CreateDefaultDevice() const {
-		auto itr = creator_.begin();
-		if (itr == creator_.end()) {
-			return std::nullopt;
-		}
-		return (*itr).second();
-	}
+	std::optional<AlignPtr<DeviceType>> CreateDefaultDevice() const;
 
-	std::optional<AlignPtr<DeviceType>> Create(const ID id) const {
-		auto itr = creator_.find(id);
-		if (itr == creator_.end()) {
-			return std::nullopt;
-		}
-		return (*itr).second();
-	}
+	std::optional<AlignPtr<DeviceType>> Create(const ID id) const;
 
 	template <typename Function>
 	void ForEach(Function &&fun) {

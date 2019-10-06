@@ -24,7 +24,7 @@ extern XAMP_OUTPUT_DEVICE_API const std::wstring_view MMCSS_PROFILE_PLAYBACK;
 extern XAMP_OUTPUT_DEVICE_API const std::wstring_view MMCSS_PROFILE_PRO_AUDIO;
 extern XAMP_OUTPUT_DEVICE_API const std::wstring_view MMCSS_PROFILE_WINDOWS_MANAGER;
 
-enum MmcssThreadPriority {
+enum class MmcssThreadPriority {
 	MMCSS_THREAD_PRIORITY_NORMAL,
 	MMCSS_THREAD_PRIORITY_HIGH,
 	MMCSS_THREAD_PRIORITY_CRITICAL

@@ -32,7 +32,9 @@ ASIOException::ASIOException(ASIOError error) {
 
 	if (itr != asio_error_messages.end()) {
 		message_ = (*itr).message;
-	}	
+	} else {
+		message_ = "";
+	}
 }
 
 }

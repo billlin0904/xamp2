@@ -1,9 +1,7 @@
 #include <sstream>
-#include <QFileDialog>
+#include <QPainter>
 
-#include "actionmap.h"
 #include "str_utilts.h"
-#include "image_utiltis.h"
 #include "lyricsshowwideget.h"
 
 LyricsShowWideget::LyricsShowWideget(QWidget* parent) 
@@ -19,6 +17,10 @@ LyricsShowWideget::LyricsShowWideget(QWidget* parent)
 void LyricsShowWideget::initial() {
 	lrc_font_ = font();
     lrc_font_.setPointSize(12);
+
+	LyricEntry entry;
+	entry.lrc = tr("Not found lyrics").toStdWString();
+	lyric_.AddLrc(entry);
 }
 
 void LyricsShowWideget::setCurrentTime(const int32_t time, const bool is_adding) {
@@ -106,10 +108,6 @@ void LyricsShowWideget::stop() {
 	current_rollrect_ = QRect(0, 0, 0, 0);
 	real_current_text_.clear();
 	lyric_.Clear();
-
-	LyricEntry entry;
-	entry.lrc = tr("Not found lyrics").toStdWString();
-	lyric_.AddLrc(entry);
 	update();
 }
 

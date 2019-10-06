@@ -6,6 +6,7 @@
 #include <QFileInfo>
 #include <QDesktopWidget>
 
+#include "widget/lrcpage.h"
 #include "widget/win32/blur_effect_helper.h"
 #include "widget/albumview.h"
 #include "widget/str_utilts.h"
@@ -48,15 +49,13 @@ static QString getUIFormat(const AudioFormat& format, const PlayListEntity& item
 Xamp::Xamp(QWidget *parent)
 	: FramelessWindow(parent)
 	, is_seeking_(false)
-	, order_(PLAYER_ORDER_REPEAT_ONCE)
+	, order_(PlayerOrder::PLAYER_ORDER_REPEAT_ONCE)
 	, lrc_page_(nullptr)
 	, state_adapter_(std::make_shared<PlayerStateAdapter>())
 	, player_(std::make_shared<AudioPlayer>(state_adapter_)) {
 	initialUI();	
 	initialController();
-	QTimer::singleShot(1500, [this]() {
-		initialDeviceList();
-		});	
+	initialDeviceList();
 	initialPlaylist();	
 	setCover(QPixmap(Q_UTF8(":/xamp/Resource/White/unknown_album.png")));
 	//setCentralWidget(ui.centralWidget); // For QMainWindow use
@@ -462,7 +461,7 @@ void Xamp::initialController() {
 		});
 
 	(void)QObject::connect(ui.repeatButton, &QToolButton::pressed, [this]() {
-		order_ = static_cast<PlayerOrder>((order_ + 1) % _MAX_PLAYER_ORDER_);
+		order_ = static_cast<PlayerOrder>((order_ + 1) % PlayerOrder::_MAX_PLAYER_ORDER_);
 		setPlayerOrder();
 		});
 
@@ -480,7 +479,7 @@ void Xamp::initialController() {
 
 
 	(void)QObject::connect(ui.coverLabel, &ClickableLabel::clicked, [this]() {
-		ui.currentView->setCurrentIndex(1);
+		ui.currentView->setCurrentWidget(lrc_page_);
 		});
 
 	auto settings_menu = new QMenu(this);
@@ -557,13 +556,13 @@ void Xamp::onDeleteKeyPress() {
 	if (!ui.currentView->count()) {
 		return;
 	}
-	auto playlist_view = static_cast<PlyalistPage*>(ui.currentView->widget(0))->playlist();
+	auto playlist_view = playlist_page_->playlist();
 	playlist_view->removeSelectItems();
 }
 
 void Xamp::setPlayerOrder() {
 	switch (order_) {
-	case PLAYER_ORDER_REPEAT_ONCE:
+	case PlayerOrder::PLAYER_ORDER_REPEAT_ONCE:
 		ui.repeatButton->setStyleSheet(Q_UTF8(R"(
 		QToolButton#repeatButton {
 			image: url(:/xamp/Resource/White/repeat.png);
@@ -572,7 +571,7 @@ void Xamp::setPlayerOrder() {
 		)"));
 		AppSettings::settings().setValue(APP_SETTING_ORDER, PLAYER_ORDER_REPEAT_ONCE);
 		break;
-	case PLAYER_ORDER_REPEAT_ONE:
+	case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:
 		ui.repeatButton->setStyleSheet(Q_UTF8(R"(
 		QToolButton#repeatButton {
 			image: url(:/xamp/Resource/White/repeat_one.png);
@@ -581,14 +580,14 @@ void Xamp::setPlayerOrder() {
 		)"));
 		AppSettings::settings().setValue(APP_SETTING_ORDER, PLAYER_ORDER_REPEAT_ONE);
 		break;
-	case PLAYER_ORDER_SHUFFLE_ALL:
+	case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL:
 		ui.repeatButton->setStyleSheet(Q_UTF8(R"(
 		QToolButton#repeatButton {
 			image: url(:/xamp/Resource/White/shuffle.png);
 			background: transparent;
 		}
 		)"));
-		AppSettings::settings().setValue(APP_SETTING_ORDER, PLAYER_ORDER_SHUFFLE_ALL);
+		AppSettings::settings().setValue(APP_SETTING_ORDER, PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL);
 		break;
 	}
 }
@@ -602,17 +601,17 @@ void Xamp::playNextItem(int32_t forward) {
 	}
 
 	switch (order_) {
-	case PLAYER_ORDER_REPEAT_ONE:
+	case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:
 		play_index_ = playlist_view->currentIndex();
 		break;
-	case PLAYER_ORDER_REPEAT_ONCE:
+	case PlayerOrder::PLAYER_ORDER_REPEAT_ONCE:
 		play_index_ = playlist_view->currentIndex();
 		play_index_ = playlist_view->model()->index(play_index_.row() + forward, PLAYLIST_PLAYING);
 		if (play_index_.row() == -1) {
 			return;
 		}
 		break;
-	case PLAYER_ORDER_SHUFFLE_ALL:
+	case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL:
 		if (count > 1) {
 			play_index_ = playlist_view->shuffeIndex();
 		}
@@ -637,7 +636,7 @@ void Xamp::onSampleTimeChanged(double stream_time) {
 		ui.seekSlider->setValue(stream_time_as_ms);
 		ui.startPosLabel->setText(Time::msToString(stream_time));
 		setTaskbarProgress(100.0 * ui.seekSlider->value() / ui.seekSlider->maximum());
-		lrc_page_->setLrcTime(stream_time_as_ms);
+		lrc_page_->lyricsWidget()->setLrcTime(stream_time_as_ms);
 	}
 }
 
@@ -721,14 +720,16 @@ void Xamp::play(const QModelIndex& index, const PlayListEntity& item) {
 	}
 	else {
 		setCover(QPixmap(Q_UTF8(":/xamp/Resource/White/unknown_album.png")));
-		playlist_page_->cover()->setPixmap(Pixmap::resizeImage(*cover, playlist_page_->cover()->size(), true));
 	}
 
 	QFileInfo file_info(item.file_path);
 	const auto lrc_path = file_info.path() + Q_UTF8("/") + file_info.completeBaseName() + Q_UTF8(".lrc");
-	lrc_page_->loadLrcFile(lrc_path);
+	lrc_page_->lyricsWidget()->loadLrcFile(lrc_path);
 
 	playlist_page_->title()->setText(item.title);
+	lrc_page_->title()->setText(item.title);
+	lrc_page_->album()->setText(item.album);
+	lrc_page_->artist()->setText(item.artist);
 
 	if (!player_->IsPlaying()) {
 		playlist_page_->format()->setText(Q_UTF8(""));
@@ -738,6 +739,8 @@ void Xamp::play(const QModelIndex& index, const PlayListEntity& item) {
 void Xamp::setCover(const QPixmap& cover) {
 	assert(!cover.isNull());
 	ui.coverLabel->setPixmap(Pixmap::resizeImage(cover, ui.coverLabel->size(), true));
+	playlist_page_->cover()->setPixmap(Pixmap::resizeImage(cover, playlist_page_->cover()->size(), true));
+	lrc_page_->cover()->setPixmap(Pixmap::resizeImage(cover, lrc_page_->cover()->size(), true));
 }
 
 void Xamp::onPlayerStateChanged(xamp::player::PlayerState play_state) {
@@ -760,10 +763,10 @@ void Xamp::initialPlaylist() {
 	playlist_page_->playlist()->setPlaylistId(playlist_id);
 	Database::Instance().forEachPlaylistMusic(playlist_id, [this, playlist_id](const auto& entityy) {
 		playlist_page_->playlist()->appendItem(entityy);
-		});
-	const QPixmap cover(Q_UTF8(":/xamp/Resource/White/unknown_album.png"));
-	playlist_page_->cover()->setPixmap(Pixmap::resizeImage(cover, playlist_page_->cover()->size(), true));
+		});	
+	lrc_page_ = new LrcPage(this);
 
+	pushWidget(lrc_page_);
 	pushWidget(playlist_page_);
 	pushWidget(new AlbumView(this));
 	goBackPage();
@@ -815,8 +818,6 @@ PlyalistPage* Xamp::newPlaylist(int32_t playlist_id) {
 		playlist_id = Database::Instance().addPlaylist(Q_UTF8(""), 0);
 	}	
 	playlist_page->playlist()->setPlaylistId(playlist_id);
-	lrc_page_ = new LyricsShowWideget(this);
-	ui.currentView->addWidget(lrc_page_);
 	return playlist_page;
 }
 

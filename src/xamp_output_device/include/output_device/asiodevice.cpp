@@ -107,7 +107,7 @@ void AsioDevice::ReOpen() {
 	}
 	callbackInfo.drivers->removeCurrentDriver();
 	if (!callbackInfo.drivers->loadDriver(const_cast<char*>(device_id_.c_str()))) {
-		throw ASIOException(XAMP_ERROR_DEVICE_NOT_FOUND);
+		throw ASIOException(Errors::XAMP_ERROR_DEVICE_NOT_FOUND);
 	}
 	is_removed_driver_ = false;
 }
@@ -267,7 +267,7 @@ void AsioDevice::CreateBuffers(const AudioFormat& output_format) {
 		XAMP_LOG_INFO("Driver support format: ASIOSTDSDInt8NER8");
 		break;
 	default:
-		throw ASIOException(XAMP_ERROR_NOT_SUPPORT_FORMAT);
+		throw ASIOException(Errors::XAMP_ERROR_NOT_SUPPORT_FORMAT);
 	}
 
 	XAMP_LOG_INFO("Native DSD support: {}", IsSupportDSDFormat());
@@ -287,17 +287,17 @@ void AsioDevice::CreateBuffers(const AudioFormat& output_format) {
 		switch (channel_info.type) {
 		case ASIOSTDSDInt8LSB1:
 			if (sample_format_ != DSDSampleFormat::DSD_INT8LSB) {
-				throw ASIOException(XAMP_ERROR_NOT_SUPPORT_FORMAT);
+				throw ASIOException(Errors::XAMP_ERROR_NOT_SUPPORT_FORMAT);
 			}
 			break;
 		case ASIOSTDSDInt8MSB1:
 			if (sample_format_ != DSDSampleFormat::DSD_INT8MSB) {
-				throw ASIOException(XAMP_ERROR_NOT_SUPPORT_FORMAT);
+				throw ASIOException(Errors::XAMP_ERROR_NOT_SUPPORT_FORMAT);
 			}
 			break;
 		case ASIOSTDSDInt8NER8:
 			if (sample_format_ != DSDSampleFormat::DSD_INT8NER8) {
-				throw ASIOException(XAMP_ERROR_NOT_SUPPORT_FORMAT);
+				throw ASIOException(Errors::XAMP_ERROR_NOT_SUPPORT_FORMAT);
 			}
 			break;
 		}
@@ -508,7 +508,6 @@ void AsioDevice::SetStreamTime(double stream_time) {
 	else {
 		const auto avg_byte_per_sec = mix_format_.GetAvgBytesPerSec() / 8;
 		played_bytes_ = stream_time * avg_byte_per_sec;
-		XAMP_LOG_DEBUG("device seaking {} bytes.", played_bytes_);
 	}
 }
 

@@ -300,8 +300,8 @@ void AudioPlayer::CreateBuffer() {
 
 	auto output_format = input_format;
 	if (require_read_sample != num_read_sample_) {
-		size_t sample_size = stream_->GetSampleSize();
-		auto allocate_size = static_cast<int32_t>(GetPageAlignSize(size_t(require_read_sample) * sample_size * BUFFER_STREAM_COUNT));
+		auto allocate_size = static_cast<int32_t>(GetPageAlignSize(require_read_sample * stream_->GetSampleSize()))
+			* BUFFER_STREAM_COUNT;
 		num_buffer_samples_ = allocate_size * 10;
 		num_read_sample_ = require_read_sample;
 		read_sample_buffer_ = MakeBuffer<int8_t>(allocate_size);
@@ -385,7 +385,7 @@ void AudioPlayer::OpenDevice(double stream_time) {
 
 void AudioPlayer::PlayStream() {
 	std::weak_ptr<AudioPlayer> player = shared_from_this();
-	stream_task_ = thread_pool_.RunAsync([](std::weak_ptr<AudioPlayer> player) {
+	stream_task_ = std::async([](std::weak_ptr<AudioPlayer> player) {
 		const std::chrono::milliseconds SLEEP_OUTPUT_TIME(500);
 
 		if (auto p = player.lock()) {

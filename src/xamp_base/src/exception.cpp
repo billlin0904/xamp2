@@ -5,37 +5,37 @@ namespace xamp::base {
 
 std::ostream& operator<<(std::ostream& ostr, Errors error) {
 	switch (error) {
-	case XAMP_ERROR_UNKNOWN:
+	case Errors::XAMP_ERROR_UNKNOWN:
 		ostr << "Unknown error.";
 		break;
-	case XAMP_ERROR_PLATFORM_SPEC_ERROR:
+	case Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR:
 		ostr << "Platform spec error.";
 		break;
-	case XAMP_ERROR_LIBRARY_SPEC_ERROR:
+	case Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR:
 		ostr << "Library spec error.";
 		break;
-	case XAMP_ERROR_DEVICE_NOT_INITIALIZED:
+	case Errors::XAMP_ERROR_DEVICE_NOT_INITIALIZED:
 		ostr << "Device not initialized.";
 		break;
-	case XAMP_ERROR_DEVICE_UNSUPPORTED_FORMAT:
+	case Errors::XAMP_ERROR_DEVICE_UNSUPPORTED_FORMAT:
 		ostr << "Device unsupported format.";
 		break;
-	case XAMP_ERROR_DEVICE_IN_USE:
+	case Errors::XAMP_ERROR_DEVICE_IN_USE:
 		ostr << "Device in use.";
 		break;
-	case XAMP_ERROR_DEVICE_NOT_FOUND:
+	case Errors::XAMP_ERROR_DEVICE_NOT_FOUND:
 		ostr << "Device not found.";
 		break;
-	case XAMP_ERROR_FILE_NOT_FOUND:
+	case Errors::XAMP_ERROR_FILE_NOT_FOUND:
 		ostr << "File not found.";
 		break;
-	case XAMP_ERROR_NOT_SUPPORT_SAMPLERATE:
+	case Errors::XAMP_ERROR_NOT_SUPPORT_SAMPLERATE:
 		ostr << "Not support samplerate.";
 		break;
-	case XAMP_ERROR_NOT_SUPPORT_FORMAT:
+	case Errors::XAMP_ERROR_NOT_SUPPORT_FORMAT:
 		ostr << "Not support format.";
 		break;
-	case XAMP_ERROR_LOAD_DLL_FAILURE:
+	case Errors::XAMP_ERROR_LOAD_DLL_FAILURE:
 		ostr << "Load dll failure.";
 		break;
 	}

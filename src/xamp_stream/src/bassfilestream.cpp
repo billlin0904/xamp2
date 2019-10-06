@@ -22,9 +22,9 @@ const DWORD BASS_ERROR{ 0xFFFFFFFF };
 static Errors TranslateBassError(int error) {
 	switch (error) {
 	case BASS_ERROR_FORMAT:
-		return XAMP_ERROR_NOT_SUPPORT_FORMAT;
+		return Errors::XAMP_ERROR_NOT_SUPPORT_FORMAT;
 	default:
-		return XAMP_ERROR_UNKNOWN;
+		return Errors::XAMP_ERROR_UNKNOWN;
 	}
 }
 
