@@ -26,7 +26,7 @@ void SetThreadNameById(DWORD dwThreadID, const char* threadName) {
     info.dwFlags = 0;
 
     __try {
-        RaiseException(MS_VC_EXCEPTION, 
+        ::RaiseException(MS_VC_EXCEPTION, 
             0,
             sizeof(info) / sizeof(ULONG_PTR), 
             reinterpret_cast<ULONG_PTR*>(&info));

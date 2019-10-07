@@ -10,7 +10,7 @@
 
 namespace xamp::base {
 
-enum FileAccessMode {
+enum class FileAccessMode {
 	READ,
 	WRITE,
 	READ_WRITE

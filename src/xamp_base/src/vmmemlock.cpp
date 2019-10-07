@@ -77,9 +77,6 @@ void VmMemLock::Lock(void* address, size_t size) noexcept {
 	if (!::VirtualLock(address_, size_)) {
 		XAMP_LOG_DEBUG("VirtualLock return failure! error:{}", GetLastError());
 	}
-	if (!PrefetchMemory(address_, size_)) {
-		XAMP_LOG_DEBUG("PrefetchVirtualMemory return failure!");
-	}
 }
 
 void VmMemLock::UnLock() noexcept {

@@ -263,7 +263,7 @@ void PlayListTableView::removeItem(const QModelIndex& index) {
 
 void PlayListTableView::removeSelectItems() {
 	const auto rows = selectItemIndex();
-
+	
 	QVector<int> remove_music_ids;
 
 	auto index = 0;
