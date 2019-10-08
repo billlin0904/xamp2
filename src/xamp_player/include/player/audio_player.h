@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <mutex>
 #include <future>
 #include <optional>
@@ -41,7 +42,7 @@ public:
 
 	explicit AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter);
 
-	virtual ~AudioPlayer();
+	~AudioPlayer() override;
 
 	void Open(const std::wstring& file_path, bool is_dsd_stream, const DeviceInfo& device_info);
 

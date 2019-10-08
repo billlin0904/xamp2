@@ -4,9 +4,6 @@ PlayerStateAdapter::PlayerStateAdapter(QObject *parent)
     : QObject(parent) {
 }
 
-PlayerStateAdapter::~PlayerStateAdapter() {
-}
-
 void PlayerStateAdapter::OnSampleTime(double stream_time) {
 	emit sampleTimeChanged(stream_time);
 }

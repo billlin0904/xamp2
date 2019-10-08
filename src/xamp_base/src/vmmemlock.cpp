@@ -22,7 +22,7 @@ static bool ExterndProcessWorkingSetSize(size_t size) noexcept {
     return false;
 }
 
-static bool EnablePrivilege(const std::string& privilege, bool enable) noexcept {
+static bool EnablePrivilege(std::string_view privilege, bool enable) noexcept {
 	WinHandle current_process(::GetCurrentProcess());
 
 	WinHandle token;
@@ -33,7 +33,7 @@ static bool EnablePrivilege(const std::string& privilege, bool enable) noexcept 
 
 		TOKEN_PRIVILEGES tp;
 		tp.PrivilegeCount = 1;
-		if (!::LookupPrivilegeValueA(nullptr, privilege.c_str(), &tp.Privileges[0].Luid)) {
+		if (!::LookupPrivilegeValueA(nullptr, privilege.data(), &tp.Privileges[0].Luid)) {
 			XAMP_LOG_DEBUG("LookupPrivilegeValueA return failure! error:{}", GetLastError());
 			return false;
 		}

@@ -11,8 +11,6 @@
 #define XAMP_PALYER_API __declspec(dllimport)
 #endif
 
-#include <cstdint>
-
 namespace xamp::player {
 	class AudioPlayer;
 	class PlaybackStateAdapter;

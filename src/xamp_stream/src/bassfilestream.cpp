@@ -446,7 +446,7 @@ private:
 	bool enable_file_mapped_;
     DSDModes mode_;
 	BassStreamHandle stream_;
-	MemoryMappedFile file_;	    
+	MemoryMappedFile file_;
 	BASS_CHANNELINFO info_;
 };
 

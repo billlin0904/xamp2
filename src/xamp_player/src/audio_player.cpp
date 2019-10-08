@@ -81,14 +81,15 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, bool is_dsd_stream, 
 			if (!device_info.is_support_dsd_raw_mode) {
 				dsd_stream->SetDSDMode(DSDModes::DSD_MODE_PCM);
 				dsd_stream->SetPCMSampleRate(MAX_DSD2PCM_SAMPLERATE);
-			} else {
+			}
+			else {
 				dsd_stream->SetDSDMode(DSDModes::DSD_MODE_RAW);
 			}
 		}
-	} else {
+	}
+	else {
 		stream_ = MakeAlign<FileStream, AvFileStream>();
 	}
-
 	stream_->OpenFromFile(file_path);
 }
 

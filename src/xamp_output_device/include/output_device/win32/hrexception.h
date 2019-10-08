@@ -33,7 +33,7 @@ private:
 
 #define HR_IF_FAILED_THROW2(hresult, otherHr) \
 	do { \
-		if (FAILED(hresult) && ((otherHr) != (hresult))) { \
+		if (FAILED((hresult)) && ((otherHr) != (hresult))) { \
 			throw HRException(hresult, #hresult); \
 		} \
 	} while (false)
