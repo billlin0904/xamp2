@@ -244,7 +244,7 @@ std::optional<DeviceInfo> AudioPlayer::GetDefaultDeviceInfo() const {
 	if (!device_) {
 		return std::nullopt;
 	}
-	return device_type_->GetDefaultOutputDeviceInfo();
+	return device_type_->GetDefaultDeviceInfo();
 }
 
 double AudioPlayer::GetDuration() const {

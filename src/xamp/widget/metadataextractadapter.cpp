@@ -103,7 +103,7 @@ void MetadataExtractAdapter::onCompleted(const std::vector<xamp::base::Metadata>
 			}
 		}
 
-		IF_FAILED_SHOW_TOAST(Database::Instance().addOrUpdateAlbumMusic(album_id, artist_id, music_id));
+		IF_FAILED_LOG(Database::Instance().addOrUpdateAlbumMusic(album_id, artist_id, music_id));
 
 		auto entity = PlayListTableView::fromMetadata(metadata);
 		entity.music_id = music_id;

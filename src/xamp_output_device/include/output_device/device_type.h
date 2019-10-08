@@ -40,7 +40,7 @@ public:
 
 	virtual std::vector<DeviceInfo> GetDeviceInfo() const = 0;
 
-	virtual DeviceInfo GetDefaultOutputDeviceInfo() const = 0;
+	virtual DeviceInfo GetDefaultDeviceInfo() const = 0;
 protected:
 	DeviceType() = default;
 };

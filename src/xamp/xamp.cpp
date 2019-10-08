@@ -757,7 +757,7 @@ void Xamp::onPlayerStateChanged(xamp::player::PlayerState play_state) {
 
 void Xamp::initialPlaylist() {
 	int32_t playlist_id = 1;
-	IF_FAILED_SHOW_TOAST(Database::Instance().addPlaylist(Q_UTF8(""), 1));
+	IF_FAILED_LOG(Database::Instance().addPlaylist(Q_UTF8(""), 1));
 	
 	playlist_page_ = newPlaylist(playlist_id);
 	playlist_page_->playlist()->setPlaylistId(playlist_id);
@@ -811,7 +811,7 @@ PlyalistPage* Xamp::newPlaylist(int32_t playlist_id) {
 		});
 	(void)QObject::connect(playlist_page->playlist(), &PlayListTableView::removeItems,
 		[this](auto playlist_id, const auto& select_music_ids) {
-			IF_FAILED_SHOW_TOAST(Database::Instance().removePlaylistMusic(playlist_id, select_music_ids));
+			IF_FAILED_LOG(Database::Instance().removePlaylistMusic(playlist_id, select_music_ids));
 		});
 	auto table_id = Database::Instance().addTable(Q_UTF8(""), 0);
 	if (playlist_id == -1) {

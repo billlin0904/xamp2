@@ -24,7 +24,7 @@ public:
 	const char* what() const override;
 };
 
-#define IF_FAILED_SHOW_TOAST(expr) \
+#define IF_FAILED_LOG(expr) \
 	try {\
 		expr;\
 	}\

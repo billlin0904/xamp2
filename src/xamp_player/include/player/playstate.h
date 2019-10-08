@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <ostream>
+
 namespace xamp::player {
 
 enum class PlayerState {
@@ -13,5 +15,23 @@ enum class PlayerState {
 	PLAYER_STATE_RESUME,
 	PLAYER_STATE_STOPPED
 };
+
+inline std::ostream& operator<<(std::ostream& ostr, PlayerState state) {
+	switch (state) {
+	case PlayerState::PLAYER_STATE_RUNNING:
+		ostr << "Running";
+		break;
+	case PlayerState::PLAYER_STATE_PAUSED:
+		ostr << "Paused";
+		break;
+	case PlayerState::PLAYER_STATE_RESUME:
+		ostr << "Resume";
+		break;
+	case PlayerState::PLAYER_STATE_STOPPED:
+		ostr << "Stopped";
+		break;
+	}
+	return ostr;
+}
 
 }

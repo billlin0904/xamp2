@@ -12,10 +12,10 @@ ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceType() {
 		CLSCTX_ALL,
 		__uuidof(IMMDeviceEnumerator),
 		reinterpret_cast<void**>(&enumerator_)));
-    device_list_.push_back(GetDefaultOutputDeviceInfo());
+    device_list_.push_back(GetDefaultDeviceInfo());
 }
 
-DeviceInfo ExclusiveWasapiDeviceType::GetDefaultOutputDeviceInfo() const {
+DeviceInfo ExclusiveWasapiDeviceType::GetDefaultDeviceInfo() const {
 	CComPtr<IMMDevice> default_output_device;
 	HR_IF_FAILED_THROW(enumerator_->GetDefaultAudioEndpoint(eRender, eConsole, &default_output_device));
 	return helper::GetDeviceInfo(default_output_device, ExclusiveWasapiDeviceType::Id);
@@ -65,7 +65,7 @@ std::vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfoList() const {
 	std::vector<DeviceInfo> device_list;
 	device_list.reserve(count);
 
-	auto const default_device_info = GetDefaultOutputDeviceInfo();
+	auto const default_device_info = GetDefaultDeviceInfo();
 
 	for (UINT i = 0; i < count; ++i) {
 		CComPtr<IMMDevice> device;

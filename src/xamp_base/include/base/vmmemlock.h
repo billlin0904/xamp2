@@ -9,7 +9,7 @@
 
 namespace xamp::base {
 
-class XAMP_BASE_API VmMemLock {
+class XAMP_BASE_API VmMemLock final {
 public:
 	VmMemLock() noexcept;
 

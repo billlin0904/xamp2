@@ -183,6 +183,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 
     // Enable MCSS
 	DWORD task_id = 0;
+	queue_id_ = MF_MULTITHREADED_WORKQUEUE;
 	HR_IF_FAILED_THROW(::MFLockSharedWorkQueue(mmcss_name_.c_str(), (LONG)thread_priority_, &task_id, &queue_id_));
 
 	LONG priority = 0;
@@ -280,7 +281,7 @@ void ExclusiveWasapiDevice::StopStream() {
 
     if (mix_format_ != nullptr) {
         auto sleep_for_stop = REFTIMES_PER_SEC * frames_per_latency_ / mix_format_->nSamplesPerSec;
-        Sleep(static_cast<DWORD>(sleep_for_stop / REFTIMES_PER_MILLISEC));
+		::Sleep(static_cast<DWORD>(sleep_for_stop / REFTIMES_PER_MILLISEC));
     }    
 
     if (client_ != nullptr) {
@@ -288,7 +289,7 @@ void ExclusiveWasapiDevice::StopStream() {
     }
 
     if (sample_raedy_key_ != 0) {
-        HR_IF_FAILED_THROW2(MFCancelWorkItem(sample_raedy_key_), MF_E_NOT_FOUND);
+        HR_IF_FAILED_THROW2(::MFCancelWorkItem(sample_raedy_key_), MF_E_NOT_FOUND);
         sample_raedy_key_ = 0;
     }
 }
@@ -307,7 +308,7 @@ bool ExclusiveWasapiDevice::IsStreamRunning() const {
 
 void ExclusiveWasapiDevice::CloseStream() {
     if (queue_id_ != 0) {
-		HR_IF_FAILED_THROW(MFUnlockWorkQueue(queue_id_));
+		HR_IF_FAILED_THROW(::MFUnlockWorkQueue(queue_id_));
 		queue_id_ = 0;
 	}
 

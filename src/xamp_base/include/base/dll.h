@@ -19,7 +19,7 @@ XAMP_BASE_API ModuleHandle LoadDll(const char* name);
 
 #ifdef _WIN32
 template <typename T>
-class DllFunction {
+class DllFunction final {
 public:
 	DllFunction(const ModuleHandle& dll, const char* name) noexcept {
 		assert(dll.is_valid());

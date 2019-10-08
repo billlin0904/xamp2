@@ -67,16 +67,17 @@ bool VmMemLock::EnableVmMemPrivilege(bool enable) noexcept {
 void VmMemLock::Lock(void* address, size_t size) noexcept {
 	UnLock();
 
-	address_ = address;
-	size_ = size;
-
 	if (!ExterndProcessWorkingSetSize(size)) {
 		XAMP_LOG_DEBUG("ExterndProcessWorkingSetSize return failure! error:{}", GetLastError());
 		return;
 	}
+
 	if (!::VirtualLock(address_, size_)) {
 		XAMP_LOG_DEBUG("VirtualLock return failure! error:{}", GetLastError());
 	}
+
+	address_ = address;
+	size_ = size;
 }
 
 void VmMemLock::UnLock() noexcept {

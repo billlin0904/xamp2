@@ -12,7 +12,7 @@
 
 namespace xamp::base {
 
-class XAMP_BASE_API RNG {
+class XAMP_BASE_API RNG final {
 public:
     static RNG& Instance();
 

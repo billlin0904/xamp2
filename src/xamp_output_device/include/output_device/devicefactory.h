@@ -24,7 +24,7 @@ namespace xamp::output_device {
 
 using namespace base;
 
-class XAMP_OUTPUT_DEVICE_API DeviceFactory {
+class XAMP_OUTPUT_DEVICE_API DeviceFactory final {
 public:	
 	~DeviceFactory();
 

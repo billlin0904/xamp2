@@ -17,7 +17,7 @@ namespace xamp::base {
 	
 static const int XAMP_ID_MAX_SIZE = 16;
 
-class XAMP_BASE_API ID {
+class XAMP_BASE_API ID final {
 public:
 	static const int MAX_ID_STR_LEN = 36;
 

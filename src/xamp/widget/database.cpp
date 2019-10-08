@@ -146,11 +146,13 @@ void Database::open(const QString& file_name) {
 	}
 
 	(void)db_.exec(Q_UTF8("PRAGMA synchronous = OFF"));
-	(void)db_.exec(Q_UTF8("PRAGMA auto_vacuum = FULL"));
+	(void)db_.exec(Q_UTF8("PRAGMA auto_vacuum = OFF"));
 	(void)db_.exec(Q_UTF8("PRAGMA foreign_keys = ON"));
 	(void)db_.exec(Q_UTF8("PRAGMA journal_mode = MEMORY"));
-	(void)db_.exec(Q_UTF8("PRAGMA cache_size = 100000"));
+	(void)db_.exec(Q_UTF8("PRAGMA cache_size = 40960"));
 	(void)db_.exec(Q_UTF8("PRAGMA temp_store = MEMORY"));
+	(void)db_.exec(Q_UTF8("PRAGMA mmap_size = 40960"));
+	(void)db_.exec(Q_UTF8("PRAGMA locking_mode = EXCLUSIVE"));
 
 	createTableIfNotExist();
 }

@@ -18,7 +18,7 @@ namespace xamp::base {
 
 using TimerCallback = std::function<void()>;
 
-class XAMP_BASE_API Timer {
+class XAMP_BASE_API Timer final {
 public:
 	Timer();
 

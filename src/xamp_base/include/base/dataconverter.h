@@ -17,7 +17,7 @@ static const double XAMP_FLOAT_24_SCALER = double(0x7fffffL) + .49999;
 static const double XAMP_FLOAT_32_SCALER = double(0x7fffffffL) + .49999;
 
 #pragma pack(push, 1)
-class int24_t {
+class int24_t final {
 public:
 	int24_t() noexcept;
 

@@ -46,9 +46,13 @@
     Class::Class(Class &&) noexcept = default; \
     Class& Class::operator=(Class &&) noexcept = default;
 
-#define XAMP_NO_VTABLE __declspec(novtable) 
-
+#ifdef _WIN32
+#define XAMP_NO_VTABLE __declspec(novtable)
 #define XAMP_RESTRICT __declspec(restrict)
+#else
+#define XAMP_NO_VTABLE
+#define XAMP_RESTRICT
+#endif
 
 // Optimization function call
 #define XAMP_ALWAYS_INLINE __forceinline

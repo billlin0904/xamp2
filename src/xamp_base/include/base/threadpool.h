@@ -27,7 +27,7 @@ namespace xamp::base {
 using Task = std::function<void()>;
 
 template <typename Type>
-class TaskQueue {
+class TaskQueue final {
 public:
 	TaskQueue()
 		: done_(false) {
@@ -124,7 +124,7 @@ template
 	template <typename> 
 	class Queue = TaskQueue
 >
-class TaskScheduler {    
+class TaskScheduler final {
 public:
     explicit TaskScheduler()
         : is_stopped_(false)
@@ -209,7 +209,7 @@ private:
 	std::array<AlignPtr<Queue<TaskType>>, MaxThread> task_queues_;
 };
     
-class XAMP_BASE_API ThreadPool {
+class XAMP_BASE_API ThreadPool final {
 public:
 	ThreadPool();
 

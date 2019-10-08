@@ -10,7 +10,7 @@
 namespace xamp::base {
 
 template <typename T, typename Traits>
-class UniqueHandle {
+class UniqueHandle final {
 public:
 	struct boolean_struct { int member; };
 	typedef int boolean_struct::* boolean_type;

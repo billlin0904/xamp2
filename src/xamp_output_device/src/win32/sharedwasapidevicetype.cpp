@@ -1,3 +1,4 @@
+#include <base/logger.h>
 #include <output_device/win32/hrexception.h>
 #include <output_device/win32/wasapi.h>
 #include <output_device/win32/sharedwasapidevice.h>
@@ -49,7 +50,7 @@ std::vector<DeviceInfo> SharedWasapiDeviceType::GetDeviceInfo() const {
 	return device_list_;
 }
 
-DeviceInfo SharedWasapiDeviceType::GetDefaultOutputDeviceInfo() const {
+DeviceInfo SharedWasapiDeviceType::GetDefaultDeviceInfo() const {
 	CComPtr<IMMDevice> default_output_device;
 	HR_IF_FAILED_THROW(enumerator_->GetDefaultAudioEndpoint(eRender, eConsole, &default_output_device));
 	return helper::GetDeviceInfo(default_output_device, SharedWasapiDeviceType::Id);
@@ -65,7 +66,7 @@ std::vector<DeviceInfo> SharedWasapiDeviceType::GetDeviceInfoList() const {
 	std::vector<DeviceInfo> device_list;
 	device_list.reserve(count);
 
-	auto const default_device_info = GetDefaultOutputDeviceInfo();
+	auto const default_device_info = GetDefaultDeviceInfo();
 
 	for (UINT i = 0; i < count; ++i) {
 		CComPtr<IMMDevice> device;
@@ -81,11 +82,13 @@ std::vector<DeviceInfo> SharedWasapiDeviceType::GetDeviceInfoList() const {
 			device_list.emplace_back(info);
 		}
 		catch (const Exception& ex) {
+			XAMP_LOG_DEBUG(ex.what());
 			throw;
 		}
 	}
 
-	std::sort(device_list.begin(), device_list.end(), [](const auto& first, const auto& second) {
+	std::sort(device_list.begin(), device_list.end(),
+		[](const auto& first, const auto& second) {
 		return first.name.length() > second.name.length();
 		});
 

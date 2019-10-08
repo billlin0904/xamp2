@@ -11,11 +11,13 @@ namespace xamp::output_device {
 	}))
 
 DeviceFactory::DeviceFactory() {
-	using namespace win32;
 	InitialDevice();
+#ifdef _WIN32
+	using namespace win32;	
 	XAMP_REGISTER_DEVICE_TYPE(SharedWasapiDeviceType);
 	XAMP_REGISTER_DEVICE_TYPE(ExclusiveWasapiDeviceType);
 	XAMP_REGISTER_DEVICE_TYPE(ASIODeviceType);
+#endif
 }
 
 DeviceFactory::~DeviceFactory() {
@@ -41,7 +43,6 @@ std::optional<AlignPtr<DeviceType>> DeviceFactory::Create(const ID id) const {
 	}
 	return (*itr).second();
 }
-
 
 bool DeviceFactory::IsExclusiveDevice(const DeviceInfo& info) {
 	return info.device_type_id == win32::ExclusiveWasapiDeviceType::Id;

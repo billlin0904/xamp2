@@ -15,7 +15,6 @@
 #include <base/dsdsampleformat.h>
 #include <base/align_ptr.h>
 #include <base/vmmemlock.h>
-#include <base/threadpool.h>
 
 #include <stream/filestream.h>
 
@@ -149,7 +148,6 @@ private:
 	AudioBuffer<int8_t> buffer_;
 	VmMemLock vmlock_;
 	std::future<void> stream_task_;
-	ThreadPool thread_pool_;
 };
 
 }

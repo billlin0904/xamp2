@@ -7,7 +7,7 @@
 
 namespace xamp::base {
 
-class XAMP_BASE_API WaitableTimer {
+class XAMP_BASE_API WaitableTimer final {
 public:
 	WaitableTimer();
 
