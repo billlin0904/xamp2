@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 
-option(LIBRARY_TESTS "Build unit tests" ON)
+option(LIBRARY_TESTS "Build unit tests" OFF)
 
 project(xamp_output_device)
 

@@ -691,7 +691,7 @@
                </property>
                <property name="font">
                 <font>
-                 <family>Arial</family>
+                 <pointsize>11</pointsize>
                 </font>
                </property>
                <property name="text">
@@ -765,8 +765,7 @@
                </property>
                <property name="font">
                 <font>
-                 <family>Arial</family>
-                 <pointsize>9</pointsize>
+                 <pointsize>11</pointsize>
                 </font>
                </property>
                <property name="text">

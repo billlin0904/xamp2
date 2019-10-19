@@ -38,10 +38,16 @@ FramelessWindow::FramelessWindow(QWidget* parent)
 	setBlurMaterial(this);
 #endif
     initialFontDatabase();
+#ifdef _WIN32
     setStyleSheet(Q_UTF8(R"(
         font-family: "UI";
 		background: transparent;
     )"));
+#else
+    setStyleSheet(Q_UTF8(R"(
+        font-family: "UI";
+    )"));
+#endif
 }
 
 FramelessWindow::~FramelessWindow() {
