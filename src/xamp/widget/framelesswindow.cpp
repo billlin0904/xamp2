@@ -23,12 +23,12 @@ FramelessWindow::FramelessWindow(QWidget* parent)
 	, is_maximized_(false)
     , border_width_(5)
 #endif
-{
-    //setWindowFlags(Qt::FramelessWindowHint | Qt::WindowMaximizeButtonHint);
+{    
     setMouseTracking(true);
     installEventFilter(this);
     setAcceptDrops(true);
 #if defined(Q_OS_WIN)
+	setWindowFlags(Qt::FramelessWindowHint | Qt::WindowMaximizeButtonHint);
 	HWND hwnd = (HWND)winId();
 	const DWMNCRENDERINGPOLICY ncrp = DWMNCRP_ENABLED;
 	::DwmSetWindowAttribute(hwnd, DWMWA_NCRENDERING_POLICY, &ncrp, sizeof(ncrp));
@@ -36,11 +36,11 @@ FramelessWindow::FramelessWindow(QWidget* parent)
 	const MARGINS borderless = { 1, 1, 1, 1 };
 	::DwmExtendFrameIntoClientArea(hwnd, &borderless);
 	setBlurMaterial(this);
-#else
 #endif
     initialFontDatabase();
     setStyleSheet(Q_UTF8(R"(
         font-family: "UI";
+		background: transparent;
     )"));
 }
 

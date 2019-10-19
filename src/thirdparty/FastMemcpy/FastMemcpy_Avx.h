@@ -28,7 +28,7 @@
 #endif
 #elif defined(_MSC_VER)
 	#define INLINE __forceinline
-    #define RESTRICT __restrict
+    #define RESTRICT
 #elif (defined(__BORLANDC__) || defined(__WATCOMC__))
     #define INLINE __inline
     #define RESTRICT

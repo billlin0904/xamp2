@@ -80,16 +80,13 @@ void Xamp::setNormalMode() {
 
     setStyleSheet(Q_UTF8(R"(
                          QTableView {
+						 background-color: transparent;
                          color: black;
                          }
 
                          QFrame#playingFrame {
                          background-color: transparent;
                          border: none;
-                         }
-
-                         QLabel#titleLabel {
-                         background-color: transparent;
                          }
                          )"));
 
@@ -159,7 +156,6 @@ void Xamp::setNormalMode() {
                                             QLineEdit#searchLineEdit {
                                             background-color: white;
                                             border: none;
-                                            background-color: transparent;
                                             }
                                             )"));
 
@@ -188,6 +184,7 @@ void Xamp::setNormalMode() {
     ui.volumeSlider->setStyleSheet(Q_UTF8(R"(
                                           QSlider#volumeSlider {
                                           border: none;
+										  background-color: transparent;
                                           }
                                           )"));
 
@@ -216,6 +213,7 @@ void Xamp::setNormalMode() {
 
     ui.titleLabel->setStyleSheet(Q_UTF8(R"(
                                         QLabel#titleLabel {
+										background-color: transparent;
                                         }
                                         )"));
 
@@ -241,6 +239,7 @@ void Xamp::setNormalMode() {
     ui.seekSlider->setStyleSheet(Q_UTF8(R"(
                                         QSlider#seekSlider {
                                         border: none;
+										background-color: transparent;
                                         }
                                         )"));
 

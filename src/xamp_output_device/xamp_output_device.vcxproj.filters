@@ -20,6 +20,8 @@
       <Filter>asiosdk</Filter>
     </ClCompile>
     <ClCompile Include="src\asioexception.cpp" />
+    <ClCompile Include="include\output_device\asiodevice.cpp" />
+    <ClCompile Include="src\asiodevicetype.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\output_device\audiocallback.h" />
@@ -36,6 +38,10 @@
     <ClInclude Include="include\output_device\win32\sharedwasapidevicetype.h" />
     <ClInclude Include="include\output_device\win32\sharedwasapidevice.h" />
     <ClInclude Include="include\output_device\win32\wasapi.h" />
+    <ClInclude Include="include\output_device\asiodevice.h" />
+    <ClInclude Include="include\output_device\asiodevicetype.h" />
+    <ClInclude Include="include\output_device\asioexception.h" />
+    <ClInclude Include="include\output_device\dsdoutputable.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="asiosdk">

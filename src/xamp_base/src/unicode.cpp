@@ -4,6 +4,8 @@
 
 #ifdef __APPLE__
 #include <xlocale.h>
+#else
+#include <Windows.h>
 #endif
 
 #include <base/unicode.h>

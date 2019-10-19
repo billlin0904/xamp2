@@ -405,7 +405,7 @@
             </size>
            </property>
            <property name="focusPolicy">
-            <enum>Qt::NoFocus</enum>
+            <enum>Qt::ClickFocus</enum>
            </property>
           </widget>
          </item>
@@ -766,7 +766,7 @@
                <property name="font">
                 <font>
                  <family>Arial</family>
-                 <pointsize>13</pointsize>
+                 <pointsize>9</pointsize>
                 </font>
                </property>
                <property name="text">

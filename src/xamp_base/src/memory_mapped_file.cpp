@@ -74,11 +74,11 @@ public:
         file_.reset();
     }
 
-    const void * GetData() const {
+    void * GetData() const {
         return address_.get();
     }
 
-    int64_t GetLength() const {
+	size_t GetLength() const {
         LARGE_INTEGER li{};
         ::GetFileSizeEx(file_.get(), &li);
         return li.QuadPart;

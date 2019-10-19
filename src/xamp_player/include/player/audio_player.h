@@ -81,7 +81,7 @@ public:
 private:
 	void Initial();
 
-    void OpenStream(const std::wstring& file_path, bool use_bass_stream);
+    void OpenStream(const std::wstring& file_path, const DeviceInfo& device_info, bool use_bass_stream);
 
 	void CreateDevice(const ID& device_type_id, const std::wstring& device_id, const bool open_always);
 

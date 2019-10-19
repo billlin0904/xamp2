@@ -33,7 +33,7 @@ public:
         : Exception(Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR) {
         char buf[256]{};
         av_strerror(error, buf, sizeof(buf) - 1);
-        what_.assign(buf);
+		message_.assign(buf);
     }
 };
 

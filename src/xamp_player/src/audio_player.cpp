@@ -12,6 +12,7 @@
 
 namespace xamp::player {
 
+static const int32_t MAX_DSD2PCM_SAMPLERATE = 192000;
 static const int32_t BUFFER_STREAM_COUNT = 20;
 static const std::chrono::milliseconds UPDATE_SAMPLE_INTERVAL(100);
 
@@ -48,7 +49,7 @@ AudioPlayer::~AudioPlayer() {
 void AudioPlayer::Open(const std::wstring& file_path, bool use_bass_stream, const DeviceInfo& device_info) {
 	Initial();
 	CloseDevice();
-    OpenStream(file_path, use_bass_stream);
+    OpenStream(file_path, device_info, use_bass_stream);
 	SetDeviceFormat();
 	CreateDevice(device_info.device_type_id, device_info.device_id, false);
 	OpenDevice();
@@ -77,7 +78,7 @@ void AudioPlayer::CreateDevice(const ID& device_type_id, const std::wstring& dev
 	device_->SetAudioCallback(this);
 }
 
-void AudioPlayer::OpenStream(const std::wstring& file_path, bool is_dsd_stream) {
+void AudioPlayer::OpenStream(const std::wstring& file_path, const DeviceInfo& device_info, bool is_dsd_stream) {
     if (stream_ != nullptr) {
         stream_->Close();
     }

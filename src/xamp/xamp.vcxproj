@@ -144,7 +144,7 @@
     <ClCompile Include="xamp.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <QtUic Include="toast.ui" />
+    <QtUic Include="widget\toast.ui" />
     <QtUic Include="xamp.ui" />
   </ItemGroup>
   <ItemGroup>
