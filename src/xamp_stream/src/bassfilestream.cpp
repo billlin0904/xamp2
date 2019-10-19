@@ -4,9 +4,7 @@
 
 #include <base/exception.h>
 
-#ifdef _WIN32
 #include <base/unique_handle.h>
-#endif
 
 #include <base/memory.h>
 #include <base/memory_mapped_file.h>
@@ -111,6 +109,7 @@ public:
 	explicit BassException(int error)
 		: Exception(TranslateBassError(error), GetBassErrorMessage(error))
 		, error_(error) {
+        what_ = GetBassErrorMessage(error);
 	}
 
 private:
@@ -135,7 +134,11 @@ public:
 
 private:
 	BassLib() try
+#ifdef _WIN32
 		: module_(LoadDll("bass.dll"))
+#else
+        : module_(LoadDll("libbass.dylib"))
+#endif
 		, BASS_Init(module_, "BASS_Init")
 		, BASS_SetConfig(module_, "BASS_SetConfig")
 		, BASS_PluginLoad(module_, "BASS_PluginLoad")
@@ -180,23 +183,22 @@ public:
 
 class BassDSDLib {
 public:
-	static BassDSDLib & Get() {
-		static BassDSDLib lib;
-		return lib;
-	}
+    BassDSDLib() try
+#ifdef _WIN32
+        : module_(LoadDll("bassdsd.dll"))
+#else
+        : module_(LoadDll("libbassdsd.dylib"))
+#endif
+        , BASS_DSD_StreamCreateFile(module_, "BASS_DSD_StreamCreateFile")
+        , BASS_ChannelSetAttribute(module_, "BASS_ChannelSetAttribute") {
+    }
+    catch (const Exception& e) {
+        XAMP_LOG_INFO("{}", e.GetErrorMessage());
+    }
 
 	XAMP_DISABLE_COPY(BassDSDLib)
 	
 private:
-	BassDSDLib() try
-		: module_(LoadDll("bassdsd.dll"))
-		, BASS_DSD_StreamCreateFile(module_, "BASS_DSD_StreamCreateFile")
-		, BASS_ChannelSetAttribute(module_, "BASS_ChannelSetAttribute") {
-	}
-	catch (const Exception& e) {
-		XAMP_LOG_INFO("{}", e.GetErrorMessage());
-	}
-
 	ModuleHandle module_;
 
 public:
@@ -229,10 +231,8 @@ using BassPluginHandle = UniqueHandle<HPLUGIN, BassPluginLoadTraits>;
 
 class BassPlugin {
 public:
-	static BassPlugin& Instance() {
-		static BassPlugin instance;
-		return instance;
-	}
+    BassPlugin() {
+    }
 
 	~BassPlugin() {
 		if (IsLoaded()) {
@@ -251,20 +251,19 @@ public:
 	}
 
 	void Load() {
-		BassLib::Instance().BASS_Init(0, 44100, 0, 0, nullptr);
+        BassLib::Instance().BASS_Init(0, 44100, 0, nullptr, nullptr);
 #ifdef _WIN32
 		// Media Foundation flac sometimes deadlock!
 		BassLib::Instance().BASS_SetConfig(BASS_CONFIG_MF_DISABLE, true);
 		LoadPlugin("bassdsd.dll");
+#else
+        LoadPlugin("libbassflac.dylib");
 #endif
 	}
 
 	XAMP_DISABLE_COPY(BassPlugin)
 
 private:
-	BassPlugin() {
-	}
-
 	void LoadPlugin(const std::string& file_name) {
 		BassPluginHandle plugin(BassLib::Instance().BASS_PluginLoad(file_name.c_str(), 0));
 		if (!plugin) {
@@ -291,7 +290,7 @@ private:
 class BassFileStream::BassFileStreamImpl {
 public:
 	BassFileStreamImpl() noexcept
-		: enable_file_mapped_(true)
+        : enable_file_mapped_(true)
 		, mode_(DSDModes::DSD_MODE_PCM) {
 		info_ = BASS_CHANNELINFO{};
 	}
@@ -299,8 +298,8 @@ public:
 	~BassFileStreamImpl() noexcept = default;
 
 	void LoadFromFile(const std::wstring & file_path) {
-        if (!BassPlugin::Instance().IsLoaded()) {
-			BassPlugin::Instance().Load();
+        if (!plugin_.IsLoaded()) {
+            plugin_.Load();
         }
 
         info_ = BASS_CHANNELINFO{};
@@ -329,7 +328,6 @@ public:
 		if (mode_ == DSDModes::DSD_MODE_PCM) {
 			if (enable_file_mapped_) {
 				file_.Open(file_path);
-				flags |= BASS_ASYNCFILE;
 				stream_.reset(BassLib::Instance().BASS_StreamCreateFile(TRUE,
 					file_.GetData(),
 					0,
@@ -345,13 +343,13 @@ public:
 			}
 		} else {
 			file_.Open(file_path);
-			stream_.reset(BassDSDLib::Get().BASS_DSD_StreamCreateFile(TRUE,
+            stream_.reset(dsdlib_.BASS_DSD_StreamCreateFile(TRUE,
 				file_.GetData(),
 				0,
 				file_.GetLength(),
 				flags | BASS_STREAM_DECODE,
 				0));	
-			PrefetchMemory((void*)file_.GetData(), file_.GetLength());
+            PrefetchMemory(file_.GetData(), file_.GetLength());
 		}
 		
 		if (!stream_) {
@@ -448,6 +446,8 @@ private:
 	BassStreamHandle stream_;
 	MemoryMappedFile file_;
 	BASS_CHANNELINFO info_;
+    BassDSDLib dsdlib_;
+    BassPlugin plugin_;
 };
 
 

@@ -54,13 +54,13 @@ private:
 
 	void playLocalFile(const PlayListEntity& item);
 
-	void playNextClicked();
+    void playNextClicked() override;
 
-	void playPreviousClicked();
+    void playPreviousClicked() override;
+
+    void play() override;
 
 	void play(const PlayListEntity& item);
-
-	void play();
 
 	void onPlayerStateChanged(xamp::player::PlayerState play_state);
 

@@ -5,6 +5,7 @@
 
 #pragma once
 
+#ifdef _WIN32
 #pragma comment(lib, "avrt.lib")
 #pragma comment(lib, "Mfplat.lib")
 
@@ -44,3 +45,5 @@ std::wstring GetDeviceProperty(const PROPERTYKEY& key, CComPtr<IMMDevice>& devic
 DeviceInfo GetDeviceInfo(CComPtr<IMMDevice>& device, const ID device_type_id);
 
 }
+
+#endif

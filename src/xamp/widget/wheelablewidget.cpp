@@ -6,7 +6,8 @@
 #include "wheelablewidget.h"
 
 WheelableWidget::WheelableWidget(const bool touch, QWidget* parent)
-	: is_scrolled_(false)
+    : QWidget(parent)
+    , is_scrolled_(false)
 	, do_signal_(true)
 	, item_(0)
 	, item_offset_(0)
@@ -26,7 +27,7 @@ void WheelableWidget::setCurrentIndex(const int32_t index) {
 	}
 }
 
-void WheelableWidget::paintEvent(QPaintEvent * event) {
+void WheelableWidget::paintEvent(QPaintEvent*) {
 	QPainter painter(this);
 
 	paintBackground(&painter);

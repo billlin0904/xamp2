@@ -1,7 +1,10 @@
 #include <QApplication>
 #include <QMap>
 
+#ifdef _WIN32
 #include <execution>
+#endif
+
 #include <metadata/taglibmetareader.h>
 
 #include "toast.h"
@@ -25,10 +28,17 @@ void MetadataExtractAdapter::OnWalk(const xamp::metadata::Path& path, const xamp
 }
 
 void MetadataExtractAdapter::OnWalkNext() {    
+#ifdef _WIN32
 	std::stable_sort(std::execution::par,
 		metadatas_.begin(), metadatas_.end(), [](const auto & first, const auto & sencond) {
 		return first.track < sencond.track;		
 		});
+#else
+    std::stable_sort(
+        metadatas_.begin(), metadatas_.end(), [](const auto & first, const auto & sencond) {
+        return first.track < sencond.track;
+        });
+#endif
 	onCompleted(metadatas_);
     metadatas_.clear();
 }

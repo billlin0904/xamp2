@@ -11,8 +11,6 @@
 
 namespace xamp::output_device {
 
-using namespace win32;
-
 void InitialDevice() {
 #ifdef _WIN32
 	HR_IF_FAILED_THROW(MFStartup(MF_VERSION, MFSTARTUP_LITE));	

@@ -1,3 +1,4 @@
+#ifdef _WIN32
 #include <base/logger.h>
 #include <output_device/win32/hrexception.h>
 #include <output_device/win32/wasapi.h>
@@ -96,3 +97,5 @@ std::vector<DeviceInfo> SharedWasapiDeviceType::GetDeviceInfoList() const {
 }
 
 }
+#endif
+

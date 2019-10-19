@@ -12,6 +12,7 @@
 #include <base/align_ptr.h>
 #include <output_device/output_device.h>
 
+#ifdef _WIN32
 namespace xamp::output_device::win32 {
 
 using namespace base;
@@ -52,3 +53,4 @@ private:
 };
 
 }
+#endif

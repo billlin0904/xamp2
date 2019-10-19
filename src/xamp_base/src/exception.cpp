@@ -38,12 +38,15 @@ std::ostream& operator<<(std::ostream& ostr, Errors error) {
 	case Errors::XAMP_ERROR_LOAD_DLL_FAILURE:
 		ostr << "Load dll failure.";
 		break;
+    case Errors::_MAX_XAMP_ERROR_:
+        break;
 	}
 	return ostr;
 }
 
-Exception::Exception(Errors error, const std::string& message)
+Exception::Exception(Errors error, const std::string& message, const char* what)
 	: error_(error)
+    , what_(what)
 	, message_(message) {
 	if (message_.empty()) {
 		std::ostringstream ostr;
@@ -52,8 +55,8 @@ Exception::Exception(Errors error, const std::string& message)
 	}
 }
 
-char const* Exception::what() const {
-	return what_.c_str();
+char const* Exception::what() const noexcept {
+    return what_;
 }
 
 Errors Exception::GetError() const {
@@ -67,5 +70,21 @@ const char * Exception::GetErrorMessage() const {
 const char* Exception::GetExpression() const {
 	return "";
 }
+
+#define IMP_EXCEPTION_CLASS(ExceptionClassName, error) \
+ExceptionClassName::ExceptionClassName()\
+    : Exception(error) {\
+}\
+
+IMP_EXCEPTION_CLASS(LibrarySpecErrorException, Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR)
+IMP_EXCEPTION_CLASS(DeviceNotInititalzedException, Errors::XAMP_ERROR_DEVICE_NOT_INITIALIZED)
+IMP_EXCEPTION_CLASS(DeviceInUseException, Errors::XAMP_ERROR_DEVICE_IN_USE)
+IMP_EXCEPTION_CLASS(DeviceUnSupportedFormatException, Errors::XAMP_ERROR_DEVICE_UNSUPPORTED_FORMAT)
+IMP_EXCEPTION_CLASS(DeviceNotFoundException, Errors::XAMP_ERROR_DEVICE_NOT_FOUND)
+IMP_EXCEPTION_CLASS(FileNotFoundException, Errors::XAMP_ERROR_FILE_NOT_FOUND)
+IMP_EXCEPTION_CLASS(NotSupportSampleRateException, Errors::XAMP_ERROR_NOT_SUPPORT_SAMPLERATE)
+IMP_EXCEPTION_CLASS(NotSupportFormatException, Errors::XAMP_ERROR_NOT_SUPPORT_FORMAT)
+IMP_EXCEPTION_CLASS(LoadDllFailureException, Errors::XAMP_ERROR_LOAD_DLL_FAILURE)
+
 
 }

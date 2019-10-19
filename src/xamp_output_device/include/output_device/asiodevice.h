@@ -5,6 +5,7 @@
 
 #pragma once
 
+#if ENABLE_ASIO
 #include <atomic>
 #include <mutex>
 #include <vector>
@@ -105,4 +106,5 @@ private:
 };
 
 }
+#endif
 

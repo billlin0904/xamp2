@@ -5,10 +5,14 @@
 
 #pragma once
 
+#ifdef _WIN32
 #ifdef XAMP_PALYER_API_EXPORTS
 #define XAMP_PALYER_API __declspec(dllexport)
 #else
 #define XAMP_PALYER_API __declspec(dllimport)
+#endif
+#else
+#define XAMP_PALYER_API
 #endif
 
 namespace xamp::player {

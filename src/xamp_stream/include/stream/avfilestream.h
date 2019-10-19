@@ -17,6 +17,8 @@ namespace xamp::stream {
 
 using namespace base;
 
+#if ENABLE_FFMPEG
+
 class XAMP_STREAM_API AvFileStream : public FileStream {
 public:
 	AvFileStream();
@@ -44,5 +46,7 @@ private:
 	class AvFileStreamImpl;
 	AlignPtr<AvFileStreamImpl> impl_;
 };
+
+#endif
 
 }

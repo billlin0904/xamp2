@@ -21,7 +21,7 @@ class SqlException : public xamp::base::Exception {
 public:
 	explicit SqlException(QSqlError error);
 
-	const char* what() const override;
+    const char* what() const noexcept override;
 };
 
 #define IF_FAILED_LOG(expr) \

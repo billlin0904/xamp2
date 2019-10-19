@@ -5,10 +5,16 @@
 
 #pragma once
 
+#ifdef _WIN32
 #ifdef STREAM_API_EXPORTS
     #define XAMP_STREAM_API __declspec(dllexport)
 #else
     #define XAMP_STREAM_API __declspec(dllimport)
+#endif
+#define ENABLE_FFMPEG 1
+#else
+#define XAMP_STREAM_API
+#define ENABLE_FFMPEG 0
 #endif
 
 namespace xamp::stream {

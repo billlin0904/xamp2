@@ -7,6 +7,7 @@
 
 #include <base/exception.h>
 
+#ifdef _WIN32
 #include <output_device/win32/wasapi.h>
 #include <output_device/device_type.h>
 
@@ -44,3 +45,4 @@ private:
 			throw HRException(hresult, #hresult); \
 		} \
 	} while (false)
+#endif

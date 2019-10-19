@@ -1,3 +1,4 @@
+#if ENABLE_ASIO
 #include <asiosys.h>
 #include <asio.h>
 #include <asiodrivers.h>
@@ -87,3 +88,4 @@ AlignPtr<Device> ASIODeviceType::MakeDevice(const std::wstring& device_id) {
 }
 
 }
+#endif

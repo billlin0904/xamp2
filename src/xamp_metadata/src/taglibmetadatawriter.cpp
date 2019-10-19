@@ -13,10 +13,12 @@ public:
 	}
 
 	bool IsFileReadOnly(const Path& path) const {
+#ifdef _WIN32
 		auto attr = ::GetFileAttributesW(path.wstring().c_str());
 		if (attr != INVALID_FILE_ATTRIBUTES) {
 			return attr & FILE_ATTRIBUTE_READONLY;
 		}
+#endif
 		return false;
 	}
 
@@ -107,7 +109,11 @@ public:
 private:
     template <typename Function>
     static void Write(const Path &path, Function fun) {
+#ifdef _WIN32
         FileRef fileref(path.wstring().c_str());
+#else
+        FileRef fileref(path.string().c_str());
+#endif
         fun(fileref.file(), fileref.tag());
         fileref.save();
     }

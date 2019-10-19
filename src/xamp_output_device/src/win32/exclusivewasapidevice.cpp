@@ -1,4 +1,6 @@
 #include <base/logger.h>
+
+#ifdef _WIN32
 #include <output_device/win32/hrexception.h>
 #include <output_device/win32/exclusivewasapidevice.h>
 
@@ -389,3 +391,5 @@ int32_t ExclusiveWasapiDevice::GetBufferSize() const {
 }
 
 }
+
+#endif

@@ -7,6 +7,7 @@
 
 #include <base/base.h>
 
+#ifdef _WIN32
 #include <Windows.h>
 
 #include <base/unique_handle.h>
@@ -70,4 +71,4 @@ using MappingFileHandle = UniqueHandle<HANDLE, MappingFileHandleTraits>;
 using MappingAddressHandle = UniqueHandle<void*, MappingMemoryAddressTraits>;
 
 }
-
+#endif

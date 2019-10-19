@@ -12,7 +12,6 @@
 
 namespace xamp::player {
 
-static const int32_t MAX_DSD2PCM_SAMPLERATE = 96000;
 static const int32_t BUFFER_STREAM_COUNT = 20;
 static const std::chrono::milliseconds UPDATE_SAMPLE_INTERVAL(100);
 
@@ -30,9 +29,15 @@ AudioPlayer::AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter)
 	, read_sample_size_(0)
 	, is_playing_(false)
 	, is_paused_(false)
-	, state_adapter_(adapter)
-	, stream_(MakeAlign<FileStream, AvFileStream>()) {
+#ifdef _WIN32
+    , stream_(MakeAlign<FileStream, AvFileStream>())
+#else
+    , stream_()
+#endif
+    , state_adapter_(adapter) {
+#ifdef _WIN32
 	VmMemLock::EnableVmMemPrivilege(true);
+#endif
 }
 
 AudioPlayer::~AudioPlayer() {
@@ -43,7 +48,7 @@ AudioPlayer::~AudioPlayer() {
 void AudioPlayer::Open(const std::wstring& file_path, bool use_bass_stream, const DeviceInfo& device_info) {
 	Initial();
 	CloseDevice();
-	OpenStream(file_path, use_bass_stream, device_info);
+    OpenStream(file_path, use_bass_stream);
 	SetDeviceFormat();
 	CreateDevice(device_info.device_type_id, device_info.device_id, false);
 	OpenDevice();
@@ -72,9 +77,12 @@ void AudioPlayer::CreateDevice(const ID& device_type_id, const std::wstring& dev
 	device_->SetAudioCallback(this);
 }
 
-void AudioPlayer::OpenStream(const std::wstring& file_path, bool is_dsd_stream, const DeviceInfo& device_info) {
-	stream_->Close();
+void AudioPlayer::OpenStream(const std::wstring& file_path, bool is_dsd_stream) {
+    if (stream_ != nullptr) {
+        stream_->Close();
+    }
 
+#ifdef _WIN32
 	if (is_dsd_stream) {
 		stream_ = MakeAlign<FileStream, BassFileStream>();
 		if (auto dsd_stream = dynamic_cast<DSDStream*>(stream_.get())) {
@@ -90,6 +98,12 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, bool is_dsd_stream, 
 	else {
 		stream_ = MakeAlign<FileStream, AvFileStream>();
 	}
+#else
+    if (!stream_) {
+        stream_ = MakeAlign<FileStream, BassFileStream>();
+    }
+#endif
+
 	stream_->OpenFromFile(file_path);
 }
 
@@ -291,13 +305,18 @@ void AudioPlayer::CreateBuffer() {
 		stream_->GetFormat().GetByteFormat(),
 		input_format_.GetSampleRate());
 
-	int32_t require_read_sample = 0;
+    int32_t require_read_sample = 0;
+
+#if ENABLE_ASIO
 	if (dsd_mode_ == DSDModes::DSD_MODE_RAW || device_type_->GetTypeId() == ASIODeviceType::Id) {
 		require_read_sample = AudioFormat::MAX_SAMPLERATE;
 	}
 	else {
 		require_read_sample = device_->GetBufferSize() * 30;
 	}
+#else
+    require_read_sample = device_->GetBufferSize() * 30;
+#endif
 
 	auto output_format = input_format;
 	if (require_read_sample != num_read_sample_) {
@@ -326,7 +345,7 @@ void AudioPlayer::SetDeviceFormat() {
 }
 
 int AudioPlayer::operator()(void* samples, const int32_t num_buffer_frames, const double stream_time) noexcept {
-	const auto sample_size = num_buffer_frames * output_format_.GetChannels() * stream_->GetSampleSize();
+    const int32_t sample_size = num_buffer_frames * output_format_.GetChannels() * stream_->GetSampleSize();
 	if (!buffer_.TryRead(reinterpret_cast<int8_t*>(samples), sample_size)) {
 		std::atomic_exchange(&slice_, AudioSlice{ reinterpret_cast<float*>(samples), -1, stream_time });
 		stopped_cond_.notify_all();

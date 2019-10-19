@@ -20,12 +20,14 @@ static void loadAndDefaultAppConfig() {
 }
 
 int main(int argc, char *argv[]) {
+    QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+    QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+
 	Logger::Instance()
 #ifdef _DEBUG
 		.AddDebugOutputLogger()
 #endif
 		.AddFileLogger("xamp.log");	
-
 	QApplication app(argc, argv);
 
 	try {
@@ -35,10 +37,10 @@ int main(int argc, char *argv[]) {
 		XAMP_LOG_INFO("Initial database failure! {}", e.what());
 		return -1;
 	}
-	
+
 	loadAndDefaultAppConfig();
 
-	Xamp win;
-	win.show();
+    Xamp win;
+    win.show();
 	return app.exec();
 }

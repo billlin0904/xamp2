@@ -5,18 +5,20 @@
 
 #pragma once
 
-#pragma warning(disable:4251)
-#pragma warning(disable:4275)
-
 #include <cassert>
 #include <cstdint>
 
+#ifdef _WIN32
 #ifdef BASE_API_EXPORTS
     #define XAMP_BASE_API __declspec(dllexport)
     #define XAMP_BASE_API_ONLY_EXPORT __declspec(dllexport)
 #else
     #define XAMP_BASE_API __declspec(dllimport)
     #define XAMP_BASE_API_ONLY_EXPORT
+#endif
+#else
+#define XAMP_BASE_API
+#define XAMP_BASE_API_ONLY_EXPORT
 #endif
 
 #define XAMP_DISABLE_COPY(Class) \
@@ -32,7 +34,7 @@
     Class(Class &&) = default; \
 	Class& operator=(Class &&) = default;
 
-// Scott Meyers¡¦ C++11 PIMPL
+// Scott Meyers C++11 PIMPL
 // See more: http://oliora.github.io/2015/12/29/pimpl-and-rule-of-zero.html
 #define XAMP_PIMPL(Class) \
     virtual ~Class(); \
@@ -54,14 +56,23 @@
 #define XAMP_RESTRICT
 #endif
 
+#ifdef _WIN32
 // Optimization function call
 #define XAMP_ALWAYS_INLINE __forceinline
 #define XAMP_NEVER_INLINE __declspec(noinline)
+#else
+#define XAMP_ALWAYS_INLINE inline
+#define XAMP_NEVER_INLINE
+#endif
 
+#ifdef _WIN32
 #ifdef DEBUG
 # define XAMP_NO_DEFAULT assert(0)
 #else
 # define XAMP_NO_DEFAULT __assume(0)
+#endif
+#else
+# define XAMP_NO_DEFAULT assert(0)
 #endif
 
 // Avoid cache-pollution padding size

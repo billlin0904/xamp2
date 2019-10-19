@@ -1,7 +1,8 @@
-#include <FastMemcpy_Avx.h>
-
 #ifdef _WIN32
+#include <FastMemcpy_Avx.h>
 #include <base/windows_handle.h>
+#else
+#include <base/posix_handle.h>
 #endif
 
 #include <base/memory_mapped_file.h>
@@ -21,6 +22,14 @@ bool PrefetchMemory(void* adddr, size_t length) noexcept {
 	WinHandle current_process(GetCurrentProcess());
 	return PrefetchVirtualMemory(current_process.get(), 1, &address_range, 0);
 }
+#else
+size_t GetPageSize() noexcept {
+    return static_cast<size_t>(getpagesize());
+}
+
+bool PrefetchMemory(void* adddr, size_t length) noexcept {
+    return madvise(adddr, length, MADV_NORMAL) == 0;
+}
 #endif
 
 size_t GetPageAlignSize(size_t value) noexcept {
@@ -35,7 +44,11 @@ void PrefactchFile(const std::wstring& file_name) {
 }
 
 XAMP_RESTRICT void* FastMemcpy(void* dest, const void* src, int32_t size) noexcept {
+#ifdef _WIN32
 	return memcpy_fast(dest, src, size);
+#else
+    return memcpy(dest, src, size);
+#endif
 }
 
 }

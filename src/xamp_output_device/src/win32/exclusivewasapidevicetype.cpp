@@ -1,3 +1,4 @@
+#ifdef _WIN32
 #include <output_device/win32/hrexception.h>
 #include <output_device/win32/exclusivewasapidevice.h>
 #include <output_device/win32/exclusivewasapidevicetype.h>
@@ -88,3 +89,4 @@ std::vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfoList() const {
 }
 
 }
+#endif

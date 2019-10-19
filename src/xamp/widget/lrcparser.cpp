@@ -18,7 +18,7 @@ static std::chrono::milliseconds ParseTime(std::wstring const &str) {
     auto minutes = 0;
     auto seconds = 0;
     auto milliseconds = 0;
-
+#ifdef _WIN32
     const auto res = swscanf_s(str.c_str(), L"%u:%u.%u",
         &minutes,
         &seconds,
@@ -26,7 +26,16 @@ static std::chrono::milliseconds ParseTime(std::wstring const &str) {
     if (res != 3) {
         throw std::exception("Malformed lrc file");
     }
-
+#else
+    const auto res = swscanf(str.c_str(), L"%u:%u.%u",
+        &minutes,
+        &seconds,
+        &milliseconds);
+    if (res != 3) {
+        //throw std::exception("Malformed lrc file");
+        throw std::exception();
+    }
+#endif
     return std::chrono::minutes(minutes)
         + std::chrono::seconds(seconds)
         + std::chrono::milliseconds(milliseconds);

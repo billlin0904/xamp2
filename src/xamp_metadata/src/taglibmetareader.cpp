@@ -2,6 +2,7 @@
 #include <sstream>
 #include <functional>
 #include <unordered_set>
+#include <unordered_map>
 
 #include <base/function_ref.h>
 #include <base/str_utilts.h>
@@ -105,11 +106,11 @@ static bool GetFlacCover(File* file, std::vector<uint8_t>& buffer) {
 }
 
 static void SetFileInfo(const Path& path, Metadata& metadata) {
-    metadata.file_path = path;
-    metadata.file_name = path.filename();
-    metadata.parent_path = path.parent_path();
-    metadata.file_ext = path.extension();
-    metadata.file_name_no_ext = path.stem();
+    metadata.file_path = path.wstring();
+    metadata.file_name = path.filename().wstring();
+    metadata.parent_path = path.parent_path().wstring();
+    metadata.file_ext = path.extension().wstring();
+    metadata.file_name_no_ext = path.stem().wstring();
 }
 
 static void SetAudioProperties(AudioProperties* audio_properties, Metadata& metadata) {
@@ -164,7 +165,11 @@ public:
     }
 
     void Extract(const Path& path, Metadata& metadata) const {
+#ifdef _WIN32
         FileRef fileref(path.wstring().c_str(), true, TagLib::AudioProperties::Fast);
+#else
+        FileRef fileref(path.string().c_str(), true, TagLib::AudioProperties::Fast);
+#endif
         const auto tag = fileref.tag();
 
         if (tag != nullptr) {
@@ -192,9 +197,11 @@ public:
 			cover_.clear();
 			return cover_;
 		}
-
+#ifdef _WIN32
         FileRef fileref(path.wstring().c_str());
-
+#else
+        FileRef fileref(path.string().c_str());
+#endif
         const auto tag = fileref.tag();
         if (!tag) {
             cover_.clear();

@@ -46,7 +46,7 @@ public:
 
 	void Open(const std::wstring& file_path, bool is_dsd_stream, const DeviceInfo& device_info);
 
-	void PlayStream();
+    void PlayStream();
 
 	void Play();
 
@@ -77,10 +77,11 @@ public:
 	PlayerState GetState() const noexcept;
 
 	AudioFormat GetStreamFormat() const;
+
 private:
 	void Initial();
 
-	void OpenStream(const std::wstring& file_path, bool use_bass_stream, const DeviceInfo& device_info);
+    void OpenStream(const std::wstring& file_path, bool use_bass_stream);
 
 	void CreateDevice(const ID& device_type_id, const std::wstring& device_id, const bool open_always);
 
@@ -103,7 +104,7 @@ private:
 	void SetState(const PlayerState play_state);
 
 	struct alignas(XAMP_MALLOC_ALGIGN_SIZE) AudioSlice {
-		AudioSlice(const float* samples = nullptr, int32_t sample_size = 0, double stream_time = 0.0) noexcept
+        AudioSlice(const float* samples = nullptr, int32_t sample_size = 0, double stream_time = 0.0) noexcept
 			: samples(samples)
 			, sample_size(sample_size)
 			, stream_time(stream_time) {
@@ -116,11 +117,11 @@ private:
 		}
 
 		const float* samples;
-		int32_t sample_size;
+        int32_t sample_size;
 		double stream_time;
 	};
 
-	XAMP_ENFORCE_TRIVIAL(AudioSlice);
+    XAMP_ENFORCE_TRIVIAL(AudioSlice)
 
 	bool is_muted_;
 	DSDModes dsd_mode_;

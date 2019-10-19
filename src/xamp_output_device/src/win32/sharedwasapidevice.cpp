@@ -1,3 +1,4 @@
+#ifdef _WIN32
 #include <base/logger.h>
 #include <output_device/audiocallback.h>
 #include <output_device/win32/hrexception.h>
@@ -353,3 +354,4 @@ void SharedWasapiDevice::GetSampleRequested(const bool is_silence) {
 }
 
 }
+#endif

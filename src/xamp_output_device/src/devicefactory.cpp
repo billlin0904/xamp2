@@ -1,5 +1,9 @@
+#ifdef _WIN32
 #include <output_device/win32/exclusivewasapidevicetype.h>
 #include <output_device/win32/sharedwasapidevicetype.h>
+#else
+#include <output_device/osx/coreaudiodevicetype.h>
+#endif
 #include <output_device/asiodevicetype.h>
 #include <output_device/devicefactory.h>
 
@@ -17,6 +21,9 @@ DeviceFactory::DeviceFactory() {
 	XAMP_REGISTER_DEVICE_TYPE(SharedWasapiDeviceType);
 	XAMP_REGISTER_DEVICE_TYPE(ExclusiveWasapiDeviceType);
 	XAMP_REGISTER_DEVICE_TYPE(ASIODeviceType);
+#else
+    using namespace osx;
+    XAMP_REGISTER_DEVICE_TYPE(CoreAudioDeviceType);
 #endif
 }
 
@@ -45,7 +52,11 @@ std::optional<AlignPtr<DeviceType>> DeviceFactory::Create(const ID id) const {
 }
 
 bool DeviceFactory::IsExclusiveDevice(const DeviceInfo& info) {
+#ifdef _WIN32
 	return info.device_type_id == win32::ExclusiveWasapiDeviceType::Id;
+#else
+    return false;
+#endif
 }
 
 }

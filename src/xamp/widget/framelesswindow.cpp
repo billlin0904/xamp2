@@ -19,15 +19,16 @@
 
 FramelessWindow::FramelessWindow(QWidget* parent)
     : QWidget(parent)
+#if defined(Q_OS_WIN)
 	, is_maximized_(false)
-	, border_width_(5) {	
-	setWindowFlags(Qt::FramelessWindowHint | Qt::WindowMaximizeButtonHint);
+    , border_width_(5)
+#endif
+{
+    //setWindowFlags(Qt::FramelessWindowHint | Qt::WindowMaximizeButtonHint);
     setMouseTracking(true);
     installEventFilter(this);
     setAcceptDrops(true);
 #if defined(Q_OS_WIN)
-	QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-	QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 	HWND hwnd = (HWND)winId();
 	const DWMNCRENDERINGPOLICY ncrp = DWMNCRP_ENABLED;
 	::DwmSetWindowAttribute(hwnd, DWMWA_NCRENDERING_POLICY, &ncrp, sizeof(ncrp));
@@ -35,12 +36,12 @@ FramelessWindow::FramelessWindow(QWidget* parent)
 	const MARGINS borderless = { 1, 1, 1, 1 };
 	::DwmExtendFrameIntoClientArea(hwnd, &borderless);
 	setBlurMaterial(this);
+#else
 #endif
-	initialFontDatabase();
-	setStyleSheet(Q_UTF8(R"(
-		font-family: "UI";
-		background: transparent;
-	)"));
+    initialFontDatabase();
+    setStyleSheet(Q_UTF8(R"(
+        font-family: "UI";
+    )"));
 }
 
 FramelessWindow::~FramelessWindow() {
@@ -182,7 +183,7 @@ void FramelessWindow::dragLeaveEvent(QDragLeaveEvent* event) {
 }
 
 void FramelessWindow::dropEvent(QDropEvent* event) {
-    const auto * mime_data = event->mimeData();
+    const auto* mime_data = event->mimeData();
 
     if (mime_data->hasUrls()) {
         for (auto const& url : mime_data->urls()) {
@@ -271,7 +272,9 @@ bool FramelessWindow::hitTest(MSG const* msg, long* result) const {
 }
 #endif
 
-bool FramelessWindow::nativeEvent(const QByteArray & event_type, void * message, long * result) {
+
+bool FramelessWindow::nativeEvent(const QByteArray& event_type, void * message, long * result) {
+    #if defined(Q_OS_WIN)
     const auto msg = static_cast<MSG const*>(message);
     switch (msg->message) {
     case WM_NCHITTEST:
@@ -283,8 +286,10 @@ bool FramelessWindow::nativeEvent(const QByteArray & event_type, void * message,
     default:
         break;
     }
+    #endif
     return QWidget::nativeEvent(event_type, message, result);
 }
+
 
 void FramelessWindow::mousePressEvent(QMouseEvent* event) {
 #if defined(Q_OS_WIN)
@@ -294,8 +299,9 @@ void FramelessWindow::mousePressEvent(QMouseEvent* event) {
             ::SendMessage(HWND(widget->winId()), WM_SYSCOMMAND, SC_MOVE + HTCAPTION, 0);
         }
     }
-#endif
     event->ignore();
+#endif
+    return QWidget::mousePressEvent(event);
 }
 
 void FramelessWindow::mouseReleaseEvent(QMouseEvent* event) {
@@ -310,7 +316,7 @@ void FramelessWindow::showEvent(QShowEvent* event) {
     event->accept();
 }
 
-void FramelessWindow::addDropFileItem(const QUrl& url) {
+void FramelessWindow::addDropFileItem(const QUrl&) {
 }
 
 void FramelessWindow::onDeleteKeyPress() {

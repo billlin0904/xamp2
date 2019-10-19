@@ -23,9 +23,9 @@ public:
 
 	void Open(FILE* file);
 
-	const void * GetData() const;
+    void * GetData() const;
 
-	int64_t GetLength() const;
+    size_t GetLength() const;
 
 	void Close();
 

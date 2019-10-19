@@ -14,60 +14,58 @@
 namespace xamp::base {
 
 enum class Errors {
-	XAMP_ERROR_UNKNOWN,
-	XAMP_ERROR_PLATFORM_SPEC_ERROR,
-	XAMP_ERROR_LIBRARY_SPEC_ERROR,
-	XAMP_ERROR_DEVICE_NOT_INITIALIZED,
-	XAMP_ERROR_DEVICE_UNSUPPORTED_FORMAT,
-	XAMP_ERROR_DEVICE_IN_USE,
-	XAMP_ERROR_DEVICE_NOT_FOUND,
-	XAMP_ERROR_FILE_NOT_FOUND,
-	XAMP_ERROR_NOT_SUPPORT_SAMPLERATE,
-	XAMP_ERROR_NOT_SUPPORT_FORMAT,
-	XAMP_ERROR_LOAD_DLL_FAILURE,
-	_MAX_XAMP_ERROR_,
+    XAMP_ERROR_UNKNOWN,
+    XAMP_ERROR_PLATFORM_SPEC_ERROR,
+    XAMP_ERROR_LIBRARY_SPEC_ERROR,
+    XAMP_ERROR_DEVICE_NOT_INITIALIZED,
+    XAMP_ERROR_DEVICE_UNSUPPORTED_FORMAT,
+    XAMP_ERROR_DEVICE_IN_USE,
+    XAMP_ERROR_DEVICE_NOT_FOUND,
+    XAMP_ERROR_FILE_NOT_FOUND,
+    XAMP_ERROR_NOT_SUPPORT_SAMPLERATE,
+    XAMP_ERROR_NOT_SUPPORT_FORMAT,
+    XAMP_ERROR_LOAD_DLL_FAILURE,
+    _MAX_XAMP_ERROR_,
 };
 
 XAMP_BASE_API std::ostream& operator<<(std::ostream& ostr, Errors error);
 
 class XAMP_BASE_API Exception : public std::exception {
 public:
-	explicit Exception(Errors error = Errors::XAMP_ERROR_UNKNOWN, const std::string& message = "");
+    explicit Exception(Errors error = Errors::XAMP_ERROR_UNKNOWN, const std::string& message = "", const char* what = "");
 
-	virtual ~Exception() = default;
+    ~Exception() override = default;
 
-	const char * what() const override;
+    const char * what() const noexcept override;
 
-	virtual Errors GetError() const;
+    virtual Errors GetError() const;
 
-	const char * GetErrorMessage() const;
+    const char * GetErrorMessage() const;
 
-	virtual const char * GetExpression() const;
-
-protected:	
-	std::string what_;
-	std::string message_;
+    virtual const char * GetExpression() const;
 
 private:
-	Errors error_;
+    Errors error_;
+
+protected:	
+    const char* what_;
+    std::string message_;
 };
 
-#define DECLARE_EXCEPTION_CLASS(ExceptionClassName, error) \
+#define XAMP_DECLARE_EXCEPTION_CLASS(ExceptionClassName) \
 class XAMP_BASE_API ExceptionClassName : public Exception {\
-public:\
-    ExceptionClassName()\
-        : Exception(error) {\
-    }\
+    public:\
+    ExceptionClassName();\
 };
 
-DECLARE_EXCEPTION_CLASS(LibrarySpecErrorException, Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR)
-DECLARE_EXCEPTION_CLASS(DeviceNotInititalzedException, Errors::XAMP_ERROR_DEVICE_NOT_INITIALIZED)
-DECLARE_EXCEPTION_CLASS(DeviceInUseException, Errors::XAMP_ERROR_DEVICE_IN_USE)
-DECLARE_EXCEPTION_CLASS(DeviceUnSupportedFormatException, Errors::XAMP_ERROR_DEVICE_UNSUPPORTED_FORMAT)
-DECLARE_EXCEPTION_CLASS(DeviceNotFoundException, Errors::XAMP_ERROR_DEVICE_NOT_FOUND)
-DECLARE_EXCEPTION_CLASS(FileNotFoundException, Errors::XAMP_ERROR_FILE_NOT_FOUND)
-DECLARE_EXCEPTION_CLASS(NotSupportSampleRateException, Errors::XAMP_ERROR_NOT_SUPPORT_SAMPLERATE)
-DECLARE_EXCEPTION_CLASS(NotSupportFormatException, Errors::XAMP_ERROR_NOT_SUPPORT_FORMAT)
-DECLARE_EXCEPTION_CLASS(LoadDllFailureException, Errors::XAMP_ERROR_LOAD_DLL_FAILURE)
+XAMP_DECLARE_EXCEPTION_CLASS(LibrarySpecErrorException)
+XAMP_DECLARE_EXCEPTION_CLASS(DeviceNotInititalzedException)
+XAMP_DECLARE_EXCEPTION_CLASS(DeviceInUseException)
+XAMP_DECLARE_EXCEPTION_CLASS(DeviceUnSupportedFormatException)
+XAMP_DECLARE_EXCEPTION_CLASS(DeviceNotFoundException)
+XAMP_DECLARE_EXCEPTION_CLASS(FileNotFoundException)
+XAMP_DECLARE_EXCEPTION_CLASS(NotSupportSampleRateException)
+XAMP_DECLARE_EXCEPTION_CLASS(NotSupportFormatException)
+XAMP_DECLARE_EXCEPTION_CLASS(LoadDllFailureException)
 
 }

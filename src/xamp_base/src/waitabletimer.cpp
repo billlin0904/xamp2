@@ -1,8 +1,15 @@
+#ifdef _WIN32
 #include <base/windows_handle.h>
+#else
+#include <thread>
+#include <base/posix_handle.h>
+#endif
+
 #include <base/waitabletimer.h>
 
 namespace xamp::base {
 
+#ifdef _WIN32
 class WaitableTimer::WaitableTimerImpl {
 public:
 	WaitableTimerImpl()
@@ -39,6 +46,35 @@ private:
 	WinHandle timer_;
 	std::chrono::milliseconds timeout_;
 };
+#else
+class WaitableTimer::WaitableTimerImpl {
+public:
+    WaitableTimerImpl()
+        : timeout_(0) {
+    }
+
+    ~WaitableTimerImpl() {
+    }
+
+    void SetTimeout(std::chrono::milliseconds timeout) {
+        timeout_ = timeout;
+        Reset();
+    }
+
+    void Cancel() {
+    }
+
+    void Wait() {
+        std::this_thread::sleep_for(timeout_);
+        Reset();
+    }
+
+private:
+    void Reset() {
+    }
+    std::chrono::milliseconds timeout_;
+};
+#endif
 
 WaitableTimer::WaitableTimer()
 	: impl_(MakeAlign<WaitableTimerImpl>()) {

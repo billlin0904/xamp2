@@ -1,3 +1,4 @@
+#ifdef _WIN32
 #include <output_device/win32/hrexception.h>
 #include <output_device/win32/wasapi.h>
 
@@ -34,3 +35,4 @@ DeviceInfo GetDeviceInfo(CComPtr<IMMDevice>& device, const ID device_type_id) {
 }
 
 }
+#endif

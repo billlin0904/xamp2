@@ -1,3 +1,4 @@
+#ifdef _WIN32
 #include <system_error>
 #include <output_device/win32/hrexception.h>
 
@@ -23,3 +24,4 @@ const char* HRException::GetExpression() const {
 }
 
 }
+#endif

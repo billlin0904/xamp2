@@ -10,6 +10,8 @@
 
 namespace xamp::output_device {
 
+using namespace base;
+
 class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE Device {
 public:
 	virtual ~Device() = default;

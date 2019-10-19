@@ -45,7 +45,7 @@ public:
 
 	void play(const QModelIndex& index);
 
-	void scrollTo(const QModelIndex& index);
+    void scrollTo(const QModelIndex& index);
 
 	void resizeColumn() const;
 
@@ -68,7 +68,7 @@ public slots:
 	void search(const QString& sort_str, Qt::CaseSensitivity case_sensitivity, QRegExp::PatternSyntax pattern_syntax);
 
 private:
-	void resizeEvent(QResizeEvent* event);
+    void resizeEvent(QResizeEvent* event) override;
 
 	void initial();
 

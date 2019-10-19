@@ -29,35 +29,35 @@ enum class InterleavedFormat {
 	DEINTERLEAVED
 };
 
-static const int32_t XAMP_MAX_CHANNEL = 2;
+static const uint32_t XAMP_MAX_CHANNEL = 2;
 
 class XAMP_BASE_API AudioFormat final {
 public:
 	static const AudioFormat UnknowFormat;
 
-	static const int32_t MAX_SAMPLERATE = 192000;
+    static const uint32_t MAX_SAMPLERATE = 192000;
 
-	explicit AudioFormat(int32_t number_of_channels = 0, int32_t bits_per_sample = 0, int32_t samplerate = 0) noexcept;
+    explicit AudioFormat(int32_t number_of_channels = 0, int32_t bits_per_sample = 0, int32_t samplerate = 0) noexcept;
 
-	explicit AudioFormat(int32_t number_of_channels, ByteFormat byte_format, int32_t samplerate, InterleavedFormat interleaved_format = InterleavedFormat::INTERLEAVED) noexcept;
+    explicit AudioFormat(int32_t number_of_channels, ByteFormat byte_format, int32_t samplerate, InterleavedFormat interleaved_format = InterleavedFormat::INTERLEAVED) noexcept;
 
-	void SetSampleRate(int32_t sample_rate) noexcept;
+    void SetSampleRate(int32_t sample_rate) noexcept;
 
-	void SetBitPerSample(int32_t bits_per_sample) noexcept;
+    void SetBitPerSample(int32_t bits_per_sample) noexcept;
 
-	int32_t GetSampleRate() const noexcept;
+    int32_t GetSampleRate() const noexcept;
 
-	int32_t GetAvgBytesPerSec() const noexcept;
+    int32_t GetAvgBytesPerSec() const noexcept;
 
-	int32_t GetAvgFramesPerSec() const noexcept;
+    int32_t GetAvgFramesPerSec() const noexcept;
 
-	int32_t GetChannels() const noexcept;
+    int32_t GetChannels() const noexcept;
 
-	int32_t GetBitsPerSample() const noexcept;
+    int32_t GetBitsPerSample() const noexcept;
 
-	int32_t GetBytesPerSample() const noexcept;
+    int32_t GetBytesPerSample() const noexcept;
 
-	int32_t GetBlockAlign() const noexcept;
+    int32_t GetBlockAlign() const noexcept;
 
 	ByteFormat GetByteFormat() const noexcept;
 
@@ -76,9 +76,9 @@ private:
 
 	ByteFormat byte_format_;
 	InterleavedFormat interleaved_format_;
-	int32_t num_channels_;
-	int32_t sample_rate_;
-	int32_t bits_per_sample_;
+    int32_t num_channels_;
+    int32_t sample_rate_;
+    int32_t bits_per_sample_;
 };
 
 XAMP_ENFORCE_TRIVIAL(AudioFormat);

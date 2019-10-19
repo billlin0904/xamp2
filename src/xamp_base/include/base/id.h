@@ -23,8 +23,6 @@ public:
 
 	static const ID INVALID_ID;
 
-	static ID NewId();
-
     static ID FromString(const std::string & str);
 
     ID() noexcept;

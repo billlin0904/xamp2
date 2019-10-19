@@ -7,6 +7,7 @@
 
 #include <base/align_ptr.h>
 
+#ifdef _WIN32
 #include <output_device/win32/wasapi.h>
 #include <output_device/device_type.h>
 
@@ -45,3 +46,6 @@ private:
 };
 
 }
+
+#endif
+

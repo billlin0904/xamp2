@@ -99,7 +99,7 @@ static INLINE void memcpy_avx_256(void * RESTRICT dst, const void * RESTRICT src
 //---------------------------------------------------------------------
 // tiny memory copy with jump table optimized
 //---------------------------------------------------------------------
-static INLINE __declspec(restrict) void *memcpy_tiny(void * dst, const void * src, size_t size) {
+static INLINE RESTRICT void *memcpy_tiny(void * dst, const void * src, size_t size) {
 	unsigned char *dd = ((unsigned char*)dst) + size;
 	const unsigned char *ss = ((const unsigned char*)src) + size;
 
@@ -370,7 +370,7 @@ static INLINE __declspec(restrict) void *memcpy_tiny(void * dst, const void * sr
 //---------------------------------------------------------------------
 // main routine
 //---------------------------------------------------------------------
-static __declspec(restrict) void* memcpy_fast(void * destination, const void * source, size_t size)
+static RESTRICT void* memcpy_fast(void * destination, const void * source, size_t size)
 {
 	unsigned char *dst = (unsigned char*)destination;
 	const unsigned char *src = (const unsigned char*)source;

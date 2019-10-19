@@ -1,3 +1,4 @@
+#if 0
 #ifdef _WIN32
 #include <base/windows_handle.h>
 #endif
@@ -57,3 +58,4 @@ ThreadPool::ThreadPool()
 }
 
 }
+#endif

@@ -5,6 +5,7 @@
 
 #pragma once
 
+#if ENABLE_ASIO
 #include <asiosys.h>
 #include <asio.h>
 #include <asiodrivers.h>
@@ -41,3 +42,4 @@ public:
 
 
 }
+#endif

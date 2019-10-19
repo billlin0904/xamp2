@@ -123,6 +123,22 @@ struct DataConverter {
 		}
 		return output;
 	}
+
+    static XAMP_RESTRICT float* Convert(float* output, const float* input, const ConvertContext& context) noexcept {
+        const auto output_left_offset = context.out_offset[0];
+        const auto output_right_offset = context.out_offset[1];
+
+        const auto input_left_offset = context.in_offset[0];
+        const auto input_right_offset = context.in_offset[1];
+
+        for (int32_t i = 0; i < context.convert_size; ++i) {
+            output[output_left_offset] = input[input_left_offset];
+            output[output_right_offset] = input[input_right_offset];
+            input += context.in_jump;
+            output += context.out_jump;
+        }
+        return output;
+    }
 };
 
 template <>

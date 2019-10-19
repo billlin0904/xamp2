@@ -1,3 +1,4 @@
+#if ENABLE_ASIO
 #include <vector>
 #include <algorithm>
 
@@ -38,3 +39,4 @@ ASIOException::ASIOException(ASIOError error) {
 }
 
 }
+#endif

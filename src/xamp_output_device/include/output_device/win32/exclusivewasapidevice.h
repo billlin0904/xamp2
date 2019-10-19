@@ -13,6 +13,8 @@
 #include <output_device/audiocallback.h>
 #include <output_device/device.h>
 
+#ifdef _WIN32
+
 namespace xamp::output_device::win32 {
 
 using namespace base;
@@ -92,3 +94,5 @@ private:
 };
 
 }
+
+#endif

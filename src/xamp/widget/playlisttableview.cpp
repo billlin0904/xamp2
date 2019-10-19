@@ -123,6 +123,10 @@ void PlayListTableView::initial() {
 		resizeColumn();
 		});
 
+    auto f = font();
+    f.setPointSize(11);
+    setFont(f);
+
 	adapter_.playlist = this;
 }
 

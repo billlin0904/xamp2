@@ -5,6 +5,7 @@
 
 #pragma once
 
+#if ENABLE_ASIO
 #include <unordered_map>
 
 #include <base/base.h>
@@ -44,4 +45,4 @@ private:
 };
 
 }
-
+#endif

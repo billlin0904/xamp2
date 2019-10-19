@@ -1,5 +1,9 @@
 #include <base/logger.h>
+#ifdef _WIN32
 #include <base/windows_handle.h>
+#else
+#include <base/posix_handle.h>
+#endif
 #include <base/memory.h>
 #include <base/vmmemlock.h>
 
@@ -89,6 +93,38 @@ void VmMemLock::UnLock() noexcept {
 	address_ = nullptr;
 	size_ = 0;
 }
+#else
+
+VmMemLock::VmMemLock() noexcept
+    : address_(nullptr)
+    , size_(0) {
+}
+
+VmMemLock::~VmMemLock() noexcept {
+    UnLock();
+}
+
+void VmMemLock::Lock(void* address, size_t size) noexcept {
+    UnLock();
+
+    if (mlock(address_, size_)) {
+        XAMP_LOG_DEBUG("mlock return failure! error:{}", errno);
+    }
+
+    address_ = address;
+    size_ = size;
+}
+
+void VmMemLock::UnLock() noexcept {
+    if (address_) {
+        if (munlock(address_, size_)) {
+            XAMP_LOG_DEBUG("munlock return failure! error:{}", errno);
+        }
+    }
+    address_ = nullptr;
+    size_ = 0;
+}
+
 #endif
 
 }

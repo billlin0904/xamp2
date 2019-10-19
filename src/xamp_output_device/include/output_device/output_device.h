@@ -5,10 +5,14 @@
 
 #pragma once
 
+#ifdef _WIN32
 #ifdef XAMP_OUTPUT_DEVICE_API_EXPORTS
 #define XAMP_OUTPUT_DEVICE_API __declspec(dllexport)
 #else
 #define XAMP_OUTPUT_DEVICE_API __declspec(dllimport)
+#endif
+#else
+#define XAMP_OUTPUT_DEVICE_API
 #endif
 
 #include <cstdint>

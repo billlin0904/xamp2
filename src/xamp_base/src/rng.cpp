@@ -15,7 +15,7 @@ RNG::RNG() noexcept {
     std::vector<std::mt19937_64::result_type> seeds(std::mt19937_64::state_size);
     std::uniform_int_distribution<typename std::mt19937::result_type> dist;
     std::generate(std::begin(seeds), std::end(seeds), std::ref(device));
-    const std::seed_seq seq(std::begin(seeds), std::end(seeds));
+    std::seed_seq seq(std::begin(seeds), std::end(seeds));
 	engine_.seed(seq);
 }
 

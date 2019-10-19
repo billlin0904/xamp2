@@ -20,8 +20,9 @@ public:
 	void Lock(void* address, size_t size) noexcept;
 
 	void UnLock() noexcept;
-
+#ifdef _WIN32
 	static bool EnableVmMemPrivilege(bool enable) noexcept;
+#endif
 private:
 	void* address_;
 	size_t size_;

@@ -9,6 +9,7 @@
 #include <QMimeData>
 #include <QDragEnterEvent>
 #include <QSystemTrayIcon>
+#include <QMainWindow>
 
 #include <base/align_ptr.h>
 
@@ -22,7 +23,7 @@ class FramelessWindow : public QWidget {
 public:
     explicit FramelessWindow(QWidget *parent = nullptr);
 
-	~FramelessWindow();
+    ~FramelessWindow() override;
 
     Q_DISABLE_COPY(FramelessWindow)
 
@@ -43,7 +44,7 @@ public:
 	void setTaskbarPlayerStop();
 
 protected:
-    bool eventFilter(QObject* object, QEvent* event);
+    bool eventFilter(QObject* object, QEvent* event) override;
 
     void dragEnterEvent(QDragEnterEvent *event) override;
 
@@ -52,9 +53,9 @@ protected:
     void dragLeaveEvent(QDragLeaveEvent *event) override;
 
     void dropEvent(QDropEvent *event) override;
-
+#if defined(Q_OS_WIN)
     bool hitTest(MSG const* msg, long* result) const;
-
+#endif
     void mousePressEvent(QMouseEvent *event) override;
 
     void mouseReleaseEvent(QMouseEvent * event) override;
@@ -76,9 +77,9 @@ private:
 
 	void initialFontDatabase();
 
-#if defined(Q_OS_WIN)
-	bool nativeEvent(const QByteArray& event_type, void* message, long* result) override;
+    bool nativeEvent(const QByteArray& event_type, void* message, long* result) override;
 
+#if defined(Q_OS_WIN)
 	bool is_maximized_;
 	int32_t border_width_;
 	QIcon play_icon_;

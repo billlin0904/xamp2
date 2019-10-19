@@ -1,5 +1,6 @@
 #include <stream/avfilestream.h>
 
+#if ENABLE_FFMPEG
 #define ENABLE_IO_CONTEXT 0
 
 #pragma comment(lib, "crypt32")
@@ -484,4 +485,6 @@ bool AvFileStream::IsDSDFile() const noexcept {
 }
 
 }
+
+#endif
 

@@ -36,7 +36,7 @@ static std::array<uint8_t, XAMP_ID_MAX_SIZE> ParseString(const std::string_view&
 		|| from_string[13] != '-'
 		|| from_string[18] != '-'
 		|| from_string[23] != '-') {
-		throw std::exception("Invalid UUID");
+        throw Exception(Errors::XAMP_ERROR_UNKNOWN, "Invalid UUID");
 	}
 	
 	std::array<uint8_t, XAMP_ID_MAX_SIZE> uuid{};
@@ -99,37 +99,6 @@ ID::operator std::string() const noexcept {
     std::ostringstream ostr;
 	ostr << *this;
     return ostr.str();
-}
-
-ID ID::NewId() {
-#ifdef _WIN32
-	GUID new_id{};
-
-	(void) CoCreateGuid(&new_id);
-
-	const std::array<uint8_t, XAMP_ID_MAX_SIZE> bytes {
-		static_cast<uint8_t>((new_id.Data1 >> 24) & 0xFF),
-		static_cast<uint8_t>((new_id.Data1 >> 16) & 0xFF),
-		static_cast<uint8_t>((new_id.Data1 >> 8) & 0xFF),
-		static_cast<uint8_t>((new_id.Data1) & 0xFF),
-
-		static_cast<uint8_t>((new_id.Data2 >> 8) & 0xFF),
-		static_cast<uint8_t>((new_id.Data2) & 0xff),
-
-		static_cast<uint8_t>((new_id.Data3 >> 8) & 0xFF),
-		static_cast<uint8_t>((new_id.Data3) & 0xFF),
-
-		new_id.Data4[0],
-		new_id.Data4[1],
-		new_id.Data4[2],
-		new_id.Data4[3],
-		new_id.Data4[4],
-		new_id.Data4[5],
-		new_id.Data4[6],
-		new_id.Data4[7]
-	};
-#endif
-	return ID(bytes);
 }
 
 ID ID::FromString(const std::string & str) {

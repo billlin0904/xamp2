@@ -10,6 +10,8 @@
 
 #include <output_device/device.h>
 
+#ifdef _WIN32
+
 namespace xamp::output_device::win32 {
 
 class XAMP_OUTPUT_DEVICE_API SharedWasapiDevice final : public Device {
@@ -87,4 +89,7 @@ private:
 };
 
 }
+
+#endif
+
 
