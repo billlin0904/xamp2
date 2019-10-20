@@ -16,9 +16,13 @@
     #define XAMP_BASE_API __declspec(dllimport)
     #define XAMP_BASE_API_ONLY_EXPORT
 #endif
+#define XAMP_LIKELY(x) (x)
+#define XAMP_UNLIKELY(x) !(x)
 #else
 #define XAMP_BASE_API
 #define XAMP_BASE_API_ONLY_EXPORT
+#define XAMP_LIKELY(x) __builtin_expect(!!(x), 1)
+#define XAMP_UNLIKELY(x) __builtin_expect(!!(x), 0)
 #endif
 
 #define XAMP_DISABLE_COPY(Class) \

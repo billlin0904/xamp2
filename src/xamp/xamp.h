@@ -54,6 +54,8 @@ private:
 
 	void playLocalFile(const PlayListEntity& item);
 
+    void stopPlayedClicked() override;
+
     void playNextClicked() override;
 
     void playPreviousClicked() override;
@@ -103,6 +105,7 @@ private:
 	QModelIndex play_index_;
 	Ui::XampWindow ui;
 	DeviceInfo device_info_;
+    PlayListEntity current_entiry_;
 	LrcPage* lrc_page_;
 	PlyalistPage* playlist_page_;
 	QStack<int32_t> stack_page_id_;

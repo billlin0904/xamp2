@@ -64,13 +64,13 @@ protected:
 
 	void showEvent(QShowEvent * event) override;
 
-	virtual void play();
+    virtual void play() = 0;
 
-	virtual void playNextClicked();
+    virtual void playNextClicked() = 0;
 
-	virtual void playPreviousClicked();
+    virtual void playPreviousClicked() = 0;
 
-	virtual void stopPlayedClicked();
+    virtual void stopPlayedClicked() = 0;
 
 private:
 	void lazyInitial();

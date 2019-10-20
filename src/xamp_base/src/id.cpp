@@ -28,7 +28,7 @@ static uint8_t MakeHex(char a, char b) {
 }
 
 static std::array<uint8_t, XAMP_ID_MAX_SIZE> ParseString(const std::string_view& from_string) {
-	if (from_string.length() != ID::MAX_ID_STR_LEN) {
+    if (from_string.length() != MAX_ID_STR_LEN) {
 		throw Exception(Errors::XAMP_ERROR_UNKNOWN, "Invalid UUID");
 	}
 

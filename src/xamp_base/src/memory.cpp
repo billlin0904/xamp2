@@ -28,7 +28,7 @@ size_t GetPageSize() noexcept {
 }
 
 bool PrefetchMemory(void* adddr, size_t length) noexcept {
-    return madvise(adddr, length, MADV_NORMAL) == 0;
+    return madvise(adddr, length, MADV_SEQUENTIAL) == 0;
 }
 #endif
 

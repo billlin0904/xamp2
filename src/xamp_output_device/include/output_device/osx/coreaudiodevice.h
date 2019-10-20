@@ -62,13 +62,13 @@ private:
                                   const AudioTimeStamp*,
                                   AudioBufferList* outOutputData,
                                   const AudioTimeStamp*,
-                                  void* infoPointer);
+                                  void* user_data);
 
-    void AudioIOProc(AudioBufferList* outOutputData);
+    void AudioIOProc(AudioBufferList* output_data);
 
+    bool is_running_;
     AudioDeviceID device_id_;
     AudioDeviceIOProcID proc_id_;
-    bool is_running_;
     int32_t buffer_size_;
     AudioCallback *callback_;
     double stream_time_;

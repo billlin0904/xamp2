@@ -15,7 +15,7 @@
 
 namespace xamp::stream {
 
-const DWORD BASS_ERROR{ 0xFFFFFFFF };
+constexpr DWORD BASS_ERROR{ 0xFFFFFFFF };
 
 static Errors TranslateBassError(int error) {
 	switch (error) {
@@ -104,7 +104,7 @@ static const char* GetBassErrorMessage(int error) noexcept {
 	}
 }
 
-class BassException : public Exception {
+class BassException final : public Exception {
 public:
 	explicit BassException(int error)
 		: Exception(TranslateBassError(error), GetBassErrorMessage(error))
@@ -385,9 +385,13 @@ public:
 
 	AudioFormat GetFormat() const {
 		if (mode_ == DSDModes::DSD_MODE_RAW) {
-			return AudioFormat(info_.chans, base::ByteFormat::SINT8, GetDSDSampleRate());
+            return AudioFormat(info_.chans,
+                               base::ByteFormat::SINT8,
+                               GetDSDSampleRate());
 		}
-		return AudioFormat(info_.chans, base::ByteFormat::FLOAT32, info_.freq);
+        return AudioFormat(info_.chans,
+                           base::ByteFormat::FLOAT32,
+                           info_.freq);
 	}
 
 	void Seek(double stream_time) const {
@@ -434,22 +438,21 @@ public:
 	}
 private:
 	XAMP_ALWAYS_INLINE int32_t InternalGetSamples(void *buffer, int32_t length) const noexcept {
-		const auto byte_read = BassLib::Instance().BASS_ChannelGetData(stream_.get(), buffer, length);
+        const auto byte_read = BassLib::Instance().BASS_ChannelGetData(stream_.get(), buffer, length);
 		if (byte_read == BASS_ERROR) {
 			return 0;
 		}
-		return byte_read;
+        return (int32_t) byte_read;
 	}
 
 	bool enable_file_mapped_;
     DSDModes mode_;
 	BassStreamHandle stream_;
-	MemoryMappedFile file_;
 	BASS_CHANNELINFO info_;
     BassDSDLib dsdlib_;
     BassPlugin plugin_;
+    MemoryMappedFile file_;
 };
-
 
 BassFileStream::BassFileStream()
 	: stream_(MakeAlign<BassFileStreamImpl>()) {

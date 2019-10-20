@@ -49,15 +49,6 @@ public:
         throw FileNotFoundException();
     }
 
-    void Open(FILE* file) {
-        auto fd = fileno(file);
-        auto osfhandle = (HANDLE)_get_osfhandle(fd);
-        file_.reset(osfhandle);
-        if (file_) {
-            OpenMappingFile(DEFAULT_PROTECT, DEFAULT_ACCESS);
-        }
-    }
-
     void OpenMappingFile(DWORD protect, DWORD access) {
         const MappingFileHandle mapping_handle(::CreateFileMappingW(file_.get(), 0, protect, 0, 0, 0));
         if (mapping_handle) {
@@ -94,7 +85,7 @@ public:
         : mem_(nullptr) {
     }
 
-    void Open(const std::wstring& file_path, FileAccessMode mode, bool exclusive = false) {
+    void Open(const std::wstring& file_path, FileAccessMode, bool) {
         file_.reset(open(ToUtf8String(file_path).c_str(), O_RDONLY));
         if (!file_) {
             throw FileNotFoundException();
@@ -103,9 +94,6 @@ public:
         if (!mem_) {
             throw FileNotFoundException();
         }
-    }
-
-    void Open(FILE* file) {
     }
 
     ~MemoryMappedFileImpl() {
@@ -118,6 +106,7 @@ public:
         }
         munmap(mem_, GetLength());
         mem_ = nullptr;
+        file_.close();
     }
 
     void * GetData() const {
@@ -142,12 +131,8 @@ MemoryMappedFile::MemoryMappedFile()
 
 XAMP_PIMPL_IMPL(MemoryMappedFile)
 
-void MemoryMappedFile::Open(FILE* file) {
-    impl_->Open(file);
-}
-
 void MemoryMappedFile::Open(const std::wstring &file_path) {
-    impl_->Open(file_path, FileAccessMode::READ);
+    impl_->Open(file_path, FileAccessMode::READ, false);
 }
 
 void * MemoryMappedFile::GetData() const {

@@ -39,6 +39,8 @@ public:
 
 	void erase(const QString& tag_id);
 
+    bool isExist(const QString& tag_id) const;
+
 protected:
 	PixmapCache();
 
