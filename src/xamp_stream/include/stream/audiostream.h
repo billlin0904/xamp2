@@ -28,7 +28,7 @@ public:
 
     virtual void Seek(double stream_time) const = 0;
 
-	virtual std::wstring GetStreamName() const = 0;
+    virtual std::string GetStreamName() const = 0;
 	
 	virtual int32_t GetSampleSize() const = 0;
 protected:

@@ -54,8 +54,9 @@ protected:
 
 #define XAMP_DECLARE_EXCEPTION_CLASS(ExceptionClassName) \
 class XAMP_BASE_API ExceptionClassName : public Exception {\
-    public:\
+public:\
     ExceptionClassName();\
+    ~ExceptionClassName() override = default;\
 };
 
 XAMP_DECLARE_EXCEPTION_CLASS(LibrarySpecErrorException)

@@ -2,33 +2,11 @@
 
 #include <base/logger.h>
 #include <player/audio_player.h>
+#include <widget/qdebugsink.h>
+#include <widget/appsettings.h>
+#include <widget/database.h>
 
-#include <spdlog/spdlog.h>
-#include <spdlog/sinks/base_sink.h>
-#include <spdlog/sinks/sink.h>
-#include <spdlog/fmt/ostr.h>
-
-#include "widget/appsettings.h"
-#include "widget/database.h"
-
-#include <QDebug>
 #include <QtWidgets/QApplication>
-
-class QDebugSink final : public spdlog::sinks::base_sink<std::mutex> {
-public:
-    QDebugSink() {
-    }
-
-private:
-    void sink_it_(const spdlog::details::log_msg& msg) override {
-        spdlog::memory_buf_t formatted;
-        formatter_->format(msg, formatted);
-        qErrnoWarning(fmt::to_string(formatted).c_str());
-    }
-
-    void flush_() override {
-    }
-};
 
 static void loadAndDefaultAppConfig() {
 	AppSettings::settings().loadIniFile(Q_UTF8("xamp.ini"));

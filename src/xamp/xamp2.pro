@@ -66,6 +66,7 @@ HEADERS += \
     widget/playlisttablemodel.h \
     widget/playlisttableproxymodel.h \
     widget/playlisttableview.h \
+    widget/qdebugsink.h \
     widget/toast.h \
     widget/wheelablewidget.h \
     widget/str_utilts.h \
@@ -81,12 +82,16 @@ RESOURCES += \
     widget/toast.qrc
 
 CONFIG(debug, debug|release) {
+LIBS += -L"../thirdparty/ffmpeg/lib/x64/mac/" -lavcodec.58 \
+
 LIBS += -L"../xamp_base/debug/" -lxamp_base \
     -L"../xamp_metadata/debug/" -lxamp_metadata \
     -L"../xamp_output_device/debug/" -lxamp_output_device \
     -L"../xamp_stream/debug/" -lxamp_stream \
     -L"../xamp_player/debug/" -lxamp_player \
 } else {
+LIBS += -L"../thirdparty/ffmpeg/lib/x64/mac/" -lavcodec.58 \
+
 LIBS += -L"../xamp_base/release/" -lxamp_base \
     -L"../xamp_metadata/release/" -lxamp_metadata \
     -L"../xamp_output_device/release/" -lxamp_output_device \
@@ -98,3 +103,9 @@ LIBS += -L"../xamp_base/release/" -lxamp_base \
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+
+#macx {
+#    QMAKE_RPATHDIR += @executable_path/../Frameworks
+#    QMAKE_LFLAGS_SONAME = -Wl,-install_name,@rpath/
+#}

@@ -5,19 +5,19 @@
 
 #pragma once
 
-#ifdef _WIN32
-#ifdef STREAM_API_EXPORTS
-    #define XAMP_STREAM_API __declspec(dllexport)
-#else
-    #define XAMP_STREAM_API __declspec(dllimport)
-#endif
-#define ENABLE_FFMPEG 1
-#else
-#define XAMP_STREAM_API
-#endif
+#include <base/exception.h>
+#include <stream/stream.h>
 
 namespace xamp::stream {
-	class AudioStream;
-	class FileStream;
-	class AvFileStream;
+
+using namespace base;
+
+class XAMP_STREAM_API AvException final : public Exception {
+public:
+    explicit AvException(int32_t error);
+
+    ~AvException() override;
+};
+
 }
+

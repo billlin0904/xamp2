@@ -29,9 +29,6 @@ AudioPlayer::AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter)
     , read_sample_size_(0)
     , is_playing_(false)
     , is_paused_(false)
-    #ifdef _WIN32
-    , stream_(MakeAlign<FileStream, AvFileStream>())
-    #endif
     , state_adapter_(adapter) {
 #ifdef _WIN32
     VmMemLock::EnableVmMemPrivilege(true);
@@ -80,7 +77,7 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, const DeviceInfo& de
         stream_->Close();
     }
 
-#ifdef _WIN32
+#ifdef ENABLE_FFMPEG
     if (is_dsd_stream) {
         static const int32_t MAX_DSD2PCM_SAMPLERATE = 192000;
         stream_ = MakeAlign<FileStream, BassFileStream>();
@@ -102,7 +99,7 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, const DeviceInfo& de
         stream_ = MakeAlign<FileStream, BassFileStream>();
     }
 #endif
-
+    XAMP_LOG_DEBUG("Use stream type: {}", stream_->GetStreamName());
     stream_->OpenFromFile(file_path);
 }
 
