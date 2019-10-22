@@ -146,7 +146,9 @@
     <ClInclude Include="include\stream\stream.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\avexception.cpp" />
     <ClCompile Include="src\avfilestream.cpp" />
+    <ClCompile Include="src\bassexception.cpp" />
     <ClCompile Include="src\bassfilestream.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
