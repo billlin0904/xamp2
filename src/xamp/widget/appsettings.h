@@ -13,13 +13,13 @@
 #include <QSize>
 #include <QSettings>
 
-static const QLatin1String APP_SETTING_DEVICE_TYPE{ "AppSettings/DeviceType" };
-static const QLatin1String APP_SETTING_DEVICE_ID{ "AppSettings/DeviceId" };
-static const QLatin1String APP_SETTING_WIDTH{ "AppSettings/width" };
-static const QLatin1String APP_SETTING_HEIGHT{ "AppSettings/height" };
-static const QLatin1String APP_SETTING_VOLUME{ "AppSettings/volume" };
-static const QLatin1String APP_SETTING_ORDER{ "AppSettings/order" };
-static const QLatin1String APP_SETTING_NIGHT_MODE{ "AppSettings/nightMode" };
+extern const QLatin1String APP_SETTING_DEVICE_TYPE;
+extern const QLatin1String APP_SETTING_DEVICE_ID;
+extern const QLatin1String APP_SETTING_WIDTH;
+extern const QLatin1String APP_SETTING_HEIGHT;
+extern const QLatin1String APP_SETTING_VOLUME;
+extern const QLatin1String APP_SETTING_ORDER;
+extern const QLatin1String APP_SETTING_NIGHT_MODE;
 
 class AppSettings {
 public:
@@ -59,6 +59,10 @@ public:
 		}
 		return settings_->value(key);
 	}
+
+    int32_t getAsInt(const QString& key) const {
+        return getValue(key).toInt();
+    }
 
 	template <typename T>
 	void setDefaultValue(const QString& key, T value) {

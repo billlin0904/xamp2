@@ -4,7 +4,7 @@
 
 #include "filetag.h"
 
-const static int32_t CHUNK_SIZE = 1 << 22;
+constexpr int32_t CHUNK_SIZE = 1 << 22;
 
 static QByteArray sha1(const QByteArray& data) {
     QCryptographicHash sha1_hash(QCryptographicHash::Sha1);

@@ -14,7 +14,7 @@ Timer::~Timer() {
 void Timer::Start(std::chrono::milliseconds timeout, TimerCallback&& callback) {
 	is_stop_ = false;
 	timer_.SetTimeout(timeout);
-	thread_ = std::thread([this, timeout_routine = std::forward<TimerCallback>(callback)]() {
+    thread_ = std::async(std::launch::async, [this, timeout_routine = std::forward<TimerCallback>(callback)]() {
 		while (!is_stop_) {
 			timer_.Wait();
 			timeout_routine();
@@ -24,8 +24,8 @@ void Timer::Start(std::chrono::milliseconds timeout, TimerCallback&& callback) {
 
 void Timer::Stop() {
 	is_stop_ = true;	
-	if (thread_.joinable()) {
-		thread_.join();
+    if (thread_.valid()) {
+        thread_.get();
 	}	
 }
 

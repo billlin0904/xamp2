@@ -327,15 +327,3 @@ void FramelessWindow::addDropFileItem(const QUrl&) {
 
 void FramelessWindow::onDeleteKeyPress() {
 }
-
-void FramelessWindow::play() {
-}
-
-void FramelessWindow::playNextClicked() {
-}
-
-void FramelessWindow::playPreviousClicked() {
-}
-
-void FramelessWindow::stopPlayedClicked() {
-}

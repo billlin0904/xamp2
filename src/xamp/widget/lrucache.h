@@ -11,62 +11,62 @@
 template <typename Key, typename Value>
 class LruCache {
 public:
-	using NodePtr = typename std::list<std::pair<Key, Value>>::iterator;
-	
-	explicit LruCache(size_t max_size) 
-		: max_size_(max_size) {
-	}
+    using NodePtr = typename std::list<std::pair<Key, Value>>::iterator;
 
-	void emplace(const Key& key, Value&& value) {
-		items_list_.emplace_front(key, value);
-		items_map_[key] = items_list_.begin();
+    explicit LruCache(size_t max_size)
+        : max_size_(max_size) {
+    }
 
-		if (items_list_.size() > max_size_) {
-			items_map_.erase(items_list_.back().first);
-			items_list_.pop_back();
-		}
-	}
+    void emplace(const Key& key, Value&& value) {
+        items_list_.emplace_front(key, value);
+        items_map_[key] = items_list_.begin();
 
-	void insert(const Key& key, const Value& value) {
-		items_list_.emplace_front(key, value);
-		items_map_[key] = items_list_.begin();
+        if (items_list_.size() > max_size_) {
+            items_map_.erase(items_list_.back().first);
+            items_list_.pop_back();
+        }
+    }
 
-		if (items_list_.size() > max_size_) {
-			items_map_.erase(items_list_.back().first);
-			items_list_.pop_back();
-		}
-	}
+    void insert(const Key& key, const Value& value) {
+        items_list_.emplace_front(key, value);
+        items_map_[key] = items_list_.begin();
 
-	const Value* findOrNull(const Key& key) const {
-		const auto check = items_map_.find(key);
-		if (check == items_map_.end()) {
-			return nullptr;
-		}
-		items_list_.push_front(*check->second);
-		items_list_.erase(check->second);
-		items_map_[key] = items_list_.begin();
-		return &check->second->second;
-	}
+        if (items_list_.size() > max_size_) {
+            items_map_.erase(items_list_.back().first);
+            items_list_.pop_back();
+        }
+    }
 
-	NodePtr begin() {
-		return items_list_.begin();
-	}
+    const Value* findOrNull(const Key& key) const {
+        const auto check = items_map_.find(key);
+        if (check == items_map_.end()) {
+            return nullptr;
+        }
+        items_list_.push_front(*check->second);
+        items_list_.erase(check->second);
+        items_map_[key] = items_list_.begin();
+        return &check->second->second;
+    }
 
-	NodePtr end() { 
-		return items_list_.end(); 
-	}	
+    NodePtr begin() {
+        return items_list_.begin();
+    }
 
-	void erase(const Key& key) {
-		const auto check = items_map_.find(key);
-		if (check == items_map_.end()) {
-			return;
-		}
-		items_list_.erase(check->second);
-		items_map_.erase(check);
-	}
+    NodePtr end() {
+        return items_list_.end();
+    }
+
+    void erase(const Key& key) {
+        const auto check = items_map_.find(key);
+        if (check == items_map_.end()) {
+            return;
+        }
+        items_list_.erase(check->second);
+        items_map_.erase(check);
+    }
 
 private:
-	std::size_t max_size_;
-	mutable std::unordered_map<Key, NodePtr> items_map_;
-	mutable std::list<std::pair<Key, Value>> items_list_;
+    std::size_t max_size_;
+    mutable std::unordered_map<Key, NodePtr> items_map_;
+    mutable std::list<std::pair<Key, Value>> items_list_;
 };

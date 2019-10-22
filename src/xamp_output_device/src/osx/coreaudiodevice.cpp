@@ -96,9 +96,9 @@ private:
 };
 
 CoreAudioDevice::CoreAudioDevice(AudioDeviceID device_id)
-    : device_id_(device_id)
+    : is_running_(false)
+    , device_id_(device_id)
     , proc_id_(nullptr)
-    , is_running_(false)
     , buffer_size_(0)
     , callback_(nullptr)
     , stream_time_(0) {
@@ -254,16 +254,16 @@ OSStatus CoreAudioDevice::OnAudioIOProc(AudioDeviceID,
                                         const AudioTimeStamp *,
                                         AudioBufferList *output_data,
                                         const AudioTimeStamp *,
-                                        void *infoPointer) {
-    auto device = static_cast<CoreAudioDevice*>(infoPointer);
+                                        void *user_data) {
+    auto device = static_cast<CoreAudioDevice*>(user_data);
     device->AudioIOProc(output_data);
     return noErr;
 }
 
 void CoreAudioDevice::AudioIOProc(AudioBufferList *output_data) {
-    const auto numBufferSize = output_data->mNumberBuffers;
+    const auto buffer_count = output_data->mNumberBuffers;
 
-    for (uint32_t i = 0; i < numBufferSize; ++i) {
+    for (uint32_t i = 0; i < buffer_count; ++i) {
         const auto buffer = output_data->mBuffers[i];
         const auto numSample = (int32_t) (buffer.mDataByteSize / sizeof(float) / format_.GetChannels());
         stream_time_ = stream_time_ + static_cast<double>(numSample * 2);

@@ -1,5 +1,7 @@
 # XAMP 2
 
+![image](https://github.com/billlin0904/xamp2/blob/master/github/demo.JPG)
+
 # GOAL
 - 專注本地端播放體驗與低延遲
 

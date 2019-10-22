@@ -77,6 +77,11 @@ Logger& Logger::AddDebugOutputLogger() {
 	return *this;
 }
 
+Logger& Logger::AddSink(spdlog::sink_ptr sink) {
+    sinks_.push_back(sink);
+    return *this;
+}
+
 Logger& Logger::AddFileLogger(const std::string &file_name) {
 	CreateLogsDir();
 

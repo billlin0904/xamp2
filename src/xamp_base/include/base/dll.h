@@ -20,13 +20,14 @@ namespace xamp::base {
 
 XAMP_BASE_API ModuleHandle LoadDll(std::string_view name);
 
-#ifdef _WIN32
+XAMP_BASE_API void* LoadDllSymbol(const ModuleHandle& dll, std::string_view name);
+
 template <typename T>
 class DllFunction final {
 public:
     DllFunction(const ModuleHandle& dll, std::string_view name) noexcept {
         assert(dll.is_valid());
-        *(void**)& func_ = ::GetProcAddress(dll.get(), name.data());
+        *(void**)& func_ = LoadDllSymbol(dll, name);
     }
 
     XAMP_DISABLE_COPY(DllFunction)
@@ -44,31 +45,5 @@ private:
 };
 
 #define XAMP_DEFINE_DLL_API(ImportFunc) DllFunction<decltype(ImportFunc)>
-#else
-template <typename T>
-class DllFunction final {
-public:
-    DllFunction(const ModuleHandle& dll, std::string_view name) noexcept {
-        assert(dll.is_valid());
-        *(void**)& func_ = dlsym(dll.get(), name.data());
-    }
-
-    XAMP_DISABLE_COPY(DllFunction)
-
-    XAMP_ALWAYS_INLINE operator T* () const noexcept {
-        assert(func_ != nullptr);
-        return func_;
-    }
-
-    XAMP_ALWAYS_INLINE operator bool() const noexcept {
-        return func_ != nullptr;
-    }
-private:
-    T* func_;
-};
-
-#define XAMP_DEFINE_DLL_API(ImportFunc) DllFunction<decltype(ImportFunc)>
-
-#endif
 
 }

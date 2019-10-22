@@ -29,6 +29,8 @@ public:
 
 	Logger& AddFileLogger(const std::string &file_name);
 
+    Logger& AddSink(spdlog::sink_ptr sink);
+
 	std::shared_ptr<spdlog::logger> GetLogger(const std::string &name);
 
 private:

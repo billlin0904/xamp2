@@ -3,8 +3,10 @@
 #if ENABLE_FFMPEG
 #define ENABLE_IO_CONTEXT 0
 
+#ifdef _WIN32
 #pragma comment(lib, "crypt32")
 #pragma comment(lib, "Bcrypt")
+#endif
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -25,17 +27,9 @@ extern "C" {
 #include <base/defer.h>
 #include <base/logger.h>
 
-namespace xamp::stream {
+#include <stream/avexception.h>
 
-class AvException : public Exception {
-public:
-    explicit AvException(int32_t error)
-        : Exception(Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR) {
-        char buf[256]{};
-        av_strerror(error, buf, sizeof(buf) - 1);
-		message_.assign(buf);
-    }
-};
+namespace xamp::stream {
 
 #define AV_IF_FAILED_THROW(expr) \
 	do { \
@@ -120,11 +114,11 @@ protected:
 	}	
 
 private:
-	static void AvLogCallback(void* ptr, int level, const char* fmt, va_list args) {
+    static void AvLogCallback(void*, int level, const char* fmt, va_list args) {
 		if (level > log_level) {
 			return;
 		}		
-		static const int32_t MSG_BUF_MAX_LEN = 1024;
+        constexpr int32_t MSG_BUF_MAX_LEN = 1024;
 		char msgbuf[MSG_BUF_MAX_LEN]{};
 		vsnprintf(msgbuf, sizeof(msgbuf) - 1, fmt, args);
 		auto s = strstr(msgbuf, "\n");
@@ -134,11 +128,12 @@ private:
 		XAMP_LOG_DEBUG(msgbuf);
 	}
 
-	static int log_level;
+    static int32_t log_level;
 };
 
-int LibAvInit::log_level = AV_LOG_FATAL;
+int32_t LibAvInit::log_level = AV_LOG_FATAL;
 
+#ifndef ENABLE_IO_CONTEXT
 struct AvStreamContext {
 	AvStreamContext()
 		: buffer(nullptr)
@@ -186,6 +181,7 @@ struct AvStreamContext {
 	int64_t offset;
 	size_t size;
 };
+#endif
 
 class AvFileStream::AvFileStreamImpl {
 public:
@@ -276,7 +272,7 @@ public:
 			throw FileNotFoundException();
 		}
 
-		for (auto i = 0; i < format_context_->nb_streams; ++i) {
+        for (uint32_t i = 0; i < format_context_->nb_streams; ++i) {
 			if ((video_stream_id_ < 0) && (format_context_->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)) {
 				video_stream_id_ = i;
 			}
@@ -472,8 +468,8 @@ void AvFileStream::Seek(double stream_time) const {
 	impl_->Seek(stream_time);
 }
 
-std::wstring AvFileStream::GetStreamName() const {
-	return L"LibAv";
+std::string AvFileStream::GetStreamName() const {
+    return "LibAv";
 }
 
 int32_t AvFileStream::GetSampleSize() const {

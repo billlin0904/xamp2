@@ -29,13 +29,12 @@ enum class InterleavedFormat {
 	DEINTERLEAVED
 };
 
-static const uint32_t XAMP_MAX_CHANNEL = 2;
+constexpr uint32_t XAMP_MAX_CHANNEL = 2;
+constexpr uint32_t MAX_SAMPLERATE = 192000;
 
 class XAMP_BASE_API AudioFormat final {
 public:
 	static const AudioFormat UnknowFormat;
-
-    static const uint32_t MAX_SAMPLERATE = 192000;
 
     explicit AudioFormat(int32_t number_of_channels = 0, int32_t bits_per_sample = 0, int32_t samplerate = 0) noexcept;
 

@@ -38,7 +38,7 @@ public:
 
 	void Seek(double stream_time) const override;
 
-	std::wstring GetStreamName() const override;
+    std::string GetStreamName() const override;
 
 	int32_t GetSampleSize() const override;
 

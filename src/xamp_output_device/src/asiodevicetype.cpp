@@ -2,7 +2,10 @@
 #include <asiosys.h>
 #include <asio.h>
 #include <asiodrivers.h>
+
+#ifdef _WIN32
 #include <iasiodrv.h>
+#endif
 
 #include <base/unicode.h>
 
@@ -54,15 +57,25 @@ std::vector<DeviceInfo> ASIODeviceType::GetDeviceInfo() const {
 }
 
 void ASIODeviceType::ScanNewDevice() {
+    constexpr static auto MAX_PATH_LEN = 256;
+
 	std::vector<std::wstring> device_name_list;
 
 	AsioDrivers drivers;
+
+#ifdef _WIN32
 	const auto num_device = drivers.asioGetNumDev();
+#else
+    const auto num_device = drivers.getNumFragments();
+#endif
 
 	for (auto i = 0; i < num_device; ++i) {
-		char driver_name[MAXPATHLEN]{};
-
-		if (drivers.asioGetDriverName(i, driver_name, MAXPATHLEN) == 0) {
+        char driver_name[MAX_PATH_LEN]{};
+#ifdef _WIN32
+        if (drivers.asioGetDriverName(i, driver_name, MAX_PATH_LEN) == 0) {
+#else
+        if (drivers.getName(i, driver_name) == 0) {
+#endif
 			const auto name = ToStdWString(driver_name);
 			if (device_list_.find(name) != device_list_.end()) {
 				continue;

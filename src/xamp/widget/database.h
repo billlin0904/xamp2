@@ -24,7 +24,7 @@ public:
     const char* what() const noexcept override;
 };
 
-#define IF_FAILED_LOG(expr) \
+#define IgnoreSqlError(expr) \
 	try {\
 		expr;\
 	}\

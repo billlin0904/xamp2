@@ -89,3 +89,7 @@ QString PixmapCache::emplace(QPixmap&& cover) const {
 	cache_.emplace(tag_name, std::move(cover));
 	return tag_name;
 }
+
+bool PixmapCache::isExist(const QString& tag_id) const {
+    return cache_.findOrNull(tag_id) != nullptr;
+}

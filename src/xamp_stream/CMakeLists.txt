@@ -8,6 +8,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+add_compile_definitions(ENABLE_FFMPEG=1)
+
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15")
 
 if (${CMAKE_BUILD_TYPE} STREQUAL Debug)
@@ -38,11 +40,78 @@ find_library (
     NO_DEFAULT_PATH
 )
 
+#find_package(openssl REQUIRED)
+
+#find_library(LIBAVCODEC avcodec PATHS "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/ffmpeg/lib/x64/mac")
+#find_library(LIBAVDEVICE avdevice PATHS "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/ffmpeg/lib/x64/mac")
+#find_library(LIBAVFILTER avfilter PATHS "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/ffmpeg/lib/x64/mac")
+#find_library(LIBAVFORMAT avformat PATHS "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/ffmpeg/lib/x64/mac")
+#find_library(LIBAVUTIL avutil PATHS "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/ffmpeg/lib/x64/mac")
+#find_library(LIBSWRESAMPLE swresample PATHS "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/ffmpeg/lib/x64/mac")
+#find_library(LIBSWSCALE swscale PATHS "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/ffmpeg/lib/x64/mac")
+
+find_library (
+    LIBAVCODEC
+    NAMES "libavcodec.58.dylib"
+    HINTS "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/ffmpeg/lib/x64/mac/"
+    NO_DEFAULT_PATH
+)
+
+find_library (
+    LIBAVDEVICE
+    NAMES "libavdevice.58.dylib"
+    HINTS "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/ffmpeg/lib/x64/mac/"
+    NO_DEFAULT_PATH
+)
+
+find_library (
+    LIBAVFILTER
+    NAMES "libavfilter.7.dylib"
+    HINTS "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/ffmpeg/lib/x64/mac/"
+    NO_DEFAULT_PATH
+)
+
+find_library (
+    LIBAVFORMAT
+    NAMES "libavformat.58.dylib"
+    HINTS "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/ffmpeg/lib/x64/mac/"
+    NO_DEFAULT_PATH
+)
+
+find_library (
+    LIBAVUTIL
+    NAMES "libavutil.56.dylib"
+    HINTS "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/ffmpeg/lib/x64/mac/"
+    NO_DEFAULT_PATH
+)
+
+find_library (
+    LIBSWRESAMPLE
+    NAMES "libswresample.3.dylib"
+    HINTS "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/ffmpeg/lib/x64/mac/"
+    NO_DEFAULT_PATH
+)
+
+find_library (
+    LIBSWSCALE
+    NAMES "libswscale.5.dylib"
+    HINTS "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/ffmpeg/lib/x64/mac/"
+    NO_DEFAULT_PATH
+)
+
+set(LIBAV_LIBRARIES ${LIBAVCODEC}
+    ${LIBAVDEVICE}
+    ${LIBAVFILTER}
+    ${LIBAVFORMAT}
+    ${LIBAVUTIL}
+    ${LIBSWRESAMPLE}
+    ${LIBSWSCALE})
+
 message(STATUS "LIB_XAMP_BASE: [${LIB_XAMP_BASE}]")
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
-target_link_libraries(xamp_stream ${LIB_XAMP_BASE})
+target_link_libraries(xamp_stream ${LIB_XAMP_BASE} ${LIBAV_LIBRARIES})
 
 if(LIBRARY_TESTS)
 include(FetchContent)

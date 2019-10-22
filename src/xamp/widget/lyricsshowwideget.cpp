@@ -75,7 +75,7 @@ void LyricsShowWideget::paintItem(QPainter* painter, const int32_t index, QRect&
 		Qt::AlignLeft, text);
 }
 
-void LyricsShowWideget::paintBackground(QPainter* painter) {
+void LyricsShowWideget::paintBackground(QPainter*) {
 }
 
 void LyricsShowWideget::paintItemMask(QPainter* painter) {

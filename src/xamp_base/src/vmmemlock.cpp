@@ -109,6 +109,7 @@ void VmMemLock::Lock(void* address, size_t size) noexcept {
 
     if (mlock(address_, size_)) {
         XAMP_LOG_DEBUG("mlock return failure! error:{}", errno);
+        return;
     }
 
     address_ = address;

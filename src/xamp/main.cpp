@@ -2,9 +2,9 @@
 
 #include <base/logger.h>
 #include <player/audio_player.h>
-
-#include "widget/appsettings.h"
-#include "widget/database.h"
+#include <widget/qdebugsink.h>
+#include <widget/appsettings.h>
+#include <widget/database.h>
 
 #include <QtWidgets/QApplication>
 
@@ -27,7 +27,11 @@ int main(int argc, char *argv[]) {
 #ifdef _DEBUG
 		.AddDebugOutputLogger()
 #endif
+#ifdef Q_OS_MAC
+        .AddSink(std::make_shared<QDebugSink>())
+#endif
 		.AddFileLogger("xamp.log");	
+
 	QApplication app(argc, argv);
 
 	try {

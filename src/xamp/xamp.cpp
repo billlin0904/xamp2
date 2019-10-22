@@ -53,7 +53,6 @@ Xamp::Xamp(QWidget *parent)
     initialDeviceList();
     initialPlaylist();
     setCover(QPixmap(Q_UTF8(":/xamp/Resource/White/unknown_album.png")));
-    //setCentralWidget(ui.centralWidget); // For QMainWindow use
 }
 
 void Xamp::closeEvent(QCloseEvent*) {
@@ -254,6 +253,7 @@ void Xamp::setNormalMode() {
 void Xamp::initialUI() {
     ui.setupUi(this);
     setNormalMode();
+
     setGeometry(QStyle::alignedRect(Qt::LeftToRight,
                                     Qt::AlignCenter,
                                     AppSettings::settings().getSizeValue(APP_SETTING_WIDTH, APP_SETTING_HEIGHT),
@@ -387,6 +387,17 @@ void Xamp::initialController() {
         }
     });
 
+    (void)QObject::connect(ui.mutedButton,  &QToolButton::pressed, [this]() {
+        if (player_->IsMute()) {
+            player_->SetMute(false);
+            setVolume(AppSettings::settings().getAsInt(APP_SETTING_VOLUME));
+            ui.mutedButton->setIcon(QIcon(Q_UTF8(":/xamp/Resource/White/volume_up.png")));
+        } else {
+            player_->SetMute(true);
+            ui.mutedButton->setIcon(QIcon(Q_UTF8(":/xamp/Resource/White/volume_off.png")));
+        }
+    });
+
     (void)QObject::connect(ui.closeButton, &QToolButton::pressed, [this]() {
         QWidget::close();
     });
@@ -428,11 +439,12 @@ void Xamp::initialController() {
         player_->Pause();
     });
 
-    order_ = static_cast<PlayerOrder>(AppSettings::settings().getValue(APP_SETTING_ORDER).toInt());
+    order_ = static_cast<PlayerOrder>(AppSettings::settings().getAsInt(APP_SETTING_ORDER));
     setPlayerOrder();
 
     ui.volumeSlider->setRange(0, 100);
-    ui.volumeSlider->setValue(AppSettings::settings().getValue(APP_SETTING_VOLUME).toInt());
+    ui.volumeSlider->setValue(AppSettings::settings().getAsInt(APP_SETTING_VOLUME));
+    player_->SetVolume(AppSettings::settings().getAsInt(APP_SETTING_VOLUME));
 
     (void)QObject::connect(ui.volumeSlider, &QSlider::valueChanged, [this](auto volume) {
         QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + Q_UTF8("%"));
@@ -487,7 +499,6 @@ void Xamp::initialController() {
     (void)QObject::connect(ui.nextPageButton, &QToolButton::pressed, [this]() {
         getNextPage();
     });
-
 
     (void)QObject::connect(ui.coverLabel, &ClickableLabel::clicked, [this]() {
         ui.currentView->setCurrentWidget(lrc_page_);
@@ -547,11 +558,14 @@ void Xamp::setVolume(int32_t volume) {
     catch (const xamp::base::Exception& e) {
         player_->Stop(false);
         Toast::showTip(Q_UTF8(e.GetErrorMessage()), this);
-        return;
     }
 }
 
 void Xamp::initialShortcut() {
+
+}
+
+void Xamp::stopPlayedClicked() {
 
 }
 
@@ -728,17 +742,25 @@ void Xamp::play(const QModelIndex&, const PlayListEntity& item) {
         Toast::showTip(tr("uknown error"), this);
     }
 
-    const auto cover = PixmapCache::Instance().find(item.cover_id);
-    if (cover != nullptr && !cover->isNull()) {
-        setCover(*cover);
-        playlist_page_->cover()->setPixmap(Pixmap::resizeImage(*cover, playlist_page_->cover()->size(), true));
-    }
-    else {
-        setCover(QPixmap(Q_UTF8(":/xamp/Resource/White/unknown_album.png")));
+    if (current_entiry_.album_id != item.album_id) {
+        const auto cover = PixmapCache::Instance().find(item.cover_id);
+        if (cover != nullptr && !cover->isNull()) {
+            setCover(*cover);
+            playlist_page_->cover()->setPixmap(
+                        Pixmap::resizeImage(*cover, playlist_page_->cover()->size(), true));
+        }
+        else {
+            setCover(QPixmap(Q_UTF8(":/xamp/Resource/White/unknown_album.png")));
+        }
     }
 
+    current_entiry_ = item;
+
     QFileInfo file_info(item.file_path);
-    const auto lrc_path = file_info.path() + Q_UTF8("/") + file_info.completeBaseName() + Q_UTF8(".lrc");
+    const auto lrc_path = file_info.path()
+            + Q_UTF8("/")
+            + file_info.completeBaseName()
+            + Q_UTF8(".lrc");
     lrc_page_->lyricsWidget()->loadLrcFile(lrc_path);
 
     playlist_page_->title()->setText(item.title);
@@ -772,13 +794,14 @@ void Xamp::onPlayerStateChanged(xamp::player::PlayerState play_state) {
 
 void Xamp::initialPlaylist() {
     int32_t playlist_id = 1;
-    IF_FAILED_LOG(Database::Instance().addPlaylist(Q_UTF8(""), 1))
+    IgnoreSqlError(Database::Instance().addPlaylist(Q_UTF8(""), 1))
 
     playlist_page_ = newPlaylist(playlist_id);
     playlist_page_->playlist()->setPlaylistId(playlist_id);
     Database::Instance().forEachPlaylistMusic(playlist_id, [this](const auto& entityy) {
         playlist_page_->playlist()->appendItem(entityy);
     });
+
     lrc_page_ = new LrcPage(this);
 
     pushWidget(lrc_page_);
@@ -826,10 +849,10 @@ PlyalistPage* Xamp::newPlaylist(int32_t playlist_id) {
     });
     (void)QObject::connect(playlist_page->playlist(), &PlayListTableView::removeItems,
                            [](auto playlist_id, const auto& select_music_ids) {
-        IF_FAILED_LOG(Database::Instance().removePlaylistMusic(playlist_id, select_music_ids))
+        IgnoreSqlError(Database::Instance().removePlaylistMusic(playlist_id, select_music_ids))
     });
     Database::Instance().addTable(Q_UTF8(""), 0);
-    if (playlist_id == -1) {
+    if (playlist_id == Database::INVALID_DATABASE_ID) {
         playlist_id = Database::Instance().addPlaylist(Q_UTF8(""), 0);
     }
     playlist_page->playlist()->setPlaylistId(playlist_id);

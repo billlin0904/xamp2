@@ -1,120 +1,20 @@
 #include <bass/bass.h>
 #include <bass/bassdsd.h>
+
 #include <base/dll.h>
-
 #include <base/exception.h>
-
 #include <base/unique_handle.h>
-
 #include <base/memory.h>
 #include <base/memory_mapped_file.h>
 #include <base/logger.h>
 #include <base/vmmemlock.h>
 
+#include <stream/bassexception.h>
 #include <stream/bassfilestream.h>
 
 namespace xamp::stream {
 
-const DWORD BASS_ERROR{ 0xFFFFFFFF };
-
-static Errors TranslateBassError(int error) {
-	switch (error) {
-	case BASS_ERROR_FORMAT:
-		return Errors::XAMP_ERROR_NOT_SUPPORT_FORMAT;
-	default:
-		return Errors::XAMP_ERROR_UNKNOWN;
-	}
-}
-
-static const char* GetBassErrorMessage(int error) noexcept {
-	switch (error) {
-	case BASS_OK:
-		return "All is OK";
-	case BASS_ERROR_MEM:
-		return "Memory error";
-	case BASS_ERROR_FILEOPEN:
-		return "Can't open the file";
-	case BASS_ERROR_DRIVER:
-		return "Can't find a free/valid driver";
-	case BASS_ERROR_BUFLOST:
-		return "The sample buffer was lost";
-	case BASS_ERROR_HANDLE:
-		return "Invalid handle";
-	case BASS_ERROR_FORMAT:
-		return "Unsupported sample format";
-	case BASS_ERROR_POSITION:
-		return "Invalid position";
-	case BASS_ERROR_INIT:
-		return "BASS_Init has not been successfully called";
-	case BASS_ERROR_START:
-		return "BASS_Start has not been successfully called";
-	case BASS_ERROR_ALREADY:
-		return "Already initialized/paused/whatever";
-	case BASS_ERROR_NOCHAN:
-		return "Can't get a free channel";
-	case BASS_ERROR_ILLTYPE:
-		return "An illegal type was specified";
-	case BASS_ERROR_ILLPARAM:
-		return "An illegal parameter was specified";
-	case BASS_ERROR_NO3D:
-		return "No 3D support";
-	case BASS_ERROR_NOEAX:
-		return "No EAX support";
-	case BASS_ERROR_DEVICE:
-		return "Illegal device number";
-	case BASS_ERROR_NOPLAY:
-		return "Not playing";
-	case BASS_ERROR_FREQ:
-		return "Illegal sample rate";
-	case BASS_ERROR_NOTFILE:
-		return "The stream is not a file stream";
-	case BASS_ERROR_NOHW:
-		return "No hardware voices available";
-	case BASS_ERROR_EMPTY:
-		return "The MOD music has no sequence data";
-	case BASS_ERROR_NONET:
-		return "No internet connection could be opened";
-	case BASS_ERROR_CREATE:
-		return "Couldn't create the file";
-	case BASS_ERROR_NOFX:
-		return "Effects are not available";
-	case BASS_ERROR_NOTAVAIL:
-		return "Requested data is not available";
-	case BASS_ERROR_DECODE:
-		return "The channel is/isn't a 'decoding channel'";
-	case BASS_ERROR_DX:
-		return "A sufficient DirectX version is not installed";
-	case BASS_ERROR_TIMEOUT:
-		return "Connection timedout";
-	case BASS_ERROR_FILEFORM:
-		return "Unsupported file format";
-	case BASS_ERROR_SPEAKER:
-		return "Unavailable speaker";
-	case BASS_ERROR_VERSION:
-		return "Invalid BASS version (used by add-ons)";
-	case BASS_ERROR_CODEC:
-		return "Codec is not available/supported";
-	case BASS_ERROR_ENDED:
-		return "The channel/file has ended";
-	case BASS_ERROR_BUSY:
-		return "The device is busy";
-	case BASS_ERROR_UNKNOWN:
-	default:
-		return "Some other mystery problem";
-	}
-}
-
-class BassException : public Exception {
-public:
-	explicit BassException(int error)
-		: Exception(TranslateBassError(error), GetBassErrorMessage(error))
-		, error_(error) {
-        what_ = GetBassErrorMessage(error);
-	}
-
-private:
-	int error_;
-};
+constexpr DWORD BASS_ERROR{ 0xFFFFFFFF };
 
 #define BASS_IF_FAILED_THROW(result) \
 	do {\
@@ -278,7 +178,10 @@ private:
 		const int build_version(LOBYTE(LOWORD(info->version)));
 
 		std::ostringstream ostr;
-		ostr << major_version << "." << minor_version << "." << micro_version << "." << build_version;
+        ostr << major_version << "."
+             << minor_version << "."
+             << micro_version << "."
+             << build_version;
 		XAMP_LOG_DEBUG("Load {} {} successfully.", file_name, ostr.str());
 
 		plugins_[file_name] = std::move(plugin);
@@ -385,9 +288,13 @@ public:
 
 	AudioFormat GetFormat() const {
 		if (mode_ == DSDModes::DSD_MODE_RAW) {
-			return AudioFormat(info_.chans, base::ByteFormat::SINT8, GetDSDSampleRate());
+            return AudioFormat(info_.chans,
+                               base::ByteFormat::SINT8,
+                               GetDSDSampleRate());
 		}
-		return AudioFormat(info_.chans, base::ByteFormat::FLOAT32, info_.freq);
+        return AudioFormat(info_.chans,
+                           base::ByteFormat::FLOAT32,
+                           info_.freq);
 	}
 
 	void Seek(double stream_time) const {
@@ -434,22 +341,21 @@ public:
 	}
 private:
 	XAMP_ALWAYS_INLINE int32_t InternalGetSamples(void *buffer, int32_t length) const noexcept {
-		const auto byte_read = BassLib::Instance().BASS_ChannelGetData(stream_.get(), buffer, length);
+        const auto byte_read = BassLib::Instance().BASS_ChannelGetData(stream_.get(), buffer, length);
 		if (byte_read == BASS_ERROR) {
 			return 0;
 		}
-		return byte_read;
+        return (int32_t) byte_read;
 	}
 
 	bool enable_file_mapped_;
     DSDModes mode_;
 	BassStreamHandle stream_;
-	MemoryMappedFile file_;
 	BASS_CHANNELINFO info_;
     BassDSDLib dsdlib_;
     BassPlugin plugin_;
+    MemoryMappedFile file_;
 };
-
 
 BassFileStream::BassFileStream()
 	: stream_(MakeAlign<BassFileStreamImpl>()) {
@@ -481,8 +387,8 @@ int32_t BassFileStream::GetSamples(void *buffer, int32_t length) const noexcept 
 	return stream_->GetSamples(buffer, length);
 }
 
-std::wstring BassFileStream::GetStreamName() const {
-	return L"BASS";
+std::string BassFileStream::GetStreamName() const {
+    return "BASS";
 }
 
 bool BassFileStream::SupportDOP() const {

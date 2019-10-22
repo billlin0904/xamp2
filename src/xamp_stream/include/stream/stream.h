@@ -14,7 +14,6 @@
 #define ENABLE_FFMPEG 1
 #else
 #define XAMP_STREAM_API
-#define ENABLE_FFMPEG 0
 #endif
 
 namespace xamp::stream {
