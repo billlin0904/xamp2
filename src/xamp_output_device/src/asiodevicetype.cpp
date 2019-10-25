@@ -91,7 +91,7 @@ DeviceInfo ASIODeviceType::GetDeviceInfo(const std::wstring& device_id) const {
 	info.name = device_id;
 	info.device_id = device_id;
 	info.device_type_id = Id;
-	info.is_support_dsd_raw_mode = true;
+	info.is_support_dsd = true;
 	return info;
 }
 

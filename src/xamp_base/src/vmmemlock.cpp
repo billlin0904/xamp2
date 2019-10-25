@@ -78,6 +78,7 @@ void VmMemLock::Lock(void* address, size_t size) noexcept {
 
 	if (!::VirtualLock(address_, size_)) {
 		XAMP_LOG_DEBUG("VirtualLock return failure! error:{}", GetLastError());
+		return;
 	}
 
 	address_ = address;

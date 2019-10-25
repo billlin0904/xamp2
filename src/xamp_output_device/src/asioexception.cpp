@@ -6,36 +6,33 @@
 
 namespace xamp::output_device {
 
+static const char* FormatErrorMessage(ASIOError error) {
+	switch (error) {
+	case ASE_NotPresent:
+		return "Hardware input or output is not present or available.";
+	case ASE_HWMalfunction:
+		return "Hardware is malfunctioning.";
+	case ASE_InvalidParameter:
+		return "Invalid input parameter.";
+	case ASE_InvalidMode:
+		return "Invalid mode.";
+	case ASE_SPNotAdvancing:
+		return "Sample position not advancing.";
+	case ASE_NoClock:
+		return "Sample clock or rate cannot be determined or is not present.";
+	case ASE_NoMemory:
+		return "Not enough memory to complete the request.";
+	default:
+		return "Unknown error";
+	}
+}
+
 ASIOException::ASIOException(Errors error)
 	: Exception(error) {
 }
 
 ASIOException::ASIOException(ASIOError error) {
-	struct ASIOErrorMessages {
-		ASIOError value;
-		const char* message;
-	};
-
-	static const std::vector<ASIOErrorMessages> asio_error_messages {
-		{ ASE_NotPresent,       "Hardware input or output is not present or available." },
-		{ ASE_HWMalfunction,    "Hardware is malfunctioning." },
-		{ ASE_InvalidParameter, "Invalid input parameter." },
-		{ ASE_InvalidMode,      "Invalid mode." },
-		{ ASE_SPNotAdvancing,   "Sample position not advancing." },
-		{ ASE_NoClock,          "Sample clock or rate cannot be determined or is not present." },
-		{ ASE_NoMemory,         "Not enough memory to complete the request." }
-	};
-
-	auto itr = std::find_if(asio_error_messages.begin(), asio_error_messages.end(),
-		[error](auto error_msg) {
-		return error_msg.value == error;
-		});
-
-	if (itr != asio_error_messages.end()) {
-		message_ = (*itr).message;
-	} else {
-		message_ = "";
-	}
+	message_ = FormatErrorMessage(error);
 }
 
 }

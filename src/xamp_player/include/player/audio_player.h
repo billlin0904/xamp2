@@ -121,7 +121,7 @@ private:
 		double stream_time;
 	};
 
-    XAMP_ENFORCE_TRIVIAL(AudioSlice)
+	XAMP_ENFORCE_TRIVIAL(AudioSlice)
 
 	bool is_muted_;
 	DSDModes dsd_mode_;
@@ -142,7 +142,7 @@ private:
 	AudioFormat input_format_;
 	AudioFormat output_format_;
 	AlignBufferPtr<int8_t> read_sample_buffer_;
-	AlignPtr<Timer> timer_;
+	Timer timer_;
 	AlignPtr<FileStream> stream_;
 	AlignPtr<DeviceType> device_type_;
 	AlignPtr<Device> device_;

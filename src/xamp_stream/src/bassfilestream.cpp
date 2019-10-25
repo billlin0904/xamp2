@@ -288,11 +288,13 @@ public:
 
 	AudioFormat GetFormat() const {
 		if (mode_ == DSDModes::DSD_MODE_RAW) {
-            return AudioFormat(info_.chans,
+            return AudioFormat(Format::FORMAT_DSD,
+							   info_.chans,
                                base::ByteFormat::SINT8,
                                GetDSDSampleRate());
 		}
-        return AudioFormat(info_.chans,
+        return AudioFormat(Format::FORMAT_PCM,
+						   info_.chans,
                            base::ByteFormat::FLOAT32,
                            info_.freq);
 	}

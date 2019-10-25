@@ -30,6 +30,8 @@ public:
 
 	void Stop();
 
+	bool IsStarted() const;
+
 private:
 	std::atomic<bool> is_stop_;
     std::future<void> thread_;

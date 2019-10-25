@@ -36,7 +36,7 @@ AudioPlayer::AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter)
 }
 
 AudioPlayer::~AudioPlayer() {
-    timer_.reset();
+	timer_.Stop();
     CloseDevice();
 }
 
@@ -79,10 +79,10 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, const DeviceInfo& de
 
 #ifdef ENABLE_FFMPEG
     if (is_dsd_stream) {
-        static const int32_t MAX_DSD2PCM_SAMPLERATE = 192000;
+        constexpr int32_t MAX_DSD2PCM_SAMPLERATE = 192000;
         stream_ = MakeAlign<FileStream, BassFileStream>();
         if (auto dsd_stream = dynamic_cast<DSDStream*>(stream_.get())) {
-            if (!device_info.is_support_dsd_raw_mode) {
+            if (!device_info.is_support_dsd) {
                 dsd_stream->SetDSDMode(DSDModes::DSD_MODE_PCM);
                 dsd_stream->SetPCMSampleRate(MAX_DSD2PCM_SAMPLERATE);
             }
@@ -226,10 +226,9 @@ void AudioPlayer::SetMute(bool mute) {
 }
 
 void AudioPlayer::Initial() {
-    if (!timer_) {
-        timer_ = MakeAlign<Timer>();
+    if (!timer_.IsStarted()) {
         std::weak_ptr<AudioPlayer> player = shared_from_this();
-        timer_->Start(UPDATE_SAMPLE_INTERVAL, [player]() {
+        timer_.Start(UPDATE_SAMPLE_INTERVAL, [player]() {
             if (auto p = player.lock()) {
                 if (auto adapter = p->state_adapter_.lock()) {
                     if (p->is_paused_) {
@@ -300,7 +299,8 @@ void AudioPlayer::CloseDevice() {
 void AudioPlayer::CreateBuffer() {
     std::atomic_exchange(&slice_, AudioSlice{ nullptr, 0, 0 });
 
-    const AudioFormat input_format(input_format_.GetChannels(),
+    const AudioFormat input_format(input_format_.GetFormat(),
+								   input_format_.GetChannels(),
                                    stream_->GetFormat().GetByteFormat(),
                                    input_format_.GetSampleRate());
 

@@ -332,7 +332,8 @@ public:
 
 		AV_IF_FAILED_THROW(swr_init(swr_context_.get()));
 
-		audio_format_ = AudioFormat(audio_contex_->channels,
+		audio_format_ = AudioFormat(Format::FORMAT_PCM,
+			audio_contex_->channels,
 			av_get_bytes_per_sample(audio_contex_->sample_fmt) * 8,
 			audio_contex_->sample_rate);
 		audio_format_.SetInterleavedFormat(interleaved_format);

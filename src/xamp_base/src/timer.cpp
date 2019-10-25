@@ -29,4 +29,8 @@ void Timer::Stop() {
 	}	
 }
 
+bool Timer::IsStarted() const {
+	return !is_stop_;
+}
+
 }

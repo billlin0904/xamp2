@@ -5,8 +5,6 @@
 
 #pragma once
 
-#include <string_view>
-
 #include <base/align_ptr.h>
 #include <base/id.h>
 
@@ -28,46 +26,26 @@ public:
 		return instance;
 	}
 
-	void loadIniFile(const QString &file_name) {
-		settings_ = xamp::base::MakeAlign<QSettings>(file_name, QSettings::IniFormat);
-	}
+	void loadIniFile(const QString& file_name);
 
 	template <typename T>
 	void setValue(const QString& key, T value) {		
 		settings_->setValue(key, value);
 	}
 
-	xamp::base::ID getIDValue(const QString& key) const {
-		auto str = getValue(key).toString();
-		if (str.isEmpty()) {
-			return xamp::base::ID::INVALID_ID;
-		}
-		return xamp::base::ID::FromString(str.toStdString());
-	}
-
-	QSize getSizeValue(const QString& width_key,
-		const QString& height_key) const {
-		return QSize{
-			getValue(width_key).toInt(),
-			getValue(height_key).toInt(),
-		};
-	}
-
-	QVariant getValue(const QString& key) const {
-		if (!settings_->contains(key)) {
-			return default_settings_.value(key);
-		}
-		return settings_->value(key);
-	}
-
-    int32_t getAsInt(const QString& key) const {
-        return getValue(key).toInt();
-    }
-
 	template <typename T>
 	void setDefaultValue(const QString& key, T value) {
 		default_settings_[key] = value;
 	}
+
+	xamp::base::ID getIDValue(const QString& key) const;
+
+	QSize getSizeValue(const QString& width_key, const QString& height_key) const;
+
+	QVariant getValue(const QString& key) const;
+
+	int32_t getAsInt(const QString& key) const;
+	
 protected:
 	AppSettings() = default;
 
