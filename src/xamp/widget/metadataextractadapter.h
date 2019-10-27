@@ -10,6 +10,7 @@
 #include <base/metadata.h>
 #include <metadata/metadatareader.h>
 #include <metadata/metadataextractadapter.h>
+#include <metadata/taglibmetareader.h>
 
 class PlayListTableView;
 
@@ -22,11 +23,11 @@ public:
 
 	MetadataExtractAdapter();
 
-	void OnWalk(const xamp::metadata::Path& path, const xamp::base::Metadata& metadata) override;
+    void OnWalk(const xamp::metadata::Path& path, xamp::base::Metadata metadata) override;
 
 	void OnWalkNext() override;
 
-	bool IsCancel() const override;
+    bool IsCancel() const override;
 
 	void Cancel() override;
 
@@ -43,5 +44,6 @@ private:
 
 	bool cancel_;
 	std::vector<xamp::base::Metadata> metadatas_;
+    xamp::metadata::TaglibMetadataReader cover_reader_;
 };
 

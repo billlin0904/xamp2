@@ -5,8 +5,6 @@
 #include <execution>
 #endif
 
-#include <metadata/taglibmetareader.h>
-
 #include "toast.h"
 #include "database.h"
 #include "playlisttableview.h"
@@ -23,7 +21,7 @@ MetadataExtractAdapter::MetadataExtractAdapter()
     metadatas_.reserve(PREALLOCATE_SIZE);
 }
 
-void MetadataExtractAdapter::OnWalk(const xamp::metadata::Path&, const xamp::base::Metadata& metadata) {
+void MetadataExtractAdapter::OnWalk(const xamp::metadata::Path&, xamp::base::Metadata metadata) {
     metadatas_.push_back(metadata);
 }
 
@@ -59,8 +57,6 @@ void MetadataExtractAdapter::onCompleted(const std::vector<xamp::base::Metadata>
     QHash<QString, int32_t> album_id_cache;
     QHash<QString, int32_t> artist_id_cache;
     QHash<int32_t, QString> cover_id_cache;
-
-    xamp::metadata::TaglibMetadataReader cover_reader;
 
     QString album;
     QString artist;
@@ -98,7 +94,7 @@ void MetadataExtractAdapter::onCompleted(const std::vector<xamp::base::Metadata>
             auto cover_itr = cover_id_cache.find(album_id);
             if (cover_itr == cover_id_cache.end()) {
                 QPixmap pixmap;
-                const auto& buffer = cover_reader.ExtractEmbeddedCover(metadata.file_path);
+                const auto& buffer = cover_reader_.ExtractEmbeddedCover(metadata.file_path);
                 if (!buffer.empty()) {
                     pixmap.loadFromData(buffer.data(), (uint32_t) buffer.size());
                 } else {

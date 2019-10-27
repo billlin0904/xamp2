@@ -251,6 +251,7 @@ void AudioPlayer::Initial() {
             }
         });
     }
+    buffer_.Clear();
 }
 
 std::optional<DeviceInfo> AudioPlayer::GetDefaultDeviceInfo() const {
@@ -345,7 +346,7 @@ void AudioPlayer::SetDeviceFormat() {
 
 int AudioPlayer::operator()(void* samples, const int32_t num_buffer_frames, const double stream_time) noexcept {
     const int32_t sample_size = num_buffer_frames * output_format_.GetChannels() * stream_->GetSampleSize();
-    if (!buffer_.TryRead(reinterpret_cast<int8_t*>(samples), sample_size)) {
+    if (XAMP_LIKELY( !buffer_.TryRead(reinterpret_cast<int8_t*>(samples), sample_size) )) {
         std::atomic_exchange(&slice_, AudioSlice{ reinterpret_cast<float*>(samples), -1, stream_time });
         stopped_cond_.notify_all();
         return 1;
@@ -405,7 +406,7 @@ void AudioPlayer::OpenDevice(double stream_time) {
 void AudioPlayer::PlayStream() {
     std::weak_ptr<AudioPlayer> player = shared_from_this();
     stream_task_ = std::async([](std::weak_ptr<AudioPlayer> player) {
-         const std::chrono::milliseconds SLEEP_OUTPUT_TIME(500);
+         constexpr std::chrono::milliseconds SLEEP_OUTPUT_TIME(500);
 
          if (auto p = player.lock()) {
             std::unique_lock<std::mutex> lock{ p->pause_mutex_ };

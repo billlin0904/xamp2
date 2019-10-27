@@ -14,7 +14,7 @@ class LyricsShowWideget : public WheelableWidget {
 public:
 	explicit LyricsShowWideget(QWidget *parent = nullptr);
 
-	virtual ~LyricsShowWideget() = default;
+    ~LyricsShowWideget() = default;
 
 	Q_DISABLE_COPY(LyricsShowWideget)
 

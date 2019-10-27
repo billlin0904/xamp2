@@ -7,15 +7,19 @@
 #include "time_utilts.h"
 #include "database.h"
 
-#define ENSURE_EXEC(query) \
+#define ThrowlfFailue(query) \
+    do {\
 		if (!query.exec()) {\
 			throw SqlException(query.lastError());\
-		}
+        }\
+    } while (false);
 
-#define ENSURE_EXEC_SQL(query, sql) \
+#define IfFailureThrow(query, sql) \
+    do {\
 		if (!query.exec(sql)) {\
 			throw SqlException(query.lastError());\
-		}
+        }\
+    } while (false);
 
 SqlException::SqlException(QSqlError error)
 	: xamp::base::Exception(xamp::base::Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, error.text().toStdString()) {
@@ -72,8 +76,7 @@ void Database::createTableIfNotExist() {
 			tableId integer PRIMARY KEY AUTOINCREMENT,            
 			tableIndex integer,
             playlistId integer,
-			name TEXT NOT NULL,
-			unique (name)
+            name TEXT NOT NULL
 		)
 	)"));
 
@@ -134,7 +137,7 @@ void Database::createTableIfNotExist() {
 
 	QSqlQuery query(db_);
 	for (const auto& sql : create_table_sql) {
-        ENSURE_EXEC_SQL(query, sql)
+        IfFailureThrow(query, sql)
 	}
 }
 
@@ -213,7 +216,7 @@ void Database::updateAlbumCover(int32_t album_id, const QString& album, const QS
 	query.bindValue(Q_UTF8(":album"), album);
 	query.bindValue(Q_UTF8(":coverId"), cover_id);
 
-    ENSURE_EXEC(query)
+    ThrowlfFailue(query)
 }
 
 void Database::addTablePlaylist(int32_t tableId, int32_t playlist_id) {
@@ -226,7 +229,7 @@ void Database::addTablePlaylist(int32_t tableId, int32_t playlist_id) {
 	query.bindValue(Q_UTF8(":playlistId"), playlist_id);
 	query.bindValue(Q_UTF8(":tableId"), tableId);
 
-    ENSURE_EXEC(query)
+    ThrowlfFailue(query)
 }
 
 QString Database::getAlbumCoverId(int32_t album_id) const {
@@ -235,7 +238,7 @@ QString Database::getAlbumCoverId(int32_t album_id) const {
 	query.prepare(Q_UTF8("SELECT coverId FROM albums WHERE albumId = (:albumId)"));
 	query.bindValue(Q_UTF8(":albumId"), album_id);
 
-    ENSURE_EXEC(query)
+    ThrowlfFailue(query)
 
 	const auto album_cover_tag_id_index = query.record().indexOf(Q_UTF8("coverId"));
 	if (query.next()) {
@@ -294,7 +297,7 @@ void Database::addMusicToPlaylist(int32_t music_id, int32_t playlist_id) const {
 
 	query.bindValue(Q_UTF8(":playlistId"), playlist_id);
 	query.bindValue(Q_UTF8(":musicId"), music_id);
-    ENSURE_EXEC(query)
+    ThrowlfFailue(query)
 }
 
 int32_t Database::addOrUpdateArtist(const QString& artist) {
@@ -309,7 +312,7 @@ int32_t Database::addOrUpdateArtist(const QString& artist) {
 
 	query.bindValue(Q_UTF8(":artist"), artist);
 
-    ENSURE_EXEC(query)
+    ThrowlfFailue(query)
 
 	const auto artist_id = query.lastInsertId().toInt();
 	return artist_id;
@@ -327,7 +330,7 @@ int32_t Database::addOrUpdateAlbum(const QString& album, int32_t artist_id) {
 	query.bindValue(Q_UTF8(":album"), album);
 	query.bindValue(Q_UTF8(":artistId"), artist_id);
 
-    ENSURE_EXEC(query)
+    ThrowlfFailue(query)
 
 	const auto album_id = query.lastInsertId().toInt();
 	return album_id;
@@ -362,7 +365,7 @@ void Database::addOrUpdateAlbumMusic(int32_t album_id, int32_t artist_id, int32_
 
 	db_.transaction();
 
-    ENSURE_EXEC(query)
+    ThrowlfFailue(query)
 
 	if (!query.next()) {
 		addAlbumMusic(album_id, artist_id, music_id);
@@ -382,7 +385,7 @@ void Database::addAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_
 	query.bindValue(Q_UTF8(":artistId"), artist_id);
 	query.bindValue(Q_UTF8(":musicId"), music_id);
 
-    ENSURE_EXEC(query)
+    ThrowlfFailue(query)
 }
 
 void Database::removePlaylistMusic(int32_t playlist_id, const QVector<int32_t>& select_music_ids) {
@@ -399,5 +402,5 @@ void Database::removePlaylistMusic(int32_t playlist_id, const QVector<int32_t>& 
 	query.prepare(q);
 	
 	query.bindValue(Q_UTF8(":playlistId"), playlist_id);
-    ENSURE_EXEC(query)
+    ThrowlfFailue(query)
 }

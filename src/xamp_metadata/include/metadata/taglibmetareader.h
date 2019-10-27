@@ -21,9 +21,9 @@ public:
 
     XAMP_PIMPL(TaglibMetadataReader)
     
-    void Extract(const Path &path, Metadata &metadata) override;
+    Metadata Extract(const Path &path) override;
 
-    void Extract(const Path &path, MetadataExtractAdapter* adapter) override;
+    void ExtractFromPath(const Path &path, MetadataExtractAdapter* adapter) override;
 
     const std::vector<uint8_t>& ExtractEmbeddedCover(const Path &path) override;
 

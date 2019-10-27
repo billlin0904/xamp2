@@ -26,6 +26,7 @@ INCLUDEPATH += ../xamp_player/include/
 INCLUDEPATH += ../thirdparty/spdlog/include/
 
 SOURCES += \
+    thememanager.cpp \
     widget/albumview.cpp \
     widget/appsettings.cpp \
     widget/clickablelabel.cpp \
@@ -36,6 +37,7 @@ SOURCES += \
     widget/lrcparser.cpp \
     widget/lyricsshowwideget.cpp \
     widget/metadataextractadapter.cpp \
+    widget/navlistview.cpp \
     widget/pixmapcache.cpp \
     widget/playerstateadapter.cpp \
     widget/playlistpage.cpp \
@@ -48,6 +50,7 @@ SOURCES += \
     xamp.cpp
 
 HEADERS += \
+    thememanager.h \
     widget/actionmap.h \
     widget/albumview.h \
     widget/appsettings.h \
@@ -60,6 +63,7 @@ HEADERS += \
     widget/lrcparser.h \
     widget/lyricsshowwideget.h \
     widget/metadataextractadapter.h \
+    widget/navlistview.h \
     widget/pixmapcache.h \
     widget/playerstateadapter.h \
     widget/playlistpage.h \

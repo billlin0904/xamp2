@@ -164,13 +164,15 @@ public:
     TaglibMetadataReaderImpl() {		
     }
 
-    void Extract(const Path& path, Metadata& metadata) const {
+    Metadata Extract(const Path& path) const {
 #ifdef _WIN32
         FileRef fileref(path.wstring().c_str(), true, TagLib::AudioProperties::Fast);
 #else
         FileRef fileref(path.string().c_str(), true, TagLib::AudioProperties::Fast);
 #endif
         const auto tag = fileref.tag();
+
+        Metadata metadata;
 
         if (tag != nullptr) {
             ExtractTag(path, tag, fileref.audioProperties(), metadata);
@@ -190,6 +192,8 @@ public:
 				metadata.title = metadata.file_name_no_ext;
 			}
         }
+
+        return metadata;
     }
 
     const std::vector<uint8_t>& ExtractCover(const Path& path) {
@@ -224,7 +228,7 @@ public:
 
 private:
     static void GetCover(const std::string& ext, File*file, std::vector<uint8_t>& cover) {
-        static std::unordered_map<std::string, FunctionRef<bool(File *, std::vector<uint8_t> &)>> 
+        static const std::unordered_map<std::string, FunctionRef<bool(File *, std::vector<uint8_t> &)>>
 			parse_cover_table{
             { ".FLAC", GetFlacCover },
             { ".MP3",  GetMp3Cover },
@@ -246,19 +250,17 @@ TaglibMetadataReader::TaglibMetadataReader()
     : reader_(MakeAlign<TaglibMetadataReaderImpl>()) {
 }
 
-void TaglibMetadataReader::Extract(const Path& path, Metadata & metadata) {
-    reader_->Extract(path, metadata);
+Metadata TaglibMetadataReader::Extract(const Path& path) {
+    return reader_->Extract(path);
 }
 
-void TaglibMetadataReader::Extract(const Path& path, MetadataExtractAdapter* adapter) {
+void TaglibMetadataReader::ExtractFromPath(const Path &path, MetadataExtractAdapter* adapter) {
     if (is_directory(path)) {
         for (RecursiveDirectoryIterator itr(path), end; itr != end && !adapter->IsCancel(); ++itr) {
             const auto current_path = (*itr).path();
 
             if (!is_directory(current_path) && reader_->IsSupported(current_path)) {
-                Metadata metadata;
-                reader_->Extract(current_path, metadata);
-                adapter->OnWalk(path, metadata);
+                adapter->OnWalk(path, reader_->Extract(current_path));
             }
             else if (is_directory(current_path)) {
 				adapter->OnWalkNext();
@@ -266,9 +268,7 @@ void TaglibMetadataReader::Extract(const Path& path, MetadataExtractAdapter* ada
         }
 		adapter->OnWalkNext();
     } else {
-        Metadata metadata;
-        reader_->Extract(path, metadata);
-        adapter->OnWalk(path, metadata);
+        adapter->OnWalk(path, reader_->Extract(path));
 		adapter->OnWalkNext();
     }
 }

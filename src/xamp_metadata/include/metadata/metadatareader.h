@@ -18,9 +18,9 @@ class XAMP_METADATA_API MetadataReader {
 public:
 	XAMP_BASE_CLASS(MetadataReader)
     
-    virtual void Extract(const Path &path, Metadata &metadata) = 0;
+    virtual Metadata Extract(const Path &path) = 0;
 
-    virtual void Extract(const Path &path, MetadataExtractAdapter* adapter) = 0;
+    virtual void ExtractFromPath(const Path &path, MetadataExtractAdapter* adapter) = 0;
     
     virtual const std::vector<uint8_t>& ExtractEmbeddedCover(const Path &path) = 0;
 

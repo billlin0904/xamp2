@@ -55,7 +55,7 @@ XAMP_ALWAYS_INLINE std::locale GetLocaleFromBom(const std::wstring &bom) noexcep
             new std::codecvt_utf16<wchar_t, 0x10ffff, le_bom>);
     }
 #endif
-    return std::locale("en_US.UTF8");
+    return std::locale();
 }
 
 XAMP_ALWAYS_INLINE void ImbueFileFromBom(std::wifstream & file) noexcept {

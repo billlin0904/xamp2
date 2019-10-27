@@ -34,8 +34,6 @@ public:
 	std::shared_ptr<spdlog::logger> GetLogger(const std::string &name);
 
 private:
-	struct LoggerImpl;
-
 	Logger();	
 
 	std::vector<spdlog::sink_ptr> sinks_;

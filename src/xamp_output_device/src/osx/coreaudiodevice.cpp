@@ -115,13 +115,13 @@ void CoreAudioDevice::OpenStream(const AudioFormat &output_format) {
     AudioStreamBasicDescription fmt;
     uint32 dataSize = sizeof(fmt);
     audio_property_.mSelector = kAudioStreamPropertyVirtualFormat;
-    auto result = AudioObjectGetPropertyData(device_id_,
-                                        &audio_property_,
-                                        0,
-                                        nullptr,
-                                        &dataSize,
-                                        &fmt);
-    CoreAudioThrowIfError(result);
+
+    CoreAudioThrowIfError(AudioObjectGetPropertyData(device_id_,
+                                                     &audio_property_,
+                                                     0,
+                                                     nullptr,
+                                                     &dataSize,
+                                                     &fmt));
 
     if (fmt.mFormatFlags & kAudioFormatFlagIsNonInterleaved) {
         XAMP_LOG_DEBUG("Format is non interleaved");
@@ -139,43 +139,39 @@ void CoreAudioDevice::OpenStream(const AudioFormat &output_format) {
     fmt.mBytesPerPacket = (uint32_t)output_format.GetBytesPerSample();
     fmt.mReserved = 0;
 
-    result = AudioObjectSetPropertyData(device_id_,
-                                        &audio_property_,
-                                        0,
-                                        nullptr,
-                                        dataSize,
-                                        &fmt);
-    CoreAudioThrowIfError(result);
+    CoreAudioThrowIfError(AudioObjectSetPropertyData(device_id_,
+                                                     &audio_property_,
+                                                     0,
+                                                     nullptr,
+                                                     dataSize,
+                                                     &fmt));
 
     uint32_t bufferSize = 0;
     audio_property_.mSelector = kAudioDevicePropertyBufferFrameSize;
     dataSize = sizeof(bufferSize);
-    result = AudioObjectGetPropertyData(
-                device_id_,
-                &audio_property_,
-                0,
-                nullptr,
-                &dataSize,
-                &bufferSize);
-    CoreAudioThrowIfError(result);
+    CoreAudioThrowIfError(AudioObjectGetPropertyData(
+                              device_id_,
+                              &audio_property_,
+                              0,
+                              nullptr,
+                              &dataSize,
+                              &bufferSize));
     XAMP_LOG_DEBUG("Allocate buffer size:{}", bufferSize);
 
     UInt32 theSize = bufferSize;
     dataSize = sizeof(UInt32);
     audio_property_.mSelector = kAudioDevicePropertyBufferFrameSize;
-    result = AudioObjectSetPropertyData(
-                device_id_,
-                &audio_property_,
-                0,
-                nullptr,
-                dataSize,
-                &theSize);
-    CoreAudioThrowIfError(result);
+    CoreAudioThrowIfError(AudioObjectSetPropertyData(
+                              device_id_,
+                              &audio_property_,
+                              0,
+                              nullptr,
+                              dataSize,
+                              &theSize));
 
     buffer_size_ = (uint32_t)output_format.GetChannels() * bufferSize;
 
-    result = AudioDeviceCreateIOProcID(device_id_, OnAudioIOProc, this, &proc_id_);
-    CoreAudioThrowIfError(result);
+    CoreAudioThrowIfError(AudioDeviceCreateIOProcID(device_id_, OnAudioIOProc, this, &proc_id_));
     format_ = output_format;
 }
 

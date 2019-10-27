@@ -20,9 +20,6 @@ static void loadAndDefaultAppConfig() {
 }
 
 int main(int argc, char *argv[]) {
-    QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-    QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
-
 	Logger::Instance()
 #ifdef _DEBUG
 		.AddDebugOutputLogger()
@@ -31,6 +28,9 @@ int main(int argc, char *argv[]) {
         .AddSink(std::make_shared<QDebugSink>())
 #endif
 		.AddFileLogger("xamp.log");	
+
+    QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+    QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 
 	QApplication app(argc, argv);
 

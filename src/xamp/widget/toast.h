@@ -16,7 +16,7 @@ class Toast : public QWidget {
 public:
 	Toast(QWidget* parent = nullptr);
 
-	~Toast();
+    ~Toast() override;
 
 	void setText(const QString& text);
 

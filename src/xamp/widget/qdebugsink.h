@@ -10,10 +10,12 @@
 
 #include <QDebug>
 
+#ifdef Q_OS_MAC
 class QDebugSink final : public spdlog::sinks::base_sink<std::mutex> {
 public:
-    QDebugSink() {
-    }
+    QDebugSink() = default;
+
+    virtual ~QDebugSink() = default;
 
 private:
     void sink_it_(const spdlog::details::log_msg& msg) override {
@@ -26,5 +28,6 @@ private:
     void flush_() override {
     }
 };
+#endif
 
 

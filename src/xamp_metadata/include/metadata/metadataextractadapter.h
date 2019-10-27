@@ -16,11 +16,11 @@ class XAMP_METADATA_API MetadataExtractAdapter {
 public:
     XAMP_BASE_CLASS(MetadataExtractAdapter)
 
-    virtual void OnWalk(const Path &path, const Metadata &metadata) = 0;
+    virtual void OnWalk(const Path &path, Metadata metadata) = 0;
 
-	virtual void OnWalkNext() = 0;
+    virtual void OnWalkNext() = 0;
 
-	virtual bool IsCancel() const = 0;
+    virtual bool IsCancel() const = 0;
 
     virtual void Cancel() = 0;
 

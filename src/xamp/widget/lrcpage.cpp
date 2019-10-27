@@ -8,7 +8,6 @@
 LrcPage::LrcPage(QWidget* parent)
 	: QFrame(parent) {
 	setStyleSheet(Q_UTF8("background-color: white;"));
-	//setStyleSheet(Q_UTF8("background-color: transparent;"));
 	initial();
 }
 

@@ -69,6 +69,12 @@ AudioBuffer<Type, U>::AudioBuffer() noexcept
 }
 
 template <typename Type, typename U>
+AudioBuffer<Type, U>::AudioBuffer(const int32_t size)
+    : AudioBuffer() {
+    Resize(size);
+}
+
+template <typename Type, typename U>
 AudioBuffer<Type, U>::~AudioBuffer() noexcept {
 }
 
@@ -83,15 +89,11 @@ int32_t AudioBuffer<Type, U>::GetSize() const noexcept {
 }
 
 template <typename Type, typename U>
-AudioBuffer<Type, U>::AudioBuffer(const int32_t size)
-	: AudioBuffer() {
-	Resize(size);
-}
-
-template <typename Type, typename U>
 void AudioBuffer<Type, U>::Resize(const int32_t size) {
 	if (size > size_) {
-        buffer_ = MakeBuffer<Type>(size);
+        auto new_buffer = MakeBuffer<Type>(size);
+        memcpy(new_buffer.get(), buffer_.get(), sizeof(Type) * GetSize());
+        buffer_ = std::move(new_buffer);
 		size_ = size;
 	}
 }
