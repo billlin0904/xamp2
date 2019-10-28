@@ -37,7 +37,7 @@ class Xamp : public FramelessWindow {
 	Q_OBJECT
 
 public:
-	Xamp(QWidget *parent = Q_NULLPTR);
+    Xamp(QWidget *parent = nullptr);
 
 public slots:
 	void play(const QModelIndex& index, const PlayListEntity& item);
@@ -73,6 +73,8 @@ private:
 
 	void addItem(const QString& file_name);
 
+    void addTable();
+
 	void addDropFileItem(const QUrl& url) override;
 
 	void setVolume(int32_t volume);
@@ -88,6 +90,8 @@ private:
 	void initialShortcut();
 
 	void playNextItem(int32_t forward);
+
+    void setTablePlaylistView(int table_id);
 
 	void setPlayerOrder();
 

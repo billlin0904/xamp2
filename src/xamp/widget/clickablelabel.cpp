@@ -5,7 +5,7 @@ ClickableLabel::ClickableLabel(QWidget* parent)
 	setMouseTracking(true);
 }
 
-void ClickableLabel::mousePressEvent(QMouseEvent* event) {
+void ClickableLabel::mousePressEvent(QMouseEvent*) {
 	emit clicked();
 }
 

@@ -419,7 +419,7 @@
       <item row="2" column="0">
        <widget class="QFrame" name="controlFrame">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
@@ -799,7 +799,7 @@
        </widget>
       </item>
       <item row="0" column="0" rowspan="2">
-       <widget class="QFrame" name="frame">
+       <widget class="QFrame" name="sliderFrame">
         <property name="frameShape">
          <enum>QFrame::NoFrame</enum>
         </property>
@@ -833,7 +833,7 @@
           </spacer>
          </item>
          <item>
-          <widget class="NavListView" name="sliderBar">
+          <widget class="TabListView" name="sliderBar">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
              <horstretch>0</horstretch>
@@ -844,6 +844,12 @@
             <size>
              <width>200</width>
              <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>200</width>
+             <height>16777215</height>
             </size>
            </property>
            <property name="frameShape">
@@ -867,9 +873,9 @@
    <header>widget/clickablelabel.h</header>
   </customwidget>
   <customwidget>
-   <class>NavListView</class>
+   <class>TabListView</class>
    <extends>QListView</extends>
-   <header>widget/navlistview.h</header>
+   <header>widget/tablistview.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

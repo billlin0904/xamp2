@@ -49,7 +49,7 @@ public:
 
     void open(const QString& file_name);
 
-    int32_t addTable(const QString& name, int32_t table_index);
+    int32_t addTable(const QString& name, int32_t table_index, int32_t playlist_id);
 
     int32_t addPlaylist(const QString& name, int32_t playlistIndex);
 
@@ -71,16 +71,16 @@ public:
     void forEachTable(Callbackable &&callback) {
         QSqlTableModel model(nullptr, db_);
 
-        model.setTable("tables");
+        model.setTable(Q_UTF8("tables"));
         model.setSort(1, Qt::AscendingOrder);
         model.select();
 
         for (auto i = 0; i < model.rowCount(); ++i) {
             auto record = model.record(i);
-            callback(record.value("tableId").toInt(),
-                     record.value("tableIndex").toInt(),
-                     record.value("playlistId").toInt(),
-                     record.value("name").toString());
+            callback(record.value(Q_UTF8("tableId")).toInt(),
+                     record.value(Q_UTF8("tableIndex")).toInt(),
+                     record.value(Q_UTF8("playlistId")).toInt(),
+                     record.value(Q_UTF8("name")).toString());
         }
     }
 
@@ -135,6 +135,9 @@ public:
 
     void removePlaylistMusic(int32_t playlist_id, const QVector<int>& select_music_ids);
 
+    int32_t findTablePlaylistId(int32_t table_id) const;
+
+    bool isPlaylistExist(int32_t playlist_id) const;
 private:
     Database();
 

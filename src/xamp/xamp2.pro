@@ -3,6 +3,7 @@ QT       += core gui sql
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++17
+DEFINES += QT_NO_CAST_FROM_ASCII
 
 QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.15
 
@@ -44,6 +45,7 @@ SOURCES += \
     widget/playlisttablemodel.cpp \
     widget/playlisttableproxymodel.cpp \
     widget/playlisttableview.cpp \
+    widget/tablistview.cpp \
     widget/toast.cpp \
     widget/wheelablewidget.cpp \
     main.cpp \
@@ -71,6 +73,7 @@ HEADERS += \
     widget/playlisttableproxymodel.h \
     widget/playlisttableview.h \
     widget/qdebugsink.h \
+    widget/tablistview.h \
     widget/toast.h \
     widget/wheelablewidget.h \
     widget/str_utilts.h \

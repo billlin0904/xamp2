@@ -3,13 +3,14 @@
 #include "qpainter.h"
 #include "qfile.h"
 #include "qdebug.h"
+#include "str_utilts.h"
 
 NavDelegate::NavDelegate(QObject *parent) : QStyledItemDelegate(parent)
 {
     nav = (NavListView *)parent;
 
     //引入图形字体
-    int fontId = QFontDatabase::addApplicationFont(":/xamp/Resource/image/fontawesome-webfont.ttf");
+    int fontId = QFontDatabase::addApplicationFont(Q_UTF8(":/xamp/Resource/image/fontawesome-webfont.ttf"));
     QString fontName = QFontDatabase::applicationFontFamilies(fontId).at(0);
     iconFont = QFont(fontName);
 }
@@ -142,7 +143,7 @@ void NavDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, c
     rect.setWidth(rect.width() - margin);
     rect.setX(rect.x() + margin);
 
-    QFont normalFont("Microsoft Yahei", 9);
+    QFont normalFont(Q_UTF8("Microsoft Yahei"), 9);
     painter->setFont(normalFont);
     painter->drawText(rect, Qt::AlignLeft | Qt::AlignVCenter, index.data(Qt::DisplayRole).toString());
 
@@ -166,7 +167,7 @@ void NavDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, c
 
     QPen decorationPen(option.state & QStyle::State_Selected ? nav->getColorBgSelected() : nav->getColorTextSelected());
     QBrush decorationBrush(option.state & QStyle::State_Selected ? nav->getColorTextSelected() : nav->getColorBgSelected());
-    QFont decorationFont("Microsoft Yahei", 8);
+    QFont decorationFont(Q_UTF8("Microsoft Yahei"), 8);
     painter->setFont(decorationFont);
 
     //绘制提示信息背景
@@ -183,12 +184,12 @@ void NavDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, c
 
     //如果是数字则将超过999的数字显示成 999+
     if (recordInfo.toInt() > 999) {
-        recordInfo = "999+";
+        recordInfo = Q_UTF8("999+");
     }
 
     //如果显示的提示信息长度超过4则将多余显示成省略号..
     if (recordInfo.length() > 4) {
-        recordInfo = recordInfo.mid(0, 4) + "..";
+        recordInfo = recordInfo.mid(0, 4) + Q_UTF8("..");
     }
 
     painter->drawText(decoration, Qt::AlignCenter, recordInfo);
@@ -227,7 +228,7 @@ void NavModel::setData(const QStringList &listItem)
     //listItem格式: 标题|父节点标题(父节点为空)|是否展开|提示信息
     for (int i = 0; i < count; i++) {
         QString item = listItem.at(i);
-        QStringList list = item.split("|");
+        QStringList list = item.split(Q_UTF8("|"));
 
         if (list.count() < 4) {
             continue;
@@ -249,7 +250,7 @@ void NavModel::setData(const QStringList &listItem)
             //查找该父节点是否有对应子节点,有则加载
             for (int j = 0; j < count; j++) {
                 QString secItem = listItem.at(j);
-                QStringList secList = secItem.split("|");
+                QStringList secList = secItem.split(Q_UTF8("|"));
 
                 if (secList.count() < 4) {
                     continue;

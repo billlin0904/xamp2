@@ -335,8 +335,16 @@ void Xamp::initialController() {
         getNextPage();
     });
 
+    (void)QObject::connect(ui.addPlaylistButton, &QToolButton::pressed, [this]() {
+        addTable();
+    });
+
     (void)QObject::connect(ui.coverLabel, &ClickableLabel::clicked, [this]() {
         ui.currentView->setCurrentWidget(lrc_page_);
+    });
+
+    QObject::connect(ui.sliderBar, &TabListView::clickedTable, [this](auto table_id) {
+        setTablePlaylistView(table_id);
     });
 
     auto settings_menu = new QMenu(this);
@@ -368,6 +376,19 @@ void Xamp::getNextPage() {
     }
     auto idx = ui.currentView->currentIndex();
     ui.currentView->setCurrentIndex(idx + 1);
+}
+
+void Xamp::setTablePlaylistView(int table_id) {
+    auto playlist_id = Database::Instance().findTablePlaylistId(table_id);
+
+    for (auto idx : stack_page_id_) {
+        if (auto page = dynamic_cast<PlyalistPage*>(ui.currentView->widget(idx))) {
+            if (page->playlist()->playlistId() == playlist_id) {
+                ui.currentView->setCurrentIndex(idx + 1);
+                break;
+            }
+        }
+    }
 }
 
 void Xamp::goBackPage() {
@@ -627,29 +648,47 @@ void Xamp::onPlayerStateChanged(xamp::player::PlayerState play_state) {
     }
 }
 
+void Xamp::addTable() {
+    auto playlist_view = playlist_page_->playlist();
+    auto table_id = Database::Instance().addTable(Q_UTF8("Test"), 0, playlist_view->playlistId());
+    Database::Instance().addTablePlaylist(table_id, playlist_view->playlistId());
+    ui.sliderBar->addTab(Q_UTF8("Test"), table_id);
+}
+
 void Xamp::initialPlaylist() {
-    //IgnoreSqlError(Database::Instance().addTable("Test1", 0))
-    //IgnoreSqlError(Database::Instance().addTable("Test2", 0))
-
-    QStringList table_name;
-
     Database::Instance().forEachTable([&](auto table_id, auto table_index, auto playlist_id, const auto &name) {
         if (name.isEmpty()) {
             return;
         }
-        table_name.append(name + "||0||");
+
+        ui.sliderBar->addTab(name, table_id);
+
+        if (!playlist_page_) {
+            playlist_page_ = newPlaylist(playlist_id);
+            playlist_page_->playlist()->setPlaylistId(playlist_id);
+            Database::Instance().forEachPlaylistMusic(playlist_id, [this](const auto& entityy) {
+                playlist_page_->playlist()->appendItem(entityy);
+            });
+        } else if (playlist_page_->playlist()->playlistId() != playlist_id) {
+            playlist_page_ = newPlaylist(playlist_id);
+            playlist_page_->playlist()->setPlaylistId(playlist_id);
+            Database::Instance().forEachPlaylistMusic(playlist_id, [this](const auto& entityy) {
+                playlist_page_->playlist()->appendItem(entityy);
+            });
+        }
     });
 
-    ui.sliderBar->setData(table_name);
-
-    int32_t playlist_id = 1;
-    IgnoreSqlError(Database::Instance().addPlaylist(Q_UTF8(""), 1))
-
-    playlist_page_ = newPlaylist(playlist_id);
-    playlist_page_->playlist()->setPlaylistId(playlist_id);
-    Database::Instance().forEachPlaylistMusic(playlist_id, [this](const auto& entityy) {
-        playlist_page_->playlist()->appendItem(entityy);
-    });
+    if (!playlist_page_) {
+        int32_t playlist_id = 1;
+        if (!Database::Instance().isPlaylistExist(playlist_id)) {
+            playlist_id = Database::Instance().addPlaylist(Q_UTF8(""), 0);
+        }
+        playlist_page_ = newPlaylist(playlist_id);
+        playlist_page_->playlist()->setPlaylistId(playlist_id);
+        Database::Instance().forEachPlaylistMusic(playlist_id, [this](const auto& entityy) {
+            playlist_page_->playlist()->appendItem(entityy);
+        });
+    }
 
     lrc_page_ = new LrcPage(this);
 
@@ -660,7 +699,12 @@ void Xamp::initialPlaylist() {
 }
 
 void Xamp::addItem(const QString& file_name) {
-    playlist_page_->playlist()->append(file_name);
+    try {
+        playlist_page_->playlist()->append(file_name);
+    }
+    catch (const xamp::base::Exception& e) {
+        Toast::showTip(Q_UTF8(e.GetErrorMessage()), this);
+    }
 }
 
 void Xamp::pushWidget(QWidget* widget) {
@@ -700,10 +744,6 @@ PlyalistPage* Xamp::newPlaylist(int32_t playlist_id) {
                            [](auto playlist_id, const auto& select_music_ids) {
         IgnoreSqlError(Database::Instance().removePlaylistMusic(playlist_id, select_music_ids))
     });
-    Database::Instance().addTable(Q_UTF8(""), 0);
-    if (playlist_id == Database::INVALID_DATABASE_ID) {
-        playlist_id = Database::Instance().addPlaylist(Q_UTF8(""), 0);
-    }
     playlist_page->playlist()->setPlaylistId(playlist_id);
     return playlist_page;
 }
