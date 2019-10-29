@@ -77,7 +77,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>./include/;../thirdparty/FastMemcpy/;../thirdparty/spdlog/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../thirdparty/FastMemcpy/;../thirdparty/spdlog/include/;../thirdparty/utfcpp/source/</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>BASE_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <BrowseInformation>true</BrowseInformation>

@@ -47,6 +47,7 @@ Xamp::Xamp(QWidget *parent)
     : FramelessWindow(parent)
     , is_seeking_(false)
     , order_(PlayerOrder::PLAYER_ORDER_REPEAT_ONCE)
+	, playlist_page_(nullptr)
     , lrc_page_(nullptr)
     , state_adapter_(std::make_shared<PlayerStateAdapter>())
     , player_(std::make_shared<AudioPlayer>(state_adapter_)) {
@@ -78,11 +79,6 @@ void Xamp::setDefaultStyle() {
                          }
 
                          QFrame#playingFrame {
-                         background-color: transparent;
-                         border: none;
-                         }
-
-                         QFrame#sliderFrame {
                          background-color: transparent;
                          border: none;
                          }
@@ -684,7 +680,10 @@ void Xamp::initialPlaylist() {
             Database::Instance().forEachPlaylistMusic(playlist_id, [this](const auto& entityy) {
                 playlist_page_->playlist()->appendItem(entityy);
             });
-        } else if (playlist_page_->playlist()->playlistId() != playlist_id) {
+			return;
+        }
+
+		if (playlist_page_->playlist()->playlistId() != playlist_id) {
             playlist_page_ = newPlaylist(playlist_id);
             playlist_page_->playlist()->setPlaylistId(playlist_id);
             Database::Instance().forEachPlaylistMusic(playlist_id, [this](const auto& entityy) {

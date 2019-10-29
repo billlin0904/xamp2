@@ -15,6 +15,8 @@ void setDefaultStyle(Ui::XampWindow &ui) {
     ui.volumeFrame->setStyleSheet(Q_UTF8("background-color: rgba(255, 255, 255, 200);"));
     ui.playingFrame->setStyleSheet(Q_UTF8("background-color: rgba(228, 233, 237, 220);"));
     ui.searchLineEdit->setStyleSheet(Q_UTF8(""));
+	ui.sliderFrame->setStyleSheet(Q_UTF8("background-color: rgba(228, 233, 237, 230);"));
+	ui.sliderBar->setStyleSheet(Q_UTF8("background-color: transparent;"));
 
     ui.closeButton->setStyleSheet(Q_UTF8(R"(
                                          QToolButton#closeButton {

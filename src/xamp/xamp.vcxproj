@@ -130,6 +130,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="thememanager.cpp" />
     <ClCompile Include="widget\albumview.cpp" />
     <ClCompile Include="widget\appsettings.cpp" />
     <ClCompile Include="widget\clickablelabel.cpp" />
@@ -146,6 +147,7 @@
     <ClCompile Include="widget\playlisttablemodel.cpp" />
     <ClCompile Include="widget\playlisttableproxymodel.cpp" />
     <ClCompile Include="widget\playlisttableview.cpp" />
+    <ClCompile Include="widget\tablistview.cpp" />
     <ClCompile Include="widget\toast.cpp" />
     <ClCompile Include="widget\wheelablewidget.cpp" />
     <ClCompile Include="widget\win32\blur_effect_helper.cpp" />
@@ -162,6 +164,7 @@
     <ResourceCompile Include="xamp.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="thememanager.h" />
     <ClInclude Include="widget\actionmap.h" />
     <QtMoc Include="xamp.h">
       <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtWinExtras;.\..\xamp_base\include;.\..\xamp_stream\include;.\..\xamp_output_device\include;.\..\xamp_player\include;.\..\xamp_metadata\include;.\..\thirdparty\spdlog\include;$(QTDIR)\include\QtNetwork</IncludePath>
@@ -200,6 +203,10 @@
       <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtWinExtras;.\..\xamp_base\include;.\..\xamp_stream\include;.\..\xamp_player\include;.\..\xamp_output_device\include;.\..\xamp_metadata\include;.\..\thirdparty\spdlog\include</IncludePath>
     </QtMoc>
     <ClInclude Include="widget\str_utilts.h" />
+    <QtMoc Include="widget\tablistview.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtWinExtras;.\..\xamp_base\include;.\..\xamp_stream\include;.\..\xamp_output_device\include;.\..\xamp_player\include;.\..\xamp_metadata\include;.\..\thirdparty\spdlog\include;$(QTDIR)\include\QtNetwork</IncludePath>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtWinExtras;.\..\xamp_base\include;.\..\xamp_stream\include;.\..\xamp_player\include;.\..\xamp_output_device\include;.\..\xamp_metadata\include;.\..\thirdparty\spdlog\include;$(QTDIR)\include\QtNetwork</IncludePath>
+    </QtMoc>
     <ClInclude Include="widget\time_utilts.h" />
     <QtMoc Include="widget\playlisttableproxymodel.h">
       <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtWidgets;.\..\xamp_base\include;.\..\xamp_stream\include;.\..\xamp_output_device\include;.\..\xamp_player\include;.\..\xamp_metadata\include;$(QTDIR)\include\QtWinExtras</IncludePath>

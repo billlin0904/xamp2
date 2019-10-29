@@ -329,7 +329,9 @@ void AsioDevice::OnBufferSwitch(long index) {
 		callbackInfo.boost_priority = false;
 	}
 
-	played_bytes_ += buffer_bytes_ * mix_format_.GetChannels();
+	auto temp = played_bytes_.load();
+	temp += buffer_bytes_ * mix_format_.GetChannels();
+	played_bytes_ = temp;
 
 	if (!is_streaming_) {
 		is_stop_streaming_ = true;
@@ -341,7 +343,7 @@ void AsioDevice::OnBufferSwitch(long index) {
 	bool got_samples = false;
 
 	if (io_format_ == AsioIoFormat::IO_FORMAT_PCM) {
-		if ((*callback_)(reinterpret_cast<float*>(buffer_.get()), buffer_size_, double(played_bytes_) / mix_format_.GetAvgBytesPerSec()) == 0) {
+		if ((*callback_)(reinterpret_cast<float*>(buffer_.get()), buffer_size_, double(temp) / mix_format_.GetAvgBytesPerSec()) == 0) {
 			switch (mix_format_.GetByteFormat()) {
 			case ByteFormat::SINT16:
 				DataConverter<InterleavedFormat::DEINTERLEAVED,
