@@ -5,6 +5,7 @@
 #include <QCloseEvent>
 #include <QFileInfo>
 #include <QDesktopWidget>
+#include <QInputDialog>
 
 #include "widget/lrcpage.h"
 #include "widget/win32/blur_effect_helper.h"
@@ -77,6 +78,11 @@ void Xamp::setDefaultStyle() {
                          }
 
                          QFrame#playingFrame {
+                         background-color: transparent;
+                         border: none;
+                         }
+
+                         QFrame#sliderFrame {
                          background-color: transparent;
                          border: none;
                          }
@@ -384,7 +390,7 @@ void Xamp::setTablePlaylistView(int table_id) {
     for (auto idx : stack_page_id_) {
         if (auto page = dynamic_cast<PlyalistPage*>(ui.currentView->widget(idx))) {
             if (page->playlist()->playlistId() == playlist_id) {
-                ui.currentView->setCurrentIndex(idx + 1);
+                ui.currentView->setCurrentIndex(idx);
                 break;
             }
         }
@@ -649,10 +655,19 @@ void Xamp::onPlayerStateChanged(xamp::player::PlayerState play_state) {
 }
 
 void Xamp::addTable() {
+    bool isOK = false;
+    const auto table_name = QInputDialog::getText(nullptr, tr("Input Table Name"),
+                                                  tr("Please input your name"),
+                                                  QLineEdit::Normal,
+                                                  tr("My favorite"),
+                                                  &isOK);
+    if (!isOK) {
+        return;
+    }
     auto playlist_view = playlist_page_->playlist();
-    auto table_id = Database::Instance().addTable(Q_UTF8("Test"), 0, playlist_view->playlistId());
+    auto table_id = Database::Instance().addTable(table_name, 0, playlist_view->playlistId());
     Database::Instance().addTablePlaylist(table_id, playlist_view->playlistId());
-    ui.sliderBar->addTab(Q_UTF8("Test"), table_id);
+    ui.sliderBar->addTab(table_name, table_id);
 }
 
 void Xamp::initialPlaylist() {
