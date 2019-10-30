@@ -19,8 +19,6 @@ class MetadataExtractAdapter
 	, public xamp::metadata::MetadataExtractAdapter {
 	Q_OBJECT
 public:
-	static const size_t PREALLOCATE_SIZE;
-
 	MetadataExtractAdapter();
 
     void OnWalk(const xamp::metadata::Path& path, xamp::base::Metadata metadata) override;

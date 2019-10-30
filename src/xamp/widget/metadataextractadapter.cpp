@@ -12,7 +12,7 @@
 #include "pixmapcache.h"
 #include "metadataextractadapter.h"
 
-const size_t MetadataExtractAdapter::PREALLOCATE_SIZE = 100;
+constexpr size_t PREALLOCATE_SIZE = 100;
 
 MetadataExtractAdapter::MetadataExtractAdapter()
     : QObject(nullptr)

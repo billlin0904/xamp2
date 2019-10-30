@@ -2,12 +2,42 @@
 #include "widget/str_utilts.h"
 #include "thememanager.h"
 
-namespace ThemeManager {
+class DefaultStylePixmapManager : public StylePixmapManager {
+public:
+    DefaultStylePixmapManager() {
+        unknown_cover_ = QPixmap(Q_UTF8(":/xamp/Resource/White/unknown_album.png"));
+        volume_up_ = QIcon(Q_UTF8(":/xamp/Resource/White/volume_up.png"));
+        volume_off_ = QIcon(Q_UTF8(":/xamp/Resource/White/volume_off.png"));
+    }
 
-void setNightStyle(Ui::XampWindow &ui) {
+    ~DefaultStylePixmapManager() override = default;
+
+    const QPixmap& unknownCover() const noexcept override {
+        return unknown_cover_;
+    }
+
+    const QIcon& volumeUp() const noexcept override {
+        return volume_up_;
+    }
+
+    const QIcon& volumeOff() const noexcept override {
+        return volume_off_;
+    }
+private:
+    QIcon volume_up_;
+    QIcon volume_off_;
+    QPixmap unknown_cover_;
+};
+
+const StylePixmapManager& ThemeManager::pixmap() {
+    static const DefaultStylePixmapManager manager;
+    return manager;
 }
 
-void setDefaultStyle(Ui::XampWindow &ui) {
+void ThemeManager::setNightStyle(Ui::XampWindow &ui) {
+}
+
+void ThemeManager::setDefaultStyle(Ui::XampWindow &ui) {
     ui.currentView->setStyleSheet(Q_UTF8("background-color: rgba(228, 233, 237, 230);"));
     ui.titleFrame->setStyleSheet(Q_UTF8("background-color: rgba(228, 233, 237, 230);"));
     ui.sliderBar->setStyleSheet(Q_UTF8("background-color: rgba(228, 233, 237, 150);"));
@@ -16,7 +46,7 @@ void setDefaultStyle(Ui::XampWindow &ui) {
     ui.playingFrame->setStyleSheet(Q_UTF8("background-color: rgba(228, 233, 237, 220);"));
     ui.searchLineEdit->setStyleSheet(Q_UTF8(""));
 	ui.sliderFrame->setStyleSheet(Q_UTF8("background-color: rgba(228, 233, 237, 230);"));
-	ui.sliderBar->setStyleSheet(Q_UTF8("background-color: transparent;"));
+    ui.sliderBar->setStyleSheet(Q_UTF8("background-color: transparent;"));
 
     ui.closeButton->setStyleSheet(Q_UTF8(R"(
                                          QToolButton#closeButton {
@@ -175,5 +205,4 @@ void setDefaultStyle(Ui::XampWindow &ui) {
                                          background-color: transparent;
                                          }
                                          )"));
-}
 }

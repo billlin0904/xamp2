@@ -44,6 +44,7 @@ QVariant PlayListTableModel::data(const QModelIndex& index, int32_t role) const 
 		default:
 			break;
 		}
+        break;
 	case Qt::DecorationRole:
 		if (index.column() == PLAYLIST_PLAYING && index.row() == playing_index_)
 			return QIcon(Q_UTF8(":/xamp/Resource/White/play_arrow.png"));

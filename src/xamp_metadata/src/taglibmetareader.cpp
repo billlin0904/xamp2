@@ -140,7 +140,7 @@ public:
 		return instance;
 	}
 
-	const std::unordered_set<std::string>& GetSupportFileExtensions() const {
+    const std::unordered_set<std::string>& GetSupportFileExtensions() const noexcept {
 		return support_file_extensions_;
 	}
 

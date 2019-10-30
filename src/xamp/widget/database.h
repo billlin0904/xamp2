@@ -140,12 +140,12 @@ public:
     int32_t findTablePlaylistId(int32_t table_id) const;
 
     bool isPlaylistExist(int32_t playlist_id) const;
+
+    void addMusicToPlaylist(int32_t music_id, int32_t playlist_id) const;
 private:
     Database();
 
     void addAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id) const;
-
-    void addMusicToPlaylist(int32_t music_id, int32_t playlist_id) const;
 
     void createTableIfNotExist();
 

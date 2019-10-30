@@ -9,6 +9,7 @@
 #include <QWidgetAction>
 #include <QStack>
 #include <QHash>
+#include <set>
 
 #include <output_device/devicefactory.h>
 #include <player/audio_player.h>
@@ -118,6 +119,7 @@ private:
 	LrcPage* lrc_page_;
 	PlyalistPage* playlist_page_;
 	QStack<int32_t> stack_page_id_;
+    std::set<int32_t> music_id_store_;
 	std::shared_ptr<PlayerStateAdapter> state_adapter_;
 	std::shared_ptr<AudioPlayer> player_;
 };
