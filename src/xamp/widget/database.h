@@ -67,6 +67,8 @@ public:
 
     QString getAlbumCoverId(int32_t album_id) const;
 
+    void updateTableName(int32_t table_id, const QString &name);
+
     template <typename Callbackable>
     void forEachTable(Callbackable &&callback) {
         QSqlTableModel model(nullptr, db_);

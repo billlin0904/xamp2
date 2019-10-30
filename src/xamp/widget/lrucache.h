@@ -66,7 +66,7 @@ public:
     }
 
 private:
-    std::size_t max_size_;
+    size_t max_size_;
     mutable std::unordered_map<Key, NodePtr> items_map_;
     mutable std::list<std::pair<Key, Value>> items_list_;
 };

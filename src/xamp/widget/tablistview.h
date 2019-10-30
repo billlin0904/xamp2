@@ -1,3 +1,8 @@
+//=====================================================================================================================
+// Copyright (c) 2018-2019 xamp project. All rights reserved.
+// More license information, please see LICENSE file in module root folder.
+//=====================================================================================================================
+
 #pragma once
 
 #include <QListView>
@@ -12,6 +17,8 @@ public:
 
 signals:
     void clickedTable(int table_id);
+
+    void tableNameChanged(int table_id, const QString &name);
 
 private:
     QStandardItemModel model_;

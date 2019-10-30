@@ -47,8 +47,8 @@ Xamp::Xamp(QWidget *parent)
     : FramelessWindow(parent)
     , is_seeking_(false)
     , order_(PlayerOrder::PLAYER_ORDER_REPEAT_ONCE)
-	, playlist_page_(nullptr)
     , lrc_page_(nullptr)
+    , playlist_page_(nullptr)
     , state_adapter_(std::make_shared<PlayerStateAdapter>())
     , player_(std::make_shared<AudioPlayer>(state_adapter_)) {
     initialUI();
@@ -345,8 +345,12 @@ void Xamp::initialController() {
         ui.currentView->setCurrentWidget(lrc_page_);
     });
 
-    QObject::connect(ui.sliderBar, &TabListView::clickedTable, [this](auto table_id) {
+    (void)QObject::connect(ui.sliderBar, &TabListView::clickedTable, [this](auto table_id) {
         setTablePlaylistView(table_id);
+    });
+
+    (void)QObject::connect(ui.sliderBar, &TabListView::tableNameChanged, [](auto table_id, const auto &name) {
+        Database::Instance().updateTableName(table_id, name);
     });
 
     auto settings_menu = new QMenu(this);
@@ -565,7 +569,7 @@ void Xamp::play(const PlayListEntity& item) {
     ui.titleLabel->setText(item.title);
     ui.artistLabel->setText(item.artist);
 
-    auto use_bass_stream = QStringLiteral(".dsd,.dsf,.dff,.m4a").contains(item.file_ext);
+    auto use_bass_stream = QStringLiteral(".dsd,.dsf,.dff").contains(item.file_ext);
     player_->Open(item.file_path.toStdWString(), use_bass_stream, device_info_);
 
     if (!player_->IsMute()) {

@@ -11,11 +11,15 @@
 #include "filetag.h"
 #include "pixmapcache.h"
 
+constexpr int32_t MAX_CACHE_SIZE = 1024;
+
 PixmapCache::PixmapCache()
-	: cache_(1024) {
+    : cache_(MAX_CACHE_SIZE) {
     cache_path_ = QDir::currentPath() + Q_UTF8("/caches/");
     cover_ext_ << Q_UTF8("*.jpeg") << Q_UTF8("*.jpg") << Q_UTF8("*.png") << Q_UTF8("*.bmp");
     cache_ext_ << Q_UTF8("*.cache");
+    QDir dir;
+    (void)dir.mkdir(cache_path_);
     loadCache();
 }
 
@@ -73,9 +77,6 @@ const QPixmap* PixmapCache::find(const QString& tag_id) const {
 }
 
 QString PixmapCache::emplace(QPixmap&& cover) const {
-	QDir dir;
-	(void)dir.mkdir(cache_path_);
-
 	QByteArray array;
 	QBuffer buffer(&array);
 	buffer.open(QIODevice::WriteOnly);

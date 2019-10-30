@@ -206,8 +206,18 @@ int32_t Database::addPlaylist(const QString& name, int32_t playlist_index) {
     return model.query().lastInsertId().toInt();
 }
 
-void Database::updateAlbumCover(int32_t album_id, const QString& album, const QString& cover_id) {
+void Database::updateTableName(int32_t table_id, const QString &name) {
     QSqlQuery query(db_);
+
+    query.prepare(Q_UTF8("UPDATE tables SET name = :name WHERE (tableId = :tableId)"));
+
+    query.bindValue(Q_UTF8(":tableId"), table_id);
+    query.bindValue(Q_UTF8(":name"), name);
+    ThrowlfFailue(query)
+}
+
+void Database::updateAlbumCover(int32_t album_id, const QString& album, const QString& cover_id) {
+    QSqlQuery query;
 
     query.prepare(Q_UTF8("UPDATE albums SET coverId = :coverId WHERE (albumId = :albumId) OR (album = :album)"));
 
@@ -262,7 +272,7 @@ QString Database::getAlbumCoverId(int32_t album_id) const {
 
     ThrowlfFailue(query)
 
-            const auto album_cover_tag_id_index = query.record().indexOf(Q_UTF8("coverId"));
+    const auto album_cover_tag_id_index = query.record().indexOf(Q_UTF8("coverId"));
     if (query.next()) {
         return query.value(album_cover_tag_id_index).toString();
     }
