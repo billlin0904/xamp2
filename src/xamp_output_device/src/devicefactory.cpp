@@ -4,6 +4,7 @@
 #else
 #include <output_device/osx/coreaudiodevicetype.h>
 #endif
+
 #include <output_device/asiodevicetype.h>
 #include <output_device/devicefactory.h>
 
@@ -20,7 +21,9 @@ DeviceFactory::DeviceFactory() {
 	using namespace win32;	
 	XAMP_REGISTER_DEVICE_TYPE(SharedWasapiDeviceType);
 	XAMP_REGISTER_DEVICE_TYPE(ExclusiveWasapiDeviceType);
+#if ENABLE_ASIO
 	XAMP_REGISTER_DEVICE_TYPE(ASIODeviceType);
+#endif
 #else
     using namespace osx;
     XAMP_REGISTER_DEVICE_TYPE(CoreAudioDeviceType);
@@ -51,11 +54,27 @@ std::optional<AlignPtr<DeviceType>> DeviceFactory::Create(const ID id) const {
 	return (*itr).second();
 }
 
+bool DeviceFactory::IsSupportedASIO() const {
+#if ENABLE_ASIO && defined(_WIN32)
+	return creator_.find(ASIODeviceType::Id) != creator_.end();
+#else
+	return false;
+#endif
+}
+
 bool DeviceFactory::IsExclusiveDevice(const DeviceInfo& info) {
 #ifdef _WIN32
 	return info.device_type_id == win32::ExclusiveWasapiDeviceType::Id;
 #else
     return false;
+#endif
+}
+
+bool DeviceFactory::IsASIODevice(const ID id) {
+#ifdef _WIN32
+	return id == ASIODeviceType::Id;
+#else
+	return false;
 #endif
 }
 

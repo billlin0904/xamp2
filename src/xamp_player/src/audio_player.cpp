@@ -14,6 +14,9 @@ namespace xamp::player {
 
 constexpr int32_t BUFFER_STREAM_COUNT = 20;
 constexpr std::chrono::milliseconds UPDATE_SAMPLE_INTERVAL(100);
+constexpr std::chrono::seconds WAIT_FOR_STRAEM_STOP_TIME(3);
+constexpr std::chrono::milliseconds WAIT_FOR_STRAEM_START_TIME(100);
+constexpr std::chrono::milliseconds SLEEP_OUTPUT_TIME(500);
 
 AudioPlayer::AudioPlayer()
     : AudioPlayer(std::weak_ptr<PlaybackStateAdapter>()) {
@@ -297,7 +300,7 @@ void AudioPlayer::CloseDevice() {
         }
     }
     if (stream_task_.valid()) {
-        if (stream_task_.wait_for(std::chrono::seconds(3)) == std::future_status::timeout) {
+        if (stream_task_.wait_for(WAIT_FOR_STRAEM_STOP_TIME) == std::future_status::timeout) {
             throw StopStreamTimeoutException();
         }
     }
@@ -313,16 +316,17 @@ void AudioPlayer::CreateBuffer() {
 
     int32_t require_read_sample = 0;
 
-#if ENABLE_ASIO
-    if (dsd_mode_ == DSDModes::DSD_MODE_RAW || device_type_->GetTypeId() == ASIODeviceType::Id) {
-        require_read_sample = AudioFormat::MAX_SAMPLERATE;
-    }
-    else {
-        require_read_sample = device_->GetBufferSize() * 30;
-    }
-#else
-    require_read_sample = device_->GetBufferSize() * 30;
-#endif
+	if (DeviceFactory::Instance().IsSupportedASIO()) {
+		if (dsd_mode_ == DSDModes::DSD_MODE_RAW || DeviceFactory::Instance().IsASIODevice(device_type_id_)) {
+			require_read_sample = MAX_SAMPLERATE;
+		}
+		else {
+			require_read_sample = device_->GetBufferSize() * 30;
+		}
+	}
+	else {
+		require_read_sample = device_->GetBufferSize() * 30;
+	}
 
     auto output_format = input_format;
     if (require_read_sample != num_read_sample_) {
@@ -411,19 +415,17 @@ void AudioPlayer::OpenDevice(double stream_time) {
 
 void AudioPlayer::PlayStream() {
     std::weak_ptr<AudioPlayer> player = shared_from_this();
-    stream_task_ = std::async(std::launch::async, [](std::weak_ptr<AudioPlayer> player) {
-         constexpr std::chrono::milliseconds SLEEP_OUTPUT_TIME(500);
 
+	wait_timer_.SetTimeout(SLEEP_OUTPUT_TIME);
+
+	Play();
+
+    stream_task_ = std::async(std::launch::async, [](std::weak_ptr<AudioPlayer> player) {         
          if (auto p = player.lock()) {
             std::unique_lock<std::mutex> lock{ p->pause_mutex_ };
 
             auto max_read_sample = p->num_read_sample_;
-            auto num_sample_write = max_read_sample * 20;
-
-            auto sleep_time = SLEEP_OUTPUT_TIME;
-
-            WaitableTimer wait_timer;
-            wait_timer.SetTimeout(sleep_time);
+            auto num_sample_write = max_read_sample * 20;                       
 
             while (p->is_playing_) {
                 while (p->is_paused_) {
@@ -431,7 +433,7 @@ void AudioPlayer::PlayStream() {
                 }
 
                 if (p->buffer_.GetAvailableWrite() < num_sample_write) {
-                    wait_timer.Wait();
+                    p->wait_timer_.Wait();
                     continue;
                 }
 
@@ -454,7 +456,6 @@ void AudioPlayer::PlayStream() {
 
         XAMP_LOG_DEBUG("Stream thread finished!");
     }, player);
-    Play();
 }
 
 }

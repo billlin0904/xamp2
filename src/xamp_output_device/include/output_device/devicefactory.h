@@ -58,7 +58,11 @@ public:
 		}
 	}
 
+	bool IsSupportedASIO() const;
+
 	static bool IsExclusiveDevice(const DeviceInfo &info);
+
+	static bool IsASIODevice(const ID id);
 
 private:
 	DeviceFactory();

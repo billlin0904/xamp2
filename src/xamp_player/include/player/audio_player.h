@@ -149,6 +149,7 @@ private:
 	std::weak_ptr<PlaybackStateAdapter> state_adapter_;
 	AudioBuffer<int8_t> buffer_;
 	VmMemLock vmlock_;
+	WaitableTimer wait_timer_;
 	std::future<void> stream_task_;
 };
 
