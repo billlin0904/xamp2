@@ -9,8 +9,8 @@ const ID CoreAudioDeviceType::Id = ID("E6BB3BF2-F16A-489B-83EE-4A29755F42E4");
 
 static std::wstring CFSStringToStdWstring(CFStringRef &cfname) {
     std::string name;
-    int length = CFStringGetLength(cfname);
-    char *mname = (char *)malloc(length * 3 + 1);
+    auto length = CFStringGetLength(cfname);
+    auto mname = (char *)malloc(length * 3 + 1);
     CFStringGetCString(cfname,
                        mname,
                        length * 3 + 1,

@@ -38,6 +38,9 @@ std::ostream& operator<<(std::ostream& ostr, Errors error) {
 	case Errors::XAMP_ERROR_LOAD_DLL_FAILURE:
 		ostr << "Load dll failure.";
 		break;
+    case Errors::XAMP_ERROR_STOP_STREAM_TIMEOUT:
+        ostr << "Stop stream timeout.";
+        break;
     case Errors::_MAX_XAMP_ERROR_:
         break;
 	}
@@ -85,6 +88,6 @@ IMP_EXCEPTION_CLASS(FileNotFoundException, Errors::XAMP_ERROR_FILE_NOT_FOUND)
 IMP_EXCEPTION_CLASS(NotSupportSampleRateException, Errors::XAMP_ERROR_NOT_SUPPORT_SAMPLERATE)
 IMP_EXCEPTION_CLASS(NotSupportFormatException, Errors::XAMP_ERROR_NOT_SUPPORT_FORMAT)
 IMP_EXCEPTION_CLASS(LoadDllFailureException, Errors::XAMP_ERROR_LOAD_DLL_FAILURE)
-
+IMP_EXCEPTION_CLASS(StopStreamTimeoutException, Errors::XAMP_ERROR_STOP_STREAM_TIMEOUT)
 
 }

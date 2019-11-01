@@ -97,9 +97,12 @@ ExclusiveWasapiDevice::ExclusiveWasapiDevice(const CComPtr<IMMDevice>& device)
 }
 
 ExclusiveWasapiDevice::~ExclusiveWasapiDevice() {
-    StopStream();
-	CloseStream();
-	sample_ready_.reset();
+    try {
+        StopStream();
+        CloseStream();
+        sample_ready_.reset();
+    } catch (...) {
+    }
 }
 
 void ExclusiveWasapiDevice::SetAlignedPeriod(REFERENCE_TIME device_period, const AudioFormat &output_format) {

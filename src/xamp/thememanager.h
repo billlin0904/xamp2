@@ -22,9 +22,27 @@ protected:
     StylePixmapManager() = default;
 };
 
+class DefaultStylePixmapManager : public StylePixmapManager {
+public:
+    DefaultStylePixmapManager();
+
+    ~DefaultStylePixmapManager() override = default;
+
+    const QPixmap& unknownCover() const noexcept override;
+
+    const QIcon& volumeUp() const noexcept override;
+
+    const QIcon& volumeOff() const noexcept override;
+private:
+    QIcon volume_up_;
+    QIcon volume_off_;
+    QPixmap unknown_cover_;
+};
+
 class ThemeManager {
 public:
     static const StylePixmapManager& pixmap();
+    static void setPlayOrPauseButton(Ui::XampWindow &ui, bool is_playing);
     static void setDefaultStyle(Ui::XampWindow &ui);
     static void setNightStyle(Ui::XampWindow &ui);
 };

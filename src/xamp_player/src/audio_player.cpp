@@ -288,12 +288,18 @@ void AudioPlayer::CloseDevice() {
     stopped_cond_.notify_all();
     if (device_ != nullptr) {
         if (device_->IsStreamOpen()) {
-            device_->StopStream();
-            device_->CloseStream();
+            try {
+                device_->StopStream();
+                device_->CloseStream();
+            } catch (const Exception &e) {
+                XAMP_LOG_DEBUG("Close device failure! {}", e.what());
+            }
         }
     }
     if (stream_task_.valid()) {
-        stream_task_.get();
+        if (stream_task_.wait_for(std::chrono::seconds(3)) == std::future_status::timeout) {
+            throw StopStreamTimeoutException();
+        }
     }
 }
 
@@ -405,7 +411,7 @@ void AudioPlayer::OpenDevice(double stream_time) {
 
 void AudioPlayer::PlayStream() {
     std::weak_ptr<AudioPlayer> player = shared_from_this();
-    stream_task_ = std::async([](std::weak_ptr<AudioPlayer> player) {
+    stream_task_ = std::async(std::launch::async, [](std::weak_ptr<AudioPlayer> player) {
          constexpr std::chrono::milliseconds SLEEP_OUTPUT_TIME(500);
 
          if (auto p = player.lock()) {

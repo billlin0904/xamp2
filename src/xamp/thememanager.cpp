@@ -2,36 +2,48 @@
 #include "widget/str_utilts.h"
 #include "thememanager.h"
 
-class DefaultStylePixmapManager : public StylePixmapManager {
-public:
-    DefaultStylePixmapManager() {
-        unknown_cover_ = QPixmap(Q_UTF8(":/xamp/Resource/White/unknown_album.png"));
-        volume_up_ = QIcon(Q_UTF8(":/xamp/Resource/White/volume_up.png"));
-        volume_off_ = QIcon(Q_UTF8(":/xamp/Resource/White/volume_off.png"));
-    }
+DefaultStylePixmapManager::DefaultStylePixmapManager() {
+    unknown_cover_ = QPixmap(Q_UTF8(":/xamp/Resource/White/unknown_album.png"));
+    volume_up_ = QIcon(Q_UTF8(":/xamp/Resource/White/volume_up.png"));
+    volume_off_ = QIcon(Q_UTF8(":/xamp/Resource/White/volume_off.png"));
+}
 
-    ~DefaultStylePixmapManager() override = default;
+const QPixmap& DefaultStylePixmapManager::unknownCover() const noexcept {
+    return unknown_cover_;
+}
 
-    const QPixmap& unknownCover() const noexcept override {
-        return unknown_cover_;
-    }
+const QIcon& DefaultStylePixmapManager::volumeUp() const noexcept {
+    return volume_up_;
+}
 
-    const QIcon& volumeUp() const noexcept override {
-        return volume_up_;
-    }
-
-    const QIcon& volumeOff() const noexcept override {
-        return volume_off_;
-    }
-private:
-    QIcon volume_up_;
-    QIcon volume_off_;
-    QPixmap unknown_cover_;
-};
+const QIcon& DefaultStylePixmapManager::volumeOff() const noexcept {
+    return volume_off_;
+}
 
 const StylePixmapManager& ThemeManager::pixmap() {
     static const DefaultStylePixmapManager manager;
     return manager;
+}
+
+void ThemeManager::setPlayOrPauseButton(Ui::XampWindow &ui, bool is_playing) {
+    if (is_playing) {
+        ui.playButton->setStyleSheet(Q_UTF8(R"(
+                                            QToolButton#playButton {
+                                            image: url(:/xamp/Resource/White/pause.png);
+                                            border: none;
+                                            background-color: transparent;
+                                            }
+                                            )"));
+    }
+    else {
+        ui.playButton->setStyleSheet(Q_UTF8(R"(
+                                            QToolButton#playButton {
+                                            image: url(:/xamp/Resource/White/play.png);
+                                            border: none;
+                                            background-color: transparent;
+                                            }
+                                            )"));
+    }
 }
 
 void ThemeManager::setNightStyle(Ui::XampWindow &ui) {

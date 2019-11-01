@@ -54,8 +54,6 @@ private:
 
 	QWidgetAction* createTextSeparator(const QString& text);
 
-	void setPlayOrPauseButton(bool is_playing);
-
 	void onSampleTimeChanged(double stream_time);
 
 	void playLocalFile(const PlayListEntity& item);

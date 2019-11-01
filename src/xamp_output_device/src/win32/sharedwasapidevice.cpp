@@ -38,9 +38,12 @@ SharedWasapiDevice::SharedWasapiDevice(const CComPtr<IMMDevice>& device)
 }
 
 SharedWasapiDevice::~SharedWasapiDevice() {
-	StopStream();
-	CloseStream();
-	sample_ready_.reset();
+    try {
+        StopStream();
+        CloseStream();
+        sample_ready_.reset();
+    } catch (...) {
+    }
 }
 
 bool SharedWasapiDevice::IsStreamOpen() const {

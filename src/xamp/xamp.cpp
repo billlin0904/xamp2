@@ -83,7 +83,7 @@ void Xamp::setDefaultStyle() {
                          border: none;
                          }
                          )"));
-    setPlayOrPauseButton(false);
+    ThemeManager::setPlayOrPauseButton(ui, false);
     ThemeManager::setDefaultStyle(ui);
 }
 
@@ -101,27 +101,6 @@ void Xamp::initialUI() {
     ui.minWinButton->hide();
     ui.settingsButton->hide();
 #endif
-}
-
-void Xamp::setPlayOrPauseButton(bool is_playing) {
-    if (is_playing) {
-        ui.playButton->setStyleSheet(Q_UTF8(R"(
-                                            QToolButton#playButton {
-                                            image: url(:/xamp/Resource/White/pause.png);
-                                            border: none;
-                                            background-color: transparent;
-                                            }
-                                            )"));
-    }
-    else {
-        ui.playButton->setStyleSheet(Q_UTF8(R"(
-                                            QToolButton#playButton {
-                                            image: url(:/xamp/Resource/White/play.png);
-                                            border: none;
-                                            background-color: transparent;
-                                            }
-                                            )"));
-    }
 }
 
 QWidgetAction* Xamp::createTextSeparator(const QString& text) {
@@ -552,12 +531,12 @@ void Xamp::playLocalFile(const PlayListEntity& item) {
 
 void Xamp::play() {
     if (player_->GetState() == xamp::player::PlayerState::PLAYER_STATE_RUNNING) {
-        setPlayOrPauseButton(false);
+        ThemeManager::setPlayOrPauseButton(ui, false);
         player_->Pause();
         setTaskbarPlayerPaused();
     }
     else if (player_->GetState() == xamp::player::PlayerState::PLAYER_STATE_PAUSED) {
-        setPlayOrPauseButton(true);
+        ThemeManager::setPlayOrPauseButton(ui, true);
         player_->Resume();
         setTaskbarPlayingResume();
     }
@@ -602,7 +581,7 @@ void Xamp::play(const QModelIndex&, const PlayListEntity& item) {
     try {
         ui.seekSlider->setEnabled(true);
         playLocalFile(item);
-        setPlayOrPauseButton(true);
+        ThemeManager::setPlayOrPauseButton(ui, true);
         playlist_page_->format()->setText(getPlayEntityormat(player_->GetStreamFormat(), item));
     } catch(const xamp::base::Exception& e) {
         ui.seekSlider->setEnabled(false);

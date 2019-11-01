@@ -107,8 +107,11 @@ CoreAudioDevice::CoreAudioDevice(AudioDeviceID device_id)
 }
 
 CoreAudioDevice::~CoreAudioDevice() {
-    StopStream();
-    CloseStream();
+    try {
+        StopStream();
+        CloseStream();
+    } catch (...) {
+    }
 }
 
 void CoreAudioDevice::OpenStream(const AudioFormat &output_format) {
@@ -129,24 +132,26 @@ void CoreAudioDevice::OpenStream(const AudioFormat &output_format) {
         XAMP_LOG_DEBUG("Format is interleaved");
     }
 
-    fmt.mFormatID = kAudioFormatLinearPCM;
-    fmt.mFormatFlags = kAudioFormatFlagIsFloat | kAudioFormatFlagIsPacked;
-    fmt.mSampleRate = output_format.GetSampleRate();
-    fmt.mChannelsPerFrame = (uint32_t)output_format.GetChannels();
-    fmt.mFramesPerPacket = 1;
-    fmt.mBitsPerChannel = (uint32_t)output_format.GetBitsPerSample();
-    fmt.mBytesPerFrame = (uint32_t)output_format.GetBytesPerSample();
-    fmt.mBytesPerPacket = (uint32_t)output_format.GetBytesPerSample();
-    fmt.mReserved = 0;
+    if (format_ != output_format) {
+        fmt.mFormatID = kAudioFormatLinearPCM;
+        fmt.mFormatFlags = kAudioFormatFlagIsFloat | kAudioFormatFlagIsPacked;
+        fmt.mSampleRate = output_format.GetSampleRate();
+        fmt.mChannelsPerFrame = (UInt32)output_format.GetChannels();
+        fmt.mFramesPerPacket = 1;
+        fmt.mBitsPerChannel = (UInt32)output_format.GetBitsPerSample();
+        fmt.mBytesPerFrame = (UInt32)output_format.GetBytesPerSample();
+        fmt.mBytesPerPacket = (UInt32)output_format.GetBytesPerSample();
+        fmt.mReserved = 0;
+        CoreAudioThrowIfError(AudioObjectSetPropertyData(device_id_,
+                                                         &audio_property_,
+                                                         0,
+                                                         nullptr,
+                                                         dataSize,
+                                                         &fmt));
+        XAMP_LOG_DEBUG("Update audio format {}", output_format);
+    }
 
-    CoreAudioThrowIfError(AudioObjectSetPropertyData(device_id_,
-                                                     &audio_property_,
-                                                     0,
-                                                     nullptr,
-                                                     dataSize,
-                                                     &fmt));
-
-    uint32_t bufferSize = 0;
+    UInt32 bufferSize = 0;
     audio_property_.mSelector = kAudioDevicePropertyBufferFrameSize;
     dataSize = sizeof(bufferSize);
     CoreAudioThrowIfError(AudioObjectGetPropertyData(
@@ -188,23 +193,18 @@ bool CoreAudioDevice::IsStreamRunning() const {
 }
 
 void CoreAudioDevice::StopStream() {
-    auto result = AudioDeviceStop(device_id_, proc_id_);
-    CoreAudioThrowIfError(result);
+    CoreAudioThrowIfError(AudioDeviceStop(device_id_, proc_id_));
     is_running_ = false;
 }
 
 void CoreAudioDevice::CloseStream() {
-    auto result = AudioDeviceStop(device_id_, proc_id_);
-    CoreAudioThrowIfError(result);
-
-    result = AudioDeviceDestroyIOProcID(device_id_, proc_id_);
-    CoreAudioThrowIfError(result);
+    CoreAudioThrowIfError(AudioDeviceStop(device_id_, proc_id_));
+    CoreAudioThrowIfError(AudioDeviceDestroyIOProcID(device_id_, proc_id_));
     proc_id_ = nullptr;
 }
 
 void CoreAudioDevice::StartStream() {
-    auto result = AudioDeviceStart(device_id_, proc_id_);
-    CoreAudioThrowIfError(result);
+    CoreAudioThrowIfError(AudioDeviceStart(device_id_, proc_id_));
     is_running_ = true;
 }
 

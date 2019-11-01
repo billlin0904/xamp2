@@ -16,7 +16,7 @@ namespace xamp::stream {
 
 constexpr DWORD BASS_ERROR{ 0xFFFFFFFF };
 
-#define BASS_IF_FAILED_THROW(result) \
+#define BassIfFailedThrow(result) \
 	do {\
 		if (!(result)) {\
 			throw BassException(BassLib::Instance().BASS_ErrorGetCode());\
@@ -126,6 +126,26 @@ struct BassPluginLoadTraits {
 	}
 };
 
+template <typename T>
+constexpr uint8_t _HIBYTE(T val) {
+    return static_cast<uint8_t>(val >> 8);
+}
+
+template <typename T>
+constexpr uint8_t _LOBYTE(T val) {
+    return static_cast<uint8_t>(val);
+}
+
+template <typename T>
+constexpr uint32_t _HIWORD(T val) {
+    return static_cast<uint32_t>(uint16_t(val) >> 16);
+}
+
+template <typename T>
+constexpr uint32_t _LOWORD(T val) {
+    return static_cast<uint16_t>(val);
+}
+
 using BassStreamHandle = UniqueHandle<HSTREAM, BassStreamTraits>;
 using BassPluginHandle = UniqueHandle<HPLUGIN, BassPluginLoadTraits>;
 
@@ -172,10 +192,10 @@ private:
 		}
 
 		const auto info = BassLib::Instance().BASS_PluginGetInfo(plugin.get());
-		const int major_version(HIBYTE(HIWORD(info->version)));
-		const int minor_version(LOBYTE(HIWORD(info->version)));
-		const int micro_version(HIBYTE(LOWORD(info->version)));
-		const int build_version(LOBYTE(LOWORD(info->version)));
+        const int major_version(_HIBYTE(_HIWORD(info->version)));
+        const int minor_version(_LOBYTE(_HIWORD(info->version)));
+        const int micro_version(_HIBYTE(_LOWORD(info->version)));
+        const int build_version(_LOBYTE(_LOWORD(info->version)));
 
 		std::ostringstream ostr;
         ostr << major_version << "."
@@ -260,7 +280,7 @@ public:
 		}
 
         info_ = BASS_CHANNELINFO{};	
-        BASS_IF_FAILED_THROW(BassLib::Instance().BASS_ChannelGetInfo(stream_.get(), &info_));
+        BassIfFailedThrow(BassLib::Instance().BASS_ChannelGetInfo(stream_.get(), &info_));
 
         if (GetFormat().GetChannels() != XAMP_MAX_CHANNEL) {
             throw NotSupportFormatException();
@@ -301,12 +321,12 @@ public:
 
 	void Seek(double stream_time) const {
 		const auto pos_bytes = BassLib::Instance().BASS_ChannelSeconds2Bytes(stream_.get(), stream_time);
-        BASS_IF_FAILED_THROW(BassLib::Instance().BASS_ChannelSetPosition(stream_.get(), pos_bytes, BASS_POS_BYTE));
+        BassIfFailedThrow(BassLib::Instance().BASS_ChannelSetPosition(stream_.get(), pos_bytes, BASS_POS_BYTE));
 	}
 
     int32_t GetDSDSampleRate() const {
         float rate = 0;
-        BASS_IF_FAILED_THROW(BassLib::Instance().BASS_ChannelGetAttribute(stream_.get(), BASS_ATTRIB_DSD_RATE, &rate));
+        BassIfFailedThrow(BassLib::Instance().BASS_ChannelGetAttribute(stream_.get(), BASS_ATTRIB_DSD_RATE, &rate));
         return static_cast<int32_t>(rate);
     }
 
