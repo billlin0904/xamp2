@@ -46,6 +46,17 @@ void ThemeManager::setPlayOrPauseButton(Ui::XampWindow &ui, bool is_playing) {
     }
 }
 
+QString ThemeManager::getMenuStyle() {
+    return Q_UTF8(R"(
+                  QMenu {
+                  background-color: rgba(228, 233, 237, 150);
+                  }
+                  QMenu::item:selected {
+                  background-color: black;
+                  }
+                  )");
+}
+
 void ThemeManager::setNightStyle(Ui::XampWindow &ui) {
 }
 

@@ -14,7 +14,7 @@
 namespace xamp::base {
 
 enum class Errors {
-    XAMP_ERROR_UNKNOWN,
+    XAMP_ERROR_SUCCESS = 0,
     XAMP_ERROR_PLATFORM_SPEC_ERROR,
     XAMP_ERROR_LIBRARY_SPEC_ERROR,
     XAMP_ERROR_DEVICE_NOT_INITIALIZED,
@@ -33,7 +33,7 @@ XAMP_BASE_API std::ostream& operator<<(std::ostream& ostr, Errors error);
 
 class XAMP_BASE_API Exception : public std::exception {
 public:
-    explicit Exception(Errors error = Errors::XAMP_ERROR_UNKNOWN, const std::string& message = "", const char* what = "");
+    explicit Exception(Errors error = Errors::XAMP_ERROR_SUCCESS, const std::string& message = "", const char* what = "");
 
     ~Exception() override = default;
 

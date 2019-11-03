@@ -15,7 +15,6 @@ namespace xamp::player {
 constexpr int32_t BUFFER_STREAM_COUNT = 20;
 constexpr std::chrono::milliseconds UPDATE_SAMPLE_INTERVAL(100);
 constexpr std::chrono::seconds WAIT_FOR_STRAEM_STOP_TIME(3);
-constexpr std::chrono::milliseconds WAIT_FOR_STRAEM_START_TIME(100);
 constexpr std::chrono::milliseconds SLEEP_OUTPUT_TIME(500);
 
 AudioPlayer::AudioPlayer()
@@ -82,15 +81,16 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, const DeviceInfo& de
 
 #ifdef ENABLE_FFMPEG
     if (is_dsd_stream) {
-        constexpr int32_t MAX_DSD2PCM_SAMPLERATE = 192000;
         stream_ = MakeAlign<FileStream, BassFileStream>();
         if (auto dsd_stream = dynamic_cast<DSDStream*>(stream_.get())) {
             if (!device_info.is_support_dsd) {
-                dsd_stream->SetDSDMode(DSDModes::DSD_MODE_PCM);
-                dsd_stream->SetPCMSampleRate(MAX_DSD2PCM_SAMPLERATE);
-            }
-            else {
+#ifdef _WIN32
                 dsd_stream->SetDSDMode(DSDModes::DSD_MODE_RAW);
+#else
+                dsd_stream->SetDSDMode(DSDModes::DSD_MODE_DOP);
+#endif
+            } else {
+                throw NotSupportFormatException();
             }
         }
     }
@@ -104,6 +104,10 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, const DeviceInfo& de
 #endif
     XAMP_LOG_DEBUG("Use stream type: {}", stream_->GetStreamName());
     stream_->OpenFromFile(file_path);
+
+    if (auto dsd_stream = dynamic_cast<DSDStream*>(stream_.get())) {
+        XAMP_LOG_DEBUG("DSD samplerate: {}", dsd_stream->GetDSDSampleRate());
+    }
 }
 
 void AudioPlayer::SetState(const PlayerState play_state) {
@@ -257,6 +261,17 @@ void AudioPlayer::Initial() {
     buffer_.Clear();
 }
 
+std::optional<int32_t> AudioPlayer::GetDSDSpeed() const {
+    if (!stream_) {
+        return std::nullopt;
+    }
+
+    if (auto dsd_stream = dynamic_cast<DSDStream*>(stream_.get())) {
+        return dsd_stream->GetDSDSpeed();
+    }
+    return std::nullopt;
+}
+
 std::optional<DeviceInfo> AudioPlayer::GetDefaultDeviceInfo() const {
     if (!device_) {
         return std::nullopt;
@@ -316,8 +331,9 @@ void AudioPlayer::CreateBuffer() {
 
     int32_t require_read_sample = 0;
 
-	if (DeviceFactory::Instance().IsSupportedASIO()) {
-		if (dsd_mode_ == DSDModes::DSD_MODE_RAW || DeviceFactory::Instance().IsASIODevice(device_type_id_)) {
+    if (DeviceFactory::Instance().IsPlatformSupportedASIO()) {
+        if (dsd_mode_ == DSDModes::DSD_MODE_RAW
+                || DeviceFactory::Instance().IsASIODevice(device_type_id_)) {
 			require_read_sample = MAX_SAMPLERATE;
 		}
 		else {
@@ -356,16 +372,18 @@ void AudioPlayer::SetDeviceFormat() {
 
 int AudioPlayer::operator()(void* samples, const int32_t num_buffer_frames, const double stream_time) noexcept {
     const int32_t sample_size = num_buffer_frames * output_format_.GetChannels() * stream_->GetSampleSize();
-    if (XAMP_LIKELY( !buffer_.TryRead(reinterpret_cast<int8_t*>(samples), sample_size) )) {
-        std::atomic_exchange(&slice_, AudioSlice{ reinterpret_cast<float*>(samples), -1, stream_time });
-        stopped_cond_.notify_all();
-        return 1;
+
+    if (XAMP_LIKELY( buffer_.TryRead(reinterpret_cast<int8_t*>(samples), sample_size) )) {
+        std::atomic_exchange(&slice_,
+                             AudioSlice{ reinterpret_cast<float*>(samples),
+                                         num_buffer_frames * output_format_.GetChannels(),
+                                         stream_time });
+        return 0;
     }
-    std::atomic_exchange(&slice_,
-                         AudioSlice{ reinterpret_cast<float*>(samples),
-                                     num_buffer_frames * output_format_.GetChannels(),
-                                     stream_time });
-    return 0;
+
+    std::atomic_exchange(&slice_, AudioSlice{ reinterpret_cast<float*>(samples), -1, stream_time });
+    stopped_cond_.notify_all();
+    return 1;
 }
 
 void AudioPlayer::BufferStream() {
@@ -387,9 +405,14 @@ void AudioPlayer::BufferStream() {
 
 bool AudioPlayer::ProcessSamples(int32_t num_samples) noexcept {
     if (stream_->IsDSDFile()) {
-        return buffer_.TryWrite(read_sample_buffer_.get(), num_samples);
+        if (auto dsd_stream = dynamic_cast<DSDStream*>(stream_.get())) {
+            if (dsd_stream->GetDSDMode() == DSDModes::DSD_MODE_RAW) {
+                return buffer_.TryWrite(read_sample_buffer_.get(), num_samples);
+            }
+        }
     }
-    return buffer_.TryWrite(read_sample_buffer_.get(), num_samples * sizeof(float));
+
+    return buffer_.TryWrite(read_sample_buffer_.get(), num_samples * stream_->GetSampleSize());
 }
 
 void AudioPlayer::OnError(const Exception& e) noexcept {

@@ -54,7 +54,7 @@ std::optional<AlignPtr<DeviceType>> DeviceFactory::Create(const ID id) const {
 	return (*itr).second();
 }
 
-bool DeviceFactory::IsSupportedASIO() const {
+bool DeviceFactory::IsPlatformSupportedASIO() const {
 #if ENABLE_ASIO && defined(_WIN32)
 	return creator_.find(ASIODeviceType::Id) != creator_.end();
 #else

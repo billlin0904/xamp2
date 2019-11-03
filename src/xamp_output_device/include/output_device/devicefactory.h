@@ -58,7 +58,7 @@ public:
 		}
 	}
 
-	bool IsSupportedASIO() const;
+    bool IsPlatformSupportedASIO() const;
 
 	static bool IsExclusiveDevice(const DeviceInfo &info);
 

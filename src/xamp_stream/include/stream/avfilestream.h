@@ -19,13 +19,13 @@ using namespace base;
 
 #if ENABLE_FFMPEG
 
-class XAMP_STREAM_API AvFileStream : public FileStream {
+class XAMP_STREAM_API AvFileStream final : public FileStream {
 public:
 	AvFileStream();
 
 	XAMP_PIMPL(AvFileStream)
 
-	void OpenFromFile(const std::wstring & file_path) override;
+    void OpenFromFile(const std::wstring& file_path) override;
 
 	void Close() override;
 

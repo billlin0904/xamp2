@@ -45,5 +45,6 @@ public:
     static void setPlayOrPauseButton(Ui::XampWindow &ui, bool is_playing);
     static void setDefaultStyle(Ui::XampWindow &ui);
     static void setNightStyle(Ui::XampWindow &ui);
+    static QString getMenuStyle();
 };
 

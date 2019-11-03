@@ -21,7 +21,7 @@
 #include "thememanager.h"
 #include "xamp.h"
 
-static QString getPlayEntityormat(const AudioFormat& format, const PlayListEntity& item) {
+static QString getPlayEntityFormat(const AudioFormat& format, const PlayListEntity& item) {
     auto ext = item.file_ext;
     ext = ext.remove(Q_UTF8(".")).toUpper();
     auto is_mhz_samplerate = false;
@@ -55,7 +55,7 @@ Xamp::Xamp(QWidget *parent)
     initialController();
     initialDeviceList();
     initialPlaylist();
-    setCover(QPixmap(Q_UTF8(":/xamp/Resource/White/unknown_album.png")));
+    setCover(ThemeManager::pixmap().unknownCover());
 }
 
 void Xamp::closeEvent(QCloseEvent*) {
@@ -333,14 +333,7 @@ void Xamp::initialController() {
     });
 
     auto settings_menu = new QMenu(this);
-    settings_menu->setStyleSheet(Q_UTF8(R"(
-                                        QMenu {
-                                        background-color: rgba(228, 233, 237, 150);
-                                        }
-                                        QMenu::item:selected {
-                                        background-color: black;
-                                        }
-                                        )"));
+    settings_menu->setStyleSheet(ThemeManager::getMenuStyle());
     auto settings_action = new QAction(tr("Settings"), this);
     settings_menu->addAction(settings_action);
     auto night_mode_action = new QAction(tr("Night mode"), this);
@@ -582,7 +575,7 @@ void Xamp::play(const QModelIndex&, const PlayListEntity& item) {
         ui.seekSlider->setEnabled(true);
         playLocalFile(item);
         ThemeManager::setPlayOrPauseButton(ui, true);
-        playlist_page_->format()->setText(getPlayEntityormat(player_->GetStreamFormat(), item));
+        playlist_page_->format()->setText(getPlayEntityFormat(player_->GetStreamFormat(), item));
     } catch(const xamp::base::Exception& e) {
         ui.seekSlider->setEnabled(false);
         player_->Stop(false, true);

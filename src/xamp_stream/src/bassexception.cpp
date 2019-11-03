@@ -8,7 +8,7 @@ static Errors TranslateBassError(int error) noexcept {
     case BASS_ERROR_FORMAT:
         return Errors::XAMP_ERROR_NOT_SUPPORT_FORMAT;
     default:
-        return Errors::XAMP_ERROR_UNKNOWN;
+        return Errors::XAMP_ERROR_SUCCESS;
     }
 }
 

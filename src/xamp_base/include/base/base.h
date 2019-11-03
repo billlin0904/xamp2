@@ -65,8 +65,8 @@
 #define XAMP_ALWAYS_INLINE __forceinline
 #define XAMP_NEVER_INLINE __declspec(noinline)
 #else
-#define XAMP_ALWAYS_INLINE inline
-#define XAMP_NEVER_INLINE
+#define XAMP_ALWAYS_INLINE inline __attribute__((__always_inline__))
+#define XAMP_NEVER_INLINE __attribute__((__noinline__))
 #endif
 
 #ifdef _WIN32

@@ -261,12 +261,13 @@ void CoreAudioDevice::AudioIOProc(AudioBufferList *output_data) {
 
     for (uint32_t i = 0; i < buffer_count; ++i) {
         const auto buffer = output_data->mBuffers[i];
-        const auto numSample = (int32_t) (buffer.mDataByteSize / sizeof(float) / format_.GetChannels());
+        const auto numSample = static_cast<int32_t>(buffer.mDataByteSize / sizeof(float) / format_.GetChannels());
         stream_time_ = stream_time_ + static_cast<double>(numSample * 2);
-        (*callback_)(static_cast<float*>(buffer.mData), numSample, stream_time_ / format_.GetAvgFramesPerSec());
+        if (XAMP_UNLIKELY( (*callback_)(static_cast<float*>(buffer.mData), numSample, stream_time_ / format_.GetAvgFramesPerSec()) == 0 )) {
+            is_running_ = false;
+            break;
+        }
     }
 }
-
-
 
 }

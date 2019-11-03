@@ -234,10 +234,12 @@ public:
             flags = BASS_SAMPLE_FLOAT;
             break;
         case DSDModes::DSD_MODE_DOP:
-            flags = BASS_DSD_DOP;
+            // DSD-over-PCM data is 24-bit, so the BASS_SAMPLE_FLOAT flag is required.
+            flags = BASS_DSD_DOP | BASS_SAMPLE_FLOAT;
             break;
         case DSDModes::DSD_MODE_DOP_AA:
-            flags = BASS_DSD_DOP_AA;
+            // DSD-over-PCM data is 24-bit, so the BASS_SAMPLE_FLOAT flag is required.
+            flags = BASS_DSD_DOP_AA | BASS_SAMPLE_FLOAT;
             break;
         case DSDModes::DSD_MODE_RAW:
             flags = BASS_DSD_RAW;
@@ -312,7 +314,12 @@ public:
 							   info_.chans,
                                base::ByteFormat::SINT8,
                                GetDSDSampleRate());
-		}
+        } else if (mode_ == DSDModes::DSD_MODE_DOP) {
+            return AudioFormat(Format::FORMAT_PCM,
+                               info_.chans,
+                               base::ByteFormat::FLOAT32,
+                               GetDOPSampleRate(GetDSDSpeed()));
+        }
         return AudioFormat(Format::FORMAT_PCM,
 						   info_.chans,
                            base::ByteFormat::FLOAT32,
@@ -361,7 +368,24 @@ public:
 	void SetPCMSampleRate(int32_t samplerate) {
 		BassLib::Instance().BASS_SetConfig(BASS_CONFIG_DSD_FREQ, samplerate);
 	}
+
+    int32_t GetDSDSpeed() const {
+        return GetDSDSampleRate() / 44100;
+    }
 private:
+    static int32_t GetDOPSampleRate(int32_t dsd_speed) {
+        switch (dsd_speed) {
+        case 64:
+            return 176400;
+        case 128:
+            return 352800;
+        case 256:
+            return 705600;
+        default:
+            throw NotSupportFormatException();
+        }
+    }
+
 	XAMP_ALWAYS_INLINE int32_t InternalGetSamples(void *buffer, int32_t length) const noexcept {
         const auto byte_read = BassLib::Instance().BASS_ChannelGetData(stream_.get(), buffer, length);
 		if (byte_read == BASS_ERROR) {
@@ -451,6 +475,10 @@ DSDSampleFormat BassFileStream::GetDSDSampleFormat() const {
 
 void BassFileStream::SetPCMSampleRate(int32_t samplerate) {
 	stream_->SetPCMSampleRate(samplerate);
+}
+
+int32_t BassFileStream::GetDSDSpeed() const {
+    return stream_->GetDSDSpeed();
 }
 
 }

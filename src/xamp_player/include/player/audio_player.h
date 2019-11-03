@@ -32,7 +32,7 @@ namespace xamp::player {
 using namespace stream;
 using namespace output_device;
 
-class XAMP_PALYER_API AudioPlayer :
+class XAMP_PALYER_API AudioPlayer final :
 	public AudioCallback,
 	public std::enable_shared_from_this<AudioPlayer> {
 public:
@@ -70,6 +70,8 @@ public:
 
 	DSDModes GetDSDModes() const;
 
+    std::optional<int32_t> GetDSDSpeed() const;
+
 	std::optional<DeviceInfo> GetDefaultDeviceInfo() const;
 
 	double GetDuration() const;
@@ -105,8 +107,8 @@ private:
 
 	struct alignas(XAMP_MALLOC_ALGIGN_SIZE) AudioSlice {
         AudioSlice(const float* samples = nullptr, int32_t sample_size = 0, double stream_time = 0.0) noexcept
-			: samples(samples)
-			, sample_size(sample_size)
+            : samples(samples)
+            , sample_size(sample_size)
 			, stream_time(stream_time) {
 		}
 

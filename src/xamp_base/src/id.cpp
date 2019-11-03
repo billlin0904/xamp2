@@ -20,7 +20,7 @@ static uint8_t ToChar(const char digital) {
 	if (digital > 64 && digital < 71)
 		return digital - 55;
 
-	throw Exception(Errors::XAMP_ERROR_UNKNOWN, "Invalid digital");
+	throw Exception(Errors::XAMP_ERROR_SUCCESS, "Invalid digital");
 }
 
 static uint8_t MakeHex(char a, char b) {
@@ -29,14 +29,14 @@ static uint8_t MakeHex(char a, char b) {
 
 static std::array<uint8_t, XAMP_ID_MAX_SIZE> ParseString(const std::string_view& from_string) {
     if (from_string.length() != MAX_ID_STR_LEN) {
-		throw Exception(Errors::XAMP_ERROR_UNKNOWN, "Invalid UUID");
+		throw Exception(Errors::XAMP_ERROR_SUCCESS, "Invalid UUID");
 	}
 
 	if (from_string[8] != '-'
 		|| from_string[13] != '-'
 		|| from_string[18] != '-'
 		|| from_string[23] != '-') {
-        throw Exception(Errors::XAMP_ERROR_UNKNOWN, "Invalid UUID");
+        throw Exception(Errors::XAMP_ERROR_SUCCESS, "Invalid UUID");
 	}
 	
 	std::array<uint8_t, XAMP_ID_MAX_SIZE> uuid{};

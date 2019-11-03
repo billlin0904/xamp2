@@ -31,7 +31,7 @@ extern "C" {
 
 namespace xamp::stream {
 
-#define AV_IF_FAILED_THROW(expr) \
+#define AvIfFailedThrow(expr) \
 	do { \
 		auto error = (expr); \
 		if (error != 0) { \
@@ -300,7 +300,7 @@ public:
 			throw FileNotFoundException();
 		}
 
-		AV_IF_FAILED_THROW(avcodec_open2(audio_contex_.get(), codec, nullptr));
+        AvIfFailedThrow(avcodec_open2(audio_contex_.get(), codec, nullptr));
 		audio_context_.reset(av_frame_alloc());
 
 		auto interleaved_format = InterleavedFormat::INTERLEAVED;
@@ -330,7 +330,7 @@ public:
 			0,
 			nullptr));
 
-		AV_IF_FAILED_THROW(swr_init(swr_context_.get()));
+        AvIfFailedThrow(swr_init(swr_context_.get()));
 
 		audio_format_ = AudioFormat(Format::FORMAT_PCM,
 			audio_contex_->channels,
@@ -402,7 +402,7 @@ public:
 			timestamp += format_context_->start_time;
 		}
 
-		AV_IF_FAILED_THROW(av_seek_frame(format_context_.get(), -1, timestamp, AVSEEK_FLAG_BACKWARD));
+        AvIfFailedThrow(av_seek_frame(format_context_.get(), -1, timestamp, AVSEEK_FLAG_BACKWARD));
 		avcodec_flush_buffers(audio_contex_.get());
 	}
 

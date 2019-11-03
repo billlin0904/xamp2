@@ -104,6 +104,9 @@ LIBS += -L"../xamp_base/release/" -lxamp_base \
     -L"../xamp_output_device/release/" -lxamp_output_device \
     -L"../xamp_stream/release/" -lxamp_stream \
     -L"../xamp_player/release/" -lxamp_player \
+
+QMAKE_CFLAGS_LTCG = -flto=thin -fwhole-program-vtables
+QMAKE_CFLAGS_RELEASE += -O3
 }
 
 # Default rules for deployment.
@@ -111,8 +114,3 @@ qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
-
-#macx {
-#    QMAKE_RPATHDIR += @executable_path/../Frameworks
-#    QMAKE_LFLAGS_SONAME = -Wl,-install_name,@rpath/
-#}

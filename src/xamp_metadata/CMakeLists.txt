@@ -14,7 +14,7 @@ if (${CMAKE_BUILD_TYPE} STREQUAL Debug)
     set(BUILD_PATH debug)
 else()
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/release)
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNDEBUG -O3 -fomit-frame-pointer -flto")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNDEBUG -O3 -fomit-frame-pointer -flto=thin -fwhole-program-vtables")
     message(STATUS "Build release mode")
     set(BUILD_PATH release)
 endif(${CMAKE_BUILD_TYPE} STREQUAL Debug)
@@ -45,7 +45,7 @@ message(STATUS "LIB_XAMP_BASE: [${LIB_XAMP_BASE}]")
 find_library (
     LIB_TAGLIB
     NAMES libtag.a
-    HINTS "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/taglib2/osx"
+    HINTS "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/taglib2/osx_${BUILD_PATH}"
     NO_DEFAULT_PATH
 )
 

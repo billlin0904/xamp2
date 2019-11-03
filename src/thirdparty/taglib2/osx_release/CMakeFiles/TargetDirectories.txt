@@ -1,0 +1,7 @@
+/Users/bill/Documents/xamp2/src/thirdparty/taglib2/build-taglib-Desktop_Qt_5_12_5_clang_64bit-Release/CMakeFiles/install/local.dir
+/Users/bill/Documents/xamp2/src/thirdparty/taglib2/build-taglib-Desktop_Qt_5_12_5_clang_64bit-Release/CMakeFiles/rebuild_cache.dir
+/Users/bill/Documents/xamp2/src/thirdparty/taglib2/build-taglib-Desktop_Qt_5_12_5_clang_64bit-Release/CMakeFiles/edit_cache.dir
+/Users/bill/Documents/xamp2/src/thirdparty/taglib2/build-taglib-Desktop_Qt_5_12_5_clang_64bit-Release/CMakeFiles/install/strip.dir
+/Users/bill/Documents/xamp2/src/thirdparty/taglib2/build-taglib-Desktop_Qt_5_12_5_clang_64bit-Release/CMakeFiles/install.dir
+/Users/bill/Documents/xamp2/src/thirdparty/taglib2/build-taglib-Desktop_Qt_5_12_5_clang_64bit-Release/CMakeFiles/list_install_components.dir
+/Users/bill/Documents/xamp2/src/thirdparty/taglib2/build-taglib-Desktop_Qt_5_12_5_clang_64bit-Release/CMakeFiles/tag.dir

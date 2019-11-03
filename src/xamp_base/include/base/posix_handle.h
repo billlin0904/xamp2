@@ -5,6 +5,8 @@
 
 #pragma once
 
+
+#ifndef _WIN32
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/fcntl.h>
@@ -51,6 +53,7 @@ struct TimerFdTraits final {
 using ModuleHandle = UniqueHandle<void*, ModuleHandleTraits>;
 using FileHandle = UniqueHandle<int, FileHandleTraits>;
 using TimerFdHandle = UniqueHandle<int, TimerFdTraits>;
+#endif
 
 }
 

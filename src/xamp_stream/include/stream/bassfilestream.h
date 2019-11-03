@@ -18,7 +18,7 @@ namespace xamp::stream {
 
 using namespace base;
 
-class XAMP_STREAM_API BassFileStream 
+class XAMP_STREAM_API BassFileStream final
 	: public FileStream
 	, public DSDStream {
 public:
@@ -59,6 +59,8 @@ public:
 	DSDSampleFormat GetDSDSampleFormat() const override;
 
 	void SetPCMSampleRate(int32_t samplerate) override;
+
+    int32_t GetDSDSpeed() const override;
 private:
 	class BassFileStreamImpl;
 	AlignPtr<BassFileStreamImpl> stream_;
