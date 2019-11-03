@@ -9,6 +9,7 @@
 - 沒有呼叫任何系統獨佔鎖，盡可能使用lock free方式
 - 減少GUI直接呼叫
 - Windows 平台: 支持WASPI(共享/獨佔模式), ASIO
+
 | Platform | DSD mode | Output Device Type |
 |----------|----------|----------|
 | Windows | Native DSD | ASIO |
