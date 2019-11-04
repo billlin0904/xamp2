@@ -571,12 +571,12 @@ void Xamp::play(const PlayListEntity& item) {
 }
 
 void Xamp::play(const QModelIndex&, const PlayListEntity& item) {
-    try {
-        ui.seekSlider->setEnabled(true);
-        playLocalFile(item);
-        ThemeManager::setPlayOrPauseButton(ui, true);
-        playlist_page_->format()->setText(getPlayEntityFormat(player_->GetStreamFormat(), item));
-    } catch(const xamp::base::Exception& e) {
+	try {
+		ui.seekSlider->setEnabled(true);
+		playLocalFile(item);
+		ThemeManager::setPlayOrPauseButton(ui, true);
+		playlist_page_->format()->setText(getPlayEntityFormat(player_->GetStreamFormat(), item));
+	} catch(const xamp::base::Exception& e) {
         ui.seekSlider->setEnabled(false);
         player_->Stop(false, true);
         Toast::showTip(Q_UTF8(e.GetErrorMessage()), this);

@@ -278,10 +278,6 @@ void AsioDevice::CreateBuffers(const AudioFormat& output_format) {
 		buffer_bytes_ = buffer_size_ * mix_format_.GetBytesPerSample();
 		buffer_ = MakeBuffer<int8_t>(allocate_bytes * buffer_size_);
 		device_buffer_ = MakeBuffer<int8_t>(allocate_bytes * buffer_size_);
-		XAMP_LOG_INFO("Buffer size:{}, bytes:{}, allocate bytes:{}",
-			ByteSizeToString(buffer_size_),
-			ByteSizeToString(buffer_bytes_),
-			ByteSizeToString(allocate_bytes * buffer_size_));
 	}
 	else {
 		switch (channel_info.type) {
@@ -304,12 +300,6 @@ void AsioDevice::CreateBuffers(const AudioFormat& output_format) {
 		auto channel_buffer_size = buffer_size_ / 8;
 		buffer_bytes_ = channel_buffer_size;
 		int32_t allocate_bytes = buffer_size_;
-		XAMP_LOG_INFO("IO format:{}, sample format:{}, buffer_size:{}, buffer_bytes:{}, allocate_bytes:{}",
-			io_format_,
-			sample_format_,
-			ByteSizeToString(buffer_size_),
-			ByteSizeToString(buffer_bytes_),
-			ByteSizeToString(allocate_bytes));
 		device_buffer_ = MakeBuffer<int8_t>(allocate_bytes);
 		buffer_ = MakeBuffer<int8_t>(allocate_bytes);
 		callbackInfo.data_context = MakeConvert(input_fomrat, mix_format_, channel_buffer_size);

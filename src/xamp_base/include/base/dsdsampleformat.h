@@ -15,9 +15,10 @@ enum class DSDSampleFormat {
 
 enum class DSDModes {
 	DSD_MODE_PCM,
+	DSD_MODE_RAW,
 	DSD_MODE_DOP,
-	DSD_MODE_DOP_AA,
-	DSD_MODE_RAW
+	// TODO: Unsupported now!
+	DSD_MODE_DOP_AA
 };
 
 }

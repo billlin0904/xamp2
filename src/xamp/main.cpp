@@ -21,7 +21,7 @@ static void loadAndDefaultAppConfig() {
 
 int main(int argc, char *argv[]) {
 	Logger::Instance()
-#ifdef _DEBUG
+#ifdef _WIN32
 		.AddDebugOutputLogger()
 #endif
 #ifdef Q_OS_MAC

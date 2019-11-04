@@ -173,11 +173,8 @@ public:
 	void Load() {
         BassLib::Instance().BASS_Init(0, 44100, 0, nullptr, nullptr);
 #ifdef _WIN32
-		// Media Foundation flac sometimes deadlock!
+		// Disable Media Foundation
 		BassLib::Instance().BASS_SetConfig(BASS_CONFIG_MF_DISABLE, true);
-		LoadPlugin("bassdsd.dll");
-#else
-        LoadPlugin("libbassflac.dylib");
 #endif
 	}
 
@@ -223,6 +220,7 @@ public:
 	void LoadFromFile(const std::wstring & file_path) {
         if (!plugin_.IsLoaded()) {
             plugin_.Load();
+			dsdlib_ = MakeAlign<BassDSDLib>();
         }
 
         info_ = BASS_CHANNELINFO{};
@@ -268,7 +266,7 @@ public:
 			}
 		} else {
 			file_.Open(file_path);
-            stream_.reset(dsdlib_.BASS_DSD_StreamCreateFile(TRUE,
+            stream_.reset(dsdlib_->BASS_DSD_StreamCreateFile(TRUE,
 				file_.GetData(),
 				0,
 				file_.GetLength(),
@@ -398,7 +396,7 @@ private:
     DSDModes mode_;
 	BassStreamHandle stream_;
 	BASS_CHANNELINFO info_;
-    BassDSDLib dsdlib_;
+    AlignPtr<BassDSDLib> dsdlib_;
     BassPlugin plugin_;
     MemoryMappedFile file_;
 };
