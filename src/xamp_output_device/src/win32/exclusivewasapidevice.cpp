@@ -1,12 +1,13 @@
-#include <base/logger.h>
-
 #ifdef _WIN32
+
+#include <base/logger.h>
 #include <output_device/win32/hrexception.h>
 #include <output_device/win32/exclusivewasapidevice.h>
 
 namespace xamp::output_device::win32 {
 
-#define REFTIMES_PER_MILLISEC  10000
+constexpr int32_t REFTIMES_PER_MILLISEC = 10000;
+constexpr double REFTIMES_PER_SEC = 10000000;
 
 static void SetWaveformatEx(WAVEFORMATEX *input_fromat, const AudioFormat &audio_format, const int32_t valid_bits_samples) {
 	auto &format = *reinterpret_cast<WAVEFORMATEXTENSIBLE *>(input_fromat);
@@ -39,7 +40,7 @@ static UINT32 BackwardAligned(const UINT32 bytes_frame, const UINT32 align_size)
 
 template <typename Predicate>
 static int32_t CalcAlignedFramePerBuffer(const UINT32 frames, const UINT32 block_align, Predicate f) {
-    static const auto HD_AUDIO_PACKET_SIZE = 128;
+    constexpr auto HD_AUDIO_PACKET_SIZE = 128;
 
     const auto bytes_frame = frames * block_align;
 	auto new_bytes_frame = f(bytes_frame, HD_AUDIO_PACKET_SIZE);
@@ -269,20 +270,16 @@ HRESULT ExclusiveWasapiDevice::OnSampleReady(IMFAsyncResult *result) {
     return S_OK;
 }
 
-void ExclusiveWasapiDevice::StopStream() {
+void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
     is_stop_streaming_ = false;
 
     if (is_running_) {
         is_running_ = false;
-
         std::unique_lock<std::mutex> lock{ mutex_ };
-        while (!is_stop_streaming_) {
+        while (wait_for_stop_stream && !is_stop_streaming_) {
             condition_.wait(lock);
         }
     }
-
-#define REFTIMES_PER_SEC  double(10000000)
-#define REFTIMES_PER_MILLISEC  10000
 
     if (mix_format_ != nullptr) {
         auto sleep_for_stop = REFTIMES_PER_SEC * frames_per_latency_ / mix_format_->nSamplesPerSec;

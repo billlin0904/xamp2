@@ -154,6 +154,7 @@
     <ClInclude Include="include\output_device\device.h" />
     <ClInclude Include="include\output_device\devicefactory.h" />
     <ClInclude Include="include\output_device\deviceinfo.h" />
+    <ClInclude Include="include\output_device\devicestatelistener.h" />
     <ClInclude Include="include\output_device\device_type.h" />
     <ClInclude Include="include\output_device\dsdoutputable.h" />
     <ClInclude Include="include\output_device\output_device.h" />
@@ -165,6 +166,7 @@
     <ClInclude Include="include\output_device\win32\sharedwasapidevicetype.h" />
     <ClInclude Include="include\output_device\win32\sharedwasapidevice.h" />
     <ClInclude Include="include\output_device\win32\wasapi.h" />
+    <ClInclude Include="include\output_device\win32\devicestatenotification.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\thirdparty\asiosdk\common\asio.cpp" />
@@ -182,6 +184,7 @@
     <ClCompile Include="src\win32\sharedwasapidevice.cpp" />
     <ClCompile Include="src\win32\sharedwasapidevicetype.cpp" />
     <ClCompile Include="src\win32\wasapi.cpp" />
+    <ClCompile Include="src\win32\devicestatenotification.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

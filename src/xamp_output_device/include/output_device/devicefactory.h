@@ -17,6 +17,11 @@
 #include <base/align_ptr.h>
 #include <base/logger.h>
 
+#ifdef _WIN32
+#include <output_device/win32/devicestatenotification.h>
+#else
+#endif
+
 #include <output_device/output_device.h>
 #include <output_device/device_type.h>
 
@@ -39,6 +44,8 @@ public:
 	void RegisterCreator(const ID id, Function &&fun) {
 		creator_[id] = std::forward<Function>(fun);
 	}
+
+	void RegisterDeviceListener(std::weak_ptr<DeviceStateListener> callback);
 
 	void Clear();
 
@@ -66,6 +73,11 @@ public:
 
 private:
 	DeviceFactory();
+
+#ifdef _WIN32
+	CComPtr<win32::DeviceStateNotification> notification_;
+#else
+#endif
 
 	std::unordered_map<ID, FunctionRef<AlignPtr<DeviceType>()>> creator_;
 };

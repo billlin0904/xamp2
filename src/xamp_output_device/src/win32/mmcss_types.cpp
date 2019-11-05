@@ -1,9 +1,8 @@
 #ifdef _WIN32
-#ifdef _WIN32
+
 #include <base/dll.h>
 #include <base/windows_handle.h>
 #include <avrt.h>
-#endif
 
 #include <output_device/win32/mmcss_types.h>
 

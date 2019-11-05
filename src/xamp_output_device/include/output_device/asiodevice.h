@@ -34,7 +34,7 @@ public:
 
 	bool IsStreamRunning() const override;
 
-	void StopStream() override;
+	void StopStream(bool wait_for_stop_stream = true) override;
 
 	void CloseStream() override;
 

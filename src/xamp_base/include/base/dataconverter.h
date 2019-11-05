@@ -13,9 +13,9 @@
 namespace xamp::base {
 
 // See: http://blog.bjornroche.com/2009/12/int-float-int-its-jungle-out-there.html
-constexpr double XAMP_FLOAT_16_SCALER = 0x7fff;
-constexpr double XAMP_FLOAT_24_SCALER = 0x8000;
-constexpr double XAMP_FLOAT_32_SCALER = 0x8000;
+constexpr double XAMP_FLOAT_16_SCALER = double(0x7fffL) + .49999;
+constexpr double XAMP_FLOAT_24_SCALER = double(0x7fffffL) + .49999;
+constexpr double XAMP_FLOAT_32_SCALER = double(0x7fffffffL) + .49999;
 
 #pragma pack(push, 1)
 class int24_t final {

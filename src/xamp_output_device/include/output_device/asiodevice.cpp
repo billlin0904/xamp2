@@ -450,7 +450,7 @@ bool AsioDevice::IsStreamOpen() const {
 	return !is_stopped_;
 }
 
-void AsioDevice::StopStream() {
+void AsioDevice::StopStream(bool wait_for_stop_stream) {
 	if (!is_streaming_) {
 		return;
 	}
@@ -460,7 +460,7 @@ void AsioDevice::StopStream() {
 
 	std::unique_lock<std::mutex> lock{ mutex_ };
 
-	while (!is_stop_streaming_) {
+	while (wait_for_stop_stream && !is_stop_streaming_) {
 		condition_.wait(lock);
 	}
 

@@ -7,6 +7,9 @@
 
 namespace xamp::output_device::win32 {
 
+constexpr int32_t REFTIMES_PER_MILLISEC = 10000;
+constexpr double REFTIMES_PER_SEC = 10000000;
+
 static void SetWaveformatEx(WAVEFORMATEX *input_fromat, const int32_t samplerate) {
 	auto &format = *reinterpret_cast<WAVEFORMATEXTENSIBLE *>(input_fromat);
 
@@ -54,20 +57,17 @@ void SharedWasapiDevice::SetAudioCallback(AudioCallback* callback) {
 	callback_ = callback;
 }
 
-void SharedWasapiDevice::StopStream() {
+void SharedWasapiDevice::StopStream(bool wait_for_stop_stream) {
 	is_stop_streaming_ = false;
 
 	if (is_running_) {
 		is_running_ = false;
 
 		std::unique_lock<std::mutex> lock{ mutex_ };
-		while (!is_stop_streaming_) {
+		while (wait_for_stop_stream && !is_stop_streaming_) {
 			condition_.wait(lock);
 		}
 	}
-
-#define REFTIMES_PER_SEC  double(10000000)
-#define REFTIMES_PER_MILLISEC  10000
 
 	if (mix_format_ != nullptr) {
 		auto sleep_for_stop = REFTIMES_PER_SEC * buffer_frames_ / mix_format_->nSamplesPerSec;

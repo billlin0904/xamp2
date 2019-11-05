@@ -20,6 +20,7 @@
 #include <stream/filestream.h>
 
 #include <output_device/audiocallback.h>
+#include <output_device/devicestatelistener.h>
 #include <output_device/device.h>
 #include <output_device/device_type.h>
 
@@ -34,6 +35,7 @@ using namespace output_device;
 
 class XAMP_PALYER_API AudioPlayer final :
 	public AudioCallback,
+	public DeviceStateListener,
 	public std::enable_shared_from_this<AudioPlayer> {
 public:
 	XAMP_DISABLE_COPY(AudioPlayer)
@@ -54,7 +56,7 @@ public:
 
 	void Resume();
 
-	void Stop(bool signal_to_stop = true, bool shutdown_device = false);
+	void Stop(bool signal_to_stop = true, bool shutdown_device = false, bool wait_for_stop_stream = true);
 
 	void Seek(double stream_time);
 
@@ -87,7 +89,7 @@ private:
 
 	void CreateDevice(const ID& device_type_id, const std::wstring& device_id, const bool open_always);
 
-	void CloseDevice();
+	void CloseDevice(bool wait_for_stop_stream);
 
 	void CreateBuffer();
 
@@ -100,6 +102,8 @@ private:
 	int operator()(void* samples, const int32_t num_buffer_frames, const double stream_time) noexcept override;
 
 	void OnError(const Exception& e) noexcept override;
+
+	void OnDeviceStateChange(DeviceState state, const std::wstring& device_id) override;
 
 	void OpenDevice(double stream_time = 0.0);
 

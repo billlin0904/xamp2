@@ -1,5 +1,6 @@
 #include <base/logger.h>
 #include <base/vmmemlock.h>
+#include <base/unicode.h>
 
 #include <output_device/devicefactory.h>
 #include <output_device/asiodevicetype.h>
@@ -39,12 +40,12 @@ AudioPlayer::AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter)
 
 AudioPlayer::~AudioPlayer() {
 	timer_.Stop();
-    CloseDevice();
+    CloseDevice(true);
 }
 
 void AudioPlayer::Open(const std::wstring& file_path, bool use_bass_stream, const DeviceInfo& device_info) {
     Initial();
-    CloseDevice();
+    CloseDevice(true);
     OpenStream(file_path, device_info, use_bass_stream);
     SetDeviceFormat();
     CreateDevice(device_info.device_type_id, device_info.device_id, false);
@@ -159,14 +160,14 @@ void AudioPlayer::Resume() {
     }
 }
 
-void AudioPlayer::Stop(bool signal_to_stop, bool shutdown_device) {
+void AudioPlayer::Stop(bool signal_to_stop, bool shutdown_device, bool wait_for_stop_stream) {
     buffer_.Clear();
     if (!device_) {
         return;
     }
     XAMP_LOG_DEBUG("Player stop!");
     if (device_->IsStreamOpen()) {
-        CloseDevice();
+        CloseDevice(wait_for_stop_stream);
         if (signal_to_stop) {
             SetState(PlayerState::PLAYER_STATE_STOPPED);
         }
@@ -258,7 +259,10 @@ void AudioPlayer::Initial() {
             }
         });
     }
+
     buffer_.Clear();
+	
+	DeviceFactory::Instance().RegisterDeviceListener(shared_from_this());
 }
 
 std::optional<int32_t> AudioPlayer::GetDSDSpeed() const {
@@ -299,7 +303,7 @@ DSDModes AudioPlayer::GetDSDModes() const {
     return dsd_mode_;
 }
 
-void AudioPlayer::CloseDevice() {
+void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
     is_playing_ = false;
     is_paused_ = false;
     pause_cond_.notify_all();
@@ -307,7 +311,7 @@ void AudioPlayer::CloseDevice() {
     if (device_ != nullptr) {
         if (device_->IsStreamOpen()) {
             try {
-                device_->StopStream();
+                device_->StopStream(wait_for_stop_stream);
                 device_->CloseStream();
             } catch (const Exception &e) {
                 XAMP_LOG_DEBUG("Close device failure! {}", e.what());
@@ -418,6 +422,23 @@ bool AudioPlayer::ProcessSamples(int32_t num_samples) noexcept {
 void AudioPlayer::OnError(const Exception& e) noexcept {
     is_playing_ = false;
     XAMP_LOG_DEBUG(e.what());
+}
+
+void AudioPlayer::OnDeviceStateChange(DeviceState state, const std::wstring& device_id) {
+	switch (state) {
+	case DeviceState::DEVICE_STATE_ADDED:
+		XAMP_LOG_DEBUG("Device added device id:{}", ToUtf8String(device_id));
+		break;
+	case DeviceState::DEVICE_STATE_REMOVED:
+		XAMP_LOG_DEBUG("Device removed device id:{}", ToUtf8String(device_id));
+		if (device_id == device_id_) {
+			Stop(true, true, true);
+		}
+		break;
+	case DeviceState::DEVICE_STATE_DEFAULT_DEVICE_CHANGE:
+		XAMP_LOG_DEBUG("Default device device id:{}", ToUtf8String(device_id));
+		break;
+	}
 }
 
 void AudioPlayer::OpenDevice(double stream_time) {

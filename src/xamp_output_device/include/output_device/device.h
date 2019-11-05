@@ -26,7 +26,7 @@ public:
 
 	virtual bool IsStreamRunning() const = 0;
 
-	virtual void StopStream() = 0;
+	virtual void StopStream(bool wait_for_stop_stream = true) = 0;
 
 	virtual void CloseStream() = 0;
 
