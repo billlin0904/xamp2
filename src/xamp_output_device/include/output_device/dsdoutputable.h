@@ -35,6 +35,5 @@ public:
 protected:
     DSDOutputable() = default;
 };
-#endif
-
 }
+#endif
