@@ -21,7 +21,7 @@ public:
 
 	void UnLock() noexcept;
 #ifdef _WIN32
-	static bool EnableVmMemPrivilege(bool enable) noexcept;
+	static bool EnableLockMemPrivilege(bool enable) noexcept;
 #endif
 private:
 	void* address_;

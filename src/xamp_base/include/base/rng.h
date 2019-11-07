@@ -18,7 +18,7 @@ public:
 
     XAMP_DISABLE_COPY(RNG)
 
-	int32_t GetRandomInt() noexcept {
+	int32_t GetInt() noexcept {
 		return std::uniform_int_distribution(0, INT_MAX)(engine_);
 	}
 

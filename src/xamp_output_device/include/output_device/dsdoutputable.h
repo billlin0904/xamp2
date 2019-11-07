@@ -5,6 +5,7 @@
 
 #pragma once
 
+#if ENABLE_ASIO
 #include <base/dsdsampleformat.h>
 #include <output_device/device.h>
 
@@ -12,7 +13,7 @@ namespace xamp::output_device {
 
 using namespace base;
 
-enum AsioIoFormat {
+enum class AsioIoFormat {
 	IO_FORMAT_DSD,
 	IO_FORMAT_PCM
 };
@@ -34,5 +35,6 @@ public:
 protected:
     DSDOutputable() = default;
 };
+#endif
 
 }

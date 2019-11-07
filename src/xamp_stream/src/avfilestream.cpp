@@ -426,7 +426,6 @@ private:
 	int32_t video_stream_id_;
 	int32_t audio_stream_id_;
 	double duration_;
-	std::wstring codec_name_;
 #if ENABLE_IO_CONTEXT
 	AvStreamContext iocontext_;
 	AVIOContext* avio_context_{nullptr};

@@ -34,8 +34,9 @@ AudioPlayer::AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter)
     , is_paused_(false)
     , state_adapter_(adapter) {
 #ifdef _WIN32
-    VmMemLock::EnableVmMemPrivilege(true);
+    VmMemLock::EnableLockMemPrivilege(true);
 #endif
+	wait_timer_.SetTimeout(SLEEP_OUTPUT_TIME);
 }
 
 AudioPlayer::~AudioPlayer() {
@@ -442,25 +443,24 @@ void AudioPlayer::OnDeviceStateChange(DeviceState state, const std::wstring& dev
 }
 
 void AudioPlayer::OpenDevice(double stream_time) {
+#ifdef ENABLE_ASIO
     if (auto dsd_output = dynamic_cast<DSDOutputable*>(device_.get())) {
         if (auto dsd_stream = dynamic_cast<DSDStream*>(stream_.get())) {
             if (dsd_stream->GetDSDMode() == DSDModes::DSD_MODE_RAW) {
-                dsd_output->SetIoFormat(IO_FORMAT_DSD);
+                dsd_output->SetIoFormat(AsioIoFormat::IO_FORMAT_DSD);
             }
             else {
-                dsd_output->SetIoFormat(IO_FORMAT_PCM);
+                dsd_output->SetIoFormat(AsioIoFormat::IO_FORMAT_PCM);
             }
         }
     }
-
+#endif
     device_->OpenStream(output_format_);
     device_->SetStreamTime(stream_time);
 }
 
 void AudioPlayer::PlayStream() {
     std::weak_ptr<AudioPlayer> player = shared_from_this();
-
-	wait_timer_.SetTimeout(SLEEP_OUTPUT_TIME);
 
 	Play();
 
@@ -482,7 +482,8 @@ void AudioPlayer::PlayStream() {
                 }
 
                 while (true) {
-                    const auto num_samples = p->stream_->GetSamples(p->read_sample_buffer_.get(), max_read_sample);
+                    const auto num_samples = p->stream_->GetSamples(p->read_sample_buffer_.get(),
+						max_read_sample);
                     if (num_samples > 0) {
                         if (!p->ProcessSamples(num_samples)) {
                             XAMP_LOG_DEBUG("Process samples failure!");

@@ -64,7 +64,7 @@ VmMemLock::~VmMemLock() noexcept {
 	UnLock();
 }
 
-bool VmMemLock::EnableVmMemPrivilege(bool enable) noexcept {
+bool VmMemLock::EnableLockMemPrivilege(bool enable) noexcept {
 	return EnablePrivilege("SeLockMemoryPrivilege", enable);
 }
 

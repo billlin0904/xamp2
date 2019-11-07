@@ -108,7 +108,7 @@ public:
 
 private:
     template <typename Function>
-    static void Write(const Path &path, Function fun) {
+    static void Write(const Path &path, Function &&fun) {
 #ifdef _WIN32
         FileRef fileref(path.wstring().c_str());
 #else
