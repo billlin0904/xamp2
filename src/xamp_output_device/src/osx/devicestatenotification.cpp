@@ -1,0 +1,63 @@
+#include <output_device/osx/coreaudioexception.h>
+#include <output_device/osx/devicestatenotification.h>
+
+namespace xamp::output_device::osx {
+
+constexpr AudioObjectPropertyAddress sAddOrRemoveDevicesPropertyAddress = {
+    kAudioHardwarePropertyDevices,
+    kAudioObjectPropertyScopeGlobal,
+    kAudioObjectPropertyElementMaster
+};
+
+DeviceStateNotification::DeviceStateNotification(std::weak_ptr<DeviceStateListener> callback)
+    : callback_(callback) {
+}
+
+DeviceStateNotification::~DeviceStateNotification() {
+    try {
+        RemovePropertyListener();
+    } catch (...) {
+    }
+}
+
+void DeviceStateNotification::Run() {
+    AddPropertyListener();
+}
+
+void DeviceStateNotification::RemovePropertyListener() {
+    CoreAudioThrowIfError(AudioObjectRemovePropertyListener(
+                              kAudioObjectSystemObject,
+                              &sAddOrRemoveDevicesPropertyAddress,
+                              &DeviceStateNotification::OnDefaultDeviceChangedCallback,
+                              this));
+}
+
+void DeviceStateNotification::AddPropertyListener() {
+    CoreAudioThrowIfError(AudioObjectAddPropertyListener(
+                              kAudioObjectSystemObject,
+                              &sAddOrRemoveDevicesPropertyAddress,
+                              &DeviceStateNotification::OnDefaultDeviceChangedCallback,
+                              this));
+}
+
+OSStatus DeviceStateNotification::OnDefaultDeviceChangedCallback(
+        AudioObjectID object,
+        UInt32 num_addresses,
+        const AudioObjectPropertyAddress addresses[],
+        void* context) {
+    auto notification = static_cast<DeviceStateNotification*>(context);
+    for (UInt32 i = 0; i < num_addresses; ++i) {
+        if (addresses[i].mSelector == sAddOrRemoveDevicesPropertyAddress.mSelector &&
+                addresses[i].mScope == sAddOrRemoveDevicesPropertyAddress.mScope &&
+                addresses[i].mElement == sAddOrRemoveDevicesPropertyAddress.mElement &&
+                context != nullptr) {
+            if (auto callback = (*notification).callback_.lock()) {
+                callback->OnDeviceStateChange(DeviceState::DEVICE_STATE_ADDED, std::to_wstring(object));
+            }
+            break;
+        }
+    }
+    return noErr;
+}
+
+}

@@ -192,7 +192,7 @@ bool CoreAudioDevice::IsStreamRunning() const {
     return is_running_;
 }
 
-void CoreAudioDevice::StopStream() {
+void CoreAudioDevice::StopStream(bool wait_for_stop_stream) {
     CoreAudioThrowIfError(AudioDeviceStop(device_id_, proc_id_));
     is_running_ = false;
 }

@@ -20,6 +20,7 @@
 #ifdef _WIN32
 #include <output_device/win32/devicestatenotification.h>
 #else
+#include <output_device/osx/devicestatenotification.h>
 #endif
 
 #include <output_device/output_device.h>
@@ -77,6 +78,7 @@ private:
 #ifdef _WIN32
 	CComPtr<win32::DeviceStateNotification> notification_;
 #else
+    AlignPtr<osx::DeviceStateNotification> notification_;
 #endif
 
 	std::unordered_map<ID, FunctionRef<AlignPtr<DeviceType>()>> creator_;
