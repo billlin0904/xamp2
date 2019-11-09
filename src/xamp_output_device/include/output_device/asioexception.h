@@ -24,7 +24,7 @@ public:
 	explicit ASIOException(ASIOError error);
 };
 
-#define ASIO_IF_FAILED_THROW(expr) \
+#define AsioIfFailedThrow(expr) \
 	do { \
 		auto result = expr; \
 		if (result != ASE_OK) { \
@@ -32,14 +32,13 @@ public:
 		} \
 	} while (false)
 
-#define ASIO_IF_FAILED_THROW2(expr, excepted) \
+#define AsioIfFailedThrow2(expr, excepted) \
 	do { \
 		auto result = expr; \
 		if (result != (excepted)) { \
 			throw ASIOException(result); \
 		} \
 	} while (false)
-
 
 }
 #endif

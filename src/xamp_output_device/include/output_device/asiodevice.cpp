@@ -71,7 +71,7 @@ bool AsioDevice::IsMuted() const {
 	return volume_ == 0;
 }
 
-int32_t AsioDevice::GetBufferSize() const {
+int32_t AsioDevice::GetBufferSize() const noexcept {
 	return buffer_size_ * mix_format_.GetChannels();
 }
 
@@ -79,7 +79,7 @@ void AsioDevice::SetSampleFormat(DSDSampleFormat format) {
 	sample_format_ = format;
 }
 
-DSDSampleFormat AsioDevice::GetSampleFormat() const {
+DSDSampleFormat AsioDevice::GetSampleFormat() const noexcept {
 	return sample_format_;
 }
 
@@ -89,7 +89,7 @@ void AsioDevice::SetIoFormat(AsioIoFormat format) {
 
 AsioIoFormat AsioDevice::GetIoFormat() const {
 	ASIOIoFormat asio_fomrmat{};
-	ASIO_IF_FAILED_THROW2(ASIOFuture(kAsioGetIoFormat, &asio_fomrmat), ASE_SUCCESS);
+	AsioIfFailedThrow2(ASIOFuture(kAsioGetIoFormat, &asio_fomrmat), ASE_SUCCESS);
 	return (asio_fomrmat.FormatType == kASIOPCMFormat)
 		? AsioIoFormat::IO_FORMAT_PCM : AsioIoFormat::IO_FORMAT_DSD;
 }
@@ -117,7 +117,7 @@ void AsioDevice::CreateBuffers(const AudioFormat& output_format) {
 	long max_size = 0;
 	long prefer_size = 0;
 	long granularity = 0;
-	ASIO_IF_FAILED_THROW(ASIOGetBufferSize(&min_size, &max_size, &prefer_size, &granularity));
+	AsioIfFailedThrow(ASIOGetBufferSize(&min_size, &max_size, &prefer_size, &granularity));
 
 	XAMP_LOG_INFO("min_size:{} max_size:{} prefer_size:{} granularity:{}",
 		min_size,
@@ -194,7 +194,7 @@ void AsioDevice::CreateBuffers(const AudioFormat& output_format) {
 		buffer_size,
 		&callbackInfo.asio_callbacks);
 	if (result != ASE_OK) {
-		ASIO_IF_FAILED_THROW(ASIOCreateBuffers(callbackInfo.buffer_infos.data(),
+		AsioIfFailedThrow(ASIOCreateBuffers(callbackInfo.buffer_infos.data(),
 			output_format.GetChannels(),
 			prefer_size,
 			&callbackInfo.asio_callbacks));
@@ -207,14 +207,14 @@ void AsioDevice::CreateBuffers(const AudioFormat& output_format) {
 	for (long i = 0; i < callbackInfo.buffer_infos.size(); ++i) {
 		callbackInfo.channel_infos[i].channel = callbackInfo.buffer_infos[i].channelNum;
 		callbackInfo.channel_infos[i].isInput = callbackInfo.buffer_infos[i].isInput;
-		ASIO_IF_FAILED_THROW(ASIOGetChannelInfo(&callbackInfo.channel_infos[i]));
+		AsioIfFailedThrow(ASIOGetChannelInfo(&callbackInfo.channel_infos[i]));
 	}
 
 	auto input_fomrat = output_format;
 
 	ASIOChannelInfo channel_info{};
 	channel_info.isInput = FALSE;
-	ASIO_IF_FAILED_THROW(ASIOGetChannelInfo(&channel_info));
+	AsioIfFailedThrow(ASIOGetChannelInfo(&channel_info));
 
 	mix_format_ = output_format;
 	// ASIO output is DEINTERLEAVED format
@@ -307,7 +307,7 @@ void AsioDevice::CreateBuffers(const AudioFormat& output_format) {
 
 	long input_latency = 0;
 	long output_latency = 0;
-	ASIO_IF_FAILED_THROW(ASIOGetLatencies(&input_latency, &output_latency));
+	AsioIfFailedThrow(ASIOGetLatencies(&input_latency, &output_latency));
 	XAMP_LOG_INFO("Input latency: {}ms Ouput latency: {}ms",
 		GetLatencyMs(input_latency, output_format.GetSampleRate()),
 		GetLatencyMs(output_latency, output_format.GetSampleRate()));
@@ -400,7 +400,7 @@ void AsioDevice::OpenStream(const AudioFormat& output_format) {
 		(void)FastMemcpy(asio_driver_info.name, device_id_.c_str(), device_id_.length());
 	}
 
-	ASIO_IF_FAILED_THROW(ASIOInit(&asio_driver_info));
+	AsioIfFailedThrow(ASIOInit(&asio_driver_info));
 
 	ASIOIoFormat asio_fomrmat{};
 	if (io_format_ == AsioIoFormat::IO_FORMAT_DSD) {
@@ -411,7 +411,7 @@ void AsioDevice::OpenStream(const AudioFormat& output_format) {
 	}
 
 	try {
-		ASIO_IF_FAILED_THROW2(ASIOFuture(kAsioSetIoFormat, &asio_fomrmat), ASE_SUCCESS);
+		AsioIfFailedThrow2(ASIOFuture(kAsioSetIoFormat, &asio_fomrmat), ASE_SUCCESS);
 	}
 	catch (const Exception & e) {
 		XAMP_LOG_DEBUG("ASIOFuture retun failure! {}", e.GetErrorMessage());
@@ -429,13 +429,13 @@ void AsioDevice::OpenStream(const AudioFormat& output_format) {
 }
 
 void AsioDevice::SetOutputSampleRate(const AudioFormat& output_format) {
-	ASIO_IF_FAILED_THROW(ASIOSetSampleRate(static_cast<ASIOSampleRate>(output_format.GetSampleRate())));
+	AsioIfFailedThrow(ASIOSetSampleRate(static_cast<ASIOSampleRate>(output_format.GetSampleRate())));
 	XAMP_LOG_INFO("Set device samplerate: {}", output_format.GetSampleRate());
 
 	clock_source_.resize(MAX_CLOCK_SOURCE_SIZE);
 
 	long num_clock_source = static_cast<long>(clock_source_.size());
-	ASIO_IF_FAILED_THROW(ASIOGetClockSources(clock_source_.data(), &num_clock_source));
+	AsioIfFailedThrow(ASIOGetClockSources(clock_source_.data(), &num_clock_source));
 
 	auto is_current_source_set = false;
 	if (num_clock_source > 0) {
@@ -448,15 +448,15 @@ void AsioDevice::SetOutputSampleRate(const AudioFormat& output_format) {
 
 	if (!is_current_source_set && num_clock_source > 1) {
 		XAMP_LOG_INFO("Set device clock source: {}", clock_source_[0].index);
-		ASIO_IF_FAILED_THROW(ASIOSetClockSource(clock_source_[0].index));
+		AsioIfFailedThrow(ASIOSetClockSource(clock_source_[0].index));
 	}
 }
 
-void AsioDevice::SetAudioCallback(AudioCallback* callback) {
+void AsioDevice::SetAudioCallback(AudioCallback* callback) noexcept {
 	callback_ = callback;
 }
 
-bool AsioDevice::IsStreamOpen() const {
+bool AsioDevice::IsStreamOpen() const noexcept {
 	return !is_stopped_;
 }
 
@@ -474,7 +474,7 @@ void AsioDevice::StopStream(bool wait_for_stop_stream) {
 		condition_.wait(lock);
 	}
 
-	ASIO_IF_FAILED_THROW(ASIOStop());
+	AsioIfFailedThrow(ASIOStop());
 }
 
 void AsioDevice::CloseStream() {
@@ -485,10 +485,10 @@ void AsioDevice::CloseStream() {
 
 	if (!is_removed_driver_) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(20));
-		ASIO_IF_FAILED_THROW(ASIOStop());
+		AsioIfFailedThrow(ASIOStop());
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
-		ASIO_IF_FAILED_THROW(ASIODisposeBuffers());
+		AsioIfFailedThrow(ASIODisposeBuffers());
 
 		if (callbackInfo.drivers != nullptr) {
 			callbackInfo.drivers->removeCurrentDriver();
@@ -502,12 +502,12 @@ void AsioDevice::CloseStream() {
 void AsioDevice::StartStream() {
 	callbackInfo.boost_priority = true;
 	callbackInfo.device = this;
-	ASIO_IF_FAILED_THROW(ASIOStart());
+	AsioIfFailedThrow(ASIOStart());
 	is_streaming_ = true;
 	is_stop_streaming_ = false;
 }
 
-bool AsioDevice::IsStreamRunning() const {
+bool AsioDevice::IsStreamRunning() const noexcept {
 	return is_streaming_;
 }
 
@@ -540,10 +540,10 @@ void AsioDevice::SetMute(const bool mute) const {
 }
 
 void AsioDevice::DisplayControlPanel() {
-	ASIO_IF_FAILED_THROW(ASIOControlPanel());
+	AsioIfFailedThrow(ASIOControlPanel());
 }
 
-InterleavedFormat AsioDevice::GetInterleavedFormat() const {
+InterleavedFormat AsioDevice::GetInterleavedFormat() const noexcept {
 	return InterleavedFormat::DEINTERLEAVED;
 }
 

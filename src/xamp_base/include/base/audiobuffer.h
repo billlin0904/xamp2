@@ -120,7 +120,7 @@ int32_t AudioBuffer<Type, U>::GetAvailableRead() const noexcept {
 }
 
 template <typename Type, typename U>
-int32_t AudioBuffer<Type, U>::GetAvailableWrite(const int32_t head, const int32_t tail) const noexcept {
+XAMP_ALWAYS_INLINE int32_t AudioBuffer<Type, U>::GetAvailableWrite(const int32_t head, const int32_t tail) const noexcept {
 	auto result = tail - head - 1;
 	if (head >= tail) {
 		result += size_;
@@ -129,7 +129,7 @@ int32_t AudioBuffer<Type, U>::GetAvailableWrite(const int32_t head, const int32_
 }
 
 template <typename Type, typename U>
-int32_t AudioBuffer<Type, U>::GetAvailableRead(const int32_t head, const int32_t tail) const noexcept {
+XAMP_ALWAYS_INLINE int32_t AudioBuffer<Type, U>::GetAvailableRead(const int32_t head, const int32_t tail) const noexcept {
 	if (head >= tail) {
 		return head - tail;
 	}
@@ -137,7 +137,7 @@ int32_t AudioBuffer<Type, U>::GetAvailableRead(const int32_t head, const int32_t
 }
 
 template <typename Type, typename U>
-XAMP_ALWAYS_INLINE bool AudioBuffer<Type, U>::TryWrite(const Type* data, int32_t data_size) noexcept {
+bool AudioBuffer<Type, U>::TryWrite(const Type* data, int32_t data_size) noexcept {
     const auto head = head_.load(std::memory_order_relaxed);
     const auto tail = tail_.load(std::memory_order_acquire);
 
@@ -164,7 +164,7 @@ XAMP_ALWAYS_INLINE bool AudioBuffer<Type, U>::TryWrite(const Type* data, int32_t
 }
 
 template <typename Type, typename U>
-XAMP_ALWAYS_INLINE bool AudioBuffer<Type, U>::TryRead(Type* data, const int32_t data_size) noexcept {
+bool AudioBuffer<Type, U>::TryRead(Type* data, const int32_t data_size) noexcept {
     const auto head = head_.load(std::memory_order_acquire);
     const auto tail = tail_.load(std::memory_order_relaxed);
 

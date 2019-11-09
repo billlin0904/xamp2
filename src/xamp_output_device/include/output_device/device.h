@@ -20,11 +20,11 @@ public:
 
 	virtual void OpenStream(const AudioFormat& output_format) = 0;
 
-	virtual void SetAudioCallback(AudioCallback* callback) = 0;
+	virtual void SetAudioCallback(AudioCallback* callback) noexcept = 0;
 
-	virtual bool IsStreamOpen() const = 0;
+	virtual bool IsStreamOpen() const noexcept = 0;
 
-	virtual bool IsStreamRunning() const = 0;
+	virtual bool IsStreamRunning() const noexcept = 0;
 
 	virtual void StopStream(bool wait_for_stop_stream = true) = 0;
 
@@ -46,9 +46,9 @@ public:
 
 	virtual void DisplayControlPanel() = 0;
 
-	virtual InterleavedFormat GetInterleavedFormat() const = 0;
+	virtual InterleavedFormat GetInterleavedFormat() const noexcept = 0;
 
-	virtual int32_t GetBufferSize() const = 0;
+	virtual int32_t GetBufferSize() const noexcept = 0;
 
 protected:
 	Device() = default;

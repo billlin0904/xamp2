@@ -22,11 +22,11 @@ public:
 
 	void OpenStream(const AudioFormat& output_format) override;
 
-	void SetAudioCallback(AudioCallback* callback) override;
+	void SetAudioCallback(AudioCallback* callback) noexcept override;
 
-	bool IsStreamOpen() const override;
+	bool IsStreamOpen() const noexcept override;
 
-	bool IsStreamRunning() const override;
+	bool IsStreamRunning() const noexcept override;
 
 	void StopStream(bool wait_for_stop_stream = true) override;
 
@@ -48,11 +48,11 @@ public:
 
 	void DisplayControlPanel() override;
 
-	InterleavedFormat GetInterleavedFormat() const override;
+	InterleavedFormat GetInterleavedFormat() const noexcept override;
 
 	void SetSchedulerService(const std::wstring& mmcss_name, MmcssThreadPriority thread_priority);
 
-	int32_t GetBufferSize() const override;
+	int32_t GetBufferSize() const noexcept override;
 
 private:
 	void InitialRawMode(const AudioFormat& output_format);

@@ -49,11 +49,11 @@ SharedWasapiDevice::~SharedWasapiDevice() {
     }
 }
 
-bool SharedWasapiDevice::IsStreamOpen() const {
+bool SharedWasapiDevice::IsStreamOpen() const noexcept {
 	return client_ != nullptr;
 }
 
-void SharedWasapiDevice::SetAudioCallback(AudioCallback* callback) {
+void SharedWasapiDevice::SetAudioCallback(AudioCallback* callback) noexcept {
 	callback_ = callback;
 }
 
@@ -223,11 +223,11 @@ void SharedWasapiDevice::SetMute(const bool mute) const {
 void SharedWasapiDevice::DisplayControlPanel() {
 }
 
-InterleavedFormat SharedWasapiDevice::GetInterleavedFormat() const {
+InterleavedFormat SharedWasapiDevice::GetInterleavedFormat() const noexcept {
 	return InterleavedFormat::INTERLEAVED;
 }
 
-int32_t SharedWasapiDevice::GetBufferSize() const {
+int32_t SharedWasapiDevice::GetBufferSize() const noexcept {
 	return buffer_frames_;
 }
 
@@ -330,7 +330,7 @@ void SharedWasapiDevice::StartStream() {
 	is_stop_streaming_ = false;
 }
 
-bool SharedWasapiDevice::IsStreamRunning() const {
+bool SharedWasapiDevice::IsStreamRunning() const noexcept {
 	return is_running_;
 }
 

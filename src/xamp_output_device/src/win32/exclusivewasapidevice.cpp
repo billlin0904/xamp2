@@ -296,15 +296,15 @@ void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
     }
 }
 
-void ExclusiveWasapiDevice::SetAudioCallback(AudioCallback* callback) {
+void ExclusiveWasapiDevice::SetAudioCallback(AudioCallback* callback) noexcept {
 	callback_ = callback;
 }
 
-bool ExclusiveWasapiDevice::IsStreamOpen() const {
+bool ExclusiveWasapiDevice::IsStreamOpen() const noexcept {
     return client_ != nullptr;
 }
 
-bool ExclusiveWasapiDevice::IsStreamRunning() const {
+bool ExclusiveWasapiDevice::IsStreamRunning() const noexcept {
     return is_running_;
 }
 
@@ -382,11 +382,11 @@ void ExclusiveWasapiDevice::SetMute(const bool mute) const {
 void ExclusiveWasapiDevice::DisplayControlPanel() {
 }
 
-InterleavedFormat ExclusiveWasapiDevice::GetInterleavedFormat() const {
+InterleavedFormat ExclusiveWasapiDevice::GetInterleavedFormat() const noexcept {
     return InterleavedFormat::INTERLEAVED;
 }
 
-int32_t ExclusiveWasapiDevice::GetBufferSize() const {
+int32_t ExclusiveWasapiDevice::GetBufferSize() const noexcept {
 	return frames_per_latency_;
 }
 
