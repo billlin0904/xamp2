@@ -9,7 +9,6 @@
 #include <unordered_set>
 
 #include <base/metadata.h>
-#include <metadata/metadataextractadapter.h>
 #include <metadata/metadata.h>
 
 namespace xamp::metadata {

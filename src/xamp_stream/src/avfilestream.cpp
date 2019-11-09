@@ -285,7 +285,7 @@ public:
 		if (HasAudio()) {
 			OpenAudioStream();
 		} else {
-			throw FileNotFoundException();
+			throw NotSupportFormatException();
 		}
 
 		const auto stream = format_context_->streams[audio_stream_id_];
@@ -297,7 +297,7 @@ public:
 
 		const auto codec = avcodec_find_decoder(audio_contex_->codec_id);
 		if (!codec) {
-			throw FileNotFoundException();
+			throw NotSupportFormatException();
 		}
 
         AvIfFailedThrow(avcodec_open2(audio_contex_.get(), codec, nullptr));
@@ -456,7 +456,7 @@ double AvFileStream::GetDuration() const {
 	return impl_->GetDuration();
 }
 
-AudioFormat AvFileStream::GetFormat() const {
+AudioFormat AvFileStream::GetFormat() const noexcept {
 	return impl_->GetFormat();
 }
 
@@ -468,11 +468,11 @@ void AvFileStream::Seek(double stream_time) const {
 	impl_->Seek(stream_time);
 }
 
-std::string AvFileStream::GetStreamName() const {
+std::string AvFileStream::GetStreamName() const noexcept {
     return "LibAv";
 }
 
-int32_t AvFileStream::GetSampleSize() const {
+int32_t AvFileStream::GetSampleSize() const noexcept {
 	return impl_->GetSampleSize();
 }
 

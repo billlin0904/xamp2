@@ -423,7 +423,7 @@ double BassFileStream::GetDuration() const {
 	return stream_->GetDuration();
 }
 
-AudioFormat BassFileStream::GetFormat() const {
+AudioFormat BassFileStream::GetFormat() const noexcept {
 	return stream_->GetFormat();
 }
 
@@ -435,7 +435,7 @@ int32_t BassFileStream::GetSamples(void *buffer, int32_t length) const noexcept 
 	return stream_->GetSamples(buffer, length);
 }
 
-std::string BassFileStream::GetStreamName() const {
+std::string BassFileStream::GetStreamName() const noexcept {
     return "BASS";
 }
 
@@ -467,7 +467,7 @@ int32_t BassFileStream::GetDSDSampleRate() const {
     return stream_->GetDSDSampleRate();
 }
 
-int32_t BassFileStream::GetSampleSize() const {
+int32_t BassFileStream::GetSampleSize() const noexcept {
 	return stream_->GetSampleSize();
 }
 

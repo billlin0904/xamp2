@@ -7,7 +7,9 @@
 #include <base/function_ref.h>
 #include <base/str_utilts.h>
 #include <base/memory.h>
+
 #include <metadata/taglib.h>
+#include <metadata/metadataextractadapter.h>
 #include <metadata/taglibmetareader.h>
 
 namespace xamp::metadata {

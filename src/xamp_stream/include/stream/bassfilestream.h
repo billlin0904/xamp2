@@ -32,15 +32,15 @@ public:
 
 	double GetDuration() const override;
 
-	AudioFormat GetFormat() const override;
+	AudioFormat GetFormat() const noexcept override;
 
 	int32_t GetSamples(void* buffer, int32_t length) const noexcept override;
 
 	void Seek(double stream_time) const override;
 
-    std::string GetStreamName() const override;
+    std::string GetStreamName() const noexcept override;
 
-	int32_t GetSampleSize() const override;
+	int32_t GetSampleSize() const noexcept override;
 
 	bool IsDSDFile() const noexcept override;
 

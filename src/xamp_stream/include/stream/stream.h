@@ -21,4 +21,5 @@ namespace xamp::stream {
 	class FileStream;
 	class DSDStream;
 	class AvFileStream;
+	class BassFileStream;
 }

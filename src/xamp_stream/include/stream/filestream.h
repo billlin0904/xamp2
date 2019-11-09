@@ -21,6 +21,7 @@ public:
     virtual void OpenFromFile(const std::wstring & file_path) = 0;
 
 	virtual bool IsDSDFile() const noexcept = 0;
+
 protected:
     FileStream() = default;
 };

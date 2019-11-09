@@ -57,7 +57,7 @@ std::vector<DeviceInfo> ASIODeviceType::GetDeviceInfo() const {
 }
 
 void ASIODeviceType::ScanNewDevice() {
-    constexpr static auto MAX_PATH_LEN = 256;
+    constexpr auto MAX_PATH_LEN = 256;
 
 	std::vector<std::wstring> device_name_list;
 

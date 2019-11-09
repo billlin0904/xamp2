@@ -24,13 +24,13 @@ public:
 
     virtual int32_t GetSamples(void *buffer, int32_t length) const noexcept = 0;
 
-	virtual AudioFormat GetFormat() const = 0;
+	virtual AudioFormat GetFormat() const noexcept = 0;
 
     virtual void Seek(double stream_time) const = 0;
 
-    virtual std::string GetStreamName() const = 0;
+    virtual std::string GetStreamName() const noexcept = 0;
 	
-	virtual int32_t GetSampleSize() const = 0;
+	virtual int32_t GetSampleSize() const noexcept = 0;
 protected:
     AudioStream() = default;
 };

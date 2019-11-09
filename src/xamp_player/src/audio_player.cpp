@@ -83,21 +83,29 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, const DeviceInfo& de
 
 #ifdef ENABLE_FFMPEG
     if (is_dsd_stream) {
-        stream_ = MakeAlign<AudioStream, BassFileStream>();
+		auto supportDSDFile = false;
+		if (stream_ != nullptr) {
+			if (auto dsd_stream = dynamic_cast<DSDStream*>(stream_.get())) {
+				supportDSDFile = true;
+			}
+		}		
+		if (!supportDSDFile) {
+			stream_ = MakeAlign<AudioStream, BassFileStream>();
+		}
         if (auto dsd_stream = dynamic_cast<DSDStream*>(stream_.get())) {
-            if (!device_info.is_support_dsd) {
 #ifdef _WIN32
+            if (device_info.is_support_dsd) {
                 dsd_stream->SetDSDMode(DSDModes::DSD_MODE_RAW);
-#else
-                dsd_stream->SetDSDMode(DSDModes::DSD_MODE_DOP);
-#endif
             } else {
                 throw NotSupportFormatException();
             }
+#else
+			dsd_stream->SetDSDMode(DSDModes::DSD_MODE_DOP);
+#endif
         }
     }
     else {
-        stream_ = MakeAlign<AudioStream, AvFileStream>();
+		stream_ = MakeAlign<AudioStream, AvFileStream>();
     }
 #else
     if (!stream_) {
@@ -108,11 +116,10 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, const DeviceInfo& de
 
 	if (auto file_stream = dynamic_cast<FileStream*>(stream_.get())) {
 		file_stream->OpenFromFile(file_path);
+		if (auto dsd_stream = dynamic_cast<DSDStream*>(stream_.get())) {
+			XAMP_LOG_DEBUG("DSD samplerate: {}", dsd_stream->GetDSDSampleRate());
+		}
 	}
-
-    if (auto dsd_stream = dynamic_cast<DSDStream*>(stream_.get())) {
-        XAMP_LOG_DEBUG("DSD samplerate: {}", dsd_stream->GetDSDSampleRate());
-    }
 }
 
 void AudioPlayer::SetState(const PlayerState play_state) {
