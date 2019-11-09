@@ -12,7 +12,7 @@ namespace xamp::metadata {
 
 class MetadataReader;
 
-class XAMP_METADATA_API MetadataExtractAdapter {
+class XAMP_METADATA_API XAMP_NO_VTABLE MetadataExtractAdapter {
 public:
     XAMP_BASE_CLASS(MetadataExtractAdapter)
 

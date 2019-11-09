@@ -13,14 +13,14 @@ namespace xamp::base {
 #ifdef _WIN32
 size_t GetPageSize() noexcept {
 	SYSTEM_INFO system_info;
-	GetSystemInfo(&system_info);
+	::GetSystemInfo(&system_info);
 	return system_info.dwPageSize;
 }
 
 bool PrefetchMemory(void* adddr, size_t length) noexcept {
 	_WIN32_MEMORY_RANGE_ENTRY address_range{ adddr, length };
-	WinHandle current_process(GetCurrentProcess());
-	return PrefetchVirtualMemory(current_process.get(), 1, &address_range, 0);
+	WinHandle current_process(::GetCurrentProcess());
+	return ::PrefetchVirtualMemory(current_process.get(), 1, &address_range, 0);
 }
 #else
 size_t GetPageSize() noexcept {

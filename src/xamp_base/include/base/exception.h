@@ -33,7 +33,7 @@ XAMP_BASE_API std::ostream& operator<<(std::ostream& ostr, Errors error);
 
 class XAMP_BASE_API Exception : public std::exception {
 public:
-    explicit Exception(Errors error = Errors::XAMP_ERROR_SUCCESS, const std::string& message = "", const char* what = "");
+    explicit Exception(Errors error = Errors::XAMP_ERROR_SUCCESS, const std::string& message = "", std::string_view what = "");
 
     ~Exception() override = default;
 
@@ -41,7 +41,7 @@ public:
 
     virtual Errors GetError() const;
 
-    const char * GetErrorMessage() const;
+    const char* GetErrorMessage() const;
 
     virtual const char * GetExpression() const;
 
@@ -49,7 +49,7 @@ private:
     Errors error_;
 
 protected:	
-    const char* what_;
+	std::string_view what_;
     std::string message_;
 };
 

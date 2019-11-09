@@ -14,7 +14,7 @@
 
 namespace xamp::metadata {
 
-class XAMP_METADATA_API MetadataReader {
+class XAMP_METADATA_API XAMP_NO_VTABLE MetadataReader {
 public:
 	XAMP_BASE_CLASS(MetadataReader)
     

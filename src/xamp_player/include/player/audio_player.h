@@ -17,7 +17,7 @@
 #include <base/align_ptr.h>
 #include <base/vmmemlock.h>
 
-#include <stream/filestream.h>
+#include <stream/audiostream.h>
 
 #include <output_device/audiocallback.h>
 #include <output_device/devicestatelistener.h>
@@ -110,7 +110,9 @@ private:
 	void SetState(const PlayerState play_state);
 
 	struct alignas(XAMP_MALLOC_ALGIGN_SIZE) AudioSlice {
-        AudioSlice(const float* samples = nullptr, int32_t sample_size = 0, double stream_time = 0.0) noexcept
+        AudioSlice(const float* samples = nullptr, 
+			int32_t sample_size = 0,
+			double stream_time = 0.0) noexcept
             : samples(samples)
             , sample_size(sample_size)
 			, stream_time(stream_time) {
@@ -149,7 +151,7 @@ private:
 	AudioFormat output_format_;
 	AlignBufferPtr<int8_t> read_sample_buffer_;
 	Timer timer_;
-	AlignPtr<FileStream> stream_;
+	AlignPtr<AudioStream> stream_;
 	AlignPtr<DeviceType> device_type_;
 	AlignPtr<Device> device_;
 	std::weak_ptr<PlaybackStateAdapter> state_adapter_;

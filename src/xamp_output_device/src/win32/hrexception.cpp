@@ -4,7 +4,7 @@
 
 namespace xamp::output_device::win32 {
 
-HRException::HRException(HRESULT hresult, const char* expr)
+HRException::HRException(HRESULT hresult, std::string_view expr)
 	: Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, std::system_category().message(hresult))
 	, hr_(hresult)
 	, expr_(expr) {
@@ -20,7 +20,7 @@ HRESULT HRException::GetHResult() const {
 }
 
 const char* HRException::GetExpression() const {
-	return expr_;
+	return expr_.data();
 }
 
 }

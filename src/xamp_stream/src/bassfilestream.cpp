@@ -15,6 +15,7 @@
 namespace xamp::stream {
 
 constexpr DWORD BASS_ERROR{ 0xFFFFFFFF };
+constexpr int32_t PCM_SAMPLE_RATE_441 = { 44100 };
 
 #define BassIfFailedThrow(result) \
 	do {\
@@ -23,7 +24,23 @@ constexpr DWORD BASS_ERROR{ 0xFFFFFFFF };
 		}\
 	} while (false)
 
-class BassLib {
+static int32_t GetDOPSampleRate(int32_t dsd_speed) {
+	switch (dsd_speed) {
+		// 64x CD
+	case 64:
+		return 176400;
+		// 128x CD
+	case 128:
+		return 352800;
+		// 256x CD
+	case 256:
+		return 705600;
+	default:
+		throw NotSupportFormatException();
+	}
+}
+
+class BassLib final {
 public:
     static BassLib & Instance() {
         static BassLib lib;
@@ -106,7 +123,7 @@ public:
 	XAMP_DEFINE_DLL_API(BASS_ChannelSetAttribute) BASS_ChannelSetAttribute;
 };
 
-struct BassStreamTraits {
+struct BassStreamTraits final {
 	static HSTREAM invalid() noexcept {
 		return 0;
 	}
@@ -116,7 +133,7 @@ struct BassStreamTraits {
 	}
 };
 
-struct BassPluginLoadTraits {
+struct BassPluginLoadTraits final {
 	static HPLUGIN invalid() noexcept {
 		return 0;
 	}
@@ -149,7 +166,7 @@ constexpr uint32_t _LOWORD(T val) {
 using BassStreamHandle = UniqueHandle<HSTREAM, BassStreamTraits>;
 using BassPluginHandle = UniqueHandle<HPLUGIN, BassPluginLoadTraits>;
 
-class BassPlugin {
+class BassPlugin final {
 public:
     BassPlugin() {
     }
@@ -336,7 +353,7 @@ public:
     }
 
     bool SupportDOP() const noexcept {
-        return false;
+        return true;
     }
 
     bool SupportDOP_AA() const noexcept {
@@ -368,22 +385,9 @@ public:
 	}
 
     int32_t GetDSDSpeed() const {
-        return GetDSDSampleRate() / 44100;
+        return GetDSDSampleRate() / PCM_SAMPLE_RATE_441;
     }
 private:
-    static int32_t GetDOPSampleRate(int32_t dsd_speed) {
-        switch (dsd_speed) {
-        case 64:
-            return 176400;
-        case 128:
-            return 352800;
-        case 256:
-            return 705600;
-        default:
-            throw NotSupportFormatException();
-        }
-    }
-
 	XAMP_ALWAYS_INLINE int32_t InternalGetSamples(void *buffer, int32_t length) const noexcept {
         const auto byte_read = BassLib::Instance().BASS_ChannelGetData(stream_.get(), buffer, length);
 		if (byte_read == BASS_ERROR) {

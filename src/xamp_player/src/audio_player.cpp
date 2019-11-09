@@ -83,7 +83,7 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, const DeviceInfo& de
 
 #ifdef ENABLE_FFMPEG
     if (is_dsd_stream) {
-        stream_ = MakeAlign<FileStream, BassFileStream>();
+        stream_ = MakeAlign<AudioStream, BassFileStream>();
         if (auto dsd_stream = dynamic_cast<DSDStream*>(stream_.get())) {
             if (!device_info.is_support_dsd) {
 #ifdef _WIN32
@@ -97,7 +97,7 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, const DeviceInfo& de
         }
     }
     else {
-        stream_ = MakeAlign<FileStream, AvFileStream>();
+        stream_ = MakeAlign<AudioStream, AvFileStream>();
     }
 #else
     if (!stream_) {
@@ -105,7 +105,10 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, const DeviceInfo& de
     }
 #endif
     XAMP_LOG_DEBUG("Use stream type: {}", stream_->GetStreamName());
-    stream_->OpenFromFile(file_path);
+
+	if (auto file_stream = dynamic_cast<FileStream*>(stream_.get())) {
+		file_stream->OpenFromFile(file_path);
+	}
 
     if (auto dsd_stream = dynamic_cast<DSDStream*>(stream_.get())) {
         XAMP_LOG_DEBUG("DSD samplerate: {}", dsd_stream->GetDSDSampleRate());
@@ -351,8 +354,9 @@ void AudioPlayer::CreateBuffer() {
 
     auto output_format = input_format;
     if (require_read_sample != num_read_sample_) {
-        auto allocate_size = static_cast<int32_t>(GetPageAlignSize(require_read_sample * stream_->GetSampleSize()))
-                * BUFFER_STREAM_COUNT;
+        auto allocate_size = static_cast<int32_t>(GetPageAlignSize(require_read_sample 
+			* stream_->GetSampleSize()))
+            * BUFFER_STREAM_COUNT;
         num_buffer_samples_ = allocate_size * 10;
         num_read_sample_ = require_read_sample;
         read_sample_buffer_ = MakeBuffer<int8_t>(allocate_size);
@@ -394,9 +398,11 @@ int AudioPlayer::operator()(void* samples, const int32_t num_buffer_frames, cons
 void AudioPlayer::BufferStream() {
     buffer_.Clear();
 
+	auto buffer = read_sample_buffer_.get();
+
     for (auto i = 0; i < BUFFER_STREAM_COUNT; ++i) {
         while (true) {
-            const auto num_samples = stream_->GetSamples(read_sample_buffer_.get(), num_read_sample_);
+            const auto num_samples = stream_->GetSamples(buffer, num_read_sample_);
             if (num_samples == 0) {
                 return;
             }
@@ -409,14 +415,15 @@ void AudioPlayer::BufferStream() {
 }
 
 bool AudioPlayer::ProcessSamples(int32_t num_samples) noexcept {
-    if (stream_->IsDSDFile()) {
-        if (auto dsd_stream = dynamic_cast<DSDStream*>(stream_.get())) {
-            if (dsd_stream->GetDSDMode() == DSDModes::DSD_MODE_RAW) {
-                return buffer_.TryWrite(read_sample_buffer_.get(), num_samples);
-            }
-        }
-    }
-
+	if (auto file_stream = dynamic_cast<FileStream*>(stream_.get())) {
+		if (file_stream->IsDSDFile()) {
+			if (auto dsd_stream = dynamic_cast<DSDStream*>(file_stream)) {
+				if (dsd_stream->GetDSDMode() == DSDModes::DSD_MODE_RAW) {
+					return buffer_.TryWrite(read_sample_buffer_.get(), num_samples);
+				}
+			}
+		}
+	}
     return buffer_.TryWrite(read_sample_buffer_.get(), num_samples * stream_->GetSampleSize());
 }
 

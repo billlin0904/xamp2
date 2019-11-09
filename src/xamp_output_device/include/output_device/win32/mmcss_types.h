@@ -17,13 +17,13 @@ namespace xamp::output_device::win32 {
 
 using namespace base;
 
-extern XAMP_OUTPUT_DEVICE_API const std::wstring_view MMCSS_PROFILE_AUDIO;
-extern XAMP_OUTPUT_DEVICE_API const std::wstring_view MMCSS_PROFILE_CAPTURE;
-extern XAMP_OUTPUT_DEVICE_API const std::wstring_view MMCSS_MODE_DISTRIBUTION;
-extern XAMP_OUTPUT_DEVICE_API const std::wstring_view MMCSS_PROFILE_GAME;
-extern XAMP_OUTPUT_DEVICE_API const std::wstring_view MMCSS_PROFILE_PLAYBACK;
-extern XAMP_OUTPUT_DEVICE_API const std::wstring_view MMCSS_PROFILE_PRO_AUDIO;
-extern XAMP_OUTPUT_DEVICE_API const std::wstring_view MMCSS_PROFILE_WINDOWS_MANAGER;
+constexpr std::wstring_view MMCSS_PROFILE_AUDIO(L"Audio");
+constexpr std::wstring_view MMCSS_PROFILE_CAPTURE(L"Capture");
+constexpr std::wstring_view MMCSS_MODE_DISTRIBUTION(L"Distribution");
+constexpr std::wstring_view MMCSS_PROFILE_GAME(L"Games");
+constexpr std::wstring_view MMCSS_PROFILE_PLAYBACK(L"Playback");
+constexpr std::wstring_view MMCSS_PROFILE_PRO_AUDIO(L"Pro Audio");
+constexpr std::wstring_view MMCSS_PROFILE_WINDOWS_MANAGER(L"Window Manager");
 
 enum class MmcssThreadPriority {
 	MMCSS_THREAD_PRIORITY_NORMAL,
@@ -31,7 +31,7 @@ enum class MmcssThreadPriority {
 	MMCSS_THREAD_PRIORITY_CRITICAL
 };
 
-class Mmcss {
+class Mmcss final {
 public:
 	static Mmcss& Instance() {
 		static Mmcss instance;

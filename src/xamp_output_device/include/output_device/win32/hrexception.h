@@ -17,7 +17,7 @@ using namespace base;
 
 class HRException final : public Exception {
 public:
-    HRException(HRESULT hresult, const char * expr = "");
+    HRException(HRESULT hresult, std::string_view expr = "");
 
 	HRException(HRESULT hresult, Errors error);
 
@@ -27,7 +27,7 @@ public:
 
 private:
 	HRESULT hr_;
-	const char* expr_;
+	std::string_view expr_;
 };
 
 }

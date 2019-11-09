@@ -6,7 +6,9 @@
 #pragma once
 
 #include <cassert>
+#include <type_traits>
 #include <string_view>
+
 #include <base/base.h>
 #include <base/exception.h>
 
@@ -22,7 +24,7 @@ XAMP_BASE_API ModuleHandle LoadDll(std::string_view name);
 
 XAMP_BASE_API void* LoadDllSymbol(const ModuleHandle& dll, std::string_view name);
 
-template <typename T>
+template <typename T, typename U = std::enable_if_t<std::is_function<T>::value>>
 class DllFunction final {
 public:
     DllFunction(const ModuleHandle& dll, std::string_view name) noexcept {

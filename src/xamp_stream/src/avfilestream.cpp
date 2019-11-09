@@ -92,17 +92,17 @@ struct AvResourceDeleter<AVFrame> {
 template <typename T>
 using AvPtr = std::unique_ptr<T, AvResourceDeleter<T>>;
 
-class LibAvInit {
+class LibAv final {
 public:
-	XAMP_DISABLE_COPY(LibAvInit)
+	XAMP_DISABLE_COPY(LibAv)
 
-	static LibAvInit& Instance() {
-		static LibAvInit instance;
+	static LibAv& Instance() {
+		static LibAv instance;
 		return instance;
 	}
 
 protected:
-	LibAvInit() {
+	LibAv() {
 #ifdef _DEBUG
 		av_log_set_level(AV_LOG_VERBOSE);
 		log_level = AV_LOG_VERBOSE;
@@ -131,7 +131,7 @@ private:
     static int32_t log_level;
 };
 
-int32_t LibAvInit::log_level = AV_LOG_FATAL;
+int32_t LibAv::log_level = AV_LOG_FATAL;
 
 #ifndef ENABLE_IO_CONTEXT
 struct AvStreamContext {
@@ -189,7 +189,7 @@ public:
 		: video_stream_id_(-1)
 		, audio_stream_id_(-1)
 		, duration_(0) {
-		LibAvInit::Instance();
+		LibAv::Instance();
 	}
 
 	~AvFileStreamImpl() {

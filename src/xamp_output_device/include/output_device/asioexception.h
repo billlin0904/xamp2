@@ -17,7 +17,7 @@ namespace xamp::output_device {
 
 using namespace base;
 
-class XAMP_OUTPUT_DEVICE_API ASIOException : public Exception {
+class XAMP_OUTPUT_DEVICE_API ASIOException final : public Exception {
 public:
 	explicit ASIOException(Errors error);
 

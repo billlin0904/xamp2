@@ -6,6 +6,8 @@
 #pragma once
 
 #include <string>
+
+#include <base/base.h>
 #include <output_device/output_device.h>
 
 namespace xamp::output_device {
@@ -17,7 +19,7 @@ enum class DeviceState {
 	_MAX_DEVICE_STATE_
 };
 
-class XAMP_OUTPUT_DEVICE_API DeviceStateListener {
+class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE DeviceStateListener {
 public:
 	XAMP_BASE_CLASS(DeviceStateListener)
 

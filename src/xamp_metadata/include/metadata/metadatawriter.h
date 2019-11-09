@@ -10,7 +10,7 @@
 
 namespace xamp::metadata {
 
-class XAMP_METADATA_API MetadataWriter {
+class XAMP_METADATA_API XAMP_NO_VTABLE MetadataWriter {
 public:
 	XAMP_BASE_CLASS(MetadataWriter)
 

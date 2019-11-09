@@ -47,7 +47,7 @@ std::ostream& operator<<(std::ostream& ostr, Errors error) {
 	return ostr;
 }
 
-Exception::Exception(Errors error, const std::string& message, const char* what)
+Exception::Exception(Errors error, const std::string& message, std::string_view what)
 	: error_(error)
     , what_(what)
 	, message_(message) {
@@ -58,8 +58,8 @@ Exception::Exception(Errors error, const std::string& message, const char* what)
 	}
 }
 
-char const* Exception::what() const noexcept {
-    return what_;
+const char* Exception::what() const noexcept {
+    return what_.data();
 }
 
 Errors Exception::GetError() const {

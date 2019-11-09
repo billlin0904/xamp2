@@ -13,7 +13,7 @@
 
 namespace xamp::metadata {
 
-class XAMP_METADATA_API TaglibMetadataWriter : public MetadataWriter {
+class XAMP_METADATA_API TaglibMetadataWriter final : public MetadataWriter {
 public:
     TaglibMetadataWriter();
 

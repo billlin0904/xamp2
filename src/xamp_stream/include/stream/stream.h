@@ -19,5 +19,6 @@
 namespace xamp::stream {
 	class AudioStream;
 	class FileStream;
+	class DSDStream;
 	class AvFileStream;
 }

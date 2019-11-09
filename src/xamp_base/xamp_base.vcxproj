@@ -130,7 +130,7 @@
       <DebugInformationFormat>None</DebugInformationFormat>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <BrowseInformation>true</BrowseInformation>
-      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
