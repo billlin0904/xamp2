@@ -409,7 +409,17 @@ void AsioDevice::OpenStream(const AudioFormat& output_format) {
 	else {
 		asio_fomrmat.FormatType = kASIOPCMFormat;
 	}
-	ASIO_IF_FAILED_THROW2(ASIOFuture(kAsioSetIoFormat, &asio_fomrmat), ASE_SUCCESS);
+
+	try {
+		ASIO_IF_FAILED_THROW2(ASIOFuture(kAsioSetIoFormat, &asio_fomrmat), ASE_SUCCESS);
+	}
+	catch (const Exception & e) {
+		XAMP_LOG_DEBUG("ASIOFuture retun failure! {}", e.GetErrorMessage());
+		// NOTE: DSD format must be support!
+		if (output_format.GetFormat() == Format::FORMAT_DSD) {
+			throw;
+		}
+	}
 
 	SetOutputSampleRate(output_format);
 	CreateBuffers(output_format);
