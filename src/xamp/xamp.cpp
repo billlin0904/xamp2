@@ -21,7 +21,7 @@
 #include "thememanager.h"
 #include "xamp.h"
 
-static QString getPlayEntityFormat(const AudioFormat& format, const PlayListEntity& item, bool use_bass_stream) {
+static QString getPlayEntityFormat(const AudioFormat& format, const PlayListEntity& item, std::optional<int32_t> dsd_speed) {
     auto ext = item.file_ext;
     ext = ext.remove(Q_UTF8(".")).toUpper();
     auto is_mhz_samplerate = false;
@@ -37,14 +37,14 @@ static QString getPlayEntityFormat(const AudioFormat& format, const PlayListEnti
         bits = 1;
     }
 
-	QString dsd_speed;
-	if (use_bass_stream) {
-		dsd_speed = Q_UTF8(" DSD") + QString::number(format.GetSampleRate() / 44100) + Q_UTF8(" ");
+    QString dsd_speed_format;
+    if (dsd_speed) {
+        dsd_speed_format = Q_UTF8(" DSD") + QString::number(dsd_speed.value()) + Q_UTF8(" ");
 	}
 
     return ext
             + Q_UTF8(" | ")
-			+ dsd_speed
+            + dsd_speed_format
             + (is_mhz_samplerate ? QString::number(format.GetSampleRate() / double(1000000), 'f', 2) + Q_UTF8("MHz/")
                                  : QString::number(format.GetSampleRate() / double(1000), 'f', precision) + Q_UTF8("kHz/"))
             + QString::number(bits) + Q_UTF8("bit");
@@ -576,7 +576,9 @@ void Xamp::play(const PlayListEntity& item) {
 
     player_->PlayStream();
 
-	playlist_page_->format()->setText(getPlayEntityFormat(player_->GetStreamFormat(), item, use_bass_stream));
+    playlist_page_->format()->setText(getPlayEntityFormat(player_->GetStreamFormat(),
+                                                          item,
+                                                          player_->GetDSDSpeed()));
 }
 
 void Xamp::play(const QModelIndex&, const PlayListEntity& item) {
