@@ -180,15 +180,15 @@ void CoreAudioDevice::OpenStream(const AudioFormat &output_format) {
     format_ = output_format;
 }
 
-void CoreAudioDevice::SetAudioCallback(AudioCallback *callback) {
+void CoreAudioDevice::SetAudioCallback(AudioCallback *callback) noexcept {
     callback_ = callback;
 }
 
-bool CoreAudioDevice::IsStreamOpen() const {
+bool CoreAudioDevice::IsStreamOpen() const noexcept {
     return proc_id_ != nullptr;
 }
 
-bool CoreAudioDevice::IsStreamRunning() const {
+bool CoreAudioDevice::IsStreamRunning() const noexcept {
     return is_running_;
 }
 
@@ -236,11 +236,11 @@ bool CoreAudioDevice::IsMuted() const {
 void CoreAudioDevice::DisplayControlPanel() {
 }
 
-InterleavedFormat CoreAudioDevice::GetInterleavedFormat() const {
+InterleavedFormat CoreAudioDevice::GetInterleavedFormat() const noexcept {
     return InterleavedFormat::INTERLEAVED;
 }
 
-int32_t CoreAudioDevice::GetBufferSize() const {
+int32_t CoreAudioDevice::GetBufferSize() const noexcept {
     return buffer_size_;
 }
 
