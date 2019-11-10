@@ -14,7 +14,7 @@ class XAMP_BASE_API_ONLY_EXPORT Defer {
 public:
     explicit Defer(F&& f);
 
-    ~Defer();
+    ~Defer() noexcept;
 
 private:
     F f;
@@ -26,7 +26,7 @@ Defer<F>::Defer(F&& f)
 }
 
 template <typename F>
-Defer<F>::~Defer() {
+Defer<F>::~Defer() noexcept {
     f();
 }
 

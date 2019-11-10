@@ -18,19 +18,19 @@ class XAMP_STREAM_API XAMP_NO_VTABLE DSDStream {
 public:
     XAMP_BASE_CLASS(DSDStream)
 
-    virtual bool SupportDOP() const = 0;
+    virtual bool SupportDOP() const noexcept = 0;
 
-    virtual bool SupportDOP_AA() const = 0;
+    virtual bool SupportDOP_AA() const noexcept = 0;
 
-    virtual bool SupportRAW() const = 0;
+    virtual bool SupportRAW() const noexcept = 0;
 
-    virtual void SetDSDMode(DSDModes mode) = 0;
+    virtual void SetDSDMode(DSDModes mode) noexcept = 0;
 
-    virtual DSDModes GetDSDMode() const = 0;
+    virtual DSDModes GetDSDMode() const noexcept = 0;
 
     virtual int32_t GetDSDSampleRate() const = 0;
 
-	virtual DSDSampleFormat GetDSDSampleFormat() const = 0;
+	virtual DSDSampleFormat GetDSDSampleFormat() const noexcept = 0;
 
 	virtual void SetPCMSampleRate(int32_t samplerate) = 0;
 

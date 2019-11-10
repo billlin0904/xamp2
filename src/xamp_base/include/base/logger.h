@@ -41,6 +41,8 @@ private:
 
 #define XAMP_LOG_DEBUG(...) xamp::base::Logger::Instance().GetLogger("default")->debug(__VA_ARGS__)
 #define XAMP_LOG_INFO(...) xamp::base::Logger::Instance().GetLogger("default")->info(__VA_ARGS__)
+#define XAMP_LOG_ERROR(...) xamp::base::Logger::Instance().GetLogger("default")->error(__VA_ARGS__)
+#define XAMP_LOG_TRACE(...) xamp::base::Logger::Instance().GetLogger("default")->trace(__VA_ARGS__)
 
 }
 

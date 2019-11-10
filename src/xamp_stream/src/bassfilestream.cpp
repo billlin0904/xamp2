@@ -74,7 +74,7 @@ private:
         , BASS_ChannelGetAttribute(module_, "BASS_ChannelGetAttribute") {
 	}
 	catch (const Exception &e) {
-		XAMP_LOG_INFO("{}", e.GetErrorMessage());
+		XAMP_LOG_ERROR("{}", e.GetErrorMessage());
 	}
 
     ModuleHandle module_;
@@ -110,7 +110,7 @@ public:
         , BASS_ChannelSetAttribute(module_, "BASS_ChannelSetAttribute") {
     }
     catch (const Exception& e) {
-        XAMP_LOG_INFO("{}", e.GetErrorMessage());
+		XAMP_LOG_ERROR("{}", e.GetErrorMessage());
     }
 
 	XAMP_DISABLE_COPY(BassDSDLib)
@@ -192,7 +192,8 @@ public:
 #ifdef _WIN32
 		// Disable Media Foundation
 		BassLib::Instance().BASS_SetConfig(BASS_CONFIG_MF_DISABLE, true);
-#endif
+		LoadPlugin("bass_aac.dll");
+#endif		
 	}
 
 	XAMP_DISABLE_COPY(BassPlugin)
@@ -439,23 +440,23 @@ std::string BassFileStream::GetStreamName() const noexcept {
     return "BASS";
 }
 
-bool BassFileStream::SupportDOP() const {
+bool BassFileStream::SupportDOP() const noexcept {
     return stream_->SupportDOP();
 }
 
-bool BassFileStream::SupportDOP_AA() const {
+bool BassFileStream::SupportDOP_AA() const noexcept {
     return stream_->SupportDOP_AA();
 }
 
-bool BassFileStream::SupportRAW() const {
+bool BassFileStream::SupportRAW() const noexcept {
     return stream_->SupportRAW();
 }
 
-void BassFileStream::SetDSDMode(DSDModes mode) {
+void BassFileStream::SetDSDMode(DSDModes mode) noexcept {
     stream_->SetDSDMode(mode);
 }
 
-DSDModes BassFileStream::GetDSDMode() const {
+DSDModes BassFileStream::GetDSDMode() const noexcept {
     return stream_->GetDSDMode();
 }
 
@@ -471,7 +472,7 @@ int32_t BassFileStream::GetSampleSize() const noexcept {
 	return stream_->GetSampleSize();
 }
 
-DSDSampleFormat BassFileStream::GetDSDSampleFormat() const {
+DSDSampleFormat BassFileStream::GetDSDSampleFormat() const noexcept {
 	return stream_->GetDSDSampleFormat();
 }
 

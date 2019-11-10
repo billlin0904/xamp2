@@ -44,19 +44,19 @@ public:
 
 	bool IsDSDFile() const noexcept override;
 
-	bool SupportDOP() const override;
+	bool SupportDOP() const noexcept override;
 
-	bool SupportDOP_AA() const override;
+	bool SupportDOP_AA() const noexcept override;
 
-	bool SupportRAW() const override;
+	bool SupportRAW() const noexcept override;
 
-	void SetDSDMode(DSDModes mode) override;
+	void SetDSDMode(DSDModes mode) noexcept override;
 
-	DSDModes GetDSDMode() const override;
+	DSDModes GetDSDMode() const noexcept override;
 
 	int32_t GetDSDSampleRate() const override;
 
-	DSDSampleFormat GetDSDSampleFormat() const override;
+	DSDSampleFormat GetDSDSampleFormat() const noexcept override;
 
 	void SetPCMSampleRate(int32_t samplerate) override;
 

@@ -196,10 +196,6 @@ public:
 		Close();
 	}
 
-	bool HasAudio() const noexcept {
-		return audio_stream_id_ >= 0;
-	}
-
 	void Close() {
 		video_stream_id_ = -1;
 		audio_stream_id_ = -1;
@@ -258,18 +254,19 @@ public:
 		}
 #else		
 		auto file_path_ut8 = ToString(file_path);
-		if (avformat_open_input(&format_ctx, file_path_ut8.c_str(), nullptr, nullptr) != 0) {
-			throw FileNotFoundException();
+		auto err = avformat_open_input(&format_ctx, file_path_ut8.c_str(), nullptr, nullptr);
+		if (err != 0) {
+			throw AvException(err);
 		}
 #endif
 		if (format_ctx != nullptr) {
 			format_context_.reset(format_ctx);
 		} else {
-			throw FileNotFoundException();
+			throw NotSupportFormatException();
 		}
 
 		if (avformat_find_stream_info(format_context_.get(), nullptr) < 0) {
-			throw FileNotFoundException();
+			throw NotSupportFormatException();
 		}
 
         for (uint32_t i = 0; i < format_context_->nb_streams; ++i) {
@@ -407,6 +404,10 @@ public:
 	}
 
 private:
+	bool HasAudio() const noexcept {
+		return audio_stream_id_ >= 0;
+	}
+
 	int32_t ConvertSamples(float* buffer, const uint32_t length) const noexcept {
 		const auto frame_size = audio_context_->nb_samples * audio_contex_->channels;
 		const auto result = swr_convert(swr_context_.get(),
