@@ -124,7 +124,11 @@ void PlayListTableView::initial() {
 		});
 
     auto f = font();
-    f.setPointSize(11);
+#ifdef Q_OS_WIN
+    f.setPointSize(9);
+#else
+	f.setPointSize(11);
+#endif
     setFont(f);
 
 	adapter_.playlist = this;

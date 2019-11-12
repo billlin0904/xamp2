@@ -41,7 +41,11 @@ AudioPlayer::AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter)
 
 AudioPlayer::~AudioPlayer() {
 	timer_.Stop();
-    CloseDevice(true);
+	try {
+		CloseDevice(true);
+	}
+	catch (...) {
+	}
 }
 
 void AudioPlayer::Open(const std::wstring& file_path, bool use_bass_stream, const DeviceInfo& device_info) {
