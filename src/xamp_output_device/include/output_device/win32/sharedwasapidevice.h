@@ -3,14 +3,15 @@
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
+#ifdef _WIN32
+
 #pragma once
 
 #include <mutex>
 #include <atomic>
 
+#include <base/vmmemlock.h>
 #include <output_device/device.h>
-
-#ifdef _WIN32
 
 namespace xamp::output_device::win32 {
 
@@ -34,9 +35,9 @@ public:
 
 	void StartStream() override;
 
-	void SetStreamTime(double stream_time) override;
+	void SetStreamTime(double stream_time) noexcept override;
 
-	double GetStreamTime() const override;
+	double GetStreamTime() const noexcept override;
 
 	int32_t GetVolume() const override;
 

@@ -11,6 +11,7 @@
 #include <output_device/win32/mmcss_types.h>
 #endif
 
+#include <output_device/volume.h>
 #include <output_device/asioexception.h>
 #include <output_device/asiodevice.h>
 
@@ -313,11 +314,32 @@ void AsioDevice::CreateBuffers(const AudioFormat& output_format) {
 		GetLatencyMs(output_latency, output_format.GetSampleRate()));
 }
 
-void AsioDevice::OnBufferSwitch(long index) {
+int32_t AsioDevice::GetVolume() const {
+	return volume_;
+}
+
+void AsioDevice::SetVolume(const int32_t volume) const {
+	volume_ = volume;
+	callbackInfo.data_context.cache_volume = 0;	
+}
+
+void AsioDevice::SetMute(const bool mute) const {
+	if (mute) {
+		volume_ = 0;
+	}
+}
+
+void AsioDevice::OnBufferSwitch(long index) noexcept {
 	if (callbackInfo.boost_priority) {
 		Mmcss::Instance().BoostPriority();
 		callbackInfo.boost_priority = false;
 	}
+
+	const auto vol = volume_.load();
+	if (callbackInfo.data_context.cache_volume != vol) {
+		callbackInfo.data_context.volume_factor = LinearToLog(vol);
+		callbackInfo.data_context.cache_volume = vol;
+	}	
 
 	auto temp = played_bytes_.load();
 	temp += buffer_bytes_ * mix_format_.GetChannels();
@@ -371,7 +393,7 @@ void AsioDevice::OnBufferSwitch(long index) {
 	}
 
 	if (got_samples) {
-		for (int32_t i = 0, j = 0; i < mix_format_.GetChannels(); i++) {
+		for (int32_t i = 0, j = 0; i < mix_format_.GetChannels(); ++i) {
 			(void)FastMemcpy(callbackInfo.buffer_infos[i].buffers[index],
 				&device_buffer_[j++ * buffer_bytes_],
 				buffer_bytes_);
@@ -511,7 +533,7 @@ bool AsioDevice::IsStreamRunning() const noexcept {
 	return is_streaming_;
 }
 
-void AsioDevice::SetStreamTime(double stream_time) {
+void AsioDevice::SetStreamTime(double stream_time) noexcept {
 	if (io_format_ == AsioIoFormat::IO_FORMAT_PCM) {
 		played_bytes_ = static_cast<int64_t>(stream_time * mix_format_.GetAvgBytesPerSec());
 	}
@@ -521,22 +543,8 @@ void AsioDevice::SetStreamTime(double stream_time) {
 	}
 }
 
-double AsioDevice::GetStreamTime() const {
+double AsioDevice::GetStreamTime() const noexcept {
 	return double(played_bytes_) / mix_format_.GetAvgBytesPerSec();
-}
-
-int32_t AsioDevice::GetVolume() const {
-	return int32_t(volume_ * 100.0);
-}
-
-void AsioDevice::SetVolume(const int32_t volume) const {
-	volume_ = volume / 100.0;
-}
-
-void AsioDevice::SetMute(const bool mute) const {
-	if (mute) {
-		volume_ = 0.0;
-	}
 }
 
 void AsioDevice::DisplayControlPanel() {
@@ -547,7 +555,7 @@ InterleavedFormat AsioDevice::GetInterleavedFormat() const noexcept {
 	return InterleavedFormat::DEINTERLEAVED;
 }
 
-ASIOTime* AsioDevice::OnBufferSwitchTimeInfoCallback(ASIOTime* timeInfo, long index, ASIOBool processNow) {
+ASIOTime* AsioDevice::OnBufferSwitchTimeInfoCallback(ASIOTime* timeInfo, long index, ASIOBool processNow) noexcept {
 	return timeInfo;
 }
 

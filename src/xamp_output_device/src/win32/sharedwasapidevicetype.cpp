@@ -10,7 +10,7 @@ namespace xamp::output_device::win32 {
 const ID SharedWasapiDeviceType::Id = ID("07885EDF-7CCB-4FA6-962D-B66A759978B1");
 
 SharedWasapiDeviceType::SharedWasapiDeviceType() {
-	HR_IF_FAILED_THROW(CoCreateInstance(__uuidof(MMDeviceEnumerator),
+	HrIfFailledThrow(CoCreateInstance(__uuidof(MMDeviceEnumerator),
 		nullptr,
 		CLSCTX_ALL,
 		__uuidof(IMMDeviceEnumerator),
@@ -23,7 +23,7 @@ void SharedWasapiDeviceType::ScanNewDevice() {
 
 CComPtr<IMMDevice> SharedWasapiDeviceType::GetDeviceById(const std::wstring& device_id) const {
 	CComPtr<IMMDevice> device;
-	HR_IF_FAILED_THROW(enumerator_->GetDevice(device_id.c_str(), &device));
+	HrIfFailledThrow(enumerator_->GetDevice(device_id.c_str(), &device));
 	return device;
 }
 
@@ -53,16 +53,16 @@ std::vector<DeviceInfo> SharedWasapiDeviceType::GetDeviceInfo() const {
 
 DeviceInfo SharedWasapiDeviceType::GetDefaultDeviceInfo() const {
 	CComPtr<IMMDevice> default_output_device;
-	HR_IF_FAILED_THROW(enumerator_->GetDefaultAudioEndpoint(eRender, eConsole, &default_output_device));
+	HrIfFailledThrow(enumerator_->GetDefaultAudioEndpoint(eRender, eConsole, &default_output_device));
 	return helper::GetDeviceInfo(default_output_device, SharedWasapiDeviceType::Id);
 }
 
 std::vector<DeviceInfo> SharedWasapiDeviceType::GetDeviceInfoList() const {
 	CComPtr<IMMDeviceCollection> devices;
-	HR_IF_FAILED_THROW(enumerator_->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, &devices));
+	HrIfFailledThrow(enumerator_->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, &devices));
 
 	UINT count = 0;
-	HR_IF_FAILED_THROW(devices->GetCount(&count));
+	HrIfFailledThrow(devices->GetCount(&count));
 
 	std::vector<DeviceInfo> device_list;
 	device_list.reserve(count);
@@ -72,7 +72,7 @@ std::vector<DeviceInfo> SharedWasapiDeviceType::GetDeviceInfoList() const {
 	for (UINT i = 0; i < count; ++i) {
 		CComPtr<IMMDevice> device;
 
-		HR_IF_FAILED_THROW(devices->Item(i, &device));
+		HrIfFailledThrow(devices->Item(i, &device));
 
 		try {
 			auto info = helper::GetDeviceInfo(device, SharedWasapiDeviceType::Id);

@@ -8,7 +8,7 @@ namespace xamp::output_device::win32 {
 const ID ExclusiveWasapiDeviceType::Id("089F8446-C980-495B-AC80-5A437A4E73F6");
 
 ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceType() {
-    HR_IF_FAILED_THROW(CoCreateInstance(__uuidof(MMDeviceEnumerator),
+    HrIfFailledThrow(CoCreateInstance(__uuidof(MMDeviceEnumerator),
 		nullptr, 
 		CLSCTX_ALL,
 		__uuidof(IMMDeviceEnumerator),
@@ -18,7 +18,7 @@ ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceType() {
 
 DeviceInfo ExclusiveWasapiDeviceType::GetDefaultDeviceInfo() const {
 	CComPtr<IMMDevice> default_output_device;
-	HR_IF_FAILED_THROW(enumerator_->GetDefaultAudioEndpoint(eRender, eConsole, &default_output_device));
+	HrIfFailledThrow(enumerator_->GetDefaultAudioEndpoint(eRender, eConsole, &default_output_device));
 	return helper::GetDeviceInfo(default_output_device, ExclusiveWasapiDeviceType::Id);
 }
 
@@ -28,7 +28,7 @@ std::vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfo() const {
 
 CComPtr<IMMDevice> ExclusiveWasapiDeviceType::GetDeviceById(const std::wstring& device_id) const {
 	CComPtr<IMMDevice> device;
-	HR_IF_FAILED_THROW(enumerator_->GetDevice(device_id.c_str(), &device));
+	HrIfFailledThrow(enumerator_->GetDevice(device_id.c_str(), &device));
 	return device;
 }
 
@@ -58,10 +58,10 @@ void ExclusiveWasapiDeviceType::ScanNewDevice() {
 
 std::vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfoList() const {
 	CComPtr<IMMDeviceCollection> devices;
-	HR_IF_FAILED_THROW(enumerator_->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, &devices));
+	HrIfFailledThrow(enumerator_->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, &devices));
 
 	UINT count = 0;
-	HR_IF_FAILED_THROW(devices->GetCount(&count));
+	HrIfFailledThrow(devices->GetCount(&count));
 
 	std::vector<DeviceInfo> device_list;
 	device_list.reserve(count);
@@ -71,7 +71,7 @@ std::vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfoList() const {
 	for (UINT i = 0; i < count; ++i) {
 		CComPtr<IMMDevice> device;
 
-		HR_IF_FAILED_THROW(devices->Item(i, &device));
+		HrIfFailledThrow(devices->Item(i, &device));
 
 		auto info = helper::GetDeviceInfo(device, ExclusiveWasapiDeviceType::Id);
 

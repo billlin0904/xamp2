@@ -3,6 +3,7 @@
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
+#ifdef _WIN32
 #pragma once
 
 #include <mutex>
@@ -10,10 +11,10 @@
 
 #include <base/memory.h>
 #include <base/dataconverter.h>
+#include <base/vmmemlock.h>
+
 #include <output_device/audiocallback.h>
 #include <output_device/device.h>
-
-#ifdef _WIN32
 
 namespace xamp::output_device::win32 {
 
@@ -39,9 +40,9 @@ public:
 
 	void StartStream() override;
 
-	void SetStreamTime(double stream_time) override;
+	void SetStreamTime(double stream_time) noexcept override;
 
-	double GetStreamTime() const override;
+	double GetStreamTime() const noexcept override;
 
 	int32_t GetVolume() const override;
 
@@ -89,6 +90,7 @@ private:
 	CComPtr<IMFAsyncResult> sample_ready_async_result_;
 	mutable std::mutex mutex_;
 	AlignBufferPtr<float> buffer_;
+	VmMemLock memlock_;
 	std::condition_variable condition_;
 	AudioCallback* callback_;
 };

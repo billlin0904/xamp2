@@ -39,7 +39,7 @@ private:
 		} \
 	} while (false)
 
-#define HR_IF_FAILED_THROW(hresult) \
+#define HrIfFailledThrow(hresult) \
 	do { \
 		if (FAILED((hresult))) { \
 			throw HRException(hresult, #hresult); \

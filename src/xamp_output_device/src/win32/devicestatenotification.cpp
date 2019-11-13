@@ -14,12 +14,12 @@ DeviceStateNotification::~DeviceStateNotification() {
 }
 
 void DeviceStateNotification::Run() {
-	HR_IF_FAILED_THROW(CoCreateInstance(__uuidof(MMDeviceEnumerator),
+	HrIfFailledThrow(CoCreateInstance(__uuidof(MMDeviceEnumerator),
 		nullptr,
 		CLSCTX_ALL,
 		__uuidof(IMMDeviceEnumerator),
 		reinterpret_cast<void**>(&enumerator_)));
-	HR_IF_FAILED_THROW(enumerator_->RegisterEndpointNotificationCallback(this));
+	HrIfFailledThrow(enumerator_->RegisterEndpointNotificationCallback(this));
 }
 
 STDMETHODIMP_(ULONG) DeviceStateNotification::AddRef() {

@@ -67,6 +67,8 @@ struct XAMP_BASE_API ConvertContext {
 	int32_t convert_size{};
 	int32_t in_jump{};
 	int32_t out_jump{};
+	float volume_factor{ 1.0 };
+	int32_t cache_volume{};
 	AudioFormat input_format;
 	AudioFormat output_format;
 	std::array<int32_t, XAMP_MAX_CHANNEL> in_offset;
@@ -79,6 +81,7 @@ XAMP_BASE_API ConvertContext MakeConvert(const AudioFormat& in_format, const Aud
 
 template <InterleavedFormat InputFormat, InterleavedFormat OutputFormat>
 struct DataConverter {
+	// INFO: Only for DSD file
 	static XAMP_RESTRICT int8_t* Convert(int8_t* output, const int8_t* input, const ConvertContext& context) noexcept {
 		for (int32_t i = 0; i < context.convert_size; ++i) {
 			output[context.out_offset[0]] = input[context.in_offset[0]];
@@ -91,8 +94,8 @@ struct DataConverter {
 
 	static XAMP_RESTRICT int16_t* Convert(int16_t* output, const float* input, const ConvertContext& context) noexcept {
 		for (int32_t i = 0; i < context.convert_size; ++i) {
-			output[context.out_offset[0]] = static_cast<int16_t>(input[context.in_offset[0]] * XAMP_FLOAT_16_SCALER);
-			output[context.out_offset[1]] = static_cast<int16_t>(input[context.in_offset[1]] * XAMP_FLOAT_16_SCALER);
+			output[context.out_offset[0]] = static_cast<int16_t>(input[context.in_offset[0]] * XAMP_FLOAT_16_SCALER) * context.volume_factor;
+			output[context.out_offset[1]] = static_cast<int16_t>(input[context.in_offset[1]] * XAMP_FLOAT_16_SCALER) * context.volume_factor;
 			input += context.in_jump;
 			output += context.out_jump;
 		}
@@ -117,8 +120,8 @@ struct DataConverter {
 		const auto input_right_offset = context.in_offset[1];
 
 		for (int32_t i = 0; i < context.convert_size; ++i) {
-			output[output_left_offset] = static_cast<int32_t>(input[input_left_offset] * XAMP_FLOAT_32_SCALER);
-			output[output_right_offset] = static_cast<int32_t>(input[input_right_offset] * XAMP_FLOAT_32_SCALER);
+			output[output_left_offset] = static_cast<int32_t>(input[input_left_offset] * XAMP_FLOAT_32_SCALER) * context.volume_factor;
+			output[output_right_offset] = static_cast<int32_t>(input[input_right_offset] * XAMP_FLOAT_32_SCALER) * context.volume_factor;
 			input += context.in_jump;
 			output += context.out_jump;
 		}
@@ -133,8 +136,8 @@ struct DataConverter {
         const auto input_right_offset = context.in_offset[1];
 
         for (int32_t i = 0; i < context.convert_size; ++i) {
-            output[output_left_offset] = input[input_left_offset];
-            output[output_right_offset] = input[input_right_offset];
+            output[output_left_offset] = input[input_left_offset] * context.volume_factor;
+            output[output_right_offset] = input[input_right_offset] * context.volume_factor;
             input += context.in_jump;
             output += context.out_jump;
         }

@@ -40,9 +40,9 @@ public:
 
 	void StartStream() override;
 
-	void SetStreamTime(double stream_time) override;
+	void SetStreamTime(double stream_time) noexcept override;
 
-	double GetStreamTime() const override;
+	double GetStreamTime() const noexcept override;
 
 	int32_t GetVolume() const override;
 
@@ -69,7 +69,7 @@ public:
 	bool IsMuted() const override;
 
 private:
-	static ASIOTime* OnBufferSwitchTimeInfoCallback(ASIOTime* timeInfo, long index, ASIOBool processNow);
+	static ASIOTime* OnBufferSwitchTimeInfoCallback(ASIOTime* timeInfo, long index, ASIOBool processNow) noexcept;
 
 	static void OnBufferSwitchCallback(long index, ASIOBool processNow);
 
@@ -83,15 +83,15 @@ private:
 
 	void CreateBuffers(const AudioFormat& output_format);
 
-	void OnBufferSwitch(long index);
+	void OnBufferSwitch(long index) noexcept;
 
 	bool is_removed_driver_;
 	std::atomic<bool> is_stopped_;
 	std::atomic<bool> is_streaming_;
-	std::atomic<bool> is_stop_streaming_;
+	std::atomic<bool> is_stop_streaming_;	
 	AsioIoFormat io_format_;
 	DSDSampleFormat sample_format_;
-	mutable double volume_;
+	mutable std::atomic<int32_t> volume_;
 	int32_t buffer_size_;
 	int32_t buffer_bytes_;
 	std::atomic<int64_t> played_bytes_;

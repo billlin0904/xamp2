@@ -32,9 +32,9 @@ public:
 
 	virtual void StartStream() = 0;
 
-	virtual void SetStreamTime(double stream_time) = 0;
+	virtual void SetStreamTime(double stream_time) noexcept = 0;
 
-	virtual double GetStreamTime() const = 0;
+	virtual double GetStreamTime() const noexcept = 0;
 
 	virtual int32_t GetVolume() const = 0;
 

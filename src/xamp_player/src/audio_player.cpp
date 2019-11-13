@@ -15,7 +15,7 @@ namespace xamp::player {
 
 constexpr int32_t BUFFER_STREAM_COUNT = 20;
 constexpr std::chrono::milliseconds UPDATE_SAMPLE_INTERVAL(100);
-constexpr std::chrono::seconds WAIT_FOR_STRAEM_STOP_TIME(3);
+constexpr std::chrono::seconds WAIT_FOR_STRAEM_STOP_TIME(5);
 constexpr std::chrono::milliseconds SLEEP_OUTPUT_TIME(500);
 
 AudioPlayer::AudioPlayer()

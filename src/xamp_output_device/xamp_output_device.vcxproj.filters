@@ -45,6 +45,7 @@
     <ClInclude Include="include\output_device\dsdoutputable.h" />
     <ClInclude Include="include\output_device\win32\devicestatenotification.h" />
     <ClInclude Include="include\output_device\devicestatelistener.h" />
+    <ClInclude Include="include\output_device\volume.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="asiosdk">

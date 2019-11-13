@@ -9,7 +9,7 @@ namespace xamp::output_device::win32 {
 constexpr int32_t REFTIMES_PER_MILLISEC = 10000;
 constexpr double REFTIMES_PER_SEC = 10000000;
 
-static void SetWaveformatEx(WAVEFORMATEX *input_fromat, const AudioFormat &audio_format, const int32_t valid_bits_samples) {
+static void SetWaveformatEx(WAVEFORMATEX *input_fromat, const AudioFormat &audio_format, const int32_t valid_bits_samples) noexcept {
 	auto &format = *reinterpret_cast<WAVEFORMATEXTENSIBLE *>(input_fromat);
 
 	format.Format.nChannels = audio_format.GetChannels();
@@ -34,12 +34,12 @@ static void SetWaveformatEx(WAVEFORMATEX *input_fromat, const AudioFormat &audio
 	format.dwChannelMask = KSAUDIO_SPEAKER_STEREO;
 }
 
-static UINT32 BackwardAligned(const UINT32 bytes_frame, const UINT32 align_size) {
+static UINT32 BackwardAligned(const UINT32 bytes_frame, const UINT32 align_size) noexcept {
     return (bytes_frame - (align_size ? (bytes_frame % align_size) : 0));
 }
 
 template <typename Predicate>
-static int32_t CalcAlignedFramePerBuffer(const UINT32 frames, const UINT32 block_align, Predicate f) {
+static int32_t CalcAlignedFramePerBuffer(const UINT32 frames, const UINT32 block_align, Predicate f) noexcept {
     constexpr auto HD_AUDIO_PACKET_SIZE = 128;
 
     const auto bytes_frame = frames * block_align;
@@ -55,14 +55,14 @@ static int32_t CalcAlignedFramePerBuffer(const UINT32 frames, const UINT32 block
     return new_frames;
 }
 
-static double Nano100ToSeconds(REFERENCE_TIME ref) {
+static double Nano100ToSeconds(REFERENCE_TIME ref) noexcept {
 	//  1 nano = 0.000000001 seconds
 	//100 nano = 0.0000001   seconds
 	//100 nano = 0.0001   milliseconds
 	return (static_cast<double>(ref) * 0.0000001);
 }
 
-static UINT32 ReferenceTimeToFrames(const REFERENCE_TIME period, const UINT32 samplerate) {
+static UINT32 ReferenceTimeToFrames(const REFERENCE_TIME period, const UINT32 samplerate) noexcept {
     return static_cast<UINT32>(
 		1.0 * period * // hns *
         samplerate / // (frames / s) /
@@ -72,19 +72,19 @@ static UINT32 ReferenceTimeToFrames(const REFERENCE_TIME period, const UINT32 sa
     );
 }
 
-static REFERENCE_TIME MakeHnsPeriod(const UINT32 frames, const UINT32 samplerate) {
+static REFERENCE_TIME MakeHnsPeriod(const UINT32 frames, const UINT32 samplerate) noexcept {
     return static_cast<REFERENCE_TIME>(10000.0 * 1000.0 / double(samplerate) * double(frames) + 0.5);
 }
 
 template <typename Predicate>
-static int32_t MakeAlignedPeriod(const AudioFormat &format, int32_t frames_per_latency, Predicate f) {
+static int32_t MakeAlignedPeriod(const AudioFormat &format, int32_t frames_per_latency, Predicate f) noexcept {
     return CalcAlignedFramePerBuffer(frames_per_latency, format.GetBlockAlign(), f);
 }
 
 ExclusiveWasapiDevice::ExclusiveWasapiDevice(const CComPtr<IMMDevice>& device)
 	: is_running_(false)
 	, is_stop_streaming_(false)
-	, thread_priority_(MmcssThreadPriority::MMCSS_THREAD_PRIORITY_HIGH)
+	, thread_priority_(MmcssThreadPriority::MMCSS_THREAD_PRIORITY_CRITICAL)
 	, frames_per_latency_(0)
 	, valid_bits_samples_(0)
 	, queue_id_(0)
@@ -113,7 +113,7 @@ void ExclusiveWasapiDevice::SetAlignedPeriod(REFERENCE_TIME device_period, const
 }
 
 void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_format, const int32_t valid_bits_samples) {
-    HR_IF_FAILED_THROW(client_->GetMixFormat(&mix_format_));
+    HrIfFailledThrow(client_->GetMixFormat(&mix_format_));
 
 	SetWaveformatEx(mix_format_, output_format, valid_bits_samples);
 
@@ -127,7 +127,7 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
 	// Fall back use not raw mode.
 	if (FAILED(client_->SetClientProperties(&device_props))) {
 		device_props.Options = AUDCLNT_STREAMOPTIONS_MATCH_FORMAT;
-		HR_IF_FAILED_THROW(client_->SetClientProperties(&device_props));
+		HrIfFailledThrow(client_->SetClientProperties(&device_props));
 		XAMP_LOG_DEBUG("Device not support RAW mode");
 	} else {
 		XAMP_LOG_DEBUG("Device support RAW mode");
@@ -135,7 +135,7 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
 	
     REFERENCE_TIME default_device_period = 0;
     REFERENCE_TIME minimum_device_period = 0;
-    HR_IF_FAILED_THROW(client_->GetDevicePeriod(&default_device_period, &minimum_device_period));
+    HrIfFailledThrow(client_->GetDevicePeriod(&default_device_period, &minimum_device_period));
 
 	SetAlignedPeriod(default_device_period, output_format);
 	XAMP_LOG_DEBUG("Exclusive mode: default:{} sec, min:{} sec",
@@ -156,7 +156,7 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
 		throw DeviceUnSupportedFormatException();
 	}
 
-	HR_IF_FAILED_THROW(hr);
+	HrIfFailledThrow(hr);
 }
 
 void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
@@ -171,12 +171,12 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	if (!client_) {
 		XAMP_LOG_DEBUG("Active device format: {}", valid_output_format);
 
-        HR_IF_FAILED_THROW(device_->Activate(__uuidof(IAudioClient2),
+        HrIfFailledThrow(device_->Activate(__uuidof(IAudioClient2),
 			CLSCTX_ALL,
 			nullptr,
 			reinterpret_cast<void**>(&client_)));
 
-        HR_IF_FAILED_THROW(device_->Activate(__uuidof(IAudioEndpointVolume),
+        HrIfFailledThrow(device_->Activate(__uuidof(IAudioEndpointVolume),
 			CLSCTX_ALL,
 			nullptr,
 			reinterpret_cast<void**>(&endpoint_volume_)));
@@ -184,31 +184,37 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
         InitialDeviceFormat(valid_output_format, valid_bits_samples_);
     }
 
-    HR_IF_FAILED_THROW(client_->Reset());
-    HR_IF_FAILED_THROW(client_->GetService(__uuidof(IAudioRenderClient), reinterpret_cast<void**>(&render_client_)));
+    HrIfFailledThrow(client_->Reset());
+    HrIfFailledThrow(client_->GetService(__uuidof(IAudioRenderClient), reinterpret_cast<void**>(&render_client_)));
 
     // Enable MCSS
 	DWORD task_id = 0;
 	queue_id_ = MF_MULTITHREADED_WORKQUEUE;
-	HR_IF_FAILED_THROW(::MFLockSharedWorkQueue(mmcss_name_.c_str(), (LONG)thread_priority_, &task_id, &queue_id_));
+	HrIfFailledThrow(::MFLockSharedWorkQueue(mmcss_name_.c_str(),
+		(LONG)thread_priority_,
+		&task_id,
+		&queue_id_));
 
 	LONG priority = 0;
-	HR_IF_FAILED_THROW(::MFGetWorkQueueMMCSSPriority(queue_id_, &priority));
+	HrIfFailledThrow(::MFGetWorkQueueMMCSSPriority(queue_id_, &priority));
 
 	XAMP_LOG_DEBUG("MCSS task id:{} queue id:{}, priority:{} ({})", task_id, queue_id_, thread_priority_, priority);
 
     sample_ready_callback_ = new MFAsyncCallback<ExclusiveWasapiDevice>(this,
         &ExclusiveWasapiDevice::OnSampleReady, queue_id_);
 
-	HR_IF_FAILED_THROW(::MFCreateAsyncResult(nullptr, sample_ready_callback_, nullptr, &sample_ready_async_result_));
+	HrIfFailledThrow(::MFCreateAsyncResult(nullptr, sample_ready_callback_, nullptr, &sample_ready_async_result_));
 
 	if (!sample_ready_) {
 		sample_ready_.reset(::CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS));
 		assert(sample_ready_);
-		HR_IF_FAILED_THROW(client_->SetEventHandle(sample_ready_.get()));
+		HrIfFailledThrow(client_->SetEventHandle(sample_ready_.get()));
 	}
 
+	memlock_.UnLock();
+
 	buffer_ = MakeBuffer<float>(frames_per_latency_ * 2);
+	memlock_.Lock(buffer_.get(), sizeof(float) * frames_per_latency_ * 2);
     data_convert_ = MakeConvert(output_format, valid_output_format, frames_per_latency_);
 }
 
@@ -220,8 +226,8 @@ void ExclusiveWasapiDevice::SetSchedulerService(const std::wstring &mmcss_name, 
 
 void ExclusiveWasapiDevice::FillSilentSample(const int32_t frames_available) const {
     BYTE *data = nullptr;
-    HR_IF_FAILED_THROW(render_client_->GetBuffer(frames_available, &data));
-    HR_IF_FAILED_THROW(render_client_->ReleaseBuffer(frames_available, AUDCLNT_BUFFERFLAGS_SILENT));
+    HrIfFailledThrow(render_client_->GetBuffer(frames_available, &data));
+    HrIfFailledThrow(render_client_->ReleaseBuffer(frames_available, AUDCLNT_BUFFERFLAGS_SILENT));
 }
 
 HRESULT ExclusiveWasapiDevice::OnSampleReady(IMFAsyncResult *result) {
@@ -247,7 +253,7 @@ HRESULT ExclusiveWasapiDevice::OnSampleReady(IMFAsyncResult *result) {
 	}
 
  	if ((*callback_)(buffer_.get(), frames_per_latency_, stream_time_ / mix_format_->nSamplesPerSec) == 0) {
-		DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEAVED>::Convert2432Bit(
+		(void)DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEAVED>::Convert2432Bit(
             reinterpret_cast<int32_t*>(data), buffer_.get(), data_convert_);
 
         hr = render_client_->ReleaseBuffer(frames_per_latency_, 0);
@@ -265,7 +271,10 @@ HRESULT ExclusiveWasapiDevice::OnSampleReady(IMFAsyncResult *result) {
 		is_running_ = false;
 	}
 
-    HR_IF_FAILED_THROW(::MFPutWaitingWorkItem(sample_ready_.get(), 0, sample_ready_async_result_, &sample_raedy_key_));
+    HrIfFailledThrow(::MFPutWaitingWorkItem(sample_ready_.get(),
+		0, 
+		sample_ready_async_result_,
+		&sample_raedy_key_));
     
     return S_OK;
 }
@@ -310,7 +319,7 @@ bool ExclusiveWasapiDevice::IsStreamRunning() const noexcept {
 
 void ExclusiveWasapiDevice::CloseStream() {
     if (queue_id_ != 0) {
-		HR_IF_FAILED_THROW(::MFUnlockWorkQueue(queue_id_));
+		HrIfFailledThrow(::MFUnlockWorkQueue(queue_id_));
 		queue_id_ = 0;
 	}
 
@@ -330,26 +339,26 @@ void ExclusiveWasapiDevice::StartStream() {
     client_->Reset();
 
     is_running_ = true;
-	HR_IF_FAILED_THROW(client_->Start());
+	HrIfFailledThrow(client_->Start());
 
 	// Note: 必要! 某些音效卡會爆音!
 	FillSilentSample(frames_per_latency_);
 
-	HR_IF_FAILED_THROW(::MFPutWaitingWorkItem(sample_ready_.get(), 0, sample_ready_async_result_, &sample_raedy_key_));
+	HrIfFailledThrow(::MFPutWaitingWorkItem(sample_ready_.get(), 0, sample_ready_async_result_, &sample_raedy_key_));
     is_stop_streaming_ = false;
 }
 
-void ExclusiveWasapiDevice::SetStreamTime(const double stream_time) {
+void ExclusiveWasapiDevice::SetStreamTime(const double stream_time) noexcept {
     stream_time_ = stream_time * mix_format_->nSamplesPerSec;
 }
 
-double ExclusiveWasapiDevice::GetStreamTime() const {
+double ExclusiveWasapiDevice::GetStreamTime() const noexcept {
     return stream_time_ / mix_format_->nSamplesPerSec;
 }
 
 int32_t ExclusiveWasapiDevice::GetVolume() const {
 	float channel_volume = 0.0;
-	HR_IF_FAILED_THROW(endpoint_volume_->GetMasterVolumeLevel(&channel_volume));
+	HrIfFailledThrow(endpoint_volume_->GetMasterVolumeLevel(&channel_volume));
 	return static_cast<int32_t>(channel_volume);
 }
 
@@ -359,24 +368,24 @@ void ExclusiveWasapiDevice::SetVolume(const int32_t volume) const {
 	}
 
 	auto is_mute = FALSE;
-	HR_IF_FAILED_THROW(endpoint_volume_->GetMute(&is_mute));
+	HrIfFailledThrow(endpoint_volume_->GetMute(&is_mute));
 
 	if (is_mute) {
-		HR_IF_FAILED_THROW(endpoint_volume_->SetMute(false, nullptr));
+		HrIfFailledThrow(endpoint_volume_->SetMute(false, nullptr));
 	}
 
 	const auto channel_volume = static_cast<float>(double(volume) / 100.0);
-	HR_IF_FAILED_THROW(endpoint_volume_->SetMasterVolumeLevelScalar(channel_volume, &GUID_NULL));
+	HrIfFailledThrow(endpoint_volume_->SetMasterVolumeLevelScalar(channel_volume, &GUID_NULL));
 }
 
 bool ExclusiveWasapiDevice::IsMuted() const {
 	auto is_mute = FALSE;
-	HR_IF_FAILED_THROW(endpoint_volume_->GetMute(&is_mute));
+	HrIfFailledThrow(endpoint_volume_->GetMute(&is_mute));
 	return is_mute;
 }
 
 void ExclusiveWasapiDevice::SetMute(const bool mute) const {
-	HR_IF_FAILED_THROW(endpoint_volume_->SetMute(mute, nullptr));
+	HrIfFailledThrow(endpoint_volume_->SetMute(mute, nullptr));
 }
 
 void ExclusiveWasapiDevice::DisplayControlPanel() {
