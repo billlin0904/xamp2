@@ -44,7 +44,9 @@ struct AsioCallbackInfo {
 	std::vector<ASIOChannelInfo> channel_infos;
 } callbackInfo;
 
-#define GetLatencyMs(latency, sampleRate) (long((latency * 1000)/ sampleRate))
+static XAMP_ALWAYS_INLINE long GetLatencyMs(long latency, long sampleRate) noexcept {
+	return (long((latency * 1000) / sampleRate));
+}
 
 static const int32_t MAX_CLOCK_SOURCE_SIZE = 32;
 
@@ -65,7 +67,11 @@ AsioDevice::AsioDevice(const std::string& device_id)
 }
 
 AsioDevice::~AsioDevice() {
-	CloseStream();
+	try {
+		CloseStream();
+	}
+	catch (...) {
+	}
 }
 
 bool AsioDevice::IsMuted() const {
@@ -189,6 +195,7 @@ void AsioDevice::CreateBuffers(const AudioFormat& output_format) {
 	callbackInfo.asio_callbacks.sampleRateDidChange = OnSampleRateChangedCallback;
 	callbackInfo.asio_callbacks.asioMessage = OnAsioMessagesCallback;
 	callbackInfo.asio_callbacks.bufferSwitchTimeInfo = OnBufferSwitchTimeInfoCallback;
+	callbackInfo.data_context.volume_factor = LinearToLog(volume_);
 
 	auto result = ASIOCreateBuffers(callbackInfo.buffer_infos.data(),
 		output_format.GetChannels(),
@@ -319,8 +326,7 @@ int32_t AsioDevice::GetVolume() const {
 }
 
 void AsioDevice::SetVolume(const int32_t volume) const {
-	volume_ = volume;
-	callbackInfo.data_context.cache_volume = 0;	
+	volume_ = volume;	
 }
 
 void AsioDevice::SetMute(const bool mute) const {
@@ -341,9 +347,9 @@ void AsioDevice::OnBufferSwitch(long index) noexcept {
 		callbackInfo.data_context.cache_volume = vol;
 	}	
 
-	auto temp = played_bytes_.load();
-	temp += buffer_bytes_ * mix_format_.GetChannels();
-	played_bytes_ = temp;
+	auto cache_played_bytes = played_bytes_.load();
+	cache_played_bytes += buffer_bytes_ * mix_format_.GetChannels();
+	played_bytes_ = cache_played_bytes;
 
 	if (!is_streaming_) {
 		is_stop_streaming_ = true;
@@ -355,7 +361,7 @@ void AsioDevice::OnBufferSwitch(long index) noexcept {
 	bool got_samples = false;
 
 	if (io_format_ == AsioIoFormat::IO_FORMAT_PCM) {
-		if ((*callback_)(reinterpret_cast<float*>(buffer_.get()), buffer_size_, double(temp) / mix_format_.GetAvgBytesPerSec()) == 0) {
+		if ((*callback_)(reinterpret_cast<float*>(buffer_.get()), buffer_size_, double(cache_played_bytes) / mix_format_.GetAvgBytesPerSec()) == 0) {
 			switch (mix_format_.GetByteFormat()) {
 			case ByteFormat::SINT16:
 				DataConverter<InterleavedFormat::DEINTERLEAVED,
