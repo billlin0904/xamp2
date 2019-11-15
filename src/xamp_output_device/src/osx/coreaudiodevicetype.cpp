@@ -45,10 +45,6 @@ static std::wstring GetDeviceName(AudioDeviceID id, AudioObjectPropertySelector 
     return CFSStringToStdWstring(cfname);
 }
 
-static std::wstring GetManufacturerName(AudioDeviceID id) {
-    return GetDeviceName(id, kAudioObjectPropertyManufacturer);
-}
-
 static std::wstring GetPropertyName(AudioDeviceID id) {
     return GetDeviceName(id, kAudioObjectPropertyName);
 }

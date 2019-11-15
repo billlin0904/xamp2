@@ -208,11 +208,11 @@ void CoreAudioDevice::StartStream() {
     is_running_ = true;
 }
 
-void CoreAudioDevice::SetStreamTime(double stream_time) {
+void CoreAudioDevice::SetStreamTime(double stream_time) noexcept {
     stream_time_ = stream_time * format_.GetAvgFramesPerSec();
 }
 
-double CoreAudioDevice::GetStreamTime() const {
+double CoreAudioDevice::GetStreamTime() const noexcept {
     return stream_time_;
 }
 

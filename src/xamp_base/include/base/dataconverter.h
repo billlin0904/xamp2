@@ -5,7 +5,6 @@
 
 #pragma once
 
-#ifdef _WIN32
 #include <array>
 
 #include <base/base.h>
@@ -193,4 +192,3 @@ struct DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEA
 };
 
 }
-#endif
