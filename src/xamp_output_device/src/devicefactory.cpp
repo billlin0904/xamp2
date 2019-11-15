@@ -64,7 +64,11 @@ bool DeviceFactory::IsPlatformSupportedASIO() const {
 
 bool DeviceFactory::IsExclusiveDevice(const DeviceInfo& info) {
 #ifdef _WIN32
-	return info.device_type_id == win32::ExclusiveWasapiDeviceType::Id;
+	return info.device_type_id == win32::ExclusiveWasapiDeviceType::Id
+#if ENABLE_ASIO
+		&& info.device_type_id == ASIODeviceType::Id
+#endif
+	;
 #else
     return false;
 #endif

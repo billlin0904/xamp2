@@ -5,6 +5,7 @@
 
 #pragma once
 
+#ifdef _WIN32
 #include <array>
 
 #include <base/base.h>
@@ -83,6 +84,7 @@ template <InterleavedFormat InputFormat, InterleavedFormat OutputFormat>
 struct DataConverter {
 	// INFO: Only for DSD file
 	static XAMP_RESTRICT int8_t* Convert(int8_t* output, const int8_t* input, const ConvertContext& context) noexcept {
+#pragma loop(ivdep)
 		for (int32_t i = 0; i < context.convert_size; ++i) {
 			output[context.out_offset[0]] = input[context.in_offset[0]];
 			output[context.out_offset[1]] = input[context.in_offset[1]];
@@ -93,6 +95,7 @@ struct DataConverter {
 	}
 
 	static XAMP_RESTRICT int16_t* Convert(int16_t* output, const float* input, const ConvertContext& context) noexcept {
+#pragma loop(ivdep)
 		for (int32_t i = 0; i < context.convert_size; ++i) {
 			output[context.out_offset[0]] = static_cast<int16_t>(input[context.in_offset[0]] * XAMP_FLOAT_16_SCALER) * context.volume_factor;
 			output[context.out_offset[1]] = static_cast<int16_t>(input[context.in_offset[1]] * XAMP_FLOAT_16_SCALER) * context.volume_factor;
@@ -103,6 +106,7 @@ struct DataConverter {
 	}
 
 	static XAMP_RESTRICT int24_t* Convert(int24_t* output, const float* input, const ConvertContext& context) noexcept {
+#pragma loop(ivdep)
 		for (int32_t i = 0; i < context.convert_size; ++i) {
 			output[context.out_offset[0]] = static_cast<int32_t>(input[context.in_offset[0]] * XAMP_FLOAT_24_SCALER);
 			output[context.out_offset[1]] = static_cast<int32_t>(input[context.in_offset[1]] * XAMP_FLOAT_24_SCALER);
@@ -119,6 +123,7 @@ struct DataConverter {
 		const auto input_left_offset = context.in_offset[0];
 		const auto input_right_offset = context.in_offset[1];
 
+#pragma loop(ivdep)
 		for (int32_t i = 0; i < context.convert_size; ++i) {
 			output[output_left_offset] = static_cast<int32_t>(input[input_left_offset] * XAMP_FLOAT_32_SCALER) * context.volume_factor;
 			output[output_right_offset] = static_cast<int32_t>(input[input_right_offset] * XAMP_FLOAT_32_SCALER) * context.volume_factor;
@@ -135,6 +140,7 @@ struct DataConverter {
         const auto input_left_offset = context.in_offset[0];
         const auto input_right_offset = context.in_offset[1];
 
+#pragma loop(ivdep)
         for (int32_t i = 0; i < context.convert_size; ++i) {
             output[output_left_offset] = input[input_left_offset] * context.volume_factor;
             output[output_right_offset] = input[input_right_offset] * context.volume_factor;
@@ -169,7 +175,7 @@ struct DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEA
 		case 0:
 			break;
 		}
-
+#pragma loop(ivdep)
 		while (input != end_input) {
 			output[0] = int24_t(input[0]).to_2432int();
 			output[1] = int24_t(input[1]).to_2432int();
@@ -187,3 +193,4 @@ struct DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEA
 };
 
 }
+#endif
