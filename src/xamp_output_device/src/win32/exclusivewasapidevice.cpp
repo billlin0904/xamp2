@@ -300,7 +300,7 @@ void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
     }
 
     if (sample_raedy_key_ != 0) {
-        HR_IF_FAILED_THROW2(::MFCancelWorkItem(sample_raedy_key_), MF_E_NOT_FOUND);
+        HrIfFailledThrow2(::MFCancelWorkItem(sample_raedy_key_), MF_E_NOT_FOUND);
         sample_raedy_key_ = 0;
     }
 }

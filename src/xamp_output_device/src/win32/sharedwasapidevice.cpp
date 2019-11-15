@@ -156,7 +156,6 @@ void SharedWasapiDevice::OpenStream(const AudioFormat& output_format) {
 		device_props.eCategory = AudioCategory_Media;
 		device_props.Options = AUDCLNT_STREAMOPTIONS_RAW | AUDCLNT_STREAMOPTIONS_MATCH_FORMAT;
 		if (FAILED(client_->SetClientProperties(&device_props))) {
-			device_props.Options = AUDCLNT_STREAMOPTIONS_MATCH_FORMAT;
 			HrIfFailledThrow(client_->SetClientProperties(&device_props));
 			XAMP_LOG_DEBUG("Device not support RAW mode");
 		}

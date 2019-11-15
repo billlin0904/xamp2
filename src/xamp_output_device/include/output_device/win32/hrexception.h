@@ -17,7 +17,9 @@ using namespace base;
 
 class HRException final : public Exception {
 public:
-    HRException(HRESULT hresult, std::string_view expr = "");
+	static void ThrowFromHResult(HRESULT hresult, std::string_view expr);
+	
+	HRException(HRESULT hresult, std::string_view expr = "");
 
 	HRException(HRESULT hresult, Errors error);
 
@@ -32,17 +34,17 @@ private:
 
 }
 
-#define HR_IF_FAILED_THROW2(hresult, otherHr) \
+#define HrIfFailledThrow2(hresult, otherHr) \
 	do { \
 		if (FAILED((hresult)) && ((otherHr) != (hresult))) { \
-			throw HRException(hresult, #hresult); \
+			HRException::ThrowFromHResult(hresult, #hresult); \
 		} \
 	} while (false)
 
 #define HrIfFailledThrow(hresult) \
 	do { \
 		if (FAILED((hresult))) { \
-			throw HRException(hresult, #hresult); \
+			HRException::ThrowFromHResult(hresult, #hresult); \
 		} \
 	} while (false)
 #endif

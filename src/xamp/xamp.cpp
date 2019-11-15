@@ -589,6 +589,7 @@ void Xamp::play(const QModelIndex&, const PlayListEntity& item) {
 	} catch(const xamp::base::Exception& e) {
         ui.seekSlider->setEnabled(false);
         player_->Stop(false, true);
+		XAMP_LOG_DEBUG("Exception: {}", e.GetErrorMessage());
         Toast::showTip(Q_UTF8(e.GetErrorMessage()), this);
     } catch (const std::exception& e) {
         ui.seekSlider->setEnabled(false);
