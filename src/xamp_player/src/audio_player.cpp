@@ -69,6 +69,7 @@ void AudioPlayer::CreateDevice(const ID& device_type_id, const std::wstring& dev
         || open_always) {
         if (auto result = DeviceFactory::Instance().Create(device_type_id)) {
             device_type_ = std::move(result.value());
+			device_type_->ScanNewDevice();
             device_ = device_type_->MakeDevice(device_id);
             device_type_id_ = device_type_id;
             device_id_ = device_id;

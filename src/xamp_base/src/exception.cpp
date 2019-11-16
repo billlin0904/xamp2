@@ -58,6 +58,10 @@ Exception::Exception(Errors error, const std::string& message, std::string_view 
 	}
 }
 
+std::string Exception::GetPlatformErrorMessage(int32_t err) {
+	return std::system_category().message(err);
+}
+
 const char* Exception::what() const noexcept {
     return what_.data();
 }

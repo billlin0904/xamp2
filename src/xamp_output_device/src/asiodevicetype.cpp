@@ -18,7 +18,6 @@ namespace xamp::output_device {
 const ID ASIODeviceType::Id("0B3FF8BC-5BFD-4A08-8066-95974FB11BB5");
 
 ASIODeviceType::ASIODeviceType() {
-    ScanNewDevice();
 }
 
 std::wstring ASIODeviceType::GetName() const {
@@ -59,10 +58,9 @@ std::vector<DeviceInfo> ASIODeviceType::GetDeviceInfo() const {
 void ASIODeviceType::ScanNewDevice() {
     constexpr auto MAX_PATH_LEN = 256;
 
-	std::vector<std::wstring> device_name_list;
+	device_list_.clear();
 
 	AsioDrivers drivers;
-
 	const auto num_device = drivers.asioGetNumDev();
 
 	for (auto i = 0; i < num_device; ++i) {

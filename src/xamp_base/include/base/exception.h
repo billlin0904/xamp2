@@ -37,6 +37,8 @@ public:
 
     ~Exception() override = default;
 
+	static std::string GetPlatformErrorMessage(int32_t err);
+
     const char * what() const noexcept override;
 
     virtual Errors GetError() const;

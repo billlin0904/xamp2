@@ -7,16 +7,25 @@ namespace xamp::output_device::win32 {
 
 const ID ExclusiveWasapiDeviceType::Id("089F8446-C980-495B-AC80-5A437A4E73F6");
 
-ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceType() {
-    HrIfFailledThrow(CoCreateInstance(__uuidof(MMDeviceEnumerator),
-		nullptr, 
-		CLSCTX_ALL,
-		__uuidof(IMMDeviceEnumerator),
-		reinterpret_cast<void**>(&enumerator_)));
-    device_list_.push_back(GetDefaultDeviceInfo());
+ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceType() {    
 }
 
-DeviceInfo ExclusiveWasapiDeviceType::GetDefaultDeviceInfo() const {
+void ExclusiveWasapiDeviceType::Initial() {
+	if (!enumerator_) {
+		HrIfFailledThrow(CoCreateInstance(__uuidof(MMDeviceEnumerator),
+			nullptr,
+			CLSCTX_ALL,
+			__uuidof(IMMDeviceEnumerator),
+			reinterpret_cast<void**>(&enumerator_)));
+	}
+}
+
+void ExclusiveWasapiDeviceType::ScanNewDevice() {
+	Initial();
+	device_list_ = GetDeviceInfoList();
+}
+
+DeviceInfo ExclusiveWasapiDeviceType::GetDefaultDeviceInfo() const {	
 	CComPtr<IMMDevice> default_output_device;
 	HrIfFailledThrow(enumerator_->GetDefaultAudioEndpoint(eRender, eConsole, &default_output_device));
 	return helper::GetDeviceInfo(default_output_device, ExclusiveWasapiDeviceType::Id);
@@ -50,10 +59,6 @@ int32_t ExclusiveWasapiDeviceType::GetDeviceCount() const {
 
 DeviceInfo ExclusiveWasapiDeviceType::GetDeviceInfo(int32_t device) const {
 	return device_list_.at(device);
-}
-
-void ExclusiveWasapiDeviceType::ScanNewDevice() {
-	device_list_ = GetDeviceInfoList();
 }
 
 std::vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfoList() const {

@@ -10,15 +10,21 @@ namespace xamp::output_device::win32 {
 const ID SharedWasapiDeviceType::Id = ID("07885EDF-7CCB-4FA6-962D-B66A759978B1");
 
 SharedWasapiDeviceType::SharedWasapiDeviceType() {
-	HrIfFailledThrow(CoCreateInstance(__uuidof(MMDeviceEnumerator),
-		nullptr,
-		CLSCTX_ALL,
-		__uuidof(IMMDeviceEnumerator),
-		reinterpret_cast<void**>(&enumerator_)));
 }
 
 void SharedWasapiDeviceType::ScanNewDevice() {
+	Initial();
 	device_list_ = GetDeviceInfoList();
+}
+
+void SharedWasapiDeviceType::Initial() {
+	if (!enumerator_) {
+		HrIfFailledThrow(CoCreateInstance(__uuidof(MMDeviceEnumerator),
+			nullptr,
+			CLSCTX_ALL,
+			__uuidof(IMMDeviceEnumerator),
+			reinterpret_cast<void**>(&enumerator_)));
+	}
 }
 
 CComPtr<IMMDevice> SharedWasapiDeviceType::GetDeviceById(const std::wstring& device_id) const {

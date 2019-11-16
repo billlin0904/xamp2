@@ -41,6 +41,8 @@ public:
 	AlignPtr<Device> MakeDevice(const std::wstring& device_id) override;
 
 private:
+	void Initial();
+
 	CComPtr<IMMDevice> GetDeviceById(const std::wstring& device_id) const;
 
 	std::vector<DeviceInfo> GetDeviceInfoList() const;

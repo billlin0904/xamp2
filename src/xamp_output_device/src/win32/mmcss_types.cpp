@@ -4,6 +4,7 @@
 #include <base/windows_handle.h>
 #include <avrt.h>
 
+#include <base/logger.h>
 #include <output_device/win32/mmcss_types.h>
 
 namespace xamp::output_device::win32 {
@@ -48,6 +49,9 @@ public:
 		auto last_error = ::GetLastError();
 		if (avrt_handle_ != nullptr && last_error == ERROR_SUCCESS) {
 			AvrtLib::Instance().AvSetMmThreadPriority(avrt_handle_, AVRT_PRIORITY_HIGH);
+		} else {
+			XAMP_LOG_ERROR("AvSetMmThreadCharacteristicsW return failure! {}",
+				Exception::GetPlatformErrorMessage(last_error));
 		}
 	}
 
@@ -58,6 +62,8 @@ public:
 		DWORD last_error = 0;
 		if (!AvrtLib::Instance().AvRevertMmThreadCharacteristics(avrt_handle_)) {
 			last_error = ::GetLastError();
+			XAMP_LOG_ERROR("AvSetMmThreadCharacteristicsW return failure! {}",
+				Exception::GetPlatformErrorMessage(last_error));
 		}
 		avrt_handle_ = nullptr;
 		avrt_task_index_ = 0;
