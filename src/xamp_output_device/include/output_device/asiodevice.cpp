@@ -24,22 +24,12 @@ using namespace win32;
 #endif
 
 struct AsioCallbackInfo {
-	AsioCallbackInfo()
-		: boost_priority(false)
-		, asioXRun(false)
-		, device(nullptr) {
-	}
-
-    ~AsioCallbackInfo() {
-		// Some asio driver always in system tray.
-    }
-
-	bool boost_priority;
-	bool asioXRun;
-	AlignPtr<AsioDrivers> drivers;
-	ConvertContext data_context;
-	ASIOCallbacks asio_callbacks;
-	AsioDevice* device;
+	bool boost_priority{false};
+	bool asioXRun{ false };
+	AlignPtr<AsioDrivers> drivers{};
+	ConvertContext data_context{};
+	ASIOCallbacks asio_callbacks{};
+	AsioDevice* device{nullptr};
 	std::vector<ASIOBufferInfo> buffer_infos;
 	std::vector<ASIOChannelInfo> channel_infos;
 } callbackInfo;
@@ -326,7 +316,7 @@ int32_t AsioDevice::GetVolume() const {
 }
 
 void AsioDevice::SetVolume(const int32_t volume) const {
-	volume_ = volume;	
+	volume_ = volume;
 }
 
 void AsioDevice::SetMute(const bool mute) const {
@@ -528,6 +518,7 @@ void AsioDevice::CloseStream() {
 }
 
 void AsioDevice::StartStream() {
+	callbackInfo.data_context.cache_volume = 0;
 	callbackInfo.boost_priority = true;
 	callbackInfo.device = this;
 	AsioIfFailedThrow(ASIOStart());

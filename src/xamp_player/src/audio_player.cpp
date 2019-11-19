@@ -244,7 +244,13 @@ int32_t AudioPlayer::GetVolume() const {
 
 bool AudioPlayer::IsMute() const {
     if (device_ != nullptr && device_->IsStreamOpen()) {
+#ifdef ENABLE_ASIO
+		if (device_type_->GetTypeId() == ASIODeviceType::Id) {
+			return is_muted_;
+		}
+#else
         return device_->IsMuted();
+#endif
     }
     return is_muted_;
 }
@@ -362,7 +368,7 @@ void AudioPlayer::CreateBuffer() {
     if (DeviceFactory::Instance().IsPlatformSupportedASIO()) {
         if (dsd_mode_ == DSDModes::DSD_MODE_RAW
                 || DeviceFactory::Instance().IsASIODevice(device_type_id_)) {
-			require_read_sample = MAX_SAMPLERATE;
+			require_read_sample = XAMP_MAX_SAMPLERATE;
 		}
 		else {
 			require_read_sample = device_->GetBufferSize() * 30;

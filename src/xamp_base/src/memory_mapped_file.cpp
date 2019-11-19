@@ -50,7 +50,7 @@ public:
     }
 
     void OpenMappingFile(DWORD protect, DWORD access) {
-        const MappingFileHandle mapping_handle(::CreateFileMappingW(file_.get(), 0, protect, 0, 0, 0));
+        const MappingFileHandle mapping_handle(::CreateFileMapping(file_.get(), 0, protect, 0, 0, nullptr));
         if (mapping_handle) {
             address_.reset(::MapViewOfFile(mapping_handle.get(), access, 0, 0, 0));
         }
@@ -71,7 +71,7 @@ public:
 
 	size_t GetLength() const {
         LARGE_INTEGER li{};
-        ::GetFileSizeEx(file_.get(), &li);
+		::GetFileSizeEx(file_.get(), &li);
         return li.QuadPart;
     }
 private:

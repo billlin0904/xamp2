@@ -68,14 +68,12 @@ struct XAMP_BASE_API ConvertContext {
 	int32_t in_jump{};
 	int32_t out_jump{};
 	float volume_factor{ 1.0 };
-	int32_t cache_volume{};
+	int32_t cache_volume{0};
 	AudioFormat input_format;
 	AudioFormat output_format;
 	std::array<int32_t, XAMP_MAX_CHANNEL> in_offset;
 	std::array<int32_t, XAMP_MAX_CHANNEL> out_offset;
 };
-
-XAMP_ENFORCE_TRIVIAL(ConvertContext)
 
 XAMP_BASE_API ConvertContext MakeConvert(const AudioFormat& in_format, const AudioFormat& out_format, uint32_t convert_size) noexcept;
 

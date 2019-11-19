@@ -35,7 +35,7 @@ enum class Format {
 };
 
 constexpr uint32_t XAMP_MAX_CHANNEL = 2;
-constexpr uint32_t MAX_SAMPLERATE = 192000;
+constexpr uint32_t XAMP_MAX_SAMPLERATE = 192000;
 
 class XAMP_BASE_API AudioFormat final {
 public:

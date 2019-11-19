@@ -78,7 +78,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../xamp_output_device/include/;../xamp_stream/include/;../thirdparty/spdlog/include/</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>XAMP_PALYER_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>XAMP_PALYER_API_EXPORTS;ENABLE_ASIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BrowseInformation>true</BrowseInformation>
     </ClCompile>
     <Link>

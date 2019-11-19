@@ -6,9 +6,6 @@
 
 namespace xamp::output_device::win32 {
 
-constexpr int32_t REFTIMES_PER_MILLISEC = 10000;
-constexpr double REFTIMES_PER_SEC = 10000000;
-
 static void SetWaveformatEx(WAVEFORMATEX *input_fromat, const AudioFormat &audio_format, const int32_t valid_bits_samples) noexcept {
 	auto &format = *reinterpret_cast<WAVEFORMATEXTENSIBLE *>(input_fromat);
 
@@ -291,6 +288,9 @@ void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
     }
 
     if (mix_format_ != nullptr) {
+		constexpr int32_t REFTIMES_PER_MILLISEC = 10000;
+		constexpr double REFTIMES_PER_SEC = 10000000;
+
         auto sleep_for_stop = REFTIMES_PER_SEC * frames_per_latency_ / mix_format_->nSamplesPerSec;
 		::Sleep(static_cast<DWORD>(sleep_for_stop / REFTIMES_PER_MILLISEC));
     }    
