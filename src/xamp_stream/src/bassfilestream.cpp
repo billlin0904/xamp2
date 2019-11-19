@@ -143,26 +143,6 @@ struct BassPluginLoadTraits final {
 	}
 };
 
-template <typename T>
-constexpr uint8_t _HIBYTE(T val) {
-    return static_cast<uint8_t>(val >> 8);
-}
-
-template <typename T>
-constexpr uint8_t _LOBYTE(T val) {
-    return static_cast<uint8_t>(val);
-}
-
-template <typename T>
-constexpr uint32_t _HIWORD(T val) {
-    return static_cast<uint32_t>(uint16_t(val) >> 16);
-}
-
-template <typename T>
-constexpr uint32_t _LOWORD(T val) {
-    return static_cast<uint16_t>(val);
-}
-
 using BassStreamHandle = UniqueHandle<HSTREAM, BassStreamTraits>;
 using BassPluginHandle = UniqueHandle<HPLUGIN, BassPluginLoadTraits>;
 
@@ -183,7 +163,7 @@ public:
 		}		
 	}
 
-	bool IsLoaded() const {
+	bool IsLoaded() const noexcept {
 		return !plugins_.empty();
 	}
 
@@ -193,6 +173,8 @@ public:
 		// Disable Media Foundation
 		BassLib::Instance().BASS_SetConfig(BASS_CONFIG_MF_DISABLE, true);
 		LoadPlugin("bass_aac.dll");
+#else
+		LoadPlugin("bass_aac.dylib");
 #endif		
 	}
 
@@ -207,10 +189,10 @@ private:
 		}
 
 		const auto info = BassLib::Instance().BASS_PluginGetInfo(plugin.get());
-        const int major_version(_HIBYTE(_HIWORD(info->version)));
-        const int minor_version(_LOBYTE(_HIWORD(info->version)));
-        const int micro_version(_HIBYTE(_LOWORD(info->version)));
-        const int build_version(_LOBYTE(_LOWORD(info->version)));
+        const int major_version(HiByte(HiWord(info->version)));
+        const int minor_version(LowByte(HiWord(info->version)));
+        const int micro_version(HiByte(LoWord(info->version)));
+        const int build_version(LowByte(LoWord(info->version)));
 
 		std::ostringstream ostr;
         ostr << major_version << "."
@@ -290,7 +272,7 @@ public:
 				file_.GetLength(),
 				flags | BASS_STREAM_DECODE,
 				0));	
-            PrefetchMemory(file_.GetData(), file_.GetLength());
+			PrefetchMemory(file_.GetData(), file_.GetLength());
 		}
 		
 		if (!stream_) {
@@ -436,7 +418,7 @@ int32_t BassFileStream::GetSamples(void *buffer, int32_t length) const noexcept 
 	return stream_->GetSamples(buffer, length);
 }
 
-std::string BassFileStream::GetStreamName() const noexcept {
+std::string_view BassFileStream::GetDescription() const noexcept {
     return "BASS";
 }
 

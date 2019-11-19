@@ -154,7 +154,8 @@ void Xamp::initialDeviceList() {
             return;
         }
 
-        menu->addAction(createTextSeparator(QString::fromStdWString(device_type->GetName())));
+		auto desc = device_type->GetDescription();
+		menu->addAction(createTextSeparator(QLatin1String{ desc.data(), (int)desc.length() }));
 
         for (const auto& device_info : device_info_list) {
             auto device_action = new QAction(QString::fromStdWString(device_info.name), this);

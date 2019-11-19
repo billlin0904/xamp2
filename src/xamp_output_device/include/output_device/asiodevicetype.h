@@ -23,7 +23,7 @@ public:
 
     virtual ~ASIODeviceType() = default;
 
-    std::wstring GetName() const override;    
+	std::string_view GetDescription() const override;
 
 	const ID& GetTypeId() const override;
 

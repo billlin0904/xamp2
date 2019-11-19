@@ -23,7 +23,7 @@ public:
 
     void ScanNewDevice() override;
 
-    std::wstring GetName() const override;
+    std::wstring GetDescription() const override;
 
     const ID &GetTypeId() const override;
 

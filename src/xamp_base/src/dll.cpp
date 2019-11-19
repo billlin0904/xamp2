@@ -4,7 +4,7 @@ namespace xamp::base {
 
 #ifdef _WIN32
 ModuleHandle LoadDll(std::string_view name) {
-	auto module = LoadLibraryA(name.data());
+	auto module = ::LoadLibraryA(name.data());
 	if (!module) {
 		throw LoadDllFailureException();
 	}

@@ -79,6 +79,12 @@
 # define XAMP_NO_DEFAULT assert(0)
 #endif
 
+#ifdef _WIN32
+#define XAMP_CACHE_ALIGNED(CacheLineSize) __declspec(align(CacheLineSize))
+#else
+#define XAMP_CACHE_ALIGNED(CacheLineSize) __attribute__((aligned(CacheLineSize)))
+#endif
+
 // Avoid cache-pollution padding size
 #define XAMP_CACHE_ALIGN_SIZE 64
 

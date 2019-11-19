@@ -5,7 +5,10 @@
 #include <output_device/osx/coreaudiodevicetype.h>
 #endif
 
+#if ENABLE_ASIO
 #include <output_device/asiodevicetype.h>
+#endif
+
 #include <output_device/devicefactory.h>
 
 namespace xamp::output_device {

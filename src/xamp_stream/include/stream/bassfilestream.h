@@ -38,7 +38,7 @@ public:
 
 	void Seek(double stream_time) const override;
 
-    std::string GetStreamName() const noexcept override;
+	std::string_view GetDescription() const noexcept override;
 
 	int32_t GetSampleSize() const noexcept override;
 

@@ -11,6 +11,26 @@
 
 namespace xamp::base {
 
+template <typename T>
+constexpr uint8_t HiByte(T val) noexcept {
+    return static_cast<uint8_t>(val >> 8);
+}
+
+template <typename T>
+constexpr uint8_t LowByte(T val) noexcept {
+    return static_cast<uint8_t>(val);
+}
+
+template <typename T>
+constexpr uint32_t HiWord(T val) noexcept {
+    return static_cast<uint32_t>(uint16_t(val) >> 16);
+}
+
+template <typename T>
+constexpr uint32_t LoWord(T val) noexcept {
+    return static_cast<uint16_t>(val);
+}
+
 XAMP_BASE_API size_t GetPageSize() noexcept;
 
 XAMP_BASE_API size_t GetPageAlignSize(size_t value) noexcept;

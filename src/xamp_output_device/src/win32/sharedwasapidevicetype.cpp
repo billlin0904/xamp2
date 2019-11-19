@@ -45,8 +45,8 @@ const ID& SharedWasapiDeviceType::GetTypeId() const {
 	return Id;
 }
 
-std::wstring SharedWasapiDeviceType::GetName() const {
-	return L"WASAPI (Shared)";
+std::string_view SharedWasapiDeviceType::GetDescription() const {
+	return "WASAPI (Shared)";
 }
 
 int32_t SharedWasapiDeviceType::GetDeviceCount() const {

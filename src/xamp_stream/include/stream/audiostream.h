@@ -28,7 +28,7 @@ public:
 
     virtual void Seek(double stream_time) const = 0;
 
-    virtual std::string GetStreamName() const noexcept = 0;
+    virtual std::string_view GetDescription() const noexcept = 0;
 	
 	virtual int32_t GetSampleSize() const noexcept = 0;
 protected:

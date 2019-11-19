@@ -1,3 +1,6 @@
+#include <filesystem>
+
+#include <base/str_utilts.h>
 #include <base/logger.h>
 #include <base/vmmemlock.h>
 #include <base/unicode.h>
@@ -93,7 +96,7 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, const DeviceInfo& de
 			if (auto dsd_stream = dynamic_cast<DSDStream*>(stream_.get())) {
 				supportDSDFile = true;
 			}
-		}		
+		}
 		if (!supportDSDFile) {
 			stream_ = MakeAlign<AudioStream, BassFileStream>();
 		}
@@ -110,14 +113,19 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, const DeviceInfo& de
         }
     }
     else {
-		stream_ = MakeAlign<AudioStream, AvFileStream>();
+		std::filesystem::path path(file_path);
+		if (ToLower(path.extension().string()) != ".m4a") {
+			stream_ = MakeAlign<AudioStream, AvFileStream>();
+		} else {
+			stream_ = MakeAlign<AudioStream, BassFileStream>();
+		}
     }
 #else
     if (!stream_) {
         stream_ = MakeAlign<FileStream, BassFileStream>();
     }
 #endif
-    XAMP_LOG_DEBUG("Use stream type: {}", stream_->GetStreamName());
+    XAMP_LOG_DEBUG("Use stream type: {}", stream_->GetDescription());
 
 	if (auto file_stream = dynamic_cast<FileStream*>(stream_.get())) {
 		file_stream->OpenFromFile(file_path);
@@ -484,7 +492,8 @@ void AudioPlayer::PlayStream() {
 	Play();
 
     stream_task_ = std::async(std::launch::async, [](std::weak_ptr<AudioPlayer> player) {         
-         if (auto p = player.lock()) {
+         if (auto shared_this = player.lock()) {
+			auto p = shared_this.get();
             std::unique_lock<std::mutex> lock{ p->pause_mutex_ };
 
             auto max_read_sample = p->num_read_sample_;
@@ -516,6 +525,8 @@ void AudioPlayer::PlayStream() {
                     }
                 }
             }
+
+			p->stream_->Close();
         }
 
         XAMP_LOG_DEBUG("Stream thread finished!");

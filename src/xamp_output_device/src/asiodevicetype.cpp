@@ -20,8 +20,8 @@ const ID ASIODeviceType::Id("0B3FF8BC-5BFD-4A08-8066-95974FB11BB5");
 ASIODeviceType::ASIODeviceType() {
 }
 
-std::wstring ASIODeviceType::GetName() const {
-	return L"ASIO";
+std::string_view ASIODeviceType::GetDescription() const {
+	return "ASIO";
 }
 
 const ID& ASIODeviceType::GetTypeId() const {

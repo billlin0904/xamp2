@@ -45,8 +45,8 @@ AlignPtr<Device> ExclusiveWasapiDeviceType::MakeDevice(const std::wstring& devic
 	return MakeAlign<Device, ExclusiveWasapiDevice>(GetDeviceById(device_id));
 }
 
-std::wstring ExclusiveWasapiDeviceType::GetName() const {
-	return L"WASAPI (Exclusive)";
+std::string_view ExclusiveWasapiDeviceType::GetDescription() const {
+	return "WASAPI (Exclusive)";
 }
 
 const ID& ExclusiveWasapiDeviceType::GetTypeId() const {

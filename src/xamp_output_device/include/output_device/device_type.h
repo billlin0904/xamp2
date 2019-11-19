@@ -28,7 +28,7 @@ public:
 
 	virtual void ScanNewDevice() = 0;
 
-	virtual std::wstring GetName() const = 0;
+	virtual std::string_view GetDescription() const = 0;
 
 	virtual const ID& GetTypeId() const = 0;
 

@@ -26,8 +26,6 @@ public:
 
     ID() noexcept;
 
-    ~ID() noexcept = default;
-
 	explicit ID(const std::array<uint8_t, XAMP_ID_MAX_SIZE> &bytes) noexcept;
 
 	explicit ID(const std::string_view &from_string);
