@@ -38,7 +38,7 @@ static XAMP_ALWAYS_INLINE long GetLatencyMs(long latency, long sampleRate) noexc
 	return (long((latency * 1000) / sampleRate));
 }
 
-static const int32_t MAX_CLOCK_SOURCE_SIZE = 32;
+constexpr int32_t MAX_CLOCK_SOURCE_SIZE = 32;
 
 AsioDevice::AsioDevice(const std::string& device_id)
 	: is_removed_driver_(true)

@@ -57,9 +57,13 @@ std::vector<DeviceInfo> SharedWasapiDeviceType::GetDeviceInfo() const {
 	return device_list_;
 }
 
-DeviceInfo SharedWasapiDeviceType::GetDefaultDeviceInfo() const {
+std::optional<DeviceInfo> SharedWasapiDeviceType::GetDefaultDeviceInfo() const {
 	CComPtr<IMMDevice> default_output_device;
-	HrIfFailledThrow(enumerator_->GetDefaultAudioEndpoint(eRender, eConsole, &default_output_device));
+	auto hr = enumerator_->GetDefaultAudioEndpoint(eRender, eConsole, &default_output_device);
+	HrIfFailledThrow2(hr, ERROR_NOT_FOUND);
+	if (hr == ERROR_NOT_FOUND) {
+		return std::nullopt;
+	}
 	return helper::GetDeviceInfo(default_output_device, SharedWasapiDeviceType::Id);
 }
 
@@ -73,7 +77,7 @@ std::vector<DeviceInfo> SharedWasapiDeviceType::GetDeviceInfoList() const {
 	std::vector<DeviceInfo> device_list;
 	device_list.reserve(count);
 
-	auto const default_device_info = GetDefaultDeviceInfo();
+	const auto default_device_info = GetDefaultDeviceInfo();
 
 	for (UINT i = 0; i < count; ++i) {
 		CComPtr<IMMDevice> device;
@@ -83,7 +87,7 @@ std::vector<DeviceInfo> SharedWasapiDeviceType::GetDeviceInfoList() const {
 		try {
 			auto info = helper::GetDeviceInfo(device, SharedWasapiDeviceType::Id);
 
-			if (default_device_info.name == info.name) {
+			if (default_device_info.value().name == info.name) {
 				info.is_default_device = true;
 			}
 			device_list.emplace_back(info);

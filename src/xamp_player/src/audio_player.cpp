@@ -91,13 +91,13 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, const DeviceInfo& de
 
 #ifdef ENABLE_FFMPEG
     if (is_dsd_stream) {
-		auto supportDSDFile = false;
+		auto is_support_dsd_file = false;
 		if (stream_ != nullptr) {
 			if (auto dsd_stream = dynamic_cast<DSDStream*>(stream_.get())) {
-				supportDSDFile = true;
+				is_support_dsd_file = true;
 			}
 		}
-		if (!supportDSDFile) {
+		if (!is_support_dsd_file) {
 			stream_ = MakeAlign<AudioStream, BassFileStream>();
 		}
         if (auto dsd_stream = dynamic_cast<DSDStream*>(stream_.get())) {
@@ -113,8 +113,10 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, const DeviceInfo& de
         }
     }
     else {
+		constexpr std::string_view MEDIA_FILE_AAC_ENCODE_FILE_EXT{ ".m4a" };
+
 		std::filesystem::path path(file_path);
-		if (ToLower(path.extension().string()) != ".m4a") {
+		if (ToLower(path.extension().string()) != MEDIA_FILE_AAC_ENCODE_FILE_EXT) {
 			stream_ = MakeAlign<AudioStream, AvFileStream>();
 		} else {
 			stream_ = MakeAlign<AudioStream, BassFileStream>();

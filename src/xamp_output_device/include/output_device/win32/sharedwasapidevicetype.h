@@ -31,7 +31,7 @@ public:
 
 	DeviceInfo GetDeviceInfo(int32_t device) const override;
 
-	DeviceInfo GetDefaultDeviceInfo() const override;
+	std::optional<DeviceInfo> GetDefaultDeviceInfo() const override;
 
 	std::vector<DeviceInfo> GetDeviceInfo() const override;
 

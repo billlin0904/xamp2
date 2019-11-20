@@ -8,6 +8,7 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <optional>
 
 #include <base/base.h>
 #include <base/align_ptr.h>
@@ -40,7 +41,7 @@ public:
 
 	virtual std::vector<DeviceInfo> GetDeviceInfo() const = 0;
 
-	virtual DeviceInfo GetDefaultDeviceInfo() const = 0;
+	virtual std::optional<DeviceInfo> GetDefaultDeviceInfo() const = 0;
 protected:
 	DeviceType() = default;
 };

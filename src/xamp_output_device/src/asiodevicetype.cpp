@@ -41,7 +41,10 @@ DeviceInfo ASIODeviceType::GetDeviceInfo(int32_t device) const {
 	throw ASIOException(Errors::XAMP_ERROR_DEVICE_NOT_FOUND);
 }
 
-DeviceInfo ASIODeviceType::GetDefaultDeviceInfo() const {
+std::optional<DeviceInfo> ASIODeviceType::GetDefaultDeviceInfo() const {
+	if (device_list_.empty()) {
+		return std::nullopt;
+	}
 	return GetDeviceInfo(0);
 }
 
