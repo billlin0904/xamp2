@@ -399,11 +399,6 @@ void AsioDevice::OnBufferSwitch(long index) noexcept {
 }
 
 void AsioDevice::OpenStream(const AudioFormat& output_format) {
-#ifdef _WIN32
-	Mmcss::Instance();
-	callbackInfo.boost_priority = true;
-#endif
-
 	ASIODriverInfo asio_driver_info{};
 	asio_driver_info.asioVersion = 2;
 	asio_driver_info.sysRef = ::GetDesktopWindow();
@@ -444,6 +439,11 @@ void AsioDevice::OpenStream(const AudioFormat& output_format) {
 
 	played_bytes_ = 0;
 	is_stopped_ = false;
+
+	Mmcss::Instance();
+	callbackInfo.boost_priority = true;
+	callbackInfo.data_context.cache_volume = 0;
+	callbackInfo.device = this;
 }
 
 void AsioDevice::SetOutputSampleRate(const AudioFormat& output_format) {
@@ -517,10 +517,7 @@ void AsioDevice::CloseStream() {
 	callback_ = nullptr;
 }
 
-void AsioDevice::StartStream() {
-	callbackInfo.data_context.cache_volume = 0;
-	callbackInfo.boost_priority = true;
-	callbackInfo.device = this;
+void AsioDevice::StartStream() {	
 	AsioIfFailedThrow(ASIOStart());
 	is_streaming_ = true;
 	is_stop_streaming_ = false;

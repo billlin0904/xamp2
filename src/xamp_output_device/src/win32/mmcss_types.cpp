@@ -43,8 +43,6 @@ public:
 
 	void BoostPriority() {
 		RevertPriority();
-		WinHandle thread(::GetCurrentThread());
-		::SetThreadPriority(thread.get(), THREAD_PRIORITY_HIGHEST);
 		avrt_handle_ = AvrtLib::Instance().AvSetMmThreadCharacteristicsW(L"Pro Audio", &avrt_task_index_);
 		auto last_error = ::GetLastError();
 		if (avrt_handle_ != nullptr && last_error == ERROR_SUCCESS) {
