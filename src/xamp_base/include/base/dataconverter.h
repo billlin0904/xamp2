@@ -32,17 +32,16 @@ public:
 protected:
 	std::array<uint8_t, 3> c3;
 };
-
+#pragma pack(pop)
 
 XAMP_ENFORCE_TRIVIAL(int24_t)
-
-#pragma pack(pop)
 
 XAMP_ALWAYS_INLINE int24_t::int24_t() noexcept {
 	c3.fill(0);
 }
 
-XAMP_ALWAYS_INLINE int24_t::int24_t(float f) noexcept {	
+XAMP_ALWAYS_INLINE int24_t::int24_t(float f) noexcept 
+	: int24_t() {
 	*this = static_cast<int32_t>(f * XAMP_FLOAT_24_SCALER);
 }
 
@@ -62,25 +61,25 @@ XAMP_ALWAYS_INLINE constexpr int32_t int24_t::to_2432int() const noexcept {
 	return int32_t(c3[0] | (c3[1] << 8) | (c3[2] << 16)) << 8;
 }
 
-struct XAMP_BASE_API ConvertContext {
-	ConvertContext();
-	int32_t convert_size{};
+struct XAMP_BASE_API AudioConvertContext {
+	AudioConvertContext();	
 	int32_t in_jump{};
 	int32_t out_jump{};
 	float volume_factor{ 1.0 };
 	int32_t cache_volume{0};
 	AudioFormat input_format;
 	AudioFormat output_format;
-	std::array<int32_t, XAMP_MAX_CHANNEL> in_offset;
-	std::array<int32_t, XAMP_MAX_CHANNEL> out_offset;
+	int64_t convert_size{};
+	std::array<int64_t, XAMP_MAX_CHANNEL> in_offset;
+	std::array<int64_t, XAMP_MAX_CHANNEL> out_offset;
 };
 
-XAMP_BASE_API ConvertContext MakeConvert(const AudioFormat& in_format, const AudioFormat& out_format, uint32_t convert_size) noexcept;
+XAMP_BASE_API AudioConvertContext MakeConvert(const AudioFormat& in_format, const AudioFormat& out_format, int64_t convert_size) noexcept;
 
 template <InterleavedFormat InputFormat, InterleavedFormat OutputFormat>
 struct DataConverter {
 	// INFO: Only for DSD file
-	static XAMP_RESTRICT int8_t* Convert(int8_t* output, const int8_t* input, const ConvertContext& context) noexcept {
+	static XAMP_RESTRICT int8_t* Convert(int8_t* output, const int8_t* input, AudioConvertContext context) noexcept {
 		for (int32_t i = 0; i < context.convert_size; ++i) {
 			output[context.out_offset[0]] = input[context.in_offset[0]];
 			output[context.out_offset[1]] = input[context.in_offset[1]];
@@ -90,17 +89,17 @@ struct DataConverter {
 		return output;
 	}
 
-	static XAMP_RESTRICT int16_t* Convert(int16_t* output, const float* input, const ConvertContext& context) noexcept {
+	static XAMP_RESTRICT int16_t* Convert(int16_t* output, const float* input, AudioConvertContext context) noexcept {
 		for (int32_t i = 0; i < context.convert_size; ++i) {
-			output[context.out_offset[0]] = static_cast<int16_t>(input[context.in_offset[0]] * XAMP_FLOAT_16_SCALER) * context.volume_factor;
-			output[context.out_offset[1]] = static_cast<int16_t>(input[context.in_offset[1]] * XAMP_FLOAT_16_SCALER) * context.volume_factor;
+			output[context.out_offset[0]] = static_cast<int16_t>(input[context.in_offset[0]] * XAMP_FLOAT_16_SCALER * context.volume_factor);
+			output[context.out_offset[1]] = static_cast<int16_t>(input[context.in_offset[1]] * XAMP_FLOAT_16_SCALER * context.volume_factor);
 			input += context.in_jump;
 			output += context.out_jump;
 		}
 		return output;
 	}
 
-	static XAMP_RESTRICT int24_t* Convert(int24_t* output, const float* input, const ConvertContext& context) noexcept {
+	static XAMP_RESTRICT int24_t* Convert(int24_t* output, const float* input, AudioConvertContext context) noexcept {
 		for (int32_t i = 0; i < context.convert_size; ++i) {
 			output[context.out_offset[0]] = static_cast<int32_t>(input[context.in_offset[0]] * XAMP_FLOAT_24_SCALER);
 			output[context.out_offset[1]] = static_cast<int32_t>(input[context.in_offset[1]] * XAMP_FLOAT_24_SCALER);
@@ -110,7 +109,7 @@ struct DataConverter {
 		return output;
 	}
 
-	static XAMP_RESTRICT int32_t* Convert(int32_t* output, const float* input, const ConvertContext& context) noexcept {
+	static XAMP_RESTRICT int32_t* Convert(int32_t* output, const float* input, AudioConvertContext context) noexcept {
 		const auto output_left_offset = context.out_offset[0];
 		const auto output_right_offset = context.out_offset[1];
 
@@ -118,15 +117,15 @@ struct DataConverter {
 		const auto input_right_offset = context.in_offset[1];
 
 		for (int32_t i = 0; i < context.convert_size; ++i) {
-			output[output_left_offset] = static_cast<int32_t>(input[input_left_offset] * XAMP_FLOAT_32_SCALER) * context.volume_factor;
-			output[output_right_offset] = static_cast<int32_t>(input[input_right_offset] * XAMP_FLOAT_32_SCALER) * context.volume_factor;
+			output[output_left_offset] = static_cast<int32_t>(input[input_left_offset] * XAMP_FLOAT_32_SCALER * context.volume_factor);
+			output[output_right_offset] = static_cast<int32_t>(input[input_right_offset] * XAMP_FLOAT_32_SCALER * context.volume_factor);
 			input += context.in_jump;
 			output += context.out_jump;
 		}
 		return output;
 	}
 
-    static XAMP_RESTRICT float* Convert(float* output, const float* input, const ConvertContext& context) noexcept {
+    static XAMP_RESTRICT float* Convert(float* output, const float* input, AudioConvertContext context) noexcept {
         const auto output_left_offset = context.out_offset[0];
         const auto output_right_offset = context.out_offset[1];
 
@@ -145,8 +144,8 @@ struct DataConverter {
 
 template <>
 struct DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEAVED> {
-	static XAMP_RESTRICT int32_t* Convert2432Bit(int32_t* output, const float* input, const ConvertContext& context) noexcept {
-		const auto* end_input = input + context.convert_size * context.input_format.GetChannels();
+	static XAMP_RESTRICT int32_t* Convert2432Bit(int32_t* output, const float* input, AudioConvertContext context) noexcept {
+		const auto* end_input = input + (size_t)context.convert_size * context.input_format.GetChannels();
 
 		// Loop unrolling
 		switch ((end_input - input) % 8) {

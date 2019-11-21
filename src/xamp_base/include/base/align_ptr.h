@@ -27,14 +27,14 @@ XAMP_ALWAYS_INLINE void* _aligned_malloc(size_t size, size_t aligned_size) {
     return p;
 }
 
-XAMP_ALWAYS_INLINE void _aligned_free(void *p) {
+XAMP_ALWAYS_INLINE void _aligned_free(void *p) noexcept {
     free(p);
 }
 #endif
 
 template <typename Type>
 struct XAMP_BASE_API_ONLY_EXPORT AlignedDeleter {
-    void operator()(Type* p) const {
+    void operator()(Type* p) const noexcept {
         _aligned_free(p);
     }
 };

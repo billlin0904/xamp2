@@ -2,13 +2,13 @@
 
 namespace xamp::base {
 
-ConvertContext::ConvertContext() {
+AudioConvertContext::AudioConvertContext() {
 	in_offset.fill(0);
 	out_offset.fill(0);
 }
 
-ConvertContext MakeConvert(const AudioFormat& in_format, const AudioFormat& out_format, uint32_t convert_size) noexcept {
-	ConvertContext context;
+AudioConvertContext MakeConvert(const AudioFormat& in_format, const AudioFormat& out_format, int64_t convert_size) noexcept {
+	AudioConvertContext context;
 
 	context.in_jump = in_format.GetChannels();
 	context.out_jump = out_format.GetChannels();

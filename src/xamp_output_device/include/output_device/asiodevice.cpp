@@ -27,7 +27,7 @@ struct AsioCallbackInfo {
 	bool boost_priority{false};
 	bool asioXRun{ false };
 	AlignPtr<AsioDrivers> drivers{};
-	ConvertContext data_context{};
+	AudioConvertContext data_context{};
 	ASIOCallbacks asio_callbacks{};
 	AsioDevice* device{nullptr};
 	std::vector<ASIOBufferInfo> buffer_infos;
@@ -271,9 +271,9 @@ void AsioDevice::CreateBuffers(const AudioFormat& output_format) {
 	XAMP_LOG_INFO("Native DSD support: {}", IsSupportDSDFormat());
 
 	if (io_format_ == AsioIoFormat::IO_FORMAT_PCM) {
-		int32_t allocate_bytes = buffer_size_ * mix_format_.GetBytesPerSample() * mix_format_.GetChannels();
+		auto allocate_bytes = buffer_size_ * mix_format_.GetBytesPerSample() * mix_format_.GetChannels();
 		callbackInfo.data_context = MakeConvert(input_fomrat, mix_format_, buffer_size_);
-		buffer_bytes_ = buffer_size_ * mix_format_.GetBytesPerSample();
+		buffer_bytes_ = buffer_size_ * (int64_t)mix_format_.GetBytesPerSample();
 		buffer_ = MakeBuffer<int8_t>(allocate_bytes * buffer_size_);
 		device_buffer_ = MakeBuffer<int8_t>(allocate_bytes * buffer_size_);
 	}

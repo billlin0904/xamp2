@@ -28,7 +28,7 @@
 #endif
 #elif defined(_MSC_VER)
 	#define INLINE __forceinline
-    #define RESTRICT
+    #define RESTRICT __declspec(restrict)
 #elif (defined(__BORLANDC__) || defined(__WATCOMC__))
     #define INLINE __inline
     #define RESTRICT
@@ -43,7 +43,7 @@
 //---------------------------------------------------------------------
 // fast copy for different sizes
 //---------------------------------------------------------------------
-static INLINE void memcpy_avx_16(void * RESTRICT dst, const void * RESTRICT src) {
+static INLINE void memcpy_avx_16(void * dst, const void * src) {
 #if 1
 	__m128i m0 = _mm_loadu_si128(((const __m128i*)src) + 0);
 	_mm_storeu_si128(((__m128i*)dst) + 0, m0);
@@ -53,19 +53,19 @@ static INLINE void memcpy_avx_16(void * RESTRICT dst, const void * RESTRICT src)
 #endif
 }
 
-static INLINE void memcpy_avx_32(void * RESTRICT dst, const void * RESTRICT src) {
+static INLINE void memcpy_avx_32(void * dst, const void * src) {
 	__m256i m0 = _mm256_loadu_si256(((const __m256i*)src) + 0);
 	_mm256_storeu_si256(((__m256i*)dst) + 0, m0);
 }
 
-static INLINE void memcpy_avx_64(void * RESTRICT dst, const void * RESTRICT src) {
+static INLINE void memcpy_avx_64(void * dst, const void * src) {
 	__m256i m0 = _mm256_loadu_si256(((const __m256i*)src) + 0);
 	__m256i m1 = _mm256_loadu_si256(((const __m256i*)src) + 1);
 	_mm256_storeu_si256(((__m256i*)dst) + 0, m0);
 	_mm256_storeu_si256(((__m256i*)dst) + 1, m1);
 }
 
-static INLINE void memcpy_avx_128(void * RESTRICT dst, const void * RESTRICT src) {
+static INLINE void memcpy_avx_128(void * dst, const void * src) {
 	__m256i m0 = _mm256_loadu_si256(((const __m256i*)src) + 0);
 	__m256i m1 = _mm256_loadu_si256(((const __m256i*)src) + 1);
 	__m256i m2 = _mm256_loadu_si256(((const __m256i*)src) + 2);
@@ -76,7 +76,7 @@ static INLINE void memcpy_avx_128(void * RESTRICT dst, const void * RESTRICT src
 	_mm256_storeu_si256(((__m256i*)dst) + 3, m3);
 }
 
-static INLINE void memcpy_avx_256(void * RESTRICT dst, const void * RESTRICT src) {
+static INLINE void memcpy_avx_256(void * dst, const void * src) {
 	__m256i m0 = _mm256_loadu_si256(((const __m256i*)src) + 0);
 	__m256i m1 = _mm256_loadu_si256(((const __m256i*)src) + 1);
 	__m256i m2 = _mm256_loadu_si256(((const __m256i*)src) + 2);

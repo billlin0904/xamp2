@@ -99,7 +99,7 @@ static bool GetFlacCover(File* file, std::vector<uint8_t>& buffer) {
         for (const auto &picture : picture_list) {
             if (picture->mimeType() == "image/jpeg") {
                 buffer.resize(picture->data().size());
-                FastMemcpy(buffer.data(), picture->data().data(), static_cast<int32_t>(picture->data().size()));
+                (void)FastMemcpy(buffer.data(), picture->data().data(), picture->data().size());
                 return true;
             }
         }

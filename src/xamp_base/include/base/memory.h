@@ -37,7 +37,7 @@ XAMP_BASE_API size_t GetPageAlignSize(size_t value) noexcept;
 
 XAMP_BASE_API bool PrefetchMemory(void* adddr, size_t length) noexcept;
 
-XAMP_BASE_API XAMP_RESTRICT void* FastMemcpy(void* dest, const void* src, int32_t size) noexcept;
+XAMP_BASE_API XAMP_RESTRICT void* FastMemcpy(void* dest, const void* src, size_t size) noexcept;
 
 XAMP_BASE_API void PrefactchFile(const std::wstring &file_name);
 

@@ -18,6 +18,8 @@
 #endif
 #define XAMP_LIKELY(x) (x)
 #define XAMP_UNLIKELY(x) !(x)
+#pragma warning(disable: 4251)
+#pragma warning(disable: 4275)
 #else
 #define XAMP_BASE_API
 #define XAMP_BASE_API_ONLY_EXPORT

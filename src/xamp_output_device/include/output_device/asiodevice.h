@@ -92,8 +92,8 @@ private:
 	AsioIoFormat io_format_;
 	DSDSampleFormat sample_format_;
 	mutable std::atomic<int32_t> volume_;
-	int32_t buffer_size_;
-	int32_t buffer_bytes_;
+	int64_t buffer_size_;
+	int64_t buffer_bytes_;
 	std::atomic<int64_t> played_bytes_;
 	std::string device_id_;
 	mutable std::mutex mutex_;

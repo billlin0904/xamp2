@@ -78,7 +78,7 @@ private:
 	double stream_time_;
 	WinHandle sample_ready_;
 	std::wstring mmcss_name_;
-	ConvertContext data_convert_;
+	AudioConvertContext data_convert_;
 	MFWORKITEM_KEY sample_raedy_key_;
 	REFERENCE_TIME aligned_period_;
 	CComPtr<IMMDevice> device_;
