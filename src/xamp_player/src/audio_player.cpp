@@ -386,9 +386,7 @@ void AudioPlayer::CreateBuffer() {
 
     auto output_format = input_format;
     if (require_read_sample != num_read_sample_) {
-        auto allocate_size = static_cast<int32_t>(GetPageAlignSize(require_read_sample 
-			* (size_t)stream_->GetSampleSize()))
-            * BUFFER_STREAM_COUNT;
+		auto allocate_size = require_read_sample * stream_->GetSampleSize() * BUFFER_STREAM_COUNT;
         num_buffer_samples_ = allocate_size * 10;
         num_read_sample_ = require_read_sample;
         read_sample_buffer_ = MakeBuffer<int8_t>(allocate_size);
