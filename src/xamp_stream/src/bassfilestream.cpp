@@ -17,6 +17,26 @@ namespace xamp::stream {
 constexpr DWORD BASS_ERROR{ 0xFFFFFFFF };
 constexpr int32_t PCM_SAMPLE_RATE_441 = { 44100 };
 
+template <typename T>
+constexpr uint8_t HiByte(T val) noexcept {
+    return static_cast<uint8_t>(val >> 8);
+}
+
+template <typename T>
+constexpr uint8_t LowByte(T val) noexcept {
+    return static_cast<uint8_t>(val);
+}
+
+template <typename T>
+constexpr uint32_t HiWord(T val) noexcept {
+    return static_cast<uint32_t>(uint16_t(val) >> 16);
+}
+
+template <typename T>
+constexpr uint32_t LoWord(T val) noexcept {
+    return static_cast<uint16_t>(val);
+}
+
 #define BassIfFailedThrow(result) \
 	do {\
 		if (!(result)) {\

@@ -69,15 +69,14 @@ static bool IsOutputDevice(AudioDeviceID id) {
 }
 
 CoreAudioDeviceType::CoreAudioDeviceType() {
-    ScanNewDevice();
 }
 
 void CoreAudioDeviceType::ScanNewDevice() {
     device_list_ = GetDeviceInfo();
 }
 
-std::wstring CoreAudioDeviceType::GetName() const {
-    return L"CoreAudio";
+std::string_view CoreAudioDeviceType::GetDescription() const {
+    return "CoreAudio";
 }
 
 AlignPtr<Device> CoreAudioDeviceType::MakeDevice(const std::wstring &device_id) {
@@ -153,8 +152,10 @@ std::vector<DeviceInfo> CoreAudioDeviceType::GetDeviceInfo() const {
         info.name = GetPropertyName(device_list[i]);
         info.device_id = std::to_wstring(device_list[i]);
         info.device_type_id = Id;
-        if (default_device_info.device_id == info.device_id) {
-            info.is_default_device = true;
+        if (default_device_info) {
+            if (default_device_info.value().device_id == info.device_id) {
+                info.is_default_device = true;
+            }
         }
         device_infos.push_back(info);
     }
@@ -162,7 +163,7 @@ std::vector<DeviceInfo> CoreAudioDeviceType::GetDeviceInfo() const {
     return device_infos;
 }
 
-DeviceInfo CoreAudioDeviceType::GetDefaultDeviceInfo() const {
+std::optional<DeviceInfo> CoreAudioDeviceType::GetDefaultDeviceInfo() const {
     DeviceInfo device_info;
 
     AudioDeviceID id;
@@ -182,9 +183,10 @@ DeviceInfo CoreAudioDeviceType::GetDefaultDeviceInfo() const {
                 &dataSize,
                 &id);
     if (result != noErr) {
-        return device_info;
+        return std::nullopt;
     }
 
+    /*
     auto itr = std::find_if(device_list_.begin(), device_list_.end(), [id](const auto &info) {
         return info.device_id == std::to_wstring(id);
     });
@@ -193,9 +195,15 @@ DeviceInfo CoreAudioDeviceType::GetDefaultDeviceInfo() const {
         device_info.device_id = std::to_wstring(id);
         device_info.device_type_id = Id;
         device_info.is_default_device = true;
-        return device_info;
+        return std::move(device_info);
     }
-    return device_info;
+    return std::nullopt;
+    */
+    device_info.name = GetPropertyName(id);
+    device_info.device_id = std::to_wstring(id);
+    device_info.device_type_id = Id;
+    device_info.is_default_device = true;
+    return std::move(device_info);
 }
 
 }

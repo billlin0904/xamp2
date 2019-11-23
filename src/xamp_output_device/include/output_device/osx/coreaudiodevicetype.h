@@ -23,7 +23,7 @@ public:
 
     void ScanNewDevice() override;
 
-    std::wstring GetDescription() const override;
+    std::string_view GetDescription() const override;
 
     const ID &GetTypeId() const override;
 
@@ -35,7 +35,7 @@ public:
 
     std::vector<DeviceInfo> GetDeviceInfo() const override;
 
-    DeviceInfo GetDefaultDeviceInfo() const override;
+    std::optional<DeviceInfo> GetDefaultDeviceInfo() const override;
 private:
     std::vector<DeviceInfo> device_list_;
 };
