@@ -35,7 +35,7 @@ void PlyalistPage::initial() {
 	cover_ = new QLabel(this);
 	cover_->setObjectName(QString::fromUtf8("label"));
 	cover_->setMinimumSize(QSize(150, 150));
-	cover_->setMaximumSize(QSize(150, 150));
+	cover_->setMaximumSize(QSize(200, 150));
 
 	left_space_layout->addWidget(cover_);
 

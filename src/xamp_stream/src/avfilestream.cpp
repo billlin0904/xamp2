@@ -477,10 +477,6 @@ int32_t AvFileStream::GetSampleSize() const noexcept {
 	return impl_->GetSampleSize();
 }
 
-bool AvFileStream::IsDSDFile() const noexcept {
-	return false;
-}
-
 }
 
 #endif

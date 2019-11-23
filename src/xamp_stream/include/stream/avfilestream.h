@@ -40,8 +40,6 @@ public:
 	std::string_view GetDescription() const noexcept override;
 
 	int32_t GetSampleSize() const noexcept override;
-
-	bool IsDSDFile() const noexcept override;
 private:
 	class AvFileStreamImpl;
 	AlignPtr<AvFileStreamImpl> impl_;

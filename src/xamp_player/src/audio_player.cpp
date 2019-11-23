@@ -131,9 +131,11 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, const DeviceInfo& de
 
 	if (auto file_stream = dynamic_cast<FileStream*>(stream_.get())) {
 		file_stream->OpenFromFile(file_path);
-		if (auto dsd_stream = dynamic_cast<DSDStream*>(stream_.get())) {
-			XAMP_LOG_DEBUG("DSD samplerate: {}", dsd_stream->GetDSDSampleRate());
-		}
+		if (is_dsd_stream) {
+			if (auto dsd_stream = dynamic_cast<DSDStream*>(stream_.get())) {
+				XAMP_LOG_DEBUG("DSD samplerate: {}", dsd_stream->GetDSDSampleRate());
+			}
+		}		
 	}
 }
 
@@ -303,7 +305,9 @@ std::optional<int32_t> AudioPlayer::GetDSDSpeed() const {
     }
 
     if (auto dsd_stream = dynamic_cast<DSDStream*>(stream_.get())) {
-        return dsd_stream->GetDSDSpeed();
+		if (dsd_stream->IsDSDFile()) {
+			return dsd_stream->GetDSDSpeed();
+		}
     }
     return std::nullopt;
 }
@@ -444,8 +448,8 @@ void AudioPlayer::BufferStream() {
 
 bool AudioPlayer::ProcessSamples(int32_t num_samples) noexcept {
 	if (auto file_stream = dynamic_cast<FileStream*>(stream_.get())) {
-		if (file_stream->IsDSDFile()) {
-			if (auto dsd_stream = dynamic_cast<DSDStream*>(file_stream)) {
+		if (auto dsd_stream = dynamic_cast<DSDStream*>(file_stream)) {
+			if (dsd_stream->IsDSDFile()) {
 				if (dsd_stream->GetDSDMode() == DSDModes::DSD_MODE_RAW) {
 					return buffer_.TryWrite(read_sample_buffer_.get(), num_samples);
 				}
