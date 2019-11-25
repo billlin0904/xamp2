@@ -292,11 +292,9 @@ void AudioPlayer::Initial() {
                 }
             }
         });
+		DeviceFactory::Instance().RegisterDeviceListener(shared_from_this());
     }
-
-    buffer_.Clear();
-	
-	DeviceFactory::Instance().RegisterDeviceListener(shared_from_this());
+    buffer_.Clear();	
 }
 
 std::optional<int32_t> AudioPlayer::GetDSDSpeed() const {

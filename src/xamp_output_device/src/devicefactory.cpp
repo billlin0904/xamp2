@@ -86,14 +86,12 @@ bool DeviceFactory::IsASIODevice(const ID id) {
 }
 
 void DeviceFactory::RegisterDeviceListener(std::weak_ptr<DeviceStateListener> callback) {
-	if (!notification_) {
 #ifdef _WIN32
-		notification_ = new win32::DeviceStateNotification(callback);
+	notification_ = new win32::DeviceStateNotification(callback);
 #else
-        notification_ = MakeAlign<osx::DeviceStateNotification>(callback);
+	notification_ = MakeAlign<osx::DeviceStateNotification>(callback);
 #endif
-        notification_->Run();
-	}
+	notification_->Run();
 }
 
 }
