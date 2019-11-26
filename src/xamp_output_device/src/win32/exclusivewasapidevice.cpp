@@ -186,7 +186,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 
     // Enable MCSS
 	DWORD task_id = 0;
-	queue_id_ = MF_MULTITHREADED_WORKQUEUE;
+	queue_id_ = 0;
 	HrIfFailledThrow(::MFLockSharedWorkQueue(mmcss_name_.c_str(),
 		(LONG)thread_priority_,
 		&task_id,
