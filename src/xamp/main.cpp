@@ -1,5 +1,3 @@
-#include "xamp.h"
-
 #include <base/logger.h>
 #include <player/audio_player.h>
 #include <widget/qdebugsink.h>
@@ -7,6 +5,8 @@
 #include <widget/database.h>
 
 #include <QtWidgets/QApplication>
+
+#include "xamp.h"
 
 static void loadAndDefaultAppConfig() {
 	AppSettings::settings().loadIniFile(Q_UTF8("xamp.ini"));

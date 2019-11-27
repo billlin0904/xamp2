@@ -68,6 +68,7 @@ Xamp::Xamp(QWidget *parent)
 void Xamp::closeEvent(QCloseEvent*) {
     AppSettings::settings().setValue(APP_SETTING_WIDTH, size().width());
     AppSettings::settings().setValue(APP_SETTING_HEIGHT, size().height());
+	AppSettings::settings().setValue(APP_SETTING_VOLUME, ui.volumeSlider->value());
 
     if (player_ != nullptr) {
         player_->Stop(false, true);
@@ -213,8 +214,7 @@ void Xamp::initialController() {
 
     (void)QObject::connect(ui.mutedButton, &QToolButton::pressed, [this]() {
         if (player_->IsMute()) {
-            player_->SetMute(false);
-            setVolume(AppSettings::settings().getAsInt(APP_SETTING_VOLUME));
+            player_->SetMute(false);            
             ui.mutedButton->setIcon(ThemeManager::pixmap().volumeUp());
         } else {
             player_->SetMute(true);
@@ -273,13 +273,12 @@ void Xamp::initialController() {
     player_->SetVolume(vol);
 
     (void)QObject::connect(ui.volumeSlider, &QSlider::valueChanged, [this](auto volume) {
-        //QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + Q_UTF8("%"));
+        QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + Q_UTF8("%"));
         setVolume(volume);
-        AppSettings::settings().setValue(APP_SETTING_VOLUME, volume);
     });
 
     (void)QObject::connect(ui.volumeSlider, &QSlider::sliderMoved, [](auto volume) {
-        //QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + Q_UTF8("%"));
+        QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + Q_UTF8("%"));
     });
 
     (void)QObject::connect(state_adapter_.get(),

@@ -99,14 +99,20 @@ void FramelessWindow::lazyInitial() {
 
 void FramelessWindow::initialFontDatabase() {
 	const QStringList fallback_fonts{
-#ifndef _WIN32
+#ifdef _WIN32
+		Q_UTF8("Microsoft JhengHei UI"),
+		Q_UTF8("Microsoft JhengHei UI Bold"),
+		Q_UTF8("Microsoft Yahei UI"),
+		Q_UTF8("Microsoft Yahei UI Bold"),
+		Q_UTF8("Segoe UI"),
+		Q_UTF8("Segoe UI Bold"),
+		Q_UTF8("Arial"),
+#else
 		Q_UTF8("SF Pro Text"),
 		Q_UTF8("SF Pro Icons"),
-		Q_UTF8("Helvetica Neue"),		
+		Q_UTF8("Helvetica Neue"),
 		Q_UTF8("Helvetica"),
-#endif
-		Q_UTF8("Microsoft Yahei"),
-		Q_UTF8("Arial"),
+#endif		
 	};
 
 	QFont::insertSubstitutions(Q_UTF8("UI"), fallback_fonts);
