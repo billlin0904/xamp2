@@ -109,6 +109,7 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, const DeviceInfo& de
             }
 #else
 			dsd_stream->SetDSDMode(DSDModes::DSD_MODE_DOP);
+            XAMP_LOG_DEBUG("Use DOP mode");
 #endif
         }
     }
@@ -379,7 +380,7 @@ void AudioPlayer::CreateBuffer() {
 		}
 	}
 	else {
-		require_read_sample = device_->GetBufferSize() * 30;
+        require_read_sample = device_->GetBufferSize() * 30;
 	}
 
     auto output_format = input_format;
@@ -397,6 +398,8 @@ void AudioPlayer::CreateBuffer() {
         buffer_.Resize(num_buffer_samples_);
         vmlock_.Lock(buffer_.GetData(), buffer_.GetSize());
     }
+
+    XAMP_LOG_DEBUG("Output device format: {}", output_format);
 }
 
 void AudioPlayer::SetDeviceFormat() {
