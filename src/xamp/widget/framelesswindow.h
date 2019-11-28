@@ -29,7 +29,7 @@ public:
 
     virtual void addDropFileItem(const QUrl& url);
 
-    virtual void onDeleteKeyPress();
+    virtual void deleteKeyPress();
 
 	void setTaskbarProgress(double percent);
 

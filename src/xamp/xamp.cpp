@@ -66,6 +66,7 @@ Xamp::Xamp(QWidget *parent)
 }
 
 void Xamp::closeEvent(QCloseEvent*) {
+	AppSettings::settings().setValue(APP_SETTING_VOLUME, player_->GetVolume());
     AppSettings::settings().setValue(APP_SETTING_WIDTH, size().width());
     AppSettings::settings().setValue(APP_SETTING_HEIGHT, size().height());
 
@@ -102,6 +103,13 @@ void Xamp::initialUI() {
                                     Qt::AlignCenter,
                                     AppSettings::settings().getSizeValue(APP_SETTING_WIDTH, APP_SETTING_HEIGHT),
                                     qApp->desktop()->availableGeometry()));
+
+	auto f = font();
+	f.setPointSize(10);
+	ui.titleLabel->setFont(f);
+	f.setPointSize(8);
+	ui.artistLabel->setFont(f);
+
 #ifdef Q_OS_MAC
     ui.closeButton->hide();
     ui.maxWinButton->hide();
@@ -273,13 +281,12 @@ void Xamp::initialController() {
     player_->SetVolume(vol);
 
     (void)QObject::connect(ui.volumeSlider, &QSlider::valueChanged, [this](auto volume) {
-        //QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + Q_UTF8("%"));
-        setVolume(volume);
-        AppSettings::settings().setValue(APP_SETTING_VOLUME, volume);
+        QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + Q_UTF8("%"));
+        setVolume(volume);		
     });
 
     (void)QObject::connect(ui.volumeSlider, &QSlider::sliderMoved, [](auto volume) {
-        //QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + Q_UTF8("%"));
+        QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + Q_UTF8("%"));
     });
 
     (void)QObject::connect(state_adapter_.get(),
@@ -407,6 +414,7 @@ void Xamp::setVolume(int32_t volume) {
         player_->SetMute(true);
         ui.mutedButton->setIcon(ThemeManager::pixmap().volumeOff());
     }
+
     try {
         player_->SetVolume(volume);
     }
@@ -432,7 +440,7 @@ void Xamp::playPreviousClicked() {
     playNextItem(-1);
 }
 
-void Xamp::onDeleteKeyPress() {
+void Xamp::deleteKeyPress() {
     if (!ui.currentView->count()) {
         return;
     }

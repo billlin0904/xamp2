@@ -94,7 +94,7 @@ private:
 
 	void setPlayerOrder();
 
-	void onDeleteKeyPress() override;
+	void deleteKeyPress() override;
 
 	PlyalistPage* newPlaylist(int32_t playlist_id);
 

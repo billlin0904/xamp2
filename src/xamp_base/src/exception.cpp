@@ -6,7 +6,7 @@ namespace xamp::base {
 std::ostream& operator<<(std::ostream& ostr, Errors error) {
 	switch (error) {
 	case Errors::XAMP_ERROR_SUCCESS:
-		ostr << "Unknown error.";
+		ostr << "Success.";
 		break;
 	case Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR:
 		ostr << "Platform spec error.";

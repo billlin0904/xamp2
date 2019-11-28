@@ -14,6 +14,7 @@
 #include <widget/win32/blur_effect_helper.h>
 #endif
 
+#include "widget/qtoucheventfilter.h"
 #include "widget/str_utilts.h"
 #include "widget/framelesswindow.h"
 
@@ -43,6 +44,7 @@ FramelessWindow::FramelessWindow(QWidget* parent)
         font-family: "UI";
 		background: transparent;
     )"));
+	installEventFilter(new QTouchEventFilter);
 #else
     setStyleSheet(Q_UTF8(R"(
         font-family: "UI";
@@ -99,14 +101,17 @@ void FramelessWindow::lazyInitial() {
 
 void FramelessWindow::initialFontDatabase() {
 	const QStringList fallback_fonts{
-#ifndef _WIN32
+#ifdef _WIN32
+		Q_UTF8("Segoe UI"),
+		Q_UTF8("Microsoft JhengHei UI"),
+		Q_UTF8("Microsoft Yahei UI"),
+		Q_UTF8("Arial"),
+#else
 		Q_UTF8("SF Pro Text"),
 		Q_UTF8("SF Pro Icons"),
-		Q_UTF8("Helvetica Neue"),		
-		Q_UTF8("Helvetica"),
-#endif
-		Q_UTF8("Microsoft Yahei"),
-		Q_UTF8("Arial"),
+		Q_UTF8("Helvetica Neue"),
+		Q_UTF8("Helvetica"),		
+#endif		
 	};
 
 	QFont::insertSubstitutions(Q_UTF8("UI"), fallback_fonts);
@@ -170,7 +175,7 @@ bool FramelessWindow::eventFilter(QObject * object, QEvent * event) {
     if (event->type() == QEvent::KeyPress) {
         const auto key_event = static_cast<QKeyEvent*>(event);
         if (key_event->key() == Qt::Key_Delete) {
-            onDeleteKeyPress();
+            deleteKeyPress();
         }
     }
     return QWidget::eventFilter(object, event);
@@ -325,5 +330,5 @@ void FramelessWindow::showEvent(QShowEvent* event) {
 void FramelessWindow::addDropFileItem(const QUrl&) {
 }
 
-void FramelessWindow::onDeleteKeyPress() {
+void FramelessWindow::deleteKeyPress() {
 }

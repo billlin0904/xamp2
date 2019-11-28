@@ -1,4 +1,6 @@
 #ifdef _WIN32
+
+#include <iomanip>
 #include <system_error>
 #include <output_device/win32/hrexception.h>
 
@@ -19,6 +21,9 @@ HRException::HRException(HRESULT hresult, std::string_view expr)
 	: Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, std::system_category().message(hresult))
 	, hr_(hresult)
 	, expr_(expr) {
+	std::ostringstream ostr;
+	ostr << "Hr code: 0x" << std::hex << hresult;
+	message_ = ostr.str();
 }
 
 HRException::HRException(HRESULT hresult, Errors error)
