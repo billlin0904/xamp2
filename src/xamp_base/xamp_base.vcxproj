@@ -165,9 +165,8 @@
     <ClInclude Include="include\base\memory.h" />
     <ClInclude Include="include\base\metadata.h" />
     <ClInclude Include="include\base\rng.h" />
-    <ClInclude Include="include\base\str_utilts.h" />
     <ClInclude Include="include\base\timer.h" />
-    <ClInclude Include="include\base\unicode.h" />
+    <ClInclude Include="include\base\str_utilts.h" />
     <ClInclude Include="include\base\unique_handle.h" />
     <ClInclude Include="include\base\waitabletimer.h" />
     <ClInclude Include="include\base\windows_handle.h" />
@@ -187,7 +186,7 @@
     <ClCompile Include="src\rng.cpp" />
     <ClCompile Include="src\threadpool.cpp" />
     <ClCompile Include="src\timer.cpp" />
-    <ClCompile Include="src\unicode.cpp" />
+    <ClCompile Include="src\str_utilts.cpp" />
     <ClCompile Include="src\vmmemlock.cpp" />
     <ClCompile Include="src\waitabletimer.cpp" />
   </ItemGroup>

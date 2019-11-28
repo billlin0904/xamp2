@@ -4,7 +4,7 @@
 #include <base/platform_thread.h>
 #include <base/logger.h>
 #include <base/vmmemlock.h>
-#include <base/unicode.h>
+#include <base/str_utilts.h>
 
 #include <output_device/devicefactory.h>
 #include <output_device/asiodevicetype.h>
@@ -18,12 +18,14 @@
 namespace xamp::player {
 
 constexpr int32_t BUFFER_STREAM_COUNT = 10;
-constexpr std::chrono::milliseconds UPDATE_SAMPLE_INTERVAL(100);
+constexpr int32_t PREALLOCATE_BUFFER_SIZE = 64 * 1024 * 1024;
+constexpr std::chrono::milliseconds UPDATE_SAMPLE_INTERVAL(200);
 constexpr std::chrono::seconds WAIT_FOR_STRAEM_STOP_TIME(5);
 constexpr std::chrono::milliseconds SLEEP_OUTPUT_TIME(100);
 
 AudioPlayer::AudioPlayer()
     : AudioPlayer(std::weak_ptr<PlaybackStateAdapter>()) {
+	PrepareAllocate();
 }
 
 AudioPlayer::AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter)
@@ -40,7 +42,7 @@ AudioPlayer::AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter)
 #ifdef _WIN32
     VmMemLock::EnableLockMemPrivilege(true);
 #endif
-	wait_timer_.SetTimeout(SLEEP_OUTPUT_TIME);
+	PrepareAllocate();
 }
 
 AudioPlayer::~AudioPlayer() {
@@ -50,6 +52,12 @@ AudioPlayer::~AudioPlayer() {
 	}
 	catch (...) {
 	}
+}
+
+void AudioPlayer::PrepareAllocate() {
+	wait_timer_.SetTimeout(SLEEP_OUTPUT_TIME);
+	buffer_.Resize(PREALLOCATE_BUFFER_SIZE);
+	vmlock_.Lock(buffer_.GetData(), buffer_.GetSize());
 }
 
 void AudioPlayer::Open(const std::wstring& file_path, bool use_bass_stream, const DeviceInfo& device_info) {
@@ -398,9 +406,10 @@ void AudioPlayer::CreateBuffer() {
         vmlock_.UnLock();
         buffer_.Resize(num_buffer_samples_);
         vmlock_.Lock(buffer_.GetData(), buffer_.GetSize());
+		XAMP_LOG_DEBUG("Buffer too small reallocate");
     }
 
-    XAMP_LOG_DEBUG("Output device format: {}", output_format);
+    XAMP_LOG_DEBUG("Output device format: {} allocate memory size:{}", output_format, buffer_.GetSize());
 }
 
 void AudioPlayer::SetDeviceFormat() {

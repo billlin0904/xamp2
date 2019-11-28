@@ -2,7 +2,7 @@
 #include <locale>
 
 #include <base/bom.h>
-#include <base/unicode.h>
+#include <base/str_utilts.h>
 
 #include "lrcparser.h"
 

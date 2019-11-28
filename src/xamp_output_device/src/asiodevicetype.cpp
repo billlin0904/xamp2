@@ -7,7 +7,7 @@
 #include <iasiodrv.h>
 #endif
 
-#include <base/unicode.h>
+#include <base/str_utilts.h>
 
 #include <output_device/asioexception.h>
 #include <output_device/asiodevice.h>

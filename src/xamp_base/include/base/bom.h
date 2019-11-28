@@ -8,6 +8,7 @@
 #include <fstream>
 #include <locale>
 #include <codecvt>
+#include <array>
 #include <string>
 
 #include <base/base.h>
@@ -39,8 +40,8 @@ XAMP_ALWAYS_INLINE bool IsUtf32Le(const std::wstring &str) noexcept {
         str[0] == 0xFE && str[1] == 0xFF && str[2] == 0x00 && str[3] == 0x00;
 }
 
+#if 0
 XAMP_ALWAYS_INLINE std::locale GetLocaleFromBom(const std::wstring &bom) noexcept {
-#if 0 // For C++11
     if (IsUtf8(bom)) {
         return std::locale(std::locale::empty(),
             new std::codecvt_utf8<wchar_t, 0x10ffff, std::consume_header>);
@@ -54,17 +55,36 @@ XAMP_ALWAYS_INLINE std::locale GetLocaleFromBom(const std::wstring &bom) noexcep
             std::locale::empty(),
             new std::codecvt_utf16<wchar_t, 0x10ffff, le_bom>);
     }
-#endif
     return std::locale();
 }
+#endif
 
-XAMP_ALWAYS_INLINE void ImbueFileFromBom(std::wifstream & file) noexcept {
+XAMP_ALWAYS_INLINE bool TryImbue(std::wifstream& file, std::string_view name) {
+	try {
+		(void)file.imbue(std::locale(name.data()));
+		return true;
+	} catch (const std::exception&) {
+		return false;
+	}
+}
+
+XAMP_ALWAYS_INLINE void ImbueFileFromBom(std::wifstream& file) noexcept {
+	static const std::array<std::string_view, 5> locale_names{
+		"en_US.UTF-8",
+		"zh_TW.UTF-8",
+		"zh_CN.UTF-8",
+		".932",
+		"ja_JP.SJIS",
+	};
+
     std::wstring bom;
-
     if (std::getline(file, bom, L'\r')) {
-		const auto locate = GetLocaleFromBom(bom);
-        (void) file.imbue(locate);
-        file.seekg(0, std::ios::beg);
+		for (auto locale_name : locale_names) {
+			if (TryImbue(file, locale_name)) {
+				file.seekg(0, std::ios::beg);
+				break;
+			}
+		}        
     }
 }
 

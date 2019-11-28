@@ -83,6 +83,8 @@ public:
 	AudioFormat GetStreamFormat() const;
 
 private:
+	void PrepareAllocate();
+
 	void Initial();
 
     void OpenStream(const std::wstring& file_path, const DeviceInfo& device_info, bool use_bass_stream);

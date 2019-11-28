@@ -1,5 +1,6 @@
 #include <utf8.h>
-#include <base/unicode.h>
+
+#include <base/str_utilts.h>
 
 namespace xamp::base {
 

@@ -1,5 +1,5 @@
 #include <base/dll.h>
-#include <base/unicode.h>
+#include <base/str_utilts.h>
 #include <base/platform_thread.h>
 
 #ifdef _WIN32

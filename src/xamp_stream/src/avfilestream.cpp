@@ -23,7 +23,7 @@ extern "C" {
 #include <base/memory_mapped_file.h>
 #include <base/memory.h>
 #include <base/exception.h>
-#include <base/unicode.h>
+#include <base/str_utilts.h>
 #include <base/defer.h>
 #include <base/logger.h>
 

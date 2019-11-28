@@ -6,7 +6,7 @@
 #include <spdlog/sinks/rotating_file_sink.h>
 #include <spdlog/sinks/msvc_sink.h>
 
-#include <base/unicode.h>
+#include <base/str_utilts.h>
 #include <base/logger.h>
 
 namespace xamp::base {
