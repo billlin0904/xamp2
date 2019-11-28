@@ -155,6 +155,7 @@
     <ClInclude Include="include\base\dll.h" />
     <ClInclude Include="include\base\dsdsampleformat.h" />
     <ClInclude Include="include\base\exception.h" />
+    <ClInclude Include="include\base\platform_thread.h" />
     <ClInclude Include="include\base\threadpool.h" />
     <ClInclude Include="include\base\vmmemlock.h" />
     <ClInclude Include="include\base\memory_mapped_file.h" />
@@ -182,6 +183,7 @@
     <ClCompile Include="src\logger.cpp" />
     <ClCompile Include="src\memory.cpp" />
     <ClCompile Include="src\metadata.cpp" />
+    <ClCompile Include="src\platform_thread.cpp" />
     <ClCompile Include="src\rng.cpp" />
     <ClCompile Include="src\threadpool.cpp" />
     <ClCompile Include="src\timer.cpp" />

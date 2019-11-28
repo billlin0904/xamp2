@@ -133,7 +133,7 @@ private:
 
 	bool is_muted_;
 	DSDModes dsd_mode_;
-	PlayerState state_;
+	std::atomic<PlayerState> state_;
 	int32_t volume_;
 	int32_t num_buffer_samples_;
 	int32_t num_read_sample_;

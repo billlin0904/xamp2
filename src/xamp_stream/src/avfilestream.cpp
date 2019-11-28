@@ -253,7 +253,6 @@ public:
 			throw FileNotFoundException();
 		}
 #else
-		PrefactchFile(file_path);
 		auto file_path_ut8 = ToString(file_path);		
 		auto err = avformat_open_input(&format_ctx, file_path_ut8.c_str(), nullptr, nullptr);
 		if (err != 0) {

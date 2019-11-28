@@ -108,8 +108,10 @@ void SharedWasapiDevice::InitialDeviceFormat(const AudioFormat& output_format) {
 
 	mix_format_.Free();
 	HrIfFailledThrow(client_->GetCurrentSharedModeEnginePeriod(&mix_format_, &current_period_in_frame));
+
 	SetWaveformatEx(mix_format_, output_format.GetSampleRate());
 
+	// The pFormat parameter below is optional (Its needed only for MATCH_FORMAT clients).
 	const auto hr = client_->GetSharedModeEnginePeriod(mix_format_,
 		&default_period_in_rame,
 		&fundamental_period_in_frame,
@@ -118,7 +120,7 @@ void SharedWasapiDevice::InitialDeviceFormat(const AudioFormat& output_format) {
 
 	if (hr == AUDCLNT_E_UNSUPPORTED_FORMAT) {
 		throw DeviceUnSupportedFormatException();
-	}
+	}	
 
 	XAMP_LOG_DEBUG("Initital device format fundamental:{}, current:{}, min:{} max:{}",
 		fundamental_period_in_frame,
@@ -144,7 +146,7 @@ void SharedWasapiDevice::OpenStream(const AudioFormat& output_format) {
 
 	if (!client_) {
 		XAMP_LOG_DEBUG("Active device format: {}", output_format);
-
+		
 		HrIfFailledThrow(device_->Activate(__uuidof(IAudioClient3),
 			CLSCTX_ALL,
 			nullptr,

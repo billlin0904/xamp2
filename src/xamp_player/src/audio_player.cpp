@@ -1,6 +1,7 @@
 #include <filesystem>
 
 #include <base/str_utilts.h>
+#include <base/platform_thread.h>
 #include <base/logger.h>
 #include <base/vmmemlock.h>
 #include <base/unicode.h>
@@ -16,10 +17,10 @@
 
 namespace xamp::player {
 
-constexpr int32_t BUFFER_STREAM_COUNT = 20;
+constexpr int32_t BUFFER_STREAM_COUNT = 10;
 constexpr std::chrono::milliseconds UPDATE_SAMPLE_INTERVAL(100);
 constexpr std::chrono::seconds WAIT_FOR_STRAEM_STOP_TIME(5);
-constexpr std::chrono::milliseconds SLEEP_OUTPUT_TIME(500);
+constexpr std::chrono::milliseconds SLEEP_OUTPUT_TIME(100);
 
 AudioPlayer::AudioPlayer()
     : AudioPlayer(std::weak_ptr<PlaybackStateAdapter>()) {
@@ -508,7 +509,9 @@ void AudioPlayer::PlayStream() {
             std::unique_lock<std::mutex> lock{ p->pause_mutex_ };
 
             auto max_read_sample = p->num_read_sample_;
-            auto num_sample_write = max_read_sample * 20;                       
+            auto num_sample_write = max_read_sample * 20;
+
+			PlatformThread::SetThreadName("Streaming thread");
 
             while (p->is_playing_) {
                 while (p->is_paused_) {
@@ -520,7 +523,7 @@ void AudioPlayer::PlayStream() {
                     continue;
                 }
 
-                while (true) {
+                while (p->is_playing_) {
                     const auto num_samples = p->stream_->GetSamples(p->read_sample_buffer_.get(),
 						max_read_sample);
                     if (num_samples > 0) {
