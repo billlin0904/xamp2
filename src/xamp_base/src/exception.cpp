@@ -39,7 +39,7 @@ std::ostream& operator<<(std::ostream& ostr, Errors error) {
 		ostr << "Load dll failure.";
 		break;
     case Errors::XAMP_ERROR_STOP_STREAM_TIMEOUT:
-        ostr << "Stop stream timeout.";
+        ostr << "Stop stream thread timeout.";
         break;
     case Errors::_MAX_XAMP_ERROR_:
         break;

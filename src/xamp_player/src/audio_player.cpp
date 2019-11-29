@@ -175,12 +175,14 @@ void AudioPlayer::Pause() {
     if (!device_) {
         return;
     }
-    XAMP_LOG_DEBUG("Player pasue!");
-    if (device_->IsStreamOpen()) {
-        is_paused_ = true;
-        device_->StopStream();
-        SetState(PlayerState::PLAYER_STATE_PAUSED);
-    }
+	if (!is_paused_) {
+		XAMP_LOG_DEBUG("Player pasue!");
+		if (device_->IsStreamOpen()) {
+			is_paused_ = true;
+			device_->StopStream();
+			SetState(PlayerState::PLAYER_STATE_PAUSED);
+		}
+	}    
 }
 
 void AudioPlayer::Resume() {

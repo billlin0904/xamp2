@@ -8,8 +8,9 @@
 #include <QString>
 #include <QByteArray>
 
-namespace FileTag {
-	QString getTagId(const QByteArray &buffer);
-	QString getTagId(const QString &file_name);
+class FileTag {
+public:
+	static QString getTagId(const QByteArray &buffer);
+	static QString getTagId(const QString &file_name);
 };
 

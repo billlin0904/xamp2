@@ -40,6 +40,7 @@ XAMP_ALWAYS_INLINE bool IsUtf32Le(const std::wstring &str) noexcept {
         str[0] == 0xFE && str[1] == 0xFF && str[2] == 0x00 && str[3] == 0x00;
 }
 
+// C++17 deprecated
 #if 0
 XAMP_ALWAYS_INLINE std::locale GetLocaleFromBom(const std::wstring &bom) noexcept {
     if (IsUtf8(bom)) {
@@ -69,11 +70,10 @@ XAMP_ALWAYS_INLINE bool TryImbue(std::wifstream& file, std::string_view name) {
 }
 
 XAMP_ALWAYS_INLINE void ImbueFileFromBom(std::wifstream& file) noexcept {
-	static const std::array<std::string_view, 5> locale_names{
+	static const std::array<std::string_view, 4> locale_names{
 		"en_US.UTF-8",
 		"zh_TW.UTF-8",
 		"zh_CN.UTF-8",
-		".932",
 		"ja_JP.SJIS",
 	};
 

@@ -24,11 +24,11 @@ public:
 
 	int24_t(float f) noexcept;
 
-	constexpr int24_t& operator=(const int32_t i) noexcept;
+	int24_t& operator=(const int32_t i) noexcept;
 
-	constexpr int24_t& operator=(const float f) noexcept;
+	int24_t& operator=(const float f) noexcept;
 
-	constexpr int32_t to_2432int() const noexcept;
+	int32_t to_2432int() const noexcept;
 protected:
 	std::array<uint8_t, 3> c3;
 };
@@ -37,7 +37,6 @@ protected:
 XAMP_ENFORCE_TRIVIAL(int24_t)
 
 XAMP_ALWAYS_INLINE int24_t::int24_t() noexcept {
-	c3.fill(0);
 }
 
 XAMP_ALWAYS_INLINE int24_t::int24_t(float f) noexcept 
@@ -45,20 +44,25 @@ XAMP_ALWAYS_INLINE int24_t::int24_t(float f) noexcept
 	*this = static_cast<int32_t>(f * XAMP_FLOAT_24_SCALER);
 }
 
-XAMP_ALWAYS_INLINE constexpr int24_t& int24_t::operator=(const float f) noexcept {
+XAMP_ALWAYS_INLINE int24_t& int24_t::operator=(const float f) noexcept {
 	*this = static_cast<int32_t>(f * XAMP_FLOAT_24_SCALER);
 	return *this;
 }
 
-XAMP_ALWAYS_INLINE constexpr int24_t& int24_t::operator=(const int32_t i) noexcept {
-	c3[0] = int8_t(i & 0x000000ff);
-	c3[1] = uint8_t((i & 0x0000ff00) >> 8);
-	c3[2] = uint8_t((i & 0x00ff0000) >> 16);
+XAMP_ALWAYS_INLINE int24_t& int24_t::operator=(const int32_t i) noexcept {
+	c3[0] = ((uint8_t*)&i)[0];
+	c3[1] = ((uint8_t*)&i)[1];
+	c3[2] = ((uint8_t*)&i)[2];
 	return *this;
 }
 
-XAMP_ALWAYS_INLINE constexpr int32_t int24_t::to_2432int() const noexcept {
-	return int32_t(c3[0] | (c3[1] << 8) | (c3[2] << 16)) << 8;
+XAMP_ALWAYS_INLINE int32_t int24_t::to_2432int() const noexcept {
+	int32_t v;
+	((uint8_t*)&v)[0] = 0;
+	((uint8_t*)&v)[0] = c3[0];
+	((uint8_t*)&v)[1] = c3[1];
+	((uint8_t*)&v)[2] = c3[2];
+	return v << 8;
 }
 
 struct XAMP_BASE_API AudioConvertContext {
