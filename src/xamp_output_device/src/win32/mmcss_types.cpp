@@ -43,11 +43,11 @@ public:
 
 	void BoostPriority() {
 		RevertPriority();
-		avrt_handle_ = AvrtLib::Instance().AvSetMmThreadCharacteristicsW(L"Pro Audio", &avrt_task_index_);
-		auto last_error = ::GetLastError();
-		if (avrt_handle_ != nullptr && last_error == ERROR_SUCCESS) {
+		avrt_handle_ = AvrtLib::Instance().AvSetMmThreadCharacteristicsW(L"Pro Audio", &avrt_task_index_);		
+		if (avrt_handle_ != nullptr) {
 			AvrtLib::Instance().AvSetMmThreadPriority(avrt_handle_, AVRT_PRIORITY_HIGH);
 		} else {
+			auto last_error = ::GetLastError();
 			XAMP_LOG_ERROR("AvSetMmThreadCharacteristicsW return failure! {}",
 				Exception::GetPlatformErrorMessage(last_error));
 		}

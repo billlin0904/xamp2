@@ -129,7 +129,7 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
 	} else {
 		XAMP_LOG_DEBUG("Device support RAW mode");
 	}
-	
+
     REFERENCE_TIME default_device_period = 0;
     REFERENCE_TIME minimum_device_period = 0;
     HrIfFailledThrow(client_->GetDevicePeriod(&default_device_period, &minimum_device_period));

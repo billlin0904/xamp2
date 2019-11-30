@@ -200,7 +200,7 @@ public:
 		video_stream_id_ = -1;
 		audio_stream_id_ = -1;
 		duration_ = 0;
-		audio_format_ = AudioFormat::UnknowFormat;
+		audio_format_.Reset();
 #if ENABLE_IO_CONTEXT
 		if (iocontext_.buffer != nullptr) {
 			av_freep(&avio_context_->buffer);
@@ -213,7 +213,6 @@ public:
 #endif
 		swr_context_.reset();
 		audio_context_.reset();
-		video_context_.reset();
 		audio_contex_.reset();
 		format_context_.reset();
 	}
@@ -381,10 +380,12 @@ public:
 	}
 
 	AudioFormat GetFormat() const noexcept {
+		assert(audio_contex_ != nullptr);
 		return audio_format_;
 	}
 
 	double GetDuration() const noexcept {
+		assert(audio_contex_ != nullptr);
 		return duration_;
 	}
 
@@ -393,6 +394,8 @@ public:
 	}
 
 	void Seek(const double stream_time) const {
+		assert(audio_contex_ != nullptr);
+
 		auto timestamp = static_cast<int64_t>(stream_time * AV_TIME_BASE);
 
 		if (format_context_->start_time != AV_NOPTS_VALUE) {
@@ -434,7 +437,6 @@ private:
 	AudioFormat audio_format_;
 	AvPtr<SwrContext> swr_context_;
 	AvPtr<AVFrame> audio_context_;
-	AvPtr<AVCodecContext> video_context_;
 	AvPtr<AVCodecContext> audio_contex_;
 	AvPtr<AVFormatContext> format_context_;
 };

@@ -309,12 +309,13 @@ public:
 	}
 
 	void Close() {
-		stream_.reset();
+		stream_.reset();		
         mode_ = DSDModes::DSD_MODE_PCM;
 		info_ = BASS_CHANNELINFO{};
 	}	
 
 	bool IsDSDFile() const noexcept {
+		assert(stream_.is_valid());
 		return info_.ctype == BASS_CTYPE_STREAM_DSD;
 	}
 
@@ -323,11 +324,13 @@ public:
 	}
 
 	double GetDuration() const {
+		assert(stream_.is_valid());
 		const auto len = BassLib::Instance().BASS_ChannelGetLength(stream_.get(), BASS_POS_BYTE);
 		return BassLib::Instance().BASS_ChannelBytes2Seconds(stream_.get(), len);
 	}
 
 	AudioFormat GetFormat() const {
+		assert(stream_.is_valid());
 		if (mode_ == DSDModes::DSD_MODE_RAW) {
             return AudioFormat(Format::FORMAT_DSD,
 							   info_.chans,
@@ -346,11 +349,13 @@ public:
 	}
 
 	void Seek(double stream_time) const {
+		assert(stream_.is_valid());
 		const auto pos_bytes = BassLib::Instance().BASS_ChannelSeconds2Bytes(stream_.get(), stream_time);
         BassIfFailedThrow(BassLib::Instance().BASS_ChannelSetPosition(stream_.get(), pos_bytes, BASS_POS_BYTE));
 	}
 
     int32_t GetDSDSampleRate() const {
+		assert(stream_.is_valid());
         float rate = 0;
         BassIfFailedThrow(BassLib::Instance().BASS_ChannelGetAttribute(stream_.get(), BASS_ATTRIB_DSD_RATE, &rate));
         return static_cast<int32_t>(rate);
@@ -377,18 +382,22 @@ public:
     }
 
 	int32_t GetSampleSize() const noexcept {
+		assert(stream_.is_valid());
 		return mode_ == DSDModes::DSD_MODE_RAW ? sizeof(int8_t) : sizeof(float);
 	}
 
 	DSDSampleFormat GetDSDSampleFormat() const noexcept {
+		assert(stream_.is_valid());
 		return DSDSampleFormat::DSD_INT8MSB;
 	}
 
 	void SetPCMSampleRate(int32_t samplerate) {
+		assert(stream_.is_valid());
 		BassLib::Instance().BASS_SetConfig(BASS_CONFIG_DSD_FREQ, samplerate);
 	}
 
     int32_t GetDSDSpeed() const {
+		assert(stream_.is_valid());
         return GetDSDSampleRate() / PCM_SAMPLE_RATE_441;
     }
 private:

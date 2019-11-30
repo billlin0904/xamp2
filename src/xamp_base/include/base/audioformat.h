@@ -82,6 +82,8 @@ public:
 
 	InterleavedFormat GetInterleavedFormat() const noexcept;
 
+	void Reset() noexcept;
+
 private:
 	friend bool operator==(const AudioFormat& format, const AudioFormat& other) noexcept;
 
@@ -255,6 +257,10 @@ XAMP_ALWAYS_INLINE bool operator==(const AudioFormat& format, const AudioFormat&
 		&& format.bits_per_sample_ == other.sample_rate_
 		&& format.byte_format_ == other.byte_format_
 		&& format.interleaved_format_ == other.interleaved_format_;
+}
+
+XAMP_ALWAYS_INLINE void AudioFormat::Reset() noexcept {
+	*this = UnknowFormat;
 }
 
 }

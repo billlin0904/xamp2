@@ -17,8 +17,8 @@
 
 namespace xamp::player {
 
-constexpr int32_t BUFFER_STREAM_COUNT = 10;
-constexpr int32_t PREALLOCATE_BUFFER_SIZE = 64 * 1024 * 1024;
+constexpr int32_t BUFFER_STREAM_COUNT = 5;
+constexpr int32_t PREALLOCATE_BUFFER_SIZE = 32 * 1024 * 1024;
 constexpr std::chrono::milliseconds UPDATE_SAMPLE_INTERVAL(200);
 constexpr std::chrono::seconds WAIT_FOR_STRAEM_STOP_TIME(5);
 constexpr std::chrono::milliseconds SLEEP_OUTPUT_TIME(100);
@@ -405,10 +405,10 @@ void AudioPlayer::CreateBuffer() {
 
     output_format_ = output_format;
     if (buffer_.GetSize() == 0 || buffer_.GetSize() < num_buffer_samples_) {
+		XAMP_LOG_DEBUG("Buffer too small reallocate.");
         vmlock_.UnLock();
         buffer_.Resize(num_buffer_samples_);
-        vmlock_.Lock(buffer_.GetData(), buffer_.GetSize());
-		XAMP_LOG_DEBUG("Buffer too small reallocate");
+        vmlock_.Lock(buffer_.GetData(), buffer_.GetSize());		
     }
 
     XAMP_LOG_DEBUG("Output device format: {} allocate memory size:{}", output_format, buffer_.GetSize());

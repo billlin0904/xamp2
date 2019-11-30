@@ -13,9 +13,12 @@
 namespace xamp::base {
 
 // See: http://blog.bjornroche.com/2009/12/int-float-int-its-jungle-out-there.html
-constexpr double XAMP_FLOAT_16_SCALER = double(0x7fffL) + .49999;
-constexpr double XAMP_FLOAT_24_SCALER = double(0x7fffffL) + .49999;
-constexpr double XAMP_FLOAT_32_SCALER = double(0x7fffffffL) + .49999;
+//constexpr double XAMP_FLOAT_16_SCALER = double(0x7fffL) + .49999;
+//constexpr double XAMP_FLOAT_24_SCALER = double(0x7fffffL) + .49999;
+//constexpr double XAMP_FLOAT_32_SCALER = double(0x7fffffffL) + .49999;
+constexpr int32_t XAMP_FLOAT_16_SCALER = 0x8000L;
+constexpr int32_t XAMP_FLOAT_24_SCALER = 0x800000L;
+constexpr int32_t XAMP_FLOAT_32_SCALER = 0x80000000L;
 
 #pragma pack(push, 1)
 class int24_t final {
@@ -67,9 +70,9 @@ XAMP_ALWAYS_INLINE int32_t int24_t::to_2432int() const noexcept {
 
 struct XAMP_BASE_API AudioConvertContext {
 	AudioConvertContext();	
-	int32_t in_jump{};
-	int32_t out_jump{};
-	float volume_factor{ 1.0 };
+	int32_t in_jump{0};
+	int32_t out_jump{0};
+	float volume_factor{1.0};
 	int32_t cache_volume{0};
 	AudioFormat input_format;
 	AudioFormat output_format;
