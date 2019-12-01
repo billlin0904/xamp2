@@ -17,7 +17,7 @@ public:
 
 	XAMP_DISABLE_COPY(PlatformThread);
 
-	static XAMP_BASE_API void SetThreadName(const std::string& name);
+    static XAMP_BASE_API void SetThreadName(const std::string& name);
 };
 
 }

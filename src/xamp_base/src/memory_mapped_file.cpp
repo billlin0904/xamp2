@@ -5,7 +5,7 @@
 #include <base/windows_handle.h>
 #else
 #include <base/posix_handle.h>
-#include <base/unicode.h>
+#include <base/str_utilts.h>
 #endif
 
 #include <base/exception.h>
