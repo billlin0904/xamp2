@@ -18,9 +18,9 @@ enum class AsioIoFormat {
 	IO_FORMAT_PCM
 };
 
-class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE DSDOutputable {
+class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE DSDDevice {
 public:
-    XAMP_BASE_CLASS(DSDOutputable)
+    XAMP_BASE_CLASS(DSDDevice)
 
     virtual bool IsSupportDSDFormat() const = 0;
 
@@ -33,7 +33,8 @@ public:
 	virtual DSDSampleFormat GetSampleFormat() const = 0;
 
 protected:
-    DSDOutputable() = default;
+	DSDDevice() = default;
 };
+
 }
 #endif

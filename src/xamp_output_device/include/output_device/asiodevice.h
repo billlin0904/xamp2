@@ -14,13 +14,13 @@
 
 #include <output_device/audiocallback.h>
 #include <output_device/device.h>
-#include <output_device/dsdoutputable.h>
+#include <output_device/dsddevice.h>
 
 namespace xamp::output_device {
 
 class XAMP_OUTPUT_DEVICE_API AsioDevice final
 	: public Device
-	, public DSDOutputable {
+	, public DSDDevice {
 public:
 	explicit AsioDevice(const std::string& device_id);
 

@@ -157,7 +157,7 @@
     <ClInclude Include="include\output_device\deviceinfo.h" />
     <ClInclude Include="include\output_device\devicestatelistener.h" />
     <ClInclude Include="include\output_device\device_type.h" />
-    <ClInclude Include="include\output_device\dsdoutputable.h" />
+    <ClInclude Include="include\output_device\dsddevice.h" />
     <ClInclude Include="include\output_device\output_device.h" />
     <ClInclude Include="include\output_device\volume.h" />
     <ClInclude Include="include\output_device\win32\exclusivewasapidevice.h" />

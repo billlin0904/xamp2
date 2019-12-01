@@ -8,7 +8,7 @@
 
 #include <output_device/devicefactory.h>
 #include <output_device/asiodevicetype.h>
-#include <output_device/dsdoutputable.h>
+#include <output_device/dsddevice.h>
 
 #include <stream/bassfilestream.h>
 #include <stream/avfilestream.h>
@@ -19,13 +19,14 @@ namespace xamp::player {
 
 constexpr int32_t BUFFER_STREAM_COUNT = 5;
 constexpr int32_t PREALLOCATE_BUFFER_SIZE = 32 * 1024 * 1024;
+constexpr int32_t MAX_WRITE_RATIO = 20;
+constexpr int32_t MAX_READ_RATIO = 30;
 constexpr std::chrono::milliseconds UPDATE_SAMPLE_INTERVAL(200);
 constexpr std::chrono::seconds WAIT_FOR_STRAEM_STOP_TIME(5);
 constexpr std::chrono::milliseconds SLEEP_OUTPUT_TIME(100);
 
 AudioPlayer::AudioPlayer()
     : AudioPlayer(std::weak_ptr<PlaybackStateAdapter>()) {
-	PrepareAllocate();
 }
 
 AudioPlayer::AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter)
@@ -124,8 +125,7 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, const DeviceInfo& de
     }
     else {
 		constexpr std::string_view MEDIA_FILE_AAC_ENCODE_FILE_EXT{ ".m4a" };
-
-		std::filesystem::path path(file_path);
+		const std::filesystem::path path(file_path);
 		if (ToLower(path.extension().string()) != MEDIA_FILE_AAC_ENCODE_FILE_EXT) {
 			stream_ = MakeAlign<AudioStream, AvFileStream>();
 		} else {
@@ -387,11 +387,11 @@ void AudioPlayer::CreateBuffer() {
 			require_read_sample = XAMP_MAX_SAMPLERATE;
 		}
 		else {
-			require_read_sample = device_->GetBufferSize() * 30;
+			require_read_sample = device_->GetBufferSize() * MAX_READ_RATIO;
 		}
 	}
 	else {
-        require_read_sample = device_->GetBufferSize() * 30;
+        require_read_sample = device_->GetBufferSize() * MAX_READ_RATIO;
 	}
 
     auto output_format = input_format;
@@ -449,7 +449,8 @@ void AudioPlayer::BufferStream() {
             if (num_samples == 0) {
                 return;
             }
-            if (!ProcessSamples(num_samples)) {
+            if (!FillSamples(num_samples)) {
+				XAMP_LOG_ERROR("Buffer is full.");
                 continue;
             }
             break;
@@ -457,7 +458,7 @@ void AudioPlayer::BufferStream() {
     }
 }
 
-bool AudioPlayer::ProcessSamples(int32_t num_samples) noexcept {
+bool AudioPlayer::FillSamples(int32_t num_samples) noexcept {
 	if (auto file_stream = dynamic_cast<FileStream*>(stream_.get())) {
 		if (auto dsd_stream = dynamic_cast<DSDStream*>(file_stream)) {
 			if (dsd_stream->IsDSDFile()) {
@@ -467,7 +468,8 @@ bool AudioPlayer::ProcessSamples(int32_t num_samples) noexcept {
 			}
 		}
 	}
-    return buffer_.TryWrite(read_sample_buffer_.get(), num_samples * stream_->GetSampleSize());
+    return buffer_.TryWrite(read_sample_buffer_.get(), 
+		num_samples * stream_->GetSampleSize());
 }
 
 void AudioPlayer::OnError(const Exception& e) noexcept {
@@ -494,7 +496,7 @@ void AudioPlayer::OnDeviceStateChange(DeviceState state, const std::wstring& dev
 
 void AudioPlayer::OpenDevice(double stream_time) {
 #ifdef ENABLE_ASIO
-    if (auto dsd_output = dynamic_cast<DSDOutputable*>(device_.get())) {
+    if (auto dsd_output = dynamic_cast<DSDDevice*>(device_.get())) {
         if (auto dsd_stream = dynamic_cast<DSDStream*>(stream_.get())) {
             if (dsd_stream->GetDSDMode() == DSDModes::DSD_MODE_RAW) {
                 dsd_output->SetIoFormat(AsioIoFormat::IO_FORMAT_DSD);
@@ -520,7 +522,7 @@ void AudioPlayer::PlayStream() {
             std::unique_lock<std::mutex> lock{ p->pause_mutex_ };
 
             auto max_read_sample = p->num_read_sample_;
-            auto num_sample_write = max_read_sample * 20;
+            auto num_sample_write = max_read_sample * MAX_WRITE_RATIO;
 
 			PlatformThread::SetThreadName("Streaming thread");
 
@@ -538,7 +540,7 @@ void AudioPlayer::PlayStream() {
                     const auto num_samples = p->stream_->GetSamples(p->read_sample_buffer_.get(),
 						max_read_sample);
                     if (num_samples > 0) {
-                        if (!p->ProcessSamples(num_samples)) {
+                        if (!p->FillSamples(num_samples)) {
                             XAMP_LOG_DEBUG("Process samples failure!");
                             continue;
                         }

@@ -99,7 +99,7 @@ private:
 
 	void BufferStream();
 
-	bool ProcessSamples(int32_t num_samples) noexcept;
+	bool FillSamples(int32_t num_samples) noexcept;
 
 	int operator()(void* samples, const int32_t num_buffer_frames, const double stream_time) noexcept override;
 

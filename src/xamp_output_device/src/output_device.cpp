@@ -1,10 +1,5 @@
-#include <output_device/devicefactory.h>
-#include <output_device/asiodevicetype.h>
-
 #ifdef _WIN32
 #include <output_device/win32/hrexception.h>
-#include <output_device/win32/sharedwasapidevicetype.h>
-#include <output_device/win32/exclusivewasapidevicetype.h>
 #endif
 
 #include <output_device/output_device.h>
