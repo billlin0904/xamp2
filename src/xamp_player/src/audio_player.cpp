@@ -409,9 +409,10 @@ void AudioPlayer::CreateBuffer() {
         vmlock_.UnLock();
         buffer_.Resize(num_buffer_samples_);
         vmlock_.Lock(buffer_.GetData(), buffer_.GetSize());		
+		XAMP_LOG_DEBUG("Allocate memory size:{}", buffer_.GetSize());
     }
 
-    XAMP_LOG_DEBUG("Output device format: {} allocate memory size:{}", output_format, buffer_.GetSize());
+    XAMP_LOG_DEBUG("Output device format: {}", output_format);
 }
 
 void AudioPlayer::SetDeviceFormat() {
