@@ -646,8 +646,15 @@ void Xamp::play(const QModelIndex&, const PlayListEntity& item) {
 
 void Xamp::setCover(const QPixmap& cover) {
     assert(!cover.isNull());
-    ui.coverLabel->setPixmap(Pixmap::resizeImage(cover, ui.coverLabel->size(), true));
-    playlist_page_->cover()->setPixmap(Pixmap::resizeImage(cover, playlist_page_->cover()->size(), true));
+    ui.coverLabel->setPixmap(Pixmap::resizeImage(cover, ui.coverLabel->size(), true));	
+	const QSize DefaultCoverSize(150, 150);
+	if (cover.size().height() != cover.size().width()) {
+		playlist_page_->cover()->setPixmap(Pixmap::resizeImage(cover, playlist_page_->cover()->size(), true));
+	}
+	else {
+		playlist_page_->cover()->setBaseSize(DefaultCoverSize);
+		playlist_page_->cover()->setPixmap(Pixmap::resizeImage(cover, DefaultCoverSize, true));
+	}
     lrc_page_->cover()->setPixmap(Pixmap::resizeImage(cover, lrc_page_->cover()->size(), true));
 }
 
@@ -673,10 +680,7 @@ void Xamp::addTable() {
     if (!isOK) {
         return;
     }
-    //auto playlist_view = playlist_page_->playlist();
-    //auto table_id = Database::Instance().addTable(table_name, 0, playlist_view->playlistId());
-    //Database::Instance().addTablePlaylist(table_id, playlist_view->playlistId());
-    //ui.sliderBar->addTab(table_name, table_id);
+
     auto playlis_id = Database::Instance().addPlaylist(Q_UTF8(""), 0);
     auto table_id = Database::Instance().addTable(table_name, 0, playlis_id);
     for (auto music_id : music_id_store_) {

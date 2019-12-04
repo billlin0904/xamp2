@@ -10,7 +10,9 @@ DeviceStateNotification::DeviceStateNotification(std::weak_ptr<DeviceStateListen
 }
 
 DeviceStateNotification::~DeviceStateNotification() {
-	enumerator_->UnregisterEndpointNotificationCallback(this);
+	if (enumerator_ != nullptr) {
+		enumerator_->UnregisterEndpointNotificationCallback(this);
+	}	
 }
 
 void DeviceStateNotification::Run() {

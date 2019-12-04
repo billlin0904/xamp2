@@ -76,6 +76,10 @@ public:
 
 	std::optional<DeviceInfo> GetDefaultDeviceInfo() const;
 
+	std::vector<DeviceInfo> GetPlayDSDDeviceInfo() const;
+
+	bool CanPlayDSDFormat() const;
+
 	double GetDuration() const;
 
 	PlayerState GetState() const noexcept;

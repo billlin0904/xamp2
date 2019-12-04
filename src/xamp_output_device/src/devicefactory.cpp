@@ -85,6 +85,10 @@ bool DeviceFactory::IsASIODevice(const ID id) {
 #endif
 }
 
+bool DeviceFactory::IsDeviceTypeExist(const ID id) const {
+	return creator_.find(id) != creator_.end();
+}
+
 void DeviceFactory::RegisterDeviceListener(std::weak_ptr<DeviceStateListener> callback) {
 #ifdef _WIN32
 	notification_ = new win32::DeviceStateNotification(callback);

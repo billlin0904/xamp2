@@ -72,6 +72,8 @@ public:
 
 	static bool IsASIODevice(const ID id);
 
+	bool IsDeviceTypeExist(const ID id) const;
+
 private:
 	DeviceFactory();
 
