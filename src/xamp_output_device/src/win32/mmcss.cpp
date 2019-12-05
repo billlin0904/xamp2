@@ -5,7 +5,7 @@
 #include <avrt.h>
 
 #include <base/logger.h>
-#include <output_device/win32/mmcss_types.h>
+#include <output_device/win32/mmcss.h>
 
 namespace xamp::output_device::win32 {
 
@@ -41,17 +41,18 @@ public:
 		, avrt_handle_(nullptr) {
 	}
 
-	void BoostPriority() {
+	void BoostPriority(std::wstring_view task_name) {
 		RevertPriority();
 
-		avrt_handle_ = AvrtLib::Instance().AvSetMmThreadCharacteristicsW(L"Pro Audio", &avrt_task_index_);		
+		avrt_handle_ = AvrtLib::Instance().AvSetMmThreadCharacteristicsW(task_name.data(), &avrt_task_index_);
 		if (avrt_handle_ != nullptr) {
 			AvrtLib::Instance().AvSetMmThreadPriority(avrt_handle_, AVRT_PRIORITY_HIGH);
 			return;
 		}
 		
 		auto last_error = ::GetLastError();
-		XAMP_LOG_ERROR("AvSetMmThreadCharacteristicsW return failure! {}",
+		XAMP_LOG_ERROR("AvSetMmThreadCharacteristicsW return failure! Error:{} {}",
+			last_error,
 			Exception::GetPlatformErrorMessage(last_error));
 	}
 
@@ -62,7 +63,8 @@ public:
 		
 		if (!AvrtLib::Instance().AvRevertMmThreadCharacteristics(avrt_handle_)) {
 			DWORD last_error = ::GetLastError();
-			XAMP_LOG_ERROR("AvSetMmThreadCharacteristicsW return failure! {}",
+			XAMP_LOG_ERROR("AvSetMmThreadCharacteristicsW return failure! Error:{} {}",
+				last_error,
 				Exception::GetPlatformErrorMessage(last_error));
 		}
 
@@ -81,8 +83,12 @@ Mmcss::Mmcss()
 Mmcss::~Mmcss() {
 }
 
-void Mmcss::BoostPriority() {
-	impl_->BoostPriority();
+void Mmcss::Initial() {
+	AvrtLib::Instance();
+}
+
+void Mmcss::BoostPriority(std::wstring_view task_name) {
+	impl_->BoostPriority(task_name);
 }
 
 void Mmcss::RevertPriority() {

@@ -8,8 +8,6 @@
 #include <string>
 
 #include <string_view>
-
-#include <base/align_ptr.h>
 #include <output_device/output_device.h>
 
 #ifdef _WIN32
@@ -29,27 +27,6 @@ enum class MmcssThreadPriority {
 	MMCSS_THREAD_PRIORITY_NORMAL,
 	MMCSS_THREAD_PRIORITY_HIGH,
 	MMCSS_THREAD_PRIORITY_CRITICAL
-};
-
-class Mmcss final {
-public:
-	static Mmcss& Instance() {
-		static Mmcss instance;
-		return instance;
-	}
-
-	XAMP_DISABLE_COPY(Mmcss)
-
-	void BoostPriority();
-
-	void RevertPriority();
-private:
-	Mmcss();
-
-	~Mmcss();
-
-	class MmcssImpl;
-	AlignPtr<MmcssImpl> impl_;
 };
 
 }

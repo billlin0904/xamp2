@@ -8,7 +8,7 @@
 #include <base/logger.h>
 
 #ifdef _WIN32
-#include <output_device/win32/mmcss_types.h>
+#include <output_device/win32/mmcss.h>
 #endif
 
 #include <output_device/volume.h>
@@ -30,6 +30,7 @@ struct AsioCallbackInfo {
 	AudioConvertContext data_context{};
 	ASIOCallbacks asio_callbacks{};
 	AsioDevice* device{nullptr};
+	Mmcss mmcss;
 	std::vector<ASIOBufferInfo> buffer_infos;
 	std::vector<ASIOChannelInfo> channel_infos;
 } callbackInfo;
@@ -327,7 +328,7 @@ void AsioDevice::SetMute(const bool mute) const {
 
 void AsioDevice::OnBufferSwitch(long index) noexcept {
 	if (callbackInfo.boost_priority) {
-		Mmcss::Instance().BoostPriority();
+		callbackInfo.mmcss.BoostPriority();
 		callbackInfo.boost_priority = false;
 	}
 
@@ -344,7 +345,7 @@ void AsioDevice::OnBufferSwitch(long index) noexcept {
 	if (!is_streaming_) {
 		is_stop_streaming_ = true;
 		condition_.notify_all();
-		Mmcss::Instance().RevertPriority();
+		callbackInfo.mmcss.RevertPriority();
 		return;
 	}
 
@@ -440,10 +441,10 @@ void AsioDevice::OpenStream(const AudioFormat& output_format) {
 	played_bytes_ = 0;
 	is_stopped_ = false;
 
-	Mmcss::Instance();
 	callbackInfo.boost_priority = true;
 	callbackInfo.data_context.cache_volume = 0;
 	callbackInfo.device = this;
+	callbackInfo.mmcss.Initial();
 }
 
 void AsioDevice::SetOutputSampleRate(const AudioFormat& output_format) {
@@ -639,6 +640,7 @@ void AsioDevice::OnSampleRateChangedCallback(ASIOSampleRate sampleRate) {
 	// audio device.
 
 	callbackInfo.device->StopStream();
+	callbackInfo.device->callback_->OnError(SampleRateChangedException());
 }
 
 
