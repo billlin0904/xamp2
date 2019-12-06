@@ -370,7 +370,7 @@ public:
 					}
 					ret = ConvertSamples(buffer + num_read_sample, length - num_read_sample);
 					num_read_sample += ret;
-					if (num_read_sample + ret > length / 2) {
+					if (num_read_sample > length / 2) {
 						return num_read_sample;
 					}
 				}

@@ -125,6 +125,7 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, const DeviceInfo& de
     }
     else {
 		constexpr std::string_view MEDIA_FILE_AAC_ENCODE_FILE_EXT{ ".m4a" };
+
 		const std::filesystem::path path(file_path);
 		if (ToLower(path.extension().string()) != MEDIA_FILE_AAC_ENCODE_FILE_EXT) {
 			stream_ = MakeAlign<AudioStream, AvFileStream>();
@@ -165,6 +166,7 @@ void AudioPlayer::Play() {
         if (!device_->IsStreamRunning()) {
             device_->SetVolume(volume_);
             device_->SetMute(is_muted_);
+            XAMP_LOG_DEBUG("Volume:{} IsMuted:{}", volume_, is_muted_);
             device_->StartStream();
             SetState(PlayerState::PLAYER_STATE_RUNNING);
         }
