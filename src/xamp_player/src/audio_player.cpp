@@ -21,7 +21,7 @@ constexpr int32_t BUFFER_STREAM_COUNT = 5;
 constexpr int32_t PREALLOCATE_BUFFER_SIZE = 32 * 1024 * 1024;
 constexpr int32_t MAX_WRITE_RATIO = 20;
 constexpr int32_t MAX_READ_RATIO = 30;
-constexpr std::chrono::milliseconds UPDATE_SAMPLE_INTERVAL(200);
+constexpr std::chrono::milliseconds UPDATE_SAMPLE_INTERVAL(100);
 constexpr std::chrono::seconds WAIT_FOR_STRAEM_STOP_TIME(5);
 constexpr std::chrono::milliseconds SLEEP_OUTPUT_TIME(100);
 
@@ -31,7 +31,7 @@ AudioPlayer::AudioPlayer()
 
 AudioPlayer::AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter)
     : is_muted_(false)
-    , dsd_mode_(DSDModes::DSD_MODE_PCM)
+    , dsd_mode_(DsdModes::DSD_MODE_PCM)
     , state_(PlayerState::PLAYER_STATE_STOPPED)
     , volume_(0)
     , num_buffer_samples_(0)
@@ -59,6 +59,10 @@ void AudioPlayer::PrepareAllocate() {
 	wait_timer_.SetTimeout(SLEEP_OUTPUT_TIME);
 	buffer_.Resize(PREALLOCATE_BUFFER_SIZE);
 	vmlock_.Lock(buffer_.GetData(), buffer_.GetSize());
+    // Initial std::async internal threadpool
+    stream_task_ = std::async(std::launch::async, []() {});
+    // Load Bass dll
+    stream_ = MakeAlign<AudioStream, BassFileStream>();
 }
 
 void AudioPlayer::Open(const std::wstring& file_path, bool use_bass_stream, const DeviceInfo& device_info) {
@@ -103,17 +107,17 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, const DeviceInfo& de
     if (is_dsd_stream) {
 		auto is_support_dsd_file = false;
 		if (stream_ != nullptr) {
-			if (auto dsd_stream = dynamic_cast<DSDStream*>(stream_.get())) {
+			if (auto dsd_stream = dynamic_cast<DsdStream*>(stream_.get())) {
 				is_support_dsd_file = true;
 			}
 		}
 		if (!is_support_dsd_file) {
 			stream_ = MakeAlign<AudioStream, BassFileStream>();
 		}
-        if (auto dsd_stream = dynamic_cast<DSDStream*>(stream_.get())) {
+        if (auto dsd_stream = dynamic_cast<DsdStream*>(stream_.get())) {
 #ifdef _WIN32
             if (device_info.is_support_dsd) {
-                dsd_stream->SetDSDMode(DSDModes::DSD_MODE_RAW);
+                dsd_stream->SetDSDMode(DsdModes::DSD_MODE_RAW);
             } else {
                 throw NotSupportFormatException();
             }
@@ -123,11 +127,16 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, const DeviceInfo& de
 #endif
         }
     }
-    else {
-		constexpr std::string_view MEDIA_FILE_AAC_ENCODE_FILE_EXT{ ".m4a" };
+    else {        
+		static const std::array<std::string_view, 2> use_bass_decoder_file_ext{
+			".m4a",// FMPPEG 沒有 aac 解碼
+			".mp3" // FFMPEG mp3 解碼器會有爆音的問題
+		};
 
 		const std::filesystem::path path(file_path);
-		if (ToLower(path.extension().string()) != MEDIA_FILE_AAC_ENCODE_FILE_EXT) {
+		if (std::find(use_bass_decoder_file_ext.begin(),
+			use_bass_decoder_file_ext.end(),
+			ToLower(path.extension().string())) == use_bass_decoder_file_ext.end()) {
 			stream_ = MakeAlign<AudioStream, AvFileStream>();
 		} else {
 			stream_ = MakeAlign<AudioStream, BassFileStream>();
@@ -143,8 +152,8 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, const DeviceInfo& de
 	if (auto file_stream = dynamic_cast<FileStream*>(stream_.get())) {
 		file_stream->OpenFromFile(file_path);
 		if (is_dsd_stream) {
-			if (auto dsd_stream = dynamic_cast<DSDStream*>(stream_.get())) {
-				XAMP_LOG_DEBUG("DSD samplerate: {}", dsd_stream->GetDSDSampleRate());
+			if (auto dsd_stream = dynamic_cast<DsdStream*>(stream_.get())) {
+				XAMP_LOG_DEBUG("DSD samplerate: {}", dsd_stream->GetDsdSampleRate());
 			}
 		}		
 	}
@@ -316,9 +325,9 @@ std::optional<int32_t> AudioPlayer::GetDSDSpeed() const {
         return std::nullopt;
     }
 
-    if (auto dsd_stream = dynamic_cast<DSDStream*>(stream_.get())) {
-		if (dsd_stream->IsDSDFile()) {
-			return dsd_stream->GetDSDSpeed();
+    if (auto dsd_stream = dynamic_cast<DsdStream*>(stream_.get())) {
+		if (dsd_stream->IsDsdFile()) {
+			return dsd_stream->GetDsdSpeed();
 		}
     }
     return std::nullopt;
@@ -361,7 +370,7 @@ bool AudioPlayer::IsPlaying() const {
     return is_playing_;
 }
 
-DSDModes AudioPlayer::GetDSDModes() const {
+DsdModes AudioPlayer::GetDSDModes() const {
     return dsd_mode_;
 }
 
@@ -398,7 +407,7 @@ void AudioPlayer::CreateBuffer() {
     int32_t require_read_sample = 0;
 
     if (DeviceFactory::Instance().IsPlatformSupportedASIO()) {
-        if (dsd_mode_ == DSDModes::DSD_MODE_RAW
+        if (dsd_mode_ == DsdModes::DSD_MODE_RAW
                 || DeviceFactory::Instance().IsASIODevice(device_type_id_)) {
 			require_read_sample = XAMP_MAX_SAMPLERATE;
 		}
@@ -450,7 +459,11 @@ int AudioPlayer::operator()(void* samples, const int32_t num_buffer_frames, cons
         return 0;
     }
 
-    std::atomic_exchange(&slice_, AudioSlice{ reinterpret_cast<float*>(samples), -1, stream_time });
+    std::atomic_exchange(&slice_,
+        AudioSlice{ reinterpret_cast<float*>(samples),
+        -1, 
+        stream_time });
+
     stopped_cond_.notify_all();
     return 1;
 }
@@ -477,9 +490,9 @@ void AudioPlayer::BufferStream() {
 
 bool AudioPlayer::FillSamples(int32_t num_samples) noexcept {
 	if (auto file_stream = dynamic_cast<FileStream*>(stream_.get())) {
-		if (auto dsd_stream = dynamic_cast<DSDStream*>(file_stream)) {
-			if (dsd_stream->IsDSDFile()) {
-				if (dsd_stream->GetDSDMode() == DSDModes::DSD_MODE_RAW) {
+		if (auto dsd_stream = dynamic_cast<DsdStream*>(file_stream)) {
+			if (dsd_stream->IsDsdFile()) {
+				if (dsd_stream->GetDsdMode() == DsdModes::DSD_MODE_RAW) {
 					return buffer_.TryWrite(read_sample_buffer_.get(), num_samples);
 				}
 			}
@@ -514,8 +527,8 @@ void AudioPlayer::OnDeviceStateChange(DeviceState state, const std::wstring& dev
 void AudioPlayer::OpenDevice(double stream_time) {
 #ifdef ENABLE_ASIO
     if (auto dsd_output = dynamic_cast<DSDDevice*>(device_.get())) {
-        if (auto dsd_stream = dynamic_cast<DSDStream*>(stream_.get())) {
-            if (dsd_stream->GetDSDMode() == DSDModes::DSD_MODE_RAW) {
+        if (auto dsd_stream = dynamic_cast<DsdStream*>(stream_.get())) {
+            if (dsd_stream->GetDsdMode() == DsdModes::DSD_MODE_RAW) {
                 dsd_output->SetIoFormat(AsioIoFormat::IO_FORMAT_DSD);
             }
             else {
@@ -528,20 +541,42 @@ void AudioPlayer::OpenDevice(double stream_time) {
     device_->SetStreamTime(stream_time);
 }
 
+void AudioPlayer::ReadLoop(int32_t max_read_sample, std::unique_lock<std::mutex>& lock) noexcept {
+    while (is_playing_) {
+        const auto num_samples = stream_->GetSamples(
+            read_sample_buffer_.get(),
+            max_read_sample);
+
+        if (num_samples > 0) {
+            if (!FillSamples(num_samples)) {
+                XAMP_LOG_DEBUG("Process samples failure!");
+                continue;
+            }
+            break;
+        }
+        else {
+            stopped_cond_.wait(lock);
+            break;
+        }
+    }
+}
+
 void AudioPlayer::PlayStream() {
     std::weak_ptr<AudioPlayer> player = shared_from_this();
 
+    // 1.預先啟動output device開始撥放, 因有預先塞入資料可以加速撥放效果.
+    // 2.std::async啟動會比較慢一點.
 	Play();
 
-    stream_task_ = std::async(std::launch::async, [](std::weak_ptr<AudioPlayer> player) {         
-         if (auto shared_this = player.lock()) {
-			auto p = shared_this.get();
+    constexpr auto stream_proc = [](std::weak_ptr<AudioPlayer> player) {
+        if (auto shared_this = player.lock()) {
+            auto p = shared_this.get();
             std::unique_lock<std::mutex> lock{ p->pause_mutex_ };
 
             auto max_read_sample = p->num_read_sample_;
             auto num_sample_write = max_read_sample * MAX_WRITE_RATIO;
 
-			PlatformThread::SetThreadName("Streaming thread");
+            PlatformThread::SetThreadName("Streaming thread");
 
             while (p->is_playing_) {
                 while (p->is_paused_) {
@@ -553,28 +588,16 @@ void AudioPlayer::PlayStream() {
                     continue;
                 }
 
-                while (p->is_playing_) {
-                    const auto num_samples = p->stream_->GetSamples(p->read_sample_buffer_.get(),
-						max_read_sample);
-                    if (num_samples > 0) {
-                        if (!p->FillSamples(num_samples)) {
-                            XAMP_LOG_DEBUG("Process samples failure!");
-                            continue;
-                        }
-                        break;
-                    }
-                    else {
-                        p->stopped_cond_.wait(lock);
-                        break;
-                    }
-                }
+                p->ReadLoop(max_read_sample, lock);
             }
 
-			p->stream_->Close();
+            p->stream_->Close();
         }
 
         XAMP_LOG_DEBUG("Stream thread finished!");
-    }, player);
+    };
+
+    stream_task_ = std::async(std::launch::async, stream_proc, player);
 }
 
 }

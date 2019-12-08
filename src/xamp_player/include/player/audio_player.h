@@ -70,7 +70,7 @@ public:
 
 	bool IsPlaying() const;
 
-	DSDModes GetDSDModes() const;
+	DsdModes GetDSDModes() const;
 
     std::optional<int32_t> GetDSDSpeed() const;
 
@@ -115,6 +115,8 @@ private:
 
 	void SetState(const PlayerState play_state);
 
+	void ReadLoop(int32_t max_read_sample, std::unique_lock<std::mutex> &lock) noexcept;
+
 	struct XAMP_CACHE_ALIGNED(XAMP_MALLOC_ALGIGN_SIZE) AudioSlice {
         AudioSlice(const float* samples = nullptr, 
 			int32_t sample_size = 0,
@@ -138,7 +140,7 @@ private:
 	XAMP_ENFORCE_TRIVIAL(AudioSlice)
 
 	bool is_muted_;
-	DSDModes dsd_mode_;
+	DsdModes dsd_mode_;
 	std::atomic<PlayerState> state_;
 	int32_t volume_;
 	int32_t num_buffer_samples_;

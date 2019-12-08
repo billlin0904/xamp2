@@ -20,7 +20,7 @@ using namespace base;
 
 class XAMP_STREAM_API BassFileStream final
 	: public FileStream
-	, public DSDStream {
+	, public DsdStream {
 public:
 	BassFileStream();
 
@@ -42,25 +42,21 @@ public:
 
 	int32_t GetSampleSize() const noexcept override;
 
-	bool IsDSDFile() const noexcept override;
+	bool IsDsdFile() const noexcept override;
 
-	bool SupportDOP() const noexcept override;
+	DsdModes GetSupportDsdMode() const noexcept;
 
-	bool SupportDOP_AA() const noexcept override;
+	void SetDSDMode(DsdModes mode) noexcept override;
 
-	bool SupportRAW() const noexcept override;
+	DsdModes GetDsdMode() const noexcept override;
 
-	void SetDSDMode(DSDModes mode) noexcept override;
+	int32_t GetDsdSampleRate() const override;
 
-	DSDModes GetDSDMode() const noexcept override;
-
-	int32_t GetDSDSampleRate() const override;
-
-	DSDSampleFormat GetDSDSampleFormat() const noexcept override;
+	DsdSampleFormat GetDsdSampleFormat() const noexcept override;
 
 	void SetPCMSampleRate(int32_t samplerate) override;
 
-    int32_t GetDSDSpeed() const override;
+    int32_t GetDsdSpeed() const override;
 private:
 	class BassFileStreamImpl;
 	AlignPtr<BassFileStreamImpl> stream_;

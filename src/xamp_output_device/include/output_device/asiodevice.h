@@ -60,9 +60,9 @@ public:
 
 	AsioIoFormat GetIoFormat() const override;
 
-	void SetSampleFormat(DSDSampleFormat format) override;
+	void SetSampleFormat(DsdSampleFormat format) override;
 
-	DSDSampleFormat GetSampleFormat() const noexcept override;
+	DsdSampleFormat GetSampleFormat() const noexcept override;
 
 	int32_t GetBufferSize() const noexcept override;
 
@@ -85,12 +85,14 @@ private:
 
 	void OnBufferSwitch(long index) noexcept;
 
+	std::tuple<int32_t, int32_t> GetDeviceBufferSize() const;
+
 	bool is_removed_driver_;
 	std::atomic<bool> is_stopped_;
 	std::atomic<bool> is_streaming_;
 	std::atomic<bool> is_stop_streaming_;	
 	AsioIoFormat io_format_;
-	DSDSampleFormat sample_format_;
+	DsdSampleFormat sample_format_;
 	mutable std::atomic<int32_t> volume_;
 	int64_t buffer_size_;
 	int64_t buffer_bytes_;

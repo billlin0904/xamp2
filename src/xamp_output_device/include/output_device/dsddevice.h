@@ -28,9 +28,9 @@ public:
 
     virtual AsioIoFormat GetIoFormat() const = 0;
 
-	virtual void SetSampleFormat(DSDSampleFormat format) = 0;
+	virtual void SetSampleFormat(DsdSampleFormat format) = 0;
 
-	virtual DSDSampleFormat GetSampleFormat() const = 0;
+	virtual DsdSampleFormat GetSampleFormat() const = 0;
 
 protected:
 	DSDDevice() = default;

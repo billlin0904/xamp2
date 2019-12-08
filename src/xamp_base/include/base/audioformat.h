@@ -25,7 +25,9 @@ enum class ByteFormat {
 };
 
 enum class InterleavedFormat {
+	// ¥æ´À
 	INTERLEAVED,
+	// ¥­­±
 	DEINTERLEAVED
 };
 

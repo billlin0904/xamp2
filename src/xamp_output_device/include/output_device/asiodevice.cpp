@@ -46,7 +46,7 @@ AsioDevice::AsioDevice(const std::string& device_id)
 	, is_stopped_(true)
 	, is_streaming_(false)
 	, is_stop_streaming_(false)
-	, sample_format_(DSDSampleFormat::DSD_INT8MSB)
+	, sample_format_(DsdSampleFormat::DSD_INT8MSB)
 	, io_format_(AsioIoFormat::IO_FORMAT_PCM)
 	, volume_(0)
 	, buffer_size_(0)
@@ -73,11 +73,11 @@ int32_t AsioDevice::GetBufferSize() const noexcept {
 	return buffer_size_ * mix_format_.GetChannels();
 }
 
-void AsioDevice::SetSampleFormat(DSDSampleFormat format) {
+void AsioDevice::SetSampleFormat(DsdSampleFormat format) {
 	sample_format_ = format;
 }
 
-DSDSampleFormat AsioDevice::GetSampleFormat() const noexcept {
+DsdSampleFormat AsioDevice::GetSampleFormat() const noexcept {
 	return sample_format_;
 }
 
@@ -110,7 +110,7 @@ void AsioDevice::ReOpen() {
 	is_removed_driver_ = false;
 }
 
-void AsioDevice::CreateBuffers(const AudioFormat& output_format) {
+std::tuple<int32_t, int32_t> AsioDevice::GetDeviceBufferSize() const {
 	long min_size = 0;
 	long max_size = 0;
 	long prefer_size = 0;
@@ -169,6 +169,11 @@ void AsioDevice::CreateBuffers(const AudioFormat& output_format) {
 		// Set to an even multiple of granularity, rounding up.
 		buffer_size = (buffer_size + granularity - 1) / granularity * granularity;
 	}
+	return { prefer_size, buffer_size };
+}
+
+void AsioDevice::CreateBuffers(const AudioFormat& output_format) {
+	const auto [prefer_size, buffer_size] = GetDeviceBufferSize();
 
 	callbackInfo.buffer_infos.resize(output_format.GetChannels());
 	callbackInfo.channel_infos.resize(output_format.GetChannels());
@@ -281,17 +286,17 @@ void AsioDevice::CreateBuffers(const AudioFormat& output_format) {
 	else {
 		switch (channel_info.type) {
 		case ASIOSTDSDInt8LSB1:
-			if (sample_format_ != DSDSampleFormat::DSD_INT8LSB) {
+			if (sample_format_ != DsdSampleFormat::DSD_INT8LSB) {
 				throw ASIOException(Errors::XAMP_ERROR_NOT_SUPPORT_FORMAT);
 			}
 			break;
 		case ASIOSTDSDInt8MSB1:
-			if (sample_format_ != DSDSampleFormat::DSD_INT8MSB) {
+			if (sample_format_ != DsdSampleFormat::DSD_INT8MSB) {
 				throw ASIOException(Errors::XAMP_ERROR_NOT_SUPPORT_FORMAT);
 			}
 			break;
 		case ASIOSTDSDInt8NER8:
-			if (sample_format_ != DSDSampleFormat::DSD_INT8NER8) {
+			if (sample_format_ != DsdSampleFormat::DSD_INT8NER8) {
 				throw ASIOException(Errors::XAMP_ERROR_NOT_SUPPORT_FORMAT);
 			}
 			break;

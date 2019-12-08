@@ -230,7 +230,7 @@ class BassFileStream::BassFileStreamImpl {
 public:
 	BassFileStreamImpl() noexcept
         : enable_file_mapped_(true)
-		, mode_(DSDModes::DSD_MODE_PCM) {
+		, mode_(DsdModes::DSD_MODE_PCM) {
 		info_ = BASS_CHANNELINFO{};
 	}
 
@@ -246,18 +246,18 @@ public:
         DWORD flags = 0;
 
         switch (mode_) {
-        case DSDModes::DSD_MODE_PCM:
+        case DsdModes::DSD_MODE_PCM:
             flags = BASS_SAMPLE_FLOAT;
             break;
-        case DSDModes::DSD_MODE_DOP:
+        case DsdModes::DSD_MODE_DOP:
             // DSD-over-PCM data is 24-bit, so the BASS_SAMPLE_FLOAT flag is required.
             flags = BASS_DSD_DOP | BASS_SAMPLE_FLOAT;
             break;
-        case DSDModes::DSD_MODE_DOP_AA:
+        case DsdModes::DSD_MODE_DOP_AA:
             // DSD-over-PCM data is 24-bit, so the BASS_SAMPLE_FLOAT flag is required.
             flags = BASS_DSD_DOP_AA | BASS_SAMPLE_FLOAT;
             break;
-        case DSDModes::DSD_MODE_RAW:
+        case DsdModes::DSD_MODE_RAW:
             flags = BASS_DSD_RAW;
             break;
 		default:
@@ -266,7 +266,7 @@ public:
 
 		file_.Close();
 
-		if (mode_ == DSDModes::DSD_MODE_PCM) {
+		if (mode_ == DsdModes::DSD_MODE_PCM) {
 			if (enable_file_mapped_) {
 				file_.Open(file_path);
 				stream_.reset(BassLib::Instance().BASS_StreamCreateFile(TRUE,
@@ -311,11 +311,11 @@ public:
 
 	void Close() {
 		stream_.reset();		
-        mode_ = DSDModes::DSD_MODE_PCM;
+        mode_ = DsdModes::DSD_MODE_PCM;
 		info_ = BASS_CHANNELINFO{};
 	}	
 
-	bool IsDSDFile() const noexcept {
+	bool IsDsdFile() const noexcept {
 		assert(stream_.is_valid());
 		return info_.ctype == BASS_CTYPE_STREAM_DSD;
 	}
@@ -332,16 +332,16 @@ public:
 
 	AudioFormat GetFormat() const {
 		assert(stream_.is_valid());
-		if (mode_ == DSDModes::DSD_MODE_RAW) {
+		if (mode_ == DsdModes::DSD_MODE_RAW) {
             return AudioFormat(Format::FORMAT_DSD,
 							   info_.chans,
                                base::ByteFormat::SINT8,
-                               GetDSDSampleRate());
-        } else if (mode_ == DSDModes::DSD_MODE_DOP) {
+                               GetDsdSampleRate());
+        } else if (mode_ == DsdModes::DSD_MODE_DOP) {
             return AudioFormat(Format::FORMAT_PCM,
                                info_.chans,
                                base::ByteFormat::FLOAT32,
-                               GetDOPSampleRate(GetDSDSpeed()));
+                               GetDOPSampleRate(GetDsdSpeed()));
         }
         return AudioFormat(Format::FORMAT_PCM,
 						   info_.chans,
@@ -355,7 +355,7 @@ public:
         BassIfFailedThrow(BassLib::Instance().BASS_ChannelSetPosition(stream_.get(), pos_bytes, BASS_POS_BYTE));
 	}
 
-    int32_t GetDSDSampleRate() const {
+    int32_t GetDsdSampleRate() const {
 		assert(stream_.is_valid());
         float rate = 0;
         BassIfFailedThrow(BassLib::Instance().BASS_ChannelGetAttribute(stream_.get(), BASS_ATTRIB_DSD_RATE, &rate));
@@ -374,22 +374,22 @@ public:
         return true;
     }
 
-    void SetDSDMode(DSDModes mode) noexcept {
+    void SetDSDMode(DsdModes mode) noexcept {
         mode_ = mode;
     }
 
-    DSDModes GetDSDMode() const noexcept {
+    DsdModes GetDSDMode() const noexcept {
         return mode_;       
     }
 
 	int32_t GetSampleSize() const noexcept {
 		assert(stream_.is_valid());
-		return mode_ == DSDModes::DSD_MODE_RAW ? sizeof(int8_t) : sizeof(float);
+		return mode_ == DsdModes::DSD_MODE_RAW ? sizeof(int8_t) : sizeof(float);
 	}
 
-	DSDSampleFormat GetDSDSampleFormat() const noexcept {
+	DsdSampleFormat GetDsdSampleFormat() const noexcept {
 		assert(stream_.is_valid());
-		return DSDSampleFormat::DSD_INT8MSB;
+		return DsdSampleFormat::DSD_INT8MSB;
 	}
 
 	void SetPCMSampleRate(int32_t samplerate) {
@@ -397,9 +397,9 @@ public:
 		BassLib::Instance().BASS_SetConfig(BASS_CONFIG_DSD_FREQ, samplerate);
 	}
 
-    int32_t GetDSDSpeed() const {
+    int32_t GetDsdSpeed() const {
 		assert(stream_.is_valid());
-        return GetDSDSampleRate() / PCM_SAMPLE_RATE_441;
+        return GetDsdSampleRate() / PCM_SAMPLE_RATE_441;
     }
 private:
 	XAMP_ALWAYS_INLINE int32_t InternalGetSamples(void *buffer, int32_t length) const noexcept {
@@ -411,7 +411,7 @@ private:
 	}
 
 	bool enable_file_mapped_;
-    DSDModes mode_;
+    DsdModes mode_;
 	BassStreamHandle stream_;
 	BASS_CHANNELINFO info_;   
     MemoryMappedFile file_;
@@ -451,48 +451,40 @@ std::string_view BassFileStream::GetDescription() const noexcept {
     return "BASS";
 }
 
-bool BassFileStream::SupportDOP() const noexcept {
-    return stream_->SupportDOP();
+DsdModes BassFileStream::GetSupportDsdMode() const noexcept {
+	return DsdModes{ DsdModes::DSD_MODE_PCM | DsdModes::DSD_MODE_RAW | DsdModes::DSD_MODE_DOP };
 }
 
-bool BassFileStream::SupportDOP_AA() const noexcept {
-    return stream_->SupportDOP_AA();
-}
-
-bool BassFileStream::SupportRAW() const noexcept {
-    return stream_->SupportRAW();
-}
-
-void BassFileStream::SetDSDMode(DSDModes mode) noexcept {
+void BassFileStream::SetDSDMode(DsdModes mode) noexcept {
     stream_->SetDSDMode(mode);
 }
 
-DSDModes BassFileStream::GetDSDMode() const noexcept {
+DsdModes BassFileStream::GetDsdMode() const noexcept {
     return stream_->GetDSDMode();
 }
 
-bool BassFileStream::IsDSDFile() const noexcept {
-    return stream_->IsDSDFile();
+bool BassFileStream::IsDsdFile() const noexcept {
+    return stream_->IsDsdFile();
 }
 
-int32_t BassFileStream::GetDSDSampleRate() const {
-    return stream_->GetDSDSampleRate();
+int32_t BassFileStream::GetDsdSampleRate() const {
+    return stream_->GetDsdSampleRate();
 }
 
 int32_t BassFileStream::GetSampleSize() const noexcept {
 	return stream_->GetSampleSize();
 }
 
-DSDSampleFormat BassFileStream::GetDSDSampleFormat() const noexcept {
-	return stream_->GetDSDSampleFormat();
+DsdSampleFormat BassFileStream::GetDsdSampleFormat() const noexcept {
+	return stream_->GetDsdSampleFormat();
 }
 
 void BassFileStream::SetPCMSampleRate(int32_t samplerate) {
 	stream_->SetPCMSampleRate(samplerate);
 }
 
-int32_t BassFileStream::GetDSDSpeed() const {
-    return stream_->GetDSDSpeed();
+int32_t BassFileStream::GetDsdSpeed() const {
+    return stream_->GetDsdSpeed();
 }
 
 }

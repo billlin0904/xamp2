@@ -14,31 +14,27 @@ namespace xamp::stream {
 
 using namespace base;
 
-class XAMP_STREAM_API XAMP_NO_VTABLE DSDStream {
+class XAMP_STREAM_API XAMP_NO_VTABLE DsdStream {
 public:
-    XAMP_BASE_CLASS(DSDStream)
+    XAMP_BASE_CLASS(DsdStream)
 
-    virtual bool SupportDOP() const noexcept = 0;
+    virtual DsdModes GetSupportDsdMode() const noexcept = 0;
 
-    virtual bool SupportDOP_AA() const noexcept = 0;
+    virtual void SetDSDMode(DsdModes mode) noexcept = 0;
 
-    virtual bool SupportRAW() const noexcept = 0;
+    virtual DsdModes GetDsdMode() const noexcept = 0;
 
-    virtual void SetDSDMode(DSDModes mode) noexcept = 0;
+    virtual int32_t GetDsdSampleRate() const = 0;
 
-    virtual DSDModes GetDSDMode() const noexcept = 0;
-
-    virtual int32_t GetDSDSampleRate() const = 0;
-
-	virtual DSDSampleFormat GetDSDSampleFormat() const noexcept = 0;
+	virtual DsdSampleFormat GetDsdSampleFormat() const noexcept = 0;
 
 	virtual void SetPCMSampleRate(int32_t samplerate) = 0;
 
-    virtual int32_t GetDSDSpeed() const = 0;
+    virtual int32_t GetDsdSpeed() const = 0;
 
-	virtual bool IsDSDFile() const noexcept = 0;
+	virtual bool IsDsdFile() const noexcept = 0;
 protected:
-    DSDStream() = default;
+    DsdStream() = default;
 };
 
 }

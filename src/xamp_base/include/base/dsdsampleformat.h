@@ -7,18 +7,18 @@
 
 namespace xamp::base {
 
-enum class DSDSampleFormat {
+enum class DsdSampleFormat {
 	DSD_INT8LSB,
 	DSD_INT8MSB, 
 	DSD_INT8NER8
 };
 
-enum class DSDModes {
-	DSD_MODE_PCM,
-	DSD_MODE_RAW,
-	DSD_MODE_DOP,
+enum DsdModes : uint8_t {
+	DSD_MODE_PCM = 0,
+	DSD_MODE_RAW = 2,
+	DSD_MODE_DOP = 4,
 	// TODO: Unsupported now!
-	DSD_MODE_DOP_AA
+	DSD_MODE_DOP_AA = 8
 };
 
 }
