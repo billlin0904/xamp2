@@ -10,6 +10,7 @@ void InitialDevice() {
 #ifdef _WIN32
 	using namespace xamp::output_device::win32;
 	HrIfFailledThrow(MFStartup(MF_VERSION, MFSTARTUP_LITE));	
+	HrIfFailledThrow(OleInitialize(nullptr));
 #endif
 }
 

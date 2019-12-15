@@ -267,7 +267,7 @@
             </layout>
            </item>
            <item>
-            <widget class="QSlider" name="seekSlider">
+            <widget class="SeekSlider" name="seekSlider">
              <property name="minimumSize">
               <size>
                <width>0</width>
@@ -876,6 +876,11 @@
    <class>TabListView</class>
    <extends>QListView</extends>
    <header>widget/tablistview.h</header>
+  </customwidget>
+  <customwidget>
+   <class>SeekSlider</class>
+   <extends>QSlider</extends>
+   <header>widget/seekslider.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

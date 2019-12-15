@@ -238,7 +238,18 @@ void Xamp::initialController() {
 
     });
 
-    (void)QObject::connect(ui.seekSlider, &QSlider::sliderMoved, [this](auto value) {
+	(void)QObject::connect(ui.seekSlider, &SeekSlider::leftButtonValueChanged, [this](auto value) {
+		try {
+			player_->Seek(static_cast<double>(value / 1000.0));
+		}
+		catch (const xamp::base::Exception & e) {
+			player_->Stop(false);
+			Toast::showTip(Q_UTF8(e.GetErrorMessage()), this);
+			return;
+		}
+		});
+
+    (void)QObject::connect(ui.seekSlider, &SeekSlider::sliderMoved, [this](auto value) {
         QToolTip::showText(QCursor::pos(), Time::msToString(double(ui.seekSlider->value()) / 1000.0));
         if (!is_seeking_) {
             return;
@@ -246,7 +257,7 @@ void Xamp::initialController() {
         ui.seekSlider->setValue(value);
     });
 
-    (void)QObject::connect(ui.seekSlider, &QSlider::sliderReleased, [this]() {
+    (void)QObject::connect(ui.seekSlider, &SeekSlider::sliderReleased, [this]() {
         QToolTip::showText(QCursor::pos(), Time::msToString(double(ui.seekSlider->value()) / 1000.0));
         if (!is_seeking_) {
             return;
@@ -262,7 +273,7 @@ void Xamp::initialController() {
         is_seeking_ = false;
     });
 
-    (void)QObject::connect(ui.seekSlider, &QSlider::sliderPressed, [this]() {
+    (void)QObject::connect(ui.seekSlider, &SeekSlider::sliderPressed, [this]() {
         QToolTip::showText(QCursor::pos(), Time::msToString(double(ui.seekSlider->value()) / 1000.0));
         if (is_seeking_) {
             return;
