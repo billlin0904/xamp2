@@ -495,6 +495,25 @@
           </widget>
          </item>
          <item>
+          <widget class="QToolButton" name="stopButton">
+           <property name="minimumSize">
+            <size>
+             <width>40</width>
+             <height>40</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>40</width>
+             <height>40</height>
+            </size>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QToolButton" name="nextButton">
            <property name="minimumSize">
             <size>

@@ -423,6 +423,12 @@ BassFileStream::BassFileStream()
 
 XAMP_PIMPL_IMPL(BassFileStream)
 
+void BassFileStream::LoadBassLib() {
+	if (!BassLib::Instance().IsLoaded()) {
+		BassLib::Instance().Load();
+	}
+}
+
 void BassFileStream::OpenFromFile(const std::wstring & file_path)  {
 	stream_->LoadFromFile(file_path);
 }

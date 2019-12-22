@@ -25,7 +25,7 @@ public:
 
     size_t GetLength() const;
 
-	void Close();
+	void Close() noexcept;
 
 private:
 	class MemoryMappedFileImpl;

@@ -75,7 +75,7 @@ private:
 	int32_t frames_per_latency_;
 	int32_t valid_bits_samples_;
 	DWORD queue_id_;
-	double stream_time_;
+	std::atomic<int64_t> stream_time_;
 	WinHandle sample_ready_;
 	std::wstring mmcss_name_;
 	AudioConvertContext data_convert_;
@@ -90,7 +90,6 @@ private:
 	CComPtr<IMFAsyncResult> sample_ready_async_result_;
 	mutable std::mutex mutex_;
 	AlignBufferPtr<float> buffer_;
-	VmMemLock memlock_;
 	std::condition_variable condition_;
 	AudioCallback* callback_;
 };

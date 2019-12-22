@@ -24,5 +24,6 @@
         <file>Resource/White/night_mode.png</file>
         <file>Resource/White/settings.png</file>
         <file>Resource/image/fontawesome-webfont.ttf</file>
+        <file>Resource/White/stop.png</file>
     </qresource>
 </RCC>

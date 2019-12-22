@@ -71,6 +71,13 @@ void ThemeManager::setDefaultStyle(Ui::XampWindow &ui) {
 	ui.sliderFrame->setStyleSheet(Q_UTF8("background-color: rgba(228, 233, 237, 230);"));
     ui.sliderBar->setStyleSheet(Q_UTF8("background-color: transparent;"));
 
+    ui.stopButton->setStyleSheet(Q_UTF8(R"(
+                                         QToolButton#stopButton {
+                                         image: url(:/xamp/Resource/White/stop.png);
+                                         background-color: transparent;
+                                         }
+                                         )"));
+
     ui.closeButton->setStyleSheet(Q_UTF8(R"(
                                          QToolButton#closeButton {
                                          image: url(:/xamp/Resource/White/close.png);

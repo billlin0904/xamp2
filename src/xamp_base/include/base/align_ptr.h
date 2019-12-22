@@ -58,7 +58,7 @@ XAMP_BASE_API_ONLY_EXPORT AlignPtr<BaseType> MakeAlign(Args&& ... args) {
         throw std::bad_alloc();
     }
 
-    assert(((std::size_t)ptr % XAMP_MALLOC_ALGIGN_SIZE) == 0);
+    assert(((size_t)ptr % XAMP_MALLOC_ALGIGN_SIZE) == 0);
 
     try {
         BaseType* base = ::new(ptr) ImplType(std::forward<Args>(args)...);
@@ -77,7 +77,7 @@ XAMP_BASE_API_ONLY_EXPORT AlignPtr<Type> MakeAlign(Args&& ... args) {
         throw std::bad_alloc();
     }
 
-    assert(((std::size_t)ptr % XAMP_MALLOC_ALGIGN_SIZE) == 0);
+    assert(((size_t)ptr % XAMP_MALLOC_ALGIGN_SIZE) == 0);
 
     try {
         auto q = ::new(ptr) Type(std::forward<Args>(args)...);
@@ -99,7 +99,7 @@ XAMP_BASE_API_ONLY_EXPORT AlignBufferPtr<Type> MakeBuffer(size_t size, const int
         throw std::bad_alloc();
     }
 
-    assert(((std::size_t)ptr % XAMP_MALLOC_ALGIGN_SIZE) == 0);
+    assert(((size_t)ptr % XAMP_MALLOC_ALGIGN_SIZE) == 0);
 
     return AlignBufferPtr<Type>(static_cast<Type*>(ptr));
 }

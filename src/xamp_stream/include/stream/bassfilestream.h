@@ -26,6 +26,8 @@ public:
 
 	XAMP_PIMPL(BassFileStream)
 
+	static void LoadBassLib();
+
 	void OpenFromFile(const std::wstring & file_path) override;
 
 	void Close() override;

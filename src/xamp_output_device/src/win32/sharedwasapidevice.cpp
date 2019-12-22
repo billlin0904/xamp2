@@ -156,18 +156,8 @@ void SharedWasapiDevice::OpenStream(const AudioFormat& output_format) {
 		device_props.bIsOffload = FALSE;
 		device_props.cbSize = sizeof(device_props);
 		device_props.eCategory = AudioCategory_Media;
-
-		device_props.Options = AUDCLNT_STREAMOPTIONS_RAW | AUDCLNT_STREAMOPTIONS_MATCH_FORMAT;
-
-		if (FAILED(client_->SetClientProperties(&device_props))) {
-			device_props.Options = AUDCLNT_STREAMOPTIONS_MATCH_FORMAT;
-			HrIfFailledThrow(client_->SetClientProperties(&device_props));
-			XAMP_LOG_DEBUG("Device not support RAW mode");
-		}
-		else {
-			XAMP_LOG_DEBUG("Device support RAW mode");
-		}
-
+		device_props.Options = AUDCLNT_STREAMOPTIONS_MATCH_FORMAT;
+		HrIfFailledThrow(client_->SetClientProperties(&device_props));
 		InitialRawMode(output_format);
 	}
 
@@ -274,7 +264,8 @@ double SharedWasapiDevice::GetStreamTime() const noexcept {
 }
 
 void SharedWasapiDevice::GetSample(const int32_t frame_available) {
-	stream_time_ = stream_time_ + static_cast<double>(frame_available);
+	double stream_time = stream_time_ + static_cast<double>(frame_available);
+	stream_time_ = static_cast<int64_t>(stream_time);
 
 	BYTE* data = nullptr;
 	auto hr = render_client_->GetBuffer(frame_available, &data);
@@ -285,7 +276,7 @@ void SharedWasapiDevice::GetSample(const int32_t frame_available) {
 		return;
 	}
 
-	if ((*callback_)(reinterpret_cast<float*>(data), frame_available, stream_time_ / mix_format_->nSamplesPerSec) == 0) {
+	if ((*callback_)(reinterpret_cast<float*>(data), frame_available, stream_time / mix_format_->nSamplesPerSec) == 0) {
 		hr = render_client_->ReleaseBuffer(frame_available, 0);
 		if (FAILED(hr)) {
 			const HRException exception(hr);

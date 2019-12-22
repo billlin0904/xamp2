@@ -70,7 +70,7 @@ private:
 
 	std::atomic<bool> is_running_;
 	std::atomic<bool> is_stop_streaming_;
-	std::atomic<double> stream_time_;
+	std::atomic<int64_t> stream_time_;
 	DWORD queue_id_;
 	uint32_t latency_;
 	uint32_t buffer_frames_;

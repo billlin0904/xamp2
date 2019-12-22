@@ -9,14 +9,14 @@ namespace xamp::output_device {
 void InitialDevice() {
 #ifdef _WIN32
 	using namespace xamp::output_device::win32;
-	HrIfFailledThrow(MFStartup(MF_VERSION, MFSTARTUP_LITE));	
-	HrIfFailledThrow(OleInitialize(nullptr));
+	HrIfFailledThrow(::MFStartup(MF_VERSION, MFSTARTUP_LITE));
+	HrIfFailledThrow(::OleInitialize(nullptr));
 #endif
 }
 
 void UnInitialDevice() {	
 #ifdef _WIN32
-	MFShutdown();
+	::MFShutdown();
 #endif
 }
 

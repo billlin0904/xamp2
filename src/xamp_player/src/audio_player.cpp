@@ -62,7 +62,7 @@ void AudioPlayer::PrepareAllocate() {
     // Initial std::async internal threadpool
     stream_task_ = std::async(std::launch::async, []() {});
     // Load Bass dll
-    stream_ = MakeAlign<AudioStream, BassFileStream>();
+    BassFileStream::LoadBassLib();
 }
 
 void AudioPlayer::Open(const std::wstring& file_path, bool use_bass_stream, const DeviceInfo& device_info) {
@@ -155,7 +155,7 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, const DeviceInfo& de
 			if (auto dsd_stream = dynamic_cast<DsdStream*>(stream_.get())) {
 				XAMP_LOG_DEBUG("DSD samplerate: {}", dsd_stream->GetDsdSampleRate());
 			}
-		}		
+		}
 	}
 }
 
@@ -228,6 +228,7 @@ void AudioPlayer::Stop(bool signal_to_stop, bool shutdown_device, bool wait_for_
         device_id_.clear();
     }
     stream_->Close();
+    stream_.reset();
 }
 
 void AudioPlayer::Seek(double stream_time) {
@@ -355,6 +356,9 @@ bool AudioPlayer::CanPlayDSDFormat() const {
 }
 
 double AudioPlayer::GetDuration() const {
+    if (!stream_) {
+        return 0.0;
+    }
     return stream_->GetDuration();
 }
 

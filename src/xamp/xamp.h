@@ -108,6 +108,8 @@ private:
 
 	void getNextPage();
 
+	void setSeekPosValue(double stream_time_as_ms);
+
 	bool is_seeking_;
 	PlayerOrder order_;
 	QModelIndex play_index_;

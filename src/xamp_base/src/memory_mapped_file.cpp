@@ -29,7 +29,7 @@ public:
     static const DWORD DEFAULT_PROTECT = PAGE_READONLY;
     static const DWORD DEFAULT_ACCESS = FILE_MAP_READ;
 
-    MemoryMappedFileImpl() {
+    MemoryMappedFileImpl() noexcept {
     }
 
     void Open(const std::wstring& file_path, FileAccessMode mode, bool exclusive = false) {
@@ -56,11 +56,11 @@ public:
         }
     }
 
-    ~MemoryMappedFileImpl() {
+    ~MemoryMappedFileImpl() noexcept {
         Close();
     }
 
-    void Close() {
+    void Close() noexcept {
         address_.reset();
         file_.reset();
     }
@@ -96,11 +96,11 @@ public:
         }
     }
 
-    ~MemoryMappedFileImpl() {
+    ~MemoryMappedFileImpl() noexcept {
         Close();
     }
 
-    void Close() {
+    void Close() noexcept {
         if (!mem_) {
             return;
         }
@@ -143,7 +143,7 @@ size_t MemoryMappedFile::GetLength() const {
     return impl_->GetLength();
 }
 
-void MemoryMappedFile::Close() {
+void MemoryMappedFile::Close() noexcept {
     impl_->Close();
 }
 

@@ -208,10 +208,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 		HrIfFailledThrow(client_->SetEventHandle(sample_ready_.get()));
 	}
 
-	memlock_.UnLock();
-
 	buffer_ = MakeBuffer<float>(frames_per_latency_ * 2);
-	memlock_.Lock(buffer_.get(), sizeof(float) * frames_per_latency_ * 2);
     data_convert_ = MakeConvert(output_format, valid_output_format, frames_per_latency_);
 }
 
@@ -239,7 +236,8 @@ HRESULT ExclusiveWasapiDevice::OnSampleReady(IMFAsyncResult *result) {
 		return S_OK;
 	}
 
-    stream_time_ = stream_time_ + static_cast<double>(frames_per_latency_);
+    double stream_time = stream_time_ + static_cast<double>(frames_per_latency_);
+	stream_time_ = static_cast<int64_t>(stream_time);
 
 	auto hr = render_client_->GetBuffer(frames_per_latency_, &data);
 	if (FAILED(hr)) {
@@ -249,7 +247,7 @@ HRESULT ExclusiveWasapiDevice::OnSampleReady(IMFAsyncResult *result) {
 		return S_OK;
 	}
 
- 	if ((*callback_)(buffer_.get(), frames_per_latency_, stream_time_ / mix_format_->nSamplesPerSec) == 0) {
+ 	if ((*callback_)(buffer_.get(), frames_per_latency_, stream_time / mix_format_->nSamplesPerSec) == 0) {
 		(void)DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEAVED>::Convert2432Bit(
             reinterpret_cast<int32_t*>(data), buffer_.get(), data_convert_);
 

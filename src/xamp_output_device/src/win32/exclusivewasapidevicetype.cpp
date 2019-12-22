@@ -12,7 +12,7 @@ ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceType() {
 
 void ExclusiveWasapiDeviceType::Initial() {
 	if (!enumerator_) {
-		HrIfFailledThrow(CoCreateInstance(__uuidof(MMDeviceEnumerator),
+		HrIfFailledThrow(::CoCreateInstance(__uuidof(MMDeviceEnumerator),
 			nullptr,
 			CLSCTX_ALL,
 			__uuidof(IMMDeviceEnumerator),

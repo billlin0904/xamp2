@@ -130,13 +130,6 @@
   <ItemGroup>
     <ClInclude Include="include\dsp\coefs.h" />
     <ClInclude Include="include\dsp\dsp.h" />
-    <ClInclude Include="include\dsp\firfilter.h" />
-    <ClInclude Include="include\dsp\dsd2pcmfirfilter.h" />
-    <ClInclude Include="include\dsp\dsd2pcmsettings.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="src\pcm2dsdfirfilter.cpp" />
-    <ClCompile Include="src\pcm2dsdsettings.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

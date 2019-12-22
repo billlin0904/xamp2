@@ -336,6 +336,10 @@ void Xamp::initialController() {
         play();
     });
 
+    (void)QObject::connect(ui.stopButton, &QToolButton::pressed, [this]() {
+        stopPlayedClicked();
+        });
+
     (void)QObject::connect(ui.backPageButton, &QToolButton::pressed, [this]() {
         goBackPage();
     });
@@ -440,7 +444,8 @@ void Xamp::initialShortcut() {
 }
 
 void Xamp::stopPlayedClicked() {
-
+    player_->Stop(false, true);
+    setSeekPosValue(0);
 }
 
 void Xamp::playNextClicked() {
@@ -536,14 +541,18 @@ void Xamp::onSampleTimeChanged(double stream_time) {
     if (!player_) {
         return;
     }
-    if (player_->GetState() == PlayerState::PLAYER_STATE_RUNNING) {
-        ui.endPosLabel->setText(Time::msToString(player_->GetDuration() - stream_time));
-        auto stream_time_as_ms = static_cast<int32_t>(stream_time * 1000.0);
-        ui.seekSlider->setValue(stream_time_as_ms);
-        ui.startPosLabel->setText(Time::msToString(stream_time));
-        setTaskbarProgress(100.0 * ui.seekSlider->value() / ui.seekSlider->maximum());
-        lrc_page_->lyricsWidget()->setLrcTime(stream_time_as_ms);
+    if (player_->GetState() == PlayerState::PLAYER_STATE_RUNNING) {         
+        setSeekPosValue(stream_time);
     }
+}
+
+void Xamp::setSeekPosValue(double stream_time) {
+    ui.endPosLabel->setText(Time::msToString(player_->GetDuration() - stream_time));
+    auto stream_time_as_ms = static_cast<int32_t>(stream_time * 1000.0);
+    ui.seekSlider->setValue(stream_time_as_ms);
+    ui.startPosLabel->setText(Time::msToString(stream_time));
+    setTaskbarProgress(100.0 * ui.seekSlider->value() / ui.seekSlider->maximum());
+    lrc_page_->lyricsWidget()->setLrcTime(stream_time_as_ms);
 }
 
 void Xamp::playLocalFile(const PlayListEntity& item) {
