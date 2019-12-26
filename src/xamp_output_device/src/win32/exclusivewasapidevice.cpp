@@ -119,16 +119,8 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
     device_props.bIsOffload = FALSE;
     device_props.cbSize = sizeof(device_props);
     device_props.eCategory = AudioCategory_Media;
-	device_props.Options = AUDCLNT_STREAMOPTIONS_RAW | AUDCLNT_STREAMOPTIONS_MATCH_FORMAT;
-
-	// Fall back use not raw mode.
-	if (FAILED(client_->SetClientProperties(&device_props))) {
-		device_props.Options = AUDCLNT_STREAMOPTIONS_MATCH_FORMAT;
-		HrIfFailledThrow(client_->SetClientProperties(&device_props));
-		XAMP_LOG_DEBUG("Device not support RAW mode");
-	} else {
-		XAMP_LOG_DEBUG("Device support RAW mode");
-	}
+	device_props.Options = AUDCLNT_STREAMOPTIONS_MATCH_FORMAT;
+	HrIfFailledThrow(client_->SetClientProperties(&device_props));
 
     REFERENCE_TIME default_device_period = 0;
     REFERENCE_TIME minimum_device_period = 0;
@@ -161,9 +153,11 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 
     auto valid_output_format = output_format;
 
+	constexpr int32_t MAX_VALID_BITS_SAMPLES = 24;
+
 	// Note: 由於轉換出來就是float格式, 所以固定採用24/32格式進行撥放!
 	valid_output_format.SetByteFormat(ByteFormat::SINT32);
-	valid_bits_samples_ = 24;
+	valid_bits_samples_ = MAX_VALID_BITS_SAMPLES;
 
 	if (!client_) {
 		XAMP_LOG_DEBUG("Active device format: {}", valid_output_format);
