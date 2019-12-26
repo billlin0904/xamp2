@@ -1,4 +1,4 @@
-QT       += core gui sql
+QT       += core gui sql network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -28,6 +28,7 @@ INCLUDEPATH += ../thirdparty/spdlog/include/
 
 SOURCES += \
     thememanager.cpp \
+    widget/seekslider.cpp \
     widget/albumview.cpp \
     widget/appsettings.cpp \
     widget/clickablelabel.cpp \
@@ -48,11 +49,14 @@ SOURCES += \
     widget/tablistview.cpp \
     widget/toast.cpp \
     widget/wheelablewidget.cpp \
+    singleinstanceapplication.cpp \
     main.cpp \
     xamp.cpp
 
 HEADERS += \
     thememanager.h \
+    singleinstanceapplication.h \
+    widget/seekslider.h \
     widget/actionmap.h \
     widget/albumview.h \
     widget/appsettings.h \

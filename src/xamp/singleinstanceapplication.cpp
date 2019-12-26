@@ -24,7 +24,7 @@ static QString GetServerName() {
 
 SingleInstanceApplication::SingleInstanceApplication() noexcept
     : socket_(nullptr) {
-    (void)QObject::connect(&server_, SIGNAL(newConnection()), this, SLOT(newConnection()));
+    (void)QObject::connect(&server_, SIGNAL(newConnection()), this, SLOT(onNewConnection()));
 }
 
 bool SingleInstanceApplication::listen(const QString& serverName) {
