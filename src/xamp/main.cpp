@@ -6,6 +6,7 @@
 
 #include <QtWidgets/QApplication>
 
+#include "singleinstanceapplication.h"
 #include "xamp.h"
 
 static void loadAndDefaultAppConfig() {
@@ -27,12 +28,17 @@ int main(int argc, char *argv[]) {
 #ifdef Q_OS_MAC
         .AddSink(std::make_shared<QDebugSink>())
 #endif
-		.AddFileLogger("xamp.log");	
+		.AddFileLogger("xamp.log");		
 
-    QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-    QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+	QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+	QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 
 	QApplication app(argc, argv);
+
+	SingleInstanceApplication singleApp;
+	if (!singleApp.attach(QCoreApplication::arguments())) {
+		return -1;
+	}		
 
 	try {
 		Database::Instance().open(Q_UTF8("xamp.db"));

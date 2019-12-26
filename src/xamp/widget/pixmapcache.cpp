@@ -49,16 +49,27 @@ void PixmapCache::erase(const QString& tag_id) {
 }
 
 void PixmapCache::loadCache() const {
-    for (QDirIterator itr(cache_path_, cache_ext_, QDir::Files | QDir::NoDotAndDotDot);  itr.hasNext(); ) {
+	int32_t i = 0;
+    for (QDirIterator itr(cache_path_, cache_ext_, QDir::Files | QDir::NoDotAndDotDot);
+		itr.hasNext(); ++i) {
         const auto path = itr.next();
 
         const QFileInfo image_file_path(path);
+		if (i >= MAX_CACHE_SIZE) {
+			QFile file(path);
+			file.remove();
+			file.close();
+			XAMP_LOG_DEBUG("Remove image cache: {}", image_file_path.baseName().toStdString());
+		}
+		
         QPixmap read_cover(path);
         if (!read_cover.isNull()) {
             const auto tag_id = image_file_path.baseName();
 			cache_.insert(tag_id, std::move(read_cover));
         }
     }
+
+	XAMP_LOG_DEBUG("Image cache count: {}", i);
 }
 
 const QPixmap* PixmapCache::find(const QString& tag_id) const {
