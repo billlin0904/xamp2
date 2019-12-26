@@ -341,20 +341,6 @@ std::optional<DeviceInfo> AudioPlayer::GetDefaultDeviceInfo() const {
     return device_type_->GetDefaultDeviceInfo();
 }
 
-std::vector<DeviceInfo> AudioPlayer::GetPlayDSDDeviceInfo() const {
-	if (auto device_type = DeviceFactory::Instance().Create(ASIODeviceType::Id)) {
-		return device_type.value()->GetDeviceInfo();
-	}
-	return std::vector<DeviceInfo>();
-}
-
-bool AudioPlayer::CanPlayDSDFormat() const {
-	if (!device_) {
-		return false;
-	}
-	return dynamic_cast<DSDDevice*>(device_.get()) != nullptr;
-}
-
 double AudioPlayer::GetDuration() const {
     if (!stream_) {
         return 0.0;
