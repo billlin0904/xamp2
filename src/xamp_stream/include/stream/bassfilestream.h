@@ -46,7 +46,7 @@ public:
 
 	bool IsDsdFile() const noexcept override;
 
-	DsdModes GetSupportDsdMode() const noexcept;
+    DsdModes GetSupportDsdMode() const noexcept override;
 
 	void SetDSDMode(DsdModes mode) noexcept override;
 

@@ -122,7 +122,7 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, const DeviceInfo& de
                 throw NotSupportFormatException();
             }
 #else
-			dsd_stream->SetDSDMode(DSDModes::DSD_MODE_DOP);
+            dsd_stream->SetDSDMode(DsdModes::DSD_MODE_DOP);
             XAMP_LOG_DEBUG("Use DOP mode");
 #endif
         }
