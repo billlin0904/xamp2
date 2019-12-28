@@ -57,7 +57,7 @@ Xamp::Xamp(QWidget *parent)
     , lrc_page_(nullptr)
     , playlist_page_(nullptr)
     , state_adapter_(std::make_shared<PlayerStateAdapter>())
-    , player_(std::make_shared<AudioPlayer>(state_adapter_)) {
+    , player_(std::make_shared<AudioPlayer>(state_adapter_)) {    
     initialUI();
     initialController();
     initialDeviceList();

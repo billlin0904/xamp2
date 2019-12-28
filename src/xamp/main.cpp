@@ -3,6 +3,7 @@
 #include <widget/qdebugsink.h>
 #include <widget/appsettings.h>
 #include <widget/database.h>
+#include <widget/pixmapcache.h>
 
 #include <QtWidgets/QApplication>
 
@@ -39,6 +40,8 @@ int main(int argc, char *argv[]) {
 	if (!singleApp.attach(QCoreApplication::arguments())) {
 		return -1;
 	}		
+
+	PixmapCache::Instance();
 
 	try {
 		Database::Instance().open(Q_UTF8("xamp.db"));
