@@ -1,14 +1,12 @@
 #ifdef _WIN32
 #include <base/logger.h>
+
 #include <output_device/audiocallback.h>
 #include <output_device/win32/hrexception.h>
 #include <output_device/win32/wasapi.h>
 #include <output_device/win32/sharedwasapidevice.h>
 
 namespace xamp::output_device::win32 {
-
-constexpr int32_t REFTIMES_PER_MILLISEC = 10000;
-constexpr double REFTIMES_PER_SEC = 10000000;
 
 static void SetWaveformatEx(WAVEFORMATEX *input_fromat, const int32_t samplerate) noexcept {
 	auto &format = *reinterpret_cast<WAVEFORMATEXTENSIBLE *>(input_fromat);
@@ -70,8 +68,8 @@ void SharedWasapiDevice::StopStream(bool wait_for_stop_stream) {
 	}
 
 	if (mix_format_ != nullptr) {
-		auto sleep_for_stop = REFTIMES_PER_SEC * buffer_frames_ / mix_format_->nSamplesPerSec;
-		::Sleep(static_cast<DWORD>(sleep_for_stop / REFTIMES_PER_MILLISEC / 2));
+		auto sleep_for_stop = helper::WASAPI_REFTIMES_PER_SEC * buffer_frames_ / mix_format_->nSamplesPerSec;
+		::Sleep(static_cast<DWORD>(sleep_for_stop / helper::WASAPI_REFTIMES_PER_MILLISEC / 2));
 	}
 
 	if (client_ != nullptr) {

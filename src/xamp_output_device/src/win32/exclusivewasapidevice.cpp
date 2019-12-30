@@ -82,7 +82,7 @@ ExclusiveWasapiDevice::ExclusiveWasapiDevice(const CComPtr<IMMDevice>& device)
 	: is_running_(false)
 	, is_stop_streaming_(false)
 	, thread_priority_(MmcssThreadPriority::MMCSS_THREAD_PRIORITY_CRITICAL)
-	, frames_per_latency_(0)
+	, buffer_frames_(0)
 	, valid_bits_samples_(0)
 	, queue_id_(0)
 	, stream_time_(0)
@@ -104,9 +104,9 @@ ExclusiveWasapiDevice::~ExclusiveWasapiDevice() {
 }
 
 void ExclusiveWasapiDevice::SetAlignedPeriod(REFERENCE_TIME device_period, const AudioFormat &output_format) {
-	frames_per_latency_ = ReferenceTimeToFrames(device_period, output_format.GetSampleRate());
-	frames_per_latency_ = MakeAlignedPeriod(output_format, frames_per_latency_, BackwardAligned);
-	aligned_period_ = MakeHnsPeriod(frames_per_latency_, output_format.GetSampleRate());
+	buffer_frames_ = ReferenceTimeToFrames(device_period, output_format.GetSampleRate());
+	buffer_frames_ = MakeAlignedPeriod(output_format, buffer_frames_, BackwardAligned);
+	aligned_period_ = MakeHnsPeriod(buffer_frames_, output_format.GetSampleRate());
 }
 
 void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_format, const int32_t valid_bits_samples) {
@@ -131,7 +131,7 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
 		Nano100ToSeconds(default_device_period),
 		Nano100ToSeconds(minimum_device_period));
 
-	XAMP_LOG_DEBUG("Frame per latency: {}", frames_per_latency_);
+	XAMP_LOG_DEBUG("Frame per latency: {}", buffer_frames_);
 
 	XAMP_LOG_DEBUG("Initial aligned period: {} sec", Nano100ToSeconds(aligned_period_));
 
@@ -202,8 +202,8 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 		HrIfFailledThrow(client_->SetEventHandle(sample_ready_.get()));
 	}
 
-	buffer_ = MakeBuffer<float>(frames_per_latency_ * 2);
-    data_convert_ = MakeConvert(output_format, valid_output_format, frames_per_latency_);
+	buffer_ = MakeBuffer<float>((size_t)buffer_frames_ * 2);
+    data_convert_ = MakeConvert(output_format, valid_output_format, buffer_frames_);
 }
 
 void ExclusiveWasapiDevice::SetSchedulerService(const std::wstring &mmcss_name, const MmcssThreadPriority thread_priority) {
@@ -223,17 +223,17 @@ HRESULT ExclusiveWasapiDevice::OnSampleReady(IMFAsyncResult *result) {
 
     if (!is_running_) {
         if (!is_stop_streaming_) {
-            FillSilentSample(frames_per_latency_);
+            FillSilentSample(buffer_frames_);
         }
         is_stop_streaming_ = true;
         condition_.notify_all();
 		return S_OK;
 	}
 
-    double stream_time = stream_time_ + static_cast<double>(frames_per_latency_);
+    double stream_time = stream_time_ + static_cast<double>(buffer_frames_);
 	stream_time_ = static_cast<int64_t>(stream_time);
 
-	auto hr = render_client_->GetBuffer(frames_per_latency_, &data);
+	auto hr = render_client_->GetBuffer(buffer_frames_, &data);
 	if (FAILED(hr)) {
 		const HRException exception(hr);
 		callback_->OnError(exception);
@@ -241,18 +241,20 @@ HRESULT ExclusiveWasapiDevice::OnSampleReady(IMFAsyncResult *result) {
 		return S_OK;
 	}
 
- 	if ((*callback_)(buffer_.get(), frames_per_latency_, stream_time / mix_format_->nSamplesPerSec) == 0) {
+ 	if ((*callback_)(buffer_.get(), buffer_frames_, stream_time / mix_format_->nSamplesPerSec) == 0) {
 		(void)DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEAVED>::Convert2432Bit(
-            reinterpret_cast<int32_t*>(data), buffer_.get(), data_convert_);
+            reinterpret_cast<int32_t*>(data),
+			buffer_.get(), 
+			data_convert_);
 
-        hr = render_client_->ReleaseBuffer(frames_per_latency_, 0);
+        hr = render_client_->ReleaseBuffer(buffer_frames_, 0);
 		if (FAILED(hr)) {
 			const HRException exception(hr);
 			callback_->OnError(exception);
 			is_running_ = false;
 		}
 	} else {
-		hr = render_client_->ReleaseBuffer(frames_per_latency_, AUDCLNT_BUFFERFLAGS_SILENT);
+		hr = render_client_->ReleaseBuffer(buffer_frames_, AUDCLNT_BUFFERFLAGS_SILENT);
 		if (FAILED(hr)) {
 			const HRException exception(hr);
 			callback_->OnError(exception);
@@ -280,11 +282,8 @@ void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
     }
 
     if (mix_format_ != nullptr) {
-		constexpr int32_t REFTIMES_PER_MILLISEC = 10000;
-		constexpr double REFTIMES_PER_SEC = 10000000;
-
-        auto sleep_for_stop = REFTIMES_PER_SEC * frames_per_latency_ / mix_format_->nSamplesPerSec;
-		::Sleep(static_cast<DWORD>(sleep_for_stop / REFTIMES_PER_MILLISEC));
+        auto sleep_for_stop = helper::WASAPI_REFTIMES_PER_SEC * buffer_frames_ / mix_format_->nSamplesPerSec;
+		::Sleep(static_cast<DWORD>(sleep_for_stop / helper::WASAPI_REFTIMES_PER_MILLISEC));
     }    
 
     if (client_ != nullptr) {
@@ -334,7 +333,7 @@ void ExclusiveWasapiDevice::StartStream() {
 	HrIfFailledThrow(client_->Start());
 
 	// Note: 必要! 某些音效卡會爆音!
-	FillSilentSample(frames_per_latency_);
+	FillSilentSample(buffer_frames_);
 
 	HrIfFailledThrow(::MFPutWaitingWorkItem(sample_ready_.get(), 0, sample_ready_async_result_, &sample_raedy_key_));
     is_stop_streaming_ = false;
@@ -388,7 +387,7 @@ InterleavedFormat ExclusiveWasapiDevice::GetInterleavedFormat() const noexcept {
 }
 
 int32_t ExclusiveWasapiDevice::GetBufferSize() const noexcept {
-	return frames_per_latency_;
+	return buffer_frames_ * mix_format_->nChannels;
 }
 
 }

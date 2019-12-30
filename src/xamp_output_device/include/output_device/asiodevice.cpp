@@ -7,6 +7,7 @@
 #include <base/dataconverter.h>
 #include <base/logger.h>
 
+#if ENABLE_ASIO
 #ifdef _WIN32
 #include <output_device/win32/mmcss.h>
 #endif
@@ -18,10 +19,7 @@
 namespace xamp::output_device {
 
 using namespace base;
-
-#ifdef _WIN32
 using namespace win32;
-#endif
 
 struct AsioCallbackInfo {
 	bool boost_priority{false};
@@ -413,10 +411,10 @@ void AsioDevice::OpenStream(const AudioFormat& output_format) {
 	ReOpen();
 
 	if (device_id_.length() > sizeof(asio_driver_info.name) - 1) {
-		(void)FastMemcpy(asio_driver_info.name, device_id_.c_str(), sizeof(asio_driver_info.name) - 1);
+		(void)memcpy(asio_driver_info.name, device_id_.c_str(), sizeof(asio_driver_info.name) - 1);
 	}
 	else {
-		(void)FastMemcpy(asio_driver_info.name, device_id_.c_str(), device_id_.length());
+		(void)memcpy(asio_driver_info.name, device_id_.c_str(), device_id_.length());
 	}
 
 	AsioIfFailedThrow(::ASIOInit(&asio_driver_info));
@@ -458,7 +456,7 @@ void AsioDevice::SetOutputSampleRate(const AudioFormat& output_format) {
 
 	clock_source_.resize(MAX_CLOCK_SOURCE_SIZE);
 
-	long num_clock_source = static_cast<long>(clock_source_.size());
+	auto num_clock_source = static_cast<long>(clock_source_.size());
 	AsioIfFailedThrow(::ASIOGetClockSources(clock_source_.data(), &num_clock_source));
 
 	auto is_current_source_set = false;
@@ -498,7 +496,7 @@ void AsioDevice::StopStream(bool wait_for_stop_stream) {
 		condition_.wait(lock);
 	}
 
-	AsioIfFailedThrow(ASIOStop());
+	AsioIfFailedThrow(::ASIOStop());
 }
 
 void AsioDevice::CloseStream() {
@@ -524,7 +522,7 @@ void AsioDevice::CloseStream() {
 }
 
 void AsioDevice::StartStream() {	
-	AsioIfFailedThrow(ASIOStart());
+	AsioIfFailedThrow(::ASIOStart());
 	is_streaming_ = true;
 	is_stop_streaming_ = false;
 }
@@ -561,7 +559,7 @@ ASIOTime* AsioDevice::OnBufferSwitchTimeInfoCallback(ASIOTime* timeInfo, long in
 
 void AsioDevice::OnBufferSwitchCallback(long index, ASIOBool processNow) {
 	ASIOTime time_info{ 0 };
-	if (ASIOGetSamplePosition(&time_info.timeInfo.samplePosition, &time_info.timeInfo.systemTime) == ASE_OK) {
+	if (::ASIOGetSamplePosition(&time_info.timeInfo.samplePosition, &time_info.timeInfo.systemTime) == ASE_OK) {
 		time_info.timeInfo.flags = kSystemTimeValid | kSamplePositionValid;
 	}
 	callbackInfo.device->OnBufferSwitchTimeInfoCallback(&time_info, index, processNow);
@@ -648,5 +646,7 @@ void AsioDevice::OnSampleRateChangedCallback(ASIOSampleRate sampleRate) {
 	callbackInfo.device->callback_->OnError(SampleRateChangedException());
 }
 
-
 }
+
+#endif
+

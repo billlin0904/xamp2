@@ -40,6 +40,9 @@ struct IMMDeviceEnumerator;
 
 namespace xamp::output_device::win32::helper {
 
+constexpr int32_t WASAPI_REFTIMES_PER_MILLISEC = 10000;
+constexpr double WASAPI_REFTIMES_PER_SEC = 10000000;
+
 std::wstring GetDeviceProperty(const PROPERTYKEY& key, CComPtr<IMMDevice>& device);
 
 DeviceInfo GetDeviceInfo(CComPtr<IMMDevice>& device, const ID device_type_id);

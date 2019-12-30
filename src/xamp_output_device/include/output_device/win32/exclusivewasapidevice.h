@@ -72,7 +72,7 @@ private:
 	std::atomic<bool> is_running_;
 	std::atomic<bool> is_stop_streaming_;
 	MmcssThreadPriority thread_priority_;
-	int32_t frames_per_latency_;
+	int32_t buffer_frames_;
 	int32_t valid_bits_samples_;
 	DWORD queue_id_;
 	std::atomic<int64_t> stream_time_;
