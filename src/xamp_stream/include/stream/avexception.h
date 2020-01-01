@@ -19,5 +19,14 @@ public:
     ~AvException() override;
 };
 
+
+#define AvIfFailedThrow(expr) \
+	do { \
+		auto error = (expr); \
+		if (error != 0) { \
+			throw AvException(error); \
+		} \
+	} while (false)
+
 }
 

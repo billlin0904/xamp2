@@ -18,12 +18,11 @@
 
 namespace xamp::output_device {
 
-using namespace base;
 using namespace win32;
 
 struct AsioCallbackInfo {
 	bool boost_priority{false};
-	bool asioXRun{ false };
+	bool is_xrun{ false };
 	AlignPtr<AsioDrivers> drivers{};
 	AudioConvertContext data_context{};
 	ASIOCallbacks asio_callbacks{};
@@ -601,7 +600,7 @@ long AsioDevice::OnAsioMessagesCallback(long selector, long value, void* message
 		// another thread.  However a driver can issue it in other
 		// situations, too.
 		XAMP_LOG_INFO("Driver resync requested!!!");
-		callbackInfo.asioXRun = true;
+		callbackInfo.is_xrun = true;
 		ret = 1L;
 		break;
 	case kAsioLatenciesChanged:

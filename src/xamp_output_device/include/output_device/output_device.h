@@ -19,6 +19,8 @@
 
 namespace xamp::output_device {
 
+using namespace base;
+
 class DeviceType;
 class Device;
 class AudioCallback;

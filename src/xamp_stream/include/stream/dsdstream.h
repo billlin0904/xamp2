@@ -12,8 +12,6 @@
 
 namespace xamp::stream {
 
-using namespace base;
-
 class XAMP_STREAM_API XAMP_NO_VTABLE DsdStream {
 public:
     XAMP_BASE_CLASS(DsdStream)

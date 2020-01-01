@@ -31,14 +31,6 @@ extern "C" {
 
 namespace xamp::stream {
 
-#define AvIfFailedThrow(expr) \
-	do { \
-		auto error = (expr); \
-		if (error != 0) { \
-			throw AvException(error); \
-		} \
-	} while (false)
-
 template <typename T>
 struct AvResourceDeleter;
 
@@ -46,12 +38,6 @@ template <>
 struct AvResourceDeleter<AVFormatContext> {
 	void operator()(AVFormatContext* p) const {
 		assert(p != nullptr);
-#ifndef ENABLE_IO_CONTEXT
-		if (!(p->flags & AVFMT_NOFILE)) {
-			avio_close(p->pb);
-		}
-		avformat_free_context(p);
-#endif
 		avformat_close_input(&p);
 	}
 };
@@ -133,58 +119,6 @@ private:
 
 int32_t LibAv::log_level = AV_LOG_FATAL;
 
-#ifndef ENABLE_IO_CONTEXT
-struct AvStreamContext {
-	AvStreamContext()
-		: buffer(nullptr)
-		, offset(0)
-		, size(0) {
-	}
-
-	static int64_t OnSeekPacketCallback(void* opaque, int64_t offset, int whence) {
-		auto context = reinterpret_cast<AvStreamContext*>(opaque);
-
-		switch (whence) {
-		case SEEK_CUR:
-			context->offset += offset;
-			break;
-		case SEEK_END:
-			context->offset = context->size + offset;
-			break;
-		case SEEK_SET:
-			context->offset = offset;
-			break;
-		case AVSEEK_SIZE:
-			return context->size;
-		default:
-			break;
-		}
-		return context->offset;
-	}
-
-	static int OnReadPacketCallback(void* opaque, uint8_t* buf, int buf_size) {
-		auto context = reinterpret_cast<AvStreamContext*>(opaque);
-
-		const auto reminder = context->size - context->offset;
-		buf_size = FFMIN(buf_size, reminder);
-
-		if (buf_size < 0) {
-			return AVERROR_EOF;
-		}
-
-		(void)FastMemcpy(buf, context->buffer + context->offset, buf_size);
-		context->offset += buf_size;
-		return buf_size;
-	}
-
-	uint8_t* buffer;
-	int64_t offset;
-	size_t size;
-};
-#endif
-
-constexpr int32_t MAX_AUDIO_FRAME_SIZE { 192000 };
-
 class AvFileStream::AvFileStreamImpl {
 public:
 	AvFileStreamImpl()
@@ -201,16 +135,6 @@ public:
 		audio_stream_id_ = -1;
 		duration_ = 0;
 		audio_format_.Reset();
-#if ENABLE_IO_CONTEXT
-		if (iocontext_.buffer != nullptr) {
-			av_freep(&avio_context_->buffer);
-			av_freep(&avio_context_);
-			av_file_unmap(iocontext_.buffer, iocontext_.size);
-			avio_context_ = nullptr;
-		}
-		iocontext_.buffer = nullptr;
-		iocontext_.size = 0;
-#endif
 		swr_context_.reset();
 		audio_frame_.reset();
 		codec_contex_.reset();
@@ -219,52 +143,20 @@ public:
 
 	void LoadFromFile(const std::wstring& file_path) {
 		AVFormatContext* format_ctx = nullptr;
-#if ENABLE_IO_CONTEXT
-		uint8_t* buffer = nullptr;
-		size_t buffer_size;
 
-		auto file_path_ut8 = ToUtf8String(file_path);
-		if (av_file_map(file_path_ut8.c_str(), &buffer, &buffer_size, 0, nullptr) < 0) {
-			throw FileNotFoundException();
-		}
-
-		format_ctx = avformat_alloc_context();
-		const auto avio_ctx_buffer_size = 4096;
-		const auto avio_ctx_buffer = reinterpret_cast<uint8_t*>(av_malloc(avio_ctx_buffer_size));
-
-		iocontext_.buffer = buffer;
-		iocontext_.offset = 0;
-		iocontext_.size = buffer_size;
-
-		PrefetchMemory(iocontext_.buffer, iocontext_.size);
-
-		avio_context_ = avio_alloc_context(avio_ctx_buffer,
-			avio_ctx_buffer_size,
-			0,
-			&iocontext_,
-			&AvStreamContext::OnReadPacketCallback,
-			nullptr,
-			&AvStreamContext::OnSeekPacketCallback);
-
-		format_ctx->pb = avio_context_;
-
-		if (avformat_open_input(&format_ctx, nullptr, nullptr, nullptr) != 0) {
-			throw FileNotFoundException();
-		}
-#else
 		auto file_path_ut8 = ToString(file_path);		
-		auto err = avformat_open_input(&format_ctx, file_path_ut8.c_str(), nullptr, nullptr);
+		auto err = ::avformat_open_input(&format_ctx, file_path_ut8.c_str(), nullptr, nullptr);
 		if (err != 0) {
 			throw AvException(err);
 		}
-#endif
+
 		if (format_ctx != nullptr) {
 			format_context_.reset(format_ctx);
 		} else {
 			throw NotSupportFormatException();
 		}
 
-		if (avformat_find_stream_info(format_context_.get(), nullptr) < 0) {
+		if (::avformat_find_stream_info(format_context_.get(), nullptr) < 0) {
 			throw NotSupportFormatException();
 		}
 
@@ -281,18 +173,18 @@ public:
 		}
 
 		const auto stream = format_context_->streams[audio_stream_id_];
-		duration_ = av_q2d(stream->time_base) * static_cast<double>(stream->duration);
+		duration_ = ::av_q2d(stream->time_base) * static_cast<double>(stream->duration);
 	}
 
 	void OpenAudioStream() {
 		codec_contex_.reset(format_context_->streams[audio_stream_id_]->codec);
 
-		const auto codec = avcodec_find_decoder(codec_contex_->codec_id);
+		const auto codec = ::avcodec_find_decoder(codec_contex_->codec_id);
 		if (!codec) {
 			throw NotSupportFormatException();
 		}
 
-        AvIfFailedThrow(avcodec_open2(codec_contex_.get(), codec, nullptr));
+        AvIfFailedThrow(::avcodec_open2(codec_contex_.get(), codec, nullptr));
 		audio_frame_.reset(av_frame_alloc());
 
 		auto interleaved_format = InterleavedFormat::INTERLEAVED;
@@ -316,7 +208,7 @@ public:
 		}
 
 		// 固定轉成INTERLEAVED格式
-		swr_context_.reset(swr_alloc_set_opts(swr_context_.get(),
+		swr_context_.reset(::swr_alloc_set_opts(swr_context_.get(),
 			AV_CH_LAYOUT_STEREO,
 			AV_SAMPLE_FMT_FLT,
 			codec_contex_->sample_rate,
@@ -326,7 +218,7 @@ public:
 			0,
 			nullptr));
 
-        AvIfFailedThrow(swr_init(swr_context_.get()));
+        AvIfFailedThrow(::swr_init(swr_context_.get()));
 
 		audio_format_ = AudioFormat(Format::FORMAT_PCM,
 			codec_contex_->channels,
@@ -338,16 +230,16 @@ public:
 	int32_t GetSamples(float* buffer, const int32_t length) noexcept {
 		auto num_read_sample = 0;
 		for (uint32_t i = 0; i < format_context_->nb_streams; ++i) {
-			AvPtr<AVPacket> packet(av_packet_alloc());
-			av_init_packet(packet.get());
-			while (av_read_frame(format_context_.get(), packet.get()) >= 0) {
+			AvPtr<AVPacket> packet(::av_packet_alloc());
+			::av_init_packet(packet.get());
+			while (::av_read_frame(format_context_.get(), packet.get()) >= 0) {
 				XAMP_DEFER(
-					av_packet_unref(packet.get());
+					::av_packet_unref(packet.get());
 				);
 				if (packet->stream_index != audio_stream_id_) {
 					continue;
 				}
-				auto ret = avcodec_send_packet(codec_contex_.get(), packet.get());
+				auto ret = ::avcodec_send_packet(codec_contex_.get(), packet.get());
 				if (ret == AVERROR(EAGAIN)) {
 					break;
 				}
@@ -359,9 +251,9 @@ public:
 				}
 				while (ret >= 0) {
 					XAMP_DEFER(
-						av_frame_unref(audio_frame_.get());
+						::av_frame_unref(audio_frame_.get());
 					);
-					ret = avcodec_receive_frame(codec_contex_.get(), audio_frame_.get());
+					ret = ::avcodec_receive_frame(codec_contex_.get(), audio_frame_.get());
 					if (ret == AVERROR(EAGAIN)) {
 						break;
 					}
@@ -402,8 +294,8 @@ public:
 			timestamp += format_context_->start_time;
 		}
 
-        AvIfFailedThrow(av_seek_frame(format_context_.get(), -1, timestamp, AVSEEK_FLAG_BACKWARD));
-		avcodec_flush_buffers(codec_contex_.get());
+        AvIfFailedThrow(::av_seek_frame(format_context_.get(), -1, timestamp, AVSEEK_FLAG_BACKWARD));
+		::avcodec_flush_buffers(codec_contex_.get());
 	}
 
 private:
@@ -413,7 +305,7 @@ private:
 
 	int32_t ConvertSamples(float* buffer, const uint32_t length) const noexcept {
 		const auto frame_size = audio_frame_->nb_samples * codec_contex_->channels;
-		const auto result = swr_convert(swr_context_.get(),
+		const auto result = ::swr_convert(swr_context_.get(),
 			reinterpret_cast<uint8_t **>(&buffer),
 			audio_frame_->nb_samples,
 			const_cast<const uint8_t **>(audio_frame_->extended_data),
@@ -429,10 +321,6 @@ private:
 
 	int32_t audio_stream_id_;
 	double duration_;
-#if ENABLE_IO_CONTEXT
-	AvStreamContext iocontext_;
-	AVIOContext* avio_context_{nullptr};
-#endif
 	AudioFormat audio_format_;
 	AvPtr<SwrContext> swr_context_;
 	AvPtr<AVFrame> audio_frame_;
