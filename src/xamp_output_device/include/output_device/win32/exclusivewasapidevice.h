@@ -67,6 +67,8 @@ private:
 
 	void SetAlignedPeriod(REFERENCE_TIME device_period, const AudioFormat& output_format);
 
+	void GetSample(const int32_t frame_available);
+
 	HRESULT OnSampleReady(IMFAsyncResult* result);
 
 	std::atomic<bool> is_running_;

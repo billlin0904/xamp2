@@ -56,6 +56,13 @@ protected:
     std::string message_;
 };
 
+class XAMP_BASE_API PlatformSpecException : public Exception {
+public:
+    explicit PlatformSpecException(int32_t err)
+        : Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, GetPlatformErrorMessage(err)) {
+    }
+};
+
 #define XAMP_DECLARE_EXCEPTION_CLASS(ExceptionClassName) \
 class XAMP_BASE_API ExceptionClassName : public Exception {\
 public:\

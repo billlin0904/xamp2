@@ -118,6 +118,7 @@ public:
 		BassLib::Instance().BASS_SetConfig(BASS_CONFIG_MF_DISABLE, true);
 		LoadPlugin("bass_aac.dll");
 		LoadPlugin("bassflac.dll");
+		LoadPlugin("bass_ape.dll");
 #else
 		LoadPlugin("bass_aac.dylib");
 #endif		

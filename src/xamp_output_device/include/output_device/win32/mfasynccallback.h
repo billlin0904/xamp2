@@ -6,6 +6,8 @@
 #pragma once
 
 #ifdef _WIN32
+
+#include <cassert>
 #include <Windows.h>
 #include <Mfidl.h>
 
@@ -21,14 +23,18 @@ public:
 		, queue_id_(queue_id)
 		, parent_(parent)
 		, callback_(fn) {
+		assert(parent != nullptr);
+		assert(fn != nullptr);
 	}
 
+	virtual ~MFAsyncCallback() = default;
+
 	STDMETHODIMP_(ULONG) AddRef() override {
-		return InterlockedIncrement(&refcount_);
+		return ::InterlockedIncrement(&refcount_);
 	}
 
 	STDMETHODIMP_(ULONG) Release() override {
-		const ULONG value = InterlockedDecrement(&refcount_);
+		const ULONG value = ::InterlockedDecrement(&refcount_);
 		if (value == 0) {
 			delete this;
 		}

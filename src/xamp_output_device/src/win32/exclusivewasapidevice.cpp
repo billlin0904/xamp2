@@ -219,8 +219,6 @@ void ExclusiveWasapiDevice::FillSilentSample(const int32_t frames_available) con
 }
 
 HRESULT ExclusiveWasapiDevice::OnSampleReady(IMFAsyncResult *result) {
-    BYTE *data = nullptr;
-
     if (!is_running_) {
         if (!is_stop_streaming_) {
             FillSilentSample(buffer_frames_);
@@ -230,31 +228,39 @@ HRESULT ExclusiveWasapiDevice::OnSampleReady(IMFAsyncResult *result) {
 		return S_OK;
 	}
 
-    double stream_time = stream_time_ + static_cast<double>(buffer_frames_);
+	GetSample(buffer_frames_);
+    return S_OK;
+}
+
+void ExclusiveWasapiDevice::GetSample(const int32_t frame_available) {
+	BYTE* data = nullptr;
+
+	double stream_time = stream_time_ + static_cast<double>(frame_available);
 	stream_time_ = static_cast<int64_t>(stream_time);
 
-	auto hr = render_client_->GetBuffer(buffer_frames_, &data);
+	auto hr = render_client_->GetBuffer(frame_available, &data);
 	if (FAILED(hr)) {
 		const HRException exception(hr);
 		callback_->OnError(exception);
 		is_running_ = false;
-		return S_OK;
+		return;
 	}
 
- 	if ((*callback_)(buffer_.get(), buffer_frames_, stream_time / mix_format_->nSamplesPerSec) == 0) {
+	if ((*callback_)(buffer_.get(), frame_available, stream_time / mix_format_->nSamplesPerSec) == 0) {
 		(void)DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEAVED>::Convert2432Bit(
-            reinterpret_cast<int32_t*>(data),
-			buffer_.get(), 
+			reinterpret_cast<int32_t*>(data),
+			buffer_.get(),
 			data_convert_);
 
-        hr = render_client_->ReleaseBuffer(buffer_frames_, 0);
+		hr = render_client_->ReleaseBuffer(frame_available, 0);
 		if (FAILED(hr)) {
 			const HRException exception(hr);
 			callback_->OnError(exception);
 			is_running_ = false;
 		}
-	} else {
-		hr = render_client_->ReleaseBuffer(buffer_frames_, AUDCLNT_BUFFERFLAGS_SILENT);
+	}
+	else {
+		hr = render_client_->ReleaseBuffer(frame_available, AUDCLNT_BUFFERFLAGS_SILENT);
 		if (FAILED(hr)) {
 			const HRException exception(hr);
 			callback_->OnError(exception);
@@ -262,12 +268,10 @@ HRESULT ExclusiveWasapiDevice::OnSampleReady(IMFAsyncResult *result) {
 		is_running_ = false;
 	}
 
-    HrIfFailledThrow(::MFPutWaitingWorkItem(sample_ready_.get(),
-		0, 
+	HrIfFailledThrow(::MFPutWaitingWorkItem(sample_ready_.get(),
+		0,
 		sample_ready_async_result_,
 		&sample_raedy_key_));
-    
-    return S_OK;
 }
 
 void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
