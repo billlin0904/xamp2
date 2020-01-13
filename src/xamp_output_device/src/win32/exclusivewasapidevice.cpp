@@ -202,7 +202,9 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 		HrIfFailledThrow(client_->SetEventHandle(sample_ready_.get()));
 	}
 
+	vmlock_.UnLock();
 	buffer_ = MakeBuffer<float>((size_t)buffer_frames_ * 2);
+	vmlock_.Lock(buffer_.get(), (size_t)buffer_frames_ * 2 * sizeof(float));
     data_convert_ = MakeConvert(output_format, valid_output_format, buffer_frames_);
 }
 

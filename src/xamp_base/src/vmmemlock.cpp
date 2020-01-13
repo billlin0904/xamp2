@@ -4,6 +4,7 @@
 #else
 #include <base/posix_handle.h>
 #endif
+#include <base/exception.h>
 #include <base/memory.h>
 #include <base/vmmemlock.h>
 
@@ -68,17 +69,15 @@ bool VmMemLock::EnableLockMemPrivilege(bool enable) noexcept {
 	return EnablePrivilege("SeLockMemoryPrivilege", enable);
 }
 
-void VmMemLock::Lock(void* address, size_t size) noexcept {
+void VmMemLock::Lock(void* address, size_t size) {
 	UnLock();
 
 	if (!ExterndProcessWorkingSetSize(size)) {
-		XAMP_LOG_DEBUG("ExterndProcessWorkingSetSize return failure! error:{}", GetLastError());
-		return;
+		throw PlatformSpecException("ExterndProcessWorkingSetSize return failure! error:{}", ::GetLastError());
 	}
 
 	if (!::VirtualLock(address, size)) {
-		XAMP_LOG_DEBUG("VirtualLock return failure! error:{}", GetLastError());
-		return;
+		throw PlatformSpecException("VirtualLock return failure! error:{}", ::GetLastError());
 	}
 
 	address_ = address;
@@ -88,7 +87,7 @@ void VmMemLock::Lock(void* address, size_t size) noexcept {
 void VmMemLock::UnLock() noexcept {
 	if (address_) {
 		if (!::VirtualUnlock(address_, size_)) {
-			XAMP_LOG_DEBUG("VirtualUnlock return failure! error:{}", GetLastError());
+			XAMP_LOG_DEBUG("VirtualUnlock return failure! error:{}", ::GetLastError());
 		}
 	}
 	address_ = nullptr;
@@ -105,12 +104,11 @@ VmMemLock::~VmMemLock() noexcept {
     UnLock();
 }
 
-void VmMemLock::Lock(void* address, size_t size) noexcept {
+void VmMemLock::Lock(void* address, size_t size) {
     UnLock();
 
     if (mlock(address, size)) {
-        XAMP_LOG_DEBUG("mlock return failure! error:{}", errno);
-        return;
+		throw PlatformSpecException("mlock return failure! error:{}", errno);
     }
 
     address_ = address;

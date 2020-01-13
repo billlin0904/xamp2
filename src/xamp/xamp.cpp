@@ -63,6 +63,7 @@ Xamp::Xamp(QWidget *parent)
     initialDeviceList();
     initialPlaylist();
     setCover(ThemeManager::pixmap().unknownCover());
+    player_->RegisterDeviceListener();
 }
 
 void Xamp::closeEvent(QCloseEvent*) {
@@ -311,6 +312,12 @@ void Xamp::initialController() {
                            this,
                            &Xamp::onSampleTimeChanged,
                            Qt::QueuedConnection);
+
+    (void)QObject::connect(state_adapter_.get(),
+        &PlayerStateAdapter::deviceChanged,
+        this,
+        &Xamp::initialDeviceList,
+        Qt::QueuedConnection);
 
     (void)QObject::connect(ui.searchLineEdit, &QLineEdit::textChanged, [this](const auto &text) {
         if (ui.currentView->count() > 0) {

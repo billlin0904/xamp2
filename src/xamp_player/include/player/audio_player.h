@@ -87,7 +87,9 @@ public:
 
 	AudioFormat GetStreamFormat() const;
 
-	bool IsDsdStream() const;	
+	bool IsDsdStream() const;
+
+	void RegisterDeviceListener();
 
 private:
 	void PrepareAllocate();
@@ -122,7 +124,7 @@ private:
 
 	DsdStream* AsDsdStream();
 
-	FileStream* AsFileStream();
+	FileStream* AsFileStream();	
 
 	struct XAMP_CACHE_ALIGNED(XAMP_MALLOC_ALGIGN_SIZE) AudioSlice {
         AudioSlice(const float* samples = nullptr, 

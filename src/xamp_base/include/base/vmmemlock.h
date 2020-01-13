@@ -17,7 +17,7 @@ public:
 
 	~VmMemLock() noexcept;
 
-	void Lock(void* address, size_t size) noexcept;
+	void Lock(void* address, size_t size);
 
 	void UnLock() noexcept;
 #ifdef _WIN32

@@ -23,10 +23,13 @@ signals:
 
     void playbackError(xamp::base::Errors error, const QString &message);
 
+    void deviceChanged();
 protected:
 	void OnSampleTime(double stream_time) override;
 
     void OnStateChanged(xamp::player::PlayerState play_state) override;
 
     void OnError(const xamp::base::Exception &ex) override;
+
+    void OnDeviceChanged() override;
 };

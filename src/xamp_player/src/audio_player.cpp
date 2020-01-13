@@ -58,11 +58,14 @@ AudioPlayer::~AudioPlayer() {
 void AudioPlayer::PrepareAllocate() {
 	wait_timer_.SetTimeout(SLEEP_OUTPUT_TIME);
 	buffer_.Resize(PREALLOCATE_BUFFER_SIZE);
-	vmlock_.Lock(buffer_.GetData(), buffer_.GetSize());
     // Initial std::async internal threadpool
     stream_task_ = std::async(std::launch::async, []() {});
     // Load Bass dll
     BassFileStream::LoadBassLib();
+}
+
+void AudioPlayer::RegisterDeviceListener() {
+    DeviceFactory::Instance().RegisterDeviceListener(shared_from_this());
 }
 
 void AudioPlayer::Open(const std::wstring& file_path, bool use_bass_stream, const DeviceInfo& device_info) {
@@ -145,7 +148,7 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, const DeviceInfo& de
     else {        
 		static const std::array<std::string_view, 3> use_bass_decoder_file_ext{
 			".m4a",// FMPPEG 沒有 aac 解碼
-            ".ape",// FMPPEG 沒有 aac 解碼
+            ".ape",// FMPPEG 沒有 ape 解碼
 			".mp3", // FFMPEG mp3 解碼器會有爆音的問題
 		};
 
@@ -331,8 +334,7 @@ void AudioPlayer::Initial() {
                     }
                 }
             }
-        });
-		DeviceFactory::Instance().RegisterDeviceListener(shared_from_this());
+        });		
     }
     buffer_.Clear();	
 }
@@ -437,9 +439,7 @@ void AudioPlayer::CreateBuffer() {
     output_format_ = output_format;
     if (buffer_.GetSize() == 0 || buffer_.GetSize() < num_buffer_samples_) {
 		XAMP_LOG_DEBUG("Buffer too small reallocate.");
-        vmlock_.UnLock();
         buffer_.Resize(num_buffer_samples_);
-        vmlock_.Lock(buffer_.GetData(), buffer_.GetSize());		
 		XAMP_LOG_DEBUG("Allocate memory size:{}", buffer_.GetSize());
     }
 
@@ -495,15 +495,13 @@ void AudioPlayer::BufferStream() {
 }
 
 bool AudioPlayer::FillSamples(int32_t num_samples) noexcept {
-	if (auto file_stream = dynamic_cast<FileStream*>(stream_.get())) {
-		if (auto dsd_stream = dynamic_cast<DsdStream*>(file_stream)) {
-			if (dsd_stream->IsDsdFile()) {
-				if (dsd_stream->GetDsdMode() == DsdModes::DSD_MODE_RAW) {
-					return buffer_.TryWrite(read_sample_buffer_.get(), num_samples);
-				}
-			}
-		}
-	}
+    if (auto dsd_stream = AsDsdStream()) {
+        if (dsd_stream->IsDsdFile()) {
+            if (dsd_stream->GetDsdMode() == DsdModes::DSD_MODE_RAW) {
+                return buffer_.TryWrite(read_sample_buffer_.get(), num_samples);
+            }
+        }
+    }
     return buffer_.TryWrite(read_sample_buffer_.get(), 
 		num_samples * stream_->GetSampleSize());
 }
@@ -514,26 +512,31 @@ void AudioPlayer::OnError(const Exception& e) noexcept {
 }
 
 void AudioPlayer::OnDeviceStateChange(DeviceState state, const std::wstring& device_id) {
-	switch (state) {
-	case DeviceState::DEVICE_STATE_ADDED:
-		XAMP_LOG_DEBUG("Device added device id:{}", ToUtf8String(device_id));
-		break;
-	case DeviceState::DEVICE_STATE_REMOVED:
-		XAMP_LOG_DEBUG("Device removed device id:{}", ToUtf8String(device_id));
-		if (device_id == device_id_) {
-			Stop(true, true, true);
-		}
-		break;
-	case DeviceState::DEVICE_STATE_DEFAULT_DEVICE_CHANGE:
-		XAMP_LOG_DEBUG("Default device device id:{}", ToUtf8String(device_id));
-		break;
-	}
+    if (auto state_adapter = state_adapter_.lock()) {
+        switch (state) {
+        case DeviceState::DEVICE_STATE_ADDED:
+            XAMP_LOG_DEBUG("Device added device id:{}", ToUtf8String(device_id));
+            state_adapter->OnDeviceChanged();
+            break;
+        case DeviceState::DEVICE_STATE_REMOVED:
+            XAMP_LOG_DEBUG("Device removed device id:{}", ToUtf8String(device_id));
+            if (device_id == device_id_) {
+                Stop(true, true, true);
+                state_adapter->OnDeviceChanged();
+            }
+            break;
+        case DeviceState::DEVICE_STATE_DEFAULT_DEVICE_CHANGE:
+            XAMP_LOG_DEBUG("Default device device id:{}", ToUtf8String(device_id));
+            state_adapter->OnDeviceChanged();
+            break;
+        }
+    }	
 }
 
 void AudioPlayer::OpenDevice(double stream_time) {
 #ifdef ENABLE_ASIO
     if (auto dsd_output = dynamic_cast<DSDDevice*>(device_.get())) {
-        if (auto dsd_stream = dynamic_cast<DsdStream*>(stream_.get())) {
+        if (auto dsd_stream = AsDsdStream()) {
             if (dsd_stream->GetDsdMode() == DsdModes::DSD_MODE_RAW) {
                 dsd_output->SetIoFormat(AsioIoFormat::IO_FORMAT_DSD);
             }

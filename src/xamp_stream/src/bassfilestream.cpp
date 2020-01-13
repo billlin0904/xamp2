@@ -398,7 +398,7 @@ public:
 		BassLib::Instance().BASS_SetConfig(BASS_CONFIG_DSD_FREQ, samplerate);
 	}
 
-    int32_t GetDsdSpeed() const {
+    int32_t GetDsdSpeed() const noexcept {
 		assert(stream_.is_valid());
         return GetDsdSampleRate() / PCM_SAMPLE_RATE_441;
     }
@@ -490,7 +490,7 @@ void BassFileStream::SetPCMSampleRate(int32_t samplerate) {
 	stream_->SetPCMSampleRate(samplerate);
 }
 
-int32_t BassFileStream::GetDsdSpeed() const {
+int32_t BassFileStream::GetDsdSpeed() const noexcept {
     return stream_->GetDsdSpeed();
 }
 

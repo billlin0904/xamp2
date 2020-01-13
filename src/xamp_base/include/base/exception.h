@@ -61,6 +61,10 @@ public:
     explicit PlatformSpecException(int32_t err)
         : Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, GetPlatformErrorMessage(err)) {
     }
+
+    explicit PlatformSpecException(std::string_view what, int32_t err)
+        : Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, GetPlatformErrorMessage(err), what) {
+    }
 };
 
 #define XAMP_DECLARE_EXCEPTION_CLASS(ExceptionClassName) \

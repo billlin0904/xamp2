@@ -94,6 +94,7 @@ private:
 	AlignBufferPtr<float> buffer_;
 	std::condition_variable condition_;
 	AudioCallback* callback_;
+	VmMemLock vmlock_;
 };
 
 }

@@ -56,7 +56,7 @@ public:
 
 	void SetPCMSampleRate(int32_t samplerate) override;
 
-    int32_t GetDsdSpeed() const override;
+    int32_t GetDsdSpeed() const noexcept override;
 private:
 	class BassFileStreamImpl;
 	AlignPtr<BassFileStreamImpl> stream_;
