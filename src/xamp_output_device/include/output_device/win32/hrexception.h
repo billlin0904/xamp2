@@ -15,13 +15,11 @@ namespace xamp::output_device::win32 {
 
 using namespace base;
 
-class HRException final : public Exception {
+class HRException final : public PlatformSpecException {
 public:
 	static void ThrowFromHResult(HRESULT hresult, std::string_view expr);
 	
 	HRException(HRESULT hresult, std::string_view expr = "");
-
-	HRException(HRESULT hresult, Errors error);
 
 	HRESULT GetHResult() const;
 

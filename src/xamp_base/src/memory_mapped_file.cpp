@@ -22,13 +22,14 @@ enum class FileAccessMode {
 };
 
 #ifdef _WIN32
+
+constexpr DWORD DEFAULT_ACCESS_MODE = GENERIC_READ;
+constexpr DWORD DEFAULT_CREATE_TYPE = OPEN_EXISTING;
+constexpr DWORD DEFAULT_PROTECT = PAGE_READONLY;
+constexpr DWORD DEFAULT_ACCESS = FILE_MAP_READ;
+
 class MemoryMappedFile::MemoryMappedFileImpl {
 public:
-    static const DWORD DEFAULT_ACCESS_MODE = GENERIC_READ;
-    static const DWORD DEFAULT_CREATE_TYPE = OPEN_EXISTING;
-    static const DWORD DEFAULT_PROTECT = PAGE_READONLY;
-    static const DWORD DEFAULT_ACCESS = FILE_MAP_READ;
-
     MemoryMappedFileImpl() noexcept {
     }
 
@@ -55,7 +56,7 @@ public:
             address_.reset(::MapViewOfFile(mapping_handle.get(), access, 0, 0, 0));
         }
         else {
-            throw PlatfromSpecException(::GetLastError());
+            throw PlatformSpecException(::GetLastError());
         }
     }
 

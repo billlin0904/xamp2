@@ -143,9 +143,10 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, const DeviceInfo& de
         }
     }
     else {        
-		static const std::array<std::string_view, 2> use_bass_decoder_file_ext{
+		static const std::array<std::string_view, 3> use_bass_decoder_file_ext{
 			".m4a",// FMPPEG 沒有 aac 解碼
-			".mp3" // FFMPEG mp3 解碼器會有爆音的問題
+            ".ape",// FMPPEG 沒有 aac 解碼
+			".mp3", // FFMPEG mp3 解碼器會有爆音的問題
 		};
 
 		const std::filesystem::path path(file_path);

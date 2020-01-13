@@ -48,7 +48,7 @@ SharedWasapiDevice::~SharedWasapiDevice() {
 }
 
 bool SharedWasapiDevice::IsStreamOpen() const noexcept {
-	return client_ != nullptr;
+	return render_client_ != nullptr;
 }
 
 void SharedWasapiDevice::SetAudioCallback(AudioCallback* callback) noexcept {
@@ -193,7 +193,7 @@ void SharedWasapiDevice::OpenStream(const AudioFormat& output_format) {
 
 bool SharedWasapiDevice::IsMuted() const {
 	CComPtr<ISimpleAudioVolume> simple_audio_volume;
-	HrIfFailledThrow(client_->GetService(__uuidof(ISimpleAudioVolume), 
+	HrIfFailledThrow(client_->GetService(__uuidof(ISimpleAudioVolume),
 		reinterpret_cast<void**>(&simple_audio_volume)));
 
 	BOOL is_muted = FALSE;
@@ -314,7 +314,7 @@ HRESULT SharedWasapiDevice::OnSampleReady(IMFAsyncResult* result) {
 }
 
 void SharedWasapiDevice::StartStream() {
-	if (!client_) {
+	if (!render_client_) {
 		throw HRException(AUDCLNT_E_NOT_INITIALIZED);
 	}
 

@@ -56,10 +56,10 @@ protected:
     std::string message_;
 };
 
-class XAMP_BASE_API PlatfromSpecException : public Exception {
+class XAMP_BASE_API PlatformSpecException : public Exception {
 public:
-    explicit PlatfromSpecException(int result)
-        : Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, std::system_category().message(result)) {
+    explicit PlatformSpecException(int32_t err)
+        : Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, GetPlatformErrorMessage(err)) {
     }
 };
 

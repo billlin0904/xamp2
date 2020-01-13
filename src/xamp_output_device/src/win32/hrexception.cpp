@@ -18,17 +18,12 @@ void HRException::ThrowFromHResult(HRESULT hresult, std::string_view expr) {
 }
 
 HRException::HRException(HRESULT hresult, std::string_view expr)
-	: Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, std::system_category().message(hresult))
+	: PlatformSpecException(hresult)
 	, hr_(hresult)
 	, expr_(expr) {
 	std::ostringstream ostr;
 	ostr << "Hr code: 0x" << std::hex << hresult;
 	message_ = ostr.str();
-}
-
-HRException::HRException(HRESULT hresult, Errors error)
-	: hr_(hresult)
-	, expr_("") {
 }
 
 HRESULT HRException::GetHResult() const {

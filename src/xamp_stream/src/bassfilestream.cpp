@@ -118,6 +118,7 @@ public:
 		BassLib::Instance().BASS_SetConfig(BASS_CONFIG_MF_DISABLE, true);
 		LoadPlugin("bass_aac.dll");
 		LoadPlugin("bassflac.dll");
+		LoadPlugin("bass_ape.dll");
 #else
 		LoadPlugin("bass_aac.dylib");
 #endif		
@@ -335,17 +336,17 @@ public:
 		if (mode_ == DsdModes::DSD_MODE_RAW) {
             return AudioFormat(Format::FORMAT_DSD,
 							   info_.chans,
-                               base::ByteFormat::SINT8,
+                               ByteFormat::SINT8,
                                GetDsdSampleRate());
         } else if (mode_ == DsdModes::DSD_MODE_DOP) {
             return AudioFormat(Format::FORMAT_PCM,
                                info_.chans,
-                               base::ByteFormat::FLOAT32,
+                               ByteFormat::FLOAT32,
                                GetDOPSampleRate(GetDsdSpeed()));
         }
         return AudioFormat(Format::FORMAT_PCM,
 						   info_.chans,
-                           base::ByteFormat::FLOAT32,
+                           ByteFormat::FLOAT32,
                            info_.freq);
 	}
 

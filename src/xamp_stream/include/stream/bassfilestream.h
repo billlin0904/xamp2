@@ -16,8 +16,6 @@
 
 namespace xamp::stream {
 
-using namespace base;
-
 class XAMP_STREAM_API BassFileStream final
 	: public FileStream
 	, public DsdStream {

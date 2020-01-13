@@ -17,6 +17,8 @@
 #endif
 
 namespace xamp::stream {
+	using namespace base;
+
 	class AudioStream;
 	class FileStream;
 	class DSDStream;
