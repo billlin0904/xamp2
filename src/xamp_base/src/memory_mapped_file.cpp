@@ -54,6 +54,9 @@ public:
         if (mapping_handle) {
             address_.reset(::MapViewOfFile(mapping_handle.get(), access, 0, 0, 0));
         }
+        else {
+            throw PlatfromSpecException(::GetLastError());
+        }
     }
 
     ~MemoryMappedFileImpl() noexcept {

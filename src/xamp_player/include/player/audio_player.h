@@ -28,6 +28,11 @@
 #include <player/playbackstateadapter.h>
 #include <player/player.h>
 
+namespace xamp::stream {
+	class DsdStream;
+	class FileStream;
+}
+
 namespace xamp::player {
 
 using namespace stream;
@@ -82,6 +87,8 @@ public:
 
 	AudioFormat GetStreamFormat() const;
 
+	bool IsDsdStream() const;	
+
 private:
 	void PrepareAllocate();
 
@@ -112,6 +119,10 @@ private:
 	void SetState(const PlayerState play_state);
 
 	void ReadLoop(int32_t max_read_sample, std::unique_lock<std::mutex> &lock) noexcept;
+
+	DsdStream* AsDsdStream();
+
+	FileStream* AsFileStream();
 
 	struct XAMP_CACHE_ALIGNED(XAMP_MALLOC_ALGIGN_SIZE) AudioSlice {
         AudioSlice(const float* samples = nullptr, 

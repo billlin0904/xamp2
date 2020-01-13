@@ -98,6 +98,21 @@ void AudioPlayer::CreateDevice(const ID& device_type_id, const std::wstring& dev
     device_->SetAudioCallback(this);
 }
 
+bool AudioPlayer::IsDsdStream() const {
+    if (!stream_) {
+        return false;
+    }
+    return dynamic_cast<DsdStream*>(stream_.get()) != nullptr;
+}
+
+DsdStream* AudioPlayer::AsDsdStream() {
+    return dynamic_cast<DsdStream*>(stream_.get());
+}
+
+FileStream* AudioPlayer::AsFileStream() {
+    return dynamic_cast<FileStream*>(stream_.get());
+}
+
 void AudioPlayer::OpenStream(const std::wstring& file_path, const DeviceInfo& device_info, bool is_dsd_stream) {
     if (stream_ != nullptr) {
         stream_->Close();
@@ -107,14 +122,14 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, const DeviceInfo& de
     if (is_dsd_stream) {
 		auto is_support_dsd_file = false;
 		if (stream_ != nullptr) {
-			if (auto dsd_stream = dynamic_cast<DsdStream*>(stream_.get())) {
+			if (IsDsdStream()) {
 				is_support_dsd_file = true;
 			}
 		}
 		if (!is_support_dsd_file) {
 			stream_ = MakeAlign<AudioStream, BassFileStream>();
 		}
-        if (auto dsd_stream = dynamic_cast<DsdStream*>(stream_.get())) {
+        if (auto dsd_stream = AsDsdStream()) {
 #ifdef _WIN32
             if (device_info.is_support_dsd) {
                 dsd_stream->SetDSDMode(DsdModes::DSD_MODE_RAW);
@@ -149,7 +164,7 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, const DeviceInfo& de
 #endif
     XAMP_LOG_DEBUG("Use stream type: {}", stream_->GetDescription());
 
-	if (auto file_stream = dynamic_cast<FileStream*>(stream_.get())) {
+	if (auto file_stream = AsFileStream()) {
 		file_stream->OpenFromFile(file_path);
 		if (is_dsd_stream) {
 			if (auto dsd_stream = dynamic_cast<DsdStream*>(stream_.get())) {
