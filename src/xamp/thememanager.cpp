@@ -2,10 +2,10 @@
 #include "widget/str_utilts.h"
 #include "thememanager.h"
 
-DefaultStylePixmapManager::DefaultStylePixmapManager() {
-    unknown_cover_ = QPixmap(Q_UTF8(":/xamp/Resource/White/unknown_album.png"));
-    volume_up_ = QIcon(Q_UTF8(":/xamp/Resource/White/volume_up.png"));
-    volume_off_ = QIcon(Q_UTF8(":/xamp/Resource/White/volume_off.png"));
+DefaultStylePixmapManager::DefaultStylePixmapManager()
+    : unknown_cover_(Q_UTF8(":/xamp/Resource/White/unknown_album.png"))
+    , volume_up_(Q_UTF8(":/xamp/Resource/White/volume_up.png"))
+    , volume_off_(Q_UTF8(":/xamp/Resource/White/volume_off.png")) {
 }
 
 const QPixmap& DefaultStylePixmapManager::unknownCover() const noexcept {
@@ -20,7 +20,7 @@ const QIcon& DefaultStylePixmapManager::volumeOff() const noexcept {
     return volume_off_;
 }
 
-const StylePixmapManager& ThemeManager::pixmap() {
+const StylePixmapManager& ThemeManager::pixmap() noexcept {
     static const DefaultStylePixmapManager manager;
     return manager;
 }
@@ -46,7 +46,7 @@ void ThemeManager::setPlayOrPauseButton(Ui::XampWindow &ui, bool is_playing) {
     }
 }
 
-QString ThemeManager::getMenuStyle() {
+QString ThemeManager::getMenuStyle() noexcept {
     return Q_UTF8(R"(
                   QMenu {
                   background-color: rgba(228, 233, 237, 150);
@@ -55,6 +55,11 @@ QString ThemeManager::getMenuStyle() {
                   background-color: black;
                   }
                   )");
+}
+
+QSize ThemeManager::getDefaultCoverSize() noexcept {
+    const QSize DefaultCoverSize(150, 150);
+    return DefaultCoverSize;
 }
 
 void ThemeManager::setNightStyle(Ui::XampWindow &ui) {

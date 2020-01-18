@@ -17,8 +17,8 @@ enum DsdModes : uint8_t {
 	DSD_MODE_PCM = 0,
 	DSD_MODE_RAW = 2,
 	DSD_MODE_DOP = 4,
-	// TODO: Unsupported now!
-	DSD_MODE_DOP_AA = 8
+	// NOTE: Unsupported now!
+	// DSD_MODE_DOP_AA = 8
 };
 
 }

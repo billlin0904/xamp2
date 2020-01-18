@@ -6,6 +6,7 @@
 #pragma once
 
 #include <QStringList>
+#include <optional>
 
 #include "lrucache.h"
 #include "playlistentity.h"
@@ -33,7 +34,7 @@ public:
 
 	static QPixmap findDirExistCover(const PlayListEntity &item);
 
-	const QPixmap* find(const QString& tag_id) const;
+	std::optional<const QPixmap*> find(const QString& tag_id) const;
 
 	QString emplace(QPixmap&& cover) const;
 

@@ -6,8 +6,10 @@
 #pragma once
 
 #include <QListView>
-#include <QFileSystemModel>
+#include <QSqlRelationalTableModel>
 #include <QStyledItemDelegate>
+
+#include "pixmapcache.h"
 
 class AlbumViewStyledDelegate : public QStyledItemDelegate {
 	Q_OBJECT
@@ -18,6 +20,10 @@ protected:
 	void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override;
 
 	QSize sizeHint(const QStyleOptionViewItem& o, const QModelIndex& idx) const override;
+
+private:
+	QPixmap cache_unknown_cover_;
+	mutable LruCache<QString, QPixmap> cache_;
 };
 
 class AlbumView : public QListView {
@@ -25,7 +31,10 @@ class AlbumView : public QListView {
 public:
 	explicit AlbumView(QWidget* parent = nullptr);
 
+public slots:
+	void updateAlbumCover();
+
 private:
-	QFileSystemModel model_;
+	QSqlRelationalTableModel model_;
 };
 

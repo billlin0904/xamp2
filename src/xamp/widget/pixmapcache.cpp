@@ -72,13 +72,13 @@ void PixmapCache::loadCache() const {
 	XAMP_LOG_DEBUG("Image cache count: {}", i);
 }
 
-const QPixmap* PixmapCache::find(const QString& tag_id) const {
+std::optional<const QPixmap*> PixmapCache::find(const QString& tag_id) const {
 	while (true) {
 		const auto cache = cache_.findOrNull(tag_id);
 		if (!cache) {
 			QPixmap read_cover(cache_path_ + tag_id + Q_UTF8(".cache"));
 			if (read_cover.isNull()) {
-				return nullptr;
+				return std::nullopt;
 			}
 			cache_.insert(tag_id, std::move(read_cover));
 			continue;

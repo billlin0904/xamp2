@@ -41,10 +41,11 @@ private:
 
 class ThemeManager {
 public:
-    static const StylePixmapManager& pixmap();
+    static const StylePixmapManager& pixmap() noexcept;
     static void setPlayOrPauseButton(Ui::XampWindow &ui, bool is_playing);
     static void setDefaultStyle(Ui::XampWindow &ui);
     static void setNightStyle(Ui::XampWindow &ui);
-    static QString getMenuStyle();
+    static QString getMenuStyle() noexcept;
+    static QSize getDefaultCoverSize() noexcept;
 };
 

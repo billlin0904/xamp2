@@ -53,7 +53,7 @@ public:
 
     int32_t addPlaylist(const QString& name, int32_t playlistIndex);
 
-    void updateAlbumCover(int32_t album_id, const QString& album, const QString& cover_id);
+    void setAlbumCover(int32_t album_id, const QString& album, const QString& cover_id);
 
     void addTablePlaylist(int32_t tableId, int32_t playlist_id);
 
@@ -67,7 +67,7 @@ public:
 
     QString getAlbumCoverId(int32_t album_id) const;
 
-    void updateTableName(int32_t table_id, const QString &name);
+    void setTableName(int32_t table_id, const QString &name);
 
     template <typename Callbackable>
     void forEachTable(Callbackable &&callback) {

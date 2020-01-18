@@ -1,4 +1,5 @@
 #ifdef _WIN32
+#include <output_device/win32/hrexception.h>
 #include <output_device/win32/exclusivewasapidevicetype.h>
 #include <output_device/win32/sharedwasapidevicetype.h>
 #else
@@ -19,9 +20,9 @@ namespace xamp::output_device {
 	}))
 
 DeviceFactory::DeviceFactory() {
-	InitialDevice();
 #ifdef _WIN32
 	using namespace win32;	
+	HrIfFailledThrow(::MFStartup(MF_VERSION, MFSTARTUP_LITE));	
 	XAMP_REGISTER_DEVICE_TYPE(SharedWasapiDeviceType);
 	XAMP_REGISTER_DEVICE_TYPE(ExclusiveWasapiDeviceType);
 #if ENABLE_ASIO
@@ -34,7 +35,9 @@ DeviceFactory::DeviceFactory() {
 }
 
 DeviceFactory::~DeviceFactory() {
-	UnInitialDevice();
+#ifdef _WIN32
+	::MFShutdown();
+#endif
 }
 
 void DeviceFactory::Clear() {

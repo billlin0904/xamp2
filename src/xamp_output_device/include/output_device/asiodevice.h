@@ -20,7 +20,7 @@ namespace xamp::output_device {
 
 class XAMP_OUTPUT_DEVICE_API AsioDevice final
 	: public Device
-	, public DSDDevice {
+	, public DsdDevice {
 public:
 	explicit AsioDevice(const std::string& device_id);
 
@@ -54,7 +54,7 @@ public:
 
 	InterleavedFormat GetInterleavedFormat() const noexcept override;
 
-	bool IsSupportDSDFormat() const override;
+	bool IsSupportDsdFormat() const override;
 
 	void SetIoFormat(AsioIoFormat format) override;
 

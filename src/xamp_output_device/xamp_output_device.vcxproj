@@ -179,7 +179,6 @@
     <ClCompile Include="src\asiodevicetype.cpp" />
     <ClCompile Include="src\asioexception.cpp" />
     <ClCompile Include="src\devicefactory.cpp" />
-    <ClCompile Include="src\output_device.cpp" />
     <ClCompile Include="src\win32\exclusivewasapidevice.cpp" />
     <ClCompile Include="src\win32\exclusivewasapidevicetype.cpp" />
     <ClCompile Include="src\win32\hrexception.cpp" />

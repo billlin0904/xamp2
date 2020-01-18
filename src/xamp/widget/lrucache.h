@@ -6,12 +6,13 @@
 #pragma once
 
 #include <list>
+#include <optional>
 #include <unordered_map>
 
 template <typename Key, typename Value>
 class LruCache {
 public:
-    using NodePtr = typename std::list<std::pair<Key, Value>>::iterator;
+    using NodePtr = typename std::list<std::pair<Key, Value>>::const_iterator;
 
     explicit LruCache(size_t max_size)
         : max_size_(max_size) {
@@ -37,10 +38,10 @@ public:
         }
     }
 
-    const Value* findOrNull(const Key& key) const {
+    std::optional<const Value*> findOrNull(const Key& key) const {
         const auto check = items_map_.find(key);
         if (check == items_map_.end()) {
-            return nullptr;
+            return std::nullopt;
         }
         items_list_.push_front(*check->second);
         items_list_.erase(check->second);

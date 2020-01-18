@@ -89,7 +89,7 @@ AsioIoFormat AsioDevice::GetIoFormat() const {
 		? AsioIoFormat::IO_FORMAT_PCM : AsioIoFormat::IO_FORMAT_DSD;
 }
 
-bool AsioDevice::IsSupportDSDFormat() const {
+bool AsioDevice::IsSupportDsdFormat() const {
 	ASIOIoFormat asio_format{};
 	asio_format.FormatType = kASIODSDFormat;
 	auto error = ::ASIOFuture(kAsioCanDoIoFormat, &asio_format);
@@ -271,7 +271,7 @@ void AsioDevice::CreateBuffers(const AudioFormat& output_format) {
 		throw ASIOException(Errors::XAMP_ERROR_NOT_SUPPORT_FORMAT);
 	}
 
-	XAMP_LOG_INFO("Native DSD support: {}", IsSupportDSDFormat());
+	XAMP_LOG_INFO("Native DSD support: {}", IsSupportDsdFormat());
 
 	if (io_format_ == AsioIoFormat::IO_FORMAT_PCM) {
 		auto allocate_bytes = buffer_size_ * mix_format_.GetBytesPerSample() * mix_format_.GetChannels();
@@ -432,7 +432,7 @@ void AsioDevice::OpenStream(const AudioFormat& output_format) {
 	catch (const Exception & e) {
 		XAMP_LOG_DEBUG("ASIOFuture retun failure! {}", e.GetErrorMessage());
 		// NOTE: DSD format must be support!
-		if (output_format.GetFormat() == Format::FORMAT_DSD) {
+		if (output_format.GetFormat() == DataFormat::FORMAT_DSD) {
 			throw;
 		}
 	}

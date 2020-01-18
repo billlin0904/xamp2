@@ -38,7 +38,7 @@ template <>
 struct AvResourceDeleter<AVFormatContext> {
 	void operator()(AVFormatContext* p) const {
 		assert(p != nullptr);
-		avformat_close_input(&p);
+		::avformat_close_input(&p);
 	}
 };
 
@@ -46,7 +46,7 @@ template <>
 struct AvResourceDeleter<AVCodecContext> {
 	void operator()(AVCodecContext* p) const {
 		assert(p != nullptr);
-		avcodec_close(p);
+		::avcodec_close(p);
 	}
 };
 
@@ -54,7 +54,7 @@ template <>
 struct AvResourceDeleter<SwrContext> {
 	void operator()(SwrContext* p) const {
 		assert(p != nullptr);
-		swr_free(&p);
+		::swr_free(&p);
 	}
 };
 
@@ -62,8 +62,8 @@ template <>
 struct AvResourceDeleter<AVPacket> {
 	void operator()(AVPacket* p) const {
 		assert(p != nullptr);
-		av_packet_unref(p);
-		av_packet_free(&p);
+		::av_packet_unref(p);
+		::av_packet_free(&p);
 	}
 };
 
@@ -71,7 +71,7 @@ template <>
 struct AvResourceDeleter<AVFrame> {
 	void operator()(AVFrame* p) const {
 		assert(p != nullptr);
-		av_free(p);
+		::av_free(p);
 	}
 };
 
@@ -82,7 +82,7 @@ class LibAv final {
 public:
 	XAMP_DISABLE_COPY(LibAv)
 
-	static LibAv& Instance() {
+	static XAMP_ALWAYS_INLINE LibAv& Instance() {
 		static LibAv instance;
 		return instance;
 	}
@@ -93,10 +93,10 @@ protected:
 		av_log_set_level(AV_LOG_VERBOSE);
 		log_level = AV_LOG_VERBOSE;
 #else
-		av_log_set_level(AV_LOG_FATAL);
+		::av_log_set_level(AV_LOG_FATAL);
 		log_level = AV_LOG_FATAL;
 #endif
-		av_log_set_callback(AvLogCallback);
+		::av_log_set_callback(AvLogCallback);
 	}	
 
 private:
@@ -147,6 +147,9 @@ public:
 		auto file_path_ut8 = ToString(file_path);		
 		auto err = ::avformat_open_input(&format_ctx, file_path_ut8.c_str(), nullptr, nullptr);
 		if (err != 0) {
+			if (err == AVERROR_INVALIDDATA) {
+				throw NotSupportFormatException();
+			}
 			throw AvException(err);
 		}
 
@@ -219,12 +222,12 @@ public:
 			nullptr));
 
         AvIfFailedThrow(::swr_init(swr_context_.get()));
-
-		audio_format_ = AudioFormat(Format::FORMAT_PCM,
-			codec_contex_->channels,
-			av_get_bytes_per_sample(codec_contex_->sample_fmt) * 8,
-			codec_contex_->sample_rate);
+		audio_format_.SetFormat(DataFormat::FORMAT_PCM);
+		audio_format_.SetChannel(codec_contex_->channels);
+		audio_format_.SetSampleRate(codec_contex_->sample_rate);
+		audio_format_.SetBitPerSample(::av_get_bytes_per_sample(codec_contex_->sample_fmt) * 8);
 		audio_format_.SetInterleavedFormat(interleaved_format);
+		XAMP_LOG_DEBUG("Stream format: {}", audio_format_);
 	}
 
 	int32_t GetSamples(float* buffer, const int32_t length) noexcept {

@@ -21,7 +21,7 @@ constexpr int32_t BUFFER_STREAM_COUNT = 5;
 constexpr int32_t PREALLOCATE_BUFFER_SIZE = 32 * 1024 * 1024;
 constexpr int32_t MAX_WRITE_RATIO = 20;
 constexpr int32_t MAX_READ_RATIO = 30;
-constexpr std::chrono::milliseconds UPDATE_SAMPLE_INTERVAL(100);
+constexpr std::chrono::milliseconds UPDATE_SAMPLE_INTERVAL(500);
 constexpr std::chrono::seconds WAIT_FOR_STRAEM_STOP_TIME(5);
 constexpr std::chrono::milliseconds SLEEP_OUTPUT_TIME(100);
 
@@ -62,10 +62,6 @@ void AudioPlayer::PrepareAllocate() {
     stream_task_ = std::async(std::launch::async, []() {});
     // Load Bass dll
     BassFileStream::LoadBassLib();
-}
-
-void AudioPlayer::RegisterDeviceListener() {
-    DeviceFactory::Instance().RegisterDeviceListener(shared_from_this());
 }
 
 void AudioPlayer::Open(const std::wstring& file_path, bool use_bass_stream, const DeviceInfo& device_info) {
@@ -114,6 +110,10 @@ DsdStream* AudioPlayer::AsDsdStream() {
 
 FileStream* AudioPlayer::AsFileStream() {
     return dynamic_cast<FileStream*>(stream_.get());
+}
+
+DsdDevice* AudioPlayer::AsDsdDevice() {
+    return dynamic_cast<DsdDevice*>(device_.get());
 }
 
 void AudioPlayer::OpenStream(const std::wstring& file_path, const DeviceInfo& device_info, bool is_dsd_stream) {
@@ -535,7 +535,7 @@ void AudioPlayer::OnDeviceStateChange(DeviceState state, const std::wstring& dev
 
 void AudioPlayer::OpenDevice(double stream_time) {
 #ifdef ENABLE_ASIO
-    if (auto dsd_output = dynamic_cast<DSDDevice*>(device_.get())) {
+    if (auto dsd_output = AsDsdDevice()) {
         if (auto dsd_stream = AsDsdStream()) {
             if (dsd_stream->GetDsdMode() == DsdModes::DSD_MODE_RAW) {
                 dsd_output->SetIoFormat(AsioIoFormat::IO_FORMAT_DSD);
@@ -550,7 +550,7 @@ void AudioPlayer::OpenDevice(double stream_time) {
     device_->SetStreamTime(stream_time);
 }
 
-void AudioPlayer::ReadLoop(int32_t max_read_sample, std::unique_lock<std::mutex>& lock) noexcept {
+void AudioPlayer::ReadSampleLoop(int32_t max_read_sample, std::unique_lock<std::mutex>& lock) noexcept {
     while (is_playing_) {
         const auto num_samples = stream_->GetSamples(
             read_sample_buffer_.get(),
@@ -585,7 +585,7 @@ void AudioPlayer::PlayStream() {
             auto max_read_sample = p->num_read_sample_;
             auto num_sample_write = max_read_sample * MAX_WRITE_RATIO;
 
-            PlatformThread::SetThreadName("Streaming thread");
+            SetThreadName("Streaming thread");
 
             while (p->is_playing_) {
                 while (p->is_paused_) {
@@ -597,7 +597,7 @@ void AudioPlayer::PlayStream() {
                     continue;
                 }
 
-                p->ReadLoop(max_read_sample, lock);
+                p->ReadSampleLoop(max_read_sample, lock);
             }
 
             p->stream_->Close();

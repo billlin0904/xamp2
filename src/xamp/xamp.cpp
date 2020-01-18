@@ -63,7 +63,7 @@ Xamp::Xamp(QWidget *parent)
     initialDeviceList();
     initialPlaylist();
     setCover(ThemeManager::pixmap().unknownCover());
-    player_->RegisterDeviceListener();
+    DeviceFactory::Instance().RegisterDeviceListener(player_);
 }
 
 void Xamp::closeEvent(QCloseEvent*) {
@@ -368,7 +368,7 @@ void Xamp::initialController() {
     });
 
     (void)QObject::connect(ui.sliderBar, &TabListView::tableNameChanged, [](auto table_id, const auto &name) {
-        Database::Instance().updateTableName(table_id, name);
+        Database::Instance().setTableName(table_id, name);
     });
 
     auto settings_menu = new QMenu(this);
@@ -640,11 +640,9 @@ void Xamp::play(const QModelIndex&, const PlayListEntity& item) {
     }
 
     if (current_entiry_.album_id != item.album_id) {
-        const auto cover = PixmapCache::Instance().find(item.cover_id);
-        if (cover != nullptr && !cover->isNull()) {
-            setCover(*cover);
-            playlist_page_->cover()->setPixmap(
-                        Pixmap::resizeImage(*cover, playlist_page_->cover()->size(), true));
+        if (auto cover = PixmapCache::Instance().find(item.cover_id)) {
+            setCover(*cover.value());
+            playlist_page_->cover()->setPixmap(Pixmap::resizeImage(*cover.value(), playlist_page_->cover()->size(), true));
         }
         else {
             setCover(ThemeManager::pixmap().unknownCover());
@@ -674,13 +672,13 @@ void Xamp::play(const QModelIndex&, const PlayListEntity& item) {
 void Xamp::setCover(const QPixmap& cover) {
     assert(!cover.isNull());
     ui.coverLabel->setPixmap(Pixmap::resizeImage(cover, ui.coverLabel->size(), true));	
-	const QSize DefaultCoverSize(150, 150);
+	
 	if (cover.size().height() != cover.size().width()) {
 		playlist_page_->cover()->setPixmap(Pixmap::resizeImage(cover, playlist_page_->cover()->size(), true));
 	}
 	else {
-		playlist_page_->cover()->setBaseSize(DefaultCoverSize);
-		playlist_page_->cover()->setPixmap(Pixmap::resizeImage(cover, DefaultCoverSize, true));
+		playlist_page_->cover()->setBaseSize(ThemeManager::getDefaultCoverSize());
+		playlist_page_->cover()->setPixmap(Pixmap::resizeImage(cover, ThemeManager::getDefaultCoverSize(), true));
 	}
     lrc_page_->cover()->setPixmap(Pixmap::resizeImage(cover, lrc_page_->cover()->size(), true));
 }
@@ -756,16 +754,17 @@ void Xamp::initialPlaylist() {
     }
 
     lrc_page_ = new LrcPage(this);
-
+    album_view_ = new AlbumView(this);
     pushWidget(lrc_page_);
     pushWidget(playlist_page_);
-    pushWidget(new AlbumView(this));
+    pushWidget(album_view_);
     goBackPage();
 }
 
 void Xamp::addItem(const QString& file_name) {
     try {
         playlist_page_->playlist()->append(file_name);
+        album_view_->updateAlbumCover();
     }
     catch (const xamp::base::Exception& e) {
         Toast::showTip(Q_UTF8(e.GetErrorMessage()), this);

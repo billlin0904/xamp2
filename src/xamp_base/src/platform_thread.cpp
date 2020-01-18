@@ -38,7 +38,7 @@ void SetThreadNameById(DWORD dwThreadID, const char* threadName) {
 }
 #endif
 
-void PlatformThread::SetThreadName(const std::string& name) {
+void SetThreadName(const std::string& name) {
 #ifdef _WIN32
 	WinHandle thread(::GetCurrentThread());
 

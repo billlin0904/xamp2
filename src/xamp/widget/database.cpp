@@ -206,7 +206,7 @@ int32_t Database::addPlaylist(const QString& name, int32_t playlist_index) {
     return model.query().lastInsertId().toInt();
 }
 
-void Database::updateTableName(int32_t table_id, const QString &name) {
+void Database::setTableName(int32_t table_id, const QString &name) {
     QSqlQuery query(db_);
 
     query.prepare(Q_UTF8("UPDATE tables SET name = :name WHERE (tableId = :tableId)"));
@@ -216,7 +216,7 @@ void Database::updateTableName(int32_t table_id, const QString &name) {
     ThrowlfFailue(query)
 }
 
-void Database::updateAlbumCover(int32_t album_id, const QString& album, const QString& cover_id) {
+void Database::setAlbumCover(int32_t album_id, const QString& album, const QString& cover_id) {
     QSqlQuery query;
 
     query.prepare(Q_UTF8("UPDATE albums SET coverId = :coverId WHERE (albumId = :albumId) OR (album = :album)"));

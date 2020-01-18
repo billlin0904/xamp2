@@ -87,7 +87,7 @@ public:
 
 class BassLib final {
 public:
-    static BassLib & Instance() {
+    static XAMP_ALWAYS_INLINE BassLib & Instance() {
         static BassLib lib;
         return lib;
     }
@@ -103,7 +103,7 @@ public:
 		}
 	}
 
-	bool IsLoaded() const noexcept {
+	XAMP_ALWAYS_INLINE bool IsLoaded() const noexcept {
 		return !plugins_.empty();
 	}
 
@@ -116,6 +116,7 @@ public:
 #ifdef _WIN32
 		// Disable Media Foundation
 		BassLib::Instance().BASS_SetConfig(BASS_CONFIG_MF_DISABLE, true);
+		BassLib::Instance().BASS_SetConfig(BASS_CONFIG_MF_VIDEO, false);
 		LoadPlugin("bass_aac.dll");
 		LoadPlugin("bassflac.dll");
 		LoadPlugin("bass_ape.dll");
@@ -235,8 +236,6 @@ public:
 		info_ = BASS_CHANNELINFO{};
 	}
 
-	~BassFileStreamImpl() noexcept = default;
-
 	void LoadFromFile(const std::wstring & file_path) {
         if (!BassLib::Instance().IsLoaded()) {
 			BassLib::Instance().Load();			
@@ -254,10 +253,12 @@ public:
             // DSD-over-PCM data is 24-bit, so the BASS_SAMPLE_FLOAT flag is required.
             flags = BASS_DSD_DOP | BASS_SAMPLE_FLOAT;
             break;
+		/*
         case DsdModes::DSD_MODE_DOP_AA:
             // DSD-over-PCM data is 24-bit, so the BASS_SAMPLE_FLOAT flag is required.
             flags = BASS_DSD_DOP_AA | BASS_SAMPLE_FLOAT;
             break;
+		*/
         case DsdModes::DSD_MODE_RAW:
             flags = BASS_DSD_RAW;
             break;
@@ -334,17 +335,17 @@ public:
 	AudioFormat GetFormat() const {
 		assert(stream_.is_valid());
 		if (mode_ == DsdModes::DSD_MODE_RAW) {
-            return AudioFormat(Format::FORMAT_DSD,
+            return AudioFormat(DataFormat::FORMAT_DSD,
 							   info_.chans,
                                ByteFormat::SINT8,
                                GetDsdSampleRate());
         } else if (mode_ == DsdModes::DSD_MODE_DOP) {
-            return AudioFormat(Format::FORMAT_PCM,
+            return AudioFormat(DataFormat::FORMAT_PCM,
                                info_.chans,
                                ByteFormat::FLOAT32,
                                GetDOPSampleRate(GetDsdSpeed()));
         }
-        return AudioFormat(Format::FORMAT_PCM,
+        return AudioFormat(DataFormat::FORMAT_PCM,
 						   info_.chans,
                            ByteFormat::FLOAT32,
                            info_.freq);

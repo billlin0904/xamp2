@@ -9,7 +9,8 @@
 #include "database.h"
 #include "playlisttableview.h"
 #include "pixmapcache.h"
-#include "pixmapcache.h"
+#include "image_utiltis.h"
+#include "thememanager.h"
 #include "metadataextractadapter.h"
 
 constexpr size_t PREALLOCATE_SIZE = 100;
@@ -102,7 +103,7 @@ void MetadataExtractAdapter::onCompleted(const std::vector<xamp::base::Metadata>
                 }
                 cover_id = PixmapCache::Instance().emplace(std::move(pixmap));
                 cover_id_cache.insert(album_id, cover_id);
-                Database::Instance().updateAlbumCover(album_id, album, cover_id);
+                Database::Instance().setAlbumCover(album_id, album, cover_id);
             }
             else {
                 cover_id = (*cover_itr);

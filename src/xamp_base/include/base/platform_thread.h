@@ -11,13 +11,6 @@
 
 namespace xamp::base {
 
-class PlatformThread {
-public:
-	PlatformThread() = delete;
-
-	XAMP_DISABLE_COPY(PlatformThread);
-
-    static XAMP_BASE_API void SetThreadName(const std::string& name);
-};
+XAMP_BASE_API void SetThreadName(const std::string& name);
 
 }

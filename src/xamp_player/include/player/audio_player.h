@@ -33,6 +33,10 @@ namespace xamp::stream {
 	class FileStream;
 }
 
+namespace xamp::output_device {
+	class DsdDevice;
+}
+
 namespace xamp::player {
 
 using namespace stream;
@@ -89,8 +93,6 @@ public:
 
 	bool IsDsdStream() const;
 
-	void RegisterDeviceListener();
-
 private:
 	void PrepareAllocate();
 
@@ -120,11 +122,13 @@ private:
 
 	void SetState(const PlayerState play_state);
 
-	void ReadLoop(int32_t max_read_sample, std::unique_lock<std::mutex> &lock) noexcept;
+	void ReadSampleLoop(int32_t max_read_sample, std::unique_lock<std::mutex> &lock) noexcept;
 
 	DsdStream* AsDsdStream();
 
-	FileStream* AsFileStream();	
+	FileStream* AsFileStream();
+
+	DsdDevice* AsDsdDevice();
 
 	struct XAMP_CACHE_ALIGNED(XAMP_MALLOC_ALGIGN_SIZE) AudioSlice {
         AudioSlice(const float* samples = nullptr, 

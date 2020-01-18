@@ -33,6 +33,7 @@ enum PlayerOrder {
 
 class LrcPage;
 class PlyalistPage;
+class AlbumView;
 
 class Xamp : public FramelessWindow {
 	Q_OBJECT
@@ -118,6 +119,7 @@ private:
     PlayListEntity current_entiry_;
 	LrcPage* lrc_page_;
 	PlyalistPage* playlist_page_;
+	AlbumView* album_view_;
 	QStack<int32_t> stack_page_id_;
     std::set<int32_t> music_id_store_;
 	std::shared_ptr<PlayerStateAdapter> state_adapter_;
