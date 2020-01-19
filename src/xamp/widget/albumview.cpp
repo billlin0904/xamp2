@@ -9,7 +9,7 @@
 
 AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
 	: QStyledItemDelegate(parent)
-	, cache_(1024) {
+	, cache_(65535) {
 	cache_unknown_cover_ = Pixmap::resizeImage(ThemeManager::pixmap().unknownCover(), ThemeManager::getDefaultCoverSize());
 }
 
@@ -28,7 +28,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
 	const QRect cover_rect(option.rect.left() + 10, option.rect.top() + 10,
 		default_cover.width(), default_cover.height());
 
-	QRect albumTextRect(option.rect.left() + 10, option.rect.top() + default_cover.height() + 20, option.rect.width() - 10, 15);
+	QRect albumTextRect(option.rect.left() + 10, option.rect.top() + default_cover.height() + 15, option.rect.width() - 10, 15);
 	QRect artistTextRect(option.rect.left() + 10, option.rect.top() + default_cover.height() + 35, option.rect.width() - 10, 15);
 	
 	const auto textOption = Qt::AlignVCenter;

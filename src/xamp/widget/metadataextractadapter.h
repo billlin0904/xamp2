@@ -29,13 +29,14 @@ public:
 
 	void Cancel() override;
 
-	void Reset() override;
+	void Reset() override;	
 
 signals:
 	void finish();
 
 public:
-	PlayListTableView* playlist;
+	bool addPlayslist{ true };
+	PlayListTableView* playlist;	
 
 private:
 	void onCompleted(const std::vector<xamp::base::Metadata>& metadatas);

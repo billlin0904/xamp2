@@ -97,9 +97,9 @@ static bool GetFlacCover(File* file, std::vector<uint8_t>& buffer) {
         }
 
         for (const auto &picture : picture_list) {
-            if (picture->mimeType() == "image/jpeg") {
+            if (picture->mimeType() == "image/jpeg") {    
                 buffer.resize(picture->data().size());
-                (void)FastMemcpy(buffer.data(), picture->data().data(), picture->data().size());
+                (void)FastMemcpy(buffer.data(), picture->data().data(), picture->data().size());                
                 return true;
             }
         }
@@ -214,7 +214,7 @@ public:
             return cover_;
         }
 
-        cover_.clear();
+        std::vector<uint8_t>().swap(cover_);
         const auto ext = ToUpper(path.extension().string());
         GetCover(ext, fileref.file(), cover_);
         return cover_;
@@ -256,7 +256,7 @@ Metadata TaglibMetadataReader::Extract(const Path& path) {
     return reader_->Extract(path);
 }
 
-void TaglibMetadataReader::ExtractFromPath(const Path &path, MetadataExtractAdapter* adapter) {
+void TaglibMetadataReader::FromPath(const Path &path, MetadataExtractAdapter* adapter) {
     if (is_directory(path)) {
         for (RecursiveDirectoryIterator itr(path), end; itr != end && !adapter->IsCancel(); ++itr) {
             const auto current_path = (*itr).path();

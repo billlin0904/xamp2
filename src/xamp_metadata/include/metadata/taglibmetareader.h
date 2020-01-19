@@ -23,7 +23,7 @@ public:
     
     Metadata Extract(const Path &path) override;
 
-    void ExtractFromPath(const Path &path, MetadataExtractAdapter* adapter) override;
+    void FromPath(const Path &path, MetadataExtractAdapter* adapter) override;
 
     const std::vector<uint8_t>& ExtractEmbeddedCover(const Path &path) override;
 

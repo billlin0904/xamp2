@@ -19,7 +19,7 @@ public:
     
     virtual Metadata Extract(const Path &path) = 0;
 
-    virtual void ExtractFromPath(const Path &path, MetadataExtractAdapter* adapter) = 0;
+    virtual void FromPath(const Path &path, MetadataExtractAdapter* adapter) = 0;
     
     virtual const std::vector<uint8_t>& ExtractEmbeddedCover(const Path &path) = 0;
 

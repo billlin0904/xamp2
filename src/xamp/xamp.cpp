@@ -63,7 +63,7 @@ Xamp::Xamp(QWidget *parent)
     initialDeviceList();
     initialPlaylist();
     setCover(ThemeManager::pixmap().unknownCover());
-    DeviceFactory::Instance().RegisterDeviceListener(player_);
+    DeviceFactory::Instance().RegisterDeviceListener(player_);    
 }
 
 void Xamp::closeEvent(QCloseEvent*) {
@@ -762,8 +762,10 @@ void Xamp::initialPlaylist() {
 }
 
 void Xamp::addItem(const QString& file_name) {
+    auto add_playlist = dynamic_cast<PlyalistPage*>(ui.currentView->currentWidget()) != nullptr;
+
     try {
-        playlist_page_->playlist()->append(file_name);
+        playlist_page_->playlist()->append(file_name, add_playlist);  
         album_view_->updateAlbumCover();
     }
     catch (const xamp::base::Exception& e) {

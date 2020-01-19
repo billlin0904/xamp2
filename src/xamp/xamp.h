@@ -9,6 +9,8 @@
 #include <QWidgetAction>
 #include <QStack>
 #include <QHash>
+#include <QTimer>
+
 #include <set>
 
 #include <output_device/devicefactory.h>

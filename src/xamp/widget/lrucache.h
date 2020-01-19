@@ -66,6 +66,11 @@ public:
         items_map_.erase(check);
     }
 
+    void clear() {
+        items_map_.clear();
+        items_list_.clear();
+    }
+
 private:
     size_t max_size_;
     mutable std::unordered_map<Key, NodePtr> items_map_;

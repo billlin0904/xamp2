@@ -314,7 +314,10 @@ int32_t Database::addOrUpdateMusic(const xamp::base::Metadata& metadata, int32_t
     }
 
     auto music_id = query.lastInsertId().toInt();
-    addMusicToPlaylist(music_id, playlist_id);
+
+    if (playlist_id != -1) {
+        addMusicToPlaylist(music_id, playlist_id);
+    }    
 
     db_.commit();
     return music_id;

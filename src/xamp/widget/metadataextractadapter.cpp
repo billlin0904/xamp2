@@ -39,7 +39,7 @@ void MetadataExtractAdapter::OnWalkNext() {
     });
 #endif
     onCompleted(metadatas_);
-    metadatas_.clear();
+    std::vector<xamp::base::Metadata>().swap(metadatas_);
 }
 
 bool MetadataExtractAdapter::IsCancel() const {
@@ -62,6 +62,11 @@ void MetadataExtractAdapter::onCompleted(const std::vector<xamp::base::Metadata>
     QString album;
     QString artist;
 
+    auto playlist_id = playlist->playlistId();
+    if (!addPlayslist) {
+        playlist_id = -1;
+    }
+
     for (const auto & metadata : metadatas) {
         if (IsCancel()) {
             return;
@@ -69,8 +74,8 @@ void MetadataExtractAdapter::onCompleted(const std::vector<xamp::base::Metadata>
 
         album = QString::fromStdWString(metadata.album);
         artist = QString::fromStdWString(metadata.artist);
-
-        auto music_id = Database::Instance().addOrUpdateMusic(metadata, playlist->playlistId());
+        
+        auto music_id = Database::Instance().addOrUpdateMusic(metadata, playlist_id);
 
         int32_t artist_id = 0;
         auto artist_itr = artist_id_cache.find(artist);
@@ -112,13 +117,15 @@ void MetadataExtractAdapter::onCompleted(const std::vector<xamp::base::Metadata>
 
         IgnoreSqlError(Database::Instance().addOrUpdateAlbumMusic(album_id, artist_id, music_id))
 
-        auto entity = PlayListTableView::fromMetadata(metadata);
-        entity.music_id = music_id;
-        entity.album_id = album_id;
-        entity.artist_id = artist_id;
-        entity.cover_id = cover_id;
+        if (addPlayslist) {
+            auto entity = PlayListTableView::fromMetadata(metadata);
+            entity.music_id = music_id;
+            entity.album_id = album_id;
+            entity.artist_id = artist_id;
+            entity.cover_id = cover_id;
+            playlist->appendItem(entity);
+        }
 
-        playlist->appendItem(entity);
         qApp->processEvents();
     }
     emit finish();

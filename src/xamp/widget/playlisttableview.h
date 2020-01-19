@@ -51,7 +51,7 @@ public:
 
 	std::map<int32_t, QModelIndex> selectItemIndex() const;
 
-	void append(const QString& file_name);
+	void append(const QString& file_name, bool add_playlist);
 
 	static PlayListEntity fromMetadata(const xamp::base::Metadata& metadata);
 
