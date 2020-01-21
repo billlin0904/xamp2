@@ -5,7 +5,6 @@
 
 #pragma once
 
-#if ENABLE_ASIO
 #include <base/dsdsampleformat.h>
 #include <output_device/device.h>
 
@@ -37,4 +36,4 @@ protected:
 };
 
 }
-#endif
+
