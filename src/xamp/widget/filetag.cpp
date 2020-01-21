@@ -4,26 +4,26 @@
 
 #include "filetag.h"
 
-constexpr int32_t CHUNK_SIZE = 1 << 22;
+constexpr size_t CHUNK_SIZE = 1 << 22;
 
-static QByteArray sha1(const QByteArray& data) {
+static QByteArray sha1(const QByteArray& data) noexcept {
     QCryptographicHash sha1_hash(QCryptographicHash::Sha1);
     sha1_hash.addData(data);
     return sha1_hash.result();
 }
 
-static QString urlSafeBase64Encode(const QByteArray& data) {
+static QString urlSafeBase64Encode(const QByteArray& data) noexcept {
     return QLatin1String(data.toBase64(QByteArray::Base64UrlEncoding));
 }
 
-QString FileTag::getTagId(const QByteArray &buffer) {
+QString FileTag::getTagId(const QByteArray &buffer) noexcept {
     if (buffer.size() <= CHUNK_SIZE) {
         const auto sha1_data = sha1(buffer);
         auto hash_data = sha1_data;
         hash_data.prepend(0x16);
         return urlSafeBase64Encode(hash_data);
     } else {
-        auto chunk_count = buffer.size() / CHUNK_SIZE;
+        size_t chunk_count = buffer.size() / CHUNK_SIZE;
         if (buffer.size() % CHUNK_SIZE != 0) {
             chunk_count += 1;
         }
@@ -31,7 +31,7 @@ QString FileTag::getTagId(const QByteArray &buffer) {
         QDataStream reader(buffer);
         QByteArray sha1_all_data;
 
-        for (auto i = 0; i < chunk_count; i++) {
+        for (size_t i = 0; i < chunk_count; i++) {
             qint64 chunk_size = CHUNK_SIZE;
             if (i == chunk_count - 1) {
                 chunk_size = buffer.size() - (chunk_count - 1) * CHUNK_SIZE;
@@ -48,7 +48,7 @@ QString FileTag::getTagId(const QByteArray &buffer) {
     }
 }
 
-QString FileTag::getTagId(const QString& file_name) {
+QString FileTag::getTagId(const QString& file_name) noexcept {
 	QString etag;
     QFileInfo fi(file_name);
 

@@ -10,7 +10,7 @@
 
 class FileTag {
 public:
-	static QString getTagId(const QByteArray &buffer);
-	static QString getTagId(const QString &file_name);
+	static QString getTagId(const QByteArray &buffer) noexcept;
+	static QString getTagId(const QString &file_name) noexcept;
 };
 
