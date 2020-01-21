@@ -12,9 +12,10 @@
 template <typename Key, typename Value>
 class LruCache {
 public:
+    static const size_t DEFAULT_CACHE_SIZE = 128;
     using NodePtr = typename std::list<std::pair<Key, Value>>::const_iterator;
 
-    explicit LruCache(size_t max_size)
+    explicit LruCache(size_t max_size = DEFAULT_CACHE_SIZE)
         : max_size_(max_size) {
     }
 
@@ -38,7 +39,7 @@ public:
         }
     }
 
-    std::optional<const Value*> findOrNull(const Key& key) const {
+    std::optional<const Value*> findOrNull(const Key& key) const noexcept {
         const auto check = items_map_.find(key);
         if (check == items_map_.end()) {
             return std::nullopt;
@@ -69,6 +70,10 @@ public:
     void clear() {
         items_map_.clear();
         items_list_.clear();
+    }
+
+    size_t max_size() const noexcept {
+        return max_size_;
     }
 
 private:

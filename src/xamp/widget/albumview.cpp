@@ -8,8 +8,7 @@
 #include "albumview.h"
 
 AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
-	: QStyledItemDelegate(parent)
-	, cache_(65535) {
+	: QStyledItemDelegate(parent) {
 	cache_unknown_cover_ = Pixmap::resizeImage(ThemeManager::pixmap().unknownCover(), ThemeManager::getDefaultCoverSize());
 }
 

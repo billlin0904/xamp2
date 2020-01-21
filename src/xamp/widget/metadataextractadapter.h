@@ -39,7 +39,7 @@ public:
 	PlayListTableView* playlist;	
 
 private:
-	void onCompleted(const std::vector<xamp::base::Metadata>& metadatas);
+	void processAndNotify(const std::vector<xamp::base::Metadata>& metadatas);
 
 	bool cancel_;
 	std::vector<xamp::base::Metadata> metadatas_;
