@@ -138,7 +138,7 @@ void PlayListTableView::append(const QString& file_name, bool add_playlist) {
 	const xamp::metadata::Path path(file_name.toStdWString());
 	adapter_.addPlayslist = add_playlist;
 	xamp::metadata::TaglibMetadataReader reader;
-    reader.FromPath(path, &adapter_);
+	xamp::metadata::FromPath(path, &adapter_, &reader);
 }
 
 void PlayListTableView::resizeEvent(QResizeEvent* event) {

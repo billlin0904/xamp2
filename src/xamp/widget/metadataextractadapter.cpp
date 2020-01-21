@@ -38,8 +38,9 @@ void MetadataExtractAdapter::OnWalkNext() {
         return first.track < sencond.track;
     });
 #endif
-    onCompleted(metadatas_);
+    processAndNotify(metadatas_);
     std::vector<xamp::base::Metadata>().swap(metadatas_);
+    metadatas_.reserve(PREALLOCATE_SIZE);
 }
 
 bool MetadataExtractAdapter::IsCancel() const {
@@ -54,7 +55,7 @@ void MetadataExtractAdapter::Reset() {
     cancel_ = false;
 }
 
-void MetadataExtractAdapter::onCompleted(const std::vector<xamp::base::Metadata>& metadatas) {
+void MetadataExtractAdapter::processAndNotify(const std::vector<xamp::base::Metadata>& metadatas) {
     QHash<QString, int32_t> album_id_cache;
     QHash<QString, int32_t> artist_id_cache;
     QHash<int32_t, QString> cover_id_cache;

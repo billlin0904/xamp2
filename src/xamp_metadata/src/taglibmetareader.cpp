@@ -256,25 +256,6 @@ Metadata TaglibMetadataReader::Extract(const Path& path) {
     return reader_->Extract(path);
 }
 
-void TaglibMetadataReader::FromPath(const Path &path, MetadataExtractAdapter* adapter) {
-    if (is_directory(path)) {
-        for (RecursiveDirectoryIterator itr(path), end; itr != end && !adapter->IsCancel(); ++itr) {
-            const auto current_path = (*itr).path();
-
-            if (!is_directory(current_path) && reader_->IsSupported(current_path)) {
-                adapter->OnWalk(path, reader_->Extract(current_path));
-            }
-            else if (is_directory(current_path)) {
-				adapter->OnWalkNext();
-            }			
-        }
-		adapter->OnWalkNext();
-    } else {
-        adapter->OnWalk(path, reader_->Extract(path));
-		adapter->OnWalkNext();
-    }
-}
-
 const std::vector<uint8_t>& TaglibMetadataReader::ExtractEmbeddedCover(const Path & path) {
     return reader_->ExtractCover(path);
 }

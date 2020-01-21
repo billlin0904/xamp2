@@ -349,10 +349,12 @@ void Xamp::initialController() {
 
     (void)QObject::connect(ui.backPageButton, &QToolButton::pressed, [this]() {
         goBackPage();
+        album_view_->updateAlbumCover();
     });
 
     (void)QObject::connect(ui.nextPageButton, &QToolButton::pressed, [this]() {
         getNextPage();
+        album_view_->updateAlbumCover();
     });
 
     (void)QObject::connect(ui.addPlaylistButton, &QToolButton::pressed, [this]() {

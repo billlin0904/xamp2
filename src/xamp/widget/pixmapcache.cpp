@@ -11,10 +11,7 @@
 #include "filetag.h"
 #include "pixmapcache.h"
 
-constexpr int32_t MAX_CACHE_SIZE = 1024;
-
-PixmapCache::PixmapCache()
-    : cache_(MAX_CACHE_SIZE) {
+PixmapCache::PixmapCache() {
     cache_path_ = QDir::currentPath() + Q_UTF8("/caches/");
     cover_ext_ << Q_UTF8("*.jpeg") << Q_UTF8("*.jpg") << Q_UTF8("*.png") << Q_UTF8("*.bmp");
     cache_ext_ << Q_UTF8("*.cache");
@@ -55,7 +52,7 @@ void PixmapCache::loadCache() const {
         const auto path = itr.next();
 
         const QFileInfo image_file_path(path);
-		if (i >= MAX_CACHE_SIZE) {
+		if (i >= cache_.max_size()) {
 			QFile file(path);
 			file.remove();
 			file.close();

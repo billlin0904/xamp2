@@ -10,6 +10,7 @@
 
 #include <base/metadata.h>
 #include <metadata/metadata.h>
+#include <metadata/metadataextractadapter.h>
 
 namespace xamp::metadata {
 
@@ -18,9 +19,7 @@ public:
 	XAMP_BASE_CLASS(MetadataReader)
     
     virtual Metadata Extract(const Path &path) = 0;
-
-    virtual void FromPath(const Path &path, MetadataExtractAdapter* adapter) = 0;
-    
+ 
     virtual const std::vector<uint8_t>& ExtractEmbeddedCover(const Path &path) = 0;
 
     virtual const std::unordered_set<std::string> & GetSupportFileExtensions() const = 0;
@@ -29,5 +28,26 @@ public:
 protected:
     MetadataReader() = default;
 };
+
+XAMP_METADATA_API inline void FromPath(const Path& path, MetadataExtractAdapter* adapter, MetadataReader *reader) {
+    if (is_directory(path)) {
+        for (RecursiveDirectoryIterator itr(path), end; itr != end && !adapter->IsCancel(); ++itr) {
+            const auto current_path = (*itr).path();
+
+            if (!is_directory(current_path)) {
+                if (reader->IsSupported(current_path)) {
+                    adapter->OnWalk(path, reader->Extract(current_path));
+                }                
+            } else {
+                adapter->OnWalkNext();
+            }
+        }
+        adapter->OnWalkNext();
+    }
+    else {
+        adapter->OnWalk(path, reader->Extract(path));
+        adapter->OnWalkNext();
+    }
+}
 
 }
