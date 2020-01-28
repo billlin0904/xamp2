@@ -185,20 +185,6 @@ std::optional<DeviceInfo> CoreAudioDeviceType::GetDefaultDeviceInfo() const {
     if (result != noErr) {
         return std::nullopt;
     }
-
-    /*
-    auto itr = std::find_if(device_list_.begin(), device_list_.end(), [id](const auto &info) {
-        return info.device_id == std::to_wstring(id);
-    });
-    if (itr != device_list_.end()) {
-        device_info.name = GetPropertyName(id);
-        device_info.device_id = std::to_wstring(id);
-        device_info.device_type_id = Id;
-        device_info.is_default_device = true;
-        return std::move(device_info);
-    }
-    return std::nullopt;
-    */
     device_info.name = GetPropertyName(id);
     device_info.device_id = std::to_wstring(id);
     device_info.device_type_id = Id;

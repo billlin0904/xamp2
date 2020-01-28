@@ -32,57 +32,57 @@ using namespace base;
 
 class XAMP_OUTPUT_DEVICE_API DeviceFactory final {
 public:	
-	~DeviceFactory();
+    ~DeviceFactory();
 
-	XAMP_DISABLE_COPY(DeviceFactory)
+    XAMP_DISABLE_COPY(DeviceFactory)
 
-	static DeviceFactory& Instance() {
-		static DeviceFactory factory;
-		return factory;
-	}
+    static DeviceFactory& Instance() {
+        static DeviceFactory factory;
+        return factory;
+    }
 
-	template <typename Function>
-	void RegisterCreator(const ID id, Function &&fun) {
-		creator_[id] = std::forward<Function>(fun);
-	}
+    template <typename Function>
+    void RegisterCreator(const ID id, Function &&fun) {
+        creator_[id] = std::forward<Function>(fun);
+    }
 
-	void RegisterDeviceListener(std::weak_ptr<DeviceStateListener> callback);
+    void RegisterDeviceListener(std::weak_ptr<DeviceStateListener> callback);
 
-	void Clear();
+    void Clear();
 
-	std::optional<AlignPtr<DeviceType>> CreateDefaultDevice() const;
+    std::optional<AlignPtr<DeviceType>> CreateDefaultDevice() const;
 
-	std::optional<AlignPtr<DeviceType>> Create(const ID id) const;
+    std::optional<AlignPtr<DeviceType>> Create(const ID id) const;
 
-	template <typename Function>
-	void ForEach(Function &&fun) {
-		for (const auto& creator : creator_) {
-			try {
-				fun(creator.second());
-			}
-			catch (const Exception& e) {
-				XAMP_LOG_DEBUG("{}", e.GetErrorMessage());
-			}
-		}
-	}
+    template <typename Function>
+    void ForEach(Function &&fun) {
+        for (const auto& creator : creator_) {
+            try {
+                fun(creator.second());
+            }
+            catch (const Exception& e) {
+                XAMP_LOG_DEBUG("{}", e.GetErrorMessage());
+            }
+        }
+    }
 
     bool IsPlatformSupportedASIO() const;
 
-	static bool IsExclusiveDevice(const DeviceInfo &info);
+    static bool IsExclusiveDevice(const DeviceInfo &info);
 
-	static bool IsASIODevice(const ID id);
+    static bool IsASIODevice(const ID id);
 
-	bool IsDeviceTypeExist(const ID id) const;
+    bool IsDeviceTypeExist(const ID id) const;
 private:
-	DeviceFactory();
+    DeviceFactory();
 
 #ifdef _WIN32
-	CComPtr<win32::DeviceStateNotification> notification_;
+    CComPtr<win32::DeviceStateNotification> notification_;
 #else
     AlignPtr<osx::DeviceStateNotification> notification_;
 #endif
 
-	std::unordered_map<ID, FunctionRef<AlignPtr<DeviceType>()>> creator_;
+    std::unordered_map<ID, FunctionRef<AlignPtr<DeviceType>()>> creator_;
 };
 
 }

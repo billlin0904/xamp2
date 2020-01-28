@@ -22,7 +22,7 @@ static QString GetServerName() {
         .toBase64(QByteArray::Base64UrlEncoding | QByteArray::OmitTrailingEquals)));
 }
 
-SingleInstanceApplication::SingleInstanceApplication() noexcept
+SingleInstanceApplication::SingleInstanceApplication()
     : socket_(nullptr) {
     (void)QObject::connect(&server_, SIGNAL(newConnection()), this, SLOT(onNewConnection()));
 }

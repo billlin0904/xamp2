@@ -116,9 +116,7 @@ void FramelessWindow::initialFontDatabase() {
 		Q_UTF8("Helvetica"),
 #endif		
 	};
-
 	QFont::insertSubstitutions(Q_UTF8("UI"), fallback_fonts);
-
 	QFont default_font;
 	default_font.setFamily(Q_UTF8("UI"));
 	default_font.setStyleStrategy(QFont::PreferAntialias);

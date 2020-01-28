@@ -12,7 +12,7 @@
 
 namespace Time {
 
-static QString msToString(const double stream_time) {
+inline QString msToString(const double stream_time) {
 	const auto ms = int32_t(stream_time * 1000.0) % 1000;
 	const auto secs = static_cast<int32_t>(stream_time);
 	const auto h = secs / 3600;

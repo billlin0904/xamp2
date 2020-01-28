@@ -22,7 +22,6 @@ protected:
 	QSize sizeHint(const QStyleOptionViewItem& o, const QModelIndex& idx) const override;
 
 private:
-	QPixmap cache_unknown_cover_;
 	mutable LruCache<QString, QPixmap> cache_;
 };
 
@@ -32,7 +31,9 @@ public:
 	explicit AlbumView(QWidget* parent = nullptr);
 
 public slots:
-	void updateAlbumCover();
+	void refreshOnece();
+
+    void filterArtist(int32_t artist_id);
 
 private:
 	QSqlRelationalTableModel model_;

@@ -67,7 +67,7 @@ void AudioPlayer::PrepareAllocate() {
 void AudioPlayer::Open(const std::wstring& file_path, bool use_bass_stream, const DeviceInfo& device_info) {
     Initial();
     CloseDevice(true);
-    OpenStream(file_path, device_info, use_bass_stream);
+    OpenStream(file_path, use_bass_stream);
     SetDeviceFormat();
     CreateDevice(device_info.device_type_id, device_info.device_id, false);
     OpenDevice();
@@ -116,7 +116,7 @@ DsdDevice* AudioPlayer::AsDsdDevice() {
     return dynamic_cast<DsdDevice*>(device_.get());
 }
 
-void AudioPlayer::OpenStream(const std::wstring& file_path, const DeviceInfo& device_info, bool is_dsd_stream) {
+void AudioPlayer::OpenStream(const std::wstring& file_path, bool is_dsd_stream) {
     if (stream_ != nullptr) {
         stream_->Close();
     }
@@ -146,20 +146,7 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, const DeviceInfo& de
         }
     }
     else {        
-		static const std::array<std::string_view, 3> use_bass_decoder_file_ext{
-			".m4a",// FMPPEG 沒有 aac 解碼
-            ".ape",// FMPPEG 沒有 ape 解碼
-			".mp3", // FFMPEG mp3 解碼器會有爆音的問題
-		};
-
-		const std::filesystem::path path(file_path);
-		if (std::find(use_bass_decoder_file_ext.begin(),
-			use_bass_decoder_file_ext.end(),
-			ToLower(path.extension().string())) == use_bass_decoder_file_ext.end()) {
-			stream_ = MakeAlign<AudioStream, AvFileStream>();
-		} else {
-			stream_ = MakeAlign<AudioStream, BassFileStream>();
-		}
+        stream_ = MakeAlign<AudioStream, AvFileStream>();
     }
 #else
     if (!stream_) {

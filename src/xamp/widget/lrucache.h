@@ -19,16 +19,6 @@ public:
         : max_size_(max_size) {
     }
 
-    void emplace(const Key& key, Value&& value) {
-        items_list_.emplace_front(key, value);
-        items_map_[key] = items_list_.begin();
-
-        if (items_list_.size() > max_size_) {
-            items_map_.erase(items_list_.back().first);
-            items_list_.pop_back();
-        }
-    }
-
     void insert(const Key& key, const Value& value) {
         items_list_.emplace_front(key, value);
         items_map_[key] = items_list_.begin();
@@ -39,7 +29,7 @@ public:
         }
     }
 
-    std::optional<const Value*> findOrNull(const Key& key) const noexcept {
+    std::optional<const Value*> find(const Key& key) const {
         const auto check = items_map_.find(key);
         if (check == items_map_.end()) {
             return std::nullopt;

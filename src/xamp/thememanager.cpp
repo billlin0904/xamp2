@@ -1,11 +1,17 @@
 #include "ui_xamp.h"
 #include "widget/str_utilts.h"
+#include "widget/image_utiltis.h"
 #include "thememanager.h"
 
 DefaultStylePixmapManager::DefaultStylePixmapManager()
     : unknown_cover_(Q_UTF8(":/xamp/Resource/White/unknown_album.png"))
+    , default_size_unknown_cover_(Pixmap::resizeImage(unknown_cover_, ThemeManager::getDefaultCoverSize()))
     , volume_up_(Q_UTF8(":/xamp/Resource/White/volume_up.png"))
     , volume_off_(Q_UTF8(":/xamp/Resource/White/volume_off.png")) {
+}
+
+const QPixmap& DefaultStylePixmapManager::defaultSizeUnknownCover() const noexcept {
+    return default_size_unknown_cover_;
 }
 
 const QPixmap& DefaultStylePixmapManager::unknownCover() const noexcept {

@@ -1,0 +1,55 @@
+//=====================================================================================================================
+// Copyright (c) 2018-2020 xamp project. All rights reserved.
+// More license information, please see LICENSE file in module root folder.
+//=====================================================================================================================
+
+#pragma once
+
+#include <QString>
+#include <QVariant>
+
+namespace http {
+
+enum class HttpMethod {
+    GET,
+    POST,
+    PUT,
+    DELETE,
+    UPLOAD
+};
+
+class HttpClient {
+public:
+    explicit HttpClient(const QString &url);
+
+    ~HttpClient();
+
+    HttpClient& param(const QString &name, const QVariant &value);
+
+    HttpClient& params(const QMap<QString, QVariant> &ps);
+
+    HttpClient& json(const QString &json);
+
+    HttpClient& header(const QString &name, const QString &value);
+
+    HttpClient& headers(const QMap<QString, QString> nameValues);
+
+    HttpClient& success(std::function<void (const QString &)> successHandler);
+
+    void download(std::function<void (const QByteArray &)> downloadHandler);
+
+    void get();
+
+    void post();
+
+    void put();
+
+    void remove();
+
+private:
+    class HttpClientImpl;
+    QScopedPointer<HttpClientImpl> impl_;
+};
+
+
+}

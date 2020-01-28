@@ -1,4 +1,6 @@
 #include <base/logger.h>
+#include <base/rng.h>
+
 #include <player/audio_player.h>
 #include <widget/qdebugsink.h>
 #include <widget/appsettings.h>
@@ -34,14 +36,15 @@ int main(int argc, char *argv[]) {
 	QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 	QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 
-	QApplication app(argc, argv);
+    QApplication app(argc, argv);
 
-	SingleInstanceApplication singleApp;
-	if (!singleApp.attach(QCoreApplication::arguments())) {
+    SingleInstanceApplication singleApp;
+    if (!singleApp.attach(QCoreApplication::arguments())) {
 		return -1;
 	}		
 
-	PixmapCache::Instance();
+    (void)xamp::base::RNG::Instance();
+    (void)PixmapCache::Instance();
 
 	try {
 		Database::Instance().open(Q_UTF8("xamp.db"));

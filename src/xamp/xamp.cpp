@@ -10,6 +10,7 @@
 #include "widget/lrcpage.h"
 #include "widget/win32/blur_effect_helper.h"
 #include "widget/albumview.h"
+#include "widget/artistview.h"
 #include "widget/str_utilts.h"
 #include "widget/playlistpage.h"
 #include "widget/toast.h"
@@ -21,7 +22,10 @@
 #include "thememanager.h"
 #include "xamp.h"
 
-static QString getPlayEntityFormat(const AudioFormat& format, const PlayListEntity& item, std::optional<int32_t> dsd_speed) {
+static QString getPlayEntityFormat(const AudioPlayer* player, const PlayListEntity& item) {
+    auto format = player->GetStreamFormat();
+    auto dsd_speed = player->GetDSDSpeed();
+
     auto ext = item.file_ext;
     ext = ext.remove(Q_UTF8(".")).toUpper();
     auto is_mhz_samplerate = false;
@@ -117,6 +121,10 @@ void Xamp::initialUI() {
     ui.maxWinButton->hide();
     ui.minWinButton->hide();
     ui.settingsButton->hide();
+    f.setPointSize(11);
+    ui.titleLabel->setFont(f);
+    f.setPointSize(10);
+    ui.artistLabel->setFont(f);
 #endif
 }
 
@@ -174,8 +182,8 @@ void Xamp::initialDeviceList() {
             device_id_action[device_info.device_id] = device_action;
             (void)QObject::connect(device_action, &QAction::triggered, [device_info, this]() {
                 device_info_ = device_info;
-                AppSettings::settings().setValue(APP_SETTING_DEVICE_TYPE, QString::fromStdString(device_info_.device_type_id));
-                AppSettings::settings().setValue(APP_SETTING_DEVICE_ID, QString::fromStdWString(device_info_.device_id));
+                AppSettings::settings().setValue(APP_SETTING_DEVICE_TYPE, device_info_.device_type_id);
+                AppSettings::settings().setValue(APP_SETTING_DEVICE_ID, device_info_.device_id);
             });
             menu->addAction(device_action);
             if (AppSettings::settings().getIDValue(APP_SETTING_DEVICE_TYPE) == device_info.device_type_id
@@ -199,8 +207,8 @@ void Xamp::initialDeviceList() {
     if (!is_find_setting_device) {
         device_info_ = init_device_info;
         device_id_action[device_info_.device_id]->setChecked(true);
-        AppSettings::settings().setValue(APP_SETTING_DEVICE_TYPE, QString::fromStdString(device_info_.device_type_id));
-        AppSettings::settings().setValue(APP_SETTING_DEVICE_ID, QString::fromStdWString(device_info_.device_id));
+        AppSettings::settings().setValue(APP_SETTING_DEVICE_TYPE, device_info_.device_type_id);
+        AppSettings::settings().setValue(APP_SETTING_DEVICE_ID, device_info_.device_id);
     }
 }
 
@@ -349,12 +357,14 @@ void Xamp::initialController() {
 
     (void)QObject::connect(ui.backPageButton, &QToolButton::pressed, [this]() {
         goBackPage();
-        album_view_->updateAlbumCover();
+        album_view_->refreshOnece();
+        artist_view_->refreshOnece();
     });
 
     (void)QObject::connect(ui.nextPageButton, &QToolButton::pressed, [this]() {
         getNextPage();
-        album_view_->updateAlbumCover();
+        album_view_->refreshOnece();
+        artist_view_->refreshOnece();
     });
 
     (void)QObject::connect(ui.addPlaylistButton, &QToolButton::pressed, [this]() {
@@ -455,6 +465,7 @@ void Xamp::initialShortcut() {
 void Xamp::stopPlayedClicked() {
     player_->Stop(false, true);
     setSeekPosValue(0);
+    ui.seekSlider->setEnabled(false);
 }
 
 void Xamp::playNextClicked() {
@@ -483,7 +494,7 @@ void Xamp::setPlayerOrder() {
                                               }
                                               )"));
         AppSettings::settings().setValue(APP_SETTING_ORDER,
-                                         PLAYER_ORDER_REPEAT_ONCE);
+                                         (int)PLAYER_ORDER_REPEAT_ONCE);
         break;
     case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:
         ui.repeatButton->setStyleSheet(Q_UTF8(R"(
@@ -493,7 +504,7 @@ void Xamp::setPlayerOrder() {
                                               }
                                               )"));
         AppSettings::settings().setValue(APP_SETTING_ORDER,
-                                         PLAYER_ORDER_REPEAT_ONE);
+                                         (int)PLAYER_ORDER_REPEAT_ONE);
         break;
     case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL:
         ui.repeatButton->setStyleSheet(Q_UTF8(R"(
@@ -503,7 +514,7 @@ void Xamp::setPlayerOrder() {
                                               }
                                               )"));
         AppSettings::settings().setValue(APP_SETTING_ORDER,
-                                         PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL);
+                                         (int)PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL);
         break;
     default:
         break;
@@ -602,7 +613,7 @@ void Xamp::play(const PlayListEntity& item) {
     ui.titleLabel->setText(item.title);
     ui.artistLabel->setText(item.artist);
 
-    auto use_bass_stream = QStringLiteral(".dsd,.dsf,.dff").contains(item.file_ext);
+    auto use_bass_stream = QStringLiteral(".dsd,.dsf,.dff,.m4a,.ape,.mp3").contains(item.file_ext);
     player_->Open(item.file_path.toStdWString(), use_bass_stream, device_info_);
 
     if (!player_->IsMute()) {
@@ -616,9 +627,8 @@ void Xamp::play(const PlayListEntity& item) {
 
     player_->PlayStream();
 
-    playlist_page_->format()->setText(getPlayEntityFormat(player_->GetStreamFormat(),
-                                                          item,
-                                                          player_->GetDSDSpeed()));
+    playlist_page_->format()->setText(getPlayEntityFormat(player_.get(), item));
+    ui.seekSlider->setEnabled(true);
 }
 
 void Xamp::play(const QModelIndex&, const PlayListEntity& item) {
@@ -654,7 +664,7 @@ void Xamp::play(const QModelIndex&, const PlayListEntity& item) {
     music_id_store_.insert(item.music_id);
     current_entiry_ = item;
 
-    QFileInfo file_info(item.file_path);
+    const QFileInfo file_info(item.file_path);
     const auto lrc_path = file_info.path()
             + Q_UTF8("/")
             + file_info.completeBaseName()
@@ -718,7 +728,7 @@ void Xamp::addTable() {
 }
 
 void Xamp::initialPlaylist() {
-    Database::Instance().forEachTable([&](auto table_id, auto table_index, auto playlist_id, const auto &name) {
+    Database::Instance().forEachTable([&](auto table_id, auto /*table_index*/, auto playlist_id, const auto &name) {
         if (name.isEmpty()) {
             return;
         }
@@ -757,7 +767,9 @@ void Xamp::initialPlaylist() {
 
     lrc_page_ = new LrcPage(this);
     album_view_ = new AlbumView(this);
+    artist_view_ = new ArtistView(this);
     pushWidget(lrc_page_);
+    pushWidget(artist_view_);
     pushWidget(playlist_page_);
     pushWidget(album_view_);
     goBackPage();
@@ -768,7 +780,7 @@ void Xamp::addItem(const QString& file_name) {
 
     try {
         playlist_page_->playlist()->append(file_name, add_playlist);  
-        album_view_->updateAlbumCover();
+        album_view_->refreshOnece();
     }
     catch (const xamp::base::Exception& e) {
         Toast::showTip(Q_UTF8(e.GetErrorMessage()), this);

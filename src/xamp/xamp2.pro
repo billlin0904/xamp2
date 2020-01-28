@@ -25,9 +25,15 @@ INCLUDEPATH += ../xamp_output_device/include/
 INCLUDEPATH += ../xamp_stream/include/
 INCLUDEPATH += ../xamp_player/include/
 INCLUDEPATH += ../thirdparty/spdlog/include/
+INCLUDEPATH += ../thirdparty/rapidxml/
 
 SOURCES += \
     thememanager.cpp \
+    widget/discogsclient.cpp \
+    widget/artistview.cpp \
+    widget/http.cpp \
+    widget/lastfmclient.cpp \
+    widget/musicbrainzclient.cpp \
     widget/seekslider.cpp \
     widget/albumview.cpp \
     widget/appsettings.cpp \
@@ -56,6 +62,11 @@ SOURCES += \
 HEADERS += \
     thememanager.h \
     singleinstanceapplication.h \
+    widget/discogsclient.h \
+    widget/artistview.h \
+    widget/http.h \
+    widget/lastfmclient.h \
+    widget/musicbrainzclient.h \
     widget/seekslider.h \
     widget/actionmap.h \
     widget/albumview.h \

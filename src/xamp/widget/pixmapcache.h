@@ -36,7 +36,9 @@ public:
 
 	std::optional<const QPixmap*> find(const QString& tag_id) const;
 
-	QString emplace(QPixmap&& cover) const;
+    QPixmap fromFileCache(const QString& tag_id) const;
+
+    QString emplace(const QPixmap& cover) const;
 
 	void erase(const QString& tag_id);
 

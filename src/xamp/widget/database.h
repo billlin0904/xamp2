@@ -61,6 +61,10 @@ public:
 
     int32_t addOrUpdateArtist(const QString& artist);
 
+    void updateArtistImageUrl(int32_t artist_id, const QString &artistImageUrl);
+
+    void updateArtistCoverId(int32_t artist_id, const QString &coverId);
+
     int32_t addOrUpdateAlbum(const QString& album, int32_t artist_id);
 
     void addOrUpdateAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id);
@@ -69,8 +73,8 @@ public:
 
     void setTableName(int32_t table_id, const QString &name);
 
-    template <typename Callbackable>
-    void forEachTable(Callbackable &&callback) {
+    template <typename Function>
+    void forEachTable(Function &&callback) {
         QSqlTableModel model(nullptr, db_);
 
         model.setTable(Q_UTF8("tables"));

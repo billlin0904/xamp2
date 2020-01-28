@@ -9,11 +9,12 @@
 #include <QDebug>
 #include <QLocalSocket>
 #include <QLocalServer>
+#include <QtWidgets/QApplication>
 
 class SingleInstanceApplication : public QObject {
 	Q_OBJECT
 public:
-	SingleInstanceApplication() noexcept;
+    SingleInstanceApplication();
 
 	bool attach(const QStringList& args);
 	

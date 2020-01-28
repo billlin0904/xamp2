@@ -24,7 +24,7 @@ QVariant PlayListTableModel::data(const QModelIndex& index, int32_t role) const 
 		case PLAYLIST_PLAYING:
 			return data_[row].playing_ico;
 		case PLAYLIST_TRACK:
-			return data_[row].track;
+            return data_[row].track;
 		case PLAYLIST_FILEPATH:
 			return data_[row].file_path;
 		case PLAYLIST_TITLE:
@@ -81,7 +81,7 @@ QVariant PlayListTableModel::headerData(const int32_t section, const Qt::Orienta
 			case PLAYLIST_MUSIC_ID:
 				return tr("Music Id");
 			case PLAYLIST_PLAYING:
-				return tr("");
+                return tr(" ");
 			case PLAYLIST_TRACK:
 				return tr("#");
 			case PLAYLIST_FILEPATH:

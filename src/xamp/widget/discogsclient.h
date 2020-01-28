@@ -5,16 +5,14 @@
 
 #pragma once
 
-#include <QPainter>
-#include <QPixmap>
+#include <QObject>
 
-namespace Pixmap {
+#include <widget/http.h>
 
-inline QPixmap resizeImage(const QPixmap &source, const QSize &size, bool is_aspect_ratio = false) {
-    return source.scaled(size, 
-		is_aspect_ratio ? Qt::KeepAspectRatioByExpanding 
-		: Qt::IgnoreAspectRatio, 
-		Qt::SmoothTransformation);
-}
+class DiscogsClient : public QObject {
+    Q_OBJECT
+public:
+    DiscogsClient(QObject *parent = nullptr);
 
-}
+    void searchArtist(int32_t artist_id, const QString &artist);
+};

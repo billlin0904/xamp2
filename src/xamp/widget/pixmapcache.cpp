@@ -45,8 +45,12 @@ void PixmapCache::erase(const QString& tag_id) {
 	cache_.erase(tag_id);
 }
 
+QPixmap PixmapCache::fromFileCache(const QString& tag_id) const {
+    return QPixmap(cache_path_ + tag_id + Q_UTF8(".cache"));
+}
+
 void PixmapCache::loadCache() const {
-	int32_t i = 0;
+    size_t i = 0;
     for (QDirIterator itr(cache_path_, cache_ext_, QDir::Files | QDir::NoDotAndDotDot);
 		itr.hasNext(); ++i) {
         const auto path = itr.next();
@@ -62,7 +66,7 @@ void PixmapCache::loadCache() const {
         QPixmap read_cover(path);
         if (!read_cover.isNull()) {
             const auto tag_id = image_file_path.baseName();
-			cache_.insert(tag_id, std::move(read_cover));
+            cache_.insert(tag_id, read_cover);
         }
     }
 
@@ -71,20 +75,20 @@ void PixmapCache::loadCache() const {
 
 std::optional<const QPixmap*> PixmapCache::find(const QString& tag_id) const {
 	while (true) {
-		const auto cache = cache_.findOrNull(tag_id);
+        const auto cache = cache_.find(tag_id);
 		if (!cache) {
 			QPixmap read_cover(cache_path_ + tag_id + Q_UTF8(".cache"));
 			if (read_cover.isNull()) {
 				return std::nullopt;
 			}
-			cache_.insert(tag_id, std::move(read_cover));
+            cache_.insert(tag_id, read_cover);
 			continue;
 		}
 		return cache;
 	}
 }
 
-QString PixmapCache::emplace(QPixmap&& cover) const {
+QString PixmapCache::emplace(const QPixmap& cover) const {
 	QByteArray array;
 	QBuffer buffer(&array);
 	buffer.open(QIODevice::WriteOnly);
@@ -95,10 +99,10 @@ QString PixmapCache::emplace(QPixmap&& cover) const {
 		(void)cover.save(cache_path_ + tag_name + Q_UTF8(".cache"), "JPG", 100);
 	}
 
-	cache_.emplace(tag_name, std::move(cover));
+    cache_.insert(tag_name, cover);
 	return tag_name;
 }
 
 bool PixmapCache::isExist(const QString& tag_id) const {
-    return cache_.findOrNull(tag_id) != nullptr;
+    return cache_.find(tag_id) != nullptr;
 }

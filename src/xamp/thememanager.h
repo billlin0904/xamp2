@@ -18,6 +18,7 @@ public:
     virtual const QPixmap& unknownCover() const noexcept = 0;
     virtual const QIcon& volumeUp() const noexcept = 0;
     virtual const QIcon& volumeOff() const noexcept = 0;
+    virtual const QPixmap& defaultSizeUnknownCover() const noexcept = 0;
 protected:
     StylePixmapManager() = default;
 };
@@ -30,13 +31,16 @@ public:
 
     const QPixmap& unknownCover() const noexcept override;
 
+    const QPixmap& defaultSizeUnknownCover() const noexcept override;
+
     const QIcon& volumeUp() const noexcept override;
 
     const QIcon& volumeOff() const noexcept override;
 private:
+    QPixmap unknown_cover_;
+    QPixmap default_size_unknown_cover_;
     QIcon volume_up_;
     QIcon volume_off_;
-    QPixmap unknown_cover_;
 };
 
 class ThemeManager {

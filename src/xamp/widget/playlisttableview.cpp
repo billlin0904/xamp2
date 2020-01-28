@@ -25,7 +25,8 @@ PlayListEntity PlayListTableView::fromMetadata(const xamp::base::Metadata& metad
 	item.artist = QString::fromStdWString(metadata.artist);
 	item.file_path = QString::fromStdWString(metadata.file_path);
 	item.bitrate = metadata.bitrate;
-	item.cover_id = QLatin1String(metadata.cover_id.c_str(), metadata.cover_id.length());
+    item.cover_id = QLatin1String(metadata.cover_id.c_str(),
+                                  static_cast<int32_t>(metadata.cover_id.length()));
 	item.file_name = QString::fromStdWString(metadata.file_name);
 	return item;
 }
@@ -34,7 +35,8 @@ PlayListTableView::PlayListTableView(QWidget* parent, int32_t playlist_id)
 	: QTableView(parent)
 	, playlist_id_(playlist_id)
 	, model_(this)
-	, proxy_model_(this) {
+    , proxy_model_(this)
+    , adapter_(this) {
 	initial();
 }
 
@@ -127,11 +129,9 @@ void PlayListTableView::initial() {
 #ifdef Q_OS_WIN
     f.setPointSize(9);
 #else
-	f.setPointSize(11);
+    f.setPointSize(12);
 #endif
     setFont(f);
-
-	adapter_.playlist = this;
 }
 
 void PlayListTableView::append(const QString& file_name, bool add_playlist) {
@@ -150,13 +150,11 @@ void PlayListTableView::resizeColumn() const {
 	auto header = horizontalHeader();
 
 	for (auto column = 0; column < header->count(); ++column) {
-		const auto width = header->sectionSize(column);
-
 		switch (column) {
-		case PLAYLIST_TRACK:
+        case PLAYLIST_TRACK:
 		case PLAYLIST_PLAYING:
-			header->setSectionResizeMode(column, QHeaderView::Fixed);
-			header->resizeSection(column, 8);
+            header->setSectionResizeMode(column, QHeaderView::ResizeToContents);
+            header->resizeSection(column, 12);
 			break;
 		case PLAYLIST_DURATION:
 		case PLAYLIST_BITRATE:
@@ -206,7 +204,7 @@ QModelIndex PlayListTableView::currentIndex() const {
 
 QModelIndex PlayListTableView::shuffeIndex() {
 	std::vector<int32_t> indexes;
-	indexes.reserve(proxy_model_.rowCount());
+    indexes.reserve(static_cast<size_t>(proxy_model_.rowCount()));
 
 	for (int n = 0; n < proxy_model_.rowCount(); n++) {
 		if (model_.nowPlaying() != n) {

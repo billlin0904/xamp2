@@ -5,19 +5,21 @@
 
 #pragma once
 
-#include <unordered_set>
-#include <QSortFilterProxyModel>
+#include <QObject>
 
-class PlayListTableFilterProxyModel : public QSortFilterProxyModel {
+#include <widget/http.h>
+
+class MusicBrainzClient : public QObject {
     Q_OBJECT
 public:
-    explicit PlayListTableFilterProxyModel(QObject *parent = nullptr);
+    explicit MusicBrainzClient(QObject *parnet = nullptr);
 
-    void setFilterByColumn(int32_t column);
+    void searchArtist(int32_t artist_id, const QString &artist);
 
-protected:
-    bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const override;
+    void getArtistImageUrl(const QString &mbid);
 
-private:
-    std::unordered_set<int32_t> filters_;
+signals:
+    void onGetArtistMBID(int32_t artist_id, const QString &mbid);
+
+    void onGetArtistImageUrl(int32_t artist_id, const QString &image_url);
 };
