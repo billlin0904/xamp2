@@ -61,9 +61,11 @@ public:
 
     int32_t addOrUpdateArtist(const QString& artist);
 
-    void updateArtistImageUrl(int32_t artist_id, const QString &artistImageUrl);
+    void updateImageUrl(int32_t artist_id, const QString& url);
 
-    void updateArtistCoverId(int32_t artist_id, const QString &coverId);
+    void updateDiscogsArtistId(int32_t artist_id, const QString& discogs_artist_id);
+
+    void updateArtistCoverId(int32_t artist_id, const QString& coverId);
 
     int32_t addOrUpdateAlbum(const QString& album, int32_t artist_id);
 

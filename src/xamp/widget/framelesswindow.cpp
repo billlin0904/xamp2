@@ -37,14 +37,13 @@ FramelessWindow::FramelessWindow(QWidget* parent)
 	const MARGINS borderless = { 1, 1, 1, 1 };
 	::DwmExtendFrameIntoClientArea(hwnd, &borderless);
 	setBlurMaterial(this);
-#endif
-    initialFontDatabase();
+#endif    
 #ifdef _WIN32
+    initialFontDatabase();
     setStyleSheet(Q_UTF8(R"(
-        font-family: "UI";
 		background: transparent;
     )"));
-	installEventFilter(new QTouchEventFilter());
+	installEventFilter(new QTouchEventFilter());    
 #else
     setStyleSheet(Q_UTF8(R"(
         font-family: "UI";
@@ -116,11 +115,12 @@ void FramelessWindow::initialFontDatabase() {
 		Q_UTF8("Helvetica"),
 #endif		
 	};
-	QFont::insertSubstitutions(Q_UTF8("UI"), fallback_fonts);
-	QFont default_font;
-	default_font.setFamily(Q_UTF8("UI"));
-	default_font.setStyleStrategy(QFont::PreferAntialias);
-	setFont(default_font);
+	QFont::insertSubstitutions(Q_UTF8("UI"), fallback_fonts); 
+
+    QFont default_font;
+    default_font.setFamily(Q_UTF8("UI"));
+    default_font.setStyleStrategy(QFont::PreferAntialias);
+    setFont(default_font);
 }
 
 void FramelessWindow::setTaskbarProgress(const double percent) {

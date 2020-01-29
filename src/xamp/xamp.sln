@@ -30,11 +30,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "xamp_metadata", "..\xamp_me
 		{787171BF-E651-4B4F-A2D9-0B3D5108DA93} = {787171BF-E651-4B4F-A2D9-0B3D5108DA93}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "xamp_dsp", "..\xamp_dsp\xamp_dsp.vcxproj", "{628D9BB8-964F-4F00-82FA-78033F06DA2F}"
-	ProjectSection(ProjectDependencies) = postProject
-		{787171BF-E651-4B4F-A2D9-0B3D5108DA93} = {787171BF-E651-4B4F-A2D9-0B3D5108DA93}
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -89,14 +84,6 @@ Global
 		{9C38FE2D-CBE7-4362-8CD3-1E8F18B5B12C}.Release|x64.Build.0 = Release|x64
 		{9C38FE2D-CBE7-4362-8CD3-1E8F18B5B12C}.Release|x86.ActiveCfg = Release|Win32
 		{9C38FE2D-CBE7-4362-8CD3-1E8F18B5B12C}.Release|x86.Build.0 = Release|Win32
-		{628D9BB8-964F-4F00-82FA-78033F06DA2F}.Debug|x64.ActiveCfg = Debug|x64
-		{628D9BB8-964F-4F00-82FA-78033F06DA2F}.Debug|x64.Build.0 = Debug|x64
-		{628D9BB8-964F-4F00-82FA-78033F06DA2F}.Debug|x86.ActiveCfg = Debug|Win32
-		{628D9BB8-964F-4F00-82FA-78033F06DA2F}.Debug|x86.Build.0 = Debug|Win32
-		{628D9BB8-964F-4F00-82FA-78033F06DA2F}.Release|x64.ActiveCfg = Release|x64
-		{628D9BB8-964F-4F00-82FA-78033F06DA2F}.Release|x64.Build.0 = Release|x64
-		{628D9BB8-964F-4F00-82FA-78033F06DA2F}.Release|x86.ActiveCfg = Release|Win32
-		{628D9BB8-964F-4F00-82FA-78033F06DA2F}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

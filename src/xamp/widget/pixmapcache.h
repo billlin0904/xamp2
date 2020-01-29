@@ -11,6 +11,7 @@
 #include "lrucache.h"
 #include "playlistentity.h"
 
+#ifndef QT_SPECIALIZE_STD_HASH_TO_CALL_QHASH_BY_CREF
 namespace std {
 template <>
 struct hash<QString> {
@@ -22,6 +23,7 @@ struct hash<QString> {
 	}
 };
 }
+#endif
 
 class PixmapCache {
 public:

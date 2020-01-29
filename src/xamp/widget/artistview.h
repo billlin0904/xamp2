@@ -5,9 +5,15 @@
 
 #pragma once
 
+#include <deque>
+
+#include <QTimer>
 #include <QListView>
 #include <QSqlTableModel>
 #include <QStyledItemDelegate>
+
+#include <widget/lrucache.h>
+#include <widget/discogsclient.h>
 
 class ArtistViewStyledDelegate : public QStyledItemDelegate {
     Q_OBJECT
@@ -18,6 +24,10 @@ protected:
     void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override;
 
     QSize sizeHint(const QStyleOptionViewItem& o, const QModelIndex& idx) const override;
+
+private:
+    QNetworkAccessManager* manager_;
+    DiscogsClient client_;
 };
 
 class ArtistView : public QListView {

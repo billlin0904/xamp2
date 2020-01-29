@@ -67,7 +67,7 @@ void AudioPlayer::PrepareAllocate() {
 void AudioPlayer::Open(const std::wstring& file_path, bool use_bass_stream, const DeviceInfo& device_info) {
     Initial();
     CloseDevice(true);
-    OpenStream(file_path, use_bass_stream);
+    OpenStream(file_path, use_bass_stream, device_info);
     SetDeviceFormat();
     CreateDevice(device_info.device_type_id, device_info.device_id, false);
     OpenDevice();
@@ -116,7 +116,7 @@ DsdDevice* AudioPlayer::AsDsdDevice() {
     return dynamic_cast<DsdDevice*>(device_.get());
 }
 
-void AudioPlayer::OpenStream(const std::wstring& file_path, bool is_dsd_stream) {
+void AudioPlayer::OpenStream(const std::wstring& file_path, bool is_dsd_stream, const DeviceInfo& device_info) {
     if (stream_ != nullptr) {
         stream_->Close();
     }

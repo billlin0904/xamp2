@@ -52,6 +52,14 @@ void PlayListTableView::initial() {
 	proxy_model_.setDynamicSortFilter(true);
 	setModel(&proxy_model_);
 
+	auto f = font();
+#ifdef Q_OS_WIN
+	f.setPointSize(9);
+#else
+	f.setPointSize(12);
+#endif
+	setFont(f);
+
 	setUpdatesEnabled(true);
 	setAcceptDrops(true);
 	setDragEnabled(true);
@@ -124,14 +132,6 @@ void PlayListTableView::initial() {
 	(void)QObject::connect(&adapter_, &MetadataExtractAdapter::finish, [this]() {
 		resizeColumn();
 		});
-
-    auto f = font();
-#ifdef Q_OS_WIN
-    f.setPointSize(9);
-#else
-    f.setPointSize(12);
-#endif
-    setFont(f);
 }
 
 void PlayListTableView::append(const QString& file_name, bool add_playlist) {

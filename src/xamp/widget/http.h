@@ -11,16 +11,16 @@
 namespace http {
 
 enum class HttpMethod {
-    GET,
-    POST,
-    PUT,
-    DELETE,
-    UPLOAD
+    HTTP_GET,
+    HTTP_POST,
+    HTTP_PUT,
+    HTTP_DELETE,
+    HTTP_UPLOAD
 };
 
 class HttpClient {
 public:
-    explicit HttpClient(const QString &url);
+    HttpClient(const QString &url, QNetworkAccessManager* manager = nullptr);
 
     ~HttpClient();
 

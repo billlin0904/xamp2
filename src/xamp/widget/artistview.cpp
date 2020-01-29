@@ -2,54 +2,116 @@
 
 #include "thememanager.h"
 
+#include <QScrollBar>
+#include <QApplication>
+
 #include <widget/pixmapcache.h>
 #include <widget/database.h>
 #include <widget/str_utilts.h>
+#include <widget/image_utiltis.h>
 #include <widget/artistview.h>
 
 ArtistViewStyledDelegate::ArtistViewStyledDelegate(QObject* parent)
-    : QStyledItemDelegate(parent) {
+    : QStyledItemDelegate(parent)
+    , manager_(new QNetworkAccessManager(this))
+    , client_(manager_, this) {
+    (void) QObject::connect(&client_, &DiscogsClient::getArtistId, [this](auto artist_id, auto id) {
+        Database::Instance().updateDiscogsArtistId(artist_id, id);
+        client_.searchArtistId(artist_id, id);
+        });
+
+    (void)QObject::connect(&client_, &DiscogsClient::getArtistImageUrl, [this](auto artist_id, auto url) {
+        Database::Instance().updateImageUrl(artist_id, url);
+        client_.downloadArtistImage(artist_id, url);
+        });
+
+    (void) QObject::connect(&client_, &DiscogsClient::downloadImageFinished, [this](auto artist_id, auto image) {
+        auto cover_id = PixmapCache::Instance().emplace(image);
+        Database::Instance().updateArtistCoverId(artist_id, cover_id);
+        });
 }
 
 void ArtistViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const {
     if (!index.isValid()) {
         return;
-    }
+    }    
 
     auto artist_id = index.model()->data(index.model()->index(index.row(), 0)).toInt();
     auto artist = index.model()->data(index.model()->index(index.row(), 1)).toString();
     auto cover_id = index.model()->data(index.model()->index(index.row(), 2)).toString();
-    auto artist_image_url = index.model()->data(index.model()->index(index.row(), 3)).toString();
+    auto discogs_artist_id = index.model()->data(index.model()->index(index.row(), 3)).toString();
+    auto image_url = index.model()->data(index.model()->index(index.row(), 4)).toString();
 
-    /*
+    const QSize image_size{ 80, 80 };
+    const QRect image_react(QPoint{ option.rect.left(), option.rect.top() }, image_size);
+
+    painter->setRenderHints(QPainter::Antialiasing, true);
+    painter->setRenderHints(QPainter::SmoothPixmapTransform, true);
+
     QPainterPath path;
-    path.addEllipse(image_react);
-    painter->setClipPath(path);
-    */
+    path.addEllipse(image_react);    
+    painter->setClipPath(path);    
 
-    painter->drawText(option.rect, artist);
+    if (!cover_id.isEmpty()) {
+        if (auto image = PixmapCache::Instance().find(cover_id)) {
+            auto small_cover = Pixmap::resizeImage(*image.value(), image_size);
+            painter->drawPixmap(image_react, small_cover);
+            return;
+        }
+    }
+
+    auto f = painter->font();
+    f.setPointSize(20);
+    f.setBold(true);
+    painter->setFont(f);
+    painter->fillRect(image_react, Qt::gray);
+    painter->setPen(Qt::white);
+    painter->drawText(image_react, Qt::AlignCenter, artist.mid(0, 1));
 }
 
 QSize ArtistViewStyledDelegate::sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const {
-    return QStyledItemDelegate::sizeHint(option, index);
+    auto result = QStyledItemDelegate::sizeHint(option, index);
+    result.setWidth(100);
+    result.setHeight(90);
+    return result;
 }
 
 ArtistView::ArtistView(QWidget *parent)
     : QListView(parent) {
     setModel(&model_);
-    model_.setEditStrategy(QSqlTableModel::OnManualSubmit);
+    model_.setEditStrategy(QSqlTableModel::OnRowChange);
     model_.setTable(Q_UTF8("artists"));
     model_.select();
-    setUniformItemSizes(true);
+    setUniformItemSizes(true);    
     setDragEnabled(false);
     setFlow(QListView::TopToBottom);
     setViewMode(QListView::ListMode);
     setResizeMode(QListView::Adjust);
+    //setWrapping(true);
     setFrameStyle(QFrame::NoFrame);
+    // 不會出現選擇框
+    setSelectionRectVisible(false);
+    // 不可編輯
+    setEditTriggers(QAbstractItemView::NoEditTriggers);
     setStyleSheet(Q_UTF8("background-color: transparent"));
     setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
     setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     setItemDelegate(new ArtistViewStyledDelegate());
+    verticalScrollBar()->setStyleSheet(Q_UTF8(R"(
+    QScrollBar:vertical {
+        background: #FFFFFF;
+		width: 9px;
+    }
+	QScrollBar::handle:vertical {
+		background: #dbdbdb;
+		border-radius: 3px;
+		min-height: 20px;
+		border: none;
+	}
+	QScrollBar::handle:vertical:hover {
+		background: #d0d0d0;
+	}
+	)"));
 }
 
 void ArtistView::refreshOnece() {

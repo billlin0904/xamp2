@@ -107,7 +107,8 @@ void Database::createTableIfNotExist() {
                        artistId integer primary key autoincrement,
                        artist TEXT NOT NULL DEFAULT '',
                        coverId TEXT,
-                       artistImageUrl TEXT,
+                       discogsArtistId TEXT,
+                       imageUrl TEXT,
                        dateTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                        )
                        )"));
@@ -336,13 +337,24 @@ void Database::addMusicToPlaylist(int32_t music_id, int32_t playlist_id) const {
     ThrowlfFailue(query)
 }
 
-void Database::updateArtistImageUrl(int32_t artist_id, const QString &artistImageUrl) {
+void Database::updateImageUrl(int32_t artist_id, const QString& url) {
     QSqlQuery query;
 
-    query.prepare(Q_UTF8("UPDATE artists SET artistImageUrl = :artistImageUrl WHERE (artistId = :artistId)"));
+    query.prepare(Q_UTF8("UPDATE artists SET imageUrl = :imageUrl WHERE (artistId = :artistId)"));
 
     query.bindValue(Q_UTF8(":artistId"), artist_id);
-    query.bindValue(Q_UTF8(":artistImageUrl"), artistImageUrl);
+    query.bindValue(Q_UTF8(":imageUrl"), url);
+
+    ThrowlfFailue(query)
+}
+
+void Database::updateDiscogsArtistId(int32_t artist_id, const QString& discogs_artist_id) {
+    QSqlQuery query;
+
+    query.prepare(Q_UTF8("UPDATE artists SET discogsArtistId = :discogsArtistId WHERE (artistId = :artistId)"));
+
+    query.bindValue(Q_UTF8(":artistId"), artist_id);
+    query.bindValue(Q_UTF8(":discogsArtistId"), discogs_artist_id);
 
     ThrowlfFailue(query)
 }

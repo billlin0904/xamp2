@@ -10,6 +10,7 @@
 
 AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
 	: QStyledItemDelegate(parent) {
+
 }
 
 void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const {
@@ -31,9 +32,12 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     QRect artist_text_rect(option.rect.left() + 10, option.rect.top() + default_cover_size.height() + 35, option.rect.width() - 30, 15);
 
 	auto f = painter->font();
+	f.setPointSize(9);
+
 	f.setBold(true);
 	painter->setFont(f);
     painter->drawText(album_text_rect, Qt::AlignVCenter, album);
+
 	f.setBold(false);
 	painter->setFont(f);
     painter->drawText(artist_text_rect, Qt::AlignVCenter, artist);
@@ -51,7 +55,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     auto file_cache = PixmapCache::Instance().fromFileCache(cover_id);
     if (!file_cache.isNull()) {
         auto small_cover = Pixmap::resizeImage(file_cache, default_cover_size);
-        XAMP_LOG_DEBUG("Find in file cover cache id:{}", cover_id.toStdString());
+        //XAMP_LOG_DEBUG("Find in file cover cache id:{}", cover_id.toStdString());
         painter->drawPixmap(cover_rect, small_cover);
         cache_.insert(cover_id, small_cover);
     } else {
@@ -72,10 +76,17 @@ AlbumView::AlbumView(QWidget* parent)
 	, model_(this) {
 	setModel(&model_);
 	model_.setTable(Q_UTF8("albums"));
+	model_.setEditStrategy(QSqlTableModel::OnRowChange);
 	model_.setRelation(1, QSqlRelation(Q_UTF8("artists"), Q_UTF8("artistId"), Q_UTF8("artist")));
-	model_.select();
+	model_.select();	
+
 	setUniformItemSizes(true);
     setDragEnabled(false);
+	// 不會出現選擇框
+	setSelectionRectVisible(false);
+	// 不可編輯
+	setEditTriggers(QAbstractItemView::NoEditTriggers);
+	setWrapping(true);
 	setFlow(QListView::LeftToRight);
 	setViewMode(QListView::IconMode);
 	setResizeMode(QListView::Adjust);
