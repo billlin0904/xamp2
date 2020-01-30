@@ -7,6 +7,7 @@
 #include <QDesktopWidget>
 #include <QInputDialog>
 
+#include "widget/albumartistpage.h"
 #include "widget/lrcpage.h"
 #include "widget/win32/blur_effect_helper.h"
 #include "widget/albumview.h"
@@ -357,14 +358,16 @@ void Xamp::initialController() {
 
     (void)QObject::connect(ui.backPageButton, &QToolButton::pressed, [this]() {
         goBackPage();
-        album_view_->refreshOnece();
-        artist_view_->refreshOnece();
+        //album_view_->refreshOnece();
+        //artist_view_->refreshOnece();
+        album_artist_page_->refreshOnece();
     });
 
     (void)QObject::connect(ui.nextPageButton, &QToolButton::pressed, [this]() {
         getNextPage();
-        album_view_->refreshOnece();
-        artist_view_->refreshOnece();
+        //album_view_->refreshOnece();
+        //artist_view_->refreshOnece();
+        album_artist_page_->refreshOnece();
     });
 
     (void)QObject::connect(ui.addPlaylistButton, &QToolButton::pressed, [this]() {
@@ -766,12 +769,15 @@ void Xamp::initialPlaylist() {
     }
 
     lrc_page_ = new LrcPage(this);
-    album_view_ = new AlbumView(this);
-    artist_view_ = new ArtistView(this);
+    //album_view_ = new AlbumView(this);
+    //artist_view_ = new ArtistView(this);
+    album_artist_page_ = new AlbumArtistPage(this);
+
     pushWidget(lrc_page_);
-    pushWidget(artist_view_);
+    //pushWidget(artist_view_);
     pushWidget(playlist_page_);
-    pushWidget(album_view_);
+    //pushWidget(album_view_);
+    pushWidget(album_artist_page_);
     goBackPage();
 }
 
@@ -780,7 +786,8 @@ void Xamp::addItem(const QString& file_name) {
 
     try {
         playlist_page_->playlist()->append(file_name, add_playlist);  
-        album_view_->refreshOnece();
+        //album_view_->refreshOnece();
+        album_artist_page_->refreshOnece();
     }
     catch (const xamp::base::Exception& e) {
         Toast::showTip(Q_UTF8(e.GetErrorMessage()), this);

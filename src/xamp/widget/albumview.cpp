@@ -18,6 +18,9 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
 		return;
 	}
 
+	painter->setRenderHints(QPainter::Antialiasing, true);
+	painter->setRenderHints(QPainter::SmoothPixmapTransform, true);
+
 	auto album = index.model()->data(index.model()->index(index.row(), 2)).toString();
     auto cover_id = index.model()->data(index.model()->index(index.row(), 3)).toString();
 
@@ -55,7 +58,6 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     auto file_cache = PixmapCache::Instance().fromFileCache(cover_id);
     if (!file_cache.isNull()) {
         auto small_cover = Pixmap::resizeImage(file_cache, default_cover_size);
-        //XAMP_LOG_DEBUG("Find in file cover cache id:{}", cover_id.toStdString());
         painter->drawPixmap(cover_rect, small_cover);
         cache_.insert(cover_id, small_cover);
     } else {
@@ -76,8 +78,8 @@ AlbumView::AlbumView(QWidget* parent)
 	, model_(this) {
 	setModel(&model_);
 	model_.setTable(Q_UTF8("albums"));
-	model_.setEditStrategy(QSqlTableModel::OnRowChange);
-	model_.setRelation(1, QSqlRelation(Q_UTF8("artists"), Q_UTF8("artistId"), Q_UTF8("artist")));
+	model_.setEditStrategy(QSqlTableModel::OnManualSubmit);
+	model_.setRelation(model_.fieldIndex(Q_UTF8("artistId")), QSqlRelation(Q_UTF8("artists"), Q_UTF8("artistId"), Q_UTF8("artist")));
 	model_.select();	
 
 	setUniformItemSizes(true);
@@ -94,7 +96,8 @@ AlbumView::AlbumView(QWidget* parent)
 	setStyleSheet(Q_UTF8("background-color: transparent"));
 	setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
 	setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
-	setItemDelegate(new AlbumViewStyledDelegate());
+	setItemDelegate(new AlbumViewStyledDelegate());	
+
 	verticalScrollBar()->setStyleSheet(Q_UTF8(R"(
     QScrollBar:vertical {
         background: #FFFFFF;
@@ -112,10 +115,18 @@ AlbumView::AlbumView(QWidget* parent)
 	)"));
 }
 
-void AlbumView::filterArtist(int32_t artist_id) {
+void AlbumView::setFilterByAlbum(int32_t album_id) {
 
 }
 
+void AlbumView::setFilterByArtist(int32_t artist_id) {
+	model_.setTable(Q_UTF8("albums"));
+	model_.setFilter(Q_UTF8("artistId=") + QString::number(artist_id));
+	model_.select();
+}
+
 void AlbumView::refreshOnece() {
+	model_.setTable(Q_UTF8("albums"));	
+	model_.setRelation(1, QSqlRelation(Q_UTF8("artists"), Q_UTF8("artistId"), Q_UTF8("artist")));
 	model_.select();
 }

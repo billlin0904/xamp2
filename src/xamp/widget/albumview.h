@@ -33,7 +33,9 @@ public:
 public slots:
 	void refreshOnece();
 
-    void filterArtist(int32_t artist_id);
+    void setFilterByArtist(int32_t artist_id);
+
+	void setFilterByAlbum(int32_t album_id);
 
 private:
 	QSqlRelationalTableModel model_;

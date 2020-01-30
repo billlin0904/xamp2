@@ -5,11 +5,9 @@
 
 #pragma once
 
-#include <deque>
-
-#include <QTimer>
 #include <QListView>
 #include <QSqlTableModel>
+#include <QSqlRelationalTableModel>
 #include <QStyledItemDelegate>
 
 #include <widget/lrucache.h>
@@ -35,9 +33,13 @@ class ArtistView : public QListView {
 public:
     ArtistView(QWidget *parent = nullptr);
 
+Q_SIGNALS:
+    void clickedArtist(int artist_id);
+
 public slots:
     void refreshOnece();
 
 private:
-    QSqlTableModel model_;
+    //QSqlTableModel model_;
+    QSqlRelationalTableModel model_;
 };

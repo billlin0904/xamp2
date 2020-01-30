@@ -6,28 +6,27 @@
 #pragma once
 
 #include <QFrame>
-#include <QString>
 
-class QLabel;
-class PlayListTableView;
+class ArtistView;
+class AlbumView;
 
-class PlyalistPage : public QFrame {
+class AlbumArtistPage : public QFrame {
 	Q_OBJECT
 public:
-	explicit PlyalistPage(QWidget *parent = nullptr);
+	explicit AlbumArtistPage(QWidget* parent = nullptr);
 
-	PlayListTableView* playlist();
+	ArtistView* artist() const {
+		return artist_view_;
+	}
 
-	QLabel* cover();
+	AlbumView* album() const {
+		return album_view_;
+	}
 
-	QLabel* title();
+	void refreshOnece();
 
-	QLabel* format();
 private:
-	void initial();
-
-	PlayListTableView* playlist_;
-	QLabel* cover_;
-	QLabel* title_;
-	QLabel* format_;
+	ArtistView* artist_view_;
+	AlbumView* album_view_;
 };
+

@@ -41,6 +41,7 @@ FramelessWindow::FramelessWindow(QWidget* parent)
 #ifdef _WIN32
     initialFontDatabase();
     setStyleSheet(Q_UTF8(R"(
+        font-family: "UI";
 		background: transparent;
     )"));
 	installEventFilter(new QTouchEventFilter());    

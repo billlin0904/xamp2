@@ -11,6 +11,8 @@
 #include <widget/image_utiltis.h>
 #include <widget/artistview.h>
 
+constexpr QSize ARTIST_IMAGE_SIZE{ 40, 40 };
+
 ArtistViewStyledDelegate::ArtistViewStyledDelegate(QObject* parent)
     : QStyledItemDelegate(parent)
     , manager_(new QNetworkAccessManager(this))
@@ -28,7 +30,7 @@ ArtistViewStyledDelegate::ArtistViewStyledDelegate(QObject* parent)
     (void) QObject::connect(&client_, &DiscogsClient::downloadImageFinished, [this](auto artist_id, auto image) {
         auto cover_id = PixmapCache::Instance().emplace(image);
         Database::Instance().updateArtistCoverId(artist_id, cover_id);
-        });
+        });    
 }
 
 void ArtistViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const {
@@ -41,9 +43,8 @@ void ArtistViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIt
     auto cover_id = index.model()->data(index.model()->index(index.row(), 2)).toString();
     auto discogs_artist_id = index.model()->data(index.model()->index(index.row(), 3)).toString();
     auto image_url = index.model()->data(index.model()->index(index.row(), 4)).toString();
-
-    const QSize image_size{ 80, 80 };
-    const QRect image_react(QPoint{ option.rect.left(), option.rect.top() }, image_size);
+    
+    const QRect image_react(QPoint{ option.rect.left(), option.rect.top() }, ARTIST_IMAGE_SIZE);
 
     painter->setRenderHints(QPainter::Antialiasing, true);
     painter->setRenderHints(QPainter::SmoothPixmapTransform, true);
@@ -54,14 +55,14 @@ void ArtistViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIt
 
     if (!cover_id.isEmpty()) {
         if (auto image = PixmapCache::Instance().find(cover_id)) {
-            auto small_cover = Pixmap::resizeImage(*image.value(), image_size);
+            auto small_cover = Pixmap::resizeImage(*image.value(), ARTIST_IMAGE_SIZE);
             painter->drawPixmap(image_react, small_cover);
             return;
         }
     }
 
     auto f = painter->font();
-    f.setPointSize(20);
+    f.setPointSize(14);
     f.setBold(true);
     painter->setFont(f);
     painter->fillRect(image_react, Qt::gray);
@@ -71,20 +72,21 @@ void ArtistViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIt
 
 QSize ArtistViewStyledDelegate::sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const {
     auto result = QStyledItemDelegate::sizeHint(option, index);
-    result.setWidth(100);
-    result.setHeight(90);
+    result.setWidth(ARTIST_IMAGE_SIZE.width() + 20);
+    result.setHeight(ARTIST_IMAGE_SIZE.height() + 10);
     return result;
 }
 
 ArtistView::ArtistView(QWidget *parent)
     : QListView(parent) {
     setModel(&model_);
-    model_.setEditStrategy(QSqlTableModel::OnRowChange);
+    model_.setEditStrategy(QSqlTableModel::OnManualSubmit);
     model_.setTable(Q_UTF8("artists"));
     model_.select();
+
     setUniformItemSizes(true);    
     setDragEnabled(false);
-    setFlow(QListView::TopToBottom);
+    setFlow(QListView::TopToBottom);    
     setViewMode(QListView::ListMode);
     setResizeMode(QListView::Adjust);
     //setWrapping(true);
@@ -97,21 +99,14 @@ ArtistView::ArtistView(QWidget *parent)
     setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
     setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     setItemDelegate(new ArtistViewStyledDelegate());
-    verticalScrollBar()->setStyleSheet(Q_UTF8(R"(
-    QScrollBar:vertical {
-        background: #FFFFFF;
-		width: 9px;
-    }
-	QScrollBar::handle:vertical {
-		background: #dbdbdb;
-		border-radius: 3px;
-		min-height: 20px;
-		border: none;
-	}
-	QScrollBar::handle:vertical:hover {
-		background: #d0d0d0;
-	}
-	)"));
+    verticalScrollBar()->setStyleSheet(Q_UTF8("QScrollBar {width:0px;}"));
+
+    (void) QObject::connect(this, &QListView::clicked, [this](auto index) {
+        auto artist_id = index.model()->data(index.model()->index(index.row(), 0)).toInt();
+        auto artist = index.model()->data(index.model()->index(index.row(), 1)).toString();
+        auto cover_id = index.model()->data(index.model()->index(index.row(), 2)).toString();
+        emit clickedArtist(artist_id);
+        });
 }
 
 void ArtistView::refreshOnece() {
