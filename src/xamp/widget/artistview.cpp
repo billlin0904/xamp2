@@ -23,7 +23,6 @@ ArtistViewStyledDelegate::ArtistViewStyledDelegate(QObject* parent)
         });
 
     (void)QObject::connect(&client_, &DiscogsClient::getArtistImageUrl, [this](auto artist_id, auto url) {
-        Database::Instance().updateImageUrl(artist_id, url);
         client_.downloadArtistImage(artist_id, url);
         });
 
@@ -42,7 +41,9 @@ void ArtistViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIt
     auto artist = index.model()->data(index.model()->index(index.row(), 1)).toString();
     auto cover_id = index.model()->data(index.model()->index(index.row(), 2)).toString();
     auto discogs_artist_id = index.model()->data(index.model()->index(index.row(), 3)).toString();
-    auto image_url = index.model()->data(index.model()->index(index.row(), 4)).toString();
+
+    //auto album_id_index = dynamic_cast<const QSqlRelationalTableModel*>(index.model())->fieldIndex(Q_UTF8("albumId"));
+    //auto album_id = index.model()->data(index.model()->index(index.row(), album_id_index)).toString();
     
     const QRect image_react(QPoint{ option.rect.left(), option.rect.top() }, ARTIST_IMAGE_SIZE);
 
@@ -101,10 +102,10 @@ ArtistView::ArtistView(QWidget *parent)
     setItemDelegate(new ArtistViewStyledDelegate());
     verticalScrollBar()->setStyleSheet(Q_UTF8("QScrollBar {width:0px;}"));
 
-    (void) QObject::connect(this, &QListView::clicked, [this](auto index) {
-        auto artist_id = index.model()->data(index.model()->index(index.row(), 0)).toInt();
+    (void) QObject::connect(this, &QListView::clicked, [this](auto index) {        
         auto artist = index.model()->data(index.model()->index(index.row(), 1)).toString();
-        auto cover_id = index.model()->data(index.model()->index(index.row(), 2)).toString();
+        auto artist_id_index = dynamic_cast<const QSqlRelationalTableModel*>(index.model())->fieldIndex(Q_UTF8("artistId"));
+        auto artist_id = index.model()->data(index.model()->index(index.row(), artist_id_index)).toInt();
         emit clickedArtist(artist_id);
         });
 }

@@ -137,7 +137,8 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, bool is_dsd_stream, 
             if (device_info.is_support_dsd) {
                 dsd_stream->SetDSDMode(DsdModes::DSD_MODE_RAW);
             } else {
-                throw NotSupportFormatException();
+                //throw NotSupportFormatException();
+                dsd_stream->SetDSDMode(DsdModes::DSD_MODE_PCM);
             }
 #else
             dsd_stream->SetDSDMode(DsdModes::DSD_MODE_DOP);

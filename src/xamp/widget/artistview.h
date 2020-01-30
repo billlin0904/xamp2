@@ -40,6 +40,5 @@ public slots:
     void refreshOnece();
 
 private:
-    //QSqlTableModel model_;
     QSqlRelationalTableModel model_;
 };

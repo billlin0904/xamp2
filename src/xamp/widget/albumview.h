@@ -6,6 +6,7 @@
 #pragma once
 
 #include <QListView>
+#include <QSqlQueryModel>
 #include <QSqlRelationalTableModel>
 #include <QStyledItemDelegate>
 
@@ -33,11 +34,9 @@ public:
 public slots:
 	void refreshOnece();
 
-    void setFilterByArtist(int32_t artist_id);
-
-	void setFilterByAlbum(int32_t album_id);
+	void setFilterByArtist(int32_t artist_id);
 
 private:
-	QSqlRelationalTableModel model_;
+	QSqlQueryModel model_;
 };
 

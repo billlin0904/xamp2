@@ -1,5 +1,8 @@
 #include <QPainter>
 #include <QScrollBar>
+#include <QSqlError>
+#include <QSqlQuery>
+#include <QDebug>
 
 #include <base/logger.h>
 #include "thememanager.h"
@@ -21,11 +24,9 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
 	painter->setRenderHints(QPainter::Antialiasing, true);
 	painter->setRenderHints(QPainter::SmoothPixmapTransform, true);
 
-	auto album = index.model()->data(index.model()->index(index.row(), 2)).toString();
-    auto cover_id = index.model()->data(index.model()->index(index.row(), 3)).toString();
-
-    auto artist_index = dynamic_cast<const QSqlRelationalTableModel*>(index.model())->fieldIndex(Q_UTF8("artist"));
-    auto artist = index.model()->data(index.model()->index(index.row(), artist_index)).toString();
+	auto album = index.model()->data(index.model()->index(index.row(), 0)).toString();
+    auto cover_id = index.model()->data(index.model()->index(index.row(), 1)).toString();
+	auto artist = index.model()->data(index.model()->index(index.row(), 2)).toString();
 
     const auto default_cover_size = ThemeManager::getDefaultCoverSize();
 	const QRect cover_rect(option.rect.left() + 10, option.rect.top() + 10,
@@ -77,11 +78,7 @@ AlbumView::AlbumView(QWidget* parent)
 	: QListView(parent)
 	, model_(this) {
 	setModel(&model_);
-	model_.setTable(Q_UTF8("albums"));
-	model_.setEditStrategy(QSqlTableModel::OnManualSubmit);
-	model_.setRelation(model_.fieldIndex(Q_UTF8("artistId")), QSqlRelation(Q_UTF8("artists"), Q_UTF8("artistId"), Q_UTF8("artist")));
-	model_.select();	
-
+	refreshOnece();
 	setUniformItemSizes(true);
     setDragEnabled(false);
 	// 不會出現選擇框
@@ -115,18 +112,41 @@ AlbumView::AlbumView(QWidget* parent)
 	)"));
 }
 
-void AlbumView::setFilterByAlbum(int32_t album_id) {
-
-}
-
 void AlbumView::setFilterByArtist(int32_t artist_id) {
-	model_.setTable(Q_UTF8("albums"));
-	model_.setFilter(Q_UTF8("artistId=") + QString::number(artist_id));
-	model_.select();
+	QString s(
+		Q_UTF8(R"(
+	SELECT
+		album,
+		albums.coverId,
+		artist
+	FROM
+		albumArtist 
+	LEFT JOIN 
+		albums ON albums.albumId = albumArtist.albumId
+	LEFT JOIN 
+		artists ON artists.artistId = albumArtist.artistId
+	WHERE
+		( albumArtist.artistId = %1)
+	)")
+	);
+
+	model_.setQuery(s.arg(artist_id));
+
+	//qDebug() << model_.lastError().text();
+	//auto query = model_.query();
+	//qDebug() << query.lastQuery();
 }
 
 void AlbumView::refreshOnece() {
-	model_.setTable(Q_UTF8("albums"));	
-	model_.setRelation(1, QSqlRelation(Q_UTF8("artists"), Q_UTF8("artistId"), Q_UTF8("artist")));
-	model_.select();
+	model_.setQuery(Q_UTF8(R"(
+	SELECT
+		album,
+		albums.coverId,
+		artist
+	FROM
+		albums,
+		artists
+	WHERE
+		( albums.artistId = artists.artistId )
+	)"));
 }

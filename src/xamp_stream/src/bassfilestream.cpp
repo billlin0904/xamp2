@@ -116,7 +116,7 @@ public:
 #ifdef _WIN32
 		// Disable Media Foundation
 		BassLib::Instance().BASS_SetConfig(BASS_CONFIG_MF_DISABLE, true);
-		BassLib::Instance().BASS_SetConfig(BASS_CONFIG_MF_VIDEO, false);
+		BassLib::Instance().BASS_SetConfig(BASS_CONFIG_MF_VIDEO, false);		
 		LoadPlugin("bass_aac.dll");
 		LoadPlugin("bassflac.dll");
 		LoadPlugin("bass_ape.dll");
@@ -228,6 +228,27 @@ struct BassStreamTraits final {
 
 using BassStreamHandle = UniqueHandle<HSTREAM, BassStreamTraits>;
 
+static bool TestDsdFileFormat(const std::wstring& file_path) {
+	BassStreamHandle stream;
+
+	if (!BassLib::Instance().DSDLib) {
+		BassLib::Instance().DSDLib = MakeAlign<BassDSDLib>();
+		// TODO: Set hightest dsd2pcm samplerate?
+		//BassLib::Instance().BASS_SetConfig(BASS_CONFIG_DSD_FREQ, 352800);
+	}
+
+	MemoryMappedFile file;
+	file.Open(file_path);
+	stream.reset(BassLib::Instance().DSDLib->BASS_DSD_StreamCreateFile(TRUE,
+		file.GetData(),
+		0,
+		file.GetLength(),
+		BASS_DSD_RAW | BASS_STREAM_DECODE,
+		0));
+
+	return stream.is_valid();
+}
+
 class BassFileStream::BassFileStreamImpl {
 public:
 	BassFileStreamImpl() noexcept
@@ -253,12 +274,6 @@ public:
             // DSD-over-PCM data is 24-bit, so the BASS_SAMPLE_FLOAT flag is required.
             flags = BASS_DSD_DOP | BASS_SAMPLE_FLOAT;
             break;
-		/*
-        case DsdModes::DSD_MODE_DOP_AA:
-            // DSD-over-PCM data is 24-bit, so the BASS_SAMPLE_FLOAT flag is required.
-            flags = BASS_DSD_DOP_AA | BASS_SAMPLE_FLOAT;
-            break;
-		*/
         case DsdModes::DSD_MODE_RAW:
             flags = BASS_DSD_RAW;
             break;
@@ -268,7 +283,7 @@ public:
 
 		file_.Close();
 
-		if (mode_ == DsdModes::DSD_MODE_PCM) {
+		if (mode_ == DsdModes::DSD_MODE_PCM && !TestDsdFileFormat(file_path)) {
 			if (enable_file_mapped_) {
 				file_.Open(file_path);
 				stream_.reset(BassLib::Instance().BASS_StreamCreateFile(TRUE,
@@ -285,10 +300,6 @@ public:
 					flags | BASS_STREAM_DECODE | BASS_UNICODE));
 			}
 		} else {
-			if (!BassLib::Instance().DSDLib) {
-				BassLib::Instance().DSDLib = MakeAlign<BassDSDLib>();
-			}
-
 			file_.Open(file_path);
             stream_.reset(BassLib::Instance().DSDLib->BASS_DSD_StreamCreateFile(TRUE,
 				file_.GetData(),

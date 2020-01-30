@@ -108,8 +108,18 @@ void Database::createTableIfNotExist() {
                        artist TEXT NOT NULL DEFAULT '',
                        coverId TEXT,
                        discogsArtistId TEXT,
-                       imageUrl TEXT,
                        dateTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                       )
+                       )"));
+
+    create_table_sql.push_back(
+                Q_UTF8(R"(
+                       CREATE TABLE IF NOT EXISTS albumArtist (
+                       albumArtistId integer primary key autoincrement,
+                       artistId integer,
+                       albumId integer,
+                       FOREIGN KEY(artistId) REFERENCES artists(artistId),
+                       FOREIGN KEY(albumId) REFERENCES albums(albumId)
                        )
                        )"));
 
@@ -337,17 +347,6 @@ void Database::addMusicToPlaylist(int32_t music_id, int32_t playlist_id) const {
     ThrowlfFailue(query)
 }
 
-void Database::updateImageUrl(int32_t artist_id, const QString& url) {
-    QSqlQuery query;
-
-    query.prepare(Q_UTF8("UPDATE artists SET imageUrl = :imageUrl WHERE (artistId = :artistId)"));
-
-    query.bindValue(Q_UTF8(":artistId"), artist_id);
-    query.bindValue(Q_UTF8(":imageUrl"), url);
-
-    ThrowlfFailue(query)
-}
-
 void Database::updateDiscogsArtistId(int32_t artist_id, const QString& discogs_artist_id) {
     QSqlQuery query;
 
@@ -443,6 +442,20 @@ void Database::addOrUpdateAlbumMusic(int32_t album_id, int32_t artist_id, int32_
     }
 }
 
+void Database::addOrUpdateAlbumArtist(int32_t album_id, int32_t artist_id) const {
+    QSqlQuery query;
+
+    query.prepare(Q_UTF8(R"(
+                         INSERT OR REPLACE INTO albumArtist (albumArtistId, albumId, artistId)
+                         VALUES ((SELECT albumArtistId from albumArtist where albumId = :albumId AND artistId = :artistId), :albumId, :artistId)
+                         )"));
+
+    query.bindValue(Q_UTF8(":albumId"), album_id);
+    query.bindValue(Q_UTF8(":artistId"), artist_id);
+
+    ThrowlfFailue(query)
+}
+
 void Database::addAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id) const {
     QSqlQuery query;
 
@@ -456,6 +469,8 @@ void Database::addAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_
     query.bindValue(Q_UTF8(":musicId"), music_id);
 
     ThrowlfFailue(query)
+
+    addOrUpdateAlbumArtist(album_id, artist_id);
 }
 
 void Database::removePlaylistMusic(int32_t playlist_id, const QVector<int32_t>& select_music_ids) {
