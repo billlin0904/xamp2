@@ -18,6 +18,17 @@ constexpr int32_t XAMP_FLOAT_24_SCALER = 0x800000L;
 constexpr int32_t XAMP_FLOAT_32_SCALER = 0x80000000L;
 
 #pragma pack(push, 1)
+
+typedef union {
+	struct {
+		uint16_t lo;
+		uint16_t hi;
+	}u16;
+	uint32_t u32;
+	int32_t i32;
+	float  f;
+}Versatype32;
+
 class int24_t final {
 public:
 	int24_t() noexcept;
@@ -39,9 +50,10 @@ XAMP_ENFORCE_TRIVIAL(int24_t)
 XAMP_ALWAYS_INLINE int24_t::int24_t() noexcept {
 }
 
-XAMP_ALWAYS_INLINE int24_t::int24_t(float f) noexcept 
-	: int24_t() {
-	*this = static_cast<int32_t>(f * XAMP_FLOAT_24_SCALER);
+XAMP_ALWAYS_INLINE int24_t::int24_t(float f) noexcept {
+	Versatype32 data;
+	data.f = f;
+	*this = ((int32_t)(data.f * 8388608) & 0x00ffffff);
 }
 
 XAMP_ALWAYS_INLINE int24_t& int24_t::operator=(const float f) noexcept {
@@ -57,7 +69,7 @@ XAMP_ALWAYS_INLINE int24_t& int24_t::operator=(const int32_t i) noexcept {
 }
 
 XAMP_ALWAYS_INLINE int32_t int24_t::to_2432int() const noexcept {
-	int32_t v;
+	int32_t v{0};
 	((uint8_t*)&v)[0] = 0;
 	((uint8_t*)&v)[0] = c3[0];
 	((uint8_t*)&v)[1] = c3[1];

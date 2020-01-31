@@ -627,7 +627,7 @@ void Xamp::play(const PlayListEntity& item) {
     ui.titleLabel->setText(item.title);
     ui.artistLabel->setText(item.artist);
 
-    auto use_bass_stream = QStringLiteral(".dsd,.dsf,.dff,.m4a,.ape,.mp3").contains(item.file_ext);
+    auto use_bass_stream = QStringLiteral(".dsd,.dsf,.dff,.m4a,.ape").contains(item.file_ext);
     player_->Open(item.file_path.toStdWString(), use_bass_stream, device_info_);
 
     if (!player_->IsMute()) {
@@ -638,10 +638,9 @@ void Xamp::play(const PlayListEntity& item) {
 
     ui.seekSlider->setRange(0, int32_t(player_->GetDuration() * 1000));
     ui.endPosLabel->setText(Time::msToString(player_->GetDuration()));
-
-    player_->PlayStream();
-
     playlist_page_->format()->setText(getPlayEntityFormat(player_.get(), item));
+
+    player_->PlayStream();    
     ui.seekSlider->setEnabled(true);
 }
 
