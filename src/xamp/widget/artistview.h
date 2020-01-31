@@ -24,8 +24,6 @@ protected:
     QSize sizeHint(const QStyleOptionViewItem& o, const QModelIndex& idx) const override;
 
 private:
-    QNetworkAccessManager* manager_;
-    DiscogsClient client_;
 };
 
 class ArtistView : public QListView {
@@ -40,5 +38,7 @@ public slots:
     void refreshOnece();
 
 private:
-    QSqlRelationalTableModel model_;
+    QNetworkAccessManager* manager_;
+    DiscogsClient client_;
+    QSqlRelationalTableModel model_;    
 };

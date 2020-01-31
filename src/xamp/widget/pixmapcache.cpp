@@ -17,7 +17,7 @@ PixmapCache::PixmapCache() {
     cache_ext_ << Q_UTF8("*.cache");
     QDir dir;
     (void)dir.mkdir(cache_path_);
-    loadCache();
+    loadCache();	
 }
 
 QPixmap PixmapCache::findDirExistCover(const QString& file_path) {
@@ -33,6 +33,19 @@ QPixmap PixmapCache::findDirExistCover(const QString& file_path) {
         }
     }
     return read_cover;
+}
+
+void PixmapCache::clear() {
+	for (QDirIterator itr(cache_path_, cache_ext_, QDir::Files | QDir::NoDotAndDotDot);
+		itr.hasNext();) {
+		const auto path = itr.next();
+		const QFileInfo image_file_path(path);
+		QFile file(path);
+		file.remove();
+		file.close();
+	}
+
+	cache_.clear();
 }
 
 QPixmap PixmapCache::findDirExistCover(const PlayListEntity& item) {
@@ -105,4 +118,12 @@ QString PixmapCache::emplace(const QPixmap& cover) const {
 
 bool PixmapCache::isExist(const QString& tag_id) const {
     return cache_.find(tag_id) != nullptr;
+}
+
+size_t PixmapCache::getImageSize() const {
+	size_t size = 0;
+	for (auto cache : cache_) {
+		size += cache.second.size().width() * cache.second.size().width() * cache.second.devicePixelRatio();
+	}
+	return size;
 }

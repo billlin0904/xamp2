@@ -78,6 +78,14 @@ const char* Exception::GetExpression() const {
 	return "";
 }
 
+DeviceUnSupportedFormatException::DeviceUnSupportedFormatException(const AudioFormat& format)
+	: Exception(Errors::XAMP_ERROR_DEVICE_UNSUPPORTED_FORMAT)
+	, format_(format) {
+	std::ostringstream ostr;
+	ostr << "Device unsupported file format" << format_ << ".";
+	message_ = ostr.str();
+}
+
 #define IMP_EXCEPTION_CLASS(ExceptionClassName, error) \
 ExceptionClassName::ExceptionClassName()\
     : Exception(error) {\
@@ -86,7 +94,6 @@ ExceptionClassName::ExceptionClassName()\
 IMP_EXCEPTION_CLASS(LibrarySpecErrorException, Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR)
 IMP_EXCEPTION_CLASS(DeviceNotInititalzedException, Errors::XAMP_ERROR_DEVICE_NOT_INITIALIZED)
 IMP_EXCEPTION_CLASS(DeviceInUseException, Errors::XAMP_ERROR_DEVICE_IN_USE)
-IMP_EXCEPTION_CLASS(DeviceUnSupportedFormatException, Errors::XAMP_ERROR_DEVICE_UNSUPPORTED_FORMAT)
 IMP_EXCEPTION_CLASS(DeviceNotFoundException, Errors::XAMP_ERROR_DEVICE_NOT_FOUND)
 IMP_EXCEPTION_CLASS(FileNotFoundException, Errors::XAMP_ERROR_FILE_NOT_FOUND)
 IMP_EXCEPTION_CLASS(NotSupportSampleRateException, Errors::XAMP_ERROR_NOT_SUPPORT_SAMPLERATE)

@@ -11,25 +11,10 @@
 #include <widget/image_utiltis.h>
 #include <widget/artistview.h>
 
-constexpr QSize ARTIST_IMAGE_SIZE{ 40, 40 };
+constexpr QSize ARTIST_IMAGE_SIZE{ 30, 30 };
 
 ArtistViewStyledDelegate::ArtistViewStyledDelegate(QObject* parent)
-    : QStyledItemDelegate(parent)
-    , manager_(new QNetworkAccessManager(this))
-    , client_(manager_, this) {
-    (void) QObject::connect(&client_, &DiscogsClient::getArtistId, [this](auto artist_id, auto id) {
-        Database::Instance().updateDiscogsArtistId(artist_id, id);
-        client_.searchArtistId(artist_id, id);
-        });
-
-    (void)QObject::connect(&client_, &DiscogsClient::getArtistImageUrl, [this](auto artist_id, auto url) {
-        client_.downloadArtistImage(artist_id, url);
-        });
-
-    (void) QObject::connect(&client_, &DiscogsClient::downloadImageFinished, [this](auto artist_id, auto image) {
-        auto cover_id = PixmapCache::Instance().emplace(image);
-        Database::Instance().updateArtistCoverId(artist_id, cover_id);
-        });    
+    : QStyledItemDelegate(parent) {    
 }
 
 void ArtistViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const {
@@ -42,9 +27,6 @@ void ArtistViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIt
     auto cover_id = index.model()->data(index.model()->index(index.row(), 2)).toString();
     auto discogs_artist_id = index.model()->data(index.model()->index(index.row(), 3)).toString();
 
-    //auto album_id_index = dynamic_cast<const QSqlRelationalTableModel*>(index.model())->fieldIndex(Q_UTF8("albumId"));
-    //auto album_id = index.model()->data(index.model()->index(index.row(), album_id_index)).toString();
-    
     const QRect image_react(QPoint{ option.rect.left(), option.rect.top() }, ARTIST_IMAGE_SIZE);
 
     painter->setRenderHints(QPainter::Antialiasing, true);
@@ -54,6 +36,7 @@ void ArtistViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIt
     path.addEllipse(image_react);    
     painter->setClipPath(path);    
 
+#if 0
     if (!cover_id.isEmpty()) {
         if (auto image = PixmapCache::Instance().find(cover_id)) {
             auto small_cover = Pixmap::resizeImage(*image.value(), ARTIST_IMAGE_SIZE);
@@ -61,9 +44,10 @@ void ArtistViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIt
             return;
         }
     }
+#endif
 
     auto f = painter->font();
-    f.setPointSize(14);
+    f.setPointSize(10);
     f.setBold(true);
     painter->setFont(f);
     painter->fillRect(image_react, Qt::gray);
@@ -79,7 +63,9 @@ QSize ArtistViewStyledDelegate::sizeHint(const QStyleOptionViewItem& option, con
 }
 
 ArtistView::ArtistView(QWidget *parent)
-    : QListView(parent) {
+    : QListView(parent)
+    , manager_(new QNetworkAccessManager(this))
+    , client_(manager_, this) {
     setModel(&model_);
     model_.setEditStrategy(QSqlTableModel::OnManualSubmit);
     model_.setTable(Q_UTF8("artists"));
@@ -106,7 +92,26 @@ ArtistView::ArtistView(QWidget *parent)
         auto artist = index.model()->data(index.model()->index(index.row(), 1)).toString();
         auto artist_id_index = dynamic_cast<const QSqlRelationalTableModel*>(index.model())->fieldIndex(Q_UTF8("artistId"));
         auto artist_id = index.model()->data(index.model()->index(index.row(), artist_id_index)).toInt();
+        client_.searchArtist(artist_id, artist);
         emit clickedArtist(artist_id);
+        });
+
+    (void) QObject::connect(&client_, &DiscogsClient::getArtistId, [this](auto artist_id, auto id) {
+        Database::Instance().updateDiscogsArtistId(artist_id, id);
+        client_.searchArtistId(artist_id, id);
+        XAMP_LOG_DEBUG("Seach artist completed! artist id: {}, discogs artist id: {}", artist_id, id.toStdString());
+        });
+
+    (void) QObject::connect(&client_, &DiscogsClient::getArtistImageUrl, [this](auto artist_id, auto url) {
+        client_.downloadArtistImage(artist_id, url);
+        XAMP_LOG_DEBUG("Download artist id: {}, discogs image url: {}", artist_id, url.toStdString());
+        });
+
+    (void) QObject::connect(&client_, &DiscogsClient::downloadImageFinished, [this](auto artist_id, auto image) {
+        auto cover_id = PixmapCache::Instance().emplace(image);
+        Database::Instance().updateArtistCoverId(artist_id, cover_id);
+        XAMP_LOG_DEBUG("Save artist id: {} image, cover id : {}", artist_id, cover_id.toStdString());
+        refreshOnece();
         });
 }
 

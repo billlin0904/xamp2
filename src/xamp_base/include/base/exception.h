@@ -7,9 +7,10 @@
 
 #include <exception>
 #include <ostream>
+#include <string>
 
 #include <base/base.h>
-#include <string>
+#include <base/audioformat.h>
 
 namespace xamp::base {
 
@@ -68,16 +69,25 @@ public:
 };
 
 #define XAMP_DECLARE_EXCEPTION_CLASS(ExceptionClassName) \
-class XAMP_BASE_API ExceptionClassName : public Exception {\
+class XAMP_BASE_API ExceptionClassName final : public Exception {\
 public:\
     ExceptionClassName();\
     ~ExceptionClassName() override = default;\
 };
 
+class XAMP_BASE_API DeviceUnSupportedFormatException final : public Exception {
+public:
+    explicit DeviceUnSupportedFormatException(const AudioFormat &format);
+
+    ~DeviceUnSupportedFormatException() override = default;
+
+private:
+    AudioFormat format_;
+};
+
 XAMP_DECLARE_EXCEPTION_CLASS(LibrarySpecErrorException)
 XAMP_DECLARE_EXCEPTION_CLASS(DeviceNotInititalzedException)
 XAMP_DECLARE_EXCEPTION_CLASS(DeviceInUseException)
-XAMP_DECLARE_EXCEPTION_CLASS(DeviceUnSupportedFormatException)
 XAMP_DECLARE_EXCEPTION_CLASS(DeviceNotFoundException)
 XAMP_DECLARE_EXCEPTION_CLASS(FileNotFoundException)
 XAMP_DECLARE_EXCEPTION_CLASS(NotSupportSampleRateException)

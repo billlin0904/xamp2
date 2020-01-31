@@ -47,12 +47,26 @@ static QString getPlayEntityFormat(const AudioPlayer* player, const PlayListEnti
         dsd_speed_format = Q_UTF8(" DSD") + QString::number(dsd_speed.value()) + Q_UTF8(" ");
 	}
 
+    QString dsdMode;
+    switch (player->GetDSDModes()) {
+    case DsdModes::DSD_MODE_PCM:
+        dsdMode = Q_UTF8("PCM");
+        break;
+    case DsdModes::DSD_MODE_RAW:
+        dsdMode = Q_UTF8("RAW");
+        break;
+    case DsdModes::DSD_MODE_DOP:
+        dsdMode = Q_UTF8("DOP");
+        break;
+    }
+
     return ext
-            + Q_UTF8(" | ")
-            + dsd_speed_format
-            + (is_mhz_samplerate ? QString::number(format.GetSampleRate() / double(1000000), 'f', 2) + Q_UTF8("MHz/")
-                                 : QString::number(format.GetSampleRate() / double(1000), 'f', precision) + Q_UTF8("kHz/"))
-            + QString::number(bits) + Q_UTF8("bit");
+        + Q_UTF8(" | ")
+        + dsd_speed_format
+        + (is_mhz_samplerate ? QString::number(format.GetSampleRate() / double(1000000), 'f', 2) + Q_UTF8("MHz/")
+            : QString::number(format.GetSampleRate() / double(1000), 'f', precision) + Q_UTF8("kHz/"))
+        + QString::number(bits) + Q_UTF8("bit")
+        + Q_UTF8(" | ") + dsdMode;
 }
 
 Xamp::Xamp(QWidget *parent)
@@ -358,15 +372,11 @@ void Xamp::initialController() {
 
     (void)QObject::connect(ui.backPageButton, &QToolButton::pressed, [this]() {
         goBackPage();
-        //album_view_->refreshOnece();
-        //artist_view_->refreshOnece();
         album_artist_page_->refreshOnece();
     });
 
     (void)QObject::connect(ui.nextPageButton, &QToolButton::pressed, [this]() {
         getNextPage();
-        //album_view_->refreshOnece();
-        //artist_view_->refreshOnece();
         album_artist_page_->refreshOnece();
     });
 
@@ -469,6 +479,7 @@ void Xamp::stopPlayedClicked() {
     player_->Stop(false, true);
     setSeekPosValue(0);
     ui.seekSlider->setEnabled(false);
+    playlist_page_->playlist()->removePlaying();
 }
 
 void Xamp::playNextClicked() {
@@ -657,7 +668,8 @@ void Xamp::play(const QModelIndex&, const PlayListEntity& item) {
     if (current_entiry_.album_id != item.album_id) {
         if (auto cover = PixmapCache::Instance().find(item.cover_id)) {
             setCover(*cover.value());
-            playlist_page_->cover()->setPixmap(Pixmap::resizeImage(*cover.value(), playlist_page_->cover()->size(), true));
+            playlist_page_->cover()->setPixmap(Pixmap::resizeImage(*cover.value(),
+                playlist_page_->cover()->size(), true));
         }
         else {
             setCover(ThemeManager::pixmap().unknownCover());
@@ -769,14 +781,10 @@ void Xamp::initialPlaylist() {
     }
 
     lrc_page_ = new LrcPage(this);
-    //album_view_ = new AlbumView(this);
-    //artist_view_ = new ArtistView(this);
     album_artist_page_ = new AlbumArtistPage(this);
 
     pushWidget(lrc_page_);
-    //pushWidget(artist_view_);
     pushWidget(playlist_page_);
-    //pushWidget(album_view_);
     pushWidget(album_artist_page_);
     goBackPage();
 }
@@ -785,8 +793,7 @@ void Xamp::addItem(const QString& file_name) {
     auto add_playlist = dynamic_cast<PlyalistPage*>(ui.currentView->currentWidget()) != nullptr;
 
     try {
-        playlist_page_->playlist()->append(file_name, add_playlist);  
-        //album_view_->refreshOnece();
+        playlist_page_->playlist()->append(file_name, add_playlist);        
         album_artist_page_->refreshOnece();
     }
     catch (const xamp::base::Exception& e) {

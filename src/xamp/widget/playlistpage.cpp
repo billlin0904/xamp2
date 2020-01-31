@@ -52,6 +52,7 @@ void PlyalistPage::initial() {
 	album_title_layout->setContentsMargins(-1, 5, -1, -1);
 	title_ = new QLabel(this);
 	auto f = font();
+	f.setBold(true);
 	f.setPixelSize(25);
 	title_->setFont(f);
 	title_->setObjectName(QString::fromUtf8("label_2"));
@@ -60,6 +61,7 @@ void PlyalistPage::initial() {
 
 	format_ = new QLabel(this);
 	f = font();
+	f.setBold(false);
 	format_->setFont(f);
 
 	album_title_layout->addWidget(title_);

@@ -40,11 +40,11 @@ public:
         return &check->second->second;
     }
 
-    NodePtr begin() {
+    NodePtr begin() noexcept {
         return items_list_.begin();
     }
 
-    NodePtr end() {
+    NodePtr end() noexcept {
         return items_list_.end();
     }
 

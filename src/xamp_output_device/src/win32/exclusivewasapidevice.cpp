@@ -142,7 +142,7 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
 		mix_format_,
 		nullptr);
 	if (hr == AUDCLNT_E_UNSUPPORTED_FORMAT) {
-		throw DeviceUnSupportedFormatException();
+		throw DeviceUnSupportedFormatException(output_format);
 	}
 
 	HrIfFailledThrow(hr);

@@ -117,7 +117,7 @@ void SharedWasapiDevice::InitialDeviceFormat(const AudioFormat& output_format) {
 		&max_period_in_frame);
 
 	if (hr == AUDCLNT_E_UNSUPPORTED_FORMAT) {
-		throw DeviceUnSupportedFormatException();
+		throw DeviceUnSupportedFormatException(output_format);
 	}	
 
 	XAMP_LOG_DEBUG("Initital device format fundamental:{}, current:{}, min:{} max:{}",

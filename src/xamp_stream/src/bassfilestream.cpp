@@ -228,14 +228,18 @@ struct BassStreamTraits final {
 
 using BassStreamHandle = UniqueHandle<HSTREAM, BassStreamTraits>;
 
-static bool TestDsdFileFormat(const std::wstring& file_path) {
-	BassStreamHandle stream;
-
+static void EnsureDsdDecoderInit() {
 	if (!BassLib::Instance().DSDLib) {
 		BassLib::Instance().DSDLib = MakeAlign<BassDSDLib>();
 		// TODO: Set hightest dsd2pcm samplerate?
 		//BassLib::Instance().BASS_SetConfig(BASS_CONFIG_DSD_FREQ, 352800);
 	}
+}
+
+static bool TestDsdFileFormat(const std::wstring& file_path) {
+	BassStreamHandle stream;
+
+	EnsureDsdDecoderInit();
 
 	MemoryMappedFile file;
 	file.Open(file_path);
@@ -300,6 +304,8 @@ public:
 					flags | BASS_STREAM_DECODE | BASS_UNICODE));
 			}
 		} else {
+			EnsureDsdDecoderInit();
+
 			file_.Open(file_path);
             stream_.reset(BassLib::Instance().DSDLib->BASS_DSD_StreamCreateFile(TRUE,
 				file_.GetData(),

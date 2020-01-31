@@ -136,13 +136,15 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, bool is_dsd_stream, 
 #ifdef _WIN32
             if (device_info.is_support_dsd) {
                 dsd_stream->SetDSDMode(DsdModes::DSD_MODE_RAW);
-            } else {
-                //throw NotSupportFormatException();
+                dsd_mode_ = DsdModes::DSD_MODE_RAW;
+            } else {                
                 dsd_stream->SetDSDMode(DsdModes::DSD_MODE_PCM);
+                dsd_mode_ = DsdModes::DSD_MODE_PCM;
             }
 #else
             dsd_stream->SetDSDMode(DsdModes::DSD_MODE_DOP);
             XAMP_LOG_DEBUG("Use DOP mode");
+            dsd_mode_ = DsdModes::DSD_MODE_DOP;
 #endif
         }
     }

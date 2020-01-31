@@ -46,6 +46,10 @@ public:
 
     bool isExist(const QString& tag_id) const;
 
+	size_t getImageSize() const;
+
+	void clear();
+
 protected:
 	PixmapCache();
 

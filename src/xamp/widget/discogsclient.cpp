@@ -52,6 +52,7 @@ void DiscogsClient::searchArtistId(int32_t artist_id, const QString& id) {
             }
             std::string url{ (*uri).value.GetString(), (*uri).value.GetStringLength() };
             emit getArtistImageUrl(artist_id, QString::fromStdString(url));
+            break;
         }
     };
 
@@ -88,7 +89,6 @@ void DiscogsClient::searchArtist(int32_t artist_id, const QString &artist) {
     http::HttpClient(DISCOGS_HOST + Q_UTF8("/database/search"), manager)
         .param(Q_UTF8("type"), Q_UTF8("artist"))
         .param(Q_UTF8("query"), artist)
-        //.param(Q_UTF8("artist"), artist)
         .header(Q_UTF8("Authorization"), QString(Q_UTF8("Discogs key=%1, secret=%2")).arg(DISCOGS_KEY, DISCOGS_SECRET))
         .header(Q_UTF8("User-Agent"), Q_UTF8("xamp-player/1.0.0"))
         .success(handler)

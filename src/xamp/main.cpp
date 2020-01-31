@@ -6,6 +6,7 @@
 #include <widget/appsettings.h>
 #include <widget/database.h>
 #include <widget/pixmapcache.h>
+#include <widget/str_utilts.h>
 
 #include <QtWidgets/QApplication>
 
@@ -25,7 +26,7 @@ static void loadAndDefaultAppConfig() {
 
 int main(int argc, char *argv[]) {
 	Logger::Instance()
-#ifdef _WIN32
+#ifdef Q_OS_WIN
 		.AddDebugOutputLogger()
 #endif
 #ifdef Q_OS_MAC
@@ -33,8 +34,8 @@ int main(int argc, char *argv[]) {
 #endif
 		.AddFileLogger("xamp.log");		
 
-	//QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-	//QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+	QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+	QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 
     QApplication app(argc, argv);
 
@@ -43,8 +44,10 @@ int main(int argc, char *argv[]) {
 		return -1;
 	}		
 
-    (void)xamp::base::RNG::Instance();
-    (void)PixmapCache::Instance();
+    (void) xamp::base::RNG::Instance();
+    (void) PixmapCache::Instance();
+
+	XAMP_LOG_DEBUG("Image cache size: {}", formatBytes(PixmapCache::Instance().getImageSize()).toStdString());
 
 	try {
 		Database::Instance().open(Q_UTF8("xamp.db"));
