@@ -20,6 +20,8 @@
 #include "widget/database.h"
 #include "widget/pixmapcache.h"
 
+#include <player/chromaprinthelper.h>
+
 #include "thememanager.h"
 #include "xamp.h"
 
@@ -626,6 +628,8 @@ void Xamp::play() {
 void Xamp::play(const PlayListEntity& item) {
     ui.titleLabel->setText(item.title);
     ui.artistLabel->setText(item.artist);
+
+    //xamp::player::ReadFingerprint(item.file_path.toStdWString());
 
     auto use_bass_stream = QStringLiteral(".dsd,.dsf,.dff,.m4a,.ape").contains(item.file_ext);
     player_->Open(item.file_path.toStdWString(), use_bass_stream, device_info_);

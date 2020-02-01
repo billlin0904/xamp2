@@ -13,9 +13,9 @@
 namespace xamp::base {
 
 // See: http://blog.bjornroche.com/2009/12/int-float-int-its-jungle-out-there.html
-constexpr int32_t XAMP_FLOAT_16_SCALER = 0x8000L;
-constexpr int32_t XAMP_FLOAT_24_SCALER = 0x800000L;
-constexpr int32_t XAMP_FLOAT_32_SCALER = 0x80000000L;
+constexpr int32_t XAMP_FLOAT_16_SCALER = 0x8000;
+constexpr int32_t XAMP_FLOAT_24_SCALER = 0x800000;
+constexpr int32_t XAMP_FLOAT_32_SCALER = 0x80000000;
 
 #pragma pack(push, 1)
 
@@ -27,7 +27,7 @@ typedef union {
 	uint32_t u32;
 	int32_t i32;
 	float  f;
-}Versatype32;
+} INTORFLOAT;
 
 class int24_t final {
 public:
@@ -51,9 +51,7 @@ XAMP_ALWAYS_INLINE int24_t::int24_t() noexcept {
 }
 
 XAMP_ALWAYS_INLINE int24_t::int24_t(float f) noexcept {
-	Versatype32 data;
-	data.f = f;
-	*this = ((int32_t)(data.f * 8388608) & 0x00ffffff);
+	*this = ((int32_t)(f * 8388608) & 0x00ffffff);
 }
 
 XAMP_ALWAYS_INLINE int24_t& int24_t::operator=(const float f) noexcept {
@@ -133,8 +131,11 @@ struct DataConverter {
 		const auto input_right_offset = context.in_offset[1];
 
 		for (int32_t i = 0; i < context.convert_size; ++i) {
-			output[output_left_offset] = static_cast<int32_t>(input[input_left_offset] * XAMP_FLOAT_32_SCALER * context.volume_factor);
-			output[output_right_offset] = static_cast<int32_t>(input[input_right_offset] * XAMP_FLOAT_32_SCALER * context.volume_factor);
+			//output[output_left_offset] = static_cast<int32_t>(input[input_left_offset] * XAMP_FLOAT_32_SCALER * context.volume_factor);
+			//output[output_right_offset] = static_cast<int32_t>(input[input_right_offset] * XAMP_FLOAT_32_SCALER * context.volume_factor);	
+			#define CAST2INT(f) static_cast<int32_t>((f) * 2147483582.0f)
+			output[output_left_offset] = CAST2INT(input[input_left_offset]) * context.volume_factor;
+			output[output_right_offset] = CAST2INT(input[input_right_offset]) * context.volume_factor;
 			input += context.in_jump;
 			output += context.out_jump;
 		}

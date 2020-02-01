@@ -190,8 +190,6 @@ public:
         AvIfFailedThrow(::avcodec_open2(codec_contex_.get(), codec, nullptr));
 		audio_frame_.reset(av_frame_alloc());
 
-		auto interleaved_format = InterleavedFormat::INTERLEAVED;
-
 		switch (codec_contex_->sample_fmt) {
 		case AV_SAMPLE_FMT_S16:
 		case AV_SAMPLE_FMT_S32:
@@ -199,7 +197,6 @@ public:
 			break;
 		case AV_SAMPLE_FMT_S16P:		
 		case AV_SAMPLE_FMT_FLTP:
-			interleaved_format = InterleavedFormat::DEINTERLEAVED;
 			XAMP_LOG_DEBUG("Stream format => DEINTERLEAVED");
 			break;
 		default:
@@ -226,7 +223,7 @@ public:
 		audio_format_.SetChannel(codec_contex_->channels);
 		audio_format_.SetSampleRate(codec_contex_->sample_rate);
 		audio_format_.SetBitPerSample(::av_get_bytes_per_sample(codec_contex_->sample_fmt) * 8);
-		audio_format_.SetInterleavedFormat(interleaved_format);
+		audio_format_.SetInterleavedFormat(InterleavedFormat::INTERLEAVED);
 		XAMP_LOG_DEBUG("Stream format: {}", audio_format_);
 	}
 

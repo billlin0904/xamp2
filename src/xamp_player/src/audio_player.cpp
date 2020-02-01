@@ -326,7 +326,8 @@ void AudioPlayer::Initial() {
             }
         });		
     }
-    buffer_.Clear();	
+
+    buffer_.Clear();
 }
 
 std::optional<int32_t> AudioPlayer::GetDSDSpeed() const {
@@ -492,8 +493,8 @@ bool AudioPlayer::FillSamples(int32_t num_samples) noexcept {
             }
         }
     }
-    return buffer_.TryWrite(read_sample_buffer_.get(), 
-		num_samples * stream_->GetSampleSize());
+ 
+    return buffer_.TryWrite(read_sample_buffer_.get(), num_samples * stream_->GetSampleSize());
 }
 
 void AudioPlayer::OnError(const Exception& e) noexcept {
@@ -537,7 +538,7 @@ void AudioPlayer::OpenDevice(double stream_time) {
     }
 #endif
     device_->OpenStream(output_format_);
-    device_->SetStreamTime(stream_time);
+    device_->SetStreamTime(stream_time);    
 }
 
 void AudioPlayer::ReadSampleLoop(int32_t max_read_sample, std::unique_lock<std::mutex>& lock) noexcept {
@@ -590,7 +591,7 @@ void AudioPlayer::PlayStream() {
                 p->ReadSampleLoop(max_read_sample, lock);
             }
 
-            p->stream_->Close();
+            p->stream_->Close();         
         }
 
         XAMP_LOG_DEBUG("Stream thread finished!");
