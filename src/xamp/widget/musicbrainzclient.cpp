@@ -93,6 +93,9 @@ void MusicBrainzClient::fingerprintFound(int index) {
             auto recordings = result.FindMember("recordings");
             if (recordings != result.MemberEnd()) {
                 for (const auto& recording : recordings->value.GetArray()) {
+                    if (recording.FindMember("artists") == recording.MemberEnd()) {
+                        continue;
+                    }
                     for (const auto& artist : recording["artists"].GetArray()) {
                         auto id = artist.FindMember("id");
                         if (id != artist.MemberEnd()) {
@@ -132,9 +135,14 @@ void MusicBrainzClient::lookupArtist(int32_t artist_id, const QString& artist_mb
             return;
         }
 
+        auto relation_list = artist->first_node("relation-list");
+        if (!relation_list) {
+            return;
+        }
+
         std::string discogs_url;
 
-        for (auto node = artist->first_node("relation-list")->first_node();
+        for (auto node = relation_list->first_node();
             node; node = node->next_sibling()) {
             auto itr = node->first_attribute("type");
             if (!itr) {
