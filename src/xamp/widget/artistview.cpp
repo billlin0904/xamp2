@@ -94,8 +94,10 @@ ArtistView::ArtistView(QWidget *parent)
         auto artist_id = index.model()->data(index.model()->index(index.row(), artist_id_index)).toInt();        
         auto discogs_artist_id_index = dynamic_cast<const QSqlRelationalTableModel*>(index.model())->fieldIndex(Q_UTF8("discogsArtistId"));
         auto discogs_artist_id = index.model()->data(index.model()->index(index.row(), discogs_artist_id_index)).toString();
+        auto cover_id_index = dynamic_cast<const QSqlRelationalTableModel*>(index.model())->fieldIndex(Q_UTF8("coverId"));
+        auto cover_id_id = index.model()->data(index.model()->index(index.row(), cover_id_index)).toString();
         emit clickedArtist(artist_id);
-        if (!discogs_artist_id.isEmpty()) {
+        if (!discogs_artist_id.isEmpty() && cover_id_id.isEmpty()) {
             client_.searchArtistId(artist_id, discogs_artist_id);
         }        
         });

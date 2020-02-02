@@ -1,5 +1,6 @@
 #include <base/logger.h>
 #include <base/rng.h>
+#include <base/dll.h>
 
 #include <player/audio_player.h>
 #include <widget/qdebugsink.h>
@@ -25,6 +26,13 @@ static void loadAndDefaultAppConfig() {
 }
 
 int main(int argc, char *argv[]) {
+#ifdef Q_OS_WIN
+	std::vector<ModuleHandle> preload_modules;
+	preload_modules.emplace_back(LoadDll("psapi.dll"));
+	preload_modules.emplace_back(LoadDll("comctl32.dll"));
+	preload_modules.emplace_back(LoadDll("WindowsCodecs.dll"));
+#endif
+
 	Logger::Instance()
 #ifdef Q_OS_WIN
 		.AddDebugOutputLogger()

@@ -10,9 +10,9 @@
 #include <base/rng.h>
 #include <metadata/taglibmetareader.h>
 
-#include "str_utilts.h"
-#include "actionmap.h"
-#include "playlisttableview.h"
+#include <widget/str_utilts.h>
+#include <widget/actionmap.h>
+#include <widget/playlisttableview.h>
 
 PlayListEntity PlayListTableView::fromMetadata(const xamp::base::Metadata& metadata) {
 	PlayListEntity item;
@@ -23,10 +23,9 @@ PlayListEntity PlayListTableView::fromMetadata(const xamp::base::Metadata& metad
 	item.file_ext = QString::fromStdWString(metadata.file_ext);
 	item.album = QString::fromStdWString(metadata.album);
 	item.artist = QString::fromStdWString(metadata.artist);
+	item.parent_path = QString::fromStdWString(metadata.parent_path);
 	item.file_path = QString::fromStdWString(metadata.file_path);
 	item.bitrate = metadata.bitrate;
-    item.cover_id = QLatin1String(metadata.cover_id.c_str(),
-                                  static_cast<int32_t>(metadata.cover_id.length()));
 	item.file_name = QString::fromStdWString(metadata.file_name);
 	return item;
 }
@@ -131,6 +130,53 @@ void PlayListTableView::initial() {
 
 	(void)QObject::connect(&adapter_, &MetadataExtractAdapter::finish, [this]() {
 		resizeColumn();
+		});
+
+	setContextMenuPolicy(Qt::CustomContextMenu);
+	(void)QObject::connect(this, &QTableView::customContextMenuRequested, [this](auto pt) {
+		auto index = indexAt(pt);
+		if (model_.isEmpty()) {
+			return;
+		}
+
+		auto item = model_.item(proxy_model_.mapToSource(index));
+
+		ActionMap<PlayListTableView, std::function<void()>> action_map(this);
+
+		action_map.setStyleSheet(Q_UTF8(R"(
+                               QMenu {
+                               background-color: rgba(228, 233, 237, 150);
+                               }
+                               QMenu::item:selected {
+                               background-color: black;
+                               }
+                               )"));
+
+		action_map.addAction(tr("Open local file path"), [item]() {
+			QDesktopServices::openUrl(QUrl::fromLocalFile(item.parent_path));
+			});
+		action_map.addSeparator();
+		action_map.addAction(tr("Reload file meta"), [this]() {
+			reloadSelectMetadata();
+			});
+		action_map.addAction(tr("Read file fingerprint"), [this]() {
+			const auto rows = selectItemIndex();
+			for (const auto& select_item : rows) {
+				auto entity = this->item(select_item.second);
+				emit readFingerprint(select_item.second, entity);
+			}			
+			});
+		action_map.addSeparator();
+		action_map.addAction(tr("Copy album"), [item, this]() {
+			QApplication::clipboard()->setText(item.album);
+			});
+		action_map.addAction(tr("Copy artist"), [item, this]() {
+			QApplication::clipboard()->setText(item.artist);
+			});
+		action_map.addAction(tr("Copy title"), [item, this]() {
+			QApplication::clipboard()->setText(item.title);
+			});		
+		action_map.exec(pt);
 		});
 }
 
@@ -266,6 +312,18 @@ void PlayListTableView::removePlaying() {
 
 void PlayListTableView::removeItem(const QModelIndex& index) {
 	proxy_model_.removeRows(index.row(), 1, index);
+}
+
+void PlayListTableView::reloadSelectMetadata() {
+	// TODO: Update metadata to db?
+	xamp::metadata::TaglibMetadataReader reader;
+	const auto rows = selectItemIndex();
+	for (const auto &select_item : rows) {
+		auto &entity = item(select_item.second);
+		const xamp::metadata::Path path(entity.file_path.toStdWString());			
+		entity = fromMetadata(reader.Extract(path));
+	}
+	proxy_model_.dataChanged(QModelIndex(), QModelIndex());
 }
 
 void PlayListTableView::removeSelectItems() {

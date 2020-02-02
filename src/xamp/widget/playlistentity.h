@@ -20,6 +20,7 @@ struct PlayListEntity {
     double duration{0};
     QIcon playing_ico;
     QString file_path;
+    QString parent_path;
     QString title;
     QString album;
     QString artist;

@@ -94,6 +94,9 @@ public:
         }
     }
 
+    void setStyleSheet(const QString& stylesheet) {
+        menu_.setStyleSheet(stylesheet);
+    }
 private:
     Type * object_;
     QMenu menu_;    

@@ -7,18 +7,18 @@
 #include <QDesktopWidget>
 #include <QInputDialog>
 
-#include "widget/albumartistpage.h"
-#include "widget/lrcpage.h"
-#include "widget/win32/blur_effect_helper.h"
-#include "widget/albumview.h"
-#include "widget/artistview.h"
-#include "widget/str_utilts.h"
-#include "widget/playlistpage.h"
-#include "widget/toast.h"
-#include "widget/image_utiltis.h"
-#include "widget/time_utilts.h"
-#include "widget/database.h"
-#include "widget/pixmapcache.h"
+#include <widget/albumartistpage.h>
+#include <widget/lrcpage.h>
+#include <widget/win32/blur_effect_helper.h>
+#include <widget/albumview.h>
+#include <widget/artistview.h>
+#include <widget/str_utilts.h>
+#include <widget/playlistpage.h>
+#include <widget/toast.h>
+#include <widget/image_utiltis.h>
+#include <widget/time_utilts.h>
+#include <widget/database.h>
+#include <widget/pixmapcache.h>
 
 #include "thememanager.h"
 #include "xamp.h"
@@ -640,8 +640,6 @@ void Xamp::play(const PlayListEntity& item) {
     ui.endPosLabel->setText(Time::msToString(player_->GetDuration()));
     playlist_page_->format()->setText(getPlayEntityFormat(player_.get(), item));
 
-    mbc_.readFingerprint(item.artist_id, item.file_path);
-
     player_->PlayStream();    
     ui.seekSlider->setEnabled(true);
 }
@@ -787,9 +785,9 @@ void Xamp::initialPlaylist() {
     pushWidget(lrc_page_);
     pushWidget(playlist_page_);
     pushWidget(album_artist_page_);
-    goBackPage();
+    goBackPage();   
 
-    (void) QObject::connect(&mbc_, &MusicBrainzClient::finished, [](auto artist_id, auto discogs_artist_id) {        
+    (void)QObject::connect(&mbc_, &MusicBrainzClient::finished, [](auto artist_id, auto discogs_artist_id) {
         Database::Instance().updateDiscogsArtistId(artist_id, discogs_artist_id);
         });
 }
@@ -843,6 +841,10 @@ PlyalistPage* Xamp::newPlaylist(int32_t playlist_id) {
                            [](auto playlist_id, const auto& select_music_ids) {
         IgnoreSqlError(Database::Instance().removePlaylistMusic(playlist_id, select_music_ids))
     });
+    (void)QObject::connect(playlist_page->playlist(), &PlayListTableView::readFingerprint,
+        [this](auto index, const auto& item) {
+            mbc_.readFingerprint(item.artist_id, item.file_path);
+        });
     playlist_page->playlist()->setPlaylistId(playlist_id);
     return playlist_page;
 }

@@ -135,6 +135,7 @@ public:
             entity.album = query.value(Q_UTF8("album")).toString();
             entity.artist = query.value(Q_UTF8("artist")).toString();
             entity.file_ext = query.value(Q_UTF8("fileExt")).toString();
+            entity.parent_path = query.value(Q_UTF8("parentPath")).toString();
             entity.duration = query.value(Q_UTF8("duration")).toDouble();
             entity.bitrate = query.value(Q_UTF8("bitrate")).toInt();
             entity.samplerate = query.value(Q_UTF8("samplerate")).toInt();

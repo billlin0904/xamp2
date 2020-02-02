@@ -5,23 +5,23 @@
 
 #pragma once
 
+#include <set>
+
 #include <QtWidgets/QMainWindow>
 #include <QWidgetAction>
 #include <QStack>
 #include <QHash>
 #include <QTimer>
 
-#include <set>
-
 #include <output_device/devicefactory.h>
 #include <player/audio_player.h>
 
-#include "widget/appsettings.h"
-#include "widget/playerstateadapter.h"
-#include "widget/framelesswindow.h"
-#include "widget/playlisttableview.h"
-#include "widget/lyricsshowwideget.h"
-#include "widget/musicbrainzclient.h"
+#include <widget/appsettings.h>
+#include <widget/playerstateadapter.h>
+#include <widget/framelesswindow.h>
+#include <widget/playlisttableview.h>
+#include <widget/lyricsshowwideget.h>
+#include <widget/musicbrainzclient.h>
 
 #include "ui_xamp.h"
 
@@ -125,9 +125,9 @@ private:
 	LrcPage* lrc_page_;
 	PlyalistPage* playlist_page_;
 	AlbumArtistPage* album_artist_page_;
-	QStack<int32_t> stack_page_id_;
-	MusicBrainzClient mbc_;
+	QStack<int32_t> stack_page_id_;	
     std::set<int32_t> music_id_store_;
 	std::shared_ptr<PlayerStateAdapter> state_adapter_;
 	std::shared_ptr<AudioPlayer> player_;
+	MusicBrainzClient mbc_;
 };

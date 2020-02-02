@@ -216,6 +216,9 @@ void ExclusiveWasapiDevice::SetSchedulerService(const std::wstring &mmcss_name, 
 
 void ExclusiveWasapiDevice::FillSilentSample(const int32_t frames_available) const {
     BYTE *data = nullptr;
+	if (!render_client_) {
+		return;
+	}
     HrIfFailledThrow(render_client_->GetBuffer(frames_available, &data));
     HrIfFailledThrow(render_client_->ReleaseBuffer(frames_available, AUDCLNT_BUFFERFLAGS_SILENT));
 }

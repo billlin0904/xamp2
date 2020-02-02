@@ -35,8 +35,11 @@ void MusicBrainzClient::readFingerprint(int32_t artist_id, const QString& file_p
         QByteArray fingerprint;
         auto result = xamp::player::ReadFingerprint(file_path.toStdWString());
         fingerprint.append(reinterpret_cast<char*>(result.fingerprint.data()), result.fingerprint.size());
-        QString s = QString::fromLatin1(fingerprint.data());
-        return Fingerprint{ artist_id, result.duration, s };
+        return Fingerprint{ 
+            artist_id, 
+            result.duration,
+            QString::fromLatin1(fingerprint.data(), fingerprint.size())
+        };
     });
 
     auto future = QtConcurrent::mapped(file_paths_, handler);

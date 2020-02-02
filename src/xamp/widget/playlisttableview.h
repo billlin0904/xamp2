@@ -11,10 +11,10 @@
 
 #include <base/metadata.h>
 
-#include "playlisttablemodel.h"
-#include "playlistentity.h"
-#include "playlisttableproxymodel.h"
-#include "metadataextractadapter.h"
+#include <widget/playlisttablemodel.h>
+#include <widget/playlistentity.h>
+#include <widget/playlisttableproxymodel.h>
+#include <widget/metadataextractadapter.h>
 
 class PlayListTableView : public QTableView {
 	Q_OBJECT
@@ -60,6 +60,8 @@ signals:
 
 	void playMusic(const QModelIndex& index, const PlayListEntity& item);
 
+	void readFingerprint(const QModelIndex& index, const PlayListEntity& item);
+
 public slots:
 	void appendItem(const xamp::base::Metadata& metadata);
 
@@ -68,6 +70,8 @@ public slots:
 	void search(const QString& sort_str, Qt::CaseSensitivity case_sensitivity, QRegExp::PatternSyntax pattern_syntax);
 
 private:
+	void reloadSelectMetadata();
+
     void resizeEvent(QResizeEvent* event) override;
 
 	void initial();
