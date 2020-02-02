@@ -14,6 +14,7 @@ namespace http {
 struct HttpContext {
     bool useInternal;
     QString charset;
+    QString userAgent;
     QNetworkAccessManager* manager;
     std::function<void (const QString &)> successHandler;
 };
@@ -40,6 +41,7 @@ public:
     QString json;
     QUrlQuery params;
     QString charset;
+    QString userAgent;
     QNetworkAccessManager *manager;
     QHash<QString, QString> headers;
     std::function<void (const QString &)> successHandler;
@@ -59,6 +61,7 @@ HttpContext HttpClient::HttpClientImpl::makeContext() {
     context.successHandler = successHandler;
     context.manager = manager;
     context.charset = charset;
+    context.userAgent = userAgent;
     context.useInternal = useInternal;
     return context;
 }
@@ -161,6 +164,10 @@ QNetworkRequest HttpClient::HttpClientImpl::createRequest(HttpClientImpl *d, Htt
         d->headers[Q_UTF8("Content-Type")] = Q_UTF8("application/json; charset=utf-8");
     }
 
+    if (d->userAgent.isEmpty()) {
+        d->headers[Q_UTF8("User-Agent")] = Q_UTF8("xamp-player/1.0.0");
+    }
+
     QNetworkRequest request(QUrl(d->url));
     for (auto i = d->headers.cbegin(); i != d->headers.cend(); ++i) {
         request.setRawHeader(i.key().toUtf8(), i.value().toUtf8());
@@ -228,6 +235,10 @@ void HttpClient::download(std::function<void (const QByteArray &)> downloadHandl
     HttpClientImpl::download(impl_.get(), [data](auto buffer) {
         data->append(buffer);
     });
+}
+
+void HttpClient::setUserAgent(const QString& user_agent) {
+    impl_->userAgent = user_agent;
 }
 
 }

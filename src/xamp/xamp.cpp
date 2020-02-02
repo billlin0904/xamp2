@@ -20,8 +20,6 @@
 #include "widget/database.h"
 #include "widget/pixmapcache.h"
 
-#include <player/chromaprinthelper.h>
-
 #include "thememanager.h"
 #include "xamp.h"
 
@@ -627,9 +625,7 @@ void Xamp::play() {
 
 void Xamp::play(const PlayListEntity& item) {
     ui.titleLabel->setText(item.title);
-    ui.artistLabel->setText(item.artist);
-
-    //xamp::player::ReadFingerprint(item.file_path.toStdWString());
+    ui.artistLabel->setText(item.artist);    
 
     auto use_bass_stream = QStringLiteral(".dsd,.dsf,.dff,.m4a,.ape").contains(item.file_ext);
     player_->Open(item.file_path.toStdWString(), use_bass_stream, device_info_);
@@ -643,6 +639,8 @@ void Xamp::play(const PlayListEntity& item) {
     ui.seekSlider->setRange(0, int32_t(player_->GetDuration() * 1000));
     ui.endPosLabel->setText(Time::msToString(player_->GetDuration()));
     playlist_page_->format()->setText(getPlayEntityFormat(player_.get(), item));
+
+    mbc_.readFingerprint(item.artist_id, item.file_path);
 
     player_->PlayStream();    
     ui.seekSlider->setEnabled(true);
@@ -790,6 +788,10 @@ void Xamp::initialPlaylist() {
     pushWidget(playlist_page_);
     pushWidget(album_artist_page_);
     goBackPage();
+
+    (void) QObject::connect(&mbc_, &MusicBrainzClient::finished, [](auto artist_id, auto discogs_artist_id) {        
+        Database::Instance().updateDiscogsArtistId(artist_id, discogs_artist_id);
+        });
 }
 
 void Xamp::addItem(const QString& file_name) {

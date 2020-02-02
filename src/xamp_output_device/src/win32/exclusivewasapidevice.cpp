@@ -249,7 +249,7 @@ void ExclusiveWasapiDevice::GetSample(const int32_t frame_available) {
 	}
 
 	if ((*callback_)(buffer_.get(), frame_available, stream_time / mix_format_->nSamplesPerSec) == 0) {
-		(void)DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEAVED>::Convert2432Bit(
+		(void)DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEAVED>::ConvertToInt2432(
 			reinterpret_cast<int32_t*>(data),
 			buffer_.get(),
 			data_convert_);

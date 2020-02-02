@@ -38,8 +38,6 @@ XAMP_METADATA_API inline void FromPath(const Path& path, MetadataExtractAdapter*
                 if (reader->IsSupported(current_path)) {
                     adapter->OnWalk(path, reader->Extract(current_path));
                 }                
-            } else {
-                adapter->OnWalkNext();
             }
         }
         adapter->OnWalkNext();

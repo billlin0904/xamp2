@@ -5,6 +5,9 @@
 #include <QDebug>
 
 #include <base/logger.h>
+
+#include <widget/database.h>
+
 #include "thememanager.h"
 #include "str_utilts.h"
 #include "image_utiltis.h"
@@ -13,7 +16,6 @@
 
 AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
 	: QStyledItemDelegate(parent) {
-
 }
 
 void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const {
@@ -131,10 +133,6 @@ void AlbumView::setFilterByArtist(int32_t artist_id) {
 	);
 
 	model_.setQuery(s.arg(artist_id));
-
-	//qDebug() << model_.lastError().text();
-	//auto query = model_.query();
-	//qDebug() << query.lastQuery();
 }
 
 void AlbumView::refreshOnece() {

@@ -107,9 +107,11 @@ void MetadataExtractAdapter::processAndNotify(const std::vector<xamp::base::Meta
                 } else {
                     pixmap = PixmapCache::findDirExistCover(QString::fromStdWString(metadata.file_path));
                 }
-                cover_id = PixmapCache::Instance().emplace(std::move(pixmap));
-                cover_id_cache.insert(album_id, cover_id);
-                Database::Instance().setAlbumCover(album_id, album, cover_id);
+                if (!pixmap.isNull()) {
+                    cover_id = PixmapCache::Instance().emplace(std::move(pixmap));
+                    cover_id_cache.insert(album_id, cover_id);
+                    Database::Instance().setAlbumCover(album_id, album, cover_id);
+                }                
             }
             else {
                 cover_id = (*cover_itr);

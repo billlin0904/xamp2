@@ -7,6 +7,7 @@
 
 #include <QString>
 #include <QVariant>
+#include <QNetworkAccessManager>
 
 namespace http {
 
@@ -42,9 +43,7 @@ public:
 
     void post();
 
-    void put();
-
-    void remove();
+    void setUserAgent(const QString &user_agent);
 
 private:
     class HttpClientImpl;

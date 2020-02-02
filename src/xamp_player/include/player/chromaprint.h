@@ -24,7 +24,7 @@ public:
 
 	void Start(int32_t sample_rate, int32_t num_channels, int32_t num_buffer_frames);
 
-	int Feed(const float* data, int size) const;
+	int Feed(const int16_t* data, int size) const;
 
 	int Finish() const;
 

@@ -76,10 +76,6 @@ public:
 		ChromaprintLib::Instance().chromaprint_start(context_.get(), sample_rate, num_channels);
 	}
 
-	int Feed(const float* data, int size) const {
-		return Feed(buffer_.data(), buffer_.size());
-	}
-
 	int Feed(const int16_t* data, int size) const {
 		return ChromaprintLib::Instance().chromaprint_feed(context_.get(), data, size);
 	}
@@ -142,7 +138,7 @@ void Chromaprint::Start(int32_t sample_rate, int32_t num_channels, int32_t num_b
 	return impl_->Start(sample_rate, num_channels, num_buffer_frames);
 }
 
-int Chromaprint::Feed(const float* data, int size) const {
+int Chromaprint::Feed(const int16_t* data, int size) const {
 	return impl_->Feed(data, size);
 }
 

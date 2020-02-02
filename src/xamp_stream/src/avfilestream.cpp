@@ -315,7 +315,7 @@ private:
 		}
 		assert(result > 0);
 		const auto convert_size = result * codec_contex_->channels;
-		assert(convert_size == frame_size && convert_size < length);
+		assert(convert_size == frame_size && convert_size <= length);
 		return frame_size;
 	}
 

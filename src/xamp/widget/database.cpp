@@ -108,6 +108,7 @@ void Database::createTableIfNotExist() {
                        artist TEXT NOT NULL DEFAULT '',
                        coverId TEXT,
                        discogsArtistId TEXT,
+                       mbid TEXT,
                        dateTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                        )
                        )"));
@@ -354,6 +355,17 @@ void Database::updateDiscogsArtistId(int32_t artist_id, const QString& discogs_a
 
     query.bindValue(Q_UTF8(":artistId"), artist_id);
     query.bindValue(Q_UTF8(":discogsArtistId"), discogs_artist_id);
+
+    ThrowlfFailue(query)
+}
+
+void Database::updateArtistMbid(int32_t artist_id, const QString& mbid) {
+    QSqlQuery query;
+
+    query.prepare(Q_UTF8("UPDATE artists SET mbid = :mbid WHERE (artistId = :artistId)"));
+
+    query.bindValue(Q_UTF8(":artistId"), artist_id);
+    query.bindValue(Q_UTF8(":mbid"), mbid);
 
     ThrowlfFailue(query)
 }

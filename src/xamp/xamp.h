@@ -21,6 +21,7 @@
 #include "widget/framelesswindow.h"
 #include "widget/playlisttableview.h"
 #include "widget/lyricsshowwideget.h"
+#include "widget/musicbrainzclient.h"
 
 #include "ui_xamp.h"
 
@@ -123,10 +124,9 @@ private:
     PlayListEntity current_entiry_;
 	LrcPage* lrc_page_;
 	PlyalistPage* playlist_page_;
-	//AlbumView* album_view_;
-    //ArtistView* artist_view_;
 	AlbumArtistPage* album_artist_page_;
 	QStack<int32_t> stack_page_id_;
+	MusicBrainzClient mbc_;
     std::set<int32_t> music_id_store_;
 	std::shared_ptr<PlayerStateAdapter> state_adapter_;
 	std::shared_ptr<AudioPlayer> player_;

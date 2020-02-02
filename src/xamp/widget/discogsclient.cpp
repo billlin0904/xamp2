@@ -16,6 +16,11 @@ static const QLatin1String DISCOGS_ACESS_TOKEN_URL{ "https://api.discogs.com/oau
 
 using namespace rapidjson;
 
+template <typename T>
+static QString toQString(T &value) {
+    return QString::fromUtf8((*value).value.GetString(), (*value).value.GetStringLength());
+}
+
 DiscogsClient::DiscogsClient(QNetworkAccessManager* manager, QObject *parent)
     : QObject(parent)
     , manager(manager) {
@@ -38,32 +43,33 @@ void DiscogsClient::searchArtistId(int32_t artist_id, const QString& id) {
         auto str = msg.toStdString();
         Document d;
         d.Parse(str.c_str());
+        
         if (d.HasParseError()) {
             return;
         }
+        
         auto images = d.FindMember("images");
         if (images == d.MemberEnd()) {
             return;
         }
+
         for (auto& image : (*images).value.GetArray()) {
             auto uri = image.FindMember("uri");
             if (uri == image.MemberEnd()) {
                 return;
             }
-            std::string url{ (*uri).value.GetString(), (*uri).value.GetStringLength() };
-            emit getArtistImageUrl(artist_id, QString::fromStdString(url));
+            emit getArtistImageUrl(artist_id, toQString(uri));
             break;
         }
     };
 
     http::HttpClient(DISCOGS_HOST + Q_UTF8("/artists/") + id, manager)
         .header(Q_UTF8("Authorization"), QString(Q_UTF8("Discogs key=%1, secret=%2")).arg(DISCOGS_KEY, DISCOGS_SECRET))
-        .header(Q_UTF8("User-Agent"), Q_UTF8("xamp-player/1.0.0"))
         .success(handler)
         .get();
 }
 
-void DiscogsClient::searchArtist(int32_t artist_id, const QString &artist) {
+void DiscogsClient::searchArtist(int32_t artist_id, const QString &artist, const QString& album) {
     auto handler = [=](const QString& msg) {
         auto str = msg.toStdString();
         Document d;
@@ -87,10 +93,10 @@ void DiscogsClient::searchArtist(int32_t artist_id, const QString &artist) {
     };
 
     http::HttpClient(DISCOGS_HOST + Q_UTF8("/database/search"), manager)
-        .param(Q_UTF8("type"), Q_UTF8("artist"))
-        .param(Q_UTF8("query"), artist)
+        .param(Q_UTF8("type"), Q_UTF8("release&artist"))
+        .param(Q_UTF8("release_title"), artist)
+        .param(Q_UTF8("artist"), artist)        
         .header(Q_UTF8("Authorization"), QString(Q_UTF8("Discogs key=%1, secret=%2")).arg(DISCOGS_KEY, DISCOGS_SECRET))
-        .header(Q_UTF8("User-Agent"), Q_UTF8("xamp-player/1.0.0"))
         .success(handler)
         .get();
 }

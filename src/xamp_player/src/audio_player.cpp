@@ -222,9 +222,19 @@ void AudioPlayer::Resume() {
 
 void AudioPlayer::Stop(bool signal_to_stop, bool shutdown_device, bool wait_for_stop_stream) {
     buffer_.Clear();
+
+    if (!stream_task_.valid()) {
+        // 如果檔案播放有問題要停止的話, 需要確認stream task需要先停止
+        if (stream_ != nullptr) {
+            stream_->Close();
+            stream_.reset();
+        }
+    }
+
     if (!device_) {
         return;
     }
+
     XAMP_LOG_DEBUG("Player stop!");
     if (device_->IsStreamOpen()) {
         CloseDevice(wait_for_stop_stream);
@@ -232,12 +242,16 @@ void AudioPlayer::Stop(bool signal_to_stop, bool shutdown_device, bool wait_for_
             SetState(PlayerState::PLAYER_STATE_STOPPED);
         }
     }
+
     if (shutdown_device) {
         device_.reset();
         device_id_.clear();
     }
-    stream_->Close();
-    stream_.reset();
+
+    if (stream_ != nullptr) {
+        stream_->Close();
+        stream_.reset();
+    }
 }
 
 void AudioPlayer::Seek(double stream_time) {

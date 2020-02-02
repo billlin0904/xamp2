@@ -161,7 +161,45 @@ struct DataConverter {
 
 template <>
 struct DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEAVED> {
-	static XAMP_RESTRICT int32_t* Convert2432Bit(int32_t* output, const float* input, const AudioConvertContext &context) noexcept {
+	static XAMP_RESTRICT int16_t* ConvertToInt16(int16_t* output, const float* input, const AudioConvertContext& context) noexcept {
+		const auto* end_input = input + (size_t)context.convert_size * context.input_format.GetChannels();
+
+		// Loop unrolling
+		switch ((end_input - input) % 8) {
+		case 7:
+			*output++ = int16_t(*input++ * XAMP_FLOAT_16_SCALER);
+		case 6:
+			*output++ = int16_t(*input++ * XAMP_FLOAT_16_SCALER);
+		case 5:
+			*output++ = int16_t(*input++ * XAMP_FLOAT_16_SCALER);
+		case 4:
+			*output++ = int16_t(*input++ * XAMP_FLOAT_16_SCALER);
+		case 3:
+			*output++ = int16_t(*input++ * XAMP_FLOAT_16_SCALER);
+		case 2:
+			*output++ = int16_t(*input++ * XAMP_FLOAT_16_SCALER);
+		case 1:
+			*output++ = int16_t(*input++ * XAMP_FLOAT_16_SCALER);
+		case 0:
+			break;
+		}
+
+		while (input != end_input) {
+			output[0] = int16_t(input[0] * XAMP_FLOAT_16_SCALER);
+			output[1] = int16_t(input[0] * XAMP_FLOAT_16_SCALER);
+			output[2] = int16_t(input[0] * XAMP_FLOAT_16_SCALER);
+			output[3] = int16_t(input[0] * XAMP_FLOAT_16_SCALER);
+			output[4] = int16_t(input[0] * XAMP_FLOAT_16_SCALER);
+			output[5] = int16_t(input[0] * XAMP_FLOAT_16_SCALER);
+			output[6] = int16_t(input[0] * XAMP_FLOAT_16_SCALER);
+			output[7] = int16_t(input[0] * XAMP_FLOAT_16_SCALER);
+			input += 8;
+			output += 8;
+		}
+		return output;
+	}
+
+	static XAMP_RESTRICT int32_t* ConvertToInt2432(int32_t* output, const float* input, const AudioConvertContext &context) noexcept {
 		const auto* end_input = input + (size_t)context.convert_size * context.input_format.GetChannels();
 
 		// Loop unrolling

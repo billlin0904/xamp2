@@ -91,15 +91,13 @@ ArtistView::ArtistView(QWidget *parent)
     (void) QObject::connect(this, &QListView::clicked, [this](auto index) {        
         auto artist = index.model()->data(index.model()->index(index.row(), 1)).toString();
         auto artist_id_index = dynamic_cast<const QSqlRelationalTableModel*>(index.model())->fieldIndex(Q_UTF8("artistId"));
-        auto artist_id = index.model()->data(index.model()->index(index.row(), artist_id_index)).toInt();
-        client_.searchArtist(artist_id, artist);
+        auto artist_id = index.model()->data(index.model()->index(index.row(), artist_id_index)).toInt();        
+        auto discogs_artist_id_index = dynamic_cast<const QSqlRelationalTableModel*>(index.model())->fieldIndex(Q_UTF8("discogsArtistId"));
+        auto discogs_artist_id = index.model()->data(index.model()->index(index.row(), discogs_artist_id_index)).toString();
         emit clickedArtist(artist_id);
-        });
-
-    (void) QObject::connect(&client_, &DiscogsClient::getArtistId, [this](auto artist_id, auto id) {
-        Database::Instance().updateDiscogsArtistId(artist_id, id);
-        client_.searchArtistId(artist_id, id);
-        XAMP_LOG_DEBUG("Seach artist completed! artist id: {}, discogs artist id: {}", artist_id, id.toStdString());
+        if (!discogs_artist_id.isEmpty()) {
+            client_.searchArtistId(artist_id, discogs_artist_id);
+        }        
         });
 
     (void) QObject::connect(&client_, &DiscogsClient::getArtistImageUrl, [this](auto artist_id, auto url) {
