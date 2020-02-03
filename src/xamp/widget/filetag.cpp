@@ -2,7 +2,7 @@
 #include <QFileInfo>
 #include <QDataStream>
 
-#include "filetag.h"
+#include <widget/filetag.h>
 
 constexpr size_t CHUNK_SIZE = 1 << 22;
 

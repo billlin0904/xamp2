@@ -1,4 +1,4 @@
-#include "playerstateadapter.h"
+#include <widget/playerstateadapter.h>
 
 PlayerStateAdapter::PlayerStateAdapter(QObject *parent)
     : QObject(parent) {

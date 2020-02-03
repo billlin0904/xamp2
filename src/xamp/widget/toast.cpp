@@ -5,7 +5,7 @@
 #include <QScreen>
 #include <QPainter>
 
-#include "toast.h"
+#include <widget/toast.h>
 
 Toast::Toast(QWidget* parent)
 	: QWidget(parent) {

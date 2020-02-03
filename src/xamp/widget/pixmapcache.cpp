@@ -7,9 +7,9 @@
 
 #include <base/logger.h>
 
-#include "str_utilts.h"
-#include "filetag.h"
-#include "pixmapcache.h"
+#include <widget/str_utilts.h>
+#include <widget/filetag.h>
+#include <widget/pixmapcache.h>
 
 PixmapCache::PixmapCache() {
     cache_path_ = QDir::currentPath() + Q_UTF8("/caches/");

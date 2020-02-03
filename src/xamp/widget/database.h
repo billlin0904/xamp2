@@ -18,8 +18,8 @@
 #include <base/exception.h>
 #include <base/metadata.h>
 
-#include "str_utilts.h"
-#include "playlistentity.h"
+#include <widget/str_utilts.h>
+#include <widget/playlistentity.h>
 
 class SqlException : public xamp::base::Exception {
 public:

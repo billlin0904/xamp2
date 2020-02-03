@@ -1,6 +1,6 @@
 #include "ui_xamp.h"
-#include "widget/str_utilts.h"
-#include "widget/image_utiltis.h"
+#include <widget/str_utilts.h>
+#include <widget/image_utiltis.h>
 #include "thememanager.h"
 
 DefaultStylePixmapManager::DefaultStylePixmapManager()

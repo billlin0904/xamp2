@@ -8,7 +8,7 @@
 #include <QString>
 #include <QTime>
 
-#include "str_utilts.h"
+#include <widget/str_utilts.h>
 
 namespace Time {
 

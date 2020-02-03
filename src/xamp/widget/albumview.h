@@ -32,7 +32,7 @@ public:
 	explicit AlbumView(QWidget* parent = nullptr);
 
 public slots:
-	void refreshOnece();
+	void refreshOnece(bool refreshOnece);
 
 	void setFilterByArtist(int32_t artist_id);
 

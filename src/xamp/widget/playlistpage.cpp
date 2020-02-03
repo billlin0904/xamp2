@@ -3,9 +3,9 @@
 #include <QSpacerItem>
 #include <QLabel>
 
-#include "str_utilts.h"
-#include "playlisttableview.h"
-#include "playlistpage.h"
+#include <widget/str_utilts.h>
+#include <widget/playlisttableview.h>
+#include <widget/playlistpage.h>
 
 PlyalistPage::PlyalistPage(QWidget* parent)
 	: QFrame(parent) {

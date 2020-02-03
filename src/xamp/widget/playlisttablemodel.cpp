@@ -1,8 +1,8 @@
 #include <QTime>
 
-#include "str_utilts.h"
-#include "time_utilts.h"
-#include "playlisttablemodel.h"
+#include <widget/str_utilts.h>
+#include <widget/time_utilts.h>
+#include <widget/playlisttablemodel.h>
 
 PlayListTableModel::PlayListTableModel(QObject* parent)
 	: QAbstractTableModel(parent)

@@ -14,9 +14,9 @@
 #include <widget/win32/blur_effect_helper.h>
 #endif
 
-#include "widget/qtoucheventfilter.h"
-#include "widget/str_utilts.h"
-#include "widget/framelesswindow.h"
+#include <widget/qtoucheventfilter.h>
+#include <widget/str_utilts.h>
+#include <widget/framelesswindow.h>
 
 FramelessWindow::FramelessWindow(QWidget* parent)
     : QWidget(parent)

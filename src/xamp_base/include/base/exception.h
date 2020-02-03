@@ -75,14 +75,24 @@ public:\
     ~ExceptionClassName() override = default;\
 };
 
-class XAMP_BASE_API DeviceUnSupportedFormatException final : public Exception {
+class XAMP_BASE_API DeviceUnSupportedFormatException final : public Exception{
 public:
-    explicit DeviceUnSupportedFormatException(const AudioFormat &format);
+    explicit DeviceUnSupportedFormatException(const AudioFormat & format);
 
     ~DeviceUnSupportedFormatException() override = default;
 
 private:
     AudioFormat format_;
+};
+
+class XAMP_BASE_API LoadDllFailureException final : public Exception {
+public:
+    explicit LoadDllFailureException(const std::string_view& dll_name);
+
+    ~LoadDllFailureException() override = default;
+
+private:
+    std::string_view dll_name_;
 };
 
 XAMP_DECLARE_EXCEPTION_CLASS(LibrarySpecErrorException)
@@ -92,7 +102,6 @@ XAMP_DECLARE_EXCEPTION_CLASS(DeviceNotFoundException)
 XAMP_DECLARE_EXCEPTION_CLASS(FileNotFoundException)
 XAMP_DECLARE_EXCEPTION_CLASS(NotSupportSampleRateException)
 XAMP_DECLARE_EXCEPTION_CLASS(NotSupportFormatException)
-XAMP_DECLARE_EXCEPTION_CLASS(LoadDllFailureException)
 XAMP_DECLARE_EXCEPTION_CLASS(StopStreamTimeoutException)
 XAMP_DECLARE_EXCEPTION_CLASS(SampleRateChangedException)
 

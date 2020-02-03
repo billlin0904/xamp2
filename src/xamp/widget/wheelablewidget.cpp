@@ -2,8 +2,8 @@
 #include <QPainter>
 #include <QKeyEvent>
 
-#include "str_utilts.h"
-#include "wheelablewidget.h"
+#include <widget/str_utilts.h>
+#include <widget/wheelablewidget.h>
 
 WheelableWidget::WheelableWidget(const bool touch, QWidget* parent)
     : QWidget(parent)

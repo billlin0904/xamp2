@@ -1,8 +1,8 @@
 #include <sstream>
 #include <QPainter>
 
-#include "str_utilts.h"
-#include "lyricsshowwideget.h"
+#include <widget/str_utilts.h>
+#include <widget/lyricsshowwideget.h>
 
 LyricsShowWideget::LyricsShowWideget(QWidget* parent) 
 	: WheelableWidget(false, parent)

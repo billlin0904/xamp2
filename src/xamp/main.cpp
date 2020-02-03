@@ -26,11 +26,15 @@ static void loadAndDefaultAppConfig() {
 }
 
 int main(int argc, char *argv[]) {
-#ifdef Q_OS_WIN
+#ifdef Q_OS_WIN	
 	std::vector<ModuleHandle> preload_modules;
+	// 如果沒有預先載入拖入檔案會爆音.
 	preload_modules.emplace_back(LoadDll("psapi.dll"));
 	preload_modules.emplace_back(LoadDll("comctl32.dll"));
 	preload_modules.emplace_back(LoadDll("WindowsCodecs.dll"));
+	// 為了效率考量.
+	preload_modules.emplace_back(LoadDll("chromaprint.dll"));
+	preload_modules.emplace_back(LoadDll("bass.dll"));
 #endif
 
 	Logger::Instance()
@@ -53,9 +57,6 @@ int main(int argc, char *argv[]) {
 	}		
 
     (void) xamp::base::RNG::Instance();
-    (void) PixmapCache::Instance();
-
-	XAMP_LOG_DEBUG("Image cache size: {}", formatBytes(PixmapCache::Instance().getImageSize()).toStdString());
 
 	try {
 		Database::Instance().open(Q_UTF8("xamp.db"));

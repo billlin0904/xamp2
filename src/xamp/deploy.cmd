@@ -4,8 +4,7 @@ copy x64\Release\libcrypto-1_1-x64.dll deploy\
 copy x64\Release\libfftw3f-3.dll deploy\
 copy x64\Release\taglib.dll deploy\
 copy x64\Release\libssl-1_1-x64.dll deploy\
-copy x64\Release\Qt5AutoUpdaterGui.dll deploy\
-copy x64\Release\Qt5AutoUpdaterCore.dll deploy\
+copy x64\Release\chromaprint.dll deploy\
 
 copy x64\Release\bass.dll deploy\
 copy x64\Release\bassdsd.dll deploy\

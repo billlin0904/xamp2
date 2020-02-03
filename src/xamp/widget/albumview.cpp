@@ -3,16 +3,17 @@
 #include <QSqlError>
 #include <QSqlQuery>
 #include <QDebug>
+#include <QApplication>
 
 #include <base/logger.h>
 
 #include <widget/database.h>
 
 #include "thememanager.h"
-#include "str_utilts.h"
-#include "image_utiltis.h"
-#include "pixmapcache.h"
-#include "albumview.h"
+#include <widget/str_utilts.h>
+#include <widget/image_utiltis.h>
+#include <widget/pixmapcache.h>
+#include <widget/albumview.h>
 
 AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
 	: QStyledItemDelegate(parent) {
@@ -80,7 +81,7 @@ AlbumView::AlbumView(QWidget* parent)
 	: QListView(parent)
 	, model_(this) {
 	setModel(&model_);
-	refreshOnece();
+	refreshOnece(false);
 	setUniformItemSizes(true);
     setDragEnabled(false);
 	// 不會出現選擇框
@@ -112,6 +113,10 @@ AlbumView::AlbumView(QWidget* parent)
 		background: #d0d0d0;
 	}
 	)"));
+
+	(void) QObject::connect(&model_, &QSqlQueryModel::modelReset, []() {
+		QApplication::restoreOverrideCursor();
+		});
 }
 
 void AlbumView::setFilterByArtist(int32_t artist_id) {
@@ -135,7 +140,10 @@ void AlbumView::setFilterByArtist(int32_t artist_id) {
 	model_.setQuery(s.arg(artist_id));
 }
 
-void AlbumView::refreshOnece() {
+void AlbumView::refreshOnece(bool setWaitCursor) {
+	if (setWaitCursor) {
+		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+	}	
 	model_.setQuery(Q_UTF8(R"(
 	SELECT
 		album,
@@ -146,5 +154,5 @@ void AlbumView::refreshOnece() {
 		artists
 	WHERE
 		( albums.artistId = artists.artistId )
-	)"));
+	)"));	
 }

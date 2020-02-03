@@ -8,8 +8,8 @@
 #include <QStringList>
 #include <optional>
 
-#include "lrucache.h"
-#include "playlistentity.h"
+#include <widget/lrucache.h>
+#include <widget/playlistentity.h>
 
 #ifndef QT_SPECIALIZE_STD_HASH_TO_CALL_QHASH_BY_CREF
 namespace std {

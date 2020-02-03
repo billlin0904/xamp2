@@ -1,9 +1,9 @@
 #include <QLabel>
 #include <QHBoxLayout>
 
-#include "lyricsshowwideget.h"
-#include "str_utilts.h"
-#include "lrcpage.h"
+#include <widget/lyricsshowwideget.h>
+#include <widget/str_utilts.h>
+#include <widget/lrcpage.h>
 
 LrcPage::LrcPage(QWidget* parent)
 	: QFrame(parent) {

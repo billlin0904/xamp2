@@ -86,6 +86,14 @@ DeviceUnSupportedFormatException::DeviceUnSupportedFormatException(const AudioFo
 	message_ = ostr.str();
 }
 
+LoadDllFailureException::LoadDllFailureException(const std::string_view& dll_name)
+	: Exception(Errors::XAMP_ERROR_LOAD_DLL_FAILURE)
+	, dll_name_(dll_name) {
+	std::ostringstream ostr;
+	ostr << "Load dll " << dll_name << " failure.";
+	message_ = ostr.str();
+}
+
 #define IMP_EXCEPTION_CLASS(ExceptionClassName, error) \
 ExceptionClassName::ExceptionClassName()\
     : Exception(error) {\
@@ -98,7 +106,6 @@ IMP_EXCEPTION_CLASS(DeviceNotFoundException, Errors::XAMP_ERROR_DEVICE_NOT_FOUND
 IMP_EXCEPTION_CLASS(FileNotFoundException, Errors::XAMP_ERROR_FILE_NOT_FOUND)
 IMP_EXCEPTION_CLASS(NotSupportSampleRateException, Errors::XAMP_ERROR_NOT_SUPPORT_SAMPLERATE)
 IMP_EXCEPTION_CLASS(NotSupportFormatException, Errors::XAMP_ERROR_NOT_SUPPORT_FORMAT)
-IMP_EXCEPTION_CLASS(LoadDllFailureException, Errors::XAMP_ERROR_LOAD_DLL_FAILURE)
 IMP_EXCEPTION_CLASS(StopStreamTimeoutException, Errors::XAMP_ERROR_STOP_STREAM_TIMEOUT)
 IMP_EXCEPTION_CLASS(SampleRateChangedException, Errors::XAMP_ERROR_SAMPLERATE_CHANGED);
 }

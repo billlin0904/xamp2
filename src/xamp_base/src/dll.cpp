@@ -6,7 +6,7 @@ namespace xamp::base {
 ModuleHandle LoadDll(std::string_view name) {
 	auto module = ::LoadLibraryA(name.data());
 	if (!module) {
-		throw LoadDllFailureException();
+		throw LoadDllFailureException(name);
 	}
 	return ModuleHandle(module);
 }
