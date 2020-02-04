@@ -24,6 +24,7 @@ MetadataExtractAdapter::MetadataExtractAdapter(PlayListTableView* playlist)
 
 void MetadataExtractAdapter::OnWalk(const xamp::metadata::Path&, xamp::base::Metadata metadata) {
     metadatas_.push_back(metadata);
+    qApp->processEvents();
 }
 
 void MetadataExtractAdapter::OnWalkNext() {
@@ -108,7 +109,7 @@ void MetadataExtractAdapter::processAndNotify(const std::vector<xamp::base::Meta
                     pixmap = PixmapCache::findDirExistCover(QString::fromStdWString(metadata.file_path));
                 }
                 if (!pixmap.isNull()) {
-                    cover_id = PixmapCache::Instance().emplace(std::move(pixmap));
+                    cover_id = PixmapCache::Instance().add(pixmap);
                     cover_id_cache.insert(album_id, cover_id);
                     Database::Instance().setAlbumCover(album_id, album, cover_id);
                 }

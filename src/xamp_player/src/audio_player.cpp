@@ -40,9 +40,6 @@ AudioPlayer::AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter)
     , is_playing_(false)
     , is_paused_(false)
     , state_adapter_(adapter) {
-#ifdef _WIN32
-    VmMemLock::EnableLockMemPrivilege(true);
-#endif
 	PrepareAllocate();
 }
 

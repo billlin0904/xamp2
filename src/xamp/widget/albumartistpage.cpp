@@ -14,7 +14,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	auto default_layout = new QHBoxLayout(this);
 	default_layout->setSpacing(0);
 	default_layout->setObjectName(QString::fromUtf8("default_layout"));
-	default_layout->setContentsMargins(0, 20, 0, 0);
+	default_layout->setContentsMargins(0, 0, 0, 0);
 
 	artist_view_->setMaximumSize(QSize(80, 16777215));
 

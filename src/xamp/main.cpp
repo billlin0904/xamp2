@@ -1,6 +1,7 @@
 #include <base/logger.h>
 #include <base/rng.h>
 #include <base/dll.h>
+#include <base/vmmemlock.h>
 
 #include <player/audio_player.h>
 #include <widget/qdebugsink.h>
@@ -35,6 +36,8 @@ int main(int argc, char *argv[]) {
 	// 為了效率考量.
 	preload_modules.emplace_back(LoadDll("chromaprint.dll"));
 	preload_modules.emplace_back(LoadDll("bass.dll"));
+
+	VmMemLock::EnableLockMemPrivilege(true);
 #endif
 
 	Logger::Instance()

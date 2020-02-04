@@ -7,6 +7,9 @@
 
 #include <base/logger.h>
 
+#include "thememanager.h"
+
+#include <widget/image_utiltis.h>
 #include <widget/str_utilts.h>
 #include <widget/filetag.h>
 #include <widget/pixmapcache.h>
@@ -101,18 +104,21 @@ std::optional<const QPixmap*> PixmapCache::find(const QString& tag_id) const {
 	}
 }
 
-QString PixmapCache::emplace(const QPixmap& cover) const {
+QString PixmapCache::add(const QPixmap& cover) const {
 	QByteArray array;
 	QBuffer buffer(&array);
 	buffer.open(QIODevice::WriteOnly);
 
+	auto cover_size = ThemeManager::getDefaultCoverSize();
+	auto small_cover = Pixmap::resizeImage(cover, cover_size);
+
 	QString tag_name;
-	if (cover.save(&buffer, "JPG")) {
+	if (small_cover.save(&buffer, "JPG")) {
 		tag_name = FileTag::getTagId(array);
 		(void)cover.save(cache_path_ + tag_name + Q_UTF8(".cache"), "JPG", 100);
 	}
 
-    cache_.insert(tag_name, cover);
+    cache_.insert(tag_name, small_cover);
 	return tag_name;
 }
 

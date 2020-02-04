@@ -49,24 +49,15 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
 	painter->setFont(f);
     painter->drawText(artist_text_rect, Qt::AlignVCenter, artist);
 
-    if (cover_id.isEmpty()) {
-        painter->drawPixmap(cover_rect, ThemeManager::pixmap().defaultSizeUnknownCover());
-		return;
-	}
+	auto album_cover = &ThemeManager::pixmap().defaultSizeUnknownCover();
 
-    if (auto cache_small_cover = cache_.find(cover_id)) {
-        painter->drawPixmap(cover_rect, *cache_small_cover.value());
-		return;
+    if (auto cache_small_cover = PixmapCache::Instance().find(cover_id)) {
+		album_cover = cache_small_cover.value();
+        painter->drawPixmap(cover_rect, *album_cover);
 	}
-
-    auto file_cache = PixmapCache::Instance().fromFileCache(cover_id);
-    if (!file_cache.isNull()) {
-        auto small_cover = Pixmap::resizeImage(file_cache, default_cover_size);
-        painter->drawPixmap(cover_rect, small_cover);
-        cache_.insert(cover_id, small_cover);
-    } else {
-        painter->drawPixmap(cover_rect, ThemeManager::pixmap().defaultSizeUnknownCover());
-    }
+	else {
+		painter->drawPixmap(cover_rect, *album_cover);
+	}
 }
 
 QSize AlbumViewStyledDelegate::sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const {

@@ -108,7 +108,7 @@ ArtistView::ArtistView(QWidget *parent)
         });
 
     (void) QObject::connect(&client_, &DiscogsClient::downloadImageFinished, [this](auto artist_id, auto image) {
-        auto cover_id = PixmapCache::Instance().emplace(image);
+        auto cover_id = PixmapCache::Instance().add(image);
         Database::Instance().updateArtistCoverId(artist_id, cover_id);
         XAMP_LOG_DEBUG("Save artist id: {} image, cover id : {}", artist_id, cover_id.toStdString());
         refreshOnece();

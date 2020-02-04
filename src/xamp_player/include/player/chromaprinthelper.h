@@ -13,7 +13,7 @@
 namespace xamp::player {
 
 struct XAMP_PALYER_API Fingerprint {
-	int32_t duration{ 0 };
+	double duration{ 0 };
 	std::vector<uint8_t> fingerprint;
 };
 

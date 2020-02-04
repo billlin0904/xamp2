@@ -51,9 +51,8 @@ Fingerprint ReadFingerprint(const std::wstring& file_path) {
 
 	chromaprint.Finish();
 
-	return
-	{
-		static_cast<int32_t>(stream.GetDuration()),
+	return {
+		stream.GetDuration(),
 		chromaprint.GetFingerprint(),
 	};
 }

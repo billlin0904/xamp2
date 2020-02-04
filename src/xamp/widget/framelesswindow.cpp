@@ -100,27 +100,31 @@ void FramelessWindow::lazyInitial() {
 }
 
 void FramelessWindow::initialFontDatabase() {
-	const QStringList fallback_fonts{
-#ifdef _WIN32
-		Q_UTF8("Microsoft JhengHei UI"),
-		Q_UTF8("Microsoft JhengHei UI Bold"),
-		Q_UTF8("Microsoft Yahei UI"),
-		Q_UTF8("Microsoft Yahei UI Bold"),
-		Q_UTF8("Segoe UI"),
-		Q_UTF8("Segoe UI Bold"),
-		Q_UTF8("Arial"),
+    QList<QString> fallback_fonts;
+
+#ifdef Q_OS_WIN
+    fallback_fonts.append(Q_UTF8("Microsoft JhengHei UI"));
+    fallback_fonts.append(Q_UTF8("Microsoft JhengHei UI Bold"));
+    fallback_fonts.append(Q_UTF8("Microsoft Yahei UI"));
+    fallback_fonts.append(Q_UTF8("Microsoft Yahei UI Bold"));
+    fallback_fonts.append(Q_UTF8("Segoe UI"));
+    fallback_fonts.append(Q_UTF8("Segoe UI Bold"));
+    fallback_fonts.append(Q_UTF8("Arial"));
 #else
-		Q_UTF8("SF Pro Text"),
-		Q_UTF8("SF Pro Icons"),
-		Q_UTF8("Helvetica Neue"),
-		Q_UTF8("Helvetica"),
+    fallback_fonts.append(Q_UTF8("SF Pro Text"));
+    fallback_fonts.append(Q_UTF8("SF Pro Icons"));
+    fallback_fonts.append(Q_UTF8("Helvetica Neue"));
+    fallback_fonts.append(Q_UTF8("Helvetica"));
 #endif		
-	};
+	
 	QFont::insertSubstitutions(Q_UTF8("UI"), fallback_fonts); 
 
     QFont default_font;
     default_font.setFamily(Q_UTF8("UI"));
     default_font.setStyleStrategy(QFont::PreferAntialias);
+#if defined(Q_OS_WIN)
+    default_font.setPointSize(9);
+#endif
     setFont(default_font);
 }
 

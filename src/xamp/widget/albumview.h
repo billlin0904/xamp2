@@ -21,9 +21,6 @@ protected:
 	void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override;
 
 	QSize sizeHint(const QStyleOptionViewItem& o, const QModelIndex& idx) const override;
-
-private:
-	mutable LruCache<QString, QPixmap> cache_;
 };
 
 class AlbumView : public QListView {
