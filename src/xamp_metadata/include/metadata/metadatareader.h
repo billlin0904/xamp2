@@ -31,13 +31,22 @@ protected:
 
 XAMP_METADATA_API inline void FromPath(const Path& path, MetadataExtractAdapter* adapter, MetadataReader *reader) {
     if (is_directory(path)) {
+        Path root_path;
         for (RecursiveDirectoryIterator itr(path), end; itr != end && !adapter->IsCancel(); ++itr) {
             const auto current_path = (*itr).path();
+            if (root_path.empty()) {
+                root_path = current_path;
+            }            
 
             if (!is_directory(current_path)) {
                 if (reader->IsSupported(current_path)) {
                     adapter->OnWalk(path, reader->Extract(current_path));
-                }                
+                }
+            }
+
+            if (root_path.parent_path() != current_path.parent_path()) {
+                adapter->OnWalkNext();
+                root_path = current_path;
             }
         }
         adapter->OnWalkNext();

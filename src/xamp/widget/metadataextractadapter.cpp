@@ -5,13 +5,13 @@
 #include <execution>
 #endif
 
-#include "toast.h"
-#include "database.h"
-#include "playlisttableview.h"
-#include "pixmapcache.h"
-#include "image_utiltis.h"
 #include "thememanager.h"
-#include "metadataextractadapter.h"
+#include <widget/toast.h>
+#include <widget/database.h>
+#include <widget/playlisttableview.h>
+#include <widget/pixmapcache.h>
+#include <widget/image_utiltis.h>
+#include <widget/metadataextractadapter.h>
 
 constexpr size_t PREALLOCATE_SIZE = 100;
 
