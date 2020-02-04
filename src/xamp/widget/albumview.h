@@ -10,8 +10,6 @@
 #include <QSqlRelationalTableModel>
 #include <QStyledItemDelegate>
 
-#include "pixmapcache.h"
-
 class AlbumViewStyledDelegate : public QStyledItemDelegate {
 	Q_OBJECT
 public:

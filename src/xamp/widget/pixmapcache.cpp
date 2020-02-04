@@ -14,7 +14,10 @@
 #include <widget/filetag.h>
 #include <widget/pixmapcache.h>
 
-PixmapCache::PixmapCache() {
+constexpr size_t DEFAULT_CACHE_SIZE = 1024;
+
+PixmapCache::PixmapCache()
+	: cache_(DEFAULT_CACHE_SIZE) {
     cache_path_ = QDir::currentPath() + Q_UTF8("/caches/");
     cover_ext_ << Q_UTF8("*.jpeg") << Q_UTF8("*.jpg") << Q_UTF8("*.png") << Q_UTF8("*.bmp");
     cache_ext_ << Q_UTF8("*.cache");
@@ -113,12 +116,12 @@ QString PixmapCache::add(const QPixmap& cover) const {
 	auto small_cover = Pixmap::resizeImage(cover, cover_size);
 
 	QString tag_name;
-	if (small_cover.save(&buffer, "JPG")) {
+	if (cover.save(&buffer, "JPG")) {
 		tag_name = FileTag::getTagId(array);
 		(void)cover.save(cache_path_ + tag_name + Q_UTF8(".cache"), "JPG", 100);
 	}
 
-    cache_.insert(tag_name, small_cover);
+    cache_.insert(tag_name, cover);
 	return tag_name;
 }
 
