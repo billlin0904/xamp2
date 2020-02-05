@@ -157,11 +157,6 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, bool is_dsd_stream, 
 
 	if (auto file_stream = AsFileStream()) {
 		file_stream->OpenFromFile(file_path);
-		if (is_dsd_stream) {
-			if (auto dsd_stream = dynamic_cast<DsdStream*>(stream_.get())) {
-				XAMP_LOG_DEBUG("DSD samplerate: {}", dsd_stream->GetDsdSampleRate());
-			}
-		}
 	}
 }
 

@@ -15,7 +15,7 @@ namespace xamp::base {
 // See: http://blog.bjornroche.com/2009/12/int-float-int-its-jungle-out-there.html
 constexpr int32_t XAMP_FLOAT_16_SCALER = 0x8000;
 constexpr int32_t XAMP_FLOAT_24_SCALER = 0x800000;
-constexpr int32_t XAMP_FLOAT_32_SCALER = 0x80000000;
+constexpr int64_t XAMP_FLOAT_32_SCALER = 0x7FFFFFBE;
 
 #pragma pack(push, 1)
 
@@ -41,7 +41,7 @@ public:
 
 	int32_t to_2432int() const noexcept;
 protected:
-	std::array<uint8_t, 3> c3;
+	std::array<uint8_t, 3> c3{ 0 };
 };
 #pragma pack(pop)
 
@@ -51,11 +51,11 @@ XAMP_ALWAYS_INLINE int24_t::int24_t() noexcept {
 }
 
 XAMP_ALWAYS_INLINE int24_t::int24_t(float f) noexcept {
-	*this = ((int32_t)(f * 8388608) & 0x00ffffff);
+	*this = static_cast<int32_t>(std::round(f * XAMP_FLOAT_24_SCALER));
 }
 
 XAMP_ALWAYS_INLINE int24_t& int24_t::operator=(const float f) noexcept {
-	*this = static_cast<int32_t>(f * XAMP_FLOAT_24_SCALER);
+	*this = static_cast<int32_t>(std::round(f * XAMP_FLOAT_24_SCALER));
 	return *this;
 }
 
@@ -131,11 +131,8 @@ struct DataConverter {
 		const auto input_right_offset = context.in_offset[1];
 
 		for (int32_t i = 0; i < context.convert_size; ++i) {
-			//output[output_left_offset] = static_cast<int32_t>(input[input_left_offset] * XAMP_FLOAT_32_SCALER * context.volume_factor);
-			//output[output_right_offset] = static_cast<int32_t>(input[input_right_offset] * XAMP_FLOAT_32_SCALER * context.volume_factor);	
-			#define CAST2INT(f) static_cast<int32_t>((f) * 2147483582.0f)
-			output[output_left_offset] = CAST2INT(input[input_left_offset]) * context.volume_factor;
-			output[output_right_offset] = CAST2INT(input[input_right_offset]) * context.volume_factor;
+			output[output_left_offset] = static_cast<int32_t>((input[input_left_offset] * XAMP_FLOAT_32_SCALER) * context.volume_factor);
+			output[output_right_offset] = static_cast<int32_t>((input[input_right_offset] * XAMP_FLOAT_32_SCALER) * context.volume_factor);
 			input += context.in_jump;
 			output += context.out_jump;
 		}
@@ -159,44 +156,53 @@ struct DataConverter {
     }
 };
 
+template <typename T, int64_t FloatScaler>
+XAMP_RESTRICT T* LoopUnrolling(T *output, const float* input, const AudioConvertContext& context) noexcept {
+	const auto* end_input = input + (size_t)context.convert_size * context.input_format.GetChannels();
+
+	// Loop unrolling
+	switch ((end_input - input) % 8) {
+	case 7:
+		*output++ = T(*input++ * FloatScaler);
+	case 6:
+		*output++ = T(*input++ * FloatScaler);
+	case 5:			
+		*output++ = T(*input++ * FloatScaler);
+	case 4:			
+		*output++ = T(*input++ * FloatScaler);
+	case 3:			
+		*output++ = T(*input++ * FloatScaler);
+	case 2:			
+		*output++ = T(*input++ * FloatScaler);
+	case 1:			
+		*output++ = T(*input++ * FloatScaler);
+	case 0:
+		break;
+	}
+
+	while (input != end_input) {
+		output[0] = T(input[0] * FloatScaler);
+		output[1] = T(input[0] * FloatScaler);
+		output[2] = T(input[0] * FloatScaler);
+		output[3] = T(input[0] * FloatScaler);
+		output[4] = T(input[0] * FloatScaler);
+		output[5] = T(input[0] * FloatScaler);
+		output[6] = T(input[0] * FloatScaler);
+		output[7] = T(input[0] * FloatScaler);
+		input += 8;
+		output += 8;
+	}
+	return output;
+}
+
 template <>
 struct DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEAVED> {
 	static XAMP_RESTRICT int16_t* ConvertToInt16(int16_t* output, const float* input, const AudioConvertContext& context) noexcept {
-		const auto* end_input = input + (size_t)context.convert_size * context.input_format.GetChannels();
+		return LoopUnrolling<int16_t, XAMP_FLOAT_16_SCALER>(output, input, context);
+	}
 
-		// Loop unrolling
-		switch ((end_input - input) % 8) {
-		case 7:
-			*output++ = int16_t(*input++ * XAMP_FLOAT_16_SCALER);
-		case 6:
-			*output++ = int16_t(*input++ * XAMP_FLOAT_16_SCALER);
-		case 5:
-			*output++ = int16_t(*input++ * XAMP_FLOAT_16_SCALER);
-		case 4:
-			*output++ = int16_t(*input++ * XAMP_FLOAT_16_SCALER);
-		case 3:
-			*output++ = int16_t(*input++ * XAMP_FLOAT_16_SCALER);
-		case 2:
-			*output++ = int16_t(*input++ * XAMP_FLOAT_16_SCALER);
-		case 1:
-			*output++ = int16_t(*input++ * XAMP_FLOAT_16_SCALER);
-		case 0:
-			break;
-		}
-
-		while (input != end_input) {
-			output[0] = int16_t(input[0] * XAMP_FLOAT_16_SCALER);
-			output[1] = int16_t(input[0] * XAMP_FLOAT_16_SCALER);
-			output[2] = int16_t(input[0] * XAMP_FLOAT_16_SCALER);
-			output[3] = int16_t(input[0] * XAMP_FLOAT_16_SCALER);
-			output[4] = int16_t(input[0] * XAMP_FLOAT_16_SCALER);
-			output[5] = int16_t(input[0] * XAMP_FLOAT_16_SCALER);
-			output[6] = int16_t(input[0] * XAMP_FLOAT_16_SCALER);
-			output[7] = int16_t(input[0] * XAMP_FLOAT_16_SCALER);
-			input += 8;
-			output += 8;
-		}
-		return output;
+	static XAMP_RESTRICT int32_t* ConvertToInt16(int32_t* output, const float* input, const AudioConvertContext& context) noexcept {
+		return LoopUnrolling<int32_t, XAMP_FLOAT_32_SCALER>(output, input, context);
 	}
 
 	static XAMP_RESTRICT int32_t* ConvertToInt2432(int32_t* output, const float* input, const AudioConvertContext &context) noexcept {

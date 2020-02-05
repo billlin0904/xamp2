@@ -10,6 +10,7 @@
 #include <widget/pixmapcache.h>
 #include <widget/str_utilts.h>
 
+#include <QMessageBox>
 #include <QtWidgets/QApplication>
 
 #include "singleinstanceapplication.h"
@@ -29,13 +30,20 @@ static void loadAndDefaultAppConfig() {
 int main(int argc, char *argv[]) {
 #ifdef Q_OS_WIN	
 	std::vector<ModuleHandle> preload_modules;
-	// 如果沒有預先載入拖入檔案會爆音.
-	preload_modules.emplace_back(LoadDll("psapi.dll"));
-	preload_modules.emplace_back(LoadDll("comctl32.dll"));
-	preload_modules.emplace_back(LoadDll("WindowsCodecs.dll"));
-	// 為了效率考量.
-	preload_modules.emplace_back(LoadDll("chromaprint.dll"));
-	preload_modules.emplace_back(LoadDll("bass.dll"));
+
+	try {		
+		// 如果沒有預先載入拖入檔案會爆音.
+		preload_modules.emplace_back(LoadDll("psapi.dll"));
+		preload_modules.emplace_back(LoadDll("comctl32.dll"));
+		preload_modules.emplace_back(LoadDll("WindowsCodecs.dll"));
+		// 為了效率考量.
+		preload_modules.emplace_back(LoadDll("chromaprint.dll"));
+		preload_modules.emplace_back(LoadDll("bass.dll"));
+	}
+	catch (const Exception & e) {
+		QMessageBox::critical(nullptr, Q_UTF8("Load dll failure!"), QString::fromStdString(e.GetErrorMessage()));
+		return -1;
+	}
 
 	VmMemLock::EnableLockMemPrivilege(true);
 #endif
