@@ -107,9 +107,9 @@ AlbumPlayListTableView::AlbumPlayListTableView(QWidget* parent)
 
 	verticalHeader()->setVisible(false);
 
-	setColumnWidth(1, 15);
-	horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);		
-	horizontalHeader()->setVisible(false);
+	setColumnWidth(0, 5);
+	horizontalHeader()->hide();
+	horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
 	verticalScrollBar()->setStyleSheet(Q_UTF8(R"(
     QScrollBar:vertical {
@@ -131,6 +131,7 @@ AlbumPlayListTableView::AlbumPlayListTableView(QWidget* parent)
 void AlbumPlayListTableView::setPlaylistMusic(int32_t album_id) {
 	QString query = Q_UTF8(R"(
                        SELECT
+					   musics.track,
                        musics.title,
 					   musics.durationStr
                        FROM
@@ -145,6 +146,7 @@ void AlbumPlayListTableView::setPlaylistMusic(int32_t album_id) {
                        albums.albumId = %1;
                        )");
 	model_.setQuery(query.arg(album_id));
+	resizeRowToContents(1);
 }
 
 AlbumViewPage::AlbumViewPage(QWidget* parent)
@@ -166,13 +168,13 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 
 	auto f = font();
 
-	f.setPixelSize(15);
+	f.setPixelSize(18);
 	f.setBold(true);
 	album_ = new QLabel(this);	
 	album_->setFixedSize(QSize(16777215, 32));
 	album_->setFont(f);
 
-	f.setPixelSize(12);
+	f.setPixelSize(14);
 	f.setBold(false);	
 	artist_ = new QLabel(this);
 	artist_->setFixedSize(QSize(16777215, 32));
@@ -186,8 +188,16 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 	default_layout->addWidget(album_);
 	default_layout->addWidget(artist_);
 
+	auto playlist_layout = new QHBoxLayout(this);
 	playlist_ = new AlbumPlayListTableView(this);
-	default_layout->addWidget(playlist_);
+	cover_ = new QLabel(this);
+	cover_->setMinimumSize(QSize(325, 325));
+	cover_->setMaximumSize(QSize(325, 325));
+	playlist_layout->addWidget(playlist_);
+	playlist_layout->addWidget(cover_);
+	default_layout->setStretch(2, 2);
+	
+	default_layout->addLayout(playlist_layout);
 	default_layout->setStretch(1, 0);
 	default_layout->setStretch(3, 2);
 
@@ -206,6 +216,12 @@ void AlbumViewPage::setArtist(const QString& artist) {
 
 void AlbumViewPage::setPlaylistMusic(int32_t album_id) {
 	playlist_->setPlaylistMusic(album_id);
+}
+
+void AlbumViewPage::setCover(const QString& cover_id) {
+	if (auto cache_small_cover = PixmapCache::Instance().find(cover_id)) {
+		cover_->setPixmap(Pixmap::resizeImage(cache_small_cover.value()->copy(), QSize(300, 300)));
+	}
 }
 
 AlbumView::AlbumView(QWidget* parent)
@@ -256,6 +272,7 @@ AlbumView::AlbumView(QWidget* parent)
 		}
 
 		auto album = index.model()->data(index.model()->index(index.row(), 0)).toString();
+		auto cover_id = index.model()->data(index.model()->index(index.row(), 1)).toString();
 		auto artist = index.model()->data(index.model()->index(index.row(), 2)).toString();
 		auto album_id = index.model()->data(index.model()->index(index.row(), 3)).toInt();
 
@@ -263,9 +280,10 @@ AlbumView::AlbumView(QWidget* parent)
 		auto rect = visualRect(index);
 		page_->setAlbum(album);
 		page_->setArtist(artist);
+		page_->setCover(cover_id);
 		page_->setPlaylistMusic(album_id);
-		page_->setFixedSize(QSize(list_view_rect.size().width(), 460));
-		page_->move(QPoint(list_view_rect.x(), rect.y() + 200));
+		page_->setFixedSize(QSize(list_view_rect.size().width() - 10, 460));
+		page_->move(QPoint(list_view_rect.x(), rect.y() + 210));
 		page_->show();
 		});
 

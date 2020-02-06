@@ -35,9 +35,12 @@ public:
 	void setArtist(const QString& artist);
 
 	void setPlaylistMusic(int32_t album_id);
+
+	void setCover(const QString &cover_id);
 private:
 	QLabel* album_;
 	QLabel* artist_;
+	QLabel* cover_;
 	AlbumPlayListTableView* playlist_;
 };
 
