@@ -68,6 +68,7 @@ int main(int argc, char *argv[]) {
 	}		
 
     (void) xamp::base::RNG::Instance();
+	(void) PixmapCache::Instance();
 
 	try {
 		Database::Instance().open(Q_UTF8("xamp.db"));
