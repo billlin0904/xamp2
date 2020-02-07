@@ -55,6 +55,8 @@ public:
 
     void setAlbumCover(int32_t album_id, const QString& album, const QString& cover_id);
 
+    int32_t getAlbumTrackCount(int32_t album_id) const;
+
     void addTablePlaylist(int32_t tableId, int32_t playlist_id);
 
     int32_t addOrUpdateMusic(const xamp::base::Metadata& medata, int32_t playlist_id);

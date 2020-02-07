@@ -241,6 +241,29 @@ void Database::setAlbumCover(int32_t album_id, const QString& album, const QStri
     ThrowlfFailue(query)
 }
 
+int32_t Database::getAlbumTrackCount(int32_t album_id) const {
+    QSqlQuery query;
+
+    query.prepare(Q_UTF8(R"(
+        SELECT
+	        COUNT( * ) AS tracks 
+        FROM
+	        albumMusic
+	    JOIN albums ON albums.albumId = albumMusic.albumId 
+        WHERE
+	        albums.albumId = :albumId;)"));
+
+    query.bindValue(Q_UTF8(":albumId"), album_id);
+
+    ThrowlfFailue(query)
+
+    while (query.next()) {
+        return query.value(Q_UTF8("tracks")).toInt();
+    }
+
+    return INVALID_DATABASE_ID;
+}
+
 bool Database::isPlaylistExist(int32_t playlist_id) const {
     QSqlQuery query;
 

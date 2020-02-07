@@ -64,8 +64,12 @@ QString ThemeManager::getMenuStyle() noexcept {
 }
 
 QSize ThemeManager::getDefaultCoverSize() noexcept {
-    const QSize DefaultCoverSize(150, 150);
+    constexpr QSize DefaultCoverSize(150, 150);
     return DefaultCoverSize;
+}
+
+QSize ThemeManager::getCacheCoverSize() noexcept {
+    return getDefaultCoverSize() * 2;
 }
 
 void ThemeManager::setNightStyle(Ui::XampWindow &ui) {

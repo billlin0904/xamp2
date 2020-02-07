@@ -51,5 +51,6 @@ public:
     static void setNightStyle(Ui::XampWindow &ui);
     static QString getMenuStyle() noexcept;
     static QSize getDefaultCoverSize() noexcept;
+    static QSize getCacheCoverSize() noexcept;
 };
 

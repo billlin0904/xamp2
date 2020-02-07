@@ -126,6 +126,8 @@ AlbumPlayListTableView::AlbumPlayListTableView(QWidget* parent)
 		background: #d0d0d0;
 	}
 	)"));
+
+	setStyleSheet(Q_UTF8("background-color: transparent"));
 }
 
 void AlbumPlayListTableView::setPlaylistMusic(int32_t album_id) {
@@ -174,11 +176,22 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 	album_->setFixedSize(QSize(16777215, 32));
 	album_->setFont(f);
 
+	auto artist_layout = new QHBoxLayout(this);
+
 	f.setPixelSize(14);
 	f.setBold(false);	
 	artist_ = new QLabel(this);
 	artist_->setFixedSize(QSize(16777215, 32));
 	artist_->setFont(f);
+
+	tracks_ = new QLabel(this);
+	tracks_->setFixedSize(QSize(16777215, 32));
+	tracks_->setFont(f);
+
+	artist_layout->addWidget(artist_);
+	artist_layout->addWidget(tracks_);
+	artist_layout->setStretch(0, 1);
+	artist_layout->setStretch(1, 2);
 	
 	auto button_spacer = new QSpacerItem(20, 10, QSizePolicy::Expanding, QSizePolicy::Expanding);
 	hbox_layout->addWidget(close_button);
@@ -186,7 +199,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 
 	default_layout->addLayout(hbox_layout);
 	default_layout->addWidget(album_);
-	default_layout->addWidget(artist_);
+	default_layout->addLayout(artist_layout);
 
 	auto playlist_layout = new QHBoxLayout(this);
 	playlist_ = new AlbumPlayListTableView(this);
@@ -204,6 +217,8 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 	(void)QObject::connect(close_button, &QPushButton::clicked, [this]() {
 		hide();
 		});
+
+	setStyleSheet(Q_UTF8("background-color: white"));
 }
 
 void AlbumViewPage::setAlbum(const QString& album) {
@@ -218,9 +233,18 @@ void AlbumViewPage::setPlaylistMusic(int32_t album_id) {
 	playlist_->setPlaylistMusic(album_id);
 }
 
+void AlbumViewPage::setTracks(int32_t tracks) {
+	tracks_->setText(tr("%1 Songs").arg(tracks));
+}
+
 void AlbumViewPage::setCover(const QString& cover_id) {
+	QSize image_size(250, 250);
 	if (auto cache_small_cover = PixmapCache::Instance().find(cover_id)) {
-		cover_->setPixmap(Pixmap::resizeImage(cache_small_cover.value()->copy(), QSize(300, 300)));
+		color_picker_.loadImage(cache_small_cover.value()->copy());
+		cover_->setPixmap(Pixmap::resizeImage(cache_small_cover.value()->copy(), image_size));
+	}
+	else {
+		cover_->setPixmap(Pixmap::resizeImage(ThemeManager::pixmap().defaultSizeUnknownCover(), image_size));
 	}
 }
 
@@ -276,14 +300,25 @@ AlbumView::AlbumView(QWidget* parent)
 		auto artist = index.model()->data(index.model()->index(index.row(), 2)).toString();
 		auto album_id = index.model()->data(index.model()->index(index.row(), 3)).toInt();
 
+		int height = 460;
+
 		auto list_view_rect = this->rect();
 		auto rect = visualRect(index);
+
 		page_->setAlbum(album);
 		page_->setArtist(artist);
 		page_->setCover(cover_id);
 		page_->setPlaylistMusic(album_id);
-		page_->setFixedSize(QSize(list_view_rect.size().width() - 10, 460));
-		page_->move(QPoint(list_view_rect.x(), rect.y() + 210));
+		page_->setFixedSize(QSize(list_view_rect.size().width() - 10, height));
+		page_->setTracks(Database::Instance().getAlbumTrackCount(album_id));
+		
+		if (rect.y() + height > list_view_rect.height()) {
+			page_->move(QPoint(list_view_rect.x(), rect.y() - height));
+		}
+		else {
+			page_->move(QPoint(list_view_rect.x(), rect.y() + 210));
+		}
+
 		page_->show();
 		});
 

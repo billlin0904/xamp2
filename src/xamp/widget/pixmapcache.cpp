@@ -112,7 +112,7 @@ QString PixmapCache::add(const QPixmap& cover) const {
 	QBuffer buffer(&array);
 	buffer.open(QIODevice::WriteOnly);
 
-	auto cover_size = ThemeManager::getDefaultCoverSize();
+	auto cover_size = ThemeManager::getCacheCoverSize();
 	auto small_cover = Pixmap::resizeImage(cover, cover_size);
 
 	QString tag_name;
