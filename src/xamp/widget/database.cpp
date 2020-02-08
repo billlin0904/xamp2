@@ -4,8 +4,8 @@
 
 #include <base/memory.h>
 
-#include "time_utilts.h"
-#include "database.h"
+#include <widget/time_utilts.h>
+#include <widget/database.h>
 
 #define ThrowlfFailue(query) \
     do {\
@@ -241,15 +241,19 @@ void Database::setAlbumCover(int32_t album_id, const QString& album, const QStri
     ThrowlfFailue(query)
 }
 
-int32_t Database::getAlbumTrackCount(int32_t album_id) const {
+
+
+std::optional<AlbumStats> Database::getAlbumStats(int32_t album_id) const {
     QSqlQuery query;
 
     query.prepare(Q_UTF8(R"(
         SELECT
-	        COUNT( * ) AS tracks 
+            SUM(musics.duration) AS durations,
+            (SELECT COUNT( * ) AS tracks FROM albumMusic WHERE albumMusic.albumId = :albumId) AS tracks
         FROM
 	        albumMusic
 	    JOIN albums ON albums.albumId = albumMusic.albumId 
+        JOIN musics ON musics.musicId = albumMusic.musicId 
         WHERE
 	        albums.albumId = :albumId;)"));
 
@@ -258,10 +262,13 @@ int32_t Database::getAlbumTrackCount(int32_t album_id) const {
     ThrowlfFailue(query)
 
     while (query.next()) {
-        return query.value(Q_UTF8("tracks")).toInt();
+        AlbumStats stats;
+        stats.tracks = query.value(Q_UTF8("tracks")).toInt();
+        stats.durations = query.value(Q_UTF8("durations")).toDouble();
+        return stats;
     }
 
-    return INVALID_DATABASE_ID;
+    return std::nullopt;
 }
 
 bool Database::isPlaylistExist(int32_t playlist_id) const {

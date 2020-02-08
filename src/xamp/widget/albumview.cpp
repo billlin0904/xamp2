@@ -16,9 +16,29 @@
 
 #include "thememanager.h"
 #include <widget/str_utilts.h>
+#include <widget/time_utilts.h>
 #include <widget/image_utiltis.h>
 #include <widget/pixmapcache.h>
 #include <widget/albumview.h>
+
+static QString colourToString(QColor colour) {
+	QString s = QString::number(colour.red()) + Q_UTF8(",") +
+		QString::number(colour.green()) + Q_UTF8(",") +
+		QString::number(colour.blue());
+	if (colour.alpha() != 255) {
+		s += Q_UTF8(",") + QString::number(colour.alpha());
+	}
+	return s;
+}
+
+#define MAKE_TEXT_COLOR(color) \
+	QString(Q_UTF8("color: rgb(%1);")).arg(colourToString(color)) \
+
+#define MAKE_BK_COLOR(color) \
+	QString(Q_UTF8("background-color: rgb(%1);")).arg(colourToString(color)) \
+
+#define MAKE_COLOR(color) \
+	QString(Q_UTF8("color: rgb(%1);")).arg(colourToString(color)) \
 
 AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
 	: QStyledItemDelegate(parent) {
@@ -164,7 +184,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 	close_button->setFixedSize(QSize(24, 24));
 	close_button->setStyleSheet(Q_UTF8("border: none"));
 
-	auto hbox_layout = new QHBoxLayout(this);
+	auto hbox_layout = new QHBoxLayout();
 	hbox_layout->setSpacing(0);
 	hbox_layout->setContentsMargins(0, 0, 0, 0);
 
@@ -173,25 +193,36 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 	f.setPixelSize(18);
 	f.setBold(true);
 	album_ = new QLabel(this);	
-	album_->setFixedSize(QSize(16777215, 32));
+	album_->setMaximumSize(QSize(16777215, 32));
 	album_->setFont(f);
 
-	auto artist_layout = new QHBoxLayout(this);
+	auto artist_layout = new QHBoxLayout();
+	artist_layout->setSpacing(0);
+	artist_layout->setContentsMargins(0, 0, 0, 0);
 
 	f.setPixelSize(14);
 	f.setBold(false);	
 	artist_ = new QLabel(this);
-	artist_->setFixedSize(QSize(16777215, 32));
+	artist_->setMaximumSize(QSize(400, 32));
 	artist_->setFont(f);
+	artist_->setAlignment(Qt::AlignLeft);
 
 	tracks_ = new QLabel(this);
-	tracks_->setFixedSize(QSize(16777215, 32));
+	tracks_->setFixedSize(QSize(16777215, 64));
+	tracks_->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
 	tracks_->setFont(f);
+
+	durtions_ = new QLabel(this);
+	durtions_->setFixedSize(QSize(16777215, 64));
+	durtions_->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
+	durtions_->setFont(f);
 
 	artist_layout->addWidget(artist_);
 	artist_layout->addWidget(tracks_);
-	artist_layout->setStretch(0, 1);
+	artist_layout->addWidget(durtions_);
+	artist_layout->setStretch(0, 0);
 	artist_layout->setStretch(1, 2);
+	artist_layout->setStretch(2, 2);
 	
 	auto button_spacer = new QSpacerItem(20, 10, QSizePolicy::Expanding, QSizePolicy::Expanding);
 	hbox_layout->addWidget(close_button);
@@ -201,7 +232,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 	default_layout->addWidget(album_);
 	default_layout->addLayout(artist_layout);
 
-	auto playlist_layout = new QHBoxLayout(this);
+	auto playlist_layout = new QHBoxLayout();
 	playlist_ = new AlbumPlayListTableView(this);
 	cover_ = new QLabel(this);
 	cover_->setMinimumSize(QSize(325, 325));
@@ -237,13 +268,17 @@ void AlbumViewPage::setTracks(int32_t tracks) {
 	tracks_->setText(tr("%1 Songs").arg(tracks));
 }
 
+void AlbumViewPage::setTotalDuration(double durations) {
+	durtions_->setText(Time::msToString(durations));
+}
+
 void AlbumViewPage::setCover(const QString& cover_id) {
-	QSize image_size(250, 250);
+	constexpr QSize image_size(250, 250);
 	if (auto cache_small_cover = PixmapCache::Instance().find(cover_id)) {
-		color_picker_.loadImage(cache_small_cover.value()->copy());
 		cover_->setPixmap(Pixmap::resizeImage(cache_small_cover.value()->copy(), image_size));
 	}
 	else {
+		setStyleSheet(Q_UTF8("background-color: white"));
 		cover_->setPixmap(Pixmap::resizeImage(ThemeManager::pixmap().defaultSizeUnknownCover(), image_size));
 	}
 }
@@ -286,10 +321,6 @@ AlbumView::AlbumView(QWidget* parent)
 	}
 	)"));
 
-	(void)QObject::connect(&model_, &QSqlQueryModel::modelReset, []() {
-		QApplication::restoreOverrideCursor();
-		});
-
 	(void)QObject::connect(this, &QListView::clicked, [this](auto index) {
 		if (!page_) {
 			page_ = new AlbumViewPage(this);
@@ -300,7 +331,7 @@ AlbumView::AlbumView(QWidget* parent)
 		auto artist = index.model()->data(index.model()->index(index.row(), 2)).toString();
 		auto album_id = index.model()->data(index.model()->index(index.row(), 3)).toInt();
 
-		int height = 460;
+		constexpr auto height = 460;
 
 		auto list_view_rect = this->rect();
 		auto rect = visualRect(index);
@@ -310,13 +341,16 @@ AlbumView::AlbumView(QWidget* parent)
 		page_->setCover(cover_id);
 		page_->setPlaylistMusic(album_id);
 		page_->setFixedSize(QSize(list_view_rect.size().width() - 10, height));
-		page_->setTracks(Database::Instance().getAlbumTrackCount(album_id));
+		if (auto album_stats = Database::Instance().getAlbumStats(album_id)) {
+			page_->setTracks(album_stats.value().tracks);
+			page_->setTotalDuration(album_stats.value().durations);
+		}		
 		
 		if (rect.y() + height > list_view_rect.height()) {
 			page_->move(QPoint(list_view_rect.x(), rect.y() - height));
 		}
 		else {
-			page_->move(QPoint(list_view_rect.x(), rect.y() + 210));
+			page_->move(QPoint(list_view_rect.x(), rect.y() + 200));
 		}
 
 		page_->show();
@@ -351,10 +385,6 @@ void AlbumView::setFilterByArtist(int32_t artist_id) {
 }
 
 void AlbumView::refreshOnece(bool setWaitCursor) {
-	if (setWaitCursor) {
-		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-	}
-
 	model_.setQuery(Q_UTF8(R"(
 	SELECT
 		album,
@@ -367,6 +397,8 @@ void AlbumView::refreshOnece(bool setWaitCursor) {
 	WHERE
 		( albums.artistId = artists.artistId )
 	)"));
+
+	hideWidget();
 }
 
 void AlbumView::hideWidget() {

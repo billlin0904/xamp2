@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <optional>
+
 #include <QString>
 #include <QSqlDatabase>
 #include <QSqlQuery>
@@ -36,6 +38,11 @@ public:
     XAMP_LOG_DEBUG(e.what());\
     }
 
+struct AlbumStats {
+    int32_t tracks{ 0 };
+    double durations{ 0 };
+};
+
 class Database {
 public:
     static constexpr int32_t INVALID_DATABASE_ID = -1;
@@ -55,7 +62,7 @@ public:
 
     void setAlbumCover(int32_t album_id, const QString& album, const QString& cover_id);
 
-    int32_t getAlbumTrackCount(int32_t album_id) const;
+    std::optional<AlbumStats> getAlbumStats(int32_t album_id) const;
 
     void addTablePlaylist(int32_t tableId, int32_t playlist_id);
 

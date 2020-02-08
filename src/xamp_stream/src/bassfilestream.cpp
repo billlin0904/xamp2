@@ -68,8 +68,7 @@ public:
 #else
 		: module_(LoadDll("libbassdsd.dylib"))
 #endif
-		, BASS_DSD_StreamCreateFile(module_, "BASS_DSD_StreamCreateFile")
-		, BASS_ChannelSetAttribute(module_, "BASS_ChannelSetAttribute") {
+		, BASS_DSD_StreamCreateFile(module_, "BASS_DSD_StreamCreateFile") {
 	}
 	catch (const Exception & e) {
 		XAMP_LOG_ERROR("{}", e.GetErrorMessage());
@@ -82,7 +81,6 @@ private:
 
 public:
 	DllFunction<HSTREAM(BOOL, const void*, QWORD, QWORD, DWORD, DWORD)> BASS_DSD_StreamCreateFile;
-	XAMP_DEFINE_DLL_API(BASS_ChannelSetAttribute) BASS_ChannelSetAttribute;
 };
 
 class BassLib final {
@@ -149,7 +147,8 @@ private:
         , BASS_ChannelSeconds2Bytes(module_, "BASS_ChannelSeconds2Bytes")
         , BASS_ChannelSetPosition(module_, "BASS_ChannelSetPosition")
         , BASS_ErrorGetCode(module_, "BASS_ErrorGetCode")
-        , BASS_ChannelGetAttribute(module_, "BASS_ChannelGetAttribute") {
+        , BASS_ChannelGetAttribute(module_, "BASS_ChannelGetAttribute")
+		, BASS_ChannelSetAttribute(module_, "BASS_ChannelSetAttribute") {
 	}
 	catch (const Exception &e) {
 		XAMP_LOG_ERROR("{}", e.GetErrorMessage());
@@ -174,6 +173,7 @@ public:
     XAMP_DEFINE_DLL_API(BASS_ChannelSetPosition) BASS_ChannelSetPosition;
     XAMP_DEFINE_DLL_API(BASS_ErrorGetCode) BASS_ErrorGetCode;
     XAMP_DEFINE_DLL_API(BASS_ChannelGetAttribute) BASS_ChannelGetAttribute;
+	XAMP_DEFINE_DLL_API(BASS_ChannelSetAttribute) BASS_ChannelSetAttribute;
 
 	AlignPtr<BassDSDLib> DSDLib;
 
@@ -232,8 +232,9 @@ static void EnsureDsdDecoderInit() {
 	if (!BassLib::Instance().DSDLib) {
 		BassLib::Instance().DSDLib = MakeAlign<BassDSDLib>();
 		// TODO: Set hightest dsd2pcm samplerate?
-		//BassLib::Instance().BASS_SetConfig(BASS_CONFIG_DSD_FREQ, 352800);
+		BassLib::Instance().BASS_SetConfig(BASS_CONFIG_DSD_FREQ, 88200);
 	}
+	
 }
 
 static bool TestDsdFileFormat(const std::wstring& file_path) {
@@ -313,6 +314,10 @@ public:
 				file_.GetLength(),
 				flags | BASS_STREAM_DECODE,
 				0));	
+			// BassLib DSD module default use 6dB gain. 
+			// 不設定的話會爆音!
+			BassLib::Instance().BASS_ChannelSetAttribute(stream_.get(), BASS_ATTRIB_DSD_GAIN, 0.0);
+
 			PrefetchMemory(file_.GetData(), file_.GetLength());
 		}
 		

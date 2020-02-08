@@ -6,6 +6,7 @@
 #pragma once
 
 #include <array>
+#include <cassert>
 
 #include <base/base.h>
 #include <base/audioformat.h>
@@ -18,26 +19,15 @@ constexpr int32_t XAMP_FLOAT_24_SCALER = 0x800000;
 constexpr int64_t XAMP_FLOAT_32_SCALER = 0x7FFFFFBE;
 
 #pragma pack(push, 1)
-
-typedef union {
-	struct {
-		uint16_t lo;
-		uint16_t hi;
-	}u16;
-	uint32_t u32;
-	int32_t i32;
-	float  f;
-} INTORFLOAT;
-
 class int24_t final {
 public:
 	int24_t() noexcept;
 
 	int24_t(float f) noexcept;
 
-	int24_t& operator=(const int32_t i) noexcept;
+	int24_t& operator=(int32_t i) noexcept;
 
-	int24_t& operator=(const float f) noexcept;
+	int24_t& operator=(float f) noexcept;
 
 	int32_t to_2432int() const noexcept;
 protected:
@@ -51,15 +41,31 @@ XAMP_ALWAYS_INLINE int24_t::int24_t() noexcept {
 }
 
 XAMP_ALWAYS_INLINE int24_t::int24_t(float f) noexcept {
+#if 0 // Check float audio overrange!
+	if (f > 1.0) {
+		f = 1.0;
+	}
+	if (f < -1.0) {
+		f = -1.0;
+	}
+#endif
 	*this = static_cast<int32_t>(std::round(f * XAMP_FLOAT_24_SCALER));
 }
 
-XAMP_ALWAYS_INLINE int24_t& int24_t::operator=(const float f) noexcept {
+XAMP_ALWAYS_INLINE int24_t& int24_t::operator=(float f) noexcept {
+#if 0 // Check float audio overrange!
+	if (f > 1.0) {
+		f = 1.0;
+	}
+	if (f < -1.0) {
+		f = -1.0;
+	}
+#endif
 	*this = static_cast<int32_t>(std::round(f * XAMP_FLOAT_24_SCALER));
 	return *this;
 }
 
-XAMP_ALWAYS_INLINE int24_t& int24_t::operator=(const int32_t i) noexcept {
+XAMP_ALWAYS_INLINE int24_t& int24_t::operator=(int32_t i) noexcept {
 	c3[0] = ((uint8_t*)&i)[0];
 	c3[1] = ((uint8_t*)&i)[1];
 	c3[2] = ((uint8_t*)&i)[2];
@@ -67,7 +73,7 @@ XAMP_ALWAYS_INLINE int24_t& int24_t::operator=(const int32_t i) noexcept {
 }
 
 XAMP_ALWAYS_INLINE int32_t int24_t::to_2432int() const noexcept {
-	int32_t v{0};
+	int32_t v{ 0 };
 	((uint8_t*)&v)[0] = 0;
 	((uint8_t*)&v)[0] = c3[0];
 	((uint8_t*)&v)[1] = c3[1];

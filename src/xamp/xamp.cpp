@@ -131,6 +131,9 @@ void Xamp::initialUI() {
 	f.setPointSize(8);
 	ui.artistLabel->setFont(f);
 
+    ui.startPosLabel->setFont(f);
+    ui.endPosLabel->setFont(f);
+
 #ifdef Q_OS_MAC
     ui.closeButton->hide();
     ui.maxWinButton->hide();

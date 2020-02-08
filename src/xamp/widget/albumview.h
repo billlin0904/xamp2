@@ -41,11 +41,14 @@ public:
 	void setCover(const QString &cover_id);
 
 	void setTracks(int32_t tracks);
+
+	void setTotalDuration(double durations);
 private:
 	QLabel* album_;
 	QLabel* artist_;
 	QLabel* cover_;
 	QLabel* tracks_;
+	QLabel* durtions_;
 	AlbumPlayListTableView* playlist_;
 	ColorPicker color_picker_;
 };
