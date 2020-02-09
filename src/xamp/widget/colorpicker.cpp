@@ -1,3 +1,4 @@
+#include <cmath>
 #include <widget/colorpicker.h>
 
 class BilateralFilter {

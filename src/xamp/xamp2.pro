@@ -1,4 +1,4 @@
-QT       += core gui sql network
+QT       += core gui sql network concurrent
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -26,15 +26,17 @@ INCLUDEPATH += ../xamp_stream/include/
 INCLUDEPATH += ../xamp_player/include/
 INCLUDEPATH += ../thirdparty/spdlog/include/
 INCLUDEPATH += ../thirdparty/rapidxml/
+INCLUDEPATH += ../thirdparty/rapidjson/include/
 
 SOURCES += \
     thememanager.cpp \
+    widget/musicbrainzclient.cpp \
+    widget/colorpicker.cpp \
     widget/discogsclient.cpp \
     widget/artistview.cpp \
     widget/http.cpp \
-    widget/lastfmclient.cpp \
-    widget/musicbrainzclient.cpp \
     widget/seekslider.cpp \
+    widget/albumartistpage.cpp \
     widget/albumview.cpp \
     widget/appsettings.cpp \
     widget/clickablelabel.cpp \
@@ -62,11 +64,11 @@ SOURCES += \
 HEADERS += \
     thememanager.h \
     singleinstanceapplication.h \
+    widget/musicbrainzclient.h \
+    widget/colorpicker.h \
     widget/discogsclient.h \
     widget/artistview.h \
     widget/http.h \
-    widget/lastfmclient.h \
-    widget/musicbrainzclient.h \
     widget/seekslider.h \
     widget/actionmap.h \
     widget/albumview.h \
@@ -74,6 +76,7 @@ HEADERS += \
     widget/clickablelabel.h \
     widget/database.h \
     widget/filetag.h \
+    widget/albumartistpage.h \
     widget/framelesswindow.h \
     widget/image_utiltis.h \
     widget/lrcpage.h \

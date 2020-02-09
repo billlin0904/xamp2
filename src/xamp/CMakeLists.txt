@@ -18,6 +18,8 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/debug)
 
 include_directories(${CMAKE_CURRENT_LIST_DIR})
 include_directories("../thirdparty/spdlog/include/")
+include_directories("../thirdparty/rapidjson/include/")
+include_directories("../thirdparty/rapidxml/")
 include_directories("../xamp_base/")
 include_directories("../xamp_base/include")
 include_directories("../xamp_output_device/include")
@@ -67,11 +69,11 @@ find_library (
     )
 message(STATUS "LIB_XAMP_METADATA: [${LIB_XAMP_METADATA}]")
 
-find_package(Qt5 COMPONENTS Core Gui Widgets Sql REQUIRED)
+find_package(Qt5 COMPONENTS Core Gui Widgets Sql Network Concurrent REQUIRED)
 
 add_executable(xamp xamp.ui main.cpp xamp.qrc ${SOURCES})
 
-set(Qt5_LIBRARIES Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Sql)
+set(Qt5_LIBRARIES Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Sql Qt5::Network Qt5::Concurrent)
 
 set_target_properties(${Qt5_LIBRARIES} PROPERTIES MAP_IMPORTED_CONFIG_COVERAGE "DEBUG")
 

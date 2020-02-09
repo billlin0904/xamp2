@@ -27,9 +27,9 @@ inline QString formatBytes(size_t bytes) noexcept {
     else if (bytes >= kb && bytes < mb)
         result.sprintf("%.2f KB", (float)bytes / kb);
     else if (bytes < kb)
-        result.sprintf("%.2f Bytes", bytes);
+        result.sprintf("%.2f Bytes", (float)bytes);
     else
-        result.sprintf("%.2f Bytes", bytes);
+        result.sprintf("%.2f Bytes", (float)bytes);
 
     return result;
 }

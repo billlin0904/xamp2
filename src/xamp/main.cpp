@@ -28,9 +28,9 @@ static void loadAndDefaultAppConfig() {
 }
 
 int main(int argc, char *argv[]) {
-#ifdef Q_OS_WIN	
-	std::vector<ModuleHandle> preload_modules;
+    std::vector<ModuleHandle> preload_modules;
 
+#ifdef Q_OS_WIN
 	try {		
 		// 如果沒有預先載入拖入檔案會爆音.
 		preload_modules.emplace_back(LoadDll("psapi.dll"));
@@ -46,6 +46,16 @@ int main(int argc, char *argv[]) {
 	}
 
 	VmMemLock::EnableLockMemPrivilege(true);
+#endif
+
+#ifdef Q_OS_MAC
+    try {
+        preload_modules.emplace_back(LoadDll("libchromaprint.dylib"));
+        preload_modules.emplace_back(LoadDll("libbass.dylib"));
+    } catch (const Exception & e) {
+        QMessageBox::critical(nullptr, Q_UTF8("Load dll failure!"), QString::fromStdString(e.GetErrorMessage()));
+        return -1;
+    }
 #endif
 
 	Logger::Instance()
