@@ -6,6 +6,7 @@
 #include <QtWidgets/QApplication>
 #include <QClipboard>
 #include <QScrollBar>
+#include <QShortcut>
 
 #include <base/rng.h>
 #include <metadata/taglibmetareader.h>
@@ -175,9 +176,28 @@ void PlayListTableView::initial() {
 			});
 		action_map.addAction(tr("Copy title"), [item, this]() {
 			QApplication::clipboard()->setText(item.title);
-			});		
+			});
 		action_map.exec(pt);
 		});
+
+	auto control_A_key = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_A), this);
+	(void) QObject::connect(control_A_key, &QShortcut::activated, [this]() {
+		selectAll();
+	});
+
+	installEventFilter(this);
+}
+
+bool PlayListTableView::eventFilter(QObject* obj, QEvent* ev) {
+	auto type = ev->type();
+	if (this == obj && type == QEvent::KeyPress) {
+		auto event = static_cast<QKeyEvent*>(ev);
+		if (event->key() == Qt::Key_Delete) {
+			removeSelectItems();
+			return true;
+		}
+	}
+	return QWidget::eventFilter(obj, ev);
 }
 
 void PlayListTableView::append(const QString& file_name, bool add_playlist) {
@@ -208,7 +228,8 @@ void PlayListTableView::resizeColumn() const {
 			header->resizeSection(column, 60);
 			break;
 		case PLAYLIST_TITLE:
-			header->resizeSection(column, 250);
+			header->setSectionResizeMode(column, QHeaderView::ResizeToContents);
+			header->resizeSection(column, 450);
 			break;
 		case PLAYLIST_ALBUM:
 			header->setSectionResizeMode(column, QHeaderView::ResizeToContents);

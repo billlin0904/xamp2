@@ -56,10 +56,18 @@ private:
 class AlbumPlayListTableView : public QTableView {
 	Q_OBJECT
 public:
+	enum {
+		PLAYLIST_TRACK,
+		PLAYLIST_TITLE,
+		PLAYLIST_DURATION,
+	};
+
 	explicit AlbumPlayListTableView(QWidget* parent = nullptr);
 
 	void setPlaylistMusic(int32_t album_id);
-private:	
+private:
+	void resizeColumn();
+
 	QSqlQueryModel model_;
 };
 

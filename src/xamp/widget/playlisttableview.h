@@ -8,6 +8,7 @@
 #include <optional>
 
 #include <QTableView>
+#include <QKeyEvent>
 
 #include <base/metadata.h>
 
@@ -70,6 +71,8 @@ public slots:
 	void search(const QString& sort_str, Qt::CaseSensitivity case_sensitivity, QRegExp::PatternSyntax pattern_syntax);
 
 private:
+	bool eventFilter(QObject* obj, QEvent* ev) override;
+
 	void reloadSelectMetadata();
 
     void resizeEvent(QResizeEvent* event) override;

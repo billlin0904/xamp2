@@ -14,7 +14,6 @@
 #include <widget/win32/blur_effect_helper.h>
 #endif
 
-#include <widget/qtoucheventfilter.h>
 #include <widget/str_utilts.h>
 #include <widget/framelesswindow.h>
 
@@ -43,8 +42,7 @@ FramelessWindow::FramelessWindow(QWidget* parent)
     setStyleSheet(Q_UTF8(R"(
         font-family: "UI";
 		background: transparent;
-    )"));
-	installEventFilter(new QTouchEventFilter());    
+    )"));  
 #else
     setStyleSheet(Q_UTF8(R"(
         font-family: "UI";
@@ -103,8 +101,8 @@ void FramelessWindow::initialFontDatabase() {
     QList<QString> fallback_fonts;
 
 #ifdef Q_OS_WIN
-    fallback_fonts.append(Q_UTF8("Microsoft JhengHei UI"));
-    fallback_fonts.append(Q_UTF8("Microsoft JhengHei UI Bold"));
+    //fallback_fonts.append(Q_UTF8("Microsoft JhengHei UI"));
+    //fallback_fonts.append(Q_UTF8("Microsoft JhengHei UI Bold"));
     fallback_fonts.append(Q_UTF8("Microsoft Yahei UI"));
     fallback_fonts.append(Q_UTF8("Microsoft Yahei UI Bold"));
     fallback_fonts.append(Q_UTF8("Segoe UI"));

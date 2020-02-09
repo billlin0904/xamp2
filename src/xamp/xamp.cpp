@@ -131,6 +131,7 @@ void Xamp::initialUI() {
 	f.setPointSize(8);
 	ui.artistLabel->setFont(f);
 
+    f.setPointSize(6);
     ui.startPosLabel->setFont(f);
     ui.endPosLabel->setFont(f);
 

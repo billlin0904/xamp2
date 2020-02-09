@@ -150,6 +150,30 @@ AlbumPlayListTableView::AlbumPlayListTableView(QWidget* parent)
 	setStyleSheet(Q_UTF8("background-color: transparent"));
 }
 
+void AlbumPlayListTableView::resizeColumn() {
+	auto header = horizontalHeader();
+
+	for (auto column = 0; column < header->count(); ++column) {
+		switch (column) {
+		case AlbumPlayListTableView::PLAYLIST_TRACK:
+			header->setSectionResizeMode(column, QHeaderView::ResizeToContents);
+			header->resizeSection(column, 12);
+			break;
+		case AlbumPlayListTableView::PLAYLIST_TITLE:
+			header->setSectionResizeMode(column, QHeaderView::ResizeToContents);
+			header->resizeSection(column, 450);
+			break;
+		case AlbumPlayListTableView::PLAYLIST_DURATION:
+			header->setSectionResizeMode(column, QHeaderView::Fixed);
+			header->resizeSection(column, 60);
+			break;
+		default:
+			header->setSectionResizeMode(column, QHeaderView::Stretch);
+			break;
+		}
+	}
+}
+
 void AlbumPlayListTableView::setPlaylistMusic(int32_t album_id) {
 	QString query = Q_UTF8(R"(
                        SELECT
@@ -168,7 +192,7 @@ void AlbumPlayListTableView::setPlaylistMusic(int32_t album_id) {
                        albums.albumId = %1;
                        )");
 	model_.setQuery(query.arg(album_id));
-	resizeRowToContents(1);
+	resizeColumn();
 }
 
 AlbumViewPage::AlbumViewPage(QWidget* parent)
