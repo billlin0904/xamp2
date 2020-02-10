@@ -23,11 +23,11 @@
 #include "thememanager.h"
 #include "xamp.h"
 
-static QString getPlayEntityFormat(const AudioPlayer* player, const PlayListEntity& item) {
+static QString getPlayEntityFormat(const AudioPlayer* player, const QString& file_ext) {
     auto format = player->GetStreamFormat();
     auto dsd_speed = player->GetDSDSpeed();
 
-    auto ext = item.file_ext;
+    auto ext = file_ext;
     ext = ext.remove(Q_UTF8(".")).toUpper();
     auto is_mhz_samplerate = false;
     auto precision = 1;
@@ -627,25 +627,52 @@ void Xamp::play() {
     }
 }
 
-void Xamp::play(const PlayListEntity& item) {
-    ui.titleLabel->setText(item.title);
-    ui.artistLabel->setText(item.artist);    
+void Xamp::playMusic(const QString& album, const QString& title, const QString& artist, const QString& file_path, const QString& file_ext, const QString& cover_id) {
+    ui.titleLabel->setText(title);
+    ui.artistLabel->setText(artist);
 
-    auto use_bass_stream = QStringLiteral(".dsd,.dsf,.dff,.m4a,.ape").contains(item.file_ext);
-    player_->Open(item.file_path.toStdWString(), use_bass_stream, device_info_);
+    auto use_bass_stream = QStringLiteral(".dsd,.dsf,.dff,.m4a,.ape").contains(file_ext);
+    player_->Open(file_path.toStdWString(), use_bass_stream, device_info_);
 
     if (!player_->IsMute()) {
         setVolume(ui.volumeSlider->value());
-    } else {
+    }
+    else {
         setVolume(0);
     }
 
     ui.seekSlider->setRange(0, int32_t(player_->GetDuration() * 1000));
     ui.endPosLabel->setText(Time::msToString(player_->GetDuration()));
-    playlist_page_->format()->setText(getPlayEntityFormat(player_.get(), item));
+    playlist_page_->format()->setText(getPlayEntityFormat(player_.get(), file_ext));
 
-    player_->PlayStream();    
+    player_->PlayStream();
     ui.seekSlider->setEnabled(true);
+
+    if (auto cover = PixmapCache::Instance().find(cover_id)) {
+        setCover(*cover.value());
+        playlist_page_->cover()->setPixmap(Pixmap::resizeImage(*cover.value(),
+            playlist_page_->cover()->size(), true));
+    }
+    else {
+        setCover(ThemeManager::pixmap().unknownCover());
+    }
+
+    const QFileInfo file_info(file_path);
+    const auto lrc_path = file_info.path()
+        + Q_UTF8("/")
+        + file_info.completeBaseName()
+        + Q_UTF8(".lrc");
+    lrc_page_->lyricsWidget()->loadLrcFile(lrc_path);
+
+    playlist_page_->title()->setText(title);
+    lrc_page_->title()->setText(title);
+    lrc_page_->album()->setText(album);
+    lrc_page_->artist()->setText(artist);
+
+}
+
+void Xamp::play(const PlayListEntity& item) {
+    playMusic(item.album, item.title, item.artist, item.file_path, item.file_ext, item.cover_id);
 }
 
 void Xamp::play(const QModelIndex&, const PlayListEntity& item) {
@@ -668,31 +695,9 @@ void Xamp::play(const QModelIndex&, const PlayListEntity& item) {
         Toast::showTip(tr("uknown error"), this);
     }
 
-    if (current_entiry_.album_id != item.album_id) {
-        if (auto cover = PixmapCache::Instance().find(item.cover_id)) {
-            setCover(*cover.value());
-            playlist_page_->cover()->setPixmap(Pixmap::resizeImage(*cover.value(),
-                playlist_page_->cover()->size(), true));
-        }
-        else {
-            setCover(ThemeManager::pixmap().unknownCover());
-        }
-    }
-
     music_id_store_.insert(item.music_id);
+    music_id_store_.clear();
     current_entiry_ = item;
-
-    const QFileInfo file_info(item.file_path);
-    const auto lrc_path = file_info.path()
-            + Q_UTF8("/")
-            + file_info.completeBaseName()
-            + Q_UTF8(".lrc");
-    lrc_page_->lyricsWidget()->loadLrcFile(lrc_path);
-
-    playlist_page_->title()->setText(item.title);
-    lrc_page_->title()->setText(item.title);
-    lrc_page_->album()->setText(item.album);
-    lrc_page_->artist()->setText(item.artist);
 
     if (!player_->IsPlaying()) {
         playlist_page_->format()->setText(Q_UTF8(""));
@@ -794,6 +799,8 @@ void Xamp::initialPlaylist() {
     (void)QObject::connect(&mbc_, &MusicBrainzClient::finished, [](auto artist_id, auto discogs_artist_id) {
         Database::Instance().updateDiscogsArtistId(artist_id, discogs_artist_id);
         });
+
+    (void)QObject::connect(album_artist_page_->album(), &AlbumView::playMusic, this, &Xamp::playMusic);
 }
 
 void Xamp::addItem(const QString& file_name) {

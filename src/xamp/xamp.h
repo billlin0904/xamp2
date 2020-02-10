@@ -47,6 +47,8 @@ public:
     Xamp(QWidget *parent = nullptr);
 
 public slots:
+	void playMusic(const QString& album, const QString & title, const QString &artist, const QString& file_path, const QString& file_ext, const QString& cover_id);
+
 	void play(const QModelIndex& index, const PlayListEntity& item);
 
 private:

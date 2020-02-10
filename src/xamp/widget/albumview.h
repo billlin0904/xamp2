@@ -43,6 +43,10 @@ public:
 	void setTracks(int32_t tracks);
 
 	void setTotalDuration(double durations);
+
+signals:
+	void playMusic(const QString& album, const QString& title, const QString& artist, const QString& file_path, const QString& file_ext, const QString& cover_id);
+
 private:
 	QLabel* album_;
 	QLabel* artist_;
@@ -75,6 +79,9 @@ class AlbumView : public QListView {
 	Q_OBJECT
 public:
 	explicit AlbumView(QWidget* parent = nullptr);
+
+signals:
+	void playMusic(const QString& album, const QString& title, const QString& artist, const QString& file_path, const QString& file_ext, const QString& cover_id);
 
 public slots:
 	void refreshOnece(bool refreshOnece);

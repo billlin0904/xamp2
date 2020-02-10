@@ -109,8 +109,6 @@ AlbumPlayListTableView::AlbumPlayListTableView(QWidget* parent)
 #endif
 	setFont(f);
 
-	hideColumn(2);
-
 	setUpdatesEnabled(true);
 	setAcceptDrops(true);
 	setDragEnabled(true);
@@ -176,22 +174,30 @@ void AlbumPlayListTableView::resizeColumn() {
 
 void AlbumPlayListTableView::setPlaylistMusic(int32_t album_id) {
 	QString query = Q_UTF8(R"(
-                       SELECT
-					   musics.track,
-                       musics.title,
-					   musics.durationStr
-                       FROM
-                       albumMusic
-                       JOIN
-                       albums ON albums.albumId = albumMusic.albumId
-                       JOIN
-                       artists ON artists.artistId = albumMusic.artistId
-                       JOIN
-                       musics ON musics.musicId = albumMusic.musicId
-                       WHERE
-                       albums.albumId = %1;
-                       )");
+SELECT
+	musics.track,
+	musics.title,
+	musics.durationStr,
+	musics.musicId,
+	artists.artist,
+	musics.fileExt,
+	musics.path,
+	albums.coverId,
+	albums.album
+FROM
+	albumMusic
+	JOIN albums ON albums.albumId = albumMusic.albumId
+	JOIN artists ON artists.artistId = albumMusic.artistId
+	JOIN musics ON musics.musicId = albumMusic.musicId 
+WHERE
+	albums.albumId = %1;)");
 	model_.setQuery(query.arg(album_id));
+	setColumnHidden(3, true);
+	setColumnHidden(4, true);
+	setColumnHidden(5, true);
+	setColumnHidden(6, true);
+	setColumnHidden(7, true);
+	setColumnHidden(8, true);
 	resizeColumn();
 }
 
@@ -274,6 +280,17 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 		});
 
 	setStyleSheet(Q_UTF8("background-color: white"));
+
+	(void)QObject::connect(playlist_, &QTableView::doubleClicked, [this](const QModelIndex& index) {
+		auto title = index.model()->data(index.model()->index(index.row(), 1)).toString();
+		auto musicId = index.model()->data(index.model()->index(index.row(), 3)).toInt();
+		auto artist = index.model()->data(index.model()->index(index.row(), 4)).toString();
+		auto file_ext = index.model()->data(index.model()->index(index.row(), 5)).toString();
+		auto file_path = index.model()->data(index.model()->index(index.row(), 6)).toString();
+		auto cover_id = index.model()->data(index.model()->index(index.row(), 7)).toString();
+		auto album = index.model()->data(index.model()->index(index.row(), 8)).toString();
+		emit playMusic(album, title, artist, file_path, file_ext, cover_id);
+		});
 }
 
 void AlbumViewPage::setAlbum(const QString& album) {
@@ -345,11 +362,11 @@ AlbumView::AlbumView(QWidget* parent)
 	}
 	)"));
 
-	(void)QObject::connect(this, &QListView::clicked, [this](auto index) {
-		if (!page_) {
-			page_ = new AlbumViewPage(this);
-		}
+	page_ = new AlbumViewPage(this);
 
+	(void)QObject::connect(page_, &AlbumViewPage::playMusic, this, &AlbumView::playMusic);
+
+	(void)QObject::connect(this, &QListView::clicked, [this](auto index) {
 		auto album = index.model()->data(index.model()->index(index.row(), 0)).toString();
 		auto cover_id = index.model()->data(index.model()->index(index.row(), 1)).toString();
 		auto artist = index.model()->data(index.model()->index(index.row(), 2)).toString();
