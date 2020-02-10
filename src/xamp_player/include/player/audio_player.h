@@ -128,7 +128,7 @@ private:
 
 	FileStream* AsFileStream();
 
-	DsdDevice* AsDsdDevice();
+	DsdDevice* AsDsdDevice();	
 
 	struct XAMP_CACHE_ALIGNED(XAMP_MALLOC_ALGIGN_SIZE) AudioSlice {
         AudioSlice(const float* samples = nullptr, 

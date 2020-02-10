@@ -416,7 +416,7 @@ public:
 		return DsdSampleFormat::DSD_INT8MSB;
 	}
 
-	void SetPCMSampleRate(int32_t samplerate) {
+	void SetDsdToPcmSampleRate(int32_t samplerate) {
 		assert(stream_.is_valid());
 		BassLib::Instance().BASS_SetConfig(BASS_CONFIG_DSD_FREQ, samplerate);
 	}
@@ -509,8 +509,8 @@ DsdSampleFormat BassFileStream::GetDsdSampleFormat() const noexcept {
 	return stream_->GetDsdSampleFormat();
 }
 
-void BassFileStream::SetPCMSampleRate(int32_t samplerate) {
-	stream_->SetPCMSampleRate(samplerate);
+void BassFileStream::SetDsdToPcmSampleRate(int32_t samplerate) {
+	stream_->SetDsdToPcmSampleRate(samplerate);
 }
 
 int32_t BassFileStream::GetDsdSpeed() const noexcept {

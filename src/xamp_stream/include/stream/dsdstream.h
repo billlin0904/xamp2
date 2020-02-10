@@ -26,7 +26,7 @@ public:
 
 	virtual DsdSampleFormat GetDsdSampleFormat() const noexcept = 0;
 
-	virtual void SetPCMSampleRate(int32_t samplerate) = 0;
+	virtual void SetDsdToPcmSampleRate(int32_t samplerate) = 0;
 
     virtual int32_t GetDsdSpeed() const noexcept = 0;
 
