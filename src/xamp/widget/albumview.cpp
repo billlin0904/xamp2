@@ -220,7 +220,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 
 	auto f = font();
 
-	f.setPixelSize(18);
+	f.setPixelSize(22);
 	f.setBold(true);
 	album_ = new QLabel(this);	
 	album_->setMaximumSize(QSize(16777215, 32));
@@ -314,13 +314,12 @@ void AlbumViewPage::setTotalDuration(double durations) {
 }
 
 void AlbumViewPage::setCover(const QString& cover_id) {
-	constexpr QSize image_size(250, 250);
 	if (auto cache_small_cover = PixmapCache::Instance().find(cover_id)) {
-		cover_->setPixmap(Pixmap::resizeImage(cache_small_cover.value()->copy(), image_size));
+		cover_->setPixmap(Pixmap::resizeImage(cache_small_cover.value()->copy(), ThemeManager::getAlbumCoverSize()));
 	}
 	else {
 		setStyleSheet(Q_UTF8("background-color: white"));
-		cover_->setPixmap(Pixmap::resizeImage(ThemeManager::pixmap().defaultSizeUnknownCover(), image_size));
+		cover_->setPixmap(Pixmap::resizeImage(ThemeManager::pixmap().defaultSizeUnknownCover(), ThemeManager::getAlbumCoverSize()));
 	}
 }
 

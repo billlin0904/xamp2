@@ -241,8 +241,6 @@ void Database::setAlbumCover(int32_t album_id, const QString& album, const QStri
     ThrowlfFailue(query)
 }
 
-
-
 std::optional<AlbumStats> Database::getAlbumStats(int32_t album_id) const {
     QSqlQuery query;
 

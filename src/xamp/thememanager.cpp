@@ -72,6 +72,11 @@ QSize ThemeManager::getCacheCoverSize() noexcept {
     return getDefaultCoverSize() * 2;
 }
 
+QSize ThemeManager::getAlbumCoverSize() noexcept {
+    constexpr QSize DefaultAlbumCoverSize(250, 250);
+    return DefaultAlbumCoverSize;
+}
+
 void ThemeManager::setNightStyle(Ui::XampWindow &ui) {
 }
 

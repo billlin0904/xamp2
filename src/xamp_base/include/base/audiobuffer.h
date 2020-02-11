@@ -10,6 +10,7 @@
 
 #include <base/base.h>
 #include <base/align_ptr.h>
+#include <base/memory.h>
 
 namespace xamp::base {
 
@@ -88,7 +89,7 @@ template <typename Type, typename U>
 void AudioBuffer<Type, U>::Resize(const int32_t size) {
 	if (size > size_) {
         auto new_buffer = MakeBuffer<Type>(size);
-		(void)memcpy(new_buffer.get(), buffer_.get(), sizeof(Type) * GetSize());
+		(void)FastMemcpy(new_buffer.get(), buffer_.get(), sizeof(Type) * GetSize());
         buffer_ = std::move(new_buffer);
 		size_ = size;
 	}
@@ -146,11 +147,11 @@ bool AudioBuffer<Type, U>::TryWrite(const Type* data, int32_t data_size) noexcep
 	if (next_head > size_) {
         const auto range1 = size_ - head;
         const auto range2 = data_size - range1;
-		(void)memcpy(buffer_.get() + head, data, range1 * sizeof(Type));
-		(void)memcpy(buffer_.get(), data + range1, range2 * sizeof(Type));
+		(void)FastMemcpy(buffer_.get() + head, data, range1 * sizeof(Type));
+		(void)FastMemcpy(buffer_.get(), data + range1, range2 * sizeof(Type));
 		next_head -= size_;
 	} else {
-		(void)memcpy(buffer_.get() + head, data, data_size * sizeof(Type));
+		(void)FastMemcpy(buffer_.get() + head, data, data_size * sizeof(Type));
 		if (next_head == size_) {
 			next_head = 0;
 		}
@@ -173,12 +174,12 @@ bool AudioBuffer<Type, U>::TryRead(Type* data, const int32_t data_size) noexcept
 	if (next_tail > size_) {
         const auto range1 = size_ - tail;
         const auto range2 = data_size - range1;
-        (void)memcpy(data, buffer_.get() + tail, range1 * sizeof(Type));
-		(void)memcpy(data + range1, buffer_.get(), range2 * sizeof(Type));
+        (void)FastMemcpy(data, buffer_.get() + tail, range1 * sizeof(Type));
+		(void)FastMemcpy(data + range1, buffer_.get(), range2 * sizeof(Type));
 		next_tail -= size_;
 	}
 	else {
-		(void)memcpy(data, buffer_.get() + tail, data_size * sizeof(Type));
+		(void)FastMemcpy(data, buffer_.get() + tail, data_size * sizeof(Type));
 		if (next_tail == size_) {
 			next_tail = 0;
 		}

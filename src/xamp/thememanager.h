@@ -52,5 +52,6 @@ public:
     static QString getMenuStyle() noexcept;
     static QSize getDefaultCoverSize() noexcept;
     static QSize getCacheCoverSize() noexcept;
+    static QSize getAlbumCoverSize() noexcept;
 };
 

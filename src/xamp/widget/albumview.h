@@ -12,8 +12,6 @@
 #include <QStyledItemDelegate>
 #include <QTableView>
 
-#include <widget/colorpicker.h>
-
 class AlbumPlayListTableView;
 
 class AlbumViewStyledDelegate : public QStyledItemDelegate {
@@ -54,7 +52,6 @@ private:
 	QLabel* tracks_;
 	QLabel* durtions_;
 	AlbumPlayListTableView* playlist_;
-	ColorPicker color_picker_;
 };
 
 class AlbumPlayListTableView : public QTableView {

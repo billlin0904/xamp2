@@ -631,31 +631,54 @@ void Xamp::playMusic(const QString& album, const QString& title, const QString& 
     ui.titleLabel->setText(title);
     ui.artistLabel->setText(artist);
 
-    auto use_bass_stream = QStringLiteral(".dsd,.dsf,.dff,.m4a,.ape").contains(file_ext);
-    player_->Open(file_path.toStdWString(), use_bass_stream, device_info_);
-
-    if (!player_->IsMute()) {
-        setVolume(ui.volumeSlider->value());
-    }
-    else {
-        setVolume(0);
-    }
-
-    ui.seekSlider->setRange(0, int32_t(player_->GetDuration() * 1000));
-    ui.endPosLabel->setText(Time::msToString(player_->GetDuration()));
-    playlist_page_->format()->setText(getPlayEntityFormat(player_.get(), file_ext));
-
-    player_->PlayStream();
     ui.seekSlider->setEnabled(true);
 
-    if (auto cover = PixmapCache::Instance().find(cover_id)) {
-        setCover(*cover.value());
-        playlist_page_->cover()->setPixmap(Pixmap::resizeImage(*cover.value(),
-            playlist_page_->cover()->size(), true));
+    try {
+        auto use_bass_stream = QStringLiteral(".dsd,.dsf,.dff,.m4a,.ape").contains(file_ext);
+        player_->Open(file_path.toStdWString(), use_bass_stream, device_info_);
+
+        if (!player_->IsMute()) {
+            setVolume(ui.volumeSlider->value());
+        }
+        else {
+            setVolume(0);
+        }
+
+        ui.seekSlider->setRange(0, int32_t(player_->GetDuration() * 1000));
+        ui.endPosLabel->setText(Time::msToString(player_->GetDuration()));
+        playlist_page_->format()->setText(getPlayEntityFormat(player_.get(), file_ext));
+
+        player_->PlayStream();
+        ui.seekSlider->setEnabled(true);
+
+        if (auto cover = PixmapCache::Instance().find(cover_id)) {
+            setCover(*cover.value());
+            playlist_page_->cover()->setPixmap(Pixmap::resizeImage(*cover.value(),
+                playlist_page_->cover()->size(), true));
+        }
+        else {
+            setCover(ThemeManager::pixmap().unknownCover());
+        }
+
+        ThemeManager::setPlayOrPauseButton(ui, true);
     }
-    else {
-        setCover(ThemeManager::pixmap().unknownCover());
+    catch (const xamp::base::Exception & e) {
+        setSeekPosValue(0);
+        ui.seekSlider->setEnabled(false);        
+        player_->Stop(false, true);
+        XAMP_LOG_DEBUG("Exception: {}", e.GetErrorMessage());
+        Toast::showTip(Q_UTF8(e.GetErrorMessage()), this);
     }
+    catch (const std::exception & e) {
+        ui.seekSlider->setEnabled(false);
+        player_->Stop(false, true);
+        Toast::showTip(Q_UTF8(e.what()), this);
+    }
+    catch (...) {
+        ui.seekSlider->setEnabled(false);
+        player_->Stop(false, true);
+        Toast::showTip(tr("uknown error"), this);
+    }   
 
     const QFileInfo file_info(file_path);
     const auto lrc_path = file_info.path()
@@ -668,7 +691,6 @@ void Xamp::playMusic(const QString& album, const QString& title, const QString& 
     lrc_page_->title()->setText(title);
     lrc_page_->album()->setText(album);
     lrc_page_->artist()->setText(artist);
-
 }
 
 void Xamp::play(const PlayListEntity& item) {
@@ -676,24 +698,7 @@ void Xamp::play(const PlayListEntity& item) {
 }
 
 void Xamp::play(const QModelIndex&, const PlayListEntity& item) {
-	try {
-		ui.seekSlider->setEnabled(true);
-		playLocalFile(item);
-		ThemeManager::setPlayOrPauseButton(ui, true);		
-	} catch(const xamp::base::Exception& e) {
-        ui.seekSlider->setEnabled(false);
-        player_->Stop(false, true);
-		XAMP_LOG_DEBUG("Exception: {}", e.GetErrorMessage());
-        Toast::showTip(Q_UTF8(e.GetErrorMessage()), this);
-    } catch (const std::exception& e) {
-        ui.seekSlider->setEnabled(false);
-        player_->Stop(false, true);
-        Toast::showTip(Q_UTF8(e.what()), this);
-    } catch (...) {
-        ui.seekSlider->setEnabled(false);
-        player_->Stop(false, true);
-        Toast::showTip(tr("uknown error"), this);
-    }
+    playLocalFile(item);
 
     music_id_store_.insert(item.music_id);
     music_id_store_.clear();
