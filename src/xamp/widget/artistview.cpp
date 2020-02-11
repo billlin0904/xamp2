@@ -67,9 +67,6 @@ ArtistView::ArtistView(QWidget *parent)
     , manager_(new QNetworkAccessManager(this))
     , client_(manager_, this) {
     setModel(&model_);
-    model_.setEditStrategy(QSqlTableModel::OnManualSubmit);
-    model_.setTable(Q_UTF8("artists"));
-    model_.select();
 
     setUniformItemSizes(true);    
     setDragEnabled(false);
@@ -89,13 +86,10 @@ ArtistView::ArtistView(QWidget *parent)
     verticalScrollBar()->setStyleSheet(Q_UTF8("QScrollBar {width:0px;}"));
 
     (void) QObject::connect(this, &QListView::clicked, [this](auto index) {        
+        auto artist_id = index.model()->data(index.model()->index(index.row(), 0)).toInt();
         auto artist = index.model()->data(index.model()->index(index.row(), 1)).toString();
-        auto artist_id_index = dynamic_cast<const QSqlRelationalTableModel*>(index.model())->fieldIndex(Q_UTF8("artistId"));
-        auto artist_id = index.model()->data(index.model()->index(index.row(), artist_id_index)).toInt();        
-        auto discogs_artist_id_index = dynamic_cast<const QSqlRelationalTableModel*>(index.model())->fieldIndex(Q_UTF8("discogsArtistId"));
-        auto discogs_artist_id = index.model()->data(index.model()->index(index.row(), discogs_artist_id_index)).toString();
-        auto cover_id_index = dynamic_cast<const QSqlRelationalTableModel*>(index.model())->fieldIndex(Q_UTF8("coverId"));
-        auto cover_id_id = index.model()->data(index.model()->index(index.row(), cover_id_index)).toString();
+        auto cover_id_id = index.model()->data(index.model()->index(index.row(), 2)).toString();
+        auto discogs_artist_id = index.model()->data(index.model()->index(index.row(), 3)).toString();        
         emit clickedArtist(artist_id);
         if (!discogs_artist_id.isEmpty() && cover_id_id.isEmpty()) {
             client_.searchArtistId(artist_id, discogs_artist_id);
@@ -116,5 +110,16 @@ ArtistView::ArtistView(QWidget *parent)
 }
 
 void ArtistView::refreshOnece() {
-    model_.select();
+    QString query = Q_UTF8(R"(
+SELECT
+	artists.artistId,
+    artists.artist,
+    artists.coverId,
+    artists.discogsArtistId
+FROM
+	artists
+ORDER BY 
+    SUBSTR(artists.artist, 1, 1)
+    ;)");
+    model_.setQuery(query);
 }

@@ -627,11 +627,15 @@ void Xamp::play() {
     }
 }
 
-void Xamp::playMusic(const QString& album, const QString& title, const QString& artist, const QString& file_path, const QString& file_ext, const QString& cover_id) {
-    ui.titleLabel->setText(title);
-    ui.artistLabel->setText(artist);
+void Xamp::resetSeekPosValue() {
+    ui.seekSlider->setValue(0);
+    ui.startPosLabel->setText(Time::msToString(0));
+}
 
+void Xamp::playMusic(const QString& album, const QString& title, const QString& artist, const QString& file_path, const QString& file_ext, const QString& cover_id) {
     ui.seekSlider->setEnabled(true);
+
+    auto open_done = false;
 
     try {
         auto use_bass_stream = QStringLiteral(".dsd,.dsf,.dff,.m4a,.ape").contains(file_ext);
@@ -649,36 +653,45 @@ void Xamp::playMusic(const QString& album, const QString& title, const QString& 
         playlist_page_->format()->setText(getPlayEntityFormat(player_.get(), file_ext));
 
         player_->PlayStream();
-        ui.seekSlider->setEnabled(true);
-
-        if (auto cover = PixmapCache::Instance().find(cover_id)) {
-            setCover(*cover.value());
-            playlist_page_->cover()->setPixmap(Pixmap::resizeImage(*cover.value(),
-                playlist_page_->cover()->size(), true));
-        }
-        else {
-            setCover(ThemeManager::pixmap().unknownCover());
-        }
-
-        ThemeManager::setPlayOrPauseButton(ui, true);
+        open_done = true;
     }
     catch (const xamp::base::Exception & e) {
-        setSeekPosValue(0);
+        resetSeekPosValue();
         ui.seekSlider->setEnabled(false);        
         player_->Stop(false, true);
         XAMP_LOG_DEBUG("Exception: {}", e.GetErrorMessage());
         Toast::showTip(Q_UTF8(e.GetErrorMessage()), this);
     }
     catch (const std::exception & e) {
+        resetSeekPosValue();
         ui.seekSlider->setEnabled(false);
         player_->Stop(false, true);
         Toast::showTip(Q_UTF8(e.what()), this);
     }
     catch (...) {
+        resetSeekPosValue();
         ui.seekSlider->setEnabled(false);
         player_->Stop(false, true);
         Toast::showTip(tr("uknown error"), this);
-    }   
+    }
+
+    if (!open_done) {
+        return;
+    }
+
+    if (auto cover = PixmapCache::Instance().find(cover_id)) {
+        setCover(*cover.value());
+        playlist_page_->cover()->setPixmap(Pixmap::resizeImage(*cover.value(),
+            playlist_page_->cover()->size(), true));
+    }
+    else {
+        setCover(ThemeManager::pixmap().unknownCover());
+    }
+
+    ThemeManager::setPlayOrPauseButton(ui, true);
+
+    ui.titleLabel->setText(title);
+    ui.artistLabel->setText(artist);
 
     const QFileInfo file_info(file_path);
     const auto lrc_path = file_info.path()

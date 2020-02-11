@@ -118,6 +118,8 @@ private:
 
 	void setSeekPosValue(double stream_time_as_ms);
 
+	void resetSeekPosValue();
+
 	bool is_seeking_;
 	PlayerOrder order_;
 	QModelIndex play_index_;

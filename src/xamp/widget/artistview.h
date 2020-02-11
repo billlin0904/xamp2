@@ -40,5 +40,5 @@ public slots:
 private:
     QNetworkAccessManager* manager_;
     DiscogsClient client_;
-    QSqlRelationalTableModel model_;    
+    QSqlQueryModel model_;
 };

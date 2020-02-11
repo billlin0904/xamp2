@@ -407,7 +407,6 @@ public:
     }
 
 	int32_t GetSampleSize() const noexcept {
-		assert(stream_.is_valid());
 		return mode_ == DsdModes::DSD_MODE_RAW ? sizeof(int8_t) : sizeof(float);
 	}
 
