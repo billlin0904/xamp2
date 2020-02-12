@@ -55,8 +55,8 @@ void PlyalistPage::initial() {
 	f.setPixelSize(25);
 	title_->setFont(f);
 	title_->setObjectName(QString::fromUtf8("label_2"));
-	title_->setMinimumSize(QSize(0, 30));
-	title_->setMaximumSize(QSize(16777215, 30));
+	title_->setMinimumSize(QSize(0, 35));
+	title_->setMaximumSize(QSize(16777215, 35));
 
 	format_ = new QLabel(this);
 	f = font();

@@ -21,7 +21,7 @@ constexpr int32_t BUFFER_STREAM_COUNT = 5;
 constexpr int32_t PREALLOCATE_BUFFER_SIZE = 32 * 1024 * 1024;
 constexpr int32_t MAX_WRITE_RATIO = 20;
 constexpr int32_t MAX_READ_RATIO = 30;
-constexpr std::chrono::milliseconds UPDATE_SAMPLE_INTERVAL(500);
+constexpr std::chrono::milliseconds UPDATE_SAMPLE_INTERVAL(30);
 constexpr std::chrono::seconds WAIT_FOR_STRAEM_STOP_TIME(5);
 constexpr std::chrono::milliseconds SLEEP_OUTPUT_TIME(100);
 
@@ -37,6 +37,7 @@ AudioPlayer::AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter)
     , num_buffer_samples_(0)
     , num_read_sample_(0)
     , read_sample_size_(0)
+    , sample_size_(0)
     , is_playing_(false)
     , is_paused_(false)
     , state_adapter_(adapter) {
@@ -319,9 +320,6 @@ void AudioPlayer::Initial() {
                         return;
                     }
                     const auto slice = p->slice_.load();
-                    if (p->cache_slice_ == slice) {
-                        return;
-                    }
                     if (slice.sample_size > 0) {
                         adapter->OnSampleTime(slice.stream_time);
                     } if (p->is_playing_ && slice.sample_size == -1) {
@@ -452,7 +450,7 @@ void AudioPlayer::SetDeviceFormat() {
 }
 
 int AudioPlayer::operator()(void* samples, const int32_t num_buffer_frames, const double stream_time) noexcept {
-    const int32_t sample_size = num_buffer_frames * output_format_.GetChannels() * stream_->GetSampleSize();
+    const int32_t sample_size = num_buffer_frames * output_format_.GetChannels() * sample_size_;
 
     if (XAMP_LIKELY( buffer_.TryRead(reinterpret_cast<int8_t*>(samples), sample_size) )) {
         std::atomic_exchange(&slice_,
@@ -475,6 +473,8 @@ void AudioPlayer::BufferStream() {
     buffer_.Clear();
 
 	auto buffer = read_sample_buffer_.get();
+
+    sample_size_ = stream_->GetSampleSize();
 
     for (auto i = 0; i < BUFFER_STREAM_COUNT; ++i) {
         while (true) {
@@ -500,7 +500,7 @@ bool AudioPlayer::FillSamples(int32_t num_samples) noexcept {
         }
     }
  
-    return buffer_.TryWrite(read_sample_buffer_.get(), num_samples * stream_->GetSampleSize());
+    return buffer_.TryWrite(read_sample_buffer_.get(), num_samples * sample_size_);
 }
 
 void AudioPlayer::OnError(const Exception& e) noexcept {

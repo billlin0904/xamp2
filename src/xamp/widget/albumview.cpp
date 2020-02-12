@@ -279,7 +279,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 		hide();
 		});
 
-	setStyleSheet(Q_UTF8("background-color: white"));
+	setStyleSheet(Q_UTF8("background-color: rgba(228, 233, 237, 255)"));
 
 	(void)QObject::connect(playlist_, &QTableView::doubleClicked, [this](const QModelIndex& index) {
 		auto title = index.model()->data(index.model()->index(index.row(), 1)).toString();
@@ -318,7 +318,7 @@ void AlbumViewPage::setCover(const QString& cover_id) {
 		cover_->setPixmap(Pixmap::resizeImage(cache_small_cover.value()->copy(), ThemeManager::getAlbumCoverSize()));
 	}
 	else {
-		setStyleSheet(Q_UTF8("background-color: white"));
+		setStyleSheet(Q_UTF8("background-color: rgba(228, 233, 237, 255)"));
 		cover_->setPixmap(Pixmap::resizeImage(ThemeManager::pixmap().defaultSizeUnknownCover(), ThemeManager::getAlbumCoverSize()));
 	}
 }
@@ -344,6 +344,7 @@ AlbumView::AlbumView(QWidget* parent)
 	setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
 	setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
 	setItemDelegate(new AlbumViewStyledDelegate(this));
+	setAutoScroll(false);
 
 	verticalScrollBar()->setStyleSheet(Q_UTF8(R"(
     QScrollBar:vertical {

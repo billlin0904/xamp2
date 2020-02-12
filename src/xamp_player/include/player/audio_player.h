@@ -139,7 +139,7 @@ private:
 			, stream_time(stream_time) {
 		}
 
-		bool operator==(const AudioSlice& other) const noexcept {
+		XAMP_ALWAYS_INLINE bool operator==(const AudioSlice& other) const noexcept {
 			return samples == other.samples
 				&& sample_size == other.sample_size
 				&& stream_time == other.stream_time;
@@ -159,6 +159,7 @@ private:
 	int32_t num_buffer_samples_;
 	int32_t num_read_sample_;
 	int32_t read_sample_size_;
+	int32_t sample_size_;
 	std::atomic<bool> is_playing_;
 	std::atomic<bool> is_paused_;
 	std::atomic<AudioSlice> slice_;

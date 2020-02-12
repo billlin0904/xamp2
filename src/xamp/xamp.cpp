@@ -53,7 +53,7 @@ static QString getPlayEntityFormat(const AudioPlayer* player, const QString& fil
         dsdMode = Q_UTF8("PCM");
         break;
     case DsdModes::DSD_MODE_RAW:
-        dsdMode = Q_UTF8("RAW");
+        dsdMode = Q_UTF8("Native DSD");
         break;
     case DsdModes::DSD_MODE_DOP:
         dsdMode = Q_UTF8("DOP");

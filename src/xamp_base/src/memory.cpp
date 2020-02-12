@@ -43,7 +43,7 @@ void PrefactchFile(const std::wstring& file_name) {
 	PrefetchMemory(const_cast<void*>(file.GetData()), file.GetLength());
 }
 
-XAMP_RESTRICT void* FastMemcpy(void* dest, const void* src, size_t size) noexcept {
+XAMP_RESTRICT XAMP_NOALIAS void* FastMemcpy(void* dest, const void* src, size_t size) noexcept {
 #ifdef _WIN32
 	return memcpy_fast(dest, src, size);
 #else

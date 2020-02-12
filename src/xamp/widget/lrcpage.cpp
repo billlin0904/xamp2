@@ -129,11 +129,12 @@ void LrcPage::initial() {
 
 	lyrics_widget_ = new LyricsShowWideget(this);
 	lyrics_widget_->setObjectName(QString::fromUtf8("lyrics"));
-	lyrics_widget_->setMinimumSize(QSize(200, 60));
-
+	lyrics_widget_->setMinimumSize(QSize(200, 60));	
 	verticalLayout_2->addWidget(lyrics_widget_);
 
 	verticalLayout_2->setStretch(2, 1);
 
 	horizontalLayout_10->addLayout(verticalLayout_2);
+
+	setStyleSheet(Q_UTF8("background-color: transparent;"));
 }

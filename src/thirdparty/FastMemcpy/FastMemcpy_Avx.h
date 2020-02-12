@@ -29,12 +29,15 @@
 #elif defined(_MSC_VER)
 	#define INLINE __forceinline
     #define RESTRICT __declspec(restrict)
+	#define NOALIAS __declspec(noalias)
 #elif (defined(__BORLANDC__) || defined(__WATCOMC__))
     #define INLINE __inline
     #define RESTRICT
+	#define NOALIAS
 #else
     #define INLINE 
     #define RESTRICT
+	#define NOALIAS
 #endif
 #endif
 
@@ -43,7 +46,7 @@
 //---------------------------------------------------------------------
 // fast copy for different sizes
 //---------------------------------------------------------------------
-INLINE void memcpy_avx_16(void * dst, const void * src) {
+INLINE NOALIAS void memcpy_avx_16(void * dst, const void * src) {
 #if 1
 	__m128i m0 = _mm_loadu_si128(((const __m128i*)src) + 0);
 	_mm_storeu_si128(((__m128i*)dst) + 0, m0);
@@ -53,19 +56,19 @@ INLINE void memcpy_avx_16(void * dst, const void * src) {
 #endif
 }
 
-INLINE void memcpy_avx_32(void * dst, const void * src) {
+INLINE NOALIAS void memcpy_avx_32(void * dst, const void * src) {
 	__m256i m0 = _mm256_loadu_si256(((const __m256i*)src) + 0);
 	_mm256_storeu_si256(((__m256i*)dst) + 0, m0);
 }
 
-INLINE void memcpy_avx_64(void * dst, const void * src) {
+INLINE NOALIAS void memcpy_avx_64(void * dst, const void * src) {
 	__m256i m0 = _mm256_loadu_si256(((const __m256i*)src) + 0);
 	__m256i m1 = _mm256_loadu_si256(((const __m256i*)src) + 1);
 	_mm256_storeu_si256(((__m256i*)dst) + 0, m0);
 	_mm256_storeu_si256(((__m256i*)dst) + 1, m1);
 }
 
-INLINE void memcpy_avx_128(void * dst, const void * src) {
+INLINE NOALIAS void memcpy_avx_128(void * dst, const void * src) {
 	__m256i m0 = _mm256_loadu_si256(((const __m256i*)src) + 0);
 	__m256i m1 = _mm256_loadu_si256(((const __m256i*)src) + 1);
 	__m256i m2 = _mm256_loadu_si256(((const __m256i*)src) + 2);
@@ -76,7 +79,7 @@ INLINE void memcpy_avx_128(void * dst, const void * src) {
 	_mm256_storeu_si256(((__m256i*)dst) + 3, m3);
 }
 
-INLINE void memcpy_avx_256(void * dst, const void * src) {
+INLINE NOALIAS void memcpy_avx_256(void * dst, const void * src) {
 	__m256i m0 = _mm256_loadu_si256(((const __m256i*)src) + 0);
 	__m256i m1 = _mm256_loadu_si256(((const __m256i*)src) + 1);
 	__m256i m2 = _mm256_loadu_si256(((const __m256i*)src) + 2);
@@ -99,7 +102,7 @@ INLINE void memcpy_avx_256(void * dst, const void * src) {
 //---------------------------------------------------------------------
 // tiny memory copy with jump table optimized
 //---------------------------------------------------------------------
-INLINE RESTRICT void *memcpy_tiny(void * dst, const void * src, size_t size) {
+INLINE RESTRICT NOALIAS void *memcpy_tiny(void * dst, const void * src, size_t size) {
 	unsigned char *dd = ((unsigned char*)dst) + size;
 	const unsigned char *ss = ((const unsigned char*)src) + size;
 
@@ -370,7 +373,7 @@ INLINE RESTRICT void *memcpy_tiny(void * dst, const void * src, size_t size) {
 //---------------------------------------------------------------------
 // main routine
 //---------------------------------------------------------------------
-INLINE RESTRICT void* memcpy_fast(void * destination, const void * source, size_t size)
+INLINE RESTRICT NOALIAS void* memcpy_fast(void * destination, const void * source, size_t size)
 {
 	unsigned char *dst = (unsigned char*)destination;
 	const unsigned char *src = (const unsigned char*)source;

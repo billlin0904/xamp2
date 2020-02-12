@@ -16,8 +16,9 @@
 #endif
 
 namespace xamp::player {
-	class AudioPlayer;
+	class AudioPlayer;	
 	class PlaybackStateAdapter;
+	class Chromaprint;
 }
 
 

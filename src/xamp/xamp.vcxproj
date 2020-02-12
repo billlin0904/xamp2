@@ -138,7 +138,6 @@
     <ClCompile Include="widget\appsettings.cpp" />
     <ClCompile Include="widget\artistview.cpp" />
     <ClCompile Include="widget\clickablelabel.cpp" />
-    <ClCompile Include="widget\colorpicker.cpp" />
     <ClCompile Include="widget\database.cpp" />
     <ClCompile Include="widget\discogsclient.cpp" />
     <ClCompile Include="widget\filetag.cpp" />

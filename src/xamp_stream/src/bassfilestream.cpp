@@ -263,10 +263,6 @@ public:
 	}
 
 	void LoadFromFile(const std::wstring & file_path) {
-        if (!BassLib::Instance().IsLoaded()) {
-			BassLib::Instance().Load();			
-        }
-
         info_ = BASS_CHANNELINFO{};
 
         DWORD flags = 0;

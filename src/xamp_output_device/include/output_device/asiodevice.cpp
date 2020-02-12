@@ -393,7 +393,7 @@ void AsioDevice::OnBufferSwitch(long index) noexcept {
 
 	if (got_samples) {
 		for (int32_t i = 0, j = 0; i < mix_format_.GetChannels(); ++i) {
-			(void)memcpy(callbackInfo.buffer_infos[i].buffers[index],
+			(void)FastMemcpy(callbackInfo.buffer_infos[i].buffers[index],
 				&device_buffer_[j++ * buffer_bytes_],
 				buffer_bytes_);
 		}

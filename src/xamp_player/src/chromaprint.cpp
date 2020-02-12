@@ -2,6 +2,7 @@
 
 #include <chromaprint.h>
 
+#include <base/memory.h>
 #include <base/logger.h>
 #include <base/base.h>
 #include <base/exception.h>
@@ -106,7 +107,7 @@ public:
 				1);
 
 			fingerprint.resize(encoded_size);
-			memcpy(fingerprint.data(), encoded, encoded_size);
+			FastMemcpy(fingerprint.data(), encoded, encoded_size);
 		}
 		catch (...) {
 		}		

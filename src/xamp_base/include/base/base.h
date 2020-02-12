@@ -57,14 +57,16 @@
 #ifdef _WIN32
 #define XAMP_NO_VTABLE __declspec(novtable)
 #define XAMP_RESTRICT __declspec(restrict)
+#define XAMP_NOALIAS __declspec(noalias)
 #else
 #define XAMP_NO_VTABLE
 #define XAMP_RESTRICT
+#define XAMP_NOALIAS
 #endif
 
 #ifdef _WIN32
 // Optimization function call
-#ifdef DEBUG
+#ifndef NDEBUG
 #define XAMP_ALWAYS_INLINE __forceinline
 #else
 #define XAMP_ALWAYS_INLINE inline
@@ -76,10 +78,10 @@
 #endif
 
 #ifdef _WIN32
-#ifdef DEBUG
-# define XAMP_NO_DEFAULT assert(0)
-#else
+#ifndef NDEBUG
 # define XAMP_NO_DEFAULT __assume(0)
+#else
+# define XAMP_NO_DEFAULT assert(0)
 #endif
 #else
 # define XAMP_NO_DEFAULT assert(0)
