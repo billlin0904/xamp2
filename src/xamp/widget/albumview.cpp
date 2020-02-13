@@ -68,7 +68,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
 		option.rect.width() - 30, 15);
 
 	auto f = painter->font();
-	f.setPointSize(9);
+	f.setPointSize(8);
 
 	f.setBold(true);
 	painter->setFont(f);
@@ -158,11 +158,11 @@ void AlbumPlayListTableView::resizeColumn() {
 			header->resizeSection(column, 12);
 			break;
 		case AlbumPlayListTableView::PLAYLIST_TITLE:
-			header->setSectionResizeMode(column, QHeaderView::ResizeToContents);
-			header->resizeSection(column, 450);
+			header->setSectionResizeMode(column, QHeaderView::Fixed);
+			header->resizeSection(column, size().width() - ThemeManager::getAlbumCoverSize().width() - 100);
 			break;
 		case AlbumPlayListTableView::PLAYLIST_DURATION:
-			header->setSectionResizeMode(column, QHeaderView::Fixed);
+			header->setSectionResizeMode(column, QHeaderView::ResizeToContents);
 			header->resizeSection(column, 60);
 			break;
 		default:
@@ -186,9 +186,9 @@ SELECT
 	albums.album
 FROM
 	albumMusic
-	JOIN albums ON albums.albumId = albumMusic.albumId
-	JOIN artists ON artists.artistId = albumMusic.artistId
-	JOIN musics ON musics.musicId = albumMusic.musicId 
+	LEFT JOIN albums ON albums.albumId = albumMusic.albumId
+	LEFT JOIN artists ON artists.artistId = albumMusic.artistId
+	LEFT JOIN musics ON musics.musicId = albumMusic.musicId 
 WHERE
 	albums.albumId = %1;)");
 	model_.setQuery(query.arg(album_id));
@@ -382,6 +382,7 @@ AlbumView::AlbumView(QWidget* parent)
 		page_->setCover(cover_id);
 		page_->setPlaylistMusic(album_id);
 		page_->setFixedSize(QSize(list_view_rect.size().width() - 10, height));
+
 		if (auto album_stats = Database::Instance().getAlbumStats(album_id)) {
 			page_->setTracks(album_stats.value().tracks);
 			page_->setTotalDuration(album_stats.value().durations);
@@ -445,7 +446,7 @@ void AlbumView::refreshOnece() {
 void AlbumView::onSearchTextChanged(const QString& text) {
 	QString query(Q_UTF8(R"(
 SELECT
-album,
+	album,
 	albums.coverId,
 	artist,
 	albums.albumId 
@@ -458,9 +459,7 @@ WHERE
 	albums.album LIKE '%%1%'
 	)
 	)"));
-
-	query = query.arg(text);
-	model_.setQuery(query);
+	model_.setQuery(query.arg(text));
 	hideWidget();
 }
 

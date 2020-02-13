@@ -383,6 +383,7 @@ void Xamp::initialController() {
     (void)QObject::connect(ui.nextPageButton, &QToolButton::pressed, [this]() {
         getNextPage();
         album_artist_page_->refreshOnece();
+        emit album_artist_page_->album()->onSearchTextChanged(ui.searchLineEdit->text());
     });
 
     (void)QObject::connect(ui.addPlaylistButton, &QToolButton::pressed, [this]() {
