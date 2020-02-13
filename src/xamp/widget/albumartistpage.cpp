@@ -29,5 +29,5 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 
 void AlbumArtistPage::refreshOnece() {
 	artist_view_->refreshOnece();
-	album_view_->refreshOnece(true);
+	album_view_->refreshOnece();
 }

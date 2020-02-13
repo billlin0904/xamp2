@@ -328,7 +328,7 @@ AlbumView::AlbumView(QWidget* parent)
 	, model_(this)
 	, page_(nullptr) {
 	setModel(&model_);
-	refreshOnece(false);
+	refreshOnece();
 	setUniformItemSizes(true);
 	setDragEnabled(false);
 	// 不會出現選擇框
@@ -425,7 +425,7 @@ void AlbumView::setFilterByArtist(int32_t artist_id) {
 	hideWidget();
 }
 
-void AlbumView::refreshOnece(bool setWaitCursor) {
+void AlbumView::refreshOnece() {
 	model_.setQuery(Q_UTF8(R"(
 	SELECT
 		album,
@@ -439,6 +439,28 @@ void AlbumView::refreshOnece(bool setWaitCursor) {
 		( albums.artistId = artists.artistId )
 	)"));
 
+	hideWidget();
+}
+
+void AlbumView::onSearchTextChanged(const QString& text) {
+	QString query(Q_UTF8(R"(
+SELECT
+album,
+	albums.coverId,
+	artist,
+	albums.albumId 
+FROM
+	albumArtist
+	LEFT JOIN albums ON albums.albumId = albumArtist.albumId
+	LEFT JOIN artists ON artists.artistId = albumArtist.artistId 
+WHERE
+	(
+	albums.album LIKE '%%1%'
+	)
+	)"));
+
+	query = query.arg(text);
+	model_.setQuery(query);
 	hideWidget();
 }
 

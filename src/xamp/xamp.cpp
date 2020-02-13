@@ -350,6 +350,7 @@ void Xamp::initialController() {
         if (ui.currentView->count() > 0) {
             auto playlist_view = playlist_page_->playlist();
             emit playlist_view->search(text, Qt::CaseSensitivity::CaseInsensitive, QRegExp::PatternSyntax());
+            emit album_artist_page_->album()->onSearchTextChanged(text);
         }
     });
 

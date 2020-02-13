@@ -66,6 +66,7 @@ public:
 	explicit AlbumPlayListTableView(QWidget* parent = nullptr);
 
 	void setPlaylistMusic(int32_t album_id);
+
 private:
 	void resizeColumn();
 
@@ -81,11 +82,13 @@ signals:
 	void playMusic(const QString& album, const QString& title, const QString& artist, const QString& file_path, const QString& file_ext, const QString& cover_id);
 
 public slots:
-	void refreshOnece(bool refreshOnece);
+	void refreshOnece();
 
-	void setFilterByArtist(int32_t artist_id);
+	void setFilterByArtist(int32_t artist_id);	
 
 	void hideWidget();
+
+	void onSearchTextChanged(const QString& text);
 
 private:
 	AlbumViewPage* page_;
