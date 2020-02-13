@@ -47,16 +47,16 @@ static QString getPlayEntityFormat(const AudioPlayer* player, const QString& fil
         dsd_speed_format = Q_UTF8(" DSD") + QString::number(dsd_speed.value()) + Q_UTF8(" ");
 	}
 
-    QString dsdMode;
+    QString dsd_mode;
     switch (player->GetDSDModes()) {
     case DsdModes::DSD_MODE_PCM:
-        dsdMode = Q_UTF8("PCM");
+        dsd_mode = Q_UTF8("PCM");
         break;
-    case DsdModes::DSD_MODE_RAW:
-        dsdMode = Q_UTF8("Native DSD");
+    case DsdModes::DSD_MODE_NATIVE:
+        dsd_mode = Q_UTF8("Native DSD");
         break;
     case DsdModes::DSD_MODE_DOP:
-        dsdMode = Q_UTF8("DOP");
+        dsd_mode = Q_UTF8("DOP");
         break;
     }
 
@@ -66,7 +66,7 @@ static QString getPlayEntityFormat(const AudioPlayer* player, const QString& fil
         + (is_mhz_samplerate ? QString::number(format.GetSampleRate() / double(1000000), 'f', 2) + Q_UTF8("MHz/")
             : QString::number(format.GetSampleRate() / double(1000), 'f', precision) + Q_UTF8("kHz/"))
         + QString::number(bits) + Q_UTF8("bit")
-        + Q_UTF8(" | ") + dsdMode;
+        + Q_UTF8(" | ") + dsd_mode;
 }
 
 Xamp::Xamp(QWidget *parent)

@@ -37,6 +37,8 @@ int main(int argc, char *argv[]) {
 		preload_modules.emplace_back(LoadDll("comctl32.dll"));
 		preload_modules.emplace_back(LoadDll("WindowsCodecs.dll"));
 		// 為了效率考量.
+		preload_modules.emplace_back(LoadDll("AUDIOKSE.dll"));
+		preload_modules.emplace_back(LoadDll("avrt.dll"));
 		preload_modules.emplace_back(LoadDll("chromaprint.dll"));
 		preload_modules.emplace_back(LoadDll("bass.dll"));
 	}

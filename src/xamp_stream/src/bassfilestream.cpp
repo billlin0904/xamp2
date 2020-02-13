@@ -275,7 +275,7 @@ public:
             // DSD-over-PCM data is 24-bit, so the BASS_SAMPLE_FLOAT flag is required.
             flags = BASS_DSD_DOP | BASS_SAMPLE_FLOAT;
             break;
-        case DsdModes::DSD_MODE_RAW:
+        case DsdModes::DSD_MODE_NATIVE:
             flags = BASS_DSD_RAW;
             break;
 		default:
@@ -352,7 +352,7 @@ public:
 
 	AudioFormat GetFormat() const {
 		assert(stream_.is_valid());
-		if (mode_ == DsdModes::DSD_MODE_RAW) {
+		if (mode_ == DsdModes::DSD_MODE_NATIVE) {
             return AudioFormat(DataFormat::FORMAT_DSD,
 							   info_.chans,
                                ByteFormat::SINT8,
@@ -376,7 +376,6 @@ public:
 	}
 
     int32_t GetDsdSampleRate() const {
-		assert(stream_.is_valid());
         float rate = 0;
         BassIfFailedThrow(BassLib::Instance().BASS_ChannelGetAttribute(stream_.get(), BASS_ATTRIB_DSD_RATE, &rate));
         return static_cast<int32_t>(rate);
@@ -403,21 +402,18 @@ public:
     }
 
 	int32_t GetSampleSize() const noexcept {
-		return mode_ == DsdModes::DSD_MODE_RAW ? sizeof(int8_t) : sizeof(float);
+		return mode_ == DsdModes::DSD_MODE_NATIVE ? sizeof(int8_t) : sizeof(float);
 	}
 
 	DsdSampleFormat GetDsdSampleFormat() const noexcept {
-		assert(stream_.is_valid());
 		return DsdSampleFormat::DSD_INT8MSB;
 	}
 
-	void SetDsdToPcmSampleRate(int32_t samplerate) {
-		assert(stream_.is_valid());
+	void SetDsdToPcmSampleRate(int32_t samplerate) {		
 		BassLib::Instance().BASS_SetConfig(BASS_CONFIG_DSD_FREQ, samplerate);
 	}
 
-    int32_t GetDsdSpeed() const noexcept {
-		assert(stream_.is_valid());
+    int32_t GetDsdSpeed() const noexcept {		
         return GetDsdSampleRate() / PCM_SAMPLE_RATE_441;
     }
 private:
@@ -477,7 +473,7 @@ std::string_view BassFileStream::GetDescription() const noexcept {
 }
 
 DsdModes BassFileStream::GetSupportDsdMode() const noexcept {
-	return DsdModes{ DsdModes::DSD_MODE_PCM | DsdModes::DSD_MODE_RAW | DsdModes::DSD_MODE_DOP };
+	return DsdModes{ DsdModes::DSD_MODE_PCM | DsdModes::DSD_MODE_NATIVE | DsdModes::DSD_MODE_DOP };
 }
 
 void BassFileStream::SetDSDMode(DsdModes mode) noexcept {

@@ -57,7 +57,7 @@ void AudioPlayer::PrepareAllocate() {
 	wait_timer_.SetTimeout(SLEEP_OUTPUT_TIME);
 	buffer_.Resize(PREALLOCATE_BUFFER_SIZE);
     // Initial std::async internal threadpool
-    stream_task_ = std::async(std::launch::async, []() {});
+    stream_task_ = std::async(std::launch::async | std::launch::deferred, []() {});
     // Load Bass dll
     BassFileStream::LoadBassLib();
 }
@@ -133,8 +133,8 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, bool is_dsd_stream, 
         if (auto dsd_stream = AsDsdStream()) {
 #ifdef _WIN32
             if (device_info.is_support_dsd) {
-                dsd_stream->SetDSDMode(DsdModes::DSD_MODE_RAW);
-                dsd_mode_ = DsdModes::DSD_MODE_RAW;
+                dsd_stream->SetDSDMode(DsdModes::DSD_MODE_NATIVE);
+                dsd_mode_ = DsdModes::DSD_MODE_NATIVE;
             } else {                
                 dsd_stream->SetDSDMode(DsdModes::DSD_MODE_PCM);
                 dsd_mode_ = DsdModes::DSD_MODE_PCM;
@@ -148,6 +148,7 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, bool is_dsd_stream, 
     }
     else {        
         stream_ = MakeAlign<AudioStream, AvFileStream>();
+        dsd_mode_ = DsdModes::DSD_MODE_PCM;
     }
 #else
     if (!stream_) {
@@ -410,7 +411,7 @@ void AudioPlayer::CreateBuffer() {
     int32_t require_read_sample = 0;
 
     if (DeviceFactory::Instance().IsPlatformSupportedASIO()) {
-        if (dsd_mode_ == DsdModes::DSD_MODE_RAW
+        if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE
                 || DeviceFactory::Instance().IsASIODevice(device_type_id_)) {
 			require_read_sample = XAMP_MAX_SAMPLERATE;
 		}
@@ -494,7 +495,7 @@ void AudioPlayer::BufferStream() {
 bool AudioPlayer::FillSamples(int32_t num_samples) noexcept {
     if (auto dsd_stream = AsDsdStream()) {
         if (dsd_stream->IsDsdFile()) {
-            if (dsd_stream->GetDsdMode() == DsdModes::DSD_MODE_RAW) {
+            if (dsd_stream->GetDsdMode() == DsdModes::DSD_MODE_NATIVE) {
                 return buffer_.TryWrite(read_sample_buffer_.get(), num_samples);
             }
         }
@@ -534,13 +535,19 @@ void AudioPlayer::OpenDevice(double stream_time) {
 #ifdef ENABLE_ASIO
     if (auto dsd_output = AsDsdDevice()) {
         if (auto dsd_stream = AsDsdStream()) {
-            if (dsd_stream->GetDsdMode() == DsdModes::DSD_MODE_RAW) {
+            if (dsd_stream->GetDsdMode() == DsdModes::DSD_MODE_NATIVE) {
                 dsd_output->SetIoFormat(AsioIoFormat::IO_FORMAT_DSD);
+                dsd_mode_ = DsdModes::DSD_MODE_NATIVE;
             }
             else {
                 dsd_output->SetIoFormat(AsioIoFormat::IO_FORMAT_PCM);
+                dsd_mode_ = DsdModes::DSD_MODE_PCM;
             }
         }
+    }
+    else 
+    {
+        dsd_mode_ = DsdModes::DSD_MODE_PCM;
     }
 #endif
     device_->OpenStream(output_format_);
@@ -603,7 +610,7 @@ void AudioPlayer::PlayStream() {
         XAMP_LOG_DEBUG("Stream thread finished!");
     };
 
-    stream_task_ = std::async(std::launch::async, stream_proc, player);
+    stream_task_ = std::async(std::launch::async | std::launch::deferred, stream_proc, player);
 }
 
 }

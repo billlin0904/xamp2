@@ -15,7 +15,7 @@ enum class DsdSampleFormat {
 
 enum DsdModes : uint8_t {
 	DSD_MODE_PCM = 0,
-	DSD_MODE_RAW = 2,
+	DSD_MODE_NATIVE = 2,
 	DSD_MODE_DOP = 4,
 	// NOTE: Unsupported now!
 	// DSD_MODE_DOP_AA = 8

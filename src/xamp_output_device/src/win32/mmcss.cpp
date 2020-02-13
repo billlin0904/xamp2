@@ -62,7 +62,7 @@ public:
 		}
 		
 		if (!AvrtLib::Instance().AvRevertMmThreadCharacteristics(avrt_handle_)) {
-			DWORD last_error = ::GetLastError();
+			auto last_error = ::GetLastError();
 			XAMP_LOG_ERROR("AvSetMmThreadCharacteristicsW return failure! Error:{} {}",
 				last_error,
 				Exception::GetPlatformErrorMessage(last_error));

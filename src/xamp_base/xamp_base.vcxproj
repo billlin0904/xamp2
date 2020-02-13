@@ -133,6 +133,7 @@
       <BrowseInformation>true</BrowseInformation>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <FloatingPointModel>Precise</FloatingPointModel>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -173,7 +174,6 @@
     <ClInclude Include="include\base\windows_handle.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\thirdparty\FastMemcpy\FastMemcpy_Avx.c" />
     <ClCompile Include="src\audioformat.cpp" />
     <ClCompile Include="src\dataconverter.cpp" />
     <ClCompile Include="src\dll.cpp" />
