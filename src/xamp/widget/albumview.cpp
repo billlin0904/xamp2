@@ -390,10 +390,10 @@ AlbumView::AlbumView(QWidget* parent)
 	(void)QObject::connect(page_, &AlbumViewPage::playMusic, this, &AlbumView::playMusic);
 
 	(void)QObject::connect(this, &QListView::clicked, [this](auto index) {
-		auto album = index.model()->data(index.model()->index(index.row(), 0)).toString();
-		auto cover_id = index.model()->data(index.model()->index(index.row(), 1)).toString();
-		auto artist = index.model()->data(index.model()->index(index.row(), 2)).toString();
-		auto album_id = index.model()->data(index.model()->index(index.row(), 3)).toInt();
+		auto album = GetIndexValue(index, 0).toString();
+		auto cover_id = GetIndexValue(index, 1).toString();
+		auto artist = GetIndexValue(index, 2).toString();
+		auto album_id = GetIndexValue(index, 3).toInt();
 
 		constexpr auto height = 460;
 
