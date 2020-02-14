@@ -21,7 +21,11 @@
 #include <widget/pixmapcache.h>
 #include <widget/albumview.h>
 
-static QString colourToString(QColor colour) {
+static inline QVariant GetIndexValue(const QModelIndex& index, int i) {
+	return index.model()->data(index.model()->index(index.row(), i));
+}
+
+static QString ColorToString(QColor colour) {
 	QString s = QString::number(colour.red()) + Q_UTF8(",") +
 		QString::number(colour.green()) + Q_UTF8(",") +
 		QString::number(colour.blue());
@@ -32,13 +36,13 @@ static QString colourToString(QColor colour) {
 }
 
 #define MAKE_TEXT_COLOR(color) \
-	QString(Q_UTF8("color: rgb(%1);")).arg(colourToString(color)) \
+	QString(Q_UTF8("color: rgb(%1);")).arg(ColorToString(color)) \
 
 #define MAKE_BK_COLOR(color) \
-	QString(Q_UTF8("background-color: rgb(%1);")).arg(colourToString(color)) \
+	QString(Q_UTF8("background-color: rgb(%1);")).arg(ColorToString(color)) \
 
 #define MAKE_COLOR(color) \
-	QString(Q_UTF8("color: rgb(%1);")).arg(colourToString(color)) \
+	QString(Q_UTF8("color: rgb(%1);")).arg(ColorToString(color)) \
 
 AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
 	: QStyledItemDelegate(parent) {
@@ -183,7 +187,9 @@ SELECT
 	musics.fileExt,
 	musics.path,
 	albums.coverId,
-	albums.album
+	albums.album,
+	artists.artistId,
+	albums.albumId
 FROM
 	albumMusic
 	LEFT JOIN albums ON albums.albumId = albumMusic.albumId
@@ -198,12 +204,13 @@ WHERE
 	setColumnHidden(6, true);
 	setColumnHidden(7, true);
 	setColumnHidden(8, true);
+	setColumnHidden(9, true);
+	setColumnHidden(10, true);
 	resizeColumn();
 }
 
 AlbumViewPage::AlbumViewPage(QWidget* parent)
 	: QFrame(parent) {
-	setStyleSheet(Q_UTF8("background: white;"));
 	setFrameStyle(QFrame::NoFrame);
 
 	auto default_layout = new QVBoxLayout(this);
@@ -282,14 +289,30 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 	setStyleSheet(Q_UTF8("background-color: rgba(228, 233, 237, 255)"));
 
 	(void)QObject::connect(playlist_, &QTableView::doubleClicked, [this](const QModelIndex& index) {
-		auto title = index.model()->data(index.model()->index(index.row(), 1)).toString();
-		auto musicId = index.model()->data(index.model()->index(index.row(), 3)).toInt();
-		auto artist = index.model()->data(index.model()->index(index.row(), 4)).toString();
-		auto file_ext = index.model()->data(index.model()->index(index.row(), 5)).toString();
-		auto file_path = index.model()->data(index.model()->index(index.row(), 6)).toString();
-		auto cover_id = index.model()->data(index.model()->index(index.row(), 7)).toString();
-		auto album = index.model()->data(index.model()->index(index.row(), 8)).toString();
-		emit playMusic(album, title, artist, file_path, file_ext, cover_id);
+		auto title = GetIndexValue(index, 1).toString();
+		auto musicId = GetIndexValue(index, 3).toInt();
+		auto artist = GetIndexValue(index, 4).toString();
+		auto file_ext = GetIndexValue(index, 5).toString();
+		auto file_path = GetIndexValue(index, 6).toString();
+		auto cover_id = GetIndexValue(index, 7).toString();
+		auto album = GetIndexValue(index, 8).toString();
+
+		auto artistId = GetIndexValue(index, 9).toInt();
+		auto albumId = GetIndexValue(index, 10).toInt();
+
+		AlbumEntity entity;
+
+		entity.music_id = musicId;
+		entity.album = album;
+		entity.title = title;
+		entity.artist = artist;
+		entity.cover_id = cover_id;
+		entity.file_path = file_path;
+		entity.file_ext = file_ext;
+		entity.album_id = albumId;
+		entity.artist_id = artistId;
+
+		emit playMusic(entity);
 		});
 }
 

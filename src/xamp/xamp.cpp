@@ -387,7 +387,11 @@ void Xamp::initialController() {
     });
 
     (void)QObject::connect(ui.addPlaylistButton, &QToolButton::pressed, [this]() {
-        addTable();
+        auto pos = mapFromGlobal(QCursor::pos());
+        playback_history_page_->move(QPoint(pos.x() - 300, pos.y() - 410));
+        playback_history_page_->setMinimumSize(QSize(400, 400));
+        playback_history_page_->refreshOnece();
+        playback_history_page_->show();
     });
 
     (void)QObject::connect(ui.coverLabel, &ClickableLabel::clicked, [this]() {
@@ -634,14 +638,14 @@ void Xamp::resetSeekPosValue() {
     ui.startPosLabel->setText(Time::msToString(0));
 }
 
-void Xamp::playMusic(const QString& album, const QString& title, const QString& artist, const QString& file_path, const QString& file_ext, const QString& cover_id) {
+void Xamp::playMusic(const AlbumEntity& item) {
     ui.seekSlider->setEnabled(true);
 
     auto open_done = false;
 
     try {
-        auto use_bass_stream = QStringLiteral(".dsd,.dsf,.dff,.m4a,.ape").contains(file_ext);
-        player_->Open(file_path.toStdWString(), use_bass_stream, device_info_);
+        auto use_bass_stream = QStringLiteral(".dsd,.dsf,.dff,.m4a,.ape").contains(item.file_ext);
+        player_->Open(item.file_path.toStdWString(), use_bass_stream, device_info_);
 
         if (!player_->IsMute()) {
             setVolume(ui.volumeSlider->value());
@@ -652,7 +656,7 @@ void Xamp::playMusic(const QString& album, const QString& title, const QString& 
 
         ui.seekSlider->setRange(0, int32_t(player_->GetDuration() * 1000));
         ui.endPosLabel->setText(Time::msToString(player_->GetDuration()));
-        playlist_page_->format()->setText(getPlayEntityFormat(player_.get(), file_ext));
+        playlist_page_->format()->setText(getPlayEntityFormat(player_.get(), item.file_ext));
 
         player_->PlayStream();
         open_done = true;
@@ -681,7 +685,7 @@ void Xamp::playMusic(const QString& album, const QString& title, const QString& 
         return;
     }
 
-    if (auto cover = PixmapCache::Instance().find(cover_id)) {
+    if (auto cover = PixmapCache::Instance().find(item.cover_id)) {
         setCover(*cover.value());
         playlist_page_->cover()->setPixmap(Pixmap::resizeImage(*cover.value(),
             playlist_page_->cover()->size(), true));
@@ -692,31 +696,41 @@ void Xamp::playMusic(const QString& album, const QString& title, const QString& 
 
     ThemeManager::setPlayOrPauseButton(ui, true);
 
-    ui.titleLabel->setText(title);
-    ui.artistLabel->setText(artist);
+    ui.titleLabel->setText(item.title);
+    ui.artistLabel->setText(item.artist);
 
-    const QFileInfo file_info(file_path);
+    const QFileInfo file_info(item.file_path);
     const auto lrc_path = file_info.path()
         + Q_UTF8("/")
         + file_info.completeBaseName()
         + Q_UTF8(".lrc");
     lrc_page_->lyricsWidget()->loadLrcFile(lrc_path);
 
-    playlist_page_->title()->setText(title);
-    lrc_page_->title()->setText(title);
-    lrc_page_->album()->setText(album);
-    lrc_page_->artist()->setText(artist);
+    playlist_page_->title()->setText(item.title);
+    lrc_page_->title()->setText(item.title);
+    lrc_page_->album()->setText(item.album);
+    lrc_page_->artist()->setText(item.artist);
+
+    Database::Instance().addPlaybackHistory(item.album_id, item.artist_id, item.music_id);
 }
 
 void Xamp::play(const PlayListEntity& item) {
-    playMusic(item.album, item.title, item.artist, item.file_path, item.file_ext, item.cover_id);
+    AlbumEntity album_entity;
+    album_entity.music_id = item.music_id;
+    album_entity.artist_id = item.artist_id;
+    album_entity.album_id = item.album_id;
+    album_entity.cover_id = item.cover_id;
+    album_entity.title = item.title;
+    album_entity.album = item.album;
+    album_entity.artist = item.artist;
+    album_entity.file_ext = item.file_ext;
+    album_entity.file_path = item.file_path;
+    playMusic(album_entity);
 }
 
 void Xamp::play(const QModelIndex&, const PlayListEntity& item) {
     playLocalFile(item);
 
-    music_id_store_.insert(item.music_id);
-    music_id_store_.clear();
     current_entiry_ = item;
 
     if (!player_->IsPlaying()) {
@@ -763,10 +777,12 @@ void Xamp::addTable() {
 
     auto playlis_id = Database::Instance().addPlaylist(Q_UTF8(""), 0);
     auto table_id = Database::Instance().addTable(table_name, 0, playlis_id);
+    /*
     for (auto music_id : music_id_store_) {
         Database::Instance().addMusicToPlaylist(music_id, playlis_id);
         Database::Instance().addTablePlaylist(table_id, playlis_id);
     }
+    */
     ui.sliderBar->addTab(table_name, table_id);
 }
 
@@ -810,6 +826,9 @@ void Xamp::initialPlaylist() {
 
     lrc_page_ = new LrcPage(this);
     album_artist_page_ = new AlbumArtistPage(this);
+    playback_history_page_ = new PlaybackHistoryPage(this);
+    playback_history_page_->setFont(font());
+    playback_history_page_->hide();
 
     pushWidget(lrc_page_);
     pushWidget(playlist_page_);

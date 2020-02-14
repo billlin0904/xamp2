@@ -22,6 +22,8 @@
 #include <widget/playlisttableview.h>
 #include <widget/lyricsshowwideget.h>
 #include <widget/musicbrainzclient.h>
+#include <widget/playbackhistorypage.h>
+#include <widget/albumview.h>
 
 #include "ui_xamp.h"
 
@@ -47,7 +49,7 @@ public:
     Xamp(QWidget *parent = nullptr);
 
 public slots:
-	void playMusic(const QString& album, const QString & title, const QString &artist, const QString& file_path, const QString& file_ext, const QString& cover_id);
+	void playMusic(const AlbumEntity& item);
 
 	void play(const QModelIndex& index, const PlayListEntity& item);
 
@@ -129,9 +131,9 @@ private:
 	LrcPage* lrc_page_;
 	PlyalistPage* playlist_page_;
 	AlbumArtistPage* album_artist_page_;
-	QStack<int32_t> stack_page_id_;	
-    std::set<int32_t> music_id_store_;
+	QStack<int32_t> stack_page_id_;	    
 	std::shared_ptr<PlayerStateAdapter> state_adapter_;
 	std::shared_ptr<AudioPlayer> player_;
+	PlaybackHistoryPage* playback_history_page_;
 	MusicBrainzClient mbc_;
 };

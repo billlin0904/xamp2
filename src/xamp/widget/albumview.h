@@ -14,6 +14,20 @@
 
 class AlbumPlayListTableView;
 
+struct AlbumEntity {
+	int32_t album_id{ 0 };
+	int32_t artist_id{ 0 };
+	int32_t music_id{ 0 };
+	QString album;
+	QString title;
+	QString artist;
+	QString file_path;
+	QString file_ext;
+	QString cover_id;
+};
+
+Q_DECLARE_METATYPE(AlbumEntity)
+
 class AlbumViewStyledDelegate : public QStyledItemDelegate {
 	Q_OBJECT
 public:
@@ -43,7 +57,7 @@ public:
 	void setTotalDuration(double durations);
 
 signals:
-	void playMusic(const QString& album, const QString& title, const QString& artist, const QString& file_path, const QString& file_ext, const QString& cover_id);
+	void playMusic(const AlbumEntity& entity);
 
 private:
 	QLabel* album_;
@@ -79,7 +93,7 @@ public:
 	explicit AlbumView(QWidget* parent = nullptr);
 
 signals:
-	void playMusic(const QString& album, const QString& title, const QString& artist, const QString& file_path, const QString& file_ext, const QString& cover_id);
+	void playMusic(const AlbumEntity& entity);
 
 public slots:
 	void refreshOnece();

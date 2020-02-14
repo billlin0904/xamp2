@@ -82,6 +82,10 @@ public:
 
     void addOrUpdateAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id);
 
+    void addPlaybackHistory(int32_t album_id, int32_t artist_id, int32_t music_id);
+
+    void deleteOldestHistory();
+
     QString getAlbumCoverId(int32_t album_id) const;
 
     void setTableName(int32_t table_id, const QString &name);
