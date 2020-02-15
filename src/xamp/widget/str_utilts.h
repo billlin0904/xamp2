@@ -6,9 +6,15 @@
 #pragma once
 
 #include <QString>
+#include <QVariant>
+#include <QModelIndex>
 
 #define Q_UTF8(str) QLatin1String{str}
 #define Q_EMPTY_STR QLatin1String{""}
+
+inline QVariant GetIndexValue(const QModelIndex& index, int i) {
+    return index.model()->data(index.model()->index(index.row(), i));
+}
 
 inline QString formatBytes(size_t bytes) noexcept {
     constexpr float tb = 1099511627776;

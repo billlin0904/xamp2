@@ -154,6 +154,7 @@ void Database::createTableIfNotExist() {
                        artistId integer,
                        albumId integer,
 					   dateTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+					   selected integer DEFAULT 1,
                        FOREIGN KEY(musicId) REFERENCES musics(musicId),
                        FOREIGN KEY(artistId) REFERENCES artists(artistId),
                        FOREIGN KEY(albumId) REFERENCES albums(albumId)					   
@@ -180,8 +181,9 @@ void Database::open(const QString& file_name) {
 	(void)db_.exec(Q_UTF8("PRAGMA cache_size = 40960"));
 	(void)db_.exec(Q_UTF8("PRAGMA temp_store = MEMORY"));
 	(void)db_.exec(Q_UTF8("PRAGMA mmap_size = 40960"));
+#ifndef _DEBUG
 	(void)db_.exec(Q_UTF8("PRAGMA locking_mode = EXCLUSIVE"));
-
+#endif
 	createTableIfNotExist();
 }
 

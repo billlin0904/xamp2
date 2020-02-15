@@ -48,6 +48,9 @@ class Xamp : public FramelessWindow {
 public:
     Xamp(QWidget *parent = nullptr);
 
+signals:
+	void payNextMusic();
+
 public slots:
 	void playMusic(const AlbumEntity& item);
 

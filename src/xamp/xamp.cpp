@@ -6,6 +6,7 @@
 #include <QFileInfo>
 #include <QDesktopWidget>
 #include <QInputDialog>
+#include <QShortcut>
 
 #include <widget/albumartistpage.h>
 #include <widget/lrcpage.h>
@@ -389,7 +390,7 @@ void Xamp::initialController() {
     (void)QObject::connect(ui.addPlaylistButton, &QToolButton::pressed, [this]() {
         auto pos = mapFromGlobal(QCursor::pos());
         playback_history_page_->move(QPoint(pos.x() - 300, pos.y() - 410));
-        playback_history_page_->setMinimumSize(QSize(400, 400));
+        playback_history_page_->setMinimumSize(QSize(500, 400));
         playback_history_page_->refreshOnece();
         playback_history_page_->show();
     });
@@ -761,6 +762,7 @@ void Xamp::onPlayerStateChanged(xamp::player::PlayerState play_state) {
         ui.seekSlider->setValue(0);
         ui.startPosLabel->setText(Time::msToString(0));
         playNextItem(1);
+        emit payNextMusic();
     }
 }
 
@@ -840,6 +842,14 @@ void Xamp::initialPlaylist() {
         });
 
     (void)QObject::connect(album_artist_page_->album(), &AlbumView::playMusic, this, &Xamp::playMusic);
+    (void)QObject::connect(this, &Xamp::payNextMusic, album_artist_page_->album(), &AlbumView::payNextMusic);
+
+    (void)QObject::connect(playback_history_page_, &PlaybackHistoryPage::playMusic, this, &Xamp::playMusic);
+    
+    auto space_key = new QShortcut(QKeySequence(Qt::Key_Space), this);
+    (void)QObject::connect(space_key, &QShortcut::activated, [this]() {
+        play();
+        });
 }
 
 void Xamp::addItem(const QString& file_name) {

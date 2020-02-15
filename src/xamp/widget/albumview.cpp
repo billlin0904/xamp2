@@ -21,10 +21,6 @@
 #include <widget/pixmapcache.h>
 #include <widget/albumview.h>
 
-static inline QVariant GetIndexValue(const QModelIndex& index, int i) {
-	return index.model()->data(index.model()->index(index.row(), i));
-}
-
 static QString ColorToString(QColor colour) {
 	QString s = QString::number(colour.red()) + Q_UTF8(",") +
 		QString::number(colour.green()) + Q_UTF8(",") +
@@ -33,6 +29,33 @@ static QString ColorToString(QColor colour) {
 		s += Q_UTF8(",") + QString::number(colour.alpha());
 	}
 	return s;
+}
+
+static AlbumEntity GetAlbumEntity(const QModelIndex& index) {
+	auto title = GetIndexValue(index, 1).toString();
+	auto musicId = GetIndexValue(index, 3).toInt();
+	auto artist = GetIndexValue(index, 4).toString();
+	auto file_ext = GetIndexValue(index, 5).toString();
+	auto file_path = GetIndexValue(index, 6).toString();
+	auto cover_id = GetIndexValue(index, 7).toString();
+	auto album = GetIndexValue(index, 8).toString();
+
+	auto artistId = GetIndexValue(index, 9).toInt();
+	auto albumId = GetIndexValue(index, 10).toInt();
+
+	AlbumEntity entity;
+
+	entity.music_id = musicId;
+	entity.album = album;
+	entity.title = title;
+	entity.artist = artist;
+	entity.cover_id = cover_id;
+	entity.file_path = file_path;
+	entity.file_ext = file_ext;
+	entity.album_id = albumId;
+	entity.artist_id = artistId;
+
+	return entity;
 }
 
 #define MAKE_TEXT_COLOR(color) \
@@ -289,30 +312,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 	setStyleSheet(Q_UTF8("background-color: rgba(228, 233, 237, 255)"));
 
 	(void)QObject::connect(playlist_, &QTableView::doubleClicked, [this](const QModelIndex& index) {
-		auto title = GetIndexValue(index, 1).toString();
-		auto musicId = GetIndexValue(index, 3).toInt();
-		auto artist = GetIndexValue(index, 4).toString();
-		auto file_ext = GetIndexValue(index, 5).toString();
-		auto file_path = GetIndexValue(index, 6).toString();
-		auto cover_id = GetIndexValue(index, 7).toString();
-		auto album = GetIndexValue(index, 8).toString();
-
-		auto artistId = GetIndexValue(index, 9).toInt();
-		auto albumId = GetIndexValue(index, 10).toInt();
-
-		AlbumEntity entity;
-
-		entity.music_id = musicId;
-		entity.album = album;
-		entity.title = title;
-		entity.artist = artist;
-		entity.cover_id = cover_id;
-		entity.file_path = file_path;
-		entity.file_ext = file_ext;
-		entity.album_id = albumId;
-		entity.artist_id = artistId;
-
-		emit playMusic(entity);
+		emit playMusic(GetAlbumEntity(index));
 		});
 }
 
@@ -426,6 +426,20 @@ AlbumView::AlbumView(QWidget* parent)
 		});
 }
 
+void AlbumView::payNextMusic() {
+	QModelIndex next_index;
+	auto index = page_->playlist()->currentIndex();
+	auto row_count = page_->playlist()->model()->rowCount();
+	if (index.row() + 1 >= row_count) {
+		next_index = page_->playlist()->model()->index(0, 0);		
+	}
+	else {
+		next_index = page_->playlist()->model()->index(index.row() + 1, 0);
+	}	
+	emit playMusic(GetAlbumEntity(next_index));
+	page_->playlist()->setCurrentIndex(next_index);
+}
+
 void AlbumView::setFilterByArtist(int32_t artist_id) {
 	QString s(
 	Q_UTF8(R"(
@@ -450,17 +464,28 @@ void AlbumView::setFilterByArtist(int32_t artist_id) {
 }
 
 void AlbumView::refreshOnece() {
-	model_.setQuery(Q_UTF8(R"(
+#if 0
 	SELECT
 		album,
 		albums.coverId,
 		artist,
 		albums.albumId
-	FROM
+		FROM
 		albums,
 		artists
-	WHERE
-		( albums.artistId = artists.artistId )
+		WHERE
+		(albums.artistId = artists.artistId)
+#endif
+
+	model_.setQuery(Q_UTF8(R"(
+SELECT
+	albums.album,
+	albums.coverId,
+	artists.artist,
+	albums.albumId 
+FROM
+	albums
+	LEFT JOIN artists ON artists.artistId = albums.artistId
 	)"));
 
 	hideWidget();
@@ -469,14 +494,13 @@ void AlbumView::refreshOnece() {
 void AlbumView::onSearchTextChanged(const QString& text) {
 	QString query(Q_UTF8(R"(
 SELECT
-	album,
+	albums.album,
 	albums.coverId,
-	artist,
+	artists.artist,
 	albums.albumId 
 FROM
-	albumArtist
-	LEFT JOIN albums ON albums.albumId = albumArtist.albumId
-	LEFT JOIN artists ON artists.artistId = albumArtist.artistId 
+	albums
+	LEFT JOIN artists ON artists.artistId = albums.artistId 
 WHERE
 	(
 	albums.album LIKE '%%1%'

@@ -56,6 +56,10 @@ public:
 
 	void setTotalDuration(double durations);
 
+	AlbumPlayListTableView* playlist() {
+		return playlist_;
+	}
+
 signals:
 	void playMusic(const AlbumEntity& entity);
 
@@ -103,6 +107,8 @@ public slots:
 	void hideWidget();
 
 	void onSearchTextChanged(const QString& text);
+
+	void payNextMusic();
 
 private:
 	AlbumViewPage* page_;
