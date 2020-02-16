@@ -61,7 +61,7 @@ bool CheckBoxDelegate::editorEvent(QEvent* event, QAbstractItemModel* model, con
 		return false;
 	}
 
-	Qt::CheckState state = (static_cast<Qt::CheckState>(value.toInt()) == Qt::Checked
+	auto state = (static_cast<Qt::CheckState>(value.toInt()) == Qt::Checked
 		? Qt::Unchecked : Qt::Checked);
 
 	return model->setData(index, state, Qt::CheckStateRole);
@@ -101,7 +101,7 @@ void PlaybackHistoryModel::selectAll(bool check) {
         auto idx = index(i, 0);
         updateSelected(idx, check);
     }
-    this->query().exec();
+	dynamic_cast<PlaybackHistoryTableView*>(parent())->refreshOnece();
 }
 
 void PlaybackHistoryModel::updateSelected(const QModelIndex& index, bool check) {
@@ -117,7 +117,7 @@ bool PlaybackHistoryModel::setData(const QModelIndex& index, const QVariant& val
 	if (index.column() == CHECKBOX_ROW && role == Qt::CheckStateRole) {
         auto check = value == Qt::Checked ? 1 : 0;
         updateSelected(index, check);
-        this->query().exec();
+		dynamic_cast<PlaybackHistoryTableView*>(parent())->refreshOnece();
 		return QAbstractItemModel::setData(index, check);
 	}
 	return QSqlQueryModel::setData(index, value, role);
@@ -155,7 +155,8 @@ QVariant PlaybackHistoryModel::data(const QModelIndex& index, int role) const {
 }
 
 PlaybackHistoryTableView::PlaybackHistoryTableView(QWidget* parent)
-	: QTableView(parent) {
+	: QTableView(parent)
+	, model_(this) {
 	setItemDelegateForColumn(PlaybackHistoryModel::CHECKBOX_ROW, new CheckBoxDelegate(this));
 	setModel(&model_);
 	auto f = font();
@@ -215,15 +216,16 @@ void PlaybackHistoryTableView::resizeColumn() {
 			header->resizeSection(column, 12);
 			break;
 		case PlaybackHistoryTableView::PLAYLIST_TITLE:
-			header->setSectionResizeMode(column, QHeaderView::Fixed);
-			header->resizeSection(column, size().width() - ThemeManager::getAlbumCoverSize().width() - 100);
+			header->setSectionResizeMode(column, QHeaderView::Fixed);			
+			header->resizeSection(column, 380);
 			break;
 		case PlaybackHistoryTableView::PLAYLIST_DURATION:
 			header->setSectionResizeMode(column, QHeaderView::ResizeToContents);
 			header->resizeSection(column, 60);
 			break;
 		default:
-			header->setSectionResizeMode(column, QHeaderView::Stretch);
+			header->setSectionResizeMode(column, QHeaderView::Fixed);
+			header->resizeSection(column, 30);
 			break;
 		}
 	}
@@ -266,6 +268,7 @@ FROM
 	setColumnHidden(10, true);
 	setColumnHidden(11, false);
 	setColumnHidden(12, true);
+	resizeColumn();
 }
 
 PlaybackHistoryPage::PlaybackHistoryPage(QWidget* parent)
@@ -300,7 +303,7 @@ PlaybackHistoryPage::PlaybackHistoryPage(QWidget* parent)
 
     auto remove_button = new QPushButton(tr("Remove All"), this);
     remove_button->setStyleSheet(Q_UTF8("border: none"));
-    remove_button->setFixedSize(QSize(64, 32));
+    remove_button->setFixedSize(QSize(120, 32));
     save_button_layout->addWidget(remove_button);
 
     auto save_playlist_button = new QPushButton(tr("Save"), this);
