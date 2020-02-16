@@ -8,11 +8,13 @@
 #include <QPushButton>
 #include <QSpacerItem>
 #include <QHeaderView>
+#include <QClipboard>
 
 #include <base/logger.h>
 
 #include <widget/database.h>
 #include <widget/playlisttableview.h>
+#include <widget/actionmap.h>
 
 #include "thememanager.h"
 #include <widget/str_utilts.h>
@@ -20,52 +22,6 @@
 #include <widget/image_utiltis.h>
 #include <widget/pixmapcache.h>
 #include <widget/albumview.h>
-
-static QString ColorToString(QColor colour) {
-	QString s = QString::number(colour.red()) + Q_UTF8(",") +
-		QString::number(colour.green()) + Q_UTF8(",") +
-		QString::number(colour.blue());
-	if (colour.alpha() != 255) {
-		s += Q_UTF8(",") + QString::number(colour.alpha());
-	}
-	return s;
-}
-
-static AlbumEntity GetAlbumEntity(const QModelIndex& index) {
-	auto title = GetIndexValue(index, 1).toString();
-	auto musicId = GetIndexValue(index, 3).toInt();
-	auto artist = GetIndexValue(index, 4).toString();
-	auto file_ext = GetIndexValue(index, 5).toString();
-	auto file_path = GetIndexValue(index, 6).toString();
-	auto cover_id = GetIndexValue(index, 7).toString();
-	auto album = GetIndexValue(index, 8).toString();
-
-	auto artistId = GetIndexValue(index, 9).toInt();
-	auto albumId = GetIndexValue(index, 10).toInt();
-
-	AlbumEntity entity;
-
-	entity.music_id = musicId;
-	entity.album = album;
-	entity.title = title;
-	entity.artist = artist;
-	entity.cover_id = cover_id;
-	entity.file_path = file_path;
-	entity.file_ext = file_ext;
-	entity.album_id = albumId;
-	entity.artist_id = artistId;
-
-	return entity;
-}
-
-#define MAKE_TEXT_COLOR(color) \
-	QString(Q_UTF8("color: rgb(%1);")).arg(ColorToString(color)) \
-
-#define MAKE_BK_COLOR(color) \
-	QString(Q_UTF8("background-color: rgb(%1);")).arg(ColorToString(color)) \
-
-#define MAKE_COLOR(color) \
-	QString(Q_UTF8("color: rgb(%1);")).arg(ColorToString(color)) \
 
 AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
 	: QStyledItemDelegate(parent) {
@@ -95,8 +51,9 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
 		option.rect.width() - 30, 15);
 
 	auto f = painter->font();
+#ifdef Q_OS_WIN
 	f.setPointSize(8);
-
+#endif
 	f.setBold(true);
 	painter->setFont(f);
 	painter->drawText(album_text_rect, Qt::AlignVCenter, album);
@@ -312,7 +269,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 	setStyleSheet(Q_UTF8("background-color: rgba(228, 233, 237, 255)"));
 
 	(void)QObject::connect(playlist_, &QTableView::doubleClicked, [this](const QModelIndex& index) {
-		emit playMusic(GetAlbumEntity(index));
+        emit playMusic(getAlbumEntity(index));
 		});
 }
 
@@ -348,8 +305,8 @@ void AlbumViewPage::setCover(const QString& cover_id) {
 
 AlbumView::AlbumView(QWidget* parent)
 	: QListView(parent)
-	, model_(this)
-	, page_(nullptr) {
+    , page_(nullptr)
+    , model_(this) {
 	setModel(&model_);
 	refreshOnece();
 	setUniformItemSizes(true);
@@ -363,7 +320,7 @@ AlbumView::AlbumView(QWidget* parent)
 	setViewMode(QListView::IconMode);
 	setResizeMode(QListView::Adjust);
 	setFrameStyle(QFrame::NoFrame);
-	setStyleSheet(Q_UTF8("background-color: transparent"));
+    setStyleSheet(Q_UTF8("background-color: transparent"));
 	setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
 	setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
 	setItemDelegate(new AlbumViewStyledDelegate(this));
@@ -390,10 +347,10 @@ AlbumView::AlbumView(QWidget* parent)
 	(void)QObject::connect(page_, &AlbumViewPage::playMusic, this, &AlbumView::playMusic);
 
 	(void)QObject::connect(this, &QListView::clicked, [this](auto index) {
-		auto album = GetIndexValue(index, 0).toString();
-		auto cover_id = GetIndexValue(index, 1).toString();
-		auto artist = GetIndexValue(index, 2).toString();
-		auto album_id = GetIndexValue(index, 3).toInt();
+        auto album = getIndexValue(index, 0).toString();
+        auto cover_id = getIndexValue(index, 1).toString();
+        auto artist = getIndexValue(index, 2).toString();
+        auto album_id = getIndexValue(index, 3).toInt();
 
 		constexpr auto height = 460;
 
@@ -421,9 +378,42 @@ AlbumView::AlbumView(QWidget* parent)
 		page_->show();
 		});
 
-	(void)QObject::connect(verticalScrollBar(), &QScrollBar::valueChanged, [this](auto value) {
+    (void)QObject::connect(verticalScrollBar(), &QScrollBar::valueChanged, [this](auto) {
 		hideWidget();
 		});
+
+    setContextMenuPolicy(Qt::CustomContextMenu);
+    (void)QObject::connect(this, &QTableView::customContextMenuRequested, [this](auto pt) {
+        ActionMap<AlbumView, std::function<void()>> action_map(this);
+
+        action_map.setStyleSheet(Q_UTF8(R"(
+                               QMenu {
+                               background-color: rgba(228, 233, 237, 150);
+                               }
+                               QMenu::item:selected {
+                               background-color: black;
+                               }
+                               )"));
+
+        auto index = indexAt(pt);
+        auto album = getIndexValue(index, 0).toString();
+        auto artist = getIndexValue(index, 2).toString();
+
+        action_map.addAction(tr("Copy album"), [album, this]() {
+            QApplication::clipboard()->setText(album);
+        });
+        action_map.addAction(tr("Copy artist"), [artist, this]() {
+            QApplication::clipboard()->setText(artist);
+        });
+        action_map.addAction(tr("Add album to playlist"), [artist, this]() {
+            Database::Instance().forEachAlbumMusic(1, [this](const auto &entity) {
+                emit addPlaylist(entity);
+            });
+        });
+
+        action_map.exec(pt);
+    });
+
 }
 
 void AlbumView::payNextMusic() {
@@ -436,7 +426,7 @@ void AlbumView::payNextMusic() {
 	else {
 		next_index = page_->playlist()->model()->index(index.row() + 1, 0);
 	}	
-	emit playMusic(GetAlbumEntity(next_index));
+    emit playMusic(getAlbumEntity(next_index));
 	page_->playlist()->setCurrentIndex(next_index);
 }
 
@@ -464,19 +454,6 @@ void AlbumView::setFilterByArtist(int32_t artist_id) {
 }
 
 void AlbumView::refreshOnece() {
-#if 0
-	SELECT
-		album,
-		albums.coverId,
-		artist,
-		albums.albumId
-		FROM
-		albums,
-		artists
-		WHERE
-		(albums.artistId = artists.artistId)
-#endif
-
 	model_.setQuery(Q_UTF8(R"(
 SELECT
 	albums.album,

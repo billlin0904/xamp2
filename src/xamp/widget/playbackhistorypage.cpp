@@ -11,6 +11,19 @@
 #include <widget/str_utilts.h>
 #include <widget/playbackhistorypage.h>
 
+PushButtonDelegate::PushButtonDelegate(QObject *parent)
+    : QItemDelegate(parent) {
+}
+
+void PushButtonDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const {
+    QStyleOptionButton opt;
+    QApplication::style()->drawControl(QStyle::CE_PushButton, &opt, painter);
+}
+
+void PushButtonDelegate::initStyleOptionButton(QStyleOptionButton* out, const QStyleOptionViewItem& in, const QModelIndex& index) {
+
+}
+
 CheckBoxDelegate::CheckBoxDelegate(QObject* parent)
 	: QItemDelegate(parent) {
 }
@@ -83,16 +96,28 @@ Qt::ItemFlags PlaybackHistoryModel::flags(const QModelIndex& index) const {
 	return QSqlQueryModel::flags(index);
 }
 
+void PlaybackHistoryModel::selectAll(bool check) {
+    for (auto i = 0; i < rowCount(); ++i) {
+        auto idx = index(i, 0);
+        updateSelected(idx, check);
+    }
+    this->query().exec();
+}
+
+void PlaybackHistoryModel::updateSelected(const QModelIndex& index, bool check) {
+    QSqlQuery query;
+    auto id = getIndexValue(index, HISTORY_ID_ROW).toInt();
+    query.prepare(Q_UTF8("UPDATE playbackHistory SET selected = ? WHERE playbackHistoryId = ?"));
+    query.addBindValue(check);
+    query.addBindValue(id);
+    query.exec();
+}
+
 bool PlaybackHistoryModel::setData(const QModelIndex& index, const QVariant& value, int role) {
 	if (index.column() == CHECKBOX_ROW && role == Qt::CheckStateRole) {
-		QSqlQuery query;
-		auto id = GetIndexValue(index, 12).toInt();
-		auto check = value == Qt::Checked ? 1 : 0;
-		query.prepare(Q_UTF8("UPDATE playbackHistory SET selected = ? WHERE playbackHistoryId = ?"));
-		query.addBindValue(check);
-		query.addBindValue(id);
-		query.exec();
-		this->query().exec();
+        auto check = value == Qt::Checked ? 1 : 0;
+        updateSelected(index, check);
+        this->query().exec();
 		return QAbstractItemModel::setData(index, check);
 	}
 	return QSqlQueryModel::setData(index, value, role);
@@ -126,10 +151,7 @@ QVariant PlaybackHistoryModel::data(const QModelIndex& index, int role) const {
 		return shownText;
 	}
 #endif
-	else {
-		return QSqlQueryModel::data(index, role);
-	}
-	return QVariant();
+    return QSqlQueryModel::data(index, role);
 }
 
 PlaybackHistoryTableView::PlaybackHistoryTableView(QWidget* parent)
@@ -207,6 +229,10 @@ void PlaybackHistoryTableView::resizeColumn() {
 	}
 }
 
+void PlaybackHistoryTableView::selectAll(bool check) {
+    model_.selectAll(check);
+}
+
 void PlaybackHistoryTableView::refreshOnece() {
 	QString query = Q_UTF8(R"(
 SELECT
@@ -243,8 +269,12 @@ FROM
 }
 
 PlaybackHistoryPage::PlaybackHistoryPage(QWidget* parent)
-	: QFrame(parent) {
-	setStyleSheet(Q_UTF8("background-color: rgba(228, 233, 237, 255)"));
+    : QFrame(parent) {
+#ifdef Q_OS_WIN
+    setStyleSheet(Q_UTF8("background-color: rgba(228, 233, 237, 255)"));
+#else
+    setStyleSheet(Q_UTF8("background-color: white"));
+#endif
 
 	auto default_layout = new QVBoxLayout(this);
 	default_layout->setSpacing(0);
@@ -256,57 +286,70 @@ PlaybackHistoryPage::PlaybackHistoryPage(QWidget* parent)
 
 	auto button_layout = new QHBoxLayout();
 
-	auto select_all_button = new QPushButton(tr("Select All"), this);
-	select_all_button->setStyleSheet(Q_UTF8("border: none"));
+    auto select_all_button = new QPushButton(tr("Select"), this);
+    select_all_button->setStyleSheet(Q_UTF8("border: none"));
+    select_all_button->setFixedSize(QSize(64, 32));
 	button_layout->addWidget(select_all_button);
 
-	auto clear_button = new QPushButton(tr("Clear"), this);
-	clear_button->setStyleSheet(Q_UTF8("border: none"));
-	button_layout->addWidget(clear_button);
+    auto clear_select_all_button = new QPushButton(tr("Clear"), this);
+    clear_select_all_button->setStyleSheet(Q_UTF8("border: none"));
+    clear_select_all_button->setFixedSize(QSize(64, 32));
+    button_layout->addWidget(clear_select_all_button);
 
-	auto save_playlist_button = new QPushButton(tr("Save"), this);
-	save_playlist_button->setStyleSheet(Q_UTF8("border: none"));
-	button_layout->addWidget(save_playlist_button);
+    auto save_button_layout = new QHBoxLayout();
+
+    auto remove_button = new QPushButton(tr("Remove All"), this);
+    remove_button->setStyleSheet(Q_UTF8("border: none"));
+    remove_button->setFixedSize(QSize(64, 32));
+    save_button_layout->addWidget(remove_button);
+
+    auto save_playlist_button = new QPushButton(tr("Save"), this);
+    save_playlist_button->setFixedSize(QSize(64, 32));
+    save_playlist_button->setStyleSheet(Q_UTF8("border: none"));
+    save_button_layout->addWidget(save_playlist_button);
 
 	playlist_ = new PlaybackHistoryTableView();
 	default_layout->addWidget(close_button);
 	default_layout->addLayout(button_layout);
 	default_layout->addWidget(playlist_);
+    default_layout->addLayout(save_button_layout);
+
+    (void)QObject::connect(select_all_button, &QPushButton::clicked, [this]() {
+        playlist_->selectAll(true);
+        update();
+    });
+
+    (void)QObject::connect(clear_select_all_button, &QPushButton::clicked, [this]() {
+        playlist_->selectAll(false);
+        update();
+    });
 
 	(void)QObject::connect(close_button, &QPushButton::clicked, [this]() {
 		hide();
 		});
 
-	(void)QObject::connect(clear_button, &QPushButton::clicked, [this]() {
+    (void)QObject::connect(remove_button, &QPushButton::clicked, [this]() {
 		Database::Instance().deleteOldestHistory();
 		playlist_->refreshOnece();
 		});
 
 	(void)QObject::connect(playlist_, &QTableView::doubleClicked, [this](const QModelIndex& index) {
-		auto title = GetIndexValue(index, 1).toString();
-		auto musicId = GetIndexValue(index, 3).toInt();
-		auto artist = GetIndexValue(index, 4).toString();
-		auto file_ext = GetIndexValue(index, 5).toString();
-		auto file_path = GetIndexValue(index, 6).toString();
-		auto cover_id = GetIndexValue(index, 7).toString();
-		auto album = GetIndexValue(index, 8).toString();
-		auto artistId = GetIndexValue(index, 9).toInt();
-		auto albumId = GetIndexValue(index, 10).toInt();
-
-		AlbumEntity entity;
-
-		entity.music_id = musicId;
-		entity.album = album;
-		entity.title = title;
-		entity.artist = artist;
-		entity.cover_id = cover_id;
-		entity.file_path = file_path;
-		entity.file_ext = file_ext;
-		entity.album_id = albumId;
-		entity.artist_id = artistId;
-
-		emit playMusic(entity);
+        emit playMusic(getAlbumEntity(index));
 		});
+}
+
+void PlaybackHistoryPage::playNextMusic() {
+    QModelIndex next_index;
+    auto index = playlist_->currentIndex();
+    auto row_count = playlist_->model()->rowCount();
+    if (index.row() + 1 >= row_count) {
+        next_index = playlist_->model()->index(0, 0);
+    }
+    else {
+        next_index = playlist_->model()->index(index.row() + 1, 0);
+    }
+    emit playMusic(getAlbumEntity(next_index));
+    playlist_->setCurrentIndex(next_index);
 }
 
 void PlaybackHistoryPage::refreshOnece() {

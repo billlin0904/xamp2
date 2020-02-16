@@ -52,9 +52,11 @@ signals:
 	void payNextMusic();
 
 public slots:
-	void playMusic(const AlbumEntity& item);
+    void playMusic(const MusicEntity& item);
 
 	void play(const QModelIndex& index, const PlayListEntity& item);
+
+    void addPlaylistItem(const PlayListEntity &entity);
 
 private:
 	void setDefaultStyle();

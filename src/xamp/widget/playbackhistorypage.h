@@ -12,18 +12,28 @@
 
 #include <widget/albumview.h>
 
+class PushButtonDelegate : public QItemDelegate {
+public:
+    explicit PushButtonDelegate(QObject *parent = nullptr);
+
+    void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override;
+private:
+    void initStyleOptionButton(QStyleOptionButton* out, const QStyleOptionViewItem& in, const QModelIndex& index);
+};
+
 class CheckBoxDelegate : public QItemDelegate {
 public:
 	explicit CheckBoxDelegate(QObject* parent = nullptr);
 
 	void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override;
 
-	bool editorEvent(QEvent* event, QAbstractItemModel* model, const QStyleOptionViewItem& option, const QModelIndex& index);
+    bool editorEvent(QEvent* event, QAbstractItemModel* model, const QStyleOptionViewItem& option, const QModelIndex& index) override;
 };
 
 class PlaybackHistoryModel : public QSqlQueryModel {
 public:
 	enum {
+        HISTORY_ID_ROW = 12,
 		CHECKBOX_ROW = 11,
 	};
 
@@ -33,7 +43,11 @@ public:
 
 	QVariant data(const QModelIndex& index, int role) const override;
 
-	bool setData(const QModelIndex& index, const QVariant& value, int role) override;
+    bool setData(const QModelIndex& index, const QVariant& value, int role) override;
+
+    void selectAll(bool check);
+private:
+    void updateSelected(const QModelIndex& index, bool check);
 };
 
 class PlaybackHistoryTableView : public QTableView {
@@ -48,6 +62,8 @@ public:
 	explicit PlaybackHistoryTableView(QWidget* parent = nullptr);
 
 	void refreshOnece();
+
+    void selectAll(bool check);
 private:
 	void resizeColumn();
 
@@ -66,9 +82,12 @@ public:
 	void refreshOnece();
 
 signals:
-	void playMusic(const AlbumEntity& entity);
+    void playMusic(const MusicEntity& entity);
 
 	void save();
+
+public slots:
+    void playNextMusic();
 
 private:
 	PlaybackHistoryTableView* playlist_;

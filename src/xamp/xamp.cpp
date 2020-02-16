@@ -132,9 +132,11 @@ void Xamp::initialUI() {
 	f.setPointSize(8);
 	ui.artistLabel->setFont(f);
 
+#ifdef Q_OS_WIN
     f.setPointSize(6);
     ui.startPosLabel->setFont(f);
     ui.endPosLabel->setFont(f);
+#endif
 
 #ifdef Q_OS_MAC
     ui.closeButton->hide();
@@ -390,7 +392,7 @@ void Xamp::initialController() {
     (void)QObject::connect(ui.addPlaylistButton, &QToolButton::pressed, [this]() {
         auto pos = mapFromGlobal(QCursor::pos());
         playback_history_page_->move(QPoint(pos.x() - 300, pos.y() - 410));
-        playback_history_page_->setMinimumSize(QSize(500, 400));
+        playback_history_page_->setMinimumSize(QSize(600, 400));
         playback_history_page_->refreshOnece();
         playback_history_page_->show();
     });
@@ -639,7 +641,7 @@ void Xamp::resetSeekPosValue() {
     ui.startPosLabel->setText(Time::msToString(0));
 }
 
-void Xamp::playMusic(const AlbumEntity& item) {
+void Xamp::playMusic(const MusicEntity& item) {
     ui.seekSlider->setEnabled(true);
 
     auto open_done = false;
@@ -716,7 +718,7 @@ void Xamp::playMusic(const AlbumEntity& item) {
 }
 
 void Xamp::play(const PlayListEntity& item) {
-    AlbumEntity album_entity;
+    MusicEntity album_entity;
     album_entity.music_id = item.music_id;
     album_entity.artist_id = item.artist_id;
     album_entity.album_id = item.album_id;
@@ -737,6 +739,10 @@ void Xamp::play(const QModelIndex&, const PlayListEntity& item) {
     if (!player_->IsPlaying()) {
         playlist_page_->format()->setText(Q_UTF8(""));
     }
+}
+
+void Xamp::addPlaylistItem(const PlayListEntity &entity) {
+
 }
 
 void Xamp::setCover(const QPixmap& cover) {
@@ -842,10 +848,11 @@ void Xamp::initialPlaylist() {
         });
 
     (void)QObject::connect(album_artist_page_->album(), &AlbumView::playMusic, this, &Xamp::playMusic);
-    (void)QObject::connect(this, &Xamp::payNextMusic, album_artist_page_->album(), &AlbumView::payNextMusic);
-
     (void)QObject::connect(playback_history_page_, &PlaybackHistoryPage::playMusic, this, &Xamp::playMusic);
-    
+
+    (void)QObject::connect(this, &Xamp::payNextMusic, album_artist_page_->album(), &AlbumView::payNextMusic);
+    (void)QObject::connect(this, &Xamp::payNextMusic, playback_history_page_, &PlaybackHistoryPage::playNextMusic);
+
     auto space_key = new QShortcut(QKeySequence(Qt::Key_Space), this);
     (void)QObject::connect(space_key, &QShortcut::activated, [this]() {
         play();

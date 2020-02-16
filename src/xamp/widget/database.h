@@ -108,6 +108,50 @@ public:
     }
 
     template <typename Function>
+    void forEachAlbumMusic(int32_t album_id, Function &&fun) {
+        QSqlQuery query(Q_UTF8(R"(
+SELECT
+    albumMusic.albumId,
+    albumMusic.artistId,
+    albums.album,
+    albums.coverId,
+    artists.artist,
+    musics.*
+FROM
+    albumMusic
+    LEFT JOIN albums ON albums.albumId = albumMusic.albumId
+    LEFT JOIN artists ON artists.artistId = albumMusic.artistId
+    LEFT JOIN musics ON musics.musicId = albumMusic.musicId
+WHERE
+    albums.albumId = ?;)"));
+        query.addBindValue(album_id);
+
+        if (!query.exec()) {
+            XAMP_LOG_DEBUG("{}", query.lastError().text().toStdString());
+        }
+
+        while (query.next()) {
+            PlayListEntity entity;
+            entity.album_id = query.value(Q_UTF8("albumId")).toInt();
+            entity.artist_id = query.value(Q_UTF8("artistId")).toInt();
+            entity.music_id = query.value(Q_UTF8("musicId")).toInt();
+            entity.file_path = query.value(Q_UTF8("path")).toString();
+            entity.track = query.value(Q_UTF8("track")).toInt();
+            entity.title = query.value(Q_UTF8("title")).toString();
+            entity.file_name = query.value(Q_UTF8("fileName")).toString();
+            entity.album = query.value(Q_UTF8("album")).toString();
+            entity.artist = query.value(Q_UTF8("artist")).toString();
+            entity.file_ext = query.value(Q_UTF8("fileExt")).toString();
+            entity.parent_path = query.value(Q_UTF8("parentPath")).toString();
+            entity.duration = query.value(Q_UTF8("duration")).toDouble();
+            entity.bitrate = query.value(Q_UTF8("bitrate")).toInt();
+            entity.samplerate = query.value(Q_UTF8("samplerate")).toInt();
+            entity.cover_id = query.value(Q_UTF8("coverId")).toString();
+            fun(entity);
+        }
+    }
+
+    template <typename Function>
     void forEachPlaylistMusic(int32_t playlist_id, Function &&fun) {
         QSqlQuery query;
 

@@ -12,21 +12,10 @@
 #include <QStyledItemDelegate>
 #include <QTableView>
 
+#include <widget/str_utilts.h>
+#include <widget/playlistentity.h>
+
 class AlbumPlayListTableView;
-
-struct AlbumEntity {
-	int32_t album_id{ 0 };
-	int32_t artist_id{ 0 };
-	int32_t music_id{ 0 };
-	QString album;
-	QString title;
-	QString artist;
-	QString file_path;
-	QString file_ext;
-	QString cover_id;
-};
-
-Q_DECLARE_METATYPE(AlbumEntity)
 
 class AlbumViewStyledDelegate : public QStyledItemDelegate {
 	Q_OBJECT
@@ -61,7 +50,7 @@ public:
 	}
 
 signals:
-	void playMusic(const AlbumEntity& entity);
+    void playMusic(const MusicEntity& entity);
 
 private:
 	QLabel* album_;
@@ -97,7 +86,9 @@ public:
 	explicit AlbumView(QWidget* parent = nullptr);
 
 signals:
-	void playMusic(const AlbumEntity& entity);
+    void playMusic(const MusicEntity& entity);
+
+    void addPlaylist(const PlayListEntity &entity);
 
 public slots:
 	void refreshOnece();

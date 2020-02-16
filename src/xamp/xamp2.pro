@@ -30,8 +30,8 @@ INCLUDEPATH += ../thirdparty/rapidjson/include/
 
 SOURCES += \
     thememanager.cpp \
+    widget/playbackhistorypage.cpp \
     widget/musicbrainzclient.cpp \
-    widget/colorpicker.cpp \
     widget/discogsclient.cpp \
     widget/artistview.cpp \
     widget/http.cpp \
@@ -64,8 +64,8 @@ SOURCES += \
 HEADERS += \
     thememanager.h \
     singleinstanceapplication.h \
+    widget/playbackhistorypage.h \
     widget/musicbrainzclient.h \
-    widget/colorpicker.h \
     widget/discogsclient.h \
     widget/artistview.h \
     widget/http.h \
