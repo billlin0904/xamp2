@@ -345,6 +345,9 @@ void PlaybackHistoryPage::playNextMusic() {
     QModelIndex next_index;
     auto index = playlist_->currentIndex();
     auto row_count = playlist_->model()->rowCount();
+	if (row_count == 0) {
+		return;
+	}
     if (index.row() + 1 >= row_count) {
         next_index = playlist_->model()->index(0, 0);
     }

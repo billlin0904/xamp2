@@ -420,6 +420,9 @@ void AlbumView::payNextMusic() {
 	QModelIndex next_index;
 	auto index = page_->playlist()->currentIndex();
 	auto row_count = page_->playlist()->model()->rowCount();
+	if (row_count == 0) {
+		return;
+	}
 	if (index.row() + 1 >= row_count) {
 		next_index = page_->playlist()->model()->index(0, 0);		
 	}
