@@ -95,6 +95,7 @@ void Database::createTableIfNotExist() {
                        artistId integer,
                        album TEXT NOT NULL DEFAULT '',
                        coverId TEXT,
+					   firstChar TEXT,
                        dateTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                        FOREIGN KEY(artistId) REFERENCES artists(artistId)
                        )
@@ -108,6 +109,7 @@ void Database::createTableIfNotExist() {
                        coverId TEXT,
                        discogsArtistId TEXT,
                        mbid TEXT,
+					   firstChar TEXT,
                        dateTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                        )
                        )"));
@@ -430,11 +432,13 @@ int32_t Database::addOrUpdateArtist(const QString& artist) {
 	query.prepare(
 		Q_UTF8(
 			R"(
-                    INSERT OR REPLACE INTO artists (artistId, artist)
-                    VALUES ((SELECT artistId FROM artists WHERE artist = :artist), :artist)
+                    INSERT OR REPLACE INTO artists (artistId, artist, firstChar)
+                    VALUES ((SELECT artistId FROM artists WHERE artist = :artist), :artist, :firstChar)
                     )"));
 
+	auto firstChar = artist.left(1);
 	query.bindValue(Q_UTF8(":artist"), artist);
+	query.bindValue(Q_UTF8(":firstChar"), firstChar.toUpper());
 
 	ThrowlfFailue(query);
 
@@ -447,12 +451,15 @@ int32_t Database::addOrUpdateAlbum(const QString& album, int32_t artist_id) {
 
 	query.prepare(
 		Q_UTF8(R"(
-                       INSERT OR REPLACE INTO albums (albumId, album, artistId)
-                       VALUES ((SELECT albumId FROM albums WHERE album = :album), :album, :artistId)
+                       INSERT OR REPLACE INTO albums (albumId, album, artistId, firstChar)
+                       VALUES ((SELECT albumId FROM albums WHERE album = :album), :album, :artistId, :firstChar)
                        )"));
+
+	auto firstChar = album.left(1);
 
 	query.bindValue(Q_UTF8(":album"), album);
 	query.bindValue(Q_UTF8(":artistId"), artist_id);
+	query.bindValue(Q_UTF8(":firstChar"), firstChar.toUpper());
 
 	ThrowlfFailue(query);
 

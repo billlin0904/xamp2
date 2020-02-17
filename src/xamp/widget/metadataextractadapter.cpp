@@ -97,15 +97,17 @@ void MetadataExtractAdapter::processAndNotify(const std::vector<xamp::base::Meta
             album_id_cache[album] = album_id;
         }
 
-        auto cover_id = Database::Instance().getAlbumCoverId(album_id);
-        if (cover_id.isEmpty()) {
-            auto cover_itr = cover_id_cache.find(album_id);
-            if (cover_itr == cover_id_cache.end()) {
+        QString cover_id;
+        auto cover_itr = cover_id_cache.find(album_id);
+        if (cover_itr == cover_id_cache.end()) {
+            auto cover_id = Database::Instance().getAlbumCoverId(album_id);
+            if (cover_id.isEmpty()) {
                 QPixmap pixmap;
                 const auto& buffer = cover_reader_.ExtractEmbeddedCover(metadata.file_path);
                 if (!buffer.empty()) {
-                    pixmap.loadFromData(buffer.data(), (uint32_t) buffer.size());
-                } else {
+                    pixmap.loadFromData(buffer.data(), (uint32_t)buffer.size());
+                }
+                else {
                     pixmap = PixmapCache::findDirExistCover(QString::fromStdWString(metadata.file_path));
                 }
                 if (!pixmap.isNull()) {
@@ -113,10 +115,10 @@ void MetadataExtractAdapter::processAndNotify(const std::vector<xamp::base::Meta
                     cover_id_cache.insert(album_id, cover_id);
                     Database::Instance().setAlbumCover(album_id, album, cover_id);
                 }
-            }
-            else {
-                cover_id = (*cover_itr);
-            }
+            }            
+        }
+        else {
+            cover_id = (*cover_itr);
         }
 
         IgnoreSqlError(Database::Instance().addOrUpdateAlbumMusic(album_id, artist_id, music_id))

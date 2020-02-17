@@ -438,7 +438,7 @@ void AlbumView::payNextMusic() {
 	page_->playlist()->setCurrentIndex(next_index);
 }
 
-void AlbumView::setFilterByArtist(int32_t artist_id) {
+void AlbumView::setFilterByArtist(const QString &first_char) {
 	QString s(
 	Q_UTF8(R"(
 	SELECT
@@ -453,11 +453,11 @@ void AlbumView::setFilterByArtist(int32_t artist_id) {
 	LEFT JOIN 
 		artists ON artists.artistId = albumArtist.artistId
 	WHERE
-		( albumArtist.artistId = %1 )
+		( artists.firstChar = '%1' )
 	)")
 	);
 
-	model_.setQuery(s.arg(artist_id));
+	model_.setQuery(s.arg(first_char));
 	hideWidget();
 }
 

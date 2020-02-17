@@ -26,6 +26,7 @@ void ArtistViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIt
     auto artist = index.model()->data(index.model()->index(index.row(), 1)).toString();
     auto cover_id = index.model()->data(index.model()->index(index.row(), 2)).toString();
     auto discogs_artist_id = index.model()->data(index.model()->index(index.row(), 3)).toString();
+    auto first_char = index.model()->data(index.model()->index(index.row(), 4)).toString();
 
     const QRect image_react(QPoint{ option.rect.left(), option.rect.top() }, ARTIST_IMAGE_SIZE);
 
@@ -34,17 +35,7 @@ void ArtistViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIt
 
     QPainterPath path;
     path.addEllipse(image_react);    
-    painter->setClipPath(path);    
-
-#if 0
-    if (!cover_id.isEmpty()) {
-        if (auto image = PixmapCache::Instance().find(cover_id)) {
-            auto small_cover = Pixmap::resizeImage(*image.value(), ARTIST_IMAGE_SIZE);
-            painter->drawPixmap(image_react, small_cover);
-            return;
-        }
-    }
-#endif
+    painter->setClipPath(path);
 
     auto f = painter->font();
     f.setPointSize(10);
@@ -52,7 +43,7 @@ void ArtistViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIt
     painter->setFont(f);
     painter->fillRect(image_react, Qt::gray);
     painter->setPen(Qt::white);
-    painter->drawText(image_react, Qt::AlignCenter, artist.mid(0, 1));
+    painter->drawText(image_react, Qt::AlignCenter, first_char);
 }
 
 QSize ArtistViewStyledDelegate::sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const {
@@ -89,8 +80,9 @@ ArtistView::ArtistView(QWidget *parent)
         auto artist_id = index.model()->data(index.model()->index(index.row(), 0)).toInt();
         auto artist = index.model()->data(index.model()->index(index.row(), 1)).toString();
         auto cover_id_id = index.model()->data(index.model()->index(index.row(), 2)).toString();
-        auto discogs_artist_id = index.model()->data(index.model()->index(index.row(), 3)).toString();        
-        emit clickedArtist(artist_id);
+        auto discogs_artist_id = index.model()->data(index.model()->index(index.row(), 3)).toString();
+        auto first_char = index.model()->data(index.model()->index(index.row(), 4)).toString();
+        emit clickedArtist(first_char);
         if (!discogs_artist_id.isEmpty() && cover_id_id.isEmpty()) {
             client_.searchArtistId(artist_id, discogs_artist_id);
         }        
@@ -113,13 +105,16 @@ void ArtistView::refreshOnece() {
     QString query = Q_UTF8(R"(
 SELECT
 	artists.artistId,
-    artists.artist,
-    artists.coverId,
-    artists.discogsArtistId
+	artists.artist,
+	artists.coverId,
+	artists.discogsArtistId,
+    artists.firstChar
 FROM
-	artists
-ORDER BY 
-    SUBSTR(artists.artist, 1, 1)
+	artists 
+GROUP BY
+	artists.firstChar 
+ORDER BY
+	artists.firstChar
     ;)");
     model_.setQuery(query);
 }

@@ -32,7 +32,7 @@ public:
     ArtistView(QWidget *parent = nullptr);
 
 Q_SIGNALS:
-    void clickedArtist(int artist_id);
+    void clickedArtist(const QString &first_char);
 
 public slots:
     void refreshOnece();
