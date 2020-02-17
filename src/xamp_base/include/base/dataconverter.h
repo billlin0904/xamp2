@@ -51,7 +51,7 @@ XAMP_ALWAYS_INLINE int24_t::int24_t(float f) noexcept {
 		f = -1.0;
 	}
 #endif
-	*this = static_cast<int32_t>(std::round(f * XAMP_FLOAT_24_SCALER));
+	*this = static_cast<int32_t>(std::rint(f * XAMP_FLOAT_24_SCALER));
 }
 
 XAMP_ALWAYS_INLINE int24_t& int24_t::operator=(float f) noexcept {
@@ -63,7 +63,7 @@ XAMP_ALWAYS_INLINE int24_t& int24_t::operator=(float f) noexcept {
 		f = -1.0;
 	}
 #endif
-	*this = static_cast<int32_t>(std::round(f * XAMP_FLOAT_24_SCALER));
+	*this = static_cast<int32_t>(std::rint(f * XAMP_FLOAT_24_SCALER));
 	return *this;
 }
 
