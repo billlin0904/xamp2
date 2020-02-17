@@ -398,18 +398,23 @@ AlbumView::AlbumView(QWidget* parent)
         auto index = indexAt(pt);
         auto album = getIndexValue(index, 0).toString();
         auto artist = getIndexValue(index, 2).toString();
+		auto album_id = getIndexValue(index, 3).toInt();
 
-        action_map.addAction(tr("Copy album"), [album, this]() {
+		action_map.addAction(tr("Add album to playlist"), [=, this]() {
+			Database::Instance().forEachAlbumMusic(album_id, [this](const auto& entity) {
+				emit addPlaylist(entity);
+				});
+			});
+
+		action_map.addSeparator();
+
+		action_map.addAction(tr("Copy album"), [album, this]() {
             QApplication::clipboard()->setText(album);
         });
+
         action_map.addAction(tr("Copy artist"), [artist, this]() {
             QApplication::clipboard()->setText(artist);
-        });
-        action_map.addAction(tr("Add album to playlist"), [artist, this]() {
-            Database::Instance().forEachAlbumMusic(1, [this](const auto &entity) {
-                emit addPlaylist(entity);
-            });
-        });
+        });        
 
         action_map.exec(pt);
     });

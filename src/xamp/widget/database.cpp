@@ -465,8 +465,8 @@ void Database::deleteOldestHistory() {
 
 	query.prepare(
 		Q_UTF8(R"(
-	DELETE FROM playbackHistory WHERE playbackHistoryId IN (SELECT playbackHistoryId FROM playbackHistory ORDER BY playbackHistoryId ASC LIMIT 100)
-                       )"));
+	DELETE FROM playbackHistory WHERE COUNT(playbackHistory) > 100
+    )"));
 
 	ThrowlfFailue(query);
 }

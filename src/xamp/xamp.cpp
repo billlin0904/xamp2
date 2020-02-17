@@ -715,6 +715,7 @@ void Xamp::playMusic(const MusicEntity& item) {
     lrc_page_->artist()->setText(item.artist);
 
     Database::Instance().addPlaybackHistory(item.album_id, item.artist_id, item.music_id);
+    playback_history_page_->refreshOnece();
 }
 
 void Xamp::play(const PlayListEntity& item) {
@@ -742,7 +743,8 @@ void Xamp::play(const QModelIndex&, const PlayListEntity& item) {
 }
 
 void Xamp::addPlaylistItem(const PlayListEntity &entity) {
-
+    auto playlist_view = playlist_page_->playlist();
+    playlist_view->appendItem(entity);
 }
 
 void Xamp::setCover(const QPixmap& cover) {
@@ -847,16 +849,38 @@ void Xamp::initialPlaylist() {
         Database::Instance().updateDiscogsArtistId(artist_id, discogs_artist_id);
         });
 
-    (void)QObject::connect(album_artist_page_->album(), &AlbumView::playMusic, this, &Xamp::playMusic);
-    (void)QObject::connect(playback_history_page_, &PlaybackHistoryPage::playMusic, this, &Xamp::playMusic);
+    (void)QObject::connect(album_artist_page_->album(), &AlbumView::addPlaylist, [this](const auto& entity) {
+        addPlaylistItem(entity);
+        });
 
-    (void)QObject::connect(this, &Xamp::payNextMusic, album_artist_page_->album(), &AlbumView::payNextMusic);
-    (void)QObject::connect(this, &Xamp::payNextMusic, playback_history_page_, &PlaybackHistoryPage::playNextMusic);
+    (void)QObject::connect(album_artist_page_->album(), &AlbumView::playMusic, [this](const auto& entity) {
+        (void)QObject::disconnect(this, &Xamp::payNextMusic, playback_history_page_, &PlaybackHistoryPage::playNextMusic);
+        (void)QObject::connect(this, &Xamp::payNextMusic, album_artist_page_->album(), &AlbumView::payNextMusic);
+        playMusic(entity);
+        });
+    (void)QObject::connect(playback_history_page_, &PlaybackHistoryPage::playMusic, [this](const auto& entity) {
+        (void)QObject::disconnect(this, &Xamp::payNextMusic, album_artist_page_->album(), &AlbumView::payNextMusic);
+        (void)QObject::connect(this, &Xamp::payNextMusic, playback_history_page_, &PlaybackHistoryPage::playNextMusic);
+        playMusic(entity);
+        });
+
+    setupPlayNextMusicSignals(true);
 
     auto space_key = new QShortcut(QKeySequence(Qt::Key_Space), this);
     (void)QObject::connect(space_key, &QShortcut::activated, [this]() {
         play();
         });
+}
+
+void Xamp::setupPlayNextMusicSignals(bool add_or_remove) {
+    if (add_or_remove) {
+        (void)QObject::connect(this, &Xamp::payNextMusic, album_artist_page_->album(), &AlbumView::payNextMusic);
+        (void)QObject::connect(this, &Xamp::payNextMusic, playback_history_page_, &PlaybackHistoryPage::playNextMusic);
+    }
+    else {
+        (void)QObject::disconnect(this, &Xamp::payNextMusic, album_artist_page_->album(), &AlbumView::payNextMusic);
+        (void)QObject::disconnect(this, &Xamp::payNextMusic, playback_history_page_, &PlaybackHistoryPage::playNextMusic);
+    }    
 }
 
 void Xamp::addItem(const QString& file_name) {
@@ -902,6 +926,7 @@ PlyalistPage* Xamp::newPlaylist(int32_t playlist_id) {
     ui.currentView->addWidget(playlist_page);
     (void)QObject::connect(playlist_page->playlist(), &PlayListTableView::playMusic,
                            [this](auto index, const auto& item) {
+        setupPlayNextMusicSignals(false);
         play(index, item);
     });
     (void)QObject::connect(playlist_page->playlist(), &PlayListTableView::removeItems,

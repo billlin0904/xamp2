@@ -127,6 +127,8 @@ private:
 
 	void resetSeekPosValue();
 
+	void setupPlayNextMusicSignals(bool add_or_remove);
+
 	bool is_seeking_;
 	PlayerOrder order_;
 	QModelIndex play_index_;
