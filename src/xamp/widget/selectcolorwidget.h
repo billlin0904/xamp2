@@ -5,31 +5,22 @@
 
 #pragma once
 
-#include <QFrame>
-#include <QString>
+#include <QWidget>
+#include <QColor>
+#include <QList>
 
-class QLabel;
-class PlayListTableView;
+class QButtonGroup;
 
-class PlyalistPage : public QFrame {
-	Q_OBJECT
+class SelectColorWidget : public QWidget {
+    Q_OBJECT
 public:
-	explicit PlyalistPage(QWidget *parent = nullptr);
+    explicit SelectColorWidget(QWidget* parent = nullptr);
 
-	PlayListTableView* playlist();
+signals:
+    void colorButtonClicked(const QColor& clr);
 
-	QLabel* cover();
-
-	QLabel* title();
-
-	QLabel* format();
-
-	void setTextColor(QColor color);
 private:
-	void initial();
-
-	PlayListTableView* playlist_;
-	QLabel* cover_;
-	QLabel* title_;
-	QLabel* format_;
+    QButtonGroup* group_;
+    QList<QColor> colors_;
 };
+

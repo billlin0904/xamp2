@@ -16,6 +16,10 @@
 #include <widget/playlisttableview.h>
 #include <widget/actionmap.h>
 
+#if defined(Q_OS_WIN)
+#include <widget/win32/blur_effect_helper.h>
+#endif
+
 #include "thememanager.h"
 #include <widget/str_utilts.h>
 #include <widget/time_utilts.h>
@@ -24,7 +28,12 @@
 #include <widget/albumview.h>
 
 AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
-	: QStyledItemDelegate(parent) {
+	: QStyledItemDelegate(parent)
+	, text_color_(Qt::black) {
+}
+
+void AlbumViewStyledDelegate::setTextColor(QColor color) {
+	text_color_ = color;
 }
 
 void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const {
@@ -49,6 +58,8 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
 	QRect artist_text_rect(option.rect.left() + 10,
 		option.rect.top() + default_cover_size.height() + 35,
 		option.rect.width() - 30, 15);
+
+	painter->setPen(QPen(text_color_));
 
 	auto f = painter->font();
 #ifdef Q_OS_WIN
@@ -200,6 +211,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 	auto close_button = new QPushButton(tr("X"), this);
 	close_button->setFixedSize(QSize(24, 24));
 	close_button->setStyleSheet(Q_UTF8("border: none"));
+	close_button->setStyleSheet(Q_UTF8("background-color: transparent"));
 
 	auto hbox_layout = new QHBoxLayout();
 	hbox_layout->setSpacing(0);
@@ -212,6 +224,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 	album_ = new QLabel(this);	
 	album_->setMaximumSize(QSize(16777215, 32));
 	album_->setFont(f);
+	album_->setStyleSheet(Q_UTF8("background-color: transparent;"));
 
 	auto artist_layout = new QHBoxLayout();
 	artist_layout->setSpacing(0);
@@ -223,16 +236,19 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 	artist_->setMaximumSize(QSize(400, 32));
 	artist_->setFont(f);
 	artist_->setAlignment(Qt::AlignLeft);
+	artist_->setStyleSheet(Q_UTF8("background-color: transparent;"));
 
 	tracks_ = new QLabel(this);
 	tracks_->setFixedSize(QSize(16777215, 64));
 	tracks_->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
 	tracks_->setFont(f);
+	tracks_->setStyleSheet(Q_UTF8("background-color: transparent;"));
 
 	durtions_ = new QLabel(this);
 	durtions_->setFixedSize(QSize(16777215, 64));
 	durtions_->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
 	durtions_->setFont(f);
+	durtions_->setStyleSheet(Q_UTF8("background-color: transparent;"));
 
 	artist_layout->addWidget(artist_);
 	artist_layout->addWidget(tracks_);
@@ -254,6 +270,8 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 	cover_ = new QLabel(this);
 	cover_->setMinimumSize(QSize(325, 325));
 	cover_->setMaximumSize(QSize(325, 325));
+	cover_->setStyleSheet(Q_UTF8("background-color: transparent;"));
+
 	playlist_layout->addWidget(playlist_);
 	playlist_layout->addWidget(cover_);
 	default_layout->setStretch(2, 2);
@@ -265,8 +283,6 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 	(void)QObject::connect(close_button, &QPushButton::clicked, [this]() {
 		hide();
 		});
-
-	setStyleSheet(Q_UTF8("background-color: rgba(228, 233, 237, 255)"));
 
 	(void)QObject::connect(playlist_, &QTableView::doubleClicked, [this](const QModelIndex& index) {
         emit playMusic(getAlbumEntity(index));
@@ -298,7 +314,6 @@ void AlbumViewPage::setCover(const QString& cover_id) {
 		cover_->setPixmap(Pixmap::resizeImage(cache_small_cover.value()->copy(), ThemeManager::getAlbumCoverSize()));
 	}
 	else {
-		setStyleSheet(Q_UTF8("background-color: rgba(228, 233, 237, 255)"));
 		cover_->setPixmap(Pixmap::resizeImage(ThemeManager::pixmap().defaultSizeUnknownCover(), ThemeManager::getAlbumCoverSize()));
 	}
 }
@@ -343,6 +358,7 @@ AlbumView::AlbumView(QWidget* parent)
 	)"));
 
 	page_ = new AlbumViewPage(this);
+	page_->setStyleSheet(backgroundColorToString(QColor(228, 233, 237, 255)));
 
 	(void)QObject::connect(page_, &AlbumViewPage::playMusic, this, &AlbumView::playMusic);
 
@@ -427,6 +443,10 @@ void AlbumView::payNextMusic() {
 	}	
     emit playMusic(getAlbumEntity(next_index));
 	page_->playlist()->setCurrentIndex(next_index);
+}
+
+void AlbumView::onTextColorChanged(QColor color) {
+	dynamic_cast<AlbumViewStyledDelegate*>(itemDelegate())->setTextColor(color);
 }
 
 void AlbumView::setFilterByArtist(const QString &first_char) {

@@ -107,6 +107,11 @@ void PlyalistPage::initial() {
 	default_layout->setStretch(2, 1);
 }
 
+void PlyalistPage::setTextColor(QColor color) {
+	title_->setStyleSheet(Q_UTF8("QLabel { color: ") + colorToString(color) + Q_UTF8(";}"));
+	format_->setStyleSheet(Q_UTF8("QLabel { color: ") + colorToString(color) + Q_UTF8(";}"));
+}
+
 QLabel* PlyalistPage::format() {
 	return format_;
 }

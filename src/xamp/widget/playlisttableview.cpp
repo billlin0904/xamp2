@@ -179,6 +179,11 @@ void PlayListTableView::initial() {
 	installEventFilter(this);
 }
 
+void PlayListTableView::onTextColorChanged(QColor color) {
+	auto style = Q_UTF8("QTableView { color: ") + colorToString(color) + Q_UTF8("; }");
+	setStyleSheet(style);
+}
+
 bool PlayListTableView::eventFilter(QObject* obj, QEvent* ev) {
 	auto type = ev->type();
 	if (this == obj && type == QEvent::KeyPress) {

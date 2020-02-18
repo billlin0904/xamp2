@@ -22,10 +22,14 @@ class AlbumViewStyledDelegate : public QStyledItemDelegate {
 public:
 	explicit AlbumViewStyledDelegate(QObject* parent = nullptr);
 
+	void setTextColor(QColor color);
+
 protected:
 	void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override;
 
 	QSize sizeHint(const QStyleOptionViewItem& o, const QModelIndex& idx) const override;
+private:
+	QColor text_color_;
 };
 
 class AlbumViewPage : public QFrame {
@@ -100,6 +104,8 @@ public slots:
 	void onSearchTextChanged(const QString& text);
 
 	void payNextMusic();
+
+	void onTextColorChanged(QColor color);
 
 private:
 	AlbumViewPage* page_;

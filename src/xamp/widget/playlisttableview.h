@@ -70,6 +70,8 @@ public slots:
 
 	void search(const QString& sort_str, Qt::CaseSensitivity case_sensitivity, QRegExp::PatternSyntax pattern_syntax);
 
+	void onTextColorChanged(QColor color);
+
 private:
 	bool eventFilter(QObject* obj, QEvent* ev) override;
 

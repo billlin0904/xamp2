@@ -3,6 +3,14 @@
 #include <widget/image_utiltis.h>
 #include "thememanager.h"
 
+QColor ThemeManager::tableTextColor(Qt::black);
+QColor ThemeManager::backgroundColor(228, 233, 237, 230);
+QColor ThemeManager::controlBackgroundColor(228, 233, 237, 220);
+QSize ThemeManager::defaultAlbumCoverSize(250, 250);
+QSize ThemeManager::defaultCoverSize(150, 150);
+QColor ThemeManager::menuColor(228, 233, 237, 150);
+QColor ThemeManager::menuTextColor(Qt::black);
+
 DefaultStylePixmapManager::DefaultStylePixmapManager()
     : unknown_cover_(Q_UTF8(":/xamp/Resource/White/unknown_album.png"))
     , default_size_unknown_cover_(Pixmap::resizeImage(unknown_cover_, ThemeManager::getDefaultCoverSize()))
@@ -64,8 +72,7 @@ QString ThemeManager::getMenuStyle() noexcept {
 }
 
 QSize ThemeManager::getDefaultCoverSize() noexcept {
-    constexpr QSize DefaultCoverSize(150, 150);
-    return DefaultCoverSize;
+    return defaultCoverSize;
 }
 
 QSize ThemeManager::getCacheCoverSize() noexcept {
@@ -73,42 +80,27 @@ QSize ThemeManager::getCacheCoverSize() noexcept {
 }
 
 QSize ThemeManager::getAlbumCoverSize() noexcept {
-    constexpr QSize DefaultAlbumCoverSize(250, 250);
-    return DefaultAlbumCoverSize;
+    return defaultAlbumCoverSize;
 }
 
-QList<QColor> ThemeManager::getColorset() noexcept {
-    QList<QColor> colors;
-    colors.append(QColor(255, 185, 0, 1));
-    colors.append(QColor(231, 72, 86, 1));
-    colors.append(QColor(0, 120, 215, 1));
-    colors.append(QColor(0, 153, 188, 1));
-    colors.append(QColor(122, 117, 116, 1));
-    colors.append(QColor(118, 118, 118, 1));
-    colors.append(QColor(255, 140, 0, 1));
-    colors.append(QColor(232, 17, 35, 1));
-    colors.append(QColor(0, 99, 177, 1));
-    colors.append(QColor(45, 125, 154, 1));
-    colors.append(QColor(93, 90, 88, 1));
-    colors.append(QColor(76, 74, 72, 1));
-    colors.append(QColor(247, 99, 12, 1));
-    colors.append(QColor(234, 0, 94, 1));
-    colors.append(QColor(142, 140, 216, 1));
-    colors.append(QColor(0, 183, 195, 1));
-    return colors;
+QColor ThemeManager::getBackgroundColor() noexcept {
+    return backgroundColor;
 }
 
-void ThemeManager::setNightStyle(Ui::XampWindow &ui) {
+void ThemeManager::setBackgroundColor(Ui::XampWindow& ui, QColor backgroundColor) {
+    ui.currentView->setStyleSheet(backgroundColorToString(backgroundColor));
+    ui.titleFrame->setStyleSheet(backgroundColorToString(backgroundColor));
+    ui.sliderFrame->setStyleSheet(backgroundColorToString(backgroundColor));
 }
 
 void ThemeManager::setDefaultStyle(Ui::XampWindow &ui) {
-    ui.currentView->setStyleSheet(Q_UTF8("background-color: rgba(228, 233, 237, 230);"));
-    ui.titleFrame->setStyleSheet(Q_UTF8("background-color: rgba(228, 233, 237, 230);"));    
-    ui.controlFrame->setStyleSheet(Q_UTF8("background-color: rgba(255, 255, 255, 200);"));
-    ui.volumeFrame->setStyleSheet(Q_UTF8("background-color: rgba(255, 255, 255, 200);"));
-    ui.playingFrame->setStyleSheet(Q_UTF8("background-color: rgba(228, 233, 237, 220);"));
-    ui.searchLineEdit->setStyleSheet(Q_UTF8(""));
-	ui.sliderFrame->setStyleSheet(Q_UTF8("background-color: rgba(228, 233, 237, 230);"));
+    setBackgroundColor(ui, backgroundColor);
+
+    ui.controlFrame->setStyleSheet(backgroundColorToString(controlBackgroundColor));
+    ui.volumeFrame->setStyleSheet(backgroundColorToString(controlBackgroundColor));
+    ui.playingFrame->setStyleSheet(backgroundColorToString(controlBackgroundColor));
+
+    ui.searchLineEdit->setStyleSheet(Q_UTF8(""));    
     ui.sliderBar->setStyleSheet(Q_UTF8("background-color: transparent;"));
 
     ui.stopButton->setStyleSheet(Q_UTF8(R"(

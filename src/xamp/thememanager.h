@@ -48,11 +48,19 @@ public:
     static const StylePixmapManager& pixmap() noexcept;
     static void setPlayOrPauseButton(Ui::XampWindow &ui, bool is_playing);
     static void setDefaultStyle(Ui::XampWindow &ui);
-    static void setNightStyle(Ui::XampWindow &ui);
+    static void setBackgroundColor(Ui::XampWindow& ui, QColor backgroundColor);    
     static QString getMenuStyle() noexcept;
     static QSize getDefaultCoverSize() noexcept;
     static QSize getCacheCoverSize() noexcept;
     static QSize getAlbumCoverSize() noexcept;
-    static QList<QColor> getColorset() noexcept;
+    static QColor getBackgroundColor() noexcept;
+private:
+    static QSize defaultAlbumCoverSize;
+    static QSize defaultCoverSize;
+    static QColor tableTextColor;
+    static QColor menuColor;
+    static QColor menuTextColor;
+    static QColor backgroundColor;
+    static QColor controlBackgroundColor;
 };
 

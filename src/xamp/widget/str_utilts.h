@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <QColor>
 #include <QString>
 #include <QVariant>
 #include <QModelIndex>
@@ -81,3 +82,12 @@ inline QString formatBytes(size_t bytes) noexcept {
     return result;
 }
 
+inline QString colorToString(QColor color) noexcept {
+    return QString().sprintf("rgba(%d,%d,%d,%d)", 
+        color.red(), color.green(), color.blue(), color.alpha());
+}
+
+
+inline QString backgroundColorToString(QColor color) {
+    return Q_UTF8("background-color: ") + colorToString(color) + Q_UTF8(";");
+}

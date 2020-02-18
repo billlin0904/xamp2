@@ -20,6 +20,7 @@
 #include <widget/time_utilts.h>
 #include <widget/database.h>
 #include <widget/pixmapcache.h>
+#include <widget/selectcolorwidget.h>
 
 #include "thememanager.h"
 #include "xamp.h"
@@ -413,7 +414,17 @@ void Xamp::initialController() {
         enableBlurMaterial(enable);
         AppSettings::settings().setValue(APP_SETTING_ENABLE_BLUR_MATERIAL, enable);
         });
-
+    auto select_color_widget = new SelectColorWidget(this);
+    auto theme_color_menu = new QMenu(tr("Theme color"));
+    auto widget_action = new QWidgetAction(theme_color_menu);
+    widget_action->setDefaultWidget(select_color_widget);
+    (void)QObject::connect(select_color_widget, &SelectColorWidget::colorButtonClicked, [this](auto color) {
+        ThemeManager::setBackgroundColor(ui, color);
+        playlist_page_->setTextColor(Qt::white);
+        emit textColorChanged(Qt::white);
+        });
+    theme_color_menu->addAction(widget_action);
+    settings_menu->addMenu(theme_color_menu);
     settings_menu->addAction(enable_blur_material_mode_action);
     settings_menu->addSeparator();
     auto about_action = new QAction(tr("About"), this);
@@ -843,7 +854,11 @@ void Xamp::initialPlaylist() {
     pushWidget(lrc_page_);
     pushWidget(playlist_page_);
     pushWidget(album_artist_page_);
-    goBackPage();   
+    goBackPage();
+
+    (void)QObject::connect(this, &Xamp::textColorChanged,
+        album_artist_page_->album(),
+        &AlbumView::onTextColorChanged);
 
     (void)QObject::connect(&mbc_, &MusicBrainzClient::finished, [](auto artist_id, auto discogs_artist_id) {
         Database::Instance().updateDiscogsArtistId(artist_id, discogs_artist_id);
@@ -937,6 +952,9 @@ PlyalistPage* Xamp::newPlaylist(int32_t playlist_id) {
         [this](auto index, const auto& item) {
             mbc_.readFingerprint(item.artist_id, item.file_path);
         });
+    (void)QObject::connect(this, &Xamp::textColorChanged,
+        playlist_page->playlist(),
+        &PlayListTableView::onTextColorChanged);
     playlist_page->playlist()->setPlaylistId(playlist_id);
     return playlist_page;
 }
