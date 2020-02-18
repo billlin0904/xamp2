@@ -24,6 +24,7 @@ static void loadAndDefaultAppConfig() {
 	AppSettings::settings().setDefaultValue(APP_SETTING_HEIGHT, 500);
 	AppSettings::settings().setDefaultValue(APP_SETTING_VOLUME, 50);
 	AppSettings::settings().setDefaultValue(APP_SETTING_NIGHT_MODE, false);
+	AppSettings::settings().setDefaultValue(APP_SETTING_ENABLE_BLUR_MATERIAL, false);
 	AppSettings::settings().setDefaultValue(APP_SETTING_ORDER, PlayerOrder::PLAYER_ORDER_REPEAT_ONCE);
 }
 
@@ -93,6 +94,8 @@ int main(int argc, char *argv[]) {
 	loadAndDefaultAppConfig();
 
     Xamp win;
+	// Initial style options.
+	win.enableBlurMaterial(AppSettings::settings().getValue(APP_SETTING_ENABLE_BLUR_MATERIAL).toBool());
     win.show();
 	return app.exec();
 }

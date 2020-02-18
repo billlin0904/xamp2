@@ -85,7 +85,7 @@ SetWindowCompositionAttribute(
 
 typedef BOOL(WINAPI* pfnSetWindowCompositionAttribute)(HWND, WINDOWCOMPOSITIONATTRIBDATA*);
 
-void setBlurMaterial(HWND hWnd) {
+void setBlurMaterial(HWND hWnd, bool enable) {
 	using namespace xamp::base;
 
 	XAMP_DEFINE_DLL_API(SetWindowCompositionAttribute) SetWindowCompositionAttribute {
@@ -94,7 +94,7 @@ void setBlurMaterial(HWND hWnd) {
 	};
 
 	if (SetWindowCompositionAttribute) {
-		ACCENT_POLICY accent = { ACCENT_ENABLE_BLURBEHIND, 0, 0, 0 };
+		ACCENT_POLICY accent = { enable ? ACCENT_ENABLE_BLURBEHIND : ACCENT_DISABLED, 0, 0, 0 };
 		WINDOWCOMPOSITIONATTRIBDATA data;
 		data.Attrib = WCA_ACCENT_POLICY;
 		data.pvData = &accent;
@@ -103,9 +103,11 @@ void setBlurMaterial(HWND hWnd) {
 	}
 }
 
-void setBlurMaterial(const QWidget* widget) {
+namespace LookAndFeel {
+void setBlurMaterial(const QWidget* widget, bool enable) {
 	HWND hwnd = (HWND)widget->winId();
-	setBlurMaterial(hwnd);
+	setBlurMaterial(hwnd, enable);
+}
 }
 
 #endif

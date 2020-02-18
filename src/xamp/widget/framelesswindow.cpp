@@ -35,13 +35,13 @@ FramelessWindow::FramelessWindow(QWidget* parent)
 	// 保留1個像素系統才會繪製陰影.
 	const MARGINS borderless = { 1, 1, 1, 1 };
 	::DwmExtendFrameIntoClientArea(hwnd, &borderless);
-	setBlurMaterial(this);
 #endif    
-#ifdef _WIN32
+#if defined(Q_OS_WIN)
     initialFontDatabase();
     setStyleSheet(Q_UTF8(R"(
         font-family: "UI";
 		background: transparent;
+        border: none;
     )"));  
 #else
     setStyleSheet(Q_UTF8(R"(
@@ -51,6 +51,12 @@ FramelessWindow::FramelessWindow(QWidget* parent)
 }
 
 FramelessWindow::~FramelessWindow() {
+}
+
+void FramelessWindow::enableBlurMaterial(bool enable) {
+#if defined(Q_OS_WIN)
+    LookAndFeel::setBlurMaterial(this, enable);
+#endif
 }
 
 void FramelessWindow::lazyInitial() {

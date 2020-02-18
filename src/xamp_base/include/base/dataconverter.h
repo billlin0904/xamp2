@@ -20,7 +20,6 @@ constexpr int32_t XAMP_FLOAT_16_SCALER = 0x8000;
 constexpr int32_t XAMP_FLOAT_24_SCALER = 0x800000;
 constexpr int64_t XAMP_FLOAT_32_SCALER = 0x7FFFFFBE;
 
-#pragma pack(push, 1)
 class int24_t final {
 public:
 	int24_t() noexcept;
@@ -35,7 +34,6 @@ public:
 protected:
 	std::array<uint8_t, 3> c3{ 0 };
 };
-#pragma pack(pop)
 
 XAMP_ENFORCE_TRIVIAL(int24_t)
 
@@ -43,26 +41,10 @@ XAMP_ALWAYS_INLINE int24_t::int24_t() noexcept {
 }
 
 XAMP_ALWAYS_INLINE int24_t::int24_t(float f) noexcept {
-#if 0 // Check float audio overrange!
-	if (f > 1.0) {
-		f = 1.0;
-	}
-	if (f < -1.0) {
-		f = -1.0;
-	}
-#endif
-	*this = static_cast<int32_t>(std::rint(f * XAMP_FLOAT_24_SCALER));
+	*this = f;
 }
 
 XAMP_ALWAYS_INLINE int24_t& int24_t::operator=(float f) noexcept {
-#if 0 // Check float audio overrange!
-	if (f > 1.0) {
-		f = 1.0;
-	}
-	if (f < -1.0) {
-		f = -1.0;
-	}
-#endif
 	*this = static_cast<int32_t>(std::rint(f * XAMP_FLOAT_24_SCALER));
 	return *this;
 }

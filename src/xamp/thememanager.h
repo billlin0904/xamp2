@@ -53,5 +53,6 @@ public:
     static QSize getDefaultCoverSize() noexcept;
     static QSize getCacheCoverSize() noexcept;
     static QSize getAlbumCoverSize() noexcept;
+    static QList<QColor> getColorset() noexcept;
 };
 

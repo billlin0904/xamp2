@@ -77,13 +77,33 @@ QSize ThemeManager::getAlbumCoverSize() noexcept {
     return DefaultAlbumCoverSize;
 }
 
+QList<QColor> ThemeManager::getColorset() noexcept {
+    QList<QColor> colors;
+    colors.append(QColor(255, 185, 0, 1));
+    colors.append(QColor(231, 72, 86, 1));
+    colors.append(QColor(0, 120, 215, 1));
+    colors.append(QColor(0, 153, 188, 1));
+    colors.append(QColor(122, 117, 116, 1));
+    colors.append(QColor(118, 118, 118, 1));
+    colors.append(QColor(255, 140, 0, 1));
+    colors.append(QColor(232, 17, 35, 1));
+    colors.append(QColor(0, 99, 177, 1));
+    colors.append(QColor(45, 125, 154, 1));
+    colors.append(QColor(93, 90, 88, 1));
+    colors.append(QColor(76, 74, 72, 1));
+    colors.append(QColor(247, 99, 12, 1));
+    colors.append(QColor(234, 0, 94, 1));
+    colors.append(QColor(142, 140, 216, 1));
+    colors.append(QColor(0, 183, 195, 1));
+    return colors;
+}
+
 void ThemeManager::setNightStyle(Ui::XampWindow &ui) {
 }
 
 void ThemeManager::setDefaultStyle(Ui::XampWindow &ui) {
     ui.currentView->setStyleSheet(Q_UTF8("background-color: rgba(228, 233, 237, 230);"));
-    ui.titleFrame->setStyleSheet(Q_UTF8("background-color: rgba(228, 233, 237, 230);"));
-    ui.sliderBar->setStyleSheet(Q_UTF8("background-color: rgba(228, 233, 237, 150);"));
+    ui.titleFrame->setStyleSheet(Q_UTF8("background-color: rgba(228, 233, 237, 230);"));    
     ui.controlFrame->setStyleSheet(Q_UTF8("background-color: rgba(255, 255, 255, 200);"));
     ui.volumeFrame->setStyleSheet(Q_UTF8("background-color: rgba(255, 255, 255, 200);"));
     ui.playingFrame->setStyleSheet(Q_UTF8("background-color: rgba(228, 233, 237, 220);"));

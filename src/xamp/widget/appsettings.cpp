@@ -7,6 +7,7 @@ const QLatin1String APP_SETTING_HEIGHT{ "AppSettings/height" };
 const QLatin1String APP_SETTING_VOLUME{ "AppSettings/volume" };
 const QLatin1String APP_SETTING_ORDER{ "AppSettings/order" };
 const QLatin1String APP_SETTING_NIGHT_MODE{ "AppSettings/nightMode" };
+const QLatin1String APP_SETTING_ENABLE_BLUR_MATERIAL{ "AppSettings/theme/enableBlurMaterial" };
 
 xamp::base::AlignPtr<QSettings> AppSettings::settings_;
 QMap<QString, QVariant> AppSettings::default_settings_;

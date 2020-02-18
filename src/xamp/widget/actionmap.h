@@ -8,6 +8,7 @@
 #include <map>
 #include <memory>
 
+#include "thememanager.h"
 #include <QMenu>
 
 template <typename Type, typename ActionFunc>
@@ -52,11 +53,17 @@ public:
 	explicit ActionMap(Type *object)
 		: object_(object)
 		, menu_(object) {
+        setThemeSetyle();
 	}
 
     ActionMap(QWidget *app, Type *object) 
         : object_(object)
         , menu_(app) {
+        setThemeSetyle();
+    }
+
+    void setThemeSetyle() {
+        setStyleSheet(ThemeManager::getMenuStyle());
     }
 
     template <typename Callable>

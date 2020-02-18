@@ -309,9 +309,7 @@ void AsioDevice::CreateBuffers(const AudioFormat& output_format) {
 	long input_latency = 0;
 	long output_latency = 0;
 	AsioIfFailedThrow(::ASIOGetLatencies(&input_latency, &output_latency));
-	XAMP_LOG_INFO("Input latency: {}ms Ouput latency: {}ms",
-		GetLatencyMs(input_latency, output_format.GetSampleRate()),
-		GetLatencyMs(output_latency, output_format.GetSampleRate()));
+	XAMP_LOG_INFO("Ouput latency: {}ms", GetLatencyMs(output_latency, output_format.GetSampleRate()));
 }
 
 int32_t AsioDevice::GetVolume() const {
@@ -450,7 +448,11 @@ void AsioDevice::OpenStream(const AudioFormat& output_format) {
 }
 
 void AsioDevice::SetOutputSampleRate(const AudioFormat& output_format) {
-	AsioIfFailedThrow(::ASIOSetSampleRate(static_cast<ASIOSampleRate>(output_format.GetSampleRate())));
+	auto error = ::ASIOSetSampleRate(static_cast<ASIOSampleRate>(output_format.GetSampleRate()));
+	if (error == ASE_NotPresent) {
+		throw DeviceUnSupportedFormatException(output_format);
+	}
+	AsioIfFailedThrow(error);
 	XAMP_LOG_INFO("Set device samplerate: {}", output_format.GetSampleRate());
 
 	clock_source_.resize(MAX_CLOCK_SOURCE_SIZE);

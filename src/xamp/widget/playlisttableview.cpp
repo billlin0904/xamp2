@@ -144,15 +144,6 @@ void PlayListTableView::initial() {
 
 		ActionMap<PlayListTableView, std::function<void()>> action_map(this);
 
-		action_map.setStyleSheet(Q_UTF8(R"(
-                               QMenu {
-                               background-color: rgba(228, 233, 237, 150);
-                               }
-                               QMenu::item:selected {
-                               background-color: black;
-                               }
-                               )"));
-
 		action_map.addAction(tr("Open local file path"), [item]() {
 			QDesktopServices::openUrl(QUrl::fromLocalFile(item.parent_path));
 			});

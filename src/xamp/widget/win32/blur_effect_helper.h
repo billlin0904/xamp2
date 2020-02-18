@@ -7,5 +7,7 @@
 
 #include <QWidget>
 
-void setBlurMaterial(const QWidget* widget);
+namespace LookAndFeel {
+	void setBlurMaterial(const QWidget* widget, bool enable);
+}
 

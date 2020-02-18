@@ -168,14 +168,7 @@ void Xamp::initialDeviceList() {
         ui.selectDeviceButton->setMenu(menu);
     }
 
-    menu->setStyleSheet(Q_UTF8(R"(
-                               QMenu {
-                               background-color: rgba(228, 233, 237, 150);
-                               }
-                               QMenu::item:selected {
-                               background-color: black;
-                               }
-                               )"));
+    menu->setStyleSheet(ThemeManager::getMenuStyle());
     menu->clear();
 
     DeviceInfo init_device_info;
@@ -413,8 +406,15 @@ void Xamp::initialController() {
     settings_menu->setStyleSheet(ThemeManager::getMenuStyle());
     auto settings_action = new QAction(tr("Settings"), this);
     settings_menu->addAction(settings_action);
-    auto night_mode_action = new QAction(tr("Night mode"), this);
-    settings_menu->addAction(night_mode_action);
+    auto enable_blur_material_mode_action = new QAction(tr("Enable BlurMaterial"), this);
+    (void)QObject::connect(enable_blur_material_mode_action, &QAction::triggered, [this]() {
+        auto enable = AppSettings::settings().getValue(APP_SETTING_ENABLE_BLUR_MATERIAL).toBool();
+        enable = !enable;
+        enableBlurMaterial(enable);
+        AppSettings::settings().setValue(APP_SETTING_ENABLE_BLUR_MATERIAL, enable);
+        });
+
+    settings_menu->addAction(enable_blur_material_mode_action);
     settings_menu->addSeparator();
     auto about_action = new QAction(tr("About"), this);
     settings_menu->addAction(about_action);

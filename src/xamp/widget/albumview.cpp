@@ -383,22 +383,13 @@ AlbumView::AlbumView(QWidget* parent)
 		});
 
     setContextMenuPolicy(Qt::CustomContextMenu);
-    (void)QObject::connect(this, &QTableView::customContextMenuRequested, [this](auto pt) {
-        ActionMap<AlbumView, std::function<void()>> action_map(this);
-
-        action_map.setStyleSheet(Q_UTF8(R"(
-                               QMenu {
-                               background-color: rgba(228, 233, 237, 150);
-                               }
-                               QMenu::item:selected {
-                               background-color: black;
-                               }
-                               )"));
-
+    (void)QObject::connect(this, &QTableView::customContextMenuRequested, [this](auto pt) {        
         auto index = indexAt(pt);
         auto album = getIndexValue(index, 0).toString();
         auto artist = getIndexValue(index, 2).toString();
 		auto album_id = getIndexValue(index, 3).toInt();
+
+		ActionMap<AlbumView, std::function<void()>> action_map(this);
 
 		action_map.addAction(tr("Add album to playlist"), [=, this]() {
 			Database::Instance().forEachAlbumMusic(album_id, [this](const auto& entity) {

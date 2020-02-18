@@ -309,7 +309,7 @@ public:
 				0,
 				file_.GetLength(),
 				flags | BASS_STREAM_DECODE,
-				0));	
+				0));
 			// BassLib DSD module default use 6dB gain. 
 			// 不設定的話會爆音!
 			BassLib::Instance().BASS_ChannelSetAttribute(stream_.get(), BASS_ATTRIB_DSD_GAIN, 0.0);

@@ -18,6 +18,7 @@ extern const QLatin1String APP_SETTING_HEIGHT;
 extern const QLatin1String APP_SETTING_VOLUME;
 extern const QLatin1String APP_SETTING_ORDER;
 extern const QLatin1String APP_SETTING_NIGHT_MODE;
+extern const QLatin1String APP_SETTING_ENABLE_BLUR_MATERIAL;
 
 class AppSettings {
 public:
