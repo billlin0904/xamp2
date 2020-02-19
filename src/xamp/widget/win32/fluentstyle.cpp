@@ -1,4 +1,4 @@
-#include "blur_effect_helper.h"
+#include "fluentstyle.h"
 
 #if defined(Q_OS_WIN)
 
@@ -103,7 +103,7 @@ void setBlurMaterial(HWND hWnd, bool enable) {
 	}
 }
 
-namespace LookAndFeel {
+namespace FluentStyle {
 void setBlurMaterial(const QWidget* widget, bool enable) {
 	HWND hwnd = (HWND)widget->winId();
 	setBlurMaterial(hwnd, enable);

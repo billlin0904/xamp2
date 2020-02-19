@@ -49,6 +49,7 @@ public:
     static void setPlayOrPauseButton(Ui::XampWindow &ui, bool is_playing);
     static void setDefaultStyle(Ui::XampWindow &ui);
     static void setBackgroundColor(Ui::XampWindow& ui, QColor backgroundColor);    
+    static void enableBlur(const QWidget* widget, bool enable);
     static QString getMenuStyle() noexcept;
     static QSize getDefaultCoverSize() noexcept;
     static QSize getCacheCoverSize() noexcept;

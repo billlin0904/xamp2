@@ -43,8 +43,6 @@ public:
 
 	void setTaskbarPlayerStop();
 
-	void enableBlurMaterial(bool enable);
-
 protected:
     bool eventFilter(QObject* object, QEvent* event) override;
 

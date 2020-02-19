@@ -1,6 +1,10 @@
 #include "ui_xamp.h"
 #include <widget/str_utilts.h>
 #include <widget/image_utiltis.h>
+#if defined(Q_OS_WIN)
+#include <widget/win32/fluentstyle.h>
+#endif
+#include <widget/appsettings.h>
 #include "thememanager.h"
 
 QColor ThemeManager::tableTextColor(Qt::black);
@@ -87,14 +91,28 @@ QColor ThemeManager::getBackgroundColor() noexcept {
     return backgroundColor;
 }
 
-void ThemeManager::setBackgroundColor(Ui::XampWindow& ui, QColor backgroundColor) {
-    ui.currentView->setStyleSheet(backgroundColorToString(backgroundColor));
-    ui.titleFrame->setStyleSheet(backgroundColorToString(backgroundColor));
-    ui.sliderFrame->setStyleSheet(backgroundColorToString(backgroundColor));
+void ThemeManager::enableBlur(const QWidget* widget, bool enable) {
+#if defined(Q_OS_WIN)
+    FluentStyle::setBlurMaterial(widget, enable);
+    AppSettings::setValue(APP_SETTING_ENABLE_BLUR, enable);
+#endif
+}
+
+void ThemeManager::setBackgroundColor(Ui::XampWindow& ui, QColor color) {
+    ui.currentView->setStyleSheet(backgroundColorToString(color));
+    ui.titleFrame->setStyleSheet(backgroundColorToString(color));
+    ui.sliderFrame->setStyleSheet(backgroundColorToString(color));
+    AppSettings::setValue(APP_SETTING_BACKGROUND_COLOR, color);
+    backgroundColor = color;
 }
 
 void ThemeManager::setDefaultStyle(Ui::XampWindow &ui) {
-    setBackgroundColor(ui, backgroundColor);
+    if (!AppSettings::getValue(APP_SETTING_BACKGROUND_COLOR).toString().isEmpty()) {
+        setBackgroundColor(ui, AppSettings::getValue(APP_SETTING_BACKGROUND_COLOR).toString());
+    }
+    else {
+        setBackgroundColor(ui, backgroundColor);
+    }    
 
     ui.controlFrame->setStyleSheet(backgroundColorToString(controlBackgroundColor));
     ui.volumeFrame->setStyleSheet(backgroundColorToString(controlBackgroundColor));

@@ -11,9 +11,11 @@
 #include <QtWinExtras/QWinThumbnailToolButton>
 #pragma comment(lib, "dwmapi.lib")
 #include <dwmapi.h>
-#include <widget/win32/blur_effect_helper.h>
+#include <widget/win32/fluentstyle.h>
 #endif
 
+#include "thememanager.h"
+#include <widget/appsettings.h>
 #include <widget/str_utilts.h>
 #include <widget/framelesswindow.h>
 
@@ -35,14 +37,17 @@ FramelessWindow::FramelessWindow(QWidget* parent)
 	// 保留1個像素系統才會繪製陰影.
 	const MARGINS borderless = { 1, 1, 1, 1 };
 	::DwmExtendFrameIntoClientArea(hwnd, &borderless);
-#endif    
-#if defined(Q_OS_WIN)
+    if (AppSettings::getValue(APP_SETTING_ENABLE_BLUR).toBool()) {
+        ThemeManager::enableBlur(this, true);
+    }
+#endif
     initialFontDatabase();
+#if defined(Q_OS_WIN)        
     setStyleSheet(Q_UTF8(R"(
         font-family: "UI";
 		background: transparent;
         border: none;
-    )"));  
+    )"));
 #else
     setStyleSheet(Q_UTF8(R"(
         font-family: "UI";
@@ -51,12 +56,6 @@ FramelessWindow::FramelessWindow(QWidget* parent)
 }
 
 FramelessWindow::~FramelessWindow() {
-}
-
-void FramelessWindow::enableBlurMaterial(bool enable) {
-#if defined(Q_OS_WIN)
-    LookAndFeel::setBlurMaterial(this, enable);
-#endif
 }
 
 void FramelessWindow::lazyInitial() {

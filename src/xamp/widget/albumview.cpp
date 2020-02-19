@@ -17,7 +17,7 @@
 #include <widget/actionmap.h>
 
 #if defined(Q_OS_WIN)
-#include <widget/win32/blur_effect_helper.h>
+#include <widget/win32/fluentstyle.h>
 #endif
 
 #include "thememanager.h"
