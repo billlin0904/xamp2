@@ -106,13 +106,61 @@ void ThemeManager::setBackgroundColor(Ui::XampWindow& ui, QColor color) {
     backgroundColor = color;
 }
 
+void ThemeManager::setWhiteIcon(Ui::XampWindow& ui) {
+    auto color = Q_UTF8("Black");
+
+    ui.nextPageButton->setStyleSheet(QString(Q_UTF8(R"(
+                                            QToolButton#nextPageButton {
+                                            border: none;
+                                            image: url(:/xamp/Resource/%1/right_black.png);
+                                            background-color: transparent;
+                                            }
+                                            )")).arg(color));
+
+    ui.backPageButton->setStyleSheet(QString(Q_UTF8(R"(
+                                            QToolButton#backPageButton {
+                                            border: none;
+                                            image: url(:/xamp/Resource/%1/left_black.png);
+                                            background-color: transparent;
+                                            }
+                                            )")).arg(color));
+
+    ui.closeButton->setStyleSheet(QString(Q_UTF8(R"(
+                                         QToolButton#closeButton {
+                                         image: url(:/xamp/Resource/%1/close.png);
+                                         background-color: transparent;
+                                         }
+                                         )")).arg(color));
+
+    ui.minWinButton->setStyleSheet(QString(Q_UTF8(R"(
+                                          QToolButton#minWinButton {
+                                          image: url(:/xamp/Resource/%1/minimize.png);
+                                          background-color: transparent;
+                                          }
+                                          )")).arg(color));
+
+    ui.maxWinButton->setStyleSheet(QString(Q_UTF8(R"(
+                                          QToolButton#maxWinButton {
+                                          image: url(:/xamp/Resource/%1/maximize.png);
+                                          background-color: transparent;
+                                          }
+                                          )")).arg(color));
+
+    ui.settingsButton->setStyleSheet(QString(Q_UTF8(R"(
+                                            QToolButton#settingsButton {
+                                            image: url(:/xamp/Resource/%1/settings.png);
+                                            background-color: transparent;
+                                            }
+                                            )")).arg(color));
+}
+
 void ThemeManager::setDefaultStyle(Ui::XampWindow &ui) {
     if (!AppSettings::getValue(APP_SETTING_BACKGROUND_COLOR).toString().isEmpty()) {
         setBackgroundColor(ui, AppSettings::getValue(APP_SETTING_BACKGROUND_COLOR).toString());
     }
     else {
         setBackgroundColor(ui, backgroundColor);
-    }    
+    }
 
     ui.controlFrame->setStyleSheet(backgroundColorToString(controlBackgroundColor));
     ui.volumeFrame->setStyleSheet(backgroundColorToString(controlBackgroundColor));
@@ -121,41 +169,15 @@ void ThemeManager::setDefaultStyle(Ui::XampWindow &ui) {
     ui.searchLineEdit->setStyleSheet(Q_UTF8(""));    
     ui.sliderBar->setStyleSheet(Q_UTF8("background-color: transparent;"));
 
+    setWhiteIcon(ui);
+
     ui.stopButton->setStyleSheet(Q_UTF8(R"(
                                          QToolButton#stopButton {
                                          image: url(:/xamp/Resource/White/stop.png);
                                          background-color: transparent;
                                          }
-                                         )"));
-
-    ui.closeButton->setStyleSheet(Q_UTF8(R"(
-                                         QToolButton#closeButton {
-                                         image: url(:/xamp/Resource/White/close.png);
-                                         background-color: transparent;
-                                         }
-                                         )"));
-
-    ui.minWinButton->setStyleSheet(Q_UTF8(R"(
-                                          QToolButton#minWinButton {
-                                          image: url(:/xamp/Resource/White/minimize.png);
-                                          background-color: transparent;
-                                          }
-                                          )"));
-
-    ui.maxWinButton->setStyleSheet(Q_UTF8(R"(
-                                          QToolButton#maxWinButton {
-                                          image: url(:/xamp/Resource/White/maximize.png);
-                                          background-color: transparent;
-                                          }
-                                          )"));
-
-    ui.settingsButton->setStyleSheet(Q_UTF8(R"(
-                                            QToolButton#settingsButton {
-                                            image: url(:/xamp/Resource/White/settings.png);
-                                            background-color: transparent;
-                                            }
-                                            )"));
-
+                                         )"));    
+    
     ui.nextButton->setStyleSheet(Q_UTF8(R"(
                                         QToolButton#nextButton {
                                         border: none;
@@ -171,22 +193,6 @@ void ThemeManager::setDefaultStyle(Ui::XampWindow &ui) {
                                         background-color: transparent;
                                         }
                                         )"));
-
-    ui.nextPageButton->setStyleSheet(Q_UTF8(R"(
-                                            QToolButton#nextPageButton {
-                                            border: none;
-                                            image: url(:/xamp/Resource/White/right_black.png);
-                                            background-color: transparent;
-                                            }
-                                            )"));
-
-    ui.backPageButton->setStyleSheet(Q_UTF8(R"(
-                                            QToolButton#backPageButton {
-                                            border: none;
-                                            image: url(:/xamp/Resource/White/left_black.png);
-                                            background-color: transparent;
-                                            }
-                                            )"));
 
     ui.searchLineEdit->setStyleSheet(Q_UTF8(R"(
                                             QLineEdit#searchLineEdit {

@@ -7,6 +7,7 @@
 
 SelectColorWidget::SelectColorWidget(QWidget* parent)
     : QWidget(parent) {
+    colors_.append(QColor("#121212"));
     colors_.append(QColor(228, 233, 237, 204));
     colors_.append(QColor(255, 185, 0, 204));
     colors_.append(QColor(231, 72, 86, 204));

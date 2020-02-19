@@ -69,6 +69,8 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
 	painter->setFont(f);
 	painter->drawText(album_text_rect, Qt::AlignVCenter, album);
 
+	painter->setPen(QPen(Qt::gray));
+
 	f.setBold(false);
 	painter->setFont(f);
 	painter->drawText(artist_text_rect, Qt::AlignVCenter, artist);

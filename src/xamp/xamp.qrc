@@ -1,6 +1,5 @@
 <RCC>
     <qresource prefix="/xamp">
-        <file>Resource/White/etting.png</file>
         <file>Resource/White/left_black.png</file>
         <file>Resource/White/next.png</file>
         <file>Resource/White/pause.png</file>
@@ -24,5 +23,13 @@
         <file>Resource/White/night_mode.png</file>
         <file>Resource/White/settings.png</file>
         <file>Resource/White/stop.png</file>
+        <file>Resource/Black/close.png</file>
+        <file>Resource/Black/left_black.png</file>
+        <file>Resource/Black/minimize.png</file>
+        <file>Resource/Black/pause.png</file>
+        <file>Resource/Black/play.png</file>
+        <file>Resource/Black/right_black.png</file>
+        <file>Resource/Black/maximize.png</file>
+        <file>Resource/Black/settings.png</file>
     </qresource>
 </RCC>
