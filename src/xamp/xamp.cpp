@@ -10,7 +10,6 @@
 
 #include <widget/albumartistpage.h>
 #include <widget/lrcpage.h>
-#include <widget/win32/blur_effect_helper.h>
 #include <widget/albumview.h>
 #include <widget/artistview.h>
 #include <widget/str_utilts.h>
@@ -84,14 +83,15 @@ Xamp::Xamp(QWidget *parent)
     initialDeviceList();
     initialPlaylist();
     setCover(ThemeManager::pixmap().unknownCover());
-    DeviceFactory::Instance().RegisterDeviceListener(player_);    
+    DeviceFactory::Instance().RegisterDeviceListener(player_);   
+    setDefaultStyle();
 }
 
 void Xamp::closeEvent(QCloseEvent*) {
-	AppSettings::settings().setValue(APP_SETTING_VOLUME, player_->GetVolume());
-    AppSettings::settings().setValue(APP_SETTING_WIDTH, size().width());
-    AppSettings::settings().setValue(APP_SETTING_HEIGHT, size().height());
-	AppSettings::settings().setValue(APP_SETTING_VOLUME, ui.volumeSlider->value());
+	AppSettings::setValue(APP_SETTING_VOLUME, player_->GetVolume());
+    AppSettings::setValue(APP_SETTING_WIDTH, size().width());
+    AppSettings::setValue(APP_SETTING_HEIGHT, size().height());
+	AppSettings::setValue(APP_SETTING_VOLUME, ui.volumeSlider->value());
 
     if (player_ != nullptr) {
         player_->Stop(false, true);
@@ -103,6 +103,9 @@ void Xamp::setNightStyle() {
 }
 
 void Xamp::setDefaultStyle() {
+    ThemeManager::setPlayOrPauseButton(ui, false);
+    ThemeManager::setDefaultStyle(ui);
+    applyTheme(ThemeManager::getBackgroundColor());
     setStyleSheet(Q_UTF8(R"(
                          QTableView {
                          background-color: transparent;
@@ -114,17 +117,14 @@ void Xamp::setDefaultStyle() {
                          border: none;
                          }
                          )"));
-    ThemeManager::setPlayOrPauseButton(ui, false);
-    ThemeManager::setDefaultStyle(ui);
 }
 
 void Xamp::initialUI() {
     ui.setupUi(this);
-    setDefaultStyle();
 
     setGeometry(QStyle::alignedRect(Qt::LeftToRight,
                                     Qt::AlignCenter,
-                                    AppSettings::settings().getSizeValue(APP_SETTING_WIDTH, APP_SETTING_HEIGHT),
+                                    AppSettings::getSizeValue(APP_SETTING_WIDTH, APP_SETTING_HEIGHT),
                                     qApp->desktop()->availableGeometry()));
 
 	auto f = font();
@@ -198,12 +198,12 @@ void Xamp::initialDeviceList() {
             device_id_action[device_info.device_id] = device_action;
             (void)QObject::connect(device_action, &QAction::triggered, [device_info, this]() {
                 device_info_ = device_info;
-                AppSettings::settings().setValue(APP_SETTING_DEVICE_TYPE, device_info_.device_type_id);
-                AppSettings::settings().setValue(APP_SETTING_DEVICE_ID, device_info_.device_id);
+                AppSettings::setValue(APP_SETTING_DEVICE_TYPE, device_info_.device_type_id);
+                AppSettings::setValue(APP_SETTING_DEVICE_ID, device_info_.device_id);
             });
             menu->addAction(device_action);
-            if (AppSettings::settings().getIDValue(APP_SETTING_DEVICE_TYPE) == device_info.device_type_id
-                    && AppSettings::settings().getValue(APP_SETTING_DEVICE_ID).toString().toStdWString() == device_info.device_id) {
+            if (AppSettings::getIDValue(APP_SETTING_DEVICE_TYPE) == device_info.device_type_id
+                    && AppSettings::getValue(APP_SETTING_DEVICE_ID).toString().toStdWString() == device_info.device_id) {
                 device_info_ = device_info;
                 is_find_setting_device = true;
                 device_action->setChecked(true);
@@ -223,8 +223,8 @@ void Xamp::initialDeviceList() {
     if (!is_find_setting_device) {
         device_info_ = init_device_info;
         device_id_action[device_info_.device_id]->setChecked(true);
-        AppSettings::settings().setValue(APP_SETTING_DEVICE_TYPE, device_info_.device_type_id);
-        AppSettings::settings().setValue(APP_SETTING_DEVICE_ID, device_info_.device_id);
+        AppSettings::setValue(APP_SETTING_DEVICE_TYPE, device_info_.device_type_id);
+        AppSettings::setValue(APP_SETTING_DEVICE_ID, device_info_.device_id);
     }
 }
 
@@ -307,10 +307,10 @@ void Xamp::initialController() {
         player_->Pause();
     });
 
-    order_ = static_cast<PlayerOrder>(AppSettings::settings().getAsInt(APP_SETTING_ORDER));
+    order_ = static_cast<PlayerOrder>(AppSettings::getAsInt(APP_SETTING_ORDER));
     setPlayerOrder();
 
-	auto vol = AppSettings::settings().getAsInt(APP_SETTING_VOLUME);
+	auto vol = AppSettings::getAsInt(APP_SETTING_VOLUME);
     ui.volumeSlider->setRange(0, 100);
     ui.volumeSlider->setValue(vol);
 	player_->SetMute(vol == 0);
@@ -407,21 +407,23 @@ void Xamp::initialController() {
     settings_menu->setStyleSheet(ThemeManager::getMenuStyle());
     auto settings_action = new QAction(tr("Settings"), this);
     settings_menu->addAction(settings_action);
-    auto enable_blur_material_mode_action = new QAction(tr("Enable BlurMaterial"), this);
-    (void)QObject::connect(enable_blur_material_mode_action, &QAction::triggered, [this]() {
-        auto enable = AppSettings::settings().getValue(APP_SETTING_ENABLE_BLUR_MATERIAL).toBool();
+    auto enable_blur_material_mode_action = new QAction(tr("Enable Blur"), this);
+    enable_blur_material_mode_action->setCheckable(true);
+    if (AppSettings::getValue(APP_SETTING_ENABLE_BLUR).toBool()) {
+        enable_blur_material_mode_action->setChecked(true);
+    }
+    (void)QObject::connect(enable_blur_material_mode_action, &QAction::triggered, [=]() {
+        auto enable = AppSettings::getValue(APP_SETTING_ENABLE_BLUR).toBool();
         enable = !enable;
-        enableBlurMaterial(enable);
-        AppSettings::settings().setValue(APP_SETTING_ENABLE_BLUR_MATERIAL, enable);
+        enable_blur_material_mode_action->setChecked(enable);
+        ThemeManager::enableBlur(this, enable);
         });
     auto select_color_widget = new SelectColorWidget(this);
     auto theme_color_menu = new QMenu(tr("Theme color"));
     auto widget_action = new QWidgetAction(theme_color_menu);
     widget_action->setDefaultWidget(select_color_widget);
-    (void)QObject::connect(select_color_widget, &SelectColorWidget::colorButtonClicked, [this](auto color) {
-        ThemeManager::setBackgroundColor(ui, color);
-        playlist_page_->setTextColor(Qt::white);
-        emit textColorChanged(Qt::white);
+    (void)QObject::connect(select_color_widget, &SelectColorWidget::colorButtonClicked, [this](auto color) {        
+        applyTheme(color);
         });
     theme_color_menu->addAction(widget_action);
     settings_menu->addMenu(theme_color_menu);
@@ -434,6 +436,12 @@ void Xamp::initialController() {
     ui.seekSlider->setEnabled(false);
     ui.startPosLabel->setText(Time::msToString(0));
     ui.endPosLabel->setText(Time::msToString(0));
+}
+
+void Xamp::applyTheme(QColor color) {
+    playlist_page_->setTextColor(Qt::white);
+    emit textColorChanged(Qt::white);
+    ThemeManager::setBackgroundColor(ui, color);
 }
 
 void Xamp::getNextPage() {
@@ -531,7 +539,7 @@ void Xamp::setPlayerOrder() {
                                               background: transparent;
                                               }
                                               )"));
-        AppSettings::settings().setValue(APP_SETTING_ORDER,
+        AppSettings::setValue(APP_SETTING_ORDER,
                                          (int)PLAYER_ORDER_REPEAT_ONCE);
         break;
     case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:
@@ -541,7 +549,7 @@ void Xamp::setPlayerOrder() {
                                               background: transparent;
                                               }
                                               )"));
-        AppSettings::settings().setValue(APP_SETTING_ORDER,
+        AppSettings::setValue(APP_SETTING_ORDER,
                                          (int)PLAYER_ORDER_REPEAT_ONE);
         break;
     case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL:
@@ -551,7 +559,7 @@ void Xamp::setPlayerOrder() {
                                               background: transparent;
                                               }
                                               )"));
-        AppSettings::settings().setValue(APP_SETTING_ORDER,
+        AppSettings::setValue(APP_SETTING_ORDER,
                                          (int)PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL);
         break;
     default:

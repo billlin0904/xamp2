@@ -46,7 +46,7 @@ class Xamp : public FramelessWindow {
 	Q_OBJECT
 
 public:
-    Xamp(QWidget *parent = nullptr);
+    explicit Xamp(QWidget *parent = nullptr);
 
 signals:
 	void payNextMusic();
@@ -61,6 +61,8 @@ public slots:
     void addPlaylistItem(const PlayListEntity &entity);
 
 private:
+	void applyTheme(QColor color);
+
 	void setDefaultStyle();
 
 	void setNightStyle();
