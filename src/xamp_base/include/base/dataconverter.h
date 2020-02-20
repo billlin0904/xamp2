@@ -22,8 +22,6 @@ constexpr int64_t XAMP_FLOAT_32_SCALER = 0x7FFFFFBE;
 
 class int24_t final {
 public:
-	int24_t() noexcept;
-
 	int24_t(float f) noexcept;
 
 	int24_t& operator=(int32_t i) noexcept;
@@ -32,13 +30,10 @@ public:
 
 	int32_t to_2432int() const noexcept;
 protected:
-	std::array<uint8_t, 3> c3{ 0 };
+	std::array<uint8_t, 3> c3;
 };
 
 XAMP_ENFORCE_TRIVIAL(int24_t)
-
-XAMP_ALWAYS_INLINE int24_t::int24_t() noexcept {
-}
 
 XAMP_ALWAYS_INLINE int24_t::int24_t(float f) noexcept {
 	*this = f;
