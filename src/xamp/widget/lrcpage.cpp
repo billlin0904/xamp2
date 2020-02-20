@@ -31,6 +31,14 @@ QLabel* LrcPage::title() {
 	return title_;
 }
 
+void LrcPage::setTextColor(QColor color) {
+	title_->setStyleSheet(Q_UTF8("QLabel { color: ") + colorToString(color) + Q_UTF8(";}"));
+	album_->setStyleSheet(Q_UTF8("QLabel { color: ") + colorToString(color) + Q_UTF8(";}"));
+	artist_->setStyleSheet(Q_UTF8("QLabel { color: ") + colorToString(color) + Q_UTF8(";}"));
+	lyrics_widget_->setLrcColor(color);
+	lyrics_widget_->setLrcHightLight(color);
+}
+
 void LrcPage::initial() {
 	auto horizontalLayout_10 = new QHBoxLayout(this);
 	
@@ -66,6 +74,7 @@ void LrcPage::initial() {
 
 	auto f = font();
 	f.setPointSize(24);
+	f.setBold(true);
 
 	title_ = new QLabel(this);
 	title_->setObjectName(QString::fromUtf8("label_2"));

@@ -1,5 +1,7 @@
 #include <QPixmap>
 
+#include <base/logger.h>
+
 #include <rapidjson/rapidjson.h>
 #include <rapidjson/document.h>
 
@@ -50,6 +52,7 @@ void DiscogsClient::searchArtistId(int32_t artist_id, const QString& id) {
         
         auto images = d.FindMember("images");
         if (images == d.MemberEnd()) {
+            XAMP_LOG_DEBUG("Not found image! id:{} artist id: {}", id.toStdString(), artist_id);
             return;
         }
 

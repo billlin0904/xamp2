@@ -99,11 +99,20 @@ void ThemeManager::enableBlur(const QWidget* widget, bool enable) {
 }
 
 void ThemeManager::setBackgroundColor(Ui::XampWindow& ui, QColor color) {
+    QColor alphaColor = color;
+    alphaColor.setAlpha(180);
+
     ui.currentView->setStyleSheet(backgroundColorToString(color));
     ui.titleFrame->setStyleSheet(backgroundColorToString(color));
-    ui.sliderFrame->setStyleSheet(backgroundColorToString(color));
+    ui.sliderFrame->setStyleSheet(backgroundColorToString(alphaColor));
+
     AppSettings::setValue(APP_SETTING_BACKGROUND_COLOR, color);
     backgroundColor = color;
+}
+
+QIcon ThemeManager::playArrow() noexcept {
+    auto color = Q_UTF8("Black");
+    return QIcon(QString(Q_UTF8(":/xamp/Resource/%1/play_arrow.png")).arg(color));
 }
 
 void ThemeManager::setWhiteIcon(Ui::XampWindow& ui) {

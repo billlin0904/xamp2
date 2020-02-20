@@ -31,5 +31,6 @@
         <file>Resource/Black/right_black.png</file>
         <file>Resource/Black/maximize.png</file>
         <file>Resource/Black/settings.png</file>
+        <file>Resource/Black/play_arrow.png</file>
     </qresource>
 </RCC>

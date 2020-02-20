@@ -56,6 +56,7 @@ public:
     static QSize getAlbumCoverSize() noexcept;
     static QColor getBackgroundColor() noexcept;
     static void setWhiteIcon(Ui::XampWindow& ui);
+    static QIcon playArrow() noexcept;
 private:
     static QSize defaultAlbumCoverSize;
     static QSize defaultCoverSize;

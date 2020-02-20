@@ -29,7 +29,7 @@ private:
 class ArtistView : public QListView {
     Q_OBJECT
 public:
-    ArtistView(QWidget *parent = nullptr);
+    explicit ArtistView(QWidget *parent = nullptr);
 
 Q_SIGNALS:
     void clickedArtist(const QString &first_char);

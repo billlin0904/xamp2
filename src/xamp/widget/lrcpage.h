@@ -25,6 +25,8 @@ public:
 
 	QLabel* title();
 
+	void setTextColor(QColor color);
+
 private:
 	void initial();
 

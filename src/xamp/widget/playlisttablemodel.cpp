@@ -1,5 +1,6 @@
 #include <QTime>
 
+#include "thememanager.h"
 #include <widget/str_utilts.h>
 #include <widget/time_utilts.h>
 #include <widget/playlisttablemodel.h>
@@ -47,7 +48,7 @@ QVariant PlayListTableModel::data(const QModelIndex& index, int32_t role) const 
         break;
 	case Qt::DecorationRole:
 		if (index.column() == PLAYLIST_PLAYING && index.row() == playing_index_)
-			return QIcon(Q_UTF8(":/xamp/Resource/White/play_arrow.png"));
+			return ThemeManager::playArrow();
 		break;
 	default:
 		break;

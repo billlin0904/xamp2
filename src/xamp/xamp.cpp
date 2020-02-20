@@ -24,6 +24,20 @@
 #include "thememanager.h"
 #include "xamp.h"
 
+static MusicEntity toMusicEntity(const PlayListEntity& item) {
+    MusicEntity music_entity;
+    music_entity.music_id = item.music_id;
+    music_entity.artist_id = item.artist_id;
+    music_entity.album_id = item.album_id;
+    music_entity.cover_id = item.cover_id;
+    music_entity.title = item.title;
+    music_entity.album = item.album;
+    music_entity.artist = item.artist;
+    music_entity.file_ext = item.file_ext;
+    music_entity.file_path = item.file_path;
+    return music_entity;
+}
+
 static QString getPlayEntityFormat(const AudioPlayer* player, const QString& file_ext) {
     auto format = player->GetStreamFormat();
     auto dsd_speed = player->GetDSDSpeed();
@@ -440,6 +454,7 @@ void Xamp::initialController() {
 
 void Xamp::applyTheme(QColor color) {
     playlist_page_->setTextColor(Qt::white);
+    lrc_page_->setTextColor(Qt::white);
     emit textColorChanged(Qt::white);
     ThemeManager::setBackgroundColor(ui, color);
 }
@@ -721,12 +736,14 @@ void Xamp::playMusic(const MusicEntity& item) {
     ui.titleLabel->setText(item.title);
     ui.artistLabel->setText(item.artist);
 
+#if 1
     const QFileInfo file_info(item.file_path);
     const auto lrc_path = file_info.path()
         + Q_UTF8("/")
         + file_info.completeBaseName()
         + Q_UTF8(".lrc");
     lrc_page_->lyricsWidget()->loadLrcFile(lrc_path);
+#endif
 
     playlist_page_->title()->setText(item.title);
     lrc_page_->title()->setText(item.title);
@@ -737,18 +754,8 @@ void Xamp::playMusic(const MusicEntity& item) {
     playback_history_page_->refreshOnece();
 }
 
-void Xamp::play(const PlayListEntity& item) {
-    MusicEntity album_entity;
-    album_entity.music_id = item.music_id;
-    album_entity.artist_id = item.artist_id;
-    album_entity.album_id = item.album_id;
-    album_entity.cover_id = item.cover_id;
-    album_entity.title = item.title;
-    album_entity.album = item.album;
-    album_entity.artist = item.artist;
-    album_entity.file_ext = item.file_ext;
-    album_entity.file_path = item.file_path;
-    playMusic(album_entity);
+void Xamp::play(const PlayListEntity& item) {    
+    playMusic(toMusicEntity(item));
 }
 
 void Xamp::play(const QModelIndex&, const PlayListEntity& item) {
@@ -762,7 +769,8 @@ void Xamp::play(const QModelIndex&, const PlayListEntity& item) {
 }
 
 void Xamp::addPlaylistItem(const PlayListEntity &entity) {
-    auto playlist_view = playlist_page_->playlist();
+    auto playlist_view = playlist_page_->playlist();    
+    Database::Instance().addMusicToPlaylist(entity.music_id, playlist_view->playlistId());
     playlist_view->appendItem(entity);
 }
 
