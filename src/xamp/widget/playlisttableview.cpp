@@ -179,8 +179,26 @@ void PlayListTableView::initial() {
 	installEventFilter(this);
 }
 
-void PlayListTableView::onTextColorChanged(QColor color) {
-	auto style = Q_UTF8("QTableView { color: ") + colorToString(color) + Q_UTF8("; }");
+void PlayListTableView::onTextColorChanged(QColor backgroundColor, QColor color) {
+	QColor alphaColor = Qt::gray;
+	alphaColor.setAlpha(180);
+
+	auto style = QString(Q_UTF8(R"(
+		QTableView {
+			background-color: %1;
+			color: %2;
+		}		
+		
+		QTableView::item:selected {
+			background-color: %3;
+			color: %4;
+		}
+	 )")).arg(
+	colorToString(backgroundColor),
+	colorToString(color),
+	colorToString(alphaColor),
+	colorToString(color));
+
 	setStyleSheet(style);
 }
 

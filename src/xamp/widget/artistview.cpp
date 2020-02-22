@@ -54,9 +54,7 @@ QSize ArtistViewStyledDelegate::sizeHint(const QStyleOptionViewItem& option, con
 }
 
 ArtistView::ArtistView(QWidget *parent)
-    : QListView(parent)
-    , manager_(new QNetworkAccessManager(this))
-    , client_(manager_, this) {
+    : QListView(parent) {
     setModel(&model_);
 
     setUniformItemSizes(true);    
@@ -82,23 +80,8 @@ ArtistView::ArtistView(QWidget *parent)
         auto cover_id_id = index.model()->data(index.model()->index(index.row(), 2)).toString();
         auto discogs_artist_id = index.model()->data(index.model()->index(index.row(), 3)).toString();
         auto first_char = index.model()->data(index.model()->index(index.row(), 4)).toString();
-        emit clickedArtist(first_char);
-        if (!discogs_artist_id.isEmpty() && cover_id_id.isEmpty()) {
-            client_.searchArtistId(artist_id, discogs_artist_id);
-        }        
-        });
-
-    (void) QObject::connect(&client_, &DiscogsClient::getArtistImageUrl, [this](auto artist_id, auto url) {
-        client_.downloadArtistImage(artist_id, url);
-        XAMP_LOG_DEBUG("Download artist id: {}, discogs image url: {}", artist_id, url.toStdString());
-        });
-
-    (void) QObject::connect(&client_, &DiscogsClient::downloadImageFinished, [this](auto artist_id, auto image) {
-        auto cover_id = PixmapCache::Instance().add(image);
-        Database::Instance().updateArtistCoverId(artist_id, cover_id);
-        XAMP_LOG_DEBUG("Save artist id: {} image, cover id : {}", artist_id, cover_id.toStdString());
-        refreshOnece();
-        });
+        emit clickedArtist(first_char);              
+        });    
 }
 
 void ArtistView::refreshOnece() {

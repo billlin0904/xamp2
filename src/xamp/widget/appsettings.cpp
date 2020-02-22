@@ -17,7 +17,7 @@ void AppSettings::loadIniFile(const QString& file_name) {
 	settings_ = xamp::base::MakeAlign<QSettings>(file_name, QSettings::IniFormat);
 }
 
-xamp::base::ID AppSettings::getIDValue(const QString& key) {
+xamp::base::ID AppSettings::getID(const QString& key) {
 	auto str = getValue(key).toString();
 	if (str.isEmpty()) {
 		return xamp::base::ID::INVALID_ID;

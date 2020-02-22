@@ -20,6 +20,7 @@
 #include <widget/database.h>
 #include <widget/pixmapcache.h>
 #include <widget/selectcolorwidget.h>
+#include <widget/artistinfopage.h>
 
 #include "thememanager.h"
 #include "xamp.h"
@@ -216,7 +217,7 @@ void Xamp::initialDeviceList() {
                 AppSettings::setValue(APP_SETTING_DEVICE_ID, device_info_.device_id);
             });
             menu->addAction(device_action);
-            if (AppSettings::getIDValue(APP_SETTING_DEVICE_TYPE) == device_info.device_type_id
+            if (AppSettings::getID(APP_SETTING_DEVICE_TYPE) == device_info.device_type_id
                     && AppSettings::getValue(APP_SETTING_DEVICE_ID).toString().toStdWString() == device_info.device_id) {
                 device_info_ = device_info;
                 is_find_setting_device = true;
@@ -427,7 +428,7 @@ void Xamp::initialController() {
         enable_blur_material_mode_action->setChecked(true);
     }
     (void)QObject::connect(enable_blur_material_mode_action, &QAction::triggered, [=]() {
-        auto enable = AppSettings::getValue(APP_SETTING_ENABLE_BLUR).toBool();
+        auto enable = AppSettings::getValueAsBool(APP_SETTING_ENABLE_BLUR);
         enable = !enable;
         enable_blur_material_mode_action->setChecked(enable);
         ThemeManager::enableBlur(this, enable);
@@ -455,7 +456,7 @@ void Xamp::initialController() {
 void Xamp::applyTheme(QColor color) {
     playlist_page_->setTextColor(Qt::white);
     lrc_page_->setTextColor(Qt::white);
-    emit textColorChanged(Qt::white);
+    emit textColorChanged(color, Qt::white);
     ThemeManager::setBackgroundColor(ui, color);
 }
 
@@ -676,12 +677,12 @@ void Xamp::resetSeekPosValue() {
 }
 
 void Xamp::playMusic(const MusicEntity& item) {
+    auto open_done = false;
+    auto use_bass_stream = QStringLiteral(".dsd,.dsf,.dff,.m4a,.ape").contains(item.file_ext);
+
     ui.seekSlider->setEnabled(true);
 
-    auto open_done = false;
-
-    try {
-        auto use_bass_stream = QStringLiteral(".dsd,.dsf,.dff,.m4a,.ape").contains(item.file_ext);
+    try { 
         player_->Open(item.file_path.toStdWString(), use_bass_stream, device_info_);
 
         if (!player_->IsMute()) {
@@ -766,6 +767,11 @@ void Xamp::play(const QModelIndex&, const PlayListEntity& item) {
     if (!player_->IsPlaying()) {
         playlist_page_->format()->setText(Q_UTF8(""));
     }
+}
+
+void Xamp::onArtistIdChanged(const QString& cover_id, int32_t artist_id) {
+    artist_info_page_->setArtistId(cover_id, artist_id);
+    ui.currentView->setCurrentWidget(artist_info_page_);
 }
 
 void Xamp::addPlaylistItem(const PlayListEntity &entity) {
@@ -867,17 +873,46 @@ void Xamp::initialPlaylist() {
     playback_history_page_->setFont(font());
     playback_history_page_->hide();
 
-    pushWidget(lrc_page_);
+    artist_info_page_ = new ArtistInfoPage(this);
+
+    pushWidget(artist_info_page_);
+    pushWidget(lrc_page_);    
     pushWidget(playlist_page_);
     pushWidget(album_artist_page_);
     goBackPage();
+
+    (void)QObject::connect(album_artist_page_->album(), &AlbumView::clickedArtist,
+        this,
+        &Xamp::onArtistIdChanged);
+
+    (void)QObject::connect(ui.artistLabel, &ClickableLabel::clicked, [this]() {
+        onArtistIdChanged(Q_UTF8(""), current_entiry_.artist_id);
+        });
 
     (void)QObject::connect(this, &Xamp::textColorChanged,
         album_artist_page_->album(),
         &AlbumView::onTextColorChanged);
 
-    (void)QObject::connect(&mbc_, &MusicBrainzClient::finished, [](auto artist_id, auto discogs_artist_id) {
+    (void)QObject::connect(this, &Xamp::textColorChanged,
+        artist_info_page_,
+        &ArtistInfoPage::onTextColorChanged);
+
+    (void)QObject::connect(&mbc_, &MusicBrainzClient::finished, [this](auto artist_id, auto discogs_artist_id) {
         Database::Instance().updateDiscogsArtistId(artist_id, discogs_artist_id);
+        if (!discogs_artist_id.isEmpty()) {
+            discogs_.searchArtistId(artist_id, discogs_artist_id);
+        }
+        });
+
+    (void)QObject::connect(&discogs_, &DiscogsClient::getArtistImageUrl, [this](auto artist_id, auto url) {
+        discogs_.downloadArtistImage(artist_id, url);
+        XAMP_LOG_DEBUG("Download artist id: {}, discogs image url: {}", artist_id, url.toStdString());
+        });
+
+    (void)QObject::connect(&discogs_, &DiscogsClient::downloadImageFinished, [this](auto artist_id, auto image) {
+        auto cover_id = PixmapCache::Instance().add(image);
+        Database::Instance().updateArtistCoverId(artist_id, cover_id);
+        XAMP_LOG_DEBUG("Save artist id: {} image, cover id : {}", artist_id, cover_id.toStdString());
         });
 
     (void)QObject::connect(album_artist_page_->album(), &AlbumView::addPlaylist, [this](const auto& entity) {

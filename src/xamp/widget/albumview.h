@@ -12,6 +12,7 @@
 #include <QStyledItemDelegate>
 #include <QTableView>
 
+#include <widget/clickablelabel.h>
 #include <widget/str_utilts.h>
 #include <widget/playlistentity.h>
 
@@ -41,6 +42,8 @@ public:
 
 	void setArtist(const QString& artist);
 
+	void setArtistId(int32_t artist_id);
+
 	void setPlaylistMusic(int32_t album_id);
 
 	void setCover(const QString &cover_id);
@@ -49,6 +52,12 @@ public:
 
 	void setTotalDuration(double durations);
 
+	void setArtistCover(const QString& cover_id);
+
+	ClickableLabel* artist() {
+		return artist_;
+	}
+
 	AlbumPlayListTableView* playlist() {
 		return playlist_;
 	}
@@ -56,9 +65,13 @@ public:
 signals:
     void playMusic(const MusicEntity& entity);
 
+	void clickedArtist(const QString& cover_id, int32_t artist_id);
+
 private:
+	int32_t artist_id_;
+	QString artist_cover_id_;
 	QLabel* album_;
-	QLabel* artist_;
+	ClickableLabel* artist_;
 	QLabel* cover_;
 	QLabel* tracks_;
 	QLabel* durtions_;
@@ -94,10 +107,14 @@ signals:
 
     void addPlaylist(const PlayListEntity &entity);
 
+	void clickedArtist(const QString& cover_id, int32_t artist_id);
+
 public slots:
 	void refreshOnece();
 
-	void setFilterByArtist(const QString& first_char);
+	void setFilterByArtistFirstChar(const QString& first_char);
+
+	void setFilterByArtistId(int32_t artist_id);
 
 	void hideWidget();
 
@@ -105,7 +122,7 @@ public slots:
 
 	void payNextMusic();
 
-	void onTextColorChanged(QColor color);
+	void onTextColorChanged(QColor backgroundColor, QColor color);
 
 private:
 	AlbumViewPage* page_;

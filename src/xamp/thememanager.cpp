@@ -164,8 +164,8 @@ void ThemeManager::setWhiteIcon(Ui::XampWindow& ui) {
 }
 
 void ThemeManager::setDefaultStyle(Ui::XampWindow &ui) {
-    if (!AppSettings::getValue(APP_SETTING_BACKGROUND_COLOR).toString().isEmpty()) {
-        setBackgroundColor(ui, AppSettings::getValue(APP_SETTING_BACKGROUND_COLOR).toString());
+    if (!AppSettings::getValueAsString(APP_SETTING_BACKGROUND_COLOR).isEmpty()) {
+        setBackgroundColor(ui, AppSettings::getValueAsString(APP_SETTING_BACKGROUND_COLOR));
     }
     else {
         setBackgroundColor(ui, backgroundColor);

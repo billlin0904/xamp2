@@ -37,8 +37,6 @@ Q_SIGNALS:
 public slots:
     void refreshOnece();
 
-private:
-    QNetworkAccessManager* manager_;
-    DiscogsClient client_;
+private:   
     QSqlQueryModel model_;
 };

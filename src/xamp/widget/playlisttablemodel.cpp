@@ -50,6 +50,11 @@ QVariant PlayListTableModel::data(const QModelIndex& index, int32_t role) const 
 		if (index.column() == PLAYLIST_PLAYING && index.row() == playing_index_)
 			return ThemeManager::playArrow();
 		break;
+	case Qt::TextAlignmentRole:
+		switch (index.column()) {
+		case PLAYLIST_DURATION:
+			return Qt::AlignCenter;
+		}
 	default:
 		break;
 	}
@@ -108,6 +113,11 @@ QVariant PlayListTableModel::headerData(const int32_t section, const Qt::Orienta
 			break;
 		}
 		break;
+	case Qt::TextAlignmentRole:
+		switch (section) {
+		case PLAYLIST_DURATION:
+			return Qt::AlignCenter;
+		}
 	default:
 		return QVariant();
 	}

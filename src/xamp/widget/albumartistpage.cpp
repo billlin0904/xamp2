@@ -24,7 +24,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	default_layout->setStretch(1, 2);
 
 	(void) QObject::connect(artist_view_, &ArtistView::clickedArtist,
-		album_view_, &AlbumView::setFilterByArtist);
+		album_view_, &AlbumView::setFilterByArtistFirstChar);
 }
 
 void AlbumArtistPage::refreshOnece() {

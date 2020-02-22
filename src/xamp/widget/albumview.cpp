@@ -234,7 +234,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 
 	f.setPixelSize(14);
 	f.setBold(false);	
-	artist_ = new QLabel(this);
+	artist_ = new ClickableLabel(this);
 	artist_->setMaximumSize(QSize(400, 32));
 	artist_->setFont(f);
 	artist_->setAlignment(Qt::AlignLeft);
@@ -286,6 +286,10 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 		hide();
 		});
 
+	(void)QObject::connect(artist_, &ClickableLabel::clicked, [this]() {
+		emit clickedArtist(artist_cover_id_, artist_id_);
+		});
+
 	(void)QObject::connect(playlist_, &QTableView::doubleClicked, [this](const QModelIndex& index) {
         emit playMusic(getAlbumEntity(index));
 		});
@@ -295,12 +299,20 @@ void AlbumViewPage::setAlbum(const QString& album) {
 	album_->setText(album);
 }
 
+void AlbumViewPage::setArtistId(int32_t artist_id) {
+	artist_id_ = artist_id;
+}
+
 void AlbumViewPage::setArtist(const QString& artist) {
 	artist_->setText(artist);
 }
 
 void AlbumViewPage::setPlaylistMusic(int32_t album_id) {
 	playlist_->setPlaylistMusic(album_id);
+}
+
+void AlbumViewPage::setArtistCover(const QString& cover_id) {
+	artist_cover_id_ = cover_id;
 }
 
 void AlbumViewPage::setTracks(int32_t tracks) {
@@ -361,14 +373,18 @@ AlbumView::AlbumView(QWidget* parent)
 
 	page_ = new AlbumViewPage(this);
 	page_->setStyleSheet(backgroundColorToString(QColor(228, 233, 237, 255)));
+	page_->hide();
 
 	(void)QObject::connect(page_, &AlbumViewPage::playMusic, this, &AlbumView::playMusic);
+	(void)QObject::connect(page_, &AlbumViewPage::clickedArtist, this, &AlbumView::clickedArtist);
 
 	(void)QObject::connect(this, &QListView::clicked, [this](auto index) {
         auto album = getIndexValue(index, 0).toString();
         auto cover_id = getIndexValue(index, 1).toString();
         auto artist = getIndexValue(index, 2).toString();
         auto album_id = getIndexValue(index, 3).toInt();
+		auto artist_id = getIndexValue(index, 4).toInt();
+		auto artist_cover_id = getIndexValue(index, 5).toString();
 
 		constexpr auto height = 460;
 
@@ -377,7 +393,9 @@ AlbumView::AlbumView(QWidget* parent)
 
 		page_->setAlbum(album);
 		page_->setArtist(artist);
+		page_->setArtistId(artist_id);
 		page_->setCover(cover_id);
+		page_->setArtistCover(artist_cover_id);
 		page_->setPlaylistMusic(album_id);
 		page_->setFixedSize(QSize(list_view_rect.size().width() - 10, height));
 
@@ -406,6 +424,8 @@ AlbumView::AlbumView(QWidget* parent)
         auto album = getIndexValue(index, 0).toString();
         auto artist = getIndexValue(index, 2).toString();
 		auto album_id = getIndexValue(index, 3).toInt();
+		auto artist_id = getIndexValue(index, 4).toInt();
+		auto artist_cover_id = getIndexValue(index, 5).toString();
 
 		ActionMap<AlbumView, std::function<void()>> action_map(this);
 
@@ -447,18 +467,44 @@ void AlbumView::payNextMusic() {
 	page_->playlist()->setCurrentIndex(next_index);
 }
 
-void AlbumView::onTextColorChanged(QColor color) {
+void AlbumView::onTextColorChanged(QColor backgroundColor, QColor color) {
 	dynamic_cast<AlbumViewStyledDelegate*>(itemDelegate())->setTextColor(color);
 }
 
-void AlbumView::setFilterByArtist(const QString &first_char) {
+void AlbumView::setFilterByArtistId(int32_t artist_id) {
+	QString s(
+		Q_UTF8(R"(
+	SELECT
+		album,
+		albums.coverId,
+		artist,
+		albums.albumId,
+		artists.artistId,
+		artists.coverId
+	FROM
+		albumArtist 
+	LEFT JOIN 
+		albums ON albums.albumId = albumArtist.albumId
+	LEFT JOIN 
+		artists ON artists.artistId = albumArtist.artistId
+	WHERE
+		( artists.artistId = '%1' )
+	)")
+	);
+
+	model_.setQuery(s.arg(artist_id));
+}
+
+void AlbumView::setFilterByArtistFirstChar(const QString &first_char) {
 	QString s(
 	Q_UTF8(R"(
 	SELECT
 		album,
 		albums.coverId,
 		artist,
-		albums.albumId
+		albums.albumId,
+		artists.artistId,
+		artists.coverId
 	FROM
 		albumArtist 
 	LEFT JOIN 
@@ -471,7 +517,6 @@ void AlbumView::setFilterByArtist(const QString &first_char) {
 	);
 
 	model_.setQuery(s.arg(first_char));
-	hideWidget();
 }
 
 void AlbumView::refreshOnece() {
@@ -480,13 +525,13 @@ SELECT
 	albums.album,
 	albums.coverId,
 	artists.artist,
-	albums.albumId 
+	albums.albumId,
+	artists.artistId,
+	artists.coverId
 FROM
 	albums
 	LEFT JOIN artists ON artists.artistId = albums.artistId
 	)"));
-
-	hideWidget();
 }
 
 void AlbumView::onSearchTextChanged(const QString& text) {
@@ -495,7 +540,9 @@ SELECT
 	albums.album,
 	albums.coverId,
 	artists.artist,
-	albums.albumId 
+	albums.albumId,
+	artists.artistId,
+	artists.coverId
 FROM
 	albums
 	LEFT JOIN artists ON artists.artistId = albums.artistId 
@@ -505,7 +552,6 @@ WHERE
 	)
 	)"));
 	model_.setQuery(query.arg(text));
-	hideWidget();
 }
 
 void AlbumView::hideWidget() {

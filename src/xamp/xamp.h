@@ -16,6 +16,7 @@
 #include <output_device/devicefactory.h>
 #include <player/audio_player.h>
 
+#include <widget/discogsclient.h>
 #include <widget/appsettings.h>
 #include <widget/playerstateadapter.h>
 #include <widget/framelesswindow.h>
@@ -41,6 +42,7 @@ class PlyalistPage;
 class AlbumView;
 class ArtistView;
 class AlbumArtistPage;
+class ArtistInfoPage;
 
 class Xamp : public FramelessWindow {
 	Q_OBJECT
@@ -51,7 +53,7 @@ public:
 signals:
 	void payNextMusic();
 
-	void textColorChanged(QColor color);
+	void textColorChanged(QColor backgroundColor, QColor color);
 
 public slots:
     void playMusic(const MusicEntity& item);
@@ -59,6 +61,8 @@ public slots:
 	void play(const QModelIndex& index, const PlayListEntity& item);
 
     void addPlaylistItem(const PlayListEntity &entity);
+
+	void onArtistIdChanged(const QString& cover_id, int32_t artist_id);
 
 private:
 	void applyTheme(QColor color);
@@ -142,9 +146,11 @@ private:
 	LrcPage* lrc_page_;
 	PlyalistPage* playlist_page_;
 	AlbumArtistPage* album_artist_page_;
+	ArtistInfoPage* artist_info_page_;
 	QStack<int32_t> stack_page_id_;	    
 	std::shared_ptr<PlayerStateAdapter> state_adapter_;
 	std::shared_ptr<AudioPlayer> player_;
 	PlaybackHistoryPage* playback_history_page_;
 	MusicBrainzClient mbc_;
+	DiscogsClient discogs_;
 };

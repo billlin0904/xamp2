@@ -56,13 +56,21 @@ public:
         default_settings_[key] = value;
     }
 
-    static xamp::base::ID getIDValue(const QString& key);
+    static xamp::base::ID getID(const QString& key);
 
     static QSize getSizeValue(const QString& width_key, const QString& height_key);
 
     static QVariant getValue(const QString& key);
 
     static int32_t getAsInt(const QString& key);
+
+    static bool getValueAsBool(const QString& key) {
+        return getValue(key).toBool();
+    }
+
+    static QString getValueAsString(const QString& key) {
+        return getValue(key).toString();
+    }
 
 protected:
     AppSettings() = default;
