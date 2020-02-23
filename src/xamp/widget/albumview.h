@@ -65,7 +65,7 @@ public:
 signals:
     void playMusic(const MusicEntity& entity);
 
-	void clickedArtist(const QString& cover_id, int32_t artist_id);
+	void clickedArtist(const QString& artist, const QString& cover_id, int32_t artist_id);
 
 private:
 	int32_t artist_id_;
@@ -107,7 +107,7 @@ signals:
 
     void addPlaylist(const PlayListEntity &entity);
 
-	void clickedArtist(const QString& cover_id, int32_t artist_id);
+	void clickedArtist(const QString& artist, const QString& cover_id, int32_t artist_id);
 
 public slots:
 	void refreshOnece();

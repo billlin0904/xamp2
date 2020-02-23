@@ -96,7 +96,7 @@ std::optional<const QPixmap*> PixmapCache::find(const QString& tag_id) const {
 	while (true) {
         const auto cache = cache_.find(tag_id);
 		if (!cache) {
-			QPixmap read_cover(cache_path_ + tag_id + Q_UTF8(".cache"));
+			QPixmap read_cover = fromFileCache(tag_id);
 			if (read_cover.isNull()) {
 				return std::nullopt;
 			}
@@ -132,7 +132,9 @@ bool PixmapCache::isExist(const QString& tag_id) const {
 size_t PixmapCache::getImageSize() const {
 	size_t size = 0;
 	for (auto cache : cache_) {
-		size += cache.second.size().width() * cache.second.size().width() * cache.second.devicePixelRatio();
+		size += cache.second.size().width()
+			* cache.second.size().height()
+			* cache.second.devicePixelRatio();
 	}
 	return size;
 }

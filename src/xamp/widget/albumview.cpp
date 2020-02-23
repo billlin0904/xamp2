@@ -287,7 +287,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 		});
 
 	(void)QObject::connect(artist_, &ClickableLabel::clicked, [this]() {
-		emit clickedArtist(artist_cover_id_, artist_id_);
+		emit clickedArtist(artist_->text(), artist_cover_id_, artist_id_);
 		});
 
 	(void)QObject::connect(playlist_, &QTableView::doubleClicked, [this](const QModelIndex& index) {

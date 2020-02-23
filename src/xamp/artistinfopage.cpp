@@ -21,14 +21,21 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 	cover_->setMinimumSize(QSize(250, 250));
 	cover_->setMaximumSize(QSize(250, 250));
 
+	auto f = font();
+	f.setPointSize(15);
+	f.setBold(true);
 	artist_ = new QLabel(this);
+	artist_->setFont(f);
 
 	auto cover_spacer1 = new QSpacerItem(20, 10, QSizePolicy::Minimum, QSizePolicy::Fixed);
-	auto cover_spacer2 = new QSpacerItem(20, 10, QSizePolicy::Minimum, QSizePolicy::Fixed);
+	auto cover_spacer2 = new QSpacerItem(50, 10, QSizePolicy::Minimum, QSizePolicy::Fixed);
+	auto cover_spacer3 = new QSpacerItem(20, 10, QSizePolicy::Minimum, QSizePolicy::Fixed);
+
 	child_layout->addItem(cover_spacer1);
 	child_layout->addWidget(cover_);
-	child_layout->addWidget(artist_);
 	child_layout->addItem(cover_spacer2);
+	child_layout->addWidget(artist_);
+	child_layout->addItem(cover_spacer3);
 
 	album_view_ = new AlbumView(this);
 
@@ -36,10 +43,11 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 	default_layout->addWidget(album_view_);
 
 	album_view_->hideWidget();
-	setArtistId(Q_UTF8(""), -1);
+	setArtistId(Q_EMPTY_STR, Q_EMPTY_STR, -1);
 }
 
-void ArtistInfoPage::setArtistId(const QString& cover_id, int32_t artist_id) {
+void ArtistInfoPage::setArtistId(const QString& artist, const QString& cover_id, int32_t artist_id) {
+	artist_->setText(artist);
 	album_view_->setFilterByArtistId(artist_id);
 
 	auto cover = &ThemeManager::pixmap().defaultSizeUnknownCover();
@@ -54,5 +62,6 @@ void ArtistInfoPage::setArtistId(const QString& cover_id, int32_t artist_id) {
 }
 
 void ArtistInfoPage::onTextColorChanged(QColor backgroundColor, QColor color) {
+	artist_->setStyleSheet(Q_UTF8("QLabel { color: ") + colorToString(color) + Q_UTF8(";}"));
 	album_view_->onTextColorChanged(backgroundColor, color);
 }

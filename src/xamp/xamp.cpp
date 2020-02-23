@@ -769,8 +769,8 @@ void Xamp::play(const QModelIndex&, const PlayListEntity& item) {
     }
 }
 
-void Xamp::onArtistIdChanged(const QString& cover_id, int32_t artist_id) {
-    artist_info_page_->setArtistId(cover_id, artist_id);
+void Xamp::onArtistIdChanged(const QString& artist, const QString& cover_id, int32_t artist_id) {
+    artist_info_page_->setArtistId(artist, cover_id, artist_id);
     ui.currentView->setCurrentWidget(artist_info_page_);
 }
 
@@ -884,10 +884,6 @@ void Xamp::initialPlaylist() {
     (void)QObject::connect(album_artist_page_->album(), &AlbumView::clickedArtist,
         this,
         &Xamp::onArtistIdChanged);
-
-    (void)QObject::connect(ui.artistLabel, &ClickableLabel::clicked, [this]() {
-        onArtistIdChanged(Q_UTF8(""), current_entiry_.artist_id);
-        });
 
     (void)QObject::connect(this, &Xamp::textColorChanged,
         album_artist_page_->album(),

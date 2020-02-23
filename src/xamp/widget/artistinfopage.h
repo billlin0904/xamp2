@@ -15,10 +15,10 @@ class ArtistInfoPage : public QFrame {
 public:
 	explicit ArtistInfoPage(QWidget* parent = nullptr);
 
-	void setArtistId(const QString &cover_id, int32_t artist_id);
-
 public slots:
 	void onTextColorChanged(QColor backgroundColor, QColor color);
+
+	void setArtistId(const QString& artist, const QString& cover_id, int32_t artist_id);
 
 private:
 	QLabel* cover_;

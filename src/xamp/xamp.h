@@ -62,7 +62,7 @@ public slots:
 
     void addPlaylistItem(const PlayListEntity &entity);
 
-	void onArtistIdChanged(const QString& cover_id, int32_t artist_id);
+	void onArtistIdChanged(const QString& artist, const QString& cover_id, int32_t artist_id);
 
 private:
 	void applyTheme(QColor color);

@@ -167,13 +167,13 @@ XAMP_RESTRICT XAMP_NOALIAS T* LoopUnrolling(T *output, const float* input, const
 
 	while (input != end_input) {
 		output[0] = T(input[0] * FloatScaler);
-		output[1] = T(input[0] * FloatScaler);
-		output[2] = T(input[0] * FloatScaler);
-		output[3] = T(input[0] * FloatScaler);
-		output[4] = T(input[0] * FloatScaler);
-		output[5] = T(input[0] * FloatScaler);
-		output[6] = T(input[0] * FloatScaler);
-		output[7] = T(input[0] * FloatScaler);
+		output[1] = T(input[1] * FloatScaler);
+		output[2] = T(input[2] * FloatScaler);
+		output[3] = T(input[3] * FloatScaler);
+		output[4] = T(input[4] * FloatScaler);
+		output[5] = T(input[5] * FloatScaler);
+		output[6] = T(input[6] * FloatScaler);
+		output[7] = T(input[7] * FloatScaler);
 		input += 8;
 		output += 8;
 	}
