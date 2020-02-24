@@ -62,10 +62,10 @@ void AudioPlayer::PrepareAllocate() {
     BassFileStream::LoadBassLib();
 }
 
-void AudioPlayer::Open(const std::wstring& file_path, bool use_bass_stream, const DeviceInfo& device_info) {
+void AudioPlayer::Open(const std::wstring& file_path, const std::wstring& file_ext, const DeviceInfo& device_info) {
     Initial();
     CloseDevice(true);
-    OpenStream(file_path, use_bass_stream, device_info);
+    OpenStream(file_path, file_ext, device_info);
     SetDeviceFormat();
     CreateDevice(device_info.device_type_id, device_info.device_id, false);
     OpenDevice();
@@ -114,13 +114,18 @@ DsdDevice* AudioPlayer::AsDsdDevice() {
     return dynamic_cast<DsdDevice*>(device_.get());
 }
 
-void AudioPlayer::OpenStream(const std::wstring& file_path, bool use_bass_stream, const DeviceInfo& device_info) {
+void AudioPlayer::OpenStream(const std::wstring& file_path, const std::wstring &file_ext, const DeviceInfo& device_info) {
     if (stream_ != nullptr) {
         stream_->Close();
     }
 
+    static constexpr const std::wstring_view dsd_ext(L".dsf,.dff");
+    static constexpr const std::wstring_view use_bass(L".m4a,.ape");
+    auto is_dsd_stream = dsd_ext.find(file_ext) != std::wstring_view::npos;
+    auto is_use_bass = use_bass.find(file_ext) != std::wstring_view::npos;
+
 #ifdef ENABLE_FFMPEG
-    if (use_bass_stream) {
+    if (is_dsd_stream || is_use_bass) {
 		auto is_support_dsd_file = false;
 		if (stream_ != nullptr) {
 			if (IsDsdStream()) {
@@ -132,7 +137,7 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, bool use_bass_stream
 		}
         if (auto dsd_stream = AsDsdStream()) {
 #ifdef _WIN32
-            if (device_info.is_support_dsd && dsd_stream->TestDsdFileFormat(file_path)) {
+            if (device_info.is_support_dsd && is_dsd_stream) {
                 dsd_stream->SetDSDMode(DsdModes::DSD_MODE_NATIVE);
                 dsd_mode_ = DsdModes::DSD_MODE_NATIVE;
             } else {                
@@ -450,13 +455,14 @@ void AudioPlayer::SetDeviceFormat() {
     output_format_ = input_format_;
 }
 
-int AudioPlayer::operator()(void* samples, const int32_t num_buffer_frames, const double stream_time) noexcept {
-    const int32_t sample_size = num_buffer_frames * output_format_.GetChannels() * sample_size_;
+int AudioPlayer::OnGetSamples(void* samples, const int32_t num_buffer_frames, const double stream_time) noexcept {
+    const int32_t num_samples = num_buffer_frames * output_format_.GetChannels();
+    const int32_t sample_size = num_samples * sample_size_;
 
     if (XAMP_LIKELY( buffer_.TryRead(reinterpret_cast<int8_t*>(samples), sample_size) )) {
         std::atomic_exchange(&slice_,
                              AudioSlice{ reinterpret_cast<float*>(samples),
-                                         num_buffer_frames * output_format_.GetChannels(),
+                                         num_samples,
                                          stream_time });
         return 0;
     }
@@ -542,9 +548,7 @@ void AudioPlayer::OpenDevice(double stream_time) {
                 dsd_mode_ = DsdModes::DSD_MODE_PCM;
             }
         }
-    }
-    else 
-    {
+    } else {
         dsd_mode_ = DsdModes::DSD_MODE_PCM;
     }
 #endif

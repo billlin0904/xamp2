@@ -352,7 +352,7 @@ void AsioDevice::OnBufferSwitch(long index) noexcept {
 	bool got_samples = false;
 
 	if (io_format_ == AsioIoFormat::IO_FORMAT_PCM) {
-		if ((*callback_)(reinterpret_cast<float*>(buffer_.get()), buffer_size_, double(cache_played_bytes) / mix_format_.GetAvgBytesPerSec()) == 0) {
+		if (callback_->OnGetSamples(reinterpret_cast<float*>(buffer_.get()), buffer_size_, double(cache_played_bytes) / mix_format_.GetAvgBytesPerSec()) == 0) {
 			switch (mix_format_.GetByteFormat()) {
 			case ByteFormat::SINT16:
 				DataConverter<InterleavedFormat::DEINTERLEAVED,
@@ -380,7 +380,7 @@ void AsioDevice::OnBufferSwitch(long index) noexcept {
 	}
 	else {
 		const auto avg_byte_per_sec = mix_format_.GetAvgBytesPerSec() / 8;
-		if ((*callback_)(buffer_.get(), buffer_bytes_, double(played_bytes_) / avg_byte_per_sec) == 0) {
+		if (callback_->OnGetSamples(buffer_.get(), buffer_bytes_, double(played_bytes_) / avg_byte_per_sec) == 0) {
 			DataConverter<InterleavedFormat::DEINTERLEAVED,
 				InterleavedFormat::INTERLEAVED>::Convert(reinterpret_cast<int8_t*>(device_buffer_.get()),
 					reinterpret_cast<const int8_t*>(buffer_.get()),

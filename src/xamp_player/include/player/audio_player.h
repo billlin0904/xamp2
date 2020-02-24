@@ -55,7 +55,7 @@ public:
 
 	~AudioPlayer() override;
 
-	void Open(const std::wstring& file_path, bool is_dsd_stream, const DeviceInfo& device_info);
+	void Open(const std::wstring& file_path, const std::wstring& file_ext, const DeviceInfo& device_info);
 
     void PlayStream();
 
@@ -98,7 +98,7 @@ private:
 
 	void Initial();
 
-    void OpenStream(const std::wstring& file_path, bool is_dsd_stream, const DeviceInfo& device_info);
+    void OpenStream(const std::wstring& file_path, const std::wstring& file_ext, const DeviceInfo& device_info);
 
 	void CreateDevice(const ID& device_type_id, const std::wstring& device_id, const bool open_always);
 
@@ -112,7 +112,7 @@ private:
 
 	bool FillSamples(int32_t num_samples) noexcept;
 
-	int operator()(void* samples, const int32_t num_buffer_frames, const double stream_time) noexcept override;
+	int OnGetSamples(void* samples, const int32_t num_buffer_frames, const double stream_time) noexcept override;
 
 	void OnError(const Exception& e) noexcept override;
 
@@ -163,7 +163,6 @@ private:
 	std::atomic<bool> is_playing_;
 	std::atomic<bool> is_paused_;
 	std::atomic<AudioSlice> slice_;
-	mutable AudioSlice cache_slice_;
 	mutable std::mutex pause_mutex_;
 	std::wstring device_id_;
 	ID device_type_id_;

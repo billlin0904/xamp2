@@ -678,25 +678,11 @@ void Xamp::resetSeekPosValue() {
 
 void Xamp::playMusic(const MusicEntity& item) {
     auto open_done = false;
-    auto use_bass_stream = QStringLiteral(".dsd,.dsf,.dff,.m4a,.ape").contains(item.file_ext);
 
     ui.seekSlider->setEnabled(true);
 
     try { 
-        player_->Open(item.file_path.toStdWString(), use_bass_stream, device_info_);
-
-        if (!player_->IsMute()) {
-            setVolume(ui.volumeSlider->value());
-        }
-        else {
-            setVolume(0);
-        }
-
-        ui.seekSlider->setRange(0, int32_t(player_->GetDuration() * 1000));
-        ui.endPosLabel->setText(Time::msToString(player_->GetDuration()));
-        playlist_page_->format()->setText(getPlayEntityFormat(player_.get(), item.file_ext));
-
-        player_->PlayStream();
+        player_->Open(item.file_path.toStdWString(), item.file_ext.toStdWString(), device_info_);        
         open_done = true;
     }
     catch (const xamp::base::Exception & e) {
@@ -722,6 +708,19 @@ void Xamp::playMusic(const MusicEntity& item) {
     if (!open_done) {
         return;
     }
+
+    if (!player_->IsMute()) {
+        setVolume(ui.volumeSlider->value());
+    }
+    else {
+        setVolume(0);
+    }
+
+    ui.seekSlider->setRange(0, int32_t(player_->GetDuration() * 1000));
+    ui.endPosLabel->setText(Time::msToString(player_->GetDuration()));
+    playlist_page_->format()->setText(getPlayEntityFormat(player_.get(), item.file_ext));
+
+    player_->PlayStream();
 
     if (auto cover = PixmapCache::Instance().find(item.cover_id)) {
         setCover(*cover.value());

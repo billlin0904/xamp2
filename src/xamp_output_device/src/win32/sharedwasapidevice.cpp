@@ -274,7 +274,7 @@ void SharedWasapiDevice::GetSample(const int32_t frame_available) {
 		return;
 	}
 
-	if ((*callback_)(reinterpret_cast<float*>(data), frame_available, stream_time / mix_format_->nSamplesPerSec) == 0) {
+	if (callback_->OnGetSamples(reinterpret_cast<float*>(data), frame_available, stream_time / mix_format_->nSamplesPerSec) == 0) {
 		hr = render_client_->ReleaseBuffer(frame_available, 0);
 		if (FAILED(hr)) {
 			const HRException exception(hr);

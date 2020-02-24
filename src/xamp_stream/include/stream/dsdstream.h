@@ -30,8 +30,6 @@ public:
 
     virtual int32_t GetDsdSpeed() const noexcept = 0;
 
-	virtual bool TestDsdFileFormat(const std::wstring& file_path) const = 0;
-
     virtual bool IsDsdFile() const noexcept = 0;
 protected:
     DsdStream() = default;
