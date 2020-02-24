@@ -27,8 +27,6 @@ public:
 
 	void readFingerprint(int32_t artist_id, const QString &file_path);
 
-	void cancel();
-
 	void lookupArtist(int32_t artist_id, const QString& artist_mbid);
 
 signals:
@@ -37,7 +35,6 @@ signals:
 public slots:
 	void fingerprintFound(int index);
 
-private:	
-	QFutureWatcher<Fingerprint>* fingerprint_watcher_;
+private:
 	QList<QString> file_paths_;	
 };

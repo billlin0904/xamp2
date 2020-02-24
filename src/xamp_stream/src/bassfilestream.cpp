@@ -237,6 +237,7 @@ static void EnsureDsdDecoderInit() {
 	
 }
 
+namespace DsdHelper {
 static bool TestDsdFileFormat(const std::wstring& file_path) {
 	BassStreamHandle stream;
 
@@ -252,6 +253,7 @@ static bool TestDsdFileFormat(const std::wstring& file_path) {
 		0));
 
 	return stream.is_valid();
+}
 }
 
 class BassFileStream::BassFileStreamImpl {
@@ -338,6 +340,10 @@ public:
 	bool IsDsdFile() const noexcept {
 		assert(stream_.is_valid());
 		return info_.ctype == BASS_CTYPE_STREAM_DSD;
+	}
+
+	bool TestDsdFileFormat(const std::wstring& file_path) const {
+		return DsdHelper::TestDsdFileFormat(file_path);
 	}
 
 	int32_t GetSamples(void *buffer, int32_t length) const noexcept {
@@ -484,8 +490,12 @@ DsdModes BassFileStream::GetDsdMode() const noexcept {
     return stream_->GetDSDMode();
 }
 
+bool BassFileStream::TestDsdFileFormat(const std::wstring& file_path) const {
+    return stream_->TestDsdFileFormat(file_path);
+}
+
 bool BassFileStream::IsDsdFile() const noexcept {
-    return stream_->IsDsdFile();
+	return stream_->IsDsdFile();
 }
 
 int32_t BassFileStream::GetDsdSampleRate() const {

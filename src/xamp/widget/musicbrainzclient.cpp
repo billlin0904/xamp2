@@ -24,8 +24,7 @@ static QString toQString(T itr) {
 }
 
 MusicBrainzClient::MusicBrainzClient(QObject* parent)
-	: QObject(parent)
-    , fingerprint_watcher_(nullptr) {
+	: QObject(parent) {
 }
 
 void MusicBrainzClient::readFingerprint(int32_t artist_id, const QString& file_path) {
@@ -48,21 +47,18 @@ void MusicBrainzClient::readFingerprint(int32_t artist_id, const QString& file_p
     });
 
     auto future = QtConcurrent::mapped(file_paths_, handler);
-    fingerprint_watcher_ = new QFutureWatcher<Fingerprint>(this);
-    fingerprint_watcher_->setFuture(future);
+    auto watcher = new QFutureWatcher<Fingerprint>(this);
 
-    (void) QObject::connect(fingerprint_watcher_,
+    (void) QObject::connect(watcher, &QFutureWatcher<QString>::finished, [watcher]() {
+        watcher->deleteLater();
+        });
+
+    (void) QObject::connect(watcher,
         &QFutureWatcher<QString>::resultReadyAt,
         this,
         &MusicBrainzClient::fingerprintFound);
-}
 
-void MusicBrainzClient::cancel() {
-    if (fingerprint_watcher_ != nullptr) {
-        fingerprint_watcher_->cancel();
-        delete fingerprint_watcher_;
-        fingerprint_watcher_ = nullptr;
-    }
+    watcher->setFuture(future);
 }
 
 void MusicBrainzClient::fingerprintFound(int index) {

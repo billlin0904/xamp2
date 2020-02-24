@@ -114,13 +114,13 @@ DsdDevice* AudioPlayer::AsDsdDevice() {
     return dynamic_cast<DsdDevice*>(device_.get());
 }
 
-void AudioPlayer::OpenStream(const std::wstring& file_path, bool is_dsd_stream, const DeviceInfo& device_info) {
+void AudioPlayer::OpenStream(const std::wstring& file_path, bool use_bass_stream, const DeviceInfo& device_info) {
     if (stream_ != nullptr) {
         stream_->Close();
     }
 
 #ifdef ENABLE_FFMPEG
-    if (is_dsd_stream) {
+    if (use_bass_stream) {
 		auto is_support_dsd_file = false;
 		if (stream_ != nullptr) {
 			if (IsDsdStream()) {
@@ -132,7 +132,7 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, bool is_dsd_stream, 
 		}
         if (auto dsd_stream = AsDsdStream()) {
 #ifdef _WIN32
-            if (device_info.is_support_dsd) {
+            if (device_info.is_support_dsd && dsd_stream->TestDsdFileFormat(file_path)) {
                 dsd_stream->SetDSDMode(DsdModes::DSD_MODE_NATIVE);
                 dsd_mode_ = DsdModes::DSD_MODE_NATIVE;
             } else {                
@@ -341,9 +341,9 @@ std::optional<int32_t> AudioPlayer::GetDSDSpeed() const {
     }
 
     if (auto dsd_stream = dynamic_cast<DsdStream*>(stream_.get())) {
-		if (dsd_stream->IsDsdFile()) {
-			return dsd_stream->GetDsdSpeed();
-		}
+        if (dsd_stream->IsDsdFile()) {
+            return dsd_stream->GetDsdSpeed();
+        }        
     }
     return std::nullopt;
 }
@@ -494,10 +494,8 @@ void AudioPlayer::BufferStream() {
 
 bool AudioPlayer::FillSamples(int32_t num_samples) noexcept {
     if (auto dsd_stream = AsDsdStream()) {
-        if (dsd_stream->IsDsdFile()) {
-            if (dsd_stream->GetDsdMode() == DsdModes::DSD_MODE_NATIVE) {
-                return buffer_.TryWrite(read_sample_buffer_.get(), num_samples);
-            }
+        if (dsd_stream->GetDsdMode() == DsdModes::DSD_MODE_NATIVE) {
+            return buffer_.TryWrite(read_sample_buffer_.get(), num_samples);
         }
     }
  

@@ -42,6 +42,8 @@ public:
 
 	int32_t GetSampleSize() const noexcept override;
 
+	bool TestDsdFileFormat(const std::wstring& file_path) const override;
+
 	bool IsDsdFile() const noexcept override;
 
     DsdModes GetSupportDsdMode() const noexcept override;

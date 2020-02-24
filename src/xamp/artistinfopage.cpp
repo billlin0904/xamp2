@@ -26,6 +26,7 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 	f.setBold(true);
 	artist_ = new QLabel(this);
 	artist_->setFont(f);
+	artist_->setStyleSheet(Q_UTF8("background-color: transparent"));	
 
 	auto cover_spacer1 = new QSpacerItem(20, 10, QSizePolicy::Minimum, QSizePolicy::Fixed);
 	auto cover_spacer2 = new QSpacerItem(50, 10, QSizePolicy::Minimum, QSizePolicy::Fixed);
@@ -44,6 +45,8 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 
 	album_view_->hideWidget();
 	setArtistId(Q_EMPTY_STR, Q_EMPTY_STR, -1);
+
+	setStyleSheet(Q_UTF8("background-color: transparent"));
 }
 
 void ArtistInfoPage::setArtistId(const QString& artist, const QString& cover_id, int32_t artist_id) {
