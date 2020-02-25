@@ -1,5 +1,6 @@
 #include <QApplication>
 #include <QMap>
+#include <QDebug>
 
 #ifdef _WIN32
 #include <execution>
@@ -22,6 +23,10 @@ MetadataExtractAdapter::MetadataExtractAdapter(PlayListTableView* playlist)
     metadatas_.reserve(PREALLOCATE_SIZE);
 }
 
+MetadataExtractAdapter::~MetadataExtractAdapter() {
+    std::vector<xamp::base::Metadata>().swap(metadatas_);
+}
+
 void MetadataExtractAdapter::OnWalk(const xamp::metadata::Path&, xamp::base::Metadata metadata) {
     metadatas_.push_back(metadata);
     qApp->processEvents();
@@ -39,9 +44,9 @@ void MetadataExtractAdapter::OnWalkNext() {
         return first.track < sencond.track;
     });
 #endif
-    processAndNotify(metadatas_);
-    std::vector<xamp::base::Metadata>().swap(metadatas_);
+    processAndNotify(metadatas_);    
     metadatas_.reserve(PREALLOCATE_SIZE);
+    metadatas_.clear();
 }
 
 bool MetadataExtractAdapter::IsCancel() const {
@@ -100,8 +105,8 @@ void MetadataExtractAdapter::processAndNotify(const std::vector<xamp::base::Meta
         QString cover_id;
         auto cover_itr = cover_id_cache.find(album_id);
         if (cover_itr == cover_id_cache.end()) {
-            auto cover_id = Database::Instance().getAlbumCoverId(album_id);
-            if (cover_id.isEmpty()) {
+            cover_id = Database::Instance().getAlbumCoverId(album_id);
+            if (cover_id.isEmpty()) {                
                 QPixmap pixmap;
                 const auto& buffer = cover_reader_.ExtractEmbeddedCover(metadata.file_path);
                 if (!buffer.empty()) {
@@ -112,10 +117,11 @@ void MetadataExtractAdapter::processAndNotify(const std::vector<xamp::base::Meta
                 }
                 if (!pixmap.isNull()) {
                     cover_id = PixmapCache::Instance().add(pixmap);
+                    assert(!cover_id.isEmpty());
                     cover_id_cache.insert(album_id, cover_id);
                     Database::Instance().setAlbumCover(album_id, album, cover_id);
                 }
-            }            
+            }
         }
         else {
             cover_id = (*cover_itr);

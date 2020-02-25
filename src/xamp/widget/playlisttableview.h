@@ -85,7 +85,6 @@ private:
 	QModelIndex play_index_;
 	PlayListTableModel model_;
 	PlayListTableFilterProxyModel proxy_model_;
-	MetadataExtractAdapter adapter_;
 };
 
 

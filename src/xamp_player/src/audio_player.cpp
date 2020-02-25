@@ -253,30 +253,6 @@ void AudioPlayer::Stop(bool signal_to_stop, bool shutdown_device, bool wait_for_
     }
 }
 
-void AudioPlayer::Seek(double stream_time) {
-    if (!device_) {
-        return;
-    }
-    if (device_->IsStreamOpen()) {
-        Pause();
-        try {
-            stream_->Seek(stream_time);
-        }
-        catch (const std::exception& e) {
-            XAMP_LOG_DEBUG(e.what());
-            Resume();
-            return;
-        }
-        device_->SetStreamTime(stream_time);
-        XAMP_LOG_DEBUG("player seeking {} sec.", stream_time);
-        std::atomic_exchange(&slice_, AudioSlice{nullptr, 0, stream_time });
-        buffer_.Clear();
-        buffer_.Fill(0);
-        BufferStream();
-        Resume();
-    }
-}
-
 void AudioPlayer::SetVolume(int32_t volume) {
     volume_ = volume;
     if (!device_ || !device_->IsStreamOpen()) {
@@ -556,6 +532,30 @@ void AudioPlayer::OpenDevice(double stream_time) {
     device_->SetStreamTime(stream_time);    
 }
 
+void AudioPlayer::Seek(double stream_time) {
+    if (!device_) {
+        return;
+    }
+    if (device_->IsStreamOpen()) {
+        Pause();
+        try {
+            stream_->Seek(stream_time);
+        }
+        catch (const std::exception & e) {
+            XAMP_LOG_DEBUG(e.what());
+            Resume();
+            return;
+        }
+        device_->SetStreamTime(stream_time);
+        XAMP_LOG_DEBUG("player seeking {} sec.", stream_time);
+        std::atomic_exchange(&slice_, AudioSlice{ nullptr, 0, stream_time });
+        buffer_.Clear();
+        buffer_.Fill(0);
+        BufferStream();
+        Resume();
+    }
+}
+
 void AudioPlayer::ReadSampleLoop(int32_t max_read_sample, std::unique_lock<std::mutex>& lock) noexcept {
     while (is_playing_) {
         const auto num_samples = stream_->GetSamples(
@@ -583,7 +583,7 @@ void AudioPlayer::PlayStream() {
     // 2.std::async啟動會比較慢一點.
 	Play();
 
-    constexpr auto stream_proc = [](std::weak_ptr<AudioPlayer> player) {
+    constexpr auto stream_proc = [](std::weak_ptr<AudioPlayer> player) noexcept {
         if (auto shared_this = player.lock()) {
             auto p = shared_this.get();
             std::unique_lock<std::mutex> lock{ p->pause_mutex_ };

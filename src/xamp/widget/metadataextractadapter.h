@@ -21,6 +21,8 @@ class MetadataExtractAdapter
 public:
     explicit MetadataExtractAdapter(PlayListTableView* playlist);
 
+	~MetadataExtractAdapter() override;
+
     void OnWalk(const xamp::metadata::Path& path, xamp::base::Metadata metadata) override;
 
 	void OnWalkNext() override;

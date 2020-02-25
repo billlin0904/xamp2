@@ -35,13 +35,11 @@ PlayListTableView::PlayListTableView(QWidget* parent, int32_t playlist_id)
 	: QTableView(parent)
 	, playlist_id_(playlist_id)
 	, model_(this)
-    , proxy_model_(this)
-    , adapter_(this) {
+    , proxy_model_(this) {
 	initial();
 }
 
 PlayListTableView::~PlayListTableView() {
-	adapter_.Cancel();
 }
 
 void PlayListTableView::initial() {
@@ -129,10 +127,6 @@ void PlayListTableView::initial() {
 		setNowPlaying(index);
 		});
 
-	(void)QObject::connect(&adapter_, &MetadataExtractAdapter::finish, [this]() {
-		resizeColumn();
-		});
-
 	setContextMenuPolicy(Qt::CustomContextMenu);
 	(void)QObject::connect(this, &QTableView::customContextMenuRequested, [this](auto pt) {
 		auto index = indexAt(pt);
@@ -215,10 +209,16 @@ bool PlayListTableView::eventFilter(QObject* obj, QEvent* ev) {
 }
 
 void PlayListTableView::append(const QString& file_name, bool add_playlist) {
+	MetadataExtractAdapter adapter(this);
+
+	(void)QObject::connect(&adapter, &MetadataExtractAdapter::finish, [this]() {
+		resizeColumn();
+		});
+
 	const xamp::metadata::Path path(file_name.toStdWString());
-	adapter_.addPlayslist = add_playlist;
+	adapter.addPlayslist = add_playlist;
 	xamp::metadata::TaglibMetadataReader reader;
-	xamp::metadata::FromPath(path, &adapter_, &reader);
+	xamp::metadata::FromPath(path, &adapter, &reader);
 }
 
 void PlayListTableView::resizeEvent(QResizeEvent* event) {

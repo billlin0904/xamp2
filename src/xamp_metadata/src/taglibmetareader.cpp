@@ -199,10 +199,13 @@ public:
     }
 
     const std::vector<uint8_t>& ExtractCover(const Path& path) {
+        cover_.clear();
+
 		if (!IsSupported(path)) {
 			cover_.clear();
 			return cover_;
 		}
+
 #ifdef _WIN32
         FileRef fileref(path.wstring().c_str());
 #else
@@ -213,8 +216,6 @@ public:
             cover_.clear();
             return cover_;
         }
-
-        std::vector<uint8_t>().swap(cover_);
         const auto ext = ToUpper(path.extension().string());
         GetCover(ext, fileref.file(), cover_);
         return cover_;

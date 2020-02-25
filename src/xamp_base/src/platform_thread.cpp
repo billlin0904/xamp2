@@ -1,10 +1,10 @@
-#include <base/dll.h>
-#include <base/str_utilts.h>
-#include <base/platform_thread.h>
-
 #ifdef _WIN32
 #include <base/windows_handle.h>
 #endif
+
+#include <base/dll.h>
+#include <base/str_utilts.h>
+#include <base/platform_thread.h>
 
 namespace xamp::base {
 
@@ -38,7 +38,7 @@ void SetThreadNameById(DWORD dwThreadID, const char* threadName) {
 }
 #endif
 
-void SetThreadName(const std::string& name) {
+void SetThreadName(const std::string& name) noexcept {
 #ifdef _WIN32
 	WinHandle thread(::GetCurrentThread());
 

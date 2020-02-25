@@ -84,6 +84,7 @@ DeviceInfo ASIODeviceType::GetDeviceInfo(const std::wstring& device_id) const {
 	info.name = device_id;
 	info.device_id = device_id;
 	info.device_type_id = Id;
+	// NOTE: 無法不開啟ASIO狀態下取得是否支援DSD, 目前先假定ASIO是支援DSD的!
 	info.is_support_dsd = true;
 	return info;
 }

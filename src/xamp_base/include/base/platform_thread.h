@@ -11,6 +11,6 @@
 
 namespace xamp::base {
 
-XAMP_BASE_API void SetThreadName(const std::string& name);
+XAMP_BASE_API void SetThreadName(const std::string& name) noexcept;
 
 }
