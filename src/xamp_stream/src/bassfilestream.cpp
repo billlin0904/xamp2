@@ -303,18 +303,27 @@ public:
 		} else {
 			EnsureDsdDecoderInit();
 
-			file_.Open(file_path);
-            stream_.reset(BassLib::Instance().DSDLib->BASS_DSD_StreamCreateFile(TRUE,
-				file_.GetData(),
-				0,
-				file_.GetLength(),
-				flags | BASS_STREAM_DECODE,
-				0));
+			if (enable_file_mapped_) {
+				file_.Open(file_path);
+				stream_.reset(BassLib::Instance().DSDLib->BASS_DSD_StreamCreateFile(TRUE,
+					file_.GetData(),
+					0,
+					file_.GetLength(),
+					flags | BASS_STREAM_DECODE,
+					0));
+			}
+			else {
+				stream_.reset(BassLib::Instance().DSDLib->BASS_DSD_StreamCreateFile(FALSE,
+					file_path.data(),
+					0,
+					0,
+					flags | BASS_STREAM_DECODE | BASS_UNICODE,
+					0));
+			}
+
 			// BassLib DSD module default use 6dB gain. 
 			// 不設定的話會爆音!
 			BassLib::Instance().BASS_ChannelSetAttribute(stream_.get(), BASS_ATTRIB_DSD_GAIN, 0.0);
-
-			PrefetchMemory(file_.GetData(), file_.GetLength());
 		}
 		
 		if (!stream_) {

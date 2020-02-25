@@ -409,7 +409,7 @@ void AudioPlayer::CreateBuffer() {
 		auto allocate_size = require_read_sample * stream_->GetSampleSize() * BUFFER_STREAM_COUNT;
         num_buffer_samples_ = allocate_size * 10;
         num_read_sample_ = require_read_sample;
-        read_sample_buffer_ = MakeBuffer<int8_t>(allocate_size);
+        sample_buffer_ = MakeBuffer<int8_t>(allocate_size);
         read_sample_size_ = allocate_size;
     }
 
@@ -455,7 +455,7 @@ int AudioPlayer::OnGetSamples(void* samples, const int32_t num_buffer_frames, co
 void AudioPlayer::BufferStream() {
     buffer_.Clear();
 
-	auto buffer = read_sample_buffer_.get();
+	auto buffer = sample_buffer_.get();
 
     sample_size_ = stream_->GetSampleSize();
 
@@ -475,13 +475,10 @@ void AudioPlayer::BufferStream() {
 }
 
 bool AudioPlayer::FillSamples(int32_t num_samples) noexcept {
-    if (auto dsd_stream = AsDsdStream()) {
-        if (dsd_stream->GetDsdMode() == DsdModes::DSD_MODE_NATIVE) {
-            return buffer_.TryWrite(read_sample_buffer_.get(), num_samples);
-        }
+    if (GetDSDModes() == DsdModes::DSD_MODE_NATIVE) {
+        return buffer_.TryWrite(sample_buffer_.get(), num_samples);
     }
- 
-    return buffer_.TryWrite(read_sample_buffer_.get(), num_samples * sample_size_);
+    return buffer_.TryWrite(sample_buffer_.get(), num_samples * sample_size_);
 }
 
 void AudioPlayer::OnError(const Exception& e) noexcept {
@@ -559,7 +556,7 @@ void AudioPlayer::Seek(double stream_time) {
 void AudioPlayer::ReadSampleLoop(int32_t max_read_sample, std::unique_lock<std::mutex>& lock) noexcept {
     while (is_playing_) {
         const auto num_samples = stream_->GetSamples(
-            read_sample_buffer_.get(),
+            sample_buffer_.get(),
             max_read_sample);
 
         if (num_samples > 0) {

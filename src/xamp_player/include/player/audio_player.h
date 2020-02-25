@@ -170,7 +170,7 @@ private:
 	std::condition_variable stopped_cond_;
 	AudioFormat input_format_;
 	AudioFormat output_format_;
-	AlignBufferPtr<int8_t> read_sample_buffer_;
+	AlignBufferPtr<int8_t> sample_buffer_;
 	Timer timer_;
 	AlignPtr<AudioStream> stream_;
 	AlignPtr<DeviceType> device_type_;

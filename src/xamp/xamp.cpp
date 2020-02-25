@@ -873,11 +873,11 @@ void Xamp::initialPlaylist() {
     playback_history_page_->hide();
 
     artist_info_page_ = new ArtistInfoPage(this);
-
-    pushWidget(artist_info_page_);
+    
     pushWidget(lrc_page_);    
     pushWidget(playlist_page_);
     pushWidget(album_artist_page_);
+    pushWidget(artist_info_page_);
     goBackPage();
 
     (void)QObject::connect(album_artist_page_->album(), &AlbumView::clickedArtist,
