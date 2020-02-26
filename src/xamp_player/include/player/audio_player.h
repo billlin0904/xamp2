@@ -24,6 +24,7 @@
 #include <output_device/device.h>
 #include <output_device/device_type.h>
 
+#include <player/soxresampler.h>
 #include <player/playstate.h>
 #include <player/playbackstateadapter.h>
 #include <player/player.h>
@@ -153,6 +154,7 @@ private:
 	XAMP_ENFORCE_TRIVIAL(AudioSlice)
 
 	bool is_muted_;
+	bool enable_resample_;
 	DsdModes dsd_mode_;
 	std::atomic<PlayerState> state_;
 	int32_t volume_;
@@ -179,6 +181,7 @@ private:
 	AudioBuffer<int8_t> buffer_;
 	VmMemLock vmlock_;
 	WaitableTimer wait_timer_;
+	SoxrResampler resampler_;
 	std::future<void> stream_task_;
 };
 

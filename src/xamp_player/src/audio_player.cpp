@@ -31,6 +31,7 @@ AudioPlayer::AudioPlayer()
 
 AudioPlayer::AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter)
     : is_muted_(false)
+    , enable_resample_(false)
     , dsd_mode_(DsdModes::DSD_MODE_PCM)
     , state_(PlayerState::PLAYER_STATE_STOPPED)
     , volume_(0)
@@ -405,6 +406,11 @@ void AudioPlayer::CreateBuffer() {
 	}
 
     auto output_format = input_format;
+    if (output_format.GetSampleRate() < 96000) {
+        output_format.SetSampleRate(96000);        
+        enable_resample_ = true;        
+    }
+
     if (require_read_sample != num_read_sample_) {
 		auto allocate_size = require_read_sample * stream_->GetSampleSize() * BUFFER_STREAM_COUNT;
         num_buffer_samples_ = allocate_size * 10;
@@ -421,6 +427,10 @@ void AudioPlayer::CreateBuffer() {
     }
 
     XAMP_LOG_DEBUG("Output device format: {}", output_format);
+
+    if (enable_resample_) {
+        resampler_.Start(input_format, output_format.GetSampleRate());
+    }
 }
 
 void AudioPlayer::SetDeviceFormat() {
@@ -477,6 +487,10 @@ void AudioPlayer::BufferStream() {
 bool AudioPlayer::FillSamples(int32_t num_samples) noexcept {
     if (GetDSDModes() == DsdModes::DSD_MODE_NATIVE) {
         return buffer_.TryWrite(sample_buffer_.get(), num_samples);
+    }
+
+    if (enable_resample_) {
+        resampler_.Process((const float*)sample_buffer_.get(), num_samples, buffer_);
     }
     return buffer_.TryWrite(sample_buffer_.get(), num_samples * sample_size_);
 }
