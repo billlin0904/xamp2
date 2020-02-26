@@ -406,11 +406,6 @@ void AudioPlayer::CreateBuffer() {
 	}
 
     auto output_format = input_format;
-    if (output_format.GetSampleRate() < 96000) {
-        output_format.SetSampleRate(96000);        
-        enable_resample_ = true;        
-    }
-
     if (require_read_sample != num_read_sample_) {
 		auto allocate_size = require_read_sample * stream_->GetSampleSize() * BUFFER_STREAM_COUNT;
         num_buffer_samples_ = allocate_size * 10;
@@ -426,15 +421,27 @@ void AudioPlayer::CreateBuffer() {
 		XAMP_LOG_DEBUG("Allocate memory size:{}", buffer_.GetSize());
     }
 
-    XAMP_LOG_DEBUG("Output device format: {}", output_format);
-
-    if (enable_resample_) {
-        resampler_.Start(input_format, output_format.GetSampleRate());
-    }
+    XAMP_LOG_DEBUG("Output device format: {}", output_format);    
 }
 
 void AudioPlayer::SetDeviceFormat() {
     input_format_ = stream_->GetFormat();
+    auto input_samplerate = input_format_.GetSampleRate();
+    auto input_num_channels = input_format_.GetChannels();
+    constexpr auto target_samplerate = 192000;
+    
+    if (input_format_.GetSampleRate() < target_samplerate) {
+        input_format_.SetSampleRate(target_samplerate);
+        enable_resample_ = true;
+    }
+    else {
+        enable_resample_ = false;
+    }
+
+    if (enable_resample_) {
+        resampler_.Start(input_samplerate, input_num_channels, target_samplerate);
+    }
+
     if (input_format_.GetSampleRate() != output_format_.GetSampleRate()) {
         device_id_.clear();
     }
@@ -462,35 +469,9 @@ int AudioPlayer::OnGetSamples(void* samples, const int32_t num_buffer_frames, co
     return 1;
 }
 
-void AudioPlayer::BufferStream() {
-    buffer_.Clear();
-
-	auto buffer = sample_buffer_.get();
-
-    sample_size_ = stream_->GetSampleSize();
-
-    for (auto i = 0; i < BUFFER_STREAM_COUNT; ++i) {
-        while (true) {
-            const auto num_samples = stream_->GetSamples(buffer, num_read_sample_);
-            if (num_samples == 0) {
-                return;
-            }
-            if (!FillSamples(num_samples)) {
-				XAMP_LOG_ERROR("Buffer is full.");
-                continue;
-            }
-            break;
-        }
-    }
-}
-
 bool AudioPlayer::FillSamples(int32_t num_samples) noexcept {
     if (GetDSDModes() == DsdModes::DSD_MODE_NATIVE) {
         return buffer_.TryWrite(sample_buffer_.get(), num_samples);
-    }
-
-    if (enable_resample_) {
-        resampler_.Process((const float*)sample_buffer_.get(), num_samples, buffer_);
     }
     return buffer_.TryWrite(sample_buffer_.get(), num_samples * sample_size_);
 }
@@ -567,6 +548,36 @@ void AudioPlayer::Seek(double stream_time) {
     }
 }
 
+void AudioPlayer::BufferStream() {
+    buffer_.Clear();
+
+    auto buffer = sample_buffer_.get();
+
+    sample_size_ = stream_->GetSampleSize();
+
+    for (auto i = 0; i < BUFFER_STREAM_COUNT; ++i) {
+        while (true) {
+            const auto num_samples = stream_->GetSamples(buffer, num_read_sample_);
+            if (num_samples == 0) {
+                return;
+            }
+
+            if (enable_resample_) {
+                if (!resampler_.Process((const float*)sample_buffer_.get(), num_samples, buffer_)) {
+                    continue;
+                }
+            }
+            else {
+                if (!FillSamples(num_samples)) {
+                    XAMP_LOG_ERROR("Buffer is full.");
+                    continue;
+                }
+            }
+            break;
+        }
+    }
+}
+
 void AudioPlayer::ReadSampleLoop(int32_t max_read_sample, std::unique_lock<std::mutex>& lock) noexcept {
     while (is_playing_) {
         const auto num_samples = stream_->GetSamples(
@@ -574,9 +585,15 @@ void AudioPlayer::ReadSampleLoop(int32_t max_read_sample, std::unique_lock<std::
             max_read_sample);
 
         if (num_samples > 0) {
-            if (!FillSamples(num_samples)) {
-                XAMP_LOG_DEBUG("Process samples failure!");
-                continue;
+            if (enable_resample_) {
+                if (!resampler_.Process((const float*)sample_buffer_.get(), num_samples, buffer_)) {
+                    continue;
+                }
+            } else {
+                if (!FillSamples(num_samples)) {
+                    XAMP_LOG_DEBUG("Process samples failure!");
+                    continue;
+                }
             }
             break;
         }

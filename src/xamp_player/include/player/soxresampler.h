@@ -43,9 +43,9 @@ public:
 
 	void SetPhase(SoxrPhase phase);
 
-	void Start(const AudioFormat& format, int32_t output_samplerate);
+	void Start(int32_t input_samplerate, int32_t num_channels, int32_t output_samplerate);
 
-	void Process(const float* samples, int32_t num_sample, AudioBuffer<int8_t> &buffer);
+	bool Process(const float* samples, int32_t num_sample, AudioBuffer<int8_t> &buffer);
 private:
 	class SoxrResamplerImpl;
 	AlignPtr<SoxrResamplerImpl> impl_;

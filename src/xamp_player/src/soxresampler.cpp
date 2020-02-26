@@ -1,4 +1,5 @@
 #include <vector>
+#include <cassert>
 
 #include <soxr.h>
 
@@ -19,7 +20,9 @@ public:
 		, soxr_quality_spec(module_, "soxr_quality_spec")
 		, soxr_create(module_, "soxr_create")
 		, soxr_process(module_, "soxr_process")
-		, soxr_delete(module_, "soxr_delete") {
+		, soxr_delete(module_, "soxr_delete")
+		, soxr_io_spec(module_, "soxr_io_spec")
+		, soxr_runtime_spec(module_, "soxr_runtime_spec") {
 	}
 	catch (const Exception & e) {
 		XAMP_LOG_ERROR("{}", e.GetErrorMessage());
@@ -40,6 +43,8 @@ public:
 	XAMP_DEFINE_DLL_API(soxr_create) soxr_create;
 	XAMP_DEFINE_DLL_API(soxr_process) soxr_process;
 	XAMP_DEFINE_DLL_API(soxr_delete) soxr_delete;
+	XAMP_DEFINE_DLL_API(soxr_io_spec) soxr_io_spec;
+	XAMP_DEFINE_DLL_API(soxr_runtime_spec) soxr_runtime_spec;
 };
 
 class SoxrResampler::SoxrResamplerImpl {
@@ -56,49 +61,55 @@ public:
 		Close();
 	}
 
-	void Start(const AudioFormat& input_format, int32_t output_samplerate) {
+	void Start(int32_t input_samplerate, int32_t num_channels, int32_t output_samplerate) {
 		Close();
 
-		long recipe = 0;
+		long quality_spec = 0;
 
 		switch (quality_) {
 		case SoxrQuality::LOW:
-			recipe |= SOXR_LQ;
+			quality_spec |= SOXR_LQ;
 			break;
 		case SoxrQuality::QUICK:
-			recipe |= SOXR_QQ;
+			quality_spec |= SOXR_QQ;
 			break;
 		case SoxrQuality::MQ:
-			recipe |= SOXR_MQ;
+			quality_spec |= SOXR_MQ;
 			break;
 		case SoxrQuality::ULTIMATE:
-			recipe |= SOXR_32_BITQ;
+			quality_spec |= SOXR_32_BITQ;
 			break;
 		}
 
+		auto soxr_quality = SoxrLib::Instance().soxr_quality_spec(quality_spec, 0);
 		switch (phase_) {
 		case SoxrPhase::LINEAR_PHASE:
-			recipe |= SOXR_LINEAR_PHASE;
+			soxr_quality.phase_response = SOXR_LINEAR_PHASE;
 			break;
 		case SoxrPhase::INTERMEDIATE_PHASE:
-			recipe |= SOXR_INTERMEDIATE_PHASE;
+			soxr_quality.phase_response = SOXR_INTERMEDIATE_PHASE;
 			break;
 		case SoxrPhase::MINIMUM_PHASE:
-			recipe |= SOXR_MINIMUM_PHASE;
+			soxr_quality.phase_response = SOXR_MINIMUM_PHASE;
 			break;
 		}
 
-		soxr_quality_spec_t q = SoxrLib::Instance().soxr_quality_spec(recipe, 0);
+		auto iospec = SoxrLib::Instance().soxr_io_spec(SOXR_FLOAT32_I, SOXR_FLOAT32_I);
+		auto runtimespec = SoxrLib::Instance().soxr_runtime_spec(1);
+
 		soxr_error_t error = 0;
-		handle_ = SoxrLib::Instance().soxr_create(input_format.GetSampleRate(),
+		handle_ = SoxrLib::Instance().soxr_create(input_samplerate,
 			output_samplerate,
-			input_format.GetChannels(),
+			num_channels,
 			&error, 
-			nullptr, 
-			&q, 
-			nullptr);
-		ratio_ = (double)output_samplerate / input_format.GetSampleRate();
-		input_format_ = input_format;
+			&iospec,
+			&soxr_quality,
+			&runtimespec);
+
+		input_samplerate_ = input_samplerate;
+		num_channels_ = num_channels;
+
+		ratio_ = (double)output_samplerate / input_samplerate_;
 	}
 
 	void Close() {
@@ -106,6 +117,7 @@ public:
 			SoxrLib::Instance().soxr_delete(handle_);
 			handle_ = nullptr;
 		}
+		buffer_.clear();
 	}
 
 	void SetAllowAliasing(bool allow) {
@@ -120,24 +132,35 @@ public:
 		phase_ = phase;
 	}
 
-	void Process(const float* samples, int32_t num_sample, AudioBuffer<int8_t>& buffer) {
+	bool Process(const float* samples, int32_t num_sample, AudioBuffer<int8_t>& buffer) {
 		buffer_.resize((size_t)(num_sample * ratio_) + 256);
 
 		size_t samples_done = 0;
 
-		auto error = SoxrLib::Instance().soxr_process(handle_, samples, num_sample / input_format_.GetChannels(),
-			nullptr, buffer_.data(), buffer_.size() / input_format_.GetChannels(), &samples_done);
+		auto error = SoxrLib::Instance().soxr_process(handle_,
+			samples,
+			num_sample / num_channels_,
+			nullptr,
+			buffer_.data(),
+			buffer_.size() / num_channels_,
+			&samples_done);
 
-		buffer.TryWrite((int8_t*)buffer_.data(), buffer_.size() * sizeof(float));
+		if (!samples_done) {
+			return false;
+		}
 
-		buffer_.resize(samples_done * input_format_.GetChannels());
+		buffer.TryWrite(reinterpret_cast<const int8_t*>(buffer_.data()),
+			samples_done * num_channels_ * sizeof(float));
+		buffer_.resize(samples_done * num_channels_);
+		return true;
 	}
 
 	bool allow_aliasing_;
 	SoxrQuality quality_;
 	SoxrPhase phase_;
+	int32_t input_samplerate_;
+	int32_t num_channels_;
 	double ratio_;
-	AudioFormat input_format_;
 	soxr_t handle_;
 	std::vector<float> buffer_;
 };
@@ -149,8 +172,8 @@ SoxrResampler::SoxrResampler()
 SoxrResampler::~SoxrResampler() {
 }
 
-void SoxrResampler::Start(const AudioFormat& format, int32_t output_samplerate) {
-	impl_->Start(format, output_samplerate);
+void SoxrResampler::Start(int32_t input_samplerate, int32_t num_channels, int32_t output_samplerate) {
+	impl_->Start(input_samplerate, num_channels, output_samplerate);
 }
 
 void SoxrResampler::SetAllowAliasing(bool allow) {
@@ -165,8 +188,8 @@ void SoxrResampler::SetPhase(SoxrPhase phase) {
 	impl_->SetPhase(phase);
 }
 
-void SoxrResampler::Process(const float* samples, int32_t num_sample, AudioBuffer<int8_t>& buffer) {
-	impl_->Process(samples, num_sample, buffer);
+bool SoxrResampler::Process(const float* samples, int32_t num_sample, AudioBuffer<int8_t>& buffer) {
+	return impl_->Process(samples, num_sample, buffer);
 }
 
 }
