@@ -406,9 +406,13 @@ void Xamp::initialController() {
         playback_history_page_->show();
     });
 
+    (void)QObject::connect(ui.artistLabel, &ClickableLabel::clicked, [this]() {
+        onArtistIdChanged(current_entiry_.artist, current_entiry_.cover_id, current_entiry_.artist_id);
+    });
+
     (void)QObject::connect(ui.coverLabel, &ClickableLabel::clicked, [this]() {
         ui.currentView->setCurrentWidget(lrc_page_);
-    });
+        });
 
     (void)QObject::connect(ui.sliderBar, &TabListView::clickedTable, [this](auto table_id) {
         setTablePlaylistView(table_id);
@@ -754,22 +758,20 @@ void Xamp::playMusic(const MusicEntity& item) {
     playback_history_page_->refreshOnece();
 }
 
-void Xamp::play(const PlayListEntity& item) {    
+void Xamp::play(const PlayListEntity& item) {  
+    current_entiry_ = item;
     playMusic(toMusicEntity(item));
 }
 
 void Xamp::play(const QModelIndex&, const PlayListEntity& item) {
     playLocalFile(item);
-
-    current_entiry_ = item;
-
     if (!player_->IsPlaying()) {
         playlist_page_->format()->setText(Q_UTF8(""));
     }
 }
 
 void Xamp::onArtistIdChanged(const QString& artist, const QString& cover_id, int32_t artist_id) {
-    artist_info_page_->setArtistId(artist, cover_id, artist_id);
+    artist_info_page_->setArtistId(artist, Database::Instance().getArtistCoverId(artist_id), artist_id);
     ui.currentView->setCurrentWidget(artist_info_page_);
 }
 

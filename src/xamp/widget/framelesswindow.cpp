@@ -106,13 +106,15 @@ void FramelessWindow::initialFontDatabase() {
     QList<QString> fallback_fonts;
 
 #ifdef Q_OS_WIN
-    // NOTE: Some bug in Microsoft JhengHei font!
-    //fallback_fonts.append(Q_UTF8("Microsoft JhengHei UI"));
-    //fallback_fonts.append(Q_UTF8("Microsoft JhengHei UI Bold"));
-    fallback_fonts.append(Q_UTF8("Microsoft Yahei UI"));
-    fallback_fonts.append(Q_UTF8("Microsoft Yahei UI Bold"));
     fallback_fonts.append(Q_UTF8("Segoe UI"));
     fallback_fonts.append(Q_UTF8("Segoe UI Bold"));
+    fallback_fonts.append(Q_UTF8("Microsoft Yahei UI"));
+    fallback_fonts.append(Q_UTF8("Microsoft Yahei UI Bold"));
+    fallback_fonts.append(Q_UTF8("Meiryo UI"));
+    fallback_fonts.append(Q_UTF8("Meiryo UI Bold"));    
+    // NOTE: Some bug in Microsoft JhengHei Bold font!  
+    //fallback_fonts.append(Q_UTF8("Microsoft JhengHei UI"));
+    //fallback_fonts.append(Q_UTF8("Microsoft JhengHei UI Bold"));    
     fallback_fonts.append(Q_UTF8("Arial"));
 #else
     fallback_fonts.append(Q_UTF8("SF Pro Text"));

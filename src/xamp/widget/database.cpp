@@ -322,6 +322,21 @@ void Database::addTablePlaylist(int32_t tableId, int32_t playlist_id) {
 	ThrowlfFailue(query);
 }
 
+QString Database::getArtistCoverId(int32_t artist_id) const {
+	QSqlQuery query;
+
+	query.prepare(Q_UTF8("SELECT coverId FROM artists WHERE artistId = (:artistId)"));
+	query.bindValue(Q_UTF8(":artistId"), artist_id);
+
+	ThrowlfFailue(query);
+
+	const auto album_cover_tag_id_index = query.record().indexOf(Q_UTF8("coverId"));
+	if (query.next()) {
+		return query.value(album_cover_tag_id_index).toString();
+	}
+	return QString();
+}
+
 QString Database::getAlbumCoverId(int32_t album_id) const {
 	QSqlQuery query;
 

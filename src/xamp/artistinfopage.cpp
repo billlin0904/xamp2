@@ -15,11 +15,11 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 	auto child_layout = new QHBoxLayout();
 	child_layout->setSpacing(0);
 	child_layout->setObjectName(QString::fromUtf8("horizontalLayout_7"));
-	child_layout->setContentsMargins(20, 60, 20, 60);
+	child_layout->setContentsMargins(20, 0, 20, 0);
 
 	cover_ = new QLabel(this);
-	cover_->setMinimumSize(QSize(250, 250));
-	cover_->setMaximumSize(QSize(250, 250));
+	cover_->setMinimumSize(QSize(150, 150));
+	cover_->setMaximumSize(QSize(150, 150));
 
 	auto f = font();
 	f.setPointSize(15);
@@ -32,11 +32,11 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 	auto cover_spacer2 = new QSpacerItem(50, 10, QSizePolicy::Minimum, QSizePolicy::Fixed);
 	auto cover_spacer3 = new QSpacerItem(20, 10, QSizePolicy::Minimum, QSizePolicy::Fixed);
 
-	child_layout->addItem(cover_spacer1);
+	//child_layout->addItem(cover_spacer1);
 	child_layout->addWidget(cover_);
 	child_layout->addItem(cover_spacer2);
 	child_layout->addWidget(artist_);
-	child_layout->addItem(cover_spacer3);
+	//child_layout->addItem(cover_spacer3);
 
 	album_view_ = new AlbumView(this);
 
@@ -56,12 +56,10 @@ void ArtistInfoPage::setArtistId(const QString& artist, const QString& cover_id,
 	auto cover = &ThemeManager::pixmap().defaultSizeUnknownCover();
 	if (auto cache_small_cover = PixmapCache::Instance().find(cover_id)) {
 		cover = cache_small_cover.value();
-		cover_->setPixmap(*cover);
 	}
-	else {
-		auto small_cover = Pixmap::resizeImage(*cover, QSize(250, 250));
-		cover_->setPixmap(small_cover);
-	}
+
+	auto small_cover = Pixmap::resizeImage(*cover, QSize(120, 120));
+	cover_->setPixmap(small_cover);
 }
 
 void ArtistInfoPage::onTextColorChanged(QColor backgroundColor, QColor color) {

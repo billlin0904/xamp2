@@ -25,11 +25,11 @@ static QString toQString(T &value) {
 
 DiscogsClient::DiscogsClient(QNetworkAccessManager* manager, QObject *parent)
     : QObject(parent)
-    , manager(manager) {
+    , manager_(manager) {
 }
 
 void DiscogsClient::downloadArtistImage(int32_t artist_id, const QString& url) {
-    http::HttpClient(url, manager)
+    http::HttpClient(url, manager_)
         .download([=](auto data) {
         QPixmap image;
         image.loadFromData(data);
@@ -49,7 +49,7 @@ void DiscogsClient::searchArtistId(int32_t artist_id, const QString& id) {
         if (d.HasParseError()) {
             return;
         }
-        
+
         auto images = d.FindMember("images");
         if (images == d.MemberEnd()) {
             XAMP_LOG_DEBUG("Not found image! id:{} artist id: {}", id.toStdString(), artist_id);
@@ -66,7 +66,7 @@ void DiscogsClient::searchArtistId(int32_t artist_id, const QString& id) {
         }
     };
 
-    http::HttpClient(DISCOGS_HOST + Q_UTF8("/artists/") + id, manager)
+    http::HttpClient(DISCOGS_HOST + Q_UTF8("/artists/") + id, manager_)
         .header(Q_UTF8("Authorization"), QString(Q_UTF8("Discogs key=%1, secret=%2")).arg(DISCOGS_KEY, DISCOGS_SECRET))
         .success(handler)
         .get();
@@ -95,7 +95,7 @@ void DiscogsClient::searchArtist(int32_t artist_id, const QString &artist, const
         }
     };
 
-    http::HttpClient(DISCOGS_HOST + Q_UTF8("/database/search"), manager)
+    http::HttpClient(DISCOGS_HOST + Q_UTF8("/database/search"), manager_)
         .param(Q_UTF8("type"), Q_UTF8("release&artist"))
         .param(Q_UTF8("release_title"), artist)
         .param(Q_UTF8("artist"), artist)        

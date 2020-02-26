@@ -31,5 +31,5 @@ signals:
 public slots:
 
 private:
-    QNetworkAccessManager* manager;
+    QNetworkAccessManager* manager_;
 };
