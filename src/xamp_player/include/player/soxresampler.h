@@ -17,12 +17,10 @@ namespace xamp::player {
 using namespace xamp::base;
 
 enum class SoxrQuality {
-	ULTIMATE = 0,
-	QUICK,
-	LOW,
-	MQ,
+	VHQ = 0,
 	HQ,
-	VHQ,	
+	MQ,
+	LOW,		
 };
 
 enum class SoxrPhase {
@@ -36,6 +34,8 @@ public:
 	SoxrResampler();
 
 	~SoxrResampler();
+
+	static void LoadSoxrLib();
 
 	void SetAllowAliasing(bool allow);
 

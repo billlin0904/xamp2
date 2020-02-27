@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>851</width>
-    <height>645</height>
+    <width>772</width>
+    <height>370</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -141,6 +141,63 @@
                <property name="alignment">
                 <set>Qt::AlignCenter</set>
                </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="resampleComboBox">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>50</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>50</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <item>
+                <property name="text">
+                 <string>-1</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>44100</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>48000</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>88200</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>96000</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>176400</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>192000</string>
+                </property>
+               </item>
               </widget>
              </item>
              <item>

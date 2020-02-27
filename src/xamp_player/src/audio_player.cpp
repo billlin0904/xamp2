@@ -34,6 +34,7 @@ AudioPlayer::AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter)
     , enable_resample_(false)
     , dsd_mode_(DsdModes::DSD_MODE_PCM)
     , state_(PlayerState::PLAYER_STATE_STOPPED)
+    , target_samplerate_(-1)
     , volume_(0)
     , num_buffer_samples_(0)
     , num_read_sample_(0)
@@ -61,6 +62,7 @@ void AudioPlayer::PrepareAllocate() {
     stream_task_ = std::async(std::launch::async | std::launch::deferred, []() {});
     // Load Bass dll
     BassFileStream::LoadBassLib();
+    SoxrResampler::LoadSoxrLib();
 }
 
 void AudioPlayer::Open(const std::wstring& file_path, const std::wstring& file_ext, const DeviceInfo& device_info) {
@@ -424,14 +426,17 @@ void AudioPlayer::CreateBuffer() {
     XAMP_LOG_DEBUG("Output device format: {}", output_format);    
 }
 
+void AudioPlayer::SetResampleSampleRate(int32_t samplerate) {
+    target_samplerate_ = samplerate;
+}
+
 void AudioPlayer::SetDeviceFormat() {
     input_format_ = stream_->GetFormat();
     auto input_samplerate = input_format_.GetSampleRate();
     auto input_num_channels = input_format_.GetChannels();
-    constexpr auto target_samplerate = 192000;
-    
-    if (input_format_.GetSampleRate() < target_samplerate) {
-        input_format_.SetSampleRate(target_samplerate);
+
+    if (input_format_.GetSampleRate() < target_samplerate_) {
+        input_format_.SetSampleRate(target_samplerate_);
         enable_resample_ = true;
     }
     else {
@@ -439,7 +444,7 @@ void AudioPlayer::SetDeviceFormat() {
     }
 
     if (enable_resample_) {
-        resampler_.Start(input_samplerate, input_num_channels, target_samplerate);
+        resampler_.Start(input_samplerate, input_num_channels, target_samplerate_);
     }
 
     if (input_format_.GetSampleRate() != output_format_.GetSampleRate()) {

@@ -94,6 +94,8 @@ public:
 
 	bool IsDsdStream() const;
 
+	void SetResampleSampleRate(int32_t samplerate);
+
 private:
 	void PrepareAllocate();
 
@@ -157,6 +159,7 @@ private:
 	bool enable_resample_;
 	DsdModes dsd_mode_;
 	std::atomic<PlayerState> state_;
+	int32_t target_samplerate_;
 	int32_t volume_;
 	int32_t num_buffer_samples_;
 	int32_t num_read_sample_;

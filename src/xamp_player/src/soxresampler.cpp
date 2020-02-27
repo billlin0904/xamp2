@@ -49,10 +49,12 @@ public:
 
 class SoxrResampler::SoxrResamplerImpl {
 public:
-	SoxrResamplerImpl()
+	SoxrResamplerImpl() noexcept
 		: allow_aliasing_(false)		
-		, quality_(SoxrQuality::ULTIMATE)
+		, quality_(SoxrQuality::VHQ)
 		, phase_(SoxrPhase::LINEAR_PHASE)
+		, input_samplerate_(0)
+		, num_channels_(0)
 		, ratio_(0)
 		, handle_(nullptr) {
 	}
@@ -67,21 +69,21 @@ public:
 		long quality_spec = 0;
 
 		switch (quality_) {
-		case SoxrQuality::LOW:
-			quality_spec |= SOXR_LQ;
+		case SoxrQuality::VHQ:
+			quality_spec |= SOXR_32_BITQ;
 			break;
-		case SoxrQuality::QUICK:
-			quality_spec |= SOXR_QQ;
+		case SoxrQuality::HQ:
+			quality_spec |= SOXR_HQ;
 			break;
 		case SoxrQuality::MQ:
 			quality_spec |= SOXR_MQ;
 			break;
-		case SoxrQuality::ULTIMATE:
-			quality_spec |= SOXR_32_BITQ;
-			break;
+		case SoxrQuality::LOW:
+			quality_spec |= SOXR_LQ;
+			break;		
 		}
 
-		auto soxr_quality = SoxrLib::Instance().soxr_quality_spec(quality_spec, 0);
+		auto soxr_quality = SoxrLib::Instance().soxr_quality_spec(quality_spec, (SOXR_HI_PREC_CLOCK | SOXR_VR));
 		switch (phase_) {
 		case SoxrPhase::LINEAR_PHASE:
 			soxr_quality.phase_response = SOXR_LINEAR_PHASE;
@@ -170,6 +172,10 @@ SoxrResampler::SoxrResampler()
 }
 
 SoxrResampler::~SoxrResampler() {
+}
+
+void SoxrResampler::LoadSoxrLib() {
+	SoxrLib::Instance();
 }
 
 void SoxrResampler::Start(int32_t input_samplerate, int32_t num_channels, int32_t output_samplerate) {

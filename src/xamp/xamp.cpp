@@ -531,6 +531,7 @@ void Xamp::stopPlayedClicked() {
     player_->Stop(false, true);
     setSeekPosValue(0);
     ui.seekSlider->setEnabled(false);
+    ui.resampleComboBox->setEnabled(true);
     playlist_page_->playlist()->removePlaying();
 }
 
@@ -691,6 +692,7 @@ void Xamp::playMusic(const MusicEntity& item) {
     }
     catch (const xamp::base::Exception & e) {
         resetSeekPosValue();
+        ui.resampleComboBox->setEnabled(true);
         ui.seekSlider->setEnabled(false);        
         player_->Stop(false, true);
         XAMP_LOG_DEBUG("Exception: {}", e.GetErrorMessage());
@@ -699,12 +701,14 @@ void Xamp::playMusic(const MusicEntity& item) {
     catch (const std::exception & e) {
         resetSeekPosValue();
         ui.seekSlider->setEnabled(false);
+        ui.resampleComboBox->setEnabled(true);
         player_->Stop(false, true);
         Toast::showTip(Q_UTF8(e.what()), this);
     }
     catch (...) {
         resetSeekPosValue();
         ui.seekSlider->setEnabled(false);
+        ui.resampleComboBox->setEnabled(true);
         player_->Stop(false, true);
         Toast::showTip(tr("uknown error"), this);
     }
@@ -720,6 +724,7 @@ void Xamp::playMusic(const MusicEntity& item) {
         setVolume(0);
     }
 
+    ui.resampleComboBox->setEnabled(false);
     ui.seekSlider->setRange(0, int32_t(player_->GetDuration() * 1000));
     ui.endPosLabel->setText(Time::msToString(player_->GetDuration()));
     playlist_page_->format()->setText(getPlayEntityFormat(player_.get(), item.file_ext));
@@ -803,6 +808,7 @@ void Xamp::onPlayerStateChanged(xamp::player::PlayerState play_state) {
         resetTaskbarProgress();
         ui.seekSlider->setValue(0);
         ui.startPosLabel->setText(Time::msToString(0));
+        ui.resampleComboBox->setEnabled(true);
         playNextItem(1);
         emit payNextMusic();
     }
@@ -818,16 +824,6 @@ void Xamp::addTable() {
     if (!isOK) {
         return;
     }
-
-    auto playlis_id = Database::Instance().addPlaylist(Q_UTF8(""), 0);
-    auto table_id = Database::Instance().addTable(table_name, 0, playlis_id);
-    /*
-    for (auto music_id : music_id_store_) {
-        Database::Instance().addMusicToPlaylist(music_id, playlis_id);
-        Database::Instance().addTablePlaylist(table_id, playlis_id);
-    }
-    */
-    ui.sliderBar->addTab(table_name, table_id);
 }
 
 void Xamp::initialPlaylist() {
@@ -881,6 +877,12 @@ void Xamp::initialPlaylist() {
     pushWidget(album_artist_page_);
     pushWidget(artist_info_page_);
     goBackPage();
+    goBackPage();
+
+    (void)QObject::connect(ui.resampleComboBox, static_cast<void(QComboBox::*)(const QString &index)>(&QComboBox::currentIndexChanged),
+        [this](const auto &index) {
+        player_->SetResampleSampleRate(index.toInt());
+        });
 
     (void)QObject::connect(album_artist_page_->album(), &AlbumView::clickedArtist,
         this,
