@@ -22,6 +22,12 @@ extern const QLatin1String APP_SETTING_NIGHT_MODE;
 extern const QLatin1String APP_SETTING_ENABLE_BLUR;
 extern const QLatin1String APP_SETTING_BACKGROUND_COLOR;
 
+extern const QLatin1String APP_SETTING_SOXR_RESAMPLE_SAMPLRATE;
+extern const QLatin1String APP_SETTING_SOXR_ALLOW_ALIASING;
+extern const QLatin1String APP_SETTING_SOXR_QUALITY;
+extern const QLatin1String APP_SETTING_SOXR_PHASE;
+extern const QLatin1String APP_SETTING_SOXR_PASS_BAND;
+
 class AppSettings {
 public:    
     static void loadIniFile(const QString& file_name);
@@ -29,6 +35,11 @@ public:
     template <typename T, typename = std::enable_if_t<std::is_integral<T>::value, T>>
     static void setValue(const QString& key, T value) {
         setValue(key, std::to_string(value));
+    }
+
+    template <typename T, typename = std::enable_if_t<std::is_integral<T>::value, T>>
+    static void setValue(const char *key, T value) {
+        setValue(QLatin1String(key), std::to_string(value));
     }
 
     static void setValue(const QString& key, QColor value) {

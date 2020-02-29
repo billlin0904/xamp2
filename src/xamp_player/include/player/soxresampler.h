@@ -17,16 +17,16 @@ namespace xamp::player {
 using namespace xamp::base;
 
 enum class SoxrQuality {
-	VHQ = 0,
-	HQ,
+	LOW,
 	MQ,
-	LOW,		
+	HQ,	
+	VHQ,
 };
 
 enum class SoxrPhase {
 	LINEAR_PHASE = 0,
-	MINIMUM_PHASE,
-	INTERMEDIATE_PHASE,	
+	INTERMEDIATE_PHASE,
+	MINIMUM_PHASE,	
 };
 
 class XAMP_PALYER_API SoxrResampler {

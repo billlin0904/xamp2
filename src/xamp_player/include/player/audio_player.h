@@ -94,7 +94,7 @@ public:
 
 	bool IsDsdStream() const;
 
-	void SetResampleSampleRate(int32_t samplerate);
+	void SetResample(int32_t samplerate, SoxrPhase phase, SoxrQuality quality, bool allow_aliasing);
 
 private:
 	void PrepareAllocate();

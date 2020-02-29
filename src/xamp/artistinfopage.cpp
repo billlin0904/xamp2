@@ -32,11 +32,9 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 	auto cover_spacer2 = new QSpacerItem(50, 10, QSizePolicy::Minimum, QSizePolicy::Fixed);
 	auto cover_spacer3 = new QSpacerItem(20, 10, QSizePolicy::Minimum, QSizePolicy::Fixed);
 
-	//child_layout->addItem(cover_spacer1);
 	child_layout->addWidget(cover_);
 	child_layout->addItem(cover_spacer2);
 	child_layout->addWidget(artist_);
-	//child_layout->addItem(cover_spacer3);
 
 	album_view_ = new AlbumView(this);
 

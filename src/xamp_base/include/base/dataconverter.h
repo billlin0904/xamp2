@@ -10,6 +10,9 @@
 #include <array>
 #include <cassert>
 
+#include <intrin.h>
+#include <xmmintrin.h>
+
 #include <base/base.h>
 #include <base/audioformat.h>
 
@@ -193,16 +196,9 @@ struct DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEA
 	static XAMP_RESTRICT XAMP_NOALIAS int32_t* ConvertToInt2432(int32_t* output, const float* input, const AudioConvertContext &context) noexcept {
 		const auto* end_input = input + (size_t)context.convert_size * context.input_format.GetChannels();
 
+#if 0	
 		// Loop unrolling
-		switch ((end_input - input) % 8) {
-		case 7:
-			*output++ = int24_t(*input++).to_2432int();
-		case 6:
-			*output++ = int24_t(*input++).to_2432int();
-		case 5:
-			*output++ = int24_t(*input++).to_2432int();
-		case 4:
-			*output++ = int24_t(*input++).to_2432int();
+		switch ((end_input - input) % 4) {
 		case 3:
 			*output++ = int24_t(*input++).to_2432int();
 		case 2:
@@ -218,14 +214,39 @@ struct DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEA
 			output[1] = int24_t(input[1]).to_2432int();
 			output[2] = int24_t(input[2]).to_2432int();
 			output[3] = int24_t(input[3]).to_2432int();
-			output[4] = int24_t(input[4]).to_2432int();
-			output[5] = int24_t(input[5]).to_2432int();
-			output[6] = int24_t(input[6]).to_2432int();
-			output[7] = int24_t(input[7]).to_2432int();
-			input += 8;
-			output += 8;
+			input += 4;
+			output += 4;
 		}
 		return output;
+#else
+		auto scale = _mm_set1_ps(XAMP_FLOAT_24_SCALER);
+		auto max_val = _mm_set1_ps(XAMP_FLOAT_24_SCALER - 1);
+		auto min_val = _mm_set1_ps(-XAMP_FLOAT_24_SCALER);
+
+		switch ((end_input - input) % 4) {
+		case 3:
+			*output++ = int24_t(*input++).to_2432int();
+		case 2:
+			*output++ = int24_t(*input++).to_2432int();
+		case 1:
+			*output++ = int24_t(*input++).to_2432int();
+		case 0:
+			break;
+		}		
+
+		while (input != end_input) {
+			const __m128 in = _mm_load_ps(input);
+			const __m128 mul = _mm_mul_ps(in, scale);
+			const __m128 clamp = _mm_min_ps(_mm_max_ps(mul, min_val), max_val);
+			const __m128i result = _mm_cvtps_epi32(clamp);
+			const __m128i shift = _mm_slli_si128(result, 1);
+			_mm_store_si128((__m128i*)(output), shift);
+			input += 4;
+			output += 4;
+		}
+
+		return output;
+#endif
 	}
 };
 

@@ -426,8 +426,11 @@ void AudioPlayer::CreateBuffer() {
     XAMP_LOG_DEBUG("Output device format: {}", output_format);    
 }
 
-void AudioPlayer::SetResampleSampleRate(int32_t samplerate) {
+void AudioPlayer::SetResample(int32_t samplerate, SoxrPhase phase, SoxrQuality quality, bool allow_aliasing) {
     target_samplerate_ = samplerate;
+    resampler_.SetPhase(phase);
+    resampler_.SetAllowAliasing(allow_aliasing);
+    resampler_.SetQuality(quality);
 }
 
 void AudioPlayer::SetDeviceFormat() {
