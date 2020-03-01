@@ -5,8 +5,8 @@
 #include <base/posix_handle.h>
 #endif
 
+#include <algorithm>
 #include <base/memory_mapped_file.h>
-#include <base/memory.h>
 
 namespace xamp::base {
 
@@ -44,11 +44,7 @@ void PrefactchFile(const std::wstring& file_name) {
 }
 
 XAMP_RESTRICT XAMP_NOALIAS void* FastMemcpy(void* dest, const void* src, size_t size) noexcept {
-#ifdef _WIN32
-	return memcpy_fast(dest, src, size);
-#else
-    return memcpy(dest, src, size);
-#endif
+	return std::memcpy(dest, src, size);
 }
 
 }

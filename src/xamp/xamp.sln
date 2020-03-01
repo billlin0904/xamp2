@@ -25,6 +25,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "xamp_metadata", "..\xamp_me
 		{787171BF-E651-4B4F-A2D9-0B3D5108DA93} = {787171BF-E651-4B4F-A2D9-0B3D5108DA93}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bench", "..\bench\bench.vcxproj", "{B60104EB-B0ED-4F80-94B6-6606EC88D5AE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -79,6 +81,14 @@ Global
 		{9C38FE2D-CBE7-4362-8CD3-1E8F18B5B12C}.Release|x64.Build.0 = Release|x64
 		{9C38FE2D-CBE7-4362-8CD3-1E8F18B5B12C}.Release|x86.ActiveCfg = Release|Win32
 		{9C38FE2D-CBE7-4362-8CD3-1E8F18B5B12C}.Release|x86.Build.0 = Release|Win32
+		{B60104EB-B0ED-4F80-94B6-6606EC88D5AE}.Debug|x64.ActiveCfg = Debug|x64
+		{B60104EB-B0ED-4F80-94B6-6606EC88D5AE}.Debug|x64.Build.0 = Debug|x64
+		{B60104EB-B0ED-4F80-94B6-6606EC88D5AE}.Debug|x86.ActiveCfg = Debug|Win32
+		{B60104EB-B0ED-4F80-94B6-6606EC88D5AE}.Debug|x86.Build.0 = Debug|Win32
+		{B60104EB-B0ED-4F80-94B6-6606EC88D5AE}.Release|x64.ActiveCfg = Release|x64
+		{B60104EB-B0ED-4F80-94B6-6606EC88D5AE}.Release|x64.Build.0 = Release|x64
+		{B60104EB-B0ED-4F80-94B6-6606EC88D5AE}.Release|x86.ActiveCfg = Release|Win32
+		{B60104EB-B0ED-4F80-94B6-6606EC88D5AE}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

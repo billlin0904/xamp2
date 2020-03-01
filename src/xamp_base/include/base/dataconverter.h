@@ -145,40 +145,11 @@ struct DataConverter {
 };
 
 template <typename T, int64_t FloatScaler>
-XAMP_RESTRICT XAMP_NOALIAS T* LoopUnrolling(T *output, const float* input, const AudioConvertContext& context) noexcept {
+XAMP_RESTRICT XAMP_NOALIAS T* ConvertHelper(T *output, const float* input, const AudioConvertContext& context) noexcept {
 	const auto* end_input = input + (size_t)context.convert_size * context.input_format.GetChannels();
 
-	// Loop unrolling
-	switch ((end_input - input) % 8) {
-	case 7:
-		*output++ = T(*input++ * FloatScaler);
-	case 6:
-		*output++ = T(*input++ * FloatScaler);
-	case 5:			
-		*output++ = T(*input++ * FloatScaler);
-	case 4:			
-		*output++ = T(*input++ * FloatScaler);
-	case 3:			
-		*output++ = T(*input++ * FloatScaler);
-	case 2:			
-		*output++ = T(*input++ * FloatScaler);
-	case 1:			
-		*output++ = T(*input++ * FloatScaler);
-	case 0:
-		break;
-	}
-
 	while (input != end_input) {
-		output[0] = T(input[0] * FloatScaler);
-		output[1] = T(input[1] * FloatScaler);
-		output[2] = T(input[2] * FloatScaler);
-		output[3] = T(input[3] * FloatScaler);
-		output[4] = T(input[4] * FloatScaler);
-		output[5] = T(input[5] * FloatScaler);
-		output[6] = T(input[6] * FloatScaler);
-		output[7] = T(input[7] * FloatScaler);
-		input += 8;
-		output += 8;
+		*output++ = T(*input++ * FloatScaler);
 	}
 	return output;
 }
@@ -186,19 +157,66 @@ XAMP_RESTRICT XAMP_NOALIAS T* LoopUnrolling(T *output, const float* input, const
 template <>
 struct DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEAVED> {
 	static XAMP_RESTRICT XAMP_NOALIAS int16_t* ConvertToInt16(int16_t* output, const float* input, const AudioConvertContext& context) noexcept {
-		return LoopUnrolling<int16_t, XAMP_FLOAT_16_SCALER>(output, input, context);
+		return ConvertHelper<int16_t, XAMP_FLOAT_16_SCALER>(output, input, context);
 	}
 
 	static XAMP_RESTRICT XAMP_NOALIAS int32_t* ConvertToInt16(int32_t* output, const float* input, const AudioConvertContext& context) noexcept {
-		return LoopUnrolling<int32_t, XAMP_FLOAT_32_SCALER>(output, input, context);
+		return ConvertHelper<int32_t, XAMP_FLOAT_32_SCALER>(output, input, context);
+	}
+
+	static XAMP_RESTRICT XAMP_NOALIAS int32_t* ConvertToInt2432_SSE(int32_t* output, const float* input, const AudioConvertContext& context) noexcept {
+		const auto* end_input = input + (size_t)context.convert_size * context.input_format.GetChannels();
+
+		auto scale = _mm_set1_ps(XAMP_FLOAT_24_SCALER);
+		auto max_val = _mm_set1_ps(XAMP_FLOAT_24_SCALER - 1);
+		auto min_val = _mm_set1_ps(-XAMP_FLOAT_24_SCALER);
+
+		switch ((end_input - input) % 4) {
+		case 3:
+			*output++ = int24_t(*input++).to_2432int();
+		case 2:
+			*output++ = int24_t(*input++).to_2432int();
+		case 1:
+			*output++ = int24_t(*input++).to_2432int();
+		case 0:
+			break;
+		}
+
+		while (input != end_input) {
+			auto in = _mm_load_ps(input);
+			auto mul = _mm_mul_ps(in, scale);
+			auto clamp = _mm_min_ps(_mm_max_ps(mul, min_val), max_val);
+			auto result = _mm_cvtps_epi32(clamp);
+			auto shift = _mm_slli_si128(result, 1);
+			_mm_store_si128((__m128i*)(output), shift);
+			input += 4;
+			output += 4;
+		}
+
+		return output;
+	}
+
+	static XAMP_RESTRICT XAMP_NOALIAS int32_t* ConvertToInt2432_Normal(int32_t* output, const float* input, const AudioConvertContext& context) noexcept {
+		const auto* end_input = input + (size_t)context.convert_size * context.input_format.GetChannels();
+
+		while (input != end_input) {
+			*output++ = int24_t(*input++).to_2432int();
+		}
+		return output;
 	}
 
 	static XAMP_RESTRICT XAMP_NOALIAS int32_t* ConvertToInt2432(int32_t* output, const float* input, const AudioConvertContext &context) noexcept {
 		const auto* end_input = input + (size_t)context.convert_size * context.input_format.GetChannels();
 
-#if 0	
-		// Loop unrolling
-		switch ((end_input - input) % 4) {
+		switch ((end_input - input) % 8) {
+		case 7:
+			*output++ = int24_t(*input++).to_2432int();
+		case 6:
+			*output++ = int24_t(*input++).to_2432int();
+		case 5:
+			*output++ = int24_t(*input++).to_2432int();
+		case 4:
+			*output++ = int24_t(*input++).to_2432int();
 		case 3:
 			*output++ = int24_t(*input++).to_2432int();
 		case 2:
@@ -214,39 +232,14 @@ struct DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEA
 			output[1] = int24_t(input[1]).to_2432int();
 			output[2] = int24_t(input[2]).to_2432int();
 			output[3] = int24_t(input[3]).to_2432int();
-			input += 4;
-			output += 4;
+			output[4] = int24_t(input[4]).to_2432int();
+			output[5] = int24_t(input[5]).to_2432int();
+			output[6] = int24_t(input[6]).to_2432int();
+			output[7] = int24_t(input[7]).to_2432int();
+			input += 8;
+			output += 8;
 		}
 		return output;
-#else
-		auto scale = _mm_set1_ps(XAMP_FLOAT_24_SCALER);
-		auto max_val = _mm_set1_ps(XAMP_FLOAT_24_SCALER - 1);
-		auto min_val = _mm_set1_ps(-XAMP_FLOAT_24_SCALER);
-
-		switch ((end_input - input) % 4) {
-		case 3:
-			*output++ = int24_t(*input++).to_2432int();
-		case 2:
-			*output++ = int24_t(*input++).to_2432int();
-		case 1:
-			*output++ = int24_t(*input++).to_2432int();
-		case 0:
-			break;
-		}		
-
-		while (input != end_input) {
-			const __m128 in = _mm_load_ps(input);
-			const __m128 mul = _mm_mul_ps(in, scale);
-			const __m128 clamp = _mm_min_ps(_mm_max_ps(mul, min_val), max_val);
-			const __m128i result = _mm_cvtps_epi32(clamp);
-			const __m128i shift = _mm_slli_si128(result, 1);
-			_mm_store_si128((__m128i*)(output), shift);
-			input += 4;
-			output += 4;
-		}
-
-		return output;
-#endif
 	}
 };
 

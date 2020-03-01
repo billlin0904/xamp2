@@ -426,11 +426,15 @@ void AudioPlayer::CreateBuffer() {
     XAMP_LOG_DEBUG("Output device format: {}", output_format);    
 }
 
-void AudioPlayer::SetResample(int32_t samplerate, SoxrPhase phase, SoxrQuality quality, bool allow_aliasing) {
+void AudioPlayer::SetResampler(int32_t samplerate, SoxrPhase phase, SoxrQuality quality, bool enable_steep_filter) {
     target_samplerate_ = samplerate;
     resampler_.SetPhase(phase);
-    resampler_.SetAllowAliasing(allow_aliasing);
+    resampler_.SetSteepFilter(enable_steep_filter);
     resampler_.SetQuality(quality);
+}
+
+void AudioPlayer::SetEnableResampler(bool enable) {
+    enable_resample_ = enable;
 }
 
 void AudioPlayer::SetDeviceFormat() {

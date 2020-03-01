@@ -37,7 +37,7 @@ public:
 
 	static void LoadSoxrLib();
 
-	void SetAllowAliasing(bool allow);
+	void SetSteepFilter(bool enable);
 
 	void SetQuality(SoxrQuality quality);
 

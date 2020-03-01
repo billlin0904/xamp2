@@ -9,9 +9,11 @@ const QLatin1String APP_SETTING_ORDER{ "AppSettings/order" };
 const QLatin1String APP_SETTING_NIGHT_MODE{ "AppSettings/nightMode" };
 const QLatin1String APP_SETTING_BACKGROUND_COLOR{ "AppSettings/theme/backgroundColor" };
 const QLatin1String APP_SETTING_ENABLE_BLUR{ "AppSettings/theme/enableBlur" };
+const QLatin1String APP_SETTING_MUSIC_FILE_PATH{ "AppSettings/musicFilePath" };
 
+const QLatin1String APP_SETTING_SOXR_ENABLE{ "AppSettings/soxr/enable" };
 const QLatin1String APP_SETTING_SOXR_RESAMPLE_SAMPLRATE{ "AppSettings/soxr/resampleSampleRate" };
-const QLatin1String APP_SETTING_SOXR_ALLOW_ALIASING{ "AppSettings/soxr/allowAliasing" };
+const QLatin1String APP_SETTING_SOXR_ENABLE_STEEP_FILTER{ "AppSettings/soxr/enableSteepFilter" };
 const QLatin1String APP_SETTING_SOXR_QUALITY{ "AppSettings/soxr/quality" };
 const QLatin1String APP_SETTING_SOXR_PHASE{ "AppSettings/soxr/phase" };
 const QLatin1String APP_SETTING_SOXR_PASS_BAND{ "AppSettings/soxr/passBand" };

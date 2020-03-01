@@ -19,7 +19,7 @@ class MetadataExtractAdapter
 	, public xamp::metadata::MetadataExtractAdapter {
 	Q_OBJECT
 public:
-    explicit MetadataExtractAdapter(PlayListTableView* playlist);
+    explicit MetadataExtractAdapter(PlayListTableView* playlist = nullptr);
 
 	~MetadataExtractAdapter() override;
 

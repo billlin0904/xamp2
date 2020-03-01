@@ -19,7 +19,8 @@ constexpr size_t PREALLOCATE_SIZE = 100;
 MetadataExtractAdapter::MetadataExtractAdapter(PlayListTableView* playlist)
     : QObject(nullptr)
     , cancel_(false)
-    , playlist_(playlist) {
+    , playlist_(playlist)
+    , addPlayslist(playlist != nullptr) {
     metadatas_.reserve(PREALLOCATE_SIZE);
 }
 
@@ -69,9 +70,9 @@ void MetadataExtractAdapter::processAndNotify(const std::vector<xamp::base::Meta
     QString album;
     QString artist;
 
-    auto playlist_id = playlist_->playlistId();
-    if (!addPlayslist) {
-        playlist_id = -1;
+    auto playlist_id = -1;
+    if (addPlayslist) {
+        playlist_id = playlist_->playlistId();
     }
 
     for (const auto & metadata : metadatas) {

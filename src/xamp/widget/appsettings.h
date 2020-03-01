@@ -21,9 +21,11 @@ extern const QLatin1String APP_SETTING_ORDER;
 extern const QLatin1String APP_SETTING_NIGHT_MODE;
 extern const QLatin1String APP_SETTING_ENABLE_BLUR;
 extern const QLatin1String APP_SETTING_BACKGROUND_COLOR;
+extern const QLatin1String APP_SETTING_MUSIC_FILE_PATH;
 
+extern const QLatin1String APP_SETTING_SOXR_ENABLE;
 extern const QLatin1String APP_SETTING_SOXR_RESAMPLE_SAMPLRATE;
-extern const QLatin1String APP_SETTING_SOXR_ALLOW_ALIASING;
+extern const QLatin1String APP_SETTING_SOXR_ENABLE_STEEP_FILTER;
 extern const QLatin1String APP_SETTING_SOXR_QUALITY;
 extern const QLatin1String APP_SETTING_SOXR_PHASE;
 extern const QLatin1String APP_SETTING_SOXR_PASS_BAND;

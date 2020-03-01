@@ -50,12 +50,14 @@ public:
 class SoxrResampler::SoxrResamplerImpl {
 public:
 	SoxrResamplerImpl() noexcept
-		: allow_aliasing_(false)		
+		: enable_steep_filter_(false)
 		, quality_(SoxrQuality::VHQ)
 		, phase_(SoxrPhase::LINEAR_PHASE)
 		, input_samplerate_(0)
 		, num_channels_(0)
 		, ratio_(0)
+		, passband_(1.0)
+		, stopband_(1.0)
 		, handle_(nullptr) {
 	}
 
@@ -83,7 +85,11 @@ public:
 			break;		
 		}
 
-		auto soxr_quality = SoxrLib::Instance().soxr_quality_spec(quality_spec, (SOXR_HI_PREC_CLOCK | SOXR_VR));
+		if (enable_steep_filter_) {
+			quality_spec |= SOXR_STEEP_FILTER;
+		}
+
+		auto soxr_quality = SoxrLib::Instance().soxr_quality_spec(quality_spec, (SOXR_ROLLOFF_NONE | SOXR_HI_PREC_CLOCK | SOXR_VR));
 		switch (phase_) {
 		case SoxrPhase::LINEAR_PHASE:
 			soxr_quality.phase_response = SOXR_LINEAR_PHASE;
@@ -95,6 +101,9 @@ public:
 			soxr_quality.phase_response = SOXR_MINIMUM_PHASE;
 			break;
 		}
+
+		soxr_quality.passband_end = passband_;
+		soxr_quality.stopband_begin = stopband_;
 
 		auto iospec = SoxrLib::Instance().soxr_io_spec(SOXR_FLOAT32_I, SOXR_FLOAT32_I);
 		auto runtimespec = SoxrLib::Instance().soxr_runtime_spec(1);
@@ -122,8 +131,8 @@ public:
 		buffer_.clear();
 	}
 
-	void SetAllowAliasing(bool allow) {
-		allow_aliasing_ = allow;
+	void SetSteepFilter(bool enable) {
+		enable_steep_filter_ = enable;
 	}
 
 	void SetQuality(SoxrQuality quality) {
@@ -157,12 +166,14 @@ public:
 		return true;
 	}
 
-	bool allow_aliasing_;
+	bool enable_steep_filter_;
 	SoxrQuality quality_;
 	SoxrPhase phase_;
 	int32_t input_samplerate_;
 	int32_t num_channels_;
 	double ratio_;
+	double passband_;
+	double stopband_;
 	soxr_t handle_;
 	std::vector<float> buffer_;
 };
@@ -182,8 +193,8 @@ void SoxrResampler::Start(int32_t input_samplerate, int32_t num_channels, int32_
 	impl_->Start(input_samplerate, num_channels, output_samplerate);
 }
 
-void SoxrResampler::SetAllowAliasing(bool allow) {
-	impl_->SetAllowAliasing(allow);
+void SoxrResampler::SetSteepFilter(bool enable) {
+	impl_->SetSteepFilter(enable);
 }
 
 void SoxrResampler::SetQuality(SoxrQuality quality) {

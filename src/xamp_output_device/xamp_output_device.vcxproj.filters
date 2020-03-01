@@ -2,7 +2,6 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="src\devicefactory.cpp" />
-    <ClCompile Include="src\output_device.cpp" />
     <ClCompile Include="src\win32\exclusivewasapidevice.cpp" />
     <ClCompile Include="src\win32\exclusivewasapidevicetype.cpp" />
     <ClCompile Include="src\win32\hrexception.cpp" />

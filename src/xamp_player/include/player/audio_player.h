@@ -94,7 +94,9 @@ public:
 
 	bool IsDsdStream() const;
 
-	void SetResample(int32_t samplerate, SoxrPhase phase, SoxrQuality quality, bool allow_aliasing);
+	void SetResampler(int32_t samplerate, SoxrPhase phase, SoxrQuality quality, bool enable_steep_filter);
+
+	void SetEnableResampler(bool enable = true);
 
 private:
 	void PrepareAllocate();
@@ -181,8 +183,7 @@ private:
 	AlignPtr<DeviceType> device_type_;
 	AlignPtr<Device> device_;
 	std::weak_ptr<PlaybackStateAdapter> state_adapter_;
-	AudioBuffer<int8_t> buffer_;
-	VmMemLock vmlock_;
+	AudioBuffer<int8_t> buffer_;	
 	WaitableTimer wait_timer_;
 	SoxrResampler resampler_;
 	std::future<void> stream_task_;

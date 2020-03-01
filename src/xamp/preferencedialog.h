@@ -13,6 +13,8 @@ class PreferenceDialog : public QDialog {
 public:
     explicit PreferenceDialog(QWidget *parent = nullptr);
 
+    QString musicFilePath;
+
 private:
 	void initSoxResampler();
 

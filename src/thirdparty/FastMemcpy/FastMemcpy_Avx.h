@@ -377,7 +377,7 @@ INLINE RESTRICT NOALIAS void* memcpy_fast(void * destination, const void * sourc
 {
 	unsigned char *dst = (unsigned char*)destination;
 	const unsigned char *src = (const unsigned char*)source;
-	static size_t cachesize = 0x200000; // L3-cache size
+	constexpr size_t cachesize = 0x800000; // L3-cache size
 	size_t padding;
 
 	// small memory copy

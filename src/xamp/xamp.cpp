@@ -138,6 +138,8 @@ void Xamp::setDefaultStyle() {
 void Xamp::initialUI() {
     ui.setupUi(this);
 
+    watch_.addPath(AppSettings::getValue(APP_SETTING_MUSIC_FILE_PATH).toString());
+
     setGeometry(QStyle::alignedRect(Qt::LeftToRight,
                                     Qt::AlignCenter,
                                     AppSettings::getSizeValue(APP_SETTING_WIDTH, APP_SETTING_HEIGHT),
@@ -433,6 +435,7 @@ void Xamp::initialController() {
         f.setPointSize(8);
         dialog.setFont(f);
         dialog.exec();
+        watch_.addPath(dialog.musicFilePath);
         });
     auto enable_blur_material_mode_action = new QAction(tr("Enable Blur"), this);
     enable_blur_material_mode_action->setCheckable(true);
@@ -693,13 +696,18 @@ void Xamp::playMusic(const MusicEntity& item) {
 
     ui.seekSlider->setEnabled(true);
 
-    auto samplerate = AppSettings::getValue(APP_SETTING_SOXR_RESAMPLE_SAMPLRATE).toInt();
-    auto quality = static_cast<SoxrQuality>(AppSettings::getValue(APP_SETTING_SOXR_QUALITY).toInt());
-    auto phase = static_cast<SoxrPhase>(AppSettings::getValue(APP_SETTING_SOXR_PHASE).toInt());
-    auto passband = AppSettings::getValue(APP_SETTING_SOXR_PASS_BAND).toInt();
-    auto allow = AppSettings::getValue(APP_SETTING_SOXR_ALLOW_ALIASING).toBool();
-
-    player_->SetResample(samplerate, phase, quality, allow);
+    if (AppSettings::getValue(APP_SETTING_SOXR_ENABLE).toBool()) {
+        auto samplerate = AppSettings::getValue(APP_SETTING_SOXR_RESAMPLE_SAMPLRATE).toInt();
+        auto quality = static_cast<SoxrQuality>(AppSettings::getValue(APP_SETTING_SOXR_QUALITY).toInt());
+        auto phase = static_cast<SoxrPhase>(AppSettings::getValue(APP_SETTING_SOXR_PHASE).toInt());
+        auto passband = AppSettings::getValue(APP_SETTING_SOXR_PASS_BAND).toInt();
+        auto enable_steep_filter = AppSettings::getValue(APP_SETTING_SOXR_ENABLE_STEEP_FILTER).toBool();
+        player_->SetResampler(samplerate, phase, quality, enable_steep_filter);
+        player_->SetEnableResampler(true);
+    }
+    else {
+        player_->SetEnableResampler(false);
+    }    
 
     try { 
         player_->Open(item.file_path.toStdWString(), item.file_ext.toStdWString(), device_info_);        

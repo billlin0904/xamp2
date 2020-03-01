@@ -2,6 +2,8 @@
 #include <QTreeWidget>
 #include <QComboBox>
 #include <QDialogButtonBox>
+#include <QFileDialog>
+#include <QDir>
 
 #include <base/id.h>
 
@@ -16,9 +18,23 @@ void PreferenceDialog::initSoxResampler() {
 	ui_.soxrPassbandSlider->setValue(AppSettings::getValue(APP_SETTING_SOXR_PASS_BAND).toInt());
 	ui_.soxrPassbandValue->setText(QString(Q_UTF8("%0%")).arg(ui_.soxrPassbandSlider->value()));
 
-	(void) QObject::connect(ui_.soxrPassbandSlider, &QSlider::sliderReleased, [this]() {
-		ui_.soxrPassbandValue->setText(QString(Q_UTF8("%0%")).arg(ui_.soxrPassbandSlider->value()));
-		});
+	auto enable_soxr = AppSettings::getValue(APP_SETTING_SOXR_ENABLE).toBool();
+	if (enable_soxr) {
+		ui_.resamplerStackedWidget->setCurrentIndex(1);
+		ui_.selectResamplerComboBox->setCurrentIndex(1);
+	}
+	else {
+		ui_.resamplerStackedWidget->setCurrentIndex(0);
+		ui_.selectResamplerComboBox->setCurrentIndex(0);
+	}
+
+	auto enable = AppSettings::getValue(APP_SETTING_SOXR_ENABLE_STEEP_FILTER).toBool();
+	if (enable) {
+		ui_.soxrAllowAliasingCheckBox->setChecked(true);
+	}
+	else {
+		ui_.soxrAllowAliasingCheckBox->setChecked(false);
+	}
 }
 
 PreferenceDialog::PreferenceDialog(QWidget *parent)
@@ -58,26 +74,41 @@ PreferenceDialog::PreferenceDialog(QWidget *parent)
 		ui_.resamplerStackedWidget->setCurrentIndex(index);
 		});
 
-	auto samplerate = QString::number(AppSettings::getValue(APP_SETTING_SOXR_RESAMPLE_SAMPLRATE).toInt());
-	if (samplerate != -1) {
-		ui_.resamplerStackedWidget->setCurrentIndex(1);
-		ui_.selectResamplerComboBox->setCurrentIndex(1);
-	}
+	(void)QObject::connect(ui_.soxrPassbandSlider, &QSlider::sliderReleased, [this]() {
+		ui_.soxrPassbandValue->setText(QString(Q_UTF8("%0%")).arg(ui_.soxrPassbandSlider->value()));
+		});
 
-	auto allow = AppSettings::getValue(APP_SETTING_SOXR_ALLOW_ALIASING).toBool();
-	if (allow) {
-		ui_.soxrAllowAliasingCheckBox->setChecked(true);
-	}
+	ui_.musicFilePath->setText(AppSettings::getValue(APP_SETTING_MUSIC_FILE_PATH).toString());
+
+	(void)QObject::connect(ui_.setPathButton, &QPushButton::clicked, [this]() {
+		musicFilePath = QFileDialog::getExistingDirectory(
+			this,
+			tr("Select a directory"),
+			QDir::currentPath());
+		AppSettings::setValue(APP_SETTING_MUSIC_FILE_PATH, musicFilePath);
+		ui_.musicFilePath->setText(musicFilePath);
+		});
+
+	(void)QObject::connect(ui_.resetAllButton, &QPushButton::clicked, [this]() {
+		AppSettings::setValue(APP_SETTING_SOXR_ENABLE, false);
+		AppSettings::setValue(APP_SETTING_SOXR_RESAMPLE_SAMPLRATE, 44100);
+		AppSettings::setValue(APP_SETTING_SOXR_ENABLE_STEEP_FILTER, false);
+		AppSettings::setValue(APP_SETTING_SOXR_QUALITY, 3);
+		AppSettings::setValue(APP_SETTING_SOXR_PHASE, 0);
+		AppSettings::setValue(APP_SETTING_SOXR_PASS_BAND, 99);
+		initSoxResampler();
+		});
 
 	(void) QObject::connect(ui_.buttonBox, &QDialogButtonBox::accepted, [this]() {
 		const auto soxr_sample_rate = ui_.soxrTargetSampleRateComboBox->currentText().toInt();
 		const auto soxr_quility = ui_.soxrResampleQualityComboBox->currentIndex();
 		const auto soxr_phase = ui_.soxrPhaseComboBox->currentIndex();
 		const auto soxr_pass_band = ui_.soxrPassbandSlider->value();
-		const auto soxr_allow_aliasing = ui_.soxrAllowAliasingCheckBox->checkState() == Qt::Checked;
+		const auto soxr_enable_steep_filter = ui_.soxrAllowAliasingCheckBox->checkState() == Qt::Checked;
 
+		AppSettings::setValue(APP_SETTING_SOXR_ENABLE, ui_.resamplerStackedWidget->currentIndex() > 0);
 		AppSettings::setValue(APP_SETTING_SOXR_RESAMPLE_SAMPLRATE, soxr_sample_rate);
-		AppSettings::setValue(APP_SETTING_SOXR_ALLOW_ALIASING, soxr_allow_aliasing);
+		AppSettings::setValue(APP_SETTING_SOXR_ENABLE_STEEP_FILTER, soxr_enable_steep_filter);
 		AppSettings::setValue(APP_SETTING_SOXR_QUALITY, soxr_quility);
 		AppSettings::setValue(APP_SETTING_SOXR_PHASE, soxr_phase);
 		AppSettings::setValue(APP_SETTING_SOXR_PASS_BAND, soxr_pass_band);
