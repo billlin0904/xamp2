@@ -7,10 +7,14 @@
 #include <QClipboard>
 #include <QScrollBar>
 #include <QShortcut>
+#include <QtConcurrent>
+#include <QFutureWatcher>
 
 #include <base/rng.h>
 #include <metadata/taglibmetareader.h>
 
+#include <widget/pixmapcache.h>
+#include <widget/database.h>
 #include <widget/str_utilts.h>
 #include <widget/actionmap.h>
 #include <widget/playlisttableview.h>
@@ -209,16 +213,24 @@ bool PlayListTableView::eventFilter(QObject* obj, QEvent* ev) {
 }
 
 void PlayListTableView::append(const QString& file_name, bool add_playlist) {
-	MetadataExtractAdapter adapter(this);
+	auto extract_handler = [](const auto &file_name) {
+		MetadataExtractAdapter adapter;
+		const xamp::metadata::Path path(file_name.toStdWString());
+		xamp::metadata::TaglibMetadataReader reader;
+		xamp::metadata::FromPath(path, &adapter, &reader);
+		return adapter.results;
+	};
 
-	(void)QObject::connect(&adapter, &MetadataExtractAdapter::finish, [this]() {
+	auto future = QtConcurrent::run(extract_handler, file_name);
+	auto watcher = new QFutureWatcher<std::vector<std::vector<xamp::base::Metadata>>>(this);
+	(void) QObject::connect(watcher, &QFutureWatcher<std::vector<std::vector<xamp::base::Metadata>>>::finished, [=]() {
+		for (const auto& result : future.result()) {
+			MetadataExtractAdapter::processMetadata(result, add_playlist ? this : nullptr);
+		}
 		resizeColumn();
+		watcher->deleteLater();
 		});
-
-	const xamp::metadata::Path path(file_name.toStdWString());
-	adapter.addPlayslist = add_playlist;
-	xamp::metadata::TaglibMetadataReader reader;
-	xamp::metadata::FromPath(path, &adapter, &reader);
+	watcher->setFuture(future);
 }
 
 void PlayListTableView::resizeEvent(QResizeEvent* event) {
