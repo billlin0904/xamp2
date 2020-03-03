@@ -25,6 +25,8 @@
 #include <output_device/device_type.h>
 
 #include <player/soxresampler.h>
+#include <player/cdspresampler.h>
+
 #include <player/playstate.h>
 #include <player/playbackstateadapter.h>
 #include <player/player.h>
@@ -40,10 +42,7 @@ namespace xamp::output_device {
 
 namespace xamp::player {
 
-using namespace stream;
-using namespace output_device;
-
-class XAMP_PALYER_API AudioPlayer final :
+class XAMP_PLAYER_API AudioPlayer final :
 	public AudioCallback,
 	public DeviceStateListener,
 	public std::enable_shared_from_this<AudioPlayer> {
@@ -185,7 +184,8 @@ private:
 	std::weak_ptr<PlaybackStateAdapter> state_adapter_;
 	AudioBuffer<int8_t> buffer_;	
 	WaitableTimer wait_timer_;
-	SoxrResampler resampler_;
+	//SoxrResampler resampler_;
+	CdspResampler resampler_;
 	std::future<void> stream_task_;
 };
 

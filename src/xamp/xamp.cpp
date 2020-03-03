@@ -710,13 +710,11 @@ void Xamp::setupResampler() {
 void Xamp::playMusic(const MusicEntity& item) {
     auto open_done = false;
         
-    ui.seekSlider->setEnabled(true);    
+    ui.seekSlider->setEnabled(true);
 
     try {
-        player_->Stop(false);
-
+        player_->Stop(false, true);
         setupResampler();
-
         player_->Open(item.file_path.toStdWString(), item.file_ext.toStdWString(), device_info_);        
         open_done = true;
     }

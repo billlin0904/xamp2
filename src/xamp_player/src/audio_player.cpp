@@ -21,6 +21,7 @@ constexpr int32_t BUFFER_STREAM_COUNT = 5;
 constexpr int32_t PREALLOCATE_BUFFER_SIZE = 8 * 1024 * 1024;
 constexpr int32_t MAX_WRITE_RATIO = 20;
 constexpr int32_t MAX_READ_RATIO = 30;
+constexpr int32_t MAX_READ_SAMPLE = 32768 * 2;
 constexpr std::chrono::milliseconds UPDATE_SAMPLE_INTERVAL(30);
 constexpr std::chrono::seconds WAIT_FOR_STRAEM_STOP_TIME(5);
 constexpr std::chrono::milliseconds SLEEP_OUTPUT_TIME(100);
@@ -63,6 +64,7 @@ void AudioPlayer::PrepareAllocate() {
     // Load Bass dll
     BassFileStream::LoadBassLib();
     SoxrResampler::LoadSoxrLib();
+    CdspResampler::LoadCdspLib();
 }
 
 void AudioPlayer::Open(const std::wstring& file_path, const std::wstring& file_ext, const DeviceInfo& device_info) {
@@ -78,10 +80,10 @@ void AudioPlayer::Open(const std::wstring& file_path, const std::wstring& file_e
 
 void AudioPlayer::SetResampler(int32_t samplerate, SoxrQuality quality, SoxrPhaseResponse phase, double stopband, int32_t passband, bool enable_steep_filter) {
     target_samplerate_ = samplerate;
-    resampler_.SetQuality(quality);
+    /*resampler_.SetQuality(quality);
     resampler_.SetPhase(phase);
     resampler_.SetStopBand(stopband);    
-    resampler_.SetSteepFilter(enable_steep_filter);
+    resampler_.SetSteepFilter(enable_steep_filter);*/
 }
 
 void AudioPlayer::CreateDevice(const ID& device_type_id, const std::wstring& device_id, const bool open_always) {
@@ -413,24 +415,37 @@ void AudioPlayer::CreateBuffer() {
 	else {
         require_read_sample = device_->GetBufferSize() * MAX_READ_RATIO;
 	}
-
+    
     auto output_format = input_format;
+
     if (require_read_sample != num_read_sample_) {
-		auto allocate_size = require_read_sample * stream_->GetSampleSize() * BUFFER_STREAM_COUNT;
+        auto allocate_size = require_read_sample * stream_->GetSampleSize() * BUFFER_STREAM_COUNT;
         num_buffer_samples_ = allocate_size * 10;
         num_read_sample_ = require_read_sample;
         sample_buffer_ = MakeBuffer<int8_t>(allocate_size);
         read_sample_size_ = allocate_size;
     }
 
-    output_format_ = output_format;
-    if (buffer_.GetSize() == 0 || buffer_.GetSize() < num_buffer_samples_) {
-		XAMP_LOG_DEBUG("Buffer too small reallocate.");
-        buffer_.Resize(num_buffer_samples_);
-		XAMP_LOG_DEBUG("Allocate memory size:{}", buffer_.GetSize());
+    if (!enable_resample_) {
+        output_format_ = output_format;
+        if (buffer_.GetSize() == 0 || buffer_.GetSize() < num_buffer_samples_) {
+            XAMP_LOG_DEBUG("Buffer too small reallocate.");
+            buffer_.Resize(num_buffer_samples_);
+            XAMP_LOG_DEBUG("Allocate memory size:{}", buffer_.GetSize());
+        }
+    }
+    else {
+        num_read_sample_ = MAX_READ_SAMPLE;
+        resampler_.Start(input_format_.GetSampleRate(),
+            input_format_.GetChannels(),
+            target_samplerate_,
+            num_read_sample_ / input_format_.GetChannels());
+        /*resampler_.Start(input_format_.GetSampleRate(),
+            input_format_.GetChannels(),
+            target_samplerate_);*/
     }
 
-    XAMP_LOG_DEBUG("Output device format: {}", output_format);    
+    XAMP_LOG_DEBUG("Output device format: {}", output_format_);
 }
 
 void AudioPlayer::SetEnableResampler(bool enable) {
@@ -439,21 +454,20 @@ void AudioPlayer::SetEnableResampler(bool enable) {
 
 void AudioPlayer::SetDeviceFormat() {
     input_format_ = stream_->GetFormat();
-    auto input_samplerate = input_format_.GetSampleRate();
-    auto input_num_channels = input_format_.GetChannels();
-
-    if (input_format_.GetSampleRate() < target_samplerate_) {
-        input_format_.SetSampleRate(target_samplerate_);        
-    }   
 
     if (enable_resample_) {
-        resampler_.Start(input_samplerate, input_num_channels, target_samplerate_);
+        if (output_format_.GetSampleRate() != target_samplerate_) {
+            device_id_.clear();
+        }
+        output_format_ = input_format_;
+        output_format_.SetSampleRate(target_samplerate_);
     }
-
-    if (input_format_.GetSampleRate() != output_format_.GetSampleRate()) {
-        device_id_.clear();
+    else {
+        if (input_format_.GetSampleRate() != output_format_.GetSampleRate()) {
+            device_id_.clear();
+        }
+        output_format_ = input_format_;
     }
-    output_format_ = input_format_;
 }
 
 int AudioPlayer::OnGetSamples(void* samples, const int32_t num_buffer_frames, const double stream_time) noexcept {

@@ -12,12 +12,12 @@
 
 namespace xamp::player {
 
-struct XAMP_PALYER_API Fingerprint {
+struct XAMP_PLAYER_API Fingerprint {
 	double duration{ 0 };
 	std::vector<uint8_t> fingerprint;
 };
 
-XAMP_PALYER_API Fingerprint ReadFingerprint(const std::wstring& file_path);
+XAMP_PLAYER_API Fingerprint ReadFingerprint(const std::wstring& file_path);
 
 }
 

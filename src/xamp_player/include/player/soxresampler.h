@@ -10,6 +10,7 @@
 #include <base/align_ptr.h>
 #include <base/audiobuffer.h>
 #include <base/audioformat.h>
+#include <player/resampler.h>
 #include <player/player.h>
 
 namespace xamp::player {
@@ -27,7 +28,7 @@ enum class SoxrPhaseResponse {
 	MINIMUM_PHASE,	
 };
 
-class XAMP_PALYER_API SoxrResampler {
+class XAMP_PLAYER_API SoxrResampler : public Resampler {
 public:
 	SoxrResampler();
 
@@ -43,9 +44,9 @@ public:
 
 	void SetStopBand(double stopband);
 
-	void Start(int32_t input_samplerate, int32_t num_channels, int32_t output_samplerate);
+	void Start(int32_t input_samplerate, int32_t num_channels, int32_t output_samplerate, int32_t max_sample) override;
 
-	bool Process(const float* samples, int32_t num_sample, AudioBuffer<int8_t> &buffer);
+	bool Process(const float* samples, int32_t num_sample, AudioBuffer<int8_t> &buffer) override;
 private:
 	class SoxrResamplerImpl;
 	AlignPtr<SoxrResamplerImpl> impl_;

@@ -14,7 +14,7 @@ namespace xamp::player {
 
 using namespace base;
 
-class XAMP_PALYER_API XAMP_NO_VTABLE PlaybackStateAdapter {
+class XAMP_PLAYER_API XAMP_NO_VTABLE PlaybackStateAdapter {
 public:
 	XAMP_BASE_CLASS(PlaybackStateAdapter)
 

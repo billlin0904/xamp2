@@ -9,16 +9,22 @@
 #include <base/audiobuffer.h>
 #include <base/audioformat.h>
 #include <player/player.h>
+#include <player/resampler.h>
 
 namespace xamp::player {
 
-class XAMP_PALYER_API CdspResampler {
+class XAMP_PLAYER_API CdspResampler : public Resampler {
 public:
 	CdspResampler();
 
 	XAMP_PIMPL(CdspResampler)
 
-	bool Process(const float* samples, int32_t num_sample, AudioBuffer<int8_t>& buffer);
+	static void LoadCdspLib();
+
+	void Start(int32_t input_samplerate, int32_t num_channels, int32_t output_samplerate, int32_t max_sample) override;
+
+	bool Process(const float* samples, int32_t num_sample, AudioBuffer<int8_t>& buffer) override;
+	
 private:
 	class CdspResamplerImpl;
 	AlignPtr<CdspResamplerImpl> impl_;

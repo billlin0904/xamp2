@@ -5,33 +5,20 @@
 
 #pragma once
 
-#include <vector>
-
-#include <base/align_ptr.h>
+#include <base/audiobuffer.h>
 #include <player/player.h>
 
 namespace xamp::player {
 
-using namespace xamp::base;
-
-class XAMP_PLAYER_API Chromaprint {
+class XAMP_PLAYER_API XAMP_NO_VTABLE Resampler {
 public:
-	explicit Chromaprint();
+	XAMP_BASE_CLASS(Resampler)
 
-	~Chromaprint();
+	virtual void Start(int32_t input_samplerate, int32_t num_channels, int32_t output_samplerate, int32_t max_sample) = 0;
 
-	XAMP_DISABLE_COPY(Chromaprint)
-
-	void Start(int32_t sample_rate, int32_t num_channels, int32_t num_buffer_frames);
-
-	int Feed(const int16_t* data, int size) const;
-
-	int Finish() const;
-
-	std::vector<uint8_t> GetFingerprint() const;
-private:
-	class ChromaprintImpl;
-	AlignPtr<ChromaprintImpl> impl_;
+	virtual bool Process(const float* samples, int32_t num_sample, AudioBuffer<int8_t>& buffer) = 0;
+protected:
+	Resampler() = default;
 };
 
 }

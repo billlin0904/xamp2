@@ -7,16 +7,22 @@
 
 #ifdef _WIN32
 #ifdef XAMP_PALYER_API_EXPORTS
-#define XAMP_PALYER_API __declspec(dllexport)
+#define XAMP_PLAYER_API __declspec(dllexport)
 #else
-#define XAMP_PALYER_API __declspec(dllimport)
+#define XAMP_PLAYER_API __declspec(dllimport)
 #endif
 #else
-#define XAMP_PALYER_API
+#define XAMP_PLAYER_API
 #endif
+
+#include <base/base.h>
+#include <output_device/output_device.h>
+#include <stream/stream.h>
 
 namespace xamp::player {
 	using namespace xamp::base;
+	using namespace xamp::stream;
+	using namespace xamp::output_device;
 
 	class AudioPlayer;	
 	class PlaybackStateAdapter;
