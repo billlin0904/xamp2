@@ -78,7 +78,8 @@ PreferenceDialog::PreferenceDialog(QWidget *parent)
 		ui_.soxrPassbandValue->setText(QString(Q_UTF8("%0%")).arg(ui_.soxrPassbandSlider->value()));
 		});
 
-	ui_.musicFilePath->setText(AppSettings::getValue(APP_SETTING_MUSIC_FILE_PATH).toString());
+	musicFilePath = AppSettings::getValue(APP_SETTING_MUSIC_FILE_PATH).toString();
+	ui_.musicFilePath->setText(musicFilePath);
 
 	(void)QObject::connect(ui_.setPathButton, &QPushButton::clicked, [this]() {
 		musicFilePath = QFileDialog::getExistingDirectory(
