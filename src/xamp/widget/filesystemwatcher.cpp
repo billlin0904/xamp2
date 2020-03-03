@@ -33,6 +33,11 @@ void FileSystemWatcher::onFileChanged(const QString& file) {
 	const xamp::metadata::Path path(file.toStdWString());
 	xamp::metadata::TaglibMetadataReader reader;
 	xamp::metadata::FromPath(path, &adapter_, &reader);
+
+	for (const auto& result : adapter_.results) {
+		MetadataExtractAdapter::processMetadata(result);
+	}
+	adapter_.results.clear();
 }
 
 void FileSystemWatcher::onDirectoryChanged(const QString& path) {

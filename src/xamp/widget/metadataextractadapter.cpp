@@ -16,21 +16,17 @@
 
 constexpr size_t PREALLOCATE_SIZE = 100;
 
-MetadataExtractAdapter::MetadataExtractAdapter(PlayListTableView* playlist)
-    : QObject(nullptr)
-    , cancel_(false)
-    , playlist_(playlist)
-    , addPlayslist(playlist != nullptr) {
+MetadataExtractAdapter::MetadataExtractAdapter(QObject* parent)
+    : QObject(parent)
+    , cancel_(false) {
     metadatas_.reserve(PREALLOCATE_SIZE);
 }
 
 MetadataExtractAdapter::~MetadataExtractAdapter() {
-    std::vector<xamp::base::Metadata>().swap(metadatas_);
 }
 
 void MetadataExtractAdapter::OnWalk(const xamp::metadata::Path&, xamp::base::Metadata metadata) {
     metadatas_.push_back(metadata);
-    qApp->processEvents();
 }
 
 void MetadataExtractAdapter::OnWalkNext() {
@@ -45,7 +41,7 @@ void MetadataExtractAdapter::OnWalkNext() {
         return first.track < sencond.track;
     });
 #endif
-    processAndNotify(metadatas_);    
+    results.push_back(metadatas_);
     metadatas_.reserve(PREALLOCATE_SIZE);
     metadatas_.clear();
 }
@@ -62,34 +58,33 @@ void MetadataExtractAdapter::Reset() {
     cancel_ = false;
 }
 
-void MetadataExtractAdapter::processAndNotify(const std::vector<xamp::base::Metadata>& metadatas) {
+void MetadataExtractAdapter::processMetadata(const std::vector<xamp::base::Metadata>& metadatas, PlayListTableView* playlist) {
     QHash<QString, int32_t> album_id_cache;
     QHash<QString, int32_t> artist_id_cache;
     QHash<int32_t, QString> cover_id_cache;
+
+    xamp::metadata::TaglibMetadataReader cover_reader;
 
     QString album;
     QString artist;
 
     auto playlist_id = -1;
-    if (addPlayslist) {
-        playlist_id = playlist_->playlistId();
+    if (playlist != nullptr) {
+        playlist_id = playlist->playlistId();
     }
 
-    for (const auto & metadata : metadatas) {
-        if (IsCancel()) {
-            return;
-        }
-
+    for (const auto& metadata : metadatas) {
         album = QString::fromStdWString(metadata.album);
         artist = QString::fromStdWString(metadata.artist);
-        
+
         auto music_id = Database::Instance().addOrUpdateMusic(metadata, playlist_id);
 
         int32_t artist_id = 0;
         auto artist_itr = artist_id_cache.find(artist);
         if (artist_itr != artist_id_cache.end()) {
             artist_id = (*artist_itr);
-        } else {
+        }
+        else {
             artist_id = Database::Instance().addOrUpdateArtist(artist);
             artist_id_cache[artist] = artist_id;
         }
@@ -98,7 +93,8 @@ void MetadataExtractAdapter::processAndNotify(const std::vector<xamp::base::Meta
         auto album_itr = album_id_cache.find(album);
         if (album_itr != album_id_cache.end()) {
             album_id = (*album_itr);
-        } else {
+        }
+        else {
             album_id = Database::Instance().addOrUpdateAlbum(album, artist_id);
             album_id_cache[album] = album_id;
         }
@@ -107,9 +103,9 @@ void MetadataExtractAdapter::processAndNotify(const std::vector<xamp::base::Meta
         auto cover_itr = cover_id_cache.find(album_id);
         if (cover_itr == cover_id_cache.end()) {
             cover_id = Database::Instance().getAlbumCoverId(album_id);
-            if (cover_id.isEmpty()) {                
+            if (cover_id.isEmpty()) {
                 QPixmap pixmap;
-                const auto& buffer = cover_reader_.ExtractEmbeddedCover(metadata.file_path);
+                const auto& buffer = cover_reader.ExtractEmbeddedCover(metadata.file_path);
                 if (!buffer.empty()) {
                     pixmap.loadFromData(buffer.data(), (uint32_t)buffer.size());
                 }
@@ -130,16 +126,13 @@ void MetadataExtractAdapter::processAndNotify(const std::vector<xamp::base::Meta
 
         IgnoreSqlError(Database::Instance().addOrUpdateAlbumMusic(album_id, artist_id, music_id))
 
-        if (addPlayslist) {
+        if (playlist != nullptr) {
             auto entity = PlayListTableView::fromMetadata(metadata);
             entity.music_id = music_id;
             entity.album_id = album_id;
             entity.artist_id = artist_id;
             entity.cover_id = cover_id;
-            playlist_->appendItem(entity);
-        }
-
-        qApp->processEvents();
+            playlist->appendItem(entity);
+        }        
     }
-    emit finish();
 }

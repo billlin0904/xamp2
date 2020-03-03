@@ -19,7 +19,7 @@ class MetadataExtractAdapter
 	, public xamp::metadata::MetadataExtractAdapter {
 	Q_OBJECT
 public:
-    explicit MetadataExtractAdapter(PlayListTableView* playlist = nullptr);
+    explicit MetadataExtractAdapter(QObject* parent = nullptr);
 
 	~MetadataExtractAdapter() override;
 
@@ -37,13 +37,12 @@ signals:
 	void finish();
 
 public:
-    bool addPlayslist{ true };
+	std::vector<std::vector<xamp::base::Metadata>> results;
+
+	static void processMetadata(const std::vector<xamp::base::Metadata>& metadatas, PlayListTableView *playlist = nullptr);
 
 private:
-	void processAndNotify(const std::vector<xamp::base::Metadata>& metadatas);
     bool cancel_;
-    PlayListTableView* playlist_;
-	std::vector<xamp::base::Metadata> metadatas_;
-    xamp::metadata::TaglibMetadataReader cover_reader_;
+	std::vector<xamp::base::Metadata> metadatas_;    
 };
 
