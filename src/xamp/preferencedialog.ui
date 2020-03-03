@@ -379,7 +379,7 @@
                    <number>90</number>
                   </property>
                   <property name="maximum">
-                   <number>99</number>
+                   <number>100</number>
                   </property>
                   <property name="singleStep">
                    <number>0</number>

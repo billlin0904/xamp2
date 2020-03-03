@@ -52,7 +52,7 @@ public:
 	SoxrResamplerImpl() noexcept
 		: enable_steep_filter_(false)
 		, quality_(SoxrQuality::VHQ)
-		, phase_(SoxrPhase::LINEAR_PHASE)
+		, phase_(SoxrPhaseResponse::LINEAR_PHASE)
 		, input_samplerate_(0)
 		, num_channels_(0)
 		, ratio_(0)
@@ -91,13 +91,13 @@ public:
 
 		auto soxr_quality = SoxrLib::Instance().soxr_quality_spec(quality_spec, (SOXR_ROLLOFF_NONE | SOXR_HI_PREC_CLOCK | SOXR_VR));
 		switch (phase_) {
-		case SoxrPhase::LINEAR_PHASE:
+		case SoxrPhaseResponse::LINEAR_PHASE:
 			soxr_quality.phase_response = SOXR_LINEAR_PHASE;
 			break;
-		case SoxrPhase::INTERMEDIATE_PHASE:
+		case SoxrPhaseResponse::INTERMEDIATE_PHASE:
 			soxr_quality.phase_response = SOXR_INTERMEDIATE_PHASE;
 			break;
-		case SoxrPhase::MINIMUM_PHASE:
+		case SoxrPhaseResponse::MINIMUM_PHASE:
 			soxr_quality.phase_response = SOXR_MINIMUM_PHASE;
 			break;
 		}
@@ -139,8 +139,12 @@ public:
 		quality_ = quality;
 	}
 
-	void SetPhase(SoxrPhase phase) {
+	void SetPhase(SoxrPhaseResponse phase) {
 		phase_ = phase;
+	}
+
+	void SetStopBand(double stopband) {
+		stopband_ = stopband;
 	}
 
 	bool Process(const float* samples, int32_t num_sample, AudioBuffer<int8_t>& buffer) {
@@ -168,7 +172,7 @@ public:
 
 	bool enable_steep_filter_;
 	SoxrQuality quality_;
-	SoxrPhase phase_;
+	SoxrPhaseResponse phase_;
 	int32_t input_samplerate_;
 	int32_t num_channels_;
 	double ratio_;
@@ -182,8 +186,7 @@ SoxrResampler::SoxrResampler()
 	: impl_(MakeAlign<SoxrResamplerImpl>()) {
 }
 
-SoxrResampler::~SoxrResampler() {
-}
+XAMP_PIMPL_IMPL(SoxrResampler)
 
 void SoxrResampler::LoadSoxrLib() {
 	SoxrLib::Instance();
@@ -201,8 +204,12 @@ void SoxrResampler::SetQuality(SoxrQuality quality) {
 	impl_->SetQuality(quality);
 }
 
-void SoxrResampler::SetPhase(SoxrPhase phase) {
+void SoxrResampler::SetPhase(SoxrPhaseResponse phase) {
 	impl_->SetPhase(phase);
+}
+
+void SoxrResampler::SetStopBand(double stopband) {
+	impl_->SetStopBand(stopband);
 }
 
 bool SoxrResampler::Process(const float* samples, int32_t num_sample, AudioBuffer<int8_t>& buffer) {

@@ -27,6 +27,8 @@
 #define XAMP_UNLIKELY(x) __builtin_expect(!!(x), 0)
 #endif
 
+#define XAMP_USE_SIMD 1
+
 #define XAMP_DISABLE_COPY(Class) \
 	Class(const Class &) = delete; \
 	Class& operator=(const Class &) = delete;

@@ -23,6 +23,8 @@ MetadataExtractAdapter::MetadataExtractAdapter(QObject* parent)
 }
 
 MetadataExtractAdapter::~MetadataExtractAdapter() {
+    std::vector<xamp::base::Metadata>().swap(metadatas_);
+    std::vector<std::vector<xamp::base::Metadata>>().swap(results);
 }
 
 void MetadataExtractAdapter::OnWalk(const xamp::metadata::Path&, xamp::base::Metadata metadata) {
@@ -42,6 +44,7 @@ void MetadataExtractAdapter::OnWalkNext() {
     });
 #endif
     results.push_back(metadatas_);
+    std::vector<xamp::base::Metadata>().swap(metadatas_);
     metadatas_.reserve(PREALLOCATE_SIZE);
     metadatas_.clear();
 }

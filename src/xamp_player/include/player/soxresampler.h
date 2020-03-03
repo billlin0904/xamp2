@@ -14,8 +14,6 @@
 
 namespace xamp::player {
 
-using namespace xamp::base;
-
 enum class SoxrQuality {
 	LOW,
 	MQ,
@@ -23,7 +21,7 @@ enum class SoxrQuality {
 	VHQ,
 };
 
-enum class SoxrPhase {
+enum class SoxrPhaseResponse {
 	LINEAR_PHASE = 0,
 	INTERMEDIATE_PHASE,
 	MINIMUM_PHASE,	
@@ -33,7 +31,7 @@ class XAMP_PALYER_API SoxrResampler {
 public:
 	SoxrResampler();
 
-	~SoxrResampler();
+	XAMP_PIMPL(SoxrResampler)
 
 	static void LoadSoxrLib();
 
@@ -41,7 +39,9 @@ public:
 
 	void SetQuality(SoxrQuality quality);
 
-	void SetPhase(SoxrPhase phase);
+	void SetPhase(SoxrPhaseResponse phase);
+
+	void SetStopBand(double stopband);
 
 	void Start(int32_t input_samplerate, int32_t num_channels, int32_t output_samplerate);
 

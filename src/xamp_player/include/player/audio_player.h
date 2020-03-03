@@ -94,7 +94,7 @@ public:
 
 	bool IsDsdStream() const;
 
-	void SetResampler(int32_t samplerate, SoxrPhase phase, SoxrQuality quality, bool enable_steep_filter);
+	void SetResampler(int32_t samplerate, SoxrQuality quality, SoxrPhaseResponse phase, double stopband, int32_t passband, bool enable_steep_filter);
 
 	void SetEnableResampler(bool enable = true);
 

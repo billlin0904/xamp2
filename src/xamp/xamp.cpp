@@ -139,6 +139,7 @@ void Xamp::initialUI() {
     ui.setupUi(this);
 
     watch_.addPath(AppSettings::getValue(APP_SETTING_MUSIC_FILE_PATH).toString());
+    setupResampler();
 
     setGeometry(QStyle::alignedRect(Qt::LeftToRight,
                                     Qt::AlignCenter,
@@ -691,25 +692,31 @@ void Xamp::resetSeekPosValue() {
     ui.startPosLabel->setText(Time::msToString(0));
 }
 
-void Xamp::playMusic(const MusicEntity& item) {
-    auto open_done = false;
-
-    ui.seekSlider->setEnabled(true);
-
+void Xamp::setupResampler() {
     if (AppSettings::getValue(APP_SETTING_SOXR_ENABLE).toBool()) {
         auto samplerate = AppSettings::getValue(APP_SETTING_SOXR_RESAMPLE_SAMPLRATE).toInt();
         auto quality = static_cast<SoxrQuality>(AppSettings::getValue(APP_SETTING_SOXR_QUALITY).toInt());
-        auto phase = static_cast<SoxrPhase>(AppSettings::getValue(APP_SETTING_SOXR_PHASE).toInt());
+        auto phase = static_cast<SoxrPhaseResponse>(AppSettings::getValue(APP_SETTING_SOXR_PHASE).toInt());
         auto passband = AppSettings::getValue(APP_SETTING_SOXR_PASS_BAND).toInt();
         auto enable_steep_filter = AppSettings::getValue(APP_SETTING_SOXR_ENABLE_STEEP_FILTER).toBool();
-        player_->SetResampler(samplerate, phase, quality, enable_steep_filter);
+        player_->SetResampler(samplerate, quality, phase, passband / 100.0, 1, enable_steep_filter);
         player_->SetEnableResampler(true);
     }
     else {
         player_->SetEnableResampler(false);
-    }    
+    }
+}
 
-    try { 
+void Xamp::playMusic(const MusicEntity& item) {
+    auto open_done = false;
+        
+    ui.seekSlider->setEnabled(true);    
+
+    try {
+        player_->Stop(false);
+
+        setupResampler();
+
         player_->Open(item.file_path.toStdWString(), item.file_ext.toStdWString(), device_info_);        
         open_done = true;
     }
@@ -735,7 +742,7 @@ void Xamp::playMusic(const MusicEntity& item) {
 
     if (!open_done) {
         return;
-    }
+    }    
 
     if (!player_->IsMute()) {
         setVolume(ui.volumeSlider->value());

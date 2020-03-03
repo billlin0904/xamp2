@@ -76,6 +76,14 @@ void AudioPlayer::Open(const std::wstring& file_path, const std::wstring& file_e
     BufferStream();
 }
 
+void AudioPlayer::SetResampler(int32_t samplerate, SoxrQuality quality, SoxrPhaseResponse phase, double stopband, int32_t passband, bool enable_steep_filter) {
+    target_samplerate_ = samplerate;
+    resampler_.SetQuality(quality);
+    resampler_.SetPhase(phase);
+    resampler_.SetStopBand(stopband);    
+    resampler_.SetSteepFilter(enable_steep_filter);
+}
+
 void AudioPlayer::CreateDevice(const ID& device_type_id, const std::wstring& device_id, const bool open_always) {
     if (device_ != nullptr) {
         device_->StopStream();
@@ -314,9 +322,7 @@ void AudioPlayer::Initial() {
                 }
             }
         });		
-    }
-
-    buffer_.Clear();
+    }    
 }
 
 std::optional<int32_t> AudioPlayer::GetDSDSpeed() const {
@@ -382,6 +388,7 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
             throw StopStreamTimeoutException();
         }
     }
+    buffer_.Clear();
 }
 
 void AudioPlayer::CreateBuffer() {
@@ -426,13 +433,6 @@ void AudioPlayer::CreateBuffer() {
     XAMP_LOG_DEBUG("Output device format: {}", output_format);    
 }
 
-void AudioPlayer::SetResampler(int32_t samplerate, SoxrPhase phase, SoxrQuality quality, bool enable_steep_filter) {
-    target_samplerate_ = samplerate;
-    resampler_.SetPhase(phase);
-    resampler_.SetSteepFilter(enable_steep_filter);
-    resampler_.SetQuality(quality);
-}
-
 void AudioPlayer::SetEnableResampler(bool enable) {
     enable_resample_ = enable;
 }
@@ -443,12 +443,8 @@ void AudioPlayer::SetDeviceFormat() {
     auto input_num_channels = input_format_.GetChannels();
 
     if (input_format_.GetSampleRate() < target_samplerate_) {
-        input_format_.SetSampleRate(target_samplerate_);
-        enable_resample_ = true;
-    }
-    else {
-        enable_resample_ = false;
-    }
+        input_format_.SetSampleRate(target_samplerate_);        
+    }   
 
     if (enable_resample_) {
         resampler_.Start(input_samplerate, input_num_channels, target_samplerate_);

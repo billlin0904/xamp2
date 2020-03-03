@@ -77,7 +77,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../xamp_output_device/include/;../xamp_stream/include/;../thirdparty/spdlog/include/;../thirdparty/chromaprint/src/;../thirdparty/soxr/src/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../xamp_output_device/include/;../xamp_stream/include/;../thirdparty/spdlog/include/;../thirdparty/chromaprint/src/;../thirdparty/soxr/src/;../thirdparty/</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>XAMP_PALYER_API_EXPORTS;ENABLE_ASIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BrowseInformation>true</BrowseInformation>
     </ClCompile>
@@ -147,6 +147,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="include\player\audio_player.h" />
+    <ClInclude Include="include\player\cdspresampler.h" />
     <ClInclude Include="include\player\chromaprint.h" />
     <ClInclude Include="include\player\chromaprinthelper.h" />
     <ClInclude Include="include\player\playbackstateadapter.h" />
@@ -156,6 +157,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\audio_player.cpp" />
+    <ClCompile Include="src\cdspresampler.cpp" />
     <ClCompile Include="src\chromaprint.cpp" />
     <ClCompile Include="src\chromaprinthelper.cpp" />
     <ClCompile Include="src\soxresampler.cpp" />
