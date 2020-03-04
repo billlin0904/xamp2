@@ -41,6 +41,8 @@ void PreferenceDialog::initSoxResampler() {
 	else {
 		ui_.soxrAllowAliasingCheckBox->setChecked(false);
 	}
+
+	ui_.r8brainTargetSampleRateComboBox->setCurrentText(QString::number(AppSettings::getValue(APP_SETTING_R8BRAIN_RESAMPLE_SAMPLRATE).toInt()));
 }
 
 PreferenceDialog::PreferenceDialog(QWidget *parent)

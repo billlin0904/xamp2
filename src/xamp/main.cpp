@@ -30,6 +30,15 @@ static void loadAndDefaultAppConfig() {
 }
 
 int main(int argc, char *argv[]) {
+	Logger::Instance()
+#ifdef Q_OS_WIN
+		.AddDebugOutputLogger()
+#endif
+#ifdef Q_OS_MAC
+		.AddSink(std::make_shared<QDebugSink>())
+#endif
+		.AddFileLogger("xamp.log");
+
     std::vector<ModuleHandle> preload_modules;
 
 #ifdef Q_OS_WIN
@@ -41,8 +50,7 @@ int main(int argc, char *argv[]) {
 		// 為了效率考量.
 		preload_modules.emplace_back(LoadDll("AUDIOKSE.dll"));
 		preload_modules.emplace_back(LoadDll("avrt.dll"));
-		preload_modules.emplace_back(LoadDll("chromaprint.dll"));
-		preload_modules.emplace_back(LoadDll("bass.dll"));
+		AudioPlayer::LoadLib();
 	}
 	catch (const Exception & e) {
 		QMessageBox::critical(nullptr, Q_UTF8("Load dll failure!"), QString::fromStdString(e.GetErrorMessage()));
@@ -60,16 +68,7 @@ int main(int argc, char *argv[]) {
         QMessageBox::critical(nullptr, Q_UTF8("Load dll failure!"), QString::fromStdString(e.GetErrorMessage()));
         return -1;
     }
-#endif
-
-	Logger::Instance()
-#ifdef Q_OS_WIN
-		.AddDebugOutputLogger()
-#endif
-#ifdef Q_OS_MAC
-        .AddSink(std::make_shared<QDebugSink>())
-#endif
-		.AddFileLogger("xamp.log");		
+#endif	
 
 	QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 	QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);

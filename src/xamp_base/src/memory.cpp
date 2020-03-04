@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <base/memory_mapped_file.h>
+#include <base/memory.h>
 
 namespace xamp::base {
 
@@ -43,8 +44,10 @@ void PrefactchFile(const std::wstring& file_name) {
 	PrefetchMemory(const_cast<void*>(file.GetData()), file.GetLength());
 }
 
+#if 0
 XAMP_RESTRICT XAMP_NOALIAS void* FastMemcpy(void* dest, const void* src, size_t size) noexcept {
 	return std::memcpy(dest, src, size);
 }
+#endif
 
 }

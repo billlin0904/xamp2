@@ -132,6 +132,10 @@ Chromaprint::Chromaprint()
 	: impl_(MakeAlign<ChromaprintImpl>()) {
 }
 
+void Chromaprint::LoadChromaprintLib() {
+	ChromaprintLib::Instance();
+}
+
 Chromaprint::~Chromaprint() {
 }
 

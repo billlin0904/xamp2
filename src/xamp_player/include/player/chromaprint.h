@@ -20,6 +20,8 @@ public:
 
 	~Chromaprint();
 
+	static void LoadChromaprintLib();
+
 	XAMP_DISABLE_COPY(Chromaprint)
 
 	void Start(int32_t sample_rate, int32_t num_channels, int32_t num_buffer_frames);

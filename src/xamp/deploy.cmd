@@ -6,6 +6,7 @@ copy x64\Release\taglib.dll deploy\
 copy x64\Release\libssl-1_1-x64.dll deploy\
 copy x64\Release\chromaprint.dll deploy\
 copy x64\Release\libsoxr.dll deploy\
+copy x64\Release\r8bsrc.dll deploy\
 
 copy x64\Release\bass.dll deploy\
 copy x64\Release\bassdsd.dll deploy\

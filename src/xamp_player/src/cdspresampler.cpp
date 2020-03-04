@@ -126,6 +126,10 @@ void CdspResampler::LoadCdspLib() {
 	CdspLib::Instance();
 }
 
+std::string_view CdspResampler::GetDescription() const noexcept {
+	return "r8bsrc";
+}
+
 void CdspResampler::Start(int32_t input_samplerate, int32_t num_channels, int32_t output_samplerate, int32_t max_sample) {
 	impl_->Start(input_samplerate, num_channels, output_samplerate, max_sample);
 }

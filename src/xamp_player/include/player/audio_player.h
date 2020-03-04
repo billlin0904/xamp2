@@ -55,6 +55,8 @@ public:
 
 	~AudioPlayer() override;
 
+	static void LoadLib();
+
 	void Open(const std::wstring& file_path, const std::wstring& file_ext, const DeviceInfo& device_info);
 
     void PlayStream();

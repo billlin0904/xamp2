@@ -13,6 +13,7 @@
 #include <stream/bassfilestream.h>
 #include <stream/avfilestream.h>
 
+#include <player/chromaprint.h>
 #include <player/audio_player.h>
 
 namespace xamp::player {
@@ -56,15 +57,18 @@ AudioPlayer::~AudioPlayer() {
 	}
 }
 
+void AudioPlayer::LoadLib() {
+    BassFileStream::LoadBassLib();
+    SoxrResampler::LoadSoxrLib();
+    CdspResampler::LoadCdspLib();
+    Chromaprint::LoadChromaprintLib();
+}
+
 void AudioPlayer::PrepareAllocate() {
 	wait_timer_.SetTimeout(SLEEP_OUTPUT_TIME);
 	buffer_.Resize(PREALLOCATE_BUFFER_SIZE);
     // Initial std::async internal threadpool
     stream_task_ = std::async(std::launch::async | std::launch::deferred, []() {});
-    // Load Bass dll
-    BassFileStream::LoadBassLib();
-    SoxrResampler::LoadSoxrLib();
-    CdspResampler::LoadCdspLib();
 }
 
 void AudioPlayer::Open(const std::wstring& file_path, const std::wstring& file_ext, const DeviceInfo& device_info) {
@@ -432,14 +436,14 @@ void AudioPlayer::CreateBuffer() {
         }
     }
     else {
-        num_read_sample_ = MAX_READ_SAMPLE;
+        num_read_sample_ = MAX_READ_SAMPLE * 4;
         resampler_->Start(input_format_.GetSampleRate(),
             input_format_.GetChannels(),
             target_samplerate_,
             num_read_sample_ / input_format_.GetChannels());
     }
 
-    XAMP_LOG_DEBUG("Output device format: {}", output_format_);
+    XAMP_LOG_DEBUG("Output device format: {} Resampler: {}", output_format_, resampler_->GetDescription());
 }
 
 void AudioPlayer::SetEnableResampler(bool enable) {
