@@ -44,6 +44,8 @@ public:
 
 	void SetStopBand(double stopband);
 
+	void SetPassBand(double passband);
+
 	void Start(int32_t input_samplerate, int32_t num_channels, int32_t output_samplerate, int32_t max_sample) override;
 
 	bool Process(const float* samples, int32_t num_sample, AudioBuffer<int8_t> &buffer) override;

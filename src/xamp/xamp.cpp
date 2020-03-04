@@ -139,7 +139,6 @@ void Xamp::initialUI() {
     ui.setupUi(this);
 
     watch_.addPath(AppSettings::getValue(APP_SETTING_MUSIC_FILE_PATH).toString());
-    setupResampler();
 
     setGeometry(QStyle::alignedRect(Qt::LeftToRight,
                                     Qt::AlignCenter,
@@ -693,13 +692,30 @@ void Xamp::resetSeekPosValue() {
 }
 
 void Xamp::setupResampler() {
-    if (AppSettings::getValue(APP_SETTING_SOXR_ENABLE).toBool()) {
-        auto samplerate = AppSettings::getValue(APP_SETTING_SOXR_RESAMPLE_SAMPLRATE).toInt();
-        auto quality = static_cast<SoxrQuality>(AppSettings::getValue(APP_SETTING_SOXR_QUALITY).toInt());
-        auto phase = static_cast<SoxrPhaseResponse>(AppSettings::getValue(APP_SETTING_SOXR_PHASE).toInt());
-        auto passband = AppSettings::getValue(APP_SETTING_SOXR_PASS_BAND).toInt();
-        auto enable_steep_filter = AppSettings::getValue(APP_SETTING_SOXR_ENABLE_STEEP_FILTER).toBool();
-        player_->SetResampler(samplerate, quality, phase, passband / 100.0, 1, enable_steep_filter);
+    if (AppSettings::getValue(APP_SETTING_RESAMPLER_ENABLE).toBool()) {
+        AlignPtr<Resampler> resampler;
+
+        auto resampler_type = AppSettings::getValue(APP_SETTING_RESAMPLER_TYPE).toString();
+        if (resampler_type == tr("Soxr")) {
+            auto samplerate = AppSettings::getValue(APP_SETTING_SOXR_RESAMPLE_SAMPLRATE).toInt();
+            auto quality = static_cast<SoxrQuality>(AppSettings::getValue(APP_SETTING_SOXR_QUALITY).toInt());
+            auto phase = static_cast<SoxrPhaseResponse>(AppSettings::getValue(APP_SETTING_SOXR_PHASE).toInt());
+            auto passband = AppSettings::getValue(APP_SETTING_SOXR_PASS_BAND).toInt();
+            auto enable_steep_filter = AppSettings::getValue(APP_SETTING_SOXR_ENABLE_STEEP_FILTER).toBool();
+            resampler = MakeAlign<Resampler, SoxrResampler>();
+            auto soxr = dynamic_cast<SoxrResampler*>(resampler.get());
+            soxr->SetQuality(quality);
+            soxr->SetPhase(phase);
+            soxr->SetPassBand(passband / 100.0);
+            soxr->SetSteepFilter(enable_steep_filter);
+            player_->SetResampler(samplerate, std::move(resampler));
+        }
+        else {
+            resampler = MakeAlign<Resampler, CdspResampler>();
+            auto samplerate = AppSettings::getValue(APP_SETTING_R8BRAIN_RESAMPLE_SAMPLRATE).toInt();
+            player_->SetResampler(samplerate, std::move(resampler));
+        }
+
         player_->SetEnableResampler(true);
     }
     else {

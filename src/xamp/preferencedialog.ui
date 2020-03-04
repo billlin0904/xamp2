@@ -136,6 +136,11 @@
                <string>Soxr</string>
               </property>
              </item>
+             <item>
+              <property name="text">
+               <string>r8brain</string>
+              </property>
+             </item>
             </widget>
            </item>
           </layout>
@@ -430,6 +435,114 @@
                 <size>
                  <width>20</width>
                  <height>40</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </widget>
+           <widget class="QWidget" name="r8brainResamplerPage">
+            <layout class="QVBoxLayout" name="verticalLayout_4">
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_4">
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_3">
+                 <item>
+                  <widget class="QLabel" name="label_10">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                     <horstretch>1</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>Target samplerate:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QComboBox" name="r8brainTargetSampleRateComboBox">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <item>
+                    <property name="text">
+                     <string>44100</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>48000</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>88200</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>96000</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>176400</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>192000</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>352800</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>384000</string>
+                    </property>
+                   </item>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_11">
+                   <property name="text">
+                    <string>Hz</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_4">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <spacer name="verticalSpacer_2">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>421</height>
                 </size>
                </property>
               </spacer>

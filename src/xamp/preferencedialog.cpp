@@ -18,14 +18,20 @@ void PreferenceDialog::initSoxResampler() {
 	ui_.soxrPassbandSlider->setValue(AppSettings::getValue(APP_SETTING_SOXR_PASS_BAND).toInt());
 	ui_.soxrPassbandValue->setText(QString(Q_UTF8("%0%")).arg(ui_.soxrPassbandSlider->value()));
 
-	auto enable_soxr = AppSettings::getValue(APP_SETTING_SOXR_ENABLE).toBool();
-	if (enable_soxr) {
-		ui_.resamplerStackedWidget->setCurrentIndex(1);
-		ui_.selectResamplerComboBox->setCurrentIndex(1);
-	}
-	else {
+	auto enable_resampler = AppSettings::getValue(APP_SETTING_RESAMPLER_ENABLE).toBool();
+	auto resampler_type = AppSettings::getValue(APP_SETTING_RESAMPLER_TYPE).toString();
+	if (!enable_resampler) {
 		ui_.resamplerStackedWidget->setCurrentIndex(0);
 		ui_.selectResamplerComboBox->setCurrentIndex(0);
+	}
+	else {
+		if (resampler_type == tr("Soxr")) {
+			ui_.resamplerStackedWidget->setCurrentIndex(1);
+			ui_.selectResamplerComboBox->setCurrentIndex(1);
+		} else if (resampler_type == tr("r8brain")) {
+			ui_.resamplerStackedWidget->setCurrentIndex(2);
+			ui_.selectResamplerComboBox->setCurrentIndex(2);
+		}
 	}
 
 	auto enable = AppSettings::getValue(APP_SETTING_SOXR_ENABLE_STEEP_FILTER).toBool();
@@ -48,7 +54,7 @@ PreferenceDialog::PreferenceDialog(QWidget *parent)
     auto playback_item = new QTreeWidgetItem(QStringList() << tr("Playback"));
     playback_item->setChildIndicatorPolicy(QTreeWidgetItem::ShowIndicator);
 
-    const auto dsp_manager_item = new QTreeWidgetItem(QStringList() << tr("Soxr"));
+    const auto dsp_manager_item = new QTreeWidgetItem(QStringList() << tr("Resampler"));
     playback_item->addChild(dsp_manager_item);
 
     ui_.preferenceTreeWidget->addTopLevelItem(playback_item);
@@ -57,7 +63,7 @@ PreferenceDialog::PreferenceDialog(QWidget *parent)
     (void) QObject::connect(ui_.preferenceTreeWidget, &QTreeWidget::itemClicked, [this](auto item, auto column) {
         const std::map<QString, int32_t> stack_page_map{
             { tr("Playback"), 0 },
-            { tr("Soxr"), 1 },
+            { tr("Resampler"), 1 },
         };
 
 	    const auto select_type = item->text(column);
@@ -91,7 +97,8 @@ PreferenceDialog::PreferenceDialog(QWidget *parent)
 		});
 
 	(void)QObject::connect(ui_.resetAllButton, &QPushButton::clicked, [this]() {
-		AppSettings::setValue(APP_SETTING_SOXR_ENABLE, false);
+		AppSettings::setValue(APP_SETTING_RESAMPLER_ENABLE, false);
+		AppSettings::setValue(APP_SETTING_RESAMPLER_TYPE, QString(Q_EMPTY_STR));
 		AppSettings::setValue(APP_SETTING_SOXR_RESAMPLE_SAMPLRATE, 44100);
 		AppSettings::setValue(APP_SETTING_SOXR_ENABLE_STEEP_FILTER, false);
 		AppSettings::setValue(APP_SETTING_SOXR_QUALITY, 3);
@@ -107,12 +114,25 @@ PreferenceDialog::PreferenceDialog(QWidget *parent)
 		const auto soxr_pass_band = ui_.soxrPassbandSlider->value();
 		const auto soxr_enable_steep_filter = ui_.soxrAllowAliasingCheckBox->checkState() == Qt::Checked;
 
-		AppSettings::setValue(APP_SETTING_SOXR_ENABLE, ui_.resamplerStackedWidget->currentIndex() > 0);
+		auto index = ui_.resamplerStackedWidget->currentIndex();
+		AppSettings::setValue(APP_SETTING_RESAMPLER_ENABLE, index > 0);
+		switch (index) {
+		case 1:
+			AppSettings::setValue(APP_SETTING_RESAMPLER_TYPE, tr("Soxr"));
+			break;
+		case 2:
+			AppSettings::setValue(APP_SETTING_RESAMPLER_TYPE, tr("r8brain"));
+			break;
+		}
+
 		AppSettings::setValue(APP_SETTING_SOXR_RESAMPLE_SAMPLRATE, soxr_sample_rate);
 		AppSettings::setValue(APP_SETTING_SOXR_ENABLE_STEEP_FILTER, soxr_enable_steep_filter);
 		AppSettings::setValue(APP_SETTING_SOXR_QUALITY, soxr_quility);
 		AppSettings::setValue(APP_SETTING_SOXR_PHASE, soxr_phase);
 		AppSettings::setValue(APP_SETTING_SOXR_PASS_BAND, soxr_pass_band);
+
+		const auto r8brain_sample_rate = ui_.r8brainTargetSampleRateComboBox->currentText().toInt();
+		AppSettings::setValue(APP_SETTING_R8BRAIN_RESAMPLE_SAMPLRATE, r8brain_sample_rate);
 		});	
 
 	initSoxResampler();

@@ -143,6 +143,10 @@ public:
 		phase_ = phase;
 	}
 
+	void SetPassBand(double passband) {
+		passband_ = passband;
+	}
+
 	void SetStopBand(double stopband) {
 		stopband_ = stopband;
 	}
@@ -206,6 +210,10 @@ void SoxrResampler::SetQuality(SoxrQuality quality) {
 
 void SoxrResampler::SetPhase(SoxrPhaseResponse phase) {
 	impl_->SetPhase(phase);
+}
+
+void SoxrResampler::SetPassBand(double passband) {
+	impl_->SetPassBand(passband);
 }
 
 void SoxrResampler::SetStopBand(double stopband) {

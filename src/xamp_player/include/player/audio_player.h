@@ -93,7 +93,7 @@ public:
 
 	bool IsDsdStream() const;
 
-	void SetResampler(int32_t samplerate, SoxrQuality quality, SoxrPhaseResponse phase, double stopband, int32_t passband, bool enable_steep_filter);
+	void SetResampler(int32_t samplerate, AlignPtr<Resampler> &&resampler);
 
 	void SetEnableResampler(bool enable = true);
 
@@ -184,8 +184,7 @@ private:
 	std::weak_ptr<PlaybackStateAdapter> state_adapter_;
 	AudioBuffer<int8_t> buffer_;	
 	WaitableTimer wait_timer_;
-	//SoxrResampler resampler_;
-	CdspResampler resampler_;
+	AlignPtr<Resampler> resampler_;
 	std::future<void> stream_task_;
 };
 

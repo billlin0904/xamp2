@@ -78,12 +78,9 @@ void AudioPlayer::Open(const std::wstring& file_path, const std::wstring& file_e
     BufferStream();
 }
 
-void AudioPlayer::SetResampler(int32_t samplerate, SoxrQuality quality, SoxrPhaseResponse phase, double stopband, int32_t passband, bool enable_steep_filter) {
+void AudioPlayer::SetResampler(int32_t samplerate, AlignPtr<Resampler>&& resampler) {
     target_samplerate_ = samplerate;
-    /*resampler_.SetQuality(quality);
-    resampler_.SetPhase(phase);
-    resampler_.SetStopBand(stopband);    
-    resampler_.SetSteepFilter(enable_steep_filter);*/
+    resampler_ = std::move(resampler);
 }
 
 void AudioPlayer::CreateDevice(const ID& device_type_id, const std::wstring& device_id, const bool open_always) {
@@ -436,13 +433,10 @@ void AudioPlayer::CreateBuffer() {
     }
     else {
         num_read_sample_ = MAX_READ_SAMPLE;
-        resampler_.Start(input_format_.GetSampleRate(),
+        resampler_->Start(input_format_.GetSampleRate(),
             input_format_.GetChannels(),
             target_samplerate_,
             num_read_sample_ / input_format_.GetChannels());
-        /*resampler_.Start(input_format_.GetSampleRate(),
-            input_format_.GetChannels(),
-            target_samplerate_);*/
     }
 
     XAMP_LOG_DEBUG("Output device format: {}", output_format_);
@@ -585,7 +579,7 @@ void AudioPlayer::BufferStream() {
             }
 
             if (enable_resample_) {
-                if (!resampler_.Process((const float*)sample_buffer_.get(), num_samples, buffer_)) {
+                if (!resampler_->Process((const float*)sample_buffer_.get(), num_samples, buffer_)) {
                     continue;
                 }
             }
@@ -608,7 +602,7 @@ void AudioPlayer::ReadSampleLoop(int32_t max_read_sample, std::unique_lock<std::
 
         if (num_samples > 0) {
             if (enable_resample_) {
-                if (!resampler_.Process((const float*)sample_buffer_.get(), num_samples, buffer_)) {
+                if (!resampler_->Process((const float*)sample_buffer_.get(), num_samples, buffer_)) {
                     continue;
                 }
             } else {
