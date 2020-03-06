@@ -28,6 +28,7 @@ enum class Errors {
     XAMP_ERROR_LOAD_DLL_FAILURE,
     XAMP_ERROR_STOP_STREAM_TIMEOUT,
 	XAMP_ERROR_SAMPLERATE_CHANGED,
+    XAMP_ERROR_NOT_SUPPORT_VARIABLE_RESAMPLE,
     _MAX_XAMP_ERROR_,
 };
 
@@ -95,6 +96,13 @@ private:
     std::string_view dll_name_;
 };
 
+class XAMP_BASE_API NotSupportVariableSampleRateException final : public Exception{
+public:
+    explicit NotSupportVariableSampleRateException(int32_t input_samplerate, int32_t output_samplerate);
+
+    ~NotSupportVariableSampleRateException() override = default;
+};
+
 XAMP_DECLARE_EXCEPTION_CLASS(LibrarySpecErrorException)
 XAMP_DECLARE_EXCEPTION_CLASS(DeviceNotInititalzedException)
 XAMP_DECLARE_EXCEPTION_CLASS(DeviceInUseException)
@@ -104,5 +112,6 @@ XAMP_DECLARE_EXCEPTION_CLASS(NotSupportSampleRateException)
 XAMP_DECLARE_EXCEPTION_CLASS(NotSupportFormatException)
 XAMP_DECLARE_EXCEPTION_CLASS(StopStreamTimeoutException)
 XAMP_DECLARE_EXCEPTION_CLASS(SampleRateChangedException)
+XAMP_DECLARE_EXCEPTION_CLASS(ResamplerNotSupportSampleRateException)
 
 }

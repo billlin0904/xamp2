@@ -234,16 +234,6 @@ void AudioPlayer::Resume() {
 }
 
 void AudioPlayer::Stop(bool signal_to_stop, bool shutdown_device, bool wait_for_stop_stream) {
-    buffer_.Clear();
-
-    if (!stream_task_.valid()) {
-        // 如果檔案播放有問題要停止的話, 需要確認stream task需要先停止
-        if (stream_ != nullptr) {
-            stream_->Close();
-            stream_.reset();
-        }
-    }
-
     if (!device_) {
         return;
     }
@@ -256,15 +246,12 @@ void AudioPlayer::Stop(bool signal_to_stop, bool shutdown_device, bool wait_for_
         }
     }
 
+    buffer_.Clear();
     if (shutdown_device) {
         device_.reset();
         device_id_.clear();
     }
-
-    if (stream_ != nullptr) {
-        stream_->Close();
-        stream_.reset();
-    }
+    stream_.reset();
 }
 
 void AudioPlayer::SetVolume(int32_t volume) {
@@ -441,9 +428,8 @@ void AudioPlayer::CreateBuffer() {
             input_format_.GetChannels(),
             target_samplerate_,
             num_read_sample_ / input_format_.GetChannels());
-    }
-
-    XAMP_LOG_DEBUG("Output device format: {} Resampler: {}", output_format_, resampler_->GetDescription());
+        XAMP_LOG_DEBUG("Output device format: {} Resampler: {}", output_format_, resampler_->GetDescription());
+    }    
 }
 
 void AudioPlayer::SetEnableResampler(bool enable) {
@@ -571,13 +557,13 @@ void AudioPlayer::Seek(double stream_time) {
 void AudioPlayer::BufferStream() {
     buffer_.Clear();
 
-    auto buffer = sample_buffer_.get();
+    auto sample_buffer = sample_buffer_.get();
 
     sample_size_ = stream_->GetSampleSize();
 
     for (auto i = 0; i < BUFFER_STREAM_COUNT; ++i) {
         while (true) {
-            const auto num_samples = stream_->GetSamples(buffer, num_read_sample_);
+            const auto num_samples = stream_->GetSamples(sample_buffer, num_read_sample_);
             if (num_samples == 0) {
                 return;
             }
@@ -598,15 +584,16 @@ void AudioPlayer::BufferStream() {
     }
 }
 
-void AudioPlayer::ReadSampleLoop(int32_t max_read_sample, std::unique_lock<std::mutex>& lock) noexcept {
+void AudioPlayer::ReadSampleLoop(int32_t max_read_sample, std::unique_lock<std::mutex>& lock) {
+    auto resampler = resampler_.get();
+    auto sample_buffer = sample_buffer_.get();
+
     while (is_playing_) {
-        const auto num_samples = stream_->GetSamples(
-            sample_buffer_.get(),
-            max_read_sample);
+        const auto num_samples = stream_->GetSamples(sample_buffer, max_read_sample);
 
         if (num_samples > 0) {
             if (enable_resample_) {
-                if (!resampler_->Process((const float*)sample_buffer_.get(), num_samples, buffer_)) {
+                if (!resampler->Process((const float*)sample_buffer, num_samples, buffer_)) {
                     continue;
                 }
             } else {
@@ -639,7 +626,9 @@ void AudioPlayer::PlayStream() {
             auto max_read_sample = p->num_read_sample_;
             auto num_sample_write = max_read_sample * MAX_WRITE_RATIO;
 
+#ifdef _DEBUG
             SetThreadName("Streaming thread");
+#endif
 
             while (p->is_playing_) {
                 while (p->is_paused_) {
@@ -651,7 +640,13 @@ void AudioPlayer::PlayStream() {
                     continue;
                 }
 
-                p->ReadSampleLoop(max_read_sample, lock);
+                try {
+                    p->ReadSampleLoop(max_read_sample, lock);
+                }
+                catch (const std::exception & e) {
+                    XAMP_LOG_DEBUG("Stream read has exception: {}.", e.what());
+                    break;
+                }
             }
 
             p->stream_->Close();         

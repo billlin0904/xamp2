@@ -138,7 +138,7 @@
              </item>
              <item>
               <property name="text">
-               <string>r8brain</string>
+               <string>r8brain (Only support multiple resample)</string>
               </property>
              </item>
             </widget>

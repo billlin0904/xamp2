@@ -1,4 +1,5 @@
 #include <sstream>
+#include <algorithm>
 #include <base/exception.h>
 
 namespace xamp::base {
@@ -41,6 +42,9 @@ std::ostream& operator<<(std::ostream& ostr, Errors error) {
     case Errors::XAMP_ERROR_STOP_STREAM_TIMEOUT:
         ostr << "Stop stream thread timeout.";
         break;
+	case Errors::XAMP_ERROR_NOT_SUPPORT_VARIABLE_RESAMPLE:
+		ostr << "Resampler not support variable resample.";
+		break;
     case Errors::_MAX_XAMP_ERROR_:
         break;
 	}
@@ -91,6 +95,17 @@ LoadDllFailureException::LoadDllFailureException(const std::string_view& dll_nam
 	, dll_name_(dll_name) {
 	std::ostringstream ostr;
 	ostr << "Load dll " << dll_name << " failure.";
+	message_ = ostr.str();
+}
+
+NotSupportVariableSampleRateException::NotSupportVariableSampleRateException(int32_t input_samplerate, int32_t output_samplerate) 
+	: Exception(Errors::XAMP_ERROR_NOT_SUPPORT_VARIABLE_RESAMPLE) {
+	std::ostringstream ostr;
+	auto max = (std::max)(input_samplerate, output_samplerate);
+	auto min = (std::min)(input_samplerate, output_samplerate);
+	ostr << "Resampler not support variable resample. " << input_samplerate << "Hz to " 
+		<< output_samplerate << "Hz (" 
+		<< std::round(((double)max / (double)min) * 100.0) / 100.0 << "x)";
 	message_ = ostr.str();
 }
 

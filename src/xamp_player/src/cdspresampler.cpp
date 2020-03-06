@@ -40,6 +40,15 @@ public:
 constexpr const double ReqTransBand = 2.0;
 constexpr const double ReqAtten = 206.91;
 
+static void IfVariableResampleThrow(int32_t input_samplerate, int32_t output_samplerate) {
+	auto max = (std::max)(input_samplerate, output_samplerate);
+	auto min = (std::min)(input_samplerate, output_samplerate);
+
+	if (max % min > 0) {
+		throw NotSupportVariableSampleRateException(input_samplerate, output_samplerate);
+	}
+}
+
 class CdspResampler::CdspResamplerImpl {
 public:
 	CdspResamplerImpl()
@@ -54,6 +63,8 @@ public:
 
 	void Start(int32_t input_samplerate, int32_t num_channels, int32_t output_samplerate, int32_t max_sample) {
 		Clear();
+
+		IfVariableResampleThrow(input_samplerate, output_samplerate);
 
 		buffer_.resize(num_channels);
 		for (size_t i = 0; i < 2; ++i) {
@@ -78,10 +89,13 @@ public:
 	
 		int32_t write_count = 0;
 		for (size_t i = 0; i < 2; ++i) {
-			write_count = CdspLib::Instance().r8b_process(resampler_[i], buffer_[i].data(), num_sample / 2, output_samples[i]);
+			write_count = CdspLib::Instance().r8b_process(resampler_[i], buffer_[i].data(),
+				num_sample / 2, output_samples[i]);
 		}
 
-		write_buffer_.resize(write_count * 2);
+		if (write_buffer_.size() < write_count * 2) {
+			write_buffer_.resize(write_count * 2);
+		}
 
 		for (int32_t i = 0; i < write_count; ++i) {
 			write_buffer_[i * 2] = static_cast<float>(output_samples[0][i]);

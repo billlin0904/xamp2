@@ -128,7 +128,7 @@ private:
 
 	void SetState(const PlayerState play_state);
 
-	void ReadSampleLoop(int32_t max_read_sample, std::unique_lock<std::mutex> &lock) noexcept;
+	void ReadSampleLoop(int32_t max_read_sample, std::unique_lock<std::mutex> &lock);
 
 	DsdStream* AsDsdStream();
 
