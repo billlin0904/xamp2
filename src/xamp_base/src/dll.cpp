@@ -18,7 +18,7 @@ void* LoadDllSymbol(const ModuleHandle& dll, std::string_view name) {
 ModuleHandle LoadDll(std::string_view name) {
     auto module = dlopen(name.data(), RTLD_LAZY);
     if (!module) {
-        throw LoadDllFailureException();
+        throw LoadDllFailureException(name);
     }
     return ModuleHandle(module);
 }

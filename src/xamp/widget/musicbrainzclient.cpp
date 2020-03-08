@@ -28,6 +28,7 @@ MusicBrainzClient::MusicBrainzClient(QObject* parent)
 }
 
 void MusicBrainzClient::readFingerprint(int32_t artist_id, const QString& file_path) {
+#ifdef Q_OS_WIN
     file_paths_.append(file_path);
 
     std::function<Fingerprint(const QString&)> handler([artist_id](const QString& file_path) {
@@ -59,6 +60,7 @@ void MusicBrainzClient::readFingerprint(int32_t artist_id, const QString& file_p
         &MusicBrainzClient::fingerprintFound);
 
     watcher->setFuture(future);
+#endif
 }
 
 void MusicBrainzClient::fingerprintFound(int index) {

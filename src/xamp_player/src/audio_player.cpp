@@ -13,6 +13,7 @@
 #include <stream/bassfilestream.h>
 #include <stream/avfilestream.h>
 
+#include <player/resampler.h>
 #include <player/chromaprint.h>
 #include <player/audio_player.h>
 
@@ -59,9 +60,11 @@ AudioPlayer::~AudioPlayer() {
 
 void AudioPlayer::LoadLib() {
     BassFileStream::LoadBassLib();
+#ifdef _WIN32
     SoxrResampler::LoadSoxrLib();
     CdspResampler::LoadCdspLib();
     Chromaprint::LoadChromaprintLib();
+#endif
 }
 
 void AudioPlayer::PrepareAllocate() {

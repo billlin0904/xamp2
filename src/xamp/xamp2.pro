@@ -57,7 +57,11 @@ SOURCES += \
     widget/tablistview.cpp \
     widget/toast.cpp \
     widget/wheelablewidget.cpp \
+    widget/filesystemwatcher.cpp \
+    widget/selectcolorwidget.cpp \
+    widget/artistinfopage.cpp \
     singleinstanceapplication.cpp \
+    preferencedialog.cpp \
     main.cpp \
     xamp.cpp
 
@@ -96,11 +100,16 @@ HEADERS += \
     widget/wheelablewidget.h \
     widget/str_utilts.h \
     widget/time_utilts.h \
+    widget/filesystemwatcher.h \
+    widget/selectcolorwidget.h \
+    widget/artistinfopage.h \
+    preferencedialog.h \
     xamp.h
 
 FORMS += \
     xamp.ui \
-    widget/toast.ui
+    widget/toast.ui \
+    preferencedialog.ui \
 
 RESOURCES += \
     xamp.qrc \

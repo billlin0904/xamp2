@@ -1,3 +1,4 @@
+#ifdef _WIN32
 #include <array>
 
 #include <base/dll.h>
@@ -153,3 +154,4 @@ bool CdspResampler::Process(const float* samples, int32_t num_sample, AudioBuffe
 }
 
 }
+#endif

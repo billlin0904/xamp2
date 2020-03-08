@@ -1,5 +1,6 @@
 #include <sstream>
 #include <algorithm>
+#include <cmath>
 #include <base/exception.h>
 
 namespace xamp::base {

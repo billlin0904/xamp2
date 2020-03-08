@@ -1,3 +1,4 @@
+#ifdef _WIN32
 #include <player/chromaprint.h>
 #include <base/dataconverter.h>
 #include <stream/avfilestream.h>
@@ -58,3 +59,4 @@ Fingerprint ReadFingerprint(const std::wstring& file_path) {
 }
 
 }
+#endif

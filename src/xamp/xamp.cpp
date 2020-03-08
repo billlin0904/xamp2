@@ -10,6 +10,8 @@
 #include <QtConcurrent>
 #include <QFutureWatcher>
 
+#include <player/soxresampler.h>
+
 #include <widget/albumartistpage.h>
 #include <widget/lrcpage.h>
 #include <widget/albumview.h>
@@ -182,7 +184,6 @@ void Xamp::initialUI() {
     ui.closeButton->hide();
     ui.maxWinButton->hide();
     ui.minWinButton->hide();
-    ui.settingsButton->hide();
     f.setPointSize(11);
     ui.titleLabel->setFont(f);
     f.setPointSize(10);
@@ -453,7 +454,9 @@ void Xamp::initialController() {
     (void)QObject::connect(settings_action, &QAction::triggered, [=]() {
         PreferenceDialog dialog;
         auto f = font();
+#ifdef Q_OS_WIN
         f.setPointSize(8);
+#endif
         dialog.setFont(f);
         dialog.exec();
         watch_.addPath(dialog.musicFilePath);
@@ -732,9 +735,11 @@ void Xamp::setupResampler() {
             player_->SetResampler(samplerate, std::move(resampler));
         }
         else {
+#ifdef Q_OS_WIN
             resampler = MakeAlign<Resampler, CdspResampler>();
             auto samplerate = AppSettings::getValue(APP_SETTING_R8BRAIN_RESAMPLE_SAMPLRATE).toInt();
             player_->SetResampler(samplerate, std::move(resampler));
+#endif
         }
 
         player_->SetEnableResampler(true);

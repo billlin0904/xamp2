@@ -1,3 +1,4 @@
+#ifdef _WIN32
 #include <vector>
 
 #include <chromaprint.h>
@@ -156,3 +157,4 @@ std::vector<uint8_t> Chromaprint::GetFingerprint() const {
 }
 
 }
+#endif

@@ -24,9 +24,6 @@
 #include <output_device/device.h>
 #include <output_device/device_type.h>
 
-#include <player/soxresampler.h>
-#include <player/cdspresampler.h>
-
 #include <player/playstate.h>
 #include <player/playbackstateadapter.h>
 #include <player/player.h>
@@ -41,6 +38,8 @@ namespace xamp::output_device {
 }
 
 namespace xamp::player {
+
+class Resampler;
 
 class XAMP_PLAYER_API AudioPlayer final :
 	public AudioCallback,
