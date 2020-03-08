@@ -90,5 +90,9 @@ private:
 	xamp::base::AlignPtr<QWinThumbnailToolBar> thumbnail_tool_bar_;
 	xamp::base::AlignPtr<QWinTaskbarButton> taskbar_button_;
 	QWinTaskbarProgress* taskbar_progress_;
+#else
+    bool is_mouse_pressed_;
+    QPoint cur_pos_;
+    QPoint global_pos_;
 #endif
 };

@@ -30,7 +30,7 @@ FramelessWindow::FramelessWindow(QWidget* parent)
     installEventFilter(this);
     setAcceptDrops(true);
 #if defined(Q_OS_WIN)
-	setWindowFlags(Qt::FramelessWindowHint | Qt::WindowMaximizeButtonHint);
+    setWindowFlags(Qt::FramelessWindowHint | Qt::WindowMaximizeButtonHint);
 	HWND hwnd = (HWND)winId();
 	const DWMNCRENDERINGPOLICY ncrp = DWMNCRP_ENABLED;
 	::DwmSetWindowAttribute(hwnd, DWMWA_NCRENDERING_POLICY, &ncrp, sizeof(ncrp));
@@ -49,6 +49,7 @@ FramelessWindow::FramelessWindow(QWidget* parent)
         border: none;
     )"));
 #else
+    is_mouse_pressed_ = false;
     setStyleSheet(Q_UTF8(R"(
         font-family: "UI";
     )"));
@@ -315,6 +316,9 @@ bool FramelessWindow::nativeEvent(const QByteArray& event_type, void * message, 
 
 
 void FramelessWindow::mousePressEvent(QMouseEvent* event) {
+    if ((event->button() != Qt::LeftButton) || isMaximized()) {
+        return;
+    }
 #if defined(Q_OS_WIN)
     if (::ReleaseCapture()) {
         const auto widget = window();
@@ -323,15 +327,37 @@ void FramelessWindow::mousePressEvent(QMouseEvent* event) {
         }
     }
     event->ignore();
+#else
+    auto height = size().height();
+    QRect rc;
+    rc.setRect(0,0,size().width(), height);
+    if (rc.contains(mapFromGlobal(QCursor::pos())) == true) {
+        cur_pos_ = this->pos();
+        global_pos_ = event->globalPos();
+        is_mouse_pressed_ = true;
+    }
 #endif
     return QWidget::mousePressEvent(event);
 }
 
 void FramelessWindow::mouseReleaseEvent(QMouseEvent* event) {
+#if defined(Q_OS_MAC)
+    is_mouse_pressed_ = false;
+    if ((event->button() == Qt::LeftButton)) {
+        is_mouse_pressed_ = false;
+    }
+#endif
     return QWidget::mouseReleaseEvent(event);
 }
 
 void FramelessWindow::mouseMoveEvent(QMouseEvent* event) {
+#if defined(Q_OS_MAC)
+    if (!is_mouse_pressed_) {
+        return QWidget::mouseMoveEvent(event);
+    }
+    is_mouse_pressed_ = true;
+    move(cur_pos_ + (event->globalPos() - global_pos_));
+#endif
     return QWidget::mouseMoveEvent(event);
 }
 

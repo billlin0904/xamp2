@@ -78,6 +78,10 @@ PreferenceDialog::PreferenceDialog(QWidget *parent)
         }
     });
 
+#ifdef Q_OS_MAC
+    ui_.selectResamplerComboBox->removeItem(2);
+#endif
+
 	(void)QObject::connect(ui_.selectResamplerComboBox, static_cast<void (QComboBox::*)(int32_t)>(&QComboBox::activated), [this](auto const& index) {
 		ui_.resamplerStackedWidget->setCurrentIndex(index);
 		});

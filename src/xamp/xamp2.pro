@@ -68,6 +68,7 @@ SOURCES += \
 HEADERS += \
     thememanager.h \
     singleinstanceapplication.h \
+    widget/osx/cocoa_helper.h \
     widget/playbackhistorypage.h \
     widget/musicbrainzclient.h \
     widget/discogsclient.h \
