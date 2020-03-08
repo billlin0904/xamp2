@@ -26,6 +26,8 @@ private slots:
 
 	void onDirectoryChanged(const QString& path);
 
+	void processMeatadata(const std::vector<xamp::base::Metadata>& medata);
+
 private:
 	QFileSystemWatcher watcher_;
 	MetadataExtractAdapter adapter_;

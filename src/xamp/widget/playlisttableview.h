@@ -52,7 +52,7 @@ public:
 
 	std::map<int32_t, QModelIndex> selectItemIndex() const;
 
-	void append(const QString& file_name, bool add_playlist);
+	void append(const QString& file_name);
 
 	static PlayListEntity fromMetadata(const xamp::base::Metadata& metadata);
 
@@ -64,6 +64,8 @@ signals:
 	void readFingerprint(const QModelIndex& index, const PlayListEntity& item);
 
 public slots:
+	void processMeatadata(const std::vector<xamp::base::Metadata> &medata);
+
 	void appendItem(const xamp::base::Metadata& metadata);
 
 	void appendItem(const PlayListEntity& item);
@@ -83,7 +85,7 @@ private:
 
 	int32_t playlist_id_;
 	QModelIndex play_index_;
-	PlayListTableModel model_;
+	PlayListTableModel model_;	
 	PlayListTableFilterProxyModel proxy_model_;
 };
 

@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <mutex>
+
 #include <QObject>
 
 #include <base/metadata.h>
@@ -34,13 +36,11 @@ public:
 	void Reset() override;	
 
 signals:
-	void finish();
+	void readCompleted(const std::vector<xamp::base::Metadata> &enitiy);
 
 public:
-	std::vector<std::vector<xamp::base::Metadata>> results;
-
 	static void processMetadata(const std::vector<xamp::base::Metadata>& metadatas, PlayListTableView *playlist = nullptr);
-
+	
 private:
     bool cancel_;
 	std::vector<xamp::base::Metadata> metadatas_;    

@@ -7,6 +7,8 @@
 #include <QDesktopWidget>
 #include <QInputDialog>
 #include <QShortcut>
+#include <QtConcurrent>
+#include <QFutureWatcher>
 
 #include <widget/albumartistpage.h>
 #include <widget/lrcpage.h>
@@ -25,6 +27,23 @@
 #include "preferencedialog.h"
 #include "thememanager.h"
 #include "xamp.h"
+
+static void readMetadata(MetadataExtractAdapter* adapter, const QString& file_name) {
+    auto extract_handler = [adapter](const auto& file_name) {
+        const xamp::metadata::Path path(file_name.toStdWString());
+        xamp::metadata::TaglibMetadataReader reader;
+        xamp::metadata::FromPath(path, adapter, &reader);
+    };
+
+    auto future = QtConcurrent::run(extract_handler, file_name);
+    auto watcher = new QFutureWatcher<void>();
+    (void)QObject::connect(watcher, &QFutureWatcher<void>::finished, [=]() {
+        watcher->deleteLater();
+        adapter->deleteLater();
+        });
+
+    watcher->setFuture(future);
+}
 
 static MusicEntity toMusicEntity(const PlayListEntity& item) {
     MusicEntity music_entity;
@@ -136,6 +155,8 @@ void Xamp::setDefaultStyle() {
 }
 
 void Xamp::initialUI() {
+    qRegisterMetaType<std::vector<xamp::base::Metadata>>("std::vector<xamp::base::Metadata>");
+
     ui.setupUi(this);
 
     watch_.addPath(AppSettings::getValue(APP_SETTING_MUSIC_FILE_PATH).toString());
@@ -723,6 +744,10 @@ void Xamp::setupResampler() {
     }
 }
 
+void Xamp::processMeatadata(const std::vector<xamp::base::Metadata>& medata) {
+    MetadataExtractAdapter::processMetadata(medata);
+}
+
 void Xamp::playMusic(const MusicEntity& item) {
     auto open_done = false;
         
@@ -985,12 +1010,19 @@ void Xamp::setupPlayNextMusicSignals(bool add_or_remove) {
 void Xamp::addItem(const QString& file_name) {
     auto add_playlist = dynamic_cast<PlyalistPage*>(ui.currentView->currentWidget()) != nullptr;
 
-    try {
-        playlist_page_->playlist()->append(file_name, add_playlist);        
-        album_artist_page_->refreshOnece();
+    if (add_playlist) {
+        try {
+            playlist_page_->playlist()->append(file_name);
+            album_artist_page_->refreshOnece();
+        }
+        catch (const xamp::base::Exception & e) {
+            Toast::showTip(Q_UTF8(e.GetErrorMessage()), this);
+        }
     }
-    catch (const xamp::base::Exception& e) {
-        Toast::showTip(Q_UTF8(e.GetErrorMessage()), this);
+    else {
+        auto adapter = new MetadataExtractAdapter();
+        (void)QObject::connect(adapter, &MetadataExtractAdapter::readCompleted, this, &Xamp::processMeatadata);
+        readMetadata(adapter, file_name);
     }
 }
 

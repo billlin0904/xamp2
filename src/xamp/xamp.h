@@ -65,6 +65,7 @@ public slots:
 
 	void onArtistIdChanged(const QString& artist, const QString& cover_id, int32_t artist_id);
 
+	void processMeatadata(const std::vector<xamp::base::Metadata>& medata);
 private:
 	void applyTheme(QColor color);
 
