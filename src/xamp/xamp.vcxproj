@@ -131,7 +131,6 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="artistinfopage.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="preferencedialog.cpp" />
     <ClCompile Include="singleinstanceapplication.cpp" />
@@ -139,6 +138,7 @@
     <ClCompile Include="widget\albumartistpage.cpp" />
     <ClCompile Include="widget\albumview.cpp" />
     <ClCompile Include="widget\appsettings.cpp" />
+    <ClCompile Include="widget\artistinfopage.cpp" />
     <ClCompile Include="widget\artistview.cpp" />
     <ClCompile Include="widget\clickablelabel.cpp" />
     <ClCompile Include="widget\database.cpp" />

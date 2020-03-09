@@ -13,6 +13,12 @@
 #include <stream/bassfilestream.h>
 #include <stream/avfilestream.h>
 
+#ifdef _WIN32
+#include <player/cdspresampler.h>
+#endif
+
+#include <player/soxresampler.h>
+
 #include <player/resampler.h>
 #include <player/chromaprint.h>
 #include <player/audio_player.h>
