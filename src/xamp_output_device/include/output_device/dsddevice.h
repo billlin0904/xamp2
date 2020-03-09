@@ -19,7 +19,7 @@ enum class AsioIoFormat {
 
 class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE DsdDevice {
 public:
-    XAMP_BASE_CLASS(DsdDevice)
+	virtual ~DsdDevice() = default;
 
     virtual bool IsSupportDsdFormat() const = 0;
 

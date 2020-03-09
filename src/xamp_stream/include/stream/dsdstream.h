@@ -14,9 +14,7 @@ namespace xamp::stream {
 
 class XAMP_STREAM_API XAMP_NO_VTABLE DsdStream {
 public:
-    XAMP_BASE_CLASS(DsdStream)
-
-    virtual DsdModes GetSupportDsdMode() const noexcept = 0;
+    virtual ~DsdStream() = default;
 
     virtual void SetDSDMode(DsdModes mode) noexcept = 0;
 

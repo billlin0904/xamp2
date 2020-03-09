@@ -16,7 +16,7 @@ using namespace base;
 
 class XAMP_PLAYER_API XAMP_NO_VTABLE PlaybackStateAdapter {
 public:
-	XAMP_BASE_CLASS(PlaybackStateAdapter)
+	virtual ~PlaybackStateAdapter() = default;
 
 	virtual void OnError(const Exception& ex) = 0;
 

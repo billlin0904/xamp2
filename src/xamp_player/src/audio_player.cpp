@@ -391,7 +391,7 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
 }
 
 void AudioPlayer::CreateBuffer() {
-    std::atomic_exchange(&slice_, AudioSlice{ nullptr, 0, 0 });
+    std::atomic_exchange(&slice_, AudioSlice{ 0, 0 });
 
     int32_t require_read_sample = 0;
 
@@ -467,16 +467,11 @@ int AudioPlayer::OnGetSamples(void* samples, const int32_t num_buffer_frames, co
 
     if (XAMP_LIKELY( buffer_.TryRead(reinterpret_cast<int8_t*>(samples), sample_size) )) {
         std::atomic_exchange(&slice_,
-                             AudioSlice{ reinterpret_cast<float*>(samples),
-                                         num_samples,
-                                         stream_time });
+                             AudioSlice{ num_samples, stream_time });
         return 0;
     }
 
-    std::atomic_exchange(&slice_,
-        AudioSlice{ reinterpret_cast<float*>(samples),
-        -1, 
-        stream_time });
+    std::atomic_exchange(&slice_, AudioSlice{ -1, stream_time });
 
     stopped_cond_.notify_all();
     return 1;
@@ -554,7 +549,7 @@ void AudioPlayer::Seek(double stream_time) {
         }
         device_->SetStreamTime(stream_time);
         XAMP_LOG_DEBUG("player seeking {} sec.", stream_time);
-        std::atomic_exchange(&slice_, AudioSlice{ nullptr, 0, stream_time });
+        std::atomic_exchange(&slice_, AudioSlice{ 0, stream_time });
         buffer_.Clear();
         buffer_.Fill(0);
         BufferStream();

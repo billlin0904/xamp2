@@ -12,6 +12,8 @@ namespace xamp::output_device {
 
 class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE AudioCallback {
 public:
+	virtual ~AudioCallback() = default;
+
 	virtual int32_t OnGetSamples(void* samples, const int32_t num_buffer_frames, const double stream_time) noexcept = 0;
 
 	virtual void OnError(const Exception& exception) noexcept = 0;

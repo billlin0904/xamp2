@@ -38,7 +38,7 @@
     EXPAND_VISUAL_STUDIO_HELPER(ALL_ARGUMENTS_TO_STRING_HELPER( \
         0, __VA_ARGS__, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
 
-#define MAKE_ENUM(Name, ...) enum class Name { __VA_ARGS__}; \
+#define MAKE_ENUM(Name, ...) enum class Name { __VA_ARGS__ }; \
 namespace {\
 constexpr std::string_view Name##_enum_names[] = {\
     ALL_ARGUMENTS_TO_STRING(__VA_ARGS__)\
@@ -51,3 +51,4 @@ inline std::ostream &operator<<(std::ostream &os, Name value) {\
     return os;\
 }\
 }\
+

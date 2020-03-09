@@ -5,9 +5,9 @@
 
 #pragma once
 
-#include <base/align_ptr.h>
-
 #ifdef _WIN32
+
+#include <base/align_ptr.h>
 #include <output_device/win32/wasapi.h>
 #include <output_device/device_type.h>
 
@@ -18,8 +18,6 @@ public:
 	static const ID Id;
 
 	SharedWasapiDeviceType();
-
-	virtual ~SharedWasapiDeviceType() = default;
 
 	void ScanNewDevice() override;
 

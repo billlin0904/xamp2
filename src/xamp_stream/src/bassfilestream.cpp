@@ -481,10 +481,6 @@ std::string_view BassFileStream::GetDescription() const noexcept {
     return "BASS";
 }
 
-DsdModes BassFileStream::GetSupportDsdMode() const noexcept {
-	return DsdModes{ DsdModes::DSD_MODE_PCM | DsdModes::DSD_MODE_NATIVE | DsdModes::DSD_MODE_DOP };
-}
-
 void BassFileStream::SetDSDMode(DsdModes mode) noexcept {
     stream_->SetDSDMode(mode);
 }

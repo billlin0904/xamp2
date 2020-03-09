@@ -18,11 +18,11 @@ class XAMP_PLAYER_API Chromaprint {
 public:
 	explicit Chromaprint();
 
+	XAMP_DISABLE_COPY(Chromaprint)
+
 	~Chromaprint();
 
-	static void LoadChromaprintLib();
-
-	XAMP_DISABLE_COPY(Chromaprint)
+	static void LoadChromaprintLib();	
 
 	void Start(int32_t sample_rate, int32_t num_channels, int32_t num_buffer_frames);
 

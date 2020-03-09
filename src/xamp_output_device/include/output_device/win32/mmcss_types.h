@@ -8,6 +8,7 @@
 #include <string>
 
 #include <string_view>
+#include <base/enum.h>
 #include <output_device/output_device.h>
 
 #ifdef _WIN32
@@ -23,11 +24,10 @@ constexpr std::wstring_view MMCSS_PROFILE_PLAYBACK(L"Playback");
 constexpr std::wstring_view MMCSS_PROFILE_PRO_AUDIO(L"Pro Audio");
 constexpr std::wstring_view MMCSS_PROFILE_WINDOWS_MANAGER(L"Window Manager");
 
-enum class MmcssThreadPriority {
+MAKE_ENUM(MmcssThreadPriority,
 	MMCSS_THREAD_PRIORITY_NORMAL,
 	MMCSS_THREAD_PRIORITY_HIGH,
-	MMCSS_THREAD_PRIORITY_CRITICAL
-};
+	MMCSS_THREAD_PRIORITY_CRITICAL);
 
 }
 #endif

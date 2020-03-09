@@ -21,8 +21,6 @@ public:
 
     ASIODeviceType();
 
-    virtual ~ASIODeviceType() = default;
-
 	std::string_view GetDescription() const override;
 
 	const ID& GetTypeId() const override;

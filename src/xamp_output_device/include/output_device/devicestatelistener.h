@@ -8,20 +8,20 @@
 #include <string>
 
 #include <base/base.h>
+#include <base/enum.h>
 #include <output_device/output_device.h>
 
 namespace xamp::output_device {
 
-enum class DeviceState {
+MAKE_ENUM(DeviceState,
 	DEVICE_STATE_ADDED,
 	DEVICE_STATE_REMOVED,
 	DEVICE_STATE_DEFAULT_DEVICE_CHANGE,
-	_MAX_DEVICE_STATE_
-};
+	_MAX_DEVICE_STATE_);
 
 class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE DeviceStateListener {
 public:
-	XAMP_BASE_CLASS(DeviceStateListener)
+	virtual ~DeviceStateListener() = default;
 
 	virtual void OnDeviceStateChange(DeviceState state, const std::wstring &device_id) = 0;
 

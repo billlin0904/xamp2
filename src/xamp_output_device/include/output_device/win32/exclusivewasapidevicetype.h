@@ -22,8 +22,6 @@ public:
 
 	ExclusiveWasapiDeviceType();
 
-	virtual ~ExclusiveWasapiDeviceType() = default;
-
 	void ScanNewDevice() override;
 
 	std::string_view GetDescription() const override;

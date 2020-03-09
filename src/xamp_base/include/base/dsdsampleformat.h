@@ -5,20 +5,21 @@
 
 #pragma once
 
+#include <base/enum.h>
+
 namespace xamp::base {
 
-enum class DsdSampleFormat {
-	DSD_INT8LSB,
-	DSD_INT8MSB, 
-	DSD_INT8NER8
-};
+MAKE_ENUM(DsdSampleFormat,
+		DSD_INT8LSB,
+		DSD_INT8MSB,
+		DSD_INT8NER8);
 
-enum DsdModes : uint8_t {
-	DSD_MODE_PCM = 0,
-	DSD_MODE_NATIVE = 2,
-	DSD_MODE_DOP = 4,
+MAKE_ENUM(DsdModes,
+	DSD_MODE_PCM,
+	DSD_MODE_NATIVE,
+	DSD_MODE_DOP,
 	// NOTE: Unsupported now!
-	// DSD_MODE_DOP_AA = 8
-};
+	// DSD_MODE_DOP_AA
+	);
 
 }
