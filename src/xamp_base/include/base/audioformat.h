@@ -10,10 +10,11 @@
 #include <iomanip>
 
 #include <base/base.h>
+#include <base/enum.h>
 
 namespace xamp::base {
 
-enum class ByteFormat {
+MAKE_ENUM(ByteFormat,
 	INVALID_FORMAT,
 	SINT16,
 	SINT24,
@@ -21,20 +22,19 @@ enum class ByteFormat {
 	SINT8,
 	SINT32, 
 	FLOAT32,
-	FLOAT64
-};
+    FLOAT64)
 
-enum class InterleavedFormat {
+MAKE_ENUM(InterleavedFormat,
 	// ¥æ´À
 	INTERLEAVED,
 	// ¥­­±
 	DEINTERLEAVED
-};
+)
 
-enum class DataFormat {
+MAKE_ENUM(DataFormat,
 	FORMAT_DSD,
 	FORMAT_PCM,
-};
+)
 
 constexpr uint32_t XAMP_MAX_CHANNEL = 2;
 constexpr uint32_t XAMP_MAX_SAMPLERATE = 192000;
@@ -237,7 +237,8 @@ XAMP_ALWAYS_INLINE InterleavedFormat AudioFormat::GetInterleavedFormat() const n
 }
 
 XAMP_ALWAYS_INLINE std::ostream& operator<<(std::ostream& ostr, const AudioFormat& format) {
-	ostr << format.GetBitsPerSample() << "bits/";
+    ostr << format.GetByteFormat() << "/" << format.GetInterleavedFormat() << "/"
+         << format.GetBitsPerSample() << "bits/";
 
 	if (format.GetSampleRate() % 1000 > 0) {
 		ostr << std::fixed << std::setprecision(1) << float(format.GetSampleRate()) / 1000.0f << " Khz";

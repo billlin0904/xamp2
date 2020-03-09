@@ -68,7 +68,7 @@ public:
 	void Start(int32_t input_samplerate, int32_t num_channels, int32_t output_samplerate) {
 		Close();
 
-		long quality_spec = 0;
+        unsigned long quality_spec = 0;
 
 		switch (quality_) {
 		case SoxrQuality::VHQ:
@@ -108,7 +108,7 @@ public:
 		auto iospec = SoxrLib::Instance().soxr_io_spec(SOXR_FLOAT32_I, SOXR_FLOAT32_I);
 		auto runtimespec = SoxrLib::Instance().soxr_runtime_spec(1);
 
-		soxr_error_t error = 0;
+        soxr_error_t error = nullptr;
 		handle_ = SoxrLib::Instance().soxr_create(input_samplerate,
 			output_samplerate,
 			num_channels,
@@ -121,6 +121,8 @@ public:
 		num_channels_ = num_channels;
 
 		ratio_ = (double)output_samplerate / input_samplerate_;
+
+        XAMP_LOG_ERROR("Soxr resampler setting=> {} {}", to_string(quality_), to_string(phase_));
 	}
 
 	void Close() {

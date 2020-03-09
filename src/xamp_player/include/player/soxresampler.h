@@ -7,6 +7,7 @@
 
 #include <vector>
 
+#include <base/enum.h>
 #include <base/align_ptr.h>
 #include <base/audiobuffer.h>
 #include <base/audioformat.h>
@@ -15,18 +16,16 @@
 
 namespace xamp::player {
 
-enum class SoxrQuality {
+MAKE_ENUM(SoxrQuality,
 	LOW,
 	MQ,
 	HQ,	
-	VHQ,
-};
+    VHQ)
 
-enum class SoxrPhaseResponse {
-	LINEAR_PHASE = 0,
-	INTERMEDIATE_PHASE,
-	MINIMUM_PHASE,	
-};
+MAKE_ENUM(SoxrPhaseResponse,
+    LINEAR_PHASE,
+    INTERMEDIATE_PHASE,
+    MINIMUM_PHASE)
 
 class XAMP_PLAYER_API SoxrResampler : public Resampler {
 public:
