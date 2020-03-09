@@ -169,14 +169,14 @@ void ThemeManager::setDefaultStyle(Ui::XampWindow &ui) {
     }
     else {
         setBackgroundColor(ui, backgroundColor);
-    }
+    }   
 
     ui.controlFrame->setStyleSheet(backgroundColorToString(controlBackgroundColor));
     ui.volumeFrame->setStyleSheet(backgroundColorToString(controlBackgroundColor));
     ui.playingFrame->setStyleSheet(backgroundColorToString(controlBackgroundColor));
 
     ui.searchLineEdit->setStyleSheet(Q_UTF8(""));    
-    ui.sliderBar->setStyleSheet(Q_UTF8("background-color: transparent;"));
+    ui.sliderBar->setStyleSheet(Q_UTF8("QListView#sliderBar { background-color: transparent; border: none; }"));
 
     setWhiteIcon(ui);
 

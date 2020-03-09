@@ -23,8 +23,6 @@ using namespace base;
 
 class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE DeviceType {
 public:
-	XAMP_DISABLE_COPY(DeviceType)
-
 	virtual ~DeviceType() = default;
 
 	virtual void ScanNewDevice() = 0;

@@ -302,8 +302,11 @@ bool FramelessWindow::nativeEvent(const QByteArray& event_type, void * message, 
     const auto msg = static_cast<MSG const*>(message);
     switch (msg->message) {
     case WM_NCHITTEST:
-		*result = HTCAPTION;
-        return hitTest(msg, result);
+        if (!isMaximized()) {
+            *result = HTCAPTION;
+            return hitTest(msg, result);
+        }
+        break;
     case WM_NCCALCSIZE:
         *result = 0;
         return true;

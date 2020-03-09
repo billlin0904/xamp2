@@ -10,10 +10,8 @@
 
 namespace xamp::stream {
 
-class XAMP_STREAM_API FileStream : public AudioStream {
+class XAMP_STREAM_API XAMP_NO_VTABLE FileStream : public AudioStream {
 public:
-    XAMP_BASE_CLASS(FileStream)	
-
 	bool IsFile() const noexcept override {
 		return true;
 	}

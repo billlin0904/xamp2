@@ -13,8 +13,6 @@ namespace xamp::player {
 
 class XAMP_PLAYER_API XAMP_NO_VTABLE Resampler {
 public:
-	XAMP_BASE_CLASS(Resampler)
-
 	virtual void Start(int32_t input_samplerate, int32_t num_channels, int32_t output_samplerate, int32_t max_sample) = 0;
 
 	virtual std::string_view GetDescription() const noexcept = 0;

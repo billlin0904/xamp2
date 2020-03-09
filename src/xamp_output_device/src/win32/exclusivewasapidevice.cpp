@@ -240,8 +240,9 @@ HRESULT ExclusiveWasapiDevice::OnSampleReady(IMFAsyncResult *result) {
 void ExclusiveWasapiDevice::GetSample(const int32_t frame_available) {
 	BYTE* data = nullptr;
 
-	double stream_time = stream_time_ + static_cast<double>(frame_available);
-	stream_time_ = static_cast<int64_t>(stream_time);
+	auto stream_time = stream_time_ + frame_available;
+	stream_time_ = stream_time;
+	stream_time = static_cast<double>(stream_time) / static_cast<double>(mix_format_->nSamplesPerSec);
 
 	auto hr = render_client_->GetBuffer(frame_available, &data);
 	if (FAILED(hr)) {
@@ -251,7 +252,7 @@ void ExclusiveWasapiDevice::GetSample(const int32_t frame_available) {
 		return;
 	}
 
-	if (callback_->OnGetSamples(buffer_.get(), frame_available, stream_time / mix_format_->nSamplesPerSec) == 0) {
+	if (callback_->OnGetSamples(buffer_.get(), frame_available, stream_time) == 0) {
 		(void)DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEAVED>::ConvertToInt2432(
 			reinterpret_cast<int32_t*>(data),
 			buffer_.get(),
@@ -349,11 +350,11 @@ void ExclusiveWasapiDevice::StartStream() {
 }
 
 void ExclusiveWasapiDevice::SetStreamTime(const double stream_time) noexcept {
-    stream_time_ = stream_time * mix_format_->nSamplesPerSec;
+	stream_time_ = stream_time * static_cast<double>(mix_format_->nSamplesPerSec);
 }
 
 double ExclusiveWasapiDevice::GetStreamTime() const noexcept {
-    return stream_time_ / mix_format_->nSamplesPerSec;
+    return stream_time_ / static_cast<double>(mix_format_->nSamplesPerSec);
 }
 
 int32_t ExclusiveWasapiDevice::GetVolume() const {

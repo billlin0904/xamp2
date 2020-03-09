@@ -254,16 +254,17 @@ void SharedWasapiDevice::SetVolume(const int32_t volume) const {
 }
 
 void SharedWasapiDevice::SetStreamTime(const double stream_time) noexcept {
-	stream_time_ = stream_time * mix_format_->nSamplesPerSec;
+	stream_time_ = stream_time * static_cast<double>(mix_format_->nSamplesPerSec);
 }
 
 double SharedWasapiDevice::GetStreamTime() const noexcept {
-	return stream_time_ / mix_format_->nSamplesPerSec;
+	return stream_time_ / static_cast<double>(mix_format_->nSamplesPerSec);
 }
 
 void SharedWasapiDevice::GetSample(const int32_t frame_available) {
-	double stream_time = stream_time_ + static_cast<double>(frame_available);
-	stream_time_ = static_cast<int64_t>(stream_time);
+	auto stream_time = stream_time_ + frame_available;
+	stream_time_ = stream_time;
+	stream_time = static_cast<double>(stream_time) / static_cast<double>(mix_format_->nSamplesPerSec);
 
 	BYTE* data = nullptr;
 	auto hr = render_client_->GetBuffer(frame_available, &data);
@@ -274,7 +275,7 @@ void SharedWasapiDevice::GetSample(const int32_t frame_available) {
 		return;
 	}
 
-	if (callback_->OnGetSamples(reinterpret_cast<float*>(data), frame_available, stream_time / mix_format_->nSamplesPerSec) == 0) {
+	if (callback_->OnGetSamples(reinterpret_cast<float*>(data), frame_available, stream_time) == 0) {
 		hr = render_client_->ReleaseBuffer(frame_available, 0);
 		if (FAILED(hr)) {
 			const HRException exception(hr);

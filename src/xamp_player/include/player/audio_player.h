@@ -143,13 +143,6 @@ private:
             , sample_size(sample_size)
 			, stream_time(stream_time) {
 		}
-
-		XAMP_ALWAYS_INLINE bool operator==(const AudioSlice& other) const noexcept {
-			return samples == other.samples
-				&& sample_size == other.sample_size
-				&& stream_time == other.stream_time;
-		}
-
 		const float* samples;
         int32_t sample_size;
 		double stream_time;

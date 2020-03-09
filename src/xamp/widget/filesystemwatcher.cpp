@@ -4,6 +4,7 @@
 #include <QtConcurrent>
 #include <QFutureWatcher>
 
+#include <widget/metadataextractadapter.h>
 #include <metadata/taglibmetareader.h>
 #include <widget/str_utilts.h>
 #include <widget/filesystemwatcher.h>
@@ -35,11 +36,10 @@ FileSystemWatcher::FileSystemWatcher(QObject* parent)
 		SLOT(onDirectoryChanged(const QString&)));
 }
 
-FileSystemWatcher::~FileSystemWatcher() {
-	adapter_.Cancel();
-}
-
 void FileSystemWatcher::addPath(const QString& path) {
+	if (path.isEmpty()) {
+		return;
+	}
 	watcher_.addPath(path);
 	QFileInfo file(path);
 	if (file.isDir()) {
@@ -50,11 +50,11 @@ void FileSystemWatcher::addPath(const QString& path) {
 
 void FileSystemWatcher::onFileChanged(const QString& file_name) {
 	auto adapter = new MetadataExtractAdapter();
-	(void)QObject::connect(adapter, &MetadataExtractAdapter::readCompleted, this, &FileSystemWatcher::processMeatadata);
+	(void)QObject::connect(adapter, &MetadataExtractAdapter::readCompleted, this, &FileSystemWatcher::onReadCompleted);
 	readMetadata(adapter, file_name);
 }
 
-void FileSystemWatcher::processMeatadata(const std::vector<xamp::base::Metadata>& medata) {
+void FileSystemWatcher::onReadCompleted(const std::vector<xamp::base::Metadata>& medata) {
 	MetadataExtractAdapter::processMetadata(medata);
 }
 

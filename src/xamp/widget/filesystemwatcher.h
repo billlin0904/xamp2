@@ -10,14 +10,12 @@
 #include <QStringList>
 #include <QFileSystemWatcher>
 
-#include <widget/metadataextractadapter.h>
+#include <base/metadata.h>
 
 class FileSystemWatcher : public QObject {
 	Q_OBJECT
 public:
 	explicit FileSystemWatcher(QObject* parent = nullptr);
-
-	~FileSystemWatcher() override;
 
 	void addPath(const QString& path);
 
@@ -26,11 +24,10 @@ private slots:
 
 	void onDirectoryChanged(const QString& path);
 
-	void processMeatadata(const std::vector<xamp::base::Metadata>& medata);
+	void onReadCompleted(const std::vector<xamp::base::Metadata>& medata);
 
 private:
 	QFileSystemWatcher watcher_;
-	MetadataExtractAdapter adapter_;
 	QMap<QString, QStringList> file_map_;
 };
 

@@ -393,11 +393,6 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
 void AudioPlayer::CreateBuffer() {
     std::atomic_exchange(&slice_, AudioSlice{ nullptr, 0, 0 });
 
-    const AudioFormat input_format(input_format_.GetFormat(),
-								   input_format_.GetChannels(),
-                                   stream_->GetFormat().GetByteFormat(),
-                                   input_format_.GetSampleRate());
-
     int32_t require_read_sample = 0;
 
     if (DeviceFactory::Instance().IsPlatformSupportedASIO()) {
@@ -413,8 +408,6 @@ void AudioPlayer::CreateBuffer() {
         require_read_sample = device_->GetBufferSize() * MAX_READ_RATIO;
 	}
     
-    auto output_format = input_format;
-
     if (require_read_sample != num_read_sample_) {
         auto allocate_size = require_read_sample * stream_->GetSampleSize() * BUFFER_STREAM_COUNT;
         num_buffer_samples_ = allocate_size * 10;
@@ -423,8 +416,9 @@ void AudioPlayer::CreateBuffer() {
         read_sample_size_ = allocate_size;
     }
 
+    std::string_view resampler_desc = "None";
+
     if (!enable_resample_) {
-        output_format_ = output_format;
         if (buffer_.GetSize() == 0 || buffer_.GetSize() < num_buffer_samples_) {
             XAMP_LOG_DEBUG("Buffer too small reallocate.");
             buffer_.Resize(num_buffer_samples_);
@@ -432,13 +426,17 @@ void AudioPlayer::CreateBuffer() {
         }
     }
     else {
-        num_read_sample_ = MAX_READ_SAMPLE * 4;
         resampler_->Start(input_format_.GetSampleRate(),
             input_format_.GetChannels(),
             target_samplerate_,
-            num_read_sample_ / input_format_.GetChannels());
-        XAMP_LOG_DEBUG("Output device format: {} Resampler: {}", output_format_, resampler_->GetDescription());
+            num_read_sample_ / input_format_.GetChannels());  
+        resampler_desc = resampler_->GetDescription();
     }    
+
+    XAMP_LOG_DEBUG("Output device format: {} num_read_sample: {} Resampler: {}",
+        output_format_,
+        num_read_sample_,
+        resampler_desc);
 }
 
 void AudioPlayer::SetEnableResampler(bool enable) {
@@ -506,6 +504,7 @@ void AudioPlayer::OnDeviceStateChange(DeviceState state, const std::wstring& dev
         case DeviceState::DEVICE_STATE_REMOVED:
             XAMP_LOG_DEBUG("Device removed device id:{}", ToUtf8String(device_id));
             if (device_id == device_id_) {
+                // TODO: thread safe?
                 Stop(true, true, true);
                 state_adapter->OnDeviceChanged();
             }
