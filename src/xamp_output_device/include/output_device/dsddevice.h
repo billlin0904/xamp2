@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <base/enum.h>
 #include <base/dsdsampleformat.h>
 #include <output_device/device.h>
 
@@ -12,10 +13,9 @@ namespace xamp::output_device {
 
 using namespace base;
 
-enum class AsioIoFormat {
+MAKE_ENUM(AsioIoFormat,
 	IO_FORMAT_DSD,
-	IO_FORMAT_PCM
-};
+	IO_FORMAT_PCM);
 
 class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE DsdDevice {
 public:

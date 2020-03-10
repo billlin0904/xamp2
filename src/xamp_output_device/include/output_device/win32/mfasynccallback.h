@@ -27,8 +27,6 @@ public:
 		assert(fn != nullptr);
 	}
 
-	virtual ~MFAsyncCallback() = default;
-
 	STDMETHODIMP_(ULONG) AddRef() override {
 		return ::InterlockedIncrement(&refcount_);
 	}

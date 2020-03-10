@@ -14,9 +14,13 @@ namespace xamp::player {
 
 class XAMP_PLAYER_API AudioAnalysis {
 public:
-	AudioAnalysis(int32_t frame_size, int32_t samplerate);
+	AudioAnalysis();
 
 	~AudioAnalysis();
+
+	void SetAudioFrameSize(int32_t frame_size);
+
+	void SetSamplingFrequency(int32_t fs);
 
 	const std::vector<float>& GetMagnitudeSpectrum();
 

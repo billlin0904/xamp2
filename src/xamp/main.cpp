@@ -25,8 +25,9 @@ static void loadAndDefaultAppConfig() {
 	AppSettings::setDefaultValue(APP_SETTING_HEIGHT, 500);
 	AppSettings::setDefaultValue(APP_SETTING_VOLUME, 50);
 	AppSettings::setDefaultValue(APP_SETTING_NIGHT_MODE, false);
-	AppSettings::setDefaultValue(APP_SETTING_ENABLE_BLUR, false);
 	AppSettings::setDefaultValue(APP_SETTING_ORDER, PlayerOrder::PLAYER_ORDER_REPEAT_ONCE);
+	AppSettings::setDefaultValue(APP_SETTING_BACKGROUND_COLOR, QColor("#01121212"));
+	AppSettings::setDefaultValue(APP_SETTING_ENABLE_BLUR, true);
 }
 
 int main(int argc, char *argv[]) {

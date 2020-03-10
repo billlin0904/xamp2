@@ -5,9 +5,8 @@ namespace xamp::player {
 
 class AudioAnalysis::AudioAnalysisImpl {
 public:
-	AudioAnalysisImpl(int32_t frame_size, int32_t samplerate) 
-		: gist_(frame_size, samplerate)
-		, buffer_(frame_size) {
+	AudioAnalysisImpl()
+		: gist_(1024, 1024) {
 	}
 
 	const std::vector<float>& GetMagnitudeSpectrum() {
@@ -21,16 +20,33 @@ public:
 		}
 		return false;
 	}
+
+	void SetAudioFrameSize(int32_t frame_size) {
+		buffer_.resize(frame_size);
+		gist_.setAudioFrameSize(frame_size);
+	}
+
+	void SetSamplingFrequency(int32_t fs) {
+		gist_.setSamplingFrequency(fs);
+	}
 private:
 	Gist<float> gist_;
 	std::vector<float> buffer_;
 };
 
-AudioAnalysis::AudioAnalysis(int32_t frame_size, int32_t samplerate)
-	: impl_(MakeAlign<AudioAnalysisImpl>(frame_size, samplerate)) {
+AudioAnalysis::AudioAnalysis()
+	: impl_(MakeAlign<AudioAnalysisImpl>()) {
 }
 
 AudioAnalysis::~AudioAnalysis() {
+}
+
+void AudioAnalysis::SetAudioFrameSize(int32_t frame_size) {
+	impl_->SetAudioFrameSize(frame_size);
+}
+
+void AudioAnalysis::SetSamplingFrequency(int32_t fs) {
+	impl_->SetSamplingFrequency(fs);
 }
 
 const std::vector<float>& AudioAnalysis::GetMagnitudeSpectrum() {
