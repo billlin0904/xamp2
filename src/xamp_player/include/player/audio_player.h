@@ -26,6 +26,7 @@
 
 #include <player/playstate.h>
 #include <player/playbackstateadapter.h>
+#include <player/audioanalysis.h>
 #include <player/player.h>
 
 namespace xamp::stream {
@@ -176,6 +177,8 @@ private:
 	WaitableTimer wait_timer_;
 	AlignPtr<Resampler> resampler_;
 	std::future<void> stream_task_;
+	AlignPtr<AudioAnalysis> analysis_;
+	AudioBuffer<float> analysis_buffer_;
 };
 
 }
