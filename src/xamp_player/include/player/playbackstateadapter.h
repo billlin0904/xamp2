@@ -24,6 +24,8 @@ public:
 
 	virtual void OnSampleTime(double stream_time) = 0;
 
+	virtual void OnGetMagnitudeSpectrum(const std::vector<float>& spectrum) = 0;
+
 	virtual void OnDeviceChanged() = 0;
 
 protected:

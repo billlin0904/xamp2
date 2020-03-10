@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <base/align_ptr.h>
+#include <base/audiobuffer.h>
 #include <player/player.h>
 
 namespace xamp::player {
@@ -19,7 +20,7 @@ public:
 
 	const std::vector<float>& GetMagnitudeSpectrum();
 
-	void Process(const std::vector<float>& frame);
+	bool Process(AudioBuffer<float> &buffer);
 private:
 	class AudioAnalysisImpl;
 	AlignPtr<AudioAnalysisImpl> impl_;

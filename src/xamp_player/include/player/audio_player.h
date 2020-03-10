@@ -93,6 +93,8 @@ public:
 
 	AudioFormat GetStreamFormat() const;
 
+	AudioFormat GetOutputFormat() const;
+
 	bool IsDsdStream() const;
 
 	void SetResampler(int32_t samplerate, AlignPtr<Resampler> &&resampler);
@@ -175,10 +177,8 @@ private:
 	std::weak_ptr<PlaybackStateAdapter> state_adapter_;
 	AudioBuffer<int8_t> buffer_;	
 	WaitableTimer wait_timer_;
-	AlignPtr<Resampler> resampler_;
+	AlignPtr<Resampler> resampler_;	
 	std::future<void> stream_task_;
-	AlignPtr<AudioAnalysis> analysis_;
-	AudioBuffer<float> analysis_buffer_;
 };
 
 }

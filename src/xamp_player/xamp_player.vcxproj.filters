@@ -27,6 +27,10 @@
     <ClCompile Include="..\thirdparty\gist\src\pitch\Yin.cpp">
       <Filter>Gist</Filter>
     </ClCompile>
+    <ClCompile Include="src\audioanalysis.cpp" />
+    <ClCompile Include="..\thirdparty\gist\libs\kiss_fft130\kiss_fft.c">
+      <Filter>Gist\kiss</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\player\audio_player.h" />
@@ -38,10 +42,14 @@
     <ClInclude Include="include\player\playstate.h" />
     <ClInclude Include="include\player\resampler.h" />
     <ClInclude Include="include\player\soxresampler.h" />
+    <ClInclude Include="include\player\audioanalysis.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Gist">
       <UniqueIdentifier>{012a79f2-fc21-4438-803b-30e6ef25175b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gist\kiss">
+      <UniqueIdentifier>{0ffd11b5-fa1c-46b6-866e-324537ecc2af}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

@@ -24,6 +24,8 @@ signals:
     void playbackError(xamp::base::Errors error, const QString &message);
 
     void deviceChanged();
+
+    void onGetMagnitudeSpectrum(const std::vector<float>& spectrum);
 protected:
 	void OnSampleTime(double stream_time) override;
 
@@ -32,4 +34,6 @@ protected:
     void OnError(const xamp::base::Exception &ex) override;
 
     void OnDeviceChanged() override;
+
+    void OnGetMagnitudeSpectrum(const std::vector<float>& spectrum) override;
 };

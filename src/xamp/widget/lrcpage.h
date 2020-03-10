@@ -7,6 +7,7 @@
 
 #include <QFrame>
 
+class Spectrograph;
 class LyricsShowWideget;
 class QLabel;
 
@@ -25,6 +26,8 @@ public:
 
 	QLabel* title();
 
+	Spectrograph* spectrum();
+
 	void setTextColor(QColor color);
 
 private:
@@ -35,4 +38,5 @@ private:
 	QLabel* album_;
 	QLabel* artist_;
 	QLabel* title_;
+	Spectrograph* spectrum_;
 };

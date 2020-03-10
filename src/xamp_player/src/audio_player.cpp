@@ -25,6 +25,7 @@
 
 namespace xamp::player {
 
+constexpr int32_t FFT_SIZE = 4096 * 2;
 constexpr int32_t BUFFER_STREAM_COUNT = 5;
 constexpr int32_t PREALLOCATE_BUFFER_SIZE = 8 * 1024 * 1024;
 constexpr int32_t MAX_WRITE_RATIO = 20;
@@ -317,11 +318,7 @@ void AudioPlayer::Initial() {
                     } if (p->is_playing_ && slice.sample_size == -1) {
                         p->SetState(PlayerState::PLAYER_STATE_STOPPED);
                         p->is_playing_ = false;
-                    }
-                    std::vector<float> buffer(4096 * 2);
-                    if (p->analysis_buffer_.TryRead(buffer.data(), buffer.size())) {
-                        p->analysis_->Process(buffer);
-                    }
+                    }                   
                 }
             }
         });		
@@ -361,6 +358,10 @@ PlayerState AudioPlayer::GetState() const noexcept {
 
 AudioFormat AudioPlayer::GetStreamFormat() const {
     return stream_->GetFormat();
+}
+
+AudioFormat AudioPlayer::GetOutputFormat() const {
+    return output_format_;
 }
 
 bool AudioPlayer::IsPlaying() const {
@@ -436,9 +437,7 @@ void AudioPlayer::CreateBuffer() {
             num_read_sample_ / input_format_.GetChannels());  
         resampler_desc = resampler_->GetDescription();
     }
-
-    analysis_buffer_.Resize(4096 * output_format_.GetChannels() * 4);
-
+    
     XAMP_LOG_DEBUG("Output device format: {} num_read_sample: {} Resampler: {}",
         output_format_,
         num_read_sample_,
@@ -474,7 +473,6 @@ int AudioPlayer::OnGetSamples(void* samples, const int32_t num_buffer_frames, co
     if (XAMP_LIKELY( buffer_.TryRead(reinterpret_cast<int8_t*>(samples), sample_size) )) {
         std::atomic_exchange(&slice_,
                              AudioSlice{ num_samples, stream_time });
-        analysis_buffer_.TryWrite(reinterpret_cast<float*>(samples), num_samples);
         return 0;
     }
 

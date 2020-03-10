@@ -28,6 +28,7 @@
 #include <widget/pixmapcache.h>
 #include <widget/selectcolorwidget.h>
 #include <widget/artistinfopage.h>
+#include <widget/spectrograph.h>
 
 #include "preferencedialog.h"
 #include "thememanager.h"
@@ -161,6 +162,7 @@ void Xamp::setDefaultStyle() {
 
 void Xamp::initialUI() {
     qRegisterMetaType<std::vector<xamp::base::Metadata>>("std::vector<xamp::base::Metadata>");
+    qRegisterMetaType<std::vector<float>>("std::vector<float>");
 
     ui.setupUi(this);
 
@@ -378,7 +380,7 @@ void Xamp::initialController() {
                            &PlayerStateAdapter::sampleTimeChanged,
                            this,
                            &Xamp::onSampleTimeChanged,
-                           Qt::QueuedConnection);
+                           Qt::QueuedConnection);    
 
     (void)QObject::connect(state_adapter_.get(),
         &PlayerStateAdapter::deviceChanged,
@@ -798,6 +800,9 @@ void Xamp::playMusic(const MusicEntity& item) {
         setVolume(0);
     }
 
+    auto output_format = player_->GetOutputFormat();
+    lrc_page_->spectrum()->setFrequency(100, output_format.GetSampleRate(), output_format.GetSampleRate());
+
     ui.seekSlider->setRange(0, int32_t(player_->GetDuration() * 1000));
     ui.endPosLabel->setText(Time::msToString(player_->GetDuration()));
     playlist_page_->format()->setText(getPlayEntityFormat(player_.get(), item.file_ext));
@@ -950,6 +955,11 @@ void Xamp::initialPlaylist() {
     pushWidget(artist_info_page_);
     goBackPage();
     goBackPage();
+
+    (void)QObject::connect(state_adapter_.get(),
+        &PlayerStateAdapter::onGetMagnitudeSpectrum,
+        lrc_page_->spectrum(),
+        &Spectrograph::onGetMagnitudeSpectrum);
 
     (void)QObject::connect(album_artist_page_->album(), &AlbumView::clickedArtist,
         this,

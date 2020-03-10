@@ -19,3 +19,7 @@ void PlayerStateAdapter::OnError(const xamp::base::Exception &ex) {
 void PlayerStateAdapter::OnDeviceChanged() {
     emit deviceChanged();
 }
+
+void PlayerStateAdapter::OnGetMagnitudeSpectrum(const std::vector<float>& spectrum) {
+    emit onGetMagnitudeSpectrum(spectrum);
+}
