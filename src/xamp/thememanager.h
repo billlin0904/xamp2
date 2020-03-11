@@ -16,8 +16,6 @@ class StylePixmapManager {
 public:
     virtual ~StylePixmapManager() = default;
     virtual const QPixmap& unknownCover() const noexcept = 0;
-    virtual const QIcon& volumeUp() const noexcept = 0;
-    virtual const QIcon& volumeOff() const noexcept = 0;
     virtual const QPixmap& defaultSizeUnknownCover() const noexcept = 0;
 protected:
     StylePixmapManager() = default;
@@ -32,19 +30,15 @@ public:
     const QPixmap& unknownCover() const noexcept override;
 
     const QPixmap& defaultSizeUnknownCover() const noexcept override;
-
-    const QIcon& volumeUp() const noexcept override;
-
-    const QIcon& volumeOff() const noexcept override;
 private:
     QPixmap unknown_cover_;
     QPixmap default_size_unknown_cover_;
-    QIcon volume_up_;
-    QIcon volume_off_;
 };
 
 class ThemeManager {
 public:
+    static QIcon volumeUp();
+    static QIcon volumeOff();
     static const StylePixmapManager& pixmap() noexcept;
     static void setPlayOrPauseButton(Ui::XampWindow &ui, bool is_playing);
     static void setDefaultStyle(Ui::XampWindow &ui);
@@ -57,6 +51,9 @@ public:
     static QColor getBackgroundColor() noexcept;
     static void setWhiteIcon(Ui::XampWindow& ui);
     static QIcon playArrow() noexcept;
+    static void shuffle(Ui::XampWindow& ui);
+    static void repeatOne(Ui::XampWindow& ui);
+    static void repeatOnce(Ui::XampWindow& ui);
 private:
     static QSize defaultAlbumCoverSize;
     static QSize defaultCoverSize;

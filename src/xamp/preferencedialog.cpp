@@ -78,7 +78,7 @@ PreferenceDialog::PreferenceDialog(QWidget *parent)
         }
     });
 
-#ifdef Q_OS_MAC
+#if defined(Q_OS_MAC) || defined(Q_OS_WIN)
     ui_.selectResamplerComboBox->removeItem(2);
 #endif
 

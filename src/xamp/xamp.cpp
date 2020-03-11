@@ -293,10 +293,10 @@ void Xamp::initialController() {
     (void)QObject::connect(ui.mutedButton, &QToolButton::pressed, [this]() {
         if (player_->IsMute()) {
             player_->SetMute(false);            
-            ui.mutedButton->setIcon(ThemeManager::pixmap().volumeUp());
+            ui.mutedButton->setIcon(ThemeManager::volumeUp());
         } else {
             player_->SetMute(true);
-            ui.mutedButton->setIcon(ThemeManager::pixmap().volumeOff());
+            ui.mutedButton->setIcon(ThemeManager::volumeOff());
         }
     });
 
@@ -547,11 +547,11 @@ void Xamp::goBackPage() {
 void Xamp::setVolume(int32_t volume) {
     if (volume > 0) {
         player_->SetMute(false);
-        ui.mutedButton->setIcon(ThemeManager::pixmap().volumeUp());
+        ui.mutedButton->setIcon(ThemeManager::volumeUp());
     }
     else {
         player_->SetMute(true);
-        ui.mutedButton->setIcon(ThemeManager::pixmap().volumeOff());
+        ui.mutedButton->setIcon(ThemeManager::volumeOff());
     }
 
     try {
@@ -593,32 +593,17 @@ void Xamp::deleteKeyPress() {
 void Xamp::setPlayerOrder() {
     switch (order_) {
     case PlayerOrder::PLAYER_ORDER_REPEAT_ONCE:
-        ui.repeatButton->setStyleSheet(Q_UTF8(R"(
-                                              QToolButton#repeatButton {
-                                              image: url(:/xamp/Resource/White/repeat.png);
-                                              background: transparent;
-                                              }
-                                              )"));
+        ThemeManager::repeatOnce(ui);
         AppSettings::setValue(APP_SETTING_ORDER,
                                          (int)PLAYER_ORDER_REPEAT_ONCE);
         break;
     case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:
-        ui.repeatButton->setStyleSheet(Q_UTF8(R"(
-                                              QToolButton#repeatButton {
-                                              image: url(:/xamp/Resource/White/repeat_one.png);
-                                              background: transparent;
-                                              }
-                                              )"));
+        ThemeManager::repeatOne(ui);
         AppSettings::setValue(APP_SETTING_ORDER,
                                          (int)PLAYER_ORDER_REPEAT_ONE);
         break;
     case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL:
-        ui.repeatButton->setStyleSheet(Q_UTF8(R"(
-                                              QToolButton#repeatButton {
-                                              image: url(:/xamp/Resource/White/shuffle.png);
-                                              background: transparent;
-                                              }
-                                              )"));
+        ThemeManager::shuffle(ui);
         AppSettings::setValue(APP_SETTING_ORDER,
                                          (int)PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL);
         break;

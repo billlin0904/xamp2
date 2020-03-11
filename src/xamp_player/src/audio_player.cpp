@@ -31,7 +31,7 @@ constexpr int32_t PREALLOCATE_BUFFER_SIZE = 8 * 1024 * 1024;
 constexpr int32_t MAX_WRITE_RATIO = 20;
 constexpr int32_t MAX_READ_RATIO = 30;
 constexpr int32_t MAX_READ_SAMPLE = 32768 * 2;
-constexpr std::chrono::milliseconds UPDATE_SAMPLE_INTERVAL(30);
+constexpr std::chrono::milliseconds UPDATE_SAMPLE_INTERVAL(100);
 constexpr std::chrono::seconds WAIT_FOR_STRAEM_STOP_TIME(5);
 constexpr std::chrono::milliseconds SLEEP_OUTPUT_TIME(100);
 
@@ -451,7 +451,7 @@ void AudioPlayer::SetEnableResampler(bool enable) {
 void AudioPlayer::SetDeviceFormat() {
     input_format_ = stream_->GetFormat();
 
-    if (enable_resample_) {
+    if (enable_resample_ && dsd_mode_ == DsdModes::DSD_MODE_PCM) {
         if (output_format_.GetSampleRate() != target_samplerate_) {
             device_id_.clear();
         }
@@ -576,8 +576,8 @@ void AudioPlayer::BufferStream() {
                 return;
             }
 
-            if (enable_resample_) {
-                if (!resampler_->Process((const float*)sample_buffer_.get(), num_samples, buffer_)) {
+            if (enable_resample_ && dsd_mode_ == DsdModes::DSD_MODE_PCM) {
+                if (!resampler_->Process(reinterpret_cast<const float*>(sample_buffer_.get()), num_samples, buffer_)) {
                     continue;
                 }
             }
@@ -600,8 +600,8 @@ void AudioPlayer::ReadSampleLoop(int32_t max_read_sample, std::unique_lock<std::
         const auto num_samples = stream_->GetSamples(sample_buffer, max_read_sample);
 
         if (num_samples > 0) {
-            if (enable_resample_) {
-                if (!resampler->Process((const float*)sample_buffer, num_samples, buffer_)) {
+            if (enable_resample_ && dsd_mode_ == DsdModes::DSD_MODE_PCM) {
+                if (!resampler->Process(reinterpret_cast<const float*>(sample_buffer), num_samples, buffer_)) {
                     continue;
                 }
             } else {
