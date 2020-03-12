@@ -63,7 +63,7 @@ public:
     }
 
     void setThemeSetyle() {
-        setStyleSheet(ThemeManager::getMenuStyle());
+        setStyleSheet(ThemeManager::instance().getMenuStyle());
     }
 
     template <typename Callable>

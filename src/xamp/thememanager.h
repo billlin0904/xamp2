@@ -35,32 +35,67 @@ private:
     QPixmap default_size_unknown_cover_;
 };
 
-class ThemeManager {
-public:
-    static QIcon volumeUp();
-    static QIcon volumeOff();
-    static const StylePixmapManager& pixmap() noexcept;
-    static void setPlayOrPauseButton(Ui::XampWindow &ui, bool is_playing);
-    static void setDefaultStyle(Ui::XampWindow &ui);
-    static void setBackgroundColor(Ui::XampWindow& ui, QColor backgroundColor);    
-    static void enableBlur(const QWidget* widget, bool enable);
-    static QString getMenuStyle() noexcept;
-    static QSize getDefaultCoverSize() noexcept;
-    static QSize getCacheCoverSize() noexcept;
-    static QSize getAlbumCoverSize() noexcept;
-    static QColor getBackgroundColor() noexcept;
-    static void setWhiteIcon(Ui::XampWindow& ui);
-    static QIcon playArrow() noexcept;
-    static void shuffle(Ui::XampWindow& ui);
-    static void repeatOne(Ui::XampWindow& ui);
-    static void repeatOnce(Ui::XampWindow& ui);
+enum class ThemeColor {
+    DARK_THEME,
+    WHITE_THEME,
+};
+
+class ThemeManager : public QObject {
+    Q_OBJECT
+public:    
+    static ThemeManager& instance();
+
+    QIcon volumeUp();
+
+    QIcon volumeOff();
+
+    const StylePixmapManager& pixmap() noexcept;
+
+    void setPlayOrPauseButton(Ui::XampWindow &ui, bool is_playing);
+
+    void setDefaultStyle(Ui::XampWindow &ui);
+
+    void setBackgroundColor(Ui::XampWindow& ui, QColor backgroundColor);    
+
+    void enableBlur(const QWidget* widget, bool enable);
+
+    QString getMenuStyle() noexcept;
+
+    QSize getDefaultCoverSize() noexcept;
+
+    QSize getCacheCoverSize() noexcept;
+
+    QSize getAlbumCoverSize() noexcept;
+
+    QColor getBackgroundColor() noexcept;
+
+    void setThemeIcon(Ui::XampWindow& ui);
+
+    QIcon playArrow() noexcept;
+
+    void setShufflePlayorder(Ui::XampWindow& ui);
+
+    void setRepeatOnePlayorder(Ui::XampWindow& ui);
+
+    void setRepeatOncePlayorder(Ui::XampWindow& ui);
+
+    void setThemeColor(ThemeColor theme_color);
+
+signals:
+    void themeChanged(ThemeColor theme_color);    
+
 private:
-    static QSize defaultAlbumCoverSize;
-    static QSize defaultCoverSize;
-    static QColor tableTextColor;
-    static QColor menuColor;
-    static QColor menuTextColor;
-    static QColor backgroundColor;
-    static QColor controlBackgroundColor;
+    QLatin1String themeColorPath() const;
+
+    ThemeManager();
+
+    ThemeColor theme_color_;
+    QSize defaultAlbumCoverSize;
+    QSize defaultCoverSize;
+    QColor tableTextColor;
+    QColor menuColor;
+    QColor menuTextColor;
+    QColor backgroundColor;
+    QColor controlBackgroundColor;
 };
 

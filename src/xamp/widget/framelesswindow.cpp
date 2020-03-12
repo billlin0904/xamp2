@@ -38,7 +38,7 @@ FramelessWindow::FramelessWindow(QWidget* parent)
 	const MARGINS borderless = { 1, 1, 1, 1 };
 	::DwmExtendFrameIntoClientArea(hwnd, &borderless);
     if (AppSettings::getValue(APP_SETTING_ENABLE_BLUR).toBool()) {
-        ThemeManager::enableBlur(this, true);
+        ThemeManager::instance().enableBlur(this, true);
     }
 #endif
     initialFontDatabase();

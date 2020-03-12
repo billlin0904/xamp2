@@ -7,17 +7,38 @@
 #include <widget/appsettings.h>
 #include "thememanager.h"
 
-QColor ThemeManager::tableTextColor(Qt::black);
-QColor ThemeManager::backgroundColor(228, 233, 237, 230);
-QColor ThemeManager::controlBackgroundColor(228, 233, 237, 220);
-QSize ThemeManager::defaultAlbumCoverSize(250, 250);
-QSize ThemeManager::defaultCoverSize(150, 150);
-QColor ThemeManager::menuColor(228, 233, 237, 150);
-QColor ThemeManager::menuTextColor(Qt::black);
+ThemeManager& ThemeManager::instance() {
+    static ThemeManager manager;
+    return manager;
+}
+
+ThemeManager::ThemeManager() {
+    tableTextColor = QColor(Qt::black);
+    backgroundColor = QColor(228, 233, 237, 230);
+    controlBackgroundColor = QColor(228, 233, 237, 220);
+    defaultAlbumCoverSize = QSize(250, 250);
+    defaultCoverSize = QSize(150, 150);
+    menuColor = QColor(228, 233, 237, 150);
+    menuTextColor = QColor(Qt::black);
+    setThemeColor(ThemeColor::DARK_THEME);
+}
+
+void ThemeManager::setThemeColor(ThemeColor theme_color) {
+    theme_color_ = theme_color;
+    emit themeChanged(theme_color_);
+}
+
+QLatin1String ThemeManager::themeColorPath() const {
+    switch (theme_color_) {
+    case ThemeColor::DARK_THEME:
+        return Q_UTF8("Black");
+    }
+    return Q_UTF8("White");
+}
 
 DefaultStylePixmapManager::DefaultStylePixmapManager()
 	: unknown_cover_(Q_UTF8(":/xamp/Resource/White/unknown_album.png"))
-	, default_size_unknown_cover_(Pixmap::resizeImage(unknown_cover_, ThemeManager::getDefaultCoverSize())) {
+	, default_size_unknown_cover_(Pixmap::resizeImage(unknown_cover_, ThemeManager::instance().getDefaultCoverSize())) {
 }
 
 const QPixmap& DefaultStylePixmapManager::defaultSizeUnknownCover() const noexcept {
@@ -34,18 +55,14 @@ const StylePixmapManager& ThemeManager::pixmap() noexcept {
 }
 
 QIcon ThemeManager::volumeUp() {
-	auto color = Q_UTF8("Black");
-	return QIcon(QString(Q_UTF8(":/xamp/Resource/%1/volume_up.png")).arg(color));
+	return QIcon(QString(Q_UTF8(":/xamp/Resource/%1/volume_up.png")).arg(themeColorPath()));
 }
 
 QIcon ThemeManager::volumeOff() {
-	auto color = Q_UTF8("Black");
-	return QIcon(QString(Q_UTF8(":/xamp/Resource/%1/volume_off.png")).arg(color));
+	return QIcon(QString(Q_UTF8(":/xamp/Resource/%1/volume_off.png")).arg(themeColorPath()));
 }
 
 void ThemeManager::setPlayOrPauseButton(Ui::XampWindow& ui, bool is_playing) {
-	auto color = Q_UTF8("Black");
-
 	if (is_playing) {
 		ui.playButton->setStyleSheet(QString(Q_UTF8(R"(
                                             QToolButton#playButton {
@@ -53,7 +70,7 @@ void ThemeManager::setPlayOrPauseButton(Ui::XampWindow& ui, bool is_playing) {
                                             border: none;
                                             background-color: transparent;
                                             }
-                                            )")).arg(color));
+                                            )")).arg(themeColorPath()));
 	}
 	else {
 		ui.playButton->setStyleSheet(QString(Q_UTF8(R"(
@@ -62,7 +79,7 @@ void ThemeManager::setPlayOrPauseButton(Ui::XampWindow& ui, bool is_playing) {
                                             border: none;
                                             background-color: transparent;
                                             }
-                                            )")).arg(color));
+                                            )")).arg(themeColorPath()));
 	}
 }
 
@@ -115,46 +132,42 @@ void ThemeManager::setBackgroundColor(Ui::XampWindow& ui, QColor color) {
 
 	AppSettings::setValue(APP_SETTING_BACKGROUND_COLOR, color);
 	backgroundColor = color;
+
+    setThemeIcon(ui);    
 }
 
 QIcon ThemeManager::playArrow() noexcept {
-	auto color = Q_UTF8("Black");
-	return QIcon(QString(Q_UTF8(":/xamp/Resource/%1/play_arrow.png")).arg(color));
+	return QIcon(QString(Q_UTF8(":/xamp/Resource/%1/play_arrow.png")).arg(themeColorPath()));
 }
 
-void ThemeManager::shuffle(Ui::XampWindow& ui) {
-	auto color = Q_UTF8("Black");
+void ThemeManager::setShufflePlayorder(Ui::XampWindow& ui) {
 	ui.repeatButton->setStyleSheet(QString(Q_UTF8(R"(
                                               QToolButton#repeatButton {
                                               image: url(:/xamp/Resource/White/shuffle.png);
                                               background: transparent;
                                               }
-                                              )")).arg(color));
+                                              )")).arg(themeColorPath()));
 }
 
-void ThemeManager::repeatOne(Ui::XampWindow& ui) {
-	auto color = Q_UTF8("Black");
+void ThemeManager::setRepeatOnePlayorder(Ui::XampWindow& ui) {
 	ui.repeatButton->setStyleSheet(QString(Q_UTF8(R"(
                                               QToolButton#repeatButton {
                                               image: url(:/xamp/Resource/White/repeat_one.png);
                                               background: transparent;
                                               }
-                                              )")).arg(color));
+                                              )")).arg(themeColorPath()));
 }
 
-void ThemeManager::repeatOnce(Ui::XampWindow& ui) {
-	auto color = Q_UTF8("Black");
+void ThemeManager::setRepeatOncePlayorder(Ui::XampWindow& ui) {
 	ui.repeatButton->setStyleSheet(QString(Q_UTF8(R"(
                                               QToolButton#repeatButton {
                                               image: url(:/xamp/Resource/White/repeat.png);
                                               background: transparent;
                                               }
-                                              )")).arg(color));
+                                              )")).arg(themeColorPath()));
 }
 
-void ThemeManager::setWhiteIcon(Ui::XampWindow& ui) {
-	auto color = Q_UTF8("Black");
-
+void ThemeManager::setThemeIcon(Ui::XampWindow& ui) {
 	ui.titleLabel->setStyleSheet(Q_UTF8(R"(
                                          QLabel#titleLabel {
                                          color: white;
@@ -168,7 +181,7 @@ void ThemeManager::setWhiteIcon(Ui::XampWindow& ui) {
                                             image: url(:/xamp/Resource/%1/right_black.png);
                                             background-color: transparent;
                                             }
-                                            )")).arg(color));
+                                            )")).arg(themeColorPath()));
 
 	ui.backPageButton->setStyleSheet(QString(Q_UTF8(R"(
                                             QToolButton#backPageButton {
@@ -176,42 +189,42 @@ void ThemeManager::setWhiteIcon(Ui::XampWindow& ui) {
                                             image: url(:/xamp/Resource/%1/left_black.png);
                                             background-color: transparent;
                                             }
-                                            )")).arg(color));
+                                            )")).arg(themeColorPath()));
 
 	ui.closeButton->setStyleSheet(QString(Q_UTF8(R"(
                                          QToolButton#closeButton {
                                          image: url(:/xamp/Resource/%1/close.png);
                                          background-color: transparent;
                                          }
-                                         )")).arg(color));
+                                         )")).arg(themeColorPath()));
 
 	ui.minWinButton->setStyleSheet(QString(Q_UTF8(R"(
                                           QToolButton#minWinButton {
                                           image: url(:/xamp/Resource/%1/minimize.png);
                                           background-color: transparent;
                                           }
-                                          )")).arg(color));
+                                          )")).arg(themeColorPath()));
 
 	ui.maxWinButton->setStyleSheet(QString(Q_UTF8(R"(
                                           QToolButton#maxWinButton {
                                           image: url(:/xamp/Resource/%1/maximize.png);
                                           background-color: transparent;
                                           }
-                                          )")).arg(color));
+                                          )")).arg(themeColorPath()));
 
 	ui.settingsButton->setStyleSheet(QString(Q_UTF8(R"(
                                             QToolButton#settingsButton {
                                             image: url(:/xamp/Resource/%1/settings.png);
                                             background-color: transparent;
                                             }
-                                            )")).arg(color));
+                                            )")).arg(themeColorPath()));
 
 	ui.stopButton->setStyleSheet(QString(Q_UTF8(R"(
                                          QToolButton#stopButton {
                                          image: url(:/xamp/Resource/%1/stop.png);
                                          background-color: transparent;
                                          }
-                                         )")).arg(color));
+                                         )")).arg(themeColorPath()));
 
 	ui.nextButton->setStyleSheet(QString(Q_UTF8(R"(
                                         QToolButton#nextButton {
@@ -219,7 +232,7 @@ void ThemeManager::setWhiteIcon(Ui::XampWindow& ui) {
                                         image: url(:/xamp/Resource/%1/next.png);
                                         background-color: transparent;
                                         }
-                                        )")).arg(color));
+                                        )")).arg(themeColorPath()));
 
 	ui.prevButton->setStyleSheet(QString(Q_UTF8(R"(
                                         QToolButton#prevButton {
@@ -227,7 +240,7 @@ void ThemeManager::setWhiteIcon(Ui::XampWindow& ui) {
                                         image: url(:/xamp/Resource/%1/previous.png);
                                         background-color: transparent;
                                         }
-                                        )")).arg(color));
+                                        )")).arg(themeColorPath()));
 
 	ui.selectDeviceButton->setStyleSheet(QString(Q_UTF8(R"(
                                                 QToolButton#selectDeviceButton {
@@ -235,7 +248,7 @@ void ThemeManager::setWhiteIcon(Ui::XampWindow& ui) {
                                                 border: none;
                                                 background-color: transparent;
                                                 }
-                                                )")).arg(color));
+                                                )")).arg(themeColorPath()));
 
 	ui.mutedButton->setStyleSheet(QString(Q_UTF8(R"(
                                          QToolButton#mutedButton {
@@ -243,7 +256,7 @@ void ThemeManager::setWhiteIcon(Ui::XampWindow& ui) {
                                          border: none;
                                          background-color: transparent;
                                          }
-                                         )")).arg(color));
+                                         )")).arg(themeColorPath()));
 
 	ui.repeatButton->setStyleSheet(QString(Q_UTF8(R"(
                                           QToolButton#repeatButton {
@@ -251,7 +264,7 @@ void ThemeManager::setWhiteIcon(Ui::XampWindow& ui) {
                                           background-color: transparent;
                                           border: none;
                                           }
-                                          )")).arg(color));
+                                          )")).arg(themeColorPath()));
 
 	ui.addPlaylistButton->setStyleSheet(QString(Q_UTF8(R"(
                                                QToolButton#addPlaylistButton {
@@ -259,7 +272,7 @@ void ThemeManager::setWhiteIcon(Ui::XampWindow& ui) {
                                                border: none;
                                                background-color: transparent;
                                                }
-                                               )")).arg(color));
+                                               )")).arg(themeColorPath()));
 
 }
 
@@ -278,7 +291,7 @@ void ThemeManager::setDefaultStyle(Ui::XampWindow& ui) {
 	ui.searchLineEdit->setStyleSheet(Q_UTF8(""));
 	ui.sliderBar->setStyleSheet(Q_UTF8("QListView#sliderBar { background-color: transparent; border: none; }"));
 
-	setWhiteIcon(ui);
+	setThemeIcon(ui);
 
 	ui.searchLineEdit->setStyleSheet(Q_UTF8(R"(
                                             QLineEdit#searchLineEdit {

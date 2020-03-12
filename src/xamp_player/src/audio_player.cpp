@@ -31,7 +31,7 @@ constexpr int32_t PREALLOCATE_BUFFER_SIZE = 8 * 1024 * 1024;
 constexpr int32_t MAX_WRITE_RATIO = 20;
 constexpr int32_t MAX_READ_RATIO = 30;
 constexpr int32_t MAX_READ_SAMPLE = 32768 * 2;
-constexpr std::chrono::milliseconds UPDATE_SAMPLE_INTERVAL(100);
+constexpr std::chrono::milliseconds UPDATE_SAMPLE_INTERVAL(50);
 constexpr std::chrono::seconds WAIT_FOR_STRAEM_STOP_TIME(5);
 constexpr std::chrono::milliseconds SLEEP_OUTPUT_TIME(100);
 

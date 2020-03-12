@@ -48,7 +48,7 @@ QVariant PlayListTableModel::data(const QModelIndex& index, int32_t role) const 
         break;
 	case Qt::DecorationRole:
 		if (index.column() == PLAYLIST_PLAYING && index.row() == playing_index_)
-			return ThemeManager::playArrow();
+			return ThemeManager::instance().playArrow();
 		break;
 	case Qt::TextAlignmentRole:
 		switch (index.column()) {

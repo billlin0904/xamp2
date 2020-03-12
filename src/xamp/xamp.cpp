@@ -123,7 +123,7 @@ Xamp::Xamp(QWidget *parent)
     initialController();
     initialDeviceList();
     initialPlaylist();
-    setCover(ThemeManager::pixmap().unknownCover());
+    setCover(ThemeManager::instance().pixmap().unknownCover());
     DeviceFactory::Instance().RegisterDeviceListener(player_);   
     setDefaultStyle();
 }
@@ -144,9 +144,9 @@ void Xamp::setNightStyle() {
 }
 
 void Xamp::setDefaultStyle() {
-    ThemeManager::setPlayOrPauseButton(ui, false);
-    ThemeManager::setDefaultStyle(ui);
-    applyTheme(ThemeManager::getBackgroundColor());
+    ThemeManager::instance().setPlayOrPauseButton(ui, false);
+    ThemeManager::instance().setDefaultStyle(ui);
+    applyTheme(ThemeManager::instance().getBackgroundColor());
     setStyleSheet(Q_UTF8(R"(
                          QTableView {
                          background-color: transparent;
@@ -214,7 +214,7 @@ void Xamp::initialDeviceList() {
         ui.selectDeviceButton->setMenu(menu);
     }
 
-    menu->setStyleSheet(ThemeManager::getMenuStyle());
+    menu->setStyleSheet(ThemeManager::instance().getMenuStyle());
     menu->clear();
 
     DeviceInfo init_device_info;
@@ -293,10 +293,10 @@ void Xamp::initialController() {
     (void)QObject::connect(ui.mutedButton, &QToolButton::pressed, [this]() {
         if (player_->IsMute()) {
             player_->SetMute(false);            
-            ui.mutedButton->setIcon(ThemeManager::volumeUp());
+            ui.mutedButton->setIcon(ThemeManager::instance().volumeUp());
         } else {
             player_->SetMute(true);
-            ui.mutedButton->setIcon(ThemeManager::volumeOff());
+            ui.mutedButton->setIcon(ThemeManager::instance().volumeOff());
         }
     });
 
@@ -453,7 +453,7 @@ void Xamp::initialController() {
     });
 
     auto settings_menu = new QMenu(this);
-    settings_menu->setStyleSheet(ThemeManager::getMenuStyle());
+    settings_menu->setStyleSheet(ThemeManager::instance().getMenuStyle());
     auto settings_action = new QAction(tr("Settings"), this);
     settings_menu->addAction(settings_action);
     (void)QObject::connect(settings_action, &QAction::triggered, [=]() {
@@ -475,7 +475,7 @@ void Xamp::initialController() {
         auto enable = AppSettings::getValueAsBool(APP_SETTING_ENABLE_BLUR);
         enable = !enable;
         enable_blur_material_mode_action->setChecked(enable);
-        ThemeManager::enableBlur(this, enable);
+        ThemeManager::instance().enableBlur(this, enable);
         });
     auto select_color_widget = new SelectColorWidget(this);
     auto theme_color_menu = new QMenu(tr("Theme color"));
@@ -498,10 +498,25 @@ void Xamp::initialController() {
 }
 
 void Xamp::applyTheme(QColor color) {
-    playlist_page_->setTextColor(Qt::white);
-    lrc_page_->setTextColor(Qt::white);
-    emit textColorChanged(color, Qt::white);
-    ThemeManager::setBackgroundColor(ui, color);
+    if (qGray(color.rgb()) > 150) {
+        playlist_page_->setTextColor(Qt::black);
+        lrc_page_->setTextColor(Qt::black);
+        emit textColorChanged(color, Qt::black);
+        ThemeManager::instance().setThemeColor(ThemeColor::WHITE_THEME);        
+    }
+    else {
+        playlist_page_->setTextColor(Qt::white);
+        lrc_page_->setTextColor(Qt::white);
+        emit textColorChanged(color, Qt::white);
+        ThemeManager::instance().setThemeColor(ThemeColor::DARK_THEME);
+    }    
+    if (player_->GetState() == xamp::player::PlayerState::PLAYER_STATE_PAUSED) {
+        ThemeManager::instance().setPlayOrPauseButton(ui, true);
+    }
+    else {
+        ThemeManager::instance().setPlayOrPauseButton(ui, false);
+    }
+    ThemeManager::instance().setBackgroundColor(ui, color);
 }
 
 void Xamp::getNextPage() {
@@ -547,11 +562,11 @@ void Xamp::goBackPage() {
 void Xamp::setVolume(int32_t volume) {
     if (volume > 0) {
         player_->SetMute(false);
-        ui.mutedButton->setIcon(ThemeManager::volumeUp());
+        ui.mutedButton->setIcon(ThemeManager::instance().volumeUp());
     }
     else {
         player_->SetMute(true);
-        ui.mutedButton->setIcon(ThemeManager::volumeOff());
+        ui.mutedButton->setIcon(ThemeManager::instance().volumeOff());
     }
 
     try {
@@ -593,17 +608,17 @@ void Xamp::deleteKeyPress() {
 void Xamp::setPlayerOrder() {
     switch (order_) {
     case PlayerOrder::PLAYER_ORDER_REPEAT_ONCE:
-        ThemeManager::repeatOnce(ui);
+        ThemeManager::instance().setRepeatOncePlayorder(ui);
         AppSettings::setValue(APP_SETTING_ORDER,
                                          (int)PLAYER_ORDER_REPEAT_ONCE);
         break;
     case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:
-        ThemeManager::repeatOne(ui);
+        ThemeManager::instance().setRepeatOnePlayorder(ui);
         AppSettings::setValue(APP_SETTING_ORDER,
                                          (int)PLAYER_ORDER_REPEAT_ONE);
         break;
     case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL:
-        ThemeManager::shuffle(ui);
+        ThemeManager::instance().setShufflePlayorder(ui);
         AppSettings::setValue(APP_SETTING_ORDER,
                                          (int)PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL);
         break;
@@ -673,12 +688,12 @@ void Xamp::playLocalFile(const PlayListEntity& item) {
 
 void Xamp::play() {
     if (player_->GetState() == xamp::player::PlayerState::PLAYER_STATE_RUNNING) {
-        ThemeManager::setPlayOrPauseButton(ui, false);
+        ThemeManager::instance().setPlayOrPauseButton(ui, false);
         player_->Pause();
         setTaskbarPlayerPaused();
     }
     else if (player_->GetState() == xamp::player::PlayerState::PLAYER_STATE_PAUSED) {
-        ThemeManager::setPlayOrPauseButton(ui, true);
+        ThemeManager::instance().setPlayOrPauseButton(ui, true);
         player_->Resume();
         setTaskbarPlayingResume();
     }
@@ -800,10 +815,10 @@ void Xamp::playMusic(const MusicEntity& item) {
             playlist_page_->cover()->size(), true));
     }
     else {
-        setCover(ThemeManager::pixmap().unknownCover());
+        setCover(ThemeManager::instance().pixmap().unknownCover());
     }
 
-    ThemeManager::setPlayOrPauseButton(ui, true);
+    ThemeManager::instance().setPlayOrPauseButton(ui, true);
 
     ui.titleLabel->setText(item.title);
     ui.artistLabel->setText(item.artist);
@@ -857,8 +872,8 @@ void Xamp::setCover(const QPixmap& cover) {
 		playlist_page_->cover()->setPixmap(Pixmap::resizeImage(cover, playlist_page_->cover()->size(), true));
 	}
 	else {
-		playlist_page_->cover()->setBaseSize(ThemeManager::getDefaultCoverSize());
-		playlist_page_->cover()->setPixmap(Pixmap::resizeImage(cover, ThemeManager::getDefaultCoverSize(), true));
+		playlist_page_->cover()->setBaseSize(ThemeManager::instance().getDefaultCoverSize());
+		playlist_page_->cover()->setPixmap(Pixmap::resizeImage(cover, ThemeManager::instance().getDefaultCoverSize(), true));
 	}
     lrc_page_->cover()->setPixmap(Pixmap::resizeImage(cover, lrc_page_->cover()->size(), true));
 }
