@@ -33,7 +33,7 @@ constexpr int32_t MAX_READ_RATIO = 30;
 constexpr int32_t MAX_READ_SAMPLE = 32768 * 2;
 constexpr std::chrono::milliseconds UPDATE_SAMPLE_INTERVAL(50);
 constexpr std::chrono::seconds WAIT_FOR_STRAEM_STOP_TIME(5);
-constexpr std::chrono::milliseconds SLEEP_OUTPUT_TIME(100);
+constexpr std::chrono::milliseconds READ_SAMPLE_WAIT_TIME(150);
 
 AudioPlayer::AudioPlayer()
     : AudioPlayer(std::weak_ptr<PlaybackStateAdapter>()) {
@@ -75,7 +75,7 @@ void AudioPlayer::LoadLib() {
 }
 
 void AudioPlayer::PrepareAllocate() {
-	wait_timer_.SetTimeout(SLEEP_OUTPUT_TIME);
+	wait_timer_.SetTimeout(READ_SAMPLE_WAIT_TIME);
 	buffer_.Resize(PREALLOCATE_BUFFER_SIZE);
     // Initial std::async internal threadpool
     stream_task_ = std::async(std::launch::async | std::launch::deferred, []() {});
@@ -196,6 +196,7 @@ void AudioPlayer::SetState(const PlayerState play_state) {
         adapter->OnStateChanged(play_state);
     }
     state_ = play_state;
+    XAMP_LOG_DEBUG("Set state: {}", to_string(state_));
 }
 
 void AudioPlayer::Play() {

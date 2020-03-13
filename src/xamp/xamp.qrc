@@ -43,5 +43,6 @@
         <file>Resource/Black/volume_mute.png</file>
         <file>Resource/Black/volume_off.png</file>
         <file>Resource/Black/volume_up.png</file>
+        <file>xamp.ico</file>
     </qresource>
 </RCC>

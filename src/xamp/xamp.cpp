@@ -30,6 +30,7 @@
 #include <widget/artistinfopage.h>
 #include <widget/spectrograph.h>
 
+#include "aboutdialog.h"
 #include "preferencedialog.h"
 #include "thememanager.h"
 #include "xamp.h"
@@ -490,6 +491,11 @@ void Xamp::initialController() {
     settings_menu->addSeparator();
     auto about_action = new QAction(tr("About"), this);
     settings_menu->addAction(about_action);
+    (void)QObject::connect(about_action, &QAction::triggered, [=]() {
+        AboutDialog aboutdlg;
+        aboutdlg.setFont(font());
+        aboutdlg.exec();
+        });
     ui.settingsButton->setMenu(settings_menu);
 
     ui.seekSlider->setEnabled(false);

@@ -143,7 +143,7 @@ QIcon ThemeManager::playArrow() noexcept {
 void ThemeManager::setShufflePlayorder(Ui::XampWindow& ui) {
 	ui.repeatButton->setStyleSheet(QString(Q_UTF8(R"(
                                               QToolButton#repeatButton {
-                                              image: url(:/xamp/Resource/White/shuffle.png);
+                                              image: url(:/xamp/Resource/%1/shuffle.png);
                                               background: transparent;
                                               }
                                               )")).arg(themeColorPath()));
@@ -152,7 +152,7 @@ void ThemeManager::setShufflePlayorder(Ui::XampWindow& ui) {
 void ThemeManager::setRepeatOnePlayorder(Ui::XampWindow& ui) {
 	ui.repeatButton->setStyleSheet(QString(Q_UTF8(R"(
                                               QToolButton#repeatButton {
-                                              image: url(:/xamp/Resource/White/repeat_one.png);
+                                              image: url(:/xamp/Resource/%1/repeat_one.png);
                                               background: transparent;
                                               }
                                               )")).arg(themeColorPath()));
@@ -161,7 +161,7 @@ void ThemeManager::setRepeatOnePlayorder(Ui::XampWindow& ui) {
 void ThemeManager::setRepeatOncePlayorder(Ui::XampWindow& ui) {
 	ui.repeatButton->setStyleSheet(QString(Q_UTF8(R"(
                                               QToolButton#repeatButton {
-                                              image: url(:/xamp/Resource/White/repeat.png);
+                                              image: url(:/xamp/Resource/%1/repeat.png);
                                               background: transparent;
                                               }
                                               )")).arg(themeColorPath()));

@@ -1,3 +1,4 @@
+#include <widget/str_utilts.h>
 #include <widget/seekslider.h>
 
 SeekSlider::SeekSlider(QWidget* parent)
@@ -12,4 +13,10 @@ void SeekSlider::mousePressEvent(QMouseEvent* event) {
 		emit leftButtonValueChanged(value);
 	}
 	return QSlider::mousePressEvent(event);
+}
+
+void SeekSlider::enterEvent(QEvent* event) {
+}
+
+void SeekSlider::leaveEvent(QEvent* event) {
 }
