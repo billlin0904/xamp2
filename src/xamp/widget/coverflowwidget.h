@@ -65,7 +65,7 @@ public:
 signals:
 	void imageChanged(void);
 
-public Q_SLOTS:
+public slots:
 	void setImage(const QImage& image);
 
 private:

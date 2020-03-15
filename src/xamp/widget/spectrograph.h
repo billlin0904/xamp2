@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <QFrame>
+#include <QTimer>
 
 class Spectrograph : public QFrame {
 	Q_OBJECT
@@ -17,20 +18,26 @@ public:
 
 	void reset();
 
+	void start();
+
+	void stop();
+
 public slots:
-	void onGetMagnitudeSpectrum(const std::vector<float>& spectrum);
+	void onGetMagnitudeSpectrum(const std::vector<float>& mag);
 
 private:
-	struct Bar {		
-		bool clipped{ false };
-		int fall{ 0 };
-		qreal value{ 0.0 };
-	};
-
-	struct Spectrum {
-		qreal frequency{ 0.0 };
+	struct Bar {
+		qreal value{ 0.0 };	
 		qreal amplitude{ 0.0 };
 	};
+
+	struct SpectrumData {
+		qreal frequency{ 0.0 };
+		qreal amplitude{ 0.0 };
+		qreal db{ 0.0 };
+	};
+
+	void init();
 
 	int barIndex(qreal frequency) const;
 
@@ -39,7 +46,8 @@ private:
 	double low_freq_;
 	double high_freq_;
 	double frequency_;
-	std::vector<Spectrum> spectrum_;
+	std::vector<SpectrumData> results_;
 	std::vector<Bar> bars_;
+	QTimer timer_;
 };
 

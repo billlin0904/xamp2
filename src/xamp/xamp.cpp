@@ -808,6 +808,7 @@ void Xamp::playMusic(const MusicEntity& item) {
 
     auto output_format = player_->GetOutputFormat();
     lrc_page_->spectrum()->setFrequency(100, output_format.GetSampleRate(), output_format.GetSampleRate());
+    lrc_page_->spectrum()->start();
 
     ui.seekSlider->setRange(0, int32_t(player_->GetDuration() * 1000));
     ui.endPosLabel->setText(Time::msToString(player_->GetDuration()));

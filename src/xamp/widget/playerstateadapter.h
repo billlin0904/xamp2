@@ -25,7 +25,7 @@ signals:
 
     void deviceChanged();
 
-    void onGetMagnitudeSpectrum(const std::vector<float>& spectrum);
+    void onGetMagnitudeSpectrum(const std::vector<float>& mag);
 protected:
 	void OnSampleTime(double stream_time) override;
 
@@ -35,5 +35,5 @@ protected:
 
     void OnDeviceChanged() override;
 
-    void OnGetMagnitudeSpectrum(const std::vector<float>& spectrum) override;
+    void OnGetMagnitudeSpectrum(const std::vector<float>& mag) override;
 };

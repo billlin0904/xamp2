@@ -27,11 +27,10 @@ namespace xamp::player {
 
 constexpr int32_t FFT_SIZE = 4096 * 2;
 constexpr int32_t BUFFER_STREAM_COUNT = 5;
-constexpr int32_t PREALLOCATE_BUFFER_SIZE = 8 * 1024 * 1024;
+constexpr int32_t PREALLOCATE_BUFFER_SIZE = 4 * 1024 * 1024;
 constexpr int32_t MAX_WRITE_RATIO = 20;
 constexpr int32_t MAX_READ_RATIO = 30;
-constexpr int32_t MAX_READ_SAMPLE = 32768 * 2;
-constexpr std::chrono::milliseconds UPDATE_SAMPLE_INTERVAL(50);
+constexpr std::chrono::milliseconds UPDATE_SAMPLE_INTERVAL(100);
 constexpr std::chrono::seconds WAIT_FOR_STRAEM_STOP_TIME(5);
 constexpr std::chrono::milliseconds READ_SAMPLE_WAIT_TIME(150);
 
@@ -319,7 +318,7 @@ void AudioPlayer::Initial() {
                     } if (p->is_playing_ && slice.sample_size == -1) {
                         p->SetState(PlayerState::PLAYER_STATE_STOPPED);
                         p->is_playing_ = false;
-                    }                   
+                    }                    
                 }
             }
         });		
@@ -536,7 +535,7 @@ void AudioPlayer::OpenDevice(double stream_time) {
     }
 #endif
     device_->OpenStream(output_format_);
-    device_->SetStreamTime(stream_time);    
+    device_->SetStreamTime(stream_time);
 }
 
 void AudioPlayer::Seek(double stream_time) {

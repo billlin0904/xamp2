@@ -9,7 +9,8 @@ Spectrograph::Spectrograph(QWidget* parent)
 	, low_freq_(0.0)
 	, high_freq_(0.0)
 	, frequency_(0.0)
-	, bars_(128) {
+	, bars_(256) {
+	init();
 }
 
 void Spectrograph::setFrequency(double low_freq, double high_freq, double frequency) {
@@ -37,44 +38,76 @@ void Spectrograph::paintEvent(QPaintEvent* event) {
 	barColor = barColor.lighter();
 	barColor.setAlphaF(0.75);
 
-	const int widgetWidth = this->width();
-	const int barPlusGapWidth = widgetWidth / bars_.size();
-	const int barWidth = 0.8 * barPlusGapWidth;
-	const int gapWidth = barPlusGapWidth - barWidth;
-	const int paddingWidth = widgetWidth - bars_.size() * (barWidth + gapWidth);
-	const int leftPaddingWidth = (paddingWidth + gapWidth) / 2;
-	const int barHeight = this->height() - 2 * gapWidth;
+	const auto widgetWidth = this->width();
+	const auto barPlusGapWidth = widgetWidth / bars_.size();
+	const auto barWidth = 0.8 * barPlusGapWidth;
+	const auto gapWidth = barPlusGapWidth - barWidth;
+	const auto paddingWidth = widgetWidth - bars_.size() * (barWidth + gapWidth);
+	const auto leftPaddingWidth = (paddingWidth + gapWidth) / 2;
+	const auto barHeight = this->height() - 2 * gapWidth;
 
-	for (int i = 0; i < spectrum_.size(); ++i) {
-		auto b = bars_[barIndex(spectrum_[i].frequency)];
-		b.value = qMax(b.value, spectrum_[i].amplitude);		
-		const double value = b.value;
-		auto bar = rect();
+	const auto widget_rect = rect();
+
+	for (int i = 0; i < results_.size(); ++i) {
+		auto &b = bars_[barIndex(results_[i].frequency)];	
+		b.amplitude = qMax(b.amplitude, results_[i].amplitude);
+		b.value = (1.0 - b.amplitude) * barHeight;
+		auto bar = widget_rect;
 		bar.setLeft(rect().left() + leftPaddingWidth + (i * (gapWidth + barWidth)));
 		bar.setWidth(barWidth);
-		bar.setTop(rect().top() + gapWidth + (1.0 - value) * barHeight);
+		bar.setTop(rect().top() + gapWidth + b.value);
 		bar.setBottom(rect().bottom() - gapWidth);
 		painter.fillRect(bar, barColor);
 	}
 	event->accept();
 }
 
-void Spectrograph::onGetMagnitudeSpectrum(const std::vector<float>& magnitude) {	
+void Spectrograph::init() {
+	timer_.setTimerType(Qt::PreciseTimer);
+	(void)QObject::connect(&timer_, &QTimer::timeout, [this]() {
+		for (int i = 0; i < bars_.size(); ++i) {
+			auto &b = bars_[i];
+			if (b.amplitude >= 1.0) {
+				b.amplitude -= 1.0;
+			}
+			else {
+				b.amplitude = 0.0;
+			}
+		}
+		update();
+		});
+}
+
+void Spectrograph::onGetMagnitudeSpectrum(const std::vector<float>& mag) {
 	constexpr auto SpectrumAnalyserMultiplier{ 0.15 };
 
-	spectrum_.resize(magnitude.size());
+	results_.resize(mag.size());
 
-	for (auto i = 0; i < magnitude.size(); ++i) {		
-		qreal amplitude = SpectrumAnalyserMultiplier * qLn(magnitude[i]);
-		amplitude = qMax(qreal(0.0), amplitude);
-		amplitude = qMin(qreal(1.0), amplitude);
-		auto frequency = qreal(i * frequency_) / (magnitude.size());
-		spectrum_[i] = Spectrum{ frequency, amplitude };
+	for (auto i = 0; i < mag.size(); ++i) {
+		auto amplitude = SpectrumAnalyserMultiplier * qLn(mag[i]);
+		amplitude = qMax(0.0, amplitude);
+		amplitude = qMin(1.0, amplitude);
+		auto db = 20.0 * std::log(mag[i]);
+		auto frequency = double(i * frequency_) / (mag.size());
+		results_[i] = SpectrumData{ frequency, amplitude, db };
 	}
 	
 	update();
 }
 
 void Spectrograph::reset() {
+	for (auto i = 0; i < results_.size(); ++i) {
+		results_[i].amplitude = 0;
+	}
+	update();
+}
 
+void Spectrograph::start() {
+	timer_.stop();
+	timer_.setInterval(25);
+	timer_.start();	
+}
+
+void Spectrograph::stop() {
+	timer_.stop();
 }

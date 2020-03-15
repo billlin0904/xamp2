@@ -12,22 +12,22 @@
 
 namespace xamp::player {
 
-class XAMP_PLAYER_API AudioAnalysis {
+class XAMP_PLAYER_API SpectrumAnalyser {
 public:
-	AudioAnalysis();
+	SpectrumAnalyser();
 
-	~AudioAnalysis();
+	~SpectrumAnalyser();
 
 	void SetAudioFrameSize(int32_t frame_size);
 
 	void SetSamplingFrequency(int32_t fs);
 
-	const std::vector<float>& GetMagnitudeSpectrum();
+	const std::vector<float>& GeMagnitude();
 
 	bool Process(AudioBuffer<float> &buffer);
 private:
-	class AudioAnalysisImpl;
-	AlignPtr<AudioAnalysisImpl> impl_;
+	class SpectrumAnalyserImpl;
+	AlignPtr<SpectrumAnalyserImpl> impl_;
 };
 
 }

@@ -4,6 +4,7 @@
 #include <QPaintEvent>
 #include <QPainter>
 
+#include <thememanager.h>
 #include <widget/coverflowwidget.h>
 
 constexpr auto COVERFLOW_IMAGE_WIDTH = 250;
@@ -39,14 +40,14 @@ CoverFlowImageLoader::~CoverFlowImageLoader() {
 }
 
 void CoverFlowImageLoader::run() {
+	auto cover_size = ThemeManager::instance().getCacheCoverSize();
 	if (!path_.isEmpty()) {
 		QImageReader reader(path_);
-		reader.setScaledSize(QSize(COVERFLOW_IMAGE_WIDTH, COVERFLOW_IMAGE_HEIGHT));
+		reader.setScaledSize(cover_size);
 		image_ = reader.read();
 	}
 	else if (!image_.isNull()) {
-		image_ = image_.scaled(COVERFLOW_IMAGE_WIDTH, COVERFLOW_IMAGE_HEIGHT,
-			Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+		image_ = image_.scaled(cover_size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
 	}
 	emit completed(image_);
 }
@@ -184,7 +185,7 @@ const QImage* CoverFlowWidget::itemImage(int index) const {
 }
 
 void CoverFlowWidget::mouseReleaseEvent(QMouseEvent* event) {
-	const QImage* img = itemImage(selected_);
+	auto img = itemImage(selected_);
 
 	int x = (width() / 2) - img->width() / 2;
 	if (event->x() >= x && event->x() <= (x + img->width())) {

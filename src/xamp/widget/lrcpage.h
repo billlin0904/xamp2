@@ -38,5 +38,5 @@ private:
 	QLabel* album_;
 	QLabel* artist_;
 	QLabel* title_;
-	Spectrograph* spectrum_;
+	Spectrograph* results_;
 };

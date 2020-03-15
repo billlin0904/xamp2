@@ -146,7 +146,7 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="include\player\audioanalysis.h" />
+    <ClInclude Include="include\player\spectrumanalyser.h" />
     <ClInclude Include="include\player\audio_player.h" />
     <ClInclude Include="include\player\cdspresampler.h" />
     <ClInclude Include="include\player\chromaprint.h" />
@@ -166,7 +166,7 @@
     <ClCompile Include="..\thirdparty\gist\src\mfcc\MFCC.cpp" />
     <ClCompile Include="..\thirdparty\gist\src\onset-detection-functions\OnsetDetectionFunction.cpp" />
     <ClCompile Include="..\thirdparty\gist\src\pitch\Yin.cpp" />
-    <ClCompile Include="src\audioanalysis.cpp" />
+    <ClCompile Include="src\spectrumanalyser.cpp" />
     <ClCompile Include="src\audio_player.cpp" />
     <ClCompile Include="src\cdspresampler.cpp" />
     <ClCompile Include="src\chromaprint.cpp" />
