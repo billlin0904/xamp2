@@ -16,6 +16,8 @@
 
 namespace xamp::player {
 
+using namespace xamp::base;
+
 MAKE_ENUM(SoxrQuality,
 	LOW,
 	MQ,

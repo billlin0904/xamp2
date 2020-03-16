@@ -11,6 +11,8 @@
 
 namespace xamp::player {
 
+using namespace xamp::base;
+
 class XAMP_PLAYER_API XAMP_NO_VTABLE Resampler {
 public:
 	virtual ~Resampler() = default;

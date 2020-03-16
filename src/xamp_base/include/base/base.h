@@ -114,3 +114,7 @@ static_assert(std::is_trivially_destructible_v<t>);\
 #define XAMP_TRIVIAL_STRUCT(Name, ...)\
 struct Name __VA_ARGS__;\
 XAMP_ENFORCE_TRIVIAL(Name);
+
+// For compiler!
+namespace xamp::base {
+}

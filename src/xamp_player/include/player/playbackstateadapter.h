@@ -8,11 +8,13 @@
 #include <base/base.h>
 #include <base/exception.h>
 #include <player/player.h>
+#include <output_device/devicestatelistener.h>
 #include <player/playstate.h>
 
 namespace xamp::player {
 
 using namespace base;
+using namespace output_device;
 
 class XAMP_PLAYER_API XAMP_NO_VTABLE PlaybackStateAdapter {
 public:
@@ -26,7 +28,7 @@ public:
 
 	virtual void OnGetMagnitudeSpectrum(const std::vector<float>& mag) = 0;
 
-	virtual void OnDeviceChanged() = 0;
+	virtual void OnDeviceChanged(DeviceState state) = 0;
 
 protected:
 	PlaybackStateAdapter() = default;

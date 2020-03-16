@@ -16,8 +16,8 @@ void PlayerStateAdapter::OnError(const xamp::base::Exception &ex) {
     emit playbackError(ex.GetError(), ex.what() != nullptr ? QString::fromStdString(ex.what()) : QString());
 }
 
-void PlayerStateAdapter::OnDeviceChanged() {
-    emit deviceChanged();
+void PlayerStateAdapter::OnDeviceChanged(xamp::output_device::DeviceState state) {
+    emit deviceChanged(state);
 }
 
 void PlayerStateAdapter::OnGetMagnitudeSpectrum(const std::vector<float>& mag) {

@@ -13,6 +13,8 @@
 
 namespace xamp::player {
 
+using namespace xamp::base;
+
 class XAMP_PLAYER_API CdspResampler : public Resampler {
 public:
 	CdspResampler();

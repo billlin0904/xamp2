@@ -5,23 +5,13 @@
 
 #pragma once
 
-#ifdef _WIN32
-#ifdef STREAM_API_EXPORTS
-    #define XAMP_STREAM_API __declspec(dllexport)
-#else
-    #define XAMP_STREAM_API __declspec(dllimport)
-#endif
-#define ENABLE_FFMPEG 1
-#else
-#define XAMP_STREAM_API
-#endif
+#include <base/enum.h>
 
-namespace xamp::stream {
-	using namespace base;
+namespace xamp::output_device {
 
-	class AudioStream;
-	class FileStream;
-	class DsdStream;
-	class AvFileStream;
-	class BassFileStream;
+MAKE_ENUM(DeviceState,
+	DEVICE_STATE_ADDED,
+	DEVICE_STATE_REMOVED,
+	DEVICE_STATE_DEFAULT_DEVICE_CHANGE);
+
 }

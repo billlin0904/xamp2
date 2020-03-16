@@ -9,15 +9,12 @@
 
 #include <base/base.h>
 #include <base/enum.h>
+#include <output_device/devicestate.h>
 #include <output_device/output_device.h>
 
 namespace xamp::output_device {
 
-MAKE_ENUM(DeviceState,
-	DEVICE_STATE_ADDED,
-	DEVICE_STATE_REMOVED,
-	DEVICE_STATE_DEFAULT_DEVICE_CHANGE,
-	_MAX_DEVICE_STATE_);
+using namespace base;
 
 class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE DeviceStateListener {
 public:

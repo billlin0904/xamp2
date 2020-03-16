@@ -161,9 +161,16 @@ void Xamp::setDefaultStyle() {
                          )"));
 }
 
-void Xamp::initialUI() {
+void Xamp::registerMetaType() {
     qRegisterMetaType<std::vector<xamp::base::Metadata>>("std::vector<xamp::base::Metadata>");
     qRegisterMetaType<std::vector<float>>("std::vector<float>");
+    qRegisterMetaType<xamp::output_device::DeviceState>("xamp::output_device::DeviceState");
+    qRegisterMetaType<xamp::player::PlayerState>("xamp::player::PlayerState");
+    qRegisterMetaType<xamp::base::Errors>("xamp::base::Errors");
+}
+
+void Xamp::initialUI() {
+    registerMetaType();
 
     ui.setupUi(this);
 
@@ -208,7 +215,17 @@ QWidgetAction* Xamp::createTextSeparator(const QString& text) {
     return separator;
 }
 
-void Xamp::initialDeviceList() {
+void Xamp::onDeviceStateChanged(DeviceState state) {
+    if (state == DeviceState::DEVICE_STATE_REMOVED) {
+        player_->Stop(true, true, true);
+    }
+    if (state == DeviceState::DEVICE_STATE_DEFAULT_DEVICE_CHANGE) {
+        return;
+    }
+    initialDeviceList();
+}
+
+void Xamp::initialDeviceList() {    
     auto menu = ui.selectDeviceButton->menu();
     if (!menu) {
         menu = new QMenu(this);
@@ -275,9 +292,6 @@ void Xamp::initialDeviceList() {
 }
 
 void Xamp::initialController() {
-    qRegisterMetaType<xamp::player::PlayerState>("xamp::player::PlayerState");
-    qRegisterMetaType<xamp::base::Errors>("xamp::base::Errors");
-
     (void)QObject::connect(ui.minWinButton, &QToolButton::pressed, [this]() {
         showMinimized();
     });
@@ -386,7 +400,7 @@ void Xamp::initialController() {
     (void)QObject::connect(state_adapter_.get(),
         &PlayerStateAdapter::deviceChanged,
         this,
-        &Xamp::initialDeviceList,
+        &Xamp::onDeviceStateChanged,
         Qt::QueuedConnection);
 
     (void)QObject::connect(ui.searchLineEdit, &QLineEdit::textChanged, [this](const auto &text) {

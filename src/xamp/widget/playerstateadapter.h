@@ -7,6 +7,7 @@
 
 #include <QObject>
 
+#include <output_device/devicestatelistener.h>
 #include <player/playbackstateadapter.h>
 
 class PlayerStateAdapter 
@@ -23,7 +24,7 @@ signals:
 
     void playbackError(xamp::base::Errors error, const QString &message);
 
-    void deviceChanged();
+    void deviceChanged(xamp::output_device::DeviceState state);
 
     void onGetMagnitudeSpectrum(const std::vector<float>& mag);
 protected:
@@ -33,7 +34,7 @@ protected:
 
     void OnError(const xamp::base::Exception &ex) override;
 
-    void OnDeviceChanged() override;
+    void OnDeviceChanged(xamp::output_device::DeviceState state) override;
 
     void OnGetMagnitudeSpectrum(const std::vector<float>& mag) override;
 };

@@ -20,13 +20,10 @@
 #include <stream/stream.h>
 
 namespace xamp::player {
-	using namespace xamp::base;
-	using namespace xamp::stream;
-	using namespace xamp::output_device;
-
 	class AudioPlayer;	
 	class PlaybackStateAdapter;
 	class Chromaprint;
+	class Resampler;
 }
 
 

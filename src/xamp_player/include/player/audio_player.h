@@ -16,31 +16,25 @@
 #include <base/dsdsampleformat.h>
 #include <base/align_ptr.h>
 #include <base/vmmemlock.h>
+#include <base/id.h>
 
-#include <stream/audiostream.h>
+#include <stream/stream.h>
 
+#include <output_device/output_device.h>
 #include <output_device/audiocallback.h>
-#include <output_device/devicestatelistener.h>
-#include <output_device/device.h>
-#include <output_device/device_type.h>
-
 #include <player/playstate.h>
 #include <player/playbackstateadapter.h>
-#include <player/spectrumanalyser.h>
 #include <player/player.h>
-
-namespace xamp::stream {
-	class DsdStream;
-	class FileStream;
-}
-
-namespace xamp::output_device {
-	class DsdDevice;
-}
 
 namespace xamp::player {
 
-class Resampler;
+using namespace xamp::base;
+using namespace xamp::stream;
+using namespace xamp::output_device;
+
+using xamp::stream::DsdStream;
+using xamp::stream::FileStream;
+using xamp::output_device::DsdDevice;
 
 class XAMP_PLAYER_API AudioPlayer final :
 	public AudioCallback,
@@ -81,7 +75,7 @@ public:
 
 	bool IsPlaying() const;
 
-	DsdModes GetDSDModes() const;
+	DsdModes GetDSDModes() const noexcept;
 
     std::optional<int32_t> GetDSDSpeed() const;
 

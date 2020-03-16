@@ -156,6 +156,7 @@
     <ClInclude Include="include\output_device\device.h" />
     <ClInclude Include="include\output_device\devicefactory.h" />
     <ClInclude Include="include\output_device\deviceinfo.h" />
+    <ClInclude Include="include\output_device\devicestate.h" />
     <ClInclude Include="include\output_device\devicestatelistener.h" />
     <ClInclude Include="include\output_device\device_type.h" />
     <ClInclude Include="include\output_device\dsddevice.h" />

@@ -368,7 +368,7 @@ bool AudioPlayer::IsPlaying() const {
     return is_playing_;
 }
 
-DsdModes AudioPlayer::GetDSDModes() const {
+DsdModes AudioPlayer::GetDSDModes() const noexcept {
     return dsd_mode_;
 }
 
@@ -499,19 +499,17 @@ void AudioPlayer::OnDeviceStateChange(DeviceState state, const std::wstring& dev
         switch (state) {
         case DeviceState::DEVICE_STATE_ADDED:
             XAMP_LOG_DEBUG("Device added device id:{}", ToUtf8String(device_id));
-            state_adapter->OnDeviceChanged();
+            state_adapter->OnDeviceChanged(DeviceState::DEVICE_STATE_ADDED);
             break;
         case DeviceState::DEVICE_STATE_REMOVED:
             XAMP_LOG_DEBUG("Device removed device id:{}", ToUtf8String(device_id));
             if (device_id == device_id_) {
-                // TODO: thread safe?
-                Stop(true, true, true);
-                state_adapter->OnDeviceChanged();
+                state_adapter->OnDeviceChanged(DeviceState::DEVICE_STATE_REMOVED);
             }
             break;
         case DeviceState::DEVICE_STATE_DEFAULT_DEVICE_CHANGE:
             XAMP_LOG_DEBUG("Default device device id:{}", ToUtf8String(device_id));
-            state_adapter->OnDeviceChanged();
+            state_adapter->OnDeviceChanged(DeviceState::DEVICE_STATE_DEFAULT_DEVICE_CHANGE);
             break;
         }
     }	

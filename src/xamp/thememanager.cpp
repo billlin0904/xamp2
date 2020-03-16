@@ -128,12 +128,12 @@ void ThemeManager::setBackgroundColor(Ui::XampWindow& ui, QColor color) {
 	QColor alphaColor = color;
 	alphaColor.setAlpha(150);
 	ui.sliderFrame->setStyleSheet(backgroundColorToString(alphaColor));
-	ui.controlFrame->setStyleSheet(backgroundColorToString(alphaColor));
+	ui.controlFrame->setStyleSheet(backgroundColorToString(color));
 
 	AppSettings::setValue(APP_SETTING_BACKGROUND_COLOR, color);
 	backgroundColor = color;
 
-    setThemeIcon(ui);    
+    setThemeColor(ui);    
 }
 
 QIcon ThemeManager::playArrow() noexcept {
@@ -167,7 +167,7 @@ void ThemeManager::setRepeatOncePlayorder(Ui::XampWindow& ui) {
                                               )")).arg(themeColorPath()));
 }
 
-void ThemeManager::setThemeIcon(Ui::XampWindow& ui) {
+void ThemeManager::setThemeColor(Ui::XampWindow& ui) {
 	ui.titleLabel->setStyleSheet(Q_UTF8(R"(
                                          QLabel#titleLabel {
                                          color: white;
@@ -289,9 +289,8 @@ void ThemeManager::setDefaultStyle(Ui::XampWindow& ui) {
 	ui.playingFrame->setStyleSheet(backgroundColorToString(controlBackgroundColor));
 
 	ui.searchLineEdit->setStyleSheet(Q_UTF8(""));
-	ui.sliderBar->setStyleSheet(Q_UTF8("QListView#sliderBar { background-color: transparent; border: none; }"));
-
-	setThemeIcon(ui);
+	ui.sliderBar->setStyleSheet(Q_UTF8("QListView#sliderBar { background-color: transparent; border: none; }"));    
+	setThemeColor(ui);
 
 	ui.searchLineEdit->setStyleSheet(Q_UTF8(R"(
                                             QLineEdit#searchLineEdit {
