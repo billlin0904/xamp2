@@ -5,7 +5,6 @@
 
 #pragma once
 
-#if 0
 #include <array>
 #include <string>
 #include <sstream>
@@ -28,13 +27,13 @@ namespace xamp::base {
 using Task = std::function<void()>;
 
 template <typename Type>
-class TaskQueue final {
+class DispatchQueue final {
 public:
-	TaskQueue()
+	DispatchQueue()
 		: done_(false) {
 	}
 
-    XAMP_DISABLE_COPY(TaskQueue)   
+    XAMP_DISABLE_COPY(DispatchQueue)   
 
     template <typename U>
     bool TryEnqueue(U &&task) {
@@ -123,15 +122,17 @@ template
 	size_t MaxThread,
 	typename TaskType, 
 	template <typename> 
-	class Queue = TaskQueue
+	class Queue = DispatchQueue
 >
 class TaskScheduler final {
 public:
+    static const auto K = 3;
+
     explicit TaskScheduler()
         : is_stopped_(false)
         , index_(0) {
         for (size_t i = 0; i < MaxThread; ++i) {
-			task_queues_[i] = std::move(MakeAlign<TaskQueue<TaskType>>());
+			task_queues_[i] = std::move(MakeAlign<DispatchQueue<TaskType>>());
         }
         for (size_t i = 0; i < MaxThread; ++i) {
             AddThread(i);
@@ -146,14 +147,14 @@ public:
 
     void SubmitJob(TaskType&& task) {
 		const auto i = index_++;
-
-        for (size_t n = 0; n != threads_.size(); ++n) {
-			const auto index = (i + n) % task_queues_.size();
+        const auto queue_size = task_queues_.size();
+        for (size_t n = 0; n < threads_.size() + K; ++n) {
+			const auto index = (i + n) % queue_size;
             if (task_queues_[index]->TryEnqueue(task)) {
                 return;
             }
         }
-		task_queues_[i % task_queues_.size()]->Enqueue(task);
+		task_queues_[i % queue_size]->Enqueue(task);
     }
 
     void Destory() {
@@ -202,7 +203,7 @@ private:
                 }
             }
         });
-    }
+    }    
 
 	std::atomic<bool> is_stopped_;
 	size_t index_;
@@ -212,7 +213,7 @@ private:
     
 class XAMP_BASE_API ThreadPool final {
 public:
-	ThreadPool();
+    ThreadPool();
 
 	XAMP_DISABLE_COPY(ThreadPool)
 
@@ -238,7 +239,16 @@ std::future<typename std::result_of<F(Args ...)>::type> ThreadPool::RunAsync(F&&
 	return task->get_future();
 }
 
+namespace DefaultThreadPool {
+    inline ThreadPool& GetThreadPool() {
+        static ThreadPool default_thread_pool;
+        return default_thread_pool;
+    }
+
+    template <typename Func, typename... Args>
+    auto RunAsync(Func&& func, Args&&... args) {
+        return GetThreadPool().RunAsync(std::forward<Func>(func), std::forward<Args>(args)...);
+    }
 }
 
-#endif
-
+}

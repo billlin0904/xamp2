@@ -3,6 +3,7 @@
 #include <base/str_utilts.h>
 #include <base/platform_thread.h>
 #include <base/logger.h>
+#include <base/threadpool.h>
 #include <base/vmmemlock.h>
 #include <base/str_utilts.h>
 
@@ -76,8 +77,7 @@ void AudioPlayer::LoadLib() {
 void AudioPlayer::PrepareAllocate() {
 	wait_timer_.SetTimeout(READ_SAMPLE_WAIT_TIME);
 	buffer_.Resize(PREALLOCATE_BUFFER_SIZE);
-    // Initial std::async internal threadpool
-    stream_task_ = std::async(std::launch::async | std::launch::deferred, []() {});
+    stream_task_ = DefaultThreadPool::GetThreadPool().RunAsync([]() {});
 }
 
 void AudioPlayer::Open(const std::wstring& file_path, const std::wstring& file_ext, const DeviceInfo& device_info) {
@@ -417,6 +417,7 @@ void AudioPlayer::CreateBuffer() {
         auto allocate_size = require_read_sample * stream_->GetSampleSize() * BUFFER_STREAM_COUNT;
         num_buffer_samples_ = allocate_size * 10;
         num_read_sample_ = require_read_sample;
+        XAMP_LOG_DEBUG("Allocate interal buffer : {}", FormatBytes(allocate_size));
         sample_buffer_ = MakeBuffer<int8_t>(allocate_size);
         read_sample_size_ = allocate_size;
     }
@@ -427,7 +428,7 @@ void AudioPlayer::CreateBuffer() {
         if (buffer_.GetSize() == 0 || buffer_.GetSize() < num_buffer_samples_) {
             XAMP_LOG_DEBUG("Buffer too small reallocate.");
             buffer_.Resize(num_buffer_samples_);
-            XAMP_LOG_DEBUG("Allocate memory size:{}", buffer_.GetSize());
+            XAMP_LOG_DEBUG("Allocate player buffer : {}", FormatBytes(num_buffer_samples_));
         }
     }
     else {
@@ -438,10 +439,11 @@ void AudioPlayer::CreateBuffer() {
         resampler_desc = resampler_->GetDescription();
     }
     
-    XAMP_LOG_DEBUG("Output device format: {} num_read_sample: {} Resampler: {}",
+    XAMP_LOG_DEBUG("Output device format: {} num_read_sample: {} resampler: {} buffer: {}",
         output_format_,
         num_read_sample_,
-        resampler_desc);
+        resampler_desc,
+        FormatBytes(buffer_.GetSize()));
 }
 
 void AudioPlayer::SetEnableResampler(bool enable) {
@@ -620,8 +622,7 @@ void AudioPlayer::ReadSampleLoop(int32_t max_read_sample, std::unique_lock<std::
 void AudioPlayer::PlayStream() {
     std::weak_ptr<AudioPlayer> player = shared_from_this();
 
-    // 1.預先啟動output device開始撥放, 因有預先塞入資料可以加速撥放效果.
-    // 2.std::async啟動會比較慢一點.
+    // 預先啟動output device開始撥放, 因有預先塞入資料可以加速撥放效果.
 	Play();
 
     constexpr auto stream_proc = [](std::weak_ptr<AudioPlayer> player) noexcept {
@@ -661,7 +662,7 @@ void AudioPlayer::PlayStream() {
         XAMP_LOG_DEBUG("Stream thread finished!");
     };
 
-    stream_task_ = std::async(std::launch::async | std::launch::deferred, stream_proc, player);
+    stream_task_ = DefaultThreadPool::GetThreadPool().RunAsync(stream_proc, player);
 }
 
 }

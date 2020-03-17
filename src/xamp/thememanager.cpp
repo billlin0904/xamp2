@@ -124,11 +124,11 @@ void ThemeManager::setBackgroundColor(Ui::XampWindow& ui, QColor color) {
 	QColor bottomColor = color.lighter(50);
 	ui.playingFrame->setStyleSheet(backgroundColorToString(bottomColor));
 	ui.volumeFrame->setStyleSheet(backgroundColorToString(bottomColor));
+    ui.controlFrame->setStyleSheet(backgroundColorToString(bottomColor));
 
 	QColor alphaColor = color;
-	alphaColor.setAlpha(150);
-	ui.sliderFrame->setStyleSheet(backgroundColorToString(alphaColor));
-	ui.controlFrame->setStyleSheet(backgroundColorToString(color));
+	alphaColor.setAlpha(200);
+	ui.sliderFrame->setStyleSheet(backgroundColorToString(alphaColor));	
 
 	AppSettings::setValue(APP_SETTING_BACKGROUND_COLOR, color);
 	backgroundColor = color;

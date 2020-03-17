@@ -46,6 +46,7 @@
     <ClInclude Include="include\output_device\volume.h" />
     <ClInclude Include="include\output_device\dsddevice.h" />
     <ClInclude Include="include\output_device\win32\mmcss.h" />
+    <ClInclude Include="include\output_device\devicestate.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="asiosdk">
