@@ -5,10 +5,7 @@
 
 #pragma once
 
-#include <array>
 #include <string>
-#include <sstream>
-#include <memory>
 #include <future>
 #include <atomic>
 #include <queue>
@@ -115,11 +112,10 @@ private:
     std::deque<Type> queue_;
 };
 
-XAMP_BASE_API void SetCurrentThreadName(int32_t index);
+XAMP_BASE_API void SetCurrentThreadName(size_t index);
 
 template 
 <
-	size_t MaxThread,
 	typename TaskType, 
 	template <typename> 
 	class Queue = DispatchQueue
@@ -130,11 +126,12 @@ public:
 
     explicit TaskScheduler()
         : is_stopped_(false)
-        , index_(0) {
-        for (size_t i = 0; i < MaxThread; ++i) {
-			task_queues_[i] = std::move(MakeAlign<DispatchQueue<TaskType>>());
+        , index_(0)
+        , max_thread_(std::thread::hardware_concurrency()) {
+        for (size_t i = 0; i < max_thread_; ++i) {
+            task_queues_.push_back(MakeAlign<DispatchQueue<TaskType>>());
         }
-        for (size_t i = 0; i < MaxThread; ++i) {
+        for (size_t i = 0; i < max_thread_; ++i) {
             AddThread(i);
         }
     }
@@ -148,7 +145,7 @@ public:
     void SubmitJob(TaskType&& task) {
 		const auto i = index_++;
         const auto queue_size = task_queues_.size();
-        for (size_t n = 0; n < threads_.size() + K; ++n) {
+        for (size_t n = 0; n < max_thread_ + K; ++n) {
 			const auto index = (i + n) % queue_size;
             if (task_queues_[index]->TryEnqueue(task)) {
                 return;
@@ -160,7 +157,7 @@ public:
     void Destory() {
         is_stopped_ = true;
 
-        for (size_t i = 0; i < task_queues_.size(); ++i) {
+        for (size_t i = 0; i < max_thread_; ++i) {
             task_queues_[i]->Done();
 
             if (threads_[i].joinable()) {
@@ -170,26 +167,25 @@ public:
     }
 
 private:
-    static const int32_t MAX_THREAD_HT_PAD = 64 * 1024;
-
     void AddThread(size_t i) {
-        threads_[i] = std::thread([i, this]() mutable {
-			// https://software.intel.com/en-us/articles/multithreaded-game-programming-and-hyper-threading-technology
-			const auto cacheline_pad = alloca(((i + 1) % MaxThread) * MAX_THREAD_HT_PAD);
+        threads_.push_back(std::thread([i, this]() mutable {
+            SetCurrentThreadName(i);
 
             for (;;) {
                 TaskType task;
 
-                for (size_t n = 0; n != MaxThread; ++n) {
+                for (size_t n = 0; n != max_thread_; ++n) {
                     if (is_stopped_) {
                         return;
                     }
 
-                    const auto index = (i + n) % MaxThread;
+                    const auto index = (i + n) % max_thread_;
                     if (task_queues_[index]->TryDequeue(task)) {
                         break;
                     }
                 }
+
+                XAMP_LOG_DEBUG("Active thread: {}", i);
 
                 if (!task) {
                     if (task_queues_[i]->Dequeue(task)) {
@@ -202,13 +198,14 @@ private:
                     task();
                 }
             }
-        });
+        }));
     }    
 
 	std::atomic<bool> is_stopped_;
 	size_t index_;
-    std::array<std::thread, MaxThread> threads_;
-	std::array<AlignPtr<Queue<TaskType>>, MaxThread> task_queues_;
+    size_t max_thread_;
+    std::vector<std::thread> threads_;
+	std::vector<AlignPtr<Queue<TaskType>>> task_queues_;
 };
     
 class XAMP_BASE_API ThreadPool final {
@@ -221,8 +218,7 @@ public:
 	std::future<typename std::result_of<F(Args ...)>::type> RunAsync(F&& f, Args&&... args);
 
 private:
-	static const size_t MAX_THREAD = 4;
-    TaskScheduler<MAX_THREAD, Task> scheduler_;
+    TaskScheduler<Task> scheduler_;
 };
 
 template <typename F, typename ... Args>

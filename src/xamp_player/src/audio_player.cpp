@@ -53,7 +53,7 @@ AudioPlayer::AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter)
     , is_playing_(false)
     , is_paused_(false)
     , state_adapter_(adapter) {
-	PrepareAllocate();
+	Init();
 }
 
 AudioPlayer::~AudioPlayer() {
@@ -69,12 +69,11 @@ void AudioPlayer::LoadLib() {
     BassFileStream::LoadBassLib();
 #ifdef _WIN32
     SoxrResampler::LoadSoxrLib();
-    CdspResampler::LoadCdspLib();
     Chromaprint::LoadChromaprintLib();
 #endif
 }
 
-void AudioPlayer::PrepareAllocate() {
+void AudioPlayer::Init() {
 	wait_timer_.SetTimeout(READ_SAMPLE_WAIT_TIME);
 	buffer_.Resize(PREALLOCATE_BUFFER_SIZE);
     stream_task_ = DefaultThreadPool::GetThreadPool().RunAsync([]() {});

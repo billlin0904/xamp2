@@ -96,7 +96,7 @@ public:
 	void SetEnableResampler(bool enable = true);
 
 private:
-	void PrepareAllocate();
+	void Init();
 
 	void Initial();
 

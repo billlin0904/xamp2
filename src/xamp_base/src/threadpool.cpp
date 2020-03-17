@@ -1,9 +1,10 @@
+#include <sstream>
 #include <base/platform_thread.h>
 #include <base/threadpool.h>
 
 namespace xamp::base {
 
-void SetCurrentThreadName(int32_t index) {
+void SetCurrentThreadName(size_t index) {
 	std::ostringstream ostr;
 	ostr << "Work Thread(" << index << ")";
 	SetThreadName(ostr.str());

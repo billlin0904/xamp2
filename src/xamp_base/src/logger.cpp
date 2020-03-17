@@ -25,7 +25,7 @@ private:
 	void sink_it_(const spdlog::details::log_msg& msg) override {
 		spdlog::memory_buf_t formatted;
 		formatter_->format(msg, formatted);
-		OutputDebugStringW(ToStdWString(fmt::to_string(formatted)).c_str());
+		::OutputDebugStringW(ToStdWString(fmt::to_string(formatted)).c_str());
 	}
 
 	void flush_() override {
