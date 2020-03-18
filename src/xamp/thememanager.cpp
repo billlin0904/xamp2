@@ -217,6 +217,7 @@ void ThemeManager::setThemeColor(Ui::XampWindow& ui) {
                                             image: url(:/xamp/Resource/%1/settings.png);
                                             background-color: transparent;
                                             }
+                                            QToolButton#settingsButton::menu-indicator { image: none; }
                                             )")).arg(themeColorPath()));
 
 	ui.stopButton->setStyleSheet(QString(Q_UTF8(R"(
@@ -246,8 +247,9 @@ void ThemeManager::setThemeColor(Ui::XampWindow& ui) {
                                                 QToolButton#selectDeviceButton {
                                                 image: url(:/xamp/Resource/%1/speaker.png);
                                                 border: none;
-                                                background-color: transparent;
+                                                background-color: transparent;                                                
                                                 }
+                                                QToolButton#selectDeviceButton::menu-indicator { image: none; }
                                                 )")).arg(themeColorPath()));
 
 	ui.mutedButton->setStyleSheet(QString(Q_UTF8(R"(

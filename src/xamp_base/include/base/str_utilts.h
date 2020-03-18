@@ -63,4 +63,9 @@ XAMP_ALWAYS_INLINE std::string FormatBytes(size_t bytes) noexcept {
     return buffer;
 }
 
+template <typename T>
+XAMP_ALWAYS_INLINE std::string FormatBytesBy(size_t bytes) noexcept {
+    return FormatBytes(sizeof(T) * bytes);
+}
+
 }

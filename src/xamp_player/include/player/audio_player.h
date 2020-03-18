@@ -93,7 +93,7 @@ public:
 
 	void SetResampler(int32_t samplerate, AlignPtr<Resampler> &&resampler);
 
-	void SetEnableResampler(bool enable = true);
+	void EnableResampler(bool enable = true);
 
 private:
 	void Init();

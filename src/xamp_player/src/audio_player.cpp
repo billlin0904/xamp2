@@ -13,11 +13,6 @@
 
 #include <stream/bassfilestream.h>
 #include <stream/avfilestream.h>
-
-#ifdef _WIN32
-#include <player/cdspresampler.h>
-#endif
-
 #include <player/soxresampler.h>
 
 #include <player/resampler.h>
@@ -26,12 +21,11 @@
 
 namespace xamp::player {
 
-constexpr int32_t FFT_SIZE = 4096 * 2;
 constexpr int32_t BUFFER_STREAM_COUNT = 5;
 constexpr int32_t PREALLOCATE_BUFFER_SIZE = 4 * 1024 * 1024;
 constexpr int32_t MAX_WRITE_RATIO = 20;
 constexpr int32_t MAX_READ_RATIO = 30;
-constexpr std::chrono::milliseconds UPDATE_SAMPLE_INTERVAL(100);
+constexpr std::chrono::milliseconds UPDATE_SAMPLE_INTERVAL(15);
 constexpr std::chrono::seconds WAIT_FOR_STRAEM_STOP_TIME(5);
 constexpr std::chrono::milliseconds READ_SAMPLE_WAIT_TIME(150);
 
@@ -93,6 +87,7 @@ void AudioPlayer::Open(const std::wstring& file_path, const std::wstring& file_e
 void AudioPlayer::SetResampler(int32_t samplerate, AlignPtr<Resampler>&& resampler) {
     target_samplerate_ = samplerate;
     resampler_ = std::move(resampler);
+    EnableResampler(true);
 }
 
 void AudioPlayer::CreateDevice(const ID& device_type_id, const std::wstring& device_id, const bool open_always) {
@@ -445,7 +440,7 @@ void AudioPlayer::CreateBuffer() {
         FormatBytes(buffer_.GetSize()));
 }
 
-void AudioPlayer::SetEnableResampler(bool enable) {
+void AudioPlayer::EnableResampler(bool enable) {
     enable_resample_ = enable;
 }
 

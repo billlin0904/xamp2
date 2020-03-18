@@ -742,35 +742,22 @@ void Xamp::resetSeekPosValue() {
 
 void Xamp::setupResampler() {
     if (AppSettings::getValue(APP_SETTING_RESAMPLER_ENABLE).toBool()) {
-        AlignPtr<Resampler> resampler;
+        auto samplerate = AppSettings::getValue(APP_SETTING_SOXR_RESAMPLE_SAMPLRATE).toInt();
+        auto quality = static_cast<SoxrQuality>(AppSettings::getValue(APP_SETTING_SOXR_QUALITY).toInt());
+        auto phase = static_cast<SoxrPhaseResponse>(AppSettings::getValue(APP_SETTING_SOXR_PHASE).toInt());
+        auto passband = AppSettings::getValue(APP_SETTING_SOXR_PASS_BAND).toInt();
+        auto enable_steep_filter = AppSettings::getValue(APP_SETTING_SOXR_ENABLE_STEEP_FILTER).toBool();
 
-        auto resampler_type = AppSettings::getValue(APP_SETTING_RESAMPLER_TYPE).toString();
-        if (resampler_type == tr("Soxr")) {
-            auto samplerate = AppSettings::getValue(APP_SETTING_SOXR_RESAMPLE_SAMPLRATE).toInt();
-            auto quality = static_cast<SoxrQuality>(AppSettings::getValue(APP_SETTING_SOXR_QUALITY).toInt());
-            auto phase = static_cast<SoxrPhaseResponse>(AppSettings::getValue(APP_SETTING_SOXR_PHASE).toInt());
-            auto passband = AppSettings::getValue(APP_SETTING_SOXR_PASS_BAND).toInt();
-            auto enable_steep_filter = AppSettings::getValue(APP_SETTING_SOXR_ENABLE_STEEP_FILTER).toBool();
-            resampler = MakeAlign<Resampler, SoxrResampler>();
-            auto soxr = dynamic_cast<SoxrResampler*>(resampler.get());
-            soxr->SetQuality(quality);
-            soxr->SetPhase(phase);
-            soxr->SetPassBand(passband / 100.0);
-            soxr->SetSteepFilter(enable_steep_filter);
-            player_->SetResampler(samplerate, std::move(resampler));
-        }
-        else {
-#ifdef Q_OS_WIN
-            resampler = MakeAlign<Resampler, CdspResampler>();
-            auto samplerate = AppSettings::getValue(APP_SETTING_R8BRAIN_RESAMPLE_SAMPLRATE).toInt();
-            player_->SetResampler(samplerate, std::move(resampler));
-#endif
-        }
-
-        player_->SetEnableResampler(true);
+        auto resampler = MakeAlign<Resampler, SoxrResampler>();
+        auto soxr = dynamic_cast<SoxrResampler*>(resampler.get());
+        soxr->SetQuality(quality);
+        soxr->SetPhase(phase);
+        soxr->SetPassBand(passband / 100.0);
+        soxr->SetSteepFilter(enable_steep_filter);
+        player_->SetResampler(samplerate, std::move(resampler));
     }
     else {
-        player_->SetEnableResampler(false);
+        player_->EnableResampler(false);
     }
 }
 

@@ -45,8 +45,8 @@ FramelessWindow::FramelessWindow(QWidget* parent)
 #if defined(Q_OS_WIN)        
     setStyleSheet(Q_UTF8(R"(
         font-family: "UI";
-		background: transparent;
-        border: none;
+		background: transparent;        
+        border: none;        
     )"));
 #else
     is_mouse_pressed_ = false;

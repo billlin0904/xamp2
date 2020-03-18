@@ -19,19 +19,13 @@ void PreferenceDialog::initSoxResampler() {
 	ui_.soxrPassbandValue->setText(QString(Q_UTF8("%0%")).arg(ui_.soxrPassbandSlider->value()));
 
 	auto enable_resampler = AppSettings::getValue(APP_SETTING_RESAMPLER_ENABLE).toBool();
-	auto resampler_type = AppSettings::getValue(APP_SETTING_RESAMPLER_TYPE).toString();
 	if (!enable_resampler) {
 		ui_.resamplerStackedWidget->setCurrentIndex(0);
 		ui_.selectResamplerComboBox->setCurrentIndex(0);
 	}
 	else {
-		if (resampler_type == tr("Soxr")) {
-			ui_.resamplerStackedWidget->setCurrentIndex(1);
-			ui_.selectResamplerComboBox->setCurrentIndex(1);
-		} else if (resampler_type == tr("r8brain")) {
-			ui_.resamplerStackedWidget->setCurrentIndex(2);
-			ui_.selectResamplerComboBox->setCurrentIndex(2);
-		}
+		ui_.resamplerStackedWidget->setCurrentIndex(1);
+		ui_.selectResamplerComboBox->setCurrentIndex(1);
 	}
 
 	auto enable = AppSettings::getValue(APP_SETTING_SOXR_ENABLE_STEEP_FILTER).toBool();
@@ -41,8 +35,6 @@ void PreferenceDialog::initSoxResampler() {
 	else {
 		ui_.soxrAllowAliasingCheckBox->setChecked(false);
 	}
-
-	ui_.r8brainTargetSampleRateComboBox->setCurrentText(QString::number(AppSettings::getValue(APP_SETTING_R8BRAIN_RESAMPLE_SAMPLRATE).toInt()));
 }
 
 PreferenceDialog::PreferenceDialog(QWidget *parent)
@@ -104,7 +96,6 @@ PreferenceDialog::PreferenceDialog(QWidget *parent)
 
 	(void)QObject::connect(ui_.resetAllButton, &QPushButton::clicked, [this]() {
 		AppSettings::setValue(APP_SETTING_RESAMPLER_ENABLE, false);
-		AppSettings::setValue(APP_SETTING_RESAMPLER_TYPE, QString(Q_EMPTY_STR));
 		AppSettings::setValue(APP_SETTING_SOXR_RESAMPLE_SAMPLRATE, 44100);
 		AppSettings::setValue(APP_SETTING_SOXR_ENABLE_STEEP_FILTER, false);
 		AppSettings::setValue(APP_SETTING_SOXR_QUALITY, 3);
@@ -122,23 +113,11 @@ PreferenceDialog::PreferenceDialog(QWidget *parent)
 
 		auto index = ui_.resamplerStackedWidget->currentIndex();
 		AppSettings::setValue(APP_SETTING_RESAMPLER_ENABLE, index > 0);
-		switch (index) {
-		case 1:
-			AppSettings::setValue(APP_SETTING_RESAMPLER_TYPE, tr("Soxr"));
-			break;
-		case 2:
-			AppSettings::setValue(APP_SETTING_RESAMPLER_TYPE, tr("r8brain"));
-			break;
-		}
-
 		AppSettings::setValue(APP_SETTING_SOXR_RESAMPLE_SAMPLRATE, soxr_sample_rate);
 		AppSettings::setValue(APP_SETTING_SOXR_ENABLE_STEEP_FILTER, soxr_enable_steep_filter);
 		AppSettings::setValue(APP_SETTING_SOXR_QUALITY, soxr_quility);
 		AppSettings::setValue(APP_SETTING_SOXR_PHASE, soxr_phase);
 		AppSettings::setValue(APP_SETTING_SOXR_PASS_BAND, soxr_pass_band);
-
-		const auto r8brain_sample_rate = ui_.r8brainTargetSampleRateComboBox->currentText().toInt();
-		AppSettings::setValue(APP_SETTING_R8BRAIN_RESAMPLE_SAMPLRATE, r8brain_sample_rate);
 		});	
 
 	initSoxResampler();

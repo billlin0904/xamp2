@@ -126,6 +126,7 @@ public:
 
     explicit TaskScheduler()
         : is_stopped_(false)
+        , active_thread_(0)
         , index_(0)
         , max_thread_(std::thread::hardware_concurrency()) {
         for (size_t i = 0; i < max_thread_; ++i) {
@@ -166,6 +167,10 @@ public:
         }
     }
 
+    size_t GetActiveThreadCount() const {
+        return active_thread_;
+    }
+
 private:
     void AddThread(size_t i) {
         threads_.push_back(std::thread([i, this]() mutable {
@@ -189,19 +194,24 @@ private:
 
                 if (!task) {
                     if (task_queues_[i]->Dequeue(task)) {
+                        ++active_thread_;
                         task();
+                        --active_thread_;
 					} else {
 						std::this_thread::yield();
 					}
                 }
                 else {
+                    ++active_thread_;
                     task();
+                    --active_thread_;
                 }
             }
         }));
-    }    
+    }
 
 	std::atomic<bool> is_stopped_;
+    std::atomic<size_t> active_thread_;
 	size_t index_;
     size_t max_thread_;
     std::vector<std::thread> threads_;
@@ -216,6 +226,10 @@ public:
 
     template <typename F, typename... Args>
 	std::future<typename std::result_of<F(Args ...)>::type> RunAsync(F&& f, Args&&... args);
+
+    size_t GetActiveThreadCount() const {
+        return scheduler_.GetActiveThreadCount();
+    }
 
 private:
     TaskScheduler<Task> scheduler_;

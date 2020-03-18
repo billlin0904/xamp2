@@ -1,6 +1,7 @@
 #ifdef _WIN32
 
 #include <base/logger.h>
+#include <base/str_utilts.h>
 #include <output_device/win32/hrexception.h>
 #include <output_device/win32/exclusivewasapidevice.h>
 
@@ -206,6 +207,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	buffer_ = MakeBuffer<float>((size_t)buffer_frames_ * 2);
 	vmlock_.Lock(buffer_.get(), (size_t)buffer_frames_ * 2 * sizeof(float));
     data_convert_ = MakeConvert(output_format, valid_output_format, buffer_frames_);
+	XAMP_LOG_DEBUG("WASAPI internal buffer: {}", FormatBytesBy<float>(buffer_frames_ * 2));
 }
 
 void ExclusiveWasapiDevice::SetSchedulerService(const std::wstring &mmcss_name, const MmcssThreadPriority thread_priority) {

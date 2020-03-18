@@ -23,9 +23,7 @@ extern const QLatin1String APP_SETTING_ENABLE_BLUR;
 extern const QLatin1String APP_SETTING_BACKGROUND_COLOR;
 extern const QLatin1String APP_SETTING_MUSIC_FILE_PATH;
 
-extern const QLatin1String APP_SETTING_RESAMPLER_TYPE;
 extern const QLatin1String APP_SETTING_RESAMPLER_ENABLE;
-extern const QLatin1String APP_SETTING_R8BRAIN_RESAMPLE_SAMPLRATE;
 extern const QLatin1String APP_SETTING_SOXR_RESAMPLE_SAMPLRATE;
 extern const QLatin1String APP_SETTING_SOXR_ENABLE_STEEP_FILTER;
 extern const QLatin1String APP_SETTING_SOXR_QUALITY;
