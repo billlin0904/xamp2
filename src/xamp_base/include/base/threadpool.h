@@ -122,8 +122,6 @@ template
 >
 class TaskScheduler final {
 public:
-    static const auto K = 3;
-
     explicit TaskScheduler()
         : is_stopped_(false)
         , active_thread_(0)
@@ -145,14 +143,13 @@ public:
 
     void SubmitJob(TaskType&& task) {
 		const auto i = index_++;
-        const auto queue_size = task_queues_.size();
-        for (size_t n = 0; n < max_thread_ + K; ++n) {
-			const auto index = (i + n) % queue_size;
+        for (size_t n = 0; n < max_thread_; ++n) {
+			const auto index = (i + n) % max_thread_;
             if (task_queues_[index]->TryEnqueue(task)) {
                 return;
             }
         }
-		task_queues_[i % queue_size]->Enqueue(task);
+		task_queues_[i % max_thread_]->Enqueue(task);
     }
 
     void Destory() {

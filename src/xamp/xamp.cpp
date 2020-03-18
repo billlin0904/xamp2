@@ -11,9 +11,6 @@
 #include <QFutureWatcher>
 
 #include <player/soxresampler.h>
-#ifdef Q_OS_WIN
-#include <player/cdspresampler.h>
-#endif
 
 #include <widget/albumartistpage.h>
 #include <widget/lrcpage.h>

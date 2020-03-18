@@ -70,7 +70,7 @@ void AudioPlayer::LoadLib() {
 void AudioPlayer::Init() {
 	wait_timer_.SetTimeout(READ_SAMPLE_WAIT_TIME);
 	buffer_.Resize(PREALLOCATE_BUFFER_SIZE);
-    stream_task_ = DefaultThreadPool::GetThreadPool().RunAsync([]() {});
+    DefaultThreadPool::GetThreadPool().RunAsync([]() {});
 }
 
 void AudioPlayer::Open(const std::wstring& file_path, const std::wstring& file_ext, const DeviceInfo& device_info) {
@@ -132,6 +132,8 @@ DsdDevice* AudioPlayer::AsDsdDevice() {
 }
 
 void AudioPlayer::OpenStream(const std::wstring& file_path, const std::wstring &file_ext, const DeviceInfo& device_info) {
+    XAMP_LOG_DEBUG("OpenStream!");
+
     if (stream_ != nullptr) {
         stream_->Close();
     }
@@ -390,6 +392,8 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
 }
 
 void AudioPlayer::CreateBuffer() {
+    XAMP_LOG_DEBUG("CreateBuffer!");
+
     std::atomic_exchange(&slice_, AudioSlice{ 0, 0 });
 
     int32_t require_read_sample = 0;
