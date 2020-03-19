@@ -53,6 +53,7 @@ void Database::createTableIfNotExist() {
                        durationStr TEXT,
                        fileName TEXT,
                        fileExt TEXT,
+				       fingerprint TEXT,
                        bitrate integer,
                        samplerate integer,
                        dateTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -394,6 +395,17 @@ int32_t Database::addOrUpdateMusic(const xamp::base::Metadata& metadata, int32_t
 
 	db_.commit();
 	return music_id;
+}
+
+void Database::updateMusicFingerprint(int32_t music_id, const QString& fingerprint) {
+	QSqlQuery query;
+
+	query.prepare(Q_UTF8("UPDATE musics SET fingerprint = :fingerprint WHERE (musicId = :musicId)"));
+
+	query.bindValue(Q_UTF8(":musicId"), music_id);
+	query.bindValue(Q_UTF8(":fingerprint"), fingerprint);
+
+	query.exec();
 }
 
 void Database::addMusicToPlaylist(int32_t music_id, int32_t playlist_id) const {

@@ -196,12 +196,6 @@ void ThemeManager::setThemeColor(Ui::XampWindow& ui) {
                                          image: url(:/xamp/Resource/%1/close.png);
                                          background-color: transparent;
                                          }
-                                         QToolButton#closeButton:hover {
-                                             background-color: #20343e;
-	                                     }
-	                                     QToolButton#closeButton:pressed {
-                                             background-color: #20343e;
-	                                     }
                                          )")).arg(themeColorPath()));
 
 	ui.minWinButton->setStyleSheet(QString(Q_UTF8(R"(
@@ -209,12 +203,6 @@ void ThemeManager::setThemeColor(Ui::XampWindow& ui) {
                                           image: url(:/xamp/Resource/%1/minimize.png);
                                           background-color: transparent;
                                           }
-                                          QToolButton#minWinButton:hover {
-                                          background-color: #20343e;
-	                                      }
-	                                      QToolButton#minWinButton:pressed {
-                                          background-color: #20343e;
-	                                      }
                                           )")).arg(themeColorPath()));
 
 	ui.maxWinButton->setStyleSheet(QString(Q_UTF8(R"(
@@ -222,12 +210,6 @@ void ThemeManager::setThemeColor(Ui::XampWindow& ui) {
                                           image: url(:/xamp/Resource/%1/maximize.png);
                                           background-color: transparent;
                                           }
-                                          QToolButton#maxWinButton:hover {
-                                              background-color: #20343e;
-	                                      }
-	                                      QToolButton#maxWinButton:pressed {
-                                              background-color: #20343e;
-	                                      }
                                           )")).arg(themeColorPath()));
 
 	ui.settingsButton->setStyleSheet(QString(Q_UTF8(R"(

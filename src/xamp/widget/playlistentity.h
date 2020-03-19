@@ -27,6 +27,7 @@ struct PlayListEntity {
     QString file_ext;
     QString cover_id;
     QString file_name;
+    QString fingerprint;
 };
 
 Q_DECLARE_METATYPE(PlayListEntity)

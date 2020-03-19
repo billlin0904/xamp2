@@ -7,6 +7,7 @@
 
 #include <string>
 #include <vector>
+#include <functional>
 
 #include <player/player.h>
 
@@ -17,7 +18,7 @@ struct XAMP_PLAYER_API Fingerprint {
 	std::vector<uint8_t> fingerprint;
 };
 
-XAMP_PLAYER_API Fingerprint ReadFingerprint(const std::wstring& file_path);
+XAMP_PLAYER_API Fingerprint ReadFingerprint(const std::wstring& file_path, std::function<bool(int32_t)> progress);
 
 }
 

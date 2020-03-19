@@ -27,7 +27,7 @@ struct hash<QString> {
 
 class PixmapCache {
 public:
-	static PixmapCache& Instance() {
+	static PixmapCache& instance() {
 		static PixmapCache instance;
 		return instance;
 	}

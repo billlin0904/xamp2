@@ -31,7 +31,7 @@ QPixmap PixmapCache::findDirExistCover(const QString& file_path) {
 
     QPixmap read_cover;
 
-    for (QDirIterator itr(dir, PixmapCache::Instance().cover_ext_, QDir::Files | QDir::NoDotAndDotDot); itr.hasNext();) {
+    for (QDirIterator itr(dir, PixmapCache::instance().cover_ext_, QDir::Files | QDir::NoDotAndDotDot); itr.hasNext();) {
         const auto image_file_path = itr.next();
         read_cover = QPixmap(image_file_path);
         if (!read_cover.isNull()) {

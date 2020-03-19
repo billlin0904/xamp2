@@ -6,7 +6,7 @@
 
 namespace xamp::player {
 
-Fingerprint ReadFingerprint(const std::wstring& file_path) {
+Fingerprint ReadFingerprint(const std::wstring& file_path, std::function<bool(int32_t)> progress) {
 	constexpr auto kFingerprintDuration = 120;
 	constexpr auto kReadSampleSize = 8192 * 4;
 
@@ -44,7 +44,15 @@ Fingerprint ReadFingerprint(const std::wstring& file_path) {
 		if (!deocode_size) {
 			break;
 		}
+
 		num_samples += deocode_size;
+		if (progress != nullptr) {
+			auto percent = (num_samples / input_format.GetSampleRate() * 100) / kFingerprintDuration;
+			if (!progress(percent)) {
+				break;
+			}
+		}
+
 		DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEAVED>
 			::ConvertToInt16(osamples.data(), isamples.data(), ctx);
 		chromaprint.Feed(osamples.data(), deocode_size * input_format.GetChannels());

@@ -9,7 +9,9 @@
 #include <QShortcut>
 #include <QtConcurrent>
 #include <QFutureWatcher>
+#include <QProgressDialog>
 
+#include <player/chromaprinthelper.h>
 #include <player/soxresampler.h>
 
 #include <widget/albumartistpage.h>
@@ -478,7 +480,7 @@ void Xamp::initialController() {
         dialog.exec();
         watch_.addPath(dialog.musicFilePath);
         });
-    auto enable_blur_material_mode_action = new QAction(tr("Enable Blur"), this);
+    auto enable_blur_material_mode_action = new QAction(tr("Enable blur"), this);
     enable_blur_material_mode_action->setCheckable(true);
     if (AppSettings::getValue(APP_SETTING_ENABLE_BLUR).toBool()) {
         enable_blur_material_mode_action->setChecked(true);
@@ -814,7 +816,7 @@ void Xamp::playMusic(const MusicEntity& item) {
 
     player_->PlayStream();
 
-    if (auto cover = PixmapCache::Instance().find(item.cover_id)) {
+    if (auto cover = PixmapCache::instance().find(item.cover_id)) {
         setCover(*cover.value());
         playlist_page_->cover()->setPixmap(Pixmap::resizeImage(*cover.value(),
             playlist_page_->cover()->size(), true));
@@ -991,7 +993,7 @@ void Xamp::initialPlaylist() {
         });
 
     (void)QObject::connect(&discogs_, &DiscogsClient::downloadImageFinished, [this](auto artist_id, auto image) {
-        auto cover_id = PixmapCache::Instance().add(image);
+        auto cover_id = PixmapCache::instance().add(image);
         Database::Instance().updateArtistCoverId(artist_id, cover_id);
         XAMP_LOG_DEBUG("Save artist id: {} image, cover id : {}", artist_id, cover_id.toStdString());
         });
@@ -1088,9 +1090,32 @@ PlyalistPage* Xamp::newPlaylist(int32_t playlist_id) {
         IgnoreSqlError(Database::Instance().removePlaylistMusic(playlist_id, select_music_ids))
     });
     (void)QObject::connect(playlist_page->playlist(), &PlayListTableView::readFingerprint,
-        [this](auto index, const auto& item) {
-            mbc_.readFingerprint(item.artist_id, item.file_path);
-        });
+        [this](auto index, const auto& item) {                    
+            QProgressDialog dialog(tr("Read fingerprint"), tr("Cancel"), 0, 100);
+            dialog.setFont(font());
+            dialog.setWindowTitle(tr("Read progress dialog"));
+            dialog.setWindowModality(Qt::WindowModal);
+            dialog.setMinimumSize(QSize(500, 100));
+            dialog.show();
+            FingerprintInfo fingerprint_info;
+            QByteArray fingerprint;
+            try {
+                auto result = xamp::player::ReadFingerprint(item.file_path.toStdWString(), [&](auto progress) {
+                    dialog.setValue(progress);
+                    qApp->processEvents();
+                    return dialog.wasCanceled() != true;
+                    });
+                fingerprint_info.artist_id = item.artist_id;
+                fingerprint_info.duration = result.duration;
+                fingerprint.append(reinterpret_cast<char*>(result.fingerprint.data()), result.fingerprint.size());
+                fingerprint_info.fingerprint = QString::fromLatin1(fingerprint);
+                mbc_.searchBy(fingerprint_info);
+                Database::Instance().updateMusicFingerprint(item.music_id, fingerprint_info.fingerprint);
+            }
+            catch (...) {
+            }            
+                });
+
     (void)QObject::connect(this, &Xamp::textColorChanged,
         playlist_page->playlist(),
         &PlayListTableView::onTextColorChanged);

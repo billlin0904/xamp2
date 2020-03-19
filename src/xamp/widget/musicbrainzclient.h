@@ -5,16 +5,12 @@
 
 #pragma once
 
-#include <future>
-
 #include <QObject>
-#include <QList>
 #include <QString>
-#include <QFutureWatcher>
 
 #include <widget/http.h>
 
-struct Fingerprint {
+struct FingerprintInfo {
 	int32_t artist_id{ 0 };
 	int32_t duration{ 0 };
 	QString fingerprint;
@@ -25,16 +21,10 @@ class MusicBrainzClient : public QObject {
 public:
 	MusicBrainzClient(QObject* parent = nullptr);
 
-	void readFingerprint(int32_t artist_id, const QString &file_path);
+	void searchBy(const FingerprintInfo& fingerprint);
 
 	void lookupArtist(int32_t artist_id, const QString& artist_mbid);
 
 signals:
-	void finished(int32_t artist_id, const QString & discogs_artist_id);
-
-public slots:
-	void fingerprintFound(int index);
-
-private:
-	QList<QString> file_paths_;	
+	void finished(int32_t artist_id, const QString & discogs_artist_id);	
 };

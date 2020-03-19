@@ -82,7 +82,7 @@ static int32_t MakeAlignedPeriod(const AudioFormat &format, int32_t frames_per_l
 ExclusiveWasapiDevice::ExclusiveWasapiDevice(const CComPtr<IMMDevice>& device)
 	: is_running_(false)
 	, is_stop_streaming_(false)
-	, thread_priority_(MmcssThreadPriority::MMCSS_THREAD_PRIORITY_CRITICAL)
+	, thread_priority_(MmcssThreadPriority::MMCSS_THREAD_PRIORITY_NORMAL)
 	, buffer_frames_(0)
 	, valid_bits_samples_(0)
 	, queue_id_(0)

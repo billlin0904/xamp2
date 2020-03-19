@@ -22,7 +22,7 @@ namespace xamp::output_device {
 DeviceFactory::DeviceFactory() {
 #ifdef _WIN32
 	using namespace win32;	
-	HrIfFailledThrow(::MFStartup(MF_VERSION, MFSTARTUP_LITE));	
+	HrIfFailledThrow(::MFStartup(MF_VERSION, MFSTARTUP_LITE));
 	XAMP_REGISTER_DEVICE_TYPE(SharedWasapiDeviceType);
 	XAMP_REGISTER_DEVICE_TYPE(ExclusiveWasapiDeviceType);
 #if ENABLE_ASIO

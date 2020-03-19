@@ -27,53 +27,8 @@ MusicBrainzClient::MusicBrainzClient(QObject* parent)
 	: QObject(parent) {
 }
 
-void MusicBrainzClient::readFingerprint(int32_t artist_id, const QString& file_path) {
-#ifdef Q_OS_WIN
-    file_paths_.append(file_path);
-
-    std::function<Fingerprint(const QString&)> handler([artist_id](const QString& file_path) {
-        QByteArray fingerprint;
-        Fingerprint info;
-        try {
-            auto result = xamp::player::ReadFingerprint(file_path.toStdWString());
-            fingerprint.append(reinterpret_cast<char*>(result.fingerprint.data()), result.fingerprint.size());
-            info.artist_id = artist_id;
-            info.duration = std::rint(result.duration);
-            info.fingerprint = QString::fromLatin1(fingerprint.data(), fingerprint.size());
-        }
-        catch (const std::exception & e) {
-            XAMP_LOG_DEBUG("ReadFingerprint return failure!, {}", e.what());           
-        }        
-        return info;
-    });
-
-    auto future = QtConcurrent::mapped(file_paths_, handler);
-    auto watcher = new QFutureWatcher<Fingerprint>(this);
-
-    (void) QObject::connect(watcher, &QFutureWatcher<QString>::finished, [watcher]() {
-        watcher->deleteLater();
-        });
-
-    (void) QObject::connect(watcher,
-        &QFutureWatcher<QString>::resultReadyAt,
-        this,
-        &MusicBrainzClient::fingerprintFound);
-
-    watcher->setFuture(future);
-#endif
-}
-
-void MusicBrainzClient::fingerprintFound(int index) {
-    auto watcher = static_cast<QFutureWatcher<Fingerprint>*>(sender());
-    if (!watcher || index >= file_paths_.count()) {
-        return;
-    }
-
-    file_paths_.removeAt(index);
-    const auto f = watcher->resultAt(index);
-    qDebug() << "Read fingerprint completed artist id:" << f.artist_id;
-
-    auto handler = [this, f](const QString& msg) {
+void MusicBrainzClient::searchBy(const FingerprintInfo& fingerprint) {
+    auto handler = [this, fingerprint](const QString& msg) {
         auto str = msg.toStdString();
 
         Document d;
@@ -91,7 +46,7 @@ void MusicBrainzClient::fingerprintFound(int index) {
         QString acoust_id;
         QList<QString> result_recordings;
 
-        for (const auto & result : results->value.GetArray()) {            
+        for (const auto& result : results->value.GetArray()) {
             auto id = result.FindMember("id");
             if (id != result.MemberEnd()) {
                 acoust_id = toQString(id);
@@ -107,10 +62,10 @@ void MusicBrainzClient::fingerprintFound(int index) {
                         if (id != artist.MemberEnd()) {
                             artist_mbid = toQString(id);
                             qDebug() << "Found artist mbid:" << artist_mbid;
-                            lookupArtist(f.artist_id, artist_mbid);
+                            lookupArtist(fingerprint.artist_id, artist_mbid);
                             return;
-                        }
-                    }                    
+}
+                    }
                 }
             }
         }
@@ -118,9 +73,9 @@ void MusicBrainzClient::fingerprintFound(int index) {
 
     http::HttpClient(ACOUSTID_HOST)
         .param(Q_UTF8("client"), ACOUSTID_KEY)
-        .param(Q_UTF8("duration"), QString::number(f.duration))
+        .param(Q_UTF8("duration"), QString::number(fingerprint.duration))
         .param(Q_UTF8("meta"), Q_UTF8("recordings+releasegroups+compress"))
-        .param(Q_UTF8("fingerprint"), f.fingerprint)
+        .param(Q_UTF8("fingerprint"), fingerprint.fingerprint)
         .success(handler)
         .post();
 }

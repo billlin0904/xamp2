@@ -11,9 +11,10 @@
 
 namespace xamp::output_device {
 
-XAMP_NEVER_INLINE float LinearToLog(int32_t volume) noexcept {
+XAMP_ALWAYS_INLINE float LinearToLog(int32_t volume) noexcept {
 	// Windows volume db max(0) db, min (-96) db
 	constexpr double MIN_DB = -96;
+
 	if (volume == 0) {
 		return 0.0;
 	}
