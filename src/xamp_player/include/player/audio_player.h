@@ -95,6 +95,7 @@ public:
 
 	void EnableResampler(bool enable = true);
 
+	static AlignPtr<AudioStream> MakeFileStream(const std::wstring& file_ext);
 private:
 	void Init();
 

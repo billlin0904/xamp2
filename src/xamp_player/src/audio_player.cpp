@@ -70,7 +70,7 @@ void AudioPlayer::LoadLib() {
 void AudioPlayer::Init() {
 	wait_timer_.SetTimeout(READ_SAMPLE_WAIT_TIME);
 	buffer_.Resize(PREALLOCATE_BUFFER_SIZE);
-    DefaultThreadPool::GetThreadPool().RunAsync([]() {});
+    (void) DefaultThreadPool::GetThreadPool().RunAsync([]() {});
 }
 
 void AudioPlayer::Open(const std::wstring& file_path, const std::wstring& file_ext, const DeviceInfo& device_info) {
@@ -131,54 +131,40 @@ DsdDevice* AudioPlayer::AsDsdDevice() {
     return dynamic_cast<DsdDevice*>(device_.get());
 }
 
-void AudioPlayer::OpenStream(const std::wstring& file_path, const std::wstring &file_ext, const DeviceInfo& device_info) {
-    XAMP_LOG_DEBUG("OpenStream!");
-
-    if (stream_ != nullptr) {
-        stream_->Close();
-    }
-
-    static constexpr const std::wstring_view dsd_ext(L".dsf,.dff");
-    static constexpr const std::wstring_view use_bass(L".m4a,.ape");
+AlignPtr<AudioStream> AudioPlayer::MakeFileStream(const std::wstring& file_ext) {
+    constexpr const std::wstring_view dsd_ext(L".dsf,.dff");
+    constexpr const std::wstring_view use_bass(L".m4a,.ape");
     auto is_dsd_stream = dsd_ext.find(file_ext) != std::wstring_view::npos;
     auto is_use_bass = use_bass.find(file_ext) != std::wstring_view::npos;
-
-#ifdef ENABLE_FFMPEG
     if (is_dsd_stream || is_use_bass) {
-		auto is_support_dsd_file = false;
-		if (stream_ != nullptr) {
-			if (IsDsdStream()) {
-				is_support_dsd_file = true;
-			}
-		}
-		if (!is_support_dsd_file) {
-			stream_ = MakeAlign<AudioStream, BassFileStream>();
-		}
-        if (auto dsd_stream = AsDsdStream()) {
+        return MakeAlign<AudioStream, BassFileStream>();
+    }
+    return MakeAlign<AudioStream, AvFileStream>();
+}
+
+void AudioPlayer::OpenStream(const std::wstring& file_path, const std::wstring &file_ext, const DeviceInfo& device_info) {
+    stream_ = MakeFileStream(file_ext);
+
+    if (auto dsd_stream = AsDsdStream()) {
 #ifdef _WIN32
-            if (device_info.is_support_dsd && is_dsd_stream) {
-                dsd_stream->SetDSDMode(DsdModes::DSD_MODE_NATIVE);
-                dsd_mode_ = DsdModes::DSD_MODE_NATIVE;
-            } else {                
-                dsd_stream->SetDSDMode(DsdModes::DSD_MODE_PCM);
-                dsd_mode_ = DsdModes::DSD_MODE_PCM;
-            }
-#else
-            dsd_stream->SetDSDMode(DsdModes::DSD_MODE_DOP);
-            XAMP_LOG_DEBUG("Use DOP mode");
-            dsd_mode_ = DsdModes::DSD_MODE_DOP;
-#endif
+        if (device_info.is_support_dsd) {
+            dsd_stream->SetDSDMode(DsdModes::DSD_MODE_NATIVE);
+            dsd_mode_ = DsdModes::DSD_MODE_NATIVE;
+        } else {                
+            dsd_stream->SetDSDMode(DsdModes::DSD_MODE_PCM);
+            dsd_mode_ = DsdModes::DSD_MODE_PCM;
         }
+#else
+        dsd_stream->SetDSDMode(DsdModes::DSD_MODE_DOP);
+        XAMP_LOG_DEBUG("Use DOP mode");
+        dsd_mode_ = DsdModes::DSD_MODE_DOP;
+#endif
     }
     else {        
         stream_ = MakeAlign<AudioStream, AvFileStream>();
         dsd_mode_ = DsdModes::DSD_MODE_PCM;
     }
-#else
-    if (!stream_) {
-        stream_ = MakeAlign<FileStream, BassFileStream>();
-    }
-#endif
+
     XAMP_LOG_DEBUG("Use stream type: {}", stream_->GetDescription());
 
 	if (auto file_stream = AsFileStream()) {

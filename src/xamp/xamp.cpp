@@ -1091,30 +1091,40 @@ PlyalistPage* Xamp::newPlaylist(int32_t playlist_id) {
     });
     (void)QObject::connect(playlist_page->playlist(), &PlayListTableView::readFingerprint,
         [this](auto index, const auto& item) {                    
-            QProgressDialog dialog(tr("Read fingerprint"), tr("Cancel"), 0, 100);
+            QProgressDialog dialog(tr("Read '") + item.title + tr("' fingerprint"), tr("Cancel"), 0, 100);
+            dialog.setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
             dialog.setFont(font());
             dialog.setWindowTitle(tr("Read progress dialog"));
             dialog.setWindowModality(Qt::WindowModal);
             dialog.setMinimumSize(QSize(500, 100));
             dialog.show();
+
             FingerprintInfo fingerprint_info;
             QByteArray fingerprint;
+            xamp::player::Fingerprint result;
+
             try {
-                auto result = xamp::player::ReadFingerprint(item.file_path.toStdWString(), [&](auto progress) {
+                result = xamp::player::ReadFingerprint(item.file_path.toStdWString(),
+                    item.file_ext.toStdWString(),
+                    [&](auto progress) {
                     dialog.setValue(progress);
                     qApp->processEvents();
                     return dialog.wasCanceled() != true;
                     });
-                fingerprint_info.artist_id = item.artist_id;
-                fingerprint_info.duration = result.duration;
-                fingerprint.append(reinterpret_cast<char*>(result.fingerprint.data()), result.fingerprint.size());
-                fingerprint_info.fingerprint = QString::fromLatin1(fingerprint);
-                mbc_.searchBy(fingerprint_info);
-                Database::Instance().updateMusicFingerprint(item.music_id, fingerprint_info.fingerprint);
             }
             catch (...) {
-            }            
-                });
+                return;
+            }
+
+            fingerprint.append(reinterpret_cast<char*>(result.fingerprint.data()), result.fingerprint.size());
+            
+            Database::Instance().updateMusicFingerprint(item.music_id, fingerprint_info.fingerprint);
+
+            fingerprint_info.artist_id = item.artist_id;
+            fingerprint_info.duration = result.duration;            
+            fingerprint_info.fingerprint = QString::fromLatin1(fingerprint);                        
+            mbc_.searchBy(fingerprint_info);
+    });
 
     (void)QObject::connect(this, &Xamp::textColorChanged,
         playlist_page->playlist(),

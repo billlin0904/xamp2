@@ -1,19 +1,22 @@
 #ifdef _WIN32
-#include <player/chromaprint.h>
 #include <base/dataconverter.h>
 #include <stream/avfilestream.h>
+
+#include <player/chromaprint.h>
+#include <player/audio_player.h>
 #include <player/chromaprinthelper.h>
 
 namespace xamp::player {
 
-Fingerprint ReadFingerprint(const std::wstring& file_path, std::function<bool(int32_t)> progress) {
+Fingerprint ReadFingerprint(const std::wstring& file_path, const std::wstring& file_ext, std::function<bool(int32_t)> progress) {
 	constexpr auto kFingerprintDuration = 120;
 	constexpr auto kReadSampleSize = 8192 * 4;
 
-	xamp::stream::AvFileStream stream;
-	stream.OpenFromFile(file_path);
+	auto stream = AudioPlayer::MakeFileStream(file_ext);
+	auto file_stream = dynamic_cast<FileStream*>(stream.get());
+	file_stream->OpenFromFile(file_path);
 
-	const auto source_format = stream.GetFormat();
+	const auto source_format = file_stream->GetFormat();
 	const AudioFormat input_format{
 		DataFormat::FORMAT_PCM,
 		source_format.GetChannels(),
@@ -40,7 +43,7 @@ Fingerprint ReadFingerprint(const std::wstring& file_path, std::function<bool(in
 	chromaprint.Start(input_format.GetSampleRate(), input_format.GetChannels(), kReadSampleSize);
 
 	while (num_samples / input_format.GetSampleRate() < kFingerprintDuration) {
-		auto deocode_size = stream.GetSamples(isamples.data(), kReadSampleSize) / input_format.GetChannels();
+		auto deocode_size = file_stream->GetSamples(isamples.data(), kReadSampleSize) / input_format.GetChannels();
 		if (!deocode_size) {
 			break;
 		}
@@ -61,7 +64,7 @@ Fingerprint ReadFingerprint(const std::wstring& file_path, std::function<bool(in
 	chromaprint.Finish();
 
 	return {
-		stream.GetDuration(),
+		stream->GetDuration(),
 		chromaprint.GetFingerprint(),
 	};
 }
