@@ -44,5 +44,6 @@
         <file>Resource/Black/volume_off.png</file>
         <file>Resource/Black/volume_up.png</file>
         <file>xamp.ico</file>
+        <file>Resource/White/search.png</file>
     </qresource>
 </RCC>

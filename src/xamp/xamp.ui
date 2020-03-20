@@ -654,7 +654,7 @@
            <property name="minimumSize">
             <size>
              <width>250</width>
-             <height>25</height>
+             <height>20</height>
             </size>
            </property>
            <property name="focusPolicy">

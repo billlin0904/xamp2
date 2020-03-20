@@ -370,4 +370,8 @@ void ThemeManager::setDefaultStyle(Ui::XampWindow& ui) {
                                          )");
 	ui.volumeSlider->setStyleSheet(slider_style);
 	ui.seekSlider->setStyleSheet(slider_style);
+
+    QIcon search_icon(Q_UTF8(":/xamp/Resource/White/search.png"));
+    ui.searchLineEdit->setClearButtonEnabled(true);
+    ui.searchLineEdit->addAction(search_icon, QLineEdit::LeadingPosition);
 }

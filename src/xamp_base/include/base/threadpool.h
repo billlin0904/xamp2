@@ -21,8 +21,6 @@
 
 namespace xamp::base {
 
-using Task = std::function<void()>;
-
 template <typename Type>
 class DispatchQueue final {
 public:
@@ -229,6 +227,7 @@ public:
     }
 
 private:
+    using Task = std::function<void()>;
     TaskScheduler<Task> scheduler_;
 };
 

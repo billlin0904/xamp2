@@ -24,7 +24,7 @@ class XAMP_BASE_API_ONLY_EXPORT AudioBuffer final {
 public:
 	AudioBuffer() noexcept;
 
-	explicit AudioBuffer(int32_t size);
+	explicit AudioBuffer(size_t size);
 
 	~AudioBuffer() noexcept;
 
@@ -34,9 +34,9 @@ public:
 	
 	void Clear() noexcept;
 
-	void Resize(int32_t size);
+	void Resize(size_t size);
 
-	int32_t GetSize() const noexcept;
+	size_t GetSize() const noexcept;
 
 	int32_t GetAvailableWrite() const noexcept;
 
@@ -53,9 +53,9 @@ private:
 
 	int32_t GetAvailableRead(int32_t head, int32_t tail) const noexcept;
     
-	XAMP_CACHE_ALIGNED(XAMP_CACHE_ALIGN_SIZE) std::atomic<int32_t> head_;
-	XAMP_CACHE_ALIGNED(XAMP_CACHE_ALIGN_SIZE) std::atomic<int32_t> tail_;
-	int32_t size_;
+	XAMP_CACHE_ALIGNED(XAMP_CACHE_ALIGN_SIZE) std::atomic<size_t> head_;
+	XAMP_CACHE_ALIGNED(XAMP_CACHE_ALIGN_SIZE) std::atomic<size_t> tail_;
+	size_t size_;
     AlignBufferPtr<Type> buffer_;
 	VmMemLock lock_;
 };
@@ -68,7 +68,7 @@ AudioBuffer<Type, U>::AudioBuffer() noexcept
 }
 
 template <typename Type, typename U>
-AudioBuffer<Type, U>::AudioBuffer(const int32_t size)
+AudioBuffer<Type, U>::AudioBuffer(size_t size)
     : AudioBuffer() {
     Resize(size);
 }
@@ -83,12 +83,12 @@ Type* AudioBuffer<Type, U>::GetData() const noexcept {
 }
 
 template <typename Type, typename U>
-int32_t AudioBuffer<Type, U>::GetSize() const noexcept {
+size_t AudioBuffer<Type, U>::GetSize() const noexcept {
 	return size_;
 }
 
 template <typename Type, typename U>
-void AudioBuffer<Type, U>::Resize(const int32_t size) {
+void AudioBuffer<Type, U>::Resize(size_t size) {
 	if (size > size_) {
 		lock_.UnLock();
         auto new_buffer = MakeBuffer<Type>(size);
