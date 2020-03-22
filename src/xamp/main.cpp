@@ -85,7 +85,7 @@ int main(int argc, char *argv[]) {
 	(void) PixmapCache::instance();
 
 	try {
-		Database::Instance().open(Q_UTF8("xamp.db"));
+		Database::instance().open(Q_UTF8("xamp.db"));
 	}
 	catch (const std::exception& e) {
 		XAMP_LOG_INFO("Initial database failure! {}", e.what());

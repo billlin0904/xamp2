@@ -18,6 +18,7 @@
 #include <base/base.h>
 #include <base/memory.h>
 #include <base/align_ptr.h>
+#include <base/alignstl.h>
 
 namespace xamp::base {
 
@@ -107,7 +108,7 @@ private:
     std::atomic<bool> done_;
     mutable std::mutex mutex_;
     std::condition_variable notify_;
-    std::deque<Type> queue_;
+    Queue<Type> queue_;
 };
 
 XAMP_BASE_API void SetCurrentThreadName(size_t index);
@@ -205,12 +206,14 @@ private:
         }));
     }
 
+    using TaskQueuePtr = AlignPtr<Queue<TaskType>>;
+
 	std::atomic<bool> is_stopped_;
     std::atomic<size_t> active_thread_;
 	size_t index_;
     size_t max_thread_;
-    std::vector<std::thread> threads_;
-	std::vector<AlignPtr<Queue<TaskType>>> task_queues_;
+    Vector<std::thread> threads_;
+    Vector<TaskQueuePtr> task_queues_;
 };
     
 class XAMP_BASE_API ThreadPool final {

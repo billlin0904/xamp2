@@ -9,8 +9,6 @@
 #include <QColor>
 #include <QList>
 
-class QButtonGroup;
-
 class SelectColorWidget : public QWidget {
     Q_OBJECT
 public:
@@ -20,7 +18,6 @@ signals:
     void colorButtonClicked(const QColor& clr);
 
 private:
-    QButtonGroup* group_;
     QList<QColor> colors_;
 };
 

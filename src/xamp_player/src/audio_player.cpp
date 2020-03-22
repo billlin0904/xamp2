@@ -16,6 +16,7 @@
 #include <player/soxresampler.h>
 
 #include <player/resampler.h>
+#include <player/nullresampler.h>
 #include <player/chromaprint.h>
 #include <player/audio_player.h>
 
@@ -25,7 +26,7 @@ constexpr int32_t BUFFER_STREAM_COUNT = 5;
 constexpr int32_t PREALLOCATE_BUFFER_SIZE = 4 * 1024 * 1024;
 constexpr int32_t MAX_WRITE_RATIO = 20;
 constexpr int32_t MAX_READ_RATIO = 30;
-constexpr std::chrono::milliseconds UPDATE_SAMPLE_INTERVAL(15);
+constexpr std::chrono::milliseconds UPDATE_SAMPLE_INTERVAL(100);
 constexpr std::chrono::seconds WAIT_FOR_STRAEM_STOP_TIME(5);
 constexpr std::chrono::milliseconds READ_SAMPLE_WAIT_TIME(150);
 
@@ -378,25 +379,23 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
 }
 
 void AudioPlayer::CreateBuffer() {
-    XAMP_LOG_DEBUG("CreateBuffer!");
-
     std::atomic_exchange(&slice_, AudioSlice{ 0, 0 });
 
     int32_t require_read_sample = 0;
 
     if (DeviceFactory::Instance().IsPlatformSupportedASIO()) {
         if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE
-                || DeviceFactory::Instance().IsASIODevice(device_type_id_)) {
-			require_read_sample = XAMP_MAX_SAMPLERATE;
-		}
-		else {
-			require_read_sample = device_->GetBufferSize() * MAX_READ_RATIO;
-		}
-	}
-	else {
+            || DeviceFactory::Instance().IsASIODevice(device_type_id_)) {
+            require_read_sample = XAMP_MAX_SAMPLERATE;
+        }
+        else {
+            require_read_sample = device_->GetBufferSize() * MAX_READ_RATIO;
+        }
+    }
+    else {
         require_read_sample = device_->GetBufferSize() * MAX_READ_RATIO;
-	}
-    
+    }
+
     if (require_read_sample != num_read_sample_) {
         auto allocate_size = require_read_sample * stream_->GetSampleSize() * BUFFER_STREAM_COUNT;
         num_buffer_samples_ = allocate_size * 10;
@@ -406,7 +405,9 @@ void AudioPlayer::CreateBuffer() {
         read_sample_size_ = allocate_size;
     }
 
-    std::string_view resampler_desc = "None";
+    if (!enable_resample_) {
+        resampler_ = MakeAlign<Resampler, NullResampler>(dsd_mode_, stream_->GetSampleSize());
+    }
 
     if (!enable_resample_) {
         if (buffer_.GetSize() == 0 || buffer_.GetSize() < num_buffer_samples_) {
@@ -420,13 +421,12 @@ void AudioPlayer::CreateBuffer() {
             input_format_.GetChannels(),
             target_samplerate_,
             num_read_sample_ / input_format_.GetChannels());  
-        resampler_desc = resampler_->GetDescription();
     }
     
     XAMP_LOG_DEBUG("Output device format: {} num_read_sample: {} resampler: {} buffer: {}",
         output_format_,
         num_read_sample_,
-        resampler_desc,
+        resampler_->GetDescription(),
         FormatBytes(buffer_.GetSize()));
 }
 
@@ -550,7 +550,6 @@ void AudioPlayer::BufferStream() {
     buffer_.Clear();
 
     auto sample_buffer = sample_buffer_.get();
-
     sample_size_ = stream_->GetSampleSize();
 
     for (auto i = 0; i < BUFFER_STREAM_COUNT; ++i) {

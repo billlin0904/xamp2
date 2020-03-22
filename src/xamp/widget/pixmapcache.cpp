@@ -23,7 +23,8 @@ PixmapCache::PixmapCache()
     cache_ext_ << Q_UTF8("*.cache");
     QDir dir;
     (void)dir.mkdir(cache_path_);
-    loadCache();	
+	loadCache();
+	cache_.set_cache_size(16);
 }
 
 QPixmap PixmapCache::findDirExistCover(const QString& file_path) {

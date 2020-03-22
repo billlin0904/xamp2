@@ -47,7 +47,7 @@ class Database {
 public:
     static constexpr int32_t INVALID_DATABASE_ID = -1;
 
-    static Database& Instance() {
+    static Database& instance() {
         static Database instance;
         return instance;
     }
@@ -77,6 +77,10 @@ public:
     void updateArtistMbid(int32_t artist_id, const QString& mbid);
 
     void updateMusicFingerprint(int32_t music_id, const QString& fingerprint);
+
+    bool hasMusicFingerprint(int32_t music_id) const;
+
+    void updateMusicRating(int32_t music_id, int32_t rating);
 
     int32_t addOrUpdateAlbum(const QString& album, int32_t artist_id);
 
@@ -152,6 +156,7 @@ WHERE
             entity.samplerate = query.value(Q_UTF8("samplerate")).toInt();
             entity.cover_id = query.value(Q_UTF8("coverId")).toString();
             entity.fingerprint = query.value(Q_UTF8("fingerprint")).toString();
+            entity.rating = query.value(Q_UTF8("rating")).toInt();
             fun(entity);
         }
     }
@@ -203,6 +208,7 @@ WHERE
             entity.samplerate = query.value(Q_UTF8("samplerate")).toInt();
             entity.cover_id = query.value(Q_UTF8("coverId")).toString();
             entity.fingerprint = query.value(Q_UTF8("fingerprint")).toString();
+            entity.rating = query.value(Q_UTF8("rating")).toInt();
             fun(entity);
         }
     }

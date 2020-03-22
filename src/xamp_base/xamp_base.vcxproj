@@ -78,7 +78,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>./include/;../thirdparty/FastMemcpy/;../thirdparty/spdlog/include/;../thirdparty/utfcpp/source/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../thirdparty/FastMemcpy/;../thirdparty/spdlog/include/;../thirdparty/utfcpp/source/;../thirdparty/flat_hash_map/</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>BASE_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <BrowseInformation>true</BrowseInformation>
@@ -124,7 +124,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>./include/;../thirdparty/FastMemcpy/;../thirdparty/spdlog/include/;../thirdparty/utfcpp/source/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../thirdparty/FastMemcpy/;../thirdparty/spdlog/include/;../thirdparty/utfcpp/source/;../thirdparty/flat_hash_map/</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PreprocessorDefinitions>BASE_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <OmitFramePointers>true</OmitFramePointers>
@@ -146,6 +146,8 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="include\base\alignallocator.h" />
+    <ClInclude Include="include\base\alignstl.h" />
     <ClInclude Include="include\base\align_ptr.h" />
     <ClInclude Include="include\base\audiobuffer.h" />
     <ClInclude Include="include\base\audioformat.h" />
@@ -156,6 +158,8 @@
     <ClInclude Include="include\base\dll.h" />
     <ClInclude Include="include\base\dsdsampleformat.h" />
     <ClInclude Include="include\base\exception.h" />
+    <ClInclude Include="include\base\hash.h" />
+    <ClInclude Include="include\base\lrucache.h" />
     <ClInclude Include="include\base\platform_thread.h" />
     <ClInclude Include="include\base\threadpool.h" />
     <ClInclude Include="include\base\vmmemlock.h" />
@@ -178,6 +182,7 @@
     <ClCompile Include="src\dataconverter.cpp" />
     <ClCompile Include="src\dll.cpp" />
     <ClCompile Include="src\exception.cpp" />
+    <ClCompile Include="src\hash.cpp" />
     <ClCompile Include="src\memory_mapped_file.cpp" />
     <ClCompile Include="src\id.cpp" />
     <ClCompile Include="src\logger.cpp" />

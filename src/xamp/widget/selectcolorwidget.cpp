@@ -6,9 +6,7 @@
 #include <widget/selectcolorwidget.h>
 
 SelectColorWidget::SelectColorWidget(QWidget* parent)
-    : QWidget(parent) {
-    colors_.append(QColor(18, 18, 18, 1));
-    colors_.append(QColor(228, 233, 237, 1));
+    : QWidget(parent) {    
     colors_.append(QColor(255, 185, 0, 1));
     colors_.append(QColor(231, 72, 86, 1));
     colors_.append(QColor(0, 120, 215, 1));
@@ -62,8 +60,10 @@ SelectColorWidget::SelectColorWidget(QWidget* parent)
     colors_.append(QColor(16, 137, 62, 1));
     colors_.append(QColor(16, 124, 16, 1));
     colors_.append(QColor(126, 115, 95, 1));
+    colors_.append(QColor(18, 18, 18, 1));
+    colors_.append(QColor(228, 233, 237, 1));
 
-    group_ = new QButtonGroup(this);
+    auto group = new QButtonGroup(this);
     auto layout = new QGridLayout(this);
 
     int i = 0;
@@ -71,13 +71,16 @@ SelectColorWidget::SelectColorWidget(QWidget* parent)
         auto col = i % 6;
         auto row = i / 6;
         auto btn = new QPushButton(this);
-        btn->setStyleSheet(backgroundColorToString(color));
+        auto objectName = QString(Q_UTF8("color%1Button")).arg(color.rgba());
+        btn->setObjectName(objectName);
+        btn->setStyleSheet(QString(Q_UTF8(R"(QPushButton#%1 { background-color:%2; border: none; })"))
+            .arg(objectName, colorToString(color)));
         layout->addWidget(btn, row, col);
-        group_->addButton(btn, i);
+        group->addButton(btn, i);
         ++i;
     }
 
-    (void) QObject::connect(group_, 
+    (void) QObject::connect(group,
         static_cast<void(QButtonGroup::*)(int)>(&QButtonGroup::buttonClicked), [this](auto index) {
         emit colorButtonClicked(colors_[index]);
         });

@@ -298,6 +298,7 @@ void ThemeManager::setDefaultStyle(Ui::XampWindow& ui) {
                                             QLineEdit#searchLineEdit {
                                             background-color: white;
                                             border: none;
+                                            border-radius: 10px;
                                             }
                                             )"));
 

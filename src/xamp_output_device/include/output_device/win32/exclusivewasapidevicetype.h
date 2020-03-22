@@ -6,6 +6,7 @@
 #pragma once
 
 #include <base/align_ptr.h>
+#include <base/alignstl.h>
 
 #include <output_device/win32/wasapi.h>
 #include <output_device/device_type.h>
@@ -34,7 +35,7 @@ public:
 
 	std::optional<DeviceInfo> GetDefaultDeviceInfo() const override;
 
-	std::vector<DeviceInfo> GetDeviceInfo() const override;
+	Vector<DeviceInfo> GetDeviceInfo() const override;
 
 	AlignPtr<Device> MakeDevice(const std::wstring& device_id) override;
 
@@ -43,10 +44,10 @@ private:
 
 	CComPtr<IMMDevice> GetDeviceById(const std::wstring& device_id) const;
 
-	std::vector<DeviceInfo> GetDeviceInfoList() const;
+	Vector<DeviceInfo> GetDeviceInfoList() const;
 
 	CComPtr<IMMDeviceEnumerator> enumerator_;
-	std::vector<DeviceInfo> device_list_;
+	Vector<DeviceInfo> device_list_;
 };
 
 }

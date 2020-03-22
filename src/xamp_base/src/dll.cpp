@@ -11,7 +11,7 @@ ModuleHandle LoadDll(std::string_view name) {
 	return ModuleHandle(module);
 }
 
-void* LoadDllSymbol(const ModuleHandle& dll, std::string_view name) {
+void* LoadDllSymbol(const ModuleHandle& dll, std::string_view name) noexcept {
     return ::GetProcAddress(dll.get(), name.data());
 }
 #else
@@ -23,7 +23,7 @@ ModuleHandle LoadDll(std::string_view name) {
     return ModuleHandle(module);
 }
 
-void* LoadDllSymbol(const ModuleHandle& dll, std::string_view name) {
+void* LoadDllSymbol(const ModuleHandle& dll, std::string_view name) noexcept {
      return dlsym(dll.get(), name.data());
 }
 #endif

@@ -56,6 +56,7 @@ void Database::createTableIfNotExist() {
 				       fingerprint TEXT,
                        bitrate integer,
                        samplerate integer,
+					   rating integer,
                        dateTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                        )
                        )"));
@@ -406,6 +407,28 @@ void Database::updateMusicFingerprint(int32_t music_id, const QString& fingerpri
 	query.bindValue(Q_UTF8(":fingerprint"), fingerprint);
 
 	query.exec();
+}
+
+bool Database::hasMusicFingerprint(int32_t music_id) const {
+	QSqlQuery query;
+
+	query.prepare(Q_UTF8("SELECT fingerprint FROM musics WHERE (musicId = :musicId) AND ifnull(fingerprint, '') = ''"));
+	query.bindValue(Q_UTF8(":musicId"), music_id);
+	if (query.exec()) {
+		return query.next();
+	}
+	return false;
+}
+
+void Database::updateMusicRating(int32_t music_id, int32_t rating) {
+	QSqlQuery query;
+
+	query.prepare(Q_UTF8("UPDATE musics SET rating = :rating WHERE (musicId = :musicId)"));
+
+	query.bindValue(Q_UTF8(":musicId"), music_id);
+	query.bindValue(Q_UTF8(":rating"), rating);
+
+	ThrowlfFailue(query);
 }
 
 void Database::addMusicToPlaylist(int32_t music_id, int32_t playlist_id) const {

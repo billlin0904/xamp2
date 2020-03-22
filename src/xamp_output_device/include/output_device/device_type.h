@@ -12,6 +12,7 @@
 
 #include <base/base.h>
 #include <base/align_ptr.h>
+#include <base/alignstl.h>
 
 #include <output_device/deviceinfo.h>
 #include <output_device/device.h>
@@ -37,7 +38,7 @@ public:
 
 	virtual DeviceInfo GetDeviceInfo(int32_t device) const = 0;
 
-	virtual std::vector<DeviceInfo> GetDeviceInfo() const = 0;
+	virtual Vector<DeviceInfo> GetDeviceInfo() const = 0;
 
 	virtual std::optional<DeviceInfo> GetDefaultDeviceInfo() const = 0;
 protected:

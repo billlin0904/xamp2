@@ -42,6 +42,8 @@ QVariant PlayListTableModel::data(const QModelIndex& index, int32_t role) const 
 			return QString(Q_UTF8("%0 kbps")).arg(data_[row].bitrate);
 		case PLAYLIST_SAMPLE_RATE:
 			return data_[row].samplerate;
+		case PLAYLIST_RATING:
+			return QVariant::fromValue(StarRating(data_[row].rating));
 		default:
 			break;
 		}
@@ -74,7 +76,10 @@ Qt::ItemFlags PlayListTableModel::flags(const QModelIndex& index) const {
 	if (!index.isValid()) {
 		return QAbstractItemModel::flags(index);
 	}
-	const auto flags = Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsUserCheckable;
+	auto flags = Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsUserCheckable;
+	if (index.column() == PLAYLIST_RATING) {
+		flags |= Qt::ItemIsEditable;
+	}	
 	return flags;
 }
 
@@ -106,6 +111,8 @@ QVariant PlayListTableModel::headerData(const int32_t section, const Qt::Orienta
 				return tr("Bitrate");
 			case PLAYLIST_SAMPLE_RATE:
 				return tr("SampleRate");
+			case PLAYLIST_RATING:
+				return tr("Rating");
 			default:
 				break;
 			}

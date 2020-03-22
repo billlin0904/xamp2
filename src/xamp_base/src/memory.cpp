@@ -1,5 +1,4 @@
 #ifdef _WIN32
-#include <FastMemcpy_Avx.h>
 #include <base/windows_handle.h>
 #else
 #include <base/posix_handle.h>

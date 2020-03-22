@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <string_view>
+
 #include <base/audiobuffer.h>
 #include <base/exception.h>
 #include <player/player.h>
@@ -22,6 +24,7 @@ public:
 	virtual std::string_view GetDescription() const noexcept = 0;
 
 	virtual bool Process(const float* samples, int32_t num_sample, AudioBuffer<int8_t>& buffer) = 0;
+
 protected:
 	Resampler() = default;
 };

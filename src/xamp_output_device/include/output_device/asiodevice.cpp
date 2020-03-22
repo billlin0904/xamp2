@@ -273,12 +273,16 @@ void AsioDevice::CreateBuffers(const AudioFormat& output_format) {
 
 	XAMP_LOG_INFO("Native DSD support: {}", IsSupportDsdFormat());
 
+	device_buffer_vmlock_.UnLock();
+
 	if (io_format_ == AsioIoFormat::IO_FORMAT_PCM) {
-		auto allocate_bytes = buffer_size_ * mix_format_.GetBytesPerSample() * mix_format_.GetChannels();
+		size_t allocate_bytes = buffer_size_ * mix_format_.GetBytesPerSample() * mix_format_.GetChannels();
 		callbackInfo.data_context = MakeConvert(input_fomrat, mix_format_, buffer_size_);
 		buffer_bytes_ = buffer_size_ * (int64_t)mix_format_.GetBytesPerSample();
 		buffer_ = MakeBuffer<int8_t>(allocate_bytes * buffer_size_);
 		device_buffer_ = MakeBuffer<int8_t>(allocate_bytes * buffer_size_);
+		buffer_vmlock_.Lock(buffer_.get(), allocate_bytes* buffer_size_);
+		device_buffer_vmlock_.Lock(device_buffer_.get(), allocate_bytes * buffer_size_);
 	}
 	else {
 		switch (channel_info.type) {
@@ -303,6 +307,8 @@ void AsioDevice::CreateBuffers(const AudioFormat& output_format) {
 		int32_t allocate_bytes = buffer_size_;
 		device_buffer_ = MakeBuffer<int8_t>(allocate_bytes);
 		buffer_ = MakeBuffer<int8_t>(allocate_bytes);
+		buffer_vmlock_.Lock(buffer_.get(), allocate_bytes);
+		device_buffer_vmlock_.Lock(device_buffer_.get(), allocate_bytes);
 		callbackInfo.data_context = MakeConvert(input_fomrat, mix_format_, channel_buffer_size);
 	}
 
@@ -390,7 +396,7 @@ void AsioDevice::OnBufferSwitch(long index) noexcept {
 	}
 
 	if (got_samples) {
-		for (int32_t i = 0, j = 0; i < mix_format_.GetChannels(); ++i) {
+		for (size_t i = 0, j = 0; i < mix_format_.GetChannels(); ++i) {
 			(void)FastMemcpy(callbackInfo.buffer_infos[i].buffers[index],
 				&device_buffer_[j++ * buffer_bytes_],
 				buffer_bytes_);
@@ -408,10 +414,10 @@ void AsioDevice::OpenStream(const AudioFormat& output_format) {
 	ReOpen();
 
 	if (device_id_.length() > sizeof(asio_driver_info.name) - 1) {
-		(void)memcpy(asio_driver_info.name, device_id_.c_str(), sizeof(asio_driver_info.name) - 1);
+		(void)FastMemcpy(asio_driver_info.name, device_id_.c_str(), sizeof(asio_driver_info.name) - 1);
 	}
 	else {
-		(void)memcpy(asio_driver_info.name, device_id_.c_str(), device_id_.length());
+		(void)FastMemcpy(asio_driver_info.name, device_id_.c_str(), device_id_.length());
 	}
 
 	AsioIfFailedThrow(::ASIOInit(&asio_driver_info));

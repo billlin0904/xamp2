@@ -12,8 +12,19 @@
 
 namespace xamp::base {
 
-XAMP_BASE_API void* AlignedAlloc(size_t size, size_t aligned_size);
-XAMP_BASE_API void AlignedFree(void* p);
+XAMP_BASE_API void* AlignedMalloc(size_t size, size_t aligned_size) noexcept;
+
+XAMP_BASE_API void AlignedFree(void* p) noexcept;
+
+template <typename Type>
+XAMP_BASE_API_ONLY_EXPORT Type* AlignedMallocOf(size_t aligned_size) noexcept {
+    return reinterpret_cast<Type*>(AlignedMalloc(sizeof(Type), aligned_size));
+}
+
+template <typename Type>
+XAMP_BASE_API_ONLY_EXPORT Type* AlignedMallocCountOf(size_t n, size_t aligned_size) noexcept {
+    return reinterpret_cast<Type*>(AlignedMalloc(sizeof(Type) * n, aligned_size));
+}
 
 template <typename Type>
 struct XAMP_BASE_API_ONLY_EXPORT AlignedDeleter {
@@ -38,7 +49,7 @@ using AlignBufferPtr = std::unique_ptr<Type[], AlignedDeleter<Type>>;
 
 template <typename BaseType, typename ImplType, typename... Args>
 XAMP_BASE_API_ONLY_EXPORT AlignPtr<BaseType> MakeAlign(Args&& ... args) {
-    auto ptr = AlignedAlloc(sizeof(ImplType), XAMP_MALLOC_ALGIGN_SIZE);
+    auto ptr = AlignedMallocOf<ImplType>(XAMP_MALLOC_ALGIGN_SIZE);
 
     if (!ptr) {
         throw std::bad_alloc();
@@ -58,7 +69,7 @@ XAMP_BASE_API_ONLY_EXPORT AlignPtr<BaseType> MakeAlign(Args&& ... args) {
 
 template <typename Type, typename... Args>
 XAMP_BASE_API_ONLY_EXPORT AlignPtr<Type> MakeAlign(Args&& ... args) {
-    auto ptr = AlignedAlloc(sizeof(Type), XAMP_MALLOC_ALGIGN_SIZE);
+    auto ptr = AlignedMallocOf<Type>(XAMP_MALLOC_ALGIGN_SIZE);
     if (!ptr) {
         throw std::bad_alloc();
     }
@@ -76,8 +87,8 @@ XAMP_BASE_API_ONLY_EXPORT AlignPtr<Type> MakeAlign(Args&& ... args) {
 }
 
 template <typename Type, typename U = std::enable_if_t<std::is_trivially_copyable<Type>::value>>
-XAMP_BASE_API_ONLY_EXPORT AlignBufferPtr<Type> MakeBuffer(size_t size, const int32_t alignment = XAMP_MALLOC_ALGIGN_SIZE) {
-    auto ptr = AlignedAlloc(size * sizeof(Type), alignment);
+XAMP_BASE_API_ONLY_EXPORT AlignBufferPtr<Type> MakeBuffer(size_t n, const int32_t alignment = XAMP_MALLOC_ALGIGN_SIZE) {
+    auto ptr = AlignedMallocCountOf<Type>(n, alignment);
     if (!ptr) {
         throw std::bad_alloc();
     }

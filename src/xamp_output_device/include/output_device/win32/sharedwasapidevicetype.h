@@ -31,17 +31,17 @@ public:
 
 	std::optional<DeviceInfo> GetDefaultDeviceInfo() const override;
 
-	std::vector<DeviceInfo> GetDeviceInfo() const override;
+	Vector<DeviceInfo> GetDeviceInfo() const override;
 
 	AlignPtr<Device> MakeDevice(const std::wstring& device_id) override;
 private:
 	void Initial();
 
-	std::vector<DeviceInfo> GetDeviceInfoList() const;
+	Vector<DeviceInfo> GetDeviceInfoList() const;
 
 	CComPtr<IMMDevice> GetDeviceById(const std::wstring& device_id) const;
 
-	std::vector<DeviceInfo> device_list_;
+	Vector<DeviceInfo> device_list_;
 	CComPtr<IMMDeviceEnumerator> enumerator_;
 };
 

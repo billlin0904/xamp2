@@ -78,7 +78,7 @@ void MetadataExtractAdapter::processMetadata(const std::vector<xamp::base::Metad
         album = QString::fromStdWString(metadata.album);
         artist = QString::fromStdWString(metadata.artist);
 
-        auto music_id = Database::Instance().addOrUpdateMusic(metadata, playlist_id);
+        auto music_id = Database::instance().addOrUpdateMusic(metadata, playlist_id);
 
         int32_t artist_id = 0;
         auto artist_itr = artist_id_cache.find(artist);
@@ -86,7 +86,7 @@ void MetadataExtractAdapter::processMetadata(const std::vector<xamp::base::Metad
             artist_id = (*artist_itr);
         }
         else {
-            artist_id = Database::Instance().addOrUpdateArtist(artist);
+            artist_id = Database::instance().addOrUpdateArtist(artist);
             artist_id_cache[artist] = artist_id;
         }
 
@@ -96,14 +96,14 @@ void MetadataExtractAdapter::processMetadata(const std::vector<xamp::base::Metad
             album_id = (*album_itr);
         }
         else {
-            album_id = Database::Instance().addOrUpdateAlbum(album, artist_id);
+            album_id = Database::instance().addOrUpdateAlbum(album, artist_id);
             album_id_cache[album] = album_id;
         }
 
         QString cover_id;
         auto cover_itr = cover_id_cache.find(album_id);
         if (cover_itr == cover_id_cache.end()) {
-            cover_id = Database::Instance().getAlbumCoverId(album_id);
+            cover_id = Database::instance().getAlbumCoverId(album_id);
             if (cover_id.isEmpty()) {
                 QPixmap pixmap;
                 const auto& buffer = cover_reader.ExtractEmbeddedCover(metadata.file_path);
@@ -117,7 +117,7 @@ void MetadataExtractAdapter::processMetadata(const std::vector<xamp::base::Metad
                     cover_id = PixmapCache::instance().add(pixmap);
                     assert(!cover_id.isEmpty());
                     cover_id_cache.insert(album_id, cover_id);
-                    Database::Instance().setAlbumCover(album_id, album, cover_id);
+                    Database::instance().setAlbumCover(album_id, album, cover_id);
                 }
             }
         }
@@ -125,7 +125,7 @@ void MetadataExtractAdapter::processMetadata(const std::vector<xamp::base::Metad
             cover_id = (*cover_itr);
         }
 
-        IgnoreSqlError(Database::Instance().addOrUpdateAlbumMusic(album_id, artist_id, music_id))
+        IgnoreSqlError(Database::instance().addOrUpdateAlbumMusic(album_id, artist_id, music_id))
 
         if (playlist != nullptr) {
             auto entity = PlayListTableView::fromMetadata(metadata);

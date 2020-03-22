@@ -14,9 +14,11 @@
 #include <metadata/taglibmetareader.h>
 
 #include <widget/pixmapcache.h>
+#include <widget/stardelegate.h>
 #include <widget/database.h>
 #include <widget/str_utilts.h>
 #include <widget/actionmap.h>
+#include <widget/stareditor.h>
 #include <widget/playlisttableview.h>
 
 PlayListEntity PlayListTableView::fromMetadata(const xamp::base::Metadata& metadata) {
@@ -51,6 +53,7 @@ void PlayListTableView::initial() {
 	proxy_model_.setFilterByColumn(PLAYLIST_ALBUM);
 	proxy_model_.setFilterByColumn(PLAYLIST_ARTIST);
 	proxy_model_.setFilterByColumn(PLAYLIST_TITLE);
+	proxy_model_.setFilterByColumn(PLAYLIST_RATING);
 	proxy_model_.setDynamicSortFilter(true);
 	setModel(&proxy_model_);
 
@@ -118,6 +121,18 @@ void PlayListTableView::initial() {
 	horizontalHeader()->setStretchLastSection(true);
 	horizontalHeader()->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 
+	auto delegate = new StarDelegate(this);
+	setItemDelegateForColumn(PLAYLIST_RATING, delegate);
+	QObject::connect(delegate, &StarDelegate::commitData, [this](auto editor) {
+		auto start_editor = qobject_cast<StarEditor*>(editor);
+		if (!start_editor) {
+			return;
+		}
+		auto& item = model_.item(start_editor->row());
+		item.rating = start_editor->starRating().starCount();
+		Database::instance().updateMusicRating(item.music_id, item.rating);
+		});
+
 	setEditTriggers(DoubleClicked | SelectedClicked);
 	verticalHeader()->setSectionsMovable(false);
 	horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -174,12 +189,11 @@ void PlayListTableView::initial() {
 		selectAll();
 	});
 
-	installEventFilter(this);
+	installEventFilter(this);	
 }
 
 void PlayListTableView::onTextColorChanged(QColor backgroundColor, QColor color) {
-	QColor alphaColor = Qt::gray;
-	alphaColor.setAlpha(180);
+	QColor alphaColor = Qt::darkGray;	
 
 	auto style = QString(Q_UTF8(R"(
 		QTableView {
@@ -256,7 +270,7 @@ void PlayListTableView::resizeColumn() const {
 		case PLAYLIST_DURATION:
 		case PLAYLIST_BITRATE:
 			header->setSectionResizeMode(column, QHeaderView::Fixed);
-			header->resizeSection(column, 60);
+			header->resizeSection(column, 90);
 			break;
 		case PLAYLIST_TITLE:
 			header->setSectionResizeMode(column, QHeaderView::ResizeToContents);

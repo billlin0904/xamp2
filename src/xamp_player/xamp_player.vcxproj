@@ -149,6 +149,7 @@
     <ClInclude Include="include\player\audio_player.h" />
     <ClInclude Include="include\player\chromaprint.h" />
     <ClInclude Include="include\player\chromaprinthelper.h" />
+    <ClInclude Include="include\player\nullresampler.h" />
     <ClInclude Include="include\player\playbackstateadapter.h" />
     <ClInclude Include="include\player\player.h" />
     <ClInclude Include="include\player\playstate.h" />
@@ -156,14 +157,6 @@
     <ClInclude Include="include\player\soxresampler.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\thirdparty\gist\libs\kiss_fft130\kiss_fft.c" />
-    <ClCompile Include="..\thirdparty\gist\src\core\CoreFrequencyDomainFeatures.cpp" />
-    <ClCompile Include="..\thirdparty\gist\src\core\CoreTimeDomainFeatures.cpp" />
-    <ClCompile Include="..\thirdparty\gist\src\fft\WindowFunctions.cpp" />
-    <ClCompile Include="..\thirdparty\gist\src\Gist.cpp" />
-    <ClCompile Include="..\thirdparty\gist\src\mfcc\MFCC.cpp" />
-    <ClCompile Include="..\thirdparty\gist\src\onset-detection-functions\OnsetDetectionFunction.cpp" />
-    <ClCompile Include="..\thirdparty\gist\src\pitch\Yin.cpp" />
     <ClCompile Include="src\audio_player.cpp" />
     <ClCompile Include="src\chromaprint.cpp" />
     <ClCompile Include="src\chromaprinthelper.cpp" />

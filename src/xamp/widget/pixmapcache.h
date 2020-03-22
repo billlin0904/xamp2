@@ -8,7 +8,7 @@
 #include <QStringList>
 #include <optional>
 
-#include <widget/lrucache.h>
+#include <base/lrucache.h>
 #include <widget/playlistentity.h>
 
 #ifndef QT_SPECIALIZE_STD_HASH_TO_CALL_QHASH_BY_CREF
@@ -59,5 +59,5 @@ private:
 	QString cache_path_;
     QStringList cover_ext_;
     QStringList cache_ext_;
-	mutable LruCache<QString, QPixmap> cache_;
+	mutable xamp::base::LruCache<QString, QPixmap> cache_;
 };

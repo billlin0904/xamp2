@@ -22,10 +22,10 @@ namespace xamp::base {
 
 XAMP_BASE_API ModuleHandle LoadDll(std::string_view name);
 
-XAMP_BASE_API void* LoadDllSymbol(const ModuleHandle& dll, std::string_view name);
+XAMP_BASE_API void* LoadDllSymbol(const ModuleHandle& dll, std::string_view name) noexcept;
 
 template <typename T, typename U = std::enable_if_t<std::is_function<T>::value>>
-class DllFunction final {
+class XAMP_BASE_API_ONLY_EXPORT DllFunction final {
 public:
     DllFunction(const ModuleHandle& dll, std::string_view name) noexcept {
         assert(dll.is_valid());

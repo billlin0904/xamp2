@@ -399,7 +399,7 @@ AlbumView::AlbumView(QWidget* parent)
 		page_->setPlaylistMusic(album_id);
 		page_->setFixedSize(QSize(list_view_rect.size().width() - 10, height));
 
-		if (auto album_stats = Database::Instance().getAlbumStats(album_id)) {
+		if (auto album_stats = Database::instance().getAlbumStats(album_id)) {
 			page_->setTracks(album_stats.value().tracks);
 			page_->setTotalDuration(album_stats.value().durations);
 		}		
@@ -430,7 +430,7 @@ AlbumView::AlbumView(QWidget* parent)
 		ActionMap<AlbumView, std::function<void()>> action_map(this);
 
 		action_map.addAction(tr("Add album to playlist"), [=, this]() {
-			Database::Instance().forEachAlbumMusic(album_id, [this](const auto& entity) {
+			Database::instance().forEachAlbumMusic(album_id, [this](const auto& entity) {
 				emit addPlaylist(entity);
 				});
 			});

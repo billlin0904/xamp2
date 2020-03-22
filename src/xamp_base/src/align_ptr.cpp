@@ -9,22 +9,20 @@
 namespace xamp::base {
 
 #ifndef _WIN32
-void* AlignedAlloc(size_t size, size_t aligned_size) {
+void* AlignedAlloc(size_t size, size_t aligned_size) noexcept {
     void* p = nullptr;
-    auto ret = ::posix_memalign(&p, aligned_size, size);
-    assert(ret == 0);
-    return p;
+    return ::posix_memalign(&p, aligned_size, size) == 0 ? p : nullptr;
 }
 
-void AlignedFree(void* p) {
+void AlignedFree(void* p) noexcept {
     return ::free(p);
 }
 #else
-void* AlignedAlloc(size_t size, size_t aligned_size) {
+void* AlignedMalloc(size_t size, size_t aligned_size) noexcept {
     return ::_aligned_malloc(size, aligned_size);
 }
 
-void AlignedFree(void* p) {
+void AlignedFree(void* p) noexcept {
     ::_aligned_free(p);
 }
 #endif

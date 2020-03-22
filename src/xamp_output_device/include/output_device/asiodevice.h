@@ -11,6 +11,7 @@
 #include <vector>
 
 #include <base/align_ptr.h>
+#include <base/vmmemlock.h>
 
 #include <output_device/audiocallback.h>
 #include <output_device/device.h>
@@ -94,8 +95,8 @@ private:
 	AsioIoFormat io_format_;
 	DsdSampleFormat sample_format_;
 	mutable std::atomic<int32_t> volume_;
-	int64_t buffer_size_;
-	int64_t buffer_bytes_;
+	int32_t buffer_size_;
+	int32_t buffer_bytes_;
 	std::atomic<int64_t> played_bytes_;
 	std::string device_id_;
 	mutable std::mutex mutex_;
@@ -105,6 +106,8 @@ private:
 	AlignBufferPtr<int8_t> buffer_;
 	AlignBufferPtr<int8_t> device_buffer_;
 	AudioCallback* callback_;
+	VmMemLock buffer_vmlock_;
+	VmMemLock device_buffer_vmlock_;
 };
 
 }

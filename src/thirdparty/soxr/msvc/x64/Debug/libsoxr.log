@@ -1,0 +1,35 @@
+﻿  cr.c
+  cr32.c
+  cr32s.c
+  cr64.c
+  cr64s.c
+  data-io.c
+  dbesi0.c
+  fft4g32.c
+  fft4g64.c
+  filter.c
+  pffft32s.c
+D:\Source\xamp2\xamp2\src\thirdparty\soxr\src\pffft.c(1673,3): warning C4311: 'type cast': pointer truncation from 'const float *' to 'long'
+D:\Source\xamp2\xamp2\src\thirdparty\soxr\src\pffft.c(1673,3): warning C4311: 'type cast': pointer truncation from 'float *' to 'long'
+D:\Source\xamp2\xamp2\src\thirdparty\soxr\src\pffft-wrap.c(54,3): warning C4311: 'type cast': pointer truncation from 'const float *' to 'long'
+D:\Source\xamp2\xamp2\src\thirdparty\soxr\src\pffft-wrap.c(54,3): warning C4311: 'type cast': pointer truncation from 'float *' to 'long'
+  pffft64s.c
+D:\Source\xamp2\xamp2\src\thirdparty\soxr\src\pffft.c(1673,3): warning C4311: 'type cast': pointer truncation from 'const double *' to 'long'
+D:\Source\xamp2\xamp2\src\thirdparty\soxr\src\pffft.c(1673,3): warning C4311: 'type cast': pointer truncation from 'double *' to 'long'
+D:\Source\xamp2\xamp2\src\thirdparty\soxr\src\pffft-wrap.c(54,3): warning C4311: 'type cast': pointer truncation from 'const double *' to 'long'
+D:\Source\xamp2\xamp2\src\thirdparty\soxr\src\pffft-wrap.c(54,3): warning C4311: 'type cast': pointer truncation from 'double *' to 'long'
+  soxr.c
+  util32s.c
+D:\Source\xamp2\xamp2\src\thirdparty\soxr\src\util-simd.c(53,3): warning C4311: 'type cast': pointer truncation from 'float *' to 'long'
+D:\Source\xamp2\xamp2\src\thirdparty\soxr\src\util-simd.c(53,3): warning C4311: 'type cast': pointer truncation from 'const float *' to 'long'
+D:\Source\xamp2\xamp2\src\thirdparty\soxr\src\util-simd.c(76,3): warning C4311: 'type cast': pointer truncation from 'float *' to 'long'
+D:\Source\xamp2\xamp2\src\thirdparty\soxr\src\util-simd.c(76,3): warning C4311: 'type cast': pointer truncation from 'const float *' to 'long'
+  util64s.c
+D:\Source\xamp2\xamp2\src\thirdparty\soxr\src\util-simd.c(53,3): warning C4311: 'type cast': pointer truncation from 'double *' to 'long'
+D:\Source\xamp2\xamp2\src\thirdparty\soxr\src\util-simd.c(53,3): warning C4311: 'type cast': pointer truncation from 'const double *' to 'long'
+D:\Source\xamp2\xamp2\src\thirdparty\soxr\src\util-simd.c(76,3): warning C4311: 'type cast': pointer truncation from 'double *' to 'long'
+D:\Source\xamp2\xamp2\src\thirdparty\soxr\src\util-simd.c(76,3): warning C4311: 'type cast': pointer truncation from 'const double *' to 'long'
+  vr32.c
+  Generating Code...
+     Creating library D:\Source\xamp2\xamp2\src\thirdparty\soxr\msvc\x64\Debug\libsoxr.lib and object D:\Source\xamp2\xamp2\src\thirdparty\soxr\msvc\x64\Debug\libsoxr.exp
+  libsoxr.vcxproj -> D:\Source\xamp2\xamp2\src\thirdparty\soxr\msvc\x64\Debug\libsoxr.dll

@@ -108,7 +108,7 @@ public:
 				1);
 
 			fingerprint.resize(encoded_size);
-			FastMemcpy(fingerprint.data(), encoded, encoded_size);
+			(void)FastMemcpy(fingerprint.data(), encoded, encoded_size);
 		}
 		catch (...) {
 		}		
