@@ -32,6 +32,7 @@ QWidget* StarDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem&
     if (index.data().canConvert<StarRating>()) {
         auto editor = new StarEditor(index.row(), parent);
         (void)QObject::connect(editor, &StarEditor::editingFinished, this, &StarDelegate::commitAndCloseEditor);
+        editor->setFocusPolicy(Qt::StrongFocus);
         return editor;
     }
     else {

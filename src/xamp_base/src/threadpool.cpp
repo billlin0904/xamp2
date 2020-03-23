@@ -10,6 +10,13 @@ void SetCurrentThreadName(size_t index) {
 	SetThreadName(ostr.str());
 }
 
+namespace DefaultThreadPool {
+ThreadPool& GetThreadPool() {
+    static ThreadPool default_thread_pool;
+    return default_thread_pool;
+}
+}
+
 ThreadPool::ThreadPool()
     : scheduler_() {
 }

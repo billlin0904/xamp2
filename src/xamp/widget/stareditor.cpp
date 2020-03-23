@@ -1,3 +1,4 @@
+#include <QDebug>
 #include <widget/stareditor.h>
 
 StarEditor::StarEditor(int row, QWidget* parent)
@@ -30,9 +31,14 @@ void StarEditor::mouseReleaseEvent(QMouseEvent* /* event */) {
 }
 
 int StarEditor::starAtPosition(int x) const {
-    auto star = (x / (rating_.sizeHint().width()
-        / rating_.maxStarCount())) + 1;
-    if (star <= 0 || star > rating_.maxStarCount())
+    if (x == 0) {
+        qDebug() << "StarEditor set 0 star at" << x;
+        return 0;
+    }
+    auto star_width = double(rating_.sizeHint().width()) / double(rating_.maxStarCount());    
+    auto star = (x / std::nearbyint(star_width)) + 1;
+    if (star < 0 || star > rating_.maxStarCount())
         return -1;
+    qDebug() << "StarEditor set " << star << " star at" << x;
     return star;
 }

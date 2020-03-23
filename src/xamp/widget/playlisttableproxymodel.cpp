@@ -1,3 +1,5 @@
+#include <widget/starrating.h>
+#include <widget/playlisttablemodel.h>
 #include <widget/playlisttableproxymodel.h>
 
 PlayListTableFilterProxyModel::PlayListTableFilterProxyModel(QObject *parent)
@@ -6,6 +8,17 @@ PlayListTableFilterProxyModel::PlayListTableFilterProxyModel(QObject *parent)
 
 void PlayListTableFilterProxyModel::setFilterByColumn(int32_t column) {
     filters_.insert(column);
+}
+
+bool PlayListTableFilterProxyModel::lessThan(const QModelIndex& left, const QModelIndex& right) const {
+    auto leftData = sourceModel()->data(left);
+    auto rightData = sourceModel()->data(right);
+    if (left.column() == PlayListColumn::PLAYLIST_RATING) {
+        auto left_rating = qvariant_cast<StarRating>(leftData);
+        auto right_rating = qvariant_cast<StarRating>(rightData);
+        return left_rating.starCount() > right_rating.starCount();
+    }
+    return QSortFilterProxyModel::lessThan(left, right);
 }
 
 bool PlayListTableFilterProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const {

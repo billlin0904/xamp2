@@ -223,7 +223,7 @@ public:
 	XAMP_DISABLE_COPY(ThreadPool)
 
     template <typename F, typename... Args>
-	std::future<typename std::result_of<F(Args ...)>::type> RunAsync(F&& f, Args&&... args);
+	std::future<typename std::invoke_result<F(Args ...)>::type> RunAsync(F&& f, Args&&... args);
 
     size_t GetActiveThreadCount() const {
         return scheduler_.GetActiveThreadCount();
@@ -235,8 +235,8 @@ private:
 };
 
 template <typename F, typename ... Args>
-std::future<typename std::result_of<F(Args ...)>::type> ThreadPool::RunAsync(F&& f, Args&&... args) {
-	typedef typename std::result_of<F(Args ...)>::type ReturnType;
+std::future<typename std::invoke_result<F(Args ...)>::type> ThreadPool::RunAsync(F&& f, Args&&... args) {
+	typedef typename std::invoke_result<F(Args ...)>::type ReturnType;
 
 	auto task = std::make_shared<std::packaged_task<ReturnType()>>(
 		std::bind(std::forward<F>(f), std::forward<Args>(args)...)
@@ -249,15 +249,14 @@ std::future<typename std::result_of<F(Args ...)>::type> ThreadPool::RunAsync(F&&
 }
 
 namespace DefaultThreadPool {
-    inline ThreadPool& GetThreadPool() {
-        static ThreadPool default_thread_pool;
-        return default_thread_pool;
-    }
 
-    template <typename Func, typename... Args>
-    auto RunAsync(Func&& func, Args&&... args) {
-        return GetThreadPool().RunAsync(std::forward<Func>(func), std::forward<Args>(args)...);
-    }
+XAMP_BASE_API ThreadPool& GetThreadPool();
+
+template <typename Func, typename... Args>
+XAMP_BASE_API_ONLY_EXPORT auto RunAsync(Func&& func, Args&&... args) {
+    return GetThreadPool().RunAsync(std::forward<Func>(func), std::forward<Args>(args)...);
+}
+
 }
 
 }

@@ -18,6 +18,8 @@ public:
 protected:
     bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const override;
 
+    bool lessThan(const QModelIndex& left, const QModelIndex& right) const override;
+
 private:
     std::unordered_set<int32_t> filters_;
 };
