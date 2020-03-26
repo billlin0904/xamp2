@@ -70,8 +70,7 @@ void AudioPlayer::LoadLib() {
 
 void AudioPlayer::Init() {
 	wait_timer_.SetTimeout(READ_SAMPLE_WAIT_TIME);
-	buffer_.Resize(PREALLOCATE_BUFFER_SIZE);
-    (void) DefaultThreadPool::GetThreadPool().RunAsync([]() {});
+	buffer_.Resize(PREALLOCATE_BUFFER_SIZE);   
 }
 
 void AudioPlayer::Open(const std::wstring& file_path, const std::wstring& file_ext, const DeviceInfo& device_info) {
@@ -602,50 +601,43 @@ void AudioPlayer::ReadSampleLoop(int32_t max_read_sample, std::unique_lock<std::
     }
 }
 
-void AudioPlayer::PlayStream() {
-    std::weak_ptr<AudioPlayer> player = shared_from_this();
-
+void AudioPlayer::PlayStream() {    
     // 預先啟動output device開始撥放, 因有預先塞入資料可以加速撥放效果.
 	Play();
 
-    constexpr auto stream_proc = [](std::weak_ptr<AudioPlayer> player) noexcept {
-        if (auto shared_this = player.lock()) {
-            auto p = shared_this.get();
-            std::unique_lock<std::mutex> lock{ p->pause_mutex_ };
+    stream_task_ = DefaultThreadPool::GetThreadPool().StartNew([player = shared_from_this()]() noexcept {
+        auto p = player.get();
+        std::unique_lock<std::mutex> lock{ p->pause_mutex_ };
 
-            auto max_read_sample = p->num_read_sample_;
-            auto num_sample_write = max_read_sample * MAX_WRITE_RATIO;
+        auto max_read_sample = p->num_read_sample_;
+        auto num_sample_write = max_read_sample * MAX_WRITE_RATIO;
 
 #ifdef _DEBUG
-            SetThreadName("Streaming thread");
+        SetThreadName("Streaming thread");
 #endif
 
-            while (p->is_playing_) {
-                while (p->is_paused_) {
-                    p->pause_cond_.wait(lock);
-                }
-
-                if (p->buffer_.GetAvailableWrite() < num_sample_write) {
-                    p->wait_timer_.Wait();
-                    continue;
-                }
-
-                try {
-                    p->ReadSampleLoop(max_read_sample, lock);
-                }
-                catch (const std::exception & e) {
-                    XAMP_LOG_DEBUG("Stream read has exception: {}.", e.what());
-                    break;
-                }
+        while (p->is_playing_) {
+            while (p->is_paused_) {
+                p->pause_cond_.wait(lock);
             }
 
-            p->stream_->Close();         
+            if (p->buffer_.GetAvailableWrite() < num_sample_write) {
+                p->wait_timer_.Wait();
+                continue;
+            }
+
+            try {
+                p->ReadSampleLoop(max_read_sample, lock);
+            }
+            catch (const std::exception& e) {
+                XAMP_LOG_DEBUG("Stream read has exception: {}.", e.what());
+                break;
+            }
         }
 
+        p->stream_->Close();
         XAMP_LOG_DEBUG("Stream thread finished!");
-    };
-
-    stream_task_ = DefaultThreadPool::GetThreadPool().RunAsync(stream_proc, player);
+        });
 }
 
 }

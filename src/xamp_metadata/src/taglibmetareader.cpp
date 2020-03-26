@@ -4,6 +4,7 @@
 #include <unordered_set>
 #include <unordered_map>
 
+#include <base/alignstl.h>
 #include <base/function_ref.h>
 #include <base/str_utilts.h>
 #include <base/memory.h>
@@ -142,7 +143,7 @@ public:
 		return instance;
 	}
 
-    const std::unordered_set<std::string>& GetSupportFileExtensions() const noexcept {
+    const Set<std::string>& GetSupportFileExtensions() const noexcept {
 		return support_file_extensions_;
 	}
 
@@ -158,7 +159,7 @@ protected:
 		}
 	}
 private:
-	std::unordered_set<std::string> support_file_extensions_;
+    Set<std::string> support_file_extensions_;
 };
 
 class TaglibMetadataReader::TaglibMetadataReaderImpl {
@@ -221,7 +222,7 @@ public:
         return cover_;
     }
 
-    const std::unordered_set<std::string>& GetSupportFileExtensions() const {
+    const Set<std::string>& GetSupportFileExtensions() const {
         return TaglibHelper::Instance().GetSupportFileExtensions();
     }
 
@@ -261,7 +262,7 @@ const std::vector<uint8_t>& TaglibMetadataReader::ExtractEmbeddedCover(const Pat
     return reader_->ExtractCover(path);
 }
 
-const std::unordered_set<std::string>& TaglibMetadataReader::GetSupportFileExtensions() const {
+const Set<std::string>& TaglibMetadataReader::GetSupportFileExtensions() const {
     return reader_->GetSupportFileExtensions();
 }
 

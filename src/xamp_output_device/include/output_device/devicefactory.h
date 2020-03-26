@@ -82,7 +82,7 @@ private:
     AlignPtr<osx::DeviceStateNotification> notification_;
 #endif
 
-    std::unordered_map<ID, FunctionRef<AlignPtr<DeviceType>()>> creator_;
+    MurmurHashMap<ID, std::function<AlignPtr<DeviceType>()>> creator_;
 };
 
 }

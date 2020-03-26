@@ -7,10 +7,8 @@
 
 #include <list>
 #include <optional>
-#include <unordered_map>
 
-#include <base/alignallocator.h>
-#include <unordered_map.hpp>
+#include <base/alignstl.h>
 
 #include <base/base.h>
 
@@ -81,7 +79,7 @@ public:
 
 private:
     size_t max_size_;
-    mutable ska::unordered_map<Key, NodePtr> items_;
+    mutable HashMap<Key, NodePtr> items_;
     mutable List cache_;
 };
 

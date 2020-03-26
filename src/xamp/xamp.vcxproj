@@ -163,7 +163,6 @@
     <ClCompile Include="widget\playlisttablemodel.cpp" />
     <ClCompile Include="widget\playlisttableproxymodel.cpp" />
     <ClCompile Include="widget\playlisttableview.cpp" />
-    <ClCompile Include="widget\qtoucheventfilter.cpp" />
     <ClCompile Include="widget\seekslider.cpp" />
     <ClCompile Include="widget\selectcolorwidget.cpp" />
     <ClCompile Include="widget\spectrograph.cpp" />

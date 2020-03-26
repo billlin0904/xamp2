@@ -13,6 +13,7 @@
 #include <functional>
 #include <vector>
 #include <condition_variable>
+#include <type_traits>
 
 #include <base/logger.h>
 #include <base/base.h>
@@ -215,7 +216,7 @@ private:
     Vector<std::thread> threads_;
     Vector<TaskQueuePtr> task_queues_;
 };
-    
+
 class XAMP_BASE_API ThreadPool final {
 public:
     ThreadPool();
@@ -223,7 +224,7 @@ public:
 	XAMP_DISABLE_COPY(ThreadPool)
 
     template <typename F, typename... Args>
-	std::future<typename std::invoke_result<F(Args ...)>::type> RunAsync(F&& f, Args&&... args);
+    decltype(auto) StartNew(F f, Args&&... args);
 
     size_t GetActiveThreadCount() const {
         return scheduler_.GetActiveThreadCount();
@@ -235,27 +236,25 @@ private:
 };
 
 template <typename F, typename ... Args>
-std::future<typename std::invoke_result<F(Args ...)>::type> ThreadPool::RunAsync(F&& f, Args&&... args) {
-	typedef typename std::invoke_result<F(Args ...)>::type ReturnType;
+decltype(auto) ThreadPool::StartNew(F f, Args&&... args) {
+    using ReturnType = std::invoke_result_t<F, Args...>;
 
-	auto task = std::make_shared<std::packaged_task<ReturnType()>>(
-		std::bind(std::forward<F>(f), std::forward<Args>(args)...)
-	);
+    auto task = std::make_shared<std::packaged_task<ReturnType()>>(
+        std::bind(std::forward<F>(f), std::forward<Args>(args)...)
+        );
 
-	scheduler_.SubmitJob([task]() {
-		(*task)();
+    std::future<ReturnType> future = task->get_future();
+
+	scheduler_.SubmitJob([task]() mutable {
+        (*task)();
 	});
-	return task->get_future();
+
+    return future;
 }
 
 namespace DefaultThreadPool {
 
 XAMP_BASE_API ThreadPool& GetThreadPool();
-
-template <typename Func, typename... Args>
-XAMP_BASE_API_ONLY_EXPORT auto RunAsync(Func&& func, Args&&... args) {
-    return GetThreadPool().RunAsync(std::forward<Func>(func), std::forward<Args>(args)...);
-}
 
 }
 

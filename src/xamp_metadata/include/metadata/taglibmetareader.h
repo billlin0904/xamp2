@@ -5,8 +5,7 @@
 
 #pragma once
 
-#include <unordered_set>
-
+#include <base/alignstl.h>
 #include <base/memory.h>
 #include <base/align_ptr.h>
 
@@ -25,7 +24,7 @@ public:
 
     const std::vector<uint8_t>& ExtractEmbeddedCover(const Path &path) override;
 
-    const std::unordered_set<std::string> & GetSupportFileExtensions() const override;
+    const Set<std::string> & GetSupportFileExtensions() const override;
 
     bool IsSupported(const Path & path) const override;
 private:

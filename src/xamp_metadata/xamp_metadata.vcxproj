@@ -76,7 +76,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/taglib2/taglib;../thirdparty/taglib2/taglib/ape;../thirdparty/taglib2/taglib/mpeg;../thirdparty/taglib2/taglib/toolkit;../thirdparty/taglib2/taglib/mp4;../thirdparty/taglib2/taglib/flac;../thirdparty/taglib2/taglib/mpeg/id3v2</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/taglib2/taglib;../thirdparty/taglib2/taglib/ape;../thirdparty/taglib2/taglib/mpeg;../thirdparty/taglib2/taglib/toolkit;../thirdparty/taglib2/taglib/mp4;../thirdparty/taglib2/taglib/flac;../thirdparty/taglib2/taglib/mpeg/id3v2;../thirdparty/flat_hash_map/</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PreprocessorDefinitions>METADATA_API_EXPORTS;TAGLIB_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BrowseInformation>true</BrowseInformation>
@@ -124,7 +124,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/taglib2/taglib;../thirdparty/taglib2/taglib/ape;../thirdparty/taglib2/taglib/mpeg;../thirdparty/taglib2/taglib/toolkit;../thirdparty/taglib2/taglib/mp4;../thirdparty/taglib2/taglib/flac;../thirdparty/taglib2/taglib/mpeg/id3v2</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/taglib2/taglib;../thirdparty/taglib2/taglib/ape;../thirdparty/taglib2/taglib/mpeg;../thirdparty/taglib2/taglib/toolkit;../thirdparty/taglib2/taglib/mp4;../thirdparty/taglib2/taglib/flac;../thirdparty/taglib2/taglib/mpeg/id3v2;../thirdparty/flat_hash_map/</AdditionalIncludeDirectories>
       <OmitFramePointers>true</OmitFramePointers>
       <PreprocessorDefinitions>METADATA_API_EXPORTS;TAGLIB_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp17</LanguageStandard>

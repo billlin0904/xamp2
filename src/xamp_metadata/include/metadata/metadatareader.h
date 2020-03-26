@@ -6,9 +6,10 @@
 #pragma once
 
 #include <vector>
-#include <unordered_set>
 
+#include <base/alignstl.h>
 #include <base/metadata.h>
+
 #include <metadata/metadata.h>
 #include <metadata/metadataextractadapter.h>
 
@@ -20,7 +21,7 @@ public:
  
     virtual const std::vector<uint8_t>& ExtractEmbeddedCover(const Path &path) = 0;
 
-    virtual const std::unordered_set<std::string> & GetSupportFileExtensions() const = 0;
+    virtual const Set<std::string> & GetSupportFileExtensions() const = 0;
 
     virtual bool IsSupported(const Path & path) const = 0;
 protected:
