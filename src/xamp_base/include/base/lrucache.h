@@ -8,79 +8,80 @@
 #include <list>
 #include <optional>
 
+#include <base/base.h>
 #include <base/alignstl.h>
 
-#include <base/base.h>
-
 namespace xamp::base {
+
+constexpr size_t LRU_CACHE_SIZE = 128;
 
 template <typename Key, typename Value>
 class XAMP_BASE_API_ONLY_EXPORT LruCache {
 public:
-    static const size_t DEFAULT_CACHE_SIZE = 128;
+    using ItemList = List<std::pair<Key, Value>>;
+    using NodePtr = typename ItemList::const_iterator;
 
-    using List = std::list<std::pair<Key, Value>, AlignedAllocator<std::pair<Key, Value>>>;
-    using NodePtr = typename List::const_iterator;
-
-    explicit LruCache(size_t max_size = DEFAULT_CACHE_SIZE)
+    explicit LruCache(size_t max_size = LRU_CACHE_SIZE)
         : max_size_(max_size) {
     }
 
-    void set_cache_size(size_t max_size) {
+    void SetCacheSize(size_t max_size) {
         max_size_ = max_size;
     }
 
-    void insert(const Key& key, const Value& value) {
-        cache_.emplace_front(key, value);
-        items_[key] = cache_.begin();
-
-        if (cache_.size() > max_size_) {
-            items_.erase(cache_.back().first);
-            cache_.pop_back();
+    void Insert(const Key& key, const Value& value) {
+        if (cache_.find(key) == cache_.end()) {
+            if (items_.size() == max_size_) {
+                cache_.erase(items_.back().first);
+                items_.pop_back();
+            }
+            items_.push_front(std::make_pair(key, value));
         }
+        else {           
+            items_.splice(items_.begin(), items_, cache_[key]);            
+        }
+        cache_[key] = items_.begin();
     }
 
-    std::optional<const Value*> find(const Key& key) const {
-        const auto check = items_.find(key);
-        if (check == items_.end()) {
+    std::optional<const Value*> Find(const Key& key) const {
+        const auto check = cache_.find(key);
+        if (check == cache_.end()) {
             return std::nullopt;
         }
-        cache_.push_front(*check->second);
-        cache_.erase(check->second);
-        items_[key] = cache_.begin();
-        return &check->second->second;
+        items_.splice(items_.begin(), items_, cache_[key]);
+        return &cache_[key]->second;
     }
 
     NodePtr begin() const noexcept {
-        return cache_.cbegin();
+        return items_.cbegin();
     }
 
     NodePtr end() const noexcept {
-        return cache_.cend();
+        return items_.cend();
     }
 
-    void erase(const Key& key) {
-        const auto check = items_.find(key);
-        if (check == items_.end()) {
+    void Erase(const Key& key) {
+        const auto check = cache_.find(key);
+        if (check == cache_.end()) {
             return;
         }
-        cache_.erase(check->second);
-        items_.erase(check);
+        items_.erase(check->second);
+        cache_.erase(check);
     }
 
-    void clear() {
-        items_.clear();
+    void Clear() noexcept {
         cache_.clear();
+        items_.clear();
     }
 
-    size_t max_size() const noexcept {
+    size_t GetMaxSize() const noexcept {
         return max_size_;
     }
 
 private:
     size_t max_size_;
-    mutable HashMap<Key, NodePtr> items_;
-    mutable List cache_;
+    mutable HashMap<Key, NodePtr> cache_;
+    mutable ItemList items_;
 };
 
 }

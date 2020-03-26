@@ -5,10 +5,10 @@
 
 #pragma once
 
-#include <ctime>
 #include <vector>
 #include <deque>
 #include <string>
+#include <list>
 
 #include <base/alignallocator.h>
 #include <base/hash.h>
@@ -22,6 +22,9 @@ using Vector = std::vector<T, AlignedAllocator<T>>;
 
 template <typename T>
 using Queue = std::deque<T, AlignedAllocator<T>>;
+
+template <typename T>
+using List = std::list<T, AlignedAllocator<T>>;
 
 template <typename T>
 struct MurmurHash;
