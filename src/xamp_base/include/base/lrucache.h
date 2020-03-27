@@ -26,11 +26,11 @@ public:
         : max_size_(max_size) {
     }
 
-    void set_cache_size(size_t max_size) {
+    void SetMaxSize(size_t max_size) {
         max_size_ = max_size;
     }
 
-    void insert(const Key& key, const Value& value) {
+    void Insert(const Key& key, const Value& value) {
         cache_.emplace_front(key, value);
         items_[key] = cache_.begin();
 
@@ -40,7 +40,7 @@ public:
         }
     }
 
-    std::optional<const Value*> find(const Key& key) const {
+    std::optional<const Value*> Find(const Key& key) const {
         const auto check = items_.find(key);
         if (check == items_.end()) {
             return std::nullopt;
@@ -59,7 +59,7 @@ public:
         return cache_.cend();
     }
 
-    void erase(const Key& key) {
+    void Erase(const Key& key) {
         const auto check = items_.find(key);
         if (check == items_.end()) {
             return;
@@ -68,12 +68,12 @@ public:
         items_.erase(check);
     }
 
-    void clear() {
+    void Clear() {
         items_.clear();
         cache_.clear();
     }
 
-    size_t max_size() const noexcept {
+    size_t GetMaxSize() const noexcept {
         return max_size_;
     }
 

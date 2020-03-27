@@ -24,7 +24,7 @@ PixmapCache::PixmapCache()
     QDir dir;
     (void)dir.mkdir(cache_path_);
 	loadCache();
-	cache_.set_cache_size(16);
+	cache_.SetMaxSize(16);
 }
 
 QPixmap PixmapCache::findDirExistCover(const QString& file_path) {
@@ -52,7 +52,7 @@ void PixmapCache::clear() {
 		file.close();
 	}
 
-	cache_.clear();
+	cache_.Clear();
 }
 
 QPixmap PixmapCache::findDirExistCover(const PlayListEntity& item) {
@@ -62,7 +62,7 @@ QPixmap PixmapCache::findDirExistCover(const PlayListEntity& item) {
 void PixmapCache::erase(const QString& tag_id) {
 	QFile file(cache_path_ + tag_id + Q_UTF8(".cache"));
 	file.remove();
-	cache_.erase(tag_id);
+	cache_.Erase(tag_id);
 }
 
 QPixmap PixmapCache::fromFileCache(const QString& tag_id) const {
@@ -76,7 +76,7 @@ void PixmapCache::loadCache() const {
         const auto path = itr.next();
 
         const QFileInfo image_file_path(path);
-		if (i >= cache_.max_size()) {
+		if (i >= cache_.GetMaxSize()) {
 			QFile file(path);
 			file.remove();
 			file.close();
@@ -86,7 +86,7 @@ void PixmapCache::loadCache() const {
         QPixmap read_cover(path);
         if (!read_cover.isNull()) {
             const auto tag_id = image_file_path.baseName();
-            cache_.insert(tag_id, read_cover);
+            cache_.Insert(tag_id, read_cover);
         }
     }
 
@@ -95,13 +95,13 @@ void PixmapCache::loadCache() const {
 
 std::optional<const QPixmap*> PixmapCache::find(const QString& tag_id) const {
 	while (true) {
-        const auto cache = cache_.find(tag_id);
+        const auto cache = cache_.Find(tag_id);
 		if (!cache) {
 			QPixmap read_cover = fromFileCache(tag_id);
 			if (read_cover.isNull()) {
 				return std::nullopt;
 			}
-            cache_.insert(tag_id, read_cover);
+            cache_.Insert(tag_id, read_cover);
 			continue;
 		}
 		return cache;
@@ -122,12 +122,12 @@ QString PixmapCache::add(const QPixmap& cover) const {
 		(void)small_cover.save(cache_path_ + tag_name + Q_UTF8(".cache"), "JPG", 100);
 	}
 
-    cache_.insert(tag_name, small_cover);
+    cache_.Insert(tag_name, small_cover);
 	return tag_name;
 }
 
 bool PixmapCache::isExist(const QString& tag_id) const {
-    return cache_.find(tag_id) != nullptr;
+    return cache_.Find(tag_id) != nullptr;
 }
 
 size_t PixmapCache::getImageSize() const {
