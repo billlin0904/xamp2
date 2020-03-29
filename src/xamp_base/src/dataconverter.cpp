@@ -1,4 +1,3 @@
-#ifdef _WIN32
 #include <base/dataconverter.h>
 
 namespace xamp::base {
@@ -64,4 +63,4 @@ AudioConvertContext MakeConvert(const AudioFormat& in_format, const AudioFormat&
 }
 
 }
-#endif
+

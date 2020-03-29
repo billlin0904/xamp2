@@ -1,4 +1,3 @@
-#ifdef _WIN32
 #include <vector>
 
 #include <chromaprint.h>
@@ -73,8 +72,8 @@ public:
 	}
 
 	void Start(int32_t sample_rate, int32_t num_channels, int32_t num_buffer_frames) {
-		context_.reset(ChromaprintLib::Instance().chromaprint_new(algorithm_));		
-		buffer_.resize(num_buffer_frames);
+        context_.reset(ChromaprintLib::Instance().chromaprint_new(algorithm_));
+        buffer_.resize(static_cast<size_t>(num_buffer_frames));
 		ChromaprintLib::Instance().chromaprint_start(context_.get(), sample_rate, num_channels);
 	}
 
@@ -157,4 +156,4 @@ std::vector<uint8_t> Chromaprint::GetFingerprint() const {
 }
 
 }
-#endif
+

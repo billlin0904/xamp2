@@ -28,7 +28,7 @@ void CoreAudioDeviceStateNotification::RemovePropertyListener() {
     CoreAudioThrowIfError(AudioObjectRemovePropertyListener(
                               kAudioObjectSystemObject,
                               &sAddOrRemoveDevicesPropertyAddress,
-                              &DeviceStateNotification::OnDefaultDeviceChangedCallback,
+                              &CoreAudioDeviceStateNotification::OnDefaultDeviceChangedCallback,
                               this));
 }
 
@@ -36,7 +36,7 @@ void CoreAudioDeviceStateNotification::AddPropertyListener() {
     CoreAudioThrowIfError(AudioObjectAddPropertyListener(
                               kAudioObjectSystemObject,
                               &sAddOrRemoveDevicesPropertyAddress,
-                              &DeviceStateNotification::OnDefaultDeviceChangedCallback,
+                              &CoreAudioDeviceStateNotification::OnDefaultDeviceChangedCallback,
                               this));
 }
 
@@ -45,7 +45,7 @@ OSStatus CoreAudioDeviceStateNotification::OnDefaultDeviceChangedCallback(
         UInt32 num_addresses,
         const AudioObjectPropertyAddress addresses[],
         void* context) {
-    auto notification = static_cast<DeviceStateNotification*>(context);
+    auto notification = static_cast<CoreAudioDeviceStateNotification*>(context);
     for (UInt32 i = 0; i < num_addresses; ++i) {
         if (addresses[i].mSelector == sAddOrRemoveDevicesPropertyAddress.mSelector &&
                 addresses[i].mScope == sAddOrRemoveDevicesPropertyAddress.mScope &&

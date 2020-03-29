@@ -21,6 +21,7 @@ endif(${CMAKE_BUILD_TYPE} STREQUAL Debug)
 include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
 include_directories("../thirdparty/spdlog/include/")
 include_directories("../thirdparty/utfcpp/source/")
+include_directories("../thirdparty/robin_hood/")
 
 file(GLOB_RECURSE SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/*.cpp")
 

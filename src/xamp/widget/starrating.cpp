@@ -1,3 +1,4 @@
+#include <cmath>
 #include <widget/starrating.h>
 
 constexpr auto PaintingScaleFactor = 20;

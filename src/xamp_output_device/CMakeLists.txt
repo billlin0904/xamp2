@@ -29,6 +29,7 @@ include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
 include_directories("../xamp_base/include")
 include_directories("../thirdparty/bass/include/")
 include_directories("../thirdparty/spdlog/include/")
+include_directories("../thirdparty/robin_hood/")
 
 file(GLOB_RECURSE SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/*.cpp")
 

@@ -27,6 +27,7 @@ INCLUDEPATH += ../xamp_player/include/
 INCLUDEPATH += ../thirdparty/spdlog/include/
 INCLUDEPATH += ../thirdparty/rapidxml/
 INCLUDEPATH += ../thirdparty/rapidjson/include/
+INCLUDEPATH += ../thirdparty/robin_hood/
 
 SOURCES += \
     thememanager.cpp \
@@ -61,6 +62,11 @@ SOURCES += \
     widget/selectcolorwidget.cpp \
     widget/artistinfopage.cpp \
     singleinstanceapplication.cpp \
+    widget/starrating.cpp \
+    widget/stareditor.cpp \
+    widget/stardelegate.cpp \
+    widget/spectrograph.cpp \
+    aboutdialog.cpp \
     preferencedialog.cpp \
     main.cpp \
     xamp.cpp
@@ -104,13 +110,19 @@ HEADERS += \
     widget/filesystemwatcher.h \
     widget/selectcolorwidget.h \
     widget/artistinfopage.h \
+    widget/starrating.h \
+    widget/stareditor.h \
+    widget/stardelegate.h \
+    widget/spectrograph.h \
+    aboutdialog.h \
     preferencedialog.h \
     xamp.h
 
 FORMS += \
     xamp.ui \
-    widget/toast.ui \
+    aboutdialog.ui \
     preferencedialog.ui \
+    widget/toast.ui \
 
 RESOURCES += \
     xamp.qrc \

@@ -30,6 +30,8 @@ include_directories("../xamp_stream/include")
 include_directories("../thirdparty/bass/include/")
 include_directories("../thirdparty/spdlog/include/")
 include_directories("../thirdparty/soxr/src/")
+include_directories("../thirdparty/robin_hood/")
+include_directories("../thirdparty/chromaprint/src")
 
 file(GLOB_RECURSE SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/*.cpp")
 

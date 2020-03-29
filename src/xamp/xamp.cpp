@@ -1106,7 +1106,7 @@ PlyalistPage* Xamp::newPlaylist(int32_t playlist_id) {
             dialog.setWindowModality(Qt::WindowModal);
             dialog.setMinimumSize(QSize(500, 100));
             dialog.setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed));
-            dialog.show();            
+            dialog.show();
 
             FingerprintInfo fingerprint_info;
             QByteArray fingerprint;
@@ -1115,7 +1115,7 @@ PlyalistPage* Xamp::newPlaylist(int32_t playlist_id) {
             try {
                 result = ReadFingerprint(item.file_path.toStdWString(),
                     item.file_ext.toStdWString(),
-                    [&](auto progress) {
+                                         [&](auto progress) -> bool {
                     dialog.setValue(progress);
                     qApp->processEvents();
                     return dialog.wasCanceled() != true;

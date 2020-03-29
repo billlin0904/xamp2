@@ -157,9 +157,15 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, const std::wstring &
             }
         }
         else {
-            dsd_stream->SetDSDMode(DsdModes::DSD_MODE_DOP);
-            XAMP_LOG_DEBUG("Use DOP mode");
-            dsd_mode_ = DsdModes::DSD_MODE_DOP;
+            if (device_info.is_support_dsd) {
+                dsd_stream->SetDSDMode(DsdModes::DSD_MODE_DOP);
+                XAMP_LOG_DEBUG("Use DOP mode");
+                dsd_mode_ = DsdModes::DSD_MODE_DOP;
+            } else {
+                dsd_stream->SetDSDMode(DsdModes::DSD_MODE_PCM);
+                XAMP_LOG_DEBUG("Use PCM mode");
+                dsd_mode_ = DsdModes::DSD_MODE_PCM;
+            }
         }
     }
     else {        

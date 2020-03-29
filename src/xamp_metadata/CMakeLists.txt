@@ -30,6 +30,7 @@ include_directories("../thirdparty/taglib2/taglib/mpeg/")
 include_directories("../thirdparty/taglib2/taglib/mpeg/id3v2/")
 include_directories("../thirdparty/taglib2/taglib/toolkit/")
 include_directories("../xamp_base/include")
+include_directories("../thirdparty/robin_hood/")
 
 file(GLOB_RECURSE SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/*.cpp")
 

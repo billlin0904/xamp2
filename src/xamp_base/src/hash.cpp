@@ -9,7 +9,7 @@ size_t MurmurHash64(const void* key, size_t len, uint32_t seed) noexcept {
 
 	size_t h = seed ^ (len * m);
 
-	const size_t* data = (const uint64_t*)key;
+    const size_t* data = (const size_t*)key;
 	const size_t* end = data + (len / 8);
 
 	while (data != end)

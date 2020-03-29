@@ -10,15 +10,47 @@ const ID CoreAudioDeviceType::Id = ID("E6BB3BF2-F16A-489B-83EE-4A29755F42E4");
 static std::wstring CFSStringToStdWstring(CFStringRef &cfname) {
     std::string name;
     auto length = CFStringGetLength(cfname);
-    auto mname = (char *)malloc(length * 3 + 1);
+    std::vector<char> mname(length * 3 + 1);
     CFStringGetCString(cfname,
-                       mname,
+                       mname.data(),
                        length * 3 + 1,
                        kCFStringEncodingUTF8);
-    name.append((const char *)mname, strlen(mname));
+    name.append(mname.data(), strlen(mname.data()));
     CFRelease(cfname);
-    free(mname);
     return ToStdWString(name);
+}
+
+static std::vector<int32_t> GetAvailableSampleRates(AudioDeviceID id) {
+    AudioObjectPropertyAddress property = {
+        kAudioDevicePropertyAvailableNominalSampleRates,
+        kAudioObjectPropertyScopeGlobal,
+        kAudioObjectPropertyElementMaster
+    };
+    std::vector<int32_t> samplerates;
+    uint32_t dataSize = 0;
+    auto result = AudioObjectGetPropertyDataSize(id, &property, 0, nullptr, &dataSize);
+    if (result != kAudioHardwareNoError || dataSize == 0) {
+        return samplerates;
+    }
+    UInt32 nRanges = dataSize / sizeof(AudioValueRange);
+    std::vector<AudioValueRange> rangeList(nRanges);
+    result = AudioObjectGetPropertyData(id, &property, 0, nullptr, &dataSize, rangeList.data());
+    if (result != kAudioHardwareNoError) {
+        return samplerates;
+    }
+    for (auto rangs : rangeList) {
+        samplerates.push_back(std::nearbyint(rangs.mMaximum));
+    }
+    return samplerates;
+}
+
+static bool IsSupportDopMode(AudioDeviceID id) {
+    auto samplerates = GetAvailableSampleRates(id);
+    return std::find_if(samplerates.begin(), samplerates.end(), [](auto samplerate) {
+        // Minimal DOP DSD64 samplerate
+        constexpr int32_t MIN_DOP_SAMPLERATE = 176400;
+        return samplerate >= MIN_DOP_SAMPLERATE;
+    }) != samplerates.end();
 }
 
 static std::wstring GetDeviceName(AudioDeviceID id, AudioObjectPropertySelector selector) {
@@ -144,14 +176,15 @@ std::vector<DeviceInfo> CoreAudioDeviceType::GetDeviceInfo() const {
 
     auto default_device_info = GetDefaultDeviceInfo();
 
-    for (uint32_t i = 0; i < device_count; ++i) {
-        if (!IsOutputDevice(device_list[i])) {
+    for (auto device_id : device_list) {
+        if (!IsOutputDevice(device_id)) {
             continue;
-        }
+        }        
         DeviceInfo info;
-        info.name = GetPropertyName(device_list[i]);
-        info.device_id = std::to_wstring(device_list[i]);
+        info.name = GetPropertyName(device_id);
+        info.device_id = std::to_wstring(device_id);
         info.device_type_id = Id;
+        info.is_support_dsd = IsSupportDopMode(device_id);
         if (default_device_info) {
             if (default_device_info.value().device_id == info.device_id) {
                 info.is_default_device = true;
@@ -189,7 +222,7 @@ std::optional<DeviceInfo> CoreAudioDeviceType::GetDefaultDeviceInfo() const {
     device_info.device_id = std::to_wstring(id);
     device_info.device_type_id = Id;
     device_info.is_default_device = true;
-    return std::move(device_info);
+    return device_info;
 }
 
 }

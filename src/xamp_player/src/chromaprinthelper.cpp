@@ -1,4 +1,3 @@
-#ifdef _WIN32
 #include <base/dataconverter.h>
 #include <stream/avfilestream.h>
 
@@ -7,6 +6,8 @@
 #include <player/chromaprinthelper.h>
 
 namespace xamp::player {
+
+using namespace xamp::base;
 
 Fingerprint ReadFingerprint(const std::wstring& file_path, const std::wstring& file_ext, std::function<bool(int32_t)> progress) {
 	constexpr auto kFingerprintDuration = 120;
@@ -70,4 +71,3 @@ Fingerprint ReadFingerprint(const std::wstring& file_path, const std::wstring& f
 }
 
 }
-#endif

@@ -5,13 +5,14 @@
 
 #pragma once
 
-#ifdef _WIN32
-
 #include <array>
 #include <cassert>
+#include <cmath>
 
+#ifdef _WIN32
 #include <intrin.h>
 #include <xmmintrin.h>
+#endif
 
 #include <base/base.h>
 #include <base/audioformat.h>
@@ -171,8 +172,9 @@ struct DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEA
 
 	static XAMP_RESTRICT int32_t* ConvertToInt16(int32_t* output, const float* input, const AudioConvertContext& context) noexcept {
 		return ConvertHelper<int32_t, XAMP_FLOAT_32_SCALER>(output, input, context);
-	}
+    }
 
+#ifdef _WIN32
 	static XAMP_RESTRICT int32_t* ConvertToInt2432(int32_t* output, const float* input, const AudioConvertContext& context) noexcept {
 		const auto* end_input = input + (size_t)context.convert_size * context.input_format.GetChannels();
 
@@ -203,9 +205,8 @@ struct DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEA
 		}
 
 		return output;
-	}
+    }
+#endif
 };
 
 }
-
-#endif

@@ -42,8 +42,8 @@ int main(int argc, char *argv[]) {
 
     std::vector<ModuleHandle> preload_modules;
 
-#ifdef Q_OS_WIN
-	try {		
+    try {
+#ifdef Q_OS_WIN	
 		// 如果沒有預先載入拖入檔案會爆音.
 		preload_modules.emplace_back(LoadDll("psapi.dll"));
 		preload_modules.emplace_back(LoadDll("comctl32.dll"));
@@ -52,14 +52,15 @@ int main(int argc, char *argv[]) {
 		preload_modules.emplace_back(LoadDll("AUDIOKSE.dll"));
 		preload_modules.emplace_back(LoadDll("avrt.dll"));
 		AudioPlayer::LoadLib();
-	}
-	catch (const Exception & e) {
-		QMessageBox::critical(nullptr, Q_UTF8("Load dll failure!"), QString::fromStdString(e.GetErrorMessage()));
-		return -1;
-	}
-
-	VmMemLock::EnableLockMemPrivilege(true);
+        VmMemLock::EnableLockMemPrivilege(true);
+#else
+        AudioPlayer::LoadLib();
 #endif
+    }
+    catch (const Exception & e) {
+        QMessageBox::critical(nullptr, Q_UTF8("Load dll failure!"), QString::fromStdString(e.GetErrorMessage()));
+        return -1;
+    }
 
 #ifdef Q_OS_MAC
     try {

@@ -1,4 +1,5 @@
 #include <QDebug>
+#include <cmath>
 #include <widget/stareditor.h>
 
 StarEditor::StarEditor(int row, QWidget* parent)
