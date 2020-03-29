@@ -15,9 +15,12 @@ LyricsShowWideget::LyricsShowWideget(QWidget* parent)
 }
 
 void LyricsShowWideget::initial() {
-	lrc_font_ = font();
+    lrc_font_ = font();
+#ifdef _WIN32
     lrc_font_.setPointSize(12);
-
+#else
+    lrc_font_.setPointSize(18);
+#endif
 	LyricEntry entry;
 	entry.lrc = tr("Not found lyrics").toStdWString();
 	lyric_.AddLrc(entry);

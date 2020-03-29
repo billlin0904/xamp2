@@ -88,7 +88,12 @@ bool LrcParser::ParseFile(const std::wstring &file_path) {
         return false;
     }
 
-	ImbueFileFromBom(file);
+#ifdef _WIN32
+    ImbueFileFromBom(file);
+#else
+    std::locale utf8_locale(std::locale(), new std::codecvt_utf8<wchar_t>());
+    file.imbue(utf8_locale);
+#endif
     return ParseStream(file);
 }
 
@@ -138,10 +143,16 @@ void LrcParser::ParseMultiLrc(std::wstring const & line) {
 bool LrcParser::ParseStream(std::wistream &istr) {
 	lyrics_.clear();
 
-	bool start_read_lrc = false;
+    bool start_read_lrc = false;
+
+#ifdef _WIN32
+    wchar_t dlm = L'\r';
+#else
+    wchar_t dlm = L'\n';
+#endif
 
 	std::wstring line;
-	while (std::getline(istr, line)) {
+    while (std::getline(istr, line, dlm)) {
 		if (!start_read_lrc) {
 			if (line.find(L"[ti") != std::wstring::npos) {
 				title_ = TagParser<>::ParseIdTag(L"ti", line);

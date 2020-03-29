@@ -1,4 +1,5 @@
 #include <base/str_utilts.h>
+#include <base/logger.h>
 
 #include <output_device/osx/coreaudiodevice.h>
 #include <output_device/osx/coreaudiodevicetype.h>
@@ -39,7 +40,9 @@ static std::vector<int32_t> GetAvailableSampleRates(AudioDeviceID id) {
         return samplerates;
     }
     for (auto rangs : rangeList) {
-        samplerates.push_back(std::nearbyint(rangs.mMaximum));
+        auto samplerate = static_cast<int32_t>(std::nearbyint(rangs.mMaximum));
+        XAMP_LOG_DEBUG("Device id: {} samplerate: {}", id, samplerate);
+        samplerates.push_back(samplerate);
     }
     return samplerates;
 }
@@ -51,6 +54,27 @@ static bool IsSupportDopMode(AudioDeviceID id) {
         constexpr int32_t MIN_DOP_SAMPLERATE = 176400;
         return samplerate >= MIN_DOP_SAMPLERATE;
     }) != samplerates.end();
+}
+
+static std::wstring GetDeviceUid(AudioDeviceID id) {
+    AudioObjectPropertyAddress property = {
+        kAudioDevicePropertyDeviceUID,
+        kAudioObjectPropertyScopeGlobal,
+        kAudioObjectPropertyElementMaster
+    };
+
+    CFStringRef uid = nullptr;
+    UInt32 size = sizeof(uid);
+    auto result = AudioObjectGetPropertyData(id,
+                                        &property,
+                                        0,
+                                        nullptr,
+                                        &size,
+                                        &uid);
+    if (result) {
+        return L"";
+    }
+    return CFSStringToStdWstring(uid);
 }
 
 static std::wstring GetDeviceName(AudioDeviceID id, AudioObjectPropertySelector selector) {
@@ -222,7 +246,7 @@ std::optional<DeviceInfo> CoreAudioDeviceType::GetDefaultDeviceInfo() const {
     device_info.device_id = std::to_wstring(id);
     device_info.device_type_id = Id;
     device_info.is_default_device = true;
-    return device_info;
+    return std::move(device_info);
 }
 
 }
