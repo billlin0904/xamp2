@@ -11,16 +11,17 @@
 
 #include <base/align_ptr.h>
 #include <output_device/devicestatelistener.h>
+#include <output_device/devicestatenotification.h>
 
 namespace xamp::output_device::osx {
 
 using namespace base;
 
-class DeviceStateNotification {
+class CoreAudioDeviceStateNotification : public DeviceStateNotification {
 public:
-    explicit DeviceStateNotification(std::weak_ptr<DeviceStateListener> callback);
+    explicit CoreAudioDeviceStateNotification(std::weak_ptr<DeviceStateListener> callback);
 
-    ~DeviceStateNotification();
+    virtual ~CoreAudioDeviceStateNotification();
 
     void Run();
 

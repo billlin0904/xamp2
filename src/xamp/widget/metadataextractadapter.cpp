@@ -16,8 +16,6 @@
 
 constexpr size_t PREALLOCATE_SIZE = 100;
 
-using namespace xamp::base;
-
 class MetadataExtractCache {
 public:
     static MetadataExtractCache& instance() {
@@ -25,9 +23,11 @@ public:
         return cache;
     }
 
-    LruCache<QString, int32_t> album_id_cache;
-    LruCache<QString, int32_t> artist_id_cache;
-    LruCache<int32_t, QString> cover_id_cache;
+    xamp::base::LruCache<QString, int32_t> album_id;
+    xamp::base::LruCache<QString, int32_t> artist_id;
+    xamp::base::LruCache<int32_t, QString> cover_id;
+private:
+    MetadataExtractCache() = default;    
 };
 
 MetadataExtractAdapter::MetadataExtractAdapter(QObject* parent)
@@ -57,7 +57,6 @@ void MetadataExtractAdapter::OnWalkNext() {
     });
 #endif
     emit readCompleted(metadatas_);
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
     metadatas_.clear();
 }
 
@@ -84,6 +83,8 @@ void MetadataExtractAdapter::processMetadata(const std::vector<xamp::base::Metad
         playlist_id = playlist->playlistId();
     }
 
+    auto& cache = MetadataExtractCache::instance();
+
     for (const auto& metadata : metadatas) {
         album = QString::fromStdWString(metadata.album);
         artist = QString::fromStdWString(metadata.artist);
@@ -91,25 +92,25 @@ void MetadataExtractAdapter::processMetadata(const std::vector<xamp::base::Metad
         auto music_id = Database::instance().addOrUpdateMusic(metadata, playlist_id);
 
         int32_t artist_id = 0;
-        if (auto artist_id_op = MetadataExtractCache::instance().artist_id_cache.Find(artist)) {
+        if (auto artist_id_op = cache.artist_id.Find(artist)) {
             artist_id = *artist_id_op.value();
         }
         else {
             artist_id = Database::instance().addOrUpdateArtist(artist);
-            MetadataExtractCache::instance().artist_id_cache.Insert(artist, artist_id);
+            cache.artist_id.Insert(artist, artist_id);
         }
 
         int32_t album_id = 0;
-        if (auto album_id_op = MetadataExtractCache::instance().album_id_cache.Find(album)) {
+        if (auto album_id_op = cache.album_id.Find(album)) {
             album_id = *album_id_op.value();
         }
         else {
             album_id = Database::instance().addOrUpdateAlbum(album, artist_id);
-            MetadataExtractCache::instance().album_id_cache.Insert(album, artist_id);
+            cache.album_id.Insert(album, album_id);
         }
 
         QString cover_id;        
-        if (auto cover_id_op = MetadataExtractCache::instance().cover_id_cache.Find(album_id)) {            
+        if (auto cover_id_op = cache.cover_id.Find(album_id)) {
             cover_id = *cover_id_op.value();
         }
         else {
@@ -126,7 +127,7 @@ void MetadataExtractAdapter::processMetadata(const std::vector<xamp::base::Metad
                 if (!pixmap.isNull()) {
                     cover_id = PixmapCache::instance().add(pixmap);
                     assert(!cover_id.isEmpty());
-                    MetadataExtractCache::instance().cover_id_cache.Insert(album_id, cover_id);
+                    cache.cover_id.Insert(album_id, cover_id);
                     Database::instance().setAlbumCover(album_id, album, cover_id);
                 }
             }

@@ -24,7 +24,7 @@ public:
 
     const std::vector<uint8_t>& ExtractEmbeddedCover(const Path &path) override;
 
-    const Set<std::string> & GetSupportFileExtensions() const override;
+    const RobinHoodSet<std::string> & GetSupportFileExtensions() const override;
 
     bool IsSupported(const Path & path) const override;
 private:

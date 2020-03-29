@@ -35,10 +35,17 @@
 #include "xamp.h"
 
 static void readMetadata(MetadataExtractAdapter* adapter, const QString& file_name) {
+    using namespace xamp::metadata;
+
     auto extract_handler = [adapter](const auto& file_name) {
-        const xamp::metadata::Path path(file_name.toStdWString());
-        xamp::metadata::TaglibMetadataReader reader;
-        xamp::metadata::FromPath(path, adapter, &reader);
+        const Path path(file_name.toStdWString());
+        TaglibMetadataReader reader;
+        try {
+            FromPath(path, adapter, &reader);
+        }
+        catch (const std::exception& e) {
+            XAMP_LOG_DEBUG("FromPath has exception: {}", e.what());
+        }
     };
 
     auto future = QtConcurrent::run(extract_handler, file_name);
@@ -1090,11 +1097,7 @@ PlyalistPage* Xamp::newPlaylist(int32_t playlist_id) {
         IgnoreSqlError(Database::instance().removePlaylistMusic(playlist_id, select_music_ids))
     });
     (void)QObject::connect(playlist_page->playlist(), &PlayListTableView::readFingerprint,
-        [this](auto index, const auto& item) {      
-            if (Database::instance().hasMusicFingerprint(item.music_id)) {
-                return;
-            }
-
+        [this](auto index, const auto& item) {
             using namespace xamp::player;
             QProgressDialog dialog(tr("Read '") + item.title + tr("' fingerprint"), tr("Cancel"), 0, 100);
             dialog.setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);

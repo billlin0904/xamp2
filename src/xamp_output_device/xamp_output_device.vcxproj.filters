@@ -20,8 +20,8 @@
     <ClCompile Include="src\asioexception.cpp" />
     <ClCompile Include="include\output_device\asiodevice.cpp" />
     <ClCompile Include="src\asiodevicetype.cpp" />
-    <ClCompile Include="src\win32\devicestatenotification.cpp" />
     <ClCompile Include="src\win32\mmcss.cpp" />
+    <ClCompile Include="src\win32\win32devicestatenotification.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\output_device\audiocallback.h" />
@@ -41,12 +41,13 @@
     <ClInclude Include="include\output_device\asiodevice.h" />
     <ClInclude Include="include\output_device\asiodevicetype.h" />
     <ClInclude Include="include\output_device\asioexception.h" />
-    <ClInclude Include="include\output_device\win32\devicestatenotification.h" />
     <ClInclude Include="include\output_device\devicestatelistener.h" />
     <ClInclude Include="include\output_device\volume.h" />
     <ClInclude Include="include\output_device\dsddevice.h" />
     <ClInclude Include="include\output_device\win32\mmcss.h" />
     <ClInclude Include="include\output_device\devicestate.h" />
+    <ClInclude Include="include\output_device\devicestatenotification.h" />
+    <ClInclude Include="include\output_device\win32\win32devicestatenotification.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="asiosdk">

@@ -17,12 +17,6 @@
 #include <base/align_ptr.h>
 #include <base/logger.h>
 
-#ifdef _WIN32
-#include <output_device/win32/devicestatenotification.h>
-#else
-#include <output_device/osx/devicestatenotification.h>
-#endif
-
 #include <output_device/output_device.h>
 #include <output_device/device_type.h>
 
@@ -74,15 +68,12 @@ public:
 
     bool IsDeviceTypeExist(const ID id) const;
 private:
-    DeviceFactory();
+    class DeviceStateNotificationImpl;
 
-#ifdef _WIN32
-    CComPtr<win32::DeviceStateNotification> notification_;
-#else
-    AlignPtr<osx::DeviceStateNotification> notification_;
-#endif
+    DeviceFactory();    
 
-    MurmurHashMap<ID, std::function<AlignPtr<DeviceType>()>> creator_;
+    AlignPtr<DeviceStateNotificationImpl> impl_;
+    RobinHoodHashMap<ID, std::function<AlignPtr<DeviceType>()>> creator_;
 };
 
 }

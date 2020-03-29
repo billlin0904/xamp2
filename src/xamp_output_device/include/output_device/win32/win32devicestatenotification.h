@@ -8,15 +8,16 @@
 #ifdef _WIN32
 
 #include <output_device/devicestatelistener.h>
+#include <output_device/devicestatenotification.h>
 #include <output_device/win32/wasapi.h>
 
 namespace xamp::output_device::win32 {
 
-class XAMP_OUTPUT_DEVICE_API DeviceStateNotification : public IMMNotificationClient {
+class XAMP_OUTPUT_DEVICE_API Win32DeviceStateNotification : public IMMNotificationClient, public DeviceStateNotification {
 public:
-	explicit DeviceStateNotification(std::weak_ptr<DeviceStateListener> callback);
+	explicit Win32DeviceStateNotification(std::weak_ptr<DeviceStateListener> callback);
 
-	virtual ~DeviceStateNotification();
+	virtual ~Win32DeviceStateNotification();
 
 	void Run();
 

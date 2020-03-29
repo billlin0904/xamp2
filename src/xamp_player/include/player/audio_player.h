@@ -173,7 +173,7 @@ private:
 	AudioBuffer<int8_t> buffer_;
 	WaitableTimer wait_timer_;
 	AlignPtr<Resampler> resampler_;	
-	std::future<void> stream_task_;
+	std::shared_future<void> stream_task_;
 };
 
 }

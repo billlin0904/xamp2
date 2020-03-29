@@ -27,8 +27,6 @@
 #define XAMP_UNLIKELY(x) __builtin_expect(!!(x), 0)
 #endif
 
-#define XAMP_USE_SIMD 1
-
 #define XAMP_DISABLE_COPY(Class) \
 	Class(const Class &) = delete; \
 	Class& operator=(const Class &) = delete;
@@ -59,11 +57,9 @@
 #ifdef _WIN32
 #define XAMP_NO_VTABLE __declspec(novtable)
 #define XAMP_RESTRICT __declspec(restrict)
-#define XAMP_NOALIAS __declspec(noalias)
 #else
 #define XAMP_NO_VTABLE
 #define XAMP_RESTRICT
-#define XAMP_NOALIAS
 #endif
 
 #ifdef _WIN32

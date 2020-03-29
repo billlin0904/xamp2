@@ -3,7 +3,7 @@
 
 namespace xamp::base {
 
-size_t MurmurHash64A(const void* key, size_t len, unsigned int seed) noexcept {
+size_t MurmurHash64(const void* key, size_t len, uint32_t seed) noexcept {
 	const size_t m = 0xc6a4a7935bd1e995;
 	const int r = 47;
 

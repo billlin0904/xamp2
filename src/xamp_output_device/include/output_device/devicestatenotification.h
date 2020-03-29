@@ -5,14 +5,16 @@
 
 #pragma once
 
-#include <cstdint>
-#include <base/base.h>
+#include <output_device/output_device.h>
 
-namespace xamp::base {
+namespace xamp::output_device {
 
-constexpr uint32_t XAMP_DEFAULT_SEED = 104729;
+class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE DeviceStateNotification {
+public:
+	virtual ~DeviceStateNotification() = default;
 
-XAMP_BASE_API size_t MurmurHash64(const void* key, size_t len, uint32_t seed = XAMP_DEFAULT_SEED) noexcept;
+protected:
+	DeviceStateNotification() = default;
+};
 
 }
-

@@ -1,5 +1,5 @@
 #include <output_device/osx/coreaudioexception.h>
-#include <output_device/osx/devicestatenotification.h>
+#include <output_device/osx/coreaudiodevicestatenotification.h>
 
 namespace xamp::output_device::osx {
 
@@ -9,22 +9,22 @@ constexpr AudioObjectPropertyAddress sAddOrRemoveDevicesPropertyAddress = {
     kAudioObjectPropertyElementMaster
 };
 
-DeviceStateNotification::DeviceStateNotification(std::weak_ptr<DeviceStateListener> callback)
+CoreAudioDeviceStateNotification::CoreAudioDeviceStateNotification(std::weak_ptr<DeviceStateListener> callback)
     : callback_(callback) {
 }
 
-DeviceStateNotification::~DeviceStateNotification() {
+CoreAudioDeviceStateNotification::~CoreAudioDeviceStateNotification() {
     try {
         RemovePropertyListener();
     } catch (...) {
     }
 }
 
-void DeviceStateNotification::Run() {
+void CoreAudioDeviceStateNotification::Run() {
     AddPropertyListener();
 }
 
-void DeviceStateNotification::RemovePropertyListener() {
+void CoreAudioDeviceStateNotification::RemovePropertyListener() {
     CoreAudioThrowIfError(AudioObjectRemovePropertyListener(
                               kAudioObjectSystemObject,
                               &sAddOrRemoveDevicesPropertyAddress,
@@ -32,7 +32,7 @@ void DeviceStateNotification::RemovePropertyListener() {
                               this));
 }
 
-void DeviceStateNotification::AddPropertyListener() {
+void CoreAudioDeviceStateNotification::AddPropertyListener() {
     CoreAudioThrowIfError(AudioObjectAddPropertyListener(
                               kAudioObjectSystemObject,
                               &sAddOrRemoveDevicesPropertyAddress,
@@ -40,7 +40,7 @@ void DeviceStateNotification::AddPropertyListener() {
                               this));
 }
 
-OSStatus DeviceStateNotification::OnDefaultDeviceChangedCallback(
+OSStatus CoreAudioDeviceStateNotification::OnDefaultDeviceChangedCallback(
         AudioObjectID object,
         UInt32 num_addresses,
         const AudioObjectPropertyAddress addresses[],

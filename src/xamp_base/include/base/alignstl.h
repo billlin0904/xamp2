@@ -8,23 +8,26 @@
 #include <vector>
 #include <deque>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
 #include <list>
 
 #include <base/alignallocator.h>
 #include <base/hash.h>
 #include <base/id.h>
-#include <unordered_map.hpp>
+
+#include <robin_hood.h>
 
 namespace xamp::base {
 
 template <typename T>
-using Vector = std::vector<T, AlignedAllocator<T>>;
+using Vector = std::vector<T>;
 
 template <typename T>
-using Queue = std::deque<T, AlignedAllocator<T>>;
+using Queue = std::deque<T>;
 
 template <typename T>
-using List = std::list<T, AlignedAllocator<T>>;
+using List = std::list<T>;
 
 template <typename T>
 struct MurmurHash;
@@ -32,7 +35,7 @@ struct MurmurHash;
 template<> 
 struct MurmurHash<std::string> {
 	size_t operator()(const std::string& s) const noexcept {
-		return MurmurHash64A(s.data(), s.length());
+		return MurmurHash64(s.data(), s.length());
 	}
 };
 
@@ -43,14 +46,11 @@ struct MurmurHash<ID> {
 	}
 };
 
-template <typename K, typename V, typename H = MurmurHash<K>, typename E = std::equal_to<K>>
-using MurmurHashMap = ska::unordered_map<K, V, H, E, AlignedAllocator<std::pair<K, V>>>;
-
 template <typename K, typename V, typename H = std::hash<K>, typename E = std::equal_to<K>>
-using HashMap = ska::unordered_map<K, V, H, E, AlignedAllocator<std::pair<K, V>>>;
+using RobinHoodHashMap = robin_hood::unordered_map<K, V, H, E>;
 
-template <typename T, typename H = MurmurHash<T>, typename E = std::equal_to<T>>
-using Set = ska::unordered_set<T, H, E, AlignedAllocator<T>>;
+template <typename T, typename H = std::hash<T>, typename E = std::equal_to<T>>
+using RobinHoodSet = robin_hood::unordered_set<T, H, E>;
 
 }
 

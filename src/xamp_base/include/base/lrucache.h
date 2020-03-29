@@ -25,22 +25,18 @@ public:
         : max_size_(max_size) {
     }
 
-    void set_cache_size(size_t max_size) {
+    void SetMaxSize(size_t max_size) {
         max_size_ = max_size;
     }
 
     void Insert(const Key& key, const Value& value) {
-        if (cache_.find(key) == cache_.end()) {
-            if (items_.size() == max_size_) {
-                cache_.erase(items_.back().first);
-                items_.pop_back();
-            }
-            items_.push_front(std::make_pair(key, value));
-        }
-        else {           
-            items_.splice(items_.begin(), items_, cache_[key]);            
-        }
+        items_.emplace_front(key, value);
         cache_[key] = items_.begin();
+
+        if (items_.size() > max_size_) {
+            cache_.erase(items_.back().first);
+            items_.pop_back();
+        }
     }
 
     std::optional<const Value*> Find(const Key& key) const {
@@ -48,8 +44,10 @@ public:
         if (check == cache_.end()) {
             return std::nullopt;
         }
-        items_.splice(items_.begin(), items_, cache_[key]);
-        return &cache_[key]->second;
+        items_.push_front(*check->second);
+        items_.erase(check->second);
+        cache_[key] = items_.begin();
+        return &check->second->second;
     }
 
     NodePtr begin() const noexcept {
@@ -80,7 +78,7 @@ public:
 
 private:
     size_t max_size_;
-    mutable HashMap<Key, NodePtr> cache_;
+    mutable RobinHoodHashMap<Key, NodePtr> cache_;
     mutable ItemList items_;
 };
 

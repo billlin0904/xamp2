@@ -91,7 +91,7 @@ XAMP_ALWAYS_INLINE bool operator==(const std::string &str, const ID &id) noexcep
 }
 
 XAMP_ALWAYS_INLINE size_t ID::GetHash() const noexcept {
-	return MurmurHash64A(bytes_.data(), bytes_.size());
+	return MurmurHash64(bytes_.data(), bytes_.size());
 }
 
 }

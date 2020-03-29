@@ -81,7 +81,7 @@ XAMP_BASE_API AudioConvertContext MakeConvert(const AudioFormat& in_format, cons
 template <InterleavedFormat InputFormat, InterleavedFormat OutputFormat>
 struct DataConverter {
 	// INFO: Only for DSD file
-	static XAMP_RESTRICT XAMP_NOALIAS int8_t* Convert(int8_t* output, const int8_t* input, const AudioConvertContext& context) noexcept {
+	static XAMP_RESTRICT int8_t* Convert(int8_t* output, const int8_t* input, const AudioConvertContext& context) noexcept {
 		for (int32_t i = 0; i < context.convert_size; ++i) {
 			output[context.out_offset[0]] = input[context.in_offset[0]];
 			output[context.out_offset[1]] = input[context.in_offset[1]];
@@ -91,7 +91,7 @@ struct DataConverter {
 		return output;
 	}
 
-	static XAMP_RESTRICT XAMP_NOALIAS int16_t* Convert(int16_t* output, const float* input, const AudioConvertContext& context) noexcept {
+	static XAMP_RESTRICT int16_t* Convert(int16_t* output, const float* input, const AudioConvertContext& context) noexcept {
 		for (int32_t i = 0; i < context.convert_size; ++i) {
 			output[context.out_offset[0]] = static_cast<int16_t>(input[context.in_offset[0]] * XAMP_FLOAT_16_SCALER * context.volume_factor);
 			output[context.out_offset[1]] = static_cast<int16_t>(input[context.in_offset[1]] * XAMP_FLOAT_16_SCALER * context.volume_factor);
@@ -101,7 +101,7 @@ struct DataConverter {
 		return output;
 	}
 
-	static XAMP_RESTRICT XAMP_NOALIAS int24_t* Convert(int24_t* output, const float* input, const AudioConvertContext& context) noexcept {
+	static XAMP_RESTRICT int24_t* Convert(int24_t* output, const float* input, const AudioConvertContext& context) noexcept {
 		for (int32_t i = 0; i < context.convert_size; ++i) {
 			output[context.out_offset[0]] = static_cast<int32_t>(input[context.in_offset[0]] * XAMP_FLOAT_24_SCALER);
 			output[context.out_offset[1]] = static_cast<int32_t>(input[context.in_offset[1]] * XAMP_FLOAT_24_SCALER);
@@ -111,7 +111,7 @@ struct DataConverter {
 		return output;
 	}
 
-	static XAMP_RESTRICT XAMP_NOALIAS int32_t* Convert(int32_t* output, const float* input, const AudioConvertContext& context) noexcept {
+	static XAMP_RESTRICT int32_t* Convert(int32_t* output, const float* input, const AudioConvertContext& context) noexcept {
 		const auto output_left_offset = context.out_offset[0];
 		const auto output_right_offset = context.out_offset[1];
 
@@ -127,7 +127,7 @@ struct DataConverter {
 		return output;
 	}
 
-    static XAMP_RESTRICT XAMP_NOALIAS float* Convert(float* output, const float* input, const AudioConvertContext& context) noexcept {
+    static XAMP_RESTRICT float* Convert(float* output, const float* input, const AudioConvertContext& context) noexcept {
         const auto output_left_offset = context.out_offset[0];
         const auto output_right_offset = context.out_offset[1];
 
@@ -145,7 +145,7 @@ struct DataConverter {
 };
 
 template <typename T, int64_t FloatScaler>
-XAMP_RESTRICT XAMP_NOALIAS T* ConvertHelper(T *output, const float* input, const AudioConvertContext& context) noexcept {
+XAMP_RESTRICT T* ConvertHelper(T *output, const float* input, const AudioConvertContext& context) noexcept {
 	const auto* end_input = input + (size_t)context.convert_size * context.input_format.GetChannels();
 
 	while (input != end_input) {
@@ -154,19 +154,28 @@ XAMP_RESTRICT XAMP_NOALIAS T* ConvertHelper(T *output, const float* input, const
 	return output;
 }
 
+inline XAMP_RESTRICT int32_t* Convert2432Helper(int32_t* output, const float* input, const AudioConvertContext& context) noexcept {
+	const auto* end_input = input + (size_t)context.convert_size * context.input_format.GetChannels();
+
+	while (input != end_input) {
+		*output++ = int24_t(*input++).to_2432int();
+	}
+	return output;
+}
+
 template <>
 struct DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEAVED> {
-	static XAMP_RESTRICT XAMP_NOALIAS int16_t* ConvertToInt16(int16_t* output, const float* input, const AudioConvertContext& context) noexcept {
+	static XAMP_RESTRICT int16_t* ConvertToInt16(int16_t* output, const float* input, const AudioConvertContext& context) noexcept {
 		return ConvertHelper<int16_t, XAMP_FLOAT_16_SCALER>(output, input, context);
 	}
 
-	static XAMP_RESTRICT XAMP_NOALIAS int32_t* ConvertToInt16(int32_t* output, const float* input, const AudioConvertContext& context) noexcept {
+	static XAMP_RESTRICT int32_t* ConvertToInt16(int32_t* output, const float* input, const AudioConvertContext& context) noexcept {
 		return ConvertHelper<int32_t, XAMP_FLOAT_32_SCALER>(output, input, context);
 	}
 
-	static XAMP_RESTRICT XAMP_NOALIAS int32_t* ConvertToInt2432(int32_t* output, const float* input, const AudioConvertContext& context) noexcept {
+	static XAMP_RESTRICT int32_t* ConvertToInt2432(int32_t* output, const float* input, const AudioConvertContext& context) noexcept {
 		const auto* end_input = input + (size_t)context.convert_size * context.input_format.GetChannels();
-#if XAMP_USE_SIMD
+
 		auto scale = _mm_set1_ps(XAMP_FLOAT_24_SCALER);
 		auto max_val = _mm_set1_ps(XAMP_FLOAT_24_SCALER - 1);
 		auto min_val = _mm_set1_ps(-XAMP_FLOAT_24_SCALER);
@@ -192,11 +201,7 @@ struct DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEA
 			input += 4;
 			output += 4;
 		}
-#else
-		while (input != end_input) {
-			*output++ = int24_t(*input++).to_2432int();
-		}
-#endif
+
 		return output;
 	}
 };

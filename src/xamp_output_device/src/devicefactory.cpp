@@ -2,8 +2,10 @@
 #include <output_device/win32/hrexception.h>
 #include <output_device/win32/exclusivewasapidevicetype.h>
 #include <output_device/win32/sharedwasapidevicetype.h>
+#include <output_device/win32/win32devicestatenotification.h>
 #else
 #include <output_device/osx/coreaudiodevicetype.h>
+#include <output_device/osx/coreaudiodevicestatenotification.h>
 #endif
 
 #if ENABLE_ASIO
@@ -14,10 +16,26 @@
 
 namespace xamp::output_device {
 
+class DeviceFactory::DeviceStateNotificationImpl {
+public:
+	explicit DeviceStateNotificationImpl(std::weak_ptr<DeviceStateListener> callback) {
+#ifdef _WIN32
+		notification = new win32::Win32DeviceStateNotification(callback);
+#else
+		notification = MakeAlign<osx::CoreAudioDeviceStateNotification>(callback);
+#endif
+	}
+#ifdef _WIN32
+	CComPtr<win32::Win32DeviceStateNotification> notification;
+#else
+	AlignPtr<osx::CoreAudioDeviceStateNotification> notification;
+#endif
+};
+
 #define XAMP_REGISTER_DEVICE_TYPE(DeviceTypeClass) \
-	creator_.insert(std::make_pair(DeviceTypeClass::Id, []() {\
+	creator_.emplace(DeviceTypeClass::Id, []() {\
 		return MakeAlign<DeviceType, DeviceTypeClass>();\
-	}))
+	})
 
 DeviceFactory::DeviceFactory() {
 #ifdef _WIN32
@@ -92,13 +110,9 @@ bool DeviceFactory::IsDeviceTypeExist(const ID id) const {
 	return creator_.find(id) != creator_.end();
 }
 
-void DeviceFactory::RegisterDeviceListener(std::weak_ptr<DeviceStateListener> callback) {
-#ifdef _WIN32
-	notification_ = new win32::DeviceStateNotification(callback);
-#else
-	notification_ = MakeAlign<osx::DeviceStateNotification>(callback);
-#endif
-	notification_->Run();
+void DeviceFactory::RegisterDeviceListener(std::weak_ptr<DeviceStateListener> callback) {	
+	impl_ = MakeAlign<DeviceStateNotificationImpl>(callback);
+	impl_->notification->Run();
 }
 
 }

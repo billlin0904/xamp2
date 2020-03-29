@@ -8,6 +8,7 @@
 #include <base/function_ref.h>
 #include <base/str_utilts.h>
 #include <base/memory.h>
+#include <base/logger.h>
 
 #include <metadata/taglib.h>
 #include <metadata/metadataextractadapter.h>
@@ -125,12 +126,17 @@ static void SetAudioProperties(AudioProperties* audio_properties, Metadata& meta
 }
 
 static void ExtractTag(const Path& path, Tag* tag, AudioProperties*audio_properties, Metadata& metadata) {
-    if (!tag->isEmpty()) {
-        metadata.artist = tag->artist().toWString();
-        metadata.title = tag->title().toWString();
-        metadata.album = tag->album().toWString();
-        metadata.track = tag->track();
+    try {
+        if (!tag->isEmpty()) {
+            metadata.artist = tag->artist().toWString();
+            metadata.title = tag->title().toWString();
+            metadata.album = tag->album().toWString();
+            metadata.track = tag->track();
+        }
     }
+    catch (const std::exception& e) {
+        XAMP_LOG_DEBUG("ExtractTag path: {}", e.what());
+    }    
 
     SetFileInfo(path, metadata);
     SetAudioProperties(audio_properties, metadata);
@@ -143,7 +149,7 @@ public:
 		return instance;
 	}
 
-    const Set<std::string>& GetSupportFileExtensions() const noexcept {
+    const RobinHoodSet<std::string>& GetSupportFileExtensions() const noexcept {
 		return support_file_extensions_;
 	}
 
@@ -159,7 +165,7 @@ protected:
 		}
 	}
 private:
-    Set<std::string> support_file_extensions_;
+    RobinHoodSet<std::string> support_file_extensions_;
 };
 
 class TaglibMetadataReader::TaglibMetadataReaderImpl {
@@ -222,7 +228,7 @@ public:
         return cover_;
     }
 
-    const Set<std::string>& GetSupportFileExtensions() const {
+    const RobinHoodSet<std::string>& GetSupportFileExtensions() const {
         return TaglibHelper::Instance().GetSupportFileExtensions();
     }
 
@@ -232,7 +238,7 @@ public:
 
 private:
     static void GetCover(const std::string& ext, File*file, std::vector<uint8_t>& cover) {
-        static const std::unordered_map<std::string, FunctionRef<bool(File *, std::vector<uint8_t> &)>>
+        static const RobinHoodHashMap<std::string, std::function<bool(File *, std::vector<uint8_t> &)>>
 			parse_cover_table{
             { ".FLAC", GetFlacCover },
             { ".MP3",  GetMp3Cover },
@@ -262,7 +268,7 @@ const std::vector<uint8_t>& TaglibMetadataReader::ExtractEmbeddedCover(const Pat
     return reader_->ExtractCover(path);
 }
 
-const Set<std::string>& TaglibMetadataReader::GetSupportFileExtensions() const {
+const RobinHoodSet<std::string>& TaglibMetadataReader::GetSupportFileExtensions() const {
     return reader_->GetSupportFileExtensions();
 }
 

@@ -146,19 +146,21 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, const std::wstring &
     stream_ = MakeFileStream(file_ext);
 
     if (auto dsd_stream = AsDsdStream()) {
-#ifdef _WIN32
-        if (device_info.is_support_dsd) {
-            dsd_stream->SetDSDMode(DsdModes::DSD_MODE_NATIVE);
-            dsd_mode_ = DsdModes::DSD_MODE_NATIVE;
-        } else {                
-            dsd_stream->SetDSDMode(DsdModes::DSD_MODE_PCM);
-            dsd_mode_ = DsdModes::DSD_MODE_PCM;
+        if (DeviceFactory::Instance().IsPlatformSupportedASIO()) {
+            if (device_info.is_support_dsd) {
+                dsd_stream->SetDSDMode(DsdModes::DSD_MODE_NATIVE);
+                dsd_mode_ = DsdModes::DSD_MODE_NATIVE;
+            }
+            else {
+                dsd_stream->SetDSDMode(DsdModes::DSD_MODE_PCM);
+                dsd_mode_ = DsdModes::DSD_MODE_PCM;
+            }
         }
-#else
-        dsd_stream->SetDSDMode(DsdModes::DSD_MODE_DOP);
-        XAMP_LOG_DEBUG("Use DOP mode");
-        dsd_mode_ = DsdModes::DSD_MODE_DOP;
-#endif
+        else {
+            dsd_stream->SetDSDMode(DsdModes::DSD_MODE_DOP);
+            XAMP_LOG_DEBUG("Use DOP mode");
+            dsd_mode_ = DsdModes::DSD_MODE_DOP;
+        }
     }
     else {        
         stream_ = MakeAlign<AudioStream, AvFileStream>();
@@ -605,7 +607,7 @@ void AudioPlayer::PlayStream() {
     // 預先啟動output device開始撥放, 因有預先塞入資料可以加速撥放效果.
 	Play();
 
-    stream_task_ = DefaultThreadPool::GetThreadPool().StartNew([player = shared_from_this()]() noexcept {
+    stream_task_ = ThreadPool::DefaultThreadPool().StartNew([player = shared_from_this()]() noexcept {
         auto p = player.get();
         std::unique_lock<std::mutex> lock{ p->pause_mutex_ };
 

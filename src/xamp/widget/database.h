@@ -78,8 +78,6 @@ public:
 
     void updateMusicFingerprint(int32_t music_id, const QString& fingerprint);
 
-    bool hasMusicFingerprint(int32_t music_id) const;
-
     void updateMusicRating(int32_t music_id, int32_t rating);
 
     int32_t addOrUpdateAlbum(const QString& album, int32_t artist_id);

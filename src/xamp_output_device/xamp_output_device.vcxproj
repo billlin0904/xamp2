@@ -125,7 +125,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/spdlog/include/;../thirdparty/asiosdk/common/;../thirdparty/asiosdk/driver/;../thirdparty/flat_hash_map/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/spdlog/include/;../thirdparty/asiosdk/common/;../thirdparty/asiosdk/driver/;../thirdparty/robin_hood/</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PreprocessorDefinitions>XAMP_OUTPUT_DEVICE_API_EXPORTS;ENABLE_ASIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <OmitFramePointers>true</OmitFramePointers>
@@ -158,6 +158,7 @@
     <ClInclude Include="include\output_device\deviceinfo.h" />
     <ClInclude Include="include\output_device\devicestate.h" />
     <ClInclude Include="include\output_device\devicestatelistener.h" />
+    <ClInclude Include="include\output_device\devicestatenotification.h" />
     <ClInclude Include="include\output_device\device_type.h" />
     <ClInclude Include="include\output_device\dsddevice.h" />
     <ClInclude Include="include\output_device\output_device.h" />
@@ -171,7 +172,7 @@
     <ClInclude Include="include\output_device\win32\sharedwasapidevicetype.h" />
     <ClInclude Include="include\output_device\win32\sharedwasapidevice.h" />
     <ClInclude Include="include\output_device\win32\wasapi.h" />
-    <ClInclude Include="include\output_device\win32\devicestatenotification.h" />
+    <ClInclude Include="include\output_device\win32\win32devicestatenotification.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\thirdparty\asiosdk\common\asio.cpp" />
@@ -188,7 +189,7 @@
     <ClCompile Include="src\win32\sharedwasapidevice.cpp" />
     <ClCompile Include="src\win32\sharedwasapidevicetype.cpp" />
     <ClCompile Include="src\win32\wasapi.cpp" />
-    <ClCompile Include="src\win32\devicestatenotification.cpp" />
+    <ClCompile Include="src\win32\win32devicestatenotification.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

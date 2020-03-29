@@ -15,7 +15,6 @@
 #include <condition_variable>
 #include <type_traits>
 
-#include <base/logger.h>
 #include <base/base.h>
 #include <base/memory.h>
 #include <base/align_ptr.h>
@@ -122,11 +121,13 @@ template
 >
 class TaskScheduler final {
 public:
-    explicit TaskScheduler()
+    static constexpr size_t K = 4;
+
+    explicit TaskScheduler(size_t max_thread)
         : is_stopped_(false)
         , active_thread_(0)
         , index_(0)
-        , max_thread_(std::thread::hardware_concurrency()) {
+        , max_thread_(max_thread) {
         for (size_t i = 0; i < max_thread_; ++i) {
             task_queues_.push_back(MakeAlign<DispatchQueue<TaskType>>());
         }
@@ -143,13 +144,13 @@ public:
 
     void SubmitJob(TaskType&& task) {
 		const auto i = index_++;
-        for (size_t n = 0; n < max_thread_; ++n) {
+        for (size_t n = 0; n < max_thread_ * K; ++n) {
 			const auto index = (i + n) % max_thread_;
-            if (task_queues_[index]->TryEnqueue(task)) {
+            if (task_queues_[index]->TryEnqueue(std::move(task))) {
                 return;
             }
         }
-		task_queues_[i % max_thread_]->Enqueue(task);
+		task_queues_[i % max_thread_]->Enqueue(std::move(task));
     }
 
     void Destory() {
@@ -187,8 +188,6 @@ private:
                     }
                 }
 
-                XAMP_LOG_DEBUG("Active thread: {}", i);
-
                 if (!task) {
                     if (task_queues_[i]->Dequeue(task)) {
                         ++active_thread_;
@@ -207,7 +206,7 @@ private:
         }));
     }
 
-    using TaskQueuePtr = AlignPtr<Queue<TaskType>>;
+    using TaskQueuePtr = AlignPtr<Queue<TaskType>>;   
 
 	std::atomic<bool> is_stopped_;
     std::atomic<size_t> active_thread_;
@@ -219,16 +218,18 @@ private:
 
 class XAMP_BASE_API ThreadPool final {
 public:
+    static constexpr uint32_t MAX_THREAD = 8;
+
     ThreadPool();
+
+    static ThreadPool& DefaultThreadPool();
 
 	XAMP_DISABLE_COPY(ThreadPool)
 
     template <typename F, typename... Args>
     decltype(auto) StartNew(F f, Args&&... args);
 
-    size_t GetActiveThreadCount() const {
-        return scheduler_.GetActiveThreadCount();
-    }
+    size_t GetActiveThreadCount() const;
 
 private:
     using Task = std::function<void()>;
@@ -243,19 +244,13 @@ decltype(auto) ThreadPool::StartNew(F f, Args&&... args) {
         std::bind(std::forward<F>(f), std::forward<Args>(args)...)
         );
 
-    std::future<ReturnType> future = task->get_future();
+    auto future = task->get_future();
 
 	scheduler_.SubmitJob([task]() mutable {
         (*task)();
 	});
 
-    return future;
-}
-
-namespace DefaultThreadPool {
-
-XAMP_BASE_API ThreadPool& GetThreadPool();
-
+    return future.share();
 }
 
 }

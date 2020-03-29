@@ -36,7 +36,7 @@ public:
 	void Reset() override;	
 
 signals:
-	void readCompleted(const std::vector<xamp::base::Metadata> &enitiy);
+	void readCompleted(std::vector<xamp::base::Metadata> enitiy);
 
 public:
 	static void processMetadata(const std::vector<xamp::base::Metadata>& metadatas, PlayListTableView *playlist = nullptr);

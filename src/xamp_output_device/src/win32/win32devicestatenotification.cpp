@@ -1,21 +1,21 @@
 #ifdef _WIN32
 
 #include <output_device/win32/hrexception.h>
-#include <output_device/win32/devicestatenotification.h>
+#include <output_device/win32/win32devicestatenotification.h>
 
 namespace xamp::output_device::win32 {
 
-DeviceStateNotification::DeviceStateNotification(std::weak_ptr<DeviceStateListener> callback)
+Win32DeviceStateNotification::Win32DeviceStateNotification(std::weak_ptr<DeviceStateListener> callback)
 	: callback_(callback) {
 }
 
-DeviceStateNotification::~DeviceStateNotification() {
+Win32DeviceStateNotification::~Win32DeviceStateNotification() {
 	if (enumerator_ != nullptr) {
 		enumerator_->UnregisterEndpointNotificationCallback(this);
 	}	
 }
 
-void DeviceStateNotification::Run() {
+void Win32DeviceStateNotification::Run() {
 	HrIfFailledThrow(CoCreateInstance(__uuidof(MMDeviceEnumerator),
 		nullptr,
 		CLSCTX_ALL,
@@ -24,15 +24,15 @@ void DeviceStateNotification::Run() {
 	HrIfFailledThrow(enumerator_->RegisterEndpointNotificationCallback(this));
 }
 
-STDMETHODIMP_(ULONG) DeviceStateNotification::AddRef() {
+STDMETHODIMP_(ULONG) Win32DeviceStateNotification::AddRef() {
 	return 1;
 }
 
-STDMETHODIMP_(ULONG) DeviceStateNotification::Release() {
+STDMETHODIMP_(ULONG) Win32DeviceStateNotification::Release() {
 	return 1;
 }
 
-STDMETHODIMP DeviceStateNotification::QueryInterface(REFIID iid, void** object) {
+STDMETHODIMP Win32DeviceStateNotification::QueryInterface(REFIID iid, void** object) {
 	if (iid == IID_IUnknown || iid == __uuidof(IMMNotificationClient)) {
 		*object = static_cast<IMMNotificationClient*>(this);
 		return S_OK;
@@ -41,28 +41,27 @@ STDMETHODIMP DeviceStateNotification::QueryInterface(REFIID iid, void** object) 
 	return E_NOINTERFACE;
 }
 
-STDMETHODIMP DeviceStateNotification::OnPropertyValueChanged(
-	LPCWSTR device_id, const PROPERTYKEY key) {
+STDMETHODIMP Win32DeviceStateNotification::OnPropertyValueChanged(LPCWSTR device_id, const PROPERTYKEY key) {
 	return S_OK;
 }
 
-STDMETHODIMP DeviceStateNotification::OnDeviceAdded(LPCWSTR device_id) {
+STDMETHODIMP Win32DeviceStateNotification::OnDeviceAdded(LPCWSTR device_id) {
 	if (auto callback = callback_.lock()) {
 		callback->OnDeviceStateChange(DeviceState::DEVICE_STATE_ADDED, device_id);
 	}
 	return S_OK;
 }
 
-STDMETHODIMP DeviceStateNotification::OnDeviceRemoved(LPCWSTR device_id) {
+STDMETHODIMP Win32DeviceStateNotification::OnDeviceRemoved(LPCWSTR device_id) {
 	if (auto callback = callback_.lock()) {
 		callback->OnDeviceStateChange(DeviceState::DEVICE_STATE_REMOVED, device_id);
 	}
 	return S_OK;
 }
 
-STDMETHODIMP DeviceStateNotification::OnDeviceStateChanged(LPCWSTR device_id,
-	DWORD new_state) {
+STDMETHODIMP Win32DeviceStateNotification::OnDeviceStateChanged(LPCWSTR device_id, DWORD new_state) {
 	DeviceState state;
+
 	switch (new_state) {
 	case DEVICE_STATE_ACTIVE:
 		state = DeviceState::DEVICE_STATE_ADDED;
@@ -80,8 +79,7 @@ STDMETHODIMP DeviceStateNotification::OnDeviceStateChanged(LPCWSTR device_id,
 	return S_OK;
 }
 
-STDMETHODIMP DeviceStateNotification::OnDefaultDeviceChanged(EDataFlow flow,
-	ERole role, LPCWSTR new_default_device_id) {
+STDMETHODIMP Win32DeviceStateNotification::OnDefaultDeviceChanged(EDataFlow flow, ERole role, LPCWSTR new_default_device_id) {
 	if (auto callback = callback_.lock()) {
 		callback->OnDeviceStateChange(DeviceState::DEVICE_STATE_DEFAULT_DEVICE_CHANGE, new_default_device_id);
 	}

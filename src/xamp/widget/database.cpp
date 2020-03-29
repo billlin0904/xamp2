@@ -409,17 +409,6 @@ void Database::updateMusicFingerprint(int32_t music_id, const QString& fingerpri
 	query.exec();
 }
 
-bool Database::hasMusicFingerprint(int32_t music_id) const {
-	QSqlQuery query;
-
-	query.prepare(Q_UTF8("SELECT fingerprint FROM musics WHERE (musicId = :musicId) AND ifnull(fingerprint, '') = ''"));
-	query.bindValue(Q_UTF8(":musicId"), music_id);
-	if (query.exec()) {
-		return query.next();
-	}
-	return false;
-}
-
 void Database::updateMusicRating(int32_t music_id, int32_t rating) {
 	QSqlQuery query;
 

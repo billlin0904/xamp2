@@ -1,4 +1,6 @@
 #include <sstream>
+#include <algorithm>
+
 #include <base/platform_thread.h>
 #include <base/threadpool.h>
 
@@ -10,15 +12,17 @@ void SetCurrentThreadName(size_t index) {
 	SetThreadName(ostr.str());
 }
 
-namespace DefaultThreadPool {
-ThreadPool& GetThreadPool() {
-    static ThreadPool default_thread_pool;
-    return default_thread_pool;
-}
+ThreadPool::ThreadPool()
+    : scheduler_((std::max)(std::thread::hardware_concurrency(), MAX_THREAD)) {
 }
 
-ThreadPool::ThreadPool()
-    : scheduler_() {
+size_t ThreadPool::GetActiveThreadCount() const {
+	return scheduler_.GetActiveThreadCount();
+}
+
+ThreadPool& ThreadPool::DefaultThreadPool() {
+	static ThreadPool default_thread_pool;
+	return default_thread_pool;
 }
 
 }
