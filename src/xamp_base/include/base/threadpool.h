@@ -19,17 +19,19 @@
 #include <base/memory.h>
 #include <base/align_ptr.h>
 #include <base/alignstl.h>
+#include <base/circularbuffer.h>
 
 namespace xamp::base {
 
 template <typename Type>
-class DispatchQueue final {
+class BoundedQueue final {
 public:
-	DispatchQueue()
-		: done_(false) {
+	BoundedQueue(size_t const size)
+		: done_(false)
+        , queue_(size) {
 	}
 
-    XAMP_DISABLE_COPY(DispatchQueue)   
+    XAMP_DISABLE_COPY(BoundedQueue)   
 
     template <typename U>
     bool TryEnqueue(U &&task) {
@@ -38,7 +40,7 @@ public:
             if (!lock) {
                 return false;
             }
-            queue_.push_back(std::forward<U>(task));
+            queue_.push(std::move(task));
         }
         notify_.notify_one();
         return true;
@@ -47,7 +49,7 @@ public:
     template <typename U>
     void Enqueue(U &&task) {
         std::unique_lock<std::mutex> guard{mutex_};
-        queue_.push_back(std::forward<U>(task));
+        queue_.push(std::move(task));
         notify_.notify_one();
     }
 
@@ -58,8 +60,7 @@ public:
 			return false;
 		}
 
-		task = std::move(queue_.front());
-		queue_.pop_front();
+		task = std::move(queue_.pop());
 		return true;
 	}
 
@@ -74,8 +75,7 @@ public:
 			return false;
 		}
 
-		task = std::move(queue_.front());
-		queue_.pop_front();
+		task = std::move(queue_.pop());
 		return true;
 	}
 
@@ -93,14 +93,15 @@ public:
             return false;
         }
 
-        task = std::move(queue_.front());
-        queue_.pop_front();
+        task = std::move(queue_.pop());
         return true;
     }
 
-    void Done() {
-        std::unique_lock<std::mutex> guard{mutex_};
-        done_ = true;
+    void Destory() {
+        {
+            std::unique_lock<std::mutex> guard{ mutex_ };
+            done_ = true;
+        }
         notify_.notify_all();
     }
 
@@ -108,7 +109,7 @@ private:
     std::atomic<bool> done_;
     mutable std::mutex mutex_;
     std::condition_variable notify_;
-    Queue<Type> queue_;
+    circular_buffer<Type> queue_;
 };
 
 XAMP_BASE_API void SetCurrentThreadName(size_t index);
@@ -117,7 +118,7 @@ template
 <
 	typename TaskType, 
 	template <typename> 
-	class Queue = DispatchQueue
+	class Queue = BoundedQueue
 >
 class TaskScheduler final {
 public:
@@ -129,7 +130,7 @@ public:
         , index_(0)
         , max_thread_(max_thread) {
         for (size_t i = 0; i < max_thread_; ++i) {
-            task_queues_.push_back(MakeAlign<DispatchQueue<TaskType>>());
+            task_queues_.push_back(MakeAlign<BoundedQueue<TaskType>>(max_thread));
         }
         for (size_t i = 0; i < max_thread_; ++i) {
             AddThread(i);
@@ -157,7 +158,7 @@ public:
         is_stopped_ = true;
 
         for (size_t i = 0; i < max_thread_; ++i) {
-            task_queues_[i]->Done();
+            task_queues_[i]->Destory();
 
             if (threads_[i].joinable()) {
                 threads_[i].join();
@@ -250,7 +251,7 @@ decltype(auto) ThreadPool::StartNew(F f, Args&&... args) {
         (*task)();
 	});
 
-    return future.share();
+    return future;
 }
 
 }

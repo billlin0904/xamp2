@@ -29,23 +29,6 @@ using Queue = std::deque<T>;
 template <typename T>
 using List = std::list<T>;
 
-template <typename T>
-struct MurmurHash;
-
-template<> 
-struct MurmurHash<std::string> {
-	size_t operator()(const std::string& s) const noexcept {
-		return MurmurHash64(s.data(), s.length());
-	}
-};
-
-template<>
-struct MurmurHash<ID> {
-	size_t operator()(const ID& id) const noexcept {
-		return id.GetHash();
-	}
-};
-
 template <typename K, typename V, typename H = std::hash<K>, typename E = std::equal_to<K>>
 using RobinHoodHashMap = robin_hood::unordered_map<K, V, H, E>;
 

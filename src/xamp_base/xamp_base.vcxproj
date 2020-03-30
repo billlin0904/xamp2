@@ -78,7 +78,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>./include/;../thirdparty/spdlog/include/;../thirdparty/utfcpp/source/;../thirdparty/flat_hash_map/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../thirdparty/spdlog/include/;../thirdparty/utfcpp/source/;../thirdparty/flat_hash_map/;../thirdparty/robin_hood/</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>BASE_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <BrowseInformation>true</BrowseInformation>
@@ -153,6 +153,7 @@
     <ClInclude Include="include\base\audioformat.h" />
     <ClInclude Include="include\base\base.h" />
     <ClInclude Include="include\base\bom.h" />
+    <ClInclude Include="include\base\circularbuffer.h" />
     <ClInclude Include="include\base\dataconverter.h" />
     <ClInclude Include="include\base\defer.h" />
     <ClInclude Include="include\base\dll.h" />
