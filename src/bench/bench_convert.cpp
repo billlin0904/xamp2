@@ -1,12 +1,14 @@
 #include <benchmark/benchmark.h>
 
 #include <vector>
+#include <queue>
 
 #include <base/memory.h>
 #include <base/rng.h>
 #include <base/dataconverter.h>
 #include <base/alignstl.h>
 #include <base/threadpool.h>
+#include <base/circularbuffer.h>
 
 using namespace xamp::base;
 
@@ -79,6 +81,26 @@ static void BM_FindStdHashMap(benchmark::State& state) {
 
 BENCHMARK(BM_FindStdHashMap);
 
+static void BM_FindRobinHoodHashSet(benchmark::State& state) {
+    RobinHoodSet<int32_t> map;
+    for (auto _ : state) {
+        map.emplace(RNG::Instance().GetInt());
+        (void)map.find(RNG::Instance().GetInt());
+    }
+}
+
+BENCHMARK(BM_FindRobinHoodHashSet);
+
+static void BM_FindStdHashSet(benchmark::State& state) {
+    std::unordered_set<std::int32_t> map;
+    for (auto _ : state) {
+        map.emplace(RNG::Instance().GetInt());
+        (void)map.find(RNG::Instance().GetInt());
+    }
+}
+
+BENCHMARK(BM_FindStdHashSet);
+
 static void BM_StdAsyncSwitch(benchmark::State& state) {
     for (auto _ : state) {
         std::async([]() {
@@ -100,6 +122,26 @@ static void BM_ThreadPoolSwitch(benchmark::State& state) {
 }
 
 BENCHMARK(BM_ThreadPoolSwitch);
+
+static void BM_StdQueue(benchmark::State& state) {
+    std::queue<int32_t> q;
+    for (auto _ : state) {
+        q.push(42);
+        q.pop();
+    }
+}
+
+BENCHMARK(BM_StdQueue);
+
+static void BM_CircularBuffer(benchmark::State& state) {
+    circular_buffer<int32_t> buffer(10);
+    for (auto _ : state) {
+        buffer.push(42);
+        buffer.pop();
+    }
+}
+
+BENCHMARK(BM_CircularBuffer);
 
 int main(int argc, char** argv) {
     ::benchmark::Initialize(&argc, argv);
