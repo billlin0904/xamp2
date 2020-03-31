@@ -5,7 +5,6 @@
 #include <unordered_map>
 
 #include <base/alignstl.h>
-#include <base/function_ref.h>
 #include <base/str_utilts.h>
 #include <base/memory.h>
 #include <base/logger.h>

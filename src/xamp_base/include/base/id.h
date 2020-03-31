@@ -13,7 +13,6 @@
 #include <ctime>
 
 #include <base/base.h>
-#include <base/hash.h>
 
 namespace xamp::base {
 	
@@ -91,7 +90,7 @@ XAMP_ALWAYS_INLINE bool operator==(const std::string &str, const ID &id) noexcep
 }
 
 XAMP_ALWAYS_INLINE size_t ID::GetHash() const noexcept {
-	return MurmurHash64(bytes_.data(), bytes_.size());
+	return std::hash<std::string>{}(std::string());
 }
 
 }

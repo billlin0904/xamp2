@@ -28,8 +28,10 @@ void FromPath(const Path& path, MetadataExtractAdapter* adapter, MetadataReader 
         adapter->OnWalkNext();
     }
     else {
-        adapter->OnWalk(path, reader->Extract(path));
-        adapter->OnWalkNext();
+        if (reader->IsSupported(path)) {
+            adapter->OnWalk(path, reader->Extract(path));
+            adapter->OnWalkNext();
+        }
     }
 }
 

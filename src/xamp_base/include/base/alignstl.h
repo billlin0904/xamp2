@@ -13,7 +13,6 @@
 #include <list>
 
 #include <base/alignallocator.h>
-#include <base/hash.h>
 #include <base/id.h>
 
 #include <robin_hood.h>

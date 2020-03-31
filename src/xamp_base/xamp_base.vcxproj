@@ -159,13 +159,11 @@
     <ClInclude Include="include\base\dll.h" />
     <ClInclude Include="include\base\dsdsampleformat.h" />
     <ClInclude Include="include\base\exception.h" />
-    <ClInclude Include="include\base\hash.h" />
     <ClInclude Include="include\base\lrucache.h" />
     <ClInclude Include="include\base\platform_thread.h" />
     <ClInclude Include="include\base\threadpool.h" />
     <ClInclude Include="include\base\vmmemlock.h" />
     <ClInclude Include="include\base\memory_mapped_file.h" />
-    <ClInclude Include="include\base\function_ref.h" />
     <ClInclude Include="include\base\id.h" />
     <ClInclude Include="include\base\logger.h" />
     <ClInclude Include="include\base\memory.h" />
@@ -183,7 +181,6 @@
     <ClCompile Include="src\dataconverter.cpp" />
     <ClCompile Include="src\dll.cpp" />
     <ClCompile Include="src\exception.cpp" />
-    <ClCompile Include="src\hash.cpp" />
     <ClCompile Include="src\memory_mapped_file.cpp" />
     <ClCompile Include="src\id.cpp" />
     <ClCompile Include="src\logger.cpp" />

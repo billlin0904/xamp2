@@ -13,7 +13,6 @@
 #include <base/base.h>
 #include <base/id.h>
 #include <base/exception.h>
-#include <base/function_ref.h>
 #include <base/align_ptr.h>
 #include <base/logger.h>
 
