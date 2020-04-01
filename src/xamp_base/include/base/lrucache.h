@@ -13,12 +13,12 @@
 
 namespace xamp::base {
 
-constexpr size_t LRU_CACHE_SIZE = 128;
-
 template <typename Key, typename Value>
 class XAMP_BASE_API_ONLY_EXPORT LruCache {
 public:
-    using ItemList = List<std::pair<Key, Value>>;
+    static const size_t LRU_CACHE_SIZE = 128;
+
+    using ItemList = std::list<std::pair<Key, Value>>;
     using NodePtr = typename ItemList::const_iterator;
 
     explicit LruCache(size_t max_size = LRU_CACHE_SIZE)

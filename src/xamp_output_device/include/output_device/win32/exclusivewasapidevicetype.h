@@ -29,13 +29,13 @@ public:
 
 	const ID& GetTypeId() const override;
 
-	int32_t GetDeviceCount() const override;
+	size_t GetDeviceCount() const override;
 
 	DeviceInfo GetDeviceInfo(int32_t device) const override;
 
 	std::optional<DeviceInfo> GetDefaultDeviceInfo() const override;
 
-	Vector<DeviceInfo> GetDeviceInfo() const override;
+	std::vector<DeviceInfo> GetDeviceInfo() const override;
 
 	AlignPtr<Device> MakeDevice(const std::wstring& device_id) override;
 
@@ -44,10 +44,10 @@ private:
 
 	CComPtr<IMMDevice> GetDeviceById(const std::wstring& device_id) const;
 
-	Vector<DeviceInfo> GetDeviceInfoList() const;
+	std::vector<DeviceInfo> GetDeviceInfoList() const;
 
 	CComPtr<IMMDeviceEnumerator> enumerator_;
-	Vector<DeviceInfo> device_list_;
+	std::vector<DeviceInfo> device_list_;
 };
 
 }

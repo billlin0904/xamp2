@@ -34,11 +34,11 @@ public:
 
 	virtual AlignPtr<Device> MakeDevice(const std::wstring& device_id) = 0;
 
-	virtual int32_t GetDeviceCount() const = 0;
+	virtual size_t GetDeviceCount() const = 0;
 
 	virtual DeviceInfo GetDeviceInfo(int32_t device) const = 0;
 
-	virtual Vector<DeviceInfo> GetDeviceInfo() const = 0;
+	virtual std::vector<DeviceInfo> GetDeviceInfo() const = 0;
 
 	virtual std::optional<DeviceInfo> GetDefaultDeviceInfo() const = 0;
 protected:

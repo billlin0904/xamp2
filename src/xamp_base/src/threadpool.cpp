@@ -6,12 +6,6 @@
 
 namespace xamp::base {
 
-void SetCurrentThreadName(size_t index) {
-	std::ostringstream ostr;
-	ostr << "Work Thread(" << index << ")";
-	SetThreadName(ostr.str());
-}
-
 ThreadPool::ThreadPool()
     : scheduler_((std::max)(std::thread::hardware_concurrency(), MAX_THREAD)) {
 }

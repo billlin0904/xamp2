@@ -12,21 +12,11 @@
 #include <unordered_set>
 #include <list>
 
-#include <base/alignallocator.h>
 #include <base/id.h>
 
 #include <robin_hood.h>
 
 namespace xamp::base {
-
-template <typename T>
-using Vector = std::vector<T>;
-
-template <typename T>
-using Queue = std::deque<T>;
-
-template <typename T>
-using List = std::list<T>;
 
 template <typename K, typename V, typename H = std::hash<K>, typename E = std::equal_to<K>>
 using RobinHoodHashMap = robin_hood::unordered_map<K, V, H, E>;

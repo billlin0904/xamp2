@@ -112,8 +112,6 @@ private:
     circular_buffer<Type> queue_;
 };
 
-XAMP_BASE_API void SetCurrentThreadName(size_t index);
-
 template 
 <
 	typename TaskType, 
@@ -213,8 +211,8 @@ private:
     std::atomic<size_t> active_thread_;
 	size_t index_;
     size_t max_thread_;
-    Vector<std::thread> threads_;
-    Vector<TaskQueuePtr> task_queues_;
+    std::vector<std::thread> threads_;
+    std::vector<TaskQueuePtr> task_queues_;
 };
 
 class XAMP_BASE_API ThreadPool final {

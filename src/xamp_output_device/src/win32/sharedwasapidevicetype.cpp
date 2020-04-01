@@ -49,11 +49,11 @@ std::string_view SharedWasapiDeviceType::GetDescription() const {
 	return "WASAPI (Shared)";
 }
 
-int32_t SharedWasapiDeviceType::GetDeviceCount() const {
-	return int32_t(device_list_.size());
+size_t SharedWasapiDeviceType::GetDeviceCount() const {
+	return device_list_.size();
 }
 
-Vector<DeviceInfo> SharedWasapiDeviceType::GetDeviceInfo() const {
+std::vector<DeviceInfo> SharedWasapiDeviceType::GetDeviceInfo() const {
 	return device_list_;
 }
 
@@ -67,14 +67,14 @@ std::optional<DeviceInfo> SharedWasapiDeviceType::GetDefaultDeviceInfo() const {
 	return helper::GetDeviceInfo(default_output_device, SharedWasapiDeviceType::Id);
 }
 
-Vector<DeviceInfo> SharedWasapiDeviceType::GetDeviceInfoList() const {
+std::vector<DeviceInfo> SharedWasapiDeviceType::GetDeviceInfoList() const {
 	CComPtr<IMMDeviceCollection> devices;
 	HrIfFailledThrow(enumerator_->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, &devices));
 
 	UINT count = 0;
 	HrIfFailledThrow(devices->GetCount(&count));
 
-	Vector<DeviceInfo> device_list;
+	std::vector<DeviceInfo> device_list;
 	device_list.reserve(count);
 
 	const auto default_device_info = GetDefaultDeviceInfo();
@@ -84,18 +84,15 @@ Vector<DeviceInfo> SharedWasapiDeviceType::GetDeviceInfoList() const {
 
 		HrIfFailledThrow(devices->Item(i, &device));
 
-		try {
-			auto info = helper::GetDeviceInfo(device, SharedWasapiDeviceType::Id);
+		auto info = helper::GetDeviceInfo(device, SharedWasapiDeviceType::Id);
 
+		if (default_device_info) {
 			if (default_device_info.value().name == info.name) {
 				info.is_default_device = true;
 			}
-			device_list.emplace_back(info);
 		}
-		catch (const Exception& ex) {
-			XAMP_LOG_DEBUG(ex.what());
-			throw;
-		}
+
+		device_list.emplace_back(info);
 	}
 
 	std::sort(device_list.begin(), device_list.end(),

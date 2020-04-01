@@ -146,7 +146,6 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="include\base\alignallocator.h" />
     <ClInclude Include="include\base\alignstl.h" />
     <ClInclude Include="include\base\align_ptr.h" />
     <ClInclude Include="include\base\audiobuffer.h" />

@@ -48,7 +48,9 @@ void SetThreadName(const std::string& name) noexcept {
 		DllFunction<HRESULT(HANDLE hThread, PCWSTR lpThreadDescription)>
 			SetThreadDescription(LoadDll("Kernel32.dll"), "SetThreadDescription");
 
-		SetThreadDescription(thread.get(), ToStdWString(name).c_str());
+		if (SetThreadDescription) {
+			SetThreadDescription(thread.get(), ToStdWString(name).c_str());
+		}		
 	}
 	catch (...) {
 	}	
@@ -67,6 +69,12 @@ void SetThreadName(const std::string& name) noexcept {
 	std::string shortened_name = name.substr(0, kMaxNameLength);
 	pthread_setname_np(shortened_name.c_str());
 #endif
+}
+
+void SetCurrentThreadName(size_t index) {
+	std::ostringstream ostr;
+	ostr << "Work Thread(" << index << ")";
+	SetThreadName(ostr.str());
 }
 	
 }

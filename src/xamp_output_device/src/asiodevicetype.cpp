@@ -28,8 +28,8 @@ const ID& ASIODeviceType::GetTypeId() const {
 	return Id;
 }
 
-int32_t ASIODeviceType::GetDeviceCount() const {
-	return int32_t(device_list_.size());
+size_t ASIODeviceType::GetDeviceCount() const {
+	return device_list_.size();
 }
 
 DeviceInfo ASIODeviceType::GetDeviceInfo(int32_t device) const {
@@ -48,8 +48,8 @@ std::optional<DeviceInfo> ASIODeviceType::GetDefaultDeviceInfo() const {
 	return GetDeviceInfo(0);
 }
 
-Vector<DeviceInfo> ASIODeviceType::GetDeviceInfo() const {
-	Vector<DeviceInfo> device_infos;
+std::vector<DeviceInfo> ASIODeviceType::GetDeviceInfo() const {
+	std::vector<DeviceInfo> device_infos;
 	device_infos.reserve(device_list_.size());
 
 	for (const auto& device_info : device_list_) {

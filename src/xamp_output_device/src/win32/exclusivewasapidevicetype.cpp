@@ -35,7 +35,7 @@ std::optional<DeviceInfo> ExclusiveWasapiDeviceType::GetDefaultDeviceInfo() cons
 	return helper::GetDeviceInfo(default_output_device, ExclusiveWasapiDeviceType::Id);
 }
 
-Vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfo() const {
+std::vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfo() const {
 	return device_list_;
 }
 
@@ -57,22 +57,22 @@ const ID& ExclusiveWasapiDeviceType::GetTypeId() const {
 	return Id;
 }
 
-int32_t ExclusiveWasapiDeviceType::GetDeviceCount() const {
-	return static_cast<int32_t>(device_list_.size());
+size_t ExclusiveWasapiDeviceType::GetDeviceCount() const {
+	return device_list_.size();
 }
 
 DeviceInfo ExclusiveWasapiDeviceType::GetDeviceInfo(int32_t device) const {
 	return device_list_.at(device);
 }
 
-Vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfoList() const {
+std::vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfoList() const {
 	CComPtr<IMMDeviceCollection> devices;
 	HrIfFailledThrow(enumerator_->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, &devices));
 
 	UINT count = 0;
 	HrIfFailledThrow(devices->GetCount(&count));
 
-	Vector<DeviceInfo> device_list;
+	std::vector<DeviceInfo> device_list;
 	device_list.reserve(count);
 
 	const auto default_device_info = GetDefaultDeviceInfo();
@@ -84,13 +84,16 @@ Vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfoList() const {
 
 		auto info = helper::GetDeviceInfo(device, ExclusiveWasapiDeviceType::Id);
 
-		if (default_device_info.value().name == info.name) {
-			info.is_default_device = true;
-		}
+		if (default_device_info) {
+			if (default_device_info.value().name == info.name) {
+				info.is_default_device = true;
+			}
+		}		
 		device_list.emplace_back(info);
 	}
 
-	std::sort(device_list.begin(), device_list.end(), [](const auto& first, const auto& second) {
+	std::sort(device_list.begin(), device_list.end(), 
+		[](const auto& first, const auto& second) {
 		return first.name.length() > second.name.length();
 		});
 
