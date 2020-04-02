@@ -5,16 +5,18 @@
 
 #pragma once
 
-#include <string>
-
 #include <base/base.h>
 
 namespace xamp::base {
 
-XAMP_BASE_API void SetThreadName(const std::string& name) noexcept;
+class StackTrace {
+public:
+    StackTrace();
 
-XAMP_BASE_API void SetCurrentThreadName(size_t index);
-
-XAMP_BASE_API void SetRealtimeProcessPriority();
+private:
+    static void AbortHandler(int32_t signum);
+};
 
 }
+
+

@@ -20,13 +20,13 @@ public:
 
     virtual DsdModes GetDsdMode() const noexcept = 0;
 
-    virtual int32_t GetDsdSampleRate() const = 0;
+    virtual uint32_t GetDsdSampleRate() const = 0;
 
 	virtual DsdSampleFormat GetDsdSampleFormat() const noexcept = 0;
 
-	virtual void SetDsdToPcmSampleRate(int32_t samplerate) = 0;
+    virtual void SetDsdToPcmSampleRate(uint32_t samplerate) = 0;
 
-    virtual int32_t GetDsdSpeed() const noexcept = 0;
+    virtual uint32_t GetDsdSpeed() const noexcept = 0;
 
     virtual bool IsDsdFile() const noexcept = 0;
 protected:

@@ -28,7 +28,7 @@ constexpr int32_t MAX_WRITE_RATIO = 20;
 constexpr int32_t MAX_READ_RATIO = 30;
 constexpr std::chrono::milliseconds UPDATE_SAMPLE_INTERVAL(100);
 constexpr std::chrono::seconds WAIT_FOR_STRAEM_STOP_TIME(5);
-constexpr std::chrono::milliseconds READ_SAMPLE_WAIT_TIME(150);
+constexpr std::chrono::milliseconds READ_SAMPLE_WAIT_TIME(100);
 
 AudioPlayer::AudioPlayer()
     : AudioPlayer(std::weak_ptr<PlaybackStateAdapter>()) {
@@ -52,20 +52,24 @@ AudioPlayer::AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter)
 }
 
 AudioPlayer::~AudioPlayer() {
-	timer_.Stop();
-	try {
-		CloseDevice(true);
-	}
-	catch (...) {
-	}
+}
+
+void AudioPlayer::Destory() {
+    timer_.Stop();
+    try {
+        CloseDevice(true);
+    }
+    catch (...) {
+    }
+    Stop(false, true);
+    stream_.reset();
+    resampler_.reset();
 }
 
 void AudioPlayer::LoadLib() {
     BassFileStream::LoadBassLib();
-#ifdef _WIN32
     SoxrResampler::LoadSoxrLib();
     Chromaprint::LoadChromaprintLib();
-#endif
 }
 
 void AudioPlayer::Init() {
@@ -239,11 +243,9 @@ void AudioPlayer::Stop(bool signal_to_stop, bool shutdown_device, bool wait_for_
     }
 
     XAMP_LOG_DEBUG("Player stop!");
-    if (device_->IsStreamOpen()) {
-        CloseDevice(wait_for_stop_stream);
-        if (signal_to_stop) {
-            SetState(PlayerState::PLAYER_STATE_STOPPED);
-        }
+    CloseDevice(wait_for_stop_stream);
+    if (signal_to_stop) {
+        SetState(PlayerState::PLAYER_STATE_STOPPED);
     }
 
     buffer_.Clear();
@@ -254,7 +256,7 @@ void AudioPlayer::Stop(bool signal_to_stop, bool shutdown_device, bool wait_for_
     stream_.reset();
 }
 
-void AudioPlayer::SetVolume(int32_t volume) {
+void AudioPlayer::SetVolume(uint32_t volume) {
     volume_ = volume;
     if (!device_ || !device_->IsStreamOpen()) {
         return;
@@ -262,7 +264,7 @@ void AudioPlayer::SetVolume(int32_t volume) {
     device_->SetVolume(volume);
 }
 
-int32_t AudioPlayer::GetVolume() const {
+uint32_t AudioPlayer::GetVolume() const {
     if (!device_ || !device_->IsStreamOpen()) {
         return volume_;
     }
@@ -315,7 +317,7 @@ void AudioPlayer::Initial() {
     }    
 }
 
-std::optional<int32_t> AudioPlayer::GetDSDSpeed() const {
+std::optional<uint32_t> AudioPlayer::GetDSDSpeed() const {
     if (!stream_) {
         return std::nullopt;
     }
@@ -378,6 +380,7 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
         }
     }
     if (stream_task_.valid()) {
+        wait_timer_.Cancel();
         if (stream_task_.wait_for(WAIT_FOR_STRAEM_STOP_TIME) == std::future_status::timeout) {
             throw StopStreamTimeoutException();
         }
@@ -388,7 +391,7 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
 void AudioPlayer::CreateBuffer() {
     std::atomic_exchange(&slice_, AudioSlice{ 0, 0 });
 
-    int32_t require_read_sample = 0;
+    uint32_t require_read_sample = 0;
 
     if (DeviceFactory::Instance().IsPlatformSupportedASIO()) {
         if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE
@@ -460,12 +463,12 @@ void AudioPlayer::SetDeviceFormat() {
 }
 
 int AudioPlayer::OnGetSamples(void* samples, const int32_t num_buffer_frames, const double stream_time) noexcept {
-    const int32_t num_samples = num_buffer_frames * output_format_.GetChannels();
-    const int32_t sample_size = num_samples * sample_size_;
+    const uint32_t num_samples = num_buffer_frames * output_format_.GetChannels();
+    const uint32_t sample_size = num_samples * sample_size_;
 
     if (XAMP_LIKELY( buffer_.TryRead(reinterpret_cast<int8_t*>(samples), sample_size) )) {
         std::atomic_exchange(&slice_,
-                             AudioSlice{ num_samples, stream_time });
+                             AudioSlice{ static_cast<int32_t>(num_samples), stream_time });
         return 0;
     }
 
@@ -475,7 +478,7 @@ int AudioPlayer::OnGetSamples(void* samples, const int32_t num_buffer_frames, co
     return 1;
 }
 
-bool AudioPlayer::FillSamples(int32_t num_samples) noexcept {
+bool AudioPlayer::FillSamples(uint32_t num_samples) noexcept {
     if (GetDSDModes() == DsdModes::DSD_MODE_NATIVE) {
         return buffer_.TryWrite(sample_buffer_.get(), num_samples);
     }
@@ -582,7 +585,7 @@ void AudioPlayer::BufferStream() {
     }
 }
 
-void AudioPlayer::ReadSampleLoop(int32_t max_read_sample, std::unique_lock<std::mutex>& lock) {
+void AudioPlayer::ReadSampleLoop(uint32_t max_read_sample, std::unique_lock<std::mutex>& lock) {
     auto resampler = resampler_.get();
     auto sample_buffer = sample_buffer_.get();
 
@@ -611,7 +614,7 @@ void AudioPlayer::ReadSampleLoop(int32_t max_read_sample, std::unique_lock<std::
 
 void AudioPlayer::PlayStream() {    
     // 預先啟動output device開始撥放, 因有預先塞入資料可以加速撥放效果.
-	Play();
+    Play();
 
     stream_task_ = ThreadPool::DefaultThreadPool().StartNew([player = shared_from_this()]() noexcept {
         auto p = player.get();

@@ -77,7 +77,7 @@ class circular_buffer {
 
     circular_buffer() = delete;
 public:
-    explicit circular_buffer(size_t const size) 
+    explicit circular_buffer(size_t size)
         :data_(size) {
     }
 

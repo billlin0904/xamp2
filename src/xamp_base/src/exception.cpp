@@ -45,7 +45,10 @@ std::ostream& operator<<(std::ostream& ostr, Errors error) {
         break;
 	case Errors::XAMP_ERROR_NOT_SUPPORT_VARIABLE_RESAMPLE:
 		ostr << "Resampler not support variable resample.";
-		break;
+        break;
+    case Errors::XAMP_ERROR_SAMPLERATE_CHANGED:
+        ostr << "Samplerate was changed";
+        break;
     case Errors::_MAX_XAMP_ERROR_:
         break;
 	}

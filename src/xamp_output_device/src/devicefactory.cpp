@@ -8,6 +8,8 @@
 #include <output_device/osx/coreaudiodevicestatenotification.h>
 #endif
 
+#include <base/platform_thread.h>
+
 #if ENABLE_ASIO
 #include <output_device/asiodevicetype.h>
 #endif
@@ -47,6 +49,7 @@ DeviceFactory::DeviceFactory() {
 	XAMP_REGISTER_DEVICE_TYPE(ASIODeviceType);
 #endif
 #else
+    SetRealtimeProcessPriority();
     using namespace osx;
     XAMP_REGISTER_DEVICE_TYPE(CoreAudioDeviceType);
 #endif

@@ -34,7 +34,7 @@ public:
 
 private:
 	std::atomic<bool> is_stop_;
-    std::future<void> thread_;
+    std::shared_future<void> thread_;
 	WaitableTimer timer_;
 };
 

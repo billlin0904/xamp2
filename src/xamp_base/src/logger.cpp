@@ -6,6 +6,7 @@
 #include <spdlog/sinks/rotating_file_sink.h>
 #include <spdlog/sinks/msvc_sink.h>
 
+#include <base/stacktrace.h>
 #include <base/str_utilts.h>
 #include <base/logger.h>
 
@@ -38,6 +39,7 @@ static void CreateLogsDir() {
 }
 
 Logger & Logger::Instance() {
+    static StackTrace stacktrace;
     static Logger logger;
     return logger;
 }

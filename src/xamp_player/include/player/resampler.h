@@ -19,11 +19,11 @@ class XAMP_PLAYER_API XAMP_NO_VTABLE Resampler {
 public:
 	virtual ~Resampler() = default;
 
-	virtual void Start(int32_t input_samplerate, int32_t num_channels, int32_t output_samplerate, int32_t max_sample) = 0;
+    virtual void Start(uint32_t input_samplerate, uint32_t num_channels, uint32_t output_samplerate, uint32_t max_sample) = 0;
 
 	virtual std::string_view GetDescription() const noexcept = 0;
 
-	virtual bool Process(const float* samples, int32_t num_sample, AudioBuffer<int8_t>& buffer) = 0;
+    virtual bool Process(const float* samples, uint32_t num_sample, AudioBuffer<int8_t>& buffer) = 0;
 
 protected:
 	Resampler() = default;

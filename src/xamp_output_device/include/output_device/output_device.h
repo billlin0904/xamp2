@@ -31,7 +31,4 @@ class DeviceFactory;
 class DeviceStateListener;
 class DeviceStateNotification;
 
-XAMP_OUTPUT_DEVICE_API void InitialDevice();
-XAMP_OUTPUT_DEVICE_API void UnInitialDevice();
-
 }

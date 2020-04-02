@@ -54,25 +54,27 @@ public:
     }
 
     ~WaitableTimerImpl() {
+        Cancel();
     }
 
     void SetTimeout(std::chrono::milliseconds timeout) {
         timeout_ = timeout;
-        Reset();
     }
 
     void Cancel() {
+        cond_.notify_all();
     }
 
     void Wait() {
+        //std::unique_lock<std::mutex> guard{mutex_};
+        //cond_.wait_for(guard, timeout_);
         std::this_thread::sleep_for(timeout_);
-        Reset();
     }
 
 private:
-    void Reset() {
-    }
     std::chrono::milliseconds timeout_;
+    std::condition_variable cond_;
+    std::mutex mutex_;
 };
 #endif
 

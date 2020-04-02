@@ -30,7 +30,6 @@ INCLUDEPATH += ../thirdparty/rapidjson/include/
 INCLUDEPATH += ../thirdparty/robin_hood/
 
 SOURCES += \
-    thememanager.cpp \
     widget/playbackhistorypage.cpp \
     widget/musicbrainzclient.cpp \
     widget/discogsclient.cpp \
@@ -48,7 +47,6 @@ SOURCES += \
     widget/lrcparser.cpp \
     widget/lyricsshowwideget.cpp \
     widget/metadataextractadapter.cpp \
-    widget/navlistview.cpp \
     widget/pixmapcache.cpp \
     widget/playerstateadapter.cpp \
     widget/playlistpage.cpp \
@@ -66,15 +64,14 @@ SOURCES += \
     widget/stareditor.cpp \
     widget/stardelegate.cpp \
     widget/spectrograph.cpp \
+    thememanager.cpp \
     aboutdialog.cpp \
     preferencedialog.cpp \
     main.cpp \
     xamp.cpp
 
 HEADERS += \
-    thememanager.h \
     singleinstanceapplication.h \
-    widget/osx/cocoa_helper.h \
     widget/playbackhistorypage.h \
     widget/musicbrainzclient.h \
     widget/discogsclient.h \
@@ -94,7 +91,6 @@ HEADERS += \
     widget/lrcparser.h \
     widget/lyricsshowwideget.h \
     widget/metadataextractadapter.h \
-    widget/navlistview.h \
     widget/pixmapcache.h \
     widget/playerstateadapter.h \
     widget/playlistpage.h \
@@ -114,6 +110,7 @@ HEADERS += \
     widget/stareditor.h \
     widget/stardelegate.h \
     widget/spectrograph.h \
+    thememanager.h \
     aboutdialog.h \
     preferencedialog.h \
     xamp.h

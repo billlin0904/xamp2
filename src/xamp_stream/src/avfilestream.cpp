@@ -227,7 +227,7 @@ public:
 		XAMP_LOG_DEBUG("Stream format: {}", audio_format_);
 	}
 
-	int32_t GetSamples(float* buffer, const int32_t length) noexcept {
+    int32_t GetSamples(float* buffer, const uint32_t length) noexcept {
 		auto num_read_sample = 0;
 		for (uint32_t i = 0; i < format_context_->nb_streams; ++i) {
 			AvPtr<AVPacket> packet(::av_packet_alloc());
@@ -281,7 +281,7 @@ public:
 		return duration_;
 	}
 
-	int32_t GetSampleSize() const noexcept {
+    uint32_t GetSampleSize() const noexcept {
 		return sizeof(float);
 	}
 
@@ -350,8 +350,8 @@ AudioFormat AvFileStream::GetFormat() const noexcept {
 	return impl_->GetFormat();
 }
 
-int32_t AvFileStream::GetSamples(void* buffer, int32_t length) const noexcept {
-	return impl_->GetSamples((float *)buffer, length);
+int32_t AvFileStream::GetSamples(void* buffer, uint32_t length) const noexcept {
+    return impl_->GetSamples(reinterpret_cast<float *>(buffer), length);
 }
 
 void AvFileStream::Seek(double stream_time) const {
@@ -362,7 +362,7 @@ std::string_view AvFileStream::GetDescription() const noexcept {
     return "LibAv";
 }
 
-int32_t AvFileStream::GetSampleSize() const noexcept {
+uint32_t AvFileStream::GetSampleSize() const noexcept {
 	return impl_->GetSampleSize();
 }
 

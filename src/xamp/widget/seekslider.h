@@ -13,15 +13,12 @@
 class SeekSlider : public QSlider {
 	Q_OBJECT
 public:
-	SeekSlider(QWidget* parent = nullptr);
+    explicit SeekSlider(QWidget* parent = nullptr);
 
 signals:
 	void leftButtonValueChanged(int value);
 
 protected:
 	void mousePressEvent(QMouseEvent* event) override;
-
-	void enterEvent(QEvent* event) override;
-	void leaveEvent(QEvent* event) override;
 };
 

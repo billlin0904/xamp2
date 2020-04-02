@@ -20,7 +20,7 @@ class WheelableWidget : public QWidget {
 public:
 	explicit WheelableWidget(bool touch, QWidget *parent = nullptr);
 
-	virtual ~WheelableWidget() = default;
+    ~WheelableWidget() override = default;
 
 	Q_DISABLE_COPY(WheelableWidget)
 

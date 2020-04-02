@@ -54,7 +54,7 @@ void Toast::showTip(const QString& text, QWidget* parent) {
 	toast->showAnimation();
 }
 
-void Toast::paintEvent(QPaintEvent* event) {
+void Toast::paintEvent(QPaintEvent* /*event*/) {
 	auto kBackgroundColor = QColor(228, 233, 237);
 
 	QPainter paint(this);	

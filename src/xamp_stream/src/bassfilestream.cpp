@@ -44,7 +44,7 @@ constexpr uint32_t LoWord(T val) noexcept {
 		}\
 	} while (false)
 
-static int32_t GetDOPSampleRate(int32_t dsd_speed) {
+static uint32_t GetDOPSampleRate(uint32_t dsd_speed) {
 	switch (dsd_speed) {
 		// 64x CD
 	case 64:
@@ -349,8 +349,8 @@ public:
 		return info_.ctype == BASS_CTYPE_STREAM_DSD;
 	}
 
-	int32_t GetSamples(void *buffer, int32_t length) const noexcept {
-		return InternalGetSamples(buffer, length * GetSampleSize()) / GetSampleSize();
+    int32_t GetSamples(void *buffer, uint32_t length) const noexcept {
+        return int32_t(InternalGetSamples(buffer, length * GetSampleSize()) / GetSampleSize());
 	}
 
 	double GetDuration() const {
@@ -384,10 +384,10 @@ public:
         BassIfFailedThrow(BassLib::Instance().BASS_ChannelSetPosition(stream_.get(), pos_bytes, BASS_POS_BYTE));
 	}
 
-    int32_t GetDsdSampleRate() const {
+    uint32_t GetDsdSampleRate() const {
         float rate = 0;
         BassIfFailedThrow(BassLib::Instance().BASS_ChannelGetAttribute(stream_.get(), BASS_ATTRIB_DSD_RATE, &rate));
-        return static_cast<int32_t>(rate);
+        return static_cast<uint32_t>(rate);
     }
 
     bool SupportDOP() const noexcept {
@@ -410,7 +410,7 @@ public:
         return mode_;       
     }
 
-	int32_t GetSampleSize() const noexcept {
+    uint32_t GetSampleSize() const noexcept {
 		return mode_ == DsdModes::DSD_MODE_NATIVE ? sizeof(int8_t) : sizeof(float);
 	}
 
@@ -418,15 +418,15 @@ public:
 		return DsdSampleFormat::DSD_INT8MSB;
 	}
 
-	void SetDsdToPcmSampleRate(int32_t samplerate) {		
+    void SetDsdToPcmSampleRate(uint32_t samplerate) {
 		BassLib::Instance().BASS_SetConfig(BASS_CONFIG_DSD_FREQ, samplerate);
 	}
 
-    int32_t GetDsdSpeed() const noexcept {		
+    uint32_t GetDsdSpeed() const noexcept {
         return GetDsdSampleRate() / PCM_SAMPLE_RATE_441;
     }
 private:
-	XAMP_ALWAYS_INLINE int32_t InternalGetSamples(void *buffer, int32_t length) const noexcept {
+    XAMP_ALWAYS_INLINE int32_t InternalGetSamples(void *buffer, uint32_t length) const noexcept {
         const auto byte_read = BassLib::Instance().BASS_ChannelGetData(stream_.get(), buffer, length);
 		if (byte_read == BASS_ERROR) {
 			return 0;
@@ -473,7 +473,7 @@ void BassFileStream::Seek(double stream_time) const {
 	stream_->Seek(stream_time);
 }
 
-int32_t BassFileStream::GetSamples(void *buffer, int32_t length) const noexcept {
+int32_t BassFileStream::GetSamples(void *buffer, uint32_t length) const noexcept {
 	return stream_->GetSamples(buffer, length);
 }
 
@@ -493,11 +493,11 @@ bool BassFileStream::IsDsdFile() const noexcept {
 	return stream_->IsDsdFile();
 }
 
-int32_t BassFileStream::GetDsdSampleRate() const {
+uint32_t BassFileStream::GetDsdSampleRate() const {
     return stream_->GetDsdSampleRate();
 }
 
-int32_t BassFileStream::GetSampleSize() const noexcept {
+uint32_t BassFileStream::GetSampleSize() const noexcept {
 	return stream_->GetSampleSize();
 }
 
@@ -505,11 +505,11 @@ DsdSampleFormat BassFileStream::GetDsdSampleFormat() const noexcept {
 	return stream_->GetDsdSampleFormat();
 }
 
-void BassFileStream::SetDsdToPcmSampleRate(int32_t samplerate) {
+void BassFileStream::SetDsdToPcmSampleRate(uint32_t samplerate) {
 	stream_->SetDsdToPcmSampleRate(samplerate);
 }
 
-int32_t BassFileStream::GetDsdSpeed() const noexcept {
+uint32_t BassFileStream::GetDsdSpeed() const noexcept {
     return stream_->GetDsdSpeed();
 }
 

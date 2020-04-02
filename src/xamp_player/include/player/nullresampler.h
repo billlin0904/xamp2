@@ -12,15 +12,15 @@ namespace xamp::player {
 
 class NullResampler : public Resampler {
 public:
-	explicit NullResampler(DsdModes dsd_mode, int32_t sample_size)
+    explicit NullResampler(DsdModes dsd_mode, uint32_t sample_size)
 		: dsd_mode_(dsd_mode)
 		, sample_size_(sample_size) {
 	}
 
-	void Start(int32_t input_samplerate, int32_t num_channels, int32_t output_samplerate, int32_t max_sample) override {
+    void Start(uint32_t input_samplerate, uint32_t num_channels, uint32_t output_samplerate, uint32_t max_sample) override {
 	}
 
-    bool Process(const float* samples, int32_t num_samples, AudioBuffer<int8_t>& buffer) override {
+    bool Process(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& buffer) override {
 		return true;
 	}
 

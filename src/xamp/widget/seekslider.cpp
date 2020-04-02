@@ -14,9 +14,3 @@ void SeekSlider::mousePressEvent(QMouseEvent* event) {
 	}
 	return QSlider::mousePressEvent(event);
 }
-
-void SeekSlider::enterEvent(QEvent* event) {
-}
-
-void SeekSlider::leaveEvent(QEvent* event) {
-}

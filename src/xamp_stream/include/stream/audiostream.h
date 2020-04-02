@@ -20,9 +20,9 @@ public:
 
 	virtual void Close() = 0;
 
-    virtual double GetDuration() const = 0;    
+    virtual double GetDuration() const = 0;
 
-    virtual int32_t GetSamples(void *buffer, int32_t length) const noexcept = 0;
+    virtual int32_t GetSamples(void *buffer, uint32_t length) const noexcept = 0;
 
 	virtual AudioFormat GetFormat() const noexcept = 0;
 
@@ -30,7 +30,7 @@ public:
 
     virtual std::string_view GetDescription() const noexcept = 0;
 	
-	virtual int32_t GetSampleSize() const noexcept = 0;
+    virtual uint32_t GetSampleSize() const noexcept = 0;
 protected:
     AudioStream() = default;
 };

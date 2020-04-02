@@ -16,8 +16,8 @@
 
 namespace xamp::base {
 	
-constexpr int32_t XAMP_ID_MAX_SIZE = 16;
-constexpr int32_t MAX_ID_STR_LEN = 36;
+constexpr size_t XAMP_ID_MAX_SIZE = 16;
+constexpr size_t MAX_ID_STR_LEN = 36;
 
 class XAMP_BASE_API ID final {
 public:
@@ -78,11 +78,11 @@ XAMP_ALWAYS_INLINE ID& ID::operator=(ID&& other) noexcept {
 }
 
 XAMP_ALWAYS_INLINE bool operator!=(const ID & other1, const ID & other2) noexcept {
-	return !(memcmp(other1.bytes_.data(), other2.bytes_.data(), other2.bytes_.size()) == 0);
+    return !(std::memcmp(other1.bytes_.data(), other2.bytes_.data(), other2.bytes_.size()) == 0);
 }
 
 XAMP_ALWAYS_INLINE bool operator==(const ID& other1, const ID& other2) noexcept {
-	return memcmp(other1.bytes_.data(), other2.bytes_.data(), other2.bytes_.size()) == 0;
+    return std::memcmp(other1.bytes_.data(), other2.bytes_.data(), other2.bytes_.size()) == 0;
 }
 
 XAMP_ALWAYS_INLINE bool operator==(const std::string &str, const ID &id) noexcept {

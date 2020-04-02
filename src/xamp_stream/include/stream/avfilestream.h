@@ -31,13 +31,13 @@ public:
 
 	AudioFormat GetFormat() const noexcept override;
 
-	int32_t GetSamples(void* buffer, int32_t length) const noexcept override;
+    int32_t GetSamples(void* buffer, uint32_t length) const noexcept override;
 
 	void Seek(double stream_time) const override;
 
 	std::string_view GetDescription() const noexcept override;
 
-	int32_t GetSampleSize() const noexcept override;
+    uint32_t GetSampleSize() const noexcept override;
 private:
 	class AvFileStreamImpl;
 	AlignPtr<AvFileStreamImpl> impl_;

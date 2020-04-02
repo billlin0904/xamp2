@@ -26,10 +26,10 @@ FramelessWindow::FramelessWindow(QWidget* parent)
     , border_width_(5)
 #endif
 {    
-    setMouseTracking(true);
-    installEventFilter(this);
     setAcceptDrops(true);
+    installEventFilter(this);
 #if defined(Q_OS_WIN)
+    setMouseTracking(true);
     setWindowFlags(Qt::FramelessWindowHint | Qt::WindowMaximizeButtonHint);
 	HWND hwnd = (HWND)winId();
 	const DWMNCRENDERINGPOLICY ncrp = DWMNCRP_ENABLED;

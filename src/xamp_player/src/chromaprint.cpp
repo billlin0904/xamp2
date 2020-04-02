@@ -96,7 +96,7 @@ public:
 		}
 
 		char* encoded = nullptr;
-		int32_t encoded_size = 0;		
+        int32_t encoded_size = 0;
 
 		try {			
 			ChromaprintLib::Instance().chromaprint_encode_fingerprint(fprint,
@@ -106,8 +106,8 @@ public:
 				&encoded_size,
 				1);
 
-			fingerprint.resize(encoded_size);
-			(void)FastMemcpy(fingerprint.data(), encoded, encoded_size);
+            fingerprint.resize(static_cast<size_t>(encoded_size));
+            (void)FastMemcpy(fingerprint.data(), encoded, static_cast<size_t>(encoded_size));
 		}
 		catch (...) {
 		}		

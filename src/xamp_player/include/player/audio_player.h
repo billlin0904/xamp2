@@ -63,11 +63,13 @@ public:
 
 	void Stop(bool signal_to_stop = true, bool shutdown_device = false, bool wait_for_stop_stream = true);
 
+    void Destory();
+
 	void Seek(double stream_time);
 
-	void SetVolume(int32_t volume);
+    void SetVolume(uint32_t volume);
 
-	int32_t GetVolume() const;
+    uint32_t GetVolume() const;
 
 	bool IsMute() const;
 
@@ -77,7 +79,7 @@ public:
 
 	DsdModes GetDSDModes() const noexcept;
 
-    std::optional<int32_t> GetDSDSpeed() const;
+    std::optional<uint32_t> GetDSDSpeed() const;
 
 	std::optional<DeviceInfo> GetDefaultDeviceInfo() const;
 
@@ -113,7 +115,7 @@ private:
 
 	void BufferStream();
 
-	bool FillSamples(int32_t num_samples) noexcept;
+    bool FillSamples(uint32_t num_samples) noexcept;
 
 	int OnGetSamples(void* samples, const int32_t num_buffer_frames, const double stream_time) noexcept override;
 
@@ -125,7 +127,7 @@ private:
 
 	void SetState(const PlayerState play_state);
 
-	void ReadSampleLoop(int32_t max_read_sample, std::unique_lock<std::mutex> &lock);
+    void ReadSampleLoop(uint32_t max_read_sample, std::unique_lock<std::mutex> &lock);
 
 	DsdStream* AsDsdStream();
 
@@ -138,7 +140,7 @@ private:
             : sample_size(sample_size)
 			, stream_time(stream_time) {
 		}
-		int32_t sample_size;
+        int32_t sample_size;
 		double stream_time;
 	};
 
@@ -148,12 +150,12 @@ private:
 	bool enable_resample_;
 	DsdModes dsd_mode_;
 	std::atomic<PlayerState> state_;
-	int32_t target_samplerate_;
-	int32_t volume_;
-	int32_t num_buffer_samples_;
-	int32_t num_read_sample_;
-	int32_t read_sample_size_;
-	int32_t sample_size_;
+    int32_t target_samplerate_;
+    uint32_t volume_;
+    uint32_t num_buffer_samples_;
+    uint32_t num_read_sample_;
+    uint32_t read_sample_size_;
+    uint32_t sample_size_;
 	std::atomic<bool> is_playing_;
 	std::atomic<bool> is_paused_;
 	std::atomic<AudioSlice> slice_;
@@ -172,8 +174,8 @@ private:
 	std::weak_ptr<PlaybackStateAdapter> state_adapter_;
 	AudioBuffer<int8_t> buffer_;
 	WaitableTimer wait_timer_;
-	AlignPtr<Resampler> resampler_;	
-	std::future<void> stream_task_;
+    AlignPtr<Resampler> resampler_;
+    std::shared_future<void> stream_task_;
 };
 
 }

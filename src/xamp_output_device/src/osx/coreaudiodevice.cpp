@@ -139,11 +139,11 @@ void CoreAudioDevice::OpenStream(const AudioFormat &output_format) {
         fmt.mFormatID = kAudioFormatLinearPCM;
         fmt.mFormatFlags = kAudioFormatFlagIsFloat | kAudioFormatFlagIsPacked;
         fmt.mSampleRate = output_format.GetSampleRate();
-        fmt.mChannelsPerFrame = (UInt32)output_format.GetChannels();
+        fmt.mChannelsPerFrame = output_format.GetChannels();
         fmt.mFramesPerPacket = 1;
-        fmt.mBitsPerChannel = (UInt32)output_format.GetBitsPerSample();
-        fmt.mBytesPerFrame = (UInt32)output_format.GetBytesPerSample();
-        fmt.mBytesPerPacket = (UInt32)output_format.GetBytesPerSample();
+        fmt.mBitsPerChannel = output_format.GetBitsPerSample();
+        fmt.mBytesPerFrame = output_format.GetBytesPerSample();
+        fmt.mBytesPerPacket = output_format.GetBytesPerSample();
         fmt.mReserved = 0;
         CoreAudioThrowIfError(AudioObjectSetPropertyData(device_id_,
                                                          &audio_property_,
@@ -177,7 +177,7 @@ void CoreAudioDevice::OpenStream(const AudioFormat &output_format) {
                               dataSize,
                               &theSize));
 
-    buffer_size_ = (uint32_t)output_format.GetChannels() * bufferSize;
+    buffer_size_ = output_format.GetChannels() * bufferSize;
 
     CoreAudioThrowIfError(AudioDeviceCreateIOProcID(device_id_, OnAudioIOProc, this, &proc_id_));
     format_ = output_format;
@@ -195,7 +195,7 @@ bool CoreAudioDevice::IsStreamRunning() const noexcept {
     return is_running_;
 }
 
-void CoreAudioDevice::StopStream(bool wait_for_stop_stream) {
+void CoreAudioDevice::StopStream(bool /*wait_for_stop_stream*/) {
     CoreAudioThrowIfError(AudioDeviceStop(device_id_, proc_id_));
     is_running_ = false;
 }
@@ -219,13 +219,13 @@ double CoreAudioDevice::GetStreamTime() const noexcept {
     return stream_time_;
 }
 
-int32_t CoreAudioDevice::GetVolume() const {
+uint32_t CoreAudioDevice::GetVolume() const {
     auto volume = SystemVolume(kAudioHardwareServiceDeviceProperty_VirtualMasterVolume).GetGain() * 100;
-    return (int32_t)volume;
+    return static_cast<uint32_t>(volume);
 }
 
-void CoreAudioDevice::SetVolume(int32_t volume) const {
-    SystemVolume(kAudioHardwareServiceDeviceProperty_VirtualMasterVolume).SetGain(volume / 100.0);
+void CoreAudioDevice::SetVolume(uint32_t volume) const {
+    SystemVolume(kAudioHardwareServiceDeviceProperty_VirtualMasterVolume).SetGain(float(volume) / float(100.0));
 }
 
 void CoreAudioDevice::SetMute(bool mute) const {
@@ -243,7 +243,7 @@ InterleavedFormat CoreAudioDevice::GetInterleavedFormat() const noexcept {
     return InterleavedFormat::INTERLEAVED;
 }
 
-int32_t CoreAudioDevice::GetBufferSize() const noexcept {
+uint32_t CoreAudioDevice::GetBufferSize() const noexcept {
     return buffer_size_;
 }
 

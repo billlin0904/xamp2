@@ -12,14 +12,10 @@ static const QLatin1String DISCOGS_KEY{ "TyvkLDUGhlzRhPkMdsmU" };
 static const QLatin1String DISCOGS_SECRET{ "oBilkJZyIDgEMkkGaQdVZEexZNRHUrVX" };
 
 static const QLatin1String DISCOGS_HOST{"https://api.discogs.com"};
-static const QLatin1String DISCOGS_REQUEST_TOKEN_URL{ "https://api.discogs.com/oauth/request_token" };
-static const QLatin1String DISCOGS_AUTHORIZE_URL{ "https://www.discogs.com/oauth/authorize" };
-static const QLatin1String DISCOGS_ACESS_TOKEN_URL{ "https://api.discogs.com/oauth/access_token" };
-
 using namespace rapidjson;
 
-template <typename T>
-static QString toQString(T &value) {
+template <typename TMemberIterator>
+static QString toQString(TMemberIterator &value) {
     return QString::fromUtf8((*value).value.GetString(), (*value).value.GetStringLength());
 }
 
@@ -56,7 +52,7 @@ void DiscogsClient::searchArtistId(int32_t artist_id, const QString& id) {
             return;
         }
 
-        for (auto& image : (*images).value.GetArray()) {
+        for (auto &image : (*images).value.GetArray()) {
             auto uri = image.FindMember("uri");
             if (uri == image.MemberEnd()) {
                 return;
@@ -72,7 +68,7 @@ void DiscogsClient::searchArtistId(int32_t artist_id, const QString& id) {
         .get();
 }
 
-void DiscogsClient::searchArtist(int32_t artist_id, const QString &artist, const QString& album) {
+void DiscogsClient::searchArtist(int32_t artist_id, const QString &artist) {
     auto handler = [=](const QString& msg) {
         auto str = msg.toStdString();
         Document d;

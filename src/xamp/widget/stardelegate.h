@@ -10,9 +10,7 @@
 class StarDelegate : public QStyledItemDelegate {
     Q_OBJECT
 public:
-    StarDelegate(QWidget* parent = nullptr)
-        : QStyledItemDelegate(parent) {
-    }
+    explicit StarDelegate(QWidget* parent = nullptr);
 
     void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const;
 

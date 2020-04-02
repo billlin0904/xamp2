@@ -14,7 +14,7 @@
 class Toast : public QWidget {
 	Q_OBJECT
 public:
-	Toast(QWidget* parent = nullptr);
+    explicit Toast(QWidget* parent = nullptr);
 
     ~Toast() override;
 

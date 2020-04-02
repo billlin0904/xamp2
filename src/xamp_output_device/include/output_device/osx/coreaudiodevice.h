@@ -42,9 +42,9 @@ public:
 
     double GetStreamTime() const noexcept override;
 
-    int32_t GetVolume() const override;
+    uint32_t GetVolume() const override;
 
-    void SetVolume(int32_t volume) const override;
+    void SetVolume(uint32_t volume) const override;
 
     void SetMute(bool mute) const override;
 
@@ -54,7 +54,7 @@ public:
 
     InterleavedFormat GetInterleavedFormat() const noexcept override;
 
-    int32_t GetBufferSize() const noexcept override;
+    uint32_t GetBufferSize() const noexcept override;
 private:
     static OSStatus OnAudioIOProc(AudioDeviceID,
                                   const AudioTimeStamp*,
@@ -69,7 +69,7 @@ private:
     bool is_running_;
     AudioDeviceID device_id_;
     AudioDeviceIOProcID proc_id_;
-    int32_t buffer_size_;
+    uint32_t buffer_size_;
     AudioCallback *callback_;
     double stream_time_;
     mutable AudioObjectPropertyAddress audio_property_;

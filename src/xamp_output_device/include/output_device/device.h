@@ -34,9 +34,9 @@ public:
 
 	virtual double GetStreamTime() const noexcept = 0;
 
-	virtual int32_t GetVolume() const = 0;
+    virtual uint32_t GetVolume() const = 0;
 
-	virtual void SetVolume(int32_t volume) const = 0;
+    virtual void SetVolume(uint32_t volume) const = 0;
 
 	virtual void SetMute(bool mute) const = 0;
 
@@ -46,7 +46,7 @@ public:
 
 	virtual InterleavedFormat GetInterleavedFormat() const noexcept = 0;
 
-	virtual int32_t GetBufferSize() const noexcept = 0;
+    virtual uint32_t GetBufferSize() const noexcept = 0;
 
 protected:
 	Device() = default;

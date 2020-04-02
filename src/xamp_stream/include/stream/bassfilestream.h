@@ -34,13 +34,13 @@ public:
 
 	AudioFormat GetFormat() const noexcept override;
 
-	int32_t GetSamples(void* buffer, int32_t length) const noexcept override;
+    int32_t GetSamples(void* buffer, uint32_t length) const noexcept override;
 
 	void Seek(double stream_time) const override;
 
 	std::string_view GetDescription() const noexcept override;
 
-	int32_t GetSampleSize() const noexcept override;
+    uint32_t GetSampleSize() const noexcept override;
 
 	bool IsDsdFile() const noexcept override;
 
@@ -48,13 +48,13 @@ public:
 
 	DsdModes GetDsdMode() const noexcept override;
 
-	int32_t GetDsdSampleRate() const override;
+    uint32_t GetDsdSampleRate() const override;
 
 	DsdSampleFormat GetDsdSampleFormat() const noexcept override;
 
-	void SetDsdToPcmSampleRate(int32_t samplerate) override;
+    void SetDsdToPcmSampleRate(uint32_t samplerate) override;
 
-    int32_t GetDsdSpeed() const noexcept override;
+    uint32_t GetDsdSpeed() const noexcept override;
 private:
 	class BassFileStreamImpl;
 	AlignPtr<BassFileStreamImpl> stream_;

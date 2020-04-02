@@ -20,6 +20,7 @@
 #include <base/align_ptr.h>
 #include <base/alignstl.h>
 #include <base/circularbuffer.h>
+#include <base/platform_thread.h>
 
 namespace xamp::base {
 
@@ -249,7 +250,7 @@ decltype(auto) ThreadPool::StartNew(F f, Args&&... args) {
         (*task)();
 	});
 
-    return future;
+    return future.share();
 }
 
 }

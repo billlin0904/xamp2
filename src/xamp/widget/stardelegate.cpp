@@ -4,6 +4,10 @@
 #include <widget/starrating.h>
 #include <widget/stardelegate.h>
 
+StarDelegate::StarDelegate(QWidget* parent)
+    : QStyledItemDelegate(parent) {
+}
+
 void StarDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const {
     if (index.data().canConvert<StarRating>()) {
         auto rating = qvariant_cast<StarRating>(index.data());

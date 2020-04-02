@@ -41,7 +41,6 @@ static std::vector<int32_t> GetAvailableSampleRates(AudioDeviceID id) {
     }
     for (auto rangs : rangeList) {
         auto samplerate = static_cast<int32_t>(std::nearbyint(rangs.mMaximum));
-        XAMP_LOG_DEBUG("Device id: {} samplerate: {}", id, samplerate);
         samplerates.push_back(samplerate);
     }
     return samplerates;
@@ -142,7 +141,7 @@ AlignPtr<Device> CoreAudioDeviceType::MakeDevice(const std::wstring &device_id) 
     return MakeAlign<Device, CoreAudioDevice>(id);
 }
 
-int32_t CoreAudioDeviceType::GetDeviceCount() const {
+size_t CoreAudioDeviceType::GetDeviceCount() const {
     UInt32 data_size = 0;
 
     AudioObjectPropertyAddress propertyAddress = {

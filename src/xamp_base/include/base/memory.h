@@ -19,11 +19,7 @@ XAMP_BASE_API void PrefactchFile(const std::wstring &file_name);
 
 XAMP_BASE_API bool PrefetchMemory(void* adddr, size_t length) noexcept;
 
-#if 0
-XAMP_BASE_API XAMP_RESTRICT XAMP_NOALIAS void* FastMemcpy(void* dest, const void* src, size_t size) noexcept;
-#else
 #define FastMemcpy(dest, src, size) std::memcpy(dest, src, size)
-#endif
 
 }
 

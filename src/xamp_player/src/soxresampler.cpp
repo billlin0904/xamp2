@@ -62,10 +62,9 @@ public:
 	}
 
 	~SoxrResamplerImpl() {
-		Close();
 	}
 
-	void Start(int32_t input_samplerate, int32_t num_channels, int32_t output_samplerate) {
+    void Start(uint32_t input_samplerate, uint32_t num_channels, uint32_t output_samplerate) {
 		Close();
 
         unsigned long quality_spec = 0;
@@ -153,7 +152,7 @@ public:
 		stopband_ = stopband;
 	}
 
-	bool Process(const float* samples, int32_t num_sample, AudioBuffer<int8_t>& buffer) {
+    bool Process(const float* samples, uint32_t num_sample, AudioBuffer<int8_t>& buffer) {
 		buffer_.resize((size_t)(num_sample * ratio_) + 256);
 
 		size_t samples_done = 0;
@@ -198,7 +197,7 @@ void SoxrResampler::LoadSoxrLib() {
 	SoxrLib::Instance();
 }
 
-void SoxrResampler::Start(int32_t input_samplerate, int32_t num_channels, int32_t output_samplerate, int32_t max_sample) {
+void SoxrResampler::Start(uint32_t input_samplerate, uint32_t num_channels, uint32_t output_samplerate, uint32_t max_sample) {
 	impl_->Start(input_samplerate, num_channels, output_samplerate);
 }
 
@@ -226,7 +225,7 @@ std::string_view SoxrResampler::GetDescription() const noexcept {
 	return "Soxr";
 }
 
-bool SoxrResampler::Process(const float* samples, int32_t num_sample, AudioBuffer<int8_t>& buffer) {
+bool SoxrResampler::Process(const float* samples, uint32_t num_sample, AudioBuffer<int8_t>& buffer) {
 	return impl_->Process(samples, num_sample, buffer);
 }
 

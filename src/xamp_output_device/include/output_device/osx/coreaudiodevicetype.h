@@ -29,7 +29,7 @@ public:
 
     AlignPtr<Device> MakeDevice(const std::wstring &device_id) override;
 
-    int32_t GetDeviceCount() const override;
+    size_t GetDeviceCount() const override;
 
     DeviceInfo GetDeviceInfo(int32_t device) const override;
 

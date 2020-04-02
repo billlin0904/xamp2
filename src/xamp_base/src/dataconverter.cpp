@@ -7,7 +7,7 @@ AudioConvertContext::AudioConvertContext() {
 	out_offset.fill(0);
 }
 
-AudioConvertContext MakeConvert(const AudioFormat& in_format, const AudioFormat& out_format, int64_t convert_size) noexcept {
+AudioConvertContext MakeConvert(const AudioFormat& in_format, const AudioFormat& out_format, size_t convert_size) noexcept {
 	AudioConvertContext context;
 
 	context.in_jump = in_format.GetChannels();
@@ -23,13 +23,13 @@ AudioConvertContext MakeConvert(const AudioFormat& in_format, const AudioFormat&
 
 	if (in_format.GetInterleavedFormat() == out_format.GetInterleavedFormat()) {
 		if (in_format.GetInterleavedFormat() == InterleavedFormat::INTERLEAVED) {
-			for (auto k = 0, i = 0; k < in_format.GetChannels(); ++k, ++i) {
+            for (size_t k = 0, i = 0; k < in_format.GetChannels(); ++k, ++i) {
 				context.in_offset[i] = k;
 				context.out_offset[i] = k;
 			}
 		}
 		else {
-			for (auto k = 0, i = 0; k < in_format.GetChannels(); ++k, ++i) {
+            for (size_t k = 0, i = 0; k < in_format.GetChannels(); ++k, ++i) {
 				context.in_offset[i] = k * convert_size;
 				context.out_offset[i] = k * convert_size;
 			}
@@ -38,7 +38,7 @@ AudioConvertContext MakeConvert(const AudioFormat& in_format, const AudioFormat&
 		}
 	}
 	else {
-		for (auto k = 0, i = 0; k < in_format.GetChannels(); ++k, ++i) {
+        for (size_t k = 0, i = 0; k < in_format.GetChannels(); ++k, ++i) {
 			switch (in_format.GetInterleavedFormat()) {
 			case InterleavedFormat::INTERLEAVED:
 				context.in_offset[i] = k;
