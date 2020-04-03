@@ -39,7 +39,7 @@ static void CreateLogsDir() {
 }
 
 Logger & Logger::Instance() {
-    static StackTrace stacktrace;
+    StackTrace::RegisterSignal();
     static Logger logger;
     return logger;
 }

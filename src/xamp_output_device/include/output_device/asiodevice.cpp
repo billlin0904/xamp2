@@ -66,7 +66,7 @@ bool AsioDevice::IsMuted() const {
 	return volume_ == 0;
 }
 
-int32_t AsioDevice::GetBufferSize() const noexcept {
+uint32_t AsioDevice::GetBufferSize() const noexcept {
 	return buffer_size_ * mix_format_.GetChannels();
 }
 
@@ -318,11 +318,11 @@ void AsioDevice::CreateBuffers(const AudioFormat& output_format) {
 	XAMP_LOG_INFO("Ouput latency: {}ms", GetLatencyMs(output_latency, output_format.GetSampleRate()));
 }
 
-int32_t AsioDevice::GetVolume() const {
+uint32_t AsioDevice::GetVolume() const {
 	return volume_;
 }
 
-void AsioDevice::SetVolume(const int32_t volume) const {
+void AsioDevice::SetVolume(const uint32_t volume) const {
 	volume_ = volume;
 }
 

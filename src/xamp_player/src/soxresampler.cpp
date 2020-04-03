@@ -153,6 +153,8 @@ public:
 	}
 
     bool Process(const float* samples, uint32_t num_sample, AudioBuffer<int8_t>& buffer) {
+		assert(num_channels_ != 0);
+
 		buffer_.resize((size_t)(num_sample * ratio_) + 256);
 
 		size_t samples_done = 0;

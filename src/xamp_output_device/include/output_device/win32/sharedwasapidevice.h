@@ -39,11 +39,11 @@ public:
 
 	double GetStreamTime() const noexcept override;
 
-	int32_t GetVolume() const override;
+	uint32_t GetVolume() const override;
 
 	bool IsMuted() const override;
 
-	void SetVolume(int32_t volume) const override;
+	void SetVolume(uint32_t volume) const override;
 
 	void SetMute(bool mute) const override;
 
@@ -53,7 +53,7 @@ public:
 
 	void SetSchedulerService(const std::wstring& mmcss_name, MmcssThreadPriority thread_priority);
 
-	int32_t GetBufferSize() const noexcept override;
+	uint32_t GetBufferSize() const noexcept override;
 
 private:
 	void InitialRawMode(const AudioFormat& output_format);
@@ -62,9 +62,9 @@ private:
 
 	void GetSampleRequested(bool is_silence);
 
-	void GetSample(int32_t frame_available);
+	void GetSample(uint32_t frame_available);
 
-	void FillSilentSample(int32_t frame_available) const;
+	void FillSilentSample(uint32_t frame_available) const;
 
 	HRESULT OnSampleReady(IMFAsyncResult* result);
 

@@ -27,7 +27,7 @@ constexpr int32_t PREALLOCATE_BUFFER_SIZE = 4 * 1024 * 1024;
 constexpr int32_t MAX_WRITE_RATIO = 20;
 constexpr int32_t MAX_READ_RATIO = 30;
 constexpr std::chrono::milliseconds UPDATE_SAMPLE_INTERVAL(100);
-constexpr std::chrono::seconds WAIT_FOR_STRAEM_STOP_TIME(5);
+constexpr std::chrono::seconds WAIT_FOR_STRAEM_STOP_TIME(10);
 constexpr std::chrono::milliseconds READ_SAMPLE_WAIT_TIME(100);
 
 AudioPlayer::AudioPlayer()
@@ -84,8 +84,6 @@ void AudioPlayer::Open(const std::wstring& file_path, const std::wstring& file_e
     SetDeviceFormat();
     CreateDevice(device_info.device_type_id, device_info.device_id, false);
     OpenDevice();
-    CreateBuffer();
-    BufferStream();
 }
 
 void AudioPlayer::SetResampler(int32_t samplerate, AlignPtr<Resampler>&& resampler) {
@@ -243,9 +241,11 @@ void AudioPlayer::Stop(bool signal_to_stop, bool shutdown_device, bool wait_for_
     }
 
     XAMP_LOG_DEBUG("Player stop!");
-    CloseDevice(wait_for_stop_stream);
-    if (signal_to_stop) {
-        SetState(PlayerState::PLAYER_STATE_STOPPED);
+    if (device_->IsStreamOpen()) {
+        CloseDevice(wait_for_stop_stream);
+        if (signal_to_stop) {
+            SetState(PlayerState::PLAYER_STATE_STOPPED);
+        }
     }
 
     buffer_.Clear();
@@ -381,9 +381,11 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
     }
     if (stream_task_.valid()) {
         wait_timer_.Cancel();
+        XAMP_LOG_DEBUG("Try to stop stream task!");
         if (stream_task_.wait_for(WAIT_FOR_STRAEM_STOP_TIME) == std::future_status::timeout) {
             throw StopStreamTimeoutException();
         }
+        XAMP_LOG_DEBUG("Stream task was finished!");
     }
     buffer_.Clear();
 }
@@ -612,7 +614,11 @@ void AudioPlayer::ReadSampleLoop(uint32_t max_read_sample, std::unique_lock<std:
     }
 }
 
-void AudioPlayer::PlayStream() {    
+void AudioPlayer::PlayStream() {
+    CreateBuffer();
+
+    BufferStream();
+
     // 預先啟動output device開始撥放, 因有預先塞入資料可以加速撥放效果.
     Play();
 
@@ -622,10 +628,6 @@ void AudioPlayer::PlayStream() {
 
         auto max_read_sample = p->num_read_sample_;
         auto num_sample_write = max_read_sample * MAX_WRITE_RATIO;
-
-#ifdef _DEBUG
-        SetThreadName("Streaming thread");
-#endif
 
         while (p->is_playing_) {
             while (p->is_paused_) {

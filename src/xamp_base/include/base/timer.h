@@ -8,7 +8,7 @@
 #include <chrono>
 #include <functional>
 #include <atomic>
-#include <future>
+#include <thread>
 
 #include <base/base.h>
 #include <base/memory.h>
@@ -34,7 +34,7 @@ public:
 
 private:
 	std::atomic<bool> is_stop_;
-    std::shared_future<void> thread_;
+    std::thread thread_;
 	WaitableTimer timer_;
 };
 

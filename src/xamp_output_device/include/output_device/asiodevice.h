@@ -45,9 +45,9 @@ public:
 
 	double GetStreamTime() const noexcept override;
 
-	int32_t GetVolume() const override;
+	uint32_t GetVolume() const override;
 
-	void SetVolume(int32_t volume) const override;
+	void SetVolume(uint32_t volume) const override;
 
 	void SetMute(bool mute) const override;
 
@@ -65,7 +65,7 @@ public:
 
 	DsdSampleFormat GetSampleFormat() const noexcept override;
 
-	int32_t GetBufferSize() const noexcept override;
+	uint32_t GetBufferSize() const noexcept override;
 
 	bool IsMuted() const override;
 
@@ -95,8 +95,8 @@ private:
 	AsioIoFormat io_format_;
 	DsdSampleFormat sample_format_;
 	mutable std::atomic<int32_t> volume_;
-	int32_t buffer_size_;
-	int32_t buffer_bytes_;
+	uint32_t buffer_size_;
+	uint32_t buffer_bytes_;
 	std::atomic<int64_t> played_bytes_;
 	std::string device_id_;
 	mutable std::mutex mutex_;

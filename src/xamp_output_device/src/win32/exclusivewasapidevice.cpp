@@ -110,7 +110,7 @@ void ExclusiveWasapiDevice::SetAlignedPeriod(REFERENCE_TIME device_period, const
 	aligned_period_ = MakeHnsPeriod(buffer_frames_, output_format.GetSampleRate());
 }
 
-void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_format, const int32_t valid_bits_samples) {
+void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_format, const uint32_t valid_bits_samples) {
     HrIfFailledThrow(client_->GetMixFormat(&mix_format_));
 
 	SetWaveformatEx(mix_format_, output_format, valid_bits_samples);
@@ -216,7 +216,7 @@ void ExclusiveWasapiDevice::SetSchedulerService(const std::wstring &mmcss_name, 
 	mmcss_name_ = mmcss_name;
 }
 
-void ExclusiveWasapiDevice::FillSilentSample(const int32_t frames_available) const {
+void ExclusiveWasapiDevice::FillSilentSample(const uint32_t frames_available) const {
     BYTE *data = nullptr;
 	if (!render_client_) {
 		return;
@@ -239,7 +239,7 @@ HRESULT ExclusiveWasapiDevice::OnSampleReady(IMFAsyncResult *result) {
     return S_OK;
 }
 
-void ExclusiveWasapiDevice::GetSample(const int32_t frame_available) {
+void ExclusiveWasapiDevice::GetSample(const uint32_t frame_available) {
 	BYTE* data = nullptr;
 
 	auto stream_time = stream_time_ + frame_available;
@@ -359,13 +359,13 @@ double ExclusiveWasapiDevice::GetStreamTime() const noexcept {
     return stream_time_ / static_cast<double>(mix_format_->nSamplesPerSec);
 }
 
-int32_t ExclusiveWasapiDevice::GetVolume() const {
+uint32_t ExclusiveWasapiDevice::GetVolume() const {
 	float channel_volume = 0.0;
 	HrIfFailledThrow(endpoint_volume_->GetMasterVolumeLevel(&channel_volume));
 	return static_cast<int32_t>(channel_volume);
 }
 
-void ExclusiveWasapiDevice::SetVolume(const int32_t volume) const {
+void ExclusiveWasapiDevice::SetVolume(const uint32_t volume) const {
     if (volume > 100) {
 		return;
 	}
@@ -398,7 +398,7 @@ InterleavedFormat ExclusiveWasapiDevice::GetInterleavedFormat() const noexcept {
     return InterleavedFormat::INTERLEAVED;
 }
 
-int32_t ExclusiveWasapiDevice::GetBufferSize() const noexcept {
+uint32_t ExclusiveWasapiDevice::GetBufferSize() const noexcept {
 	return buffer_frames_ * mix_format_->nChannels;
 }
 

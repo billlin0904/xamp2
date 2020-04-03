@@ -85,6 +85,7 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
+      <AdditionalDependencies>Dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Bscmake>
       <PreserveSbr>true</PreserveSbr>
@@ -160,6 +161,7 @@
     <ClInclude Include="include\base\exception.h" />
     <ClInclude Include="include\base\lrucache.h" />
     <ClInclude Include="include\base\platform_thread.h" />
+    <ClInclude Include="include\base\stacktrace.h" />
     <ClInclude Include="include\base\threadpool.h" />
     <ClInclude Include="include\base\vmmemlock.h" />
     <ClInclude Include="include\base\memory_mapped_file.h" />
@@ -187,6 +189,7 @@
     <ClCompile Include="src\metadata.cpp" />
     <ClCompile Include="src\platform_thread.cpp" />
     <ClCompile Include="src\rng.cpp" />
+    <ClCompile Include="src\stacktrace.cpp" />
     <ClCompile Include="src\threadpool.cpp" />
     <ClCompile Include="src\timer.cpp" />
     <ClCompile Include="src\str_utilts.cpp" />

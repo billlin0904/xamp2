@@ -8,7 +8,7 @@
 
 namespace xamp::output_device::win32 {
 
-static void SetWaveformatEx(WAVEFORMATEX *input_fromat, const int32_t samplerate) noexcept {
+static void SetWaveformatEx(WAVEFORMATEX *input_fromat, const uint32_t samplerate) noexcept {
 	auto &format = *reinterpret_cast<WAVEFORMATEXTENSIBLE *>(input_fromat);
 
 	format.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
@@ -201,13 +201,13 @@ bool SharedWasapiDevice::IsMuted() const {
 	return is_muted;
 }
 
-int32_t SharedWasapiDevice::GetVolume() const {
+uint32_t SharedWasapiDevice::GetVolume() const {
 	CComPtr<ISimpleAudioVolume> simple_audio_volume;
 	HrIfFailledThrow(client_->GetService(__uuidof(ISimpleAudioVolume), reinterpret_cast<void**>(&simple_audio_volume)));
 
 	float channel_volume = 0.0;
 	HrIfFailledThrow(simple_audio_volume->GetMasterVolume(&channel_volume));
-	return static_cast<int32_t>(channel_volume * 100);
+	return static_cast<uint32_t>(channel_volume * 100);
 }
 
 void SharedWasapiDevice::SetMute(const bool mute) const {
@@ -224,7 +224,7 @@ InterleavedFormat SharedWasapiDevice::GetInterleavedFormat() const noexcept {
 	return InterleavedFormat::INTERLEAVED;
 }
 
-int32_t SharedWasapiDevice::GetBufferSize() const noexcept {
+uint32_t SharedWasapiDevice::GetBufferSize() const noexcept {
 	return buffer_frames_;
 }
 
@@ -234,7 +234,7 @@ void SharedWasapiDevice::SetSchedulerService(const std::wstring& mmcss_name, con
 	mmcss_name_ = mmcss_name;
 }
 
-void SharedWasapiDevice::SetVolume(const int32_t volume) const {
+void SharedWasapiDevice::SetVolume(const uint32_t volume) const {
 	if (volume > 100) {
 		return;
 	}
@@ -261,7 +261,7 @@ double SharedWasapiDevice::GetStreamTime() const noexcept {
 	return stream_time_ / static_cast<double>(mix_format_->nSamplesPerSec);
 }
 
-void SharedWasapiDevice::GetSample(const int32_t frame_available) {
+void SharedWasapiDevice::GetSample(const uint32_t frame_available) {
 	auto stream_time = stream_time_ + frame_available;
 	stream_time_ = stream_time;
 	stream_time = static_cast<double>(stream_time) / static_cast<double>(mix_format_->nSamplesPerSec);
@@ -293,7 +293,7 @@ void SharedWasapiDevice::GetSample(const int32_t frame_available) {
 	}
 }
 
-void SharedWasapiDevice::FillSilentSample(const int32_t frame_available) const {
+void SharedWasapiDevice::FillSilentSample(const uint32_t frame_available) const {
 	BYTE* data;
 	HrIfFailledThrow(render_client_->GetBuffer(frame_available, &data));
 	HrIfFailledThrow(render_client_->ReleaseBuffer(frame_available, AUDCLNT_BUFFERFLAGS_SILENT));

@@ -26,7 +26,7 @@ public:
 	}
 
 	void Cancel() {
-		::CancelWaitableTimer(timer_.get());
+		//::CancelWaitableTimer(timer_.get());
 	}
 
 	void Wait() {		

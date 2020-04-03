@@ -44,9 +44,9 @@ public:
 
 	double GetStreamTime() const noexcept override;
 
-	int32_t GetVolume() const override;
+	uint32_t GetVolume() const override;
 
-	void SetVolume(int32_t volume) const override;
+	void SetVolume(uint32_t volume) const override;
 
 	void SetMute(bool mute) const override;
 
@@ -58,24 +58,24 @@ public:
 
 	void SetSchedulerService(const std::wstring& mmcss_name, MmcssThreadPriority thread_priority);
 
-	int32_t GetBufferSize() const noexcept override;
+	uint32_t GetBufferSize() const noexcept override;
 
 private:
-	void InitialDeviceFormat(const AudioFormat& output_format, int32_t valid_bits_samples);
+	void InitialDeviceFormat(const AudioFormat& output_format, uint32_t valid_bits_samples);
 
-	void FillSilentSample(int32_t frames_available) const;
+	void FillSilentSample(uint32_t frames_available) const;
 
 	void SetAlignedPeriod(REFERENCE_TIME device_period, const AudioFormat& output_format);
 
-	void GetSample(const int32_t frame_available);
+	void GetSample(const uint32_t frame_available);
 
 	HRESULT OnSampleReady(IMFAsyncResult* result);
 
 	std::atomic<bool> is_running_;
 	std::atomic<bool> is_stop_streaming_;
 	MmcssThreadPriority thread_priority_;
-	int32_t buffer_frames_;
-	int32_t valid_bits_samples_;
+	uint32_t buffer_frames_;
+	uint32_t valid_bits_samples_;
 	DWORD queue_id_;
 	std::atomic<int64_t> stream_time_;
 	WinHandle sample_ready_;

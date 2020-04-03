@@ -1,4 +1,3 @@
-#include <base/threadpool.h>
 #include <base/windows_handle.h>
 #include <base/timer.h>
 
@@ -15,7 +14,7 @@ Timer::~Timer() {
 void Timer::Start(std::chrono::milliseconds timeout, TimerCallback&& callback) {
 	is_stop_ = false;
 	timer_.SetTimeout(timeout);
-    thread_ = ThreadPool::DefaultThreadPool().StartNew([this, timeout_routine = std::forward<TimerCallback>(callback)]() {
+    thread_ = std::thread([this, timeout_routine = std::forward<TimerCallback>(callback)]() {
 		while (!is_stop_) {
 			timer_.Wait();
 			timeout_routine();
@@ -26,8 +25,8 @@ void Timer::Start(std::chrono::milliseconds timeout, TimerCallback&& callback) {
 void Timer::Stop() {
     is_stop_ = true;
     timer_.Cancel();
-    if (thread_.valid()) {
-        thread_.get();
+    if (thread_.joinable()) {
+        thread_.join();
     }
 }
 

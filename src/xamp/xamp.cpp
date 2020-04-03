@@ -782,8 +782,6 @@ void Xamp::playMusic(const MusicEntity& item) {
     ui.seekSlider->setEnabled(true);
 
     try {
-        player_->Stop(false, true);
-        setupResampler();
         player_->Open(item.file_path.toStdWString(), item.file_ext.toStdWString(), device_info_);        
         open_done = true;
     }
@@ -826,6 +824,7 @@ void Xamp::playMusic(const MusicEntity& item) {
     ui.endPosLabel->setText(Time::msToString(player_->GetDuration()));
     playlist_page_->format()->setText(getPlayEntityFormat(player_.get(), item.file_ext));
 
+    setupResampler();
     player_->PlayStream();
 
     if (auto cover = PixmapCache::instance().find(item.cover_id)) {
