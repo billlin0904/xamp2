@@ -123,23 +123,19 @@ DsdStream* AudioPlayer::AsDsdStream() {
     return dynamic_cast<DsdStream*>(stream_.get());
 }
 
-FileStream* AudioPlayer::AsFileStream() {
-    return dynamic_cast<FileStream*>(stream_.get());
-}
-
 DsdDevice* AudioPlayer::AsDsdDevice() {
     return dynamic_cast<DsdDevice*>(device_.get());
 }
 
-AlignPtr<AudioStream> AudioPlayer::MakeFileStream(const std::wstring& file_ext) {
+AlignPtr<FileStream> AudioPlayer::MakeFileStream(const std::wstring& file_ext) {
     constexpr const std::wstring_view dsd_ext(L".dsf,.dff");
     constexpr const std::wstring_view use_bass(L".m4a,.ape");
     auto is_dsd_stream = dsd_ext.find(file_ext) != std::wstring_view::npos;
     auto is_use_bass = use_bass.find(file_ext) != std::wstring_view::npos;
     if (is_dsd_stream || is_use_bass) {
-        return MakeAlign<AudioStream, BassFileStream>();
+        return MakeAlign<FileStream, BassFileStream>();
     }
-    return MakeAlign<AudioStream, AvFileStream>();
+    return MakeAlign<FileStream, AvFileStream>();
 }
 
 void AudioPlayer::OpenStream(const std::wstring& file_path, const std::wstring &file_ext, const DeviceInfo& device_info) {
@@ -169,15 +165,13 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, const std::wstring &
         }
     }
     else {        
-        stream_ = MakeAlign<AudioStream, AvFileStream>();
+        stream_ = MakeAlign<FileStream, AvFileStream>();
         dsd_mode_ = DsdModes::DSD_MODE_PCM;
     }
 
     XAMP_LOG_DEBUG("Use stream type: {}", stream_->GetDescription());
 
-	if (auto file_stream = AsFileStream()) {
-		file_stream->OpenFromFile(file_path);
-	}
+    stream_->OpenFromFile(file_path);
 }
 
 void AudioPlayer::SetState(const PlayerState play_state) {
@@ -463,7 +457,7 @@ void AudioPlayer::SetDeviceFormat() {
     }
 }
 
-int AudioPlayer::OnGetSamples(void* samples, const uint32_t num_buffer_frames, const double stream_time) noexcept {
+int32_t AudioPlayer::OnGetSamples(void* samples, const uint32_t num_buffer_frames, const double stream_time) noexcept {
     const uint32_t num_samples = num_buffer_frames * output_format_.GetChannels();
     const uint32_t sample_size = num_samples * sample_size_;
 

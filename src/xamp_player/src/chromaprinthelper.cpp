@@ -13,8 +13,7 @@ Fingerprint ReadFingerprint(const std::wstring& file_path, const std::wstring& f
 	constexpr auto kFingerprintDuration = 120;
 	constexpr auto kReadSampleSize = 8192 * 4;
 
-	auto stream = AudioPlayer::MakeFileStream(file_ext);
-	auto file_stream = dynamic_cast<FileStream*>(stream.get());
+    auto file_stream = AudioPlayer::MakeFileStream(file_ext);
 	file_stream->OpenFromFile(file_path);
 
 	const auto source_format = file_stream->GetFormat();
@@ -65,7 +64,7 @@ Fingerprint ReadFingerprint(const std::wstring& file_path, const std::wstring& f
 	chromaprint.Finish();
 
 	return {
-		stream->GetDuration(),
+        file_stream->GetDuration(),
 		chromaprint.GetFingerprint(),
 	};
 }

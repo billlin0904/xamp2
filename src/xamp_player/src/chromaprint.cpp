@@ -7,6 +7,7 @@
 #include <base/base.h>
 #include <base/exception.h>
 #include <base/dll.h>
+#include <base/unique_handle.h>
 #include <base/dataconverter.h>
 #include <player/chromaprint.h>
 
@@ -55,12 +56,16 @@ public:
 };
 
 struct ChromaprintContextTraits final {
-	void operator()(ChromaprintContext* value) const {
-		ChromaprintLib::Instance().chromaprint_free(value);
-	}
+    static ChromaprintContext* invalid() noexcept {
+        return nullptr;
+    }
+
+    static void close(ChromaprintContext* value) noexcept {
+        ChromaprintLib::Instance().chromaprint_free(value);
+    }
 };
 
-using ChromaprintContextPtr = std::unique_ptr<ChromaprintContext, ChromaprintContextTraits>;
+using ChromaprintContextPtr = UniqueHandle<ChromaprintContext*, ChromaprintContextTraits>;
 
 class Chromaprint::ChromaprintImpl {
 public:
@@ -77,11 +82,11 @@ public:
 		ChromaprintLib::Instance().chromaprint_start(context_.get(), sample_rate, num_channels);
 	}
 
-	int Feed(const int16_t* data, int size) const {
+    int32_t Feed(const int16_t* data, int size) const {
 		return ChromaprintLib::Instance().chromaprint_feed(context_.get(), data, size);
 	}
 
-	int Finish() const {
+    int32_t Finish() const {
 		return ChromaprintLib::Instance().chromaprint_finish(context_.get());
 	}	
 
@@ -119,7 +124,7 @@ public:
 	}	
 
 private:
-	int GetRawFingerprint(uint32_t** fingerprint, int32_t* size) const {
+    int32_t GetRawFingerprint(uint32_t** fingerprint, int32_t* size) const {
 		return ChromaprintLib::Instance().chromaprint_get_raw_fingerprint(context_.get(), fingerprint, size);
 	}
 

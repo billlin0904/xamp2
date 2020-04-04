@@ -99,7 +99,7 @@ public:
 
 	void EnableResampler(bool enable = true);
 
-	static AlignPtr<AudioStream> MakeFileStream(const std::wstring& file_ext);
+    static AlignPtr<FileStream> MakeFileStream(const std::wstring& file_ext);
 private:
 	void Init();
 
@@ -119,7 +119,7 @@ private:
 
     bool FillSamples(uint32_t num_samples) noexcept;
 
-    int OnGetSamples(void* samples, const uint32_t num_buffer_frames, const double stream_time) noexcept override;
+    int32_t OnGetSamples(void* samples, const uint32_t num_buffer_frames, const double stream_time) noexcept override;
 
 	void OnError(const Exception& e) noexcept override;
 
@@ -132,8 +132,6 @@ private:
     void ReadSampleLoop(uint32_t max_read_sample, std::unique_lock<std::mutex> &lock);
 
 	DsdStream* AsDsdStream();
-
-	FileStream* AsFileStream();
 
 	DsdDevice* AsDsdDevice();	
 
@@ -170,7 +168,7 @@ private:
 	AudioFormat output_format_;
 	AlignBufferPtr<int8_t> sample_buffer_;
 	Timer timer_;
-	AlignPtr<AudioStream> stream_;
+    AlignPtr<FileStream> stream_;
 	AlignPtr<DeviceType> device_type_;
 	AlignPtr<Device> device_;
 	std::weak_ptr<PlaybackStateAdapter> state_adapter_;
