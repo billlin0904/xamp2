@@ -40,16 +40,6 @@ find_library (
     NO_DEFAULT_PATH
 )
 
-#find_package(openssl REQUIRED)
-
-#find_library(LIBAVCODEC avcodec PATHS "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/ffmpeg/lib/x64/mac")
-#find_library(LIBAVDEVICE avdevice PATHS "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/ffmpeg/lib/x64/mac")
-#find_library(LIBAVFILTER avfilter PATHS "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/ffmpeg/lib/x64/mac")
-#find_library(LIBAVFORMAT avformat PATHS "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/ffmpeg/lib/x64/mac")
-#find_library(LIBAVUTIL avutil PATHS "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/ffmpeg/lib/x64/mac")
-#find_library(LIBSWRESAMPLE swresample PATHS "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/ffmpeg/lib/x64/mac")
-#find_library(LIBSWSCALE swscale PATHS "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/ffmpeg/lib/x64/mac")
-
 find_library (
     LIBAVCODEC
     NAMES "libavcodec.58.dylib"

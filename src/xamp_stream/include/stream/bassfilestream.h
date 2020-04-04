@@ -34,7 +34,7 @@ public:
 
 	AudioFormat GetFormat() const noexcept override;
 
-    int32_t GetSamples(void* buffer, uint32_t length) const noexcept override;
+    uint32_t GetSamples(void* buffer, uint32_t length) const noexcept override;
 
 	void Seek(double stream_time) const override;
 

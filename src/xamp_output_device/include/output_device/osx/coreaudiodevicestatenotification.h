@@ -21,7 +21,7 @@ class CoreAudioDeviceStateNotification : public DeviceStateNotification {
 public:
     explicit CoreAudioDeviceStateNotification(std::weak_ptr<DeviceStateListener> callback);
 
-    virtual ~CoreAudioDeviceStateNotification();
+    ~CoreAudioDeviceStateNotification() override;
 
     void Run();
 

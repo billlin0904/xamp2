@@ -90,11 +90,11 @@ public:
     }
 
     void Open(const std::wstring& file_path, FileAccessMode, bool) {
-        file_.reset(open(ToUtf8String(file_path).c_str(), O_RDONLY));
+        file_.reset(::open(ToUtf8String(file_path).c_str(), O_RDONLY));
         if (!file_) {
             throw FileNotFoundException();
         }
-        mem_ = mmap(nullptr, GetLength(), PROT_READ, MAP_PRIVATE, file_.get(), 0);
+        mem_ = ::mmap(nullptr, GetLength(), PROT_READ, MAP_PRIVATE, file_.get(), 0);
         if (!mem_) {
             throw FileNotFoundException();
         }
@@ -108,7 +108,7 @@ public:
         if (!mem_) {
             return;
         }
-        munmap(mem_, GetLength());
+        ::munmap(mem_, GetLength());
         mem_ = nullptr;
         file_.close();
     }
@@ -120,7 +120,7 @@ public:
     size_t GetLength() const {
         struct stat file_info;
         file_info.st_size = 0;
-        fstat(file_.get(), &file_info);
+        ::fstat(file_.get(), &file_info);
         return static_cast<size_t>(file_info.st_size);
     }
 private:

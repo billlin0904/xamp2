@@ -227,8 +227,8 @@ public:
 		XAMP_LOG_DEBUG("Stream format: {}", audio_format_);
 	}
 
-    int32_t GetSamples(float* buffer, const uint32_t length) noexcept {
-		auto num_read_sample = 0;
+    uint32_t GetSamples(float* buffer, const uint32_t length) noexcept {
+        uint32_t num_read_sample = 0;
 		for (uint32_t i = 0; i < format_context_->nb_streams; ++i) {
 			AvPtr<AVPacket> packet(::av_packet_alloc());
 			::av_init_packet(packet.get());
@@ -303,9 +303,9 @@ private:
 		return audio_stream_id_ >= 0;
 	}
 
-	int32_t ConvertSamples(float* buffer, const uint32_t length) const noexcept {
-		const auto frame_size = audio_frame_->nb_samples * codec_contex_->channels;
-		const auto result = ::swr_convert(swr_context_.get(),
+    uint32_t ConvertSamples(float* buffer, const uint32_t length) const noexcept {
+        const auto frame_size = audio_frame_->nb_samples * codec_contex_->channels;
+        const auto result = ::swr_convert(swr_context_.get(),
 			reinterpret_cast<uint8_t **>(&buffer),
 			audio_frame_->nb_samples,
 			const_cast<const uint8_t **>(audio_frame_->extended_data),
@@ -350,7 +350,7 @@ AudioFormat AvFileStream::GetFormat() const noexcept {
 	return impl_->GetFormat();
 }
 
-int32_t AvFileStream::GetSamples(void* buffer, uint32_t length) const noexcept {
+uint32_t AvFileStream::GetSamples(void* buffer, uint32_t length) const noexcept {
     return impl_->GetSamples(reinterpret_cast<float *>(buffer), length);
 }
 

@@ -192,12 +192,12 @@ void StackTrace::PrintStackTrace(EXCEPTION_POINTERS* info) {
 
 #else
 void StackTrace::PrintStackTrace() {
-    auto addrlen = backtrace(addrlist.data(), static_cast<int32_t>(addrlist.size()));
+    auto addrlen = backtrace(addrlist_.data(), static_cast<int32_t>(addrlist_.size()));
     if (addrlen == 0) {
         return;
     }
 
-    auto symbollist = backtrace_symbols(addrlist.data(), addrlen);
+    auto symbollist = backtrace_symbols(addrlist_.data(), addrlen);
     for (auto i = 4; i < addrlen; i++) {
         XAMP_LOG_DEBUG("{}", symbollist[i]);
     }

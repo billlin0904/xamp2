@@ -22,7 +22,7 @@ public:
 
     virtual double GetDuration() const = 0;
 
-    virtual int32_t GetSamples(void *buffer, uint32_t length) const noexcept = 0;
+    virtual uint32_t GetSamples(void *buffer, uint32_t length) const noexcept = 0;
 
 	virtual AudioFormat GetFormat() const noexcept = 0;
 

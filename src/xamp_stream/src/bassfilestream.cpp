@@ -349,8 +349,8 @@ public:
 		return info_.ctype == BASS_CTYPE_STREAM_DSD;
 	}
 
-    int32_t GetSamples(void *buffer, uint32_t length) const noexcept {
-        return int32_t(InternalGetSamples(buffer, length * GetSampleSize()) / GetSampleSize());
+    uint32_t GetSamples(void *buffer, uint32_t length) const noexcept {
+        return uint32_t(InternalGetSamples(buffer, length * GetSampleSize()) / GetSampleSize());
 	}
 
 	double GetDuration() const {
@@ -426,12 +426,12 @@ public:
         return GetDsdSampleRate() / PCM_SAMPLE_RATE_441;
     }
 private:
-    XAMP_ALWAYS_INLINE int32_t InternalGetSamples(void *buffer, uint32_t length) const noexcept {
+    XAMP_ALWAYS_INLINE uint32_t InternalGetSamples(void *buffer, uint32_t length) const noexcept {
         const auto byte_read = BassLib::Instance().BASS_ChannelGetData(stream_.get(), buffer, length);
 		if (byte_read == BASS_ERROR) {
 			return 0;
 		}
-        return int32_t(byte_read);
+        return uint32_t(byte_read);
 	}
 
 	bool enable_file_mapped_;
@@ -473,7 +473,7 @@ void BassFileStream::Seek(double stream_time) const {
 	stream_->Seek(stream_time);
 }
 
-int32_t BassFileStream::GetSamples(void *buffer, uint32_t length) const noexcept {
+uint32_t BassFileStream::GetSamples(void *buffer, uint32_t length) const noexcept {
 	return stream_->GetSamples(buffer, length);
 }
 

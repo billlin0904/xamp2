@@ -33,7 +33,7 @@ class XAMP_PLAYER_API SoxrResampler : public Resampler {
 public:
 	SoxrResampler();
 
-	XAMP_PIMPL(SoxrResampler)
+    ~SoxrResampler() override;
 
 	static void LoadSoxrLib();
 

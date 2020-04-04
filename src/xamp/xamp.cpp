@@ -753,7 +753,7 @@ void Xamp::resetSeekPosValue() {
 
 void Xamp::setupResampler() {
     if (AppSettings::getValue(APP_SETTING_RESAMPLER_ENABLE).toBool()) {
-        auto samplerate = AppSettings::getValue(APP_SETTING_SOXR_RESAMPLE_SAMPLRATE).toInt();
+        auto samplerate = AppSettings::getValue(APP_SETTING_SOXR_RESAMPLE_SAMPLRATE).toUInt();
         auto quality = static_cast<SoxrQuality>(AppSettings::getValue(APP_SETTING_SOXR_QUALITY).toInt());
         auto phase = static_cast<SoxrPhaseResponse>(AppSettings::getValue(APP_SETTING_SOXR_PHASE).toInt());
         auto passband = AppSettings::getValue(APP_SETTING_SOXR_PASS_BAND).toInt();
@@ -782,7 +782,9 @@ void Xamp::playMusic(const MusicEntity& item) {
     ui.seekSlider->setEnabled(true);
 
     try {
-        player_->Open(item.file_path.toStdWString(), item.file_ext.toStdWString(), device_info_);        
+        player_->Open(item.file_path.toStdWString(), item.file_ext.toStdWString(), device_info_);
+        setupResampler();
+        player_->PlayStream();
         open_done = true;
     }
     catch (const xamp::base::Exception & e) {
@@ -823,9 +825,6 @@ void Xamp::playMusic(const MusicEntity& item) {
     ui.seekSlider->setRange(0, int32_t(player_->GetDuration() * 1000));
     ui.endPosLabel->setText(Time::msToString(player_->GetDuration()));
     playlist_page_->format()->setText(getPlayEntityFormat(player_.get(), item.file_ext));
-
-    setupResampler();
-    player_->PlayStream();
 
     if (auto cover = PixmapCache::instance().find(item.cover_id)) {
         setCover(*cover.value());

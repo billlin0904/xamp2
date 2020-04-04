@@ -15,6 +15,9 @@
 
 namespace xamp::base {
 
+// C++17 deprecated
+#if 0
+
 XAMP_ALWAYS_INLINE bool IsUtf8(const std::wstring &str) noexcept {
     return str.length() >= 3 &&
         str[0] == 0xEF && str[1] == 0xBB && str[2] == 0xBF;
@@ -40,8 +43,6 @@ XAMP_ALWAYS_INLINE bool IsUtf32Le(const std::wstring &str) noexcept {
         str[0] == 0xFE && str[1] == 0xFF && str[2] == 0x00 && str[3] == 0x00;
 }
 
-// C++17 deprecated
-#if 0
 XAMP_ALWAYS_INLINE std::locale GetLocaleFromBom(const std::wstring &bom) noexcept {
     if (IsUtf8(bom)) {
         return std::locale(std::locale::empty(),

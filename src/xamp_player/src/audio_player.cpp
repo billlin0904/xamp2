@@ -39,7 +39,7 @@ AudioPlayer::AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter)
     , enable_resample_(false)
     , dsd_mode_(DsdModes::DSD_MODE_PCM)
     , state_(PlayerState::PLAYER_STATE_STOPPED)
-    , target_samplerate_(-1)
+    , target_samplerate_(0)
     , volume_(0)
     , num_buffer_samples_(0)
     , num_read_sample_(0)
@@ -81,12 +81,10 @@ void AudioPlayer::Open(const std::wstring& file_path, const std::wstring& file_e
     Initial();
     CloseDevice(true);
     OpenStream(file_path, file_ext, device_info);
-    SetDeviceFormat();
-    CreateDevice(device_info.device_type_id, device_info.device_id, false);
-    OpenDevice();
+    device_info_ = device_info;
 }
 
-void AudioPlayer::SetResampler(int32_t samplerate, AlignPtr<Resampler>&& resampler) {
+void AudioPlayer::SetResampler(uint32_t samplerate, AlignPtr<Resampler>&& resampler) {
     target_samplerate_ = samplerate;
     resampler_ = std::move(resampler);
     EnableResampler(true);
@@ -429,6 +427,7 @@ void AudioPlayer::CreateBuffer() {
         }
     }
     else {
+        assert(target_samplerate_ > 0);
         resampler_->Start(input_format_.GetSampleRate(),
             input_format_.GetChannels(),
             target_samplerate_,
@@ -464,7 +463,7 @@ void AudioPlayer::SetDeviceFormat() {
     }
 }
 
-int AudioPlayer::OnGetSamples(void* samples, const int32_t num_buffer_frames, const double stream_time) noexcept {
+int AudioPlayer::OnGetSamples(void* samples, const uint32_t num_buffer_frames, const double stream_time) noexcept {
     const uint32_t num_samples = num_buffer_frames * output_format_.GetChannels();
     const uint32_t sample_size = num_samples * sample_size_;
 
@@ -615,8 +614,10 @@ void AudioPlayer::ReadSampleLoop(uint32_t max_read_sample, std::unique_lock<std:
 }
 
 void AudioPlayer::PlayStream() {
+    SetDeviceFormat();
+    CreateDevice(device_info_.device_type_id, device_info_.device_id, false);
+    OpenDevice();
     CreateBuffer();
-
     BufferStream();
 
     // 預先啟動output device開始撥放, 因有預先塞入資料可以加速撥放效果.

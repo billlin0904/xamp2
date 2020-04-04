@@ -22,6 +22,8 @@
 
 #include <output_device/output_device.h>
 #include <output_device/audiocallback.h>
+#include <output_device/deviceinfo.h>
+
 #include <player/playstate.h>
 #include <player/playbackstateadapter.h>
 #include <player/player.h>
@@ -93,7 +95,7 @@ public:
 
 	bool IsDsdStream() const;
 
-	void SetResampler(int32_t samplerate, AlignPtr<Resampler> &&resampler);
+    void SetResampler(uint32_t samplerate, AlignPtr<Resampler> &&resampler);
 
 	void EnableResampler(bool enable = true);
 
@@ -117,7 +119,7 @@ private:
 
     bool FillSamples(uint32_t num_samples) noexcept;
 
-	int OnGetSamples(void* samples, const int32_t num_buffer_frames, const double stream_time) noexcept override;
+    int OnGetSamples(void* samples, const uint32_t num_buffer_frames, const double stream_time) noexcept override;
 
 	void OnError(const Exception& e) noexcept override;
 
@@ -150,7 +152,7 @@ private:
 	bool enable_resample_;
 	DsdModes dsd_mode_;
 	std::atomic<PlayerState> state_;
-    int32_t target_samplerate_;
+    uint32_t target_samplerate_;
     uint32_t volume_;
     uint32_t num_buffer_samples_;
     uint32_t num_read_sample_;
@@ -175,6 +177,7 @@ private:
 	AudioBuffer<int8_t> buffer_;
 	WaitableTimer wait_timer_;
     AlignPtr<Resampler> resampler_;
+    DeviceInfo device_info_;
     std::shared_future<void> stream_task_;
 };
 
