@@ -1,8 +1,19 @@
 #ifdef _WIN32
+
 #include <output_device/win32/hrexception.h>
 #include <output_device/win32/wasapi.h>
 
 namespace xamp::output_device::win32::helper {
+
+CComPtr<IMMDeviceEnumerator> CreateDeviceEnumerator() {
+	CComPtr<IMMDeviceEnumerator> enumerator;
+	HrIfFailledThrow(::CoCreateInstance(__uuidof(MMDeviceEnumerator),
+		nullptr,
+		CLSCTX_ALL,
+		__uuidof(IMMDeviceEnumerator),
+		reinterpret_cast<void**>(&enumerator)));
+	return enumerator;
+}
 
 std::wstring GetDeviceProperty(const PROPERTYKEY& key, CComPtr<IMMDevice>& device) {
 	CComPtr<IPropertyStore> property;

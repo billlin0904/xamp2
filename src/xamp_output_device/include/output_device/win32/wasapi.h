@@ -47,6 +47,8 @@ std::wstring GetDeviceProperty(const PROPERTYKEY& key, CComPtr<IMMDevice>& devic
 
 DeviceInfo GetDeviceInfo(CComPtr<IMMDevice>& device, const ID device_type_id);
 
+CComPtr<IMMDeviceEnumerator> CreateDeviceEnumerator();
+
 }
 
 #endif
