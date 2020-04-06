@@ -84,7 +84,7 @@ void AudioPlayer::Open(const std::wstring& file_path, const std::wstring& file_e
     device_info_ = device_info;
 }
 
-void AudioPlayer::SetResampler(uint32_t samplerate, AlignPtr<Resampler>&& resampler) {
+void AudioPlayer::SetResampler(uint32_t samplerate, align_ptr<Resampler>&& resampler) {
     target_samplerate_ = samplerate;
     resampler_ = std::move(resampler);
     EnableResampler(true);
@@ -127,7 +127,7 @@ DsdDevice* AudioPlayer::AsDsdDevice() {
     return dynamic_cast<DsdDevice*>(device_.get());
 }
 
-AlignPtr<FileStream> AudioPlayer::MakeFileStream(const std::wstring& file_ext) {
+align_ptr<FileStream> AudioPlayer::MakeFileStream(const std::wstring& file_ext) {
     constexpr const std::wstring_view dsd_ext(L".dsf,.dff");
     constexpr const std::wstring_view use_bass(L".m4a,.ape");
     auto is_dsd_stream = dsd_ext.find(file_ext) != std::wstring_view::npos;

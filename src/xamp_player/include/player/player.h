@@ -24,6 +24,8 @@ namespace xamp::player {
 	class PlaybackStateAdapter;
 	class Chromaprint;
 	class Resampler;
+    class SoxrResampler;
+    class NullResampler;
 }
 
 

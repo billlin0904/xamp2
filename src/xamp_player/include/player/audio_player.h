@@ -95,11 +95,11 @@ public:
 
 	bool IsDsdStream() const;
 
-    void SetResampler(uint32_t samplerate, AlignPtr<Resampler> &&resampler);
+    void SetResampler(uint32_t samplerate, align_ptr<Resampler> &&resampler);
 
 	void EnableResampler(bool enable = true);
 
-    static AlignPtr<FileStream> MakeFileStream(const std::wstring& file_ext);
+    static align_ptr<FileStream> MakeFileStream(const std::wstring& file_ext);
 private:
 	void Init();
 
@@ -166,15 +166,15 @@ private:
 	std::condition_variable stopped_cond_;
 	AudioFormat input_format_;
 	AudioFormat output_format_;
-	AlignBufferPtr<int8_t> sample_buffer_;
+    align_buffer_ptr<int8_t> sample_buffer_;
 	Timer timer_;
-    AlignPtr<FileStream> stream_;
-	AlignPtr<DeviceType> device_type_;
-	AlignPtr<Device> device_;
+    align_ptr<FileStream> stream_;
+    align_ptr<DeviceType> device_type_;
+    align_ptr<Device> device_;
 	std::weak_ptr<PlaybackStateAdapter> state_adapter_;
 	AudioBuffer<int8_t> buffer_;
 	WaitableTimer wait_timer_;
-    AlignPtr<Resampler> resampler_;
+    align_ptr<Resampler> resampler_;
     DeviceInfo device_info_;
     std::shared_future<void> stream_task_;
 };

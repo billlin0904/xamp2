@@ -22,18 +22,18 @@ public:
 
 	~Chromaprint();
 
-	static void LoadChromaprintLib();	
+    static void LoadChromaprintLib();
 
-	void Start(int32_t sample_rate, int32_t num_channels, int32_t num_buffer_frames);
+    void Start(uint32_t sample_rate, uint32_t num_channels, uint32_t num_buffer_frames);
 
-	int Feed(const int16_t* data, int size) const;
+    int32_t Feed(const int16_t* data, uint32_t size) const;
 
-	int Finish() const;
+    int32_t Finish() const;
 
 	std::vector<uint8_t> GetFingerprint() const;
 private:
 	class ChromaprintImpl;
-	AlignPtr<ChromaprintImpl> impl_;
+    align_ptr<ChromaprintImpl> impl_;
 };
 
 }

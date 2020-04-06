@@ -76,14 +76,14 @@ public:
 	~ChromaprintImpl() {
 	}
 
-	void Start(int32_t sample_rate, int32_t num_channels, int32_t num_buffer_frames) {
+    void Start(uint32_t sample_rate, uint32_t num_channels, uint32_t num_buffer_frames) {
         context_.reset(ChromaprintLib::Instance().chromaprint_new(algorithm_));
         buffer_.resize(static_cast<size_t>(num_buffer_frames));
-		ChromaprintLib::Instance().chromaprint_start(context_.get(), sample_rate, num_channels);
+        ChromaprintLib::Instance().chromaprint_start(context_.get(), static_cast<int32_t>(sample_rate), static_cast<int32_t>(num_channels));
 	}
 
-    int32_t Feed(const int16_t* data, int size) const {
-		return ChromaprintLib::Instance().chromaprint_feed(context_.get(), data, size);
+    int32_t Feed(const int16_t* data, uint32_t size) const {
+        return ChromaprintLib::Instance().chromaprint_feed(context_.get(), data, static_cast<int32_t>(size));
 	}
 
     int32_t Finish() const {
@@ -144,11 +144,11 @@ void Chromaprint::LoadChromaprintLib() {
 Chromaprint::~Chromaprint() {
 }
 
-void Chromaprint::Start(int32_t sample_rate, int32_t num_channels, int32_t num_buffer_frames) {
+void Chromaprint::Start(uint32_t sample_rate, uint32_t num_channels, uint32_t num_buffer_frames) {
 	return impl_->Start(sample_rate, num_channels, num_buffer_frames);
 }
 
-int Chromaprint::Feed(const int16_t* data, int size) const {
+int Chromaprint::Feed(const int16_t* data, uint32_t size) const {
 	return impl_->Feed(data, size);
 }
 

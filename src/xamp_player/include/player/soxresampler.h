@@ -55,7 +55,7 @@ public:
 
 private:
 	class SoxrResamplerImpl;
-	AlignPtr<SoxrResamplerImpl> impl_;
+    align_ptr<SoxrResamplerImpl> impl_;
 };
 
 }

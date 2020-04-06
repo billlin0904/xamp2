@@ -20,7 +20,7 @@ public:
 	void Wait();
 private:
 	class WaitableTimerImpl;
-	AlignPtr<WaitableTimerImpl> impl_;
+	align_ptr<WaitableTimerImpl> impl_;
 };
 
 }

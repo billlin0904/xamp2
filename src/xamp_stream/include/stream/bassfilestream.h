@@ -57,7 +57,7 @@ public:
     uint32_t GetDsdSpeed() const noexcept override;
 private:
 	class BassFileStreamImpl;
-	AlignPtr<BassFileStreamImpl> stream_;
+	align_ptr<BassFileStreamImpl> stream_;
 };
 
 }

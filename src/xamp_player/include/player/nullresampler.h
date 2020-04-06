@@ -10,17 +10,17 @@
 
 namespace xamp::player {
 
-class NullResampler : public Resampler {
+class XAMP_PLAYER_API NullResampler final : public Resampler {
 public:
     explicit NullResampler(DsdModes dsd_mode, uint32_t sample_size)
 		: dsd_mode_(dsd_mode)
 		, sample_size_(sample_size) {
 	}
 
-    void Start(uint32_t input_samplerate, uint32_t num_channels, uint32_t output_samplerate, uint32_t max_sample) override {
+    void Start(uint32_t, uint32_t, uint32_t, uint32_t) override {
 	}
 
-    bool Process(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& buffer) override {
+    bool Process(const float*, uint32_t, AudioBuffer<int8_t>&) override {
 		return true;
 	}
 
@@ -29,7 +29,7 @@ public:
 	}
 private:
 	DsdModes dsd_mode_;
-	int32_t sample_size_;
+    uint32_t sample_size_;
 };
 
 }

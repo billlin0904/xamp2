@@ -10,8 +10,8 @@ namespace xamp::player {
 using namespace xamp::base;
 
 Fingerprint ReadFingerprint(const std::wstring& file_path, const std::wstring& file_ext, std::function<bool(int32_t)> progress) {
-	constexpr auto kFingerprintDuration = 120;
-	constexpr auto kReadSampleSize = 8192 * 4;
+    constexpr uint32_t kFingerprintDuration = 120;
+    constexpr uint32_t kReadSampleSize = 8192 * 4;
 
     auto file_stream = AudioPlayer::MakeFileStream(file_ext);
 	file_stream->OpenFromFile(file_path);
@@ -27,7 +27,7 @@ Fingerprint ReadFingerprint(const std::wstring& file_path, const std::wstring& f
 
 	std::vector<float> isamples(1024 + kReadSampleSize * input_format.GetChannels());
 	std::vector<int16_t> osamples(1024 + kReadSampleSize * input_format.GetChannels());
-	int32_t num_samples = 0;
+    uint32_t num_samples = 0;
 
 	const AudioFormat output_format { 
 		DataFormat::FORMAT_PCM,

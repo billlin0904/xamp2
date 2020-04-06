@@ -29,7 +29,7 @@ public:
     bool IsSupported(const Path & path) const override;
 private:
     class TaglibMetadataReaderImpl;
-	AlignPtr<TaglibMetadataReaderImpl> reader_;
+	align_ptr<TaglibMetadataReaderImpl> reader_;
 };
 
 }

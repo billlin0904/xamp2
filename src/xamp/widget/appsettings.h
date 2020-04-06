@@ -89,6 +89,6 @@ protected:
     AppSettings() = default;
 
 private:
-    static xamp::base::AlignPtr<QSettings> settings_;
+    static xamp::base::align_ptr<QSettings> settings_;
     static QMap<QString, QVariant> default_settings_;
 };

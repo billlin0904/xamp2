@@ -42,13 +42,13 @@ struct XAMP_BASE_API_ONLY_EXPORT AlignedClassDeleter {
 };
 
 template <typename Type>
-using AlignPtr = std::unique_ptr<Type, AlignedClassDeleter<Type>>;
+using align_ptr = std::unique_ptr<Type, AlignedClassDeleter<Type>>;
 
 template <typename Type>
-using AlignBufferPtr = std::unique_ptr<Type[], AlignedDeleter<Type>>;
+using align_buffer_ptr = std::unique_ptr<Type[], AlignedDeleter<Type>>;
 
 template <typename BaseType, typename ImplType, typename... Args>
-XAMP_BASE_API_ONLY_EXPORT AlignPtr<BaseType> MakeAlign(Args&& ... args) {
+XAMP_BASE_API_ONLY_EXPORT align_ptr<BaseType> MakeAlign(Args&& ... args) {
     auto ptr = AlignedMallocOf<ImplType>(XAMP_MALLOC_ALGIGN_SIZE);
 
     if (!ptr) {
@@ -59,7 +59,7 @@ XAMP_BASE_API_ONLY_EXPORT AlignPtr<BaseType> MakeAlign(Args&& ... args) {
 
     try {
         BaseType* base = ::new(ptr) ImplType(std::forward<Args>(args)...);
-        return AlignPtr<BaseType>(base);
+        return align_ptr<BaseType>(base);
     }
     catch (...) {
         AlignedFree(ptr);
@@ -68,7 +68,7 @@ XAMP_BASE_API_ONLY_EXPORT AlignPtr<BaseType> MakeAlign(Args&& ... args) {
 }
 
 template <typename Type, typename... Args>
-XAMP_BASE_API_ONLY_EXPORT AlignPtr<Type> MakeAlign(Args&& ... args) {
+XAMP_BASE_API_ONLY_EXPORT align_ptr<Type> MakeAlign(Args&& ... args) {
     auto ptr = AlignedMallocOf<Type>(XAMP_MALLOC_ALGIGN_SIZE);
     if (!ptr) {
         throw std::bad_alloc();
@@ -78,7 +78,7 @@ XAMP_BASE_API_ONLY_EXPORT AlignPtr<Type> MakeAlign(Args&& ... args) {
 
     try {
         auto q = ::new(ptr) Type(std::forward<Args>(args)...);
-        return AlignPtr<Type>(q);
+        return align_ptr<Type>(q);
     }
     catch (...) {
         AlignedFree(ptr);
@@ -87,12 +87,12 @@ XAMP_BASE_API_ONLY_EXPORT AlignPtr<Type> MakeAlign(Args&& ... args) {
 }
 
 template <typename Type, typename U = std::enable_if_t<std::is_trivially_copyable<Type>::value>>
-XAMP_BASE_API_ONLY_EXPORT AlignBufferPtr<Type> MakeBuffer(size_t n, const int32_t alignment = XAMP_MALLOC_ALGIGN_SIZE) {
+XAMP_BASE_API_ONLY_EXPORT align_buffer_ptr<Type> MakeBuffer(size_t n, const int32_t alignment = XAMP_MALLOC_ALGIGN_SIZE) {
     auto ptr = AlignedMallocCountOf<Type>(n, alignment);
     if (!ptr) {
         throw std::bad_alloc();
     }
-    return AlignBufferPtr<Type>(static_cast<Type*>(ptr));
+    return align_buffer_ptr<Type>(static_cast<Type*>(ptr));
 }
 
 }

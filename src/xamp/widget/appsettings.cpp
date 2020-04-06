@@ -18,7 +18,7 @@ const QLatin1String APP_SETTING_SOXR_QUALITY{ "AppSettings/soxr/quality" };
 const QLatin1String APP_SETTING_SOXR_PHASE{ "AppSettings/soxr/phase" };
 const QLatin1String APP_SETTING_SOXR_PASS_BAND{ "AppSettings/soxr/passBand" };
 
-xamp::base::AlignPtr<QSettings> AppSettings::settings_;
+xamp::base::align_ptr<QSettings> AppSettings::settings_;
 QMap<QString, QVariant> AppSettings::default_settings_;
 
 void AppSettings::loadIniFile(const QString& file_name) {

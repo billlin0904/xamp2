@@ -99,8 +99,9 @@ public:
             quality_spec |= SOXR_STEEP_FILTER;
         }
 
-        auto soxr_quality = SoxrLib::Instance().soxr_quality_spec(quality_spec,
-                                                                  (SOXR_ROLLOFF_NONE | SOXR_HI_PREC_CLOCK | SOXR_VR));
+        quality_spec |= (SOXR_ROLLOFF_NONE | SOXR_HI_PREC_CLOCK | SOXR_VR);
+        auto soxr_quality = SoxrLib::Instance().soxr_quality_spec(quality_spec, 0);
+
         switch (phase_) {
         case SoxrPhaseResponse::LINEAR_PHASE:
             soxr_quality.phase_response = SOXR_LINEAR_PHASE;
@@ -167,7 +168,7 @@ public:
     bool Process(const float* samples, uint32_t num_sample, AudioBuffer<int8_t>& buffer) {
         assert(num_channels_ != 0);
 
-        buffer_.resize((size_t)(num_sample * ratio_) + 256);
+        buffer_.resize(static_cast<size_t>(num_sample * ratio_) + 256);
 
         size_t samples_done = 0;
 
@@ -183,8 +184,8 @@ public:
             return false;
         }
 
-        buffer.TryWrite(reinterpret_cast<const int8_t*>(buffer_.data()),
-                        samples_done * num_channels_ * sizeof(float));
+        uint32_t write_size(samples_done * num_channels_ * sizeof(float));
+        buffer.TryWrite(reinterpret_cast<const int8_t*>(buffer_.data()), write_size);
         buffer_.resize(samples_done * num_channels_);
         return true;
     }

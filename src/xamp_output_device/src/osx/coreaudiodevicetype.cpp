@@ -134,7 +134,7 @@ std::string_view CoreAudioDeviceType::GetDescription() const {
     return "CoreAudio";
 }
 
-AlignPtr<Device> CoreAudioDeviceType::MakeDevice(const std::wstring &device_id) {
+align_ptr<Device> CoreAudioDeviceType::MakeDevice(const std::wstring &device_id) {
     std::wistringstream ostr(device_id);
     AudioDeviceID id = kAudioDeviceUnknown;
     ostr >> id;

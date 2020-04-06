@@ -175,7 +175,7 @@ public:
     XAMP_DEFINE_DLL_API(BASS_ChannelGetAttribute) BASS_ChannelGetAttribute;
 	XAMP_DEFINE_DLL_API(BASS_ChannelSetAttribute) BASS_ChannelSetAttribute;
 
-	AlignPtr<BassDSDLib> DSDLib;
+    align_ptr<BassDSDLib> DSDLib;
 
 private:
 	void LoadPlugin(const std::string& file_name) {

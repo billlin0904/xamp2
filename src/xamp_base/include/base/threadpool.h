@@ -206,7 +206,7 @@ private:
         }));
     }
 
-    using TaskQueuePtr = AlignPtr<Queue<TaskType>>;   
+    using TaskQueuePtr = align_ptr<Queue<TaskType>>;   
 
 	std::atomic<bool> is_stopped_;
     std::atomic<size_t> active_thread_;

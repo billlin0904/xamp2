@@ -40,7 +40,7 @@ public:
     uint32_t GetSampleSize() const noexcept override;
 private:
 	class AvFileStreamImpl;
-	AlignPtr<AvFileStreamImpl> impl_;
+    align_ptr<AvFileStreamImpl> impl_;
 };
 
 #endif

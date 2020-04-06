@@ -27,7 +27,7 @@ public:
 
     const ID &GetTypeId() const override;
 
-    AlignPtr<Device> MakeDevice(const std::wstring &device_id) override;
+    align_ptr<Device> MakeDevice(const std::wstring &device_id) override;
 
     size_t GetDeviceCount() const override;
 
