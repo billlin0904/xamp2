@@ -31,7 +31,7 @@ public:
 	void RevertPriority();
 private:
 	class MmcssImpl;
-	AlignPtr<MmcssImpl> impl_;
+	align_ptr<MmcssImpl> impl_;
 };
 
 }

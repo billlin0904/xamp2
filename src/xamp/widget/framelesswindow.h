@@ -87,8 +87,8 @@ private:
 	QIcon stop_play_icon_;
 	QIcon seek_forward_icon_;
 	QIcon seek_backward_icon_;
-	xamp::base::AlignPtr<QWinThumbnailToolBar> thumbnail_tool_bar_;
-	xamp::base::AlignPtr<QWinTaskbarButton> taskbar_button_;
+	xamp::base::align_ptr<QWinThumbnailToolBar> thumbnail_tool_bar_;
+	xamp::base::align_ptr<QWinTaskbarButton> taskbar_button_;
 	QWinTaskbarProgress* taskbar_progress_;
 #else
     bool is_mouse_pressed_;

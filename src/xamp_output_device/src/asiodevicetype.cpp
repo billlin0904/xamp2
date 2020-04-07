@@ -73,8 +73,7 @@ void ASIODeviceType::ScanNewDevice() {
 			if (device_list_.find(name) != device_list_.end()) {
 				continue;
 			}
-			const auto info = GetDeviceInfo(name);			
-			device_list_.insert(std::make_pair(name, info));
+			device_list_[name] = GetDeviceInfo(name);
 		}
 	}
 }
@@ -89,7 +88,7 @@ DeviceInfo ASIODeviceType::GetDeviceInfo(const std::wstring& device_id) const {
 	return info;
 }
 
-AlignPtr<Device> ASIODeviceType::MakeDevice(const std::wstring& device_id) {
+align_ptr<Device> ASIODeviceType::MakeDevice(const std::wstring& device_id) {
 	const auto id = ToUtf8String(device_id);
 	return MakeAlign<Device, AsioDevice>(id);
 }

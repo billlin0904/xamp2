@@ -6,11 +6,10 @@
 #pragma once
 
 #if ENABLE_ASIO
-#include <unordered_map>
 
 #include <base/base.h>
 #include <base/align_ptr.h>
-
+#include <base/alignstl.h>
 #include <output_device/device_type.h>
 
 namespace xamp::output_device {
@@ -35,11 +34,11 @@ public:
 
     void ScanNewDevice() override;
 
-	AlignPtr<Device> MakeDevice(const std::wstring &device_id) override;
+	align_ptr<Device> MakeDevice(const std::wstring &device_id) override;
 private:
 	DeviceInfo GetDeviceInfo(const std::wstring& device_id) const;
 
-	std::unordered_map<std::wstring, DeviceInfo> device_list_;
+	RobinHoodHashMap<std::wstring, DeviceInfo> device_list_;
 };
 
 }

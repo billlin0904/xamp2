@@ -103,8 +103,8 @@ private:
 	std::condition_variable condition_;
 	AudioFormat mix_format_;
 	std::vector<ASIOClockSource> clock_source_;
-	AlignBufferPtr<int8_t> buffer_;
-	AlignBufferPtr<int8_t> device_buffer_;
+	align_buffer_ptr<int8_t> buffer_;
+	align_buffer_ptr<int8_t> device_buffer_;
 	AudioCallback* callback_;
 	VmMemLock buffer_vmlock_;
 	VmMemLock device_buffer_vmlock_;

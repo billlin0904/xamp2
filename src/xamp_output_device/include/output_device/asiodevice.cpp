@@ -23,7 +23,7 @@ using namespace win32;
 struct AsioCallbackInfo {
 	bool boost_priority{false};
 	bool is_xrun{ false };
-	AlignPtr<AsioDrivers> drivers{};
+	align_ptr<AsioDrivers> drivers{};
 	AudioConvertContext data_context{};
 	ASIOCallbacks asio_callbacks{};
 	AsioDevice* device{nullptr};

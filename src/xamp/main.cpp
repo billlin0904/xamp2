@@ -54,6 +54,8 @@ int main(int argc, char *argv[]) {
 		AudioPlayer::LoadLib();
         VmMemLock::EnableLockMemPrivilege(true);
 #else
+		preload_modules.emplace_back(LoadDll("libchromaprint.dylib"));
+		preload_modules.emplace_back(LoadDll("libbass.dylib"));
         AudioPlayer::LoadLib();
 #endif
     }
@@ -61,16 +63,6 @@ int main(int argc, char *argv[]) {
         QMessageBox::critical(nullptr, Q_UTF8("Load dll failure!"), QString::fromStdString(e.GetErrorMessage()));
         return -1;
     }
-
-#ifdef Q_OS_MAC
-    try {
-        preload_modules.emplace_back(LoadDll("libchromaprint.dylib"));
-        preload_modules.emplace_back(LoadDll("libbass.dylib"));
-    } catch (const Exception & e) {
-        QMessageBox::critical(nullptr, Q_UTF8("Load dll failure!"), QString::fromStdString(e.GetErrorMessage()));
-        return -1;
-    }
-#endif	
 
 	QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 	QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
@@ -82,7 +74,7 @@ int main(int argc, char *argv[]) {
 		return -1;
 	}		
 
-    (void) xamp::base::RNG::Instance();
+    (void) RNG::Instance();
 	(void) PixmapCache::instance();
 
 	try {

@@ -29,7 +29,7 @@ CComPtr<IMMDevice> SharedWasapiDeviceType::GetDeviceById(const std::wstring& dev
 	return device;
 }
 
-AlignPtr<Device> SharedWasapiDeviceType::MakeDevice(const std::wstring& device_id) {
+align_ptr<Device> SharedWasapiDeviceType::MakeDevice(const std::wstring& device_id) {
 	return MakeAlign<Device, SharedWasapiDevice>(GetDeviceById(device_id));
 }
 

@@ -2,6 +2,7 @@
 #include <bass/bassdsd.h>
 
 #include <base/dll.h>
+#include <base/alignstl.h>
 #include <base/exception.h>
 #include <base/unique_handle.h>
 #include <base/memory.h>
@@ -213,7 +214,7 @@ private:
 
 	using BassPluginHandle = UniqueHandle<HPLUGIN, BassPluginLoadTraits>;
 
-	std::unordered_map<std::string, BassPluginHandle> plugins_;
+	RobinHoodHashMap<std::string, BassPluginHandle> plugins_;
 };
 
 struct BassStreamTraits final {
