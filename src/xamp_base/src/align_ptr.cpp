@@ -1,4 +1,6 @@
-#ifdef _WIN32
+#include <base/base.h>
+
+#ifdef XAMP_OS_WIN
 #include <malloc.h>
 #else
 #include <stdlib.h>
@@ -8,7 +10,7 @@
 
 namespace xamp::base {
 
-#ifndef _WIN32
+#ifndef XAMP_OS_WIN
 void* AlignedMalloc(size_t size, size_t aligned_size) noexcept {
     void* p = nullptr;
     return ::posix_memalign(&p, aligned_size, size) == 0 ? p : nullptr;

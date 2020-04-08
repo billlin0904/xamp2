@@ -20,7 +20,7 @@ public:
 	void Lock(void* address, size_t size);
 
 	void UnLock() noexcept;
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
 	static bool EnableLockMemPrivilege(bool enable) noexcept;
 #endif
 private:

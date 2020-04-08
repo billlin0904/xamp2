@@ -1,4 +1,6 @@
-#ifdef _WIN32
+#include <base/base.h>
+
+#ifdef XAMP_OS_WIN
 #include <output_device/win32/hrexception.h>
 #include <output_device/win32/exclusivewasapidevicetype.h>
 #include <output_device/win32/sharedwasapidevicetype.h>
@@ -21,13 +23,13 @@ namespace xamp::output_device {
 class DeviceFactory::DeviceStateNotificationImpl {
 public:
 	explicit DeviceStateNotificationImpl(std::weak_ptr<DeviceStateListener> callback) {
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
 		notification = new win32::Win32DeviceStateNotification(callback);
 #else
 		notification = MakeAlign<osx::CoreAudioDeviceStateNotification>(callback);
 #endif
 	}
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
 	CComPtr<win32::Win32DeviceStateNotification> notification;
 #else
 	align_ptr<osx::CoreAudioDeviceStateNotification> notification;
@@ -40,7 +42,7 @@ public:
 	})
 
 DeviceFactory::DeviceFactory() {
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
 	using namespace win32;	
 	HrIfFailledThrow(::MFStartup(MF_VERSION, MFSTARTUP_LITE));
 	XAMP_REGISTER_DEVICE_TYPE(SharedWasapiDeviceType);
@@ -56,7 +58,7 @@ DeviceFactory::DeviceFactory() {
 }
 
 DeviceFactory::~DeviceFactory() {
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
 	::MFShutdown();
 #endif
 }
@@ -82,7 +84,7 @@ std::optional<align_ptr<DeviceType>> DeviceFactory::Create(const ID id) const {
 }
 
 bool DeviceFactory::IsPlatformSupportedASIO() const {
-#if ENABLE_ASIO && defined(_WIN32)
+#if ENABLE_ASIO && defined(XAMP_OS_WIN)
 	return creator_.find(ASIODeviceType::Id) != creator_.end();
 #else
 	return false;
@@ -90,7 +92,7 @@ bool DeviceFactory::IsPlatformSupportedASIO() const {
 }
 
 bool DeviceFactory::IsExclusiveDevice(const DeviceInfo& info) {
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
 	return info.device_type_id == win32::ExclusiveWasapiDeviceType::Id
 #if ENABLE_ASIO
 		|| info.device_type_id == ASIODeviceType::Id
@@ -102,7 +104,7 @@ bool DeviceFactory::IsExclusiveDevice(const DeviceInfo& info) {
 }
 
 bool DeviceFactory::IsASIODevice(const ID id) {
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
 	return id == ASIODeviceType::Id;
 #else
 	return false;

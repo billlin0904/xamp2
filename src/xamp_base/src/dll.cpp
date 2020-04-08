@@ -2,7 +2,7 @@
 
 namespace xamp::base {
 
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
 ModuleHandle LoadDll(std::string_view name) {
 	auto module = ::LoadLibraryA(name.data());
 	if (!module) {

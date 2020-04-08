@@ -13,7 +13,7 @@ public:
 	}
 
 	bool IsFileReadOnly(const Path& path) const {
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
 		auto attr = ::GetFileAttributesW(path.wstring().c_str());
 		if (attr != INVALID_FILE_ATTRIBUTES) {
 			return attr & FILE_ATTRIBUTE_READONLY;

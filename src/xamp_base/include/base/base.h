@@ -20,11 +20,13 @@
 #define XAMP_UNLIKELY(x) !(x)
 #pragma warning(disable: 4251)
 #pragma warning(disable: 4275)
+#define XAMP_OS_WIN
 #else
 #define XAMP_BASE_API
 #define XAMP_BASE_API_ONLY_EXPORT
 #define XAMP_LIKELY(x) __builtin_expect(!!(x), 1)
 #define XAMP_UNLIKELY(x) __builtin_expect(!!(x), 0)
+#define XAMP_OS_MAC
 #endif
 
 #define XAMP_DISABLE_COPY(Class) \

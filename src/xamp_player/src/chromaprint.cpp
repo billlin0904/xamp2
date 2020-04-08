@@ -16,7 +16,7 @@ namespace xamp::player {
 class ChromaprintLib final {
 public:
 	ChromaprintLib() try
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
 		: module_(LoadDll("chromaprint.dll"))
 #else
 		: module_(LoadDll("libchromaprint.dylib"))

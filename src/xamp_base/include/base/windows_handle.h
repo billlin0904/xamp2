@@ -7,7 +7,7 @@
 
 #include <base/base.h>
 
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
 #include <Windows.h>
 
 #include <base/unique_handle.h>
@@ -20,7 +20,7 @@ struct HandleTraits final {
 	}
 
 	static void close(HANDLE value) noexcept {
-		CloseHandle(value);
+		::CloseHandle(value);
 	}
 };
 
@@ -30,7 +30,7 @@ struct FileHandleTraits final {
 	}
 
 	static void close(HANDLE value) noexcept {
-		CloseHandle(value);
+		::CloseHandle(value);
 	}
 };
 
@@ -40,7 +40,7 @@ struct ModuleHandleTraits final {
     }
 
     static void close(HMODULE value) noexcept {
-        FreeLibrary(value);
+        ::FreeLibrary(value);
     }
 };
 
@@ -50,7 +50,7 @@ struct MappingFileHandleTraits final {
 	}
 
 	static void close(HANDLE value) noexcept {
-		CloseHandle(value);
+		::CloseHandle(value);
 	}
 };
 
@@ -60,7 +60,7 @@ struct MappingMemoryAddressTraits final {
 	}
 
 	static void close(void* value) noexcept {
-		UnmapViewOfFile(value);
+		::UnmapViewOfFile(value);
 	}
 };
 

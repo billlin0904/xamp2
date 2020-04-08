@@ -3,7 +3,7 @@
 #if ENABLE_FFMPEG
 #define ENABLE_IO_CONTEXT 0
 
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
 #pragma comment(lib, "crypt32")
 #pragma comment(lib, "Bcrypt")
 #endif

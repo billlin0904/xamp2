@@ -34,30 +34,6 @@
 #include "thememanager.h"
 #include "xamp.h"
 
-static void readMetadata(MetadataExtractAdapter* adapter, const QString& file_name) {
-    using namespace xamp::metadata;
-
-    auto extract_handler = [adapter](const auto& file_name) {
-        const Path path(file_name.toStdWString());
-        TaglibMetadataReader reader;
-        try {
-            FromPath(path, adapter, &reader);
-        }
-        catch (const std::exception& e) {
-            XAMP_LOG_DEBUG("FromPath has exception: {}", e.what());
-        }
-    };
-
-    auto future = QtConcurrent::run(extract_handler, file_name);
-    auto watcher = new QFutureWatcher<void>();
-    (void)QObject::connect(watcher, &QFutureWatcher<void>::finished, [=]() {
-        watcher->deleteLater();
-        adapter->deleteLater();
-        });
-
-    watcher->setFuture(future);
-}
-
 static MusicEntity toMusicEntity(const PlayListEntity& item) {
     MusicEntity music_entity;
     music_entity.music_id = item.music_id;
@@ -124,8 +100,14 @@ Xamp::Xamp(QWidget *parent)
     , order_(PlayerOrder::PLAYER_ORDER_REPEAT_ONCE)
     , lrc_page_(nullptr)
     , playlist_page_(nullptr)
+    , album_artist_page_(nullptr)
+    , artist_info_page_(nullptr)
+    , playback_history_page_(nullptr)
     , state_adapter_(std::make_shared<PlayerStateAdapter>())
-    , player_(std::make_shared<AudioPlayer>(state_adapter_)) {    
+    , player_(std::make_shared<AudioPlayer>(state_adapter_)) {
+}
+
+void Xamp::init() {
     initialUI();
     initialController();
     initialDeviceList();
@@ -774,6 +756,7 @@ void Xamp::setupResampler() {
 
 void Xamp::processMeatadata(const std::vector<xamp::base::Metadata>& medata) {
     MetadataExtractAdapter::processMetadata(medata);
+    emit album_artist_page_->album()->refreshOnece();
 }
 
 void Xamp::playMusic(const MusicEntity& item) {
@@ -1057,7 +1040,29 @@ void Xamp::addItem(const QString& file_name) {
     else {
         auto adapter = new MetadataExtractAdapter();
         (void)QObject::connect(adapter, &MetadataExtractAdapter::readCompleted, this, &Xamp::processMeatadata);
-        readMetadata(adapter, file_name);
+        
+        using namespace xamp::metadata;
+
+        auto extract_handler = [adapter](const auto& file_name) {
+            const Path path(file_name.toStdWString());
+            TaglibMetadataReader reader;
+            try {
+                FromPath(path, adapter, &reader);
+            }
+            catch (const std::exception& e) {
+                XAMP_LOG_DEBUG("FromPath has exception: {}", e.what());
+            }
+        };
+
+        auto future = QtConcurrent::run(extract_handler, file_name);
+        auto watcher = new QFutureWatcher<void>();
+        (void)QObject::connect(watcher, &QFutureWatcher<void>::finished, [=]() {
+            watcher->deleteLater();
+            adapter->deleteLater();
+            emit album_artist_page_->album()->refreshOnece();
+            });
+
+        watcher->setFuture(future);
     }
 }
 

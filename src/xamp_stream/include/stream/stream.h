@@ -5,7 +5,9 @@
 
 #pragma once
 
-#ifdef _WIN32
+#include <base/base.h>
+
+#ifdef XAMP_OS_WIN
 #ifdef STREAM_API_EXPORTS
     #define XAMP_STREAM_API __declspec(dllexport)
 #else

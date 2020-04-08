@@ -1,4 +1,6 @@
-#ifdef _WIN32
+#include <base/base.h>
+
+#ifdef XAMP_OS_WIN
 #include <base/windows_handle.h>
 #else
 #include <base/posix_handle.h>
@@ -10,7 +12,7 @@
 
 namespace xamp::base {
 
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
 size_t GetPageSize() noexcept {
 	SYSTEM_INFO system_info;
 	::GetSystemInfo(&system_info);

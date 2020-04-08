@@ -1,15 +1,15 @@
-#ifdef _WIN32
+#include <base/waitabletimer.h>
+
+#ifdef XAMP_OS_WIN
 #include <base/windows_handle.h>
 #else
 #include <thread>
 #include <base/posix_handle.h>
 #endif
 
-#include <base/waitabletimer.h>
-
 namespace xamp::base {
 
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
 class WaitableTimer::WaitableTimerImpl {
 public:
 	WaitableTimerImpl()
@@ -25,8 +25,7 @@ public:
 		Reset();
 	}
 
-	void Cancel() {
-		//::CancelWaitableTimer(timer_.get());
+	void Cancel() {		
 	}
 
 	void Wait() {		

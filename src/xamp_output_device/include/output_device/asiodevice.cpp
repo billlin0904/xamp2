@@ -8,7 +8,7 @@
 #include <base/logger.h>
 
 #if ENABLE_ASIO
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
 #include <output_device/win32/mmcss.h>
 #endif
 

@@ -12,7 +12,7 @@ namespace xamp::player {
 class SoxrLib final {
 public:
     SoxrLib() try
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
         : module_(LoadDll("libsoxr.dll"))
 #else
         : module_(LoadDll("libsoxr.dylib"))

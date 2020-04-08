@@ -11,7 +11,7 @@
 #include <base/enum.h>
 #include <output_device/output_device.h>
 
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
 namespace xamp::output_device::win32 {
 
 using namespace base;

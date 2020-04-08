@@ -9,13 +9,13 @@
 #include <cassert>
 #include <cmath>
 
-#ifdef _WIN32
+#include <base/base.h>
+#include <base/audioformat.h>
+
+#ifdef XAMP_OS_WIN
 #include <intrin.h>
 #include <xmmintrin.h>
 #endif
-
-#include <base/base.h>
-#include <base/audioformat.h>
 
 namespace xamp::base {
 
@@ -174,7 +174,7 @@ struct DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEA
 		return ConvertHelper<int32_t, XAMP_FLOAT_32_SCALER>(output, input, context);
     }
 
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
 	static XAMP_RESTRICT int32_t* ConvertToInt2432(int32_t* output, const float* input, const AudioConvertContext& context) noexcept {
 		const auto* end_input = input + (size_t)context.convert_size * context.input_format.GetChannels();
 

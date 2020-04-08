@@ -21,7 +21,7 @@ enum class FileAccessMode {
     READ_WRITE
 };
 
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
 
 constexpr DWORD DEFAULT_ACCESS_MODE = GENERIC_READ;
 constexpr DWORD DEFAULT_CREATE_TYPE = OPEN_EXISTING;

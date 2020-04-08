@@ -4,20 +4,20 @@
 #include <optional>
 #include <map>
 
-#ifdef _WIN32
+#include <base/logger.h>
+#include <base/alignstl.h>
+#include <base/stacktrace.h>
+
+#ifdef XAMP_OS_WIN
 #include <base/windows_handle.h>
 #include <dbghelp.h>
 #else
 #include <execinfo.h>
 #endif
 
-#include <base/logger.h>
-#include <base/alignstl.h>
-#include <base/stacktrace.h>
-
 namespace xamp::base {
 
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
 
 constexpr DWORD MSVC_CPP_EXCEPTION_CODE = 0xE06D7363;
 
@@ -83,7 +83,7 @@ static std::optional<const std::exception*> FindException(DWORD64 addr) {
 
     __try {
         if (cpp_exception) {
-            cpp_exception->what();
+            (void) cpp_exception->what();
         }
         return cpp_exception;
     }
@@ -174,9 +174,9 @@ void StackTrace::WriteLog(size_t frame_count) {
 }
 
 void StackTrace::PrintStackTrace(EXCEPTION_POINTERS* info) {
-    //if (info->ExceptionRecord->ExceptionCode == MSVC_CPP_EXCEPTION_CODE) {
-    //    return;
-    //}
+    if (info->ExceptionRecord->ExceptionCode == MSVC_CPP_EXCEPTION_CODE) {
+        return;
+    }
 
     auto itr = WellKnownExceptionCode.find(info->ExceptionRecord->ExceptionCode);
     if (itr != WellKnownExceptionCode.end()) {
@@ -208,9 +208,10 @@ StackTrace::StackTrace() {
     addrlist_.fill(nullptr);
 }
 
-void StackTrace::RegisterSignal() {
-#ifdef _WIN32
-    (void) ::AddVectoredExceptionHandler(1, AbortHandler);
+void StackTrace::RegisterAbortHandler() {
+#ifdef XAMP_OS_WIN
+    SymLoader::Instance();
+    //(void) ::AddVectoredExceptionHandler(1, AbortHandler);
 #else
     signal(SIGABRT, AbortHandler);
     signal(SIGSEGV, AbortHandler);
@@ -219,7 +220,7 @@ void StackTrace::RegisterSignal() {
 #endif
 }
 
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
 LONG WINAPI StackTrace::AbortHandler(EXCEPTION_POINTERS* info) {
     StackTrace trace;
     trace.PrintStackTrace(info);

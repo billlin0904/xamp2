@@ -3,15 +3,15 @@
 #include <asio.h>
 #include <asiodrivers.h>
 
-#ifdef _WIN32
-#include <iasiodrv.h>
-#endif
-
 #include <base/str_utilts.h>
 
 #include <output_device/asioexception.h>
 #include <output_device/asiodevice.h>
 #include <output_device/asiodevicetype.h>
+
+#ifdef XAMP_OS_WIN
+#include <iasiodrv.h>
+#endif
 
 namespace xamp::output_device {
 

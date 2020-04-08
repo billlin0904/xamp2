@@ -12,7 +12,7 @@
 #include <base/base.h>
 #include <base/exception.h>
 
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
 #include <base/windows_handle.h>
 #else
 #include <base/posix_handle.h>

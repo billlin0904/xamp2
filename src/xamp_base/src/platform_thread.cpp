@@ -1,4 +1,9 @@
-#ifdef _WIN32
+#include <base/dll.h>
+#include <base/str_utilts.h>
+#include <base/logger.h>
+#include <base/platform_thread.h>
+
+#ifdef XAMP_OS_WIN
 #include <base/windows_handle.h>
 #else
 #include <mach/mach.h>
@@ -6,14 +11,9 @@
 #include <mach/thread_policy.h>
 #endif
 
-#include <base/dll.h>
-#include <base/str_utilts.h>
-#include <base/logger.h>
-#include <base/platform_thread.h>
-
 namespace xamp::base {
 
-#ifndef _WIN32
+#ifndef XAMP_OS_WIN
 void SetRealtimeProcessPriority() {
     auto mach_thread_id = mach_thread_self();
 
@@ -86,7 +86,7 @@ void SetRealtimeProcessPriority() {
 }
 #endif
 
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
 #pragma pack(push,8)
 typedef struct tagTHREADNAME_INFO
 {
@@ -117,7 +117,7 @@ void SetThreadNameById(DWORD dwThreadID, const char* threadName) {
 #endif
 
 void SetThreadName(const std::string& name) noexcept {
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
     WinHandle thread(::GetCurrentThread());
 
     try {

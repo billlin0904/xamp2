@@ -3,12 +3,14 @@
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
-#ifdef _WIN32
-
 #pragma once
 
 #include <mutex>
 #include <atomic>
+
+#include <base/base.h>
+
+#ifdef XAMP_OS_WIN
 
 #include <base/vmmemlock.h>
 #include <output_device/device.h>

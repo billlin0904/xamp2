@@ -1,5 +1,5 @@
 #include <base/logger.h>
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
 #include <base/windows_handle.h>
 #else
 #include <base/posix_handle.h>
@@ -10,7 +10,7 @@
 
 namespace xamp::base {
 
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
 static bool ExterndProcessWorkingSetSize(size_t size) noexcept {
     SIZE_T minimum = 0;
     SIZE_T maximum = 0;

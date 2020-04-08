@@ -7,7 +7,7 @@
 
 #include <base/exception.h>
 
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
 #include <output_device/win32/wasapi.h>
 #include <output_device/device_type.h>
 

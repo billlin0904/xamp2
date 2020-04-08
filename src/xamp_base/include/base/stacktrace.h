@@ -14,11 +14,11 @@ namespace xamp::base {
 static const size_t MaxStackFrameSize = 62;
 using CaptureStackAddress = std::array<void*, MaxStackFrameSize>;
 
-class StackTrace {
+class XAMP_BASE_API StackTrace {
 public:
     StackTrace();
 
-    static void RegisterSignal();
+    static void RegisterAbortHandler();
 
 private:   
 #ifdef _WIN32

@@ -1,4 +1,6 @@
-#ifdef _WIN32
+#include <base/base.h>
+
+#ifdef XAMP_OS_WIN
 
 #include <iomanip>
 #include <system_error>

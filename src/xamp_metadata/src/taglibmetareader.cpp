@@ -173,7 +173,7 @@ public:
     }
 
     Metadata Extract(const Path& path) const {
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
         FileRef fileref(path.wstring().c_str(), true, TagLib::AudioProperties::Fast);
 #else
         FileRef fileref(path.string().c_str(), true, TagLib::AudioProperties::Fast);
@@ -212,7 +212,7 @@ public:
 			return cover_;
 		}
 
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
         FileRef fileref(path.wstring().c_str());
 #else
         FileRef fileref(path.string().c_str());

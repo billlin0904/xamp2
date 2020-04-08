@@ -6,13 +6,12 @@
 #include <spdlog/sinks/rotating_file_sink.h>
 #include <spdlog/sinks/msvc_sink.h>
 
-#include <base/stacktrace.h>
 #include <base/str_utilts.h>
 #include <base/logger.h>
 
 namespace xamp::base {
 
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
 class DebugOutputSink : public spdlog::sinks::base_sink<std::mutex> {
 public:
 	DebugOutputSink() {
@@ -39,7 +38,6 @@ static void CreateLogsDir() {
 }
 
 Logger & Logger::Instance() {
-    StackTrace::RegisterSignal();
     static Logger logger;
     return logger;
 }
@@ -69,7 +67,7 @@ std::shared_ptr<spdlog::logger> Logger::GetLogger(const std::string &name) {
 }
 
 Logger& Logger::AddDebugOutputLogger() {
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
 	sinks_.push_back(std::make_shared<DebugOutputSink>());
 #endif
 	return *this;

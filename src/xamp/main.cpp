@@ -1,7 +1,10 @@
+#include <cstdio>
+
 #include <base/logger.h>
 #include <base/rng.h>
 #include <base/dll.h>
 #include <base/vmmemlock.h>
+#include <base/stacktrace.h>
 
 #include <player/audio_player.h>
 #include <widget/qdebugsink.h>
@@ -17,7 +20,7 @@
 #include "singleinstanceapplication.h"
 #include "xamp.h"
 
-static void loadAndDefaultAppConfig() {
+static void setOrDefaultConfig() {
 	AppSettings::loadIniFile(Q_UTF8("xamp.ini"));
 	AppSettings::setDefaultValue(APP_SETTING_DEVICE_TYPE, Q_UTF8(""));
 	AppSettings::setDefaultValue(APP_SETTING_DEVICE_ID, Q_UTF8(""));
@@ -30,19 +33,24 @@ static void loadAndDefaultAppConfig() {
 	AppSettings::setDefaultValue(APP_SETTING_ENABLE_BLUR, true);
 }
 
-int main(int argc, char *argv[]) {
+static int excute(int argc, char* argv[]) {
 	Logger::Instance()
 #ifdef Q_OS_WIN
 		.AddDebugOutputLogger()
-#endif
-#ifdef Q_OS_MAC
+#else
 		.AddSink(std::make_shared<QDebugSink>())
 #endif
 		.AddFileLogger("xamp.log");
 
-    std::vector<ModuleHandle> preload_modules;
+	XAMP_LOG_DEBUG("Logger init success.");
 
-    try {
+	StackTrace::RegisterAbortHandler();
+
+	XAMP_LOG_DEBUG("RegisterAbortHandler success.");
+
+	std::vector<ModuleHandle> preload_modules;
+
+	try {
 #ifdef Q_OS_WIN	
 		// 如果沒有預先載入拖入檔案會爆音.
 		preload_modules.emplace_back(LoadDll("psapi.dll"));
@@ -52,31 +60,37 @@ int main(int argc, char *argv[]) {
 		preload_modules.emplace_back(LoadDll("AUDIOKSE.dll"));
 		preload_modules.emplace_back(LoadDll("avrt.dll"));
 		AudioPlayer::LoadLib();
-        VmMemLock::EnableLockMemPrivilege(true);
+		VmMemLock::EnableLockMemPrivilege(true);
 #else
 		preload_modules.emplace_back(LoadDll("libchromaprint.dylib"));
 		preload_modules.emplace_back(LoadDll("libbass.dylib"));
-        AudioPlayer::LoadLib();
+		AudioPlayer::LoadLib();
 #endif
-    }
-    catch (const Exception & e) {
-        QMessageBox::critical(nullptr, Q_UTF8("Load dll failure!"), QString::fromStdString(e.GetErrorMessage()));
-        return -1;
-    }
+	}
+	catch (const Exception& e) {
+		QMessageBox::critical(nullptr, Q_UTF8("Load dll failure!"), QString::fromStdString(e.GetErrorMessage()));
+		return -1;
+	}
+
+	XAMP_LOG_DEBUG("Preload dll success.");
 
 	QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 	QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 
-    QApplication app(argc, argv);
+	QApplication app(argc, argv);
 
-    SingleInstanceApplication singleApp;
-    if (!singleApp.attach(QCoreApplication::arguments())) {
+	SingleInstanceApplication singleApp;
+	if (!singleApp.attach(QCoreApplication::arguments())) {
 		return -1;
-	}		
+	}
 
-    (void) RNG::Instance();
-	(void) PixmapCache::instance();
+	XAMP_LOG_DEBUG("attach app success.");
 
+	(void)RNG::Instance();
+	(void)PixmapCache::instance();
+
+	XAMP_LOG_DEBUG("PixmapCache init success.");
+	
 	try {
 		Database::instance().open(Q_UTF8("xamp.db"));
 	}
@@ -85,9 +99,33 @@ int main(int argc, char *argv[]) {
 		return -1;
 	}
 
-	loadAndDefaultAppConfig();
+	XAMP_LOG_DEBUG("Database init success.");
+	
+	setOrDefaultConfig();
 
-    Xamp win;
-    win.show();
+	XAMP_LOG_DEBUG("setOrDefaultConfig success.");
+
+	Xamp win;
+	win.init();
+	win.show();
 	return app.exec();
+}
+
+static int tryExcute(int argc, char* argv[]) {
+	DWORD code = 0;
+	LPEXCEPTION_POINTERS info = nullptr;
+
+	__try {
+		return excute(argc, argv);
+	}
+	__except (code = GetExceptionCode(), info = GetExceptionInformation(), EXCEPTION_EXECUTE_HANDLER) {
+		char buffer[256];
+		sprintf_s(buffer, sizeof(buffer), "Exception code: 0x%08x", code);
+		::MessageBoxA(nullptr, buffer, "Something wrong!", MB_OK);
+		return -1;
+	}
+}
+
+int main(int argc, char *argv[]) {
+	return tryExcute(argc, argv);
 }

@@ -3,10 +3,11 @@
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
-#ifdef _WIN32
 #pragma once
 
 #include <base/base.h>
+
+#ifdef XAMP_OS_WIN
 #include <base/align_ptr.h>
 
 #include <output_device/win32/mmcss_types.h>

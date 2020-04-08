@@ -5,7 +5,10 @@
 
 #pragma once
 
-#ifdef _WIN32
+#include <cstdint>
+#include <base/base.h>
+
+#ifdef XAMP_OS_WIN
 #ifdef XAMP_OUTPUT_DEVICE_API_EXPORTS
 #define XAMP_OUTPUT_DEVICE_API __declspec(dllexport)
 #else
@@ -14,9 +17,6 @@
 #else
 #define XAMP_OUTPUT_DEVICE_API
 #endif
-
-#include <cstdint>
-#include <base/base.h>
 
 namespace xamp::output_device {
 

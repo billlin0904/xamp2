@@ -5,9 +5,10 @@
 
 #pragma once
 
-#ifdef _WIN32
 #include <cmath>
 #include <base/base.h>
+
+#ifdef XAMP_OS_WIN
 
 namespace xamp::output_device {
 

@@ -5,7 +5,9 @@
 
 #pragma once
 
-#ifdef _WIN32
+#include <base/base.h>
+
+#ifdef XAMP_OS_WIN
 
 #include <base/align_ptr.h>
 #include <output_device/win32/wasapi.h>

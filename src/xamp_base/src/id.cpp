@@ -1,12 +1,12 @@
 #include <iomanip>
 #include <sstream>
 
-#ifdef _WIN32
-#include <Windows.h>
-#endif
-
 #include <base/exception.h>
 #include <base/id.h>
+
+#ifdef XAMP_OS_WIN
+#include <Windows.h>
+#endif
 
 namespace xamp::base {
 

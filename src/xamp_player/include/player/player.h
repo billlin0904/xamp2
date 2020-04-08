@@ -5,7 +5,11 @@
 
 #pragma once
 
-#ifdef _WIN32
+#include <base/base.h>
+#include <output_device/output_device.h>
+#include <stream/stream.h>
+
+#ifdef XAMP_OS_WIN
 #ifdef XAMP_PALYER_API_EXPORTS
 #define XAMP_PLAYER_API __declspec(dllexport)
 #else
@@ -14,10 +18,6 @@
 #else
 #define XAMP_PLAYER_API
 #endif
-
-#include <base/base.h>
-#include <output_device/output_device.h>
-#include <stream/stream.h>
 
 namespace xamp::player {
 	class AudioPlayer;	

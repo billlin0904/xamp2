@@ -5,7 +5,9 @@
 
 #pragma once
 
-#ifdef _WIN32
+#include <base/base.h>
+
+#ifdef XAMP_OS_WIN
 
 #include <cassert>
 #include <Windows.h>

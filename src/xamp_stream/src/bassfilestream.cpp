@@ -128,7 +128,7 @@ public:
 
 private:
 	BassLib() try
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
 		: module_(LoadDll("bass.dll"))
 #else
         : module_(LoadDll("libbass.dylib"))
