@@ -111,6 +111,7 @@ static int excute(int argc, char* argv[]) {
 	return app.exec();
 }
 
+#ifdef XAMP_OS_WIN
 static int tryExcute(int argc, char* argv[]) {
 	DWORD code = 0;
 	LPEXCEPTION_POINTERS info = nullptr;
@@ -125,6 +126,11 @@ static int tryExcute(int argc, char* argv[]) {
 		return -1;
 	}
 }
+#else
+static int tryExcute(int argc, char* argv[]) {
+    return excute(argc, argv);
+}
+#endif
 
 int main(int argc, char *argv[]) {
 	return tryExcute(argc, argv);
