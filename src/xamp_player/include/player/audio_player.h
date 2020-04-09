@@ -34,10 +34,6 @@ using namespace xamp::base;
 using namespace xamp::stream;
 using namespace xamp::output_device;
 
-using xamp::stream::DsdStream;
-using xamp::stream::FileStream;
-using xamp::output_device::DsdDevice;
-
 class XAMP_PLAYER_API AudioPlayer final :
 	public AudioCallback,
 	public DeviceStateListener,
@@ -120,6 +116,8 @@ private:
     bool FillSamples(uint32_t num_samples) noexcept;
 
     int32_t OnGetSamples(void* samples, const uint32_t num_buffer_frames, const double stream_time) noexcept override;
+
+	void OnVolumeChange() noexcept override;
 
 	void OnError(const Exception& e) noexcept override;
 

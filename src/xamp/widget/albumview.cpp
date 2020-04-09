@@ -90,7 +90,7 @@ QSize AlbumViewStyledDelegate::sizeHint(const QStyleOptionViewItem& option, cons
 	auto result = QStyledItemDelegate::sizeHint(option, index);
 	const auto default_cover = ThemeManager::instance().getDefaultCoverSize();
 	result.setWidth(default_cover.width() + 30);
-	result.setHeight(default_cover.height() + 70);
+	result.setHeight(default_cover.height() + 80);
 	return result;
 }
 

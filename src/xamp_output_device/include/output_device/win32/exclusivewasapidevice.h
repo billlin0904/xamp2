@@ -62,6 +62,10 @@ public:
 	uint32_t GetBufferSize() const noexcept override;
 
 private:
+	void RegisterDeviceVolumeChange();
+
+	void UnRegisterDeviceVolumeChange();
+
 	void InitialDeviceFormat(const AudioFormat& output_format, uint32_t valid_bits_samples);
 
 	void FillSilentSample(uint32_t frames_available) const;
@@ -71,6 +75,8 @@ private:
 	void GetSample(const uint32_t frame_available);
 
 	HRESULT OnSampleReady(IMFAsyncResult* result);
+
+	class DeviceVolumeChangeNotification;
 
 	std::atomic<bool> is_running_;
 	std::atomic<bool> is_stop_streaming_;
@@ -91,6 +97,8 @@ private:
 	CComHeapPtr<WAVEFORMATEX> mix_format_;
 	CComPtr<MFAsyncCallback<ExclusiveWasapiDevice>> sample_ready_callback_;
 	CComPtr<IMFAsyncResult> sample_ready_async_result_;
+	CComPtr<IAudioSessionControl> session_control_;
+	CComPtr<DeviceVolumeChangeNotification> device_volume_notification_;
 	mutable std::mutex mutex_;
 	align_buffer_ptr<float> buffer_;
 	std::condition_variable condition_;

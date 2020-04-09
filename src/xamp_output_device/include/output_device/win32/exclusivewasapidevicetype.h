@@ -6,7 +6,7 @@
 #pragma once
 
 #include <base/align_ptr.h>
-#include <base/alignstl.h>
+#include <base/stl.h>
 
 #include <output_device/win32/wasapi.h>
 #include <output_device/device_type.h>

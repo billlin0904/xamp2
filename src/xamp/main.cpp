@@ -106,7 +106,7 @@ static int excute(int argc, char* argv[]) {
 	XAMP_LOG_DEBUG("setOrDefaultConfig success.");
 
 	Xamp win;
-	win.init();
+	win.initial();
 	win.show();
 	return app.exec();
 }

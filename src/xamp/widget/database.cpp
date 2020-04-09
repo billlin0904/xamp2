@@ -191,6 +191,10 @@ void Database::open(const QString& file_name) {
 	createTableIfNotExist();
 }
 
+void Database::flush() {
+	
+}
+
 int32_t Database::addTable(const QString& name, int32_t table_index, int32_t playlist_id) {
 	QSqlTableModel model(nullptr, db_);
 

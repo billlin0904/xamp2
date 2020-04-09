@@ -56,6 +56,8 @@ public:
 
     void open(const QString& file_name);
 
+    void flush();
+
     int32_t addTable(const QString& name, int32_t table_index, int32_t playlist_id);
 
     int32_t addPlaylist(const QString& name, int32_t playlistIndex);

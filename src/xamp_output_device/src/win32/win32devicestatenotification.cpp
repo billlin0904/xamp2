@@ -18,12 +18,12 @@ Win32DeviceStateNotification::~Win32DeviceStateNotification() {
 }
 
 void Win32DeviceStateNotification::Run() {
-	HrIfFailledThrow(CoCreateInstance(__uuidof(MMDeviceEnumerator),
+	HrIfFailledThrow(::CoCreateInstance(__uuidof(MMDeviceEnumerator),
 		nullptr,
 		CLSCTX_ALL,
 		__uuidof(IMMDeviceEnumerator),
 		reinterpret_cast<void**>(&enumerator_)));
-	HrIfFailledThrow(enumerator_->RegisterEndpointNotificationCallback(this));
+	HrIfFailledThrow(enumerator_->RegisterEndpointNotificationCallback(this));	
 }
 
 STDMETHODIMP_(ULONG) Win32DeviceStateNotification::AddRef() {

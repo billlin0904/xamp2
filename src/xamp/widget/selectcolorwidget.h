@@ -16,8 +16,5 @@ public:
 
 signals:
     void colorButtonClicked(const QColor& clr);
-
-private:
-    QList<QColor> colors_;
 };
 

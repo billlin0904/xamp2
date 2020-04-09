@@ -19,6 +19,8 @@ public:
     virtual int32_t OnGetSamples(void* samples, const uint32_t num_buffer_frames, const double stream_time) noexcept = 0;
 
 	virtual void OnError(const Exception& exception) noexcept = 0;
+
+	virtual void OnVolumeChange() noexcept = 0;
 protected:
 	AudioCallback() = default;
 };

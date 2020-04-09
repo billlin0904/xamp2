@@ -18,7 +18,7 @@
 #include <base/base.h>
 #include <base/memory.h>
 #include <base/align_ptr.h>
-#include <base/alignstl.h>
+#include <base/stl.h>
 #include <base/circularbuffer.h>
 #include <base/platform_thread.h>
 

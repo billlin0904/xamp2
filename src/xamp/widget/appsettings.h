@@ -5,12 +5,12 @@
 
 #pragma once
 
-#include <base/align_ptr.h>
 #include <base/id.h>
 
 #include <QSize>
 #include <QColor>
 #include <QSettings>
+#include <QScopedPointer>
 
 extern const QLatin1String APP_SETTING_DEVICE_TYPE;
 extern const QLatin1String APP_SETTING_DEVICE_ID;
@@ -89,6 +89,6 @@ protected:
     AppSettings() = default;
 
 private:
-    static xamp::base::align_ptr<QSettings> settings_;
+    static QScopedPointer<QSettings> settings_;
     static QMap<QString, QVariant> default_settings_;
 };

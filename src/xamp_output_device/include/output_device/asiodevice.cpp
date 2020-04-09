@@ -23,13 +23,13 @@ using namespace win32;
 struct AsioCallbackInfo {
 	bool boost_priority{false};
 	bool is_xrun{ false };
+	AsioDevice* device{ nullptr };
 	align_ptr<AsioDrivers> drivers{};
 	AudioConvertContext data_context{};
-	ASIOCallbacks asio_callbacks{};
-	AsioDevice* device{nullptr};
+	ASIOCallbacks asio_callbacks{};	
 	Mmcss mmcss;
-	std::vector<ASIOBufferInfo> buffer_infos;
-	std::vector<ASIOChannelInfo> channel_infos;
+	std::array<ASIOBufferInfo, XAMP_MAX_CHANNEL> buffer_infos;
+	std::array<ASIOChannelInfo, XAMP_MAX_CHANNEL> channel_infos;
 } callbackInfo;
 
 static XAMP_ALWAYS_INLINE long GetLatencyMs(long latency, long sampleRate) noexcept {
@@ -171,9 +171,6 @@ std::tuple<int32_t, int32_t> AsioDevice::GetDeviceBufferSize() const {
 
 void AsioDevice::CreateBuffers(const AudioFormat& output_format) {
 	const auto [prefer_size, buffer_size] = GetDeviceBufferSize();
-
-	callbackInfo.buffer_infos.resize(output_format.GetChannels());
-	callbackInfo.channel_infos.resize(output_format.GetChannels());
 
 	long num_channel = 0;
 	for (auto& info : callbackInfo.buffer_infos) {
@@ -431,7 +428,7 @@ void AsioDevice::OpenStream(const AudioFormat& output_format) {
 	}
 
 	try {
-		AsioIfFailedThrow2(ASIOFuture(kAsioSetIoFormat, &asio_fomrmat), ASE_SUCCESS);
+		AsioIfFailedThrow2(::ASIOFuture(kAsioSetIoFormat, &asio_fomrmat), ASE_SUCCESS);
 	}
 	catch (const Exception & e) {
 		XAMP_LOG_DEBUG("ASIOFuture retun failure! {}", e.GetErrorMessage());

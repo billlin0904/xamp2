@@ -13,8 +13,6 @@ class ClickableLabel : public QLabel {
 public:
 	explicit ClickableLabel(QWidget* parent = nullptr);
 
-	~ClickableLabel() = default;
-
 signals:
 	void clicked();
 

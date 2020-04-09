@@ -17,6 +17,7 @@
 #include <atlbase.h>
 #include <mmdeviceapi.h>
 #include <Audioclient.h>
+#include <audiopolicy.h>
 #include <mfapi.h>
 #include <strmif.h>
 #include <endpointvolume.h>

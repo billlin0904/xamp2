@@ -20,7 +20,11 @@
 
 namespace xamp::base {
 
-XAMP_BASE_API ModuleHandle LoadDll(std::string_view name);
+#ifdef XAMP_OS_WIN
+XAMP_BASE_API ModuleHandle LoadDllSearchPath(std::string_view file_name);
+#endif
+
+XAMP_BASE_API ModuleHandle LoadDll(std::string_view file_name);
 
 XAMP_BASE_API void* LoadDllSymbol(const ModuleHandle& dll, std::string_view name) noexcept;
 

@@ -3,10 +3,19 @@
 namespace xamp::base {
 
 #ifdef XAMP_OS_WIN
-ModuleHandle LoadDll(std::string_view name) {
-	auto module = ::LoadLibraryA(name.data());
+
+ModuleHandle LoadDllSearchPath(std::string_view file_name) {
+	auto module = ::LoadLibraryExA(file_name.data(), nullptr, LOAD_WITH_ALTERED_SEARCH_PATH);
 	if (!module) {
-		throw LoadDllFailureException(name);
+		throw LoadDllFailureException(file_name);
+	}
+	return ModuleHandle(module);
+}
+
+ModuleHandle LoadDll(std::string_view file_name) {
+	auto module = ::LoadLibraryA(file_name.data());
+	if (!module) {
+		throw LoadDllFailureException(file_name);
 	}
 	return ModuleHandle(module);
 }

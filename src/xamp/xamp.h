@@ -51,7 +51,7 @@ class Xamp : public FramelessWindow {
 public:
     explicit Xamp(QWidget *parent = nullptr);
 
-	void init();
+	void initial();
 
 signals:
 	void payNextMusic();

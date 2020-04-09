@@ -12,7 +12,7 @@
 
 #include <base/base.h>
 #include <base/align_ptr.h>
-#include <base/alignstl.h>
+#include <base/stl.h>
 
 #include <output_device/deviceinfo.h>
 #include <output_device/device.h>

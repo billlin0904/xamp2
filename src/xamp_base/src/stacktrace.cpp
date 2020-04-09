@@ -5,7 +5,7 @@
 #include <map>
 
 #include <base/logger.h>
-#include <base/alignstl.h>
+#include <base/stl.h>
 #include <base/stacktrace.h>
 
 #ifdef XAMP_OS_WIN

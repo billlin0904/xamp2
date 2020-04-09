@@ -2,7 +2,7 @@
 #include <bass/bassdsd.h>
 
 #include <base/dll.h>
-#include <base/alignstl.h>
+#include <base/stl.h>
 #include <base/exception.h>
 #include <base/unique_handle.h>
 #include <base/memory.h>
@@ -64,7 +64,7 @@ static uint32_t GetDOPSampleRate(uint32_t dsd_speed) {
 class BassDSDLib final {
 public:
 	BassDSDLib() try
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
 		: module_(LoadDll("bassdsd.dll"))
 #else
 		: module_(LoadDll("libbassdsd.dylib"))
@@ -112,7 +112,7 @@ public:
 		}
 
 		BassLib::Instance().BASS_Init(0, 44100, 0, nullptr, nullptr);
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
 		// Disable Media Foundation
 		BassLib::Instance().BASS_SetConfig(BASS_CONFIG_MF_DISABLE, true);
 		BassLib::Instance().BASS_SetConfig(BASS_CONFIG_MF_VIDEO, false);		

@@ -11,6 +11,8 @@
 
 namespace xamp::output_device::win32 {
 
+constexpr std::string_view AVRT_DLL_PATH{ "%WINDIR%\\system32\\Avrt.dll" };
+
 class AvrtLib {
 public:
 	static AvrtLib& Instance() {
@@ -22,7 +24,7 @@ public:
 
 private:
 	AvrtLib()
-		: module_(LoadDll("avrt.dll"))
+		: module_(LoadDllSearchPath(AVRT_DLL_PATH))
 		, AvRevertMmThreadCharacteristics(module_, "AvRevertMmThreadCharacteristics")
 		, AvSetMmThreadPriority(module_, "AvSetMmThreadPriority")
 		, AvSetMmThreadCharacteristicsW(module_, "AvSetMmThreadCharacteristicsW") {

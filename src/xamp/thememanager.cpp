@@ -1,6 +1,11 @@
 #include "ui_xamp.h"
+
 #include <widget/str_utilts.h>
 #include <widget/image_utiltis.h>
+
+#include <QScreen>
+#include <QApplication>
+
 #if defined(Q_OS_WIN)
 #include <widget/win32/fluentstyle.h>
 #endif
@@ -13,11 +18,19 @@ ThemeManager& ThemeManager::instance() {
 }
 
 ThemeManager::ThemeManager() {
+    const auto sceen_size = qApp->screens()[0]->size();
+
+    if (sceen_size.width() <= 1920 && sceen_size.height() <= 1080) {
+        defaultCoverSize = QSize(110, 110);
+    }
+    else {
+        defaultCoverSize = QSize(150, 150);
+    }
+
     tableTextColor = QColor(Qt::black);
     backgroundColor = QColor(228, 233, 237, 230);
     controlBackgroundColor = QColor(228, 233, 237, 220);
     defaultAlbumCoverSize = QSize(250, 250);
-    defaultCoverSize = QSize(150, 150);
     menuColor = QColor(228, 233, 237, 150);
     menuTextColor = QColor(Qt::black);
     setThemeColor(ThemeColor::DARK_THEME);
