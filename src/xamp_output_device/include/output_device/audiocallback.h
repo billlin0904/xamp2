@@ -20,7 +20,7 @@ public:
 
 	virtual void OnError(const Exception& exception) noexcept = 0;
 
-	virtual void OnVolumeChange() noexcept = 0;
+	virtual void OnVolumeChange(float vol) noexcept = 0;
 protected:
 	AudioCallback() = default;
 };

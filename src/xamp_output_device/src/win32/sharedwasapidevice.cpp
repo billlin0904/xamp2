@@ -25,6 +25,55 @@ static void SetWaveformatEx(WAVEFORMATEX *input_fromat, const uint32_t samplerat
 	format.Format.nAvgBytesPerSec = format.Format.nSamplesPerSec * format.Format.nBlockAlign;
 }
 
+class SharedWasapiDevice::DeviceEventNotification final
+	: public IAudioEndpointVolumeCallback {
+public:
+	explicit DeviceEventNotification(AudioCallback* callback)
+		: refcount_(1)
+		, callback_(callback) {
+	}
+
+	ULONG AddRef() override {
+		return ::InterlockedIncrement(&refcount_);
+	}
+
+	ULONG Release() override {
+		auto ref = ::InterlockedDecrement(&refcount_);
+		if (ref == 0) {
+			delete this;
+		}
+		return 0;
+	}
+
+	HRESULT QueryInterface(REFIID iid, void** ReturnValue) override {
+		if (ReturnValue == nullptr) {
+			return E_POINTER;
+		}
+		*ReturnValue = nullptr;
+		if (iid == IID_IUnknown) {
+			*ReturnValue = static_cast<IUnknown*>(static_cast<IAudioEndpointVolumeCallback*>(this));
+			AddRef();
+		}
+		else if (iid == __uuidof(IAudioEndpointVolumeCallback)) {
+			*ReturnValue = static_cast<IAudioEndpointVolumeCallback*>(this);
+			AddRef();
+		}
+		else {
+			return E_NOINTERFACE;
+		}
+		return S_OK;
+	}
+
+	STDMETHODIMP OnNotify(PAUDIO_VOLUME_NOTIFICATION_DATA NotificationData) override {
+		callback_->OnVolumeChange(NotificationData->fMasterVolume);
+		return S_OK;
+	}
+
+private:
+	LONG refcount_;
+	AudioCallback* callback_;
+};
+
 SharedWasapiDevice::SharedWasapiDevice(const CComPtr<IMMDevice>& device)
 	: is_running_(false)
 	, is_stop_streaming_(false)
@@ -47,6 +96,21 @@ SharedWasapiDevice::~SharedWasapiDevice() {
         sample_ready_.reset();
     } catch (...) {
     }
+	UnRegisterDeviceVolumeChange();
+}
+
+void SharedWasapiDevice::UnRegisterDeviceVolumeChange() {
+}
+
+void SharedWasapiDevice::RegisterDeviceVolumeChange() {
+	CComPtr<IAudioEndpointVolume> endpoint_volume;
+	HrIfFailledThrow(device_->Activate(__uuidof(IAudioEndpointVolume),
+		CLSCTX_INPROC_SERVER,
+		NULL,
+		reinterpret_cast<void**>(&endpoint_volume)
+	));
+	device_volume_notification_ = new DeviceEventNotification(callback_);
+	HrIfFailledThrow(endpoint_volume->RegisterControlChangeNotify(device_volume_notification_));
 }
 
 bool SharedWasapiDevice::IsStreamOpen() const noexcept {
@@ -159,6 +223,7 @@ void SharedWasapiDevice::OpenStream(const AudioFormat& output_format) {
 		device_props.Options = AUDCLNT_STREAMOPTIONS_MATCH_FORMAT;
 		HrIfFailledThrow(client_->SetClientProperties(&device_props));
 		InitialRawMode(output_format);
+		RegisterDeviceVolumeChange();
 	}
 
 	HrIfFailledThrow(client_->Reset());

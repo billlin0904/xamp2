@@ -76,8 +76,6 @@ private:
 
 	HRESULT OnSampleReady(IMFAsyncResult* result);
 
-	class DeviceVolumeChangeNotification;
-
 	std::atomic<bool> is_running_;
 	std::atomic<bool> is_stop_streaming_;
 	MmcssThreadPriority thread_priority_;
@@ -96,9 +94,7 @@ private:
 	CComPtr<IAudioEndpointVolume> endpoint_volume_;
 	CComHeapPtr<WAVEFORMATEX> mix_format_;
 	CComPtr<MFAsyncCallback<ExclusiveWasapiDevice>> sample_ready_callback_;
-	CComPtr<IMFAsyncResult> sample_ready_async_result_;
-	CComPtr<IAudioSessionControl> session_control_;
-	CComPtr<DeviceVolumeChangeNotification> device_volume_notification_;
+	CComPtr<IMFAsyncResult> sample_ready_async_result_;	
 	mutable std::mutex mutex_;
 	align_buffer_ptr<float> buffer_;
 	std::condition_variable condition_;

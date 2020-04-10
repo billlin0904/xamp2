@@ -30,6 +30,8 @@ public:
 
 	virtual void OnDeviceChanged(DeviceState state) = 0;
 
+	virtual void OnVolumeChange(float vol) = 0;
+
 protected:
 	PlaybackStateAdapter() = default;
 };

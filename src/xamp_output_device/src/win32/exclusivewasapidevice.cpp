@@ -81,82 +81,10 @@ static int32_t MakeAlignedPeriod(const AudioFormat &format, int32_t frames_per_l
     return CalcAlignedFramePerBuffer(frames_per_latency, format.GetBlockAlign(), f);
 }
 
-class ExclusiveWasapiDevice::DeviceVolumeChangeNotification final
-	: public IAudioSessionEvents {
-public:
-	explicit DeviceVolumeChangeNotification(AudioCallback* callback)
-		: refcount_(1)
-		, callback_(callback) {
-	}
-
-	ULONG AddRef() override {
-		return ::InterlockedIncrement(&refcount_);
-	}
-
-	ULONG Release() override {
-		auto ref = ::InterlockedDecrement(&refcount_);
-		if (ref == 0) {
-			delete this;
-		}
-		return 0;
-	}
-
-	HRESULT QueryInterface(REFIID iid, void** ReturnValue) override {
-		if (ReturnValue == nullptr) {
-			return E_POINTER;
-		}
-		*ReturnValue = nullptr;
-		if (iid == IID_IUnknown) {
-			*ReturnValue = static_cast<IUnknown*>(static_cast<IAudioSessionEvents*>(this));
-			AddRef();
-		}
-		else if (iid == __uuidof(IAudioSessionEvents)) {
-			*ReturnValue = static_cast<IAudioSessionEvents*>(this);
-			AddRef();
-		}
-		else {
-			return E_NOINTERFACE;
-		}
-		return S_OK;
-	}
-
-	STDMETHODIMP OnDisplayNameChanged(LPCWSTR, LPCGUID) {
-		return S_OK;
-	}
-
-	STDMETHODIMP OnIconPathChanged(LPCWSTR, LPCGUID) {
-		return S_OK;
-	}
-
-	STDMETHODIMP OnChannelVolumeChanged(DWORD, float[], DWORD, LPCGUID) {
-		return S_OK;
-	}
-
-	STDMETHODIMP OnGroupingParamChanged(LPCGUID, LPCGUID) {
-		return S_OK;
-	}
-
-	STDMETHODIMP OnStateChanged(AudioSessionState) {
-		return S_OK;
-	}
-
-	STDMETHODIMP OnSessionDisconnected(AudioSessionDisconnectReason) {
-		return S_OK;
-	}
-
-	STDMETHODIMP OnSimpleVolumeChanged(float NewVolume, BOOL NewMute, LPCGUID EventContext) {
-		return S_OK;
-	}
-
-private:
-	LONG refcount_;
-	AudioCallback* callback_;
-};
-
 ExclusiveWasapiDevice::ExclusiveWasapiDevice(const CComPtr<IMMDevice>& device)
 	: is_running_(false)
 	, is_stop_streaming_(false)
-	, thread_priority_(MmcssThreadPriority::MMCSS_THREAD_PRIORITY_NORMAL)
+	, thread_priority_(MmcssThreadPriority::MMCSS_THREAD_PRIORITY_HIGH)
 	, buffer_frames_(0)
 	, valid_bits_samples_(0)
 	, queue_id_(0)
@@ -176,7 +104,6 @@ ExclusiveWasapiDevice::~ExclusiveWasapiDevice() {
         sample_ready_.reset();
     } catch (...) {
     }
-	UnRegisterDeviceVolumeChange();
 }
 
 void ExclusiveWasapiDevice::SetAlignedPeriod(REFERENCE_TIME device_period, const AudioFormat &output_format) {
@@ -224,18 +151,6 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
 	HrIfFailledThrow(hr);
 }
 
-void ExclusiveWasapiDevice::UnRegisterDeviceVolumeChange() {
-	if (session_control_ != nullptr) {
-		session_control_->UnregisterAudioSessionNotification(device_volume_notification_);
-	}
-}
-
-void ExclusiveWasapiDevice::RegisterDeviceVolumeChange() {
-	HrIfFailledThrow(client_->GetService(IID_PPV_ARGS(&session_control_)));
-	device_volume_notification_ = new DeviceVolumeChangeNotification(callback_);
-	HrIfFailledThrow(session_control_->RegisterAudioSessionNotification(device_volume_notification_));
-}
-
 void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
     stream_time_ = 0;
 
@@ -261,7 +176,24 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 			reinterpret_cast<void**>(&endpoint_volume_)));
 
         InitialDeviceFormat(valid_output_format, valid_bits_samples_);
-		RegisterDeviceVolumeChange();
+
+		CComPtr<IAudioEndpointVolume> endpoint_volume;
+		HrIfFailledThrow(device_->Activate(__uuidof(IAudioEndpointVolume),
+			CLSCTX_INPROC_SERVER,
+			NULL,
+			reinterpret_cast<void**>(&endpoint_volume)
+		));
+		DWORD support_mask = 0;
+		HrIfFailledThrow(endpoint_volume->QueryHardwareSupport(&support_mask));
+		if (support_mask & ENDPOINT_HARDWARE_SUPPORT_VOLUME) {
+			XAMP_LOG_DEBUG("Hardware support volume control.");
+		}
+		if (support_mask & ENDPOINT_HARDWARE_SUPPORT_MUTE) {
+			XAMP_LOG_DEBUG("Hardware support volume mute.");
+		}
+		if (support_mask & ENDPOINT_HARDWARE_SUPPORT_METER) {
+			XAMP_LOG_DEBUG("Hardware support volume meter.");
+		}
     }
 
     HrIfFailledThrow(client_->Reset());

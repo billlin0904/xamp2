@@ -457,7 +457,11 @@ void AudioPlayer::SetDeviceFormat() {
     }
 }
 
-void AudioPlayer::OnVolumeChange() noexcept {
+void AudioPlayer::OnVolumeChange(float vol) noexcept {
+    if (auto adapter = state_adapter_.lock()) {
+        adapter->OnVolumeChange(vol);
+        XAMP_LOG_DEBUG("Volum change: {}", vol);
+    }
 }
 
 int32_t AudioPlayer::OnGetSamples(void* samples, const uint32_t num_buffer_frames, const double stream_time) noexcept {

@@ -23,3 +23,7 @@ void PlayerStateAdapter::OnDeviceChanged(xamp::output_device::DeviceState state)
 void PlayerStateAdapter::OnGetMagnitudeSpectrum(const std::vector<float>& mag) {
     emit onGetMagnitudeSpectrum(mag);
 }
+
+void PlayerStateAdapter::OnVolumeChange(float vol) {
+    emit onVolumeChange(vol);
+}

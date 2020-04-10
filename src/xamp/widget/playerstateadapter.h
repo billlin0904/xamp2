@@ -27,6 +27,8 @@ signals:
     void deviceChanged(xamp::output_device::DeviceState state);
 
     void onGetMagnitudeSpectrum(const std::vector<float>& mag);
+
+    void onVolumeChange(float vol);
 protected:
 	void OnSampleTime(double stream_time) override;
 
@@ -37,4 +39,6 @@ protected:
     void OnDeviceChanged(xamp::output_device::DeviceState state) override;
 
     void OnGetMagnitudeSpectrum(const std::vector<float>& mag) override;
+
+    void OnVolumeChange(float vol);
 };

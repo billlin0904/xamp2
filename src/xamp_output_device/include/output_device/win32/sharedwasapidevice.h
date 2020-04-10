@@ -58,6 +58,10 @@ public:
 	uint32_t GetBufferSize() const noexcept override;
 
 private:
+	void UnRegisterDeviceVolumeChange();
+
+	void RegisterDeviceVolumeChange();
+
 	void InitialRawMode(const AudioFormat& output_format);
 
 	void InitialDeviceFormat(const AudioFormat& output_format);
@@ -69,6 +73,8 @@ private:
 	void FillSilentSample(uint32_t frame_available) const;
 
 	HRESULT OnSampleReady(IMFAsyncResult* result);
+
+	class DeviceEventNotification;
 
 	std::atomic<bool> is_running_;
 	std::atomic<bool> is_stop_streaming_;
@@ -87,7 +93,8 @@ private:
 	CComPtr<IAudioClient3> client_;
 	CComPtr<IAudioRenderClient> render_client_;
 	CComPtr<MFAsyncCallback<SharedWasapiDevice>> sample_ready_callback_;
-	CComPtr<IMFAsyncResult> sample_ready_async_result_;
+	CComPtr<IMFAsyncResult> sample_ready_async_result_;	
+	CComPtr<DeviceEventNotification> device_volume_notification_;
 	AudioCallback* callback_;
 };
 
