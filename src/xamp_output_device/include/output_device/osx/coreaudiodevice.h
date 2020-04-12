@@ -56,7 +56,7 @@ public:
 
     uint32_t GetBufferSize() const noexcept override;
 private:
-    static OSStatus OnAudioIOProc(AudioDeviceID,
+    static OSStatus OnAudioDeviceIOProc(AudioDeviceID,
                                   const AudioTimeStamp*,
                                   const AudioBufferList*,
                                   const AudioTimeStamp*,
@@ -64,7 +64,7 @@ private:
                                   const AudioTimeStamp*,
                                   void* user_data);
 
-    void AudioIOProc(AudioBufferList* output_data);
+    void AudioDeviceIOProc(AudioBufferList* output_data);
 
     bool is_running_;
     AudioDeviceID device_id_;

@@ -25,7 +25,7 @@ void* LoadDllSymbol(const ModuleHandle& dll, std::string_view name) noexcept {
 }
 #else
 ModuleHandle LoadDll(std::string_view name) {
-    auto module = dlopen(name.data(), RTLD_LAZY);
+    auto module = ::dlopen(name.data(), RTLD_LAZY);
     if (!module) {
         throw LoadDllFailureException(name);
     }
@@ -33,7 +33,7 @@ ModuleHandle LoadDll(std::string_view name) {
 }
 
 void* LoadDllSymbol(const ModuleHandle& dll, std::string_view name) noexcept {
-     return dlsym(dll.get(), name.data());
+     return ::dlsym(dll.get(), name.data());
 }
 #endif
 

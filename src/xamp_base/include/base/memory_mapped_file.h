@@ -21,7 +21,7 @@ public:
 
 	void Open(const std::wstring &file_path);
 
-    void * GetData() const;
+    const void * GetData() const;
 
     size_t GetLength() const;
 

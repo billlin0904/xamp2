@@ -652,7 +652,7 @@ void AudioPlayer::PlayStream() {
 
         p->stream_->Close();
         XAMP_LOG_DEBUG("Stream thread finished!");
-        });
+    });
 }
 
 }

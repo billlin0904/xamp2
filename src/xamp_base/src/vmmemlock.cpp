@@ -107,7 +107,7 @@ VmMemLock::~VmMemLock() noexcept {
 void VmMemLock::Lock(void* address, size_t size) {
     UnLock();
 
-    if (mlock(address, size)) {
+    if (::mlock(address, size)) {
 		throw PlatformSpecException("mlock return failure! error:{}", errno);
     }
 
@@ -117,7 +117,7 @@ void VmMemLock::Lock(void* address, size_t size) {
 
 void VmMemLock::UnLock() noexcept {
     if (address_) {
-        if (munlock(address_, size_)) {
+        if (::munlock(address_, size_)) {
             XAMP_LOG_DEBUG("munlock return failure! error:{}", errno);
         }
     }

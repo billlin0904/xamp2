@@ -19,14 +19,14 @@ struct SystemVolume {
         property_.mScope    = kAudioObjectPropertyScopeGlobal;
         property_.mElement  = kAudioObjectPropertyElementMaster;
         property_.mSelector = kAudioHardwarePropertyDefaultOutputDevice;
-        if (AudioObjectHasProperty(kAudioObjectSystemObject, &property_)) {
+        if (::AudioObjectHasProperty(kAudioObjectSystemObject, &property_)) {
             UInt32 deviceIDSize = sizeof (device_id_);
-            OSStatus status = AudioObjectGetPropertyData (kAudioObjectSystemObject, &property_, 0, nullptr, &deviceIDSize, &device_id_);
+            OSStatus status = ::AudioObjectGetPropertyData(kAudioObjectSystemObject, &property_, 0, nullptr, &deviceIDSize, &device_id_);
             if (status == noErr) {
                 property_.mElement  = kAudioObjectPropertyElementMaster;
                 property_.mSelector = selector;
                 property_.mScope    = kAudioDevicePropertyScopeOutput;
-                if (! AudioObjectHasProperty(device_id_, &property_))
+                if (!::AudioObjectHasProperty(device_id_, &property_))
                     device_id_ = kAudioObjectUnknown;
             }
         }
@@ -36,7 +36,7 @@ struct SystemVolume {
         Float32 gain = 0;
         if (device_id_ != kAudioObjectUnknown) {
             UInt32 size = sizeof(gain);
-            CoreAudioThrowIfError(AudioObjectGetPropertyData(device_id_,
+            CoreAudioThrowIfError(::AudioObjectGetPropertyData(device_id_,
                                                              &property_,
                                                              0,
                                                              nullptr,
@@ -50,7 +50,7 @@ struct SystemVolume {
         if (device_id_ != kAudioObjectUnknown && CanSetVolume()) {
             Float32 newVolume = gain;
             UInt32 size = sizeof(newVolume);
-            CoreAudioThrowIfError(AudioObjectSetPropertyData(device_id_,
+            CoreAudioThrowIfError(::AudioObjectSetPropertyData(device_id_,
                                                              &property_,
                                                              0,
                                                              nullptr,
@@ -63,7 +63,7 @@ struct SystemVolume {
         UInt32 muted = 0;
         if (device_id_ != kAudioObjectUnknown) {
             UInt32 size = sizeof(muted);
-            CoreAudioThrowIfError(AudioObjectGetPropertyData(device_id_,
+            CoreAudioThrowIfError(::AudioObjectGetPropertyData(device_id_,
                                                              &property_,
                                                              0,
                                                              nullptr,
@@ -77,7 +77,7 @@ struct SystemVolume {
         if (device_id_ != kAudioObjectUnknown && CanSetVolume()) {
             UInt32 newMute = mute ? 1 : 0;
             UInt32 size = sizeof(newMute);
-            CoreAudioThrowIfError(AudioObjectSetPropertyData(device_id_,
+            CoreAudioThrowIfError(::AudioObjectSetPropertyData(device_id_,
                                                              &property_,
                                                              0,
                                                              nullptr,
@@ -89,7 +89,7 @@ struct SystemVolume {
 private:
     bool CanSetVolume() const noexcept {
         Boolean is_settable = false;
-        return AudioObjectIsPropertySettable(device_id_,
+        return ::AudioObjectIsPropertySettable(device_id_,
                                              &property_,
                                              &is_settable) == noErr && is_settable;
     }
@@ -122,7 +122,7 @@ void CoreAudioDevice::OpenStream(const AudioFormat &output_format) {
     uint32 dataSize = sizeof(fmt);
     audio_property_.mSelector = kAudioStreamPropertyVirtualFormat;
 
-    CoreAudioThrowIfError(AudioObjectGetPropertyData(device_id_,
+    CoreAudioThrowIfError(::AudioObjectGetPropertyData(device_id_,
                                                      &audio_property_,
                                                      0,
                                                      nullptr,
@@ -145,7 +145,7 @@ void CoreAudioDevice::OpenStream(const AudioFormat &output_format) {
         fmt.mBytesPerFrame = output_format.GetBytesPerSample();
         fmt.mBytesPerPacket = output_format.GetBytesPerSample();
         fmt.mReserved = 0;
-        CoreAudioThrowIfError(AudioObjectSetPropertyData(device_id_,
+        CoreAudioThrowIfError(::AudioObjectSetPropertyData(device_id_,
                                                          &audio_property_,
                                                          0,
                                                          nullptr,
@@ -157,7 +157,7 @@ void CoreAudioDevice::OpenStream(const AudioFormat &output_format) {
     UInt32 bufferSize = 0;
     audio_property_.mSelector = kAudioDevicePropertyBufferFrameSize;
     dataSize = sizeof(bufferSize);
-    CoreAudioThrowIfError(AudioObjectGetPropertyData(
+    CoreAudioThrowIfError(::AudioObjectGetPropertyData(
                               device_id_,
                               &audio_property_,
                               0,
@@ -169,7 +169,7 @@ void CoreAudioDevice::OpenStream(const AudioFormat &output_format) {
     UInt32 theSize = bufferSize;
     dataSize = sizeof(UInt32);
     audio_property_.mSelector = kAudioDevicePropertyBufferFrameSize;
-    CoreAudioThrowIfError(AudioObjectSetPropertyData(
+    CoreAudioThrowIfError(::AudioObjectSetPropertyData(
                               device_id_,
                               &audio_property_,
                               0,
@@ -179,7 +179,7 @@ void CoreAudioDevice::OpenStream(const AudioFormat &output_format) {
 
     buffer_size_ = output_format.GetChannels() * bufferSize;
 
-    CoreAudioThrowIfError(AudioDeviceCreateIOProcID(device_id_, OnAudioIOProc, this, &proc_id_));
+    CoreAudioThrowIfError(::AudioDeviceCreateIOProcID(device_id_, OnAudioDeviceIOProc, this, &proc_id_));
     format_ = output_format;
 }
 
@@ -196,13 +196,13 @@ bool CoreAudioDevice::IsStreamRunning() const noexcept {
 }
 
 void CoreAudioDevice::StopStream(bool /*wait_for_stop_stream*/) {
-    CoreAudioThrowIfError(AudioDeviceStop(device_id_, proc_id_));
+    CoreAudioThrowIfError(::AudioDeviceStop(device_id_, proc_id_));
     is_running_ = false;
 }
 
 void CoreAudioDevice::CloseStream() {
-    CoreAudioThrowIfError(AudioDeviceStop(device_id_, proc_id_));
-    CoreAudioThrowIfError(AudioDeviceDestroyIOProcID(device_id_, proc_id_));
+    CoreAudioThrowIfError(::AudioDeviceStop(device_id_, proc_id_));
+    CoreAudioThrowIfError(::AudioDeviceDestroyIOProcID(device_id_, proc_id_));
     proc_id_ = nullptr;
 }
 
@@ -247,7 +247,7 @@ uint32_t CoreAudioDevice::GetBufferSize() const noexcept {
     return buffer_size_;
 }
 
-OSStatus CoreAudioDevice::OnAudioIOProc(AudioDeviceID,
+OSStatus CoreAudioDevice::OnAudioDeviceIOProc(AudioDeviceID,
                                         const AudioTimeStamp *,
                                         const AudioBufferList *,
                                         const AudioTimeStamp *,
@@ -255,18 +255,18 @@ OSStatus CoreAudioDevice::OnAudioIOProc(AudioDeviceID,
                                         const AudioTimeStamp *,
                                         void *user_data) {
     auto device = static_cast<CoreAudioDevice*>(user_data);
-    device->AudioIOProc(output_data);
+    device->AudioDeviceIOProc(output_data);
     return noErr;
 }
 
-void CoreAudioDevice::AudioIOProc(AudioBufferList *output_data) {
+void CoreAudioDevice::AudioDeviceIOProc(AudioBufferList *output_data) {
     const auto buffer_count = output_data->mNumberBuffers;
 
     for (uint32_t i = 0; i < buffer_count; ++i) {
         const auto buffer = output_data->mBuffers[i];
-        const auto numSample = static_cast<int32_t>(buffer.mDataByteSize / sizeof(float) / format_.GetChannels());
-        stream_time_ = stream_time_ + static_cast<double>(numSample * 2);
-        if (XAMP_UNLIKELY(callback_->OnGetSamples(static_cast<float*>(buffer.mData), numSample, stream_time_ / static_cast<double>(format_.GetAvgFramesPerSec())) == 0 )) {
+        const uint32_t num_sample = static_cast<uint32_t>(buffer.mDataByteSize / sizeof(float) / format_.GetChannels());
+        stream_time_ = stream_time_ + static_cast<double>(num_sample * 2);
+        if (XAMP_UNLIKELY(callback_->OnGetSamples(static_cast<float*>(buffer.mData), num_sample, stream_time_ / static_cast<double>(format_.GetAvgFramesPerSec())) == 0 )) {
             is_running_ = false;
             break;
         }

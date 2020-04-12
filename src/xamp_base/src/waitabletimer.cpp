@@ -65,9 +65,8 @@ public:
     }
 
     void Wait() {
-        //std::unique_lock<std::mutex> guard{mutex_};
-        //cond_.wait_for(guard, timeout_);
-        std::this_thread::sleep_for(timeout_);
+        std::unique_lock<std::mutex> guard{mutex_};
+        cond_.wait_for(guard, timeout_);
     }
 
 private:

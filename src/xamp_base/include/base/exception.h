@@ -60,13 +60,11 @@ protected:
 
 class XAMP_BASE_API PlatformSpecException : public Exception {
 public:
-    explicit PlatformSpecException(int32_t err)
-        : Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, GetPlatformErrorMessage(err)) {
-    }
+    explicit PlatformSpecException(int32_t err);
 
-    explicit PlatformSpecException(std::string_view what, int32_t err)
-        : Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, GetPlatformErrorMessage(err), what) {
-    }
+    explicit PlatformSpecException(std::string_view what, int32_t err);
+
+    ~PlatformSpecException() override = default;
 };
 
 #define XAMP_DECLARE_EXCEPTION_CLASS(ExceptionClassName) \

@@ -102,14 +102,22 @@ LoadDllFailureException::LoadDllFailureException(const std::string_view& dll_nam
 	message_ = ostr.str();
 }
 
+PlatformSpecException::PlatformSpecException(int32_t err)
+    : Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, GetPlatformErrorMessage(err)) {
+}
+
+PlatformSpecException::PlatformSpecException(std::string_view what, int32_t err)
+    : Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, GetPlatformErrorMessage(err), what) {
+}
+
 NotSupportVariableSampleRateException::NotSupportVariableSampleRateException(int32_t input_samplerate, int32_t output_samplerate) 
 	: Exception(Errors::XAMP_ERROR_NOT_SUPPORT_VARIABLE_RESAMPLE) {
 	std::ostringstream ostr;
-	auto max = (std::max)(input_samplerate, output_samplerate);
-	auto min = (std::min)(input_samplerate, output_samplerate);
+    double max = (std::max)(input_samplerate, output_samplerate);
+    double min = (std::min)(input_samplerate, output_samplerate);
 	ostr << "Resampler not support variable resample. " << input_samplerate << "Hz to " 
-		<< output_samplerate << "Hz (" 
-		<< std::round(((double)max / (double)min) * 100.0) / 100.0 << "x)";
+        << output_samplerate << "Hz ("
+         << std::round(max / min * 100.0) / 100.0 << "x)";
 	message_ = ostr.str();
 }
 

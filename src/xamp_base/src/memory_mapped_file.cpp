@@ -113,7 +113,7 @@ public:
         file_.close();
     }
 
-    void * GetData() const {
+    const void * GetData() const noexcept {
         return mem_;
     }
 
@@ -139,7 +139,7 @@ void MemoryMappedFile::Open(const std::wstring &file_path) {
     impl_->Open(file_path, FileAccessMode::READ, false);
 }
 
-void * MemoryMappedFile::GetData() const {
+const void * MemoryMappedFile::GetData() const {
     return impl_->GetData();
 }
 

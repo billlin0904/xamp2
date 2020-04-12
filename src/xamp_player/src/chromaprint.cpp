@@ -148,11 +148,11 @@ void Chromaprint::Start(uint32_t sample_rate, uint32_t num_channels, uint32_t nu
 	return impl_->Start(sample_rate, num_channels, num_buffer_frames);
 }
 
-int Chromaprint::Feed(const int16_t* data, uint32_t size) const {
+int32_t Chromaprint::Feed(const int16_t* data, uint32_t size) const {
 	return impl_->Feed(data, size);
 }
 
-int Chromaprint::Finish() const {
+int32_t Chromaprint::Finish() const {
 	return impl_->Finish();
 }
 

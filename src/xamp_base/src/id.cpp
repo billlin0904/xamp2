@@ -10,38 +10,38 @@
 
 namespace xamp::base {
 
-static uint8_t ToChar(const char digital) {
-	if (digital > 47 && digital < 58)
-		return digital - 48;
-
-	if (digital > 96 && digital < 103)
-		return digital - 87;
-
-	if (digital > 64 && digital < 71)
-		return digital - 55;
-
-	throw Exception(Errors::XAMP_ERROR_SUCCESS, "Invalid digital");
+static uint32_t ToChar(const char C) {
+    if (C >= '0' && C <= '9') {
+        return C - '0';
+    }
+    if (C >= 'a' && C <= 'f') {
+        return C - 'a' + 10U;
+    }
+    if (C >= 'A' && C <= 'F') {
+        return C - 'A' + 10U;
+    }
+    throw std::invalid_argument("Invalid digital");
 }
 
 static uint8_t MakeHex(char a, char b) {
-	return ToChar(a) * 16 + ToChar(b);
+    return static_cast<uint8_t>(ToChar(a) * 16 + ToChar(b));
 }
 
 static std::array<uint8_t, XAMP_ID_MAX_SIZE> ParseString(const std::string_view& from_string) {
     if (from_string.length() != MAX_ID_STR_LEN) {
-		throw Exception(Errors::XAMP_ERROR_SUCCESS, "Invalid UUID");
+        throw std::invalid_argument("Invalid UUID");
 	}
 
 	if (from_string[8] != '-'
 		|| from_string[13] != '-'
 		|| from_string[18] != '-'
 		|| from_string[23] != '-') {
-        throw Exception(Errors::XAMP_ERROR_SUCCESS, "Invalid UUID");
+        throw std::invalid_argument("Invalid UUID");
 	}
 	
 	std::array<uint8_t, XAMP_ID_MAX_SIZE> uuid{};
 
-	for (auto i = 0, j = 0; i < from_string.length(); ++i) {
+    for (size_t i = 0, j = 0; i < from_string.length(); ++i) {
 		if (from_string[i] == '-')
 			continue;
 		uuid[j] = MakeHex(from_string[i], from_string[i + 1]);

@@ -135,7 +135,7 @@ public:
         input_samplerate_ = input_samplerate;
         num_channels_ = num_channels;
 
-        ratio_ = double(output_samplerate) / input_samplerate_;
+        ratio_ = double(output_samplerate) / double(input_samplerate_);
 
         XAMP_LOG_ERROR("Soxr resampler setting=> {} {}", to_string(quality_), to_string(phase_));
     }
@@ -212,7 +212,7 @@ void SoxrResampler::LoadSoxrLib() {
     SoxrLib::Instance();
 }
 
-void SoxrResampler::Start(uint32_t input_samplerate, uint32_t num_channels, uint32_t output_samplerate, uint32_t max_sample) {
+void SoxrResampler::Start(uint32_t input_samplerate, uint32_t num_channels, uint32_t output_samplerate, uint32_t) {
     impl_->Start(input_samplerate, num_channels, output_samplerate);
 }
 
