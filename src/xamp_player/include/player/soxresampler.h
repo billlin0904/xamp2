@@ -22,7 +22,8 @@ MAKE_ENUM(SoxrQuality,
 	LOW,
 	MQ,
 	HQ,	
-    VHQ)
+    VHQ,
+	UHQ)
 
 MAKE_ENUM(SoxrPhaseResponse,
     LINEAR_PHASE,

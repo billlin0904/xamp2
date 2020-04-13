@@ -82,11 +82,7 @@ void SetRealtimeProcessPriority() {
     }
 }
 #else
-void SetRealtimeProcessPriority() {
-}
-#endif
 
-#ifdef XAMP_OS_WIN
 #pragma pack(push,8)
 typedef struct tagTHREADNAME_INFO
 {
@@ -113,6 +109,9 @@ void SetThreadNameById(DWORD dwThreadID, const char* threadName) {
             reinterpret_cast<ULONG_PTR*>(&info));
     } __except (EXCEPTION_EXECUTE_HANDLER) {
     }
+}
+
+void SetRealtimeProcessPriority() {
 }
 #endif
 
@@ -151,8 +150,17 @@ void SetThreadName(const std::string& name) noexcept {
 
 void SetCurrentThreadName(size_t index) {
     std::ostringstream ostr;
-    ostr << "Work Thread(" << index << ")";
+    ostr << "Streaming Thread(" << index << ")";
     SetThreadName(ostr.str());
+}
+
+void SetThreadAffinity(std::thread& thread, int32_t core) {
+#ifdef XAMP_OS_WIN
+    auto mask = (static_cast<DWORD_PTR>(1) << core);
+    if (!::SetThreadAffinityMask(thread.native_handle(), mask)) {
+        XAMP_LOG_DEBUG("SetThreadAffinityMask return failure!");
+    }
+#endif
 }
 
 }

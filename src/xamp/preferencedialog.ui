@@ -286,6 +286,11 @@
                      <string>Very High Quality</string>
                     </property>
                    </item>
+                   <item>
+                    <property name="text">
+                     <string>Ultra High Quality</string>
+                    </property>
+                   </item>
                   </widget>
                  </item>
                  <item>
@@ -384,7 +389,7 @@
                    <number>90</number>
                   </property>
                   <property name="maximum">
-                   <number>100</number>
+                   <number>99</number>
                   </property>
                   <property name="singleStep">
                    <number>0</number>

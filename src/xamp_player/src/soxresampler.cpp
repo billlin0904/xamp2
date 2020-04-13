@@ -81,8 +81,11 @@ public:
         unsigned long quality_spec = 0;
 
         switch (quality_) {
-        case SoxrQuality::VHQ:
+        case SoxrQuality::UHQ:
             quality_spec |= SOXR_32_BITQ;
+            break;
+        case SoxrQuality::VHQ:
+            quality_spec |= SOXR_VHQ;
             break;
         case SoxrQuality::HQ:
             quality_spec |= SOXR_HQ;
@@ -129,6 +132,7 @@ public:
                                                       &soxr_quality,
                                                       &runtimespec));
         if (!handle_) {
+            XAMP_LOG_DEBUG("soxr error: {}", !error ? "" : error);
             throw Exception(Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR,
                             "sox_create return failure!");
         }

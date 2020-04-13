@@ -64,12 +64,14 @@ void AudioPlayer::Destory() {
     Stop(false, true);
     stream_.reset();
     resampler_.reset();
+    ThreadPool::DefaultThreadPool().Stop();
 }
 
 void AudioPlayer::LoadLib() {
     BassFileStream::LoadBassLib();
     SoxrResampler::LoadSoxrLib();
     Chromaprint::LoadChromaprintLib();
+    ThreadPool::DefaultThreadPool();
 }
 
 void AudioPlayer::Init() {

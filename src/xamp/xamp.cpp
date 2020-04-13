@@ -508,6 +508,7 @@ void Xamp::initialController() {
     ui.seekSlider->setEnabled(false);
     ui.startPosLabel->setText(Time::msToString(0));
     ui.endPosLabel->setText(Time::msToString(0));
+    ui.searchLineEdit->setPlaceholderText(tr("Search anything"));
 }
 
 void Xamp::applyTheme(QColor color) {

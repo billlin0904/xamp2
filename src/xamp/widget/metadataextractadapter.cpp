@@ -89,6 +89,10 @@ void MetadataExtractAdapter::processMetadata(const std::vector<xamp::base::Metad
         album = QString::fromStdWString(metadata.album);
         artist = QString::fromStdWString(metadata.artist);
 
+        if (album.isEmpty()) {
+            album = Q_UTF8("?");
+        }
+
         // TODO: 找尋相同的album和artist的作法不是很好?
         auto music_id = Database::instance().addOrUpdateMusic(metadata, playlist_id);
 

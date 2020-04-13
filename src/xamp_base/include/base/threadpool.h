@@ -204,6 +204,8 @@ private:
                 }
             }
         }));
+
+        SetThreadAffinity(threads_[i], 0);
     }
 
     using TaskQueuePtr = align_ptr<Queue<TaskType>>;   
@@ -230,6 +232,8 @@ public:
     decltype(auto) StartNew(F f, Args&&... args);
 
     size_t GetActiveThreadCount() const;
+
+    void Stop();
 
 private:
     using Task = std::function<void()>;

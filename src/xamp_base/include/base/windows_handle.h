@@ -14,7 +14,7 @@
 
 namespace xamp::base {
 
-struct HandleTraits final {
+struct XAMP_BASE_API HandleTraits final {
 	static HANDLE invalid() noexcept {
 		return nullptr;
 	}
@@ -24,7 +24,7 @@ struct HandleTraits final {
 	}
 };
 
-struct FileHandleTraits final {
+struct XAMP_BASE_API FileHandleTraits final {
 	static HANDLE invalid() noexcept {
 		return INVALID_HANDLE_VALUE;
 	}
@@ -34,7 +34,7 @@ struct FileHandleTraits final {
 	}
 };
 
-struct ModuleHandleTraits final {
+struct XAMP_BASE_API ModuleHandleTraits final {
     static HMODULE invalid() noexcept {
         return nullptr;
     }
@@ -44,7 +44,7 @@ struct ModuleHandleTraits final {
     }
 };
 
-struct MappingFileHandleTraits final {
+struct XAMP_BASE_API MappingFileHandleTraits final {
 	static HANDLE invalid() noexcept {
 		return nullptr;
 	}
@@ -54,7 +54,7 @@ struct MappingFileHandleTraits final {
 	}
 };
 
-struct MappingMemoryAddressTraits final {
+struct XAMP_BASE_API MappingMemoryAddressTraits final {
 	static void* invalid() noexcept {
 		return nullptr;
 	}

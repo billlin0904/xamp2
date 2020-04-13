@@ -6,6 +6,7 @@
 #pragma once
 
 #include <string>
+#include <thread>
 
 #include <base/base.h>
 
@@ -16,5 +17,7 @@ XAMP_BASE_API void SetThreadName(const std::string& name) noexcept;
 XAMP_BASE_API void SetCurrentThreadName(size_t index);
 
 XAMP_BASE_API void SetRealtimeProcessPriority();
+
+XAMP_BASE_API void SetThreadAffinity(std::thread& thread, int32_t core);
 
 }

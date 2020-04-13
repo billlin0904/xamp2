@@ -14,6 +14,10 @@ size_t ThreadPool::GetActiveThreadCount() const {
 	return scheduler_.GetActiveThreadCount();
 }
 
+void ThreadPool::Stop() {
+	scheduler_.Destory();
+}
+
 ThreadPool& ThreadPool::DefaultThreadPool() {
 	static ThreadPool default_thread_pool;
 	return default_thread_pool;

@@ -1,7 +1,7 @@
 #include <cmath>
 #include <widget/starrating.h>
 
-constexpr auto PaintingScaleFactor = 20;
+constexpr auto PaintingScaleFactor = 15;
 
 StarRating::StarRating(int starCount, int maxStarCount) {
     rating_count_ = starCount;
