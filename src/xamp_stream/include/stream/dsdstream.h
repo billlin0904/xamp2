@@ -22,7 +22,7 @@ public:
 
     virtual uint32_t GetDsdSampleRate() const = 0;
 
-	virtual DsdSampleFormat GetDsdSampleFormat() const noexcept = 0;
+	virtual DsdFormat GetDsdFormat() const noexcept = 0;
 
     virtual void SetDsdToPcmSampleRate(uint32_t samplerate) = 0;
 

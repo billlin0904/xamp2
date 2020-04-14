@@ -163,4 +163,14 @@ void SetThreadAffinity(std::thread& thread, int32_t core) {
 #endif
 }
 
+void SetCurrentThreadAffinity(int32_t core) {
+#ifdef XAMP_OS_WIN
+    WinHandle current_thread(::GetCurrentThread());
+    auto mask = (static_cast<DWORD_PTR>(1) << core);
+    if (!::SetThreadAffinityMask(current_thread.get(), mask)) {
+        XAMP_LOG_DEBUG("SetThreadAffinityMask return failure!");
+    }
+#endif
+}
+
 }

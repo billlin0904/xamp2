@@ -23,6 +23,12 @@ public:
         return cache;
     }
 
+    void clear() {
+        album_id.Clear();
+        artist_id.Clear();
+        cover_id.Clear();
+    }
+
     xamp::base::LruCache<QString, int32_t> album_id;
     xamp::base::LruCache<QString, int32_t> artist_id;
     xamp::base::LruCache<int32_t, QString> cover_id;
@@ -38,6 +44,7 @@ MetadataExtractAdapter::MetadataExtractAdapter(QObject* parent)
 
 MetadataExtractAdapter::~MetadataExtractAdapter() {
     std::vector<xamp::base::Metadata>().swap(metadatas_);
+    MetadataExtractCache::instance().clear();
 }
 
 void MetadataExtractAdapter::OnWalk(const xamp::metadata::Path&, xamp::base::Metadata metadata) {
@@ -45,7 +52,7 @@ void MetadataExtractAdapter::OnWalk(const xamp::metadata::Path&, xamp::base::Met
 }
 
 void MetadataExtractAdapter::OnWalkNext() {
-#ifdef _WIN32
+#ifdef Q_OS_WIN
     std::stable_sort(std::execution::par,
                      metadatas_.begin(), metadatas_.end(), [](const auto & first, const auto & sencond) {
         return first.track < sencond.track;

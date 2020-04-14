@@ -97,8 +97,6 @@ public:
 
     static align_ptr<FileStream> MakeFileStream(const std::wstring& file_ext);
 private:
-	void Init();
-
 	void Initial();
 
     void OpenStream(const std::wstring& file_path, const std::wstring& file_ext, const DeviceInfo& device_info);

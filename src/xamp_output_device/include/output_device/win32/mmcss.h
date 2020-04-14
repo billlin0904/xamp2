@@ -23,7 +23,7 @@ public:
 
 	~Mmcss();
 
-	void Initial();
+	static void LoadAvrtLib();
 
 	XAMP_DISABLE_COPY(Mmcss)
 

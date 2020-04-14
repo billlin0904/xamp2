@@ -61,9 +61,9 @@ public:
 
 	AsioIoFormat GetIoFormat() const override;
 
-	void SetSampleFormat(DsdSampleFormat format) override;
+	void SetSampleFormat(DsdFormat format) override;
 
-	DsdSampleFormat GetSampleFormat() const noexcept override;
+	DsdFormat GetSampleFormat() const noexcept override;
 
 	uint32_t GetBufferSize() const noexcept override;
 
@@ -93,7 +93,7 @@ private:
 	std::atomic<bool> is_streaming_;
 	std::atomic<bool> is_stop_streaming_;	
 	AsioIoFormat io_format_;
-	DsdSampleFormat sample_format_;
+	DsdFormat sample_format_;
 	mutable std::atomic<int32_t> volume_;
 	uint32_t buffer_size_;
 	uint32_t buffer_bytes_;

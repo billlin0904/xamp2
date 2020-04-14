@@ -48,7 +48,8 @@ AudioPlayer::AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter)
     , is_playing_(false)
     , is_paused_(false)
     , state_adapter_(adapter) {
-	Init();
+    wait_timer_.SetTimeout(READ_SAMPLE_WAIT_TIME);
+    buffer_.Resize(PREALLOCATE_BUFFER_SIZE);
 }
 
 AudioPlayer::~AudioPlayer() {
@@ -72,11 +73,6 @@ void AudioPlayer::LoadLib() {
     SoxrResampler::LoadSoxrLib();
     Chromaprint::LoadChromaprintLib();
     ThreadPool::DefaultThreadPool();
-}
-
-void AudioPlayer::Init() {
-	wait_timer_.SetTimeout(READ_SAMPLE_WAIT_TIME);
-	buffer_.Resize(PREALLOCATE_BUFFER_SIZE);   
 }
 
 void AudioPlayer::Open(const std::wstring& file_path, const std::wstring& file_ext, const DeviceInfo& device_info) {
@@ -374,7 +370,6 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
         }
     }
     if (stream_task_.valid()) {
-        wait_timer_.Cancel();
         XAMP_LOG_DEBUG("Try to stop stream task!");
         if (stream_task_.wait_for(WAIT_FOR_STRAEM_STOP_TIME) == std::future_status::timeout) {
             throw StopStreamTimeoutException();

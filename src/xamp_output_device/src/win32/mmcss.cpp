@@ -87,7 +87,7 @@ Mmcss::Mmcss()
 Mmcss::~Mmcss() {
 }
 
-void Mmcss::Initial() {
+void Mmcss::LoadAvrtLib() {
 	AvrtLib::Instance();
 }
 

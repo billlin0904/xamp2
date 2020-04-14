@@ -9,7 +9,7 @@
 
 namespace xamp::base {
 
-MAKE_ENUM(DsdSampleFormat,
+MAKE_ENUM(DsdFormat,
 		DSD_INT8LSB,
 		DSD_INT8MSB,
 		DSD_INT8NER8);

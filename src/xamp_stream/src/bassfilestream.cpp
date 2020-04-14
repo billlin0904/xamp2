@@ -29,13 +29,13 @@ constexpr uint8_t LowByte(T val) noexcept {
 }
 
 template <typename T>
-constexpr uint32_t HiWord(T val) noexcept {
-    return static_cast<uint32_t>(uint16_t(val) >> 16);
+constexpr uint16_t HiWord(T val) noexcept {
+    return static_cast<uint16_t>((uint32_t(val) >> 16) & 0xFFFF);
 }
 
 template <typename T>
-constexpr uint32_t LoWord(T val) noexcept {
-    return static_cast<uint16_t>(val);
+constexpr uint16_t LoWord(T val) noexcept {
+    return static_cast<uint16_t>(uint32_t(val) & 0xFFFF);
 }
 
 #define BassIfFailedThrow(result) \
@@ -415,8 +415,8 @@ public:
 		return mode_ == DsdModes::DSD_MODE_NATIVE ? sizeof(int8_t) : sizeof(float);
 	}
 
-	DsdSampleFormat GetDsdSampleFormat() const noexcept {
-		return DsdSampleFormat::DSD_INT8MSB;
+	DsdFormat GetDsdFormat() const noexcept {
+		return DsdFormat::DSD_INT8MSB;
 	}
 
     void SetDsdToPcmSampleRate(uint32_t samplerate) {
@@ -502,8 +502,8 @@ uint32_t BassFileStream::GetSampleSize() const noexcept {
 	return stream_->GetSampleSize();
 }
 
-DsdSampleFormat BassFileStream::GetDsdSampleFormat() const noexcept {
-	return stream_->GetDsdSampleFormat();
+DsdFormat BassFileStream::GetDsdFormat() const noexcept {
+	return stream_->GetDsdFormat();
 }
 
 void BassFileStream::SetDsdToPcmSampleRate(uint32_t samplerate) {

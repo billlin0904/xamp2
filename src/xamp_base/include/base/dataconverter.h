@@ -77,6 +77,18 @@ struct XAMP_BASE_API AudioConvertContext {
     std::array<size_t, XAMP_MAX_CHANNEL> out_offset;
 };
 
+template <typename T>
+T Clip(T minimum, T value, T maximum) noexcept {
+	return value < minimum ? minimum : value > maximum ? maximum : value;
+}
+
+template <size_t bits, typename T>
+T Clip(T value) noexcept {
+	constexpr auto max_val(int32_t((1u << (bits - 1u)) - 1u));
+	constexpr auto min_val(-max_val - 1);
+	return Clip(T(min_val), value, T(max_val));
+}
+
 XAMP_BASE_API AudioConvertContext MakeConvert(const AudioFormat& in_format, const AudioFormat& out_format, size_t convert_size) noexcept;
 
 template <InterleavedFormat InputFormat, InterleavedFormat OutputFormat>

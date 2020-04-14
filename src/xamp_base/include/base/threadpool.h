@@ -205,7 +205,7 @@ private:
             }
         }));
 
-        SetThreadAffinity(threads_[i], 0);
+        SetThreadAffinity(threads_[i]);
     }
 
     using TaskQueuePtr = align_ptr<Queue<TaskType>>;   

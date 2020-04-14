@@ -1,3 +1,5 @@
+#if ENABLE_ASIO
+
 #include <asiodrivers.h>
 #include <iasiodrv.h>
 
@@ -6,8 +8,8 @@
 #include <base/str_utilts.h>
 #include <base/dataconverter.h>
 #include <base/logger.h>
+#include <base/platform_thread.h>
 
-#if ENABLE_ASIO
 #ifdef XAMP_OS_WIN
 #include <output_device/win32/mmcss.h>
 #endif
@@ -43,7 +45,7 @@ AsioDevice::AsioDevice(const std::string& device_id)
 	, is_stopped_(true)
 	, is_streaming_(false)
 	, is_stop_streaming_(false)
-	, sample_format_(DsdSampleFormat::DSD_INT8MSB)
+	, sample_format_(DsdFormat::DSD_INT8MSB)
 	, io_format_(AsioIoFormat::IO_FORMAT_PCM)
 	, volume_(0)
 	, buffer_size_(0)
@@ -70,11 +72,11 @@ uint32_t AsioDevice::GetBufferSize() const noexcept {
 	return buffer_size_ * mix_format_.GetChannels();
 }
 
-void AsioDevice::SetSampleFormat(DsdSampleFormat format) {
+void AsioDevice::SetSampleFormat(DsdFormat format) {
 	sample_format_ = format;
 }
 
-DsdSampleFormat AsioDevice::GetSampleFormat() const noexcept {
+DsdFormat AsioDevice::GetSampleFormat() const noexcept {
 	return sample_format_;
 }
 
@@ -284,17 +286,17 @@ void AsioDevice::CreateBuffers(const AudioFormat& output_format) {
 	else {
 		switch (channel_info.type) {
 		case ASIOSTDSDInt8LSB1:
-			if (sample_format_ != DsdSampleFormat::DSD_INT8LSB) {
+			if (sample_format_ != DsdFormat::DSD_INT8LSB) {
 				throw ASIOException(Errors::XAMP_ERROR_NOT_SUPPORT_FORMAT);
 			}
 			break;
 		case ASIOSTDSDInt8MSB1:
-			if (sample_format_ != DsdSampleFormat::DSD_INT8MSB) {
+			if (sample_format_ != DsdFormat::DSD_INT8MSB) {
 				throw ASIOException(Errors::XAMP_ERROR_NOT_SUPPORT_FORMAT);
 			}
 			break;
 		case ASIOSTDSDInt8NER8:
-			if (sample_format_ != DsdSampleFormat::DSD_INT8NER8) {
+			if (sample_format_ != DsdFormat::DSD_INT8NER8) {
 				throw ASIOException(Errors::XAMP_ERROR_NOT_SUPPORT_FORMAT);
 			}
 			break;
@@ -331,7 +333,8 @@ void AsioDevice::SetMute(const bool mute) const {
 
 void AsioDevice::OnBufferSwitch(long index) noexcept {
 	if (callbackInfo.boost_priority) {
-		callbackInfo.mmcss.BoostPriority();
+		callbackInfo.mmcss.BoostPriority();		
+		SetCurrentThreadAffinity(1);
 		callbackInfo.boost_priority = false;
 	}
 
@@ -447,7 +450,8 @@ void AsioDevice::OpenStream(const AudioFormat& output_format) {
 	callbackInfo.boost_priority = true;
 	callbackInfo.data_context.cache_volume = 0;
 	callbackInfo.device = this;
-	callbackInfo.mmcss.Initial();
+
+	Mmcss::LoadAvrtLib();
 }
 
 void AsioDevice::SetOutputSampleRate(const AudioFormat& output_format) {

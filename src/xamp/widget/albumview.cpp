@@ -548,7 +548,7 @@ FROM
 	LEFT JOIN artists ON artists.artistId = albums.artistId 
 WHERE
 	(
-	albums.album LIKE '%%1%'
+	albums.album LIKE '%%1%' OR artists.artist LIKE '%%1%'
 	)
 	)"));
 	model_.setQuery(query.arg(text));
