@@ -3,10 +3,6 @@
 #include <widget/str_utilts.h>
 #include <widget/localelanguage.h>
 
-static void ParseISO6391(const QString &file_name) {
-
-}
-
 void LocaleLanguage::setDefaultLanguage() {
 	QLocale l;
 	setLanguageByLocale(l);

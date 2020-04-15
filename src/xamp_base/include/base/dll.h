@@ -44,7 +44,6 @@ private:
     T const * func_;
 };
 
-#define XAMP_DLL_C_API(ImportFunc) DllFunction<decltype(ImportFunc)> ##ImportFunc;
 #define XAMP_DLL_HELPER(ImportFunc) DllFunction<decltype(ImportFunc)>
 
 }

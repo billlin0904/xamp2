@@ -5,6 +5,9 @@
 
 #pragma once
 
+#include <QLocale>
+#include <QString>
+
 class LocaleLanguage {
 public:
 	void setDefaultLanguage();

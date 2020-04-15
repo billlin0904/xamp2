@@ -38,13 +38,13 @@ public:
 private:
     ModuleHandle module_;
 
-public:	
-    XAMP_DLL_C_API(soxr_quality_spec)
-    XAMP_DLL_C_API(soxr_create)
-    XAMP_DLL_C_API(soxr_process)
-    XAMP_DLL_C_API(soxr_delete)
-    XAMP_DLL_C_API(soxr_io_spec)
-    XAMP_DLL_C_API(soxr_runtime_spec)
+public:
+    XAMP_DLL_HELPER(soxr_quality_spec) soxr_quality_spec;
+    XAMP_DLL_HELPER(soxr_create) soxr_create;
+    XAMP_DLL_HELPER(soxr_process) soxr_process;
+    XAMP_DLL_HELPER(soxr_delete) soxr_delete;
+    XAMP_DLL_HELPER(soxr_io_spec) soxr_io_spec;
+    XAMP_DLL_HELPER(soxr_runtime_spec) soxr_runtime_spec;
 };
 
 struct SoxrHandleTraits final {

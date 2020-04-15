@@ -44,15 +44,15 @@ public:
 private:
 	ModuleHandle module_;
 
-public:	
-	XAMP_DLL_C_API(chromaprint_new)
-	XAMP_DLL_C_API(chromaprint_free)
-	XAMP_DLL_C_API(chromaprint_start)
-	XAMP_DLL_C_API(chromaprint_feed)
-	XAMP_DLL_C_API(chromaprint_finish)
-	XAMP_DLL_C_API(chromaprint_get_raw_fingerprint)
-	XAMP_DLL_C_API(chromaprint_encode_fingerprint)
-	XAMP_DLL_C_API(chromaprint_dealloc)
+public:
+    XAMP_DLL_HELPER(chromaprint_new) chromaprint_new;
+    XAMP_DLL_HELPER(chromaprint_free) chromaprint_free;
+    XAMP_DLL_HELPER(chromaprint_start) chromaprint_start;
+    XAMP_DLL_HELPER(chromaprint_feed) chromaprint_feed;
+    XAMP_DLL_HELPER(chromaprint_finish) chromaprint_finish;
+    XAMP_DLL_HELPER(chromaprint_get_raw_fingerprint) chromaprint_get_raw_fingerprint;
+    XAMP_DLL_HELPER(chromaprint_encode_fingerprint) chromaprint_encode_fingerprint;
+    XAMP_DLL_HELPER(chromaprint_dealloc) chromaprint_dealloc;
 };
 
 struct ChromaprintContextTraits final {
