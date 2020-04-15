@@ -88,7 +88,7 @@ typedef BOOL(WINAPI* pfnSetWindowCompositionAttribute)(HWND, WINDOWCOMPOSITIONAT
 void setBlurMaterial(HWND hWnd, bool enable) {
 	using namespace xamp::base;
 
-	XAMP_DEFINE_DLL_API(SetWindowCompositionAttribute) SetWindowCompositionAttribute {
+	XAMP_DLL_HELPER(SetWindowCompositionAttribute) SetWindowCompositionAttribute {
 		LoadDll("user32.dll"),
 		"SetWindowCompositionAttribute"
 	};

@@ -5,7 +5,9 @@
 
 #pragma once
 
-#ifdef _WIN32
+#include <base/base.h>
+
+#ifdef XAMP_OS_WIN
 #ifdef METADATA_API_EXPORTS
     #define XAMP_METADATA_API __declspec(dllexport)
 #else
@@ -15,7 +17,6 @@
 #define XAMP_METADATA_API
 #endif
 
-#include <base/base.h>
 #include <filesystem>
 
 namespace xamp::metadata {

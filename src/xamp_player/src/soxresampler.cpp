@@ -39,12 +39,12 @@ private:
     ModuleHandle module_;
 
 public:	
-    XAMP_DEFINE_DLL_API(soxr_quality_spec) soxr_quality_spec;
-    XAMP_DEFINE_DLL_API(soxr_create) soxr_create;
-    XAMP_DEFINE_DLL_API(soxr_process) soxr_process;
-    XAMP_DEFINE_DLL_API(soxr_delete) soxr_delete;
-    XAMP_DEFINE_DLL_API(soxr_io_spec) soxr_io_spec;
-    XAMP_DEFINE_DLL_API(soxr_runtime_spec) soxr_runtime_spec;
+    XAMP_DLL_C_API(soxr_quality_spec)
+    XAMP_DLL_C_API(soxr_create)
+    XAMP_DLL_C_API(soxr_process)
+    XAMP_DLL_C_API(soxr_delete)
+    XAMP_DLL_C_API(soxr_io_spec)
+    XAMP_DLL_C_API(soxr_runtime_spec)
 };
 
 struct SoxrHandleTraits final {
@@ -63,7 +63,7 @@ class SoxrResampler::SoxrResamplerImpl {
 public:
     SoxrResamplerImpl() noexcept
         : enable_steep_filter_(false)
-        , quality_(SoxrQuality::VHQ)
+        , quality_(SoxrQuality::LOW)
         , phase_(SoxrPhaseResponse::LINEAR_PHASE)
         , input_samplerate_(0)
         , num_channels_(0)

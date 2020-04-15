@@ -34,11 +34,6 @@ public:
         return factory;
     }
 
-    template <typename Function>
-    void RegisterCreator(const ID id, Function &&fun) {
-        creator_[id] = std::forward<Function>(fun);
-    }
-
     void RegisterDeviceListener(std::weak_ptr<DeviceStateListener> callback);
 
     void Clear();
@@ -69,7 +64,12 @@ public:
 private:
     class DeviceStateNotificationImpl;
 
-    DeviceFactory();    
+    DeviceFactory();
+
+    template <typename Function>
+    void RegisterCreator(const ID id, Function&& fun) {
+        creator_[id] = std::forward<Function>(fun);
+    }
 
     align_ptr<DeviceStateNotificationImpl> impl_;
     RobinHoodHashMap<ID, std::function<align_ptr<DeviceType>()>> creator_;

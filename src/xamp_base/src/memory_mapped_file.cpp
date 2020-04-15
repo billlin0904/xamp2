@@ -69,7 +69,7 @@ public:
         file_.reset();
     }
 
-    void * GetData() const {
+    const void * GetData() const {
         return address_.get();
     }
 

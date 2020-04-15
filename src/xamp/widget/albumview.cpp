@@ -421,6 +421,10 @@ AlbumView::AlbumView(QWidget* parent)
     setContextMenuPolicy(Qt::CustomContextMenu);
     (void)QObject::connect(this, &QTableView::customContextMenuRequested, [this](auto pt) {        
         auto index = indexAt(pt);
+		if (!index.isValid()) {
+			return;
+		}
+
         auto album = getIndexValue(index, 0).toString();
         auto artist = getIndexValue(index, 2).toString();
 		auto album_id = getIndexValue(index, 3).toInt();

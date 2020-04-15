@@ -11,8 +11,6 @@
 
 namespace xamp::output_device::win32 {
 
-constexpr std::string_view AVRT_DLL_PATH{ "Avrt.dll" };
-
 class AvrtLib {
 public:
 	static AvrtLib& Instance() {
@@ -24,7 +22,7 @@ public:
 
 private:
 	AvrtLib()
-		: module_(LoadDll(AVRT_DLL_PATH))
+		: module_(LoadDll("Avrt.dll"))
 		, AvRevertMmThreadCharacteristics(module_, "AvRevertMmThreadCharacteristics")
 		, AvSetMmThreadPriority(module_, "AvSetMmThreadPriority")
 		, AvSetMmThreadCharacteristicsW(module_, "AvSetMmThreadCharacteristicsW") {
@@ -33,9 +31,9 @@ private:
 	ModuleHandle module_;
 
 public:
-	XAMP_DEFINE_DLL_API(AvRevertMmThreadCharacteristics) AvRevertMmThreadCharacteristics;
-	XAMP_DEFINE_DLL_API(AvSetMmThreadPriority) AvSetMmThreadPriority;
-	XAMP_DEFINE_DLL_API(AvSetMmThreadCharacteristicsW) AvSetMmThreadCharacteristicsW;
+	XAMP_DLL_C_API(AvRevertMmThreadCharacteristics)
+	XAMP_DLL_C_API(AvSetMmThreadPriority)
+	XAMP_DLL_C_API(AvSetMmThreadCharacteristicsW)
 };
 
 class Mmcss::MmcssImpl {

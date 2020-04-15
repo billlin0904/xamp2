@@ -20,10 +20,6 @@
 
 namespace xamp::base {
 
-#ifdef XAMP_OS_WIN
-XAMP_BASE_API ModuleHandle LoadDllSearchPath(std::string_view file_name);
-#endif
-
 XAMP_BASE_API ModuleHandle LoadDll(std::string_view file_name);
 
 XAMP_BASE_API void* LoadDllSymbol(const ModuleHandle& dll, std::string_view name) noexcept;
@@ -36,8 +32,6 @@ public:
         *(void**)& func_ = LoadDllSymbol(dll, name);
     }
 
-    XAMP_DISABLE_COPY(DllFunction)
-
     XAMP_ALWAYS_INLINE operator T* () const noexcept {
         assert(func_ != nullptr);
         return func_;
@@ -47,9 +41,10 @@ public:
         return func_ != nullptr;
     }
 private:
-    T* func_;
+    T const * func_;
 };
 
-#define XAMP_DEFINE_DLL_API(ImportFunc) DllFunction<decltype(ImportFunc)>
+#define XAMP_DLL_C_API(ImportFunc) DllFunction<decltype(ImportFunc)> ##ImportFunc;
+#define XAMP_DLL_HELPER(ImportFunc) DllFunction<decltype(ImportFunc)>
 
 }

@@ -51,8 +51,8 @@ DeviceFactory::DeviceFactory() {
 	XAMP_REGISTER_DEVICE_TYPE(ASIODeviceType);
 #endif
 #else
+	using namespace osx;
     SetRealtimeProcessPriority();
-    using namespace osx;
     XAMP_REGISTER_DEVICE_TYPE(CoreAudioDeviceType);
 #endif
 }

@@ -158,23 +158,23 @@ private:
     ModuleHandle module_;
 
 public:
-	XAMP_DEFINE_DLL_API(BASS_Init) BASS_Init;
-	XAMP_DEFINE_DLL_API(BASS_SetConfig) BASS_SetConfig;
+	XAMP_DLL_C_API(BASS_Init)
+	XAMP_DLL_C_API(BASS_SetConfig)
 	DllFunction<HPLUGIN(const char *, DWORD)> BASS_PluginLoad;
-	XAMP_DEFINE_DLL_API(BASS_PluginGetInfo) BASS_PluginGetInfo;
-	XAMP_DEFINE_DLL_API(BASS_Free) BASS_Free;
+	XAMP_DLL_C_API(BASS_PluginGetInfo)
+	XAMP_DLL_C_API(BASS_Free)
 	DllFunction<HSTREAM(BOOL, const void *, QWORD, QWORD, DWORD)> BASS_StreamCreateFile;
-	XAMP_DEFINE_DLL_API(BASS_ChannelGetInfo) BASS_ChannelGetInfo;
-	XAMP_DEFINE_DLL_API(BASS_StreamFree) BASS_StreamFree;
-	XAMP_DEFINE_DLL_API(BASS_PluginFree) BASS_PluginFree;
-	XAMP_DEFINE_DLL_API(BASS_ChannelGetData) BASS_ChannelGetData;
-    XAMP_DEFINE_DLL_API(BASS_ChannelGetLength) BASS_ChannelGetLength;
-    XAMP_DEFINE_DLL_API(BASS_ChannelBytes2Seconds) BASS_ChannelBytes2Seconds;
-    XAMP_DEFINE_DLL_API(BASS_ChannelSeconds2Bytes) BASS_ChannelSeconds2Bytes;
-    XAMP_DEFINE_DLL_API(BASS_ChannelSetPosition) BASS_ChannelSetPosition;
-    XAMP_DEFINE_DLL_API(BASS_ErrorGetCode) BASS_ErrorGetCode;
-    XAMP_DEFINE_DLL_API(BASS_ChannelGetAttribute) BASS_ChannelGetAttribute;
-	XAMP_DEFINE_DLL_API(BASS_ChannelSetAttribute) BASS_ChannelSetAttribute;
+	XAMP_DLL_C_API(BASS_ChannelGetInfo)
+	XAMP_DLL_C_API(BASS_StreamFree)
+	XAMP_DLL_C_API(BASS_PluginFree)
+	XAMP_DLL_C_API(BASS_ChannelGetData)
+    XAMP_DLL_C_API(BASS_ChannelGetLength)
+    XAMP_DLL_C_API(BASS_ChannelBytes2Seconds)
+    XAMP_DLL_C_API(BASS_ChannelSeconds2Bytes)
+    XAMP_DLL_C_API(BASS_ChannelSetPosition)
+    XAMP_DLL_C_API(BASS_ErrorGetCode)
+    XAMP_DLL_C_API(BASS_ChannelGetAttribute)
+	XAMP_DLL_C_API(BASS_ChannelSetAttribute)
 
     align_ptr<BassDSDLib> DSDLib;
 
