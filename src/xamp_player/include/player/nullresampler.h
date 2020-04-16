@@ -20,8 +20,11 @@ public:
     void Start(uint32_t, uint32_t, uint32_t, uint32_t) override {
 	}
 
-    bool Process(const float*, uint32_t, AudioBuffer<int8_t>&) override {
-		return true;
+    bool Process(const float* sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer) override {
+		if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE) {
+			return buffer.TryWrite(reinterpret_cast<const int8_t*>(sample_buffer), num_samples);
+		}
+		return buffer.TryWrite(reinterpret_cast<const int8_t*>(sample_buffer), num_samples * sample_size_);
 	}
 
 	std::string_view GetDescription() const noexcept override {

@@ -9,6 +9,8 @@
 #include <QString>
 #include <QTranslator>
 
+#include <widget/str_utilts.h>
+
 class LocaleLanguage {
 public:
 	LocaleLanguage();

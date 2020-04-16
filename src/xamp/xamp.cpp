@@ -194,11 +194,11 @@ void Xamp::initialUI() {
     if (AppSettings::getValueAsString(APP_SETTING_LANG).isEmpty()) {
         LocaleLanguage l;
         XAMP_LOG_DEBUG("Load locale lang file: {}", l.getIsoCode().toStdString());
-        lang_manager_.loadLanguage(l.getIsoCode());
+        AppSettings::loadLanguage(l.getIsoCode());
         AppSettings::setValue(APP_SETTING_LANG, l.getIsoCode());
     }
     else {
-        lang_manager_.loadLanguage(AppSettings::getValueAsString(APP_SETTING_LANG));
+        AppSettings::loadLanguage(AppSettings::getValueAsString(APP_SETTING_LANG));
     }
 }
 

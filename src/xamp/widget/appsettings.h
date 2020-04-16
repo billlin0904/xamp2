@@ -12,6 +12,8 @@
 #include <QSettings>
 #include <QScopedPointer>
 
+#include <widget/localelanguage.h>
+
 extern const QLatin1String APP_SETTING_LANG;
 
 extern const QLatin1String APP_SETTING_DEVICE_TYPE;
@@ -87,10 +89,13 @@ public:
         return getValue(key).toString();
     }
 
+    static void loadLanguage(const QString& lang);
+
 protected:
     AppSettings() = default;
 
 private:
     static QScopedPointer<QSettings> settings_;
     static QMap<QString, QVariant> default_settings_;
+    static LocaleLanguageManager manager_;
 };

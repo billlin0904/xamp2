@@ -39,14 +39,14 @@ void PreferenceDialog::initSoxResampler() {
 }
 
 void PreferenceDialog::initLang() {
-	LocaleLanguage defaultLang;
+	LocaleLanguage current_lang(AppSettings::getValueAsString(APP_SETTING_LANG));
 
 	auto current_index = 0;
 	auto index = 0;
 	for (auto lang : LocaleLanguageManager::languageNames()) {
 		QIcon ico(QString(Q_UTF8(":/xamp/Resource/Flags/%1.png")).arg(lang.countryIsoCode()));
 		ui_.langCombo->addItem(ico, lang.getIsoCode());
-		if (defaultLang.getIsoCode() == lang.getIsoCode()) {
+		if (current_lang.getIsoCode() == lang.getIsoCode()) {
 			current_index = index;
 		}
 		index++;
@@ -54,7 +54,10 @@ void PreferenceDialog::initLang() {
 
 	ui_.langCombo->setCurrentIndex(current_index);
 
-	(void)QObject::connect(ui_.langCombo, static_cast<void (QComboBox::*)(int32_t)>(&QComboBox::activated), [this](auto const& index) {
+	(void)QObject::connect(ui_.langCombo, static_cast<void (QComboBox::*)(int32_t)>(&QComboBox::activated), [this](auto const& index) {		
+		AppSettings::loadLanguage(ui_.langCombo->itemText(index));
+		AppSettings::setValue(APP_SETTING_LANG, ui_.langCombo->itemText(index));
+		ui_.retranslateUi(this);
 		});
 }
 

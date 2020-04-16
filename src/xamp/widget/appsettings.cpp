@@ -21,6 +21,7 @@ const QLatin1String APP_SETTING_SOXR_PASS_BAND{ "AppSettings/soxr/passBand" };
 
 QScopedPointer<QSettings> AppSettings::settings_;
 QMap<QString, QVariant> AppSettings::default_settings_;
+LocaleLanguageManager AppSettings::manager_;
 
 void AppSettings::loadIniFile(const QString& file_name) {
 	settings_.reset(new QSettings(file_name, QSettings::IniFormat));
@@ -51,4 +52,8 @@ QVariant AppSettings::getValue(const QString& key) {
 
 int32_t AppSettings::getAsInt(const QString& key) {
 	return getValue(key).toInt();
+}
+
+void AppSettings::loadLanguage(const QString& lang) {
+	manager_.loadLanguage(lang);
 }

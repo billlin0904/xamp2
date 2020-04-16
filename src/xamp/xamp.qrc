@@ -46,5 +46,6 @@
         <file>xamp.ico</file>
         <file>Resource/White/search.png</file>
         <file>Resource/Flags/TW.png</file>
+        <file>Resource/Flags/JP.png</file>
     </qresource>
 </RCC>

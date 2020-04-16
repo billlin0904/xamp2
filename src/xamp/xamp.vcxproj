@@ -328,6 +328,7 @@
     <Image Include="xamp.ico" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="ja_JP.ts" />
     <None Include="zh_TW.ts" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

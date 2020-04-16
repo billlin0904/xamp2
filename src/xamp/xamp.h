@@ -165,5 +165,4 @@ private:
 	MusicBrainzClient mbc_;
 	DiscogsClient discogs_;
 	FileSystemWatcher watch_;
-	LocaleLanguageManager lang_manager_;
 };

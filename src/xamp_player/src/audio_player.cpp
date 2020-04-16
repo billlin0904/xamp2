@@ -406,7 +406,7 @@ void AudioPlayer::CreateBuffer() {
         read_sample_size_ = allocate_size;
     }
 
-    if (!enable_resample_) {
+    if (!enable_resample_ || dsd_mode_ == DsdModes::DSD_MODE_NATIVE) {
         resampler_ = MakeAlign<Resampler, NullResampler>(dsd_mode_, stream_->GetSampleSize());
     }
 
@@ -475,13 +475,6 @@ int32_t AudioPlayer::OnGetSamples(void* samples, const uint32_t num_buffer_frame
 
     stopped_cond_.notify_all();
     return 1;
-}
-
-bool AudioPlayer::FillSamples(uint32_t num_samples) noexcept {
-    if (GetDSDModes() == DsdModes::DSD_MODE_NATIVE) {
-        return buffer_.TryWrite(sample_buffer_.get(), num_samples);
-    }
-    return buffer_.TryWrite(sample_buffer_.get(), num_samples * sample_size_);
 }
 
 void AudioPlayer::OnError(const Exception& e) noexcept {
@@ -571,17 +564,9 @@ void AudioPlayer::BufferStream() {
             if (num_samples == 0) {
                 return;
             }
-
-            if (enable_resample_ && dsd_mode_ == DsdModes::DSD_MODE_PCM) {
-                if (!resampler_->Process(reinterpret_cast<const float*>(sample_buffer_.get()), num_samples, buffer_)) {
-                    continue;
-                }
-            }
-            else {
-                if (!FillSamples(num_samples)) {
-                    XAMP_LOG_ERROR("Buffer is full.");
-                    continue;
-                }
+            if (!resampler_->Process(reinterpret_cast<const float*>(sample_buffer_.get()), num_samples, buffer_)) {
+                XAMP_LOG_ERROR("Buffer is full.");
+                continue;
             }
             break;
         }
@@ -596,15 +581,9 @@ void AudioPlayer::ReadSampleLoop(uint32_t max_read_sample, std::unique_lock<std:
         const auto num_samples = stream_->GetSamples(sample_buffer, max_read_sample);
 
         if (num_samples > 0) {
-            if (enable_resample_ && dsd_mode_ == DsdModes::DSD_MODE_PCM) {
-                if (!resampler->Process(reinterpret_cast<const float*>(sample_buffer), num_samples, buffer_)) {
-                    continue;
-                }
-            } else {
-                if (!FillSamples(num_samples)) {
-                    XAMP_LOG_DEBUG("Process samples failure!");
-                    continue;
-                }
+            if (!resampler_->Process(reinterpret_cast<const float*>(sample_buffer_.get()), num_samples, buffer_)) {
+                XAMP_LOG_ERROR("Buffer is full.");
+                continue;
             }
             break;
         }

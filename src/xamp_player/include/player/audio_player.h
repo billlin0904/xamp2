@@ -111,8 +111,6 @@ private:
 
 	void BufferStream();
 
-    bool FillSamples(uint32_t num_samples) noexcept;
-
     int32_t OnGetSamples(void* samples, const uint32_t num_buffer_frames, const double stream_time) noexcept override;
 
 	void OnVolumeChange(float vol) noexcept override;
