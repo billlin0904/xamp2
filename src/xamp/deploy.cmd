@@ -21,4 +21,4 @@ copy x64\Release\xamp_player.dll deploy\
 xcopy /Y /S /I /E Resource deploy\Resource
 xcopy /Y /S /I /E x64\langs deploy\langs
 
-C:\Qt\Qt5.12.5\5.12.5\msvc2017_64\bin\windeployqt --force deploy x64\Release\xamp.exe --release
+C:\Qt\Qt5.12.7\5.12.7\msvc2017_64\bin\windeployqt --force deploy x64\Release\xamp.exe --release

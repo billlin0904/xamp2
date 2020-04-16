@@ -20,7 +20,7 @@ ThemeManager& ThemeManager::instance() {
 ThemeManager::ThemeManager() {
     const auto sceen_size = qApp->screens()[0]->size();
 
-    if (sceen_size.width() <= 1920 && sceen_size.height() <= 1080) {
+    if ((sceen_size.width() <= 1920 || sceen_size.width() <= 2560) && sceen_size.height() <= 1080) {
         defaultCoverSize = QSize(110, 110);
     }
     else {
