@@ -18,5 +18,7 @@ public:
 private:
 	void initSoxResampler();
 
+    void initLang();
+
     Ui::PreferenceDialog ui_;
 };

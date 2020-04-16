@@ -54,6 +54,8 @@ public:
 
     bool Process(const float* samples, uint32_t num_sample, AudioBuffer<int8_t> &buffer) override;
 
+	void Flush() override;
+
 private:
 	class SoxrResamplerImpl;
     align_ptr<SoxrResamplerImpl> impl_;

@@ -27,6 +27,9 @@ public:
 	std::string_view GetDescription() const noexcept override {
 		return "None";
 	}
+
+	void Flush() override {
+	}
 private:
 	DsdModes dsd_mode_;
     uint32_t sample_size_;

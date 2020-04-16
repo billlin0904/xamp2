@@ -43,8 +43,6 @@ public:
 
 	void setTaskbarPlayerStop();
 
-    void installTranslator();
-
 protected:
     bool eventFilter(QObject* object, QEvent* event) override;
 
@@ -76,8 +74,6 @@ protected:
 
 private:
 	void lazyInitial();
-
-    void installTranslator(const QString &localeName);
 
 	void initialFontDatabase();
 

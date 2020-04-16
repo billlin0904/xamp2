@@ -561,6 +561,10 @@ void AudioPlayer::BufferStream() {
     auto sample_buffer = sample_buffer_.get();
     sample_size_ = stream_->GetSampleSize();
 
+    if (enable_resample_) {
+        resampler_->Flush();
+    }
+
     for (auto i = 0; i < BUFFER_STREAM_COUNT; ++i) {
         while (true) {
             const auto num_samples = stream_->GetSamples(sample_buffer, num_read_sample_);

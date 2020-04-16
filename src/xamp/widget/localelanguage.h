@@ -7,9 +7,14 @@
 
 #include <QLocale>
 #include <QString>
+#include <QTranslator>
 
 class LocaleLanguage {
 public:
+	LocaleLanguage();
+
+	explicit LocaleLanguage(const QString& name);
+
 	void setDefaultLanguage();
 	
 	void setLanguage(QLocale::Language lang, QLocale::Country country);
@@ -18,7 +23,17 @@ public:
 		return lang_;
 	}
 
-	QString nativeNameWithCountryCode() const;
+	QString langIsoCode() const {
+		return lang_iso_code_;
+	}
+
+	QString countryIsoCode() const {
+		return country_iso_code_;
+	}
+
+	QString getIsoCode() const {
+		return langIsoCode() + Q_UTF8("_") + countryIsoCode();
+	}
 private:
 	void setLanguageByLocale(const QLocale& l);
 	QString lang_;
@@ -31,8 +46,12 @@ private:
 
 class LocaleLanguageManager {
 public:
-	QStringList languageNameNativeList() const;
+	LocaleLanguageManager();
+
+	static QList<LocaleLanguage> languageNames();
+
+	void loadLanguage(const QString& lang);
 private:
-	LocaleLanguage lang_;
-	QList<LocaleLanguage> translate_langs_;
+	QTranslator translator_;
+	QString current_lang_;
 };

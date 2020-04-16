@@ -22,7 +22,8 @@ public:
         , soxr_process(module_, "soxr_process")
         , soxr_delete(module_, "soxr_delete")
         , soxr_io_spec(module_, "soxr_io_spec")
-        , soxr_runtime_spec(module_, "soxr_runtime_spec") {
+        , soxr_runtime_spec(module_, "soxr_runtime_spec")
+        , soxr_clear(module_, "soxr_clear") {
     }
     catch (const Exception & e) {
         XAMP_LOG_ERROR("{}", e.GetErrorMessage());
@@ -45,6 +46,7 @@ public:
     XAMP_DLL_HELPER(soxr_delete) soxr_delete;
     XAMP_DLL_HELPER(soxr_io_spec) soxr_io_spec;
     XAMP_DLL_HELPER(soxr_runtime_spec) soxr_runtime_spec;
+    XAMP_DLL_HELPER(soxr_clear) soxr_clear;
 };
 
 struct SoxrHandleTraits final {
@@ -169,6 +171,10 @@ public:
         stopband_ = stopband;
     }
 
+    void Flush() {
+        SoxrLib::Instance().soxr_clear(handle_.get());
+    }
+
     bool Process(const float* samples, uint32_t num_sample, AudioBuffer<int8_t>& buffer) {
         assert(num_channels_ != 0);
 
@@ -246,6 +252,10 @@ std::string_view SoxrResampler::GetDescription() const noexcept {
 
 bool SoxrResampler::Process(const float* samples, uint32_t num_sample, AudioBuffer<int8_t>& buffer) {
     return impl_->Process(samples, num_sample, buffer);
+}
+
+void SoxrResampler::Flush() {
+    impl_->Flush();
 }
 
 }

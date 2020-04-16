@@ -60,24 +60,6 @@ FramelessWindow::FramelessWindow(QWidget* parent)
 FramelessWindow::~FramelessWindow() {
 }
 
-void FramelessWindow::installTranslator() {
-    QLocale locale;
-    auto language = locale.name().left(2);
-    installTranslator(language);
-    installTranslator(locale.name());
-}
-
-void FramelessWindow::installTranslator(const QString &localeName) {
-    auto translator = new QTranslator(this);
-    auto fileToLoad = Q_UTF8(":/translators/translation_") + localeName + Q_UTF8(".qm");
-    if (!QFile::exists(fileToLoad)) {
-        return;
-    }
-    if (translator->load(fileToLoad)) {
-        QApplication::installTranslator(translator);
-    }
-}
-
 void FramelessWindow::lazyInitial() {
 #if defined(Q_OS_WIN)
 	if (!taskbar_button_) {

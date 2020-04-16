@@ -154,7 +154,7 @@
     <ClCompile Include="widget\filetag.cpp" />
     <ClCompile Include="widget\framelesswindow.cpp" />
     <ClCompile Include="widget\http.cpp" />
-    <ClCompile Include="widget\locallanguage.cpp" />
+    <ClCompile Include="widget\localelanguage.cpp" />
     <ClCompile Include="widget\lrcpage.cpp" />
     <ClCompile Include="widget\lrcparser.cpp" />
     <ClCompile Include="widget\lyricsshowwideget.cpp" />
@@ -326,6 +326,9 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="xamp.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="zh_TW.ts" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

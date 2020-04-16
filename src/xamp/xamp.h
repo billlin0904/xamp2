@@ -26,6 +26,7 @@
 #include <widget/playbackhistorypage.h>
 #include <widget/albumview.h>
 #include <widget/filesystemwatcher.h>
+#include <widget/localelanguage.h>
 
 #include "ui_xamp.h"
 
@@ -164,4 +165,5 @@ private:
 	MusicBrainzClient mbc_;
 	DiscogsClient discogs_;
 	FileSystemWatcher watch_;
+	LocaleLanguageManager lang_manager_;
 };

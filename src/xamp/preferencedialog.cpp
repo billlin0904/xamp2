@@ -9,6 +9,7 @@
 
 #include <widget/str_utilts.h>
 #include <widget/appsettings.h>
+#include <widget/localelanguage.h>
 #include <preferencedialog.h>
 
 void PreferenceDialog::initSoxResampler() {
@@ -35,6 +36,26 @@ void PreferenceDialog::initSoxResampler() {
 	else {
 		ui_.soxrAllowAliasingCheckBox->setChecked(false);
 	}
+}
+
+void PreferenceDialog::initLang() {
+	LocaleLanguage defaultLang;
+
+	auto current_index = 0;
+	auto index = 0;
+	for (auto lang : LocaleLanguageManager::languageNames()) {
+		QIcon ico(QString(Q_UTF8(":/xamp/Resource/Flags/%1.png")).arg(lang.countryIsoCode()));
+		ui_.langCombo->addItem(ico, lang.getIsoCode());
+		if (defaultLang.getIsoCode() == lang.getIsoCode()) {
+			current_index = index;
+		}
+		index++;
+	}
+
+	ui_.langCombo->setCurrentIndex(current_index);
+
+	(void)QObject::connect(ui_.langCombo, static_cast<void (QComboBox::*)(int32_t)>(&QComboBox::activated), [this](auto const& index) {
+		});
 }
 
 PreferenceDialog::PreferenceDialog(QWidget *parent)
@@ -121,4 +142,5 @@ PreferenceDialog::PreferenceDialog(QWidget *parent)
 		});	
 
 	initSoxResampler();
+	initLang();
 }

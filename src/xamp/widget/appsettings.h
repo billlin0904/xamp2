@@ -12,6 +12,8 @@
 #include <QSettings>
 #include <QScopedPointer>
 
+extern const QLatin1String APP_SETTING_LANG;
+
 extern const QLatin1String APP_SETTING_DEVICE_TYPE;
 extern const QLatin1String APP_SETTING_DEVICE_ID;
 extern const QLatin1String APP_SETTING_WIDTH;

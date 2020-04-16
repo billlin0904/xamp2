@@ -1,5 +1,6 @@
 #include "appsettings.h"
 
+const QLatin1String APP_SETTING_LANG{ "AppSettings/lang" };
 const QLatin1String APP_SETTING_DEVICE_TYPE{ "AppSettings/DeviceType" };
 const QLatin1String APP_SETTING_DEVICE_ID{ "AppSettings/DeviceId" };
 const QLatin1String APP_SETTING_WIDTH{ "AppSettings/width" };

@@ -25,6 +25,8 @@ public:
 
     virtual bool Process(const float* samples, uint32_t num_sample, AudioBuffer<int8_t>& buffer) = 0;
 
+	virtual void Flush() = 0;
+
 protected:
 	Resampler() = default;
 };
