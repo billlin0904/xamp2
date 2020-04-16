@@ -535,6 +535,7 @@ SELECT
 FROM
 	albums
 	LEFT JOIN artists ON artists.artistId = albums.artistId
+LIMIT 30
 	)"));
 }
 
@@ -554,6 +555,7 @@ WHERE
 	(
 	albums.album LIKE '%%1%' OR artists.artist LIKE '%%1%'
 	)
+LIMIT 30
 	)"));
 	model_.setQuery(query.arg(text));
 }

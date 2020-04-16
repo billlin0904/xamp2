@@ -127,6 +127,10 @@ RESOURCES += \
     xamp.qrc \
     widget/toast.qrc
 
+TRANSLATIONS += \
+    zh_TW.ts \
+    ja_JP.ts \
+
 CONFIG(debug, debug|release) {
 LIBS += -L"../thirdparty/ffmpeg/lib/x64/mac/" -lavcodec.58 \
 
