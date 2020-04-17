@@ -594,7 +594,7 @@ void AudioPlayer::ReadSampleLoop(uint32_t max_read_sample, std::unique_lock<std:
     }
 }
 
-void AudioPlayer::PlayStream() {
+void AudioPlayer::StartPlay() {
     SetDeviceFormat();
     CreateDevice(device_info_.device_type_id, device_info_.device_id, false);
     OpenDevice();

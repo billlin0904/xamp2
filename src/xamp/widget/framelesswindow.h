@@ -73,7 +73,7 @@ protected:
     virtual void stopPlayedClicked() = 0;
 
 private:
-	void lazyInitial();
+	void setupThumbnailToolBar();
 
 	void initialFontDatabase();
 

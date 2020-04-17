@@ -746,11 +746,11 @@ void Xamp::resetSeekPosValue() {
 
 void Xamp::setupResampler() {
     if (AppSettings::getValue(APP_SETTING_RESAMPLER_ENABLE).toBool()) {
-        auto samplerate = AppSettings::getValue(APP_SETTING_SOXR_RESAMPLE_SAMPLRATE).toUInt();
-        auto quality = static_cast<SoxrQuality>(AppSettings::getValue(APP_SETTING_SOXR_QUALITY).toInt());
-        auto phase = static_cast<SoxrPhaseResponse>(AppSettings::getValue(APP_SETTING_SOXR_PHASE).toInt());
-        auto passband = AppSettings::getValue(APP_SETTING_SOXR_PASS_BAND).toInt();
-        auto enable_steep_filter = AppSettings::getValue(APP_SETTING_SOXR_ENABLE_STEEP_FILTER).toBool();
+        auto samplerate = AppSettings::getAsInt(APP_SETTING_SOXR_RESAMPLE_SAMPLRATE);
+        auto quality = static_cast<SoxrQuality>(AppSettings::getAsInt(APP_SETTING_SOXR_QUALITY));
+        auto phase = static_cast<SoxrPhaseResponse>(AppSettings::getAsInt(APP_SETTING_SOXR_PHASE));
+        auto passband = AppSettings::getAsInt(APP_SETTING_SOXR_PASS_BAND);
+        auto enable_steep_filter = AppSettings::getValueAsBool(APP_SETTING_SOXR_ENABLE_STEEP_FILTER);
 
         auto resampler = MakeAlign<Resampler, SoxrResampler>();
         auto soxr = dynamic_cast<SoxrResampler*>(resampler.get());
@@ -768,6 +768,7 @@ void Xamp::setupResampler() {
 void Xamp::processMeatadata(const std::vector<xamp::base::Metadata>& medata) {
     MetadataExtractAdapter::processMetadata(medata);
     emit album_artist_page_->album()->refreshOnece();
+    emit album_artist_page_->artist()->refreshOnece();
 }
 
 void Xamp::playMusic(const MusicEntity& item) {
@@ -778,7 +779,7 @@ void Xamp::playMusic(const MusicEntity& item) {
     try {
         player_->Open(item.file_path.toStdWString(), item.file_ext.toStdWString(), device_info_);
         setupResampler();
-        player_->PlayStream();
+        player_->StartPlay();
         open_done = true;
     }
     catch (const xamp::base::Exception & e) {

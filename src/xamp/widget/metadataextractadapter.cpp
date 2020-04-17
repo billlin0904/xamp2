@@ -2,7 +2,7 @@
 #include <QMap>
 #include <QDebug>
 
-#ifdef _WIN32
+#ifdef Q_OS_WIN
 #include <execution>
 #endif
 

@@ -222,7 +222,7 @@ public:
             cover_.clear();
             return cover_;
         }
-        const auto ext = ToUpper(path.extension().string());
+        const auto ext = ToLower(path.extension().string());
         GetCover(ext, fileref.file(), cover_);
         return cover_;
     }
@@ -239,10 +239,10 @@ private:
     static void GetCover(const std::string& ext, File*file, std::vector<uint8_t>& cover) {
         static const RobinHoodHashMap<std::string, std::function<bool(File *, std::vector<uint8_t> &)>>
 			parse_cover_table{
-            { ".FLAC", GetFlacCover },
-            { ".MP3",  GetMp3Cover },
-            { ".M4A",  GetMp4Cover },
-            { ".APE",  GetApeCover },
+            { ".flac", GetFlacCover },
+            { ".mp3",  GetMp3Cover },
+            { ".m4a",  GetMp4Cover },
+            { ".ape",  GetApeCover },
         };
         auto itr = parse_cover_table.find(ext);
         if (itr != parse_cover_table.end()) {

@@ -6,8 +6,6 @@
 #pragma once
 
 #include <base/base.h>
-#include <output_device/output_device.h>
-#include <stream/stream.h>
 
 #ifdef XAMP_OS_WIN
 #ifdef XAMP_PALYER_API_EXPORTS
