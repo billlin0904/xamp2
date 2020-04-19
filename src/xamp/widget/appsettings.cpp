@@ -1,5 +1,7 @@
 #include "appsettings.h"
 
+#include <widget/playerorder.h>
+
 const QLatin1String APP_SETTING_LANG{ "AppSettings/lang" };
 const QLatin1String APP_SETTING_DEVICE_TYPE{ "AppSettings/DeviceType" };
 const QLatin1String APP_SETTING_DEVICE_ID{ "AppSettings/DeviceId" };
@@ -25,6 +27,19 @@ LocaleLanguageManager AppSettings::manager_;
 
 void AppSettings::loadIniFile(const QString& file_name) {
 	settings_.reset(new QSettings(file_name, QSettings::IniFormat));
+}
+
+void AppSettings::setOrDefaultConfig() {
+    loadIniFile(Q_UTF8("xamp.ini"));
+    setDefaultValue(APP_SETTING_DEVICE_TYPE, Q_UTF8(""));
+    setDefaultValue(APP_SETTING_DEVICE_ID, Q_UTF8(""));
+    setDefaultValue(APP_SETTING_WIDTH, 600);
+    setDefaultValue(APP_SETTING_HEIGHT, 500);
+    setDefaultValue(APP_SETTING_VOLUME, 50);
+    setDefaultValue(APP_SETTING_NIGHT_MODE, false);
+    setDefaultValue(APP_SETTING_ORDER, PlayerOrder::PLAYER_ORDER_REPEAT_ONCE);
+    setDefaultValue(APP_SETTING_BACKGROUND_COLOR, QColor("#01121212"));
+    setDefaultValue(APP_SETTING_ENABLE_BLUR, true);
 }
 
 xamp::base::ID AppSettings::getID(const QString& key) {

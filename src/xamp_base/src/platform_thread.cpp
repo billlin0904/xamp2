@@ -81,6 +81,19 @@ void SetRealtimeProcessPriority() {
         return;
     }
 }
+
+void SetThreadAffinity(pthread_t thread, int32_t core) {
+    auto mach_thread = ::pthread_mach_thread_np(thread);
+    thread_affinity_policy_data_t policy = { core };
+    auto result = ::thread_policy_set(mach_thread,
+                                      THREAD_AFFINITY_POLICY,
+                                      (thread_policy_t)&policy,
+                                      1);
+    if (result != KERN_SUCCESS) {
+        XAMP_LOG_DEBUG("thread_policy_set return failure!");
+        return;
+    }
+}
 #else
 
 #pragma pack(push,8)
@@ -103,7 +116,7 @@ void SetThreadNameById(DWORD dwThreadID, const char* threadName) {
     info.dwFlags = 0;
 
     __try {
-        ::RaiseException(MS_VC_EXCEPTION, 
+        ::RaiseException(MS_VC_EXCEPTION,
             0,
                          sizeof(info) / sizeof(ULONG_PTR),
             reinterpret_cast<ULONG_PTR*>(&info));
@@ -144,7 +157,7 @@ void SetThreadName(const std::string& name) noexcept {
     // hardcode it.
     const int kMaxNameLength = 63;
     std::string shortened_name = name.substr(0, kMaxNameLength);
-    pthread_setname_np(shortened_name.c_str());
+    ::pthread_setname_np(shortened_name.c_str());
 #endif
 }
 
@@ -160,6 +173,8 @@ void SetThreadAffinity(std::thread& thread, int32_t core) {
     if (!::SetThreadAffinityMask(thread.native_handle(), mask)) {
         XAMP_LOG_DEBUG("SetThreadAffinityMask return failure!");
     }
+#else
+    SetThreadAffinity(thread.native_handle(), core);
 #endif
 }
 
@@ -170,6 +185,8 @@ void SetCurrentThreadAffinity(int32_t core) {
     if (!::SetThreadAffinityMask(current_thread.get(), mask)) {
         XAMP_LOG_DEBUG("SetThreadAffinityMask return failure!");
     }
+#else
+    SetThreadAffinity(::pthread_self(), core);
 #endif
 }
 

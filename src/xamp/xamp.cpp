@@ -102,9 +102,9 @@ Xamp::Xamp(QWidget *parent)
     , playlist_page_(nullptr)
     , album_artist_page_(nullptr)
     , artist_info_page_(nullptr)
-    , playback_history_page_(nullptr)
     , state_adapter_(std::make_shared<PlayerStateAdapter>())
-    , player_(std::make_shared<AudioPlayer>(state_adapter_)) {
+    , player_(std::make_shared<AudioPlayer>(state_adapter_))
+    , playback_history_page_(nullptr) {
 }
 
 void Xamp::initial() {
@@ -250,7 +250,7 @@ void Xamp::initialDeviceList() {
         }
 
 		auto desc = device_type->GetDescription();
-		menu->addAction(createTextSeparator(QLatin1String{ desc.data(), (int)desc.length() }));
+        menu->addAction(createTextSeparator(QLatin1String{ desc.data(), static_cast<int>(desc.length()) }));
 
         for (const auto& device_info : device_info_list) {
             auto device_action = new QAction(QString::fromStdWString(device_info.name), this);
@@ -264,7 +264,7 @@ void Xamp::initialDeviceList() {
             });
             menu->addAction(device_action);
             if (AppSettings::getID(APP_SETTING_DEVICE_TYPE) == device_info.device_type_id
-                    && AppSettings::getValue(APP_SETTING_DEVICE_ID).toString().toStdWString() == device_info.device_id) {
+                    && AppSettings::getValueAsString(APP_SETTING_DEVICE_ID).toStdWString() == device_info.device_id) {
                 device_info_ = device_info;
                 is_find_setting_device = true;
                 device_action->setChecked(true);
@@ -634,17 +634,17 @@ void Xamp::setPlayerOrder() {
     case PlayerOrder::PLAYER_ORDER_REPEAT_ONCE:
         ThemeManager::instance().setRepeatOncePlayorder(ui);
         AppSettings::setValue(APP_SETTING_ORDER,
-                                         (int)PLAYER_ORDER_REPEAT_ONCE);
+                              static_cast<int>(PlayerOrder::PLAYER_ORDER_REPEAT_ONCE));
         break;
     case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:
         ThemeManager::instance().setRepeatOnePlayorder(ui);
         AppSettings::setValue(APP_SETTING_ORDER,
-                                         (int)PLAYER_ORDER_REPEAT_ONE);
+                              static_cast<int>(PlayerOrder::PLAYER_ORDER_REPEAT_ONE));
         break;
     case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL:
         ThemeManager::instance().setShufflePlayorder(ui);
         AppSettings::setValue(APP_SETTING_ORDER,
-                                         (int)PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL);
+                              static_cast<int>(PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL));
         break;
     default:
         break;

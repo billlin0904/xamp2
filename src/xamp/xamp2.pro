@@ -78,6 +78,7 @@ HEADERS += \
     widget/discogsclient.h \
     widget/artistview.h \
     widget/http.h \
+    widget/playerorder.h \
     widget/seekslider.h \
     widget/actionmap.h \
     widget/albumview.h \

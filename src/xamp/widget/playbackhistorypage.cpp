@@ -15,13 +15,12 @@ PushButtonDelegate::PushButtonDelegate(QObject *parent)
     : QItemDelegate(parent) {
 }
 
-void PushButtonDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const {
+void PushButtonDelegate::paint(QPainter *painter, const QStyleOptionViewItem &, const QModelIndex &) const {
     QStyleOptionButton opt;
     QApplication::style()->drawControl(QStyle::CE_PushButton, &opt, painter);
 }
 
-void PushButtonDelegate::initStyleOptionButton(QStyleOptionButton* out, const QStyleOptionViewItem& in, const QModelIndex& index) {
-
+void PushButtonDelegate::initStyleOptionButton(QStyleOptionButton*, const QStyleOptionViewItem&, const QModelIndex&) {
 }
 
 CheckBoxDelegate::CheckBoxDelegate(QObject* parent)
@@ -45,8 +44,8 @@ bool CheckBoxDelegate::editorEvent(QEvent* event, QAbstractItemModel* model, con
 			option.decorationSize,
 			QRect(option.rect.x() + (2 * textMargin), option.rect.y(),
 				option.rect.width() - (2 * textMargin),
-				option.rect.height()));
-		QMouseEvent* mEvent = (QMouseEvent*)event;
+                option.rect.height()));
+        auto mEvent = static_cast<QMouseEvent*>(event);
 		if (!checkRect.contains(mEvent->pos())) {
 			return false;
 		}

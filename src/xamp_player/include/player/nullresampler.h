@@ -38,12 +38,20 @@ public:
 	void Flush() override {
 	}
 private:
-	bool ProcessNativeDsd(const int8_t* sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer) noexcept {
-		return buffer.TryWrite(sample_buffer, num_samples);
+#define IsBufferTooSmallThrow(expr) \
+    do {\
+        if (!(expr)) {\
+        throw Exception(Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR, "Buffer overflow!");\
+        }\
+        return true;\
+    } while(false)
+
+    bool ProcessNativeDsd(const int8_t* sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer) {
+        IsBufferTooSmallThrow(buffer.TryWrite(sample_buffer, num_samples));
 	}
 
-	bool ProcessPcm(const int8_t* sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer) noexcept {
-		return buffer.TryWrite(sample_buffer, num_samples * sample_size_);
+    bool ProcessPcm(const int8_t* sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer) {
+        IsBufferTooSmallThrow(buffer.TryWrite(sample_buffer, num_samples * sample_size_));
 	}
 
 	typedef bool (NullResampler::*ProcessDispatch)(const int8_t* sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer);

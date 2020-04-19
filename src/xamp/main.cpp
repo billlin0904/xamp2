@@ -20,19 +20,6 @@
 #include "singleinstanceapplication.h"
 #include "xamp.h"
 
-static void setOrDefaultConfig() {
-	AppSettings::loadIniFile(Q_UTF8("xamp.ini"));
-	AppSettings::setDefaultValue(APP_SETTING_DEVICE_TYPE, Q_UTF8(""));
-	AppSettings::setDefaultValue(APP_SETTING_DEVICE_ID, Q_UTF8(""));
-	AppSettings::setDefaultValue(APP_SETTING_WIDTH, 600);
-	AppSettings::setDefaultValue(APP_SETTING_HEIGHT, 500);
-	AppSettings::setDefaultValue(APP_SETTING_VOLUME, 50);
-	AppSettings::setDefaultValue(APP_SETTING_NIGHT_MODE, false);
-	AppSettings::setDefaultValue(APP_SETTING_ORDER, PlayerOrder::PLAYER_ORDER_REPEAT_ONCE);
-	AppSettings::setDefaultValue(APP_SETTING_BACKGROUND_COLOR, QColor("#01121212"));
-	AppSettings::setDefaultValue(APP_SETTING_ENABLE_BLUR, true);
-}
-
 static int excute(int argc, char* argv[]) {
 	Logger::Instance()
 #ifdef Q_OS_WIN
@@ -89,8 +76,8 @@ static int excute(int argc, char* argv[]) {
 	(void)RNG::Instance();
 	(void)PixmapCache::instance();
 
-	XAMP_LOG_DEBUG("PixmapCache init success.");
-	
+    XAMP_LOG_DEBUG("PixmapCache init success.");
+
 	try {
 		Database::instance().open(Q_UTF8("xamp.db"));
 	}
@@ -101,7 +88,7 @@ static int excute(int argc, char* argv[]) {
 
 	XAMP_LOG_DEBUG("Database init success.");
 	
-	setOrDefaultConfig();
+    AppSettings::setOrDefaultConfig();
 
 	XAMP_LOG_DEBUG("setOrDefaultConfig success.");
 

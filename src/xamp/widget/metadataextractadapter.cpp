@@ -52,6 +52,9 @@ void MetadataExtractAdapter::OnWalk(const xamp::metadata::Path&, xamp::base::Met
 }
 
 void MetadataExtractAdapter::OnWalkNext() {
+    if (metadatas_.empty()) {
+        return;
+    }
 #ifdef Q_OS_WIN
     std::stable_sort(std::execution::par,
                      metadatas_.begin(), metadatas_.end(), [](const auto & first, const auto & sencond) {
@@ -63,6 +66,7 @@ void MetadataExtractAdapter::OnWalkNext() {
         return first.track < sencond.track;
     });
 #endif
+    XAMP_LOG_DEBUG("read metadata file: {}", metadatas_.size());
     emit readCompleted(metadatas_);
     metadatas_.clear();
 }

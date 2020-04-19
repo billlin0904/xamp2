@@ -10,8 +10,6 @@
 #include <QtWidgets/QMainWindow>
 #include <QWidgetAction>
 #include <QStack>
-#include <QHash>
-#include <QTimer>
 
 #include <output_device/devicefactory.h>
 #include <player/audio_player.h>
@@ -27,17 +25,11 @@
 #include <widget/albumview.h>
 #include <widget/filesystemwatcher.h>
 #include <widget/localelanguage.h>
+#include <widget/playerorder.h>
 
 #include "ui_xamp.h"
 
 using namespace xamp::player;
-
-enum PlayerOrder {
-	PLAYER_ORDER_REPEAT_ONCE,
-	PLAYER_ORDER_REPEAT_ONE,
-	PLAYER_ORDER_SHUFFLE_ALL,
-	_MAX_PLAYER_ORDER_,
-};
 
 class LrcPage;
 class PlyalistPage;
@@ -146,7 +138,7 @@ private:
 
 	void registerMetaType();
 
-	void onDeviceStateChanged(DeviceState state);
+    void onDeviceStateChanged(DeviceState state);
 
 	bool is_seeking_;
 	PlayerOrder order_;

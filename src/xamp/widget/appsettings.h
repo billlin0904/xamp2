@@ -91,6 +91,8 @@ public:
 
     static void loadLanguage(const QString& lang);
 
+    static void setOrDefaultConfig();
+
 protected:
     AppSettings() = default;
 

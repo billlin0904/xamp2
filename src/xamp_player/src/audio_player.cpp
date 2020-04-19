@@ -565,7 +565,6 @@ void AudioPlayer::BufferStream() {
                 return;
             }
             if (!resampler_->Process(reinterpret_cast<const float*>(sample_buffer_.get()), num_samples, buffer_)) {
-                XAMP_LOG_ERROR("Buffer is full.");
                 continue;
             }
             break;
@@ -581,8 +580,7 @@ void AudioPlayer::ReadSampleLoop(uint32_t max_read_sample, std::unique_lock<std:
         const auto num_samples = stream_->GetSamples(sample_buffer, max_read_sample);
 
         if (num_samples > 0) {
-            if (!resampler_->Process(reinterpret_cast<const float*>(sample_buffer_.get()), num_samples, buffer_)) {
-                XAMP_LOG_ERROR("Buffer is full.");
+            if (!resampler->Process(reinterpret_cast<const float*>(sample_buffer_.get()), num_samples, buffer_)) {
                 continue;
             }
             break;

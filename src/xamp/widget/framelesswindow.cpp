@@ -139,6 +139,8 @@ void FramelessWindow::initialFontDatabase() {
 void FramelessWindow::setTaskbarProgress(const double percent) {
 #if defined(Q_OS_WIN)
     taskbar_progress_->setValue(percent);
+#else
+    (void)percent;
 #endif
 }
 

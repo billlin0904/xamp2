@@ -47,6 +47,8 @@ QLatin1String ThemeManager::themeColorPath() const {
     switch (theme_color_) {
     case ThemeColor::DARK_THEME:
         return Q_UTF8("Black");
+    default:
+        return Q_UTF8("White");
     }
     return Q_UTF8("White");
 }
@@ -132,6 +134,9 @@ void ThemeManager::enableBlur(const QWidget* widget, bool enable) {
     ::DwmExtendFrameIntoClientArea(hwnd, &borderless);
 	FluentStyle::setBlurMaterial(widget, enable);
 	AppSettings::setValue(APP_SETTING_ENABLE_BLUR, enable);
+#else
+    (void)widget;
+    (void)enable;
 #endif
 }
 
@@ -316,6 +321,7 @@ void ThemeManager::setDefaultStyle(Ui::XampWindow& ui) {
                                             QLineEdit#searchLineEdit {
                                             background-color: white;
                                             border: none;
+                                            color: gray;
                                             border-radius: 10px;
                                             }
                                             )"));

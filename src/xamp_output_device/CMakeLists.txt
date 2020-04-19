@@ -44,10 +44,11 @@ message(STATUS "LIB_XAMP_BASE: [${LIB_XAMP_BASE}]")
 
 find_library(LIB_COREAUDIO CoreAudio)
 find_library(LIB_COREFOUNDATION CoreFoundation)
+find_library(IOKIT_LIB IOKit)
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
-target_link_libraries(xamp_output_device ${LIB_XAMP_BASE} ${LIB_COREAUDIO} ${LIB_COREFOUNDATION})
+target_link_libraries(xamp_output_device ${LIB_XAMP_BASE} ${LIB_COREAUDIO} ${LIB_COREFOUNDATION} ${IOKIT_LIB})
 
 if(LIBRARY_TESTS)
 include(FetchContent)

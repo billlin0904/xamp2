@@ -231,12 +231,21 @@ void StackTrace::AbortHandler(int32_t signum) {
     const char* name = nullptr;
 
     switch (signum) {
-    case SIGABRT: name = "SIGABRT";  break;
-    case SIGSEGV: name = "SIGSEGV";  break;
-
-    case SIGBUS:  name = "SIGBUS";   break;
-    case SIGILL:  name = "SIGILL";   break;
-    case SIGFPE:  name = "SIGFPE";   break;
+    case SIGABRT:
+        name = "SIGABRT";
+        break;
+    case SIGSEGV:
+        name = "SIGSEGV";
+        break;
+    case SIGBUS:
+        name = "SIGBUS";
+        break;
+    case SIGILL:
+        name = "SIGILL";
+        break;
+    case SIGFPE:
+        name = "SIGFPE";
+        break;
     }
 
     XAMP_LOG_DEBUG("Caught signal {} {}", signum, !name ? "" : name);

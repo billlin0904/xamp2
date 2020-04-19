@@ -13,13 +13,13 @@
 #include <preferencedialog.h>
 
 void PreferenceDialog::initSoxResampler() {
-	ui_.soxrTargetSampleRateComboBox->setCurrentText(QString::number(AppSettings::getValue(APP_SETTING_SOXR_RESAMPLE_SAMPLRATE).toInt()));
-	ui_.soxrResampleQualityComboBox->setCurrentIndex(AppSettings::getValue(APP_SETTING_SOXR_QUALITY).toInt());
-	ui_.soxrPhaseComboBox->setCurrentIndex(AppSettings::getValue(APP_SETTING_SOXR_PHASE).toInt());
-	ui_.soxrPassbandSlider->setValue(AppSettings::getValue(APP_SETTING_SOXR_PASS_BAND).toInt());
+    ui_.soxrTargetSampleRateComboBox->setCurrentText(QString::number(AppSettings::getAsInt(APP_SETTING_SOXR_RESAMPLE_SAMPLRATE)));
+    ui_.soxrResampleQualityComboBox->setCurrentIndex(AppSettings::getAsInt(APP_SETTING_SOXR_QUALITY));
+    ui_.soxrPhaseComboBox->setCurrentIndex(AppSettings::getAsInt(APP_SETTING_SOXR_PHASE));
+    ui_.soxrPassbandSlider->setValue(AppSettings::getAsInt(APP_SETTING_SOXR_PASS_BAND));
 	ui_.soxrPassbandValue->setText(QString(Q_UTF8("%0%")).arg(ui_.soxrPassbandSlider->value()));
 
-	auto enable_resampler = AppSettings::getValue(APP_SETTING_RESAMPLER_ENABLE).toBool();
+    auto enable_resampler = AppSettings::getValueAsBool(APP_SETTING_RESAMPLER_ENABLE);
 	if (!enable_resampler) {
 		ui_.resamplerStackedWidget->setCurrentIndex(0);
 		ui_.selectResamplerComboBox->setCurrentIndex(0);
@@ -29,7 +29,7 @@ void PreferenceDialog::initSoxResampler() {
 		ui_.selectResamplerComboBox->setCurrentIndex(1);
 	}
 
-	auto enable = AppSettings::getValue(APP_SETTING_SOXR_ENABLE_STEEP_FILTER).toBool();
+    auto enable = AppSettings::getValueAsBool(APP_SETTING_SOXR_ENABLE_STEEP_FILTER);
 	if (enable) {
 		ui_.soxrAllowAliasingCheckBox->setChecked(true);
 	}
@@ -126,6 +126,7 @@ PreferenceDialog::PreferenceDialog(QWidget *parent)
 		AppSettings::setValue(APP_SETTING_SOXR_PHASE, 0);
 		AppSettings::setValue(APP_SETTING_SOXR_PASS_BAND, 99);
 		initSoxResampler();
+        AppSettings::setOrDefaultConfig();
 		});
 
 	(void) QObject::connect(ui_.buttonBox, &QDialogButtonBox::accepted, [this]() {

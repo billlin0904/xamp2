@@ -6,6 +6,7 @@
 #include <output_device/win32/sharedwasapidevicetype.h>
 #include <output_device/win32/win32devicestatenotification.h>
 #else
+#include <IOKit/pwr_mgt/IOPMLib.h>
 #include <output_device/osx/coreaudiodevicetype.h>
 #include <output_device/osx/coreaudiodevicestatenotification.h>
 #endif
@@ -20,13 +21,33 @@
 
 namespace xamp::output_device {
 
+#ifdef XAMP_OS_MAC
+static void AwakeFromDisplaySleep() {
+    CFTimeInterval timeout = 5;
+    IOPMAssertionID id = 0;
+    IOReturn result = ::IOPMAssertionCreateWithDescription(kIOPMAssertionTypePreventUserIdleSystemSleep,
+                                                           CFSTR("XAMP"),
+                                                           CFSTR("XAMP"),
+                                                           CFSTR("Avoid player playing into sleep"),
+                                                           CFSTR("/System/Library/CoreServices/powerd.bundle"),
+                                                           timeout,
+                                                           kIOPMAssertionTimeoutActionRelease,
+                                                           &id);
+    if (result != kIOReturnSuccess) {
+        return;
+    }
+    ::IOPMAssertionRelease(id);
+}
+#endif
+
 class DeviceFactory::DeviceStateNotificationImpl {
 public:
 	explicit DeviceStateNotificationImpl(std::weak_ptr<DeviceStateListener> callback) {
 #ifdef XAMP_OS_WIN
 		notification = new win32::Win32DeviceStateNotification(callback);
 #else
-		notification = MakeAlign<osx::CoreAudioDeviceStateNotification>(callback);
+        notification = MakeAlign<osx::CoreAudioDeviceStateNotification>(callback);
+        AwakeFromDisplaySleep();
 #endif
 	}
 #ifdef XAMP_OS_WIN
@@ -99,6 +120,7 @@ bool DeviceFactory::IsExclusiveDevice(const DeviceInfo& info) {
 #endif
 	;
 #else
+    (void)info;
     return false;
 #endif
 }
@@ -107,6 +129,7 @@ bool DeviceFactory::IsASIODevice(const ID id) {
 #ifdef XAMP_OS_WIN
 	return id == ASIODeviceType::Id;
 #else
+    (void)id;
 	return false;
 #endif
 }

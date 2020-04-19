@@ -20,9 +20,8 @@ ArtistViewStyledDelegate::ArtistViewStyledDelegate(QObject* parent)
 void ArtistViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const {
     if (!index.isValid()) {
         return;
-    }    
+    }
 
-    auto artist_id = index.model()->data(index.model()->index(index.row(), 0)).toInt();
     auto artist = index.model()->data(index.model()->index(index.row(), 1)).toString();
     auto cover_id = index.model()->data(index.model()->index(index.row(), 2)).toString();
     auto discogs_artist_id = index.model()->data(index.model()->index(index.row(), 3)).toString();
@@ -38,7 +37,7 @@ void ArtistViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIt
     painter->setClipPath(path);
 
     auto f = painter->font();
-    f.setPointSize(10);
+    f.setPointSize(14);
     f.setBold(true);
     painter->setFont(f);
     painter->fillRect(image_react, Qt::gray);

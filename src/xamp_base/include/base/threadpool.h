@@ -172,6 +172,7 @@ public:
 private:
     void AddThread(size_t i) {
         threads_.push_back(std::thread([i, this]() mutable {
+            std::this_thread::sleep_for(std::chrono::milliseconds(900));
             SetCurrentThreadName(i);
 
             for (;;) {
