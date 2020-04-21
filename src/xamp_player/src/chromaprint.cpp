@@ -19,7 +19,7 @@ public:
 #ifdef XAMP_OS_WIN
 		: module_(LoadModule("chromaprint.dll"))
 #else
-		: module_(LoadDll("libchromaprint.dylib"))
+        : module_(LoadModule("libchromaprint.dylib"))
 #endif
 		, chromaprint_new(module_, "chromaprint_new")
 		, chromaprint_free(module_, "chromaprint_free")

@@ -67,7 +67,7 @@ public:
 #ifdef XAMP_OS_WIN
 		: module_(LoadModule("bassdsd.dll"))
 #else
-		: module_(LoadDll("libbassdsd.dylib"))
+        : module_(LoadModule("libbassdsd.dylib"))
 #endif
 		, BASS_DSD_StreamCreateFile(module_, "BASS_DSD_StreamCreateFile") {
 	}
@@ -131,7 +131,7 @@ private:
 #ifdef XAMP_OS_WIN
 		: module_(LoadModule("bass.dll"))
 #else
-        : module_(LoadDll("libbass.dylib"))
+        : module_(LoadModule("libbass.dylib"))
 #endif
 		, BASS_Init(module_, "BASS_Init")
 		, BASS_SetConfig(module_, "BASS_SetConfig")

@@ -50,7 +50,6 @@ FramelessWindow::FramelessWindow(QWidget* parent)
         border: none;        
     )"));
 #else
-    is_mouse_pressed_ = false;
     setStyleSheet(Q_UTF8(R"(
         font-family: "UI";
     )"));
@@ -314,19 +313,29 @@ bool FramelessWindow::nativeEvent(const QByteArray& event_type, void * message, 
 
 
 void FramelessWindow::mousePressEvent(QMouseEvent* event) {
+#if defined(Q_OS_WIN)
     mouse_pressed_pt_ = event->globalPos();
     win_drag_pos_pt_ = pos();
+#else
+    QWidget::mousePressEvent(event);
+#endif
 }
 
 void FramelessWindow::mouseReleaseEvent(QMouseEvent* event) {
+#if defined(Q_OS_WIN)
     mouse_pressed_pt_ = QPoint();
+#else
+    QWidget::mouseReleaseEvent(event);
+#endif
 }
 
 void FramelessWindow::mouseMoveEvent(QMouseEvent* event) {
+#if defined(Q_OS_WIN)
     if (!mouse_pressed_pt_.isNull()) {
         QPoint delta = event->globalPos() - mouse_pressed_pt_;
         move(win_drag_pos_pt_ + delta);
     }
+#endif
     QWidget::mouseMoveEvent(event);
 }
 

@@ -15,7 +15,7 @@ public:
 #ifdef XAMP_OS_WIN
         : module_(LoadModule("libsoxr.dll"))
 #else
-        : module_(LoadDll("libsoxr.dylib"))
+        : module_(LoadModule("libsoxr.dylib"))
 #endif
         , soxr_quality_spec(module_, "soxr_quality_spec")
         , soxr_create(module_, "soxr_create")
