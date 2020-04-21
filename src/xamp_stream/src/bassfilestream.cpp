@@ -65,7 +65,7 @@ class BassDSDLib final {
 public:
 	BassDSDLib() try
 #ifdef XAMP_OS_WIN
-		: module_(LoadDll("bassdsd.dll"))
+		: module_(LoadModule("bassdsd.dll"))
 #else
 		: module_(LoadDll("libbassdsd.dylib"))
 #endif
@@ -129,7 +129,7 @@ public:
 private:
 	BassLib() try
 #ifdef XAMP_OS_WIN
-		: module_(LoadDll("bass.dll"))
+		: module_(LoadModule("bass.dll"))
 #else
         : module_(LoadDll("libbass.dylib"))
 #endif

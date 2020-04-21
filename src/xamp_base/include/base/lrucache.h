@@ -16,7 +16,7 @@ namespace xamp::base {
 template <typename Key, typename Value>
 class XAMP_BASE_API_ONLY_EXPORT LruCache {
 public:
-    static const size_t LRU_CACHE_SIZE = 128;
+    static const size_t LRU_CACHE_SIZE = 200;
 
     using ItemList = std::list<std::pair<Key, Value>>;
     using NodePtr = typename ItemList::const_iterator;

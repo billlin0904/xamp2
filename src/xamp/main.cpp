@@ -37,21 +37,33 @@ static int excute(int argc, char* argv[]) {
 
 	std::vector<ModuleHandle> preload_modules;
 
-	try {
-#ifdef Q_OS_WIN	
+	const std::vector<std::string_view> preload_modules_names {
+		#ifdef Q_OS_WIN
 		// 如果沒有預先載入拖入檔案會爆音.
-		preload_modules.emplace_back(LoadDll("psapi.dll"));
-		preload_modules.emplace_back(LoadDll("comctl32.dll"));
-		preload_modules.emplace_back(LoadDll("WindowsCodecs.dll"));
+		"psapi.dll",
+		"comctl32.dll",
+		"WindowsCodecs.dll",
 		// 為了效率考量.
-		preload_modules.emplace_back(LoadDll("AUDIOKSE.dll"));
-		preload_modules.emplace_back(LoadDll("avrt.dll"));
+		"AUDIOKSE.dll",
+		"avrt.dll"
+		#else
+		"libchromaprint.dylib",
+		"libbass.dylib"
+		#endif
+	};
+
+	QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+	QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+
+	QApplication app(argc, argv);
+
+	try {
+		for (auto name : preload_modules_names) {
+			preload_modules.emplace_back(LoadModule(name));
+		}
 		AudioPlayer::LoadLib();
+#ifdef Q_OS_WIN
 		VmMemLock::EnableLockMemPrivilege(true);
-#else
-		preload_modules.emplace_back(LoadDll("libchromaprint.dylib"));
-		preload_modules.emplace_back(LoadDll("libbass.dylib"));
-		AudioPlayer::LoadLib();
 #endif
 	}
 	catch (const Exception& e) {
@@ -59,12 +71,7 @@ static int excute(int argc, char* argv[]) {
 		return -1;
 	}
 
-	XAMP_LOG_DEBUG("Preload dll success.");
-
-	QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-	QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
-
-	QApplication app(argc, argv);
+	XAMP_LOG_DEBUG("Preload dll success.");	
 
 	SingleInstanceApplication singleApp;
 	if (!singleApp.attach(QCoreApplication::arguments())) {

@@ -89,7 +89,7 @@ void setBlurMaterial(HWND hWnd, bool enable) {
 	using namespace xamp::base;
 
 	XAMP_DLL_HELPER(SetWindowCompositionAttribute) SetWindowCompositionAttribute {
-		LoadDll("user32.dll"),
+		LoadModule("user32.dll"),
 		"SetWindowCompositionAttribute"
 	};
 

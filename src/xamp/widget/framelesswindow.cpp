@@ -28,8 +28,8 @@ FramelessWindow::FramelessWindow(QWidget* parent)
 #endif
 {    
     setAcceptDrops(true);
-    installEventFilter(this);
     setMouseTracking(true);
+    installEventFilter(this);
     initialFontDatabase();
 #if defined(Q_OS_WIN)
     setWindowFlags(Qt::FramelessWindowHint | Qt::WindowMaximizeButtonHint);
@@ -37,13 +37,12 @@ FramelessWindow::FramelessWindow(QWidget* parent)
     ::DwmIsCompositionEnabled(&is_dwm_enable);
     if (is_dwm_enable) {
         HWND hwnd = (HWND)winId();
-        // 保留1個像素系統才會繪製陰影.
-        MARGINS borderless = { 1, 1, 1, 1 };
+        MARGINS borderless = { 0 };
         ::DwmExtendFrameIntoClientArea(hwnd, &borderless);
         DWMNCRENDERINGPOLICY ncrp = DWMNCRP_ENABLED;
         ::DwmSetWindowAttribute(hwnd, DWMWA_NCRENDERING_POLICY, &ncrp, sizeof(ncrp));
-    }	
-    ThemeManager::instance().enableBlur(this, AppSettings::getValue(APP_SETTING_ENABLE_BLUR).toBool());         
+    }
+    ThemeManager::instance().enableBlur(this, AppSettings::getValueAsBool(APP_SETTING_ENABLE_BLUR));         
     setupThumbnailToolBar();
     setStyleSheet(Q_UTF8(R"(
         font-family: "UI";
@@ -293,7 +292,6 @@ bool FramelessWindow::hitTest(MSG const* msg, long* result) const {
 }
 #endif
 
-
 bool FramelessWindow::nativeEvent(const QByteArray& event_type, void * message, long * result) {
     #if defined(Q_OS_WIN)
     const auto msg = static_cast<MSG const*>(message);
@@ -316,49 +314,20 @@ bool FramelessWindow::nativeEvent(const QByteArray& event_type, void * message, 
 
 
 void FramelessWindow::mousePressEvent(QMouseEvent* event) {
-    if ((event->button() != Qt::LeftButton) || isMaximized()) {
-        return;
-    }
-#if defined(Q_OS_WIN)
-    if (::ReleaseCapture()) {
-        const auto widget = window();
-        if (widget->isTopLevel()) {
-            ::SendMessage(HWND(widget->winId()), WM_SYSCOMMAND, SC_MOVE + HTCAPTION, 0);
-        }
-    }
-    event->ignore();
-#else
-    auto height = size().height();
-    QRect rc;
-    rc.setRect(0,0,size().width(), height);
-    if (rc.contains(mapFromGlobal(QCursor::pos())) == true) {
-        cur_pos_ = this->pos();
-        global_pos_ = event->globalPos();
-        is_mouse_pressed_ = true;
-    }
-#endif
-    return QWidget::mousePressEvent(event);
+    mouse_pressed_pt_ = event->globalPos();
+    win_drag_pos_pt_ = pos();
 }
 
 void FramelessWindow::mouseReleaseEvent(QMouseEvent* event) {
-#if defined(Q_OS_MAC)
-    is_mouse_pressed_ = false;
-    if ((event->button() == Qt::LeftButton)) {
-        is_mouse_pressed_ = false;
-    }
-#endif
-    return QWidget::mouseReleaseEvent(event);
+    mouse_pressed_pt_ = QPoint();
 }
 
 void FramelessWindow::mouseMoveEvent(QMouseEvent* event) {
-#if defined(Q_OS_MAC)
-    if (!is_mouse_pressed_) {
-        return QWidget::mouseMoveEvent(event);
+    if (!mouse_pressed_pt_.isNull()) {
+        QPoint delta = event->globalPos() - mouse_pressed_pt_;
+        move(win_drag_pos_pt_ + delta);
     }
-    is_mouse_pressed_ = true;
-    move(cur_pos_ + (event->globalPos() - global_pos_));
-#endif
-    return QWidget::mouseMoveEvent(event);
+    QWidget::mouseMoveEvent(event);
 }
 
 void FramelessWindow::showEvent(QShowEvent* event) {

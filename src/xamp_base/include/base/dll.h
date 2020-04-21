@@ -20,7 +20,7 @@
 
 namespace xamp::base {
 
-XAMP_BASE_API ModuleHandle LoadDll(std::string_view file_name);
+XAMP_BASE_API ModuleHandle LoadModule(std::string_view file_name);
 
 XAMP_BASE_API void* LoadDllSymbol(const ModuleHandle& dll, std::string_view name) noexcept;
 
@@ -41,9 +41,9 @@ public:
         return func_ != nullptr;
     }
 private:
-    T const * func_;
+    T *func_;
 };
 
-#define XAMP_DLL_HELPER(ImportFunc) DllFunction<decltype(ImportFunc)>
+#define XAMP_DLL_HELPER(Export_C_Func) DllFunction<decltype(Export_C_Func)>
 
 }

@@ -22,7 +22,7 @@ public:
 
 private:
 	AvrtLib()
-		: module_(LoadDll("Avrt.dll"))
+		: module_(LoadModule("Avrt.dll"))
 		, AvRevertMmThreadCharacteristics(module_, "AvRevertMmThreadCharacteristics")
 		, AvSetMmThreadPriority(module_, "AvSetMmThreadPriority")
 		, AvSetMmThreadCharacteristicsW(module_, "AvSetMmThreadCharacteristicsW") {

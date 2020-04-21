@@ -124,6 +124,18 @@ static void SetAudioProperties(AudioProperties* audio_properties, Metadata& meta
     }
 }
 
+static void ExtractTitleFromFileName(Metadata &metadata) {
+    const auto start_pos = metadata.file_name_no_ext.find(L'.');
+    if (start_pos != std::wstring::npos) {
+        metadata.title = metadata.file_name_no_ext.substr(start_pos + 1);
+        std::wistringstream istr(metadata.file_name_no_ext.substr(0, start_pos));
+        istr >> metadata.track;
+    }
+    else {
+        metadata.title = metadata.file_name_no_ext;
+    }
+}
+
 static void ExtractTag(const Path& path, Tag* tag, AudioProperties*audio_properties, Metadata& metadata) {
     try {
         if (!tag->isEmpty()) {
@@ -191,14 +203,7 @@ public:
 
         // Tag not empty but title maybe empty!
         if (metadata.title.empty()) {
-            const auto start_pos = metadata.file_name_no_ext.find(L'.');
-			if (start_pos != std::wstring::npos) {
-				metadata.title = metadata.file_name_no_ext.substr(start_pos + 1);
-				std::wistringstream istr(metadata.file_name_no_ext.substr(0, start_pos));
-				istr >> metadata.track;
-			} else {
-				metadata.title = metadata.file_name_no_ext;
-			}
+            ExtractTitleFromFileName(metadata);
         }
 
         return metadata;

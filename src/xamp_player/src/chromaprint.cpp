@@ -17,7 +17,7 @@ class ChromaprintLib final {
 public:
 	ChromaprintLib() try
 #ifdef XAMP_OS_WIN
-		: module_(LoadDll("chromaprint.dll"))
+		: module_(LoadModule("chromaprint.dll"))
 #else
 		: module_(LoadDll("libchromaprint.dylib"))
 #endif

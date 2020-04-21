@@ -87,12 +87,10 @@ private:
 	QIcon stop_play_icon_;
 	QIcon seek_forward_icon_;
 	QIcon seek_backward_icon_;
+	QPoint mouse_pressed_pt_;
+	QPoint win_drag_pos_pt_;
 	xamp::base::align_ptr<QWinThumbnailToolBar> thumbnail_tool_bar_;
 	xamp::base::align_ptr<QWinTaskbarButton> taskbar_button_;
 	QWinTaskbarProgress* taskbar_progress_;
-#else
-    bool is_mouse_pressed_;
-    QPoint cur_pos_;
-    QPoint global_pos_;
 #endif
 };

@@ -13,7 +13,7 @@ class SoxrLib final {
 public:
     SoxrLib() try
 #ifdef XAMP_OS_WIN
-        : module_(LoadDll("libsoxr.dll"))
+        : module_(LoadModule("libsoxr.dll"))
 #else
         : module_(LoadDll("libsoxr.dylib"))
 #endif
