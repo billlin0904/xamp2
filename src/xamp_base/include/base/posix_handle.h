@@ -25,7 +25,7 @@ struct ModuleHandleTraits final {
     }
 
     static void close(void* value) noexcept {
-        dlclose(value);
+        ::dlclose(value);
     }
 };
 
