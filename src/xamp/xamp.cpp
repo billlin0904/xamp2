@@ -162,7 +162,7 @@ void Xamp::initialUI() {
 
     ui.setupUi(this);
 
-    watch_.addPath(AppSettings::getValue(APP_SETTING_MUSIC_FILE_PATH).toString());
+    watch_.addPath(AppSettings::getValueAsString(APP_SETTING_MUSIC_FILE_PATH));
 
     setGeometry(QStyle::alignedRect(Qt::LeftToRight,
                                     Qt::AlignCenter,
@@ -200,6 +200,8 @@ void Xamp::initialUI() {
     else {
         AppSettings::loadLanguage(AppSettings::getValueAsString(APP_SETTING_LANG));
     }
+
+    DeviceFactory::PreventSleep(AppSettings::getValueAsBool(APP_SETTING_PREVENT_SLEEP));
 }
 
 QWidgetAction* Xamp::createTextSeparator(const QString& text) {

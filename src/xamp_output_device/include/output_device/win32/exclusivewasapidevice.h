@@ -62,10 +62,6 @@ public:
 	uint32_t GetBufferSize() const noexcept override;
 
 private:
-	void RegisterDeviceVolumeChange();
-
-	void UnRegisterDeviceVolumeChange();
-
 	void InitialDeviceFormat(const AudioFormat& output_format, uint32_t valid_bits_samples);
 
 	void FillSilentSample(uint32_t frames_available) const;

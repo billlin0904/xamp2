@@ -56,11 +56,11 @@ public:
     }
 
 	void WriteEmbeddedCover(const Path& path, const std::vector<uint8_t>& image) const {
-		const auto ext = ToUpper(path.extension().string());
+		const auto ext = ToLower(path.extension().string());
 
 		const TagLib::ByteVector imagedata(reinterpret_cast<const char *>(image.data()), image.size());
 
-		if (ext == ".M4A") {			
+		if (ext == ".m4a") {			
 			TagLib::MP4::CoverArt cover_art(static_cast<TagLib::MP4::CoverArt::Format>(0x0D), imagedata);
 
             Write(path, [&cover_art](auto file, auto tag) {
@@ -73,7 +73,7 @@ public:
 				}
 			});
 		}
-		else if (ext == ".MP3") {
+		else if (ext == ".mp3") {
             Write(path, [&imagedata](auto file, auto tag) {
 				if (const auto mp3_file = dynamic_cast<TagLib::MPEG::File*>(file)) {
 					if (const auto mp3_tag = mp3_file->ID3v2Tag(true)) {
@@ -92,7 +92,7 @@ public:
 					}					
 				}
 			});
-		} else if (ext == ".FLAC") {
+		} else if (ext == ".flac") {
 			Write(path, [&imagedata](auto file, auto tag) {
 				if (const auto flac_file = dynamic_cast<TagLib::FLAC::File*>(file)) {
 					flac_file->removePictures();

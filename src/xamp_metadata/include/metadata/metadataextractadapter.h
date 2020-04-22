@@ -12,6 +12,8 @@ namespace xamp::metadata {
 
 class XAMP_METADATA_API XAMP_NO_VTABLE MetadataExtractAdapter {
 public:
+    virtual ~MetadataExtractAdapter() = default;
+
     virtual void OnWalk(const Path &path, Metadata metadata) = 0;
 
     virtual void OnWalkNext() = 0;

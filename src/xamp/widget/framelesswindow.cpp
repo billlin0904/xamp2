@@ -67,10 +67,10 @@ void FramelessWindow::setupThumbnailToolBar() {
     seek_forward_icon_ = style()->standardIcon(QStyle::SP_MediaSeekForward);
     seek_backward_icon_ = style()->standardIcon(QStyle::SP_MediaSeekBackward);
    
-    thumbnail_tool_bar_ = xamp::base::MakeAlign<QWinThumbnailToolBar>(this);
+    thumbnail_tool_bar_.reset(new QWinThumbnailToolBar(this));
     thumbnail_tool_bar_->setWindow(windowHandle());
 
-    taskbar_button_ = xamp::base::MakeAlign<QWinTaskbarButton>(this);
+    taskbar_button_.reset(new QWinTaskbarButton(this));
     taskbar_button_->setWindow(windowHandle());
     taskbar_progress_ = taskbar_button_->progress();
     taskbar_progress_->setVisible(true);

@@ -3,8 +3,10 @@
 #include <widget/playerorder.h>
 
 const QLatin1String APP_SETTING_LANG{ "AppSettings/lang" };
-const QLatin1String APP_SETTING_DEVICE_TYPE{ "AppSettings/DeviceType" };
-const QLatin1String APP_SETTING_DEVICE_ID{ "AppSettings/DeviceId" };
+
+const QLatin1String APP_SETTING_PREVENT_SLEEP{ "AppSettings/preventSleep" };
+const QLatin1String APP_SETTING_DEVICE_TYPE{ "AppSettings/deviceType" };
+const QLatin1String APP_SETTING_DEVICE_ID{ "AppSettings/deviceId" };
 const QLatin1String APP_SETTING_WIDTH{ "AppSettings/width" };
 const QLatin1String APP_SETTING_HEIGHT{ "AppSettings/height" };
 const QLatin1String APP_SETTING_VOLUME{ "AppSettings/volume" };
@@ -40,6 +42,7 @@ void AppSettings::setOrDefaultConfig() {
     setDefaultValue(APP_SETTING_ORDER, PlayerOrder::PLAYER_ORDER_REPEAT_ONCE);
     setDefaultValue(APP_SETTING_BACKGROUND_COLOR, QColor("#01121212"));
     setDefaultValue(APP_SETTING_ENABLE_BLUR, true);
+	setDefaultValue(APP_SETTING_PREVENT_SLEEP, true);
 }
 
 xamp::base::ID AppSettings::getID(const QString& key) {

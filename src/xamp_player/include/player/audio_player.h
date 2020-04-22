@@ -170,7 +170,7 @@ private:
 	WaitableTimer wait_timer_;
     align_ptr<Resampler> resampler_;
     DeviceInfo device_info_;
-    std::shared_future<void> stream_task_;
+    std::future<void> stream_task_;
 };
 
 }

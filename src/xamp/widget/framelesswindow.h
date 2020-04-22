@@ -89,8 +89,8 @@ private:
 	QIcon seek_backward_icon_;
 	QPoint mouse_pressed_pt_;
 	QPoint win_drag_pos_pt_;
-	xamp::base::align_ptr<QWinThumbnailToolBar> thumbnail_tool_bar_;
-	xamp::base::align_ptr<QWinTaskbarButton> taskbar_button_;
+	QScopedPointer<QWinThumbnailToolBar> thumbnail_tool_bar_;
+	QScopedPointer<QWinTaskbarButton> taskbar_button_;
 	QWinTaskbarProgress* taskbar_progress_;
 #endif
 };

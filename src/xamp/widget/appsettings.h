@@ -15,6 +15,7 @@
 #include <widget/localelanguage.h>
 
 extern const QLatin1String APP_SETTING_LANG;
+extern const QLatin1String APP_SETTING_PREVENT_SLEEP;
 
 extern const QLatin1String APP_SETTING_DEVICE_TYPE;
 extern const QLatin1String APP_SETTING_DEVICE_ID;

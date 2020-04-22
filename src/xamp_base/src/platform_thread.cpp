@@ -136,7 +136,7 @@ void SetThreadName(const std::string& name) noexcept {
         // At Windows 10 1607 Supported.
         // The SetThreadDescription API works even if no debugger is attached.
         DllFunction<HRESULT(HANDLE hThread, PCWSTR lpThreadDescription)>
-            SetThreadDescription(LoadDll("Kernel32.dll"), "SetThreadDescription");
+            SetThreadDescription(LoadModule("Kernel32.dll"), "SetThreadDescription");
 
         if (SetThreadDescription) {
             SetThreadDescription(thread.get(), ToStdWString(name).c_str());

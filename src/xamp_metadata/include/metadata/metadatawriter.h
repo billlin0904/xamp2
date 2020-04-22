@@ -12,6 +12,8 @@ namespace xamp::metadata {
 
 class XAMP_METADATA_API XAMP_NO_VTABLE MetadataWriter {
 public:
+    virtual ~MetadataWriter() = default;
+
 	virtual bool IsFileReadOnly(const Path& path) const = 0;
     
     virtual void Write(const Path &path, Metadata &metadata) = 0;

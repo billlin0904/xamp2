@@ -17,6 +17,8 @@ namespace xamp::metadata {
 
 class XAMP_METADATA_API XAMP_NO_VTABLE MetadataReader {
 public:
+    virtual ~MetadataReader() = default;
+
     virtual Metadata Extract(const Path &path) = 0;
  
     virtual const std::vector<uint8_t>& ExtractEmbeddedCover(const Path &path) = 0;

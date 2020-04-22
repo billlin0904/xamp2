@@ -56,11 +56,13 @@ public:
 
     bool IsPlatformSupportedASIO() const;
 
+    bool IsDeviceTypeExist(const ID id) const;
+
     static bool IsExclusiveDevice(const DeviceInfo &info);
 
     static bool IsASIODevice(const ID id);
 
-    bool IsDeviceTypeExist(const ID id) const;
+    static void PreventSleep(bool allow);
 private:
     class DeviceStateNotificationImpl;
 

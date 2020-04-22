@@ -18,6 +18,7 @@
 #include <base/base.h>
 #include <base/memory.h>
 #include <base/align_ptr.h>
+#include <base/logger.h>
 #include <base/stl.h>
 #include <base/circularbuffer.h>
 #include <base/platform_thread.h>
@@ -27,7 +28,7 @@ namespace xamp::base {
 template <typename Type>
 class BoundedQueue final {
 public:
-	explicit BoundedQueue(size_t const size)
+	explicit BoundedQueue(size_t size)
 		: done_(false)
         , queue_(size) {
 	}
@@ -232,7 +233,7 @@ public:
 	XAMP_DISABLE_COPY(ThreadPool)
 
     template <typename F, typename... Args>
-    decltype(auto) StartNew(F f, Args&&... args);
+    decltype(auto) StartNew(F&& f, Args&&... args);
 
     size_t GetActiveThreadCount() const;
 
@@ -244,7 +245,7 @@ private:
 };
 
 template <typename F, typename ... Args>
-decltype(auto) ThreadPool::StartNew(F f, Args&&... args) {
+decltype(auto) ThreadPool::StartNew(F &&f, Args&&... args) {
     using ReturnType = std::invoke_result_t<F, Args...>;
 
     auto task = std::make_shared<std::packaged_task<ReturnType()>>(
@@ -257,7 +258,7 @@ decltype(auto) ThreadPool::StartNew(F f, Args&&... args) {
         (*task)();
 	});
 
-    return future.share();
+    return future;
 }
 
 }
