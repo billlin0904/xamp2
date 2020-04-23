@@ -28,6 +28,7 @@
 #include <widget/selectcolorwidget.h>
 #include <widget/artistinfopage.h>
 #include <widget/spectrograph.h>
+#include <widget/jsonsettings.h>
 
 #include "aboutdialog.h"
 #include "preferencedialog.h"
@@ -748,11 +749,15 @@ void Xamp::resetSeekPosValue() {
 
 void Xamp::setupResampler() {
     if (AppSettings::getValue(APP_SETTING_RESAMPLER_ENABLE).toBool()) {
-        auto samplerate = AppSettings::getAsInt(APP_SETTING_SOXR_RESAMPLE_SAMPLRATE);
-        auto quality = static_cast<SoxrQuality>(AppSettings::getAsInt(APP_SETTING_SOXR_QUALITY));
-        auto phase = static_cast<SoxrPhaseResponse>(AppSettings::getAsInt(APP_SETTING_SOXR_PHASE));
-        auto passband = AppSettings::getAsInt(APP_SETTING_SOXR_PASS_BAND);
-        auto enable_steep_filter = AppSettings::getValueAsBool(APP_SETTING_SOXR_ENABLE_STEEP_FILTER);
+        auto soxr_settings = QVariant::fromValue(
+            JsonSettings::getValue(AppSettings::getValueAsString(APP_SETTING_SOXR_SETTING_NAME))
+        ).toMap();
+
+        auto samplerate = soxr_settings[SOXR_RESAMPLE_SAMPLRATE].toInt();
+        auto quality = static_cast<SoxrQuality>(soxr_settings[SOXR_QUALITY].toInt());
+        auto phase = static_cast<SoxrPhaseResponse>(soxr_settings[SOXR_PHASE].toInt());
+        auto passband = soxr_settings[SOXR_PASS_BAND].toInt();
+        auto enable_steep_filter = soxr_settings[SOXR_ENABLE_STEEP_FILTER].toBool();
 
         auto resampler = MakeAlign<Resampler, SoxrResampler>();
         auto soxr = dynamic_cast<SoxrResampler*>(resampler.get());

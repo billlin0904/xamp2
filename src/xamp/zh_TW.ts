@@ -18,17 +18,17 @@
 <context>
     <name>AlbumView</name>
     <message>
-        <location filename="widget/albumview.cpp" line="436"/>
+        <location filename="widget/albumview.cpp" line="441"/>
         <source>Add album to playlist</source>
         <translation type="unfinished">加入專輯至撥放清單</translation>
     </message>
     <message>
-        <location filename="widget/albumview.cpp" line="444"/>
+        <location filename="widget/albumview.cpp" line="449"/>
         <source>Copy album</source>
         <translation>拷貝專輯名稱至剪貼簿</translation>
     </message>
     <message>
-        <location filename="widget/albumview.cpp" line="448"/>
+        <location filename="widget/albumview.cpp" line="453"/>
         <source>Copy artist</source>
         <translation type="unfinished">拷貝演出者至剪貼簿</translation>
     </message>
@@ -36,12 +36,7 @@
 <context>
     <name>AlbumViewPage</name>
     <message>
-        <location filename="widget/albumview.cpp" line="213"/>
-        <source>X</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="widget/albumview.cpp" line="319"/>
+        <location filename="widget/albumview.cpp" line="325"/>
         <source>%1 Songs</source>
         <translation type="unfinished">%1 歌曲</translation>
     </message>
@@ -171,27 +166,27 @@
 <context>
     <name>PlaybackHistoryPage</name>
     <message>
-        <location filename="widget/playbackhistorypage.cpp" line="286"/>
+        <location filename="widget/playbackhistorypage.cpp" line="285"/>
         <source>X</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/playbackhistorypage.cpp" line="292"/>
+        <location filename="widget/playbackhistorypage.cpp" line="291"/>
         <source>Select</source>
         <translation type="unfinished">選取</translation>
     </message>
     <message>
-        <location filename="widget/playbackhistorypage.cpp" line="297"/>
+        <location filename="widget/playbackhistorypage.cpp" line="296"/>
         <source>Clear</source>
         <translation type="unfinished">清除</translation>
     </message>
     <message>
-        <location filename="widget/playbackhistorypage.cpp" line="304"/>
+        <location filename="widget/playbackhistorypage.cpp" line="303"/>
         <source>Remove All</source>
         <translation type="unfinished">移除全部</translation>
     </message>
     <message>
-        <location filename="widget/playbackhistorypage.cpp" line="309"/>
+        <location filename="widget/playbackhistorypage.cpp" line="308"/>
         <source>Save</source>
         <translation type="unfinished">保存</translation>
     </message>
@@ -234,154 +229,163 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="preferencedialog.ui" line="195"/>
-        <location filename="preferencedialog.ui" line="491"/>
-        <source>Target samplerate:</source>
-        <translation type="unfinished">目標採樣率</translation>
+        <location filename="preferencedialog.ui" line="206"/>
+        <source>Settings:</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="preferencedialog.ui" line="209"/>
-        <location filename="preferencedialog.ui" line="505"/>
+        <location filename="preferencedialog.ui" line="218"/>
+        <source>Save</source>
+        <translation type="unfinished">保存</translation>
+    </message>
+    <message>
+        <location filename="preferencedialog.ui" line="225"/>
+        <source>New</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="preferencedialog.ui" line="248"/>
+        <source>Target samplerate:</source>
+        <translation type="unfinished">目標採樣率:</translation>
+    </message>
+    <message>
+        <location filename="preferencedialog.ui" line="262"/>
         <source>44100</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="preferencedialog.ui" line="214"/>
-        <location filename="preferencedialog.ui" line="510"/>
+        <location filename="preferencedialog.ui" line="267"/>
         <source>48000</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="preferencedialog.ui" line="219"/>
-        <location filename="preferencedialog.ui" line="515"/>
+        <location filename="preferencedialog.ui" line="272"/>
         <source>88200</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="preferencedialog.ui" line="224"/>
-        <location filename="preferencedialog.ui" line="520"/>
+        <location filename="preferencedialog.ui" line="277"/>
         <source>96000</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="preferencedialog.ui" line="229"/>
-        <location filename="preferencedialog.ui" line="525"/>
+        <location filename="preferencedialog.ui" line="282"/>
         <source>176400</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="preferencedialog.ui" line="234"/>
-        <location filename="preferencedialog.ui" line="530"/>
+        <location filename="preferencedialog.ui" line="287"/>
         <source>192000</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="preferencedialog.ui" line="239"/>
-        <location filename="preferencedialog.ui" line="535"/>
+        <location filename="preferencedialog.ui" line="292"/>
         <source>352800</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="preferencedialog.ui" line="244"/>
-        <location filename="preferencedialog.ui" line="540"/>
+        <location filename="preferencedialog.ui" line="297"/>
         <source>384000</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="preferencedialog.ui" line="252"/>
-        <location filename="preferencedialog.ui" line="548"/>
+        <location filename="preferencedialog.ui" line="305"/>
         <source>Hz</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="preferencedialog.ui" line="284"/>
+        <location filename="preferencedialog.ui" line="340"/>
         <source>Quality:</source>
         <translation type="unfinished">品質:</translation>
     </message>
     <message>
-        <location filename="preferencedialog.ui" line="298"/>
+        <location filename="preferencedialog.ui" line="354"/>
         <source>Low</source>
         <translation type="unfinished">低</translation>
     </message>
     <message>
-        <location filename="preferencedialog.ui" line="303"/>
+        <location filename="preferencedialog.ui" line="359"/>
         <source>Medium</source>
         <translation type="unfinished">中</translation>
     </message>
     <message>
-        <location filename="preferencedialog.ui" line="308"/>
+        <location filename="preferencedialog.ui" line="364"/>
         <source>High Quality</source>
         <translation type="unfinished">高品質</translation>
     </message>
     <message>
-        <location filename="preferencedialog.ui" line="313"/>
+        <location filename="preferencedialog.ui" line="369"/>
         <source>Very High Quality</source>
         <translation type="unfinished">最高品質</translation>
     </message>
     <message>
-        <location filename="preferencedialog.ui" line="318"/>
+        <location filename="preferencedialog.ui" line="374"/>
         <source>Ultra High Quality</source>
         <translation type="unfinished">極限高品質</translation>
     </message>
     <message>
-        <location filename="preferencedialog.ui" line="351"/>
+        <location filename="preferencedialog.ui" line="407"/>
         <source>Phase:</source>
         <translation type="unfinished">相位:</translation>
     </message>
     <message>
-        <location filename="preferencedialog.ui" line="371"/>
+        <location filename="preferencedialog.ui" line="427"/>
         <source>Linear Phase</source>
         <translation type="unfinished">線性</translation>
     </message>
     <message>
-        <location filename="preferencedialog.ui" line="376"/>
+        <location filename="preferencedialog.ui" line="432"/>
         <source>Intermediate Phase</source>
         <translation type="unfinished">中間相位</translation>
     </message>
     <message>
-        <location filename="preferencedialog.ui" line="381"/>
+        <location filename="preferencedialog.ui" line="437"/>
         <source>Minimum Phase</source>
         <translation type="unfinished">最小相位</translation>
     </message>
     <message>
-        <location filename="preferencedialog.ui" line="410"/>
-        <source>Passsband</source>
-        <translation type="unfinished">通帶</translation>
+        <location filename="preferencedialog.ui" line="466"/>
+        <source>Passsband:</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="preferencedialog.ui" line="444"/>
+        <source>Passsband</source>
+        <translation type="obsolete">通帶</translation>
+    </message>
+    <message>
+        <location filename="preferencedialog.ui" line="500"/>
         <source>90%</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="preferencedialog.ui" line="457"/>
+        <location filename="preferencedialog.ui" line="513"/>
         <source>Enable Steep Filter</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="preferencedialog.ui" line="597"/>
+        <location filename="preferencedialog.ui" line="545"/>
         <source>Reset All</source>
         <translation type="unfinished">重置設定</translation>
     </message>
     <message>
-        <location filename="preferencedialog.cpp" line="64"/>
+        <location filename="preferencedialog.cpp" line="96"/>
         <source>Preferences</source>
         <translation type="unfinished">設定</translation>
     </message>
     <message>
-        <location filename="preferencedialog.cpp" line="69"/>
-        <location filename="preferencedialog.cpp" line="80"/>
+        <location filename="preferencedialog.cpp" line="101"/>
+        <location filename="preferencedialog.cpp" line="112"/>
         <source>Playback</source>
         <translation type="unfinished">回放</translation>
     </message>
     <message>
-        <location filename="preferencedialog.cpp" line="72"/>
-        <location filename="preferencedialog.cpp" line="81"/>
+        <location filename="preferencedialog.cpp" line="104"/>
+        <location filename="preferencedialog.cpp" line="113"/>
         <source>Resampler</source>
         <translation type="unfinished">重採樣器</translation>
     </message>
     <message>
-        <location filename="preferencedialog.cpp" line="112"/>
+        <location filename="preferencedialog.cpp" line="144"/>
         <source>Select a directory</source>
         <translation type="unfinished">選擇資料夾</translation>
     </message>
@@ -402,84 +406,84 @@
 <context>
     <name>Xamp</name>
     <message>
-        <location filename="xamp.cpp" line="378"/>
-        <location filename="xamp.cpp" line="383"/>
-        <location filename="xamp.cpp" line="388"/>
+        <location filename="xamp.cpp" line="380"/>
+        <location filename="xamp.cpp" line="385"/>
+        <location filename="xamp.cpp" line="390"/>
         <source>Volume : </source>
         <translation type="unfinished">音量:</translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="475"/>
+        <location filename="xamp.cpp" line="477"/>
         <source>Settings</source>
         <translation type="unfinished">設定</translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="487"/>
+        <location filename="xamp.cpp" line="489"/>
         <source>Enable blur</source>
         <translation type="unfinished">開啟模糊</translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="499"/>
+        <location filename="xamp.cpp" line="501"/>
         <source>Theme color</source>
         <translation type="unfinished">佈景主題</translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="509"/>
+        <location filename="xamp.cpp" line="511"/>
         <source>About</source>
         <translation type="unfinished">關於</translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="521"/>
+        <location filename="xamp.cpp" line="523"/>
         <source>Search anything</source>
         <translation type="unfinished">查詢歌曲或是專輯</translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="683"/>
+        <location filename="xamp.cpp" line="685"/>
         <source>Not found any playlist item.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="734"/>
+        <location filename="xamp.cpp" line="736"/>
         <source>Not found any playing item.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="801"/>
+        <location filename="xamp.cpp" line="804"/>
         <source>uknown error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="907"/>
+        <location filename="xamp.cpp" line="910"/>
         <source>Input Table Name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="908"/>
+        <location filename="xamp.cpp" line="911"/>
         <source>Please input your name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="910"/>
+        <location filename="xamp.cpp" line="913"/>
         <source>My favorite</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="1121"/>
+        <location filename="xamp.cpp" line="1124"/>
         <source>Read &apos;</source>
         <translation type="unfinished">讀取</translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="1121"/>
+        <location filename="xamp.cpp" line="1124"/>
         <source>&apos; fingerprint</source>
         <translation type="unfinished">聲紋</translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="1121"/>
+        <location filename="xamp.cpp" line="1124"/>
         <source>Cancel</source>
         <translation type="unfinished">取消</translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="1124"/>
+        <location filename="xamp.cpp" line="1127"/>
         <source>Read progress dialog</source>
         <translation type="unfinished">讀取進度</translation>
     </message>

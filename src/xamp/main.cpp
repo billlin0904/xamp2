@@ -12,6 +12,7 @@
 #include <widget/database.h>
 #include <widget/pixmapcache.h>
 #include <widget/str_utilts.h>
+#include <widget/jsonsettings.h>
 
 #include <QMessageBox>
 #include <QtWidgets/QApplication>
@@ -19,6 +20,26 @@
 #include "thememanager.h"
 #include "singleinstanceapplication.h"
 #include "xamp.h"
+
+void loadOrDefaultSoxrSetting() {
+	if (JsonSettings::keys().count() > 0) {
+		return;
+	}
+
+	QMap<QString, QVariant> defaultSetting;
+
+	defaultSetting[SOXR_RESAMPLE_SAMPLRATE] = 44100;
+	defaultSetting[SOXR_ENABLE_STEEP_FILTER] = false;
+	defaultSetting[SOXR_QUALITY] = 3;
+	defaultSetting[SOXR_PHASE] = 0;
+	defaultSetting[SOXR_PASS_BAND] = 91;
+
+	JsonSettings::setValue(SOXR_DEFAULT_SETTING_NAME, QVariant::fromValue(defaultSetting));
+	AppSettings::setValue(APP_SETTING_SOXR_SETTING_NAME, SOXR_DEFAULT_SETTING_NAME);
+	AppSettings::setDefaultValue(APP_SETTING_SOXR_SETTING_NAME, SOXR_DEFAULT_SETTING_NAME);
+
+	JsonSettings::save();
+}
 
 static int excute(int argc, char* argv[]) {
 	Logger::Instance()
@@ -95,7 +116,9 @@ static int excute(int argc, char* argv[]) {
 
 	XAMP_LOG_DEBUG("Database init success.");
 	
-    AppSettings::setOrDefaultConfig();
+	AppSettings::setOrDefaultConfig();
+	JsonSettings::loadJsonFile(Q_UTF8("soxr.json"));
+	loadOrDefaultSoxrSetting();
 
 	XAMP_LOG_DEBUG("setOrDefaultConfig success.");
 

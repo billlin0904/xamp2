@@ -29,11 +29,7 @@ extern const QLatin1String APP_SETTING_BACKGROUND_COLOR;
 extern const QLatin1String APP_SETTING_MUSIC_FILE_PATH;
 
 extern const QLatin1String APP_SETTING_RESAMPLER_ENABLE;
-extern const QLatin1String APP_SETTING_SOXR_RESAMPLE_SAMPLRATE;
-extern const QLatin1String APP_SETTING_SOXR_ENABLE_STEEP_FILTER;
-extern const QLatin1String APP_SETTING_SOXR_QUALITY;
-extern const QLatin1String APP_SETTING_SOXR_PHASE;
-extern const QLatin1String APP_SETTING_SOXR_PASS_BAND;
+extern const QLatin1String APP_SETTING_SOXR_SETTING_NAME;
 
 class AppSettings {
 public:    
@@ -66,6 +62,10 @@ public:
     }
 
     static void setValue(const QString &key, const QString &value) {
+        settings_->setValue(key, value);
+    }
+
+    static void setValue(const QLatin1String& key, const QLatin1String& value) {
         settings_->setValue(key, value);
     }
 

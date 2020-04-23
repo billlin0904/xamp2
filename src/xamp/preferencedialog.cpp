@@ -10,16 +10,31 @@
 #include <widget/str_utilts.h>
 #include <widget/appsettings.h>
 #include <widget/localelanguage.h>
+#include <widget/jsonsettings.h>
+
 #include <preferencedialog.h>
 
-void PreferenceDialog::initSoxResampler() {
-    ui_.soxrTargetSampleRateComboBox->setCurrentText(QString::number(AppSettings::getAsInt(APP_SETTING_SOXR_RESAMPLE_SAMPLRATE)));
-    ui_.soxrResampleQualityComboBox->setCurrentIndex(AppSettings::getAsInt(APP_SETTING_SOXR_QUALITY));
-    ui_.soxrPhaseComboBox->setCurrentIndex(AppSettings::getAsInt(APP_SETTING_SOXR_PHASE));
-    ui_.soxrPassbandSlider->setValue(AppSettings::getAsInt(APP_SETTING_SOXR_PASS_BAND));
+void PreferenceDialog::loadSoxrResampler(const QVariantMap& soxr_settings) {
+	ui_.soxrTargetSampleRateComboBox->setCurrentText(QString::number(soxr_settings[SOXR_RESAMPLE_SAMPLRATE].toInt()));
+	ui_.soxrResampleQualityComboBox->setCurrentIndex(soxr_settings[SOXR_QUALITY].toInt());
+	ui_.soxrPhaseComboBox->setCurrentIndex(soxr_settings[SOXR_PHASE].toInt());
+	ui_.soxrPassbandSlider->setValue(soxr_settings[SOXR_PASS_BAND].toInt());
 	ui_.soxrPassbandValue->setText(QString(Q_UTF8("%0%")).arg(ui_.soxrPassbandSlider->value()));
 
-    auto enable_resampler = AppSettings::getValueAsBool(APP_SETTING_RESAMPLER_ENABLE);
+	if (soxr_settings[SOXR_ENABLE_STEEP_FILTER].toBool()) {
+		ui_.soxrAllowAliasingCheckBox->setChecked(true);
+	}
+	else {
+		ui_.soxrAllowAliasingCheckBox->setChecked(false);
+	}
+}
+
+void PreferenceDialog::initSoxResampler() {
+	for (auto soxr_setting_name : JsonSettings::keys()) {
+		ui_.soxrSettingCombo->addItem(soxr_setting_name);
+	}
+
+	auto enable_resampler = AppSettings::getValueAsBool(APP_SETTING_RESAMPLER_ENABLE);
 	if (!enable_resampler) {
 		ui_.resamplerStackedWidget->setCurrentIndex(0);
 		ui_.selectResamplerComboBox->setCurrentIndex(0);
@@ -29,13 +44,26 @@ void PreferenceDialog::initSoxResampler() {
 		ui_.selectResamplerComboBox->setCurrentIndex(1);
 	}
 
-    auto enable = AppSettings::getValueAsBool(APP_SETTING_SOXR_ENABLE_STEEP_FILTER);
-	if (enable) {
-		ui_.soxrAllowAliasingCheckBox->setChecked(true);
-	}
-	else {
-		ui_.soxrAllowAliasingCheckBox->setChecked(false);
-	}
+	auto soxr_settings = QVariant::fromValue(
+		JsonSettings::getValue(AppSettings::getValueAsString(APP_SETTING_SOXR_SETTING_NAME))
+	).toMap();
+
+	loadSoxrResampler(soxr_settings);
+
+	(void)QObject::connect(ui_.saveSoxrSettingBtn, &QPushButton::pressed, [this]() {		
+		});
+
+	(void)QObject::connect(ui_.deleteSoxrSettingBtn, &QPushButton::pressed, [this]() {
+		auto name = ui_.soxrSettingCombo->currentText();
+		if (name == SOXR_DEFAULT_SETTING_NAME) {
+			return;
+		}
+		});
+
+	(void)QObject::connect(ui_.soxrSettingCombo, static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::activated), [this](auto index) {
+		auto soxr_settings = QVariant::fromValue(JsonSettings::getValue(index)).toMap();
+		loadSoxrResampler(soxr_settings);
+		});
 }
 
 void PreferenceDialog::initLang() {
@@ -119,12 +147,6 @@ PreferenceDialog::PreferenceDialog(QWidget *parent)
 		});
 
 	(void)QObject::connect(ui_.resetAllButton, &QPushButton::clicked, [this]() {
-		AppSettings::setValue(APP_SETTING_RESAMPLER_ENABLE, false);
-		AppSettings::setValue(APP_SETTING_SOXR_RESAMPLE_SAMPLRATE, 44100);
-		AppSettings::setValue(APP_SETTING_SOXR_ENABLE_STEEP_FILTER, false);
-		AppSettings::setValue(APP_SETTING_SOXR_QUALITY, 3);
-		AppSettings::setValue(APP_SETTING_SOXR_PHASE, 0);
-		AppSettings::setValue(APP_SETTING_SOXR_PASS_BAND, 99);
 		initSoxResampler();
         AppSettings::setOrDefaultConfig();
 		});
@@ -136,13 +158,19 @@ PreferenceDialog::PreferenceDialog(QWidget *parent)
 		const auto soxr_pass_band = ui_.soxrPassbandSlider->value();
 		const auto soxr_enable_steep_filter = ui_.soxrAllowAliasingCheckBox->checkState() == Qt::Checked;
 
+		QMap<QString, QVariant> settings;
+		settings[SOXR_RESAMPLE_SAMPLRATE] = soxr_sample_rate;
+		settings[SOXR_ENABLE_STEEP_FILTER] = soxr_enable_steep_filter;
+		settings[SOXR_QUALITY] = soxr_quility;
+		settings[SOXR_PHASE] = soxr_phase;
+		settings[SOXR_PASS_BAND] = soxr_pass_band;
+
+		JsonSettings::setValue(ui_.soxrSettingCombo->currentText(), settings);
+		AppSettings::setValue(APP_SETTING_SOXR_SETTING_NAME, ui_.soxrSettingCombo->currentText());
+		AppSettings::setDefaultValue(APP_SETTING_SOXR_SETTING_NAME, ui_.soxrSettingCombo->currentText());
+
 		auto index = ui_.resamplerStackedWidget->currentIndex();
 		AppSettings::setValue(APP_SETTING_RESAMPLER_ENABLE, index > 0);
-		AppSettings::setValue(APP_SETTING_SOXR_RESAMPLE_SAMPLRATE, soxr_sample_rate);
-		AppSettings::setValue(APP_SETTING_SOXR_ENABLE_STEEP_FILTER, soxr_enable_steep_filter);
-		AppSettings::setValue(APP_SETTING_SOXR_QUALITY, soxr_quility);
-		AppSettings::setValue(APP_SETTING_SOXR_PHASE, soxr_phase);
-		AppSettings::setValue(APP_SETTING_SOXR_PASS_BAND, soxr_pass_band);
 		});	
 
 	initSoxResampler();

@@ -1,0 +1,16 @@
+{
+    "default": {
+        "enableSteepFilter": false,
+        "passBand": 91,
+        "phase": 0,
+        "quality": 3,
+        "resampleSampleRate": 96000
+    },
+    "quality_spec_1": {
+        "enableSteepFilter": false,
+        "passBand": 50,
+        "phase": 0,
+        "quality": 3,
+        "resampleSampleRate": 384000
+    }
+}

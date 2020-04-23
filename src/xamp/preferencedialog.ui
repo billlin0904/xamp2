@@ -176,7 +176,60 @@
           <widget class="QStackedWidget" name="resamplerStackedWidget">
            <widget class="QWidget" name="noneResamplerPage"/>
            <widget class="QWidget" name="soxrResamplerPage">
-            <layout class="QVBoxLayout" name="verticalLayout_6">
+            <layout class="QVBoxLayout" name="verticalLayout_4">
+             <property name="spacing">
+              <number>6</number>
+             </property>
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>6</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_12">
+               <item>
+                <widget class="QLabel" name="label_2">
+                 <property name="maximumSize">
+                  <size>
+                   <width>80</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>Settings:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QComboBox" name="soxrSettingCombo"/>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_10">
+                 <item>
+                  <widget class="QPushButton" name="saveSoxrSettingBtn">
+                   <property name="text">
+                    <string>Save</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="deleteSoxrSettingBtn">
+                   <property name="text">
+                    <string>Delete</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </item>
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_9">
                <item>
@@ -259,6 +312,9 @@
                </item>
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_7">
+                 <property name="spacing">
+                  <number>1</number>
+                 </property>
                  <item>
                   <spacer name="horizontalSpacer_3">
                    <property name="orientation">
@@ -407,13 +463,13 @@
                 </size>
                </property>
                <property name="title">
-                <string>Passsband</string>
+                <string>Passsband:</string>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_7">
                 <item>
                  <widget class="QSlider" name="soxrPassbandSlider">
                   <property name="minimum">
-                   <number>90</number>
+                   <number>1</number>
                   </property>
                   <property name="maximum">
                    <number>99</number>
@@ -467,114 +523,6 @@
                 <size>
                  <width>20</width>
                  <height>40</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-            </layout>
-           </widget>
-           <widget class="QWidget" name="r8brainResamplerPage">
-            <layout class="QVBoxLayout" name="verticalLayout_4">
-             <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_4">
-               <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_3">
-                 <item>
-                  <widget class="QLabel" name="label_10">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                     <horstretch>1</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="text">
-                    <string>Target samplerate:</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QComboBox" name="r8brainTargetSampleRateComboBox">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <item>
-                    <property name="text">
-                     <string>44100</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>48000</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>88200</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>96000</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>176400</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>192000</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>352800</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>384000</string>
-                    </property>
-                   </item>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="label_11">
-                   <property name="text">
-                    <string>Hz</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <spacer name="horizontalSpacer_4">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>40</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <spacer name="verticalSpacer_2">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>20</width>
-                 <height>421</height>
                 </size>
                </property>
               </spacer>

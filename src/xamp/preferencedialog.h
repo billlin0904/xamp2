@@ -16,6 +16,8 @@ public:
     QString musicFilePath;
 
 private:
+    void loadSoxrResampler(const QVariantMap & soxr_settings);
+
 	void initSoxResampler();
 
     void initLang();

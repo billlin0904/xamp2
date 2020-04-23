@@ -12,6 +12,7 @@
 
 #define Q_UTF8(str) QLatin1String{str}
 #define Q_EMPTY_STR QLatin1String{""}
+#define Q_STR(str) QString(QLatin1String{str})
 
 struct MusicEntity {
     int32_t album_id{ 0 };
