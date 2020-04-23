@@ -54,17 +54,29 @@ void MusicBrainzClient::searchBy(const FingerprintInfo& fingerprint) {
             auto recordings = result.FindMember("recordings");
             if (recordings != result.MemberEnd()) {
                 for (const auto& recording : recordings->value.GetArray()) {
-                    if (recording.FindMember("artists") == recording.MemberEnd()) {
-                        continue;
+                    auto releasegroups = recording.FindMember("releasegroups");
+                    if (releasegroups != recording.MemberEnd()) {
+                        for (const auto& release : releasegroups->value.GetArray()) {
+                            auto title = release.FindMember("title");
+                            if (title != release.MemberEnd()) {
+                                qDebug() << "Found title:" << toQString(title);
+                            }
+                            auto id = release.FindMember("id");
+                            if (id != release.MemberEnd()) {
+                                qDebug() << "Found id:" << toQString(id);
+                            }
+                        }
                     }
-                    for (const auto& artist : recording["artists"].GetArray()) {
-                        auto id = artist.FindMember("id");
-                        if (id != artist.MemberEnd()) {
-                            artist_mbid = toQString(id);
-                            qDebug() << "Found artist mbid:" << artist_mbid;
-                            lookupArtist(fingerprint.artist_id, artist_mbid);
-                            return;
-}
+                    if (recording.FindMember("artists") != recording.MemberEnd()) {
+                        for (const auto& artist : recording["artists"].GetArray()) {
+                            auto id = artist.FindMember("id");
+                            if (id != artist.MemberEnd()) {
+                                artist_mbid = toQString(id);
+                                qDebug() << "Found artist mbid:" << artist_mbid;
+                                lookupArtist(fingerprint.artist_id, artist_mbid);
+                                return;
+                            }
+                        }
                     }
                 }
             }

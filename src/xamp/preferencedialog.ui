@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>644</width>
+    <width>652</width>
     <height>569</height>
    </rect>
   </property>
@@ -466,6 +466,9 @@
                 <string>Passsband:</string>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_7">
+                <property name="spacing">
+                 <number>0</number>
+                </property>
                 <item>
                  <widget class="QSlider" name="soxrPassbandSlider">
                   <property name="minimum">

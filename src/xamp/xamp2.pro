@@ -65,6 +65,7 @@ SOURCES += \
     widget/stardelegate.cpp \
     widget/spectrograph.cpp \
     widget/localelanguage.cpp \
+    widget/jsonsettings.cpp \
     thememanager.cpp \
     aboutdialog.cpp \
     preferencedialog.cpp \
@@ -113,6 +114,7 @@ HEADERS += \
     widget/stardelegate.h \
     widget/spectrograph.h \
     widget/localelanguage.h \
+    widget/jsonsettings.h \
     thememanager.h \
     aboutdialog.h \
     preferencedialog.h \

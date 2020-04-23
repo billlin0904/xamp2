@@ -30,7 +30,7 @@ void PreferenceDialog::loadSoxrResampler(const QVariantMap& soxr_settings) {
 }
 
 void PreferenceDialog::initSoxResampler() {
-	for (auto soxr_setting_name : JsonSettings::keys()) {
+    for (const auto &soxr_setting_name : JsonSettings::keys()) {
 		ui_.soxrSettingCombo->addItem(soxr_setting_name);
 	}
 
@@ -58,6 +58,8 @@ void PreferenceDialog::initSoxResampler() {
 		if (name == SOXR_DEFAULT_SETTING_NAME) {
 			return;
 		}
+        JsonSettings::remove(name);
+        ui_.soxrSettingCombo->removeItem(ui_.soxrSettingCombo->currentIndex());
 		});
 
 	(void)QObject::connect(ui_.soxrSettingCombo, static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::activated), [this](auto index) {

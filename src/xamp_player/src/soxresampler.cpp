@@ -75,6 +75,7 @@ public:
     }
 
     ~SoxrResamplerImpl() {
+        Close();
     }
 
     void Start(uint32_t input_samplerate, uint32_t num_channels, uint32_t output_samplerate) {
