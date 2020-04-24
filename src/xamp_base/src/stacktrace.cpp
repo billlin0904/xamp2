@@ -211,7 +211,7 @@ StackTrace::StackTrace() {
 void StackTrace::RegisterAbortHandler() {
 #ifdef XAMP_OS_WIN
     SymLoader::Instance();
-    //(void) ::AddVectoredExceptionHandler(1, AbortHandler);
+    (void) ::AddVectoredExceptionHandler(1, AbortHandler);
 #else
     signal(SIGABRT, AbortHandler);
     signal(SIGSEGV, AbortHandler);

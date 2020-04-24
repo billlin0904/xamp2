@@ -122,10 +122,9 @@ template
 >
 class TaskScheduler final {
 public:
-    static constexpr size_t K = 4;
-
     explicit TaskScheduler(size_t max_thread)
         : is_stopped_(false)
+        , core_mask_(2)
         , active_thread_(0)
         , index_(0)
         , max_thread_(max_thread) {
@@ -173,6 +172,8 @@ public:
 private:
     void AddThread(size_t i) {
         threads_.push_back(std::thread([i, this]() mutable {
+            auto cacheline_padding = _alloca((std::min)(4 * 1024, 128 * 1024));
+
 #ifdef XAMP_OS_MAC
             std::this_thread::sleep_for(std::chrono::milliseconds(900));
 #endif
@@ -194,6 +195,7 @@ private:
 
                 if (!task) {
                     if (task_queues_[i]->Dequeue(task)) {
+                        XAMP_LOG_DEBUG("Thread {} weakup, active:{}", i, active_thread_);
                         ++active_thread_;
                         task();
                         --active_thread_;
@@ -202,6 +204,7 @@ private:
 					}
                 }
                 else {
+                    XAMP_LOG_DEBUG("Thread {} weakup, active:{}", i, active_thread_);
                     ++active_thread_;
                     task();
                     --active_thread_;
@@ -213,9 +216,10 @@ private:
     }
 
     using TaskQueuePtr = align_ptr<Queue<TaskType>>;   
-
+    static constexpr size_t K = 3;
 	std::atomic<bool> is_stopped_;
     std::atomic<size_t> active_thread_;
+    int32_t core_mask_;
 	size_t index_;
     size_t max_thread_;
     std::vector<std::thread> threads_;
@@ -224,7 +228,7 @@ private:
 
 class XAMP_BASE_API ThreadPool final {
 public:
-    static constexpr uint32_t MAX_THREAD = 8;
+    static constexpr uint32_t MAX_THREAD = 4;
 
     ThreadPool();
 

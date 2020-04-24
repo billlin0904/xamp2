@@ -140,7 +140,7 @@ bool DeviceFactory::IsExclusiveDevice(const DeviceInfo& info) {
 }
 
 bool DeviceFactory::IsASIODevice(const ID id) {
-#ifdef XAMP_OS_WIN
+#if defined(ENABLE_ASIO)
     return id == ASIODeviceType::Id;
 #else
     (void)id;

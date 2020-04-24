@@ -28,7 +28,7 @@ constexpr int32_t MAX_WRITE_RATIO = 20;
 constexpr int32_t MAX_READ_RATIO = 30;
 constexpr std::chrono::milliseconds UPDATE_SAMPLE_INTERVAL(100);
 constexpr std::chrono::seconds WAIT_FOR_STRAEM_STOP_TIME(10);
-constexpr std::chrono::milliseconds READ_SAMPLE_WAIT_TIME(100);
+constexpr std::chrono::milliseconds READ_SAMPLE_WAIT_TIME(500);
 
 AudioPlayer::AudioPlayer()
     : AudioPlayer(std::weak_ptr<PlaybackStateAdapter>()) {
@@ -560,7 +560,7 @@ void AudioPlayer::BufferStream() {
 
     for (auto i = 0; i < BUFFER_STREAM_COUNT; ++i) {
         while (true) {
-            const auto num_samples = stream_->GetSamples(sample_buffer, num_read_sample_);
+            auto num_samples = stream_->GetSamples(sample_buffer, num_read_sample_);
             if (num_samples == 0) {
                 return;
             }
@@ -577,7 +577,7 @@ void AudioPlayer::ReadSampleLoop(uint32_t max_read_sample, std::unique_lock<std:
     auto sample_buffer = sample_buffer_.get();
 
     while (is_playing_) {
-        const auto num_samples = stream_->GetSamples(sample_buffer, max_read_sample);
+        auto num_samples = stream_->GetSamples(sample_buffer, max_read_sample);
 
         if (num_samples > 0) {
             if (!resampler->Process(reinterpret_cast<const float*>(sample_buffer_.get()), num_samples, buffer_)) {

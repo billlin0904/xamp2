@@ -66,22 +66,23 @@ VmMemLock::~VmMemLock() noexcept {
 }
 
 bool VmMemLock::EnableLockMemPrivilege(bool enable) noexcept {
-	return EnablePrivilege("SeLockMemoryPrivilege", enable);
+	//return EnablePrivilege("SeLockMemoryPrivilege", enable);
+	return true;
 }
 
 void VmMemLock::Lock(void* address, size_t size) {
-	UnLock();
+	//UnLock();
 
-	if (!ExterndProcessWorkingSetSize(size)) {
-		throw PlatformSpecException("ExterndProcessWorkingSetSize return failure! error:{}", ::GetLastError());
-	}
+	//if (!ExterndProcessWorkingSetSize(size)) {
+	//	throw PlatformSpecException("ExterndProcessWorkingSetSize return failure! error:{}", ::GetLastError());
+	//}
 
-	if (!::VirtualLock(address, size)) {
-		throw PlatformSpecException("VirtualLock return failure! error:{}", ::GetLastError());
-	}
+	//if (!::VirtualLock(address, size)) {
+	//	throw PlatformSpecException("VirtualLock return failure! error:{}", ::GetLastError());
+	//}
 
-	address_ = address;
-	size_ = size;
+	//address_ = address;
+	//size_ = size;
 }
 
 void VmMemLock::UnLock() noexcept {
