@@ -50,9 +50,9 @@ public:
 
 HttpClient::HttpClientImpl::HttpClientImpl(const QString &url, QNetworkAccessManager* manager)
     : useJson(false)
+    , useInternal(manager == nullptr)
     , url(url)
     , charset(Q_UTF8("UTF-8"))
-    , useInternal(manager == nullptr)
     , manager(manager == nullptr ? new QNetworkAccessManager() : manager) {
 }
 

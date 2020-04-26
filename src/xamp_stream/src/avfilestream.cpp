@@ -285,8 +285,10 @@ public:
 		return sizeof(float);
 	}
 
-	void Seek(const double stream_time) const {
-		assert(codec_contex_ != nullptr);
+    void Seek(const double stream_time) const {
+        if (codec_contex_ == nullptr) {
+            return;
+        }
 
 		auto timestamp = static_cast<int64_t>(stream_time * AV_TIME_BASE);
 

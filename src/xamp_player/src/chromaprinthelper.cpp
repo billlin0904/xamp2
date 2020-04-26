@@ -9,7 +9,7 @@ namespace xamp::player {
 
 using namespace xamp::base;
 
-Fingerprint ReadFingerprint(const std::wstring& file_path, const std::wstring& file_ext, std::function<bool(int32_t)> progress) {
+Fingerprint ReadFingerprint(const std::wstring& file_path, const std::wstring& file_ext, std::function<bool(uint32_t)> progress) {
     constexpr uint32_t kFingerprintDuration = 120;
     constexpr uint32_t kReadSampleSize = 8192 * 4;
 

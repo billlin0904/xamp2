@@ -25,6 +25,10 @@ public:
 
 	XAMP_DISABLE_COPY(Logger)
 
+    void SetLevel(const std::string &name, spdlog::level::level_enum level);
+
+    void Shutdown();
+
 	Logger& AddDebugOutputLogger();
 
 	Logger& AddFileLogger(const std::string &file_name);
@@ -39,6 +43,7 @@ private:
 	std::vector<spdlog::sink_ptr> sinks_;
 };
 
+#define XAMP_SET_LOG_LEVEL(level) xamp::base::Logger::Instance().SetLevel("default", level)
 #define XAMP_LOG_DEBUG(...) xamp::base::Logger::Instance().GetLogger("default")->debug(__VA_ARGS__)
 #define XAMP_LOG_INFO(...) xamp::base::Logger::Instance().GetLogger("default")->info(__VA_ARGS__)
 #define XAMP_LOG_ERROR(...) xamp::base::Logger::Instance().GetLogger("default")->error(__VA_ARGS__)

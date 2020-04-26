@@ -28,6 +28,10 @@ static struct IopmAssertion {
         : assertion_id(0) {
     }
 
+    ~IopmAssertion() {
+        Reset();
+    }
+
     void PreventSleep() {
         if (assertion_id != 0) {
             Reset();
@@ -140,7 +144,7 @@ bool DeviceFactory::IsExclusiveDevice(const DeviceInfo& info) {
 }
 
 bool DeviceFactory::IsASIODevice(const ID id) {
-#if defined(ENABLE_ASIO)
+#if defined(ENABLE_ASIO) && defined(XAMP_OS_WIN)
     return id == ASIODeviceType::Id;
 #else
     (void)id;

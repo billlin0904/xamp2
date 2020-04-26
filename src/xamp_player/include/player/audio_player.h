@@ -69,6 +69,8 @@ public:
 
     uint32_t GetVolume() const;
 
+    bool CanControlVolume() const;
+
 	bool IsMute() const;
 
 	void SetMute(bool mute);

@@ -15,13 +15,13 @@ namespace xamp::base {
 
 #ifndef XAMP_OS_WIN
 void SetRealtimeProcessPriority() {
-    auto mach_thread_id = mach_thread_self();
+    auto mach_thread_id = ::mach_thread_self();
 
     // Make thread fixed priority.
     thread_extended_policy_data_t policy;
     policy.timeshare = 0;  // Set to 1 for a non-fixed thread.
     auto result =
-        thread_policy_set(mach_thread_id,
+        ::thread_policy_set(mach_thread_id,
                           THREAD_EXTENDED_POLICY,
                           reinterpret_cast<thread_policy_t>(&policy),
                           THREAD_EXTENDED_POLICY_COUNT);
@@ -33,7 +33,7 @@ void SetRealtimeProcessPriority() {
     // Set to relatively high priority.
     thread_precedence_policy_data_t precedence;
     precedence.importance = 63;
-    result = thread_policy_set(mach_thread_id,
+    result = ::thread_policy_set(mach_thread_id,
                                THREAD_PRECEDENCE_POLICY,
                                reinterpret_cast<thread_policy_t>(&precedence),
                                THREAD_PRECEDENCE_POLICY_COUNT);
@@ -72,7 +72,7 @@ void SetRealtimeProcessPriority() {
     time_constraints.constraint = kMaxTimeAllowed * ms_to_abs_time;
     time_constraints.preemptible = 0;
 
-    result = thread_policy_set(mach_thread_id,
+    result = ::thread_policy_set(mach_thread_id,
                                THREAD_TIME_CONSTRAINT_POLICY,
                                reinterpret_cast<thread_policy_t>(&time_constraints),
                                THREAD_TIME_CONSTRAINT_POLICY_COUNT);

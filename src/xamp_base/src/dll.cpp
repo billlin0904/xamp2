@@ -13,7 +13,11 @@ ModuleHandle LoadModule(std::string_view file_name) {
 }
 
 void* LoadDllSymbol(const ModuleHandle& dll, std::string_view name) noexcept {
-    return ::GetProcAddress(dll.get(), name.data());
+    auto func = ::GetProcAddress(dll.get(), name.data());
+    if (!func) {
+        throw NotFoundDllExportFuncException();
+    }
+    return func;
 }
 #else
 ModuleHandle LoadModule(std::string_view name) {
@@ -24,8 +28,12 @@ ModuleHandle LoadModule(std::string_view name) {
     return ModuleHandle(module);
 }
 
-void* LoadDllSymbol(const ModuleHandle& dll, std::string_view name) noexcept {
-     return ::dlsym(dll.get(), name.data());
+void* LoadDllSymbol(const ModuleHandle& dll, std::string_view name) {
+     auto func = ::dlsym(dll.get(), name.data());
+     if (!func) {
+         throw NotFoundDllExportFuncException();
+     }
+     return func;
 }
 #endif
 

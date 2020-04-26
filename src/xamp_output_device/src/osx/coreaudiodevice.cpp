@@ -14,8 +14,14 @@
 namespace xamp::output_device::osx {
 
 struct SystemVolume {
-    explicit SystemVolume(AudioObjectPropertySelector selector) noexcept
-        : device_id_ (kAudioObjectUnknown) {
+    explicit SystemVolume(AudioObjectPropertySelector selector, AudioDeviceID device_id = kAudioObjectUnknown) noexcept
+        : device_id_ (device_id) {
+        if (device_id != kAudioObjectUnknown) {
+            property_.mElement  = kAudioObjectPropertyElementMaster;
+            property_.mSelector = selector;
+            property_.mScope    = kAudioDevicePropertyScopeOutput;
+            return;
+        }
         property_.mScope    = kAudioObjectPropertyScopeGlobal;
         property_.mElement  = kAudioObjectPropertyElementMaster;
         property_.mSelector = kAudioHardwarePropertyDefaultOutputDevice;
@@ -26,8 +32,9 @@ struct SystemVolume {
                 property_.mElement  = kAudioObjectPropertyElementMaster;
                 property_.mSelector = selector;
                 property_.mScope    = kAudioDevicePropertyScopeOutput;
-                if (!::AudioObjectHasProperty(device_id_, &property_))
+                if (!::AudioObjectHasProperty(device_id_, &property_)) {
                     device_id_ = kAudioObjectUnknown;
+                }
             }
         }
     }
@@ -84,6 +91,10 @@ struct SystemVolume {
                                                              size,
                                                              &newMute));
         }
+    }
+
+    bool HasProperty() const {
+        return ::AudioObjectHasProperty(device_id_, &property_) > 0;
     }
 
 private:
@@ -220,20 +231,24 @@ double CoreAudioDevice::GetStreamTime() const noexcept {
 }
 
 uint32_t CoreAudioDevice::GetVolume() const {
-    auto volume = SystemVolume(kAudioHardwareServiceDeviceProperty_VirtualMasterVolume).GetGain() * 100;
+    auto volume = SystemVolume(kAudioHardwareServiceDeviceProperty_VirtualMasterVolume, device_id_).GetGain() * 100;
     return static_cast<uint32_t>(volume);
 }
 
 void CoreAudioDevice::SetVolume(uint32_t volume) const {
-    SystemVolume(kAudioHardwareServiceDeviceProperty_VirtualMasterVolume).SetGain(float(volume) / float(100.0));
+    SystemVolume(kAudioHardwareServiceDeviceProperty_VirtualMasterVolume, device_id_).SetGain(float(volume) / float(100.0));
 }
 
 void CoreAudioDevice::SetMute(bool mute) const {
-    SystemVolume(kAudioDevicePropertyMute).SetMuted(mute);
+    SystemVolume(kAudioDevicePropertyMute, device_id_).SetMuted(mute);
 }
 
 bool CoreAudioDevice::IsMuted() const {
-    return SystemVolume(kAudioDevicePropertyMute).IsMuted();
+    return SystemVolume(kAudioDevicePropertyMute, device_id_).IsMuted();
+}
+
+bool CoreAudioDevice::CanControlVolume() const {
+    return SystemVolume(kAudioDevicePropertyMute, device_id_).HasProperty();
 }
 
 void CoreAudioDevice::DisplayControlPanel() {
@@ -266,7 +281,9 @@ void CoreAudioDevice::AudioDeviceIOProc(AudioBufferList *output_data) {
         const auto buffer = output_data->mBuffers[i];
         const uint32_t num_sample = static_cast<uint32_t>(buffer.mDataByteSize / sizeof(float) / format_.GetChannels());
         stream_time_ = stream_time_ + static_cast<double>(num_sample * 2);
-        if (XAMP_UNLIKELY(callback_->OnGetSamples(static_cast<float*>(buffer.mData), num_sample, stream_time_ / static_cast<double>(format_.GetAvgFramesPerSec())) == 0 )) {
+        if (XAMP_UNLIKELY(callback_->OnGetSamples(static_cast<float*>(buffer.mData),
+                                                  num_sample,
+                                                  stream_time_ / static_cast<double>(format_.GetAvgFramesPerSec())) == 0)) {
             is_running_ = false;
             break;
         }

@@ -299,6 +299,8 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
     (void)QObject::connect(playlist_, &QTableView::doubleClicked, [this](const QModelIndex& index) {
         emit playMusic(getAlbumEntity(index));
         });
+
+    setStyleSheet(Q_UTF8("background-color: gray;"));
 }
 
 void AlbumViewPage::setAlbum(const QString& album) {
@@ -393,7 +395,6 @@ AlbumView::AlbumView(QWidget* parent)
         auto artist_cover_id = getIndexValue(index, 5).toString();
 
         constexpr auto height = 460;
-
         auto list_view_rect = this->rect();
         auto rect = visualRect(index);
 

@@ -48,7 +48,9 @@ static int excute(int argc, char* argv[]) {
 #else
 		.AddSink(std::make_shared<QDebugSink>())
 #endif
-		.AddFileLogger("xamp.log");
+        .AddFileLogger("xamp.log");
+
+    XAMP_SET_LOG_LEVEL(spdlog::level::debug);
 
 	XAMP_LOG_DEBUG("Logger init success.");
 
@@ -150,5 +152,7 @@ static int tryExcute(int argc, char* argv[]) {
 #endif
 
 int main(int argc, char *argv[]) {
-	return tryExcute(argc, argv);
+    auto result = tryExcute(argc, argv);
+    Logger::Instance().Shutdown();
+    return result;
 }

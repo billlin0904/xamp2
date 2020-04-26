@@ -201,7 +201,7 @@ PlaybackHistoryTableView::PlaybackHistoryTableView(QWidget* parent)
 		background: #d0d0d0;
 	}
 	)"));
-	setStyleSheet(Q_UTF8("background-color: transparent"));
+    setStyleSheet(Q_UTF8("background-color: gray;"));
 	refreshOnece();
 }
 
@@ -275,16 +275,24 @@ PlaybackHistoryPage::PlaybackHistoryPage(QWidget* parent)
 #ifdef Q_OS_WIN
     setStyleSheet(Q_UTF8("background-color: rgba(228, 233, 237, 255)"));
 #else
-    setStyleSheet(Q_UTF8("background-color: white"));
+    setStyleSheet(Q_UTF8("background-color: gray"));
 #endif
 
 	auto default_layout = new QVBoxLayout(this);
 	default_layout->setSpacing(0);
 	default_layout->setContentsMargins(10, 10, 10, 0);
 
-	auto close_button = new QPushButton(tr("X"), this);
-	close_button->setFixedSize(QSize(24, 24));
-	close_button->setStyleSheet(Q_UTF8("border: none"));
+    auto close_button = new QPushButton(this);
+    close_button->setFixedSize(QSize(24, 24));
+    close_button->setStyleSheet(Q_UTF8(R"(
+    QPushButton
+    {
+        border: none;
+        background-color: transparent;
+        image: url(:/xamp/Resource/White/close.png);
+    }
+    )"));
+
 
 	auto button_layout = new QHBoxLayout();
 

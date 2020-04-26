@@ -48,6 +48,14 @@ Logger::Logger() {
 Logger::~Logger() {
 }
 
+void Logger::Shutdown() {
+    spdlog::shutdown();
+}
+
+void Logger::SetLevel(const std::string &name, spdlog::level::level_enum level) {
+    GetLogger(name)->set_level(level);
+}
+
 std::shared_ptr<spdlog::logger> Logger::GetLogger(const std::string &name) {
 	auto logger = spdlog::get(name);
 	if (logger != nullptr) {
@@ -58,7 +66,7 @@ std::shared_ptr<spdlog::logger> Logger::GetLogger(const std::string &name) {
 		std::begin(sinks_),
 		std::end(sinks_));
 
-	logger->set_level(spdlog::level::debug);
+    logger->set_level(spdlog::level::err);
 	logger->set_pattern("[%H:%M:%S.%e][%l][%n] %v");
 	logger->flush_on(spdlog::level::debug);
 

@@ -55,6 +55,8 @@ public:
     InterleavedFormat GetInterleavedFormat() const noexcept override;
 
     uint32_t GetBufferSize() const noexcept override;
+
+    bool CanControlVolume() const override;
 private:
     static OSStatus OnAudioDeviceIOProc(AudioDeviceID,
                                   const AudioTimeStamp*,

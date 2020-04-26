@@ -233,6 +233,7 @@ void AudioPlayer::Stop(bool signal_to_stop, bool shutdown_device, bool wait_for_
     XAMP_LOG_DEBUG("Player stop!");
     if (device_->IsStreamOpen()) {
         CloseDevice(wait_for_stop_stream);
+        std::atomic_exchange(&slice_, AudioSlice{ 0, 0 });
         if (signal_to_stop) {
             SetState(PlayerState::PLAYER_STATE_STOPPED);
         }
@@ -261,6 +262,19 @@ uint32_t AudioPlayer::GetVolume() const {
     return device_->GetVolume();
 }
 
+bool AudioPlayer::CanControlVolume() const {
+    if (device_ != nullptr && device_->IsStreamOpen()) {
+#ifdef ENABLE_ASIO
+        if (device_type_->GetTypeId() == ASIODeviceType::Id) {
+            return is_muted_;
+        }
+#else
+        return device_->CanControlVolume();
+#endif
+    }
+    return true;
+}
+
 bool AudioPlayer::IsMute() const {
     if (device_ != nullptr && device_->IsStreamOpen()) {
 #ifdef ENABLE_ASIO
@@ -286,22 +300,29 @@ void AudioPlayer::Initial() {
     if (!timer_.IsStarted()) {
         std::weak_ptr<AudioPlayer> player = shared_from_this();
         timer_.Start(UPDATE_SAMPLE_INTERVAL, [player]() {
-            if (auto p = player.lock()) {
-                if (auto adapter = p->state_adapter_.lock()) {
-                    if (p->is_paused_) {
-                        return;
-                    }
-                    if (!p->is_playing_) {
-                        return;
-                    }
-                    const auto slice = p->slice_.load();
-                    if (slice.sample_size > 0) {
-                        adapter->OnSampleTime(slice.stream_time);
-                    } if (p->is_playing_ && slice.sample_size == -1) {
-                        p->SetState(PlayerState::PLAYER_STATE_STOPPED);
-                        p->is_playing_ = false;
-                    }                    
-                }
+            auto p = player.lock();
+            if (p == nullptr) {
+                return;
+            }
+
+            auto adapter = p->state_adapter_.lock();
+            if (adapter == nullptr) {
+                return;
+            }
+
+            if (p->is_paused_) {
+                return;
+            }
+            if (!p->is_playing_) {
+                return;
+            }
+
+            const auto slice = p->slice_.load();
+            if (slice.sample_size > 0) {
+                adapter->OnSampleTime(slice.stream_time);
+            } if (p->is_playing_ && slice.sample_size == -1) {
+                p->SetState(PlayerState::PLAYER_STATE_STOPPED);
+                p->is_playing_ = false;
             }
         });		
     }    
@@ -419,6 +440,7 @@ void AudioPlayer::CreateBuffer() {
     }
     else {
         assert(target_samplerate_ > 0);
+        resampler_->Flush();
         resampler_->Start(input_format_.GetSampleRate(),
             input_format_.GetChannels(),
             target_samplerate_,
@@ -627,9 +649,6 @@ void AudioPlayer::StartPlay() {
                 break;
             }
         }
-
-        p->stream_->Close();
-        XAMP_LOG_DEBUG("Stream thread finished!");
     });
 }
 

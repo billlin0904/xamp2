@@ -18,6 +18,8 @@ public:
 private:
     void loadSoxrResampler(const QVariantMap & soxr_settings);
 
+    void saveSoxrResampler(const QString &name);
+
 	void initSoxResampler();
 
     void initLang();

@@ -77,6 +77,8 @@ public slots:
 private:
 	bool eventFilter(QObject* obj, QEvent* ev) override;
 
+    void keyPressEvent(QKeyEvent *pEvent) override;
+
 	void reloadSelectMetadata();
 
     void resizeEvent(QResizeEvent* event) override;

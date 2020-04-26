@@ -172,10 +172,13 @@ public:
 private:
     void AddThread(size_t i) {
         threads_.push_back(std::thread([i, this]() mutable {
-            auto cacheline_padding = _alloca((std::min)(4 * 1024, 128 * 1024));
-
 #ifdef XAMP_OS_MAC
+            constexpr auto INIT_L1_CACHE_LINE_SIZE = 4 * 1024;
+            constexpr auto MAX_L1_CACHE_LINE_SIZE = 64 * 1024;
+            (void)alloca((std::min)(INIT_L1_CACHE_LINE_SIZE, MAX_L1_CACHE_LINE_SIZE));
             std::this_thread::sleep_for(std::chrono::milliseconds(900));
+#else
+            (void)_alloca((std::min)(INIT_L1_CACHE_LINE_SIZE, MAX_L1_CACHE_LINE_SIZE));
 #endif
             SetCurrentThreadName(i);
 
@@ -199,8 +202,10 @@ private:
                         ++active_thread_;
                         task();
                         --active_thread_;
+                        XAMP_LOG_DEBUG("Thread {} finished!", i);
 					} else {
 						std::this_thread::yield();
+                        XAMP_LOG_DEBUG("Thread {} yield", i);
 					}
                 }
                 else {

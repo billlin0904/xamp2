@@ -6,7 +6,7 @@
 
 namespace xamp::output_device::osx {
 
-const ID CoreAudioDeviceType::Id = ID("E6BB3BF2-F16A-489B-83EE-4A29755F42E4");
+const ID CoreAudioDeviceType::Id("E6BB3BF2-F16A-489B-83EE-4A29755F42E4");
 
 static std::wstring CFSStringToStdWstring(CFStringRef &cfname) {
     std::string name;

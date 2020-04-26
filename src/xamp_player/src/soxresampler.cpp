@@ -144,7 +144,11 @@ public:
 
         ratio_ = double(output_samplerate) / double(input_samplerate_);
 
-        XAMP_LOG_ERROR("Soxr resampler setting=> {} {}", to_string(quality_), to_string(phase_));
+        XAMP_LOG_DEBUG("Soxr resampler setting=> input:{} output:{} quality:{} phase:{}",
+                       input_samplerate,
+                       output_samplerate,
+                       to_string(quality_),
+                       to_string(phase_));
     }
 
     void Close() {
@@ -173,6 +177,9 @@ public:
     }
 
     void Flush() {
+        if (!handle_) {
+            return;
+        }
         SoxrLib::Instance().soxr_clear(handle_.get());
     }
 

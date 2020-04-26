@@ -76,10 +76,7 @@ Qt::ItemFlags PlayListTableModel::flags(const QModelIndex& index) const {
 	if (!index.isValid()) {
 		return QAbstractItemModel::flags(index);
 	}
-	auto flags = Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsUserCheckable;
-	if (index.column() == PLAYLIST_RATING) {
-		flags |= Qt::ItemIsEditable;
-	}	
+	auto flags = Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsUserCheckable;	
 	return flags;
 }
 

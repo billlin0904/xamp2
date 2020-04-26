@@ -4,6 +4,7 @@
 #include <QDialogButtonBox>
 #include <QFileDialog>
 #include <QDir>
+#include <QInputDialog>
 
 #include <base/id.h>
 
@@ -29,6 +30,23 @@ void PreferenceDialog::loadSoxrResampler(const QVariantMap& soxr_settings) {
 	}
 }
 
+void PreferenceDialog::saveSoxrResampler(const QString &name) {
+    const auto soxr_sample_rate = ui_.soxrTargetSampleRateComboBox->currentText().toInt();
+    const auto soxr_quility = ui_.soxrResampleQualityComboBox->currentIndex();
+    const auto soxr_phase = ui_.soxrPhaseComboBox->currentIndex();
+    const auto soxr_pass_band = ui_.soxrPassbandSlider->value();
+    const auto soxr_enable_steep_filter = ui_.soxrAllowAliasingCheckBox->checkState() == Qt::Checked;
+
+    QMap<QString, QVariant> settings;
+    settings[SOXR_RESAMPLE_SAMPLRATE] = soxr_sample_rate;
+    settings[SOXR_ENABLE_STEEP_FILTER] = soxr_enable_steep_filter;
+    settings[SOXR_QUALITY] = soxr_quility;
+    settings[SOXR_PHASE] = soxr_phase;
+    settings[SOXR_PASS_BAND] = soxr_pass_band;
+
+    JsonSettings::setValue(name, settings);
+}
+
 void PreferenceDialog::initSoxResampler() {
     for (const auto &soxr_setting_name : JsonSettings::keys()) {
 		ui_.soxrSettingCombo->addItem(soxr_setting_name);
@@ -50,7 +68,12 @@ void PreferenceDialog::initSoxResampler() {
 
 	loadSoxrResampler(soxr_settings);
 
-	(void)QObject::connect(ui_.saveSoxrSettingBtn, &QPushButton::pressed, [this]() {		
+    (void)QObject::connect(ui_.saveSoxrSettingBtn, &QPushButton::pressed, [this]() {
+        auto setting_name = QInputDialog::getText(this, tr("Save soxr setting"), tr("Setting name:"));
+        if (setting_name.isEmpty()) {
+            return;
+        }
+        saveSoxrResampler(setting_name);
 		});
 
 	(void)QObject::connect(ui_.deleteSoxrSettingBtn, &QPushButton::pressed, [this]() {
@@ -132,9 +155,9 @@ PreferenceDialog::PreferenceDialog(QWidget *parent)
 		ui_.resamplerStackedWidget->setCurrentIndex(index);
 		});
 
-	(void)QObject::connect(ui_.soxrPassbandSlider, &QSlider::sliderReleased, [this]() {
-		ui_.soxrPassbandValue->setText(QString(Q_UTF8("%0%")).arg(ui_.soxrPassbandSlider->value()));
-		});
+    (void)QObject::connect(ui_.soxrPassbandSlider, &QSlider::sliderMoved, [this](auto) {
+        ui_.soxrPassbandValue->setText(QString(Q_UTF8("%0%")).arg(ui_.soxrPassbandSlider->value()));
+    });
 
 	musicFilePath = AppSettings::getValue(APP_SETTING_MUSIC_FILE_PATH).toString();
 	ui_.musicFilePath->setText(musicFilePath);
