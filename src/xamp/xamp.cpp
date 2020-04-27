@@ -799,7 +799,7 @@ void Xamp::playMusic(const MusicEntity& item) {
         player_->Open(item.file_path.toStdWString(), item.file_ext.toStdWString(), device_info_);
         setupResampler();
         player_->StartPlay();
-        if (player_->CanControlVolume()) {
+        if (!player_->CanHardwareControlVolume()) {
             if (!player_->IsMute()) {
                 setVolume(ui.volumeSlider->value());
             }
@@ -807,7 +807,8 @@ void Xamp::playMusic(const MusicEntity& item) {
                 setVolume(0);
             }
             ui.volumeSlider->setDisabled(false);
-        } else {
+        }
+        else {
             ui.volumeSlider->setDisabled(true);
         }
         open_done = true;
@@ -835,10 +836,6 @@ void Xamp::playMusic(const MusicEntity& item) {
     if (!open_done) {
         return;
     }
-
-    auto output_format = player_->GetOutputFormat();
-    lrc_page_->spectrum()->setFrequency(100, output_format.GetSampleRate(), output_format.GetSampleRate());
-    lrc_page_->spectrum()->start();
 
     ui.seekSlider->setRange(0, int32_t(player_->GetDuration() * 1000));
     ui.endPosLabel->setText(Time::msToString(player_->GetDuration()));

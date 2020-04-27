@@ -422,5 +422,9 @@ void SharedWasapiDevice::GetSampleRequested(const bool is_silence) {
 	}
 }
 
+bool SharedWasapiDevice::CanHardwareControlVolume() const {
+	return false;
+}
+
 }
 #endif

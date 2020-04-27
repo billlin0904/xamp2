@@ -61,6 +61,8 @@ public:
 
 	uint32_t GetBufferSize() const noexcept override;
 
+	bool CanHardwareControlVolume() const override;
+
 private:
 	void InitialDeviceFormat(const AudioFormat& output_format, uint32_t valid_bits_samples);
 

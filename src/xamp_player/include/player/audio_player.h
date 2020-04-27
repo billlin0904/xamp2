@@ -69,7 +69,7 @@ public:
 
     uint32_t GetVolume() const;
 
-    bool CanControlVolume() const;
+    bool CanHardwareControlVolume() const;
 
 	bool IsMute() const;
 

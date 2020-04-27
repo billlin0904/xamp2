@@ -129,7 +129,7 @@
               <number>0</number>
              </property>
              <item>
-              <widget class="QLabel" name="titleLabel">
+              <widget class="ScrollLabel" name="titleLabel">
                <property name="font">
                 <font>
                  <pointsize>12</pointsize>
@@ -967,6 +967,11 @@
    <class>SeekSlider</class>
    <extends>QSlider</extends>
    <header>widget/seekslider.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ScrollLabel</class>
+   <extends>QLabel</extends>
+   <header>widget/scrolllabel.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

@@ -57,6 +57,8 @@ public:
 
 	uint32_t GetBufferSize() const noexcept override;
 
+	bool CanHardwareControlVolume() const override;
+
 private:
 	void UnRegisterDeviceVolumeChange();
 

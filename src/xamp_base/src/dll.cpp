@@ -12,7 +12,7 @@ ModuleHandle LoadModule(std::string_view file_name) {
 	return ModuleHandle(module);
 }
 
-void* LoadDllSymbol(const ModuleHandle& dll, std::string_view name) noexcept {
+void* LoadDllSymbol(const ModuleHandle& dll, std::string_view name) {
     auto func = ::GetProcAddress(dll.get(), name.data());
     if (!func) {
         throw NotFoundDllExportFuncException();

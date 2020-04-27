@@ -172,9 +172,9 @@ public:
 private:
     void AddThread(size_t i) {
         threads_.push_back(std::thread([i, this]() mutable {
-#ifdef XAMP_OS_MAC
             constexpr auto INIT_L1_CACHE_LINE_SIZE = 4 * 1024;
             constexpr auto MAX_L1_CACHE_LINE_SIZE = 64 * 1024;
+#ifdef XAMP_OS_MAC
             (void)alloca((std::min)(INIT_L1_CACHE_LINE_SIZE, MAX_L1_CACHE_LINE_SIZE));
             std::this_thread::sleep_for(std::chrono::milliseconds(900));
 #else

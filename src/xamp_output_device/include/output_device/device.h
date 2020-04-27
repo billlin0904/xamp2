@@ -42,7 +42,7 @@ public:
 
 	virtual bool IsMuted() const = 0;
 
-    virtual bool CanControlVolume() const = 0;
+    virtual bool CanHardwareControlVolume() const = 0;
 
 	virtual void DisplayControlPanel() = 0;
 

@@ -176,24 +176,6 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 			reinterpret_cast<void**>(&endpoint_volume_)));
 
         InitialDeviceFormat(valid_output_format, valid_bits_samples_);
-
-		CComPtr<IAudioEndpointVolume> endpoint_volume;
-		HrIfFailledThrow(device_->Activate(__uuidof(IAudioEndpointVolume),
-			CLSCTX_INPROC_SERVER,
-			NULL,
-			reinterpret_cast<void**>(&endpoint_volume)
-		));
-		DWORD support_mask = 0;
-		HrIfFailledThrow(endpoint_volume->QueryHardwareSupport(&support_mask));
-		if (support_mask & ENDPOINT_HARDWARE_SUPPORT_VOLUME) {
-			XAMP_LOG_DEBUG("Hardware support volume control.");
-		}
-		if (support_mask & ENDPOINT_HARDWARE_SUPPORT_MUTE) {
-			XAMP_LOG_DEBUG("Hardware support volume mute.");
-		}
-		if (support_mask & ENDPOINT_HARDWARE_SUPPORT_METER) {
-			XAMP_LOG_DEBUG("Hardware support volume meter.");
-		}
     }
 
     HrIfFailledThrow(client_->Reset());
@@ -420,6 +402,43 @@ InterleavedFormat ExclusiveWasapiDevice::GetInterleavedFormat() const noexcept {
 
 uint32_t ExclusiveWasapiDevice::GetBufferSize() const noexcept {
 	return buffer_frames_ * mix_format_->nChannels;
+}
+
+bool ExclusiveWasapiDevice::CanHardwareControlVolume() const {
+	CComPtr<IAudioEndpointVolume> endpoint_volume;
+
+	HrIfFailledThrow(device_->Activate(__uuidof(IAudioEndpointVolume),
+		CLSCTX_INPROC_SERVER,
+		NULL,
+		reinterpret_cast<void**>(&endpoint_volume)
+	));
+
+	bool hw_support = false;
+
+	DWORD support_mask = 0;
+	HrIfFailledThrow(endpoint_volume->QueryHardwareSupport(&support_mask));
+	if (support_mask & ENDPOINT_HARDWARE_SUPPORT_VOLUME) {
+		XAMP_LOG_DEBUG("Hardware support volume control.");
+	}
+	else {
+		XAMP_LOG_DEBUG("Hardware not support volume control.");
+	}
+	if (support_mask & ENDPOINT_HARDWARE_SUPPORT_MUTE) {
+		XAMP_LOG_DEBUG("Hardware support volume mute.");
+	}
+	else {
+		XAMP_LOG_DEBUG("Hardware not support volume mute.");
+	}
+	if (support_mask & ENDPOINT_HARDWARE_SUPPORT_METER) {
+		XAMP_LOG_DEBUG("Hardware support volume meter.");
+	}
+	else {
+		XAMP_LOG_DEBUG("Hardware not support volume meter.");
+	}
+
+	hw_support = (support_mask & ENDPOINT_HARDWARE_SUPPORT_VOLUME)
+		&& (support_mask & ENDPOINT_HARDWARE_SUPPORT_MUTE);
+	return hw_support;
 }
 
 }

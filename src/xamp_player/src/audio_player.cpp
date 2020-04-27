@@ -262,15 +262,9 @@ uint32_t AudioPlayer::GetVolume() const {
     return device_->GetVolume();
 }
 
-bool AudioPlayer::CanControlVolume() const {
+bool AudioPlayer::CanHardwareControlVolume() const {
     if (device_ != nullptr && device_->IsStreamOpen()) {
-#ifdef ENABLE_ASIO
-        if (device_type_->GetTypeId() == ASIODeviceType::Id) {
-            return is_muted_;
-        }
-#else
-        return device_->CanControlVolume();
-#endif
+        return device_->CanHardwareControlVolume();
     }
     return true;
 }

@@ -64,6 +64,10 @@ AsioDevice::~AsioDevice() {
 	}
 }
 
+bool AsioDevice::CanControlVolume() const {
+	return false;
+}
+
 bool AsioDevice::IsMuted() const {
 	return volume_ == 0;
 }

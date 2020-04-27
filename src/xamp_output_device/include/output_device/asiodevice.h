@@ -69,6 +69,8 @@ public:
 
 	bool IsMuted() const override;
 
+	bool CanControlVolume() const override;
+
 private:
 	static ASIOTime* OnBufferSwitchTimeInfoCallback(ASIOTime* timeInfo, long index, ASIOBool processNow) noexcept;
 
