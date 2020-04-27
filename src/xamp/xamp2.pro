@@ -66,6 +66,7 @@ SOURCES += \
     widget/spectrograph.cpp \
     widget/localelanguage.cpp \
     widget/jsonsettings.cpp \
+    widget/scrolllabel.cpp \
     thememanager.cpp \
     aboutdialog.cpp \
     preferencedialog.cpp \
@@ -115,6 +116,7 @@ HEADERS += \
     widget/spectrograph.h \
     widget/localelanguage.h \
     widget/jsonsettings.h \
+    widget/scrolllabel.h \
     thememanager.h \
     aboutdialog.h \
     preferencedialog.h \

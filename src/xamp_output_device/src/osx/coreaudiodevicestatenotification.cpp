@@ -47,10 +47,10 @@ OSStatus CoreAudioDeviceStateNotification::OnDefaultDeviceChangedCallback(
         void* context) {
     auto notification = static_cast<CoreAudioDeviceStateNotification*>(context);
     for (UInt32 i = 0; i < num_addresses; ++i) {
-        if (addresses[i].mSelector == sAddOrRemoveDevicesPropertyAddress.mSelector &&
-                addresses[i].mScope == sAddOrRemoveDevicesPropertyAddress.mScope &&
-                addresses[i].mElement == sAddOrRemoveDevicesPropertyAddress.mElement &&
-                context != nullptr) {
+        if (addresses[i].mSelector == sAddOrRemoveDevicesPropertyAddress.mSelector
+            && addresses[i].mScope == sAddOrRemoveDevicesPropertyAddress.mScope
+            && addresses[i].mElement == sAddOrRemoveDevicesPropertyAddress.mElement
+            && context != nullptr) {
             if (auto callback = (*notification).callback_.lock()) {
                 callback->OnDeviceStateChange(DeviceState::DEVICE_STATE_ADDED, std::to_wstring(object));
             }

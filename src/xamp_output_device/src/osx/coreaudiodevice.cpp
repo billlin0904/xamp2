@@ -247,7 +247,7 @@ bool CoreAudioDevice::IsMuted() const {
     return SystemVolume(kAudioDevicePropertyMute, device_id_).IsMuted();
 }
 
-bool CoreAudioDevice::CanControlVolume() const {
+bool CoreAudioDevice::CanHardwareControlVolume() const {
     return SystemVolume(kAudioDevicePropertyMute, device_id_).HasProperty();
 }
 

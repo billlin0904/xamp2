@@ -799,7 +799,8 @@ void Xamp::playMusic(const MusicEntity& item) {
         player_->Open(item.file_path.toStdWString(), item.file_ext.toStdWString(), device_info_);
         setupResampler();
         player_->StartPlay();
-        if (!player_->CanHardwareControlVolume()) {
+
+        if (player_->CanHardwareControlVolume()) {
             if (!player_->IsMute()) {
                 setVolume(ui.volumeSlider->value());
             }
@@ -811,6 +812,7 @@ void Xamp::playMusic(const MusicEntity& item) {
         else {
             ui.volumeSlider->setDisabled(true);
         }
+
         open_done = true;
     }
     catch (const xamp::base::Exception & e) {

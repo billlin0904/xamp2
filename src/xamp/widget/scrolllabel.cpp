@@ -3,12 +3,11 @@
 
 ScrollLabel::ScrollLabel(QWidget* parent) 
 	: QLabel(parent) {
-	static_text_ = new QStaticText();
-	static_text_->setTextFormat(Qt::PlainText);
+    static_text_.setTextFormat(Qt::PlainText);
 	timer_.setInterval(16);
 	timer_.setTimerType(Qt::PreciseTimer);
 	(void)QObject::connect(&timer_, &QTimer::timeout, this, &ScrollLabel::onTimerTimeout);
-	wait_timer_.setInterval(5000);
+    wait_timer_.setInterval(100);
 	(void)QObject::connect(&wait_timer_, &QTimer::timeout, this, &ScrollLabel::onTimerTimeout);
 	leftMargin_ = height() / 3;
 	scrollPos_ = 0;
@@ -32,22 +31,23 @@ void ScrollLabel::updateText() {
 	timer_.stop();
 
 	singleTextWidth_ = fontMetrics().width(text_);
-	scrollEnabled_ = singleTextWidth_ > (width() - leftMargin_);
+    scrollEnabled_ = singleTextWidth_ > (width() - leftMargin_);
+    //scrollEnabled_ = true;
 
 	if (scrollEnabled_) {
-		static_text_->setText(text_ + seperator);
-		if (window()->windowState() & Qt::WindowMinimized) {
+        static_text_.setText(text_ + seperator);
+        if (!(window()->windowState() & Qt::WindowMinimized)) {
 			scrollPos_ = 0;
 			wait_timer_.start();
 			waiting_ = true;
 		}
 	}
 	else {
-		static_text_->setText(text_);
+        static_text_.setText(text_);
 	}
 
-	static_text_->prepare(QTransform(), font());
-	wholeTextSize_ = QSize(fontMetrics().width(static_text_->text()), fontMetrics().height());
+    static_text_.prepare(QTransform(), font());
+    wholeTextSize_ = QSize(fontMetrics().width(static_text_.text()), fontMetrics().height());
 }
 
 void ScrollLabel::onTimerTimeout() {
@@ -64,6 +64,8 @@ void ScrollLabel::onTimerTimeout() {
 		timer_.stop();
 		wait_timer_.start();
 	}
+
+    update();
 }
 
 QSize ScrollLabel::sizeHint() const {
@@ -81,7 +83,7 @@ void ScrollLabel::paintEvent(QPaintEvent*) {
 
 		auto x = std::min(-scrollPos_, 0) + leftMargin_;
 		while (x < width()) {
-			pb.drawStaticText(QPointF(x, (height() - wholeTextSize_.height()) / 2), *static_text_);
+            pb.drawStaticText(QPointF(x, (height() - wholeTextSize_.height()) / 2), static_text_);
 			x += wholeTextSize_.width();
 		}
 		pb.setCompositionMode(QPainter::CompositionMode_DestinationIn);
@@ -92,11 +94,11 @@ void ScrollLabel::paintEvent(QPaintEvent*) {
 		painter.drawImage(0, 0, buffer_);
 	}
 	else {
-		painter.drawStaticText(QPointF(leftMargin_, (height() - wholeTextSize_.height()) / 2), 	*static_text_);
+        painter.drawStaticText(QPointF(leftMargin_, (height() - wholeTextSize_.height()) / 2), static_text_);
 	}
 }
 
-void ScrollLabel::resizeEvent(QResizeEvent* event) {
+void ScrollLabel::resizeEvent(QResizeEvent*) {
 	alphaChannel_ = QImage(size(), QImage::Format_ARGB32_Premultiplied);
 	buffer_ = QImage(size(), QImage::Format_ARGB32_Premultiplied);
 	alphaChannel_.fill(qRgba(0, 0, 0, 0));

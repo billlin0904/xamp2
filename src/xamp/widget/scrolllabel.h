@@ -37,14 +37,14 @@ private:
 
 	void updateText();
 
-	const QLatin1String seperator = QLatin1String(" --- ");
+    const QLatin1String seperator = QLatin1String("   ");
 
 	bool scrollEnabled_;
 	bool waiting_;
 	int leftMargin_;
 	int scrollPos_;
 	int singleTextWidth_;
-	QStaticText *static_text_;
+    QStaticText static_text_;
 	QString text_;
 	QTimer timer_;
 	QTimer wait_timer_;
