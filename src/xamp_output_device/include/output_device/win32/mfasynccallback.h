@@ -21,7 +21,7 @@ public:
 	typedef HRESULT(ParentType::*Callback)(IMFAsyncResult *);
 
 	MFAsyncCallback(ParentType* parent, const Callback fn, const DWORD queue_id)
-		: refcount_(1)
+		: refcount_(0)
 		, queue_id_(queue_id)
 		, parent_(parent)
 		, callback_(fn) {

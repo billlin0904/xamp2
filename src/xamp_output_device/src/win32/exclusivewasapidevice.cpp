@@ -99,7 +99,6 @@ ExclusiveWasapiDevice::ExclusiveWasapiDevice(const CComPtr<IMMDevice>& device)
 
 ExclusiveWasapiDevice::~ExclusiveWasapiDevice() {
     try {
-        StopStream();
         CloseStream();
         sample_ready_.reset();
     } catch (...) {
@@ -285,28 +284,23 @@ void ExclusiveWasapiDevice::GetSample(const uint32_t frame_available) {
 }
 
 void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
-    is_stop_streaming_ = false;
+	if (sample_raedy_key_ != 0) {
+		HrIfFailledThrow2(::MFCancelWorkItem(sample_raedy_key_), MF_E_NOT_FOUND);
+		sample_raedy_key_ = 0;
+	}
 
     if (is_running_) {
         is_running_ = false;
+
         std::unique_lock<std::mutex> lock{ mutex_ };
         while (wait_for_stop_stream && !is_stop_streaming_) {
             condition_.wait(lock);
         }
-    }
-
-    if (mix_format_ != nullptr) {
-        auto sleep_for_stop = helper::WASAPI_REFTIMES_PER_SEC * buffer_frames_ / mix_format_->nSamplesPerSec;
-		::Sleep(static_cast<DWORD>(sleep_for_stop / helper::WASAPI_REFTIMES_PER_MILLISEC));
-    }    
+    }  
 
     if (client_ != nullptr) {
-        client_->Stop();
-    }
-
-    if (sample_raedy_key_ != 0) {
-        HrIfFailledThrow2(::MFCancelWorkItem(sample_raedy_key_), MF_E_NOT_FOUND);
-        sample_raedy_key_ = 0;
+		HrFailledLog(client_->Stop());
+		HrFailledLog(client_->Reset());
     }
 }
 
@@ -341,7 +335,7 @@ void ExclusiveWasapiDevice::StartStream() {
 
 	assert(callback_ != nullptr);
 	
-    client_->Reset();
+	HrFailledLog(client_->Reset());
 
     is_running_ = true;
 	HrIfFailledThrow(client_->Start());

@@ -472,7 +472,7 @@
                 <item>
                  <widget class="QSlider" name="soxrPassbandSlider">
                   <property name="minimum">
-                   <number>1</number>
+                   <number>50</number>
                   </property>
                   <property name="maximum">
                    <number>99</number>

@@ -8,6 +8,8 @@
 #include <base/exception.h>
 
 #ifdef XAMP_OS_WIN
+#include <base/logger.h>
+
 #include <output_device/win32/wasapi.h>
 #include <output_device/device_type.h>
 
@@ -18,6 +20,10 @@ using namespace base;
 class HRException final : public PlatformSpecException {
 public:
 	static void ThrowFromHResult(HRESULT hresult, std::string_view expr);
+
+	static std::string_view ErrorToString(HRESULT hr) noexcept;
+
+	static std::string ErrorToStringHelper(HRESULT hr);
 	
 	HRException(HRESULT hresult, std::string_view expr = "");
 
@@ -31,6 +37,14 @@ private:
 };
 
 }
+
+#define HrFailledLog(expr) \
+	do {\
+		auto hr = expr;\
+		if (FAILED(hr)) {\
+			XAMP_LOG_DEBUG("{}", HRException::ErrorToStringHelper(hr));\
+		}\
+	} while(false)
 
 #define HrIfFailledThrow2(hresult, otherHr) \
 	do { \

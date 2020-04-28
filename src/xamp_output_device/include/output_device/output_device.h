@@ -9,6 +9,8 @@
 #include <base/base.h>
 
 #ifdef XAMP_OS_WIN
+#define _ATL_DEBUG_INTERFACES
+#define _ATL_DEBUG_QI
 #ifdef XAMP_OUTPUT_DEVICE_API_EXPORTS
 #define XAMP_OUTPUT_DEVICE_API __declspec(dllexport)
 #else

@@ -91,7 +91,6 @@ SharedWasapiDevice::SharedWasapiDevice(const CComPtr<IMMDevice>& device)
 
 SharedWasapiDevice::~SharedWasapiDevice() {
     try {
-        StopStream();
         CloseStream();
         sample_ready_.reset();
     } catch (...) {
@@ -122,7 +121,10 @@ void SharedWasapiDevice::SetAudioCallback(AudioCallback* callback) noexcept {
 }
 
 void SharedWasapiDevice::StopStream(bool wait_for_stop_stream) {
-	is_stop_streaming_ = false;
+	if (sample_raedy_key_ != 0) {
+		HrIfFailledThrow2(::MFCancelWorkItem(sample_raedy_key_), MF_E_NOT_FOUND);
+		sample_raedy_key_ = 0;
+	}
 
 	if (is_running_) {
 		is_running_ = false;
@@ -133,21 +135,9 @@ void SharedWasapiDevice::StopStream(bool wait_for_stop_stream) {
 		}
 	}
 
-	if (mix_format_ != nullptr) {
-		auto sleep_for_stop = helper::WASAPI_REFTIMES_PER_SEC * buffer_frames_ / mix_format_->nSamplesPerSec;
-		::Sleep(static_cast<DWORD>(sleep_for_stop / helper::WASAPI_REFTIMES_PER_MILLISEC / 2));
-	}
-
 	if (client_ != nullptr) {
-		client_->Stop();
-	}
-
-	if (sample_raedy_key_ != 0) {
-		const auto hr = ::MFCancelWorkItem(sample_raedy_key_);
-		if (hr != MF_E_NOT_FOUND) {
-			HrIfFailledThrow(hr);
-		}
-		sample_raedy_key_ = 0;
+		HrFailledLog(client_->Stop());
+		HrFailledLog(client_->Reset());
 	}
 }
 
@@ -158,8 +148,10 @@ void SharedWasapiDevice::CloseStream() {
 	}
 
 	render_client_.Release();
+	
 	sample_ready_callback_.Release();
 	sample_ready_async_result_.Release();
+
 	callback_ = nullptr;
 }
 
@@ -226,7 +218,7 @@ void SharedWasapiDevice::OpenStream(const AudioFormat& output_format) {
 		RegisterDeviceVolumeChange();
 	}
 
-	HrIfFailledThrow(client_->Reset());
+	HrFailledLog(client_->Reset());
 
 	HrIfFailledThrow(client_->GetBufferSize(&buffer_frames_));
 	HrIfFailledThrow(client_->GetService(__uuidof(IAudioRenderClient), reinterpret_cast<void**>(&render_client_)));
@@ -237,13 +229,17 @@ void SharedWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	DWORD task_id = 0;
 	queue_id_ = 0;
 	HrIfFailledThrow(::MFLockSharedWorkQueue(mmcss_name_.c_str(),
-		(LONG)thread_priority_
-		, &task_id, &queue_id_));
+		(LONG)thread_priority_,
+		&task_id,
+		&queue_id_));
 
 	LONG priority = 0;
 	HrIfFailledThrow(::MFGetWorkQueueMMCSSPriority(queue_id_, &priority));
 
 	XAMP_LOG_DEBUG("MCSS task id:{} queue id:{}, priority:{} ({})", task_id, queue_id_, thread_priority_, priority);
+
+	sample_ready_callback_.Release();
+	sample_ready_async_result_.Release();
 
 	sample_ready_callback_ = new MFAsyncCallback<SharedWasapiDevice>(this,
 		&SharedWasapiDevice::OnSampleReady,
@@ -388,7 +384,7 @@ void SharedWasapiDevice::StartStream() {
 
 	assert(callback_ != nullptr);
 
-	client_->Reset();
+	HrFailledLog(client_->Reset());
 
 	is_running_ = true;
 	HrIfFailledThrow(client_->Start());

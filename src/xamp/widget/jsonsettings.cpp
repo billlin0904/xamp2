@@ -45,6 +45,9 @@ int32_t JsonSettings::getAsInt(const QString& key) {
 }
 
 QVariant JsonSettings::getValue(const QString& key) {
+	if (key.isEmpty()) {
+		return{};
+	}
 	if (!settings_->contains(key)) {
 		return default_settings_.value(key);
 	}

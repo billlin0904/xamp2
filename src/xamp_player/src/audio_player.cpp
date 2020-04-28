@@ -89,9 +89,6 @@ void AudioPlayer::SetResampler(uint32_t samplerate, align_ptr<Resampler>&& resam
 }
 
 void AudioPlayer::CreateDevice(const ID& device_type_id, const std::wstring& device_id, const bool open_always) {
-    if (device_ != nullptr) {
-        device_->StopStream();
-    }
     if (device_ == nullptr
         || device_id_ != device_id
         || device_type_id_ != device_type_id

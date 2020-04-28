@@ -8,7 +8,7 @@
 
 namespace xamp::output_device::win32 {
 
-static std::string_view HresultToStr(HRESULT hr) noexcept {
+std::string_view HRException::ErrorToString(HRESULT hr) noexcept {
     switch (hr) {
         default: return "(unknown)";
         case AUDCLNT_E_NOT_INITIALIZED: return "AUDCLNT_E_NOT_INITIALIZED";
@@ -62,13 +62,17 @@ void HRException::ThrowFromHResult(HRESULT hresult, std::string_view expr) {
 	}
 }
 
+std::string HRException::ErrorToStringHelper(HRESULT hr) {
+    std::ostringstream ostr;
+    ostr << "Hr code: 0x" << std::hex << hr << "(" << ErrorToString(hr) << ")";
+    return ostr.str();
+}
+
 HRException::HRException(HRESULT hresult, std::string_view expr)
 	: PlatformSpecException(hresult)
 	, hr_(hresult)
-	, expr_(expr) {
-	std::ostringstream ostr;
-    ostr << "Hr code: 0x" << std::hex << hresult << "(" << HresultToStr(hresult) << ")";
-	message_ = ostr.str();
+	, expr_(expr) {	
+	message_ = ErrorToStringHelper(hresult);
 }
 
 HRESULT HRException::GetHResult() const {

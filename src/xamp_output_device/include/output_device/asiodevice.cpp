@@ -64,7 +64,7 @@ AsioDevice::~AsioDevice() {
 	}
 }
 
-bool AsioDevice::CanControlVolume() const {
+bool AsioDevice::CanHardwareControlVolume() const {
 	return false;
 }
 
