@@ -22,9 +22,9 @@ void SetRealtimeProcessPriority() {
     policy.timeshare = 0;  // Set to 1 for a non-fixed thread.
     auto result =
         ::thread_policy_set(mach_thread_id,
-                          THREAD_EXTENDED_POLICY,
-                          reinterpret_cast<thread_policy_t>(&policy),
-                          THREAD_EXTENDED_POLICY_COUNT);
+                            THREAD_EXTENDED_POLICY,
+                            reinterpret_cast<thread_policy_t>(&policy),
+                            THREAD_EXTENDED_POLICY_COUNT);
     if (result != KERN_SUCCESS) {
         XAMP_LOG_DEBUG("Make thread fixed priority!");
         return;
@@ -34,9 +34,9 @@ void SetRealtimeProcessPriority() {
     thread_precedence_policy_data_t precedence;
     precedence.importance = 63;
     result = ::thread_policy_set(mach_thread_id,
-                               THREAD_PRECEDENCE_POLICY,
-                               reinterpret_cast<thread_policy_t>(&precedence),
-                               THREAD_PRECEDENCE_POLICY_COUNT);
+                                 THREAD_PRECEDENCE_POLICY,
+                                 reinterpret_cast<thread_policy_t>(&precedence),
+                                 THREAD_PRECEDENCE_POLICY_COUNT);
     if (result != KERN_SUCCESS) {
         XAMP_LOG_DEBUG("Set to relatively high priority failure!");
         return;
@@ -73,9 +73,9 @@ void SetRealtimeProcessPriority() {
     time_constraints.preemptible = 0;
 
     result = ::thread_policy_set(mach_thread_id,
-                               THREAD_TIME_CONSTRAINT_POLICY,
-                               reinterpret_cast<thread_policy_t>(&time_constraints),
-                               THREAD_TIME_CONSTRAINT_POLICY_COUNT);
+                                 THREAD_TIME_CONSTRAINT_POLICY,
+                                 reinterpret_cast<thread_policy_t>(&time_constraints),
+                                 THREAD_TIME_CONSTRAINT_POLICY_COUNT);
     if (result != KERN_SUCCESS) {
         XAMP_LOG_DEBUG("thread_policy_set return failure!");
         return;
@@ -117,9 +117,9 @@ void SetThreadNameById(DWORD dwThreadID, const char* threadName) {
 
     __try {
         ::RaiseException(MS_VC_EXCEPTION,
-            0,
+                         0,
                          sizeof(info) / sizeof(ULONG_PTR),
-            reinterpret_cast<ULONG_PTR*>(&info));
+                         reinterpret_cast<ULONG_PTR*>(&info));
     } __except (EXCEPTION_EXECUTE_HANDLER) {
     }
 }

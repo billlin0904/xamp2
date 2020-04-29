@@ -44,11 +44,11 @@ struct SystemVolume {
         if (device_id_ != kAudioObjectUnknown) {
             UInt32 size = sizeof(gain);
             CoreAudioThrowIfError(::AudioObjectGetPropertyData(device_id_,
-                                                             &property_,
-                                                             0,
-                                                             nullptr,
-                                                             &size,
-                                                             &gain));
+                                                               &property_,
+                                                               0,
+                                                               nullptr,
+                                                               &size,
+                                                               &gain));
         }
         return static_cast<double>(gain);
     }
@@ -58,11 +58,11 @@ struct SystemVolume {
             Float32 newVolume = gain;
             UInt32 size = sizeof(newVolume);
             CoreAudioThrowIfError(::AudioObjectSetPropertyData(device_id_,
-                                                             &property_,
-                                                             0,
-                                                             nullptr,
-                                                             size,
-                                                             &newVolume));
+                                                               &property_,
+                                                               0,
+                                                               nullptr,
+                                                               size,
+                                                               &newVolume));
         }
     }
 
@@ -71,11 +71,11 @@ struct SystemVolume {
         if (device_id_ != kAudioObjectUnknown) {
             UInt32 size = sizeof(muted);
             CoreAudioThrowIfError(::AudioObjectGetPropertyData(device_id_,
-                                                             &property_,
-                                                             0,
-                                                             nullptr,
-                                                             &size,
-                                                             &muted));
+                                                               &property_,
+                                                               0,
+                                                               nullptr,
+                                                               &size,
+                                                               &muted));
         }
         return muted != 0;
     }
@@ -85,11 +85,11 @@ struct SystemVolume {
             UInt32 newMute = mute ? 1 : 0;
             UInt32 size = sizeof(newMute);
             CoreAudioThrowIfError(::AudioObjectSetPropertyData(device_id_,
-                                                             &property_,
-                                                             0,
-                                                             nullptr,
-                                                             size,
-                                                             &newMute));
+                                                               &property_,
+                                                               0,
+                                                               nullptr,
+                                                               size,
+                                                               &newMute));
         }
     }
 
@@ -101,8 +101,8 @@ private:
     bool CanSetVolume() const noexcept {
         Boolean is_settable = false;
         return ::AudioObjectIsPropertySettable(device_id_,
-                                             &property_,
-                                             &is_settable) == noErr && is_settable;
+                                               &property_,
+                                               &is_settable) == noErr && is_settable;
     }
 
     AudioDeviceID device_id_;
@@ -134,11 +134,11 @@ void CoreAudioDevice::OpenStream(const AudioFormat &output_format) {
     audio_property_.mSelector = kAudioStreamPropertyVirtualFormat;
 
     CoreAudioThrowIfError(::AudioObjectGetPropertyData(device_id_,
-                                                     &audio_property_,
-                                                     0,
-                                                     nullptr,
-                                                     &dataSize,
-                                                     &fmt));
+                                                       &audio_property_,
+                                                       0,
+                                                       nullptr,
+                                                       &dataSize,
+                                                       &fmt));
 
     if (fmt.mFormatFlags & kAudioFormatFlagIsNonInterleaved) {
         XAMP_LOG_DEBUG("Format is non interleaved");
@@ -156,12 +156,16 @@ void CoreAudioDevice::OpenStream(const AudioFormat &output_format) {
         fmt.mBytesPerFrame = output_format.GetBytesPerSample();
         fmt.mBytesPerPacket = output_format.GetBytesPerSample();
         fmt.mReserved = 0;
-        CoreAudioThrowIfError(::AudioObjectSetPropertyData(device_id_,
-                                                         &audio_property_,
-                                                         0,
-                                                         nullptr,
-                                                         dataSize,
-                                                         &fmt));
+        auto error = ::AudioObjectSetPropertyData(device_id_,
+                                                  &audio_property_,
+                                                  0,
+                                                  nullptr,
+                                                  dataSize,
+                                                  &fmt);
+        if (error == kAudioCodecUnsupportedFormatError) {
+            throw DeviceUnSupportedFormatException(output_format);
+        }
+        CoreAudioThrowIfError(error);
         XAMP_LOG_DEBUG("Update audio format {}", output_format);
     }
 
@@ -169,24 +173,24 @@ void CoreAudioDevice::OpenStream(const AudioFormat &output_format) {
     audio_property_.mSelector = kAudioDevicePropertyBufferFrameSize;
     dataSize = sizeof(bufferSize);
     CoreAudioThrowIfError(::AudioObjectGetPropertyData(
-                              device_id_,
-                              &audio_property_,
-                              0,
-                              nullptr,
-                              &dataSize,
-                              &bufferSize));
+        device_id_,
+        &audio_property_,
+        0,
+        nullptr,
+        &dataSize,
+        &bufferSize));
     XAMP_LOG_DEBUG("Allocate buffer size:{}", bufferSize);
 
     UInt32 theSize = bufferSize;
     dataSize = sizeof(UInt32);
     audio_property_.mSelector = kAudioDevicePropertyBufferFrameSize;
     CoreAudioThrowIfError(::AudioObjectSetPropertyData(
-                              device_id_,
-                              &audio_property_,
-                              0,
-                              nullptr,
-                              dataSize,
-                              &theSize));
+        device_id_,
+        &audio_property_,
+        0,
+        nullptr,
+        dataSize,
+        &theSize));
 
     buffer_size_ = output_format.GetChannels() * bufferSize;
 
@@ -263,12 +267,12 @@ uint32_t CoreAudioDevice::GetBufferSize() const noexcept {
 }
 
 OSStatus CoreAudioDevice::OnAudioDeviceIOProc(AudioDeviceID,
-                                        const AudioTimeStamp *,
-                                        const AudioBufferList *,
-                                        const AudioTimeStamp *,
-                                        AudioBufferList *output_data,
-                                        const AudioTimeStamp *,
-                                        void *user_data) {
+                                              const AudioTimeStamp *,
+                                              const AudioBufferList *,
+                                              const AudioTimeStamp *,
+                                              AudioBufferList *output_data,
+                                              const AudioTimeStamp *,
+                                              void *user_data) {
     auto device = static_cast<CoreAudioDevice*>(user_data);
     device->AudioDeviceIOProc(output_data);
     return noErr;

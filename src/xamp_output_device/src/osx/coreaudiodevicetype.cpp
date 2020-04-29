@@ -1,99 +1,14 @@
 #include <base/str_utilts.h>
 #include <base/logger.h>
 
+#include <output_device/osx/osx_str_utitl.h>
+#include <output_device/osx/coreaudioexception.h>
 #include <output_device/osx/coreaudiodevice.h>
 #include <output_device/osx/coreaudiodevicetype.h>
 
 namespace xamp::output_device::osx {
 
 const ID CoreAudioDeviceType::Id("E6BB3BF2-F16A-489B-83EE-4A29755F42E4");
-
-static std::wstring CFSStringToStdWString(CFStringRef &cfname) {
-    std::string name;
-    auto length = ::CFStringGetLength(cfname);
-    if (length <= 0) {
-        return  L"";
-    }
-    std::vector<char> mname(static_cast<size_t>(length) * 3 + 1);
-    ::CFStringGetCString(cfname,
-                       mname.data(),
-                       length * 3 + 1,
-                       kCFStringEncodingUTF8);
-    name.append(mname.data(), strlen(mname.data()));
-    ::CFRelease(cfname);
-    return ToStdWString(name);
-}
-
-template<typename StringType>
-static CFStringRef STLStringToCFStringWithEncodingsT(
-    const StringType& in,
-    CFStringEncoding in_encoding) {
-    typename StringType::size_type in_length = in.length();
-    if (in_length == 0)
-        return CFSTR("");
-
-    return CFStringCreateWithBytes(kCFAllocatorDefault,
-                                   reinterpret_cast<const UInt8*>(in.data()),
-                                   in_length *
-                                   sizeof(typename StringType::value_type),
-                                   in_encoding,
-                                   false);
-}
-
-template<typename StringType>
-static StringType CFStringToSTLStringWithEncodingT(CFStringRef cfstring,
-                                                   CFStringEncoding encoding) {
-    CFIndex length = CFStringGetLength(cfstring);
-    if (length == 0) {
-        return StringType();
-    }
-
-    CFRange whole_string = CFRangeMake(0, length);
-    CFIndex out_size;
-    CFIndex converted = CFStringGetBytes(cfstring,
-                                         whole_string,
-                                         encoding,
-                                         0,      // lossByte
-                                         false,  // isExternalRepresentation
-                                         nullptr,   // buffer
-                                         0,      // maxBufLen
-                                         &out_size);
-    if (converted == 0 || out_size == 0) {
-        return StringType();
-    }
-
-    typename StringType::size_type elements =
-        out_size * sizeof(UInt8) / sizeof(typename StringType::value_type) + 1;
-
-    std::vector<typename StringType::value_type> out_buffer(elements);
-    converted = CFStringGetBytes(cfstring,
-                                 whole_string,
-                                 encoding,
-                                 0,      // lossByte
-                                 false,  // isExternalRepresentation
-                                 reinterpret_cast<UInt8*>(&out_buffer[0]),
-                                 out_size,
-                                 nullptr);  // usedBufLen
-    if (converted == 0) {
-        return StringType();
-    }
-
-    out_buffer[elements - 1] = '\0';
-    return StringType(&out_buffer[0], elements - 1);
-}
-
-std::wstring SysCFStringRefToWide(CFStringRef ref) {
-    return CFStringToSTLStringWithEncodingT<std::wstring>(ref,
-                                                          kCFStringEncodingUTF32BE);
-}
-
-CFStringRef SysUTF8ToCFStringRef(const std::string& utf8) {
-    return STLStringToCFStringWithEncodingsT(utf8, kCFStringEncodingUTF8);
-}
-
-CFStringRef SysWideToCFStringRef(const std::wstring& wide) {
-    return STLStringToCFStringWithEncodingsT(wide, kCFStringEncodingUTF32BE);
-}
 
 static std::vector<int32_t> GetAvailableSampleRates(AudioDeviceID id) {
     const AudioObjectPropertyAddress property = {
@@ -126,10 +41,10 @@ static std::vector<int32_t> GetAvailableSampleRates(AudioDeviceID id) {
 static bool IsSupportDopMode(AudioDeviceID id) {
     auto samplerates = GetAvailableSampleRates(id);
     return std::find_if(samplerates.begin(), samplerates.end(), [](auto samplerate) {
-        // Minimal DOP DSD64 samplerate
-        constexpr int32_t MIN_DOP_SAMPLERATE = 176400;
-        return samplerate >= MIN_DOP_SAMPLERATE;
-    }) != samplerates.end();
+               // Minimal DOP DSD64 samplerate
+               constexpr int32_t MIN_DOP_SAMPLERATE = 176400;
+               return samplerate >= MIN_DOP_SAMPLERATE;
+           }) != samplerates.end();
 }
 
 static std::wstring GetDeviceUid(AudioDeviceID id) {
@@ -142,11 +57,11 @@ static std::wstring GetDeviceUid(AudioDeviceID id) {
     CFStringRef uid = nullptr;
     UInt32 size = sizeof(uid);
     auto result = ::AudioObjectGetPropertyData(id,
-                                        &property,
-                                        0,
-                                        nullptr,
-                                        &size,
-                                        &uid);
+                                               &property,
+                                               0,
+                                               nullptr,
+                                               &size,
+                                               &uid);
     if (result) {
         return L"";
     }
@@ -165,16 +80,16 @@ static std::wstring GetDeviceName(AudioDeviceID id, AudioObjectPropertySelector 
     uint32_t dataSize = sizeof(CFStringRef);
     property.mSelector = selector;
     auto result = ::AudioObjectGetPropertyData(id,
-                                             &property,
-                                             0,
-                                             nullptr,
-                                             &dataSize,
-                                             &cfname);
+                                               &property,
+                                               0,
+                                               nullptr,
+                                               &dataSize,
+                                               &cfname);
     if (result != noErr) {
         return L"";
     }
 
-    return CFSStringToStdWString(cfname);
+    return ToStdWString(SysCFStringRefToUTF8(cfname));
 }
 
 static std::wstring GetPropertyName(AudioDeviceID id) {
@@ -190,19 +105,18 @@ static AudioDeviceID GetAudioDeviceIdByUid(bool is_input, const std::wstring& de
 
     AudioDeviceID audio_device_id = kAudioObjectUnknown;
     UInt32 device_size = sizeof(audio_device_id);
-    OSStatus result;
+    OSStatus result = -1;
 
     if (device_id.empty()) {
-        OSStatus result = -1;
         property_address.mSelector = is_input ?
                                               kAudioHardwarePropertyDefaultInputDevice :
                                               kAudioHardwarePropertyDefaultOutputDevice;
-        result = AudioObjectGetPropertyData(kAudioObjectSystemObject,
-                                            &property_address,
-                                            0,
-                                            nullptr,
-                                            &device_size,
-                                            &audio_device_id);
+        result = ::AudioObjectGetPropertyData(kAudioObjectSystemObject,
+                                              &property_address,
+                                              0,
+                                              nullptr,
+                                              &device_size,
+                                              &audio_device_id);
     } else {
         auto uid = SysWideToCFStringRef(device_id);
 
@@ -214,13 +128,14 @@ static AudioDeviceID GetAudioDeviceIdByUid(bool is_input, const std::wstring& de
         UInt32 translation_size = sizeof(AudioValueTranslation);
 
         property_address.mSelector = kAudioHardwarePropertyDeviceForUID;
-        result = AudioObjectGetPropertyData(kAudioObjectSystemObject,
-                                            &property_address,
-                                            0,
-                                            nullptr,
-                                            &translation_size,
-                                            &value);
+        result = ::AudioObjectGetPropertyData(kAudioObjectSystemObject,
+                                              &property_address,
+                                              0,
+                                              nullptr,
+                                              &translation_size,
+                                              &value);
     }
+    CoreAudioFailledLog(result);
     return audio_device_id;
 }
 
@@ -233,10 +148,10 @@ static bool IsOutputDevice(AudioDeviceID id) {
 
     UInt32 dataSize = 0;
     auto result = ::AudioObjectGetPropertyDataSize(id,
-                                                 &property,
-                                                 0,
-                                                 nullptr,
-                                                 &dataSize);
+                                                   &property,
+                                                   0,
+                                                   nullptr,
+                                                   &dataSize);
     if (result != noErr) {
         return false;
     }
@@ -269,13 +184,13 @@ size_t CoreAudioDeviceType::GetDeviceCount() const {
     };
 
     auto result = ::AudioObjectGetPropertyDataSize(
-                kAudioObjectSystemObject,
-                &propertyAddress,
-                0,
-                nullptr,
-                &data_size);
+        kAudioObjectSystemObject,
+        &propertyAddress,
+        0,
+        nullptr,
+        &data_size);
     if (result != noErr) {
-        return  0;
+        return 0;
     }
 
     return data_size / sizeof(AudioDeviceID);
@@ -305,12 +220,12 @@ std::vector<DeviceInfo> CoreAudioDeviceType::GetDeviceInfo() const {
     std::vector<AudioDeviceID> device_list(device_count);
     property.mSelector = kAudioHardwarePropertyDevices;
     auto result = ::AudioObjectGetPropertyData(
-                kAudioObjectSystemObject,
-                &property,
-                0,
-                nullptr,
-                &data_size,
-                device_list.data());
+        kAudioObjectSystemObject,
+        &property,
+        0,
+        nullptr,
+        &data_size,
+        device_list.data());
     if (result != noErr) {
         return device_infos;
     }
@@ -350,12 +265,12 @@ std::optional<DeviceInfo> CoreAudioDeviceType::GetDefaultDeviceInfo() const {
     };
 
     auto result = ::AudioObjectGetPropertyData(
-                kAudioObjectSystemObject,
-                &property,
-                0,
-                nullptr,
-                &dataSize,
-                &id);
+        kAudioObjectSystemObject,
+        &property,
+        0,
+        nullptr,
+        &dataSize,
+        &id);
     if (result != noErr) {
         return std::nullopt;
     }

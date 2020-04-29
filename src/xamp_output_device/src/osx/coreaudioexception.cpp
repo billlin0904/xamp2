@@ -1,3 +1,6 @@
+#include <Security/Security.h>
+
+#include <output_device/osx/osx_str_utitl.h>
 #include <output_device/osx/coreaudioexception.h>
 
 namespace xamp::output_device::osx {
@@ -27,12 +30,19 @@ static const char * FormatErrorMessage(OSStatus status) {
     case kAudioDevicePermissionsError:
         return "kAudioDevicePermissionsError";
     default:
-        return "CoreAudio unknown error";
+        return "unknown error";
     }
 }
 
 CoreAudioException::CoreAudioException(OSStatus status) {
-    message_ = FormatErrorMessage(status);
+    message_ = ErrorToString(status) + " (" + FormatErrorMessage(status) + ")";
+}
+
+std::string CoreAudioException::ErrorToString(OSStatus status) {
+    auto str = ::SecCopyErrorMessageString(status, nullptr);
+    auto result = SysCFStringRefToUTF8(str);
+    ::CFRelease(str);
+    return result;
 }
 
 }

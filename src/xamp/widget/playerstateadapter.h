@@ -40,5 +40,5 @@ protected:
 
     void OnGetMagnitudeSpectrum(const std::vector<float>& mag) override;
 
-    void OnVolumeChange(float vol);
+    void OnVolumeChange(float vol) override;
 };

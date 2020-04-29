@@ -117,7 +117,7 @@ private:
     static int32_t log_level;
 };
 
-int32_t LibAv::log_level = AV_LOG_FATAL;
+int32_t LibAv::log_level = AV_LOG_INFO;
 
 class AvFileStream::AvFileStreamImpl {
 public:
