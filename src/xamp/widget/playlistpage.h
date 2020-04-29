@@ -8,7 +8,8 @@
 #include <QFrame>
 #include <QString>
 
-class QLabel;
+#include <widget/scrolllabel.h>
+
 class PlayListTableView;
 
 class PlyalistPage : public QFrame {
@@ -20,7 +21,7 @@ public:
 
 	QLabel* cover();
 
-	QLabel* title();
+    ScrollLabel* title();
 
 	QLabel* format();
 
@@ -30,6 +31,6 @@ private:
 
 	PlayListTableView* playlist_;
 	QLabel* cover_;
-	QLabel* title_;
+    ScrollLabel* title_;
 	QLabel* format_;
 };

@@ -49,7 +49,7 @@ void PlyalistPage::initial() {
 	album_title_layout->setSpacing(0);
 	album_title_layout->setObjectName(QString::fromUtf8("verticalLayout_2"));
 	album_title_layout->setContentsMargins(-1, 5, -1, -1);
-	title_ = new QLabel(this);
+    title_ = new ScrollLabel(this);
 	auto f = font();
 	f.setBold(true);
 	f.setPixelSize(25);
@@ -116,7 +116,7 @@ QLabel* PlyalistPage::format() {
 	return format_;
 }
 
-QLabel* PlyalistPage::title() {
+ScrollLabel* PlyalistPage::title() {
 	return title_;
 }
 

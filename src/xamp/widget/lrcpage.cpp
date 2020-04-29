@@ -28,7 +28,7 @@ QLabel* LrcPage::artist() {
 	return artist_;
 }
 
-QLabel* LrcPage::title() {
+ScrollLabel* LrcPage::title() {
 	return title_;
 }
 
@@ -81,7 +81,7 @@ void LrcPage::initial() {
 	f.setPointSize(24);
 	f.setBold(true);
 
-	title_ = new QLabel(this);
+    title_ = new ScrollLabel(this);
 	title_->setObjectName(QString::fromUtf8("label_2"));
 	title_->setText(tr("Title:"));
 	title_->setFont(f);

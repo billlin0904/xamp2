@@ -7,9 +7,10 @@
 
 #include <QFrame>
 
+#include <widget/scrolllabel.h>
+
 class Spectrograph;
 class LyricsShowWideget;
-class QLabel;
 
 class LrcPage : public QFrame {
 	Q_OBJECT
@@ -24,7 +25,7 @@ public:
 
 	QLabel* artist();
 
-	QLabel* title();
+    ScrollLabel* title();
 
 	Spectrograph* spectrum();
 
@@ -37,6 +38,6 @@ private:
 	QLabel* cover_label_;
 	QLabel* album_;
 	QLabel* artist_;
-	QLabel* title_;
+    ScrollLabel* title_;
 	Spectrograph* results_;
 };
