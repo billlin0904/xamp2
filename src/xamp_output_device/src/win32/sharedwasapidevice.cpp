@@ -372,8 +372,7 @@ HRESULT SharedWasapiDevice::OnSampleReady(IMFAsyncResult* result) {
 		return S_OK;
 	}
 
-	GetSampleRequested(false);
-	HrIfFailledThrow(::MFPutWaitingWorkItem(sample_ready_.get(), 0, sample_ready_async_result_, &sample_raedy_key_));
+	GetSampleRequested(false);	
 	return S_OK;
 }
 
@@ -414,6 +413,7 @@ void SharedWasapiDevice::GetSampleRequested(const bool is_silence) {
 		}
 		else {
 			GetSample(frames_available);
+			HrIfFailledThrow(::MFPutWaitingWorkItem(sample_ready_.get(), 0, sample_ready_async_result_, &sample_raedy_key_));
 		}
 	}
 }

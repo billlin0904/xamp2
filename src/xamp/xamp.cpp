@@ -845,8 +845,6 @@ void Xamp::playMusic(const MusicEntity& item) {
 
     if (auto cover = PixmapCache::instance().find(item.cover_id)) {
         setCover(*cover.value());
-        playlist_page_->cover()->setPixmap(Pixmap::resizeImage(*cover.value(),
-            playlist_page_->cover()->size(), true));
     }
     else {
         setCover(ThemeManager::instance().pixmap().unknownCover());
@@ -901,14 +899,7 @@ void Xamp::addPlaylistItem(const PlayListEntity &entity) {
 void Xamp::setCover(const QPixmap& cover) {
     assert(!cover.isNull());
     ui.coverLabel->setPixmap(Pixmap::resizeImage(cover, ui.coverLabel->size(), true));	
-	
-	if (cover.size().height() != cover.size().width()) {
-		playlist_page_->cover()->setPixmap(Pixmap::resizeImage(cover, playlist_page_->cover()->size(), true));
-	}
-	else {
-		playlist_page_->cover()->setBaseSize(ThemeManager::instance().getDefaultCoverSize());
-		playlist_page_->cover()->setPixmap(Pixmap::resizeImage(cover, ThemeManager::instance().getDefaultCoverSize(), true));
-	}
+    playlist_page_->cover()->setPixmap(Pixmap::resizeImage(cover, playlist_page_->cover()->size(), true));
     lrc_page_->cover()->setPixmap(Pixmap::resizeImage(cover, lrc_page_->cover()->size(), true));
 }
 

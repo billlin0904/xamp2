@@ -33,7 +33,7 @@ static bool EnablePrivilege(std::string_view privilege, bool enable) noexcept {
 	WinHandle token;
 	HANDLE process_token;
 
-	if (::OpenProcessToken(current_process.get(), TOKEN_ADJUST_PRIVILEGES, &process_token)) {
+	if (::OpenProcessToken(current_process.get(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &process_token)) {
 		token.reset(process_token);
 
 		TOKEN_PRIVILEGES tp;
@@ -66,23 +66,24 @@ VmMemLock::~VmMemLock() noexcept {
 }
 
 bool VmMemLock::EnableLockMemPrivilege(bool enable) noexcept {
-	//return EnablePrivilege("SeLockMemoryPrivilege", enable);
-	return true;
+	return EnablePrivilege("SeLockMemoryPrivilege", enable);
 }
 
 void VmMemLock::Lock(void* address, size_t size) {
-	//UnLock();
+	UnLock();
 
-	//if (!ExterndProcessWorkingSetSize(size)) {
-	//	throw PlatformSpecException("ExterndProcessWorkingSetSize return failure! error:{}", ::GetLastError());
-	//}
+	/*if (!ExterndProcessWorkingSetSize(size)) {
+		throw PlatformSpecException("ExterndProcessWorkingSetSize return failure! error:{}", ::GetLastError());
+	}
 
-	//if (!::VirtualLock(address, size)) {
-	//	throw PlatformSpecException("VirtualLock return failure! error:{}", ::GetLastError());
-	//}
+	if (!::VirtualLock(address, size)) {
+		throw PlatformSpecException("VirtualLock return failure! error:{}", ::GetLastError());
+	}
 
-	//address_ = address;
-	//size_ = size;
+	address_ = address;
+	size_ = size;
+
+	XAMP_LOG_DEBUG("VmMemLock lock address: 0x{:08x} size: {}", int64_t(address_), size_);*/
 }
 
 void VmMemLock::UnLock() noexcept {
@@ -90,6 +91,7 @@ void VmMemLock::UnLock() noexcept {
 		if (!::VirtualUnlock(address_, size_)) {
 			XAMP_LOG_DEBUG("VirtualUnlock return failure! error:{}", ::GetLastError());
 		}
+		XAMP_LOG_DEBUG("VmMemLock unlock address: 0x{:08x} size: {}", int64_t(address_), size_);
 	}
 	address_ = nullptr;
 	size_ = 0;

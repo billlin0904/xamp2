@@ -71,7 +71,7 @@ void AudioPlayer::Destory() {
 void AudioPlayer::LoadLib() {
     BassFileStream::LoadBassLib();
     SoxrResampler::LoadSoxrLib();
-    Chromaprint::LoadChromaprintLib();
+    //Chromaprint::LoadChromaprintLib();
     ThreadPool::DefaultThreadPool();
 }
 

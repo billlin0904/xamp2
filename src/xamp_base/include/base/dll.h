@@ -43,6 +43,6 @@ private:
     T *func_;
 };
 
-#define XAMP_DLL_HELPER(Export_C_Func) DllFunction<decltype(Export_C_Func)>
+#define XAMP_DECLARE_DLL(Export_C_Func) DllFunction<decltype(Export_C_Func)>
 
 }

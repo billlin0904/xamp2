@@ -158,23 +158,23 @@ private:
     ModuleHandle module_;
 
 public:
-    XAMP_DLL_HELPER(BASS_Init) BASS_Init;
-    XAMP_DLL_HELPER(BASS_SetConfig) BASS_SetConfig;
+    XAMP_DECLARE_DLL(BASS_Init) BASS_Init;
+    XAMP_DECLARE_DLL(BASS_SetConfig) BASS_SetConfig;
 	DllFunction<HPLUGIN(const char *, DWORD)> BASS_PluginLoad;
-    XAMP_DLL_HELPER(BASS_PluginGetInfo) BASS_PluginGetInfo;
-    XAMP_DLL_HELPER(BASS_Free) BASS_Free;
+    XAMP_DECLARE_DLL(BASS_PluginGetInfo) BASS_PluginGetInfo;
+    XAMP_DECLARE_DLL(BASS_Free) BASS_Free;
 	DllFunction<HSTREAM(BOOL, const void *, QWORD, QWORD, DWORD)> BASS_StreamCreateFile;
-    XAMP_DLL_HELPER(BASS_ChannelGetInfo) BASS_ChannelGetInfo;
-    XAMP_DLL_HELPER(BASS_StreamFree) BASS_StreamFree;
-    XAMP_DLL_HELPER(BASS_PluginFree) BASS_PluginFree;
-    XAMP_DLL_HELPER(BASS_ChannelGetData) BASS_ChannelGetData;
-    XAMP_DLL_HELPER(BASS_ChannelGetLength) BASS_ChannelGetLength;
-    XAMP_DLL_HELPER(BASS_ChannelBytes2Seconds) BASS_ChannelBytes2Seconds;
-    XAMP_DLL_HELPER(BASS_ChannelSeconds2Bytes) BASS_ChannelSeconds2Bytes;
-    XAMP_DLL_HELPER(BASS_ChannelSetPosition) BASS_ChannelSetPosition;
-    XAMP_DLL_HELPER(BASS_ErrorGetCode) BASS_ErrorGetCode;
-    XAMP_DLL_HELPER(BASS_ChannelGetAttribute) BASS_ChannelGetAttribute;
-    XAMP_DLL_HELPER(BASS_ChannelSetAttribute) BASS_ChannelSetAttribute;
+    XAMP_DECLARE_DLL(BASS_ChannelGetInfo) BASS_ChannelGetInfo;
+    XAMP_DECLARE_DLL(BASS_StreamFree) BASS_StreamFree;
+    XAMP_DECLARE_DLL(BASS_PluginFree) BASS_PluginFree;
+    XAMP_DECLARE_DLL(BASS_ChannelGetData) BASS_ChannelGetData;
+    XAMP_DECLARE_DLL(BASS_ChannelGetLength) BASS_ChannelGetLength;
+    XAMP_DECLARE_DLL(BASS_ChannelBytes2Seconds) BASS_ChannelBytes2Seconds;
+    XAMP_DECLARE_DLL(BASS_ChannelSeconds2Bytes) BASS_ChannelSeconds2Bytes;
+    XAMP_DECLARE_DLL(BASS_ChannelSetPosition) BASS_ChannelSetPosition;
+    XAMP_DECLARE_DLL(BASS_ErrorGetCode) BASS_ErrorGetCode;
+    XAMP_DECLARE_DLL(BASS_ChannelGetAttribute) BASS_ChannelGetAttribute;
+    XAMP_DECLARE_DLL(BASS_ChannelSetAttribute) BASS_ChannelSetAttribute;
 
     align_ptr<BassDSDLib> DSDLib;
 

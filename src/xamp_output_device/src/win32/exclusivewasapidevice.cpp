@@ -84,7 +84,7 @@ static int32_t MakeAlignedPeriod(const AudioFormat &format, int32_t frames_per_l
 ExclusiveWasapiDevice::ExclusiveWasapiDevice(const CComPtr<IMMDevice>& device)
 	: is_running_(false)
 	, is_stop_streaming_(false)
-	, thread_priority_(MmcssThreadPriority::MMCSS_THREAD_PRIORITY_HIGH)
+	, thread_priority_(MmcssThreadPriority::MMCSS_THREAD_PRIORITY_NORMAL)
 	, buffer_frames_(0)
 	, valid_bits_samples_(0)
 	, queue_id_(0)
@@ -121,8 +121,14 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
     device_props.bIsOffload = FALSE;
     device_props.cbSize = sizeof(device_props);
     device_props.eCategory = AudioCategory_Media;
-	device_props.Options = AUDCLNT_STREAMOPTIONS_MATCH_FORMAT;
-	HrIfFailledThrow(client_->SetClientProperties(&device_props));
+	device_props.Options = AUDCLNT_STREAMOPTIONS_MATCH_FORMAT | AUDCLNT_STREAMOPTIONS_RAW;
+
+	if (FAILED(client_->SetClientProperties(&device_props))) {
+		device_props.Options = AUDCLNT_STREAMOPTIONS_MATCH_FORMAT;
+	}
+	else {
+		XAMP_LOG_DEBUG("Device Support RAW mode");
+	}	
 
     REFERENCE_TIME default_device_period = 0;
     REFERENCE_TIME minimum_device_period = 0;
@@ -275,6 +281,7 @@ void ExclusiveWasapiDevice::GetSample(const uint32_t frame_available) {
 			callback_->OnError(exception);
 		}
 		is_running_ = false;
+		return;
 	}
 
 	HrIfFailledThrow(::MFPutWaitingWorkItem(sample_ready_.get(),

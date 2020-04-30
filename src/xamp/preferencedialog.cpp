@@ -69,7 +69,10 @@ void PreferenceDialog::initSoxResampler() {
 	loadSoxrResampler(soxr_settings);
 
     (void)QObject::connect(ui_.saveSoxrSettingBtn, &QPushButton::pressed, [this]() {
-        auto setting_name = QInputDialog::getText(this, tr("Save soxr setting"), tr("Setting name:"));
+        auto setting_name = QInputDialog::getText(this, tr("Save soxr setting"), 
+			tr("Setting name:"),
+			QLineEdit::Normal,
+			ui_.soxrSettingCombo->currentText());
         if (setting_name.isEmpty()) {
             return;
         }
@@ -147,9 +150,7 @@ PreferenceDialog::PreferenceDialog(QWidget *parent)
         }
     });
 
-#if defined(Q_OS_MAC) || defined(Q_OS_WIN)
-    ui_.selectResamplerComboBox->removeItem(2);
-#endif
+	ui_.selectResamplerComboBox->removeItem(2);
 
 	(void)QObject::connect(ui_.selectResamplerComboBox, static_cast<void (QComboBox::*)(int32_t)>(&QComboBox::activated), [this](auto const& index) {
 		ui_.resamplerStackedWidget->setCurrentIndex(index);

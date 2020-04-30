@@ -78,20 +78,6 @@ private:
 	WinHandle process_;
 };
 
-static std::optional<const std::exception*> FindException(DWORD64 addr) {
-    auto cpp_exception = reinterpret_cast<const std::exception*>(addr);
-
-    __try {
-        if (cpp_exception) {
-            (void) cpp_exception->what();
-        }
-        return cpp_exception;
-    }
-    __except (EXCEPTION_EXECUTE_HANDLER) {
-        return std::nullopt;
-    }
-}
-
 static size_t WalkStack(const CONTEXT* context, CaptureStackAddress& addrlist) {
     CONTEXT integer_control_context = *context;
     integer_control_context.ContextFlags = CONTEXT_INTEGER | CONTEXT_CONTROL;
@@ -161,10 +147,10 @@ void StackTrace::WriteLog(size_t frame_count) {
 
         if (has_symbol) {
             if (has_line) {
-                XAMP_LOG_DEBUG("0x{:08d} {:08d} {}:{}", (DWORD64)frame, displacement, line.FileName, line.LineNumber);
+                XAMP_LOG_DEBUG("0x{:08x} {:08x} {}:{}", (DWORD64)frame, displacement, line.FileName, line.LineNumber);
             }
             else {
-                XAMP_LOG_DEBUG("0x{:08d} {:08d}", (DWORD64)frame, displacement);
+                XAMP_LOG_DEBUG("0x{:08x} {:08x}", (DWORD64)frame, displacement);
             }
         }
         else {
@@ -175,6 +161,7 @@ void StackTrace::WriteLog(size_t frame_count) {
 
 void StackTrace::PrintStackTrace(EXCEPTION_POINTERS* info) {
     if (info->ExceptionRecord->ExceptionCode == MSVC_CPP_EXCEPTION_CODE) {
+        XAMP_LOG_DEBUG("Uncaught std::exception!");
         return;
     }
 
@@ -188,6 +175,7 @@ void StackTrace::PrintStackTrace(EXCEPTION_POINTERS* info) {
 
     auto frame_count = WalkStack(info->ContextRecord, addrlist_);
     WriteLog(frame_count);
+    std::exit(0);
 }
 
 #else

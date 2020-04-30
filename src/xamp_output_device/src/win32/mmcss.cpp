@@ -31,9 +31,9 @@ private:
 	ModuleHandle module_;
 
 public:
-	XAMP_DLL_HELPER(AvRevertMmThreadCharacteristics) AvRevertMmThreadCharacteristics;
-	XAMP_DLL_HELPER(AvSetMmThreadPriority) AvSetMmThreadPriority;
-	XAMP_DLL_HELPER(AvSetMmThreadCharacteristicsW) AvSetMmThreadCharacteristicsW;
+	XAMP_DECLARE_DLL(AvRevertMmThreadCharacteristics) AvRevertMmThreadCharacteristics;
+	XAMP_DECLARE_DLL(AvSetMmThreadPriority) AvSetMmThreadPriority;
+	XAMP_DECLARE_DLL(AvSetMmThreadCharacteristicsW) AvSetMmThreadCharacteristicsW;
 };
 
 class Mmcss::MmcssImpl {
