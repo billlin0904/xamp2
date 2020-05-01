@@ -22,10 +22,6 @@
 #include "xamp.h"
 
 void loadOrDefaultSoxrSetting() {
-	if (JsonSettings::keys().count() > 0) {
-		return;
-	}
-
 	QMap<QString, QVariant> defaultSetting;
 
 	defaultSetting[SOXR_RESAMPLE_SAMPLRATE] = 44100;

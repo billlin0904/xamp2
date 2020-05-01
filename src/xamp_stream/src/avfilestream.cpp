@@ -305,7 +305,7 @@ private:
 		return audio_stream_id_ >= 0;
 	}
 
-    int32_t ConvertSamples(float* buffer, int32_t /*length*/) const noexcept {
+    int32_t ConvertSamples(float* buffer, int32_t length) const noexcept {
         const auto frame_size = audio_frame_->nb_samples * codec_contex_->channels;
         const auto result = ::swr_convert(swr_context_.get(),
 			reinterpret_cast<uint8_t **>(&buffer),

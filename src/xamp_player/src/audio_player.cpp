@@ -28,7 +28,7 @@ constexpr int32_t MAX_WRITE_RATIO = 20;
 constexpr int32_t MAX_READ_RATIO = 30;
 constexpr std::chrono::milliseconds UPDATE_SAMPLE_INTERVAL(100);
 constexpr std::chrono::seconds WAIT_FOR_STRAEM_STOP_TIME(10);
-constexpr std::chrono::milliseconds READ_SAMPLE_WAIT_TIME(500);
+constexpr std::chrono::milliseconds READ_SAMPLE_WAIT_TIME(100);
 
 AudioPlayer::AudioPlayer()
     : AudioPlayer(std::weak_ptr<PlaybackStateAdapter>()) {
