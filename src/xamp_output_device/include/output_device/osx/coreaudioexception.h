@@ -25,7 +25,7 @@ do { \
     } \
 } while (false)
 
-#define CoreAudioFailledLog(expr) \
+#define CoreAudioFailedLog(expr) \
     do {\
         auto err = expr;\
         if (err != kAudioHardwareNoError) {\

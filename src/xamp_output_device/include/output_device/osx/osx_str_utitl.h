@@ -9,33 +9,32 @@
 
 namespace xamp::output_device::osx {
 
-template<typename StringType>
+template <typename StringType>
 static CFStringRef STLStringToCFStringWithEncodingsT(
     const StringType& in,
     CFStringEncoding in_encoding) {
     typename StringType::size_type in_length = in.length();
-    if (in_length == 0)
+    if (in_length == 0) {
         return CFSTR("");
-
+    }
     return ::CFStringCreateWithBytes(kCFAllocatorDefault,
                                      reinterpret_cast<const UInt8*>(in.data()),
-                                     in_length *
-                                         sizeof(typename StringType::value_type),
+                                     in_length * sizeof(typename StringType::value_type),
                                      in_encoding,
                                      false);
 }
 
-template<typename StringType>
+template <typename StringType>
 static StringType CFStringToSTLStringWithEncodingT(CFStringRef cfstring,
                                                    CFStringEncoding encoding) {
-    CFIndex length = ::CFStringGetLength(cfstring);
+    auto length = ::CFStringGetLength(cfstring);
     if (length == 0) {
         return StringType();
     }
 
-    CFRange whole_string = ::CFRangeMake(0, length);
+    auto whole_string = ::CFRangeMake(0, length);
     CFIndex out_size;
-    CFIndex converted = ::CFStringGetBytes(cfstring,
+    auto converted = ::CFStringGetBytes(cfstring,
                                            whole_string,
                                            encoding,
                                            0,      // lossByte
@@ -47,8 +46,7 @@ static StringType CFStringToSTLStringWithEncodingT(CFStringRef cfstring,
         return StringType();
     }
 
-    typename StringType::size_type elements =
-        out_size * sizeof(UInt8) / sizeof(typename StringType::value_type) + 1;
+    auto elements = out_size * sizeof(UInt8) / sizeof(typename StringType::value_type) + 1;
 
     std::vector<typename StringType::value_type> out_buffer(elements);
     converted = ::CFStringGetBytes(cfstring,

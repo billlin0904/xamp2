@@ -27,7 +27,12 @@ struct SystemVolume {
         property_.mSelector = kAudioHardwarePropertyDefaultOutputDevice;
         if (::AudioObjectHasProperty(kAudioObjectSystemObject, &property_)) {
             UInt32 deviceIDSize = sizeof (device_id_);
-            OSStatus status = ::AudioObjectGetPropertyData(kAudioObjectSystemObject, &property_, 0, nullptr, &deviceIDSize, &device_id_);
+            OSStatus status = ::AudioObjectGetPropertyData(kAudioObjectSystemObject,
+                                                           &property_,
+                                                           0,
+                                                           nullptr,
+                                                           &deviceIDSize,
+                                                           &device_id_);
             if (status == noErr) {
                 property_.mElement  = kAudioObjectPropertyElementMaster;
                 property_.mSelector = selector;

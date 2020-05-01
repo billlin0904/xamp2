@@ -135,7 +135,7 @@ static AudioDeviceID GetAudioDeviceIdByUid(bool is_input, const std::wstring& de
                                               &translation_size,
                                               &value);
     }
-    CoreAudioFailledLog(result);
+    CoreAudioFailedLog(result);
     return audio_device_id;
 }
 
@@ -170,7 +170,7 @@ std::string_view CoreAudioDeviceType::GetDescription() const {
 }
 
 align_ptr<Device> CoreAudioDeviceType::MakeDevice(const std::wstring &device_id) {
-    AudioDeviceID id = GetAudioDeviceIdByUid(false, device_id);
+    auto id = GetAudioDeviceIdByUid(false, device_id);
     return MakeAlign<Device, CoreAudioDevice>(id);
 }
 

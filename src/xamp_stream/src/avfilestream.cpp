@@ -305,7 +305,7 @@ private:
 		return audio_stream_id_ >= 0;
 	}
 
-    uint32_t ConvertSamples(float* buffer, const uint32_t length) const noexcept {
+    int32_t ConvertSamples(float* buffer, int32_t /*length*/) const noexcept {
         const auto frame_size = audio_frame_->nb_samples * codec_contex_->channels;
         const auto result = ::swr_convert(swr_context_.get(),
 			reinterpret_cast<uint8_t **>(&buffer),
@@ -316,12 +316,12 @@ private:
 			return 0;
 		}
 		assert(result > 0);
-		const auto convert_size = result * codec_contex_->channels;
+        const auto convert_size = result * codec_contex_->channels;
 		assert(convert_size == frame_size && convert_size <= length);
 		return frame_size;
 	}
 
-	int32_t audio_stream_id_;
+    int32_t audio_stream_id_;
 	double duration_;
 	AudioFormat audio_format_;
 	AvPtr<SwrContext> swr_context_;

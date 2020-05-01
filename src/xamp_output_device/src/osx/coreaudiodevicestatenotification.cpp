@@ -25,7 +25,7 @@ void CoreAudioDeviceStateNotification::Run() {
 }
 
 void CoreAudioDeviceStateNotification::RemovePropertyListener() {
-    CoreAudioThrowIfError(AudioObjectRemovePropertyListener(
+    CoreAudioThrowIfError(::AudioObjectRemovePropertyListener(
         kAudioObjectSystemObject,
         &sAddOrRemoveDevicesPropertyAddress,
         &CoreAudioDeviceStateNotification::OnDefaultDeviceChangedCallback,
@@ -33,7 +33,7 @@ void CoreAudioDeviceStateNotification::RemovePropertyListener() {
 }
 
 void CoreAudioDeviceStateNotification::AddPropertyListener() {
-    CoreAudioThrowIfError(AudioObjectAddPropertyListener(
+    CoreAudioThrowIfError(::AudioObjectAddPropertyListener(
         kAudioObjectSystemObject,
         &sAddOrRemoveDevicesPropertyAddress,
         &CoreAudioDeviceStateNotification::OnDefaultDeviceChangedCallback,
