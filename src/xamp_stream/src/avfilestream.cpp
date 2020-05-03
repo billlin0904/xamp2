@@ -334,7 +334,8 @@ AvFileStream::AvFileStream()
 	: impl_(MakeAlign<AvFileStreamImpl>()) {
 }
 
-XAMP_PIMPL_IMPL(AvFileStream)
+AvFileStream::~AvFileStream() {
+}
 
 void AvFileStream::OpenFromFile(const std::wstring& file_path) {
 	return impl_->LoadFromFile(file_path);

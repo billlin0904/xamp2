@@ -10,6 +10,8 @@
 #include <QVariant>
 #include <QModelIndex>
 
+#include <widget/playlistentity.h>
+
 #define Q_UTF8(str) QLatin1String{str}
 #define Q_EMPTY_STR QLatin1String{""}
 #define Q_STR(str) QString(QLatin1String{str})
@@ -57,6 +59,20 @@ inline MusicEntity getAlbumEntity(const QModelIndex& index) {
     entity.artist_id = artistId;
 
     return entity;
+}
+
+inline MusicEntity toMusicEntity(const PlayListEntity& item) {
+    MusicEntity music_entity;
+    music_entity.music_id = item.music_id;
+    music_entity.artist_id = item.artist_id;
+    music_entity.album_id = item.album_id;
+    music_entity.cover_id = item.cover_id;
+    music_entity.title = item.title;
+    music_entity.album = item.album;
+    music_entity.artist = item.artist;
+    music_entity.file_ext = item.file_ext;
+    music_entity.file_path = item.file_path;
+    return music_entity;
 }
 
 inline QString formatBytes(size_t bytes) noexcept {

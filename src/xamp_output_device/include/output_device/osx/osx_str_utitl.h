@@ -35,13 +35,13 @@ static StringType CFStringToSTLStringWithEncodingT(CFStringRef cfstring,
     auto whole_string = ::CFRangeMake(0, length);
     CFIndex out_size;
     auto converted = ::CFStringGetBytes(cfstring,
-                                           whole_string,
-                                           encoding,
-                                           0,      // lossByte
-                                           false,  // isExternalRepresentation
-                                           nullptr,   // buffer
-                                           0,      // maxBufLen
-                                           &out_size);
+                                        whole_string,
+                                        encoding,
+                                        0,      // lossByte
+                                        false,  // isExternalRepresentation
+                                        nullptr,   // buffer
+                                        0,      // maxBufLen
+                                        &out_size);
     if (converted == 0 || out_size == 0) {
         return StringType();
     }
@@ -67,12 +67,12 @@ static StringType CFStringToSTLStringWithEncodingT(CFStringRef cfstring,
 
 inline std::string SysCFStringRefToUTF8(CFStringRef ref) {
     return CFStringToSTLStringWithEncodingT<std::string>(ref,
-                                                          kCFStringEncodingUTF8);
+                                                         kCFStringEncodingUTF8);
 }
 
 inline std::wstring SysCFStringRefToWide(CFStringRef ref) {
     return CFStringToSTLStringWithEncodingT<std::wstring>(ref,
-                                                          kCFStringEncodingUTF32BE);
+                                                          kCFStringEncodingUTF32LE);
 }
 
 inline CFStringRef SysUTF8ToCFStringRef(const std::string& utf8) {
@@ -80,7 +80,7 @@ inline CFStringRef SysUTF8ToCFStringRef(const std::string& utf8) {
 }
 
 inline CFStringRef SysWideToCFStringRef(const std::wstring& wide) {
-    return STLStringToCFStringWithEncodingsT(wide, kCFStringEncodingUTF32BE);
+    return STLStringToCFStringWithEncodingsT(wide, kCFStringEncodingUTF32LE);
 }
 
 }

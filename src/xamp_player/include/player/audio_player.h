@@ -35,35 +35,35 @@ using namespace xamp::stream;
 using namespace xamp::output_device;
 
 class XAMP_PLAYER_API AudioPlayer final :
-	public AudioCallback,
-	public DeviceStateListener,
-	public std::enable_shared_from_this<AudioPlayer> {
+    public AudioCallback,
+    public DeviceStateListener,
+    public std::enable_shared_from_this<AudioPlayer> {
 public:
-	XAMP_DISABLE_COPY(AudioPlayer)
+    XAMP_DISABLE_COPY(AudioPlayer)
 
-	AudioPlayer();
+    AudioPlayer();
 
-	explicit AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter);
+    explicit AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter);
 
-	~AudioPlayer() override;
+    ~AudioPlayer() override;
 
-	static void LoadLib();
+    static void LoadLib();
 
-	void Open(const std::wstring& file_path, const std::wstring& file_ext, const DeviceInfo& device_info);
+    void Open(const std::wstring& file_path, const std::wstring& file_ext, const DeviceInfo& device_info);
 
     void StartPlay();
 
-	void Play();
+    void Play();
 
-	void Pause();
+    void Pause();
 
-	void Resume();
+    void Resume();
 
-	void Stop(bool signal_to_stop = true, bool shutdown_device = false, bool wait_for_stop_stream = true);
+    void Stop(bool signal_to_stop = true, bool shutdown_device = false, bool wait_for_stop_stream = true);
 
     void Destory();
 
-	void Seek(double stream_time);
+    void Seek(double stream_time);
 
     void SetVolume(uint32_t volume);
 
@@ -71,105 +71,105 @@ public:
 
     bool CanHardwareControlVolume() const;
 
-	bool IsMute() const;
+    bool IsMute() const;
 
-	void SetMute(bool mute);
+    void SetMute(bool mute);
 
-	bool IsPlaying() const;
+    bool IsPlaying() const;
 
-	DsdModes GetDSDModes() const noexcept;
+    DsdModes GetDSDModes() const noexcept;
 
     std::optional<uint32_t> GetDSDSpeed() const;
 
-	std::optional<DeviceInfo> GetDefaultDeviceInfo() const;
+    std::optional<DeviceInfo> GetDefaultDeviceInfo() const;
 
-	double GetDuration() const;
+    double GetDuration() const;
 
-	PlayerState GetState() const noexcept;
+    PlayerState GetState() const noexcept;
 
-	AudioFormat GetStreamFormat() const;
+    AudioFormat GetStreamFormat() const;
 
-	AudioFormat GetOutputFormat() const;
+    AudioFormat GetOutputFormat() const;
 
-	bool IsDsdStream() const;
+    bool IsDsdStream() const;
 
     void SetResampler(uint32_t samplerate, align_ptr<Resampler> &&resampler);
 
-	void EnableResampler(bool enable = true);
+    void EnableResampler(bool enable = true);
 
     static align_ptr<FileStream> MakeFileStream(const std::wstring& file_ext);
 private:
-	void Initial();
+    void Initial();
 
     void OpenStream(const std::wstring& file_path, const std::wstring& file_ext, const DeviceInfo& device_info);
 
-	void CreateDevice(const ID& device_type_id, const std::wstring& device_id, const bool open_always);
+    void CreateDevice(const ID& device_type_id, const std::wstring& device_id, const bool open_always);
 
-	void CloseDevice(bool wait_for_stop_stream);
+    void CloseDevice(bool wait_for_stop_stream);
 
-	void CreateBuffer();
+    void CreateBuffer();
 
-	void SetDeviceFormat();
+    void SetDeviceFormat();
 
-	void BufferStream();
+    void BufferStream();
 
     int32_t OnGetSamples(void* samples, const uint32_t num_buffer_frames, const double stream_time) noexcept override;
 
-	void OnVolumeChange(float vol) noexcept override;
+    void OnVolumeChange(float vol) noexcept override;
 
-	void OnError(const Exception& e) noexcept override;
+    void OnError(const Exception& e) noexcept override;
 
-	void OnDeviceStateChange(DeviceState state, const std::wstring& device_id) override;
+    void OnDeviceStateChange(DeviceState state, const std::wstring& device_id) override;
 
-	void OpenDevice(double stream_time = 0.0);
+    void OpenDevice(double stream_time = 0.0);
 
-	void SetState(const PlayerState play_state);
+    void SetState(const PlayerState play_state);
 
     void ReadSampleLoop(uint32_t max_read_sample, std::unique_lock<std::mutex> &lock);
 
-	DsdStream* AsDsdStream();
+    DsdStream* AsDsdStream();
 
-	DsdDevice* AsDsdDevice();	
+    DsdDevice* AsDsdDevice();
 
-	struct XAMP_CACHE_ALIGNED(XAMP_MALLOC_ALGIGN_SIZE) AudioSlice {
+    struct XAMP_CACHE_ALIGNED(XAMP_MALLOC_ALGIGN_SIZE) AudioSlice {
         AudioSlice(int32_t sample_size = 0, double stream_time = 0.0) noexcept
             : sample_size(sample_size)
-			, stream_time(stream_time) {
-		}
+            , stream_time(stream_time) {
+        }
         int32_t sample_size;
-		double stream_time;
-	};
+        double stream_time;
+    };
 
-	XAMP_ENFORCE_TRIVIAL(AudioSlice)
+    XAMP_ENFORCE_TRIVIAL(AudioSlice)
 
-	bool is_muted_;
-	bool enable_resample_;
-	DsdModes dsd_mode_;
-	std::atomic<PlayerState> state_;
+    bool is_muted_;
+    bool enable_resample_;
+    DsdModes dsd_mode_;
+    std::atomic<PlayerState> state_;
     uint32_t target_samplerate_;
     uint32_t volume_;
     uint32_t num_buffer_samples_;
     uint32_t num_read_sample_;
     uint32_t read_sample_size_;
     uint32_t sample_size_;
-	std::atomic<bool> is_playing_;
-	std::atomic<bool> is_paused_;
-	std::atomic<AudioSlice> slice_;
-	mutable std::mutex pause_mutex_;
-	std::wstring device_id_;
-	ID device_type_id_;
-	std::condition_variable pause_cond_;
-	std::condition_variable stopped_cond_;
-	AudioFormat input_format_;
-	AudioFormat output_format_;
+    std::atomic<bool> is_playing_;
+    std::atomic<bool> is_paused_;
+    std::atomic<AudioSlice> slice_;
+    mutable std::mutex pause_mutex_;
+    std::wstring device_id_;
+    ID device_type_id_;
+    std::condition_variable pause_cond_;
+    std::condition_variable stopped_cond_;
+    AudioFormat input_format_;
+    AudioFormat output_format_;
     align_buffer_ptr<int8_t> sample_buffer_;
-	Timer timer_;
+    Timer timer_;
     align_ptr<FileStream> stream_;
     align_ptr<DeviceType> device_type_;
     align_ptr<Device> device_;
-	std::weak_ptr<PlaybackStateAdapter> state_adapter_;
-	AudioBuffer<int8_t> buffer_;
-	WaitableTimer wait_timer_;
+    std::weak_ptr<PlaybackStateAdapter> state_adapter_;
+    AudioBuffer<int8_t> buffer_;
+    WaitableTimer wait_timer_;
     align_ptr<Resampler> resampler_;
     DeviceInfo device_info_;
     std::future<void> stream_task_;

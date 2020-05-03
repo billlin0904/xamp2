@@ -1,67 +1,19 @@
 #include <sstream>
 #include <algorithm>
 #include <cmath>
+
+#include <base/stl.h>
 #include <base/exception.h>
 
 namespace xamp::base {
-
-std::ostream& operator<<(std::ostream& ostr, Errors error) {
-	switch (error) {
-	case Errors::XAMP_ERROR_SUCCESS:
-		ostr << "Success.";
-		break;
-	case Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR:
-		ostr << "Platform spec error.";
-		break;
-	case Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR:
-		ostr << "Library spec error.";
-		break;
-	case Errors::XAMP_ERROR_DEVICE_NOT_INITIALIZED:
-		ostr << "Device not initialized.";
-		break;
-	case Errors::XAMP_ERROR_DEVICE_UNSUPPORTED_FORMAT:
-		ostr << "Device unsupported format.";
-		break;
-	case Errors::XAMP_ERROR_DEVICE_IN_USE:
-		ostr << "Device in use.";
-		break;
-	case Errors::XAMP_ERROR_DEVICE_NOT_FOUND:
-		ostr << "Device not found.";
-		break;
-	case Errors::XAMP_ERROR_FILE_NOT_FOUND:
-		ostr << "File not found.";
-		break;
-	case Errors::XAMP_ERROR_NOT_SUPPORT_SAMPLERATE:
-		ostr << "Not support samplerate.";
-		break;
-	case Errors::XAMP_ERROR_NOT_SUPPORT_FORMAT:
-		ostr << "Not support format.";
-		break;
-	case Errors::XAMP_ERROR_LOAD_DLL_FAILURE:
-		ostr << "Load dll failure.";
-		break;
-    case Errors::XAMP_ERROR_STOP_STREAM_TIMEOUT:
-        ostr << "Stop stream thread timeout.";
-        break;
-	case Errors::XAMP_ERROR_NOT_SUPPORT_VARIABLE_RESAMPLE:
-		ostr << "Resampler not support variable resample.";
-        break;
-    case Errors::XAMP_ERROR_SAMPLERATE_CHANGED:
-        ostr << "Samplerate was changed";
-        break;
-    case Errors::_MAX_XAMP_ERROR_:
-        break;
-	}
-	return ostr;
-}
 
 Exception::Exception(Errors error, const std::string& message, std::string_view what)
 	: error_(error)
     , what_(what)
 	, message_(message) {
 	if (message_.empty()) {
-		std::ostringstream ostr;
-		ostr << error;
+        std::ostringstream ostr;
+        ostr << error << "(" << ErrorToString(error) << ")";
 		message_ = ostr.str();
 	}
 }
@@ -84,6 +36,31 @@ const char * Exception::GetErrorMessage() const {
 
 const char* Exception::GetExpression() const {
 	return "";
+}
+
+std::string_view Exception::ErrorToString(Errors error) {
+    static const RobinHoodHashMap<Errors, const std::string_view> error_msgs {
+        { Errors::XAMP_ERROR_SUCCESS, "Success." },
+        { Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, "Platform spec error." },
+        { Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR, "Library spec error." },
+        { Errors::XAMP_ERROR_DEVICE_NOT_INITIALIZED, "Device not initialized." },
+        { Errors::XAMP_ERROR_DEVICE_UNSUPPORTED_FORMAT, "Device unsupported format." },
+        { Errors::XAMP_ERROR_DEVICE_IN_USE, "Device in use." },
+        { Errors::XAMP_ERROR_DEVICE_NOT_FOUND, "Device not found." },
+        { Errors::XAMP_ERROR_FILE_NOT_FOUND, "File not found." },
+        { Errors::XAMP_ERROR_NOT_SUPPORT_SAMPLERATE, "Not support samplerate." },
+        { Errors::XAMP_ERROR_NOT_SUPPORT_FORMAT, "Not support format." },
+        { Errors::XAMP_ERROR_LOAD_DLL_FAILURE, "Load dll failure." },
+        { Errors::XAMP_ERROR_STOP_STREAM_TIMEOUT, "Stop stream thread timeout." },
+        { Errors::XAMP_ERROR_NOT_SUPPORT_VARIABLE_RESAMPLE, "Resampler not support variable resample." },
+        { Errors::XAMP_ERROR_SAMPLERATE_CHANGED, "Samplerate was changed." },
+        { Errors::XAMP_ERROR_NOT_FOUND_DLL_EXPORT_FUNC, "Not found dll export function." },
+        };
+    auto itr = error_msgs.find(error);
+    if (itr != error_msgs.end()) {
+        return (*itr).second;
+    }
+    return "";
 }
 
 DeviceUnSupportedFormatException::DeviceUnSupportedFormatException(const AudioFormat& format)

@@ -59,7 +59,7 @@ size_t ExclusiveWasapiDeviceType::GetDeviceCount() const {
 	return device_list_.size();
 }
 
-DeviceInfo ExclusiveWasapiDeviceType::GetDeviceInfo(int32_t device) const {
+DeviceInfo ExclusiveWasapiDeviceType::GetDeviceInfo(uint32_t device) const {
 	return device_list_.at(device);
 }
 

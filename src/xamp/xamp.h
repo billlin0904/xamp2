@@ -44,8 +44,6 @@ class Xamp : public FramelessWindow {
 public:
     explicit Xamp(QWidget *parent = nullptr);
 
-	void initial();
-
 signals:
 	void payNextMusic();
 
@@ -61,7 +59,10 @@ public slots:
 	void onArtistIdChanged(const QString& artist, const QString& cover_id, int32_t artist_id);
 
 	void processMeatadata(const std::vector<xamp::base::Metadata>& medata);
+
 private:
+    void initial();
+
 	void applyTheme(QColor color);
 
 	void setDefaultStyle();
@@ -139,6 +140,8 @@ private:
 	void registerMetaType();
 
     void onDeviceStateChanged(DeviceState state);
+
+    void readFingerprint(const QModelIndex&, const PlayListEntity& item);
 
 	bool is_seeking_;
 	PlayerOrder order_;

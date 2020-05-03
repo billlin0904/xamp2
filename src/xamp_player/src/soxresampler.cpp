@@ -257,7 +257,7 @@ void SoxrResampler::SetStopBand(double stopband) {
 }
 
 std::string_view SoxrResampler::GetDescription() const noexcept {
-    return "Soxr";
+    return "Soxr " SOXR_THIS_VERSION_STR;
 }
 
 bool SoxrResampler::Process(const float* samples, uint32_t num_sample, AudioBuffer<int8_t>& buffer) {

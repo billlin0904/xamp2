@@ -94,6 +94,8 @@ public:
 
     static void setOrDefaultConfig();
 
+    static void save();
+
 protected:
     AppSettings() = default;
 

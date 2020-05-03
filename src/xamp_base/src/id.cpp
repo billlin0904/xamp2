@@ -10,33 +10,29 @@
 
 namespace xamp::base {
 
-static uint32_t ToChar(const char C) {
-    if (C >= '0' && C <= '9') {
-        return C - '0';
+static inline int32_t ToChar(const char C) {
+    char buffer[2] = { C, '\0' };
+    auto result = atoi(buffer);
+    if (errno == ERANGE) {
+        throw std::invalid_argument("Invalid digital");
     }
-    if (C >= 'a' && C <= 'f') {
-        return C - 'a' + 10U;
-    }
-    if (C >= 'A' && C <= 'F') {
-        return C - 'A' + 10U;
-    }
-    throw std::invalid_argument("Invalid digital");
+    return result;
 }
 
-static uint8_t MakeHex(char a, char b) {
+static inline uint8_t MakeHex(char a, char b) {
     return static_cast<uint8_t>(ToChar(a) * 16 + ToChar(b));
 }
 
 static std::array<uint8_t, XAMP_ID_MAX_SIZE> ParseString(const std::string_view& from_string) {
     if (from_string.length() != MAX_ID_STR_LEN) {
-        throw std::invalid_argument("Invalid UUID");
+        throw std::invalid_argument("Invalid ID");
 	}
 
 	if (from_string[8] != '-'
 		|| from_string[13] != '-'
 		|| from_string[18] != '-'
 		|| from_string[23] != '-') {
-        throw std::invalid_argument("Invalid UUID");
+        throw std::invalid_argument("Invalid ID");
 	}
 	
 	std::array<uint8_t, XAMP_ID_MAX_SIZE> uuid{};

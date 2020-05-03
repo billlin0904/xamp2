@@ -117,6 +117,7 @@ void FramelessWindow::initialFontDatabase() {
     //fallback_fonts.append(Q_UTF8("Microsoft JhengHei UI Bold"));    
     fallback_fonts.append(Q_UTF8("Arial"));
 #else
+    fallback_fonts.append(Q_UTF8("SF Pro Display"));
     fallback_fonts.append(Q_UTF8("SF Pro Text"));
     fallback_fonts.append(Q_UTF8("SF Pro Icons"));
     fallback_fonts.append(Q_UTF8("Helvetica Neue"));
@@ -130,6 +131,8 @@ void FramelessWindow::initialFontDatabase() {
     default_font.setStyleStrategy(QFont::PreferAntialias);
 #if defined(Q_OS_WIN)
     default_font.setPointSize(10);
+#else
+    default_font.setPointSize(14);
 #endif
     setFont(default_font);
 }

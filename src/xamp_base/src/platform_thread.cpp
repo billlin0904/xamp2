@@ -87,11 +87,10 @@ void SetThreadAffinity(pthread_t thread, int32_t core) {
     thread_affinity_policy_data_t policy = { core };
     auto result = ::thread_policy_set(mach_thread,
                                       THREAD_AFFINITY_POLICY,
-                                      (thread_policy_t)&policy,
+                                      reinterpret_cast<thread_policy_t>(&policy),
                                       1);
     if (result != KERN_SUCCESS) {
         XAMP_LOG_DEBUG("thread_policy_set return failure!");
-        return;
     }
 }
 #else

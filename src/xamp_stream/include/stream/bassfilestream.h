@@ -22,7 +22,7 @@ class XAMP_STREAM_API BassFileStream final
 public:
 	BassFileStream();
 
-	XAMP_PIMPL(BassFileStream)
+    ~BassFileStream() override;
 
 	static void LoadBassLib();
 

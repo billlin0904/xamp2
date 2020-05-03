@@ -6,6 +6,7 @@
 #include <base/threadpool.h>
 #include <base/vmmemlock.h>
 #include <base/str_utilts.h>
+#include <base/stl.h>
 
 #include <output_device/devicefactory.h>
 #include <output_device/asiodevicetype.h>
@@ -71,7 +72,7 @@ void AudioPlayer::Destory() {
 void AudioPlayer::LoadLib() {
     BassFileStream::LoadBassLib();
     SoxrResampler::LoadSoxrLib();
-    //Chromaprint::LoadChromaprintLib();
+    Chromaprint::LoadChromaprintLib();
     ThreadPool::DefaultThreadPool();
 }
 
@@ -95,7 +96,7 @@ void AudioPlayer::CreateDevice(const ID& device_type_id, const std::wstring& dev
         || open_always) {
         if (auto result = DeviceFactory::Instance().Create(device_type_id)) {
             device_type_ = std::move(result.value());
-			device_type_->ScanNewDevice();
+            device_type_->ScanNewDevice();
             device_ = device_type_->MakeDevice(device_id);
             device_type_id_ = device_type_id;
             device_id_ = device_id;
@@ -123,10 +124,18 @@ DsdDevice* AudioPlayer::AsDsdDevice() {
 }
 
 align_ptr<FileStream> AudioPlayer::MakeFileStream(const std::wstring& file_ext) {
-    constexpr const std::wstring_view dsd_ext(L".dsf,.dff");
-    constexpr const std::wstring_view use_bass(L".m4a,.ape");
-    auto is_dsd_stream = dsd_ext.find(file_ext) != std::wstring_view::npos;
-    auto is_use_bass = use_bass.find(file_ext) != std::wstring_view::npos;
+    const RobinHoodSet<std::wstring_view> dsd_ext {
+        {L".dsf"},
+        {L".dff"}
+    };
+    const RobinHoodSet<std::wstring_view> use_bass {
+        {L".m4a"},
+        {L".ape"}
+    };
+
+    auto is_dsd_stream = dsd_ext.find(file_ext) != dsd_ext.end();
+    auto is_use_bass = use_bass.find(file_ext) != use_bass.end();
+
     if (is_dsd_stream || is_use_bass) {
         return MakeAlign<FileStream, BassFileStream>();
     }
@@ -197,14 +206,14 @@ void AudioPlayer::Pause() {
     if (!device_) {
         return;
     }
-	if (!is_paused_) {
-		XAMP_LOG_DEBUG("Player pasue!");
-		if (device_->IsStreamOpen()) {
-			is_paused_ = true;
-			device_->StopStream();
-			SetState(PlayerState::PLAYER_STATE_PAUSED);
-		}
-	}    
+    if (!is_paused_) {
+        XAMP_LOG_DEBUG("Player pasue!");
+        if (device_->IsStreamOpen()) {
+            is_paused_ = true;
+            device_->StopStream();
+            SetState(PlayerState::PLAYER_STATE_PAUSED);
+        }
+    }
 }
 
 void AudioPlayer::Resume() {
@@ -269,9 +278,9 @@ bool AudioPlayer::CanHardwareControlVolume() const {
 bool AudioPlayer::IsMute() const {
     if (device_ != nullptr && device_->IsStreamOpen()) {
 #ifdef ENABLE_ASIO
-		if (device_type_->GetTypeId() == ASIODeviceType::Id) {
-			return is_muted_;
-		}
+        if (device_type_->GetTypeId() == ASIODeviceType::Id) {
+            return is_muted_;
+        }
 #else
         return device_->IsMuted();
 #endif
@@ -382,11 +391,11 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
         }
     }
     if (stream_task_.valid()) {
-        XAMP_LOG_DEBUG("Try to stop stream task!");
+        XAMP_LOG_DEBUG("Try to stop stream thread!");
         if (stream_task_.wait_for(WAIT_FOR_STRAEM_STOP_TIME) == std::future_status::timeout) {
             throw StopStreamTimeoutException();
         }
-        XAMP_LOG_DEBUG("Stream task was finished!");
+        XAMP_LOG_DEBUG("Stream thread was finished!");
     }
     buffer_.Clear();
 }
@@ -433,16 +442,16 @@ void AudioPlayer::CreateBuffer() {
         assert(target_samplerate_ > 0);
         resampler_->Flush();
         resampler_->Start(input_format_.GetSampleRate(),
-            input_format_.GetChannels(),
-            target_samplerate_,
-            num_read_sample_ / input_format_.GetChannels());  
+                          input_format_.GetChannels(),
+                          target_samplerate_,
+                          num_read_sample_ / input_format_.GetChannels());
     }
     
     XAMP_LOG_DEBUG("Output device format: {} num_read_sample: {} resampler: {} buffer: {}",
-        output_format_,
-        num_read_sample_,
-        resampler_->GetDescription(),
-        FormatBytes(buffer_.GetSize()));
+                   output_format_,
+                   num_read_sample_,
+                   resampler_->GetDescription(),
+                   FormatBytes(buffer_.GetSize()));
 }
 
 void AudioPlayer::EnableResampler(bool enable) {
@@ -555,7 +564,6 @@ void AudioPlayer::Seek(double stream_time) {
         XAMP_LOG_DEBUG("player seeking {} sec.", stream_time);
         std::atomic_exchange(&slice_, AudioSlice{ 0, stream_time });
         buffer_.Clear();
-        buffer_.Fill(0);
         BufferStream();
         Resume();
     }

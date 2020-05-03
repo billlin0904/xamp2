@@ -31,10 +31,10 @@ private:
     void RemovePropertyListener();
 
     static OSStatus OnDefaultDeviceChangedCallback(
-            AudioObjectID object,
-            UInt32 num_addresses,
-            const AudioObjectPropertyAddress addresses[],
-            void* context);
+        AudioObjectID object,
+        UInt32 num_addresses,
+        const AudioObjectPropertyAddress addresses[],
+        void* context);
 
     std::weak_ptr<DeviceStateListener> callback_;
 };

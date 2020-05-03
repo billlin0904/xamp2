@@ -180,12 +180,12 @@ void StackTrace::PrintStackTrace(EXCEPTION_POINTERS* info) {
 
 #else
 void StackTrace::PrintStackTrace() {
-    auto addrlen = backtrace(addrlist_.data(), static_cast<int32_t>(addrlist_.size()));
+    auto addrlen = ::backtrace(addrlist_.data(), static_cast<int32_t>(addrlist_.size()));
     if (addrlen == 0) {
         return;
     }
 
-    auto symbollist = backtrace_symbols(addrlist_.data(), addrlen);
+    auto symbollist = ::backtrace_symbols(addrlist_.data(), addrlen);
     for (auto i = 4; i < addrlen; i++) {
         XAMP_LOG_DEBUG("{}", symbollist[i]);
     }
@@ -201,10 +201,10 @@ void StackTrace::RegisterAbortHandler() {
     SymLoader::Instance();
     (void) ::AddVectoredExceptionHandler(1, AbortHandler);
 #else
-    signal(SIGABRT, AbortHandler);
-    signal(SIGSEGV, AbortHandler);
-    signal(SIGILL, AbortHandler);
-    signal(SIGFPE, AbortHandler);
+    ::signal(SIGABRT, AbortHandler);
+    ::signal(SIGSEGV, AbortHandler);
+    ::signal(SIGILL, AbortHandler);
+    ::signal(SIGFPE, AbortHandler);
 #endif
 }
 

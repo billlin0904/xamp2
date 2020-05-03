@@ -19,45 +19,45 @@ namespace xamp::player {
 using namespace xamp::base;
 
 MAKE_ENUM(SoxrQuality,
-	LOW,
-	MQ,
-	HQ,	
-    VHQ,
-	UHQ)
+          LOW,
+          MQ,
+          HQ,
+          VHQ,
+          UHQ)
 
 MAKE_ENUM(SoxrPhaseResponse,
-    LINEAR_PHASE,
-    INTERMEDIATE_PHASE,
-    MINIMUM_PHASE)
+          LINEAR_PHASE,
+          INTERMEDIATE_PHASE,
+          MINIMUM_PHASE)
 
 class XAMP_PLAYER_API SoxrResampler : public Resampler {
 public:
-	SoxrResampler();
+    SoxrResampler();
 
     ~SoxrResampler() override;
 
-	static void LoadSoxrLib();
+    static void LoadSoxrLib();
 
-	void SetSteepFilter(bool enable);
+    void SetSteepFilter(bool enable);
 
-	void SetQuality(SoxrQuality quality);
+    void SetQuality(SoxrQuality quality);
 
-	void SetPhase(SoxrPhaseResponse phase);
+    void SetPhase(SoxrPhaseResponse phase);
 
-	void SetStopBand(double stopband);
+    void SetStopBand(double stopband);
 
-	void SetPassBand(double passband);
+    void SetPassBand(double passband);
 
-	std::string_view GetDescription() const noexcept override;
+    std::string_view GetDescription() const noexcept override;
 
     void Start(uint32_t input_samplerate, uint32_t num_channels, uint32_t output_samplerate, uint32_t max_sample) override;
 
     bool Process(const float* samples, uint32_t num_sample, AudioBuffer<int8_t> &buffer) override;
 
-	void Flush() override;
+    void Flush() override;
 
 private:
-	class SoxrResamplerImpl;
+    class SoxrResamplerImpl;
     align_ptr<SoxrResamplerImpl> impl_;
 };
 

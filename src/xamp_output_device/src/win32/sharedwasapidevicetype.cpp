@@ -35,7 +35,7 @@ align_ptr<Device> SharedWasapiDeviceType::MakeDevice(const std::wstring& device_
 	return MakeAlign<Device, SharedWasapiDevice>(GetDeviceById(device_id));
 }
 
-DeviceInfo SharedWasapiDeviceType::GetDeviceInfo(int32_t device) const {
+DeviceInfo SharedWasapiDeviceType::GetDeviceInfo(uint32_t device) const {
 	return device_list_[device];
 }
 

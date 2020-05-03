@@ -46,42 +46,42 @@ constexpr uint16_t LoWord(T val) noexcept {
 	} while (false)
 
 static uint32_t GetDOPSampleRate(uint32_t dsd_speed) {
-	switch (dsd_speed) {
-		// 64x CD
-	case 64:
-		return 176400;
-		// 128x CD
-	case 128:
-		return 352800;
-		// 256x CD
-	case 256:
-		return 705600;
-	default:
-		throw NotSupportFormatException();
-	}
+    switch (dsd_speed) {
+        // 64x CD
+    case 64:
+        return 176400;
+        // 128x CD
+    case 128:
+        return 352800;
+        // 256x CD
+    case 256:
+        return 705600;
+    default:
+        throw NotSupportFormatException();
+    }
 }
 
 class BassDSDLib final {
 public:
-	BassDSDLib() try
+    BassDSDLib() try
 #ifdef XAMP_OS_WIN
-		: module_(LoadModule("bassdsd.dll"))
+        : module_(LoadModule("bassdsd.dll"))
 #else
         : module_(LoadModule("libbassdsd.dylib"))
 #endif
-		, BASS_DSD_StreamCreateFile(module_, "BASS_DSD_StreamCreateFile") {
-	}
-	catch (const Exception & e) {
-		XAMP_LOG_ERROR("{}", e.GetErrorMessage());
-	}
+        , BASS_DSD_StreamCreateFile(module_, "BASS_DSD_StreamCreateFile") {
+    }
+    catch (const Exception & e) {
+        XAMP_LOG_ERROR("{}", e.GetErrorMessage());
+    }
 
-	XAMP_DISABLE_COPY(BassDSDLib)
+    XAMP_DISABLE_COPY(BassDSDLib)
 
 private:
-	ModuleHandle module_;
+    ModuleHandle module_;
 
 public:
-	DllFunction<HSTREAM(BOOL, const void*, QWORD, QWORD, DWORD, DWORD)> BASS_DSD_StreamCreateFile;
+    DllFunction<HSTREAM(BOOL, const void*, QWORD, QWORD, DWORD, DWORD)> BASS_DSD_StreamCreateFile;
 };
 
 class BassLib final {
@@ -91,52 +91,54 @@ public:
         return lib;
     }
 
-	~BassLib() {
-		plugins_.clear();
+    ~BassLib() {
+        plugins_.clear();
 
-		try {
-			BassLib::Instance().BASS_Free();
-		}
-		catch (const Exception & e) {
-			XAMP_LOG_INFO("{}", e.what());
-		}
-	}
+        if (module_.is_valid()) {
+            try {
+                BassLib::Instance().BASS_Free();
+            }
+            catch (const Exception & e) {
+                XAMP_LOG_INFO("{}", e.what());
+            }
+        }
+    }
 
-	XAMP_ALWAYS_INLINE bool IsLoaded() const noexcept {
-		return !plugins_.empty();
-	}
+    XAMP_ALWAYS_INLINE bool IsLoaded() const noexcept {
+        return !plugins_.empty();
+    }
 
-	void Load() {
-		if (IsLoaded()) {
-			return;
-		}
+    void Load() {
+        if (IsLoaded()) {
+            return;
+        }
 
-		BassLib::Instance().BASS_Init(0, 44100, 0, nullptr, nullptr);
+        BassLib::Instance().BASS_Init(0, 44100, 0, nullptr, nullptr);
 #ifdef XAMP_OS_WIN
-		// Disable Media Foundation
-		BassLib::Instance().BASS_SetConfig(BASS_CONFIG_MF_DISABLE, true);
-		BassLib::Instance().BASS_SetConfig(BASS_CONFIG_MF_VIDEO, false);		
-		LoadPlugin("bass_aac.dll");
-		LoadPlugin("bassflac.dll");
-		LoadPlugin("bass_ape.dll");
+        // Disable Media Foundation
+        BassLib::Instance().BASS_SetConfig(BASS_CONFIG_MF_DISABLE, true);
+        BassLib::Instance().BASS_SetConfig(BASS_CONFIG_MF_VIDEO, false);
+        LoadPlugin("bass_aac.dll");
+        LoadPlugin("bassflac.dll");
+        LoadPlugin("bass_ape.dll");
 #else
-		LoadPlugin("bass_aac.dylib");
-#endif		
+        LoadPlugin("bass_aac.dylib");
+#endif
 	}
 
     XAMP_DISABLE_COPY(BassLib)
 
 private:
-	BassLib() try
+    BassLib() try
 #ifdef XAMP_OS_WIN
-		: module_(LoadModule("bass.dll"))
+        : module_(LoadModule("bass.dll"))
 #else
         : module_(LoadModule("libbass.dylib"))
 #endif
-		, BASS_Init(module_, "BASS_Init")
-		, BASS_SetConfig(module_, "BASS_SetConfig")
-		, BASS_PluginLoad(module_, "BASS_PluginLoad")
-		, BASS_PluginGetInfo(module_, "BASS_PluginGetInfo")
+        , BASS_Init(module_, "BASS_Init")
+        , BASS_SetConfig(module_, "BASS_SetConfig")
+        , BASS_PluginLoad(module_, "BASS_PluginLoad")
+        , BASS_PluginGetInfo(module_, "BASS_PluginGetInfo")
         , BASS_Free(module_, "BASS_Free")
         , BASS_StreamCreateFile(module_, "BASS_StreamCreateFile")
         , BASS_ChannelGetInfo(module_, "BASS_ChannelGetInfo")
@@ -149,21 +151,21 @@ private:
         , BASS_ChannelSetPosition(module_, "BASS_ChannelSetPosition")
         , BASS_ErrorGetCode(module_, "BASS_ErrorGetCode")
         , BASS_ChannelGetAttribute(module_, "BASS_ChannelGetAttribute")
-		, BASS_ChannelSetAttribute(module_, "BASS_ChannelSetAttribute") {
-	}
-	catch (const Exception &e) {
-		XAMP_LOG_ERROR("{}", e.GetErrorMessage());
-	}
+        , BASS_ChannelSetAttribute(module_, "BASS_ChannelSetAttribute") {
+    }
+    catch (const Exception &e) {
+        XAMP_LOG_ERROR("{}", e.GetErrorMessage());
+    }
 
     ModuleHandle module_;
 
 public:
     XAMP_DECLARE_DLL(BASS_Init) BASS_Init;
     XAMP_DECLARE_DLL(BASS_SetConfig) BASS_SetConfig;
-	DllFunction<HPLUGIN(const char *, DWORD)> BASS_PluginLoad;
+    DllFunction<HPLUGIN(const char *, DWORD)> BASS_PluginLoad;
     XAMP_DECLARE_DLL(BASS_PluginGetInfo) BASS_PluginGetInfo;
     XAMP_DECLARE_DLL(BASS_Free) BASS_Free;
-	DllFunction<HSTREAM(BOOL, const void *, QWORD, QWORD, DWORD)> BASS_StreamCreateFile;
+    DllFunction<HSTREAM(BOOL, const void *, QWORD, QWORD, DWORD)> BASS_StreamCreateFile;
     XAMP_DECLARE_DLL(BASS_ChannelGetInfo) BASS_ChannelGetInfo;
     XAMP_DECLARE_DLL(BASS_StreamFree) BASS_StreamFree;
     XAMP_DECLARE_DLL(BASS_PluginFree) BASS_PluginFree;
@@ -179,91 +181,91 @@ public:
     align_ptr<BassDSDLib> DSDLib;
 
 private:
-	void LoadPlugin(const std::string& file_name) {
-		BassPluginHandle plugin(BassLib::Instance().BASS_PluginLoad(file_name.c_str(), 0));
-		if (!plugin) {
-			XAMP_LOG_DEBUG("Load {} failure.", file_name);
-			return;
-		}
+    void LoadPlugin(const std::string& file_name) {
+        BassPluginHandle plugin(BassLib::Instance().BASS_PluginLoad(file_name.c_str(), 0));
+        if (!plugin) {
+            XAMP_LOG_DEBUG("Load {} failure.", file_name);
+            return;
+        }
 
-		const auto info = BassLib::Instance().BASS_PluginGetInfo(plugin.get());
-		const int major_version(HiByte(HiWord(info->version)));
-		const int minor_version(LowByte(HiWord(info->version)));
-		const int micro_version(HiByte(LoWord(info->version)));
-		const int build_version(LowByte(LoWord(info->version)));
+        const auto info = BassLib::Instance().BASS_PluginGetInfo(plugin.get());
+        const int major_version(HiByte(HiWord(info->version)));
+        const int minor_version(LowByte(HiWord(info->version)));
+        const int micro_version(HiByte(LoWord(info->version)));
+        const int build_version(LowByte(LoWord(info->version)));
 
-		std::ostringstream ostr;
-		ostr << major_version << "."
-			<< minor_version << "."
-			<< micro_version << "."
-			<< build_version;
-		XAMP_LOG_DEBUG("Load {} {} successfully.", file_name, ostr.str());
+        std::ostringstream ostr;
+        ostr << major_version << "."
+             << minor_version << "."
+             << micro_version << "."
+             << build_version;
+        XAMP_LOG_DEBUG("Load {} {} successfully.", file_name, ostr.str());
 
-		plugins_[file_name] = std::move(plugin);
-	}
-	
-	struct BassPluginLoadTraits final {
-		static HPLUGIN invalid() noexcept {
-			return 0;
-		}
+        plugins_[file_name] = std::move(plugin);
+    }
 
-		static void close(HPLUGIN value) noexcept {
-			BassLib::Instance().BASS_PluginFree(value);
-		}
-	};
+    struct BassPluginLoadTraits final {
+        static HPLUGIN invalid() noexcept {
+            return 0;
+        }
 
-	using BassPluginHandle = UniqueHandle<HPLUGIN, BassPluginLoadTraits>;
+        static void close(HPLUGIN value) noexcept {
+            BassLib::Instance().BASS_PluginFree(value);
+        }
+    };
 
-	RobinHoodHashMap<std::string, BassPluginHandle> plugins_;
+    using BassPluginHandle = UniqueHandle<HPLUGIN, BassPluginLoadTraits>;
+
+    RobinHoodHashMap<std::string, BassPluginHandle> plugins_;
 };
 
 struct BassStreamTraits final {
-	static HSTREAM invalid() noexcept {
-		return 0;
-	}
+    static HSTREAM invalid() noexcept {
+        return 0;
+    }
 
-	static void close(HSTREAM value) noexcept {
-		BassLib::Instance().BASS_StreamFree(value);
-	}
+    static void close(HSTREAM value) noexcept {
+        BassLib::Instance().BASS_StreamFree(value);
+    }
 };
 
 using BassStreamHandle = UniqueHandle<HSTREAM, BassStreamTraits>;
 
 static void EnsureDsdDecoderInit() {
-	if (!BassLib::Instance().DSDLib) {
-		BassLib::Instance().DSDLib = MakeAlign<BassDSDLib>();
-		// TODO: Set hightest dsd2pcm samplerate?
-		BassLib::Instance().BASS_SetConfig(BASS_CONFIG_DSD_FREQ, 88200);
-	}
-	
+    if (!BassLib::Instance().DSDLib) {
+        BassLib::Instance().DSDLib = MakeAlign<BassDSDLib>();
+        // TODO: Set hightest dsd2pcm samplerate?
+        BassLib::Instance().BASS_SetConfig(BASS_CONFIG_DSD_FREQ, 88200);
+    }
+
 }
 
 static bool TestDsdFileFormat(const std::wstring& file_path) {
-	BassStreamHandle stream;
+    BassStreamHandle stream;
 
-	EnsureDsdDecoderInit();
+    EnsureDsdDecoderInit();
 
-	MemoryMappedFile file;
-	file.Open(file_path);
-	stream.reset(BassLib::Instance().DSDLib->BASS_DSD_StreamCreateFile(TRUE,
-		file.GetData(),
-		0,
-		file.GetLength(),
-		BASS_DSD_RAW | BASS_STREAM_DECODE,
-		0));
+    MemoryMappedFile file;
+    file.Open(file_path);
+    stream.reset(BassLib::Instance().DSDLib->BASS_DSD_StreamCreateFile(TRUE,
+                                                                       file.GetData(),
+                                                                       0,
+                                                                       file.GetLength(),
+                                                                       BASS_DSD_RAW | BASS_STREAM_DECODE,
+                                                                       0));
 
-	return stream.is_valid();
+    return stream.is_valid();
 }
 
 class BassFileStream::BassFileStreamImpl {
 public:
-	BassFileStreamImpl() noexcept
+    BassFileStreamImpl() noexcept
         : enable_file_mapped_(true)
-		, mode_(DsdModes::DSD_MODE_PCM) {
-		info_ = BASS_CHANNELINFO{};
-	}
+        , mode_(DsdModes::DSD_MODE_PCM) {
+        info_ = BASS_CHANNELINFO{};
+    }
 
-	void LoadFromFile(const std::wstring & file_path) {
+    void LoadFromFile(const std::wstring & file_path) {
         info_ = BASS_CHANNELINFO{};
 
         DWORD flags = 0;
@@ -279,57 +281,57 @@ public:
         case DsdModes::DSD_MODE_NATIVE:
             flags = BASS_DSD_RAW;
             break;
-		default:
-			XAMP_NO_DEFAULT;
+        default:
+            XAMP_NO_DEFAULT;
         }
 
-		file_.Close();
+        file_.Close();
 
-		if (mode_ == DsdModes::DSD_MODE_PCM && !TestDsdFileFormat(file_path)) {
-			if (enable_file_mapped_) {
-				file_.Open(file_path);
-				stream_.reset(BassLib::Instance().BASS_StreamCreateFile(TRUE,
-					file_.GetData(),
-					0,
-					file_.GetLength(),
-					flags | BASS_STREAM_DECODE));
-			}
-			else {
-				stream_.reset(BassLib::Instance().BASS_StreamCreateFile(FALSE,
-					file_path.data(),
-					0,
-					0,
-					flags | BASS_STREAM_DECODE | BASS_UNICODE));
-			}
-		} else {
-			EnsureDsdDecoderInit();
+        if (mode_ == DsdModes::DSD_MODE_PCM && !TestDsdFileFormat(file_path)) {
+            if (enable_file_mapped_) {
+                file_.Open(file_path);
+                stream_.reset(BassLib::Instance().BASS_StreamCreateFile(TRUE,
+                                                                        file_.GetData(),
+                                                                        0,
+                                                                        file_.GetLength(),
+                                                                        flags | BASS_STREAM_DECODE));
+            }
+            else {
+                stream_.reset(BassLib::Instance().BASS_StreamCreateFile(FALSE,
+                                                                        file_path.data(),
+                                                                        0,
+                                                                        0,
+                                                                        flags | BASS_STREAM_DECODE | BASS_UNICODE));
+            }
+        } else {
+            EnsureDsdDecoderInit();
 
-			if (enable_file_mapped_) {
-				file_.Open(file_path);
-				stream_.reset(BassLib::Instance().DSDLib->BASS_DSD_StreamCreateFile(TRUE,
-					file_.GetData(),
-					0,
-					file_.GetLength(),
-					flags | BASS_STREAM_DECODE,
-					0));
-			}
-			else {
-				stream_.reset(BassLib::Instance().DSDLib->BASS_DSD_StreamCreateFile(FALSE,
-					file_path.data(),
-					0,
-					0,
-					flags | BASS_STREAM_DECODE | BASS_UNICODE,
-					0));
-			}
+            if (enable_file_mapped_) {
+                file_.Open(file_path);
+                stream_.reset(BassLib::Instance().DSDLib->BASS_DSD_StreamCreateFile(TRUE,
+                                                                                    file_.GetData(),
+                                                                                    0,
+                                                                                    file_.GetLength(),
+                                                                                    flags | BASS_STREAM_DECODE,
+                                                                                    0));
+            }
+            else {
+                stream_.reset(BassLib::Instance().DSDLib->BASS_DSD_StreamCreateFile(FALSE,
+                                                                                    file_path.data(),
+                                                                                    0,
+                                                                                    0,
+                                                                                    flags | BASS_STREAM_DECODE | BASS_UNICODE,
+                                                                                    0));
+            }
 
-			// BassLib DSD module default use 6dB gain. 
-			// 不設定的話會爆音!
-			BassLib::Instance().BASS_ChannelSetAttribute(stream_.get(), BASS_ATTRIB_DSD_GAIN, 0.0);
-		}
-		
-		if (!stream_) {
-			throw BassException(BassLib::Instance().BASS_ErrorGetCode());
-		}
+            // BassLib DSD module default use 6dB gain.
+            // 不設定的話會爆音!
+            BassLib::Instance().BASS_ChannelSetAttribute(stream_.get(), BASS_ATTRIB_DSD_GAIN, 0.0);
+        }
+
+        if (!stream_) {
+            throw BassException(BassLib::Instance().BASS_ErrorGetCode());
+        }
 
         info_ = BASS_CHANNELINFO{};	
         BassIfFailedThrow(BassLib::Instance().BASS_ChannelGetInfo(stream_.get(), &info_));
@@ -337,34 +339,34 @@ public:
         if (GetFormat().GetChannels() != XAMP_MAX_CHANNEL) {
             throw NotSupportFormatException();
         }
-	}
+    }
 
-	void Close() {
-		stream_.reset();		
+    void Close() {
+        stream_.reset();
         mode_ = DsdModes::DSD_MODE_PCM;
-		info_ = BASS_CHANNELINFO{};
-	}	
+        info_ = BASS_CHANNELINFO{};
+    }
 
-	bool IsDsdFile() const noexcept {
-		assert(stream_.is_valid());
-		return info_.ctype == BASS_CTYPE_STREAM_DSD;
-	}
+    bool IsDsdFile() const noexcept {
+        assert(stream_.is_valid());
+        return info_.ctype == BASS_CTYPE_STREAM_DSD;
+    }
 
     uint32_t GetSamples(void *buffer, uint32_t length) const noexcept {
         return uint32_t(InternalGetSamples(buffer, length * GetSampleSize()) / GetSampleSize());
-	}
+    }
 
-	double GetDuration() const {
-		assert(stream_.is_valid());
-		const auto len = BassLib::Instance().BASS_ChannelGetLength(stream_.get(), BASS_POS_BYTE);
-		return BassLib::Instance().BASS_ChannelBytes2Seconds(stream_.get(), len);
-	}
+    double GetDuration() const {
+        assert(stream_.is_valid());
+        const auto len = BassLib::Instance().BASS_ChannelGetLength(stream_.get(), BASS_POS_BYTE);
+        return BassLib::Instance().BASS_ChannelBytes2Seconds(stream_.get(), len);
+    }
 
-	AudioFormat GetFormat() const {
-		assert(stream_.is_valid());
-		if (mode_ == DsdModes::DSD_MODE_NATIVE) {
+    AudioFormat GetFormat() const {
+        assert(stream_.is_valid());
+        if (mode_ == DsdModes::DSD_MODE_NATIVE) {
             return AudioFormat(DataFormat::FORMAT_DSD,
-							   info_.chans,
+                               info_.chans,
                                ByteFormat::SINT8,
                                GetDsdSampleRate());
         } else if (mode_ == DsdModes::DSD_MODE_DOP) {
@@ -374,16 +376,16 @@ public:
                                GetDOPSampleRate(GetDsdSpeed()));
         }
         return AudioFormat(DataFormat::FORMAT_PCM,
-						   info_.chans,
+                           info_.chans,
                            ByteFormat::FLOAT32,
                            info_.freq);
-	}
+    }
 
-	void Seek(double stream_time) const {
-		assert(stream_.is_valid());
-		const auto pos_bytes = BassLib::Instance().BASS_ChannelSeconds2Bytes(stream_.get(), stream_time);
+    void Seek(double stream_time) const {
+        assert(stream_.is_valid());
+        const auto pos_bytes = BassLib::Instance().BASS_ChannelSeconds2Bytes(stream_.get(), stream_time);
         BassIfFailedThrow(BassLib::Instance().BASS_ChannelSetPosition(stream_.get(), pos_bytes, BASS_POS_BYTE));
-	}
+    }
 
     uint32_t GetDsdSampleRate() const {
         float rate = 0;
@@ -412,16 +414,16 @@ public:
     }
 
     uint32_t GetSampleSize() const noexcept {
-		return mode_ == DsdModes::DSD_MODE_NATIVE ? sizeof(int8_t) : sizeof(float);
-	}
+        return mode_ == DsdModes::DSD_MODE_NATIVE ? sizeof(int8_t) : sizeof(float);
+    }
 
-	DsdFormat GetDsdFormat() const noexcept {
-		return DsdFormat::DSD_INT8MSB;
-	}
+    DsdFormat GetDsdFormat() const noexcept {
+        return DsdFormat::DSD_INT8MSB;
+    }
 
     void SetDsdToPcmSampleRate(uint32_t samplerate) {
-		BassLib::Instance().BASS_SetConfig(BASS_CONFIG_DSD_FREQ, samplerate);
-	}
+        BassLib::Instance().BASS_SetConfig(BASS_CONFIG_DSD_FREQ, samplerate);
+    }
 
     uint32_t GetDsdSpeed() const noexcept {
         return GetDsdSampleRate() / PCM_SAMPLE_RATE_441;
@@ -429,53 +431,54 @@ public:
 private:
     XAMP_ALWAYS_INLINE uint32_t InternalGetSamples(void *buffer, uint32_t length) const noexcept {
         const auto byte_read = BassLib::Instance().BASS_ChannelGetData(stream_.get(), buffer, length);
-		if (byte_read == BASS_ERROR) {
-			return 0;
-		}
+        if (byte_read == BASS_ERROR) {
+            return 0;
+        }
         return uint32_t(byte_read);
-	}
+    }
 
-	bool enable_file_mapped_;
+    bool enable_file_mapped_;
     DsdModes mode_;
-	BassStreamHandle stream_;
-	BASS_CHANNELINFO info_;   
+    BassStreamHandle stream_;
+    BASS_CHANNELINFO info_;
     MemoryMappedFile file_;
 };
 
 BassFileStream::BassFileStream()
-	: stream_(MakeAlign<BassFileStreamImpl>()) {
+    : stream_(MakeAlign<BassFileStreamImpl>()) {
 }
 
-XAMP_PIMPL_IMPL(BassFileStream)
+BassFileStream::~BassFileStream(){
+}
 
 void BassFileStream::LoadBassLib() {
-	if (!BassLib::Instance().IsLoaded()) {
-		BassLib::Instance().Load();
-	}
+    if (!BassLib::Instance().IsLoaded()) {
+        BassLib::Instance().Load();
+    }
 }
 
 void BassFileStream::OpenFromFile(const std::wstring & file_path)  {
-	stream_->LoadFromFile(file_path);
+    stream_->LoadFromFile(file_path);
 }
 
 void BassFileStream::Close() {
-	stream_->Close();
+    stream_->Close();
 }
 
 double BassFileStream::GetDuration() const {
-	return stream_->GetDuration();
+    return stream_->GetDuration();
 }
 
 AudioFormat BassFileStream::GetFormat() const noexcept {
-	return stream_->GetFormat();
+    return stream_->GetFormat();
 }
 
 void BassFileStream::Seek(double stream_time) const {
-	stream_->Seek(stream_time);
+    stream_->Seek(stream_time);
 }
 
 uint32_t BassFileStream::GetSamples(void *buffer, uint32_t length) const noexcept {
-	return stream_->GetSamples(buffer, length);
+    return stream_->GetSamples(buffer, length);
 }
 
 std::string_view BassFileStream::GetDescription() const noexcept {
@@ -491,7 +494,7 @@ DsdModes BassFileStream::GetDsdMode() const noexcept {
 }
 
 bool BassFileStream::IsDsdFile() const noexcept {
-	return stream_->IsDsdFile();
+    return stream_->IsDsdFile();
 }
 
 uint32_t BassFileStream::GetDsdSampleRate() const {
@@ -499,15 +502,15 @@ uint32_t BassFileStream::GetDsdSampleRate() const {
 }
 
 uint32_t BassFileStream::GetSampleSize() const noexcept {
-	return stream_->GetSampleSize();
+    return stream_->GetSampleSize();
 }
 
 DsdFormat BassFileStream::GetDsdFormat() const noexcept {
-	return stream_->GetDsdFormat();
+    return stream_->GetDsdFormat();
 }
 
 void BassFileStream::SetDsdToPcmSampleRate(uint32_t samplerate) {
-	stream_->SetDsdToPcmSampleRate(samplerate);
+    stream_->SetDsdToPcmSampleRate(samplerate);
 }
 
 uint32_t BassFileStream::GetDsdSpeed() const noexcept {

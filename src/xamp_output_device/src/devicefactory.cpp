@@ -99,6 +99,8 @@ DeviceFactory::DeviceFactory() {
 DeviceFactory::~DeviceFactory() {
 #ifdef XAMP_OS_WIN
     ::MFShutdown();
+#else
+    iopmAssertion.Reset();
 #endif
 }
 

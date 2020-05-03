@@ -240,12 +240,14 @@ double CoreAudioDevice::GetStreamTime() const noexcept {
 }
 
 uint32_t CoreAudioDevice::GetVolume() const {
-    auto volume = SystemVolume(kAudioHardwareServiceDeviceProperty_VirtualMasterVolume, device_id_).GetGain() * 100;
+    auto volume = SystemVolume(kAudioHardwareServiceDeviceProperty_VirtualMasterVolume, device_id_)
+                      .GetGain() * 100;
     return static_cast<uint32_t>(volume);
 }
 
 void CoreAudioDevice::SetVolume(uint32_t volume) const {
-    SystemVolume(kAudioHardwareServiceDeviceProperty_VirtualMasterVolume, device_id_).SetGain(float(volume) / float(100.0));
+    SystemVolume(kAudioHardwareServiceDeviceProperty_VirtualMasterVolume, device_id_)
+        .SetGain(float(volume) / float(100.0));
 }
 
 void CoreAudioDevice::SetMute(bool mute) const {

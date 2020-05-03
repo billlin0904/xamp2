@@ -26,11 +26,11 @@ bool PrefetchMemory(void* adddr, size_t length) noexcept {
 }
 #else
 size_t GetPageSize() noexcept {
-    return static_cast<size_t>(getpagesize());
+    return static_cast<size_t>(::getpagesize());
 }
 
 bool PrefetchMemory(void* adddr, size_t length) noexcept {
-    return madvise(adddr, length, MADV_SEQUENTIAL) == 0;
+    return ::madvise(adddr, length, MADV_SEQUENTIAL) == 0;
 }
 #endif
 

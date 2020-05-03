@@ -23,7 +23,7 @@ public:
 	}
 
     void Write(const Path &path, Metadata &metadata) const {
-        Write(path, [metadata](auto file, auto tag) {
+        Write(path, [metadata](auto, auto tag) {
 			tag->setAlbum(metadata.album);
 			tag->setArtist(metadata.artist);
 			tag->setTrack(metadata.track);
@@ -32,25 +32,25 @@ public:
     }
 
     void WriteTitle(const Path &path, const std::wstring &title) const {
-        Write(path, [title](auto file, auto tag) {
+        Write(path, [title](auto, auto tag) {
 	        tag->setTitle(title);
 	    });
     }
 
     void WriteArtist(const Path &path, const std::wstring &artist) const {
-        Write(path, [artist](auto file, auto tag) {
+        Write(path, [artist](auto, auto tag) {
 	        tag->setArtist(artist);
 	    });
     }
 
     void WriteAlbum(const Path &path, const std::wstring &album) const {
-        Write(path, [album](auto file, auto tag) {
+        Write(path, [album](auto, auto tag) {
 	        tag->setAlbum(album);
 	    });
     }
 
     void WriteTrack(const Path &path, int32_t track) const {
-        Write(path, [track](auto file, auto tag) {
+        Write(path, [track](auto, auto tag) {
 	        tag->setTrack(track);
 	    });
     }
@@ -63,7 +63,7 @@ public:
 		if (ext == ".m4a") {			
 			TagLib::MP4::CoverArt cover_art(static_cast<TagLib::MP4::CoverArt::Format>(0x0D), imagedata);
 
-            Write(path, [&cover_art](auto file, auto tag) {
+            Write(path, [&cover_art](auto, auto tag) {
 				if (const auto mp4_tag = dynamic_cast<TagLib::MP4::Tag*>(tag)) {
 					auto items_list_map = mp4_tag->itemListMap();
 					TagLib::MP4::CoverArtList cover_art_list;
@@ -74,7 +74,7 @@ public:
 			});
 		}
 		else if (ext == ".mp3") {
-            Write(path, [&imagedata](auto file, auto tag) {
+            Write(path, [&imagedata](auto file, auto) {
 				if (const auto mp3_file = dynamic_cast<TagLib::MPEG::File*>(file)) {
 					if (const auto mp3_tag = mp3_file->ID3v2Tag(true)) {
 						const auto frame_list = mp3_tag->frameList("APIC");
@@ -93,7 +93,7 @@ public:
 				}
 			});
 		} else if (ext == ".flac") {
-			Write(path, [&imagedata](auto file, auto tag) {
+            Write(path, [&imagedata](auto file, auto) {
 				if (const auto flac_file = dynamic_cast<TagLib::FLAC::File*>(file)) {
 					flac_file->removePictures();
 					auto picture = new TagLib::FLAC::Picture();

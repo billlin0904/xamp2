@@ -31,6 +31,8 @@ public:
 
 	explicit ID(const std::string_view &from_string);
 
+    bool IsValid() const noexcept;
+
     ID(const ID &other) noexcept;
     
     ID& operator=(const ID &other) noexcept;
@@ -75,6 +77,10 @@ XAMP_ALWAYS_INLINE ID& ID::operator=(ID&& other) noexcept {
 		bytes_ = other.bytes_;
 	}
 	return *this;
+}
+
+XAMP_ALWAYS_INLINE bool ID::IsValid() const noexcept {
+    return *this == ID::INVALID_ID;
 }
 
 XAMP_ALWAYS_INLINE bool operator!=(const ID & other1, const ID & other2) noexcept {

@@ -11,6 +11,7 @@
 #include <QFutureWatcher>
 #include <QProgressDialog>
 
+#include <base/str_utilts.h>
 #include <player/chromaprinthelper.h>
 #include <player/soxresampler.h>
 
@@ -35,20 +36,6 @@
 #include "thememanager.h"
 #include "xamp.h"
 
-static MusicEntity toMusicEntity(const PlayListEntity& item) {
-    MusicEntity music_entity;
-    music_entity.music_id = item.music_id;
-    music_entity.artist_id = item.artist_id;
-    music_entity.album_id = item.album_id;
-    music_entity.cover_id = item.cover_id;
-    music_entity.title = item.title;
-    music_entity.album = item.album;
-    music_entity.artist = item.artist;
-    music_entity.file_ext = item.file_ext;
-    music_entity.file_path = item.file_path;
-    return music_entity;
-}
-
 static QString getPlayEntityFormat(const AudioPlayer* player, const QString& file_ext) {
     auto format = player->GetStreamFormat();
     auto dsd_speed = player->GetDSDSpeed();
@@ -71,7 +58,7 @@ static QString getPlayEntityFormat(const AudioPlayer* player, const QString& fil
     QString dsd_speed_format;
     if (dsd_speed) {
         dsd_speed_format = Q_UTF8(" DSD") + QString::number(dsd_speed.value()) + Q_UTF8(" ");
-	}
+    }
 
     QString dsd_mode;
     switch (player->GetDSDModes()) {
@@ -87,12 +74,12 @@ static QString getPlayEntityFormat(const AudioPlayer* player, const QString& fil
     }
 
     return ext
-        + Q_UTF8(" | ")
-        + dsd_speed_format
-        + (is_mhz_samplerate ? QString::number(format.GetSampleRate() / double(1000000), 'f', 2) + Q_UTF8("MHz/")
-            : QString::number(format.GetSampleRate() / double(1000), 'f', precision) + Q_UTF8("kHz/"))
-        + QString::number(bits) + Q_UTF8("bit")
-        + Q_UTF8(" | ") + dsd_mode;
+           + Q_UTF8(" | ")
+           + dsd_speed_format
+           + (is_mhz_samplerate ? QString::number(format.GetSampleRate() / double(1000000), 'f', 2) + Q_UTF8("MHz/")
+                                : QString::number(format.GetSampleRate() / double(1000), 'f', precision) + Q_UTF8("kHz/"))
+           + QString::number(bits) + Q_UTF8("bit")
+           + Q_UTF8(" | ") + dsd_mode;
 }
 
 Xamp::Xamp(QWidget *parent)
@@ -106,6 +93,7 @@ Xamp::Xamp(QWidget *parent)
     , state_adapter_(std::make_shared<PlayerStateAdapter>())
     , player_(std::make_shared<AudioPlayer>(state_adapter_))
     , playback_history_page_(nullptr) {
+    initial();
 }
 
 void Xamp::initial() {
@@ -113,6 +101,7 @@ void Xamp::initial() {
     initialController();
     initialDeviceList();
     initialPlaylist();
+    initialShortcut();
     setCover(ThemeManager::instance().pixmap().unknownCover());
     DeviceFactory::Instance().RegisterDeviceListener(player_);
     setDefaultStyle();
@@ -126,7 +115,7 @@ void Xamp::closeEvent(QCloseEvent*) {
 
     AppSettings::setValue(APP_SETTING_WIDTH, size().width());
     AppSettings::setValue(APP_SETTING_HEIGHT, size().height());
-	AppSettings::setValue(APP_SETTING_VOLUME, ui.volumeSlider->value());
+    AppSettings::setValue(APP_SETTING_VOLUME, ui.volumeSlider->value());
 
     if (player_ != nullptr) {
         player_->Destory();
@@ -174,19 +163,17 @@ void Xamp::initialUI() {
                                     AppSettings::getSizeValue(APP_SETTING_WIDTH, APP_SETTING_HEIGHT),
                                     qApp->desktop()->availableGeometry()));
 
-	auto f = font();
-	f.setPointSize(10);
-	ui.titleLabel->setFont(f);
-	f.setPointSize(8);
-	ui.artistLabel->setFont(f);
+    auto f = font();
+    f.setPointSize(10);
+    ui.titleLabel->setFont(f);
+    f.setPointSize(8);
+    ui.artistLabel->setFont(f);
 
 #ifdef Q_OS_WIN
     f.setPointSize(7);
     ui.startPosLabel->setFont(f);
     ui.endPosLabel->setFont(f);
-#endif
-
-#ifdef Q_OS_MAC
+#else
     ui.closeButton->hide();
     ui.maxWinButton->hide();
     ui.minWinButton->hide();
@@ -195,18 +182,6 @@ void Xamp::initialUI() {
     f.setPointSize(10);
     ui.artistLabel->setFont(f);
 #endif
-
-    if (AppSettings::getValueAsString(APP_SETTING_LANG).isEmpty()) {
-        LocaleLanguage l;
-        XAMP_LOG_DEBUG("Load locale lang file: {}", l.getIsoCode().toStdString());
-        AppSettings::loadLanguage(l.getIsoCode());
-        AppSettings::setValue(APP_SETTING_LANG, l.getIsoCode());
-    }
-    else {
-        AppSettings::loadLanguage(AppSettings::getValueAsString(APP_SETTING_LANG));
-    }
-
-    DeviceFactory::PreventSleep(AppSettings::getValueAsBool(APP_SETTING_PREVENT_SLEEP));
 }
 
 QWidgetAction* Xamp::createTextSeparator(const QString& text) {
@@ -256,7 +231,7 @@ void Xamp::initialDeviceList() {
             return;
         }
 
-		auto desc = device_type->GetDescription();
+        auto desc = device_type->GetDescription();
         menu->addAction(createTextSeparator(QLatin1String{ desc.data(), static_cast<int>(desc.length()) }));
 
         for (const auto& device_info : device_info_list) {
@@ -268,10 +243,11 @@ void Xamp::initialDeviceList() {
                 device_info_ = device_info;
                 AppSettings::setValue(APP_SETTING_DEVICE_TYPE, device_info_.device_type_id);
                 AppSettings::setValue(APP_SETTING_DEVICE_ID, device_info_.device_id);
+                XAMP_LOG_DEBUG("Save device Id : {}", xamp::base::ToUtf8String(device_info_.device_id));
             });
             menu->addAction(device_action);
             if (AppSettings::getID(APP_SETTING_DEVICE_TYPE) == device_info.device_type_id
-                    && AppSettings::getValueAsString(APP_SETTING_DEVICE_ID).toStdWString() == device_info.device_id) {
+                && AppSettings::getValueAsString(APP_SETTING_DEVICE_ID).toStdWString() == device_info.device_id) {
                 device_info_ = device_info;
                 is_find_setting_device = true;
                 device_action->setChecked(true);
@@ -293,6 +269,7 @@ void Xamp::initialDeviceList() {
         device_id_action[device_info_.device_id]->setChecked(true);
         AppSettings::setValue(APP_SETTING_DEVICE_TYPE, device_info_.device_type_id);
         AppSettings::setValue(APP_SETTING_DEVICE_ID, device_info_.device_id);
+        XAMP_LOG_DEBUG("Use default device Id : {}", xamp::base::ToUtf8String(device_info_.device_id));
     }
 }
 
@@ -331,16 +308,16 @@ void Xamp::initialController() {
 
     });
 
-	(void)QObject::connect(ui.seekSlider, &SeekSlider::leftButtonValueChanged, [this](auto value) {
-		try {
-			player_->Seek(static_cast<double>(value / 1000.0));
-		}
-		catch (const xamp::base::Exception & e) {
-			player_->Stop(false);
-			Toast::showTip(Q_UTF8(e.GetErrorMessage()), this);
-			return;
-		}
-		});
+    (void)QObject::connect(ui.seekSlider, &SeekSlider::leftButtonValueChanged, [this](auto value) {
+        try {
+            player_->Seek(static_cast<double>(value / 1000.0));
+        }
+        catch (const xamp::base::Exception & e) {
+            player_->Stop(false);
+            Toast::showTip(Q_UTF8(e.GetErrorMessage()), this);
+            return;
+        }
+    });
 
     (void)QObject::connect(ui.seekSlider, &SeekSlider::sliderMoved, [this](auto value) {
         QToolTip::showText(QCursor::pos(), Time::msToString(double(ui.seekSlider->value()) / 1000.0));
@@ -399,22 +376,22 @@ void Xamp::initialController() {
     });
 
     (void)QObject::connect(state_adapter_.get(),
-                           &PlayerStateAdapter::stateChanged,
-                           this,
-                           &Xamp::onPlayerStateChanged,
-                           Qt::QueuedConnection);
+                            &PlayerStateAdapter::stateChanged,
+                            this,
+                            &Xamp::onPlayerStateChanged,
+                            Qt::QueuedConnection);
 
     (void)QObject::connect(state_adapter_.get(),
-                           &PlayerStateAdapter::sampleTimeChanged,
-                           this,
-                           &Xamp::onSampleTimeChanged,
-                           Qt::QueuedConnection);    
+                            &PlayerStateAdapter::sampleTimeChanged,
+                            this,
+                            &Xamp::onSampleTimeChanged,
+                            Qt::QueuedConnection);
 
     (void)QObject::connect(state_adapter_.get(),
-        &PlayerStateAdapter::deviceChanged,
-        this,
-        &Xamp::onDeviceStateChanged,
-        Qt::QueuedConnection);
+                            &PlayerStateAdapter::deviceChanged,
+                            this,
+                            &Xamp::onDeviceStateChanged,
+                            Qt::QueuedConnection);
 
     (void)QObject::connect(ui.searchLineEdit, &QLineEdit::textChanged, [this](const auto &text) {
         if (ui.currentView->count() > 0) {
@@ -443,7 +420,7 @@ void Xamp::initialController() {
 
     (void)QObject::connect(ui.stopButton, &QToolButton::pressed, [this]() {
         stopPlayedClicked();
-        });
+    });
 
     (void)QObject::connect(ui.backPageButton, &QToolButton::pressed, [this]() {
         goBackPage();
@@ -470,7 +447,7 @@ void Xamp::initialController() {
 
     (void)QObject::connect(ui.coverLabel, &ClickableLabel::clicked, [this]() {
         ui.currentView->setCurrentWidget(lrc_page_);
-        });
+    });
 
     (void)QObject::connect(ui.sliderBar, &TabListView::clickedTable, [this](auto table_id) {
         setTablePlaylistView(table_id);
@@ -493,7 +470,7 @@ void Xamp::initialController() {
         dialog.setFont(f);
         dialog.exec();
         watch_.addPath(dialog.musicFilePath);
-        });
+    });
 #ifdef Q_OS_WIN
     auto enable_blur_material_mode_action = new QAction(tr("Enable blur"), this);
     enable_blur_material_mode_action->setCheckable(true);
@@ -506,7 +483,7 @@ void Xamp::initialController() {
         enable = !enable;
         enable_blur_material_mode_action->setChecked(enable);
         ThemeManager::instance().enableBlur(this, enable);
-        });
+    });
 #endif
     auto select_color_widget = new SelectColorWidget(this);
     auto theme_color_menu = new QMenu(tr("Theme color"));
@@ -514,7 +491,7 @@ void Xamp::initialController() {
     widget_action->setDefaultWidget(select_color_widget);
     (void)QObject::connect(select_color_widget, &SelectColorWidget::colorButtonClicked, [this](auto color) {        
         applyTheme(color);
-        });
+    });
     theme_color_menu->addAction(widget_action);
     settings_menu->addMenu(theme_color_menu);
 #ifdef Q_OS_WIN
@@ -527,7 +504,7 @@ void Xamp::initialController() {
         AboutDialog aboutdlg;
         aboutdlg.setFont(font());
         aboutdlg.exec();
-        });
+    });
     ui.settingsButton->setMenu(settings_menu);
 
     ui.seekSlider->setEnabled(false);
@@ -618,7 +595,10 @@ void Xamp::setVolume(int32_t volume) {
 }
 
 void Xamp::initialShortcut() {
-
+    auto space_key = new QShortcut(QKeySequence(Qt::Key_Space), this);
+    (void)QObject::connect(space_key, &QShortcut::activated, [this]() {
+        play();
+    });
 }
 
 void Xamp::stopPlayedClicked() {
@@ -744,7 +724,7 @@ void Xamp::play() {
             play_index_ = select_item.value();
         }
         play_index_ = playlist_page_->playlist()->model()->index(
-                    play_index_.row(), PLAYLIST_PLAYING);
+            play_index_.row(), PLAYLIST_PLAYING);
         if (play_index_.row() == -1) {
             Toast::showTip(tr("Not found any playing item."), this);
             return;
@@ -762,8 +742,8 @@ void Xamp::resetSeekPosValue() {
 void Xamp::setupResampler() {
     if (AppSettings::getValue(APP_SETTING_RESAMPLER_ENABLE).toBool()) {
         auto soxr_settings = QVariant::fromValue(
-            JsonSettings::getValue(AppSettings::getValueAsString(APP_SETTING_SOXR_SETTING_NAME))
-        ).toMap();
+                                 JsonSettings::getValue(AppSettings::getValueAsString(APP_SETTING_SOXR_SETTING_NAME))
+                                 ).toMap();
 
         auto samplerate = soxr_settings[SOXR_RESAMPLE_SAMPLRATE].toUInt();
         auto quality = static_cast<SoxrQuality>(soxr_settings[SOXR_QUALITY].toInt());
@@ -792,7 +772,7 @@ void Xamp::processMeatadata(const std::vector<xamp::base::Metadata>& medata) {
 
 void Xamp::playMusic(const MusicEntity& item) {
     auto open_done = false;
-        
+
     ui.seekSlider->setEnabled(true);
 
     try {
@@ -858,9 +838,9 @@ void Xamp::playMusic(const MusicEntity& item) {
 #if 1
     const QFileInfo file_info(item.file_path);
     const auto lrc_path = file_info.path()
-        + Q_UTF8("/")
-        + file_info.completeBaseName()
-        + Q_UTF8(".lrc");
+                          + Q_UTF8("/")
+                          + file_info.completeBaseName()
+                          + Q_UTF8(".lrc");
     lrc_page_->lyricsWidget()->loadLrcFile(lrc_path);
 #endif
 
@@ -942,10 +922,10 @@ void Xamp::initialPlaylist() {
             Database::instance().forEachPlaylistMusic(playlist_id, [this](const auto& entityy) {
                 playlist_page_->playlist()->appendItem(entityy);
             });
-			return;
+            return;
         }
 
-		if (playlist_page_->playlist()->playlistId() != playlist_id) {
+        if (playlist_page_->playlist()->playlistId() != playlist_id) {
             playlist_page_ = newPlaylist(playlist_id);
             playlist_page_->playlist()->setPlaylistId(playlist_id);
             Database::instance().forEachPlaylistMusic(playlist_id, [this](const auto& entityy) {
@@ -982,61 +962,56 @@ void Xamp::initialPlaylist() {
     goBackPage();
 
     (void)QObject::connect(state_adapter_.get(),
-        &PlayerStateAdapter::onGetMagnitudeSpectrum,
-        lrc_page_->spectrum(),
-        &Spectrograph::onGetMagnitudeSpectrum);
+                            &PlayerStateAdapter::onGetMagnitudeSpectrum,
+                            lrc_page_->spectrum(),
+                            &Spectrograph::onGetMagnitudeSpectrum);
 
     (void)QObject::connect(album_artist_page_->album(), &AlbumView::clickedArtist,
-        this,
-        &Xamp::onArtistIdChanged);
+                            this,
+                            &Xamp::onArtistIdChanged);
 
     (void)QObject::connect(this, &Xamp::textColorChanged,
-        album_artist_page_->album(),
-        &AlbumView::onTextColorChanged);
+                            album_artist_page_->album(),
+                            &AlbumView::onTextColorChanged);
 
     (void)QObject::connect(this, &Xamp::textColorChanged,
-        artist_info_page_,
-        &ArtistInfoPage::onTextColorChanged);
+                            artist_info_page_,
+                            &ArtistInfoPage::onTextColorChanged);
 
     (void)QObject::connect(&mbc_, &MusicBrainzClient::finished, [this](auto artist_id, auto discogs_artist_id) {
         Database::instance().updateDiscogsArtistId(artist_id, discogs_artist_id);
         if (!discogs_artist_id.isEmpty()) {
             discogs_.searchArtistId(artist_id, discogs_artist_id);
         }
-        });
+    });
 
     (void)QObject::connect(&discogs_, &DiscogsClient::getArtistImageUrl, [this](auto artist_id, auto url) {
         discogs_.downloadArtistImage(artist_id, url);
         XAMP_LOG_DEBUG("Download artist id: {}, discogs image url: {}", artist_id, url.toStdString());
-        });
+    });
 
     (void)QObject::connect(&discogs_, &DiscogsClient::downloadImageFinished, [](auto artist_id, auto image) {
         auto cover_id = PixmapCache::instance().add(image);
         Database::instance().updateArtistCoverId(artist_id, cover_id);
         XAMP_LOG_DEBUG("Save artist id: {} image, cover id : {}", artist_id, cover_id.toStdString());
-        });
+    });
 
     (void)QObject::connect(album_artist_page_->album(), &AlbumView::addPlaylist, [this](const auto& entity) {
         addPlaylistItem(entity);
-        });
+    });
 
     (void)QObject::connect(album_artist_page_->album(), &AlbumView::playMusic, [this](const auto& entity) {
         (void)QObject::disconnect(this, &Xamp::payNextMusic, playback_history_page_, &PlaybackHistoryPage::playNextMusic);
         (void)QObject::connect(this, &Xamp::payNextMusic, album_artist_page_->album(), &AlbumView::payNextMusic);
         playMusic(entity);
-        });
+    });
     (void)QObject::connect(playback_history_page_, &PlaybackHistoryPage::playMusic, [this](const auto& entity) {
         (void)QObject::disconnect(this, &Xamp::payNextMusic, album_artist_page_->album(), &AlbumView::payNextMusic);
         (void)QObject::connect(this, &Xamp::payNextMusic, playback_history_page_, &PlaybackHistoryPage::playNextMusic);
         playMusic(entity);
-        });
+    });
 
     setupPlayNextMusicSignals(true);
-
-    auto space_key = new QShortcut(QKeySequence(Qt::Key_Space), this);
-    (void)QObject::connect(space_key, &QShortcut::activated, [this]() {
-        play();
-        });
 }
 
 void Xamp::setupPlayNextMusicSignals(bool add_or_remove) {
@@ -1085,7 +1060,7 @@ void Xamp::addItem(const QString& file_name) {
             watcher->deleteLater();
             adapter->deleteLater();
             emit album_artist_page_->album()->refreshOnece();
-            });
+        });
 
         watcher->setFuture(future);
     }
@@ -1117,64 +1092,68 @@ QWidget* Xamp::popWidget() {
     return nullptr;
 }
 
+void Xamp::readFingerprint(const QModelIndex&, const PlayListEntity& item) {
+    using namespace xamp::player;
+
+    QProgressDialog dialog(tr("Read '") + item.title + tr("' fingerprint"), tr("Cancel"), 0, 100);
+    dialog.setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
+    dialog.setFont(font());
+    dialog.setWindowTitle(tr("Read progress dialog"));
+    dialog.setWindowModality(Qt::WindowModal);
+    dialog.setMinimumSize(QSize(500, 100));
+    dialog.setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed));
+    dialog.show();
+
+    FingerprintInfo fingerprint_info;
+    QByteArray fingerprint;
+    Fingerprint result;
+
+    try {
+        result = ReadFingerprint(item.file_path.toStdWString(),
+                                 item.file_ext.toStdWString(),
+                                 [&](auto progress) -> bool {
+                                     dialog.setValue(progress);
+                                     qApp->processEvents();
+                                     return dialog.wasCanceled() != true;
+                                 });
+    }
+    catch (...) {
+        return;
+    }
+
+    fingerprint.append(reinterpret_cast<char*>(result.fingerprint.data()),
+                       static_cast<int32_t>(result.fingerprint.size()));
+
+    Database::instance().updateMusicFingerprint(item.music_id, fingerprint_info.fingerprint);
+
+    fingerprint_info.artist_id = item.artist_id;
+    fingerprint_info.duration = static_cast<int32_t>(result.duration);
+    fingerprint_info.fingerprint = QString::fromLatin1(fingerprint);
+    mbc_.searchBy(fingerprint_info);
+}
+
 PlyalistPage* Xamp::newPlaylist(int32_t playlist_id) {
     auto playlist_page = new PlyalistPage(this);
 
     ui.currentView->addWidget(playlist_page);
 
     (void)QObject::connect(playlist_page->playlist(), &PlayListTableView::playMusic,
-                           [this](auto index, const auto& item) {
-        setupPlayNextMusicSignals(false);
-        play(index, item);
-    });
+                            [this](auto index, const auto& item) {
+                                setupPlayNextMusicSignals(false);
+                                play(index, item);
+                            });
 
     (void)QObject::connect(playlist_page->playlist(), &PlayListTableView::removeItems,
-                           [](auto playlist_id, const auto& select_music_ids) {
-        IgnoreSqlError(Database::instance().removePlaylistMusic(playlist_id, select_music_ids))
-    });
+                            [](auto playlist_id, const auto& select_music_ids) {
+                                IgnoreSqlError(Database::instance().removePlaylistMusic(playlist_id, select_music_ids))
+                            });
 
     (void)QObject::connect(playlist_page->playlist(), &PlayListTableView::readFingerprint,
-        [this](auto /*index*/, const auto& item) {
-            using namespace xamp::player;
-            QProgressDialog dialog(tr("Read '") + item.title + tr("' fingerprint"), tr("Cancel"), 0, 100);
-            dialog.setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
-            dialog.setFont(font());
-            dialog.setWindowTitle(tr("Read progress dialog"));
-            dialog.setWindowModality(Qt::WindowModal);
-            dialog.setMinimumSize(QSize(500, 100));
-            dialog.setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed));
-            dialog.show();
-
-            FingerprintInfo fingerprint_info;
-            QByteArray fingerprint;
-            Fingerprint result;
-
-            try {
-                result = ReadFingerprint(item.file_path.toStdWString(),
-                    item.file_ext.toStdWString(),
-                                         [&](auto progress) -> bool {
-                    dialog.setValue(progress);
-                    qApp->processEvents();
-                    return dialog.wasCanceled() != true;
-                    });
-            }
-            catch (...) {
-                return;
-            }
-
-            fingerprint.append(reinterpret_cast<char*>(result.fingerprint.data()), result.fingerprint.size());
-            
-            Database::instance().updateMusicFingerprint(item.music_id, fingerprint_info.fingerprint);
-
-            fingerprint_info.artist_id = item.artist_id;
-            fingerprint_info.duration = static_cast<int32_t>(result.duration);
-            fingerprint_info.fingerprint = QString::fromLatin1(fingerprint);                        
-            mbc_.searchBy(fingerprint_info);
-    });
+                            this, &Xamp::readFingerprint);
 
     (void)QObject::connect(this, &Xamp::textColorChanged,
-        playlist_page->playlist(),
-        &PlayListTableView::onTextColorChanged);
+                            playlist_page->playlist(),
+                            &PlayListTableView::onTextColorChanged);
 
     playlist_page->playlist()->setPlaylistId(playlist_id);
 

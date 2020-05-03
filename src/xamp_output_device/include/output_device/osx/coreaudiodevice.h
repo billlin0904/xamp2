@@ -59,12 +59,12 @@ public:
     bool CanHardwareControlVolume() const override;
 private:
     static OSStatus OnAudioDeviceIOProc(AudioDeviceID,
-                                  const AudioTimeStamp*,
-                                  const AudioBufferList*,
-                                  const AudioTimeStamp*,
-                                  AudioBufferList* outOutputData,
-                                  const AudioTimeStamp*,
-                                  void* user_data);
+                                        const AudioTimeStamp*,
+                                        const AudioBufferList*,
+                                        const AudioTimeStamp*,
+                                        AudioBufferList* outOutputData,
+                                        const AudioTimeStamp*,
+                                        void* user_data);
 
     void AudioDeviceIOProc(AudioBufferList* output_data);
 

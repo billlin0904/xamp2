@@ -26,6 +26,10 @@ void AppSettings::loadIniFile(const QString& file_name) {
 	settings_.reset(new QSettings(file_name, QSettings::IniFormat));
 }
 
+void AppSettings::save() {
+    settings_->sync();
+}
+
 void AppSettings::setOrDefaultConfig() {
     loadIniFile(Q_UTF8("xamp.ini"));
     setDefaultValue(APP_SETTING_DEVICE_TYPE, Q_UTF8(""));

@@ -5,7 +5,8 @@
 
 #pragma once
 
-#include <unordered_set>
+#include <base/stl.h>
+
 #include <QSortFilterProxyModel>
 
 class PlayListTableFilterProxyModel : public QSortFilterProxyModel {
@@ -21,5 +22,5 @@ protected:
     bool lessThan(const QModelIndex& left, const QModelIndex& right) const override;
 
 private:
-    std::unordered_set<int32_t> filters_;
+    xamp::base::RobinHoodSet<int32_t> filters_;
 };

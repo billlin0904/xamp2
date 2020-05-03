@@ -10,30 +10,28 @@
 #include <string>
 
 #include <base/base.h>
+#include <base/enum.h>
 #include <base/audioformat.h>
 
 namespace xamp::base {
 
-enum class Errors {
-    XAMP_ERROR_SUCCESS = 0,
-    XAMP_ERROR_PLATFORM_SPEC_ERROR,
-    XAMP_ERROR_LIBRARY_SPEC_ERROR,
-    XAMP_ERROR_DEVICE_NOT_INITIALIZED,
-    XAMP_ERROR_DEVICE_UNSUPPORTED_FORMAT,
-    XAMP_ERROR_DEVICE_IN_USE,
-    XAMP_ERROR_DEVICE_NOT_FOUND,
-    XAMP_ERROR_FILE_NOT_FOUND,
-    XAMP_ERROR_NOT_SUPPORT_SAMPLERATE,
-    XAMP_ERROR_NOT_SUPPORT_FORMAT,
-    XAMP_ERROR_LOAD_DLL_FAILURE,
-    XAMP_ERROR_STOP_STREAM_TIMEOUT,
-	XAMP_ERROR_SAMPLERATE_CHANGED,
-    XAMP_ERROR_NOT_SUPPORT_VARIABLE_RESAMPLE,
-    XAMP_ERROR_NOT_FOUND_DLL_EXPORT_FUNC,
-    _MAX_XAMP_ERROR_,
-};
-
-XAMP_BASE_API std::ostream& operator<<(std::ostream& ostr, Errors error);
+MAKE_ENUM(Errors,
+          XAMP_ERROR_SUCCESS = 0,
+          XAMP_ERROR_PLATFORM_SPEC_ERROR,
+          XAMP_ERROR_LIBRARY_SPEC_ERROR,
+          XAMP_ERROR_DEVICE_NOT_INITIALIZED,
+          XAMP_ERROR_DEVICE_UNSUPPORTED_FORMAT,
+          XAMP_ERROR_DEVICE_IN_USE,
+          XAMP_ERROR_DEVICE_NOT_FOUND,
+          XAMP_ERROR_FILE_NOT_FOUND,
+          XAMP_ERROR_NOT_SUPPORT_SAMPLERATE,
+          XAMP_ERROR_NOT_SUPPORT_FORMAT,
+          XAMP_ERROR_LOAD_DLL_FAILURE,
+          XAMP_ERROR_STOP_STREAM_TIMEOUT,
+          XAMP_ERROR_SAMPLERATE_CHANGED,
+          XAMP_ERROR_NOT_SUPPORT_VARIABLE_RESAMPLE,
+          XAMP_ERROR_NOT_FOUND_DLL_EXPORT_FUNC,
+          _MAX_XAMP_ERROR_)
 
 class XAMP_BASE_API Exception : public std::exception {
 public:
@@ -41,7 +39,7 @@ public:
 
     ~Exception() override = default;
 
-	static std::string GetPlatformErrorMessage(int32_t err);
+    static std::string GetPlatformErrorMessage(int32_t err);
 
     const char * what() const noexcept override;
 
@@ -51,6 +49,7 @@ public:
 
     virtual const char * GetExpression() const;
 
+    static std::string_view ErrorToString(Errors error);
 private:
     Errors error_;
 

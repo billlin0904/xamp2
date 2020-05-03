@@ -1,5 +1,6 @@
 #include <base/platform_thread.h>
 #include <base/windows_handle.h>
+#include <base/logger.h>
 #include <base/timer.h>
 
 namespace xamp::base {
@@ -22,6 +23,8 @@ void Timer::Start(std::chrono::milliseconds timeout, TimerCallback&& callback) {
 			timer_.Wait();
 			timeout_routine();
 		}
+
+        XAMP_LOG_DEBUG("Timer thread finished!");
 	});
 }
 

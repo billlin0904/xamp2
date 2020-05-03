@@ -36,7 +36,7 @@ public:
 
 	virtual size_t GetDeviceCount() const = 0;
 
-	virtual DeviceInfo GetDeviceInfo(int32_t device) const = 0;
+    virtual DeviceInfo GetDeviceInfo(uint32_t device) const = 0;
 
 	virtual std::vector<DeviceInfo> GetDeviceInfo() const = 0;
 

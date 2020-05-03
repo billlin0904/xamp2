@@ -196,7 +196,7 @@ size_t CoreAudioDeviceType::GetDeviceCount() const {
     return data_size / sizeof(AudioDeviceID);
 }
 
-DeviceInfo CoreAudioDeviceType::GetDeviceInfo(int32_t device) const {
+DeviceInfo CoreAudioDeviceType::GetDeviceInfo(uint32_t device) const {
     return device_list_[device];
 }
 
