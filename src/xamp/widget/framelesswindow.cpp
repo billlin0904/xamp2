@@ -1,6 +1,7 @@
 #include <QApplication>
 #include <QLayout>
 #include <QStyle>
+#include <QFontDatabase>
 #include <QTranslator>
 
 #if defined(Q_OS_WIN)
@@ -36,13 +37,13 @@ FramelessWindow::FramelessWindow(QWidget* parent)
     BOOL is_dwm_enable = false;
     ::DwmIsCompositionEnabled(&is_dwm_enable);
     if (is_dwm_enable) {
-        HWND hwnd = (HWND)winId();
-        MARGINS borderless = { 0 };
-        ::DwmExtendFrameIntoClientArea(hwnd, &borderless);
+        HWND hwnd = (HWND)winId();        
         DWMNCRENDERINGPOLICY ncrp = DWMNCRP_ENABLED;
         ::DwmSetWindowAttribute(hwnd, DWMWA_NCRENDERING_POLICY, &ncrp, sizeof(ncrp));
+        MARGINS borderless = { -1 };
+        ::DwmExtendFrameIntoClientArea(hwnd, &borderless);
     }
-    ThemeManager::instance().enableBlur(this, AppSettings::getValueAsBool(APP_SETTING_ENABLE_BLUR));         
+    ThemeManager::instance().enableBlur(this, AppSettings::getValueAsBool(APP_SETTING_ENABLE_BLUR));
     setupThumbnailToolBar();
     setStyleSheet(Q_UTF8(R"(
         font-family: "UI";
@@ -108,13 +109,31 @@ void FramelessWindow::initialFontDatabase() {
 #ifdef Q_OS_WIN
     fallback_fonts.append(Q_UTF8("Segoe UI"));
     fallback_fonts.append(Q_UTF8("Segoe UI Bold"));
+
+    //const QList<QString> yogothic_fonts{
+    //    Q_UTF8("./Resource/Fonts/GenYoGothic-R.ttc"),
+    //    Q_UTF8("./Resource/Fonts/GenYoGothic-N.ttc"),
+    //    Q_UTF8("./Resource/Fonts/GenYoGothic-M.ttc"),
+    //    Q_UTF8("./Resource/Fonts/GenYoGothic-L.ttc"),
+    //    Q_UTF8("./Resource/Fonts/GenYoGothic-H.ttc"),
+    //    Q_UTF8("./Resource/Fonts/GenYoGothic-EL.ttc"),
+    //    Q_UTF8("./Resource/Fonts/GenYoGothic-B.ttc"),
+    //};
+
+    //for (auto font : yogothic_fonts) {
+    //    int id = QFontDatabase::addApplicationFont(font);
+    //    if (id == -1) {
+    //        continue;
+    //    }
+    //    auto family = QFontDatabase::applicationFontFamilies(id).at(0);
+    //    fallback_fonts.push_back(family);
+    //}
+
     fallback_fonts.append(Q_UTF8("Microsoft Yahei UI"));
     fallback_fonts.append(Q_UTF8("Microsoft Yahei UI Bold"));
     fallback_fonts.append(Q_UTF8("Meiryo UI"));
-    fallback_fonts.append(Q_UTF8("Meiryo UI Bold"));    
-    // NOTE: Some bug in Microsoft JhengHei Bold font!  
-    //fallback_fonts.append(Q_UTF8("Microsoft JhengHei UI"));
-    //fallback_fonts.append(Q_UTF8("Microsoft JhengHei UI Bold"));    
+    fallback_fonts.append(Q_UTF8("Meiryo UI Bold"));  
+  
     fallback_fonts.append(Q_UTF8("Arial"));
 #else
     fallback_fonts.append(Q_UTF8("SF Pro Display"));

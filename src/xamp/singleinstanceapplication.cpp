@@ -5,6 +5,7 @@
 #include <QLocalSocket>
 
 #include <base/logger.h>
+#include <base/exception.h>
 #include <widget/str_utilts.h>
 #include <singleinstanceapplication.h>
 
@@ -53,7 +54,12 @@ bool SingleInstanceApplication::attach(const QStringList &args) {
         return false;
     }
 #if defined(Q_OS_WIN)
-    ::CreateMutexW(nullptr, true, reinterpret_cast<LPCWSTR>(serverName.utf16()));
+    mutex_.reset(::CreateMutexW(nullptr, true, reinterpret_cast<LPCWSTR>(serverName.utf16())));
+    if (!mutex_) {
+        XAMP_LOG_DEBUG("CreateMutexW return failure! {}",
+            xamp::base::GetPlatformErrorMessage(::GetLastError()));
+        return false;
+    }
     if (::GetLastError() == ERROR_ALREADY_EXISTS) {
         return false;
     }

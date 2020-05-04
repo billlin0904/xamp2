@@ -14,6 +14,7 @@
 #include <base/platform_thread.h>
 
 #if ENABLE_ASIO
+#include <output_device/win32/mmcss.h>
 #include <output_device/asiodevicetype.h>
 #endif
 
@@ -87,6 +88,7 @@ DeviceFactory::DeviceFactory() {
     XAMP_REGISTER_DEVICE_TYPE(SharedWasapiDeviceType);
     XAMP_REGISTER_DEVICE_TYPE(ExclusiveWasapiDeviceType);
 #if ENABLE_ASIO
+    Mmcss::LoadAvrtLib();
     XAMP_REGISTER_DEVICE_TYPE(ASIODeviceType);
 #endif
 #else

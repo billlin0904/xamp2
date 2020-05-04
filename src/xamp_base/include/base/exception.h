@@ -33,13 +33,15 @@ MAKE_ENUM(Errors,
           XAMP_ERROR_NOT_FOUND_DLL_EXPORT_FUNC,
           _MAX_XAMP_ERROR_)
 
+XAMP_BASE_API std::string GetPlatformErrorMessage(int32_t err);
+
 class XAMP_BASE_API Exception : public std::exception {
 public:
-    explicit Exception(Errors error = Errors::XAMP_ERROR_SUCCESS, const std::string& message = "", std::string_view what = "");
+    explicit Exception(Errors error = Errors::XAMP_ERROR_SUCCESS,
+        const std::string& message = "",
+        std::string_view what = "");
 
     ~Exception() override = default;
-
-    static std::string GetPlatformErrorMessage(int32_t err);
 
     const char * what() const noexcept override;
 

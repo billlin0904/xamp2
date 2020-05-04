@@ -36,7 +36,12 @@ align_ptr<Device> SharedWasapiDeviceType::MakeDevice(const std::wstring& device_
 }
 
 DeviceInfo SharedWasapiDeviceType::GetDeviceInfo(uint32_t device) const {
-	return device_list_[device];
+	auto itr = device_list_.begin();
+	std::advance(itr, device);
+	if (itr != device_list_.end()) {
+		return (*itr);
+	}
+	throw Exception(Errors::XAMP_ERROR_DEVICE_NOT_FOUND);
 }
 
 const ID& SharedWasapiDeviceType::GetTypeId() const {

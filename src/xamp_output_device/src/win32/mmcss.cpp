@@ -55,7 +55,7 @@ public:
 		auto last_error = ::GetLastError();
 		XAMP_LOG_ERROR("AvSetMmThreadCharacteristicsW return failure! Error:{} {}",
 			last_error,
-			Exception::GetPlatformErrorMessage(last_error));
+			GetPlatformErrorMessage(last_error));
 	}
 
 	void RevertPriority() {
@@ -67,7 +67,7 @@ public:
 			auto last_error = ::GetLastError();
 			XAMP_LOG_ERROR("AvSetMmThreadCharacteristicsW return failure! Error:{} {}",
 				last_error,
-				Exception::GetPlatformErrorMessage(last_error));
+				GetPlatformErrorMessage(last_error));
 		}
 
 		avrt_handle_ = nullptr;

@@ -9,7 +9,11 @@
 #include <QDebug>
 #include <QLocalSocket>
 #include <QLocalServer>
-#include <QtWidgets/QApplication>
+#include <QApplication>
+
+#ifdef Q_OS_WIN
+#include <base/windows_handle.h>
+#endif
 
 class SingleInstanceApplication : public QObject {
 	Q_OBJECT
@@ -31,4 +35,7 @@ private:
 
 	QLocalSocket* socket_;
 	QLocalServer server_;
+#ifdef Q_OS_WIN
+	xamp::base::WinHandle mutex_;
+#endif
 };

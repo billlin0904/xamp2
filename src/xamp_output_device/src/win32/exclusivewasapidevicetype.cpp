@@ -60,7 +60,12 @@ size_t ExclusiveWasapiDeviceType::GetDeviceCount() const {
 }
 
 DeviceInfo ExclusiveWasapiDeviceType::GetDeviceInfo(uint32_t device) const {
-	return device_list_.at(device);
+	auto itr = device_list_.begin();
+	std::advance(itr, device);
+	if (itr != device_list_.end()) {
+		return (*itr);
+	}
+	throw Exception(Errors::XAMP_ERROR_DEVICE_NOT_FOUND);
 }
 
 std::vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfoList() const {

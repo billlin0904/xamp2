@@ -24,7 +24,7 @@
 namespace xamp::player {
 
 constexpr int32_t BUFFER_STREAM_COUNT = 5;
-constexpr int32_t PREALLOCATE_BUFFER_SIZE = 4 * 1024 * 1024;
+constexpr int32_t PREALLOCATE_BUFFER_SIZE = 8 * 1024 * 1024;
 constexpr int32_t MAX_WRITE_RATIO = 20;
 constexpr int32_t MAX_READ_RATIO = 30;
 constexpr std::chrono::milliseconds UPDATE_SAMPLE_INTERVAL(100);
@@ -70,10 +70,11 @@ void AudioPlayer::Destory() {
 }
 
 void AudioPlayer::LoadLib() {
+    ThreadPool::DefaultThreadPool();
     BassFileStream::LoadBassLib();
     SoxrResampler::LoadSoxrLib();
-    Chromaprint::LoadChromaprintLib();
-    ThreadPool::DefaultThreadPool();
+    DeviceFactory::Instance();
+    //Chromaprint::LoadChromaprintLib();    
 }
 
 void AudioPlayer::Open(const std::wstring& file_path, const std::wstring& file_ext, const DeviceInfo& device_info) {

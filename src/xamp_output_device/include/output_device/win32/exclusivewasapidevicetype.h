@@ -31,7 +31,7 @@ public:
 
 	size_t GetDeviceCount() const override;
 
-	DeviceInfo GetDeviceInfo(int32_t device) const override;
+	DeviceInfo GetDeviceInfo(uint32_t device) const override;
 
 	std::optional<DeviceInfo> GetDefaultDeviceInfo() const override;
 

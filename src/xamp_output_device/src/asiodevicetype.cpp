@@ -32,7 +32,7 @@ size_t ASIODeviceType::GetDeviceCount() const {
 	return device_list_.size();
 }
 
-DeviceInfo ASIODeviceType::GetDeviceInfo(int32_t device) const {
+DeviceInfo ASIODeviceType::GetDeviceInfo(uint32_t device) const {
 	auto itr = device_list_.begin();
 	std::advance(itr, device);
 	if (itr != device_list_.end()) {

@@ -7,6 +7,10 @@
 
 namespace xamp::base {
 
+std::string GetPlatformErrorMessage(int32_t err) {
+    return std::system_category().message(err);
+}
+
 Exception::Exception(Errors error, const std::string& message, std::string_view what)
 	: error_(error)
     , what_(what)
@@ -16,10 +20,6 @@ Exception::Exception(Errors error, const std::string& message, std::string_view 
         ostr << error << "(" << ErrorToString(error) << ")";
 		message_ = ostr.str();
 	}
-}
-
-std::string Exception::GetPlatformErrorMessage(int32_t err) {
-	return std::system_category().message(err);
 }
 
 const char* Exception::what() const noexcept {

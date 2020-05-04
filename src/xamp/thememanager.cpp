@@ -129,9 +129,6 @@ QColor ThemeManager::getBackgroundColor() noexcept {
 
 void ThemeManager::enableBlur(const QWidget* widget, bool enable) {
 #if defined(Q_OS_WIN)
-    HWND hwnd = (HWND)widget->winId();
-    MARGINS borderless = { 1, 1, 1, 1 };
-    ::DwmExtendFrameIntoClientArea(hwnd, &borderless);
     FluentStyle::setBlurMaterial(widget, enable);
     AppSettings::setValue(APP_SETTING_ENABLE_BLUR, enable);
 #else

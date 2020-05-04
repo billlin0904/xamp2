@@ -454,8 +454,6 @@ void AsioDevice::OpenStream(const AudioFormat& output_format) {
 	callbackInfo.boost_priority = true;
 	callbackInfo.data_context.cache_volume = 0;
 	callbackInfo.device = this;
-
-	Mmcss::LoadAvrtLib();
 }
 
 void AsioDevice::SetOutputSampleRate(const AudioFormat& output_format) {

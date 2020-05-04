@@ -89,9 +89,6 @@ static int excute(int argc, char* argv[]) {
             preload_modules.emplace_back(LoadModule(name));
         }
         AudioPlayer::LoadLib();
-#ifdef Q_OS_WIN
-        VmMemLock::EnableLockMemPrivilege(true);
-#endif
     }
     catch (const Exception& e) {
         QMessageBox::critical(nullptr,
@@ -101,6 +98,11 @@ static int excute(int argc, char* argv[]) {
     }
 
     XAMP_LOG_DEBUG("Preload dll success.");
+
+#ifdef Q_OS_WIN
+    VmMemLock::EnableLockMemPrivilege(true);
+    XAMP_LOG_DEBUG("EnableLockMemPrivilege success.");
+#endif
 
     SingleInstanceApplication singleApp;
     if (!singleApp.attach(QCoreApplication::arguments())) {
@@ -143,6 +145,7 @@ static int excute(int argc, char* argv[]) {
     }
 
     DeviceFactory::PreventSleep(AppSettings::getValueAsBool(APP_SETTING_PREVENT_SLEEP));
+    XAMP_LOG_DEBUG("PreventSleep success.");
 
     Xamp win;
     win.show();
