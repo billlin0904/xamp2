@@ -1,3 +1,4 @@
+// ReSharper disable All
 #include <vector>
 
 #include <chromaprint.h>

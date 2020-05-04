@@ -28,7 +28,7 @@ public:
     [[nodiscard]] bool IsSupported(const Path & path) const override;
 private:
     class TaglibMetadataReaderImpl;
-	align_ptr<TaglibMetadataReaderImpl> reader_;
+	AlignPtr<TaglibMetadataReaderImpl> reader_;
 };
 
 }

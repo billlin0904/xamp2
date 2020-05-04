@@ -26,20 +26,20 @@ public:
 
 	void Close() override;
 
-	double GetDuration() const override;
+	[[nodiscard]] double GetDuration() const override;
 
-	AudioFormat GetFormat() const noexcept override;
+	[[nodiscard]] AudioFormat GetFormat() const noexcept override;
 
     uint32_t GetSamples(void* buffer, uint32_t length) const noexcept override;
 
 	void Seek(double stream_time) const override;
 
-	std::string_view GetDescription() const noexcept override;
+	[[nodiscard]] std::string_view GetDescription() const noexcept override;
 
-    uint32_t GetSampleSize() const noexcept override;
+	[[nodiscard]] uint32_t GetSampleSize() const noexcept override;
 private:
 	class AvFileStreamImpl;
-    align_ptr<AvFileStreamImpl> impl_;
+    AlignPtr<AvFileStreamImpl> impl_;
 };
 
 #endif

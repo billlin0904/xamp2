@@ -94,11 +94,11 @@
 #endif
 
 // Avoid cache-pollution padding size
-constexpr size_t XAMP_CACHE_ALIGN_SIZE{ 64 };
+constexpr size_t kXampCacheAlignSize{ 64 };
 
 // Memory allocate aligned size
 // Assume we need 32-byte alignment for AVX instructions.
-constexpr size_t XAMP_MALLOC_ALGIGN_SIZE{ 32 };
+constexpr size_t kXampMallocAlignSize{ 32 };
 
 #define XAMP_ENFORCE_TRIVIAL(t) \
 static_assert(std::is_standard_layout_v<t>);\

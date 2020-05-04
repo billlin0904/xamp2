@@ -25,6 +25,9 @@
 
 namespace xamp::base {
 
+constexpr auto kInitL1CacheLineSize = 4 * 1024;
+constexpr auto kMaxL1CacheLineSize = 64 * 1024;
+
 template <typename Type>
 class BoundedQueue final {
 public:
@@ -99,7 +102,7 @@ public:
         return true;
     }
 
-    void Destory() {
+    void Destroy() {
         {
             std::unique_lock<std::mutex> guard{ mutex_ };
             done_ = true;
@@ -157,7 +160,7 @@ public:
         is_stopped_ = true;
 
         for (size_t i = 0; i < max_thread_; ++i) {
-            task_queues_[i]->Destory();
+            task_queues_[i]->Destroy();
 
             if (threads_[i].joinable()) {
                 threads_[i].join();
@@ -172,13 +175,11 @@ public:
 private:
     void AddThread(size_t i) {
         threads_.push_back(std::thread([i, this]() mutable {
-            constexpr auto INIT_L1_CACHE_LINE_SIZE = 4 * 1024;
-            constexpr auto MAX_L1_CACHE_LINE_SIZE = 64 * 1024;
 #ifdef XAMP_OS_MAC
             (void)alloca((std::min)(INIT_L1_CACHE_LINE_SIZE, MAX_L1_CACHE_LINE_SIZE));
             std::this_thread::sleep_for(std::chrono::milliseconds(900));
 #else
-            (void)_alloca((std::min)(INIT_L1_CACHE_LINE_SIZE, MAX_L1_CACHE_LINE_SIZE));
+            (void)_alloca((std::min)(kInitL1CacheLineSize, kMaxL1CacheLineSize));
 #endif
             SetCurrentThreadName(i);
 
@@ -220,7 +221,7 @@ private:
         SetThreadAffinity(threads_[i]);
     }
 
-    using TaskQueuePtr = align_ptr<Queue<TaskType>>;   
+    using TaskQueuePtr = AlignPtr<Queue<TaskType>>;   
     static constexpr size_t K = 3;
 	std::atomic<bool> is_stopped_;
     std::atomic<size_t> active_thread_;

@@ -29,7 +29,7 @@ public:
 
 private:
 	class MemoryMappedFileImpl;
-	align_ptr<MemoryMappedFileImpl> impl_;
+	AlignPtr<MemoryMappedFileImpl> impl_;
 };
 
 }

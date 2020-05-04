@@ -33,7 +33,7 @@ public:
 	std::vector<uint8_t> GetFingerprint() const;
 private:
 	class ChromaprintImpl;
-    align_ptr<ChromaprintImpl> impl_;
+    AlignPtr<ChromaprintImpl> impl_;
 };
 
 }

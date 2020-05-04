@@ -34,7 +34,7 @@ public:
 	void WriteEmbeddedCover(const Path& path, const std::vector<uint8_t> &image) const;
 private:
     class TaglibMetadataWriterImpl;
-	align_ptr<TaglibMetadataWriterImpl> writer_;
+	AlignPtr<TaglibMetadataWriterImpl> writer_;
 };
 
 }

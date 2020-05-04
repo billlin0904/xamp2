@@ -110,7 +110,7 @@ void DeviceFactory::Clear() {
     creator_.clear();
 }
 
-std::optional<align_ptr<DeviceType>> DeviceFactory::CreateDefaultDevice() const {
+std::optional<AlignPtr<DeviceType>> DeviceFactory::CreateDefaultDevice() const {
     auto itr = creator_.begin();
     if (itr == creator_.end()) {
         return std::nullopt;
@@ -118,7 +118,7 @@ std::optional<align_ptr<DeviceType>> DeviceFactory::CreateDefaultDevice() const 
     return (*itr).second();
 }
 
-std::optional<align_ptr<DeviceType>> DeviceFactory::Create(const ID id) const {
+std::optional<AlignPtr<DeviceType>> DeviceFactory::Create(const ID id) const {
     auto itr = creator_.find(id);
     if (itr == creator_.end()) {
         return std::nullopt;

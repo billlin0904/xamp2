@@ -53,10 +53,10 @@ private:
 
     uint32_t GetAvailableRead(uint32_t head, uint32_t tail) const noexcept;
     
-	XAMP_CACHE_ALIGNED(XAMP_CACHE_ALIGN_SIZE) std::atomic<size_t> head_;
-	XAMP_CACHE_ALIGNED(XAMP_CACHE_ALIGN_SIZE) std::atomic<size_t> tail_;
+	XAMP_CACHE_ALIGNED(kXampCacheAlignSize) std::atomic<size_t> head_;
+	XAMP_CACHE_ALIGNED(kXampCacheAlignSize) std::atomic<size_t> tail_;
 	size_t size_;
-    align_buffer_ptr<Type> buffer_;
+    AlignBufferPtr<Type> buffer_;
 	VmMemLock lock_;
 };
 

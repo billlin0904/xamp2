@@ -42,9 +42,9 @@ public:
 
     AudioPlayer();
 
-    explicit AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter);
-
     ~AudioPlayer() override;
+
+    explicit AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter);
 
     static void LoadLib();
 
@@ -60,7 +60,7 @@ public:
 
     void Stop(bool signal_to_stop = true, bool shutdown_device = false, bool wait_for_stop_stream = true);
 
-    void Destory();
+    void Destroy();
 
     void Seek(double stream_time);
 
@@ -76,7 +76,7 @@ public:
 
     bool IsPlaying() const;
 
-    DsdModes GetDSDModes() const noexcept;
+    DsdModes GetDsdModes() const noexcept;
 
     std::optional<uint32_t> GetDSDSpeed() const;
 
@@ -92,11 +92,11 @@ public:
 
     bool IsDsdStream() const;
 
-    void SetResampler(uint32_t samplerate, align_ptr<Resampler> &&resampler);
+    void SetResampler(uint32_t samplerate, AlignPtr<Resampler> &&resampler);
 
     void EnableResampler(bool enable = true);
 
-    static align_ptr<FileStream> MakeFileStream(const std::wstring& file_ext);
+    static AlignPtr<FileStream> MakeFileStream(const std::wstring& file_ext);
 private:
     void Initial();
 
@@ -130,7 +130,7 @@ private:
 
     DsdDevice* AsDsdDevice();
 
-    struct XAMP_CACHE_ALIGNED(XAMP_MALLOC_ALGIGN_SIZE) AudioSlice {
+    struct XAMP_CACHE_ALIGNED(kXampMallocAlignSize) AudioSlice {
         AudioSlice(int32_t sample_size = 0, double stream_time = 0.0) noexcept
             : sample_size(sample_size)
             , stream_time(stream_time) {
@@ -161,15 +161,15 @@ private:
     std::condition_variable stopped_cond_;
     AudioFormat input_format_;
     AudioFormat output_format_;
-    align_buffer_ptr<int8_t> sample_buffer_;
+    AlignBufferPtr<int8_t> sample_buffer_;
     Timer timer_;
-    align_ptr<FileStream> stream_;
-    align_ptr<DeviceType> device_type_;
-    align_ptr<Device> device_;
+    AlignPtr<FileStream> stream_;
+    AlignPtr<DeviceType> device_type_;
+    AlignPtr<Device> device_;
     std::weak_ptr<PlaybackStateAdapter> state_adapter_;
     AudioBuffer<int8_t> buffer_;
     WaitableTimer wait_timer_;
-    align_ptr<Resampler> resampler_;
+    AlignPtr<Resampler> resampler_;
     DeviceInfo device_info_;
     std::future<void> stream_task_;
 };

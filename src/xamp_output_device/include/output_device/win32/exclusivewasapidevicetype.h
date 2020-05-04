@@ -37,7 +37,7 @@ public:
 
 	std::vector<DeviceInfo> GetDeviceInfo() const override;
 
-	align_ptr<Device> MakeDevice(const std::wstring& device_id) override;
+	AlignPtr<Device> MakeDevice(const std::wstring& device_id) override;
 
 private:
 	void Initial();

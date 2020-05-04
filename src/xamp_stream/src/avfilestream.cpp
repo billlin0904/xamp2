@@ -1,7 +1,6 @@
 #include <stream/avfilestream.h>
 
 #if ENABLE_FFMPEG
-#define ENABLE_IO_CONTEXT 0
 
 #ifdef XAMP_OS_WIN
 #pragma comment(lib, "crypt32")
@@ -269,17 +268,17 @@ public:
 		return num_read_sample;
 	}
 
-	AudioFormat GetFormat() const noexcept {
+	[[nodiscard]] AudioFormat GetFormat() const noexcept {
 		assert(codec_contex_ != nullptr);
 		return audio_format_;
 	}
 
-	double GetDuration() const noexcept {
+	[[nodiscard]] double GetDuration() const noexcept {
 		assert(codec_contex_ != nullptr);
 		return duration_;
 	}
 
-    uint32_t GetSampleSize() const noexcept {
+	[[nodiscard]] uint32_t GetSampleSize() const noexcept {
 		return sizeof(float);
 	}
 
@@ -299,7 +298,7 @@ public:
 	}
 
 private:
-	bool HasAudio() const noexcept {
+	[[nodiscard]] bool HasAudio() const noexcept {
 		return audio_stream_id_ >= 0;
 	}
 

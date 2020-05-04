@@ -88,7 +88,7 @@ DeviceInfo ASIODeviceType::GetDeviceInfo(const std::wstring& device_id) const {
 	return info;
 }
 
-align_ptr<Device> ASIODeviceType::MakeDevice(const std::wstring& device_id) {
+AlignPtr<Device> ASIODeviceType::MakeDevice(const std::wstring& device_id) {
 	const auto id = ToUtf8String(device_id);
 	return MakeAlign<Device, AsioDevice>(id);
 }

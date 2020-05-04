@@ -26,7 +26,7 @@ struct AsioCallbackInfo {
 	bool boost_priority{false};
 	bool is_xrun{ false };
 	AsioDevice* device{ nullptr };
-	align_ptr<AsioDrivers> drivers{};
+	AlignPtr<AsioDrivers> drivers{};
 	AudioConvertContext data_context{};
 	ASIOCallbacks asio_callbacks{};	
 	Mmcss mmcss;

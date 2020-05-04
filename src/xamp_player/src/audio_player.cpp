@@ -51,10 +51,9 @@ AudioPlayer::AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter)
     buffer_.Resize(PREALLOCATE_BUFFER_SIZE);
 }
 
-AudioPlayer::~AudioPlayer() {
-}
+AudioPlayer::~AudioPlayer() = default;
 
-void AudioPlayer::Destory() {
+void AudioPlayer::Destroy() {
     timer_.Stop();
     try {
         CloseDevice(true);
@@ -82,7 +81,7 @@ void AudioPlayer::Open(const std::wstring& file_path, const std::wstring& file_e
     device_info_ = device_info;
 }
 
-void AudioPlayer::SetResampler(uint32_t samplerate, align_ptr<Resampler>&& resampler) {
+void AudioPlayer::SetResampler(uint32_t samplerate, AlignPtr<Resampler>&& resampler) {
     target_samplerate_ = samplerate;
     resampler_ = std::move(resampler);
     EnableResampler(true);
@@ -122,7 +121,7 @@ DsdDevice* AudioPlayer::AsDsdDevice() {
     return dynamic_cast<DsdDevice*>(device_.get());
 }
 
-align_ptr<FileStream> AudioPlayer::MakeFileStream(const std::wstring& file_ext) {
+AlignPtr<FileStream> AudioPlayer::MakeFileStream(const std::wstring& file_ext) {
     const RobinHoodSet<std::wstring_view> dsd_ext {
         {L".dsf"},
         {L".dff"}
@@ -144,7 +143,7 @@ align_ptr<FileStream> AudioPlayer::MakeFileStream(const std::wstring& file_ext) 
 void AudioPlayer::OpenStream(const std::wstring& file_path, const std::wstring &file_ext, const DeviceInfo& device_info) {
     stream_ = MakeFileStream(file_ext);
 
-    if (auto dsd_stream = AsDsdStream()) {
+    if (auto* dsd_stream = AsDsdStream()) {
         if (DeviceFactory::Instance().IsPlatformSupportedASIO()) {
             if (device_info.is_support_dsd) {
                 dsd_stream->SetDSDMode(DsdModes::DSD_MODE_NATIVE);
@@ -332,7 +331,7 @@ std::optional<uint32_t> AudioPlayer::GetDSDSpeed() const {
         return std::nullopt;
     }
 
-    if (auto dsd_stream = dynamic_cast<DsdStream*>(stream_.get())) {
+    if (const auto dsd_stream = dynamic_cast<DsdStream*>(stream_.get())) {
         if (dsd_stream->IsDsdFile()) {
             return dsd_stream->GetDsdSpeed();
         }        
@@ -370,7 +369,7 @@ bool AudioPlayer::IsPlaying() const {
     return is_playing_;
 }
 
-DsdModes AudioPlayer::GetDSDModes() const noexcept {
+DsdModes AudioPlayer::GetDsdModes() const noexcept {
     return dsd_mode_;
 }
 
@@ -418,7 +417,7 @@ void AudioPlayer::CreateBuffer() {
     }
 
     if (require_read_sample != num_read_sample_) {
-        auto allocate_size = require_read_sample * stream_->GetSampleSize() * BUFFER_STREAM_COUNT;
+	    const auto allocate_size = require_read_sample * stream_->GetSampleSize() * BUFFER_STREAM_COUNT;
         num_buffer_samples_ = allocate_size * 10;
         num_read_sample_ = require_read_sample;
         XAMP_LOG_DEBUG("Allocate interal buffer : {}", FormatBytes(allocate_size));
@@ -483,10 +482,10 @@ void AudioPlayer::OnVolumeChange(float vol) noexcept {
 }
 
 int32_t AudioPlayer::OnGetSamples(void* samples, const uint32_t num_buffer_frames, const double stream_time) noexcept {
-    const uint32_t num_samples = num_buffer_frames * output_format_.GetChannels();
-    const uint32_t sample_size = num_samples * sample_size_;
+    const auto num_samples = num_buffer_frames * output_format_.GetChannels();
+    const auto sample_size = num_samples * sample_size_;
 
-    if (XAMP_LIKELY( buffer_.TryRead(reinterpret_cast<int8_t*>(samples), sample_size) )) {
+    if (XAMP_LIKELY( buffer_.TryRead(static_cast<int8_t*>(samples), sample_size) )) {
         std::atomic_exchange(&slice_,
                              AudioSlice{ static_cast<int32_t>(num_samples), stream_time });
         return 0;
@@ -527,7 +526,7 @@ void AudioPlayer::OnDeviceStateChange(DeviceState state, const std::wstring& dev
 void AudioPlayer::OpenDevice(double stream_time) {
 #ifdef ENABLE_ASIO
     if (auto dsd_output = AsDsdDevice()) {
-        if (auto dsd_stream = AsDsdStream()) {
+        if (const auto dsd_stream = AsDsdStream()) {
             if (dsd_stream->GetDsdMode() == DsdModes::DSD_MODE_NATIVE) {
                 dsd_output->SetIoFormat(AsioIoFormat::IO_FORMAT_DSD);
                 dsd_mode_ = DsdModes::DSD_MODE_NATIVE;
@@ -571,7 +570,7 @@ void AudioPlayer::Seek(double stream_time) {
 void AudioPlayer::BufferStream() {
     buffer_.Clear();
 
-    auto sample_buffer = sample_buffer_.get();
+    auto* const sample_buffer = sample_buffer_.get();
     sample_size_ = stream_->GetSampleSize();
 
     if (enable_resample_) {
@@ -580,7 +579,7 @@ void AudioPlayer::BufferStream() {
 
     for (auto i = 0; i < BUFFER_STREAM_COUNT; ++i) {
         while (true) {
-            auto num_samples = stream_->GetSamples(sample_buffer, num_read_sample_);
+	        const auto num_samples = stream_->GetSamples(sample_buffer, num_read_sample_);
             if (num_samples == 0) {
                 return;
             }
@@ -593,14 +592,13 @@ void AudioPlayer::BufferStream() {
 }
 
 void AudioPlayer::ReadSampleLoop(uint32_t max_read_sample, std::unique_lock<std::mutex>& lock) {
-    auto resampler = resampler_.get();
-    auto sample_buffer = sample_buffer_.get();
+    const auto sample_buffer = sample_buffer_.get();
 
     while (is_playing_) {
-        auto num_samples = stream_->GetSamples(sample_buffer, max_read_sample);
+	    const auto num_samples = stream_->GetSamples(sample_buffer, max_read_sample);
 
         if (num_samples > 0) {
-            if (!resampler->Process(reinterpret_cast<const float*>(sample_buffer_.get()), num_samples, buffer_)) {
+            if (!resampler_->Process(reinterpret_cast<const float*>(sample_buffer_.get()), num_samples, buffer_)) {
                 continue;
             }
             break;
@@ -623,11 +621,11 @@ void AudioPlayer::StartPlay() {
     Play();
 
     stream_task_ = ThreadPool::DefaultThreadPool().StartNew([player = shared_from_this()]() noexcept {
-        auto p = player.get();
+	    auto* p = player.get();
         std::unique_lock<std::mutex> lock{ p->pause_mutex_ };
 
-        auto max_read_sample = p->num_read_sample_;
-        auto num_sample_write = max_read_sample * MAX_WRITE_RATIO;
+        const auto max_read_sample = p->num_read_sample_;
+	    const auto num_sample_write = max_read_sample * MAX_WRITE_RATIO;
 
         while (p->is_playing_) {
             while (p->is_paused_) {

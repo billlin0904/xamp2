@@ -38,9 +38,9 @@ public:
 
     void Clear();
 
-    std::optional<align_ptr<DeviceType>> CreateDefaultDevice() const;
+    std::optional<AlignPtr<DeviceType>> CreateDefaultDevice() const;
 
-    std::optional<align_ptr<DeviceType>> Create(const ID id) const;
+    std::optional<AlignPtr<DeviceType>> Create(const ID id) const;
 
     template <typename Function>
     void ForEach(Function &&fun) {
@@ -73,8 +73,8 @@ private:
         creator_[id] = std::forward<Function>(fun);
     }
 
-    align_ptr<DeviceStateNotificationImpl> impl_;
-    RobinHoodHashMap<ID, std::function<align_ptr<DeviceType>()>> creator_;
+    AlignPtr<DeviceStateNotificationImpl> impl_;
+    RobinHoodHashMap<ID, std::function<AlignPtr<DeviceType>()>> creator_;
 };
 
 }

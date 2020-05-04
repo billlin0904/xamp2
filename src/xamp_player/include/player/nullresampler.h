@@ -18,7 +18,7 @@ public:
 
     bool Process(const float* sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer) override;
 
-    std::string_view GetDescription() const noexcept override;
+    [[nodiscard]] std::string_view GetDescription() const noexcept override;
 
     void Flush() override;
 private:
