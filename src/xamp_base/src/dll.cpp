@@ -3,7 +3,6 @@
 namespace xamp::base {
 
 #ifdef XAMP_OS_WIN
-
 ModuleHandle LoadModule(std::string_view file_name) {
 	auto module = ::LoadLibraryA(file_name.data());
 	if (!module) {

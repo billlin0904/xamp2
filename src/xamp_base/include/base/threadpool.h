@@ -176,7 +176,7 @@ private:
     void AddThread(size_t i) {
         threads_.push_back(std::thread([i, this]() mutable {
 #ifdef XAMP_OS_MAC
-            (void)alloca((std::min)(INIT_L1_CACHE_LINE_SIZE, MAX_L1_CACHE_LINE_SIZE));
+            (void)alloca((std::min)(kInitL1CacheLineSize, kMaxL1CacheLineSize));
             std::this_thread::sleep_for(std::chrono::milliseconds(900));
 #else
             (void)_alloca((std::min)(kInitL1CacheLineSize, kMaxL1CacheLineSize));

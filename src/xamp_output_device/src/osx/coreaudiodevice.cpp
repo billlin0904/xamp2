@@ -290,7 +290,9 @@ void CoreAudioDevice::AudioDeviceIOProc(AudioBufferList *output_data) {
 
     for (uint32_t i = 0; i < buffer_count; ++i) {
         const auto buffer = output_data->mBuffers[i];
-        const uint32_t num_sample = static_cast<uint32_t>(buffer.mDataByteSize / sizeof(float) / format_.GetChannels());
+        const uint32_t num_sample = static_cast<uint32_t>(buffer.mDataByteSize
+                                                          / sizeof(float)
+                                                          / format_.GetChannels());
         stream_time_ = stream_time_ + static_cast<double>(num_sample * 2);
         if (XAMP_UNLIKELY(callback_->OnGetSamples(static_cast<float*>(buffer.mData),
                                                   num_sample,

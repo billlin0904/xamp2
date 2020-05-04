@@ -2,6 +2,7 @@
 #ifdef XAMP_OS_WIN
 #include <base/windows_handle.h>
 #else
+#include <sys/mman.h>
 #endif
 #include <base/exception.h>
 #include <base/vmmemlock.h>

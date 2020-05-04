@@ -4,6 +4,11 @@
 #include <base/bom.h>
 #include <base/str_utilts.h>
 
+#ifdef XAMP_OS_MAC
+#include <codecvt>
+#endif
+
+
 #include "lrcparser.h"
 
 using namespace xamp::base;

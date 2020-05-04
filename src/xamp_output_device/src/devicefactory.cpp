@@ -72,7 +72,7 @@ public:
 #ifdef XAMP_OS_WIN
     CComPtr<win32::Win32DeviceStateNotification> notification;
 #else
-    align_ptr<osx::CoreAudioDeviceStateNotification> notification;
+    AlignPtr<osx::CoreAudioDeviceStateNotification> notification;
 #endif
 };
 

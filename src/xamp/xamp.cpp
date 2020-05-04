@@ -118,7 +118,7 @@ void Xamp::closeEvent(QCloseEvent*) {
     AppSettings::setValue(kAppSettingVolume, ui.volumeSlider->value());
 
     if (player_ != nullptr) {
-        player_->Destory();
+        player_->Destroy();
         player_.reset();
     }
 }

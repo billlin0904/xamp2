@@ -21,13 +21,13 @@
 
 namespace xamp::player {
 
-constexpr int32_t BUFFER_STREAM_COUNT = 5;
-constexpr int32_t PREALLOCATE_BUFFER_SIZE = 8 * 1024 * 1024;
-constexpr int32_t MAX_WRITE_RATIO = 20;
-constexpr int32_t MAX_READ_RATIO = 30;
-constexpr std::chrono::milliseconds UPDATE_SAMPLE_INTERVAL(100);
-constexpr std::chrono::seconds WAIT_FOR_STRAEM_STOP_TIME(10);
-constexpr std::chrono::milliseconds READ_SAMPLE_WAIT_TIME(100);
+constexpr int32_t kBufferStreamCount = 5;
+constexpr int32_t kPreallocateBufferSize = 8 * 1024 * 1024;
+constexpr int32_t kMaxWriteRatio = 20;
+constexpr int32_t kMaxReadRatio = 30;
+constexpr std::chrono::milliseconds kUpdateSampleInterval(100);
+constexpr std::chrono::seconds kWaitForStreamStopTime(10);
+constexpr std::chrono::milliseconds kReadSampleWaitTime(100);
 
 AudioPlayer::AudioPlayer()
     : AudioPlayer(std::weak_ptr<PlaybackStateAdapter>()) {
@@ -47,8 +47,8 @@ AudioPlayer::AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter)
     , is_playing_(false)
     , is_paused_(false)
     , state_adapter_(adapter) {
-    wait_timer_.SetTimeout(READ_SAMPLE_WAIT_TIME);
-    buffer_.Resize(PREALLOCATE_BUFFER_SIZE);
+    wait_timer_.SetTimeout(kReadSampleWaitTime);
+    buffer_.Resize(kPreallocateBufferSize);
 }
 
 AudioPlayer::~AudioPlayer() = default;
@@ -71,7 +71,7 @@ void AudioPlayer::LoadLib() {
     BassFileStream::LoadBassLib();
     SoxrResampler::LoadSoxrLib();
     DeviceFactory::Instance();
-    //Chromaprint::LoadChromaprintLib();    
+    Chromaprint::LoadChromaprintLib();
 }
 
 void AudioPlayer::Open(const std::wstring& file_path, const std::wstring& file_ext, const DeviceInfo& device_info) {
@@ -297,7 +297,7 @@ void AudioPlayer::SetMute(bool mute) {
 void AudioPlayer::Initial() {
     if (!timer_.IsStarted()) {
         std::weak_ptr<AudioPlayer> player = shared_from_this();
-        timer_.Start(UPDATE_SAMPLE_INTERVAL, [player]() {
+        timer_.Start(kUpdateSampleInterval, [player]() {
             auto p = player.lock();
             if (p == nullptr) {
                 return;
@@ -390,7 +390,7 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
     }
     if (stream_task_.valid()) {
         XAMP_LOG_DEBUG("Try to stop stream thread!");
-        if (stream_task_.wait_for(WAIT_FOR_STRAEM_STOP_TIME) == std::future_status::timeout) {
+        if (stream_task_.wait_for(kWaitForStreamStopTime) == std::future_status::timeout) {
             throw StopStreamTimeoutException();
         }
         XAMP_LOG_DEBUG("Stream thread was finished!");
@@ -409,15 +409,15 @@ void AudioPlayer::CreateBuffer() {
             require_read_sample = XAMP_MAX_SAMPLERATE;
         }
         else {
-            require_read_sample = device_->GetBufferSize() * MAX_READ_RATIO;
+            require_read_sample = device_->GetBufferSize() * kMaxReadRatio;
         }
     }
     else {
-        require_read_sample = device_->GetBufferSize() * MAX_READ_RATIO;
+        require_read_sample = device_->GetBufferSize() * kMaxReadRatio;
     }
 
     if (require_read_sample != num_read_sample_) {
-	    const auto allocate_size = require_read_sample * stream_->GetSampleSize() * BUFFER_STREAM_COUNT;
+        const auto allocate_size = require_read_sample * stream_->GetSampleSize() * kBufferStreamCount;
         num_buffer_samples_ = allocate_size * 10;
         num_read_sample_ = require_read_sample;
         XAMP_LOG_DEBUG("Allocate interal buffer : {}", FormatBytes(allocate_size));
@@ -577,7 +577,7 @@ void AudioPlayer::BufferStream() {
         resampler_->Flush();
     }
 
-    for (auto i = 0; i < BUFFER_STREAM_COUNT; ++i) {
+    for (auto i = 0; i < kBufferStreamCount; ++i) {
         while (true) {
 	        const auto num_samples = stream_->GetSamples(sample_buffer, num_read_sample_);
             if (num_samples == 0) {
@@ -625,7 +625,7 @@ void AudioPlayer::StartPlay() {
         std::unique_lock<std::mutex> lock{ p->pause_mutex_ };
 
         const auto max_read_sample = p->num_read_sample_;
-	    const auto num_sample_write = max_read_sample * MAX_WRITE_RATIO;
+        const auto num_sample_write = max_read_sample * kMaxWriteRatio;
 
         while (p->is_playing_) {
             while (p->is_paused_) {
