@@ -6,7 +6,6 @@
 #pragma once
 
 #include <base/stl.h>
-#include <base/memory.h>
 #include <base/align_ptr.h>
 
 #include <metadata/metadata.h>
@@ -24,9 +23,9 @@ public:
 
     const std::vector<uint8_t>& ExtractEmbeddedCover(const Path &path) override;
 
-    const RobinHoodSet<std::string> & GetSupportFileExtensions() const override;
+    [[nodiscard]] const RobinHoodSet<std::string> & GetSupportFileExtensions() const override;
 
-    bool IsSupported(const Path & path) const override;
+    [[nodiscard]] bool IsSupported(const Path & path) const override;
 private:
     class TaglibMetadataReaderImpl;
 	align_ptr<TaglibMetadataReaderImpl> reader_;

@@ -18,7 +18,7 @@ public:
 
     virtual void OnWalkNext() = 0;
 
-    virtual bool IsCancel() const = 0;
+    [[nodiscard]] virtual bool IsCancel() const = 0;
 
     virtual void Cancel() = 0;
 

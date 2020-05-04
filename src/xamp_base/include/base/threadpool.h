@@ -124,8 +124,8 @@ class TaskScheduler final {
 public:
     explicit TaskScheduler(size_t max_thread)
         : is_stopped_(false)
-        , core_mask_(2)
         , active_thread_(0)
+        , core_mask_(2)
         , index_(0)
         , max_thread_(max_thread) {
         for (size_t i = 0; i < max_thread_; ++i) {

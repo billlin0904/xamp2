@@ -1,22 +1,22 @@
 #include <widget/playerorder.h>
 #include <widget/appsettings.h>
 
-const QLatin1String APP_SETTING_LANG{ "AppSettings/lang" };
+const QLatin1String kAppSettingLang{ "AppSettings/lang" };
 
-const QLatin1String APP_SETTING_PREVENT_SLEEP{ "AppSettings/preventSleep" };
-const QLatin1String APP_SETTING_DEVICE_TYPE{ "AppSettings/deviceType" };
-const QLatin1String APP_SETTING_DEVICE_ID{ "AppSettings/deviceId" };
-const QLatin1String APP_SETTING_WIDTH{ "AppSettings/width" };
-const QLatin1String APP_SETTING_HEIGHT{ "AppSettings/height" };
-const QLatin1String APP_SETTING_VOLUME{ "AppSettings/volume" };
-const QLatin1String APP_SETTING_ORDER{ "AppSettings/order" };
-const QLatin1String APP_SETTING_NIGHT_MODE{ "AppSettings/nightMode" };
-const QLatin1String APP_SETTING_BACKGROUND_COLOR{ "AppSettings/theme/backgroundColor" };
-const QLatin1String APP_SETTING_ENABLE_BLUR{ "AppSettings/theme/enableBlur" };
-const QLatin1String APP_SETTING_MUSIC_FILE_PATH{ "AppSettings/musicFilePath" };
+const QLatin1String kAppSettingPreventSleep{ "AppSettings/preventSleep" };
+const QLatin1String kAppSettingDeviceType{ "AppSettings/deviceType" };
+const QLatin1String kAppSettingDeviceId{ "AppSettings/deviceId" };
+const QLatin1String kAppSettingWidth{ "AppSettings/width" };
+const QLatin1String kAppSettingHeight{ "AppSettings/height" };
+const QLatin1String kAppSettingVolume{ "AppSettings/volume" };
+const QLatin1String kAppSettingOrder{ "AppSettings/order" };
+const QLatin1String kAppSettingNightMode{ "AppSettings/nightMode" };
+const QLatin1String kAppSettingBackgroundColor{ "AppSettings/theme/backgroundColor" };
+const QLatin1String kAppSettingEnableBlur{ "AppSettings/theme/enableBlur" };
+const QLatin1String kAppSettingMusicFilePath{ "AppSettings/musicFilePath" };
 
-const QLatin1String APP_SETTING_RESAMPLER_ENABLE{ "AppSettings/soxr/enable" };
-const QLatin1String APP_SETTING_SOXR_SETTING_NAME{ "AppSettings/soxr/userSettingName" };
+const QLatin1String kAppSettingResamplerEnable{ "AppSettings/soxr/enable" };
+const QLatin1String kAppSettingSoxrSettingName{ "AppSettings/soxr/userSettingName" };
 
 QScopedPointer<QSettings> AppSettings::settings_;
 QMap<QString, QVariant> AppSettings::default_settings_;
@@ -32,16 +32,16 @@ void AppSettings::save() {
 
 void AppSettings::setOrDefaultConfig() {
     loadIniFile(Q_UTF8("xamp.ini"));
-    setDefaultValue(APP_SETTING_DEVICE_TYPE, Q_UTF8(""));
-    setDefaultValue(APP_SETTING_DEVICE_ID, Q_UTF8(""));
-    setDefaultValue(APP_SETTING_WIDTH, 600);
-    setDefaultValue(APP_SETTING_HEIGHT, 500);
-    setDefaultValue(APP_SETTING_VOLUME, 50);
-    setDefaultValue(APP_SETTING_NIGHT_MODE, false);
-    setDefaultValue(APP_SETTING_ORDER, PlayerOrder::PLAYER_ORDER_REPEAT_ONCE);
-    setDefaultValue(APP_SETTING_BACKGROUND_COLOR, QColor("#01121212"));
-    setDefaultValue(APP_SETTING_ENABLE_BLUR, true);
-	setDefaultValue(APP_SETTING_PREVENT_SLEEP, true);
+    setDefaultValue(kAppSettingDeviceType, Q_UTF8(""));
+    setDefaultValue(kAppSettingDeviceId, Q_UTF8(""));
+    setDefaultValue(kAppSettingWidth, 600);
+    setDefaultValue(kAppSettingHeight, 500);
+    setDefaultValue(kAppSettingVolume, 50);
+    setDefaultValue(kAppSettingNightMode, false);
+    setDefaultValue(kAppSettingOrder, PlayerOrder::PLAYER_ORDER_REPEAT_ONCE);
+    setDefaultValue(kAppSettingBackgroundColor, QColor("#01121212"));
+    setDefaultValue(kAppSettingEnableBlur, true);
+	setDefaultValue(kAppSettingPreventSleep, true);
 }
 
 xamp::base::ID AppSettings::getID(const QString& key) {

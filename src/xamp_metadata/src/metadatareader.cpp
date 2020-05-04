@@ -1,4 +1,4 @@
-#include <base/logger.h>
+#include <metadata/metadataextractadapter.h>
 #include <metadata/metadatareader.h>
 
 namespace xamp::metadata {
@@ -12,7 +12,7 @@ void FromPath(const Path& path, MetadataExtractAdapter* adapter, MetadataReader 
 
     if (is_directory(path)) {
         Path root_path;
-        for (auto &file_or_dir : RecursiveDirectoryIterator(path, options)) {
+        for (const auto& file_or_dir : RecursiveDirectoryIterator(path, options)) {
             if (adapter->IsCancel()) {
                 return;
             }

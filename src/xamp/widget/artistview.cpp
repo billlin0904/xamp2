@@ -1,5 +1,3 @@
-#include <QPainter>
-
 #include "thememanager.h"
 
 #include <QScrollBar>

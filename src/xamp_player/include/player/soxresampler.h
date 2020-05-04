@@ -10,7 +10,6 @@
 #include <base/enum.h>
 #include <base/align_ptr.h>
 #include <base/audiobuffer.h>
-#include <base/audioformat.h>
 #include <player/resampler.h>
 #include <player/player.h>
 

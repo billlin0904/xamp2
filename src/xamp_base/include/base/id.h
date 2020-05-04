@@ -16,8 +16,8 @@
 
 namespace xamp::base {
 	
-constexpr size_t XAMP_ID_MAX_SIZE = 16;
-constexpr size_t MAX_ID_STR_LEN = 36;
+constexpr size_t kXampIdMaxSize = 16;
+constexpr size_t kMaxIdStrLen = 36;
 
 class XAMP_BASE_API ID final {
 public:
@@ -27,11 +27,11 @@ public:
 
     ID() noexcept;
 
-	explicit ID(const std::array<uint8_t, XAMP_ID_MAX_SIZE> &bytes) noexcept;
+	explicit ID(const std::array<uint8_t, kXampIdMaxSize> &bytes) noexcept;
 
 	explicit ID(const std::string_view &from_string);
 
-    bool IsValid() const noexcept;
+	[[nodiscard]] bool IsValid() const noexcept;
 
     ID(const ID &other) noexcept;
     
@@ -39,9 +39,9 @@ public:
 
     ID(ID &&other) noexcept;
     
-    ID& operator=(ID &&other) noexcept;	
+    ID& operator=(ID &&other) noexcept;
 
-	size_t GetHash() const noexcept;
+	[[nodiscard]] size_t GetHash() const noexcept;
 
 	operator std::string() const noexcept;
 
@@ -54,7 +54,7 @@ private:
 
 	friend bool operator!=(const ID& other1, const ID& other2) noexcept;
 
-	std::array<uint8_t, XAMP_ID_MAX_SIZE> bytes_;
+	std::array<uint8_t, kXampIdMaxSize> bytes_;
 };
 
 XAMP_ALWAYS_INLINE ID::ID(const ID &other) noexcept {

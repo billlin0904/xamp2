@@ -12,7 +12,7 @@
 
 namespace xamp::base {
 
-constexpr int32_t DFAULT_AFFINITY_CPU_CORE = 0;
+constexpr int32_t kDfaultAffinityCpuCore = 0;
 
 XAMP_BASE_API void SetThreadName(const std::string& name) noexcept;
 
@@ -20,8 +20,8 @@ XAMP_BASE_API void SetCurrentThreadName(size_t index);
 
 XAMP_BASE_API void SetRealtimeProcessPriority();
 
-XAMP_BASE_API void SetThreadAffinity(std::thread& thread, int32_t core = DFAULT_AFFINITY_CPU_CORE);
+XAMP_BASE_API void SetThreadAffinity(std::thread& thread, int32_t core = kDfaultAffinityCpuCore);
 
-XAMP_BASE_API void SetCurrentThreadAffinity(int32_t core = DFAULT_AFFINITY_CPU_CORE);
+XAMP_BASE_API void SetCurrentThreadAffinity(int32_t core = kDfaultAffinityCpuCore);
 
 }

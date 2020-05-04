@@ -6,12 +6,10 @@
 #pragma once
 
 #include <base/audioformat.h>
-#include <base/memory.h>
 #include <base/align_ptr.h>
 
 #include <stream/stream.h>
 #include <stream/dsdstream.h>
-#include <stream/audiostream.h>
 #include <stream/filestream.h>
 
 namespace xamp::stream {

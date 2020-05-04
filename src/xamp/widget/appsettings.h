@@ -7,29 +7,27 @@
 
 #include <base/id.h>
 
-#include <QSize>
-#include <QColor>
 #include <QSettings>
 #include <QScopedPointer>
 
 #include <widget/localelanguage.h>
 
-extern const QLatin1String APP_SETTING_LANG;
-extern const QLatin1String APP_SETTING_PREVENT_SLEEP;
+extern const QLatin1String kAppSettingLang;
+extern const QLatin1String kAppSettingPreventSleep;
 
-extern const QLatin1String APP_SETTING_DEVICE_TYPE;
-extern const QLatin1String APP_SETTING_DEVICE_ID;
-extern const QLatin1String APP_SETTING_WIDTH;
-extern const QLatin1String APP_SETTING_HEIGHT;
-extern const QLatin1String APP_SETTING_VOLUME;
-extern const QLatin1String APP_SETTING_ORDER;
-extern const QLatin1String APP_SETTING_NIGHT_MODE;
-extern const QLatin1String APP_SETTING_ENABLE_BLUR;
-extern const QLatin1String APP_SETTING_BACKGROUND_COLOR;
-extern const QLatin1String APP_SETTING_MUSIC_FILE_PATH;
+extern const QLatin1String kAppSettingDeviceType;
+extern const QLatin1String kAppSettingDeviceId;
+extern const QLatin1String kAppSettingWidth;
+extern const QLatin1String kAppSettingHeight;
+extern const QLatin1String kAppSettingVolume;
+extern const QLatin1String kAppSettingOrder;
+extern const QLatin1String kAppSettingNightMode;
+extern const QLatin1String kAppSettingEnableBlur;
+extern const QLatin1String kAppSettingBackgroundColor;
+extern const QLatin1String kAppSettingMusicFilePath;
 
-extern const QLatin1String APP_SETTING_RESAMPLER_ENABLE;
-extern const QLatin1String APP_SETTING_SOXR_SETTING_NAME;
+extern const QLatin1String kAppSettingResamplerEnable;
+extern const QLatin1String kAppSettingSoxrSettingName;
 
 class AppSettings {
 public:    

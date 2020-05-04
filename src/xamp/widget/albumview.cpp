@@ -1,7 +1,5 @@
 #include <QPainter>
 #include <QScrollBar>
-#include <QSqlError>
-#include <QSqlQuery>
 #include <QDebug>
 #include <QApplication>
 #include <QVBoxLayout>

@@ -21,8 +21,6 @@ extern "C" {
 #include <cassert>
 #include <base/exception.h>
 #include <base/memory_mapped_file.h>
-#include <base/memory.h>
-#include <base/exception.h>
 #include <base/str_utilts.h>
 #include <base/defer.h>
 #include <base/logger.h>
@@ -354,7 +352,7 @@ AudioFormat AvFileStream::GetFormat() const noexcept {
 }
 
 uint32_t AvFileStream::GetSamples(void* buffer, uint32_t length) const noexcept {
-    return impl_->GetSamples(reinterpret_cast<float *>(buffer), length);
+    return impl_->GetSamples(static_cast<float *>(buffer), length);
 }
 
 void AvFileStream::Seek(double stream_time) const {

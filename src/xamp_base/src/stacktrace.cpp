@@ -124,7 +124,7 @@ void StackTrace::WriteLog(size_t frame_count) {
         auto frame = addrlist_[i];
         symbol.clear();
 
-        const auto symbol_info = reinterpret_cast<SYMBOL_INFO*>(symbol.data());
+        auto* const symbol_info = reinterpret_cast<SYMBOL_INFO*>(symbol.data());
 
         symbol_info->SizeOfStruct = sizeof(SYMBOL_INFO);
         symbol_info->MaxNameLen = 256;
@@ -133,7 +133,7 @@ void StackTrace::WriteLog(size_t frame_count) {
 
         DWORD64 displacement = 0;
         const auto has_symbol = ::SymFromAddr(SymLoader::Instance().GetProcess().get(),
-            (DWORD64)frame,
+            reinterpret_cast<DWORD64>(frame),
             &displacement,
             symbol_info);
 
@@ -141,20 +141,20 @@ void StackTrace::WriteLog(size_t frame_count) {
         IMAGEHLP_LINE64 line{};
         line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
         const auto has_line = ::SymGetLineFromAddr64(SymLoader::Instance().GetProcess().get(),
-            (DWORD64)frame,
+            reinterpret_cast<DWORD64>(frame),
             &line_displacement,
             &line);
 
         if (has_symbol) {
             if (has_line) {
-                XAMP_LOG_DEBUG("0x{:08x} {:08x} {}:{}", (DWORD64)frame, displacement, line.FileName, line.LineNumber);
+                XAMP_LOG_DEBUG("0x{:08x} {:08x} {}:{}", reinterpret_cast<DWORD64>(frame), displacement, line.FileName, line.LineNumber);
             }
             else {
-                XAMP_LOG_DEBUG("0x{:08x} {:08x}", (DWORD64)frame, displacement);
+                XAMP_LOG_DEBUG("0x{:08x} {:08x}", reinterpret_cast<DWORD64>(frame), displacement);
             }
         }
         else {
-            XAMP_LOG_DEBUG("0x{:08d} (No symbol)", (DWORD64)frame);
+            XAMP_LOG_DEBUG("0x{:08d} (No symbol)", reinterpret_cast<DWORD64>(frame));
         }
     }
 }

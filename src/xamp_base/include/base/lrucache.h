@@ -13,15 +13,15 @@
 
 namespace xamp::base {
 
+static const size_t kLruCacheSize = 200;
+	
 template <typename Key, typename Value>
 class XAMP_BASE_API_ONLY_EXPORT LruCache {
-public:
-    static const size_t LRU_CACHE_SIZE = 200;
-
+public:    
     using ItemList = std::list<std::pair<Key, Value>>;
     using NodePtr = typename ItemList::const_iterator;
 
-    explicit LruCache(size_t max_size = LRU_CACHE_SIZE)
+    explicit LruCache(size_t max_size = kLruCacheSize)
         : max_size_(max_size) {
     }
 

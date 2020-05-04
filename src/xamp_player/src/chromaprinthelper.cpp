@@ -61,7 +61,7 @@ Fingerprint ReadFingerprint(const std::wstring& file_path, const std::wstring& f
 		chromaprint.Feed(osamples.data(), deocode_size * input_format.GetChannels());
 	}	
 
-	chromaprint.Finish();
+	(void)chromaprint.Finish();
 
 	return {
         file_stream->GetDuration(),

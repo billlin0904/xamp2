@@ -4,8 +4,6 @@
 #include <base/platform_thread.h>
 #include <base/logger.h>
 #include <base/threadpool.h>
-#include <base/vmmemlock.h>
-#include <base/str_utilts.h>
 #include <base/stl.h>
 
 #include <output_device/devicefactory.h>

@@ -11,7 +11,6 @@
 #include <base/metadata.h>
 
 #include <metadata/metadata.h>
-#include <metadata/metadataextractadapter.h>
 
 namespace xamp::metadata {
 
@@ -23,9 +22,9 @@ public:
  
     virtual const std::vector<uint8_t>& ExtractEmbeddedCover(const Path &path) = 0;
 
-    virtual const RobinHoodSet<std::string> & GetSupportFileExtensions() const = 0;
+    [[nodiscard]] virtual const RobinHoodSet<std::string> & GetSupportFileExtensions() const = 0;
 
-    virtual bool IsSupported(const Path & path) const = 0;
+    [[nodiscard]] virtual bool IsSupported(const Path & path) const = 0;
 protected:
     MetadataReader() = default;
 };

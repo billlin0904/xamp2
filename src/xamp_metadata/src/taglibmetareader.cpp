@@ -1,8 +1,6 @@
 #include <vector>
 #include <sstream>
 #include <functional>
-#include <unordered_set>
-#include <unordered_map>
 
 #include <base/stl.h>
 #include <base/str_utilts.h>
@@ -10,7 +8,6 @@
 #include <base/logger.h>
 
 #include <metadata/taglib.h>
-#include <metadata/metadataextractadapter.h>
 #include <metadata/taglibmetareader.h>
 
 namespace xamp::metadata {

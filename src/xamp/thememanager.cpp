@@ -130,7 +130,7 @@ QColor ThemeManager::getBackgroundColor() noexcept {
 void ThemeManager::enableBlur(const QWidget* widget, bool enable) {
 #if defined(Q_OS_WIN)
     FluentStyle::setBlurMaterial(widget, enable);
-    AppSettings::setValue(APP_SETTING_ENABLE_BLUR, enable);
+    AppSettings::setValue(kAppSettingEnableBlur, enable);
 #else
     (void)widget;
     (void)enable;
@@ -150,7 +150,7 @@ void ThemeManager::setBackgroundColor(Ui::XampWindow& ui, QColor color) {
     alphaColor.setAlpha(200);
     ui.sliderFrame->setStyleSheet(backgroundColorToString(alphaColor));
 
-    AppSettings::setValue(APP_SETTING_BACKGROUND_COLOR, color);
+    AppSettings::setValue(kAppSettingBackgroundColor, color);
     backgroundColor = color;
 
     setThemeColor(ui);    
@@ -299,8 +299,8 @@ void ThemeManager::setThemeColor(Ui::XampWindow& ui) {
 }
 
 void ThemeManager::setDefaultStyle(Ui::XampWindow& ui) {
-    if (!AppSettings::getValueAsString(APP_SETTING_BACKGROUND_COLOR).isEmpty()) {
-        setBackgroundColor(ui, AppSettings::getValueAsString(APP_SETTING_BACKGROUND_COLOR));
+    if (!AppSettings::getValueAsString(kAppSettingBackgroundColor).isEmpty()) {
+        setBackgroundColor(ui, AppSettings::getValueAsString(kAppSettingBackgroundColor));
     }
     else {
         setBackgroundColor(ui, backgroundColor);

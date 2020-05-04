@@ -1,3 +1,4 @@
+// ReSharper disable All
 #include <bass/bass.h>
 #include <bass/bassdsd.h>
 
@@ -8,15 +9,14 @@
 #include <base/memory.h>
 #include <base/memory_mapped_file.h>
 #include <base/logger.h>
-#include <base/vmmemlock.h>
 
 #include <stream/bassexception.h>
 #include <stream/bassfilestream.h>
 
 namespace xamp::stream {
 
-constexpr DWORD BASS_ERROR{ 0xFFFFFFFF };
-constexpr int32_t PCM_SAMPLE_RATE_441 = { 44100 };
+constexpr DWORD kBassError{ 0xFFFFFFFF };
+constexpr int32_t kPcmSampleRate441 = { 44100 };
 
 template <typename T>
 constexpr uint8_t HiByte(T val) noexcept {
@@ -426,12 +426,12 @@ public:
     }
 
     uint32_t GetDsdSpeed() const noexcept {
-        return GetDsdSampleRate() / PCM_SAMPLE_RATE_441;
+        return GetDsdSampleRate() / kPcmSampleRate441;
     }
 private:
     XAMP_ALWAYS_INLINE uint32_t InternalGetSamples(void *buffer, uint32_t length) const noexcept {
         const auto byte_read = BassLib::Instance().BASS_ChannelGetData(stream_.get(), buffer, length);
-        if (byte_read == BASS_ERROR) {
+        if (byte_read == kBassError) {
             return 0;
         }
         return uint32_t(byte_read);

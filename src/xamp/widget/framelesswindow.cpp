@@ -43,7 +43,7 @@ FramelessWindow::FramelessWindow(QWidget* parent)
         MARGINS borderless = { -1 };
         ::DwmExtendFrameIntoClientArea(hwnd, &borderless);
     }
-    ThemeManager::instance().enableBlur(this, AppSettings::getValueAsBool(APP_SETTING_ENABLE_BLUR));
+    ThemeManager::instance().enableBlur(this, AppSettings::getValueAsBool(kAppSettingEnableBlur));
     setupThumbnailToolBar();
     setStyleSheet(Q_UTF8(R"(
         font-family: "UI";

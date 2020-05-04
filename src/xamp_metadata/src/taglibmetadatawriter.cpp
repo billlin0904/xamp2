@@ -1,3 +1,4 @@
+// ReSharper disable All
 #include <functional>
 
 #include <base/windows_handle.h>

@@ -15,7 +15,6 @@
 #include <base/timer.h>
 #include <base/dsdsampleformat.h>
 #include <base/align_ptr.h>
-#include <base/vmmemlock.h>
 #include <base/id.h>
 
 #include <stream/stream.h>
@@ -113,7 +112,7 @@ private:
 
     void BufferStream();
 
-    int32_t OnGetSamples(void* samples, const uint32_t num_buffer_frames, const double stream_time) noexcept override;
+    int32_t OnGetSamples(void* samples, uint32_t num_buffer_frames, double stream_time) noexcept override;
 
     void OnVolumeChange(float vol) noexcept override;
 
@@ -123,7 +122,7 @@ private:
 
     void OpenDevice(double stream_time = 0.0);
 
-    void SetState(const PlayerState play_state);
+    void SetState(PlayerState play_state);
 
     void ReadSampleLoop(uint32_t max_read_sample, std::unique_lock<std::mutex> &lock);
 

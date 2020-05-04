@@ -1,8 +1,9 @@
+#include <base/exception.h>
 #include <player/nullresampler.h>
 
 namespace xamp::player {
 
-#define IsBufferTooSmallThrow(expr) \
+#define IS_BUFFER_TOO_SMALL_THROW(expr) \
     do {\
         if (!(expr)) {\
         throw Exception(Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR, "Buffer overflow!");\
@@ -37,11 +38,11 @@ void NullResampler::Flush() {
 }
 
 bool NullResampler::ProcessNativeDsd(const int8_t* sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer) {
-    IsBufferTooSmallThrow(buffer.TryWrite(sample_buffer, num_samples));
+    IS_BUFFER_TOO_SMALL_THROW(buffer.TryWrite(sample_buffer, num_samples));
 }
 
 bool NullResampler::ProcessPcm(const int8_t* sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer) {
-    IsBufferTooSmallThrow(buffer.TryWrite(sample_buffer, num_samples * sample_size_));
+    IS_BUFFER_TOO_SMALL_THROW(buffer.TryWrite(sample_buffer, num_samples * sample_size_));
 }
 
 }

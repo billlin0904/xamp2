@@ -552,7 +552,7 @@ void AsioDevice::SetStreamTime(double stream_time) noexcept {
 }
 
 double AsioDevice::GetStreamTime() const noexcept {
-	return double(played_bytes_) / mix_format_.GetAvgBytesPerSec();
+	return static_cast<double>(played_bytes_) / mix_format_.GetAvgBytesPerSec();
 }
 
 void AsioDevice::DisplayControlPanel() {

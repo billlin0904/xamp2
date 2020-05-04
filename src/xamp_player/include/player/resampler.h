@@ -8,7 +8,6 @@
 #include <string_view>
 
 #include <base/audiobuffer.h>
-#include <base/exception.h>
 #include <player/player.h>
 
 namespace xamp::player {

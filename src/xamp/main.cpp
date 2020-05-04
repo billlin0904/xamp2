@@ -37,8 +37,8 @@ void loadOrDefaultSoxrSetting() {
     defaultSetting[SOXR_PASS_BAND] = 91;
 
     JsonSettings::setValue(SOXR_DEFAULT_SETTING_NAME, QVariant::fromValue(defaultSetting));
-    AppSettings::setValue(APP_SETTING_SOXR_SETTING_NAME, SOXR_DEFAULT_SETTING_NAME);
-    AppSettings::setDefaultValue(APP_SETTING_SOXR_SETTING_NAME, SOXR_DEFAULT_SETTING_NAME);
+    AppSettings::setValue(kAppSettingSoxrSettingName, SOXR_DEFAULT_SETTING_NAME);
+    AppSettings::setDefaultValue(kAppSettingSoxrSettingName, SOXR_DEFAULT_SETTING_NAME);
 
     JsonSettings::save();
 }
@@ -132,19 +132,19 @@ static int excute(int argc, char* argv[]) {
 
     XAMP_LOG_DEBUG("setOrDefaultConfig success.");
 
-    if (AppSettings::getValueAsString(APP_SETTING_LANG).isEmpty()) {
+    if (AppSettings::getValueAsString(kAppSettingLang).isEmpty()) {
         LocaleLanguage l;
         XAMP_LOG_DEBUG("Load locale lang file: {}", l.getIsoCode().toStdString());
         AppSettings::loadLanguage(l.getIsoCode());
-        AppSettings::setValue(APP_SETTING_LANG, l.getIsoCode());
+        AppSettings::setValue(kAppSettingLang, l.getIsoCode());
     }
     else {
-        AppSettings::loadLanguage(AppSettings::getValueAsString(APP_SETTING_LANG));
+        AppSettings::loadLanguage(AppSettings::getValueAsString(kAppSettingLang));
         XAMP_LOG_DEBUG("Load locale lang file: {}",
-                       AppSettings::getValueAsString(APP_SETTING_LANG).toStdString());
+                       AppSettings::getValueAsString(kAppSettingLang).toStdString());
     }
 
-    DeviceFactory::PreventSleep(AppSettings::getValueAsBool(APP_SETTING_PREVENT_SLEEP));
+    DeviceFactory::PreventSleep(AppSettings::getValueAsBool(kAppSettingPreventSleep));
     XAMP_LOG_DEBUG("PreventSleep success.");
 
     Xamp win;

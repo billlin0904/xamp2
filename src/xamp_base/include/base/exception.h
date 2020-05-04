@@ -43,13 +43,13 @@ public:
 
     ~Exception() override = default;
 
-    const char * what() const noexcept override;
+    [[nodiscard]] const char * what() const noexcept override;
 
-    virtual Errors GetError() const;
+    [[nodiscard]] virtual Errors GetError() const;
 
-    const char* GetErrorMessage() const;
+    [[nodiscard]] const char* GetErrorMessage() const;
 
-    virtual const char * GetExpression() const;
+    [[nodiscard]] virtual const char * GetExpression() const;
 
     static std::string_view ErrorToString(Errors error);
 private:

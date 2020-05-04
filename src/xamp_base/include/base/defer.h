@@ -18,17 +18,17 @@ public:
     ~Defer() noexcept;
 
 private:
-    F f;
+    F f_;
 };
 
 template <typename F>
 Defer<F>::Defer(F&& f)
-    : f(std::forward<F>(f)) {
+    : f_(std::forward<F>(f)) {
 }
 
 template <typename F>
 Defer<F>::~Defer() noexcept {
-    f();
+    f_();
 }
 
 template <typename F>

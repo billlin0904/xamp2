@@ -105,7 +105,7 @@ void setBlurMaterial(HWND hWnd, bool enable) {
 
 namespace FluentStyle {
 void setBlurMaterial(const QWidget* widget, bool enable) {
-	HWND hwnd = (HWND)widget->winId();
+	auto hwnd = reinterpret_cast<HWND>(widget->winId());
 	setBlurMaterial(hwnd, enable);
 }
 }

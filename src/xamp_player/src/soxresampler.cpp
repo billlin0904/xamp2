@@ -142,7 +142,7 @@ public:
         input_samplerate_ = input_samplerate;
         num_channels_ = num_channels;
 
-        ratio_ = double(output_samplerate) / double(input_samplerate_);
+        ratio_ = static_cast<double>(output_samplerate) / static_cast<double>(input_samplerate_);
 
         XAMP_LOG_DEBUG("Soxr resampler setting=> input:{} output:{} quality:{} phase:{}",
                        input_samplerate,

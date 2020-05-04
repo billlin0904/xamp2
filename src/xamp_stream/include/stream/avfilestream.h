@@ -10,7 +10,6 @@
 #include <base/align_ptr.h>
 
 #include <stream/stream.h>
-#include <stream/audiostream.h>
 #include <stream/filestream.h>
 
 namespace xamp::stream {

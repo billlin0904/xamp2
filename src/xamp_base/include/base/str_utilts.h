@@ -48,17 +48,17 @@ XAMP_ALWAYS_INLINE std::string FormatBytes(size_t bytes) noexcept {
     char buffer[2048]{0};
 
     if (bytes >= tb)
-        snprintf(buffer, sizeof(buffer), "%.2f TB", (float)bytes / tb);
+        snprintf(buffer, sizeof(buffer), "%.2f TB", static_cast<float>(bytes) / tb);
     else if (bytes >= gb && bytes < tb)
-        snprintf(buffer, sizeof(buffer), "%.2f GB", (float)bytes / gb);
+        snprintf(buffer, sizeof(buffer), "%.2f GB", static_cast<float>(bytes) / gb);
     else if (bytes >= mb && bytes < gb)
-        snprintf(buffer, sizeof(buffer), "%.2f MB", (float)bytes / mb);
+        snprintf(buffer, sizeof(buffer), "%.2f MB", static_cast<float>(bytes) / mb);
     else if (bytes >= kb && bytes < mb)
-        snprintf(buffer, sizeof(buffer), "%.2f KB", (float)bytes / kb);
+        snprintf(buffer, sizeof(buffer), "%.2f KB", static_cast<float>(bytes) / kb);
     else if (bytes < kb)
-        snprintf(buffer, sizeof(buffer), "%.2f Bytes", (float)bytes);
+        snprintf(buffer, sizeof(buffer), "%.2f Bytes", static_cast<float>(bytes));
     else
-        snprintf(buffer, sizeof(buffer), "%.2f Bytes", (float)bytes);
+        snprintf(buffer, sizeof(buffer), "%.2f Bytes", static_cast<float>(bytes));
 
     return buffer;
 }

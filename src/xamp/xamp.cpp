@@ -109,13 +109,13 @@ void Xamp::initial() {
 
 void Xamp::closeEvent(QCloseEvent*) {
     try {
-        AppSettings::setValue(APP_SETTING_VOLUME, player_->GetVolume());
+        AppSettings::setValue(kAppSettingVolume, player_->GetVolume());
     } catch (...) {
     }
 
-    AppSettings::setValue(APP_SETTING_WIDTH, size().width());
-    AppSettings::setValue(APP_SETTING_HEIGHT, size().height());
-    AppSettings::setValue(APP_SETTING_VOLUME, ui.volumeSlider->value());
+    AppSettings::setValue(kAppSettingWidth, size().width());
+    AppSettings::setValue(kAppSettingHeight, size().height());
+    AppSettings::setValue(kAppSettingVolume, ui.volumeSlider->value());
 
     if (player_ != nullptr) {
         player_->Destory();
@@ -156,11 +156,11 @@ void Xamp::initialUI() {
 
     ui.setupUi(this);
 
-    watch_.addPath(AppSettings::getValueAsString(APP_SETTING_MUSIC_FILE_PATH));
+    watch_.addPath(AppSettings::getValueAsString(kAppSettingMusicFilePath));
 
     setGeometry(QStyle::alignedRect(Qt::LeftToRight,
                                     Qt::AlignCenter,
-                                    AppSettings::getSizeValue(APP_SETTING_WIDTH, APP_SETTING_HEIGHT),
+                                    AppSettings::getSizeValue(kAppSettingWidth, kAppSettingHeight),
                                     qApp->desktop()->availableGeometry()));
 
     auto f = font();
@@ -241,13 +241,13 @@ void Xamp::initialDeviceList() {
             device_id_action[device_info.device_id] = device_action;
             (void)QObject::connect(device_action, &QAction::triggered, [device_info, this]() {
                 device_info_ = device_info;
-                AppSettings::setValue(APP_SETTING_DEVICE_TYPE, device_info_.device_type_id);
-                AppSettings::setValue(APP_SETTING_DEVICE_ID, device_info_.device_id);
+                AppSettings::setValue(kAppSettingDeviceType, device_info_.device_type_id);
+                AppSettings::setValue(kAppSettingDeviceId, device_info_.device_id);
                 XAMP_LOG_DEBUG("Save device Id : {}", xamp::base::ToUtf8String(device_info_.device_id));
             });
             menu->addAction(device_action);
-            if (AppSettings::getID(APP_SETTING_DEVICE_TYPE) == device_info.device_type_id
-                && AppSettings::getValueAsString(APP_SETTING_DEVICE_ID).toStdWString() == device_info.device_id) {
+            if (AppSettings::getID(kAppSettingDeviceType) == device_info.device_type_id
+                && AppSettings::getValueAsString(kAppSettingDeviceId).toStdWString() == device_info.device_id) {
                 device_info_ = device_info;
                 is_find_setting_device = true;
                 device_action->setChecked(true);
@@ -267,8 +267,8 @@ void Xamp::initialDeviceList() {
     if (!is_find_setting_device) {
         device_info_ = init_device_info;
         device_id_action[device_info_.device_id]->setChecked(true);
-        AppSettings::setValue(APP_SETTING_DEVICE_TYPE, device_info_.device_type_id);
-        AppSettings::setValue(APP_SETTING_DEVICE_ID, device_info_.device_id);
+        AppSettings::setValue(kAppSettingDeviceType, device_info_.device_type_id);
+        AppSettings::setValue(kAppSettingDeviceId, device_info_.device_id);
         XAMP_LOG_DEBUG("Use default device Id : {}", xamp::base::ToUtf8String(device_info_.device_id));
     }
 }
@@ -352,10 +352,10 @@ void Xamp::initialController() {
         player_->Pause();
     });
 
-    order_ = static_cast<PlayerOrder>(AppSettings::getAsInt(APP_SETTING_ORDER));
+    order_ = static_cast<PlayerOrder>(AppSettings::getAsInt(kAppSettingOrder));
     setPlayerOrder();
 
-    auto vol = AppSettings::getValue(APP_SETTING_VOLUME).toUInt();
+    auto vol = AppSettings::getValue(kAppSettingVolume).toUInt();
     ui.volumeSlider->setRange(0, 100);
     ui.volumeSlider->setValue(static_cast<int32_t>(vol));
     player_->SetMute(vol == 0);
@@ -474,12 +474,12 @@ void Xamp::initialController() {
 #ifdef Q_OS_WIN
     auto enable_blur_material_mode_action = new QAction(tr("Enable blur"), this);
     enable_blur_material_mode_action->setCheckable(true);
-    if (AppSettings::getValue(APP_SETTING_ENABLE_BLUR).toBool()) {
+    if (AppSettings::getValue(kAppSettingEnableBlur).toBool()) {
         enable_blur_material_mode_action->setChecked(true);
     }
 
     (void)QObject::connect(enable_blur_material_mode_action, &QAction::triggered, [=]() {
-        auto enable = AppSettings::getValueAsBool(APP_SETTING_ENABLE_BLUR);
+        auto enable = AppSettings::getValueAsBool(kAppSettingEnableBlur);
         enable = !enable;
         enable_blur_material_mode_action->setChecked(enable);
         ThemeManager::instance().enableBlur(this, enable);
@@ -628,17 +628,17 @@ void Xamp::setPlayerOrder() {
     switch (order_) {
     case PlayerOrder::PLAYER_ORDER_REPEAT_ONCE:
         ThemeManager::instance().setRepeatOncePlayorder(ui);
-        AppSettings::setValue(APP_SETTING_ORDER,
+        AppSettings::setValue(kAppSettingOrder,
                               static_cast<int>(PlayerOrder::PLAYER_ORDER_REPEAT_ONCE));
         break;
     case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:
         ThemeManager::instance().setRepeatOnePlayorder(ui);
-        AppSettings::setValue(APP_SETTING_ORDER,
+        AppSettings::setValue(kAppSettingOrder,
                               static_cast<int>(PlayerOrder::PLAYER_ORDER_REPEAT_ONE));
         break;
     case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL:
         ThemeManager::instance().setShufflePlayorder(ui);
-        AppSettings::setValue(APP_SETTING_ORDER,
+        AppSettings::setValue(kAppSettingOrder,
                               static_cast<int>(PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL));
         break;
     default:
@@ -740,9 +740,9 @@ void Xamp::resetSeekPosValue() {
 }
 
 void Xamp::setupResampler() {
-    if (AppSettings::getValue(APP_SETTING_RESAMPLER_ENABLE).toBool()) {
+    if (AppSettings::getValue(kAppSettingResamplerEnable).toBool()) {
         auto soxr_settings = QVariant::fromValue(
-                                 JsonSettings::getValue(AppSettings::getValueAsString(APP_SETTING_SOXR_SETTING_NAME))
+                                 JsonSettings::getValue(AppSettings::getValueAsString(kAppSettingSoxrSettingName))
                                  ).toMap();
 
         auto samplerate = soxr_settings[SOXR_RESAMPLE_SAMPLRATE].toUInt();

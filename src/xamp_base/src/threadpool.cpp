@@ -1,7 +1,4 @@
-#include <sstream>
 #include <algorithm>
-
-#include <base/platform_thread.h>
 #include <base/threadpool.h>
 
 namespace xamp::base {

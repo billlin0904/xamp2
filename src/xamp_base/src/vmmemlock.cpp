@@ -2,10 +2,8 @@
 #ifdef XAMP_OS_WIN
 #include <base/windows_handle.h>
 #else
-#include <base/posix_handle.h>
 #endif
 #include <base/exception.h>
-#include <base/memory.h>
 #include <base/vmmemlock.h>
 
 namespace xamp::base {
@@ -72,7 +70,7 @@ bool VmMemLock::EnableLockMemPrivilege(bool enable) noexcept {
 void VmMemLock::Lock(void* address, size_t size) {
 	UnLock();
 
-	/*if (!ExterndProcessWorkingSetSize(size)) {
+	if (!ExterndProcessWorkingSetSize(size)) {
 		throw PlatformSpecException("ExterndProcessWorkingSetSize return failure! error:{}", ::GetLastError());
 	}
 
@@ -83,7 +81,7 @@ void VmMemLock::Lock(void* address, size_t size) {
 	address_ = address;
 	size_ = size;
 
-	XAMP_LOG_DEBUG("VmMemLock lock address: 0x{:08x} size: {}", int64_t(address_), size_);*/
+	XAMP_LOG_DEBUG("VmMemLock lock address: 0x{:08x} size: {}", int64_t(address_), size_);
 }
 
 void VmMemLock::UnLock() noexcept {

@@ -52,7 +52,7 @@ void PreferenceDialog::initSoxResampler() {
 		ui_.soxrSettingCombo->addItem(soxr_setting_name);
 	}
 
-	auto enable_resampler = AppSettings::getValueAsBool(APP_SETTING_RESAMPLER_ENABLE);
+	auto enable_resampler = AppSettings::getValueAsBool(kAppSettingResamplerEnable);
 	if (!enable_resampler) {
 		ui_.resamplerStackedWidget->setCurrentIndex(0);
 		ui_.selectResamplerComboBox->setCurrentIndex(0);
@@ -63,7 +63,7 @@ void PreferenceDialog::initSoxResampler() {
 	}
 
 	auto soxr_settings = QVariant::fromValue(
-		JsonSettings::getValue(AppSettings::getValueAsString(APP_SETTING_SOXR_SETTING_NAME))
+		JsonSettings::getValue(AppSettings::getValueAsString(kAppSettingSoxrSettingName))
 	).toMap();
 
 	loadSoxrResampler(soxr_settings);
@@ -95,7 +95,7 @@ void PreferenceDialog::initSoxResampler() {
 }
 
 void PreferenceDialog::initLang() {
-	LocaleLanguage current_lang(AppSettings::getValueAsString(APP_SETTING_LANG));
+	LocaleLanguage current_lang(AppSettings::getValueAsString(kAppSettingLang));
 
 	auto current_index = 0;
 	auto index = 0;
@@ -112,7 +112,7 @@ void PreferenceDialog::initLang() {
 
 	(void)QObject::connect(ui_.langCombo, static_cast<void (QComboBox::*)(int32_t)>(&QComboBox::activated), [this](auto const& index) {		
 		AppSettings::loadLanguage(ui_.langCombo->itemText(index));
-		AppSettings::setValue(APP_SETTING_LANG, ui_.langCombo->itemText(index));
+		AppSettings::setValue(kAppSettingLang, ui_.langCombo->itemText(index));
 		ui_.retranslateUi(this);
 		});
 }
@@ -160,7 +160,7 @@ PreferenceDialog::PreferenceDialog(QWidget *parent)
         ui_.soxrPassbandValue->setText(QString(Q_UTF8("%0%")).arg(ui_.soxrPassbandSlider->value()));
     });
 
-	musicFilePath = AppSettings::getValue(APP_SETTING_MUSIC_FILE_PATH).toString();
+	musicFilePath = AppSettings::getValue(kAppSettingMusicFilePath).toString();
 	ui_.musicFilePath->setText(musicFilePath);
 
 	(void)QObject::connect(ui_.setPathButton, &QPushButton::clicked, [this]() {
@@ -168,7 +168,7 @@ PreferenceDialog::PreferenceDialog(QWidget *parent)
 			this,
 			tr("Select a directory"),
 			QDir::currentPath());
-		AppSettings::setValue(APP_SETTING_MUSIC_FILE_PATH, musicFilePath);
+		AppSettings::setValue(kAppSettingMusicFilePath, musicFilePath);
 		ui_.musicFilePath->setText(musicFilePath);
 		});
 
@@ -192,11 +192,11 @@ PreferenceDialog::PreferenceDialog(QWidget *parent)
 		settings[SOXR_PASS_BAND] = soxr_pass_band;
 
 		JsonSettings::setValue(ui_.soxrSettingCombo->currentText(), settings);
-		AppSettings::setValue(APP_SETTING_SOXR_SETTING_NAME, ui_.soxrSettingCombo->currentText());
-		AppSettings::setDefaultValue(APP_SETTING_SOXR_SETTING_NAME, ui_.soxrSettingCombo->currentText());
+		AppSettings::setValue(kAppSettingSoxrSettingName, ui_.soxrSettingCombo->currentText());
+		AppSettings::setDefaultValue(kAppSettingSoxrSettingName, ui_.soxrSettingCombo->currentText());
 
 		auto index = ui_.resamplerStackedWidget->currentIndex();
-		AppSettings::setValue(APP_SETTING_RESAMPLER_ENABLE, index > 0);
+		AppSettings::setValue(kAppSettingResamplerEnable, index > 0);
 		});	
 
 	initSoxResampler();
