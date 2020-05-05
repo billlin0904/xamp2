@@ -91,7 +91,7 @@ ExclusiveWasapiDevice::ExclusiveWasapiDevice(const CComPtr<IMMDevice>& device)
 	, stream_time_(0)
 	, mmcss_name_(MMCSS_PROFILE_PRO_AUDIO)
 	, sample_ready_(nullptr)
-	, sample_raedy_key_(0)
+	, sample_ready_key_(0)
 	, aligned_period_(0)
 	, device_(device)
 	, callback_(nullptr) {
@@ -291,9 +291,9 @@ void ExclusiveWasapiDevice::GetSample(const uint32_t frame_available) {
 }
 
 void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
-	if (sample_raedy_key_ != 0) {
+	if (sample_ready_key_ != 0) {
 		HrIfFailledThrow2(::MFCancelWorkItem(sample_raedy_key_), MF_E_NOT_FOUND);
-		sample_raedy_key_ = 0;
+		sample_ready_key_ = 0;
 	}
 
     if (is_running_) {

@@ -84,7 +84,7 @@ private:
 	WinHandle sample_ready_;
 	std::wstring mmcss_name_;
 	AudioConvertContext data_convert_;
-	MFWORKITEM_KEY sample_raedy_key_;
+	MFWORKITEM_KEY sample_ready_key_;
 	REFERENCE_TIME aligned_period_;
 	CComPtr<IMMDevice> device_;
 	CComPtr<IAudioClient2> client_;

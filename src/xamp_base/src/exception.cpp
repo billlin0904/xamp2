@@ -2,14 +2,38 @@
 #include <algorithm>
 #include <cmath>
 
+#include <base/base.h>
+
+#ifdef XAMP_OS_WIN
+#include <base/windows_handle.h>
+#include <base/str_utilts.h>
+#endif
+
 #include <base/stl.h>
 #include <base/exception.h>
 
 namespace xamp::base {
 
-std::string GetPlatformErrorMessage(int32_t err) {
-    return std::system_category().message(err);
+#ifdef XAMP_OS_WIN
+std::string LocaleStringToUTF8(const std::string &str) {
+    std::vector<wchar_t> wszTo(str.length() + 1);
+    ::MultiByteToWideChar(CP_ACP,
+        0,
+        str.c_str(),
+        -1, 
+        wszTo.data(),
+        static_cast<int>(str.length()));
+    return ToUtf8String(wszTo.data());
 }
+
+std::string GetPlatformErrorMessage(int32_t err) {
+    return LocaleStringToUTF8(std::system_category().message(err));
+}
+#else
+    std::string GetPlatformErrorMessage(int32_t err) {
+        return std::system_category().message(err);
+}
+#endif
 
 Exception::Exception(Errors error, const std::string& message, std::string_view what)
 	: error_(error)

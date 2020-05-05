@@ -27,6 +27,9 @@ void AppSettings::loadIniFile(const QString& file_name) {
 }
 
 void AppSettings::save() {
+	if (!settings_) {
+		return;
+	}
     settings_->sync();
 }
 

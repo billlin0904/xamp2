@@ -6,6 +6,8 @@
 #include <base/vmmemlock.h>
 #include <base/stacktrace.h>
 
+#include <metadata/metadatareader.h>
+
 #include <player/audio_player.h>
 #include <widget/qdebugsink.h>
 #include <widget/appsettings.h>
@@ -15,10 +17,8 @@
 #include <widget/jsonsettings.h>
 
 #include <QMessageBox>
-#include <QtWidgets/QApplication>
 
-#include <player/soxresampler.h>
-#include "thememanager.h"
+#include <player/soxresampler.h>"
 #include "singleinstanceapplication.h"
 #include "xamp.h"
 
@@ -55,6 +55,8 @@ static int excute(int argc, char* argv[]) {
     XAMP_SET_LOG_LEVEL(spdlog::level::debug);
 
     XAMP_LOG_DEBUG("Logger init success.");
+
+    xamp::metadata::IndexVolum();
 
     StackTrace::RegisterAbortHandler();
 

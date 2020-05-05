@@ -37,6 +37,9 @@ void JsonSettings::remove(const QString& key) {
 }
 
 void JsonSettings::save() {
+	if (!settings_) {
+		return;
+	}
 	settings_->sync();
 }
 

@@ -31,4 +31,6 @@ protected:
 
 XAMP_METADATA_API void FromPath(const Path& path, MetadataExtractAdapter* adapter, MetadataReader* reader);
 
+XAMP_METADATA_API void IndexVolum();
+
 }

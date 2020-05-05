@@ -12,9 +12,6 @@ namespace xamp::base {
 template <typename T, typename Traits>
 class XAMP_BASE_API_ONLY_EXPORT UniqueHandle final {
 public:
-	struct boolean_struct { int member; };
-	typedef int boolean_struct::* boolean_type;
-
 	explicit UniqueHandle(T value = Traits::invalid()) noexcept 
 		: value_(value) {
 	}
@@ -28,7 +25,7 @@ public:
 		return *this;
 	}
 
-	~UniqueHandle() {
+	~UniqueHandle() noexcept {
 		close();
 	}
 
@@ -45,22 +42,22 @@ public:
 		}
 	}
 
-	T release() noexcept {
+	[[nodiscard]] T release() noexcept {
 		auto value = value_;
 		value_ = Traits::invalid();
 		return value;
 	}
 
-	bool is_valid() const noexcept {
+	[[nodiscard]] bool is_valid() const noexcept {
 		return value_ != Traits::invalid();
 	}
 
-	operator boolean_type() const noexcept {
-		return Traits::invalid() != value_ ? &boolean_struct::member : nullptr;
+	explicit operator bool() const noexcept {
+		return is_valid();
 	}
 
 	void close() noexcept {
-		if (value_ != Traits::invalid()) {
+		if (is_valid()) {
 			Traits::close(value_);
 		}
 	}
