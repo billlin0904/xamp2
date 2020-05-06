@@ -189,6 +189,7 @@ void SetCurrentThreadAffinity(int32_t core) {
 #endif
 }
 
+#ifdef XAMP_OS_WIN
 bool EnablePrivilege(std::string_view privilege, bool enable) noexcept {
     const WinHandle current_process(::GetCurrentProcess());
 
@@ -226,5 +227,6 @@ bool EnablePrivilege(std::string_view privilege, bool enable) noexcept {
     XAMP_LOG_DEBUG("OpenProcessToken return failure! error:{}", GetLastError());
     return false;
 }
+#endif
 
 }

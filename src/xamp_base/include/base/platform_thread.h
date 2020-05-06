@@ -23,7 +23,7 @@ XAMP_BASE_API void SetRealtimeProcessPriority();
 XAMP_BASE_API void SetThreadAffinity(std::thread& thread, int32_t core = kDefaultAffinityCpuCore);
 
 XAMP_BASE_API void SetCurrentThreadAffinity(int32_t core = kDefaultAffinityCpuCore);
-
+#ifdef XAMP_OS_WIN
 XAMP_BASE_API bool EnablePrivilege(std::string_view privilege, bool enable) noexcept;
-
+#endif
 }

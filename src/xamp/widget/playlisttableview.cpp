@@ -10,7 +10,7 @@
 #include <QtConcurrent>
 #include <QFutureWatcher>
 
-#include <Shlobj_core.h>
+#include <QStandardPaths>
 
 #include <base/rng.h>
 #include <metadata/metadatareader.h>
@@ -25,9 +25,7 @@
 #include <widget/playlisttableview.h>
 
 static QString getMyMusicFolderPath() {
-    wchar_t buffer[MAX_PATH] = { 0 };
-    SHGetSpecialFolderPathW(nullptr, buffer, CSIDL_COMMON_MUSIC, FALSE);
-    return QString::fromStdWString(buffer);
+    return QStandardPaths::standardLocations(QStandardPaths::MusicLocation)[0];
 }
 
 PlayListEntity PlayListTableView::fromMetadata(const xamp::base::Metadata& metadata) {
