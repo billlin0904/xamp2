@@ -18,7 +18,7 @@ public:
 
     class SubMenu {
     public:
-        SubMenu(const QString &menu_name, QMenu *menu, MapType &action_map)
+        SubMenu(const QString& menu_name, QMenu* menu, MapType& action_map)
             : action_map_(action_map) {
             submenu_ = new QMenu(menu_name, menu);
             menu->addMenu(submenu_);
@@ -26,7 +26,7 @@ public:
         }
 
         template <typename Callable>
-        QAction* addAction(const QString &menu_name, Callable &&callback, bool checked = false, bool add_eparator = false) {
+        QAction* addAction(const QString& menu_name, Callable&& callback, bool checked = false, bool add_eparator = false) {
             const auto action = new QAction(menu_name, nullptr);
             action->setCheckable(true);
 
@@ -45,18 +45,18 @@ public:
             return action;
         }
     private:
-        QMenu * submenu_;
-        QActionGroup *action_group_;
-        MapType &action_map_;
+        QMenu* submenu_;
+        QActionGroup* action_group_;
+        MapType& action_map_;
     };
 
-	explicit ActionMap(Type *object)
-		: object_(object)
-		, menu_(object) {
+    explicit ActionMap(Type* object)
+        : object_(object)
+        , menu_(object) {
         setThemeSetyle();
-	}
+    }
 
-    ActionMap(QWidget *app, Type *object) 
+    ActionMap(QWidget* app, Type* object)
         : object_(object)
         , menu_(app) {
         setThemeSetyle();
@@ -64,6 +64,11 @@ public:
 
     void setThemeSetyle() {
         setStyleSheet(ThemeManager::instance().getMenuStyle());
+    }
+
+    void addAction(const QString& menu_name) {
+        auto action = addAction(menu_name, []() {});
+        action->setEnabled(false);        
     }
 
     template <typename Callable>

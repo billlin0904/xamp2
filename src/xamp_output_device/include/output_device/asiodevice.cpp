@@ -30,8 +30,8 @@ struct AsioCallbackInfo {
 	AudioConvertContext data_context{};
 	ASIOCallbacks asio_callbacks{};	
 	Mmcss mmcss;
-	std::array<ASIOBufferInfo, XAMP_MAX_CHANNEL> buffer_infos;
-	std::array<ASIOChannelInfo, XAMP_MAX_CHANNEL> channel_infos;
+	std::array<ASIOBufferInfo, kXampMaxChannel> buffer_infos;
+	std::array<ASIOChannelInfo, kXampMaxChannel> channel_infos;
 } callbackInfo;
 
 static XAMP_ALWAYS_INLINE long GetLatencyMs(long latency, long sampleRate) noexcept {

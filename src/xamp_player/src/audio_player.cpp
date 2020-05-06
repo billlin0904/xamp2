@@ -406,7 +406,7 @@ void AudioPlayer::CreateBuffer() {
     if (DeviceFactory::Instance().IsPlatformSupportedASIO()) {
         if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE
             || DeviceFactory::Instance().IsASIODevice(device_type_id_)) {
-            require_read_sample = XAMP_MAX_SAMPLERATE;
+            require_read_sample = kXampMaxSamplerate;
         }
         else {
             require_read_sample = device_->GetBufferSize() * kMaxReadRatio;

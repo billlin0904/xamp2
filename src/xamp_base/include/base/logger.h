@@ -21,7 +21,7 @@ class XAMP_BASE_API Logger final {
 public:
 	static Logger& Instance();
 
-	~Logger();
+	~Logger() = default;
 
 	XAMP_DISABLE_COPY(Logger)
 
@@ -38,7 +38,7 @@ public:
 	std::shared_ptr<spdlog::logger> GetLogger(const std::string &name);
 
 private:
-	Logger();	
+	Logger() = default;
 
 	std::vector<spdlog::sink_ptr> sinks_;
 };

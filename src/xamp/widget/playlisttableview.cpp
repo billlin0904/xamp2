@@ -2,7 +2,7 @@
 #include <QMenu>
 #include <QFileInfo>
 #include <QDesktopServices>
-#include <QUrl>
+#include <QFileDialog>
 #include <QtWidgets/QApplication>
 #include <QClipboard>
 #include <QScrollBar>
@@ -10,7 +10,10 @@
 #include <QtConcurrent>
 #include <QFutureWatcher>
 
+#include <Shlobj_core.h>
+
 #include <base/rng.h>
+#include <metadata/metadatareader.h>
 #include <metadata/taglibmetareader.h>
 
 #include <widget/pixmapcache.h>
@@ -20,6 +23,12 @@
 #include <widget/actionmap.h>
 #include <widget/stareditor.h>
 #include <widget/playlisttableview.h>
+
+static QString getMyMusicFolderPath() {
+    wchar_t buffer[MAX_PATH] = { 0 };
+    SHGetSpecialFolderPathW(nullptr, buffer, CSIDL_COMMON_MUSIC, FALSE);
+    return QString::fromStdWString(buffer);
+}
 
 PlayListEntity PlayListTableView::fromMetadata(const xamp::base::Metadata& metadata) {
     PlayListEntity item;
@@ -45,8 +54,7 @@ PlayListTableView::PlayListTableView(QWidget* parent, int32_t playlist_id)
     initial();
 }
 
-PlayListTableView::~PlayListTableView() {
-}
+PlayListTableView::~PlayListTableView() = default;
 
 void PlayListTableView::initial() {
     proxy_model_.setSourceModel(&model_);
@@ -149,38 +157,73 @@ void PlayListTableView::initial() {
     setContextMenuPolicy(Qt::CustomContextMenu);
     (void)QObject::connect(this, &QTableView::customContextMenuRequested, [this](auto pt) {
         auto index = indexAt(pt);
-        if (model_.isEmpty()) {
-            return;
-        }
-
-        auto item = model_.item(proxy_model_.mapToSource(index));
 
         ActionMap<PlayListTableView, std::function<void()>> action_map(this);
 
-        action_map.addAction(tr("Open local file path"), [item]() {
-            QDesktopServices::openUrl(QUrl::fromLocalFile(item.parent_path));
-            });
-        action_map.addSeparator();
-        action_map.addAction(tr("Reload file meta"), [this]() {
-            reloadSelectMetadata();
-            });
-        action_map.addAction(tr("Read file fingerprint"), [this]() {
-            const auto rows = selectItemIndex();
-            for (const auto& select_item : rows) {
-                auto entity = this->item(select_item.second);
-                emit readFingerprint(select_item.second, entity);
+        (void)action_map.addAction(tr("Open local file"), [this]() {
+            xamp::metadata::TaglibMetadataReader reader;
+            QString exts(Q_UTF8("("));
+            for (auto file_ext : reader.GetSupportFileExtensions()) {
+                exts += Q_UTF8("*") + QString::fromStdString(file_ext);
+                exts += Q_UTF8(" ");
             }
+            exts += Q_UTF8(")");
+            auto file_name = QFileDialog::getOpenFileName(this,
+                tr("Open file"),
+                getMyMusicFolderPath(),
+                tr("Music Files ") + exts);
+            if (file_name.isEmpty()) {
+                return;
+            }
+            append(file_name);
             });
+
+        (void)action_map.addAction(tr("Import local file path"), [this]() {
+            auto dir_name = QFileDialog::getExistingDirectory(this,
+                tr("Select a Directory"),
+                getMyMusicFolderPath());
+            append(dir_name);
+            });
+    	
         action_map.addSeparator();
-        (void)action_map.addAction(tr("Copy album"), [item, this]() {
-            QApplication::clipboard()->setText(item.album);
-            });
-        (void)action_map.addAction(tr("Copy artist"), [item, this]() {
-            QApplication::clipboard()->setText(item.artist);
-            });
-        (void)action_map.addAction(tr("Copy title"), [item, this]() {
-            QApplication::clipboard()->setText(item.title);
-            });
+
+        if (!model_.isEmpty()) {
+            auto item = model_.item(proxy_model_.mapToSource(index));
+
+            (void)action_map.addAction(tr("Open local file path"), [item]() {
+                QDesktopServices::openUrl(QUrl::fromLocalFile(item.parent_path));
+                });
+
+            (void)action_map.addAction(tr("Reload file meta"), [this]() {
+                reloadSelectMetadata();
+                });
+            (void)action_map.addAction(tr("Read file fingerprint"), [this]() {
+                const auto rows = selectItemIndex();
+                for (const auto& select_item : rows) {
+                    auto entity = this->item(select_item.second);
+                    emit readFingerprint(select_item.second, entity);
+                }
+                });
+            action_map.addSeparator();
+            (void)action_map.addAction(tr("Copy album"), [item, this]() {
+                QApplication::clipboard()->setText(item.album);
+                });
+            (void)action_map.addAction(tr("Copy artist"), [item, this]() {
+                QApplication::clipboard()->setText(item.artist);
+                });
+            (void)action_map.addAction(tr("Copy title"), [item, this]() {
+                QApplication::clipboard()->setText(item.title);
+                });
+        }
+        else {
+            action_map.addAction(tr("Open local file path"));
+            action_map.addAction(tr("Reload file meta"));
+            action_map.addAction(tr("Read file fingerprint"));
+            action_map.addAction(tr("Copy album"));
+            action_map.addAction(tr("Copy artist"));
+            action_map.addAction(tr("Copy title"));
+        }
+
         action_map.exec(pt);
         });
 

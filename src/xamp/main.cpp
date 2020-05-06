@@ -56,8 +56,6 @@ static int excute(int argc, char* argv[]) {
 
     XAMP_LOG_DEBUG("Logger init success.");
 
-    xamp::metadata::IndexVolum();
-
     StackTrace::RegisterAbortHandler();
 
     XAMP_LOG_DEBUG("RegisterAbortHandler success.");

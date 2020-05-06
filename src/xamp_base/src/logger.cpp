@@ -42,12 +42,6 @@ Logger & Logger::Instance() {
     return logger;
 }
 
-Logger::Logger() {
-}
-
-Logger::~Logger() {
-}
-
 void Logger::Shutdown() {
     spdlog::shutdown();
 }

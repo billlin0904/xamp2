@@ -73,8 +73,8 @@ struct XAMP_BASE_API AudioConvertContext {
 	AudioFormat input_format;
 	AudioFormat output_format;
     size_t convert_size{0};
-    std::array<size_t, XAMP_MAX_CHANNEL> in_offset;
-    std::array<size_t, XAMP_MAX_CHANNEL> out_offset;
+    std::array<size_t, kXampMaxChannel> in_offset;
+    std::array<size_t, kXampMaxChannel> out_offset;
 };
 
 XAMP_BASE_API AudioConvertContext MakeConvert(const AudioFormat& in_format, const AudioFormat& out_format, size_t convert_size) noexcept;

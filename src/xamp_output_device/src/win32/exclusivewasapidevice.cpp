@@ -287,12 +287,12 @@ void ExclusiveWasapiDevice::GetSample(const uint32_t frame_available) {
 	HrIfFailledThrow(::MFPutWaitingWorkItem(sample_ready_.get(),
 		0,
 		sample_ready_async_result_,
-		&sample_raedy_key_));
+		&sample_ready_key_));
 }
 
 void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
 	if (sample_ready_key_ != 0) {
-		HrIfFailledThrow2(::MFCancelWorkItem(sample_raedy_key_), MF_E_NOT_FOUND);
+		HrIfFailledThrow2(::MFCancelWorkItem(sample_ready_key_), MF_E_NOT_FOUND);
 		sample_ready_key_ = 0;
 	}
 
@@ -350,7 +350,7 @@ void ExclusiveWasapiDevice::StartStream() {
 	// Note: 必要! 某些音效卡會爆音!
 	FillSilentSample(buffer_frames_);
 
-	HrIfFailledThrow(::MFPutWaitingWorkItem(sample_ready_.get(), 0, sample_ready_async_result_, &sample_raedy_key_));
+	HrIfFailledThrow(::MFPutWaitingWorkItem(sample_ready_.get(), 0, sample_ready_async_result_, &sample_ready_key_));
     is_stop_streaming_ = false;
 }
 

@@ -4,8 +4,8 @@
 #ifdef XAMP_OS_WIN
 #include <winioctl.h>
 #include <base/exception.h>
+#include <base/str_utilts.h>
 #include <base/windows_handle.h>
-#include <base/threadpool.h>
 #include <base/platform_thread.h>
 #endif
 
@@ -15,73 +15,82 @@
 namespace xamp::metadata {
 
 #ifdef XAMP_OS_WIN
-static FILE_ID_DESCRIPTOR GetFileIdDescriptor(const DWORDLONG file_id) {
-    FILE_ID_DESCRIPTOR file_descriptor{0};
-    file_descriptor.Type = FileIdType;
-    file_descriptor.FileId.QuadPart = file_id;
-    file_descriptor.dwSize = sizeof(file_descriptor);
-    return file_descriptor;
-}
 
-void IndexVolum() {
+#define REPORT_ERROR(Msg) \
+	XAMP_LOG_DEBUG(Msg##" return failure! error:{} {}", ::GetLastError(), GetPlatformErrorMessage(::GetLastError())) 
+
+class SearchFileManager {
+public:
+    SearchFileManager();
+
+    void ScanAudioFiles(const std::wstring &file_path = L"\\\\.\\c:");
+
+private:
+    static FILE_ID_DESCRIPTOR GetFileIdDescriptor(const DWORDLONG file_id) {
+        FILE_ID_DESCRIPTOR file_descriptor{ 0 };
+        file_descriptor.Type = FileIdType;
+        file_descriptor.FileId.QuadPart = file_id;
+        file_descriptor.dwSize = sizeof(file_descriptor);
+        return file_descriptor;
+    }
+};
+
+SearchFileManager::SearchFileManager() {
     if (!EnablePrivilege("SeBackupPrivilege", true)) {
         return;
     }
-	
+
     if (!EnablePrivilege("SeRestorePrivilege", true)) {
         return;
     }
+}
 	
+void SearchFileManager::ScanAudioFiles(const std::wstring& path) {
     FileHandle device(::CreateFileW(
-        L"\\??\\C:",
-        FILE_READ_ATTRIBUTES,
+        path.c_str(),
+        GENERIC_READ,
         FILE_SHARE_WRITE | FILE_SHARE_READ | FILE_SHARE_DELETE,
         nullptr,
         OPEN_EXISTING,
         FILE_FLAG_BACKUP_SEMANTICS,
         nullptr));
 	if (!device) {
-        XAMP_LOG_DEBUG("CreateFileW return failure! {}",
-            GetPlatformErrorMessage(::GetLastError()));
+        REPORT_ERROR("CreateFileW");
         return;
 	}
 
-    USN_JOURNAL_DATA ujd = { 0 };
+    USN_JOURNAL_DATA_V0 journal_data_v0 = { 0 };
     DWORD cb = 0;
-    std::vector<BYTE> data(sizeof(DWORDLONG) + 0x10000);
-
+    
     if (!::DeviceIoControl(device.get(),
         FSCTL_QUERY_USN_JOURNAL,
         nullptr,
         0,
-        &ujd,
-        sizeof(USN_JOURNAL_DATA),
+        &journal_data_v0,
+        sizeof(journal_data_v0),
         &cb, 
         nullptr)) {
-        XAMP_LOG_DEBUG("DeviceIoControl return failure! {}: {}",
-            ::GetLastError(),
-            GetPlatformErrorMessage(::GetLastError()));
+        REPORT_ERROR("DeviceIoControl FSCTL_QUERY_USN_JOURNAL");
         return;
     }
 
-    MFT_ENUM_DATA med = { 0 };
-    med.StartFileReferenceNumber = 0;
-    med.LowUsn = 0;
-    med.HighUsn = ujd.NextUsn;
+    MFT_ENUM_DATA_V0 mft_enum_data_v0 = { 0 };
+    mft_enum_data_v0.StartFileReferenceNumber = 0;
+    mft_enum_data_v0.LowUsn = 0;
+    mft_enum_data_v0.HighUsn = journal_data_v0.NextUsn;
 
-    ThreadPool dispatch;
+    std::vector<BYTE> data(sizeof(DWORDLONG) + 0x10000);
 
 	while (true) {
         if (!::DeviceIoControl(device.get(),
             FSCTL_ENUM_USN_DATA,
-            &med,
-            sizeof(med),
+            &mft_enum_data_v0,
+            sizeof(mft_enum_data_v0),
             data.data(),
             data.size(),
             &cb,
             nullptr)) {
-            XAMP_LOG_DEBUG("DeviceIoControl return failure! {}",
-                GetPlatformErrorMessage(::GetLastError()));
+            REPORT_ERROR("DeviceIoControl FSCTL_ENUM_USN_DATA");
             break;
         }
 
@@ -89,28 +98,27 @@ void IndexVolum() {
         while (reinterpret_cast<PBYTE>(record) < (data.data() + cb)) {
             std::wstring sz(reinterpret_cast<LPCWSTR>(reinterpret_cast<PBYTE>(record) + record->FileNameOffset),
                 record->FileNameLength / sizeof(WCHAR));
-            record = reinterpret_cast<PUSN_RECORD>(reinterpret_cast<PBYTE>(record) + record->RecordLength);
+        	
             auto fd = GetFileIdDescriptor(record->FileReferenceNumber);
-            auto f = dispatch.StartNew([&]() {
-                wchar_t file_path[MAX_PATH];
-                const FileHandle open_file(::OpenFileById(device.get(), 
-                                                          const_cast<LPFILE_ID_DESCRIPTOR>(&fd),
-                                                          0,
-                                                          0,
-                                                          nullptr,
-                                                          0));
-            	if (!open_file) {
-            		return;
-            	}
-                ::GetFinalPathNameByHandleW(open_file.get(),
-                    file_path,
-                    MAX_PATH,
-                    0);
-                });
-            f.get();
+            wchar_t file_path[MAX_PATH];
+            const FileHandle open_file(::OpenFileById(device.get(),
+                const_cast<LPFILE_ID_DESCRIPTOR>(&fd),
+                0,
+                0,
+                nullptr,
+                0));
+            if (!open_file) {
+                return;
+            }
+            ::GetFinalPathNameByHandleW(open_file.get(),
+                file_path,
+                MAX_PATH,
+                0);
+            XAMP_LOG_DEBUG("Read file {}", ToString(file_path));
+            record = reinterpret_cast<PUSN_RECORD>(reinterpret_cast<PBYTE>(record) + record->RecordLength);
         }
 	}
-}	
+}
 #endif
 	
 void FromPath(const Path& path, MetadataExtractAdapter* adapter, MetadataReader *reader) {

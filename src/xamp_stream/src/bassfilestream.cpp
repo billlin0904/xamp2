@@ -336,7 +336,7 @@ public:
         info_ = BASS_CHANNELINFO{};	
         BassIfFailedThrow(BassLib::Instance().BASS_ChannelGetInfo(stream_.get(), &info_));
 
-        if (GetFormat().GetChannels() != XAMP_MAX_CHANNEL) {
+        if (GetFormat().GetChannels() != kXampMaxChannel) {
             throw NotSupportFormatException();
         }
     }
