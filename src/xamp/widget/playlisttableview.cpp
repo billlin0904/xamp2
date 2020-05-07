@@ -178,7 +178,7 @@ void PlayListTableView::initial() {
 
         (void)action_map.addAction(tr("Import local file path"), [this]() {
             auto dir_name = QFileDialog::getExistingDirectory(this,
-                tr("Select a Directory"),
+                tr("Select a directory"),
                 getMyMusicFolderPath());
             append(dir_name);
             });
