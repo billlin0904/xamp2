@@ -138,7 +138,6 @@ void FramelessWindow::initialFontDatabase() {
 #else
     fallback_fonts.append(Q_UTF8("SF Pro Display"));
     fallback_fonts.append(Q_UTF8("SF Pro Text"));
-    fallback_fonts.append(Q_UTF8("SF Pro Icons"));
     fallback_fonts.append(Q_UTF8("Helvetica Neue"));
     fallback_fonts.append(Q_UTF8("Helvetica"));
 #endif		

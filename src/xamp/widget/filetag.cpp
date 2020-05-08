@@ -4,7 +4,8 @@
 
 #include <widget/filetag.h>
 
-constexpr size_t CHUNK_SIZE = 1 << 22;
+constexpr int32_t kTagIdChunkSize = 1 << 22;
+constexpr char kPrepareHeader = static_cast<char>(0x96);
 
 static QByteArray sha1(const QByteArray& data) noexcept {
     QCryptographicHash sha1_hash(QCryptographicHash::Sha1);
@@ -17,24 +18,25 @@ static QString urlSafeBase64Encode(const QByteArray& data) noexcept {
 }
 
 QString FileTag::getTagId(const QByteArray &buffer) noexcept {
-    if (buffer.size() <= CHUNK_SIZE) {
+    if (buffer.size() <= kTagIdChunkSize) {
         const auto sha1_data = sha1(buffer);
         auto hash_data = sha1_data;
         hash_data.prepend(0x16);
         return urlSafeBase64Encode(hash_data);
     } else {
-        size_t chunk_count = buffer.size() / CHUNK_SIZE;
-        if (buffer.size() % CHUNK_SIZE != 0) {
+        auto chunk_count = static_cast<int32_t>(buffer.size())
+                             / kTagIdChunkSize;
+        if (buffer.size() % kTagIdChunkSize != 0) {
             chunk_count += 1;
         }
 
         QDataStream reader(buffer);
         QByteArray sha1_all_data;
 
-        for (size_t i = 0; i < chunk_count; i++) {
-            qint64 chunk_size = CHUNK_SIZE;
+        for (auto i = 0; i < chunk_count; i++) {
+            auto chunk_size = kTagIdChunkSize;
             if (i == chunk_count - 1) {
-                chunk_size = buffer.size() - (chunk_count - 1) * CHUNK_SIZE;
+                chunk_size = buffer.size() - (chunk_count - 1) * kTagIdChunkSize;
             }
             QByteArray buf(chunk_size, 0);
             reader.readRawData(buf.data(), chunk_size);
@@ -43,7 +45,7 @@ QString FileTag::getTagId(const QByteArray &buffer) noexcept {
         }
 
         auto hash_data = sha1(sha1_all_data);
-        hash_data.prepend(0x96);
+        hash_data.prepend(kPrepareHeader);
         return urlSafeBase64Encode(hash_data);
     }
 }
@@ -59,7 +61,7 @@ QString FileTag::getTagId(const QString& file_name) noexcept {
 
         if (opened) {
             const auto file_len = fh.size();
-            if (file_len <= CHUNK_SIZE) {
+            if (file_len <= kTagIdChunkSize) {
                 const auto file_data = fh.readAll();
                 const auto sha1_data = sha1(file_data);
 
@@ -68,16 +70,16 @@ QString FileTag::getTagId(const QString& file_name) noexcept {
                 etag = urlSafeBase64Encode(hash_data);
             }
             else {
-                auto chunk_count = file_len / CHUNK_SIZE;
-                if (file_len % CHUNK_SIZE != 0) {
+                auto chunk_count = file_len / kTagIdChunkSize;
+                if (file_len % kTagIdChunkSize != 0) {
                     chunk_count += 1;
                 }
 
                 QByteArray sha1_all_data;
                 for (auto i = 0; i < chunk_count; i++) {
-                    qint64 chunk_size = CHUNK_SIZE;
+                    qint64 chunk_size = kTagIdChunkSize;
                     if (i == chunk_count - 1) {
-                        chunk_size = file_len - (chunk_count - 1) * CHUNK_SIZE;
+                        chunk_size = file_len - (chunk_count - 1) * kTagIdChunkSize;
                     }
                     const auto buf = fh.read(chunk_size);
                     const auto sha1_data = sha1(buf);
@@ -85,7 +87,7 @@ QString FileTag::getTagId(const QString& file_name) noexcept {
                 }
 
                 auto hash_data = sha1(sha1_all_data);
-                hash_data.prepend(0x96);
+                hash_data.prepend(kPrepareHeader);
                 etag = urlSafeBase64Encode(hash_data);
             }
             fh.close();

@@ -7,6 +7,10 @@
 #include <QSpacerItem>
 #include <QHeaderView>
 #include <QClipboard>
+#include <QStandardPaths>
+#include <QFileDialog>
+#include <QtConcurrent>
+#include <QFuture>
 
 #include <base/logger.h>
 
@@ -24,6 +28,10 @@
 #include <widget/image_utiltis.h>
 #include <widget/pixmapcache.h>
 #include <widget/albumview.h>
+
+static QString getMyMusicFolderPath() {
+    return QStandardPaths::standardLocations(QStandardPaths::MusicLocation)[0];
+}
 
 AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
     : QStyledItemDelegate(parent)
@@ -456,6 +464,37 @@ AlbumView::AlbumView(QWidget* parent)
         action_map.exec(pt);
     });
 
+    setContextMenuPolicy(Qt::CustomContextMenu);
+    (void)QObject::connect(this, &QListView::customContextMenuRequested, [this](auto pt) {
+        ActionMap<AlbumView, std::function<void()>> action_map(this);
+
+        (void)action_map.addAction(tr("Load local file"), [this]() {
+            xamp::metadata::TaglibMetadataReader reader;
+            QString exts(Q_UTF8("("));
+            for (auto file_ext : reader.GetSupportFileExtensions()) {
+                exts += Q_UTF8("*") + QString::fromStdString(file_ext);
+                exts += Q_UTF8(" ");
+            }
+            exts += Q_UTF8(")");
+            auto file_name = QFileDialog::getOpenFileName(this,
+                                                          tr("Open file"),
+                                                          getMyMusicFolderPath(),
+                                                          tr("Music Files ") + exts);
+            if (file_name.isEmpty()) {
+                return;
+            }
+            append(file_name);
+        });
+
+        (void)action_map.addAction(tr("Load file directory"), [this]() {
+            auto dir_name = QFileDialog::getExistingDirectory(this,
+                                                              tr("Select a Directory"),
+                                                              getMyMusicFolderPath());
+            append(dir_name);
+        });
+
+        action_map.exec(pt);
+    });
 }
 
 void AlbumView::payNextMusic() {
@@ -562,6 +601,33 @@ WHERE
 LIMIT 200
     )"));
     model_.setQuery(query.arg(text));
+}
+
+void AlbumView::append(const QString& file_name) {
+    auto adapter = new MetadataExtractAdapter();
+
+    (void) QObject::connect(adapter, &MetadataExtractAdapter::readCompleted,
+                            this,
+                            &AlbumView::processMeatadata);
+
+    auto extract_handler = [adapter](const auto &file_name) {
+        const xamp::metadata::Path path(file_name.toStdWString());
+        xamp::metadata::TaglibMetadataReader reader;
+        xamp::metadata::FromPath(path, adapter, &reader);
+    };
+
+    auto future = QtConcurrent::run(extract_handler, file_name);
+    auto watcher = new QFutureWatcher<void>(this);
+    (void) QObject::connect(watcher, &QFutureWatcher<void>::finished, [=]() {
+        watcher->deleteLater();
+        adapter->deleteLater();
+    });
+
+    watcher->setFuture(future);
+}
+
+void AlbumView::processMeatadata(const std::vector<xamp::base::Metadata> &medata) {
+    MetadataExtractAdapter::processMetadata(medata);
 }
 
 void AlbumView::hideWidget() {

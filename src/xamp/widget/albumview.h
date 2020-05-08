@@ -12,6 +12,7 @@
 #include <QStyledItemDelegate>
 #include <QTableView>
 
+#include <base/metadata.h>
 #include <widget/clickablelabel.h>
 #include <widget/str_utilts.h>
 #include <widget/playlistentity.h>
@@ -124,6 +125,9 @@ public slots:
 
 	void onTextColorChanged(QColor backgroundColor, QColor color);
 
+    void append(const QString& file_name);
+
+    void processMeatadata(const std::vector<xamp::base::Metadata> &medata);
 private:
 	AlbumViewPage* page_;
 	QSqlQueryModel model_;

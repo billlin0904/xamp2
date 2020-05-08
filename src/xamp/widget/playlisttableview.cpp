@@ -158,7 +158,7 @@ void PlayListTableView::initial() {
 
         ActionMap<PlayListTableView, std::function<void()>> action_map(this);
 
-        (void)action_map.addAction(tr("Open local file"), [this]() {
+        (void)action_map.addAction(tr("Load local file"), [this]() {
             xamp::metadata::TaglibMetadataReader reader;
             QString exts(Q_UTF8("("));
             for (auto file_ext : reader.GetSupportFileExtensions()) {
@@ -176,9 +176,9 @@ void PlayListTableView::initial() {
             append(file_name);
             });
 
-        (void)action_map.addAction(tr("Import local file path"), [this]() {
+        (void)action_map.addAction(tr("Load file directory"), [this]() {
             auto dir_name = QFileDialog::getExistingDirectory(this,
-                tr("Select a directory"),
+                tr("Select a Directory"),
                 getMyMusicFolderPath());
             append(dir_name);
             });
@@ -203,13 +203,13 @@ void PlayListTableView::initial() {
                 }
                 });
             action_map.addSeparator();
-            (void)action_map.addAction(tr("Copy album"), [item, this]() {
+            (void)action_map.addAction(tr("Copy album"), [item]() {
                 QApplication::clipboard()->setText(item.album);
                 });
-            (void)action_map.addAction(tr("Copy artist"), [item, this]() {
+            (void)action_map.addAction(tr("Copy artist"), [item]() {
                 QApplication::clipboard()->setText(item.artist);
                 });
-            (void)action_map.addAction(tr("Copy title"), [item, this]() {
+            (void)action_map.addAction(tr("Copy title"), [item]() {
                 QApplication::clipboard()->setText(item.title);
                 });
         }
@@ -294,7 +294,10 @@ bool PlayListTableView::eventFilter(QObject* obj, QEvent* ev) {
 void PlayListTableView::append(const QString& file_name) {
     auto adapter = new MetadataExtractAdapter();
 
-    (void) QObject::connect(adapter, &MetadataExtractAdapter::readCompleted, this, &PlayListTableView::processMeatadata);
+    (void) QObject::connect(adapter,
+                            &MetadataExtractAdapter::readCompleted,
+                            this,
+                            &PlayListTableView::processMeatadata);
 
     auto extract_handler = [adapter](const auto &file_name) {
         const xamp::metadata::Path path(file_name.toStdWString());

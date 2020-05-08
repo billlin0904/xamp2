@@ -14,18 +14,22 @@
 #include <metadata/metadataextractadapter.h>
 #include <metadata/taglibmetareader.h>
 
+using MetadataExtractAdapterBase = xamp::metadata::MetadataExtractAdapter;
+using xamp::metadata::Metadata;
+using xamp::metadata::Path;
+
 class PlayListTableView;
 
 class MetadataExtractAdapter
 	: public QObject
-	, public xamp::metadata::MetadataExtractAdapter {
+    , public MetadataExtractAdapterBase {
 	Q_OBJECT
 public:
     explicit MetadataExtractAdapter(QObject* parent = nullptr);
 
 	~MetadataExtractAdapter() override;
 
-    void OnWalk(const xamp::metadata::Path& path, xamp::base::Metadata metadata) override;
+    void OnWalk(const xamp::metadata::Path& path, Metadata metadata) override;
 
 	void OnWalkNext() override;
 
@@ -39,10 +43,10 @@ signals:
 	void readCompleted(std::vector<xamp::base::Metadata> enitiy);
 
 public:
-	static void processMetadata(const std::vector<xamp::base::Metadata>& metadatas, PlayListTableView *playlist = nullptr);
+    static void processMetadata(const std::vector<Metadata>& metadatas, PlayListTableView *playlist = nullptr);
 	
 private:
     bool cancel_;
-	std::vector<xamp::base::Metadata> metadatas_;    
+    std::vector<Metadata> metadatas_;
 };
 
