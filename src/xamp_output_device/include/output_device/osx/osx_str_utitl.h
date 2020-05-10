@@ -10,9 +10,8 @@
 namespace xamp::output_device::osx {
 
 template <typename StringType>
-static CFStringRef STLStringToCFStringWithEncodingsT(
-    const StringType& in,
-    CFStringEncoding in_encoding) {
+static CFStringRef STLStringToCFStringWithEncodingsT(const StringType& in,
+                                                     CFStringEncoding in_encoding) {
     typename StringType::size_type in_length = in.length();
     if (in_length == 0) {
         return CFSTR("");

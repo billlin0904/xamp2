@@ -98,7 +98,7 @@ void MusicBrainzClient::lookupArtist(int32_t artist_id, const QString& artist_mb
     auto handler = [this, artist_id](const QString& msg) {
         auto str = msg.toStdString();
         xml_document<> doc;
-        doc.parse<0>((char*)str.data());
+        doc.parse<0>(const_cast<char*>(str.data()));
         auto metadata = doc.first_node("metadata");
         if (!metadata) {
             return;

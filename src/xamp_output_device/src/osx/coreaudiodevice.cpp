@@ -7,6 +7,7 @@
 
 #include <base/logger.h>
 
+#include <output_device/osx/osx_utitl.h>
 #include <output_device/audiocallback.h>
 #include <output_device/osx/coreaudioexception.h>
 #include <output_device/osx/coreaudiodevice.h>
@@ -151,6 +152,10 @@ void CoreAudioDevice::OpenStream(const AudioFormat &output_format) {
         XAMP_LOG_DEBUG("Format is interleaved");
     }
 
+    if (!IsSupportSampleRate(device_id_, output_format.GetSampleRate())) {
+        throw DeviceUnSupportedFormatException(output_format);
+    }
+
     if (format_ != output_format) {
         fmt.mFormatID = kAudioFormatLinearPCM;
         fmt.mFormatFlags = kAudioFormatFlagIsFloat | kAudioFormatFlagIsPacked;
@@ -177,29 +182,30 @@ void CoreAudioDevice::OpenStream(const AudioFormat &output_format) {
     UInt32 bufferSize = 0;
     audio_property_.mSelector = kAudioDevicePropertyBufferFrameSize;
     dataSize = sizeof(bufferSize);
-    CoreAudioThrowIfError(::AudioObjectGetPropertyData(
-        device_id_,
-        &audio_property_,
-        0,
-        nullptr,
-        &dataSize,
-        &bufferSize));
+    CoreAudioThrowIfError(::AudioObjectGetPropertyData(device_id_,
+                                                       &audio_property_,
+                                                       0,
+                                                       nullptr,
+                                                       &dataSize,
+                                                       &bufferSize));
     XAMP_LOG_DEBUG("Allocate buffer size:{}", bufferSize);
 
     UInt32 theSize = bufferSize;
     dataSize = sizeof(UInt32);
     audio_property_.mSelector = kAudioDevicePropertyBufferFrameSize;
-    CoreAudioThrowIfError(::AudioObjectSetPropertyData(
-        device_id_,
-        &audio_property_,
-        0,
-        nullptr,
-        dataSize,
-        &theSize));
+    CoreAudioThrowIfError(::AudioObjectSetPropertyData(device_id_,
+                                                       &audio_property_,
+                                                       0,
+                                                       nullptr,
+                                                       dataSize,
+                                                       &theSize));
 
     buffer_size_ = output_format.GetChannels() * bufferSize;
 
-    CoreAudioThrowIfError(::AudioDeviceCreateIOProcID(device_id_, OnAudioDeviceIOProc, this, &proc_id_));
+    CoreAudioThrowIfError(::AudioDeviceCreateIOProcID(device_id_,
+                                                      OnAudioDeviceIOProc,
+                                                      this,
+                                                      &proc_id_));
     format_ = output_format;
 }
 
@@ -227,12 +233,13 @@ void CoreAudioDevice::CloseStream() {
 }
 
 void CoreAudioDevice::StartStream() {
-    CoreAudioThrowIfError(AudioDeviceStart(device_id_, proc_id_));
+    CoreAudioThrowIfError(::AudioDeviceStart(device_id_, proc_id_));
     is_running_ = true;
 }
 
 void CoreAudioDevice::SetStreamTime(double stream_time) noexcept {
-    stream_time_ = stream_time * format_.GetAvgFramesPerSec();
+    stream_time_ = stream_time
+                   * static_cast<double>(format_.GetAvgFramesPerSec());
 }
 
 double CoreAudioDevice::GetStreamTime() const noexcept {
@@ -293,7 +300,7 @@ void CoreAudioDevice::AudioDeviceIOProc(AudioBufferList *output_data) {
         const uint32_t num_sample = static_cast<uint32_t>(buffer.mDataByteSize
                                                           / sizeof(float)
                                                           / format_.GetChannels());
-        stream_time_ = stream_time_ + static_cast<double>(num_sample * 2);
+        stream_time_ = stream_time_ + num_sample * 2;
         if (XAMP_UNLIKELY(callback_->OnGetSamples(static_cast<float*>(buffer.mData),
                                                   num_sample,
                                                   stream_time_ / static_cast<double>(format_.GetAvgFramesPerSec())) == 0)) {

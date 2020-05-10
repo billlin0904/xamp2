@@ -28,7 +28,7 @@ do { \
 #define CoreAudioFailedLog(expr) \
     do {\
         auto err = expr;\
-        if (err != kAudioHardwareNoError) {\
+        if (err != noErr) {\
             XAMP_LOG_DEBUG("{}", CoreAudioException::ErrorToString(err));\
         }\
     } while(false)

@@ -15,7 +15,7 @@ NullResampler::NullResampler(DsdModes dsd_mode, uint32_t sample_size)
     : dsd_mode_(dsd_mode)
     , sample_size_(sample_size)
     , process_(nullptr) {
-    if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE) {
+    if (dsd_mode_ == DsdModes::DSD_MODE_DOP) {
         process_ = &NullResampler::ProcessNativeDsd;
     }
     else {

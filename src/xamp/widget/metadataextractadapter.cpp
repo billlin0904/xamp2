@@ -31,41 +31,44 @@ public:
         cover_id.Clear();
     }
 
-    LruCache<QString, int32_t> album_id;
-    LruCache<QString, int32_t> artist_id;
+    std::tuple<int32_t, int32_t, QString> getCacheId(const QString &album, const QString &artist);
+
     LruCache<int32_t, QString> cover_id;
 private:
     IdCache() = default;
+
+    LruCache<QString, int32_t> album_id;
+    LruCache<QString, int32_t> artist_id;
 };
 
-static std::tuple<int32_t, int32_t, QString> GetCacheId(const QString &album, const QString &artist) {
+std::tuple<int32_t, int32_t, QString> IdCache::getCacheId(const QString &album, const QString &artist) {
     int32_t artist_id = 0;
-    if (auto artist_id_op = IdCache::instance().artist_id.Find(artist)) {
+    if (auto artist_id_op = this->artist_id.Find(artist)) {
         artist_id = *artist_id_op.value();
     }
     else {
         artist_id = Database::instance().addOrUpdateArtist(artist);
-        IdCache::instance().artist_id.Insert(artist, artist_id);
+        this->artist_id.Insert(artist, artist_id);
     }
 
     int32_t album_id = 0;
-    if (auto album_id_op = IdCache::instance().album_id.Find(album)) {
+    if (auto album_id_op = this->album_id.Find(album)) {
         album_id = *album_id_op.value();
     }
     else {
         album_id = Database::instance().addOrUpdateAlbum(album, artist_id);
-        IdCache::instance().album_id.Insert(album, album_id);
+        this->album_id.Insert(album, album_id);
     }
 
     QString cover_id;
-    if (auto cover_id_op = IdCache::instance().cover_id.Find(album_id)) {
+    if (auto cover_id_op = this->cover_id.Find(album_id)) {
         cover_id = *cover_id_op.value();
     }
 
     return std::make_tuple(album_id, artist_id, cover_id);
 }
 
-static void AddImageCache(int32_t album_id, const QString &album, const Metadata &metadata) {
+static void addImageCache(int32_t album_id, const QString &album, const Metadata &metadata) {
     using xamp::metadata::TaglibMetadataReader;
 
     auto cover_id = Database::instance().getAlbumCoverId(album_id);
@@ -76,6 +79,9 @@ static void AddImageCache(int32_t album_id, const QString &album, const Metadata
         if (!buffer.empty()) {
             pixmap.loadFromData(buffer.data(),
                                 static_cast<uint32_t>(buffer.size()));
+        } else {
+            pixmap = PixmapCache::instance().findExistCover(
+                QString::fromStdWString(metadata.file_path));
         }
         if (!pixmap.isNull()) {
             cover_id = PixmapCache::instance().add(pixmap);
@@ -116,7 +122,6 @@ void MetadataExtractAdapter::OnWalkNext() {
         return first.track < sencond.track;
     });
 #endif
-    XAMP_LOG_DEBUG("read metadata file: {}", metadatas_.size());
     emit readCompleted(metadatas_);
     metadatas_.clear();
 }
@@ -144,15 +149,14 @@ void MetadataExtractAdapter::processMetadata(const std::vector<Metadata>& metada
         auto artist = QString::fromStdWString(metadata.artist);
 
         if (album.isEmpty()) {
-            album = Q_UTF8("?");
+            album = Q_UTF8(" ");
         }
 
-        // TODO: 找尋相同的album和artist的作法不是很好?
         auto music_id = Database::instance().addOrUpdateMusic(metadata, playlist_id);
 
-        auto [album_id, artist_id, cover_id] = GetCacheId(album, artist);
+        auto [album_id, artist_id, cover_id] = IdCache::instance().getCacheId(album, artist);
         if (cover_id.isEmpty()) {
-            AddImageCache(album_id, album, metadata);
+            addImageCache(album_id, album, metadata);
         }
 
         IgnoreSqlError(Database::instance().addOrUpdateAlbumMusic(album_id, artist_id, music_id))

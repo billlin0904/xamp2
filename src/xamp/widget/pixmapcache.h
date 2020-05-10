@@ -32,9 +32,9 @@ public:
 		return instance;
 	}
 
-    static QPixmap findDirExistCover(const QString &file_path);
+    static QPixmap findExistCover(const QString &file_path);
 
-	static QPixmap findDirExistCover(const PlayListEntity &item);
+    static QPixmap findExistCover(const PlayListEntity &item);
 
 	std::optional<const QPixmap*> find(const QString& tag_id) const;
 

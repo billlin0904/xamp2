@@ -114,7 +114,7 @@ private:
     std::atomic<bool> done_;
     mutable std::mutex mutex_;
     std::condition_variable notify_;
-    circular_buffer<Type> queue_;
+    CircularBuffer<Type> queue_;
 };
 
 template 
@@ -166,6 +166,8 @@ public:
                 threads_[i].join();
             }
         }
+
+        XAMP_LOG_DEBUG("Thread pool was destory");
     }
 
     size_t GetActiveThreadCount() const {
@@ -216,6 +218,8 @@ private:
                     --active_thread_;
                 }
             }
+
+            XAMP_LOG_DEBUG("Thread {} done!", i);
         }));
 
         SetThreadAffinity(threads_[i]);
@@ -237,6 +241,8 @@ public:
     static constexpr uint32_t MAX_THREAD = 4;
 
     ThreadPool();
+
+    ~ThreadPool();
 
     static ThreadPool& DefaultThreadPool();
 

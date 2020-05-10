@@ -19,6 +19,8 @@ public:
 		if (attr != INVALID_FILE_ATTRIBUTES) {
 			return attr & FILE_ATTRIBUTE_READONLY;
 		}
+#else
+        (void)path;
 #endif
 		return false;
 	}

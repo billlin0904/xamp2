@@ -15,9 +15,9 @@ namespace xamp::base {
 
 class XAMP_BASE_API MemoryMappedFile final {
 public:
-	MemoryMappedFile();	
+    MemoryMappedFile();
 
-	XAMP_PIMPL(MemoryMappedFile)
+    ~MemoryMappedFile();
 
 	void Open(const std::wstring &file_path);
 

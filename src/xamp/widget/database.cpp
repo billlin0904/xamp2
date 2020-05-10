@@ -22,7 +22,8 @@
     } while (false)
 
 SqlException::SqlException(QSqlError error)
-	: xamp::base::Exception(xamp::base::Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, error.text().toStdString()) {
+    : xamp::base::Exception(xamp::base::Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR,
+                            error.text().toStdString()) {
 }
 
 const char* SqlException::what() const noexcept {
@@ -192,7 +193,57 @@ void Database::open(const QString& file_name) {
 }
 
 void Database::flush() {
-	
+}
+
+void Database::removePlaybackHistory(int32_t music_id) {
+    QSqlQuery query;
+    query.prepare(Q_UTF8("DELETE FROM playbackHistory WHERE musicId=:musicId"));
+    query.bindValue(Q_UTF8(":musicId"), music_id);
+    ThrowlfFailue(query);
+}
+
+void Database::removePlaylistMusics(int32_t music_id) {
+    QSqlQuery query;
+    query.prepare(Q_UTF8("DELETE FROM playlistMusics WHERE musicId=:musicId"));
+    query.bindValue(Q_UTF8(":musicId"), music_id);
+    ThrowlfFailue(query);
+}
+
+void Database::removeAlbumMusicId(int32_t music_id) {
+    QSqlQuery query;
+    query.prepare(Q_UTF8("DELETE FROM albumMusic WHERE musicId=:musicId"));
+    query.bindValue(Q_UTF8(":musicId"), music_id);
+    ThrowlfFailue(query);
+}
+
+void Database::removeMusic(int32_t music_id) {
+    QSqlQuery query;
+    query.prepare(Q_UTF8("DELETE FROM musics WHERE musicId=:musicId"));
+    query.bindValue(Q_UTF8(":musicId"), music_id);
+    ThrowlfFailue(query);
+}
+
+void Database::removeAlbumArtist(int32_t album_id) {
+    QSqlQuery query;
+    query.prepare(Q_UTF8("DELETE FROM albumArtist WHERE albumId=:albumId"));
+    query.bindValue(Q_UTF8(":albumId"), album_id);
+    ThrowlfFailue(query);
+}
+
+void Database::removeAlbum(int32_t album_id) {
+    forEachAlbumMusic(album_id, [this](auto entity) {
+        removePlaybackHistory(entity.music_id);
+        removePlaylistMusic(1, QVector<int32_t>{ entity.music_id });
+        removeAlbumMusicId(entity.music_id);
+        removeMusic(entity.music_id);
+    });
+
+    removeAlbumArtist(album_id);
+
+    QSqlQuery query;
+    query.prepare(Q_UTF8("DELETE FROM albums WHERE albumId=:albumId"));
+    query.bindValue(Q_UTF8(":albumId"), album_id);
+    ThrowlfFailue(query);
 }
 
 int32_t Database::addTable(const QString& name, int32_t table_index, int32_t playlist_id) {

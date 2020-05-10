@@ -45,7 +45,7 @@
 // Scott Meyers C++11 PIMPL
 // See more: http://oliora.github.io/2015/12/29/pimpl-and-rule-of-zero.html
 #define XAMP_PIMPL(Class) \
-    virtual ~Class(); \
+    virtual ~Class() override; \
     Class(const Class &) = delete; \
 	Class& operator=(const Class &) = delete; \
     Class(Class &&) noexcept; \
@@ -93,13 +93,6 @@
 #define XAMP_CACHE_ALIGNED(CacheLineSize) __attribute__((aligned(CacheLineSize)))
 #endif
 
-// Avoid cache-pollution padding size
-constexpr size_t kXampCacheAlignSize{ 64 };
-
-// Memory allocate aligned size
-// Assume we need 32-byte alignment for AVX instructions.
-constexpr size_t kXampMallocAlignSize{ 32 };
-
 #define XAMP_ENFORCE_TRIVIAL(t) \
 static_assert(std::is_standard_layout_v<t>);\
 static_assert(std::is_trivially_copyable_v<t>);\
@@ -115,4 +108,12 @@ XAMP_ENFORCE_TRIVIAL(Name);
 
 // For compiler!
 namespace xamp::base {
+
+// Avoid cache-pollution padding size
+constexpr size_t kCacheAlignSize{ 64 };
+
+// Memory allocate aligned size
+// Assume we need 32-byte alignment for AVX instructions.
+constexpr size_t kMallocAlignSize{ 32 };
+
 }

@@ -73,7 +73,7 @@ private:
     AudioDeviceIOProcID proc_id_;
     uint32_t buffer_size_;
     AudioCallback *callback_;
-    double stream_time_;
+    std::atomic<double> stream_time_;
     mutable AudioObjectPropertyAddress audio_property_;
     AudioFormat format_;
 };

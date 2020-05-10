@@ -329,6 +329,8 @@ public:
             BassLib::Instance().BASS_ChannelSetAttribute(stream_.get(), BASS_ATTRIB_DSD_GAIN, 0.0);
         }
 
+        XAMP_LOG_DEBUG("Stream running in {}", enum_to_string(mode_));
+
         if (!stream_) {
             throw BassException(BassLib::Instance().BASS_ErrorGetCode());
         }

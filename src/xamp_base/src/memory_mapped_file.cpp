@@ -133,7 +133,8 @@ MemoryMappedFile::MemoryMappedFile()
     : impl_(MakeAlign<MemoryMappedFileImpl>()) {
 }
 
-XAMP_PIMPL_IMPL(MemoryMappedFile)
+MemoryMappedFile::~MemoryMappedFile() {
+}
 
 void MemoryMappedFile::Open(const std::wstring &file_path) {
     impl_->Open(file_path, FileAccessMode::READ, false);

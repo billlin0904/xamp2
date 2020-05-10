@@ -147,8 +147,8 @@ public:
         XAMP_LOG_DEBUG("Soxr resampler setting=> input:{} output:{} quality:{} phase:{}",
                        input_samplerate,
                        output_samplerate,
-                       to_string(quality_),
-                       to_string(phase_));
+                       enum_to_string(quality_),
+                       enum_to_string(phase_));
     }
 
     void Close() {

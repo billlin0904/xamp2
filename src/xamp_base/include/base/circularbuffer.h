@@ -12,11 +12,11 @@ namespace xamp::base {
 // Copy from book 'The Modern Cpp Challenge'
 
 template <class T>
-class circular_buffer;
+class CircularBuffer;
 
 template <class T>
-class circular_buffer_iterator {
-    typedef circular_buffer_iterator          self_type;
+class CircularBufferIterator {
+    typedef CircularBufferIterator          self_type;
     typedef T                                 value_type;
     typedef T& reference;
     typedef T const& const_reference;
@@ -24,7 +24,7 @@ class circular_buffer_iterator {
     typedef std::random_access_iterator_tag   iterator_category;
     typedef ptrdiff_t                         difference_type;
 public:
-    circular_buffer_iterator(circular_buffer<T> const& buf, size_t const pos, bool const last) 
+    CircularBufferIterator(CircularBuffer<T> const& buf, size_t const pos, bool const last)
         : buffer_(buf)
         , index_(pos)
         , last_(last) {
@@ -66,18 +66,18 @@ private:
         return &buffer_ == &other.buffer_;
     }
 
-    circular_buffer<T> const& buffer_;
+    CircularBuffer<T> const& buffer_;
     size_t index_;
     bool last_;
 };
 
 template <class T>
-class circular_buffer {
-    typedef circular_buffer_iterator<T> const_iterator;
+class CircularBuffer {
+    typedef CircularBufferIterator<T> const_iterator;
 
-    circular_buffer() = delete;
+    CircularBuffer() = delete;
 public:
-    explicit circular_buffer(size_t size)
+    explicit CircularBuffer(size_t size)
         :data_(size) {
     }
 
@@ -147,7 +147,7 @@ private:
         return size_ == 0 ? 0 : (head_ + data_.size() - size_ + 1) % data_.size();
     }
 
-    friend class circular_buffer_iterator<T>;
+    friend class CircularBufferIterator<T>;
 };
 
 }

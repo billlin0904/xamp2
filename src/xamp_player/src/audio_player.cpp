@@ -71,7 +71,7 @@ void AudioPlayer::LoadLib() {
     BassFileStream::LoadBassLib();
     SoxrResampler::LoadSoxrLib();
     DeviceFactory::Instance();
-    //Chromaprint::LoadChromaprintLib();
+    Chromaprint::LoadChromaprintLib();
 }
 
 void AudioPlayer::Open(const std::wstring& file_path, const std::wstring& file_ext, const DeviceInfo& device_info) {
@@ -181,7 +181,7 @@ void AudioPlayer::SetState(const PlayerState play_state) {
         adapter->OnStateChanged(play_state);
     }
     state_ = play_state;
-    XAMP_LOG_DEBUG("Set state: {}", to_string(state_));
+    XAMP_LOG_DEBUG("Set state: {}", enum_to_string(state_));
 }
 
 void AudioPlayer::Play() {
@@ -380,6 +380,7 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
     stopped_cond_.notify_all();
     if (device_ != nullptr) {
         if (device_->IsStreamOpen()) {
+            XAMP_LOG_DEBUG("Stop output device");
             try {
                 device_->StopStream(wait_for_stop_stream);
                 device_->CloseStream();
@@ -425,7 +426,9 @@ void AudioPlayer::CreateBuffer() {
         read_sample_size_ = allocate_size;
     }
 
-    if (!enable_resample_ || dsd_mode_ == DsdModes::DSD_MODE_NATIVE) {
+    if (!enable_resample_
+        || dsd_mode_ == DsdModes::DSD_MODE_NATIVE
+        || dsd_mode_ == DsdModes::DSD_MODE_DOP) {
         resampler_ = MakeAlign<Resampler, NullResampler>(dsd_mode_, stream_->GetSampleSize());
     }
 
@@ -601,12 +604,11 @@ void AudioPlayer::ReadSampleLoop(uint32_t max_read_sample, std::unique_lock<std:
             if (!resampler_->Process(reinterpret_cast<const float*>(sample_buffer_.get()), num_samples, buffer_)) {
                 continue;
             }
-            break;
         }
         else {
             stopped_cond_.wait(lock);
-            break;
         }
+        break;
     }
 }
 

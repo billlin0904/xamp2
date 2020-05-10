@@ -434,38 +434,7 @@ AlbumView::AlbumView(QWidget* parent)
     setContextMenuPolicy(Qt::CustomContextMenu);
     (void)QObject::connect(this, &QTableView::customContextMenuRequested, [this](auto pt) {
         auto index = indexAt(pt);
-        if (!index.isValid()) {
-            return;
-        }
 
-        auto album = getIndexValue(index, 0).toString();
-        auto artist = getIndexValue(index, 2).toString();
-        auto album_id = getIndexValue(index, 3).toInt();
-        auto artist_cover_id = getIndexValue(index, 5).toString();
-
-        ActionMap<AlbumView, std::function<void()>> action_map(this);
-
-        action_map.addAction(tr("Add album to playlist"), [=]() {
-            Database::instance().forEachAlbumMusic(album_id, [this](const auto& entity) {
-                emit addPlaylist(entity);
-                });
-            });
-
-        action_map.addSeparator();
-
-        action_map.addAction(tr("Copy album"), [album]() {
-            QApplication::clipboard()->setText(album);
-        });
-
-        action_map.addAction(tr("Copy artist"), [artist]() {
-            QApplication::clipboard()->setText(artist);
-        });
-
-        action_map.exec(pt);
-    });
-
-    setContextMenuPolicy(Qt::CustomContextMenu);
-    (void)QObject::connect(this, &QListView::customContextMenuRequested, [this](auto pt) {
         ActionMap<AlbumView, std::function<void()>> action_map(this);
 
         (void)action_map.addAction(tr("Load local file"), [this]() {
@@ -480,19 +449,44 @@ AlbumView::AlbumView(QWidget* parent)
                                                           tr("Open file"),
                                                           getMyMusicFolderPath(),
                                                           tr("Music Files ") + exts);
-            if (file_name.isEmpty()) {
-                return;
-            }
             append(file_name);
         });
 
         (void)action_map.addAction(tr("Load file directory"), [this]() {
             auto dir_name = QFileDialog::getExistingDirectory(this,
-                                                              tr("Select a Directory"),
+                                                              tr("Select a directory"),
                                                               getMyMusicFolderPath());
             append(dir_name);
         });
 
+        action_map.addSeparator();
+
+        if (index.isValid()) {
+            auto album = getIndexValue(index, 0).toString();
+            auto artist = getIndexValue(index, 2).toString();
+            auto album_id = getIndexValue(index, 3).toInt();
+            auto artist_cover_id = getIndexValue(index, 5).toString();
+            action_map.addAction(tr("Remove album"), [=]() {
+                Database::instance().removeAlbum(album_id);
+            });
+            action_map.addAction(tr("Add album to playlist"), [=]() {
+                Database::instance().forEachAlbumMusic(album_id, [this](const auto& entity) {
+                    emit addPlaylist(entity);
+                });
+            });
+            action_map.addAction(tr("Copy album"), [album]() {
+                QApplication::clipboard()->setText(album);
+            });
+
+            action_map.addAction(tr("Copy artist"), [artist]() {
+                QApplication::clipboard()->setText(artist);
+            });
+        } else {
+            action_map.addAction(tr("Remove album"));
+            action_map.addAction(tr("Add album to playlist"));
+            action_map.addAction(tr("Copy album"));
+            action_map.addAction(tr("Copy artist"));
+        }
         action_map.exec(pt);
     });
 }
@@ -606,7 +600,8 @@ LIMIT 200
 void AlbumView::append(const QString& file_name) {
     auto adapter = new MetadataExtractAdapter();
 
-    (void) QObject::connect(adapter, &MetadataExtractAdapter::readCompleted,
+    (void) QObject::connect(adapter,
+                            &MetadataExtractAdapter::readCompleted,
                             this,
                             &AlbumView::processMeatadata);
 
@@ -628,6 +623,7 @@ void AlbumView::append(const QString& file_name) {
 
 void AlbumView::processMeatadata(const std::vector<xamp::base::Metadata> &medata) {
     MetadataExtractAdapter::processMetadata(medata);
+    refreshOnece();
 }
 
 void AlbumView::hideWidget() {

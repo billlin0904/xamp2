@@ -78,7 +78,7 @@ void LrcPage::initial() {
 	verticalLayout_2->setObjectName(QString::fromUtf8("verticalLayout_2"));
 
 	auto f = font();
-	f.setPointSize(24);
+    f.setPointSize(16);
 	f.setBold(true);
 
     title_ = new ScrollLabel(this);

@@ -7,7 +7,7 @@
 
 #include <set>
 
-#include <QtWidgets/QMainWindow>
+#include <QMainWindow>
 #include <QWidgetAction>
 #include <QStack>
 
@@ -146,7 +146,6 @@ private:
 	bool is_seeking_;
 	PlayerOrder order_;
 	QModelIndex play_index_;
-	Ui::XampWindow ui;
 	DeviceInfo device_info_;
     PlayListEntity current_entiry_;
 	LrcPage* lrc_page_;
@@ -160,4 +159,5 @@ private:
 	MusicBrainzClient mbc_;
 	DiscogsClient discogs_;
 	FileSystemWatcher watch_;
+    Ui::XampWindow ui;
 };

@@ -98,8 +98,10 @@ public:
 
     void setTableName(int32_t table_id, const QString &name);
 
+    void removeAlbum(int32_t album_id);
+
     template <typename Function>
-    void forEachTable(Function &&callback) {
+    void forEachTable(Function &&fun) {
         QSqlTableModel model(nullptr, db_);
 
         model.setTable(Q_UTF8("tables"));
@@ -108,10 +110,10 @@ public:
 
         for (auto i = 0; i < model.rowCount(); ++i) {
             auto record = model.record(i);
-            callback(record.value(Q_UTF8("tableId")).toInt(),
-                     record.value(Q_UTF8("tableIndex")).toInt(),
-                     record.value(Q_UTF8("playlistId")).toInt(),
-                     record.value(Q_UTF8("name")).toString());
+            fun(record.value(Q_UTF8("tableId")).toInt(),
+                record.value(Q_UTF8("tableIndex")).toInt(),
+                record.value(Q_UTF8("playlistId")).toInt(),
+                record.value(Q_UTF8("name")).toString());
         }
     }
 
@@ -213,6 +215,8 @@ WHERE
         }
     }
 
+    void removeMusic(int32_t music_id);
+
     void removePlaylistMusic(int32_t playlist_id, const QVector<int>& select_music_ids);
 
     int32_t findTablePlaylistId(int32_t table_id) const;
@@ -222,6 +226,14 @@ WHERE
     void addMusicToPlaylist(int32_t music_id, int32_t playlist_id) const;
 private:
     Database();
+
+    void removeAlbumArtist(int32_t album_id);
+
+    void removePlaybackHistory(int32_t music_id);
+
+    void removeAlbumMusicId(int32_t music_id);
+
+    void removePlaylistMusics(int32_t music_id);
 
     void addAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id) const;
 

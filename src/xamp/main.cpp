@@ -5,10 +5,12 @@
 #include <base/dll.h>
 #include <base/vmmemlock.h>
 #include <base/stacktrace.h>
+#include <base/threadpool.h>
 
 #include <metadata/metadatareader.h>
 
 #include <player/audio_player.h>
+#include <player/soxresampler.h>
 #include <widget/qdebugsink.h>
 #include <widget/appsettings.h>
 #include <widget/database.h>
@@ -18,7 +20,6 @@
 
 #include <QMessageBox>
 
-#include <player/soxresampler.h>"
 #include "singleinstanceapplication.h"
 #include "xamp.h"
 

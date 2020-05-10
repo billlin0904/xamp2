@@ -8,7 +8,6 @@
 #include <codecvt>
 #endif
 
-
 #include "lrcparser.h"
 
 using namespace xamp::base;
@@ -37,7 +36,6 @@ static std::chrono::milliseconds ParseTime(std::wstring const &str) {
         &seconds,
         &milliseconds);
     if (res != 3) {
-        //throw std::exception("Malformed lrc file");
         throw std::exception();
     }
 #endif

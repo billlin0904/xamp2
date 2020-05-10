@@ -52,9 +52,9 @@ private:
     uint32_t GetAvailableWrite(uint32_t head, uint32_t tail) const noexcept;
 
     uint32_t GetAvailableRead(uint32_t head, uint32_t tail) const noexcept;
-    
-	XAMP_CACHE_ALIGNED(kXampCacheAlignSize) std::atomic<size_t> head_;
-	XAMP_CACHE_ALIGNED(kXampCacheAlignSize) std::atomic<size_t> tail_;
+
+    XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<size_t> head_;
+    XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<size_t> tail_;
 	size_t size_;
     AlignBufferPtr<Type> buffer_;
 	VmMemLock lock_;

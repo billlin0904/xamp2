@@ -7,6 +7,10 @@ ThreadPool::ThreadPool()
     : scheduler_((std::min)(std::thread::hardware_concurrency(), MAX_THREAD)) {
 }
 
+ThreadPool::~ThreadPool() {
+    Stop();
+}
+
 size_t ThreadPool::GetActiveThreadCount() const {
 	return scheduler_.GetActiveThreadCount();
 }
@@ -21,4 +25,3 @@ ThreadPool& ThreadPool::DefaultThreadPool() {
 }
 
 }
-

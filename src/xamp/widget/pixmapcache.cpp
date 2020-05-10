@@ -14,10 +14,10 @@
 #include <widget/filetag.h>
 #include <widget/pixmapcache.h>
 
-constexpr size_t DEFAULT_CACHE_SIZE = 1024;
+constexpr size_t kDefaultCacheSize = 1024;
 
 PixmapCache::PixmapCache()
-	: cache_(DEFAULT_CACHE_SIZE) {
+    : cache_(kDefaultCacheSize) {
     cache_path_ = QDir::currentPath() + Q_UTF8("/caches/");
     cover_ext_ << Q_UTF8("*.jpeg") << Q_UTF8("*.jpg") << Q_UTF8("*.png") << Q_UTF8("*.bmp");
     cache_ext_ << Q_UTF8("*.cache");
@@ -27,19 +27,19 @@ PixmapCache::PixmapCache()
 	cache_.SetMaxSize(16);
 }
 
-QPixmap PixmapCache::findDirExistCover(const QString& file_path) {
+QPixmap PixmapCache::findExistCover(const QString& file_path) {
     const auto dir = QFileInfo(file_path).path();
 
-    QPixmap read_cover;
-
-    for (QDirIterator itr(dir, PixmapCache::instance().cover_ext_, QDir::Files | QDir::NoDotAndDotDot); itr.hasNext();) {
+    for (QDirIterator itr(dir, PixmapCache::instance().cover_ext_,
+                          QDir::Files | QDir::NoDotAndDotDot);
+         itr.hasNext();) {
         const auto image_file_path = itr.next();
-        read_cover = QPixmap(image_file_path);
+        QPixmap read_cover(image_file_path);
         if (!read_cover.isNull()) {
-            break;
+            return read_cover;
         }
     }
-    return read_cover;
+    return QPixmap();
 }
 
 void PixmapCache::clear() {
@@ -55,8 +55,8 @@ void PixmapCache::clear() {
 	cache_.Clear();
 }
 
-QPixmap PixmapCache::findDirExistCover(const PlayListEntity& item) {
-	return findDirExistCover(item.file_path);
+QPixmap PixmapCache::findExistCover(const PlayListEntity& item) {
+    return findExistCover(item.file_path);
 }
 
 void PixmapCache::erase(const QString& tag_id) {
