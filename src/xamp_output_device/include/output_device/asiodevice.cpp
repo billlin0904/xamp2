@@ -30,15 +30,15 @@ struct AsioCallbackInfo {
 	AudioConvertContext data_context{};
 	ASIOCallbacks asio_callbacks{};	
 	Mmcss mmcss;
-	std::array<ASIOBufferInfo, kXampMaxChannel> buffer_infos;
-	std::array<ASIOChannelInfo, kXampMaxChannel> channel_infos;
+	std::array<ASIOBufferInfo, kMaxChannel> buffer_infos;
+	std::array<ASIOChannelInfo, kMaxChannel> channel_infos;
 } callbackInfo;
 
 static XAMP_ALWAYS_INLINE long GetLatencyMs(long latency, long sampleRate) noexcept {
 	return (long((latency * 1000) / sampleRate));
 }
 
-constexpr int32_t MAX_CLOCK_SOURCE_SIZE = 32;
+constexpr int32_t kClockSourceSize = 32;
 
 AsioDevice::AsioDevice(const std::string& device_id)
 	: is_removed_driver_(true)
@@ -52,7 +52,7 @@ AsioDevice::AsioDevice(const std::string& device_id)
 	, buffer_bytes_(0)
 	, played_bytes_(0)
 	, device_id_(device_id)
-	, clock_source_(MAX_CLOCK_SOURCE_SIZE)
+	, clock_source_(kClockSourceSize)
 	, callback_(nullptr) {
 }
 
@@ -372,7 +372,7 @@ void AsioDevice::OnBufferSwitch(long index) noexcept {
 				break;
 			case ByteFormat::SINT24:
 				DataConverter<InterleavedFormat::DEINTERLEAVED,
-					InterleavedFormat::INTERLEAVED>::Convert(reinterpret_cast<int24_t*>(device_buffer_.get()),
+					InterleavedFormat::INTERLEAVED>::Convert(reinterpret_cast<Int24*>(device_buffer_.get()),
 						reinterpret_cast<const float*>(buffer_.get()),
 						callbackInfo.data_context);
 				break;
@@ -464,7 +464,7 @@ void AsioDevice::SetOutputSampleRate(const AudioFormat& output_format) {
 	AsioIfFailedThrow(error);
 	XAMP_LOG_INFO("Set device samplerate: {}", output_format.GetSampleRate());
 
-	clock_source_.resize(MAX_CLOCK_SOURCE_SIZE);
+	clock_source_.resize(kClockSourceSize);
 
 	auto num_clock_source = static_cast<long>(clock_source_.size());
 	AsioIfFailedThrow(::ASIOGetClockSources(clock_source_.data(), &num_clock_source));
@@ -507,6 +507,8 @@ void AsioDevice::StopStream(bool wait_for_stop_stream) {
 	}
 
 	AsioIfFailedThrow(::ASIOStop());
+
+	XAMP_LOG_DEBUG("Stop AsioDevice!");
 }
 
 void AsioDevice::CloseStream() {

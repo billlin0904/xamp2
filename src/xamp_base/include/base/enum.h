@@ -43,11 +43,11 @@ namespace {\
 constexpr std::string_view Name##_enum_names[] = {\
     ALL_ARGUMENTS_TO_STRING(__VA_ARGS__)\
 };\
-constexpr std::string_view enum_to_string(Name value) {\
+constexpr std::string_view EnumToString(Name value) {\
     return Name##_enum_names[static_cast<int>(value)];\
 }\
 inline std::ostream &operator<<(std::ostream &os, Name value) {\
-    os << enum_to_string(value);\
+    os << EnumToString(value);\
     return os;\
 }\
 }\

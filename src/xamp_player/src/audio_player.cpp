@@ -71,7 +71,7 @@ void AudioPlayer::LoadLib() {
     BassFileStream::LoadBassLib();
     SoxrResampler::LoadSoxrLib();
     DeviceFactory::Instance();
-    Chromaprint::LoadChromaprintLib();
+    //Chromaprint::LoadChromaprintLib();
 }
 
 void AudioPlayer::Open(const std::wstring& file_path, const std::wstring& file_ext, const DeviceInfo& device_info) {
@@ -181,7 +181,7 @@ void AudioPlayer::SetState(const PlayerState play_state) {
         adapter->OnStateChanged(play_state);
     }
     state_ = play_state;
-    XAMP_LOG_DEBUG("Set state: {}", enum_to_string(state_));
+    XAMP_LOG_DEBUG("Set state: {}", EnumToString(state_));
 }
 
 void AudioPlayer::Play() {
@@ -407,7 +407,7 @@ void AudioPlayer::CreateBuffer() {
     if (DeviceFactory::Instance().IsPlatformSupportedASIO()) {
         if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE
             || DeviceFactory::Instance().IsASIODevice(device_type_id_)) {
-            require_read_sample = kXampMaxSamplerate;
+            require_read_sample = kMaxSamplerate;
         }
         else {
             require_read_sample = device_->GetBufferSize() * kMaxReadRatio;

@@ -121,11 +121,6 @@ void SharedWasapiDevice::SetAudioCallback(AudioCallback* callback) noexcept {
 }
 
 void SharedWasapiDevice::StopStream(bool wait_for_stop_stream) {
-	if (sample_raedy_key_ != 0) {
-		HrIfFailledThrow2(::MFCancelWorkItem(sample_raedy_key_), MF_E_NOT_FOUND);
-		sample_raedy_key_ = 0;
-	}
-
 	if (is_running_) {
 		is_running_ = false;
 
@@ -133,6 +128,7 @@ void SharedWasapiDevice::StopStream(bool wait_for_stop_stream) {
 		while (wait_for_stop_stream && !is_stop_streaming_) {
 			condition_.wait(lock);
 		}
+		XAMP_LOG_INFO("Stop SharedWasapiDevice!");
 	}
 
 	if (client_ != nullptr) {
@@ -369,6 +365,7 @@ HRESULT SharedWasapiDevice::OnSampleReady(IMFAsyncResult* result) {
 		}
 		is_stop_streaming_ = true;
 		condition_.notify_all();
+		XAMP_LOG_DEBUG("Stop SharedWasapiDevice!");
 		return S_OK;
 	}
 

@@ -238,7 +238,7 @@ HRESULT ExclusiveWasapiDevice::OnSampleReady(IMFAsyncResult *result) {
             FillSilentSample(buffer_frames_);
         }
         is_stop_streaming_ = true;
-        condition_.notify_all();
+        condition_.notify_all();		
 		return S_OK;
 	}
 
@@ -291,11 +291,6 @@ void ExclusiveWasapiDevice::GetSample(const uint32_t frame_available) {
 }
 
 void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
-	if (sample_ready_key_ != 0) {
-		HrIfFailledThrow2(::MFCancelWorkItem(sample_ready_key_), MF_E_NOT_FOUND);
-		sample_ready_key_ = 0;
-	}
-
     if (is_running_) {
         is_running_ = false;
 
@@ -303,6 +298,7 @@ void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
         while (wait_for_stop_stream && !is_stop_streaming_) {
             condition_.wait(lock);
         }
+		XAMP_LOG_DEBUG("Stop ExclusiveWasapiDevice!");
     }  
 
     if (client_ != nullptr) {

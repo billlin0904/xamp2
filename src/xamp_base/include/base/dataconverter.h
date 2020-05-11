@@ -20,42 +20,42 @@
 namespace xamp::base {
 
 // See: http://blog.bjornroche.com/2009/12/int-float-int-its-jungle-out-there.html
-constexpr int32_t kXampFloat16Scaler = 0x8000;
-constexpr int32_t kXampFloat24Scaler = 0x800000;
-constexpr int64_t kXampFloat32Scaler = 0x7FFFFFBE;
+constexpr int32_t kFloat16Scaler = 0x8000;
+constexpr int32_t kFloat24Scaler = 0x800000;
+constexpr int64_t kFloat32Scaler = 0x7FFFFFBE;
 
-class int24_t final {
+class Int24 final {
 public:
-	int24_t(float f) noexcept;
+	Int24(float f) noexcept;
 
-	int24_t& operator=(int32_t i) noexcept;
+	Int24& operator=(int32_t i) noexcept;
 
-	int24_t& operator=(float f) noexcept;
+	Int24& operator=(float f) noexcept;
 
-	int32_t to_2432int() const noexcept;
+	int32_t To2432Int() const noexcept;
 protected:
 	std::array<uint8_t, 3> c3;
 };
 
-XAMP_ENFORCE_TRIVIAL(int24_t)
+XAMP_ENFORCE_TRIVIAL(Int24)
 
-XAMP_ALWAYS_INLINE int24_t::int24_t(float f) noexcept {
+XAMP_ALWAYS_INLINE Int24::Int24(float f) noexcept {
 	*this = f;
 }
 
-XAMP_ALWAYS_INLINE int24_t& int24_t::operator=(float f) noexcept {
-	*this = static_cast<int32_t>(std::rint(f * kXampFloat24Scaler));
+XAMP_ALWAYS_INLINE Int24& Int24::operator=(float f) noexcept {
+	*this = static_cast<int32_t>(std::rint(f * kFloat24Scaler));
 	return *this;
 }
 
-XAMP_ALWAYS_INLINE int24_t& int24_t::operator=(int32_t i) noexcept {
+XAMP_ALWAYS_INLINE Int24& Int24::operator=(int32_t i) noexcept {
 	c3[0] = reinterpret_cast<uint8_t*>(&i)[0];
 	c3[1] = reinterpret_cast<uint8_t*>(&i)[1];
 	c3[2] = reinterpret_cast<uint8_t*>(&i)[2];
 	return *this;
 }
 
-XAMP_ALWAYS_INLINE int32_t int24_t::to_2432int() const noexcept {
+XAMP_ALWAYS_INLINE int32_t Int24::To2432Int() const noexcept {
 	int32_t v{ 0 };
 	reinterpret_cast<uint8_t*>(&v)[0] = 0;
 	reinterpret_cast<uint8_t*>(&v)[0] = c3[0];
@@ -73,8 +73,8 @@ struct XAMP_BASE_API AudioConvertContext {
 	AudioFormat input_format;
 	AudioFormat output_format;
     size_t convert_size{0};
-    std::array<size_t, kXampMaxChannel> in_offset;
-    std::array<size_t, kXampMaxChannel> out_offset;
+    std::array<size_t, kMaxChannel> in_offset;
+    std::array<size_t, kMaxChannel> out_offset;
 };
 
 XAMP_BASE_API AudioConvertContext MakeConvert(const AudioFormat& in_format, const AudioFormat& out_format, size_t convert_size) noexcept;
@@ -94,18 +94,18 @@ struct DataConverter {
 
 	static XAMP_RESTRICT int16_t* Convert(int16_t* output, const float* input, const AudioConvertContext& context) noexcept {
         for (size_t i = 0; i < context.convert_size; ++i) {
-			output[context.out_offset[0]] = static_cast<int16_t>(input[context.in_offset[0]] * kXampFloat16Scaler * context.volume_factor);
-			output[context.out_offset[1]] = static_cast<int16_t>(input[context.in_offset[1]] * kXampFloat16Scaler * context.volume_factor);
+			output[context.out_offset[0]] = static_cast<int16_t>(input[context.in_offset[0]] * kFloat16Scaler * context.volume_factor);
+			output[context.out_offset[1]] = static_cast<int16_t>(input[context.in_offset[1]] * kFloat16Scaler * context.volume_factor);
 			input += context.in_jump;
 			output += context.out_jump;
 		}
 		return output;
 	}
 
-	static XAMP_RESTRICT int24_t* Convert(int24_t* output, const float* input, const AudioConvertContext& context) noexcept {
+	static XAMP_RESTRICT Int24* Convert(Int24* output, const float* input, const AudioConvertContext& context) noexcept {
         for (size_t i = 0; i < context.convert_size; ++i) {
-			output[context.out_offset[0]] = static_cast<int32_t>(input[context.in_offset[0]] * kXampFloat24Scaler);
-			output[context.out_offset[1]] = static_cast<int32_t>(input[context.in_offset[1]] * kXampFloat24Scaler);
+			output[context.out_offset[0]] = static_cast<int32_t>(input[context.in_offset[0]] * kFloat24Scaler);
+			output[context.out_offset[1]] = static_cast<int32_t>(input[context.in_offset[1]] * kFloat24Scaler);
 			input += context.in_jump;
 			output += context.out_jump;
 		}
@@ -120,8 +120,8 @@ struct DataConverter {
 		const auto input_right_offset = context.in_offset[1];
 
 		for (int32_t i = 0; i < context.convert_size; ++i) {
-			output[output_left_offset] = static_cast<int32_t>((input[input_left_offset] * kXampFloat32Scaler) * context.volume_factor);
-			output[output_right_offset] = static_cast<int32_t>((input[input_right_offset] * kXampFloat32Scaler) * context.volume_factor);
+			output[output_left_offset] = static_cast<int32_t>((input[input_left_offset] * kFloat32Scaler) * context.volume_factor);
+			output[output_right_offset] = static_cast<int32_t>((input[input_right_offset] * kFloat32Scaler) * context.volume_factor);
 			input += context.in_jump;
 			output += context.out_jump;
 		}
@@ -159,7 +159,7 @@ inline XAMP_RESTRICT int32_t* Convert2432Helper(int32_t* output, const float* in
 	const auto* end_input = input + static_cast<size_t>(context.convert_size) * context.input_format.GetChannels();
 
 	while (input != end_input) {
-		*output++ = int24_t(*input++).to_2432int();
+		*output++ = Int24(*input++).To2432Int();
 	}
 	return output;
 }
@@ -167,28 +167,28 @@ inline XAMP_RESTRICT int32_t* Convert2432Helper(int32_t* output, const float* in
 template <>
 struct DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEAVED> {
 	static XAMP_RESTRICT int16_t* ConvertToInt16(int16_t* output, const float* input, const AudioConvertContext& context) noexcept {
-		return ConvertHelper<int16_t, kXampFloat16Scaler>(output, input, context);
+		return ConvertHelper<int16_t, kFloat16Scaler>(output, input, context);
 	}
 
 	static XAMP_RESTRICT int32_t* ConvertToInt16(int32_t* output, const float* input, const AudioConvertContext& context) noexcept {
-		return ConvertHelper<int32_t, kXampFloat32Scaler>(output, input, context);
+		return ConvertHelper<int32_t, kFloat32Scaler>(output, input, context);
     }
 
 #ifdef XAMP_OS_WIN
 	static XAMP_RESTRICT int32_t* ConvertToInt2432(int32_t* output, const float* input, const AudioConvertContext& context) noexcept {
 		const auto* end_input = input + static_cast<size_t>(context.convert_size) * context.input_format.GetChannels();
 
-		auto scale = _mm_set1_ps(kXampFloat24Scaler);
-		auto max_val = _mm_set1_ps(kXampFloat24Scaler - 1);
-		auto min_val = _mm_set1_ps(-kXampFloat24Scaler);
+		auto scale = _mm_set1_ps(kFloat24Scaler);
+		auto max_val = _mm_set1_ps(kFloat24Scaler - 1);
+		auto min_val = _mm_set1_ps(-kFloat24Scaler);
 
 		switch ((end_input - input) % 4) {
 		case 3:
-			*output++ = int24_t(*input++).to_2432int();
+			*output++ = Int24(*input++).To2432Int();
 		case 2:
-			*output++ = int24_t(*input++).to_2432int();
+			*output++ = Int24(*input++).To2432Int();
 		case 1:
-			*output++ = int24_t(*input++).to_2432int();
+			*output++ = Int24(*input++).To2432Int();
 		case 0:
 			break;
 		}
