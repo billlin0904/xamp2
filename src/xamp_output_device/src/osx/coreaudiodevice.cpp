@@ -118,7 +118,7 @@ private:
 CoreAudioDevice::CoreAudioDevice(AudioDeviceID device_id)
     : is_running_(false)
     , device_id_(device_id)
-    , proc_id_(nullptr)
+    , ioproc_id_(nullptr)
     , buffer_size_(0)
     , callback_(nullptr)
     , stream_time_(0) {
@@ -205,7 +205,7 @@ void CoreAudioDevice::OpenStream(const AudioFormat &output_format) {
     CoreAudioThrowIfError(::AudioDeviceCreateIOProcID(device_id_,
                                                       OnAudioDeviceIOProc,
                                                       this,
-                                                      &proc_id_));
+                                                      &ioproc_id_));
     format_ = output_format;
 }
 
@@ -214,7 +214,7 @@ void CoreAudioDevice::SetAudioCallback(AudioCallback *callback) noexcept {
 }
 
 bool CoreAudioDevice::IsStreamOpen() const noexcept {
-    return proc_id_ != nullptr;
+    return ioproc_id_ != nullptr;
 }
 
 bool CoreAudioDevice::IsStreamRunning() const noexcept {
@@ -222,18 +222,18 @@ bool CoreAudioDevice::IsStreamRunning() const noexcept {
 }
 
 void CoreAudioDevice::StopStream(bool /*wait_for_stop_stream*/) {
-    CoreAudioThrowIfError(::AudioDeviceStop(device_id_, proc_id_));
+    CoreAudioThrowIfError(::AudioDeviceStop(device_id_, ioproc_id_));
     is_running_ = false;
 }
 
 void CoreAudioDevice::CloseStream() {
-    CoreAudioThrowIfError(::AudioDeviceStop(device_id_, proc_id_));
-    CoreAudioThrowIfError(::AudioDeviceDestroyIOProcID(device_id_, proc_id_));
-    proc_id_ = nullptr;
+    CoreAudioThrowIfError(::AudioDeviceStop(device_id_, ioproc_id_));
+    CoreAudioThrowIfError(::AudioDeviceDestroyIOProcID(device_id_, ioproc_id_));
+    ioproc_id_ = nullptr;
 }
 
 void CoreAudioDevice::StartStream() {
-    CoreAudioThrowIfError(::AudioDeviceStart(device_id_, proc_id_));
+    CoreAudioThrowIfError(::AudioDeviceStart(device_id_, ioproc_id_));
     is_running_ = true;
 }
 

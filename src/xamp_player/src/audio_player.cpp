@@ -416,7 +416,7 @@ void AudioPlayer::CreateBuffer() {
     }
 
     if (require_read_sample != num_read_sample_) {
-        const auto allocate_size = require_read_sample * stream_->GetSampleSize() * kBufferStreamCount;
+        auto allocate_size = require_read_sample * stream_->GetSampleSize() * kBufferStreamCount;
         num_buffer_samples_ = allocate_size * 10;
         num_read_sample_ = require_read_sample;
         XAMP_LOG_DEBUG("Allocate interal buffer : {}", FormatBytes(allocate_size));

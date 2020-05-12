@@ -70,7 +70,7 @@ private:
 
     bool is_running_;
     AudioDeviceID device_id_;
-    AudioDeviceIOProcID proc_id_;
+    AudioDeviceIOProcID ioproc_id_;
     uint32_t buffer_size_;
     AudioCallback *callback_;
     std::atomic<double> stream_time_;

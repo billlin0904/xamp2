@@ -53,6 +53,7 @@ public:
     void SetDsdToPcmSampleRate(uint32_t samplerate) override;
 
     uint32_t GetDsdSpeed() const noexcept override;
+
 private:
 	class BassFileStreamImpl;
 	AlignPtr<BassFileStreamImpl> stream_;

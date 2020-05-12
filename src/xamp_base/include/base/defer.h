@@ -6,42 +6,73 @@
 #pragma once
 
 #include <utility>
+#include <exception>
+
 #include <base/base.h>
 
 namespace xamp::base {
-    
-template <typename F>
-class XAMP_BASE_API_ONLY_EXPORT Defer {
+
+class XAMP_BASE_API_ONLY_EXPORT UncaughtExceptionDetector {
 public:
-    explicit Defer(F&& f);
+    UncaughtExceptionDetector()
+        : count_(std::uncaught_exceptions()) {
+    }
 
-    ~Defer() noexcept;
-
+    operator bool() const noexcept {
+        return std::uncaught_exceptions() > count_;
+    }
 private:
-    F f_;
+    const int32_t count_;
+};
+
+template <typename T>
+class XAMP_BASE_API_ONLY_EXPORT ScopeGuard {
+public:
+    ScopeGuard(T&& f)
+        : commit_(false)
+        , f_(std::forward<T>(f)) {
+    }
+
+    template <typename Functor>
+    ScopeGuard(ScopeGuard<Functor>&& other)
+        : commit_(other.commit_)
+        , f_(std::move(other.f_)) {
+        other.Commit();
+    }
+
+    ScopeGuard() = delete;
+    ScopeGuard(const ScopeGuard&) = delete;
+    ScopeGuard& operator=(const ScopeGuard&) = delete;
+
+    ~ScopeGuard() {
+        if (!commit_) {
+            f_();
+        }
+    }
+
+    void Commit() noexcept {
+        commit_ = true;
+    }
+private:
+    template <typename Functor>
+    friend class ScopeGuard;
+
+    mutable bool commit_;
+    UncaughtExceptionDetector detector_;
+    T f_;
 };
 
 template <typename F>
-Defer<F>::Defer(F&& f)
-    : f_(std::forward<F>(f)) {
-}
-
-template <typename F>
-Defer<F>::~Defer() noexcept {
-    f_();
-}
-
-template <typename F>
-Defer<F> MakeDefer(F &&f) {
-    return Defer<F>(std::forward<F>(f));
+ScopeGuard<F> MakeScopeGuard(F &&f) {
+    return ScopeGuard<F>(std::forward<F>(f));
 }
 
 }
 
 #define XAMP_COMBIN(x, y) x##y
 #define XAMP_COMBIN_NAME(x, y) XAMP_COMBIN(x, y)
-#define XAMP_DEFER_NAME(x) XAMP_COMBIN_NAME(x, __LINE__)
+#define XAMP_ANON_VAR_NAME(x) XAMP_COMBIN_NAME(x, __LINE__)
 
-#define XAMP_DEFER(code) \
-	const auto XAMP_DEFER_NAME(defer) = xamp::base::MakeDefer([&]() { code; })
+#define XAMP_ON_SCOPE_EXIT(code) \
+    const auto XAMP_ANON_VAR_NAME(defer) = xamp::base::MakeScopeGuard([&]() { code; })
 
