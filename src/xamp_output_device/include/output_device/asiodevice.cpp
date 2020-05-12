@@ -118,7 +118,7 @@ std::tuple<int32_t, int32_t> AsioDevice::GetDeviceBufferSize() const {
 	long max_size = 0;
 	long prefer_size = 0;
 	long granularity = 0;
-	AsioIfFailedThrow(ASIOGetBufferSize(&min_size, &max_size, &prefer_size, &granularity));
+	AsioIfFailedThrow(::ASIOGetBufferSize(&min_size, &max_size, &prefer_size, &granularity));
 
 	XAMP_LOG_INFO("min_size:{} max_size:{} prefer_size:{} granularity:{}",
 		min_size,

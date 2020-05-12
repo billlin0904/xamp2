@@ -43,14 +43,36 @@ struct IMMDeviceEnumerator;
 
 namespace xamp::output_device::win32::helper {
 
-constexpr int32_t WASAPI_REFTIMES_PER_MILLISEC = 10000;
-constexpr double WASAPI_REFTIMES_PER_SEC = 10000000;
+constexpr int32_t kWasapiReftimesPerMillisec = 10000;
+constexpr double kWasapiReftimesPerSec = 10000000;
 
 std::wstring GetDeviceProperty(const PROPERTYKEY& key, CComPtr<IMMDevice>& device);
 
 DeviceInfo GetDeviceInfo(CComPtr<IMMDevice>& device, const ID device_type_id);
 
 CComPtr<IMMDeviceEnumerator> CreateDeviceEnumerator();
+
+inline double Nano100ToSeconds(REFERENCE_TIME ref) noexcept {
+	//  1 nano = 0.000000001 seconds
+	//100 nano = 0.0000001   seconds
+	//100 nano = 0.0001   milliseconds
+	constexpr double ratio = 0.0000001;
+	return (static_cast<double>(ref) * ratio);
+}
+
+inline UINT32 ReferenceTimeToFrames(const REFERENCE_TIME period, const UINT32 samplerate) noexcept {
+	return static_cast<UINT32>(
+		1.0 * period * // hns *
+		samplerate / // (frames / s) /
+		1000 / // (ms / s) /
+		10000 // (hns / s) /
+		+ 0.5 // rounding
+		);
+}
+
+inline REFERENCE_TIME MakeHnsPeriod(const UINT32 frames, const UINT32 samplerate) noexcept {
+	return static_cast<REFERENCE_TIME>(10000.0 * 1000.0 / double(samplerate) * double(frames) + 0.5);
+}
 
 }
 

@@ -18,6 +18,7 @@ void Timer::Start(std::chrono::milliseconds timeout, TimerCallback&& callback) {
 	timer_.SetTimeout(timeout);
     thread_ = std::thread([this, timeout_routine = std::forward<TimerCallback>(callback)]() {
 		SetCurrentThreadAffinity();
+		SetThreadName("Timer");
 
 		while (!is_stop_) {
 			timer_.Wait();

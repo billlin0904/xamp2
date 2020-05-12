@@ -17,9 +17,6 @@ MAKE_ENUM(DsdFormat,
 MAKE_ENUM(DsdModes,
 	DSD_MODE_PCM,
 	DSD_MODE_NATIVE,
-	DSD_MODE_DOP,
-	// NOTE: Unsupported now!
-	// DSD_MODE_DOP_AA
-	);
+	DSD_MODE_DOP);
 
 }

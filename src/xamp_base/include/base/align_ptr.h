@@ -41,14 +41,6 @@ struct XAMP_BASE_API_ONLY_EXPORT AlignedClassDeleter {
     }
 };
 
-/*
-template <typename Type, typename... Args>
-XAMP_BASE_API_ONLY_EXPORT std::shared_ptr<Type> MakeShared(Args&& ... args) {
-    typedef std::aligned_allocator<Type, kXampMallocAlignSize> alloc_type;
-    return std::allocate_shared<Type, alloc_type>(alloc_type(), std::forward<Args>(args)...);
-}
-*/
-
 template <typename Type>
 using AlignPtr = std::unique_ptr<Type, AlignedClassDeleter<Type>>;
 

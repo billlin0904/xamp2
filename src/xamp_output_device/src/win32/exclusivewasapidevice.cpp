@@ -5,9 +5,12 @@
 #include <base/logger.h>
 #include <base/str_utilts.h>
 #include <output_device/win32/hrexception.h>
+#include <output_device/win32/wasapi.h>
 #include <output_device/win32/exclusivewasapidevice.h>
 
 namespace xamp::output_device::win32 {
+
+using namespace xamp::output_device::win32::helper;
 
 static void SetWaveformatEx(WAVEFORMATEX *input_fromat, const AudioFormat &audio_format, const int32_t valid_bits_samples) noexcept {
 	auto &format = *reinterpret_cast<WAVEFORMATEXTENSIBLE *>(input_fromat);
@@ -40,40 +43,19 @@ static UINT32 BackwardAligned(const UINT32 bytes_frame, const UINT32 align_size)
 
 template <typename Predicate>
 static int32_t CalcAlignedFramePerBuffer(const UINT32 frames, const UINT32 block_align, Predicate f) noexcept {
-    constexpr auto HD_AUDIO_PACKET_SIZE = 128;
+    constexpr UINT32 kHdAudioPacketSize = 128;
 
     const auto bytes_frame = frames * block_align;
-	auto new_bytes_frame = f(bytes_frame, HD_AUDIO_PACKET_SIZE);
-    if (new_bytes_frame < HD_AUDIO_PACKET_SIZE) {
-        new_bytes_frame = HD_AUDIO_PACKET_SIZE;
+	auto new_bytes_frame = f(bytes_frame, kHdAudioPacketSize);
+    if (new_bytes_frame < kHdAudioPacketSize) {
+        new_bytes_frame = kHdAudioPacketSize;
     }
 
 	auto new_frames = new_bytes_frame / block_align;
-    const UINT32 packets = new_bytes_frame / HD_AUDIO_PACKET_SIZE;
-    new_bytes_frame = packets * HD_AUDIO_PACKET_SIZE;
+    const UINT32 packets = new_bytes_frame / kHdAudioPacketSize;
+    new_bytes_frame = packets * kHdAudioPacketSize;
     new_frames = new_bytes_frame / block_align;
     return new_frames;
-}
-
-static double Nano100ToSeconds(REFERENCE_TIME ref) noexcept {
-	//  1 nano = 0.000000001 seconds
-	//100 nano = 0.0000001   seconds
-	//100 nano = 0.0001   milliseconds
-	return (static_cast<double>(ref) * 0.0000001);
-}
-
-static UINT32 ReferenceTimeToFrames(const REFERENCE_TIME period, const UINT32 samplerate) noexcept {
-    return static_cast<UINT32>(
-		1.0 * period * // hns *
-        samplerate / // (frames / s) /
-        1000 / // (ms / s) /
-        10000 // (hns / s) /
-        + 0.5 // rounding
-    );
-}
-
-static REFERENCE_TIME MakeHnsPeriod(const UINT32 frames, const UINT32 samplerate) noexcept {
-    return static_cast<REFERENCE_TIME>(10000.0 * 1000.0 / double(samplerate) * double(frames) + 0.5);
 }
 
 template <typename Predicate>
@@ -161,11 +143,11 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 
     auto valid_output_format = output_format;
 
-	constexpr int32_t MAX_VALID_BITS_SAMPLES = 24;
+	constexpr int32_t kValidBitPerSamples = 24;
 
 	// Note: 由於轉換出來就是float格式, 所以固定採用24/32格式進行撥放!
 	valid_output_format.SetByteFormat(ByteFormat::SINT32);
-	valid_bits_samples_ = MAX_VALID_BITS_SAMPLES;
+	valid_bits_samples_ = kValidBitPerSamples;
 
 	if (!client_) {
 		XAMP_LOG_DEBUG("Active device format: {}", valid_output_format);
@@ -184,13 +166,14 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
     }
 
     HrIfFailledThrow(client_->Reset());
-    HrIfFailledThrow(client_->GetService(__uuidof(IAudioRenderClient), reinterpret_cast<void**>(&render_client_)));
+    HrIfFailledThrow(client_->GetService(__uuidof(IAudioRenderClient),
+		reinterpret_cast<void**>(&render_client_)));
 
     // Enable MCSS
 	DWORD task_id = 0;
 	queue_id_ = 0;
 	HrIfFailledThrow(::MFLockSharedWorkQueue(mmcss_name_.c_str(),
-		(LONG)thread_priority_,
+		static_cast<LONG>(thread_priority_),
 		&task_id,
 		&queue_id_));
 
@@ -211,10 +194,11 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	}
 
 	vmlock_.UnLock();
-	buffer_ = MakeBuffer<float>((size_t)buffer_frames_ * 2);
-	vmlock_.Lock(buffer_.get(), (size_t)buffer_frames_ * 2 * sizeof(float));
+	auto buffer_size = buffer_frames_ * output_format.GetChannels();
+	buffer_ = MakeBuffer<float>(buffer_size);
+	vmlock_.Lock(buffer_.get(), buffer_size * sizeof(float));
     data_convert_ = MakeConvert(output_format, valid_output_format, buffer_frames_);
-	XAMP_LOG_DEBUG("WASAPI internal buffer: {}", FormatBytesBy<float>(buffer_frames_ * 2));
+	XAMP_LOG_DEBUG("WASAPI internal buffer: {}", FormatBytesBy<float>(buffer_size));
 }
 
 void ExclusiveWasapiDevice::SetSchedulerService(const std::wstring &mmcss_name, const MmcssThreadPriority thread_priority) {
