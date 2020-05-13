@@ -135,6 +135,8 @@ void SharedWasapiDevice::StopStream(bool wait_for_stop_stream) {
 		HrFailledLog(client_->Stop());
 		HrFailledLog(client_->Reset());
 	}
+
+	::ResetEvent(sample_ready_.get());
 }
 
 void SharedWasapiDevice::CloseStream() {

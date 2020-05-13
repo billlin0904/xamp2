@@ -66,10 +66,10 @@ void AudioPlayer::Destroy() {
 
 void AudioPlayer::LoadLib() {
     ThreadPool::DefaultThreadPool();
-    BassFileStream::LoadBassLib();
-    SoxrResampler::LoadSoxrLib();
+    BassFileStream::LoadBassLib();    
     DeviceFactory::Instance();
     //Chromaprint::LoadChromaprintLib();
+    //SoxrResampler::LoadSoxrLib();
 }
 
 void AudioPlayer::Open(const std::wstring& file_path, const std::wstring& file_ext, const DeviceInfo& device_info) {

@@ -65,7 +65,8 @@ AsioDevice::~AsioDevice() {
 }
 
 bool AsioDevice::CanHardwareControlVolume() const {
-	return false;
+	// TODO: Almost device not support volume control.
+	return true;
 }
 
 bool AsioDevice::IsMuted() const {
