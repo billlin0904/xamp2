@@ -119,6 +119,12 @@ DsdDevice* AudioPlayer::AsDsdDevice() {
     return dynamic_cast<DsdDevice*>(device_.get());
 }
 
+void AudioPlayer::UpdateSlice(int32_t sample_size, double stream_time) noexcept {
+    std::atomic_exchange_explicit(&slice_, 
+        AudioSlice{ sample_size, stream_time },
+        std::memory_order::memory_order_relaxed);
+}
+
 AlignPtr<FileStream> AudioPlayer::MakeFileStream(const std::wstring& file_ext) {
     const RobinHoodSet<std::wstring_view> dsd_ext {
         {L".dsf"},
@@ -235,7 +241,7 @@ void AudioPlayer::Stop(bool signal_to_stop, bool shutdown_device, bool wait_for_
     XAMP_LOG_DEBUG("Player stop!");
     if (device_->IsStreamOpen()) {
         CloseDevice(wait_for_stop_stream);
-        std::atomic_exchange(&slice_, AudioSlice{ 0, 0 });
+        UpdateSlice();
         if (signal_to_stop) {
             SetState(PlayerState::PLAYER_STATE_STOPPED);
         }
@@ -398,7 +404,7 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
 }
 
 void AudioPlayer::CreateBuffer() {
-    std::atomic_exchange(&slice_, AudioSlice{ 0, 0 });
+    UpdateSlice();
 
     uint32_t require_read_sample = 0;
 
@@ -487,12 +493,11 @@ int32_t AudioPlayer::OnGetSamples(void* samples, const uint32_t num_buffer_frame
     const auto sample_size = num_samples * sample_size_;
 
     if (XAMP_LIKELY( buffer_.TryRead(static_cast<int8_t*>(samples), sample_size) )) {
-        std::atomic_exchange(&slice_,
-                             AudioSlice{ static_cast<int32_t>(num_samples), stream_time });
+        UpdateSlice(static_cast<int32_t>(num_samples), stream_time);
         return 0;
     }
 
-    std::atomic_exchange(&slice_, AudioSlice{ -1, stream_time });
+    UpdateSlice(-1, stream_time);
 
     stopped_cond_.notify_all();
     return 1;
@@ -561,7 +566,7 @@ void AudioPlayer::Seek(double stream_time) {
         }
         device_->SetStreamTime(stream_time);
         XAMP_LOG_DEBUG("player seeking {} sec.", stream_time);
-        std::atomic_exchange(&slice_, AudioSlice{ 0, stream_time });
+        UpdateSlice(0, stream_time);
         buffer_.Clear();
         BufferStream();
         Resume();
