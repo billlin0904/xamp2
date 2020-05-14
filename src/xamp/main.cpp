@@ -147,7 +147,7 @@ static int excute(int argc, char* argv[]) {
                        AppSettings::getValueAsString(kAppSettingLang).toStdString());
     }
 
-    DeviceFactory::PreventSleep(AppSettings::getValueAsBool(kAppSettingPreventSleep));
+    AudioDeviceFactory::PreventSleep(AppSettings::getValueAsBool(kAppSettingPreventSleep));
     XAMP_LOG_DEBUG("PreventSleep success.");
 
     Xamp win;

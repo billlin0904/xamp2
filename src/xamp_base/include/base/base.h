@@ -36,7 +36,7 @@
 
 #define XAMP_COMBIN(x, y) x##y
 #define XAMP_COMBIN_NAME(x, y) XAMP_COMBIN(x, y)
-#define XAMP_ANON_VAR_NAME(x) XAMP_COMBIN_NAME(x, __LINE__)
+#define XAMP_ANON_VAR_NAME(x) XAMP_COMBIN_NAME(x, __COUNTER__)
 
 // Rule of five
 // See more: http://en.cppreference.com/w/cpp/language/rule_of_three

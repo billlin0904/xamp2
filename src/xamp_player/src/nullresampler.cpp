@@ -3,12 +3,11 @@
 
 namespace xamp::player {
 
-#define IS_BUFFER_TOO_SMALL_THROW(expr) \
+#define CHECK_BUFFER_OVERFLOW(expr) \
     do {\
         if (!(expr)) {\
         throw Exception(Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR, "Buffer overflow!");\
         }\
-        return true;\
     } while(false)
 
 NullResampler::NullResampler(DsdModes dsd_mode, uint32_t sample_size)
@@ -38,11 +37,13 @@ void NullResampler::Flush() {
 }
 
 bool NullResampler::ProcessNativeDsd(const int8_t* sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer) {
-    IS_BUFFER_TOO_SMALL_THROW(buffer.TryWrite(sample_buffer, num_samples));
+    CHECK_BUFFER_OVERFLOW(buffer.TryWrite(sample_buffer, num_samples));
+    return true;
 }
 
 bool NullResampler::ProcessPcm(const int8_t* sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer) {
-    IS_BUFFER_TOO_SMALL_THROW(buffer.TryWrite(sample_buffer, num_samples * sample_size_));
+    CHECK_BUFFER_OVERFLOW(buffer.TryWrite(sample_buffer, num_samples * sample_size_));
+    return true;
 }
 
 }

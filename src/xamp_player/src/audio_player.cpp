@@ -73,9 +73,9 @@ void AudioPlayer::UpdateSlice(int32_t sample_size, double stream_time) noexcept 
 void AudioPlayer::LoadLib() {
     ThreadPool::DefaultThreadPool();
     BassFileStream::LoadBassLib();    
-    DeviceFactory::Instance();
+    AudioDeviceFactory::Instance();
     //Chromaprint::LoadChromaprintLib();
-    //SoxrResampler::LoadSoxrLib();
+    SoxrResampler::LoadSoxrLib();
 }
 
 void AudioPlayer::Open(const std::wstring& file_path, const std::wstring& file_ext, const DeviceInfo& device_info) {
@@ -96,7 +96,7 @@ void AudioPlayer::CreateDevice(const ID& device_type_id, const std::wstring& dev
         || device_id_ != device_id
         || device_type_id_ != device_type_id
         || open_always) {
-        if (auto result = DeviceFactory::Instance().Create(device_type_id)) {
+        if (auto result = AudioDeviceFactory::Instance().Create(device_type_id)) {
             device_type_ = std::move(result.value());
             device_type_->ScanNewDevice();
             device_ = device_type_->MakeDevice(device_id);
@@ -125,12 +125,6 @@ DsdDevice* AudioPlayer::AsDsdDevice() {
     return dynamic_cast<DsdDevice*>(device_.get());
 }
 
-void AudioPlayer::UpdateSlice(int32_t sample_size, double stream_time) noexcept {
-    std::atomic_exchange_explicit(&slice_, 
-        AudioSlice{ sample_size, stream_time },
-        std::memory_order::memory_order_relaxed);
-}
-
 AlignPtr<FileStream> AudioPlayer::MakeFileStream(const std::wstring& file_ext) {
     const RobinHoodSet<std::wstring_view> dsd_ext {
         {L".dsf"},
@@ -138,7 +132,8 @@ AlignPtr<FileStream> AudioPlayer::MakeFileStream(const std::wstring& file_ext) {
     };
     const RobinHoodSet<std::wstring_view> use_bass {
         {L".m4a"},
-        {L".ape"}
+        {L".ape"},
+        {L".flac"},
     };
 
     auto is_dsd_stream = dsd_ext.find(file_ext) != dsd_ext.end();
@@ -154,7 +149,7 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, const std::wstring &
     stream_ = MakeFileStream(file_ext);
 
     if (auto* dsd_stream = AsDsdStream()) {
-        if (DeviceFactory::Instance().IsPlatformSupportedASIO()) {
+        if (AudioDeviceFactory::Instance().IsPlatformSupportedASIO()) {
             if (device_info.is_support_dsd) {
                 dsd_stream->SetDSDMode(DsdModes::DSD_MODE_NATIVE);
                 dsd_mode_ = DsdModes::DSD_MODE_NATIVE;
@@ -309,12 +304,12 @@ void AudioPlayer::Initial() {
         std::weak_ptr<AudioPlayer> player = shared_from_this();
         timer_.Start(kUpdateSampleInterval, [player]() {
             auto p = player.lock();
-            if (p == nullptr) {
+            if (!p) {
                 return;
             }
 
             auto adapter = p->state_adapter_.lock();
-            if (adapter == nullptr) {
+            if (!adapter) {
                 return;
             }
 
@@ -414,9 +409,9 @@ void AudioPlayer::CreateBuffer() {
 
     uint32_t require_read_sample = 0;
 
-    if (DeviceFactory::Instance().IsPlatformSupportedASIO()) {
+    if (AudioDeviceFactory::Instance().IsPlatformSupportedASIO()) {
         if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE
-            || DeviceFactory::Instance().IsASIODevice(device_type_id_)) {
+            || AudioDeviceFactory::Instance().IsASIODevice(device_type_id_)) {
             require_read_sample = kMaxSamplerate;
         }
         else {
@@ -451,7 +446,6 @@ void AudioPlayer::CreateBuffer() {
     }
     else {
         assert(target_samplerate_ > 0);
-        resampler_->Flush();
         resampler_->Start(input_format_.GetSampleRate(),
                           input_format_.GetChannels(),
                           target_samplerate_,

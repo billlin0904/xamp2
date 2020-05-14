@@ -143,8 +143,6 @@ private:
 
     XAMP_ENFORCE_TRIVIAL(AudioSlice)
 
-    void UpdateSlice(int32_t sample_size = 0, double stream_time = 0.0) noexcept;
-
     bool is_muted_;
     bool enable_resample_;
     DsdModes dsd_mode_;

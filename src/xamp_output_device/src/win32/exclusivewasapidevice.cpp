@@ -4,6 +4,7 @@
 
 #include <base/logger.h>
 #include <base/str_utilts.h>
+#include <base/waitabletimer.h>
 #include <output_device/win32/hrexception.h>
 #include <output_device/win32/wasapi.h>
 #include <output_device/win32/exclusivewasapidevice.h>
@@ -283,9 +284,11 @@ void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
             condition_.wait(lock);
         }
 		XAMP_LOG_DEBUG("Stop ExclusiveWasapiDevice!");
-    }  
+    }
 
-    if (client_ != nullptr) {
+	::Sleep(aligned_period_ / kWasapiReftimesPerMillisec);
+
+    if (client_ != nullptr) {		
 		HrFailledLog(client_->Stop());
 		HrFailledLog(client_->Reset());
     }
@@ -326,13 +329,14 @@ void ExclusiveWasapiDevice::StartStream() {
 	
 	HrFailledLog(client_->Reset());
 
-    is_running_ = true;
-	HrIfFailledThrow(client_->Start());
-
 	// Note: 必要! 某些音效卡會爆音!
 	FillSilentSample(buffer_frames_);
 
+    is_running_ = true;
+	HrIfFailledThrow(client_->Start());
+	
 	HrIfFailledThrow(::MFPutWaitingWorkItem(sample_ready_.get(), 0, sample_ready_async_result_, &sample_ready_key_));
+
     is_stop_streaming_ = false;
 }
 

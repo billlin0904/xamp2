@@ -5,6 +5,10 @@
 #include <output_device/win32/exclusivewasapidevicetype.h>
 #include <output_device/win32/sharedwasapidevicetype.h>
 #include <output_device/win32/win32devicestatenotification.h>
+#if ENABLE_ASIO
+#include <output_device/win32/mmcss.h>
+#include <output_device/asiodevicetype.h>
+#endif
 #else
 #include <IOKit/pwr_mgt/IOPMLib.h>
 #include <output_device/osx/coreaudiodevicetype.h>
@@ -13,17 +17,11 @@
 
 #include <base/platform_thread.h>
 
-#if ENABLE_ASIO
-#include <output_device/win32/mmcss.h>
-#include <output_device/asiodevicetype.h>
-#endif
-
 #include <output_device/devicefactory.h>
 
 namespace xamp::output_device {
 
 #ifdef XAMP_OS_MAC
-
 static struct IopmAssertion {
     IopmAssertion()
         : assertion_id(0) {
@@ -60,7 +58,7 @@ static struct IopmAssertion {
 } iopmAssertion;
 #endif
 
-class DeviceFactory::DeviceStateNotificationImpl {
+class AudioDeviceFactory::DeviceStateNotificationImpl {
 public:
     explicit DeviceStateNotificationImpl(std::weak_ptr<DeviceStateListener> callback) {
 #ifdef XAMP_OS_WIN
@@ -81,7 +79,7 @@ public:
 		return MakeAlign<DeviceType, DeviceTypeClass>();\
 	})
 
-DeviceFactory::DeviceFactory() {
+AudioDeviceFactory::AudioDeviceFactory() {
 #ifdef XAMP_OS_WIN
     using namespace win32;
     HrIfFailledThrow(::MFStartup(MF_VERSION, MFSTARTUP_LITE));
@@ -98,7 +96,7 @@ DeviceFactory::DeviceFactory() {
 #endif
 }
 
-DeviceFactory::~DeviceFactory() {
+AudioDeviceFactory::~AudioDeviceFactory() {
 #ifdef XAMP_OS_WIN
     ::MFShutdown();
 #else
@@ -106,11 +104,11 @@ DeviceFactory::~DeviceFactory() {
 #endif
 }
 
-void DeviceFactory::Clear() {
+void AudioDeviceFactory::Clear() {
     creator_.clear();
 }
 
-std::optional<AlignPtr<DeviceType>> DeviceFactory::CreateDefaultDevice() const {
+std::optional<AlignPtr<DeviceType>> AudioDeviceFactory::CreateDefaultDevice() const {
     auto itr = creator_.begin();
     if (itr == creator_.end()) {
         return std::nullopt;
@@ -118,7 +116,7 @@ std::optional<AlignPtr<DeviceType>> DeviceFactory::CreateDefaultDevice() const {
     return (*itr).second();
 }
 
-std::optional<AlignPtr<DeviceType>> DeviceFactory::Create(const ID id) const {
+std::optional<AlignPtr<DeviceType>> AudioDeviceFactory::Create(const ID id) const {
     auto itr = creator_.find(id);
     if (itr == creator_.end()) {
         return std::nullopt;
@@ -126,7 +124,7 @@ std::optional<AlignPtr<DeviceType>> DeviceFactory::Create(const ID id) const {
     return (*itr).second();
 }
 
-bool DeviceFactory::IsPlatformSupportedASIO() const {
+bool AudioDeviceFactory::IsPlatformSupportedASIO() const {
 #if ENABLE_ASIO && defined(XAMP_OS_WIN)
     return creator_.find(ASIODeviceType::Id) != creator_.end();
 #else
@@ -134,7 +132,7 @@ bool DeviceFactory::IsPlatformSupportedASIO() const {
 #endif
 }
 
-bool DeviceFactory::IsExclusiveDevice(const DeviceInfo& info) {
+bool AudioDeviceFactory::IsExclusiveDevice(const DeviceInfo& info) {
 #ifdef XAMP_OS_WIN
     return info.device_type_id == win32::ExclusiveWasapiDeviceType::Id
 #if ENABLE_ASIO
@@ -147,7 +145,7 @@ bool DeviceFactory::IsExclusiveDevice(const DeviceInfo& info) {
 #endif
 }
 
-bool DeviceFactory::IsASIODevice(const ID id) {
+bool AudioDeviceFactory::IsASIODevice(const ID id) {
 #if defined(ENABLE_ASIO) && defined(XAMP_OS_WIN)
     return id == ASIODeviceType::Id;
 #else
@@ -156,16 +154,16 @@ bool DeviceFactory::IsASIODevice(const ID id) {
 #endif
 }
 
-bool DeviceFactory::IsDeviceTypeExist(const ID id) const {
+bool AudioDeviceFactory::IsDeviceTypeExist(const ID id) const {
     return creator_.find(id) != creator_.end();
 }
 
-void DeviceFactory::RegisterDeviceListener(std::weak_ptr<DeviceStateListener> callback) {	
+void AudioDeviceFactory::RegisterDeviceListener(std::weak_ptr<DeviceStateListener> callback) {	
     impl_ = MakeAlign<DeviceStateNotificationImpl>(callback);
     impl_->notification->Run();
 }
 
-void DeviceFactory::PreventSleep(bool allow) {
+void AudioDeviceFactory::PreventSleep(bool allow) {
 #ifdef XAMP_OS_WIN
     if (allow) {
         ::SetThreadExecutionState(ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED | ES_CONTINUOUS);
