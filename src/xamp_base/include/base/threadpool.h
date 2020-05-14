@@ -181,7 +181,7 @@ private:
             (void)alloca((std::min)(kInitL1CacheLineSize, kMaxL1CacheLineSize));
             std::this_thread::sleep_for(std::chrono::milliseconds(900));
 #else
-            (void)_alloca((std::min)(kInitL1CacheLineSize, kMaxL1CacheLineSize));
+            (void)_malloca((std::min)(kInitL1CacheLineSize, kMaxL1CacheLineSize));
 #endif
             SetCurrentThreadName(i);
 

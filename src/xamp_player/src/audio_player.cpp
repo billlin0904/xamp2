@@ -72,10 +72,10 @@ void AudioPlayer::UpdateSlice(int32_t sample_size, double stream_time) noexcept 
 
 void AudioPlayer::LoadLib() {
     ThreadPool::DefaultThreadPool();
-    BassFileStream::LoadBassLib();
-    SoxrResampler::LoadSoxrLib();
+    BassFileStream::LoadBassLib();    
     DeviceFactory::Instance();
     //Chromaprint::LoadChromaprintLib();
+    //SoxrResampler::LoadSoxrLib();
 }
 
 void AudioPlayer::Open(const std::wstring& file_path, const std::wstring& file_ext, const DeviceInfo& device_info) {
@@ -123,6 +123,12 @@ DsdStream* AudioPlayer::AsDsdStream() {
 
 DsdDevice* AudioPlayer::AsDsdDevice() {
     return dynamic_cast<DsdDevice*>(device_.get());
+}
+
+void AudioPlayer::UpdateSlice(int32_t sample_size, double stream_time) noexcept {
+    std::atomic_exchange_explicit(&slice_, 
+        AudioSlice{ sample_size, stream_time },
+        std::memory_order::memory_order_relaxed);
 }
 
 AlignPtr<FileStream> AudioPlayer::MakeFileStream(const std::wstring& file_ext) {
