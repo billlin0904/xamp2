@@ -149,7 +149,7 @@ bool LrcParser::ParseStream(std::wistream &istr) {
     bool start_read_lrc = false;
 
 #ifdef _WIN32
-    wchar_t dlm = L'\r';
+    wchar_t dlm = L'\n';
 #else
     wchar_t dlm = L'\n';
 #endif

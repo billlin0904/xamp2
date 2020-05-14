@@ -6,7 +6,7 @@
 
 namespace xamp::output_device {
 
-static const char* FormatErrorMessage(ASIOError error) noexcept {
+std::string_view ASIOException::ErrorMessage(ASIOError error) noexcept {
 	switch (error) {
 	case ASE_NotPresent:
 		return "Hardware input or output is not present or available.";
@@ -32,7 +32,7 @@ ASIOException::ASIOException(Errors error)
 }
 
 ASIOException::ASIOException(ASIOError error) {
-	message_ = FormatErrorMessage(error);
+	message_ = ErrorMessage(error);
 }
 
 }

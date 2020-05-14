@@ -32,7 +32,12 @@ XAMP_ALWAYS_INLINE void ImbueFileFromBom(std::wifstream& file) noexcept {
 	};
 
     std::wstring bom;
-    if (std::getline(file, bom, L'\r')) {
+
+#ifdef XAMP_OS_WIN
+	if (std::getline(file, bom, L'\r')) {	
+#else
+	if (std::getline(file, bom, L'\n')) {
+#endif
 		for (auto locale_name : locale_names) {
 			if (TryImbue(file, locale_name)) {
 				file.seekg(0, std::ios::beg);

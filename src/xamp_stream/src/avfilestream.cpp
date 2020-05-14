@@ -21,7 +21,7 @@ extern "C" {
 #include <base/exception.h>
 #include <base/memory_mapped_file.h>
 #include <base/str_utilts.h>
-#include <base/defer.h>
+#include <base/scopeguard.h>
 #include <base/logger.h>
 
 #include <stream/avexception.h>
@@ -34,7 +34,6 @@ struct AvResourceDeleter;
 template <>
 struct AvResourceDeleter<AVFormatContext> {
     void operator()(AVFormatContext* p) const {
-        assert(p != nullptr);
         ::avformat_close_input(&p);
     }
 };
@@ -42,7 +41,6 @@ struct AvResourceDeleter<AVFormatContext> {
 template <>
 struct AvResourceDeleter<AVCodecContext> {
     void operator()(AVCodecContext* p) const {
-        assert(p != nullptr);
         ::avcodec_close(p);
     }
 };
@@ -50,7 +48,6 @@ struct AvResourceDeleter<AVCodecContext> {
 template <>
 struct AvResourceDeleter<SwrContext> {
     void operator()(SwrContext* p) const {
-        assert(p != nullptr);
         ::swr_free(&p);
     }
 };
@@ -227,12 +224,14 @@ public:
     uint32_t GetSamples(float* buffer, uint32_t length) noexcept {
         uint32_t num_read_sample = 0;
 
+        const auto need_length = length / 4;
+
         for (uint32_t i = 0; i < format_context_->nb_streams; ++i) {
             AvPtr<AVPacket> packet(::av_packet_alloc());
             ::av_init_packet(packet.get());
 
             while (::av_read_frame(format_context_.get(), packet.get()) >= 0) {
-                XAMP_ON_SCOPE_EXIT(::av_packet_unref(packet.get()););
+                XAMP_ON_SCOPE_EXIT(::av_packet_unref(packet.get()));
 
                 if (packet->stream_index != audio_stream_id_) {
                     continue;
@@ -252,7 +251,7 @@ public:
                 }
 
                 while (ret >= 0) {
-                    XAMP_ON_SCOPE_EXIT(::av_frame_unref(audio_frame_.get()););
+                    XAMP_ON_SCOPE_EXIT(::av_frame_unref(audio_frame_.get()));
 
                     ret = ::avcodec_receive_frame(codec_contex_.get(), audio_frame_.get());
                     if (ret == AVERROR(EAGAIN)) {
@@ -268,7 +267,7 @@ public:
                         return 0;
                     }
                     num_read_sample += convert_size;
-                    if (num_read_sample >= (length / 4)) {
+                    if (num_read_sample >= need_length) {
                         return num_read_sample;
                     }
                 }

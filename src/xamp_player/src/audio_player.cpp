@@ -64,6 +64,12 @@ void AudioPlayer::Destroy() {
     ThreadPool::DefaultThreadPool().Stop();
 }
 
+void AudioPlayer::UpdateSlice(int32_t sample_size, double stream_time) noexcept {
+    std::atomic_exchange_explicit(&slice_,
+        AudioSlice{ sample_size, stream_time },
+        std::memory_order_relaxed);
+}
+
 void AudioPlayer::LoadLib() {
     ThreadPool::DefaultThreadPool();
     BassFileStream::LoadBassLib();
@@ -235,7 +241,7 @@ void AudioPlayer::Stop(bool signal_to_stop, bool shutdown_device, bool wait_for_
     XAMP_LOG_DEBUG("Player stop!");
     if (device_->IsStreamOpen()) {
         CloseDevice(wait_for_stop_stream);
-        std::atomic_exchange(&slice_, AudioSlice{ 0, 0 });
+        UpdateSlice();
         if (signal_to_stop) {
             SetState(PlayerState::PLAYER_STATE_STOPPED);
         }
@@ -398,7 +404,7 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
 }
 
 void AudioPlayer::CreateBuffer() {
-    std::atomic_exchange(&slice_, AudioSlice{ 0, 0 });
+    UpdateSlice();
 
     uint32_t require_read_sample = 0;
 
@@ -487,12 +493,11 @@ int32_t AudioPlayer::OnGetSamples(void* samples, const uint32_t num_buffer_frame
     const auto sample_size = num_samples * sample_size_;
 
     if (XAMP_LIKELY( buffer_.TryRead(static_cast<int8_t*>(samples), sample_size) )) {
-        std::atomic_exchange(&slice_,
-                             AudioSlice{ static_cast<int32_t>(num_samples), stream_time });
+        UpdateSlice(static_cast<int32_t>(num_samples), stream_time);
         return 0;
     }
 
-    std::atomic_exchange(&slice_, AudioSlice{ -1, stream_time });
+    UpdateSlice(-1, stream_time);
 
     stopped_cond_.notify_all();
     return 1;
@@ -561,7 +566,7 @@ void AudioPlayer::Seek(double stream_time) {
         }
         device_->SetStreamTime(stream_time);
         XAMP_LOG_DEBUG("player seeking {} sec.", stream_time);
-        std::atomic_exchange(&slice_, AudioSlice{ 0, stream_time });
+        UpdateSlice(0, stream_time);
         buffer_.Clear();
         BufferStream();
         Resume();
@@ -592,9 +597,7 @@ void AudioPlayer::BufferStream() {
     }
 }
 
-void AudioPlayer::ReadSampleLoop(uint32_t max_read_sample, std::unique_lock<std::mutex>& lock) {
-    const auto sample_buffer = sample_buffer_.get();
-
+void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_read_sample, std::unique_lock<std::mutex>& lock) {
     while (is_playing_) {
 	    const auto num_samples = stream_->GetSamples(sample_buffer, max_read_sample);
 
@@ -604,6 +607,7 @@ void AudioPlayer::ReadSampleLoop(uint32_t max_read_sample, std::unique_lock<std:
             }
         }
         else {
+            XAMP_LOG_DEBUG("Finish read all samples, wait for finish!");
             stopped_cond_.wait(lock);
         }
         break;
@@ -624,6 +628,7 @@ void AudioPlayer::StartPlay() {
 	    auto* p = player.get();
         std::unique_lock<std::mutex> lock{ p->pause_mutex_ };
 
+        auto sample_buffer = player->sample_buffer_.get();
         const auto max_read_sample = p->num_read_sample_;
         const auto num_sample_write = max_read_sample * kMaxWriteRatio;
 
@@ -638,7 +643,7 @@ void AudioPlayer::StartPlay() {
             }
 
             try {
-                p->ReadSampleLoop(max_read_sample, lock);
+                p->ReadSampleLoop(sample_buffer, max_read_sample, lock);
             }
             catch (const std::exception& e) {
                 XAMP_LOG_DEBUG("Stream read has exception: {}.", e.what());

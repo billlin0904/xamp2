@@ -10,6 +10,7 @@
 #include <asio.h>
 #include <asiodrivers.h>
 
+#include <base/logger.h>
 #include <base/exception.h>
 #include <output_device/output_device.h>
 
@@ -20,7 +21,17 @@ public:
 	explicit ASIOException(Errors error);
 
 	explicit ASIOException(ASIOError error);
+
+	static std::string_view ErrorMessage(ASIOError error) noexcept;
 };
+
+#define LogAsioIfFailed(expr) \
+	do { \
+		auto result = expr; \
+		if (result != ASE_OK) { \
+			XAMP_LOG_ERROR(ASIOException::ErrorMessage(result)); \
+		} \
+	} while (false)
 
 #define AsioIfFailedThrow(expr) \
 	do { \

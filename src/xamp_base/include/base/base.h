@@ -21,6 +21,7 @@
 #pragma warning(disable: 4251)
 #pragma warning(disable: 4275)
 #define XAMP_OS_WIN 1
+#define WIN32_LEAN_AND_MEAN
 #else
 #define XAMP_BASE_API
 #define XAMP_BASE_API_ONLY_EXPORT
@@ -32,6 +33,10 @@
 #define XAMP_DISABLE_COPY(Class) \
 	Class(const Class &) = delete; \
 	Class& operator=(const Class &) = delete;
+
+#define XAMP_COMBIN(x, y) x##y
+#define XAMP_COMBIN_NAME(x, y) XAMP_COMBIN(x, y)
+#define XAMP_ANON_VAR_NAME(x) XAMP_COMBIN_NAME(x, __LINE__)
 
 // Rule of five
 // See more: http://en.cppreference.com/w/cpp/language/rule_of_three

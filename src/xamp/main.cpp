@@ -6,12 +6,14 @@
 #include <base/vmmemlock.h>
 #include <base/stacktrace.h>
 #include <base/threadpool.h>
+#include <base/scopeguard.h>
 
 #include <metadata/metadatareader.h>
 
 #include <player/audio_player.h>
 #include <player/soxresampler.h>
 #include <widget/qdebugsink.h>
+
 #include <widget/appsettings.h>
 #include <widget/database.h>
 #include <widget/pixmapcache.h>
@@ -68,7 +70,7 @@ static int excute(int argc, char* argv[]) {
         "psapi.dll",
         "comctl32.dll",
         "WindowsCodecs.dll",
-        "AUDIOKSE.dll",
+        "AudioSes.dll",
         "avrt.dll"
         #else
         "libchromaprint.dylib",
@@ -175,9 +177,10 @@ static int tryExcute(int argc, char* argv[]) {
 #endif
 
 int main(int argc, char *argv[]) {
-    auto result = tryExcute(argc, argv);
-    Logger::Instance().Shutdown();
-    JsonSettings::save();
-    AppSettings::save();
-    return result;
+    XAMP_ON_SCOPE_EXIT(
+        Logger::Instance().Shutdown();
+        JsonSettings::save();
+        AppSettings::save();
+    );
+    return tryExcute(argc, argv);
 }

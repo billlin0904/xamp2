@@ -124,7 +124,7 @@ private:
 
     void SetState(PlayerState play_state);
 
-    void ReadSampleLoop(uint32_t max_read_sample, std::unique_lock<std::mutex> &lock);
+    void ReadSampleLoop(int8_t* sample_buffer, uint32_t max_read_sample, std::unique_lock<std::mutex> &lock);
 
     DsdStream* AsDsdStream();
 
@@ -140,6 +140,8 @@ private:
     };
 
     XAMP_ENFORCE_TRIVIAL(AudioSlice)
+
+    void UpdateSlice(int32_t sample_size = 0, double stream_time = 0.0) noexcept;
 
     bool is_muted_;
     bool enable_resample_;
