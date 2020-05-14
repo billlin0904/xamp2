@@ -15,18 +15,12 @@
 
 namespace xamp::base {
 
-enum class FileAccessMode {
+MAKE_ENUM(FileAccessMode,
     READ,
     WRITE,
-    READ_WRITE
-};
+    READ_WRITE)
 
 #ifdef XAMP_OS_WIN
-
-constexpr DWORD DEFAULT_ACCESS_MODE = GENERIC_READ;
-constexpr DWORD DEFAULT_CREATE_TYPE = OPEN_EXISTING;
-constexpr DWORD DEFAULT_PROTECT = PAGE_READONLY;
-constexpr DWORD DEFAULT_ACCESS = FILE_MAP_READ;
 
 class MemoryMappedFile::MemoryMappedFileImpl {
 public:
@@ -34,30 +28,25 @@ public:
     }
 
     void Open(const std::wstring& file_path, FileAccessMode mode, bool exclusive = false) {
+        constexpr DWORD kAccessMode = GENERIC_READ;
+        constexpr DWORD kCreateType = OPEN_EXISTING;
+        constexpr DWORD kProtect = PAGE_READONLY;
+        constexpr DWORD kAccess = FILE_MAP_READ;
+
         file_.reset(::CreateFileW(file_path.c_str(),
-                                  DEFAULT_ACCESS_MODE,
+                                  kAccessMode,
                                   exclusive ? 0 : (FILE_SHARE_READ | (mode == FileAccessMode::READ_WRITE ? FILE_SHARE_WRITE : 0)),
                                   0,
-                                  DEFAULT_CREATE_TYPE,
+                                  kCreateType,
                                   FILE_FLAG_SEQUENTIAL_SCAN,
                                   0));
 
         if (file_) {
-            OpenMappingFile(DEFAULT_PROTECT, DEFAULT_ACCESS);
+            OpenMappingFile(kProtect, kAccess);
             return;
         }
 
         throw FileNotFoundException();
-    }
-
-    void OpenMappingFile(DWORD protect, DWORD access) {
-        const MappingFileHandle mapping_handle(::CreateFileMapping(file_.get(), 0, protect, 0, 0, nullptr));
-        if (mapping_handle) {
-            address_.reset(::MapViewOfFile(mapping_handle.get(), access, 0, 0, 0));
-        }
-        else {
-            throw PlatformSpecException(::GetLastError());
-        }
     }
 
     ~MemoryMappedFileImpl() noexcept {
@@ -79,6 +68,16 @@ public:
         return li.QuadPart;
     }
 private:
+    void OpenMappingFile(DWORD protect, DWORD access) {
+        const MappingFileHandle mapping_handle(::CreateFileMapping(file_.get(), 0, protect, 0, 0, nullptr));
+        if (mapping_handle) {
+            address_.reset(::MapViewOfFile(mapping_handle.get(), access, 0, 0, 0));
+        }
+        else {
+            throw PlatformSpecException(::GetLastError());
+        }
+    }
+
     MappingAddressHandle address_;
     FileHandle file_;
 };

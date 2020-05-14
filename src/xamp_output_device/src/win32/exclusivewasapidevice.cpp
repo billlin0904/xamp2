@@ -103,11 +103,13 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
     AudioClientProperties device_props{};
     device_props.bIsOffload = FALSE;
     device_props.cbSize = sizeof(device_props);
-    device_props.eCategory = AudioCategory_Media;
-	device_props.Options = AUDCLNT_STREAMOPTIONS_MATCH_FORMAT | AUDCLNT_STREAMOPTIONS_RAW;
+    device_props.eCategory = AudioCategory_Movie;
+	device_props.Options = AUDCLNT_STREAMOPTIONS_MATCH_FORMAT 
+		| AUDCLNT_STREAMOPTIONS_RAW;
 
 	if (FAILED(client_->SetClientProperties(&device_props))) {
 		device_props.Options = AUDCLNT_STREAMOPTIONS_MATCH_FORMAT;
+		XAMP_LOG_DEBUG("Device Not Support RAW mode");
 	}
 	else {
 		XAMP_LOG_DEBUG("Device Support RAW mode");
@@ -289,8 +291,8 @@ void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
 	::Sleep(aligned_period_ / kWasapiReftimesPerMillisec);
 
     if (client_ != nullptr) {		
-		HrFailledLog(client_->Stop());
-		HrFailledLog(client_->Reset());
+		LogHrFailled(client_->Stop());
+		LogHrFailled(client_->Reset());
     }
 
 	::ResetEvent(sample_ready_.get());
@@ -327,7 +329,7 @@ void ExclusiveWasapiDevice::StartStream() {
 
 	assert(callback_ != nullptr);
 	
-	HrFailledLog(client_->Reset());
+	LogHrFailled(client_->Reset());
 
 	// Note: 必要! 某些音效卡會爆音!
 	FillSilentSample(buffer_frames_);

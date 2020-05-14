@@ -132,8 +132,8 @@ void SharedWasapiDevice::StopStream(bool wait_for_stop_stream) {
 	}
 
 	if (client_ != nullptr) {
-		HrFailledLog(client_->Stop());
-		HrFailledLog(client_->Reset());
+		LogHrFailled(client_->Stop());
+		LogHrFailled(client_->Reset());
 	}
 
 	::ResetEvent(sample_ready_.get());
@@ -216,7 +216,7 @@ void SharedWasapiDevice::OpenStream(const AudioFormat& output_format) {
 		RegisterDeviceVolumeChange();
 	}
 
-	HrFailledLog(client_->Reset());
+	LogHrFailled(client_->Reset());
 
 	HrIfFailledThrow(client_->GetBufferSize(&buffer_frames_));
 	HrIfFailledThrow(client_->GetService(__uuidof(IAudioRenderClient), reinterpret_cast<void**>(&render_client_)));
@@ -382,7 +382,7 @@ void SharedWasapiDevice::StartStream() {
 
 	assert(callback_ != nullptr);
 
-	HrFailledLog(client_->Reset());
+	LogHrFailled(client_->Reset());
 
 	is_running_ = true;
 	HrIfFailledThrow(client_->Start());

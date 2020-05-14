@@ -38,7 +38,7 @@ private:
 
 }
 
-#define HrFailledLog(expr) \
+#define LogHrFailled(expr) \
 	do {\
 		auto hr = expr;\
 		if (FAILED(hr)) {\

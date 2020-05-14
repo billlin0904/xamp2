@@ -133,7 +133,6 @@ AlignPtr<FileStream> AudioPlayer::MakeFileStream(const std::wstring& file_ext) {
     const RobinHoodSet<std::wstring_view> use_bass {
         {L".m4a"},
         {L".ape"},
-        {L".flac"},
     };
 
     auto is_dsd_stream = dsd_ext.find(file_ext) != dsd_ext.end();
