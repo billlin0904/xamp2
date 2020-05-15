@@ -44,25 +44,25 @@ void VmMemLock::Lock(void* address, size_t size) {
 	UnLock();
 
 	if (!ExterndProcessWorkingSetSize(size)) {
-		throw PlatformSpecException("ExterndProcessWorkingSetSize return failure! error:{}", ::GetLastError());
+		throw PlatformSpecException("ExterndProcessWorkingSetSize return failure! error:{}.", ::GetLastError());
 	}
 
 	if (!::VirtualLock(address, size)) {
-		throw PlatformSpecException("VirtualLock return failure! error:{}", ::GetLastError());
+		throw PlatformSpecException("VirtualLock return failure! error:{}.", ::GetLastError());
 	}
 
 	address_ = address;
 	size_ = size;
 
-	XAMP_LOG_DEBUG("VmMemLock lock address: 0x{:08x} size: {}", int64_t(address_), size_);
+	XAMP_LOG_DEBUG("VmMemLock lock address: 0x{:08x} size: {}.", int64_t(address_), size_);
 }
 
 void VmMemLock::UnLock() noexcept {
 	if (address_) {
 		if (!::VirtualUnlock(address_, size_)) {
-			XAMP_LOG_DEBUG("VirtualUnlock return failure! error:{}", ::GetLastError());
+			XAMP_LOG_DEBUG("VirtualUnlock return failure! error:{}.", ::GetLastError());
 		}
-		XAMP_LOG_DEBUG("VmMemLock unlock address: 0x{:08x} size: {}", int64_t(address_), size_);
+		XAMP_LOG_DEBUG("VmMemLock unlock address: 0x{:08x} size: {}.", int64_t(address_), size_);
 	}
 	address_ = nullptr;
 	size_ = 0;
@@ -82,7 +82,7 @@ void VmMemLock::Lock(void* address, size_t size) {
     UnLock();
 
     if (::mlock(address, size)) {
-		throw PlatformSpecException("mlock return failure! error:{}", errno);
+		throw PlatformSpecException("mlock return failure! error:{}.", errno);
     }
 
     address_ = address;
@@ -92,7 +92,7 @@ void VmMemLock::Lock(void* address, size_t size) {
 void VmMemLock::UnLock() noexcept {
     if (address_) {
         if (::munlock(address_, size_)) {
-            XAMP_LOG_DEBUG("munlock return failure! error:{}", errno);
+            XAMP_LOG_DEBUG("munlock return failure! error:{}.", errno);
         }
     }
     address_ = nullptr;

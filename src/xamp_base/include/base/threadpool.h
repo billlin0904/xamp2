@@ -135,7 +135,7 @@ public:
             task_queues_.push_back(MakeAlign<BoundedQueue<TaskType>>(max_thread));
         }
         for (size_t i = 0; i < max_thread_; ++i) {
-            AddThread(i);
+            AddThread(static_cast<int32_t>(i));
         }
     }
 
@@ -167,7 +167,7 @@ public:
             }
         }
 
-        XAMP_LOG_DEBUG("Thread pool was destory");
+        XAMP_LOG_DEBUG("Thread pool was destory.");
     }
 
     size_t GetActiveThreadCount() const {
@@ -175,13 +175,13 @@ public:
     }
 
 private:
-    void AddThread(size_t i) {
+    void AddThread(int32_t i) {
         threads_.push_back(std::thread([i, this]() mutable {
 #ifdef XAMP_OS_MAC
-            (void)alloca((std::min)(kInitL1CacheLineSize, kMaxL1CacheLineSize));
+            (void)alloca((std::min)(kInitL1CacheLineSize * i, kMaxL1CacheLineSize));
             std::this_thread::sleep_for(std::chrono::milliseconds(900));
 #else
-            (void)_malloca((std::min)(kInitL1CacheLineSize, kMaxL1CacheLineSize));
+            (void)_malloca((std::min)(kInitL1CacheLineSize * i, kMaxL1CacheLineSize));
 #endif
             SetCurrentThreadName(i);
 
@@ -201,25 +201,25 @@ private:
 
                 if (!task) {
                     if (task_queues_[i]->Dequeue(task)) {
-                        XAMP_LOG_DEBUG("Thread {} weakup, active:{}", i, active_thread_);
+                        XAMP_LOG_DEBUG("Thread {} weakup, active:{}.", i, active_thread_);
                         ++active_thread_;
                         task();
                         --active_thread_;
-                        XAMP_LOG_DEBUG("Thread {} finished!", i);
+                        XAMP_LOG_DEBUG("Thread {} finished.", i);
 					} else {
 						std::this_thread::yield();
-                        XAMP_LOG_DEBUG("Thread {} yield", i);
+                        XAMP_LOG_DEBUG("Thread {} yield.", i);
 					}
                 }
                 else {
-                    XAMP_LOG_DEBUG("Thread {} weakup, active:{}", i, active_thread_);
+                    XAMP_LOG_DEBUG("Thread {} weakup, active:{}.", i, active_thread_);
                     ++active_thread_;
                     task();
                     --active_thread_;
                 }
             }
 
-            XAMP_LOG_DEBUG("Thread {} done!", i);
+            XAMP_LOG_DEBUG("Thread {} done.", i);
         }));
 
         SetThreadAffinity(threads_[i]);
@@ -238,7 +238,7 @@ private:
 
 class XAMP_BASE_API ThreadPool final {
 public:
-    static constexpr uint32_t MAX_THREAD = 4;
+    static constexpr uint32_t kMaxThread = 8;
 
     ThreadPool();
 

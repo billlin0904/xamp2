@@ -46,10 +46,6 @@ void Logger::Shutdown() {
     spdlog::shutdown();
 }
 
-void Logger::SetLevel(const std::string &name, spdlog::level::level_enum level) {
-    GetLogger(name)->set_level(level);
-}
-
 std::shared_ptr<spdlog::logger> Logger::GetLogger(const std::string &name) {
 	auto logger = spdlog::get(name);
 	if (logger != nullptr) {
@@ -65,6 +61,13 @@ std::shared_ptr<spdlog::logger> Logger::GetLogger(const std::string &name) {
 	logger->flush_on(spdlog::level::debug);
 
 	spdlog::register_logger(logger);
+
+	if (name == "default") {
+		constexpr auto kDefaultBackTraceDepth = 10;
+		logger->enable_backtrace(kDefaultBackTraceDepth);
+		default_logger_ = logger;
+	}
+
 	return logger;
 }
 

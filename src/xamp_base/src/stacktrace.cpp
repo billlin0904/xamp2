@@ -167,10 +167,10 @@ void StackTrace::PrintStackTrace(EXCEPTION_POINTERS* info) {
 
     auto itr = WellKnownExceptionCode.find(info->ExceptionRecord->ExceptionCode);
     if (itr != WellKnownExceptionCode.end()) {
-        XAMP_LOG_DEBUG("Caught signal {} {}", info->ExceptionRecord->ExceptionCode, (*itr).second);
+        XAMP_LOG_DEBUG("Caught signal {} {}.", info->ExceptionRecord->ExceptionCode, (*itr).second);
     }
     else {
-        XAMP_LOG_DEBUG("Caught signal {}", info->ExceptionRecord->ExceptionCode);
+        XAMP_LOG_DEBUG("Caught signal {}.", info->ExceptionRecord->ExceptionCode);
     }
 
     auto frame_count = WalkStack(info->ContextRecord, addrlist_);

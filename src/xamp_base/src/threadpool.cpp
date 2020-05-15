@@ -4,7 +4,7 @@
 namespace xamp::base {
 
 ThreadPool::ThreadPool()
-    : scheduler_((std::min)(std::thread::hardware_concurrency(), MAX_THREAD)) {
+    : scheduler_((std::min)(std::thread::hardware_concurrency(), kMaxThread)) {
 }
 
 ThreadPool::~ThreadPool() {

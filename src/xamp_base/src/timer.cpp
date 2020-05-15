@@ -25,7 +25,7 @@ void Timer::Start(std::chrono::milliseconds timeout, TimerCallback&& callback) {
 			timeout_routine();
 		}
 
-        XAMP_LOG_DEBUG("Timer thread finished!");
+        XAMP_LOG_DEBUG("Timer thread finished.");
 	});
 }
 

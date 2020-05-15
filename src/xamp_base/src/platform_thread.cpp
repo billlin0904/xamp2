@@ -26,7 +26,7 @@ void SetRealtimeProcessPriority() {
                             reinterpret_cast<thread_policy_t>(&policy),
                             THREAD_EXTENDED_POLICY_COUNT);
     if (result != KERN_SUCCESS) {
-        XAMP_LOG_DEBUG("Make thread fixed priority!");
+        XAMP_LOG_DEBUG("Make thread fixed priority.");
         return;
     }
 
@@ -38,7 +38,7 @@ void SetRealtimeProcessPriority() {
                                  reinterpret_cast<thread_policy_t>(&precedence),
                                  THREAD_PRECEDENCE_POLICY_COUNT);
     if (result != KERN_SUCCESS) {
-        XAMP_LOG_DEBUG("Set to relatively high priority failure!");
+        XAMP_LOG_DEBUG("Set to relatively high priority failure.");
         return;
     }
 
@@ -77,7 +77,7 @@ void SetRealtimeProcessPriority() {
                                  reinterpret_cast<thread_policy_t>(&time_constraints),
                                  THREAD_TIME_CONSTRAINT_POLICY_COUNT);
     if (result != KERN_SUCCESS) {
-        XAMP_LOG_DEBUG("thread_policy_set return failure!");
+        XAMP_LOG_DEBUG("thread_policy_set return failure.");
         return;
     }
 }
@@ -90,7 +90,7 @@ void SetThreadAffinity(pthread_t thread, int32_t core) {
                                       reinterpret_cast<thread_policy_t>(&policy),
                                       1);
     if (result != KERN_SUCCESS) {
-        XAMP_LOG_DEBUG("thread_policy_set return failure!");
+        XAMP_LOG_DEBUG("thread_policy_set return failure.");
     }
 }
 #else
@@ -162,7 +162,7 @@ void SetThreadName(const std::string& name) noexcept {
 
 void SetCurrentThreadName(size_t index) {
     std::ostringstream ostr;
-    ostr << "Streaming Thread(" << index << ")";
+    ostr << "Streaming Thread(" << index << ").";
     SetThreadName(ostr.str());
 }
 
@@ -170,7 +170,7 @@ void SetThreadAffinity(std::thread& thread, int32_t core) {
 #ifdef XAMP_OS_WIN
     auto mask = (static_cast<DWORD_PTR>(1) << core);
     if (!::SetThreadAffinityMask(thread.native_handle(), mask)) {
-        XAMP_LOG_DEBUG("SetThreadAffinityMask return failure!");
+        XAMP_LOG_DEBUG("SetThreadAffinityMask return failure.");
     }
 #else
     SetThreadAffinity(thread.native_handle(), core);
@@ -182,7 +182,7 @@ void SetCurrentThreadAffinity(int32_t core) {
     WinHandle current_thread(::GetCurrentThread());
     auto mask = (static_cast<DWORD_PTR>(1) << core);
     if (!::SetThreadAffinityMask(current_thread.get(), mask)) {
-        XAMP_LOG_DEBUG("SetThreadAffinityMask return failure!");
+        XAMP_LOG_DEBUG("SetThreadAffinityMask return failure.");
     }
 #else
     SetThreadAffinity(::pthread_self(), core);
@@ -206,7 +206,7 @@ bool EnablePrivilege(std::string_view privilege, bool enable) noexcept {
         if (!::LookupPrivilegeValueA(nullptr,
             privilege.data(),
             &tp.Privileges[0].Luid)) {
-            XAMP_LOG_DEBUG("LookupPrivilegeValueA return failure! error:{}", GetLastError());
+            XAMP_LOG_DEBUG("LookupPrivilegeValueA return failure! error:{}.", GetLastError());
             return false;
         }
 
@@ -217,14 +217,14 @@ bool EnablePrivilege(std::string_view privilege, bool enable) noexcept {
             sizeof(TOKEN_PRIVILEGES),
             nullptr,
             nullptr)) {
-            XAMP_LOG_DEBUG("AdjustTokenPrivileges return failure! error:{}", GetLastError());
+            XAMP_LOG_DEBUG("AdjustTokenPrivileges return failure! error:{}.", GetLastError());
             return false;
         }
 
         return true;
     }
 
-    XAMP_LOG_DEBUG("OpenProcessToken return failure! error:{}", GetLastError());
+    XAMP_LOG_DEBUG("OpenProcessToken return failure! error:{}.", GetLastError());
     return false;
 }
 #endif

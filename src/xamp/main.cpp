@@ -53,7 +53,8 @@ static int excute(int argc, char* argv[]) {
 #else
         .AddSink(std::make_shared<QDebugSink>())
 #endif
-        .AddFileLogger("xamp.log");
+        .AddFileLogger("xamp.log")
+        .GetLogger("default");
 
     XAMP_SET_LOG_LEVEL(spdlog::level::debug);
 
@@ -95,7 +96,7 @@ static int excute(int argc, char* argv[]) {
     }
     catch (const Exception& e) {
         QMessageBox::critical(nullptr,
-                              Q_UTF8("Load dll failure!"),
+                              Q_UTF8("Load dll failure."),
                               QString::fromStdString(e.GetErrorMessage()));
         return -1;
     }
@@ -123,7 +124,7 @@ static int excute(int argc, char* argv[]) {
         Database::instance().open(Q_UTF8("xamp.db"));
     }
     catch (const std::exception& e) {
-        XAMP_LOG_INFO("Initial database failure! {}", e.what());
+        XAMP_LOG_INFO("Initial database failure. {}", e.what());
         return -1;
     }
 
@@ -137,13 +138,13 @@ static int excute(int argc, char* argv[]) {
 
     if (AppSettings::getValueAsString(kAppSettingLang).isEmpty()) {
         LocaleLanguage l;
-        XAMP_LOG_DEBUG("Load locale lang file: {}", l.getIsoCode().toStdString());
+        XAMP_LOG_DEBUG("Load locale lang file: {}.", l.getIsoCode().toStdString());
         AppSettings::loadLanguage(l.getIsoCode());
         AppSettings::setValue(kAppSettingLang, l.getIsoCode());
     }
     else {
         AppSettings::loadLanguage(AppSettings::getValueAsString(kAppSettingLang));
-        XAMP_LOG_DEBUG("Load locale lang file: {}",
+        XAMP_LOG_DEBUG("Load locale lang file: {}.",
                        AppSettings::getValueAsString(kAppSettingLang).toStdString());
     }
 

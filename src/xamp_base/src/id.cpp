@@ -14,7 +14,7 @@ static inline int32_t ToChar(const char C) {
     char buffer[2] = { C, '\0' };
     auto result = atoi(buffer);
     if (errno == ERANGE) {
-        throw std::invalid_argument("Invalid digital");
+        throw std::invalid_argument("Invalid digital.");
     }
     return result;
 }
@@ -25,14 +25,14 @@ static inline uint8_t MakeHex(char a, char b) {
 
 static std::array<uint8_t, kXampIdMaxSize> ParseString(const std::string_view& from_string) {
     if (from_string.length() != kMaxIdStrLen) {
-        throw std::invalid_argument("Invalid ID");
+        throw std::invalid_argument("Invalid ID.");
 	}
 
 	if (from_string[8] != '-'
 		|| from_string[13] != '-'
 		|| from_string[18] != '-'
 		|| from_string[23] != '-') {
-        throw std::invalid_argument("Invalid ID");
+        throw std::invalid_argument("Invalid ID.");
 	}
 	
 	std::array<uint8_t, kXampIdMaxSize> uuid{};

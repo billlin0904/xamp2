@@ -20,6 +20,7 @@
 namespace xamp::player {
 
 constexpr int32_t kBufferStreamCount = 5;
+constexpr int32_t kTotalBufferStreamCount = 10;
 constexpr int32_t kPreallocateBufferSize = 8 * 1024 * 1024;
 constexpr int32_t kMaxWriteRatio = 20;
 constexpr int32_t kMaxReadRatio = 30;
@@ -161,11 +162,11 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, const std::wstring &
         else {
             if (device_info.is_support_dsd) {
                 dsd_stream->SetDSDMode(DsdModes::DSD_MODE_DOP);
-                XAMP_LOG_DEBUG("Use DOP mode");
+                XAMP_LOG_DEBUG("Use DOP mode.");
                 dsd_mode_ = DsdModes::DSD_MODE_DOP;
             } else {
                 dsd_stream->SetDSDMode(DsdModes::DSD_MODE_PCM);
-                XAMP_LOG_DEBUG("Use PCM mode");
+                XAMP_LOG_DEBUG("Use PCM mode.");
                 dsd_mode_ = DsdModes::DSD_MODE_PCM;
             }
         }
@@ -175,7 +176,7 @@ void AudioPlayer::OpenStream(const std::wstring& file_path, const std::wstring &
         dsd_mode_ = DsdModes::DSD_MODE_PCM;
     }
 
-    XAMP_LOG_DEBUG("Use stream type: {}", stream_->GetDescription());
+    XAMP_LOG_DEBUG("Use stream type: {}.", stream_->GetDescription());
 
     stream_->OpenFromFile(file_path);
 }
@@ -185,7 +186,7 @@ void AudioPlayer::SetState(const PlayerState play_state) {
         adapter->OnStateChanged(play_state);
     }
     state_ = play_state;
-    XAMP_LOG_DEBUG("Set state: {}", EnumToString(state_));
+    XAMP_LOG_DEBUG("Set state: {}.", EnumToString(state_));
 }
 
 void AudioPlayer::Play() {
@@ -197,7 +198,7 @@ void AudioPlayer::Play() {
         if (!device_->IsStreamRunning()) {
             device_->SetVolume(volume_);
             device_->SetMute(is_muted_);
-            XAMP_LOG_DEBUG("Volume:{} IsMuted:{}", volume_, is_muted_);
+            XAMP_LOG_DEBUG("Volume:{} IsMuted:{}.", volume_, is_muted_);
             device_->StartStream();
             SetState(PlayerState::PLAYER_STATE_RUNNING);
         }
@@ -209,7 +210,7 @@ void AudioPlayer::Pause() {
         return;
     }
     if (!is_paused_) {
-        XAMP_LOG_DEBUG("Player pasue!");
+        XAMP_LOG_DEBUG("Player pasue.");
         if (device_->IsStreamOpen()) {
             is_paused_ = true;
             device_->StopStream();
@@ -222,7 +223,7 @@ void AudioPlayer::Resume() {
     if (!device_) {
         return;
     }
-    XAMP_LOG_DEBUG("Player resume!");
+    XAMP_LOG_DEBUG("Player resume.");
     if (device_->IsStreamOpen()) {
         SetState(PlayerState::PLAYER_STATE_RESUME);
         is_paused_ = false;
@@ -238,7 +239,7 @@ void AudioPlayer::Stop(bool signal_to_stop, bool shutdown_device, bool wait_for_
         return;
     }
 
-    XAMP_LOG_DEBUG("Player stop!");
+    XAMP_LOG_DEBUG("Player stop.");
     if (device_->IsStreamOpen()) {
         CloseDevice(wait_for_stop_stream);
         UpdateSlice();
@@ -389,16 +390,16 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
                 device_->StopStream(wait_for_stop_stream);
                 device_->CloseStream();
             } catch (const Exception &e) {
-                XAMP_LOG_DEBUG("Close device failure! {}", e.what());
+                XAMP_LOG_DEBUG("Close device failure. {}", e.what());
             }
         }
     }
     if (stream_task_.valid()) {
-        XAMP_LOG_DEBUG("Try to stop stream thread!");
+        XAMP_LOG_DEBUG("Try to stop stream thread.");
         if (stream_task_.wait_for(kWaitForStreamStopTime) == std::future_status::timeout) {
             throw StopStreamTimeoutException();
         }
-        XAMP_LOG_DEBUG("Stream thread was finished!");
+        XAMP_LOG_DEBUG("Stream thread was finished.");
     }
     buffer_.Clear();
 }
@@ -423,9 +424,9 @@ void AudioPlayer::CreateBuffer() {
 
     if (require_read_sample != num_read_sample_) {
         auto allocate_size = require_read_sample * stream_->GetSampleSize() * kBufferStreamCount;
-        num_buffer_samples_ = allocate_size * 10;
+        num_buffer_samples_ = allocate_size * kTotalBufferStreamCount;
         num_read_sample_ = require_read_sample;
-        XAMP_LOG_DEBUG("Allocate interal buffer : {}", FormatBytes(allocate_size));
+        XAMP_LOG_DEBUG("Allocate interal buffer : {}.", FormatBytes(allocate_size));
         sample_buffer_ = MakeBuffer<int8_t>(allocate_size);
         read_sample_size_ = allocate_size;
     }
@@ -440,7 +441,7 @@ void AudioPlayer::CreateBuffer() {
         if (buffer_.GetSize() == 0 || buffer_.GetSize() < num_buffer_samples_) {
             XAMP_LOG_DEBUG("Buffer too small reallocate.");
             buffer_.Resize(num_buffer_samples_);
-            XAMP_LOG_DEBUG("Allocate player buffer : {}", FormatBytes(num_buffer_samples_));
+            XAMP_LOG_DEBUG("Allocate player buffer : {}.", FormatBytes(num_buffer_samples_));
         }
     }
     else {
@@ -451,7 +452,7 @@ void AudioPlayer::CreateBuffer() {
                           num_read_sample_ / input_format_.GetChannels());
     }
     
-    XAMP_LOG_DEBUG("Output device format: {} num_read_sample: {} resampler: {} buffer: {}",
+    XAMP_LOG_DEBUG("Output device format: {} num_read_sample: {} resampler: {} buffer: {}.",
                    output_format_,
                    num_read_sample_,
                    resampler_->GetDescription(),
@@ -483,7 +484,7 @@ void AudioPlayer::SetDeviceFormat() {
 void AudioPlayer::OnVolumeChange(float vol) noexcept {
     if (auto adapter = state_adapter_.lock()) {
         adapter->OnVolumeChange(vol);
-        XAMP_LOG_DEBUG("Volum change: {}", vol);
+        XAMP_LOG_DEBUG("Volum change: {}.", vol);
     }
 }
 
@@ -511,17 +512,17 @@ void AudioPlayer::OnDeviceStateChange(DeviceState state, const std::wstring& dev
     if (auto state_adapter = state_adapter_.lock()) {
         switch (state) {
         case DeviceState::DEVICE_STATE_ADDED:
-            XAMP_LOG_DEBUG("Device added device id:{}", ToUtf8String(device_id));
+            XAMP_LOG_DEBUG("Device added device id:{}.", ToUtf8String(device_id));
             state_adapter->OnDeviceChanged(DeviceState::DEVICE_STATE_ADDED);
             break;
         case DeviceState::DEVICE_STATE_REMOVED:
-            XAMP_LOG_DEBUG("Device removed device id:{}", ToUtf8String(device_id));
+            XAMP_LOG_DEBUG("Device removed device id:{}.", ToUtf8String(device_id));
             if (device_id == device_id_) {
                 state_adapter->OnDeviceChanged(DeviceState::DEVICE_STATE_REMOVED);
             }
             break;
         case DeviceState::DEVICE_STATE_DEFAULT_DEVICE_CHANGE:
-            XAMP_LOG_DEBUG("Default device device id:{}", ToUtf8String(device_id));
+            XAMP_LOG_DEBUG("Default device device id:{}.", ToUtf8String(device_id));
             state_adapter->OnDeviceChanged(DeviceState::DEVICE_STATE_DEFAULT_DEVICE_CHANGE);
             break;
         }
@@ -564,7 +565,7 @@ void AudioPlayer::Seek(double stream_time) {
             return;
         }
         device_->SetStreamTime(stream_time);
-        XAMP_LOG_DEBUG("player seeking {} sec.", stream_time);
+        XAMP_LOG_DEBUG("Player seeking {} sec.", stream_time);
         UpdateSlice(0, stream_time);
         buffer_.Clear();
         BufferStream();
@@ -606,7 +607,7 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_read_sample
             }
         }
         else {
-            XAMP_LOG_DEBUG("Finish read all samples, wait for finish!");
+            XAMP_LOG_DEBUG("Finish read all samples, wait for finish.");
             stopped_cond_.wait(lock);
         }
         break;

@@ -4,7 +4,6 @@
 
 #include <base/logger.h>
 #include <base/str_utilts.h>
-#include <base/waitabletimer.h>
 #include <output_device/win32/hrexception.h>
 #include <output_device/win32/wasapi.h>
 #include <output_device/win32/exclusivewasapidevice.h>
@@ -109,10 +108,10 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
 
 	if (FAILED(client_->SetClientProperties(&device_props))) {
 		device_props.Options = AUDCLNT_STREAMOPTIONS_MATCH_FORMAT;
-		XAMP_LOG_DEBUG("Device Not Support RAW mode");
+		XAMP_LOG_DEBUG("Device Not Support RAW mode.");
 	}
 	else {
-		XAMP_LOG_DEBUG("Device Support RAW mode");
+		XAMP_LOG_DEBUG("Device Support RAW mode.");
 	}	
 
     REFERENCE_TIME default_device_period = 0;
@@ -120,13 +119,13 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
     HrIfFailledThrow(client_->GetDevicePeriod(&default_device_period, &minimum_device_period));
 
 	SetAlignedPeriod(default_device_period, output_format);
-	XAMP_LOG_DEBUG("Exclusive mode: default:{} sec, min:{} sec",
+	XAMP_LOG_DEBUG("Exclusive mode: default:{} sec, min:{} sec.",
 		Nano100ToSeconds(default_device_period),
 		Nano100ToSeconds(minimum_device_period));
 
-	XAMP_LOG_DEBUG("Frame per latency: {}", buffer_frames_);
+	XAMP_LOG_DEBUG("WASAPI frame per latency: {}.", buffer_frames_);
 
-	XAMP_LOG_DEBUG("Initial aligned period: {} sec", Nano100ToSeconds(aligned_period_));
+	XAMP_LOG_DEBUG("Initial aligned period: {} sec.", Nano100ToSeconds(aligned_period_));
 
 	const auto hr = client_->Initialize(AUDCLNT_SHAREMODE_EXCLUSIVE,
 		AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
@@ -153,7 +152,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	valid_bits_samples_ = kValidBitPerSamples;
 
 	if (!client_) {
-		XAMP_LOG_DEBUG("Active device format: {}", valid_output_format);
+		XAMP_LOG_DEBUG("Active device format: {}.", valid_output_format);
 
         HrIfFailledThrow(device_->Activate(__uuidof(IAudioClient2),
 			CLSCTX_ALL,
@@ -183,7 +182,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	LONG priority = 0;
 	HrIfFailledThrow(::MFGetWorkQueueMMCSSPriority(queue_id_, &priority));
 
-	XAMP_LOG_DEBUG("MCSS task id:{} queue id:{}, priority:{} ({})", task_id, queue_id_, thread_priority_, priority);
+	XAMP_LOG_DEBUG("MCSS task id:{} queue id:{}, priority:{} ({}).", task_id, queue_id_, thread_priority_, priority);
 
     sample_ready_callback_ = new MFAsyncCallback<ExclusiveWasapiDevice>(this,
         &ExclusiveWasapiDevice::OnSampleReady, queue_id_);
@@ -201,7 +200,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	buffer_ = MakeBuffer<float>(buffer_size);
 	vmlock_.Lock(buffer_.get(), buffer_size * sizeof(float));
     data_convert_ = MakeConvert(output_format, valid_output_format, buffer_frames_);
-	XAMP_LOG_DEBUG("WASAPI internal buffer: {}", FormatBytesBy<float>(buffer_size));
+	XAMP_LOG_DEBUG("WASAPI internal buffer: {}.", FormatBytesBy<float>(buffer_size));
 }
 
 void ExclusiveWasapiDevice::SetSchedulerService(const std::wstring &mmcss_name, const MmcssThreadPriority thread_priority) {
@@ -285,7 +284,7 @@ void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
         while (wait_for_stop_stream && !is_stop_streaming_) {
             condition_.wait(lock);
         }
-		XAMP_LOG_DEBUG("Stop ExclusiveWasapiDevice!");
+		XAMP_LOG_DEBUG("Stop ExclusiveWasapiDevice.");
     }
 
 	::Sleep(aligned_period_ / kWasapiReftimesPerMillisec);

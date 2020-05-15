@@ -122,7 +122,7 @@ std::tuple<int32_t, int32_t> AsioDevice::GetDeviceBufferSize() const {
 	long granularity = 0;
 	AsioIfFailedThrow(::ASIOGetBufferSize(&min_size, &max_size, &prefer_size, &granularity));
 
-	XAMP_LOG_INFO("min_size:{} max_size:{} prefer_size:{} granularity:{}",
+	XAMP_LOG_INFO("min_size:{} max_size:{} prefer_size:{} granularity:{}.",
 		min_size,
 		max_size,
 		prefer_size,
@@ -229,54 +229,54 @@ void AsioDevice::CreateBuffers(const AudioFormat& output_format) {
 	switch (channel_info.type) {
 	case ASIOSTInt16MSB:
 		mix_format_.SetByteFormat(ByteFormat::SINT16);
-		XAMP_LOG_INFO("Driver support format: ASIOSTInt16MSB");
+		XAMP_LOG_INFO("Driver support format: ASIOSTInt16MSB.");
 		break;
 	case ASIOSTInt16LSB:
 		mix_format_.SetByteFormat(ByteFormat::SINT16);
-		XAMP_LOG_INFO("Driver support format: ASIOSTInt16LSB");
+		XAMP_LOG_INFO("Driver support format: ASIOSTInt16LSB.");
 		break;
 	case ASIOSTInt24MSB:
 		mix_format_.SetByteFormat(ByteFormat::SINT24);
-		XAMP_LOG_INFO("Driver support format: ASIOSTInt24MSB");
+		XAMP_LOG_INFO("Driver support format: ASIOSTInt24MSB.");
 		break;
 	case ASIOSTInt24LSB:
 		mix_format_.SetByteFormat(ByteFormat::SINT24);
-		XAMP_LOG_INFO("Driver support format: ASIOSTInt24LSB");
+		XAMP_LOG_INFO("Driver support format: ASIOSTInt24LSB.");
 		break;
 	case ASIOSTFloat32MSB:
 		mix_format_.SetByteFormat(ByteFormat::FLOAT32);
-		XAMP_LOG_INFO("Driver support format: ASIOSTFloat32MSB");
+		XAMP_LOG_INFO("Driver support format: ASIOSTFloat32MSB.");
 		break;
 	case ASIOSTFloat32LSB:
 		mix_format_.SetByteFormat(ByteFormat::FLOAT32);
-		XAMP_LOG_INFO("Driver support format: ASIOSTFloat32LSB");
+		XAMP_LOG_INFO("Driver support format: ASIOSTFloat32LSB.");
 		break;
 	case ASIOSTInt32MSB:
 		mix_format_.SetByteFormat(ByteFormat::SINT32);
-		XAMP_LOG_INFO("Driver support format: ASIOSTInt32MSB");
+		XAMP_LOG_INFO("Driver support format: ASIOSTInt32MSB.");
 		break;
 	case ASIOSTInt32LSB:
 		mix_format_.SetByteFormat(ByteFormat::SINT32);
-		XAMP_LOG_INFO("Driver support format: ASIOSTInt32LSB");
+		XAMP_LOG_INFO("Driver support format: ASIOSTInt32LSB.");
 		break;
 		// DSD 8 bit data, 1 sample per byte. No Endianness required.
 	case ASIOSTDSDInt8LSB1:
 		mix_format_.SetByteFormat(ByteFormat::SINT8);
-		XAMP_LOG_INFO("Driver support format: ASIOSTDSDInt8LSB1");
+		XAMP_LOG_INFO("Driver support format: ASIOSTDSDInt8LSB1.");
 		break;
 	case ASIOSTDSDInt8MSB1:
 		mix_format_.SetByteFormat(ByteFormat::SINT8);
-		XAMP_LOG_INFO("Driver support format: ASIOSTDSDInt8MSB1");
+		XAMP_LOG_INFO("Driver support format: ASIOSTDSDInt8MSB1.");
 		break;
 	case ASIOSTDSDInt8NER8:
 		mix_format_.SetByteFormat(ByteFormat::SINT8);
-		XAMP_LOG_INFO("Driver support format: ASIOSTDSDInt8NER8");
+		XAMP_LOG_INFO("Driver support format: ASIOSTDSDInt8NER8.");
 		break;
 	default:
 		throw ASIOException(Errors::XAMP_ERROR_NOT_SUPPORT_FORMAT);
 	}
 
-	XAMP_LOG_INFO("Native DSD support: {}", IsSupportDsdFormat());
+	XAMP_LOG_INFO("Native DSD support: {}.", IsSupportDsdFormat());
 
 	device_buffer_vmlock_.UnLock();
 
@@ -320,7 +320,7 @@ void AsioDevice::CreateBuffers(const AudioFormat& output_format) {
 	long input_latency = 0;
 	long output_latency = 0;
 	AsioIfFailedThrow(::ASIOGetLatencies(&input_latency, &output_latency));
-	XAMP_LOG_INFO("Ouput latency: {}ms", GetLatencyMs(output_latency, output_format.GetSampleRate()));
+	XAMP_LOG_INFO("Ouput latency: {}ms.", GetLatencyMs(output_latency, output_format.GetSampleRate()));
 }
 
 uint32_t AsioDevice::GetVolume() const {
@@ -440,7 +440,7 @@ void AsioDevice::OpenStream(const AudioFormat& output_format) {
 		AsioIfFailedThrow2(::ASIOFuture(kAsioSetIoFormat, &asio_fomrmat), ASE_SUCCESS);
 	}
 	catch (const Exception & e) {
-		XAMP_LOG_DEBUG("ASIOFuture retun failure! {}", e.GetErrorMessage());
+		XAMP_LOG_DEBUG("ASIOFuture retun failure. {}", e.GetErrorMessage());
 		// NOTE: DSD format must be support!
 		if (output_format.GetFormat() == DataFormat::FORMAT_DSD) {
 			throw;
@@ -464,7 +464,7 @@ void AsioDevice::SetOutputSampleRate(const AudioFormat& output_format) {
 		throw DeviceUnSupportedFormatException(output_format);
 	}
 	AsioIfFailedThrow(error);
-	XAMP_LOG_INFO("Set device samplerate: {}", output_format.GetSampleRate());
+	XAMP_LOG_INFO("Set device samplerate: {}.", output_format.GetSampleRate());
 
 	clock_source_.resize(kClockSourceSize);
 
@@ -481,7 +481,7 @@ void AsioDevice::SetOutputSampleRate(const AudioFormat& output_format) {
 	}
 
 	if (!is_current_source_set && num_clock_source > 1) {
-		XAMP_LOG_INFO("Set device clock source: {}", clock_source_[0].index);
+		XAMP_LOG_INFO("Set device clock source: {}.", clock_source_[0].index);
 		AsioIfFailedThrow(::ASIOSetClockSource(clock_source_[0].index));
 	}
 }
@@ -510,7 +510,7 @@ void AsioDevice::StopStream(bool wait_for_stop_stream) {
 
 	AsioIfFailedThrow(::ASIOStop());
 
-	XAMP_LOG_DEBUG("Stop AsioDevice!");
+	XAMP_LOG_DEBUG("Stop AsioDevice,");
 }
 
 void AsioDevice::CloseStream() {

@@ -128,7 +128,7 @@ void SharedWasapiDevice::StopStream(bool wait_for_stop_stream) {
 		while (wait_for_stop_stream && !is_stop_streaming_) {
 			condition_.wait(lock);
 		}
-		XAMP_LOG_INFO("Stop SharedWasapiDevice!");
+		XAMP_LOG_INFO("Stop SharedWasapiDevice.");
 	}
 
 	if (client_ != nullptr) {
@@ -176,7 +176,7 @@ void SharedWasapiDevice::InitialDeviceFormat(const AudioFormat& output_format) {
 		throw DeviceUnSupportedFormatException(output_format);
 	}	
 
-	XAMP_LOG_DEBUG("Initital device format fundamental:{}, current:{}, min:{} max:{}",
+	XAMP_LOG_DEBUG("Initital device format fundamental:{}, current:{}, min:{} max:{}.",
 		fundamental_period_in_frame,
 		default_period_in_rame,
 		min_period_in_frame,
@@ -199,7 +199,7 @@ void SharedWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	stream_time_ = 0;
 
 	if (!client_) {
-		XAMP_LOG_DEBUG("Active device format: {}", output_format);
+		XAMP_LOG_DEBUG("Active device format: {}.", output_format);
 		
 		HrIfFailledThrow(device_->Activate(__uuidof(IAudioClient3),
 			CLSCTX_ALL,
@@ -221,7 +221,7 @@ void SharedWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	HrIfFailledThrow(client_->GetBufferSize(&buffer_frames_));
 	HrIfFailledThrow(client_->GetService(__uuidof(IAudioRenderClient), reinterpret_cast<void**>(&render_client_)));
 
-	XAMP_LOG_DEBUG("Buffer frame size:{}", buffer_frames_);
+	XAMP_LOG_DEBUG("WASAPI buffer frame size:{}.", buffer_frames_);
 
 	// Enable MCSS
 	DWORD task_id = 0;
@@ -234,7 +234,7 @@ void SharedWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	LONG priority = 0;
 	HrIfFailledThrow(::MFGetWorkQueueMMCSSPriority(queue_id_, &priority));
 
-	XAMP_LOG_DEBUG("MCSS task id:{} queue id:{}, priority:{} ({})", task_id, queue_id_, thread_priority_, priority);
+	XAMP_LOG_DEBUG("MCSS task id:{} queue id:{}, priority:{} ({}).", task_id, queue_id_, thread_priority_, priority);
 
 	sample_ready_callback_.Release();
 	sample_ready_async_result_.Release();
@@ -367,7 +367,7 @@ HRESULT SharedWasapiDevice::OnSampleReady(IMFAsyncResult* result) {
 		}
 		is_stop_streaming_ = true;
 		condition_.notify_all();
-		XAMP_LOG_DEBUG("Stop SharedWasapiDevice!");
+		XAMP_LOG_DEBUG("Stop SharedWasapiDevice.");
 		return S_OK;
 	}
 
