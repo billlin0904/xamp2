@@ -461,19 +461,41 @@ AlbumView::AlbumView(QWidget* parent)
 
         action_map.addSeparator();
 
+        auto removeAlbum = [=]() {
+            auto count = model()->rowCount();
+            for(auto row = 0; row < count; row++) {
+                auto index = model()->index(row, 3);
+                auto album_id = getIndexValue(index, 3).toInt();
+                Database::instance().removeAlbum(album_id);
+            }
+            refreshOnece();
+        };
+
         if (index.isValid()) {
             auto album = getIndexValue(index, 0).toString();
             auto artist = getIndexValue(index, 2).toString();
             auto album_id = getIndexValue(index, 3).toInt();
             auto artist_cover_id = getIndexValue(index, 5).toString();
-            action_map.addAction(tr("Remove album"), [=]() {
+
+            action_map.addSeparator();
+
+            action_map.addAction(tr("Remove select album"), [=]() {
                 Database::instance().removeAlbum(album_id);
+                refreshOnece();
             });
+
+            action_map.addAction(tr("Remove all album"), [=]() {
+                removeAlbum();
+            });
+
+            action_map.addSeparator();
+
             action_map.addAction(tr("Add album to playlist"), [=]() {
                 Database::instance().forEachAlbumMusic(album_id, [this](const auto& entity) {
                     emit addPlaylist(entity);
                 });
             });
+
             action_map.addAction(tr("Copy album"), [album]() {
                 QApplication::clipboard()->setText(album);
             });
@@ -482,7 +504,12 @@ AlbumView::AlbumView(QWidget* parent)
                 QApplication::clipboard()->setText(artist);
             });
         } else {
-            action_map.addAction(tr("Remove album"));
+            action_map.addSeparator();
+            action_map.addAction(tr("Remove select album"));
+            action_map.addAction(tr("Remove all album"), [=]() {
+                removeAlbum();
+            });
+            action_map.addSeparator();
             action_map.addAction(tr("Add album to playlist"));
             action_map.addAction(tr("Copy album"));
             action_map.addAction(tr("Copy artist"));

@@ -12,7 +12,7 @@ static Errors TranslateBassError(int error) noexcept {
     }
 }
 
-static const char * GetBassErrorMessage(int error) noexcept {
+static std::string GetBassErrorMessage(int error) noexcept {
     switch (error) {
     case BASS_OK:
         return "All is OK";
@@ -93,7 +93,9 @@ static const char * GetBassErrorMessage(int error) noexcept {
 BassException::BassException(int error)
     : Exception(TranslateBassError(error), GetBassErrorMessage(error))
     , error_(error) {
-    what_ = GetBassErrorMessage(error);
+    std::ostringstream ostr;
+    ostr << error << " (" + GetBassErrorMessage(error) + ").";
+    what_ = ostr.str();
 }
 
 BassException::~BassException() = default;

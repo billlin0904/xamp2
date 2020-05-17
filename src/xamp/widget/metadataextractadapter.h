@@ -37,7 +37,7 @@ public:
 
 	void Cancel() override;
 
-	void Reset() override;	
+    void Reset() override;
 
 signals:
 	void readCompleted(std::vector<xamp::base::Metadata> enitiy);

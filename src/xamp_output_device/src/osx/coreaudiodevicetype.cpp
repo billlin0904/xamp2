@@ -9,7 +9,7 @@
 
 namespace xamp::output_device::osx {
 
-const ID CoreAudioDeviceType::Id("E6BB3BF2-F16A-489B-83EE-4A29755F42E4");
+ID const CoreAudioDeviceType::Id("E6BB3BF2-F16A-489B-83EE-4A29755F42E4");
 
 CoreAudioDeviceType::CoreAudioDeviceType() {
 }
@@ -30,7 +30,7 @@ AlignPtr<Device> CoreAudioDeviceType::MakeDevice(const std::wstring &device_id) 
 size_t CoreAudioDeviceType::GetDeviceCount() const {
     UInt32 data_size = 0;
 
-    const AudioObjectPropertyAddress propertyAddress = {
+    AudioObjectPropertyAddress propertyAddress = {
         kAudioHardwarePropertyDevices,
         kAudioObjectPropertyScopeGlobal,
         kAudioObjectPropertyElementMaster
@@ -53,7 +53,7 @@ DeviceInfo CoreAudioDeviceType::GetDeviceInfo(uint32_t device) const {
     return device_list_[device];
 }
 
-const ID & CoreAudioDeviceType::GetTypeId() const {
+ID const & CoreAudioDeviceType::GetTypeId() const {
     return Id;
 }
 
@@ -111,7 +111,7 @@ std::optional<DeviceInfo> CoreAudioDeviceType::GetDefaultDeviceInfo() const {
     AudioDeviceID id;
     UInt32 dataSize = sizeof(AudioDeviceID);
 
-    const AudioObjectPropertyAddress property = {
+    AudioObjectPropertyAddress property = {
         kAudioHardwarePropertyDefaultOutputDevice,
         kAudioObjectPropertyScopeGlobal,
         kAudioObjectPropertyElementMaster

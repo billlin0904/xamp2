@@ -10,14 +10,14 @@
 namespace xamp::output_device::osx {
 
 template <typename StringType>
-static CFStringRef STLStringToCFStringWithEncodingsT(const StringType& in,
+static CFStringRef STLStringToCFStringWithEncodingsT(StringType const & in,
                                                      CFStringEncoding in_encoding) {
     typename StringType::size_type in_length = in.length();
     if (in_length == 0) {
         return CFSTR("");
     }
     return ::CFStringCreateWithBytes(kCFAllocatorDefault,
-                                     reinterpret_cast<const UInt8*>(in.data()),
+                                     reinterpret_cast<UInt8 const*>(in.data()),
                                      in_length * sizeof(typename StringType::value_type),
                                      in_encoding,
                                      false);
@@ -74,11 +74,11 @@ inline std::wstring SysCFStringRefToWide(CFStringRef ref) {
                                                           kCFStringEncodingUTF32LE);
 }
 
-inline CFStringRef SysUTF8ToCFStringRef(const std::string& utf8) {
+inline CFStringRef SysUTF8ToCFStringRef(std::string const & utf8) {
     return STLStringToCFStringWithEncodingsT(utf8, kCFStringEncodingUTF8);
 }
 
-inline CFStringRef SysWideToCFStringRef(const std::wstring& wide) {
+inline CFStringRef SysWideToCFStringRef(std::wstring const & wide) {
     return STLStringToCFStringWithEncodingsT(wide, kCFStringEncodingUTF32LE);
 }
 

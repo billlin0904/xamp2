@@ -469,7 +469,7 @@ void Xamp::initialController() {
 #endif
         dialog.setFont(f);
         dialog.exec();
-        watch_.addPath(dialog.musicFilePath);
+        watch_.addPath(dialog.music_file_path_);
     });
 #ifdef Q_OS_WIN
     auto enable_blur_material_mode_action = new QAction(tr("Enable blur"), this);

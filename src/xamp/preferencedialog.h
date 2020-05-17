@@ -13,7 +13,7 @@ class PreferenceDialog : public QDialog {
 public:
     explicit PreferenceDialog(QWidget *parent = nullptr);
 
-    QString musicFilePath;
+    QString music_file_path_;
 
 private:
     void loadSoxrResampler(const QVariantMap & soxr_settings);

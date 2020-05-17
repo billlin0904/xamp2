@@ -135,9 +135,9 @@ public:
     }
 
 private:
-    std::vector<T> data_;
     size_t head_ = -1;
     size_t size_ = 0;
+    std::vector<T> data_;
 
     size_t next_pos() const noexcept {
         return size_ == 0 ? 0 : (head_ + 1) % data_.size();

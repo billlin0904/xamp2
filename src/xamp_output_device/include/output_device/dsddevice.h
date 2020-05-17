@@ -14,12 +14,12 @@ namespace xamp::output_device {
 using namespace base;
 
 MAKE_ENUM(AsioIoFormat,
-	IO_FORMAT_DSD,
-	IO_FORMAT_PCM)
+          IO_FORMAT_DSD,
+          IO_FORMAT_PCM)
 
 class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE DsdDevice {
 public:
-	virtual ~DsdDevice() = default;
+    virtual ~DsdDevice() = default;
 
     virtual bool IsSupportDsdFormat() const = 0;
 
@@ -27,12 +27,12 @@ public:
 
     virtual AsioIoFormat GetIoFormat() const = 0;
 
-	virtual void SetSampleFormat(DsdFormat format) = 0;
+    virtual void SetSampleFormat(DsdFormat format) = 0;
 
-	virtual DsdFormat GetSampleFormat() const = 0;
+    virtual DsdFormat GetSampleFormat() const = 0;
 
 protected:
-	DsdDevice() = default;
+    DsdDevice() = default;
 };
 
 }

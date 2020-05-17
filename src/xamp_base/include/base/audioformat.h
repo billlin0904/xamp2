@@ -237,7 +237,7 @@ XAMP_ALWAYS_INLINE InterleavedFormat AudioFormat::GetInterleavedFormat() const n
 }
 
 XAMP_ALWAYS_INLINE std::ostream& operator<<(std::ostream& ostr, const AudioFormat& format) {
-    ostr << format.GetByteFormat() << "/" << format.GetInterleavedFormat() << "/"
+    ostr << format.GetByteFormat() << "-" << format.GetInterleavedFormat() << "-"
          << format.GetBitsPerSample() << "bits/";
 
     if (format.GetSampleRate() % 1000 > 0) {

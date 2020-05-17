@@ -33,7 +33,7 @@ private:
     static OSStatus OnDefaultDeviceChangedCallback(
         AudioObjectID object,
         UInt32 num_addresses,
-        const AudioObjectPropertyAddress addresses[],
+        AudioObjectPropertyAddress const addresses[],
         void* context);
 
     std::weak_ptr<DeviceStateListener> callback_;

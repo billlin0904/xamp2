@@ -18,17 +18,17 @@ class XAMP_METADATA_API XAMP_NO_VTABLE MetadataReader {
 public:
     virtual ~MetadataReader() = default;
 
-    virtual Metadata Extract(const Path &path) = 0;
+    virtual Metadata Extract(Path const &path) = 0;
  
-    virtual const std::vector<uint8_t>& ExtractEmbeddedCover(const Path &path) = 0;
+    virtual const std::vector<uint8_t>& ExtractEmbeddedCover(Path const &path) = 0;
 
-    [[nodiscard]] virtual const RobinHoodSet<std::string> & GetSupportFileExtensions() const = 0;
+    [[nodiscard]] virtual RobinHoodSet<std::string> const & GetSupportFileExtensions() const = 0;
 
-    [[nodiscard]] virtual bool IsSupported(const Path & path) const = 0;
+    [[nodiscard]] virtual bool IsSupported(Path const & path) const = 0;
 protected:
     MetadataReader() = default;
 };
 
-XAMP_METADATA_API void FromPath(const Path& path, MetadataExtractAdapter* adapter, MetadataReader* reader);
+XAMP_METADATA_API void FromPath(Path const & path, MetadataExtractAdapter* adapter, MetadataReader* reader);
 
 }

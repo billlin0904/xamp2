@@ -21,17 +21,17 @@ public:
 
     [[nodiscard]] bool IsFileReadOnly(const Path& path) const override;
    
-    void Write(const Path& path, Metadata& metadata) override;
+    void Write(Path const & path, Metadata& metadata) override;
 
-    void WriteTitle(const Path& path, const std::wstring& title) const;
+    void WriteTitle(Path const & path, std::wstring const & title) const;
 
-    void WriteArtist(const Path& path, const std::wstring& artist) const;
+    void WriteArtist(Path const & path, std::wstring const & artist) const;
 
-    void WriteAlbum(const Path& path, const std::wstring& album) const;
+    void WriteAlbum(Path const & path, std::wstring const & album) const;
 
-    void WriteTrack(const Path& path, int32_t track) const;
+    void WriteTrack(Path const & path, int32_t track) const;
 
-	void WriteEmbeddedCover(const Path& path, const std::vector<uint8_t> &image) const;
+    void WriteEmbeddedCover(Path const & path, std::vector<uint8_t> const &image) const;
 private:
     class TaglibMetadataWriterImpl;
 	AlignPtr<TaglibMetadataWriterImpl> writer_;

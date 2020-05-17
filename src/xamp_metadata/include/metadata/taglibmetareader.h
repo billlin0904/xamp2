@@ -19,13 +19,13 @@ public:
 
     XAMP_PIMPL(TaglibMetadataReader)
     
-    Metadata Extract(const Path &path) override;
+    Metadata Extract(Path const &path) override;
 
-    const std::vector<uint8_t>& ExtractEmbeddedCover(const Path &path) override;
+    const std::vector<uint8_t>& ExtractEmbeddedCover(Path const &path) override;
 
-    [[nodiscard]] const RobinHoodSet<std::string> & GetSupportFileExtensions() const override;
+    [[nodiscard]] RobinHoodSet<std::string> const & GetSupportFileExtensions() const override;
 
-    [[nodiscard]] bool IsSupported(const Path & path) const override;
+    [[nodiscard]] bool IsSupported(Path const & path) const override;
 private:
     class TaglibMetadataReaderImpl;
 	AlignPtr<TaglibMetadataReaderImpl> reader_;

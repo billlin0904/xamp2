@@ -20,7 +20,7 @@ class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE DeviceStateListener {
 public:
 	virtual ~DeviceStateListener() = default;
 
-	virtual void OnDeviceStateChange(DeviceState state, const std::wstring &device_id) = 0;
+    virtual void OnDeviceStateChange(DeviceState state, std::wstring const &device_id) = 0;
 
 protected:
 	DeviceStateListener() = default;

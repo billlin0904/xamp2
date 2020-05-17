@@ -6,7 +6,7 @@
 
 namespace xamp::metadata {
 	
-void FromPath(const Path& path, MetadataExtractAdapter* adapter, MetadataReader *reader) {
+void FromPath(Path const & path, MetadataExtractAdapter* adapter, MetadataReader *reader) {
     using namespace std::filesystem;
     const auto options = (
         directory_options::follow_directory_symlink |

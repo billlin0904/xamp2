@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>739</width>
-    <height>609</height>
+    <width>820</width>
+    <height>613</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -145,6 +145,12 @@
              </item>
              <item>
               <widget class="QToolButton" name="addPlaylistButton">
+               <property name="maximumSize">
+                <size>
+                 <width>22</width>
+                 <height>22</height>
+                </size>
+               </property>
                <property name="text">
                 <string/>
                </property>
@@ -152,6 +158,12 @@
              </item>
              <item>
               <widget class="QToolButton" name="repeatButton">
+               <property name="maximumSize">
+                <size>
+                 <width>22</width>
+                 <height>22</height>
+                </size>
+               </property>
                <property name="text">
                 <string/>
                </property>
@@ -256,6 +268,12 @@
            </item>
            <item>
             <widget class="SeekSlider" name="seekSlider">
+             <property name="minimumSize">
+              <size>
+               <width>300</width>
+               <height>0</height>
+              </size>
+             </property>
              <property name="maximumSize">
               <size>
                <width>16777215</width>
@@ -811,16 +829,6 @@
         </layout>
        </widget>
       </item>
-      <item row="1" column="1" colspan="2">
-       <widget class="QStackedWidget" name="currentView">
-        <property name="frameShadow">
-         <enum>QFrame::Plain</enum>
-        </property>
-        <property name="currentIndex">
-         <number>-1</number>
-        </property>
-       </widget>
-      </item>
       <item row="0" column="0" rowspan="2">
        <widget class="QFrame" name="sliderFrame">
         <property name="minimumSize">
@@ -944,6 +952,16 @@
           </widget>
          </item>
         </layout>
+       </widget>
+      </item>
+      <item row="1" column="1" colspan="2">
+       <widget class="QStackedWidget" name="currentView">
+        <property name="frameShadow">
+         <enum>QFrame::Plain</enum>
+        </property>
+        <property name="currentIndex">
+         <number>-1</number>
+        </property>
        </widget>
       </item>
      </layout>

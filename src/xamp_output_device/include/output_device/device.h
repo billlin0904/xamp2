@@ -16,7 +16,7 @@ class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE Device {
 public:
 	virtual ~Device() = default;
 
-	virtual void OpenStream(const AudioFormat& output_format) = 0;
+    virtual void OpenStream(AudioFormat const & output_format) = 0;
 
 	virtual void SetAudioCallback(AudioCallback* callback) noexcept = 0;
 

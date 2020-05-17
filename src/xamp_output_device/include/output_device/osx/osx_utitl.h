@@ -22,7 +22,7 @@ std::wstring GetDeviceName(AudioDeviceID id, AudioObjectPropertySelector selecto
 
 std::wstring GetPropertyName(AudioDeviceID id);
 
-AudioDeviceID GetAudioDeviceIdByUid(bool is_input, const std::wstring& device_id);
+AudioDeviceID GetAudioDeviceIdByUid(bool is_input, std::wstring const & device_id);
 
 bool IsOutputDevice(AudioDeviceID id);
 

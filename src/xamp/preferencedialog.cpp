@@ -160,16 +160,16 @@ PreferenceDialog::PreferenceDialog(QWidget *parent)
         ui_.soxrPassbandValue->setText(QString(Q_UTF8("%0%")).arg(ui_.soxrPassbandSlider->value()));
     });
 
-	musicFilePath = AppSettings::getValue(kAppSettingMusicFilePath).toString();
-	ui_.musicFilePath->setText(musicFilePath);
+    music_file_path_ = AppSettings::getValue(kAppSettingMusicFilePath).toString();
+    ui_.musicFilePath->setText(music_file_path_);
 
 	(void)QObject::connect(ui_.setPathButton, &QPushButton::clicked, [this]() {
-		musicFilePath = QFileDialog::getExistingDirectory(
+        music_file_path_ = QFileDialog::getExistingDirectory(
 			this,
 			tr("Select a directory"),
 			QDir::currentPath());
-		AppSettings::setValue(kAppSettingMusicFilePath, musicFilePath);
-		ui_.musicFilePath->setText(musicFilePath);
+        AppSettings::setValue(kAppSettingMusicFilePath, music_file_path_);
+        ui_.musicFilePath->setText(music_file_path_);
 		});
 
 	(void)QObject::connect(ui_.resetAllButton, &QPushButton::clicked, [this]() {

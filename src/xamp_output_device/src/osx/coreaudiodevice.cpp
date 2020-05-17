@@ -134,7 +134,7 @@ CoreAudioDevice::~CoreAudioDevice() {
     }
 }
 
-void CoreAudioDevice::OpenStream(const AudioFormat &output_format) {
+void CoreAudioDevice::OpenStream(AudioFormat const &output_format) {
     AudioStreamBasicDescription fmt;
     uint32 dataSize = sizeof(fmt);
     audio_property_.mSelector = kAudioStreamPropertyVirtualFormat;
@@ -147,9 +147,9 @@ void CoreAudioDevice::OpenStream(const AudioFormat &output_format) {
                                                        &fmt));
 
     if (fmt.mFormatFlags & kAudioFormatFlagIsNonInterleaved) {
-        XAMP_LOG_DEBUG("Format is non interleaved");
+        XAMP_LOG_DEBUG("Format is non interleaved.");
     } else {
-        XAMP_LOG_DEBUG("Format is interleaved");
+        XAMP_LOG_DEBUG("Format is interleaved.");
     }
 
     if (!IsSupportSampleRate(device_id_, output_format.GetSampleRate())) {
@@ -176,7 +176,7 @@ void CoreAudioDevice::OpenStream(const AudioFormat &output_format) {
             throw DeviceUnSupportedFormatException(output_format);
         }
         CoreAudioThrowIfError(error);
-        XAMP_LOG_DEBUG("Update audio format {}", output_format);
+        XAMP_LOG_DEBUG("Update audio format {}.", output_format);
     }
 
     UInt32 bufferSize = 0;
@@ -188,7 +188,7 @@ void CoreAudioDevice::OpenStream(const AudioFormat &output_format) {
                                                        nullptr,
                                                        &dataSize,
                                                        &bufferSize));
-    XAMP_LOG_DEBUG("Allocate buffer size:{}", bufferSize);
+    XAMP_LOG_DEBUG("Allocate buffer size:{}.", bufferSize);
 
     UInt32 theSize = bufferSize;
     dataSize = sizeof(UInt32);
@@ -281,11 +281,11 @@ uint32_t CoreAudioDevice::GetBufferSize() const noexcept {
 }
 
 OSStatus CoreAudioDevice::OnAudioDeviceIOProc(AudioDeviceID,
-                                              const AudioTimeStamp *,
-                                              const AudioBufferList *,
-                                              const AudioTimeStamp *,
+                                              AudioTimeStamp const*,
+                                              AudioBufferList const*,
+                                              AudioTimeStamp const*,
                                               AudioBufferList *output_data,
-                                              const AudioTimeStamp *,
+                                              AudioTimeStamp const*,
                                               void *user_data) {
     auto device = static_cast<CoreAudioDevice*>(user_data);
     device->AudioDeviceIOProc(output_data);
@@ -293,7 +293,7 @@ OSStatus CoreAudioDevice::OnAudioDeviceIOProc(AudioDeviceID,
 }
 
 void CoreAudioDevice::AudioDeviceIOProc(AudioBufferList *output_data) {
-    const auto buffer_count = output_data->mNumberBuffers;
+    auto const buffer_count = output_data->mNumberBuffers;
 
     for (uint32_t i = 0; i < buffer_count; ++i) {
         const auto buffer = output_data->mBuffers[i];

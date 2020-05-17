@@ -24,7 +24,7 @@ public:
 
     ~CoreAudioDevice() override;
 
-    void OpenStream(const AudioFormat &output_format) override;
+    void OpenStream(AudioFormat const &output_format) override;
 
     void SetAudioCallback(AudioCallback *callback) noexcept override;
 
@@ -59,11 +59,11 @@ public:
     bool CanHardwareControlVolume() const override;
 private:
     static OSStatus OnAudioDeviceIOProc(AudioDeviceID,
-                                        const AudioTimeStamp*,
-                                        const AudioBufferList*,
-                                        const AudioTimeStamp*,
+                                        AudioTimeStamp const*,
+                                        AudioBufferList const *,
+                                        AudioTimeStamp const*,
                                         AudioBufferList* outOutputData,
-                                        const AudioTimeStamp*,
+                                        AudioTimeStamp const*,
                                         void* user_data);
 
     void AudioDeviceIOProc(AudioBufferList* output_data);

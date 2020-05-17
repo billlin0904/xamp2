@@ -5,7 +5,7 @@
 
 namespace xamp::output_device::osx {
 
-static const char * FormatErrorMessage(OSStatus status) {
+static std::string FormatErrorMessage(OSStatus status) noexcept {
     switch (status) {
     case kAudioHardwareNotRunningError:
         return "kAudioHardwareNotRunningError";
@@ -35,7 +35,7 @@ static const char * FormatErrorMessage(OSStatus status) {
 }
 
 CoreAudioException::CoreAudioException(OSStatus status) {
-    message_ = ErrorToString(status) + " (" + FormatErrorMessage(status) + ")";
+    message_ = ErrorToString(status) + " (" + FormatErrorMessage(status) + ").";
 }
 
 std::string CoreAudioException::ErrorToString(OSStatus status) {

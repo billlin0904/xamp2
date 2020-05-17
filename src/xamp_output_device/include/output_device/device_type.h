@@ -30,9 +30,9 @@ public:
 
 	virtual std::string_view GetDescription() const = 0;
 
-	virtual const ID& GetTypeId() const = 0;
+    virtual ID const & GetTypeId() const = 0;
 
-	virtual AlignPtr<Device> MakeDevice(const std::wstring& device_id) = 0;
+    virtual AlignPtr<Device> MakeDevice(std::wstring const & device_id) = 0;
 
 	virtual size_t GetDeviceCount() const = 0;
 

@@ -43,7 +43,7 @@ void CoreAudioDeviceStateNotification::AddPropertyListener() {
 OSStatus CoreAudioDeviceStateNotification::OnDefaultDeviceChangedCallback(
     AudioObjectID object,
     UInt32 num_addresses,
-    const AudioObjectPropertyAddress addresses[],
+    AudioObjectPropertyAddress const addresses[],
     void* context) {
     auto notification = static_cast<CoreAudioDeviceStateNotification*>(context);
     for (UInt32 i = 0; i < num_addresses; ++i) {

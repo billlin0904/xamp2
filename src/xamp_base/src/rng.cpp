@@ -5,11 +5,6 @@
 
 namespace xamp::base {
 
-RNG& RNG::Instance() {
-    static thread_local RNG rng;
-    return rng;
-}
-
 RNG::RNG() noexcept {
     std::random_device device;
     std::vector<std::mt19937_64::result_type> seeds(std::mt19937_64::state_size);
