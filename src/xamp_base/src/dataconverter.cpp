@@ -7,7 +7,7 @@ AudioConvertContext::AudioConvertContext() {
     out_offset.fill(0);
 }
 
-AudioConvertContext MakeConvert(const AudioFormat& in_format, const AudioFormat& out_format, size_t convert_size) noexcept {
+AudioConvertContext MakeConvert(const AudioFormat& in_format, AudioFormat const & out_format, size_t convert_size) noexcept {
     AudioConvertContext context;
 
     context.in_jump = in_format.GetChannels();

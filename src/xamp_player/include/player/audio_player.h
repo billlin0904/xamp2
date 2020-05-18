@@ -96,13 +96,13 @@ public:
 
     void EnableResampler(bool enable = true);
 
-    static AlignPtr<FileStream> MakeFileStream(const std::wstring& file_ext);
+    static AlignPtr<FileStream> MakeFileStream(std::wstring const& file_ext);
 private:
     void Initial();
 
-    void OpenStream(const std::wstring& file_path, const std::wstring& file_ext, const DeviceInfo& device_info);
+    void OpenStream(std::wstring const & file_path, std::wstring const & file_ext, DeviceInfo const& device_info);
 
-    void CreateDevice(const ID& device_type_id, const std::wstring& device_id, const bool open_always);
+    void CreateDevice(ID const& device_type_id, std::wstring const & device_id, bool open_always);
 
     void CloseDevice(bool wait_for_stop_stream);
 
@@ -116,9 +116,9 @@ private:
 
     void OnVolumeChange(float vol) noexcept override;
 
-    void OnError(const Exception& e) noexcept override;
+    void OnError(Exception const & e) noexcept override;
 
-    void OnDeviceStateChange(DeviceState state, const std::wstring& device_id) override;
+    void OnDeviceStateChange(DeviceState state, std::wstring const & device_id) override;
 
     void OpenDevice(double stream_time = 0.0);
 

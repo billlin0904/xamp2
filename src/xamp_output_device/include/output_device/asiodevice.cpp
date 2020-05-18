@@ -40,7 +40,7 @@ static XAMP_ALWAYS_INLINE long GetLatencyMs(long latency, long sampleRate) noexc
 
 constexpr int32_t kClockSourceSize = 32;
 
-AsioDevice::AsioDevice(const std::string& device_id)
+AsioDevice::AsioDevice(std::string const & device_id)
 	: is_removed_driver_(true)
 	, is_stopped_(true)
 	, is_streaming_(false)
@@ -177,7 +177,7 @@ std::tuple<int32_t, int32_t> AsioDevice::GetDeviceBufferSize() const {
 	return { prefer_size, buffer_size };
 }
 
-void AsioDevice::CreateBuffers(const AudioFormat& output_format) {
+void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 	const auto [prefer_size, buffer_size] = GetDeviceBufferSize();
 
 	long num_channel = 0;
@@ -327,11 +327,11 @@ uint32_t AsioDevice::GetVolume() const {
 	return volume_;
 }
 
-void AsioDevice::SetVolume(const uint32_t volume) const {
+void AsioDevice::SetVolume(uint32_t volume) const {
 	volume_ = volume;
 }
 
-void AsioDevice::SetMute(const bool mute) const {
+void AsioDevice::SetMute(bool mute) const {
 	if (mute) {
 		volume_ = 0;
 	}
@@ -411,7 +411,7 @@ void AsioDevice::OnBufferSwitch(long index) noexcept {
 	}
 }
 
-void AsioDevice::OpenStream(const AudioFormat& output_format) {
+void AsioDevice::OpenStream(AudioFormat const & output_format) {
 	ASIODriverInfo asio_driver_info{};
 	asio_driver_info.asioVersion = 2;
 	asio_driver_info.sysRef = ::GetDesktopWindow();
@@ -458,7 +458,7 @@ void AsioDevice::OpenStream(const AudioFormat& output_format) {
 	callbackInfo.device = this;
 }
 
-void AsioDevice::SetOutputSampleRate(const AudioFormat& output_format) {
+void AsioDevice::SetOutputSampleRate(AudioFormat const & output_format) {
 	auto error = ::ASIOSetSampleRate(static_cast<ASIOSampleRate>(output_format.GetSampleRate()));
 	if (error == ASE_NotPresent) {
 		throw DeviceUnSupportedFormatException(output_format);

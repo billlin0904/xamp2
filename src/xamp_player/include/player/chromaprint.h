@@ -26,7 +26,7 @@ public:
 
     void Start(uint32_t sample_rate, uint32_t num_channels, uint32_t num_buffer_frames);
 
-    int32_t Feed(const int16_t* data, uint32_t size) const;
+    int32_t Feed(int16_t const * data, uint32_t size) const;
 
     int32_t Finish() const;
 

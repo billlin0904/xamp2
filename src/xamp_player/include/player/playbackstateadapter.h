@@ -20,13 +20,11 @@ class XAMP_PLAYER_API XAMP_NO_VTABLE PlaybackStateAdapter {
 public:
 	virtual ~PlaybackStateAdapter() = default;
 
-	virtual void OnError(const Exception& ex) = 0;
+	virtual void OnError(Exception const & ex) = 0;
 
 	virtual void OnStateChanged(PlayerState play_state) = 0;
 
 	virtual void OnSampleTime(double stream_time) = 0;
-
-	virtual void OnGetMagnitudeSpectrum(const std::vector<float>& mag) = 0;
 
 	virtual void OnDeviceChanged(DeviceState state) = 0;
 

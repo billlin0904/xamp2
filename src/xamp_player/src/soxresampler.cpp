@@ -183,7 +183,7 @@ public:
         SoxrLib::Instance().soxr_clear(handle_.get());
     }
 
-    bool Process(const float* samples, uint32_t num_sample, AudioBuffer<int8_t>& buffer) {
+    bool Process(float const * samples, uint32_t num_sample, AudioBuffer<int8_t>& buffer) {
         assert(num_channels_ != 0);
 
         buffer_.resize(static_cast<size_t>(num_sample * ratio_) + 256);
@@ -203,7 +203,7 @@ public:
         }
 
         uint32_t write_size(samples_done * num_channels_ * sizeof(float));
-        if (!buffer.TryWrite(reinterpret_cast<const int8_t*>(buffer_.data()), write_size)) {
+        if (!buffer.TryWrite(reinterpret_cast<int8_t const *>(buffer_.data()), write_size)) {
             throw Exception(Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR, "Buffer overflow!");
         }
         buffer_.resize(samples_done * num_channels_);
@@ -260,7 +260,7 @@ std::string_view SoxrResampler::GetDescription() const noexcept {
     return "Soxr " SOXR_THIS_VERSION_STR;
 }
 
-bool SoxrResampler::Process(const float* samples, uint32_t num_sample, AudioBuffer<int8_t>& buffer) {
+bool SoxrResampler::Process(float const * samples, uint32_t num_sample, AudioBuffer<int8_t>& buffer) {
     return impl_->Process(samples, num_sample, buffer);
 }
 

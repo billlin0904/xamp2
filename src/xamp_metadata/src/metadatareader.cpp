@@ -8,19 +8,19 @@ namespace xamp::metadata {
 	
 void FromPath(Path const & path, MetadataExtractAdapter* adapter, MetadataReader *reader) {
     using namespace std::filesystem;
-    const auto options = (
+    auto const options = (
         directory_options::follow_directory_symlink |
         directory_options::skip_permission_denied
         );
 	
     if (is_directory(path)) {
         Path root_path;
-        for (const auto& file_or_dir : RecursiveDirectoryIterator(path, options)) {
+        for (auto const & file_or_dir : RecursiveDirectoryIterator(path, options)) {
             if (adapter->IsCancel()) {
                 return;
             }
 
-            const auto & current_path = file_or_dir.path();
+            auto const & current_path = file_or_dir.path();
             if (root_path.empty()) {
                 root_path = current_path;
             }

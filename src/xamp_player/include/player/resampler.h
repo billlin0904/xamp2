@@ -22,7 +22,7 @@ public:
 
 	virtual std::string_view GetDescription() const noexcept = 0;
 
-    virtual bool Process(const float* samples, uint32_t num_sample, AudioBuffer<int8_t>& buffer) = 0;
+    virtual bool Process(float const * samples, uint32_t num_sample, AudioBuffer<int8_t>& buffer) = 0;
 
 	virtual void Flush() = 0;
 

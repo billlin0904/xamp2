@@ -19,7 +19,7 @@ using namespace base;
 
 class XAMP_OUTPUT_DEVICE_API ExclusiveWasapiDeviceType final : public DeviceType {
 public:
-	static const ID Id;
+	static ID const Id;
 
 	ExclusiveWasapiDeviceType();
 
@@ -37,12 +37,12 @@ public:
 
 	std::vector<DeviceInfo> GetDeviceInfo() const override;
 
-	AlignPtr<Device> MakeDevice(const std::wstring& device_id) override;
+	AlignPtr<Device> MakeDevice(std::wstring const & device_id) override;
 
 private:
 	void Initial();
 
-	CComPtr<IMMDevice> GetDeviceById(const std::wstring& device_id) const;
+	CComPtr<IMMDevice> GetDeviceById(std::wstring const & device_id) const;
 
 	std::vector<DeviceInfo> GetDeviceInfoList() const;
 

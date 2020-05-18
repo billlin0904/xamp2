@@ -81,7 +81,7 @@ private:
     ModuleHandle module_;
 
 public:
-    DllFunction<HSTREAM(BOOL, const void*, QWORD, QWORD, DWORD, DWORD)> BASS_DSD_StreamCreateFile;
+    DllFunction<HSTREAM(BOOL, void const *, QWORD, QWORD, DWORD, DWORD)> BASS_DSD_StreamCreateFile;
 };
 
 class BassLib final {
@@ -181,7 +181,7 @@ public:
     AlignPtr<BassDSDLib> DSDLib;
 
 private:
-    void LoadPlugin(const std::string& file_name) {
+    void LoadPlugin(std::string const & file_name) {
         BassPluginHandle plugin(BassLib::Instance().BASS_PluginLoad(file_name.c_str(), 0));
         if (!plugin) {
             XAMP_LOG_DEBUG("Load {} failure.", file_name);
@@ -240,7 +240,7 @@ static void EnsureDsdDecoderInit() {
 
 }
 
-static bool TestDsdFileFormat(const std::wstring& file_path) {
+static bool TestDsdFileFormat(std::wstring const & file_path) {
     BassStreamHandle stream;
 
     EnsureDsdDecoderInit();
@@ -265,7 +265,7 @@ public:
         info_ = BASS_CHANNELINFO{};
     }
 
-    void LoadFromFile(const std::wstring & file_path) {
+    void LoadFromFile(std::wstring const & file_path) {
         info_ = BASS_CHANNELINFO{};
 
         DWORD flags = 0;
@@ -432,11 +432,11 @@ public:
     }
 private:
     XAMP_ALWAYS_INLINE uint32_t InternalGetSamples(void *buffer, uint32_t length) const noexcept {
-        const auto byte_read = BassLib::Instance().BASS_ChannelGetData(stream_.get(), buffer, length);
-        if (byte_read == kBassError) {
+        const auto bytes_read = BassLib::Instance().BASS_ChannelGetData(stream_.get(), buffer, length);
+        if (bytes_read == kBassError) {
             return 0;
         }
-        return uint32_t(byte_read);
+        return uint32_t(bytes_read);
     }
 
     bool enable_file_mapped_;
@@ -459,7 +459,7 @@ void BassFileStream::LoadBassLib() {
     }
 }
 
-void BassFileStream::OpenFromFile(const std::wstring & file_path)  {
+void BassFileStream::OpenFromFile(std::wstring const & file_path)  {
     stream_->LoadFromFile(file_path);
 }
 

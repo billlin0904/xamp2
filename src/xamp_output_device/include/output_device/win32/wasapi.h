@@ -46,13 +46,13 @@ namespace xamp::output_device::win32::helper {
 constexpr int32_t kWasapiReftimesPerMillisec = 10000;
 constexpr double kWasapiReftimesPerSec = 10000000;
 
-std::wstring GetDeviceProperty(const PROPERTYKEY& key, CComPtr<IMMDevice>& device);
+std::wstring GetDeviceProperty(PROPERTYKEY const& key, CComPtr<IMMDevice>& device);
 
 DeviceInfo GetDeviceInfo(CComPtr<IMMDevice>& device, const ID device_type_id);
 
 CComPtr<IMMDeviceEnumerator> CreateDeviceEnumerator();
 
-inline double Nano100ToSeconds(REFERENCE_TIME ref) noexcept {
+XAMP_ALWAYS_INLINE constexpr double Nano100ToSeconds(REFERENCE_TIME ref) noexcept {
 	//  1 nano = 0.000000001 seconds
 	//100 nano = 0.0000001   seconds
 	//100 nano = 0.0001   milliseconds
@@ -60,7 +60,7 @@ inline double Nano100ToSeconds(REFERENCE_TIME ref) noexcept {
 	return (static_cast<double>(ref) * ratio);
 }
 
-inline UINT32 ReferenceTimeToFrames(const REFERENCE_TIME period, const UINT32 samplerate) noexcept {
+XAMP_ALWAYS_INLINE constexpr UINT32 ReferenceTimeToFrames(REFERENCE_TIME period, UINT32 samplerate) noexcept {
 	return static_cast<UINT32>(
 		1.0 * period * // hns *
 		samplerate / // (frames / s) /
@@ -70,7 +70,7 @@ inline UINT32 ReferenceTimeToFrames(const REFERENCE_TIME period, const UINT32 sa
 		);
 }
 
-inline REFERENCE_TIME MakeHnsPeriod(const UINT32 frames, const UINT32 samplerate) noexcept {
+XAMP_ALWAYS_INLINE constexpr REFERENCE_TIME MakeHnsPeriod(UINT32 frames, UINT32 samplerate) noexcept {
 	return static_cast<REFERENCE_TIME>(10000.0 * 1000.0 / double(samplerate) * double(frames) + 0.5);
 }
 

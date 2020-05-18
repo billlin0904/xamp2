@@ -7,7 +7,7 @@
 
 namespace xamp::output_device::win32 {
 
-const ID ExclusiveWasapiDeviceType::Id("089F8446-C980-495B-AC80-5A437A4E73F6");
+ID const ExclusiveWasapiDeviceType::Id("089F8446-C980-495B-AC80-5A437A4E73F6");
 
 ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceType() {    
 }
@@ -37,13 +37,13 @@ std::vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfo() const {
 	return device_list_;
 }
 
-CComPtr<IMMDevice> ExclusiveWasapiDeviceType::GetDeviceById(const std::wstring& device_id) const {
+CComPtr<IMMDevice> ExclusiveWasapiDeviceType::GetDeviceById(std::wstring const & device_id) const {
 	CComPtr<IMMDevice> device;
 	HrIfFailledThrow(enumerator_->GetDevice(device_id.c_str(), &device));
 	return device;
 }
 
-AlignPtr<Device> ExclusiveWasapiDeviceType::MakeDevice(const std::wstring& device_id) {
+AlignPtr<Device> ExclusiveWasapiDeviceType::MakeDevice(std::wstring const & device_id) {
 	return MakeAlign<Device, ExclusiveWasapiDevice>(GetDeviceById(device_id));
 }
 

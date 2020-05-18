@@ -63,7 +63,7 @@ static int32_t MakeAlignedPeriod(const AudioFormat &format, int32_t frames_per_l
     return CalcAlignedFramePerBuffer(frames_per_latency, format.GetBlockAlign(), f);
 }
 
-ExclusiveWasapiDevice::ExclusiveWasapiDevice(const CComPtr<IMMDevice>& device)
+ExclusiveWasapiDevice::ExclusiveWasapiDevice(CComPtr<IMMDevice> const & device)
 	: is_running_(false)
 	, is_stop_streaming_(false)
 	, thread_priority_(MmcssThreadPriority::MMCSS_THREAD_PRIORITY_NORMAL)
@@ -203,13 +203,13 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	XAMP_LOG_DEBUG("WASAPI internal buffer: {}.", FormatBytesBy<float>(buffer_size));
 }
 
-void ExclusiveWasapiDevice::SetSchedulerService(const std::wstring &mmcss_name, const MmcssThreadPriority thread_priority) {
+void ExclusiveWasapiDevice::SetSchedulerService(std::wstring const &mmcss_name, MmcssThreadPriority thread_priority) {
 	assert(!mmcss_name.empty());
 	thread_priority_ = thread_priority;
 	mmcss_name_ = mmcss_name;
 }
 
-void ExclusiveWasapiDevice::FillSilentSample(const uint32_t frames_available) const {
+void ExclusiveWasapiDevice::FillSilentSample(uint32_t frames_available) const {
     BYTE *data = nullptr;
 	if (!render_client_) {
 		return;
@@ -232,7 +232,7 @@ HRESULT ExclusiveWasapiDevice::OnSampleReady(IMFAsyncResult *result) {
     return S_OK;
 }
 
-void ExclusiveWasapiDevice::GetSample(const uint32_t frame_available) {
+void ExclusiveWasapiDevice::GetSample(uint32_t frame_available) {
 	BYTE* data = nullptr;
 
 	auto stream_time = stream_time_ + frame_available;

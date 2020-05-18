@@ -23,11 +23,11 @@ using namespace base;
 
 class XAMP_OUTPUT_DEVICE_API ExclusiveWasapiDevice final : public Device {
 public:
-	explicit ExclusiveWasapiDevice(const CComPtr<IMMDevice> & device);
+	explicit ExclusiveWasapiDevice(CComPtr<IMMDevice> const & device);
 
 	virtual ~ExclusiveWasapiDevice();
 
-	void OpenStream(const AudioFormat& output_format) override;
+	void OpenStream(AudioFormat const & output_format) override;
 
 	void SetAudioCallback(AudioCallback* callback) noexcept override;
 
@@ -57,20 +57,20 @@ public:
 
 	InterleavedFormat GetInterleavedFormat() const noexcept override;
 
-	void SetSchedulerService(const std::wstring& mmcss_name, MmcssThreadPriority thread_priority);
+	void SetSchedulerService(std::wstring const & mmcss_name, MmcssThreadPriority thread_priority);
 
 	uint32_t GetBufferSize() const noexcept override;
 
 	bool CanHardwareControlVolume() const override;
 
 private:
-	void InitialDeviceFormat(const AudioFormat& output_format, uint32_t valid_bits_samples);
+	void InitialDeviceFormat(AudioFormat const & output_format, uint32_t valid_bits_samples);
 
 	void FillSilentSample(uint32_t frames_available) const;
 
-	void SetAlignedPeriod(REFERENCE_TIME device_period, const AudioFormat& output_format);
+	void SetAlignedPeriod(REFERENCE_TIME device_period, AudioFormat const & output_format);
 
-	void GetSample(const uint32_t frame_available);
+	void GetSample(uint32_t frame_available);
 
 	HRESULT OnSampleReady(IMFAsyncResult* result);
 

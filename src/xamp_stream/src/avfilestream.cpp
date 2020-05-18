@@ -135,7 +135,7 @@ public:
         format_context_.reset();
     }
 
-    void LoadFromFile(const std::wstring& file_path) {
+    void LoadFromFile(std::wstring const & file_path) {
         AVFormatContext* format_ctx = nullptr;
 
         auto file_path_ut8 = ToString(file_path);
@@ -290,7 +290,7 @@ public:
         return sizeof(float);
     }
 
-    void Seek(const double stream_time) const {
+    void Seek(double stream_time) const {
         if (codec_contex_ == nullptr) {
             return;
         }

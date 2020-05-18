@@ -31,7 +31,7 @@ public:
 		, chromaprint_encode_fingerprint(module_, "chromaprint_encode_fingerprint")
 		, chromaprint_dealloc(module_, "chromaprint_dealloc") {
 	}
-	catch (const Exception & e) {
+	catch (Exception const & e) {
 		XAMP_LOG_ERROR("{}", e.GetErrorMessage());
 	}
 
@@ -83,7 +83,7 @@ public:
         ChromaprintLib::Instance().chromaprint_start(context_.get(), static_cast<int32_t>(sample_rate), static_cast<int32_t>(num_channels));
 	}
 
-    int32_t Feed(const int16_t* data, uint32_t size) const {
+    int32_t Feed(int16_t const * data, uint32_t size) const {
         return ChromaprintLib::Instance().chromaprint_feed(context_.get(), data, static_cast<int32_t>(size));
 	}
 
@@ -149,7 +149,7 @@ void Chromaprint::Start(uint32_t sample_rate, uint32_t num_channels, uint32_t nu
 	return impl_->Start(sample_rate, num_channels, num_buffer_frames);
 }
 
-int32_t Chromaprint::Feed(const int16_t* data, uint32_t size) const {
+int32_t Chromaprint::Feed(int16_t const * data, uint32_t size) const {
 	return impl_->Feed(data, size);
 }
 

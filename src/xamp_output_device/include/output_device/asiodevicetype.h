@@ -16,13 +16,13 @@ namespace xamp::output_device {
 
 class XAMP_OUTPUT_DEVICE_API ASIODeviceType final : public DeviceType {
 public:
-	static const ID Id;
+	static ID const Id;
 
     ASIODeviceType();
 
 	std::string_view GetDescription() const override;
 
-	const ID& GetTypeId() const override;
+	ID const & GetTypeId() const override;
 
 	size_t GetDeviceCount() const override;
 
@@ -34,9 +34,9 @@ public:
 
     void ScanNewDevice() override;
 
-	AlignPtr<Device> MakeDevice(const std::wstring &device_id) override;
+	AlignPtr<Device> MakeDevice(std::wstring const &device_id) override;
 private:
-	DeviceInfo GetDeviceInfo(const std::wstring& device_id) const;
+	DeviceInfo GetDeviceInfo(std::wstring const & device_id) const;
 
 	RobinHoodHashMap<std::wstring, DeviceInfo> device_list_;
 };

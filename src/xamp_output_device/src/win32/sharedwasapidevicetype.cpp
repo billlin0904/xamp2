@@ -9,7 +9,7 @@
 
 namespace xamp::output_device::win32 {
 
-const ID SharedWasapiDeviceType::Id = ID("07885EDF-7CCB-4FA6-962D-B66A759978B1");
+ID const SharedWasapiDeviceType::Id("07885EDF-7CCB-4FA6-962D-B66A759978B1");
 
 SharedWasapiDeviceType::SharedWasapiDeviceType() {
 }
@@ -25,13 +25,13 @@ void SharedWasapiDeviceType::Initial() {
 	}
 }
 
-CComPtr<IMMDevice> SharedWasapiDeviceType::GetDeviceById(const std::wstring& device_id) const {
+CComPtr<IMMDevice> SharedWasapiDeviceType::GetDeviceById(std::wstring const & device_id) const {
 	CComPtr<IMMDevice> device;
 	HrIfFailledThrow(enumerator_->GetDevice(device_id.c_str(), &device));
 	return device;
 }
 
-AlignPtr<Device> SharedWasapiDeviceType::MakeDevice(const std::wstring& device_id) {
+AlignPtr<Device> SharedWasapiDeviceType::MakeDevice(std::wstring const & device_id) {
 	return MakeAlign<Device, SharedWasapiDevice>(GetDeviceById(device_id));
 }
 
@@ -44,7 +44,7 @@ DeviceInfo SharedWasapiDeviceType::GetDeviceInfo(uint32_t device) const {
 	throw Exception(Errors::XAMP_ERROR_DEVICE_NOT_FOUND);
 }
 
-const ID& SharedWasapiDeviceType::GetTypeId() const {
+ID const & SharedWasapiDeviceType::GetTypeId() const {
 	return Id;
 }
 

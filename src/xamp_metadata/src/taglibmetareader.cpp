@@ -16,7 +16,7 @@ static bool GetID3V2TagCover(TagLib::ID3v2::Tag* tag, std::vector<uint8_t>& buff
     if (!tag) {
         return false;
     }
-    const auto & frame_list = tag->frameList("APIC");
+    auto const & frame_list = tag->frameList("APIC");
     if (frame_list.isEmpty()) {
         return false;
     }
@@ -28,7 +28,7 @@ static bool GetID3V2TagCover(TagLib::ID3v2::Tag* tag, std::vector<uint8_t>& buff
 }
 
 static bool GetApeTagCover(TagLib::APE::Tag* tag, std::vector<uint8_t>& buffer) {
-    const auto& listMap = tag->itemListMap();
+    auto const & listMap = tag->itemListMap();
 
     if (!listMap.contains("COVER ART (FRONT)")) {
         return false;
@@ -48,7 +48,7 @@ static bool GetApeTagCover(TagLib::APE::Tag* tag, std::vector<uint8_t>& buffer) 
 
 static bool GetMp3Cover(File* file, std::vector<uint8_t>& buffer) {
     bool found = false;
-    if (const auto mpeg_file = dynamic_cast<TagLib::MPEG::File*>(file)) {
+    if (auto mpeg_file = dynamic_cast<TagLib::MPEG::File*>(file)) {
         if (mpeg_file->ID3v2Tag()) {
             found = GetID3V2TagCover(mpeg_file->ID3v2Tag(), buffer);
         }
@@ -67,8 +67,8 @@ static bool GetApeCover(File* file, std::vector<uint8_t>& buffer) {
 }
 
 static bool GetMp4Cover(File* file, std::vector<uint8_t>& buffer) {
-    if (const auto mp4_file = dynamic_cast<TagLib::MP4::File*>(file)) {
-        const auto tag = mp4_file->tag();
+    if (auto mp4_file = dynamic_cast<TagLib::MP4::File*>(file)) {
+        auto tag = mp4_file->tag();
         if (!tag) {
             return false;
         }
@@ -88,8 +88,8 @@ static bool GetMp4Cover(File* file, std::vector<uint8_t>& buffer) {
 }
 
 static bool GetFlacCover(File* file, std::vector<uint8_t>& buffer) {
-    if (const auto flac_file = dynamic_cast<TagLib::FLAC::File*>(file)) {
-        const auto picture_list = flac_file->pictureList();
+    if (auto flac_file = dynamic_cast<TagLib::FLAC::File*>(file)) {
+        auto picture_list = flac_file->pictureList();
         if (picture_list.isEmpty()) {
             return false;
         }
@@ -105,7 +105,7 @@ static bool GetFlacCover(File* file, std::vector<uint8_t>& buffer) {
     return false;
 }
 
-static void SetFileInfo(const Path& path, Metadata& metadata) {
+static void SetFileInfo(Path const & path, Metadata& metadata) {
     metadata.file_path = path.wstring();
     metadata.file_name = path.filename().wstring();
     metadata.parent_path = path.parent_path().wstring();
@@ -133,7 +133,7 @@ static void ExtractTitleFromFileName(Metadata &metadata) {
     }
 }
 
-static void ExtractTag(const Path& path, Tag* tag, AudioProperties*audio_properties, Metadata& metadata) {
+static void ExtractTag(Path const & path, Tag* tag, AudioProperties*audio_properties, Metadata& metadata) {
     try {
         if (!tag->isEmpty()) {
             metadata.artist = tag->artist().toWString();
@@ -157,11 +157,11 @@ public:
 		return instance;
 	}
 
-    const RobinHoodSet<std::string>& GetSupportFileExtensions() const noexcept {
+    RobinHoodSet<std::string> const & GetSupportFileExtensions() const noexcept {
 		return support_file_extensions_;
 	}
 
-	bool IsSupported(const Path& path) const noexcept {
+	bool IsSupported(Path const & path) const noexcept {
 		const auto file_ext = ToLower(path.extension().string());
 		return support_file_extensions_.find(file_ext) != support_file_extensions_.end();
 	}
@@ -206,7 +206,7 @@ public:
         return metadata;
     }
 
-    const std::vector<uint8_t>& ExtractCover(const Path& path) {
+    std::vector<uint8_t> const & ExtractCover(Path const & path) {
         cover_.clear();
 
 		if (!IsSupported(path)) {
@@ -229,18 +229,18 @@ public:
         return cover_;
     }
 
-    const RobinHoodSet<std::string>& GetSupportFileExtensions() const {
+    RobinHoodSet<std::string> const & GetSupportFileExtensions() const {
         return TaglibHelper::Instance().GetSupportFileExtensions();
     }
 
-    bool IsSupported(const Path& path) const noexcept {
+    bool IsSupported(Path const & path) const noexcept {
 		return TaglibHelper::Instance().IsSupported(path);
     }
 
 private:
-    static void GetCover(const std::string& ext, File*file, std::vector<uint8_t>& cover) {
-        static const RobinHoodHashMap<std::string, std::function<bool(File *, std::vector<uint8_t> &)>>
-			parse_cover_table{
+    static void GetCover(std::string const & ext, File*file, std::vector<uint8_t>& cover) {
+        static RobinHoodHashMap<std::string, std::function<bool(File *, std::vector<uint8_t> &)>>
+            const parse_cover_table{
             { ".flac", GetFlacCover },
             { ".mp3",  GetMp3Cover },
             { ".m4a",  GetMp4Cover },
@@ -265,7 +265,7 @@ Metadata TaglibMetadataReader::Extract(const Path& path) {
     return reader_->Extract(path);
 }
 
-const std::vector<uint8_t>& TaglibMetadataReader::ExtractEmbeddedCover(const Path & path) {
+const std::vector<uint8_t>& TaglibMetadataReader::ExtractEmbeddedCover(Path const & path) {
     return reader_->ExtractCover(path);
 }
 
@@ -273,7 +273,7 @@ const RobinHoodSet<std::string>& TaglibMetadataReader::GetSupportFileExtensions(
     return reader_->GetSupportFileExtensions();
 }
 
-bool TaglibMetadataReader::IsSupported(const Path & path) const {
+bool TaglibMetadataReader::IsSupported(Path const & path) const {
     return reader_->IsSupported(path);
 }
 

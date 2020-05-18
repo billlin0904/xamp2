@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <base/base.h>
+
 #include <ostream>
 #include <string_view>
 
@@ -43,10 +45,10 @@ namespace {\
 constexpr std::string_view Name##_enum_names[] = {\
     ALL_ARGUMENTS_TO_STRING(__VA_ARGS__)\
 };\
-constexpr std::string_view EnumToString(Name value) {\
+XAMP_ALWAYS_INLINE constexpr std::string_view EnumToString(Name value) noexcept {\
     return Name##_enum_names[static_cast<int>(value)];\
 }\
-inline std::ostream &operator<<(std::ostream &os, Name value) {\
+XAMP_ALWAYS_INLINE std::ostream &operator<<(std::ostream &os, Name value) noexcept {\
     os << EnumToString(value);\
     return os;\
 }\

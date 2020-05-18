@@ -25,8 +25,8 @@ NullResampler::NullResampler(DsdModes dsd_mode, uint32_t sample_size)
 void NullResampler::Start(uint32_t, uint32_t, uint32_t, uint32_t) {
 }
 
-bool NullResampler::Process(const float* sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer) {
-    return (*this.*process_)(reinterpret_cast<const int8_t*>(sample_buffer), num_samples, buffer);
+bool NullResampler::Process(float const * sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer) {
+    return (*this.*process_)(reinterpret_cast<int8_t const*>(sample_buffer), num_samples, buffer);
 }
 
 std::string_view NullResampler::GetDescription() const noexcept {
@@ -36,12 +36,12 @@ std::string_view NullResampler::GetDescription() const noexcept {
 void NullResampler::Flush() {
 }
 
-bool NullResampler::ProcessNativeDsd(const int8_t* sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer) {
+bool NullResampler::ProcessNativeDsd(int8_t const * sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer) {
     CheckBufferFlow(buffer.TryWrite(sample_buffer, num_samples));
     return true;
 }
 
-bool NullResampler::ProcessPcm(const int8_t* sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer) {
+bool NullResampler::ProcessPcm(int8_t const * sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer) {
     CheckBufferFlow(buffer.TryWrite(sample_buffer, num_samples * sample_size_));
     return true;
 }

@@ -23,11 +23,11 @@ class XAMP_OUTPUT_DEVICE_API AsioDevice final
 	: public Device
 	, public DsdDevice {
 public:
-	explicit AsioDevice(const std::string& device_id);
+	explicit AsioDevice(std::string const & device_id);
 
 	~AsioDevice() override;
 
-	void OpenStream(const AudioFormat& output_format) override;
+	void OpenStream(AudioFormat const & output_format) override;
 
 	void SetAudioCallback(AudioCallback* callback) noexcept override;
 
@@ -82,9 +82,9 @@ private:
 
 	void ReOpen();
 
-	void SetOutputSampleRate(const AudioFormat& output_format);
+	void SetOutputSampleRate(AudioFormat const & output_format);
 
-	void CreateBuffers(const AudioFormat& output_format);
+	void CreateBuffers(AudioFormat const & output_format);
 
 	void OnBufferSwitch(long index) noexcept;
 

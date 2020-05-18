@@ -10,7 +10,7 @@
 
 namespace xamp::output_device::win32 {
 
-static void SetWaveformatEx(WAVEFORMATEX *input_fromat, const uint32_t samplerate) noexcept {
+static void SetWaveformatEx(WAVEFORMATEX *input_fromat, uint32_t samplerate) noexcept {
 	auto &format = *reinterpret_cast<WAVEFORMATEXTENSIBLE *>(input_fromat);
 
 	format.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
@@ -74,7 +74,7 @@ private:
 	AudioCallback* callback_;
 };
 
-SharedWasapiDevice::SharedWasapiDevice(const CComPtr<IMMDevice>& device)
+SharedWasapiDevice::SharedWasapiDevice(CComPtr<IMMDevice> const & device)
 	: is_running_(false)
 	, is_stop_streaming_(false)
 	, stream_time_(0)
@@ -153,7 +153,7 @@ void SharedWasapiDevice::CloseStream() {
 	callback_ = nullptr;
 }
 
-void SharedWasapiDevice::InitialDeviceFormat(const AudioFormat& output_format) {
+void SharedWasapiDevice::InitialDeviceFormat(AudioFormat const & output_format) {
 	uint32_t fundamental_period_in_frame = 0;
 	uint32_t current_period_in_frame = 0;
 	uint32_t default_period_in_rame = 0;
@@ -187,7 +187,7 @@ void SharedWasapiDevice::InitialDeviceFormat(const AudioFormat& output_format) {
 	XAMP_LOG_DEBUG("Use latency: {}", latency_);
 }
 
-void SharedWasapiDevice::InitialRawMode(const AudioFormat& output_format) {
+void SharedWasapiDevice::InitialRawMode(AudioFormat const & output_format) {
 	InitialDeviceFormat(output_format);
 	HrIfFailledThrow(client_->InitializeSharedAudioStream(AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
 		latency_,
@@ -195,7 +195,7 @@ void SharedWasapiDevice::InitialRawMode(const AudioFormat& output_format) {
 		nullptr));
 }
 
-void SharedWasapiDevice::OpenStream(const AudioFormat& output_format) {
+void SharedWasapiDevice::OpenStream(AudioFormat const & output_format) {
 	stream_time_ = 0;
 
 	if (!client_) {
@@ -271,7 +271,7 @@ uint32_t SharedWasapiDevice::GetVolume() const {
 	return static_cast<uint32_t>(channel_volume * 100);
 }
 
-void SharedWasapiDevice::SetMute(const bool mute) const {
+void SharedWasapiDevice::SetMute(bool mute) const {
 	CComPtr<ISimpleAudioVolume> simple_audio_volume;
 	HrIfFailledThrow(client_->GetService(__uuidof(ISimpleAudioVolume), reinterpret_cast<void**>(&simple_audio_volume)));
 
@@ -289,13 +289,13 @@ uint32_t SharedWasapiDevice::GetBufferSize() const noexcept {
 	return buffer_frames_;
 }
 
-void SharedWasapiDevice::SetSchedulerService(const std::wstring& mmcss_name, const MmcssThreadPriority thread_priority) {
+void SharedWasapiDevice::SetSchedulerService(std::wstring const & mmcss_name, MmcssThreadPriority thread_priority) {
 	assert(!mmcss_name.empty());
 	thread_priority_ = thread_priority;
 	mmcss_name_ = mmcss_name;
 }
 
-void SharedWasapiDevice::SetVolume(const uint32_t volume) const {
+void SharedWasapiDevice::SetVolume(uint32_t volume) const {
 	if (volume > 100) {
 		return;
 	}
@@ -314,7 +314,7 @@ void SharedWasapiDevice::SetVolume(const uint32_t volume) const {
 	HrIfFailledThrow(simple_audio_volume->SetMasterVolume(channel_volume, nullptr));
 }
 
-void SharedWasapiDevice::SetStreamTime(const double stream_time) noexcept {
+void SharedWasapiDevice::SetStreamTime(double stream_time) noexcept {
 	stream_time_ = stream_time * static_cast<double>(mix_format_->nSamplesPerSec);
 }
 
@@ -322,7 +322,7 @@ double SharedWasapiDevice::GetStreamTime() const noexcept {
 	return stream_time_ / static_cast<double>(mix_format_->nSamplesPerSec);
 }
 
-void SharedWasapiDevice::GetSample(const uint32_t frame_available) {
+void SharedWasapiDevice::GetSample(uint32_t frame_available) {
 	auto stream_time = stream_time_ + frame_available;
 	stream_time_ = stream_time;
 	stream_time = static_cast<double>(stream_time) / static_cast<double>(mix_format_->nSamplesPerSec);
@@ -354,7 +354,7 @@ void SharedWasapiDevice::GetSample(const uint32_t frame_available) {
 	}
 }
 
-void SharedWasapiDevice::FillSilentSample(const uint32_t frame_available) const {
+void SharedWasapiDevice::FillSilentSample(uint32_t frame_available) const {
 	BYTE* data;
 	HrIfFailledThrow(render_client_->GetBuffer(frame_available, &data));
 	HrIfFailledThrow(render_client_->ReleaseBuffer(frame_available, AUDCLNT_BUFFERFLAGS_SILENT));
@@ -394,7 +394,7 @@ bool SharedWasapiDevice::IsStreamRunning() const noexcept {
 	return is_running_;
 }
 
-void SharedWasapiDevice::GetSampleRequested(const bool is_silence) {
+void SharedWasapiDevice::GetSampleRequested(bool is_silence) {
 	uint32_t padding_frames = 0;
 
 	const auto hr = client_->GetCurrentPadding(&padding_frames);

@@ -75,11 +75,11 @@ void AudioPlayer::LoadLib() {
     ThreadPool::DefaultThreadPool();
     BassFileStream::LoadBassLib();    
     AudioDeviceFactory::Instance();
-    Chromaprint::LoadChromaprintLib();
+    //Chromaprint::LoadChromaprintLib();
     SoxrResampler::LoadSoxrLib();
 }
 
-void AudioPlayer::Open(const std::wstring& file_path, const std::wstring& file_ext, const DeviceInfo& device_info) {
+void AudioPlayer::Open(std::wstring const & file_path, std::wstring const & file_ext, DeviceInfo const & device_info) {
     Initial();
     CloseDevice(true);
     OpenStream(file_path, file_ext, device_info);
@@ -92,7 +92,7 @@ void AudioPlayer::SetResampler(uint32_t samplerate, AlignPtr<Resampler>&& resamp
     EnableResampler(true);
 }
 
-void AudioPlayer::CreateDevice(const ID& device_type_id, const std::wstring& device_id, const bool open_always) {
+void AudioPlayer::CreateDevice(ID const & device_type_id, std::wstring const & device_id, bool open_always) {
     if (device_ == nullptr
         || device_id_ != device_id
         || device_type_id_ != device_type_id
@@ -126,7 +126,7 @@ DsdDevice* AudioPlayer::AsDsdDevice() {
     return dynamic_cast<DsdDevice*>(device_.get());
 }
 
-AlignPtr<FileStream> AudioPlayer::MakeFileStream(const std::wstring& file_ext) {
+AlignPtr<FileStream> AudioPlayer::MakeFileStream(std::wstring const & file_ext) {
     const RobinHoodSet<std::wstring_view> dsd_ext {
         {L".dsf"},
         {L".dff"}
@@ -145,7 +145,7 @@ AlignPtr<FileStream> AudioPlayer::MakeFileStream(const std::wstring& file_ext) {
     return MakeAlign<FileStream, AvFileStream>();
 }
 
-void AudioPlayer::OpenStream(const std::wstring& file_path, const std::wstring &file_ext, const DeviceInfo& device_info) {
+void AudioPlayer::OpenStream(std::wstring const & file_path, std::wstring const & file_ext, DeviceInfo const & device_info) {
     stream_ = MakeFileStream(file_ext);
 
     if (auto* dsd_stream = AsDsdStream()) {
@@ -488,7 +488,7 @@ void AudioPlayer::OnVolumeChange(float vol) noexcept {
     }
 }
 
-int32_t AudioPlayer::OnGetSamples(void* samples, const uint32_t num_buffer_frames, const double stream_time) noexcept {
+int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, double stream_time) noexcept {
     const auto num_samples = num_buffer_frames * output_format_.GetChannels();
     const auto sample_size = num_samples * sample_size_;
 
@@ -508,7 +508,7 @@ void AudioPlayer::OnError(const Exception& e) noexcept {
     XAMP_LOG_DEBUG(e.what());
 }
 
-void AudioPlayer::OnDeviceStateChange(DeviceState state, const std::wstring& device_id) {
+void AudioPlayer::OnDeviceStateChange(DeviceState state, std::wstring const & device_id) {
     if (auto state_adapter = state_adapter_.lock()) {
         switch (state) {
         case DeviceState::DEVICE_STATE_ADDED:

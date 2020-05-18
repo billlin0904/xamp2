@@ -961,11 +961,6 @@ void Xamp::initialPlaylist() {
     goBackPage();
     goBackPage();
 
-    (void)QObject::connect(state_adapter_.get(),
-                            &PlayerStateAdapter::onGetMagnitudeSpectrum,
-                            lrc_page_->spectrum(),
-                            &Spectrograph::onGetMagnitudeSpectrum);
-
     (void)QObject::connect(album_artist_page_->album(), &AlbumView::clickedArtist,
                             this,
                             &Xamp::onArtistIdChanged);

@@ -15,7 +15,7 @@
 
 namespace xamp::output_device {
 
-const ID ASIODeviceType::Id("0B3FF8BC-5BFD-4A08-8066-95974FB11BB5");
+ID const ASIODeviceType::Id("0B3FF8BC-5BFD-4A08-8066-95974FB11BB5");
 
 ASIODeviceType::ASIODeviceType() {
 }
@@ -24,7 +24,7 @@ std::string_view ASIODeviceType::GetDescription() const {
 	return "ASIO";
 }
 
-const ID& ASIODeviceType::GetTypeId() const {
+ID const & ASIODeviceType::GetTypeId() const {
 	return Id;
 }
 
@@ -78,7 +78,7 @@ void ASIODeviceType::ScanNewDevice() {
 	}
 }
 
-DeviceInfo ASIODeviceType::GetDeviceInfo(const std::wstring& device_id) const {
+DeviceInfo ASIODeviceType::GetDeviceInfo(std::wstring const & device_id) const {
 	DeviceInfo info;
 	info.name = device_id;
 	info.device_id = device_id;
@@ -88,7 +88,7 @@ DeviceInfo ASIODeviceType::GetDeviceInfo(const std::wstring& device_id) const {
 	return info;
 }
 
-AlignPtr<Device> ASIODeviceType::MakeDevice(const std::wstring& device_id) {
+AlignPtr<Device> ASIODeviceType::MakeDevice(std::wstring const & device_id) {
 	const auto id = ToUtf8String(device_id);
 	return MakeAlign<Device, AsioDevice>(id);
 }

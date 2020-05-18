@@ -100,6 +100,7 @@ MetadataExtractAdapter::MetadataExtractAdapter(QObject* parent)
 
 MetadataExtractAdapter::~MetadataExtractAdapter() {
     std::vector<Metadata>().swap(metadatas_);
+    IdCache::instance().clear();
 }
 
 void MetadataExtractAdapter::OnWalk(const Path&, Metadata metadata) {
@@ -110,17 +111,10 @@ void MetadataExtractAdapter::OnWalkNext() {
     if (metadatas_.empty()) {
         return;
     }
-#ifdef Q_OS_WIN
-    std::stable_sort(std::execution::par,
-                     metadatas_.begin(), metadatas_.end(), [](const auto & first, const auto & sencond) {
-        return first.track < sencond.track;
-    });
-#else
     std::stable_sort(
-                metadatas_.begin(), metadatas_.end(), [](const auto & first, const auto & sencond) {
-        return first.track < sencond.track;
-    });
-#endif
+        metadatas_.begin(), metadatas_.end(), [](const auto& first, const auto& sencond) {
+            return first.track < sencond.track;
+        });
     emit readCompleted(metadatas_);
     metadatas_.clear();
 }

@@ -1,4 +1,3 @@
-// ReSharper disable All
 #include <functional>
 
 #include <base/windows_handle.h>
@@ -13,7 +12,7 @@ public:
 	TaglibMetadataWriterImpl() {
 	}
 
-	bool IsFileReadOnly(const Path& path) const {
+	bool IsFileReadOnly(Path const & path) const {
 #ifdef XAMP_OS_WIN
 		auto attr = ::GetFileAttributesW(path.wstring().c_str());
 		if (attr != INVALID_FILE_ATTRIBUTES) {
@@ -25,7 +24,7 @@ public:
 		return false;
 	}
 
-    void Write(const Path &path, Metadata &metadata) const {
+    void Write(Path const &path, Metadata &metadata) const {
         Write(path, [metadata](auto, auto tag) {
 			tag->setAlbum(metadata.album);
 			tag->setArtist(metadata.artist);
@@ -34,31 +33,31 @@ public:
 		});
     }
 
-    void WriteTitle(const Path &path, const std::wstring &title) const {
+    void WriteTitle(Path const& path, std::wstring const &title) const {
         Write(path, [title](auto, auto tag) {
 	        tag->setTitle(title);
 	    });
     }
 
-    void WriteArtist(const Path &path, const std::wstring &artist) const {
+    void WriteArtist(Path const& path, std::wstring const &artist) const {
         Write(path, [artist](auto, auto tag) {
 	        tag->setArtist(artist);
 	    });
     }
 
-    void WriteAlbum(const Path &path, const std::wstring &album) const {
+    void WriteAlbum(Path const& path, std::wstring const &album) const {
         Write(path, [album](auto, auto tag) {
 	        tag->setAlbum(album);
 	    });
     }
 
-    void WriteTrack(const Path &path, int32_t track) const {
+    void WriteTrack(Path const& path, int32_t track) const {
         Write(path, [track](auto, auto tag) {
 	        tag->setTrack(track);
 	    });
     }
 
-	void WriteEmbeddedCover(const Path& path, const std::vector<uint8_t>& image) const {
+	void WriteEmbeddedCover(Path const& path, std::vector<uint8_t> const & image) const {
 		const auto ext = ToLower(path.extension().string());
 
 		const TagLib::ByteVector imagedata(reinterpret_cast<const char *>(image.data()), image.size());
@@ -111,7 +110,7 @@ public:
 
 private:
     template <typename Function>
-    static void Write(const Path &path, Function &&fun) {
+    static void Write(Path const& path, Function &&fun) {
 #ifdef _WIN32
         FileRef fileref(path.wstring().c_str());
 #else
@@ -128,31 +127,31 @@ TaglibMetadataWriter::TaglibMetadataWriter()
     : writer_(MakeAlign<TaglibMetadataWriterImpl>()) {
 }
 
-bool TaglibMetadataWriter::IsFileReadOnly(const Path& path) const {
+bool TaglibMetadataWriter::IsFileReadOnly(Path const & path) const {
 	return writer_->IsFileReadOnly(path);
 }
 
-void TaglibMetadataWriter::WriteTitle(const Path& path, const std::wstring& title) const {
+void TaglibMetadataWriter::WriteTitle(Path const & path, std::wstring const & title) const {
     writer_->WriteTitle(path, title);
 }
 
-void TaglibMetadataWriter::Write(const Path& path, Metadata& metadata) {
+void TaglibMetadataWriter::Write(Path const & path, Metadata& metadata) {
     writer_->Write(path, metadata);
 }
 
-void TaglibMetadataWriter::WriteArtist(const Path& path, const std::wstring& artist) const {
+void TaglibMetadataWriter::WriteArtist(Path const & path, std::wstring const & artist) const {
     writer_->WriteArtist(path, artist);
 }
 
-void TaglibMetadataWriter::WriteAlbum(const Path& path, const std::wstring& album) const {
+void TaglibMetadataWriter::WriteAlbum(Path const & path, std::wstring const & album) const {
     writer_->WriteAlbum(path, album);
 }
 
-void TaglibMetadataWriter::WriteTrack(const Path& path, int32_t track) const {
+void TaglibMetadataWriter::WriteTrack(Path const & path, int32_t track) const {
     writer_->WriteTrack(path, track);
 }
 
-void TaglibMetadataWriter::WriteEmbeddedCover(const Path& path, const std::vector<uint8_t>& image) const {
+void TaglibMetadataWriter::WriteEmbeddedCover(Path const & path, std::vector<uint8_t> const & image) const {
 	writer_->WriteEmbeddedCover(path, image);
 }
 

@@ -19,11 +19,11 @@ namespace xamp::output_device::win32 {
 
 class XAMP_OUTPUT_DEVICE_API SharedWasapiDevice final : public Device {
 public:
-	explicit SharedWasapiDevice(const CComPtr<IMMDevice>& device);
+	explicit SharedWasapiDevice(CComPtr<IMMDevice> const & device);
 
 	virtual ~SharedWasapiDevice();
 
-	void OpenStream(const AudioFormat& output_format) override;
+	void OpenStream(AudioFormat const & output_format) override;
 
 	void SetAudioCallback(AudioCallback* callback) noexcept override;
 
@@ -53,7 +53,7 @@ public:
 
 	InterleavedFormat GetInterleavedFormat() const noexcept override;
 
-	void SetSchedulerService(const std::wstring& mmcss_name, MmcssThreadPriority thread_priority);
+	void SetSchedulerService(std::wstring const & mmcss_name, MmcssThreadPriority thread_priority);
 
 	uint32_t GetBufferSize() const noexcept override;
 
@@ -64,9 +64,9 @@ private:
 
 	void RegisterDeviceVolumeChange();
 
-	void InitialRawMode(const AudioFormat& output_format);
+	void InitialRawMode(AudioFormat const & output_format);
 
-	void InitialDeviceFormat(const AudioFormat& output_format);
+	void InitialDeviceFormat(AudioFormat const & output_format);
 
 	void GetSampleRequested(bool is_silence);
 

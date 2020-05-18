@@ -18,8 +18,8 @@ struct XAMP_PLAYER_API Fingerprint {
 	std::vector<uint8_t> fingerprint;
 };
 
-XAMP_PLAYER_API Fingerprint ReadFingerprint(const std::wstring& file_path,
-                                            const std::wstring& file_ext,
+XAMP_PLAYER_API Fingerprint ReadFingerprint(std::wstring const & file_path,
+                                            std::wstring const & file_ext,
                                             std::function<bool(uint32_t)> progress);
 
 }

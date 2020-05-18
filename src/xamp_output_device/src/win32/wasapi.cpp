@@ -15,7 +15,7 @@ CComPtr<IMMDeviceEnumerator> CreateDeviceEnumerator() {
 	return enumerator;
 }
 
-std::wstring GetDeviceProperty(const PROPERTYKEY& key, CComPtr<IMMDevice>& device) {
+std::wstring GetDeviceProperty(PROPERTYKEY const & key, CComPtr<IMMDevice>& device) {
 	CComPtr<IPropertyStore> property;
 
 	HrIfFailledThrow(device->OpenPropertyStore(STGM_READ, &property));
@@ -33,7 +33,7 @@ std::wstring GetDeviceProperty(const PROPERTYKEY& key, CComPtr<IMMDevice>& devic
 	return name;
 }
 
-DeviceInfo GetDeviceInfo(CComPtr<IMMDevice>& device, const ID device_type_id) {
+DeviceInfo GetDeviceInfo(CComPtr<IMMDevice>& device, ID device_type_id) {
 	DeviceInfo info;
 	info.name = GetDeviceProperty(PKEY_Device_FriendlyName, device);
 

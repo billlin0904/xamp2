@@ -16,7 +16,7 @@ public:
 		return true;
 	}
 
-    virtual void OpenFromFile(const std::wstring & file_path) = 0;
+    virtual void OpenFromFile(std::wstring const & file_path) = 0;
 
 protected:
     FileStream() = default;
