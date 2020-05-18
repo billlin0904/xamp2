@@ -12,9 +12,15 @@
 
 #include <widget/playlistentity.h>
 
-#define Q_UTF8(str) QLatin1String{str}
-#define Q_EMPTY_STR QLatin1String{""}
-#define Q_STR(str) QString(QLatin1String{str})
+struct ConstLatin1String : public QLatin1String {
+    constexpr ConstLatin1String(char const* const s)
+        : QLatin1String(s, static_cast<int>(std::char_traits<char>::length(s))) {
+    }
+};
+
+#define Q_UTF8(str) ConstLatin1String{str}
+#define Q_EMPTY_STR ConstLatin1String{""}
+#define Q_STR(str) QString(ConstLatin1String{str})
 
 struct MusicEntity {
     int32_t album_id{ 0 };

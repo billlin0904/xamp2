@@ -1,22 +1,6 @@
+#include <QStandardPaths>
 #include <widget/playerorder.h>
 #include <widget/appsettings.h>
-
-const QLatin1String kAppSettingLang{ "AppSettings/lang" };
-
-const QLatin1String kAppSettingPreventSleep{ "AppSettings/preventSleep" };
-const QLatin1String kAppSettingDeviceType{ "AppSettings/deviceType" };
-const QLatin1String kAppSettingDeviceId{ "AppSettings/deviceId" };
-const QLatin1String kAppSettingWidth{ "AppSettings/width" };
-const QLatin1String kAppSettingHeight{ "AppSettings/height" };
-const QLatin1String kAppSettingVolume{ "AppSettings/volume" };
-const QLatin1String kAppSettingOrder{ "AppSettings/order" };
-const QLatin1String kAppSettingNightMode{ "AppSettings/nightMode" };
-const QLatin1String kAppSettingBackgroundColor{ "AppSettings/theme/backgroundColor" };
-const QLatin1String kAppSettingEnableBlur{ "AppSettings/theme/enableBlur" };
-const QLatin1String kAppSettingMusicFilePath{ "AppSettings/musicFilePath" };
-
-const QLatin1String kAppSettingResamplerEnable{ "AppSettings/soxr/enable" };
-const QLatin1String kAppSettingSoxrSettingName{ "AppSettings/soxr/userSettingName" };
 
 QScopedPointer<QSettings> AppSettings::settings_;
 QMap<QString, QVariant> AppSettings::default_settings_;
@@ -31,6 +15,10 @@ void AppSettings::save() {
 		return;
 	}
     settings_->sync();
+}
+
+QString AppSettings::getMyMusicFolderPath() {
+	return QStandardPaths::standardLocations(QStandardPaths::MusicLocation)[0];
 }
 
 void AppSettings::setOrDefaultConfig() {

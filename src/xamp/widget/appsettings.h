@@ -10,24 +10,25 @@
 #include <QSettings>
 #include <QScopedPointer>
 
+#include <widget/str_utilts.h>
 #include <widget/localelanguage.h>
 
-extern const QLatin1String kAppSettingLang;
-extern const QLatin1String kAppSettingPreventSleep;
+const ConstLatin1String kAppSettingLang{ "AppSettings/lang" };
 
-extern const QLatin1String kAppSettingDeviceType;
-extern const QLatin1String kAppSettingDeviceId;
-extern const QLatin1String kAppSettingWidth;
-extern const QLatin1String kAppSettingHeight;
-extern const QLatin1String kAppSettingVolume;
-extern const QLatin1String kAppSettingOrder;
-extern const QLatin1String kAppSettingNightMode;
-extern const QLatin1String kAppSettingEnableBlur;
-extern const QLatin1String kAppSettingBackgroundColor;
-extern const QLatin1String kAppSettingMusicFilePath;
+const ConstLatin1String kAppSettingPreventSleep{ "AppSettings/preventSleep" };
+const ConstLatin1String kAppSettingDeviceType{ "AppSettings/deviceType" };
+const ConstLatin1String kAppSettingDeviceId{ "AppSettings/deviceId" };
+const ConstLatin1String kAppSettingWidth{ "AppSettings/width" };
+const ConstLatin1String kAppSettingHeight{ "AppSettings/height" };
+const ConstLatin1String kAppSettingVolume{ "AppSettings/volume" };
+const ConstLatin1String kAppSettingOrder{ "AppSettings/order" };
+const ConstLatin1String kAppSettingNightMode{ "AppSettings/nightMode" };
+const ConstLatin1String kAppSettingBackgroundColor{ "AppSettings/theme/backgroundColor" };
+const ConstLatin1String kAppSettingEnableBlur{ "AppSettings/theme/enableBlur" };
+const ConstLatin1String kAppSettingMusicFilePath{ "AppSettings/musicFilePath" };
 
-extern const QLatin1String kAppSettingResamplerEnable;
-extern const QLatin1String kAppSettingSoxrSettingName;
+const ConstLatin1String kAppSettingResamplerEnable{ "AppSettings/soxr/enable" };
+const ConstLatin1String kAppSettingSoxrSettingName{ "AppSettings/soxr/userSettingName" };
 
 class AppSettings {
 public:    
@@ -91,6 +92,8 @@ public:
     static void loadLanguage(const QString& lang);
 
     static void setOrDefaultConfig();
+
+    static QString getMyMusicFolderPath();
 
     static void save();
 

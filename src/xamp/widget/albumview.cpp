@@ -14,6 +14,7 @@
 
 #include <base/logger.h>
 
+#include <widget/appsettings.h>
 #include <widget/database.h>
 #include <widget/playlisttableview.h>
 #include <widget/actionmap.h>
@@ -28,10 +29,6 @@
 #include <widget/image_utiltis.h>
 #include <widget/pixmapcache.h>
 #include <widget/albumview.h>
-
-static QString getMyMusicFolderPath() {
-    return QStandardPaths::standardLocations(QStandardPaths::MusicLocation)[0];
-}
 
 AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
     : QStyledItemDelegate(parent)
@@ -447,7 +444,7 @@ AlbumView::AlbumView(QWidget* parent)
             exts += Q_UTF8(")");
             auto file_name = QFileDialog::getOpenFileName(this,
                                                           tr("Open file"),
-                                                          getMyMusicFolderPath(),
+                                                          AppSettings::getMyMusicFolderPath(),
                                                           tr("Music Files ") + exts);
             append(file_name);
         });
@@ -455,7 +452,7 @@ AlbumView::AlbumView(QWidget* parent)
         (void)action_map.addAction(tr("Load file directory"), [this]() {
             auto dir_name = QFileDialog::getExistingDirectory(this,
                                                               tr("Select a directory"),
-                                                              getMyMusicFolderPath());
+                                                              AppSettings::getMyMusicFolderPath());
             append(dir_name);
         });
 

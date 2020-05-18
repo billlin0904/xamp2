@@ -10,12 +10,11 @@
 #include <QtConcurrent>
 #include <QFutureWatcher>
 
-#include <QStandardPaths>
-
 #include <base/rng.h>
 #include <metadata/metadatareader.h>
 #include <metadata/taglibmetareader.h>
 
+#include <widget/appsettings.h>
 #include <widget/pixmapcache.h>
 #include <widget/stardelegate.h>
 #include <widget/database.h>
@@ -23,10 +22,6 @@
 #include <widget/actionmap.h>
 #include <widget/stareditor.h>
 #include <widget/playlisttableview.h>
-
-static QString getMyMusicFolderPath() {
-    return QStandardPaths::standardLocations(QStandardPaths::MusicLocation)[0];
-}
 
 PlayListEntity PlayListTableView::fromMetadata(const xamp::base::Metadata& metadata) {
     PlayListEntity item;
@@ -168,7 +163,7 @@ void PlayListTableView::initial() {
             exts += Q_UTF8(")");
             auto file_name = QFileDialog::getOpenFileName(this,
                 tr("Open file"),
-                getMyMusicFolderPath(),
+                AppSettings::getMyMusicFolderPath(),
                 tr("Music Files ") + exts);
             if (file_name.isEmpty()) {
                 return;
@@ -179,7 +174,7 @@ void PlayListTableView::initial() {
         (void)action_map.addAction(tr("Load file directory"), [this]() {
             auto dir_name = QFileDialog::getExistingDirectory(this,
                 tr("Select a Directory"),
-                getMyMusicFolderPath());
+                AppSettings::getMyMusicFolderPath());
             append(dir_name);
             });
     	

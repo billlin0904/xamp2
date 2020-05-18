@@ -9,13 +9,13 @@
 #include <widget/image_utiltis.h>
 #include <widget/artistview.h>
 
-constexpr QSize ARTIST_IMAGE_SIZE{ 30, 30 };
+constexpr QSize kArtistImageSize{ 30, 30 };
 
 ArtistViewStyledDelegate::ArtistViewStyledDelegate(QObject* parent)
     : QStyledItemDelegate(parent) {    
 }
 
-void ArtistViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const {
+void ArtistViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const {    
     if (!index.isValid()) {
         return;
     }
@@ -25,7 +25,7 @@ void ArtistViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIt
     auto discogs_artist_id = index.model()->data(index.model()->index(index.row(), 3)).toString();
     auto first_char = index.model()->data(index.model()->index(index.row(), 4)).toString();
 
-    const QRect image_react(QPoint{ option.rect.left() + option.rect.width() / 2, option.rect.top() }, ARTIST_IMAGE_SIZE);
+    const QRect image_react(QPoint{ option.rect.left() + option.rect.width() / 2, option.rect.top() }, kArtistImageSize);
 
     painter->setRenderHints(QPainter::Antialiasing, true);
     painter->setRenderHints(QPainter::SmoothPixmapTransform, true);
@@ -45,8 +45,8 @@ void ArtistViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIt
 
 QSize ArtistViewStyledDelegate::sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const {
     auto result = QStyledItemDelegate::sizeHint(option, index);
-    result.setWidth(ARTIST_IMAGE_SIZE.width() + 20);
-    result.setHeight(ARTIST_IMAGE_SIZE.height() + 10);
+    result.setWidth(kArtistImageSize.width() + 20);
+    result.setHeight(kArtistImageSize.height() + 10);
     return result;
 }
 
