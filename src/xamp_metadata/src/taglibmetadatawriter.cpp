@@ -111,7 +111,7 @@ public:
 private:
     template <typename Function>
     static void Write(Path const& path, Function &&fun) {
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
         FileRef fileref(path.wstring().c_str());
 #else
         FileRef fileref(path.string().c_str());

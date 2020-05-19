@@ -42,7 +42,7 @@
 
 #define MAKE_ENUM(Name, ...) enum class Name : uint8_t { __VA_ARGS__ }; \
 namespace {\
-constexpr std::string_view Name##_enum_names[] = {\
+static constexpr std::string_view Name##_enum_names[] = {\
     ALL_ARGUMENTS_TO_STRING(__VA_ARGS__)\
 };\
 XAMP_ALWAYS_INLINE constexpr std::string_view EnumToString(Name value) noexcept {\

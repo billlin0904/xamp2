@@ -9,23 +9,6 @@
 #include <widget/str_utilts.h>
 #include <widget/filesystemwatcher.h>
 
-static void readMetadata(MetadataExtractAdapter* adapter, const QString& file_name) {
-	auto extract_handler = [adapter](const auto& file_name) {
-		const xamp::metadata::Path path(file_name.toStdWString());
-		xamp::metadata::TaglibMetadataReader reader;
-		xamp::metadata::FromPath(path, adapter, &reader);
-	};
-
-	auto future = QtConcurrent::run(extract_handler, file_name);
-	auto watcher = new QFutureWatcher<void>();
-	(void)QObject::connect(watcher, &QFutureWatcher<void>::finished, [=]() {
-		watcher->deleteLater();
-		adapter->deleteLater();
-		});
-
-	watcher->setFuture(future);
-}
-
 FileSystemWatcher::FileSystemWatcher(QObject* parent)
 	: QObject(parent) {
 	(void) QObject::connect(&watcher_, SIGNAL(fileChanged(const QString&)), 
@@ -50,8 +33,11 @@ void FileSystemWatcher::addPath(const QString& path) {
 
 void FileSystemWatcher::onFileChanged(const QString& file_name) {
 	auto adapter = new MetadataExtractAdapter();
-	(void)QObject::connect(adapter, &MetadataExtractAdapter::readCompleted, this, &FileSystemWatcher::onReadCompleted);
-	readMetadata(adapter, file_name);
+	(void)QObject::connect(adapter, 
+		&MetadataExtractAdapter::readCompleted,
+		this,
+		&FileSystemWatcher::onReadCompleted);
+	MetadataExtractAdapter::readMetadataAsync(adapter, file_name);
 }
 
 void FileSystemWatcher::onReadCompleted(const std::vector<xamp::base::Metadata>& medata) {

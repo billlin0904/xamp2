@@ -745,11 +745,11 @@ void Xamp::setupResampler() {
                                  JsonSettings::getValue(AppSettings::getValueAsString(kAppSettingSoxrSettingName))
                                  ).toMap();
 
-        auto samplerate = soxr_settings[SOXR_RESAMPLE_SAMPLRATE].toUInt();
-        auto quality = static_cast<SoxrQuality>(soxr_settings[SOXR_QUALITY].toInt());
-        auto phase = static_cast<SoxrPhaseResponse>(soxr_settings[SOXR_PHASE].toInt());
-        auto passband = soxr_settings[SOXR_PASS_BAND].toInt();
-        auto enable_steep_filter = soxr_settings[SOXR_ENABLE_STEEP_FILTER].toBool();
+        auto samplerate = soxr_settings[kSoxrResampleSampleRate].toUInt();
+        auto quality = static_cast<SoxrQuality>(soxr_settings[kSoxrQuality].toInt());
+        auto phase = static_cast<SoxrPhaseResponse>(soxr_settings[kSoxrPhase].toInt());
+        auto passband = soxr_settings[kSoxrPassBand].toInt();
+        auto enable_steep_filter = soxr_settings[kSoxrEnableSteepFilter].toBool();
 
         auto resampler = MakeAlign<Resampler, SoxrResampler>();
         auto soxr = dynamic_cast<SoxrResampler*>(resampler.get());
@@ -767,7 +767,7 @@ void Xamp::setupResampler() {
 void Xamp::processMeatadata(const std::vector<xamp::base::Metadata>& medata) {
     MetadataExtractAdapter::processMetadata(medata);
     emit album_artist_page_->album()->refreshOnece();
-    emit album_artist_page_->artist()->refreshOnece();
+    emit album_artist_page_->artist()->refreshOnece();    
 }
 
 void Xamp::playMusic(const MusicEntity& item) {
@@ -792,6 +792,9 @@ void Xamp::playMusic(const MusicEntity& item) {
         else {
             ui.volumeSlider->setDisabled(true);
         }
+
+        Database::instance().addPlaybackHistory(item.album_id, item.artist_id, item.music_id);
+        playback_history_page_->refreshOnece();
 
         open_done = true;
     }
@@ -847,10 +850,7 @@ void Xamp::playMusic(const MusicEntity& item) {
     playlist_page_->title()->setText(item.title);
     lrc_page_->title()->setText(item.title);
     lrc_page_->album()->setText(item.album);
-    lrc_page_->artist()->setText(item.artist);
-
-    Database::instance().addPlaybackHistory(item.album_id, item.artist_id, item.music_id);
-    playback_history_page_->refreshOnece();
+    lrc_page_->artist()->setText(item.artist);    
 }
 
 void Xamp::play(const PlayListEntity& item) {  
@@ -1034,30 +1034,13 @@ void Xamp::addItem(const QString& file_name) {
     }
     else {
         auto adapter = new MetadataExtractAdapter();
-        (void)QObject::connect(adapter, &MetadataExtractAdapter::readCompleted, this, &Xamp::processMeatadata);
+
+        (void)QObject::connect(adapter,
+            &MetadataExtractAdapter::readCompleted,
+            this,
+            &Xamp::processMeatadata);
         
-        using namespace xamp::metadata;
-
-        auto extract_handler = [adapter](const auto& file_name) {
-            const Path path(file_name.toStdWString());
-            TaglibMetadataReader reader;
-            try {
-                FromPath(path, adapter, &reader);
-            }
-            catch (const std::exception& e) {
-                XAMP_LOG_DEBUG("FromPath has exception: {}", e.what());
-            }
-        };
-
-        auto future = QtConcurrent::run(extract_handler, file_name);
-        auto watcher = new QFutureWatcher<void>();
-        (void)QObject::connect(watcher, &QFutureWatcher<void>::finished, [=]() {
-            watcher->deleteLater();
-            adapter->deleteLater();
-            emit album_artist_page_->album()->refreshOnece();
-        });
-
-        watcher->setFuture(future);
+        MetadataExtractAdapter::readMetadataAsync(adapter, file_name);
     }
 }
 

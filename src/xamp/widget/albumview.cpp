@@ -629,20 +629,7 @@ void AlbumView::append(const QString& file_name) {
                             this,
                             &AlbumView::processMeatadata);
 
-    auto extract_handler = [adapter](const auto &file_name) {
-        const xamp::metadata::Path path(file_name.toStdWString());
-        xamp::metadata::TaglibMetadataReader reader;
-        xamp::metadata::FromPath(path, adapter, &reader);
-    };
-
-    auto future = QtConcurrent::run(extract_handler, file_name);
-    auto watcher = new QFutureWatcher<void>(this);
-    (void) QObject::connect(watcher, &QFutureWatcher<void>::finished, [=]() {
-        watcher->deleteLater();
-        adapter->deleteLater();
-    });
-
-    watcher->setFuture(future);
+    MetadataExtractAdapter::readMetadataAsync(adapter, file_name);
 }
 
 void AlbumView::processMeatadata(const std::vector<xamp::base::Metadata> &medata) {

@@ -13,58 +13,58 @@
 #include <widget/str_utilts.h>
 #include <widget/localelanguage.h>
 
-const ConstLatin1String kAppSettingLang{ "AppSettings/lang" };
+static constexpr ConstLatin1String kAppSettingLang{ "AppSettings/lang" };
 
-const ConstLatin1String kAppSettingPreventSleep{ "AppSettings/preventSleep" };
-const ConstLatin1String kAppSettingDeviceType{ "AppSettings/deviceType" };
-const ConstLatin1String kAppSettingDeviceId{ "AppSettings/deviceId" };
-const ConstLatin1String kAppSettingWidth{ "AppSettings/width" };
-const ConstLatin1String kAppSettingHeight{ "AppSettings/height" };
-const ConstLatin1String kAppSettingVolume{ "AppSettings/volume" };
-const ConstLatin1String kAppSettingOrder{ "AppSettings/order" };
-const ConstLatin1String kAppSettingNightMode{ "AppSettings/nightMode" };
-const ConstLatin1String kAppSettingBackgroundColor{ "AppSettings/theme/backgroundColor" };
-const ConstLatin1String kAppSettingEnableBlur{ "AppSettings/theme/enableBlur" };
-const ConstLatin1String kAppSettingMusicFilePath{ "AppSettings/musicFilePath" };
+static constexpr ConstLatin1String kAppSettingPreventSleep{ "AppSettings/preventSleep" };
+static constexpr ConstLatin1String kAppSettingDeviceType{ "AppSettings/deviceType" };
+static constexpr ConstLatin1String kAppSettingDeviceId{ "AppSettings/deviceId" };
+static constexpr ConstLatin1String kAppSettingWidth{ "AppSettings/width" };
+static constexpr ConstLatin1String kAppSettingHeight{ "AppSettings/height" };
+static constexpr ConstLatin1String kAppSettingVolume{ "AppSettings/volume" };
+static constexpr ConstLatin1String kAppSettingOrder{ "AppSettings/order" };
+static constexpr ConstLatin1String kAppSettingNightMode{ "AppSettings/nightMode" };
+static constexpr ConstLatin1String kAppSettingBackgroundColor{ "AppSettings/theme/backgroundColor" };
+static constexpr ConstLatin1String kAppSettingEnableBlur{ "AppSettings/theme/enableBlur" };
+static constexpr ConstLatin1String kAppSettingMusicFilePath{ "AppSettings/musicFilePath" };
 
-const ConstLatin1String kAppSettingResamplerEnable{ "AppSettings/soxr/enable" };
-const ConstLatin1String kAppSettingSoxrSettingName{ "AppSettings/soxr/userSettingName" };
+static constexpr ConstLatin1String kAppSettingResamplerEnable{ "AppSettings/soxr/enable" };
+static constexpr ConstLatin1String kAppSettingSoxrSettingName{ "AppSettings/soxr/userSettingName" };
 
 class AppSettings {
 public:    
     static void loadIniFile(const QString& file_name);
 
     template <typename T, typename = std::enable_if_t<std::is_integral<T>::value, T>>
-    static void setValue(const QString& key, T value) {
+    static void setValue(QString const& key, T value) {
         setValue(key, std::to_string(value));
     }
 
     template <typename T, typename = std::enable_if_t<std::is_integral<T>::value, T>>
-    static void setValue(const char *key, T value) {
+    static void setValue(char const *key, T value) {
         setValue(QLatin1String(key), std::to_string(value));
     }
 
-    static void setValue(const QString& key, QColor value) {
+    static void setValue(QString const & key, QColor value) {
         settings_->setValue(key, value.name(QColor::HexArgb));
     }
 
-    static void setValue(const QString &key, QVariant value) {
+    static void setValue(QString const & key, QVariant value) {
         settings_->setValue(key, value);
     }
 
-    static void setValue(const QString &key, std::string value) {
+    static void setValue(QString const & key, std::string value) {
         settings_->setValue(key, QString::fromStdString(value));
     }
 
-    static void setValue(const QString &key, std::wstring value) {
+    static void setValue(QString const & key, std::wstring value) {
         settings_->setValue(key, QString::fromStdWString(value));
     }
 
-    static void setValue(const QString &key, const QString &value) {
+    static void setValue(QString const & key, QString const & value) {
         settings_->setValue(key, value);
     }
 
-    static void setValue(const QLatin1String& key, const QLatin1String& value) {
+    static void setValue(QLatin1String const & key, QLatin1String const & value) {
         settings_->setValue(key, value);
     }
 
@@ -73,23 +73,23 @@ public:
         default_settings_[key] = value;
     }
 
-    static xamp::base::ID getID(const QString& key);
+    static xamp::base::ID getID(QString const & key);
 
-    static QSize getSizeValue(const QString& width_key, const QString& height_key);
+    static QSize getSizeValue(QString const& width_key, QString const& height_key);
 
-    static QVariant getValue(const QString& key);
+    static QVariant getValue(QString const& key);
 
-    static int32_t getAsInt(const QString& key);
+    static int32_t getAsInt(QString const& key);
 
-    static bool getValueAsBool(const QString& key) {
+    static bool getValueAsBool(QString const& key) {
         return getValue(key).toBool();
     }
 
-    static QString getValueAsString(const QString& key) {
+    static QString getValueAsString(QString const& key) {
         return getValue(key).toString();
     }
 
-    static void loadLanguage(const QString& lang);
+    static void loadLanguage(QString const& lang);
 
     static void setOrDefaultConfig();
 

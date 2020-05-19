@@ -1,10 +1,7 @@
 #include <QApplication>
 #include <QMap>
-#include <QDebug>
-
-#ifdef Q_OS_WIN
-#include <execution>
-#endif
+#include <QtConcurrent>
+#include <QFuture>
 
 #include "thememanager.h"
 #include <widget/toast.h>
@@ -101,6 +98,29 @@ MetadataExtractAdapter::MetadataExtractAdapter(QObject* parent)
 MetadataExtractAdapter::~MetadataExtractAdapter() {
     std::vector<Metadata>().swap(metadatas_);
     IdCache::instance().clear();
+}
+
+void MetadataExtractAdapter::readMetadataAsync(MetadataExtractAdapter *adapter, QString const & file_name) {
+    auto extract_handler = [adapter](const auto& file_name) {
+        const xamp::metadata::Path path(file_name.toStdWString());
+        xamp::metadata::TaglibMetadataReader reader;
+        
+        try {
+            xamp::metadata::FromPath(path, adapter, &reader);
+        }
+        catch (const std::exception& e) {
+            XAMP_LOG_DEBUG("FromPath has exception: {}", e.what());
+        }
+    };
+
+    auto future = QtConcurrent::run(extract_handler, file_name);
+    auto watcher = new QFutureWatcher<void>();
+    (void)QObject::connect(watcher, &QFutureWatcher<void>::finished, [=]() {
+        watcher->deleteLater();
+        adapter->deleteLater();
+        });
+
+    watcher->setFuture(future);
 }
 
 void MetadataExtractAdapter::OnWalk(const Path&, Metadata metadata) {

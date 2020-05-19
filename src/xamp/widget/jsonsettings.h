@@ -8,29 +8,31 @@
 #include <QSettings>
 #include <QScopedPointer>
 
-const QLatin1String SOXR_RESAMPLE_SAMPLRATE{ "resampleSampleRate" };
-const QLatin1String SOXR_ENABLE_STEEP_FILTER{ "enableSteepFilter" };
-const QLatin1String SOXR_QUALITY{ "quality" };
-const QLatin1String SOXR_PHASE{ "phase" };
-const QLatin1String SOXR_PASS_BAND{ "passBand" };
-const QLatin1String SOXR_DEFAULT_SETTING_NAME{ "default" };
+#include <widget/str_utilts.h>
+
+static constexpr ConstLatin1String kSoxrResampleSampleRate{ "resampler/soxr/resampleSampleRate" };
+static constexpr ConstLatin1String kSoxrEnableSteepFilter{ "resampler/soxr/enableSteepFilter" };
+static constexpr ConstLatin1String kSoxrQuality{ "resampler/soxr/quality" };
+static constexpr ConstLatin1String kSoxrPhase{ "resampler/soxr/phase" };
+static constexpr ConstLatin1String kSoxrPassBand{ "resampler/soxr/passBand" };
+static constexpr ConstLatin1String kSoxrDefaultSettingName{ "resampler/soxr/default" };
 
 class JsonSettings {
 public:
-    static void loadJsonFile(const QString& file_name);
+    static void loadJsonFile(QString const& file_name);
 
-    static QVariant getValue(const QString& key);
+    static QVariant getValue(QString const& key);
 
-    static int32_t getAsInt(const QString& key);
+    static int32_t getAsInt(QString const& key);
 
     static void remove(const QString& key);
 
     template <typename T>
-    static void setDefaultValue(const QString& key, T value) {
+    static void setDefaultValue(QString const& key, T const & value) {
         default_settings_[key] = value;
     }
 
-    static void setValue(const QString& key, QVariant value) {
+    static void setValue(QString const & key, QVariant const & value) {
         settings_->setValue(key, value);
     }
 

@@ -16,13 +16,13 @@
 #include <preferencedialog.h>
 
 void PreferenceDialog::loadSoxrResampler(const QVariantMap& soxr_settings) {
-	ui_.soxrTargetSampleRateComboBox->setCurrentText(QString::number(soxr_settings[SOXR_RESAMPLE_SAMPLRATE].toInt()));
-	ui_.soxrResampleQualityComboBox->setCurrentIndex(soxr_settings[SOXR_QUALITY].toInt());
-	ui_.soxrPhaseComboBox->setCurrentIndex(soxr_settings[SOXR_PHASE].toInt());
-	ui_.soxrPassbandSlider->setValue(soxr_settings[SOXR_PASS_BAND].toInt());
+	ui_.soxrTargetSampleRateComboBox->setCurrentText(QString::number(soxr_settings[kSoxrResampleSampleRate].toInt()));
+	ui_.soxrResampleQualityComboBox->setCurrentIndex(soxr_settings[kSoxrQuality].toInt());
+	ui_.soxrPhaseComboBox->setCurrentIndex(soxr_settings[kSoxrPhase].toInt());
+	ui_.soxrPassbandSlider->setValue(soxr_settings[kSoxrPassBand].toInt());
 	ui_.soxrPassbandValue->setText(QString(Q_UTF8("%0%")).arg(ui_.soxrPassbandSlider->value()));
 
-	if (soxr_settings[SOXR_ENABLE_STEEP_FILTER].toBool()) {
+	if (soxr_settings[kSoxrEnableSteepFilter].toBool()) {
 		ui_.soxrAllowAliasingCheckBox->setChecked(true);
 	}
 	else {
@@ -38,11 +38,11 @@ void PreferenceDialog::saveSoxrResampler(const QString &name) {
     const auto soxr_enable_steep_filter = ui_.soxrAllowAliasingCheckBox->checkState() == Qt::Checked;
 
     QMap<QString, QVariant> settings;
-    settings[SOXR_RESAMPLE_SAMPLRATE] = soxr_sample_rate;
-    settings[SOXR_ENABLE_STEEP_FILTER] = soxr_enable_steep_filter;
-    settings[SOXR_QUALITY] = soxr_quility;
-    settings[SOXR_PHASE] = soxr_phase;
-    settings[SOXR_PASS_BAND] = soxr_pass_band;
+    settings[kSoxrResampleSampleRate] = soxr_sample_rate;
+    settings[kSoxrEnableSteepFilter] = soxr_enable_steep_filter;
+    settings[kSoxrQuality] = soxr_quility;
+    settings[kSoxrPhase] = soxr_phase;
+    settings[kSoxrPassBand] = soxr_pass_band;
 
     JsonSettings::setValue(name, settings);
 }
@@ -81,7 +81,7 @@ void PreferenceDialog::initSoxResampler() {
 
 	(void)QObject::connect(ui_.deleteSoxrSettingBtn, &QPushButton::pressed, [this]() {
 		auto name = ui_.soxrSettingCombo->currentText();
-		if (name == SOXR_DEFAULT_SETTING_NAME) {
+		if (name == kSoxrDefaultSettingName) {
 			return;
 		}
         JsonSettings::remove(name);
@@ -185,11 +185,11 @@ PreferenceDialog::PreferenceDialog(QWidget *parent)
 		const auto soxr_enable_steep_filter = ui_.soxrAllowAliasingCheckBox->checkState() == Qt::Checked;
 
 		QMap<QString, QVariant> settings;
-		settings[SOXR_RESAMPLE_SAMPLRATE] = soxr_sample_rate;
-		settings[SOXR_ENABLE_STEEP_FILTER] = soxr_enable_steep_filter;
-		settings[SOXR_QUALITY] = soxr_quility;
-		settings[SOXR_PHASE] = soxr_phase;
-		settings[SOXR_PASS_BAND] = soxr_pass_band;
+		settings[kSoxrResampleSampleRate] = soxr_sample_rate;
+		settings[kSoxrEnableSteepFilter] = soxr_enable_steep_filter;
+		settings[kSoxrQuality] = soxr_quility;
+		settings[kSoxrPhase] = soxr_phase;
+		settings[kSoxrPassBand] = soxr_pass_band;
 
 		JsonSettings::setValue(ui_.soxrSettingCombo->currentText(), settings);
 		AppSettings::setValue(kAppSettingSoxrSettingName, ui_.soxrSettingCombo->currentText());

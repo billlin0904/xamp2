@@ -24,7 +24,7 @@ XAMP_ALWAYS_INLINE bool TryImbue(std::wifstream& file, std::string_view name) {
 }
 
 XAMP_ALWAYS_INLINE void ImbueFileFromBom(std::wifstream& file) noexcept {
-    constexpr std::array<std::string_view, 4> locale_names{
+	static constexpr std::array<std::string_view, 4> locale_names{
 		"en_US.UTF-8",
 		"zh_TW.UTF-8",
 		"zh_CN.UTF-8",

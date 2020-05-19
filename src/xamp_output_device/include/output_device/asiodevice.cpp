@@ -38,7 +38,7 @@ static XAMP_ALWAYS_INLINE long GetLatencyMs(long latency, long sampleRate) noexc
 	return (long((latency * 1000) / sampleRate));
 }
 
-constexpr int32_t kClockSourceSize = 32;
+static constexpr int32_t kClockSourceSize = 32;
 
 AsioDevice::AsioDevice(std::string const & device_id)
 	: is_removed_driver_(true)
