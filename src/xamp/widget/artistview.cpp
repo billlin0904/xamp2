@@ -9,7 +9,7 @@
 #include <widget/image_utiltis.h>
 #include <widget/artistview.h>
 
-constexpr QSize kArtistImageSize{ 30, 30 };
+static constexpr QSize kArtistImageSize{ 30, 30 };
 
 ArtistViewStyledDelegate::ArtistViewStyledDelegate(QObject* parent)
     : QStyledItemDelegate(parent) {    

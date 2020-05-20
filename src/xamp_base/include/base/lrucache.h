@@ -13,7 +13,7 @@
 
 namespace xamp::base {
 
-static const size_t kLruCacheSize = 200;
+static constexpr size_t kLruCacheSize = 200;
 	
 template <typename Key, typename Value>
 class XAMP_BASE_API_ONLY_EXPORT LruCache {
@@ -29,7 +29,7 @@ public:
         max_size_ = max_size;
     }
 
-    void Insert(const Key& key, const Value& value) {
+    void Insert(Key const& key, Value const& value) {
         items_.emplace_front(key, value);
         cache_[key] = items_.begin();
 
@@ -39,7 +39,7 @@ public:
         }
     }
 
-    std::optional<const Value*> Find(const Key& key) const {
+    std::optional<Value const*> Find(Key const& key) const {
         const auto check = cache_.find(key);
         if (check == cache_.end()) {
             return std::nullopt;
@@ -58,7 +58,7 @@ public:
         return items_.cend();
     }
 
-    void Erase(const Key& key) {
+    void Erase(Key const& key) {
         const auto check = cache_.find(key);
         if (check == cache_.end()) {
             return;

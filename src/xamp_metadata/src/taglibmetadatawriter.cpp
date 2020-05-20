@@ -13,15 +13,8 @@ public:
 	}
 
 	bool IsFileReadOnly(Path const & path) const {
-#ifdef XAMP_OS_WIN
-		auto attr = ::GetFileAttributesW(path.wstring().c_str());
-		if (attr != INVALID_FILE_ATTRIBUTES) {
-			return attr & FILE_ATTRIBUTE_READONLY;
-		}
-#else
-        (void)path;
-#endif
-		return false;
+		namespace Fs = std::filesystem;
+		return (Fs::status(path).permissions() & Fs::perms::owner_read) != Fs::perms::none;		
 	}
 
     void Write(Path const &path, Metadata &metadata) const {

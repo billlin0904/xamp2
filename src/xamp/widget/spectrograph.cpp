@@ -79,7 +79,7 @@ void Spectrograph::init() {
 }
 
 void Spectrograph::onGetMagnitudeSpectrum(const std::vector<float>& mag) {
-	constexpr auto SpectrumAnalyserMultiplier{ 0.15 };
+	static constexpr auto SpectrumAnalyserMultiplier{ 0.15 };
 
 	results_.resize(mag.size());
 

@@ -105,8 +105,8 @@ typedef struct tagTHREADNAME_INFO
 } THREADNAME_INFO;
 #pragma pack(pop)
 
-void SetThreadNameById(DWORD dwThreadID, const char* threadName) {
-    constexpr DWORD MS_VC_EXCEPTION = 0x406D1388;
+void SetThreadNameById(DWORD dwThreadID, char const* threadName) {
+    static constexpr DWORD MS_VC_EXCEPTION = 0x406D1388;
 
     THREADNAME_INFO info;
     info.dwType = 0x1000;
@@ -127,7 +127,7 @@ void SetRealtimeProcessPriority() {
 }
 #endif
 
-void SetThreadName(const std::string& name) noexcept {
+void SetThreadName(std::string const& name) noexcept {
 #ifdef XAMP_OS_WIN
     WinHandle thread(::GetCurrentThread());
 
@@ -154,7 +154,7 @@ void SetThreadName(const std::string& name) noexcept {
 #else
     // Mac OS X does not expose the length limit of the name, so
     // hardcode it.
-    const int kMaxNameLength = 63;
+    static constexpr int kMaxNameLength = 63;
     std::string shortened_name = name.substr(0, kMaxNameLength);
     ::pthread_setname_np(shortened_name.c_str());
 #endif

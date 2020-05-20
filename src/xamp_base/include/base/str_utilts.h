@@ -15,15 +15,15 @@
 
 namespace xamp::base {
 
-XAMP_BASE_API std::wstring ToStdWString(const std::string &utf8);
+XAMP_BASE_API std::wstring ToStdWString(std::string const& utf8);
 
-XAMP_BASE_API std::string ToUtf8String(const std::wstring &utf16);
+XAMP_BASE_API std::string ToUtf8String(std::wstring const& utf16);
 
-XAMP_ALWAYS_INLINE std::wstring ToString(const std::string& utf8) {
+XAMP_ALWAYS_INLINE std::wstring ToString(std::string const& utf8) {
 	return ToStdWString(utf8);
 }
 
-XAMP_ALWAYS_INLINE std::string ToString(const std::wstring& utf16) {
+XAMP_ALWAYS_INLINE std::string ToString(std::wstring const& utf16) {
 	return ToUtf8String(utf16);
 }
 
@@ -40,10 +40,10 @@ std::basic_string<CharType> ToLower(std::basic_string<CharType> s) {
 }
 
 XAMP_ALWAYS_INLINE std::string FormatBytes(size_t bytes) noexcept {
-    constexpr float tb = 1099511627776;
-    constexpr float gb = 1073741824;
-    constexpr float mb = 1048576;
-    constexpr float kb = 1024;
+    static constexpr float tb = 1099511627776;
+    static constexpr float gb = 1073741824;
+    static constexpr float mb = 1048576;
+    static constexpr float kb = 1024;
 
     char buffer[2048]{0};
 
@@ -56,9 +56,9 @@ XAMP_ALWAYS_INLINE std::string FormatBytes(size_t bytes) noexcept {
     else if (bytes >= kb && bytes < mb)
         snprintf(buffer, sizeof(buffer), "%.2f KB", static_cast<float>(bytes) / kb);
     else if (bytes < kb)
-        snprintf(buffer, sizeof(buffer), "%.2f Bytes", static_cast<float>(bytes));
+        snprintf(buffer, sizeof(buffer), "%.2f B", static_cast<float>(bytes));
     else
-        snprintf(buffer, sizeof(buffer), "%.2f Bytes", static_cast<float>(bytes));
+        snprintf(buffer, sizeof(buffer), "%.2f B", static_cast<float>(bytes));
 
     return buffer;
 }

@@ -116,7 +116,7 @@ std::optional<AlignPtr<DeviceType>> AudioDeviceFactory::CreateDefaultDevice() co
     return (*itr).second();
 }
 
-std::optional<AlignPtr<DeviceType>> AudioDeviceFactory::Create(const ID id) const {
+std::optional<AlignPtr<DeviceType>> AudioDeviceFactory::Create(ID id) const {
     auto itr = creator_.find(id);
     if (itr == creator_.end()) {
         return std::nullopt;
@@ -145,7 +145,7 @@ bool AudioDeviceFactory::IsExclusiveDevice(const DeviceInfo& info) {
 #endif
 }
 
-bool AudioDeviceFactory::IsASIODevice(const ID id) {
+bool AudioDeviceFactory::IsASIODevice(ID id) {
 #if defined(ENABLE_ASIO) && defined(XAMP_OS_WIN)
     return id == ASIODeviceType::Id;
 #else
@@ -154,7 +154,7 @@ bool AudioDeviceFactory::IsASIODevice(const ID id) {
 #endif
 }
 
-bool AudioDeviceFactory::IsDeviceTypeExist(const ID id) const {
+bool AudioDeviceFactory::IsDeviceTypeExist(ID id) const {
     return creator_.find(id) != creator_.end();
 }
 

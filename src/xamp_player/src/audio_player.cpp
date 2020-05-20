@@ -19,14 +19,14 @@
 
 namespace xamp::player {
 
-constexpr int32_t kBufferStreamCount = 5;
-constexpr int32_t kTotalBufferStreamCount = 10;
-constexpr int32_t kPreallocateBufferSize = 8 * 1024 * 1024;
-constexpr int32_t kMaxWriteRatio = 20;
-constexpr int32_t kMaxReadRatio = 30;
-constexpr std::chrono::milliseconds kUpdateSampleInterval(100);
-constexpr std::chrono::seconds kWaitForStreamStopTime(10);
-constexpr std::chrono::milliseconds kReadSampleWaitTime(100);
+static constexpr int32_t kBufferStreamCount = 5;
+static constexpr int32_t kTotalBufferStreamCount = 10;
+static constexpr int32_t kPreallocateBufferSize = 8 * 1024 * 1024;
+static constexpr int32_t kMaxWriteRatio = 20;
+static constexpr int32_t kMaxReadRatio = 30;
+static constexpr std::chrono::milliseconds kUpdateSampleInterval(100);
+static constexpr std::chrono::seconds kWaitForStreamStopTime(10);
+static constexpr std::chrono::milliseconds kReadSampleWaitTime(100);
 
 AudioPlayer::AudioPlayer()
     : AudioPlayer(std::weak_ptr<PlaybackStateAdapter>()) {

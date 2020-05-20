@@ -23,7 +23,7 @@ static inline uint8_t MakeHex(char a, char b) {
     return static_cast<uint8_t>(ToChar(a) * 16 + ToChar(b));
 }
 
-static std::array<uint8_t, kXampIdMaxSize> ParseString(const std::string_view& from_string) {
+static std::array<uint8_t, kIdSize> ParseString(const std::string_view& from_string) {
     if (from_string.length() != kMaxIdStrLen) {
         throw std::invalid_argument("Invalid ID.");
 	}
@@ -35,7 +35,7 @@ static std::array<uint8_t, kXampIdMaxSize> ParseString(const std::string_view& f
         throw std::invalid_argument("Invalid ID.");
 	}
 	
-	std::array<uint8_t, kXampIdMaxSize> uuid{};
+	std::array<uint8_t, kIdSize> uuid{};
 
     for (size_t i = 0, j = 0; i < from_string.length(); ++i) {
 		if (from_string[i] == '-')
@@ -77,7 +77,7 @@ ID::ID() noexcept {
 	bytes_.fill(0);
 }
 
-ID::ID(const std::array<uint8_t, kXampIdMaxSize> &bytes) noexcept
+ID::ID(const std::array<uint8_t, kIdSize> &bytes) noexcept
 	: bytes_(bytes) {
 }
 

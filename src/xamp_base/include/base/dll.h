@@ -27,7 +27,7 @@ XAMP_BASE_API void* LoadModuleSymbol(const ModuleHandle& dll, std::string_view n
 template <typename T, typename U = std::enable_if_t<std::is_function<T>::value>>
 class XAMP_BASE_API_ONLY_EXPORT DllFunction final {
 public:
-    DllFunction(const ModuleHandle& dll, std::string_view name) {
+    DllFunction(ModuleHandle const& dll, std::string_view name) {
         *reinterpret_cast<void**>(&func_) = LoadModuleSymbol(dll, name);
     }
 

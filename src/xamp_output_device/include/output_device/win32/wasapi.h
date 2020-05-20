@@ -43,8 +43,8 @@ struct IMMDeviceEnumerator;
 
 namespace xamp::output_device::win32::helper {
 
-constexpr int32_t kWasapiReftimesPerMillisec = 10000;
-constexpr double kWasapiReftimesPerSec = 10000000;
+static constexpr int32_t kWasapiReftimesPerMillisec = 10000;
+static constexpr double kWasapiReftimesPerSec = 10000000;
 
 std::wstring GetDeviceProperty(PROPERTYKEY const& key, CComPtr<IMMDevice>& device);
 

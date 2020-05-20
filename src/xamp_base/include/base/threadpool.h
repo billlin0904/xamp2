@@ -25,8 +25,8 @@
 
 namespace xamp::base {
 
-constexpr auto kInitL1CacheLineSize = 4 * 1024;
-constexpr auto kMaxL1CacheLineSize = 64 * 1024;
+static constexpr auto kInitL1CacheLineSize = 4 * 1024;
+static constexpr auto kMaxL1CacheLineSize = 64 * 1024;
 
 template <typename Type>
 class BoundedQueue final {
