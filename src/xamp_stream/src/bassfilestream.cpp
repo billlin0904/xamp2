@@ -303,6 +303,10 @@ public:
                                                                         0,
                                                                         flags | BASS_STREAM_DECODE | BASS_UNICODE));
             }
+
+            // BassLib DSD module default use 6dB gain.
+            // 不設定的話會爆音!
+            BassLib::Instance().BASS_ChannelSetAttribute(stream_.get(), BASS_ATTRIB_DSD_GAIN, 0.0);
         } else {
             EnsureDsdDecoderInit();
 
@@ -322,11 +326,7 @@ public:
                                                                                     0,
                                                                                     flags | BASS_STREAM_DECODE | BASS_UNICODE,
                                                                                     0));
-            }
-
-            // BassLib DSD module default use 6dB gain.
-            // 不設定的話會爆音!
-            BassLib::Instance().BASS_ChannelSetAttribute(stream_.get(), BASS_ATTRIB_DSD_GAIN, 0.0);
+            }            
         }
 
         XAMP_LOG_DEBUG("Stream running in {}", EnumToString(mode_));

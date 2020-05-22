@@ -201,12 +201,13 @@ public:
             XAMP_LOG_DEBUG("Stream input format => {}", format_context_->iformat->name);
         }
 
+        auto channel_layout = codec_contex_->channel_layout == 0 ? AV_CH_LAYOUT_STEREO : codec_contex_->channel_layout;
         // 固定轉成INTERLEAVED格式
         swr_context_.reset(::swr_alloc_set_opts(swr_context_.get(),
                                                 AV_CH_LAYOUT_STEREO,
                                                 AV_SAMPLE_FMT_FLT,
                                                 codec_contex_->sample_rate,
-                                                codec_contex_->channel_layout == 0 ? AV_CH_LAYOUT_STEREO : codec_contex_->channel_layout,
+                                                channel_layout,
                                                 codec_contex_->sample_fmt,
                                                 codec_contex_->sample_rate,
                                                 0,

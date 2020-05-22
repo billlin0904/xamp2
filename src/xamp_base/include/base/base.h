@@ -63,7 +63,7 @@
 
 #ifdef _WIN32
 #define XAMP_NO_VTABLE __declspec(novtable)
-#define XAMP_RESTRICT __declspec(restrict)
+#define XAMP_RESTRICT __restrict
 #else
 #define XAMP_NO_VTABLE
 #define XAMP_RESTRICT
