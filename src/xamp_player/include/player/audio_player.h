@@ -10,6 +10,7 @@
 #include <future>
 #include <optional>
 
+#include <base/base.h>
 #include <base/audiobuffer.h>
 #include <base/audioformat.h>
 #include <base/timer.h>
@@ -48,7 +49,7 @@ public:
 
     static void LoadLib();
 
-    void Open(const std::wstring& file_path, const std::wstring& file_ext, const DeviceInfo& device_info);
+    void Open(std::wstring const& file_path, std::wstring const& file_ext, const DeviceInfo& device_info);
 
     void StartPlay();
 

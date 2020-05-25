@@ -606,6 +606,7 @@ void Xamp::stopPlayedClicked() {
     setSeekPosValue(0);
     ui.seekSlider->setEnabled(false);
     playlist_page_->playlist()->removePlaying();
+    lrc_page_->cover()->stop();
 }
 
 void Xamp::playNextClicked() {

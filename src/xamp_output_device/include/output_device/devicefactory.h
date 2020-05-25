@@ -44,23 +44,23 @@ public:
 
     template <typename Function>
     void ForEach(Function &&fun) {
-        for (const auto& creator : creator_) {
+        for (auto const& creator : creator_) {
             try {
                 fun(creator.second());
             }
-            catch (const Exception& e) {
+            catch (Exception const& e) {
                 XAMP_LOG_DEBUG("{}", e.GetErrorMessage());
             }
         }
     }
 
-    bool IsPlatformSupportedASIO() const;
+    bool IsSupportASIO() const;
 
-    bool IsDeviceTypeExist(ID const id) const;
+    bool IsDeviceTypeExist(ID id) const;
 
     static bool IsExclusiveDevice(DeviceInfo const &info);
 
-    static bool IsASIODevice(const ID id);
+    static bool IsASIODevice(ID id);
 
     static void PreventSleep(bool allow);
 private:

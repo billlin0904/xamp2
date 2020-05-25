@@ -124,7 +124,7 @@ std::optional<AlignPtr<DeviceType>> AudioDeviceFactory::Create(ID id) const {
     return (*itr).second();
 }
 
-bool AudioDeviceFactory::IsPlatformSupportedASIO() const {
+bool AudioDeviceFactory::IsSupportASIO() const {
 #if ENABLE_ASIO && defined(XAMP_OS_WIN)
     return creator_.find(ASIODeviceType::Id) != creator_.end();
 #else

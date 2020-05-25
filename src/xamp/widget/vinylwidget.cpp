@@ -1,9 +1,6 @@
 #include <thememanager.h>
-#include <QtMath>
-
 #include <widget/image_utiltis.h>
 #include <widget/str_utilts.h>
-#include <widget/pixmapcache.h>
 #include <widget/vinylwidget.h>
 
 static constexpr auto kBackgroundSize = 350;
@@ -11,10 +8,10 @@ static constexpr auto kBackgroundSize = 350;
 VinylWidget::VinylWidget(QWidget *parent)
     : QWidget(parent)
     , timer_(this) {
-    rotae_ = 0.0;
+    angle_ = 0.0;
 
     QObject::connect(&timer_, &QTimer::timeout, [=]() {
-        rotae_  = rotae_ + 1 % 360;
+        angle_  = angle_ + 1 % 360;
         update();
     });
 
@@ -85,13 +82,16 @@ void VinylWidget::start() {
 
 void VinylWidget::stop() {
     timer_.stop();
+    angle_ = 0;
+    update();
 }
 
 void VinylWidget::paintEvent(QPaintEvent *) {
     QPainter painter(this);
     painter.setRenderHints(QPainter::Antialiasing, true);
-    painter.setRenderHints(QPainter::SmoothPixmapTransform, true);
-    //painter.translate(0, 0);
-    //painter.rotate(rotae_);
+    painter.setRenderHints(QPainter::SmoothPixmapTransform, true);    
+    painter.translate(width() / 2, height() / 2);
+    painter.rotate(angle_);
+    painter.translate(-width() / 2, -height() / 2);
     painter.drawPixmap(0, 0, image_);
 }

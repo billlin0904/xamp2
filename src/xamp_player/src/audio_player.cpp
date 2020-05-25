@@ -149,7 +149,7 @@ void AudioPlayer::OpenStream(std::wstring const & file_path, std::wstring const 
     stream_ = MakeFileStream(file_ext);
 
     if (auto* dsd_stream = AsDsdStream()) {
-        if (AudioDeviceFactory::Instance().IsPlatformSupportedASIO()) {
+        if (AudioDeviceFactory::Instance().IsSupportASIO()) {
             if (device_info.is_support_dsd) {
                 dsd_stream->SetDSDMode(DsdModes::DSD_MODE_NATIVE);
                 dsd_mode_ = DsdModes::DSD_MODE_NATIVE;
@@ -409,7 +409,7 @@ void AudioPlayer::CreateBuffer() {
 
     uint32_t require_read_sample = 0;
 
-    if (AudioDeviceFactory::Instance().IsPlatformSupportedASIO()) {
+    if (AudioDeviceFactory::Instance().IsSupportASIO()) {
         if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE
             || AudioDeviceFactory::Instance().IsASIODevice(device_type_id_)) {
             require_read_sample = kMaxSamplerate;

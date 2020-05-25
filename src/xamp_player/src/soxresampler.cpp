@@ -105,7 +105,7 @@ public:
             quality_spec |= SOXR_STEEP_FILTER;
         }
 
-        quality_spec |= (SOXR_ROLLOFF_NONE | SOXR_HI_PREC_CLOCK | SOXR_VR);
+        quality_spec |= (SOXR_ROLLOFF_NONE | SOXR_HI_PREC_CLOCK | SOXR_VR | SOXR_DOUBLE_PRECISION);
         auto soxr_quality = SoxrLib::Instance().soxr_quality_spec(quality_spec, 0);
 
         switch (phase_) {

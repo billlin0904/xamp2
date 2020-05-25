@@ -9,7 +9,6 @@
 #include <QPixmap>
 #include <QTimer>
 
-class QVariantAnimation;
 class QPaintEvent;
 
 class VinylWidget : public QWidget {
@@ -27,9 +26,9 @@ public slots:
 private:
     void writeBackground();
 
-    void paintEvent(QPaintEvent *event) override;
+    void paintEvent(QPaintEvent *) override;
 
-    double rotae_;
+    double angle_;
     QTimer timer_;
     QPixmap background_;
     QPixmap cover_;

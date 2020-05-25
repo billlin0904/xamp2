@@ -239,7 +239,7 @@ public:
 
 private:
     static void GetCover(std::string const & ext, File*file, std::vector<uint8_t>& cover) {
-        static RobinHoodHashMap<std::string, std::function<bool(File *, std::vector<uint8_t> &)>>
+        static const RobinHoodHashMap<std::string, std::function<bool(File *, std::vector<uint8_t> &)>>
             const parse_cover_table{
             { ".flac", GetFlacCover },
             { ".mp3",  GetMp3Cover },
