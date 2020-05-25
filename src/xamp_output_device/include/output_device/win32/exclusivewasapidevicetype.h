@@ -5,13 +5,15 @@
 
 #pragma once
 
+#include <base/base.h>
+
+#ifdef XAMP_OS_WIN
+
 #include <base/align_ptr.h>
 #include <base/stl.h>
 
 #include <output_device/win32/wasapi.h>
 #include <output_device/device_type.h>
-
-#ifdef _WIN32
 
 namespace xamp::output_device::win32 {
 

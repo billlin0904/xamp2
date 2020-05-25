@@ -5,11 +5,12 @@
 
 #pragma once
 
-#include <base/exception.h>
+#include <base/base.h>
 
 #ifdef XAMP_OS_WIN
-#include <base/logger.h>
 
+#include <base/logger.h>
+#include <base/exception.h>
 #include <output_device/win32/wasapi.h>
 #include <output_device/device_type.h>
 

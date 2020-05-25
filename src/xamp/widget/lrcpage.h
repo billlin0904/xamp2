@@ -6,7 +6,7 @@
 #pragma once
 
 #include <QFrame>
-
+#include <widget/vinylwidget.h>
 #include <widget/scrolllabel.h>
 
 class Spectrograph;
@@ -19,7 +19,7 @@ public:
 
 	LyricsShowWideget* lyricsWidget();
 
-	QLabel* cover();
+    VinylWidget* cover();
 
 	QLabel* album();
 
@@ -35,7 +35,8 @@ private:
 	void initial();
 
 	LyricsShowWideget* lyrics_widget_;
-	QLabel* cover_label_;
+    //QLabel* cover_label_;
+    VinylWidget* vinyl_;
 	QLabel* album_;
 	QLabel* artist_;
     ScrollLabel* title_;

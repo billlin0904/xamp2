@@ -318,6 +318,7 @@ public:
                                                                                     file_.GetLength(),
                                                                                     flags | BASS_STREAM_DECODE,
                                                                                     0));
+                PrefactchFile(file_);
             }
             else {
                 stream_.reset(BassLib::Instance().DSDLib->BASS_DSD_StreamCreateFile(FALSE,

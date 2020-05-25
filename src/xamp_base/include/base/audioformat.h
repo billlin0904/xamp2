@@ -25,9 +25,9 @@ MAKE_ENUM(ByteFormat,
           FLOAT64)
 
 MAKE_ENUM(InterleavedFormat,
-          // ¥æ´À
+          // ????
           INTERLEAVED,
-          // ¥­­±
+          // ????
           DEINTERLEAVED
           )
 
@@ -273,4 +273,3 @@ XAMP_ALWAYS_INLINE void AudioFormat::Reset() noexcept {
 }
 
 }
-

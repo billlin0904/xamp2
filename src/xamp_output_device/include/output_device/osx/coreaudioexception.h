@@ -3,6 +3,10 @@
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
+#include <base/base.h>
+
+#ifdef XAMP_OS_MAC
+
 #include <base/exception.h>
 #include <base/logger.h>
 #include <CoreAudio/CoreAudio.h>
@@ -35,4 +39,6 @@ do { \
 
 
 }
+
+#endif
 

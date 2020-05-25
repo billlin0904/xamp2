@@ -299,6 +299,7 @@ void PlayListTableView::append(const QString& file_name) {
 
 void PlayListTableView::processMeatadata(const std::vector<xamp::base::Metadata>& medata) {
     MetadataExtractAdapter::processMetadata(medata, this);
+    resizeColumn();
 }
 
 void PlayListTableView::resizeEvent(QResizeEvent* event) {

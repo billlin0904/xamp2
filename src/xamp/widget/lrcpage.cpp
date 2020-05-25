@@ -16,8 +16,8 @@ LyricsShowWideget* LrcPage::lyricsWidget() {
 	return lyrics_widget_;
 }
 
-QLabel* LrcPage::cover() {
-	return cover_label_;
+VinylWidget* LrcPage::cover() {
+    return vinyl_;
 }
 
 QLabel* LrcPage::album() {
@@ -55,11 +55,16 @@ void LrcPage::initial() {
 	auto verticalLayout_3 = new QVBoxLayout();
 	verticalLayout_3->setSpacing(0);
 	verticalLayout_3->setObjectName(QString::fromUtf8("verticalLayout_3"));
-	cover_label_ = new QLabel(this);
-	cover_label_->setObjectName(QString::fromUtf8("label"));
-	cover_label_->setMinimumSize(QSize(250, 250));
-	cover_label_->setMaximumSize(QSize(250, 250));
-	verticalLayout_3->addWidget(cover_label_);
+    //cover_label_ = new QLabel(this);
+    //cover_label_->setObjectName(QString::fromUtf8("label"));
+    //cover_label_->setMinimumSize(QSize(250, 250));
+    //cover_label_->setMaximumSize(QSize(250, 250));
+    //verticalLayout_3->addWidget(cover_label_);
+    vinyl_ = new VinylWidget(this);
+    vinyl_->setObjectName(QString::fromUtf8("label"));
+    vinyl_->setMinimumSize(QSize(350, 350));
+    vinyl_->setMaximumSize(QSize(350, 350));
+    verticalLayout_3->addWidget(vinyl_);
 	verticalLayout_3->setContentsMargins(0, 20, 0, 0);
 
 	auto verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);

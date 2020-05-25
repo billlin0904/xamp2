@@ -3,9 +3,12 @@
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
+#include <base/base.h>
+
+#ifdef XAMP_OS_MAC
+
 #include <vector>
 #include <string>
-
 #include <CoreAudio/CoreAudio.h>
 
 namespace xamp::output_device::osx {
@@ -28,3 +31,4 @@ bool IsOutputDevice(AudioDeviceID id);
 
 }
 
+#endif

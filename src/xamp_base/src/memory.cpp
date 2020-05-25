@@ -39,16 +39,14 @@ size_t GetPageAlignSize(size_t value) noexcept {
 	return align_size;
 }
 
-void PrefactchFile(const std::wstring& file_name) {
-	MemoryMappedFile file;
-	file.Open(file_name);
-	PrefetchMemory(const_cast<void*>(file.GetData()), file.GetLength());
+bool PrefactchFile(MemoryMappedFile &file) {
+    return PrefetchMemory(const_cast<void*>(file.GetData()), file.GetLength());
 }
 
-#if 0
-XAMP_RESTRICT XAMP_NOALIAS void* FastMemcpy(void* dest, const void* src, size_t size) noexcept {
-	return std::memcpy(dest, src, size);
+bool PrefactchFile(std::wstring const & file_name) {
+	MemoryMappedFile file;
+	file.Open(file_name);
+    return PrefactchFile(file);
 }
-#endif
 
 }

@@ -55,6 +55,7 @@ SOURCES += \
     widget/playlisttableview.cpp \
     widget/tablistview.cpp \
     widget/toast.cpp \
+    widget/vinylwidget.cpp \
     widget/wheelablewidget.cpp \
     widget/filesystemwatcher.cpp \
     widget/selectcolorwidget.cpp \
@@ -104,6 +105,7 @@ HEADERS += \
     widget/qdebugsink.h \
     widget/tablistview.h \
     widget/toast.h \
+    widget/vinylwidget.h \
     widget/wheelablewidget.h \
     widget/str_utilts.h \
     widget/time_utilts.h \

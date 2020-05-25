@@ -66,7 +66,7 @@
 #define XAMP_RESTRICT __restrict
 #else
 #define XAMP_NO_VTABLE
-#define XAMP_RESTRICT
+#define XAMP_RESTRICT __restrict__
 #endif
 
 #ifdef _WIN32

@@ -1,6 +1,7 @@
+#include <base/base.h>
 #include <filesystem>
 
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
 #include <io.h>
 #include <base/windows_handle.h>
 #else
@@ -16,9 +17,9 @@
 namespace xamp::base {
 
 MAKE_ENUM(FileAccessMode,
-    READ,
-    WRITE,
-    READ_WRITE)
+          READ,
+          WRITE,
+          READ_WRITE)
 
 #ifdef XAMP_OS_WIN
 
@@ -27,7 +28,7 @@ public:
     MemoryMappedFileImpl() noexcept {
     }
 
-    void Open(const std::wstring& file_path, FileAccessMode mode, bool exclusive = false) {
+    void Open(std::wstring const & file_path, FileAccessMode mode, bool exclusive = false) {
         constexpr DWORD kAccessMode = GENERIC_READ;
         constexpr DWORD kCreateType = OPEN_EXISTING;
         constexpr DWORD kProtect = PAGE_READONLY;
@@ -58,7 +59,7 @@ public:
         file_.reset();
     }
 
-    const void * GetData() const {
+    void const * GetData() const {
         return address_.get();
     }
 
@@ -88,7 +89,7 @@ public:
         : mem_(nullptr) {
     }
 
-    void Open(const std::wstring& file_path, FileAccessMode, bool) {
+    void Open(std::wstring const& file_path, FileAccessMode, bool) {
         file_.reset(::open(ToUtf8String(file_path).c_str(), O_RDONLY));
         if (!file_) {
             throw FileNotFoundException();
@@ -112,7 +113,7 @@ public:
         file_.close();
     }
 
-    const void * GetData() const noexcept {
+    void const * GetData() const noexcept {
         return mem_;
     }
 
@@ -135,11 +136,11 @@ MemoryMappedFile::MemoryMappedFile()
 MemoryMappedFile::~MemoryMappedFile() {
 }
 
-void MemoryMappedFile::Open(const std::wstring &file_path) {
+void MemoryMappedFile::Open(std::wstring const &file_path) {
     impl_->Open(file_path, FileAccessMode::READ, false);
 }
 
-const void * MemoryMappedFile::GetData() const {
+void const * MemoryMappedFile::GetData() const {
     return impl_->GetData();
 }
 

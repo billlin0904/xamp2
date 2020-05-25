@@ -11,11 +11,15 @@
 
 namespace xamp::base {
 
+class MemoryMappedFile;
+
 XAMP_BASE_API size_t GetPageSize() noexcept;
 
 XAMP_BASE_API size_t GetPageAlignSize(size_t value) noexcept;
 
-XAMP_BASE_API void PrefactchFile(const std::wstring &file_name);
+XAMP_BASE_API bool PrefactchFile(std::wstring const &file_name);
+
+XAMP_BASE_API bool PrefactchFile(MemoryMappedFile &file);
 
 XAMP_BASE_API bool PrefetchMemory(void* adddr, size_t length) noexcept;
 

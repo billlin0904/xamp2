@@ -850,7 +850,8 @@ void Xamp::playMusic(const MusicEntity& item) {
     playlist_page_->title()->setText(item.title);
     lrc_page_->title()->setText(item.title);
     lrc_page_->album()->setText(item.album);
-    lrc_page_->artist()->setText(item.artist);    
+    lrc_page_->artist()->setText(item.artist);
+    lrc_page_->cover()->start();
 }
 
 void Xamp::play(const PlayListEntity& item) {  

@@ -107,7 +107,7 @@ void AudioBuffer<Type, U>::Clear() noexcept {
 
 template <typename Type, typename U>
 void AudioBuffer<Type, U>::Fill(Type value) noexcept {
-	(void)memset(buffer_.get(), value, sizeof(Type) * size_);
+    (void)std::memset(buffer_.get(), value, sizeof(Type) * size_);
 }
 
 template <typename Type, typename U>

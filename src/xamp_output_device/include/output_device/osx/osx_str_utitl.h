@@ -3,6 +3,10 @@
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
+#include <base/base.h>
+
+#ifdef XAMP_OS_MAC
+
 #include <vector>
 #include <string>
 #include <CoreAudio/CoreAudio.h>
@@ -83,4 +87,7 @@ inline CFStringRef SysWideToCFStringRef(std::wstring const & wide) {
 }
 
 }
+
+#endif
+
 

@@ -5,6 +5,10 @@
 
 #pragma once
 
+#include <base/base.h>
+
+#ifdef XAMP_OS_MAC
+
 #include <CoreAudio/CoreAudio.h>
 #include <CoreServices/CoreServices.h>
 #include <AudioUnit/AudioUnit.h>
@@ -79,4 +83,6 @@ private:
 };
 
 }
+
+#endif
 
