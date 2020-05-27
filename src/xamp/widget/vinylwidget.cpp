@@ -41,8 +41,6 @@ void VinylWidget::writeBackground() {
     painter.drawPixmap(0, 0, background_);
     painter.drawPixmap(0, 0, vinly_);
     painter.drawPixmap(0, 0, cover_);
-    painter.end();
-
     image_ = temp;
 }
 
@@ -58,9 +56,9 @@ void VinylWidget::setPixmap(QPixmap const &image) {
     painter.setRenderHints(QPainter::Antialiasing, true);
     painter.setRenderHints(QPainter::SmoothPixmapTransform, true);
 
-    auto cover_size = 230;
+    auto cover_size = 235;
     const QRect image_react(
-        QPoint{ 60, 60 },
+        QPoint{ 59, 59 },
         QSize(cover_size, cover_size));
 
     QPainterPath path;
@@ -88,8 +86,10 @@ void VinylWidget::stop() {
 
 void VinylWidget::paintEvent(QPaintEvent *) {
     QPainter painter(this);
+
     painter.setRenderHints(QPainter::Antialiasing, true);
-    painter.setRenderHints(QPainter::SmoothPixmapTransform, true);    
+    painter.setRenderHints(QPainter::SmoothPixmapTransform, true);
+
     painter.translate(width() / 2, height() / 2);
     painter.rotate(angle_);
     painter.translate(-width() / 2, -height() / 2);

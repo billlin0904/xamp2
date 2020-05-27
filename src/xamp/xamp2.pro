@@ -103,6 +103,7 @@ HEADERS += \
     widget/playlisttableproxymodel.h \
     widget/playlisttableview.h \
     widget/qdebugsink.h \
+    widget/settingnames.h \
     widget/tablistview.h \
     widget/toast.h \
     widget/vinylwidget.h \

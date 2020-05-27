@@ -9,13 +9,7 @@
 #include <QScopedPointer>
 
 #include <widget/str_utilts.h>
-
-static constexpr ConstLatin1String kSoxrResampleSampleRate{ "resampler/soxr/resampleSampleRate" };
-static constexpr ConstLatin1String kSoxrEnableSteepFilter{ "resampler/soxr/enableSteepFilter" };
-static constexpr ConstLatin1String kSoxrQuality{ "resampler/soxr/quality" };
-static constexpr ConstLatin1String kSoxrPhase{ "resampler/soxr/phase" };
-static constexpr ConstLatin1String kSoxrPassBand{ "resampler/soxr/passBand" };
-static constexpr ConstLatin1String kSoxrDefaultSettingName{ "resampler/soxr/default" };
+#include <widget/settingnames.h>
 
 class JsonSettings {
 public:

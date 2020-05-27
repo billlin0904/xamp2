@@ -87,13 +87,18 @@ void LrcPage::initial() {
 	f.setBold(true);
 
     title_ = new ScrollLabel(this);
-	title_->setMinimumHeight(40);
 	title_->setObjectName(QString::fromUtf8("label_2"));
 	title_->setText(tr("Title:"));
 	title_->setFont(f);
-
-	f.setPointSize(12);
-	f.setBold(false);
+#ifdef Q_OS_WIN
+    title_->setMinimumHeight(40);
+    f.setPointSize(12);
+#else
+    title_->setMinimumHeight(50);
+    f.setPointSize(20);
+#endif
+    f.setBold(false);
+    title_->setFont(f);
 
 	verticalLayout_2->addWidget(title_);
 	
