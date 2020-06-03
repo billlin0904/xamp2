@@ -481,7 +481,7 @@ void AsioDevice::SetOutputSampleRate(AudioFormat const & output_format) {
 	}
 
 	if (!is_current_source_set && num_clock_source > 1) {
-		XAMP_LOG_INFO("Set device clock source: {}.", clock_source_[0].index);
+		XAMP_LOG_INFO("Set device clock source: {}.", clock_source_[0].name);
 		AsioIfFailedThrow(::ASIOSetClockSource(clock_source_[0].index));
 	}
 }

@@ -4,6 +4,7 @@
 #include <base/scopeguard.h>
 #include <base/dll.h>
 #include <base/stacktrace.h>
+#include <base/platform_thread.h>
 
 #include <metadata/metadatareader.h>
 
@@ -101,7 +102,7 @@ static int excute(int argc, char* argv[]) {
     XAMP_LOG_DEBUG("Preload dll success.");
 
 #ifdef Q_OS_WIN
-    VmMemLock::EnableLockMemPrivilege(true);
+    xamp::base::EnablePrivilege("SeLockMemoryPrivilege", true);
     XAMP_LOG_DEBUG("EnableLockMemPrivilege success.");
 #endif
 

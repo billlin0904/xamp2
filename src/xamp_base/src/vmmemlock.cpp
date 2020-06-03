@@ -34,10 +34,6 @@ VmMemLock::~VmMemLock() noexcept {
 	UnLock();
 }
 
-bool VmMemLock::EnableLockMemPrivilege(bool enable) noexcept {
-	return EnablePrivilege("SeLockMemoryPrivilege", enable);
-}
-
 void VmMemLock::Lock(void* address, size_t size) {
 	UnLock();
 

@@ -42,6 +42,7 @@ PlayListEntity PlayListTableView::fromMetadata(const xamp::base::Metadata& metad
 PlayListTableView::PlayListTableView(QWidget* parent, int32_t playlist_id)
     : QTableView(parent)
     , playlist_id_(playlist_id)
+    , start_delegate_(nullptr)
     , model_(this)
     , proxy_model_(this) {
     initial();
@@ -122,9 +123,9 @@ void PlayListTableView::initial() {
     horizontalHeader()->setStretchLastSection(true);
     horizontalHeader()->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 
-    auto delegate = new StarDelegate(this);
-    setItemDelegateForColumn(PLAYLIST_RATING, delegate);
-    QObject::connect(delegate, &StarDelegate::commitData, [this](auto editor) {
+    start_delegate_ = new StarDelegate(this);
+    setItemDelegateForColumn(PLAYLIST_RATING, start_delegate_);
+    QObject::connect(start_delegate_, &StarDelegate::commitData, [this](auto editor) {
         auto start_editor = qobject_cast<StarEditor*>(editor);
         if (!start_editor) {
             return;
@@ -229,7 +230,7 @@ void PlayListTableView::initial() {
 }
 
 void PlayListTableView::onTextColorChanged(QColor backgroundColor, QColor color) {
-    QColor alphaColor = Qt::darkGray;
+    QColor selectedColor = Qt::black;
 
     auto style = QString(Q_UTF8(R"(
         QTableView {
@@ -244,9 +245,10 @@ void PlayListTableView::onTextColorChanged(QColor backgroundColor, QColor color)
      )")).arg(
     colorToString(backgroundColor),
     colorToString(color),
-    colorToString(alphaColor),
+    colorToString(selectedColor),
     colorToString(color));
-
+    start_delegate_->setBackgroundColor(selectedColor);
+    
     setStyleSheet(style);
 }
 

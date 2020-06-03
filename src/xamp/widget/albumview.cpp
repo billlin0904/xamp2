@@ -397,8 +397,8 @@ AlbumView::AlbumView(QWidget* parent)
         auto artist_id = getIndexValue(index, 4).toInt();
         auto artist_cover_id = getIndexValue(index, 5).toString();
 
-        constexpr auto height = 460;
         auto list_view_rect = this->rect();
+        auto height = list_view_rect.height();        
         auto rect = visualRect(index);
 
         page_->setAlbum(album);
@@ -414,13 +414,7 @@ AlbumView::AlbumView(QWidget* parent)
             page_->setTotalDuration(album_stats.value().durations);
         }
 
-        if (rect.y() + height > list_view_rect.height()) {
-            page_->move(QPoint(list_view_rect.x(), rect.y() - height));
-        }
-        else {
-            page_->move(QPoint(list_view_rect.x(), rect.y() + 200));
-        }
-
+        page_->move(QPoint(list_view_rect.x(), 0));
         page_->show();
         });
 

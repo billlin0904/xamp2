@@ -7,13 +7,6 @@
 
 #include <widget/str_utilts.h>
 
-static constexpr ConstLatin1String kSoxrResampleSampleRate{ "resampler/soxr/resampleSampleRate" };
-static constexpr ConstLatin1String kSoxrEnableSteepFilter{ "resampler/soxr/enableSteepFilter" };
-static constexpr ConstLatin1String kSoxrQuality{ "resampler/soxr/quality" };
-static constexpr ConstLatin1String kSoxrPhase{ "resampler/soxr/phase" };
-static constexpr ConstLatin1String kSoxrPassBand{ "resampler/soxr/passBand" };
-static constexpr ConstLatin1String kSoxrDefaultSettingName{ "resampler/soxr/default" };
-
 static constexpr ConstLatin1String kAppSettingLang{ "AppSettings/lang" };
 
 static constexpr ConstLatin1String kAppSettingPreventSleep{ "AppSettings/preventSleep" };
@@ -30,3 +23,11 @@ static constexpr ConstLatin1String kAppSettingMusicFilePath{ "AppSettings/musicF
 
 static constexpr ConstLatin1String kAppSettingResamplerEnable{ "AppSettings/soxr/enable" };
 static constexpr ConstLatin1String kAppSettingSoxrSettingName{ "AppSettings/soxr/userSettingName" };
+
+static constexpr ConstLatin1String kSoxrResampleSampleRate{ "resampleSampleRate" };
+static constexpr ConstLatin1String kSoxrEnableSteepFilter{ "enableSteepFilter" };
+static constexpr ConstLatin1String kSoxrQuality{ "quality" };
+static constexpr ConstLatin1String kSoxrPhase{ "phase" };
+static constexpr ConstLatin1String kSoxrPassBand{ "passBand" };
+static constexpr ConstLatin1String kSoxrDefaultSettingName{ "default" };
+

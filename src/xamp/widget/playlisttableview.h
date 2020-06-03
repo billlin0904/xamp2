@@ -17,6 +17,8 @@
 #include <widget/playlisttableproxymodel.h>
 #include <widget/metadataextractadapter.h>
 
+class StarDelegate;
+
 class PlayListTableView : public QTableView {
 	Q_OBJECT
 public:
@@ -86,6 +88,7 @@ private:
 	void initial();
 
 	int32_t playlist_id_;
+	StarDelegate* start_delegate_;
 	QModelIndex play_index_;
 	PlayListTableModel model_;	
 	PlayListTableFilterProxyModel proxy_model_;

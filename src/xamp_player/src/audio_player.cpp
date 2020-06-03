@@ -75,7 +75,7 @@ void AudioPlayer::LoadLib() {
     ThreadPool::DefaultThreadPool();
     BassFileStream::LoadBassLib();    
     AudioDeviceFactory::Instance();
-    Chromaprint::LoadChromaprintLib();
+    //Chromaprint::LoadChromaprintLib();
     SoxrResampler::LoadSoxrLib();
 }
 

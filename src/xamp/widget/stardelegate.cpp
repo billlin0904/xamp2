@@ -5,7 +5,8 @@
 #include <widget/stardelegate.h>
 
 StarDelegate::StarDelegate(QWidget* parent)
-    : QStyledItemDelegate(parent) {
+    : QStyledItemDelegate(parent)
+    , background_color_(Qt::black) {
 }
 
 void StarDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const {
@@ -13,13 +14,17 @@ void StarDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, 
         auto rating = qvariant_cast<StarRating>(index.data());
 
         if (option.state & QStyle::State_Selected)
-            painter->fillRect(option.rect, Qt::darkGray);
+            painter->fillRect(option.rect, background_color_);
 
         rating.paint(painter, option.rect, option.palette, StarRating::ReadOnly);
     }
     else {
         QStyledItemDelegate::paint(painter, option, index);
     }
+}
+
+void StarDelegate::setBackgroundColor(QColor color) {
+    background_color_ = color;
 }
 
 QSize StarDelegate::sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const {

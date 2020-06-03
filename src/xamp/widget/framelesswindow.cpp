@@ -109,26 +109,6 @@ void FramelessWindow::initialFontDatabase() {
 #ifdef Q_OS_WIN
     fallback_fonts.append(Q_UTF8("Segoe UI"));
     fallback_fonts.append(Q_UTF8("Segoe UI Bold"));
-
-    //const QList<QString> yogothic_fonts{
-    //    Q_UTF8("./Resource/Fonts/GenYoGothic-R.ttc"),
-    //    Q_UTF8("./Resource/Fonts/GenYoGothic-N.ttc"),
-    //    Q_UTF8("./Resource/Fonts/GenYoGothic-M.ttc"),
-    //    Q_UTF8("./Resource/Fonts/GenYoGothic-L.ttc"),
-    //    Q_UTF8("./Resource/Fonts/GenYoGothic-H.ttc"),
-    //    Q_UTF8("./Resource/Fonts/GenYoGothic-EL.ttc"),
-    //    Q_UTF8("./Resource/Fonts/GenYoGothic-B.ttc"),
-    //};
-
-    //for (auto font : yogothic_fonts) {
-    //    int id = QFontDatabase::addApplicationFont(font);
-    //    if (id == -1) {
-    //        continue;
-    //    }
-    //    auto family = QFontDatabase::applicationFontFamilies(id).at(0);
-    //    fallback_fonts.push_back(family);
-    //}
-
     fallback_fonts.append(Q_UTF8("Microsoft Yahei UI"));
     fallback_fonts.append(Q_UTF8("Microsoft Yahei UI Bold"));
     fallback_fonts.append(Q_UTF8("Meiryo UI"));
@@ -141,6 +121,7 @@ void FramelessWindow::initialFontDatabase() {
     fallback_fonts.append(Q_UTF8("Helvetica"));
 #endif
     QFont::insertSubstitutions(Q_UTF8("UI"), fallback_fonts);
+
     QFont default_font;
     default_font.setFamily(Q_UTF8("UI"));
     default_font.setStyleStrategy(QFont::PreferAntialias);
