@@ -29,6 +29,10 @@ AudioDeviceID GetAudioDeviceIdByUid(bool is_input, std::wstring const & device_i
 
 bool IsOutputDevice(AudioDeviceID id);
 
+void SetHogMode(AudioDeviceID id);
+
+void ReleaseHogMode(AudioDeviceID id);
+
 }
 
 #endif

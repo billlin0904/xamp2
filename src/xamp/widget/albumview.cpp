@@ -386,8 +386,15 @@ AlbumView::AlbumView(QWidget* parent)
     page_->setStyleSheet(backgroundColorToString(Qt::gray));
     page_->hide();
 
-    (void)QObject::connect(page_, &AlbumViewPage::playMusic, this, &AlbumView::playMusic);
-    (void)QObject::connect(page_, &AlbumViewPage::clickedArtist, this, &AlbumView::clickedArtist);
+    (void)QObject::connect(page_,
+                            &AlbumViewPage::playMusic,
+                            this,
+                            &AlbumView::playMusic);
+
+    (void)QObject::connect(page_,
+                            &AlbumViewPage::clickedArtist,
+                            this,
+                            &AlbumView::clickedArtist);
 
     (void)QObject::connect(this, &QListView::clicked, [this](auto index) {
         auto album = getIndexValue(index, 0).toString();

@@ -88,7 +88,8 @@ std::vector<DeviceInfo> CoreAudioDeviceType::GetDeviceInfo() const {
     for (auto device_id : device_list) {
         if (!IsOutputDevice(device_id)) {
             continue;
-        }        
+        }
+
         DeviceInfo info;
         info.name = GetPropertyName(device_id);
         info.device_id = GetDeviceUid(device_id);

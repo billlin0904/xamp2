@@ -171,4 +171,59 @@ bool IsOutputDevice(AudioDeviceID id) {
     return (dataSize / sizeof(AudioStreamID)) > 0;
 }
 
+void ReleaseHogMode(AudioDeviceID id) {
+    AudioObjectPropertyAddress property = {
+        kAudioHardwarePropertyDevices,
+        kAudioObjectPropertyScopeGlobal,
+        kAudioObjectPropertyElementMaster
+    };
+    property.mSelector = kAudioDevicePropertyHogMode;
+    pid_t hog_pid;
+    uint32_t dataSize = sizeof(hog_pid);
+    auto result = ::AudioObjectGetPropertyData(id,
+                                               &property,
+                                               0,
+                                               nullptr,
+                                               &dataSize,
+                                               &hog_pid);
+    if (result != noErr) {
+        CoreAudioFailedLog(result);
+        return;
+    }
+    auto current_pid = ::getpid();
+    if (hog_pid != current_pid) {
+        return;
+    }
+    hog_pid = -1;
+    result = ::AudioObjectSetPropertyData(id,
+                                          &property,
+                                          0,
+                                          nullptr,
+                                          dataSize,
+                                          &hog_pid);
+    if (result != noErr) {
+        CoreAudioFailedLog(result);
+    }
+}
+
+void SetHogMode(AudioDeviceID id) {
+    AudioObjectPropertyAddress property = {
+        kAudioHardwarePropertyDevices,
+        kAudioObjectPropertyScopeGlobal,
+        kAudioObjectPropertyElementMaster
+    };
+    property.mSelector = kAudioDevicePropertyHogMode;
+    auto hog_pid = ::getpid();
+    uint32_t dataSize = sizeof(hog_pid);
+    auto result = ::AudioObjectSetPropertyData(id,
+                                               &property,
+                                               0,
+                                               nullptr,
+                                               dataSize,
+                                               &hog_pid);
+    if (result != noErr) {
+        CoreAudioFailedLog(result);
+    }
+}
+
 }

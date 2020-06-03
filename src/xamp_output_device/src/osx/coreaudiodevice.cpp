@@ -207,6 +207,8 @@ void CoreAudioDevice::OpenStream(AudioFormat const &output_format) {
                                                       this,
                                                       &ioproc_id_));
     format_ = output_format;
+
+    SetHogMode(device_id_);
 }
 
 void CoreAudioDevice::SetAudioCallback(AudioCallback *callback) noexcept {
@@ -230,6 +232,7 @@ void CoreAudioDevice::CloseStream() {
     CoreAudioThrowIfError(::AudioDeviceStop(device_id_, ioproc_id_));
     CoreAudioThrowIfError(::AudioDeviceDestroyIOProcID(device_id_, ioproc_id_));
     ioproc_id_ = nullptr;
+    ReleaseHogMode(device_id_);
 }
 
 void CoreAudioDevice::StartStream() {
