@@ -94,8 +94,11 @@ static bool GetFlacCover(File* file, std::vector<uint8_t>& buffer) {
             return false;
         }
 
+        const TagLib::String jpeg_type("image/jpeg");
+        const TagLib::String png_type("image/png");
+
         for (const auto &picture : picture_list) {
-            if (picture->mimeType() == "image/jpeg") {    
+            if (picture->mimeType() == jpeg_type || picture->mimeType() == png_type) {
                 buffer.resize(picture->data().size());
                 (void) FastMemcpy(buffer.data(), picture->data().data(), picture->data().size());
                 return true;
@@ -240,7 +243,7 @@ public:
 private:
     static void GetCover(std::string const & ext, File*file, std::vector<uint8_t>& cover) {
         static const RobinHoodHashMap<std::string, std::function<bool(File *, std::vector<uint8_t> &)>>
-            const parse_cover_table{
+            parse_cover_table{
             { ".flac", GetFlacCover },
             { ".mp3",  GetMp3Cover },
             { ".m4a",  GetMp4Cover },

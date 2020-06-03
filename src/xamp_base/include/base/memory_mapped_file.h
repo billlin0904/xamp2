@@ -19,9 +19,9 @@ public:
 
     ~MemoryMappedFile();
 
-	void Open(const std::wstring &file_path);
+    void Open(std::wstring const &file_path);
 
-    const void * GetData() const;
+    void const * GetData() const;
 
     size_t GetLength() const;
 

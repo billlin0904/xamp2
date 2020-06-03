@@ -14,7 +14,7 @@
 #include <widget/filetag.h>
 #include <widget/pixmapcache.h>
 
-constexpr size_t kDefaultCacheSize = 1024;
+static constexpr size_t kDefaultCacheSize = 1024;
 
 PixmapCache::PixmapCache()
     : cache_(kDefaultCacheSize) {

@@ -132,18 +132,15 @@ void FramelessWindow::initialFontDatabase() {
     fallback_fonts.append(Q_UTF8("Microsoft Yahei UI"));
     fallback_fonts.append(Q_UTF8("Microsoft Yahei UI Bold"));
     fallback_fonts.append(Q_UTF8("Meiryo UI"));
-    fallback_fonts.append(Q_UTF8("Meiryo UI Bold"));  
-  
+    fallback_fonts.append(Q_UTF8("Meiryo UI Bold"));
     fallback_fonts.append(Q_UTF8("Arial"));
 #else
     fallback_fonts.append(Q_UTF8("SF Pro Display"));
     fallback_fonts.append(Q_UTF8("SF Pro Text"));
     fallback_fonts.append(Q_UTF8("Helvetica Neue"));
     fallback_fonts.append(Q_UTF8("Helvetica"));
-#endif		
-	
-	QFont::insertSubstitutions(Q_UTF8("UI"), fallback_fonts); 
-
+#endif
+    QFont::insertSubstitutions(Q_UTF8("UI"), fallback_fonts);
     QFont default_font;
     default_font.setFamily(Q_UTF8("UI"));
     default_font.setStyleStrategy(QFont::PreferAntialias);

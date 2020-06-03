@@ -1,12 +1,9 @@
 #include <cstdio>
 
 #include <base/logger.h>
-#include <base/rng.h>
-#include <base/dll.h>
-#include <base/vmmemlock.h>
-#include <base/stacktrace.h>
-#include <base/threadpool.h>
 #include <base/scopeguard.h>
+#include <base/dll.h>
+#include <base/stacktrace.h>
 
 #include <metadata/metadatareader.h>
 
@@ -115,7 +112,6 @@ static int excute(int argc, char* argv[]) {
 
     XAMP_LOG_DEBUG("attach app success.");
 
-    (void)RNG::Instance();
     (void)PixmapCache::instance();
 
     XAMP_LOG_DEBUG("PixmapCache init success.");

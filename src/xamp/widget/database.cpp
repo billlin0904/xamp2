@@ -216,6 +216,13 @@ void Database::removeAlbumMusicId(int32_t music_id) {
     ThrowlfFailue(query);
 }
 
+void Database::removeAlbumArtistId(int32_t artist_id) {
+    QSqlQuery query;
+    query.prepare(Q_UTF8("DELETE FROM albumArtist WHERE artistId=:artistId"));
+    query.bindValue(Q_UTF8(":artistId"), artist_id);
+    ThrowlfFailue(query);
+}
+
 void Database::removeMusic(int32_t music_id) {
     QSqlQuery query;
     query.prepare(Q_UTF8("DELETE FROM musics WHERE musicId=:musicId"));
@@ -230,11 +237,19 @@ void Database::removeAlbumArtist(int32_t album_id) {
     ThrowlfFailue(query);
 }
 
+void Database::removeArtistId(int32_t artist_id) {
+    QSqlQuery query;
+    query.prepare(Q_UTF8("DELETE FROM artists WHERE artistId=:artistId"));
+    query.bindValue(Q_UTF8(":artistId"), artist_id);
+    ThrowlfFailue(query);
+}
+
 void Database::removeAlbum(int32_t album_id) {
-    forEachAlbumMusic(album_id, [this](auto entity) {
+    forEachAlbumMusic(album_id, [this](auto const entity) {
         removePlaybackHistory(entity.music_id);
         removePlaylistMusic(1, QVector<int32_t>{ entity.music_id });
         removeAlbumMusicId(entity.music_id);
+        removeAlbumArtistId(entity.artist_id);
         removeMusic(entity.music_id);
     });
 

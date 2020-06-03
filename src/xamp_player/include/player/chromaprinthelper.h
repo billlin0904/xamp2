@@ -8,19 +8,15 @@
 #include <string>
 #include <vector>
 #include <functional>
+#include <tuple>
 
 #include <player/player.h>
 
 namespace xamp::player {
 
-struct XAMP_PLAYER_API Fingerprint {
-	double duration{ 0 };
-	std::vector<uint8_t> fingerprint;
-};
-
-XAMP_PLAYER_API Fingerprint ReadFingerprint(std::wstring const & file_path,
-                                            std::wstring const & file_ext,
-                                            std::function<bool(uint32_t)> progress);
+XAMP_PLAYER_API std::tuple<double, std::vector<uint8_t>> ReadFingerprint(std::wstring const & file_path,
+                                                                         std::wstring const & file_ext,
+                                                                         std::function<bool(uint32_t)> progress);
 
 }
 

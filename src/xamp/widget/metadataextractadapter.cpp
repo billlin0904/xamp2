@@ -28,7 +28,7 @@ public:
         cover_id.Clear();
     }
 
-    std::tuple<int32_t, int32_t, QString> getCache(const QString &album, const QString &artist);
+    std::tuple<int32_t, int32_t, QString> cache(const QString &album, const QString &artist);
 
     LruCache<int32_t, QString> cover_id;
 private:
@@ -38,7 +38,7 @@ private:
     LruCache<QString, int32_t> artist_id;
 };
 
-std::tuple<int32_t, int32_t, QString> IdCache::getCache(const QString &album, const QString &artist) {
+std::tuple<int32_t, int32_t, QString> IdCache::cache(const QString &album, const QString &artist) {
     int32_t artist_id = 0;
     if (auto artist_id_op = this->artist_id.Find(artist)) {
         artist_id = *artist_id_op.value();
@@ -167,7 +167,7 @@ void MetadataExtractAdapter::processMetadata(const std::vector<Metadata>& metada
 
         auto music_id = Database::instance().addOrUpdateMusic(metadata, playlist_id);
 
-        auto [album_id, artist_id, cover_id] = IdCache::instance().getCache(album, artist);
+        auto [album_id, artist_id, cover_id] = IdCache::instance().cache(album, artist);
         if (cover_id.isEmpty()) {
             addImageCache(album_id, album, metadata);
         }

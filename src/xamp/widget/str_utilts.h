@@ -18,8 +18,9 @@ struct ConstLatin1String : public QLatin1String {
     }
 };
 
+static constexpr ConstLatin1String QEmptyString{""};
+
 #define Q_UTF8(str) ConstLatin1String{str}
-#define Q_EMPTY_STR ConstLatin1String{""}
 #define Q_STR(str) QString(ConstLatin1String{str})
 
 struct MusicEntity {

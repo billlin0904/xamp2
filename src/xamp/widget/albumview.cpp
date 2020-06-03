@@ -511,6 +511,11 @@ AlbumView::AlbumView(QWidget* parent)
             action_map.addAction(tr("Copy album"));
             action_map.addAction(tr("Copy artist"));
         }
+
+        action_map.addAction(tr("Flush database"), [=]() {
+
+        });
+
         action_map.exec(pt);
     });
 }

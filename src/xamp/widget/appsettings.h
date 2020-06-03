@@ -16,7 +16,7 @@
 
 class AppSettings {
 public:    
-    static void loadIniFile(const QString& file_name);
+    static void loadIniFile(QString const & file_name);
 
     template <typename T, typename = std::enable_if_t<std::is_integral<T>::value, T>>
     static void setValue(QString const& key, T value) {

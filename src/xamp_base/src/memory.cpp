@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <base/base.h>
 
 #ifdef XAMP_OS_WIN
@@ -5,8 +6,6 @@
 #else
 #include <base/posix_handle.h>
 #endif
-
-#include <algorithm>
 #include <base/memory_mapped_file.h>
 #include <base/memory.h>
 

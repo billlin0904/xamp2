@@ -87,7 +87,7 @@ std::string_view Exception::ErrorToString(Errors error) {
     return "";
 }
 
-DeviceUnSupportedFormatException::DeviceUnSupportedFormatException(const AudioFormat& format)
+DeviceUnSupportedFormatException::DeviceUnSupportedFormatException(AudioFormat const & format)
 	: Exception(Errors::XAMP_ERROR_DEVICE_UNSUPPORTED_FORMAT)
 	, format_(format) {
 	std::ostringstream ostr;
@@ -95,7 +95,7 @@ DeviceUnSupportedFormatException::DeviceUnSupportedFormatException(const AudioFo
 	message_ = ostr.str();
 }
 
-LoadDllFailureException::LoadDllFailureException(const std::string_view& dll_name)
+LoadDllFailureException::LoadDllFailureException(std::string_view dll_name)
 	: Exception(Errors::XAMP_ERROR_LOAD_DLL_FAILURE)
 	, dll_name_(dll_name) {
 	std::ostringstream ostr;

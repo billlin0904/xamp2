@@ -1,5 +1,4 @@
 #include <base/logger.h>
-#include <base/platform_thread.h>
 #ifdef XAMP_OS_WIN
 #include <base/windows_handle.h>
 #else
@@ -9,7 +8,6 @@
 #include <base/vmmemlock.h>
 
 namespace xamp::base {
-
 #ifdef XAMP_OS_WIN
 static bool ExterndProcessWorkingSetSize(size_t size) noexcept {
     SIZE_T minimum = 0;
@@ -68,7 +66,6 @@ void VmMemLock::UnLock() noexcept {
 	size_ = 0;
 }
 #else
-
 VmMemLock::VmMemLock() noexcept
     : address_(nullptr)
     , size_(0) {
@@ -98,7 +95,6 @@ void VmMemLock::UnLock() noexcept {
     address_ = nullptr;
     size_ = 0;
 }
-
 #endif
 
 }

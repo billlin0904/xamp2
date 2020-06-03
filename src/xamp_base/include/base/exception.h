@@ -30,24 +30,23 @@ MAKE_ENUM(Errors,
           XAMP_ERROR_STOP_STREAM_TIMEOUT,
           XAMP_ERROR_SAMPLERATE_CHANGED,
           XAMP_ERROR_NOT_SUPPORT_VARIABLE_RESAMPLE,
-          XAMP_ERROR_NOT_FOUND_DLL_EXPORT_FUNC,
-          _MAX_XAMP_ERROR_)
+          XAMP_ERROR_NOT_FOUND_DLL_EXPORT_FUNC)
 
 XAMP_BASE_API std::string GetPlatformErrorMessage(int32_t err);
 
 class XAMP_BASE_API Exception : public std::exception {
 public:
     explicit Exception(Errors error = Errors::XAMP_ERROR_SUCCESS,
-        const std::string& message = "",
-        std::string_view what = "");
+                       std::string const & message = "",
+                       std::string_view what = "");
 
     ~Exception() override = default;
 
-    [[nodiscard]] const char * what() const noexcept override;
+    [[nodiscard]] char const * what() const noexcept override;
 
     [[nodiscard]] virtual Errors GetError() const;
 
-    [[nodiscard]] const char* GetErrorMessage() const;
+    [[nodiscard]] char const * GetErrorMessage() const;
 
     [[nodiscard]] virtual const char * GetExpression() const;
 
@@ -78,7 +77,7 @@ public:\
 
 class XAMP_BASE_API DeviceUnSupportedFormatException final : public Exception{
 public:
-    explicit DeviceUnSupportedFormatException(const AudioFormat & format);
+    explicit DeviceUnSupportedFormatException(AudioFormat const & format);
 
     ~DeviceUnSupportedFormatException() override = default;
 
@@ -88,7 +87,7 @@ private:
 
 class XAMP_BASE_API LoadDllFailureException final : public Exception {
 public:
-    explicit LoadDllFailureException(const std::string_view& dll_name);
+    explicit LoadDllFailureException(std::string_view dll_name);
 
     ~LoadDllFailureException() override = default;
 

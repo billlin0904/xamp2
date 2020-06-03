@@ -15,8 +15,8 @@
 
 namespace xamp::stream {
 
-constexpr DWORD kBassError{ 0xFFFFFFFF };
-constexpr int32_t kPcmSampleRate441 = { 44100 };
+static constexpr DWORD kBassError{ 0xFFFFFFFF };
+static constexpr int32_t kPcmSampleRate441 = { 44100 };
 
 template <typename T>
 constexpr uint8_t HiByte(T val) noexcept {

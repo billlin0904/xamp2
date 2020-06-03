@@ -72,31 +72,31 @@ const StylePixmapManager& ThemeManager::pixmap() noexcept {
 }
 
 QIcon ThemeManager::volumeUp() {
-    return QIcon(QString(Q_UTF8(":/xamp/Resource/%1/volume_up.png")).arg(themeColorPath()));
+    return QIcon(Q_STR(":/xamp/Resource/%1/volume_up.png").arg(themeColorPath()));
 }
 
 QIcon ThemeManager::volumeOff() {
-    return QIcon(QString(Q_UTF8(":/xamp/Resource/%1/volume_off.png")).arg(themeColorPath()));
+    return QIcon(Q_STR(":/xamp/Resource/%1/volume_off.png").arg(themeColorPath()));
 }
 
 void ThemeManager::setPlayOrPauseButton(Ui::XampWindow& ui, bool is_playing) {
     if (is_playing) {
-        ui.playButton->setStyleSheet(QString(Q_UTF8(R"(
+        ui.playButton->setStyleSheet(Q_STR(R"(
                                             QToolButton#playButton {
                                             image: url(:/xamp/Resource/%1/pause.png);
                                             border: none;
                                             background-color: transparent;
                                             }
-                                            )")).arg(themeColorPath()));
+                                            )").arg(themeColorPath()));
     }
     else {
-        ui.playButton->setStyleSheet(QString(Q_UTF8(R"(
+        ui.playButton->setStyleSheet(Q_STR(R"(
                                             QToolButton#playButton {
                                             image: url(:/xamp/Resource/%1/play.png);
                                             border: none;
                                             background-color: transparent;
                                             }
-                                            )")).arg(themeColorPath()));
+                                            )").arg(themeColorPath()));
     }
 }
 
@@ -157,34 +157,34 @@ void ThemeManager::setBackgroundColor(Ui::XampWindow& ui, QColor color) {
 }
 
 QIcon ThemeManager::playArrow() noexcept {
-    return QIcon(QString(Q_UTF8(":/xamp/Resource/%1/play_arrow.png")).arg(themeColorPath()));
+    return QIcon(Q_STR(":/xamp/Resource/%1/play_arrow.png").arg(themeColorPath()));
 }
 
 void ThemeManager::setShufflePlayorder(Ui::XampWindow& ui) {
-    ui.repeatButton->setStyleSheet(QString(Q_UTF8(R"(
+    ui.repeatButton->setStyleSheet(Q_STR(R"(
                                               QToolButton#repeatButton {
                                               image: url(:/xamp/Resource/%1/shuffle.png);
                                               background: transparent;
                                               }
-                                              )")).arg(themeColorPath()));
+                                              )").arg(themeColorPath()));
 }
 
 void ThemeManager::setRepeatOnePlayorder(Ui::XampWindow& ui) {
-    ui.repeatButton->setStyleSheet(QString(Q_UTF8(R"(
+    ui.repeatButton->setStyleSheet(Q_STR(R"(
                                               QToolButton#repeatButton {
                                               image: url(:/xamp/Resource/%1/repeat_one.png);
                                               background: transparent;
                                               }
-                                              )")).arg(themeColorPath()));
+                                              )").arg(themeColorPath()));
 }
 
 void ThemeManager::setRepeatOncePlayorder(Ui::XampWindow& ui) {
-    ui.repeatButton->setStyleSheet(QString(Q_UTF8(R"(
+    ui.repeatButton->setStyleSheet(Q_STR(R"(
                                               QToolButton#repeatButton {
                                               image: url(:/xamp/Resource/%1/repeat.png);
                                               background: transparent;
                                               }
-                                              )")).arg(themeColorPath()));
+                                              )").arg(themeColorPath()));
 }
 
 void ThemeManager::setThemeColor(Ui::XampWindow& ui) {
@@ -195,106 +195,106 @@ void ThemeManager::setThemeColor(Ui::XampWindow& ui) {
                                          }
                                          )"));
 
-    ui.nextPageButton->setStyleSheet(QString(Q_UTF8(R"(
+    ui.nextPageButton->setStyleSheet(Q_STR(R"(
                                             QToolButton#nextPageButton {
                                             border: none;
                                             image: url(:/xamp/Resource/%1/right_black.png);
                                             background-color: transparent;
                                             }
-                                            )")).arg(themeColorPath()));
+                                            )").arg(themeColorPath()));
 
-    ui.backPageButton->setStyleSheet(QString(Q_UTF8(R"(
+    ui.backPageButton->setStyleSheet(Q_STR(R"(
                                             QToolButton#backPageButton {
                                             border: none;
                                             image: url(:/xamp/Resource/%1/left_black.png);
                                             background-color: transparent;
                                             }
-                                            )")).arg(themeColorPath()));
+                                            )").arg(themeColorPath()));
 
-    ui.closeButton->setStyleSheet(QString(Q_UTF8(R"(
+    ui.closeButton->setStyleSheet(Q_STR(R"(
                                          QToolButton#closeButton {
                                          image: url(:/xamp/Resource/%1/close.png);
                                          background-color: transparent;
                                          }
-                                         )")).arg(themeColorPath()));
+                                         )").arg(themeColorPath()));
 
-    ui.minWinButton->setStyleSheet(QString(Q_UTF8(R"(
+    ui.minWinButton->setStyleSheet(Q_STR(R"(
                                           QToolButton#minWinButton {
                                           image: url(:/xamp/Resource/%1/minimize.png);
                                           background-color: transparent;
                                           }
-                                          )")).arg(themeColorPath()));
+                                          )").arg(themeColorPath()));
 
-    ui.maxWinButton->setStyleSheet(QString(Q_UTF8(R"(
+    ui.maxWinButton->setStyleSheet(Q_STR(R"(
                                           QToolButton#maxWinButton {
                                           image: url(:/xamp/Resource/%1/maximize.png);
                                           background-color: transparent;
                                           }
-                                          )")).arg(themeColorPath()));
+                                          )").arg(themeColorPath()));
 
-    ui.settingsButton->setStyleSheet(QString(Q_UTF8(R"(
+    ui.settingsButton->setStyleSheet(Q_STR(R"(
                                             QToolButton#settingsButton {
                                             image: url(:/xamp/Resource/%1/settings.png);
                                             background-color: transparent;
                                             }
                                             QToolButton#settingsButton::menu-indicator { image: none; }
-                                            )")).arg(themeColorPath()));
+                                            )").arg(themeColorPath()));
 
-    ui.stopButton->setStyleSheet(QString(Q_UTF8(R"(
+    ui.stopButton->setStyleSheet(Q_STR(R"(
                                          QToolButton#stopButton {
                                          image: url(:/xamp/Resource/%1/stop.png);
                                          background-color: transparent;
                                          }
-                                         )")).arg(themeColorPath()));
+                                         )").arg(themeColorPath()));
 
-    ui.nextButton->setStyleSheet(QString(Q_UTF8(R"(
+    ui.nextButton->setStyleSheet(Q_STR(R"(
                                         QToolButton#nextButton {
                                         border: none;
                                         image: url(:/xamp/Resource/%1/next.png);
                                         background-color: transparent;
                                         }
-                                        )")).arg(themeColorPath()));
+                                        )").arg(themeColorPath()));
 
-    ui.prevButton->setStyleSheet(QString(Q_UTF8(R"(
+    ui.prevButton->setStyleSheet(Q_STR(R"(
                                         QToolButton#prevButton {
                                         border: none;
                                         image: url(:/xamp/Resource/%1/previous.png);
                                         background-color: transparent;
                                         }
-                                        )")).arg(themeColorPath()));
+                                        )").arg(themeColorPath()));
 
-    ui.selectDeviceButton->setStyleSheet(QString(Q_UTF8(R"(
+    ui.selectDeviceButton->setStyleSheet(Q_STR(R"(
                                                 QToolButton#selectDeviceButton {
                                                 image: url(:/xamp/Resource/%1/speaker.png);
                                                 border: none;
                                                 background-color: transparent;                                                
                                                 }
                                                 QToolButton#selectDeviceButton::menu-indicator { image: none; }
-                                                )")).arg(themeColorPath()));
+                                                )").arg(themeColorPath()));
 
-    ui.mutedButton->setStyleSheet(QString(Q_UTF8(R"(
+    ui.mutedButton->setStyleSheet(Q_STR(R"(
                                          QToolButton#mutedButton {
                                          image: url(:/xamp/Resource/%1/volume_up.png);
                                          border: none;
                                          background-color: transparent;
                                          }
-                                         )")).arg(themeColorPath()));
+                                         )").arg(themeColorPath()));
 
-    ui.repeatButton->setStyleSheet(QString(Q_UTF8(R"(
+    ui.repeatButton->setStyleSheet(Q_STR(R"(
                                           QToolButton#repeatButton {
                                           image: url(:/xamp/Resource/%1/repeat.png);
                                           background-color: transparent;
                                           border: none;
                                           }
-                                          )")).arg(themeColorPath()));
+                                          )").arg(themeColorPath()));
 
-    ui.addPlaylistButton->setStyleSheet(QString(Q_UTF8(R"(
+    ui.addPlaylistButton->setStyleSheet(Q_STR(R"(
                                                QToolButton#addPlaylistButton {
                                                image: url(:/xamp/Resource/%1/create_new_folder.png);
                                                border: none;
                                                background-color: transparent;
                                                }
-                                               )")).arg(themeColorPath()));
+                                               )").arg(themeColorPath()));
 
 }
 

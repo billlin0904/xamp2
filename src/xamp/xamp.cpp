@@ -1038,9 +1038,9 @@ void Xamp::addItem(const QString& file_name) {
         auto adapter = new MetadataExtractAdapter();
 
         (void)QObject::connect(adapter,
-            &MetadataExtractAdapter::readCompleted,
-            this,
-            &Xamp::processMeatadata);
+                                &MetadataExtractAdapter::readCompleted,
+                                this,
+                                &Xamp::processMeatadata);
         
         MetadataExtractAdapter::readMetadataAsync(adapter, file_name);
     }
@@ -1086,28 +1086,26 @@ void Xamp::readFingerprint(const QModelIndex&, const PlayListEntity& item) {
 
     FingerprintInfo fingerprint_info;
     QByteArray fingerprint;
-    Fingerprint result;
 
     try {
-        result = ReadFingerprint(item.file_path.toStdWString(),
-                                 item.file_ext.toStdWString(),
-                                 [&](auto progress) -> bool {
-                                     dialog.setValue(progress);
-                                     qApp->processEvents();
-                                     return dialog.wasCanceled() != true;
-                                 });
-    }
-    catch (...) {
+        const auto [duration, fingerprint_result] =
+            ReadFingerprint(item.file_path.toStdWString(),
+                            item.file_ext.toStdWString(),
+                            [&](auto progress) -> bool {
+                                dialog.setValue(progress);
+                                qApp->processEvents();
+                                return dialog.wasCanceled() != true;
+                            });
+
+        fingerprint.append(reinterpret_cast<char const *>(fingerprint_result.data()),
+                           static_cast<int32_t>(fingerprint_result.size()));
+        Database::instance().updateMusicFingerprint(item.music_id, fingerprint_info.fingerprint);
+        fingerprint_info.duration = static_cast<int32_t>(duration);
+    } catch (...) {
         return;
     }
 
-    fingerprint.append(reinterpret_cast<char*>(result.fingerprint.data()),
-                       static_cast<int32_t>(result.fingerprint.size()));
-
-    Database::instance().updateMusicFingerprint(item.music_id, fingerprint_info.fingerprint);
-
     fingerprint_info.artist_id = item.artist_id;
-    fingerprint_info.duration = static_cast<int32_t>(result.duration);
     fingerprint_info.fingerprint = QString::fromLatin1(fingerprint);
     mbc_.searchBy(fingerprint_info);
 }

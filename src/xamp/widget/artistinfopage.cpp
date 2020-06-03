@@ -42,7 +42,7 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 	default_layout->addWidget(album_view_);
 
 	album_view_->hideWidget();
-	setArtistId(Q_EMPTY_STR, Q_EMPTY_STR, -1);
+	setArtistId(QEmptyString, QEmptyString, -1);
 
 	setStyleSheet(Q_UTF8("background-color: transparent"));
 }

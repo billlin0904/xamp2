@@ -5,7 +5,7 @@
 
 namespace xamp::base {
 
-std::wstring ToStdWString(const std::string& utf8) {
+std::wstring ToStdWString(std::string const & utf8) {
 	std::wstring utf16;
 	try {
 		utf16.reserve(utf8.length());
@@ -17,7 +17,7 @@ std::wstring ToStdWString(const std::string& utf8) {
 	return utf16;
 }
 
-std::string ToUtf8String(const std::wstring& utf16) {
+std::string ToUtf8String(std::wstring const & utf16) {
 	std::string utf8;
 	try {
 		utf8.reserve(utf16.length());

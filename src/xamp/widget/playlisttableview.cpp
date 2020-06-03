@@ -62,7 +62,7 @@ void PlayListTableView::initial() {
 #ifdef Q_OS_WIN
     f.setPointSize(9);
 #else
-    f.setPointSize(12);
+    f.setPointSize(14);
 #endif
     setFont(f);
 
@@ -430,7 +430,6 @@ void PlayListTableView::removeItem(const QModelIndex& index) {
 }
 
 void PlayListTableView::reloadSelectMetadata() {
-    // TODO: Update metadata to db?
     xamp::metadata::TaglibMetadataReader reader;
     const auto rows = selectItemIndex();
     for (const auto &select_item : rows) {

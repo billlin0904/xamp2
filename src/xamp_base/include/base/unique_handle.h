@@ -69,7 +69,7 @@ private:
 };
 
 template <typename T, typename Traits>
-auto swap(UniqueHandle<T, Traits> & left, UniqueHandle<T, Traits> & right) throw() -> void {
+auto swap(UniqueHandle<T, Traits> & left, UniqueHandle<T, Traits> & right) noexcept -> void {
 	left.swap(right);
 }
 

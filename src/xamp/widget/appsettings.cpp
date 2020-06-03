@@ -23,8 +23,8 @@ QString AppSettings::getMyMusicFolderPath() {
 
 void AppSettings::setOrDefaultConfig() {
     loadIniFile(Q_UTF8("xamp.ini"));
-    setDefaultValue(kAppSettingDeviceType, Q_UTF8(""));
-    setDefaultValue(kAppSettingDeviceId, Q_UTF8(""));
+    setDefaultValue(kAppSettingDeviceType, QEmptyString);
+    setDefaultValue(kAppSettingDeviceId, QEmptyString);
     setDefaultValue(kAppSettingWidth, 600);
     setDefaultValue(kAppSettingHeight, 500);
     setDefaultValue(kAppSettingVolume, 50);

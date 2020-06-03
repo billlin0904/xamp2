@@ -14,9 +14,9 @@ namespace xamp::base {
 
 struct XAMP_BASE_API Metadata final {
     Metadata();
-    int32_t track;
-    int32_t bitrate;
-	int32_t samplerate;
+    uint32_t track;
+    uint32_t bitrate;
+    uint32_t samplerate;
 	double offset;
     double duration;
     std::wstring file_path;

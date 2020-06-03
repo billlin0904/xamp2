@@ -20,7 +20,7 @@ void* LoadModuleSymbol(const ModuleHandle& dll, std::string_view name) {
 }
 #else
 ModuleHandle LoadModule(std::string_view name) {
-    auto module = ::dlopen(name.data(), RTLD_LAZY);
+    auto module = ::dlopen(name.data(), RTLD_NOW);
     if (!module) {
         throw LoadDllFailureException(name);
     }
