@@ -37,7 +37,7 @@ static void CreateLogsDir() {
 	}
 }
 
-Logger & Logger::Instance() {
+Logger & Logger::Instance() noexcept {
     static Logger logger;
     return logger;
 }

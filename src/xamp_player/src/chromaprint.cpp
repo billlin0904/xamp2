@@ -55,25 +55,10 @@ public:
     XAMP_DECLARE_DLL(chromaprint_dealloc) chromaprint_dealloc;
 };
 
-struct ChromaprintContextTraits final {
-    static ChromaprintContext* invalid() noexcept {
-        return nullptr;
-    }
-
-    static void close(ChromaprintContext* value) noexcept {
-        ChromaprintLib::Instance().chromaprint_free(value);
-    }
-};
-
-using ChromaprintContextPtr = UniqueHandle<ChromaprintContext*, ChromaprintContextTraits>;
-
 class Chromaprint::ChromaprintImpl {
 public:
 	explicit ChromaprintImpl(int32_t algorithm = CHROMAPRINT_ALGORITHM_DEFAULT)
 		: algorithm_(algorithm) {
-	}
-
-	~ChromaprintImpl() {
 	}
 
     void Start(uint32_t sample_rate, uint32_t num_channels, uint32_t num_buffer_frames) {
@@ -128,6 +113,18 @@ private:
 		return ChromaprintLib::Instance().chromaprint_get_raw_fingerprint(context_.get(), fingerprint, size);
 	}
 
+	struct ChromaprintContextTraits final {
+		static ChromaprintContext* invalid() noexcept {
+			return nullptr;
+		}
+
+		static void close(ChromaprintContext* value) noexcept {
+			ChromaprintLib::Instance().chromaprint_free(value);
+		}
+	};
+
+	using ChromaprintContextPtr = UniqueHandle<ChromaprintContext*, ChromaprintContextTraits>;
+
 	int32_t algorithm_;
 	ChromaprintContextPtr context_;
 	std::vector<int16_t> buffer_;
@@ -137,11 +134,10 @@ Chromaprint::Chromaprint()
 	: impl_(MakeAlign<ChromaprintImpl>()) {
 }
 
+XAMP_PIMPL_IMPL(Chromaprint)
+
 void Chromaprint::LoadChromaprintLib() {
 	ChromaprintLib::Instance();
-}
-
-Chromaprint::~Chromaprint() {
 }
 
 void Chromaprint::Start(uint32_t sample_rate, uint32_t num_channels, uint32_t num_buffer_frames) {

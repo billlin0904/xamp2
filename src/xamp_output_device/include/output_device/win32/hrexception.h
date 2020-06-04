@@ -30,7 +30,7 @@ public:
 
 	HRESULT GetHResult() const;
 
-	const char* GetExpression() const override;
+	const char* GetExpression() const noexcept override;
 
 private:
 	HRESULT hr_;

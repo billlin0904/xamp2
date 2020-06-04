@@ -50,15 +50,15 @@ const char* Exception::what() const noexcept {
     return what_.data();
 }
 
-Errors Exception::GetError() const {
+Errors Exception::GetError() const noexcept {
 	return error_;
 }
 
-const char * Exception::GetErrorMessage() const {
+const char * Exception::GetErrorMessage() const noexcept {
 	return message_.c_str();
 }
 
-const char* Exception::GetExpression() const {
+const char* Exception::GetExpression() const noexcept {
 	return "";
 }
 
@@ -80,7 +80,7 @@ std::string_view Exception::ErrorToString(Errors error) {
         { Errors::XAMP_ERROR_SAMPLERATE_CHANGED, "Samplerate was changed." },
         { Errors::XAMP_ERROR_NOT_FOUND_DLL_EXPORT_FUNC, "Not found dll export function." },
         };
-    auto itr = error_msgs.find(error);
+    auto const itr = error_msgs.find(error);
     if (itr != error_msgs.end()) {
         return (*itr).second;
     }
@@ -103,6 +103,14 @@ LoadDllFailureException::LoadDllFailureException(std::string_view dll_name)
 	message_ = ostr.str();
 }
 
+PlatformSpecException::PlatformSpecException() 
+#ifdef XAMP_OS_WIN
+    : Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, GetPlatformErrorMessage(::GetLastError())) {
+#else
+    : Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, GetPlatformErrorMessage(errno)) {
+#endif
+}
+
 PlatformSpecException::PlatformSpecException(int32_t err)
     : Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, GetPlatformErrorMessage(err)) {
 }
@@ -114,8 +122,8 @@ PlatformSpecException::PlatformSpecException(std::string_view what, int32_t err)
 NotSupportVariableSampleRateException::NotSupportVariableSampleRateException(int32_t input_samplerate, int32_t output_samplerate) 
 	: Exception(Errors::XAMP_ERROR_NOT_SUPPORT_VARIABLE_RESAMPLE) {
 	std::ostringstream ostr;
-    double max = (std::max)(input_samplerate, output_samplerate);
-    double min = (std::min)(input_samplerate, output_samplerate);
+    const double max = (std::max)(input_samplerate, output_samplerate);
+    const double min = (std::min)(input_samplerate, output_samplerate);
 	ostr << "Resampler not support variable resample. " << input_samplerate << "Hz to " 
         << output_samplerate << "Hz ("
          << std::round(max / min * 100.0) / 100.0 << "x)";

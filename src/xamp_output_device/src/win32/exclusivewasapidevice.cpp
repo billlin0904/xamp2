@@ -336,7 +336,10 @@ void ExclusiveWasapiDevice::StartStream() {
     is_running_ = true;
 	HrIfFailledThrow(client_->Start());
 	
-	HrIfFailledThrow(::MFPutWaitingWorkItem(sample_ready_.get(), 0, sample_ready_async_result_, &sample_ready_key_));
+	HrIfFailledThrow(::MFPutWaitingWorkItem(sample_ready_.get(),
+		0,
+		sample_ready_async_result_,
+		&sample_ready_key_));
 
     is_stop_streaming_ = false;
 }

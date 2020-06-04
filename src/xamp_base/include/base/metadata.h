@@ -13,7 +13,7 @@
 namespace xamp::base {
 
 struct XAMP_BASE_API Metadata final {
-    Metadata();
+    Metadata() noexcept;
     uint32_t track;
     uint32_t bitrate;
     uint32_t samplerate;

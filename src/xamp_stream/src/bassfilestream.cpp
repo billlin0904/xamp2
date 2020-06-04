@@ -451,8 +451,7 @@ BassFileStream::BassFileStream()
     : stream_(MakeAlign<BassFileStreamImpl>()) {
 }
 
-BassFileStream::~BassFileStream(){
-}
+XAMP_PIMPL_IMPL(BassFileStream)
 
 void BassFileStream::LoadBassLib() {
     if (!BassLib::Instance().IsLoaded()) {

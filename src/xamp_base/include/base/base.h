@@ -50,7 +50,7 @@
 // Scott Meyers C++11 PIMPL
 // See more: http://oliora.github.io/2015/12/29/pimpl-and-rule-of-zero.html
 #define XAMP_PIMPL(Class) \
-    virtual ~Class() override; \
+    virtual ~Class(); \
     Class(const Class &) = delete; \
 	Class& operator=(const Class &) = delete; \
     Class(Class &&) noexcept; \

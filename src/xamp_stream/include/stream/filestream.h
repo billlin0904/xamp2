@@ -12,6 +12,8 @@ namespace xamp::stream {
 
 class XAMP_STREAM_API XAMP_NO_VTABLE FileStream : public AudioStream {
 public:
+	virtual ~FileStream() {}
+
 	bool IsFile() const noexcept override {
 		return true;
 	}
@@ -19,7 +21,7 @@ public:
     virtual void OpenFromFile(std::wstring const & file_path) = 0;
 
 protected:
-    FileStream() = default;
+    FileStream() {}
 };
 
 }

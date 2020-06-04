@@ -18,9 +18,7 @@ class XAMP_PLAYER_API Chromaprint {
 public:
 	explicit Chromaprint();
 
-	XAMP_DISABLE_COPY(Chromaprint)
-
-	~Chromaprint();
+	XAMP_PIMPL(Chromaprint)
 
     static void LoadChromaprintLib();
 

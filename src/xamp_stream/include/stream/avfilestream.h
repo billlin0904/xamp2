@@ -20,7 +20,7 @@ class XAMP_STREAM_API AvFileStream final : public FileStream {
 public:
 	AvFileStream();
 
-    ~AvFileStream() override;
+	XAMP_PIMPL(AvFileStream)
 
     void OpenFromFile(const std::wstring& file_path) override;
 

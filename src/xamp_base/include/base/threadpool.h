@@ -139,11 +139,9 @@ public:
         }
     }
 
-    ~TaskScheduler() {
+    ~TaskScheduler() noexcept {
 		Destory();
     }
-
-    XAMP_DISABLE_COPY(TaskScheduler)
 
     void SubmitJob(TaskType&& task) {
 		const auto i = index_++;
@@ -156,33 +154,34 @@ public:
 		task_queues_[i % max_thread_]->Enqueue(std::move(task));
     }
 
-    void Destory() {
+    void Destory() noexcept {
         is_stopped_ = true;
 
         for (size_t i = 0; i < max_thread_; ++i) {
-            task_queues_[i]->Destroy();
+            try {
+                task_queues_.at(i)->Destroy();
 
-            if (threads_[i].joinable()) {
-                threads_[i].join();
+                if (threads_.at(i).joinable()) {
+                    threads_.at(i).join();
+                }
+            }
+            catch (...) {
             }
         }
 
         XAMP_LOG_DEBUG("Thread pool was destory.");
     }
 
-    size_t GetActiveThreadCount() const {
+    size_t GetActiveThreadCount() const noexcept {
         return active_thread_;
     }
 
 private:
     void AddThread(int32_t i) {
         threads_.push_back(std::thread([i, this]() mutable {
-#ifdef XAMP_OS_MAC
-            (void)alloca((std::min)(kInitL1CacheLineSize * i, kMaxL1CacheLineSize));
+            auto padding_buffer = MakeStackBuffer<uint8_t>((std::min)(kInitL1CacheLineSize * i, kMaxL1CacheLineSize));
             std::this_thread::sleep_for(std::chrono::milliseconds(900));
-#else
-            (void)_malloca((std::min)(kInitL1CacheLineSize * i, kMaxL1CacheLineSize));
-#endif
+
             SetCurrentThreadName(i);
 
             for (;;) {
@@ -194,13 +193,13 @@ private:
                     }
 
                     const auto index = (i + n) % max_thread_;
-                    if (task_queues_[index]->TryDequeue(task)) {
+                    if (task_queues_.at(index)->TryDequeue(task)) {
                         break;
                     }
                 }
 
                 if (!task) {
-                    if (task_queues_[i]->Dequeue(task)) {
+                    if (task_queues_.at(i)->Dequeue(task)) {
                         XAMP_LOG_DEBUG("Thread {} weakup, active:{}.", i, active_thread_);
                         ++active_thread_;
                         task();
@@ -222,7 +221,7 @@ private:
             XAMP_LOG_DEBUG("Thread {} done.", i);
         }));
 
-        SetThreadAffinity(threads_[i]);
+        SetThreadAffinity(threads_.at(i));
     }
 
     using TaskQueuePtr = AlignPtr<Queue<TaskType>>;   
@@ -242,8 +241,6 @@ public:
 
     ThreadPool();
 
-    ~ThreadPool();
-
     static ThreadPool& DefaultThreadPool();
 
 	XAMP_DISABLE_COPY(ThreadPool)
@@ -251,7 +248,7 @@ public:
     template <typename F, typename... Args>
     decltype(auto) StartNew(F&& f, Args&&... args);
 
-    size_t GetActiveThreadCount() const;
+    size_t GetActiveThreadCount() const noexcept;
 
     void Stop();
 

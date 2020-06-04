@@ -19,11 +19,12 @@ namespace xamp::base {
 
 #ifdef XAMP_OS_WIN
 
-constexpr DWORD MSVC_CPP_EXCEPTION_CODE = 0xE06D7363;
+static constexpr DWORD MSVC_CPP_EXCEPTION_CODE = 0xE06D7363;
 
 #define DECLARE_EXCEPTION_CODE(Code) { Code, #Code },
 
-const RobinHoodHashMap<DWORD, std::string_view> WellKnownExceptionCode = {
+static RobinHoodHashMap<DWORD, std::string_view> const & GetWellKnownExceptionCode() {
+    static const RobinHoodHashMap<DWORD, std::string_view> WellKnownExceptionCode = {
     DECLARE_EXCEPTION_CODE(EXCEPTION_ACCESS_VIOLATION)
     DECLARE_EXCEPTION_CODE(EXCEPTION_BREAKPOINT)
     DECLARE_EXCEPTION_CODE(EXCEPTION_SINGLE_STEP)
@@ -46,7 +47,10 @@ const RobinHoodHashMap<DWORD, std::string_view> WellKnownExceptionCode = {
     DECLARE_EXCEPTION_CODE(EXCEPTION_GUARD_PAGE)
     DECLARE_EXCEPTION_CODE(EXCEPTION_INVALID_HANDLE)
     DECLARE_EXCEPTION_CODE(MSVC_CPP_EXCEPTION_CODE)
-};
+    };
+
+    return WellKnownExceptionCode;
+}
 
 class SymLoader {
 public:
@@ -55,9 +59,7 @@ public:
         return loader;
     }
 
-	XAMP_DISABLE_COPY(SymLoader)
-
-    const WinHandle & GetProcess() const {
+    const WinHandle & GetProcess() const noexcept {
 		return process_;
 	}
 
@@ -165,8 +167,8 @@ void StackTrace::PrintStackTrace(EXCEPTION_POINTERS* info) {
         return;
     }
 
-    auto itr = WellKnownExceptionCode.find(info->ExceptionRecord->ExceptionCode);
-    if (itr != WellKnownExceptionCode.end()) {
+    auto itr = GetWellKnownExceptionCode().find(info->ExceptionRecord->ExceptionCode);
+    if (itr != GetWellKnownExceptionCode().end()) {
         XAMP_LOG_DEBUG("Caught signal {} {}.", info->ExceptionRecord->ExceptionCode, (*itr).second);
     }
     else {
@@ -192,7 +194,7 @@ void StackTrace::PrintStackTrace() {
 }
 #endif
 
-StackTrace::StackTrace() {
+StackTrace::StackTrace() noexcept {
     addrlist_.fill(nullptr);
 }
 

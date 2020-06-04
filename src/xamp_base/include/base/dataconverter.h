@@ -82,37 +82,34 @@ XAMP_BASE_API AudioConvertContext MakeConvert(AudioFormat const& in_format, Audi
 template <InterleavedFormat InputFormat, InterleavedFormat OutputFormat>
 struct DataConverter {
 	// INFO: Only for DSD file
-	static int8_t* Convert(int8_t* XAMP_RESTRICT output, int8_t const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {
+	static void Convert(int8_t* XAMP_RESTRICT output, int8_t const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {
         for (size_t i = 0; i < context.convert_size; ++i) {
 			output[context.out_offset[0]] = input[context.in_offset[0]];
 			output[context.out_offset[1]] = input[context.in_offset[1]];
 			input += context.in_jump;
 			output += context.out_jump;
 		}
-		return output;
 	}
 
-	static int16_t* Convert(int16_t* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {
+	static void Convert(int16_t* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {
         for (size_t i = 0; i < context.convert_size; ++i) {
 			output[context.out_offset[0]] = static_cast<int16_t>(input[context.in_offset[0]] * kFloat16Scaler * context.volume_factor);
 			output[context.out_offset[1]] = static_cast<int16_t>(input[context.in_offset[1]] * kFloat16Scaler * context.volume_factor);
 			input += context.in_jump;
 			output += context.out_jump;
 		}
-		return output;
 	}
 
-	static Int24* Convert(Int24* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, AudioConvertContext const & context) noexcept {
+	static void Convert(Int24* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, AudioConvertContext const & context) noexcept {
         for (size_t i = 0; i < context.convert_size; ++i) {
 			output[context.out_offset[0]] = static_cast<int32_t>(input[context.in_offset[0]] * kFloat24Scaler);
 			output[context.out_offset[1]] = static_cast<int32_t>(input[context.in_offset[1]] * kFloat24Scaler);
 			input += context.in_jump;
 			output += context.out_jump;
 		}
-		return output;
 	}
 
-	static int32_t* Convert(int32_t* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {
+	static void Convert(int32_t* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {
 		const auto output_left_offset = context.out_offset[0];
 		const auto output_right_offset = context.out_offset[1];
 
@@ -125,10 +122,9 @@ struct DataConverter {
 			input += context.in_jump;
 			output += context.out_jump;
 		}
-		return output;
 	}
 
-    static float* Convert(float* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {
+    static void Convert(float* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {
         const auto output_left_offset = context.out_offset[0];
         const auto output_right_offset = context.out_offset[1];
 
@@ -141,46 +137,43 @@ struct DataConverter {
             input += context.in_jump;
             output += context.out_jump;
         }
-        return output;
     }
 };
 
 template <typename T, int64_t FloatScaler>
-T* ConvertHelper(T * XAMP_RESTRICT output, float const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {
+void ConvertHelper(T * XAMP_RESTRICT output, float const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {
 	const auto* end_input = input + static_cast<size_t>(context.convert_size) * context.input_format.GetChannels();
 
 	while (input != end_input) {
 		*output++ = T(*input++ * FloatScaler);
 	}
-	return output;
 }
 
-inline int32_t* Convert2432Helper(int32_t* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {
+inline void Convert2432Helper(int32_t* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {
 	const auto* end_input = input + static_cast<size_t>(context.convert_size) * context.input_format.GetChannels();
 
 	while (input != end_input) {
 		*output++ = Int24(*input++).To2432Int();
 	}
-	return output;
 }
 
 template <>
 struct DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEAVED> {
-	static int16_t* ConvertToInt16(int16_t* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {
-		return ConvertHelper<int16_t, kFloat16Scaler>(output, input, context);
+	static void ConvertToInt16(int16_t* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {
+		ConvertHelper<int16_t, kFloat16Scaler>(output, input, context);
 	}
 
-	static int32_t* ConvertToInt16(int32_t* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {
-		return ConvertHelper<int32_t, kFloat32Scaler>(output, input, context);
+	static void ConvertToInt16(int32_t* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {
+		ConvertHelper<int32_t, kFloat32Scaler>(output, input, context);
     }
 
 #ifdef XAMP_OS_WIN
-	static int32_t* ConvertToInt2432(int32_t* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {
+	static void ConvertToInt2432(int32_t* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {
 		const auto* end_input = input + static_cast<size_t>(context.convert_size) * context.input_format.GetChannels();
 
-		auto scale = _mm_set1_ps(kFloat24Scaler);
-		auto max_val = _mm_set1_ps(kFloat24Scaler - 1);
-		auto min_val = _mm_set1_ps(-kFloat24Scaler);
+		const auto scale = _mm_set1_ps(kFloat24Scaler);
+		const auto max_val = _mm_set1_ps(kFloat24Scaler - 1);
+		const auto min_val = _mm_set1_ps(-kFloat24Scaler);
 
 		switch ((end_input - input) % 4) {
 		case 3:
@@ -194,17 +187,15 @@ struct DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEA
 		}
 
 		while (input != end_input) {
-			auto in = _mm_load_ps(input);
-			auto mul = _mm_mul_ps(in, scale);
-			auto clamp = _mm_min_ps(_mm_max_ps(mul, min_val), max_val);
-			auto result = _mm_cvtps_epi32(clamp);
-			auto shift = _mm_slli_si128(result, 1);
+			const auto in = _mm_load_ps(input);
+			const auto mul = _mm_mul_ps(in, scale);
+			const auto clamp = _mm_min_ps(_mm_max_ps(mul, min_val), max_val);
+			const auto result = _mm_cvtps_epi32(clamp);
+			const auto shift = _mm_slli_si128(result, 1);
 			_mm_store_si128(reinterpret_cast<__m128i*>(output), shift);
 			input += 4;
 			output += 4;
 		}
-
-		return output;
     }
 #endif
 };

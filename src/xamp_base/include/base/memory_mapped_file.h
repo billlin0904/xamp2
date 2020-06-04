@@ -17,7 +17,7 @@ class XAMP_BASE_API MemoryMappedFile final {
 public:
     MemoryMappedFile();
 
-    ~MemoryMappedFile();
+    XAMP_PIMPL(MemoryMappedFile)
 
     void Open(std::wstring const &file_path);
 

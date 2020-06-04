@@ -16,11 +16,6 @@
 
 namespace xamp::base {
 
-MAKE_ENUM(FileAccessMode,
-          READ,
-          WRITE,
-          READ_WRITE)
-
 #ifdef XAMP_OS_WIN
 
 class MemoryMappedFile::MemoryMappedFileImpl {
@@ -28,7 +23,7 @@ public:
     MemoryMappedFileImpl() noexcept {
     }
 
-    void Open(std::wstring const & file_path, FileAccessMode mode, bool exclusive = false) {
+    void Open(std::wstring const & file_path) {
         constexpr DWORD kAccessMode = GENERIC_READ;
         constexpr DWORD kCreateType = OPEN_EXISTING;
         constexpr DWORD kProtect = PAGE_READONLY;
@@ -36,7 +31,7 @@ public:
 
         file_.reset(::CreateFileW(file_path.c_str(),
                                   kAccessMode,
-                                  exclusive ? 0 : (FILE_SHARE_READ | (mode == FileAccessMode::READ_WRITE ? FILE_SHARE_WRITE : 0)),
+                                  FILE_SHARE_READ,
                                   0,
                                   kCreateType,
                                   FILE_FLAG_SEQUENTIAL_SCAN,
@@ -59,7 +54,7 @@ public:
         file_.reset();
     }
 
-    void const * GetData() const {
+    void const * GetData() const noexcept {
         return address_.get();
     }
 
@@ -70,12 +65,17 @@ public:
     }
 private:
     void OpenMappingFile(DWORD protect, DWORD access) {
-        const MappingFileHandle mapping_handle(::CreateFileMapping(file_.get(), 0, protect, 0, 0, nullptr));
+        MappingFileHandle const mapping_handle(::CreateFileMapping(file_.get(),
+            0,
+            protect,
+            0, 
+            0,
+            nullptr));
         if (mapping_handle) {
             address_.reset(::MapViewOfFile(mapping_handle.get(), access, 0, 0, 0));
         }
         else {
-            throw PlatformSpecException(::GetLastError());
+            throw PlatformSpecException();
         }
     }
 
@@ -89,7 +89,7 @@ public:
         : mem_(nullptr) {
     }
 
-    void Open(std::wstring const& file_path, FileAccessMode, bool) {
+    void Open(std::wstring const& file_path) {
         file_.reset(::open(ToUtf8String(file_path).c_str(), O_RDONLY));
         if (!file_) {
             throw FileNotFoundException();
@@ -133,11 +133,10 @@ MemoryMappedFile::MemoryMappedFile()
     : impl_(MakeAlign<MemoryMappedFileImpl>()) {
 }
 
-MemoryMappedFile::~MemoryMappedFile() {
-}
+XAMP_PIMPL_IMPL(MemoryMappedFile)
 
 void MemoryMappedFile::Open(std::wstring const &file_path) {
-    impl_->Open(file_path, FileAccessMode::READ, false);
+    impl_->Open(file_path);
 }
 
 void const * MemoryMappedFile::GetData() const {

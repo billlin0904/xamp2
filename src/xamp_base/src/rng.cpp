@@ -5,7 +5,7 @@
 
 namespace xamp::base {
 
-RNG::RNG() noexcept {
+RNG::RNG() {
     std::random_device device;
     std::vector<std::mt19937_64::result_type> seeds(std::mt19937_64::state_size);
     std::generate(std::begin(seeds), std::end(seeds), std::ref(device));

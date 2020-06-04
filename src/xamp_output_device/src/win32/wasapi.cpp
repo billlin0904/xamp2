@@ -1,4 +1,6 @@
-#ifdef _WIN32
+#include <base/base.h>
+
+#ifdef XAMP_OS_WIN
 
 #include <output_device/win32/hrexception.h>
 #include <output_device/win32/wasapi.h>

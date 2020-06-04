@@ -11,8 +11,8 @@
 namespace xamp::base {
 
 static inline int32_t ToChar(const char C) {
-    char buffer[2] = { C, '\0' };
-    auto result = atoi(buffer);
+    const char buffer[2] = { C, '\0' };
+    const auto result = atoi(buffer);
     if (errno == ERANGE) {
         throw std::invalid_argument("Invalid digital.");
     }

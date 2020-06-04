@@ -21,15 +21,15 @@ using namespace base;
 
 class XAMP_OUTPUT_DEVICE_API ExclusiveWasapiDeviceType final : public DeviceType {
 public:
-	static ID const Id;
+	static std::string_view const Id;	
 
-	ExclusiveWasapiDeviceType();
+	ExclusiveWasapiDeviceType() noexcept;
 
 	void ScanNewDevice() override;
 
 	std::string_view GetDescription() const override;
 
-	const ID& GetTypeId() const override;
+	ID const& GetTypeId() const override;
 
 	size_t GetDeviceCount() const override;
 

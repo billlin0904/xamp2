@@ -35,11 +35,24 @@ struct XAMP_BASE_API_ONLY_EXPORT AlignedDeleter {
 
 template <typename Type>
 struct XAMP_BASE_API_ONLY_EXPORT AlignedClassDeleter {
-    void operator()(Type* p) const {
+    void operator()(Type* p) const noexcept {
         p->~Type();
         AlignedFree(p);
     }
 };
+
+template <typename Type>
+struct XAMP_BASE_API_ONLY_EXPORT StackBufferDeleter {
+    void operator()(Type* p) const noexcept {
+#ifdef XAMP_OS_MAC
+#else
+        _freea(p);
+#endif
+    }
+};
+
+template <typename Type>
+using StackBufferPtr = std::unique_ptr<Type[], StackBufferDeleter<Type>>;
 
 template <typename Type>
 using AlignPtr = std::unique_ptr<Type, AlignedClassDeleter<Type>>;
@@ -73,8 +86,7 @@ XAMP_BASE_API_ONLY_EXPORT AlignPtr<Type> MakeAlign(Args&& ... args) {
     }
 
     try {
-        auto q = ::new(ptr) Type(std::forward<Args>(args)...);
-        return AlignPtr<Type>(q);
+        return AlignPtr<Type>(::new(ptr) Type(std::forward<Args>(args)...));
     }
     catch (...) {
         AlignedFree(ptr);
@@ -89,6 +101,19 @@ XAMP_BASE_API_ONLY_EXPORT AlignBufferPtr<Type> MakeBuffer(size_t n, const int32_
         throw std::bad_alloc();
     }
     return AlignBufferPtr<Type>(static_cast<Type*>(ptr));
+}
+
+template <typename Type, typename U = std::enable_if_t<std::is_trivially_copyable<Type>::value>>
+XAMP_BASE_API_ONLY_EXPORT StackBufferPtr<Type> MakeStackBuffer(size_t n) {
+#ifdef XAMP_OS_MAC
+    auto ptr = alloca(sizeof(Type) * n);
+#else
+    auto ptr =  _malloca(sizeof(Type) * n);
+#endif
+    if (!ptr) {
+        throw std::bad_alloc();
+    }
+    return StackBufferPtr<Type>(static_cast<Type*>(ptr));
 }
 
 }

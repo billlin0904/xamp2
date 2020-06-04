@@ -16,7 +16,7 @@ using CaptureStackAddress = std::array<void*, MaxStackFrameSize>;
 
 class XAMP_BASE_API StackTrace {
 public:
-    StackTrace();
+    StackTrace() noexcept;
 
     static void RegisterAbortHandler();
 private:   

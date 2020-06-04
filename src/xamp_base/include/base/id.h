@@ -29,7 +29,7 @@ public:
 
 	explicit ID(const std::array<uint8_t, kIdSize> &bytes) noexcept;
 
-	explicit ID(const std::string_view &from_string);
+	ID(const std::string_view &from_string);
 
 	[[nodiscard]] bool IsValid() const noexcept;
 

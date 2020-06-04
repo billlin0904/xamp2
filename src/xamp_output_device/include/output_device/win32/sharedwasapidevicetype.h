@@ -17,9 +17,9 @@ namespace xamp::output_device::win32 {
 
 class XAMP_OUTPUT_DEVICE_API SharedWasapiDeviceType final : public DeviceType {
 public:
-	static const ID Id;
+	static std::string_view const Id;
 
-	SharedWasapiDeviceType();
+	SharedWasapiDeviceType() noexcept;
 
 	void ScanNewDevice() override;
 

@@ -16,7 +16,7 @@ namespace xamp::output_device {
 
 class XAMP_OUTPUT_DEVICE_API ASIODeviceType final : public DeviceType {
 public:
-	static ID const Id;
+	static std::string_view const Id;
 
     ASIODeviceType();
 

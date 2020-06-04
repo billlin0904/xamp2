@@ -19,9 +19,7 @@ namespace xamp::base {
 
 class XAMP_BASE_API Logger final {
 public:
-	static Logger& Instance();
-
-	~Logger() = default;
+	static Logger& Instance() noexcept;
 
 	XAMP_DISABLE_COPY(Logger)
 
@@ -33,7 +31,7 @@ public:
 
     Logger& AddSink(spdlog::sink_ptr sink);
 
-	std::shared_ptr<spdlog::logger>& GetDefaultLogger() {
+	std::shared_ptr<spdlog::logger>& GetDefaultLogger() noexcept {
 		return default_logger_;
 	}
 

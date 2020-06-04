@@ -79,7 +79,7 @@ HRESULT HRException::GetHResult() const {
 	return hr_;
 }
 
-const char* HRException::GetExpression() const {
+const char* HRException::GetExpression() const noexcept {
 	return expr_.data();
 }
 

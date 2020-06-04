@@ -14,7 +14,7 @@ using namespace base;
 
 class XAMP_STREAM_API XAMP_NO_VTABLE AudioStream {
 public:
-	virtual ~AudioStream() = default;
+    virtual ~AudioStream() {}
 
 	virtual bool IsFile() const noexcept = 0;
 
@@ -32,7 +32,7 @@ public:
 	
     virtual uint32_t GetSampleSize() const noexcept = 0;
 protected:
-    AudioStream() = default;
+    AudioStream() {}
 };
 
 }

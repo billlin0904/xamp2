@@ -21,7 +21,7 @@ public:
 
     XAMP_DISABLE_COPY(RNG)
 
-    int32_t GetInt() noexcept {
+    int32_t GetInt() {
         return std::uniform_int_distribution(0, INT_MAX)(engine_);
     }
 
@@ -47,7 +47,7 @@ public:
         std::shuffle(items.begin(), items.end(), engine_);
     }
 private:
-    RNG() noexcept;
+    RNG();
 
     std::mt19937_64 engine_;
 };

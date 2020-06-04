@@ -7,9 +7,9 @@
 
 namespace xamp::output_device::win32 {
 
-ID const ExclusiveWasapiDeviceType::Id("089F8446-C980-495B-AC80-5A437A4E73F6");
+std::string_view const ExclusiveWasapiDeviceType::Id("089F8446-C980-495B-AC80-5A437A4E73F6");
 
-ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceType() {    
+ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceType() noexcept {
 }
 
 void ExclusiveWasapiDeviceType::Initial() {
@@ -51,7 +51,7 @@ std::string_view ExclusiveWasapiDeviceType::GetDescription() const {
 	return "WASAPI (Exclusive)";
 }
 
-const ID& ExclusiveWasapiDeviceType::GetTypeId() const {
+ID const& ExclusiveWasapiDeviceType::GetTypeId() const {
 	return Id;
 }
 

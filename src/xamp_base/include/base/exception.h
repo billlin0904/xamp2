@@ -40,15 +40,15 @@ public:
                        std::string const & message = "",
                        std::string_view what = "");
 
-    ~Exception() override = default;
+    virtual ~Exception() noexcept = default;
 
     [[nodiscard]] char const * what() const noexcept override;
 
-    [[nodiscard]] virtual Errors GetError() const;
+    [[nodiscard]] virtual Errors GetError() const noexcept;
 
-    [[nodiscard]] char const * GetErrorMessage() const;
+    [[nodiscard]] char const * GetErrorMessage() const noexcept;
 
-    [[nodiscard]] virtual const char * GetExpression() const;
+    [[nodiscard]] virtual const char * GetExpression() const noexcept;
 
     static std::string_view ErrorToString(Errors error);
 private:
@@ -61,25 +61,27 @@ protected:
 
 class XAMP_BASE_API PlatformSpecException : public Exception {
 public:
+    PlatformSpecException();
+
     explicit PlatformSpecException(int32_t err);
 
     explicit PlatformSpecException(std::string_view what, int32_t err);
 
-    ~PlatformSpecException() override = default;
+    virtual ~PlatformSpecException() = default;
 };
 
 #define XAMP_DECLARE_EXCEPTION_CLASS(ExceptionClassName) \
 class XAMP_BASE_API ExceptionClassName final : public Exception {\
 public:\
     ExceptionClassName();\
-    ~ExceptionClassName() override = default;\
+    virtual ~ExceptionClassName() = default;\
 };
 
-class XAMP_BASE_API DeviceUnSupportedFormatException final : public Exception{
+class XAMP_BASE_API DeviceUnSupportedFormatException final : public Exception {
 public:
     explicit DeviceUnSupportedFormatException(AudioFormat const & format);
 
-    ~DeviceUnSupportedFormatException() override = default;
+    virtual ~DeviceUnSupportedFormatException() override = default;
 
 private:
     AudioFormat format_;
@@ -89,17 +91,17 @@ class XAMP_BASE_API LoadDllFailureException final : public Exception {
 public:
     explicit LoadDllFailureException(std::string_view dll_name);
 
-    ~LoadDllFailureException() override = default;
+    virtual ~LoadDllFailureException() = default;
 
 private:
     std::string_view dll_name_;
 };
 
-class XAMP_BASE_API NotSupportVariableSampleRateException final : public Exception{
+class XAMP_BASE_API NotSupportVariableSampleRateException final : public Exception {
 public:
     explicit NotSupportVariableSampleRateException(int32_t input_samplerate, int32_t output_samplerate);
 
-    ~NotSupportVariableSampleRateException() override = default;
+    virtual ~NotSupportVariableSampleRateException() = default;
 };
 
 XAMP_DECLARE_EXCEPTION_CLASS(LibrarySpecErrorException)

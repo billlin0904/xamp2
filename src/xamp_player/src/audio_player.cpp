@@ -492,13 +492,12 @@ int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, dou
     const auto num_samples = num_buffer_frames * output_format_.GetChannels();
     const auto sample_size = num_samples * sample_size_;
 
-    if (XAMP_LIKELY( buffer_.TryRead(static_cast<int8_t*>(samples), sample_size) )) {
+    if (XAMP_LIKELY(buffer_.TryRead(static_cast<int8_t*>(samples), sample_size))) {
         UpdateSlice(static_cast<int32_t>(num_samples), stream_time);
         return 0;
     }
 
     UpdateSlice(-1, stream_time);
-
     stopped_cond_.notify_all();
     return 1;
 }

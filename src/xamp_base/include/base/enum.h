@@ -48,7 +48,7 @@ static constexpr std::string_view Name##_enum_names[] = {\
 XAMP_ALWAYS_INLINE constexpr std::string_view EnumToString(Name value) noexcept {\
     return Name##_enum_names[static_cast<int>(value)];\
 }\
-XAMP_ALWAYS_INLINE std::ostream &operator<<(std::ostream &os, Name value) noexcept {\
+XAMP_ALWAYS_INLINE std::ostream &operator<<(std::ostream &os, Name value) {\
     os << EnumToString(value);\
     return os;\
 }\
