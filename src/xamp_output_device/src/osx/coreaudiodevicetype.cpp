@@ -9,7 +9,7 @@
 
 namespace xamp::output_device::osx {
 
-ID const CoreAudioDeviceType::Id("E6BB3BF2-F16A-489B-83EE-4A29755F42E4");
+std::string_view const CoreAudioDeviceType::Id("E6BB3BF2-F16A-489B-83EE-4A29755F42E4");
 
 CoreAudioDeviceType::CoreAudioDeviceType() {
 }
@@ -53,8 +53,8 @@ DeviceInfo CoreAudioDeviceType::GetDeviceInfo(uint32_t device) const {
     return device_list_[device];
 }
 
-ID const & CoreAudioDeviceType::GetTypeId() const {
-    return Id;
+ID CoreAudioDeviceType::GetTypeId() const {
+    return ID(Id);
 }
 
 std::vector<DeviceInfo> CoreAudioDeviceType::GetDeviceInfo() const {

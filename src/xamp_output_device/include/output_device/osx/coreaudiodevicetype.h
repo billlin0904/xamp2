@@ -21,7 +21,7 @@ using namespace base;
 
 class XAMP_OUTPUT_DEVICE_API CoreAudioDeviceType final : public DeviceType {
 public:
-    static ID const Id;
+    static std::string_view const Id;
 
     CoreAudioDeviceType();
 
@@ -29,7 +29,7 @@ public:
 
     std::string_view GetDescription() const override;
 
-    const ID &GetTypeId() const override;
+    ID GetTypeId() const override;
 
     AlignPtr<Device> MakeDevice(const std::wstring &device_id) override;
 

@@ -6,15 +6,14 @@
 #pragma once
 
 #include <map>
-#include <memory>
-
 #include "thememanager.h"
+#include <QScopedPointer>
 #include <QMenu>
 
-template <typename Type, typename ActionFunc>
+template <typename Type, typename F>
 class ActionMap {
 public:
-    typedef std::map<QAction*, ActionFunc> MapType;
+    using MapType = std::map<QAction*, F>;
 
     class SubMenu {
     public:
@@ -26,7 +25,10 @@ public:
         }
 
         template <typename Callable>
-        QAction* addAction(const QString& menu_name, Callable&& callback, bool checked = false, bool add_eparator = false) {
+        QAction* addAction(const QString& menu_name,
+                           Callable&& callback,
+                           bool checked = false,
+                           bool add_eparator = false) {
             const auto action = new QAction(menu_name, nullptr);
             action->setCheckable(true);
 
@@ -45,8 +47,8 @@ public:
             return action;
         }
     private:
-        QMenu* submenu_;
-        QActionGroup* action_group_;
+        QScopedPointer<QMenu> submenu_;
+        QScopedPointer<QActionGroup> action_group_;
         MapType& action_map_;
     };
 
@@ -62,18 +64,17 @@ public:
         setThemeSetyle();
     }
 
-    void setThemeSetyle() {
-        setStyleSheet(ThemeManager::instance().getMenuStyle());
-    }
-
     void addAction(const QString& menu_name) {
         auto action = addAction(menu_name, []() {});
         action->setEnabled(false);        
     }
 
     template <typename Callable>
-    QAction* addAction(const QString &menu_name, Callable &&callback, bool add_eparator = false, bool checked = false) {
-        const auto action = new QAction(menu_name, nullptr);
+    QAction* addAction(const QString &menu_name,
+                       Callable &&callback,
+                       bool add_eparator = false,
+                       bool checked = false) {
+        auto action = new QAction(menu_name, nullptr);
 
         map_[action] = callback;
         menu_.addAction(action);
@@ -88,8 +89,8 @@ public:
         return action;
     }
 
-    std::unique_ptr<SubMenu> addSubMenu(const QString &menu_name) {
-        return std::make_unique<SubMenu>(menu_name, &menu_, map_);
+    QScopedPointer<SubMenu> addSubMenu(const QString &menu_name) {
+        return new SubMenu>(menu_name, &menu_, map_);
     }
 
     void addSeparator() {
@@ -109,8 +110,13 @@ public:
     void setStyleSheet(const QString& stylesheet) {
         menu_.setStyleSheet(stylesheet);
     }
+
 private:
+    void setThemeSetyle() {
+        setStyleSheet(ThemeManager::instance().getMenuStyle());
+    }
+
     Type * object_;
     QMenu menu_;    
-    std::map<QAction*, ActionFunc> map_;
+    MapType map_;
 };

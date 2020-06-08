@@ -1,5 +1,8 @@
-#include <cmath>
+#include <base/base.h>
 
+#ifdef XAMP_OS_MAC
+
+#include <cmath>
 #include <algorithm>
 
 #include <base/str_utilts.h>
@@ -58,7 +61,7 @@ bool IsSupportDopMode(AudioDeviceID id) {
 }
 
 std::wstring GetDeviceUid(AudioDeviceID id) {
-    const AudioObjectPropertyAddress property = {
+    AudioObjectPropertyAddress const property = {
         kAudioDevicePropertyDeviceUID,
         kAudioObjectPropertyScopeGlobal,
         kAudioObjectPropertyElementMaster
@@ -177,7 +180,9 @@ void ReleaseHogMode(AudioDeviceID id) {
         kAudioObjectPropertyScopeGlobal,
         kAudioObjectPropertyElementMaster
     };
+
     property.mSelector = kAudioDevicePropertyHogMode;
+
     pid_t hog_pid;
     uint32_t dataSize = sizeof(hog_pid);
     auto result = ::AudioObjectGetPropertyData(id,
@@ -212,6 +217,7 @@ void SetHogMode(AudioDeviceID id) {
         kAudioObjectPropertyScopeGlobal,
         kAudioObjectPropertyElementMaster
     };
+
     property.mSelector = kAudioDevicePropertyHogMode;
     auto hog_pid = ::getpid();
     uint32_t dataSize = sizeof(hog_pid);
@@ -227,3 +233,5 @@ void SetHogMode(AudioDeviceID id) {
 }
 
 }
+
+#endif

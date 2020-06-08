@@ -40,8 +40,12 @@ CoreAudioException::CoreAudioException(OSStatus status) {
 
 std::string CoreAudioException::ErrorToString(OSStatus status) {
     auto str = ::SecCopyErrorMessageString(status, nullptr);
-    auto result = SysCFStringRefToUTF8(str);
-    ::CFRelease(str);
+    std::string result;
+    try {
+        result = SysCFStringRefToUTF8(str);
+    } catch (...) {
+        ::CFRelease(str);
+    }
     return result;
 }
 

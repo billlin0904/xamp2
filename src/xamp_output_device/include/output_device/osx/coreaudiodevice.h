@@ -26,7 +26,7 @@ class XAMP_OUTPUT_DEVICE_API CoreAudioDevice final : public Device {
 public:
     explicit CoreAudioDevice(AudioDeviceID device_id);
 
-    ~CoreAudioDevice() override;
+    virtual ~CoreAudioDevice() override;
 
     void OpenStream(AudioFormat const &output_format) override;
 

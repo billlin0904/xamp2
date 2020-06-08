@@ -21,21 +21,21 @@ static constexpr size_t kMaxIdStrLen = 36;
 
 class XAMP_BASE_API ID final {
 public:
-	static const ID INVALID_ID;
+    static ID const INVALID_ID;
 
-    static ID FromString(const std::string & str);
+    static ID FromString(std::string const & str);
 
     ID() noexcept;
 
-	explicit ID(const std::array<uint8_t, kIdSize> &bytes) noexcept;
+    explicit ID(std::array<uint8_t, kIdSize> const &bytes) noexcept;
 
-	ID(const std::string_view &from_string);
+    ID(std::string_view const &from_string);
 
 	[[nodiscard]] bool IsValid() const noexcept;
 
-    ID(const ID &other) noexcept;
+    ID(ID const &other) noexcept;
     
-    ID& operator=(const ID &other) noexcept;
+    ID& operator=(ID const &other) noexcept;
 
     ID(ID &&other) noexcept;
     
@@ -46,22 +46,22 @@ public:
 	operator std::string() const noexcept;
 
 private:
-	friend std::ostream &operator<<(std::ostream &s, const ID &id);
+    friend std::ostream &operator<<(std::ostream &s, ID const &id);
 
-	friend bool operator==(const std::string &str, const ID &id) noexcept;
+    friend bool operator==(std::string const &str, ID const &id) noexcept;
 
-	friend bool operator==(const ID& other1, const ID& other2) noexcept;
+    friend bool operator==(ID const & other1, ID const & other2) noexcept;
 
-	friend bool operator!=(const ID& other1, const ID& other2) noexcept;
+    friend bool operator!=(ID const & other1, ID const & other2) noexcept;
 
 	std::array<uint8_t, kIdSize> bytes_;
 };
 
-XAMP_ALWAYS_INLINE ID::ID(const ID &other) noexcept {
+XAMP_ALWAYS_INLINE ID::ID(ID const &other) noexcept {
 	*this = other;
 }
 
-XAMP_ALWAYS_INLINE ID & ID::operator=(const ID & other) noexcept {
+XAMP_ALWAYS_INLINE ID & ID::operator=(ID const & other) noexcept {
 	if (this != &other) {
 		bytes_ = other.bytes_;
 	}
@@ -83,15 +83,15 @@ XAMP_ALWAYS_INLINE bool ID::IsValid() const noexcept {
     return *this == ID::INVALID_ID;
 }
 
-XAMP_ALWAYS_INLINE bool operator!=(const ID & other1, const ID & other2) noexcept {
+XAMP_ALWAYS_INLINE bool operator!=(ID const & other1, ID const & other2) noexcept {
     return !(std::memcmp(other1.bytes_.data(), other2.bytes_.data(), other2.bytes_.size()) == 0);
 }
 
-XAMP_ALWAYS_INLINE bool operator==(const ID& other1, const ID& other2) noexcept {
+XAMP_ALWAYS_INLINE bool operator==(ID const & other1, ID const & other2) noexcept {
     return std::memcmp(other1.bytes_.data(), other2.bytes_.data(), other2.bytes_.size()) == 0;
 }
 
-XAMP_ALWAYS_INLINE bool operator==(const std::string &str, const ID &id) noexcept {
+XAMP_ALWAYS_INLINE bool operator==(std::string const &str, ID const &id) noexcept {
 	return ID(str) == id;
 }
 

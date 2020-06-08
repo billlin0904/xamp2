@@ -11,7 +11,7 @@ using namespace xamp::base;
 
 std::tuple<double, std::vector<uint8_t>> ReadFingerprint(std::wstring const & file_path,
                                                          std::wstring const & file_ext,
-                                                         std::function<bool(uint32_t)> progress) {
+                                                         std::function<bool(uint32_t)> &&progress) {
     constexpr uint32_t kFingerprintDuration = 120;
     constexpr uint32_t kReadSampleSize = 8192 * 4;
 

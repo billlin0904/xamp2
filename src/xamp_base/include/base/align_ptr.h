@@ -44,9 +44,10 @@ struct XAMP_BASE_API_ONLY_EXPORT AlignedClassDeleter {
 template <typename Type>
 struct XAMP_BASE_API_ONLY_EXPORT StackBufferDeleter {
     void operator()(Type* p) const noexcept {
-#ifdef XAMP_OS_MAC
-#else
+#ifdef XAMP_OS_WIN
         _freea(p);
+#else
+        (void)p;
 #endif
     }
 };

@@ -839,14 +839,12 @@ void Xamp::playMusic(const MusicEntity& item) {
     ui.titleLabel->setText(item.title);
     ui.artistLabel->setText(item.artist);
 
-#if 1
     const QFileInfo file_info(item.file_path);
     const auto lrc_path = file_info.path()
                           + Q_UTF8("/")
                           + file_info.completeBaseName()
                           + Q_UTF8(".lrc");
     lrc_page_->lyricsWidget()->loadLrcFile(lrc_path);
-#endif
 
     playlist_page_->title()->setText(item.title);
     lrc_page_->title()->setText(item.title);

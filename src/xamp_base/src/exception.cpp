@@ -30,7 +30,7 @@ std::string GetPlatformErrorMessage(int32_t err) {
     return LocaleStringToUTF8(std::system_category().message(err));
 }
 #else
-    std::string GetPlatformErrorMessage(int32_t err) {
+std::string GetPlatformErrorMessage(int32_t err) {
         return std::system_category().message(err);
 }
 #endif
@@ -46,7 +46,7 @@ Exception::Exception(Errors error, const std::string& message, std::string_view 
 	}
 }
 
-const char* Exception::what() const noexcept {
+char const * Exception::what() const noexcept {
     return what_.data();
 }
 
@@ -54,11 +54,11 @@ Errors Exception::GetError() const noexcept {
 	return error_;
 }
 
-const char * Exception::GetErrorMessage() const noexcept {
+char const * Exception::GetErrorMessage() const noexcept {
 	return message_.c_str();
 }
 
-const char* Exception::GetExpression() const noexcept {
+char const * Exception::GetExpression() const noexcept {
 	return "";
 }
 

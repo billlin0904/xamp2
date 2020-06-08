@@ -25,8 +25,8 @@
 
 namespace xamp::base {
 
-static constexpr auto kInitL1CacheLineSize = 4 * 1024;
-static constexpr auto kMaxL1CacheLineSize = 64 * 1024;
+static constexpr size_t kInitL1CacheLineSize = 4 * 1024;
+static constexpr size_t kMaxL1CacheLineSize = 64 * 1024;
 
 template <typename Type>
 class BoundedQueue final {
@@ -147,11 +147,11 @@ public:
 		const auto i = index_++;
         for (size_t n = 0; n < max_thread_ * K; ++n) {
 			const auto index = (i + n) % max_thread_;
-            if (task_queues_[index]->TryEnqueue(std::move(task))) {
+            if (task_queues_.at(index)->TryEnqueue(std::move(task))) {
                 return;
             }
         }
-		task_queues_[i % max_thread_]->Enqueue(std::move(task));
+        task_queues_.at(i % max_thread_)->Enqueue(std::move(task));
     }
 
     void Destory() noexcept {
@@ -177,7 +177,7 @@ public:
     }
 
 private:
-    void AddThread(int32_t i) {
+    void AddThread(size_t i) {
         threads_.push_back(std::thread([i, this]() mutable {
             auto padding_buffer = MakeStackBuffer<uint8_t>((std::min)(kInitL1CacheLineSize * i, kMaxL1CacheLineSize));
             std::this_thread::sleep_for(std::chrono::milliseconds(900));
@@ -224,7 +224,7 @@ private:
         SetThreadAffinity(threads_.at(i));
     }
 
-    using TaskQueuePtr = AlignPtr<Queue<TaskType>>;   
+    using TaskQueuePtr = AlignPtr<Queue<TaskType>>;
     static constexpr size_t K = 3;
 	std::atomic<bool> is_stopped_;
     std::atomic<size_t> active_thread_;

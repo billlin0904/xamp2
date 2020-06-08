@@ -127,11 +127,11 @@ DsdDevice* AudioPlayer::AsDsdDevice() {
 }
 
 AlignPtr<FileStream> AudioPlayer::MakeFileStream(std::wstring const & file_ext) {
-    const RobinHoodSet<std::wstring_view> dsd_ext {
+    static const RobinHoodSet<std::wstring_view> dsd_ext {
         {L".dsf"},
         {L".dff"}
     };
-    const RobinHoodSet<std::wstring_view> use_bass {
+    static const RobinHoodSet<std::wstring_view> use_bass {
         {L".m4a"},
         {L".ape"},
     };
@@ -558,7 +558,7 @@ void AudioPlayer::Seek(double stream_time) {
         try {
             stream_->Seek(stream_time);
         }
-        catch (const std::exception & e) {
+        catch (std::exception const & e) {
             XAMP_LOG_DEBUG(e.what());
             Resume();
             return;
@@ -588,7 +588,8 @@ void AudioPlayer::BufferStream() {
             if (num_samples == 0) {
                 return;
             }
-            if (!resampler_->Process(reinterpret_cast<const float*>(sample_buffer_.get()), num_samples, buffer_)) {
+            if (!resampler_->Process(reinterpret_cast<const float*>(sample_buffer_.get()),
+                                     num_samples, buffer_)) {
                 continue;
             }
             break;
@@ -601,7 +602,8 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_read_sample
 	    const auto num_samples = stream_->GetSamples(sample_buffer, max_read_sample);
 
         if (num_samples > 0) {
-            if (!resampler_->Process(reinterpret_cast<const float*>(sample_buffer_.get()), num_samples, buffer_)) {
+            if (!resampler_->Process(reinterpret_cast<const float*>(sample_buffer_.get()),
+                                     num_samples, buffer_)) {
                 continue;
             }
         }

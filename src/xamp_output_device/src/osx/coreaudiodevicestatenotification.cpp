@@ -3,7 +3,7 @@
 
 namespace xamp::output_device::osx {
 
-constexpr AudioObjectPropertyAddress sAddOrRemoveDevicesPropertyAddress = {
+static constexpr AudioObjectPropertyAddress sAddOrRemoveDevicesPropertyAddress = {
     kAudioHardwarePropertyDevices,
     kAudioObjectPropertyScopeGlobal,
     kAudioObjectPropertyElementMaster

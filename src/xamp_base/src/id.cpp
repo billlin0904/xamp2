@@ -4,10 +4,6 @@
 #include <base/exception.h>
 #include <base/id.h>
 
-#ifdef XAMP_OS_WIN
-#include <Windows.h>
-#endif
-
 namespace xamp::base {
 
 static inline int32_t ToChar(const char C) {
@@ -23,7 +19,7 @@ static inline uint8_t MakeHex(char a, char b) {
     return static_cast<uint8_t>(ToChar(a) * 16 + ToChar(b));
 }
 
-static std::array<uint8_t, kIdSize> ParseString(const std::string_view& from_string) {
+static std::array<uint8_t, kIdSize> ParseString(std::string_view const & from_string) {
     if (from_string.length() != kMaxIdStrLen) {
         throw std::invalid_argument("Invalid ID.");
 	}
@@ -47,7 +43,7 @@ static std::array<uint8_t, kIdSize> ParseString(const std::string_view& from_str
 	return uuid;
 }
 
-std::ostream &operator<<(std::ostream &s, const ID &id) {
+std::ostream &operator<<(std::ostream &s, ID const &id) {
   return s << std::hex << std::setfill('0')
     << std::setw(2) << static_cast<int32_t>(id.bytes_[0])
     << std::setw(2) << static_cast<int32_t>(id.bytes_[1])
@@ -71,17 +67,17 @@ std::ostream &operator<<(std::ostream &s, const ID &id) {
     << std::setw(2) << static_cast<int32_t>(id.bytes_[15]);
 }
 
-const ID ID::INVALID_ID;
+ID const ID::INVALID_ID;
 
 ID::ID() noexcept {
 	bytes_.fill(0);
 }
 
-ID::ID(const std::array<uint8_t, kIdSize> &bytes) noexcept
+ID::ID(std::array<uint8_t, kIdSize> const &bytes) noexcept
 	: bytes_(bytes) {
 }
 
-ID::ID(const std::string_view &str) {
+ID::ID(std::string_view const &str) {
 	bytes_.fill(0);
 	if (!str.empty()) {
 		bytes_ = ParseString(str);
@@ -97,7 +93,7 @@ ID::operator std::string() const noexcept {
     return ostr.str();
 }
 
-ID ID::FromString(const std::string & str) {
+ID ID::FromString(std::string const & str) {
 	return ID(str);
 }
 	
