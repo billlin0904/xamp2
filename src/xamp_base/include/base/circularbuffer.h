@@ -81,7 +81,7 @@ public:
         :data_(size) {
     }
 
-    bool clear() noexcept { 
+    void clear() noexcept { 
         head_ = -1; size_ = 0;
     }
 

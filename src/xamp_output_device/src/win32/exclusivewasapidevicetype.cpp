@@ -1,3 +1,7 @@
+// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+
 #include <base/base.h>
 
 #ifdef XAMP_OS_WIN
@@ -51,7 +55,7 @@ std::string_view ExclusiveWasapiDeviceType::GetDescription() const {
 	return "WASAPI (Exclusive)";
 }
 
-ID const& ExclusiveWasapiDeviceType::GetTypeId() const {
+ID ExclusiveWasapiDeviceType::GetTypeId() const {
 	return Id;
 }
 

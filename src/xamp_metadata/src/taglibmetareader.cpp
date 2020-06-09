@@ -1,3 +1,7 @@
+// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+
 #include <vector>
 #include <sstream>
 #include <functional>
@@ -22,6 +26,9 @@ static bool GetID3V2TagCover(TagLib::ID3v2::Tag* tag, std::vector<uint8_t>& buff
     }
 
     const auto frame = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame*>(frame_list.front());
+    if (!frame) {
+        return false;
+    }
     buffer.resize(frame->picture().size());
     (void) FastMemcpy(buffer.data(), frame->picture().data(), static_cast<int32_t>(frame->picture().size()));
     return true;

@@ -1,3 +1,7 @@
+// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+
 #include <bass/bass.h>
 #include <stream/bassexception.h>
 
@@ -95,7 +99,7 @@ BassException::BassException(int error)
     , error_(error) {
     std::ostringstream ostr;
     ostr << error << " (" + GetBassErrorMessage(error) + ").";
-    what_ = ostr.str();
+    message_ = ostr.str();
 }
 
 BassException::~BassException() = default;

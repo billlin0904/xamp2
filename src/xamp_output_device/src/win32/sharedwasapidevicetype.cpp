@@ -1,3 +1,7 @@
+// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+
 #include <base/base.h>
 
 #ifdef XAMP_OS_WIN
@@ -44,7 +48,7 @@ DeviceInfo SharedWasapiDeviceType::GetDeviceInfo(uint32_t device) const {
 	throw Exception(Errors::XAMP_ERROR_DEVICE_NOT_FOUND);
 }
 
-ID const & SharedWasapiDeviceType::GetTypeId() const {
+ID SharedWasapiDeviceType::GetTypeId() const {
 	return Id;
 }
 

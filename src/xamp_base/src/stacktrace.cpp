@@ -1,3 +1,7 @@
+// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+
 #include <cstdio>
 #include <csignal>
 #include <vector>
@@ -139,15 +143,17 @@ void StackTrace::WriteLog(size_t frame_count) {
             &displacement,
             symbol_info);
 
-        DWORD line_displacement = 0;
-        IMAGEHLP_LINE64 line{};
-        line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
-        const auto has_line = ::SymGetLineFromAddr64(SymLoader::Instance().GetProcess().get(),
-            reinterpret_cast<DWORD64>(frame),
-            &line_displacement,
-            &line);
-
         if (has_symbol) {
+            DWORD line_displacement = 0;
+
+            IMAGEHLP_LINE64 line{};
+            line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
+
+            const auto has_line = ::SymGetLineFromAddr64(SymLoader::Instance().GetProcess().get(),
+                reinterpret_cast<DWORD64>(frame),
+                &line_displacement,
+                &line);
+
             if (has_line) {
                 XAMP_LOG_DEBUG("0x{:08x} {:08x} {}:{}", reinterpret_cast<DWORD64>(frame), displacement, line.FileName, line.LineNumber);
             }

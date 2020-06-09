@@ -1,3 +1,7 @@
+// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+
 #include <base/str_utilts.h>
 #include <base/platform_thread.h>
 #include <base/logger.h>
@@ -323,7 +327,7 @@ void AudioPlayer::Initial() {
             const auto slice = p->slice_.load();
             if (slice.sample_size > 0) {
                 adapter->OnSampleTime(slice.stream_time);
-            } if (p->is_playing_ && slice.sample_size == -1) {
+            } else if (p->is_playing_ && slice.sample_size == -1) {
                 p->SetState(PlayerState::PLAYER_STATE_STOPPED);
                 p->is_playing_ = false;
             }

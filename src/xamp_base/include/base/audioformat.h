@@ -258,7 +258,7 @@ XAMP_ALWAYS_INLINE bool operator==(AudioFormat const & format, AudioFormat const
     return format.format_ == other.format_
            && format.num_channels_ == other.num_channels_
            && format.sample_rate_ == other.sample_rate_
-           && format.bits_per_sample_ == other.sample_rate_
+           && format.bits_per_sample_ == other.bits_per_sample_
            && format.byte_format_ == other.byte_format_
            && format.interleaved_format_ == other.interleaved_format_;
 }

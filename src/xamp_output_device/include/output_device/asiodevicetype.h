@@ -22,7 +22,7 @@ public:
 
 	std::string_view GetDescription() const override;
 
-	ID const & GetTypeId() const override;
+	ID GetTypeId() const override;
 
 	size_t GetDeviceCount() const override;
 

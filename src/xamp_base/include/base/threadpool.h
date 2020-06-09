@@ -52,9 +52,11 @@ public:
     }
 
     template <typename U>
-    void Enqueue(U &&task) {
-        std::unique_lock<std::mutex> guard{mutex_};
-        queue_.push(std::move(task));
+    void Enqueue(U &&task) {        
+        {
+            std::lock_guard guard{ mutex_ };
+            queue_.push(std::move(task));
+        }
         notify_.notify_one();
     }
 
@@ -104,7 +106,7 @@ public:
 
     void Destroy() {
         {
-            std::unique_lock<std::mutex> guard{ mutex_ };
+            std::lock_guard guard{ mutex_ };
             done_ = true;
         }
         notify_.notify_all();

@@ -1,3 +1,7 @@
+// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+
 #if ENABLE_ASIO
 
 #include <asiodrivers.h>
@@ -30,8 +34,8 @@ struct AsioCallbackInfo {
 	AudioConvertContext data_context{};
 	ASIOCallbacks asio_callbacks{};	
 	Mmcss mmcss;
-	std::array<ASIOBufferInfo, kMaxChannel> buffer_infos;
-	std::array<ASIOChannelInfo, kMaxChannel> channel_infos;
+	std::array<ASIOBufferInfo, kMaxChannel> buffer_infos{};
+	std::array<ASIOChannelInfo, kMaxChannel> channel_infos{};
 } callbackInfo;
 
 static XAMP_ALWAYS_INLINE long GetLatencyMs(long latency, long sampleRate) noexcept {
@@ -128,7 +132,7 @@ std::tuple<int32_t, int32_t> AsioDevice::GetDeviceBufferSize() const {
 		prefer_size,
 		granularity);
 
-	long buffer_size = 0;
+	long buffer_size = prefer_size;
 
 	if (buffer_size == 0) {
 		buffer_size = prefer_size;

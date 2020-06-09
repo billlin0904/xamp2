@@ -13,7 +13,7 @@
 
 namespace xamp::base {
 
-class XAMP_BASE_API MemoryMappedFile final {
+class XAMP_BASE_API MemoryMappedFile {
 public:
     MemoryMappedFile();
 

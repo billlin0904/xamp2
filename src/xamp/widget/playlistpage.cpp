@@ -59,7 +59,11 @@ void PlyalistPage::initial() {
 	title_->setMaximumSize(QSize(16777215, 35));
 
 	format_ = new QLabel(this);
+#ifdef Q_OS_WIN
+	f.setPointSize(10);
+#else
     f.setPointSize(18);
+#endif
 	format_->setFont(f);
 
 	album_title_layout->addWidget(title_);
