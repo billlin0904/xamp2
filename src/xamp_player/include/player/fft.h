@@ -15,13 +15,18 @@ namespace xamp::player {
 
 inline constexpr float PI = 3.141592741F;
 
+using Complex = std::complex<float>;
+
 class XAMP_PLAYER_API FFT {
 public:
-	FFT() = default;
+    FFT();
 
-	void Forward(std::valarray<std::complex<float>> &x);
+    void Process(float *block, size_t size, float scale = 1.0);
 
-	void Inverse(std::valarray<std::complex<float>> &x);
+private:
+    void Forward(std::valarray<Complex> &x);
+
+    void Inverse(std::valarray<Complex> &x);
 };
 
 }

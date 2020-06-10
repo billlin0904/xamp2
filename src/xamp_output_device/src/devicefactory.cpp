@@ -73,7 +73,11 @@ public:
 #endif
 
     explicit DeviceStateNotificationImpl(std::weak_ptr<DeviceStateListener> callback) {
+#ifdef XAMP_OS_WIN
         notification_ = new DeviceStateNotification(callback);
+#else
+        notification_.reset(new DeviceStateNotification(callback));
+#endif
     }
 
     void Run() {
