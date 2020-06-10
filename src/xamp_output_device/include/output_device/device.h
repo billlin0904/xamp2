@@ -14,7 +14,7 @@ using namespace base;
 
 class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE Device {
 public:
-    virtual ~Device() {}
+    virtual ~Device() = default;
 
     virtual void OpenStream(AudioFormat const & output_format) = 0;
 
@@ -51,7 +51,7 @@ public:
     virtual uint32_t GetBufferSize() const noexcept = 0;
 
 protected:
-    Device() {}
+    Device() = default;
 };
 
 }

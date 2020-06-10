@@ -48,7 +48,7 @@ static constexpr double kWasapiReftimesPerSec = 10000000;
 
 std::wstring GetDeviceProperty(PROPERTYKEY const& key, CComPtr<IMMDevice>& device);
 
-DeviceInfo GetDeviceInfo(CComPtr<IMMDevice>& device, const ID device_type_id);
+DeviceInfo GetDeviceInfo(CComPtr<IMMDevice>& device, ID const& device_type_id);
 
 CComPtr<IMMDeviceEnumerator> CreateDeviceEnumerator();
 

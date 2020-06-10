@@ -64,18 +64,24 @@ static struct IopmAssertion {
 
 class AudioDeviceFactory::DeviceStateNotificationImpl {
 public:
+#ifdef XAMP_OS_WIN
+    using DeviceStateNotification = win32::Win32DeviceStateNotification;
+    using DeviceStateNotificationPtr = CComPtr<DeviceStateNotification>;
+#else
+    using DeviceStateNotification = osx::CoreAudioDeviceStateNotification;
+    using DeviceStateNotificationPtr = AlignPtr<DeviceStateNotification>;
+#endif
+
     explicit DeviceStateNotificationImpl(std::weak_ptr<DeviceStateListener> callback) {
-#ifdef XAMP_OS_WIN
-        notification = new win32::Win32DeviceStateNotification(callback);
-#else
-        notification = MakeAlign<osx::CoreAudioDeviceStateNotification>(callback);
-#endif
+        notification_ = new DeviceStateNotification(callback);
     }
-#ifdef XAMP_OS_WIN
-    CComPtr<win32::Win32DeviceStateNotification> notification;
-#else
-    AlignPtr<osx::CoreAudioDeviceStateNotification> notification;
-#endif
+
+    void Run() {
+        notification_->Run();
+    }
+
+private:
+    DeviceStateNotificationPtr notification_;
 };
 
 #define XAMP_REGISTER_DEVICE_TYPE(DeviceTypeClass) \
@@ -120,7 +126,7 @@ std::optional<AlignPtr<DeviceType>> AudioDeviceFactory::CreateDefaultDevice() co
     return (*itr).second();
 }
 
-std::optional<AlignPtr<DeviceType>> AudioDeviceFactory::Create(ID id) const {
+std::optional<AlignPtr<DeviceType>> AudioDeviceFactory::Create(ID const& id) const {
     auto itr = creator_.find(id);
     if (itr == creator_.end()) {
         return std::nullopt;
@@ -136,7 +142,7 @@ bool AudioDeviceFactory::IsSupportASIO() const {
 #endif
 }
 
-bool AudioDeviceFactory::IsExclusiveDevice(const DeviceInfo& info) {
+bool AudioDeviceFactory::IsExclusiveDevice(DeviceInfo const & info) {
 #ifdef XAMP_OS_WIN
     return info.device_type_id == win32::ExclusiveWasapiDeviceType::Id
 #if ENABLE_ASIO
@@ -149,7 +155,7 @@ bool AudioDeviceFactory::IsExclusiveDevice(const DeviceInfo& info) {
 #endif
 }
 
-bool AudioDeviceFactory::IsASIODevice(ID id) {
+bool AudioDeviceFactory::IsASIODevice(ID const& id) {
 #if defined(ENABLE_ASIO) && defined(XAMP_OS_WIN)
     return id == ASIODeviceType::Id;
 #else
@@ -158,13 +164,13 @@ bool AudioDeviceFactory::IsASIODevice(ID id) {
 #endif
 }
 
-bool AudioDeviceFactory::IsDeviceTypeExist(ID id) const {
+bool AudioDeviceFactory::IsDeviceTypeExist(ID const& id) const {
     return creator_.find(id) != creator_.end();
 }
 
 void AudioDeviceFactory::RegisterDeviceListener(std::weak_ptr<DeviceStateListener> callback) {	
     impl_ = MakeAlign<DeviceStateNotificationImpl>(callback);
-    impl_->notification->Run();
+    impl_->Run();
 }
 
 void AudioDeviceFactory::PreventSleep(bool allow) {

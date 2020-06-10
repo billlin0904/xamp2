@@ -5,23 +5,23 @@
 
 #pragma once
 
-#include <stream/stream.h>
-#include <stream/audiostream.h>
+#include <complex>
+#include <valarray>
+#include <cmath>
 
-namespace xamp::stream {
+#include <player/player.h>
 
-class XAMP_STREAM_API XAMP_NO_VTABLE FileStream : public AudioStream {
+namespace xamp::player {
+
+inline constexpr float PI = 3.141592741F;
+
+class XAMP_PLAYER_API FFT {
 public:
-	virtual ~FileStream() = default;
+	FFT() = default;
 
-	bool IsFile() const noexcept override {
-		return true;
-	}
+	void Forward(std::valarray<std::complex<float>> &x);
 
-    virtual void OpenFromFile(std::wstring const & file_path) = 0;
-
-protected:
-    FileStream() = default;
+	void Inverse(std::valarray<std::complex<float>> &x);
 };
 
 }

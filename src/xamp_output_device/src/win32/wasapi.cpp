@@ -39,7 +39,7 @@ std::wstring GetDeviceProperty(PROPERTYKEY const & key, CComPtr<IMMDevice>& devi
 	return name;
 }
 
-DeviceInfo GetDeviceInfo(CComPtr<IMMDevice>& device, ID device_type_id) {
+DeviceInfo GetDeviceInfo(CComPtr<IMMDevice>& device, ID const& device_type_id) {
 	DeviceInfo info;
 	info.name = GetDeviceProperty(PKEY_Device_FriendlyName, device);
 

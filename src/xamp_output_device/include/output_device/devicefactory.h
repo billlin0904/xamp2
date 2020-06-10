@@ -40,7 +40,7 @@ public:
 
     std::optional<AlignPtr<DeviceType>> CreateDefaultDevice() const;
 
-    std::optional<AlignPtr<DeviceType>> Create(ID const id) const;
+    std::optional<AlignPtr<DeviceType>> Create(ID const& id) const;
 
     template <typename Function>
     void ForEach(Function &&fun) {
@@ -56,11 +56,11 @@ public:
 
     bool IsSupportASIO() const;
 
-    bool IsDeviceTypeExist(ID id) const;
+    bool IsDeviceTypeExist(ID const& id) const;
 
     static bool IsExclusiveDevice(DeviceInfo const &info);
 
-    static bool IsASIODevice(ID id);
+    static bool IsASIODevice(ID const& id);
 
     static void PreventSleep(bool allow);
 private:
@@ -69,7 +69,7 @@ private:
     AudioDeviceFactory();
 
     template <typename Function>
-    void RegisterCreator(ID const id, Function&& fun) {
+    void RegisterCreator(ID const &id, Function&& fun) {
         creator_[id] = std::forward<Function>(fun);
     }
 

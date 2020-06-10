@@ -116,7 +116,7 @@ struct DataConverter {
 		const auto input_left_offset = context.in_offset[0];
 		const auto input_right_offset = context.in_offset[1];
 
-		for (int32_t i = 0; i < context.convert_size; ++i) {
+		for (size_t i = 0; i < context.convert_size; ++i) {
 			output[output_left_offset] = static_cast<int32_t>((input[input_left_offset] * kFloat32Scaler) * context.volume_factor);
 			output[output_right_offset] = static_cast<int32_t>((input[input_right_offset] * kFloat32Scaler) * context.volume_factor);
 			input += context.in_jump;
@@ -142,7 +142,7 @@ struct DataConverter {
 
 template <typename T, int64_t FloatScaler>
 void ConvertHelper(T * XAMP_RESTRICT output, float const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {
-	const auto* end_input = input + static_cast<size_t>(context.convert_size) * context.input_format.GetChannels();
+	const auto* end_input = input + ptrdiff_t(context.convert_size) * context.input_format.GetChannels();
 
 	while (input != end_input) {
 		*output++ = T(*input++ * FloatScaler);
@@ -150,7 +150,7 @@ void ConvertHelper(T * XAMP_RESTRICT output, float const* XAMP_RESTRICT input, A
 }
 
 inline void Convert2432Helper(int32_t* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {
-	const auto* end_input = input + static_cast<size_t>(context.convert_size) * context.input_format.GetChannels();
+	const auto* end_input = input + ptrdiff_t(context.convert_size) * context.input_format.GetChannels();
 
 	while (input != end_input) {
 		*output++ = Int24(*input++).To2432Int();
@@ -169,13 +169,14 @@ struct DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEA
 
 #ifdef XAMP_OS_WIN
 	static void ConvertToInt2432(int32_t* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {
+		constexpr auto loop_unrolling_int_count = 4;
 		const auto* end_input = input + static_cast<size_t>(context.convert_size) * context.input_format.GetChannels();
 
 		const auto scale = _mm_set1_ps(kFloat24Scaler);
 		const auto max_val = _mm_set1_ps(kFloat24Scaler - 1);
 		const auto min_val = _mm_set1_ps(-kFloat24Scaler);
 
-		switch ((end_input - input) % 4) {
+		switch ((end_input - input) % loop_unrolling_int_count) {
 		case 3:
 			*output++ = Int24(*input++).To2432Int();
 		case 2:

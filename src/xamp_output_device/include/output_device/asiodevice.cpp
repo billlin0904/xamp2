@@ -313,7 +313,7 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 		}
 		auto channel_buffer_size = buffer_size_ / 8;
 		buffer_bytes_ = channel_buffer_size;
-		int32_t allocate_bytes = buffer_size_;
+		size_t allocate_bytes = buffer_size_;
 		device_buffer_ = MakeBuffer<int8_t>(allocate_bytes);
 		buffer_ = MakeBuffer<int8_t>(allocate_bytes);
 		buffer_vmlock_.Lock(buffer_.get(), allocate_bytes);

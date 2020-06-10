@@ -89,7 +89,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../thirdparty/benchmark/include/;../xamp_base/include/;../thirdparty/robin_hood/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../thirdparty/benchmark/include/;../thirdparty/robin_hood/;../xamp_base/include/;../xamp_player/include/;../xamp_stream/include/</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <Optimization>Full</Optimization>
       <OmitFramePointers>true</OmitFramePointers>
@@ -100,7 +100,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>../xamp/x64/Release/;../thirdparty/benchmark/msvc/src/Release/</AdditionalLibraryDirectories>
-      <AdditionalDependencies>xamp_base.lib;Shlwapi.lib;benchmark.lib;benchmark_main.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>xamp_base.lib;xamp_stream.lib;xamp_player.lib;Shlwapi.lib;benchmark.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

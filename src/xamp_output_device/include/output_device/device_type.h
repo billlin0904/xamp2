@@ -24,7 +24,7 @@ using namespace base;
 
 class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE DeviceType {
 public:
-	virtual ~DeviceType() {}
+	virtual ~DeviceType() = default;
 
 	virtual void ScanNewDevice() = 0;
 
@@ -42,7 +42,7 @@ public:
 
 	virtual std::optional<DeviceInfo> GetDefaultDeviceInfo() const = 0;
 protected:
-	DeviceType() {}
+	DeviceType() = default;
 };
 
 }

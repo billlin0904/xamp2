@@ -14,7 +14,7 @@ using namespace base;
 
 class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE AudioCallback {
 public:
-	virtual ~AudioCallback() {}
+	virtual ~AudioCallback() = default;
 
     virtual int32_t OnGetSamples(void* samples, uint32_t num_buffer_frames, double stream_time) noexcept = 0;
 
@@ -22,7 +22,7 @@ public:
 
 	virtual void OnVolumeChange(float vol) noexcept = 0;
 protected:
-	AudioCallback() {};
+	AudioCallback() = default;
 };
 
 }
