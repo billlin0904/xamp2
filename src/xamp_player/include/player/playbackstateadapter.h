@@ -19,7 +19,7 @@ using namespace output_device;
 
 class XAMP_PLAYER_API XAMP_NO_VTABLE PlaybackStateAdapter {
 public:
-	virtual ~PlaybackStateAdapter() = default;
+    virtual ~PlaybackStateAdapter() = default;
 
 	virtual void OnError(Exception const & ex) = 0;
 
@@ -34,7 +34,7 @@ public:
 	virtual void OnSpectrumDataChanged(const std::valarray<Complex>& data) = 0;
 
 protected:
-	PlaybackStateAdapter() = default;
+    PlaybackStateAdapter() = default;
 };
 
 }

@@ -21,17 +21,11 @@ using Complex = std::complex<float>;
 
 class XAMP_PLAYER_API FFT {
 public:
-	FFT();
+	FFT() = default;
 
-	XAMP_PIMPL(FFT)
+	void Forward(std::valarray<std::complex<float>> &x);
 
-	void Init(size_t size);	
-
-	std::valarray<Complex> Forward(float const* data, size_t size);
-
-private:
-	class FFTImpl;
-	AlignPtr<FFTImpl> impl_;
+	void Inverse(std::valarray<std::complex<float>> &x);
 };
 
 }

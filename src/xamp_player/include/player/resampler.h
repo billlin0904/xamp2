@@ -16,7 +16,7 @@ using namespace xamp::base;
 
 class XAMP_PLAYER_API XAMP_NO_VTABLE Resampler {
 public:
-	virtual ~Resampler() = default;
+    virtual ~Resampler() = default;
 
     virtual void Start(uint32_t input_samplerate, uint32_t num_channels, uint32_t output_samplerate, uint32_t max_sample) = 0;
 
@@ -27,7 +27,7 @@ public:
 	virtual void Flush() = 0;
 
 protected:
-	Resampler() = default;
+    Resampler() = default;
 };
 
 }
