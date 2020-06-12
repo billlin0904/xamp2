@@ -9,6 +9,7 @@
 #include <base/exception.h>
 #include <player/player.h>
 #include <output_device/devicestatelistener.h>
+#include <player/fft.h>
 #include <player/playstate.h>
 
 namespace xamp::player {
@@ -28,7 +29,9 @@ public:
 
 	virtual void OnDeviceChanged(DeviceState state) = 0;
 
-	virtual void OnVolumeChange(float vol) = 0;
+	virtual void OnVolumeChanged(float vol) = 0;
+
+	virtual void OnSpectrumDataChanged(const std::valarray<Complex>& data) = 0;
 
 protected:
 	PlaybackStateAdapter() = default;

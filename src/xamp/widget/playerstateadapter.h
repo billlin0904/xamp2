@@ -10,6 +10,8 @@
 #include <output_device/devicestatelistener.h>
 #include <player/playbackstateadapter.h>
 
+using xamp::player::Complex;
+
 class PlayerStateAdapter final 
     : public QObject
     , public xamp::player::PlaybackStateAdapter {
@@ -26,7 +28,9 @@ signals:
 
     void deviceChanged(xamp::output_device::DeviceState state);
 
-    void onVolumeChange(float vol);
+    void volumeChanged(float vol);
+
+    void spectrumDataChanged(const std::valarray<Complex> &data);
 protected:
 	void OnSampleTime(double stream_time) override;
 
@@ -36,5 +40,7 @@ protected:
 
     void OnDeviceChanged(xamp::output_device::DeviceState state) override;
 
-    void OnVolumeChange(float vol) override;
+    void OnVolumeChanged(float vol) override;
+
+    void OnSpectrumDataChanged(const std::valarray<Complex>& data) override;
 };

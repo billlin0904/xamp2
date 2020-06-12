@@ -53,18 +53,6 @@ public:
     XAMP_DECLARE_DLL(soxr_clear) soxr_clear;
 };
 
-struct SoxrHandleTraits final {
-    static soxr_t invalid() noexcept {
-        return nullptr;
-    }
-
-    static void close(soxr_t value) noexcept {
-        SoxrLib::Instance().soxr_delete(value);
-    }
-};
-
-using SoxrHandle = UniqueHandle<soxr_t, SoxrHandleTraits>;
-
 class SoxrResampler::SoxrResamplerImpl {
 public:
     SoxrResamplerImpl() noexcept
@@ -213,6 +201,18 @@ public:
         buffer_.resize(samples_done * num_channels_);
         return true;
     }
+
+    struct SoxrHandleTraits final {
+        static soxr_t invalid() noexcept {
+            return nullptr;
+        }
+
+        static void close(soxr_t value) noexcept {
+            SoxrLib::Instance().soxr_delete(value);
+        }
+    };
+
+    using SoxrHandle = UniqueHandle<soxr_t, SoxrHandleTraits>;
 
     bool enable_steep_filter_;
     SoxrQuality quality_;

@@ -115,10 +115,12 @@ XAMP_ENFORCE_TRIVIAL(Name);
 namespace xamp::base {
 
 // Avoid cache-pollution padding size
-constexpr size_t kCacheAlignSize{ 64 };
+inline constexpr size_t kCacheAlignSize{ 64 };
 
 // Memory allocate aligned size
 // Assume we need 32-byte alignment for AVX instructions.
-constexpr size_t kMallocAlignSize{ 32 };
+inline constexpr size_t kMallocAlignSize{ 32 };
+
+inline constexpr ptrdiff_t kLoopUnRollingIntCount = 4;
 
 }

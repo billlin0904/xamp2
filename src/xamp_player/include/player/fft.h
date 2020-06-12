@@ -7,21 +7,31 @@
 
 #include <complex>
 #include <valarray>
-#include <cmath>
 
+#include <base/base.h>
+#include <base/align_ptr.h>
 #include <player/player.h>
 
 namespace xamp::player {
 
-inline constexpr float PI = 3.141592741F;
+inline constexpr float kPI = 3.141592741F;
+
+using namespace xamp::base;
+using Complex = std::complex<float>;
 
 class XAMP_PLAYER_API FFT {
 public:
-	FFT() = default;
+	FFT();
 
-	void Forward(std::valarray<std::complex<float>> &x);
+	XAMP_PIMPL(FFT)
 
-	void Inverse(std::valarray<std::complex<float>> &x);
+	void Init(size_t size);	
+
+	std::valarray<Complex> Forward(float const* data, size_t size);
+
+private:
+	class FFTImpl;
+	AlignPtr<FFTImpl> impl_;
 };
 
 }

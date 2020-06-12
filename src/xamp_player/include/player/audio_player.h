@@ -24,6 +24,7 @@
 #include <output_device/audiocallback.h>
 #include <output_device/deviceinfo.h>
 
+#include <player/fft.h>
 #include <player/playstate.h>
 #include <player/playbackstateadapter.h>
 #include <player/player.h>
@@ -43,7 +44,7 @@ public:
 
     AudioPlayer();
 
-    ~AudioPlayer() override;
+    virtual ~AudioPlayer() override;
 
     explicit AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter);
 
@@ -75,7 +76,7 @@ public:
 
     void SetMute(bool mute);
 
-    bool IsPlaying() const;
+    bool IsPlaying() const noexcept;
 
     DsdModes GetDsdModes() const noexcept;
 
@@ -87,11 +88,11 @@ public:
 
     PlayerState GetState() const noexcept;
 
-    AudioFormat GetStreamFormat() const;
+    AudioFormat GetStreamFormat() const noexcept;
 
-    AudioFormat GetOutputFormat() const;
+    AudioFormat GetOutputFormat() const noexcept;
 
-    bool IsDsdStream() const;
+    bool IsDsdStream() const noexcept;
 
     void SetResampler(uint32_t samplerate, AlignPtr<Resampler> &&resampler);
 
@@ -127,9 +128,9 @@ private:
 
     void ReadSampleLoop(int8_t* sample_buffer, uint32_t max_read_sample, std::unique_lock<std::mutex> &lock);
 
-    DsdStream* AsDsdStream();
+    DsdStream* AsDsdStream() noexcept;
 
-    DsdDevice* AsDsdDevice();
+    DsdDevice* AsDsdDevice() noexcept;
 
     void UpdateSlice(int32_t sample_size = 0, double stream_time = 0.0) noexcept;
 
@@ -175,6 +176,7 @@ private:
     AlignPtr<Resampler> resampler_;
     DeviceInfo device_info_;
     std::future<void> stream_task_;
+    FFT fft_;
 };
 
 }

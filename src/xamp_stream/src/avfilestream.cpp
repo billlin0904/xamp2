@@ -124,12 +124,12 @@ public:
         , duration_(0.0) {
         LibAv::Instance();
     }
-
-    ~AvFileStreamImpl() {
+    
+    ~AvFileStreamImpl() noexcept {
         Close();
     }
 
-    void Close() {
+    void Close() noexcept {
         audio_stream_id_ = -1;
         duration_ = 0;
         audio_format_.Reset();

@@ -16,6 +16,7 @@
 #include <stream/avfilestream.h>
 #include <player/soxresampler.h>
 
+#include <player/fft.h>
 #include <player/resampler.h>
 #include <player/nullresampler.h>
 #include <player/chromaprint.h>
@@ -23,14 +24,15 @@
 
 namespace xamp::player {
 
-static constexpr int32_t kBufferStreamCount = 5;
-static constexpr int32_t kTotalBufferStreamCount = 10;
-static constexpr int32_t kPreallocateBufferSize = 8 * 1024 * 1024;
-static constexpr int32_t kMaxWriteRatio = 20;
-static constexpr int32_t kMaxReadRatio = 30;
-static constexpr std::chrono::milliseconds kUpdateSampleInterval(100);
-static constexpr std::chrono::seconds kWaitForStreamStopTime(10);
-static constexpr std::chrono::milliseconds kReadSampleWaitTime(100);
+inline constexpr int32_t kBufferStreamCount = 5;
+inline constexpr int32_t kTotalBufferStreamCount = 10;
+inline constexpr int32_t kPreallocateBufferSize = 8 * 1024 * 1024;
+inline constexpr int32_t kMaxWriteRatio = 20;
+inline constexpr int32_t kMaxReadRatio = 30;
+inline constexpr std::chrono::milliseconds kUpdateSampleInterval(100);
+inline constexpr std::chrono::seconds kWaitForStreamStopTime(10);
+inline constexpr std::chrono::milliseconds kReadSampleWaitTime(100);
+inline constexpr size_t kFFTSize = 8192;
 
 AudioPlayer::AudioPlayer()
     : AudioPlayer(std::weak_ptr<PlaybackStateAdapter>()) {
@@ -115,18 +117,18 @@ void AudioPlayer::CreateDevice(ID const & device_type_id, std::wstring const & d
     device_->SetAudioCallback(this);
 }
 
-bool AudioPlayer::IsDsdStream() const {
+bool AudioPlayer::IsDsdStream() const noexcept {
     if (!stream_) {
         return false;
     }
     return dynamic_cast<DsdStream*>(stream_.get()) != nullptr;
 }
 
-DsdStream* AudioPlayer::AsDsdStream() {
+DsdStream* AudioPlayer::AsDsdStream() noexcept {
     return dynamic_cast<DsdStream*>(stream_.get());
 }
 
-DsdDevice* AudioPlayer::AsDsdDevice() {
+DsdDevice* AudioPlayer::AsDsdDevice() noexcept {
     return dynamic_cast<DsdDevice*>(device_.get());
 }
 
@@ -140,8 +142,8 @@ AlignPtr<FileStream> AudioPlayer::MakeFileStream(std::wstring const & file_ext) 
         {L".ape"},
     };
 
-    auto is_dsd_stream = dsd_ext.find(file_ext) != dsd_ext.end();
-    auto is_use_bass = use_bass.find(file_ext) != use_bass.end();
+    const auto is_dsd_stream = dsd_ext.find(file_ext) != dsd_ext.end();
+    const auto is_use_bass = use_bass.find(file_ext) != use_bass.end();
 
     if (is_dsd_stream || is_use_bass) {
         return MakeAlign<FileStream, BassFileStream>();
@@ -332,7 +334,9 @@ void AudioPlayer::Initial() {
                 p->is_playing_ = false;
             }
         });		
-    }    
+    }
+   
+    fft_.Init(kFFTSize);
 }
 
 std::optional<uint32_t> AudioPlayer::GetDSDSpeed() const {
@@ -366,15 +370,15 @@ PlayerState AudioPlayer::GetState() const noexcept {
     return state_;
 }
 
-AudioFormat AudioPlayer::GetStreamFormat() const {
+AudioFormat AudioPlayer::GetStreamFormat() const noexcept {
     return stream_->GetFormat();
 }
 
-AudioFormat AudioPlayer::GetOutputFormat() const {
+AudioFormat AudioPlayer::GetOutputFormat() const noexcept {
     return output_format_;
 }
 
-bool AudioPlayer::IsPlaying() const {
+bool AudioPlayer::IsPlaying() const noexcept {
     return is_playing_;
 }
 
@@ -487,7 +491,7 @@ void AudioPlayer::SetDeviceFormat() {
 
 void AudioPlayer::OnVolumeChange(float vol) noexcept {
     if (auto adapter = state_adapter_.lock()) {
-        adapter->OnVolumeChange(vol);
+        adapter->OnVolumeChanged(vol);
         XAMP_LOG_DEBUG("Volum change: {}.", vol);
     }
 }
@@ -592,10 +596,18 @@ void AudioPlayer::BufferStream() {
             if (num_samples == 0) {
                 return;
             }
-            if (!resampler_->Process(reinterpret_cast<const float*>(sample_buffer_.get()),
-                                     num_samples, buffer_)) {
+
+            auto samples = reinterpret_cast<const float*>(sample_buffer);
+
+            if (dsd_mode_ == DsdModes::DSD_MODE_PCM) {
+                if (auto adapter = state_adapter_.lock()) {
+                    adapter->OnSpectrumDataChanged(fft_.Forward(samples, kFFTSize));
+                }
+            }            
+
+            if (!resampler_->Process(samples, num_samples, buffer_)) {
                 continue;
-            }
+            }            
             break;
         }
     }
@@ -606,10 +618,17 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_read_sample
 	    const auto num_samples = stream_->GetSamples(sample_buffer, max_read_sample);
 
         if (num_samples > 0) {
-            if (!resampler_->Process(reinterpret_cast<const float*>(sample_buffer_.get()),
-                                     num_samples, buffer_)) {
+            auto samples = reinterpret_cast<const float*>(sample_buffer_.get());
+
+            if (dsd_mode_ == DsdModes::DSD_MODE_PCM) {
+                if (auto adapter = state_adapter_.lock()) {
+                    adapter->OnSpectrumDataChanged(fft_.Forward(samples, kFFTSize));
+                }
+            }            
+
+            if (!resampler_->Process(samples, num_samples, buffer_)) {
                 continue;
-            }
+            }            
         }
         else {
             XAMP_LOG_DEBUG("Finish read all samples, wait for finish.");
@@ -630,30 +649,31 @@ void AudioPlayer::StartPlay() {
     Play();
 
     stream_task_ = ThreadPool::DefaultThreadPool().StartNew([player = shared_from_this()]() noexcept {
-	    auto* p = player.get();
-        std::unique_lock<std::mutex> lock{ p->pause_mutex_ };
+        try {
+            auto* p = player.get();
 
-        auto sample_buffer = player->sample_buffer_.get();
-        const auto max_read_sample = p->num_read_sample_;
-        const auto num_sample_write = max_read_sample * kMaxWriteRatio;
+            std::unique_lock<std::mutex> lock{ p->pause_mutex_ };
 
-        while (p->is_playing_) {
-            while (p->is_paused_) {
-                p->pause_cond_.wait(lock);
-            }
+            auto sample_buffer = player->sample_buffer_.get();
+            const auto max_read_sample = p->num_read_sample_;
+            const auto num_sample_write = max_read_sample * kMaxWriteRatio;
 
-            if (p->buffer_.GetAvailableWrite() < num_sample_write) {
-                p->wait_timer_.Wait();
-                continue;
-            }
+            XAMP_LOG_DEBUG("max_read_sample: {}, num_sample_write: {}", max_read_sample, num_sample_write);
 
-            try {
+            while (p->is_playing_) {
+                while (p->is_paused_) {
+                    p->pause_cond_.wait(lock);
+                }
+
+                if (p->buffer_.GetAvailableWrite() < num_sample_write) {
+                    p->wait_timer_.Wait();
+                    continue;
+                }
                 p->ReadSampleLoop(sample_buffer, max_read_sample, lock);
             }
-            catch (const std::exception& e) {
-                XAMP_LOG_DEBUG("Stream read has exception: {}.", e.what());
-                break;
-            }
+        }
+        catch (const std::exception& e) {
+            XAMP_LOG_DEBUG("Stream read has exception: {}.", e.what());
         }
     });
 }

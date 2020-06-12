@@ -20,6 +20,10 @@ void PlayerStateAdapter::OnDeviceChanged(xamp::output_device::DeviceState state)
     emit deviceChanged(state);
 }
 
-void PlayerStateAdapter::OnVolumeChange(float vol) {
-    emit onVolumeChange(vol);
+void PlayerStateAdapter::OnVolumeChanged(float vol) {
+    emit volumeChanged(vol);
+}
+
+void PlayerStateAdapter::OnSpectrumDataChanged(const std::valarray<Complex>& data) {
+    emit spectrumDataChanged(data);
 }

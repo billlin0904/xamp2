@@ -20,9 +20,9 @@
 namespace xamp::base {
 
 // See: http://blog.bjornroche.com/2009/12/int-float-int-its-jungle-out-there.html
-static constexpr int32_t kFloat16Scaler = 0x8000;
-static constexpr int32_t kFloat24Scaler = 0x800000;
-static constexpr int64_t kFloat32Scaler = 0x7FFFFFBE;
+inline constexpr int32_t kFloat16Scaler = 0x8000;
+inline constexpr int32_t kFloat24Scaler = 0x800000;
+inline constexpr int64_t kFloat32Scaler = 0x7FFFFFBE;
 
 class Int24 final {
 public:
@@ -143,6 +143,17 @@ struct DataConverter {
 template <typename T, int64_t FloatScaler>
 void ConvertHelper(T * XAMP_RESTRICT output, float const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {
 	const auto* end_input = input + ptrdiff_t(context.convert_size) * context.input_format.GetChannels();
+	
+	switch ((end_input - input) % kLoopUnRollingIntCount) {
+	case 3:
+		*output++ = T(*input++ * FloatScaler);
+	case 2:
+		*output++ = T(*input++ * FloatScaler);
+	case 1:
+		*output++ = T(*input++ * FloatScaler);
+	case 0:
+		break;
+	}
 
 	while (input != end_input) {
 		*output++ = T(*input++ * FloatScaler);
@@ -152,7 +163,21 @@ void ConvertHelper(T * XAMP_RESTRICT output, float const* XAMP_RESTRICT input, A
 inline void Convert2432Helper(int32_t* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {
 	const auto* end_input = input + ptrdiff_t(context.convert_size) * context.input_format.GetChannels();
 
+	switch ((end_input - input) % kLoopUnRollingIntCount) {
+	case 3:
+		*output++ = Int24(*input++).To2432Int();
+	case 2:
+		*output++ = Int24(*input++).To2432Int();
+	case 1:
+		*output++ = Int24(*input++).To2432Int();
+	case 0:
+		break;
+	}
+
 	while (input != end_input) {
+		*output++ = Int24(*input++).To2432Int();
+		*output++ = Int24(*input++).To2432Int();
+		*output++ = Int24(*input++).To2432Int();
 		*output++ = Int24(*input++).To2432Int();
 	}
 }
@@ -168,15 +193,14 @@ struct DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEA
     }
 
 #ifdef XAMP_OS_WIN
-	static void ConvertToInt2432(int32_t* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {
-		constexpr auto loop_unrolling_int_count = 4;
+	static void ConvertToInt2432(int32_t* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {		
 		const auto* end_input = input + static_cast<size_t>(context.convert_size) * context.input_format.GetChannels();
 
 		const auto scale = _mm_set1_ps(kFloat24Scaler);
 		const auto max_val = _mm_set1_ps(kFloat24Scaler - 1);
 		const auto min_val = _mm_set1_ps(-kFloat24Scaler);
 
-		switch ((end_input - input) % loop_unrolling_int_count) {
+		switch ((end_input - input) % kLoopUnRollingIntCount) {
 		case 3:
 			*output++ = Int24(*input++).To2432Int();
 		case 2:

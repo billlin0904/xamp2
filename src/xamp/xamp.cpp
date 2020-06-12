@@ -150,9 +150,10 @@ void Xamp::setDefaultStyle() {
 void Xamp::registerMetaType() {
     qRegisterMetaType<std::vector<xamp::base::Metadata>>("std::vector<xamp::base::Metadata>");
     qRegisterMetaType<std::vector<float>>("std::vector<float>");
-    qRegisterMetaType<xamp::output_device::DeviceState>("xamp::output_device::DeviceState");
-    qRegisterMetaType<xamp::player::PlayerState>("xamp::player::PlayerState");
-    qRegisterMetaType<xamp::base::Errors>("xamp::base::Errors");
+    qRegisterMetaType<DeviceState>("xamp::output_device::DeviceState");
+    qRegisterMetaType<PlayerState>("xamp::player::PlayerState");
+    qRegisterMetaType<Errors>("xamp::base::Errors");
+    qRegisterMetaType<std::valarray<Complex>>("std::valarray<Complex>");
 }
 
 void Xamp::initialUI() {
@@ -197,6 +198,14 @@ QWidgetAction* Xamp::createTextSeparator(const QString& text) {
     auto separator = new QWidgetAction(this);
     separator->setDefaultWidget(label);
     return separator;
+}
+
+void Xamp::onSpectrumDataChanged(const std::valarray<Complex>& data) {
+    std::vector<double> results(data.size());
+
+    std::transform(&data[0], &data[data.size()], results.begin(), [](const auto &data) {
+        return std::sqrt(std::abs(data.imag() * data.imag() - data.real() * data.real()));
+        });
 }
 
 void Xamp::onDeviceStateChanged(DeviceState state) {
@@ -396,6 +405,12 @@ void Xamp::initialController() {
                             this,
                             &Xamp::onDeviceStateChanged,
                             Qt::QueuedConnection);
+
+    (void)QObject::connect(state_adapter_.get(),
+        &PlayerStateAdapter::spectrumDataChanged,
+        this,
+        &Xamp::onSpectrumDataChanged,
+        Qt::QueuedConnection);
 
     (void)QObject::connect(ui.searchLineEdit, &QLineEdit::textChanged, [this](const auto &text) {
         if (ui.currentView->count() > 0) {

@@ -1,31 +1,206 @@
+// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+
+#include <algorithm>
+#include <cmath>
+
+#define USE_FFTW
+
+#ifdef USE_FFTW
+#include <base/dll.h>
+#include <fftw3.h>
+#endif
+
 #include <player/fft.h>
 
 namespace xamp::player {
 
-void FFT::Forward(std::valarray<std::complex<float>> &x) {
-	const auto N = x.size();
-	if (N <= 1) {
-		return;
-	}
-
-	std::valarray<std::complex<float>> even = x[std::slice(0, N / 2, 2)];
-	std::valarray<std::complex<float>> odd = x[std::slice(1, N / 2, 2)];
-
-	Forward(even);
-	Forward(odd);
-
-	for (size_t k = 0; k < N / 2; ++k) {
-		auto t = std::polar(1.0f, -2.0f * PI * k / N) * odd[k];
-		x[k] = even[k] + t;
-		x[k + N / 2] = even[k] - t;
-	}
+static size_t ComplexSize(size_t size) {
+	return (size / 2) + 1;
 }
 
-void FFT::Inverse(std::valarray<std::complex<float>> &x) {
-	x = x.apply(std::conj);
-	Forward(x);
-	x = x.apply(std::conj);
-	x /= x.size();
+#ifndef USE_FFTW
+
+class FFT::FFTImpl {
+public:
+	void Init(size_t size) {
+		complex_size_ = ComplexSize(size) * sizeof(float);
+	}
+
+	std::valarray<Complex> Forward(float const* signals, size_t size) {
+		std::valarray<Complex> output(Complex(), size);
+		std::transform(&signals[0], &signals[size], &output[0], [](auto signal) {
+			return Complex(signal, 0.0F);
+			});
+		Forward(output);
+		return output;
+	}
+
+private:
+	void Forward(std::valarray<Complex>& x) {
+		const auto N = x.size();
+		if (N <= 1) {
+			return;
+		}
+
+		std::valarray<std::complex<float>> even = x[std::slice(0, N / 2, 2)];
+		std::valarray<std::complex<float>> odd = x[std::slice(1, N / 2, 2)];
+
+		Forward(even);
+		Forward(odd);
+
+		for (size_t k = 0; k < N / 2; ++k) {
+			auto t = std::polar(1.0f, -2.0f * kPI * k / N) * odd[k];
+			x[k] = even[k] + t;
+			x[k + N / 2] = even[k] - t;
+		}
+	}
+
+	void Inverse(std::valarray<Complex>& x) {
+		x = x.apply(std::conj);
+		Forward(x);
+		x = x.apply(std::conj);
+		x /= x.size();
+	}
+
+	size_t complex_size_{ 0 };
+};
+
+#else
+
+class FFTWLib {
+public:
+	FFTWLib()
+		: module_(LoadModule("libfftw3f-3.dll"))
+		, fftwf_destroy_plan(module_, "fftwf_destroy_plan")
+		, fftwf_malloc(module_, "fftwf_malloc")
+		, fftwf_free(module_, "fftwf_free")
+		, fftwf_plan_guru_split_dft_c2r(module_, "fftwf_plan_guru_split_dft_c2r")
+		, fftwf_plan_guru_split_dft_r2c(module_, "fftwf_plan_guru_split_dft_r2c")
+		, fftwf_execute_split_dft_r2c(module_, "fftwf_execute_split_dft_r2c")
+		, fftwf_execute_split_dft_c2r(module_, "fftwf_execute_split_dft_c2r") {
+	}
+
+	static FFTWLib& Instance() {
+		static FFTWLib lib;
+		return lib;
+	}
+
+private:
+	ModuleHandle module_;
+
+public:
+	XAMP_DECLARE_DLL(fftwf_destroy_plan) fftwf_destroy_plan;
+	XAMP_DECLARE_DLL(fftwf_malloc) fftwf_malloc;
+	XAMP_DECLARE_DLL(fftwf_free) fftwf_free;
+	XAMP_DECLARE_DLL(fftwf_plan_guru_split_dft_c2r) fftwf_plan_guru_split_dft_c2r;
+	XAMP_DECLARE_DLL(fftwf_plan_guru_split_dft_r2c) fftwf_plan_guru_split_dft_r2c;
+	XAMP_DECLARE_DLL(fftwf_execute_split_dft_r2c) fftwf_execute_split_dft_r2c;
+	XAMP_DECLARE_DLL(fftwf_execute_split_dft_c2r) fftwf_execute_split_dft_c2r;
+};
+
+class FFT::FFTImpl {
+public:
+	FFTImpl() {
+		FFTWLib::Instance();
+	}
+
+	void Init(size_t size) {
+		complex_size_ = ComplexSize(size);
+		data_ = MakeBuffer(size * sizeof(float));
+		re_ = MakeBuffer(complex_size_ * sizeof(float));
+		im_ = MakeBuffer(complex_size_ * sizeof(float));
+
+		fftw_iodim dim;
+		dim.n = static_cast<int>(size);
+		dim.is = 1;
+		dim.os = 1;
+		forward_.reset(FFTWLib::Instance().fftwf_plan_guru_split_dft_r2c(1,
+			&dim,
+			0,
+			0,
+			data_.get(),
+			re_.get(),
+			im_.get(),
+			FFTW_ESTIMATE));
+
+		backward_.reset(FFTWLib::Instance().fftwf_plan_guru_split_dft_c2r(1,
+			&dim,
+			0,
+			0,
+			re_.get(),
+			im_.get(),
+			data_.get(),
+			FFTW_ESTIMATE));
+	}
+
+	std::valarray<Complex> Forward(float const* signals, size_t size) {
+		std::valarray<Complex> output(Complex(), complex_size_);
+
+		memcpy(data_.get(), signals, size * sizeof(float));
+
+		FFTWLib::Instance().fftwf_execute_split_dft_r2c(forward_.get(),
+			data_.get(),
+			re_.get(),
+			im_.get());
+		
+		auto const re = re_.get();
+		auto const im = im_.get();
+		for (size_t i = 0; i < complex_size_; ++i) {
+			output[i] = Complex(re[i], im[i]);
+		}
+
+		return output;
+	}
+
+private:
+	struct FFTWPlanTraits final {
+		static fftwf_plan invalid() {
+			return nullptr;
+		}
+
+		static void close(fftwf_plan value) {
+			FFTWLib::Instance().fftwf_destroy_plan(value);
+		}
+	};
+
+	struct FFTWFloatPtrTraits final {
+		template <typename T>
+		void operator()(T value) const {
+			FFTWLib::Instance().fftwf_free(value);
+		}
+	};
+
+	using FFTWPlan = UniqueHandle<fftwf_plan, FFTWPlanTraits>;
+	using FFTWPtr = std::unique_ptr<float, FFTWFloatPtrTraits>;
+
+	static FFTWPtr MakeBuffer(size_t size) {
+		return FFTWPtr(reinterpret_cast<float*>(FFTWLib::Instance().fftwf_malloc(sizeof(float) * size)));
+	}	
+
+	size_t complex_size_{ 0 };
+	FFTWPlan forward_;
+	FFTWPlan backward_;
+	FFTWPtr data_;
+	FFTWPtr re_;
+	FFTWPtr im_;	
+};
+
+#endif
+
+FFT::FFT() 
+	: impl_(MakeAlign<FFTImpl>()) {
+}
+
+XAMP_PIMPL_IMPL(FFT)
+
+void FFT::Init(size_t size) {
+	impl_->Init(size);
+}
+
+std::valarray<Complex> FFT::Forward(float const* data, size_t size) {
+	return impl_->Forward(data, size);
 }
 
 }
