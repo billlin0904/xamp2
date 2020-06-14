@@ -33,7 +33,7 @@ ScrollLabel* LrcPage::title() {
 }
 
 Spectrograph* LrcPage::spectrum() {
-	return results_;
+    return spectrograph_;
 }
 
 void LrcPage::setTextColor(QColor color) {
@@ -157,8 +157,9 @@ void LrcPage::initial() {
 	lyrics_widget_->setMinimumSize(QSize(200, 60));	
 	verticalLayout_2->addWidget(lyrics_widget_);
 
-	results_ = new Spectrograph(this);
-	results_->setMinimumSize(QSize(200, 144));
+    spectrograph_ = new Spectrograph(this);
+    spectrograph_->setMinimumSize(QSize(200, 144));
+    verticalLayout_2->addWidget(spectrograph_);
 
 	verticalLayout_2->setStretch(2, 1);
 

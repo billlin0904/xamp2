@@ -132,13 +132,15 @@ private:
 
     DsdDevice* AsDsdDevice() noexcept;
 
-    void UpdateSlice(int32_t sample_size = 0, double stream_time = 0.0) noexcept;
+    void UpdateSlice(float const *samples = nullptr, int32_t sample_size = 0, double stream_time = 0.0) noexcept;
 
     struct XAMP_CACHE_ALIGNED(kMallocAlignSize) AudioSlice {
-        AudioSlice(int32_t sample_size = 0, double stream_time = 0.0) noexcept
-            : sample_size(sample_size)
+        AudioSlice(float const *samples = nullptr, int32_t sample_size = 0, double stream_time = 0.0) noexcept
+            : samples(samples)
+            , sample_size(sample_size)
             , stream_time(stream_time) {
         }
+        float const *samples;
         int32_t sample_size;
         double stream_time;
     };
@@ -176,7 +178,6 @@ private:
     AlignPtr<Resampler> resampler_;
     DeviceInfo device_info_;
     std::future<void> stream_task_;
-    FFT fft_;
 };
 
 }

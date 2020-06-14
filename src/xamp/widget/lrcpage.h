@@ -35,10 +35,9 @@ private:
 	void initial();
 
 	LyricsShowWideget* lyrics_widget_;
-    //QLabel* cover_label_;
     VinylWidget* vinyl_;
 	QLabel* album_;
 	QLabel* artist_;
     ScrollLabel* title_;
-	Spectrograph* results_;
+    Spectrograph* spectrograph_;
 };

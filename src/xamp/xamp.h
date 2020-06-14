@@ -60,8 +60,6 @@ public slots:
 
 	void processMeatadata(const std::vector<xamp::base::Metadata>& medata);
 
-	void onSpectrumDataChanged(const std::valarray<Complex>& data);
-
 private:
     void initial();
 

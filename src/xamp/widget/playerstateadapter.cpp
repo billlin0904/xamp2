@@ -24,6 +24,8 @@ void PlayerStateAdapter::OnVolumeChanged(float vol) {
     emit volumeChanged(vol);
 }
 
-void PlayerStateAdapter::OnSpectrumDataChanged(const std::valarray<Complex>& data) {
-    emit spectrumDataChanged(data);
+void PlayerStateAdapter::OnSpectrumDataChanged(const float *samples, size_t size) {
+    buffer_.resize(size);
+    memcpy(buffer_.data(), samples, size * sizeof(float));
+    emit spectrumDataChanged(buffer_);
 }

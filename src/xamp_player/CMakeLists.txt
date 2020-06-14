@@ -62,10 +62,12 @@ find_library (
 
 message(STATUS "LIB_XAMP_STREAM: [${LIB_XAMP_STREAM}]")
 
+find_library(ACCELERATE_LIB Accelerate)
+
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
-target_link_libraries(xamp_player ${LIB_XAMP_BASE} ${LIB_XAMP_OUTPUT_DEVICE} ${LIB_XAMP_STREAM})
+target_link_libraries(xamp_player ${LIB_XAMP_BASE} ${LIB_XAMP_OUTPUT_DEVICE} ${LIB_XAMP_STREAM} ${ACCELERATE_LIB})
 
 if(LIBRARY_TESTS)
 include(FetchContent)

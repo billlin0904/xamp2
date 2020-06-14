@@ -7,6 +7,7 @@
 
 #include <cassert>
 #include <cstdint>
+#include <cstddef>
 
 #ifdef _WIN32
 #ifdef BASE_API_EXPORTS

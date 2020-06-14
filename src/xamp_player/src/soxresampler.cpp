@@ -194,7 +194,7 @@ public:
             return false;
         }
 
-        uint32_t write_size(samples_done * num_channels_ * sizeof(float));
+        size_t write_size(samples_done * num_channels_ * sizeof(float));
         if (!buffer.TryWrite(reinterpret_cast<int8_t const *>(buffer_.data()), write_size)) {
             throw Exception(Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR, "Buffer overflow!");
         }

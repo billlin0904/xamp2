@@ -30,7 +30,7 @@ signals:
 
     void volumeChanged(float vol);
 
-    void spectrumDataChanged(const std::valarray<Complex> &data);
+    void spectrumDataChanged(std::vector<float> const &samples);
 protected:
 	void OnSampleTime(double stream_time) override;
 
@@ -42,5 +42,7 @@ protected:
 
     void OnVolumeChanged(float vol) override;
 
-    void OnSpectrumDataChanged(const std::valarray<Complex>& data) override;
+    void OnSpectrumDataChanged(const float *samples, size_t size) override;
+
+    std::vector<float> buffer_;
 };

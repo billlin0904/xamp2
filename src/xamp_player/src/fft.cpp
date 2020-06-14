@@ -4,8 +4,18 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cassert>
 
+#include <base/base.h>
+#include <base/math.h>
+#include <base/enum.h>
+
+#ifdef XAMP_OS_WIN
 #define USE_FFTW
+#else
+#include <base/unique_handle.h>
+#include <Accelerate/Accelerate.h>
+#endif
 
 #ifdef USE_FFTW
 #include <base/dll.h>
@@ -16,12 +26,9 @@
 
 namespace xamp::player {
 
-static size_t ComplexSize(size_t size) {
-	return (size / 2) + 1;
-}
-
 #ifndef USE_FFTW
 
+#if 0
 class FFT::FFTImpl {
 public:
 	void Init(size_t size) {
@@ -29,7 +36,7 @@ public:
 	}
 
 	std::valarray<Complex> Forward(float const* signals, size_t size) {
-		std::valarray<Complex> output(Complex(), size);
+        std::valarray<Complex> output(Complex(), size);
 		std::transform(&signals[0], &signals[size], &output[0], [](auto signal) {
 			return Complex(signal, 0.0F);
 			});
@@ -66,12 +73,105 @@ private:
 
 	size_t complex_size_{ 0 };
 };
+#endif
+
+MAKE_ENUM(WindowType,
+          HANN,
+          HAMM)
+
+class Window {
+public:
+    Window(size_t size, WindowType type = WindowType::HANN) {
+        window_ = MakeBuffer<float>(size);
+        switch (type) {
+        case WindowType::HANN:
+            ::vDSP_hann_window(window_.get(), size, vDSP_HANN_DENORM);
+            break;
+        case WindowType::HAMM:
+            ::vDSP_hamm_window(window_.get(), size, vDSP_HANN_DENORM);
+            break;
+        }
+    }
+
+    void operator()(float const *samples, float *buffer, size_t size) {
+        ::vDSP_vmul(samples, 1, window_.get(), 1, buffer, 1, size);
+    }
+protected:
+    AlignBufferPtr<float> window_;
+};
+
+class FFT::FFTImpl {
+public:
+    explicit FFTImpl(size_t size)
+        : window_(size) {
+        Init(size);
+    }
+
+    void Init(size_t size) {
+        size_ = size;
+        size_over2_ = size_ / 2;
+        log2n_size_ = Log2(size);
+        input_ = MakeBuffer<float>(size);
+        output_ = MakeBuffer<float>(size);
+        fft_setup_.reset(::vDSP_create_fftsetup(log2n_size_, FFT_RADIX2));
+        re_ = MakeBuffer<float>(size_over2_);
+        im_ = MakeBuffer<float>(size_over2_);
+        split_complex_.realp = re_.get();
+        split_complex_.imagp = im_.get();
+    }
+
+    std::valarray<Complex> Forward(float const* signals, size_t size) {
+        window_(signals, input_.get(), size);
+
+        ::vDSP_ctoz(reinterpret_cast<const COMPLEX*>(input_.get()), 2, &split_complex_, 1, size_over2_);
+        ::vDSP_fft_zrip(fft_setup_.get(), &split_complex_, 1, log2n_size_, FFT_FORWARD);
+
+        split_complex_.imagp[0] = 0.0;
+
+        auto re = re_.get();
+        auto im = im_.get();
+
+        std::valarray<Complex> output(Complex(), size_over2_);
+        for (size_t i = 0; i < size_over2_; ++i) {
+            output[i] = Complex(re[i], im[i]);
+        }
+        return output;
+    }
+
+private:
+    struct FFTSetupTraits final {
+        static FFTSetup invalid() {
+            return nullptr;
+        }
+
+        static void close(FFTSetup value) {
+            ::vDSP_destroy_fftsetup(value);
+        }
+    };
+
+    using FFTSetupHandle = UniqueHandle<FFTSetup, FFTSetupTraits>;
+
+    size_t size_{0};
+    size_t log2n_size_{0};
+    size_t size_over2_{0};
+    FFTSetupHandle fft_setup_;
+    Window window_;
+    DSPSplitComplex split_complex_;
+    AlignBufferPtr<float> input_;
+    AlignBufferPtr<float> output_;
+    AlignBufferPtr<float> re_;
+    AlignBufferPtr<float> im_;
+};
 
 #else
 
+static size_t ComplexSize(size_t size) {
+    return (size / 2) + 1;
+}
+
 class FFTWLib {
 public:
-	FFTWLib()
+    FFTWLib()
 		: module_(LoadModule("libfftw3f-3.dll"))
 		, fftwf_destroy_plan(module_, "fftwf_destroy_plan")
 		, fftwf_malloc(module_, "fftwf_malloc")
@@ -102,8 +202,9 @@ public:
 
 class FFT::FFTImpl {
 public:
-	FFTImpl() {
-		FFTWLib::Instance();
+    FFTImpl(size_t size) {
+        FFTWLib::Instance();
+        Init(size);
 	}
 
 	void Init(size_t size) {
@@ -189,8 +290,8 @@ private:
 
 #endif
 
-FFT::FFT() 
-	: impl_(MakeAlign<FFTImpl>()) {
+FFT::FFT(size_t size)
+    : impl_(MakeAlign<FFTImpl>(size)) {
 }
 
 XAMP_PIMPL_IMPL(FFT)
