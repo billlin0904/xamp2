@@ -26,6 +26,10 @@
 
 namespace xamp::player {
 
+MAKE_ENUM(WindowType,
+          HANN,
+		  HAMMING)
+
 #ifndef USE_FFTW
 
 #if 0
@@ -75,19 +79,15 @@ private:
 };
 #endif
 
-MAKE_ENUM(WindowType,
-          HANN,
-          HAMM)
-
 class Window {
 public:
-    Window(size_t size, WindowType type = WindowType::HANN) {
+	explicit Window(size_t size, WindowType type = WindowType::HAMMING) {
         window_ = MakeBuffer<float>(size);
         switch (type) {
         case WindowType::HANN:
             ::vDSP_hann_window(window_.get(), size, vDSP_HANN_DENORM);
             break;
-        case WindowType::HAMM:
+        case WindowType::HAMMING:
             ::vDSP_hamm_window(window_.get(), size, vDSP_HANN_DENORM);
             break;
         }
@@ -200,18 +200,58 @@ public:
 	XAMP_DECLARE_DLL(fftwf_execute_split_dft_c2r) fftwf_execute_split_dft_c2r;
 };
 
+struct FFTWFloatPtrTraits final {
+	template <typename T>
+	void operator()(T value) const {
+		FFTWLib::Instance().fftwf_free(value);
+	}
+};
+
+using FFTWPtr = std::unique_ptr<float, FFTWFloatPtrTraits>;
+
+static FFTWPtr MakeBuffer(size_t size) {
+	return FFTWPtr(reinterpret_cast<float*>(FFTWLib::Instance().fftwf_malloc(sizeof(float) * size)));
+}
+
+class Window {
+public:
+	explicit Window(size_t size, WindowType type = WindowType::HAMMING) {
+		window_ = MakeBuffer(size);
+		switch (type) {
+		case WindowType::HANN:
+		case WindowType::HAMMING:
+		{
+			size_t m = size - 1;
+			for (auto i = 0; i < size; ++i) {
+				window_.get()[i] = 0.54 - 0.46 * std::cos((2.0 * kPI * i) / m);
+			}
+		}
+		break;
+		}
+	}
+
+	void operator()(float const* samples, float* buffer, size_t size) {
+		for (size_t i = 0; i < size; ++i) {
+			buffer[i] = samples[i] * window_.get()[i];
+		}
+	}
+protected:
+	FFTWPtr window_;
+};
+
 class FFT::FFTImpl {
 public:
-    FFTImpl(size_t size) {
+    explicit FFTImpl(size_t size)
+		: window_(size) {
         FFTWLib::Instance();
         Init(size);
 	}
 
 	void Init(size_t size) {
 		complex_size_ = ComplexSize(size);
-		data_ = MakeBuffer(size * sizeof(float));
-		re_ = MakeBuffer(complex_size_ * sizeof(float));
-		im_ = MakeBuffer(complex_size_ * sizeof(float));
+		data_ = MakeBuffer(size);
+		re_ = MakeBuffer(complex_size_);
+		im_ = MakeBuffer(complex_size_);
 
 		fftw_iodim dim;
 		dim.n = static_cast<int>(size);
@@ -236,10 +276,9 @@ public:
 			FFTW_ESTIMATE));
 	}
 
-	std::valarray<Complex> Forward(float const* signals, size_t size) {
-		std::valarray<Complex> output(Complex(), complex_size_);
-
-		memcpy(data_.get(), signals, size * sizeof(float));
+	std::valarray<Complex> Forward(float const* signals, size_t size) {		
+		window_(signals, data_.get(), size);
+		//std::memcpy(data_.get(), signals, size);
 
 		FFTWLib::Instance().fftwf_execute_split_dft_r2c(forward_.get(),
 			data_.get(),
@@ -248,6 +287,8 @@ public:
 		
 		auto const re = re_.get();
 		auto const im = im_.get();
+
+		std::valarray<Complex> output(Complex(), complex_size_);
 		for (size_t i = 0; i < complex_size_; ++i) {
 			output[i] = Complex(re[i], im[i]);
 		}
@@ -264,21 +305,10 @@ private:
 		static void close(fftwf_plan value) {
 			FFTWLib::Instance().fftwf_destroy_plan(value);
 		}
-	};
-
-	struct FFTWFloatPtrTraits final {
-		template <typename T>
-		void operator()(T value) const {
-			FFTWLib::Instance().fftwf_free(value);
-		}
-	};
+	};	
 
 	using FFTWPlan = UniqueHandle<fftwf_plan, FFTWPlanTraits>;
-	using FFTWPtr = std::unique_ptr<float, FFTWFloatPtrTraits>;
-
-	static FFTWPtr MakeBuffer(size_t size) {
-		return FFTWPtr(reinterpret_cast<float*>(FFTWLib::Instance().fftwf_malloc(sizeof(float) * size)));
-	}	
+	
 
 	size_t complex_size_{ 0 };
 	FFTWPlan forward_;
@@ -286,6 +316,7 @@ private:
 	FFTWPtr data_;
 	FFTWPtr re_;
 	FFTWPtr im_;	
+	Window window_;
 };
 
 #endif

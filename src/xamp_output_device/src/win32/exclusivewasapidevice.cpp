@@ -225,7 +225,10 @@ void ExclusiveWasapiDevice::FillSilentSample(uint32_t frames_available) const {
 HRESULT ExclusiveWasapiDevice::OnSampleReady(IMFAsyncResult *result) {
     if (!is_running_) {
         if (!is_stop_streaming_) {
-            FillSilentSample(buffer_frames_);
+			try {
+				FillSilentSample(buffer_frames_);
+			} catch (...) {				
+			}            
         }
         is_stop_streaming_ = true;
         condition_.notify_all();		

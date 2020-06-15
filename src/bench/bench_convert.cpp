@@ -25,13 +25,13 @@ static void BM_ConvertToInt2432SSE(benchmark::State& state) {
     output_format.SetChannel(2);
 
     for (auto& s : input) {
-        s = (float)RNG::Instance()(0.0, 1.0);
+        s = RNG::Instance()(0.0F, 1.0F);
     }
 
     ctx = MakeConvert(input_format, output_format, 2048);
 
     for (auto _ : state) {
-        (void)DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEAVED>::
+        DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEAVED>::
             ConvertToInt2432(output.data(), input.data(), ctx);
     }
 }
@@ -50,17 +50,41 @@ static void BM_ConvertToInt2432(benchmark::State& state) {
     output_format.SetChannel(2);
 
     for (auto& s : input) {
-        s = (float)RNG::Instance()(0.0, 1.0);
+        s = RNG::Instance()(0.0F, 1.0F);
     }
 
     ctx = MakeConvert(input_format, output_format, 2048);
 
     for (auto _ : state) {
-        (void)Convert2432Helper(output.data(), input.data(), ctx);
+        Convert2432Helper(output.data(), input.data(), ctx);
     }
 }
 
 BENCHMARK(BM_ConvertToInt2432);
+
+static void BM_ConvertToInt32(benchmark::State& state) {
+    std::vector<int32_t> output(4096);
+    std::vector<float> input(4096);
+
+    AudioConvertContext ctx;
+    AudioFormat input_format;
+    AudioFormat output_format;
+
+    input_format.SetChannel(2);
+    output_format.SetChannel(2);
+
+    for (auto& s : input) {
+        s = RNG::Instance()(0.0F, 1.0F);
+    }
+
+    ctx = MakeConvert(input_format, output_format, 2048);
+
+    for (auto _ : state) {
+        ConvertHelper<int32_t, kFloat32Scaler>(output.data(), input.data(), ctx);
+    }
+}
+
+BENCHMARK(BM_ConvertToInt32);
 
 static void BM_FindRobinHoodHashMap(benchmark::State& state) {
     RobinHoodHashMap<int32_t, int32_t> map;
@@ -122,39 +146,24 @@ static void BM_CircularBuffer(benchmark::State& state) {
 
 BENCHMARK(BM_CircularBuffer);
 
-static void BM_StdCppFFTForward(benchmark::State& state) {
+static void BM_FFTW_FFT_Forward(benchmark::State& state) {
+    const auto kFFTSize = state.range(0);
+
+    std::vector<float> data(kFFTSize);
+    for (auto i = 0; i < data.size(); ++i) {
+        data[i] = std::cos(2.0F * kPI * i / 256.0F);
+    }
+
     FFT fft;
 
+    fft.Init(kFFTSize);
+
     for (auto _ : state) {
-        state.PauseTiming();
-        std::vector<std::complex<float>> data(8192);
-        for (auto i = 0; i < data.size(); ++i) {
-            data[i] = std::cos(2.0 * PI * i / 256.0);
-        }
-        std::valarray<std::complex<float>> sin_wav(data.data(), data.size());
-        state.ResumeTiming();
-        fft.Forward(sin_wav);
+        fft.Forward(data.data(), data.size());
     }
 }
 
-BENCHMARK(BM_StdCppFFTForward);
-
-static void BM_StdCppFFTInverse(benchmark::State& state) {
-    FFT fft;    
-
-    for (auto _ : state) {
-        state.PauseTiming();
-        std::vector<std::complex<float>> data(8192);
-        for (auto i = 0; i < data.size(); ++i) {
-            data[i] = std::cos(2.0 * PI * i / 256.0);
-        }
-        std::valarray<std::complex<float>> sin_wav(data.data(), data.size());
-        state.ResumeTiming();
-        fft.Inverse(sin_wav);
-    }
-}
-
-BENCHMARK(BM_StdCppFFTInverse);
+BENCHMARK(BM_FFTW_FFT_Forward)->RangeMultiplier(2)->Range(256, 16384);
 
 int main(int argc, char** argv) {
     ::benchmark::Initialize(&argc, argv);

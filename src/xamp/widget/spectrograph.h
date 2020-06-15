@@ -33,13 +33,10 @@ private:
     size_t barIndex(float frequency) const;
 
     struct Bar {
-        bool clipped{false};
-        int32_t fallout {5};
         float value {0};
     };
 
     struct SpectrumData {
-        bool clipped{false};
         float frequency{0};
         float magnitude{0};
         float phase{0};
