@@ -6,15 +6,19 @@
 #pragma once
 
 #include <vector>
+
 #include <QFrame>
 #include <QTimer>
+#include <QThread>
 
-#include <player/fft.h>
+#include <widget/fftprocessor.h>
 
 class Spectrograph : public QFrame {
 	Q_OBJECT
 public:
 	explicit Spectrograph(QWidget* parent = nullptr);
+
+    virtual ~Spectrograph();
 
     void setFrequency(float low_freq, float high_freq, float frequency);
 
@@ -24,22 +28,16 @@ public:
 
 	void stop();
 
+    FFTProcessor processor;
+
 public slots:
-    void spectrumDataChanged(std::vector<float> const &samples);
+    void updateBar(std::vector<SpectrumData> const & spectrum_data);
 
 private:
-    void updateBar();
-
     size_t barIndex(float frequency) const;
 
     struct Bar {
         float value {0};
-    };
-
-    struct SpectrumData {
-        float frequency{0};
-        float magnitude{0};
-        float phase{0};
     };
 
 	void paintEvent(QPaintEvent* event) override;
@@ -47,10 +45,7 @@ private:
     float low_freq_;
     float high_freq_;
     float frequency_;
-    int32_t bar_selected_;
-    std::vector<Bar> bars_;
-    std::vector<SpectrumData> spectrum_data_;
-    xamp::base::AlignPtr<xamp::player::FFT> fft_;
+    std::vector<Bar> bars_;    
     QTimer timer_;
+    QThread thread_;
 };
-

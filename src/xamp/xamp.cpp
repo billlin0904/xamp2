@@ -960,9 +960,9 @@ void Xamp::initialPlaylist() {
     playback_history_page_->hide();
 
     (void)QObject::connect(state_adapter_.get(),
-                            &PlayerStateAdapter::spectrumDataChanged,
-                            lrc_page_->spectrum(),
-                            &Spectrograph::spectrumDataChanged,
+                            &PlayerStateAdapter::sampleDataChanged,
+                            &lrc_page_->spectrum()->processor,
+                            &FFTProcessor::OnSampleDataChanged,
                             Qt::QueuedConnection);
 
     artist_info_page_ = new ArtistInfoPage(this);

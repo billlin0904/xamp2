@@ -31,7 +31,7 @@ public:
 
 	virtual void OnVolumeChanged(float vol) = 0;
 
-    virtual void OnSpectrumDataChanged(const float *samples, size_t size) = 0;
+    virtual void OnSampleDataChanged(const float *samples, size_t size) = 0;
 
 protected:
     PlaybackStateAdapter() = default;

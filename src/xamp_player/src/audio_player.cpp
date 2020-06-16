@@ -327,7 +327,7 @@ void AudioPlayer::Initial() {
             const auto slice = p->slice_.load();
             if (slice.sample_size > 0) {
                 if (slice.samples != nullptr) {
-                    adapter->OnSpectrumDataChanged(slice.samples, slice.sample_size);
+                    adapter->OnSampleDataChanged(slice.samples, slice.sample_size);
                 }
                 adapter->OnSampleTime(slice.stream_time);
             } else if (p->is_playing_ && slice.sample_size == -1) {

@@ -5,30 +5,44 @@
 #include <widget/spectrograph.h>
 
 inline constexpr size_t kBarCount = 120;
-inline constexpr size_t kFFTSize = 2048;
 
 Spectrograph::Spectrograph(QWidget* parent)
-    : QFrame(parent) {
-    fft_ = xamp::base::MakeAlign<xamp::player::FFT>(kFFTSize);
+    : QFrame(parent)
+    , low_freq_(0)
+    , high_freq_(0)
+    , frequency_(0) {
     bars_.resize(kBarCount);
     timer_.setTimerType(Qt::PreciseTimer);
     timer_.setInterval(33);
     (void)QObject::connect(&timer_, &QTimer::timeout, [this]() {
         update();
         for (auto& bar : bars_) {
-            if (bar.value - 0.1 > 0.0) {
+            if (bar.value - 0.1 > 0.001) {
                 bar.value -= 0.1;
-            }            
+            }
+            else {
+                bar.value = 0.001;
+            }
         }
     });
-    timer_.start();
+    (void)QObject::connect(&processor,
+        &FFTProcessor::spectrumDataChanged,
+        this,
+        &Spectrograph::updateBar);
+    timer_.start();    
+    thread_.start();
+}
+
+Spectrograph::~Spectrograph() {
+    thread_.quit();
+    thread_.terminate();
 }
 
 void Spectrograph::setFrequency(float low_freq, float high_freq, float frequency) {
     low_freq_ = low_freq;
     high_freq_ = high_freq;
-    frequency_ = frequency;
-    spectrum_data_.resize(kFFTSize);
+    frequency_ = frequency;   
+    processor.setFrequency(frequency);
 }
 
 void Spectrograph::paintEvent(QPaintEvent*) {
@@ -60,28 +74,16 @@ size_t Spectrograph::barIndex(float frequency) const {
     return static_cast<size_t>(index);
 }
 
-void Spectrograph::updateBar() {
-    for (auto spectrum_data : spectrum_data_) {
+void Spectrograph::updateBar(std::vector<SpectrumData> const& spectrum_data) {
+    for (auto spectrum_data : spectrum_data) {
         if (spectrum_data.frequency >= low_freq_ && spectrum_data.frequency < high_freq_) {
+            spectrum_data.magnitude /= 5.0F;
+            spectrum_data.magnitude = (std::max)(0.0F, spectrum_data.magnitude);
+            spectrum_data.magnitude = (std::min)(1.0F, spectrum_data.magnitude);
             auto &bar = bars_[barIndex(spectrum_data.frequency)];
             bar.value = (std::max)(bar.value, spectrum_data.magnitude);
         }
     }    
-}
-
-void Spectrograph::spectrumDataChanged(std::vector<float> const &samples) {
-    auto result = fft_->Forward(samples.data(), samples.size());
-
-    for (size_t i = 2; i <= result.size() / 2; ++i) {
-        auto magnitude = std::hypot(result[i].imag(), result[i].real()) / 5;
-        magnitude = (std::max)(0.0F, magnitude);
-        magnitude = (std::min)(1.0F, magnitude);
-        spectrum_data_[i].frequency = float(i * frequency_) / result.size();
-        spectrum_data_[i].magnitude = magnitude;
-        spectrum_data_[i].phase = std::atan2(result[i].imag(), result[i].real());
-    }
-
-    updateBar();
 }
 
 void Spectrograph::reset() {
@@ -92,5 +94,5 @@ void Spectrograph::start() {
 }
 
 void Spectrograph::stop() {
-    timer_.stop();
+    timer_.stop();    
 }
