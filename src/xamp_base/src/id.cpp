@@ -10,17 +10,15 @@
 
 namespace xamp::base {
 
-static inline int32_t ToChar(const char C) {
-    const char buffer[2] = { C, '\0' };
-    const auto result = atoi(buffer);
-    if (errno == ERANGE) {
-        throw std::invalid_argument("Invalid digital.");
-    }
-    return result;
-}
-
 static inline uint8_t MakeHex(char a, char b) {
-    return static_cast<uint8_t>(ToChar(a) * 16 + ToChar(b));
+    const char buffer[3] = { a, b, '\0' };
+    const char* start = &buffer[0];
+    char* endptr = nullptr;
+    const auto result = std::strtol(start, &endptr, 16);
+    if (endptr > start) {
+        return static_cast<uint8_t>(result);        
+    }
+    throw std::invalid_argument("Invalid digital.");
 }
 
 static std::array<uint8_t, kIdSize> ParseString(std::string_view const & from_string) {
