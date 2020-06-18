@@ -11,6 +11,9 @@ static float Power2Dbm(float power) {
 }
 
 static float Power2Loudness(float power) {
+    if (power == 0.0F) {
+        return -100.0F;
+    }
     return 10 * std::log10(power) - 0.691F;
 }
 
@@ -58,8 +61,8 @@ std::tuple<float, size_t> FFTProcessor::GetThreshold(float threshold) {
     float sum = 0;
     size_t N = 0;
     for (const auto& spectrum_data : spectrum_data_) {
-        if (spectrum_data.power >= threshold) {
-            sum += spectrum_data.power;
+        if (spectrum_data.magnitude >= threshold) {
+            sum += spectrum_data.magnitude;
             ++N;
         }
     }
@@ -81,45 +84,9 @@ void FFTProcessor::OnSampleDataChanged(std::vector<float> const& samples) {
 
         const auto magnitude = GetMag(result[i]);
         spectrum_data_[i].magnitude = magnitude;
-        spectrum_data_[i].db = GetDb(magnitude);
-        spectrum_data_[i].power = Db2Power(spectrum_data_[i].db);
-        spectrum_data_[i].amplitude = GetAmp(result[i], N);
-        spectrum_data_[i].lufs = Power2Loudness(magnitude);
-        spectrum_data_[i].phase = GetPhase(result[i]);
+        spectrum_data_[i].lufs = Power2Loudness(
+            static_cast<float>(std::pow(result[i].imag(), 2) + std::pow(result[i].real(), 2)));
     }
-
-    /*
-    auto [absolute_sum, absolute_n] = GetThreshold(absolute_threshold_);
-
-    integrated_loudness_.push_back(
-        Power2Loudness(absolute_n ?
-                                  absolute_sum / absolute_n
-                                  : absolute_threshold_));
-
-    auto threshold = absolute_n ?
-                                (std::max)(absolute_sum / absolute_n / 100, absolute_threshold_)
-                                : absolute_threshold_;
-
-    std::vector<float> power_gate;
-    power_gate.reserve(spectrum_data_.size());
-
-    for (const auto& spectrum_data : spectrum_data_) {
-        if (spectrum_data.power >= threshold) {
-            power_gate.push_back(spectrum_data.power);
-        }
-    }
-
-    if (!power_gate.empty()) {
-        std::sort(power_gate.begin(), power_gate.end());
-        const auto high = static_cast<size_t>(std::rint(0.95 * power_gate.size() - 1));
-        const auto low = static_cast<size_t>(std::rint(0.1 * power_gate.size() - 1));
-        loudness_range_.push_back(
-            Power2Loudness(power_gate[high])
-            - Power2Loudness(power_gate[low]));
-    } else {
-        loudness_range_.push_back(0.0F);
-    }
-    */
 
     emit spectrumDataChanged(spectrum_data_);
 }

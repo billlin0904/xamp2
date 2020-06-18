@@ -12,10 +12,6 @@
 struct SpectrumData {
     float frequency{ 0 };
     float magnitude{ 0 };
-    float amplitude{ 0 };
-    float db{ 0 };
-    float power{ 0 };
-    float phase{ 0 };
     float lufs{ 0 };
 };
 

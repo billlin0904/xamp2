@@ -38,22 +38,16 @@ public slots:
     void updateBar(std::vector<SpectrumData> const & spectrum_data);
 
 private:
-    size_t barIndex(float frequency) const;
-
-    struct Bar {
-        float value {0};
-    };
-
     float low_freq_;
     float high_freq_;
     float frequency_;
     float max_lufs_;
-    std::vector<Bar> bars_;
+    size_t lufs_count_;
     QChart *chart_;
     QChartView *chart_view_;
     QSplineSeries *spline_series_;
-    QScatterSeries *scatter_series_;
     QTimer timer_;
+    QTimer reset_timer_;
     QThread thread_;
     QList<double> data_;
 };

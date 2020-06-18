@@ -1,4 +1,4 @@
-QT       += core gui sql network concurrent
+QT       += core gui sql network concurrent charts
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -60,7 +60,6 @@ SOURCES += \
     widget/filesystemwatcher.cpp \
     widget/selectcolorwidget.cpp \
     widget/artistinfopage.cpp \
-    singleinstanceapplication.cpp \
     widget/starrating.cpp \
     widget/stareditor.cpp \
     widget/stardelegate.cpp \
@@ -68,6 +67,8 @@ SOURCES += \
     widget/localelanguage.cpp \
     widget/jsonsettings.cpp \
     widget/scrolllabel.cpp \
+    widget/fftprocessor.cpp \
+    singleinstanceapplication.cpp \
     thememanager.cpp \
     aboutdialog.cpp \
     preferencedialog.cpp \
@@ -120,6 +121,8 @@ HEADERS += \
     widget/localelanguage.h \
     widget/jsonsettings.h \
     widget/scrolllabel.h \
+    widget/spectrograph.h \
+    widget/fftprocessor.h \
     thememanager.h \
     aboutdialog.h \
     preferencedialog.h \
