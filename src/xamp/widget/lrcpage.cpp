@@ -158,7 +158,7 @@ void LrcPage::initial() {
 	verticalLayout_2->addWidget(lyrics_widget_);
 
     spectrograph_ = new Spectrograph(this);
-    spectrograph_->setMinimumSize(QSize(200, 144));
+    spectrograph_->setMinimumSize(QSize(200, 400));
     verticalLayout_2->addWidget(spectrograph_);
 
 	verticalLayout_2->setStretch(2, 1);

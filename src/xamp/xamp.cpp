@@ -125,6 +125,8 @@ void Xamp::closeEvent(QCloseEvent*) {
         player_->Destroy();
         player_.reset();
     }
+
+    lrc_page_->spectrum()->stop();
 }
 
 void Xamp::setNightStyle() {

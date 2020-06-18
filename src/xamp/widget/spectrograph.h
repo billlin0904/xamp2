@@ -11,14 +11,18 @@
 #include <QTimer>
 #include <QThread>
 
+#include <QtCharts/QChartView>
+#include <QtCharts/QSplineSeries>
+#include <QtCharts/QScatterSeries>
+
 #include <widget/fftprocessor.h>
 
-class Spectrograph : public QFrame {
+QT_CHARTS_USE_NAMESPACE
+
+class Spectrograph : public QWidget {
 	Q_OBJECT
 public:
 	explicit Spectrograph(QWidget* parent = nullptr);
-
-    virtual ~Spectrograph();
 
     void setFrequency(float low_freq, float high_freq, float frequency);
 
@@ -40,12 +44,16 @@ private:
         float value {0};
     };
 
-	void paintEvent(QPaintEvent* event) override;
-
     float low_freq_;
     float high_freq_;
     float frequency_;
-    std::vector<Bar> bars_;    
+    float max_lufs_;
+    std::vector<Bar> bars_;
+    QChart *chart_;
+    QChartView *chart_view_;
+    QSplineSeries *spline_series_;
+    QScatterSeries *scatter_series_;
     QTimer timer_;
     QThread thread_;
+    QList<double> data_;
 };

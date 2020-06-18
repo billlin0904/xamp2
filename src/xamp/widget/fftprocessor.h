@@ -39,4 +39,5 @@ private:
     xamp::base::AlignPtr<xamp::player::FFT> fft_;
     std::vector<SpectrumData> spectrum_data_;
     std::vector<float> integrated_loudness_;
+    std::vector<float> loudness_range_;
 };

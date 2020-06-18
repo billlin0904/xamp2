@@ -1,29 +1,60 @@
 #include <QPainter>
 #include <QPaintEvent>
-#include <base/math.h>
+#include <QHBoxLayout>
+#include <QAreaSeries>
 
+#include <base/math.h>
+#include <widget/str_utilts.h>
 #include <widget/spectrograph.h>
 
-inline constexpr size_t kBarCount = 120;
+inline constexpr auto kBarCount = 120;
+inline constexpr auto maxX = 300;
+inline constexpr auto maxY = 100;
+inline constexpr auto maxSize = 50;
 
 Spectrograph::Spectrograph(QWidget* parent)
-    : QFrame(parent)
+    : QWidget(parent)
     , low_freq_(0)
     , high_freq_(0)
-    , frequency_(0) {
+    , frequency_(0)
+    , max_lufs_(-1000.0F) {
     bars_.resize(kBarCount);
+    spline_series_ = new QSplineSeries();
+
+    chart_ = new QChart();
+    chart_->setTheme(QtCharts::QChart::ChartThemeBlueNcs);
+    chart_->addSeries(spline_series_);
+    chart_->legend()->hide();
+    chart_->createDefaultAxes();
+    chart_->axisX()->setRange(0, maxX);
+    chart_->axisY()->setRange(0, maxY);
+
+    chart_view_ = new QChartView(chart_);
+    chart_view_->setRenderHint(QPainter::Antialiasing);
+
+    auto layout = new QHBoxLayout();
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->addWidget(chart_view_);
+    setLayout(layout);
+
     timer_.setTimerType(Qt::PreciseTimer);
-    timer_.setInterval(33);
+    timer_.setInterval(300);
     (void)QObject::connect(&timer_, &QTimer::timeout, [this]() {
-        update();
-        for (auto& bar : bars_) {
-            if (bar.value - 0.1 > 0.001) {
-                bar.value -= 0.1;
-            }
-            else {
-                bar.value = 0.001;
-            }
+        data_ << max_lufs_;
+
+        while (data_.size() > maxSize) {
+            data_.removeFirst();
         }
+
+        spline_series_->clear();
+
+        for (auto i = 0; i < data_.size(); ++i) {
+            size_t dx = maxX / (maxSize - 1);
+            size_t less = maxSize - data_.size();
+            spline_series_->append(less * dx + i * dx, data_.at(i));
+        }
+
+        max_lufs_ = 0.0;
     });
     (void)QObject::connect(&processor,
         &FFTProcessor::spectrumDataChanged,
@@ -33,39 +64,11 @@ Spectrograph::Spectrograph(QWidget* parent)
     thread_.start();
 }
 
-Spectrograph::~Spectrograph() {
-    thread_.quit();
-    thread_.terminate();
-}
-
 void Spectrograph::setFrequency(float low_freq, float high_freq, float frequency) {
     low_freq_ = low_freq;
     high_freq_ = high_freq;
     frequency_ = frequency;   
     processor.setFrequency(frequency);
-}
-
-void Spectrograph::paintEvent(QPaintEvent*) {
-    QPainter painter(this);
-
-    auto num_bars = static_cast<int32_t>(bars_.size());
-    const auto widget_width = rect().width();
-    const auto bar_plus_gap_width = widget_width / num_bars;
-    const auto bar_width = 0.8 * bar_plus_gap_width;
-    const auto gap_width = bar_plus_gap_width - bar_width;
-    const auto padding_width = widget_width - num_bars * (bar_width + gap_width);
-    const auto left_padding_width = (padding_width + gap_width) / 2;
-    const auto bar_height = rect().height() - 2 * gap_width;
-
-    int i = 0;
-    for (const auto &value : bars_) {
-        auto bar_rect = rect();
-        bar_rect.setLeft(rect().left() + left_padding_width + (i++ * (gap_width + bar_width)));
-        bar_rect.setWidth(bar_width);
-        bar_rect.setTop(rect().top() + gap_width + (1.0 - value.value) * bar_height);
-        bar_rect.setBottom(rect().bottom() - gap_width);
-        painter.fillRect(bar_rect, Qt::gray);
-    }
 }
 
 size_t Spectrograph::barIndex(float frequency) const {
@@ -75,15 +78,16 @@ size_t Spectrograph::barIndex(float frequency) const {
 }
 
 void Spectrograph::updateBar(std::vector<SpectrumData> const& spectrum_data) {
-    for (auto spectrum_data : spectrum_data) {
-        if (spectrum_data.frequency >= low_freq_ && spectrum_data.frequency < high_freq_) {
-            spectrum_data.magnitude /= 5.0F;
-            spectrum_data.magnitude = (std::max)(0.0F, spectrum_data.magnitude);
-            spectrum_data.magnitude = (std::min)(1.0F, spectrum_data.magnitude);
-            auto &bar = bars_[barIndex(spectrum_data.frequency)];
-            bar.value = (std::max)(bar.value, spectrum_data.magnitude);
+    for (auto data : spectrum_data) {
+        if (data.frequency >= low_freq_ && data.frequency < high_freq_) {
+            data.magnitude /= 5.0F;
+            data.magnitude = (std::max)(0.0F, data.magnitude);
+            data.magnitude = (std::min)(1.0F, data.magnitude);
+            auto &bar = bars_[barIndex(data.frequency)];
+            bar.value = (std::max)(bar.value, data.magnitude);
+            max_lufs_ = (std::max)(max_lufs_, data.lufs);
         }
-    }    
+    }
 }
 
 void Spectrograph::reset() {
@@ -94,5 +98,7 @@ void Spectrograph::start() {
 }
 
 void Spectrograph::stop() {
-    timer_.stop();    
+    timer_.stop();
+    thread_.quit();
+    thread_.wait();
 }

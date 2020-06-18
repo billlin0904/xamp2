@@ -44,8 +44,10 @@ FFTProcessor::FFTProcessor(QObject* parent)
 	: QObject(parent) 
     , frequency_(0) {
 	fft_ = xamp::base::MakeAlign<xamp::player::FFT>(kFFTSize);
-    absolute_threshold_ = Power2Loudness(-70.0F);
-	spectrum_data_.resize(kFFTSize);
+    absolute_threshold_ = Loudness2Power(-70.0F);
+    spectrum_data_.resize(kFFTSize);
+    integrated_loudness_.reserve(kFFTSize);
+    loudness_range_.reserve(kFFTSize);
 }
 
 void FFTProcessor::setFrequency(float frequency) {
@@ -67,6 +69,11 @@ std::tuple<float, size_t> FFTProcessor::GetThreshold(float threshold) {
 void FFTProcessor::OnSampleDataChanged(std::vector<float> const& samples) {
     auto result = fft_->Forward(samples.data(), samples.size());
 
+    if (integrated_loudness_.size() > kFFTSize) {
+        integrated_loudness_.clear();
+        loudness_range_.clear();
+    }
+
     auto N = result.size();
 
     for (size_t i = 2; i <= N / 2; ++i) {
@@ -77,16 +84,42 @@ void FFTProcessor::OnSampleDataChanged(std::vector<float> const& samples) {
         spectrum_data_[i].db = GetDb(magnitude);
         spectrum_data_[i].power = Db2Power(spectrum_data_[i].db);
         spectrum_data_[i].amplitude = GetAmp(result[i], N);
-        spectrum_data_[i].lufs = Power2Loudness(spectrum_data_[i].power);
+        spectrum_data_[i].lufs = Power2Loudness(magnitude);
         spectrum_data_[i].phase = GetPhase(result[i]);
     }
 
+    /*
     auto [absolute_sum, absolute_n] = GetThreshold(absolute_threshold_);
-    integrated_loudness_.push_back(Power2Loudness(absolute_n ? absolute_sum / absolute_n : absolute_threshold_));
 
-    auto threshold = absolute_n ? (std::max)(absolute_sum / absolute_n / 100, absolute_threshold_) : absolute_threshold_;
-    auto [threshold_sum, threshold_n] = GetThreshold(threshold);
-    
+    integrated_loudness_.push_back(
+        Power2Loudness(absolute_n ?
+                                  absolute_sum / absolute_n
+                                  : absolute_threshold_));
+
+    auto threshold = absolute_n ?
+                                (std::max)(absolute_sum / absolute_n / 100, absolute_threshold_)
+                                : absolute_threshold_;
+
+    std::vector<float> power_gate;
+    power_gate.reserve(spectrum_data_.size());
+
+    for (const auto& spectrum_data : spectrum_data_) {
+        if (spectrum_data.power >= threshold) {
+            power_gate.push_back(spectrum_data.power);
+        }
+    }
+
+    if (!power_gate.empty()) {
+        std::sort(power_gate.begin(), power_gate.end());
+        const auto high = static_cast<size_t>(std::rint(0.95 * power_gate.size() - 1));
+        const auto low = static_cast<size_t>(std::rint(0.1 * power_gate.size() - 1));
+        loudness_range_.push_back(
+            Power2Loudness(power_gate[high])
+            - Power2Loudness(power_gate[low]));
+    } else {
+        loudness_range_.push_back(0.0F);
+    }
+    */
 
     emit spectrumDataChanged(spectrum_data_);
 }
