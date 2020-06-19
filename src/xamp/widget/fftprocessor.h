@@ -12,6 +12,7 @@
 struct SpectrumData {
     float frequency{ 0 };
     float magnitude{ 0 };
+    float dbm{ 0 };
     float lufs{ 0 };
 };
 
@@ -29,11 +30,8 @@ signals:
     void spectrumDataChanged(std::vector<SpectrumData> const& data);
 
 private:
-    std::tuple<float, size_t> GetThreshold(float threshold);
     float frequency_;
     float absolute_threshold_;
     xamp::base::AlignPtr<xamp::player::FFT> fft_;
     std::vector<SpectrumData> spectrum_data_;
-    std::vector<float> integrated_loudness_;
-    std::vector<float> loudness_range_;
 };

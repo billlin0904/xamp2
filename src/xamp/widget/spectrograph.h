@@ -42,12 +42,15 @@ private:
     float high_freq_;
     float frequency_;
     float max_lufs_;
+    float dbm_;
     size_t lufs_count_;
     QChart *chart_;
     QChartView *chart_view_;
-    QSplineSeries *spline_series_;
+    QSplineSeries *lufs_series_;
+    QSplineSeries *dbm_series_;
     QTimer timer_;
     QTimer reset_timer_;
     QThread thread_;
-    QList<double> data_;
+    QList<double> lufs_data_;
+    QList<double> dbm_data_;
 };

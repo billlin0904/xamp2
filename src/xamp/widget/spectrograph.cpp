@@ -18,16 +18,22 @@ Spectrograph::Spectrograph(QWidget* parent)
     , high_freq_(0)
     , frequency_(0)
     , max_lufs_(0)
+    , dbm_(0)
     , lufs_count_(0) {
-    spline_series_ = new QSplineSeries();
+    lufs_series_ = new QSplineSeries();
+    lufs_series_->setUseOpenGL(true);
+
+    dbm_series_ = new QSplineSeries();
+    dbm_series_->setUseOpenGL(true);
 
     chart_ = new QChart();
     chart_->setTheme(QtCharts::QChart::ChartThemeLight);
-    chart_->addSeries(spline_series_);
+    chart_->addSeries(lufs_series_);
+    chart_->addSeries(dbm_series_);
     chart_->legend()->hide();
     chart_->createDefaultAxes();
     chart_->axisX()->setRange(0, maxX);
-    chart_->axisY()->setRange(-5, 5);
+    chart_->axisY()->setRange(-20, 5);
 
     chart_view_ = new QChartView(chart_);
     chart_view_->setRenderHint(QPainter::Antialiasing);
@@ -51,18 +57,34 @@ Spectrograph::Spectrograph(QWidget* parent)
     (void)QObject::connect(&timer_, &QTimer::timeout, [this]() {
         chart_view_->setUpdatesEnabled(false);
 
-        data_ << (max_lufs_ / lufs_count_);
-
-        while (data_.size() > maxSize) {
-            data_.removeFirst();
+        if (lufs_count_ == 0) {
+            if (lufs_data_.size() == 0) {
+                lufs_data_ << 0;
+            }
+            else {
+                lufs_data_ << lufs_data_.back();
+            }            
+        }
+        else {
+            lufs_data_ << (max_lufs_ / lufs_count_);
         }
 
-        spline_series_->clear();
+        dbm_data_ << dbm_;
 
-        for (auto i = 0; i < data_.size(); ++i) {
-            auto dx = maxX / (maxSize - 1);
-            auto less = maxSize - data_.size();
-            spline_series_->append(less * dx + i * dx, data_.at(i));
+        while (lufs_data_.size() > maxSize) {
+            lufs_data_.removeFirst();
+            dbm_data_.removeFirst();
+        }
+
+        lufs_series_->clear();
+        dbm_series_->clear();
+
+        const auto dx = maxX / (maxSize - 1);
+        const auto less = maxSize - lufs_data_.size();
+
+        for (auto i = 0; i < lufs_data_.size(); ++i) {            
+            lufs_series_->append(less * dx + i * dx, lufs_data_.at(i));
+            dbm_series_->append(less * dx + i * dx, dbm_data_.at(i));
         }
 
         chart_view_->setUpdatesEnabled(true);
@@ -86,12 +108,15 @@ void Spectrograph::setFrequency(float low_freq, float high_freq, float frequency
 }
 
 void Spectrograph::updateBar(std::vector<SpectrumData> const& spectrum_data) {
+    auto total_dbm = 0.0F;
     for (auto data : spectrum_data) {
         if (data.frequency >= low_freq_ && data.frequency < high_freq_) {
             max_lufs_ += data.lufs;
+            total_dbm += data.dbm;
             ++lufs_count_;
         }
     }
+    dbm_ = total_dbm / spectrum_data.size();
 }
 
 void Spectrograph::reset() {

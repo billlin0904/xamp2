@@ -16,8 +16,8 @@
 
 namespace xamp::base {
 	
-static constexpr size_t kIdSize = 16;
-static constexpr size_t kMaxIdStrLen = 36;
+inline constexpr size_t kIdSize = 16;
+inline constexpr size_t kMaxIdStrLen = 36;
 
 class XAMP_BASE_API ID final {
 public:
@@ -43,12 +43,12 @@ public:
 
 	[[nodiscard]] size_t GetHash() const noexcept;
 
-	operator std::string() const noexcept;
+	operator std::string() const;
 
 private:
     friend std::ostream &operator<<(std::ostream &s, ID const &id);
 
-    friend bool operator==(std::string const &str, ID const &id) noexcept;
+    friend bool operator==(std::string const &str, ID const &id);
 
     friend bool operator==(ID const & other1, ID const & other2) noexcept;
 
@@ -56,28 +56,6 @@ private:
 
 	std::array<uint8_t, kIdSize> bytes_;
 };
-
-XAMP_ALWAYS_INLINE ID::ID(ID const &other) noexcept {
-	*this = other;
-}
-
-XAMP_ALWAYS_INLINE ID & ID::operator=(ID const & other) noexcept {
-	if (this != &other) {
-		bytes_ = other.bytes_;
-	}
-	return *this;
-}
-
-XAMP_ALWAYS_INLINE ID::ID(ID &&other) noexcept {
-    *this = std::move(other);
-}
-
-XAMP_ALWAYS_INLINE ID& ID::operator=(ID&& other) noexcept {
-	if (this != &other) {
-		bytes_ = other.bytes_;
-	}
-	return *this;
-}
 
 XAMP_ALWAYS_INLINE bool ID::IsValid() const noexcept {
     return *this == ID::INVALID_ID;
@@ -91,7 +69,7 @@ XAMP_ALWAYS_INLINE bool operator==(ID const & other1, ID const & other2) noexcep
     return std::memcmp(other1.bytes_.data(), other2.bytes_.data(), other2.bytes_.size()) == 0;
 }
 
-XAMP_ALWAYS_INLINE bool operator==(std::string const &str, ID const &id) noexcept {
+XAMP_ALWAYS_INLINE bool operator==(std::string const &str, ID const &id) {
 	return ID(str) == id;
 }
 
