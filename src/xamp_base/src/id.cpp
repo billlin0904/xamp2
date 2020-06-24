@@ -43,35 +43,6 @@ static std::array<uint8_t, kIdSize> ParseString(std::string_view const & from_st
 		++j;
 		++i;
 	}
-
-    /*
-    BOOL _GUIDFromString(LPCSTR, LPGUID);
-
-    static auto shlwapi_dll = xamp::base::LoadModule("Shlwapi.dll");
-    static const XAMP_DECLARE_DLL(_GUIDFromString) GUIDFromString(shlwapi_dll, 269);
-
-    if (!GUIDFromString(from_string.data(), reinterpret_cast<GUID*>(uuid.data()))) {
-        throw std::invalid_argument("Invalid ID.");
-    }
-    */
-
-    /*    
-    int32_t data1;
-    int16_t data2, data3, data4a;
-    char data4b[6];
-
-    if (sscanf(from_string.data(), "%08X-%04hX-%04hX-%04hX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX",
-        &data1, &data2, &data3, &data4a, data4b, data4b + 1, data4b + 2, data4b + 3, data4b + 4, data4b + 5) != 10) {
-        throw std::invalid_argument("Invalid ID.");
-    }
-
-    memcpy(uuid.data() + 0x0, &data1, 4);
-    memcpy(uuid.data() + 0x4, &data2, 2);
-    memcpy(uuid.data() + 0x6, &data3, 2);
-    memcpy(uuid.data() + 0x8, &data4a, 2);
-    memcpy(uuid.data() + 0xA, data4b, 6);
-    */
-
     return uuid;
 }
 
@@ -139,9 +110,6 @@ ID::ID(std::string_view const &str) {
 }
 
 ID::operator std::string() const {
-	if (bytes_.empty()) {
-		return "";
-	}
     std::ostringstream ostr;
 	ostr << *this;
     return ostr.str();

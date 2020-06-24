@@ -23,7 +23,9 @@ namespace xamp::base {
 
 #ifdef XAMP_OS_WIN
 
-static constexpr DWORD MSVC_CPP_EXCEPTION_CODE = 0xE06D7363;
+inline constexpr DWORD kMsvcCppExceptionCode = 0xE06D7363;
+inline constexpr DWORD kIgoneDebugOutputStringExceptionCode = DBG_PRINTEXCEPTION_C;
+inline constexpr DWORD kIgoneDebugOutputWideStringExceptionCode = DBG_PRINTEXCEPTION_WIDE_C;
 
 #define DECLARE_EXCEPTION_CODE(Code) { Code, #Code },
 
@@ -50,7 +52,7 @@ static RobinHoodHashMap<DWORD, std::string_view> const & GetWellKnownExceptionCo
     DECLARE_EXCEPTION_CODE(EXCEPTION_INVALID_DISPOSITION)
     DECLARE_EXCEPTION_CODE(EXCEPTION_GUARD_PAGE)
     DECLARE_EXCEPTION_CODE(EXCEPTION_INVALID_HANDLE)
-    DECLARE_EXCEPTION_CODE(MSVC_CPP_EXCEPTION_CODE)
+    DECLARE_EXCEPTION_CODE(kMsvcCppExceptionCode)
     };
 
     return WellKnownExceptionCode;
@@ -84,7 +86,7 @@ private:
 	WinHandle process_;
 };
 
-static size_t WalkStack(const CONTEXT* context, CaptureStackAddress& addrlist) {
+static size_t WalkStack(CONTEXT const* context, CaptureStackAddress& addrlist) {
     CONTEXT integer_control_context = *context;
     integer_control_context.ContextFlags = CONTEXT_INTEGER | CONTEXT_CONTROL;
 
@@ -102,7 +104,7 @@ static size_t WalkStack(const CONTEXT* context, CaptureStackAddress& addrlist) {
     const FileHandle thread(::GetCurrentThread());
 
     for (auto i = 0; i < addrlist.size(); ++i) {
-        const auto result = StackWalk64(IMAGE_FILE_MACHINE_IA64,
+        const auto result = ::StackWalk64(IMAGE_FILE_MACHINE_IA64,
             SymLoader::Instance().GetProcess().get(),
             thread.get(),
             &stack_frame,
@@ -167,18 +169,24 @@ void StackTrace::WriteLog(size_t frame_count) {
     }
 }
 
-void StackTrace::PrintStackTrace(EXCEPTION_POINTERS* info) {
-    if (info->ExceptionRecord->ExceptionCode == MSVC_CPP_EXCEPTION_CODE) {
+void StackTrace::PrintStackTrace(EXCEPTION_POINTERS const* info) {
+    if (info->ExceptionRecord->ExceptionCode == kIgoneDebugOutputStringExceptionCode
+        || info->ExceptionRecord->ExceptionCode == kIgoneDebugOutputWideStringExceptionCode) {
+        XAMP_LOG_DEBUG("Igone DebugOutputWideString exception code.");
+        return;
+    }
+
+    if (info->ExceptionRecord->ExceptionCode == kMsvcCppExceptionCode) {
         XAMP_LOG_DEBUG("Uncaught std::exception!");
         return;
     }
 
     auto itr = GetWellKnownExceptionCode().find(info->ExceptionRecord->ExceptionCode);
     if (itr != GetWellKnownExceptionCode().end()) {
-        XAMP_LOG_DEBUG("Caught signal {} {}.", info->ExceptionRecord->ExceptionCode, (*itr).second);
+        XAMP_LOG_DEBUG("Caught signal 0x{:08x} {}.", info->ExceptionRecord->ExceptionCode, (*itr).second);
     }
     else {
-        XAMP_LOG_DEBUG("Caught signal {}.", info->ExceptionRecord->ExceptionCode);
+        XAMP_LOG_DEBUG("Caught signal 0x{:08x}.", info->ExceptionRecord->ExceptionCode);
     }
 
     auto frame_count = WalkStack(info->ContextRecord, addrlist_);
@@ -206,8 +214,8 @@ StackTrace::StackTrace() noexcept {
 
 void StackTrace::RegisterAbortHandler() {
 #ifdef XAMP_OS_WIN
-    //SymLoader::Instance();
-    //(void) ::AddVectoredExceptionHandler(1, AbortHandler);
+    SymLoader::Instance();
+    (void) ::AddVectoredExceptionHandler(1, AbortHandler);
 #else
     ::signal(SIGABRT, AbortHandler);
     ::signal(SIGSEGV, AbortHandler);
@@ -220,7 +228,7 @@ void StackTrace::RegisterAbortHandler() {
 LONG WINAPI StackTrace::AbortHandler(EXCEPTION_POINTERS* info) {
     StackTrace trace;
     trace.PrintStackTrace(info);
-    return EXCEPTION_CONTINUE_EXECUTION;
+    return EXCEPTION_CONTINUE_SEARCH;
 }
 #else
 void StackTrace::AbortHandler(int32_t signum) {

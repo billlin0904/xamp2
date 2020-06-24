@@ -63,16 +63,19 @@ public:
 
 	bool CanHardwareControlVolume() const override;
 
-private:
-	void InitialDeviceFormat(AudioFormat const & output_format, uint32_t valid_bits_samples);
+private:	
 
-	void FillSilentSample(uint32_t frames_available) const;
+	void InitialDeviceFormat(AudioFormat const & output_format, uint32_t valid_bits_samples);	
 
 	void SetAlignedPeriod(REFERENCE_TIME device_period, AudioFormat const & output_format);
 
-	void GetSample(uint32_t frame_available);
+	void FillSilentSample(uint32_t frames_available) noexcept;
 
-	HRESULT OnSampleReady(IMFAsyncResult* result);
+	void IgoneAndRaiseError(HRESULT hr) noexcept;
+
+	void GetSample(uint32_t frame_available) noexcept;
+
+	HRESULT OnSampleReady(IMFAsyncResult* result) noexcept;
 
 	std::atomic<bool> is_running_;
 	std::atomic<bool> is_stop_streaming_;

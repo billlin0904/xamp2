@@ -18,7 +18,14 @@ copy x64\Release\xamp_metadata.dll deploy\
 copy x64\Release\xamp_output_device.dll deploy\
 copy x64\Release\xamp_player.dll deploy\
 
+copy x64\Release\xamp_base.pdb deploy\
+copy x64\Release\xamp_stream.pdb deploy\
+copy x64\Release\xamp_metadata.pdb deploy\
+copy x64\Release\xamp_output_device.pdb deploy\
+copy x64\Release\xamp_player.pdb deploy\
+copy x64\Release\xamp.pdb deploy\
+
 xcopy /Y /S /I /E Resource deploy\Resource
 xcopy /Y /S /I /E x64\langs deploy\langs
 
-C:\Qt\Qt5.12.8\5.12.8\msvc2017_64\bin\windeployqt --force deploy x64\Release\xamp.exe --release
+C:\Qt\Qt5.12.9\5.12.9\msvc2017_64\bin\windeployqt --force deploy x64\Release\xamp.exe --release

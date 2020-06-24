@@ -26,11 +26,13 @@ public:
 
     void setFrequency(float low_freq, float high_freq, float frequency);
 
-	void reset();
-
 	void start();
 
 	void stop();
+
+    void stopThread();
+
+    void setBackgroundColor(QColor color);
 
     FFTProcessor processor;
 
@@ -41,16 +43,15 @@ private:
     float low_freq_;
     float high_freq_;
     float frequency_;
-    float max_lufs_;
-    float dbm_;
+    float max_lufs_;    
+    int32_t minY_;
+    int32_t maxY_;
     size_t lufs_count_;
     QChart *chart_;
     QChartView *chart_view_;
-    QSplineSeries *lufs_series_;
-    QSplineSeries *dbm_series_;
+    QSplineSeries *lufs_series_;    
     QTimer timer_;
     QTimer reset_timer_;
     QThread thread_;
     QList<double> lufs_data_;
-    QList<double> dbm_data_;
 };

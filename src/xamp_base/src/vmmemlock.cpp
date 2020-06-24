@@ -39,6 +39,7 @@ VmMemLock::~VmMemLock() noexcept {
 }
 
 void VmMemLock::Lock(void* address, size_t size) {
+#if 0
 	UnLock();
 
 	if (!ExterndProcessWorkingSetSize(size)) {
@@ -53,9 +54,11 @@ void VmMemLock::Lock(void* address, size_t size) {
 	size_ = size;
 
 	XAMP_LOG_DEBUG("VmMemLock lock address: 0x{:08x} size: {}.", int64_t(address_), size_);
+#endif
 }
 
 void VmMemLock::UnLock() noexcept {
+#if 0
 	if (address_) {
 		if (!::VirtualUnlock(address_, size_)) {
 			XAMP_LOG_DEBUG("VirtualUnlock return failure! error:{}.", ::GetLastError());
@@ -64,6 +67,7 @@ void VmMemLock::UnLock() noexcept {
 	}
 	address_ = nullptr;
 	size_ = 0;
+#endif
 }
 #else
 VmMemLock::VmMemLock() noexcept

@@ -24,7 +24,9 @@ XAMP_BASE_API ModuleHandle LoadModule(std::string_view file_name);
 
 XAMP_BASE_API void* LoadModuleSymbol(const ModuleHandle& dll, std::string_view name);
 
+#ifdef XAMP_OS_WIN
 XAMP_BASE_API void* LoadModuleSymbol(const ModuleHandle& dll, uint64_t addr);
+#endif
 
 template <typename T, typename U = std::enable_if_t<std::is_function<T>::value>>
 class XAMP_BASE_API_ONLY_EXPORT DllFunction final {
@@ -33,9 +35,11 @@ public:
         *reinterpret_cast<void**>(&func_) = LoadModuleSymbol(dll, name);
     }
 
+#ifdef XAMP_OS_WIN
     DllFunction(ModuleHandle const& dll, uint64_t addr) {
         *reinterpret_cast<void**>(&func_) = LoadModuleSymbol(dll, addr);
     }
+#endif
 
     XAMP_ALWAYS_INLINE operator T* () const noexcept {
         assert(func_ != nullptr);

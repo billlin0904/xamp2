@@ -60,6 +60,8 @@ public:
 	bool CanHardwareControlVolume() const override;
 
 private:
+	void IgoneAndRaiseError(HRESULT hr);
+
 	void UnRegisterDeviceVolumeChange();
 
 	void RegisterDeviceVolumeChange();
@@ -68,13 +70,13 @@ private:
 
 	void InitialDeviceFormat(AudioFormat const & output_format);
 
-	void GetSampleRequested(bool is_silence);
+	void GetSampleRequested(bool is_silence) noexcept;
 
-	void GetSample(uint32_t frame_available);
+	void GetSample(uint32_t frame_available) noexcept;
 
-	void FillSilentSample(uint32_t frame_available) const;
+	void FillSilentSample(uint32_t frame_available) noexcept;
 
-	HRESULT OnSampleReady(IMFAsyncResult* result);
+	HRESULT OnSampleReady(IMFAsyncResult* result) noexcept;
 
 	class DeviceEventNotification;
 

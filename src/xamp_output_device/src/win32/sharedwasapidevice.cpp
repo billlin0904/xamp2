@@ -29,10 +29,16 @@ static void SetWaveformatEx(WAVEFORMATEX *input_fromat, uint32_t samplerate) noe
 	format.Format.nAvgBytesPerSec = format.Format.nSamplesPerSec * format.Format.nBlockAlign;
 }
 
+static constexpr IID kSimpleAudioVolumeID = __uuidof(ISimpleAudioVolume);
+static constexpr IID kAudioEndpointVolumeCallbackID = __uuidof(IAudioEndpointVolumeCallback);
+static constexpr IID kAudioEndpointVolumeID = __uuidof(IAudioEndpointVolume);
+static constexpr IID kAudioRenderClientID =__uuidof(IAudioRenderClient);
+static constexpr IID kAudioClient3ID = __uuidof(IAudioClient3);
+
 class SharedWasapiDevice::DeviceEventNotification final
 	: public IAudioEndpointVolumeCallback {
 public:
-	explicit DeviceEventNotification(AudioCallback* callback)
+	explicit DeviceEventNotification(AudioCallback* callback) noexcept
 		: refcount_(1)
 		, callback_(callback) {
 	}
@@ -49,7 +55,7 @@ public:
 		return 0;
 	}
 
-	HRESULT QueryInterface(REFIID iid, void** ReturnValue) override {
+	HRESULT QueryInterface(REFIID iid, void** ReturnValue) override {		
 		if (ReturnValue == nullptr) {
 			return E_POINTER;
 		}
@@ -58,7 +64,7 @@ public:
 			*ReturnValue = static_cast<IUnknown*>(static_cast<IAudioEndpointVolumeCallback*>(this));
 			AddRef();
 		}
-		else if (iid == __uuidof(IAudioEndpointVolumeCallback)) {
+		else if (iid == kAudioEndpointVolumeCallbackID) {
 			*ReturnValue = static_cast<IAudioEndpointVolumeCallback*>(this);
 			AddRef();
 		}
@@ -107,7 +113,7 @@ void SharedWasapiDevice::UnRegisterDeviceVolumeChange() {
 
 void SharedWasapiDevice::RegisterDeviceVolumeChange() {
 	CComPtr<IAudioEndpointVolume> endpoint_volume;
-	HrIfFailledThrow(device_->Activate(__uuidof(IAudioEndpointVolume),
+	HrIfFailledThrow(device_->Activate(kAudioEndpointVolumeID,
 		CLSCTX_INPROC_SERVER,
 		NULL,
 		reinterpret_cast<void**>(&endpoint_volume)
@@ -205,7 +211,7 @@ void SharedWasapiDevice::OpenStream(AudioFormat const & output_format) {
 	if (!client_) {
 		XAMP_LOG_DEBUG("Active device format: {}.", output_format);
 		
-		HrIfFailledThrow(device_->Activate(__uuidof(IAudioClient3),
+		HrIfFailledThrow(device_->Activate(kAudioClient3ID,
 			CLSCTX_ALL,
 			nullptr,
 			reinterpret_cast<void**>(&client_)));
@@ -223,7 +229,7 @@ void SharedWasapiDevice::OpenStream(AudioFormat const & output_format) {
 	LogHrFailled(client_->Reset());
 
 	HrIfFailledThrow(client_->GetBufferSize(&buffer_frames_));
-	HrIfFailledThrow(client_->GetService(__uuidof(IAudioRenderClient), reinterpret_cast<void**>(&render_client_)));
+	HrIfFailledThrow(client_->GetService(kAudioRenderClientID, reinterpret_cast<void**>(&render_client_)));
 
 	XAMP_LOG_DEBUG("WASAPI buffer frame size:{}.", buffer_frames_);
 
@@ -247,7 +253,10 @@ void SharedWasapiDevice::OpenStream(AudioFormat const & output_format) {
 		&SharedWasapiDevice::OnSampleReady,
 		queue_id_);
 
-	HrIfFailledThrow(::MFCreateAsyncResult(nullptr, sample_ready_callback_, nullptr, &sample_ready_async_result_));
+	HrIfFailledThrow(::MFCreateAsyncResult(nullptr, 
+		sample_ready_callback_,
+		nullptr,
+		&sample_ready_async_result_));
 
 	if (!sample_ready_) {
 		sample_ready_.reset(CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS));
@@ -258,7 +267,7 @@ void SharedWasapiDevice::OpenStream(AudioFormat const & output_format) {
 
 bool SharedWasapiDevice::IsMuted() const {
 	CComPtr<ISimpleAudioVolume> simple_audio_volume;
-	HrIfFailledThrow(client_->GetService(__uuidof(ISimpleAudioVolume),
+	HrIfFailledThrow(client_->GetService(kSimpleAudioVolumeID,
 		reinterpret_cast<void**>(&simple_audio_volume)));
 
 	BOOL is_muted = FALSE;
@@ -268,7 +277,7 @@ bool SharedWasapiDevice::IsMuted() const {
 
 uint32_t SharedWasapiDevice::GetVolume() const {
 	CComPtr<ISimpleAudioVolume> simple_audio_volume;
-	HrIfFailledThrow(client_->GetService(__uuidof(ISimpleAudioVolume), reinterpret_cast<void**>(&simple_audio_volume)));
+	HrIfFailledThrow(client_->GetService(kSimpleAudioVolumeID, reinterpret_cast<void**>(&simple_audio_volume)));
 
 	float channel_volume = 0.0;
 	HrIfFailledThrow(simple_audio_volume->GetMasterVolume(&channel_volume));
@@ -277,7 +286,7 @@ uint32_t SharedWasapiDevice::GetVolume() const {
 
 void SharedWasapiDevice::SetMute(bool mute) const {
 	CComPtr<ISimpleAudioVolume> simple_audio_volume;
-	HrIfFailledThrow(client_->GetService(__uuidof(ISimpleAudioVolume), reinterpret_cast<void**>(&simple_audio_volume)));
+	HrIfFailledThrow(client_->GetService(kSimpleAudioVolumeID, reinterpret_cast<void**>(&simple_audio_volume)));
 
 	HrIfFailledThrow(simple_audio_volume->SetMute(mute, nullptr));
 }
@@ -304,8 +313,8 @@ void SharedWasapiDevice::SetVolume(uint32_t volume) const {
 		return;
 	}
 
-	CComPtr<ISimpleAudioVolume> simple_audio_volume;
-	HrIfFailledThrow(client_->GetService(__uuidof(ISimpleAudioVolume), reinterpret_cast<void**>(&simple_audio_volume)));
+	CComPtr<ISimpleAudioVolume> simple_audio_volume;	
+	HrIfFailledThrow(client_->GetService(kSimpleAudioVolumeID, reinterpret_cast<void**>(&simple_audio_volume)));
 
 	BOOL is_mute = FALSE;
 	HrIfFailledThrow(simple_audio_volume->GetMute(&is_mute));
@@ -326,7 +335,16 @@ double SharedWasapiDevice::GetStreamTime() const noexcept {
 	return stream_time_ / static_cast<double>(mix_format_->nSamplesPerSec);
 }
 
-void SharedWasapiDevice::GetSample(uint32_t frame_available) {
+void SharedWasapiDevice::IgoneAndRaiseError(HRESULT hr) {
+	if (FAILED(hr)) {
+		const HRException exception(hr);
+		callback_->OnError(exception);
+		condition_.notify_one();
+		is_running_ = false;
+	}
+}
+
+void SharedWasapiDevice::GetSample(uint32_t frame_available) noexcept {
 	auto stream_time = stream_time_ + frame_available;
 	stream_time_ = stream_time;
 	stream_time = static_cast<double>(stream_time) / static_cast<double>(mix_format_->nSamplesPerSec);
@@ -334,37 +352,26 @@ void SharedWasapiDevice::GetSample(uint32_t frame_available) {
 	BYTE* data = nullptr;
 	auto hr = render_client_->GetBuffer(frame_available, &data);
 	if (FAILED(hr)) {
-		const HRException exception(hr);
-		callback_->OnError(exception);
-		is_running_ = false;
+		IgoneAndRaiseError(hr);
 		return;
 	}
 
 	if (callback_->OnGetSamples(reinterpret_cast<float*>(data), frame_available, stream_time) == 0) {
-		hr = render_client_->ReleaseBuffer(frame_available, 0);
-		if (FAILED(hr)) {
-			const HRException exception(hr);
-			callback_->OnError(exception);
-			is_running_ = false;
-		}
+		IgoneAndRaiseError(render_client_->ReleaseBuffer(frame_available, 0));
 	}
 	else {
-		hr = render_client_->ReleaseBuffer(frame_available, AUDCLNT_BUFFERFLAGS_SILENT);
-		if (FAILED(hr)) {
-			const HRException exception(hr);
-			callback_->OnError(exception);
-		}
+		IgoneAndRaiseError(render_client_->ReleaseBuffer(frame_available, AUDCLNT_BUFFERFLAGS_SILENT));
 		is_running_ = false;
 	}
 }
 
-void SharedWasapiDevice::FillSilentSample(uint32_t frame_available) const {
+void SharedWasapiDevice::FillSilentSample(uint32_t frame_available) noexcept {
 	BYTE* data;
-	HrIfFailledThrow(render_client_->GetBuffer(frame_available, &data));
-	HrIfFailledThrow(render_client_->ReleaseBuffer(frame_available, AUDCLNT_BUFFERFLAGS_SILENT));
+	IgoneAndRaiseError(render_client_->GetBuffer(frame_available, &data));
+	IgoneAndRaiseError(render_client_->ReleaseBuffer(frame_available, AUDCLNT_BUFFERFLAGS_SILENT));
 }
 
-HRESULT SharedWasapiDevice::OnSampleReady(IMFAsyncResult* result) {
+HRESULT SharedWasapiDevice::OnSampleReady(IMFAsyncResult* result) noexcept {
 	if (!is_running_) {
 		if (!is_stop_streaming_) {
 			GetSampleRequested(true);
@@ -398,13 +405,12 @@ bool SharedWasapiDevice::IsStreamRunning() const noexcept {
 	return is_running_;
 }
 
-void SharedWasapiDevice::GetSampleRequested(bool is_silence) {
+void SharedWasapiDevice::GetSampleRequested(bool is_silence) noexcept {
 	uint32_t padding_frames = 0;
 
 	const auto hr = client_->GetCurrentPadding(&padding_frames);
 	if (FAILED(hr)) {
-		const HRException exception(hr);
-		callback_->OnError(exception);
+		IgoneAndRaiseError(hr);
 		return;
 	}
 
@@ -416,7 +422,7 @@ void SharedWasapiDevice::GetSampleRequested(bool is_silence) {
 		}
 		else {
 			GetSample(frames_available);
-			HrIfFailledThrow(::MFPutWaitingWorkItem(sample_ready_.get(), 0, sample_ready_async_result_, &sample_raedy_key_));
+			IgoneAndRaiseError(::MFPutWaitingWorkItem(sample_ready_.get(), 0, sample_ready_async_result_, &sample_raedy_key_));
 		}
 	}
 }

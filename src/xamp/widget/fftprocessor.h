@@ -12,7 +12,6 @@
 struct SpectrumData {
     float frequency{ 0 };
     float magnitude{ 0 };
-    float dbm{ 0 };
     float lufs{ 0 };
 };
 
@@ -31,7 +30,6 @@ signals:
 
 private:
     float frequency_;
-    float absolute_threshold_;
     xamp::base::AlignPtr<xamp::player::FFT> fft_;
     std::vector<SpectrumData> spectrum_data_;
 };

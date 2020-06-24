@@ -278,7 +278,6 @@ public:
 
 	std::valarray<Complex> Forward(float const* signals, size_t size) {		
 		window_(signals, data_.get(), size);
-		//std::memcpy(data_.get(), signals, size);
 
 		FFTWLib::Instance().fftwf_execute_split_dft_r2c(forward_.get(),
 			data_.get(),

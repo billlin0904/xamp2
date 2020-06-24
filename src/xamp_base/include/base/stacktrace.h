@@ -23,7 +23,7 @@ private:
 #ifdef _WIN32
     static LONG WINAPI AbortHandler(EXCEPTION_POINTERS* info);
     void WriteLog(size_t frame_count);
-    void PrintStackTrace(EXCEPTION_POINTERS* info);
+    void PrintStackTrace(EXCEPTION_POINTERS const * info);
 #else
     static void AbortHandler(int32_t signum);
     void PrintStackTrace();

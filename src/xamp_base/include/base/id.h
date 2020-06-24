@@ -41,7 +41,7 @@ public:
     
     ID& operator=(ID &&other) noexcept;
 
-	[[nodiscard]] size_t GetHash() const noexcept;
+	[[nodiscard]] size_t GetHash() const;
 
 	operator std::string() const;
 
@@ -73,7 +73,7 @@ XAMP_ALWAYS_INLINE bool operator==(std::string const &str, ID const &id) {
 	return ID(str) == id;
 }
 
-XAMP_ALWAYS_INLINE size_t ID::GetHash() const noexcept {
+XAMP_ALWAYS_INLINE size_t ID::GetHash() const {
 	return std::hash<std::string>{}(std::string());
 }
 
@@ -86,7 +86,7 @@ struct hash<xamp::base::ID> {
 	typedef size_t result_type;
 	typedef xamp::base::ID argument_type;
 
-	result_type operator()(const argument_type & uuid) const {
+	result_type operator()(argument_type const& uuid) const {
 		return uuid.GetHash();
 	}
 };

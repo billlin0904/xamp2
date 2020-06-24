@@ -45,6 +45,8 @@ void loadOrDefaultSoxrSetting() {
 }
 
 static int excute(int argc, char* argv[]) {
+    StackTrace::RegisterAbortHandler();
+
     Logger::Instance()
 #ifdef Q_OS_WIN
         .AddDebugOutputLogger()
@@ -57,9 +59,6 @@ static int excute(int argc, char* argv[]) {
     XAMP_SET_LOG_LEVEL(spdlog::level::debug);
 
     XAMP_LOG_DEBUG("Logger init success.");
-
-    StackTrace::RegisterAbortHandler();
-
     XAMP_LOG_DEBUG("RegisterAbortHandler success.");
 
     std::vector<ModuleHandle> preload_modules;

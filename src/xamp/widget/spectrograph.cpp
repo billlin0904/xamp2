@@ -3,14 +3,18 @@
 #include <QHBoxLayout>
 #include <QAreaSeries>
 
+#include <cassert>
+#include <limits>
+
 #include <base/math.h>
 #include <widget/str_utilts.h>
 #include <widget/spectrograph.h>
 
-inline constexpr auto kBarCount = 120;
-inline constexpr auto maxX = 300;
-inline constexpr auto maxY = 100;
-inline constexpr auto maxSize = 100;
+inline constexpr auto kMaxX = 300;
+inline constexpr auto kMaxSize = 50;
+
+inline constexpr auto kMinY = -3;
+inline constexpr auto kMaxY = 3;
 
 Spectrograph::Spectrograph(QWidget* parent)
     : QWidget(parent)
@@ -18,22 +22,21 @@ Spectrograph::Spectrograph(QWidget* parent)
     , high_freq_(0)
     , frequency_(0)
     , max_lufs_(0)
-    , dbm_(0)
-    , lufs_count_(0) {
+    , lufs_count_(0)
+    , minY_(kMinY)
+    , maxY_(kMaxY) {    
     lufs_series_ = new QSplineSeries();
     lufs_series_->setUseOpenGL(true);
-
-    dbm_series_ = new QSplineSeries();
-    dbm_series_->setUseOpenGL(true);
-
+    lufs_series_->setName(Q_UTF8("LUFS"));
+    
     chart_ = new QChart();
-    chart_->setTheme(QtCharts::QChart::ChartThemeLight);
-    chart_->addSeries(lufs_series_);
-    chart_->addSeries(dbm_series_);
+    chart_->addSeries(lufs_series_);    
     chart_->legend()->hide();
     chart_->createDefaultAxes();
-    chart_->axisX()->setRange(0, maxX);
-    chart_->axisY()->setRange(-20, 5);
+    chart_->axisX()->setRange(0, kMaxX);
+    chart_->axisY()->setRange(minY_, maxY_);
+    auto f = font();
+    chart_->setFont(f);
 
     chart_view_ = new QChartView(chart_);
     chart_view_->setRenderHint(QPainter::Antialiasing);
@@ -47,47 +50,54 @@ Spectrograph::Spectrograph(QWidget* parent)
     timer_.setInterval(300);
 
     reset_timer_.setTimerType(Qt::PreciseTimer);
-    reset_timer_.setInterval(3000);
+    reset_timer_.setInterval(3000);    
 
-    (void)QObject::connect(&reset_timer_, &QTimer::timeout, [this]() {
+    (void)QObject::connect(lufs_series_, &QSplineSeries::pointAdded, [this](int index) {
+        const auto y = lufs_series_->at(index).y();
+
+        if (y < minY_ || y > maxY_) {
+            if (y < minY_)
+                minY_ = y;
+            if (y > maxY_)
+                maxY_ = y;
+            chart_->axisY()->setRange(minY_ - 3, maxY_ + 3); 
+        }
+        });
+
+    (void)QObject::connect(&reset_timer_, &QTimer::timeout, [this]() {       
         max_lufs_ = 0.0;
         lufs_count_ = 0;
-    });
+        });
 
     (void)QObject::connect(&timer_, &QTimer::timeout, [this]() {
         chart_view_->setUpdatesEnabled(false);
 
-        if (lufs_count_ == 0) {
-            if (lufs_data_.size() == 0) {
-                lufs_data_ << 0;
+        if (lufs_count_ > 0) {
+            assert(!std::isnan(max_lufs_ / lufs_count_));
+            lufs_data_ << (max_lufs_ / lufs_count_);
+        }
+        else {
+            if (lufs_data_.isEmpty()) {
+                lufs_data_ << xamp::base::kMinDb;
             }
             else {
                 lufs_data_ << lufs_data_.back();
             }            
         }
-        else {
-            lufs_data_ << (max_lufs_ / lufs_count_);
+
+        while (lufs_data_.size() > kMaxSize) {
+            lufs_data_.removeFirst();            
         }
-
-        dbm_data_ << dbm_;
-
-        while (lufs_data_.size() > maxSize) {
-            lufs_data_.removeFirst();
-            dbm_data_.removeFirst();
-        }
-
         lufs_series_->clear();
-        dbm_series_->clear();
 
-        const auto dx = maxX / (maxSize - 1);
-        const auto less = maxSize - lufs_data_.size();
+        const auto dx = kMaxX / (kMaxSize - 1);
+        const auto less = kMaxSize - lufs_data_.size();
 
         for (auto i = 0; i < lufs_data_.size(); ++i) {            
             lufs_series_->append(less * dx + i * dx, lufs_data_.at(i));
-            dbm_series_->append(less * dx + i * dx, dbm_data_.at(i));
         }
 
-        chart_view_->setUpdatesEnabled(true);
+        chart_view_->setUpdatesEnabled(true);       
     });
 
     (void)QObject::connect(&processor,
@@ -96,38 +106,45 @@ Spectrograph::Spectrograph(QWidget* parent)
         &Spectrograph::updateBar);
 
     reset_timer_.start();
-    timer_.start();    
+    timer_.start(); 
+    processor.moveToThread(&thread_);
     thread_.start();
+}
+
+void Spectrograph::setBackgroundColor(QColor color) {
+    chart_->setBackgroundBrush(QBrush(color));
 }
 
 void Spectrograph::setFrequency(float low_freq, float high_freq, float frequency) {
     low_freq_ = low_freq;
     high_freq_ = high_freq;
-    frequency_ = frequency;   
+    frequency_ = frequency;
     processor.setFrequency(frequency);
 }
 
-void Spectrograph::updateBar(std::vector<SpectrumData> const& spectrum_data) {
-    auto total_dbm = 0.0F;
-    for (auto data : spectrum_data) {
-        if (data.frequency >= low_freq_ && data.frequency < high_freq_) {
-            max_lufs_ += data.lufs;
-            total_dbm += data.dbm;
-            ++lufs_count_;
-        }
+void Spectrograph::updateBar(std::vector<SpectrumData> const& spectrum_data) {    
+    for (size_t i = 2; i <= spectrum_data.size() / 2; ++i) {
+        assert(!std::isnan(spectrum_data[i].lufs));
+        max_lufs_ += spectrum_data[i].lufs;
+        lufs_count_++;
     }
-    dbm_ = total_dbm / spectrum_data.size();
-}
-
-void Spectrograph::reset() {
 }
 
 void Spectrograph::start() {
     timer_.start();
 }
 
-void Spectrograph::stop() {
+void Spectrograph::stopThread() {
     timer_.stop();
     thread_.quit();
     thread_.wait();
+}
+
+void Spectrograph::stop() {
+    lufs_data_.clear();
+    max_lufs_ = 0.0F;
+    lufs_count_ = 0;
+    minY_ = kMinY;
+    maxY_ = kMaxY;
+    lufs_series_->clear();
 }

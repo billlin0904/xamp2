@@ -126,7 +126,7 @@ void Xamp::closeEvent(QCloseEvent*) {
         player_.reset();
     }
 
-    lrc_page_->spectrum()->stop();
+    lrc_page_->spectrum()->stopThread();
 }
 
 void Xamp::setNightStyle() {
@@ -157,6 +157,7 @@ void Xamp::registerMetaType() {
     qRegisterMetaType<Errors>("xamp::base::Errors");
     qRegisterMetaType<size_t>("size_t");
     qRegisterMetaType<std::vector<float>>("std::vector<float>");
+    qRegisterMetaType<std::vector<SpectrumData>>("std::vector<SpectrumData>");
 }
 
 void Xamp::initialUI() {
@@ -524,7 +525,7 @@ void Xamp::initialController() {
 void Xamp::applyTheme(QColor color) {
     if (qGray(color.rgb()) > 150) {
         playlist_page_->setTextColor(Qt::black);
-        lrc_page_->setTextColor(Qt::black);
+        lrc_page_->setTextColor(Qt::black);        
         emit textColorChanged(color, Qt::black);
         ThemeManager::instance().setThemeColor(ThemeColor::WHITE_THEME);        
     }
@@ -540,7 +541,8 @@ void Xamp::applyTheme(QColor color) {
     else {
         ThemeManager::instance().setPlayOrPauseButton(ui, false);
     }
-    ThemeManager::instance().setBackgroundColor(ui, color);
+    lrc_page_->spectrum()->setBackgroundColor(color);
+    ThemeManager::instance().setBackgroundColor(ui, color);    
 }
 
 void Xamp::getNextPage() {
@@ -902,6 +904,7 @@ void Xamp::onPlayerStateChanged(xamp::player::PlayerState play_state) {
         ui.startPosLabel->setText(Time::msToString(0));
         playNextItem(1);
         emit payNextMusic();
+        lrc_page_->spectrum()->stop();
     }
 }
 
