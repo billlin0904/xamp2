@@ -30,7 +30,7 @@ public:
 
 	int32_t itemHeight() const override;
 
-	int32_t itemCount() const override;
+	int32_t itemCount() const override;	
 
 public slots:
 	void stop();
@@ -48,6 +48,8 @@ public slots:
 	void addFullLrc(const QString& lrc, std::chrono::milliseconds duration);
 
 private:
+	void setDefaultLrc();
+
     void initial();
 
 	void loadLrc(const QString& lrc);

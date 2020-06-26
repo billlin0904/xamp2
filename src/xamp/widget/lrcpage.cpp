@@ -1,7 +1,6 @@
 #include <QLabel>
 #include <QHBoxLayout>
 
-#include <widget/spectrograph.h>
 #include <widget/lyricsshowwideget.h>
 #include <widget/str_utilts.h>
 #include <widget/lrcpage.h>
@@ -30,10 +29,6 @@ ScrollLabel* LrcPage::artist() {
 
 ScrollLabel* LrcPage::title() {
 	return title_;
-}
-
-Spectrograph* LrcPage::spectrum() {
-    return spectrograph_;
 }
 
 void LrcPage::setTextColor(QColor color) {
@@ -156,10 +151,6 @@ void LrcPage::initial() {
 	lyrics_widget_->setObjectName(QString::fromUtf8("lyrics"));
 	lyrics_widget_->setMinimumSize(QSize(200, 60));	
 	verticalLayout_2->addWidget(lyrics_widget_);
-
-    //spectrograph_ = new Spectrograph(this);
-    //spectrograph_->setMinimumSize(QSize(200, 400));
-    //verticalLayout_2->addWidget(spectrograph_);
 
 	verticalLayout_2->setStretch(2, 1);
 

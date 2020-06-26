@@ -9,7 +9,6 @@
 #include <widget/vinylwidget.h>
 #include <widget/scrolllabel.h>
 
-class Spectrograph;
 class LyricsShowWideget;
 
 class LrcPage : public QFrame {
@@ -27,8 +26,6 @@ public:
 
     ScrollLabel* title();
 
-	Spectrograph* spectrum();
-
 	void setTextColor(QColor color);
 
 private:
@@ -39,5 +36,4 @@ private:
 	ScrollLabel* album_;
 	ScrollLabel* artist_;
     ScrollLabel* title_;
-    Spectrograph* spectrograph_;
 };

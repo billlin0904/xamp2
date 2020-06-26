@@ -11,6 +11,8 @@
 #include <regex>
 #include <vector>
 
+#include <QApplication>
+
 #include <base/logger.h>
 
 struct LyricEntry {	

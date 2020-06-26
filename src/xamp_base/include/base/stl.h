@@ -24,5 +24,12 @@ using RobinHoodHashMap = robin_hood::unordered_map<K, V, H, E>;
 template <typename T, typename H = std::hash<T>, typename E = std::equal_to<T>>
 using RobinHoodSet = robin_hood::unordered_set<T, H, E>;
 
+template <class ForwardIt, class TaskType, class Compare = std::less<>>
+static ForwardIt BinaryFind(ForwardIt first, ForwardIt last, const TaskType& value, Compare comp = {}) {
+	first = std::lower_bound(first, last, value, comp);
+	return first != last && !comp(*first, value) ? first : last;
+}
+
+
 }
 

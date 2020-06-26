@@ -16,11 +16,15 @@ LyricsShowWideget::LyricsShowWideget(QWidget* parent)
 
 void LyricsShowWideget::initial() {
     lrc_font_ = font();
-#ifdef _WIN32
-    lrc_font_.setPointSize(12);
+#ifdef Q_OS_WIN32
+    lrc_font_.setPointSize(16);
 #else
     lrc_font_.setPointSize(18);
 #endif
+	setDefaultLrc();
+}
+
+void LyricsShowWideget::setDefaultLrc() {
 	LyricEntry entry;
 	entry.lrc = tr("Not found lyrics").toStdWString();
 	lyric_.AddLrc(entry);
@@ -117,6 +121,7 @@ void LyricsShowWideget::stop() {
 void LyricsShowWideget::loadLrcFile(const QString &file_path) {
 	stop();
 	if (!lyric_.ParseFile(file_path.toStdWString())) {
+		setDefaultLrc();
 		return;
 	}
 	update();

@@ -32,7 +32,6 @@
 #include <widget/pixmapcache.h>
 #include <widget/selectcolorwidget.h>
 #include <widget/artistinfopage.h>
-#include <widget/spectrograph.h>
 #include <widget/jsonsettings.h>
 
 #include "aboutdialog.h"
@@ -155,7 +154,6 @@ void Xamp::registerMetaType() {
     qRegisterMetaType<Errors>("xamp::base::Errors");
     qRegisterMetaType<size_t>("size_t");
     qRegisterMetaType<std::vector<float>>("std::vector<float>");
-    qRegisterMetaType<std::vector<SpectrumData>>("std::vector<SpectrumData>");
 }
 
 void Xamp::initialUI() {

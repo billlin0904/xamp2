@@ -2,27 +2,22 @@
 #include <locale>
 
 #include <base/bom.h>
+#include <base/stl.h>
 #include <base/str_utilts.h>
+
+#include "lrcparser.h"
 
 #ifdef XAMP_OS_MAC
 #include <codecvt>
 #endif
 
-#include "lrcparser.h"
-
 using namespace xamp::base;
-
-template <class ForwardIt, class TaskType, class Compare = std::less<>>
-static ForwardIt BinaryFind(ForwardIt first, ForwardIt last, const TaskType & value, Compare comp = {}) {
-	first = std::lower_bound(first, last, value, comp);
-	return first != last && !comp(*first, value) ? first : last;
-}
 
 static std::chrono::milliseconds ParseTime(std::wstring const &str) {
     auto minutes = 0;
     auto seconds = 0;
     auto milliseconds = 0;
-#ifdef _WIN32
+#ifdef Q_OS_WIN32
     const auto res = swscanf_s(str.c_str(), L"%u:%u.%u",
         &minutes,
         &seconds,
@@ -91,7 +86,7 @@ bool LrcParser::ParseFile(const std::wstring &file_path) {
         return false;
     }
 
-#ifdef _WIN32
+#ifdef Q_OS_WIN32
     ImbueFileFromBom(file);
 #else
     std::locale utf8_locale(std::locale(), new std::codecvt_utf8<wchar_t>());
