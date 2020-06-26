@@ -230,8 +230,9 @@ void PlayListTableView::initial() {
 }
 
 void PlayListTableView::onTextColorChanged(QColor backgroundColor, QColor color) {
-    QColor selectedColor = Qt::black;
-
+    QColor selectedColor = Qt::lightGray;
+    start_delegate_->setBackgroundColor(selectedColor);
+ 
     auto style = QString(Q_UTF8(R"(
         QTableView {
             background-color: %1;
@@ -246,8 +247,7 @@ void PlayListTableView::onTextColorChanged(QColor backgroundColor, QColor color)
     colorToString(backgroundColor),
     colorToString(color),
     colorToString(selectedColor),
-    colorToString(color));
-    start_delegate_->setBackgroundColor(selectedColor);
+    colorToString(color));   
     
     setStyleSheet(style);
 }

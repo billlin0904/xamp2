@@ -1,7 +1,7 @@
 #include <cmath>
 #include <widget/starrating.h>
 
-constexpr auto PaintingScaleFactor = 15;
+constexpr auto kPaintingScaleFactor = 15;
 
 StarRating::StarRating(int starCount, int maxStarCount) {
     rating_count_ = starCount;
@@ -18,7 +18,7 @@ StarRating::StarRating(int starCount, int maxStarCount) {
 }
 
 QSize StarRating::sizeHint() const {
-    return PaintingScaleFactor * QSize(max_rating_count_, 1);
+    return kPaintingScaleFactor * QSize(max_rating_count_, 1);
 }
 
 void StarRating::paint(QPainter* painter, const QRect& rect, const QPalette&, EditMode mode) const {
@@ -34,9 +34,9 @@ void StarRating::paint(QPainter* painter, const QRect& rect, const QPalette&, Ed
         painter->setBrush(Qt::yellow);
     }
 
-    int yOffset = (rect.height() - PaintingScaleFactor) / 2;
+    int yOffset = (rect.height() - kPaintingScaleFactor) / 2;
     painter->translate(rect.x(), rect.y() + yOffset);
-    painter->scale(PaintingScaleFactor, PaintingScaleFactor);
+    painter->scale(kPaintingScaleFactor, kPaintingScaleFactor);
 
     for (int i = 0; i < max_rating_count_; ++i) {
         if (i < rating_count_) {            

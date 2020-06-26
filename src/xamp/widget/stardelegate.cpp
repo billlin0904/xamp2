@@ -1,5 +1,5 @@
 #include <QtGui>
-
+#include <QDebug>
 #include <widget/stareditor.h>
 #include <widget/starrating.h>
 #include <widget/stardelegate.h>
@@ -12,11 +12,10 @@ StarDelegate::StarDelegate(QWidget* parent)
 void StarDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const {
     if (index.data().canConvert<StarRating>()) {
         auto rating = qvariant_cast<StarRating>(index.data());
-
-        if (option.state & QStyle::State_Selected)
-            painter->fillRect(option.rect, background_color_);
-
-        rating.paint(painter, option.rect, option.palette, StarRating::ReadOnly);
+        if (option.state & QStyle::State_Selected) {
+            painter->fillRect(option.rect, QBrush(background_color_));
+        }
+        rating.paint(painter, option.rect, option.palette, StarRating::ReadOnly);        
     }
     else {
         QStyledItemDelegate::paint(painter, option, index);
@@ -40,7 +39,10 @@ QSize StarDelegate::sizeHint(const QStyleOptionViewItem& option, const QModelInd
 QWidget* StarDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const {
     if (index.data().canConvert<StarRating>()) {
         auto editor = new StarEditor(index.row(), parent);
-        (void)QObject::connect(editor, &StarEditor::editingFinished, this, &StarDelegate::commitAndCloseEditor);
+        (void)QObject::connect(editor,
+            &StarEditor::editingFinished,
+            this,
+            &StarDelegate::commitAndCloseEditor);
         editor->setFocusPolicy(Qt::StrongFocus);
         return editor;
     }

@@ -522,8 +522,7 @@ void Xamp::applyTheme(QColor color) {
     if (qGray(color.rgb()) > 150) {
         playlist_page_->setTextColor(Qt::black);
         lrc_page_->setTextColor(Qt::black);        
-        emit textColorChanged(color, Qt::black);
-        ThemeManager::instance().setThemeColor(ThemeColor::WHITE_THEME);        
+        emit textColorChanged(color, Qt::black);      
     }
     else {
         playlist_page_->setTextColor(Qt::white);
