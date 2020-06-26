@@ -16,10 +16,10 @@ struct PlayListEntity {
     int32_t music_id{0};
     int32_t album_id{0};
     int32_t artist_id{0};
-    int32_t track{0};
-    int32_t bitrate{0};
-    int32_t samplerate{0};
-    int32_t rating{0};
+    uint32_t track{0};
+    uint32_t bitrate{0};
+    uint32_t samplerate{0};
+    uint32_t rating{0};
     double duration{0};    
     QIcon playing_ico;
     QString file_path;

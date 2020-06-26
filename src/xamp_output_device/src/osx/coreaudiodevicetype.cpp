@@ -30,7 +30,7 @@ AlignPtr<Device> CoreAudioDeviceType::MakeDevice(const std::wstring &device_id) 
 size_t CoreAudioDeviceType::GetDeviceCount() const {
     UInt32 data_size = 0;
 
-    AudioObjectPropertyAddress propertyAddress = {
+    AudioObjectPropertyAddress const property = {
         kAudioHardwarePropertyDevices,
         kAudioObjectPropertyScopeGlobal,
         kAudioObjectPropertyElementMaster
@@ -38,7 +38,7 @@ size_t CoreAudioDeviceType::GetDeviceCount() const {
 
     auto result = ::AudioObjectGetPropertyDataSize(
         kAudioObjectSystemObject,
-        &propertyAddress,
+        &property,
         0,
         nullptr,
         &data_size);
@@ -54,14 +54,14 @@ DeviceInfo CoreAudioDeviceType::GetDeviceInfo(uint32_t device) const {
 }
 
 ID CoreAudioDeviceType::GetTypeId() const {
-    return ID(Id);
+    return Id;
 }
 
 std::vector<DeviceInfo> CoreAudioDeviceType::GetDeviceInfo() const {
     std::vector<DeviceInfo> device_infos;
 
-    AudioObjectPropertyAddress property = {
-        kAudioHardwarePropertyDefaultOutputDevice,
+    AudioObjectPropertyAddress const property = {
+        kAudioHardwarePropertyDevices,
         kAudioObjectPropertyScopeGlobal,
         kAudioObjectPropertyElementMaster
     };
@@ -71,7 +71,6 @@ std::vector<DeviceInfo> CoreAudioDeviceType::GetDeviceInfo() const {
     data_size *= device_count;
 
     std::vector<AudioDeviceID> device_list(device_count);
-    property.mSelector = kAudioHardwarePropertyDevices;
     auto result = ::AudioObjectGetPropertyData(
         kAudioObjectSystemObject,
         &property,
@@ -112,7 +111,7 @@ std::optional<DeviceInfo> CoreAudioDeviceType::GetDefaultDeviceInfo() const {
     AudioDeviceID id;
     UInt32 dataSize = sizeof(AudioDeviceID);
 
-    AudioObjectPropertyAddress property = {
+    AudioObjectPropertyAddress const property = {
         kAudioHardwarePropertyDefaultOutputDevice,
         kAudioObjectPropertyScopeGlobal,
         kAudioObjectPropertyElementMaster

@@ -17,7 +17,7 @@ namespace xamp::output_device::osx {
 static constexpr int32_t kMinDopSamplerate = 176400;
 
 std::vector<uint32_t> GetAvailableSampleRates(AudioDeviceID id) {
-    const AudioObjectPropertyAddress property = {
+    AudioObjectPropertyAddress const property = {
         kAudioDevicePropertyAvailableNominalSampleRates,
         kAudioObjectPropertyScopeGlobal,
         kAudioObjectPropertyElementMaster
@@ -155,7 +155,7 @@ AudioDeviceID GetAudioDeviceIdByUid(bool is_input, std::wstring const& device_id
 }
 
 bool IsOutputDevice(AudioDeviceID id) {
-    AudioObjectPropertyAddress property = {
+    AudioObjectPropertyAddress const property = {
         kAudioDevicePropertyStreams,
         kAudioDevicePropertyScopeOutput,
         kAudioObjectPropertyElementMaster
@@ -175,13 +175,11 @@ bool IsOutputDevice(AudioDeviceID id) {
 }
 
 void ReleaseHogMode(AudioDeviceID id) {
-    AudioObjectPropertyAddress property = {
-        kAudioHardwarePropertyDevices,
+    AudioObjectPropertyAddress const property = {
+        kAudioDevicePropertyHogMode,
         kAudioObjectPropertyScopeGlobal,
         kAudioObjectPropertyElementMaster
     };
-
-    property.mSelector = kAudioDevicePropertyHogMode;
 
     pid_t hog_pid;
     uint32_t dataSize = sizeof(hog_pid);
@@ -212,13 +210,12 @@ void ReleaseHogMode(AudioDeviceID id) {
 }
 
 void SetHogMode(AudioDeviceID id) {
-    AudioObjectPropertyAddress property = {
-        kAudioHardwarePropertyDevices,
+    AudioObjectPropertyAddress const property = {
+        kAudioDevicePropertyHogMode,
         kAudioObjectPropertyScopeGlobal,
         kAudioObjectPropertyElementMaster
     };
 
-    property.mSelector = kAudioDevicePropertyHogMode;
     auto hog_pid = ::getpid();
     uint32_t dataSize = sizeof(hog_pid);
     auto result = ::AudioObjectSetPropertyData(id,

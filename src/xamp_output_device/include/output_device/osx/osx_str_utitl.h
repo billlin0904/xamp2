@@ -73,13 +73,13 @@ inline std::string SysCFStringRefToUTF8(CFStringRef ref) {
                                                          kCFStringEncodingUTF8);
 }
 
+inline CFStringRef SysUTF8ToCFStringRef(std::string const & utf8) {
+    return STLStringToCFStringWithEncodingsT(utf8, kCFStringEncodingUTF8);
+}
+
 inline std::wstring SysCFStringRefToWide(CFStringRef ref) {
     return CFStringToSTLStringWithEncodingT<std::wstring>(ref,
                                                           kCFStringEncodingUTF32LE);
-}
-
-inline CFStringRef SysUTF8ToCFStringRef(std::string const & utf8) {
-    return STLStringToCFStringWithEncodingsT(utf8, kCFStringEncodingUTF8);
 }
 
 inline CFStringRef SysWideToCFStringRef(std::wstring const & wide) {

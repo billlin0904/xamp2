@@ -6,16 +6,17 @@ inline constexpr size_t kFFTSize = 2048;
 FFTProcessor::FFTProcessor(QObject* parent)
 	: QObject(parent) 
     , frequency_(0) {
-	fft_ = xamp::base::MakeAlign<xamp::player::FFT>(kFFTSize);
-    spectrum_data_.resize(kFFTSize);
 }
 
 void FFTProcessor::setFrequency(float frequency) {
     frequency_ = frequency;
+    fft_.Init(kFFTSize);
+    spectrum_data_.resize(kFFTSize);
 }
 
 void FFTProcessor::OnSampleDataChanged(std::vector<float> const& samples) {
-    auto result = fft_->Forward(samples.data(), samples.size());
+    /*
+    auto result = fft_.Forward(samples.data(), samples.size());
 
     auto N = result.size();
 
@@ -26,4 +27,5 @@ void FFTProcessor::OnSampleDataChanged(std::vector<float> const& samples) {
     }
 
     emit spectrumDataChanged(spectrum_data_);
+    */
 }

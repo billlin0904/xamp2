@@ -64,9 +64,16 @@ public:
         setThemeSetyle();
     }
 
-    void addAction(const QString& menu_name) {
+    QAction* addAction(const QString& menu_name) {
         auto action = addAction(menu_name, []() {});
-        action->setEnabled(false);        
+        action->setEnabled(false);
+        return action;
+    }
+
+    template <typename Callable>
+    void setCallback(QAction* action, Callable &&callback) {
+        map_[action] = callback;
+        action->setEnabled(true);
     }
 
     template <typename Callable>

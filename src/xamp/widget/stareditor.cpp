@@ -41,5 +41,5 @@ int StarEditor::starAtPosition(int x) const {
     if (star < 0 || star > rating_.maxStarCount())
         return -1;
     qDebug() << "StarEditor set " << star << " star at" << x;
-    return star;
+    return static_cast<int32_t>(star);
 }

@@ -21,7 +21,7 @@ QSize StarRating::sizeHint() const {
     return PaintingScaleFactor * QSize(max_rating_count_, 1);
 }
 
-void StarRating::paint(QPainter* painter, const QRect& rect, const QPalette& palette, EditMode mode) const {
+void StarRating::paint(QPainter* painter, const QRect& rect, const QPalette&, EditMode mode) const {
     painter->save();
 
     painter->setRenderHint(QPainter::Antialiasing, true);
@@ -39,7 +39,7 @@ void StarRating::paint(QPainter* painter, const QRect& rect, const QPalette& pal
     painter->scale(PaintingScaleFactor, PaintingScaleFactor);
 
     for (int i = 0; i < max_rating_count_; ++i) {
-        if (i < rating_count_) {
+        if (i < rating_count_) {            
             painter->drawPolygon(polygon_, Qt::WindingFill);
         }
         else if (mode == Editable) {

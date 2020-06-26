@@ -19,7 +19,7 @@ using Complex = std::complex<float>;
 
 class XAMP_PLAYER_API FFT {
 public:
-    explicit FFT(size_t size);
+    FFT();
 
     XAMP_PIMPL(FFT)
 

@@ -122,7 +122,7 @@ void Spectrograph::setFrequency(float low_freq, float high_freq, float frequency
     processor.setFrequency(frequency);
 }
 
-void Spectrograph::updateBar(std::vector<SpectrumData> const& spectrum_data) {    
+void Spectrograph::updateBar(std::vector<SpectrumData> const& spectrum_data) {
     for (size_t i = 2; i <= spectrum_data.size() / 2; ++i) {
         assert(!std::isnan(spectrum_data[i].lufs));
         max_lufs_ += spectrum_data[i].lufs;

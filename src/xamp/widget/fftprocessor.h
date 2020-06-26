@@ -30,6 +30,6 @@ signals:
 
 private:
     float frequency_;
-    xamp::base::AlignPtr<xamp::player::FFT> fft_;
+    xamp::player::FFT fft_;
     std::vector<SpectrumData> spectrum_data_;
 };

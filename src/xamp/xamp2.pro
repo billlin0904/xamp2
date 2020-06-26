@@ -121,7 +121,6 @@ HEADERS += \
     widget/localelanguage.h \
     widget/jsonsettings.h \
     widget/scrolllabel.h \
-    widget/spectrograph.h \
     widget/fftprocessor.h \
     thememanager.h \
     aboutdialog.h \

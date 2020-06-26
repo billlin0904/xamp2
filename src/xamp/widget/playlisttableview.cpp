@@ -181,17 +181,25 @@ void PlayListTableView::initial() {
     	
         action_map.addSeparator();
 
-        if (!model_.isEmpty()) {
+        auto open_local_file_path_act = action_map.addAction(tr("Open local file path"));
+        auto reload_file_meta_act = action_map.addAction(tr("Reload file meta"));
+        auto reload_file_fingerprint_act = action_map.addAction(tr("Read file fingerprint"));
+        auto copy_album_act = action_map.addAction(tr("Copy album"));
+        auto copy_artist_act = action_map.addAction(tr("Copy artist"));
+        auto copy_title_act = action_map.addAction(tr("Copy title"));
+
+        if (!model_.isEmpty() && index.isValid()) {
             auto item = model_.item(proxy_model_.mapToSource(index));
 
-            (void)action_map.addAction(tr("Open local file path"), [item]() {
+            action_map.setCallback(open_local_file_path_act, [item]() {
                 QDesktopServices::openUrl(QUrl::fromLocalFile(item.parent_path));
-                });
+            });
 
-            (void)action_map.addAction(tr("Reload file meta"), [this]() {
+            action_map.setCallback(reload_file_meta_act, [this]() {
                 reloadSelectMetadata();
-                });
-            (void)action_map.addAction(tr("Read file fingerprint"), [this]() {
+            });
+
+            action_map.setCallback(reload_file_fingerprint_act, [this]() {
                 const auto rows = selectItemIndex();
                 for (const auto& select_item : rows) {
                     auto entity = this->item(select_item.second);
@@ -199,23 +207,15 @@ void PlayListTableView::initial() {
                 }
                 });
             action_map.addSeparator();
-            (void)action_map.addAction(tr("Copy album"), [item]() {
+            action_map.setCallback(copy_album_act, [item]() {
                 QApplication::clipboard()->setText(item.album);
                 });
-            (void)action_map.addAction(tr("Copy artist"), [item]() {
+            action_map.setCallback(copy_artist_act, [item]() {
                 QApplication::clipboard()->setText(item.artist);
                 });
-            (void)action_map.addAction(tr("Copy title"), [item]() {
+            action_map.setCallback(copy_title_act, [item]() {
                 QApplication::clipboard()->setText(item.title);
                 });
-        }
-        else {
-            action_map.addAction(tr("Open local file path"));
-            action_map.addAction(tr("Reload file meta"));
-            action_map.addAction(tr("Read file fingerprint"));
-            action_map.addAction(tr("Copy album"));
-            action_map.addAction(tr("Copy artist"));
-            action_map.addAction(tr("Copy title"));
         }
 
         action_map.exec(pt);

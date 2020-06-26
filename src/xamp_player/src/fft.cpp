@@ -81,16 +81,13 @@ private:
 
 class Window {
 public:
-	explicit Window(size_t size, WindowType type = WindowType::HAMMING) {
+    Window() {
+    }
+
+    void Init(size_t size, WindowType type = WindowType::HAMMING) {
         window_ = MakeBuffer<float>(size);
-        switch (type) {
-        case WindowType::HANN:
-            ::vDSP_hann_window(window_.get(), size, vDSP_HANN_DENORM);
-            break;
-        case WindowType::HAMMING:
-            ::vDSP_hamm_window(window_.get(), size, vDSP_HANN_DENORM);
-            break;
-        }
+        (void)type;
+        ::vDSP_hamm_window(window_.get(), size, vDSP_HANN_DENORM);
     }
 
     void operator()(float const *samples, float *buffer, size_t size) {
@@ -102,12 +99,11 @@ protected:
 
 class FFT::FFTImpl {
 public:
-    explicit FFTImpl(size_t size)
-        : window_(size) {
-        Init(size);
+    FFTImpl() {
     }
 
     void Init(size_t size) {
+        window_.Init(size);
         size_ = size;
         size_over2_ = size_ / 2;
         log2n_size_ = Log2(size);
@@ -215,19 +211,15 @@ static FFTWPtr MakeBuffer(size_t size) {
 
 class Window {
 public:
-	explicit Window(size_t size, WindowType type = WindowType::HAMMING) {
-		window_ = MakeBuffer(size);
-		switch (type) {
-		case WindowType::HANN:
-		case WindowType::HAMMING:
-		{
-			size_t m = size - 1;
-			for (auto i = 0; i < size; ++i) {
-				window_.get()[i] = 0.54 - 0.46 * std::cos((2.0 * kPI * i) / m);
-			}
-		}
-		break;
-		}
+    Window() {
+    }
+
+    void Init(size_t size, WindowType type = WindowType::HAMMING) {
+        window_ = MakeBuffer(size);
+        size_t m = size - 1;
+        for (auto i = 0; i < size; ++i) {
+            window_.get()[i] = 0.54 - 0.46 * std::cos((2.0 * kPI * i) / m);
+        }
 	}
 
 	void operator()(float const* samples, float* buffer, size_t size) {
@@ -241,13 +233,12 @@ protected:
 
 class FFT::FFTImpl {
 public:
-    explicit FFTImpl(size_t size)
-		: window_(size) {
+    explicit FFTImpl() {
         FFTWLib::Instance();
-        Init(size);
 	}
 
 	void Init(size_t size) {
+        window_.Init(size);
 		complex_size_ = ComplexSize(size);
 		data_ = MakeBuffer(size);
 		re_ = MakeBuffer(complex_size_);
@@ -320,8 +311,8 @@ private:
 
 #endif
 
-FFT::FFT(size_t size)
-    : impl_(MakeAlign<FFTImpl>(size)) {
+FFT::FFT()
+    : impl_(MakeAlign<FFTImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(FFT)
