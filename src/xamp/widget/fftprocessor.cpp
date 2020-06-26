@@ -15,7 +15,6 @@ void FFTProcessor::setFrequency(float frequency) {
 }
 
 void FFTProcessor::OnSampleDataChanged(std::vector<float> const& samples) {
-    /*
     auto result = fft_.Forward(samples.data(), samples.size());
 
     auto N = result.size();
@@ -27,5 +26,4 @@ void FFTProcessor::OnSampleDataChanged(std::vector<float> const& samples) {
     }
 
     emit spectrumDataChanged(spectrum_data_);
-    */
 }

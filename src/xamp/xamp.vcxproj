@@ -54,8 +54,8 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
-      <PreprocessorDefinitions>UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_SQL_LIB;QT_WIDGETS_LIB;QT_WINEXTRAS_LIB;QT_NETWORK_LIB;QT_NO_CAST_FROM_ASCII;QT_CONCURRENT_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtWinExtras;../xamp_base/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_player/include/;../xamp_metadata/include/;../thirdparty/spdlog/include/;$(QTDIR)\include\QtNetwork;%(AdditionalIncludeDirectories);../thirdparty/rapidjson/include/;$(QTDIR)\include\QtConcurrent;../thirdparty/rapidxml/;../thirdparty/robin_hood/</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_SQL_LIB;QT_WIDGETS_LIB;QT_WINEXTRAS_LIB;QT_NETWORK_LIB;QT_NO_CAST_FROM_ASCII;QT_CONCURRENT_LIB;QT_CHARTS_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtWinExtras;../xamp_base/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_player/include/;../xamp_metadata/include/;../thirdparty/spdlog/include/;$(QTDIR)\include\QtNetwork;%(AdditionalIncludeDirectories);../thirdparty/rapidjson/include/;$(QTDIR)\include\QtConcurrent;../thirdparty/rapidxml/;../thirdparty/robin_hood/;$(QTDIR)\include\QtCharts</AdditionalIncludeDirectories>
       <Optimization>Disabled</Optimization>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -69,13 +69,13 @@
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
       <AdditionalLibraryDirectories>$(QTDIR)\lib;./x64/Debug/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>qtmaind.lib;Qt5Cored.lib;Qt5Guid.lib;Qt5Sqld.lib;Qt5Widgetsd.lib;Qt5WinExtrasd.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;Qt5Networkd.lib;Qt5Concurrentd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>qtmaind.lib;Qt5Cored.lib;Qt5Guid.lib;Qt5Sqld.lib;Qt5Widgetsd.lib;Qt5WinExtrasd.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;Qt5Networkd.lib;Qt5Concurrentd.lib;Qt5Chartsd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <QtMoc>
       <OutputFile>.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</OutputFile>
       <ExecutionDescription>Moc'ing %(Identity)...</ExecutionDescription>
-      <IncludePath>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtWinExtras;../xamp_base/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_player/include/;../xamp_metadata/include/;../thirdparty/spdlog/include/;$(QTDIR)\include\QtNetwork;%(AdditionalIncludeDirectories);../thirdparty/rapidjson/include/;$(QTDIR)\include\QtConcurrent;../thirdparty/rapidxml/;../thirdparty/robin_hood/</IncludePath>
-      <Define>UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_SQL_LIB;QT_WIDGETS_LIB;QT_WINEXTRAS_LIB;QT_NETWORK_LIB;QT_NO_CAST_FROM_ASCII;QT_CONCURRENT_LIB;%(PreprocessorDefinitions)</Define>
+      <IncludePath>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtWinExtras;../xamp_base/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_player/include/;../xamp_metadata/include/;../thirdparty/spdlog/include/;$(QTDIR)\include\QtNetwork;%(AdditionalIncludeDirectories);../thirdparty/rapidjson/include/;$(QTDIR)\include\QtConcurrent;../thirdparty/rapidxml/;../thirdparty/robin_hood/;$(QTDIR)\include\QtCharts</IncludePath>
+      <Define>UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_SQL_LIB;QT_WIDGETS_LIB;QT_WINEXTRAS_LIB;QT_NETWORK_LIB;QT_NO_CAST_FROM_ASCII;QT_CONCURRENT_LIB;QT_CHARTS_LIB;%(PreprocessorDefinitions)</Define>
     </QtMoc>
     <QtUic>
       <ExecutionDescription>Uic'ing %(Identity)...</ExecutionDescription>
@@ -92,8 +92,8 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <PreprocessorDefinitions>UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_SQL_LIB;QT_WIDGETS_LIB;QT_WINEXTRAS_LIB;QT_NETWORK_LIB;QT_NO_CAST_FROM_ASCII;QT_CONCURRENT_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtWinExtras;../xamp_base/include/;../xamp_stream/include/;../xamp_player/include/;../xamp_output_device/include/;../xamp_metadata/include/;../thirdparty/spdlog/include/;$(QTDIR)\include\QtNetwork;%(AdditionalIncludeDirectories);../thirdparty/rapidjson/include/;$(QTDIR)\include\QtConcurrent;../thirdparty/rapidxml/;../thirdparty/robin_hood/</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_SQL_LIB;QT_WIDGETS_LIB;QT_WINEXTRAS_LIB;QT_NETWORK_LIB;QT_NO_CAST_FROM_ASCII;QT_CONCURRENT_LIB;QT_CHARTS_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtWinExtras;../xamp_base/include/;../xamp_stream/include/;../xamp_player/include/;../xamp_output_device/include/;../xamp_metadata/include/;../thirdparty/spdlog/include/;$(QTDIR)\include\QtNetwork;%(AdditionalIncludeDirectories);../thirdparty/rapidjson/include/;$(QTDIR)\include\QtConcurrent;../thirdparty/rapidxml/;../thirdparty/robin_hood/;$(QTDIR)\include\QtCharts</AdditionalIncludeDirectories>
       <DebugInformationFormat>None</DebugInformationFormat>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
@@ -112,14 +112,14 @@
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
       <AdditionalLibraryDirectories>$(QTDIR)\lib;./x64/Release/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>qtmain.lib;Qt5Core.lib;Qt5Gui.lib;Qt5Sql.lib;Qt5Widgets.lib;Qt5WinExtras.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;Qt5Network.lib;Qt5Concurrent.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>qtmain.lib;Qt5Core.lib;Qt5Gui.lib;Qt5Sql.lib;Qt5Widgets.lib;Qt5WinExtras.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;Qt5Network.lib;Qt5Concurrent.lib;Qt5Charts.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
     </Link>
     <QtMoc>
       <OutputFile>.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</OutputFile>
       <ExecutionDescription>Moc'ing %(Identity)...</ExecutionDescription>
-      <IncludePath>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtWinExtras;../xamp_base/include/;../xamp_stream/include/;../xamp_player/include/;../xamp_output_device/include/;../xamp_metadata/include/;../thirdparty/spdlog/include/;$(QTDIR)\include\QtNetwork;%(AdditionalIncludeDirectories);../thirdparty/rapidjson/include/;$(QTDIR)\include\QtConcurrent;../thirdparty/rapidxml/;../thirdparty/robin_hood/</IncludePath>
-      <Define>UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_SQL_LIB;QT_WIDGETS_LIB;QT_WINEXTRAS_LIB;QT_NETWORK_LIB;QT_NO_CAST_FROM_ASCII;QT_CONCURRENT_LIB;%(PreprocessorDefinitions)</Define>
+      <IncludePath>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtWinExtras;../xamp_base/include/;../xamp_stream/include/;../xamp_player/include/;../xamp_output_device/include/;../xamp_metadata/include/;../thirdparty/spdlog/include/;$(QTDIR)\include\QtNetwork;%(AdditionalIncludeDirectories);../thirdparty/rapidjson/include/;$(QTDIR)\include\QtConcurrent;../thirdparty/rapidxml/;../thirdparty/robin_hood/;$(QTDIR)\include\QtCharts</IncludePath>
+      <Define>UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_SQL_LIB;QT_WIDGETS_LIB;QT_WINEXTRAS_LIB;QT_NETWORK_LIB;QT_NO_CAST_FROM_ASCII;QT_CONCURRENT_LIB;QT_CHARTS_LIB;%(PreprocessorDefinitions)</Define>
     </QtMoc>
     <QtUic>
       <ExecutionDescription>Uic'ing %(Identity)...</ExecutionDescription>
@@ -150,6 +150,7 @@
     <ClCompile Include="widget\clickablelabel.cpp" />
     <ClCompile Include="widget\database.cpp" />
     <ClCompile Include="widget\discogsclient.cpp" />
+    <ClCompile Include="widget\fftprocessor.cpp" />
     <ClCompile Include="widget\filesystemwatcher.cpp" />
     <ClCompile Include="widget\filetag.cpp" />
     <ClCompile Include="widget\framelesswindow.cpp" />
@@ -177,6 +178,7 @@
     <ClCompile Include="widget\starrating.cpp" />
     <ClCompile Include="widget\tablistview.cpp" />
     <ClCompile Include="widget\toast.cpp" />
+    <ClCompile Include="widget\vinylwidget.cpp" />
     <ClCompile Include="widget\wheelablewidget.cpp" />
     <ClCompile Include="widget\win32\fluentstyle.cpp" />
     <ClCompile Include="xamp.cpp" />
@@ -194,6 +196,10 @@
     <ResourceCompile Include="xamp.rc" />
   </ItemGroup>
   <ItemGroup>
+    <QtMoc Include="widget\vinylwidget.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtWinExtras;.\..\xamp_base\include;.\..\xamp_stream\include;.\..\xamp_output_device\include;.\..\xamp_player\include;.\..\xamp_metadata\include;.\..\thirdparty\spdlog\include;$(QTDIR)\include\QtNetwork;$(INHERIT);.\..\thirdparty\rapidjson\include;$(QTDIR)\include\QtConcurrent;.\..\thirdparty\rapidxml;.\..\thirdparty\robin_hood</IncludePath>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtWinExtras;.\..\xamp_base\include;.\..\xamp_stream\include;.\..\xamp_player\include;.\..\xamp_output_device\include;.\..\xamp_metadata\include;.\..\thirdparty\spdlog\include;$(QTDIR)\include\QtNetwork;$(INHERIT);.\..\thirdparty\rapidjson\include;$(QTDIR)\include\QtConcurrent;.\..\thirdparty\rapidxml;.\..\thirdparty\robin_hood</IncludePath>
+    </QtMoc>
     <QtMoc Include="singleinstanceapplication.h">
       <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtWinExtras;.\..\xamp_base\include;.\..\xamp_stream\include;.\..\xamp_output_device\include;.\..\xamp_player\include;.\..\xamp_metadata\include;.\..\thirdparty\spdlog\include;$(QTDIR)\include\QtNetwork</IncludePath>
       <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtWinExtras;.\..\xamp_base\include;.\..\xamp_stream\include;.\..\xamp_player\include;.\..\xamp_output_device\include;.\..\xamp_metadata\include;.\..\thirdparty\spdlog\include;$(QTDIR)\include\QtNetwork</IncludePath>
@@ -242,6 +248,10 @@
     <QtMoc Include="widget\filesystemwatcher.h">
       <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtWinExtras;.\..\xamp_base\include;.\..\xamp_stream\include;.\..\xamp_output_device\include;.\..\xamp_player\include;.\..\xamp_metadata\include;.\..\thirdparty\spdlog\include;$(QTDIR)\include\QtNetwork;$(INHERIT);.\..\thirdparty\rapidjson\include;$(QTDIR)\include\QtConcurrent;.\..\thirdparty\rapidxml</IncludePath>
       <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtWinExtras;.\..\xamp_base\include;.\..\xamp_stream\include;.\..\xamp_player\include;.\..\xamp_output_device\include;.\..\xamp_metadata\include;.\..\thirdparty\spdlog\include;$(QTDIR)\include\QtNetwork;$(INHERIT);.\..\thirdparty\rapidjson\include;$(QTDIR)\include\QtConcurrent;.\..\thirdparty\rapidxml</IncludePath>
+    </QtMoc>
+    <QtMoc Include="widget\fftprocessor.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtWinExtras;.\..\xamp_base\include;.\..\xamp_stream\include;.\..\xamp_output_device\include;.\..\xamp_player\include;.\..\xamp_metadata\include;.\..\thirdparty\spdlog\include;$(QTDIR)\include\QtNetwork;$(INHERIT);.\..\thirdparty\rapidjson\include;$(QTDIR)\include\QtConcurrent;.\..\thirdparty\rapidxml;.\..\thirdparty\robin_hood;$(QTDIR)\include\QtCharts</IncludePath>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtWinExtras;.\..\xamp_base\include;.\..\xamp_stream\include;.\..\xamp_player\include;.\..\xamp_output_device\include;.\..\xamp_metadata\include;.\..\thirdparty\spdlog\include;$(QTDIR)\include\QtNetwork;$(INHERIT);.\..\thirdparty\rapidjson\include;$(QTDIR)\include\QtConcurrent;.\..\thirdparty\rapidxml;.\..\thirdparty\robin_hood;$(QTDIR)\include\QtCharts</IncludePath>
     </QtMoc>
     <ClInclude Include="widget\filetag.h" />
     <ClInclude Include="widget\framelesswindow.h" />
@@ -294,6 +304,7 @@
       <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtWinExtras;.\..\xamp_base\include;.\..\xamp_stream\include;.\..\xamp_output_device\include;.\..\xamp_player\include;.\..\xamp_metadata\include;.\..\thirdparty\spdlog\include;$(QTDIR)\include\QtNetwork;$(INHERIT);.\..\thirdparty\rapidjson\include;$(QTDIR)\include\QtConcurrent;.\..\thirdparty\rapidxml;.\..\thirdparty\flat_hash_map</IncludePath>
       <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtWinExtras;.\..\xamp_base\include;.\..\xamp_stream\include;.\..\xamp_player\include;.\..\xamp_output_device\include;.\..\xamp_metadata\include;.\..\thirdparty\spdlog\include;$(QTDIR)\include\QtNetwork;$(INHERIT);.\..\thirdparty\rapidjson\include;$(QTDIR)\include\QtConcurrent;.\..\thirdparty\rapidxml;.\..\thirdparty\flat_hash_map</IncludePath>
     </QtMoc>
+    <ClInclude Include="widget\scrolllabel.h" />
     <ClInclude Include="widget\starrating.h" />
     <ClInclude Include="widget\str_utilts.h" />
     <QtMoc Include="widget\tablistview.h">

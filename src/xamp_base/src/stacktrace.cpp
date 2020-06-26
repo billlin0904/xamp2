@@ -24,8 +24,19 @@ namespace xamp::base {
 #ifdef XAMP_OS_WIN
 
 inline constexpr DWORD kMsvcCppExceptionCode = 0xE06D7363;
+inline constexpr DWORD kSetThreadNameExceptionCode = 0x406D1388;
 inline constexpr DWORD kIgoneDebugOutputStringExceptionCode = DBG_PRINTEXCEPTION_C;
 inline constexpr DWORD kIgoneDebugOutputWideStringExceptionCode = DBG_PRINTEXCEPTION_WIDE_C;
+
+inline constexpr std::array<DWORD, 7> kIgoneExceptionCode{
+    kIgoneDebugOutputStringExceptionCode,
+    kIgoneDebugOutputWideStringExceptionCode,
+    kSetThreadNameExceptionCode,
+    0x000006BA,    
+    0xE0000001,
+    0x000006A6,
+    0x800706B5,
+};
 
 #define DECLARE_EXCEPTION_CODE(Code) { Code, #Code },
 
@@ -170,9 +181,10 @@ void StackTrace::WriteLog(size_t frame_count) {
 }
 
 void StackTrace::PrintStackTrace(EXCEPTION_POINTERS const* info) {
-    if (info->ExceptionRecord->ExceptionCode == kIgoneDebugOutputStringExceptionCode
-        || info->ExceptionRecord->ExceptionCode == kIgoneDebugOutputWideStringExceptionCode) {
-        XAMP_LOG_DEBUG("Igone DebugOutputWideString exception code.");
+    if (std::find(kIgoneExceptionCode.begin(),
+        kIgoneExceptionCode.end(),
+        info->ExceptionRecord->ExceptionCode) != kIgoneExceptionCode.end()) {
+        XAMP_LOG_DEBUG("Igone exception code 0x{:08x}.", info->ExceptionRecord->ExceptionCode);
         return;
     }
 

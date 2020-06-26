@@ -20,11 +20,11 @@ VinylWidget* LrcPage::cover() {
     return vinyl_;
 }
 
-QLabel* LrcPage::album() {
+ScrollLabel* LrcPage::album() {
 	return album_;
 }
 
-QLabel* LrcPage::artist() {
+ScrollLabel* LrcPage::artist() {
 	return artist_;
 }
 
@@ -118,7 +118,7 @@ void LrcPage::initial() {
 	label_3->setStyleSheet(Q_UTF8("color: gray;"));
 	horizontalLayout_8->addWidget(label_3);
 
-	artist_ = new QLabel(this);
+	artist_ = new ScrollLabel(this);
 	artist_->setObjectName(QString::fromUtf8("label_5"));
 	artist_->setFont(f);
 
@@ -139,7 +139,7 @@ void LrcPage::initial() {
 	label_7->setStyleSheet(Q_UTF8("color: gray;"));
 	horizontalLayout_7->addWidget(label_7);
 
-	album_ = new QLabel(this);
+	album_ = new ScrollLabel(this);
 	album_->setObjectName(QString::fromUtf8("label_6"));
 	album_->setFont(f);
 
@@ -157,9 +157,9 @@ void LrcPage::initial() {
 	lyrics_widget_->setMinimumSize(QSize(200, 60));	
 	verticalLayout_2->addWidget(lyrics_widget_);
 
-    spectrograph_ = new Spectrograph(this);
-    spectrograph_->setMinimumSize(QSize(200, 400));
-    verticalLayout_2->addWidget(spectrograph_);
+    //spectrograph_ = new Spectrograph(this);
+    //spectrograph_->setMinimumSize(QSize(200, 400));
+    //verticalLayout_2->addWidget(spectrograph_);
 
 	verticalLayout_2->setStretch(2, 1);
 

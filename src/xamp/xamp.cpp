@@ -125,8 +125,6 @@ void Xamp::closeEvent(QCloseEvent*) {
         player_->Destroy();
         player_.reset();
     }
-
-    lrc_page_->spectrum()->stopThread();
 }
 
 void Xamp::setNightStyle() {
@@ -541,7 +539,7 @@ void Xamp::applyTheme(QColor color) {
     else {
         ThemeManager::instance().setPlayOrPauseButton(ui, false);
     }
-    lrc_page_->spectrum()->setBackgroundColor(color);
+
     ThemeManager::instance().setBackgroundColor(ui, color);    
 }
 
@@ -855,7 +853,6 @@ void Xamp::playMusic(const MusicEntity& item) {
                           + file_info.completeBaseName()
                           + Q_UTF8(".lrc");
     lrc_page_->lyricsWidget()->loadLrcFile(lrc_path);
-    lrc_page_->spectrum()->setFrequency(0.0, 22000, player_->GetOutputFormat().GetSampleRate());
 
     playlist_page_->title()->setText(item.title);
     lrc_page_->title()->setText(item.title);
@@ -904,7 +901,6 @@ void Xamp::onPlayerStateChanged(xamp::player::PlayerState play_state) {
         ui.startPosLabel->setText(Time::msToString(0));
         playNextItem(1);
         emit payNextMusic();
-        lrc_page_->spectrum()->stop();
     }
 }
 
@@ -963,12 +959,6 @@ void Xamp::initialPlaylist() {
     playback_history_page_ = new PlaybackHistoryPage(this);
     playback_history_page_->setFont(font());
     playback_history_page_->hide();
-
-    (void)QObject::connect(state_adapter_.get(),
-                            &PlayerStateAdapter::sampleDataChanged,
-                            &lrc_page_->spectrum()->processor,
-                            &FFTProcessor::OnSampleDataChanged,
-                            Qt::QueuedConnection);
 
     artist_info_page_ = new ArtistInfoPage(this);
     

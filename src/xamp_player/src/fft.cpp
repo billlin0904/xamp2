@@ -11,7 +11,6 @@
 #include <base/enum.h>
 
 #ifdef XAMP_OS_WIN
-#define USE_FFTW
 #else
 #include <base/unique_handle.h>
 #include <Accelerate/Accelerate.h>
@@ -30,9 +29,12 @@ MAKE_ENUM(WindowType,
           HANN,
 		  HAMMING)
 
-#ifndef USE_FFTW
+static size_t ComplexSize(size_t size) {
+	return (size / 2) + 1;
+}
 
-#if 0
+#ifndef USE_FFTW && defined(XAMP_OS_WIN)
+
 class FFT::FFTImpl {
 public:
 	void Init(size_t size) {
@@ -77,7 +79,8 @@ private:
 
 	size_t complex_size_{ 0 };
 };
-#endif
+
+#elif defined(USE_FFTW)
 
 class Window {
 public:
@@ -160,10 +163,6 @@ private:
 };
 
 #else
-
-static size_t ComplexSize(size_t size) {
-    return (size / 2) + 1;
-}
 
 class FFTWLib {
 public:

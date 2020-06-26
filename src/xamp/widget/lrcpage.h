@@ -21,9 +21,9 @@ public:
 
     VinylWidget* cover();
 
-	QLabel* album();
+	ScrollLabel* album();
 
-	QLabel* artist();
+	ScrollLabel* artist();
 
     ScrollLabel* title();
 
@@ -36,8 +36,8 @@ private:
 
 	LyricsShowWideget* lyrics_widget_;
     VinylWidget* vinyl_;
-	QLabel* album_;
-	QLabel* artist_;
+	ScrollLabel* album_;
+	ScrollLabel* artist_;
     ScrollLabel* title_;
     Spectrograph* spectrograph_;
 };
