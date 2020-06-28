@@ -22,8 +22,6 @@ QVariant PlayListTableModel::data(const QModelIndex& index, int32_t role) const 
 		switch (index.column()) {
 		case PLAYLIST_MUSIC_ID:
 			return data_[row].music_id;
-		case PLAYLIST_PLAYING:
-			return data_[row].playing_ico;
 		case PLAYLIST_TRACK:
             return data_[row].track;
 		case PLAYLIST_FILEPATH:
@@ -63,7 +61,7 @@ QVariant PlayListTableModel::data(const QModelIndex& index, int32_t role) const 
 	return QVariant();
 }
 
-bool PlayListTableModel::removeRows(const int32_t position, const int32_t rows, const QModelIndex& parent) {
+bool PlayListTableModel::removeRows(const int32_t position, const int32_t rows, const QModelIndex&) {
 	beginRemoveRows(QModelIndex(), position, position + rows - 1);
 	for (auto row = 0; row < rows; ++row) {
 		data_.removeAt(position);
@@ -131,11 +129,11 @@ QVariant PlayListTableModel::headerData(const int32_t section, const Qt::Orienta
 	return QVariant();
 }
 
-int32_t PlayListTableModel::rowCount(QModelIndex const& parent) const {
+int32_t PlayListTableModel::rowCount(QModelIndex const&) const {
 	return data_.size();
 }
 
-int32_t PlayListTableModel::columnCount(QModelIndex const& parent) const {
+int32_t PlayListTableModel::columnCount(QModelIndex const&) const {
 	return _PLAYLIST_MAX_COLUMN_;
 }
 

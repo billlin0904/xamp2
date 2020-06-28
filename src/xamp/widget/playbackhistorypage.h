@@ -63,7 +63,7 @@ public:
 
 	void refreshOnece();
 
-    void selectAll(bool check);
+    void setSelectAll(bool check);
 private:
 	void resizeColumn();
 

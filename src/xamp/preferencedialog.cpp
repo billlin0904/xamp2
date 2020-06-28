@@ -100,7 +100,7 @@ void PreferenceDialog::initLang() {
 	auto current_index = 0;
 	auto index = 0;
 	for (auto lang : LocaleLanguageManager::languageNames()) {
-		QIcon ico(QString(Q_UTF8(":/xamp/Resource/Flags/%1.png")).arg(lang.countryIsoCode()));
+        QIcon ico(Q_STR(":/xamp/Resource/Flags/%1.png").arg(lang.countryIsoCode()));
 		ui_.langCombo->addItem(ico, lang.getIsoCode());
 		if (current_lang.getIsoCode() == lang.getIsoCode()) {
 			current_index = index;
@@ -177,7 +177,7 @@ PreferenceDialog::PreferenceDialog(QWidget *parent)
         AppSettings::setOrDefaultConfig();
 		});
 
-	(void) QObject::connect(ui_.buttonBox, &QDialogButtonBox::accepted, [this]() {
+    (void)QObject::connect(ui_.buttonBox, &QDialogButtonBox::accepted, [this]() {
 		const auto soxr_sample_rate = ui_.soxrTargetSampleRateComboBox->currentText().toInt();
 		const auto soxr_quility = ui_.soxrResampleQualityComboBox->currentIndex();
 		const auto soxr_phase = ui_.soxrPhaseComboBox->currentIndex();

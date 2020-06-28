@@ -28,9 +28,7 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 	artist_->setFont(f);
 	artist_->setStyleSheet(Q_UTF8("background-color: transparent"));	
 
-	auto cover_spacer1 = new QSpacerItem(20, 10, QSizePolicy::Minimum, QSizePolicy::Fixed);
 	auto cover_spacer2 = new QSpacerItem(50, 10, QSizePolicy::Minimum, QSizePolicy::Fixed);
-	auto cover_spacer3 = new QSpacerItem(20, 10, QSizePolicy::Minimum, QSizePolicy::Fixed);
 
 	child_layout->addWidget(cover_);
 	child_layout->addItem(cover_spacer2);

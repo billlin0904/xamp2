@@ -24,7 +24,6 @@
 #include <output_device/audiocallback.h>
 #include <output_device/deviceinfo.h>
 
-#include <player/fft.h>
 #include <player/playstate.h>
 #include <player/playbackstateadapter.h>
 #include <player/player.h>
@@ -79,6 +78,8 @@ public:
     bool IsPlaying() const noexcept;
 
     DsdModes GetDsdModes() const noexcept;
+
+    bool IsDSDFile() const;
 
     std::optional<uint32_t> GetDSDSpeed() const;
 

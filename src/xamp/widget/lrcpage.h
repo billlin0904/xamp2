@@ -6,9 +6,10 @@
 #pragma once
 
 #include <QFrame>
-#include <widget/vinylwidget.h>
-#include <widget/scrolllabel.h>
 
+class QLabel;
+class VinylWidget;
+class ScrollLabel;
 class LyricsShowWideget;
 
 class LrcPage : public QFrame {
@@ -18,7 +19,9 @@ public:
 
 	LyricsShowWideget* lyricsWidget();
 
-    VinylWidget* cover();
+    //VinylWidget* cover();
+
+    QLabel* cover();
 
 	ScrollLabel* album();
 
@@ -32,7 +35,8 @@ private:
 	void initial();
 
 	LyricsShowWideget* lyrics_widget_;
-    VinylWidget* vinyl_;
+    //VinylWidget* vinyl_;
+    QLabel* cover_label_;
 	ScrollLabel* album_;
 	ScrollLabel* artist_;
     ScrollLabel* title_;

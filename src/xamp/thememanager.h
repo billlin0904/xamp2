@@ -8,6 +8,8 @@
 #include <QPixmap>
 #include <QIcon>
 
+#include <widget/str_utilts.h>
+
 namespace Ui {
 class XampWindow;
 }
@@ -55,7 +57,7 @@ public:
 
     void setDefaultStyle(Ui::XampWindow &ui);
 
-    void setBackgroundColor(Ui::XampWindow& ui, QColor backgroundColor);    
+    void setBackgroundColor(Ui::XampWindow& ui, QColor color);
 
     void enableBlur(const QWidget* widget, bool enable);
 
@@ -85,17 +87,17 @@ signals:
     void themeChanged(ThemeColor theme_color);    
 
 private:
-    QLatin1String themeColorPath() const;
+    ConstLatin1String themeColorPath() const;
 
     ThemeManager();
 
     ThemeColor theme_color_;
-    QSize defaultAlbumCoverSize;
-    QSize defaultCoverSize;
+    QSize album_cover_size_;
+    QSize cover_size_;
     QColor tableTextColor;
-    QColor menuColor;
-    QColor menuTextColor;
-    QColor backgroundColor;
-    QColor controlBackgroundColor;
+    QColor menu_color_;
+    QColor menu_text_color_;
+    QColor background_color_;
+    QColor control_background_color_;
 };
 

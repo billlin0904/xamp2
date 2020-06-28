@@ -3,6 +3,8 @@
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
+#pragma once
+
 #include <base/exception.h>
 #include <stream/stream.h>
 

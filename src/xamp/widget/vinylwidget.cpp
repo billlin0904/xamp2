@@ -68,14 +68,12 @@ void VinylWidget::setPixmap(QPixmap const &image) {
     painter.end();
 
     cover_ = temp;
-
     writeBackground();
-
     update();
 }
 
 void VinylWidget::start() {
-    timer_.start();
+    //timer_.start();
 }
 
 void VinylWidget::stop() {

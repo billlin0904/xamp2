@@ -1,6 +1,5 @@
 #include "ui_xamp.h"
 
-#include <widget/str_utilts.h>
 #include <widget/image_utiltis.h>
 
 #include <QScreen>
@@ -23,18 +22,18 @@ ThemeManager::ThemeManager() {
     const auto sceen_size = qApp->screens()[0]->size();
 
     if ((sceen_size.width() <= 1920 || sceen_size.width() <= 2560) && sceen_size.height() <= 1080) {
-        defaultCoverSize = QSize(110, 110);
+        cover_size_ = QSize(110, 110);
     }
     else {
-        defaultCoverSize = QSize(150, 150);
+        cover_size_ = QSize(150, 150);
     }
 
     tableTextColor = QColor(Qt::black);
-    backgroundColor = QColor(228, 233, 237, 230);
-    controlBackgroundColor = QColor(228, 233, 237, 220);
-    defaultAlbumCoverSize = QSize(250, 250);
-    menuColor = QColor(228, 233, 237, 150);
-    menuTextColor = QColor(Qt::black);
+    background_color_ = QColor(228, 233, 237, 230);
+    control_background_color_ = QColor(228, 233, 237, 220);
+    album_cover_size_ = QSize(250, 250);
+    menu_color_ = QColor(228, 233, 237, 150);
+    menu_text_color_ = QColor(Qt::black);
     setThemeColor(ThemeColor::DARK_THEME);
 }
 
@@ -43,7 +42,7 @@ void ThemeManager::setThemeColor(ThemeColor theme_color) {
     emit themeChanged(theme_color_);
 }
 
-QLatin1String ThemeManager::themeColorPath() const {
+ConstLatin1String ThemeManager::themeColorPath() const {
     switch (theme_color_) {
     case ThemeColor::DARK_THEME:
         return Q_UTF8("Black");
@@ -112,7 +111,7 @@ QString ThemeManager::getMenuStyle() noexcept {
 }
 
 QSize ThemeManager::getDefaultCoverSize() noexcept {
-    return defaultCoverSize;
+    return cover_size_;
 }
 
 QSize ThemeManager::getCacheCoverSize() noexcept {
@@ -120,11 +119,11 @@ QSize ThemeManager::getCacheCoverSize() noexcept {
 }
 
 QSize ThemeManager::getAlbumCoverSize() noexcept {
-    return defaultAlbumCoverSize;
+    return album_cover_size_;
 }
 
 QColor ThemeManager::getBackgroundColor() noexcept {
-    return backgroundColor;
+    return background_color_;
 }
 
 void ThemeManager::enableBlur(const QWidget* widget, bool enable) {
@@ -151,7 +150,7 @@ void ThemeManager::setBackgroundColor(Ui::XampWindow& ui, QColor color) {
     ui.sliderFrame->setStyleSheet(backgroundColorToString(alphaColor));
 
     AppSettings::setValue(kAppSettingBackgroundColor, color);
-    backgroundColor = color;
+    background_color_ = color;
 
     setThemeColor(ui);    
 }
@@ -303,12 +302,12 @@ void ThemeManager::setDefaultStyle(Ui::XampWindow& ui) {
         setBackgroundColor(ui, AppSettings::getValueAsString(kAppSettingBackgroundColor));
     }
     else {
-        setBackgroundColor(ui, backgroundColor);
+        setBackgroundColor(ui, background_color_);
     }
 
-    ui.controlFrame->setStyleSheet(backgroundColorToString(controlBackgroundColor));
-    ui.volumeFrame->setStyleSheet(backgroundColorToString(controlBackgroundColor));
-    ui.playingFrame->setStyleSheet(backgroundColorToString(controlBackgroundColor));
+    ui.controlFrame->setStyleSheet(backgroundColorToString(control_background_color_));
+    ui.volumeFrame->setStyleSheet(backgroundColorToString(control_background_color_));
+    ui.playingFrame->setStyleSheet(backgroundColorToString(control_background_color_));
 
     ui.searchLineEdit->setStyleSheet(Q_UTF8(""));
     ui.sliderBar->setStyleSheet(Q_UTF8("QListView#sliderBar { background-color: transparent; border: none; }"));

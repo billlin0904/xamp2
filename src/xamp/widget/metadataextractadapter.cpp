@@ -162,7 +162,7 @@ void MetadataExtractAdapter::processMetadata(const std::vector<Metadata>& metada
         auto artist = QString::fromStdWString(metadata.artist);
 
         if (album.isEmpty()) {
-            album = Q_UTF8(" ");
+            album = tr("Unknow album");
         }
 
         auto music_id = Database::instance().addOrUpdateMusic(metadata, playlist_id);

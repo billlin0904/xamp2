@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <string_view>
 #include <QColor>
 #include <QString>
 #include <QVariant>
@@ -22,6 +23,10 @@ inline constexpr ConstLatin1String QEmptyString{""};
 
 #define Q_UTF8(str) ConstLatin1String{str}
 #define Q_STR(str) QString(ConstLatin1String{str})
+
+inline QLatin1String fromStdStringView(std::string_view const &s) {
+    return QLatin1String{ s.data(), static_cast<int>(s.length()) };
+}
 
 struct MusicEntity {
     int32_t album_id{ 0 };

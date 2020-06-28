@@ -230,7 +230,7 @@ void PlayListTableView::initial() {
 }
 
 void PlayListTableView::onTextColorChanged(QColor backgroundColor, QColor color) {
-    QColor selectedColor = Qt::lightGray;
+    QColor selectedColor = Qt::black;
     start_delegate_->setBackgroundColor(selectedColor);
  
     auto style = QString(Q_UTF8(R"(
@@ -391,7 +391,7 @@ void PlayListTableView::setNowPlaying(const QModelIndex& index, bool is_scroll_t
     proxy_model_.dataChanged(QModelIndex(), QModelIndex());
 }
 
-void PlayListTableView::scrollTo(const QModelIndex& index) {
+void PlayListTableView::scrollToIndex(const QModelIndex& index) {
     QTableView::scrollTo(index, PositionAtCenter);
 }
 

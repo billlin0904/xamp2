@@ -208,6 +208,7 @@ void CoreAudioDevice::OpenStream(AudioFormat const &output_format) {
                                                       &ioproc_id_));
     format_ = output_format;
 
+    ReleaseHogMode(device_id_);
     SetHogMode(device_id_);
 }
 

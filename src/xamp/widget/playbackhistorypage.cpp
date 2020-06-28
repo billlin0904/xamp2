@@ -230,7 +230,7 @@ void PlaybackHistoryTableView::resizeColumn() {
 	}
 }
 
-void PlaybackHistoryTableView::selectAll(bool check) {
+void PlaybackHistoryTableView::setSelectAll(bool check) {
     model_.selectAll(check);
 }
 
@@ -325,12 +325,12 @@ PlaybackHistoryPage::PlaybackHistoryPage(QWidget* parent)
     default_layout->addLayout(save_button_layout);
 
     (void)QObject::connect(select_all_button, &QPushButton::clicked, [this]() {
-        playlist_->selectAll(true);
+        playlist_->setSelectAll(true);
         update();
     });
 
     (void)QObject::connect(clear_select_all_button, &QPushButton::clicked, [this]() {
-        playlist_->selectAll(false);
+        playlist_->setSelectAll(false);
         update();
     });
 

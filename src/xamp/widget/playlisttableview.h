@@ -48,7 +48,7 @@ public:
 
 	void play(const QModelIndex& index);
 
-    void scrollTo(const QModelIndex& index);
+    void scrollToIndex(const QModelIndex& index);
 
 	void resizeColumn() const;
 

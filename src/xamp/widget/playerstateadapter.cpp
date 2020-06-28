@@ -24,7 +24,7 @@ void PlayerStateAdapter::OnVolumeChanged(float vol) {
     emit volumeChanged(vol);
 }
 
-void PlayerStateAdapter::OnSampleDataChanged(const float *samples, size_t size) {
+void PlayerStateAdapter::OnSampleDataChanged(const float *, size_t) {
     //buffer_.resize(size);
     //memcpy(buffer_.data(), samples, size * sizeof(float));
     //emit sampleDataChanged(buffer_);

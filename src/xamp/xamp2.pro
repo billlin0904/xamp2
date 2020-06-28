@@ -63,11 +63,9 @@ SOURCES += \
     widget/starrating.cpp \
     widget/stareditor.cpp \
     widget/stardelegate.cpp \
-    widget/spectrograph.cpp \
     widget/localelanguage.cpp \
     widget/jsonsettings.cpp \
     widget/scrolllabel.cpp \
-    widget/fftprocessor.cpp \
     singleinstanceapplication.cpp \
     thememanager.cpp \
     aboutdialog.cpp \
@@ -117,11 +115,9 @@ HEADERS += \
     widget/starrating.h \
     widget/stareditor.h \
     widget/stardelegate.h \
-    widget/spectrograph.h \
     widget/localelanguage.h \
     widget/jsonsettings.h \
     widget/scrolllabel.h \
-    widget/fftprocessor.h \
     thememanager.h \
     aboutdialog.h \
     preferencedialog.h \

@@ -79,7 +79,7 @@ void AudioPlayer::LoadLib() {
     ThreadPool::DefaultThreadPool();
     BassFileStream::LoadBassLib();
     AudioDeviceFactory::Instance();
-    //Chromaprint::LoadChromaprintLib();
+    Chromaprint::LoadChromaprintLib();
     SoxrResampler::LoadSoxrLib();
 }
 
@@ -113,6 +113,16 @@ void AudioPlayer::CreateDevice(ID const & device_type_id, std::wstring const & d
         }
     }
     device_->SetAudioCallback(this);
+}
+
+bool AudioPlayer::IsDSDFile() const {
+    if (!stream_) {
+        return false;
+    }
+    if (auto dsd_stream = dynamic_cast<DsdStream const*>(stream_.get())) {
+        return dsd_stream->IsDsdFile();
+    }
+    return false;
 }
 
 bool AudioPlayer::IsDsdStream() const noexcept {

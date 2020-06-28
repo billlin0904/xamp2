@@ -10,8 +10,6 @@
 #include <output_device/devicestatelistener.h>
 #include <player/playbackstateadapter.h>
 
-using xamp::player::Complex;
-
 class PlayerStateAdapter final 
     : public QObject
     , public xamp::player::PlaybackStateAdapter {

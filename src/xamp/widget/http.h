@@ -15,8 +15,7 @@ enum class HttpMethod {
     HTTP_GET,
     HTTP_POST,
     HTTP_PUT,
-    HTTP_DELETE,
-    HTTP_UPLOAD
+    HTTP_DELETE
 };
 
 class HttpClient {

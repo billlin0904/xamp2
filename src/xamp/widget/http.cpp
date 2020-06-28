@@ -150,9 +150,8 @@ QString HttpClient::HttpClientImpl::readReply(QNetworkReply *reply, const QStrin
 
 QNetworkRequest HttpClient::HttpClientImpl::createRequest(HttpClientImpl *d, HttpMethod method) {
     auto get = method == HttpMethod::HTTP_GET;
-    auto upload = method == HttpMethod::HTTP_UPLOAD;
-    auto withForm = !get && !upload && !d->useJson;
-    auto withJson = !get && !upload &&  d->useJson;
+    auto withForm = !get && !d->useJson;
+    auto withJson = !get &&  d->useJson;
 
     if (get && !d->params.isEmpty()) {
         d->url += Q_UTF8("?") + d->params.toString(QUrl::FullyEncoded);
@@ -228,7 +227,7 @@ void HttpClient::post() {
 void HttpClient::download(std::function<void (const QByteArray &)> downloadHandler) {
     auto data = std::make_shared<QByteArray>();
 
-    success([=](auto message) {
+    success([=](auto) {
         downloadHandler(*data);
     });
 

@@ -71,11 +71,13 @@ ArtistView::ArtistView(QWidget *parent)
     setItemDelegate(new ArtistViewStyledDelegate());
     verticalScrollBar()->setStyleSheet(Q_UTF8("QScrollBar {width:0px;}"));
 
-    (void) QObject::connect(this, &QListView::clicked, [this](auto index) {        
+    (void) QObject::connect(this, &QListView::clicked, [this](auto index) {
+        /*
         auto artist_id = index.model()->data(index.model()->index(index.row(), 0)).toInt();
         auto artist = index.model()->data(index.model()->index(index.row(), 1)).toString();
         auto cover_id_id = index.model()->data(index.model()->index(index.row(), 2)).toString();
         auto discogs_artist_id = index.model()->data(index.model()->index(index.row(), 3)).toString();
+        */
         auto first_char = index.model()->data(index.model()->index(index.row(), 4)).toString();
         emit clickedArtist(first_char);              
         });    

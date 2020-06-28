@@ -406,7 +406,6 @@ AlbumView::AlbumView(QWidget* parent)
 
         auto list_view_rect = this->rect();
         auto height = list_view_rect.height();        
-        auto rect = visualRect(index);
 
         page_->setAlbum(album);
         page_->setArtist(artist);

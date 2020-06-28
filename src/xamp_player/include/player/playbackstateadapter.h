@@ -9,7 +9,6 @@
 #include <base/exception.h>
 #include <player/player.h>
 #include <output_device/devicestatelistener.h>
-#include <player/fft.h>
 #include <player/playstate.h>
 
 namespace xamp::player {

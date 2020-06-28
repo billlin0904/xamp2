@@ -20,8 +20,7 @@ struct PlayListEntity {
     uint32_t bitrate{0};
     uint32_t samplerate{0};
     uint32_t rating{0};
-    double duration{0};    
-    QIcon playing_ico;
+    double duration{0};
     QString file_path;
     QString parent_path;
     QString title;
@@ -30,7 +29,7 @@ struct PlayListEntity {
     QString file_ext;
     QString cover_id;
     QString file_name;
-    QString fingerprint;    
+    QString fingerprint;
 };
 
 Q_DECLARE_METATYPE(PlayListEntity)
