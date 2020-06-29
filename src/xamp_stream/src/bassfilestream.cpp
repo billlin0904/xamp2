@@ -142,7 +142,7 @@ public:
         return BassLib::Instance().BASS_ChannelBytes2Seconds(stream_.get(), len);
     }
 
-    AudioFormat GetFormat() const {
+    AudioFormat GetFormat() const noexcept {
         assert(stream_.is_valid());
         if (mode_ == DsdModes::DSD_MODE_NATIVE) {
             return AudioFormat(DataFormat::FORMAT_DSD,

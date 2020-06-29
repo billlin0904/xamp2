@@ -19,6 +19,7 @@
 #include <base/id.h>
 
 #include <stream/stream.h>
+#include <stream/equalizer.h>
 
 #include <output_device/output_device.h>
 #include <output_device/audiocallback.h>
@@ -177,6 +178,7 @@ private:
     AudioBuffer<int8_t> buffer_;
     WaitableTimer wait_timer_;
     AlignPtr<Resampler> resampler_;
+    AlignPtr<Equalizer> equalizer_;
     DeviceInfo device_info_;
     std::future<void> stream_task_;
 };

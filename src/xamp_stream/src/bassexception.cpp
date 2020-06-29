@@ -16,7 +16,7 @@ static Errors TranslateBassError(int error) noexcept {
     }
 }
 
-static std::string GetBassErrorMessage(int error) noexcept {
+static std::string GetBassErrorMessage(int error) {
     switch (error) {
     case BASS_OK:
         return "All is OK";

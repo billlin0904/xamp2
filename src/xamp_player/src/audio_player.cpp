@@ -14,6 +14,7 @@
 
 #include <stream/bassfilestream.h>
 #include <stream/avfilestream.h>
+#include <stream/bassequalizer.h>
 #include <player/soxresampler.h>
 
 #include <player/resampler.h>
@@ -52,6 +53,7 @@ AudioPlayer::AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter)
     , state_adapter_(adapter) {
     wait_timer_.SetTimeout(kReadSampleWaitTime);
     buffer_.Resize(kPreallocateBufferSize);
+    equalizer_ = MakeAlign<Equalizer, BassEqualizer>();
 }
 
 AudioPlayer::~AudioPlayer() = default;
@@ -79,8 +81,7 @@ void AudioPlayer::LoadLib() {
     ThreadPool::DefaultThreadPool();
     BassFileStream::LoadBassLib();
     AudioDeviceFactory::Instance();
-    Chromaprint::LoadChromaprintLib();
-    SoxrResampler::LoadSoxrLib();
+    SoxrResampler::LoadSoxrLib();    
 }
 
 void AudioPlayer::Open(std::wstring const & file_path, std::wstring const & file_ext, DeviceInfo const & device_info) {
@@ -565,7 +566,8 @@ void AudioPlayer::OpenDevice(double stream_time) {
     }
 #endif
     device_->OpenStream(output_format_);
-    device_->SetStreamTime(stream_time);
+    device_->SetStreamTime(stream_time);    
+    equalizer_->Start(output_format_.GetChannels(), output_format_.GetSampleRate());
 }
 
 void AudioPlayer::Seek(double stream_time) {

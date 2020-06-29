@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <cstdint>
+
 #include <bass/bass.h>
 #include <bass/bassdsd.h>
 
@@ -23,26 +25,6 @@ namespace xamp::stream {
 inline constexpr DWORD kBassError{ 0xFFFFFFFF };
 inline constexpr int32_t kPcmSampleRate441 = { 44100 };
 
-template <typename T>
-constexpr uint8_t HiByte(T val) noexcept {
-    return static_cast<uint8_t>(val >> 8);
-}
-
-template <typename T>
-constexpr uint8_t LowByte(T val) noexcept {
-    return static_cast<uint8_t>(val);
-}
-
-template <typename T>
-constexpr uint16_t HiWord(T val) noexcept {
-    return static_cast<uint16_t>((uint32_t(val) >> 16) & 0xFFFF);
-}
-
-template <typename T>
-constexpr uint16_t LoWord(T val) noexcept {
-    return static_cast<uint16_t>(uint32_t(val) & 0xFFFF);
-}
-
 #define BassIfFailedThrow(result) \
     do {\
         if (!(result)) {\
@@ -50,7 +32,7 @@ constexpr uint16_t LoWord(T val) noexcept {
         }\
     } while (false)
 
-static uint32_t GetDOPSampleRate(uint32_t dsd_speed) {
+inline uint32_t GetDOPSampleRate(uint32_t dsd_speed) {
     switch (dsd_speed) {
         // 64x CD
     case 64:
@@ -126,6 +108,7 @@ public:
         LoadPlugin("bass_aac.dll");
         LoadPlugin("bassflac.dll");
         LoadPlugin("bass_ape.dll");
+        LoadPlugin("bass_fx.dll");
 #else
         LoadPlugin("bass_aac.dylib");
 #endif
@@ -156,7 +139,12 @@ private:
         , BASS_ChannelSetPosition(module_, "BASS_ChannelSetPosition")
         , BASS_ErrorGetCode(module_, "BASS_ErrorGetCode")
         , BASS_ChannelGetAttribute(module_, "BASS_ChannelGetAttribute")
-        , BASS_ChannelSetAttribute(module_, "BASS_ChannelSetAttribute") {
+        , BASS_ChannelSetAttribute(module_, "BASS_ChannelSetAttribute")
+        , BASS_ChannelSetFX(module_, "BASS_ChannelSetFX")
+        , BASS_FXSetParameters(module_, "BASS_FXSetParameters")
+        , BASS_FXGetParameters(module_, "BASS_FXGetParameters")
+        , BASS_StreamCreate(module_, "BASS_StreamCreate")
+        , BASS_StreamPutData(module_, "BASS_StreamPutData") {
     }
     catch (const Exception &e) {
         XAMP_LOG_ERROR("{}", e.GetErrorMessage());
@@ -182,10 +170,35 @@ public:
     XAMP_DECLARE_DLL(BASS_ErrorGetCode) BASS_ErrorGetCode;
     XAMP_DECLARE_DLL(BASS_ChannelGetAttribute) BASS_ChannelGetAttribute;
     XAMP_DECLARE_DLL(BASS_ChannelSetAttribute) BASS_ChannelSetAttribute;
+    XAMP_DECLARE_DLL(BASS_ChannelSetFX) BASS_ChannelSetFX;
+    XAMP_DECLARE_DLL(BASS_FXSetParameters) BASS_FXSetParameters;
+    XAMP_DECLARE_DLL(BASS_FXGetParameters) BASS_FXGetParameters;
+    XAMP_DECLARE_DLL(BASS_StreamCreate) BASS_StreamCreate;
+    XAMP_DECLARE_DLL(BASS_StreamPutData) BASS_StreamPutData;
 
     AlignPtr<BassDSDLib> DSDLib;
 
 private:
+    template <typename T>
+    constexpr uint8_t HiByte(T val) noexcept {
+        return static_cast<uint8_t>(val >> 8);
+    }
+
+    template <typename T>
+    constexpr uint8_t LowByte(T val) noexcept {
+        return static_cast<uint8_t>(val);
+    }
+
+    template <typename T>
+    constexpr uint16_t HiWord(T val) noexcept {
+        return static_cast<uint16_t>((uint32_t(val) >> 16) & 0xFFFF);
+    }
+
+    template <typename T>
+    constexpr uint16_t LoWord(T val) noexcept {
+        return static_cast<uint16_t>(uint32_t(val) & 0xFFFF);
+    }
+
     void LoadPlugin(std::string const & file_name) {
         BassPluginHandle plugin(BassLib::Instance().BASS_PluginLoad(file_name.c_str(), 0));
         if (!plugin) {
@@ -194,10 +207,10 @@ private:
         }
 
         const auto info = BassLib::Instance().BASS_PluginGetInfo(plugin.get());
-        const int major_version(HiByte(HiWord(info->version)));
-        const int minor_version(LowByte(HiWord(info->version)));
-        const int micro_version(HiByte(LoWord(info->version)));
-        const int build_version(LowByte(LoWord(info->version)));
+        const uint32_t major_version(HiByte(HiWord(info->version)));
+        const uint32_t minor_version(LowByte(HiWord(info->version)));
+        const uint32_t micro_version(HiByte(LoWord(info->version)));
+        const uint32_t build_version(LowByte(LoWord(info->version)));
 
         std::ostringstream ostr;
         ostr << major_version << "."
@@ -235,7 +248,6 @@ struct XAMP_STREAM_API BassStreamTraits final {
 };
 
 using BassStreamHandle = UniqueHandle<HSTREAM, BassStreamTraits>;
-
 
 }
 
