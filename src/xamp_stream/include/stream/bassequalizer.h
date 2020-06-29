@@ -17,7 +17,7 @@ class XAMP_STREAM_API BassEqualizer final : public Equalizer {
 public:
 	BassEqualizer();
 
-	XAMP_PIMPL(BassEqualizer)
+    virtual ~BassEqualizer();
 
 	void Start(uint32_t num_channels, uint32_t input_samplerate) override;
 

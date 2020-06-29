@@ -71,6 +71,35 @@ public:
     DllFunction<HSTREAM(BOOL, void const *, QWORD, QWORD, DWORD, DWORD)> BASS_DSD_StreamCreateFile;
 };
 
+class BassFxLib final {
+public:
+    BassFxLib() try
+#ifdef XAMP_OS_WIN
+        : module_(LoadModule("bass_fx.dll"))
+#else
+        : module_(LoadModule("libbass_fx.dylib"))
+#endif
+        , BASS_ChannelSetFX(module_, "BASS_ChannelSetFX")
+        , BASS_ChannelRemoveFX(module_, "BASS_ChannelRemoveFX")
+        , BASS_FXSetParameters(module_, "BASS_FXSetParameters")
+        , BASS_FXGetParameters(module_, "BASS_FXGetParameters"){
+    }
+    catch (const Exception & e) {
+        XAMP_LOG_ERROR("{}", e.GetErrorMessage());
+    }
+
+    XAMP_DISABLE_COPY(BassFxLib)
+
+private:
+    ModuleHandle module_;
+
+public:
+    XAMP_DECLARE_DLL(BASS_ChannelSetFX) BASS_ChannelSetFX;
+    XAMP_DECLARE_DLL(BASS_ChannelRemoveFX) BASS_ChannelRemoveFX;
+    XAMP_DECLARE_DLL(BASS_FXSetParameters) BASS_FXSetParameters;
+    XAMP_DECLARE_DLL(BASS_FXGetParameters) BASS_FXGetParameters;
+};
+
 class XAMP_STREAM_API BassLib final {
 public:
     static XAMP_ALWAYS_INLINE BassLib & Instance() {
@@ -79,6 +108,8 @@ public:
     }
 
     ~BassLib() {
+        XAMP_LOG_INFO("Release BassLib dll.");
+
         plugins_.clear();
 
         if (module_.is_valid()) {
@@ -109,12 +140,13 @@ public:
         LoadPlugin("bassflac.dll");
         LoadPlugin("bass_ape.dll");
         LoadPlugin("bass_fx.dll");
-#else
-        LoadPlugin("bass_aac.dylib");
 #endif
     }
 
     XAMP_DISABLE_COPY(BassLib)
+
+    AlignPtr<BassFxLib> FxLib;
+    AlignPtr<BassDSDLib> DSDLib;
 
 private:
     BassLib() try
@@ -140,9 +172,6 @@ private:
         , BASS_ErrorGetCode(module_, "BASS_ErrorGetCode")
         , BASS_ChannelGetAttribute(module_, "BASS_ChannelGetAttribute")
         , BASS_ChannelSetAttribute(module_, "BASS_ChannelSetAttribute")
-        , BASS_ChannelSetFX(module_, "BASS_ChannelSetFX")
-        , BASS_FXSetParameters(module_, "BASS_FXSetParameters")
-        , BASS_FXGetParameters(module_, "BASS_FXGetParameters")
         , BASS_StreamCreate(module_, "BASS_StreamCreate")
         , BASS_StreamPutData(module_, "BASS_StreamPutData") {
     }
@@ -170,13 +199,8 @@ public:
     XAMP_DECLARE_DLL(BASS_ErrorGetCode) BASS_ErrorGetCode;
     XAMP_DECLARE_DLL(BASS_ChannelGetAttribute) BASS_ChannelGetAttribute;
     XAMP_DECLARE_DLL(BASS_ChannelSetAttribute) BASS_ChannelSetAttribute;
-    XAMP_DECLARE_DLL(BASS_ChannelSetFX) BASS_ChannelSetFX;
-    XAMP_DECLARE_DLL(BASS_FXSetParameters) BASS_FXSetParameters;
-    XAMP_DECLARE_DLL(BASS_FXGetParameters) BASS_FXGetParameters;
     XAMP_DECLARE_DLL(BASS_StreamCreate) BASS_StreamCreate;
     XAMP_DECLARE_DLL(BASS_StreamPutData) BASS_StreamPutData;
-
-    AlignPtr<BassDSDLib> DSDLib;
 
 private:
     template <typename T>
@@ -202,7 +226,7 @@ private:
     void LoadPlugin(std::string const & file_name) {
         BassPluginHandle plugin(BassLib::Instance().BASS_PluginLoad(file_name.c_str(), 0));
         if (!plugin) {
-            XAMP_LOG_DEBUG("Load {} failure.", file_name);
+            XAMP_LOG_DEBUG("Load {} failure. error:{}", file_name, BassLib::Instance().BASS_ErrorGetCode());
             return;
         }
 

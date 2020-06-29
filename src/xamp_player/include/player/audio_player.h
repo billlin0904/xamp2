@@ -20,6 +20,7 @@
 
 #include <stream/stream.h>
 #include <stream/equalizer.h>
+#include <stream/bassequalizer.h>
 
 #include <output_device/output_device.h>
 #include <output_device/audiocallback.h>

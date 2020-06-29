@@ -14,7 +14,6 @@
 
 #include <stream/bassfilestream.h>
 #include <stream/avfilestream.h>
-#include <stream/bassequalizer.h>
 #include <player/soxresampler.h>
 
 #include <player/resampler.h>
@@ -68,6 +67,7 @@ void AudioPlayer::Destroy() {
     Stop(false, true);
     stream_.reset();
     resampler_.reset();
+    equalizer_.reset();
     ThreadPool::DefaultThreadPool().Stop();
 }
 
@@ -338,7 +338,7 @@ void AudioPlayer::Initial() {
             const auto slice = p->slice_.load();
             if (slice.sample_size > 0) {
                 if (slice.samples != nullptr) {
-                    adapter->OnSampleDataChanged(slice.samples, slice.sample_size);
+                    adapter->OnSampleDataChanged(slice.samples, static_cast<uint32_t>(slice.sample_size));
                 }
                 adapter->OnSampleTime(slice.stream_time);
             } else if (p->is_playing_ && slice.sample_size == -1) {
@@ -566,8 +566,18 @@ void AudioPlayer::OpenDevice(double stream_time) {
     }
 #endif
     device_->OpenStream(output_format_);
-    device_->SetStreamTime(stream_time);    
+    device_->SetStreamTime(stream_time);
     equalizer_->Start(output_format_.GetChannels(), output_format_.GetSampleRate());
+    equalizer_->SetEQ(0, 0.5F);
+    equalizer_->SetEQ(1, -3.0F);
+    equalizer_->SetEQ(2, -3.0F);
+    equalizer_->SetEQ(3, 1.5F);
+    equalizer_->SetEQ(4, 3.0F);
+    equalizer_->SetEQ(5, 3.0F);
+    equalizer_->SetEQ(6, 2.5F);
+    equalizer_->SetEQ(7, 0.2F);
+    equalizer_->SetEQ(8, 0.0F);
+    equalizer_->SetEQ(9, -0.5F);
 }
 
 void AudioPlayer::Seek(double stream_time) {
@@ -610,6 +620,9 @@ void AudioPlayer::BufferStream() {
                 return;
             }
             auto samples = reinterpret_cast<const float*>(sample_buffer);
+            if (dsd_mode_ == DsdModes::DSD_MODE_PCM) {
+                equalizer_->Process(samples, num_samples, buffer_);
+            }
             if (!resampler_->Process(samples, num_samples, buffer_)) {
                 continue;
             }
@@ -624,6 +637,9 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_read_sample
 
         if (num_samples > 0) {
             auto samples = reinterpret_cast<const float*>(sample_buffer_.get());
+            if (dsd_mode_ == DsdModes::DSD_MODE_PCM) {
+                equalizer_->Process(samples, num_samples, buffer_);
+            }
             if (!resampler_->Process(samples, num_samples, buffer_)) {
                 continue;
             }
