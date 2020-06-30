@@ -141,6 +141,7 @@ public:
         LoadPlugin("bass_ape.dll");
         LoadPlugin("bass_fx.dll");
 #endif
+        BassLib::Instance().BASS_SetConfig(BASS_CONFIG_FLOATDSP, true);
     }
 
     XAMP_DISABLE_COPY(BassLib)
