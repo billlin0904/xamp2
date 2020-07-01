@@ -26,6 +26,7 @@
 #include <widget/filesystemwatcher.h>
 #include <widget/localelanguage.h>
 #include <widget/playerorder.h>
+#include <widget/eqdialog.h>
 
 #include "ui_xamp.h"
 
@@ -143,6 +144,8 @@ private:
 
     void readFingerprint(const QModelIndex&, const PlayListEntity& item);
 
+    void setupEQ();
+
 	bool is_seeking_;
 	PlayerOrder order_;
 	QModelIndex play_index_;
@@ -159,5 +162,6 @@ private:
 	MusicBrainzClient mbc_;
 	DiscogsClient discogs_;
 	FileSystemWatcher watch_;
+    QList<FilterBand> eqbands_;
     Ui::XampWindow ui;
 };

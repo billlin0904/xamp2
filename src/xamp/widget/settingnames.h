@@ -31,3 +31,5 @@ inline constexpr ConstLatin1String kSoxrPhase{ "phase" };
 inline constexpr ConstLatin1String kSoxrPassBand{ "passBand" };
 inline constexpr ConstLatin1String kSoxrDefaultSettingName{ "default" };
 
+inline constexpr ConstLatin1String kEnableEQ{ "AppSettings/enableEQ" };
+inline constexpr ConstLatin1String kEQName{ "AppSettings/EQName" };

@@ -570,20 +570,20 @@ void AudioPlayer::OpenDevice(double stream_time) {
 #endif
     device_->OpenStream(output_format_);
     device_->SetStreamTime(stream_time);
-
     equalizer_->Start(output_format_.GetChannels(), output_format_.GetSampleRate());
-    
-    equalizer_->SetEQ(0, -2.6);
-    equalizer_->SetEQ(1, 0.4);
-    equalizer_->SetEQ(2, -2.7);
-    equalizer_->SetEQ(3, 0.0);
-    equalizer_->SetEQ(4, 1.3);
-    equalizer_->SetEQ(5, -1.6);
-    equalizer_->SetEQ(6, -2.8);
-    equalizer_->SetEQ(7, 4.6);
-    equalizer_->SetEQ(8, 2.2);
-    equalizer_->SetEQ(9, -1.9);
-    
+    uint32_t i = 0;
+    for (auto settings : eqsettings_) {
+        equalizer_->SetEQ(i++, settings.gain, settings.Q);
+    }
+}
+
+void AudioPlayer::SetEQ(uint32_t band, float gain, float Q) {
+    if (band >= eqsettings_.size()) {
+        return;
+    }
+    XAMP_LOG_DEBUG("Setting eq band:{} gain:{} Q:{}", band, gain, Q);
+    eqsettings_[band].gain = gain;
+    eqsettings_[band].Q = Q;
 }
 
 void AudioPlayer::Seek(double stream_time) {

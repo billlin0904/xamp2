@@ -61,6 +61,8 @@ public:
     uint32_t GetBufferSize() const noexcept override;
 
     bool CanHardwareControlVolume() const override;
+
+    void AbortStream() noexcept override;
 private:
     static OSStatus OnAudioDeviceIOProc(AudioDeviceID,
                                         AudioTimeStamp const*,

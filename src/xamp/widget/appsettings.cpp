@@ -1,13 +1,46 @@
 #include <QStandardPaths>
+#include <QDir>
+#include <QDirIterator>
+#include <QTextStream>
+
 #include <widget/playerorder.h>
 #include <widget/appsettings.h>
+
+static QLatin1String const kGainStr("Gain");
+static QLatin1String const kDbStr("dB");
+static QLatin1String const kQStr("Q");
 
 QScopedPointer<QSettings> AppSettings::settings_;
 QMap<QString, QVariant> AppSettings::default_settings_;
 LocaleLanguageManager AppSettings::manager_;
+QMap<QString, QList<FilterBand>> AppSettings::allBands;
 
 void AppSettings::loadIniFile(const QString& file_name) {
 	settings_.reset(new QSettings(file_name, QSettings::IniFormat));
+
+    auto presetpath = QDir::currentPath() + Q_UTF8("/eqpresets/");
+    auto file_ext = QStringList() << Q_UTF8("*.eq");
+
+    for (QDirIterator itr(presetpath, file_ext, QDir::Files | QDir::NoDotAndDotDot);
+         itr.hasNext();) {
+        QFile file(itr.next());
+        if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            return;
+        }
+        QTextStream in(&file);
+        QString line = in.readLine();
+        QList<FilterBand> bands;
+        while (!line.isNull()) {
+            auto start = line.indexOf(kGainStr);
+            auto end = line.indexOf(kDbStr);
+            auto gainStr = line.mid(start + kGainStr.size(), end - start - kGainStr.size()).trimmed();
+            start = line.indexOf(kQStr);
+            auto QGainStr = line.mid(start + kQStr.size()).trimmed();
+            bands.push_back({gainStr.toFloat(), QGainStr.toFloat()});
+            line = in.readLine();
+        }
+        allBands[itr.fileInfo().baseName()] = bands;
+    }
 }
 
 void AppSettings::save() {

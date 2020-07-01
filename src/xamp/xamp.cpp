@@ -33,6 +33,7 @@
 #include <widget/selectcolorwidget.h>
 #include <widget/artistinfopage.h>
 #include <widget/jsonsettings.h>
+#include <widget/eqdialog.h>
 
 #include "aboutdialog.h"
 #include "preferencedialog.h"
@@ -500,6 +501,18 @@ void Xamp::initialController() {
     });
     theme_color_menu->addAction(widget_action);
     settings_menu->addMenu(theme_color_menu);
+    auto eqdialog_action = new QAction(tr("EQ"), this);
+    settings_menu->addAction(eqdialog_action);
+    (void)QObject::connect(eqdialog_action, &QAction::triggered, [=]() {
+        EQDialog eqdialog;
+        eqdialog.setFont(font());
+        eqdialog.exec();
+        if (eqdialog.selectedEQName.isEmpty()) {
+            eqbands_.clear();
+            return;
+        }
+        eqbands_ = AppSettings::allBands[eqdialog.selectedEQName];
+    });
 #ifdef Q_OS_WIN
     settings_menu->addAction(enable_blur_material_mode_action);
 #endif
@@ -777,6 +790,13 @@ void Xamp::processMeatadata(const std::vector<xamp::base::Metadata>& medata) {
     emit album_artist_page_->artist()->refreshOnece();    
 }
 
+void Xamp::setupEQ() {
+    uint32_t i = 0;
+    for (auto band : eqbands_) {
+        player_->SetEQ(i++, band.gain, band.Q);
+    }
+}
+
 void Xamp::playMusic(const MusicEntity& item) {
     auto open_done = false;
 
@@ -794,6 +814,7 @@ void Xamp::playMusic(const MusicEntity& item) {
     try {
         player_->Open(item.file_path.toStdWString(), item.file_ext.toStdWString(), device_info_);
         setupResampler();
+        setupEQ();
         player_->StartPlay();
         open_done = true;
     }

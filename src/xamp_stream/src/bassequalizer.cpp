@@ -67,7 +67,7 @@ public:
 		return true;
 	}
 
-	void SetEQ(uint32_t band, float gain) {
+    void SetEQ(uint32_t band, float gain, float Q) {
 		if (band >= fx_handles_.size()) {
 			return;
 		}
@@ -75,6 +75,7 @@ public:
 		BASS_BFX_PEAKEQ eq{0};
 		BassIfFailedThrow(BassLib::Instance().BASS_FXGetParameters(fx_handles_[band], &eq));
 		eq.fGain = gain;
+        eq.fQ = Q;
 		BassIfFailedThrow(BassLib::Instance().BASS_FXSetParameters(fx_handles_[band], &eq));
 	}
 
@@ -103,8 +104,8 @@ void BassEqualizer::Start(uint32_t num_channels, uint32_t input_samplerate) {
 	impl_->Start(num_channels, input_samplerate);
 }
 
-void BassEqualizer::SetEQ(uint32_t band, float gain) {
-	impl_->SetEQ(band, gain);
+void BassEqualizer::SetEQ(uint32_t band, float gain, float Q) {
+    impl_->SetEQ(band, gain, Q);
 }
 
 bool BassEqualizer::Process(float const* sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer) {

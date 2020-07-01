@@ -101,6 +101,8 @@ public:
 
     void EnableResampler(bool enable = true);
 
+    void SetEQ(uint32_t band, float gain, float Q);
+
     static AlignPtr<FileStream> MakeFileStream(std::wstring const& file_ext);
 private:
     void Initial();
@@ -180,6 +182,7 @@ private:
     WaitableTimer wait_timer_;
     AlignPtr<Resampler> resampler_;
     AlignPtr<Equalizer> equalizer_;
+    std::array<EQSettings, kMaxBand> eqsettings_;
     DeviceInfo device_info_;
     std::future<void> stream_task_;
 };

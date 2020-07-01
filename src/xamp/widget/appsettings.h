@@ -14,6 +14,11 @@
 #include <widget/settingnames.h>
 #include <widget/localelanguage.h>
 
+struct FilterBand {
+    float gain{0};
+    float Q{0};
+};
+
 class AppSettings {
 public:    
     static void loadIniFile(QString const & file_name);
@@ -80,6 +85,8 @@ public:
     static QString getMyMusicFolderPath();
 
     static void save();
+
+    static QMap<QString, QList<FilterBand>> allBands;
 
 protected:
     AppSettings() = default;

@@ -296,6 +296,9 @@ OSStatus CoreAudioDevice::OnAudioDeviceIOProc(AudioDeviceID,
     return noErr;
 }
 
+void CoreAudioDevice::AbortStream() noexcept {
+}
+
 void CoreAudioDevice::AudioDeviceIOProc(AudioBufferList *output_data) {
     auto const buffer_count = output_data->mNumberBuffers;
 

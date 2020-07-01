@@ -21,7 +21,7 @@ public:
 
 	void Start(uint32_t num_channels, uint32_t input_samplerate) override;
 
-	void SetEQ(uint32_t band, float gain) override;
+    void SetEQ(uint32_t band, float gain, float Q) override;
 
 	bool Process(float const* sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer) override;
 private:

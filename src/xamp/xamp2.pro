@@ -30,6 +30,7 @@ INCLUDEPATH += ../thirdparty/rapidjson/include/
 INCLUDEPATH += ../thirdparty/robin_hood/
 
 SOURCES += \
+    widget/eqdialog.cpp \
     widget/playbackhistorypage.cpp \
     widget/musicbrainzclient.cpp \
     widget/discogsclient.cpp \
@@ -75,6 +76,7 @@ SOURCES += \
 
 HEADERS += \
     singleinstanceapplication.h \
+    widget/eqdialog.h \
     widget/playbackhistorypage.h \
     widget/musicbrainzclient.h \
     widget/discogsclient.h \
@@ -124,6 +126,7 @@ HEADERS += \
     xamp.h
 
 FORMS += \
+    widget/eqdialog.ui \
     xamp.ui \
     aboutdialog.ui \
     preferencedialog.ui \
