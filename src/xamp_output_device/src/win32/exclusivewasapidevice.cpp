@@ -111,7 +111,7 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
     AudioClientProperties device_props{};
     device_props.bIsOffload = FALSE;
     device_props.cbSize = sizeof(device_props);
-    device_props.eCategory = AudioCategory_Movie;
+    device_props.eCategory = AudioCategory_Media;
 	device_props.Options = AUDCLNT_STREAMOPTIONS_MATCH_FORMAT;
 
 	HrIfFailledThrow(client_->SetClientProperties(&device_props));
@@ -287,6 +287,10 @@ void ExclusiveWasapiDevice::GetSample(uint32_t frame_available) noexcept {
 		0,
 		sample_ready_async_result_,
 		&sample_ready_key_));
+}
+
+void ExclusiveWasapiDevice::AbortStream() noexcept {
+	is_stop_streaming_ = true;
 }
 
 void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {

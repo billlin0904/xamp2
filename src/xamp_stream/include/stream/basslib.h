@@ -9,6 +9,7 @@
 
 #include <bass/bass.h>
 #include <bass/bassdsd.h>
+#include <bass/bass_fx.h>
 
 #include <base/dll.h>
 #include <base/stl.h>
@@ -78,11 +79,9 @@ public:
         : module_(LoadModule("bass_fx.dll"))
 #else
         : module_(LoadModule("libbass_fx.dylib"))
-#endif
-        , BASS_ChannelSetFX(module_, "BASS_ChannelSetFX")
-        , BASS_ChannelRemoveFX(module_, "BASS_ChannelRemoveFX")
-        , BASS_FXSetParameters(module_, "BASS_FXSetParameters")
-        , BASS_FXGetParameters(module_, "BASS_FXGetParameters"){
+#endif        
+        , BASS_FX_TempoGetSource(module_, "BASS_FX_TempoGetSource")
+        , BASS_FX_TempoCreate(module_, "BASS_FX_TempoCreate") {
     }
     catch (const Exception & e) {
         XAMP_LOG_ERROR("{}", e.GetErrorMessage());
@@ -93,11 +92,9 @@ public:
 private:
     ModuleHandle module_;
 
-public:
-    XAMP_DECLARE_DLL(BASS_ChannelSetFX) BASS_ChannelSetFX;
-    XAMP_DECLARE_DLL(BASS_ChannelRemoveFX) BASS_ChannelRemoveFX;
-    XAMP_DECLARE_DLL(BASS_FXSetParameters) BASS_FXSetParameters;
-    XAMP_DECLARE_DLL(BASS_FXGetParameters) BASS_FXGetParameters;
+public:    
+    XAMP_DECLARE_DLL(BASS_FX_TempoGetSource) BASS_FX_TempoGetSource;
+    XAMP_DECLARE_DLL(BASS_FX_TempoCreate) BASS_FX_TempoCreate;
 };
 
 class XAMP_STREAM_API BassLib final {
@@ -139,7 +136,6 @@ public:
         LoadPlugin("bass_aac.dll");
         LoadPlugin("bassflac.dll");
         LoadPlugin("bass_ape.dll");
-        LoadPlugin("bass_fx.dll");
 #endif
         BassLib::Instance().BASS_SetConfig(BASS_CONFIG_FLOATDSP, true);
     }
@@ -174,13 +170,30 @@ private:
         , BASS_ChannelGetAttribute(module_, "BASS_ChannelGetAttribute")
         , BASS_ChannelSetAttribute(module_, "BASS_ChannelSetAttribute")
         , BASS_StreamCreate(module_, "BASS_StreamCreate")
-        , BASS_StreamPutData(module_, "BASS_StreamPutData") {
+        , BASS_StreamPutData(module_, "BASS_StreamPutData")
+        , BASS_ChannelSetFX(module_, "BASS_ChannelSetFX")
+        , BASS_ChannelRemoveFX(module_, "BASS_ChannelRemoveFX")
+        , BASS_FXSetParameters(module_, "BASS_FXSetParameters")
+        , BASS_FXGetParameters(module_, "BASS_FXGetParameters") {
     }
     catch (const Exception &e) {
         XAMP_LOG_ERROR("{}", e.GetErrorMessage());
     }
 
+    struct BassPluginLoadTraits final {
+        static HPLUGIN invalid() noexcept {
+            return 0;
+        }
+
+        static void close(HPLUGIN value) {
+            BassLib::Instance().BASS_PluginFree(value);
+        }
+    };
+
+    using BassPluginHandle = UniqueHandle<HPLUGIN, BassPluginLoadTraits>;    
+
     ModuleHandle module_;
+    RobinHoodHashMap<std::string, BassPluginHandle> plugins_;
 
 public:
     XAMP_DECLARE_DLL(BASS_Init) BASS_Init;
@@ -201,7 +214,11 @@ public:
     XAMP_DECLARE_DLL(BASS_ChannelGetAttribute) BASS_ChannelGetAttribute;
     XAMP_DECLARE_DLL(BASS_ChannelSetAttribute) BASS_ChannelSetAttribute;
     XAMP_DECLARE_DLL(BASS_StreamCreate) BASS_StreamCreate;
-    XAMP_DECLARE_DLL(BASS_StreamPutData) BASS_StreamPutData;
+    XAMP_DECLARE_DLL(BASS_StreamPutData) BASS_StreamPutData;    
+    XAMP_DECLARE_DLL(BASS_ChannelSetFX) BASS_ChannelSetFX;
+    XAMP_DECLARE_DLL(BASS_ChannelRemoveFX) BASS_ChannelRemoveFX;
+    XAMP_DECLARE_DLL(BASS_FXSetParameters) BASS_FXSetParameters;
+    XAMP_DECLARE_DLL(BASS_FXGetParameters) BASS_FXGetParameters;
 
 private:
     template <typename T>
@@ -245,21 +262,7 @@ private:
         XAMP_LOG_DEBUG("Load {} {} successfully.", file_name, ostr.str());
 
         plugins_[file_name] = std::move(plugin);
-    }
-
-    struct BassPluginLoadTraits final {
-        static HPLUGIN invalid() noexcept {
-            return 0;
-        }
-
-        static void close(HPLUGIN value) noexcept {
-            BassLib::Instance().BASS_PluginFree(value);
-        }
-    };
-
-    using BassPluginHandle = UniqueHandle<HPLUGIN, BassPluginLoadTraits>;
-
-    RobinHoodHashMap<std::string, BassPluginHandle> plugins_;
+    }    
 };
 
 struct XAMP_STREAM_API BassStreamTraits final {
@@ -267,7 +270,7 @@ struct XAMP_STREAM_API BassStreamTraits final {
         return 0;
     }
 
-    static void close(HSTREAM value) noexcept {
+    static void close(HSTREAM value) {
         BassLib::Instance().BASS_StreamFree(value);
     }
 };

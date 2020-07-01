@@ -427,6 +427,10 @@ void SharedWasapiDevice::GetSampleRequested(bool is_silence) noexcept {
 	}
 }
 
+void SharedWasapiDevice::AbortStream() noexcept {
+	is_stop_streaming_ = true;
+}
+
 bool SharedWasapiDevice::CanHardwareControlVolume() const {
 	return false;
 }

@@ -63,6 +63,8 @@ public:
 
 	bool CanHardwareControlVolume() const override;
 
+	void AbortStream() noexcept override;
+
 private:	
 
 	void InitialDeviceFormat(AudioFormat const & output_format, uint32_t valid_bits_samples);	

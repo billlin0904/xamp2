@@ -74,6 +74,10 @@ bool AsioDevice::CanHardwareControlVolume() const {
 	return true;
 }
 
+void AsioDevice::AbortStream() noexcept {
+	is_stop_streaming_ = true;
+}
+
 bool AsioDevice::IsMuted() const {
 	return volume_ == 0;
 }

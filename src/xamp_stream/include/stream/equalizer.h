@@ -13,38 +13,19 @@ namespace xamp::stream {
 
 using namespace xamp::base;
 
-struct Band { 
-    float center{0.0F};
-    float bandwidth{ 0.0F };
-};
-
-#ifdef XAMP_OS_WIN
-inline constexpr size_t kMaxBand = 8;
-static std::array<Band, kMaxBand> const kEQBands {
-    Band { 125.F,   5.F },
-    Band { 250.F,   6.F },
-    Band { 500.F,   8.F },
-    Band { 1000.F,  10.F },
-    Band { 2000.F,  12.F },
-    Band { 4000.F,  12.F },
-    Band { 8000.F,  18.F },
-    Band { 16000.F, 36.F },
-    };
-#else
 inline constexpr size_t kMaxBand = 10;
-static std::array<Band, kMaxBand> const kEQBands {
-    Band { 32.F,    3.F },
-    Band { 64.F,    4.F },
-    Band { 125.F,   5.F },
-    Band { 250.F,   6.F },
-    Band { 500.F,   8.F },
-    Band { 1000.F,  10.F },
-    Band { 2000.F,  12.F },
-    Band { 4000.F,  12.F },
-    Band { 8000.F,  18.F },
-    Band { 16000.F, 36.F },
+static std::array<float, kMaxBand> const kEQBands{
+    31.F,
+    62.F,
+    125.F,
+    250.F,
+    500.F,
+    1000.F,
+    2000.F,
+    4000.F,
+    8000.F,
+    16000.F,
 };
-#endif
 
 class XAMP_STREAM_API Equalizer {
 public:

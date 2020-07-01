@@ -538,6 +538,9 @@ void AudioPlayer::OnDeviceStateChange(DeviceState state, std::wstring const & de
             XAMP_LOG_DEBUG("Device removed device id:{}.", ToUtf8String(device_id));
             if (device_id == device_id_) {
                 state_adapter->OnDeviceChanged(DeviceState::DEVICE_STATE_REMOVED);
+                if (device_ != nullptr) {
+                    device_->AbortStream();
+                }
             }
             break;
         case DeviceState::DEVICE_STATE_DEFAULT_DEVICE_CHANGE:
@@ -567,7 +570,20 @@ void AudioPlayer::OpenDevice(double stream_time) {
 #endif
     device_->OpenStream(output_format_);
     device_->SetStreamTime(stream_time);
+
     equalizer_->Start(output_format_.GetChannels(), output_format_.GetSampleRate());
+    
+    equalizer_->SetEQ(0, -2.6);
+    equalizer_->SetEQ(1, 0.4);
+    equalizer_->SetEQ(2, -2.7);
+    equalizer_->SetEQ(3, 0.0);
+    equalizer_->SetEQ(4, 1.3);
+    equalizer_->SetEQ(5, -1.6);
+    equalizer_->SetEQ(6, -2.8);
+    equalizer_->SetEQ(7, 4.6);
+    equalizer_->SetEQ(8, 2.2);
+    equalizer_->SetEQ(9, -1.9);
+    
 }
 
 void AudioPlayer::Seek(double stream_time) {
@@ -610,12 +626,12 @@ void AudioPlayer::BufferStream() {
                 return;
             }
             auto samples = reinterpret_cast<const float*>(sample_buffer);
-            //if (dsd_mode_ == DsdModes::DSD_MODE_PCM) {
-            //    equalizer_->Process(samples, num_samples, buffer_);
-            //}
-            if (!resampler_->Process(samples, num_samples, buffer_)) {
-                continue;
+            if (dsd_mode_ == DsdModes::DSD_MODE_PCM) {
+                equalizer_->Process(samples, num_samples, buffer_);
             }
+            //if (!resampler_->Process(samples, num_samples, buffer_)) {
+            //    continue;
+            //}
             break;
         }
     }
@@ -627,12 +643,12 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_read_sample
 
         if (num_samples > 0) {
             auto samples = reinterpret_cast<const float*>(sample_buffer_.get());
-            //if (dsd_mode_ == DsdModes::DSD_MODE_PCM) {
-            //    equalizer_->Process(samples, num_samples, buffer_);
-            //}
-            if (!resampler_->Process(samples, num_samples, buffer_)) {
-                continue;
+            if (dsd_mode_ == DsdModes::DSD_MODE_PCM) {
+                equalizer_->Process(samples, num_samples, buffer_);
             }
+            //if (!resampler_->Process(samples, num_samples, buffer_)) {
+            //    continue;
+            //}
         }
         else {
             XAMP_LOG_DEBUG("Finish read all samples, wait for finish.");

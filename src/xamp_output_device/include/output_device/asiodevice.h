@@ -71,6 +71,8 @@ public:
 
 	bool CanHardwareControlVolume() const override;
 
+	void AbortStream() noexcept override;
+
 private:
 	static ASIOTime* OnBufferSwitchTimeInfoCallback(ASIOTime* timeInfo, long index, ASIOBool processNow) noexcept;
 

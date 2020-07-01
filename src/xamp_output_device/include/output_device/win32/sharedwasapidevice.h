@@ -59,6 +59,8 @@ public:
 
 	bool CanHardwareControlVolume() const override;
 
+	void AbortStream() noexcept override;
+
 private:
 	void IgoneAndRaiseError(HRESULT hr);
 
