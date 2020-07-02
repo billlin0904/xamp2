@@ -32,7 +32,7 @@ struct XAMP_STREAM_API EQSettings {
     float Q{0};
 };
 
-class XAMP_STREAM_API Equalizer {
+class XAMP_NO_VTABLE XAMP_STREAM_API Equalizer {
 public:
     virtual ~Equalizer() = default;
 

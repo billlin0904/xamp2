@@ -13,7 +13,7 @@ static QLatin1String const kQStr("Q");
 QScopedPointer<QSettings> AppSettings::settings_;
 QMap<QString, QVariant> AppSettings::default_settings_;
 LocaleLanguageManager AppSettings::manager_;
-QMap<QString, QList<FilterBand>> AppSettings::allBands;
+QMap<QString, QList<FilterBand>> AppSettings::EQBands;
 
 void AppSettings::loadIniFile(const QString& file_name) {
 	settings_.reset(new QSettings(file_name, QSettings::IniFormat));
@@ -39,7 +39,7 @@ void AppSettings::loadIniFile(const QString& file_name) {
             bands.push_back({gainStr.toFloat(), QGainStr.toFloat()});
             line = in.readLine();
         }
-        allBands[itr.fileInfo().baseName()] = bands;
+        EQBands[itr.fileInfo().baseName()] = bands;
     }
 }
 

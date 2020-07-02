@@ -236,6 +236,10 @@ void BassFileStream::LoadBassLib() {
     }
 }
 
+void BassFileStream::FreeBassLib() {
+    BassLib::Instance().Free();
+}
+
 void BassFileStream::OpenFromFile(std::wstring const & file_path)  {
     stream_->LoadFromFile(file_path);
 }

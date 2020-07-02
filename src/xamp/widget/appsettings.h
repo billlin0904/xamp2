@@ -86,7 +86,7 @@ public:
 
     static void save();
 
-    static QMap<QString, QList<FilterBand>> allBands;
+    static QMap<QString, QList<FilterBand>> EQBands;
 
 protected:
     AppSettings() = default;

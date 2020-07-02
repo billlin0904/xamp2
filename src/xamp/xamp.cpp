@@ -507,11 +507,11 @@ void Xamp::initialController() {
         EQDialog eqdialog;
         eqdialog.setFont(font());
         eqdialog.exec();
-        if (eqdialog.selectedEQName.isEmpty()) {
+        if (eqdialog.eqName.isEmpty()) {
             eqbands_.clear();
             return;
         }
-        eqbands_ = AppSettings::allBands[eqdialog.selectedEQName];
+        eqbands_ = AppSettings::EQBands[eqdialog.eqName];
     });
 #ifdef Q_OS_WIN
     settings_menu->addAction(enable_blur_material_mode_action);

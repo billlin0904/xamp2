@@ -99,21 +99,19 @@ public:
 
 class XAMP_STREAM_API BassLib final {
 public:
-    static XAMP_ALWAYS_INLINE BassLib & Instance() {
+    static BassLib & Instance() {
         static BassLib lib;
         return lib;
     }
 
-    ~BassLib() {
+    void Free() {
         XAMP_LOG_INFO("Release BassLib dll.");
-
         plugins_.clear();
-
         if (module_.is_valid()) {
             try {
                 BassLib::Instance().BASS_Free();
             }
-            catch (const Exception & e) {
+            catch (const Exception& e) {
                 XAMP_LOG_INFO("{}", e.what());
             }
         }
@@ -190,10 +188,10 @@ private:
         }
     };
 
-    using BassPluginHandle = UniqueHandle<HPLUGIN, BassPluginLoadTraits>;    
+    using BassPluginHandle = UniqueHandle<HPLUGIN, BassPluginLoadTraits>;
 
-    ModuleHandle module_;
     RobinHoodHashMap<std::string, BassPluginHandle> plugins_;
+    ModuleHandle module_;
 
 public:
     XAMP_DECLARE_DLL(BASS_Init) BASS_Init;

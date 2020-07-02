@@ -24,6 +24,8 @@ public:
 
 	static void LoadBassLib();
 
+	static void FreeBassLib();
+
 	void OpenFromFile(std::wstring const & file_path) override;
 
 	void Close() override;

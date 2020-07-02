@@ -2,7 +2,6 @@
 #include <QDirIterator>
 #include <QTextStream>
 
-#include <widget/appsettings.h>
 #include <widget/str_utilts.h>
 
 #include "eqdialog.h"
@@ -13,13 +12,7 @@ EQDialog::EQDialog(QWidget *parent)
     , ui(new Ui::EQDialog) {
     ui->setupUi(this);
 
-    for (auto itr = AppSettings::allBands.begin();
-         itr != AppSettings::allBands.end();
-         ++itr) {
-        ui->presetsComboBox->addItem(itr.key());
-    }
-
-    QList<UIBand> bandSliders {
+    bands_ = QList<UIBand>{
         { ui->band1Slider, ui->band1Edit },
         { ui->band2Slider, ui->band2Edit },
         { ui->band3Slider, ui->band3Edit },
@@ -32,40 +25,75 @@ EQDialog::EQDialog(QWidget *parent)
         { ui->band10Slider, ui->band10Edit },
     };
 
+    newBandSettings.push_back({ 0, 0 });
+    newBandSettings.push_back({ 0, 0 });
+    newBandSettings.push_back({ 0, 0 });
+    newBandSettings.push_back({ 0, 0 });
+    newBandSettings.push_back({ 0, 0 });
+    newBandSettings.push_back({ 0, 0 });
+    newBandSettings.push_back({ 0, 0 });
+    newBandSettings.push_back({ 0, 0 });
+    newBandSettings.push_back({ 0, 0 });
+    newBandSettings.push_back({ 0, 0 });
+
+    for (auto i = 0; i < bands_.size(); ++i) {
+       (void)QObject::connect(bands_[i].slider, &QSlider::valueChanged,
+           [this, i](auto value) { 
+           bands_[i].edit->setText(QString::number(value / 100.0F, 'f', 2));
+           newBandSettings[i].gain = value / 100.0F;
+       });
+    }
+
+    for (auto itr = AppSettings::EQBands.begin();
+         itr != AppSettings::EQBands.end();
+         ++itr) {
+        ui->presetsComboBox->addItem(itr.key());
+    }    
+
     (void)QObject::connect(ui->presetsComboBox,
                             static_cast<void (QComboBox::*)(const QString &)>(&QComboBox::activated),
                             [this](auto EQName) {
-        selectedEQName = EQName;
+        eqName = EQName;
+        updateBar(EQName);
     });
 
     (void)QObject::connect(ui->enableEQCheckBox, &QCheckBox::stateChanged, [this](auto state) {
         if (state == Qt::Checked) {
-            selectedEQName = ui->presetsComboBox->currentText();
+            eqName = ui->presetsComboBox->currentText();
             AppSettings::setValue(kEnableEQ, true);
-            AppSettings::setValue(kEQName, selectedEQName);
+            updateBar(eqName);
         } else {
-            selectedEQName = QEmptyString;
+            eqName = QEmptyString;
             AppSettings::setValue(kEnableEQ, false);
         }
     });
 
-    if (AppSettings::allBands.size() == 1) {
-        auto i = 0;
-        for (auto bar : AppSettings::allBands.first()) {
-            bandSliders[i].slider->setValue(bar.gain);
-            bandSliders[i].editor->setText(QString::number(bar.gain));
-            ++i;
-        }
-        selectedEQName = AppSettings::allBands.firstKey();
+    if (AppSettings::EQBands.size() == 1) {
+        updateBar(AppSettings::EQBands.firstKey());
+        eqName = AppSettings::EQBands.firstKey();
+    }    
+
+    if (!AppSettings::getValueAsString(kEQName).isEmpty()) {
+        ui->presetsComboBox->setCurrentText(AppSettings::getValueAsString(kEQName));        
+        updateBar(AppSettings::getValueAsString(kEQName));
     }
 
     if (AppSettings::getValueAsBool(kEnableEQ)) {
         ui->enableEQCheckBox->setCheckState(Qt::Checked);
     }
+}
 
-    if (!AppSettings::getValueAsString(kEQName).isEmpty()) {
-        ui->presetsComboBox->setCurrentText(AppSettings::getValueAsString(kEQName));
+void EQDialog::updateBar(const QString& name) {   
+    auto i = 0;
+    for (auto bar : AppSettings::EQBands[name]) {
+        bands_[i].slider->setValue(bar.gain * 100);
+        bands_[i].edit->setText(QString::number(bar.gain));
+        newBandSettings[i].gain = bar.gain;
+        newBandSettings[i].Q = bar.Q;
+        ++i;
     }
+
+    AppSettings::setValue(kEQName, name);
 }
 
 EQDialog::~EQDialog() {

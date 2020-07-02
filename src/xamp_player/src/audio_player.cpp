@@ -14,8 +14,9 @@
 
 #include <stream/bassfilestream.h>
 #include <stream/avfilestream.h>
-#include <player/soxresampler.h>
+#include <stream/bassequalizer.h>
 
+#include <player/soxresampler.h>
 #include <player/resampler.h>
 #include <player/nullresampler.h>
 #include <player/chromaprint.h>
@@ -69,6 +70,7 @@ void AudioPlayer::Destroy() {
     resampler_.reset();
     equalizer_.reset();
     ThreadPool::DefaultThreadPool().Stop();
+    BassFileStream::FreeBassLib();
 }
 
 void AudioPlayer::UpdateSlice(float const *samples, int32_t sample_size, double stream_time) noexcept {
