@@ -42,6 +42,7 @@ public:
 
     virtual bool Process(float const * sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer) = 0;
 
+    virtual void Disable() = 0;
 protected:
     Equalizer() = default;
 };

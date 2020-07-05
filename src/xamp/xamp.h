@@ -162,6 +162,6 @@ private:
 	MusicBrainzClient mbc_;
 	DiscogsClient discogs_;
 	FileSystemWatcher watch_;
-    QList<FilterBand> eqbands_;
+    QList<AppEQSettings> eqsettings_;
     Ui::XampWindow ui;
 };

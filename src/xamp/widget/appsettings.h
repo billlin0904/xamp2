@@ -14,10 +14,11 @@
 #include <widget/settingnames.h>
 #include <widget/localelanguage.h>
 
-struct FilterBand {
+struct AppEQSettings {
     float gain{0};
     float Q{0};
 };
+Q_DECLARE_METATYPE(AppEQSettings);
 
 class AppSettings {
 public:    
@@ -84,15 +85,20 @@ public:
 
     static QString getMyMusicFolderPath();
 
-    static void save();
+    static QMap<QString, QList<AppEQSettings>> const & getEQPreset();
 
-    static QMap<QString, QList<FilterBand>> EQBands;
+    static void saveUserEQSettings(QString const &key, QList<AppEQSettings> const & settings);
+
+    static void save();
 
 protected:
     AppSettings() = default;
 
 private:
+    static void loadEQPreset();
+
     static QScopedPointer<QSettings> settings_;
     static QMap<QString, QVariant> default_settings_;
     static LocaleLanguageManager manager_;
+    static QMap<QString, QList<AppEQSettings>> preset_settings_;
 };

@@ -3,6 +3,7 @@
 #include <QDirIterator>
 #include <QTextStream>
 
+#include <stream/equalizer.h>
 #include <widget/playerorder.h>
 #include <widget/appsettings.h>
 
@@ -13,11 +14,14 @@ static QLatin1String const kQStr("Q");
 QScopedPointer<QSettings> AppSettings::settings_;
 QMap<QString, QVariant> AppSettings::default_settings_;
 LocaleLanguageManager AppSettings::manager_;
-QMap<QString, QList<FilterBand>> AppSettings::EQBands;
+QMap<QString, QList<AppEQSettings>> AppSettings::preset_settings_;
 
 void AppSettings::loadIniFile(const QString& file_name) {
 	settings_.reset(new QSettings(file_name, QSettings::IniFormat));
+    loadEQPreset();
+}
 
+void AppSettings::loadEQPreset() {
     auto presetpath = QDir::currentPath() + Q_UTF8("/eqpresets/");
     auto file_ext = QStringList() << Q_UTF8("*.eq");
 
@@ -29,7 +33,7 @@ void AppSettings::loadIniFile(const QString& file_name) {
         }
         QTextStream in(&file);
         QString line = in.readLine();
-        QList<FilterBand> bands;
+        QList<AppEQSettings> bands;
         while (!line.isNull()) {
             auto start = line.indexOf(kGainStr);
             auto end = line.indexOf(kDbStr);
@@ -39,8 +43,12 @@ void AppSettings::loadIniFile(const QString& file_name) {
             bands.push_back({gainStr.toFloat(), QGainStr.toFloat()});
             line = in.readLine();
         }
-        EQBands[itr.fileInfo().baseName()] = bands;
+        preset_settings_[itr.fileInfo().baseName()] = bands;
     }
+}
+
+QMap<QString, QList<AppEQSettings>> const & AppSettings::getEQPreset() {
+    return preset_settings_;
 }
 
 void AppSettings::save() {
@@ -52,6 +60,25 @@ void AppSettings::save() {
 
 QString AppSettings::getMyMusicFolderPath() {
 	return QStandardPaths::standardLocations(QStandardPaths::MusicLocation)[0];
+}
+
+void AppSettings::saveUserEQSettings(QString const &key, QList<AppEQSettings> const & settings) {
+    auto presetpath = QDir::currentPath() + Q_UTF8("/eqpresets/");
+    QFile file(presetpath + key + Q_UTF8(".eq"));
+    if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        size_t i = 0;
+        QTextStream stream(&file);
+        for (auto setting : settings) {
+            stream << "Filter " << i
+                   << ":ON PK Fc"
+                   << xamp::stream::kEQBands[i] << " Hz "
+                   << "Gain " << setting.gain << " dB "
+                   << "Q " << setting.Q << "\r\n";
+            ++i;
+        }
+        file.close();
+    }
+    loadEQPreset();
 }
 
 void AppSettings::setOrDefaultConfig() {

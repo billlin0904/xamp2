@@ -100,7 +100,11 @@ public:
 
     void EnableResampler(bool enable = true);
 
+    void EnableEQ(bool enable = true);
+
     void SetEQ(uint32_t band, float gain, float Q);
+
+    void SetEQ(std::array<EQSettings, kMaxBand> const &bands);
 
     static AlignPtr<FileStream> MakeFileStream(std::wstring const& file_ext);
 private:

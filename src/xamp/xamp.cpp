@@ -448,6 +448,17 @@ void Xamp::initialController() {
         playback_history_page_->show();
     });
 
+    (void)QObject::connect(ui.eqButton, &QToolButton::pressed, [this]() {
+        EQDialog eqdialog;
+        eqdialog.setFont(font());
+        eqdialog.exec();
+        if (eqdialog.eqName.isEmpty()) {
+            eqsettings_.clear();
+            return;
+        }
+        eqsettings_ = eqdialog.EQSettings;
+    });
+
     (void)QObject::connect(ui.artistLabel, &ClickableLabel::clicked, [this]() {
         onArtistIdChanged(current_entiry_.artist, current_entiry_.cover_id, current_entiry_.artist_id);
     });
@@ -501,18 +512,6 @@ void Xamp::initialController() {
     });
     theme_color_menu->addAction(widget_action);
     settings_menu->addMenu(theme_color_menu);
-    auto eqdialog_action = new QAction(tr("EQ"), this);
-    settings_menu->addAction(eqdialog_action);
-    (void)QObject::connect(eqdialog_action, &QAction::triggered, [=]() {
-        EQDialog eqdialog;
-        eqdialog.setFont(font());
-        eqdialog.exec();
-        if (eqdialog.eqName.isEmpty()) {
-            eqbands_.clear();
-            return;
-        }
-        eqbands_ = AppSettings::EQBands[eqdialog.eqName];
-    });
 #ifdef Q_OS_WIN
     settings_menu->addAction(enable_blur_material_mode_action);
 #endif
@@ -792,7 +791,7 @@ void Xamp::processMeatadata(const std::vector<xamp::base::Metadata>& medata) {
 
 void Xamp::setupEQ() {
     uint32_t i = 0;
-    for (auto band : eqbands_) {
+    for (auto band : eqsettings_) {
         player_->SetEQ(i++, band.gain, band.Q);
     }
 }

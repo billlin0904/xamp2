@@ -23,11 +23,11 @@ public:
     explicit EQDialog(QWidget *parent = nullptr);
     ~EQDialog();
 
-    QList<FilterBand> newBandSettings;
+    QList<AppEQSettings> EQSettings;
     QString eqName;
 
 private:
-    struct UIBand {
+    struct EQBandUI {
         QSlider* slider;
         QLineEdit* edit;
     };
@@ -35,5 +35,5 @@ private:
     void updateBar(const QString& name);
     
     Ui::EQDialog *ui;
-    QList<UIBand> bands_;
+    QList<EQBandUI> bands_;
 };

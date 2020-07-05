@@ -572,18 +572,31 @@ void AudioPlayer::OpenDevice(double stream_time) {
 #endif
     device_->OpenStream(output_format_);
     device_->SetStreamTime(stream_time);
-    equalizer_->Start(output_format_.GetChannels(), output_format_.GetSampleRate());
-    uint32_t i = 0;
-    for (auto settings : eqsettings_) {
-        equalizer_->SetEQ(i++, settings.gain, settings.Q);
+
+    if (output_format_.GetSampleRate() == 44100) {
+        equalizer_->Start(output_format_.GetChannels(), output_format_.GetSampleRate());
+
+        uint32_t i = 0;
+        for (auto settings : eqsettings_) {
+            equalizer_->SetEQ(i++, settings.gain, settings.Q);
+            XAMP_LOG_DEBUG("Setting eq band:{} gain:{} Q:{}", i, settings.gain, settings.Q);
+        }
+    } else {
+        equalizer_.reset();
     }
+}
+
+void AudioPlayer::EnableEQ(bool enable) {
+}
+
+void AudioPlayer::SetEQ(std::array<EQSettings, kMaxBand> const &bands) {
+    eqsettings_ = bands;
 }
 
 void AudioPlayer::SetEQ(uint32_t band, float gain, float Q) {
     if (band >= eqsettings_.size()) {
         return;
     }
-    XAMP_LOG_DEBUG("Setting eq band:{} gain:{} Q:{}", band, gain, Q);
     eqsettings_[band].gain = gain;
     eqsettings_[band].Q = Q;
 }
@@ -628,12 +641,15 @@ void AudioPlayer::BufferStream() {
                 return;
             }
             auto samples = reinterpret_cast<const float*>(sample_buffer);
-            if (dsd_mode_ == DsdModes::DSD_MODE_PCM) {
-                equalizer_->Process(samples, num_samples, buffer_);
+            if (equalizer_ != nullptr) {
+                if (dsd_mode_ == DsdModes::DSD_MODE_PCM) {
+                    equalizer_->Process(samples, num_samples, buffer_);
+                }
+            } else {
+                if (!resampler_->Process(samples, num_samples, buffer_)) {
+                    continue;
+                }
             }
-            //if (!resampler_->Process(samples, num_samples, buffer_)) {
-            //    continue;
-            //}
             break;
         }
     }
@@ -645,12 +661,15 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_read_sample
 
         if (num_samples > 0) {
             auto samples = reinterpret_cast<const float*>(sample_buffer_.get());
-            if (dsd_mode_ == DsdModes::DSD_MODE_PCM) {
-                equalizer_->Process(samples, num_samples, buffer_);
+            if (equalizer_ != nullptr) {
+                if (dsd_mode_ == DsdModes::DSD_MODE_PCM) {
+                    equalizer_->Process(samples, num_samples, buffer_);
+                }
+            } else {
+                if (!resampler_->Process(samples, num_samples, buffer_)) {
+                    continue;
+                }
             }
-            //if (!resampler_->Process(samples, num_samples, buffer_)) {
-            //    continue;
-            //}
         }
         else {
             XAMP_LOG_DEBUG("Finish read all samples, wait for finish.");

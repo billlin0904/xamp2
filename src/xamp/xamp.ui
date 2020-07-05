@@ -157,6 +157,19 @@
               </widget>
              </item>
              <item>
+              <widget class="QToolButton" name="eqButton">
+               <property name="maximumSize">
+                <size>
+                 <width>22</width>
+                 <height>22</height>
+                </size>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+              </widget>
+             </item>
+             <item>
               <widget class="QToolButton" name="repeatButton">
                <property name="maximumSize">
                 <size>

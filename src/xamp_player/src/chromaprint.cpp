@@ -68,7 +68,9 @@ public:
     void Start(uint32_t sample_rate, uint32_t num_channels, uint32_t num_buffer_frames) {
         context_.reset(ChromaprintLib::Instance().chromaprint_new(algorithm_));
         buffer_.resize(static_cast<size_t>(num_buffer_frames));
-        ChromaprintLib::Instance().chromaprint_start(context_.get(), static_cast<int32_t>(sample_rate), static_cast<int32_t>(num_channels));
+        ChromaprintLib::Instance().chromaprint_start(context_.get(),
+                                                     static_cast<int32_t>(sample_rate),
+                                                     static_cast<int32_t>(num_channels));
 	}
 
     int32_t Feed(int16_t const * data, uint32_t size) const {

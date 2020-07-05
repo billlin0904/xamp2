@@ -18,7 +18,7 @@ public:
 	void Start(uint32_t num_channels, uint32_t input_samplerate) {
 		EnsureFxLibInit();
 
-		Disable();
+        RemoveFx();
 
 		stream_.reset(BassLib::Instance().BASS_StreamCreate(input_samplerate,
 			num_channels,
@@ -34,7 +34,7 @@ public:
 			if (!fx_handle) {
 				throw BassException(BassLib::Instance().BASS_ErrorGetCode());
 			}
-			BASS_BFX_PEAKEQ eq{ 0 };
+            BASS_BFX_PEAKEQ eq{};
 			eq.fCenter = kEQBands[i];
 			eq.fBandwidth = kEQBands[i] / 2;
 			eq.fGain = 1.0F;
@@ -72,7 +72,7 @@ public:
 			return;
 		}
 
-		BASS_BFX_PEAKEQ eq{0};
+        BASS_BFX_PEAKEQ eq{};
 		BassIfFailedThrow(BassLib::Instance().BASS_FXGetParameters(fx_handles_[band], &eq));
 		eq.fGain = gain;
         eq.fQ = Q;
@@ -80,13 +80,19 @@ public:
 	}
 
     void Disable() {
+        for (uint32_t i = 0; i < fx_handles_.size(); ++i) {
+            SetEQ(i, 0.0, 0.0);
+        }
+    }
+
+private:
+    void RemoveFx() {
         for (auto fx_handle : fx_handles_) {
             BassLib::Instance().BASS_ChannelRemoveFX(tempo_stream_.get(), fx_handle);
         }
-		fx_handles_.fill(0);
+        fx_handles_.fill(0);
     }
 
-private:	
 	BassStreamHandle stream_;	
 	BassStreamHandle tempo_stream_;
 	std::array<HFX, kMaxBand> fx_handles_;
@@ -110,6 +116,10 @@ void BassEqualizer::SetEQ(uint32_t band, float gain, float Q) {
 
 bool BassEqualizer::Process(float const* sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer) {
 	return impl_->Process(sample_buffer, num_samples, buffer);
+}
+
+void BassEqualizer::Disable() {
+    impl_->Disable();
 }
 
 }

@@ -50,5 +50,8 @@
         <file>Resource/vinyl_blackground.png</file>
         <file>Resource/vinyl_needle.png</file>
         <file>Resource/vinyl.png</file>
+        <file>Resource/Black/equalizer.png</file>
+        <file>Resource/White/equalizer.png</file>
     </qresource>
+    <qresource prefix="/"/>
 </RCC>
