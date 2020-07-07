@@ -39,7 +39,7 @@ class ArtistView;
 class AlbumArtistPage;
 class ArtistInfoPage;
 
-class Xamp : public FramelessWindow {
+class Xamp final : public FramelessWindow {
 	Q_OBJECT
 
 public:

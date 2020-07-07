@@ -8,8 +8,8 @@
 #include "eqdialog.h"
 #include "ui_eqdialog.h"
 
-    EQDialog::EQDialog(QWidget *parent)
-    : QDialog(parent)
+EQDialog::EQDialog(QWidget *parent)
+    : XampDialog(parent)
     , ui(new Ui::EQDialog) {
     ui->setupUi(this);
 

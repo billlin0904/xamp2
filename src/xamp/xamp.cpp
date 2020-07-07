@@ -449,8 +449,7 @@ void Xamp::initialController() {
     });
 
     (void)QObject::connect(ui.eqButton, &QToolButton::pressed, [this]() {
-        EQDialog eqdialog;
-        eqdialog.setFont(font());
+        EQDialog eqdialog;        
         eqdialog.exec();
         if (eqdialog.eqName.isEmpty()) {
             eqsettings_.clear();

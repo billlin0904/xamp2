@@ -10,13 +10,14 @@
 #include <QSlider>
 #include <QLineEdit>
 
+#include <widget/xampdialog.h>
 #include <widget/appsettings.h>
 
 namespace Ui {
 class EQDialog;
 }
 
-class EQDialog : public QDialog {
+class EQDialog : public XampDialog {
     Q_OBJECT
 
 public:

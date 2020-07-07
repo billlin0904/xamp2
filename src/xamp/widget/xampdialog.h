@@ -5,17 +5,14 @@
 
 #pragma once
 
-#include <widget/xampdialog.h>
-#include <ui_aboutdialog.h>
+#include <QDialog>
 
-class AboutDialog : public XampDialog {
+class XampDialog : public QDialog {
     Q_OBJECT
 public:
-    explicit AboutDialog(QWidget* parent = nullptr);
-
-private slots:
-    void onCreditsOrLicenceChecked(bool checked);
+    explicit XampDialog(QWidget* parent = nullptr);
 
 private:
-    Ui::AboutDialog ui;
+    void centerWidgets(QWidget* widget);
 };
+
