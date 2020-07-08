@@ -100,14 +100,7 @@ void ThemeManager::setPlayOrPauseButton(Ui::XampWindow& ui, bool is_playing) {
 }
 
 QString ThemeManager::getMenuStyle() noexcept {
-    return Q_UTF8(R"(
-                  QMenu {
-                  background-color: rgba(228, 233, 237, 150);
-                  }
-                  QMenu::item:selected {
-                  background-color: black;
-                  }
-                  )");
+    return QEmptyString;
 }
 
 QSize ThemeManager::getDefaultCoverSize() noexcept {
@@ -136,10 +129,10 @@ void ThemeManager::enableBlur(const QWidget* widget, bool enable) {
 #endif
 }
 
-void ThemeManager::setBackgroundColor(Ui::XampWindow& ui, QColor color) {
+void ThemeManager::setBackgroundColor(Ui::XampWindow& ui, QColor color) {    
     ui.currentView->setStyleSheet(backgroundColorToString(color));
     ui.titleFrame->setStyleSheet(backgroundColorToString(color));
-
+    
     QColor bottomColor = color.lighter(30);
     ui.playingFrame->setStyleSheet(backgroundColorToString(bottomColor));
     ui.volumeFrame->setStyleSheet(backgroundColorToString(bottomColor));
@@ -150,8 +143,7 @@ void ThemeManager::setBackgroundColor(Ui::XampWindow& ui, QColor color) {
     ui.sliderFrame->setStyleSheet(backgroundColorToString(alphaColor));
 
     AppSettings::setValue(kAppSettingBackgroundColor, color);
-    background_color_ = color;
-
+    background_color_ = color;    
     setThemeColor(ui);    
 }
 
@@ -375,31 +367,6 @@ void ThemeManager::setDefaultStyle(Ui::XampWindow& ui) {
                                          background-color: transparent;
                                          }
                                          )"));
-
-    auto slider_style = Q_UTF8(R"(
-                                         QSlider::handle:horizontal {
-                                         width: 12px;
-                                         background-color: rgb(255, 255, 255);
-                                         margin: -5px 0px -5px 0px;
-                                         border-radius: 6px;
-                                         }
-
-                                         QSlider::groove:horizontal {
-                                         height: 2px;
-                                         background-color: rgb(219, 219, 219);
-                                         }
-
-                                         QSlider::add-page:horizontal { 
-                                         background-color: rgb(219, 219, 219);
-                                         }
-
-                                         QSlider::sub-page:horizontal {
-                                         background-color: rgb(187, 134, 252);
-                                         }
-                                         )");
-    ui.volumeSlider->setStyleSheet(slider_style);
-    ui.seekSlider->setStyleSheet(slider_style);
-
     QIcon search_icon(Q_UTF8(":/xamp/Resource/White/search.png"));
     ui.searchLineEdit->setClearButtonEnabled(true);
     ui.searchLineEdit->addAction(search_icon, QLineEdit::LeadingPosition);

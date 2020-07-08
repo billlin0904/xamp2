@@ -20,6 +20,7 @@
 
 #include <QMessageBox>
 
+#include "DarkStyle.h"
 #include "singleinstanceapplication.h"
 #include "xamp.h"
 
@@ -147,8 +148,10 @@ static int excute(int argc, char* argv[]) {
     AudioDeviceFactory::PreventSleep(AppSettings::getValueAsBool(kAppSettingPreventSleep));
     XAMP_LOG_DEBUG("PreventSleep success.");
 
+    app.setStyle(new DarkStyle());
     Xamp win;
     win.show();
+    app.setFont(QFont(QStringLiteral("UI")));
     return app.exec();
 }
 

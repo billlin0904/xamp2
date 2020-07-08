@@ -51,6 +51,10 @@ void ScrollLabel::updateText() {
 }
 
 void ScrollLabel::onTimerTimeout() {
+	if (wholeTextSize_.width() == 0) {
+		return;
+	}
+
 	scrollPos_ = (scrollPos_ + 1) % wholeTextSize_.width();
 
 	if (waiting_) {

@@ -13,8 +13,6 @@ PlyalistPage::PlyalistPage(QWidget* parent)
 }
 
 void PlyalistPage::initial() {
-	setStyleSheet(Q_UTF8("background: transparent;"));
-
 	auto default_layout = new QVBoxLayout(this);
 	default_layout->setSpacing(0);
 	default_layout->setObjectName(QString::fromUtf8("default_layout"));

@@ -360,30 +360,12 @@ AlbumView::AlbumView(QWidget* parent)
     setViewMode(QListView::IconMode);
     setResizeMode(QListView::Adjust);
     setFrameStyle(QFrame::NoFrame);
-    setStyleSheet(Q_UTF8("background-color: transparent"));
     setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
     setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     setItemDelegate(new AlbumViewStyledDelegate(this));
     setAutoScroll(false);
 
-    verticalScrollBar()->setStyleSheet(Q_UTF8(R"(
-    QScrollBar:vertical {
-        background: #FFFFFF;
-        width: 9px;
-    }
-    QScrollBar::handle:vertical {
-        background: #dbdbdb;
-        border-radius: 3px;
-        min-height: 20px;
-        border: none;
-    }
-    QScrollBar::handle:vertical:hover {
-        background: #d0d0d0;
-    }
-    )"));
-
     page_ = new AlbumViewPage(this);
-    page_->setStyleSheet(backgroundColorToString(Qt::gray));
     page_->hide();
 
     (void)QObject::connect(page_,

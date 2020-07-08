@@ -75,8 +75,6 @@ protected:
 private:
 	void setupThumbnailToolBar();
 
-	void initialFontDatabase();
-
     bool nativeEvent(const QByteArray& event_type, void* message, long* result) override;
 
 #if defined(Q_OS_WIN)

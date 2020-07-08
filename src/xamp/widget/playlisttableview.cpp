@@ -92,33 +92,6 @@ void PlayListTableView::initial() {
     verticalHeader()->setDefaultSectionSize(40);
 
     horizontalScrollBar()->setDisabled(true);
-
-    horizontalHeader()->setStyleSheet(Q_UTF8(R"(
-        QHeaderView::section {
-            background-color: transparent;
-        }
-        QHeaderView {
-            color: gray;
-            background-color: transparent;
-        }
-     )"));
-
-    verticalScrollBar()->setStyleSheet(Q_UTF8(R"(
-    QScrollBar:vertical {
-        background: #FFFFFF;
-        width: 9px;
-    }
-    QScrollBar::handle:vertical {
-        background: #dbdbdb;
-        border-radius: 3px;
-        min-height: 20px;
-        border: none;
-    }
-    QScrollBar::handle:vertical:hover {
-        background: #d0d0d0;
-    }
-    )"));
-
     horizontalHeader()->setHighlightSections(false);
     horizontalHeader()->setStretchLastSection(true);
     horizontalHeader()->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
@@ -230,26 +203,6 @@ void PlayListTableView::initial() {
 }
 
 void PlayListTableView::onTextColorChanged(QColor backgroundColor, QColor color) {
-    QColor selectedColor = Qt::black;
-    start_delegate_->setBackgroundColor(selectedColor);
- 
-    auto style = QString(Q_UTF8(R"(
-        QTableView {
-            background-color: %1;
-            color: %2;
-        }
-
-        QTableView::item:selected {
-            background-color: %3;
-            color: %4;
-        }
-     )")).arg(
-    colorToString(backgroundColor),
-    colorToString(color),
-    colorToString(selectedColor),
-    colorToString(color));   
-    
-    setStyleSheet(style);
 }
 
 void PlayListTableView::keyPressEvent(QKeyEvent *pEvent) {

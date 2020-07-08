@@ -12,9 +12,6 @@ StarDelegate::StarDelegate(QWidget* parent)
 void StarDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const {
     if (index.data().canConvert<StarRating>()) {
         auto rating = qvariant_cast<StarRating>(index.data());
-        if (option.state & QStyle::State_Selected) {
-            painter->fillRect(option.rect, QBrush(background_color_));
-        }
         rating.paint(painter, option.rect, option.palette, StarRating::ReadOnly);        
     }
     else {

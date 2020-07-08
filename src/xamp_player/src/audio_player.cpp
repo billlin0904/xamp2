@@ -52,8 +52,7 @@ AudioPlayer::AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter)
     , is_paused_(false)
     , state_adapter_(adapter) {
     wait_timer_.SetTimeout(kReadSampleWaitTime);
-    buffer_.Resize(kPreallocateBufferSize);
-    equalizer_ = MakeAlign<Equalizer, BassEqualizer>();
+    buffer_.Resize(kPreallocateBufferSize);    
 }
 
 AudioPlayer::~AudioPlayer() = default;
@@ -574,6 +573,7 @@ void AudioPlayer::OpenDevice(double stream_time) {
     device_->SetStreamTime(stream_time);
 
     if (output_format_.GetSampleRate() == 44100) {
+        equalizer_ = MakeAlign<Equalizer, BassEqualizer>();
         equalizer_->Start(output_format_.GetChannels(), output_format_.GetSampleRate());
 
         uint32_t i = 0;

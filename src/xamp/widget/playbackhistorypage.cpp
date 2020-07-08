@@ -184,24 +184,7 @@ PlaybackHistoryTableView::PlaybackHistoryTableView(QWidget* parent)
 
 	setColumnWidth(0, 5);
 	horizontalHeader()->hide();
-	horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-
-	verticalScrollBar()->setStyleSheet(Q_UTF8(R"(
-    QScrollBar:vertical {
-        background: #FFFFFF;
-		width: 9px;
-    }
-	QScrollBar::handle:vertical {
-		background: #dbdbdb;
-		border-radius: 3px;
-		min-height: 20px;
-		border: none;
-	}
-	QScrollBar::handle:vertical:hover {
-		background: #d0d0d0;
-	}
-	)"));
-    setStyleSheet(Q_UTF8("background-color: gray;"));
+	horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);	
 	refreshOnece();
 }
 
@@ -272,11 +255,7 @@ FROM
 
 PlaybackHistoryPage::PlaybackHistoryPage(QWidget* parent)
     : QFrame(parent) {
-#ifdef Q_OS_WIN
-    setStyleSheet(Q_UTF8("background-color: rgba(228, 233, 237, 255)"));
-#else
-    setStyleSheet(Q_UTF8("background-color: gray"));
-#endif
+	setStyleSheet(Q_UTF8("background-color: black;"));
 
 	auto default_layout = new QVBoxLayout(this);
 	default_layout->setSpacing(0);
@@ -284,18 +263,9 @@ PlaybackHistoryPage::PlaybackHistoryPage(QWidget* parent)
 
     auto close_button = new QPushButton(this);
     close_button->setFixedSize(QSize(24, 24));
-    close_button->setStyleSheet(Q_UTF8(R"(
-    QPushButton
-    {
-        border: none;
-        background-color: transparent;
-        image: url(:/xamp/Resource/White/close.png);
-    }
-    )"));
-
+	close_button->setText(Q_UTF8("X"));
 
 	auto button_layout = new QHBoxLayout();
-
     auto select_all_button = new QPushButton(tr("Select"), this);
     select_all_button->setStyleSheet(Q_UTF8("border: none"));
     select_all_button->setFixedSize(QSize(64, 32));

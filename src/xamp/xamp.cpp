@@ -134,12 +134,7 @@ void Xamp::setDefaultStyle() {
     ThemeManager::instance().setPlayOrPauseButton(ui, false);
     ThemeManager::instance().setDefaultStyle(ui);
     applyTheme(ThemeManager::instance().getBackgroundColor());
-    setStyleSheet(Q_UTF8(R"(
-                         QTableView {
-                         background-color: transparent;
-                         color: black;
-                         }
-
+    setStyleSheet(Q_UTF8(R"(                         
                          QFrame#playingFrame {
                          background-color: transparent;
                          border: none;
@@ -480,11 +475,6 @@ void Xamp::initialController() {
     settings_menu->addAction(settings_action);
     (void)QObject::connect(settings_action, &QAction::triggered, [=]() {
         PreferenceDialog dialog;
-        auto f = font();
-#ifdef Q_OS_WIN
-        f.setPointSize(8);
-#endif
-        dialog.setFont(f);
         dialog.exec();
         watch_.addPath(dialog.music_file_path_);
     });
@@ -519,7 +509,6 @@ void Xamp::initialController() {
     settings_menu->addAction(about_action);
     (void)QObject::connect(about_action, &QAction::triggered, [=]() {
         AboutDialog aboutdlg;
-        aboutdlg.setFont(font());
         aboutdlg.exec();
     });
     ui.settingsButton->setMenu(settings_menu);
@@ -975,6 +964,7 @@ void Xamp::initialPlaylist() {
     lrc_page_ = new LrcPage(this);
     album_artist_page_ = new AlbumArtistPage(this);
     playback_history_page_ = new PlaybackHistoryPage(this);
+    playback_history_page_->setObjectName(Q_UTF8("playbackHistoryPage"));
     playback_history_page_->setFont(font());
     playback_history_page_->hide();
 
