@@ -149,9 +149,9 @@ static int excute(int argc, char* argv[]) {
     XAMP_LOG_DEBUG("PreventSleep success.");
 
     app.setStyle(new DarkStyle());
+
     Xamp win;
     win.show();
-    app.setFont(QFont(QStringLiteral("UI")));
     return app.exec();
 }
 

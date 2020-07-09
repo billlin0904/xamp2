@@ -67,6 +67,8 @@ SOURCES += \
     widget/localelanguage.cpp \
     widget/jsonsettings.cpp \
     widget/scrolllabel.cpp \
+    widget/xampdialog.cpp \
+    DarkStyle.cpp \
     singleinstanceapplication.cpp \
     thememanager.cpp \
     aboutdialog.cpp \
@@ -120,6 +122,8 @@ HEADERS += \
     widget/localelanguage.h \
     widget/jsonsettings.h \
     widget/scrolllabel.h \
+    widget/xampdialog.h \
+    DarkStyle.h \
     thememanager.h \
     aboutdialog.h \
     preferencedialog.h \
@@ -134,6 +138,7 @@ FORMS += \
 
 RESOURCES += \
     xamp.qrc \
+    darkstyle.qrc \
     widget/toast.qrc
 
 TRANSLATIONS += \

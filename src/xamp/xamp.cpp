@@ -97,6 +97,7 @@ Xamp::Xamp(QWidget *parent)
     , state_adapter_(std::make_shared<PlayerStateAdapter>())
     , player_(std::make_shared<AudioPlayer>(state_adapter_))
     , playback_history_page_(nullptr) {
+    setFont(QFont(Q_UTF8("UI")));
     initial();
 }
 
@@ -131,7 +132,6 @@ void Xamp::setNightStyle() {
 }
 
 void Xamp::setDefaultStyle() {
-    ThemeManager::instance().setPlayOrPauseButton(ui, false);
     ThemeManager::instance().setDefaultStyle(ui);
     applyTheme(ThemeManager::instance().getBackgroundColor());
     setStyleSheet(Q_UTF8(R"(                         
@@ -530,7 +530,8 @@ void Xamp::applyTheme(QColor color) {
         lrc_page_->setTextColor(Qt::white);
         emit textColorChanged(color, Qt::white);
         ThemeManager::instance().setThemeColor(ThemeColor::DARK_THEME);
-    }    
+    }
+
     if (player_->GetState() == xamp::player::PlayerState::PLAYER_STATE_PAUSED) {
         ThemeManager::instance().setPlayOrPauseButton(ui, true);
     }

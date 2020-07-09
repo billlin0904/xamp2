@@ -43,11 +43,8 @@ void ThemeManager::setThemeColor(ThemeColor theme_color) {
 }
 
 ConstLatin1String ThemeManager::themeColorPath() const {
-    switch (theme_color_) {
-    case ThemeColor::DARK_THEME:
+    if (theme_color_ == ThemeColor::DARK_THEME) {
         return Q_UTF8("Black");
-    default:
-        return Q_UTF8("White");
     }
     return Q_UTF8("White");
 }
@@ -225,14 +222,18 @@ void ThemeManager::setThemeColor(Ui::XampWindow& ui) {
 
     ui.settingsButton->setStyleSheet(Q_STR(R"(
                                             QToolButton#settingsButton {
+                                            border: none;
                                             image: url(:/xamp/Resource/%1/settings.png);
                                             background-color: transparent;
                                             }
-                                            QToolButton#settingsButton::menu-indicator { image: none; }
+                                            QToolButton#settingsButton::menu-indicator {
+                                            image: none;
+                                            }
                                             )").arg(themeColorPath()));
 
     ui.stopButton->setStyleSheet(Q_STR(R"(
                                          QToolButton#stopButton {
+                                         border: none;
                                          image: url(:/xamp/Resource/%1/stop.png);
                                          background-color: transparent;
                                          }
@@ -334,11 +335,6 @@ void ThemeManager::setDefaultStyle(Ui::XampWindow& ui) {
                                           background-color: transparent;
                                           }
                                           )"));
-
-    ui.artistLabel->setStyleSheet(Q_UTF8(R"(
-                                         QLabel#artistLabel {
-                                         }
-                                         )"));
 
     ui.startPosLabel->setStyleSheet(Q_UTF8(R"(
                                            QLabel#startPosLabel {
