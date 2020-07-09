@@ -11,7 +11,6 @@
 ###############################################################################
 */
 
-#include <widget/str_utilts.h>
 #include "DarkStyle.h"
 
 DarkStyle::DarkStyle() : DarkStyle(styleBase()) {}
@@ -53,30 +52,8 @@ void DarkStyle::polish(QPalette &palette) {
                      QColor(127, 127, 127));
 }
 
-void DarkStyle::initFallbackFont() {
-    QList<QString> fallback_fonts;
-
-#ifdef Q_OS_WIN
-    fallback_fonts.append(Q_UTF8("Segoe UI"));
-    fallback_fonts.append(Q_UTF8("Segoe UI Bold"));
-    fallback_fonts.append(Q_UTF8("Microsoft Yahei UI"));
-    fallback_fonts.append(Q_UTF8("Microsoft Yahei UI Bold"));
-    fallback_fonts.append(Q_UTF8("Meiryo UI"));
-    fallback_fonts.append(Q_UTF8("Meiryo UI Bold"));
-    fallback_fonts.append(Q_UTF8("Arial"));
-#else
-    fallback_fonts.append(Q_UTF8("SF Pro Display"));
-    fallback_fonts.append(Q_UTF8("SF Pro Text"));
-    fallback_fonts.append(Q_UTF8("Helvetica Neue"));
-    fallback_fonts.append(Q_UTF8("Helvetica"));
-#endif
-    QFont::insertSubstitutions(Q_UTF8("UI"), fallback_fonts);
-}
-
 void DarkStyle::polish(QApplication *app) {
     if (!app) return;
-
-    initFallbackFont();
 
     QFile qfDarkstyle(QStringLiteral(":/darkstyle/darkstyle.qss"));
     if (qfDarkstyle.open(QIODevice::ReadOnly | QIODevice::Text)) {

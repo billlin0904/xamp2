@@ -31,6 +31,7 @@ FramelessWindow::FramelessWindow(QWidget* parent)
     setAcceptDrops(true);
     setMouseTracking(true);
     installEventFilter(this);
+    initiaUIFont();
 #if defined(Q_OS_WIN)
     setWindowFlags(Qt::FramelessWindowHint | Qt::WindowMaximizeButtonHint);
     BOOL is_dwm_enable = false;
@@ -43,11 +44,15 @@ FramelessWindow::FramelessWindow(QWidget* parent)
         ::DwmExtendFrameIntoClientArea(hwnd, &borderless);
     }
     ThemeManager::instance().enableBlur(this, AppSettings::getValueAsBool(kAppSettingEnableBlur));
-    setupThumbnailToolBar();
+    setupThumbnailToolBar();   
     setStyleSheet(Q_UTF8(R"(
+        font-family: "UI";
 		background: transparent;        
-        border: none;        
+        border: none;  
     )"));
+    QFont ui_font(Q_UTF8("UI"));
+    ui_font.setPointSizeF(9);
+    qApp->setFont(ui_font);
 #endif    
 }
 
@@ -95,6 +100,36 @@ void FramelessWindow::setupThumbnailToolBar() {
     thumbnail_tool_bar_->addButton(play_tool_button);
     thumbnail_tool_bar_->addButton(forward_tool_button);
 #endif
+}
+
+void FramelessWindow::initiaUIFont() {
+    QList<QString> fallback_fonts;
+
+#ifdef Q_OS_WIN
+    fallback_fonts.append(Q_UTF8("Segoe UI"));
+    fallback_fonts.append(Q_UTF8("Segoe UI Bold"));
+    fallback_fonts.append(Q_UTF8("Microsoft Yahei UI"));
+    fallback_fonts.append(Q_UTF8("Microsoft Yahei UI Bold"));
+    fallback_fonts.append(Q_UTF8("Meiryo UI"));
+    fallback_fonts.append(Q_UTF8("Meiryo UI Bold"));
+    fallback_fonts.append(Q_UTF8("Arial"));
+#else
+    fallback_fonts.append(Q_UTF8("SF Pro Display"));
+    fallback_fonts.append(Q_UTF8("SF Pro Text"));
+    fallback_fonts.append(Q_UTF8("Helvetica Neue"));
+    fallback_fonts.append(Q_UTF8("Helvetica"));
+#endif
+    QFont::insertSubstitutions(Q_UTF8("UI"), fallback_fonts);
+
+    QFont default_font;
+    default_font.setFamily(Q_UTF8("UI"));
+    default_font.setStyleStrategy(QFont::PreferAntialias);
+#if defined(Q_OS_WIN)
+    default_font.setPointSize(10);
+#else
+    default_font.setPointSize(14);
+#endif
+    setFont(default_font);
 }
 
 void FramelessWindow::setTaskbarProgress(const double percent) {

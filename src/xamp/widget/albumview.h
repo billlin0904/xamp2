@@ -13,6 +13,8 @@
 #include <QTableView>
 
 #include <base/metadata.h>
+
+#include <widget/musicentity.h>
 #include <widget/clickablelabel.h>
 #include <widget/str_utilts.h>
 #include <widget/playlistentity.h>

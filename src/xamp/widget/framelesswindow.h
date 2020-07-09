@@ -73,6 +73,8 @@ protected:
     virtual void stopPlayedClicked() = 0;
 
 private:
+	void initiaUIFont();
+
 	void setupThumbnailToolBar();
 
     bool nativeEvent(const QByteArray& event_type, void* message, long* result) override;

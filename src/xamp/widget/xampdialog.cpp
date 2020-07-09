@@ -8,12 +8,10 @@
 XampDialog::XampDialog(QWidget* parent)
     : QDialog(parent) {
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
-    centerWidgets(this);
-    setFont(QFont(Q_UTF8("UI")));
+    centerWidgets(this);    
 }
 
 void XampDialog::centerWidgets(QWidget* widget) {
-    auto screens = QApplication::screens();
     auto desktop = QApplication::desktop();
     auto screen_num = desktop->screenNumber(QCursor::pos());
     QRect rect = desktop->screenGeometry(screen_num);

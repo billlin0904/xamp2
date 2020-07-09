@@ -2,6 +2,7 @@
 #include <QDir>
 #include <QDirIterator>
 #include <QTextStream>
+#include <QSize>
 
 #include <stream/equalizer.h>
 #include <widget/playerorder.h>
@@ -83,8 +84,8 @@ void AppSettings::saveUserEQSettings(QString const &key, QList<AppEQSettings> co
 
 void AppSettings::setOrDefaultConfig() {
     loadIniFile(Q_UTF8("xamp.ini"));
-    setDefaultValue(kAppSettingDeviceType, QEmptyString);
-    setDefaultValue(kAppSettingDeviceId, QEmptyString);
+    setDefaultValue(kAppSettingDeviceType, Qt::EmptyStr);
+    setDefaultValue(kAppSettingDeviceId, Qt::EmptyStr);
     setDefaultValue(kAppSettingWidth, 600);
     setDefaultValue(kAppSettingHeight, 500);
     setDefaultValue(kAppSettingVolume, 50);

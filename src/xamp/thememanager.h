@@ -87,7 +87,7 @@ signals:
     void themeChanged(ThemeColor theme_color);    
 
 private:
-    ConstLatin1String themeColorPath() const;
+    QLatin1String themeColorPath() const;
 
     ThemeManager();
 

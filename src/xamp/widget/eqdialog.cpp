@@ -64,7 +64,7 @@ EQDialog::EQDialog(QWidget *parent)
             AppSettings::setValue(kEnableEQ, true);
             updateBar(eqName);
         } else {
-            eqName = QEmptyString;
+            eqName = Qt::EmptyStr;
             AppSettings::setValue(kEnableEQ, false);
         }
     });

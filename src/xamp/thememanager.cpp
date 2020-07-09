@@ -19,7 +19,7 @@ ThemeManager& ThemeManager::instance() {
 }
 
 ThemeManager::ThemeManager() {
-    const auto sceen_size = qApp->screens()[0]->size();
+    const auto sceen_size = qApp->primaryScreen()->size();
 
     if ((sceen_size.width() <= 1920 || sceen_size.width() <= 2560) && sceen_size.height() <= 1080) {
         cover_size_ = QSize(110, 110);
@@ -42,7 +42,7 @@ void ThemeManager::setThemeColor(ThemeColor theme_color) {
     emit themeChanged(theme_color_);
 }
 
-ConstLatin1String ThemeManager::themeColorPath() const {
+QLatin1String ThemeManager::themeColorPath() const {
     if (theme_color_ == ThemeColor::DARK_THEME) {
         return Q_UTF8("Black");
     }
@@ -97,7 +97,7 @@ void ThemeManager::setPlayOrPauseButton(Ui::XampWindow& ui, bool is_playing) {
 }
 
 QString ThemeManager::getMenuStyle() noexcept {
-    return QEmptyString;
+    return Qt::EmptyStr;
 }
 
 QSize ThemeManager::getDefaultCoverSize() noexcept {
@@ -127,7 +127,7 @@ void ThemeManager::enableBlur(const QWidget* widget, bool enable) {
 }
 
 void ThemeManager::setBackgroundColor(Ui::XampWindow& ui, QColor color) {    
-    ui.currentView->setStyleSheet(backgroundColorToString(color));
+    ui.currentView->setStyleSheet(backgroundColorToString(color));    
     ui.titleFrame->setStyleSheet(backgroundColorToString(color));
     
     QColor bottomColor = color.lighter(30);
@@ -201,6 +201,7 @@ void ThemeManager::setThemeColor(Ui::XampWindow& ui) {
 
     ui.closeButton->setStyleSheet(Q_STR(R"(
                                          QToolButton#closeButton {
+                                         border: none;
                                          image: url(:/xamp/Resource/%1/close.png);
                                          background-color: transparent;
                                          }
@@ -208,6 +209,7 @@ void ThemeManager::setThemeColor(Ui::XampWindow& ui) {
 
     ui.minWinButton->setStyleSheet(Q_STR(R"(
                                           QToolButton#minWinButton {
+                                          border: none;
                                           image: url(:/xamp/Resource/%1/minimize.png);
                                           background-color: transparent;
                                           }
@@ -215,6 +217,7 @@ void ThemeManager::setThemeColor(Ui::XampWindow& ui) {
 
     ui.maxWinButton->setStyleSheet(Q_STR(R"(
                                           QToolButton#maxWinButton {
+                                          border: none;
                                           image: url(:/xamp/Resource/%1/maximize.png);
                                           background-color: transparent;
                                           }

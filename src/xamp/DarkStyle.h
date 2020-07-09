@@ -33,8 +33,7 @@ class DarkStyle : public QProxyStyle {
   void polish(QApplication *app) override;
 
  private:
-	 void initFallbackFont();
-	  QStyle *styleBase(QStyle *style = Q_NULLPTR) const;
+  QStyle *styleBase(QStyle *style = Q_NULLPTR) const;
 };
 
 #endif  // DARKSTYLE_HPP

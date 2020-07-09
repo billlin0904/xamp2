@@ -40,19 +40,21 @@
 #include "thememanager.h"
 #include "xamp.h"
 
-static QString getPlayEntityFormat(const AudioPlayer* player, const QString& file_ext) {
+static QString formatAudioFormat(const AudioPlayer* player, const QString& file_ext) {
     auto format = player->GetStreamFormat();
 
     auto ext = file_ext;
     ext = ext.remove(Q_UTF8(".")).toUpper();
     auto is_mhz_samplerate = false;
     auto precision = 1;
+
     if (format.GetSampleRate() / 1000 > 1000) {
         is_mhz_samplerate = true;
     }
     else {
         precision = format.GetSampleRate() % 1000 == 0 ? 0 : 1;
     }
+
     auto bits = format.GetBitsPerSample();
     if (is_mhz_samplerate) {
         bits = 1;
@@ -96,8 +98,7 @@ Xamp::Xamp(QWidget *parent)
     , artist_info_page_(nullptr)
     , state_adapter_(std::make_shared<PlayerStateAdapter>())
     , player_(std::make_shared<AudioPlayer>(state_adapter_))
-    , playback_history_page_(nullptr) {
-    setFont(QFont(Q_UTF8("UI")));
+    , playback_history_page_(nullptr) {    
     initial();
 }
 
@@ -134,42 +135,36 @@ void Xamp::setNightStyle() {
 void Xamp::setDefaultStyle() {
     ThemeManager::instance().setDefaultStyle(ui);
     applyTheme(ThemeManager::instance().getBackgroundColor());
-    setStyleSheet(Q_UTF8(R"(                         
+    setStyleSheet(Q_UTF8(R"(    
                          QFrame#playingFrame {
                          background-color: transparent;
                          border: none;
                          }
-                         )"));
+                         )"));    
 }
 
 void Xamp::registerMetaType() {
-    qRegisterMetaType<std::vector<xamp::base::Metadata>>("std::vector<xamp::base::Metadata>");
-    qRegisterMetaType<std::vector<float>>("std::vector<float>");
+    qRegisterMetaType<std::vector<xamp::base::Metadata>>("std::vector<xamp::base::Metadata>");  
     qRegisterMetaType<DeviceState>("xamp::output_device::DeviceState");
     qRegisterMetaType<PlayerState>("xamp::player::PlayerState");
     qRegisterMetaType<Errors>("xamp::base::Errors");
-    qRegisterMetaType<size_t>("size_t");
     qRegisterMetaType<std::vector<float>>("std::vector<float>");
+    qRegisterMetaType<size_t>("size_t");
 }
 
 void Xamp::initialUI() {
-    registerMetaType();
-
+    registerMetaType();    
     ui.setupUi(this);
-
     watch_.addPath(AppSettings::getValueAsString(kAppSettingMusicFilePath));
-
     setGeometry(QStyle::alignedRect(Qt::LeftToRight,
                                     Qt::AlignCenter,
                                     AppSettings::getSizeValue(kAppSettingWidth, kAppSettingHeight),
                                     qApp->primaryScreen()->availableGeometry()));
-
     auto f = font();
     f.setPointSize(10);
     ui.titleLabel->setFont(f);
     f.setPointSize(8);
     ui.artistLabel->setFont(f);
-
 #ifdef Q_OS_WIN
     f.setPointSize(7);
     ui.startPosLabel->setFont(f);
@@ -306,10 +301,6 @@ void Xamp::initialController() {
         QWidget::close();
     });
 
-    (void)QObject::connect(ui.settingsButton, &QToolButton::pressed, []() {
-
-    });
-
     (void)QObject::connect(ui.seekSlider, &SeekSlider::leftButtonValueChanged, [this](auto value) {
         try {
             player_->Seek(static_cast<double>(value / 1000.0));
@@ -444,7 +435,8 @@ void Xamp::initialController() {
     });
 
     (void)QObject::connect(ui.eqButton, &QToolButton::pressed, [this]() {
-        EQDialog eqdialog;        
+        EQDialog eqdialog;
+        eqdialog.setFont(font());
         eqdialog.exec();
         if (eqdialog.eqName.isEmpty()) {
             eqsettings_.clear();
@@ -475,6 +467,7 @@ void Xamp::initialController() {
     settings_menu->addAction(settings_action);
     (void)QObject::connect(settings_action, &QAction::triggered, [=]() {
         PreferenceDialog dialog;
+        dialog.setFont(font());
         dialog.exec();
         watch_.addPath(dialog.music_file_path_);
     });
@@ -509,6 +502,7 @@ void Xamp::initialController() {
     settings_menu->addAction(about_action);
     (void)QObject::connect(about_action, &QAction::triggered, [=]() {
         AboutDialog aboutdlg;
+        aboutdlg.setFont(font());
         aboutdlg.exec();
     });
     ui.settingsButton->setMenu(settings_menu);
@@ -839,7 +833,7 @@ void Xamp::playMusic(const MusicEntity& item) {
 
     ui.seekSlider->setRange(0, int32_t(player_->GetDuration() * 1000));
     ui.endPosLabel->setText(Time::msToString(player_->GetDuration()));
-    playlist_page_->format()->setText(getPlayEntityFormat(player_.get(), item.file_ext));
+    playlist_page_->format()->setText(formatAudioFormat(player_.get(), item.file_ext));
 
     if (auto cover = PixmapCache::instance().find(item.cover_id)) {
         setCover(*cover.value());
