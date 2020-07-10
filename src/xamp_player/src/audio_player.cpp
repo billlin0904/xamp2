@@ -1,7 +1,3 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-
 #include <base/str_utilts.h>
 #include <base/platform_thread.h>
 #include <base/logger.h>
@@ -514,6 +510,9 @@ int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, dou
     if (XAMP_LIKELY(buffer_.TryRead(static_cast<int8_t*>(samples), sample_size))) {
         if (dsd_mode_ == DsdModes::DSD_MODE_PCM) {
             UpdateSlice(static_cast<const float*>(samples), static_cast<int32_t>(num_samples), stream_time);
+        }
+        else {
+            UpdateSlice(nullptr, num_samples, stream_time);
         }
         return 0;
     }

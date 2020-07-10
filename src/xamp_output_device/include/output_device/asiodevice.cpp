@@ -118,7 +118,7 @@ void AsioDevice::ReOpen() {
 	}
 	callbackInfo.drivers->removeCurrentDriver();
 	if (!callbackInfo.drivers->loadDriver(const_cast<char*>(device_id_.c_str()))) {
-		throw ASIOException(Errors::XAMP_ERROR_DEVICE_NOT_FOUND);
+		throw DeviceNotFoundException();
 	}
 	is_removed_driver_ = false;
 }
@@ -301,17 +301,17 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 		switch (channel_info.type) {
 		case ASIOSTDSDInt8LSB1:
 			if (sample_format_ != DsdFormat::DSD_INT8LSB) {
-				throw ASIOException(Errors::XAMP_ERROR_NOT_SUPPORT_FORMAT);
+				throw NotSupportFormatException();
 			}
 			break;
 		case ASIOSTDSDInt8MSB1:
 			if (sample_format_ != DsdFormat::DSD_INT8MSB) {
-				throw ASIOException(Errors::XAMP_ERROR_NOT_SUPPORT_FORMAT);
+				throw NotSupportFormatException();
 			}
 			break;
 		case ASIOSTDSDInt8NER8:
 			if (sample_format_ != DsdFormat::DSD_INT8NER8) {
-				throw ASIOException(Errors::XAMP_ERROR_NOT_SUPPORT_FORMAT);
+				throw NotSupportFormatException();
 			}
 			break;
 		}

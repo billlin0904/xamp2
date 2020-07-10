@@ -25,6 +25,7 @@ copy x64\Release\xamp_output_device.pdb deploy\
 copy x64\Release\xamp_player.pdb deploy\
 copy x64\Release\xamp.pdb deploy\
 
+xcopy /Y /S /I /E eqpresets deploy\eqpresets
 xcopy /Y /S /I /E Resource deploy\Resource
 xcopy /Y /S /I /E x64\langs deploy\langs
 

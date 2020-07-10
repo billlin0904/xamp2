@@ -69,7 +69,7 @@ DeviceInfo ExclusiveWasapiDeviceType::GetDeviceInfo(uint32_t device) const {
 	if (itr != device_list_.end()) {
 		return (*itr);
 	}
-	throw Exception(Errors::XAMP_ERROR_DEVICE_NOT_FOUND);
+	throw DeviceNotFoundException();
 }
 
 std::vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfoList() const {

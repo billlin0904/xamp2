@@ -40,8 +40,19 @@ FramelessWindow::FramelessWindow(QWidget* parent)
         HWND hwnd = (HWND)winId();        
         DWMNCRENDERINGPOLICY ncrp = DWMNCRP_ENABLED;
         ::DwmSetWindowAttribute(hwnd, DWMWA_NCRENDERING_POLICY, &ncrp, sizeof(ncrp));
-        MARGINS borderless = { -1 };
+
+        MARGINS borderless = { 1, 1, 1, 1 };
         ::DwmExtendFrameIntoClientArea(hwnd, &borderless);
+
+        DWM_PRESENT_PARAMETERS dpp;
+        memset(&dpp, 0, sizeof(DWM_PRESENT_PARAMETERS));
+        dpp.cbSize = sizeof(dpp);
+        dpp.fQueue = TRUE;
+        dpp.cBuffer = 2;
+        dpp.fUseSourceRate = FALSE;
+        dpp.cRefreshesPerFrame = 1;
+        dpp.eSampling = DWM_SOURCE_FRAME_SAMPLING_POINT;
+        ::DwmSetPresentParameters(hwnd, &dpp);
     }
     ThemeManager::instance().enableBlur(this, AppSettings::getValueAsBool(kAppSettingEnableBlur));
     setupThumbnailToolBar();   

@@ -1,7 +1,3 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-
 #include <base/logger.h>
 #ifdef XAMP_OS_WIN
 #include <base/windows_handle.h>
@@ -39,7 +35,7 @@ VmMemLock::~VmMemLock() noexcept {
 }
 
 void VmMemLock::Lock(void* address, size_t size) {
-#if 0
+#if 1
 	UnLock();
 
 	if (!ExterndProcessWorkingSetSize(size)) {
@@ -58,7 +54,7 @@ void VmMemLock::Lock(void* address, size_t size) {
 }
 
 void VmMemLock::UnLock() noexcept {
-#if 0
+#if 1
 	if (address_) {
 		if (!::VirtualUnlock(address_, size_)) {
 			XAMP_LOG_DEBUG("VirtualUnlock return failure! error:{}.", ::GetLastError());
