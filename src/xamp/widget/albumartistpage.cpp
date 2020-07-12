@@ -9,8 +9,6 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	: QFrame(parent)
 	, artist_view_(new ArtistView(this))
 	, album_view_(new AlbumView(this)) {
-	setStyleSheet(Q_UTF8("background: transparent;"));
-
 	auto default_layout = new QHBoxLayout(this);
 	default_layout->setSpacing(0);
 	default_layout->setObjectName(QString::fromUtf8("default_layout"));

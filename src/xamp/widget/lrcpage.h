@@ -19,8 +19,6 @@ public:
 
 	LyricsShowWideget* lyricsWidget();
 
-    //VinylWidget* cover();
-
     QLabel* cover();
 
 	ScrollLabel* album();
@@ -29,7 +27,8 @@ public:
 
     ScrollLabel* title();
 
-	void setTextColor(QColor color);
+public slots:
+    void OnThemeColorChanged(QColor theme_color, QColor color);
 
 private:
 	void initial();

@@ -135,12 +135,14 @@ void Xamp::setNightStyle() {
 void Xamp::setDefaultStyle() {
     ThemeManager::instance().setDefaultStyle(ui);
     applyTheme(ThemeManager::instance().getBackgroundColor());
+    /*
     setStyleSheet(Q_UTF8(R"(    
                          QFrame#playingFrame {
                          background-color: transparent;
                          border: none;
                          }
-                         )"));    
+                         )"));
+    */
 }
 
 void Xamp::registerMetaType() {
@@ -514,15 +516,12 @@ void Xamp::initialController() {
 }
 
 void Xamp::applyTheme(QColor color) {
-    if (qGray(color.rgb()) > 150) {
-        playlist_page_->setTextColor(Qt::black);
-        lrc_page_->setTextColor(Qt::black);        
-        emit textColorChanged(color, Qt::black);      
+    if (qGray(color.rgb()) > 150) {      
+        emit themeChanged(color, Qt::black);
+        ThemeManager::instance().setThemeColor(ThemeColor::WHITE_THEME);
     }
     else {
-        playlist_page_->setTextColor(Qt::white);
-        lrc_page_->setTextColor(Qt::white);
-        emit textColorChanged(color, Qt::white);
+        emit themeChanged(color, Qt::white);
         ThemeManager::instance().setThemeColor(ThemeColor::DARK_THEME);
     }
 
@@ -978,13 +977,19 @@ void Xamp::initialPlaylist() {
                             &Xamp::onArtistIdChanged);
 
     (void)QObject::connect(this,
-                            &Xamp::textColorChanged,
+                            &Xamp::themeChanged,
                             album_artist_page_->album(),
-                            &AlbumView::onTextColorChanged);
+                            &AlbumView::OnThemeColorChanged);
 
-    (void)QObject::connect(this, &Xamp::textColorChanged,
+    (void)QObject::connect(this,
+                            &Xamp::themeChanged,
                             artist_info_page_,
-                            &ArtistInfoPage::onTextColorChanged);
+                            &ArtistInfoPage::OnThemeColorChanged);
+
+    (void)QObject::connect(this,
+                            &Xamp::themeChanged,
+                            lrc_page_,
+                            &LrcPage::OnThemeColorChanged);
 
     (void)QObject::connect(&mbc_, &MusicBrainzClient::finished,
                             [this](auto artist_id, auto discogs_artist_id) {
@@ -1163,7 +1168,7 @@ PlyalistPage* Xamp::newPlaylist(int32_t playlist_id) {
     (void)QObject::connect(playlist_page->playlist(), &PlayListTableView::readFingerprint,
                             this, &Xamp::readFingerprint);
 
-    (void)QObject::connect(this, &Xamp::textColorChanged,
+    (void)QObject::connect(this, &Xamp::themeChanged,
                             playlist_page->playlist(),
                             &PlayListTableView::onTextColorChanged);
 

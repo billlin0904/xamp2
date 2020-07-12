@@ -126,8 +126,8 @@ void ThemeManager::enableBlur(const QWidget* widget, bool enable) {
 #endif
 }
 
-void ThemeManager::setBackgroundColor(Ui::XampWindow& ui, QColor color) {    
-    ui.currentView->setStyleSheet(backgroundColorToString(color));    
+void ThemeManager::setBackgroundColor(Ui::XampWindow& ui, QColor color) {
+    ui.currentView->setStyleSheet(backgroundColorToString(color));
     ui.titleFrame->setStyleSheet(backgroundColorToString(color));
     
     QColor bottomColor = color.lighter(30);

@@ -25,7 +25,9 @@ public:
 
 	QLabel* format();
 
-	void setTextColor(QColor color);
+public slots:
+    void OnThemeColorChanged(QColor theme_color, QColor color);
+
 private:
 	void initial();
 

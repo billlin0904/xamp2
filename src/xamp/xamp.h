@@ -48,7 +48,7 @@ public:
 signals:
 	void payNextMusic();
 
-	void textColorChanged(QColor backgroundColor, QColor color);
+    void themeChanged(QColor backgroundColor, QColor color);
 
 public slots:
     void playMusic(const MusicEntity& item);

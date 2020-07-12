@@ -203,6 +203,7 @@ void PlayListTableView::initial() {
 }
 
 void PlayListTableView::onTextColorChanged(QColor backgroundColor, QColor color) {
+    setStyleSheet(backgroundColorToString(backgroundColor));
 }
 
 void PlayListTableView::keyPressEvent(QKeyEvent *pEvent) {

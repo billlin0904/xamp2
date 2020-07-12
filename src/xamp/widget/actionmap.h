@@ -55,13 +55,6 @@ public:
     explicit ActionMap(Type* object)
         : object_(object)
         , menu_(object) {
-        setThemeSetyle();
-    }
-
-    ActionMap(QWidget* app, Type* object)
-        : object_(object)
-        , menu_(app) {
-        setThemeSetyle();
     }
 
     QAction* addAction(const QString& menu_name) {
@@ -114,15 +107,7 @@ public:
         }
     }
 
-    void setStyleSheet(const QString& stylesheet) {
-        menu_.setStyleSheet(stylesheet);
-    }
-
 private:
-    void setThemeSetyle() {
-        setStyleSheet(ThemeManager::instance().getMenuStyle());
-    }
-
     Type * object_;
     QMenu menu_;    
     MapType map_;

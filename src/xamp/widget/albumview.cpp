@@ -129,22 +129,6 @@ AlbumPlayListTableView::AlbumPlayListTableView(QWidget* parent)
     horizontalHeader()->hide();
     horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
-    verticalScrollBar()->setStyleSheet(Q_UTF8(R"(
-    QScrollBar:vertical {
-        background: #FFFFFF;
-        width: 9px;
-    }
-    QScrollBar::handle:vertical {
-        background: #dbdbdb;
-        border-radius: 3px;
-        min-height: 20px;
-        border: none;
-    }
-    QScrollBar::handle:vertical:hover {
-        background: #d0d0d0;
-    }
-    )"));
-
     setStyleSheet(Q_UTF8("background-color: transparent"));
 }
 
@@ -213,16 +197,18 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
     default_layout->setSpacing(0);
     default_layout->setContentsMargins(10, 10, 10, 0);
 
-    auto close_button = new QPushButton(tr(""), this);
+    auto close_button = new QPushButton(tr("X"), this);
     close_button->setFixedSize(QSize(12, 12));
+    /*
     close_button->setStyleSheet(Q_UTF8(R"(
     QPushButton
     {
         border: none;
         background-color: transparent;
-        image: url(:/xamp/Resource/White/close.png);
+        image: url(:/xamp/Resource/Black/close.png);
     }
     )"));
+    */
 
     auto hbox_layout = new QHBoxLayout();
     hbox_layout->setSpacing(0);
@@ -302,8 +288,6 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
     (void)QObject::connect(playlist_, &QTableView::doubleClicked, [this](const QModelIndex& index) {
         emit playMusic(getAlbumEntity(index));
         });
-
-    setStyleSheet(Q_UTF8("background-color: gray;"));
 }
 
 void AlbumViewPage::setAlbum(const QString& album) {
@@ -519,8 +503,9 @@ void AlbumView::payNextMusic() {
     page_->playlist()->setCurrentIndex(next_index);
 }
 
-void AlbumView::onTextColorChanged(QColor /*backgroundColor*/, QColor color) {
+void AlbumView::OnThemeColorChanged(QColor backgroundColor, QColor color) {
     dynamic_cast<AlbumViewStyledDelegate*>(itemDelegate())->setTextColor(color);
+    setStyleSheet(backgroundColorToString(backgroundColor));
 }
 
 void AlbumView::setFilterByArtistId(int32_t artist_id) {
