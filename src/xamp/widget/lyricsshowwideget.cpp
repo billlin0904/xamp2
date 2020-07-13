@@ -1,6 +1,9 @@
 #include <sstream>
 #include <QPainter>
 
+#include <widget/settingnames.h>
+#include <widget/appsettings.h>
+#include <widget/actionmap.h>
 #include <widget/str_utilts.h>
 #include <widget/lyricsshowwideget.h>
 
@@ -16,12 +19,33 @@ LyricsShowWideget::LyricsShowWideget(QWidget* parent)
 
 void LyricsShowWideget::initial() {
     lrc_font_ = font();
-#ifdef Q_OS_WIN32
-    lrc_font_.setPointSize(16);
-#else
-    lrc_font_.setPointSize(18);
-#endif
+
+	if (!AppSettings::contains(kLyricsFontSize)) {
+		lrc_font_.setPointSize(12);
+		AppSettings::setValue(kLyricsFontSize, 12);
+	}
+
 	setDefaultLrc();
+
+	setContextMenuPolicy(Qt::CustomContextMenu);
+	(void)QObject::connect(this, &LyricsShowWideget::customContextMenuRequested, [this](auto pt) {
+		ActionMap<LyricsShowWideget, std::function<void()>> action_map(this);
+		(void)action_map.addAction(tr("Set font size(small)"), [this]() {
+			AppSettings::setValue(kLyricsFontSize, 12);
+			lrc_font_.setPointSize(12);
+			});
+
+		(void)action_map.addAction(tr("Set font size(middle)"), [this]() {
+			AppSettings::setValue(kLyricsFontSize, 16);
+			lrc_font_.setPointSize(16);
+			});
+
+		(void)action_map.addAction(tr("Set font size(big)"), [this]() {
+			lrc_font_.setPointSize(24);
+			AppSettings::setValue(kLyricsFontSize, 24);
+			});
+		action_map.exec(pt);
+		});
 }
 
 void LyricsShowWideget::setDefaultLrc() {

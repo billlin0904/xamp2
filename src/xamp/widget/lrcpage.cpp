@@ -57,12 +57,6 @@ void LrcPage::initial() {
     cover_label_->setMinimumSize(QSize(250, 250));
     cover_label_->setMaximumSize(QSize(250, 250));
     verticalLayout_3->addWidget(cover_label_);
-    //verticalLayout_3->addWidget(cover_label_);
-    //vinyl_ = new VinylWidget(this);
-    //vinyl_->setObjectName(QString::fromUtf8("label"));
-    //vinyl_->setMinimumSize(QSize(350, 350));
-    //vinyl_->setMaximumSize(QSize(350, 350));
-    //verticalLayout_3->addWidget(vinyl_);
 	verticalLayout_3->setContentsMargins(0, 20, 0, 0);
 
 	auto verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);

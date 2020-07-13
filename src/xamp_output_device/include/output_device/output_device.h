@@ -29,7 +29,7 @@ class DeviceType;
 class Device;
 class DsdDevice;
 class AudioCallback;
-class AudioDeviceFactory;
+class DeviceManager;
 class DeviceStateListener;
 class DeviceStateNotification;
 

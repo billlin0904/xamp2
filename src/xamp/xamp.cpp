@@ -109,7 +109,7 @@ void Xamp::initial() {
     initialPlaylist();
     initialShortcut();
     setCover(ThemeManager::instance().pixmap().unknownCover());
-    AudioDeviceFactory::Instance().RegisterDeviceListener(player_);
+    DeviceManager::Instance().RegisterDeviceListener(player_);
     setDefaultStyle();
 }
 
@@ -221,7 +221,7 @@ void Xamp::initialDeviceList() {
 
     std::map<std::wstring, QAction*> device_id_action;
 
-    AudioDeviceFactory::Instance().ForEach([&](const auto &device_type) {
+    DeviceManager::Instance().ForEach([&](const auto &device_type) {
         device_type->ScanNewDevice();
 
         const auto device_info_list = device_type->GetDeviceInfo();
@@ -254,7 +254,7 @@ void Xamp::initialDeviceList() {
 
         if (!is_find_setting_device) {
             auto itr = std::find_if(device_info_list.begin(), device_info_list.end(), [](const auto& info) {
-                return info.is_default_device && !AudioDeviceFactory::IsExclusiveDevice(info);
+                return info.is_default_device && !DeviceManager::IsExclusiveDevice(info);
             });
             if (itr != device_info_list.end()) {
                 init_device_info = (*itr);

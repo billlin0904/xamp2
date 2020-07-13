@@ -301,7 +301,6 @@ void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
         while (wait_for_stop_stream && !is_stop_streaming_) {
             condition_.wait(lock);
         }
-		XAMP_LOG_DEBUG("Stop ExclusiveWasapiDevice.");
     }
 
 	::Sleep(aligned_period_ / kWasapiReftimesPerMillisec);
@@ -417,7 +416,7 @@ bool ExclusiveWasapiDevice::CanHardwareControlVolume() const {
 
 	HrIfFailledThrow(device_->Activate(kAudioEndpointVolumeID,
 		CLSCTX_INPROC_SERVER,
-		NULL,
+		nullptr,
 		reinterpret_cast<void**>(&endpoint_volume)
 	));
 

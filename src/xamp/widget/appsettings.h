@@ -79,6 +79,10 @@ public:
         return getValue(key).toString();
     }
 
+    static bool contains(QString const& key) {
+        return settings_->contains(key);
+    }
+
     static void loadLanguage(QString const& lang);
 
     static void setOrDefaultConfig();

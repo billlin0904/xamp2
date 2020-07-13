@@ -1,7 +1,3 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-
 #include <base/base.h>
 
 #ifdef XAMP_OS_WIN
@@ -62,7 +58,7 @@ static struct IopmAssertion {
 } iopmAssertion;
 #endif
 
-class AudioDeviceFactory::DeviceStateNotificationImpl {
+class DeviceManager::DeviceStateNotificationImpl {
 public:
 #ifdef XAMP_OS_WIN
     using DeviceStateNotification = win32::Win32DeviceStateNotification;
@@ -93,7 +89,7 @@ private:
 		return MakeAlign<DeviceType, DeviceTypeClass>();\
 	})
 
-AudioDeviceFactory::AudioDeviceFactory() {
+DeviceManager::DeviceManager() {
 #ifdef XAMP_OS_WIN
     using namespace win32;
     HrIfFailledThrow(::MFStartup(MF_VERSION, MFSTARTUP_LITE));
@@ -110,7 +106,7 @@ AudioDeviceFactory::AudioDeviceFactory() {
 #endif
 }
 
-AudioDeviceFactory::~AudioDeviceFactory() {
+DeviceManager::~DeviceManager() {
 #ifdef XAMP_OS_WIN
     ::MFShutdown();
 #else
@@ -118,11 +114,11 @@ AudioDeviceFactory::~AudioDeviceFactory() {
 #endif
 }
 
-void AudioDeviceFactory::Clear() {
+void DeviceManager::Clear() {
     creator_.clear();
 }
 
-std::optional<AlignPtr<DeviceType>> AudioDeviceFactory::CreateDefaultDevice() const {
+std::optional<AlignPtr<DeviceType>> DeviceManager::CreateDefaultDevice() const {
     auto itr = creator_.begin();
     if (itr == creator_.end()) {
         return std::nullopt;
@@ -130,7 +126,7 @@ std::optional<AlignPtr<DeviceType>> AudioDeviceFactory::CreateDefaultDevice() co
     return (*itr).second();
 }
 
-std::optional<AlignPtr<DeviceType>> AudioDeviceFactory::Create(ID const& id) const {
+std::optional<AlignPtr<DeviceType>> DeviceManager::Create(ID const& id) const {
     auto itr = creator_.find(id);
     if (itr == creator_.end()) {
         return std::nullopt;
@@ -138,7 +134,7 @@ std::optional<AlignPtr<DeviceType>> AudioDeviceFactory::Create(ID const& id) con
     return (*itr).second();
 }
 
-bool AudioDeviceFactory::IsSupportASIO() const {
+bool DeviceManager::IsSupportASIO() const {
 #if ENABLE_ASIO && defined(XAMP_OS_WIN)
     return creator_.find(ASIODeviceType::Id) != creator_.end();
 #else
@@ -146,7 +142,7 @@ bool AudioDeviceFactory::IsSupportASIO() const {
 #endif
 }
 
-bool AudioDeviceFactory::IsExclusiveDevice(DeviceInfo const & info) {
+bool DeviceManager::IsExclusiveDevice(DeviceInfo const & info) {
 #ifdef XAMP_OS_WIN
     return info.device_type_id == win32::ExclusiveWasapiDeviceType::Id
 #if ENABLE_ASIO
@@ -159,7 +155,7 @@ bool AudioDeviceFactory::IsExclusiveDevice(DeviceInfo const & info) {
 #endif
 }
 
-bool AudioDeviceFactory::IsASIODevice(ID const& id) {
+bool DeviceManager::IsASIODevice(ID const& id) {
 #if defined(ENABLE_ASIO) && defined(XAMP_OS_WIN)
     return id == ASIODeviceType::Id;
 #else
@@ -168,16 +164,16 @@ bool AudioDeviceFactory::IsASIODevice(ID const& id) {
 #endif
 }
 
-bool AudioDeviceFactory::IsDeviceTypeExist(ID const& id) const {
+bool DeviceManager::IsDeviceTypeExist(ID const& id) const {
     return creator_.find(id) != creator_.end();
 }
 
-void AudioDeviceFactory::RegisterDeviceListener(std::weak_ptr<DeviceStateListener> callback) {	
+void DeviceManager::RegisterDeviceListener(std::weak_ptr<DeviceStateListener> callback) {	
     impl_ = MakeAlign<DeviceStateNotificationImpl>(callback);
     impl_->Run();
 }
 
-void AudioDeviceFactory::PreventSleep(bool allow) {
+void DeviceManager::PreventSleep(bool allow) {
 #ifdef XAMP_OS_WIN
     if (allow) {
         ::SetThreadExecutionState(ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED | ES_CONTINUOUS);

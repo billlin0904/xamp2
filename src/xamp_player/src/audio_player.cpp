@@ -77,7 +77,7 @@ void AudioPlayer::UpdateSlice(float const *samples, int32_t sample_size, double 
 void AudioPlayer::LoadLib() {
     ThreadPool::DefaultThreadPool();
     BassFileStream::LoadBassLib();
-    AudioDeviceFactory::Instance();
+    DeviceManager::Instance();
     SoxrResampler::LoadSoxrLib();    
 }
 
@@ -99,7 +99,7 @@ void AudioPlayer::CreateDevice(ID const & device_type_id, std::wstring const & d
         || device_id_ != device_id
         || device_type_id_ != device_type_id
         || open_always) {
-        if (auto result = AudioDeviceFactory::Instance().Create(device_type_id)) {
+        if (auto result = DeviceManager::Instance().Create(device_type_id)) {
             device_type_ = std::move(result.value());
             device_type_->ScanNewDevice();
             device_ = device_type_->MakeDevice(device_id);
@@ -161,7 +161,7 @@ void AudioPlayer::OpenStream(std::wstring const & file_path, std::wstring const 
     stream_ = MakeFileStream(file_ext);
 
     if (auto* dsd_stream = AsDsdStream()) {
-        if (AudioDeviceFactory::Instance().IsSupportASIO()) {
+        if (DeviceManager::Instance().IsSupportASIO()) {
             if (device_info.is_support_dsd) {
                 dsd_stream->SetDSDMode(DsdModes::DSD_MODE_NATIVE);
                 dsd_mode_ = DsdModes::DSD_MODE_NATIVE;
@@ -424,9 +424,9 @@ void AudioPlayer::CreateBuffer() {
 
     uint32_t require_read_sample = 0;
 
-    if (AudioDeviceFactory::Instance().IsSupportASIO()) {
+    if (DeviceManager::Instance().IsSupportASIO()) {
         if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE
-            || AudioDeviceFactory::Instance().IsASIODevice(device_type_id_)) {
+            || DeviceManager::Instance().IsASIODevice(device_type_id_)) {
             require_read_sample = kMaxSamplerate;
         }
         else {
@@ -540,6 +540,7 @@ void AudioPlayer::OnDeviceStateChange(DeviceState state, std::wstring const & de
                 state_adapter->OnDeviceChanged(DeviceState::DEVICE_STATE_REMOVED);
                 if (device_ != nullptr) {
                     device_->AbortStream();
+                    XAMP_LOG_DEBUG("Device abort stream id:{}.", ToUtf8String(device_id));
                 }
             }
             break;

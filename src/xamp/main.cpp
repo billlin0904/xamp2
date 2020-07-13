@@ -145,7 +145,7 @@ static int excute(int argc, char* argv[]) {
                        AppSettings::getValueAsString(kAppSettingLang).toStdString());
     }
 
-    AudioDeviceFactory::PreventSleep(AppSettings::getValueAsBool(kAppSettingPreventSleep));
+    DeviceManager::PreventSleep(AppSettings::getValueAsBool(kAppSettingPreventSleep));
     XAMP_LOG_DEBUG("PreventSleep success.");
 
     app.setStyle(new DarkStyle());

@@ -138,7 +138,6 @@ void SharedWasapiDevice::StopStream(bool wait_for_stop_stream) {
 		while (wait_for_stop_stream && !is_stop_streaming_) {
 			condition_.wait(lock);
 		}
-		XAMP_LOG_INFO("Stop SharedWasapiDevice.");
 	}
 
 	if (client_ != nullptr) {

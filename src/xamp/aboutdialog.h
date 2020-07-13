@@ -18,4 +18,6 @@ private slots:
 
 private:
     Ui::AboutDialog ui;
+    QString lincense_;
+    QString credits_;
 };

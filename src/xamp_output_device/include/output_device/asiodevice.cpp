@@ -517,8 +517,6 @@ void AsioDevice::StopStream(bool wait_for_stop_stream) {
 	}
 
 	AsioIfFailedThrow(::ASIOStop());
-
-	XAMP_LOG_DEBUG("Stop AsioDevice,");
 }
 
 void AsioDevice::CloseStream() {

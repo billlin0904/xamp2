@@ -23,14 +23,14 @@ namespace xamp::output_device {
 
 using namespace base;
 
-class XAMP_OUTPUT_DEVICE_API AudioDeviceFactory final {
+class XAMP_OUTPUT_DEVICE_API DeviceManager final {
 public:	
-    ~AudioDeviceFactory();
+    ~DeviceManager();
 
-    XAMP_DISABLE_COPY(AudioDeviceFactory)
+    XAMP_DISABLE_COPY(DeviceManager)
 
-    static AudioDeviceFactory& Instance() {
-        static AudioDeviceFactory factory;
+    static DeviceManager& Instance() {
+        static DeviceManager factory;
         return factory;
     }
 
@@ -66,7 +66,7 @@ public:
 private:
     class DeviceStateNotificationImpl;
 
-    AudioDeviceFactory();
+    DeviceManager();
 
     template <typename Function>
     void RegisterCreator(ID const &id, Function&& fun) {
