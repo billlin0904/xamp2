@@ -36,3 +36,7 @@ inline constexpr ConstLatin1String kEQName{ "AppSettings/EQName" };
 inline constexpr ConstLatin1String kEQSetting{ "AppSettings/EQSetting" };
 
 inline constexpr ConstLatin1String kLyricsFontSize{ "AppSettings/lyrics/fontSize" };
+
+inline constexpr ConstLatin1String kGainStr("Gain");
+inline constexpr ConstLatin1String kDbStr("dB");
+inline constexpr ConstLatin1String kQStr("Q");

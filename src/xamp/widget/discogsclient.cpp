@@ -8,10 +8,10 @@
 #include <widget/str_utilts.h>
 #include <widget/discogsclient.h>
 
-static const QLatin1String DISCOGS_KEY{ "TyvkLDUGhlzRhPkMdsmU" };
-static const QLatin1String DISCOGS_SECRET{ "oBilkJZyIDgEMkkGaQdVZEexZNRHUrVX" };
+inline constexpr ConstLatin1String kDiscogsKey{ "TyvkLDUGhlzRhPkMdsmU" };
+inline constexpr ConstLatin1String kDiscogsSeceret{ "oBilkJZyIDgEMkkGaQdVZEexZNRHUrVX" };
+inline constexpr ConstLatin1String kDiscogsHost{"https://api.discogs.com"};
 
-static const QLatin1String DISCOGS_HOST{"https://api.discogs.com"};
 using namespace rapidjson;
 
 template <typename TMemberIterator>
@@ -62,8 +62,8 @@ void DiscogsClient::searchArtistId(int32_t artist_id, const QString& id) {
         }
     };
 
-    http::HttpClient(DISCOGS_HOST + Q_UTF8("/artists/") + id, manager_)
-        .header(Q_UTF8("Authorization"), QString(Q_UTF8("Discogs key=%1, secret=%2")).arg(DISCOGS_KEY, DISCOGS_SECRET))
+    http::HttpClient(kDiscogsHost + Q_UTF8("/artists/") + id, manager_)
+        .header(Q_UTF8("Authorization"), QString(Q_UTF8("Discogs key=%1, secret=%2")).arg(kDiscogsKey, kDiscogsSeceret))
         .success(handler)
         .get();
 }
@@ -91,11 +91,11 @@ void DiscogsClient::searchArtist(int32_t artist_id, const QString &artist) {
         }
     };
 
-    http::HttpClient(DISCOGS_HOST + Q_UTF8("/database/search"), manager_)
+    http::HttpClient(kDiscogsHost + Q_UTF8("/database/search"), manager_)
         .param(Q_UTF8("type"), Q_UTF8("release&artist"))
         .param(Q_UTF8("release_title"), artist)
         .param(Q_UTF8("artist"), artist)        
-        .header(Q_UTF8("Authorization"), QString(Q_UTF8("Discogs key=%1, secret=%2")).arg(DISCOGS_KEY, DISCOGS_SECRET))
+        .header(Q_UTF8("Authorization"), QString(Q_UTF8("Discogs key=%1, secret=%2")).arg(kDiscogsKey, kDiscogsSeceret))
         .success(handler)
         .get();
 }

@@ -8,10 +8,6 @@
 #include <widget/playerorder.h>
 #include <widget/appsettings.h>
 
-static QLatin1String const kGainStr("Gain");
-static QLatin1String const kDbStr("dB");
-static QLatin1String const kQStr("Q");
-
 QScopedPointer<QSettings> AppSettings::settings_;
 QMap<QString, QVariant> AppSettings::default_settings_;
 LocaleLanguageManager AppSettings::manager_;
@@ -26,18 +22,20 @@ void AppSettings::loadEQPreset() {
     auto presetpath = QDir::currentPath() + Q_UTF8("/eqpresets/");
     auto file_ext = QStringList() << Q_UTF8("*.eq");
 
-    for (QDirIterator itr(presetpath, file_ext, QDir::Files | QDir::NoDotAndDotDot);
-         itr.hasNext();) {
+    for (QDirIterator itr(presetpath, file_ext, QDir::Files | QDir::NoDotAndDotDot); itr.hasNext();) {
         QFile file(itr.next());
         if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-            return;
+            continue;
         }
         QTextStream in(&file);
         QString line = in.readLine();
         QList<AppEQSettings> bands;
         while (!line.isNull()) {
-            auto start = line.indexOf(kGainStr);
+            auto start = line.indexOf(kGainStr);            
             auto end = line.indexOf(kDbStr);
+            if (start == -1 || end == -1) {
+                break;
+            }
             auto gainStr = line.mid(start + kGainStr.size(), end - start - kGainStr.size()).trimmed();
             start = line.indexOf(kQStr);
             auto QGainStr = line.mid(start + kQStr.size()).trimmed();

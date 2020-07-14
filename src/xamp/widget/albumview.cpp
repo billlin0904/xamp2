@@ -199,16 +199,6 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 
     auto close_button = new QPushButton(tr("X"), this);
     close_button->setFixedSize(QSize(12, 12));
-    /*
-    close_button->setStyleSheet(Q_UTF8(R"(
-    QPushButton
-    {
-        border: none;
-        background-color: transparent;
-        image: url(:/xamp/Resource/Black/close.png);
-    }
-    )"));
-    */
 
     auto hbox_layout = new QHBoxLayout();
     hbox_layout->setSpacing(0);
@@ -398,31 +388,7 @@ AlbumView::AlbumView(QWidget* parent)
     (void)QObject::connect(this, &QTableView::customContextMenuRequested, [this](auto pt) {
         auto index = indexAt(pt);
 
-        ActionMap<AlbumView, std::function<void()>> action_map(this);
-
-        (void)action_map.addAction(tr("Load local file"), [this]() {
-            xamp::metadata::TaglibMetadataReader reader;
-            QString exts(Q_UTF8("("));
-            for (auto file_ext : reader.GetSupportFileExtensions()) {
-                exts += Q_UTF8("*") + QString::fromStdString(file_ext);
-                exts += Q_UTF8(" ");
-            }
-            exts += Q_UTF8(")");
-            auto file_name = QFileDialog::getOpenFileName(this,
-                                                          tr("Open file"),
-                                                          AppSettings::getMyMusicFolderPath(),
-                                                          tr("Music Files ") + exts);
-            append(file_name);
-        });
-
-        (void)action_map.addAction(tr("Load file directory"), [this]() {
-            auto dir_name = QFileDialog::getExistingDirectory(this,
-                                                              tr("Select a directory"),
-                                                              AppSettings::getMyMusicFolderPath());
-            append(dir_name);
-        });
-
-        action_map.addSeparator();
+        ActionMap<AlbumView, std::function<void()>> action_map(this);        
 
         auto removeAlbum = [=]() {
             auto count = model()->rowCount();
@@ -477,6 +443,30 @@ AlbumView::AlbumView(QWidget* parent)
             action_map.addAction(tr("Copy album"));
             action_map.addAction(tr("Copy artist"));
         }
+
+        action_map.addSeparator();
+
+        (void)action_map.addAction(tr("Load local file"), [this]() {
+            xamp::metadata::TaglibMetadataReader reader;
+            QString exts(Q_UTF8("("));
+            for (auto file_ext : reader.GetSupportFileExtensions()) {
+                exts += Q_UTF8("*") + QString::fromStdString(file_ext);
+                exts += Q_UTF8(" ");
+            }
+            exts += Q_UTF8(")");
+            auto file_name = QFileDialog::getOpenFileName(this,
+                tr("Open file"),
+                AppSettings::getMyMusicFolderPath(),
+                tr("Music Files ") + exts);
+            append(file_name);
+            });
+
+        (void)action_map.addAction(tr("Load file directory"), [this]() {
+            auto dir_name = QFileDialog::getExistingDirectory(this,
+                tr("Select a directory"),
+                AppSettings::getMyMusicFolderPath());
+            append(dir_name);
+            });
 
         action_map.addAction(tr("Flush database"), [=]() {
 

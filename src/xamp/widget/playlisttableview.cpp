@@ -388,21 +388,26 @@ void PlayListTableView::removeItem(const QModelIndex& index) {
 void PlayListTableView::reloadSelectMetadata() {
     xamp::metadata::TaglibMetadataReader reader;
     const auto rows = selectItemIndex();
+
     for (const auto &select_item : rows) {
         auto &entity = item(select_item.second);
         auto album_id = entity.album_id;
         auto music_id = entity.music_id;
         auto cover_id = entity.cover_id;
         auto artist_id = entity.artist_id;
+
         const xamp::metadata::Path path(entity.file_path.toStdWString());
         auto metadata = reader.Extract(path);
+
         entity = fromMetadata(metadata);
         entity.album_id = album_id;
         entity.music_id = music_id;
         entity.cover_id = cover_id;
         entity.artist_id = artist_id;
+
         Database::instance().addOrUpdateMusic(metadata, -1);
     }
+
     proxy_model_.dataChanged(QModelIndex(), QModelIndex());
 }
 
