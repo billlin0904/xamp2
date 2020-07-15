@@ -46,6 +46,10 @@ void loadOrDefaultSoxrSetting() {
 }
 
 static int excute(int argc, char* argv[]) {
+    ::qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
+    QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+    QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+
     StackTrace::RegisterAbortHandler();
 
     Logger::Instance()
@@ -75,10 +79,7 @@ static int excute(int argc, char* argv[]) {
         "libchromaprint.dylib",
         "libbass.dylib"
         #endif
-    };
-
-    QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-    QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+    };    
 
 #ifdef Q_OS_MAC
     qSetMessagePattern(Q_UTF8("%{message}"));
