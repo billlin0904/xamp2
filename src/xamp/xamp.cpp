@@ -1,7 +1,3 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-
 #include <QDebug>
 #include <QToolTip>
 #include <QMenu>
@@ -40,14 +36,28 @@
 #include "thememanager.h"
 #include "xamp.h"
 
-static QString formatAudioFormat(const AudioPlayer* player, const QString& file_ext) {
+static QString samplerate2String(AudioFormat format) {
+    auto precision = 1;
+    auto is_mhz_samplerate = false;
+    if (format.GetSampleRate() / 1000 > 1000) {
+        is_mhz_samplerate = true;
+    }
+    else {
+        precision = format.GetSampleRate() % 1000 == 0 ? 0 : 1;
+    }
+
+    return (is_mhz_samplerate ? QString::number(format.GetSampleRate() / double(1000000), 'f', 2) + Q_UTF8("MHz/")
+        : QString::number(format.GetSampleRate() / double(1000), 'f', precision) + Q_UTF8("kHz/"));
+}
+
+static QString format2String(const AudioPlayer* player, const QString& file_ext) {
     auto format = player->GetStreamFormat();
 
     auto ext = file_ext;
     ext = ext.remove(Q_UTF8(".")).toUpper();
-    auto is_mhz_samplerate = false;
-    auto precision = 1;
 
+    auto precision = 1;
+    auto is_mhz_samplerate = false;
     if (format.GetSampleRate() / 1000 > 1000) {
         is_mhz_samplerate = true;
     }
@@ -79,11 +89,19 @@ static QString formatAudioFormat(const AudioPlayer* player, const QString& file_
         break;
     }
 
+    QString output_format_str;
+    auto output_format = player->GetOutputFormat();
+    if (format.GetFormat() != DataFormat::FORMAT_DSD && output_format != format) {
+        output_format_str = samplerate2String(output_format) 
+            + Q_UTF8("")
+            + QString::number(output_format.GetSampleRate() / format.GetSampleRate())
+            + Q_UTF8("X/");
+    }
+
     return ext
            + Q_UTF8(" | ")
            + dsd_speed_format
-           + (is_mhz_samplerate ? QString::number(format.GetSampleRate() / double(1000000), 'f', 2) + Q_UTF8("MHz/")
-                                : QString::number(format.GetSampleRate() / double(1000), 'f', precision) + Q_UTF8("kHz/"))
+           + samplerate2String(format) + output_format_str
            + QString::number(bits) + Q_UTF8("bit")
            + Q_UTF8(" | ") + dsd_mode;
 }
@@ -135,14 +153,6 @@ void Xamp::setNightStyle() {
 void Xamp::setDefaultStyle() {
     ThemeManager::instance().setDefaultStyle(ui);
     applyTheme(ThemeManager::instance().getBackgroundColor());
-    /*
-    setStyleSheet(Q_UTF8(R"(    
-                         QFrame#playingFrame {
-                         background-color: transparent;
-                         border: none;
-                         }
-                         )"));
-    */
 }
 
 void Xamp::registerMetaType() {
@@ -405,7 +415,7 @@ void Xamp::initialController() {
     });
 
     (void)QObject::connect(ui.repeatButton, &QToolButton::pressed, [this]() {
-        order_ = static_cast<PlayerOrder>((order_ + 1) % PlayerOrder::_MAX_PLAYER_ORDER_);
+        order_ = static_cast<PlayerOrder>((static_cast<int32_t>(order_) + 1) % static_cast<int32_t>(PlayerOrder::_MAX_PLAYER_ORDER_));
         setPlayerOrder();
     });
 
@@ -439,12 +449,9 @@ void Xamp::initialController() {
     (void)QObject::connect(ui.eqButton, &QToolButton::pressed, [this]() {
         EQDialog eqdialog;
         eqdialog.setFont(font());
-        eqdialog.exec();
-        if (eqdialog.eqName.isEmpty()) {
-            eqsettings_.clear();
-            return;
-        }
-        eqsettings_ = eqdialog.EQSettings;
+        if (eqdialog.exec() == QDialog::Accepted) {
+            eqsettings_ = eqdialog.EQSettings;
+        }        
     });
 
     (void)QObject::connect(ui.artistLabel, &ClickableLabel::clicked, [this]() {
@@ -832,7 +839,7 @@ void Xamp::playMusic(const MusicEntity& item) {
 
     ui.seekSlider->setRange(0, int32_t(player_->GetDuration() * 1000));
     ui.endPosLabel->setText(Time::msToString(player_->GetDuration()));
-    playlist_page_->format()->setText(formatAudioFormat(player_.get(), item.file_ext));
+    playlist_page_->format()->setText(format2String(player_.get(), item.file_ext));
 
     if (auto cover = PixmapCache::instance().find(item.cover_id)) {
         setCover(*cover.value());

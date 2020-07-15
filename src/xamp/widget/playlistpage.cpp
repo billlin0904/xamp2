@@ -3,6 +3,8 @@
 #include <QSpacerItem>
 #include <QLabel>
 
+#include "thememanager.h"
+
 #include <widget/str_utilts.h>
 #include <widget/playlisttableview.h>
 #include <widget/playlistpage.h>

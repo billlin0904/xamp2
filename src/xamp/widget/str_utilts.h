@@ -27,12 +27,3 @@ inline QLatin1String fromStdStringView(std::string_view const &s) {
     return QLatin1String{ s.data(), static_cast<int>(s.length()) };
 }
 
-inline QString colorToString(QColor color) noexcept {
-    return QString().sprintf("rgba(%d,%d,%d,%d)", 
-        color.red(), color.green(), color.blue(), color.alpha());
-}
-
-
-inline QString backgroundColorToString(QColor color) {
-    return Q_UTF8("background-color: ") + colorToString(color) + Q_UTF8(";");
-}

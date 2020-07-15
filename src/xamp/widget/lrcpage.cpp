@@ -1,6 +1,8 @@
 #include <QLabel>
 #include <QHBoxLayout>
 
+#include "thememanager.h"
+
 #include <widget/vinylwidget.h>
 #include <widget/scrolllabel.h>
 #include <widget/lyricsshowwideget.h>

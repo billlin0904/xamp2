@@ -11,6 +11,7 @@
 #include <QFileDialog>
 #include <QtConcurrent>
 #include <QFuture>
+#include <QLabel>
 
 #include <base/logger.h>
 
@@ -18,6 +19,7 @@
 #include <widget/database.h>
 #include <widget/playlisttableview.h>
 #include <widget/actionmap.h>
+#include <widget/clickablelabel.h>
 
 #if defined(Q_OS_WIN)
 #include <widget/win32/fluentstyle.h>
@@ -525,22 +527,22 @@ void AlbumView::setFilterByArtistId(int32_t artist_id) {
 void AlbumView::setFilterByArtistFirstChar(const QString &first_char) {
     QString s(
     Q_UTF8(R"(
-    SELECT
-        album,
-        albums.coverId,
-        artist,
-        albums.albumId,
-        artists.artistId,
-        artists.coverId
-    FROM
-        albumArtist
-    LEFT JOIN
-        albums ON albums.albumId = albumArtist.albumId
-    LEFT JOIN
-        artists ON artists.artistId = albumArtist.artistId
-    WHERE
-        ( artists.firstChar = '%1' )
-    )")
+SELECT
+    album,
+    albums.coverId,
+    artist,
+    albums.albumId,
+    artists.artistId,
+    artists.coverId
+FROM
+    albumArtist
+LEFT JOIN
+    albums ON albums.albumId = albumArtist.albumId
+LEFT JOIN
+    artists ON artists.artistId = albumArtist.artistId
+WHERE
+    ( artists.firstChar = '%1' )
+)")
     );
 
     model_.setQuery(s.arg(first_char));

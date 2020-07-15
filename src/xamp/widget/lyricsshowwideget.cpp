@@ -20,10 +20,7 @@ LyricsShowWideget::LyricsShowWideget(QWidget* parent)
 void LyricsShowWideget::initial() {
     lrc_font_ = font();
 
-	if (!AppSettings::contains(kLyricsFontSize)) {
-		lrc_font_.setPointSize(12);
-		AppSettings::setValue(kLyricsFontSize, 12);
-	}
+	lrc_font_.setPointSize(AppSettings::getAsInt(kLyricsFontSize));
 
 	setDefaultLrc();
 

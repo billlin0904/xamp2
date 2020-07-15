@@ -1,6 +1,9 @@
 #include <QVBoxLayout>
+#include <QLabel>
 
 #include "thememanager.h"
+
+#include <widget/albumview.h>
 #include <widget/image_utiltis.h>
 #include <widget/pixmapcache.h>
 #include <widget/artistinfopage.h>

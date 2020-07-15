@@ -7,7 +7,6 @@
 
 #include <QListView>
 #include <QSqlQueryModel>
-#include <QLabel>
 #include <QSqlRelationalTableModel>
 #include <QStyledItemDelegate>
 #include <QTableView>
@@ -15,10 +14,11 @@
 #include <base/metadata.h>
 
 #include <widget/musicentity.h>
-#include <widget/clickablelabel.h>
-#include <widget/str_utilts.h>
 #include <widget/playlistentity.h>
 
+class QLabel;
+class ClickableLabel;
+class AlbumViewPage;
 class AlbumPlayListTableView;
 
 class AlbumViewStyledDelegate : public QStyledItemDelegate {

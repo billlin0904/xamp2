@@ -5,9 +5,10 @@
 
 #pragma once
 
-enum PlayerOrder {
+#include <base/enum.h>
+
+MAKE_ENUM(PlayerOrder,
     PLAYER_ORDER_REPEAT_ONCE,
     PLAYER_ORDER_REPEAT_ONE,
     PLAYER_ORDER_SHUFFLE_ALL,
-    _MAX_PLAYER_ORDER_,
-    };
+    _MAX_PLAYER_ORDER_)    

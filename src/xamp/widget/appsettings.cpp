@@ -88,10 +88,11 @@ void AppSettings::setOrDefaultConfig() {
     setDefaultValue(kAppSettingHeight, 500);
     setDefaultValue(kAppSettingVolume, 50);
     setDefaultValue(kAppSettingNightMode, false);
-    setDefaultValue(kAppSettingOrder, PlayerOrder::PLAYER_ORDER_REPEAT_ONCE);
+    setDefaultValue(kAppSettingOrder, static_cast<int32_t>(PlayerOrder::PLAYER_ORDER_REPEAT_ONCE));
     setDefaultValue(kAppSettingBackgroundColor, QColor("#01121212"));
     setDefaultValue(kAppSettingEnableBlur, true);
 	setDefaultValue(kAppSettingPreventSleep, true);
+    setDefaultValue(kLyricsFontSize, 12);
 }
 
 xamp::base::ID AppSettings::getID(const QString& key) {

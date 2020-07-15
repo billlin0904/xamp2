@@ -14,9 +14,9 @@
 using namespace rapidjson;
 using namespace rapidxml;
 
-static const QLatin1String ACOUSTID_KEY{ "czKxnkyO" };
-static const QLatin1String ACOUSTID_HOST { "https://api.acoustid.org/v2/lookup" };
-static const QLatin1String MUSICBRAINZ_HOST{ "http://musicbrainz.org/ws/2/" };
+static constexpr ConstLatin1String kAcoustidKey{ "czKxnkyO" };
+static constexpr ConstLatin1String kAcoustidHost { "https://api.acoustid.org/v2/lookup" };
+static constexpr ConstLatin1String kMusicBrainzHost{ "http://musicbrainz.org/ws/2/" };
 
 template <typename T>
 static QString toQString(T itr) {
@@ -83,8 +83,8 @@ void MusicBrainzClient::searchBy(const FingerprintInfo& fingerprint) {
         }
     };
 
-    http::HttpClient(ACOUSTID_HOST)
-        .param(Q_UTF8("client"), ACOUSTID_KEY)
+    http::HttpClient(kAcoustidHost)
+        .param(Q_UTF8("client"), kAcoustidKey)
         .param(Q_UTF8("duration"), QString::number(fingerprint.duration))
         .param(Q_UTF8("meta"), Q_UTF8("recordings+releasegroups+compress"))
         .param(Q_UTF8("fingerprint"), fingerprint.fingerprint)
@@ -137,7 +137,7 @@ void MusicBrainzClient::lookupArtist(int32_t artist_id, const QString& artist_mb
         }
     };
 
-    http::HttpClient(MUSICBRAINZ_HOST + Q_UTF8("artist/") + artist_mbid)
+    http::HttpClient(kMusicBrainzHost + Q_UTF8("artist/") + artist_mbid)
         .param(Q_UTF8("inc"), Q_UTF8("url-rels"))
         .success(handler)
         .get();

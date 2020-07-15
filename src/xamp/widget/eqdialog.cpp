@@ -13,18 +13,18 @@ EQDialog::EQDialog(QWidget *parent)
     , ui(new Ui::EQDialog) {
     ui->setupUi(this);
 
-        bands_ = QList<EQBandUI>{
-            { ui->band1Slider, ui->band1Edit },
-            { ui->band2Slider, ui->band2Edit },
-            { ui->band3Slider, ui->band3Edit },
-            { ui->band4Slider, ui->band4Edit },
-            { ui->band5Slider, ui->band5Edit },
-            { ui->band6Slider, ui->band6Edit },
-            { ui->band7Slider, ui->band7Edit },
-            { ui->band8Slider, ui->band8Edit },
-            { ui->band9Slider, ui->band9Edit },
-            { ui->band10Slider, ui->band10Edit },
-            };
+   bands_ = QList<EQBandUI>{
+       { ui->band1Slider, ui->band1Edit },
+       { ui->band2Slider, ui->band2Edit },
+       { ui->band3Slider, ui->band3Edit },
+       { ui->band4Slider, ui->band4Edit },
+       { ui->band5Slider, ui->band5Edit },
+       { ui->band6Slider, ui->band6Edit },
+       { ui->band7Slider, ui->band7Edit },
+       { ui->band8Slider, ui->band8Edit },
+       { ui->band9Slider, ui->band9Edit },
+       { ui->band10Slider, ui->band10Edit },
+   };
 
     EQSettings.push_back({ 0, 0 });
     EQSettings.push_back({ 0, 0 });
@@ -54,24 +54,20 @@ EQDialog::EQDialog(QWidget *parent)
     (void)QObject::connect(ui->presetsComboBox,
                             static_cast<void (QComboBox::*)(const QString &)>(&QComboBox::activated),
                             [this](auto EQName) {
-                                eqName = EQName;
                                 updateBar(EQName);
                             });
 
     (void)QObject::connect(ui->enableEQCheckBox, &QCheckBox::stateChanged, [this](auto state) {
         if (state == Qt::Checked) {
-            eqName = ui->presetsComboBox->currentText();
             AppSettings::setValue(kEnableEQ, true);
-            updateBar(eqName);
+            updateBar(ui->presetsComboBox->currentText());
         } else {
-            eqName = Qt::EmptyStr;
             AppSettings::setValue(kEnableEQ, false);
         }
     });
 
     if (AppSettings::getEQPreset().size() == 1) {
         updateBar(AppSettings::getEQPreset().firstKey());
-        eqName = AppSettings::getEQPreset().firstKey();
     }    
 
     if (!AppSettings::getValueAsString(kEQName).isEmpty()) {

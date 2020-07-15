@@ -54,7 +54,8 @@ bool SingleInstanceApplication::attach(const QStringList &args) {
         return false;
     }
 #if defined(Q_OS_WIN)
-    mutex_.reset(::CreateMutexW(nullptr, true, reinterpret_cast<LPCWSTR>(serverName.utf16())));
+    const auto server_name = serverName.toStdWString();
+    mutex_.reset(::CreateMutexW(nullptr, true, server_name.c_str()));
     if (!mutex_) {
         XAMP_LOG_DEBUG("CreateMutexW return failure! {}",
             xamp::base::GetPlatformErrorMessage(::GetLastError()));

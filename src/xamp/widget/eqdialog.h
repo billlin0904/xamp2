@@ -25,7 +25,6 @@ public:
     ~EQDialog();
 
     QList<AppEQSettings> EQSettings;
-    QString eqName;
 
 private:
     struct EQBandUI {

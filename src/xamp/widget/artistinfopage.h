@@ -6,9 +6,9 @@
 #pragma once
 
 #include <QFrame>
-#include <QLabel>
 
-#include <widget/albumview.h>
+class AlbumView;
+class QLabel;
 
 class ArtistInfoPage : public QFrame {
 	Q_OBJECT

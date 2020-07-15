@@ -2,6 +2,8 @@
 #include <QPushButton>
 #include <QGridLayout>
 
+#include "thememanager.h"
+
 #include <widget/str_utilts.h>
 #include <widget/selectcolorwidget.h>
 
