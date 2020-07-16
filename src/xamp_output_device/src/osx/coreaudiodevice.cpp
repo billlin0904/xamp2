@@ -115,8 +115,9 @@ private:
     AudioObjectPropertyAddress property_;
 };
 
-CoreAudioDevice::CoreAudioDevice(AudioDeviceID device_id)
+CoreAudioDevice::CoreAudioDevice(AudioDeviceID device_id, bool is_hog_mode)
     : is_running_(false)
+    , is_hog_mode_(is_hog_mode)
     , device_id_(device_id)
     , ioproc_id_(nullptr)
     , buffer_size_(0)
@@ -127,6 +128,10 @@ CoreAudioDevice::CoreAudioDevice(AudioDeviceID device_id)
 }
 
 CoreAudioDevice::~CoreAudioDevice() {
+    if (is_hog_mode_) {
+        ReleaseHogMode(device_id_);
+    }
+
     try {
         StopStream();
         CloseStream();
@@ -208,8 +213,10 @@ void CoreAudioDevice::OpenStream(AudioFormat const &output_format) {
                                                       &ioproc_id_));
     format_ = output_format;
 
-    ReleaseHogMode(device_id_);
-    SetHogMode(device_id_);
+    if (is_hog_mode_) {
+        ReleaseHogMode(device_id_);
+        SetHogMode(device_id_);
+    }
 }
 
 void CoreAudioDevice::SetAudioCallback(AudioCallback *callback) noexcept {

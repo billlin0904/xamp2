@@ -24,7 +24,7 @@ using namespace base;
 
 class XAMP_OUTPUT_DEVICE_API CoreAudioDevice final : public Device {
 public:
-    explicit CoreAudioDevice(AudioDeviceID device_id);
+    CoreAudioDevice(AudioDeviceID device_id, bool is_hog_mode);
 
     virtual ~CoreAudioDevice() override;
 
@@ -75,6 +75,7 @@ private:
     void AudioDeviceIOProc(AudioBufferList* output_data);
 
     bool is_running_;
+    bool is_hog_mode_;
     AudioDeviceID device_id_;
     AudioDeviceIOProcID ioproc_id_;
     uint32_t buffer_size_;
