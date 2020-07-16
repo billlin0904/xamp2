@@ -45,6 +45,29 @@ void loadOrDefaultSoxrSetting() {
     JsonSettings::save();
 }
 
+static void loadSettings() {
+    AppSettings::setOrDefaultConfig();
+    JsonSettings::loadJsonFile(Q_UTF8("soxr.json"));
+    loadOrDefaultSoxrSetting();
+
+    XAMP_LOG_DEBUG("setOrDefaultConfig success.");
+
+    if (AppSettings::getValueAsString(kAppSettingLang).isEmpty()) {
+        LocaleLanguage l;
+        XAMP_LOG_DEBUG("Load locale lang file: {}.", l.getIsoCode().toStdString());
+        AppSettings::loadLanguage(l.getIsoCode());
+        AppSettings::setValue(kAppSettingLang, l.getIsoCode());
+    }
+    else {
+        AppSettings::loadLanguage(AppSettings::getValueAsString(kAppSettingLang));
+        XAMP_LOG_DEBUG("Load locale lang file: {}.",
+            AppSettings::getValueAsString(kAppSettingLang).toStdString());
+    }
+
+    DeviceManager::PreventSleep(AppSettings::getValueAsBool(kAppSettingPreventSleep));
+    XAMP_LOG_DEBUG("PreventSleep success.");
+}
+
 static int excute(int argc, char* argv[]) {
     ::qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
     QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
@@ -128,26 +151,7 @@ static int excute(int argc, char* argv[]) {
 
     XAMP_LOG_DEBUG("Database init success.");
 
-    AppSettings::setOrDefaultConfig();
-    JsonSettings::loadJsonFile(Q_UTF8("soxr.json"));
-    loadOrDefaultSoxrSetting();
-
-    XAMP_LOG_DEBUG("setOrDefaultConfig success.");
-
-    if (AppSettings::getValueAsString(kAppSettingLang).isEmpty()) {
-        LocaleLanguage l;
-        XAMP_LOG_DEBUG("Load locale lang file: {}.", l.getIsoCode().toStdString());
-        AppSettings::loadLanguage(l.getIsoCode());
-        AppSettings::setValue(kAppSettingLang, l.getIsoCode());
-    }
-    else {
-        AppSettings::loadLanguage(AppSettings::getValueAsString(kAppSettingLang));
-        XAMP_LOG_DEBUG("Load locale lang file: {}.",
-                       AppSettings::getValueAsString(kAppSettingLang).toStdString());
-    }
-
-    DeviceManager::PreventSleep(AppSettings::getValueAsBool(kAppSettingPreventSleep));
-    XAMP_LOG_DEBUG("PreventSleep success.");
+    loadSettings();    
 
     app.setStyle(new DarkStyle());
 

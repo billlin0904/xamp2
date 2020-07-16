@@ -84,7 +84,8 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
 
     if (auto cache_small_cover = PixmapCache::instance().find(cover_id)) {
         album_cover = cache_small_cover.value();
-        painter->drawPixmap(cover_rect, *album_cover);
+        painter->drawPixmap(cover_rect, Pixmap::blurImage(*album_cover));
+        //painter->drawPixmap(cover_rect, *album_cover);
     }
     else {
         painter->drawPixmap(cover_rect, *album_cover);

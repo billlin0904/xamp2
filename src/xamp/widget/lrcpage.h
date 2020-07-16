@@ -34,7 +34,6 @@ private:
 	void initial();
 
 	LyricsShowWideget* lyrics_widget_;
-    //VinylWidget* vinyl_;
     QLabel* cover_label_;
 	ScrollLabel* album_;
 	ScrollLabel* artist_;

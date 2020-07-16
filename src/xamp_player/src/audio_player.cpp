@@ -205,6 +205,7 @@ void AudioPlayer::Play() {
     if (!device_) {
         return;
     }
+
     is_playing_ = true;
     if (device_->IsStreamOpen()) {
         if (!device_->IsStreamRunning()) {
@@ -221,6 +222,7 @@ void AudioPlayer::Pause() {
     if (!device_) {
         return;
     }
+
     if (!is_paused_) {
         XAMP_LOG_DEBUG("Player pasue.");
         if (device_->IsStreamOpen()) {
@@ -235,6 +237,7 @@ void AudioPlayer::Resume() {
     if (!device_) {
         return;
     }
+
     XAMP_LOG_DEBUG("Player resume.");
     if (device_->IsStreamOpen()) {
         SetState(PlayerState::PLAYER_STATE_RESUME);

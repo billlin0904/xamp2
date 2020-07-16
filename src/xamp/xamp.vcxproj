@@ -158,6 +158,7 @@
     <ClCompile Include="widget\filetag.cpp" />
     <ClCompile Include="widget\framelesswindow.cpp" />
     <ClCompile Include="widget\http.cpp" />
+    <ClCompile Include="widget\image_utiltis.cpp" />
     <ClCompile Include="widget\jsonsettings.cpp" />
     <ClCompile Include="widget\localelanguage.cpp" />
     <ClCompile Include="widget\lrcpage.cpp" />
