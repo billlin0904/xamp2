@@ -10,6 +10,9 @@
 
 #include <player/audio_player.h>
 #include <player/soxresampler.h>
+
+#include <output_device/devicefactory.h>
+
 #include <widget/qdebugsink.h>
 
 #include <widget/appsettings.h>

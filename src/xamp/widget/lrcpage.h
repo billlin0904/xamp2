@@ -11,6 +11,7 @@ class QLabel;
 class VinylWidget;
 class ScrollLabel;
 class LyricsShowWideget;
+class QPaintEvent;
 
 class LrcPage : public QFrame {
 	Q_OBJECT

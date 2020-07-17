@@ -240,7 +240,7 @@ LONG WINAPI StackTrace::AbortHandler(EXCEPTION_POINTERS* info) {
 }
 #else
 void StackTrace::AbortHandler(int32_t signum) {
-    const char* name = nullptr;
+    const char* name = "";
 
     switch (signum) {
     case SIGABRT:

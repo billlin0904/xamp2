@@ -8,13 +8,20 @@
 #include <QShortcut>
 #include <QScreen>
 #include <QProgressDialog>
+#include <QMainWindow>
+#include <QWidgetAction>
 
 #include <base/scopeguard.h>
-
 #include <base/str_utilts.h>
+
+#include <output_device/devicefactory.h>
+
 #include <player/chromaprinthelper.h>
 #include <player/soxresampler.h>
 
+#include <widget/albumview.h>
+#include <widget/lyricsshowwideget.h>
+#include <widget/playlisttableview.h>
 #include <widget/albumartistpage.h>
 #include <widget/lrcpage.h>
 #include <widget/albumview.h>
@@ -29,6 +36,8 @@
 #include <widget/selectcolorwidget.h>
 #include <widget/artistinfopage.h>
 #include <widget/jsonsettings.h>
+#include <widget/eqdialog.h>
+#include <widget/playbackhistorypage.h>
 #include <widget/eqdialog.h>
 
 #include "aboutdialog.h"
@@ -92,10 +101,7 @@ static QString format2String(const AudioPlayer* player, const QString& file_ext)
     QString output_format_str;
     auto output_format = player->GetOutputFormat();
     if (format.GetFormat() != DataFormat::FORMAT_DSD && output_format != format) {
-        output_format_str = samplerate2String(output_format) 
-            + Q_UTF8("")
-            + QString::number(output_format.GetSampleRate() / format.GetSampleRate())
-            + Q_UTF8("X/");
+        output_format_str = samplerate2String(output_format);
     }
 
     return ext
@@ -129,6 +135,15 @@ void Xamp::initial() {
     setCover(ThemeManager::instance().pixmap().unknownCover());
     DeviceManager::Instance().RegisterDeviceListener(player_);
     setDefaultStyle();
+}
+
+void Xamp::paintEvent(QPaintEvent* event) {
+    QPainter painter(this);
+    
+    auto cover = lrc_page_->cover()->pixmap();
+    if (cover != nullptr) {
+    	painter.drawPixmap(rect(), Pixmap::blurImage(*cover, 12));
+    }
 }
 
 void Xamp::closeEvent(QCloseEvent*) {
@@ -864,6 +879,8 @@ void Xamp::playMusic(const MusicEntity& item) {
     lrc_page_->title()->setText(item.title);
     lrc_page_->album()->setText(item.album);
     lrc_page_->artist()->setText(item.artist);
+
+    update();
 }
 
 void Xamp::play(const PlayListEntity& item) {  
@@ -1084,9 +1101,10 @@ void Xamp::addItem(const QString& file_name) {
         auto adapter = new MetadataExtractAdapter();
 
         (void)QObject::connect(adapter,
-                                &MetadataExtractAdapter::readCompleted,
-                                this,
-                                &Xamp::processMeatadata);
+            &MetadataExtractAdapter::readCompleted,
+            this,
+            &Xamp::processMeatadata,
+            Qt::QueuedConnection);
         
         MetadataExtractAdapter::readMetadataAsync(adapter, file_name);
     }

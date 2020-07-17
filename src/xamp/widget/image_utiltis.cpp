@@ -7,11 +7,19 @@
 
 namespace Pixmap {
 
+class Stackblur {
+public:
+	Stackblur(QImage& image, uint32_t radius);
+
+private:
+	void blur(uint8_t* src, uint32_t width, uint32_t height, uint32_t radius, uint32_t cores);
+};
+
 static void stackblurJob(uint8_t* src,
 	uint32_t w,
 	uint32_t h,
 	uint32_t radius,
-	int32_t cores,
+	uint32_t cores,
 	int32_t core,
 	int32_t step,
 	uint8_t *stack) noexcept {
@@ -129,7 +137,6 @@ static void stackblurJob(uint8_t* src,
 				sum_in_a += src_ptr[3];
 			}
 
-
 			sp = radius;
 			xp = radius;
 			if (xp > wm) xp = wm;
@@ -189,10 +196,7 @@ static void stackblurJob(uint8_t* src,
 				sum_in_g -= stack_ptr[1];
 				sum_in_b -= stack_ptr[2];
 				sum_in_a -= stack_ptr[3];
-
-
 			}
-
 		}
 	}
 
@@ -312,7 +316,7 @@ void Stackblur::blur(uint8_t* src,
 	uint32_t width,
 	uint32_t height,
 	uint32_t radius,
-	int32_t cores) {
+	uint32_t cores) {
 	if (radius > 254) {
 		return;
 	}
@@ -329,21 +333,39 @@ void Stackblur::blur(uint8_t* src,
 		stackblurJob(src, width, height, radius, 1, 0, 2, stack.get());
 	}
 	else {
-		QList<QFuture<void>> tasks;
-		for (auto i = 0; i < cores; i++) {
-			tasks.append(QtConcurrent::run([i, div, &stack, src, width, height, radius, cores]() {
-				stackblurJob(src, width, height, radius, cores, i, 1, stack.get() + div * 4 * i);
-				stackblurJob(src, width, height, radius, cores, i, 2, stack.get() + div * 4 * i);
-				}));
-		}
-		for (auto& task : tasks) {
-			task.waitForFinished();
-		}
+		auto blurJob = [div, &stack, src, width, height, radius, cores](int step) {
+			QList<QFuture<void>> tasks;
+			tasks.reserve(cores);
+			for (auto i = 0; i < cores; i++) {
+				tasks.append(QtConcurrent::run([i, div, &stack, src, width, height, radius, cores, step]() {
+					stackblurJob(src, width, height, radius, cores, i, step, stack.get() + div * 4 * i);
+					}));
+			}
+			for (auto& task : tasks) {
+				task.waitForFinished();
+			}
+		};
+
+		blurJob(1);
+		blurJob(2);
 	}
 }
 
 Stackblur::Stackblur(QImage& image, uint32_t radius) {
-	blur(image.bits(), image.width(), image.height(), radius, 4);
+	blur(image.bits(), image.width(), image.height(), radius, std::thread::hardware_concurrency());
+}
+
+QPixmap resizeImage(const QPixmap& source, const QSize& size, bool is_aspect_ratio) {
+	return source.scaled(size,
+		is_aspect_ratio ? Qt::KeepAspectRatioByExpanding
+		: Qt::IgnoreAspectRatio,
+		Qt::SmoothTransformation);
+}
+
+QPixmap blurImage(const QPixmap& source, uint32_t radius) {
+	auto img = source.toImage();
+	Stackblur s(img, radius);
+	return QPixmap::fromImage(img);
 }
 
 }

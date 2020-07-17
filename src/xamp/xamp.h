@@ -5,28 +5,20 @@
 
 #pragma once
 
-#include <set>
-
-#include <QMainWindow>
-#include <QWidgetAction>
 #include <QStack>
 
-#include <output_device/devicefactory.h>
 #include <player/audio_player.h>
 
 #include <widget/discogsclient.h>
 #include <widget/appsettings.h>
 #include <widget/playerstateadapter.h>
 #include <widget/framelesswindow.h>
-#include <widget/playlisttableview.h>
-#include <widget/lyricsshowwideget.h>
 #include <widget/musicbrainzclient.h>
-#include <widget/playbackhistorypage.h>
-#include <widget/albumview.h>
+#include <widget/playlistentity.h>
 #include <widget/filesystemwatcher.h>
 #include <widget/localelanguage.h>
 #include <widget/playerorder.h>
-#include <widget/eqdialog.h>
+#include <widget/musicentity.h>
 
 #include "ui_xamp.h"
 
@@ -38,6 +30,8 @@ class AlbumView;
 class ArtistView;
 class AlbumArtistPage;
 class ArtistInfoPage;
+class PlaybackHistoryPage;
+class QWidgetAction;
 
 class Xamp final : public FramelessWindow {
 	Q_OBJECT
@@ -62,6 +56,8 @@ public slots:
 	void processMeatadata(const std::vector<xamp::base::Metadata>& medata);
 
 private:
+	void paintEvent(QPaintEvent* event) override;
+
     void initial();
 
 	void applyTheme(QColor color);
