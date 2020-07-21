@@ -56,8 +56,6 @@ public slots:
 	void processMeatadata(const std::vector<xamp::base::Metadata>& medata);
 
 private:
-	void paintEvent(QPaintEvent* event) override;
-
     void initial();
 
 	void applyTheme(QColor color);

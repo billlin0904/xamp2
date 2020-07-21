@@ -137,14 +137,14 @@ void Xamp::initial() {
     setDefaultStyle();
 }
 
-void Xamp::paintEvent(QPaintEvent* event) {
-    QPainter painter(this);
-    
-    auto cover = lrc_page_->cover()->pixmap();
-    if (cover != nullptr) {
-    	painter.drawPixmap(rect(), Pixmap::blurImage(*cover, 12));
-    }
-}
+//void Xamp::paintEvent(QPaintEvent* event) {
+//    QPainter painter(this);
+//    
+//    auto cover = lrc_page_->cover()->pixmap();
+//    if (cover != nullptr) {
+//    	painter.drawPixmap(rect(), Pixmap::blurImage(*cover, 12));
+//    }
+//}
 
 void Xamp::closeEvent(QCloseEvent*) {
     try {
@@ -1106,7 +1106,7 @@ void Xamp::addItem(const QString& file_name) {
             &Xamp::processMeatadata,
             Qt::QueuedConnection);
         
-        MetadataExtractAdapter::readMetadataAsync(adapter, file_name);
+        MetadataExtractAdapter::readMetadata(adapter, file_name);
     }
 }
 

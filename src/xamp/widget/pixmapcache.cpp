@@ -27,7 +27,7 @@ PixmapCache::PixmapCache()
 	cache_.SetMaxSize(16);
 }
 
-QPixmap PixmapCache::findExistCover(const QString& file_path) {
+QPixmap PixmapCache::findFileDirCover(const QString& file_path) {
     const auto dir = QFileInfo(file_path).path();
 
     for (QDirIterator itr(dir, PixmapCache::instance().cover_ext_,
@@ -55,8 +55,8 @@ void PixmapCache::clear() {
 	cache_.Clear();
 }
 
-QPixmap PixmapCache::findExistCover(const PlayListEntity& item) {
-    return findExistCover(item.file_path);
+QPixmap PixmapCache::findFileDirCover(const PlayListEntity& item) {
+    return findFileDirCover(item.file_path);
 }
 
 void PixmapCache::erase(const QString& tag_id) {

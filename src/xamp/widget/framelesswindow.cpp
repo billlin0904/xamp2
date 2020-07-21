@@ -21,27 +21,20 @@
 #include <widget/str_utilts.h>
 #include <widget/framelesswindow.h>
 
-FramelessWindow::FramelessWindow(QWidget* parent)
-    : QWidget(parent)
 #if defined(Q_OS_WIN)
-	, is_maximized_(false)
-    , border_width_(5)
-#endif
-{    
-    setAcceptDrops(true);
-    setMouseTracking(true);
-    installEventFilter(this);
-    initiaUIFont();
-#if defined(Q_OS_WIN)
-    setWindowFlags(Qt::FramelessWindowHint | Qt::WindowMaximizeButtonHint);
+static void setWinStyle(HWND hwnd) {
+    DWORD style = ::GetWindowLong(hwnd, GWL_STYLE);
+    ::SetWindowLong(hwnd, GWL_STYLE, style | WS_MAXIMIZEBOX | WS_THICKFRAME | WS_CAPTION);
+
     BOOL is_dwm_enable = false;
     ::DwmIsCompositionEnabled(&is_dwm_enable);
+
     if (is_dwm_enable) {
-        HWND hwnd = (HWND)winId();        
         DWMNCRENDERINGPOLICY ncrp = DWMNCRP_ENABLED;
         ::DwmSetWindowAttribute(hwnd, DWMWA_NCRENDERING_POLICY, &ncrp, sizeof(ncrp));
 
-        MARGINS borderless = { 1, 1, 1, 1 };
+        //MARGINS borderless = { 1, 1, 1, 1 };
+        MARGINS borderless = { 0, 0, 0, 1 };
         ::DwmExtendFrameIntoClientArea(hwnd, &borderless);
 
         DWM_PRESENT_PARAMETERS dpp;
@@ -53,15 +46,33 @@ FramelessWindow::FramelessWindow(QWidget* parent)
         dpp.cRefreshesPerFrame = 1;
         dpp.eSampling = DWM_SOURCE_FRAME_SAMPLING_POINT;
         ::DwmSetPresentParameters(hwnd, &dpp);
-    }
+    }    
+}
+#endif
+
+FramelessWindow::FramelessWindow(QWidget* parent)
+    : QWidget(parent)
+#if defined(Q_OS_WIN)
+	, is_maximized_(false)
+    , border_width_(5)
+#endif
+{    
+    setAcceptDrops(true);
+    setMouseTracking(true);
+    installEventFilter(this);
+    initiaUIFont();
+    QFont ui_font(Q_UTF8("UI"));
+    ui_font.setStyleStrategy(QFont::PreferAntialias);
+#if defined(Q_OS_WIN)    
+    setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
+    HWND hwnd = (HWND)this->winId();
+    setWinStyle(hwnd);
     ThemeManager::instance().enableBlur(this, AppSettings::getValueAsBool(kAppSettingEnableBlur));
     setupThumbnailToolBar();   
     setStyleSheet(Q_UTF8(R"(
         font-family: "UI";
 		background: transparent;        
-        border: none;  
-    )"));
-    QFont ui_font(Q_UTF8("UI"));
+    )"));    
     ui_font.setPointSizeF(9);
     qApp->setFont(ui_font);
 #else
@@ -69,7 +80,7 @@ FramelessWindow::FramelessWindow(QWidget* parent)
         font-family: "UI";
         border: none;
     )"));
-    QFont ui_font(Q_UTF8("UI"));
+    ui_font.setPointSizeF(9);
     qApp->setFont(ui_font);
 #endif    
 }
@@ -138,16 +149,6 @@ void FramelessWindow::initiaUIFont() {
     fallback_fonts.append(Q_UTF8("Helvetica"));
 #endif
     QFont::insertSubstitutions(Q_UTF8("UI"), fallback_fonts);
-
-    QFont default_font;
-    default_font.setFamily(Q_UTF8("UI"));
-    default_font.setStyleStrategy(QFont::PreferAntialias);
-#if defined(Q_OS_WIN)
-    default_font.setPointSize(10);
-#else
-    default_font.setPointSize(14);
-#endif
-    setFont(default_font);
 }
 
 void FramelessWindow::setTaskbarProgress(const double percent) {
@@ -318,8 +319,12 @@ bool FramelessWindow::nativeEvent(const QByteArray& event_type, void * message, 
         }
         break;
     case WM_NCCALCSIZE:
-        *result = 0;
-        return true;
+        // this kills the window frame and title bar we added with WS_THICKFRAME and WS_CAPTION
+        if (msg->wParam == TRUE) {
+            *result = 0;
+            return true;
+        }        
+        return false;
     default:
         break;
     }

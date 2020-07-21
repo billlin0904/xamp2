@@ -200,7 +200,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
     default_layout->setContentsMargins(10, 10, 10, 0);
 
     auto close_button = new QPushButton(tr("X"), this);
-    close_button->setFixedSize(QSize(12, 12));
+    close_button->setFixedSize(QSize(24, 24));
 
     auto hbox_layout = new QHBoxLayout();
     hbox_layout->setSpacing(0);
@@ -593,7 +593,7 @@ void AlbumView::append(const QString& file_name) {
                             this,
                             &AlbumView::processMeatadata);
 
-    MetadataExtractAdapter::readMetadataAsync(adapter, file_name);
+    MetadataExtractAdapter::readMetadata(adapter, file_name);
 }
 
 void AlbumView::processMeatadata(const std::vector<xamp::base::Metadata> &medata) {

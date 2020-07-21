@@ -23,42 +23,42 @@ public:
     }
 
     void clear() {
-        album_id.Clear();
-        artist_id.Clear();
-        cover_id.Clear();
+        album_id_cache.Clear();
+        artist_id_cache.Clear();
+        cover_id_cache.Clear();
     }
 
     std::tuple<int32_t, int32_t, QString> cache(const QString &album, const QString &artist);
 
-    LruCache<int32_t, QString> cover_id;
+    LruCache<int32_t, QString> cover_id_cache;
 private:
     IdCache() = default;
 
-    LruCache<QString, int32_t> album_id;
-    LruCache<QString, int32_t> artist_id;
+    LruCache<QString, int32_t> album_id_cache;
+    LruCache<QString, int32_t> artist_id_cache;
 };
 
 std::tuple<int32_t, int32_t, QString> IdCache::cache(const QString &album, const QString &artist) {
     int32_t artist_id = 0;
-    if (auto artist_id_op = this->artist_id.Find(artist)) {
+    if (auto artist_id_op = this->artist_id_cache.Find(artist)) {
         artist_id = *artist_id_op.value();
     }
     else {
         artist_id = Database::instance().addOrUpdateArtist(artist);
-        this->artist_id.Insert(artist, artist_id);
+        this->artist_id_cache.Insert(artist, artist_id);
     }
 
     int32_t album_id = 0;
-    if (auto album_id_op = this->album_id.Find(album)) {
+    if (auto album_id_op = this->album_id_cache.Find(album)) {
         album_id = *album_id_op.value();
     }
     else {
         album_id = Database::instance().addOrUpdateAlbum(album, artist_id);
-        this->album_id.Insert(album, album_id);
+        this->album_id_cache.Insert(album, album_id);
     }
 
     QString cover_id;
-    if (auto cover_id_op = this->cover_id.Find(album_id)) {
+    if (auto cover_id_op = this->cover_id_cache.Find(album_id)) {
         cover_id = *cover_id_op.value();
     }
 
@@ -77,13 +77,13 @@ static void addImageCache(int32_t album_id, const QString &album, const Metadata
             pixmap.loadFromData(buffer.data(),
                                 static_cast<uint32_t>(buffer.size()));
         } else {
-            pixmap = PixmapCache::instance().findExistCover(
+            pixmap = PixmapCache::instance().findFileDirCover(
                 QString::fromStdWString(metadata.file_path));
         }
         if (!pixmap.isNull()) {
             cover_id = PixmapCache::instance().add(pixmap);
             assert(!cover_id.isEmpty());
-            IdCache::instance().cover_id.Insert(album_id, cover_id);
+            IdCache::instance().cover_id_cache.Insert(album_id, cover_id);
             Database::instance().setAlbumCover(album_id, album, cover_id);
         }
     }
@@ -100,7 +100,7 @@ MetadataExtractAdapter::~MetadataExtractAdapter() {
     IdCache::instance().clear();
 }
 
-void MetadataExtractAdapter::readMetadataAsync(MetadataExtractAdapter *adapter, QString const & file_name) {
+void MetadataExtractAdapter::readMetadata(MetadataExtractAdapter *adapter, QString const & file_name) {
     auto extract_handler = [adapter](const auto& file_name) {
         const xamp::metadata::Path path(file_name.toStdWString());
         xamp::metadata::TaglibMetadataReader reader;
