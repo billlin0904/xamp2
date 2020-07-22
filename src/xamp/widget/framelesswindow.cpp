@@ -23,9 +23,6 @@
 
 #if defined(Q_OS_WIN)
 static void setWinStyle(HWND hwnd) {
-    DWORD style = ::GetWindowLong(hwnd, GWL_STYLE);
-    ::SetWindowLong(hwnd, GWL_STYLE, style | WS_MAXIMIZEBOX | WS_THICKFRAME | WS_CAPTION);
-
     BOOL is_dwm_enable = false;
     ::DwmIsCompositionEnabled(&is_dwm_enable);
 
@@ -33,12 +30,10 @@ static void setWinStyle(HWND hwnd) {
         DWMNCRENDERINGPOLICY ncrp = DWMNCRP_ENABLED;
         ::DwmSetWindowAttribute(hwnd, DWMWA_NCRENDERING_POLICY, &ncrp, sizeof(ncrp));
 
-        //MARGINS borderless = { 1, 1, 1, 1 };
         MARGINS borderless = { 0, 0, 0, 1 };
         ::DwmExtendFrameIntoClientArea(hwnd, &borderless);
 
-        DWM_PRESENT_PARAMETERS dpp;
-        memset(&dpp, 0, sizeof(DWM_PRESENT_PARAMETERS));
+        DWM_PRESENT_PARAMETERS dpp{ 0 };
         dpp.cbSize = sizeof(dpp);
         dpp.fQueue = TRUE;
         dpp.cBuffer = 2;
@@ -46,7 +41,10 @@ static void setWinStyle(HWND hwnd) {
         dpp.cRefreshesPerFrame = 1;
         dpp.eSampling = DWM_SOURCE_FRAME_SAMPLING_POINT;
         ::DwmSetPresentParameters(hwnd, &dpp);
-    }    
+    }
+
+    auto style = ::GetWindowLong(hwnd, GWL_STYLE);
+    ::SetWindowLong(hwnd, GWL_STYLE, style | WS_MAXIMIZEBOX | WS_THICKFRAME | WS_CAPTION);
 }
 #endif
 
@@ -77,8 +75,7 @@ FramelessWindow::FramelessWindow(QWidget* parent)
     qApp->setFont(ui_font);
 #else
     setStyleSheet(Q_UTF8(R"(
-        font-family: "UI";
-        border: none;
+        font-family: "UI";        
     )"));
     ui_font.setPointSizeF(9);
     qApp->setFont(ui_font);

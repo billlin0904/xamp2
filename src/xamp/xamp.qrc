@@ -53,5 +53,4 @@
         <file>Resource/Black/equalizer.png</file>
         <file>Resource/White/equalizer.png</file>
     </qresource>
-    <qresource prefix="/"/>
 </RCC>

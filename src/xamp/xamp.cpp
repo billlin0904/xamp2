@@ -183,10 +183,6 @@ void Xamp::initialUI() {
     registerMetaType();    
     ui.setupUi(this);
     watch_.addPath(AppSettings::getValueAsString(kAppSettingMusicFilePath));
-    setGeometry(QStyle::alignedRect(Qt::LeftToRight,
-                                    Qt::AlignCenter,
-                                    AppSettings::getSizeValue(kAppSettingWidth, kAppSettingHeight),
-                                    qApp->primaryScreen()->availableGeometry()));
     auto f = font();
     f.setPointSize(10);
     ui.titleLabel->setFont(f);

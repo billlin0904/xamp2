@@ -1,5 +1,7 @@
 #include <sstream>
 #include <QPainter>
+#include <QDropEvent>
+#include <QMimeData>
 
 #include <widget/settingnames.h>
 #include <widget/appsettings.h>
@@ -43,6 +45,8 @@ void LyricsShowWideget::initial() {
 			});
 		action_map.exec(pt);
 		});
+
+	setAcceptDrops(true);
 }
 
 void LyricsShowWideget::setDefaultLrc() {
@@ -137,6 +141,30 @@ void LyricsShowWideget::stop() {
 	real_current_text_.clear();
 	lyric_.Clear();
 	update();
+}
+
+void LyricsShowWideget::dragEnterEvent(QDragEnterEvent* event) {
+	event->acceptProposedAction();
+}
+
+void LyricsShowWideget::dragMoveEvent(QDragMoveEvent* event) {
+	event->acceptProposedAction();
+}
+
+void LyricsShowWideget::dragLeaveEvent(QDragLeaveEvent* event) {
+	event->accept();
+}
+
+void LyricsShowWideget::dropEvent(QDropEvent* event) {
+	const auto* mime_data = event->mimeData();
+
+	if (mime_data->hasUrls()) {
+		for (auto const& url : mime_data->urls()) {
+			loadLrcFile(url.toLocalFile());
+			break;
+		}
+		event->acceptProposedAction();
+	}
 }
 
 void LyricsShowWideget::loadLrcFile(const QString &file_path) {

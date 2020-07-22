@@ -20,8 +20,8 @@ namespace Qt {
     static constexpr ConstLatin1String EmptyStr{ "" };
 }
 
-#define Q_UTF8(str) QLatin1String{str}
-#define Q_STR(str) QStringLiteral(str)
+#define Q_UTF8(str) ConstLatin1String{str}
+#define Q_STR(str) QString(QLatin1String(str))
 
 inline QLatin1String fromStdStringView(std::string_view const &s) {
     return QLatin1String{ s.data(), static_cast<int>(s.length()) };

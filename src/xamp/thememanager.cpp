@@ -149,30 +149,36 @@ QIcon ThemeManager::playArrow() noexcept {
 }
 
 void ThemeManager::setShufflePlayorder(Ui::XampWindow& ui) {
-    ui.repeatButton->setStyleSheet(Q_STR(R"(
-                                              QToolButton#repeatButton {
-                                              image: url(:/xamp/Resource/%1/shuffle.png);
-                                              background: transparent;
-                                              }
-                                              )").arg(themeColorPath()));
+    auto style_sheet = Q_STR(R"(
+    QToolButton#repeatButton {
+    image: url(:/xamp/Resource/%1/shuffle.png);
+    border: none;
+    background: transparent;
+    }
+    )").arg(themeColorPath());
+    ui.repeatButton->setStyleSheet(style_sheet);
 }
 
 void ThemeManager::setRepeatOnePlayorder(Ui::XampWindow& ui) {
-    ui.repeatButton->setStyleSheet(Q_STR(R"(
-                                              QToolButton#repeatButton {
-                                              image: url(:/xamp/Resource/%1/repeat_one.png);
-                                              background: transparent;
-                                              }
-                                              )").arg(themeColorPath()));
+    auto style_sheet = Q_STR(R"(
+    QToolButton#repeatButton {
+    image: url(:/xamp/Resource/%1/repeat_one.png);
+    border: none;
+    background: transparent;
+    }
+    )").arg(themeColorPath());
+    ui.repeatButton->setStyleSheet(style_sheet);
 }
 
 void ThemeManager::setRepeatOncePlayorder(Ui::XampWindow& ui) {
-    ui.repeatButton->setStyleSheet(Q_STR(R"(
-                                              QToolButton#repeatButton {
-                                              image: url(:/xamp/Resource/%1/repeat.png);
-                                              background: transparent;
-                                              }
-                                              )").arg(themeColorPath()));
+    auto style_sheet = Q_STR(R"(
+    QToolButton#repeatButton {
+    image: url(:/xamp/Resource/%1/repeat.png);
+    border: none;
+    background: transparent;
+    }
+    )").arg(themeColorPath());
+    ui.repeatButton->setStyleSheet(style_sheet);
 }
 
 void ThemeManager::setThemeColor(Ui::XampWindow& ui) {

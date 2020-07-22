@@ -8,6 +8,8 @@
 #include "lrcparser.h"
 #include "wheelablewidget.h"
 
+class QDropEvent;
+
 class LyricsShowWideget : public WheelableWidget {
 	Q_OBJECT
 
@@ -48,6 +50,14 @@ public slots:
 	void addFullLrc(const QString& lrc, std::chrono::milliseconds duration);
 
 private:
+	void dragEnterEvent(QDragEnterEvent* event) override;
+
+	void dragMoveEvent(QDragMoveEvent* event) override;
+
+	void dragLeaveEvent(QDragLeaveEvent* event) override;
+
+	void dropEvent(QDropEvent* event) override;
+
 	void setDefaultLrc();
 
     void initial();

@@ -32,7 +32,6 @@ void ScrollLabel::updateText() {
 
 	singleTextWidth_ = fontMetrics().width(text_);
     scrollEnabled_ = singleTextWidth_ > (width() - leftMargin_);
-    //scrollEnabled_ = true;
 
 	if (scrollEnabled_) {
         static_text_.setText(text_ + seperator);
@@ -134,17 +133,19 @@ void ScrollLabel::resizeEvent(QResizeEvent*) {
 	}
 }
 
-void ScrollLabel::hideEvent(QHideEvent*) {
+void ScrollLabel::hideEvent(QHideEvent*) {	
+	/*
 	if (scrollEnabled_) {
 		scrollPos_ = 0;
 		timer_.stop();
 		wait_timer_.stop();
 	}
+	*/
 }
 
 void ScrollLabel::showEvent(QShowEvent*) {
-	if (scrollEnabled_) {
+	/*if (scrollEnabled_) {
 		wait_timer_.stop();
 		waiting_ = true;
-	}
+	}*/
 }
