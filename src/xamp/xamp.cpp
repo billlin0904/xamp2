@@ -426,7 +426,7 @@ void Xamp::initialController() {
     });
 
     (void)QObject::connect(ui.repeatButton, &QToolButton::pressed, [this]() {
-        order_ = static_cast<PlayerOrder>((static_cast<int32_t>(order_) + 1) % static_cast<int32_t>(PlayerOrder::_MAX_PLAYER_ORDER_));
+        order_ = GetNextOrder(order_);
         setPlayerOrder();
     });
 
@@ -491,6 +491,15 @@ void Xamp::initialController() {
         dialog.exec();
         watch_.addPath(dialog.music_file_path_);
     });
+    auto select_color_widget = new SelectColorWidget(this);
+    auto theme_color_menu = new QMenu(tr("Theme color"));
+    auto widget_action = new QWidgetAction(theme_color_menu);
+    widget_action->setDefaultWidget(select_color_widget);
+    (void)QObject::connect(select_color_widget, &SelectColorWidget::colorButtonClicked, [this](auto color) {        
+        applyTheme(color);
+    });
+    theme_color_menu->addAction(widget_action);
+    settings_menu->addMenu(theme_color_menu);
 #ifdef Q_OS_WIN
     auto enable_blur_material_mode_action = new QAction(tr("Enable blur"), this);
     enable_blur_material_mode_action->setCheckable(true);
@@ -503,18 +512,7 @@ void Xamp::initialController() {
         enable = !enable;
         enable_blur_material_mode_action->setChecked(enable);
         ThemeManager::instance().enableBlur(this, enable);
-    });
-#endif
-    auto select_color_widget = new SelectColorWidget(this);
-    auto theme_color_menu = new QMenu(tr("Theme color"));
-    auto widget_action = new QWidgetAction(theme_color_menu);
-    widget_action->setDefaultWidget(select_color_widget);
-    (void)QObject::connect(select_color_widget, &SelectColorWidget::colorButtonClicked, [this](auto color) {        
-        applyTheme(color);
-    });
-    theme_color_menu->addAction(widget_action);
-    settings_menu->addMenu(theme_color_menu);
-#ifdef Q_OS_WIN
+        });
     settings_menu->addAction(enable_blur_material_mode_action);
 #endif
     settings_menu->addSeparator();
@@ -760,9 +758,7 @@ void Xamp::resetSeekPosValue() {
 
 void Xamp::setupResampler() {
     if (AppSettings::getValue(kAppSettingResamplerEnable).toBool()) {
-        auto soxr_settings = QVariant::fromValue(
-                                 JsonSettings::getValue(AppSettings::getValueAsString(kAppSettingSoxrSettingName))
-                                 ).toMap();
+        auto soxr_settings = JsonSettings::getValue(AppSettings::getValueAsString(kAppSettingSoxrSettingName)).toMap();
 
         auto samplerate = soxr_settings[kSoxrResampleSampleRate].toUInt();
         auto quality = static_cast<SoxrQuality>(soxr_settings[kSoxrQuality].toInt());

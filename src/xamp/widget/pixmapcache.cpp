@@ -114,15 +114,17 @@ QString PixmapCache::add(const QPixmap& cover) const {
 	buffer.open(QIODevice::WriteOnly);
 
 	auto cover_size = ThemeManager::instance().getCacheCoverSize();
-	auto small_cover = Pixmap::resizeImage(cover, cover_size);
+
+	// Cover必須要忽略圖片比例, 不然從cache抓出來的時候無法正確縮放.
+	auto cache_cover = Pixmap::resizeImage(cover, cover_size, true);
 
 	QString tag_name;
-	if (small_cover.save(&buffer, "JPG")) {
+	if (cache_cover.save(&buffer, "JPG")) {
 		tag_name = FileTag::getTagId(array);
-		(void)small_cover.save(cache_path_ + tag_name + Q_UTF8(".cache"), "JPG", 100);
+		(void)cache_cover.save(cache_path_ + tag_name + Q_UTF8(".cache"), "JPG", 100);
 	}
 
-    cache_.Insert(tag_name, small_cover);
+    cache_.Insert(tag_name, cache_cover);
 	return tag_name;
 }
 

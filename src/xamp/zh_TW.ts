@@ -350,7 +350,7 @@
     <message>
         <location filename="widget/playlisttableview.cpp" line="130"/>
         <source>Load local file</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">載入本地檔案</translation>
     </message>
     <message>
         <location filename="widget/playlisttableview.cpp" line="139"/>
@@ -365,7 +365,7 @@
     <message>
         <location filename="widget/playlisttableview.cpp" line="148"/>
         <source>Load file directory</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">載入資料夾內檔案</translation>
     </message>
     <message>
         <location filename="widget/playlisttableview.cpp" line="150"/>
