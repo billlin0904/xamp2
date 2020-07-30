@@ -205,7 +205,7 @@ void LyricsShowWideget::setLrc(const QString &lrc) {
 }
 
 void LyricsShowWideget::setLrcTime(int32_t stream_time) {
-	stream_time = stream_time + SCROLL_TIME;
+	stream_time = stream_time + kScrollTime;
 	pos_ = stream_time;
 
 	if (is_scrolled_ || !lyric_.GetSize()) {

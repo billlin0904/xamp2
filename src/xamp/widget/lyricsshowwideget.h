@@ -35,7 +35,7 @@ public:
 	int32_t itemCount() const override;	
 
 public slots:
-	void stop();
+	void stop();	
 
 	void setLrc(const QString &lrc);
 

@@ -11,8 +11,8 @@ class QWidget;
 class QRect;
 class QPainter;
 
-constexpr uint32_t WHEEL_SCROLL_OFFSET = 50000;
-constexpr uint32_t SCROLL_TIME = 200;
+constexpr uint32_t kWheelScrollOffset = 50000;
+constexpr uint32_t kScrollTime = 200;
 
 class WheelableWidget : public QWidget {
 	Q_OBJECT

@@ -11,7 +11,9 @@ static void EnsureFxLibInit() {
 
 class BassEqualizer::BassEqualizerImpl {
 public:
-	BassEqualizerImpl() = default;
+	BassEqualizerImpl() {
+		fx_handles_.fill(0);
+	}
 
 	~BassEqualizerImpl() = default;
 
@@ -35,6 +37,7 @@ public:
 				throw BassException(BassLib::Instance().BASS_ErrorGetCode());
 			}
             BASS_BFX_PEAKEQ eq{};
+			eq.lBand = i;
 			eq.fCenter = kEQBands[i];
 			eq.fBandwidth = kEQBands[i] / 2;
 			eq.fGain = 1.0F;
