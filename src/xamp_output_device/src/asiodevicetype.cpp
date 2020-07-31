@@ -1,7 +1,3 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-
 #if ENABLE_ASIO
 #include <asiosys.h>
 #include <asio.h>
@@ -73,8 +69,8 @@ void ASIODeviceType::ScanNewDevice() {
 	for (auto i = 0; i < num_device; ++i) {
         char driver_name[MAX_PATH_LEN]{};
         if (drivers.asioGetDriverName(i, driver_name, MAX_PATH_LEN) == 0) {
-			const auto name = ToStdWString(driver_name);
-			if (device_list_.find(name) != device_list_.end()) {
+			const std::string name(driver_name);
+			if (device_list_.find(driver_name) != device_list_.end()) {
 				continue;
 			}
 			device_list_[name] = GetDeviceInfo(name);
@@ -82,9 +78,9 @@ void ASIODeviceType::ScanNewDevice() {
 	}
 }
 
-DeviceInfo ASIODeviceType::GetDeviceInfo(std::wstring const & device_id) const {
+DeviceInfo ASIODeviceType::GetDeviceInfo(std::string const & device_id) const {
 	DeviceInfo info;
-	info.name = device_id;
+	info.name = ToStdWString(device_id);
 	info.device_id = device_id;
 	info.device_type_id = Id;
 	// NOTE: 無法不開啟ASIO狀態下取得是否支援DSD, 目前先假定ASIO是支援DSD的!

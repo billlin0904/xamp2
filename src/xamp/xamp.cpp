@@ -45,7 +45,7 @@
 #include "thememanager.h"
 #include "xamp.h"
 
-static QString samplerate2String(AudioFormat format) {
+static QString samplerate2String(const AudioFormat& format) {
     auto precision = 1;
     auto is_mhz_samplerate = false;
     if (format.GetSampleRate() / 1000 > 1000) {
@@ -240,7 +240,7 @@ void Xamp::initialDeviceList() {
     auto device_action_group = new QActionGroup(this);
     device_action_group->setExclusive(true);
 
-    std::map<std::wstring, QAction*> device_id_action;
+    std::map<std::string, QAction*> device_id_action;
 
     DeviceManager::Instance().ForEach([&](const auto &device_type) {
         device_type->ScanNewDevice();
@@ -261,12 +261,11 @@ void Xamp::initialDeviceList() {
                 device_info_ = device_info;
                 AppSettings::setValue(kAppSettingDeviceType, device_info_.device_type_id);
                 AppSettings::setValue(kAppSettingDeviceId, device_info_.device_id);
-                XAMP_LOG_DEBUG("Save device Id : {}",
-                               xamp::base::ToUtf8String(device_info_.device_id));
+                XAMP_LOG_DEBUG("Save device Id : {}", device_info_.device_id);
             });
             menu->addAction(device_action);
             if (AppSettings::getID(kAppSettingDeviceType) == device_info.device_type_id
-                && AppSettings::getValueAsString(kAppSettingDeviceId).toStdWString() == device_info.device_id) {
+                && AppSettings::getValueAsString(kAppSettingDeviceId).toStdString() == device_info.device_id) {
                 device_info_ = device_info;
                 is_find_setting_device = true;
                 device_action->setChecked(true);
@@ -288,8 +287,7 @@ void Xamp::initialDeviceList() {
         device_id_action[device_info_.device_id]->setChecked(true);
         AppSettings::setValue(kAppSettingDeviceType, device_info_.device_type_id);
         AppSettings::setValue(kAppSettingDeviceId, device_info_.device_id);
-        XAMP_LOG_DEBUG("Use default device Id : {}",
-                       xamp::base::ToUtf8String(device_info_.device_id));
+        XAMP_LOG_DEBUG("Use default device Id : {}", device_info_.device_id);
     }
 }
 

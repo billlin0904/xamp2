@@ -112,7 +112,7 @@ private:
 
     void OpenStream(std::wstring const & file_path, std::wstring const & file_ext, DeviceInfo const& device_info);
 
-    void CreateDevice(ID const& device_type_id, std::wstring const & device_id, bool open_always);
+    void CreateDevice(ID const& device_type_id, std::string const & device_id, bool open_always);
 
     void CloseDevice(bool wait_for_stop_stream);
 
@@ -169,7 +169,7 @@ private:
     std::atomic<bool> is_paused_;
     std::atomic<AudioSlice> slice_;
     mutable std::mutex pause_mutex_;
-    std::wstring device_id_;
+    std::string device_id_;
     ID device_type_id_;
     std::condition_variable pause_cond_;
     std::condition_variable stopped_cond_;

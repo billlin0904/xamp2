@@ -1,7 +1,3 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-
 #include <base/base.h>
 
 #ifdef XAMP_OS_WIN
@@ -18,7 +14,7 @@ Win32DeviceStateNotification::Win32DeviceStateNotification(std::weak_ptr<DeviceS
 Win32DeviceStateNotification::~Win32DeviceStateNotification() {
 	if (enumerator_ != nullptr) {
 		enumerator_->UnregisterEndpointNotificationCallback(this);
-	}	
+	}
 }
 
 void Win32DeviceStateNotification::Run() {
@@ -28,14 +24,6 @@ void Win32DeviceStateNotification::Run() {
 		__uuidof(IMMDeviceEnumerator),
 		reinterpret_cast<void**>(&enumerator_)));
 	HrIfFailledThrow(enumerator_->RegisterEndpointNotificationCallback(this));	
-}
-
-STDMETHODIMP_(ULONG) Win32DeviceStateNotification::AddRef() {
-	return 1;
-}
-
-STDMETHODIMP_(ULONG) Win32DeviceStateNotification::Release() {
-	return 1;
 }
 
 STDMETHODIMP Win32DeviceStateNotification::QueryInterface(REFIID iid, void** object) {

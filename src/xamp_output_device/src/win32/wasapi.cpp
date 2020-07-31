@@ -1,11 +1,8 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-
 #include <base/base.h>
 
 #ifdef XAMP_OS_WIN
 
+#include <base/str_utilts.h>
 #include <output_device/win32/hrexception.h>
 #include <output_device/win32/wasapi.h>
 
@@ -46,7 +43,7 @@ DeviceInfo GetDeviceInfo(CComPtr<IMMDevice>& device, ID const& device_type_id) {
 	CComHeapPtr<WCHAR> id;
 	HrIfFailledThrow(device->GetId(&id));
 	info.device_type_id = device_type_id;
-	info.device_id = id;
+	info.device_id = ToUtf8String(std::wstring(id));
 
 	return info;
 }

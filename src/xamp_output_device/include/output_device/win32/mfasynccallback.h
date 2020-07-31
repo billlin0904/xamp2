@@ -13,32 +13,21 @@
 #include <Windows.h>
 #include <Mfidl.h>
 
+#include <output_device/win32/unknownimpl.h>
+
 namespace xamp::output_device::win32 {
 
 template <typename ParentType>
-class MFAsyncCallback final : public IMFAsyncCallback {
+class MFAsyncCallback final : public UnknownImpl<IMFAsyncCallback> {
 public:
 	typedef HRESULT(ParentType::*Callback)(IMFAsyncResult *);
 
 	MFAsyncCallback(ParentType* parent, const Callback fn, const DWORD queue_id)
-		: refcount_(0)
-		, queue_id_(queue_id)
+		: queue_id_(queue_id)
 		, parent_(parent)
 		, callback_(fn) {
 		assert(parent != nullptr);
 		assert(fn != nullptr);
-	}
-
-	STDMETHODIMP_(ULONG) AddRef() override {
-		return ::InterlockedIncrement(&refcount_);
-	}
-
-	STDMETHODIMP_(ULONG) Release() override {
-		const ULONG value = ::InterlockedDecrement(&refcount_);
-		if (value == 0) {
-			delete this;
-		}
-		return value;
 	}
 
 	STDMETHODIMP QueryInterface(REFIID iid, void** ppv) override {
@@ -74,7 +63,6 @@ public:
 	}
 
 private:
-	LONG refcount_;
 	DWORD queue_id_;
 	ParentType *parent_;
 	const Callback callback_;

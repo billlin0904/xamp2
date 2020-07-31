@@ -94,7 +94,7 @@ void AudioPlayer::SetResampler(uint32_t samplerate, AlignPtr<Resampler>&& resamp
     EnableResampler(true);
 }
 
-void AudioPlayer::CreateDevice(ID const & device_type_id, std::wstring const & device_id, bool open_always) {
+void AudioPlayer::CreateDevice(ID const & device_type_id, std::string const & device_id, bool open_always) {
     if (device_ == nullptr
         || device_id_ != device_id
         || device_type_id_ != device_type_id
@@ -102,7 +102,7 @@ void AudioPlayer::CreateDevice(ID const & device_type_id, std::wstring const & d
         if (auto result = DeviceManager::Instance().Create(device_type_id)) {
             device_type_ = std::move(result.value());
             device_type_->ScanNewDevice();
-            device_ = device_type_->MakeDevice(device_id);
+            device_ = device_type_->MakeDevice(ToStdWString(device_id));
             device_type_id_ = device_type_id;
             device_id_ = device_id;
         }
@@ -539,7 +539,7 @@ void AudioPlayer::OnDeviceStateChange(DeviceState state, std::wstring const & de
             break;
         case DeviceState::DEVICE_STATE_REMOVED:
             XAMP_LOG_DEBUG("Device removed device id:{}.", ToUtf8String(device_id));
-            if (device_id == device_id_) {
+            if (ToUtf8String(device_id) == device_id_) {
                 state_adapter->OnDeviceChanged(DeviceState::DEVICE_STATE_REMOVED);
                 if (device_ != nullptr) {
                     device_->AbortStream();
@@ -574,7 +574,7 @@ void AudioPlayer::OpenDevice(double stream_time) {
 #endif
     device_->OpenStream(output_format_);
     device_->SetStreamTime(stream_time);
-
+    /*
     if (output_format_.GetSampleRate() == 44100) {
         equalizer_ = MakeAlign<Equalizer, BassEqualizer>();
         equalizer_->Start(output_format_.GetChannels(), output_format_.GetSampleRate());
@@ -587,6 +587,7 @@ void AudioPlayer::OpenDevice(double stream_time) {
     } else {
         equalizer_.reset();
     }
+    */
 }
 
 void AudioPlayer::EnableEQ(bool enable) {

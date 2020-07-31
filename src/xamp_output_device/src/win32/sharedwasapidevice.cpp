@@ -1,7 +1,3 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-
 #include <base/base.h>
 
 #ifdef XAMP_OS_WIN
@@ -36,23 +32,10 @@ static constexpr IID kAudioRenderClientID =__uuidof(IAudioRenderClient);
 static constexpr IID kAudioClient3ID = __uuidof(IAudioClient3);
 
 class SharedWasapiDevice::DeviceEventNotification final
-	: public IAudioEndpointVolumeCallback {
+	: public UnknownImpl<IAudioEndpointVolumeCallback> {
 public:
 	explicit DeviceEventNotification(AudioCallback* callback) noexcept
-		: refcount_(1)
-		, callback_(callback) {
-	}
-
-	ULONG AddRef() override {
-		return ::InterlockedIncrement(&refcount_);
-	}
-
-	ULONG Release() override {
-		auto ref = ::InterlockedDecrement(&refcount_);
-		if (ref == 0) {
-			delete this;
-		}
-		return 0;
+		: callback_(callback) {
 	}
 
 	HRESULT QueryInterface(REFIID iid, void** ReturnValue) override {		
@@ -80,7 +63,6 @@ public:
 	}
 
 private:
-	LONG refcount_;
 	AudioCallback* callback_;
 };
 

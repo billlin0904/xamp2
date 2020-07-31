@@ -18,7 +18,7 @@ struct XAMP_OUTPUT_DEVICE_API DeviceInfo final {
 	bool is_default_device{false};
 	bool is_support_dsd{false};
 	std::wstring name;    
-	std::wstring device_id;
+	std::string device_id;
 	ID device_type_id;
 };
 

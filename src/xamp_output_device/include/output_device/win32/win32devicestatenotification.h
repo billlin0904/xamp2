@@ -11,12 +11,13 @@
 
 #include <output_device/devicestatelistener.h>
 #include <output_device/devicestatenotification.h>
+#include <output_device/win32/unknownimpl.h>
 #include <output_device/win32/wasapi.h>
 
 namespace xamp::output_device::win32 {
 
 class XAMP_OUTPUT_DEVICE_API Win32DeviceStateNotification 
-	: public IMMNotificationClient
+	: public UnknownImpl<IMMNotificationClient>
 	, public DeviceStateNotification {
 public:
 	explicit Win32DeviceStateNotification(std::weak_ptr<DeviceStateListener> callback);
@@ -24,10 +25,6 @@ public:
 	virtual ~Win32DeviceStateNotification();
 
 	void Run();
-
-	STDMETHOD_(ULONG, AddRef)() override;
-
-	STDMETHOD_(ULONG, Release)() override;
 
 	STDMETHOD(QueryInterface)(REFIID iid, void** object) override;
 
