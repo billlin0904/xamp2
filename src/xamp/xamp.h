@@ -64,7 +64,7 @@ private:
 
 	void setNightStyle();
 
-	void setCover(const QPixmap& cover);
+	void setCover(const QPixmap* cover);
 
 	void closeEvent(QCloseEvent* event) override;
 

@@ -39,78 +39,12 @@
 #include <widget/eqdialog.h>
 #include <widget/playbackhistorypage.h>
 #include <widget/eqdialog.h>
+#include <widget/ui_utilts.h>
 
 #include "aboutdialog.h"
 #include "preferencedialog.h"
 #include "thememanager.h"
 #include "xamp.h"
-
-static QString samplerate2String(const AudioFormat& format) {
-    auto precision = 1;
-    auto is_mhz_samplerate = false;
-    if (format.GetSampleRate() / 1000 > 1000) {
-        is_mhz_samplerate = true;
-    }
-    else {
-        precision = format.GetSampleRate() % 1000 == 0 ? 0 : 1;
-    }
-
-    return (is_mhz_samplerate ? QString::number(format.GetSampleRate() / double(1000000), 'f', 2) + Q_UTF8("MHz/")
-        : QString::number(format.GetSampleRate() / double(1000), 'f', precision) + Q_UTF8("kHz/"));
-}
-
-static QString format2String(const AudioPlayer* player, const QString& file_ext) {
-    auto format = player->GetStreamFormat();
-
-    auto ext = file_ext;
-    ext = ext.remove(Q_UTF8(".")).toUpper();
-
-    auto precision = 1;
-    auto is_mhz_samplerate = false;
-    if (format.GetSampleRate() / 1000 > 1000) {
-        is_mhz_samplerate = true;
-    }
-    else {
-        precision = format.GetSampleRate() % 1000 == 0 ? 0 : 1;
-    }
-
-    auto bits = format.GetBitsPerSample();
-    if (is_mhz_samplerate) {
-        bits = 1;
-    }
-
-    QString dsd_speed_format;
-    if (player->IsDSDFile()) {
-        auto dsd_speed = player->GetDSDSpeed();
-        dsd_speed_format = Q_UTF8(" DSD") + QString::number(dsd_speed.value()) + Q_UTF8(" ");
-    }
-
-    QString dsd_mode;
-    switch (player->GetDsdModes()) {
-    case DsdModes::DSD_MODE_PCM:
-        dsd_mode = Q_UTF8("PCM");
-        break;
-    case DsdModes::DSD_MODE_NATIVE:
-        dsd_mode = Q_UTF8("Native DSD");
-        break;
-    case DsdModes::DSD_MODE_DOP:
-        dsd_mode = Q_UTF8("DOP");
-        break;
-    }
-
-    QString output_format_str;
-    auto output_format = player->GetOutputFormat();
-    if (format.GetFormat() != DataFormat::FORMAT_DSD && output_format != format) {
-        output_format_str = samplerate2String(output_format);
-    }
-
-    return ext
-           + Q_UTF8(" | ")
-           + dsd_speed_format
-           + samplerate2String(format) + output_format_str
-           + QString::number(bits) + Q_UTF8("bit")
-           + Q_UTF8(" | ") + dsd_mode;
-}
 
 Xamp::Xamp(QWidget *parent)
     : FramelessWindow(parent)
@@ -132,7 +66,7 @@ void Xamp::initial() {
     initialDeviceList();
     initialPlaylist();
     initialShortcut();
-    setCover(ThemeManager::instance().pixmap().unknownCover());
+    setCover(nullptr);
     DeviceManager::Instance().RegisterDeviceListener(player_);
     setDefaultStyle();
 }
@@ -847,10 +781,10 @@ void Xamp::playMusic(const MusicEntity& item) {
     playlist_page_->format()->setText(format2String(player_.get(), item.file_ext));
 
     if (auto cover = PixmapCache::instance().find(item.cover_id)) {
-        setCover(*cover.value());
+        setCover(cover.value());
     }
     else {
-        setCover(ThemeManager::instance().pixmap().unknownCover());
+        setCover(nullptr);
     }
 
     ThemeManager::instance().setPlayOrPauseButton(ui, true);
@@ -896,11 +830,18 @@ void Xamp::addPlaylistItem(const PlayListEntity &entity) {
     playlist_view->appendItem(entity);
 }
 
-void Xamp::setCover(const QPixmap& cover) {
-    assert(!cover.isNull());
-    ui.coverLabel->setPixmap(Pixmap::resizeImage(cover, ui.coverLabel->size(), true));	
-    playlist_page_->cover()->setPixmap(Pixmap::resizeImage(cover, playlist_page_->cover()->size(), true));
-    lrc_page_->cover()->setPixmap(Pixmap::resizeImage(cover, lrc_page_->cover()->size(), true));
+void Xamp::setCover(const QPixmap* cover) {
+    if (!cover) {
+        cover = &ThemeManager::instance().pixmap().unknownCover();
+        lrc_page_->setBackground(QPixmap());        
+    }
+    else {
+        lrc_page_->setBackground(*cover);
+    }
+
+    ui.coverLabel->setPixmap(Pixmap::resizeImage(*cover, ui.coverLabel->size(), true));
+    playlist_page_->cover()->setPixmap(Pixmap::resizeImage(*cover, playlist_page_->cover()->size(), true));
+    lrc_page_->cover()->setPixmap(Pixmap::resizeImage(*cover, lrc_page_->cover()->size(), true));
 }
 
 void Xamp::onPlayerStateChanged(xamp::player::PlayerState play_state) {

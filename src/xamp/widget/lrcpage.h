@@ -6,6 +6,7 @@
 #pragma once
 
 #include <QFrame>
+#include <QPixmap>
 
 class QLabel;
 class VinylWidget;
@@ -28,10 +29,18 @@ public:
 
     ScrollLabel* title();
 
+	void setBackground(const QPixmap& cover);
+
 public slots:
     void OnThemeColorChanged(QColor theme_color, QColor color);
 
 private:
+	void setEffect(QWidget *widget, int blurRadius);
+
+	void paintEvent(QPaintEvent*) override;
+
+	void resizeEvent(QResizeEvent*) override;
+
 	void initial();
 
 	LyricsShowWideget* lyrics_widget_;
@@ -39,4 +48,5 @@ private:
 	ScrollLabel* album_;
 	ScrollLabel* artist_;
     ScrollLabel* title_;
+	QPixmap background_image_;
 };

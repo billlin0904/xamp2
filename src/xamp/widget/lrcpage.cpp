@@ -1,6 +1,7 @@
 #include <QLabel>
 #include <QHBoxLayout>
 #include <QPainter>
+#include <QGraphicsDropShadowEffect>
 
 #include "thememanager.h"
 
@@ -36,13 +37,38 @@ ScrollLabel* LrcPage::title() {
 	return title_;
 }
 
+void LrcPage::paintEvent(QPaintEvent*) {
+    QPainter painter(this);
+	painter.drawPixmap(rect(), background_image_);
+}
+
+void LrcPage::setBackground(const QPixmap& cover) {
+	if (cover.isNull()) {
+		background_image_ = QPixmap();
+	}
+	else {
+		background_image_ = Pixmap::blurImage(cover, 40);
+	}	
+}
+
+void LrcPage::resizeEvent(QResizeEvent*) {
+}
+
 void LrcPage::OnThemeColorChanged(QColor theme_color, QColor color) {
-	title_->setStyleSheet(Q_UTF8("QLabel { color: ") + colorToString(color) + Q_UTF8(";}"));
-	album_->setStyleSheet(Q_UTF8("QLabel { color: ") + colorToString(color) + Q_UTF8(";}"));
-	artist_->setStyleSheet(Q_UTF8("QLabel { color: ") + colorToString(color) + Q_UTF8(";}"));
-    setStyleSheet(backgroundColorToString(theme_color));
+	//title_->setStyleSheet(Q_UTF8("QLabel { color: ") + colorToString(color) + Q_UTF8(";}"));
+	//album_->setStyleSheet(Q_UTF8("QLabel { color: ") + colorToString(color) + Q_UTF8(";}"));
+	//artist_->setStyleSheet(Q_UTF8("QLabel { color: ") + colorToString(color) + Q_UTF8(";}"));
+    //setStyleSheet(backgroundColorToString(theme_color));
 	lyrics_widget_->setLrcColor(color);
 	lyrics_widget_->setLrcHightLight(color);
+}
+
+void LrcPage::setEffect(QWidget* widget, int blurRadius) {
+	auto effect = new QGraphicsDropShadowEffect();
+	effect->setOffset(0, 0);
+	effect->setColor(Qt::black);
+	effect->setBlurRadius(blurRadius);
+	widget->setGraphicsEffect(effect);
 }
 
 void LrcPage::initial() {
@@ -55,11 +81,14 @@ void LrcPage::initial() {
 
 	auto verticalLayout_3 = new QVBoxLayout();
 	verticalLayout_3->setSpacing(0);
-	verticalLayout_3->setObjectName(QString::fromUtf8("verticalLayout_3"));
+	verticalLayout_3->setObjectName(QString::fromUtf8("verticalLayout_3"));	
+
     cover_label_ = new QLabel(this);
     cover_label_->setObjectName(QString::fromUtf8("label"));
     cover_label_->setMinimumSize(QSize(250, 250));
     cover_label_->setMaximumSize(QSize(250, 250));
+	setEffect(cover_label_, 25);
+
     verticalLayout_3->addWidget(cover_label_);
 	verticalLayout_3->setContentsMargins(0, 20, 0, 0);
 
@@ -83,8 +112,9 @@ void LrcPage::initial() {
 	f.setBold(true);
 
     title_ = new ScrollLabel(this);
+	title_->setStyleSheet(Q_UTF8("background-color: transparent"));
 	title_->setObjectName(QString::fromUtf8("label_2"));
-	title_->setText(tr("Title:"));
+	title_->setText(tr("Title:"));	
 	title_->setFont(f);
 #ifdef Q_OS_WIN
     title_->setMinimumHeight(40);
@@ -108,10 +138,11 @@ void LrcPage::initial() {
 	label_3->setObjectName(QString::fromUtf8("label_3"));
 
 	label_3->setText(tr("Artist:"));
+	label_3->setStyleSheet(Q_UTF8("background-color: transparent"));
 	label_3->setFont(f);
 	label_3->setMinimumHeight(40);
 	label_3->setMinimumWidth(60);
-	label_3->setStyleSheet(Q_UTF8("color: gray;"));
+	label_3->setStyleSheet(Q_UTF8("color: white;"));
 	horizontalLayout_8->addWidget(label_3);
 
 	artist_ = new ScrollLabel(this);
@@ -128,11 +159,13 @@ void LrcPage::initial() {
 	horizontalLayout_7->setSpacing(0);
 	horizontalLayout_7->setObjectName(QString::fromUtf8("horizontalLayout_7"));
 	auto label_7 = new QLabel(this);
+	label_7->setStyleSheet(Q_UTF8("background-color: transparent"));
 	label_7->setObjectName(QString::fromUtf8("label_4"));
 	label_7->setText(tr("Album:"));
+
 	label_7->setMinimumWidth(60);
 	label_7->setFont(f);
-	label_7->setStyleSheet(Q_UTF8("color: gray;"));
+	label_7->setStyleSheet(Q_UTF8("color: white;"));
 	horizontalLayout_7->addWidget(label_7);
 
 	album_ = new ScrollLabel(this);

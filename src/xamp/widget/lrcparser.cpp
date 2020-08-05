@@ -1,15 +1,10 @@
 #include <fstream>
-#include <locale>
 
 #include <base/bom.h>
 #include <base/stl.h>
 #include <base/str_utilts.h>
 
 #include "lrcparser.h"
-
-#ifdef XAMP_OS_MAC
-#include <codecvt>
-#endif
 
 using namespace xamp::base;
 
@@ -86,12 +81,7 @@ bool LrcParser::ParseFile(const std::wstring &file_path) {
         return false;
     }
 
-#ifdef Q_OS_WIN32
     ImbueFileFromBom(file);
-#else
-    std::locale utf8_locale(std::locale(), new std::codecvt_utf8<wchar_t>());
-    file.imbue(utf8_locale);
-#endif
     return ParseStream(file);
 }
 
@@ -143,11 +133,7 @@ bool LrcParser::ParseStream(std::wistream &istr) {
 
     bool start_read_lrc = false;
 
-#ifdef _WIN32
     wchar_t dlm = L'\n';
-#else
-    wchar_t dlm = L'\n';
-#endif
 
 	std::wstring line;
     while (std::getline(istr, line, dlm)) {
@@ -248,7 +234,7 @@ void LrcParser::AddLrc(const LyricEntry &lrc) {
 }
 
 const LyricEntry& LrcParser::GetLyrics(const std::chrono::milliseconds &time) const noexcept {
-    auto itr = BinaryFind(lyrics_.cbegin(), lyrics_.cend(), time, [](const LyricEntry &l, auto time) {
+    auto itr = BinarySearch(lyrics_.cbegin(), lyrics_.cend(), time, [](const LyricEntry &l, auto time) {
         return l.timestamp < time;
     });
     
