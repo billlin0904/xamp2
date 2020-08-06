@@ -530,25 +530,25 @@ void AudioPlayer::OnError(const Exception& e) noexcept {
     XAMP_LOG_DEBUG(e.what());
 }
 
-void AudioPlayer::OnDeviceStateChange(DeviceState state, std::wstring const & device_id) {
+void AudioPlayer::OnDeviceStateChange(DeviceState state, std::string const & device_id) {    
     if (auto state_adapter = state_adapter_.lock()) {
         switch (state) {
         case DeviceState::DEVICE_STATE_ADDED:
-            XAMP_LOG_DEBUG("Device added device id:{}.", ToUtf8String(device_id));
+            XAMP_LOG_DEBUG("Device added device id:{}.", device_id);
             state_adapter->OnDeviceChanged(DeviceState::DEVICE_STATE_ADDED);
             break;
         case DeviceState::DEVICE_STATE_REMOVED:
-            XAMP_LOG_DEBUG("Device removed device id:{}.", ToUtf8String(device_id));
-            if (ToUtf8String(device_id) == device_id_) {
+            XAMP_LOG_DEBUG("Device removed device id:{}.", device_id);
+            if (device_id == device_id_) {
                 state_adapter->OnDeviceChanged(DeviceState::DEVICE_STATE_REMOVED);
                 if (device_ != nullptr) {
                     device_->AbortStream();
-                    XAMP_LOG_DEBUG("Device abort stream id:{}.", ToUtf8String(device_id));
+                    XAMP_LOG_DEBUG("Device abort stream id:{}.", device_id);
                 }
             }
             break;
         case DeviceState::DEVICE_STATE_DEFAULT_DEVICE_CHANGE:
-            XAMP_LOG_DEBUG("Default device device id:{}.", ToUtf8String(device_id));
+            XAMP_LOG_DEBUG("Default device device id:{}.", device_id);
             state_adapter->OnDeviceChanged(DeviceState::DEVICE_STATE_DEFAULT_DEVICE_CHANGE);
             break;
         }
@@ -574,7 +574,7 @@ void AudioPlayer::OpenDevice(double stream_time) {
 #endif
     device_->OpenStream(output_format_);
     device_->SetStreamTime(stream_time);
-    /*
+
     if (output_format_.GetSampleRate() == 44100) {
         equalizer_ = MakeAlign<Equalizer, BassEqualizer>();
         equalizer_->Start(output_format_.GetChannels(), output_format_.GetSampleRate());
@@ -587,7 +587,6 @@ void AudioPlayer::OpenDevice(double stream_time) {
     } else {
         equalizer_.reset();
     }
-    */
 }
 
 void AudioPlayer::EnableEQ(bool enable) {

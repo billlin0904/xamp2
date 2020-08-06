@@ -141,7 +141,7 @@ void ThemeManager::setBackgroundColor(Ui::XampWindow& ui, QColor color) {
 
     AppSettings::setValue(kAppSettingBackgroundColor, color);
     background_color_ = color;    
-    setThemeColor(ui);    
+    setThemeIcon(ui);
 }
 
 QIcon ThemeManager::playArrow() noexcept {
@@ -181,7 +181,7 @@ void ThemeManager::setRepeatOncePlayorder(Ui::XampWindow& ui) {
     ui.repeatButton->setStyleSheet(style_sheet);
 }
 
-void ThemeManager::setThemeColor(Ui::XampWindow& ui) {
+void ThemeManager::setThemeIcon(Ui::XampWindow& ui) {
     ui.titleLabel->setStyleSheet(Q_UTF8(R"(
                                          QLabel#titleLabel {
                                          color: white;
@@ -321,7 +321,7 @@ void ThemeManager::setDefaultStyle(Ui::XampWindow& ui) {
 
     ui.searchLineEdit->setStyleSheet(Q_UTF8(""));
     ui.sliderBar->setStyleSheet(Q_UTF8("QListView#sliderBar { background-color: transparent; border: none; }"));
-	setThemeColor(ui);
+    setThemeIcon(ui);
 
     ui.searchLineEdit->setStyleSheet(Q_UTF8(R"(
                                             QLineEdit#searchLineEdit {

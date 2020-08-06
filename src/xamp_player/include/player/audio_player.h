@@ -128,7 +128,7 @@ private:
 
     void OnError(Exception const & e) noexcept override;
 
-    void OnDeviceStateChange(DeviceState state, std::wstring const & device_id) override;
+    void OnDeviceStateChange(DeviceState state, std::string const & device_id) override;
 
     void OpenDevice(double stream_time = 0.0);
 

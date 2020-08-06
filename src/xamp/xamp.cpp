@@ -602,12 +602,12 @@ void Xamp::playNextItem(int32_t forward) {
         return;
     }
 
-    play_index_ = playlist_view->currentIndex();
+    play_index_ = playlist_view->currentIndex();   
 
     if (count > 1) {
         switch (order_) {
         case PlayerOrder::PLAYER_ORDER_REPEAT_ONCE:
-            play_index_ = playlist_view->model()->index(play_index_.row() + forward, PLAYLIST_PLAYING);
+            play_index_ = playlist_view->nextIndex(forward);
             if (play_index_.row() == -1) {
                 return;
             }

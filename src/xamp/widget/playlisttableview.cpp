@@ -320,6 +320,13 @@ QModelIndex PlayListTableView::currentIndex() const {
     return play_index_;
 }
 
+QModelIndex PlayListTableView::nextIndex(int forward) const {
+    auto count = model()->rowCount();
+    auto play_index = currentIndex();
+    auto next_index = (play_index.row() + forward) % count;
+    return model()->index(next_index, PLAYLIST_PLAYING);
+}
+
 QModelIndex PlayListTableView::shuffeIndex() {
     std::vector<int32_t> indexes;
     indexes.reserve(static_cast<size_t>(proxy_model_.rowCount()));

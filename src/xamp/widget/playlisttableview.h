@@ -42,6 +42,8 @@ public:
 
 	QModelIndex currentIndex() const;
 
+	QModelIndex nextIndex(int forward) const;
+
 	PlayListEntity& item(const QModelIndex& index);
 
 	std::optional<QModelIndex> selectItem() const;

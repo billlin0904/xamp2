@@ -80,7 +80,7 @@ public:
 
     QColor getBackgroundColor() noexcept;
 
-    void setThemeColor(Ui::XampWindow& ui);
+    void setThemeIcon(Ui::XampWindow& ui);
 
     QIcon playArrow() noexcept;
 
