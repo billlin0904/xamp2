@@ -87,8 +87,7 @@ private:
 	QIcon stop_play_icon_;
 	QIcon seek_forward_icon_;
 	QIcon seek_backward_icon_;
-	QPoint mouse_pressed_pt_;
-	QPoint win_drag_pos_pt_;
+	QPoint last_pos_;
 	QScopedPointer<QWinThumbnailToolBar> thumbnail_tool_bar_;
 	QScopedPointer<QWinTaskbarButton> taskbar_button_;
 	QWinTaskbarProgress* taskbar_progress_;

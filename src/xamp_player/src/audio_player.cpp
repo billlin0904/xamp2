@@ -20,6 +20,7 @@
 
 namespace xamp::player {
 
+inline constexpr int32_t kMinEQSampleRate = 44100;
 inline constexpr int32_t kBufferStreamCount = 5;
 inline constexpr int32_t kTotalBufferStreamCount = 10;
 inline constexpr int32_t kPreallocateBufferSize = 8 * 1024 * 1024;
@@ -575,28 +576,34 @@ void AudioPlayer::OpenDevice(double stream_time) {
     device_->OpenStream(output_format_);
     device_->SetStreamTime(stream_time);
 
-    if (output_format_.GetSampleRate() == 44100) {
-        equalizer_ = MakeAlign<Equalizer, BassEqualizer>();
-        equalizer_->Start(output_format_.GetChannels(), output_format_.GetSampleRate());
+    if (equalizer_ != nullptr) {
+        if (output_format_.GetSampleRate() == kMinEQSampleRate) {
+            equalizer_ = MakeAlign<Equalizer, BassEqualizer>();
+            equalizer_->Start(output_format_.GetChannels(), output_format_.GetSampleRate());
 
-        uint32_t i = 0;
-        for (auto settings : eqsettings_) {
-            equalizer_->SetEQ(i++, settings.gain, settings.Q);
-            XAMP_LOG_DEBUG("Setting eq band:{} gain:{} Q:{}", i, settings.gain, settings.Q);
+            uint32_t i = 0;
+            for (auto settings : eqsettings_) {
+                equalizer_->SetEQ(i++, settings.gain, settings.Q);
+                XAMP_LOG_DEBUG("Setting eq band:{} gain:{} Q:{}", i, settings.gain, settings.Q);
+            }
         }
-    } else {
-        equalizer_.reset();
     }
 }
 
 void AudioPlayer::EnableEQ(bool enable) {
+    if (enable) {
+        equalizer_ = MakeAlign<Equalizer, BassEqualizer>();
+    }
+    else {
+        equalizer_.reset();
+    }
 }
 
 void AudioPlayer::SetEQ(std::array<EQSettings, kMaxBand> const &bands) {
     eqsettings_ = bands;
 }
 
-void AudioPlayer::SetEQ(uint32_t band, float gain, float Q) {
+void AudioPlayer::SetEQ(uint32_t band, float gain, float Q) {    
     if (band >= eqsettings_.size()) {
         return;
     }

@@ -718,10 +718,21 @@ void Xamp::processMeatadata(const std::vector<xamp::base::Metadata>& medata) {
 }
 
 void Xamp::setupEQ() {
-    uint32_t i = 0;
-    for (auto band : eqsettings_) {
-        player_->SetEQ(i++, band.gain, band.Q);
-    }
+    auto enable_eq = AppSettings::getValueAsBool(kEnableEQ);
+
+    player_->EnableEQ(enable_eq);
+
+    if (enable_eq) {
+        auto eqName = AppSettings::getValueAsString(kEQName);
+        if (eqName.isEmpty() || eqsettings_.isEmpty()) {
+            eqsettings_ = AppSettings::getEQPreset().first();
+        }
+
+        uint32_t i = 0;
+        for (auto band : eqsettings_) {
+            player_->SetEQ(i++, band.gain, band.Q);
+        }
+    }    
 }
 
 void Xamp::playMusic(const MusicEntity& item) {

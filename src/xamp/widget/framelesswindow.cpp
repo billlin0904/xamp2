@@ -75,9 +75,10 @@ FramelessWindow::FramelessWindow(QWidget* parent)
     qApp->setFont(ui_font);
 #else
     setStyleSheet(Q_UTF8(R"(
-        font-family: "UI";        
+        font-family: "UI";
+        background: transparent;;     
     )"));
-    ui_font.setPointSizeF(9);
+    ui_font.setPointSizeF(14);
     qApp->setFont(ui_font);
 #endif    
 }
@@ -331,9 +332,11 @@ bool FramelessWindow::nativeEvent(const QByteArray& event_type, void * message, 
 
 
 void FramelessWindow::mousePressEvent(QMouseEvent* event) {
-#if defined(Q_OS_WIN)
-    mouse_pressed_pt_ = event->globalPos();
-    win_drag_pos_pt_ = pos();
+    if (event->button() != Qt::LeftButton) {
+        return;
+    }
+#if defined(Q_OS_WIN)    
+    last_pos_ = event->globalPos() - pos();
 #else
     QWidget::mousePressEvent(event);
 #endif
@@ -341,7 +344,7 @@ void FramelessWindow::mousePressEvent(QMouseEvent* event) {
 
 void FramelessWindow::mouseReleaseEvent(QMouseEvent* event) {
 #if defined(Q_OS_WIN)
-    mouse_pressed_pt_ = QPoint();
+    last_pos_ = QPoint();
 #else
     QWidget::mouseReleaseEvent(event);
 #endif
@@ -349,12 +352,12 @@ void FramelessWindow::mouseReleaseEvent(QMouseEvent* event) {
 
 void FramelessWindow::mouseMoveEvent(QMouseEvent* event) {
 #if defined(Q_OS_WIN)
-    if (!mouse_pressed_pt_.isNull()) {
-        QPoint delta = event->globalPos() - mouse_pressed_pt_;
-        move(win_drag_pos_pt_ + delta);
+    if (!last_pos_.isNull()) {
+        move(event->globalPos() - last_pos_);
     }
-#endif
+#else
     QWidget::mouseMoveEvent(event);
+#endif   
 }
 
 void FramelessWindow::showEvent(QShowEvent* event) {

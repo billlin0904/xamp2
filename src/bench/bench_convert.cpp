@@ -8,10 +8,8 @@
 #include <base/dataconverter.h>
 #include <base/stl.h>
 #include <base/circularbuffer.h>
-#include <player/fft.h>
 
 using namespace xamp::base;
-using namespace xamp::player;
 
 static void BM_ConvertToInt2432SSE(benchmark::State& state) {
     std::vector<int32_t> output(4096);
@@ -126,44 +124,28 @@ static void BM_FindStdHashSet(benchmark::State& state) {
 
 BENCHMARK(BM_FindStdHashSet);
 
-static void BM_StdQueue(benchmark::State& state) {
-    std::queue<int32_t> q;
+
+static void BM_FastMemcpy(benchmark::State& state) {
+    std::vector<char> src(xamp::base::kCacheAlignSize * 1024);
+    std::vector<char> dest(xamp::base::kCacheAlignSize * 1024);
+
     for (auto _ : state) {
-        q.push(42);
-        q.pop();
+        FastMemcpy(dest.data(), src.data(), src.size());
     }
 }
 
-BENCHMARK(BM_StdQueue);
+BENCHMARK(BM_FastMemcpy);
 
-static void BM_CircularBuffer(benchmark::State& state) {
-    CircularBuffer<int32_t> buffer(10);
+static void BM_StdMemcpy(benchmark::State& state) {
+    std::vector<char> src(xamp::base::kCacheAlignSize * 1024);
+    std::vector<char> dest(xamp::base::kCacheAlignSize * 1024);
+
     for (auto _ : state) {
-        buffer.push(42);
-        buffer.pop();
+        std::memcpy(dest.data(), src.data(), src.size());
     }
 }
 
-BENCHMARK(BM_CircularBuffer);
-
-static void BM_FFTW_FFT_Forward(benchmark::State& state) {
-    const auto kFFTSize = state.range(0);
-
-    std::vector<float> data(kFFTSize);
-    for (auto i = 0; i < data.size(); ++i) {
-        data[i] = std::cos(2.0F * kPI * i / 256.0F);
-    }
-
-    FFT fft;
-
-    fft.Init(kFFTSize);
-
-    for (auto _ : state) {
-        fft.Forward(data.data(), data.size());
-    }
-}
-
-BENCHMARK(BM_FFTW_FFT_Forward)->RangeMultiplier(2)->Range(256, 16384);
+BENCHMARK(BM_StdMemcpy);
 
 int main(int argc, char** argv) {
     ::benchmark::Initialize(&argc, argv);

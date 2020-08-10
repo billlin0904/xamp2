@@ -21,13 +21,15 @@ namespace xamp::base {
 
 inline constexpr DWORD kMsvcCppExceptionCode = 0xE06D7363;
 inline constexpr DWORD kSetThreadNameExceptionCode = 0x406D1388;
+inline constexpr DWORD kClrDbgNotificationExceptionCode = 0x04242420;
 inline constexpr DWORD kIgoneDebugOutputStringExceptionCode = DBG_PRINTEXCEPTION_C;
 inline constexpr DWORD kIgoneDebugOutputWideStringExceptionCode = DBG_PRINTEXCEPTION_WIDE_C;
 
-inline constexpr std::array<DWORD, 7> kIgoneExceptionCode{
+inline constexpr std::array<DWORD, 8> kIgoneExceptionCode{
     kIgoneDebugOutputStringExceptionCode,
     kIgoneDebugOutputWideStringExceptionCode,
     kSetThreadNameExceptionCode,
+    kClrDbgNotificationExceptionCode,
     0x000006BA,    
     0xE0000001,
     0x000006A6,
