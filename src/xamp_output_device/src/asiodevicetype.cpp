@@ -15,8 +15,6 @@
 
 namespace xamp::output_device {
 
-std::string_view const ASIODeviceType::Id("0B3FF8BC-5BFD-4A08-8066-95974FB11BB5");
-
 ASIODeviceType::ASIODeviceType() {
 }
 

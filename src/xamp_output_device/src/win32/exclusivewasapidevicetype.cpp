@@ -7,8 +7,6 @@
 
 namespace xamp::output_device::win32 {
 
-std::string_view const ExclusiveWasapiDeviceType::Id("089F8446-C980-495B-AC80-5A437A4E73F6");
-
 ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceType() noexcept {
 }
 

@@ -9,8 +9,6 @@
 
 namespace xamp::output_device::win32 {
 
-std::string_view const SharedWasapiDeviceType::Id("07885EDF-7CCB-4FA6-962D-B66A759978B1");
-
 SharedWasapiDeviceType::SharedWasapiDeviceType() noexcept {
 }
 
