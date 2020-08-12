@@ -9,10 +9,6 @@
 
 #include <base/base.h>
 
-#ifdef XAMP_OS_WIN
-#include <base/FastMemcpy.h>
-#endif
-
 namespace xamp::base {
 
 class MemoryMappedFile;

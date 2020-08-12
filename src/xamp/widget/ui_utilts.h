@@ -24,7 +24,7 @@ static QString samplerate2String(const xamp::base::AudioFormat& format) {
 }
 
 static QString format2String(const xamp::player::AudioPlayer* player, const QString& file_ext) {
-    auto format = player->GetStreamFormat();
+    auto format = player->GetFileFormat();
 
     auto ext = file_ext;
     ext = ext.remove(Q_UTF8(".")).toUpper();

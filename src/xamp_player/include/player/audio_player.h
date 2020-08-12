@@ -84,13 +84,11 @@ public:
 
     std::optional<uint32_t> GetDSDSpeed() const;
 
-    std::optional<DeviceInfo> GetDefaultDeviceInfo() const;
-
     double GetDuration() const;
 
     PlayerState GetState() const noexcept;
 
-    AudioFormat GetStreamFormat() const noexcept;
+    AudioFormat GetFileFormat() const noexcept;
 
     AudioFormat GetOutputFormat() const noexcept;
 

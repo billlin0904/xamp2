@@ -19,23 +19,6 @@ namespace xamp::base {
 
 #ifdef XAMP_OS_WIN
 
-inline constexpr DWORD kMsvcCppExceptionCode = 0xE06D7363;
-inline constexpr DWORD kSetThreadNameExceptionCode = 0x406D1388;
-inline constexpr DWORD kClrDbgNotificationExceptionCode = 0x04242420;
-inline constexpr DWORD kIgoneDebugOutputStringExceptionCode = DBG_PRINTEXCEPTION_C;
-inline constexpr DWORD kIgoneDebugOutputWideStringExceptionCode = DBG_PRINTEXCEPTION_WIDE_C;
-
-inline constexpr std::array<DWORD, 8> kIgoneExceptionCode{
-    kIgoneDebugOutputStringExceptionCode,
-    kIgoneDebugOutputWideStringExceptionCode,
-    kSetThreadNameExceptionCode,
-    kClrDbgNotificationExceptionCode,
-    0x000006BA,    
-    0xE0000001,
-    0x000006A6,
-    0x800706B5,
-};
-
 #define DECLARE_EXCEPTION_CODE(Code) { Code, #Code },
 
 static RobinHoodHashMap<DWORD, std::string_view> const & GetWellKnownExceptionCode() {
@@ -60,8 +43,7 @@ static RobinHoodHashMap<DWORD, std::string_view> const & GetWellKnownExceptionCo
     DECLARE_EXCEPTION_CODE(EXCEPTION_STACK_OVERFLOW)
     DECLARE_EXCEPTION_CODE(EXCEPTION_INVALID_DISPOSITION)
     DECLARE_EXCEPTION_CODE(EXCEPTION_GUARD_PAGE)
-    DECLARE_EXCEPTION_CODE(EXCEPTION_INVALID_HANDLE)
-    DECLARE_EXCEPTION_CODE(kMsvcCppExceptionCode)
+    DECLARE_EXCEPTION_CODE(EXCEPTION_INVALID_HANDLE)    
     };
 
     return WellKnownExceptionCode;
@@ -95,7 +77,7 @@ private:
 	WinHandle process_;
 };
 
-static size_t WalkStack(CONTEXT const* context, CaptureStackAddress& addrlist) {
+static size_t WalkStack(CONTEXT const* context, CaptureStackAddress& addrlist) noexcept {
     CONTEXT integer_control_context = *context;
     integer_control_context.ContextFlags = CONTEXT_INTEGER | CONTEXT_CONTROL;
 
@@ -110,9 +92,9 @@ static size_t WalkStack(CONTEXT const* context, CaptureStackAddress& addrlist) {
     stack_frame.AddrFrame.Mode = AddrModeFlat;
 
     size_t frame_count = 0;
-    const FileHandle thread(::GetCurrentThread());
+    const WinHandle thread(::GetCurrentThread());
 
-    for (auto i = 0; i < addrlist.size(); ++i) {
+    for (auto &address : addrlist) {
         const auto result = ::StackWalk64(IMAGE_FILE_MACHINE_IA64,
             SymLoader::Instance().GetProcess().get(),
             thread.get(),
@@ -128,7 +110,7 @@ static size_t WalkStack(CONTEXT const* context, CaptureStackAddress& addrlist) {
         if (stack_frame.AddrFrame.Offset == 0) {
             break;
         }
-        addrlist[i] = reinterpret_cast<void*>(stack_frame.AddrPC.Offset);
+        address = reinterpret_cast<void*>(stack_frame.AddrPC.Offset);
         ++frame_count;
     }
     return frame_count;
@@ -136,6 +118,7 @@ static size_t WalkStack(CONTEXT const* context, CaptureStackAddress& addrlist) {
 
 void StackTrace::WriteLog(size_t frame_count) {
     std::vector<uint8_t> symbol(sizeof(SYMBOL_INFO) + sizeof(wchar_t) * MAX_SYM_NAME);
+    auto current_process = SymLoader::Instance().GetProcess().get();
 
     for (size_t i = 0; i < frame_count; ++i) {
         auto frame = addrlist_[i];
@@ -149,7 +132,7 @@ void StackTrace::WriteLog(size_t frame_count) {
         symbol_info->MaxNameLen = 256;
 
         DWORD64 displacement = 0;
-        const auto has_symbol = ::SymFromAddr(SymLoader::Instance().GetProcess().get(),
+        const auto has_symbol = ::SymFromAddr(current_process,
             reinterpret_cast<DWORD64>(frame),
             &displacement,
             symbol_info);
@@ -160,7 +143,7 @@ void StackTrace::WriteLog(size_t frame_count) {
             IMAGEHLP_LINE64 line{};
             line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
 
-            const auto has_line = ::SymGetLineFromAddr64(SymLoader::Instance().GetProcess().get(),
+            const auto has_line = ::SymGetLineFromAddr64(current_process,
                 reinterpret_cast<DWORD64>(frame),
                 &line_displacement,
                 &line);
@@ -179,15 +162,12 @@ void StackTrace::WriteLog(size_t frame_count) {
 }
 
 void StackTrace::PrintStackTrace(EXCEPTION_POINTERS const* info) {
-    if (std::find(kIgoneExceptionCode.begin(),
-        kIgoneExceptionCode.end(),
-        info->ExceptionRecord->ExceptionCode) != kIgoneExceptionCode.end()) {
-        XAMP_LOG_DEBUG("Igone exception code 0x{:08x}.", info->ExceptionRecord->ExceptionCode);
+    auto exceptionCode = info->ExceptionRecord->ExceptionCode;
+
+    if ((exceptionCode & ERROR_SEVERITY_ERROR) != ERROR_SEVERITY_ERROR) {
         return;
     }
-
-    if (info->ExceptionRecord->ExceptionCode == kMsvcCppExceptionCode) {
-        XAMP_LOG_DEBUG("Uncaught std::exception!");
+    if (exceptionCode & APPLICATION_ERROR_MASK) {
         return;
     }
 

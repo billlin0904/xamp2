@@ -22,7 +22,8 @@ public:
     using NodePtr = typename ItemList::const_iterator;
 
     explicit LruCache(size_t max_size = kLruCacheSize)
-        : max_size_(max_size) {
+        : max_size_(max_size)
+        , miss_count_(0) {
     }
 
     void SetMaxSize(size_t max_size) {
@@ -42,6 +43,7 @@ public:
     std::optional<Value const*> Find(Key const& key) const {
         const auto check = cache_.find(key);
         if (check == cache_.end()) {
+            ++miss_count_;
             return std::nullopt;
         }
         items_.push_front(*check->second);
@@ -58,6 +60,10 @@ public:
         return items_.cend();
     }
 
+    size_t GetMissCount() const noexcept {
+        return miss_count_;
+    }
+
     void Erase(Key const& key) {
         const auto check = cache_.find(key);
         if (check == cache_.end()) {
@@ -70,6 +76,7 @@ public:
     void Clear() noexcept {
         cache_.clear();
         items_.clear();
+        miss_count_ = 0;
     }
 
     size_t GetMaxSize() const noexcept {
@@ -78,6 +85,7 @@ public:
 
 private:
     size_t max_size_;
+    mutable size_t miss_count_;
     mutable RobinHoodHashMap<Key, NodePtr> cache_;
     mutable ItemList items_;
 };

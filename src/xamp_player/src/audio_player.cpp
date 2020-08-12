@@ -166,10 +166,12 @@ void AudioPlayer::OpenStream(std::wstring const & file_path, std::wstring const 
             if (device_info.is_support_dsd) {
                 dsd_stream->SetDSDMode(DsdModes::DSD_MODE_NATIVE);
                 dsd_mode_ = DsdModes::DSD_MODE_NATIVE;
+                XAMP_LOG_DEBUG("Use Native DSD mode.");
             }
             else {
                 dsd_stream->SetDSDMode(DsdModes::DSD_MODE_PCM);
                 dsd_mode_ = DsdModes::DSD_MODE_PCM;
+                XAMP_LOG_DEBUG("Use PCM mode.");
             }
         }
         else {
@@ -187,6 +189,7 @@ void AudioPlayer::OpenStream(std::wstring const & file_path, std::wstring const 
     else {
         stream_ = MakeAlign<FileStream, AvFileStream>();
         dsd_mode_ = DsdModes::DSD_MODE_PCM;
+        XAMP_LOG_DEBUG("Use PCM mode.");
     }
 
     XAMP_LOG_DEBUG("Use stream type: {}.", stream_->GetDescription());
@@ -363,13 +366,6 @@ std::optional<uint32_t> AudioPlayer::GetDSDSpeed() const {
     return std::nullopt;
 }
 
-std::optional<DeviceInfo> AudioPlayer::GetDefaultDeviceInfo() const {
-    if (!device_) {
-        return std::nullopt;
-    }
-    return device_type_->GetDefaultDeviceInfo();
-}
-
 double AudioPlayer::GetDuration() const {
     if (!stream_) {
         return 0.0;
@@ -381,7 +377,7 @@ PlayerState AudioPlayer::GetState() const noexcept {
     return state_;
 }
 
-AudioFormat AudioPlayer::GetStreamFormat() const noexcept {
+AudioFormat AudioPlayer::GetFileFormat() const noexcept {
     return stream_->GetFormat();
 }
 
@@ -703,7 +699,7 @@ void AudioPlayer::StartPlay() {
         try {
             std::unique_lock<std::mutex> lock{ p->pause_mutex_ };
 
-            auto sample_buffer = player->sample_buffer_.get();
+            auto sample_buffer = p->sample_buffer_.get();
             const auto max_read_sample = p->num_read_sample_;
             const auto num_sample_write = max_read_sample * kMaxWriteRatio;
 
