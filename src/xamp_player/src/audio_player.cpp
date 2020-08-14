@@ -103,7 +103,7 @@ void AudioPlayer::CreateDevice(ID const & device_type_id, std::string const & de
         if (auto result = DeviceManager::Instance().Create(device_type_id)) {
             device_type_ = std::move(result.value());
             device_type_->ScanNewDevice();
-            device_ = device_type_->MakeDevice(ToStdWString(device_id));
+            device_ = device_type_->MakeDevice(device_id);
             device_type_id_ = device_type_id;
             device_id_ = device_id;
         }
@@ -583,6 +583,9 @@ void AudioPlayer::OpenDevice(double stream_time) {
                 XAMP_LOG_DEBUG("Setting eq band:{} gain:{} Q:{}", i, settings.gain, settings.Q);
             }
         }
+        else {
+            equalizer_.reset();
+        }
     }
 }
 
@@ -646,12 +649,18 @@ void AudioPlayer::BufferStream() {
             if (num_samples == 0) {
                 return;
             }
+
             auto samples = reinterpret_cast<const float*>(sample_buffer);
+            
+            auto default_resampler = true;
             if (equalizer_ != nullptr) {
                 if (dsd_mode_ == DsdModes::DSD_MODE_PCM) {
                     equalizer_->Process(samples, num_samples, buffer_);
+                    default_resampler = false;
                 }
-            } else {
+            }
+
+            if (default_resampler) {
                 if (!resampler_->Process(samples, num_samples, buffer_)) {
                     continue;
                 }
@@ -667,11 +676,16 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_read_sample
 
         if (num_samples > 0) {
             auto samples = reinterpret_cast<const float*>(sample_buffer_.get());
+
+            auto default_resampler = true;
             if (equalizer_ != nullptr) {
                 if (dsd_mode_ == DsdModes::DSD_MODE_PCM) {
                     equalizer_->Process(samples, num_samples, buffer_);
+                    default_resampler = false;
                 }
-            } else {
+            } 
+
+            if (default_resampler) {
                 if (!resampler_->Process(samples, num_samples, buffer_)) {
                     continue;
                 }

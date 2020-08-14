@@ -15,6 +15,25 @@
 
 namespace xamp::output_device {
 
+static std::string CLSIDToString(CLSID guid) {
+    std::array<char,40> output;
+    snprintf(output.data(), output.size(),
+		"{%08X-%04hX-%04hX-%02X%02X-%02X%02X%02X%02X%02X%02X}",
+		guid.Data1,
+		guid.Data2,
+		guid.Data3,
+		guid.Data4[0],
+		guid.Data4[1], 
+		guid.Data4[2], 
+		guid.Data4[3],
+		guid.Data4[4],
+		guid.Data4[5],
+		guid.Data4[6],
+		guid.Data4[7]);
+    return std::string(output.data());
+}
+
+
 ASIODeviceType::ASIODeviceType() {
 }
 
@@ -64,21 +83,23 @@ void ASIODeviceType::ScanNewDevice() {
 	AsioDrivers drivers;
 	const auto num_device = drivers.asioGetNumDev();
 
-	for (auto i = 0; i < num_device; ++i) {
-        char driver_name[MAX_PATH_LEN]{};
-        if (drivers.asioGetDriverName(i, driver_name, MAX_PATH_LEN) == 0) {
-			const std::string name(driver_name);
-			if (device_list_.find(driver_name) != device_list_.end()) {
+	for (auto i = 0; i < num_device; ++i) {		
+		CLSID clsid{ 0 };
+		if (drivers.asioGetDriverCLSID(i, &clsid) == 0) {
+			char driver_name[MAX_PATH_LEN + 1]{};
+			drivers.asioGetDriverName(i, driver_name, MAX_PATH_LEN);
+			auto device_id = CLSIDToString(clsid);
+			if (device_list_.find(device_id) != device_list_.end()) {
 				continue;
 			}
-			device_list_[name] = GetDeviceInfo(name);
+			device_list_[device_id] = GetDeviceInfo(ToStdWString(driver_name), driver_name);
 		}
 	}
 }
 
-DeviceInfo ASIODeviceType::GetDeviceInfo(std::string const & device_id) const {
+DeviceInfo ASIODeviceType::GetDeviceInfo(std::wstring const& name, std::string const & device_id) const {
 	DeviceInfo info;
-	info.name = ToStdWString(device_id);
+	info.name = name;
 	info.device_id = device_id;
 	info.device_type_id = Id;
 	// NOTE: 無法不開啟ASIO狀態下取得是否支援DSD, 目前先假定ASIO是支援DSD的!
@@ -86,9 +107,8 @@ DeviceInfo ASIODeviceType::GetDeviceInfo(std::string const & device_id) const {
 	return info;
 }
 
-AlignPtr<Device> ASIODeviceType::MakeDevice(std::wstring const & device_id) {
-	const auto id = ToUtf8String(device_id);
-	return MakeAlign<Device, AsioDevice>(id);
+AlignPtr<Device> ASIODeviceType::MakeDevice(std::string const & device_id) {
+	return MakeAlign<Device, AsioDevice>(device_id);
 }
 
 }

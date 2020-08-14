@@ -32,7 +32,7 @@ public:
 
     virtual ID GetTypeId() const = 0;
 
-    virtual AlignPtr<Device> MakeDevice(std::wstring const & device_id) = 0;
+    virtual AlignPtr<Device> MakeDevice(std::string const & device_id) = 0;
 
 	virtual size_t GetDeviceCount() const = 0;
 

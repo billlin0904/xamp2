@@ -93,12 +93,12 @@ DeviceManager::DeviceManager() {
 #ifdef XAMP_OS_WIN
     using namespace win32;
     HrIfFailledThrow(::MFStartup(MF_VERSION, MFSTARTUP_LITE));
-    XAMP_REGISTER_DEVICE_TYPE(SharedWasapiDeviceType);
-    XAMP_REGISTER_DEVICE_TYPE(ExclusiveWasapiDeviceType);
 #if ENABLE_ASIO
     Mmcss::LoadAvrtLib();
     XAMP_REGISTER_DEVICE_TYPE(ASIODeviceType);
 #endif
+    XAMP_REGISTER_DEVICE_TYPE(SharedWasapiDeviceType);
+    XAMP_REGISTER_DEVICE_TYPE(ExclusiveWasapiDeviceType);
 #else
     using namespace osx;
     SetRealtimeProcessPriority();

@@ -2,6 +2,7 @@
 
 #ifdef XAMP_OS_WIN
 #include <base/logger.h>
+#include <base/str_utilts.h>
 #include <output_device/win32/hrexception.h>
 #include <output_device/win32/wasapi.h>
 #include <output_device/win32/sharedwasapidevice.h>
@@ -29,8 +30,8 @@ CComPtr<IMMDevice> SharedWasapiDeviceType::GetDeviceById(std::wstring const & de
 	return device;
 }
 
-AlignPtr<Device> SharedWasapiDeviceType::MakeDevice(std::wstring const & device_id) {
-	return MakeAlign<Device, SharedWasapiDevice>(GetDeviceById(device_id));
+AlignPtr<Device> SharedWasapiDeviceType::MakeDevice(std::string const & device_id) {
+	return MakeAlign<Device, SharedWasapiDevice>(GetDeviceById(ToStdWString(device_id)));
 }
 
 DeviceInfo SharedWasapiDeviceType::GetDeviceInfo(uint32_t device) const {

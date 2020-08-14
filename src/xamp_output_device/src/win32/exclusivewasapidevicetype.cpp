@@ -1,6 +1,7 @@
 #include <base/base.h>
 
 #ifdef XAMP_OS_WIN
+#include <base/str_utilts.h>
 #include <output_device/win32/hrexception.h>
 #include <output_device/win32/exclusivewasapidevice.h>
 #include <output_device/win32/exclusivewasapidevicetype.h>
@@ -41,8 +42,8 @@ CComPtr<IMMDevice> ExclusiveWasapiDeviceType::GetDeviceById(std::wstring const &
 	return device;
 }
 
-AlignPtr<Device> ExclusiveWasapiDeviceType::MakeDevice(std::wstring const & device_id) {
-	return MakeAlign<Device, ExclusiveWasapiDevice>(GetDeviceById(device_id));
+AlignPtr<Device> ExclusiveWasapiDeviceType::MakeDevice(std::string const & device_id) {
+	return MakeAlign<Device, ExclusiveWasapiDevice>(GetDeviceById(ToStdWString(device_id)));
 }
 
 std::string_view ExclusiveWasapiDeviceType::GetDescription() const {

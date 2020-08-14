@@ -34,9 +34,9 @@ public:
 
     void ScanNewDevice() override;
 
-	AlignPtr<Device> MakeDevice(std::wstring const &device_id) override;
+	AlignPtr<Device> MakeDevice(std::string const &device_id) override;
 private:
-	DeviceInfo GetDeviceInfo(std::string const & device_id) const;
+	DeviceInfo GetDeviceInfo(std::wstring const& name, std::string const & device_id) const;
 
 	RobinHoodHashMap<std::string, DeviceInfo> device_list_;
 };
