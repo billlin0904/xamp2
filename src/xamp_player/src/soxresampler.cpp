@@ -124,8 +124,7 @@ public:
                                                       &runtimespec));
         if (!handle_) {
             XAMP_LOG_DEBUG("soxr error: {}", !error ? "" : error);
-            throw Exception(Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR,
-                            "sox_create return failure!");
+            throw LibrarySpecException("sox_create return failure!");
         }
         input_samplerate_ = input_samplerate;
         num_channels_ = num_channels;
@@ -192,7 +191,7 @@ public:
 
         size_t write_size(samples_done * num_channels_ * sizeof(float));
         if (!buffer.TryWrite(reinterpret_cast<int8_t const *>(buffer_.data()), write_size)) {
-            throw Exception(Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR, "Buffer overflow!");
+            throw LibrarySpecException("Buffer overflow!");
         }
         buffer_.resize(samples_done * num_channels_);
         return true;

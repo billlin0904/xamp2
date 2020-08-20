@@ -39,7 +39,7 @@ public:
     explicit Exception(Errors error = Errors::XAMP_ERROR_SUCCESS,
                        std::string const & message = "",
                        std::string_view what = "");
-
+    
     virtual ~Exception() noexcept = default;
 
     [[nodiscard]] char const * what() const noexcept override;
@@ -57,6 +57,11 @@ private:
 protected:	
 	std::string_view what_;
     std::string message_;
+};
+
+class XAMP_BASE_API LibrarySpecException : public Exception {
+public:
+    LibrarySpecException(std::string const& message, std::string_view what = "");
 };
 
 class XAMP_BASE_API PlatformSpecException : public Exception {
@@ -100,11 +105,8 @@ private:
 class XAMP_BASE_API NotSupportVariableSampleRateException final : public Exception {
 public:
     explicit NotSupportVariableSampleRateException(int32_t input_samplerate, int32_t output_samplerate);
-
-    virtual ~NotSupportVariableSampleRateException() = default;
 };
 
-XAMP_DECLARE_EXCEPTION_CLASS(LibrarySpecErrorException)
 XAMP_DECLARE_EXCEPTION_CLASS(DeviceNotInititalzedException)
 XAMP_DECLARE_EXCEPTION_CLASS(DeviceInUseException)
 XAMP_DECLARE_EXCEPTION_CLASS(DeviceNotFoundException)

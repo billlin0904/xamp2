@@ -35,6 +35,10 @@ std::string GetPlatformErrorMessage(int32_t err) {
 }
 #endif
 
+LibrarySpecException::LibrarySpecException(const std::string & message, std::string_view what)
+    : Exception(Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR, message, what) {
+}
+
 Exception::Exception(Errors error, const std::string& message, std::string_view what)
 	: error_(error)
     , what_(what)
@@ -135,7 +139,6 @@ ExceptionClassName::ExceptionClassName()\
     : Exception(error) {\
 }\
 
-IMP_EXCEPTION_CLASS(LibrarySpecErrorException, Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR)
 IMP_EXCEPTION_CLASS(DeviceNotInititalzedException, Errors::XAMP_ERROR_DEVICE_NOT_INITIALIZED)
 IMP_EXCEPTION_CLASS(DeviceInUseException, Errors::XAMP_ERROR_DEVICE_IN_USE)
 IMP_EXCEPTION_CLASS(DeviceNotFoundException, Errors::XAMP_ERROR_DEVICE_NOT_FOUND)

@@ -6,7 +6,7 @@ namespace xamp::player {
 #define CheckBufferFlow(expr) \
     do {\
         if (!(expr)) {\
-        throw Exception(Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR, "Buffer overflow.");\
+        throw LibrarySpecException("Buffer overflow.");\
         }\
     } while(false)
 

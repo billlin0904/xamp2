@@ -48,17 +48,14 @@ void LrcPage::setBackground(const QPixmap& cover) {
 	}
 	else {
 		background_image_ = Pixmap::blurImage(cover, 40);
-	}	
+	}
+	update();
 }
 
 void LrcPage::resizeEvent(QResizeEvent*) {
 }
 
 void LrcPage::OnThemeColorChanged(QColor theme_color, QColor color) {
-	//title_->setStyleSheet(Q_UTF8("QLabel { color: ") + colorToString(color) + Q_UTF8(";}"));
-	//album_->setStyleSheet(Q_UTF8("QLabel { color: ") + colorToString(color) + Q_UTF8(";}"));
-	//artist_->setStyleSheet(Q_UTF8("QLabel { color: ") + colorToString(color) + Q_UTF8(";}"));
-    //setStyleSheet(backgroundColorToString(theme_color));
 	lyrics_widget_->setLrcColor(color);
 	lyrics_widget_->setLrcHightLight(color);
 }

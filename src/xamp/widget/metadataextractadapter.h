@@ -46,7 +46,7 @@ public:
     static void processMetadata(const std::vector<Metadata>& metadatas, PlayListTableView *playlist = nullptr);
 
     static void readMetadata(MetadataExtractAdapter* adapter, QString const& file_name);
-	
+	    
 private:
     bool cancel_;
     std::vector<Metadata> metadatas_;
