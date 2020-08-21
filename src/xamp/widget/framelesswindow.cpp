@@ -3,6 +3,9 @@
 #include <QStyle>
 #include <QFontDatabase>
 #include <QTranslator>
+#include <QSystemTrayIcon>
+#include <QMenu>
+#include <QAction>
 
 #if defined(Q_OS_WIN)
 #include <Windows.h>
@@ -58,7 +61,7 @@ FramelessWindow::FramelessWindow(QWidget* parent)
     setAcceptDrops(true);
     setMouseTracking(true);
     installEventFilter(this);
-    initiaUIFont();
+    initiaUIFont();    
     QFont ui_font(Q_UTF8("UI"));
     ui_font.setStyleStrategy(QFont::PreferAntialias);
 #if defined(Q_OS_WIN)    
@@ -66,7 +69,7 @@ FramelessWindow::FramelessWindow(QWidget* parent)
     HWND hwnd = (HWND)this->winId();
     setWinStyle(hwnd);
     ThemeManager::instance().enableBlur(this, AppSettings::getValueAsBool(kAppSettingEnableBlur));
-    setupThumbnailToolBar();   
+    createThumbnailToolBar();   
     setStyleSheet(Q_UTF8(R"(
         font-family: "UI";
 		background: transparent;        
@@ -85,7 +88,7 @@ FramelessWindow::FramelessWindow(QWidget* parent)
 FramelessWindow::~FramelessWindow() {
 }
 
-void FramelessWindow::setupThumbnailToolBar() {
+void FramelessWindow::createThumbnailToolBar() {
 #if defined(Q_OS_WIN)
     play_icon_ = style()->standardIcon(QStyle::SP_MediaPlay);
     pause_icon_ = style()->standardIcon(QStyle::SP_MediaPause);

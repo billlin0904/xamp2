@@ -10,6 +10,7 @@
 #include <QProgressDialog>
 #include <QMainWindow>
 #include <QWidgetAction>
+#include <QSystemTrayIcon>
 
 #include <base/scopeguard.h>
 #include <base/str_utilts.h>
@@ -68,7 +69,60 @@ void Xamp::initial() {
     initialShortcut();
     setCover(nullptr);
     DeviceManager::Instance().RegisterDeviceListener(player_);
-    setDefaultStyle();
+    createActions();
+    createTrayIcon();
+    setDefaultStyle();    
+}
+
+void Xamp::onActivated(QSystemTrayIcon::ActivationReason reason) {
+    switch (reason) {
+    case QSystemTrayIcon::Trigger:
+    {
+        showNormal();
+        raise();
+        activateWindow();
+        break;
+    }
+    case QSystemTrayIcon::DoubleClick:
+    {
+        break;
+    }
+    default:
+        break;
+    }
+}
+
+void Xamp::createActions() {
+    minimizeAction_ = new QAction(tr("Mi&nimize"), this);
+    QObject::connect(minimizeAction_, &QAction::triggered, this, &QWidget::hide);
+
+    maximizeAction_ = new QAction(tr("Ma&ximize"), this);
+    QObject::connect(maximizeAction_, &QAction::triggered, this, &QWidget::showMaximized);
+
+    restoreAction_ = new QAction(tr("&Restore"), this);
+    QObject::connect(restoreAction_, &QAction::triggered, this, &QWidget::showNormal);
+
+    quitAction_ = new QAction(tr("&Quit"), this);
+    QObject::connect(quitAction_, &QAction::triggered, qApp, &QCoreApplication::quit);
+}
+
+void Xamp::createTrayIcon() {
+    trayIconMenu_ = new QMenu(this);
+    trayIconMenu_->addAction(minimizeAction_);
+    trayIconMenu_->addAction(maximizeAction_);
+    trayIconMenu_->addAction(restoreAction_);
+    trayIconMenu_->addSeparator();
+    trayIconMenu_->addAction(quitAction_);
+
+    trayIcon_ = new QSystemTrayIcon(qApp->windowIcon(), this);
+    trayIcon_->setContextMenu(trayIconMenu_);
+    trayIcon_->setToolTip(Q_UTF8("XAMP"));
+    trayIcon_->show();
+
+    QObject::connect(trayIcon_,
+        SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
+        this,
+        SLOT(onActivated(QSystemTrayIcon::ActivationReason)));
 }
 
 //void Xamp::paintEvent(QPaintEvent* event) {
@@ -80,7 +134,13 @@ void Xamp::initial() {
 //    }
 //}
 
-void Xamp::closeEvent(QCloseEvent*) {
+void Xamp::closeEvent(QCloseEvent* event) {
+    //if (trayIcon_->isVisible()) {
+    //    hide();
+    //    event->ignore();
+    //    return;
+    //}
+
     try {
         AppSettings::setValue(kAppSettingVolume, player_->GetVolume());
     } catch (...) {
@@ -460,7 +520,7 @@ void Xamp::initialController() {
     ui.seekSlider->setEnabled(false);
     ui.startPosLabel->setText(Time::msToString(0));
     ui.endPosLabel->setText(Time::msToString(0));
-    ui.searchLineEdit->setPlaceholderText(tr("Search anything"));
+    ui.searchLineEdit->setPlaceholderText(tr("Search anything"));   
 }
 
 void Xamp::applyTheme(QColor color) {

@@ -5,8 +5,7 @@
 
 #pragma once
 
-#include <mutex>
-
+#include <QMutex>
 #include <QObject>
 
 #include <base/metadata.h>
@@ -50,5 +49,6 @@ public:
 private:
     bool cancel_;
     std::vector<Metadata> metadatas_;
+    QMutex mutex_;
 };
 

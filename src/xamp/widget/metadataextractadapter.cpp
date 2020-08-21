@@ -2,6 +2,7 @@
 #include <QMap>
 #include <QtConcurrent>
 #include <QFuture>
+#include <QMutexLocker>
 
 #include "thememanager.h"
 #include <widget/toast.h>
@@ -127,10 +128,12 @@ void MetadataExtractAdapter::readMetadata(MetadataExtractAdapter *adapter, QStri
 }
 
 void MetadataExtractAdapter::OnWalk(const Path&, Metadata metadata) {
+    QMutexLocker locker{ &mutex_ };
     metadatas_.emplace_back(std::move(metadata));
 }
 
 void MetadataExtractAdapter::OnWalkNext() {
+    QMutexLocker locker{ &mutex_ };
     if (metadatas_.empty()) {
         return;
     }

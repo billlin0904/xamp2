@@ -6,6 +6,7 @@
 #pragma once
 
 #include <QStack>
+#include <QSystemTrayIcon>
 
 #include <player/audio_player.h>
 
@@ -55,6 +56,7 @@ public slots:
 
 	void processMeatadata(const std::vector<xamp::base::Metadata>& medata);
 
+	void onActivated(QSystemTrayIcon::ActivationReason reason);
 private:
     void initial();
 
@@ -140,6 +142,10 @@ private:
 
     void setupEQ();
 
+	void createActions();
+
+	void createTrayIcon();
+
 	bool is_seeking_;
 	PlayerOrder order_;
 	QModelIndex play_index_;
@@ -157,5 +163,11 @@ private:
 	DiscogsClient discogs_;
 	FileSystemWatcher watch_;
     QList<AppEQSettings> eqsettings_;
+	QAction* minimizeAction_;
+	QAction* maximizeAction_;
+	QAction* restoreAction_;
+	QAction* quitAction_;
+	QMenu* trayIconMenu_;
+	QSystemTrayIcon* trayIcon_;
     Ui::XampWindow ui;
 };

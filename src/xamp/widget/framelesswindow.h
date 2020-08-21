@@ -7,9 +7,8 @@
 
 #include <QWidget>
 #include <QMimeData>
+#include <QIcon>
 #include <QDragEnterEvent>
-#include <QSystemTrayIcon>
-#include <QMainWindow>
 
 #include <base/align_ptr.h>
 
@@ -18,6 +17,10 @@ class QWinThumbnailToolBar;
 class QWinTaskbarButton;
 class QWinTaskbarProgress;
 #endif
+
+class QAction;
+class QSystemTrayIcon;
+class QMenu;
 
 class FramelessWindow : public QWidget {
 public:
@@ -75,9 +78,9 @@ protected:
 private:
 	void initiaUIFont();
 
-	void setupThumbnailToolBar();
+	void createThumbnailToolBar();
 
-    bool nativeEvent(const QByteArray& event_type, void* message, long* result) override;
+    bool nativeEvent(const QByteArray& event_type, void* message, long* result) override;	
 
 #if defined(Q_OS_WIN)
 	bool is_maximized_;
@@ -91,5 +94,5 @@ private:
 	QScopedPointer<QWinThumbnailToolBar> thumbnail_tool_bar_;
 	QScopedPointer<QWinTaskbarButton> taskbar_button_;
 	QWinTaskbarProgress* taskbar_progress_;
-#endif
+#endif	
 };
