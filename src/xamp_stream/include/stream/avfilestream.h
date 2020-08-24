@@ -22,7 +22,7 @@ public:
 
 	XAMP_PIMPL(AvFileStream)
 
-    void OpenFromFile(const std::wstring& file_path) override;
+    void OpenFile(const std::wstring& file_path) override;
 
 	void Close() override;
 

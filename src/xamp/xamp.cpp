@@ -69,7 +69,6 @@ void Xamp::initial() {
     initialShortcut();
     setCover(nullptr);
     DeviceManager::Instance().RegisterDeviceListener(player_);
-    createActions();
     createTrayIcon();
     setDefaultStyle();    
 }
@@ -92,27 +91,33 @@ void Xamp::onActivated(QSystemTrayIcon::ActivationReason reason) {
     }
 }
 
-void Xamp::createActions() {
-    minimizeAction_ = new QAction(tr("Mi&nimize"), this);
-    QObject::connect(minimizeAction_, &QAction::triggered, this, &QWidget::hide);
-
-    maximizeAction_ = new QAction(tr("Ma&ximize"), this);
-    QObject::connect(maximizeAction_, &QAction::triggered, this, &QWidget::showMaximized);
-
-    restoreAction_ = new QAction(tr("&Restore"), this);
-    QObject::connect(restoreAction_, &QAction::triggered, this, &QWidget::showNormal);
-
-    quitAction_ = new QAction(tr("&Quit"), this);
-    QObject::connect(quitAction_, &QAction::triggered, this, &QWidget::close);
-}
-
 void Xamp::createTrayIcon() {
+    auto minimizeAction = new QAction(tr("Mi&nimize"), this);
+    QObject::connect(minimizeAction, &QAction::triggered, this, &QWidget::hide);
+
+    auto  maximizeAction = new QAction(tr("Ma&ximize"), this);
+    QObject::connect(maximizeAction, &QAction::triggered, this, &QWidget::showMaximized);
+
+    auto restoreAction = new QAction(tr("&Restore"), this);
+    QObject::connect(restoreAction, &QAction::triggered, this, &QWidget::showNormal);
+
+    auto quitAction = new QAction(tr("&Quit"), this);
+    QObject::connect(quitAction, &QAction::triggered, this, &QWidget::close);
+
+    auto aboutAction = new QAction(tr("&About"), this);
+    (void)QObject::connect(aboutAction, &QAction::triggered, [=]() {
+        AboutDialog aboutdlg;
+        aboutdlg.setFont(font());
+        aboutdlg.exec();
+        });
+
     trayIconMenu_ = new QMenu(this);
-    trayIconMenu_->addAction(minimizeAction_);
-    trayIconMenu_->addAction(maximizeAction_);
-    trayIconMenu_->addAction(restoreAction_);
+    trayIconMenu_->addAction(minimizeAction);
+    trayIconMenu_->addAction(maximizeAction);
+    trayIconMenu_->addAction(restoreAction);
+    trayIconMenu_->addAction(aboutAction);
     trayIconMenu_->addSeparator();
-    trayIconMenu_->addAction(quitAction_);
+    trayIconMenu_->addAction(quitAction);
 
     trayIcon_ = new QSystemTrayIcon(ThemeManager::instance().appIcon(), this);
     trayIcon_->setContextMenu(trayIconMenu_);
@@ -135,11 +140,11 @@ void Xamp::createTrayIcon() {
 //}
 
 void Xamp::closeEvent(QCloseEvent* event) {
-    //if (trayIcon_->isVisible()) {
-    //    hide();
-    //    event->ignore();
-    //    return;
-    //}
+    if (trayIcon_->isVisible() && !isHidden()) {
+        hide();
+        event->ignore();
+        return;
+    }
 
     try {
         AppSettings::setValue(kAppSettingVolume, player_->GetVolume());
@@ -156,16 +161,13 @@ void Xamp::closeEvent(QCloseEvent* event) {
     }
 }
 
-void Xamp::setNightStyle() {
-}
-
 void Xamp::setDefaultStyle() {
     ThemeManager::instance().setDefaultStyle(ui);
     applyTheme(ThemeManager::instance().getBackgroundColor());
 }
 
 void Xamp::registerMetaType() {
-    qRegisterMetaType<std::vector<xamp::base::Metadata>>("std::vector<xamp::base::Metadata>");  
+    qRegisterMetaType<std::vector<Metadata>>("std::vector<xamp::base::Metadata>");
     qRegisterMetaType<DeviceState>("xamp::output_device::DeviceState");
     qRegisterMetaType<PlayerState>("xamp::player::PlayerState");
     qRegisterMetaType<Errors>("xamp::base::Errors");
@@ -225,7 +227,6 @@ void Xamp::initialDeviceList() {
         ui.selectDeviceButton->setMenu(menu);
     }
 
-    menu->setStyleSheet(ThemeManager::instance().getMenuStyle());
     menu->clear();
 
     DeviceInfo init_device_info;
@@ -474,7 +475,6 @@ void Xamp::initialController() {
     });
 
     auto settings_menu = new QMenu(this);
-    settings_menu->setStyleSheet(ThemeManager::instance().getMenuStyle());
     auto settings_action = new QAction(tr("Settings"), this);
     settings_menu->addAction(settings_action);
     (void)QObject::connect(settings_action, &QAction::triggered, [=]() {

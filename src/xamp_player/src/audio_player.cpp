@@ -194,7 +194,7 @@ void AudioPlayer::OpenStream(std::wstring const & file_path, std::wstring const 
 
     XAMP_LOG_DEBUG("Use stream type: {}.", stream_->GetDescription());
 
-    stream_->OpenFromFile(file_path);
+    stream_->OpenFile(file_path);
 }
 
 void AudioPlayer::SetState(const PlayerState play_state) {

@@ -16,7 +16,7 @@ std::tuple<double, std::vector<uint8_t>> ReadFingerprint(std::wstring const & fi
     constexpr uint32_t kReadSampleSize = 8192 * 4;
 
     auto file_stream = AudioPlayer::MakeFileStream(file_ext);
-	file_stream->OpenFromFile(file_path);
+	file_stream->OpenFile(file_path);
 
 	const auto source_format = file_stream->GetFormat();
 	const AudioFormat input_format{

@@ -96,10 +96,6 @@ void ThemeManager::setPlayOrPauseButton(Ui::XampWindow& ui, bool is_playing) {
     }
 }
 
-QString ThemeManager::getMenuStyle() const noexcept {
-    return Qt::EmptyStr;
-}
-
 QSize ThemeManager::getDefaultCoverSize() const noexcept {
     return cover_size_;
 }
@@ -153,7 +149,7 @@ QIcon ThemeManager::playArrow() const noexcept {
 }
 
 void ThemeManager::setShufflePlayorder(Ui::XampWindow& ui) {
-    auto style_sheet = Q_STR(R"(
+    const auto style_sheet = Q_STR(R"(
     QToolButton#repeatButton {
     image: url(:/xamp/Resource/%1/shuffle.png);
     border: none;
@@ -164,7 +160,7 @@ void ThemeManager::setShufflePlayorder(Ui::XampWindow& ui) {
 }
 
 void ThemeManager::setRepeatOnePlayorder(Ui::XampWindow& ui) {
-    auto style_sheet = Q_STR(R"(
+    const auto style_sheet = Q_STR(R"(
     QToolButton#repeatButton {
     image: url(:/xamp/Resource/%1/repeat_one.png);
     border: none;
@@ -175,7 +171,7 @@ void ThemeManager::setRepeatOnePlayorder(Ui::XampWindow& ui) {
 }
 
 void ThemeManager::setRepeatOncePlayorder(Ui::XampWindow& ui) {
-    auto style_sheet = Q_STR(R"(
+    const auto style_sheet = Q_STR(R"(
     QToolButton#repeatButton {
     image: url(:/xamp/Resource/%1/repeat.png);
     border: none;

@@ -31,8 +31,9 @@ public:
     }
 
     self_type& operator++ () {
-        if (last_)
+        if (last_) {
             throw std::out_of_range("Iterator cannot be incremented past the end of range.");
+        }
         index_ = (index_ + 1) % buffer_.data_.size();
         last_ = index_ == buffer_.next_pos();
         return *this;
@@ -78,7 +79,7 @@ class CircularBuffer {
     CircularBuffer() = delete;
 public:
     explicit CircularBuffer(size_t size)
-        :data_(size) {
+        : data_(size) {
     }
 
     void clear() noexcept { 
@@ -105,21 +106,24 @@ public:
         head_ = next_pos();
         data_[head_] = std::move(item);
 
-        if (size_ < data_.size())
+        if (size_ < data_.size()) {
             size_++;
+        }
     }
 
     void push(const T item) {
         head_ = next_pos();
         data_[head_] = item;
 
-        if (size_ < data_.size()) 
+        if (size_ < data_.size()) {
             size_++;
+        }
     }
 
     T pop() {
-        if (empty()) 
+        if (empty()) {
             throw std::runtime_error("empty buffer");
+        }
 
         auto pos = first_pos();
         size_--;

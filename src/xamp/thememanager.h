@@ -72,8 +72,6 @@ public:
 
     void enableBlur(const QWidget* widget, bool enable);
 
-    QString getMenuStyle() const noexcept;
-
     QSize getDefaultCoverSize() const noexcept;
 
     QSize getCacheCoverSize() const noexcept;
