@@ -56,9 +56,11 @@ class ThemeManager : public QObject {
 public:    
     static ThemeManager& instance();
 
-    QIcon volumeUp();
+    QIcon appIcon() const;
 
-    QIcon volumeOff();
+    QIcon volumeUp() const;
+
+    QIcon volumeOff() const;
 
     const StylePixmapManager& pixmap() noexcept;
 
@@ -70,19 +72,19 @@ public:
 
     void enableBlur(const QWidget* widget, bool enable);
 
-    QString getMenuStyle() noexcept;
+    QString getMenuStyle() const noexcept;
 
-    QSize getDefaultCoverSize() noexcept;
+    QSize getDefaultCoverSize() const noexcept;
 
-    QSize getCacheCoverSize() noexcept;
+    QSize getCacheCoverSize() const noexcept;
 
-    QSize getAlbumCoverSize() noexcept;
+    QSize getAlbumCoverSize() const noexcept;
 
-    QColor getBackgroundColor() noexcept;
+    QColor getBackgroundColor() const noexcept;
+
+    QIcon playArrow() const noexcept;
 
     void setThemeIcon(Ui::XampWindow& ui);
-
-    QIcon playArrow() noexcept;
 
     void setShufflePlayorder(Ui::XampWindow& ui);
 

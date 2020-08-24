@@ -103,7 +103,7 @@ void Xamp::createActions() {
     QObject::connect(restoreAction_, &QAction::triggered, this, &QWidget::showNormal);
 
     quitAction_ = new QAction(tr("&Quit"), this);
-    QObject::connect(quitAction_, &QAction::triggered, qApp, &QCoreApplication::quit);
+    QObject::connect(quitAction_, &QAction::triggered, this, &QWidget::close);
 }
 
 void Xamp::createTrayIcon() {
@@ -114,7 +114,7 @@ void Xamp::createTrayIcon() {
     trayIconMenu_->addSeparator();
     trayIconMenu_->addAction(quitAction_);
 
-    trayIcon_ = new QSystemTrayIcon(qApp->windowIcon(), this);
+    trayIcon_ = new QSystemTrayIcon(ThemeManager::instance().appIcon(), this);
     trayIcon_->setContextMenu(trayIconMenu_);
     trayIcon_->setToolTip(Q_UTF8("XAMP"));
     trayIcon_->show();

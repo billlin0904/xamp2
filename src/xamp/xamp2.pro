@@ -68,6 +68,7 @@ SOURCES += \
     widget/jsonsettings.cpp \
     widget/scrolllabel.cpp \
     widget/xampdialog.cpp \
+    widget/image_utiltis.cpp \
     DarkStyle.cpp \
     singleinstanceapplication.cpp \
     thememanager.cpp \

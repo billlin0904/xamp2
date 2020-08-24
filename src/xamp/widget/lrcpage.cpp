@@ -135,15 +135,15 @@ void LrcPage::initial() {
 	label_3->setObjectName(QString::fromUtf8("label_3"));
 
 	label_3->setText(tr("Artist:"));
-	label_3->setStyleSheet(Q_UTF8("background-color: transparent"));
 	label_3->setFont(f);
 	label_3->setMinimumHeight(40);
 	label_3->setMinimumWidth(60);
-	label_3->setStyleSheet(Q_UTF8("color: white;"));
+    label_3->setStyleSheet(Q_UTF8("background-color: transparent"));
 	horizontalLayout_8->addWidget(label_3);
 
 	artist_ = new ScrollLabel(this);
 	artist_->setObjectName(QString::fromUtf8("label_5"));
+    artist_->setStyleSheet(Q_UTF8("background-color: transparent"));
 	artist_->setFont(f);
 
 	horizontalLayout_8->addWidget(artist_);
@@ -155,18 +155,18 @@ void LrcPage::initial() {
 	auto horizontalLayout_7 = new QHBoxLayout();
 	horizontalLayout_7->setSpacing(0);
 	horizontalLayout_7->setObjectName(QString::fromUtf8("horizontalLayout_7"));
-	auto label_7 = new QLabel(this);
-	label_7->setStyleSheet(Q_UTF8("background-color: transparent"));
+	auto label_7 = new QLabel(this);	
 	label_7->setObjectName(QString::fromUtf8("label_4"));
 	label_7->setText(tr("Album:"));
 
 	label_7->setMinimumWidth(60);
 	label_7->setFont(f);
-	label_7->setStyleSheet(Q_UTF8("color: white;"));
+    label_7->setStyleSheet(Q_UTF8("background-color: transparent"));
 	horizontalLayout_7->addWidget(label_7);
 
 	album_ = new ScrollLabel(this);
 	album_->setObjectName(QString::fromUtf8("label_6"));
+    album_->setStyleSheet(Q_UTF8("background-color: transparent"));
 	album_->setFont(f);
 
 	horizontalLayout_7->addWidget(album_);

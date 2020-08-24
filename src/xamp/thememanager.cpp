@@ -67,11 +67,11 @@ const StylePixmapManager& ThemeManager::pixmap() noexcept {
     return manager;
 }
 
-QIcon ThemeManager::volumeUp() {
+QIcon ThemeManager::volumeUp() const {
     return QIcon(Q_STR(":/xamp/Resource/%1/volume_up.png").arg(themeColorPath()));
 }
 
-QIcon ThemeManager::volumeOff() {
+QIcon ThemeManager::volumeOff() const {
     return QIcon(Q_STR(":/xamp/Resource/%1/volume_off.png").arg(themeColorPath()));
 }
 
@@ -96,23 +96,23 @@ void ThemeManager::setPlayOrPauseButton(Ui::XampWindow& ui, bool is_playing) {
     }
 }
 
-QString ThemeManager::getMenuStyle() noexcept {
+QString ThemeManager::getMenuStyle() const noexcept {
     return Qt::EmptyStr;
 }
 
-QSize ThemeManager::getDefaultCoverSize() noexcept {
+QSize ThemeManager::getDefaultCoverSize() const noexcept {
     return cover_size_;
 }
 
-QSize ThemeManager::getCacheCoverSize() noexcept {
+QSize ThemeManager::getCacheCoverSize() const noexcept {
     return getDefaultCoverSize() * 2;
 }
 
-QSize ThemeManager::getAlbumCoverSize() noexcept {
+QSize ThemeManager::getAlbumCoverSize() const noexcept {
     return album_cover_size_;
 }
 
-QColor ThemeManager::getBackgroundColor() noexcept {
+QColor ThemeManager::getBackgroundColor() const noexcept {
     return background_color_;
 }
 
@@ -124,6 +124,10 @@ void ThemeManager::enableBlur(const QWidget* widget, bool enable) {
     (void)widget;
     (void)enable;
 #endif
+}
+
+QIcon ThemeManager::appIcon() const {
+    return QIcon(Q_UTF8(":/xamp/xamp.ico"));
 }
 
 void ThemeManager::setBackgroundColor(Ui::XampWindow& ui, QColor color) {
@@ -144,7 +148,7 @@ void ThemeManager::setBackgroundColor(Ui::XampWindow& ui, QColor color) {
     setThemeIcon(ui);
 }
 
-QIcon ThemeManager::playArrow() noexcept {
+QIcon ThemeManager::playArrow() const noexcept {
     return QIcon(Q_STR(":/xamp/Resource/%1/play_arrow.png").arg(themeColorPath()));
 }
 

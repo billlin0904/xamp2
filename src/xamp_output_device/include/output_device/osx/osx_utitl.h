@@ -19,13 +19,13 @@ bool IsSupportSampleRate(AudioDeviceID id, uint32_t samplerate);
 
 bool IsSupportDopMode(AudioDeviceID id);
 
-std::wstring GetDeviceUid(AudioDeviceID id);
+std::string GetDeviceUid(AudioDeviceID id);
 
 std::wstring GetDeviceName(AudioDeviceID id, AudioObjectPropertySelector selector);
 
 std::wstring GetPropertyName(AudioDeviceID id);
 
-AudioDeviceID GetAudioDeviceIdByUid(bool is_input, std::wstring const & device_id);
+AudioDeviceID GetAudioDeviceIdByUid(bool is_input, std::string const & device_id);
 
 bool IsOutputDevice(AudioDeviceID id);
 

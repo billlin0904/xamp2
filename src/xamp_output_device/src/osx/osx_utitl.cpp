@@ -60,7 +60,7 @@ bool IsSupportDopMode(AudioDeviceID id) {
            }) != samplerates.end();
 }
 
-std::wstring GetDeviceUid(AudioDeviceID id) {
+std::string GetDeviceUid(AudioDeviceID id) {
     AudioObjectPropertyAddress const property = {
         kAudioDevicePropertyDeviceUID,
         kAudioObjectPropertyScopeGlobal,
@@ -77,9 +77,9 @@ std::wstring GetDeviceUid(AudioDeviceID id) {
                                                &uid);
     if (result) {
         CoreAudioFailedLog(result);
-        return L"";
+        return "";
     }
-    return SysCFStringRefToWide(uid);
+    return SysCFStringRefToUTF8(uid);
 }
 
 std::wstring GetDeviceName(AudioDeviceID id, AudioObjectPropertySelector selector) {
@@ -111,7 +111,7 @@ std::wstring GetPropertyName(AudioDeviceID id) {
     return GetDeviceName(id, kAudioObjectPropertyName);
 }
 
-AudioDeviceID GetAudioDeviceIdByUid(bool is_input, std::wstring const& device_id) {
+AudioDeviceID GetAudioDeviceIdByUid(bool is_input, std::string const& device_id) {
     AudioObjectPropertyAddress property_address = {
         kAudioHardwarePropertyDevices,
         kAudioObjectPropertyScopeGlobal,
@@ -133,7 +133,7 @@ AudioDeviceID GetAudioDeviceIdByUid(bool is_input, std::wstring const& device_id
                                               &device_size,
                                               &audio_device_id);
     } else {
-        auto uid = SysWideToCFStringRef(device_id);
+        auto uid = SysUTF8ToCFStringRef(device_id);
 
         AudioValueTranslation value;
         value.mInputData = &uid;

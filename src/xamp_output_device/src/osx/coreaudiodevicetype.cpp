@@ -22,7 +22,7 @@ std::string_view CoreAudioDeviceType::GetDescription() const {
     return "CoreAudio";
 }
 
-AlignPtr<Device> CoreAudioDeviceType::MakeDevice(const std::wstring &device_id) {
+AlignPtr<Device> CoreAudioDeviceType::MakeDevice(const std::string &device_id) {
     auto id = GetAudioDeviceIdByUid(false, device_id);
     return MakeAlign<Device, CoreAudioDevice>(id, false);
 }

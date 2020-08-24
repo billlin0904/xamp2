@@ -52,7 +52,7 @@ OSStatus CoreAudioDeviceStateNotification::OnDefaultDeviceChangedCallback(
             && addresses[i].mElement == sAddOrRemoveDevicesPropertyAddress.mElement
             && context != nullptr) {
             if (auto callback = (*notification).callback_.lock()) {
-                callback->OnDeviceStateChange(DeviceState::DEVICE_STATE_ADDED, std::to_wstring(object));
+                callback->OnDeviceStateChange(DeviceState::DEVICE_STATE_ADDED, std::to_string(object));
             }
             break;
         }
