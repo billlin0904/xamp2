@@ -666,7 +666,7 @@ void Xamp::playNextItem(int32_t forward) {
 
     if (count > 1) {
         switch (order_) {
-        case PlayerOrder::PLAYER_ORDER_REPEAT_ONCE:
+        case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:
             play_index_ = playlist_view->nextIndex(forward);
             if (play_index_.row() == -1) {
                 return;
@@ -675,7 +675,7 @@ void Xamp::playNextItem(int32_t forward) {
         case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL:
             play_index_ = playlist_view->shuffeIndex();
             break;
-        case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:
+        case PlayerOrder::PLAYER_ORDER_REPEAT_ONCE:
         default:
             break;
         }
@@ -875,7 +875,9 @@ void Xamp::playMusic(const MusicEntity& item) {
     lrc_page_->album()->setText(item.album);
     lrc_page_->artist()->setText(item.artist);
 
-    update();
+    if (isHidden()) {
+        trayIcon_->showMessage(Q_UTF8("XAMP"), item.title, ThemeManager::instance().appIcon(), 1000);
+    }    
 }
 
 void Xamp::play(const PlayListEntity& item) {  
