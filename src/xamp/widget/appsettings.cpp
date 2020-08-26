@@ -110,6 +110,8 @@ void AppSettings::setOrDefaultConfig() {
     setDefaultValue(kAppSettingEnableBlur, true);
 	setDefaultValue(kAppSettingPreventSleep, true);
     setDefaultValue(kLyricsFontSize, 12);
+    setDefaultValue(kAppSettingMinimizeToTrayAsk, true);
+    setDefaultValue(kAppSettingMinimizeToTray, false);
 }
 
 xamp::base::ID AppSettings::getID(const QString& key) {

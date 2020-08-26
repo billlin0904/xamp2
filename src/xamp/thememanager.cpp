@@ -162,7 +162,7 @@ void ThemeManager::setShufflePlayorder(Ui::XampWindow& ui) {
 void ThemeManager::setRepeatOnePlayorder(Ui::XampWindow& ui) {
     const auto style_sheet = Q_STR(R"(
     QToolButton#repeatButton {
-    image: url(:/xamp/Resource/%1/repeat_one.png);
+    image: url(:/xamp/Resource/%1/repeat.png);
     border: none;
     background: transparent;
     }
@@ -173,7 +173,7 @@ void ThemeManager::setRepeatOnePlayorder(Ui::XampWindow& ui) {
 void ThemeManager::setRepeatOncePlayorder(Ui::XampWindow& ui) {
     const auto style_sheet = Q_STR(R"(
     QToolButton#repeatButton {
-    image: url(:/xamp/Resource/%1/repeat.png);
+    image: url(:/xamp/Resource/%1/repeat_one.png);
     border: none;
     background: transparent;
     }

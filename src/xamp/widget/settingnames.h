@@ -20,6 +20,9 @@ inline constexpr ConstLatin1String kAppSettingNightMode{ "AppSettings/nightMode"
 inline constexpr ConstLatin1String kAppSettingBackgroundColor{ "AppSettings/theme/backgroundColor" };
 inline constexpr ConstLatin1String kAppSettingEnableBlur{ "AppSettings/theme/enableBlur" };
 inline constexpr ConstLatin1String kAppSettingMusicFilePath{ "AppSettings/musicFilePath" };
+inline constexpr ConstLatin1String kAppSettingMinimizeToTrayAsk{ "AppSettings/minimizeToTrayAsk" };
+inline constexpr ConstLatin1String kAppSettingMinimizeToTray{ "AppSettings/minimizeToTray" };
+
 
 inline constexpr ConstLatin1String kAppSettingResamplerEnable{ "AppSettings/soxr/enable" };
 inline constexpr ConstLatin1String kAppSettingSoxrSettingName{ "AppSettings/soxr/userSettingName" };

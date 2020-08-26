@@ -8,9 +8,9 @@
 #include <QShortcut>
 #include <QScreen>
 #include <QProgressDialog>
-#include <QMainWindow>
 #include <QWidgetAction>
 #include <QSystemTrayIcon>
+#include <QMessageBox>
 
 #include <base/scopeguard.h>
 #include <base/str_utilts.h>
@@ -46,6 +46,30 @@
 #include "preferencedialog.h"
 #include "thememanager.h"
 #include "xamp.h"
+
+static std::tuple<bool, QMessageBox::StandardButton> showDontShowAgainDialog(QWidget* widget, bool show_agin) {
+    bool is_show_agin = true;
+
+    if (show_agin) {
+        auto cb = new QCheckBox(widget->tr("Don't show this agin"));
+        QMessageBox msgbox;
+        msgbox.setWindowTitle(Q_UTF8("XAMP"));
+        msgbox.setText(widget->tr("Hide XAMP to system tray?"));
+        msgbox.setIcon(QMessageBox::Icon::Question);
+        msgbox.addButton(QMessageBox::Ok);
+        msgbox.addButton(QMessageBox::Cancel);
+        msgbox.setDefaultButton(QMessageBox::Cancel);
+        msgbox.setCheckBox(cb);
+
+        (void)QObject::connect(cb, &QCheckBox::stateChanged, [&is_show_agin](int state) {
+            if (static_cast<Qt::CheckState>(state) == Qt::CheckState::Checked) {
+                is_show_agin = false;
+            }
+            });
+        return { is_show_agin, static_cast<QMessageBox::StandardButton>(msgbox.exec()) };
+    }
+    return { is_show_agin, QMessageBox::Yes };
+}
 
 Xamp::Xamp(QWidget *parent)
     : FramelessWindow(parent)
@@ -141,9 +165,22 @@ void Xamp::createTrayIcon() {
 
 void Xamp::closeEvent(QCloseEvent* event) {
     if (trayIcon_->isVisible() && !isHidden()) {
-        hide();
-        event->ignore();
-        return;
+        auto is_min_system_tray = AppSettings::getValueAsBool(kAppSettingMinimizeToTray);
+        auto show_agin = AppSettings::getValueAsBool(kAppSettingMinimizeToTrayAsk);
+        QMessageBox::StandardButton reply = QMessageBox::No;
+
+        if (!is_min_system_tray && show_agin) {
+            auto [show_agin_res, reply_res] = showDontShowAgainDialog(this, show_agin);
+            AppSettings::setValue(kAppSettingMinimizeToTrayAsk, show_agin_res);
+            AppSettings::setValue(kAppSettingMinimizeToTray, reply == QMessageBox::Ok);
+            reply = reply_res;
+        }
+
+        if (reply == QMessageBox::Ok) {
+            hide();
+            event->ignore();
+            return;
+        }        
     }
 
     try {
@@ -420,6 +457,7 @@ void Xamp::initialController() {
 
     (void)QObject::connect(ui.repeatButton, &QToolButton::pressed, [this]() {
         order_ = GetNextOrder(order_);
+        XAMP_LOG_DEBUG("Set playerorder {}", order_);
         setPlayerOrder();
     });
 
@@ -533,7 +571,7 @@ void Xamp::applyTheme(QColor color) {
         ThemeManager::instance().setThemeColor(ThemeColor::DARK_THEME);
     }
 
-    if (player_->GetState() == xamp::player::PlayerState::PLAYER_STATE_PAUSED) {
+    if (player_->GetState() == PlayerState::PLAYER_STATE_PAUSED) {
         ThemeManager::instance().setPlayOrPauseButton(ui, true);
     }
     else {
@@ -715,17 +753,17 @@ void Xamp::playLocalFile(const PlayListEntity& item) {
 }
 
 void Xamp::play() {
-    if (player_->GetState() == xamp::player::PlayerState::PLAYER_STATE_RUNNING) {
+    if (player_->GetState() == PlayerState::PLAYER_STATE_RUNNING) {
         ThemeManager::instance().setPlayOrPauseButton(ui, false);
         player_->Pause();
         setTaskbarPlayerPaused();
     }
-    else if (player_->GetState() == xamp::player::PlayerState::PLAYER_STATE_PAUSED) {
+    else if (player_->GetState() == PlayerState::PLAYER_STATE_PAUSED) {
         ThemeManager::instance().setPlayOrPauseButton(ui, true);
         player_->Resume();
         setTaskbarPlayingResume();
     }
-    else if (player_->GetState() == xamp::player::PlayerState::PLAYER_STATE_STOPPED) {
+    else if (player_->GetState() == PlayerState::PLAYER_STATE_STOPPED) {
         if (!ui.currentView->count()) {
             return;
         }
@@ -876,7 +914,7 @@ void Xamp::playMusic(const MusicEntity& item) {
     lrc_page_->artist()->setText(item.artist);
 
     if (isHidden()) {
-        trayIcon_->showMessage(Q_UTF8("XAMP"), item.title, ThemeManager::instance().appIcon(), 1000);
+        trayIcon_->showMessage(item.album, item.title, ThemeManager::instance().appIcon(), 1000);
     }    
 }
 
@@ -1141,8 +1179,6 @@ QWidget* Xamp::popWidget() {
 }
 
 void Xamp::readFingerprint(const QModelIndex&, const PlayListEntity& item) {
-    using namespace xamp::player;
-
     QProgressDialog dialog(tr("Read '") + item.title + tr("' fingerprint"), tr("Cancel"), 0, 100);
     dialog.setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     dialog.setFont(font());
