@@ -266,8 +266,8 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 		// DSD 8 bit data, 1 sample per byte. No Endianness required.
 	case ASIOSTDSDInt8LSB1:
 		mix_format_.SetByteFormat(ByteFormat::SINT8);
-		XAMP_LOG_INFO("Driver support format: ASIOSTDSDInt8LSB1.");
-		break;
+XAMP_LOG_INFO("Driver support format: ASIOSTDSDInt8LSB1.");
+break;
 	case ASIOSTDSDInt8MSB1:
 		mix_format_.SetByteFormat(ByteFormat::SINT8);
 		XAMP_LOG_INFO("Driver support format: ASIOSTDSDInt8MSB1.");
@@ -290,7 +290,7 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 		buffer_bytes_ = buffer_size_ * (int64_t)mix_format_.GetBytesPerSample();
 		buffer_ = MakeBuffer<int8_t>(allocate_bytes * buffer_size_);
 		device_buffer_ = MakeBuffer<int8_t>(allocate_bytes * buffer_size_);
-		buffer_vmlock_.Lock(buffer_.get(), allocate_bytes* buffer_size_);
+		buffer_vmlock_.Lock(buffer_.get(), allocate_bytes * buffer_size_);
 		device_buffer_vmlock_.Lock(device_buffer_.get(), allocate_bytes * buffer_size_);
 	}
 	else {
@@ -343,7 +343,7 @@ void AsioDevice::SetMute(bool mute) const {
 
 void AsioDevice::OnBufferSwitch(long index) noexcept {
 	if (callbackInfo.boost_priority) {
-		callbackInfo.mmcss.BoostPriority();		
+		callbackInfo.mmcss.BoostPriority();
 		SetCurrentThreadAffinity(1);
 		callbackInfo.boost_priority = false;
 	}
@@ -352,7 +352,7 @@ void AsioDevice::OnBufferSwitch(long index) noexcept {
 	if (callbackInfo.data_context.cache_volume != vol) {
 		callbackInfo.data_context.volume_factor = LinearToLog(vol);
 		callbackInfo.data_context.cache_volume = vol;
-	}	
+	}
 
 	auto cache_played_bytes = played_bytes_.load();
 	cache_played_bytes += buffer_bytes_ * mix_format_.GetChannels();
@@ -368,6 +368,7 @@ void AsioDevice::OnBufferSwitch(long index) noexcept {
 	bool got_samples = false;
 
 	if (io_format_ == AsioIoFormat::IO_FORMAT_PCM) {
+		// PCM mode input float to output format.
 		if (callback_->OnGetSamples(reinterpret_cast<float*>(buffer_.get()), buffer_size_, double(cache_played_bytes) / mix_format_.GetAvgBytesPerSec()) == 0) {
 			switch (mix_format_.GetByteFormat()) {
 			case ByteFormat::SINT16:
@@ -395,6 +396,7 @@ void AsioDevice::OnBufferSwitch(long index) noexcept {
 		}
 	}
 	else {
+		// DSD mode input output same format (int8_t).
 		const auto avg_byte_per_sec = mix_format_.GetAvgBytesPerSec() / 8;
 		if (callback_->OnGetSamples(buffer_.get(), buffer_bytes_, double(played_bytes_) / avg_byte_per_sec) == 0) {
 			DataConverter<InterleavedFormat::DEINTERLEAVED,

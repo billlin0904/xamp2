@@ -20,7 +20,7 @@ public:
 
     static void RegisterAbortHandler();
 private:   
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
     static LONG WINAPI AbortHandler(EXCEPTION_POINTERS* info);
     void WriteLog(size_t frame_count);
     void PrintStackTrace(EXCEPTION_POINTERS const * info);
