@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include <array>
 #include <cassert>
+#include <array>
 #include <cmath>
 
 #include <base/base.h>
@@ -19,14 +19,13 @@
 
 namespace xamp::base {
 
-// See: http://blog.bjornroche.com/2009/12/int-float-int-its-jungle-out-there.html
-inline constexpr float kFloat16Scaler = 32767.0f;
-inline constexpr float kFloat24Scaler = 8388607.0f;
-inline constexpr float kFloat32Scaler = 2147483647.0f;
+inline constexpr float kFloat16Scaler = 32767.0F;
+inline constexpr float kFloat24Scaler = 8388607.0F;
+inline constexpr float kFloat32Scaler = 2147483647.0F;
 
 XAMP_ALWAYS_INLINE float Clip(float f) noexcept {
 	auto x = f;
-	x = ((x < -1) ? -1 : ((x > 1) ? 1 : x));
+	x = ((x < -1) ? -1 : ((x > 1) ? 1 : x));	
 	return x;
 }
 
@@ -127,9 +126,6 @@ inline void Convert2432Helper(int32_t* XAMP_RESTRICT output, float const* XAMP_R
 
 	while (input != end_input) {
 		*output++ = Int24(*input++).To2432Int();
-		*output++ = Int24(*input++).To2432Int();
-		*output++ = Int24(*input++).To2432Int();
-		*output++ = Int24(*input++).To2432Int();
 	}
 }
 
@@ -156,8 +152,8 @@ struct DataConverter {
 
 	static void Convert(Int24* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {
         for (size_t i = 0; i < context.convert_size; ++i) {
-			output[context.out_offset[0]] = static_cast<int32_t>(Clip(input[context.in_offset[0]]) * kFloat24Scaler * kFloat24Scaler);
-			output[context.out_offset[1]] = static_cast<int32_t>(Clip(input[context.in_offset[1]]) * kFloat24Scaler * kFloat24Scaler);
+			output[context.out_offset[0]] = static_cast<int32_t>(Clip(input[context.in_offset[0]]) * kFloat24Scaler * context.volume_factor);
+			output[context.out_offset[1]] = static_cast<int32_t>(Clip(input[context.in_offset[1]]) * kFloat24Scaler * context.volume_factor);
 			input += context.in_jump;
 			output += context.out_jump;
 		}
@@ -208,9 +204,9 @@ struct DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEA
 	static void ConvertToInt32(int32_t* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {
 		const auto* end_input = input + ptrdiff_t(context.convert_size) * context.input_format.GetChannels();
 
-		const auto scale = _mm_set1_ps(kFloat24Scaler);
-		const auto max_val = _mm_set1_ps(kFloat24Scaler - 1);
-		const auto min_val = _mm_set1_ps(-kFloat24Scaler);
+		const auto scale = ::_mm_set1_ps(kFloat24Scaler);
+		const auto max_val = ::_mm_set1_ps(kFloat24Scaler - 1);
+		const auto min_val = ::_mm_set1_ps(-kFloat24Scaler);
 
 		switch ((end_input - input) % kLoopUnRollingIntCount) {
 		case 3:
@@ -227,10 +223,10 @@ struct DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEA
 		}
 
 		while (input != end_input) {
-			const auto in = _mm_load_ps(input);
-			const auto mul = _mm_mul_ps(in, scale);
-			const auto clamp = _mm_min_ps(_mm_max_ps(mul, min_val), max_val);
-			const auto result = _mm_cvtps_epi32(clamp);
+			const auto in = ::_mm_load_ps(input);
+			const auto mul = ::_mm_mul_ps(in, scale);
+			const auto clamp = ::_mm_min_ps(_mm_max_ps(mul, min_val), max_val);
+			const auto result = ::_mm_cvtps_epi32(clamp);
 			input += 4;
 			output += 4;
 		}
@@ -239,9 +235,9 @@ struct DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEA
 	static void ConvertToInt2432(int32_t* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {		
 		const auto* end_input = input + ptrdiff_t(context.convert_size) * context.input_format.GetChannels();
 
-		const auto scale = _mm_set1_ps(kFloat24Scaler);
-		const auto max_val = _mm_set1_ps(kFloat24Scaler - 1);
-		const auto min_val = _mm_set1_ps(-kFloat24Scaler);
+		const auto scale = ::_mm_set1_ps(kFloat24Scaler);
+		const auto max_val = ::_mm_set1_ps(kFloat24Scaler - 1);
+		const auto min_val = ::_mm_set1_ps(-kFloat24Scaler);
 
 		switch ((end_input - input) % kLoopUnRollingIntCount) {
 		case 3:
@@ -258,12 +254,12 @@ struct DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEA
 		}
 
 		while (input != end_input) {
-			const auto in = _mm_load_ps(input);
-			const auto mul = _mm_mul_ps(in, scale);
-			const auto clamp = _mm_min_ps(_mm_max_ps(mul, min_val), max_val);
-			const auto result = _mm_cvtps_epi32(clamp);
-			const auto shift = _mm_slli_si128(result, 1);
-			_mm_store_si128(reinterpret_cast<__m128i*>(output), shift);
+			const auto in = ::_mm_load_ps(input);
+			const auto mul = ::_mm_mul_ps(in, scale);
+			const auto clamp = ::_mm_min_ps(_mm_max_ps(mul, min_val), max_val);
+			const auto result = ::_mm_cvtps_epi32(clamp);
+			const auto shift = ::_mm_slli_si128(result, 1);
+			::_mm_store_si128(reinterpret_cast<__m128i*>(output), shift);
 			input += 4;
 			output += 4;
 		}

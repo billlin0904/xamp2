@@ -169,11 +169,7 @@ void SetCurrentThreadName(size_t index) {
 void SetThreadAffinity(std::thread& thread, int32_t core) {
 #ifdef XAMP_OS_WIN
     auto mask = (static_cast<DWORD_PTR>(1) << core);
-    if (!::SetThreadAffinityMask(thread.native_handle(), mask)) {
-        XAMP_LOG_DEBUG("SetThreadAffinityMask return failure.");
-    }
-#else
-    SetThreadAffinity(thread.native_handle(), core);
+    ::SetThreadAffinityMask(thread.native_handle(), mask);
 #endif
 }
 
@@ -181,11 +177,7 @@ void SetCurrentThreadAffinity(int32_t core) {
 #ifdef XAMP_OS_WIN
     WinHandle current_thread(::GetCurrentThread());
     auto mask = (static_cast<DWORD_PTR>(1) << core);
-    if (!::SetThreadAffinityMask(current_thread.get(), mask)) {
-        XAMP_LOG_DEBUG("SetThreadAffinityMask return failure.");
-    }
-#else
-    SetThreadAffinity(::pthread_self(), core);
+    ::SetThreadAffinityMask(current_thread.get(), mask);
 #endif
 }
 

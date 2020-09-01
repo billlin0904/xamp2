@@ -266,8 +266,8 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 		// DSD 8 bit data, 1 sample per byte. No Endianness required.
 	case ASIOSTDSDInt8LSB1:
 		mix_format_.SetByteFormat(ByteFormat::SINT8);
-XAMP_LOG_INFO("Driver support format: ASIOSTDSDInt8LSB1.");
-break;
+		XAMP_LOG_INFO("Driver support format: ASIOSTDSDInt8LSB1.");
+		break;
 	case ASIOSTDSDInt8MSB1:
 		mix_format_.SetByteFormat(ByteFormat::SINT8);
 		XAMP_LOG_INFO("Driver support format: ASIOSTDSDInt8MSB1.");
@@ -344,7 +344,7 @@ void AsioDevice::SetMute(bool mute) const {
 void AsioDevice::OnBufferSwitch(long index) noexcept {
 	if (callbackInfo.boost_priority) {
 		callbackInfo.mmcss.BoostPriority();
-		SetCurrentThreadAffinity(1);
+		SetCurrentThreadAffinity();
 		callbackInfo.boost_priority = false;
 	}
 
@@ -367,7 +367,7 @@ void AsioDevice::OnBufferSwitch(long index) noexcept {
 
 	bool got_samples = false;
 
-	if (io_format_ == AsioIoFormat::IO_FORMAT_PCM) {
+	auto pcm_convert = [this, &got_samples, cache_played_bytes]() noexcept {
 		// PCM mode input float to output format.
 		if (callback_->OnGetSamples(reinterpret_cast<float*>(buffer_.get()), buffer_size_, double(cache_played_bytes) / mix_format_.GetAvgBytesPerSec()) == 0) {
 			switch (mix_format_.GetByteFormat()) {
@@ -394,17 +394,23 @@ void AsioDevice::OnBufferSwitch(long index) noexcept {
 			}
 			got_samples = true;
 		}
-	}
-	else {
+	};	
+
+	auto dsd_convert = [this, &got_samples]() noexcept {
 		// DSD mode input output same format (int8_t).
 		const auto avg_byte_per_sec = mix_format_.GetAvgBytesPerSec() / 8;
 		if (callback_->OnGetSamples(buffer_.get(), buffer_bytes_, double(played_bytes_) / avg_byte_per_sec) == 0) {
 			DataConverter<InterleavedFormat::DEINTERLEAVED,
-				InterleavedFormat::INTERLEAVED>::Convert(reinterpret_cast<int8_t*>(device_buffer_.get()),
-					reinterpret_cast<const int8_t*>(buffer_.get()),
-					callbackInfo.data_context);
+				InterleavedFormat::INTERLEAVED>::Convert(device_buffer_.get(), buffer_.get(), callbackInfo.data_context);
 			got_samples = true;
 		}
+	};
+
+	if (io_format_ == AsioIoFormat::IO_FORMAT_PCM) {
+		pcm_convert();
+	}
+	else {
+		dsd_convert();
 	}
 
 	if (got_samples) {
