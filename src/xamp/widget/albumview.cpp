@@ -390,7 +390,7 @@ AlbumView::AlbumView(QWidget* parent)
     (void)QObject::connect(this, &QTableView::customContextMenuRequested, [this](auto pt) {
         auto index = indexAt(pt);
 
-        ActionMap<AlbumView, std::function<void()>> action_map(this);        
+        ActionMap<AlbumView, std::function<void()>> action_map(this);
 
         auto removeAlbum = [=]() {
             auto count = model()->rowCount();
@@ -399,6 +399,7 @@ AlbumView::AlbumView(QWidget* parent)
                 auto album_id = getIndexValue(index, 3).toInt();
                 Database::instance().removeAlbum(album_id);
             }
+            Database::instance().removeAllArtist();
             refreshOnece();
         };
 
@@ -469,10 +470,6 @@ AlbumView::AlbumView(QWidget* parent)
                 AppSettings::getMyMusicFolderPath());
             append(dir_name);
             });
-
-        action_map.addAction(tr("Flush database"), [=]() {
-
-        });
 
         action_map.exec(pt);
     });
@@ -591,13 +588,13 @@ void AlbumView::append(const QString& file_name) {
     (void) QObject::connect(adapter,
                             &MetadataExtractAdapter::readCompleted,
                             this,
-                            &AlbumView::processMeatadata);
-
-    MetadataExtractAdapter::readMetadata(adapter, file_name);
+                            &AlbumView::processMeatadata);    
+    adapter->readMetadata(adapter, file_name);
 }
 
 void AlbumView::processMeatadata(const std::vector<xamp::base::Metadata> &medata) {
-    MetadataExtractAdapter::processMetadata(medata);
+    MetadataExtractAdapter adapter;
+    adapter.processMetadata(medata);
     refreshOnece();
 }
 

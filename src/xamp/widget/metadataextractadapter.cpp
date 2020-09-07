@@ -8,7 +8,6 @@
 #include <widget/toast.h>
 #include <widget/database.h>
 #include <widget/playlisttableview.h>
-#include <widget/pixmapcache.h>
 #include <widget/image_utiltis.h>
 #include <widget/metadataextractadapter.h>
 
@@ -16,30 +15,7 @@ using xamp::base::LruCache;
 
 constexpr size_t kCachePreallocateSize = 100;
 
-class IdCache {
-public:
-    static IdCache& instance() {
-        static IdCache cache;
-        return cache;
-    }
-
-    void clear() {
-        album_id_cache.Clear();
-        artist_id_cache.Clear();
-        cover_id_cache.Clear();
-    }
-
-    std::tuple<int32_t, int32_t, QString> cache(const QString &album, const QString &artist);
-
-    LruCache<int32_t, QString> cover_id_cache;
-private:
-    IdCache() = default;
-
-    LruCache<QString, int32_t> album_id_cache;
-    LruCache<QString, int32_t> artist_id_cache;
-};
-
-static void addImageCache(int32_t album_id, const QString& album, const Metadata& metadata, bool is_unknown_album) {
+static void addImageCache(IdCache &cache, int32_t album_id, const QString& album, const Metadata& metadata, bool is_unknown_album) {
     using xamp::metadata::TaglibMetadataReader;
 
     auto cover_id = Database::instance().getAlbumCoverId(album_id);
@@ -60,7 +36,7 @@ static void addImageCache(int32_t album_id, const QString& album, const Metadata
         if (!pixmap.isNull()) {
             cover_id = PixmapCache::instance().add(pixmap);
             assert(!cover_id.isEmpty());
-            IdCache::instance().cover_id_cache.Insert(album_id, cover_id);
+            cache.cover_id_cache.Insert(album_id, cover_id);
             Database::instance().setAlbumCover(album_id, album, cover_id);
         }
     }
@@ -100,8 +76,7 @@ MetadataExtractAdapter::MetadataExtractAdapter(QObject* parent)
 }
 
 MetadataExtractAdapter::~MetadataExtractAdapter() {
-    std::vector<Metadata>().swap(metadatas_);
-    IdCache::instance().clear();
+    std::vector<Metadata>().swap(metadatas_);    
 }
 
 void MetadataExtractAdapter::readMetadata(MetadataExtractAdapter *adapter, QString const & file_name) {
@@ -175,9 +150,9 @@ void MetadataExtractAdapter::processMetadata(const std::vector<Metadata>& metada
 
         auto music_id = Database::instance().addOrUpdateMusic(metadata, playlist_id);
 
-        auto [album_id, artist_id, cover_id] = IdCache::instance().cache(album, artist);
+        auto [album_id, artist_id, cover_id] = cache_.cache(album, artist);
         if (cover_id.isEmpty()) {
-            addImageCache(album_id, album, metadata, is_unknown_album);
+            addImageCache(cache_, album_id, album, metadata, is_unknown_album);
         }
 
         IgnoreSqlError(Database::instance().addOrUpdateAlbumMusic(album_id, artist_id, music_id))

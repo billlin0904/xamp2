@@ -237,6 +237,12 @@ void Database::removeAlbumArtist(int32_t album_id) {
     ThrowlfFailue(query);
 }
 
+void Database::removeAllArtist() {
+	QSqlQuery query;
+	query.prepare(Q_UTF8("DELETE FROM artists"));
+	ThrowlfFailue(query);
+}
+
 void Database::removeArtistId(int32_t artist_id) {
     QSqlQuery query;
     query.prepare(Q_UTF8("DELETE FROM artists WHERE artistId=:artistId"));

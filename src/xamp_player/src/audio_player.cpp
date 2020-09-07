@@ -146,6 +146,7 @@ AlignPtr<FileStream> AudioPlayer::MakeFileStream(std::wstring const & file_ext) 
     };
     static const RobinHoodSet<std::wstring_view> use_bass {
         {L".m4a"},
+        {L".flac"},
         {L".ape"},
     };
 

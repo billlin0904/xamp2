@@ -54,7 +54,7 @@ private:
 
     friend bool operator!=(ID const & other1, ID const & other2) noexcept;
 
-	std::array<uint8_t, kIdSize> bytes_;
+    std::array<uint8_t, kIdSize> bytes_;
 };
 
 XAMP_ALWAYS_INLINE bool ID::IsValid() const noexcept {

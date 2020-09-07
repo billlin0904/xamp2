@@ -810,7 +810,8 @@ void Xamp::setupResampler() {
 }
 
 void Xamp::processMeatadata(const std::vector<xamp::base::Metadata>& medata) {
-    MetadataExtractAdapter::processMetadata(medata);
+    MetadataExtractAdapter adapter;
+    adapter.processMetadata(medata);
     emit album_artist_page_->album()->refreshOnece();
     emit album_artist_page_->artist()->refreshOnece();    
 }
@@ -1148,7 +1149,7 @@ void Xamp::addItem(const QString& file_name) {
             &Xamp::processMeatadata,
             Qt::QueuedConnection);
         
-        MetadataExtractAdapter::readMetadata(adapter, file_name);
+        adapter->readMetadata(adapter, file_name);
     }
 }
 

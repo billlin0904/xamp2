@@ -215,6 +215,10 @@ WHERE
         }
     }
 
+    void removeAllArtist();
+
+    void removeArtistId(int32_t artist_id);
+
     void removeMusic(int32_t music_id);
 
     void removePlaylistMusic(int32_t playlist_id, const QVector<int>& select_music_ids);
@@ -236,8 +240,6 @@ private:
     void removePlaylistMusics(int32_t music_id);
 
     void removeAlbumArtistId(int32_t artist_id);
-
-    void removeArtistId(int32_t artist_id);
 
     void addAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id) const;
 

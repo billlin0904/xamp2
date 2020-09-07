@@ -9,13 +9,35 @@
 #include <QObject>
 
 #include <base/metadata.h>
+
 #include <metadata/metadatareader.h>
 #include <metadata/metadataextractadapter.h>
 #include <metadata/taglibmetareader.h>
 
+#include <widget/pixmapcache.h>
+
 using MetadataExtractAdapterBase = xamp::metadata::MetadataExtractAdapter;
 using xamp::metadata::Metadata;
 using xamp::metadata::Path;
+using xamp::base::LruCache;
+
+class IdCache {
+public:
+    IdCache() = default;
+
+    void clear() {
+        album_id_cache.Clear();
+        artist_id_cache.Clear();
+        cover_id_cache.Clear();
+    }
+
+    std::tuple<int32_t, int32_t, QString> cache(const QString& album, const QString& artist);
+
+    LruCache<int32_t, QString> cover_id_cache;
+private:    
+    LruCache<QString, int32_t> album_id_cache;
+    LruCache<QString, int32_t> artist_id_cache;
+};
 
 class PlayListTableView;
 
@@ -42,13 +64,14 @@ signals:
 	void readCompleted(std::vector<xamp::base::Metadata> enitiy);
 
 public:
-    static void processMetadata(const std::vector<Metadata>& metadatas, PlayListTableView *playlist = nullptr);
+    void processMetadata(const std::vector<Metadata>& metadatas, PlayListTableView *playlist = nullptr);
 
-    static void readMetadata(MetadataExtractAdapter* adapter, QString const& file_name);
+    void readMetadata(MetadataExtractAdapter* adapter, QString const& file_name);
 	    
 private:
     bool cancel_;
     std::vector<Metadata> metadatas_;
     QMutex mutex_;
+    IdCache cache_;
 };
 

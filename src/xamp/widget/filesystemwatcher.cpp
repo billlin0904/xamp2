@@ -37,11 +37,12 @@ void FileSystemWatcher::onFileChanged(const QString& file_name) {
 		&MetadataExtractAdapter::readCompleted,
 		this,
 		&FileSystemWatcher::onReadCompleted);
-	MetadataExtractAdapter::readMetadata(adapter, file_name);
+	adapter->readMetadata(adapter, file_name);
 }
 
 void FileSystemWatcher::onReadCompleted(const std::vector<xamp::base::Metadata>& medata) {
-	MetadataExtractAdapter::processMetadata(medata);
+	MetadataExtractAdapter adapter;
+	adapter.processMetadata(medata);
 }
 
 void FileSystemWatcher::onDirectoryChanged(const QString& path) {

@@ -47,7 +47,7 @@ void LrcPage::setBackground(const QPixmap& cover) {
 		background_image_ = QPixmap();
 	}
 	else {
-		background_image_ = Pixmap::blurImage(cover, 40);
+		background_image_ = Pixmap::blurImage(cover, 20);
 	}
 	update();
 }

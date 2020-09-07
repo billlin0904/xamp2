@@ -83,7 +83,8 @@ static bool GetMp4Cover(File* file, std::vector<uint8_t>& buffer) {
         auto cover_list = tag->itemListMap()["covr"].toCoverArtList();
         if (cover_list[0].data().size() > 0) {
             buffer.resize(cover_list[0].data().size());
-            (void) FastMemcpy(buffer.data(), cover_list[0].data().data(), static_cast<int32_t>(cover_list[0].data().size()));
+            (void) FastMemcpy(buffer.data(), cover_list[0].data().data(),
+                static_cast<int32_t>(cover_list[0].data().size()));
             return true;
         }
     }
@@ -92,18 +93,15 @@ static bool GetMp4Cover(File* file, std::vector<uint8_t>& buffer) {
 
 static bool GetFlacCover(File* file, std::vector<uint8_t>& buffer) {
     if (auto flac_file = dynamic_cast<TagLib::FLAC::File*>(file)) {
-        auto picture_list = flac_file->pictureList();
+        const auto picture_list = flac_file->pictureList();
         if (picture_list.isEmpty()) {
             return false;
         }
 
-        const TagLib::String jpeg_type("image/jpeg");
-        const TagLib::String png_type("image/png");
-
         for (const auto &picture : picture_list) {
-            if (picture->mimeType() == jpeg_type || picture->mimeType() == png_type) {
+            if (picture->type() == TagLib::FLAC::Picture::FrontCover) {                
                 buffer.resize(picture->data().size());
-                (void) FastMemcpy(buffer.data(), picture->data().data(), picture->data().size());
+                (void)FastMemcpy(buffer.data(), picture->data().data(), picture->data().size());
                 return true;
             }
         }

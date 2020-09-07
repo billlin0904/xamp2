@@ -614,6 +614,8 @@ long AsioDevice::OnAsioMessagesCallback(long selector, long value, void* message
 		// ASIODisposeBuffers(), Destruction Afterwards you initialize the
 		// driver again.
 		XAMP_LOG_INFO("Driver reset requested!!!");
+		callbackInfo.device->is_stop_streaming_ = true;
+		callbackInfo.device->condition_.notify_one();
 		ret = 1L;
 		break;
 	case kAsioResyncRequest:
