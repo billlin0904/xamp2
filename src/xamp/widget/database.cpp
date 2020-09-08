@@ -408,9 +408,9 @@ QString Database::getArtistCoverId(int32_t artist_id) const {
 
 	ThrowlfFailue(query);
 
-	const auto album_cover_tag_id_index = query.record().indexOf(Q_UTF8("coverId"));
+	const auto index = query.record().indexOf(Q_UTF8("coverId"));
 	if (query.next()) {
-		return query.value(album_cover_tag_id_index).toString();
+		return query.value(index).toString();
 	}
 	return QString();
 }
@@ -423,9 +423,9 @@ QString Database::getAlbumCoverId(int32_t album_id) const {
 
 	ThrowlfFailue(query);
 
-	const auto album_cover_tag_id_index = query.record().indexOf(Q_UTF8("coverId"));
+	const auto index = query.record().indexOf(Q_UTF8("coverId"));
 	if (query.next()) {
-		return query.value(album_cover_tag_id_index).toString();
+		return query.value(index).toString();
 	}
 	return QString();
 }

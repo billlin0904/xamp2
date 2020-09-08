@@ -41,7 +41,7 @@ static bool GetApeTagCover(TagLib::APE::Tag* tag, std::vector<uint8_t>& buffer) 
     auto item = listMap["COVER ART (FRONT)"].binaryData();
     auto pos = item.find(nullStringTerminator);	// Skip the filename
     if (++pos > 0) {
-        const TagLib::ByteVector& pic = item.mid(pos);
+        auto pic = item.mid(pos);
         buffer.resize(pic.size());
         (void) FastMemcpy(buffer.data(), pic.data(), static_cast<int32_t>(pic.size()));
         return true;
@@ -81,6 +81,9 @@ static bool GetMp4Cover(File* file, std::vector<uint8_t>& buffer) {
         }
 
         auto cover_list = tag->itemListMap()["covr"].toCoverArtList();
+        if (cover_list.isEmpty()) {
+            return false;
+        }
         if (cover_list[0].data().size() > 0) {
             buffer.resize(cover_list[0].data().size());
             (void) FastMemcpy(buffer.data(), cover_list[0].data().data(),

@@ -38,6 +38,8 @@ inline constexpr ConstLatin1String kEnableEQ{ "AppSettings/enableEQ" };
 inline constexpr ConstLatin1String kEQName{ "AppSettings/EQName" };
 
 inline constexpr ConstLatin1String kLyricsFontSize{ "AppSettings/lyrics/fontSize" };
+inline constexpr ConstLatin1String kLyricsTextColor{ "AppSettings/lyrics/textColor" };
+inline constexpr ConstLatin1String kLyricsHighLightTextColor{ "AppSettings/lyrics/highLightTextColor" };
 
 inline constexpr ConstLatin1String kGainStr("Gain");
 inline constexpr ConstLatin1String kDbStr("dB");

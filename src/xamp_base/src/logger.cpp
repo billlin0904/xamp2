@@ -63,8 +63,6 @@ std::shared_ptr<spdlog::logger> Logger::GetLogger(const std::string &name) {
 	spdlog::register_logger(logger);
 
 	if (name == "default") {
-		constexpr auto kDefaultBackTraceDepth = 10;
-		logger->enable_backtrace(kDefaultBackTraceDepth);
 		default_logger_ = logger;
 	}
 
@@ -91,7 +89,7 @@ Logger& Logger::AddFileLogger(const std::string &file_name) {
 	std::ostringstream ostr;
 	ostr << "logs/" << file_name;
 	sinks_.push_back(std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
-		ostr.str(), 1024 * 1024, 0));
+		ostr.str(), kMaxLogFileSize, 0));
 	return *this;
 }
 

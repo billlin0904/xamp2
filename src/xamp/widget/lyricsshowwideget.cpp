@@ -2,6 +2,7 @@
 #include <QPainter>
 #include <QDropEvent>
 #include <QMimeData>
+#include <QColorDialog>
 
 #include <widget/settingnames.h>
 #include <widget/appsettings.h>
@@ -43,6 +44,15 @@ void LyricsShowWideget::initial() {
 			lrc_font_.setPointSize(24);
 			AppSettings::setValue(kLyricsFontSize, 24);
 			});
+
+		(void)action_map.addAction(tr("Change text color"), [this]() {
+			auto color = QColorDialog::getColor(Qt::white, this);
+			setLrcColor(color);
+			setLrcHightLight(color);
+			AppSettings::setValue(kLyricsTextColor, color);
+			AppSettings::setValue(kLyricsHighLightTextColor, color);
+			});
+
 		action_map.exec(pt);
 		});
 

@@ -11,11 +11,9 @@
 #include <widget/image_utiltis.h>
 #include <widget/metadataextractadapter.h>
 
-using xamp::base::LruCache;
-
 constexpr size_t kCachePreallocateSize = 100;
 
-static void addImageCache(IdCache &cache, int32_t album_id, const QString& album, const Metadata& metadata, bool is_unknown_album) {
+static QString addImageCache(IdCache &cache, int32_t album_id, const QString& album, const Metadata& metadata, bool is_unknown_album) {
     using xamp::metadata::TaglibMetadataReader;
 
     auto cover_id = Database::instance().getAlbumCoverId(album_id);
@@ -40,6 +38,7 @@ static void addImageCache(IdCache &cache, int32_t album_id, const QString& album
             Database::instance().setAlbumCover(album_id, album, cover_id);
         }
     }
+    return cover_id;
 }
 
 std::tuple<int32_t, int32_t, QString> IdCache::cache(const QString &album, const QString &artist) {
@@ -151,8 +150,15 @@ void MetadataExtractAdapter::processMetadata(const std::vector<Metadata>& metada
         auto music_id = Database::instance().addOrUpdateMusic(metadata, playlist_id);
 
         auto [album_id, artist_id, cover_id] = cache_.cache(album, artist);
+
+        // Find cover id from database.
         if (cover_id.isEmpty()) {
-            addImageCache(cache_, album_id, album, metadata, is_unknown_album);
+            cover_id = Database::instance().getAlbumCoverId(album_id);
+        }
+
+        // Database not exist find others.
+        if (cover_id.isEmpty()) {
+            cover_id = addImageCache(cache_, album_id, album, metadata, is_unknown_album);
         }
 
         IgnoreSqlError(Database::instance().addOrUpdateAlbumMusic(album_id, artist_id, music_id))

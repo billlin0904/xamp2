@@ -19,6 +19,8 @@ namespace xamp::base {
 
 class XAMP_BASE_API Logger final {
 public:
+	static constexpr int kMaxLogFileSize = 1024 * 1024;
+
 	static Logger& Instance() noexcept;
 
 	XAMP_DISABLE_COPY(Logger)

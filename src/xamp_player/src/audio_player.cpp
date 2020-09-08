@@ -139,19 +139,34 @@ DsdDevice* AudioPlayer::AsDsdDevice() noexcept {
     return dynamic_cast<DsdDevice*>(device_.get());
 }
 
-AlignPtr<FileStream> AudioPlayer::MakeFileStream(std::wstring const & file_ext) {
+AlignPtr<FileStream> AudioPlayer::MakeFileStream(std::wstring const & file_ext, AlignPtr<FileStream> old_stream) {
     static const RobinHoodSet<std::wstring_view> dsd_ext {
         {L".dsf"},
         {L".dff"}
     };
     static const RobinHoodSet<std::wstring_view> use_bass {
+        //{L".flac"},
         {L".m4a"},
-        {L".flac"},
         {L".ape"},
     };
 
     const auto is_dsd_stream = dsd_ext.find(file_ext) != dsd_ext.end();
     const auto is_use_bass = use_bass.find(file_ext) != use_bass.end();
+
+    if (old_stream != nullptr) {
+        if (is_dsd_stream || is_use_bass) {
+            if (auto stream = dynamic_cast<BassFileStream*>(old_stream.get())) {
+                old_stream->Close();
+                return old_stream;
+            }
+        }
+        else {
+            if (auto stream = dynamic_cast<AvFileStream*>(old_stream.get())) {
+                old_stream->Close();
+                return old_stream;
+            }
+        }
+    }
 
     if (is_dsd_stream || is_use_bass) {
         return MakeAlign<FileStream, BassFileStream>();
@@ -160,7 +175,7 @@ AlignPtr<FileStream> AudioPlayer::MakeFileStream(std::wstring const & file_ext) 
 }
 
 void AudioPlayer::OpenStream(std::wstring const & file_path, std::wstring const & file_ext, DeviceInfo const & device_info) {
-    stream_ = MakeFileStream(file_ext);
+    stream_ = MakeFileStream(file_ext, std::move(stream_));
 
     if (auto* dsd_stream = AsDsdStream()) {
         if (DeviceManager::Instance().IsSupportASIO()) {
@@ -188,7 +203,6 @@ void AudioPlayer::OpenStream(std::wstring const & file_path, std::wstring const 
         }
     }
     else {
-        stream_ = MakeAlign<FileStream, AvFileStream>();
         dsd_mode_ = DsdModes::DSD_MODE_PCM;
         XAMP_LOG_DEBUG("Use PCM mode.");
     }

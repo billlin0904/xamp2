@@ -104,7 +104,7 @@ public:
 
     void SetEQ(std::array<EQSettings, kMaxBand> const &bands);
 
-    static AlignPtr<FileStream> MakeFileStream(std::wstring const& file_ext);
+    static AlignPtr<FileStream> MakeFileStream(std::wstring const& file_ext, AlignPtr<FileStream> old_stream = nullptr);
 private:
     void Initial();
 
