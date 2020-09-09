@@ -13,12 +13,13 @@
 
 constexpr size_t kCachePreallocateSize = 100;
 
-static QString addImageCache(IdCache &cache, int32_t album_id, const QString& album, const Metadata& metadata, bool is_unknown_album) {
+QString DatabaseIdCache::addCoverCache(int32_t album_id, const QString& album, const Metadata& metadata, bool is_unknown_album) {
     using xamp::metadata::TaglibMetadataReader;
 
     auto cover_id = Database::instance().getAlbumCoverId(album_id);
     if (cover_id.isEmpty()) {
         TaglibMetadataReader cover_reader;
+
         QPixmap pixmap;
         const auto& buffer = cover_reader.ExtractEmbeddedCover(metadata.file_path);
         if (!buffer.empty()) {
@@ -34,14 +35,14 @@ static QString addImageCache(IdCache &cache, int32_t album_id, const QString& al
         if (!pixmap.isNull()) {
             cover_id = PixmapCache::instance().add(pixmap);
             assert(!cover_id.isEmpty());
-            cache.cover_id_cache.Insert(album_id, cover_id);
+            cover_id_cache.Insert(album_id, cover_id);
             Database::instance().setAlbumCover(album_id, album, cover_id);
         }
     }
     return cover_id;
 }
 
-std::tuple<int32_t, int32_t, QString> IdCache::cache(const QString &album, const QString &artist) {
+std::tuple<int32_t, int32_t, QString> DatabaseIdCache::addCache(const QString &album, const QString &artist) {
     int32_t artist_id = 0;
     if (auto artist_id_op = this->artist_id_cache.Find(artist)) {
         artist_id = *artist_id_op.value();
@@ -74,11 +75,10 @@ MetadataExtractAdapter::MetadataExtractAdapter(QObject* parent)
     metadatas_.reserve(kCachePreallocateSize);
 }
 
-MetadataExtractAdapter::~MetadataExtractAdapter() {
-    std::vector<Metadata>().swap(metadatas_);    
+MetadataExtractAdapter::~MetadataExtractAdapter() {  
 }
 
-void MetadataExtractAdapter::readMetadata(MetadataExtractAdapter *adapter, QString const & file_name) {
+void MetadataExtractAdapter::readFileMetadata(MetadataExtractAdapter *adapter, QString const & file_name) {
     auto extract_handler = [adapter](const auto& file_name) {
         const xamp::metadata::Path path(file_name.toStdWString());
         xamp::metadata::TaglibMetadataReader reader;
@@ -149,7 +149,7 @@ void MetadataExtractAdapter::processMetadata(const std::vector<Metadata>& metada
 
         auto music_id = Database::instance().addOrUpdateMusic(metadata, playlist_id);
 
-        auto [album_id, artist_id, cover_id] = cache_.cache(album, artist);
+        auto [album_id, artist_id, cover_id] = cache_.addCache(album, artist);
 
         // Find cover id from database.
         if (cover_id.isEmpty()) {
@@ -158,7 +158,7 @@ void MetadataExtractAdapter::processMetadata(const std::vector<Metadata>& metada
 
         // Database not exist find others.
         if (cover_id.isEmpty()) {
-            cover_id = addImageCache(cache_, album_id, album, metadata, is_unknown_album);
+            cover_id = cache_.addCoverCache(album_id, album, metadata, is_unknown_album);
         }
 
         IgnoreSqlError(Database::instance().addOrUpdateAlbumMusic(album_id, artist_id, music_id))
@@ -172,4 +172,11 @@ void MetadataExtractAdapter::processMetadata(const std::vector<Metadata>& metada
             playlist->appendItem(entity);
         }        
     }
+
+    auto [album_miss, artist_miss, cover_miss] = cache_.GetMissCount();
+    XAMP_LOG_DEBUG("Metadata read total:{} miss {}%, {}%, {}% ",
+        metadatas.size(),
+        album_miss * 100 / metadatas.size(),
+        artist_miss * 100 / metadatas.size(),
+        cover_miss * 100 / metadatas.size());
 }

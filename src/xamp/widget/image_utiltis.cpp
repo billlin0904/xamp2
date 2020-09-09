@@ -3,17 +3,36 @@
 #include <base/align_ptr.h>
 #include <widget/image_utiltis.h>
 
+#include <QGraphicsPixmapItem>
+#include <QGraphicsScene>
+#include <QGraphicsBlurEffect>
 #include <QtConcurrent>
 
 namespace Pixmap {
 
-class Stackblur {
-public:
-	Stackblur(QImage& image, uint32_t radius);
+static QImage applyEffectToImage(QImage src, qreal radius, int extent = 0) {
+	auto effect = new QGraphicsBlurEffect();
+	effect->setBlurRadius(radius);
 
-private:
-	void blur(uint8_t* src, uint32_t width, uint32_t height, uint32_t radius, uint32_t cores);
-};
+	if (src.isNull()) {
+		delete effect;
+		return QImage();
+	}
+
+	QGraphicsScene scene;
+	QGraphicsPixmapItem item;
+	item.setPixmap(QPixmap::fromImage(src));
+	item.setGraphicsEffect(effect);
+	scene.addItem(&item);
+	QImage res(src.size() + QSize(extent * 2, extent * 2), QImage::Format_ARGB32);
+	res.fill(Qt::transparent);
+
+	QPainter ptr(&res);
+	scene.render(&ptr, QRectF(), QRectF(-extent, -extent, src.width() + extent * 2, src.height() + extent * 2));
+	delete effect;
+
+	return res;
+}
 
 static void stackblurJob(uint8_t* src,
 	uint32_t w,
@@ -312,6 +331,14 @@ static void stackblurJob(uint8_t* src,
 	}
 }
 
+class Stackblur {
+public:
+	Stackblur(QImage& image, uint32_t radius);
+
+private:
+	void blur(uint8_t* src, uint32_t width, uint32_t height, uint32_t radius, uint32_t cores);
+};
+
 void Stackblur::blur(uint8_t* src,
 	uint32_t width,
 	uint32_t height,
@@ -337,8 +364,9 @@ void Stackblur::blur(uint8_t* src,
 			QList<QFuture<void>> tasks;
 			tasks.reserve(cores);
 			for (auto i = 0; i < cores; i++) {
-				tasks.append(QtConcurrent::run([i, div, &stack, src, width, height, radius, cores, step]() {
-					stackblurJob(src, width, height, radius, cores, i, step, stack.get() + div * 4 * i);
+				auto buffer = stack.get() + div * 4 * i;
+				tasks.append(QtConcurrent::run([i, div, buffer, src, width, height, radius, cores, step]() {
+					stackblurJob(src, width, height, radius, cores, i, step, buffer);
 					}));
 			}
 			for (auto& task : tasks) {

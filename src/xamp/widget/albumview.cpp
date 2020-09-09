@@ -589,7 +589,7 @@ void AlbumView::append(const QString& file_name) {
                             &MetadataExtractAdapter::readCompleted,
                             this,
                             &AlbumView::processMeatadata);    
-    adapter->readMetadata(adapter, file_name);
+    MetadataExtractAdapter::readFileMetadata(adapter, file_name);
 }
 
 void AlbumView::processMeatadata(const std::vector<xamp::base::Metadata> &medata) {

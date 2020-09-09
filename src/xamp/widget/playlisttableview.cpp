@@ -250,7 +250,7 @@ void PlayListTableView::append(const QString& file_name) {
                             this,
                             &PlayListTableView::processMeatadata);
 
-    adapter->readMetadata(adapter, file_name);
+    MetadataExtractAdapter::readFileMetadata(adapter, file_name);
 }
 
 void PlayListTableView::processMeatadata(const std::vector<xamp::base::Metadata>& medata) {

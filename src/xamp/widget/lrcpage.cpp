@@ -47,7 +47,7 @@ void LrcPage::setBackground(const QPixmap& cover) {
 		background_image_ = QPixmap();
 	}
 	else {
-		background_image_ = Pixmap::blurImage(cover, 20);
+		background_image_ = Pixmap::blurImage(cover, 45);
 	}
 	update();
 }
@@ -138,7 +138,7 @@ void LrcPage::initial() {
 	label_3->setFont(f);
 	label_3->setMinimumHeight(40);
 	label_3->setMinimumWidth(60);
-    label_3->setStyleSheet(Q_UTF8("background-color: transparent"));
+    label_3->setStyleSheet(Q_UTF8("background-color: transparent; color: gray;"));
 	horizontalLayout_8->addWidget(label_3);
 
 	artist_ = new ScrollLabel(this);
@@ -161,7 +161,7 @@ void LrcPage::initial() {
 
 	label_7->setMinimumWidth(60);
 	label_7->setFont(f);
-    label_7->setStyleSheet(Q_UTF8("background-color: transparent"));
+    label_7->setStyleSheet(Q_UTF8("background-color: transparent; color: gray;"));
 	horizontalLayout_7->addWidget(label_7);
 
 	album_ = new ScrollLabel(this);

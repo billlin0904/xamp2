@@ -62,7 +62,7 @@ std::shared_ptr<spdlog::logger> Logger::GetLogger(const std::string &name) {
 
 	spdlog::register_logger(logger);
 
-	if (name == "default") {
+	if (name == "xamp") {
 		default_logger_ = logger;
 	}
 

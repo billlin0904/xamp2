@@ -21,20 +21,19 @@ using xamp::metadata::Metadata;
 using xamp::metadata::Path;
 using xamp::base::LruCache;
 
-class IdCache {
+class DatabaseIdCache {
 public:
-    IdCache() = default;
+    DatabaseIdCache() = default;
 
-    void clear() {
-        album_id_cache.Clear();
-        artist_id_cache.Clear();
-        cover_id_cache.Clear();
+    std::tuple<int32_t, int32_t, QString> addCache(const QString& album, const QString& artist);
+
+    QString addCoverCache(int32_t album_id, const QString& album, const Metadata& metadata, bool is_unknown_album);
+
+    std::tuple<size_t, size_t, size_t> GetMissCount() const noexcept {
+        return std::make_tuple(album_id_cache.GetMissCount(), artist_id_cache.GetMissCount(), cover_id_cache.GetMissCount());
     }
-
-    std::tuple<int32_t, int32_t, QString> cache(const QString& album, const QString& artist);
-
-    LruCache<int32_t, QString> cover_id_cache;
 private:    
+    LruCache<int32_t, QString> cover_id_cache;
     LruCache<QString, int32_t> album_id_cache;
     LruCache<QString, int32_t> artist_id_cache;
 };
@@ -60,18 +59,18 @@ public:
 
     void Reset() override;
 
+    static void readFileMetadata(MetadataExtractAdapter* adapter, QString const& file_name);
+
 signals:
 	void readCompleted(std::vector<xamp::base::Metadata> enitiy);
 
 public:
     void processMetadata(const std::vector<Metadata>& metadatas, PlayListTableView *playlist = nullptr);
-
-    void readMetadata(MetadataExtractAdapter* adapter, QString const& file_name);
 	    
 private:
     bool cancel_;
     std::vector<Metadata> metadatas_;
     QMutex mutex_;
-    IdCache cache_;
+    DatabaseIdCache cache_;
 };
 

@@ -85,7 +85,7 @@ static int excute(int argc, char* argv[]) {
         .AddSink(std::make_shared<QDebugSink>())
 #endif
         .AddFileLogger("xamp.log")
-        .GetLogger("default");
+        .GetLogger("xamp");
 
     XAMP_SET_LOG_LEVEL(spdlog::level::debug);
 

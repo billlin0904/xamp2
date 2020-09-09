@@ -1149,7 +1149,7 @@ void Xamp::addItem(const QString& file_name) {
             &Xamp::processMeatadata,
             Qt::QueuedConnection);
         
-        adapter->readMetadata(adapter, file_name);
+        MetadataExtractAdapter::readFileMetadata(adapter, file_name);
     }
 }
 
