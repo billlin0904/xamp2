@@ -178,7 +178,7 @@ void AudioPlayer::OpenStream(std::wstring const & file_path, std::wstring const 
     stream_ = MakeFileStream(file_ext, std::move(stream_));
 
     if (auto* dsd_stream = AsDsdStream()) {
-        if (DeviceManager::Instance().IsSupportASIO()) {
+        if (DeviceManager::Instance().IsASIODevice(device_info.device_type_id)) {
             if (device_info.is_support_dsd) {
                 dsd_stream->SetDSDMode(DsdModes::DSD_MODE_NATIVE);
                 dsd_mode_ = DsdModes::DSD_MODE_NATIVE;
@@ -523,12 +523,7 @@ int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, dou
     const auto sample_size = num_samples * sample_size_;
 
     if (XAMP_LIKELY(buffer_.TryRead(static_cast<int8_t*>(samples), sample_size))) {
-        if (dsd_mode_ == DsdModes::DSD_MODE_PCM) {
-            UpdateSlice(static_cast<const float*>(samples), static_cast<int32_t>(num_samples), stream_time);
-        }
-        else {
-            UpdateSlice(nullptr, num_samples, stream_time);
-        }
+        UpdateSlice(static_cast<const float*>(samples), static_cast<int32_t>(num_samples), stream_time);
         return 0;
     }
 
@@ -572,11 +567,11 @@ void AudioPlayer::OpenDevice(double stream_time) {
     if (auto dsd_output = AsDsdDevice()) {
         if (const auto dsd_stream = AsDsdStream()) {
             if (dsd_stream->GetDsdMode() == DsdModes::DSD_MODE_NATIVE) {
-                dsd_output->SetIoFormat(AsioIoFormat::IO_FORMAT_DSD);
+                dsd_output->SetIoFormat(DsdIoFormat::IO_FORMAT_DSD);
                 dsd_mode_ = DsdModes::DSD_MODE_NATIVE;
             }
             else {
-                dsd_output->SetIoFormat(AsioIoFormat::IO_FORMAT_PCM);
+                dsd_output->SetIoFormat(DsdIoFormat::IO_FORMAT_PCM);
                 dsd_mode_ = DsdModes::DSD_MODE_PCM;
             }
         }

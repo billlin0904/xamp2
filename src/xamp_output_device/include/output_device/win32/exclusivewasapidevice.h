@@ -15,6 +15,7 @@
 #ifdef XAMP_OS_WIN
 
 #include <output_device/audiocallback.h>
+#include <output_device/dsddevice.h>
 #include <output_device/device.h>
 
 namespace xamp::output_device::win32 {
@@ -64,7 +65,6 @@ public:
 	bool CanHardwareControlVolume() const override;
 
 	void AbortStream() noexcept override;
-
 private:	
 
 	void InitialDeviceFormat(AudioFormat const & output_format, uint32_t valid_bits_samples);	
@@ -79,6 +79,7 @@ private:
 
 	HRESULT OnSampleReady(IMFAsyncResult* result) noexcept;
 
+	bool raw_mode_;
 	std::atomic<bool> is_running_;
 	std::atomic<bool> is_stop_streaming_;
 	MmcssThreadPriority thread_priority_;

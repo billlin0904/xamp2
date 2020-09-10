@@ -24,14 +24,14 @@ std::wstring GetDeviceProperty(PROPERTYKEY const & key, CComPtr<IMMDevice>& devi
 	HrIfFailledThrow(device->OpenPropertyStore(STGM_READ, &property));
 
 	PROPVARIANT prop_variant;
-	PropVariantInit(&prop_variant);
+	::PropVariantInit(&prop_variant);
 
 	HrIfFailledThrow(property->GetValue(key, &prop_variant));
 
 	std::wstring name;
 	name.assign(prop_variant.pwszVal);
 
-	PropVariantClear(&prop_variant);
+	::PropVariantClear(&prop_variant);
 
 	return name;
 }

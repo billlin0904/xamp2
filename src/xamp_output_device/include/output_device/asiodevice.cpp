@@ -46,7 +46,7 @@ AsioDevice::AsioDevice(std::string const & device_id)
 	, is_streaming_(false)
 	, is_stop_streaming_(false)
 	, sample_format_(DsdFormat::DSD_INT8MSB)
-	, io_format_(AsioIoFormat::IO_FORMAT_PCM)
+	, io_format_(DsdIoFormat::IO_FORMAT_PCM)
 	, volume_(0)
 	, buffer_size_(0)
 	, buffer_bytes_(0)
@@ -90,15 +90,15 @@ DsdFormat AsioDevice::GetSampleFormat() const noexcept {
 	return sample_format_;
 }
 
-void AsioDevice::SetIoFormat(AsioIoFormat format) {
+void AsioDevice::SetIoFormat(DsdIoFormat format) {
 	io_format_ = format;
 }
 
-AsioIoFormat AsioDevice::GetIoFormat() const {
+DsdIoFormat AsioDevice::GetIoFormat() const {
 	ASIOIoFormat asio_fomrmat{};
 	AsioIfFailedThrow2(::ASIOFuture(kAsioGetIoFormat, &asio_fomrmat), ASE_SUCCESS);
 	return (asio_fomrmat.FormatType == kASIOPCMFormat)
-		? AsioIoFormat::IO_FORMAT_PCM : AsioIoFormat::IO_FORMAT_DSD;
+		? DsdIoFormat::IO_FORMAT_PCM : DsdIoFormat::IO_FORMAT_DSD;
 }
 
 bool AsioDevice::IsSupportDsdFormat() const {
@@ -284,7 +284,7 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 
 	device_buffer_vmlock_.UnLock();
 
-	if (io_format_ == AsioIoFormat::IO_FORMAT_PCM) {
+	if (io_format_ == DsdIoFormat::IO_FORMAT_PCM) {
 		size_t allocate_bytes = buffer_size_ * mix_format_.GetBytesPerSample() * mix_format_.GetChannels();
 		callbackInfo.data_context = MakeConvert(input_fomrat, mix_format_, buffer_size_);
 		buffer_bytes_ = buffer_size_ * (int64_t)mix_format_.GetBytesPerSample();
@@ -406,7 +406,7 @@ void AsioDevice::OnBufferSwitch(long index) noexcept {
 		}
 	};
 
-	if (io_format_ == AsioIoFormat::IO_FORMAT_PCM) {
+	if (io_format_ == DsdIoFormat::IO_FORMAT_PCM) {
 		pcm_convert();
 	}
 	else {
@@ -441,7 +441,7 @@ void AsioDevice::OpenStream(AudioFormat const & output_format) {
 	AsioIfFailedThrow(::ASIOInit(&asio_driver_info));
 
 	ASIOIoFormat asio_fomrmat{};
-	if (io_format_ == AsioIoFormat::IO_FORMAT_DSD) {
+	if (io_format_ == DsdIoFormat::IO_FORMAT_DSD) {
 		asio_fomrmat.FormatType = kASIODSDFormat;
 	}
 	else {
@@ -556,7 +556,7 @@ bool AsioDevice::IsStreamRunning() const noexcept {
 }
 
 void AsioDevice::SetStreamTime(double stream_time) noexcept {
-	if (io_format_ == AsioIoFormat::IO_FORMAT_PCM) {
+	if (io_format_ == DsdIoFormat::IO_FORMAT_PCM) {
 		played_bytes_ = static_cast<int64_t>(stream_time * mix_format_.GetAvgBytesPerSec());
 	}
 	else {

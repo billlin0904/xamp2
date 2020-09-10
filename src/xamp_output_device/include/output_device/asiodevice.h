@@ -55,15 +55,13 @@ public:
 
 	InterleavedFormat GetInterleavedFormat() const noexcept override;
 
-	bool IsSupportDsdFormat() const override;
+	void SetIoFormat(DsdIoFormat format) override;
 
-	void SetIoFormat(AsioIoFormat format) override;
+	DsdIoFormat GetIoFormat() const override;
 
-	AsioIoFormat GetIoFormat() const override;
+	void SetSampleFormat(DsdFormat format);
 
-	void SetSampleFormat(DsdFormat format) override;
-
-	DsdFormat GetSampleFormat() const noexcept override;
+	DsdFormat GetSampleFormat() const noexcept;
 
 	uint32_t GetBufferSize() const noexcept override;
 
@@ -92,11 +90,13 @@ private:
 
 	std::tuple<int32_t, int32_t> GetDeviceBufferSize() const;
 
+	bool IsSupportDsdFormat() const;
+
 	bool is_removed_driver_;
 	std::atomic<bool> is_stopped_;
 	std::atomic<bool> is_streaming_;
 	std::atomic<bool> is_stop_streaming_;	
-	AsioIoFormat io_format_;
+	DsdIoFormat io_format_;
 	DsdFormat sample_format_;
 	mutable std::atomic<int32_t> volume_;
 	size_t buffer_size_;

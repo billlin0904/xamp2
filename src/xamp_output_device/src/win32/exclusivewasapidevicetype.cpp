@@ -77,7 +77,10 @@ std::vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfoList() const {
 	std::vector<DeviceInfo> device_list;
 	device_list.reserve(count);
 
-	const auto default_device_info = GetDefaultDeviceInfo();
+	std::wstring default_device_name;
+	if (auto default_device_info = GetDefaultDeviceInfo()) {
+		default_device_name = default_device_info.value().name;
+	}
 
 	for (UINT i = 0; i < count; ++i) {
 		CComPtr<IMMDevice> device;
@@ -86,11 +89,12 @@ std::vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfoList() const {
 
 		auto info = helper::GetDeviceInfo(device, ExclusiveWasapiDeviceType::Id);
 
-		if (default_device_info) {
-			if (default_device_info.value().name == info.name) {
-				info.is_default_device = true;
-			}
-		}		
+		if (default_device_name == info.name) {
+			info.is_default_device = true;
+		}
+
+		// TODO: 一些DAC有支援DOP模式.
+		//info.is_support_dsd = true;
 		device_list.emplace_back(info);
 	}
 

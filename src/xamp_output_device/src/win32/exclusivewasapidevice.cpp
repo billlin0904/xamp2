@@ -69,7 +69,8 @@ static constexpr IID kAudioEndpointVolumeID = __uuidof(IAudioEndpointVolume);
 static constexpr IID kAudioClient2ID = __uuidof(IAudioClient2);
 
 ExclusiveWasapiDevice::ExclusiveWasapiDevice(CComPtr<IMMDevice> const & device)
-	: is_running_(false)
+	: raw_mode_(false)
+	, is_running_(false)
 	, is_stop_streaming_(false)
 	, thread_priority_(MmcssThreadPriority::MMCSS_THREAD_PRIORITY_NORMAL)
 	, buffer_frames_(0)
@@ -108,9 +109,16 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
     device_props.bIsOffload = FALSE;
     device_props.cbSize = sizeof(device_props);
     device_props.eCategory = AudioCategory_Media;
-	device_props.Options = AUDCLNT_STREAMOPTIONS_MATCH_FORMAT;
+	device_props.Options = AUDCLNT_STREAMOPTIONS_MATCH_FORMAT | (raw_mode_ ? AUDCLNT_STREAMOPTIONS_RAW : AUDCLNT_STREAMOPTIONS_NONE);;
 
-	HrIfFailledThrow(client_->SetClientProperties(&device_props));
+	try {
+		HrIfFailledThrow(client_->SetClientProperties(&device_props));
+	}
+	catch (Exception const& e) {
+		XAMP_LOG_DEBUG("SetClientProperties return failure! {}", e.GetErrorMessage());
+		device_props.Options = AUDCLNT_STREAMOPTIONS_MATCH_FORMAT;
+		HrIfFailledThrow(client_->SetClientProperties(&device_props));
+	}
 
     REFERENCE_TIME default_device_period = 0;
     REFERENCE_TIME minimum_device_period = 0;
@@ -267,10 +275,12 @@ void ExclusiveWasapiDevice::GetSample(uint32_t frame_available) noexcept {
 	}
 
 	if (callback_->OnGetSamples(buffer_.get(), frame_available, stream_time) == 0) {
-		(void)DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEAVED>::ConvertToInt2432(
-			reinterpret_cast<int32_t*>(data),
-			buffer_.get(),
-			data_convert_);
+		if (!raw_mode_) {
+			(void)DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEAVED>::ConvertToInt2432(
+				reinterpret_cast<int32_t*>(data),
+				buffer_.get(),
+				data_convert_);
+		}		
 		IgoneAndRaiseError(render_client_->ReleaseBuffer(frame_available, 0));
 	}
 	else {
