@@ -17,44 +17,17 @@ static constexpr size_t kLruCacheSize = 200;
 	
 template <typename Key, typename Value>
 class XAMP_BASE_API_ONLY_EXPORT LruCache {
-public:    
+public:
     using CacheList = std::list<std::pair<Key, Value>>;
     using CachePtr = typename CacheList::iterator;
 
-    explicit LruCache(size_t max_size = kLruCacheSize)
-        : max_size_(max_size)
-        , miss_count_(0) {
-    }
+    explicit LruCache(size_t max_size = kLruCacheSize) noexcept;
 
-    void SetMaxSize(size_t max_size) {
-        max_size_ = max_size;
-    }
+    void SetMaxSize(size_t max_size);
 
-    void Insert(Key const& key, Value const& value) {
-        auto check = map_.find(key);
-        if (check != map_.cend()) {
-            check->second->second = value;
-            cache_.splice(cache_.begin(), cache_, check->second);
-        }
-        else {
-            if (cache_.size() == max_size_) {
-                map_.erase(cache_.back().first);
-                cache_.pop_back();
-            }
-            cache_.emplace_front(key, value);
-            map_[key] = cache_.begin();
-        }
-    }
+    void Insert(Key const& key, Value const& value);
 
-    std::optional<Value const*> Find(Key const& key) const {
-        const auto check = map_.find(key);
-        if (check == map_.end()) {
-            ++miss_count_;
-            return std::nullopt;
-        }
-        cache_.splice(cache_.begin(), cache_, check->second);
-        return &check->second->second;
-    }
+    std::optional<Value const*> Find(Key const& key) const;
 
     CachePtr begin() noexcept {
         return cache_.begin();
@@ -64,28 +37,13 @@ public:
         return cache_.end();
     }
 
-    size_t GetMissCount() const noexcept {
-        return miss_count_;
-    }
+    size_t GetMissCount() const noexcept;
 
-    void Erase(Key const& key) {
-        const auto check = map_.find(key);
-        if (check == map_.end()) {
-            return;
-        }
-        cache_.erase(check->second);
-        map_.erase(check);
-    }
+    void Erase(Key const& key);
 
-    void Clear() noexcept {
-        map_.clear();
-        cache_.clear();
-        miss_count_ = 0;
-    }
+    void Clear() noexcept;
 
-    size_t GetMaxSize() const noexcept {
-        return max_size_;
-    }
+    size_t GetMaxSize() const noexcept;
 
 private:
     size_t max_size_;
@@ -93,5 +51,71 @@ private:
     mutable RobinHoodHashMap<Key, CachePtr> map_;
     mutable CacheList cache_;
 };
+
+template <typename Key, typename Value>
+LruCache<Key, Value>::LruCache(size_t max_size) noexcept
+    : max_size_(max_size)
+    , miss_count_(0) {
+}
+
+template <typename Key, typename Value>
+XAMP_ALWAYS_INLINE void LruCache<Key, Value>::SetMaxSize(size_t max_size) {
+    max_size_ = max_size;
+}
+
+template <typename Key, typename Value>
+XAMP_ALWAYS_INLINE void LruCache<Key, Value>::Insert(Key const& key, Value const& value) {
+    auto check = map_.find(key);
+    if (check != map_.cend()) {
+        check->second->second = value;
+        cache_.splice(cache_.begin(), cache_, check->second);
+    }
+    else {
+        if (cache_.size() == max_size_) {
+            map_.erase(cache_.back().first);
+            cache_.pop_back();
+        }
+        cache_.emplace_front(key, value);
+        map_[key] = cache_.begin();
+    }
+}
+
+template <typename Key, typename Value>
+XAMP_ALWAYS_INLINE std::optional<Value const*> LruCache<Key, Value>::Find(Key const& key) const {
+    const auto check = map_.find(key);
+    if (check == map_.end()) {
+        ++miss_count_;
+        return std::nullopt;
+    }
+    cache_.splice(cache_.begin(), cache_, check->second);
+    return &check->second->second;
+}
+
+template <typename Key, typename Value>
+XAMP_ALWAYS_INLINE size_t LruCache<Key, Value>::GetMissCount() const noexcept {
+    return miss_count_;
+}
+
+template <typename Key, typename Value>
+XAMP_ALWAYS_INLINE void LruCache<Key, Value>::Erase(Key const& key) {
+    const auto check = map_.find(key);
+    if (check == map_.end()) {
+        return;
+    }
+    cache_.erase(check->second);
+    map_.erase(check);
+}
+
+template <typename Key, typename Value>
+XAMP_ALWAYS_INLINE void LruCache<Key, Value>::Clear() noexcept {
+    map_.clear();
+    cache_.clear();
+    miss_count_ = 0;
+}
+
+template <typename Key, typename Value>
+XAMP_ALWAYS_INLINE size_t LruCache<Key, Value>::GetMaxSize() const noexcept {
+    return max_size_;
+}
 
 }
