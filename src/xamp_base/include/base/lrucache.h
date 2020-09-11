@@ -19,7 +19,7 @@ template <typename Key, typename Value>
 class XAMP_BASE_API_ONLY_EXPORT LruCache {
 public:
     using CacheList = std::list<std::pair<Key, Value>>;
-    using CachePtr = typename CacheList::iterator;
+    using CacheIterator = typename CacheList::iterator;
 
     explicit LruCache(size_t max_size = kLruCacheSize) noexcept;
 
@@ -29,11 +29,11 @@ public:
 
     std::optional<Value const*> Find(Key const& key) const;
 
-    CachePtr begin() noexcept {
+    CacheIterator begin() noexcept {
         return cache_.begin();
     }
 
-    CachePtr end() noexcept {
+    CacheIterator end() noexcept {
         return cache_.end();
     }
 
@@ -48,7 +48,7 @@ public:
 private:
     size_t max_size_;
     mutable size_t miss_count_;
-    mutable RobinHoodHashMap<Key, CachePtr> map_;
+    mutable RobinHoodHashMap<Key, CacheIterator> map_;
     mutable CacheList cache_;
 };
 
