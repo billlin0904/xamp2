@@ -140,9 +140,7 @@ static int excute(int argc, char* argv[]) {
 
     XAMP_LOG_DEBUG("attach app success.");
 
-    (void)PixmapCache::instance();
-
-    XAMP_LOG_DEBUG("PixmapCache init success.");
+    XAMP_LOG_DEBUG("PixmapCache cache size:{}", PixmapCache::instance().getImageSize());
 
     try {
         Database::instance().open(Q_UTF8("xamp.db"));

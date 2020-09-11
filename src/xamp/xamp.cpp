@@ -870,7 +870,7 @@ void Xamp::playMusic(const MusicEntity& item) {
         return;
     }
 
-    if (player_->CanHardwareControlVolume()) {
+    if (player_->IsHardwareControlVolume()) {
         if (!player_->IsMute()) {
             setVolume(ui.volumeSlider->value());
         }

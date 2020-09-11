@@ -33,9 +33,9 @@ public:
         return std::make_tuple(album_id_cache.GetMissCount(), artist_id_cache.GetMissCount(), cover_id_cache.GetMissCount());
     }
 private:    
-    LruCache<int32_t, QString> cover_id_cache;
-    LruCache<QString, int32_t> album_id_cache;
-    LruCache<QString, int32_t> artist_id_cache;
+    mutable LruCache<int32_t, QString> cover_id_cache;
+    mutable LruCache<QString, int32_t> album_id_cache;
+    mutable LruCache<QString, int32_t> artist_id_cache;
 };
 
 class PlayListTableView;

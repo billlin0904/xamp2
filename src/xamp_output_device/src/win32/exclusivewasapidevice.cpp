@@ -417,7 +417,7 @@ uint32_t ExclusiveWasapiDevice::GetBufferSize() const noexcept {
 	return buffer_frames_ * mix_format_->nChannels;
 }
 
-bool ExclusiveWasapiDevice::CanHardwareControlVolume() const {
+bool ExclusiveWasapiDevice::IsHardwareControlVolume() const {
 	CComPtr<IAudioEndpointVolume> endpoint_volume;
 
 	HrIfFailledThrow(device_->Activate(kAudioEndpointVolumeID,

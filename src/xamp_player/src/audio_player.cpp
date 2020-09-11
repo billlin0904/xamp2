@@ -305,9 +305,9 @@ uint32_t AudioPlayer::GetVolume() const {
     return device_->GetVolume();
 }
 
-bool AudioPlayer::CanHardwareControlVolume() const {
+bool AudioPlayer::IsHardwareControlVolume() const {
     if (device_ != nullptr && device_->IsStreamOpen()) {
-        return device_->CanHardwareControlVolume();
+        return device_->IsHardwareControlVolume();
     }
     return true;
 }

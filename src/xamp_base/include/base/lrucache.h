@@ -18,8 +18,8 @@ static constexpr size_t kLruCacheSize = 200;
 template <typename Key, typename Value>
 class XAMP_BASE_API_ONLY_EXPORT LruCache {
 public:    
-    using ItemList = std::list<std::pair<Key, Value>>;
-    using NodePtr = typename ItemList::const_iterator;
+    using CacheList = std::list<std::pair<Key, Value>>;
+    using CachePtr = typename CacheList::iterator;
 
     explicit LruCache(size_t max_size = kLruCacheSize)
         : max_size_(max_size)
@@ -31,33 +31,37 @@ public:
     }
 
     void Insert(Key const& key, Value const& value) {
-        items_.emplace_front(key, value);
-        cache_[key] = items_.begin();
-
-        if (items_.size() > max_size_) {
-            cache_.erase(items_.back().first);
-            items_.pop_back();
+        auto check = map_.find(key);
+        if (check != map_.cend()) {
+            check->second->second = value;
+            cache_.splice(cache_.begin(), cache_, check->second);
+        }
+        else {
+            if (cache_.size() == max_size_) {
+                map_.erase(cache_.back().first);
+                cache_.pop_back();
+            }
+            cache_.emplace_front(key, value);
+            map_[key] = cache_.begin();
         }
     }
 
     std::optional<Value const*> Find(Key const& key) const {
-        const auto check = cache_.find(key);
-        if (check == cache_.end()) {
+        const auto check = map_.find(key);
+        if (check == map_.end()) {
             ++miss_count_;
             return std::nullopt;
         }
-        items_.push_front(*check->second);
-        items_.erase(check->second);
-        cache_[key] = items_.begin();
+        cache_.splice(cache_.begin(), cache_, check->second);
         return &check->second->second;
     }
 
-    NodePtr begin() const noexcept {
-        return items_.cbegin();
+    CachePtr begin() noexcept {
+        return cache_.begin();
     }
 
-    NodePtr end() const noexcept {
-        return items_.cend();
+    CachePtr end() noexcept {
+        return cache_.end();
     }
 
     size_t GetMissCount() const noexcept {
@@ -65,17 +69,17 @@ public:
     }
 
     void Erase(Key const& key) {
-        const auto check = cache_.find(key);
-        if (check == cache_.end()) {
+        const auto check = map_.find(key);
+        if (check == map_.end()) {
             return;
         }
-        items_.erase(check->second);
-        cache_.erase(check);
+        cache_.erase(check->second);
+        map_.erase(check);
     }
 
     void Clear() noexcept {
+        map_.clear();
         cache_.clear();
-        items_.clear();
         miss_count_ = 0;
     }
 
@@ -86,8 +90,8 @@ public:
 private:
     size_t max_size_;
     mutable size_t miss_count_;
-    mutable RobinHoodHashMap<Key, NodePtr> cache_;
-    mutable ItemList items_;
+    mutable RobinHoodHashMap<Key, CachePtr> map_;
+    mutable CacheList cache_;
 };
 
 }

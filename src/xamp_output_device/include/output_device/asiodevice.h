@@ -67,7 +67,7 @@ public:
 
 	bool IsMuted() const override;
 
-	bool CanHardwareControlVolume() const override;
+	bool IsHardwareControlVolume() const override;
 
 	void AbortStream() noexcept override;
 

@@ -97,7 +97,7 @@ void SharedWasapiDevice::RegisterDeviceVolumeChange() {
 	CComPtr<IAudioEndpointVolume> endpoint_volume;
 	HrIfFailledThrow(device_->Activate(kAudioEndpointVolumeID,
 		CLSCTX_INPROC_SERVER,
-		NULL,
+		nullptr,
 		reinterpret_cast<void**>(&endpoint_volume)
 	));
 	device_volume_notification_ = new DeviceEventNotification(callback_);
@@ -240,7 +240,7 @@ void SharedWasapiDevice::OpenStream(AudioFormat const & output_format) {
 		&sample_ready_async_result_));
 
 	if (!sample_ready_) {
-		sample_ready_.reset(CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS));
+		sample_ready_.reset(::CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS));
 		assert(sample_ready_);
 		HrIfFailledThrow(client_->SetEventHandle(sample_ready_.get()));
 	}
@@ -368,7 +368,7 @@ HRESULT SharedWasapiDevice::OnSampleReady(IMFAsyncResult* result) noexcept {
 }
 
 void SharedWasapiDevice::StartStream() {
-	if (!render_client_) {
+	if (!client_) {
 		throw HRException(AUDCLNT_E_NOT_INITIALIZED);
 	}
 
@@ -376,10 +376,17 @@ void SharedWasapiDevice::StartStream() {
 
 	LogHrFailled(client_->Reset());
 
+	// Note: 必要! 某些音效卡會爆音!
+	FillSilentSample(buffer_frames_);
+
 	is_running_ = true;
 	HrIfFailledThrow(client_->Start());
+
 	HrIfFailledThrow(::MFPutWaitingWorkItem(sample_ready_.get(), 0, sample_ready_async_result_, &sample_raedy_key_));
+
 	is_stop_streaming_ = false;
+
+	XAMP_LOG_DEBUG("Start shared mode stream!");
 }
 
 bool SharedWasapiDevice::IsStreamRunning() const noexcept {
@@ -403,17 +410,17 @@ void SharedWasapiDevice::GetSampleRequested(bool is_silence) noexcept {
 		}
 		else {
 			GetSample(frames_available);
-			IgoneAndRaiseError(::MFPutWaitingWorkItem(sample_ready_.get(), 0, sample_ready_async_result_, &sample_raedy_key_));
 		}
 	}
+	IgoneAndRaiseError(::MFPutWaitingWorkItem(sample_ready_.get(), 0, sample_ready_async_result_, &sample_raedy_key_));
 }
 
 void SharedWasapiDevice::AbortStream() noexcept {
 	is_stop_streaming_ = true;
 }
 
-bool SharedWasapiDevice::CanHardwareControlVolume() const {
-	return false;
+bool SharedWasapiDevice::IsHardwareControlVolume() const {
+	return true;
 }
 
 }

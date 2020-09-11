@@ -64,7 +64,7 @@ AsioDevice::~AsioDevice() {
 	}
 }
 
-bool AsioDevice::CanHardwareControlVolume() const {
+bool AsioDevice::IsHardwareControlVolume() const {
 	// NOTE :
 	// Almost driver not support kAsioCanOutputGain, we always return true for software volume control.
 	return true;

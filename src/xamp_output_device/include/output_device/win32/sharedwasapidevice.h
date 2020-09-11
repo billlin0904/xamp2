@@ -57,7 +57,7 @@ public:
 
 	uint32_t GetBufferSize() const noexcept override;
 
-	bool CanHardwareControlVolume() const override;
+	bool IsHardwareControlVolume() const override;
 
 	void AbortStream() noexcept override;
 

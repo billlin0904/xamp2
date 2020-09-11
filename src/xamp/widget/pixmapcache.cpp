@@ -6,6 +6,7 @@
 #include <QPixmap>
 
 #include <base/logger.h>
+#include <base/scopeguard.h>
 
 #include "thememanager.h"
 
@@ -24,7 +25,6 @@ PixmapCache::PixmapCache()
     QDir dir;
     (void)dir.mkdir(cache_path_);
 	loadCache();
-	cache_.SetMaxSize(16);
 }
 
 QPixmap PixmapCache::findFileDirCover(const QString& file_path) {
@@ -90,10 +90,14 @@ void PixmapCache::loadCache() const {
         }
     }
 
-	XAMP_LOG_DEBUG("Image cache count: {}", i);
+	XAMP_LOG_DEBUG("PixmapCache cache count: {}", i);
 }
 
 std::optional<const QPixmap*> PixmapCache::find(const QString& tag_id) const {
+	XAMP_ON_SCOPE_EXIT(
+		XAMP_LOG_DEBUG("PixmapCache miss {}%", cache_.GetMissCount() * 100 / cache_.GetMaxSize());
+		);
+
 	while (true) {
         const auto cache = cache_.Find(tag_id);
 		if (!cache) {
