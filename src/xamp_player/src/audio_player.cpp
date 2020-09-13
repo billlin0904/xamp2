@@ -106,6 +106,7 @@ void AudioPlayer::CreateDevice(ID const & device_type_id, std::string const & de
             device_ = device_type_->MakeDevice(device_id);
             device_type_id_ = device_type_id;
             device_id_ = device_id;
+            XAMP_LOG_DEBUG("Create device: {}", device_type_->GetDescription());
         }
         else {
             throw DeviceNotFoundException();
@@ -426,9 +427,14 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
     }
     if (stream_task_.valid()) {
         XAMP_LOG_DEBUG("Try to stop stream thread.");
+#ifdef XAMP_OS_WIN
+        MSVC 2019 is wait for std::packaged_task return timeout, while others such clang can't.
         if (stream_task_.wait_for(kWaitForStreamStopTime) == std::future_status::timeout) {
             throw StopStreamTimeoutException();
         }
+#else
+        stream_task_.get();
+#endif
         XAMP_LOG_DEBUG("Stream thread was finished.");
     }
     buffer_.Clear();

@@ -274,6 +274,9 @@ void Xamp::initialDeviceList() {
 
     std::map<std::string, QAction*> device_id_action;
 
+    const auto device_type_id = AppSettings::getID(kAppSettingDeviceType);
+    const auto device_id = AppSettings::getValueAsString(kAppSettingDeviceId).toStdString();
+
     DeviceManager::Instance().ForEach([&](const auto &device_type) {
         device_type->ScanNewDevice();
 
@@ -284,7 +287,7 @@ void Xamp::initialDeviceList() {
 
         menu->addAction(createTextSeparator(fromStdStringView(device_type->GetDescription())));
 
-        for (const auto& device_info : device_info_list) {
+        for (auto device_info : device_info_list) {
             auto device_action = new QAction(QString::fromStdWString(device_info.name), this);
             device_action_group->addAction(device_action);
             device_action->setCheckable(true);
@@ -293,11 +296,13 @@ void Xamp::initialDeviceList() {
                 device_info_ = device_info;
                 AppSettings::setValue(kAppSettingDeviceType, device_info_.device_type_id);
                 AppSettings::setValue(kAppSettingDeviceId, device_info_.device_id);
-                XAMP_LOG_DEBUG("Save device Id : {}", device_info_.device_id);
+                XAMP_LOG_DEBUG("Save device id:{} {} {}",
+                               ToUtf8String(device_info_.name),
+                               device_info_.device_id,
+                               device_info_.device_type_id);
             });
             menu->addAction(device_action);
-            if (AppSettings::getID(kAppSettingDeviceType) == device_info.device_type_id
-                && AppSettings::getValueAsString(kAppSettingDeviceId).toStdString() == device_info.device_id) {
+            if (device_type_id == device_info.device_type_id && device_id == device_info.device_id) {
                 device_info_ = device_info;
                 is_find_setting_device = true;
                 device_action->setChecked(true);
@@ -521,7 +526,7 @@ void Xamp::initialController() {
         dialog.exec();
         watch_.addPath(dialog.music_file_path_);
     });
-    auto select_color_widget = new SelectColorWidget(this);
+    auto select_color_widget = new SelectColorWidget();
     auto theme_color_menu = new QMenu(tr("Theme color"));
     auto widget_action = new QWidgetAction(theme_color_menu);
     widget_action->setDefaultWidget(select_color_widget);
@@ -753,6 +758,8 @@ void Xamp::playLocalFile(const PlayListEntity& item) {
 }
 
 void Xamp::play() {
+    XAMP_LOG_DEBUG("Player state:{}", player_->GetState());
+
     if (player_->GetState() == PlayerState::PLAYER_STATE_RUNNING) {
         ThemeManager::instance().setPlayOrPauseButton(ui, false);
         player_->Pause();

@@ -99,7 +99,7 @@ struct SystemVolume {
         }
     }
 
-    bool HasProperty() const {
+    bool HasProperty() const noexcept {
         return ::AudioObjectHasProperty(device_id_, &property_) > 0;
     }
 
@@ -276,7 +276,7 @@ bool CoreAudioDevice::IsMuted() const {
     return SystemVolume(kAudioDevicePropertyMute, device_id_).IsMuted();
 }
 
-bool CoreAudioDevice::CanHardwareControlVolume() const {
+bool CoreAudioDevice::IsHardwareControlVolume() const {
     return SystemVolume(kAudioDevicePropertyMute, device_id_).HasProperty();
 }
 

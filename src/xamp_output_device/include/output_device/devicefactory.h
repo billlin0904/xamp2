@@ -74,7 +74,7 @@ private:
     }
 
     AlignPtr<DeviceStateNotificationImpl> impl_;
-    RobinHoodHashMap<ID, std::function<AlignPtr<DeviceType>()>> creator_;
+    std::unordered_map<ID, std::function<AlignPtr<DeviceType>()>> creator_;
 };
 
 }

@@ -11,7 +11,24 @@
 #include <widget/image_utiltis.h>
 #include <widget/metadataextractadapter.h>
 
-constexpr size_t kCachePreallocateSize = 100;
+inline constexpr size_t kCachePreallocateSize = 100;
+
+class DatabaseIdCache {
+public:
+    DatabaseIdCache() = default;
+
+    std::tuple<int32_t, int32_t, QString> addCache(const QString& album, const QString& artist);
+
+    QString addCoverCache(int32_t album_id, const QString& album, const Metadata& metadata, bool is_unknown_album);
+
+    std::tuple<size_t, size_t, size_t> GetMissCount() const noexcept {
+        return std::make_tuple(album_id_cache.GetMissCount(), artist_id_cache.GetMissCount(), cover_id_cache.GetMissCount());
+    }
+private:
+    mutable LruCache<int32_t, QString> cover_id_cache;
+    mutable LruCache<QString, int32_t> album_id_cache;
+    mutable LruCache<QString, int32_t> artist_id_cache;
+};
 
 QString DatabaseIdCache::addCoverCache(int32_t album_id, const QString& album, const Metadata& metadata, bool is_unknown_album) {
     using xamp::metadata::TaglibMetadataReader;
@@ -132,6 +149,8 @@ void MetadataExtractAdapter::Reset() {
 }
 
 void MetadataExtractAdapter::processMetadata(const std::vector<Metadata>& metadatas, PlayListTableView* playlist) {
+    DatabaseIdCache cache;
+
     auto playlist_id = -1;
     if (playlist != nullptr) {
         playlist_id = playlist->playlistId();
@@ -149,7 +168,7 @@ void MetadataExtractAdapter::processMetadata(const std::vector<Metadata>& metada
 
         auto music_id = Database::instance().addOrUpdateMusic(metadata, playlist_id);
 
-        auto [album_id, artist_id, cover_id] = cache_.addCache(album, artist);
+        auto [album_id, artist_id, cover_id] = cache.addCache(album, artist);
 
         // Find cover id from database.
         if (cover_id.isEmpty()) {
@@ -158,7 +177,7 @@ void MetadataExtractAdapter::processMetadata(const std::vector<Metadata>& metada
 
         // Database not exist find others.
         if (cover_id.isEmpty()) {
-            cover_id = cache_.addCoverCache(album_id, album, metadata, is_unknown_album);
+            cover_id = cache.addCoverCache(album_id, album, metadata, is_unknown_album);
         }
 
         IgnoreSqlError(Database::instance().addOrUpdateAlbumMusic(album_id, artist_id, music_id))
@@ -173,7 +192,7 @@ void MetadataExtractAdapter::processMetadata(const std::vector<Metadata>& metada
         }        
     }
 
-    auto [album_miss, artist_miss, cover_miss] = cache_.GetMissCount();
+    auto [album_miss, artist_miss, cover_miss] = cache.GetMissCount();
     XAMP_LOG_DEBUG("Metadata read total:{} miss {}%, {}%, {}% ",
         metadatas.size(),
         album_miss * 100 / metadatas.size(),

@@ -41,6 +41,7 @@ public:
 	virtual std::vector<DeviceInfo> GetDeviceInfo() const = 0;
 
 	virtual std::optional<DeviceInfo> GetDefaultDeviceInfo() const = 0;
+
 protected:
 	DeviceType() = default;
 };

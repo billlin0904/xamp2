@@ -9,8 +9,6 @@
 
 namespace xamp::output_device::osx {
 
-std::string_view const CoreAudioDeviceType::Id("E6BB3BF2-F16A-489B-83EE-4A29755F42E4");
-
 CoreAudioDeviceType::CoreAudioDeviceType() {
 }
 
@@ -92,7 +90,7 @@ std::vector<DeviceInfo> CoreAudioDeviceType::GetDeviceInfo() const {
         DeviceInfo info;
         info.name = GetPropertyName(device_id);
         info.device_id = GetDeviceUid(device_id);
-        info.device_type_id = Id;
+        info.device_type_id = GetTypeId();
         info.is_support_dsd = IsSupportDopMode(device_id);
         if (default_device_info) {
             if (default_device_info.value().device_id == info.device_id) {
@@ -129,7 +127,7 @@ std::optional<DeviceInfo> CoreAudioDeviceType::GetDefaultDeviceInfo() const {
     }
     device_info.name = GetPropertyName(id);
     device_info.device_id = GetDeviceUid(id);
-    device_info.device_type_id = Id;
+    device_info.device_type_id = GetTypeId();
     device_info.is_default_device = true;
     return std::move(device_info);
 }

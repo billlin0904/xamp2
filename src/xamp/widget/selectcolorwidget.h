@@ -5,11 +5,11 @@
 
 #pragma once
 
-#include <QWidget>
+#include <QFrame>
 #include <QColor>
 #include <QList>
 
-class SelectColorWidget : public QWidget {
+class SelectColorWidget : public QFrame {
     Q_OBJECT
 public:
     explicit SelectColorWidget(QWidget* parent = nullptr);

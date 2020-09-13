@@ -14,7 +14,7 @@
 namespace xamp::output_device::osx {
 
 template <typename StringType>
-static CFStringRef STLStringToCFStringWithEncodingsT(StringType const & in,
+CFStringRef STLStringToCFStringWithEncodingsT(StringType const & in,
                                                      CFStringEncoding in_encoding) {
     typename StringType::size_type in_length = in.length();
     if (in_length == 0) {
@@ -28,7 +28,7 @@ static CFStringRef STLStringToCFStringWithEncodingsT(StringType const & in,
 }
 
 template <typename StringType>
-static StringType CFStringToSTLStringWithEncodingT(CFStringRef cfstring,
+StringType CFStringToSTLStringWithEncodingT(CFStringRef cfstring,
                                                    CFStringEncoding encoding) {
     auto length = ::CFStringGetLength(cfstring);
     if (length == 0) {
@@ -68,21 +68,21 @@ static StringType CFStringToSTLStringWithEncodingT(CFStringRef cfstring,
     return StringType(&out_buffer[0], elements - 1);
 }
 
-inline std::string SysCFStringRefToUTF8(CFStringRef ref) {
+XAMP_ALWAYS_INLINE std::string SysCFStringRefToUTF8(CFStringRef ref) {
     return CFStringToSTLStringWithEncodingT<std::string>(ref,
                                                          kCFStringEncodingUTF8);
 }
 
-inline CFStringRef SysUTF8ToCFStringRef(std::string const & utf8) {
+XAMP_ALWAYS_INLINE CFStringRef SysUTF8ToCFStringRef(std::string const & utf8) {
     return STLStringToCFStringWithEncodingsT(utf8, kCFStringEncodingUTF8);
 }
 
-inline std::wstring SysCFStringRefToWide(CFStringRef ref) {
+XAMP_ALWAYS_INLINE std::wstring SysCFStringRefToWide(CFStringRef ref) {
     return CFStringToSTLStringWithEncodingT<std::wstring>(ref,
                                                           kCFStringEncodingUTF32LE);
 }
 
-inline CFStringRef SysWideToCFStringRef(std::wstring const & wide) {
+XAMP_ALWAYS_INLINE CFStringRef SysWideToCFStringRef(std::wstring const & wide) {
     return STLStringToCFStringWithEncodingsT(wide, kCFStringEncodingUTF32LE);
 }
 

@@ -94,9 +94,9 @@ void PixmapCache::loadCache() const {
 }
 
 std::optional<const QPixmap*> PixmapCache::find(const QString& tag_id) const {
-	XAMP_ON_SCOPE_EXIT(
-		XAMP_LOG_DEBUG("PixmapCache miss {}%", cache_.GetMissCount() * 100 / cache_.GetMaxSize());
-		);
+    //XAMP_ON_SCOPE_EXIT(
+    //	XAMP_LOG_DEBUG("PixmapCache miss {}%", cache_.GetMissCount() * 100 / cache_.GetMaxSize());
+    //	);
 
 	while (true) {
         const auto cache = cache_.Find(tag_id);

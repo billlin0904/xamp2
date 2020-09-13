@@ -12,6 +12,7 @@
 #else
 #include <IOKit/pwr_mgt/IOPMLib.h>
 #include <output_device/osx/coreaudiodevicetype.h>
+#include <output_device/osx/hogcoreaudiodevicetype.h>
 #include <output_device/osx/coreaudiodevicestatenotification.h>
 #endif
 
@@ -103,6 +104,7 @@ DeviceManager::DeviceManager() {
     using namespace osx;
     SetRealtimeProcessPriority();
     XAMP_REGISTER_DEVICE_TYPE(CoreAudioDeviceType);
+    XAMP_REGISTER_DEVICE_TYPE(HogCoreAudioDeviceType);
 #endif
 }
 

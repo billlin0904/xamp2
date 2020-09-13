@@ -71,8 +71,7 @@ static const QList<QColor> & GetColors() {
 }
 
 SelectColorWidget::SelectColorWidget(QWidget* parent)
-    : QWidget(parent) {    
-    
+    : QFrame(parent) {
     auto group = new QButtonGroup(this);
     auto layout = new QGridLayout(this);
 
@@ -94,4 +93,6 @@ SelectColorWidget::SelectColorWidget(QWidget* parent)
         static_cast<void(QButtonGroup::*)(int)>(&QButtonGroup::buttonClicked), [this](auto index) {
         emit colorButtonClicked(GetColors()[index]);
         });
+
+    setStyleSheet(Q_UTF8("background-color: rgb(18, 18, 18);"));
 }
