@@ -10,7 +10,7 @@ namespace xamp::output_device::win32 {
 
 std::string_view HRException::ErrorToString(HRESULT hr) noexcept {
     switch (hr) {
-        default: return "(unknown)";
+        default: return "Unknown";
         case AUDCLNT_E_NOT_INITIALIZED: return "AUDCLNT_E_NOT_INITIALIZED";
         case AUDCLNT_E_ALREADY_INITIALIZED: return "AUDCLNT_E_ALREADY_INITIALIZED";
         case AUDCLNT_E_WRONG_ENDPOINT_TYPE: return "AUDCLNT_E_WRONG_ENDPOINT_TYPE";

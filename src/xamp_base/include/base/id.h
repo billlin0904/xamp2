@@ -46,13 +46,13 @@ public:
 	operator std::string() const;
 
 private:
-    friend std::ostream &operator<<(std::ostream &s, ID const &id);
+    XAMP_BASE_API friend std::ostream &operator<<(std::ostream &s, ID const &id);
 
-    friend bool operator==(std::string const &str, ID const &id);
+    XAMP_BASE_API friend bool operator==(std::string const &str, ID const &id);
 
-    friend bool operator==(ID const & other1, ID const & other2) noexcept;
+    XAMP_BASE_API friend bool operator==(ID const & other1, ID const & other2) noexcept;
 
-    friend bool operator!=(ID const & other1, ID const & other2) noexcept;
+    XAMP_BASE_API friend bool operator!=(ID const & other1, ID const & other2) noexcept;
 
     std::array<uint8_t, kIdSize> bytes_;
 };

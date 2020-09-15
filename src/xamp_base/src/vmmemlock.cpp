@@ -39,11 +39,11 @@ void VmMemLock::Lock(void* address, size_t size) {
 	UnLock();
 
 	if (!ExterndProcessWorkingSetSize(size)) {
-		throw PlatformSpecException("ExterndProcessWorkingSetSize return failure! error:{}.", ::GetLastError());
+		throw PlatformSpecException("ExterndProcessWorkingSetSize return failure!");
 	}
 
 	if (!::VirtualLock(address, size)) {
-		throw PlatformSpecException("VirtualLock return failure! error:{}.", ::GetLastError());
+		throw PlatformSpecException("VirtualLock return failure!");
 	}
 
 	address_ = address;

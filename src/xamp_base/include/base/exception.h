@@ -70,7 +70,9 @@ public:
 
     explicit PlatformSpecException(int32_t err);
 
-    explicit PlatformSpecException(std::string_view what, int32_t err);
+    explicit PlatformSpecException(std::string_view what);
+
+    PlatformSpecException(std::string_view what, int32_t err);
 
     virtual ~PlatformSpecException() = default;
 };

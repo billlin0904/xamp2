@@ -289,6 +289,13 @@ void AudioPlayer::Stop(bool signal_to_stop, bool shutdown_device, bool wait_for_
         device_id_.clear();
     }
     stream_.reset();
+
+    auto c = max_process_time_.count();
+    XAMP_LOG_DEBUG("Device max process time: {}.{:03}'{:03}sec",
+        (c % 1'000'000'000) / 1'000'000, (c % 1'000'000) / 1'000, c % 1'000);
+    c = min_process_time_.count();
+    XAMP_LOG_DEBUG("Device min process time: {}.{:03}'{:03}sec",
+        (c % 1'000'000'000) / 1'000'000, (c % 1'000'000) / 1'000, c % 1'000);
 }
 
 void AudioPlayer::SetVolume(uint32_t volume) {
@@ -428,7 +435,7 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
     if (stream_task_.valid()) {
         XAMP_LOG_DEBUG("Try to stop stream thread.");
 #ifdef XAMP_OS_WIN
-        MSVC 2019 is wait for std::packaged_task return timeout, while others such clang can't.
+        // MSVC 2019 is wait for std::packaged_task return timeout, while others such clang can't.
         if (stream_task_.wait_for(kWaitForStreamStopTime) == std::future_status::timeout) {
             throw StopStreamTimeoutException();
         }
@@ -528,8 +535,13 @@ int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, dou
     const auto num_samples = num_buffer_frames * output_format_.GetChannels();
     const auto sample_size = num_samples * sample_size_;
 
+    auto elapsed = sw_.Elapsed();
+    max_process_time_ = std::max(elapsed, max_process_time_);
+    min_process_time_ = std::min(elapsed, min_process_time_);
+
     if (XAMP_LIKELY(buffer_.TryRead(static_cast<int8_t*>(samples), sample_size))) {
         UpdateSlice(static_cast<const float*>(samples), static_cast<int32_t>(num_samples), stream_time);
+        sw_.Reset();
         return 0;
     }
 
@@ -722,6 +734,10 @@ void AudioPlayer::StartPlay() {
     CreateBuffer();
     BufferStream();
     Play();
+
+    sw_.Reset();
+    min_process_time_ = std::chrono::microseconds(1000000);
+    max_process_time_ = std::chrono::microseconds(0);
 
     stream_task_ = ThreadPool::DefaultThreadPool().StartNew([player = shared_from_this()]() noexcept {
         auto* p = player.get();

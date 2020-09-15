@@ -86,7 +86,7 @@ private:
 };
 
 #define XAMP_REGISTER_DEVICE_TYPE(DeviceTypeClass) \
-	creator_.emplace(DeviceTypeClass::Id, []() {\
+	factory_.emplace(DeviceTypeClass::Id, []() {\
 		return MakeAlign<DeviceType, DeviceTypeClass>();\
 	})
 
@@ -117,20 +117,20 @@ DeviceManager::~DeviceManager() {
 }
 
 void DeviceManager::Clear() {
-    creator_.clear();
+    factory_.clear();
 }
 
 std::optional<AlignPtr<DeviceType>> DeviceManager::CreateDefaultDevice() const {
-    auto itr = creator_.begin();
-    if (itr == creator_.end()) {
+    auto itr = factory_.begin();
+    if (itr == factory_.end()) {
         return std::nullopt;
     }
     return (*itr).second();
 }
 
 std::optional<AlignPtr<DeviceType>> DeviceManager::Create(ID const& id) const {
-    auto itr = creator_.find(id);
-    if (itr == creator_.end()) {
+    auto itr = factory_.find(id);
+    if (itr == factory_.end()) {
         return std::nullopt;
     }
     return (*itr).second();
@@ -138,7 +138,7 @@ std::optional<AlignPtr<DeviceType>> DeviceManager::Create(ID const& id) const {
 
 bool DeviceManager::IsSupportASIO() const {
 #if ENABLE_ASIO && defined(XAMP_OS_WIN)
-    return creator_.find(ASIODeviceType::Id) != creator_.end();
+    return factory_.find(ASIODeviceType::Id) != factory_.end();
 #else
     return false;
 #endif
@@ -167,7 +167,7 @@ bool DeviceManager::IsASIODevice(ID const& id) {
 }
 
 bool DeviceManager::IsDeviceTypeExist(ID const& id) const {
-    return creator_.find(id) != creator_.end();
+    return factory_.find(id) != factory_.end();
 }
 
 void DeviceManager::RegisterDeviceListener(std::weak_ptr<DeviceStateListener> callback) {	

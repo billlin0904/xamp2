@@ -115,6 +115,14 @@ PlatformSpecException::PlatformSpecException()
 #endif
 }
 
+PlatformSpecException::PlatformSpecException(std::string_view what)
+#ifdef XAMP_OS_WIN
+    : Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, GetPlatformErrorMessage(::GetLastError()), what) {
+#else
+    : Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, GetPlatformErrorMessage(errno), what) {
+#endif
+}
+
 PlatformSpecException::PlatformSpecException(int32_t err)
     : Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, GetPlatformErrorMessage(err)) {
 }

@@ -30,8 +30,8 @@ public:
     XAMP_DISABLE_COPY(DeviceManager)
 
     static DeviceManager& Instance() {
-        static DeviceManager factory;
-        return factory;
+        static DeviceManager inst;
+        return inst;
     }
 
     void RegisterDeviceListener(std::weak_ptr<DeviceStateListener> callback);
@@ -44,7 +44,7 @@ public:
 
     template <typename Function>
     void ForEach(Function &&fun) {
-        for (auto const& creator : creator_) {
+        for (auto const& creator : factory_) {
             try {
                 fun(creator.second());
             }
@@ -70,11 +70,11 @@ private:
 
     template <typename Function>
     void RegisterCreator(ID const &id, Function&& fun) {
-        creator_[id] = std::forward<Function>(fun);
+        factory_[id] = std::forward<Function>(fun);
     }
 
     AlignPtr<DeviceStateNotificationImpl> impl_;
-    std::unordered_map<ID, std::function<AlignPtr<DeviceType>()>> creator_;
+    std::unordered_map<ID, std::function<AlignPtr<DeviceType>()>> factory_;
 };
 
 }

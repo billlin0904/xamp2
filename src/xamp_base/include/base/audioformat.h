@@ -84,11 +84,11 @@ public:
     void Reset() noexcept;
 
 private:
-    friend bool operator==(const AudioFormat& format, const AudioFormat& other) noexcept;
+    XAMP_BASE_API friend bool operator==(const AudioFormat& format, const AudioFormat& other) noexcept;
 
-    friend bool operator!=(const AudioFormat& format, const AudioFormat& other) noexcept;
+    XAMP_BASE_API friend bool operator!=(const AudioFormat& format, const AudioFormat& other) noexcept;
 
-    friend std::ostream& operator<<(std::ostream& ostr, const AudioFormat& format);
+    XAMP_BASE_API friend std::ostream& operator<<(std::ostream& ostr, const AudioFormat& format);
 
     DataFormat format_;
     ByteFormat byte_format_;

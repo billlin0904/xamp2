@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <atomic>
+
 #include <QMutex>
 #include <QObject>
 
@@ -51,7 +53,7 @@ public:
     void processMetadata(const std::vector<Metadata>& metadatas, PlayListTableView *playlist = nullptr);
 	    
 private:
-    bool cancel_;
+    std::atomic<bool> cancel_;
     std::vector<Metadata> metadatas_;
     QMutex mutex_;
 };

@@ -17,6 +17,7 @@
 #include <base/dsdsampleformat.h>
 #include <base/align_ptr.h>
 #include <base/id.h>
+#include <base/stopwatch.h>
 
 #include <stream/stream.h>
 #include <stream/equalizer.h>
@@ -167,6 +168,9 @@ private:
     std::atomic<bool> is_paused_;
     std::atomic<AudioSlice> slice_;
     mutable std::mutex pause_mutex_;
+    std::chrono::microseconds min_process_time_{ 0 };
+    std::chrono::microseconds max_process_time_{ 0 };
+    Stopwatch sw_;
     std::string device_id_;
     ID device_type_id_;
     std::condition_variable pause_cond_;
