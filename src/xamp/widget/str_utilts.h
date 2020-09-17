@@ -17,7 +17,7 @@ struct ConstLatin1String : public QLatin1String {
 };
 
 namespace Qt {
-    static constexpr ConstLatin1String EmptyStr{ "" };
+    inline constexpr ConstLatin1String EmptyStr{ "" };
 }
 
 #define Q_UTF8(str) ConstLatin1String{str}

@@ -30,6 +30,12 @@ inline constexpr std::chrono::milliseconds kUpdateSampleInterval(30);
 inline constexpr std::chrono::seconds kWaitForStreamStopTime(10);
 inline constexpr std::chrono::milliseconds kReadSampleWaitTime(100);
 
+static void LogTime(std::string msg, std::chrono::microseconds time) {
+    auto c = time.count();
+    XAMP_LOG_DEBUG(msg + ": {}.{:03}'{:03}sec",
+        (c % 1'000'000'000) / 1'000'000, (c % 1'000'000) / 1'000, c % 1'000);
+}
+
 AudioPlayer::AudioPlayer()
     : AudioPlayer(std::weak_ptr<PlaybackStateAdapter>()) {
 }
@@ -290,12 +296,8 @@ void AudioPlayer::Stop(bool signal_to_stop, bool shutdown_device, bool wait_for_
     }
     stream_.reset();
 
-    auto c = max_process_time_.count();
-    XAMP_LOG_DEBUG("Device max process time: {}.{:03}'{:03}sec",
-        (c % 1'000'000'000) / 1'000'000, (c % 1'000'000) / 1'000, c % 1'000);
-    c = min_process_time_.count();
-    XAMP_LOG_DEBUG("Device min process time: {}.{:03}'{:03}sec",
-        (c % 1'000'000'000) / 1'000'000, (c % 1'000'000) / 1'000, c % 1'000);
+    LogTime("Device max process time", min_process_time_);
+    LogTime("Device min process time", min_process_time_);
 }
 
 void AudioPlayer::SetVolume(uint32_t volume) {
@@ -436,9 +438,11 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
         XAMP_LOG_DEBUG("Try to stop stream thread.");
 #ifdef XAMP_OS_WIN
         // MSVC 2019 is wait for std::packaged_task return timeout, while others such clang can't.
+        Stopwatch sw;
         if (stream_task_.wait_for(kWaitForStreamStopTime) == std::future_status::timeout) {
             throw StopStreamTimeoutException();
         }
+        LogTime("Thread switch time", sw.Elapsed());
 #else
         stream_task_.get();
 #endif
@@ -680,15 +684,15 @@ void AudioPlayer::BufferStream() {
 
             auto samples = reinterpret_cast<const float*>(sample_buffer);
             
-            auto default_resampler = true;
+            auto use_resampler = true;
             if (equalizer_ != nullptr) {
                 if (dsd_mode_ == DsdModes::DSD_MODE_PCM) {
                     equalizer_->Process(samples, num_samples, buffer_);
-                    default_resampler = false;
+                    use_resampler = false;
                 }
             }
 
-            if (default_resampler) {
+            if (use_resampler) {
                 if (!resampler_->Process(samples, num_samples, buffer_)) {
                     continue;
                 }
@@ -705,15 +709,15 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_read_sample
         if (num_samples > 0) {
             auto samples = reinterpret_cast<const float*>(sample_buffer_.get());
 
-            auto default_resampler = true;
+            auto use_resampler = true;
             if (equalizer_ != nullptr) {
                 if (dsd_mode_ == DsdModes::DSD_MODE_PCM) {
                     equalizer_->Process(samples, num_samples, buffer_);
-                    default_resampler = false;
+                    use_resampler = false;
                 }
             } 
 
-            if (default_resampler) {
+            if (use_resampler) {
                 if (!resampler_->Process(samples, num_samples, buffer_)) {
                     continue;
                 }
@@ -739,6 +743,7 @@ void AudioPlayer::StartPlay() {
     min_process_time_ = std::chrono::microseconds(1000000);
     max_process_time_ = std::chrono::microseconds(0);
 
+    Stopwatch sw;
     stream_task_ = ThreadPool::DefaultThreadPool().StartNew([player = shared_from_this()]() noexcept {
         auto* p = player.get();
 
@@ -768,6 +773,8 @@ void AudioPlayer::StartPlay() {
             XAMP_LOG_DEBUG("Stream read has exception: {}.", e.what());
         }
     });
+
+    LogTime("Create thread time", sw.Elapsed());
 }
 
 }

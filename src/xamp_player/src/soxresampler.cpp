@@ -168,6 +168,7 @@ public:
             return;
         }
         SoxrLib::Instance().soxr_clear(handle_.get());
+        buffer_.clear();
     }
 
     bool Process(float const * samples, uint32_t num_sample, AudioBuffer<int8_t>& buffer) {

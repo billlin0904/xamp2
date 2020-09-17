@@ -225,7 +225,8 @@ void SharedWasapiDevice::OpenStream(AudioFormat const & output_format) {
 	LONG priority = 0;
 	HrIfFailledThrow(::MFGetWorkQueueMMCSSPriority(queue_id_, &priority));
 
-	XAMP_LOG_DEBUG("MCSS task id:{} queue id:{}, priority:{} ({}).", task_id, queue_id_, thread_priority_, priority);
+	XAMP_LOG_DEBUG("MCSS task id:{} queue id:{}, priority:{} ({}).",
+		task_id, queue_id_, thread_priority_, (MmcssThreadPriority)priority);
 
 	sample_ready_callback_.Release();
 	sample_ready_async_result_.Release();

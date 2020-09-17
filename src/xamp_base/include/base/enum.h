@@ -40,15 +40,15 @@
     EXPAND_VISUAL_STUDIO_HELPER(ALL_ARGUMENTS_TO_STRING_HELPER( \
         0, __VA_ARGS__, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
 
-#define MAKE_ENUM(Name, ...) enum class Name : uint8_t { __VA_ARGS__ }; \
+#define MAKE_ENUM(EnumName, ...) enum class EnumName : uint8_t { __VA_ARGS__ }; \
 namespace {\
-static constexpr std::string_view Name##_enum_names[] = {\
+inline constexpr std::string_view EnumName##_enum_names[] = {\
     ALL_ARGUMENTS_TO_STRING(__VA_ARGS__)\
 };\
-XAMP_ALWAYS_INLINE constexpr std::string_view EnumToString(Name value) noexcept {\
-    return Name##_enum_names[static_cast<int>(value)];\
+XAMP_ALWAYS_INLINE constexpr std::string_view EnumToString(EnumName value) noexcept {\
+    return EnumName##_enum_names[static_cast<int>(value)];\
 }\
-XAMP_ALWAYS_INLINE std::ostream &operator<<(std::ostream &os, Name value) {\
+XAMP_ALWAYS_INLINE std::ostream &operator<<(std::ostream &os, EnumName value) {\
     os << EnumToString(value);\
     return os;\
 }\

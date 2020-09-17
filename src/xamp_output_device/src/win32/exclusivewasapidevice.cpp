@@ -188,7 +188,8 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	LONG priority = 0;
 	HrIfFailledThrow(::MFGetWorkQueueMMCSSPriority(queue_id_, &priority));
 
-	XAMP_LOG_DEBUG("MCSS task id:{} queue id:{}, priority:{} ({}).", task_id, queue_id_, thread_priority_, priority);
+	XAMP_LOG_DEBUG("MCSS task id:{} queue id:{}, priority:{} ({}).",
+		task_id, queue_id_, thread_priority_, (MmcssThreadPriority) priority);
 
     sample_ready_callback_ = new MFAsyncCallback<ExclusiveWasapiDevice>(this,
         &ExclusiveWasapiDevice::OnSampleReady,
