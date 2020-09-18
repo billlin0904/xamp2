@@ -295,9 +295,6 @@ void AudioPlayer::Stop(bool signal_to_stop, bool shutdown_device, bool wait_for_
         device_id_.clear();
     }
     stream_.reset();
-
-    LogTime("Device max process time", min_process_time_);
-    LogTime("Device min process time", min_process_time_);
 }
 
 void AudioPlayer::SetVolume(uint32_t volume) {
@@ -449,6 +446,9 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
         XAMP_LOG_DEBUG("Stream thread was finished.");
     }
     buffer_.Clear();
+
+    LogTime("Device max process time", min_process_time_);
+    LogTime("Device min process time", min_process_time_);
 }
 
 void AudioPlayer::CreateBuffer() {
@@ -747,15 +747,15 @@ void AudioPlayer::StartPlay() {
     stream_task_ = ThreadPool::DefaultThreadPool().StartNew([player = shared_from_this()]() noexcept {
         auto* p = player.get();
 
+        std::unique_lock<std::mutex> lock{ p->pause_mutex_ };
+
+        auto sample_buffer = p->sample_buffer_.get();
+        const auto max_read_sample = p->num_read_sample_;
+        const auto num_sample_write = max_read_sample * kMaxWriteRatio;
+
+        XAMP_LOG_DEBUG("max_read_sample: {}, num_sample_write: {}", max_read_sample, num_sample_write);
+
         try {
-            std::unique_lock<std::mutex> lock{ p->pause_mutex_ };
-
-            auto sample_buffer = p->sample_buffer_.get();
-            const auto max_read_sample = p->num_read_sample_;
-            const auto num_sample_write = max_read_sample * kMaxWriteRatio;
-
-            XAMP_LOG_DEBUG("max_read_sample: {}, num_sample_write: {}", max_read_sample, num_sample_write);
-
             while (p->is_playing_) {
                 while (p->is_paused_) {
                     p->pause_cond_.wait(lock);

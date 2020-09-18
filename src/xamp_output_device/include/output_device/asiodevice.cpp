@@ -23,13 +23,11 @@ namespace xamp::output_device {
 using namespace win32;
 
 struct AsioCallbackInfo {
-	bool boost_priority{false};
 	bool is_xrun{ false };
 	AsioDevice* device{ nullptr };
 	AlignPtr<AsioDrivers> drivers{};
 	AudioConvertContext data_context{};
-	ASIOCallbacks asio_callbacks{};	
-	Mmcss mmcss;
+	ASIOCallbacks asio_callbacks{};
 	std::array<ASIOBufferInfo, kMaxChannel> buffer_infos{};
 	std::array<ASIOChannelInfo, kMaxChannel> channel_infos{};
 } callbackInfo;
@@ -310,6 +308,8 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 				throw NotSupportFormatException();
 			}
 			break;
+		default:
+			throw NotSupportFormatException();
 		}
 		auto channel_buffer_size = buffer_size_ / 8;
 		buffer_bytes_ = channel_buffer_size;
@@ -342,12 +342,6 @@ void AsioDevice::SetMute(bool mute) const {
 }
 
 void AsioDevice::OnBufferSwitch(long index) noexcept {
-	if (callbackInfo.boost_priority) {
-		callbackInfo.mmcss.BoostPriority();
-		SetCurrentThreadAffinity();
-		callbackInfo.boost_priority = false;
-	}
-
 	const auto vol = volume_.load();
 	if (callbackInfo.data_context.cache_volume != vol) {
 		callbackInfo.data_context.volume_factor = LinearToLog(vol);
@@ -361,7 +355,6 @@ void AsioDevice::OnBufferSwitch(long index) noexcept {
 	if (!is_streaming_) {
 		is_stop_streaming_ = true;
 		condition_.notify_all();
-		callbackInfo.mmcss.RevertPriority();
 		return;
 	}
 
@@ -464,8 +457,6 @@ void AsioDevice::OpenStream(AudioFormat const & output_format) {
 
 	played_bytes_ = 0;
 	is_stopped_ = false;
-
-	callbackInfo.boost_priority = true;
 	callbackInfo.data_context.cache_volume = 0;
 	callbackInfo.device = this;
 }
