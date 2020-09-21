@@ -31,8 +31,8 @@ MAKE_ENUM(DataFormat,
           FORMAT_DSD,
           FORMAT_PCM)
 
-static constexpr uint32_t kMaxChannel = 2;
-static constexpr uint32_t kMaxSamplerate = 192000;
+inline constexpr uint32_t kMaxChannel = 2;
+inline constexpr uint32_t kMaxSamplerate = 192000;
 
 class XAMP_BASE_API AudioFormat final {
 public:

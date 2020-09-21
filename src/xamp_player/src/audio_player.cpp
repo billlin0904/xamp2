@@ -675,6 +675,10 @@ void AudioPlayer::BufferStream() {
         resampler_->Flush();
     }
 
+    XAMP_LOG_DEBUG("Start buffer {} sec samples.", 
+        float(num_read_sample_ * kBufferStreamCount * output_format_.GetBytesPerSample())
+        / output_format_.GetAvgBytesPerSec());
+
     for (auto i = 0; i < kBufferStreamCount; ++i) {
         while (true) {
             const auto num_samples = stream_->GetSamples(sample_buffer, num_read_sample_);

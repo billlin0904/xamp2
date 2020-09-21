@@ -28,7 +28,7 @@ public:
 
 	void OpenFile(std::wstring const & file_path) override;
 
-	void Close() override;
+	void Close() noexcept override;
 
 	double GetDuration() const override;
 

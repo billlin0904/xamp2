@@ -8,7 +8,8 @@ static void EnsureDsdDecoderInit() {
     if (!BassLib::Instance().DSDLib) {
         BassLib::Instance().DSDLib = MakeAlign<BassDSDLib>();
         // TODO: Set hightest dsd2pcm samplerate?
-        BassLib::Instance().BASS_SetConfig(BASS_CONFIG_DSD_FREQ, 88200);
+        //BassLib::Instance().BASS_SetConfig(BASS_CONFIG_DSD_FREQ, 88200);
+        BassLib::Instance().BASS_SetConfig(BASS_CONFIG_DSD_FREQ,  174000);
     }
 
 }
@@ -117,7 +118,7 @@ public:
         }
     }
 
-    void Close() {
+    void Close() noexcept {
         stream_.reset();
         mode_ = DsdModes::DSD_MODE_PCM;
         info_ = BASS_CHANNELINFO{};
@@ -240,7 +241,7 @@ void BassFileStream::OpenFile(std::wstring const & file_path)  {
     stream_->LoadFromFile(file_path);
 }
 
-void BassFileStream::Close() {
+void BassFileStream::Close() noexcept {
     stream_->Close();
 }
 

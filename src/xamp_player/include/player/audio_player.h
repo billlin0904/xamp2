@@ -189,7 +189,7 @@ private:
     AlignPtr<Equalizer> equalizer_;
     std::array<EQSettings, kMaxBand> eqsettings_;
     DeviceInfo device_info_;
-    std::future<void> stream_task_;
+    std::shared_future<void> stream_task_;
 };
 
 }

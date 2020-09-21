@@ -18,7 +18,7 @@ public:
 
 	virtual bool IsFile() const noexcept = 0;
 
-	virtual void Close() = 0;
+	virtual void Close() noexcept = 0;
 
     virtual double GetDuration() const = 0;
 

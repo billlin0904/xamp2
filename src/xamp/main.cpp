@@ -5,6 +5,7 @@
 #include <base/dll.h>
 #include <base/stacktrace.h>
 #include <base/platform_thread.h>
+#include <base/threadpool.h>
 
 #include <metadata/metadatareader.h>
 
@@ -155,6 +156,9 @@ static int excute(int argc, char* argv[]) {
     loadSettings();    
 
     app.setStyle(new DarkStyle());
+
+    (void)ThreadPool::DefaultThreadPool();
+    XAMP_LOG_DEBUG("ThreadPool init success.");
 
     Xamp win;
     win.show();

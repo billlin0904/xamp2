@@ -873,29 +873,27 @@ void Xamp::playMusic(const MusicEntity& item) {
         Toast::showTip(tr("uknown error"), this);
     }
 
-    if (!open_done) {
-        return;
-    }
-
-    if (player_->IsHardwareControlVolume()) {
-        if (!player_->IsMute()) {
-            setVolume(ui.volumeSlider->value());
+    if (open_done) {
+        if (player_->IsHardwareControlVolume()) {
+            if (!player_->IsMute()) {
+                setVolume(ui.volumeSlider->value());
+            }
+            else {
+                setVolume(0);
+            }
+            ui.volumeSlider->setDisabled(false);
         }
         else {
-            setVolume(0);
+            ui.volumeSlider->setDisabled(true);
         }
-        ui.volumeSlider->setDisabled(false);
-    }
-    else {
-        ui.volumeSlider->setDisabled(true);
-    }
 
-    Database::instance().addPlaybackHistory(item.album_id, item.artist_id, item.music_id);
-    playback_history_page_->refreshOnece();
+        Database::instance().addPlaybackHistory(item.album_id, item.artist_id, item.music_id);
+        playback_history_page_->refreshOnece();
 
-    ui.seekSlider->setRange(0, int32_t(player_->GetDuration() * 1000));
-    ui.endPosLabel->setText(Time::msToString(player_->GetDuration()));
-    playlist_page_->format()->setText(format2String(player_.get(), item.file_ext));
+        ui.seekSlider->setRange(0, int32_t(player_->GetDuration() * 1000));
+        ui.endPosLabel->setText(Time::msToString(player_->GetDuration()));
+        playlist_page_->format()->setText(format2String(player_.get(), item.file_ext));
+    }
 
     if (auto cover = PixmapCache::instance().find(item.cover_id)) {
         setCover(cover.value());

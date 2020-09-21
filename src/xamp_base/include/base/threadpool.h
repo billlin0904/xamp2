@@ -274,7 +274,7 @@ decltype(auto) ThreadPool::StartNew(F &&f, Args&&... args) {
         (*task)();
 	});
 
-    return future;
+    return future.share();
 }
 
 }

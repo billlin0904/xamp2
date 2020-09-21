@@ -346,7 +346,7 @@ void AvFileStream::OpenFile(const std::wstring& file_path) {
     return impl_->LoadFromFile(file_path);
 }
 
-void AvFileStream::Close() {
+void AvFileStream::Close() noexcept {
     impl_->Close();
 }
 
