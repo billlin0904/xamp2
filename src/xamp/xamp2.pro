@@ -132,10 +132,10 @@ HEADERS += \
 
 FORMS += \
     widget/eqdialog.ui \
-    xamp.ui \
+    widget/toast.ui \
     aboutdialog.ui \
     preferencedialog.ui \
-    widget/toast.ui \
+    xamp.ui \
 
 RESOURCES += \
     xamp.qrc \

@@ -72,7 +72,7 @@ private:
                                         AudioTimeStamp const*,
                                         void* user_data);
 
-    void AudioDeviceIOProc(AudioBufferList* output_data);
+    void AudioDeviceIOProc(AudioBufferList* output_data, double device_sample_time);
 
     bool is_running_;
     bool is_hog_mode_;

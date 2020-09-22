@@ -535,7 +535,7 @@ void AudioPlayer::OnVolumeChange(float vol) noexcept {
     }
 }
 
-int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, double stream_time) noexcept {
+int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, double stream_time, double device_sample_time) noexcept {
     const auto num_samples = num_buffer_frames * output_format_.GetChannels();
     const auto sample_size = num_samples * sample_size_;
 

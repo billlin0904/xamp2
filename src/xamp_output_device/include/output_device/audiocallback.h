@@ -16,7 +16,7 @@ class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE AudioCallback {
 public:
 	virtual ~AudioCallback() = default;
 
-    virtual int32_t OnGetSamples(void* samples, uint32_t num_buffer_frames, double stream_time) noexcept = 0;
+    virtual int32_t OnGetSamples(void* samples, uint32_t num_buffer_frames, double stream_time, double sample_time) noexcept = 0;
 
     virtual void OnError(Exception const & exception) noexcept = 0;
 

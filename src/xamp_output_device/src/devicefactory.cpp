@@ -48,6 +48,43 @@ private:
     DeviceStateNotificationPtr notification_;
 };
 
+#ifdef XAMP_OS_MAC
+static struct IopmAssertion {
+    IopmAssertion()
+        : assertion_id(0) {
+    }
+
+    ~IopmAssertion() {
+        Reset();
+    }
+
+    void PreventSleep() {
+        if (assertion_id != 0) {
+            Reset();
+        }
+        CFTimeInterval timeout = 5;
+        ::IOPMAssertionCreateWithDescription(kIOPMAssertionTypePreventUserIdleSystemSleep,
+                                             CFSTR("XAMP"),
+                                             CFSTR("XAMP"),
+                                             CFSTR("Prevents display sleep during playback"),
+                                             CFSTR("/System/Library/CoreServices/powerd.bundle"),
+                                             timeout,
+                                             kIOPMAssertionTimeoutActionRelease,
+                                             &assertion_id);
+    }
+
+    void Reset() {
+        if (assertion_id == 0) {
+            return;
+        }
+        ::IOPMAssertionRelease(assertion_id);
+        assertion_id = 0;
+    }
+
+    IOPMAssertionID assertion_id;
+} iopmAssertion;
+#endif
+
 #define XAMP_REGISTER_DEVICE_TYPE(DeviceTypeClass) \
 	factory_.emplace(DeviceTypeClass::Id, []() {\
 		return MakeAlign<DeviceType, DeviceTypeClass>();\
@@ -147,41 +184,6 @@ void DeviceManager::PreventSleep(bool allow) {
         ::SetThreadExecutionState(ES_CONTINUOUS);
     }
 #else
-    static struct IopmAssertion {
-        IopmAssertion()
-            : assertion_id(0) {
-        }
-
-        ~IopmAssertion() {
-            Reset();
-        }
-
-        void PreventSleep() {
-            if (assertion_id != 0) {
-                Reset();
-            }
-            CFTimeInterval timeout = 5;
-            ::IOPMAssertionCreateWithDescription(kIOPMAssertionTypePreventUserIdleSystemSleep,
-                CFSTR("XAMP"),
-                CFSTR("XAMP"),
-                CFSTR("Prevents display sleep during playback"),
-                CFSTR("/System/Library/CoreServices/powerd.bundle"),
-                timeout,
-                kIOPMAssertionTimeoutActionRelease,
-                &assertion_id);
-        }
-
-        void Reset() {
-            if (assertion_id == 0) {
-                return;
-            }
-            ::IOPMAssertionRelease(assertion_id);
-            assertion_id = 0;
-        }
-
-        IOPMAssertionID assertion_id;
-    } iopmAssertion;
-
     if (allow) {
         iopmAssertion.PreventSleep();
     } else {

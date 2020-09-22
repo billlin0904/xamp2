@@ -296,17 +296,18 @@ OSStatus CoreAudioDevice::OnAudioDeviceIOProc(AudioDeviceID,
                                               AudioBufferList const*,
                                               AudioTimeStamp const*,
                                               AudioBufferList *output_data,
-                                              AudioTimeStamp const*,
+                                              AudioTimeStamp const* outputTimeStamp,
                                               void *user_data) {
     auto device = static_cast<CoreAudioDevice*>(user_data);
-    device->AudioDeviceIOProc(output_data);
+    auto device_sample_time = outputTimeStamp->mSampleTime / device->format_.GetSampleRate();
+    device->AudioDeviceIOProc(output_data, device_sample_time);
     return noErr;
 }
 
 void CoreAudioDevice::AbortStream() noexcept {
 }
 
-void CoreAudioDevice::AudioDeviceIOProc(AudioBufferList *output_data) {
+void CoreAudioDevice::AudioDeviceIOProc(AudioBufferList *output_data, double device_sample_time) {
     auto const buffer_count = output_data->mNumberBuffers;
 
     for (uint32_t i = 0; i < buffer_count; ++i) {
@@ -315,9 +316,11 @@ void CoreAudioDevice::AudioDeviceIOProc(AudioBufferList *output_data) {
                                                           / sizeof(float)
                                                           / format_.GetChannels());
         stream_time_ = stream_time_ + num_sample * 2;
+        auto stream_time = stream_time_ / static_cast<double>(format_.GetAvgFramesPerSec());
         if (XAMP_UNLIKELY(callback_->OnGetSamples(static_cast<float*>(buffer.mData),
                                                   num_sample,
-                                                  stream_time_ / static_cast<double>(format_.GetAvgFramesPerSec())) == 0)) {
+                                                  stream_time,
+                                                  device_sample_time) == 0)) {
             is_running_ = false;
             break;
         }
