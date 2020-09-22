@@ -23,7 +23,7 @@ public:
 
     const std::vector<uint8_t>& ExtractEmbeddedCover(Path const &path) override;
 
-    [[nodiscard]] RobinHoodSet<std::string> const & GetSupportFileExtensions() const override;
+    [[nodiscard]] HashSet<std::string> const & GetSupportFileExtensions() const override;
 
     [[nodiscard]] bool IsSupported(Path const & path) const override;
 private:

@@ -41,6 +41,15 @@ static UINT32 BackwardAligned(const UINT32 bytes_frame, const UINT32 align_size)
     return (bytes_frame - (align_size ? (bytes_frame % align_size) : 0));
 }
 
+static double GetStreamPosInMilliseconds(CComPtr<IAudioClock> &clock) {
+	UINT64 device_frequency = 0, position = 0;
+	if (FAILED(clock->GetFrequency(&device_frequency)) ||
+		FAILED(clock->GetPosition(&position, nullptr))) {
+		return 0.0;
+	}
+	return 1000.0 * (static_cast<double>(position) / device_frequency);
+}
+
 template <typename Predicate>
 static int32_t CalcAlignedFramePerBuffer(const UINT32 frames, const UINT32 block_align, Predicate f) noexcept {
     constexpr UINT32 kHdAudioPacketSize = 128;
@@ -67,6 +76,7 @@ static constexpr IID kAudioRenderClientID = __uuidof(IAudioRenderClient);
 static constexpr IID kAudioEndpointVolumeCallbackID = __uuidof(IAudioEndpointVolumeCallback);
 static constexpr IID kAudioEndpointVolumeID = __uuidof(IAudioEndpointVolume);
 static constexpr IID kAudioClient2ID = __uuidof(IAudioClient2);
+static constexpr IID kAudioClockID = __uuidof(IAudioClock);
 
 ExclusiveWasapiDevice::ExclusiveWasapiDevice(CComPtr<IMMDevice> const & device)
 	: raw_mode_(false)
@@ -177,6 +187,9 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
     HrIfFailledThrow(client_->GetService(kAudioRenderClientID,
 		reinterpret_cast<void**>(&render_client_)));
 
+	HrIfFailledThrow(client_->GetService(kAudioClockID,
+		reinterpret_cast<void**>(&clock_)));
+
     // Enable MCSS
 	DWORD task_id = 0;
 	queue_id_ = 0;
@@ -235,11 +248,11 @@ void ExclusiveWasapiDevice::FillSilentSample(uint32_t frames_available) noexcept
 	if (!render_client_) {
 		return;
 	}
-	IgoneAndRaiseError(render_client_->GetBuffer(frames_available, &data));
-	IgoneAndRaiseError(render_client_->ReleaseBuffer(frames_available, AUDCLNT_BUFFERFLAGS_SILENT));
+	ReportError(render_client_->GetBuffer(frames_available, &data));
+	ReportError(render_client_->ReleaseBuffer(frames_available, AUDCLNT_BUFFERFLAGS_SILENT));
 }
 
-void ExclusiveWasapiDevice::IgoneAndRaiseError(HRESULT hr) noexcept {
+void ExclusiveWasapiDevice::ReportError(HRESULT hr) noexcept {
 	if (FAILED(hr)) {
 		const HRException exception(hr);
 		callback_->OnError(exception);
@@ -271,9 +284,11 @@ void ExclusiveWasapiDevice::GetSample(uint32_t frame_available) noexcept {
 
 	auto hr = render_client_->GetBuffer(frame_available, &data);
 	if (FAILED(hr)) {
-		IgoneAndRaiseError(hr);
+		ReportError(hr);
 		return;
 	}
+
+	auto stream_pos_time = GetStreamPosInMilliseconds(clock_);
 
 	if (callback_->OnGetSamples(buffer_.get(), frame_available, stream_time) == 0) {
 		if (!raw_mode_) {
@@ -281,16 +296,16 @@ void ExclusiveWasapiDevice::GetSample(uint32_t frame_available) noexcept {
 				reinterpret_cast<int32_t*>(data),
 				buffer_.get(),
 				data_convert_);
-		}		
-		IgoneAndRaiseError(render_client_->ReleaseBuffer(frame_available, 0));
+		}
+		ReportError(render_client_->ReleaseBuffer(frame_available, 0));
 	}
 	else {
-		IgoneAndRaiseError(render_client_->ReleaseBuffer(frame_available, AUDCLNT_BUFFERFLAGS_SILENT));
+		ReportError(render_client_->ReleaseBuffer(frame_available, AUDCLNT_BUFFERFLAGS_SILENT));
 		is_running_ = false;
 		return;
 	}
 
-	IgoneAndRaiseError(::MFPutWaitingWorkItem(sample_ready_.get(),
+	ReportError(::MFPutWaitingWorkItem(sample_ready_.get(),
 		0,
 		sample_ready_async_result_,
 		&sample_ready_key_));
@@ -341,6 +356,7 @@ void ExclusiveWasapiDevice::CloseStream() {
 	render_client_.Release();
 	sample_ready_callback_.Release();
 	sample_ready_async_result_.Release();
+	clock_.Release();
 	callback_ = nullptr;
 }
 

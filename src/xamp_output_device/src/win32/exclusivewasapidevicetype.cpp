@@ -93,7 +93,12 @@ std::vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfoList() const {
 			info.is_default_device = true;
 		}
 
-		// TODO: �@㉶DAC┳ㅴ누DOP소─.
+		XAMP_LOG_DEBUG("Get {} device {} property.", GetDescription(), ToUtf8String(info.name));
+		for (auto property : helper::GetDeviceProperty(device)) {
+			XAMP_LOG_DEBUG("{}: {}", property.first, ToUtf8String(property.second));
+		}
+
+		// TODO: �@㉶DAC┳ㅴ누WASAPI DOP소─.
 		//info.is_support_dsd = true;
 		device_list.emplace_back(info);
 	}

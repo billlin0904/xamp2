@@ -91,6 +91,11 @@ std::vector<DeviceInfo> SharedWasapiDeviceType::GetDeviceInfoList() const {
 
 		auto info = helper::GetDeviceInfo(device, SharedWasapiDeviceType::Id);
 
+		XAMP_LOG_DEBUG("Get {} device {} property.", GetDescription(), ToUtf8String(info.name));
+		for (auto property : helper::GetDeviceProperty(device)) {
+			XAMP_LOG_DEBUG("{}: {}", property.first, ToUtf8String(property.second));
+		}
+  
 		if (default_device_name == info.name) {
 			info.is_default_device = true;
 		}

@@ -22,7 +22,7 @@ public:
  
     virtual const std::vector<uint8_t>& ExtractEmbeddedCover(Path const &path) = 0;
 
-    [[nodiscard]] virtual RobinHoodSet<std::string> const & GetSupportFileExtensions() const = 0;
+    [[nodiscard]] virtual HashSet<std::string> const & GetSupportFileExtensions() const = 0;
 
     [[nodiscard]] virtual bool IsSupported(Path const & path) const = 0;
 protected:

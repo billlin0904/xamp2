@@ -22,43 +22,6 @@
 
 namespace xamp::output_device {
 
-#ifdef XAMP_OS_MAC
-static struct IopmAssertion {
-    IopmAssertion()
-        : assertion_id(0) {
-    }
-
-    ~IopmAssertion() {
-        Reset();
-    }
-
-    void PreventSleep() {
-        if (assertion_id != 0) {
-            Reset();
-        }
-        CFTimeInterval timeout = 5;
-        ::IOPMAssertionCreateWithDescription(kIOPMAssertionTypePreventUserIdleSystemSleep,
-                                             CFSTR("XAMP"),
-                                             CFSTR("XAMP"),
-                                             CFSTR("Prevents display sleep during playback"),
-                                             CFSTR("/System/Library/CoreServices/powerd.bundle"),
-                                             timeout,
-                                             kIOPMAssertionTimeoutActionRelease,
-                                             &assertion_id);
-    }
-
-    void Reset() {
-        if (assertion_id == 0) {
-            return;
-        }
-        ::IOPMAssertionRelease(assertion_id);
-        assertion_id = 0;
-    }
-
-    IOPMAssertionID assertion_id;
-} iopmAssertion;
-#endif
-
 class DeviceManager::DeviceStateNotificationImpl {
 public:
 #ifdef XAMP_OS_WIN
@@ -138,7 +101,7 @@ std::optional<AlignPtr<DeviceType>> DeviceManager::Create(ID const& id) const {
 
 bool DeviceManager::IsSupportASIO() const {
 #if ENABLE_ASIO && defined(XAMP_OS_WIN)
-    return factory_.find(ASIODeviceType::Id) != factory_.end();
+    return IsDeviceTypeExist(ASIODeviceType::Id);
 #else
     return false;
 #endif
@@ -146,9 +109,10 @@ bool DeviceManager::IsSupportASIO() const {
 
 bool DeviceManager::IsExclusiveDevice(DeviceInfo const & info) {
 #ifdef XAMP_OS_WIN
-    return info.device_type_id == win32::ExclusiveWasapiDeviceType::Id
+    ID const device_type_id(info.device_type_id);
+    return device_type_id == win32::ExclusiveWasapiDeviceType::Id
 #if ENABLE_ASIO
-           || info.device_type_id == ASIODeviceType::Id
+           || device_type_id == ASIODeviceType::Id
 #endif
         ;
 #else
@@ -183,6 +147,41 @@ void DeviceManager::PreventSleep(bool allow) {
         ::SetThreadExecutionState(ES_CONTINUOUS);
     }
 #else
+    static struct IopmAssertion {
+        IopmAssertion()
+            : assertion_id(0) {
+        }
+
+        ~IopmAssertion() {
+            Reset();
+        }
+
+        void PreventSleep() {
+            if (assertion_id != 0) {
+                Reset();
+            }
+            CFTimeInterval timeout = 5;
+            ::IOPMAssertionCreateWithDescription(kIOPMAssertionTypePreventUserIdleSystemSleep,
+                CFSTR("XAMP"),
+                CFSTR("XAMP"),
+                CFSTR("Prevents display sleep during playback"),
+                CFSTR("/System/Library/CoreServices/powerd.bundle"),
+                timeout,
+                kIOPMAssertionTimeoutActionRelease,
+                &assertion_id);
+        }
+
+        void Reset() {
+            if (assertion_id == 0) {
+                return;
+            }
+            ::IOPMAssertionRelease(assertion_id);
+            assertion_id = 0;
+        }
+
+        IOPMAssertionID assertion_id;
+    } iopmAssertion;
+
     if (allow) {
         iopmAssertion.PreventSleep();
     } else {

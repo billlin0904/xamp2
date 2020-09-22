@@ -164,8 +164,9 @@ void Xamp::createTrayIcon() {
 //}
 
 void Xamp::closeEvent(QCloseEvent* event) {
-    if (trayIcon_->isVisible() && !isHidden()) {
-        auto is_min_system_tray = AppSettings::getValueAsBool(kAppSettingMinimizeToTray);
+    auto is_min_system_tray = AppSettings::getValueAsBool(kAppSettingMinimizeToTray);
+
+    if (trayIcon_->isVisible() && !isHidden()) {        
         auto show_agin = AppSettings::getValueAsBool(kAppSettingMinimizeToTrayAsk);
         QMessageBox::StandardButton reply = QMessageBox::No;
 

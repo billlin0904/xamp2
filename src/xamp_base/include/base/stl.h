@@ -19,10 +19,10 @@
 namespace xamp::base {
 
 template <typename K, typename V, typename H = std::hash<K>, typename E = std::equal_to<K>>
-using RobinHoodHashMap = robin_hood::unordered_map<K, V, H, E>;
+using HashMap = robin_hood::unordered_map<K, V, H, E>;
 
 template <typename T, typename H = std::hash<T>, typename E = std::equal_to<T>>
-using RobinHoodSet = robin_hood::unordered_set<T, H, E>;
+using HashSet = robin_hood::unordered_set<T, H, E>;
 
 template <typename ForwardIt, typename T, typename Compare = std::less<>>
 ForwardIt BinarySearch(ForwardIt first, ForwardIt last, const T& value, Compare comp = {}) {

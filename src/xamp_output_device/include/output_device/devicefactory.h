@@ -11,6 +11,7 @@
 #include <memory>
 
 #include <base/base.h>
+#include <base/stl.h>
 #include <base/id.h>
 #include <base/exception.h>
 #include <base/align_ptr.h>
@@ -74,7 +75,7 @@ private:
     }
 
     AlignPtr<DeviceStateNotificationImpl> impl_;
-    std::unordered_map<ID, std::function<AlignPtr<DeviceType>()>> factory_;
+    HashMap<ID, std::function<AlignPtr<DeviceType>()>> factory_;
 };
 
 }

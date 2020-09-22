@@ -48,7 +48,7 @@ public:
 private:
     size_t max_size_;
     mutable size_t miss_count_;
-    mutable RobinHoodHashMap<Key, CacheIterator> map_;
+    mutable HashMap<Key, CacheIterator> map_;
     mutable CacheList cache_;
 };
 

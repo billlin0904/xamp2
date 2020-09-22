@@ -10,6 +10,7 @@
 #ifdef XAMP_OS_WIN
 #pragma comment(lib, "avrt.lib")
 #pragma comment(lib, "Mfplat.lib")
+#pragma comment(lib, "Propsys.lib")
 
 #include <atlcomcli.h>
 #include <mmdeviceapi.h>
@@ -23,6 +24,7 @@
 #include <endpointvolume.h>
 #include <functiondiscoverykeys_devpkey.h>
 
+#include <base/stl.h>
 #include <base/windows_handle.h>
 #include <base/id.h>
 
@@ -43,14 +45,14 @@ struct IMMDeviceEnumerator;
 
 namespace xamp::output_device::win32::helper {
 
-static constexpr int32_t kWasapiReftimesPerMillisec = 10000;
-static constexpr double kWasapiReftimesPerSec = 10000000;
-
-std::wstring GetDeviceProperty(PROPERTYKEY const& key, CComPtr<IMMDevice>& device);
+inline constexpr int32_t kWasapiReftimesPerMillisec = 10000;
+inline constexpr double kWasapiReftimesPerSec = 10000000;
 
 DeviceInfo GetDeviceInfo(CComPtr<IMMDevice>& device, ID const& device_type_id);
 
 CComPtr<IMMDeviceEnumerator> CreateDeviceEnumerator();
+
+HashMap<std::string, std::wstring> GetDeviceProperty(CComPtr<IMMDevice>& device);
 
 XAMP_ALWAYS_INLINE constexpr double Nano100ToSeconds(REFERENCE_TIME ref) noexcept {
 	//  1 nano = 0.000000001 seconds

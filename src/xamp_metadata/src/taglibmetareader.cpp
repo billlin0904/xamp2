@@ -164,7 +164,7 @@ public:
 		return instance;
 	}
 
-    RobinHoodSet<std::string> const & GetSupportFileExtensions() const noexcept {
+    HashSet<std::string> const & GetSupportFileExtensions() const noexcept {
 		return support_file_extensions_;
 	}
 
@@ -180,7 +180,7 @@ protected:
 		}
 	}
 private:
-    RobinHoodSet<std::string> support_file_extensions_;
+    HashSet<std::string> support_file_extensions_;
 };
 
 class TaglibMetadataReader::TaglibMetadataReaderImpl {
@@ -236,7 +236,7 @@ public:
         return cover_;
     }
 
-    RobinHoodSet<std::string> const & GetSupportFileExtensions() const {
+    HashSet<std::string> const & GetSupportFileExtensions() const {
         return TaglibHelper::Instance().GetSupportFileExtensions();
     }
 
@@ -246,7 +246,7 @@ public:
 
 private:
     static void GetCover(std::string const & ext, File*file, std::vector<uint8_t>& cover) {
-        static const RobinHoodHashMap<std::string, std::function<bool(File *, std::vector<uint8_t> &)>>
+        static const HashMap<std::string, std::function<bool(File *, std::vector<uint8_t> &)>>
             parse_cover_table{
             { ".flac", GetFlacCover },
             { ".mp3",  GetMp3Cover },
@@ -276,7 +276,7 @@ const std::vector<uint8_t>& TaglibMetadataReader::ExtractEmbeddedCover(Path cons
     return reader_->ExtractCover(path);
 }
 
-const RobinHoodSet<std::string>& TaglibMetadataReader::GetSupportFileExtensions() const {
+const HashSet<std::string>& TaglibMetadataReader::GetSupportFileExtensions() const {
     return reader_->GetSupportFileExtensions();
 }
 

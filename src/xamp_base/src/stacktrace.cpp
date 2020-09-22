@@ -21,8 +21,8 @@ namespace xamp::base {
 
 #define DECLARE_EXCEPTION_CODE(Code) { Code, #Code },
 
-static RobinHoodHashMap<DWORD, std::string_view> const & GetWellKnownExceptionCode() {
-    static const RobinHoodHashMap<DWORD, std::string_view> WellKnownExceptionCode = {
+static HashMap<DWORD, std::string_view> const & GetWellKnownExceptionCode() {
+    static const HashMap<DWORD, std::string_view> WellKnownExceptionCode = {
     DECLARE_EXCEPTION_CODE(EXCEPTION_ACCESS_VIOLATION)
     DECLARE_EXCEPTION_CODE(EXCEPTION_BREAKPOINT)
     DECLARE_EXCEPTION_CODE(EXCEPTION_SINGLE_STEP)

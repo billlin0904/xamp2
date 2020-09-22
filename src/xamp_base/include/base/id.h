@@ -54,6 +54,9 @@ private:
 
     XAMP_BASE_API friend bool operator!=(ID const & other1, ID const & other2) noexcept;
 
+    size_t CalcHash() const noexcept;
+
+    size_t hash_;
     std::array<uint8_t, kIdSize> bytes_;
 };
 
@@ -74,7 +77,7 @@ XAMP_ALWAYS_INLINE bool operator==(std::string const &str, ID const &id) {
 }
 
 XAMP_ALWAYS_INLINE size_t ID::GetHash() const {
-	return std::hash<std::string>{}(std::string());
+	return hash_;
 }
 
 }

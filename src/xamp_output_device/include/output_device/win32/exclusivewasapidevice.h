@@ -73,7 +73,7 @@ private:
 
 	void FillSilentSample(uint32_t frames_available) noexcept;
 
-	void IgoneAndRaiseError(HRESULT hr) noexcept;
+	void ReportError(HRESULT hr) noexcept;
 
 	void GetSample(uint32_t frame_available) noexcept;
 
@@ -96,6 +96,7 @@ private:
 	CComPtr<IAudioClient2> client_;
 	CComPtr<IAudioRenderClient> render_client_;
 	CComPtr<IAudioEndpointVolume> endpoint_volume_;
+	CComPtr<IAudioClock> clock_;
 	CComHeapPtr<WAVEFORMATEX> mix_format_;
 	CComPtr<MFAsyncCallback<ExclusiveWasapiDevice>> sample_ready_callback_;
 	CComPtr<IMFAsyncResult> sample_ready_async_result_;	

@@ -22,5 +22,5 @@ protected:
     bool lessThan(const QModelIndex& left, const QModelIndex& right) const override;
 
 private:
-    xamp::base::RobinHoodSet<int32_t> filters_;
+    xamp::base::HashSet<int32_t> filters_;
 };

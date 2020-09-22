@@ -2,11 +2,37 @@
 
 #ifdef XAMP_OS_WIN
 
+#include <initguid.h>
+#include <cguid.h>
+
+#include <base/stl.h>
 #include <base/str_utilts.h>
 #include <output_device/win32/hrexception.h>
 #include <output_device/win32/wasapi.h>
 
+#include <propvarutil.h>
+
 namespace xamp::output_device::win32::helper {
+
+struct PropVariant final : PROPVARIANT {
+	PropVariant() noexcept { 
+		::PropVariantInit(this);
+	}
+
+	~PropVariant() noexcept {
+		::PropVariantClear(this);
+	}
+
+	std::wstring ToString() noexcept {
+		std::wstring result;
+		PWSTR psz = nullptr;
+		if (SUCCEEDED(::PropVariantToStringAlloc(*this, &psz))) {
+			result.assign(psz);
+			::CoTaskMemFree(psz);
+		}
+		return result;
+	}
+};
 
 CComPtr<IMMDeviceEnumerator> CreateDeviceEnumerator() {
 	CComPtr<IMMDeviceEnumerator> enumerator;
@@ -18,27 +44,52 @@ CComPtr<IMMDeviceEnumerator> CreateDeviceEnumerator() {
 	return enumerator;
 }
 
-std::wstring GetDeviceProperty(PROPERTYKEY const & key, CComPtr<IMMDevice>& device) {
+std::wstring GetDevicePropertyString(PROPERTYKEY const& key, VARTYPE type, CComPtr<IMMDevice>& device) {
+	std::wstring str;
+
 	CComPtr<IPropertyStore> property;
 
 	HrIfFailledThrow(device->OpenPropertyStore(STGM_READ, &property));
 
-	PROPVARIANT prop_variant;
-	::PropVariantInit(&prop_variant);
+	PropVariant prop_variant;
 
 	HrIfFailledThrow(property->GetValue(key, &prop_variant));
 
-	std::wstring name;
-	name.assign(prop_variant.pwszVal);
+	switch (type) {
+	case VT_UI4:
+		return std::to_wstring(prop_variant.ulVal);
+		break;
+	}
+	return prop_variant.ToString();
+}
 
-	::PropVariantClear(&prop_variant);
+HashMap<std::string, std::wstring> GetDeviceProperty(CComPtr<IMMDevice>& device) {
+	struct DeviceProperty {
+		PROPERTYKEY key;
+		VARTYPE type;
+		std::string name;
+	};
 
-	return name;
+	HashMap<std::string, std::wstring> result;
+	
+	auto const device_property = std::vector<DeviceProperty>{
+		{PKEY_AudioEndpoint_FormFactor , VT_UI4, "PKEY_AudioEndpoint_FormFactor"},
+		{PKEY_AudioEndpoint_GUID,  VT_LPWSTR, "PKEY_AudioEndpoint_GUID"},
+		{PKEY_AudioEndpoint_PhysicalSpeakers,  VT_UI4, "PKEY_AudioEndpoint_PhysicalSpeakers"},
+		{PKEY_AudioEngine_DeviceFormat,  VT_BLOB, "PKEY_AudioEngine_DeviceFormat"},
+		{PKEY_Device_EnumeratorName,  VT_LPWSTR, "PKEY_Device_EnumeratorName"},
+	};
+
+	for (const auto &property : device_property) {
+		result[property.name] = GetDevicePropertyString(property.key, property.type, device);
+	}
+
+	return result;
 }
 
 DeviceInfo GetDeviceInfo(CComPtr<IMMDevice>& device, ID const& device_type_id) {
 	DeviceInfo info;
-	info.name = GetDeviceProperty(PKEY_Device_FriendlyName, device);
+	info.name = GetDevicePropertyString(PKEY_Device_FriendlyName, VT_LPWSTR, device);
 
 	CComHeapPtr<WCHAR> id;
 	HrIfFailledThrow(device->GetId(&id));

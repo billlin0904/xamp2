@@ -67,7 +67,7 @@ char const * Exception::GetExpression() const noexcept {
 }
 
 std::string_view Exception::ErrorToString(Errors error) {
-    static const RobinHoodHashMap<Errors, const std::string_view> error_msgs {
+    static const HashMap<Errors, const std::string_view> error_msgs {
         { Errors::XAMP_ERROR_SUCCESS, "Success." },
         { Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, "Platform spec error." },
         { Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR, "Library spec error." },

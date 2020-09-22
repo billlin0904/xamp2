@@ -69,6 +69,7 @@ std::ostream &operator<<(std::ostream &s, ID const &id) {
 ID const ID::INVALID_ID;
 
 ID::ID() noexcept {
+    hash_ = 0;
 	bytes_.fill(0);
 }
 
@@ -76,13 +77,10 @@ ID::ID(ID const& other) noexcept {
     *this = other;
 }
 
-ID::ID(std::array<uint8_t, kIdSize> const &bytes) noexcept
-	: bytes_(bytes) {
-}
-
 ID& ID::operator=(ID const& other) noexcept {
     if (this != &other) {
         bytes_ = other.bytes_;
+        hash_ = other.hash_;
     }
     return *this;
 }
@@ -93,15 +91,28 @@ ID::ID(ID&& other) noexcept {
 
 ID& ID::operator=(ID&& other) noexcept {
     if (this != &other) {
+        hash_ = other.hash_;
         bytes_ = other.bytes_;
     }
     return *this;
 }
 
+ID::ID(std::array<uint8_t, kIdSize> const& bytes) noexcept
+    : hash_(0)
+    , bytes_(bytes) {
+    hash_ = CalcHash();
+}
+
+size_t ID::CalcHash() const noexcept {
+    return std::hash<std::string>{}(std::string());
+}
+
 ID::ID(std::string_view const &str) {
+    hash_ = 0;
 	bytes_.fill(0);
 	if (!str.empty()) {
 		bytes_ = ParseString(str);
+        hash_ = CalcHash();
 	}
 }
 

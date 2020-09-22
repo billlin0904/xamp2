@@ -147,11 +147,11 @@ DsdDevice* AudioPlayer::AsDsdDevice() noexcept {
 }
 
 AlignPtr<FileStream> AudioPlayer::MakeFileStream(std::wstring const & file_ext, AlignPtr<FileStream> old_stream) {
-    static const RobinHoodSet<std::wstring_view> dsd_ext {
+    static const HashSet<std::wstring_view> dsd_ext {
         {L".dsf"},
         {L".dff"}
     };
-    static const RobinHoodSet<std::wstring_view> use_bass {
+    static const HashSet<std::wstring_view> use_bass {
         //{L".flac"},
         {L".m4a"},
         {L".ape"},

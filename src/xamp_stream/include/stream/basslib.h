@@ -190,7 +190,7 @@ private:
 
     using BassPluginHandle = UniqueHandle<HPLUGIN, BassPluginLoadTraits>;
 
-    RobinHoodHashMap<std::string, BassPluginHandle> plugins_;
+    HashMap<std::string, BassPluginHandle> plugins_;
     ModuleHandle module_;
 
 public:

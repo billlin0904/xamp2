@@ -38,7 +38,7 @@ public:
 private:
 	DeviceInfo GetDeviceInfo(std::wstring const& name, std::string const & device_id) const;
 
-	RobinHoodHashMap<std::string, DeviceInfo> device_list_;
+	HashMap<std::string, DeviceInfo> device_list_;
 };
 
 }
