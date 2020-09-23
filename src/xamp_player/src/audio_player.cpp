@@ -53,6 +53,7 @@ AudioPlayer::AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter)
     , sample_size_(0)
     , is_playing_(false)
     , is_paused_(false)
+    , sample_end_time_(0)
     , state_adapter_(adapter) {
     wait_timer_.SetTimeout(kReadSampleWaitTime);
     buffer_.Resize(kPreallocateBufferSize);    
@@ -535,7 +536,7 @@ void AudioPlayer::OnVolumeChange(float vol) noexcept {
     }
 }
 
-int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, double stream_time, double device_sample_time) noexcept {
+int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, double stream_time, double sample_time) noexcept {
     const auto num_samples = num_buffer_frames * output_format_.GetChannels();
     const auto sample_size = num_samples * sample_size_;
 
@@ -546,6 +547,11 @@ int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, dou
     if (XAMP_LIKELY(buffer_.TryRead(static_cast<int8_t*>(samples), sample_size))) {
         UpdateSlice(static_cast<const float*>(samples), static_cast<int32_t>(num_samples), stream_time);
         sw_.Reset();
+        return 0;
+    }
+
+    if (sample_time < sample_end_time_) {
+        memset(static_cast<int8_t*>(samples), 0, sample_size);
         return 0;
     }
 
@@ -657,7 +663,8 @@ void AudioPlayer::Seek(double stream_time) {
             return;
         }
         device_->SetStreamTime(stream_time);
-        XAMP_LOG_DEBUG("Player seeking {} sec.", stream_time);
+        sample_end_time_ = stream_->GetDuration() - stream_time;
+        XAMP_LOG_DEBUG("Player duration:{} seeking:{} sec, end time:{} sec.", stream_->GetDuration(), stream_time, sample_end_time_);
         UpdateSlice(nullptr, 0, stream_time);
         buffer_.Clear();
         BufferStream();
@@ -746,6 +753,7 @@ void AudioPlayer::StartPlay() {
     sw_.Reset();
     min_process_time_ = std::chrono::microseconds(1000000);
     max_process_time_ = std::chrono::microseconds(0);
+    sample_end_time_ = stream_->GetDuration();
 
     Stopwatch sw;
     stream_task_ = ThreadPool::DefaultThreadPool().StartNew([player = shared_from_this()]() noexcept {

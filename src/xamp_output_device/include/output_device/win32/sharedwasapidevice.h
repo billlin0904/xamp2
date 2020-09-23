@@ -62,7 +62,7 @@ public:
 	void AbortStream() noexcept override;
 
 private:
-	void IgoneAndRaiseError(HRESULT hr);
+	void ReportError(HRESULT hr);
 
 	void UnRegisterDeviceVolumeChange();
 
@@ -97,6 +97,7 @@ private:
 	CComHeapPtr<WAVEFORMATEX> mix_format_;
 	CComPtr<IMMDevice> device_;
 	CComPtr<IAudioClient3> client_;
+	CComPtr<IAudioClock> clock_;
 	CComPtr<IAudioRenderClient> render_client_;
 	CComPtr<MFAsyncCallback<SharedWasapiDevice>> sample_ready_callback_;
 	CComPtr<IMFAsyncResult> sample_ready_async_result_;	

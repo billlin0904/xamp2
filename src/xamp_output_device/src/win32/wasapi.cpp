@@ -99,5 +99,14 @@ DeviceInfo GetDeviceInfo(CComPtr<IMMDevice>& device, ID const& device_type_id) {
 	return info;
 }
 
+double GetStreamPosInMilliseconds(CComPtr<IAudioClock>& clock) {
+	UINT64 device_frequency = 0, position = 0;
+	if (FAILED(clock->GetFrequency(&device_frequency)) ||
+		FAILED(clock->GetPosition(&position, nullptr))) {
+		return 0.0;
+	}
+	return 1000.0 * (static_cast<double>(position) / device_frequency);
+}
+
 }
 #endif

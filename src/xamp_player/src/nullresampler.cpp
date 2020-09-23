@@ -10,7 +10,7 @@ namespace xamp::player {
         }\
     } while(false)
 
-NullResampler::NullResampler(DsdModes dsd_mode, uint32_t sample_size)
+NullResampler::NullResampler(DsdModes dsd_mode, uint8_t sample_size)
     : dsd_mode_(dsd_mode)
     , sample_size_(sample_size)
     , process_(nullptr) {

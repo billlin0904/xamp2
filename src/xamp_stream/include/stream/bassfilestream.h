@@ -40,7 +40,7 @@ public:
 
 	std::string_view GetDescription() const noexcept override;
 
-    uint32_t GetSampleSize() const noexcept override;
+	uint8_t GetSampleSize() const noexcept override;
 
 	bool IsDsdFile() const noexcept override;
 

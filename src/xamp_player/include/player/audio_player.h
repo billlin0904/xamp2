@@ -121,7 +121,7 @@ private:
 
     void BufferStream();
 
-    int32_t OnGetSamples(void* samples, uint32_t num_buffer_frames, double stream_time, double device_sample_time) noexcept override;
+    int32_t OnGetSamples(void* samples, uint32_t num_buffer_frames, double stream_time, double sample_time) noexcept override;
 
     void OnVolumeChange(float vol) noexcept override;
 
@@ -158,14 +158,15 @@ private:
     bool enable_resample_;
     DsdModes dsd_mode_;
     std::atomic<PlayerState> state_;
+    uint8_t sample_size_;
     uint32_t target_samplerate_;
     uint32_t volume_;
     uint32_t num_buffer_samples_;
     uint32_t num_read_sample_;
-    uint32_t read_sample_size_;
-    uint32_t sample_size_;
+    uint32_t read_sample_size_; 
     std::atomic<bool> is_playing_;
     std::atomic<bool> is_paused_;
+    double sample_end_time_;
     std::atomic<AudioSlice> slice_;
     mutable std::mutex pause_mutex_;
     std::chrono::microseconds min_process_time_{ 0 };

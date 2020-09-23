@@ -54,6 +54,8 @@ CComPtr<IMMDeviceEnumerator> CreateDeviceEnumerator();
 
 HashMap<std::string, std::wstring> GetDeviceProperty(CComPtr<IMMDevice>& device);
 
+double GetStreamPosInMilliseconds(CComPtr<IAudioClock>& clock);
+
 XAMP_ALWAYS_INLINE constexpr double Nano100ToSeconds(REFERENCE_TIME ref) noexcept {
 	//  1 nano = 0.000000001 seconds
 	//100 nano = 0.0000001   seconds

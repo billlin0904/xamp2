@@ -30,7 +30,7 @@ public:
 
     virtual std::string_view GetDescription() const noexcept = 0;
 	
-    virtual uint32_t GetSampleSize() const noexcept = 0;
+    virtual uint8_t GetSampleSize() const noexcept = 0;
 protected:
     AudioStream() = default;
 };

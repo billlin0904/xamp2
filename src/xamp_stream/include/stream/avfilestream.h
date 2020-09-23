@@ -36,7 +36,7 @@ public:
 
 	[[nodiscard]] std::string_view GetDescription() const noexcept override;
 
-	[[nodiscard]] uint32_t GetSampleSize() const noexcept override;
+	[[nodiscard]] uint8_t GetSampleSize() const noexcept override;
 private:
 	class AvFileStreamImpl;
     AlignPtr<AvFileStreamImpl> impl_;

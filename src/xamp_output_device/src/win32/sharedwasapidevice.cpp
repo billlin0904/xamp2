@@ -30,6 +30,7 @@ static constexpr IID kAudioEndpointVolumeCallbackID = __uuidof(IAudioEndpointVol
 static constexpr IID kAudioEndpointVolumeID = __uuidof(IAudioEndpointVolume);
 static constexpr IID kAudioRenderClientID =__uuidof(IAudioRenderClient);
 static constexpr IID kAudioClient3ID = __uuidof(IAudioClient3);
+static constexpr IID kAudioClockID = __uuidof(IAudioClock);
 
 class SharedWasapiDevice::DeviceEventNotification final
 	: public UnknownImpl<IAudioEndpointVolumeCallback> {
@@ -137,6 +138,7 @@ void SharedWasapiDevice::CloseStream() {
 	}
 
 	render_client_.Release();
+	clock_.Release();
 	
 	sample_ready_callback_.Release();
 	sample_ready_async_result_.Release();
@@ -210,7 +212,10 @@ void SharedWasapiDevice::OpenStream(AudioFormat const & output_format) {
 	LogHrFailled(client_->Reset());
 
 	HrIfFailledThrow(client_->GetBufferSize(&buffer_frames_));
-	HrIfFailledThrow(client_->GetService(kAudioRenderClientID, reinterpret_cast<void**>(&render_client_)));
+	HrIfFailledThrow(client_->GetService(kAudioRenderClientID, 
+		reinterpret_cast<void**>(&render_client_)));
+	HrIfFailledThrow(client_->GetService(kAudioClockID,
+		reinterpret_cast<void**>(&clock_)));
 
 	XAMP_LOG_DEBUG("WASAPI buffer frame size:{}.", buffer_frames_);
 
@@ -317,7 +322,7 @@ double SharedWasapiDevice::GetStreamTime() const noexcept {
 	return stream_time_ / static_cast<double>(mix_format_->nSamplesPerSec);
 }
 
-void SharedWasapiDevice::IgoneAndRaiseError(HRESULT hr) {
+void SharedWasapiDevice::ReportError(HRESULT hr) {
 	if (FAILED(hr)) {
 		const HRException exception(hr);
 		callback_->OnError(exception);
@@ -327,30 +332,32 @@ void SharedWasapiDevice::IgoneAndRaiseError(HRESULT hr) {
 }
 
 void SharedWasapiDevice::GetSample(uint32_t frame_available) noexcept {
-	auto stream_time = stream_time_ + frame_available;
+	double stream_time = stream_time_ + frame_available;
 	stream_time_ = stream_time;
-	stream_time = static_cast<double>(stream_time) / static_cast<double>(mix_format_->nSamplesPerSec);
+	auto stream_time_float = static_cast<double>(stream_time) / static_cast<double>(mix_format_->nSamplesPerSec);
 
 	BYTE* data = nullptr;
 	auto hr = render_client_->GetBuffer(frame_available, &data);
 	if (FAILED(hr)) {
-		IgoneAndRaiseError(hr);
+		ReportError(hr);
 		return;
 	}
 
-	if (callback_->OnGetSamples(reinterpret_cast<float*>(data), frame_available, stream_time) == 0) {
-		IgoneAndRaiseError(render_client_->ReleaseBuffer(frame_available, 0));
+	auto sample_time = helper::GetStreamPosInMilliseconds(clock_) / 1000.0;
+
+	if (callback_->OnGetSamples(reinterpret_cast<float*>(data), frame_available, stream_time_float, sample_time) == 0) {
+		ReportError(render_client_->ReleaseBuffer(frame_available, 0));
 	}
 	else {
-		IgoneAndRaiseError(render_client_->ReleaseBuffer(frame_available, AUDCLNT_BUFFERFLAGS_SILENT));
+		ReportError(render_client_->ReleaseBuffer(frame_available, AUDCLNT_BUFFERFLAGS_SILENT));
 		is_running_ = false;
 	}
 }
 
 void SharedWasapiDevice::FillSilentSample(uint32_t frame_available) noexcept {
 	BYTE* data;
-	IgoneAndRaiseError(render_client_->GetBuffer(frame_available, &data));
-	IgoneAndRaiseError(render_client_->ReleaseBuffer(frame_available, AUDCLNT_BUFFERFLAGS_SILENT));
+	ReportError(render_client_->GetBuffer(frame_available, &data));
+	ReportError(render_client_->ReleaseBuffer(frame_available, AUDCLNT_BUFFERFLAGS_SILENT));
 }
 
 HRESULT SharedWasapiDevice::OnSampleReady(IMFAsyncResult* result) noexcept {
@@ -360,7 +367,6 @@ HRESULT SharedWasapiDevice::OnSampleReady(IMFAsyncResult* result) noexcept {
 		}
 		is_stop_streaming_ = true;
 		condition_.notify_all();
-		XAMP_LOG_DEBUG("Stop SharedWasapiDevice.");
 		return S_OK;
 	}
 
@@ -399,7 +405,7 @@ void SharedWasapiDevice::GetSampleRequested(bool is_silence) noexcept {
 
 	const auto hr = client_->GetCurrentPadding(&padding_frames);
 	if (FAILED(hr)) {
-		IgoneAndRaiseError(hr);
+		ReportError(hr);
 		return;
 	}
 
@@ -413,7 +419,7 @@ void SharedWasapiDevice::GetSampleRequested(bool is_silence) noexcept {
 			GetSample(frames_available);
 		}
 	}
-	IgoneAndRaiseError(::MFPutWaitingWorkItem(sample_ready_.get(), 0, sample_ready_async_result_, &sample_raedy_key_));
+	ReportError(::MFPutWaitingWorkItem(sample_ready_.get(), 0, sample_ready_async_result_, &sample_raedy_key_));
 }
 
 void SharedWasapiDevice::AbortStream() noexcept {

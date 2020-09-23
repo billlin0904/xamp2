@@ -41,15 +41,6 @@ static UINT32 BackwardAligned(const UINT32 bytes_frame, const UINT32 align_size)
     return (bytes_frame - (align_size ? (bytes_frame % align_size) : 0));
 }
 
-static double GetStreamPosInMilliseconds(CComPtr<IAudioClock> &clock) {
-	UINT64 device_frequency = 0, position = 0;
-	if (FAILED(clock->GetFrequency(&device_frequency)) ||
-		FAILED(clock->GetPosition(&position, nullptr))) {
-		return 0.0;
-	}
-	return 1000.0 * (static_cast<double>(position) / device_frequency);
-}
-
 template <typename Predicate>
 static int32_t CalcAlignedFramePerBuffer(const UINT32 frames, const UINT32 block_align, Predicate f) noexcept {
     constexpr UINT32 kHdAudioPacketSize = 128;
@@ -280,7 +271,7 @@ void ExclusiveWasapiDevice::GetSample(uint32_t frame_available) noexcept {
 
 	auto stream_time = stream_time_ + frame_available;
 	stream_time_ = stream_time;
-	stream_time = static_cast<double>(stream_time) / static_cast<double>(mix_format_->nSamplesPerSec);
+	auto stream_time_float = static_cast<double>(stream_time) / static_cast<double>(mix_format_->nSamplesPerSec);
 
 	auto hr = render_client_->GetBuffer(frame_available, &data);
 	if (FAILED(hr)) {
@@ -288,9 +279,9 @@ void ExclusiveWasapiDevice::GetSample(uint32_t frame_available) noexcept {
 		return;
 	}
 
-	auto stream_pos_time = GetStreamPosInMilliseconds(clock_);
+	auto sample_time = helper::GetStreamPosInMilliseconds(clock_) / 1000.0;
 
-	if (callback_->OnGetSamples(buffer_.get(), frame_available, stream_time) == 0) {
+	if (callback_->OnGetSamples(buffer_.get(), frame_available, stream_time_float, sample_time) == 0) {
 		if (!raw_mode_) {
 			(void)DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEAVED>::ConvertToInt2432(
 				reinterpret_cast<int32_t*>(data),
