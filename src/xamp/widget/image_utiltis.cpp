@@ -389,4 +389,12 @@ QPixmap blurImage(const QPixmap& source, uint32_t radius) {
 	return QPixmap::fromImage(img);
 }
 
+std::vector<uint8_t> getImageDate(const QPixmap& source) {
+	QByteArray bytes;
+	QBuffer buffer(&bytes);
+	buffer.open(QIODevice::WriteOnly);
+	source.save(&buffer, "JPG");
+	return std::vector<unsigned char>(bytes.constData(), bytes.constData() + bytes.size());
+}
+
 }

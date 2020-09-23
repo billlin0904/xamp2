@@ -614,12 +614,7 @@ void AudioPlayer::OpenDevice(double stream_time) {
         if (output_format_.GetSampleRate() == kMinEQSampleRate) {
             equalizer_ = MakeAlign<Equalizer, BassEqualizer>();
             equalizer_->Start(output_format_.GetChannels(), output_format_.GetSampleRate());
-
-            uint32_t i = 0;
-            for (auto settings : eqsettings_) {
-                equalizer_->SetEQ(i++, settings.gain, settings.Q);
-                XAMP_LOG_DEBUG("Setting eq band:{} gain:{} Q:{}", i, settings.gain, settings.Q);
-            }
+            equalizer_->SetEQ(eqsettings_);
         }
         else {
             equalizer_.reset();

@@ -188,7 +188,7 @@ private:
     WaitableTimer wait_timer_;
     AlignPtr<Resampler> resampler_;
     AlignPtr<Equalizer> equalizer_;
-    std::array<EQSettings, kMaxBand> eqsettings_;
+    EQBands eqsettings_;
     DeviceInfo device_info_;
     std::shared_future<void> stream_task_;
 };

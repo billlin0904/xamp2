@@ -13,7 +13,10 @@
 #include <base/rng.h>
 #include <metadata/metadatareader.h>
 #include <metadata/taglibmetareader.h>
+#include <metadata/taglibmetawriter.h>
 
+#include <widget/toast.h>
+#include <widget/image_utiltis.h>
 #include <widget/appsettings.h>
 #include <widget/pixmapcache.h>
 #include <widget/stardelegate.h>
@@ -160,6 +163,7 @@ void PlayListTableView::initial() {
         auto copy_album_act = action_map.addAction(tr("Copy album"));
         auto copy_artist_act = action_map.addAction(tr("Copy artist"));
         auto copy_title_act = action_map.addAction(tr("Copy title"));
+        auto set_cover_art_act = action_map.addAction(tr("Set cover art"));
 
         if (!model_.isEmpty() && index.isValid()) {
             auto item = model_.item(proxy_model_.mapToSource(index));
@@ -188,6 +192,33 @@ void PlayListTableView::initial() {
                 });
             action_map.setCallback(copy_title_act, [item]() {
                 QApplication::clipboard()->setText(item.title);
+                });
+
+            action_map.setCallback(set_cover_art_act, [item, this]() {
+                const auto fileName = QFileDialog::getOpenFileName(this, tr("Open Cover Art Image"),
+                    tr("C:\\"), tr("Image Files (*.png *.jpeg *.jpg)"));
+                if (fileName.isEmpty()) {
+                    return;
+                }
+
+                QPixmap image(fileName);
+                if (image.isNull()) {
+                    Toast::showTip(tr("Can't read image file."), this);
+                    return;
+                }
+
+                const auto image_data = Pixmap::getImageDate(image);
+                const auto rows = selectItemIndex();
+                for (const auto& select_item : rows) {
+                    auto entity = this->item(select_item.second);
+                    xamp::metadata::TaglibMetadataWriter writer;
+                    try {
+                        writer.WriteEmbeddedCover(entity.file_path.toStdWString(), image_data);
+                    }
+                    catch (std::exception& e) {
+                        Toast::showTip(QString::fromStdString(e.what()), this);
+                    }
+                }
                 });
         }
 

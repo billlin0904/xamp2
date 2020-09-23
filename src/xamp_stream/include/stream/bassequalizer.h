@@ -23,6 +23,8 @@ public:
 
     void SetEQ(uint32_t band, float gain, float Q) override;
 
+	void SetEQ(EQBands const& bands) override;
+
 	bool Process(float const* sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer) override;
 
     void Disable() override;

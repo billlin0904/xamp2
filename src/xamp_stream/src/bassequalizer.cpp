@@ -1,3 +1,4 @@
+#include <base/logger.h>
 #include <stream/basslib.h>
 #include <stream/bassequalizer.h>
 
@@ -70,10 +71,19 @@ public:
 		return true;
 	}
 
+	void SetEQ(EQBands const& bands) {
+		uint32_t i = 0;
+		for (auto settings : bands) {
+			SetEQ(i++, settings.gain, settings.Q);
+		}
+	}
+
     void SetEQ(uint32_t band, float gain, float Q) {
 		if (band >= fx_handles_.size()) {
 			return;
 		}
+
+		XAMP_LOG_DEBUG("Setting eq band:{} gain:{} Q:{}", band, gain, Q);
 
         BASS_BFX_PEAKEQ eq{};
 		BassIfFailedThrow(BassLib::Instance().BASS_FXGetParameters(fx_handles_[band], &eq));
@@ -115,6 +125,10 @@ void BassEqualizer::Start(uint32_t num_channels, uint32_t input_samplerate) {
 
 void BassEqualizer::SetEQ(uint32_t band, float gain, float Q) {
     impl_->SetEQ(band, gain, Q);
+}
+
+void BassEqualizer::SetEQ(EQBands const& bands) {
+	impl_->SetEQ(bands);
 }
 
 bool BassEqualizer::Process(float const* sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer) {

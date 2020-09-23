@@ -32,6 +32,8 @@ struct XAMP_STREAM_API EQSettings {
     float Q{0};
 };
 
+using EQBands = std::array<EQSettings, kMaxBand>;
+
 class XAMP_NO_VTABLE XAMP_STREAM_API Equalizer {
 public:
     virtual ~Equalizer() = default;
@@ -39,6 +41,8 @@ public:
     virtual void Start(uint32_t num_channels, uint32_t input_samplerate) = 0;
 
     virtual void SetEQ(uint32_t band, float gain, float Q) = 0;
+
+    virtual void SetEQ(EQBands const &bands) = 0;
 
     virtual bool Process(float const * sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer) = 0;
 

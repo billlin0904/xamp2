@@ -14,4 +14,6 @@ QPixmap resizeImage(const QPixmap& source, const QSize& size, bool is_aspect_rat
 
 QPixmap blurImage(const QPixmap& source, uint32_t radius);
 
+std::vector<uint8_t> getImageDate(const QPixmap& source);
+
 }
