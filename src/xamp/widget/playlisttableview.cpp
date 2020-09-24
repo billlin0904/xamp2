@@ -82,7 +82,7 @@ void PlayListTableView::initial() {
     hideColumn(PLAYLIST_MUSIC_ID);
     hideColumn(PLAYLIST_FILEPATH);
     hideColumn(PLAYLIST_FILE_NAME);
-    hideColumn(PLAYLIST_BITRATE);
+    //hideColumn(PLAYLIST_BITRATE);
     hideColumn(PLAYLIST_SAMPLE_RATE);
 
     setHorizontalScrollMode(ScrollPerPixel);

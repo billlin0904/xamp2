@@ -86,7 +86,7 @@ private:
 
 	void CreateBuffers(AudioFormat const & output_format);
 
-	void OnBufferSwitch(long index) noexcept;
+	void OnBufferSwitch(long index, double sample_time) noexcept;
 
 	std::tuple<int32_t, int32_t> GetDeviceBufferSize() const;
 
@@ -105,7 +105,7 @@ private:
 	std::string device_id_;
 	mutable std::mutex mutex_;
 	std::condition_variable condition_;
-	AudioFormat mix_format_;
+	AudioFormat format_;
 	std::vector<ASIOClockSource> clock_source_;
 	AlignBufferPtr<int8_t> buffer_;
 	AlignBufferPtr<int8_t> device_buffer_;

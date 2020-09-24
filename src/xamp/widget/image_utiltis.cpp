@@ -10,7 +10,7 @@
 
 namespace Pixmap {
 
-static constexpr std::array<uint16_t, 255> kStackblurMul{
+inline constexpr std::array<uint16_t, 255> kStackblurMul{
     512, 512, 456, 512, 328, 456, 335, 512, 405, 328, 271, 456, 388, 335, 292, 512,
     454, 405, 364, 328, 298, 271, 496, 456, 420, 388, 360, 335, 312, 292, 273, 512,
     482, 454, 428, 405, 383, 364, 345, 328, 312, 298, 284, 271, 259, 496, 475, 456,
@@ -29,7 +29,7 @@ static constexpr std::array<uint16_t, 255> kStackblurMul{
     289, 287, 285, 282, 280, 278, 275, 273, 271, 269, 267, 265, 263, 261, 259
 };
 
-static constexpr std::array<uint8_t, 255> kStackblurShr{
+inline constexpr std::array<uint8_t, 255> kStackblurShr{
     9,  11, 12, 13, 13, 14, 14, 15, 15, 15, 15, 16, 16, 16, 16, 17,
     17, 17, 17, 17, 17, 17, 18, 18, 18, 18, 18, 18, 18, 18, 18, 19,
     19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 20, 20, 20,
@@ -48,7 +48,7 @@ static constexpr std::array<uint8_t, 255> kStackblurShr{
     24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24
 };
 
-static QImage applyEffectToImage(QImage src, qreal radius, int extent = 0) {
+static QImage applyBlurEffect(QImage src, qreal radius, int extent = 0) {
 	auto effect = new QGraphicsBlurEffect();
 	effect->setBlurRadius(radius);
 

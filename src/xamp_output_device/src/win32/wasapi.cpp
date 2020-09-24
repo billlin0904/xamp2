@@ -1,4 +1,6 @@
+#include <sstream>
 #include <base/base.h>
+#include <base/enum.h>
 
 #ifdef XAMP_OS_WIN
 
@@ -13,6 +15,19 @@
 #include <propvarutil.h>
 
 namespace xamp::output_device::win32::helper {
+
+MAKE_ENUM(EndpointFactor,
+		RemoteNetworkDevice,
+		Speakers,
+		LineLevel,
+		Headphones,
+		Microphone,
+		Headset,
+		Handset,
+		UnknownDigitalPassthrough,
+		SPDIF,
+		DigitalAudioDisplayDevice,
+		UnknownFormFactor);
 
 struct PropVariant final : PROPVARIANT {
 	PropVariant() noexcept { 
@@ -57,7 +72,18 @@ std::wstring GetDevicePropertyString(PROPERTYKEY const& key, VARTYPE type, CComP
 
 	switch (type) {
 	case VT_UI4:
-		return std::to_wstring(prop_variant.ulVal);
+	{
+		auto factor = static_cast<EndpointFactor>(prop_variant.ulVal);
+		return ToStdWString(EnumToString(factor).data());
+	}
+		break;
+	case VT_BLOB:
+	{
+		std::wostringstream ostr;
+		auto format = reinterpret_cast<const WAVEFORMATEX*>(prop_variant.blob.pBlobData);
+		ostr << format->nChannels << "," << format->wBitsPerSample << "," << format->nSamplesPerSec;
+		return ostr.str();
+	}
 		break;
 	}
 	return prop_variant.ToString();
@@ -75,7 +101,6 @@ HashMap<std::string, std::wstring> GetDeviceProperty(CComPtr<IMMDevice>& device)
 	auto const device_property = std::vector<DeviceProperty>{
 		{PKEY_AudioEndpoint_FormFactor , VT_UI4, "PKEY_AudioEndpoint_FormFactor"},
 		{PKEY_AudioEndpoint_GUID,  VT_LPWSTR, "PKEY_AudioEndpoint_GUID"},
-		{PKEY_AudioEndpoint_PhysicalSpeakers,  VT_UI4, "PKEY_AudioEndpoint_PhysicalSpeakers"},
 		{PKEY_AudioEngine_DeviceFormat,  VT_BLOB, "PKEY_AudioEngine_DeviceFormat"},
 		{PKEY_Device_EnumeratorName,  VT_LPWSTR, "PKEY_Device_EnumeratorName"},
 	};

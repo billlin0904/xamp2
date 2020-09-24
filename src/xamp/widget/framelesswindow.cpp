@@ -61,9 +61,9 @@ FramelessWindow::FramelessWindow(QWidget* parent)
     setAcceptDrops(true);
     setMouseTracking(true);
     installEventFilter(this);
-    initiaUIFont();    
+    setupUIFont();    
     QFont ui_font(Q_UTF8("UI"));
-    ui_font.setStyleStrategy(QFont::PreferAntialias);
+    ui_font.setStyleStrategy(QFont::PreferQuality);
 #if defined(Q_OS_WIN)    
     setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
     HWND hwnd = (HWND)this->winId();
@@ -132,7 +132,7 @@ void FramelessWindow::createThumbnailToolBar() {
 #endif
 }
 
-void FramelessWindow::initiaUIFont() {
+void FramelessWindow::setupUIFont() {
     QList<QString> fallback_fonts;
 
 #ifdef Q_OS_WIN

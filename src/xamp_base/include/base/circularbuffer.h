@@ -120,7 +120,7 @@ public:
         }
     }
 
-    T pop() {
+    T& pop() {
         if (empty()) {
             throw std::runtime_error("empty buffer");
         }

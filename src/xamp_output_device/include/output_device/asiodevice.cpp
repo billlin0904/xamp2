@@ -36,7 +36,16 @@ static XAMP_ALWAYS_INLINE long GetLatencyMs(long latency, long sampleRate) noexc
 	return (long((latency * 1000) / sampleRate));
 }
 
-static constexpr int32_t kClockSourceSize = 32;
+static XAMP_ALWAYS_INLINE int64_t ASIO64toDouble(const ASIOSamples &a) noexcept {
+#if NATIVE_INT64  
+	return a;
+#else
+	constexpr double kTwoRaisedTo32 = 4294967296.;
+	return ((a).lo + (a).hi * kTwoRaisedTo32);
+#endif
+}
+
+inline constexpr int32_t kClockSourceSize = 32;
 
 AsioDevice::AsioDevice(std::string const & device_id)
 	: is_removed_driver_(true)
@@ -77,7 +86,7 @@ bool AsioDevice::IsMuted() const {
 }
 
 uint32_t AsioDevice::GetBufferSize() const noexcept {
-	return buffer_size_ * mix_format_.GetChannels();
+	return buffer_size_ * format_.GetChannels();
 }
 
 void AsioDevice::SetSampleFormat(DsdFormat format) {
@@ -224,54 +233,54 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 	channel_info.isInput = FALSE;
 	AsioIfFailedThrow(::ASIOGetChannelInfo(&channel_info));
 
-	mix_format_ = output_format;
+	format_ = output_format;
 	// ASIO output is DEINTERLEAVED format
-	mix_format_.SetInterleavedFormat(InterleavedFormat::DEINTERLEAVED);
+	format_.SetInterleavedFormat(InterleavedFormat::DEINTERLEAVED);
 
 	switch (channel_info.type) {
 	case ASIOSTInt16MSB:
-		mix_format_.SetByteFormat(ByteFormat::SINT16);
+		format_.SetByteFormat(ByteFormat::SINT16);
 		XAMP_LOG_INFO("Driver support format: ASIOSTInt16MSB.");
 		break;
 	case ASIOSTInt16LSB:
-		mix_format_.SetByteFormat(ByteFormat::SINT16);
+		format_.SetByteFormat(ByteFormat::SINT16);
 		XAMP_LOG_INFO("Driver support format: ASIOSTInt16LSB.");
 		break;
 	case ASIOSTInt24MSB:
-		mix_format_.SetByteFormat(ByteFormat::SINT24);
+		format_.SetByteFormat(ByteFormat::SINT24);
 		XAMP_LOG_INFO("Driver support format: ASIOSTInt24MSB.");
 		break;
 	case ASIOSTInt24LSB:
-		mix_format_.SetByteFormat(ByteFormat::SINT24);
+		format_.SetByteFormat(ByteFormat::SINT24);
 		XAMP_LOG_INFO("Driver support format: ASIOSTInt24LSB.");
 		break;
 	case ASIOSTFloat32MSB:
-		mix_format_.SetByteFormat(ByteFormat::FLOAT32);
+		format_.SetByteFormat(ByteFormat::FLOAT32);
 		XAMP_LOG_INFO("Driver support format: ASIOSTFloat32MSB.");
 		break;
 	case ASIOSTFloat32LSB:
-		mix_format_.SetByteFormat(ByteFormat::FLOAT32);
+		format_.SetByteFormat(ByteFormat::FLOAT32);
 		XAMP_LOG_INFO("Driver support format: ASIOSTFloat32LSB.");
 		break;
 	case ASIOSTInt32MSB:
-		mix_format_.SetByteFormat(ByteFormat::SINT32);
+		format_.SetByteFormat(ByteFormat::SINT32);
 		XAMP_LOG_INFO("Driver support format: ASIOSTInt32MSB.");
 		break;
 	case ASIOSTInt32LSB:
-		mix_format_.SetByteFormat(ByteFormat::SINT32);
+		format_.SetByteFormat(ByteFormat::SINT32);
 		XAMP_LOG_INFO("Driver support format: ASIOSTInt32LSB.");
 		break;
 		// DSD 8 bit data, 1 sample per byte. No Endianness required.
 	case ASIOSTDSDInt8LSB1:
-		mix_format_.SetByteFormat(ByteFormat::SINT8);
+		format_.SetByteFormat(ByteFormat::SINT8);
 		XAMP_LOG_INFO("Driver support format: ASIOSTDSDInt8LSB1.");
 		break;
 	case ASIOSTDSDInt8MSB1:
-		mix_format_.SetByteFormat(ByteFormat::SINT8);
+		format_.SetByteFormat(ByteFormat::SINT8);
 		XAMP_LOG_INFO("Driver support format: ASIOSTDSDInt8MSB1.");
 		break;
 	case ASIOSTDSDInt8NER8:
-		mix_format_.SetByteFormat(ByteFormat::SINT8);
+		format_.SetByteFormat(ByteFormat::SINT8);
 		XAMP_LOG_INFO("Driver support format: ASIOSTDSDInt8NER8.");
 		break;
 	default:
@@ -283,9 +292,9 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 	device_buffer_vmlock_.UnLock();
 
 	if (io_format_ == DsdIoFormat::IO_FORMAT_PCM) {
-		size_t allocate_bytes = buffer_size_ * mix_format_.GetBytesPerSample() * mix_format_.GetChannels();
-		callbackInfo.data_context = MakeConvert(input_fomrat, mix_format_, buffer_size_);
-		buffer_bytes_ = buffer_size_ * (int64_t)mix_format_.GetBytesPerSample();
+		size_t allocate_bytes = buffer_size_ * format_.GetBytesPerSample() * format_.GetChannels();
+		callbackInfo.data_context = MakeConvert(input_fomrat, format_, buffer_size_);
+		buffer_bytes_ = buffer_size_ * (int64_t)format_.GetBytesPerSample();
 		buffer_ = MakeBuffer<int8_t>(allocate_bytes * buffer_size_);
 		device_buffer_ = MakeBuffer<int8_t>(allocate_bytes * buffer_size_);
 		buffer_vmlock_.Lock(buffer_.get(), allocate_bytes * buffer_size_);
@@ -318,7 +327,7 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 		buffer_ = MakeBuffer<int8_t>(allocate_bytes);
 		buffer_vmlock_.Lock(buffer_.get(), allocate_bytes);
 		device_buffer_vmlock_.Lock(device_buffer_.get(), allocate_bytes);
-		callbackInfo.data_context = MakeConvert(input_fomrat, mix_format_, channel_buffer_size);
+		callbackInfo.data_context = MakeConvert(input_fomrat, format_, channel_buffer_size);
 	}
 
 	long input_latency = 0;
@@ -341,7 +350,7 @@ void AsioDevice::SetMute(bool mute) const {
 	}
 }
 
-void AsioDevice::OnBufferSwitch(long index) noexcept {
+void AsioDevice::OnBufferSwitch(long index, double sample_time) noexcept {
 	const auto vol = volume_.load();
 	if (callbackInfo.data_context.cache_volume != vol) {
 		callbackInfo.data_context.volume_factor = LinearToLog(vol);
@@ -349,7 +358,7 @@ void AsioDevice::OnBufferSwitch(long index) noexcept {
 	}
 
 	auto cache_played_bytes = played_bytes_.load();
-	cache_played_bytes += buffer_bytes_ * mix_format_.GetChannels();
+	cache_played_bytes += buffer_bytes_ * format_.GetChannels();
 	played_bytes_ = cache_played_bytes;
 
 	if (!is_streaming_) {
@@ -360,10 +369,10 @@ void AsioDevice::OnBufferSwitch(long index) noexcept {
 
 	bool got_samples = false;
 
-	auto pcm_convert = [this, &got_samples, cache_played_bytes]() noexcept {
+	auto pcm_convert = [this, &got_samples, cache_played_bytes, sample_time]() noexcept {
 		// PCM mode input float to output format.
-		if (callback_->OnGetSamples(reinterpret_cast<float*>(buffer_.get()), buffer_size_, double(cache_played_bytes) / mix_format_.GetAvgBytesPerSec(), 0) == 0) {
-			switch (mix_format_.GetByteFormat()) {
+		if (callback_->OnGetSamples(reinterpret_cast<float*>(buffer_.get()), buffer_size_, double(cache_played_bytes) / format_.GetAvgBytesPerSec(), sample_time) == 0) {
+			switch (format_.GetByteFormat()) {
 			case ByteFormat::SINT16:
 				DataConverter<InterleavedFormat::DEINTERLEAVED,
 					InterleavedFormat::INTERLEAVED>::Convert(reinterpret_cast<int16_t*>(device_buffer_.get()),
@@ -389,10 +398,10 @@ void AsioDevice::OnBufferSwitch(long index) noexcept {
 		}
 	};	
 
-	auto dsd_convert = [this, &got_samples]() noexcept {
+	auto dsd_convert = [this, &got_samples, sample_time]() noexcept {
 		// DSD mode input output same format (int8_t).
-		const auto avg_byte_per_sec = mix_format_.GetAvgBytesPerSec() / 8;
-		if (callback_->OnGetSamples(buffer_.get(), buffer_bytes_, double(played_bytes_) / avg_byte_per_sec, 0) == 0) {
+		const auto avg_byte_per_sec = format_.GetAvgBytesPerSec() / 8;
+		if (callback_->OnGetSamples(buffer_.get(), buffer_bytes_, double(played_bytes_) / avg_byte_per_sec, sample_time) == 0) {
 			DataConverter<InterleavedFormat::DEINTERLEAVED,
 				InterleavedFormat::INTERLEAVED>::Convert(device_buffer_.get(), buffer_.get(), callbackInfo.data_context);
 			got_samples = true;
@@ -407,7 +416,7 @@ void AsioDevice::OnBufferSwitch(long index) noexcept {
 	}
 
 	if (got_samples) {
-		for (size_t i = 0, j = 0; i < mix_format_.GetChannels(); ++i) {
+		for (size_t i = 0, j = 0; i < format_.GetChannels(); ++i) {
 			(void)FastMemcpy(callbackInfo.buffer_infos[i].buffers[index],
 				&device_buffer_[j++ * buffer_bytes_],
 				buffer_bytes_);
@@ -548,16 +557,16 @@ bool AsioDevice::IsStreamRunning() const noexcept {
 
 void AsioDevice::SetStreamTime(double stream_time) noexcept {
 	if (io_format_ == DsdIoFormat::IO_FORMAT_PCM) {
-		played_bytes_ = static_cast<int64_t>(stream_time * mix_format_.GetAvgBytesPerSec());
+		played_bytes_ = static_cast<int64_t>(stream_time * format_.GetAvgBytesPerSec());
 	}
 	else {
-		const auto avg_byte_per_sec = mix_format_.GetAvgBytesPerSec() / 8;
+		const auto avg_byte_per_sec = format_.GetAvgBytesPerSec() / 8;
 		played_bytes_ = stream_time * avg_byte_per_sec;
 	}
 }
 
 double AsioDevice::GetStreamTime() const noexcept {
-	return static_cast<double>(played_bytes_) / mix_format_.GetAvgBytesPerSec();
+	return static_cast<double>(played_bytes_) / format_.GetAvgBytesPerSec();
 }
 
 void AsioDevice::DisplayControlPanel() {
@@ -578,7 +587,11 @@ void AsioDevice::OnBufferSwitchCallback(long index, ASIOBool processNow) {
 		time_info.timeInfo.flags = kSystemTimeValid | kSamplePositionValid;
 	}
 	callbackInfo.device->OnBufferSwitchTimeInfoCallback(&time_info, index, processNow);
-	callbackInfo.device->OnBufferSwitch(index);
+	double sample_time = 0;
+	if (time_info.timeInfo.flags & kSamplePositionValid) {
+		sample_time = ASIO64toDouble(time_info.timeInfo.samplePosition) / callbackInfo.device->format_.GetSampleRate();
+	}
+	callbackInfo.device->OnBufferSwitch(index, sample_time);
 }
 
 long AsioDevice::OnAsioMessagesCallback(long selector, long value, void* message, double* opt) {

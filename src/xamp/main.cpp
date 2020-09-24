@@ -112,6 +112,13 @@ static int excute(int argc, char* argv[]) {
     qSetMessagePattern(Q_UTF8("%{message}"));
 #endif
 
+#ifdef Q_OS_WIN32
+    // Force use direct2D render.
+    //argc = 3;
+    //argv[1] = "-platform";
+    //argv[2] = "direct2d";
+#endif
+
     QApplication app(argc, argv);
 
     try {

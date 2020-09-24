@@ -178,7 +178,7 @@ void MetadataExtractAdapter::processMetadata(const std::vector<Metadata>& metada
         // Database not exist find others.
         if (cover_id.isEmpty()) {
             cover_id = cache.addCoverCache(album_id, album, metadata, is_unknown_album);
-        }
+        }        
 
         IgnoreSqlError(Database::instance().addOrUpdateAlbumMusic(album_id, artist_id, music_id))
 

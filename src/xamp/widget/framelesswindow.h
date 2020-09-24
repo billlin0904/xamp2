@@ -76,7 +76,7 @@ protected:
     virtual void stopPlayedClicked() = 0;
 
 private:
-	void initiaUIFont();
+	void setupUIFont();
 
 	void createThumbnailToolBar();
 
