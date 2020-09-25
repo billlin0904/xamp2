@@ -6,6 +6,7 @@
 #include <base/stacktrace.h>
 #include <base/platform_thread.h>
 #include <base/threadpool.h>
+#include <base/vmmemlock.h>
 
 #include <metadata/metadatareader.h>
 
@@ -96,6 +97,7 @@ static int excute(int argc, char* argv[]) {
     std::vector<ModuleHandle> preload_modules;
 
     const std::vector<std::string_view> preload_modules_names {
+        /*
         #ifdef Q_OS_WIN
         "psapi.dll",
         "comctl32.dll",
@@ -106,17 +108,26 @@ static int excute(int argc, char* argv[]) {
         "libchromaprint.dylib",
         "libbass.dylib"
         #endif
+        */
     };    
 
 #ifdef Q_OS_MAC
     qSetMessagePattern(Q_UTF8("%{message}"));
 #endif
 
-#ifdef Q_OS_WIN32
-    // Force use direct2D render.
-    //argc = 3;
-    //argv[1] = "-platform";
-    //argv[2] = "direct2d";
+#ifdef Q_OS_WIN32    
+    // https://social.msdn.microsoft.com/Forums/en-US/4890ecba-0325-4edf-99a8-bfc5d4f410e8/win10-major-issue-for-audio-processing-os-special-mode-for-small-buffer?forum=windowspro-audiodevelopment
+    // Everything the SetProcessWorkingSetSize says is true. You should only lock what you need to lock.
+    // And you need to lock everything you touch from the realtime thread. Because if the realtime thread
+    // touches something that was paged out, you glitch.
+    constexpr size_t kWorkingSetSize = 500 * 1024 * 1024;
+    if (EnablePrivilege("SeLockMemoryPrivilege", true)) {
+        XAMP_LOG_DEBUG("EnableLockMemPrivilege success.");
+
+        if (ExterndProcessWorkingSetSize(kWorkingSetSize)) {
+            XAMP_LOG_DEBUG("ExterndProcessWorkingSetSize {} success.", kWorkingSetSize);
+        }
+    }    
 #endif
 
     QApplication app(argc, argv);
@@ -135,11 +146,6 @@ static int excute(int argc, char* argv[]) {
     }
 
     XAMP_LOG_DEBUG("Preload dll success.");
-
-#ifdef Q_OS_WIN
-    xamp::base::EnablePrivilege("SeLockMemoryPrivilege", true);
-    XAMP_LOG_DEBUG("EnableLockMemPrivilege success.");
-#endif
 
     SingleInstanceApplication singleApp;
     if (!singleApp.attach(QCoreApplication::arguments())) {

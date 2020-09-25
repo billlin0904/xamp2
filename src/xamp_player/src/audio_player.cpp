@@ -271,8 +271,8 @@ void AudioPlayer::Resume() {
         is_paused_ = false;
         pause_cond_.notify_all();
         stopped_cond_.notify_all();
-        SetState(PlayerState::PLAYER_STATE_RUNNING);
         device_->StartStream();
+        SetState(PlayerState::PLAYER_STATE_RUNNING);
     }
 }
 
@@ -551,7 +551,7 @@ int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, dou
     }
 
     if (sample_time < sample_end_time_) {
-        memset(static_cast<int8_t*>(samples), 0, sample_size);
+        std::memset(static_cast<int8_t*>(samples), 0, sample_size);
         return 0;
     }
 

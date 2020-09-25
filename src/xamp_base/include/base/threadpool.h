@@ -25,9 +25,6 @@
 
 namespace xamp::base {
 
-inline constexpr size_t kInitL1CacheLineSize = 4 * 1024;
-inline constexpr size_t kMaxL1CacheLineSize = 64 * 1024;
-
 template <typename Type>
 class BoundedQueue final {
 public:
@@ -104,7 +101,7 @@ public:
         return true;
     }
 
-    void Destroy() {
+    void WeakupForShutdown() {
         {
             std::lock_guard guard{ mutex_ };
             done_ = true;
@@ -127,10 +124,10 @@ template
 >
 class TaskScheduler final {
 public:
-    explicit TaskScheduler(size_t max_thread)
+    explicit TaskScheduler(size_t max_thread, int32_t affinity_mask = 0)
         : is_stopped_(false)
         , active_thread_(0)
-        , core_mask_(2)
+        , affinity_mask_(affinity_mask)
         , index_(0)
         , max_thread_(max_thread) {
         for (size_t i = 0; i < max_thread_; ++i) {
@@ -139,7 +136,7 @@ public:
         for (size_t i = 0; i < max_thread_; ++i) {
             AddThread(static_cast<int32_t>(i));
         }
-    }
+    }    
 
     ~TaskScheduler() noexcept {
 		Destory();
@@ -156,12 +153,19 @@ public:
         task_queues_.at(i % max_thread_)->Enqueue(std::move(task));
     }
 
+    void SetAffinityMask(int32_t affinity_mask) {        
+        for (size_t i = 0; i < max_thread_; ++i) {
+            SetThreadAffinity(threads_.at(i));
+        }
+        affinity_mask_ = affinity_mask;
+    }
+
     void Destory() noexcept {
         is_stopped_ = true;
 
         for (size_t i = 0; i < max_thread_; ++i) {
             try {
-                task_queues_.at(i)->Destroy();
+                task_queues_.at(i)->WeakupForShutdown();
 
                 if (threads_.at(i).joinable()) {
                     threads_.at(i).join();
@@ -188,6 +192,10 @@ private:
             SetCurrentThreadName(i);
 
             for (;;) {
+                if (is_stopped_) {
+                    return;
+                }
+
                 TaskType task;
 
                 for (size_t n = 0; n != max_thread_; ++n) {
@@ -228,10 +236,14 @@ private:
     }
 
     using TaskQueuePtr = AlignPtr<Queue<TaskType>>;
+    
     static constexpr size_t K = 3;
+    static constexpr size_t kInitL1CacheLineSize = 4 * 1024;
+    static constexpr size_t kMaxL1CacheLineSize = 64 * 1024;
+
 	std::atomic<bool> is_stopped_;
     std::atomic<size_t> active_thread_;
-    int32_t core_mask_;
+    int32_t affinity_mask_;
 	size_t index_;
     size_t max_thread_;
     std::vector<std::thread> threads_;

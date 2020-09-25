@@ -182,6 +182,22 @@ void SetCurrentThreadAffinity(int32_t core) {
 }
 
 #ifdef XAMP_OS_WIN
+bool ExterndProcessWorkingSetSize(size_t size) noexcept {
+    SIZE_T minimum = 0;
+    SIZE_T maximum = 0;
+
+    const WinHandle current_process(::GetCurrentProcess());
+
+    if (::GetProcessWorkingSetSize(current_process.get(), &minimum, &maximum)) {
+        minimum += size;
+        if (maximum < minimum + size) {
+            maximum = minimum + size;
+        }
+        return ::SetProcessWorkingSetSize(current_process.get(), minimum, maximum);
+    }
+    return false;
+}
+
 bool EnablePrivilege(std::string_view privilege, bool enable) noexcept {
     const WinHandle current_process(::GetCurrentProcess());
 

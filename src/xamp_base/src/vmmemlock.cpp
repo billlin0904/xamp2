@@ -5,26 +5,11 @@
 #include <sys/mman.h>
 #endif
 #include <base/exception.h>
+#include <base/platform_thread.h>
 #include <base/vmmemlock.h>
 
 namespace xamp::base {
 #ifdef XAMP_OS_WIN
-static bool ExterndProcessWorkingSetSize(size_t size) noexcept {
-    SIZE_T minimum = 0;
-    SIZE_T maximum = 0;
-
-    const WinHandle current_process(::GetCurrentProcess());
-
-    if (::GetProcessWorkingSetSize(current_process.get(), &minimum, &maximum)) {
-        minimum += size;
-        if (maximum < minimum + size) {
-            maximum = minimum + size;
-        }
-        return ::SetProcessWorkingSetSize(current_process.get(), minimum, maximum);
-    }
-    return false;
-}
-
 VmMemLock::VmMemLock() noexcept
 	: address_(nullptr)
 	, size_(0) {	

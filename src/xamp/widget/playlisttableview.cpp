@@ -207,7 +207,10 @@ void PlayListTableView::initial() {
                     return;
                 }
 
-                const auto image_data = Pixmap::getImageDate(image);
+                const QSize kMaxCoverArtSize(500, 500);
+                auto resize_cover = Pixmap::resizeImage(image, kMaxCoverArtSize, true);
+
+                const auto image_data = Pixmap::getImageDate(resize_cover);
                 const auto rows = selectItemIndex();
                 for (const auto& select_item : rows) {
                     auto entity = this->item(select_item.second);
