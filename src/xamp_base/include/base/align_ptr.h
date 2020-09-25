@@ -117,5 +117,64 @@ XAMP_BASE_API_ONLY_EXPORT StackBufferPtr<Type> MakeStackBuffer(size_t n) {
     return StackBufferPtr<Type>(static_cast<Type*>(ptr));
 }
 
+template <typename T>
+class XAMP_BASE_API_ONLY_EXPORT AlignedBuffer {
+public:
+    AlignedBuffer() = default;
+
+    explicit AlignedBuffer(size_t size)
+        : ptr_(MakeBuffer<T>(size)), size_(size) {
+    }
+
+    AlignedBuffer(const AlignedBuffer& other)
+        : AlignedBuffer(other.size_) {
+        std::memcpy(ptr_.get(), other.ptr_.get(), size_ * sizeof(T));
+    }
+
+    AlignedBuffer(AlignedBuffer&&) = default;
+
+    AlignedBuffer& operator=(const AlignedBuffer& other) {
+        AlignedBuffer copy(other);
+        swap(*this, copy);
+        return *this;
+    }
+
+    AlignedBuffer& operator=(AlignedBuffer&&) = default;
+
+    friend void swap(AlignedBuffer& a, AlignedBuffer& b) {
+        std::swap(a.ptr_, b.ptr_);
+        std::swap(a.size_, b.size_);
+    }
+
+    T* Get() noexcept { 
+        return ptr_.get();
+    }
+
+    const T* Get() const noexcept {
+        return ptr_.get();
+    }
+
+    T& operator[](size_t i) noexcept {
+        return ptr_[i]; 
+    }
+
+    const T& operator[](size_t i) const noexcept {
+        return ptr_[i]; 
+    }
+
+    size_t GetSize() const noexcept {
+        return size_;
+    }
+
+    size_t GetByteSize() const noexcept {
+        return size_ * sizeof(T);
+    }
+
+private:
+    AlignBufferPtr<T> ptr_;
+    size_t size_ = 0;
+};
+
+
 }
 

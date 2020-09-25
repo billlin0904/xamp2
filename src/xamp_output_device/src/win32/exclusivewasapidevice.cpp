@@ -208,11 +208,11 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	}
 
 	vmlock_.UnLock();
-	auto buffer_size = buffer_frames_ * output_format.GetChannels();
-	buffer_ = MakeBuffer<float>(buffer_size);
-	vmlock_.Lock(buffer_.get(), buffer_size * sizeof(float));
+	size_t buffer_size = buffer_frames_ * output_format.GetChannels();
+	buffer_ = AlignedBuffer<float>(buffer_size);
+	vmlock_.Lock(buffer_.Get(), buffer_.GetByteSize());
     data_convert_ = MakeConvert(output_format, valid_output_format, buffer_frames_);
-	XAMP_LOG_DEBUG("WASAPI internal buffer: {}.", FormatBytesBy<float>(buffer_size));
+	XAMP_LOG_DEBUG("WASAPI internal buffer: {}.", FormatBytes(buffer_.GetByteSize()));
 
 	CComPtr<IAudioEndpointVolume> endpoint_volume;
 	HrIfFailledThrow(device_->Activate(kAudioEndpointVolumeID,
@@ -281,11 +281,11 @@ void ExclusiveWasapiDevice::GetSample(uint32_t frame_available) noexcept {
 
 	auto sample_time = helper::GetStreamPosInMilliseconds(clock_) / 1000.0;
 
-	if (callback_->OnGetSamples(buffer_.get(), frame_available, stream_time_float, sample_time) == 0) {
+	if (callback_->OnGetSamples(buffer_.Get(), frame_available, stream_time_float, sample_time) == 0) {
 		if (!raw_mode_) {
 			(void)DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEAVED>::ConvertToInt2432(
 				reinterpret_cast<int32_t*>(data),
-				buffer_.get(),
+				buffer_.Get(),
 				data_convert_);
 		}
 		ReportError(render_client_->ReleaseBuffer(frame_available, 0));

@@ -475,7 +475,7 @@ void AudioPlayer::CreateBuffer() {
         num_buffer_samples_ = allocate_size * kTotalBufferStreamCount;
         num_read_sample_ = require_read_sample;
         XAMP_LOG_DEBUG("Allocate interal buffer : {}.", FormatBytes(allocate_size));
-        sample_buffer_ = MakeBuffer<int8_t>(allocate_size);
+        sample_buffer_ = AlignedBuffer<int8_t>(allocate_size);
         read_sample_size_ = allocate_size;
     }
 
@@ -670,7 +670,7 @@ void AudioPlayer::Seek(double stream_time) {
 void AudioPlayer::BufferStream() {
     buffer_.Clear();
 
-    auto* const sample_buffer = sample_buffer_.get();
+    auto* const sample_buffer = sample_buffer_.Get();
     sample_size_ = stream_->GetSampleSize();
 
     if (enable_resample_) {
@@ -713,7 +713,7 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_read_sample
         const auto num_samples = stream_->GetSamples(sample_buffer, max_read_sample);
 
         if (num_samples > 0) {
-            auto samples = reinterpret_cast<const float*>(sample_buffer_.get());
+            auto samples = reinterpret_cast<const float*>(sample_buffer_.Get());
 
             auto use_resampler = true;
             if (equalizer_ != nullptr) {
@@ -756,7 +756,7 @@ void AudioPlayer::StartPlay() {
 
         std::unique_lock<std::mutex> lock{ p->pause_mutex_ };
 
-        auto sample_buffer = p->sample_buffer_.get();
+        auto sample_buffer = p->sample_buffer_.Get();
         const auto max_read_sample = p->num_read_sample_;
         const auto num_sample_write = max_read_sample * kMaxWriteRatio;
 

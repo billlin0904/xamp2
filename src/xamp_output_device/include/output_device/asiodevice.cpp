@@ -295,10 +295,10 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 		size_t allocate_bytes = buffer_size_ * format_.GetBytesPerSample() * format_.GetChannels();
 		callbackInfo.data_context = MakeConvert(input_fomrat, format_, buffer_size_);
 		buffer_bytes_ = buffer_size_ * (int64_t)format_.GetBytesPerSample();
-		buffer_ = MakeBuffer<int8_t>(allocate_bytes * buffer_size_);
-		device_buffer_ = MakeBuffer<int8_t>(allocate_bytes * buffer_size_);
-		buffer_vmlock_.Lock(buffer_.get(), allocate_bytes * buffer_size_);
-		device_buffer_vmlock_.Lock(device_buffer_.get(), allocate_bytes * buffer_size_);
+		buffer_ = AlignedBuffer<int8_t>(allocate_bytes * buffer_size_);
+		device_buffer_ = AlignedBuffer<int8_t>(allocate_bytes * buffer_size_);
+		buffer_vmlock_.Lock(buffer_.Get(), allocate_bytes * buffer_size_);
+		device_buffer_vmlock_.Lock(device_buffer_.Get(), allocate_bytes * buffer_size_);
 	}
 	else {
 		switch (channel_info.type) {
@@ -323,10 +323,10 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 		auto channel_buffer_size = buffer_size_ / 8;
 		buffer_bytes_ = channel_buffer_size;
 		size_t allocate_bytes = buffer_size_;
-		device_buffer_ = MakeBuffer<int8_t>(allocate_bytes);
-		buffer_ = MakeBuffer<int8_t>(allocate_bytes);
-		buffer_vmlock_.Lock(buffer_.get(), allocate_bytes);
-		device_buffer_vmlock_.Lock(device_buffer_.get(), allocate_bytes);
+		device_buffer_ = AlignedBuffer<int8_t>(allocate_bytes);
+		buffer_ = AlignedBuffer<int8_t>(allocate_bytes);
+		buffer_vmlock_.Lock(buffer_.Get(), allocate_bytes);
+		device_buffer_vmlock_.Lock(device_buffer_.Get(), allocate_bytes);
 		callbackInfo.data_context = MakeConvert(input_fomrat, format_, channel_buffer_size);
 	}
 
@@ -371,24 +371,24 @@ void AsioDevice::OnBufferSwitch(long index, double sample_time) noexcept {
 
 	auto pcm_convert = [this, &got_samples, cache_played_bytes, sample_time]() noexcept {
 		// PCM mode input float to output format.
-		if (callback_->OnGetSamples(reinterpret_cast<float*>(buffer_.get()), buffer_size_, double(cache_played_bytes) / format_.GetAvgBytesPerSec(), sample_time) == 0) {
+		if (callback_->OnGetSamples(reinterpret_cast<float*>(buffer_.Get()), buffer_size_, double(cache_played_bytes) / format_.GetAvgBytesPerSec(), sample_time) == 0) {
 			switch (format_.GetByteFormat()) {
 			case ByteFormat::SINT16:
 				DataConverter<InterleavedFormat::DEINTERLEAVED,
-					InterleavedFormat::INTERLEAVED>::Convert(reinterpret_cast<int16_t*>(device_buffer_.get()),
-						reinterpret_cast<const float*>(buffer_.get()),
+					InterleavedFormat::INTERLEAVED>::Convert(reinterpret_cast<int16_t*>(device_buffer_.Get()),
+						reinterpret_cast<const float*>(buffer_.Get()),
 						callbackInfo.data_context);
 				break;
 			case ByteFormat::SINT24:
 				DataConverter<InterleavedFormat::DEINTERLEAVED,
-					InterleavedFormat::INTERLEAVED>::Convert(reinterpret_cast<Int24*>(device_buffer_.get()),
-						reinterpret_cast<const float*>(buffer_.get()),
+					InterleavedFormat::INTERLEAVED>::Convert(reinterpret_cast<Int24*>(device_buffer_.Get()),
+						reinterpret_cast<const float*>(buffer_.Get()),
 						callbackInfo.data_context);
 				break;
 			case ByteFormat::SINT32:
 				DataConverter<InterleavedFormat::DEINTERLEAVED,
-					InterleavedFormat::INTERLEAVED>::Convert(reinterpret_cast<int32_t*>(device_buffer_.get()),
-						reinterpret_cast<const float*>(buffer_.get()),
+					InterleavedFormat::INTERLEAVED>::Convert(reinterpret_cast<int32_t*>(device_buffer_.Get()),
+						reinterpret_cast<const float*>(buffer_.Get()),
 						callbackInfo.data_context);
 				break;
 			default:
@@ -401,9 +401,9 @@ void AsioDevice::OnBufferSwitch(long index, double sample_time) noexcept {
 	auto dsd_convert = [this, &got_samples, sample_time]() noexcept {
 		// DSD mode input output same format (int8_t).
 		const auto avg_byte_per_sec = format_.GetAvgBytesPerSec() / 8;
-		if (callback_->OnGetSamples(buffer_.get(), buffer_bytes_, double(played_bytes_) / avg_byte_per_sec, sample_time) == 0) {
+		if (callback_->OnGetSamples(buffer_.Get(), buffer_bytes_, double(played_bytes_) / avg_byte_per_sec, sample_time) == 0) {
 			DataConverter<InterleavedFormat::DEINTERLEAVED,
-				InterleavedFormat::INTERLEAVED>::Convert(device_buffer_.get(), buffer_.get(), callbackInfo.data_context);
+				InterleavedFormat::INTERLEAVED>::Convert(device_buffer_.Get(), buffer_.Get(), callbackInfo.data_context);
 			got_samples = true;
 		}
 	};

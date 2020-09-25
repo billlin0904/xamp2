@@ -92,24 +92,7 @@ static int excute(int argc, char* argv[]) {
     XAMP_SET_LOG_LEVEL(spdlog::level::debug);
 
     XAMP_LOG_DEBUG("Logger init success.");
-    XAMP_LOG_DEBUG("RegisterAbortHandler success.");
-
-    std::vector<ModuleHandle> preload_modules;
-
-    const std::vector<std::string_view> preload_modules_names {
-        /*
-        #ifdef Q_OS_WIN
-        "psapi.dll",
-        "comctl32.dll",
-        "WindowsCodecs.dll",
-        "AudioSes.dll",
-        "avrt.dll"
-        #else
-        "libchromaprint.dylib",
-        "libbass.dylib"
-        #endif
-        */
-    };    
+    XAMP_LOG_DEBUG("RegisterAbortHandler success.");   
 
 #ifdef Q_OS_MAC
     qSetMessagePattern(Q_UTF8("%{message}"));
@@ -133,9 +116,6 @@ static int excute(int argc, char* argv[]) {
     QApplication app(argc, argv);
 
     try {
-        for (auto name : preload_modules_names) {
-            preload_modules.emplace_back(LoadModule(name));
-        }
         AudioPlayer::LoadLib();
     }
     catch (const Exception& e) {
