@@ -16,14 +16,18 @@ using CaptureStackAddress = std::array<void*, MaxStackFrameSize>;
 
 class XAMP_BASE_API StackTrace {
 public:
-    StackTrace() noexcept;
+    StackTrace() noexcept;   
 
     static void RegisterAbortHandler();
-private:   
+
 #ifdef XAMP_OS_WIN
-    static LONG WINAPI AbortHandler(EXCEPTION_POINTERS* info);
-    void WriteLog(size_t frame_count);
+    std::string CaptureStack();
+#endif
+private:    
+#ifdef XAMP_OS_WIN
+    static LONG WINAPI AbortHandler(EXCEPTION_POINTERS* info);    
     void PrintStackTrace(EXCEPTION_POINTERS const * info);
+    void WriteLog(size_t frame_count, std::ostream& ostr);
 #else
     static void AbortHandler(int32_t signum);
     void PrintStackTrace();

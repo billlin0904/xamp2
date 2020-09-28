@@ -206,7 +206,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 		assert(sample_ready_);
 		HrIfFailledThrow(client_->SetEventHandle(sample_ready_.get()));
 	}
-
+	
 	vmlock_.UnLock();
 	size_t buffer_size = buffer_frames_ * output_format.GetChannels();
 	buffer_ = AlignedBuffer<float>(buffer_size);

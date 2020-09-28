@@ -81,7 +81,8 @@ Xamp::Xamp(QWidget *parent)
     , artist_info_page_(nullptr)
     , state_adapter_(std::make_shared<PlayerStateAdapter>())
     , player_(std::make_shared<AudioPlayer>(state_adapter_))
-    , playback_history_page_(nullptr) {    
+    , playback_history_page_(nullptr) 
+    , player_lock_(player_.get(), sizeof(AudioPlayer)) {
     initial();
 }
 

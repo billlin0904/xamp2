@@ -4,23 +4,18 @@
 #else
 #include <sys/mman.h>
 #endif
+#include <base/stacktrace.h>
 #include <base/exception.h>
 #include <base/platform_thread.h>
 #include <base/vmmemlock.h>
 
 namespace xamp::base {
 #ifdef XAMP_OS_WIN
-VmMemLock::VmMemLock() noexcept
-	: address_(nullptr)
-	, size_(0) {	
-}
-
 VmMemLock::~VmMemLock() noexcept {
 	UnLock();
 }
 
 void VmMemLock::Lock(void* address, size_t size) {
-#if 1
 	UnLock();
 
 	if (!ExterndProcessWorkingSetSize(size)) {
@@ -35,27 +30,19 @@ void VmMemLock::Lock(void* address, size_t size) {
 	size_ = size;
 
 	XAMP_LOG_DEBUG("VmMemLock lock address: 0x{:08x} size: {}.", int64_t(address_), size_);
-#endif
 }
 
 void VmMemLock::UnLock() noexcept {
-#if 1
 	if (address_) {
 		if (!::VirtualUnlock(address_, size_)) {
-			XAMP_LOG_DEBUG("VirtualUnlock return failure! error:{}.", ::GetLastError());
+			XAMP_LOG_DEBUG("VirtualUnlock return failure! error:{} {}.", ::GetLastError(), StackTrace{}.CaptureStack());
 		}
 		XAMP_LOG_DEBUG("VmMemLock unlock address: 0x{:08x} size: {}.", int64_t(address_), size_);
 	}
 	address_ = nullptr;
 	size_ = 0;
-#endif
 }
 #else
-VmMemLock::VmMemLock() noexcept
-    : address_(nullptr)
-    , size_(0) {
-}
-
 VmMemLock::~VmMemLock() noexcept {
     UnLock();
 }
@@ -81,5 +68,15 @@ void VmMemLock::UnLock() noexcept {
     size_ = 0;
 }
 #endif
+
+VmMemLock::VmMemLock() noexcept
+	: address_(nullptr)
+	, size_(0) {
+}
+
+VmMemLock::VmMemLock(void* address, size_t size)
+	: VmMemLock() {
+	Lock(address, size);
+}
 
 }

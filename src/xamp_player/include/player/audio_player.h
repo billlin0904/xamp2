@@ -188,9 +188,11 @@ private:
     WaitableTimer wait_timer_;
     AlignPtr<Resampler> resampler_;
     AlignPtr<Equalizer> equalizer_;
+    VmMemLock sample_buffer_lock_;
     EQBands eqsettings_;
     DeviceInfo device_info_;
     std::shared_future<void> stream_task_;
+    PlayerStateMachine stm_;
 };
 
 }

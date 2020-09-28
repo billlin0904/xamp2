@@ -5,6 +5,7 @@
 
 #include <base/dll.h>
 #include <base/logger.h>
+#include <base/vmmemlock.h>
 #include <player/soxresampler.h>
 
 namespace xamp::player {
@@ -139,6 +140,7 @@ public:
     }
 
     void Close() {
+        vmlock_.UnLock();
         handle_.reset();
         buffer_.clear();
     }
@@ -174,7 +176,12 @@ public:
     bool Process(float const * samples, uint32_t num_sample, AudioBuffer<int8_t>& buffer) {
         assert(num_channels_ != 0);
 
-        buffer_.resize(static_cast<size_t>(num_sample * ratio_) + 256);
+        auto required_size = static_cast<size_t>(num_sample * ratio_) + 256;
+        if (required_size > buffer_.size()) {
+            vmlock_.UnLock();
+            buffer_.resize(required_size);
+            vmlock_.Lock(buffer_.data(), required_size * sizeof(float));
+        }        
 
         size_t samples_done = 0;
 
@@ -194,7 +201,13 @@ public:
         if (!buffer.TryWrite(reinterpret_cast<int8_t const *>(buffer_.data()), write_size)) {
             throw LibrarySpecException("Buffer overflow!");
         }
-        buffer_.resize(samples_done * num_channels_);
+
+        required_size = samples_done * num_channels_;
+        if (required_size > buffer_.size()) {
+            vmlock_.UnLock();
+            buffer_.resize(samples_done * num_channels_);
+            vmlock_.Lock(buffer_.data(), required_size * sizeof(float));
+        }        
         return true;
     }
 
@@ -219,6 +232,7 @@ public:
     double passband_;
     double stopband_;
     SoxrHandle handle_;
+    VmMemLock vmlock_;
     std::vector<float> buffer_;
 };
 

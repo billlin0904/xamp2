@@ -9,24 +9,25 @@
 
 namespace xamp::base {
 
-class XAMP_BASE_API VmMemLock final {
+// https://preshing.com/20130930/double-checked-locking-is-fixed-in-cpp11/
+
+template <typename T>
+class Singleton {
 public:
-	VmMemLock() noexcept;
-	
-	VmMemLock(void* address, size_t size);
+	static T& Get();
 
-	XAMP_DISABLE_COPY(VmMemLock)
+protected:
+	Singleton() noexcept = default;
+	virtual ~Singleton() noexcept = default;
 
-	~VmMemLock() noexcept;
-
-	void Lock(void* address, size_t size);
-
-	void UnLock() noexcept;
-
-private:
-	void* address_;
-	size_t size_;
+public:
+	XAMP_DISABLE_COPY(Singleton)
 };
 
+template <typename T>
+XAMP_ALWAYS_INLINE T& Singleton<T>::Get() {
+	static T instance;
+	return instance;
 }
 
+}

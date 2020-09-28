@@ -8,6 +8,7 @@
 #include <QStack>
 #include <QSystemTrayIcon>
 
+#include <base/vmmemlock.h>
 #include <player/audio_player.h>
 
 #include <widget/discogsclient.h>
@@ -23,6 +24,7 @@
 
 #include "ui_xamp.h"
 
+using namespace xamp::base;
 using namespace xamp::player;
 
 class LrcPage;
@@ -161,5 +163,6 @@ private:
     QList<AppEQSettings> eqsettings_;
 	QMenu* trayIconMenu_;
 	QSystemTrayIcon* trayIcon_;
+	VmMemLock player_lock_;
     Ui::XampWindow ui;
 };

@@ -54,9 +54,9 @@ AudioPlayer::AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter)
     , is_playing_(false)
     , is_paused_(false)
     , sample_end_time_(0)
-    , state_adapter_(adapter) {
-    wait_timer_.SetTimeout(kReadSampleWaitTime);
-    buffer_.Resize(kPreallocateBufferSize);    
+    , state_adapter_(adapter)
+    , buffer_(kPreallocateBufferSize) {
+    wait_timer_.SetTimeout(kReadSampleWaitTime);  
 }
 
 AudioPlayer::~AudioPlayer() = default;
@@ -218,6 +218,8 @@ void AudioPlayer::OpenStream(std::wstring const & file_path, std::wstring const 
     XAMP_LOG_DEBUG("Use stream type: {}.", stream_->GetDescription());
 
     stream_->OpenFile(file_path);
+
+    stm_.Handle(InitEvent{});
 }
 
 void AudioPlayer::SetState(const PlayerState play_state) {
@@ -256,6 +258,7 @@ void AudioPlayer::Pause() {
             is_paused_ = true;
             device_->StopStream();
             SetState(PlayerState::PLAYER_STATE_PAUSED);
+            //stm_.Handle(PauseEvent{});
         }
     }
 }
@@ -273,6 +276,7 @@ void AudioPlayer::Resume() {
         stopped_cond_.notify_all();
         device_->StartStream();
         SetState(PlayerState::PLAYER_STATE_RUNNING);
+        //stm_.Handle(ResumeEvent{});
     }
 }
 
@@ -286,9 +290,11 @@ void AudioPlayer::Stop(bool signal_to_stop, bool shutdown_device, bool wait_for_
         CloseDevice(wait_for_stop_stream);
         UpdateSlice();
         if (signal_to_stop) {
-            SetState(PlayerState::PLAYER_STATE_STOPPED);
+            SetState(PlayerState::PLAYER_STATE_STOPPED);                        
         }
-    }
+    }    
+
+    stm_.Handle(StopEvent{});
 
     buffer_.Clear();
     if (shutdown_device) {
@@ -370,6 +376,7 @@ void AudioPlayer::Initial() {
                 adapter->OnSampleTime(slice.stream_time);
             } else if (p->is_playing_ && slice.sample_size == -1) {
                 p->SetState(PlayerState::PLAYER_STATE_STOPPED);
+                p->stm_.Handle(StopEvent{});
                 p->is_playing_ = false;
             }
         });
@@ -432,6 +439,7 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
             }
         }
     }
+
     if (stream_task_.valid()) {
         XAMP_LOG_DEBUG("Try to stop stream thread.");
 #ifdef XAMP_OS_WIN
@@ -447,6 +455,8 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
         XAMP_LOG_DEBUG("Stream thread was finished.");
     }
     buffer_.Clear();
+
+    stm_.Handle(StopEvent{});
 
     LogTime("Device max process time", min_process_time_);
     LogTime("Device min process time", min_process_time_);
@@ -476,6 +486,7 @@ void AudioPlayer::CreateBuffer() {
         num_read_sample_ = require_read_sample;
         XAMP_LOG_DEBUG("Allocate interal buffer : {}.", FormatBytes(allocate_size));
         sample_buffer_ = AlignedBuffer<int8_t>(allocate_size);
+        sample_buffer_lock_.Lock(sample_buffer_.Get(), sample_buffer_.GetByteSize());
         read_sample_size_ = allocate_size;
     }
 
@@ -782,6 +793,7 @@ void AudioPlayer::StartPlay() {
     });
 
     LogTime("Create thread time", sw.Elapsed());
+    stm_.Handle(PlayingEvent{});
 }
 
 }

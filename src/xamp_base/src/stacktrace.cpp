@@ -3,6 +3,7 @@
 #include <vector>
 #include <optional>
 #include <map>
+#include <sstream>
 
 #include <base/logger.h>
 #include <base/stl.h>
@@ -116,9 +117,11 @@ static size_t WalkStack(CONTEXT const* context, CaptureStackAddress& addrlist) n
     return frame_count;
 }
 
-void StackTrace::WriteLog(size_t frame_count) {
+void StackTrace::WriteLog(size_t frame_count, std::ostream& ostr) {
     std::vector<uint8_t> symbol(sizeof(SYMBOL_INFO) + sizeof(wchar_t) * MAX_SYM_NAME);
     auto current_process = SymLoader::Instance().GetProcess().get();
+
+    ostr << "\r\n";
 
     for (size_t i = 0; i < frame_count; ++i) {
         auto frame = addrlist_[i];
@@ -148,15 +151,15 @@ void StackTrace::WriteLog(size_t frame_count) {
                 &line_displacement,
                 &line);
 
-            if (has_line) {
-                XAMP_LOG_DEBUG("0x{:08x} {:08x} {}:{}", reinterpret_cast<DWORD64>(frame), displacement, line.FileName, line.LineNumber);
+            if (has_line) {                
+                ostr << "0x" << reinterpret_cast<DWORD64>(frame) << " " << displacement << " " << line.FileName << ":" << line.LineNumber << "\r\n";
             }
-            else {
-                XAMP_LOG_DEBUG("0x{:08x} {:08x}", reinterpret_cast<DWORD64>(frame), displacement);
+            else {                
+                ostr << "0x" << reinterpret_cast<DWORD64>(frame) << " " << displacement << "\r\n";
             }
         }
         else {
-            XAMP_LOG_DEBUG("0x{:08d} (No symbol)", reinterpret_cast<DWORD64>(frame));
+            ostr << "0x" << reinterpret_cast<DWORD64>(frame) << "(No symbol)" << "\r\n";
         }
     }
 }
@@ -179,9 +182,18 @@ void StackTrace::PrintStackTrace(EXCEPTION_POINTERS const* info) {
         XAMP_LOG_DEBUG("Caught signal 0x{:08x}.", info->ExceptionRecord->ExceptionCode);
     }
 
+    std::ostringstream ostr;
     auto frame_count = WalkStack(info->ContextRecord, addrlist_);
-    WriteLog(frame_count);
+    WriteLog(frame_count, ostr);
+    XAMP_LOG_DEBUG(ostr.str());
     std::exit(0);
+}
+
+std::string StackTrace::CaptureStack() {
+    std::ostringstream ostr;
+    auto frame_count = ::CaptureStackBackTrace(0, MaxStackFrameSize, addrlist_.data(), nullptr);
+    WriteLog(frame_count, ostr);
+    return ostr.str();
 }
 
 #else
