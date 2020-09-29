@@ -7,6 +7,7 @@
 #ifdef XAMP_OS_WIN
 #include <base/windows_handle.h>
 #include <base/str_utilts.h>
+#include <base/stacktrace.h>
 #endif
 
 #include <base/stl.h>
@@ -15,7 +16,7 @@
 namespace xamp::base {
 
 #ifdef XAMP_OS_WIN
-std::string LocaleStringToUTF8(const std::string &str) {
+static std::string LocaleStringToUTF8(const std::string &str) {
     std::vector<wchar_t> wszTo(str.length() + 1);
     ::MultiByteToWideChar(CP_ACP,
         0,
@@ -26,11 +27,11 @@ std::string LocaleStringToUTF8(const std::string &str) {
     return ToUtf8String(wszTo.data());
 }
 
-std::string GetPlatformErrorMessage(int32_t err) {
+static std::string GetPlatformErrorMessage(int32_t err) {
     return LocaleStringToUTF8(std::system_category().message(err));
 }
 #else
-std::string GetPlatformErrorMessage(int32_t err) {
+static std::string GetPlatformErrorMessage(int32_t err) {
         return std::system_category().message(err);
 }
 #endif
@@ -48,7 +49,16 @@ Exception::Exception(Errors error, const std::string& message, std::string_view 
         ostr << error << "(" << ErrorToString(error) << ")";
 		message_ = ostr.str();
 	}
+#ifdef XAMP_OS_WIN
+    stacktrace_ = StackTrace{}.CaptureStack();
+#endif
 }
+
+#ifdef XAMP_OS_WIN
+char const* Exception::GetStackTrace() const noexcept {
+    return stacktrace_.c_str();
+}
+#endif
 
 char const * Exception::what() const noexcept {
     return what_.data();

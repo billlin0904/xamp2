@@ -49,7 +49,9 @@ public:
     [[nodiscard]] char const * GetErrorMessage() const noexcept;
 
     [[nodiscard]] virtual const char * GetExpression() const noexcept;
-
+#ifdef XAMP_OS_WIN
+    [[nodiscard]] char const* GetStackTrace() const noexcept;
+#endif
     static std::string_view ErrorToString(Errors error);
 private:
     Errors error_;
@@ -57,6 +59,9 @@ private:
 protected:	
 	std::string_view what_;
     std::string message_;
+#ifdef XAMP_OS_WIN
+    std::string stacktrace_;
+#endif
 };
 
 class XAMP_BASE_API LibrarySpecException : public Exception {

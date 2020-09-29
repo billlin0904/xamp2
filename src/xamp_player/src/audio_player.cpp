@@ -23,7 +23,7 @@ namespace xamp::player {
 inline constexpr int32_t kMinEQSampleRate = 44100;
 inline constexpr int32_t kBufferStreamCount = 5;
 inline constexpr int32_t kTotalBufferStreamCount = 10;
-inline constexpr int32_t kPreallocateBufferSize = 8 * 1024 * 1024;
+inline constexpr int32_t kPreallocateBufferSize = 16 * 1024 * 1024;
 inline constexpr int32_t kMaxWriteRatio = 20;
 inline constexpr int32_t kMaxReadRatio = 30;
 inline constexpr std::chrono::milliseconds kUpdateSampleInterval(30);

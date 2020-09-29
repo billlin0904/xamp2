@@ -12,7 +12,7 @@ namespace xamp::base {
 // https://preshing.com/20130930/double-checked-locking-is-fixed-in-cpp11/
 
 template <typename T>
-class Singleton {
+class XAMP_BASE_API_ONLY_EXPORT Singleton {
 public:
 	static T& Get();
 

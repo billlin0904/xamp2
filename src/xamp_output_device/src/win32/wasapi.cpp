@@ -103,6 +103,7 @@ HashMap<std::string, std::wstring> GetDeviceProperty(CComPtr<IMMDevice>& device)
 		{PKEY_AudioEndpoint_GUID,  VT_LPWSTR, "PKEY_AudioEndpoint_GUID"},
 		{PKEY_AudioEngine_DeviceFormat,  VT_BLOB, "PKEY_AudioEngine_DeviceFormat"},
 		{PKEY_Device_EnumeratorName,  VT_LPWSTR, "PKEY_Device_EnumeratorName"},
+		{PKEY_AudioEndpoint_JackSubType,  VT_LPWSTR, "PKEY_AudioEndpoint_JackSubType"},
 	};
 
 	for (const auto &property : device_property) {

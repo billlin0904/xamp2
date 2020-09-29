@@ -92,18 +92,21 @@ static int excute(int argc, char* argv[]) {
     XAMP_SET_LOG_LEVEL(spdlog::level::debug);
 
     XAMP_LOG_DEBUG("Logger init success.");
-    XAMP_LOG_DEBUG("RegisterAbortHandler success.");   
+    XAMP_LOG_DEBUG("RegisterAbortHandler success.");
 
-#ifdef Q_OS_MAC
-    qSetMessagePattern(Q_UTF8("%{message}"));
-#endif
+    if (StackTrace::LoadSymbol()) {
+        XAMP_LOG_DEBUG("Load symbol success.");
+    }
+    else {
+        XAMP_LOG_DEBUG("Load symbol failure!");
+    }
 
 #ifdef Q_OS_WIN32    
     // https://social.msdn.microsoft.com/Forums/en-US/4890ecba-0325-4edf-99a8-bfc5d4f410e8/win10-major-issue-for-audio-processing-os-special-mode-for-small-buffer?forum=windowspro-audiodevelopment
     // Everything the SetProcessWorkingSetSize says is true. You should only lock what you need to lock.
     // And you need to lock everything you touch from the realtime thread. Because if the realtime thread
     // touches something that was paged out, you glitch.
-    constexpr size_t kWorkingSetSize = 500 * 1024 * 1024;
+    constexpr size_t kWorkingSetSize = 300 * 1024 * 1024;
     if (EnablePrivilege("SeLockMemoryPrivilege", true)) {
         XAMP_LOG_DEBUG("EnableLockMemPrivilege success.");
 

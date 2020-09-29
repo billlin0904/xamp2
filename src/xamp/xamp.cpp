@@ -865,7 +865,11 @@ void Xamp::playMusic(const MusicEntity& item) {
         open_done = true;
     }
     catch (const xamp::base::Exception & e) {
+#ifdef XAMP_OS_WIN
+        XAMP_LOG_DEBUG("Exception: {} {}", e.GetErrorMessage(), e.GetStackTrace());
+#else
         XAMP_LOG_DEBUG("Exception: {}", e.GetErrorMessage());
+#endif
         Toast::showTip(Q_UTF8(e.GetErrorMessage()), this);
     }
     catch (const std::exception & e) {

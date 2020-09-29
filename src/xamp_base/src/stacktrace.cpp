@@ -7,6 +7,7 @@
 
 #include <base/logger.h>
 #include <base/stl.h>
+#include <base/singleton.h>
 #include <base/stacktrace.h>
 
 #ifdef XAMP_OS_WIN
@@ -52,19 +53,10 @@ static HashMap<DWORD, std::string_view> const & GetWellKnownExceptionCode() {
 
 class SymLoader {
 public:
-    static SymLoader& Instance() {
-        static SymLoader loader;
-        return loader;
-    }
-
     const WinHandle & GetProcess() const noexcept {
 		return process_;
 	}
 
-	~SymLoader() {
-        ::SymCleanup(process_.get());
-	}
-private:
     SymLoader() {
         process_.reset(::GetCurrentProcess());
 
@@ -72,13 +64,23 @@ private:
             SYMOPT_UNDNAME |
             SYMOPT_LOAD_LINES);
 
-        ::SymInitialize(process_.get(), nullptr, TRUE);
+        init_state_ = ::SymInitialize(process_.get(), nullptr, TRUE);
     }
 
+    bool IsInit() const noexcept {
+        return init_state_;
+    }
+
+	~SymLoader() {
+        ::SymCleanup(process_.get());
+	}
+
+private:
+    bool init_state_;
 	WinHandle process_;
 };
 
-static size_t WalkStack(CONTEXT const* context, CaptureStackAddress& addrlist) noexcept {
+static size_t WalkStack(CONTEXT const* context, StackTrace::CaptureStackAddress& addrlist) noexcept {
     CONTEXT integer_control_context = *context;
     integer_control_context.ContextFlags = CONTEXT_INTEGER | CONTEXT_CONTROL;
 
@@ -97,7 +99,7 @@ static size_t WalkStack(CONTEXT const* context, CaptureStackAddress& addrlist) n
 
     for (auto &address : addrlist) {
         const auto result = ::StackWalk64(IMAGE_FILE_MACHINE_IA64,
-            SymLoader::Instance().GetProcess().get(),
+            Singleton<SymLoader>::Get().GetProcess().get(),
             thread.get(),
             &stack_frame,
             &integer_control_context,
@@ -119,9 +121,9 @@ static size_t WalkStack(CONTEXT const* context, CaptureStackAddress& addrlist) n
 
 void StackTrace::WriteLog(size_t frame_count, std::ostream& ostr) {
     std::vector<uint8_t> symbol(sizeof(SYMBOL_INFO) + sizeof(wchar_t) * MAX_SYM_NAME);
-    auto current_process = SymLoader::Instance().GetProcess().get();
+    auto current_process = Singleton<SymLoader>::Get().GetProcess().get();
 
-    ostr << "\r\n";
+    ostr << "\r\n";    
 
     for (size_t i = 0; i < frame_count; ++i) {
         auto frame = addrlist_[i];
@@ -152,10 +154,13 @@ void StackTrace::WriteLog(size_t frame_count, std::ostream& ostr) {
                 &line);
 
             if (has_line) {                
-                ostr << "0x" << reinterpret_cast<DWORD64>(frame) << " " << displacement << " " << line.FileName << ":" << line.LineNumber << "\r\n";
+                ostr << "0x" << std::hex << reinterpret_cast<DWORD64>(frame) << " " 
+                    << std::dec << displacement << " "
+                    << line.FileName << ":" << line.LineNumber << "\r\n";
             }
             else {                
-                ostr << "0x" << reinterpret_cast<DWORD64>(frame) << " " << displacement << "\r\n";
+                ostr << "0x" << std::hex << reinterpret_cast<DWORD64>(frame) << " "
+                    << std::dec << displacement << "\r\n";
             }
         }
         else {
@@ -184,15 +189,15 @@ void StackTrace::PrintStackTrace(EXCEPTION_POINTERS const* info) {
 
     std::ostringstream ostr;
     auto frame_count = WalkStack(info->ContextRecord, addrlist_);
-    WriteLog(frame_count, ostr);
+    WriteLog(frame_count - 1, ostr);
     XAMP_LOG_DEBUG(ostr.str());
-    std::exit(0);
+    std::exit(-1);
 }
 
 std::string StackTrace::CaptureStack() {
     std::ostringstream ostr;
-    auto frame_count = ::CaptureStackBackTrace(0, MaxStackFrameSize, addrlist_.data(), nullptr);
-    WriteLog(frame_count, ostr);
+    auto frame_count = ::CaptureStackBackTrace(0, kMaxStackFrameSize, addrlist_.data(), nullptr);
+    WriteLog(frame_count - 1, ostr);
     return ostr.str();
 }
 
@@ -214,9 +219,16 @@ StackTrace::StackTrace() noexcept {
     addrlist_.fill(nullptr);
 }
 
-void StackTrace::RegisterAbortHandler() {
+bool StackTrace::LoadSymbol() {
 #ifdef XAMP_OS_WIN
-    SymLoader::Instance();
+    return Singleton<SymLoader>::Get().IsInit();
+#else
+    return true;
+#endif    
+}
+
+void StackTrace::RegisterAbortHandler() {
+#ifdef XAMP_OS_WIN    
     (void) ::AddVectoredExceptionHandler(1, AbortHandler);
 #else
     ::signal(SIGABRT, AbortHandler);
