@@ -65,7 +65,9 @@ public:
 
     void Destroy();
 
-    void Seek(double stream_time);
+    void SetLoop(double start_time, double end_time);
+
+    void Seek(double stream_time);    
 
     void SetVolume(uint32_t volume);
 
@@ -106,6 +108,7 @@ public:
     void SetEQ(std::array<EQSettings, kMaxBand> const &bands);
 
     static AlignPtr<FileStream> MakeFileStream(std::wstring const& file_ext, AlignPtr<FileStream> old_stream = nullptr);
+
 private:
     void Initial();
 
@@ -166,7 +169,7 @@ private:
     uint32_t read_sample_size_; 
     std::atomic<bool> is_playing_;
     std::atomic<bool> is_paused_;
-    double sample_end_time_;
+    std::atomic<double> sample_end_time_;
     std::atomic<AudioSlice> slice_;
     mutable std::mutex pause_mutex_;
     std::chrono::microseconds min_process_time_{ 0 };

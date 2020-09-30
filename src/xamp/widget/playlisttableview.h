@@ -67,6 +67,8 @@ signals:
 
 	void readFingerprint(const QModelIndex& index, const PlayListEntity& item);
 
+	void setLoopTime(double start_time, double end_time);
+
 public slots:
 	void processMeatadata(const std::vector<xamp::base::Metadata> &medata);
 

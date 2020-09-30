@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <chrono>
+
 #include <QString>
 #include <QTime>
 
@@ -23,6 +25,14 @@ inline QString msToString(const double stream_time) {
 		return t.toString(Q_UTF8("hh:mm:ss"));
 	}
 	return t.toString(Q_UTF8("mm:ss"));
+}
+
+inline double toDoubleTime(const QTime &time) {
+	std::chrono::minutes m(time.minute());
+	std::chrono::seconds s(time.second());
+	std::chrono::milliseconds ms(time.msec());
+	std::chrono::milliseconds result(m + s + ms);
+	return result.count() / 1000.0;
 }
 
 }

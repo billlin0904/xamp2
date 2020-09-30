@@ -9,6 +9,9 @@
 #include <QShortcut>
 #include <QtConcurrent>
 #include <QFutureWatcher>
+#include <QFormLayout>
+#include <QTimeEdit>
+#include <QDialogButtonBox>
 
 #include <base/rng.h>
 #include <metadata/metadatareader.h>
@@ -25,6 +28,7 @@
 #include <widget/actionmap.h>
 #include <widget/stareditor.h>
 #include <widget/playlisttableview.h>
+#include <widget/time_utilts.h>
 
 PlayListEntity PlayListTableView::fromMetadata(const xamp::base::Metadata& metadata) {
     PlayListEntity item;
@@ -164,6 +168,7 @@ void PlayListTableView::initial() {
         auto copy_artist_act = action_map.addAction(tr("Copy artist"));
         auto copy_title_act = action_map.addAction(tr("Copy title"));
         auto set_cover_art_act = action_map.addAction(tr("Set cover art"));
+        auto set_start_and_loop_act = action_map.addAction(tr("Set start and end loop time"));
 
         if (!model_.isEmpty() && index.isValid()) {
             auto item = model_.item(proxy_model_.mapToSource(index));
@@ -221,6 +226,26 @@ void PlayListTableView::initial() {
                     catch (std::exception& e) {
                         Toast::showTip(QString::fromStdString(e.what()), this);
                     }
+                }
+                });
+
+            action_map.setCallback(set_start_and_loop_act, [item, this]() {
+                QDialog dialog(this);
+                QFormLayout form(&dialog);
+                auto start_time_edit = new QTimeEdit(&dialog);
+                form.addRow(tr("Loop start time:"), start_time_edit);
+                auto end_time_edit = new QTimeEdit(&dialog);                
+                form.addRow(tr("Loop end time:"), end_time_edit);
+                start_time_edit->setDisplayFormat(Q_UTF8("HH:mm:ss.zzz"));
+                end_time_edit->setDisplayFormat(Q_UTF8("HH:mm:ss.zzz"));
+                QDialogButtonBox buttonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
+                    Qt::Horizontal, &dialog);
+                form.addRow(&buttonBox);
+                QObject::connect(&buttonBox, SIGNAL(accepted()), &dialog, SLOT(accept()));
+                QObject::connect(&buttonBox, SIGNAL(rejected()), &dialog, SLOT(reject()));
+                if (dialog.exec() == QDialog::Accepted) {
+                    emit setLoopTime(Time::toDoubleTime(start_time_edit->time()),
+                        Time::toDoubleTime(end_time_edit->time()));
                 }
                 });
         }

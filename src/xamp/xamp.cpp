@@ -1237,6 +1237,14 @@ PlyalistPage* Xamp::newPlaylist(int32_t playlist_id) {
                                 play(index, item);
                             });
 
+    (void)QObject::connect(playlist_page->playlist(), &PlayListTableView::setLoopTime,
+        [this](double start_time, double end_time) {
+            if (!player_->IsPlaying()) {
+                return;
+            }            
+            player_->SetLoop(start_time, end_time);
+        });
+
     (void)QObject::connect(playlist_page->playlist(), &PlayListTableView::removeItems,
                             [](auto playlist_id, const auto& select_music_ids) {
                                 IgnoreSqlError(Database::instance().removePlaylistMusic(playlist_id, select_music_ids))

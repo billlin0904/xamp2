@@ -555,15 +555,20 @@ int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, dou
     max_process_time_ = std::max(elapsed, max_process_time_);
     min_process_time_ = std::min(elapsed, min_process_time_);
 
-    if (XAMP_LIKELY(buffer_.TryRead(static_cast<int8_t*>(samples), sample_size))) {
-        UpdateSlice(static_cast<const float*>(samples), static_cast<int32_t>(num_samples), stream_time);
-        sw_.Reset();
-        return 0;
-    }
-
-    if (sample_time < sample_end_time_) {
+    if (sample_time > sample_end_time_) {
         std::memset(static_cast<int8_t*>(samples), 0, sample_size);
-        return 0;
+    }
+    else {
+        if (XAMP_LIKELY(buffer_.TryRead(static_cast<int8_t*>(samples), sample_size))) {
+            UpdateSlice(static_cast<const float*>(samples), static_cast<int32_t>(num_samples), stream_time);
+            sw_.Reset();
+            return 0;
+        }
+
+        if (sample_time <= sample_end_time_) {
+            std::memset(static_cast<int8_t*>(samples), 0, sample_size);
+            return 0;
+        }
     }
 
     UpdateSlice(nullptr, -1, stream_time);
@@ -652,6 +657,11 @@ void AudioPlayer::SetEQ(uint32_t band, float gain, float Q) {
     }
     eqsettings_[band].gain = gain;
     eqsettings_[band].Q = Q;
+}
+
+void AudioPlayer::SetLoop(double start_time, double end_time) {
+    Seek(start_time);
+    sample_end_time_ = end_time - start_time;
 }
 
 void AudioPlayer::Seek(double stream_time) {
