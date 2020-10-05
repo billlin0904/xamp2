@@ -50,7 +50,7 @@ struct TransitionTo {
 	}
 };
 
-struct Nothing {
+struct Ignore {
 	template <typename Machine>
 	void Execute(Machine&) {
 		XAMP_LOG_DEBUG("Invalid state.");
@@ -80,7 +80,7 @@ struct PlayerInit {
 		return {};
 	}
 
-	Nothing Handle(const InitEvent&) const {
+	Ignore Handle(const InitEvent&) const {
 		return {};
 	}
 };
@@ -91,11 +91,11 @@ struct PlayerRunning {
 		return {};
 	}
 
-	Nothing Handle(const InitEvent&) const {
+	Ignore Handle(const InitEvent&) const {
 		return {};
 	}
 
-	Nothing Handle(const PlayingEvent&) const {
+	Ignore Handle(const PlayingEvent&) const {
 		return {};
 	}
 };
@@ -126,11 +126,11 @@ struct PlayerStoped {
 		return {};
 	}
 
-	Nothing Handle(const PlayingEvent&) const {		
+	Ignore Handle(const PlayingEvent&) const {		
 		return {};
 	}
 
-	Nothing Handle(const StopEvent&) const {
+	Ignore Handle(const StopEvent&) const {
 		return {};
 	}
 };

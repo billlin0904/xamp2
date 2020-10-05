@@ -683,12 +683,12 @@ void AudioPlayer::Seek(double stream_time) {
         XAMP_LOG_DEBUG("Player duration:{} seeking:{} sec, end time:{} sec.", stream_->GetDuration(), stream_time, sample_end_time_);
         UpdateSlice(nullptr, 0, stream_time);
         buffer_.Clear();
-        BufferStream();
+        BufferStream(stream_time);
         Resume();
     }
 }
 
-void AudioPlayer::BufferStream() {
+void AudioPlayer::BufferStream(double stream_time) {
     buffer_.Clear();
 
     auto* const sample_buffer = sample_buffer_.Get();
@@ -697,6 +697,8 @@ void AudioPlayer::BufferStream() {
     if (enable_resample_) {
         resampler_->Flush();
     }
+
+    stream_->Seek(stream_time);
 
     XAMP_LOG_DEBUG("Start buffer {} sec samples.", 
         float(num_read_sample_ * kBufferStreamCount * output_format_.GetBytesPerSample())
@@ -758,18 +760,24 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_read_sample
     }
 }
 
-void AudioPlayer::StartPlay() {
+void AudioPlayer::StartPlay(double start_time, double end_time) {
     SetDeviceFormat();
     CreateDevice(device_info_.device_type_id, device_info_.device_id, false);
-    OpenDevice();
+    OpenDevice(start_time);
     CreateBuffer();
-    BufferStream();
+    BufferStream(start_time);
     Play();
 
     sw_.Reset();
     min_process_time_ = std::chrono::microseconds(1000000);
     max_process_time_ = std::chrono::microseconds(0);
-    sample_end_time_ = stream_->GetDuration();
+
+    if (end_time > 0.0) {
+        sample_end_time_ = end_time - start_time;
+    }
+    else {
+        sample_end_time_ = stream_->GetDuration();
+    }
 
     Stopwatch sw;
     stream_task_ = ThreadPool::DefaultThreadPool().StartNew([player = shared_from_this()]() noexcept {

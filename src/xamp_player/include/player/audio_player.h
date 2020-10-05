@@ -53,7 +53,7 @@ public:
 
     void Open(std::wstring const& file_path, std::wstring const& file_ext, const DeviceInfo& device_info);
 
-    void StartPlay();
+    void StartPlay(double start_time = 0.0, double end_time = 0.0);
 
     void Play();
 
@@ -122,7 +122,7 @@ private:
 
     void SetDeviceFormat();
 
-    void BufferStream();
+    void BufferStream(double stream_time = 0.0);
 
     int32_t OnGetSamples(void* samples, uint32_t num_buffer_frames, double stream_time, double sample_time) noexcept override;
 

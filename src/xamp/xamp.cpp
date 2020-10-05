@@ -732,8 +732,14 @@ void Xamp::playNextItem(int32_t forward) {
     } else {
         play_index_ = playlist_view->model()->index(0, 0);
     }
-    playlist_view->setNowPlaying(play_index_, true);
-    playlist_view->play(play_index_);
+
+    if (loop_time.second != 0) {
+        play(playlist_view->item(play_index_));
+    }
+    else {
+        playlist_view->setNowPlaying(play_index_, true);
+        playlist_view->play(play_index_);
+    }
 }
 
 void Xamp::onSampleTimeChanged(double stream_time) {
@@ -861,7 +867,7 @@ void Xamp::playMusic(const MusicEntity& item) {
         player_->Open(item.file_path.toStdWString(), item.file_ext.toStdWString(), device_info_);
         setupResampler();
         setupEQ();
-        player_->StartPlay();
+        player_->StartPlay(loop_time.first, loop_time.second);
         open_done = true;
     }
     catch (const xamp::base::Exception & e) {
@@ -948,7 +954,7 @@ void Xamp::onArtistIdChanged(const QString& artist, const QString& /*cover_id*/,
 }
 
 void Xamp::addPlaylistItem(const PlayListEntity &entity) {
-    auto playlist_view = playlist_page_->playlist();    
+    auto playlist_view = playlist_page_->playlist();
     Database::instance().addMusicToPlaylist(entity.music_id, playlist_view->playlistId());
     playlist_view->appendItem(entity);
 }
@@ -1235,6 +1241,7 @@ PlyalistPage* Xamp::newPlaylist(int32_t playlist_id) {
                             [this](auto index, const auto& item) {
                                 setupPlayNextMusicSignals(false);
                                 play(index, item);
+                                loop_time = std::make_pair(0, 0);
                             });
 
     (void)QObject::connect(playlist_page->playlist(), &PlayListTableView::setLoopTime,
@@ -1243,6 +1250,8 @@ PlyalistPage* Xamp::newPlaylist(int32_t playlist_id) {
                 return;
             }            
             player_->SetLoop(start_time, end_time);
+            loop_time.first = start_time;
+            loop_time.second = end_time;
         });
 
     (void)QObject::connect(playlist_page->playlist(), &PlayListTableView::removeItems,

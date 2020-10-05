@@ -145,6 +145,7 @@ private:
 	void createTrayIcon();
 
 	bool is_seeking_;
+	std::pair<double, double> loop_time{0,0};
 	PlayerOrder order_;
 	QModelIndex play_index_;
 	DeviceInfo device_info_;
