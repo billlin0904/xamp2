@@ -19,13 +19,13 @@ namespace xamp::output_device::win32 {
 
 using namespace base;
 
-static constexpr std::wstring_view MMCSS_PROFILE_AUDIO(L"Audio");
-static constexpr std::wstring_view MMCSS_PROFILE_CAPTURE(L"Capture");
-static constexpr std::wstring_view MMCSS_MODE_DISTRIBUTION(L"Distribution");
-static constexpr std::wstring_view MMCSS_PROFILE_GAME(L"Games");
-static constexpr std::wstring_view MMCSS_PROFILE_PLAYBACK(L"Playback");
-static constexpr std::wstring_view MMCSS_PROFILE_PRO_AUDIO(L"Pro Audio");
-static constexpr std::wstring_view MMCSS_PROFILE_WINDOWS_MANAGER(L"Window Manager");
+inline constexpr std::wstring_view MMCSS_PROFILE_AUDIO(L"Audio");
+inline constexpr std::wstring_view MMCSS_PROFILE_CAPTURE(L"Capture");
+inline constexpr std::wstring_view MMCSS_MODE_DISTRIBUTION(L"Distribution");
+inline constexpr std::wstring_view MMCSS_PROFILE_GAME(L"Games");
+inline constexpr std::wstring_view MMCSS_PROFILE_PLAYBACK(L"Playback");
+inline constexpr std::wstring_view MMCSS_PROFILE_PRO_AUDIO(L"Pro Audio");
+inline constexpr std::wstring_view MMCSS_PROFILE_WINDOWS_MANAGER(L"Window Manager");
 
 MAKE_ENUM(MmcssThreadPriority,
 	      MMCSS_THREAD_PRIORITY_NORMAL,

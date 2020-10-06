@@ -12,6 +12,7 @@ EQDialog::EQDialog(QWidget *parent)
     : XampDialog(parent)
     , ui(new Ui::EQDialog) {
     ui->setupUi(this);
+    setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
    bands_ = QList<EQBandUI>{
        { ui->band1Slider, ui->band1Edit },

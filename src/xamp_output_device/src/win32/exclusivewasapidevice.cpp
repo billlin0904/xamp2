@@ -438,6 +438,8 @@ bool ExclusiveWasapiDevice::IsHardwareControlVolume() const {
 
 	DWORD support_mask = 0;
 	HrIfFailledThrow(endpoint_volume->QueryHardwareSupport(&support_mask));
+
+#ifdef _DEBUG
 	if (support_mask & ENDPOINT_HARDWARE_SUPPORT_VOLUME) {
 		XAMP_LOG_DEBUG("Hardware support volume control.");
 	}
@@ -456,6 +458,7 @@ bool ExclusiveWasapiDevice::IsHardwareControlVolume() const {
 	else {
 		XAMP_LOG_DEBUG("Hardware not support volume meter.");
 	}
+#endif
 
 	hw_support = (support_mask & ENDPOINT_HARDWARE_SUPPORT_VOLUME)
 		&& (support_mask & ENDPOINT_HARDWARE_SUPPORT_MUTE);

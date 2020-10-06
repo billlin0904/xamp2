@@ -106,7 +106,7 @@ static int excute(int argc, char* argv[]) {
     // Everything the SetProcessWorkingSetSize says is true. You should only lock what you need to lock.
     // And you need to lock everything you touch from the realtime thread. Because if the realtime thread
     // touches something that was paged out, you glitch.
-    constexpr size_t kWorkingSetSize = 300 * 1024 * 1024;
+    constexpr size_t kWorkingSetSize = 500 * 1024 * 1024;
     if (EnablePrivilege("SeLockMemoryPrivilege", true)) {
         XAMP_LOG_DEBUG("EnableLockMemPrivilege success.");
 

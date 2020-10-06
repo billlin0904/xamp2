@@ -185,10 +185,12 @@ public:
 private:
     void AddThread(size_t i) {
         threads_.push_back(std::thread([i, this]() mutable {
+#ifdef XAMP_OS_WIN
             auto padding_buffer = MakeStackBuffer<uint8_t>((std::min)(kInitL1CacheLineSize * i,
                                                                       kMaxL1CacheLineSize));
+#else
             std::this_thread::sleep_for(std::chrono::milliseconds(900));
-
+#endif
             SetCurrentThreadName(i);
 
             for (;;) {

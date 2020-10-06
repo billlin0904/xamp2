@@ -231,21 +231,35 @@ void PlayListTableView::initial() {
 
             action_map.setCallback(set_start_and_loop_act, [item, this]() {
                 QDialog dialog(this);
+                dialog.setWindowTitle(tr("Set Loop Time Range"));
+                dialog.setWindowFlags(dialog.windowFlags() & ~Qt::WindowContextHelpButtonHint);
+
                 QFormLayout form(&dialog);
+
                 auto start_time_edit = new QTimeEdit(&dialog);
                 form.addRow(tr("Loop start time:"), start_time_edit);
                 auto end_time_edit = new QTimeEdit(&dialog);                
                 form.addRow(tr("Loop end time:"), end_time_edit);
-                start_time_edit->setDisplayFormat(Q_UTF8("HH:mm:ss.zzz"));
-                end_time_edit->setDisplayFormat(Q_UTF8("HH:mm:ss.zzz"));
+
+                auto max_time = Time::toQTime(item.duration);
+                start_time_edit->setDisplayFormat(Q_UTF8("mm:ss.zzz"));
+                end_time_edit->setDisplayFormat(Q_UTF8("mm:ss.zzz"));
+
+                end_time_edit->setTime(max_time);
+
+                start_time_edit->setMaximumTime(max_time);
+                end_time_edit->setMaximumTime(max_time);
+
                 QDialogButtonBox buttonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
                     Qt::Horizontal, &dialog);
                 form.addRow(&buttonBox);
                 QObject::connect(&buttonBox, SIGNAL(accepted()), &dialog, SLOT(accept()));
                 QObject::connect(&buttonBox, SIGNAL(rejected()), &dialog, SLOT(reject()));
+
                 if (dialog.exec() == QDialog::Accepted) {
-                    emit setLoopTime(Time::toDoubleTime(start_time_edit->time()),
-                        Time::toDoubleTime(end_time_edit->time()));
+                    auto ds_time = Time::toDoubleTime(start_time_edit->time());
+                    auto de_time = Time::toDoubleTime(end_time_edit->time());
+                    emit setLoopTime(ds_time, de_time);
                 }
                 });
         }

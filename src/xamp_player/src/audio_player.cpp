@@ -258,7 +258,7 @@ void AudioPlayer::Pause() {
             is_paused_ = true;
             device_->StopStream();
             SetState(PlayerState::PLAYER_STATE_PAUSED);
-            //stm_.Handle(PauseEvent{});
+            stm_.Handle(PauseEvent{});
         }
     }
 }
@@ -276,7 +276,7 @@ void AudioPlayer::Resume() {
         stopped_cond_.notify_all();
         device_->StartStream();
         SetState(PlayerState::PLAYER_STATE_RUNNING);
-        //stm_.Handle(ResumeEvent{});
+        stm_.Handle(ResumeEvent{});
     }
 }
 
@@ -698,7 +698,9 @@ void AudioPlayer::BufferStream(double stream_time) {
         resampler_->Flush();
     }
 
-    stream_->Seek(stream_time);
+    if (stream_time > 0.0) {
+        stream_->Seek(stream_time);
+    }    
 
     XAMP_LOG_DEBUG("Start buffer {} sec samples.", 
         float(num_read_sample_ * kBufferStreamCount * output_format_.GetBytesPerSample())

@@ -6,6 +6,7 @@
 AboutDialog::AboutDialog(QWidget* parent) 
     : XampDialog(parent) {
     ui.setupUi(this);
+    setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     ui.lblVersion->setText(Q_UTF8("0.0.0"));
 
     QIcon icon(Q_UTF8(":/xamp/xamp.ico"));

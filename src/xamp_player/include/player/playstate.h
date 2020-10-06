@@ -14,6 +14,7 @@
 namespace xamp::player {
 
 MAKE_ENUM(PlayerState,
+		  PLAYER_STATE_INIT,
 	      PLAYER_STATE_RUNNING,
 	      PLAYER_STATE_PAUSED,
           PLAYER_STATE_RESUME,
@@ -31,6 +32,7 @@ public:
 	void Handle(const Event & event) {
 		std::lock_guard guard{ mutex_ };
 		auto pass_event_to_state = [this, &event](auto statePtr) {
+			XAMP_LOG_DEBUG("Running {} state.", EnumToString(statePtr->GetState()));
 			statePtr->Handle(event).Execute(*this);
 		};
 		std::visit(pass_event_to_state, current_state_);		
@@ -53,7 +55,7 @@ struct TransitionTo {
 struct Ignore {
 	template <typename Machine>
 	void Execute(Machine&) {
-		XAMP_LOG_DEBUG("Invalid state.");
+		XAMP_LOG_DEBUG("Ignore state.");
 	}
 };
 
@@ -70,24 +72,40 @@ struct PlayerRusume;
 struct PlayerStoped;
 
 struct PlayerInit {
+	constexpr PlayerState GetState() const noexcept {
+		return PlayerState::PLAYER_STATE_INIT;
+	}
+
 	TransitionTo<PlayerRunning> Handle(const PlayingEvent&) const {
-		XAMP_LOG_DEBUG("Change to PlayerRunning.");
+		XAMP_LOG_DEBUG("Change to PLAYER_STATE_RUNNING.");
 		return {};
 	}
 
 	TransitionTo<PlayerStoped> Handle(const StopEvent&) const {
-		XAMP_LOG_DEBUG("Change to PlayerStoped.");
+		XAMP_LOG_DEBUG("Change to PLAYER_STATE_STOPPED.");
 		return {};
 	}
 
 	Ignore Handle(const InitEvent&) const {
 		return {};
 	}
+
+	Ignore Handle(const ResumeEvent&) const {
+		return {};
+	}
+
+	Ignore Handle(const PauseEvent&) const {
+		return {};
+	}
 };
 
 struct PlayerRunning {
+	constexpr PlayerState GetState() const noexcept {
+		return PlayerState::PLAYER_STATE_RUNNING;
+	}
+
 	TransitionTo<PlayerStoped> Handle(const StopEvent&) const {
-		XAMP_LOG_DEBUG("Change to PlayerStoped.");
+		XAMP_LOG_DEBUG("Change to PLAYER_STATE_STOPPED.");
 		return {};
 	}
 
@@ -98,31 +116,79 @@ struct PlayerRunning {
 	Ignore Handle(const PlayingEvent&) const {
 		return {};
 	}
+
+	Ignore Handle(const ResumeEvent&) const {
+		return {};
+	}
+
+	TransitionTo<PlayerPaused> Handle(const PauseEvent&) const {
+		return {};
+	}
 };
 
-//
-//struct PlayerPaused {
-//	TransitionTo<PlayerPaused> Handle(const PlayingEvent&) const {
-//		return {};
-//	}
-//	Nothing Handle(const PauseEvent&) const {
-//		return {};
-//	}
-//};
-//
-//struct PlayerRusume {
-//	TransitionTo<PlayerRunning> Handle(const PauseEvent&) const {
-//		return {};
-//	}
-//
-//	Nothing Handle(const ResumeEvent&) const {
-//		return {};
-//	}
-//};
+
+struct PlayerPaused {
+	constexpr PlayerState GetState() const noexcept {
+		return PlayerState::PLAYER_STATE_PAUSED;
+	}
+
+	TransitionTo<PlayerPaused> Handle(const PlayingEvent&) const {
+		XAMP_LOG_DEBUG("Change to PLAYER_STATE_PAUSED.");
+		return {};
+	}
+
+	Ignore Handle(const InitEvent&) const {
+		return {};
+	}
+
+	Ignore Handle(const PauseEvent&) const {
+		return {};
+	}
+
+	Ignore Handle(const ResumeEvent&) const {
+		return {};
+	}
+
+	Ignore Handle(const StopEvent&) const {
+		return {};
+	}	
+};
+
+struct PlayerRusume {
+	constexpr PlayerState GetState() const noexcept {
+		return PlayerState::PLAYER_STATE_RESUME;
+	}
+
+	TransitionTo<PlayerPaused> Handle(const PauseEvent&) const {
+		XAMP_LOG_DEBUG("Change to PLAYER_STATE_PAUSED.");
+		return {};
+	}
+
+	Ignore Handle(const InitEvent&) const {
+		return {};
+	}
+
+	TransitionTo<PlayerRunning> Handle(const ResumeEvent&) const {
+		XAMP_LOG_DEBUG("Change to PLAYER_STATE_RUNNING.");
+		return {};
+	}
+
+	Ignore Handle(const PlayingEvent&) const {
+		return {};
+	}
+
+	Ignore Handle(const StopEvent&) const {
+		return {};
+	}
+};
 
 struct PlayerStoped {
+	constexpr PlayerState GetState() const noexcept {
+		return PlayerState::PLAYER_STATE_STOPPED;
+	}
+
 	TransitionTo<PlayerInit> Handle(const InitEvent&) const {
-		XAMP_LOG_DEBUG("Change to PlayerInit.");
+		XAMP_LOG_DEBUG("Change to PLAYER_STATE_INIT.");
 		return {};
 	}
 
@@ -133,8 +199,16 @@ struct PlayerStoped {
 	Ignore Handle(const StopEvent&) const {
 		return {};
 	}
+
+	Ignore Handle(const PauseEvent&) const {
+		return {};
+	}
+
+	Ignore Handle(const ResumeEvent&) const {
+		return {};
+	}
 };
 
-using PlayerStateMachine = StateMachine<PlayerStoped, PlayerInit, PlayerRunning/*, PlayerPaused, PlayerRusume*/>;
+using PlayerStateMachine = StateMachine<PlayerStoped, PlayerInit, PlayerRunning, PlayerPaused, PlayerRusume>;
 
 }
