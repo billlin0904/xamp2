@@ -13,6 +13,8 @@
 
 inline constexpr size_t kCachePreallocateSize = 100;
 
+using xamp::metadata::TaglibMetadataReader;
+
 class DatabaseIdCache {
 public:
     DatabaseIdCache() = default;
@@ -31,8 +33,6 @@ private:
 };
 
 QString DatabaseIdCache::addCoverCache(int32_t album_id, const QString& album, const Metadata& metadata, bool is_unknown_album) {
-    using xamp::metadata::TaglibMetadataReader;
-
     auto cover_id = Database::instance().getAlbumCoverId(album_id);
     if (cover_id.isEmpty()) {
         TaglibMetadataReader cover_reader;
@@ -92,16 +92,14 @@ MetadataExtractAdapter::MetadataExtractAdapter(QObject* parent)
     metadatas_.reserve(kCachePreallocateSize);
 }
 
-MetadataExtractAdapter::~MetadataExtractAdapter() {  
-}
+MetadataExtractAdapter::~MetadataExtractAdapter() = default;
 
 void MetadataExtractAdapter::readFileMetadata(MetadataExtractAdapter *adapter, QString const & file_name) {
     auto extract_handler = [adapter](const auto& file_name) {
-        const xamp::metadata::Path path(file_name.toStdWString());
-        xamp::metadata::TaglibMetadataReader reader;
-        
         try {
-            xamp::metadata::FromPath(path, adapter, &reader);
+        	const Path path(file_name.toStdWString());
+        	TaglibMetadataReader reader;
+            FromPath(path, adapter, &reader);
         }
         catch (const std::exception& e) {
             XAMP_LOG_DEBUG("FromPath has exception: {}", e.what());
@@ -160,9 +158,9 @@ void MetadataExtractAdapter::processMetadata(const std::vector<Metadata>& metada
         auto album = QString::fromStdWString(metadata.album);
         auto artist = QString::fromStdWString(metadata.artist);
 
-        bool is_unknown_album = false;
+        auto is_unknown_album = false;
         if (album.isEmpty()) {
-            album = tr("Unknow album");
+            album = tr("Unknown album");
             is_unknown_album = true;
         }
 

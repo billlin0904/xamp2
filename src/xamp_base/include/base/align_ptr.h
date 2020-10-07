@@ -141,7 +141,7 @@ public:
 
     AlignedBuffer& operator=(AlignedBuffer&&) = default;
 
-    friend void swap(AlignedBuffer& a, AlignedBuffer& b) {
+    friend void swap(AlignedBuffer& a, AlignedBuffer& b) noexcept {
         std::swap(a.ptr_, b.ptr_);
         std::swap(a.size_, b.size_);
     }
@@ -162,11 +162,11 @@ public:
         return ptr_[i]; 
     }
 
-    size_t GetSize() const noexcept {
+    [[nodiscard]] size_t GetSize() const noexcept {
         return size_;
     }
 
-    size_t GetByteSize() const noexcept {
+    [[nodiscard]] size_t GetByteSize() const noexcept {
         return size_ * sizeof(T);
     }
 

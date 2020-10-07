@@ -13,7 +13,7 @@
 
 namespace xamp::base {
 
-static constexpr size_t kLruCacheSize = 200;
+inline constexpr size_t kLruCacheSize = 200;
 	
 template <typename Key, typename Value>
 class XAMP_BASE_API_ONLY_EXPORT LruCache {

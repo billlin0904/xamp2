@@ -55,7 +55,7 @@ public:
 
     void SetBitPerSample(uint32_t bits_per_sample) noexcept;
 
-    void SetChannel(uint32_t num_channels) noexcept;
+    void SetChannel(uint16_t num_channels) noexcept;
 
     void SetByteFormat(ByteFormat format) noexcept;
 
@@ -149,7 +149,7 @@ XAMP_ALWAYS_INLINE void AudioFormat::SetSampleRate(uint32_t sample_rate) noexcep
     sample_rate_ = sample_rate;
 }
 
-XAMP_ALWAYS_INLINE void AudioFormat::SetChannel(uint32_t num_channels) noexcept {
+XAMP_ALWAYS_INLINE void AudioFormat::SetChannel(uint16_t num_channels) noexcept {
     num_channels_ = num_channels;
 }
 

@@ -592,9 +592,8 @@ void AlbumView::append(const QString& file_name) {
     MetadataExtractAdapter::readFileMetadata(adapter, file_name);
 }
 
-void AlbumView::processMeatadata(const std::vector<xamp::base::Metadata> &medata) {
-    MetadataExtractAdapter adapter;
-    adapter.processMetadata(medata);
+void AlbumView::processMeatadata(const std::vector<xamp::base::Metadata> &medata) {    
+    MetadataExtractAdapter::processMetadata(medata);
     refreshOnece();
 }
 

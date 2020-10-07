@@ -5,7 +5,6 @@
 
 #pragma once
 
-#include <cstdint>
 #include <atomic>
 
 #include <base/base.h>
@@ -74,8 +73,7 @@ AudioBuffer<Type, U>::AudioBuffer(size_t size)
 }
 
 template <typename Type, typename U>
-AudioBuffer<Type, U>::~AudioBuffer() noexcept {
-}
+AudioBuffer<Type, U>::~AudioBuffer() = default;
 
 template <typename Type, typename U>
 Type* AudioBuffer<Type, U>::GetData() const noexcept {
@@ -138,24 +136,24 @@ XAMP_ALWAYS_INLINE size_t AudioBuffer<Type, U>::GetAvailableRead(size_t head, si
 }
 
 template <typename Type, typename U>
-bool AudioBuffer<Type, U>::TryWrite(const Type* data, size_t data_size) noexcept {
+bool AudioBuffer<Type, U>::TryWrite(const Type* data, size_t count) noexcept {
     const auto head = head_.load(std::memory_order_relaxed);
     const auto tail = tail_.load(std::memory_order_acquire);
 
-    auto next_head = head + data_size;
+    auto next_head = head + count;
 
-	if (data_size > GetAvailableWrite(head, tail)) {
+	if (count > GetAvailableWrite(head, tail)) {
 		return false;
 	}	
 
 	if (next_head > size_) {
         const auto range1 = size_ - head;
-        const auto range2 = data_size - range1;
+        const auto range2 = count - range1;
 		(void)FastMemcpy(buffer_.get() + head, data, range1 * sizeof(Type));
 		(void)FastMemcpy(buffer_.get(), data + range1, range2 * sizeof(Type));
 		next_head -= size_;
 	} else {
-		(void)FastMemcpy(buffer_.get() + head, data, data_size * sizeof(Type));
+		(void)FastMemcpy(buffer_.get() + head, data, count * sizeof(Type));
 		if (next_head == size_) {
 			next_head = 0;
 		}
@@ -165,25 +163,25 @@ bool AudioBuffer<Type, U>::TryWrite(const Type* data, size_t data_size) noexcept
 }
 
 template <typename Type, typename U>
-bool AudioBuffer<Type, U>::TryRead(Type* data, size_t data_size) noexcept {
+bool AudioBuffer<Type, U>::TryRead(Type* data, size_t count) noexcept {
     const auto head = head_.load(std::memory_order_acquire);
     const auto tail = tail_.load(std::memory_order_relaxed);
 
-    auto next_tail = tail + data_size;
+    auto next_tail = tail + count;
 
-	if (data_size > GetAvailableRead(head, tail)) {
+	if (count > GetAvailableRead(head, tail)) {
 		return false;
 	}	
 
 	if (next_tail > size_) {
         const auto range1 = size_ - tail;
-        const auto range2 = data_size - range1;
+        const auto range2 = count - range1;
         (void)FastMemcpy(data, buffer_.get() + tail, range1 * sizeof(Type));
 		(void)FastMemcpy(data + range1, buffer_.get(), range2 * sizeof(Type));
 		next_tail -= size_;
 	}
 	else {
-		(void)FastMemcpy(data, buffer_.get() + tail, data_size * sizeof(Type));
+		(void)FastMemcpy(data, buffer_.get() + tail, count * sizeof(Type));
 		if (next_tail == size_) {
 			next_tail = 0;
 		}

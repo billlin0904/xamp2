@@ -83,10 +83,10 @@ public:
 		return true;
 	}
 
-    bool Dequeue(Type& task, std::chrono::milliseconds wait_time) {
+    bool Dequeue(Type& task, const std::chrono::milliseconds wait_time) {
         std::unique_lock<std::mutex> guard{mutex_};
 
-        // Note: cv.wait_for() does not deal with spurious wakeups
+        // Note: cv.wait_for() does not deal with spurious weak up
         while (queue_.empty() && !done_) {
             if (std::cv_status::timeout == notify_.wait_for(guard, wait_time)) {
                 return false;
@@ -101,9 +101,9 @@ public:
         return true;
     }
 
-    void WeakupForShutdown() {
+    void WakeupForShutdown() {
         {
-            std::lock_guard guard{ mutex_ };
+            std::lock_guard<std::mutex> guard{ mutex_ };
             done_ = true;
         }
         notify_.notify_all();
@@ -139,7 +139,7 @@ public:
     }    
 
     ~TaskScheduler() noexcept {
-		Destory();
+		Destroy();
     }
 
     void SubmitJob(TaskType&& task) {
@@ -160,12 +160,12 @@ public:
         affinity_mask_ = affinity_mask;
     }
 
-    void Destory() noexcept {
+    void Destroy() noexcept {
         is_stopped_ = true;
 
         for (size_t i = 0; i < max_thread_; ++i) {
             try {
-                task_queues_.at(i)->WeakupForShutdown();
+                task_queues_.at(i)->WakeupForShutdown();
 
                 if (threads_.at(i).joinable()) {
                     threads_.at(i).join();
@@ -185,6 +185,7 @@ public:
 private:
     void AddThread(size_t i) {
         threads_.push_back(std::thread([i, this]() mutable {
+            constexpr auto kTimeout = std::chrono::milliseconds(500);
 #ifdef XAMP_OS_WIN
             auto padding_buffer = MakeStackBuffer<uint8_t>((std::min)(kInitL1CacheLineSize * i,
                                                                       kMaxL1CacheLineSize));
@@ -212,15 +213,14 @@ private:
                 }
 
                 if (!task) {
-                    if (task_queues_.at(i)->Dequeue(task)) {
+                    if (task_queues_.at(i)->Dequeue(task, kTimeout)) {
                         XAMP_LOG_DEBUG("Thread {} weakup, active:{}.", i, active_thread_);
                         ++active_thread_;
                         task();
                         --active_thread_;
                         XAMP_LOG_DEBUG("Thread {} finished.", i);
 					} else {
-						std::this_thread::yield();
-                        XAMP_LOG_DEBUG("Thread {} yield.", i);
+						std::this_thread::yield();                        
 					}
                 }
                 else {

@@ -50,7 +50,7 @@ signals:
 	void readCompleted(std::vector<xamp::base::Metadata> enitiy);
 
 public:
-    void processMetadata(const std::vector<Metadata>& metadatas, PlayListTableView *playlist = nullptr);
+    static void processMetadata(const std::vector<Metadata>& metadatas, PlayListTableView *playlist = nullptr);
 	    
 private:
     std::atomic<bool> cancel_;

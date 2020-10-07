@@ -12,7 +12,7 @@ size_t ThreadPool::GetActiveThreadCount() const noexcept {
 }
 
 void ThreadPool::Stop() {
-	scheduler_.Destory();
+	scheduler_.Destroy();
 }
 
 ThreadPool& ThreadPool::DefaultThreadPool() {

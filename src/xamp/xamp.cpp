@@ -824,9 +824,8 @@ void Xamp::setupResampler() {
     }
 }
 
-void Xamp::processMeatadata(const std::vector<xamp::base::Metadata>& medata) {
-    MetadataExtractAdapter adapter;
-    adapter.processMetadata(medata);
+void Xamp::processMeatadata(const std::vector<xamp::base::Metadata>& medata) {    
+    MetadataExtractAdapter::processMetadata(medata);
     emit album_artist_page_->album()->refreshOnece();
     emit album_artist_page_->artist()->refreshOnece();    
 }
