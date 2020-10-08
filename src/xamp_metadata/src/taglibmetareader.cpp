@@ -168,7 +168,7 @@ public:
 		return support_file_extensions_;
 	}
 
-	bool IsSupported(Path const & path) const noexcept {
+	[[nodiscard]] bool IsSupported(Path const & path) const noexcept {
 		const auto file_ext = ToLower(path.extension().string());
 		return support_file_extensions_.find(file_ext) != support_file_extensions_.end();
 	}
@@ -185,8 +185,7 @@ private:
 
 class TaglibMetadataReader::TaglibMetadataReaderImpl {
 public:
-    TaglibMetadataReaderImpl() {		
-    }
+    TaglibMetadataReaderImpl() = default;
 
     Metadata Extract(const Path& path) const {
 #ifdef XAMP_OS_WIN

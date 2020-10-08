@@ -19,9 +19,9 @@ class DatabaseIdCache {
 public:
     DatabaseIdCache() = default;
 
-    std::tuple<int32_t, int32_t, QString> addCache(const QString& album, const QString& artist);
+    std::tuple<int32_t, int32_t, QString> AddCache(const QString& album, const QString& artist);
 
-    QString addCoverCache(int32_t album_id, const QString& album, const Metadata& metadata, bool is_unknown_album);
+    QString AddCoverCache(int32_t album_id, const QString& album, const Metadata& metadata, bool is_unknown_album);
 
     std::tuple<size_t, size_t, size_t> GetMissCount() const noexcept {
         return std::make_tuple(album_id_cache.GetMissCount(), artist_id_cache.GetMissCount(), cover_id_cache.GetMissCount());
@@ -32,8 +32,9 @@ private:
     mutable LruCache<QString, int32_t> artist_id_cache;
 };
 
-QString DatabaseIdCache::addCoverCache(int32_t album_id, const QString& album, const Metadata& metadata, bool is_unknown_album) {
+QString DatabaseIdCache::AddCoverCache(int32_t album_id, const QString& album, const Metadata& metadata, bool is_unknown_album) {
     auto cover_id = Database::instance().getAlbumCoverId(album_id);
+	
     if (cover_id.isEmpty()) {
         TaglibMetadataReader cover_reader;
 
@@ -59,7 +60,7 @@ QString DatabaseIdCache::addCoverCache(int32_t album_id, const QString& album, c
     return cover_id;
 }
 
-std::tuple<int32_t, int32_t, QString> DatabaseIdCache::addCache(const QString &album, const QString &artist) {
+std::tuple<int32_t, int32_t, QString> DatabaseIdCache::AddCache(const QString &album, const QString &artist) {
     int32_t artist_id = 0;
     if (auto artist_id_op = this->artist_id_cache.Find(artist)) {
         artist_id = *artist_id_op.value();
@@ -134,7 +135,7 @@ void MetadataExtractAdapter::OnWalkNext() {
     metadatas_.clear();
 }
 
-bool MetadataExtractAdapter::IsCancel() const {
+bool MetadataExtractAdapter::IsCancel() const noexcept {
     return cancel_;
 }
 
@@ -166,7 +167,7 @@ void MetadataExtractAdapter::processMetadata(const std::vector<Metadata>& metada
 
         auto music_id = Database::instance().addOrUpdateMusic(metadata, playlist_id);
 
-        auto [album_id, artist_id, cover_id] = cache.addCache(album, artist);
+        auto [album_id, artist_id, cover_id] = cache.AddCache(album, artist);
 
         // Find cover id from database.
         if (cover_id.isEmpty()) {
@@ -175,7 +176,7 @@ void MetadataExtractAdapter::processMetadata(const std::vector<Metadata>& metada
 
         // Database not exist find others.
         if (cover_id.isEmpty()) {
-            cover_id = cache.addCoverCache(album_id, album, metadata, is_unknown_album);
+            cover_id = cache.AddCoverCache(album_id, album, metadata, is_unknown_album);
         }        
 
         IgnoreSqlError(Database::instance().addOrUpdateAlbumMusic(album_id, artist_id, music_id))

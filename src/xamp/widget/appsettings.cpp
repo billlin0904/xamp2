@@ -1,5 +1,4 @@
 #include <QStandardPaths>
-#include <QDir>
 #include <QDirIterator>
 #include <QTextStream>
 #include <QSize>
@@ -49,7 +48,7 @@ static QMap<QString, QList<AppEQSettings>> loadEQ() {
             continue;
         }
         QTextStream in(&file);
-        QString line = in.readLine();
+        auto line = in.readLine();
         QList<AppEQSettings> bands;
         while (!line.isNull()) {
             auto start = line.indexOf(kGainStr);
@@ -57,10 +56,10 @@ static QMap<QString, QList<AppEQSettings>> loadEQ() {
             if (start == -1 || end == -1) {
                 break;
             }
-            auto gainStr = line.mid(start + kGainStr.size(), end - start - kGainStr.size()).trimmed();
+            auto gain_str = line.mid(start + kGainStr.size(), end - start - kGainStr.size()).trimmed();
             start = line.indexOf(kQStr);
-            auto QGainStr = line.mid(start + kQStr.size()).trimmed();
-            bands.push_back({ gainStr.toFloat(), QGainStr.toFloat() });
+            auto q_gain_str = line.mid(start + kQStr.size()).trimmed();
+            bands.push_back({ gain_str.toFloat(), q_gain_str.toFloat() });
             line = in.readLine();
         }
         preset_settings[itr.fileInfo().baseName()] = bands;
@@ -89,7 +88,11 @@ void AppSettings::save() {
 }
 
 QString AppSettings::getMyMusicFolderPath() {
-	return QStandardPaths::standardLocations(QStandardPaths::MusicLocation)[0];
+	auto folder_path = QStandardPaths::standardLocations(QStandardPaths::MusicLocation);
+	if (folder_path.isEmpty()) {
+		return Qt::EmptyStr;
+	}
+	return folder_path[0];
 }
 
 void AppSettings::saveUserEQSettings(QString const &key, QList<AppEQSettings> const & settings) {

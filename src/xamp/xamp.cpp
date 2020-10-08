@@ -93,7 +93,7 @@ void Xamp::initial() {
     initialPlaylist();
     initialShortcut();
     setCover(nullptr);
-    DeviceManager::Instance().RegisterDeviceListener(player_);
+    Singleton<DeviceManager>::Get().RegisterDeviceListener(player_);
     createTrayIcon();
     setDefaultStyle();    
 }
@@ -206,7 +206,7 @@ void Xamp::setDefaultStyle() {
 }
 
 void Xamp::registerMetaType() {
-    qRegisterMetaType<std::vector<Metadata>>("std::vector<xamp::base::Metadata>");
+    qRegisterMetaType<std::vector<Metadata>>("std::vector<Metadata>");
     qRegisterMetaType<DeviceState>("xamp::output_device::DeviceState");
     qRegisterMetaType<PlayerState>("xamp::player::PlayerState");
     qRegisterMetaType<Errors>("xamp::base::Errors");
@@ -279,7 +279,7 @@ void Xamp::initialDeviceList() {
     const auto device_type_id = AppSettings::getID(kAppSettingDeviceType);
     const auto device_id = AppSettings::getValueAsString(kAppSettingDeviceId).toStdString();
 
-    DeviceManager::Instance().ForEach([&](const auto &device_type) {
+    Singleton<DeviceManager>::Get().ForEach([&](const auto &device_type) {
         device_type->ScanNewDevice();
 
         const auto device_info_list = device_type->GetDeviceInfo();

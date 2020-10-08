@@ -15,9 +15,4 @@ void ThreadPool::Stop() {
 	scheduler_.Destroy();
 }
 
-ThreadPool& ThreadPool::DefaultThreadPool() {
-	static ThreadPool default_thread_pool;
-	return default_thread_pool;
-}
-
 }

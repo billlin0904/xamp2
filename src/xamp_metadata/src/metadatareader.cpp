@@ -8,7 +8,7 @@ namespace xamp::metadata {
 	
 void FromPath(Path const & path, MetadataExtractAdapter* adapter, MetadataReader *reader) {
     using namespace std::filesystem;
-    auto const options = (
+    constexpr auto options = (
         directory_options::follow_directory_symlink |
         directory_options::skip_permission_denied
         );

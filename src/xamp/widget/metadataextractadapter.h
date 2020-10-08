@@ -25,20 +25,20 @@ using xamp::base::LruCache;
 
 class PlayListTableView;
 
-class MetadataExtractAdapter
+class MetadataExtractAdapter final
 	: public QObject
-    , public MetadataExtractAdapterBase {
+	, public MetadataExtractAdapterBase {
 	Q_OBJECT
 public:
     explicit MetadataExtractAdapter(QObject* parent = nullptr);
 
 	~MetadataExtractAdapter() override;
 
-    void OnWalk(const xamp::metadata::Path& path, Metadata metadata) override;
+    void OnWalk(const Path& path, Metadata metadata) override;
 
 	void OnWalkNext() override;
 
-    bool IsCancel() const override;
+    bool IsCancel() const noexcept override;
 
 	void Cancel() override;
 
@@ -47,7 +47,7 @@ public:
     static void readFileMetadata(MetadataExtractAdapter* adapter, QString const& file_name);
 
 signals:
-	void readCompleted(std::vector<xamp::base::Metadata> enitiy);
+	void readCompleted(std::vector<Metadata> enitiy);
 
 public:
     static void processMetadata(const std::vector<Metadata>& metadatas, PlayListTableView *playlist = nullptr);

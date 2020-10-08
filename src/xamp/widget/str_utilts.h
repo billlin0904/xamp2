@@ -5,9 +5,6 @@
 
 #pragma once
 
-#include <string_view>
-
-#include <QColor>
 #include <QString>
 
 struct ConstLatin1String : public QLatin1String {

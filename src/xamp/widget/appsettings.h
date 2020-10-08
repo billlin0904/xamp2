@@ -7,6 +7,7 @@
 
 #include <base/id.h>
 
+#include <QColor>
 #include <QSettings>
 #include <QScopedPointer>
 

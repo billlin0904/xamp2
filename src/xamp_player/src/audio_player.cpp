@@ -73,7 +73,7 @@ void AudioPlayer::Destroy() {
     stream_.reset();
     resampler_.reset();
     equalizer_.reset();
-    ThreadPool::DefaultThreadPool().Stop();
+    Singleton<ThreadPool>::Get().Stop();
     BassFileStream::FreeBassLib();
 }
 
@@ -84,9 +84,9 @@ void AudioPlayer::UpdateSlice(float const *samples, int32_t sample_size, double 
 }
 
 void AudioPlayer::LoadLib() {
-    ThreadPool::DefaultThreadPool();
+    (void)Singleton<ThreadPool>::Get();
     BassFileStream::LoadBassLib();
-    DeviceManager::Instance();
+    (void)Singleton<DeviceManager>::Get();
     SoxrResampler::LoadSoxrLib();    
 }
 
@@ -108,7 +108,7 @@ void AudioPlayer::CreateDevice(ID const & device_type_id, std::string const & de
         || device_id_ != device_id
         || device_type_id_ != device_type_id
         || open_always) {
-        if (auto result = DeviceManager::Instance().Create(device_type_id)) {
+        if (auto result = Singleton<DeviceManager>::Get().Create(device_type_id)) {
             device_type_ = std::move(result.value());
             device_type_->ScanNewDevice();
             device_ = device_type_->MakeDevice(device_id);
@@ -187,7 +187,7 @@ void AudioPlayer::OpenStream(std::wstring const & file_path, std::wstring const 
     stream_ = MakeFileStream(file_ext, std::move(stream_));
 
     if (auto* dsd_stream = AsDsdStream()) {
-        if (DeviceManager::Instance().IsASIODevice(device_info.device_type_id)) {
+        if (Singleton<DeviceManager>::Get().IsASIODevice(device_info.device_type_id)) {
             if (device_info.is_support_dsd) {
                 dsd_stream->SetDSDMode(DsdModes::DSD_MODE_NATIVE);
                 dsd_mode_ = DsdModes::DSD_MODE_NATIVE;
@@ -468,9 +468,9 @@ void AudioPlayer::CreateBuffer() {
 
     uint32_t require_read_sample = 0;
 
-    if (DeviceManager::Instance().IsSupportASIO()) {
+    if (Singleton<DeviceManager>::Get().IsSupportASIO()) {
         if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE
-            || DeviceManager::Instance().IsASIODevice(device_type_id_)) {
+            || Singleton<DeviceManager>::Get().IsASIODevice(device_type_id_)) {
             require_read_sample = kMaxSamplerate;
         }
         else {
@@ -783,7 +783,7 @@ void AudioPlayer::StartPlay(double start_time, double end_time) {
     }
 
     Stopwatch sw;
-    stream_task_ = ThreadPool::DefaultThreadPool().StartNew([player = shared_from_this()]() noexcept {
+    stream_task_ = Singleton<ThreadPool>::Get().StartNew([player = shared_from_this()]() noexcept {
         auto* p = player.get();
 
         std::unique_lock<std::mutex> lock{ p->pause_mutex_ };

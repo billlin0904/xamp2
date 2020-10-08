@@ -16,6 +16,7 @@
 #include <base/exception.h>
 #include <base/align_ptr.h>
 #include <base/logger.h>
+#include <base/singleton.h>
 
 #include <output_device/output_device.h>
 #include <output_device/device_type.h>
@@ -25,34 +26,31 @@ namespace xamp::output_device {
 using namespace base;
 
 class XAMP_OUTPUT_DEVICE_API DeviceManager final {
-public:	
+public:
+    friend class Singleton<DeviceManager>;
+	
     ~DeviceManager();
 
     XAMP_DISABLE_COPY(DeviceManager)
-
-    static DeviceManager& Instance() {
-        static DeviceManager inst;
-        return inst;
-    }
 
     void RegisterDeviceListener(std::weak_ptr<DeviceStateListener> callback);
 
     void Clear();
 
-    std::optional<AlignPtr<DeviceType>> CreateDefaultDevice() const;
+    [[nodiscard]] std::optional<AlignPtr<DeviceType>> CreateDefaultDevice() const;
 
-    std::optional<AlignPtr<DeviceType>> Create(ID const& id) const;
+    [[nodiscard]] std::optional<AlignPtr<DeviceType>> Create(ID const& id) const;
 
     template <typename Function>
     void ForEach(Function &&fun) {
-        for (auto const& creator : factory_) {
-            try {
+    	std::for_each(factory_.begin(), factory_.end(), [fun](auto const& creator) {
+    		try {
                 fun(creator.second());
             }
             catch (Exception const& e) {
                 XAMP_LOG_DEBUG("{}", e.GetErrorMessage());
             }
-        }
+    	});        
     }
 
     bool IsSupportASIO() const;

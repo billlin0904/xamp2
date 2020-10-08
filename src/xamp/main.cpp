@@ -29,7 +29,7 @@
 #include "singleinstanceapplication.h"
 #include "xamp.h"
 
-void loadOrDefaultSoxrSetting() {
+static void loadOrDefaultSoxrSetting() {
     const auto keys = JsonSettings::keys();
     if (keys.count() > 0) {
         return;
@@ -73,6 +73,23 @@ static void loadSettings() {
     XAMP_LOG_DEBUG("PreventSleep success.");
 }
 
+#ifdef Q_OS_WIN32
+static void initWorkingSetSiz() {
+	// https://social.msdn.microsoft.com/Forums/en-US/4890ecba-0325-4edf-99a8-bfc5d4f410e8/win10-major-issue-for-audio-processing-os-special-mode-for-small-buffer?forum=windowspro-audiodevelopment
+    // Everything the SetProcessWorkingSetSize says is true. You should only lock what you need to lock.
+    // And you need to lock everything you touch from the realtime thread. Because if the realtime thread
+    // touches something that was paged out, you glitch.
+    constexpr size_t kWorkingSetSize = 1000 * 1024 * 1024;
+    if (EnablePrivilege("SeLockMemoryPrivilege", true)) {
+        XAMP_LOG_DEBUG("EnableLockMemPrivilege success.");
+
+        if (ExterndProcessWorkingSetSize(kWorkingSetSize)) {
+            XAMP_LOG_DEBUG("ExterndProcessWorkingSetSize {} success.", kWorkingSetSize);
+        }
+    }
+}
+#endif
+
 static int excute(int argc, char* argv[]) {   
     ::qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
     QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
@@ -102,18 +119,7 @@ static int excute(int argc, char* argv[]) {
     }
 
 #ifdef Q_OS_WIN32    
-    // https://social.msdn.microsoft.com/Forums/en-US/4890ecba-0325-4edf-99a8-bfc5d4f410e8/win10-major-issue-for-audio-processing-os-special-mode-for-small-buffer?forum=windowspro-audiodevelopment
-    // Everything the SetProcessWorkingSetSize says is true. You should only lock what you need to lock.
-    // And you need to lock everything you touch from the realtime thread. Because if the realtime thread
-    // touches something that was paged out, you glitch.
-    constexpr size_t kWorkingSetSize = 500 * 1024 * 1024;
-    if (EnablePrivilege("SeLockMemoryPrivilege", true)) {
-        XAMP_LOG_DEBUG("EnableLockMemPrivilege success.");
-
-        if (ExterndProcessWorkingSetSize(kWorkingSetSize)) {
-            XAMP_LOG_DEBUG("ExterndProcessWorkingSetSize {} success.", kWorkingSetSize);
-        }
-    }    
+    initWorkingSetSiz();
 #endif
 
     QApplication app(argc, argv);
@@ -136,7 +142,6 @@ static int excute(int argc, char* argv[]) {
     }
 
     XAMP_LOG_DEBUG("attach app success.");
-
     XAMP_LOG_DEBUG("PixmapCache cache size:{}", PixmapCache::instance().getImageSize());
 
     try {
@@ -153,7 +158,7 @@ static int excute(int argc, char* argv[]) {
 
     app.setStyle(new DarkStyle());
 
-    (void)ThreadPool::DefaultThreadPool();
+    (void)Singleton<DeviceManager>::Get();
     XAMP_LOG_DEBUG("ThreadPool init success.");
 
     Xamp win;
