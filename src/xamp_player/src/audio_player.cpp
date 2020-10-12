@@ -575,7 +575,6 @@ int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, dou
         }
     }
 
-    //stopped_cond_.notify_all();
     UpdateSlice(nullptr, -1, stream_time);
     return 1;
 }

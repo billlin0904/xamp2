@@ -8,6 +8,7 @@
 #include <QStringList>
 #include <optional>
 
+#include <base/singleton.h>
 #include <base/lrucache.h>
 #include <widget/playlistentity.h>
 
@@ -27,35 +28,39 @@ struct hash<QString> {
 
 class PixmapCache {
 public:
-	static PixmapCache& instance() {
-		static PixmapCache instance;
-		return instance;
-	}
+	friend class xamp::base::Singleton<PixmapCache>;
+	
+    static QPixmap FindFileDirCover(const QString &file_path);
 
-    static QPixmap findFileDirCover(const QString &file_path);
-
-    static QPixmap findFileDirCover(const PlayListEntity &item);
+    static QPixmap FindFileDirCover(const PlayListEntity &item);
 
 	std::optional<const QPixmap*> find(const QString& tag_id) const;
 
-    QPixmap fromFileCache(const QString& tag_id) const;
+    QPixmap FromFileCache(const QString& tag_id) const;
 
-    QString add(const QPixmap& cover) const;
+    QString Add(const QPixmap& cover) const;
 
-	void erase(const QString& tag_id);
+	void Erase(const QString& tag_id);
 
-    bool isExist(const QString& tag_id) const;
+    bool IsExist(const QString& tag_id) const;
 
-	size_t getImageSize() const;
+	size_t GetImageSize() const;
 
-	void clear();
+	void Erase();
+
+	QString GetUnknownCoverId() const {
+		return unknown_cover_id_;
+	}
 
 protected:
 	PixmapCache();
 
 private:
-    void loadCache() const;
+    void LoadCache() const;
 
+	void Clear();
+
+	QString unknown_cover_id_;
 	QString cache_path_;
     QStringList cover_ext_;
     QStringList cache_ext_;

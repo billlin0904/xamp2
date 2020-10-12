@@ -7,7 +7,6 @@
 
 #include <atomic>
 
-#include <QMutex>
 #include <QObject>
 
 #include <base/metadata.h>
@@ -44,17 +43,16 @@ public:
 
     void Reset() override;
 
-    static void readFileMetadata(MetadataExtractAdapter* adapter, QString const& file_name);
+    static void ReadFileMetadata(MetadataExtractAdapter* adapter, QString const& file_name);
 
 signals:
 	void readCompleted(std::vector<Metadata> enitiy);
 
 public:
-    static void processMetadata(const std::vector<Metadata>& metadatas, PlayListTableView *playlist = nullptr);
+    static void ProcessMetadata(const std::vector<Metadata>& metadatas, PlayListTableView *playlist = nullptr);
 	    
 private:
     std::atomic<bool> cancel_;
     std::vector<Metadata> metadatas_;
-    QMutex mutex_;
 };
 

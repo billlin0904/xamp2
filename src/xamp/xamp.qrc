@@ -47,9 +47,6 @@
         <file>Resource/White/search.png</file>
         <file>Resource/Flags/TW.png</file>
         <file>Resource/Flags/JP.png</file>
-        <file>Resource/vinyl_blackground.png</file>
-        <file>Resource/vinyl_needle.png</file>
-        <file>Resource/vinyl.png</file>
         <file>Resource/Black/equalizer.png</file>
         <file>Resource/White/equalizer.png</file>
     </qresource>

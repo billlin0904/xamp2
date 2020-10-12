@@ -82,7 +82,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
 
     auto album_cover = &ThemeManager::instance().pixmap().defaultSizeUnknownCover();
 
-    if (auto cache_small_cover = PixmapCache::instance().find(cover_id)) {
+    if (auto cache_small_cover = xamp::base::Singleton<PixmapCache>::Get().find(cover_id)) {
         album_cover = cache_small_cover.value();        
         painter->drawPixmap(cover_rect, *album_cover);
     }
@@ -311,7 +311,7 @@ void AlbumViewPage::setTotalDuration(double durations) {
 }
 
 void AlbumViewPage::setCover(const QString& cover_id) {
-    if (auto cache_small_cover = PixmapCache::instance().find(cover_id)) {
+    if (auto cache_small_cover = xamp::base::Singleton<PixmapCache>::Get().find(cover_id)) {
         cover_->setPixmap(Pixmap::resizeImage(cache_small_cover.value()->copy(),
             ThemeManager::instance().getAlbumCoverSize()));
     }
@@ -589,11 +589,11 @@ void AlbumView::append(const QString& file_name) {
                             &MetadataExtractAdapter::readCompleted,
                             this,
                             &AlbumView::processMeatadata);    
-    MetadataExtractAdapter::readFileMetadata(adapter, file_name);
+    MetadataExtractAdapter::ReadFileMetadata(adapter, file_name);
 }
 
 void AlbumView::processMeatadata(const std::vector<xamp::base::Metadata> &medata) {    
-    MetadataExtractAdapter::processMetadata(medata);
+    MetadataExtractAdapter::ProcessMetadata(medata);
     refreshOnece();
 }
 

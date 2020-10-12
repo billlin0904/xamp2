@@ -825,7 +825,7 @@ void Xamp::setupResampler() {
 }
 
 void Xamp::processMeatadata(const std::vector<xamp::base::Metadata>& medata) {    
-    MetadataExtractAdapter::processMetadata(medata);
+    MetadataExtractAdapter::ProcessMetadata(medata);
     emit album_artist_page_->album()->refreshOnece();
     emit album_artist_page_->artist()->refreshOnece();    
 }
@@ -906,7 +906,7 @@ void Xamp::playMusic(const MusicEntity& item) {
         playlist_page_->format()->setText(format2String(player_.get(), item.file_ext));
     }
 
-    if (auto cover = PixmapCache::instance().find(item.cover_id)) {
+    if (auto cover = xamp::base::Singleton<PixmapCache>::Get().find(item.cover_id)) {
         setCover(cover.value());
     }
     else {
@@ -1092,7 +1092,7 @@ void Xamp::initialPlaylist() {
     (void)QObject::connect(&discogs_,
                             &DiscogsClient::downloadImageFinished,
                             [](auto artist_id, auto image) {
-                                auto cover_id = PixmapCache::instance().add(image);
+                                auto cover_id = Singleton<PixmapCache>::Get().Add(image);
                                 Database::instance().updateArtistCoverId(artist_id, cover_id);
                                 XAMP_LOG_DEBUG("Save artist id: {} image, cover id : {}", artist_id, cover_id.toStdString());
                             });
@@ -1165,7 +1165,7 @@ void Xamp::addItem(const QString& file_name) {
             &Xamp::processMeatadata,
             Qt::QueuedConnection);
         
-        MetadataExtractAdapter::readFileMetadata(adapter, file_name);
+        MetadataExtractAdapter::ReadFileMetadata(adapter, file_name);
     }
 }
 

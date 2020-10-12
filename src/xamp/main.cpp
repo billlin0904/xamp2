@@ -1,5 +1,8 @@
 #include <cstdio>
 
+#include <stack>
+#include <deque>
+
 #include <base/logger.h>
 #include <base/scopeguard.h>
 #include <base/dll.h>
@@ -142,7 +145,7 @@ static int excute(int argc, char* argv[]) {
     }
 
     XAMP_LOG_DEBUG("attach app success.");
-    XAMP_LOG_DEBUG("PixmapCache cache size:{}", PixmapCache::instance().getImageSize());
+    XAMP_LOG_DEBUG("PixmapCache cache size:{}", xamp::base::Singleton<PixmapCache>::Get().GetImageSize());
 
     try {
         Database::instance().open(Q_UTF8("xamp.db"));
