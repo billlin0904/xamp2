@@ -53,13 +53,13 @@ public:
     	});        
     }
 
-    bool IsSupportASIO() const;
+    bool IsSupportASIO() const noexcept;
 
-    bool IsDeviceTypeExist(ID const& id) const;
+    bool IsDeviceTypeExist(ID const& id) const noexcept;
 
-    static bool IsExclusiveDevice(DeviceInfo const &info);
+    static bool IsExclusiveDevice(DeviceInfo const &info) noexcept;
 
-    static bool IsASIODevice(ID const& id);
+    static bool IsASIODevice(ID const& id) noexcept;
 
     static void PreventSleep(bool allow);
 private:

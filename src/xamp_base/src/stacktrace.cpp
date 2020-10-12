@@ -194,13 +194,6 @@ void StackTrace::PrintStackTrace(EXCEPTION_POINTERS const* info) {
     std::exit(-1);
 }
 
-std::string StackTrace::CaptureStack() {
-    std::ostringstream ostr;
-    auto frame_count = ::CaptureStackBackTrace(0, kMaxStackFrameSize, addrlist_.data(), nullptr);
-    WriteLog(frame_count - 1, ostr);
-    return ostr.str();
-}
-
 #else
 void StackTrace::PrintStackTrace() {
     auto addrlen = ::backtrace(addrlist_.data(), static_cast<int32_t>(addrlist_.size()));
@@ -224,7 +217,18 @@ bool StackTrace::LoadSymbol() {
     return Singleton<SymLoader>::Get().IsInit();
 #else
     return true;
-#endif    
+#endif
+}
+
+std::string StackTrace::CaptureStack() {
+#ifdef XAMP_OS_WIN
+    std::ostringstream ostr;
+    auto frame_count = ::CaptureStackBackTrace(0, kMaxStackFrameSize, addrlist_.data(), nullptr);
+    WriteLog(frame_count - 1, ostr);
+    return ostr.str();
+#else
+    return "";
+#endif
 }
 
 void StackTrace::RegisterAbortHandler() {

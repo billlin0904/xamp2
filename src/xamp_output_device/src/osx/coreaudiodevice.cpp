@@ -115,6 +115,10 @@ private:
     AudioObjectPropertyAddress property_;
 };
 
+static UInt64 HostTimeToSecond(Float64 x) {
+    return ::AudioConvertHostTimeToNanos(x * 1.0E-09);
+}
+
 CoreAudioDevice::CoreAudioDevice(AudioDeviceID device_id, bool is_hog_mode)
     : is_running_(false)
     , is_hog_mode_(is_hog_mode)
@@ -299,15 +303,22 @@ OSStatus CoreAudioDevice::OnAudioDeviceIOProc(AudioDeviceID,
                                               AudioTimeStamp const* outputTimeStamp,
                                               void *user_data) {
     auto device = static_cast<CoreAudioDevice*>(user_data);
-    auto device_sample_time = outputTimeStamp->mSampleTime / device->format_.GetSampleRate();
-    device->AudioDeviceIOProc(output_data, device_sample_time);
+
+    double sample_time = 0.0;
+    AudioTimeStamp timeStamp{};
+    sample_time = (timeStamp.mSampleTime / device->format_.GetSampleRate());
+    if (outputTimeStamp->mFlags & kAudioTimeStampHostTimeValid) {
+        sample_time = (outputTimeStamp->mSampleTime / device->format_.GetSampleRate());
+    }
+    //sample_time = HostTimeToSecond(outputTimeStamp->mHostTime);
+    device->AudioDeviceIOProc(output_data, sample_time);
     return noErr;
 }
 
 void CoreAudioDevice::AbortStream() noexcept {
 }
 
-void CoreAudioDevice::AudioDeviceIOProc(AudioBufferList *output_data, double device_sample_time) {
+void CoreAudioDevice::AudioDeviceIOProc(AudioBufferList *output_data, double sample_time) {
     auto const buffer_count = output_data->mNumberBuffers;
 
     for (uint32_t i = 0; i < buffer_count; ++i) {
@@ -320,7 +331,7 @@ void CoreAudioDevice::AudioDeviceIOProc(AudioBufferList *output_data, double dev
         if (XAMP_UNLIKELY(callback_->OnGetSamples(static_cast<float*>(buffer.mData),
                                                   num_sample,
                                                   stream_time,
-                                                  device_sample_time) == 0)) {
+                                                  sample_time) == 0)) {
             is_running_ = false;
             break;
         }

@@ -73,7 +73,7 @@ AudioBuffer<Type, U>::AudioBuffer(size_t size)
 }
 
 template <typename Type, typename U>
-AudioBuffer<Type, U>::~AudioBuffer() = default;
+AudioBuffer<Type, U>::~AudioBuffer() noexcept = default;
 
 template <typename Type, typename U>
 Type* AudioBuffer<Type, U>::GetData() const noexcept {

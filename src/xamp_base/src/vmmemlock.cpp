@@ -51,7 +51,7 @@ void VmMemLock::Lock(void* address, size_t size) {
     UnLock();
 
     if (::mlock(address, size)) {
-		throw PlatformSpecException("mlock return failure! error:{}.", errno);
+        throw PlatformSpecException("ExterndProcessWorkingSetSize return failure!");
     }
 
     address_ = address;

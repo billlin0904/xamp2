@@ -22,9 +22,8 @@ public:
 
     static bool LoadSymbol();
 
-#ifdef XAMP_OS_WIN
     std::string CaptureStack();
-#endif
+
 private:    
 #ifdef XAMP_OS_WIN
     static LONG WINAPI AbortHandler(EXCEPTION_POINTERS* info);    

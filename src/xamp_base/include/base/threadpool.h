@@ -254,7 +254,7 @@ class XAMP_BASE_API ThreadPool final {
 public:
     static constexpr uint32_t kMaxThread = 8;
 
-	friend class Singleton<ThreadPool>;    
+    friend class Singleton<ThreadPool>;
 
 	XAMP_DISABLE_COPY(ThreadPool)
 

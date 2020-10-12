@@ -46,12 +46,12 @@ AudioPlayer::AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter)
     , enable_resample_(false)
     , dsd_mode_(DsdModes::DSD_MODE_PCM)
     , state_(PlayerState::PLAYER_STATE_STOPPED)
+    , sample_size_(0)
     , target_samplerate_(0)
     , volume_(0)
     , num_buffer_samples_(0)
     , num_read_sample_(0)
     , read_sample_size_(0)
-    , sample_size_(0)
     , is_playing_(false)
     , is_paused_(false)
     , sample_end_time_(0)
@@ -85,8 +85,8 @@ void AudioPlayer::UpdateSlice(float const *samples, int32_t sample_size, double 
 
 void AudioPlayer::LoadLib() {
     (void)Singleton<ThreadPool>::Get();
-    BassFileStream::LoadBassLib();
     (void)Singleton<DeviceManager>::Get();
+    BassFileStream::LoadBassLib();
     SoxrResampler::LoadSoxrLib();    
 }
 
@@ -443,15 +443,15 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
 
     if (stream_task_.valid()) {
         XAMP_LOG_DEBUG("Try to stop stream thread.");
+        Stopwatch sw;
 #ifdef XAMP_OS_WIN
         // MSVC 2019 is wait for std::packaged_task return timeout, while others such clang can't.
-        Stopwatch sw;
         if (stream_task_.wait_for(kWaitForStreamStopTime) == std::future_status::timeout) {
             throw StopStreamTimeoutException();
         }
-        LogTime("Thread switch time", sw.Elapsed());
 #else
         stream_task_.get();
+        LogTime("Thread switch time", sw.Elapsed());
 #endif
         XAMP_LOG_DEBUG("Stream thread was finished.");
     }
@@ -556,10 +556,13 @@ int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, dou
     max_process_time_ = std::max(elapsed, max_process_time_);
     min_process_time_ = std::min(elapsed, min_process_time_);
 
+#ifdef XAMP_OS_WIN
     if (sample_time > sample_end_time_) {
         std::memset(static_cast<int8_t*>(samples), 0, sample_size);
     }
-    else {
+    else
+#endif
+    {
         if (XAMP_LIKELY(buffer_.TryRead(static_cast<int8_t*>(samples), sample_size))) {
             UpdateSlice(static_cast<const float*>(samples), static_cast<int32_t>(num_samples), stream_time);
             sw_.Reset();
@@ -572,8 +575,8 @@ int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, dou
         }
     }
 
+    //stopped_cond_.notify_all();
     UpdateSlice(nullptr, -1, stream_time);
-    stopped_cond_.notify_all();
     return 1;
 }
 
@@ -681,7 +684,10 @@ void AudioPlayer::Seek(double stream_time) {
         }
         device_->SetStreamTime(stream_time);
         sample_end_time_ = stream_->GetDuration() - stream_time;
-        XAMP_LOG_DEBUG("Player duration:{} seeking:{} sec, end time:{} sec.", stream_->GetDuration(), stream_time, sample_end_time_);
+        XAMP_LOG_DEBUG("Player duration:{} seeking:{} sec, end time:{} sec.",
+                       stream_->GetDuration(),
+                       stream_time,
+                       sample_end_time_);
         UpdateSlice(nullptr, 0, stream_time);
         buffer_.Clear();
         BufferStream(stream_time);
@@ -769,7 +775,6 @@ void AudioPlayer::StartPlay(double start_time, double end_time) {
     OpenDevice(start_time);
     CreateBuffer();
     BufferStream(start_time);
-    Play();
 
     sw_.Reset();
     min_process_time_ = std::chrono::microseconds(1000000);
@@ -781,6 +786,9 @@ void AudioPlayer::StartPlay(double start_time, double end_time) {
     else {
         sample_end_time_ = stream_->GetDuration();
     }
+
+    XAMP_LOG_INFO("Stream end time {} sec", sample_end_time_);
+    Play();
 
     Stopwatch sw;
     stream_task_ = Singleton<ThreadPool>::Get().StartNew([player = shared_from_this()]() noexcept {
@@ -811,9 +819,11 @@ void AudioPlayer::StartPlay(double start_time, double end_time) {
         catch (const std::exception& e) {
             XAMP_LOG_DEBUG("Stream read has exception: {}.", e.what());
         }
+
+        XAMP_LOG_DEBUG("Stream thread end");
     });
 
-    LogTime("Create thread time", sw.Elapsed());
+    LogTime("Create stream thread time", sw.Elapsed());
     stm_.Handle(PlayingEvent{});
 }
 

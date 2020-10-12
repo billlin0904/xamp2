@@ -5,6 +5,7 @@
 #include <cmath>
 #include <algorithm>
 
+#include <base/logger.h>
 #include <base/str_utilts.h>
 
 #include <output_device/osx/coreaudioexception.h>
@@ -17,7 +18,7 @@ namespace xamp::output_device::osx {
 static constexpr int32_t kMinDopSamplerate = 176400;
 
 std::vector<uint32_t> GetAvailableSampleRates(AudioDeviceID id) {
-    AudioObjectPropertyAddress const property = {
+    constexpr AudioObjectPropertyAddress property = {
         kAudioDevicePropertyAvailableNominalSampleRates,
         kAudioObjectPropertyScopeGlobal,
         kAudioObjectPropertyElementMaster
@@ -155,7 +156,7 @@ AudioDeviceID GetAudioDeviceIdByUid(bool is_input, std::string const& device_id)
 }
 
 bool IsOutputDevice(AudioDeviceID id) {
-    AudioObjectPropertyAddress const property = {
+    constexpr AudioObjectPropertyAddress property = {
         kAudioDevicePropertyStreams,
         kAudioDevicePropertyScopeOutput,
         kAudioObjectPropertyElementMaster
@@ -175,7 +176,7 @@ bool IsOutputDevice(AudioDeviceID id) {
 }
 
 void ReleaseHogMode(AudioDeviceID id) {
-    AudioObjectPropertyAddress const property = {
+    constexpr AudioObjectPropertyAddress property = {
         kAudioDevicePropertyHogMode,
         kAudioObjectPropertyScopeGlobal,
         kAudioObjectPropertyElementMaster
@@ -207,10 +208,11 @@ void ReleaseHogMode(AudioDeviceID id) {
     if (result != noErr) {
         CoreAudioFailedLog(result);
     }
+    XAMP_LOG_INFO("Release hog mode device id:{}", id);
 }
 
 void SetHogMode(AudioDeviceID id) {
-    AudioObjectPropertyAddress const property = {
+    constexpr AudioObjectPropertyAddress property = {
         kAudioDevicePropertyHogMode,
         kAudioObjectPropertyScopeGlobal,
         kAudioObjectPropertyElementMaster
@@ -227,6 +229,8 @@ void SetHogMode(AudioDeviceID id) {
     if (result != noErr) {
         CoreAudioFailedLog(result);
     }
+
+    XAMP_LOG_INFO("Set hog mode id:{}", id);
 }
 
 }

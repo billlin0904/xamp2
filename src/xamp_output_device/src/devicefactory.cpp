@@ -136,7 +136,7 @@ std::optional<AlignPtr<DeviceType>> DeviceManager::Create(ID const& id) const {
     return (*itr).second();
 }
 
-bool DeviceManager::IsSupportASIO() const {
+bool DeviceManager::IsSupportASIO() const noexcept {
 #if ENABLE_ASIO && defined(XAMP_OS_WIN)
     return IsDeviceTypeExist(ASIODeviceType::Id);
 #else
@@ -144,7 +144,7 @@ bool DeviceManager::IsSupportASIO() const {
 #endif
 }
 
-bool DeviceManager::IsExclusiveDevice(DeviceInfo const & info) {
+bool DeviceManager::IsExclusiveDevice(DeviceInfo const & info) noexcept {
 #ifdef XAMP_OS_WIN
     ID const device_type_id(info.device_type_id);
     return device_type_id == win32::ExclusiveWasapiDeviceType::Id
@@ -158,7 +158,7 @@ bool DeviceManager::IsExclusiveDevice(DeviceInfo const & info) {
 #endif
 }
 
-bool DeviceManager::IsASIODevice(ID const& id) {
+bool DeviceManager::IsASIODevice(ID const& id) noexcept {
 #if defined(ENABLE_ASIO) && defined(XAMP_OS_WIN)
     return id == ASIODeviceType::Id;
 #else
@@ -167,7 +167,7 @@ bool DeviceManager::IsASIODevice(ID const& id) {
 #endif
 }
 
-bool DeviceManager::IsDeviceTypeExist(ID const& id) const {
+bool DeviceManager::IsDeviceTypeExist(ID const& id) const noexcept {
     return factory_.find(id) != factory_.end();
 }
 

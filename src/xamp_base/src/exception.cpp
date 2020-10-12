@@ -31,7 +31,7 @@ static std::string GetPlatformErrorMessage(int32_t err) {
     return LocaleStringToUTF8(std::system_category().message(err));
 }
 #else
-static std::string GetPlatformErrorMessage(int32_t err) {
+std::string GetPlatformErrorMessage(int32_t err) {
         return std::system_category().message(err);
 }
 #endif
