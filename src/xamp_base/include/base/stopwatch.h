@@ -17,8 +17,12 @@ public:
 	void Reset() noexcept;
 
 	template <typename Resolution = std::chrono::microseconds>
-	Resolution Elapsed() noexcept {
+	[[nodiscard]] Resolution Elapsed() const noexcept {
 		return std::chrono::duration_cast<Resolution>(clock_.now() - start_time_);
+	}
+
+	[[nodiscard]] double ElapsedSeconds() const noexcept {		
+		return static_cast<double>(Elapsed().count()) / 1000000.0;
 	}
 
 private:

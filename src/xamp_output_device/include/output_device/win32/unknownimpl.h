@@ -18,6 +18,8 @@ namespace xamp::output_device::win32 {
 template <typename Base>
 class UnknownImpl : public Base {
 public:
+	virtual ~UnknownImpl() = default;
+
 	UnknownImpl() noexcept
 		: refcount_(0) {
 	}

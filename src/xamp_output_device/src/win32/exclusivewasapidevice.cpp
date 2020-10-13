@@ -64,7 +64,6 @@ static int32_t MakeAlignedPeriod(const AudioFormat &format, int32_t frames_per_l
 }
 
 static constexpr IID kAudioRenderClientID = __uuidof(IAudioRenderClient);
-static constexpr IID kAudioEndpointVolumeCallbackID = __uuidof(IAudioEndpointVolumeCallback);
 static constexpr IID kAudioEndpointVolumeID = __uuidof(IAudioEndpointVolume);
 static constexpr IID kAudioClient2ID = __uuidof(IAudioClient2);
 static constexpr IID kAudioClockID = __uuidof(IAudioClock);
@@ -78,8 +77,8 @@ ExclusiveWasapiDevice::ExclusiveWasapiDevice(CComPtr<IMMDevice> const & device)
 	, valid_bits_samples_(0)
 	, queue_id_(0)
 	, stream_time_(0)
-	, mmcss_name_(MMCSS_PROFILE_PRO_AUDIO)
 	, sample_ready_(nullptr)
+	, mmcss_name_(MMCSS_PROFILE_PRO_AUDIO)
 	, sample_ready_key_(0)
 	, aligned_period_(0)
 	, device_(device)
@@ -181,7 +180,6 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	HrIfFailledThrow(client_->GetService(kAudioClockID,
 		reinterpret_cast<void**>(&clock_)));
 
-    // Enable MCSS
 	DWORD task_id = 0;
 	queue_id_ = 0;
 	HrIfFailledThrow(::MFLockSharedWorkQueue(mmcss_name_.c_str(),
@@ -193,7 +191,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	HrIfFailledThrow(::MFGetWorkQueueMMCSSPriority(queue_id_, &priority));
 
 	XAMP_LOG_DEBUG("MCSS task id:{} queue id:{}, priority:{} ({}).",
-		task_id, queue_id_, thread_priority_, (MmcssThreadPriority) priority);
+		task_id, queue_id_, thread_priority_, static_cast<MmcssThreadPriority>(priority));
 
     sample_ready_callback_ = new MFAsyncCallback<ExclusiveWasapiDevice>(this,
         &ExclusiveWasapiDevice::OnSampleReady,
@@ -214,18 +212,19 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
     data_convert_ = MakeConvert(output_format, valid_output_format, buffer_frames_);
 	XAMP_LOG_DEBUG("WASAPI internal buffer: {}.", FormatBytes(buffer_.GetByteSize()));
 
+#ifdef _DEBUG
 	CComPtr<IAudioEndpointVolume> endpoint_volume;
 	HrIfFailledThrow(device_->Activate(kAudioEndpointVolumeID,
 		CLSCTX_INPROC_SERVER,
 		NULL,
 		reinterpret_cast<void**>(&endpoint_volume)
 	));
-
 	float min_volume = 0;
 	float max_volume = 0;
 	float volume_increnment = 0;
 	HrIfFailledThrow(endpoint_volume->GetVolumeRange(&min_volume, &max_volume, &volume_increnment));
 	XAMP_LOG_DEBUG("WASAPI min_volume: {} max_volume: {} volume_increnment: {}.", min_volume, max_volume, volume_increnment);
+#endif
 }
 
 void ExclusiveWasapiDevice::SetSchedulerService(std::wstring const &mmcss_name, MmcssThreadPriority thread_priority) {

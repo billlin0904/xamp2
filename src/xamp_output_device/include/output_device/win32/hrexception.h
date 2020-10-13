@@ -25,8 +25,8 @@ public:
 	static std::string_view ErrorToString(HRESULT hr) noexcept;
 
 	static std::string ErrorToStringHelper(HRESULT hr);
-	
-	HRException(HRESULT hresult, std::string_view expr = "");
+
+	explicit HRException(HRESULT hresult, std::string_view expr = "");
 
 	HRESULT GetHResult() const;
 

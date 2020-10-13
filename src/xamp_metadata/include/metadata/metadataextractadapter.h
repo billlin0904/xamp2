@@ -18,6 +18,8 @@ public:
 
     virtual void OnWalkNext() = 0;
 
+	virtual void OnWalkFirst() = 0;
+
     [[nodiscard]] virtual bool IsCancel() const noexcept = 0;
 
     virtual void Cancel() = 0;

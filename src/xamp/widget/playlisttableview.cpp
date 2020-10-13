@@ -112,7 +112,7 @@ void PlayListTableView::initial() {
         }
         auto& item = model_.item(start_editor->row());
         item.rating = start_editor->starRating().starCount();
-        Database::instance().updateMusicRating(item.music_id, item.rating);
+        Database::instance().UpdateMusicRating(item.music_id, item.rating);
         });
 
     setEditTriggers(DoubleClicked | SelectedClicked);
@@ -485,7 +485,7 @@ void PlayListTableView::reloadSelectMetadata() {
         entity.cover_id = cover_id;
         entity.artist_id = artist_id;
 
-        Database::instance().addOrUpdateMusic(metadata, -1);
+        Database::instance().AddOrUpdateMusic(metadata, -1);
     }
 
     proxy_model_.dataChanged(QModelIndex(), QModelIndex());

@@ -27,26 +27,26 @@ public:
 
 	void ScanNewDevice() override;
 
-	std::string_view GetDescription() const override;
+	[[nodiscard]] std::string_view GetDescription() const override;
 
-	ID GetTypeId() const override;
+	[[nodiscard]] ID GetTypeId() const override;
 
-	size_t GetDeviceCount() const override;
+	[[nodiscard]] size_t GetDeviceCount() const override;
 
-	DeviceInfo GetDeviceInfo(uint32_t device) const override;
+	[[nodiscard]] DeviceInfo GetDeviceInfo(uint32_t device) const override;
 
-	std::optional<DeviceInfo> GetDefaultDeviceInfo() const override;
+	[[nodiscard]] std::optional<DeviceInfo> GetDefaultDeviceInfo() const override;
 
-	std::vector<DeviceInfo> GetDeviceInfo() const override;
+	[[nodiscard]] std::vector<DeviceInfo> GetDeviceInfo() const override;
 
 	AlignPtr<Device> MakeDevice(std::string const & device_id) override;
 
 private:
 	void Initial();
 
-	CComPtr<IMMDevice> GetDeviceById(std::wstring const & device_id) const;
+	[[nodiscard]] CComPtr<IMMDevice> GetDeviceById(std::wstring const & device_id) const;
 
-	std::vector<DeviceInfo> GetDeviceInfoList() const;
+	[[nodiscard]] std::vector<DeviceInfo> GetDeviceInfoList() const;
 
 	CComPtr<IMMDeviceEnumerator> enumerator_;
 	std::vector<DeviceInfo> device_list_;

@@ -48,7 +48,7 @@ public:
 		return S_OK;
 	}
 
-	DWORD GetWorkQueueId() const noexcept {
+	[[nodiscard]] DWORD GetWorkQueueId() const noexcept {
 		return queue_id_;
 	}
 

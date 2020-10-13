@@ -2,7 +2,10 @@
 #include <QMap>
 #include <QtConcurrent>
 #include <QFuture>
-#include <QMutexLocker>
+
+#include <execution>
+
+#include <metadata/taglibmetareader.h>
 
 #include "thememanager.h"
 #include <widget/toast.h>
@@ -36,28 +39,30 @@ private:
 };
 
 QString DatabaseIdCache::AddCoverCache(int32_t album_id, const QString& album, const Metadata& metadata) const {
-    auto cover_id = Database::instance().getAlbumCoverId(album_id);
+    auto cover_id = Database::instance().GetAlbumCoverId(album_id);
 	
-    if (cover_id.isEmpty()) {
-        TaglibMetadataReader cover_reader;
-
-        QPixmap pixmap;
-        const auto& buffer = cover_reader.ExtractEmbeddedCover(metadata.file_path);
-        if (!buffer.empty()) {
-            pixmap.loadFromData(buffer.data(),
-                static_cast<uint32_t>(buffer.size()));
-        }
-        else {
-             pixmap = Singleton<PixmapCache>::Get().FindFileDirCover(
-                    QString::fromStdWString(metadata.file_path));  
-        }
-        if (!pixmap.isNull()) {
-            cover_id = Singleton<PixmapCache>::Get().Add(pixmap);
-            assert(!cover_id.isEmpty());
-            cover_id_cache_.Insert(album_id, cover_id);
-            Database::instance().setAlbumCover(album_id, album, cover_id);
-        }
+    if (!cover_id.isEmpty()) {
+    	return cover_id;
     }
+        
+    TaglibMetadataReader cover_reader;
+
+    QPixmap pixmap;
+    const auto& buffer = cover_reader.ExtractEmbeddedCover(metadata.file_path);
+    if (!buffer.empty()) {
+        pixmap.loadFromData(buffer.data(),
+            static_cast<uint32_t>(buffer.size()));
+    }
+    else {
+         pixmap = Singleton<PixmapCache>::Get().FindFileDirCover(
+                QString::fromStdWString(metadata.file_path));  
+    }
+    if (!pixmap.isNull()) {
+        cover_id = Singleton<PixmapCache>::Get().Add(pixmap);
+        assert(!cover_id.isEmpty());
+        cover_id_cache_.Insert(album_id, cover_id);
+        Database::instance().SetAlbumCover(album_id, album, cover_id);
+    }	
     return cover_id;
 }
 
@@ -67,7 +72,7 @@ std::tuple<int32_t, int32_t, QString> DatabaseIdCache::AddCache(const QString &a
         artist_id = *artist_id_op.value();
     }
     else {
-        artist_id = Database::instance().addOrUpdateArtist(artist);
+        artist_id = Database::instance().AddOrUpdateArtist(artist);
         this->artist_id_cache_.Insert(artist, artist_id);
     }
 
@@ -76,7 +81,7 @@ std::tuple<int32_t, int32_t, QString> DatabaseIdCache::AddCache(const QString &a
         album_id = *album_id_op.value();
     }
     else {
-        album_id = Database::instance().addOrUpdateAlbum(album, artist_id);
+        album_id = Database::instance().AddOrUpdateAlbum(album, artist_id);
         this->album_id_cache_.Insert(album, album_id);
     }
 
@@ -101,10 +106,10 @@ void MetadataExtractAdapter::ReadFileMetadata(MetadataExtractAdapter *adapter, Q
         try {
         	const Path path(file_name.toStdWString());
         	TaglibMetadataReader reader;
-            FromPath(path, adapter, &reader);
+            WalkPath(path, adapter, &reader);
         }
         catch (const std::exception& e) {
-            XAMP_LOG_DEBUG("FromPath has exception: {}", e.what());
+            XAMP_LOG_DEBUG("WalkPath has exception: {}", e.what());
         }
     };
 
@@ -118,6 +123,10 @@ void MetadataExtractAdapter::ReadFileMetadata(MetadataExtractAdapter *adapter, Q
     watcher->setFuture(future);
 }
 
+void MetadataExtractAdapter::OnWalkFirst() {
+	watch_.Reset();
+}
+
 void MetadataExtractAdapter::OnWalk(const Path&, Metadata metadata) {
     metadatas_.emplace_back(std::move(metadata));
 }
@@ -126,12 +135,13 @@ void MetadataExtractAdapter::OnWalkNext() {
     if (metadatas_.empty()) {
         return;
     }
-    std::stable_sort(
+    std::stable_sort(std::execution::par,
         metadatas_.begin(), metadatas_.end(), [](const auto& first, const auto& last) {
             return first.track < last.track;
         });
     emit readCompleted(metadatas_);
     metadatas_.clear();
+	XAMP_LOG_DEBUG("MetadataExtract elapsed {} sec", watch_.ElapsedSeconds());
 }
 
 bool MetadataExtractAdapter::IsCancel() const noexcept {
@@ -146,7 +156,10 @@ void MetadataExtractAdapter::Reset() {
     cancel_ = false;
 }
 
-void MetadataExtractAdapter::ProcessMetadata(const std::vector<Metadata>& metadatas, PlayListTableView* playlist) {
+void MetadataExtractAdapter::ProcessMetadata(const std::vector<Metadata>& result, PlayListTableView* playlist) {
+    xamp::base::Stopwatch watch;
+	watch.Reset();
+	
     DatabaseIdCache cache;
 
     auto playlist_id = -1;
@@ -154,7 +167,7 @@ void MetadataExtractAdapter::ProcessMetadata(const std::vector<Metadata>& metada
         playlist_id = playlist->playlistId();
     }
 
-    for (const auto& metadata : metadatas) {
+    for (const auto& metadata : result) {
         auto album = QString::fromStdWString(metadata.album);
         auto artist = QString::fromStdWString(metadata.artist);
 
@@ -164,13 +177,13 @@ void MetadataExtractAdapter::ProcessMetadata(const std::vector<Metadata>& metada
             is_unknown_album = true;
         }
 
-        auto music_id = Database::instance().addOrUpdateMusic(metadata, playlist_id);
+        auto music_id = Database::instance().AddOrUpdateMusic(metadata, playlist_id);
 
         auto [album_id, artist_id, cover_id] = cache.AddCache(album, artist);
 
         // Find cover id from database.
         if (cover_id.isEmpty()) {
-            cover_id = Database::instance().getAlbumCoverId(album_id);
+            cover_id = Database::instance().GetAlbumCoverId(album_id);
         }
 
         // Database not exist find others.
@@ -182,7 +195,7 @@ void MetadataExtractAdapter::ProcessMetadata(const std::vector<Metadata>& metada
         	}            
         }        
 
-        IgnoreSqlError(Database::instance().addOrUpdateAlbumMusic(album_id, artist_id, music_id))
+        IgnoreSqlError(Database::instance().AddOrUpdateAlbumMusic(album_id, artist_id, music_id))
 
         if (playlist != nullptr) {
             auto entity = PlayListTableView::fromMetadata(metadata);
@@ -193,4 +206,5 @@ void MetadataExtractAdapter::ProcessMetadata(const std::vector<Metadata>& metada
             playlist->appendItem(entity);
         }        
     }
+	XAMP_LOG_DEBUG("ProcessMetadata elapsed {} sec", watch.ElapsedSeconds());
 }

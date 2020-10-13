@@ -516,7 +516,7 @@ void Xamp::initialController() {
     });
 
     (void)QObject::connect(ui.sliderBar, &TabListView::tableNameChanged, [](auto table_id, const auto &name) {
-        Database::instance().setTableName(table_id, name);
+        Database::instance().SetTableName(table_id, name);
     });
 
     auto settings_menu = new QMenu(this);
@@ -597,7 +597,7 @@ void Xamp::getNextPage() {
 }
 
 void Xamp::setTablePlaylistView(int table_id) {
-    auto playlist_id = Database::instance().findTablePlaylistId(table_id);
+    auto playlist_id = Database::instance().FindTablePlaylistId(table_id);
 
     bool found = false;
     for (auto idx : stack_page_id_) {
@@ -613,7 +613,7 @@ void Xamp::setTablePlaylistView(int table_id) {
     if (!found) {
         auto playlist_page = newPlaylist(playlist_id);
         playlist_page->playlist()->setPlaylistId(playlist_id);
-        Database::instance().forEachPlaylistMusic(playlist_id, [this](const auto& entityy) {
+        Database::instance().ForEachPlaylistMusic(playlist_id, [this](const auto& entityy) {
             playlist_page_->playlist()->appendItem(entityy);
         });
         pushWidget(playlist_page);
@@ -898,7 +898,7 @@ void Xamp::playMusic(const MusicEntity& item) {
             ui.volumeSlider->setDisabled(true);
         }
 
-        Database::instance().addPlaybackHistory(item.album_id, item.artist_id, item.music_id);
+        Database::instance().AddPlaybackHistory(item.album_id, item.artist_id, item.music_id);
         playback_history_page_->refreshOnece();
 
         ui.seekSlider->setRange(0, int32_t(player_->GetDuration() * 1000));
@@ -948,13 +948,13 @@ void Xamp::play(const QModelIndex&, const PlayListEntity& item) {
 }
 
 void Xamp::onArtistIdChanged(const QString& artist, const QString& /*cover_id*/, int32_t artist_id) {
-    artist_info_page_->setArtistId(artist, Database::instance().getArtistCoverId(artist_id), artist_id);
+    artist_info_page_->setArtistId(artist, Database::instance().GetArtistCoverId(artist_id), artist_id);
     ui.currentView->setCurrentWidget(artist_info_page_);
 }
 
 void Xamp::addPlaylistItem(const PlayListEntity &entity) {
     auto playlist_view = playlist_page_->playlist();
-    Database::instance().addMusicToPlaylist(entity.music_id, playlist_view->playlistId());
+    Database::instance().AddMusicToPlaylist(entity.music_id, playlist_view->playlistId());
     playlist_view->appendItem(entity);
 }
 
@@ -998,7 +998,7 @@ void Xamp::addTable() {
 }
 
 void Xamp::initialPlaylist() {
-    Database::instance().forEachTable([this](auto table_id,
+    Database::instance().ForEachTable([this](auto table_id,
                                              auto /*table_index*/,
                                              auto playlist_id,
                                              const auto &name) {
@@ -1011,7 +1011,7 @@ void Xamp::initialPlaylist() {
         if (!playlist_page_) {
             playlist_page_ = newPlaylist(playlist_id);
             playlist_page_->playlist()->setPlaylistId(playlist_id);
-            Database::instance().forEachPlaylistMusic(playlist_id, [this](const auto& entityy) {
+            Database::instance().ForEachPlaylistMusic(playlist_id, [this](const auto& entityy) {
                 playlist_page_->playlist()->appendItem(entityy);
             });
             return;
@@ -1020,7 +1020,7 @@ void Xamp::initialPlaylist() {
         if (playlist_page_->playlist()->playlistId() != playlist_id) {
             playlist_page_ = newPlaylist(playlist_id);
             playlist_page_->playlist()->setPlaylistId(playlist_id);
-            Database::instance().forEachPlaylistMusic(playlist_id, [this](const auto& entityy) {
+            Database::instance().ForEachPlaylistMusic(playlist_id, [this](const auto& entityy) {
                 playlist_page_->playlist()->appendItem(entityy);
             });
         }
@@ -1028,12 +1028,12 @@ void Xamp::initialPlaylist() {
 
     if (!playlist_page_) {
         int32_t playlist_id = 1;
-        if (!Database::instance().isPlaylistExist(playlist_id)) {
-            playlist_id = Database::instance().addPlaylist(Q_UTF8(""), 0);
+        if (!Database::instance().IsPlaylistExist(playlist_id)) {
+            playlist_id = Database::instance().AddPlaylist(Q_UTF8(""), 0);
         }
         playlist_page_ = newPlaylist(playlist_id);
         playlist_page_->playlist()->setPlaylistId(playlist_id);
-        Database::instance().forEachPlaylistMusic(playlist_id, [this](const auto& entityy) {
+        Database::instance().ForEachPlaylistMusic(playlist_id, [this](const auto& entityy) {
             playlist_page_->playlist()->appendItem(entityy);
         });
     }
@@ -1076,7 +1076,7 @@ void Xamp::initialPlaylist() {
 
     (void)QObject::connect(&mbc_, &MusicBrainzClient::finished,
                             [this](auto artist_id, auto discogs_artist_id) {
-                                Database::instance().updateDiscogsArtistId(artist_id, discogs_artist_id);
+                                Database::instance().UpdateDiscogsArtistId(artist_id, discogs_artist_id);
                                 if (!discogs_artist_id.isEmpty()) {
                                     discogs_.searchArtistId(artist_id, discogs_artist_id);
                                 }
@@ -1093,7 +1093,7 @@ void Xamp::initialPlaylist() {
                             &DiscogsClient::downloadImageFinished,
                             [](auto artist_id, auto image) {
                                 auto cover_id = Singleton<PixmapCache>::Get().Add(image);
-                                Database::instance().updateArtistCoverId(artist_id, cover_id);
+                                Database::instance().UpdateArtistCoverId(artist_id, cover_id);
                                 XAMP_LOG_DEBUG("Save artist id: {} image, cover id : {}", artist_id, cover_id.toStdString());
                             });
 
@@ -1220,7 +1220,7 @@ void Xamp::readFingerprint(const QModelIndex&, const PlayListEntity& item) {
 
         fingerprint.append(reinterpret_cast<char const *>(fingerprint_result.data()),
                            static_cast<int32_t>(fingerprint_result.size()));
-        Database::instance().updateMusicFingerprint(item.music_id, fingerprint_info.fingerprint);
+        Database::instance().UpdateMusicFingerprint(item.music_id, fingerprint_info.fingerprint);
         fingerprint_info.duration = static_cast<int32_t>(duration);
     } catch (...) {
         return;
@@ -1255,7 +1255,7 @@ PlyalistPage* Xamp::newPlaylist(int32_t playlist_id) {
 
     (void)QObject::connect(playlist_page->playlist(), &PlayListTableView::removeItems,
                             [](auto playlist_id, const auto& select_music_ids) {
-                                IgnoreSqlError(Database::instance().removePlaylistMusic(playlist_id, select_music_ids))
+                                IgnoreSqlError(Database::instance().RemovePlaylistMusic(playlist_id, select_music_ids))
                             });
 
     (void)QObject::connect(playlist_page->playlist(), &PlayListTableView::readFingerprint,

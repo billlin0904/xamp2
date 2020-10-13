@@ -26,6 +26,53 @@
 
 namespace xamp::base {
 
+class FunctionWrapper {
+    struct ImplBase {        
+        virtual ~ImplBase() = default;
+    	virtual void Call() = 0;
+    };
+	
+    std::unique_ptr<ImplBase> impl_;
+	
+    template <typename F>
+    struct ImplType final : ImplBase {        
+        ImplType(F&& f)
+    		: f_(std::move(f)) {	        
+        }
+    	
+        void Call() override {
+	        f_();
+        }
+
+    	F f_;
+    };
+	
+public:
+    template <typename F>
+    FunctionWrapper(F&& f)
+		: impl_(new ImplType<F>(std::move(f))) {	    
+    }
+	
+    void operator()() {
+	    impl_->Call();
+    }
+	
+    FunctionWrapper() = default;
+	
+    FunctionWrapper(FunctionWrapper&& other)
+		: impl_(std::move(other.impl_)) {	    
+    }
+	
+    FunctionWrapper& operator=(FunctionWrapper&& other) noexcept {
+        impl_ = std::move(other.impl_);
+        return *this;
+    }
+	
+    FunctionWrapper(const FunctionWrapper&) = delete;
+    FunctionWrapper(FunctionWrapper&) = delete;
+    FunctionWrapper& operator=(const FunctionWrapper&) = delete;
+};
+
 template <typename Type>
 class BoundedQueue final {
 public:
@@ -43,7 +90,7 @@ public:
             if (!lock) {
                 return false;
             }
-            queue_.push(std::move(task));
+            queue_.emplace(std::move(task));
         }
         notify_.notify_one();
         return true;
@@ -53,7 +100,7 @@ public:
     void Enqueue(U &&task) {        
         {
             std::lock_guard guard{ mutex_ };
-            queue_.push(std::move(task));
+            queue_.emplace(std::move(task));
         }
         notify_.notify_one();
     }
@@ -131,12 +178,17 @@ public:
         , affinity_mask_(affinity_mask)
         , index_(0)
         , max_thread_(max_thread) {
-        for (size_t i = 0; i < max_thread_; ++i) {
-            task_queues_.push_back(MakeAlign<BoundedQueue<TaskType>>(max_thread));
-        }
-        for (size_t i = 0; i < max_thread_; ++i) {
-            AddThread(static_cast<int32_t>(i));
-        }
+    	try {
+    	    for (size_t i = 0; i < max_thread_; ++i) {
+                task_queues_.push_back(MakeAlign<BoundedQueue<TaskType>>(max_thread));
+            }
+            for (size_t i = 0; i < max_thread_; ++i) {
+                AddThread(static_cast<int32_t>(i));
+            }	
+    	} catch (...) {
+    		is_stopped_ = true;
+    		throw;
+    	}        
     }    
 
     ~TaskScheduler() noexcept {
@@ -192,12 +244,13 @@ private:
 #else
             std::this_thread::sleep_for(std::chrono::milliseconds(900));
 #endif
-        	constexpr auto kTimeout = std::chrono::milliseconds(500);
+        	constexpr auto kTimeout = std::chrono::milliseconds(1000);
         	
             SetCurrentThreadName(i);
 
             for (;!is_stopped_;) {
                 TaskType task;
+            	auto got_task = false;
 
                 for (size_t n = 0; n != max_thread_; ++n) {
                     if (is_stopped_) {
@@ -206,11 +259,12 @@ private:
 
                     const auto index = (i + n) % max_thread_;
                     if (task_queues_.at(index)->TryDequeue(task)) {
+                    	got_task = true;
                         break;
                     }
                 }
 
-                if (!task) {
+                if (!got_task) {
                     if (task_queues_.at(i)->Dequeue(task, kTimeout)) {
                         XAMP_LOG_DEBUG("Thread {} weakup, active:{}.", i, active_thread_);
                         ++active_thread_;
@@ -268,17 +322,20 @@ public:
 private:
 	ThreadPool();
 	
-    using Task = std::function<void()>;
+	using Task = FunctionWrapper;
     TaskScheduler<Task> scheduler_;
 };
 
 template <typename F, typename ... Args>
-decltype(auto) ThreadPool::StartNew(F &&f, Args&&... args) {
+decltype(auto) ThreadPool::StartNew(F &&f, Args&&... args) {	
     using ReturnType = std::invoke_result_t<F, Args...>;
+	using PackagedTaskType = std::packaged_task<ReturnType()>;
 
-    auto task = std::make_shared<std::packaged_task<ReturnType()>>(
-        std::bind(std::forward<F>(f), std::forward<Args>(args)...)
-        );
+    auto task = std::make_shared<PackagedTaskType>(
+	    [Func = std::forward<F>(f)] {
+		    return Func();
+	    }
+    );
 
     auto future = task->get_future();
 

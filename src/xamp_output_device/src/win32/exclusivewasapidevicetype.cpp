@@ -29,7 +29,7 @@ std::optional<DeviceInfo> ExclusiveWasapiDeviceType::GetDefaultDeviceInfo() cons
 	if (hr == ERROR_NOT_FOUND) {
 		return std::nullopt;
 	}	
-	return helper::GetDeviceInfo(default_output_device, ExclusiveWasapiDeviceType::Id);
+	return helper::GetDeviceInfo(default_output_device, Id);
 }
 
 std::vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfo() const {
@@ -60,11 +60,11 @@ size_t ExclusiveWasapiDeviceType::GetDeviceCount() const {
 
 DeviceInfo ExclusiveWasapiDeviceType::GetDeviceInfo(uint32_t device) const {
 	auto itr = device_list_.begin();
-	std::advance(itr, device);
-	if (itr != device_list_.end()) {
-		return (*itr);
+	if (device >= GetDeviceCount()) {
+		throw DeviceNotFoundException();
 	}
-	throw DeviceNotFoundException();
+	std::advance(itr, device);
+	return (*itr);
 }
 
 std::vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfoList() const {
@@ -87,14 +87,14 @@ std::vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfoList() const {
 
 		HrIfFailledThrow(devices->Item(i, &device));
 
-		auto info = helper::GetDeviceInfo(device, ExclusiveWasapiDeviceType::Id);
+		auto info = helper::GetDeviceInfo(device, Id);
 
 		if (default_device_name == info.name) {
 			info.is_default_device = true;
 		}
 
 		XAMP_LOG_DEBUG("Get {} device {} property.", GetDescription(), ToUtf8String(info.name));
-		for (auto property : helper::GetDeviceProperty(device)) {
+		for (const auto& property : helper::GetDeviceProperty(device)) {
 			XAMP_LOG_DEBUG("{}: {}", property.first, ToUtf8String(property.second));
 		}
 

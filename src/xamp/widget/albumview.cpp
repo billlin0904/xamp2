@@ -13,6 +13,8 @@
 #include <QFuture>
 #include <QLabel>
 
+#include <metadata/taglibmetareader.h>
+
 #include <base/logger.h>
 
 #include <widget/appsettings.h>
@@ -373,7 +375,7 @@ AlbumView::AlbumView(QWidget* parent)
         page_->setPlaylistMusic(album_id);
         page_->setFixedSize(QSize(list_view_rect.size().width() - 10, height));
 
-        if (auto album_stats = Database::instance().getAlbumStats(album_id)) {
+        if (auto album_stats = Database::instance().GetAlbumStats(album_id)) {
             page_->setTracks(album_stats.value().tracks);
             page_->setTotalDuration(album_stats.value().durations);
         }
@@ -397,9 +399,9 @@ AlbumView::AlbumView(QWidget* parent)
             for(auto row = 0; row < count; row++) {
                 auto index = model()->index(row, 3);
                 auto album_id = getIndexValue(index, 3).toInt();
-                Database::instance().removeAlbum(album_id);
+                Database::instance().RemoveAlbum(album_id);
             }
-            Database::instance().removeAllArtist();
+            Database::instance().RemoveAllArtist();
             refreshOnece();
         };
 
@@ -412,7 +414,7 @@ AlbumView::AlbumView(QWidget* parent)
             action_map.addSeparator();
 
             action_map.addAction(tr("Remove select album"), [=]() {
-                Database::instance().removeAlbum(album_id);
+                Database::instance().RemoveAlbum(album_id);
                 refreshOnece();
             });
 
@@ -423,7 +425,7 @@ AlbumView::AlbumView(QWidget* parent)
             action_map.addSeparator();
 
             action_map.addAction(tr("Add album to playlist"), [=]() {
-                Database::instance().forEachAlbumMusic(album_id, [this](const auto& entity) {
+                Database::instance().ForEachAlbumMusic(album_id, [this](const auto& entity) {
                     emit addPlaylist(entity);
                 });
             });

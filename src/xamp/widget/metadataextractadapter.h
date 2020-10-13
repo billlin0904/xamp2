@@ -10,10 +10,10 @@
 #include <QObject>
 
 #include <base/metadata.h>
+#include <base/stopwatch.h>
 
 #include <metadata/metadatareader.h>
 #include <metadata/metadataextractadapter.h>
-#include <metadata/taglibmetareader.h>
 
 #include <widget/pixmapcache.h>
 
@@ -33,6 +33,8 @@ public:
 
 	~MetadataExtractAdapter() override;
 
+	void OnWalkFirst() override;
+		
     void OnWalk(const Path& path, Metadata metadata) override;
 
 	void OnWalkNext() override;
@@ -49,9 +51,10 @@ signals:
 	void readCompleted(std::vector<Metadata> enitiy);
 
 public:
-    static void ProcessMetadata(const std::vector<Metadata>& metadatas, PlayListTableView *playlist = nullptr);
+    static void ProcessMetadata(const std::vector<Metadata>& result, PlayListTableView *playlist = nullptr);
 	    
 private:
+	xamp::base::Stopwatch watch_;
     std::atomic<bool> cancel_;
     std::vector<Metadata> metadatas_;
 };

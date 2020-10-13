@@ -86,19 +86,19 @@ public:
         head_ = -1; size_ = 0;
     }
 
-    bool empty() const noexcept {
+    [[nodiscard]] bool empty() const noexcept {
         return size_ == 0;
     }
 
-    bool full() const noexcept {
+    [[nodiscard]] bool full() const noexcept {
         return size_ == data_.size();
     }
 
-    size_t capacity() const noexcept { 
+    [[nodiscard]] size_t capacity() const noexcept { 
         return data_.size();
     }
 
-    size_t size() const noexcept { 
+    [[nodiscard]] size_t size() const noexcept { 
         return size_;
     }
 
@@ -130,11 +130,11 @@ public:
         return data_[pos];
     }
 
-    const_iterator begin() const {
+    [[nodiscard]] const_iterator begin() const {
         return const_iterator(*this, first_pos(), empty());
     }
 
-    const_iterator end() const {
+    [[nodiscard]] const_iterator end() const {
         return const_iterator(*this, next_pos(), true);
     }
 
@@ -143,11 +143,11 @@ private:
     size_t size_ = 0;
     std::vector<T> data_;
 
-    size_t next_pos() const noexcept {
+    [[nodiscard]] size_t next_pos() const noexcept {
         return size_ == 0 ? 0 : (head_ + 1) % data_.size();
     }
 
-    size_t first_pos() const noexcept {
+    [[nodiscard]] size_t first_pos() const noexcept {
         return size_ == 0 ? 0 : (head_ + data_.size() - size_ + 1) % data_.size();
     }
 

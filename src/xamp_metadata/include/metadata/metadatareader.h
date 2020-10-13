@@ -29,6 +29,6 @@ protected:
     MetadataReader() = default;
 };
 
-XAMP_METADATA_API void FromPath(Path const & path, MetadataExtractAdapter* adapter, MetadataReader* reader);
+XAMP_METADATA_API void WalkPath(Path const & path, MetadataExtractAdapter* adapter, MetadataReader* reader);
 
 }

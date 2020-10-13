@@ -36,11 +36,11 @@ AlignPtr<Device> SharedWasapiDeviceType::MakeDevice(std::string const & device_i
 
 DeviceInfo SharedWasapiDeviceType::GetDeviceInfo(uint32_t device) const {
 	auto itr = device_list_.begin();
-	std::advance(itr, device);
-	if (itr != device_list_.end()) {
-		return (*itr);
+	if (device >= GetDeviceCount()) {
+		throw DeviceNotFoundException();
 	}
-	throw DeviceNotFoundException();
+	std::advance(itr, device);
+	return (*itr);
 }
 
 ID SharedWasapiDeviceType::GetTypeId() const {
@@ -66,7 +66,7 @@ std::optional<DeviceInfo> SharedWasapiDeviceType::GetDefaultDeviceInfo() const {
 	if (hr == ERROR_NOT_FOUND) {
 		return std::nullopt;
 	}
-	return helper::GetDeviceInfo(default_output_device, SharedWasapiDeviceType::Id);
+	return helper::GetDeviceInfo(default_output_device, Id);
 }
 
 std::vector<DeviceInfo> SharedWasapiDeviceType::GetDeviceInfoList() const {
@@ -89,10 +89,10 @@ std::vector<DeviceInfo> SharedWasapiDeviceType::GetDeviceInfoList() const {
 
 		HrIfFailledThrow(devices->Item(i, &device));
 
-		auto info = helper::GetDeviceInfo(device, SharedWasapiDeviceType::Id);
+		auto info = helper::GetDeviceInfo(device, Id);
 
 		XAMP_LOG_DEBUG("Get {} device {} property.", GetDescription(), ToUtf8String(info.name));
-		for (auto property : helper::GetDeviceProperty(device)) {
+		for (const auto& property : helper::GetDeviceProperty(device)) {
 			XAMP_LOG_DEBUG("{}: {}", property.first, ToUtf8String(property.second));
 		}
   

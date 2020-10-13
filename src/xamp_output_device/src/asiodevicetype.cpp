@@ -16,7 +16,7 @@
 namespace xamp::output_device {
 
 static std::string CLSIDToString(CLSID guid) {
-    std::array<char,40> output;
+    std::array<char, 40> output;
     snprintf(output.data(), output.size(),
 		"{%08X-%04hX-%04hX-%02X%02X-%02X%02X%02X%02X%02X%02X}",
 		guid.Data1,
@@ -51,11 +51,11 @@ size_t ASIODeviceType::GetDeviceCount() const {
 
 DeviceInfo ASIODeviceType::GetDeviceInfo(uint32_t device) const {
 	auto itr = device_list_.begin();
-	std::advance(itr, device);
-	if (itr != device_list_.end()) {
-		return (*itr).second;
+	if (device >= GetDeviceCount()) {
+		throw DeviceNotFoundException();
 	}
-	throw DeviceNotFoundException();
+	std::advance(itr, device);
+	return (*itr).second;
 }
 
 std::optional<DeviceInfo> ASIODeviceType::GetDefaultDeviceInfo() const {
@@ -76,7 +76,7 @@ std::vector<DeviceInfo> ASIODeviceType::GetDeviceInfo() const {
 }
 
 void ASIODeviceType::ScanNewDevice() {
-    constexpr auto MAX_PATH_LEN = 256;
+    constexpr auto kMaxPathLen = 256;
 
 	device_list_.clear();
 
@@ -86,8 +86,8 @@ void ASIODeviceType::ScanNewDevice() {
 	for (auto i = 0; i < num_device; ++i) {		
 		CLSID clsid{ 0 };
 		if (drivers.asioGetDriverCLSID(i, &clsid) == 0) {
-			char driver_name[MAX_PATH_LEN + 1]{};
-			drivers.asioGetDriverName(i, driver_name, MAX_PATH_LEN);
+			char driver_name[kMaxPathLen + 1]{};
+			drivers.asioGetDriverName(i, driver_name, kMaxPathLen);
 			auto device_id = CLSIDToString(clsid);
 			if (device_list_.find(device_id) != device_list_.end()) {
 				continue;

@@ -27,7 +27,7 @@ class SqlException : public xamp::base::Exception {
 public:
     explicit SqlException(QSqlError error);
 
-    const char* what() const noexcept override;
+    virtual const char* what() const noexcept override;
 };
 
 #define IgnoreSqlError(expr) \
@@ -58,50 +58,50 @@ public:
 
     void flush();
 
-    int32_t addTable(const QString& name, int32_t table_index, int32_t playlist_id);
+    int32_t AddTable(const QString& name, int32_t table_index, int32_t playlist_id);
 
-    int32_t addPlaylist(const QString& name, int32_t playlistIndex);
+    int32_t AddPlaylist(const QString& name, int32_t playlistIndex);
 
-    void setAlbumCover(int32_t album_id, const QString& album, const QString& cover_id);
+    void SetAlbumCover(int32_t album_id, const QString& album, const QString& cover_id);
 
-    std::optional<AlbumStats> getAlbumStats(int32_t album_id) const;
+    std::optional<AlbumStats> GetAlbumStats(int32_t album_id) const;
 
-    void addTablePlaylist(int32_t tableId, int32_t playlist_id);
+    void AddTablePlaylist(int32_t tableId, int32_t playlist_id);
 
-    int32_t addOrUpdateMusic(const xamp::base::Metadata& medata, int32_t playlist_id);
+    int32_t AddOrUpdateMusic(const xamp::base::Metadata& medata, int32_t playlist_id);
 
-    int32_t addOrUpdateArtist(const QString& artist);
+    int32_t AddOrUpdateArtist(const QString& artist);
 
-    void updateDiscogsArtistId(int32_t artist_id, const QString& discogs_artist_id);
+    void UpdateDiscogsArtistId(int32_t artist_id, const QString& discogs_artist_id);
 
-    void updateArtistCoverId(int32_t artist_id, const QString& coverId);
+    void UpdateArtistCoverId(int32_t artist_id, const QString& coverId);
 
-    void updateArtistMbid(int32_t artist_id, const QString& mbid);
+    void UpdateArtistMbid(int32_t artist_id, const QString& mbid);
 
-    void updateMusicFingerprint(int32_t music_id, const QString& fingerprint);
+    void UpdateMusicFingerprint(int32_t music_id, const QString& fingerprint);
 
-    void updateMusicRating(int32_t music_id, int32_t rating);
+    void UpdateMusicRating(int32_t music_id, int32_t rating);
 
-    int32_t addOrUpdateAlbum(const QString& album, int32_t artist_id);
+    int32_t AddOrUpdateAlbum(const QString& album, int32_t artist_id);
 
-    void addOrUpdateAlbumArtist(int32_t album_id, int32_t artist_id) const;
+    void AddOrUpdateAlbumArtist(int32_t album_id, int32_t artist_id) const;
 
-    void addOrUpdateAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id);
+    void AddOrUpdateAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id);
 
-    void addPlaybackHistory(int32_t album_id, int32_t artist_id, int32_t music_id);
+    static void AddPlaybackHistory(int32_t album_id, int32_t artist_id, int32_t music_id);
 
-    void deleteOldestHistory();
+    void DeleteOldestHistory();
 
-    QString getAlbumCoverId(int32_t album_id) const;
+    QString GetAlbumCoverId(int32_t album_id) const;
 
-    QString getArtistCoverId(int32_t artist_id) const;
+    QString GetArtistCoverId(int32_t artist_id) const;
 
-    void setTableName(int32_t table_id, const QString &name);
+    void SetTableName(int32_t table_id, const QString &name);
 
-    void removeAlbum(int32_t album_id);
+    void RemoveAlbum(int32_t album_id);
 
     template <typename Function>
-    void forEachTable(Function &&fun) {
+    void ForEachTable(Function &&fun) {
         QSqlTableModel model(nullptr, db_);
 
         model.setTable(Q_UTF8("tables"));
@@ -118,7 +118,7 @@ public:
     }
 
     template <typename Function>
-    void forEachAlbumMusic(int32_t album_id, Function &&fun) {
+    void ForEachAlbumMusic(int32_t album_id, Function &&fun) {
         QSqlQuery query(Q_UTF8(R"(
 SELECT
     albumMusic.albumId,
@@ -164,7 +164,7 @@ WHERE
     }
 
     template <typename Function>
-    void forEachPlaylistMusic(int32_t playlist_id, Function &&fun) {
+    void ForEachPlaylistMusic(int32_t playlist_id, Function &&fun) {
         QSqlQuery query;
 
         query.prepare(Q_UTF8(R"(
@@ -215,35 +215,35 @@ WHERE
         }
     }
 
-    void removeAllArtist();
+    void RemoveAllArtist();
 
-    void removeArtistId(int32_t artist_id);
+    void RemoveArtistId(int32_t artist_id);
 
-    void removeMusic(int32_t music_id);
+    void RemoveMusic(int32_t music_id);
 
-    void removePlaylistMusic(int32_t playlist_id, const QVector<int>& select_music_ids);
+    void RemovePlaylistMusic(int32_t playlist_id, const QVector<int>& select_music_ids);
 
-    int32_t findTablePlaylistId(int32_t table_id) const;
+    int32_t FindTablePlaylistId(int32_t table_id) const;
 
-    bool isPlaylistExist(int32_t playlist_id) const;
+    bool IsPlaylistExist(int32_t playlist_id) const;
 
-    void addMusicToPlaylist(int32_t music_id, int32_t playlist_id) const;
+    void AddMusicToPlaylist(int32_t music_id, int32_t playlist_id) const;
 private:
     Database();
 
-    void removeAlbumArtist(int32_t album_id);
+    void RemoveAlbumArtist(int32_t album_id);
 
-    void removePlaybackHistory(int32_t music_id);
+    void RemovePlaybackHistory(int32_t music_id);
 
-    void removeAlbumMusicId(int32_t music_id);
+    void RemoveAlbumMusicId(int32_t music_id);
 
-    void removePlaylistMusics(int32_t music_id);
+    void RemovePlaylistMusics(int32_t music_id);
 
-    void removeAlbumArtistId(int32_t artist_id);
+    void RemoveAlbumArtistId(int32_t artist_id);
 
-    void addAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id) const;
+    void AddAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id) const;
 
-    void createTableIfNotExist();
+    void CreateTableIfNotExist();
 
     QSqlDatabase db_;
 };
