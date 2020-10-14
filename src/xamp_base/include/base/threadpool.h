@@ -32,14 +32,14 @@ class FunctionWrapper {
     	virtual void Call() = 0;
     };
 	
-    std::unique_ptr<ImplBase> impl_;
+    AlignPtr<ImplBase> impl_;
 	
     template <typename F>
     struct ImplType final : ImplBase {        
         ImplType(F&& f)
     		: f_(std::move(f)) {	        
         }
-    	
+
         void Call() override {
 	        f_();
         }
@@ -50,7 +50,7 @@ class FunctionWrapper {
 public:
     template <typename F>
     FunctionWrapper(F&& f)
-		: impl_(new ImplType<F>(std::move(f))) {	    
+        : impl_(MakeAlign<ImplBase, ImplType<F>>(std::move(f))) {
     }
 	
     void operator()() {
@@ -68,9 +68,7 @@ public:
         return *this;
     }
 	
-    FunctionWrapper(const FunctionWrapper&) = delete;
-    FunctionWrapper(FunctionWrapper&) = delete;
-    FunctionWrapper& operator=(const FunctionWrapper&) = delete;
+    XAMP_DISABLE_COPY(FunctionWrapper)
 };
 
 template <typename Type>
@@ -332,8 +330,11 @@ decltype(auto) ThreadPool::StartNew(F &&f, Args&&... args) {
 	using PackagedTaskType = std::packaged_task<ReturnType()>;
 
     auto task = std::make_shared<PackagedTaskType>(
-	    [Func = std::forward<F>(f)] {
-		    return Func();
+        [
+            Func = std::forward<F>(f),
+            Args = std::make_tuple(std::forward<Args>(args)...)
+        ] {
+            return std::apply(Func, Args);
 	    }
     );
 

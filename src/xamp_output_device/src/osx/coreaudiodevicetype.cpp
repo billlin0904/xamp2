@@ -48,7 +48,12 @@ size_t CoreAudioDeviceType::GetDeviceCount() const {
 }
 
 DeviceInfo CoreAudioDeviceType::GetDeviceInfo(uint32_t device) const {
-    return device_list_[device];
+    auto itr = device_list_.begin();
+    if (device >= GetDeviceCount()) {
+        throw DeviceNotFoundException();
+    }
+    std::advance(itr, device);
+    return (*itr);
 }
 
 ID CoreAudioDeviceType::GetTypeId() const {

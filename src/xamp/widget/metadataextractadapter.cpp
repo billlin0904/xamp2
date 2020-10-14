@@ -3,9 +3,12 @@
 #include <QtConcurrent>
 #include <QFuture>
 
-#include <execution>
-
+#include <base/base.h>
 #include <metadata/taglibmetareader.h>
+
+#ifdef XAMP_OS_WIN
+#include <execution>
+#endif
 
 #include "thememanager.h"
 #include <widget/toast.h>
@@ -135,7 +138,11 @@ void MetadataExtractAdapter::OnWalkNext() {
     if (metadatas_.empty()) {
         return;
     }
+    #ifdef XAMP_OS_WIN
     std::stable_sort(std::execution::par,
+    #else
+    std::stable_sort(
+    #endif
         metadatas_.begin(), metadatas_.end(), [](const auto& first, const auto& last) {
             return first.track < last.track;
         });
