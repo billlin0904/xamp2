@@ -29,4 +29,27 @@ std::string ToUtf8String(std::wstring const & utf16) {
 	return utf8;
 }
 
+std::string FormatBytes(size_t bytes) noexcept {
+	static constexpr std::array<std::string_view, 5> uint_base {
+		"KB", "MB", "GB", "TB"
+	};
+
+	auto uint = uint_base.begin();
+	
+	std::ostringstream ostr;
+	
+	auto num = static_cast<double>(bytes);
+
+	if (num < 1024.0) {
+		ostr << std::setprecision(2) << num << "B";
+	} else {
+		while(num >= 1024.0 && uint != uint_base.end()) {
+			num /= 1024.0;
+			++uint;
+		}	
+		ostr << std::setprecision(2) << num << *uint;
+	}
+    return ostr.str();
+}
+
 }

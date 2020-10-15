@@ -26,8 +26,9 @@ public:
 	}
 
 private:
-	std::chrono::high_resolution_clock clock_;
-	std::chrono::high_resolution_clock::time_point start_time_;
+	using Clock = std::chrono::high_resolution_clock;
+	Clock clock_;
+	Clock::time_point start_time_;
 };
 
 }

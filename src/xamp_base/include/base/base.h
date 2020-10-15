@@ -9,6 +9,8 @@
 #include <cstdint>
 #include <cstddef>
 
+#include <new>
+
 #ifdef _WIN32
 #ifdef BASE_API_EXPORTS
     #define XAMP_BASE_API __declspec(dllexport)
@@ -112,11 +114,10 @@ static_assert(std::is_trivially_destructible_v<t>);\
 struct Name __VA_ARGS__;\
 XAMP_ENFORCE_TRIVIAL(Name);
 
-// For compiler!
 namespace xamp::base {
 
 // Avoid cache-pollution padding size
-inline constexpr size_t kCacheAlignSize{ 64 };
+inline constexpr size_t kCacheAlignSize{ std::hardware_constructive_interference_size };
 
 // Memory allocate aligned size
 // Assume we need 32-byte alignment for AVX instructions.

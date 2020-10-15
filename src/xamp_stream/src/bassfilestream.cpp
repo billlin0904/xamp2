@@ -124,13 +124,13 @@ public:
         info_ = BASS_CHANNELINFO{};
     }
 
-    bool IsDsdFile() const noexcept {
+    [[nodiscard]] bool IsDsdFile() const noexcept {
         assert(stream_.is_valid());
         return info_.ctype == BASS_CTYPE_STREAM_DSD;
     }
 
     uint32_t GetSamples(void *buffer, uint32_t length) const noexcept {
-        return uint32_t(InternalGetSamples(buffer, length * GetSampleSize()) / GetSampleSize());
+        return static_cast<uint32_t>(InternalGetSamples(buffer, length * GetSampleSize()) / GetSampleSize());
     }
 
     double GetDuration() const {
@@ -211,7 +211,7 @@ private:
         if (bytes_read == kBassError) {
             return 0;
         }
-        return uint32_t(bytes_read);
+        return static_cast<uint32_t>(bytes_read);
     }
 
     bool enable_file_mapped_;
