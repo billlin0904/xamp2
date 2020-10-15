@@ -30,7 +30,7 @@ std::string ToUtf8String(std::wstring const & utf16) {
 }
 
 std::string FormatBytes(size_t bytes) noexcept {
-	static constexpr std::array<std::string_view, 5> uint_base {
+	static constexpr std::array<std::string_view, 4> uint_base {
 		"KB", "MB", "GB", "TB"
 	};
 
@@ -43,10 +43,15 @@ std::string FormatBytes(size_t bytes) noexcept {
 	if (num < 1024.0) {
 		ostr << std::setprecision(2) << num << "B";
 	} else {
-		while(num >= 1024.0 && uint != uint_base.end()) {
-			num /= 1024.0;
-			++uint;
-		}	
+		while (uint != uint_base.end()) {			
+			num /= 1024.0;		
+			if (num >= 1024.0) {
+				++uint;
+			}
+			else {
+				break;
+			}
+		}		
 		ostr << std::setprecision(2) << num << *uint;
 	}
     return ostr.str();

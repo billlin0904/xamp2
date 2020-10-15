@@ -24,12 +24,6 @@ public:
 		: refcount_(0) {
 	}
 
-#ifdef _DEBUG
-	virtual ~UnknownImpl() {
-		assert(refcount_ == 0);
-	}
-#endif
-
 	ULONG STDMETHODCALLTYPE AddRef() override {
 		return ::InterlockedIncrement(&refcount_);
 	}

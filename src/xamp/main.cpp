@@ -10,6 +10,7 @@
 #include <base/platform_thread.h>
 #include <base/threadpool.h>
 #include <base/vmmemlock.h>
+#include <base/str_utilts.h>
 
 #include <metadata/metadatareader.h>
 
@@ -87,7 +88,7 @@ static void initWorkingSetSiz() {
         XAMP_LOG_DEBUG("EnableLockMemPrivilege success.");
 
         if (ExterndProcessWorkingSetSize(kWorkingSetSize)) {
-            XAMP_LOG_DEBUG("ExterndProcessWorkingSetSize {} success.", kWorkingSetSize);
+            XAMP_LOG_DEBUG("ExterndProcessWorkingSetSize {} success.", FormatBytes(kWorkingSetSize));
         }
     }
 }
@@ -134,7 +135,6 @@ static int excute(int argc, char* argv[]) {
         QMessageBox::critical(nullptr,
                               Q_UTF8("Load dll failure."),
                               QString::fromStdString(e.GetErrorMessage()));
-        return -1;
     }
 
     XAMP_LOG_DEBUG("Preload dll success.");

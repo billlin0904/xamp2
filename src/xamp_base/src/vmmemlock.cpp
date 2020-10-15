@@ -4,6 +4,7 @@
 #else
 #include <sys/mman.h>
 #endif
+#include <base/str_utilts.h>
 #include <base/stacktrace.h>
 #include <base/exception.h>
 #include <base/platform_thread.h>
@@ -29,7 +30,7 @@ void VmMemLock::Lock(void* address, size_t size) {
 	address_ = address;
 	size_ = size;
 
-	XAMP_LOG_DEBUG("VmMemLock lock address: 0x{:08x} size: {}.", int64_t(address_), size_);
+	XAMP_LOG_DEBUG("VmMemLock lock address: 0x{:08x} size: {}.", int64_t(address_), FormatBytes(size_));
 }
 
 void VmMemLock::UnLock() noexcept {
@@ -37,7 +38,7 @@ void VmMemLock::UnLock() noexcept {
 		if (!::VirtualUnlock(address_, size_)) {
 			XAMP_LOG_DEBUG("VirtualUnlock return failure! error:{} {}.", ::GetLastError(), StackTrace{}.CaptureStack());
 		}
-		XAMP_LOG_DEBUG("VmMemLock unlock address: 0x{:08x} size: {}.", int64_t(address_), size_);
+		XAMP_LOG_DEBUG("VmMemLock unlock address: 0x{:08x} size: {}.", int64_t(address_), FormatBytes(size_));
 	}
 	address_ = nullptr;
 	size_ = 0;

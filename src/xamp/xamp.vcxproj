@@ -70,7 +70,7 @@
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
       <AdditionalLibraryDirectories>$(QTDIR)\lib;./x64/Debug/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>qtmaind.lib;Qt5Cored.lib;Qt5Guid.lib;Qt5Sqld.lib;Qt5Widgetsd.lib;Qt5WinExtrasd.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;Qt5Networkd.lib;Qt5Concurrentd.lib;Qt5Chartsd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>qtmaind.lib;Qt5Cored.lib;Qt5Guid.lib;Qt5Sqld.lib;Qt5Widgetsd.lib;Qt5WinExtrasd.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;Qt5Networkd.lib;Qt5Concurrentd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <QtMoc>
       <OutputFile>.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</OutputFile>
