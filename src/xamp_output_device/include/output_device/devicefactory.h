@@ -27,8 +27,6 @@ using namespace base;
 
 class XAMP_OUTPUT_DEVICE_API DeviceManager final {
 public:
-    friend class Singleton<DeviceManager>;
-	
     ~DeviceManager();
 
     XAMP_DISABLE_COPY(DeviceManager)
@@ -56,6 +54,8 @@ public:
     bool IsSupportASIO() const noexcept;
 
     bool IsDeviceTypeExist(ID const& id) const noexcept;
+
+    static DeviceManager& Default();
 
     static bool IsExclusiveDevice(DeviceInfo const &info) noexcept;
 

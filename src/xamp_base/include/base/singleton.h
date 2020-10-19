@@ -25,7 +25,7 @@ public:
 };
 
 template <typename T>
-XAMP_ALWAYS_INLINE T& Singleton<T>::Get() {
+T& Singleton<T>::Get() {
 	static T instance;
 	return instance;
 }

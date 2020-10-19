@@ -1,7 +1,6 @@
 #include <QFileInfo>
 #include <QDir>
 #include <QSet>
-#include <QtConcurrent>
 #include <QFutureWatcher>
 
 #include <widget/metadataextractadapter.h>

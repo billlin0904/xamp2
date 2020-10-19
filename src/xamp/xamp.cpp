@@ -93,7 +93,7 @@ void Xamp::initial() {
     initialPlaylist();
     initialShortcut();
     setCover(nullptr);
-    Singleton<DeviceManager>::Get().RegisterDeviceListener(player_);
+    DeviceManager::Default().RegisterDeviceListener(player_);
     createTrayIcon();
     setDefaultStyle();    
 }
@@ -279,7 +279,7 @@ void Xamp::initialDeviceList() {
     const auto device_type_id = AppSettings::getID(kAppSettingDeviceType);
     const auto device_id = AppSettings::getValueAsString(kAppSettingDeviceId).toStdString();
 
-    Singleton<DeviceManager>::Get().ForEach([&](const auto &device_type) {
+    DeviceManager::Default().ForEach([&](const auto &device_type) {
         device_type->ScanNewDevice();
 
         const auto device_info_list = device_type->GetDeviceInfo();

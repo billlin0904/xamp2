@@ -1,5 +1,6 @@
 #include <array>
 
+#include <base/threadpool.h>
 #include <base/align_ptr.h>
 #include <widget/image_utiltis.h>
 
@@ -349,17 +350,20 @@ void Stackblur::blur(uint8_t* src,
 		stackblurJob(src, width, height, radius, 1, 0, 2, stack.get());
 	}
 	else {
-		auto blurJob = [div, &stack, src, width, height, radius, cores](int step) {
-			QList<QFuture<void>> tasks;
+		auto blurJob = [div, &stack, src, width, height, radius, cores](int step) {			
+			using xamp::base::ThreadPool;
+			std::vector<std::shared_future<void>> tasks;
 			tasks.reserve(cores);
+
 			for (auto i = 0; i < cores; i++) {
 				auto buffer = stack.get() + div * 4 * i;
-				tasks.append(QtConcurrent::run([i, div, buffer, src, width, height, radius, cores, step]() {
+				tasks.push_back(ThreadPool::Default().StartNew([i, div, buffer, src, width, height, radius, cores, step]() {
 					stackblurJob(src, width, height, radius, cores, i, step, buffer);
 					}));
 			}
+
 			for (auto& task : tasks) {
-				task.waitForFinished();
+				task.get();
 			}
 		};
 

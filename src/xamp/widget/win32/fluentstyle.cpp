@@ -94,19 +94,48 @@ void setBlurMaterial(HWND hWnd, bool enable) {
 	};
 
 	if (SetWindowCompositionAttribute) {
-		ACCENT_POLICY accent = { enable ? ACCENT_ENABLE_BLURBEHIND : ACCENT_DISABLED, 0, 0, 0 };
+		ACCENT_POLICY policy = { enable ? ACCENT_ENABLE_BLURBEHIND : ACCENT_DISABLED, 0, 0, 0 };
 		WINDOWCOMPOSITIONATTRIBDATA data;
 		data.Attrib = WCA_ACCENT_POLICY;
-		data.pvData = &accent;
-		data.cbData = sizeof(accent);
+		data.pvData = &policy;
+		data.cbData = sizeof(policy);
 		SetWindowCompositionAttribute(hWnd, &data);
 	}
 }
 
 namespace FluentStyle {
 void setBlurMaterial(const QWidget* widget, bool enable) {
+	if (enable) {
+		auto hwnd = reinterpret_cast<HWND>(widget->winId());
+		setBlurMaterial(hwnd, enable);
+	}	
+}
+
+void setWinStyle(const QWidget* widget) {
 	auto hwnd = reinterpret_cast<HWND>(widget->winId());
-	setBlurMaterial(hwnd, enable);
+
+	BOOL is_dwm_enable = false;
+	::DwmIsCompositionEnabled(&is_dwm_enable);
+
+	if (is_dwm_enable) {
+		DWMNCRENDERINGPOLICY ncrp = DWMNCRP_ENABLED;
+		::DwmSetWindowAttribute(hwnd, DWMWA_NCRENDERING_POLICY, &ncrp, sizeof(ncrp));
+
+		MARGINS borderless = { 0, 0, 0, 0 };
+		::DwmExtendFrameIntoClientArea(hwnd, &borderless);
+
+		DWM_PRESENT_PARAMETERS dpp{ 0 };
+		dpp.cbSize = sizeof(dpp);
+		dpp.fQueue = TRUE;
+		dpp.cBuffer = 2;
+		dpp.fUseSourceRate = FALSE;
+		dpp.cRefreshesPerFrame = 1;
+		dpp.eSampling = DWM_SOURCE_FRAME_SAMPLING_POINT;
+		::DwmSetPresentParameters(hwnd, &dpp);
+	}
+
+	auto style = ::GetWindowLong(hwnd, GWL_STYLE);
+	::SetWindowLong(hwnd, GWL_STYLE, style | WS_MAXIMIZEBOX | WS_THICKFRAME | WS_CAPTION);
 }
 }
 

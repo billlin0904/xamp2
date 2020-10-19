@@ -12,6 +12,7 @@
 
 #include <base/base.h>
 #include <base/memory.h>
+#include <base/threadpool.h>
 #include <base/waitabletimer.h>
 
 namespace xamp::base {
@@ -34,7 +35,7 @@ public:
 
 private:
 	std::atomic<bool> is_stop_;
-    std::thread thread_;
+	std::shared_future<void> thread_;
 	WaitableTimer timer_;
 };
 

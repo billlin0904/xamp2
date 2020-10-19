@@ -1,14 +1,8 @@
-#include <cstdio>
-
-#include <stack>
-#include <deque>
-
 #include <base/logger.h>
 #include <base/scopeguard.h>
 #include <base/dll.h>
 #include <base/stacktrace.h>
 #include <base/platform_thread.h>
-#include <base/threadpool.h>
 #include <base/vmmemlock.h>
 #include <base/str_utilts.h>
 
@@ -16,8 +10,6 @@
 
 #include <player/audio_player.h>
 #include <player/soxresampler.h>
-
-#include <output_device/devicefactory.h>
 
 #include <widget/qdebugsink.h>
 
@@ -72,9 +64,6 @@ static void loadSettings() {
         XAMP_LOG_DEBUG("Load locale lang file: {}.",
             AppSettings::getValueAsString(kAppSettingLang).toStdString());
     }
-
-    DeviceManager::PreventSleep(AppSettings::getValueAsBool(kAppSettingPreventSleep));
-    XAMP_LOG_DEBUG("PreventSleep success.");
 }
 
 #ifdef Q_OS_WIN32
@@ -83,7 +72,7 @@ static void initWorkingSetSiz() {
     // Everything the SetProcessWorkingSetSize says is true. You should only lock what you need to lock.
     // And you need to lock everything you touch from the realtime thread. Because if the realtime thread
     // touches something that was paged out, you glitch.
-    constexpr size_t kWorkingSetSize = 1000 * 1024 * 1024;
+    constexpr size_t kWorkingSetSize = 1024 * 1024 * 1024;
     if (EnablePrivilege("SeLockMemoryPrivilege", true)) {
         XAMP_LOG_DEBUG("EnableLockMemPrivilege success.");
 
@@ -129,7 +118,7 @@ static int excute(int argc, char* argv[]) {
     QApplication app(argc, argv);
 
     try {
-        AudioPlayer::LoadLib();
+        AudioPlayer::Initital();
     }
     catch (const Exception& e) {
         QMessageBox::critical(nullptr,
@@ -143,9 +132,13 @@ static int excute(int argc, char* argv[]) {
     if (!singleApp.attach(QCoreApplication::arguments())) {
         return -1;
     }
-
     XAMP_LOG_DEBUG("attach app success.");
-    XAMP_LOG_DEBUG("PixmapCache cache size:{}", xamp::base::Singleton<PixmapCache>::Get().GetImageSize());
+
+    (void)Singleton<PixmapCache>::Get();
+    XAMP_LOG_DEBUG("PixmapCache init success.");
+
+    XAMP_LOG_DEBUG("PixmapCache cache size:{}", 
+        FormatBytes(Singleton<PixmapCache>::Get().GetImageSize()));
 
     try {
         Database::instance().open(Q_UTF8("xamp.db"));
@@ -159,10 +152,7 @@ static int excute(int argc, char* argv[]) {
 
     loadSettings();    
 
-    app.setStyle(new DarkStyle());
-
-    (void)Singleton<DeviceManager>::Get();
-    XAMP_LOG_DEBUG("ThreadPool init success.");
+    app.setStyle(new DarkStyle());    
 
     Xamp win;
     win.show();

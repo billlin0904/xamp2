@@ -16,7 +16,7 @@ Timer::~Timer() {
 void Timer::Start(std::chrono::milliseconds timeout, TimerCallback&& callback) {
 	is_stop_ = false;
 	timer_.SetTimeout(timeout);
-    thread_ = std::thread([this, timeout_routine = std::forward<TimerCallback>(callback)]() {
+    thread_ = ThreadPool::Default().StartNew([this, timeout_routine = std::forward<TimerCallback>(callback)]() {
 		SetCurrentThreadAffinity();
 		SetThreadName("Timer");
 
@@ -31,9 +31,9 @@ void Timer::Start(std::chrono::milliseconds timeout, TimerCallback&& callback) {
 
 void Timer::Stop() {
     is_stop_ = true;
-    if (thread_.joinable()) {
-        thread_.join();
-    }
+	if (thread_.valid()) {
+		thread_.get();
+	}	
 }
 
 bool Timer::IsStarted() const {

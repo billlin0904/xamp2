@@ -49,7 +49,7 @@ public:
 
     explicit AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter);
 
-    static void LoadLib();
+    static void Initital();
 
     void Open(std::wstring const& file_path, std::wstring const& file_ext, const DeviceInfo& device_info);
 

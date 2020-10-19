@@ -2,6 +2,7 @@
 
 #include <chromaprint.h>
 
+#include <base/singleton.h>
 #include <base/memory.h>
 #include <base/logger.h>
 #include <base/base.h>
@@ -15,11 +16,16 @@ namespace xamp::player {
 
 class ChromaprintLib final {
 public:
+	friend class Singleton<ChromaprintLib>;
+
+	XAMP_DISABLE_COPY(ChromaprintLib)
+
+private:
 	ChromaprintLib() try
 #ifdef XAMP_OS_WIN
 		: module_(LoadModule("chromaprint.dll"))
 #else
-        : module_(LoadModule("libchromaprint.dylib"))
+		: module_(LoadModule("libchromaprint.dylib"))
 #endif
 		, chromaprint_new(module_, "chromaprint_new")
 		, chromaprint_free(module_, "chromaprint_free")
@@ -30,18 +36,10 @@ public:
 		, chromaprint_encode_fingerprint(module_, "chromaprint_encode_fingerprint")
 		, chromaprint_dealloc(module_, "chromaprint_dealloc") {
 	}
-	catch (Exception const & e) {
+	catch (Exception const& e) {
 		XAMP_LOG_ERROR("{}", e.GetErrorMessage());
 	}
 
-	static XAMP_ALWAYS_INLINE ChromaprintLib& Instance() {
-		static ChromaprintLib lib;
-		return lib;
-	}
-
-	XAMP_DISABLE_COPY(ChromaprintLib)
-
-private:
 	ModuleHandle module_;
 
 public:
@@ -62,19 +60,19 @@ public:
 	}
 
     void Start(uint32_t sample_rate, uint32_t num_channels, uint32_t num_buffer_frames) {
-        context_.reset(ChromaprintLib::Instance().chromaprint_new(algorithm_));
+        context_.reset(Singleton<ChromaprintLib>::Get().chromaprint_new(algorithm_));
         buffer_.resize(static_cast<size_t>(num_buffer_frames));
-        ChromaprintLib::Instance().chromaprint_start(context_.get(),
+		Singleton<ChromaprintLib>::Get().chromaprint_start(context_.get(),
                                                      static_cast<int32_t>(sample_rate),
                                                      static_cast<int32_t>(num_channels));
 	}
 
     int32_t Feed(int16_t const * data, uint32_t size) const {
-        return ChromaprintLib::Instance().chromaprint_feed(context_.get(), data, static_cast<int32_t>(size));
+        return Singleton<ChromaprintLib>::Get().chromaprint_feed(context_.get(), data, static_cast<int32_t>(size));
 	}
 
     int32_t Finish() const {
-		return ChromaprintLib::Instance().chromaprint_finish(context_.get());
+		return Singleton<ChromaprintLib>::Get().chromaprint_finish(context_.get());
 	}	
 
 	std::vector<uint8_t> GetFingerprint() const {
@@ -91,7 +89,7 @@ public:
         int32_t encoded_size = 0;
 
 		try {			
-			ChromaprintLib::Instance().chromaprint_encode_fingerprint(fprint,
+			Singleton<ChromaprintLib>::Get().chromaprint_encode_fingerprint(fprint,
 				size,
 				algorithm_,
 				&encoded,
@@ -104,15 +102,15 @@ public:
 		catch (...) {
 		}		
 
-		ChromaprintLib::Instance().chromaprint_dealloc(fprint);
-		ChromaprintLib::Instance().chromaprint_dealloc(encoded);
+		Singleton<ChromaprintLib>::Get().chromaprint_dealloc(fprint);
+		Singleton<ChromaprintLib>::Get().chromaprint_dealloc(encoded);
 
 		return fingerprint;
 	}	
 
 private:
     int32_t GetRawFingerprint(uint32_t** fingerprint, int32_t* size) const {
-		return ChromaprintLib::Instance().chromaprint_get_raw_fingerprint(context_.get(), fingerprint, size);
+		return Singleton<ChromaprintLib>::Get().chromaprint_get_raw_fingerprint(context_.get(), fingerprint, size);
 	}
 
 	struct ChromaprintContextTraits final {
@@ -121,7 +119,7 @@ private:
 		}
 
 		static void close(ChromaprintContext* value) noexcept {
-			ChromaprintLib::Instance().chromaprint_free(value);
+			Singleton<ChromaprintLib>::Get().chromaprint_free(value);
 		}
 	};
 
@@ -139,7 +137,7 @@ Chromaprint::Chromaprint()
 XAMP_PIMPL_IMPL(Chromaprint)
 
 void Chromaprint::LoadChromaprintLib() {
-	ChromaprintLib::Instance();
+	(void) Singleton<ChromaprintLib>::Get();
 }
 
 void Chromaprint::Start(uint32_t sample_rate, uint32_t num_channels, uint32_t num_buffer_frames) {

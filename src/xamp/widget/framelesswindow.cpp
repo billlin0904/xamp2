@@ -24,33 +24,6 @@
 #include <widget/str_utilts.h>
 #include <widget/framelesswindow.h>
 
-#if defined(Q_OS_WIN)
-static void setWinStyle(HWND hwnd) {
-    BOOL is_dwm_enable = false;
-    ::DwmIsCompositionEnabled(&is_dwm_enable);
-
-    if (is_dwm_enable) {
-        DWMNCRENDERINGPOLICY ncrp = DWMNCRP_ENABLED;
-        ::DwmSetWindowAttribute(hwnd, DWMWA_NCRENDERING_POLICY, &ncrp, sizeof(ncrp));
-
-        MARGINS borderless = { 0, 0, 0, 1 };
-        ::DwmExtendFrameIntoClientArea(hwnd, &borderless);
-
-        DWM_PRESENT_PARAMETERS dpp{ 0 };
-        dpp.cbSize = sizeof(dpp);
-        dpp.fQueue = TRUE;
-        dpp.cBuffer = 2;
-        dpp.fUseSourceRate = FALSE;
-        dpp.cRefreshesPerFrame = 1;
-        dpp.eSampling = DWM_SOURCE_FRAME_SAMPLING_POINT;
-        ::DwmSetPresentParameters(hwnd, &dpp);
-    }
-
-    auto style = ::GetWindowLong(hwnd, GWL_STYLE);
-    ::SetWindowLong(hwnd, GWL_STYLE, style | WS_MAXIMIZEBOX | WS_THICKFRAME | WS_CAPTION);
-}
-#endif
-
 FramelessWindow::FramelessWindow(QWidget* parent)
     : QWidget(parent)
 #if defined(Q_OS_WIN)
@@ -64,10 +37,8 @@ FramelessWindow::FramelessWindow(QWidget* parent)
     setupUIFont();    
     QFont ui_font(Q_UTF8("UI"));
     ui_font.setStyleStrategy(QFont::PreferQuality);
-#if defined(Q_OS_WIN)    
-    setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
-    HWND hwnd = (HWND)this->winId();
-    setWinStyle(hwnd);
+#if defined(Q_OS_WIN)
+    FluentStyle::setWinStyle(this);
     ThemeManager::instance().enableBlur(this, AppSettings::getValueAsBool(kAppSettingEnableBlur));
     createThumbnailToolBar();   
     setStyleSheet(Q_UTF8(R"(
@@ -91,6 +62,7 @@ FramelessWindow::~FramelessWindow() {
 
 void FramelessWindow::createThumbnailToolBar() {
 #if defined(Q_OS_WIN)
+    // TODO: not use standard icon?
     play_icon_ = style()->standardIcon(QStyle::SP_MediaPlay);
     pause_icon_ = style()->standardIcon(QStyle::SP_MediaPause);
     stop_play_icon_ = style()->standardIcon(QStyle::SP_MediaStop);

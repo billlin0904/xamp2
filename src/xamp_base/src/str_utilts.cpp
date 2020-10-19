@@ -52,7 +52,7 @@ std::string FormatBytes(size_t bytes) noexcept {
 				break;
 			}
 		}		
-		ostr << std::setprecision(2) << num << *uint;
+		ostr << std::setprecision(2) << std::fixed << num << *uint;
 	}
     return ostr.str();
 }

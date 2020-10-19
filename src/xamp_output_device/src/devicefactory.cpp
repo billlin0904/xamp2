@@ -108,6 +108,11 @@ DeviceManager::DeviceManager() {
 #endif
 }
 
+DeviceManager& DeviceManager::Default() {
+    static DeviceManager manager;
+    return manager;
+}
+
 DeviceManager::~DeviceManager() {
 #ifdef XAMP_OS_WIN
     ::MFShutdown();

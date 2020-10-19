@@ -7,7 +7,6 @@
 #include <QClipboard>
 #include <QScrollBar>
 #include <QShortcut>
-#include <QtConcurrent>
 #include <QFutureWatcher>
 #include <QFormLayout>
 #include <QTimeEdit>

@@ -3,6 +3,7 @@
 
 #include <soxr.h>
 
+#include <base/singleton.h>
 #include <base/dll.h>
 #include <base/logger.h>
 #include <base/vmmemlock.h>
@@ -12,12 +13,13 @@ namespace xamp::player {
 
 class SoxrLib final {
 public:
+    friend class Singleton<SoxrLib>;
+
+    XAMP_DISABLE_COPY(SoxrLib)
+
+private:
     SoxrLib() try
-#ifdef XAMP_OS_WIN
-        : module_(LoadModule("libsoxr.dll"))
-#else
-        : module_(LoadModule("libsoxr.dylib"))
-#endif
+        : module_(LoadModule(GetDllFileName("libsoxr")))
         , soxr_quality_spec(module_, "soxr_quality_spec")
         , soxr_create(module_, "soxr_create")
         , soxr_process(module_, "soxr_process")
@@ -26,18 +28,10 @@ public:
         , soxr_runtime_spec(module_, "soxr_runtime_spec")
         , soxr_clear(module_, "soxr_clear") {
     }
-    catch (const Exception & e) {
+    catch (const Exception& e) {
         XAMP_LOG_ERROR("{}", e.GetErrorMessage());
     }
 
-    static XAMP_ALWAYS_INLINE SoxrLib& Instance() {
-        static SoxrLib lib;
-        return lib;
-    }
-
-    XAMP_DISABLE_COPY(SoxrLib)
-
-private:
     ModuleHandle module_;
 
 public:
@@ -63,7 +57,7 @@ public:
         , stopband_(1.0) {
     }
 
-    ~SoxrResamplerImpl() {
+    ~SoxrResamplerImpl() noexcept {
         Close();
     }
 
@@ -95,7 +89,7 @@ public:
         }
 
         quality_spec |= (SOXR_ROLLOFF_NONE | SOXR_HI_PREC_CLOCK | SOXR_VR | SOXR_DOUBLE_PRECISION);
-        auto soxr_quality = SoxrLib::Instance().soxr_quality_spec(quality_spec, 0);
+        auto soxr_quality = Singleton<SoxrLib>::Get().soxr_quality_spec(quality_spec, 0);
 
         switch (phase_) {
         case SoxrPhaseResponse::LINEAR_PHASE:
@@ -112,11 +106,11 @@ public:
         soxr_quality.passband_end = passband_;
         soxr_quality.stopband_begin = stopband_;
 
-        auto iospec = SoxrLib::Instance().soxr_io_spec(SOXR_FLOAT32_I, SOXR_FLOAT32_I);
-        auto runtimespec = SoxrLib::Instance().soxr_runtime_spec(1);
+        auto iospec = Singleton<SoxrLib>::Get().soxr_io_spec(SOXR_FLOAT32_I, SOXR_FLOAT32_I);
+        auto runtimespec = Singleton<SoxrLib>::Get().soxr_runtime_spec(1);
 
         soxr_error_t error = nullptr;
-        handle_.reset(SoxrLib::Instance().soxr_create(input_samplerate,
+        handle_.reset(Singleton<SoxrLib>::Get().soxr_create(input_samplerate,
                                                       output_samplerate,
                                                       num_channels,
                                                       &error,
@@ -139,7 +133,7 @@ public:
                        EnumToString(phase_));
     }
 
-    void Close() {
+    void Close() noexcept {
         vmlock_.UnLock();
         handle_.reset();
         buffer_.clear();
@@ -169,7 +163,7 @@ public:
         if (!handle_) {
             return;
         }
-        SoxrLib::Instance().soxr_clear(handle_.get());
+        Singleton<SoxrLib>::Get().soxr_clear(handle_.get());
         buffer_.clear();
     }
 
@@ -185,7 +179,7 @@ public:
 
         size_t samples_done = 0;
 
-        SoxrLib::Instance().soxr_process(handle_.get(),
+        Singleton<SoxrLib>::Get().soxr_process(handle_.get(),
                                          samples,
                                          num_sample / num_channels_,
                                          nullptr,
@@ -217,7 +211,7 @@ public:
         }
 
         static void close(soxr_t value) noexcept {
-            SoxrLib::Instance().soxr_delete(value);
+            Singleton<SoxrLib>::Get().soxr_delete(value);
         }
     };
 
@@ -243,7 +237,7 @@ SoxrResampler::SoxrResampler()
 SoxrResampler::~SoxrResampler() = default;
 
 void SoxrResampler::LoadSoxrLib() {
-    SoxrLib::Instance();
+    (void)Singleton<SoxrLib>::Get();
 }
 
 void SoxrResampler::Start(uint32_t input_samplerate, uint32_t num_channels, uint32_t output_samplerate, uint32_t) {

@@ -81,7 +81,9 @@ std::wstring GetDevicePropertyString(PROPERTYKEY const& key, VARTYPE type, CComP
 	{
 		std::wostringstream ostr;
 		auto format = reinterpret_cast<const WAVEFORMATEX*>(prop_variant.blob.pBlobData);
-		ostr << format->nChannels << "," << format->wBitsPerSample << "," << format->nSamplesPerSec;
+		if (format != nullptr) {
+			ostr << format->nChannels << "," << format->wBitsPerSample << "," << format->nSamplesPerSec;
+		}		
 		return ostr.str();
 	}
 		break;

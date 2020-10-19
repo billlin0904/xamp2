@@ -12,6 +12,7 @@
 #include <mutex>
 #include <functional>
 #include <vector>
+#include <optional>
 #include <condition_variable>
 #include <type_traits>
 
@@ -175,10 +176,11 @@ public:
         , active_thread_(0)
         , affinity_mask_(affinity_mask)
         , index_(0)
-        , max_thread_(max_thread) {
+        , max_thread_(max_thread)
+        , pool_queue_(max_thread) {
     	try {
     	    for (size_t i = 0; i < max_thread_; ++i) {
-                task_queues_.push_back(MakeAlign<BoundedQueue<TaskType>>(max_thread));
+                shared_queues_.push_back(MakeAlign<BoundedQueue<TaskType>>(max_thread));
             }
             for (size_t i = 0; i < max_thread_; ++i) {
                 AddThread(static_cast<int32_t>(i));
@@ -186,7 +188,8 @@ public:
     	} catch (...) {
     		is_stopped_ = true;
     		throw;
-    	}        
+    	}
+        XAMP_LOG_DEBUG("TaskScheduler initial max thread:{} affinity:{}", max_thread, affinity_mask);
     }    
 
     ~TaskScheduler() noexcept {
@@ -197,11 +200,11 @@ public:
 		const auto i = index_++;
         for (size_t n = 0; n < max_thread_ * K; ++n) {
 			const auto index = (i + n) % max_thread_;
-            if (task_queues_.at(index)->TryEnqueue(std::move(task))) {
+            if (shared_queues_.at(index)->TryEnqueue(std::move(task))) {
                 return;
             }
         }
-        task_queues_.at(i % max_thread_)->Enqueue(std::move(task));
+        pool_queue_.Enqueue(std::move(task));
     }
 
     void SetAffinityMask(int32_t affinity_mask) {        
@@ -216,7 +219,7 @@ public:
 
         for (size_t i = 0; i < max_thread_; ++i) {
             try {
-                task_queues_.at(i)->WakeupForShutdown();
+                shared_queues_.at(i)->WakeupForShutdown();
 
                 if (threads_.at(i).joinable()) {
                     threads_.at(i).join();
@@ -234,6 +237,40 @@ public:
     }
 
 private:
+    std::optional<TaskType> TryPopFormPoolQueue() {
+        TaskType task;
+        if (pool_queue_.TryDequeue(task)) {
+            return task;
+        }
+        return std::nullopt;
+    }
+
+    std::optional<TaskType> TryPopFormLocalQueue(size_t index) {
+        TaskType task;
+        if (shared_queues_.at(index)->TryDequeue(task)) {
+            return task;
+        }
+        return std::nullopt;
+    }
+
+    std::optional<TaskType> TryStealFormSharedQueue() {
+        constexpr auto kTimeout = std::chrono::milliseconds(100);
+
+        TaskType task;
+        size_t i = 0;
+        for (size_t n = 0; n != max_thread_; ++n) {
+            if (is_stopped_) {
+                return std::nullopt;
+            }
+
+            const auto index = (i + n) % max_thread_;
+            if (shared_queues_.at(index)->Dequeue(task, kTimeout)) {
+                return task;
+            }
+        }
+        return std::nullopt;
+    }
+
     void AddThread(size_t i) {
         threads_.push_back(std::thread([i, this]() mutable {            
 #ifdef XAMP_OS_WIN
@@ -242,43 +279,28 @@ private:
 #else
             std::this_thread::sleep_for(std::chrono::milliseconds(900));
 #endif
-        	constexpr auto kTimeout = std::chrono::milliseconds(1000);
-        	
             SetCurrentThreadName(i);
 
             for (;!is_stopped_;) {
-                TaskType task;
-            	auto got_task = false;
-
-                for (size_t n = 0; n != max_thread_; ++n) {
-                    if (is_stopped_) {
-                        return;
-                    }
-
-                    const auto index = (i + n) % max_thread_;
-                    if (task_queues_.at(index)->TryDequeue(task)) {
-                    	got_task = true;
-                        break;
-                    }
+                auto task = TryPopFormLocalQueue(i);
+                if (!task) {
+                    task = TryPopFormPoolQueue();
                 }
 
-                if (!got_task) {
-                    if (task_queues_.at(i)->Dequeue(task, kTimeout)) {
-                        XAMP_LOG_DEBUG("Thread {} weakup, active:{}.", i, active_thread_);
-                        ++active_thread_;
-                        task();
-                        --active_thread_;
-                        XAMP_LOG_DEBUG("Thread {} finished.", i);
-					} else {
-						std::this_thread::yield();                        
-					}
+                if (!task) {
+                    task = TryStealFormSharedQueue();
                 }
-                else {
-                    XAMP_LOG_DEBUG("Thread {} weakup, active:{}.", i, active_thread_);
-                    ++active_thread_;
-                    task();
-                    --active_thread_;
+
+                if (!task) {
+                    std::this_thread::yield();
+                    continue;
                 }
+
+                XAMP_LOG_DEBUG("Thread {} weakup, active:{}.", i, active_thread_);
+                ++active_thread_;
+                (*task)();
+                --active_thread_;
+                XAMP_LOG_DEBUG("Thread {} finished.", i);
             }
 
             XAMP_LOG_DEBUG("Thread {} done.", i);
@@ -287,7 +309,7 @@ private:
         SetThreadAffinity(threads_.at(i));
     }
 
-    using TaskQueuePtr = AlignPtr<Queue<TaskType>>;
+    using SharedQueuePtr = AlignPtr<Queue<TaskType>>;
     
     static constexpr size_t K = 3;
     static constexpr size_t kInitL1CacheLineSize = 4 * 1024;
@@ -298,16 +320,15 @@ private:
     int32_t affinity_mask_;
 	size_t index_;
     size_t max_thread_;
+    Queue<TaskType> pool_queue_;
     std::vector<std::thread> threads_;
-    std::vector<TaskQueuePtr> task_queues_;
+    std::vector<SharedQueuePtr> shared_queues_;
 };
 
 class XAMP_BASE_API ThreadPool final {
 public:
     static constexpr uint32_t kMaxThread = 8;
-
-    friend class Singleton<ThreadPool>;
-
+    
 	XAMP_DISABLE_COPY(ThreadPool)
 
     template <typename F, typename... Args>
@@ -316,6 +337,8 @@ public:
     size_t GetActiveThreadCount() const noexcept;
 
     void Stop();
+
+    static ThreadPool& Default();
 
 private:
 	ThreadPool();
