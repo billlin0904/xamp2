@@ -60,7 +60,7 @@ public:
 	
     FunctionWrapper() = default;
 	
-    FunctionWrapper(FunctionWrapper&& other)
+    FunctionWrapper(FunctionWrapper&& other) noexcept
 		: impl_(std::move(other.impl_)) {	    
     }
 	
@@ -201,10 +201,12 @@ public:
         for (size_t n = 0; n < max_thread_ * K; ++n) {
 			const auto index = (i + n) % max_thread_;
             if (shared_queues_.at(index)->TryEnqueue(std::move(task))) {
+                XAMP_LOG_DEBUG("Enqueue shared queue.");
                 return;
             }
         }
         pool_queue_.Enqueue(std::move(task));
+        XAMP_LOG_DEBUG("Enqueue pool queue.");
     }
 
     void SetAffinityMask(int32_t affinity_mask) {        
@@ -238,8 +240,10 @@ public:
 
 private:
     std::optional<TaskType> TryPopFormPoolQueue() {
+        constexpr auto kTimeout = std::chrono::milliseconds(100);
         TaskType task;
-        if (pool_queue_.TryDequeue(task)) {
+        if (pool_queue_.Dequeue(task, kTimeout)) {
+            XAMP_LOG_DEBUG("Pop pool thread queue.");
             return task;
         }
         return std::nullopt;
@@ -248,14 +252,13 @@ private:
     std::optional<TaskType> TryPopFormLocalQueue(size_t index) {
         TaskType task;
         if (shared_queues_.at(index)->TryDequeue(task)) {
+            XAMP_LOG_DEBUG("Pop local thread queue.");
             return task;
         }
         return std::nullopt;
     }
 
     std::optional<TaskType> TryStealFormSharedQueue() {
-        constexpr auto kTimeout = std::chrono::milliseconds(100);
-
         TaskType task;
         size_t i = 0;
         for (size_t n = 0; n != max_thread_; ++n) {
@@ -264,7 +267,8 @@ private:
             }
 
             const auto index = (i + n) % max_thread_;
-            if (shared_queues_.at(index)->Dequeue(task, kTimeout)) {
+            if (shared_queues_.at(index)->TryDequeue(task)) {
+                XAMP_LOG_DEBUG("Steal other thread queue.");
                 return task;
             }
         }
@@ -272,14 +276,15 @@ private:
     }
 
     void AddThread(size_t i) {
-        threads_.push_back(std::thread([i, this]() mutable {            
-#ifdef XAMP_OS_WIN
+        threads_.push_back(std::thread([i, this]() mutable {
             auto padding_buffer = MakeStackBuffer<uint8_t>((std::min)(kInitL1CacheLineSize * i,
-                                                                      kMaxL1CacheLineSize));
-#else
+                kMaxL1CacheLineSize));
+#ifndef XAMP_OS_WIN
             std::this_thread::sleep_for(std::chrono::milliseconds(900));
 #endif
             SetCurrentThreadName(i);
+
+            XAMP_LOG_DEBUG("Thread {} running.", i);
 
             for (;!is_stopped_;) {
                 auto task = TryPopFormLocalQueue(i);
@@ -292,15 +297,15 @@ private:
                 }
 
                 if (!task) {
-                    std::this_thread::yield();
+                    std::this_thread::yield();                    
                     continue;
                 }
 
-                XAMP_LOG_DEBUG("Thread {} weakup, active:{}.", i, active_thread_);
-                ++active_thread_;
+                auto active_thread = ++active_thread_;
+                XAMP_LOG_DEBUG("Thread {} weakup, active:{}.", i, active_thread);
                 (*task)();
                 --active_thread_;
-                XAMP_LOG_DEBUG("Thread {} finished.", i);
+                XAMP_LOG_DEBUG("Thread {} execute finished.", i);
             }
 
             XAMP_LOG_DEBUG("Thread {} done.", i);
