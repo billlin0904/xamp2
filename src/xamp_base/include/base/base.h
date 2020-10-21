@@ -117,7 +117,7 @@ XAMP_ENFORCE_TRIVIAL(Name);
 namespace xamp::base {
 
 // Avoid cache-pollution padding size
-inline constexpr size_t kCacheAlignSize{ std::hardware_constructive_interference_size };
+inline constexpr size_t kCacheAlignSize{ 64 };
 
 // Memory allocate aligned size
 // Assume we need 32-byte alignment for AVX instructions.
