@@ -34,7 +34,7 @@ public:
 
     void ScanNewDevice() override;
 
-	AlignPtr<Device> MakeDevice(std::string const &device_id) override;
+	AlignPtr<Device> MakeDevice(std::string const &device_id) override;	
 private:
 	DeviceInfo GetDeviceInfo(std::wstring const& name, std::string const & device_id) const;
 

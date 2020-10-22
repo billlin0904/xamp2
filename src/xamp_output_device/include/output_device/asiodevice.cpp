@@ -24,6 +24,7 @@ namespace xamp::output_device {
 using namespace win32;
 
 struct AsioCallbackInfo {
+	AsioCallbackInfo() = default;
 	bool is_xrun{ false };
 	AsioDevice* device{ nullptr };
 	AlignPtr<AsioDrivers> drivers{};
@@ -75,7 +76,7 @@ AsioDevice::~AsioDevice() {
 bool AsioDevice::IsHardwareControlVolume() const {
 	// NOTE :
 	// Almost driver not support kAsioCanOutputGain, we always return true for software volume control.
-	return true;
+	return (io_format_ == DsdIoFormat::IO_FORMAT_PCM);
 }
 
 void AsioDevice::AbortStream() noexcept {
@@ -116,7 +117,19 @@ bool AsioDevice::IsSupportDsdFormat() const {
 	return error == ASE_SUCCESS;
 }
 
+void AsioDevice::RemoveCurrentDriver() {
+	if (!Singleton<AsioCallbackInfo>::Get().drivers) {
+		return;
+	}
+	Singleton<AsioCallbackInfo>::Get().drivers->removeCurrentDriver();
+	Singleton<AsioCallbackInfo>::Get().drivers.reset();
+}
+
 void AsioDevice::ReOpen() {
+	if (Singleton<AsioCallbackInfo>::Get().drivers != nullptr) {
+		is_removed_driver_ = false;
+		return;
+	}
 	if (!Singleton<AsioCallbackInfo>::Get().drivers) {
 		Singleton<AsioCallbackInfo>::Get().drivers = MakeAlign<AsioDrivers>();
 	}
@@ -519,22 +532,12 @@ void AsioDevice::StopStream(bool wait_for_stop_stream) {
 }
 
 void AsioDevice::CloseStream() {
-	if (!is_stop_streaming_) {
-		Singleton<AsioCallbackInfo>::Get().drivers->removeCurrentDriver();
-		return;
-	}
-
 	if (!is_removed_driver_) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(20));
 		AsioIfFailedThrow(::ASIOStop());
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 		AsioIfFailedThrow(::ASIODisposeBuffers());
-
-		if (Singleton<AsioCallbackInfo>::Get().drivers != nullptr) {
-			Singleton<AsioCallbackInfo>::Get().drivers->removeCurrentDriver();
-			Singleton<AsioCallbackInfo>::Get().drivers.reset();
-		}
 		is_removed_driver_ = true;
 	}
 	callback_ = nullptr;

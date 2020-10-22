@@ -73,6 +73,9 @@ void AudioPlayer::Destroy() {
     stream_.reset();
     resampler_.reset();
     equalizer_.reset();
+#ifdef ENABLE_ASIO
+    DeviceManager::RemoveASIOCurrentDriver();
+#endif
     ThreadPool::Default().Stop();
     BassFileStream::FreeBassLib();
 }
@@ -115,7 +118,10 @@ void AudioPlayer::CreateDevice(ID const & device_type_id, std::string const & de
         || device_id_ != device_id
         || device_type_id_ != device_type_id
         || open_always) {
-        if (auto result = DeviceManager::Default().Create(device_type_id)) {
+        if (device_type_id_ != device_type_id) {
+            DeviceManager::RemoveASIOCurrentDriver();
+        }
+        if (auto result = DeviceManager::Default().Create(device_type_id)) {            
             device_type_ = std::move(result.value());
             // TODO: remove ScanNewDevice ?
             device_type_->ScanNewDevice();

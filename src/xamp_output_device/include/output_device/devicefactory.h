@@ -61,6 +61,8 @@ public:
 
     static bool IsASIODevice(ID const& id) noexcept;
 
+    static void RemoveASIOCurrentDriver();
+
     static void PreventSleep(bool allow);
 private:
     class DeviceStateNotificationImpl;
@@ -72,7 +74,7 @@ private:
         factory_[id] = std::forward<Function>(fun);
     }
 
-    AlignPtr<DeviceStateNotificationImpl> impl_;
+    AlignPtr<DeviceStateNotificationImpl> impl_;    
     HashMap<ID, std::function<AlignPtr<DeviceType>()>> factory_;
 };
 

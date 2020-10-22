@@ -8,6 +8,7 @@
 #if ENABLE_ASIO
 #include <output_device/win32/mmcss.h>
 #include <output_device/asiodevicetype.h>
+#include <output_device/asiodevice.h>
 #endif
 #else
 #include <IOKit/pwr_mgt/IOPMLib.h>
@@ -17,7 +18,6 @@
 #endif
 
 #include <base/platform_thread.h>
-
 #include <output_device/devicefactory.h>
 
 namespace xamp::output_device {
@@ -169,6 +169,12 @@ bool DeviceManager::IsASIODevice(ID const& id) noexcept {
 #else
     (void)id;
     return false;
+#endif
+}
+
+void DeviceManager::RemoveASIOCurrentDriver() {
+#if ENABLE_ASIO
+    AsioDevice::RemoveCurrentDriver();
 #endif
 }
 

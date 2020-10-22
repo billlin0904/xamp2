@@ -286,18 +286,17 @@ private:
 
             XAMP_LOG_DEBUG("Thread {} running.", i);
 
-            for (;!is_stopped_;) {
-                auto task = TryPopFormLocalQueue(i);
+            for (;!is_stopped_;) {                
+                auto task = TryStealFormSharedQueue();                
                 if (!task) {
+                    task = TryPopFormLocalQueue(i);
+                }
+                if (!task) {
+                    std::this_thread::yield();
                     task = TryPopFormPoolQueue();
                 }
-
                 if (!task) {
-                    task = TryStealFormSharedQueue();
-                }
-
-                if (!task) {
-                    std::this_thread::yield();                    
+                    std::this_thread::yield();
                     continue;
                 }
 

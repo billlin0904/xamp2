@@ -10,6 +10,8 @@
 #include <mutex>
 #include <vector>
 
+#include <asio.h>
+
 #include <base/align_ptr.h>
 #include <base/vmmemlock.h>
 
@@ -70,6 +72,8 @@ public:
 	bool IsHardwareControlVolume() const override;
 
 	void AbortStream() noexcept override;
+
+	static void RemoveCurrentDriver();
 
 private:
 	static ASIOTime* OnBufferSwitchTimeInfoCallback(ASIOTime* timeInfo, long index, ASIOBool processNow) noexcept;
