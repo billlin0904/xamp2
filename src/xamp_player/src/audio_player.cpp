@@ -1,4 +1,3 @@
-// ReSharper disable All
 #include <base/str_utilts.h>
 #include <base/platform_thread.h>
 #include <base/logger.h>
@@ -91,11 +90,27 @@ void AudioPlayer::Initital() {
 
     (void)ThreadPool::Default();
     XAMP_LOG_DEBUG("ThreadPool init success.");
+
     (void)DeviceManager::Default();
     XAMP_LOG_DEBUG("DeviceManager init success.");
 
     BassFileStream::LoadBassLib();
     XAMP_LOG_DEBUG("Load BASS dll success.");
+
+    try {
+        Chromaprint::LoadChromaprintLib();
+        XAMP_LOG_DEBUG("Load Chromaprint dll success.");
+    }
+    catch (...) {
+    }   
+
+    try {
+        BassEqualizer::LoadBassFxLib();
+        XAMP_LOG_DEBUG("Load BASS Fx dll success.");
+    }
+    catch (...) {
+    }
+
     SoxrResampler::LoadSoxrLib();    
     XAMP_LOG_DEBUG("Load Soxr dll success.");    
 }

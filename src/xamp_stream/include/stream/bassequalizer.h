@@ -19,6 +19,8 @@ public:
 
     virtual ~BassEqualizer();
 
+	static void LoadBassFxLib();
+
 	void Start(uint32_t num_channels, uint32_t input_samplerate) override;
 
     void SetEQ(uint32_t band, float gain, float Q) override;

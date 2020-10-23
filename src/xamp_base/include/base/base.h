@@ -85,6 +85,8 @@
 #define XAMP_NEVER_INLINE __attribute__((__noinline__))
 #endif
 
+#define XAMP_ALIGN_ASSUME_ALIGNED(ptr, alignment)
+
 #ifdef _WIN32
 #ifndef NDEBUG
 # define XAMP_NO_DEFAULT __assume(0)
@@ -123,6 +125,6 @@ inline constexpr size_t kCacheAlignSize{ 64 };
 // Assume we need 32-byte alignment for AVX instructions.
 inline constexpr size_t kMallocAlignSize{ 32 };
 
-inline constexpr ptrdiff_t kLoopUnRollingIntCount = 4;
+inline constexpr ptrdiff_t kLoopUnRollingIntCount{ 4 };
 
 }

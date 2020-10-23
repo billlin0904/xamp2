@@ -119,6 +119,10 @@ BassEqualizer::BassEqualizer()
 BassEqualizer::~BassEqualizer() {
 }
 
+void BassEqualizer::LoadBassFxLib() {
+	EnsureFxLibInit();
+}
+
 void BassEqualizer::Start(uint32_t num_channels, uint32_t input_samplerate) {
 	impl_->Start(num_channels, input_samplerate);
 }
