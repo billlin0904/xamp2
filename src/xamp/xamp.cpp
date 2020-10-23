@@ -208,8 +208,8 @@ void Xamp::setDefaultStyle() {
 void Xamp::registerMetaType() {
     qRegisterMetaType<std::vector<Metadata>>("std::vector<Metadata>");
     qRegisterMetaType<DeviceState>("xamp::output_device::DeviceState");
-    qRegisterMetaType<PlayerState>("xamp::player::PlayerState");
-    qRegisterMetaType<Errors>("xamp::base::Errors");
+    qRegisterMetaType<PlayerState>("PlayerState");
+    qRegisterMetaType<Errors>("Errors");
     qRegisterMetaType<std::vector<float>>("std::vector<float>");
     qRegisterMetaType<size_t>("size_t");
 }
@@ -365,7 +365,7 @@ void Xamp::initialController() {
         try {
             player_->Seek(static_cast<double>(value / 1000.0));
         }
-        catch (const xamp::base::Exception & e) {
+        catch (const Exception & e) {
             player_->Stop(false);
             Toast::showTip(Q_UTF8(e.GetErrorMessage()), this);
             return;
@@ -388,7 +388,7 @@ void Xamp::initialController() {
         try {
             player_->Seek(static_cast<double>(ui.seekSlider->value() / 1000.0));
         }
-        catch (const xamp::base::Exception& e) {
+        catch (const Exception& e) {
             player_->Stop(false);
             Toast::showTip(Q_UTF8(e.GetErrorMessage()), this);
             return;
@@ -641,7 +641,7 @@ void Xamp::setVolume(int32_t volume) {
     try {
         player_->SetVolume(static_cast<uint32_t>(volume));
     }
-    catch (const xamp::base::Exception& e) {
+    catch (const Exception& e) {
         player_->Stop(false);
         Toast::showTip(Q_UTF8(e.GetErrorMessage()), this);
     }
@@ -824,7 +824,7 @@ void Xamp::setupResampler() {
     }
 }
 
-void Xamp::processMeatadata(const std::vector<xamp::base::Metadata>& medata) {    
+void Xamp::processMeatadata(const std::vector<Metadata>& medata) {    
     MetadataExtractAdapter::ProcessMetadata(medata);
     emit album_artist_page_->album()->refreshOnece();
     emit album_artist_page_->artist()->refreshOnece();    
@@ -869,7 +869,7 @@ void Xamp::playMusic(const MusicEntity& item) {
         player_->StartPlay(loop_time.first, loop_time.second);
         open_done = true;
     }
-    catch (const xamp::base::Exception & e) {
+    catch (const Exception & e) {
 #ifdef XAMP_OS_WIN
         XAMP_LOG_DEBUG("Exception: {} {}", e.GetErrorMessage(), e.GetStackTrace());
 #else
@@ -906,7 +906,7 @@ void Xamp::playMusic(const MusicEntity& item) {
         playlist_page_->format()->setText(format2String(player_.get(), item.file_ext));
     }
 
-    if (auto cover = xamp::base::Singleton<PixmapCache>::Get().find(item.cover_id)) {
+    if (auto cover = Singleton<PixmapCache>::Get().find(item.cover_id)) {
         setCover(cover.value());
     }
     else {
@@ -1152,7 +1152,7 @@ void Xamp::addItem(const QString& file_name) {
             playlist_page_->playlist()->append(file_name);
             album_artist_page_->refreshOnece();
         }
-        catch (const xamp::base::Exception & e) {
+        catch (const Exception & e) {
             Toast::showTip(Q_UTF8(e.GetErrorMessage()), this);
         }
     }

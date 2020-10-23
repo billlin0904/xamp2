@@ -10,7 +10,7 @@
 
 #include <widget/http.h>
 
-class DiscogsClient : public QObject {
+class DiscogsClient final : public QObject {
     Q_OBJECT
 public:
     DiscogsClient(QNetworkAccessManager* manager = nullptr, QObject *parent = nullptr);

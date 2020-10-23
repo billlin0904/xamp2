@@ -10,9 +10,9 @@
 #include <QStringList>
 #include <QFileSystemWatcher>
 
-#include <base/metadata.h>
+#include <widget/widget_shared.h>
 
-class FileSystemWatcher : public QObject {
+class FileSystemWatcher final : public QObject {
 	Q_OBJECT
 public:
 	explicit FileSystemWatcher(QObject* parent = nullptr);
@@ -24,7 +24,7 @@ private slots:
 
 	void onDirectoryChanged(const QString& path);
 
-	void onReadCompleted(const std::vector<xamp::base::Metadata>& medata);
+	void onReadCompleted(const std::vector<Metadata>& medata);
 
 private:
 	QFileSystemWatcher watcher_;

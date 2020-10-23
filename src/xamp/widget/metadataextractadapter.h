@@ -9,18 +9,15 @@
 
 #include <QObject>
 
-#include <base/metadata.h>
-#include <base/stopwatch.h>
-
 #include <metadata/metadatareader.h>
 #include <metadata/metadataextractadapter.h>
 
+#include <widget/widget_shared.h>
 #include <widget/pixmapcache.h>
 
 using MetadataExtractAdapterBase = xamp::metadata::MetadataExtractAdapter;
 using xamp::metadata::Metadata;
 using xamp::metadata::Path;
-using xamp::base::LruCache;
 
 class PlayListTableView;
 
@@ -54,7 +51,7 @@ public:
     static void ProcessMetadata(const std::vector<Metadata>& result, PlayListTableView *playlist = nullptr);
 	    
 private:
-	xamp::base::Stopwatch watch_;
+	Stopwatch watch_;
     std::atomic<bool> cancel_;
     std::vector<Metadata> metadatas_;
 };

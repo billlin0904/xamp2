@@ -9,7 +9,7 @@
 
 #include "ui_preferencedialog.h"
 
-class PreferenceDialog : public QDialog {
+class PreferenceDialog final : public QDialog {
 public:
     explicit PreferenceDialog(QWidget *parent = nullptr);
 

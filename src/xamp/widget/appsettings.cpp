@@ -117,12 +117,12 @@ void AppSettings::setOrDefaultConfig() {
     setDefaultValue(kAppSettingMinimizeToTray, false);
 }
 
-xamp::base::ID AppSettings::getID(const QString& key) {
+ID AppSettings::getID(const QString& key) {
 	auto str = getValue(key).toString();
 	if (str.isEmpty()) {
-		return xamp::base::ID::INVALID_ID;
+		return ID::INVALID_ID;
 	}
-	return xamp::base::ID::FromString(str.toStdString());
+	return ID::FromString(str.toStdString());
 }
 
 QSize AppSettings::getSizeValue(const QString& width_key,

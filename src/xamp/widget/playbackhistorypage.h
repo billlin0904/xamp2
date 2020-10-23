@@ -12,7 +12,7 @@
 
 #include <widget/albumview.h>
 
-class PushButtonDelegate : public QItemDelegate {
+class PushButtonDelegate final : public QItemDelegate {
 public:
     explicit PushButtonDelegate(QObject *parent = nullptr);
 
@@ -21,7 +21,7 @@ private:
     void initStyleOptionButton(QStyleOptionButton* out, const QStyleOptionViewItem& in, const QModelIndex& index);
 };
 
-class CheckBoxDelegate : public QItemDelegate {
+class CheckBoxDelegate final : public QItemDelegate {
 public:
 	explicit CheckBoxDelegate(QObject* parent = nullptr);
 
@@ -30,7 +30,7 @@ public:
     bool editorEvent(QEvent* event, QAbstractItemModel* model, const QStyleOptionViewItem& option, const QModelIndex& index) override;
 };
 
-class PlaybackHistoryModel : public QSqlQueryModel {
+class PlaybackHistoryModel final : public QSqlQueryModel {
 public:
 	enum {
         HISTORY_ID_ROW = 12,
@@ -50,7 +50,7 @@ private:
     void updateSelected(const QModelIndex& index, bool check);
 };
 
-class PlaybackHistoryTableView : public QTableView {
+class PlaybackHistoryTableView final : public QTableView {
 	Q_OBJECT
 public:
 	enum {
@@ -70,7 +70,7 @@ private:
 	PlaybackHistoryModel model_;
 };
 
-class PlaybackHistoryPage : public QFrame {
+class PlaybackHistoryPage final : public QFrame {
 	Q_OBJECT
 public:
 	explicit PlaybackHistoryPage(QWidget* parent = nullptr);

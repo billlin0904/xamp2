@@ -26,10 +26,10 @@
 #include <widget/str_utilts.h>
 #include <widget/actionmap.h>
 #include <widget/stareditor.h>
-#include <widget/playlisttableview.h>
 #include <widget/time_utilts.h>
+#include <widget/playlisttableview.h>
 
-PlayListEntity PlayListTableView::fromMetadata(const xamp::base::Metadata& metadata) {
+PlayListEntity PlayListTableView::fromMetadata(const Metadata& metadata) {
     PlayListEntity item;
     item.track = metadata.track;
     item.duration = metadata.duration;
@@ -325,7 +325,7 @@ void PlayListTableView::append(const QString& file_name) {
     MetadataExtractAdapter::ReadFileMetadata(adapter, file_name);
 }
 
-void PlayListTableView::processMeatadata(const std::vector<xamp::base::Metadata>& medata) {    
+void PlayListTableView::processMeatadata(const std::vector<Metadata>& medata) {    
     MetadataExtractAdapter::ProcessMetadata(medata, this);
     resizeColumn();
 }
@@ -365,7 +365,7 @@ void PlayListTableView::resizeColumn() const {
     }
 }
 
-void PlayListTableView::appendItem(const xamp::base::Metadata& metadata) {
+void PlayListTableView::appendItem(const Metadata& metadata) {
     appendItem(fromMetadata(metadata));
 }
 
@@ -409,8 +409,8 @@ QModelIndex PlayListTableView::shuffeIndex() {
         }
     }
 
-    xamp::base::RNG::Instance().Shuffle(indexes);
-    auto selected = xamp::base::RNG::Instance()(size_t(0), indexes.size() - 1);
+    RNG::Instance().Shuffle(indexes);
+    auto selected = RNG::Instance()(size_t(0), indexes.size() - 1);
     return model()->index(indexes[selected], PLAYLIST_PLAYING);
 }
 

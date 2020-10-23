@@ -8,8 +8,7 @@
 #include <QStringList>
 #include <optional>
 
-#include <base/singleton.h>
-#include <base/lrucache.h>
+#include <widget/widget_shared.h>
 #include <widget/playlistentity.h>
 
 #ifndef QT_SPECIALIZE_STD_HASH_TO_CALL_QHASH_BY_CREF
@@ -26,9 +25,9 @@ struct hash<QString> {
 }
 #endif
 
-class PixmapCache {
+class PixmapCache final {
 public:
-	friend class xamp::base::Singleton<PixmapCache>;
+	friend class Singleton<PixmapCache>;
 	
     static QPixmap FindFileDirCover(const QString &file_path);
 
@@ -64,5 +63,5 @@ private:
 	QString cache_path_;
     QStringList cover_ext_;
     QStringList cache_ext_;
-	mutable xamp::base::LruCache<QString, QPixmap> cache_;
+	mutable LruCache<QString, QPixmap> cache_;
 };

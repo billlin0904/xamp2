@@ -10,8 +10,6 @@
 #include <QIcon>
 #include <QDragEnterEvent>
 
-#include <base/align_ptr.h>
-
 #if defined(Q_OS_WIN)
 class QWinThumbnailToolBar;
 class QWinTaskbarButton;

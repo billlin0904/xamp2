@@ -10,7 +10,7 @@
 #include <QTableView>
 #include <QKeyEvent>
 
-#include <base/metadata.h>
+#include <widget/widget_shared.h>
 
 #include <widget/playlisttablemodel.h>
 #include <widget/playlistentity.h>
@@ -19,7 +19,7 @@
 
 class StarDelegate;
 
-class PlayListTableView : public QTableView {
+class PlayListTableView final : public QTableView {
 	Q_OBJECT
 public:
 	explicit PlayListTableView(QWidget* parent = nullptr, int32_t playlist_id = 1);
@@ -58,7 +58,7 @@ public:
 
 	void append(const QString& file_name);
 
-	static PlayListEntity fromMetadata(const xamp::base::Metadata& metadata);
+	static PlayListEntity fromMetadata(const Metadata& metadata);
 
 signals:
 	void removeItems(int32_t playlist_id, const QVector<int>& select_music_ids);
@@ -70,9 +70,9 @@ signals:
 	void setLoopTime(double start_time, double end_time);
 
 public slots:
-	void processMeatadata(const std::vector<xamp::base::Metadata> &medata);
+	void processMeatadata(const std::vector<Metadata> &medata);
 
-	void appendItem(const xamp::base::Metadata& metadata);
+	void appendItem(const Metadata& metadata);
 
 	void appendItem(const PlayListEntity& item);
 

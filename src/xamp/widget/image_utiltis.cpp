@@ -2,12 +2,14 @@
 
 #include <base/threadpool.h>
 #include <base/align_ptr.h>
-#include <widget/image_utiltis.h>
 
+#include <QBuffer>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsScene>
 #include <QGraphicsBlurEffect>
-#include <QtConcurrent>
+
+#include <widget/widget_shared.h>
+#include <widget/image_utiltis.h>
 
 namespace Pixmap {
 
@@ -321,7 +323,7 @@ static void stackblurJob(uint8_t* src,
 	}
 }
 
-class Stackblur {
+class Stackblur final {
 public:
 	Stackblur(QImage& image, uint32_t radius);
 
@@ -343,15 +345,14 @@ void Stackblur::blur(uint8_t* src,
 	}
 
 	auto div = (radius * 2) + 1;
-	auto stack = xamp::base::MakeBuffer<uint8_t>(div * 4 * cores);
+	auto stack = MakeBuffer<uint8_t>(div * 4 * cores);
 
 	if (cores == 1) {		
 		stackblurJob(src, width, height, radius, 1, 0, 1, stack.get());
 		stackblurJob(src, width, height, radius, 1, 0, 2, stack.get());
 	}
 	else {
-		auto blurJob = [div, &stack, src, width, height, radius, cores](int step) {			
-			using xamp::base::ThreadPool;
+		auto blurJob = [div, &stack, src, width, height, radius, cores](int step) {
 			std::vector<std::shared_future<void>> tasks;
 			tasks.reserve(cores);
 

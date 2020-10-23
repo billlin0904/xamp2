@@ -17,7 +17,7 @@ namespace Ui {
 class EQDialog;
 }
 
-class EQDialog : public XampDialog {
+class EQDialog final : public XampDialog {
     Q_OBJECT
 
 public:

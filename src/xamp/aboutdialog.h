@@ -8,7 +8,7 @@
 #include <widget/xampdialog.h>
 #include <ui_aboutdialog.h>
 
-class AboutDialog : public XampDialog {
+class AboutDialog final : public XampDialog {
     Q_OBJECT
 public:
     explicit AboutDialog(QWidget* parent = nullptr);

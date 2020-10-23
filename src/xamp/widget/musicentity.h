@@ -13,7 +13,7 @@
 
 #include <widget/playlistentity.h>
 
-struct MusicEntity {
+struct MusicEntity final {
     int32_t album_id{ 0 };
     int32_t artist_id{ 0 };
     int32_t music_id{ 0 };

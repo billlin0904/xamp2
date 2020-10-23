@@ -10,7 +10,7 @@
 class ArtistView;
 class AlbumView;
 
-class AlbumArtistPage : public QFrame {
+class AlbumArtistPage final : public QFrame {
 	Q_OBJECT
 public:
 	explicit AlbumArtistPage(QWidget* parent = nullptr);

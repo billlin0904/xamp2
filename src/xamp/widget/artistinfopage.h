@@ -7,10 +7,12 @@
 
 #include <QFrame>
 
+#include <widget/widget_shared.h>
+
 class AlbumView;
 class QLabel;
 
-class ArtistInfoPage : public QFrame {
+class ArtistInfoPage final : public QFrame {
 	Q_OBJECT
 public:
 	explicit ArtistInfoPage(QWidget* parent = nullptr);

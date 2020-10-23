@@ -7,6 +7,7 @@
 
 #include <QObject>
 
+#include <widget/widget_shared.h>
 #include <output_device/devicestatelistener.h>
 #include <player/playbackstateadapter.h>
 
@@ -20,9 +21,9 @@ public:
 signals:
     void sampleTimeChanged(double stream_time);
 
-    void stateChanged(xamp::player::PlayerState play_state);
+    void stateChanged(PlayerState play_state);
 
-    void playbackError(xamp::base::Errors error, const QString &message);
+    void playbackError(Errors error, const QString &message);
 
     void deviceChanged(xamp::output_device::DeviceState state);
 
@@ -32,9 +33,9 @@ signals:
 protected:
 	void OnSampleTime(double stream_time) override;
 
-    void OnStateChanged(xamp::player::PlayerState play_state) override;
+    void OnStateChanged(PlayerState play_state) override;
 
-    void OnError(const xamp::base::Exception &ex) override;
+    void OnError(const Exception &ex) override;
 
     void OnDeviceChanged(xamp::output_device::DeviceState state) override;
 

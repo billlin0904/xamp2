@@ -26,7 +26,7 @@ enum PlayListColumn {
 	_PLAYLIST_MAX_COLUMN_,
 };
 
-class PlayListTableModel : public QAbstractTableModel {
+class PlayListTableModel final : public QAbstractTableModel {
 	Q_OBJECT
 public:
 	explicit PlayListTableModel(QObject* parent = nullptr);

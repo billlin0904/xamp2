@@ -19,10 +19,9 @@
 
 inline constexpr size_t kCachePreallocateSize = 100;
 
-using namespace xamp::base;
 using xamp::metadata::TaglibMetadataReader;
 
-class DatabaseIdCache {
+class DatabaseIdCache final {
 public:
     DatabaseIdCache() = default;
 

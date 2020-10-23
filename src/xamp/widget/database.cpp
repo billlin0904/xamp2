@@ -20,7 +20,7 @@
     } while (false)
 
 SqlException::SqlException(QSqlError error)
-    : xamp::base::Exception(xamp::base::Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR,
+    : Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR,
                             error.text().toStdString()) {
 }
 
@@ -428,7 +428,7 @@ QString Database::GetAlbumCoverId(int32_t album_id) const {
 	return QString();
 }
 
-int32_t Database::AddOrUpdateMusic(const xamp::base::Metadata& metadata, int32_t playlist_id) {
+int32_t Database::AddOrUpdateMusic(const Metadata& metadata, int32_t playlist_id) {
 	QSqlQuery query;
 
 	query.prepare(

@@ -1,0 +1,29 @@
+//=====================================================================================================================
+// Copyright (c) 2018-2020 xamp project. All rights reserved.
+// More license information, please see LICENSE file in module root folder.
+//=====================================================================================================================
+
+#pragma once
+
+#include <base/base.h>
+#include <base/metadata.h>
+#include <base/rng.h>
+#include <base/singleton.h>
+#include <base/logger.h>
+#include <base/exception.h>
+#include <base/threadpool.h>
+#include <base/stopwatch.h>
+#include <base/lrucache.h>
+#include <base/stl.h>
+#include <base/dsdsampleformat.h>
+#include <base/vmmemlock.h>
+
+#include <output_device/deviceinfo.h>
+
+#include <player/player.h>
+#include <player/playstate.h>
+
+using namespace xamp::base;
+using namespace xamp::player;
+using namespace xamp::output_device;
+

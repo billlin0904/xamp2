@@ -218,7 +218,7 @@ void PlaybackHistoryTableView::setSelectAll(bool check) {
 }
 
 void PlaybackHistoryTableView::refreshOnece() {
-	QString query = Q_UTF8(R"(
+	ConstLatin1String query(R"(
 SELECT
 	musics.track,
 	musics.title,

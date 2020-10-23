@@ -8,8 +8,7 @@
 #include <QStack>
 #include <QSystemTrayIcon>
 
-#include <base/vmmemlock.h>
-#include <player/audio_player.h>
+#include <widget/widget_shared.h>
 
 #include <widget/discogsclient.h>
 #include <widget/appsettings.h>
@@ -23,9 +22,6 @@
 #include <widget/musicentity.h>
 
 #include "ui_xamp.h"
-
-using namespace xamp::base;
-using namespace xamp::player;
 
 class LrcPage;
 class PlyalistPage;
@@ -56,7 +52,7 @@ public slots:
 
 	void onArtistIdChanged(const QString& artist, const QString& cover_id, int32_t artist_id);
 
-	void processMeatadata(const std::vector<xamp::base::Metadata>& medata);
+	void processMeatadata(const std::vector<Metadata>& medata);
 
 	void onActivated(QSystemTrayIcon::ActivationReason reason);
 private:
@@ -86,7 +82,7 @@ private:
 
 	void play(const PlayListEntity& item);
 
-	void onPlayerStateChanged(xamp::player::PlayerState play_state);
+	void onPlayerStateChanged(PlayerState play_state);
 
 	void addItem(const QString& file_name);
 

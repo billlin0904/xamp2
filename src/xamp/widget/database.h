@@ -16,14 +16,12 @@
 
 #include <QVariant>
 
-#include <base/logger.h>
-#include <base/exception.h>
-#include <base/metadata.h>
+#include <widget/widget_shared.h>
 
 #include <widget/str_utilts.h>
 #include <widget/playlistentity.h>
 
-class SqlException : public xamp::base::Exception {
+class SqlException final : public Exception {
 public:
     explicit SqlException(QSqlError error);
 
@@ -34,7 +32,7 @@ public:
     try {\
     expr;\
     }\
-    catch (const xamp::base::Exception& e) {\
+    catch (const Exception& e) {\
     XAMP_LOG_DEBUG(e.what());\
     }
 
@@ -43,7 +41,7 @@ struct AlbumStats {
     double durations{ 0 };
 };
 
-class Database {
+class Database final {
 public:
     static constexpr int32_t INVALID_DATABASE_ID = -1;
 
@@ -68,7 +66,7 @@ public:
 
     void AddTablePlaylist(int32_t tableId, int32_t playlist_id);
 
-    int32_t AddOrUpdateMusic(const xamp::base::Metadata& medata, int32_t playlist_id);
+    int32_t AddOrUpdateMusic(const Metadata& medata, int32_t playlist_id);
 
     int32_t AddOrUpdateArtist(const QString& artist);
 

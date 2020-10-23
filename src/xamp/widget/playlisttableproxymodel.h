@@ -7,9 +7,10 @@
 
 #include <base/stl.h>
 
+#include <widget/widget_shared.h>
 #include <QSortFilterProxyModel>
 
-class PlayListTableFilterProxyModel : public QSortFilterProxyModel {
+class PlayListTableFilterProxyModel final : public QSortFilterProxyModel {
     Q_OBJECT
 public:
     explicit PlayListTableFilterProxyModel(QObject *parent = nullptr);
@@ -22,5 +23,5 @@ protected:
     bool lessThan(const QModelIndex& left, const QModelIndex& right) const override;
 
 private:
-    xamp::base::HashSet<int32_t> filters_;
+    HashSet<int32_t> filters_;
 };

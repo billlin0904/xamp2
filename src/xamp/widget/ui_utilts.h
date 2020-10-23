@@ -7,9 +7,10 @@
 
 #include <base/audioformat.h>
 #include <player/audio_player.h>
+#include <widget/widget_shared.h>
 #include <widget/str_utilts.h>
 
-static QString samplerate2String(const xamp::base::AudioFormat& format) {
+static QString samplerate2String(const AudioFormat& format) {
     auto precision = 1;
     auto is_mhz_samplerate = false;
     if (format.GetSampleRate() / 1000 > 1000) {
@@ -51,20 +52,20 @@ static QString format2String(const xamp::player::AudioPlayer* player, const QStr
 
     QString dsd_mode;
     switch (player->GetDsdModes()) {
-    case xamp::base::DsdModes::DSD_MODE_PCM:
+    case DsdModes::DSD_MODE_PCM:
         dsd_mode = Q_UTF8("PCM");
         break;
-    case xamp::base::DsdModes::DSD_MODE_NATIVE:
+    case DsdModes::DSD_MODE_NATIVE:
         dsd_mode = Q_UTF8("Native DSD");
         break;
-    case xamp::base::DsdModes::DSD_MODE_DOP:
+    case DsdModes::DSD_MODE_DOP:
         dsd_mode = Q_UTF8("DOP");
         break;
     }
 
     QString output_format_str;
     auto output_format = player->GetOutputFormat();
-    if (format.GetFormat() != xamp::base::DataFormat::FORMAT_DSD && output_format != format) {
+    if (format.GetFormat() != DataFormat::FORMAT_DSD && output_format != format) {
         output_format_str = samplerate2String(output_format);
     }
 

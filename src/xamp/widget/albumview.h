@@ -11,7 +11,7 @@
 #include <QStyledItemDelegate>
 #include <QTableView>
 
-#include <base/metadata.h>
+#include <widget/widget_shared.h>
 
 #include <widget/musicentity.h>
 #include <widget/playlistentity.h>
@@ -21,7 +21,7 @@ class ClickableLabel;
 class AlbumViewPage;
 class AlbumPlayListTableView;
 
-class AlbumViewStyledDelegate : public QStyledItemDelegate {
+class AlbumViewStyledDelegate final : public QStyledItemDelegate {
 	Q_OBJECT
 public:
 	explicit AlbumViewStyledDelegate(QObject* parent = nullptr);
@@ -36,7 +36,7 @@ private:
 	QColor text_color_;
 };
 
-class AlbumViewPage : public QFrame {
+class AlbumViewPage final : public QFrame {
 	Q_OBJECT
 public:
 	explicit AlbumViewPage(QWidget* parent = nullptr);
@@ -81,7 +81,7 @@ private:
 	AlbumPlayListTableView* playlist_;
 };
 
-class AlbumPlayListTableView : public QTableView {
+class AlbumPlayListTableView final : public QTableView {
 	Q_OBJECT
 public:
 	enum {
@@ -100,7 +100,7 @@ private:
 	QSqlQueryModel model_;
 };
 
-class AlbumView : public QListView {
+class AlbumView final : public QListView {
 	Q_OBJECT
 public:
 	explicit AlbumView(QWidget* parent = nullptr);
@@ -129,7 +129,7 @@ public slots:
 
     void append(const QString& file_name);
 
-    void processMeatadata(const std::vector<xamp::base::Metadata> &medata);
+    void processMeatadata(const std::vector<Metadata> &medata);
 private:
 	AlbumViewPage* page_;
 	QSqlQueryModel model_;

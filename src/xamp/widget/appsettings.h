@@ -11,6 +11,7 @@
 #include <QSettings>
 #include <QScopedPointer>
 
+#include <widget/widget_shared.h>
 #include <widget/str_utilts.h>
 #include <widget/settingnames.h>
 #include <widget/localelanguage.h>
@@ -21,7 +22,7 @@ struct AppEQSettings {
 };
 Q_DECLARE_METATYPE(AppEQSettings);
 
-class AppSettings {
+class AppSettings final {
 public:    
     static void loadIniFile(QString const & file_name);
 
@@ -64,7 +65,7 @@ public:
         default_settings_[key] = value;
     }
 
-    static xamp::base::ID getID(QString const & key);
+    static ID getID(QString const & key);
 
     static QSize getSizeValue(QString const& width_key, QString const& height_key);
 
