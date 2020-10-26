@@ -46,4 +46,32 @@ XAMP_ALWAYS_INLINE std::string FormatBytesBy(size_t bytes) noexcept {
     return FormatBytes(sizeof(T) * bytes);
 }
 
+template <typename T>
+T Argument(T value) noexcept {
+    return value;
+}
+
+template <typename T>
+T const *Argument(std::basic_string<T> const &value) noexcept {
+    return value.c_str();
+}
+
+template <typename... Args>
+int StringPrint(char *const buffer,
+                size_t const bufferCount,
+                char const *const format,
+                Args const &... args) noexcept {
+    auto const result = snprintf(buffer, bufferCount, format, Argument(args)...);
+    return result;
+}
+
+template <typename... Args>
+std::string StringPrint(const char *format, Args... args) {
+    std::string buffer;
+    auto size = StringPrint(nullptr, 0, format, args...);
+    buffer.resize(size);
+    StringPrint(&buffer[0], buffer.size() + 1, format, args...);
+    return buffer;
+}
+
 }

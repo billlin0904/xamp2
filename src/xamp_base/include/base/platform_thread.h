@@ -12,7 +12,7 @@
 
 namespace xamp::base {
 
-static constexpr int32_t kDefaultAffinityCpuCore = 0;
+inline constexpr int32_t kDefaultAffinityCpuCore = 0;
 
 XAMP_BASE_API void SetThreadName(std::string const & name) noexcept;
 

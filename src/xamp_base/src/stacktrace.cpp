@@ -196,15 +196,7 @@ void StackTrace::PrintStackTrace(EXCEPTION_POINTERS const* info) {
 
 #else
 void StackTrace::PrintStackTrace() {
-    auto addrlen = ::backtrace(addrlist_.data(), static_cast<int32_t>(addrlist_.size()));
-    if (addrlen == 0) {
-        return;
-    }
-
-    auto symbollist = ::backtrace_symbols(addrlist_.data(), addrlen);
-    for (auto i = 4; i < addrlen; i++) {
-        XAMP_LOG_DEBUG("{}", symbollist[i]);
-    }
+    XAMP_LOG_DEBUG("{}", CaptureStack());
 }
 #endif
 
@@ -227,7 +219,17 @@ std::string StackTrace::CaptureStack() {
     WriteLog(frame_count - 1, ostr);
     return ostr.str();
 #else
-    return "";
+    auto addrlen = ::backtrace(addrlist_.data(), static_cast<int32_t>(addrlist_.size()));
+    if (addrlen == 0) {
+        return "";
+    }
+
+    std::ostringstream ostr;
+    auto symbollist = ::backtrace_symbols(addrlist_.data(), addrlen);
+    for (auto i = 4; i < addrlen; i++) {
+        ostr << symbollist[i];
+    }
+    return ostr.str();
 #endif
 }
 

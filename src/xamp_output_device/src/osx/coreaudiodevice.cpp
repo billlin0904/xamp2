@@ -2,10 +2,13 @@
 #include <mach/mach.h>
 #include <mach/mach_time.h>
 #include <mach/thread_policy.h>
+#include <time.h>
 
 #include <AudioToolbox/AudioToolbox.h>
 
+#include <base/time.h>
 #include <base/logger.h>
+#include <base/singleton.h>
 
 #include <output_device/osx/osx_utitl.h>
 #include <output_device/audiocallback.h>
@@ -115,8 +118,83 @@ private:
     AudioObjectPropertyAddress property_;
 };
 
-static UInt64 HostTimeToSecond(Float64 x) {
-    return ::AudioConvertHostTimeToNanos(x * 1.0E-09);
+struct MachTimeBaseInfo {
+    MachTimeBaseInfo() {
+        ::mach_timebase_info(&timebase_info);
+    }
+
+    uint64_t ToMicroseconds(uint64_t mach_time) const noexcept {
+        constexpr auto kNanosecondsPerMicrosecond = 1000;
+        auto result = mach_time / kNanosecondsPerMicrosecond;
+        result *= timebase_info.numer;
+        result /= timebase_info.denom;
+        return result;
+    }
+
+    mach_timebase_info_data_t timebase_info;
+};
+
+uint32_t GetHardwareLantency(AudioDeviceID device_id, AudioObjectPropertyScope scope) {
+    AudioObjectPropertyAddress property_address = {
+        kAudioDevicePropertyLatency,
+        scope,
+        kAudioObjectPropertyElementMaster
+    };
+
+    uint32_t latency = 0.0;
+    uint32_t size = sizeof(latency);
+    auto result = ::AudioObjectGetPropertyData(device_id,
+                                               &property_address,
+                                               0,
+                                               nullptr,
+                                               &size,
+                                               &latency);
+    CoreAudioThrowIfError(result);
+
+    uint32_t safe_offet = 0;
+    property_address.mSelector = kAudioDevicePropertySafetyOffset;
+    result = ::AudioObjectGetPropertyData(device_id, &property_address,
+                               0,
+                               nullptr,
+                               &size,
+                               &safe_offet);
+    CoreAudioThrowIfError(result);
+
+    uint32_t stream_latency = 0;
+    uint32_t numStreams;
+    property_address.mSelector = kAudioDevicePropertyStreams;
+    result = ::AudioObjectGetPropertyDataSize(device_id,
+                                              &property_address,
+                                              0,
+                                              nullptr,
+                                              &numStreams);
+
+    std::vector<AudioStreamID> streams (numStreams);
+    size = sizeof (AudioStreamID*);
+    result = ::AudioObjectGetPropertyData(device_id,
+                                          &property_address,
+                                          0,
+                                          nullptr,
+                                          &size,
+                                          streams.data());
+
+    property_address.mSelector = kAudioStreamPropertyLatency;
+    size = sizeof (stream_latency);
+    // We could check all streams for the device,
+    // but it only ever seems to return the stream latency on the first stream.
+    result = ::AudioObjectGetPropertyData(streams[0],
+                                          &property_address,
+                                          0,
+                                          nullptr,
+                                          &size,
+                                          &stream_latency);
+    CoreAudioThrowIfError(result);
+
+    XAMP_LOG_DEBUG("Device latency: {} us", latency);
+    XAMP_LOG_DEBUG("Device offset: {} us", safe_offet);
+    XAMP_LOG_DEBUG("Device stream latency: {} us", stream_latency);
+
+    return latency + safe_offet + stream_latency;
 }
 
 CoreAudioDevice::CoreAudioDevice(AudioDeviceID device_id, bool is_hog_mode)
@@ -125,6 +203,7 @@ CoreAudioDevice::CoreAudioDevice(AudioDeviceID device_id, bool is_hog_mode)
     , device_id_(device_id)
     , ioproc_id_(nullptr)
     , buffer_size_(0)
+    , latency_(0)
     , callback_(nullptr)
     , stream_time_(0) {
     audio_property_.mScope = kAudioDevicePropertyScopeOutput;
@@ -211,6 +290,8 @@ void CoreAudioDevice::OpenStream(AudioFormat const &output_format) {
 
     buffer_size_ = output_format.GetChannels() * bufferSize;
 
+    latency_ = GetHardwareLantency(device_id_, kAudioDevicePropertyScopeOutput);
+
     CoreAudioThrowIfError(::AudioDeviceCreateIOProcID(device_id_,
                                                       OnAudioDeviceIOProc,
                                                       this,
@@ -221,6 +302,8 @@ void CoreAudioDevice::OpenStream(AudioFormat const &output_format) {
         ReleaseHogMode(device_id_);
         SetHogMode(device_id_);
     }
+
+    (void) Singleton<MachTimeBaseInfo>::Get();
 }
 
 void CoreAudioDevice::SetAudioCallback(AudioCallback *callback) noexcept {
@@ -305,12 +388,13 @@ OSStatus CoreAudioDevice::OnAudioDeviceIOProc(AudioDeviceID,
     auto device = static_cast<CoreAudioDevice*>(user_data);
 
     double sample_time = 0.0;
-    AudioTimeStamp timeStamp{};
-    sample_time = (timeStamp.mSampleTime / device->format_.GetSampleRate());
-    if (outputTimeStamp->mFlags & kAudioTimeStampHostTimeValid) {
-        sample_time = (outputTimeStamp->mSampleTime / device->format_.GetSampleRate());
+    if ((outputTimeStamp->mFlags & kAudioTimeStampHostTimeValid) == 0) {
+        sample_time = GetUnixTime();
+    } else {
+        sample_time =
+            outputTimeStamp->mSampleTime
+            + device->latency_;
     }
-    //sample_time = HostTimeToSecond(outputTimeStamp->mHostTime);
     device->AudioDeviceIOProc(output_data, sample_time);
     return noErr;
 }

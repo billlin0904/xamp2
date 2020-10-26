@@ -72,53 +72,11 @@ struct AvResourceDeleter<AVFrame> {
 template <typename T>
 using AvPtr = std::unique_ptr<T, AvResourceDeleter<T>>;
 
-class LibAv final {
-public:
-    XAMP_DISABLE_COPY(LibAv)
-
-    static XAMP_ALWAYS_INLINE LibAv& Instance() {
-        static LibAv instance;
-        return instance;
-    }
-
-protected:
-    LibAv() {
-#ifdef _DEBUG
-        av_log_set_level(AV_LOG_VERBOSE);
-        log_level = AV_LOG_VERBOSE;
-#else
-        ::av_log_set_level(AV_LOG_FATAL);
-        log_level = AV_LOG_FATAL;
-#endif
-        ::av_log_set_callback(AvLogCallback);
-    }
-
-private:
-    static void AvLogCallback(void*, int level, const char* fmt, va_list args) {
-        if (level > log_level) {
-            return;
-        }
-        constexpr int32_t kMsgBufSize = 1024;
-        char msgbuf[kMsgBufSize]{};
-        vsnprintf(msgbuf, sizeof(msgbuf) - 1, fmt, args);
-        auto s = strstr(msgbuf, "\n");
-        if (s != nullptr) {
-            s[0] = '\0';
-        }
-        XAMP_LOG_DEBUG(msgbuf);
-    }
-
-    static int32_t log_level;
-};
-
-int32_t LibAv::log_level = AV_LOG_INFO;
-
 class AvFileStream::AvFileStreamImpl {
 public:
     AvFileStreamImpl()
         : audio_stream_id_(-1)
         , duration_(0.0) {
-        LibAv::Instance();
     }
     
     ~AvFileStreamImpl() noexcept {
@@ -215,7 +173,7 @@ public:
 
         AvIfFailedThrow(::swr_init(swr_context_.get()));
         audio_format_.SetFormat(DataFormat::FORMAT_PCM);
-        audio_format_.SetChannel(static_cast<uint32_t>(codec_contex_->channels));
+        audio_format_.SetChannel(static_cast<uint16_t>(codec_contex_->channels));
         audio_format_.SetSampleRate(static_cast<uint32_t>(codec_contex_->sample_rate));
         audio_format_.SetBitPerSample(static_cast<uint32_t>(::av_get_bytes_per_sample(codec_contex_->sample_fmt) * 8));
         audio_format_.SetInterleavedFormat(InterleavedFormat::INTERLEAVED);

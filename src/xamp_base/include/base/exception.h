@@ -40,7 +40,7 @@ public:
                        std::string const & message = "",
                        std::string_view what = "");
     
-    virtual ~Exception() noexcept = default;
+    virtual ~Exception() noexcept override = default;
 
     [[nodiscard]] char const * what() const noexcept override;
 

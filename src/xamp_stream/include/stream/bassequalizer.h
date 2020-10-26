@@ -17,7 +17,7 @@ class XAMP_STREAM_API BassEqualizer final : public Equalizer {
 public:
 	BassEqualizer();
 
-    virtual ~BassEqualizer();
+    virtual ~BassEqualizer() override;
 
 	static void LoadBassFxLib();
 

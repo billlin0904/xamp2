@@ -14,10 +14,7 @@ namespace xamp::base {
 
 class XAMP_BASE_API RNG final {
 public:
-    static RNG& Instance() {
-        static thread_local RNG rng;
-        return rng;
-    }
+    static RNG& Instance();
 
     XAMP_DISABLE_COPY(RNG)
 

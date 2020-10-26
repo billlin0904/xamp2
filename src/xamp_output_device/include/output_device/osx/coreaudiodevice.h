@@ -79,6 +79,7 @@ private:
     AudioDeviceID device_id_;
     AudioDeviceIOProcID ioproc_id_;
     uint32_t buffer_size_;
+    uint32_t latency_;
     AudioCallback *callback_;
     std::atomic<double> stream_time_;
     mutable AudioObjectPropertyAddress audio_property_;

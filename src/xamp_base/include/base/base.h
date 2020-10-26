@@ -85,7 +85,11 @@
 #define XAMP_NEVER_INLINE __attribute__((__noinline__))
 #endif
 
-#define XAMP_ALIGN_ASSUME_ALIGNED(ptr, alignment)
+#ifdef _WIN32
+#define XAMP_ALIGN_ASSUME_ALIGNED(ptr, alignment) ptr
+#else
+#define XAMP_ALIGN_ASSUME_ALIGNED(ptr, alignment) __builtin_assume_aligned(ptr, alignment)
+#endif
 
 #ifdef _WIN32
 #ifndef NDEBUG

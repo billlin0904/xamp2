@@ -15,7 +15,7 @@
 namespace xamp::output_device::osx {
 
 // Minimal DOP DSD64 samplerate
-static constexpr int32_t kMinDopSamplerate = 176400;
+inline constexpr int32_t kMinDopSamplerate = 176400;
 
 std::vector<uint32_t> GetAvailableSampleRates(AudioDeviceID id) {
     constexpr AudioObjectPropertyAddress property = {
@@ -62,7 +62,7 @@ bool IsSupportDopMode(AudioDeviceID id) {
 }
 
 std::string GetDeviceUid(AudioDeviceID id) {
-    AudioObjectPropertyAddress const property = {
+    constexpr AudioObjectPropertyAddress property = {
         kAudioDevicePropertyDeviceUID,
         kAudioObjectPropertyScopeGlobal,
         kAudioObjectPropertyElementMaster

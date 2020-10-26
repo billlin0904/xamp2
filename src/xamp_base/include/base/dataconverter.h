@@ -102,8 +102,11 @@ void ConvertHelper(T* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, fl
 		break;
 	}
 
-	while (input != end_input) {
-		*output++ = static_cast<T>(Clip(*input++) * FloatScaler);
+    auto * XAMP_RESTRICT _input = (float*) XAMP_ALIGN_ASSUME_ALIGNED(input, kMallocAlignSize);
+    auto * XAMP_RESTRICT _output = (T*) XAMP_ALIGN_ASSUME_ALIGNED(output, kMallocAlignSize);
+
+    while (_input != end_input) {
+        *_output++ = static_cast<T>(Clip(*_input++) * FloatScaler);
 	}
 }
 

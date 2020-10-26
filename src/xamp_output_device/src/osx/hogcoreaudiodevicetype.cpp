@@ -9,8 +9,6 @@
 
 namespace xamp::output_device::osx {
 
-const std::string_view HogCoreAudioDeviceType::Id("44ED0EC0-069E-431F-8BF2-AB1369E3421F");
-
 HogCoreAudioDeviceType::HogCoreAudioDeviceType() {
 }
 

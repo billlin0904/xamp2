@@ -33,8 +33,8 @@ public:
 
     Logger& AddSink(spdlog::sink_ptr sink);
 
-	std::shared_ptr<spdlog::logger>& GetDefaultLogger() noexcept {
-		return default_logger_;
+    spdlog::logger* GetDefaultLogger() noexcept {
+        return default_logger_.get();
 	}
 
 	std::shared_ptr<spdlog::logger> GetLogger(const std::string &name);

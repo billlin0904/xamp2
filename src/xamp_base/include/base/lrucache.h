@@ -20,6 +20,7 @@ class XAMP_BASE_API_ONLY_EXPORT LruCache {
 public:
     using CacheList = std::list<std::pair<Key, Value>>;
     using CacheIterator = typename CacheList::iterator;
+    using CacheMap = HashMap<Key, CacheIterator>;
 
     explicit LruCache(size_t max_size = kLruCacheSize) noexcept;
 
@@ -48,7 +49,7 @@ public:
 private:
     size_t max_size_;
     mutable size_t miss_count_;
-    mutable HashMap<Key, CacheIterator> map_;
+    mutable CacheMap map_;
     mutable CacheList cache_;
 };
 
