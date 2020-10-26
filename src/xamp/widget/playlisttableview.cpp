@@ -351,7 +351,12 @@ void PlayListTableView::resizeColumn() const {
             header->resizeSection(column, 90);
             break;
         case PLAYLIST_TITLE:
-            header->setSectionResizeMode(column, QHeaderView::ResizeToContents);
+            if (header->length() > 450) {
+                header->setSectionResizeMode(column, QHeaderView::Fixed);
+            }
+            else {
+                header->setSectionResizeMode(column, QHeaderView::ResizeToContents);
+            }
             header->resizeSection(column, 450);
             break;
         case PLAYLIST_ALBUM:

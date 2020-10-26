@@ -201,7 +201,7 @@ public:
         for (size_t n = 0; n < max_thread_ * K; ++n) {
 			const auto index = (i + n) % max_thread_;
             if (shared_queues_.at(index)->TryEnqueue(std::move(task))) {
-                XAMP_LOG_DEBUG("Enqueue shared queue.");
+                XAMP_LOG_DEBUG("Enqueue thread {} queue.", index);
                 return;
             }
         }
@@ -240,7 +240,7 @@ public:
 
 private:
     std::optional<TaskType> TryPopFormPoolQueue() {
-        constexpr auto kTimeout = std::chrono::milliseconds(100);
+        constexpr auto kTimeout = std::chrono::milliseconds(30);
         TaskType task;
         if (pool_queue_.Dequeue(task, kTimeout)) {
             XAMP_LOG_DEBUG("Pop pool thread queue.");

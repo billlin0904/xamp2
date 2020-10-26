@@ -906,12 +906,14 @@ void Xamp::playMusic(const MusicEntity& item) {
         playlist_page_->format()->setText(format2String(player_.get(), item.file_ext));
     }
 
-    if (auto cover = Singleton<PixmapCache>::Get().find(item.cover_id)) {
-        setCover(cover.value());
-    }
-    else {
-        setCover(nullptr);
-    }
+    if (current_entiry_.cover_id != item.cover_id) {
+        if (auto cover = Singleton<PixmapCache>::Get().find(item.cover_id)) {
+            setCover(cover.value());
+        }
+        else {
+            setCover(nullptr);
+        }
+    }    
 
     ThemeManager::instance().setPlayOrPauseButton(ui, true);
 
@@ -935,9 +937,9 @@ void Xamp::playMusic(const MusicEntity& item) {
     }    
 }
 
-void Xamp::play(const PlayListEntity& item) {  
-    current_entiry_ = item;
+void Xamp::play(const PlayListEntity& item) {      
     playMusic(toMusicEntity(item));
+    current_entiry_ = item;
 }
 
 void Xamp::play(const QModelIndex&, const PlayListEntity& item) {

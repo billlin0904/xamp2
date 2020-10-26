@@ -788,6 +788,8 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_read_sample
                     continue;
                 }
             }
+            // TODO: 如果在這裡做資料轉換(ex:float->int32_t), 可能需要處理GetSamples不滿足轉換上長度的需求.
+            // 還要處理不足的狀況.
         }
         else {
             XAMP_LOG_DEBUG("Finish read all samples, wait for finish.");

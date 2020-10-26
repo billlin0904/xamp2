@@ -45,8 +45,6 @@ public:
 
 	size_t GetImageSize() const;
 
-	void Erase();
-
 	QString GetUnknownCoverId() const {
 		return unknown_cover_id_;
 	}

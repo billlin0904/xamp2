@@ -154,12 +154,18 @@ public:
         return ptr_.get();
     }
 
+    // 兼容STL容器相關函數.
+
     T& operator[](size_t i) noexcept {
         return ptr_[i]; 
     }
 
     const T& operator[](size_t i) const noexcept {
         return ptr_[i]; 
+    }
+
+    [[nodiscard]] size_t size() const noexcept {
+        return size_;
     }
 
     [[nodiscard]] size_t GetSize() const noexcept {
