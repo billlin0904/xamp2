@@ -16,13 +16,13 @@ class CircularBuffer;
 
 template <class T>
 class CircularBufferIterator {
-    typedef CircularBufferIterator          self_type;
-    typedef T                                 value_type;
+    typedef CircularBufferIterator self_type;
+    typedef T value_type;
     typedef T& reference;
     typedef T const& const_reference;
     typedef T* pointer;
-    typedef std::random_access_iterator_tag   iterator_category;
-    typedef ptrdiff_t                         difference_type;
+    typedef std::random_access_iterator_tag iterator_category;
+    typedef ptrdiff_t difference_type;
 public:
     CircularBufferIterator(CircularBuffer<T> const& buf, size_t const pos, bool const last)
         : buffer_(buf)

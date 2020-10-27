@@ -15,6 +15,10 @@ void ThreadPool::Stop() {
 	scheduler_.Destroy();
 }
 
+void ThreadPool::SetAffinityMask(int32_t core) {
+	scheduler_.SetAffinityMask(core);
+}
+
 ThreadPool& ThreadPool::Default() {
 	static ThreadPool default_pool;
 	return default_pool;

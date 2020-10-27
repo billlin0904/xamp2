@@ -821,7 +821,7 @@ void AudioPlayer::StartPlay(double start_time, double end_time) {
     Play();
 
     Stopwatch sw;
-    stream_task_ = ThreadPool::Default().StartNew([player = shared_from_this()]() noexcept {
+    stream_task_ = ThreadPool::Default().Run([player = shared_from_this()]() noexcept {
         auto* p = player.get();
 
         std::unique_lock<std::mutex> lock{ p->pause_mutex_ };

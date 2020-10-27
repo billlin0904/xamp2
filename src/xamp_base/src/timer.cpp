@@ -16,7 +16,7 @@ Timer::~Timer() {
 void Timer::Start(std::chrono::milliseconds timeout, TimerCallback&& callback) {
 	is_stop_ = false;
 	timer_.SetTimeout(timeout);
-    thread_ = ThreadPool::Default().StartNew([this, timeout_routine = std::forward<TimerCallback>(callback)]() {
+    thread_ = ThreadPool::Default().Run([this, timeout_routine = std::forward<TimerCallback>(callback)]() {
 		SetThreadName("Timer");
 
 		while (!is_stop_) {

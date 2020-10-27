@@ -41,6 +41,10 @@ class FunctionWrapper {
     		: f_(std::move(f)) {	        
         }
 
+        virtual ~ImplType() noexcept override {
+            XAMP_LOG_DEBUG("ImplType was deleted.");
+        }
+
         void Call() override {
 	        f_();
         }
@@ -171,16 +175,16 @@ template
 >
 class TaskScheduler final {
 public:
-    explicit TaskScheduler(size_t max_thread, int32_t affinity_mask = 0)
+    explicit TaskScheduler(size_t max_thread, int32_t core = 1)
         : is_stopped_(false)
         , active_thread_(0)
-        , affinity_mask_(affinity_mask)
+        , core_(core)
         , index_(0)
         , max_thread_(max_thread)
         , pool_queue_(max_thread) {
     	try {
     	    for (size_t i = 0; i < max_thread_; ++i) {
-                shared_queues_.push_back(MakeAlign<BoundedQueue<TaskType>>(max_thread));
+                shared_queues_.push_back(MakeAlign<TaskQueue>(max_thread));
             }
             for (size_t i = 0; i < max_thread_; ++i) {
                 AddThread(static_cast<int32_t>(i));
@@ -189,7 +193,7 @@ public:
     		is_stopped_ = true;
     		throw;
     	}
-        XAMP_LOG_DEBUG("TaskScheduler initial max thread:{} affinity:{}", max_thread, affinity_mask);
+        XAMP_LOG_DEBUG("TaskScheduler initial max thread:{} affinity:{}", max_thread, core);
     }    
 
     ~TaskScheduler() noexcept {
@@ -197,7 +201,7 @@ public:
     }
 
     void SubmitJob(TaskType&& task) {
-		const auto i = index_++;
+        const auto i = index_++;
         for (size_t n = 0; n < max_thread_ * K; ++n) {
 			const auto index = (i + n) % max_thread_;
             if (shared_queues_.at(index)->TryEnqueue(std::move(task))) {
@@ -209,11 +213,11 @@ public:
         XAMP_LOG_DEBUG("Enqueue pool queue.");
     }
 
-    void SetAffinityMask(int32_t affinity_mask) {        
+    void SetAffinityMask(int32_t core) {
         for (size_t i = 0; i < max_thread_; ++i) {
-            SetThreadAffinity(threads_.at(i));
+            SetThreadAffinity(threads_.at(i), core);
         }
-        affinity_mask_ = affinity_mask;
+        core_ = core;
     }
 
     void Destroy() noexcept {
@@ -239,7 +243,7 @@ public:
     }
 
 private:
-    std::optional<TaskType> TryPopFormPoolQueue() {
+    std::optional<TaskType> TryPopPoolQueue() {
         constexpr auto kTimeout = std::chrono::milliseconds(30);
         TaskType task;
         if (pool_queue_.Dequeue(task, kTimeout)) {
@@ -249,7 +253,7 @@ private:
         return std::nullopt;
     }
 
-    std::optional<TaskType> TryPopFormLocalQueue(size_t index) {
+    std::optional<TaskType> TryPopLocalQueue(size_t index) {
         TaskType task;
         if (shared_queues_.at(index)->TryDequeue(task)) {
             XAMP_LOG_DEBUG("Pop local thread queue.");
@@ -258,10 +262,10 @@ private:
         return std::nullopt;
     }
 
-    std::optional<TaskType> TryStealFormSharedQueue() {
+    std::optional<TaskType> TrySteal() {
         TaskType task;
-        size_t i = 0;
-        for (size_t n = 0; n != max_thread_; ++n) {
+        const auto i = 0;
+        for (size_t n = 0; n != max_thread_ * K; ++n) {
             if (is_stopped_) {
                 return std::nullopt;
             }
@@ -277,23 +281,24 @@ private:
 
     void AddThread(size_t i) {
         threads_.push_back(std::thread([i, this]() mutable {
-            auto padding_buffer = MakeStackBuffer<uint8_t>((std::min)(kInitL1CacheLineSize * i,
-                kMaxL1CacheLineSize));
-#ifndef XAMP_OS_WIN
+            const auto L1_padding_buffer = MakeStackBuffer<uint8_t>(
+                (std::min)(kInitL1CacheLineSize * i, kMaxL1CacheLineSize));
+#ifdef XAMP_OS_MAC
+            // Sleep for set thread name.
             std::this_thread::sleep_for(std::chrono::milliseconds(900));
 #endif
             SetCurrentThreadName(i);
 
-            XAMP_LOG_DEBUG("Thread {} running.", i);
+            XAMP_LOG_DEBUG("Thread {} start.", i);
 
             for (;!is_stopped_;) {                
-                auto task = TryStealFormSharedQueue();                
+                auto task = TrySteal();                
                 if (!task) {
-                    task = TryPopFormLocalQueue(i);
+                    task = TryPopLocalQueue(i);
                 }
                 if (!task) {
                     std::this_thread::yield();
-                    task = TryPopFormPoolQueue();
+                    task = TryPopPoolQueue();
                 }
                 if (!task) {
                     std::this_thread::yield();
@@ -310,23 +315,24 @@ private:
             XAMP_LOG_DEBUG("Thread {} done.", i);
         }));
 
-        SetThreadAffinity(threads_.at(i));
+        SetThreadAffinity(threads_.at(i), core_);
     }
 
-    using SharedQueuePtr = AlignPtr<Queue<TaskType>>;
+    using TaskQueue = Queue<TaskType>;
+    using SharedTaskQueuePtr = AlignPtr<TaskQueue>;
     
-    static constexpr size_t K = 3;
+    static constexpr size_t K = 4;
     static constexpr size_t kInitL1CacheLineSize = 4 * 1024;
     static constexpr size_t kMaxL1CacheLineSize = 64 * 1024;
 
 	std::atomic<bool> is_stopped_;
     std::atomic<size_t> active_thread_;
-    int32_t affinity_mask_;
+    int32_t core_;
 	size_t index_;
     size_t max_thread_;
-    Queue<TaskType> pool_queue_;
+    TaskQueue pool_queue_;
     std::vector<std::thread> threads_;
-    std::vector<SharedQueuePtr> shared_queues_;
+    std::vector<SharedTaskQueuePtr> shared_queues_;
 };
 
 class XAMP_BASE_API ThreadPool final {
@@ -336,13 +342,15 @@ public:
 	XAMP_DISABLE_COPY(ThreadPool)
 
     template <typename F, typename... Args>
-    decltype(auto) StartNew(F&& f, Args&&... args);
+    decltype(auto) Run(F&& f, Args&&... args);
 
     size_t GetActiveThreadCount() const noexcept;
 
     void Stop();
 
     static ThreadPool& Default();
+
+    void SetAffinityMask(int32_t core);
 
 private:
 	ThreadPool();
@@ -352,7 +360,7 @@ private:
 };
 
 template <typename F, typename ... Args>
-decltype(auto) ThreadPool::StartNew(F &&f, Args&&... args) {	
+decltype(auto) ThreadPool::Run(F &&f, Args&&... args) {	
     using ReturnType = std::invoke_result_t<F, Args...>;
 	using PackagedTaskType = std::packaged_task<ReturnType()>;
 

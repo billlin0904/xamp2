@@ -355,9 +355,14 @@ void SharedWasapiDevice::GetSample(uint32_t frame_available) noexcept {
 }
 
 void SharedWasapiDevice::FillSilentSample(uint32_t frame_available) noexcept {
-	BYTE* data;
-	ReportError(render_client_->GetBuffer(frame_available, &data));
-	ReportError(render_client_->ReleaseBuffer(frame_available, AUDCLNT_BUFFERFLAGS_SILENT));
+	try {
+		BYTE* data;
+		ReportError(render_client_->GetBuffer(frame_available, &data));
+		ReportError(render_client_->ReleaseBuffer(frame_available, AUDCLNT_BUFFERFLAGS_SILENT));
+	}
+	catch (...) {
+		ReportError(E_POINTER);
+	}
 }
 
 HRESULT SharedWasapiDevice::OnSampleReady(IMFAsyncResult* result) noexcept {
