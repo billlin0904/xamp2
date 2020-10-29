@@ -41,7 +41,7 @@ std::string_view ASIODeviceType::GetDescription() const {
 	return "ASIO";
 }
 
-ID ASIODeviceType::GetTypeId() const {
+Uuid ASIODeviceType::GetTypeId() const {
 	return Id;
 }
 

@@ -1,9 +1,6 @@
-#include <QApplication>
 #include <QMap>
-#include <QtConcurrent>
-#include <QFuture>
-
 #include <base/base.h>
+#include <base/threadpool.h>
 #include <metadata/taglibmetareader.h>
 
 #ifdef XAMP_OS_WIN
@@ -104,25 +101,17 @@ MetadataExtractAdapter::MetadataExtractAdapter(QObject* parent)
 MetadataExtractAdapter::~MetadataExtractAdapter() = default;
 
 void MetadataExtractAdapter::ReadFileMetadata(MetadataExtractAdapter *adapter, QString const & file_name) {
-    auto extract_handler = [adapter](const auto& file_name) {
-        try {
-        	const Path path(file_name.toStdWString());
-        	TaglibMetadataReader reader;
-            WalkPath(path, adapter, &reader);
-        }
-        catch (const std::exception& e) {
-            XAMP_LOG_DEBUG("WalkPath has exception: {}", e.what());
-        }
-    };
-
-    auto future = QtConcurrent::run(extract_handler, file_name);
-    auto* watcher = new QFutureWatcher<void>();
-    (void)QObject::connect(watcher, &QFutureWatcher<void>::finished, [=]() {
-        watcher->deleteLater();
-        adapter->deleteLater();
+    ThreadPool::Default().Run([adapter, file_name]()
+        {
+            try {
+                const Path path(file_name.toStdWString());
+                TaglibMetadataReader reader;
+                WalkPath(path, adapter, &reader);
+            }
+            catch (const std::exception& e) {
+                XAMP_LOG_DEBUG("WalkPath has exception: {}", e.what());
+            }
         });
-
-    watcher->setFuture(future);
 }
 
 void MetadataExtractAdapter::OnWalkFirst() {

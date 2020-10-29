@@ -115,7 +115,7 @@ HashMap<std::string, std::wstring> GetDeviceProperty(CComPtr<IMMDevice>& device)
 	return result;
 }
 
-DeviceInfo GetDeviceInfo(CComPtr<IMMDevice>& device, ID const& device_type_id) {
+DeviceInfo GetDeviceInfo(CComPtr<IMMDevice>& device, Uuid const& device_type_id) {
 	DeviceInfo info;
 	info.name = GetDevicePropertyString(PKEY_Device_FriendlyName, VT_LPWSTR, device);
 

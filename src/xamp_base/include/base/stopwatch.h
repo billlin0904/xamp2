@@ -22,7 +22,7 @@ public:
 	}
 
 	[[nodiscard]] double ElapsedSeconds() const noexcept {		
-		return static_cast<double>(Elapsed().count()) / 1000000.0;
+		return static_cast<double>(Elapsed<std::chrono::milliseconds>().count()) / 1000.0;
 	}
 
 private:

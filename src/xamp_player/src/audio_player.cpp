@@ -4,7 +4,7 @@
 #include <base/threadpool.h>
 #include <base/stl.h>
 
-#include <output_device/devicefactory.h>
+#include <output_device/audiodevicemanager.h>
 #include <output_device/asiodevicetype.h>
 #include <output_device/dsddevice.h>
 
@@ -73,7 +73,7 @@ void AudioPlayer::Destroy() {
     resampler_.reset();
     equalizer_.reset();
 #ifdef ENABLE_ASIO
-    DeviceManager::RemoveASIOCurrentDriver();
+    AudioDeviceManager::RemoveASIOCurrentDriver();
 #endif
     ThreadPool::Default().Stop();
     BassFileStream::FreeBassLib();
@@ -85,23 +85,27 @@ void AudioPlayer::UpdateSlice(float const *samples, int32_t sample_size, double 
         std::memory_order_relaxed);
 }
 
-void AudioPlayer::Initital() {
-    DeviceManager::PreventSleep(true);
+void AudioPlayer::Initial() {
+    AudioDeviceManager::PreventSleep(true);
 
     (void)ThreadPool::Default();
     XAMP_LOG_DEBUG("ThreadPool init success.");
 
-    (void)DeviceManager::Default();
-    XAMP_LOG_DEBUG("DeviceManager init success.");
+    (void)AudioDeviceManager::Default();
+    XAMP_LOG_DEBUG("AudioDeviceManager init success.");
 
     BassFileStream::LoadBassLib();
     XAMP_LOG_DEBUG("Load BASS dll success.");
 
+    SoxrResampler::LoadSoxrLib();
+    XAMP_LOG_DEBUG("Load Soxr dll success.");
+	
     try {
         Chromaprint::LoadChromaprintLib();
         XAMP_LOG_DEBUG("Load Chromaprint dll success.");
     }
     catch (...) {
+    	// Ignore exception.
     }   
 
     try {
@@ -109,14 +113,12 @@ void AudioPlayer::Initital() {
         XAMP_LOG_DEBUG("Load BASS Fx dll success.");
     }
     catch (...) {
-    }
-
-    SoxrResampler::LoadSoxrLib();    
-    XAMP_LOG_DEBUG("Load Soxr dll success.");    
+        // Ignore exception.
+    }     
 }
 
 void AudioPlayer::Open(std::wstring const & file_path, std::wstring const & file_ext, DeviceInfo const & device_info) {
-    Initial();
+    Startup();
     CloseDevice(true);
     OpenStream(file_path, file_ext, device_info);
     device_info_ = device_info;
@@ -128,15 +130,15 @@ void AudioPlayer::SetResampler(uint32_t samplerate, AlignPtr<Resampler>&& resamp
     EnableResampler(true);
 }
 
-void AudioPlayer::CreateDevice(ID const & device_type_id, std::string const & device_id, bool open_always) {
+void AudioPlayer::CreateDevice(Uuid const & device_type_id, std::string const & device_id, bool open_always) {
     if (device_ == nullptr
         || device_id_ != device_id
         || device_type_id_ != device_type_id
         || open_always) {
         if (device_type_id_ != device_type_id) {
-            DeviceManager::RemoveASIOCurrentDriver();
+            AudioDeviceManager::RemoveASIOCurrentDriver();
         }
-        if (auto result = DeviceManager::Default().Create(device_type_id)) {            
+        if (auto result = AudioDeviceManager::Default().Create(device_type_id)) {            
             device_type_ = std::move(result.value());
             // TODO: remove ScanNewDevice ?
             device_type_->ScanNewDevice();
@@ -216,7 +218,7 @@ void AudioPlayer::OpenStream(std::wstring const & file_path, std::wstring const 
     stream_ = MakeFileStream(file_ext, std::move(stream_));
 
     if (auto* dsd_stream = AsDsdStream()) {
-        if (DeviceManager::Default().IsASIODevice(device_info.device_type_id)) {
+        if (AudioDeviceManager::Default().IsASIODevice(device_info.device_type_id)) {
             if (device_info.is_support_dsd) {
                 dsd_stream->SetDSDMode(DsdModes::DSD_MODE_NATIVE);
                 dsd_mode_ = DsdModes::DSD_MODE_NATIVE;
@@ -377,7 +379,7 @@ void AudioPlayer::SetMute(bool mute) {
     device_->SetMute(mute);
 }
 
-void AudioPlayer::Initial() {
+void AudioPlayer::Startup() {
     if (!timer_.IsStarted()) {
         std::weak_ptr<AudioPlayer> player = shared_from_this();
         timer_.Start(kUpdateSampleInterval, [player]() {
@@ -418,7 +420,7 @@ std::optional<uint32_t> AudioPlayer::GetDSDSpeed() const {
         return std::nullopt;
     }
 
-    if (const auto dsd_stream = dynamic_cast<DsdStream*>(stream_.get())) {
+    if (auto* const dsd_stream = dynamic_cast<DsdStream*>(stream_.get())) {
         if (dsd_stream->IsDsdFile()) {
             return dsd_stream->GetDsdSpeed();
         }
@@ -497,9 +499,9 @@ void AudioPlayer::CreateBuffer() {
 
     uint32_t require_read_sample = 0;
 
-    if (DeviceManager::Default().IsSupportASIO()) {
+    if (AudioDeviceManager::Default().IsSupportASIO()) {
         if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE
-            || DeviceManager::Default().IsASIODevice(device_type_id_)) {
+            || AudioDeviceManager::Default().IsASIODevice(device_type_id_)) {
             require_read_sample = kMaxSamplerate;
         }
         else {
@@ -748,7 +750,7 @@ void AudioPlayer::BufferStream(double stream_time) {
                 return;
             }
 
-            auto samples = reinterpret_cast<const float*>(sample_buffer);
+            const auto samples = reinterpret_cast<const float*>(sample_buffer);
             
             auto use_resampler = true;
             if (equalizer_ != nullptr) {
@@ -773,7 +775,7 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_read_sample
         const auto num_samples = stream_->GetSamples(sample_buffer, max_read_sample);
 
         if (num_samples > 0) {
-            auto samples = reinterpret_cast<const float*>(sample_buffer_.Get());
+	        const auto samples = reinterpret_cast<const float*>(sample_buffer_.Get());
 
             auto use_resampler = true;
             if (equalizer_ != nullptr) {
@@ -789,7 +791,7 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_read_sample
                 }
             }
             // TODO: 如果在這裡做資料轉換(ex:float->int32_t), 可能需要處理GetSamples不滿足轉換上長度的需求.
-            // 還要處理不足的狀況.
+        	
         }
         else {
             XAMP_LOG_DEBUG("Finish read all samples, wait for finish.");
@@ -807,7 +809,7 @@ void AudioPlayer::StartPlay(double start_time, double end_time) {
     BufferStream(start_time);
 
     sw_.Reset();
-    min_process_time_ = std::chrono::microseconds(1000000);
+    min_process_time_ = std::chrono::seconds(1);
     max_process_time_ = std::chrono::microseconds(0);
 
     if (end_time > 0.0) {

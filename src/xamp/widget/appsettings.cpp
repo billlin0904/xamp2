@@ -117,12 +117,12 @@ void AppSettings::setOrDefaultConfig() {
     setDefaultValue(kAppSettingMinimizeToTray, false);
 }
 
-ID AppSettings::getID(const QString& key) {
+Uuid AppSettings::getID(const QString& key) {
 	auto str = getValue(key).toString();
 	if (str.isEmpty()) {
-		return ID::INVALID_ID;
+		return Uuid::INVALID_ID;
 	}
-	return ID::FromString(str.toStdString());
+	return Uuid::FromString(str.toStdString());
 }
 
 QSize AppSettings::getSizeValue(const QString& width_key,

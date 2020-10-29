@@ -25,7 +25,7 @@ public:
 
 	[[nodiscard]] std::string_view GetDescription() const override;
 
-	[[nodiscard]] ID GetTypeId() const override;
+	[[nodiscard]] Uuid GetTypeId() const override;
 
 	[[nodiscard]] size_t GetDeviceCount() const override;
 

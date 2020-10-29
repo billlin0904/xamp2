@@ -16,7 +16,7 @@
 #include <base/timer.h>
 #include <base/dsdsampleformat.h>
 #include <base/align_ptr.h>
-#include <base/id.h>
+#include <base/Uuid.h>
 #include <base/stopwatch.h>
 
 #include <stream/stream.h>
@@ -49,7 +49,7 @@ public:
 
     explicit AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter);
 
-    static void Initital();
+    static void Initial();
 
     void Open(std::wstring const& file_path, std::wstring const& file_ext, const DeviceInfo& device_info);
 
@@ -110,11 +110,11 @@ public:
     static AlignPtr<FileStream> MakeFileStream(std::wstring const& file_ext, AlignPtr<FileStream> old_stream = nullptr);
 
 private:
-    void Initial();
-
+    void Startup();
+    	
     void OpenStream(std::wstring const & file_path, std::wstring const & file_ext, DeviceInfo const& device_info);
 
-    void CreateDevice(ID const& device_type_id, std::string const & device_id, bool open_always);
+    void CreateDevice(Uuid const& device_type_id, std::string const & device_id, bool open_always);
 
     void CloseDevice(bool wait_for_stop_stream);
 
@@ -176,7 +176,7 @@ private:
     std::chrono::microseconds max_process_time_{ 0 };
     Stopwatch sw_;
     std::string device_id_;
-    ID device_type_id_;
+    Uuid device_type_id_;
     std::condition_variable pause_cond_;
     std::condition_variable stopped_cond_;
     AudioFormat input_format_;

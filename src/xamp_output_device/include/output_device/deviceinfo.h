@@ -7,7 +7,7 @@
 
 #include <string>
 
-#include <base/id.h>
+#include <base/Uuid.h>
 #include <output_device/output_device.h>
 
 namespace xamp::output_device {
@@ -19,7 +19,7 @@ struct XAMP_OUTPUT_DEVICE_API DeviceInfo final {
 	bool is_support_dsd{false};
 	std::wstring name;    
 	std::string device_id;
-	ID device_type_id;
+	Uuid device_type_id;
 };
 
 }

@@ -18,11 +18,11 @@
 #endif
 
 #include <base/platform_thread.h>
-#include <output_device/devicefactory.h>
+#include <output_device/audiodevicemanager.h>
 
 namespace xamp::output_device {
 
-class DeviceManager::DeviceStateNotificationImpl {
+class AudioDeviceManager::DeviceStateNotificationImpl {
 public:
 #ifdef XAMP_OS_WIN
     using DeviceStateNotification = win32::Win32DeviceStateNotification;
@@ -90,7 +90,7 @@ static struct IopmAssertion {
 		return MakeAlign<DeviceType, DeviceTypeClass>();\
 	})
 
-DeviceManager::DeviceManager() {
+AudioDeviceManager::AudioDeviceManager() {
 #ifdef XAMP_OS_WIN
     using namespace win32;
     HrIfFailledThrow(::MFStartup(MF_VERSION, MFSTARTUP_LITE));
@@ -108,12 +108,12 @@ DeviceManager::DeviceManager() {
 #endif
 }
 
-DeviceManager& DeviceManager::Default() {
-    static DeviceManager manager;
+AudioDeviceManager& AudioDeviceManager::Default() {
+    static AudioDeviceManager manager;
     return manager;
 }
 
-DeviceManager::~DeviceManager() {
+AudioDeviceManager::~AudioDeviceManager() {
 #ifdef XAMP_OS_WIN
     ::MFShutdown();
 #else
@@ -121,11 +121,11 @@ DeviceManager::~DeviceManager() {
 #endif
 }
 
-void DeviceManager::Clear() {
+void AudioDeviceManager::Clear() {
     factory_.clear();
 }
 
-std::optional<AlignPtr<DeviceType>> DeviceManager::CreateDefaultDevice() const {
+std::optional<AlignPtr<DeviceType>> AudioDeviceManager::CreateDefaultDevice() const {
     auto itr = factory_.begin();
     if (itr == factory_.end()) {
         return std::nullopt;
@@ -133,7 +133,7 @@ std::optional<AlignPtr<DeviceType>> DeviceManager::CreateDefaultDevice() const {
     return (*itr).second();
 }
 
-std::optional<AlignPtr<DeviceType>> DeviceManager::Create(ID const& id) const {
+std::optional<AlignPtr<DeviceType>> AudioDeviceManager::Create(Uuid const& id) const {
     auto itr = factory_.find(id);
     if (itr == factory_.end()) {
         return std::nullopt;
@@ -141,7 +141,7 @@ std::optional<AlignPtr<DeviceType>> DeviceManager::Create(ID const& id) const {
     return (*itr).second();
 }
 
-bool DeviceManager::IsSupportASIO() const noexcept {
+bool AudioDeviceManager::IsSupportASIO() const noexcept {
 #if ENABLE_ASIO && defined(XAMP_OS_WIN)
     return IsDeviceTypeExist(ASIODeviceType::Id);
 #else
@@ -149,9 +149,9 @@ bool DeviceManager::IsSupportASIO() const noexcept {
 #endif
 }
 
-bool DeviceManager::IsExclusiveDevice(DeviceInfo const & info) noexcept {
+bool AudioDeviceManager::IsExclusiveDevice(DeviceInfo const & info) noexcept {
 #ifdef XAMP_OS_WIN
-    ID const device_type_id(info.device_type_id);
+    Uuid const device_type_id(info.device_type_id);
     return device_type_id == win32::ExclusiveWasapiDeviceType::Id
 #if ENABLE_ASIO
            || device_type_id == ASIODeviceType::Id
@@ -163,7 +163,7 @@ bool DeviceManager::IsExclusiveDevice(DeviceInfo const & info) noexcept {
 #endif
 }
 
-bool DeviceManager::IsASIODevice(ID const& id) noexcept {
+bool AudioDeviceManager::IsASIODevice(Uuid const& id) noexcept {
 #if defined(ENABLE_ASIO) && defined(XAMP_OS_WIN)
     return id == ASIODeviceType::Id;
 #else
@@ -172,22 +172,22 @@ bool DeviceManager::IsASIODevice(ID const& id) noexcept {
 #endif
 }
 
-void DeviceManager::RemoveASIOCurrentDriver() {
+void AudioDeviceManager::RemoveASIOCurrentDriver() {
 #if ENABLE_ASIO
     AsioDevice::RemoveCurrentDriver();
 #endif
 }
 
-bool DeviceManager::IsDeviceTypeExist(ID const& id) const noexcept {
+bool AudioDeviceManager::IsDeviceTypeExist(Uuid const& id) const noexcept {
     return factory_.find(id) != factory_.end();
 }
 
-void DeviceManager::RegisterDeviceListener(std::weak_ptr<DeviceStateListener> callback) {	
+void AudioDeviceManager::RegisterDeviceListener(std::weak_ptr<DeviceStateListener> callback) {	
     impl_ = MakeAlign<DeviceStateNotificationImpl>(callback);
     impl_->Run();
 }
 
-void DeviceManager::PreventSleep(bool allow) {
+void AudioDeviceManager::PreventSleep(bool allow) {
 #ifdef XAMP_OS_WIN
     if (allow) {
         ::SetThreadExecutionState(ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED | ES_CONTINUOUS);

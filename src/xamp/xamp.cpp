@@ -15,7 +15,7 @@
 #include <base/scopeguard.h>
 #include <base/str_utilts.h>
 
-#include <output_device/devicefactory.h>
+#include <output_device/audiodevicemanager.h>
 
 #include <player/chromaprinthelper.h>
 #include <player/soxresampler.h>
@@ -92,10 +92,10 @@ void Xamp::initial() {
     initialDeviceList();
     initialPlaylist();
     initialShortcut();
-    setCover(nullptr);
-    DeviceManager::Default().RegisterDeviceListener(player_);
+    setCover(nullptr);    
     createTrayIcon();
-    setDefaultStyle();    
+    setDefaultStyle();
+    AudioDeviceManager::Default().RegisterDeviceListener(player_);
 }
 
 void Xamp::onActivated(QSystemTrayIcon::ActivationReason reason) {
@@ -279,7 +279,7 @@ void Xamp::initialDeviceList() {
     const auto device_type_id = AppSettings::getID(kAppSettingDeviceType);
     const auto device_id = AppSettings::getValueAsString(kAppSettingDeviceId).toStdString();
 
-    DeviceManager::Default().ForEach([&](const auto &device_type) {
+    AudioDeviceManager::Default().ForEach([&](const auto &device_type) {
         device_type->ScanNewDevice();
 
         const auto device_info_list = device_type->GetDeviceInfo();
@@ -313,7 +313,7 @@ void Xamp::initialDeviceList() {
 
         if (!is_find_setting_device) {
             auto itr = std::find_if(device_info_list.begin(), device_info_list.end(), [](const auto& info) {
-                return info.is_default_device && !DeviceManager::IsExclusiveDevice(info);
+                return info.is_default_device && !AudioDeviceManager::IsExclusiveDevice(info);
             });
             if (itr != device_info_list.end()) {
                 init_device_info = (*itr);

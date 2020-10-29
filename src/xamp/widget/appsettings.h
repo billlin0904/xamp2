@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <base/id.h>
+#include <base/Uuid.h>
 
 #include <QColor>
 #include <QSettings>
@@ -65,7 +65,7 @@ public:
         default_settings_[key] = value;
     }
 
-    static ID getID(QString const & key);
+    static Uuid getID(QString const & key);
 
     static QSize getSizeValue(QString const& width_key, QString const& height_key);
 

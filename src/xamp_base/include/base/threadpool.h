@@ -244,11 +244,11 @@ public:
 
 private:
     std::optional<TaskType> TryPopPoolQueue() {
-        constexpr auto kTimeout = std::chrono::milliseconds(30);
+        constexpr auto kWaitTimeout = std::chrono::milliseconds(30);
         TaskType task;
-        if (pool_queue_.Dequeue(task, kTimeout)) {
+        if (pool_queue_.Dequeue(task, kWaitTimeout)) {
             XAMP_LOG_DEBUG("Pop pool thread queue.");
-            return task;
+            return std::move(task);
         }
         return std::nullopt;
     }
@@ -257,7 +257,7 @@ private:
         TaskType task;
         if (shared_queues_.at(index)->TryDequeue(task)) {
             XAMP_LOG_DEBUG("Pop local thread queue.");
-            return task;
+            return std::move(task);
         }
         return std::nullopt;
     }
@@ -273,7 +273,7 @@ private:
             const auto index = (i + n) % max_thread_;
             if (shared_queues_.at(index)->TryDequeue(task)) {
                 XAMP_LOG_DEBUG("Steal other thread queue.");
-                return task;
+                return std::move(task);
             }
         }
         return std::nullopt;

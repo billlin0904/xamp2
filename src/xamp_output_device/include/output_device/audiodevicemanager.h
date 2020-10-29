@@ -12,11 +12,10 @@
 
 #include <base/base.h>
 #include <base/stl.h>
-#include <base/id.h>
+#include <base/Uuid.h>
 #include <base/exception.h>
 #include <base/align_ptr.h>
 #include <base/logger.h>
-#include <base/singleton.h>
 
 #include <output_device/output_device.h>
 #include <output_device/device_type.h>
@@ -25,11 +24,11 @@ namespace xamp::output_device {
 
 using namespace base;
 
-class XAMP_OUTPUT_DEVICE_API DeviceManager final {
+class XAMP_OUTPUT_DEVICE_API AudioDeviceManager final {
 public:
-    ~DeviceManager();
+    ~AudioDeviceManager();
 
-    XAMP_DISABLE_COPY(DeviceManager)
+    XAMP_DISABLE_COPY(AudioDeviceManager)
 
     void RegisterDeviceListener(std::weak_ptr<DeviceStateListener> callback);
 
@@ -37,7 +36,7 @@ public:
 
     [[nodiscard]] std::optional<AlignPtr<DeviceType>> CreateDefaultDevice() const;
 
-    [[nodiscard]] std::optional<AlignPtr<DeviceType>> Create(ID const& id) const;
+    [[nodiscard]] std::optional<AlignPtr<DeviceType>> Create(Uuid const& id) const;
 
     template <typename Function>
     void ForEach(Function &&fun) {
@@ -53,13 +52,13 @@ public:
 
     bool IsSupportASIO() const noexcept;
 
-    bool IsDeviceTypeExist(ID const& id) const noexcept;
+    bool IsDeviceTypeExist(Uuid const& id) const noexcept;
 
-    static DeviceManager& Default();
+    static AudioDeviceManager& Default();
 
     static bool IsExclusiveDevice(DeviceInfo const &info) noexcept;
 
-    static bool IsASIODevice(ID const& id) noexcept;
+    static bool IsASIODevice(Uuid const& id) noexcept;
 
     static void RemoveASIOCurrentDriver();
 
@@ -67,15 +66,15 @@ public:
 private:
     class DeviceStateNotificationImpl;
 
-    DeviceManager();
+    AudioDeviceManager();
 
     template <typename Function>
-    void RegisterCreator(ID const &id, Function&& fun) {
+    void RegisterCreator(Uuid const &id, Function&& fun) {
         factory_[id] = std::forward<Function>(fun);
     }
 
     AlignPtr<DeviceStateNotificationImpl> impl_;    
-    HashMap<ID, std::function<AlignPtr<DeviceType>()>> factory_;
+    HashMap<Uuid, std::function<AlignPtr<DeviceType>()>> factory_;
 };
 
 }

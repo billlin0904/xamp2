@@ -2,12 +2,11 @@
 #include <sstream>
 
 #include <base/exception.h>
-#include <base/dll.h>
-#include <base/id.h>
+#include <base/uuid.h>
 
 namespace xamp::base {
 
-static inline uint8_t MakeHex(char a, char b) {
+static uint8_t MakeHex(char a, char b) {
     const char buffer[3] = { a, b, '\0' };
     const char* start = &buffer[0];
     char* endptr = nullptr;
@@ -18,19 +17,19 @@ static inline uint8_t MakeHex(char a, char b) {
     throw std::invalid_argument("Invalid digital.");
 }
 
-static std::array<uint8_t, kIdSize> ParseString(std::string_view const & from_string) {
+static UuidBuffer ParseString(std::string_view const & from_string) {
     if (from_string.length() != kMaxIdStrLen) {
-        throw std::invalid_argument("Invalid ID.");
+        throw std::invalid_argument("Invalid Uuid.");
     }
 
     if (from_string[8] != '-'
         || from_string[13] != '-'
         || from_string[18] != '-'
         || from_string[23] != '-') {
-        throw std::invalid_argument("Invalid ID.");
+        throw std::invalid_argument("Invalid Uuid.");
     }
 
-    std::array<uint8_t, kIdSize> uuid{};    
+    UuidBuffer uuid{};
 
     for (size_t i = 0, j = 0; i < from_string.length(); ++i) {
 		if (from_string[i] == '-')
@@ -42,7 +41,7 @@ static std::array<uint8_t, kIdSize> ParseString(std::string_view const & from_st
     return uuid;
 }
 
-std::ostream &operator<<(std::ostream &s, ID const &id) {
+std::ostream &operator<<(std::ostream &s, Uuid const &id) {
   return s << std::hex << std::setfill('0')
     << std::setw(2) << static_cast<int32_t>(id.bytes_[0])
     << std::setw(2) << static_cast<int32_t>(id.bytes_[1])
@@ -66,18 +65,19 @@ std::ostream &operator<<(std::ostream &s, ID const &id) {
     << std::setw(2) << static_cast<int32_t>(id.bytes_[15]);
 }
 
-ID const ID::INVALID_ID;
+Uuid const Uuid::INVALID_ID;
 
-ID::ID() noexcept {
+Uuid::Uuid() noexcept {
     hash_ = 0;
 	bytes_.fill(0);
 }
 
-ID::ID(ID const& other) noexcept {
+Uuid::Uuid(Uuid const& other) noexcept
+	: Uuid() {
     *this = other;
 }
 
-ID& ID::operator=(ID const& other) noexcept {
+Uuid& Uuid::operator=(Uuid const& other) noexcept {
     if (this != &other) {
         bytes_ = other.bytes_;
         hash_ = other.hash_;
@@ -85,11 +85,12 @@ ID& ID::operator=(ID const& other) noexcept {
     return *this;
 }
 
-ID::ID(ID&& other) noexcept {
+Uuid::Uuid(Uuid&& other) noexcept
+	: Uuid() {
     *this = std::move(other);
 }
 
-ID& ID::operator=(ID&& other) noexcept {
+Uuid& Uuid::operator=(Uuid&& other) noexcept {
     if (this != &other) {
         hash_ = other.hash_;
         bytes_ = other.bytes_;
@@ -97,17 +98,17 @@ ID& ID::operator=(ID&& other) noexcept {
     return *this;
 }
 
-ID::ID(std::array<uint8_t, kIdSize> const& bytes) noexcept
+Uuid::Uuid(UuidBuffer const& bytes) noexcept
     : hash_(0)
     , bytes_(bytes) {
     hash_ = CalcHash();
 }
 
-size_t ID::CalcHash() const noexcept {
+size_t Uuid::CalcHash() const noexcept {
     return std::hash<std::string>{}(std::string());
 }
 
-ID::ID(std::string_view const &str) {
+Uuid::Uuid(std::string_view const &str) {
     hash_ = 0;
 	bytes_.fill(0);
 	if (!str.empty()) {
@@ -116,14 +117,14 @@ ID::ID(std::string_view const &str) {
 	}
 }
 
-ID::operator std::string() const {
+Uuid::operator std::string() const {
     std::ostringstream ostr;
 	ostr << *this;
     return ostr.str();
 }
 
-ID ID::FromString(std::string const & str) {
-	return ID(str);
+Uuid Uuid::FromString(std::string const & str) {
+	return Uuid(str);
 }
 	
 }

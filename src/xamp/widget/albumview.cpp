@@ -1,6 +1,5 @@
 #include <QPainter>
 #include <QScrollBar>
-#include <QDebug>
 #include <QApplication>
 #include <QVBoxLayout>
 #include <QPushButton>
@@ -9,9 +8,7 @@
 #include <QClipboard>
 #include <QStandardPaths>
 #include <QFileDialog>
-#include <QtConcurrent>
 #include <QFuture>
-#include <QLabel>
 
 #include <metadata/taglibmetareader.h>
 

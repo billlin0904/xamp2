@@ -12,7 +12,7 @@
 #include <unordered_set>
 #include <list>
 
-#include <base/id.h>
+#include <base/Uuid.h>
 
 #include <robin_hood.h>
 

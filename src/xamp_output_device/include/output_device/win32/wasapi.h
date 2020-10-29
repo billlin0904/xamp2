@@ -26,7 +26,7 @@
 
 #include <base/stl.h>
 #include <base/windows_handle.h>
-#include <base/id.h>
+#include <base/Uuid.h>
 
 #include <avrt.h>
 #include <Mferror.h>
@@ -48,7 +48,7 @@ namespace xamp::output_device::win32::helper {
 inline constexpr int32_t kWasapiReftimesPerMillisec = 10000;
 inline constexpr double kWasapiReftimesPerSec = 10000000;
 
-DeviceInfo GetDeviceInfo(CComPtr<IMMDevice>& device, ID const& device_type_id);
+DeviceInfo GetDeviceInfo(CComPtr<IMMDevice>& device, Uuid const& device_type_id);
 
 CComPtr<IMMDeviceEnumerator> CreateDeviceEnumerator();
 

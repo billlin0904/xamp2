@@ -30,7 +30,7 @@ public:
 
 	virtual std::string_view GetDescription() const = 0;
 
-    virtual ID GetTypeId() const = 0;
+    virtual Uuid GetTypeId() const = 0;
 
     virtual AlignPtr<Device> MakeDevice(std::string const & device_id) = 0;
 
