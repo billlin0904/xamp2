@@ -22,7 +22,7 @@ XAMP_BASE_API_ONLY_EXPORT Type* AlignedMallocOf(size_t aligned_size) noexcept {
 }
 
 template <typename Type>
-XAMP_BASE_API_ONLY_EXPORT Type* AlignedMallocCountOf(size_t n, size_t aligned_size) noexcept {
+XAMP_BASE_API_ONLY_EXPORT Type* AlignedMallocOf(size_t n, size_t aligned_size) noexcept {
     return static_cast<Type*>(AlignedMalloc(sizeof(Type) * n, aligned_size));
 }
 
@@ -97,7 +97,7 @@ XAMP_BASE_API_ONLY_EXPORT AlignPtr<Type> MakeAlign(Args&& ... args) {
 
 template <typename Type, typename U = std::enable_if_t<std::is_trivially_copyable<Type>::value>>
 XAMP_BASE_API_ONLY_EXPORT AlignBufferPtr<Type> MakeBuffer(size_t n, size_t alignment = kMallocAlignSize) {
-    auto ptr = AlignedMallocCountOf<Type>(n, alignment);
+    auto ptr = AlignedMallocOf<Type>(n, alignment);
     if (!ptr) {
         throw std::bad_alloc();
     }

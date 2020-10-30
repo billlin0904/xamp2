@@ -55,8 +55,7 @@ AudioPlayer::AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter)
     , is_paused_(false)
     , sample_end_time_(0)
     , state_adapter_(adapter)
-    , buffer_(kPreallocateBufferSize) {
-    wait_timer_.SetTimeout(kReadSampleWaitTime);  
+    , buffer_(kPreallocateBufferSize) { 
 }
 
 AudioPlayer::~AudioPlayer() = default;
@@ -79,9 +78,9 @@ void AudioPlayer::Destroy() {
     BassFileStream::FreeBassLib();
 }
 
-void AudioPlayer::UpdateSlice(float const *samples, int32_t sample_size, double stream_time) noexcept {
+void AudioPlayer::UpdateSlice(float const *samples, int32_t sample_size, double stream_time, double sample_time) noexcept {
     std::atomic_exchange_explicit(&slice_,
-        AudioSlice{ samples, sample_size, stream_time },
+        AudioSlice{ samples, sample_size, stream_time, sample_time },
         std::memory_order_relaxed);
 }
 
@@ -405,7 +404,7 @@ void AudioPlayer::Startup() {
                 if (slice.samples != nullptr) {
                     adapter->OnSampleDataChanged(slice.samples, static_cast<uint32_t>(slice.sample_size));
                 }
-                adapter->OnSampleTime(slice.stream_time);
+                adapter->OnSampleTime(slice.stream_time, slice.sample_time);
             } else if (p->is_playing_ && slice.sample_size == -1) {
                 p->SetState(PlayerState::PLAYER_STATE_STOPPED);
                 p->stm_.Handle(StopEvent{});
@@ -518,6 +517,7 @@ void AudioPlayer::CreateBuffer() {
         num_read_sample_ = require_read_sample;
         XAMP_LOG_DEBUG("Allocate interal buffer : {}.", FormatBytes(allocate_size));
         sample_buffer_ = AlignedBuffer<int8_t>(allocate_size);
+        sample_buffer_lock_.SetName("SampleBuffer");
         sample_buffer_lock_.Lock(sample_buffer_.Get(), sample_buffer_.GetByteSize());
         read_sample_size_ = allocate_size;
     }
@@ -590,12 +590,15 @@ int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, dou
 #ifdef XAMP_OS_WIN
     if (sample_time > sample_end_time_) {
         std::memset(static_cast<int8_t*>(samples), 0, sample_size);
+        if (auto adapter = state_adapter_.lock()) {
+            adapter->OnGaplessPlayback();
+        }
     }
     else
 #endif
     {
         if (XAMP_LIKELY(buffer_.TryRead(static_cast<int8_t*>(samples), sample_size))) {
-            UpdateSlice(static_cast<const float*>(samples), static_cast<int32_t>(num_samples), stream_time);
+            UpdateSlice(static_cast<const float*>(samples), static_cast<int32_t>(num_samples), stream_time, sample_time);
             sw_.Reset();
             return 0;
         }
@@ -604,9 +607,8 @@ int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, dou
             std::memset(static_cast<int8_t*>(samples), 0, sample_size);
             return 0;
         }
-    }
-
-    UpdateSlice(nullptr, -1, stream_time);
+    }    
+    UpdateSlice(nullptr, -1, stream_time, sample_time);
     return 1;
 }
 
@@ -725,23 +727,13 @@ void AudioPlayer::Seek(double stream_time) {
     }
 }
 
-void AudioPlayer::BufferStream(double stream_time) {
-    buffer_.Clear();
+void AudioPlayer::BufferStream(AlignPtr<FileStream>& stream) {
+    XAMP_LOG_DEBUG("Start buffer {} sec samples.",
+        float(num_read_sample_ * kBufferStreamCount * output_format_.GetBytesPerSample())
+        / output_format_.GetAvgBytesPerSec());
 
     auto* const sample_buffer = sample_buffer_.Get();
     sample_size_ = stream_->GetSampleSize();
-
-    if (enable_resample_) {
-        resampler_->Flush();
-    }
-
-    if (stream_time > 0.0) {
-        stream_->Seek(stream_time);
-    }    
-
-    XAMP_LOG_DEBUG("Start buffer {} sec samples.", 
-        float(num_read_sample_ * kBufferStreamCount * output_format_.GetBytesPerSample())
-        / output_format_.GetAvgBytesPerSec());
 
     for (auto i = 0; i < kBufferStreamCount; ++i) {
         while (true) {
@@ -751,7 +743,7 @@ void AudioPlayer::BufferStream(double stream_time) {
             }
 
             const auto samples = reinterpret_cast<const float*>(sample_buffer);
-            
+
             auto use_resampler = true;
             if (equalizer_ != nullptr) {
                 if (dsd_mode_ == DsdModes::DSD_MODE_PCM) {
@@ -768,6 +760,20 @@ void AudioPlayer::BufferStream(double stream_time) {
             break;
         }
     }
+}
+
+void AudioPlayer::BufferStream(double stream_time) {
+    buffer_.Clear();    
+
+    if (enable_resample_) {
+        resampler_->Flush();
+    }
+
+    if (stream_time > 0.0) {
+        stream_->Seek(stream_time);
+    }    
+
+    BufferStream(stream_);
 }
 
 void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_read_sample, std::unique_lock<std::mutex>& lock) {
@@ -790,12 +796,21 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_read_sample
                     continue;
                 }
             }
-            // TODO: 如果在這裡做資料轉換(ex:float->int32_t), 可能需要處理GetSamples不滿足轉換上長度的需求.
-        	
+            // TODO: 如果在這裡做資料轉換(ex:float->int32_t), 可能需要處理GetSamples不滿足轉換上長度的需求.        	
         }
         else {
-            XAMP_LOG_DEBUG("Finish read all samples, wait for finish.");
-            stopped_cond_.wait(lock);
+            if (auto adapter = state_adapter_.lock()) {
+                XAMP_LOG_DEBUG("Start get next gapless stream.");
+                auto next_stream = adapter->GetNextGaplessStream();
+                BufferStream(*next_stream);
+                stream_->Close();
+                stream_ = std::move(*next_stream);
+                XAMP_LOG_DEBUG("Swap next stream success.");
+            }
+            else {
+                XAMP_LOG_DEBUG("Finish read all samples, wait for finish.");
+                stopped_cond_.wait(lock);
+            }
         }
         break;
     }
@@ -821,6 +836,8 @@ void AudioPlayer::StartPlay(double start_time, double end_time) {
 
     XAMP_LOG_INFO("Stream end time {} sec", sample_end_time_);
     Play();
+
+    wait_timer_.SetTimeout(kReadSampleWaitTime);
 
     Stopwatch sw;
     stream_task_ = ThreadPool::Default().Run([player = shared_from_this()]() noexcept {

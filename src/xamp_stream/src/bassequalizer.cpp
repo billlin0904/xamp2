@@ -12,15 +12,14 @@ static void EnsureFxLibInit() {
 
 class BassEqualizer::BassEqualizerImpl {
 public:
-	BassEqualizerImpl() {
+	BassEqualizerImpl() 
+		: vmlock_("BassEqualizer") {
 		fx_handles_.fill(0);
 	}
 
 	~BassEqualizerImpl() = default;
 
 	void Start(uint32_t num_channels, uint32_t input_samplerate) {
-		EnsureFxLibInit();
-
         RemoveFx();
 
 		stream_.reset(BassLib::Instance().BASS_StreamCreate(input_samplerate,
@@ -49,11 +48,17 @@ public:
 	}
 
 	bool Process(float const* sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer) {
-        buffer_.resize(num_samples);
+		if (num_samples > buffer_.size()) {			
+			vmlock_.UnLock();
+			buffer_.resize(num_samples);
+			vmlock_.Lock(buffer_.data(), num_samples * sizeof(float));
+		}
+
 		auto temp_stream = BassLib::Instance().FxLib->BASS_FX_TempoGetSource(stream_.get());
         BassLib::Instance().BASS_StreamPutData(temp_stream,
 			sample_buffer, 
 			num_samples * sizeof(float));
+
 		while (true) {
 			const auto bytes_read = BassLib::Instance().BASS_ChannelGetData(stream_.get(),
 				buffer_.data(),
@@ -109,6 +114,7 @@ private:
 	BassStreamHandle stream_;	
 	BassStreamHandle tempo_stream_;
 	std::array<HFX, kMaxBand> fx_handles_;
+	VmMemLock vmlock_;
     std::vector<float> buffer_;
 };
 

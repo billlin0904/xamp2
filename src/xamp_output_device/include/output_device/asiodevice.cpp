@@ -309,6 +309,8 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 		buffer_bytes_ = buffer_size_ * (int64_t)format_.GetBytesPerSample();
 		buffer_ = AlignedBuffer<int8_t>(allocate_bytes * buffer_size_);
 		device_buffer_ = AlignedBuffer<int8_t>(allocate_bytes * buffer_size_);
+		buffer_vmlock_.SetName("ASIO Buffer");
+		device_buffer_vmlock_.SetName("ASIO Device Buffer");
 		buffer_vmlock_.Lock(buffer_.Get(), allocate_bytes * buffer_size_);
 		device_buffer_vmlock_.Lock(device_buffer_.Get(), allocate_bytes * buffer_size_);
 	}

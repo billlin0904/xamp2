@@ -124,6 +124,8 @@ private:
 
     void BufferStream(double stream_time = 0.0);
 
+    void BufferStream(AlignPtr<FileStream> &stream);
+
     int32_t OnGetSamples(void* samples, uint32_t num_buffer_frames, double stream_time, double sample_time) noexcept override;
 
     void OnVolumeChange(float vol) noexcept override;
@@ -142,17 +144,19 @@ private:
 
     DsdDevice* AsDsdDevice() noexcept;
 
-    void UpdateSlice(float const *samples = nullptr, int32_t sample_size = 0, double stream_time = 0.0) noexcept;
+    void UpdateSlice(float const *samples = nullptr, int32_t sample_size = 0, double stream_time = 0.0, double sample_time = 0.0) noexcept;
 
     struct XAMP_CACHE_ALIGNED(kMallocAlignSize) AudioSlice {
-        AudioSlice(float const *samples = nullptr, int32_t sample_size = 0, double stream_time = 0.0) noexcept
+        AudioSlice(float const *samples = nullptr, int32_t sample_size = 0, double stream_time = 0.0, double sample_time = 0.0) noexcept
             : samples(samples)
             , sample_size(sample_size)
-            , stream_time(stream_time) {
+            , stream_time(stream_time)
+            , sample_time(sample_time) {
         }
         float const *samples;
         int32_t sample_size;
         double stream_time;
+        double sample_time;
     };
 
     XAMP_ENFORCE_TRIVIAL(AudioSlice)

@@ -68,7 +68,7 @@ private:
 
 	QWidgetAction* createTextSeparator(const QString& text);
 
-	void onSampleTimeChanged(double stream_time);
+	void onSampleTimeChanged(double stream_time, double sample_time);
 
 	void playLocalFile(const PlayListEntity& item);
 

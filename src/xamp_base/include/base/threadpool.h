@@ -99,6 +99,19 @@ public:
         return true;
     }
 
+    size_t size() const {
+        std::lock_guard guard{ mutex_ };
+        return queue_.size();
+    }
+
+    void Push(Type const &value) {
+        {
+            std::lock_guard guard{ mutex_ };
+            queue_.push(value);
+        }
+        notify_.notify_one();
+    }
+
     template <typename U>
     void Enqueue(U &&task) {        
         {

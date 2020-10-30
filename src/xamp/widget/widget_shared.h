@@ -20,10 +20,13 @@
 
 #include <output_device/deviceinfo.h>
 
+#include <stream/filestream.h>
+
 #include <player/player.h>
 #include <player/playstate.h>
 
 using namespace xamp::base;
+using namespace xamp::stream;
 using namespace xamp::player;
 using namespace xamp::output_device;
 

@@ -54,7 +54,8 @@ public:
         , num_channels_(0)
         , ratio_(0)
         , passband_(1.0)
-        , stopband_(1.0) {
+        , stopband_(1.0)
+        , vmlock_("SoxrResampler") {
     }
 
     ~SoxrResamplerImpl() noexcept {

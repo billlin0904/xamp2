@@ -6,8 +6,12 @@
 #pragma once
 
 #include <QObject>
+#include <QModelIndex>
+#include <deque>
 
 #include <widget/widget_shared.h>
+
+#include <base/threadpool.h>
 #include <output_device/devicestatelistener.h>
 #include <player/playbackstateadapter.h>
 
@@ -18,8 +22,14 @@ class PlayerStateAdapter final
 public:
     explicit PlayerStateAdapter(QObject *parent = nullptr);
 
+    void addPlaybackQueue(const QModelIndex& next_index, const std::wstring& file_ext, const std::wstring& file_path);
+
+    void clearPlaybackQueue();
+
+    size_t getPlaybackQueueSize() const;
+
 signals:
-    void sampleTimeChanged(double stream_time);
+    void sampleTimeChanged(double stream_time, double sample_time);
 
     void stateChanged(PlayerState play_state);
 
@@ -30,8 +40,11 @@ signals:
     void volumeChanged(float vol);
 
     void sampleDataChanged(std::vector<float> const &samples);
+
+    void gaplessPlayback(const QModelIndex &next_index);
+
 protected:
-	void OnSampleTime(double stream_time) override;
+	void OnSampleTime(double stream_time, double sample_time) override;
 
     void OnStateChanged(PlayerState play_state) override;
 
@@ -43,5 +56,10 @@ protected:
 
     void OnSampleDataChanged(const float *samples, size_t size) override;
 
-    std::vector<float> buffer_;
+    void OnGaplessPlayback();
+
+    std::optional<AlignPtr<FileStream>> GetNextGaplessStream();
+
+    BoundedQueue<QModelIndex> next_playindex_;
+    BoundedQueue<AlignPtr<FileStream>> next_streams_;
 };

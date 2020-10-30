@@ -63,7 +63,8 @@ template <typename Type, typename U>
 AudioBuffer<Type, U>::AudioBuffer() noexcept
 	: head_(0)
 	, tail_(0)
-	, size_(0) {
+	, size_(0)
+	, lock_("AudioBuffer") {
 }
 
 template <typename Type, typename U>

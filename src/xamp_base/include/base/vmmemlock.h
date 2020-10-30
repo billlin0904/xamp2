@@ -6,11 +6,14 @@
 #pragma once
 
 #include <base/base.h>
+#include <string>
 
 namespace xamp::base {
 
 class XAMP_BASE_API VmMemLock final {
 public:
+	explicit VmMemLock(const std::string& name);
+
 	VmMemLock() noexcept;
 	
 	VmMemLock(void* address, size_t size);
@@ -23,9 +26,18 @@ public:
 
 	void UnLock() noexcept;
 
+	void SetName(const std::string& name) {
+		name_ = name;
+	}
+
+	std::string GetName() const {
+		return name_;
+	}
+
 private:
 	void* address_;
 	size_t size_;
+	std::string name_;
 };
 
 }

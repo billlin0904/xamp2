@@ -716,6 +716,17 @@ void Xamp::playNextItem(int32_t forward) {
             if (play_index_.row() == -1) {
                 return;
             }
+            for (auto i = 0; i < 3; ++i)
+            {
+                auto index = playlist_view->nextIndex(forward);
+                if (play_index_.row() == -1) {
+                    break;
+                }
+                auto& item = playlist_view->item(index);
+                state_adapter_->addPlaybackQueue(index,
+                    item.file_ext.toStdWString(), 
+                    item.file_path.toStdWString());
+            }
             break;
         case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL:
             play_index_ = playlist_view->shuffeIndex();
@@ -742,7 +753,7 @@ void Xamp::playNextItem(int32_t forward) {
     }
 }
 
-void Xamp::onSampleTimeChanged(double stream_time) {
+void Xamp::onSampleTimeChanged(double stream_time, double sample_time) {
     if (!player_) {
         return;
     }
@@ -982,8 +993,10 @@ void Xamp::onPlayerStateChanged(xamp::player::PlayerState play_state) {
         resetTaskbarProgress();
         ui.seekSlider->setValue(0);
         ui.startPosLabel->setText(Time::msToString(0));
-        playNextItem(1);
-        emit payNextMusic();
+        if (state_adapter_->getPlaybackQueueSize() == 0) {
+            playNextItem(1);
+            emit payNextMusic();
+        }        
     }
 }
 

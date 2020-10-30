@@ -82,7 +82,8 @@ ExclusiveWasapiDevice::ExclusiveWasapiDevice(CComPtr<IMMDevice> const & device)
 	, sample_ready_key_(0)
 	, aligned_period_(0)
 	, device_(device)
-	, callback_(nullptr) {
+	, callback_(nullptr)
+	, vmlock_("ExclusiveWasapiDevice") {
 }
 
 ExclusiveWasapiDevice::~ExclusiveWasapiDevice() {
