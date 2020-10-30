@@ -718,7 +718,7 @@ void Xamp::playNextItem(int32_t forward) {
             }
             for (auto i = 0; i < 3; ++i)
             {
-                auto index = playlist_view->nextIndex(forward);
+                auto index = playlist_view->nextIndex(forward + i);
                 if (play_index_.row() == -1) {
                     break;
                 }

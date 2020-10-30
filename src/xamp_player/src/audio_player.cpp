@@ -802,9 +802,10 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_read_sample
             if (auto adapter = state_adapter_.lock()) {
                 XAMP_LOG_DEBUG("Start get next gapless stream.");
                 auto next_stream = adapter->GetNextGaplessStream();
-                BufferStream(*next_stream);
                 stream_->Close();
                 stream_ = std::move(*next_stream);
+                sample_end_time_ = stream_->GetDuration();
+                BufferStream();                
                 XAMP_LOG_DEBUG("Swap next stream success.");
             }
             else {
