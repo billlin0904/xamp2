@@ -21,7 +21,7 @@ AlignPtr<Device> HogCoreAudioDeviceType::MakeDevice(const std::string &device_id
     return MakeAlign<Device, CoreAudioDevice>(id, true);
 }
 
-ID HogCoreAudioDeviceType::GetTypeId() const {
+Uuid HogCoreAudioDeviceType::GetTypeId() const {
     return Id;
 }
 

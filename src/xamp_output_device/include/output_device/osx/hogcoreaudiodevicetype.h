@@ -28,7 +28,7 @@ public:
 
     std::string_view GetDescription() const override;
 
-    ID GetTypeId() const override;
+    Uuid GetTypeId() const override;
 
     AlignPtr<Device> MakeDevice(const std::string &device_id) override;
 };

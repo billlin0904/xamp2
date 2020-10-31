@@ -56,7 +56,7 @@ DeviceInfo CoreAudioDeviceType::GetDeviceInfo(uint32_t device) const {
     return (*itr);
 }
 
-ID CoreAudioDeviceType::GetTypeId() const {
+Uuid CoreAudioDeviceType::GetTypeId() const {
     return Id;
 }
 

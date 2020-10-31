@@ -12,7 +12,7 @@
 
 #include <base/base.h>
 #include <base/stl.h>
-#include <base/Uuid.h>
+#include <base/uuid.h>
 #include <base/exception.h>
 #include <base/align_ptr.h>
 #include <base/logger.h>

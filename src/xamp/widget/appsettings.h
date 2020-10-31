@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <base/Uuid.h>
+#include <base/uuid.h>
 
 #include <QColor>
 #include <QSettings>

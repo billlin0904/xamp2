@@ -7,7 +7,7 @@
 
 #include <string>
 
-#include <base/Uuid.h>
+#include <base/uuid.h>
 #include <output_device/output_device.h>
 
 namespace xamp::output_device {

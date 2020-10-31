@@ -12,8 +12,6 @@
 #include <unordered_set>
 #include <list>
 
-#include <base/Uuid.h>
-
 #include <robin_hood.h>
 
 namespace xamp::base {
