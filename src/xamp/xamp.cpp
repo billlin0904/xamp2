@@ -992,6 +992,8 @@ void Xamp::addPlayQueue() {
 }
 
 void Xamp::play(const QModelIndex&, const PlayListEntity& item) {
+    state_adapter_->ClearPlayQueue();
+
     addPlayQueue();
 
     playLocalFile(item);
