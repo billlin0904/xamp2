@@ -7,13 +7,16 @@
 
 #include <base/base.h>
 #include <base/exception.h>
+#include <base/spsc_queue.h>
 #include <player/player.h>
+#include <stream/filestream.h>
 #include <output_device/devicestatelistener.h>
 #include <player/playstate.h>
 
 namespace xamp::player {
 
 using namespace base;
+using namespace stream;
 using namespace output_device;
 
 class XAMP_PLAYER_API XAMP_NO_VTABLE PlaybackStateAdapter {
@@ -32,6 +35,11 @@ public:
 
     virtual void OnSampleDataChanged(const float *samples, size_t size) = 0;
 
+    virtual void OnGaplessPlayback() = 0;
+
+    virtual size_t GetPlayQueueSize() const = 0;
+
+    virtual AlignPtr<FileStream> PopPlayQueue() = 0;
 protected:
     PlaybackStateAdapter() = default;
 };

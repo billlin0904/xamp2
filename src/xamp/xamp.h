@@ -12,7 +12,7 @@
 
 #include <widget/discogsclient.h>
 #include <widget/appsettings.h>
-#include <widget/playerstateadapter.h>
+#include <widget/uiplayerstateadapter.h>
 #include <widget/framelesswindow.h>
 #include <widget/musicbrainzclient.h>
 #include <widget/playlistentity.h>
@@ -55,6 +55,8 @@ public slots:
 	void processMeatadata(const std::vector<Metadata>& medata);
 
 	void onActivated(QSystemTrayIcon::ActivationReason reason);
+
+    void onGaplessPlay(const QModelIndex &index);
 private:
     void initial();
 
@@ -140,6 +142,10 @@ private:
 
 	void createTrayIcon();
 
+    void updateUI(const MusicEntity& item, bool open_done);
+
+    void addPlayQueue();
+
 	bool is_seeking_;
 	std::pair<double, double> loop_time{0,0};
 	PlayerOrder order_;
@@ -151,7 +157,7 @@ private:
 	AlbumArtistPage* album_artist_page_;
 	ArtistInfoPage* artist_info_page_;
 	QStack<int32_t> stack_page_id_;	    
-	std::shared_ptr<PlayerStateAdapter> state_adapter_;
+	std::shared_ptr<UIPlayerStateAdapter> state_adapter_;
 	std::shared_ptr<AudioPlayer> player_;
 	PlaybackHistoryPage* playback_history_page_;
 	MusicBrainzClient mbc_;

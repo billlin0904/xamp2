@@ -123,8 +123,9 @@ void PlayListTableView::initial() {
         });
 
     (void)QObject::connect(this, &QTableView::doubleClicked, [this](const QModelIndex& index) {
-        emit playMusic(index, model_.item(proxy_model_.mapToSource(index)));
+        auto current_index = proxy_model_.mapToSource(index);
         setNowPlaying(index);
+        emit playMusic(index, model_.item(current_index));
         });
 
     setContextMenuPolicy(Qt::CustomContextMenu);
@@ -453,6 +454,10 @@ std::map<int32_t, QModelIndex> PlayListTableView::selectItemIndex() const {
 
 PlayListEntity& PlayListTableView::item(const QModelIndex& index) {
     return model_.item(proxy_model_.mapToSource(index));
+}
+
+void PlayListTableView::setCurrentPlayIndex(const QModelIndex& index) {
+    play_index_ = index;
 }
 
 void PlayListTableView::play(const QModelIndex& index) {

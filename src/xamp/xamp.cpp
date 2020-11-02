@@ -79,7 +79,7 @@ Xamp::Xamp(QWidget *parent)
     , playlist_page_(nullptr)
     , album_artist_page_(nullptr)
     , artist_info_page_(nullptr)
-    , state_adapter_(std::make_shared<PlayerStateAdapter>())
+    , state_adapter_(std::make_shared<UIPlayerStateAdapter>())
     , player_(std::make_shared<AudioPlayer>(state_adapter_))
     , playback_history_page_(nullptr) 
     , player_lock_(player_.get(), sizeof(AudioPlayer)) {
@@ -429,19 +429,25 @@ void Xamp::initialController() {
     });
 
     (void)QObject::connect(state_adapter_.get(),
-                            &PlayerStateAdapter::stateChanged,
+                            &UIPlayerStateAdapter::stateChanged,
                             this,
                             &Xamp::onPlayerStateChanged,
                             Qt::QueuedConnection);
 
     (void)QObject::connect(state_adapter_.get(),
-                            &PlayerStateAdapter::sampleTimeChanged,
+                            &UIPlayerStateAdapter::sampleTimeChanged,
                             this,
                             &Xamp::onSampleTimeChanged,
                             Qt::QueuedConnection);
 
     (void)QObject::connect(state_adapter_.get(),
-                            &PlayerStateAdapter::deviceChanged,
+                            &UIPlayerStateAdapter::gaplessPlayback,
+                            this,
+                            &Xamp::onGaplessPlay,
+                            Qt::QueuedConnection);
+
+    (void)QObject::connect(state_adapter_.get(),
+                            &UIPlayerStateAdapter::deviceChanged,
                             this,
                             &Xamp::onDeviceStateChanged,
                             Qt::QueuedConnection);
@@ -699,49 +705,6 @@ void Xamp::setPlayerOrder() {
     }
 }
 
-void Xamp::playNextItem(int32_t forward) {
-    auto playlist_view = playlist_page_->playlist();
-    const auto count = playlist_view->model()->rowCount();
-    if (count == 0) {
-        stopPlayedClicked();
-        return;
-    }
-
-    play_index_ = playlist_view->currentIndex();   
-
-    if (count > 1) {
-        switch (order_) {
-        case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:
-            play_index_ = playlist_view->nextIndex(forward);
-            if (play_index_.row() == -1) {
-                return;
-            }
-            break;
-        case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL:
-            play_index_ = playlist_view->shuffeIndex();
-            break;
-        case PlayerOrder::PLAYER_ORDER_REPEAT_ONCE:
-        default:
-            break;
-        }
-
-        if (!play_index_.isValid()) {
-            Toast::showTip(tr("Not found any playlist item."), this);
-            return;
-        }
-    } else {
-        play_index_ = playlist_view->model()->index(0, 0);
-    }
-
-    if (loop_time.second != 0) {
-        play(playlist_view->item(play_index_));
-    }
-    else {
-        playlist_view->setNowPlaying(play_index_, true);
-        playlist_view->play(play_index_);
-    }
-}
-
 void Xamp::onSampleTimeChanged(double stream_time) {
     if (!player_) {
         return;
@@ -884,6 +847,20 @@ void Xamp::playMusic(const MusicEntity& item) {
         Toast::showTip(tr("uknown error"), this);
     }
 
+    if (current_entiry_.cover_id != item.cover_id) {
+        if (auto cover = Singleton<PixmapCache>::Get().find(item.cover_id)) {
+            setCover(cover.value());
+        }
+        else {
+            setCover(nullptr);
+        }
+    }    
+
+    ThemeManager::instance().setPlayOrPauseButton(ui, true);
+    updateUI(item, open_done);
+}
+
+void Xamp::updateUI(const MusicEntity& item, bool open_done) {
     if (open_done) {
         if (player_->IsHardwareControlVolume()) {
             if (!player_->IsMute()) {
@@ -906,17 +883,6 @@ void Xamp::playMusic(const MusicEntity& item) {
         playlist_page_->format()->setText(format2String(player_.get(), item.file_ext));
     }
 
-    if (current_entiry_.cover_id != item.cover_id) {
-        if (auto cover = Singleton<PixmapCache>::Get().find(item.cover_id)) {
-            setCover(cover.value());
-        }
-        else {
-            setCover(nullptr);
-        }
-    }    
-
-    ThemeManager::instance().setPlayOrPauseButton(ui, true);
-
     ui.titleLabel->setText(item.title);
     ui.artistLabel->setText(item.artist);
 
@@ -934,7 +900,7 @@ void Xamp::playMusic(const MusicEntity& item) {
 
     if (isHidden()) {
         trayIcon_->showMessage(item.album, item.title, ThemeManager::instance().appIcon(), 1000);
-    }    
+    }
 }
 
 void Xamp::play(const PlayListEntity& item) {      
@@ -942,8 +908,94 @@ void Xamp::play(const PlayListEntity& item) {
     current_entiry_ = item;
 }
 
+void Xamp::onGaplessPlay(const QModelIndex &index) {
+    auto item = playlist_page_->playlist()->item(index);
+    playlist_page_->playlist()->setNowPlaying(index, true);
+
+    auto music_entity = toMusicEntity(item);
+    updateUI(music_entity, true);
+
+    current_entiry_ = item;
+    play_index_ = index;
+
+    addPlayQueue();
+}
+
+void Xamp::playNextItem(int32_t forward) {
+    auto playlist_view = playlist_page_->playlist();
+    const auto count = playlist_view->model()->rowCount();
+    if (count == 0) {
+        stopPlayedClicked();
+        return;
+    }
+
+    play_index_ = playlist_view->currentIndex();
+
+    if (count > 1) {
+        switch (order_) {
+        case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:
+            play_index_ = playlist_view->nextIndex(forward);
+            if (play_index_.row() == -1) {
+                return;
+            }
+            break;
+        case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL:
+            play_index_ = playlist_view->shuffeIndex();
+            break;
+        case PlayerOrder::PLAYER_ORDER_REPEAT_ONCE:
+        default:
+            break;
+        }
+
+        if (!play_index_.isValid()) {
+            Toast::showTip(tr("Not found any playlist item."), this);
+            return;
+        }
+    } else {
+        play_index_ = playlist_view->model()->index(0, 0);
+    }
+
+    if (loop_time.second != 0.0) {
+        play(playlist_view->item(play_index_));
+    }
+    else {
+        playlist_view->setNowPlaying(play_index_, true);
+        playlist_view->play(play_index_);
+    }
+}
+
+void Xamp::addPlayQueue() {
+    auto playlist_view = playlist_page_->playlist();
+    QModelIndex next_index;
+
+    switch (order_) {
+    case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:
+        next_index = playlist_view->nextIndex(1);
+        break;
+    case PlayerOrder::PLAYER_ORDER_REPEAT_ONCE:
+        next_index = playlist_view->currentIndex();
+        break;
+    case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL:
+        next_index = playlist_view->shuffeIndex();
+        break;
+    default:
+        break;
+    }
+
+    if (next_index.isValid()) {
+        auto item = playlist_view->item(next_index);
+        state_adapter_->addPlayQueue(
+            item.file_ext.toStdWString(),
+            item.file_path.toStdWString(),
+            next_index);
+    }
+}
+
 void Xamp::play(const QModelIndex&, const PlayListEntity& item) {
+    addPlayQueue();
+
     playLocalFile(item);
+
     if (!player_->IsPlaying()) {
         playlist_page_->format()->setText(Q_UTF8(""));
     }

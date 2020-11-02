@@ -42,6 +42,8 @@ public:
 
 	QModelIndex currentIndex() const;
 
+    void setCurrentPlayIndex(const QModelIndex& index);
+
 	QModelIndex nextIndex(int forward) const;
 
 	PlayListEntity& item(const QModelIndex& index);

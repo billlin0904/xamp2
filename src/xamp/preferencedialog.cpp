@@ -6,7 +6,7 @@
 #include <QDir>
 #include <QInputDialog>
 
-#include <base/Uuid.h>
+#include <base/uuid.h>
 
 #include <widget/str_utilts.h>
 #include <widget/appsettings.h>

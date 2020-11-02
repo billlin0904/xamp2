@@ -16,7 +16,8 @@
 #include <base/timer.h>
 #include <base/dsdsampleformat.h>
 #include <base/align_ptr.h>
-#include <base/Uuid.h>
+#include <base/uuid.h>
+#include <base/spsc_queue.h>
 #include <base/stopwatch.h>
 
 #include <stream/stream.h>
@@ -142,6 +143,8 @@ private:
 
     DsdDevice* AsDsdDevice() noexcept;
 
+    void DoBuffer();
+
     void UpdateSlice(float const *samples = nullptr, int32_t sample_size = 0, double stream_time = 0.0) noexcept;
 
     struct XAMP_CACHE_ALIGNED(kMallocAlignSize) AudioSlice {
@@ -157,6 +160,10 @@ private:
 
     XAMP_ENFORCE_TRIVIAL(AudioSlice)
 
+    enum MessageType {
+        NEXT_GAPLESS_PLAY,
+    };
+
     bool is_muted_;
     bool enable_resample_;
     DsdModes dsd_mode_;
@@ -170,6 +177,7 @@ private:
     std::atomic<bool> is_playing_;
     std::atomic<bool> is_paused_;
     std::atomic<double> sample_end_time_;
+    std::atomic<double> total_stream_time_;
     std::atomic<AudioSlice> slice_;
     mutable std::mutex pause_mutex_;
     std::chrono::microseconds min_process_time_{ 0 };
@@ -196,6 +204,7 @@ private:
     DeviceInfo device_info_;
     std::shared_future<void> stream_task_;
     PlayerStateMachine stm_;
+    SpscQueue<MessageType> msg_queue_;
 };
 
 }

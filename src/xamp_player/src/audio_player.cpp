@@ -54,8 +54,10 @@ AudioPlayer::AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter)
     , is_playing_(false)
     , is_paused_(false)
     , sample_end_time_(0)
+    , total_stream_time_(0)
     , state_adapter_(adapter)
-    , buffer_(kPreallocateBufferSize) {
+    , buffer_(kPreallocateBufferSize)
+    , msg_queue_(8) {
     wait_timer_.SetTimeout(kReadSampleWaitTime);  
 }
 
@@ -250,6 +252,7 @@ void AudioPlayer::OpenStream(std::wstring const & file_path, std::wstring const 
     XAMP_LOG_DEBUG("Use stream type: {}.", stream_->GetDescription());
 
     stream_->OpenFile(file_path);
+    total_stream_time_ = stream_->GetDuration();
 
     stm_.Handle(InitEvent{});
 }
@@ -377,42 +380,6 @@ void AudioPlayer::SetMute(bool mute) {
         return;
     }
     device_->SetMute(mute);
-}
-
-void AudioPlayer::Startup() {
-    if (!timer_.IsStarted()) {
-        std::weak_ptr<AudioPlayer> player = shared_from_this();
-        timer_.Start(kUpdateSampleInterval, [player]() {
-            auto p = player.lock();
-            if (!p) {
-                return;
-            }
-
-            auto adapter = p->state_adapter_.lock();
-            if (!adapter) {
-                return;
-            }
-
-            if (p->is_paused_) {
-                return;
-            }
-            if (!p->is_playing_) {
-                return;
-            }
-
-            const auto slice = p->slice_.load();
-            if (slice.sample_size > 0) {
-                if (slice.samples != nullptr) {
-                    adapter->OnSampleDataChanged(slice.samples, static_cast<uint32_t>(slice.sample_size));
-                }
-                adapter->OnSampleTime(slice.stream_time);
-            } else if (p->is_playing_ && slice.sample_size == -1) {
-                p->SetState(PlayerState::PLAYER_STATE_STOPPED);
-                p->stm_.Handle(StopEvent{});
-                p->is_playing_ = false;
-            }
-        });
-    }
 }
 
 std::optional<uint32_t> AudioPlayer::GetDSDSpeed() const {
@@ -579,37 +546,6 @@ void AudioPlayer::OnVolumeChange(float vol) noexcept {
     }
 }
 
-int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, double stream_time, double sample_time) noexcept {
-    const auto num_samples = num_buffer_frames * output_format_.GetChannels();
-    const auto sample_size = num_samples * sample_size_;
-
-    auto elapsed = sw_.Elapsed();
-    max_process_time_ = std::max(elapsed, max_process_time_);
-    min_process_time_ = std::min(elapsed, min_process_time_);
-
-#ifdef XAMP_OS_WIN
-    if (sample_time > sample_end_time_) {
-        std::memset(static_cast<int8_t*>(samples), 0, sample_size);
-    }
-    else
-#endif
-    {
-        if (XAMP_LIKELY(buffer_.TryRead(static_cast<int8_t*>(samples), sample_size))) {
-            UpdateSlice(static_cast<const float*>(samples), static_cast<int32_t>(num_samples), stream_time);
-            sw_.Reset();
-            return 0;
-        }
-
-        if (sample_time <= sample_end_time_) {
-            std::memset(static_cast<int8_t*>(samples), 0, sample_size);
-            return 0;
-        }
-    }
-
-    UpdateSlice(nullptr, -1, stream_time);
-    return 1;
-}
-
 void AudioPlayer::OnError(const Exception& e) noexcept {
     is_playing_ = false;
     XAMP_LOG_DEBUG(e.what());
@@ -728,6 +664,14 @@ void AudioPlayer::Seek(double stream_time) {
 void AudioPlayer::BufferStream(double stream_time) {
     buffer_.Clear();
 
+    if (stream_time > 0.0) {
+        stream_->Seek(stream_time);
+    }
+
+    DoBuffer();
+}
+
+void AudioPlayer::DoBuffer() {
     auto* const sample_buffer = sample_buffer_.Get();
     sample_size_ = stream_->GetSampleSize();
 
@@ -735,13 +679,9 @@ void AudioPlayer::BufferStream(double stream_time) {
         resampler_->Flush();
     }
 
-    if (stream_time > 0.0) {
-        stream_->Seek(stream_time);
-    }    
-
-    XAMP_LOG_DEBUG("Start buffer {} sec samples.", 
+    XAMP_LOG_DEBUG("Start buffer {} sec samples.",
         float(num_read_sample_ * kBufferStreamCount * output_format_.GetBytesPerSample())
-        / output_format_.GetAvgBytesPerSec());
+                       / output_format_.GetAvgBytesPerSec());
 
     for (auto i = 0; i < kBufferStreamCount; ++i) {
         while (true) {
@@ -751,7 +691,7 @@ void AudioPlayer::BufferStream(double stream_time) {
             }
 
             const auto samples = reinterpret_cast<const float*>(sample_buffer);
-            
+
             auto use_resampler = true;
             if (equalizer_ != nullptr) {
                 if (dsd_mode_ == DsdModes::DSD_MODE_PCM) {
@@ -767,6 +707,52 @@ void AudioPlayer::BufferStream(double stream_time) {
             }
             break;
         }
+    }
+}
+
+void AudioPlayer::Startup() {
+    if (!timer_.IsStarted()) {
+        std::weak_ptr<AudioPlayer> player = shared_from_this();
+        timer_.Start(kUpdateSampleInterval, [player]() {
+            auto p = player.lock();
+            if (!p) {
+                return;
+            }
+
+            auto adapter = p->state_adapter_.lock();
+            if (!adapter) {
+                return;
+            }
+
+            if (p->is_paused_) {
+                return;
+            }
+            if (!p->is_playing_) {
+                return;
+            }
+
+            if (p->msg_queue_.size() > 0) {
+                auto msg_id = *p->msg_queue_.Front();
+                switch (msg_id) {
+                case MessageType::NEXT_GAPLESS_PLAY:
+                    XAMP_LOG_DEBUG("Gapless playback");
+                    adapter->OnGaplessPlayback();
+                    p->device_->SetStreamTime(0);
+                    p->total_stream_time_ = p->stream_->GetDuration();
+                    p->msg_queue_.Pop();
+                    break;
+                }
+            }
+
+            const auto slice = p->slice_.load();
+            if (slice.sample_size > 0) {
+                adapter->OnSampleTime(slice.stream_time);
+            } else if (p->is_playing_ && slice.sample_size == -1) {
+                p->SetState(PlayerState::PLAYER_STATE_STOPPED);
+                p->stm_.Handle(StopEvent{});
+                p->is_playing_ = false;
+            }
+        });
     }
 }
 
@@ -790,15 +776,62 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_read_sample
                     continue;
                 }
             }
-            // TODO: 如果在這裡做資料轉換(ex:float->int32_t), 可能需要處理GetSamples不滿足轉換上長度的需求.
-        	
+            // TODO: 如果在這裡做資料轉換(ex:float->int32_t),
+            // 可能需要處理GetSamples不滿足轉換上長度的需求.
         }
         else {
             XAMP_LOG_DEBUG("Finish read all samples, wait for finish.");
-            stopped_cond_.wait(lock);
+
+            if (auto adapter = state_adapter_.lock()) {
+                if (adapter->GetPlayQueueSize() > 0) {
+                    stream_->Close();
+                    stream_ = adapter->PopPlayQueue();
+                    DoBuffer();
+                } else {
+                    stopped_cond_.wait(lock);
+                }
+            }
         }
         break;
     }
+}
+
+int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, double stream_time, double sample_time) noexcept {
+    const auto num_samples = num_buffer_frames * output_format_.GetChannels();
+    const auto sample_size = num_samples * sample_size_;
+
+#ifdef _DUBUG
+    auto elapsed = sw_.Elapsed();
+    max_process_time_ = std::max(elapsed, max_process_time_);
+    min_process_time_ = std::min(elapsed, min_process_time_);
+#endif
+
+#ifdef XAMP_OS_WIN
+    if (sample_time > sample_end_time_) {
+        std::memset(static_cast<int8_t*>(samples), 0, sample_size);
+    }
+    else
+#endif
+    {
+       //if (stream_time >= total_stream_time_) {
+       //    msg_queue_.TryPush(MessageType::NEXT_GAPLESS_PLAY);
+       //    device_->SetStreamTime(0);
+       //}
+
+        if (XAMP_LIKELY(buffer_.TryRead(static_cast<int8_t*>(samples), sample_size))) {
+            UpdateSlice(static_cast<const float*>(samples), static_cast<int32_t>(num_samples), stream_time);
+            sw_.Reset();
+            return 0;
+        }
+
+       //if (sample_time <= sample_end_time_) {
+       //    std::memset(static_cast<int8_t*>(samples), 0, sample_size);
+       //    return 0;
+       //}
+    }
+
+    //UpdateSlice(nullptr, -1, stream_time);
+    return 1;
 }
 
 void AudioPlayer::StartPlay(double start_time, double end_time) {
@@ -808,9 +841,11 @@ void AudioPlayer::StartPlay(double start_time, double end_time) {
     CreateBuffer();
     BufferStream(start_time);
 
+#ifdef _DUBUG
     sw_.Reset();
     min_process_time_ = std::chrono::seconds(1);
     max_process_time_ = std::chrono::microseconds(0);
+#endif
 
     if (end_time > 0.0) {
         sample_end_time_ = end_time - start_time;

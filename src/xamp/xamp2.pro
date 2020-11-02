@@ -49,13 +49,13 @@ SOURCES += \
     widget/lyricsshowwideget.cpp \
     widget/metadataextractadapter.cpp \
     widget/pixmapcache.cpp \
-    widget/playerstateadapter.cpp \
     widget/playlistpage.cpp \
     widget/playlisttablemodel.cpp \
     widget/playlisttableproxymodel.cpp \
     widget/playlisttableview.cpp \
     widget/tablistview.cpp \
     widget/toast.cpp \
+    widget/uiplayerstateadapter.cpp \
     widget/vinylwidget.cpp \
     widget/wheelablewidget.cpp \
     widget/filesystemwatcher.cpp \
@@ -101,7 +101,6 @@ HEADERS += \
     widget/lyricsshowwideget.h \
     widget/metadataextractadapter.h \
     widget/pixmapcache.h \
-    widget/playerstateadapter.h \
     widget/playlistpage.h \
     widget/playlisttablemodel.h \
     widget/playlisttableproxymodel.h \
@@ -110,6 +109,7 @@ HEADERS += \
     widget/settingnames.h \
     widget/tablistview.h \
     widget/toast.h \
+    widget/uiplayerstateadapter.h \
     widget/vinylwidget.h \
     widget/wheelablewidget.h \
     widget/str_utilts.h \
