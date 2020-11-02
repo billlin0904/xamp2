@@ -33,12 +33,16 @@ public:
     }
 
     ~SpscQueue() {
-        while (Front()) {
-            Pop();
-        }
+        clear();
         std::allocator_traits<Allocator>::deallocate(allocator_,
                                                      slots_,
                                                      capacity_ + 2 * kPadding);
+    }
+
+    void clear() {
+        while (Front()) {
+            Pop();
+        }
     }
 
     bool empty() const noexcept {
@@ -101,7 +105,7 @@ private:
     Allocator allocator_;
     XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<size_t> head_;
     XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<size_t> tail_;
-    char padding_[kCacheAlignSize - sizeof(tail_)];
+    uint8_t padding_[kCacheAlignSize - sizeof(tail_)]{ 0 };
 };
 
 }

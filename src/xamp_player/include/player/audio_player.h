@@ -42,6 +42,15 @@ class XAMP_PLAYER_API AudioPlayer final :
     public DeviceStateListener,
     public std::enable_shared_from_this<AudioPlayer> {
 public:
+    enum class GaplessPlayState {
+        GAPLESS_PLAY_INIT,
+        GAPLESS_PLAY_BUFFING,
+    };
+
+    enum class MessageType {
+        NEXT_GAPLESS_PLAY,
+    };
+
     XAMP_DISABLE_COPY(AudioPlayer)
 
     AudioPlayer();
@@ -143,7 +152,7 @@ private:
 
     DsdDevice* AsDsdDevice() noexcept;
 
-    void DoBuffer();
+    void BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<Resampler> &resampler, int32_t buffer_count = 1);
 
     void UpdateSlice(float const *samples = nullptr, int32_t sample_size = 0, double stream_time = 0.0) noexcept;
 
@@ -160,9 +169,7 @@ private:
 
     XAMP_ENFORCE_TRIVIAL(AudioSlice)
 
-    enum MessageType {
-        NEXT_GAPLESS_PLAY,
-    };
+    static constexpr auto kMsgQueueSize = 8;
 
     bool is_muted_;
     bool enable_resample_;
@@ -180,8 +187,12 @@ private:
     std::atomic<double> total_stream_time_;
     std::atomic<AudioSlice> slice_;
     mutable std::mutex pause_mutex_;
+    mutable std::mutex stream_mutex_;
+    GaplessPlayState gapless_play_state_ = GaplessPlayState::GAPLESS_PLAY_INIT;
+#ifdef _DEBUG
     std::chrono::microseconds min_process_time_{ 0 };
     std::chrono::microseconds max_process_time_{ 0 };
+#endif
     Stopwatch sw_;
     std::string device_id_;
     Uuid device_type_id_;
@@ -198,12 +209,12 @@ private:
     AudioBuffer<int8_t> buffer_;
     WaitableTimer wait_timer_;
     AlignPtr<Resampler> resampler_;
+    AlignPtr<Resampler> second_resampler_;
     AlignPtr<Equalizer> equalizer_;
     VmMemLock sample_buffer_lock_;
     EQBands eqsettings_;
     DeviceInfo device_info_;
     std::shared_future<void> stream_task_;
-    PlayerStateMachine stm_;
     SpscQueue<MessageType> msg_queue_;
 };
 

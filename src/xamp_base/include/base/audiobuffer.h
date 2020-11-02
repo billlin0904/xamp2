@@ -51,19 +51,20 @@ private:
     size_t GetAvailableWrite(size_t head, size_t tail) const noexcept;
 
     size_t GetAvailableRead(size_t head, size_t tail) const noexcept;
-
-    XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<size_t> head_;
-    XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<size_t> tail_;
-	size_t size_;
+    
     AlignBufferPtr<Type> buffer_;
 	VmMemLock lock_;
+	size_t size_;
+	XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<size_t> head_;
+	XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<size_t> tail_;	
+	uint8_t padding_[kCacheAlignSize - sizeof(tail_)]{ 0 };
 };
 
 template <typename Type, typename U>
 AudioBuffer<Type, U>::AudioBuffer() noexcept
-	: head_(0)
-	, tail_(0)
-	, size_(0) {
+	: size_(0)
+	, head_(0)
+	, tail_(0) {
 }
 
 template <typename Type, typename U>

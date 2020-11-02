@@ -39,7 +39,11 @@ public:
 
     virtual size_t GetPlayQueueSize() const = 0;
 
-    virtual AlignPtr<FileStream> PopPlayQueue() = 0;
+    virtual AlignPtr<FileStream>& PlayQueueFont() = 0;
+
+    virtual void PopPlayQueue() = 0;
+
+    virtual void ClearPlayQueue() = 0;
 protected:
     PlaybackStateAdapter() = default;
 };

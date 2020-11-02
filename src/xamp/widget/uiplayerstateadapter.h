@@ -31,7 +31,9 @@ public:
 
     size_t GetPlayQueueSize() const override;
 
-    AlignPtr<FileStream> PopPlayQueue() override;
+    AlignPtr<FileStream>& PlayQueueFont() override;
+
+    void PopPlayQueue() override;
 
     void OnSampleTime(double stream_time) override;
 
@@ -46,6 +48,8 @@ public:
     void OnSampleDataChanged(const float *samples, size_t size) override;
 
     void OnGaplessPlayback() override;
+
+    void ClearPlayQueue() override;
 
     void addPlayQueue(const std::wstring &file_ext,
                       const std::wstring &file_path,
@@ -69,6 +73,8 @@ signals:
     void gaplessPlayback(const QModelIndex &index);
 
 protected:
+    static constexpr auto kPlayQueueSize = 8;
+
     SpscQueue<AlignPtr<FileStream>> play_queue_;
     SpscQueue<QModelIndex> index_queue_;
 };

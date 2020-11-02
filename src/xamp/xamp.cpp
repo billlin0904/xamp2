@@ -847,15 +847,6 @@ void Xamp::playMusic(const MusicEntity& item) {
         Toast::showTip(tr("uknown error"), this);
     }
 
-    if (current_entiry_.cover_id != item.cover_id) {
-        if (auto cover = Singleton<PixmapCache>::Get().find(item.cover_id)) {
-            setCover(cover.value());
-        }
-        else {
-            setCover(nullptr);
-        }
-    }    
-
     ThemeManager::instance().setPlayOrPauseButton(ui, true);
     updateUI(item, open_done);
 }
@@ -881,6 +872,15 @@ void Xamp::updateUI(const MusicEntity& item, bool open_done) {
         ui.seekSlider->setRange(0, int32_t(player_->GetDuration() * 1000));
         ui.endPosLabel->setText(Time::msToString(player_->GetDuration()));
         playlist_page_->format()->setText(format2String(player_.get(), item.file_ext));
+    }
+
+    if (current_entiry_.cover_id != item.cover_id) {
+        if (auto cover = Singleton<PixmapCache>::Get().find(item.cover_id)) {
+            setCover(cover.value());
+        }
+        else {
+            setCover(nullptr);
+        }
     }
 
     ui.titleLabel->setText(item.title);

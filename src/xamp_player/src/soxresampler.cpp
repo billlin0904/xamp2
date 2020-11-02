@@ -48,12 +48,12 @@ class SoxrResampler::SoxrResamplerImpl {
 public:
     SoxrResamplerImpl() noexcept
         : enable_steep_filter_(false)
-        , quality_(SoxrQuality::LOW)
+        , quality_(SoxrQuality::VHQ)
         , phase_(SoxrPhaseResponse::LINEAR_PHASE)
         , input_samplerate_(0)
         , num_channels_(0)
         , ratio_(0)
-        , passband_(1.0)
+        , passband_(0.99)
         , stopband_(1.0) {
     }
 

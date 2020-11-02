@@ -5,8 +5,8 @@ using xamp::player::AudioPlayer;
 
 UIPlayerStateAdapter::UIPlayerStateAdapter(QObject *parent)
     : QObject(parent)
-    , play_queue_(8)
-    , index_queue_(8) {
+    , play_queue_(kPlayQueueSize)
+    , index_queue_(kPlayQueueSize) {
 }
 
 void UIPlayerStateAdapter::OnSampleTime(double stream_time) {
@@ -55,8 +55,15 @@ QModelIndex UIPlayerStateAdapter::popIndexQueue() {
     return index;
 }
 
-AlignPtr<FileStream> UIPlayerStateAdapter::PopPlayQueue() {
-    auto stream = std::move(*play_queue_.Front());
+AlignPtr<FileStream>& UIPlayerStateAdapter::PlayQueueFont() {
+    return *play_queue_.Front();
+}
+
+void UIPlayerStateAdapter::PopPlayQueue() {
     play_queue_.Pop();
-    return stream;
+}
+
+void UIPlayerStateAdapter::ClearPlayQueue() {
+    play_queue_.clear();
+    index_queue_.clear();
 }
