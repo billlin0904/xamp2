@@ -56,8 +56,7 @@ private:
 	VmMemLock lock_;
 	size_t size_;
 	XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<size_t> head_;
-	XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<size_t> tail_;	
-	uint8_t padding_[kCacheAlignSize - sizeof(tail_)]{ 0 };
+    XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<size_t> tail_;
 };
 
 template <typename Type, typename U>
@@ -91,7 +90,9 @@ void AudioBuffer<Type, U>::Resize(size_t size) {
 	if (size > size_) {
 		lock_.UnLock();
         auto new_buffer = MakeBuffer<Type>(size);
-		(void)FastMemcpy(new_buffer.get(), buffer_.get(), sizeof(Type) * GetSize());
+        if (GetSize() > 0) {
+            (void)FastMemcpy(new_buffer.get(), buffer_.get(), sizeof(Type) * GetSize());
+        }
         buffer_ = std::move(new_buffer);
 		size_ = size;
 		lock_.Lock(buffer_.get(), sizeof(Type) * size);

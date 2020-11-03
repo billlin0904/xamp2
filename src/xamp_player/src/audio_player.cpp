@@ -740,6 +740,50 @@ void AudioPlayer::Startup() {
     }
 }
 
+void AudioPlayer::BufferGaplessPlay(std::unique_lock<std::mutex>& lock) {
+    if (auto adapter = state_adapter_.lock()) {
+        if (adapter->GetPlayQueueSize() > 0) {
+            if (msg_queue_.size() > 0) {
+                // 處理播放完畢後替換掉Stream.
+                auto msg_id = *msg_queue_.Front();
+
+                switch (msg_id) {
+                case MessageType::NEXT_GAPLESS_PLAY:
+                    XAMP_LOG_DEBUG("Receive NEXT_GAPLESS_PLAY");
+                    adapter->OnGaplessPlayback();
+                    stream_->Close();
+                    stream_ = std::move(adapter->PlayQueueFont());
+                    resampler_ = std::move(second_resampler_);
+                    adapter->PopPlayQueue();
+                    total_stream_time_ = stream_->GetDuration();
+                            msg_queue_.Pop();
+                    gapless_play_state_ = GaplessPlayState::GAPLESS_PLAY_INIT;
+                    break;
+                }
+            }
+            else {
+                if (gapless_play_state_ == GaplessPlayState::GAPLESS_PLAY_INIT) {
+                    XAMP_LOG_DEBUG("Gapless play initial!");
+                    adapter->PlayQueueFont()->Seek(0);
+                    second_resampler_ = MakeAlign<Resampler, SoxrResampler>();
+                    auto input_format = adapter->PlayQueueFont()->GetFormat();
+                    second_resampler_->Start(input_format.GetSampleRate(),
+                                             input_format.GetChannels(),
+                                             target_samplerate_,
+                                             num_read_sample_ / input_format_.GetChannels());
+                }
+                // 等待上一首播放結束並繼續緩衝資料.
+                BufferSamples(adapter->PlayQueueFont(), second_resampler_);
+                gapless_play_state_ = GaplessPlayState::GAPLESS_PLAY_BUFFING;
+            }
+        } else {
+            XAMP_LOG_DEBUG("Finish read all samples, wait for finish.");
+            constexpr std::chrono::milliseconds kWaitForEndPlayMs{100};
+            stopped_cond_.wait_for(lock, kWaitForEndPlayMs);
+        }
+    }
+}
+
 void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_read_sample, std::unique_lock<std::mutex>& lock) {    
     while (is_playing_) {
         std::lock_guard guard{ stream_mutex_ };
@@ -765,47 +809,8 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_read_sample
             // TODO: 如果在這裡做資料轉換(ex:float->int32_t),
             // 可能需要處理GetSamples不滿足轉換上長度的需求.
         }
-        else {           
-            if (auto adapter = state_adapter_.lock()) {              
-                if (adapter->GetPlayQueueSize() > 0) {                    
-                    if (msg_queue_.size() > 0) {                        
-                        // 處理播放完畢後替換掉Stream.
-                        auto msg_id = *msg_queue_.Front();
-
-                        switch (msg_id) {
-                        case MessageType::NEXT_GAPLESS_PLAY:
-                            XAMP_LOG_DEBUG("Receive NEXT_GAPLESS_PLAY");
-                            adapter->OnGaplessPlayback();
-                            stream_->Close();
-                            stream_ = std::move(adapter->PlayQueueFont());
-                            resampler_ = std::move(second_resampler_);
-                            adapter->PopPlayQueue();
-                            total_stream_time_ = stream_->GetDuration();                            
-                            msg_queue_.Pop();
-                            gapless_play_state_ = GaplessPlayState::GAPLESS_PLAY_INIT;
-                            break;
-                        }
-                    }
-                    else {
-                        if (gapless_play_state_ == GaplessPlayState::GAPLESS_PLAY_INIT) {
-                            XAMP_LOG_DEBUG("Gapless play initial!");
-                            adapter->PlayQueueFont()->Seek(0);
-                            second_resampler_ = MakeAlign<Resampler, SoxrResampler>();
-                            auto input_format = adapter->PlayQueueFont()->GetFormat();
-                            second_resampler_->Start(input_format.GetSampleRate(),
-                                input_format.GetChannels(),
-                                target_samplerate_,
-                                num_read_sample_ / input_format_.GetChannels());
-                        }
-                        // 等待上一首播放結束並繼續緩衝資料.
-                        BufferSamples(adapter->PlayQueueFont(), second_resampler_);
-                        gapless_play_state_ = GaplessPlayState::GAPLESS_PLAY_BUFFING;
-                    }
-                } else {
-                    XAMP_LOG_DEBUG("Finish read all samples, wait for finish.");
-                    stopped_cond_.wait(lock);                    
-                }
-            }
+        else {
+            BufferGaplessPlay(lock);
         }
         break;
     }
@@ -833,8 +838,6 @@ int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, dou
             device_->SetStreamTime(0);
             msg_queue_.TryPush(MessageType::NEXT_GAPLESS_PLAY);
         }
-
-        auto available_read_size = buffer_.GetAvailableRead();
 
         if (XAMP_LIKELY(buffer_.TryRead(static_cast<int8_t*>(samples), sample_size))) {
             UpdateSlice(static_cast<const float*>(samples), static_cast<int32_t>(num_samples), stream_time);

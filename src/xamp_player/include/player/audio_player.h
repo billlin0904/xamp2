@@ -156,6 +156,8 @@ private:
 
     void UpdateSlice(float const *samples = nullptr, int32_t sample_size = 0, double stream_time = 0.0) noexcept;
 
+    void BufferGaplessPlay(std::unique_lock<std::mutex>& lock);
+
     struct XAMP_CACHE_ALIGNED(kMallocAlignSize) AudioSlice {
         AudioSlice(float const *samples = nullptr, int32_t sample_size = 0, double stream_time = 0.0) noexcept
             : samples(samples)
