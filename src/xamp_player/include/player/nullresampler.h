@@ -21,6 +21,8 @@ public:
     [[nodiscard]] std::string_view GetDescription() const noexcept override;
 
     void Flush() override;
+
+    AlignPtr<Resampler> Clone() override;
 private:
     bool ProcessNativeDsd(int8_t const * sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer);
 

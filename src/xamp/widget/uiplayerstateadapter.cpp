@@ -2,11 +2,12 @@
 #include <widget/uiplayerstateadapter.h>
 
 using xamp::player::AudioPlayer;
+using xamp::output_device::DeviceInfo;
 
 UIPlayerStateAdapter::UIPlayerStateAdapter(QObject *parent)
     : QObject(parent)
     , play_queue_(kPlayQueueSize)
-    , index_queue_(kPlayQueueSize) {
+    , index_queue_(kIndexQueueSize) {
 }
 
 void UIPlayerStateAdapter::OnSampleTime(double stream_time) {
@@ -42,8 +43,9 @@ size_t UIPlayerStateAdapter::GetPlayQueueSize() const {
     return play_queue_.size();
 }
 
-void UIPlayerStateAdapter::addPlayQueue(const std::wstring &file_ext, const std::wstring &file_path, const QModelIndex &index) {
-    auto stream = AudioPlayer::MakeFileStream(file_ext);
+void UIPlayerStateAdapter::addPlayQueue(const std::wstring &file_ext, const std::wstring &file_path, const QModelIndex &index, const DeviceInfo &device) {
+    auto stream = AudioPlayer::MakeFileStream(file_ext);   
+    AudioPlayer::SetStreamDsdMode(stream, device);
     stream->OpenFile(file_path);
     play_queue_.TryEnqueue(std::move(stream));
     index_queue_.TryPush(index);
@@ -53,6 +55,10 @@ QModelIndex UIPlayerStateAdapter::popIndexQueue() {
     auto index = *index_queue_.Front();
     index_queue_.Pop();
     return index;
+}
+
+QModelIndex UIPlayerStateAdapter::currentIndex() {
+    return *index_queue_.Front();
 }
 
 AlignPtr<FileStream>& UIPlayerStateAdapter::PlayQueueFont() {

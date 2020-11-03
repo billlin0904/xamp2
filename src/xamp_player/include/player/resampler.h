@@ -7,6 +7,7 @@
 
 #include <string_view>
 
+#include <base/align_ptr.h>
 #include <base/audiobuffer.h>
 #include <player/player.h>
 
@@ -25,6 +26,8 @@ public:
     virtual bool Process(float const * samples, uint32_t num_sample, AudioBuffer<int8_t>& buffer) = 0;
 
 	virtual void Flush() = 0;
+
+    virtual AlignPtr<Resampler> Clone() = 0;
 
 protected:
     Resampler() = default;

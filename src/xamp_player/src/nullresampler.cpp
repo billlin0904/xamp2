@@ -46,4 +46,8 @@ bool NullResampler::ProcessPcm(int8_t const * sample_buffer, uint32_t num_sample
     return true;
 }
 
+AlignPtr<Resampler> NullResampler::Clone() {
+    return MakeAlign<Resampler, NullResampler>(dsd_mode_, sample_size_);
+}
+
 }

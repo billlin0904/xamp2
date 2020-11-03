@@ -37,6 +37,9 @@ QVariant PlayListTableModel::data(const QModelIndex& index, int32_t role) const 
 		case PLAYLIST_DURATION:
 			return Time::msToString(data_[row].duration);
 		case PLAYLIST_BITRATE:
+			if (data_[row].bitrate > 10000) {
+				return QString(Q_UTF8("%0 Mbps")).arg(data_[row].bitrate / 1000.0);
+			}
 			return QString(Q_UTF8("%0 kbps")).arg(data_[row].bitrate);
 		case PLAYLIST_SAMPLE_RATE:
 			return data_[row].samplerate;

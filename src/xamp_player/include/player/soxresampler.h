@@ -29,7 +29,7 @@ MAKE_ENUM(SoxrPhaseResponse,
           INTERMEDIATE_PHASE,
           MINIMUM_PHASE)
 
-class XAMP_PLAYER_API SoxrResampler : public Resampler {
+class XAMP_PLAYER_API SoxrResampler final : public Resampler {
 public:
     SoxrResampler();
 
@@ -54,6 +54,8 @@ public:
     bool Process(float const * samples, uint32_t num_sample, AudioBuffer<int8_t> &buffer) override;
 
     void Flush() override;
+
+    AlignPtr<Resampler> Clone() override;
 
 private:
     class SoxrResamplerImpl;

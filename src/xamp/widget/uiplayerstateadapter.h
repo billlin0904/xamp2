@@ -19,6 +19,7 @@ using xamp::base::Errors;
 using xamp::base::AlignPtr;
 using xamp::base::Exception;
 using xamp::base::SpscQueue;
+using xamp::output_device::DeviceInfo;
 using xamp::stream::FileStream;
 using PlaybackStateAdapterBase = xamp::player::PlaybackStateAdapter;
 
@@ -51,11 +52,11 @@ public:
 
     void ClearPlayQueue() override;
 
-    void addPlayQueue(const std::wstring &file_ext,
-                      const std::wstring &file_path,
-                      const QModelIndex &index);
+    void addPlayQueue(const std::wstring &file_ext, const std::wstring &file_path, const QModelIndex &index, const DeviceInfo& device);
 
     QModelIndex popIndexQueue();
+
+    QModelIndex currentIndex();
 
 signals:
     void sampleTimeChanged(double stream_time);
@@ -74,6 +75,7 @@ signals:
 
 protected:
     static constexpr auto kPlayQueueSize = 8;
+    static constexpr auto kIndexQueueSize = 8;
 
     SpscQueue<AlignPtr<FileStream>> play_queue_;
     SpscQueue<QModelIndex> index_queue_;

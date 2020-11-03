@@ -681,6 +681,7 @@ void Xamp::deleteKeyPress() {
     }
     auto playlist_view = playlist_page_->playlist();
     playlist_view->removeSelectItems();
+    state_adapter_->ClearPlayQueue();
 }
 
 void Xamp::setPlayerOrder() {
@@ -984,10 +985,10 @@ void Xamp::addPlayQueue() {
 
     if (next_index.isValid()) {
         auto item = playlist_view->item(next_index);
-        state_adapter_->addPlayQueue(
-            item.file_ext.toStdWString(),
+        state_adapter_->addPlayQueue(item.file_ext.toStdWString(),
             item.file_path.toStdWString(),
-            next_index);
+            next_index,
+            device_info_);
     }
 }
 

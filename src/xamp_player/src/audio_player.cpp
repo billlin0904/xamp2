@@ -37,6 +37,51 @@ static void LogTime(std::string msg, std::chrono::microseconds time) {
         (c % 1'000'000'000) / 1'000'000, (c % 1'000'000) / 1'000, c % 1'000);
 }
 
+static DsdStream* AsDsdStream(AlignPtr<FileStream>& stream) noexcept {
+    return dynamic_cast<DsdStream*>(stream.get());
+}
+
+static DsdDevice* AsDsdDevice(AlignPtr<Device> &device) noexcept {
+    return dynamic_cast<DsdDevice*>(device.get());
+}
+
+DsdModes AudioPlayer::SetStreamDsdMode(AlignPtr<FileStream>& stream, const DeviceInfo& device_info) {
+    DsdModes dsd_mode = DsdModes::DSD_MODE_PCM;
+
+    if (auto* dsd_stream = AsDsdStream(stream)) {
+        if (AudioDeviceManager::Default().IsASIODevice(device_info.device_type_id)) {
+            if (device_info.is_support_dsd) {
+                dsd_stream->SetDSDMode(DsdModes::DSD_MODE_NATIVE);
+                dsd_mode = DsdModes::DSD_MODE_NATIVE;
+                XAMP_LOG_DEBUG("Use Native DSD mode.");
+            }
+            else {
+                dsd_stream->SetDSDMode(DsdModes::DSD_MODE_PCM);
+                dsd_mode = DsdModes::DSD_MODE_PCM;
+                XAMP_LOG_DEBUG("Use PCM mode.");
+            }
+        }
+        else {
+            if (device_info.is_support_dsd) {
+                dsd_stream->SetDSDMode(DsdModes::DSD_MODE_DOP);
+                XAMP_LOG_DEBUG("Use DOP mode.");
+                dsd_mode = DsdModes::DSD_MODE_DOP;
+            }
+            else {
+                dsd_stream->SetDSDMode(DsdModes::DSD_MODE_PCM);
+                XAMP_LOG_DEBUG("Use PCM mode.");
+                dsd_mode = DsdModes::DSD_MODE_PCM;
+            }
+        }
+    }
+    else {
+        dsd_mode = DsdModes::DSD_MODE_PCM;
+        XAMP_LOG_DEBUG("Use PCM mode.");
+    }
+
+    return dsd_mode;
+}
+
 AudioPlayer::AudioPlayer()
     : AudioPlayer(std::weak_ptr<PlaybackStateAdapter>()) {
 }
@@ -133,6 +178,14 @@ void AudioPlayer::SetResampler(uint32_t samplerate, AlignPtr<Resampler>&& resamp
     EnableResampler(true);
 }
 
+void AudioPlayer::SetDevice(const DeviceInfo& device_info) {
+    device_info_ = device_info;
+}
+
+DeviceInfo AudioPlayer::GetDevice() const {
+    return device_info_;
+}
+
 void AudioPlayer::CreateDevice(Uuid const & device_type_id, std::string const & device_id, bool open_always) {
     if (device_ == nullptr
         || device_id_ != device_id
@@ -174,14 +227,6 @@ bool AudioPlayer::IsDsdStream() const noexcept {
     return dynamic_cast<DsdStream*>(stream_.get()) != nullptr;
 }
 
-DsdStream* AudioPlayer::AsDsdStream() noexcept {
-    return dynamic_cast<DsdStream*>(stream_.get());
-}
-
-DsdDevice* AudioPlayer::AsDsdDevice() noexcept {
-    return dynamic_cast<DsdDevice*>(device_.get());
-}
-
 AlignPtr<FileStream> AudioPlayer::MakeFileStream(std::wstring const & file_ext, AlignPtr<FileStream> old_stream) {
     static const HashSet<std::wstring_view> dsd_ext {
         {L".dsf"},
@@ -219,39 +264,8 @@ AlignPtr<FileStream> AudioPlayer::MakeFileStream(std::wstring const & file_ext, 
 
 void AudioPlayer::OpenStream(std::wstring const & file_path, std::wstring const & file_ext, DeviceInfo const & device_info) {
     stream_ = MakeFileStream(file_ext, std::move(stream_));
-
-    if (auto* dsd_stream = AsDsdStream()) {
-        if (AudioDeviceManager::Default().IsASIODevice(device_info.device_type_id)) {
-            if (device_info.is_support_dsd) {
-                dsd_stream->SetDSDMode(DsdModes::DSD_MODE_NATIVE);
-                dsd_mode_ = DsdModes::DSD_MODE_NATIVE;
-                XAMP_LOG_DEBUG("Use Native DSD mode.");
-            }
-            else {
-                dsd_stream->SetDSDMode(DsdModes::DSD_MODE_PCM);
-                dsd_mode_ = DsdModes::DSD_MODE_PCM;
-                XAMP_LOG_DEBUG("Use PCM mode.");
-            }
-        }
-        else {
-            if (device_info.is_support_dsd) {
-                dsd_stream->SetDSDMode(DsdModes::DSD_MODE_DOP);
-                XAMP_LOG_DEBUG("Use DOP mode.");
-                dsd_mode_ = DsdModes::DSD_MODE_DOP;
-            } else {
-                dsd_stream->SetDSDMode(DsdModes::DSD_MODE_PCM);
-                XAMP_LOG_DEBUG("Use PCM mode.");
-                dsd_mode_ = DsdModes::DSD_MODE_PCM;
-            }
-        }
-    }
-    else {
-        dsd_mode_ = DsdModes::DSD_MODE_PCM;
-        XAMP_LOG_DEBUG("Use PCM mode.");
-    }
-
+    dsd_mode_ = SetStreamDsdMode(stream_, device_info);
     XAMP_LOG_DEBUG("Use stream type: {}.", stream_->GetDescription());
-
     stream_->OpenFile(file_path);
     total_stream_time_ = stream_->GetDuration();
 }
@@ -555,6 +569,7 @@ void AudioPlayer::OnDeviceStateChange(DeviceState state, std::string const & dev
         case DeviceState::DEVICE_STATE_ADDED:
             XAMP_LOG_DEBUG("Device added device id:{}.", device_id);
             state_adapter->OnDeviceChanged(DeviceState::DEVICE_STATE_ADDED);
+            state_adapter->OnDeviceChanged(DeviceState::DEVICE_STATE_ADDED);
             break;
         case DeviceState::DEVICE_STATE_REMOVED:
             XAMP_LOG_DEBUG("Device removed device id:{}.", device_id);
@@ -576,8 +591,8 @@ void AudioPlayer::OnDeviceStateChange(DeviceState state, std::string const & dev
 
 void AudioPlayer::OpenDevice(double stream_time) {
 #ifdef ENABLE_ASIO
-    if (auto dsd_output = AsDsdDevice()) {
-        if (const auto dsd_stream = AsDsdStream()) {
+    if (auto dsd_output = AsDsdDevice(device_)) {
+        if (const auto dsd_stream = AsDsdStream(stream_)) {
             if (dsd_stream->GetDsdMode() == DsdModes::DSD_MODE_NATIVE) {
                 dsd_output->SetIoFormat(DsdIoFormat::IO_FORMAT_DSD);
                 dsd_mode_ = DsdModes::DSD_MODE_NATIVE;
@@ -709,35 +724,38 @@ void AudioPlayer::BufferSamples(AlignPtr<FileStream> &stream, AlignPtr<Resampler
 }
 
 void AudioPlayer::Startup() {
-    if (!timer_.IsStarted()) {
-        std::weak_ptr<AudioPlayer> player = shared_from_this();
-        timer_.Start(kUpdateSampleInterval, [player]() {
-            auto p = player.lock();
-            if (!p) {
-                return;
-            }
-
-            auto adapter = p->state_adapter_.lock();
-            if (!adapter) {
-                return;
-            }
-
-            if (p->is_paused_) {
-                return;
-            }
-            if (!p->is_playing_) {
-                return;
-            }           
-
-            const auto slice = p->slice_.load();
-            if (slice.sample_size > 0) {
-                adapter->OnSampleTime(slice.stream_time);
-            } else if (p->is_playing_ && slice.sample_size == -1) {
-                p->SetState(PlayerState::PLAYER_STATE_STOPPED);
-                p->is_playing_ = false;
-            }
-        });
+    if (timer_.IsStarted()) {
+        return;
     }
+
+    std::weak_ptr<AudioPlayer> player = shared_from_this();
+    timer_.Start(kUpdateSampleInterval, [player]() {
+        auto p = player.lock();
+        if (!p) {
+            return;
+        }
+
+        auto adapter = p->state_adapter_.lock();
+        if (!adapter) {
+            return;
+        }
+
+        if (p->is_paused_) {
+            return;
+        }
+        if (!p->is_playing_) {
+            return;
+        }
+
+        const auto slice = p->slice_.load();
+        if (slice.sample_size > 0) {
+            adapter->OnSampleTime(slice.stream_time);
+        }
+        else if (p->is_playing_ && slice.sample_size == -1) {
+            p->SetState(PlayerState::PLAYER_STATE_STOPPED);
+            p->is_playing_ = false;
+        }
+        });
 }
 
 void AudioPlayer::BufferGaplessPlay(std::unique_lock<std::mutex>& lock) {
@@ -753,10 +771,11 @@ void AudioPlayer::BufferGaplessPlay(std::unique_lock<std::mutex>& lock) {
                     adapter->OnGaplessPlayback();
                     stream_->Close();
                     stream_ = std::move(adapter->PlayQueueFont());
+                    dsd_mode_ = SetStreamDsdMode(stream_, device_info_);
                     resampler_ = std::move(second_resampler_);
                     adapter->PopPlayQueue();
                     total_stream_time_ = stream_->GetDuration();
-                            msg_queue_.Pop();
+                    msg_queue_.Pop();
                     gapless_play_state_ = GaplessPlayState::GAPLESS_PLAY_INIT;
                     break;
                 }
@@ -765,7 +784,7 @@ void AudioPlayer::BufferGaplessPlay(std::unique_lock<std::mutex>& lock) {
                 if (gapless_play_state_ == GaplessPlayState::GAPLESS_PLAY_INIT) {
                     XAMP_LOG_DEBUG("Gapless play initial!");
                     adapter->PlayQueueFont()->Seek(0);
-                    second_resampler_ = MakeAlign<Resampler, SoxrResampler>();
+                    second_resampler_ = resampler_->Clone();
                     auto input_format = adapter->PlayQueueFont()->GetFormat();
                     second_resampler_->Start(input_format.GetSampleRate(),
                                              input_format.GetChannels(),
@@ -777,9 +796,7 @@ void AudioPlayer::BufferGaplessPlay(std::unique_lock<std::mutex>& lock) {
                 gapless_play_state_ = GaplessPlayState::GAPLESS_PLAY_BUFFING;
             }
         } else {
-            XAMP_LOG_DEBUG("Finish read all samples, wait for finish.");
-            constexpr std::chrono::milliseconds kWaitForEndPlayMs{100};
-            stopped_cond_.wait_for(lock, kWaitForEndPlayMs);
+            stopped_cond_.wait_for(lock, kReadSampleWaitTime);
         }
     }
 }
@@ -841,7 +858,9 @@ int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, dou
 
         if (XAMP_LIKELY(buffer_.TryRead(static_cast<int8_t*>(samples), sample_size))) {
             UpdateSlice(static_cast<const float*>(samples), static_cast<int32_t>(num_samples), stream_time);
+#ifdef _DEBUG
             sw_.Reset();
+#endif
             return 0;
         }
 

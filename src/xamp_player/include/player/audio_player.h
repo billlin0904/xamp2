@@ -117,7 +117,13 @@ public:
 
     void SetEQ(std::array<EQSettings, kMaxBand> const &bands);
 
+    void SetDevice(const DeviceInfo& device_info);
+
+    DeviceInfo GetDevice() const;
+
     static AlignPtr<FileStream> MakeFileStream(std::wstring const& file_ext, AlignPtr<FileStream> old_stream = nullptr);
+
+    static DsdModes SetStreamDsdMode(AlignPtr<FileStream>& stream, const DeviceInfo& device_info);    
 
 private:
     void Startup();
@@ -147,10 +153,6 @@ private:
     void SetState(PlayerState play_state);
 
     void ReadSampleLoop(int8_t* sample_buffer, uint32_t max_read_sample, std::unique_lock<std::mutex> &lock);
-
-    DsdStream* AsDsdStream() noexcept;
-
-    DsdDevice* AsDsdDevice() noexcept;
 
     void BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<Resampler> &resampler, int32_t buffer_count = 1);
 

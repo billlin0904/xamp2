@@ -276,5 +276,16 @@ void SoxrResampler::Flush() {
     impl_->Flush();
 }
 
+AlignPtr<Resampler> SoxrResampler::Clone() {
+    auto other = MakeAlign<Resampler, SoxrResampler>();
+    auto soxr = reinterpret_cast<SoxrResampler*>(other.get());
+    soxr->SetQuality(impl_->quality_);
+    soxr->SetPassBand(impl_->passband_);
+    soxr->SetPhase(impl_->phase_);
+    soxr->SetStopBand(impl_->stopband_);
+    soxr->SetSteepFilter(impl_->enable_steep_filter_);
+    return std::move(other);
+}
+
 }
 
