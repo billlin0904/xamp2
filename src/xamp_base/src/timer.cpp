@@ -1,5 +1,3 @@
-#include <base/platform_thread.h>
-#include <base/windows_handle.h>
 #include <base/logger.h>
 #include <base/timer.h>
 
@@ -11,21 +9,6 @@ Timer::Timer()
 
 Timer::~Timer() {
 	Stop();
-}
-
-void Timer::Start(std::chrono::milliseconds timeout, TimerCallback&& callback) {
-	is_stop_ = false;
-	timer_.SetTimeout(timeout);
-    thread_ = ThreadPool::Default().Run([this, timeout_routine = std::forward<TimerCallback>(callback)]() {
-		SetThreadName("Timer");
-
-		while (!is_stop_) {
-			timer_.Wait();
-			timeout_routine();
-		}
-
-        XAMP_LOG_DEBUG("Timer thread finished.");
-	});
 }
 
 void Timer::Stop() {

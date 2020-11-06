@@ -47,8 +47,8 @@ public:
         GAPLESS_PLAY_BUFFING,
     };
 
-    enum class MessageType {
-        NEXT_GAPLESS_PLAY,
+    enum class GaplessPlayMessage {
+        PLAY_NEXT,
     };
 
     XAMP_DISABLE_COPY(AudioPlayer)
@@ -152,13 +152,13 @@ private:
 
     void SetState(PlayerState play_state);
 
-    void ReadSampleLoop(int8_t* sample_buffer, uint32_t max_read_sample, std::unique_lock<std::mutex> &lock);
+    void ReadSampleLoop(int8_t* sample_buffer, uint32_t max_read_sample, std::unique_lock<std::mutex> &lock, AlignPtr<Resampler> &resampler);
 
     void BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<Resampler> &resampler, int32_t buffer_count = 1);
 
     void UpdateSlice(float const *samples = nullptr, int32_t sample_size = 0, double stream_time = 0.0) noexcept;
 
-    void BufferGaplessPlay(std::unique_lock<std::mutex>& lock);
+    void GaplessPlayProcess(std::unique_lock<std::mutex>& lock, AlignPtr<Resampler> &resampler);
 
     struct XAMP_CACHE_ALIGNED(kMallocAlignSize) AudioSlice {
         AudioSlice(float const *samples = nullptr, int32_t sample_size = 0, double stream_time = 0.0) noexcept
@@ -212,14 +212,13 @@ private:
     std::weak_ptr<PlaybackStateAdapter> state_adapter_;
     AudioBuffer<int8_t> buffer_;
     WaitableTimer wait_timer_;
-    AlignPtr<Resampler> resampler_;
-    AlignPtr<Resampler> second_resampler_;
+    AlignPtr<Resampler> resampler_;   
     AlignPtr<Equalizer> equalizer_;
     VmMemLock sample_buffer_lock_;
     EQBands eqsettings_;
     DeviceInfo device_info_;
     std::shared_future<void> stream_task_;
-    SpscQueue<MessageType> msg_queue_;
+    SpscQueue<GaplessPlayMessage> msg_queue_;
 };
 
 }

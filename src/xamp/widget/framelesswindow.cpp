@@ -14,9 +14,7 @@
 #include <QtWinExtras/QWinTaskbarProgress>
 #include <QtWinExtras/QWinThumbnailToolBar>
 #include <QtWinExtras/QWinThumbnailToolButton>
-#pragma comment(lib, "dwmapi.lib")
-#include <dwmapi.h>
-#include <widget/win32/fluentstyle.h>
+#include <widget/win32/win32.h>
 #endif
 
 #include "thememanager.h"
@@ -36,10 +34,10 @@ FramelessWindow::FramelessWindow(QWidget* parent)
     installEventFilter(this);
     setupUIFont();    
     QFont ui_font(Q_UTF8("UI"));
-    ui_font.setStyleStrategy(QFont::PreferQuality);
+    ui_font.setStyleStrategy(QFont::PreferAntialias);
 #if defined(Q_OS_WIN)
-    FluentStyle::setWinStyle(this);
-    ThemeManager::instance().enableBlur(this, AppSettings::getValueAsBool(kAppSettingEnableBlur));
+    win32::setWinStyle(this);
+    ThemeManager::instance().enableBlur(this, AppSettings::getValueAsBool(kAppSettingEnableBlur));    
     createThumbnailToolBar();   
     setStyleSheet(Q_UTF8(R"(
         font-family: "UI";

@@ -17,8 +17,6 @@
 
 namespace xamp::base {
 
-using TimerCallback = std::function<void()>;
-
 class XAMP_BASE_API Timer final {
 public:
 	Timer();
@@ -27,7 +25,21 @@ public:
 
 	XAMP_DISABLE_COPY(Timer)
 
-	void Start(std::chrono::milliseconds timeout, TimerCallback&& callback);
+	template <typename TimerCallback>
+	void Start(std::chrono::milliseconds timeout, TimerCallback&& callback) {
+		is_stop_ = false;
+		timer_.SetTimeout(timeout);
+		thread_ = ThreadPool::Default().Run([this, callback]() {
+			SetThreadName("Timer");
+
+			while (!is_stop_) {
+				timer_.Wait();
+				callback();
+			}
+
+			XAMP_LOG_DEBUG("Timer thread finished.");
+		});
+	}
 
 	void Stop();
 

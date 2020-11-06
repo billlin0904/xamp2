@@ -21,7 +21,7 @@
 #include <widget/clickablelabel.h>
 
 #if defined(Q_OS_WIN)
-#include <widget/win32/fluentstyle.h>
+#include <widget/win32/win32.h>
 #endif
 
 #include "thememanager.h"

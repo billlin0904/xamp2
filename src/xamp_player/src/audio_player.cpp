@@ -37,11 +37,11 @@ static void LogTime(std::string msg, std::chrono::microseconds time) {
         (c % 1'000'000'000) / 1'000'000, (c % 1'000'000) / 1'000, c % 1'000);
 }
 
-static DsdStream* AsDsdStream(AlignPtr<FileStream>& stream) noexcept {
+static DsdStream* AsDsdStream(AlignPtr<FileStream> const &stream) noexcept {
     return dynamic_cast<DsdStream*>(stream.get());
 }
 
-static DsdDevice* AsDsdDevice(AlignPtr<Device> &device) noexcept {
+static DsdDevice* AsDsdDevice(AlignPtr<Device> const &device) noexcept {
     return dynamic_cast<DsdDevice*>(device.get());
 }
 
@@ -104,7 +104,6 @@ AudioPlayer::AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter)
     , state_adapter_(adapter)
     , buffer_(kPreallocateBufferSize)
     , msg_queue_(kMsgQueueSize) {
-    wait_timer_.SetTimeout(kReadSampleWaitTime);  
 }
 
 AudioPlayer::~AudioPlayer() = default;
@@ -398,7 +397,7 @@ std::optional<uint32_t> AudioPlayer::GetDSDSpeed() const {
         return std::nullopt;
     }
 
-    if (auto* const dsd_stream = dynamic_cast<DsdStream*>(stream_.get())) {
+    if (auto* const dsd_stream = AsDsdStream(stream_)) {
         if (dsd_stream->IsDsdFile()) {
             return dsd_stream->GetDsdSpeed();
         }
@@ -420,6 +419,7 @@ PlayerState AudioPlayer::GetState() const noexcept {
 }
 
 AudioFormat AudioPlayer::GetFileFormat() const noexcept {
+    std::lock_guard guard{ stream_mutex_ };
     return stream_->GetFormat();
 }
 
@@ -453,14 +453,14 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
     }
 
     if (stream_task_.valid()) {
-        XAMP_LOG_DEBUG("Try to stop stream thread.");
-        Stopwatch sw;
+        XAMP_LOG_DEBUG("Try to stop stream thread.");        
 #ifdef XAMP_OS_WIN
         // MSVC 2019 is wait for std::packaged_task return timeout, while others such clang can't.
         if (stream_task_.wait_for(kWaitForStreamStopTime) == std::future_status::timeout) {
             throw StopStreamTimeoutException();
         }
 #else
+        Stopwatch sw;
         stream_task_.get();
         LogTime("Thread switch time", sw.Elapsed());
 #endif
@@ -728,6 +728,8 @@ void AudioPlayer::Startup() {
         return;
     }
 
+    wait_timer_.SetTimeout(kReadSampleWaitTime);
+
     std::weak_ptr<AudioPlayer> player = shared_from_this();
     timer_.Start(kUpdateSampleInterval, [player]() {
         auto p = player.lock();
@@ -758,50 +760,57 @@ void AudioPlayer::Startup() {
         });
 }
 
-void AudioPlayer::BufferGaplessPlay(std::unique_lock<std::mutex>& lock) {
-    if (auto adapter = state_adapter_.lock()) {
-        if (adapter->GetPlayQueueSize() > 0) {
-            if (msg_queue_.size() > 0) {
-                // 處理播放完畢後替換掉Stream.
-                auto msg_id = *msg_queue_.Front();
+void AudioPlayer::GaplessPlayProcess(std::unique_lock<std::mutex>& lock, AlignPtr<Resampler> &resampler) {
+    auto adapter = state_adapter_.lock();
+    if (!adapter) {
+        return;
+    }
 
-                switch (msg_id) {
-                case MessageType::NEXT_GAPLESS_PLAY:
-                    XAMP_LOG_DEBUG("Receive NEXT_GAPLESS_PLAY");
-                    adapter->OnGaplessPlayback();
-                    stream_->Close();
-                    stream_ = std::move(adapter->PlayQueueFont());
-                    dsd_mode_ = SetStreamDsdMode(stream_, device_info_);
-                    resampler_ = std::move(second_resampler_);
-                    adapter->PopPlayQueue();
-                    total_stream_time_ = stream_->GetDuration();
-                    msg_queue_.Pop();
-                    gapless_play_state_ = GaplessPlayState::GAPLESS_PLAY_INIT;
-                    break;
-                }
-            }
-            else {
-                if (gapless_play_state_ == GaplessPlayState::GAPLESS_PLAY_INIT) {
-                    XAMP_LOG_DEBUG("Gapless play initial!");
-                    adapter->PlayQueueFont()->Seek(0);
-                    second_resampler_ = resampler_->Clone();
-                    auto input_format = adapter->PlayQueueFont()->GetFormat();
-                    second_resampler_->Start(input_format.GetSampleRate(),
-                                             input_format.GetChannels(),
-                                             target_samplerate_,
-                                             num_read_sample_ / input_format_.GetChannels());
-                }
-                // 等待上一首播放結束並繼續緩衝資料.
-                BufferSamples(adapter->PlayQueueFont(), second_resampler_);
-                gapless_play_state_ = GaplessPlayState::GAPLESS_PLAY_BUFFING;
-            }
-        } else {
-            stopped_cond_.wait_for(lock, kReadSampleWaitTime);
+    if (adapter->GetPlayQueueSize() == 0) {
+        stopped_cond_.wait_for(lock, kReadSampleWaitTime);
+        return;
+    }
+
+    auto& stream = adapter->PlayQueueFont();
+
+    if (msg_queue_.size() > 0) {
+        // 處理播放完畢後替換掉Stream.
+        auto msg_id = *msg_queue_.Front();
+
+        switch (msg_id) {
+        case GaplessPlayMessage::PLAY_NEXT:
+            XAMP_LOG_DEBUG("Receive NEXT_GAPLESS_PLAY");
+            adapter->OnGaplessPlayback();
+            stream_->Close();
+            stream_ = std::move(stream);
+            dsd_mode_ = SetStreamDsdMode(stream_, device_info_);
+            resampler_ = std::move(resampler);
+            adapter->PopPlayQueue();
+            total_stream_time_ = stream_->GetDuration();
+            msg_queue_.Pop();
+            gapless_play_state_ = GaplessPlayState::GAPLESS_PLAY_INIT;
+            break;
         }
+    }
+    else {
+        if (gapless_play_state_ == GaplessPlayState::GAPLESS_PLAY_INIT) {
+            XAMP_LOG_DEBUG("Gapless play initial!");
+            // 有可能使用者進行Seek的動作需要重置位置.
+            stream->Seek(0);
+            resampler = resampler_->Clone();
+            auto input_format = stream->GetFormat();
+            resampler->Start(input_format.GetSampleRate(),
+                input_format.GetChannels(),
+                target_samplerate_,
+                num_read_sample_ / input_format_.GetChannels());
+        }
+        // 等待上一首播放結束並繼續緩衝資料.
+        BufferSamples(stream, resampler);
+        gapless_play_state_ = GaplessPlayState::GAPLESS_PLAY_BUFFING;
     }
 }
 
-void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_read_sample, std::unique_lock<std::mutex>& lock) {    
+void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_read_sample, std::unique_lock<std::mutex>& lock, AlignPtr<Resampler>& resampler) {
     while (is_playing_) {
         std::lock_guard guard{ stream_mutex_ };
 
@@ -827,7 +836,7 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_read_sample
             // 可能需要處理GetSamples不滿足轉換上長度的需求.
         }
         else {
-            BufferGaplessPlay(lock);
+            GaplessPlayProcess(lock, resampler);
         }
         break;
     }
@@ -853,7 +862,7 @@ int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, dou
     {
         if (stream_time >= total_stream_time_) {
             device_->SetStreamTime(0);
-            msg_queue_.TryPush(MessageType::NEXT_GAPLESS_PLAY);
+            msg_queue_.TryPush(GaplessPlayMessage::PLAY_NEXT);
         }
 
         if (XAMP_LIKELY(buffer_.TryRead(static_cast<int8_t*>(samples), sample_size))) {
@@ -899,7 +908,10 @@ void AudioPlayer::StartPlay(double start_time, double end_time) {
 
     gapless_play_state_ = GaplessPlayState::GAPLESS_PLAY_INIT;
 
+#ifdef _DEBUG
     Stopwatch sw;
+#endif
+
     stream_task_ = ThreadPool::Default().Run([player = shared_from_this()]() noexcept {
         auto* p = player.get();
 
@@ -908,6 +920,7 @@ void AudioPlayer::StartPlay(double start_time, double end_time) {
         auto sample_buffer = p->sample_buffer_.Get();
         const auto max_read_sample = p->num_read_sample_;
         const auto num_sample_write = max_read_sample * kMaxWriteRatio;
+        AlignPtr<Resampler> resampler;
 
         XAMP_LOG_DEBUG("max_read_sample: {}, num_sample_write: {}", max_read_sample, num_sample_write);
 
@@ -922,7 +935,7 @@ void AudioPlayer::StartPlay(double start_time, double end_time) {
                     continue;
                 }
 
-                p->ReadSampleLoop(sample_buffer, max_read_sample, lock);
+                p->ReadSampleLoop(sample_buffer, max_read_sample, lock, resampler);
             }
         }
         catch (const std::exception& e) {
@@ -932,7 +945,9 @@ void AudioPlayer::StartPlay(double start_time, double end_time) {
         XAMP_LOG_DEBUG("Stream thread end");
     });
 
+#ifdef _DEBUG
     LogTime("Create stream thread time", sw.Elapsed());
+#endif
 }
 
 }

@@ -7,7 +7,7 @@
 
 #include <QWidget>
 
-namespace FluentStyle {
+namespace win32 {
 	void setBlurMaterial(const QWidget* widget, bool enable);
 	void setWinStyle(const QWidget* widget);
 }

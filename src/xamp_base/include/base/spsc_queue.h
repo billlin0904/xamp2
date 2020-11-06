@@ -15,6 +15,7 @@ template <typename Type>
 class XAMP_BASE_API_ONLY_EXPORT SpscQueue {
 public:
     using Allocator = std::allocator<Type>;
+
     SpscQueue(size_t capacity)
         : capacity_(capacity)
         , head_(0)
@@ -100,11 +101,14 @@ public:
 
 private:
     static constexpr size_t kPadding = (kCacheAlignSize - 1) / sizeof(Type) + 1;
+
     size_t capacity_;
     Type *slots_;
     Allocator allocator_;
+
     XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<size_t> head_;
     XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<size_t> tail_;
+
     uint8_t padding_[kCacheAlignSize - sizeof(tail_)]{ 0 };
 };
 

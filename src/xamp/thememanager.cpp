@@ -6,8 +6,7 @@
 #include <QApplication>
 
 #if defined(Q_OS_WIN)
-#include <dwmapi.h>
-#include <widget/win32/fluentstyle.h>
+#include <widget/win32/win32.h>
 #endif
 
 #include <widget/appsettings.h>
@@ -114,7 +113,7 @@ QColor ThemeManager::getBackgroundColor() const noexcept {
 
 void ThemeManager::enableBlur(const QWidget* widget, bool enable) {
 #if defined(Q_OS_WIN)
-    FluentStyle::setBlurMaterial(widget, enable);
+    win32::setBlurMaterial(widget, enable);
     AppSettings::setValue(kAppSettingEnableBlur, enable);
 #else
     (void)widget;

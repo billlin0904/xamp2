@@ -520,8 +520,6 @@ void AsioDevice::StopStream(bool wait_for_stop_stream) {
 	}
 
 	is_streaming_ = false;
-	is_stop_streaming_ = false;
-
 	std::unique_lock<std::mutex> lock{ mutex_ };
 
 	while (wait_for_stop_stream && !is_stop_streaming_) {
@@ -616,7 +614,7 @@ long AsioDevice::OnAsioMessagesCallback(long selector, long value, void* message
 		// ASIODisposeBuffers(), Destruction Afterwards you initialize the
 		// driver again.
 		XAMP_LOG_INFO("Driver reset requested!!!");
-		Singleton<AsioCallbackInfo>::Get().device->is_stop_streaming_ = true;
+		Singleton<AsioCallbackInfo>::Get().device->AbortStream();		
 		Singleton<AsioCallbackInfo>::Get().device->condition_.notify_one();
 		ret = 1L;
 		break;
