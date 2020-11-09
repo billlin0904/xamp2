@@ -17,7 +17,11 @@ inline constexpr ConstLatin1String kAppSettingHeight{ "AppSettings/height" };
 inline constexpr ConstLatin1String kAppSettingVolume{ "AppSettings/volume" };
 inline constexpr ConstLatin1String kAppSettingOrder{ "AppSettings/order" };
 inline constexpr ConstLatin1String kAppSettingNightMode{ "AppSettings/nightMode" };
+
 inline constexpr ConstLatin1String kAppSettingBackgroundColor{ "AppSettings/theme/backgroundColor" };
+inline constexpr ConstLatin1String kAppSettingBottomColor{ "AppSettings/theme/bottomColor" };
+inline constexpr ConstLatin1String kAppSettingAlphaColor{ "AppSettings/theme/alphaColor" };
+
 inline constexpr ConstLatin1String kAppSettingEnableBlur{ "AppSettings/theme/enableBlur" };
 inline constexpr ConstLatin1String kAppSettingMusicFilePath{ "AppSettings/musicFilePath" };
 inline constexpr ConstLatin1String kAppSettingMinimizeToTrayAsk{ "AppSettings/minimizeToTrayAsk" };

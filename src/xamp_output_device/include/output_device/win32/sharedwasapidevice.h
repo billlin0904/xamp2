@@ -51,7 +51,7 @@ public:
 
 	void DisplayControlPanel() override;
 
-	InterleavedFormat GetInterleavedFormat() const noexcept override;
+	PackedFormat GetInterleavedFormat() const noexcept override;
 
 	void SetSchedulerService(std::wstring const & mmcss_name, MmcssThreadPriority thread_priority);
 

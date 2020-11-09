@@ -21,8 +21,8 @@ AudioConvertContext MakeConvert(AudioFormat const& in_format, AudioFormat const&
     context.in_offset.fill(0);
     context.out_offset.fill(0);
 
-    if (in_format.GetInterleavedFormat() == out_format.GetInterleavedFormat()) {
-        if (in_format.GetInterleavedFormat() == InterleavedFormat::INTERLEAVED) {
+    if (in_format.GetPackedFormat() == out_format.GetPackedFormat()) {
+        if (in_format.GetPackedFormat() == PackedFormat::INTERLEAVED) {
             for (size_t k = 0, i = 0; k < in_format.GetChannels(); ++k, ++i) {
                 context.in_offset[i] = k;
                 context.out_offset[i] = k;
@@ -39,20 +39,20 @@ AudioConvertContext MakeConvert(AudioFormat const& in_format, AudioFormat const&
     }
     else {
         for (size_t k = 0, i = 0; k < in_format.GetChannels(); ++k, ++i) {
-            switch (in_format.GetInterleavedFormat()) {
-            case InterleavedFormat::INTERLEAVED:
+            switch (in_format.GetPackedFormat()) {
+            case PackedFormat::INTERLEAVED:
                 context.in_offset[i] = k;
                 break;
-            case InterleavedFormat::DEINTERLEAVED:
+            case PackedFormat::PLANAR:
                 context.in_offset[i] = k * convert_size;
                 context.in_jump = 1;
                 break;
             }
-            switch (out_format.GetInterleavedFormat()) {
-            case InterleavedFormat::INTERLEAVED:
+            switch (out_format.GetPackedFormat()) {
+            case PackedFormat::INTERLEAVED:
                 context.out_offset[i] = k;
                 break;
-            case InterleavedFormat::DEINTERLEAVED:
+            case PackedFormat::PLANAR:
                 context.out_offset[i] = k * convert_size;
                 context.out_jump = 1;
                 break;

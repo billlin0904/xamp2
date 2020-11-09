@@ -215,7 +215,12 @@ private:
 
                 auto active_thread = ++active_thread_;
                 XAMP_LOG_DEBUG("Thread {} weakup, active:{}.", i, active_thread);
-                (*task)();
+                try {
+                    (*task)();
+                }
+                catch (std::exception const& e) {
+                    XAMP_LOG_ERROR("Thread {} got exception: {}", e.what());
+                }                
                 --active_thread_;
                 XAMP_LOG_DEBUG("Thread {} execute finished.", i);
             }
@@ -256,7 +261,7 @@ public:
 
     void Stop();
 
-    static ThreadPool& Default();
+    static ThreadPool& GetInstance();
 
     void SetAffinityMask(int32_t core);
 

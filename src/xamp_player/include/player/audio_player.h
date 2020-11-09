@@ -43,12 +43,13 @@ class XAMP_PLAYER_API AudioPlayer final :
     public std::enable_shared_from_this<AudioPlayer> {
 public:
     enum class GaplessPlayState {
-        GAPLESS_PLAY_INIT,
-        GAPLESS_PLAY_BUFFING,
+        INIT,
+        BUFFING,
+        ABORT,
     };
 
-    enum class GaplessPlayMessage {
-        PLAY_NEXT,
+    enum class GaplessPlayMsgID {
+        SWITCH,
     };
 
     XAMP_DISABLE_COPY(AudioPlayer)
@@ -121,9 +122,13 @@ public:
 
     DeviceInfo GetDevice() const;
 
+    bool IsGaplessPlay() const;
+
+    void ClearPlayQueue();
+
     static AlignPtr<FileStream> MakeFileStream(std::wstring const& file_ext, AlignPtr<FileStream> old_stream = nullptr);
 
-    static DsdModes SetStreamDsdMode(AlignPtr<FileStream>& stream, const DeviceInfo& device_info);    
+    static DsdModes SetStreamDsdMode(AlignPtr<FileStream>& stream, const DeviceInfo& device_info);
 
 private:
     void Startup();
@@ -158,7 +163,7 @@ private:
 
     void UpdateSlice(float const *samples = nullptr, int32_t sample_size = 0, double stream_time = 0.0) noexcept;
 
-    void GaplessPlayProcess(std::unique_lock<std::mutex>& lock, AlignPtr<Resampler> &resampler);
+    void OnGaplessPlayState(std::unique_lock<std::mutex>& lock, AlignPtr<Resampler> &resampler);
 
     struct XAMP_CACHE_ALIGNED(kMallocAlignSize) AudioSlice {
         AudioSlice(float const *samples = nullptr, int32_t sample_size = 0, double stream_time = 0.0) noexcept
@@ -191,8 +196,8 @@ private:
     std::atomic<double> total_stream_time_;
     std::atomic<AudioSlice> slice_;
     mutable std::mutex pause_mutex_;
-    mutable std::mutex stream_mutex_;
-    GaplessPlayState gapless_play_state_ = GaplessPlayState::GAPLESS_PLAY_INIT;
+    mutable std::mutex stream_read_mutex_;
+    std::atomic<GaplessPlayState> gapless_play_state_ = GaplessPlayState::INIT;
 #ifdef _DEBUG
     std::chrono::microseconds min_process_time_{ 0 };
     std::chrono::microseconds max_process_time_{ 0 };
@@ -218,7 +223,7 @@ private:
     EQBands eqsettings_;
     DeviceInfo device_info_;
     std::shared_future<void> stream_task_;
-    SpscQueue<GaplessPlayMessage> msg_queue_;
+    SpscQueue<GaplessPlayMsgID> msg_queue_;
 };
 
 }

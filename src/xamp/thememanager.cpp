@@ -130,12 +130,20 @@ void ThemeManager::setBackgroundColor(Ui::XampWindow& ui, QColor color) {
     ui.titleFrame->setStyleSheet(backgroundColorToString(color));
     
     QColor bottomColor = color.lighter(30);
+    if (AppSettings::contains(kAppSettingBottomColor)) {
+        bottomColor = AppSettings::getValueAsString(kAppSettingBottomColor);
+    }
+
     ui.playingFrame->setStyleSheet(backgroundColorToString(bottomColor));
     ui.volumeFrame->setStyleSheet(backgroundColorToString(bottomColor));
     ui.controlFrame->setStyleSheet(backgroundColorToString(bottomColor));
 
     QColor alphaColor = color;
     alphaColor.setAlpha(200);
+    if (AppSettings::contains(kAppSettingAlphaColor)) {
+        alphaColor = AppSettings::getValueAsString(kAppSettingAlphaColor);
+    }
+
     ui.sliderFrame->setStyleSheet(backgroundColorToString(alphaColor));
 
     AppSettings::setValue(kAppSettingBackgroundColor, color);

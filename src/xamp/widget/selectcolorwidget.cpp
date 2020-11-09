@@ -65,7 +65,8 @@ static const QList<QColor> & GetColors() {
     colors.append(QColor(16, 137, 62, 1));
     colors.append(QColor(16, 124, 16, 1));
     colors.append(QColor(126, 115, 95, 1));
-    colors.append(QColor(18, 18, 18, 1));    
+    colors.append(QColor(18, 18, 18, 1));  
+    colors.append(QColor(Q_UTF8("#9da2a6")));
     return colors;
 }
 

@@ -23,9 +23,9 @@ MAKE_ENUM(ByteFormat,
           FLOAT32,
           FLOAT64)
 
-MAKE_ENUM(InterleavedFormat,
+MAKE_ENUM(PackedFormat,
           INTERLEAVED,
-          DEINTERLEAVED)
+          PLANAR)
 
 MAKE_ENUM(DataFormat,
           FORMAT_DSD,
@@ -47,7 +47,7 @@ public:
         uint16_t number_of_channels,
         ByteFormat byte_format,
         uint32_t samplerate,
-        InterleavedFormat interleaved_format = InterleavedFormat::INTERLEAVED) noexcept;
+        PackedFormat packed_format = PackedFormat::INTERLEAVED) noexcept;
 
     void SetFormat(DataFormat format) noexcept;
 
@@ -59,11 +59,11 @@ public:
 
     void SetByteFormat(ByteFormat format) noexcept;
 
-    void SetInterleavedFormat(InterleavedFormat format) noexcept;
+    void SetPackedFormat(PackedFormat format) noexcept;
 
     [[nodiscard]] DataFormat GetFormat() const noexcept;
 
-    [[nodiscard]] InterleavedFormat GetInterleavedFormat() const noexcept;
+    [[nodiscard]] PackedFormat GetPackedFormat() const noexcept;
 
     [[nodiscard]] uint32_t GetSampleRate() const noexcept;
 
@@ -92,7 +92,7 @@ private:
 
     DataFormat format_;
     ByteFormat byte_format_;
-    InterleavedFormat interleaved_format_;
+    PackedFormat packed_format_;
     uint16_t num_channels_;
     uint32_t sample_rate_;
     uint32_t bits_per_sample_;
@@ -104,10 +104,10 @@ XAMP_ALWAYS_INLINE AudioFormat::AudioFormat(DataFormat format,
     uint16_t number_of_channels,
     ByteFormat byte_format,
     uint32_t samplerate,
-    InterleavedFormat interleaved_format) noexcept
+    PackedFormat interleaved_format) noexcept
     : format_(format)
     , byte_format_(ByteFormat::INVALID_FORMAT)
-    , interleaved_format_(interleaved_format)
+    , packed_format_(interleaved_format)
     , num_channels_(number_of_channels)
     , sample_rate_(samplerate) {
     SetByteFormat(byte_format);
@@ -119,7 +119,7 @@ XAMP_ALWAYS_INLINE AudioFormat::AudioFormat(DataFormat format,
     uint32_t samplerate) noexcept
     : format_(format)
     , byte_format_(ByteFormat::INVALID_FORMAT)
-    , interleaved_format_(InterleavedFormat::INTERLEAVED)
+    , packed_format_(PackedFormat::INTERLEAVED)
     , num_channels_(number_of_channels)
     , sample_rate_(samplerate) {
     SetBitPerSample(bits_per_sample);
@@ -223,16 +223,16 @@ XAMP_ALWAYS_INLINE void AudioFormat::SetByteFormat(ByteFormat format) noexcept {
     }
 }
 
-XAMP_ALWAYS_INLINE void AudioFormat::SetInterleavedFormat(InterleavedFormat format) noexcept {
-    interleaved_format_ = format;
+XAMP_ALWAYS_INLINE void AudioFormat::SetPackedFormat(PackedFormat format) noexcept {
+    packed_format_ = format;
 }
 
-XAMP_ALWAYS_INLINE InterleavedFormat AudioFormat::GetInterleavedFormat() const noexcept {
-    return interleaved_format_;
+XAMP_ALWAYS_INLINE PackedFormat AudioFormat::GetPackedFormat() const noexcept {
+    return packed_format_;
 }
 
 XAMP_ALWAYS_INLINE std::ostream& operator<<(std::ostream& ostr, AudioFormat const & format) {
-    ostr << format.GetByteFormat() << "-" << format.GetInterleavedFormat() << "-"
+    ostr << format.GetByteFormat() << "-" << format.GetPackedFormat() << "-"
          << format.GetBitsPerSample() << "bits/";
 
     if (format.GetSampleRate() % 1000 > 0) {
@@ -251,7 +251,7 @@ XAMP_ALWAYS_INLINE bool operator!=(AudioFormat const & format, AudioFormat const
            || format.sample_rate_ != other.sample_rate_
            || format.bits_per_sample_ != other.bits_per_sample_
            || format.byte_format_ != other.byte_format_
-           || format.interleaved_format_ != other.interleaved_format_;
+           || format.packed_format_ != other.packed_format_;
 }
 
 XAMP_ALWAYS_INLINE bool operator==(AudioFormat const & format, AudioFormat const & other) noexcept {
@@ -260,7 +260,7 @@ XAMP_ALWAYS_INLINE bool operator==(AudioFormat const & format, AudioFormat const
            && format.sample_rate_ == other.sample_rate_
            && format.bits_per_sample_ == other.bits_per_sample_
            && format.byte_format_ == other.byte_format_
-           && format.interleaved_format_ == other.interleaved_format_;
+           && format.packed_format_ == other.packed_format_;
 }
 
 XAMP_ALWAYS_INLINE void AudioFormat::Reset() noexcept {

@@ -108,7 +108,7 @@ AudioDeviceManager::AudioDeviceManager() {
 #endif
 }
 
-AudioDeviceManager& AudioDeviceManager::Default() {
+AudioDeviceManager& AudioDeviceManager::GetInstance() {
     static AudioDeviceManager manager;
     return manager;
 }

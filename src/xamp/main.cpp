@@ -135,11 +135,11 @@ static int excute(int argc, char* argv[]) {
     }
     XAMP_LOG_DEBUG("attach app success.");
 
-    (void)Singleton<PixmapCache>::Get();
+    (void)Singleton<PixmapCache>::GetInstance();
     XAMP_LOG_DEBUG("PixmapCache init success.");
 
     XAMP_LOG_DEBUG("PixmapCache cache size:{}", 
-        FormatBytes(Singleton<PixmapCache>::Get().GetImageSize()));
+        FormatBytes(Singleton<PixmapCache>::GetInstance().GetImageSize()));
 
     try {
         Database::instance().open(Q_UTF8("xamp.db"));

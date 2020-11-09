@@ -47,6 +47,17 @@
 #include "thememanager.h"
 #include "xamp.h"
 
+static QMessageBox::StandardButton showStopGaplessDialog(QWidget* widget) {
+    QMessageBox msgbox;
+    msgbox.setWindowTitle(Q_UTF8("XAMP"));
+    msgbox.setText(widget->tr("If yout change device will be stop gapless play?"));
+    msgbox.setIcon(QMessageBox::Icon::Question);
+    msgbox.addButton(QMessageBox::Ok);
+    msgbox.addButton(QMessageBox::No);
+    msgbox.setDefaultButton(QMessageBox::No);
+    return static_cast<QMessageBox::StandardButton>(msgbox.exec());
+}
+
 static std::tuple<bool, QMessageBox::StandardButton> showDontShowAgainDialog(QWidget* widget, bool show_agin) {
     bool is_show_agin = true;
 
@@ -95,7 +106,7 @@ void Xamp::initial() {
     setCover(nullptr);    
     createTrayIcon();
     setDefaultStyle();
-    AudioDeviceManager::Default().RegisterDeviceListener(player_);
+    AudioDeviceManager::GetInstance().RegisterDeviceListener(player_);
 }
 
 void Xamp::onActivated(QSystemTrayIcon::ActivationReason reason) {
@@ -279,13 +290,13 @@ void Xamp::initialDeviceList() {
     const auto device_type_id = AppSettings::getID(kAppSettingDeviceType);
     const auto device_id = AppSettings::getValueAsString(kAppSettingDeviceId).toStdString();
 
-    AudioDeviceManager::Default().ForEach([&](const auto &device_type) {
+    AudioDeviceManager::GetInstance().ForEach([&](const auto &device_type) {
         device_type->ScanNewDevice();
 
         const auto device_info_list = device_type->GetDeviceInfo();
         if (device_info_list.empty()) {
             return;
-        }
+        }        
 
         menu->addAction(createTextSeparator(fromStdStringView(device_type->GetDescription())));
 
@@ -294,16 +305,31 @@ void Xamp::initialDeviceList() {
             device_action_group->addAction(device_action);
             device_action->setCheckable(true);
             device_id_action[device_info.device_id] = device_action;
-            (void)QObject::connect(device_action, &QAction::triggered, [device_info, this]() {
+
+            auto trigger_callback = [device_info, this]() {
+                if (player_->IsGaplessPlay()) {
+                    if (showStopGaplessDialog(this) == QMessageBox::Yes) {
+                        stopPlayedClicked();
+                    }
+                    else {
+                        return;
+                    }
+                }
+
                 device_info_ = device_info;
                 AppSettings::setValue(kAppSettingDeviceType, device_info_.device_type_id);
                 AppSettings::setValue(kAppSettingDeviceId, device_info_.device_id);
+
                 XAMP_LOG_DEBUG("Save device id:{} {} {}",
-                               ToUtf8String(device_info_.name),
-                               device_info_.device_id,
-                               device_info_.device_type_id);
-            });
+                    ToUtf8String(device_info_.name),
+                    device_info_.device_id,
+                    device_info_.device_type_id);
+            };
+
+            (void)QObject::connect(device_action, &QAction::triggered, trigger_callback);
+
             menu->addAction(device_action);
+
             if (device_type_id == device_info.device_type_id && device_id == device_info.device_id) {
                 device_info_ = device_info;
                 is_find_setting_device = true;
@@ -575,7 +601,7 @@ void Xamp::initialController() {
 }
 
 void Xamp::applyTheme(QColor color) {
-    if (qGray(color.rgb()) > 150) {      
+    if (qGray(color.rgb()) > 200) {      
         emit themeChanged(color, Qt::black);
         ThemeManager::instance().setThemeColor(ThemeColor::WHITE_THEME);
     }
@@ -665,6 +691,7 @@ void Xamp::stopPlayedClicked() {
     setSeekPosValue(0);
     ui.seekSlider->setEnabled(false);
     playlist_page_->playlist()->removePlaying();
+    player_->ClearPlayQueue();
 }
 
 void Xamp::playNextClicked() {
@@ -681,7 +708,7 @@ void Xamp::deleteKeyPress() {
     }
     auto playlist_view = playlist_page_->playlist();
     playlist_view->removeSelectItems();
-    state_adapter_->ClearPlayQueue();
+    player_->ClearPlayQueue();
 }
 
 void Xamp::setPlayerOrder() {
@@ -876,7 +903,7 @@ void Xamp::updateUI(const MusicEntity& item, bool open_done) {
     }
 
     if (current_entiry_.cover_id != item.cover_id) {
-        if (auto cover = Singleton<PixmapCache>::Get().find(item.cover_id)) {
+        if (auto cover = Singleton<PixmapCache>::GetInstance().find(item.cover_id)) {
             setCover(cover.value());
         }
         else {
@@ -993,7 +1020,7 @@ void Xamp::addPlayQueue() {
 }
 
 void Xamp::play(const QModelIndex&, const PlayListEntity& item) {
-    state_adapter_->ClearPlayQueue();
+    player_->ClearPlayQueue();
 
     addPlayQueue();
 
@@ -1149,7 +1176,7 @@ void Xamp::initialPlaylist() {
     (void)QObject::connect(&discogs_,
                             &DiscogsClient::downloadImageFinished,
                             [](auto artist_id, auto image) {
-                                auto cover_id = Singleton<PixmapCache>::Get().Add(image);
+                                auto cover_id = Singleton<PixmapCache>::GetInstance().Add(image);
                                 Database::instance().UpdateArtistCoverId(artist_id, cover_id);
                                 XAMP_LOG_DEBUG("Save artist id: {} image, cover id : {}", artist_id, cover_id.toStdString());
                             });

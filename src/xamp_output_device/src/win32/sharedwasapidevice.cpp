@@ -281,8 +281,8 @@ void SharedWasapiDevice::SetMute(bool mute) const {
 void SharedWasapiDevice::DisplayControlPanel() {
 }
 
-InterleavedFormat SharedWasapiDevice::GetInterleavedFormat() const noexcept {
-	return InterleavedFormat::INTERLEAVED;
+PackedFormat SharedWasapiDevice::GetInterleavedFormat() const noexcept {
+	return PackedFormat::INTERLEAVED;
 }
 
 uint32_t SharedWasapiDevice::GetBufferSize() const noexcept {

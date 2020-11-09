@@ -53,11 +53,11 @@ QString DatabaseIdCache::AddCoverCache(int32_t album_id, const QString& album, c
             static_cast<uint32_t>(buffer.size()));
     }
     else {
-         pixmap = Singleton<PixmapCache>::Get().FindFileDirCover(
+         pixmap = Singleton<PixmapCache>::GetInstance().FindFileDirCover(
                 QString::fromStdWString(metadata.file_path));  
     }
     if (!pixmap.isNull()) {
-        cover_id = Singleton<PixmapCache>::Get().Add(pixmap);
+        cover_id = Singleton<PixmapCache>::GetInstance().Add(pixmap);
         assert(!cover_id.isEmpty());
         cover_id_cache_.Insert(album_id, cover_id);
         Database::instance().SetAlbumCover(album_id, album, cover_id);
@@ -101,7 +101,7 @@ MetadataExtractAdapter::MetadataExtractAdapter(QObject* parent)
 MetadataExtractAdapter::~MetadataExtractAdapter() = default;
 
 void MetadataExtractAdapter::ReadFileMetadata(MetadataExtractAdapter *adapter, QString const & file_name) {
-    ThreadPool::Default().Run([adapter, file_name]()
+    ThreadPool::GetInstance().Run([adapter, file_name]()
         {
             try {
                 const Path path(file_name.toStdWString());
@@ -190,7 +190,7 @@ void MetadataExtractAdapter::ProcessMetadata(const std::vector<Metadata>& result
         // Database not exist find others.
         if (cover_id.isEmpty()) {
         	if (is_unknown_album) {
-        		cover_id = Singleton<PixmapCache>::Get().GetUnknownCoverId();
+        		cover_id = Singleton<PixmapCache>::GetInstance().GetUnknownCoverId();
         	} else {
         		cover_id = cache.AddCoverCache(album_id, album, metadata);
         	}            

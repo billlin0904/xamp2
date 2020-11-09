@@ -99,7 +99,7 @@ static size_t WalkStack(CONTEXT const* context, StackTrace::CaptureStackAddress&
 
     for (auto &address : addrlist) {
         const auto result = ::StackWalk64(IMAGE_FILE_MACHINE_IA64,
-            Singleton<SymLoader>::Get().GetProcess().get(),
+            Singleton<SymLoader>::GetInstance().GetProcess().get(),
             thread.get(),
             &stack_frame,
             &integer_control_context,
@@ -121,7 +121,7 @@ static size_t WalkStack(CONTEXT const* context, StackTrace::CaptureStackAddress&
 
 void StackTrace::WriteLog(size_t frame_count, std::ostream& ostr) {
     std::vector<uint8_t> symbol(sizeof(SYMBOL_INFO) + sizeof(wchar_t) * MAX_SYM_NAME);
-    auto current_process = Singleton<SymLoader>::Get().GetProcess().get();
+    auto current_process = Singleton<SymLoader>::GetInstance().GetProcess().get();
 
     ostr << "\r\n";    
 
@@ -206,7 +206,7 @@ StackTrace::StackTrace() noexcept {
 
 bool StackTrace::LoadSymbol() {
 #ifdef XAMP_OS_WIN
-    return Singleton<SymLoader>::Get().IsInit();
+    return Singleton<SymLoader>::GetInstance().IsInit();
 #else
     return true;
 #endif

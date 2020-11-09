@@ -149,7 +149,7 @@ public:
             break;
         case AV_SAMPLE_FMT_S16P:
         case AV_SAMPLE_FMT_FLTP:
-            XAMP_LOG_DEBUG("Stream format => DEINTERLEAVED");
+            XAMP_LOG_DEBUG("Stream format => PLANAR");
             break;
         default:
             throw NotSupportFormatException();
@@ -176,7 +176,7 @@ public:
         audio_format_.SetChannel(static_cast<uint16_t>(codec_contex_->channels));
         audio_format_.SetSampleRate(static_cast<uint32_t>(codec_contex_->sample_rate));
         audio_format_.SetBitPerSample(static_cast<uint32_t>(::av_get_bytes_per_sample(codec_contex_->sample_fmt) * 8));
-        audio_format_.SetInterleavedFormat(InterleavedFormat::INTERLEAVED);
+        audio_format_.SetPackedFormat(PackedFormat::INTERLEAVED);
         XAMP_LOG_DEBUG("Stream format: {}", audio_format_);        
     }
 

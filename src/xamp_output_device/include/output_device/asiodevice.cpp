@@ -118,23 +118,23 @@ bool AsioDevice::IsSupportDsdFormat() const {
 }
 
 void AsioDevice::RemoveCurrentDriver() {
-	if (!Singleton<AsioCallbackInfo>::Get().drivers) {
+	if (!Singleton<AsioCallbackInfo>::GetInstance().drivers) {
 		return;
 	}
-	Singleton<AsioCallbackInfo>::Get().drivers->removeCurrentDriver();
-	Singleton<AsioCallbackInfo>::Get().drivers.reset();
+	Singleton<AsioCallbackInfo>::GetInstance().drivers->removeCurrentDriver();
+	Singleton<AsioCallbackInfo>::GetInstance().drivers.reset();
 }
 
 void AsioDevice::ReOpen() {
-	if (Singleton<AsioCallbackInfo>::Get().drivers != nullptr) {
+	if (Singleton<AsioCallbackInfo>::GetInstance().drivers != nullptr) {
 		is_removed_driver_ = false;
 		return;
 	}
-	if (!Singleton<AsioCallbackInfo>::Get().drivers) {
-		Singleton<AsioCallbackInfo>::Get().drivers = MakeAlign<AsioDrivers>();
+	if (!Singleton<AsioCallbackInfo>::GetInstance().drivers) {
+		Singleton<AsioCallbackInfo>::GetInstance().drivers = MakeAlign<AsioDrivers>();
 	}
-	Singleton<AsioCallbackInfo>::Get().drivers->removeCurrentDriver();
-	if (!Singleton<AsioCallbackInfo>::Get().drivers->loadDriver(const_cast<char*>(device_id_.c_str()))) {
+	Singleton<AsioCallbackInfo>::GetInstance().drivers->removeCurrentDriver();
+	if (!Singleton<AsioCallbackInfo>::GetInstance().drivers->loadDriver(const_cast<char*>(device_id_.c_str()))) {
 		throw DeviceNotFoundException();
 	}
 	is_removed_driver_ = false;
@@ -206,7 +206,7 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 	const auto [prefer_size, buffer_size] = GetDeviceBufferSize();
 
 	long num_channel = 0;
-	for (auto& info : Singleton<AsioCallbackInfo>::Get().buffer_infos) {
+	for (auto& info : Singleton<AsioCallbackInfo>::GetInstance().buffer_infos) {
 		info.isInput = ASIOFalse;
 		info.channelNum = num_channel;
 		info.buffers[0] = nullptr;
@@ -214,31 +214,31 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 		++num_channel;
 	}
 
-	Singleton<AsioCallbackInfo>::Get().asio_callbacks.bufferSwitch = OnBufferSwitchCallback;
-	Singleton<AsioCallbackInfo>::Get().asio_callbacks.sampleRateDidChange = OnSampleRateChangedCallback;
-	Singleton<AsioCallbackInfo>::Get().asio_callbacks.asioMessage = OnAsioMessagesCallback;
-	Singleton<AsioCallbackInfo>::Get().asio_callbacks.bufferSwitchTimeInfo = OnBufferSwitchTimeInfoCallback;
-	Singleton<AsioCallbackInfo>::Get().data_context.volume_factor = LinearToLog(volume_);
+	Singleton<AsioCallbackInfo>::GetInstance().asio_callbacks.bufferSwitch = OnBufferSwitchCallback;
+	Singleton<AsioCallbackInfo>::GetInstance().asio_callbacks.sampleRateDidChange = OnSampleRateChangedCallback;
+	Singleton<AsioCallbackInfo>::GetInstance().asio_callbacks.asioMessage = OnAsioMessagesCallback;
+	Singleton<AsioCallbackInfo>::GetInstance().asio_callbacks.bufferSwitchTimeInfo = OnBufferSwitchTimeInfoCallback;
+	Singleton<AsioCallbackInfo>::GetInstance().data_context.volume_factor = LinearToLog(volume_);
 
-	auto result = ::ASIOCreateBuffers(Singleton<AsioCallbackInfo>::Get().buffer_infos.data(),
+	auto result = ::ASIOCreateBuffers(Singleton<AsioCallbackInfo>::GetInstance().buffer_infos.data(),
 		output_format.GetChannels(),
 		buffer_size,
-		&Singleton<AsioCallbackInfo>::Get().asio_callbacks);
+		&Singleton<AsioCallbackInfo>::GetInstance().asio_callbacks);
 	if (result != ASE_OK) {
-		AsioIfFailedThrow(::ASIOCreateBuffers(Singleton<AsioCallbackInfo>::Get().buffer_infos.data(),
+		AsioIfFailedThrow(::ASIOCreateBuffers(Singleton<AsioCallbackInfo>::GetInstance().buffer_infos.data(),
 			output_format.GetChannels(),
 			prefer_size,
-			&Singleton<AsioCallbackInfo>::Get().asio_callbacks));
+			&Singleton<AsioCallbackInfo>::GetInstance().asio_callbacks));
 		buffer_size_ = prefer_size;
 	}
 	else {
 		buffer_size_ = buffer_size;
 	}
 
-	for (long i = 0; i < Singleton<AsioCallbackInfo>::Get().buffer_infos.size(); ++i) {
-		Singleton<AsioCallbackInfo>::Get().channel_infos[i].channel = Singleton<AsioCallbackInfo>::Get().buffer_infos[i].channelNum;
-		Singleton<AsioCallbackInfo>::Get().channel_infos[i].isInput = Singleton<AsioCallbackInfo>::Get().buffer_infos[i].isInput;
-		AsioIfFailedThrow(::ASIOGetChannelInfo(&Singleton<AsioCallbackInfo>::Get().channel_infos[i]));
+	for (long i = 0; i < Singleton<AsioCallbackInfo>::GetInstance().buffer_infos.size(); ++i) {
+		Singleton<AsioCallbackInfo>::GetInstance().channel_infos[i].channel = Singleton<AsioCallbackInfo>::GetInstance().buffer_infos[i].channelNum;
+		Singleton<AsioCallbackInfo>::GetInstance().channel_infos[i].isInput = Singleton<AsioCallbackInfo>::GetInstance().buffer_infos[i].isInput;
+		AsioIfFailedThrow(::ASIOGetChannelInfo(&Singleton<AsioCallbackInfo>::GetInstance().channel_infos[i]));
 	}
 
 	auto input_fomrat = output_format;
@@ -248,8 +248,8 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 	AsioIfFailedThrow(::ASIOGetChannelInfo(&channel_info));
 
 	format_ = output_format;
-	// ASIO output always DEINTERLEAVED format
-	format_.SetInterleavedFormat(InterleavedFormat::DEINTERLEAVED);
+	// ASIO output always PLANAR format
+	format_.SetPackedFormat(PackedFormat::PLANAR);
 
 	switch (channel_info.type) {
 	case ASIOSTInt16MSB:
@@ -305,7 +305,7 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 
 	if (io_format_ == DsdIoFormat::IO_FORMAT_PCM) {
 		size_t allocate_bytes = buffer_size_ * format_.GetBytesPerSample() * format_.GetChannels();
-		Singleton<AsioCallbackInfo>::Get().data_context = MakeConvert(input_fomrat, format_, buffer_size_);
+		Singleton<AsioCallbackInfo>::GetInstance().data_context = MakeConvert(input_fomrat, format_, buffer_size_);
 		buffer_bytes_ = buffer_size_ * (int64_t)format_.GetBytesPerSample();
 		buffer_ = AlignedBuffer<int8_t>(allocate_bytes * buffer_size_);
 		device_buffer_ = AlignedBuffer<int8_t>(allocate_bytes * buffer_size_);
@@ -339,7 +339,7 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 		buffer_ = AlignedBuffer<int8_t>(allocate_bytes);
 		buffer_vmlock_.Lock(buffer_.Get(), allocate_bytes);
 		device_buffer_vmlock_.Lock(device_buffer_.Get(), allocate_bytes);
-		Singleton<AsioCallbackInfo>::Get().data_context = MakeConvert(input_fomrat, format_, channel_buffer_size);
+		Singleton<AsioCallbackInfo>::GetInstance().data_context = MakeConvert(input_fomrat, format_, channel_buffer_size);
 	}
 
 	long input_latency = 0;
@@ -364,9 +364,9 @@ void AsioDevice::SetMute(bool mute) const {
 
 void AsioDevice::OnBufferSwitch(long index, double sample_time) noexcept {
 	const auto vol = volume_.load();
-	if (Singleton<AsioCallbackInfo>::Get().data_context.cache_volume != vol) {
-		Singleton<AsioCallbackInfo>::Get().data_context.volume_factor = LinearToLog(vol);
-		Singleton<AsioCallbackInfo>::Get().data_context.cache_volume = vol;
+	if (Singleton<AsioCallbackInfo>::GetInstance().data_context.cache_volume != vol) {
+		Singleton<AsioCallbackInfo>::GetInstance().data_context.volume_factor = LinearToLog(vol);
+		Singleton<AsioCallbackInfo>::GetInstance().data_context.cache_volume = vol;
 	}
 
 	auto cache_played_bytes = played_bytes_.load();
@@ -386,22 +386,22 @@ void AsioDevice::OnBufferSwitch(long index, double sample_time) noexcept {
 		if (callback_->OnGetSamples(reinterpret_cast<float*>(buffer_.Get()), buffer_size_, double(cache_played_bytes) / format_.GetAvgBytesPerSec(), sample_time) == 0) {
 			switch (format_.GetByteFormat()) {
 			case ByteFormat::SINT16:
-				DataConverter<InterleavedFormat::DEINTERLEAVED,
-					InterleavedFormat::INTERLEAVED>::Convert(reinterpret_cast<int16_t*>(device_buffer_.Get()),
+				DataConverter<PackedFormat::PLANAR,
+					PackedFormat::INTERLEAVED>::Convert(reinterpret_cast<int16_t*>(device_buffer_.Get()),
 						reinterpret_cast<const float*>(buffer_.Get()),
-						Singleton<AsioCallbackInfo>::Get().data_context);
+						Singleton<AsioCallbackInfo>::GetInstance().data_context);
 				break;
 			case ByteFormat::SINT24:
-				DataConverter<InterleavedFormat::DEINTERLEAVED,
-					InterleavedFormat::INTERLEAVED>::Convert(reinterpret_cast<Int24*>(device_buffer_.Get()),
+				DataConverter<PackedFormat::PLANAR,
+					PackedFormat::INTERLEAVED>::Convert(reinterpret_cast<Int24*>(device_buffer_.Get()),
 						reinterpret_cast<const float*>(buffer_.Get()),
-						Singleton<AsioCallbackInfo>::Get().data_context);
+						Singleton<AsioCallbackInfo>::GetInstance().data_context);
 				break;
 			case ByteFormat::SINT32:
-				DataConverter<InterleavedFormat::DEINTERLEAVED,
-					InterleavedFormat::INTERLEAVED>::Convert(reinterpret_cast<int32_t*>(device_buffer_.Get()),
+				DataConverter<PackedFormat::PLANAR,
+					PackedFormat::INTERLEAVED>::Convert(reinterpret_cast<int32_t*>(device_buffer_.Get()),
 						reinterpret_cast<const float*>(buffer_.Get()),
-						Singleton<AsioCallbackInfo>::Get().data_context);
+						Singleton<AsioCallbackInfo>::GetInstance().data_context);
 				break;
 			default:
 				break;
@@ -414,8 +414,11 @@ void AsioDevice::OnBufferSwitch(long index, double sample_time) noexcept {
 		// DSD mode input output same format (int8_t).
 		const auto avg_byte_per_sec = format_.GetAvgBytesPerSec() / 8;
 		if (callback_->OnGetSamples(buffer_.Get(), buffer_bytes_, double(played_bytes_) / avg_byte_per_sec, sample_time) == 0) {
-			DataConverter<InterleavedFormat::DEINTERLEAVED,
-				InterleavedFormat::INTERLEAVED>::Convert(device_buffer_.Get(), buffer_.Get(), Singleton<AsioCallbackInfo>::Get().data_context);
+			DataConverter<PackedFormat::PLANAR,
+				PackedFormat::INTERLEAVED>::Convert(
+					device_buffer_.Get(), 
+					buffer_.Get(),
+					Singleton<AsioCallbackInfo>::GetInstance().data_context);
 			got_samples = true;
 		}
 	};
@@ -429,7 +432,7 @@ void AsioDevice::OnBufferSwitch(long index, double sample_time) noexcept {
 
 	if (got_samples) {
 		for (size_t i = 0, j = 0; i < format_.GetChannels(); ++i) {
-			(void)FastMemcpy(Singleton<AsioCallbackInfo>::Get().buffer_infos[i].buffers[index],
+			(void)FastMemcpy(Singleton<AsioCallbackInfo>::GetInstance().buffer_infos[i].buffers[index],
 				&device_buffer_[j++ * buffer_bytes_],
 				buffer_bytes_);
 		}
@@ -474,8 +477,8 @@ void AsioDevice::OpenStream(AudioFormat const & output_format) {
 
 	played_bytes_ = 0;
 	is_stopped_ = false;
-	Singleton<AsioCallbackInfo>::Get().data_context.cache_volume = 0;
-	Singleton<AsioCallbackInfo>::Get().device = this;
+	Singleton<AsioCallbackInfo>::GetInstance().data_context.cache_volume = 0;
+	Singleton<AsioCallbackInfo>::GetInstance().device = this;
 }
 
 void AsioDevice::SetOutputSampleRate(AudioFormat const & output_format) {
@@ -569,8 +572,8 @@ void AsioDevice::DisplayControlPanel() {
 	AsioIfFailedThrow(::ASIOControlPanel());
 }
 
-InterleavedFormat AsioDevice::GetInterleavedFormat() const noexcept {
-	return InterleavedFormat::DEINTERLEAVED;
+PackedFormat AsioDevice::GetInterleavedFormat() const noexcept {
+	return PackedFormat::PLANAR;
 }
 
 ASIOTime* AsioDevice::OnBufferSwitchTimeInfoCallback(ASIOTime* timeInfo, long index, ASIOBool processNow) noexcept {
@@ -582,12 +585,12 @@ void AsioDevice::OnBufferSwitchCallback(long index, ASIOBool processNow) {
 	if (::ASIOGetSamplePosition(&time_info.timeInfo.samplePosition, &time_info.timeInfo.systemTime) == ASE_OK) {
 		time_info.timeInfo.flags = kSystemTimeValid | kSamplePositionValid;
 	}
-	Singleton<AsioCallbackInfo>::Get().device->OnBufferSwitchTimeInfoCallback(&time_info, index, processNow);
+	Singleton<AsioCallbackInfo>::GetInstance().device->OnBufferSwitchTimeInfoCallback(&time_info, index, processNow);
 	double sample_time = 0;
 	if (time_info.timeInfo.flags & kSamplePositionValid) {
-		sample_time = ASIO64toDouble(time_info.timeInfo.samplePosition) / Singleton<AsioCallbackInfo>::Get().device->format_.GetSampleRate();
+		sample_time = ASIO64toDouble(time_info.timeInfo.samplePosition) / Singleton<AsioCallbackInfo>::GetInstance().device->format_.GetSampleRate();
 	}
-	Singleton<AsioCallbackInfo>::Get().device->OnBufferSwitch(index, sample_time);
+	Singleton<AsioCallbackInfo>::GetInstance().device->OnBufferSwitch(index, sample_time);
 }
 
 long AsioDevice::OnAsioMessagesCallback(long selector, long value, void* message, double* opt) {
@@ -614,8 +617,8 @@ long AsioDevice::OnAsioMessagesCallback(long selector, long value, void* message
 		// ASIODisposeBuffers(), Destruction Afterwards you initialize the
 		// driver again.
 		XAMP_LOG_INFO("Driver reset requested!!!");
-		Singleton<AsioCallbackInfo>::Get().device->AbortStream();		
-		Singleton<AsioCallbackInfo>::Get().device->condition_.notify_one();
+		Singleton<AsioCallbackInfo>::GetInstance().device->AbortStream();		
+		Singleton<AsioCallbackInfo>::GetInstance().device->condition_.notify_one();
 		ret = 1L;
 		break;
 	case kAsioResyncRequest:
@@ -627,7 +630,7 @@ long AsioDevice::OnAsioMessagesCallback(long selector, long value, void* message
 		// another thread.  However a driver can issue it in other
 		// situations, too.
 		XAMP_LOG_INFO("Driver resync requested!!!");
-		Singleton<AsioCallbackInfo>::Get().is_xrun = true;
+		Singleton<AsioCallbackInfo>::GetInstance().is_xrun = true;
 		ret = 1L;
 		break;
 	case kAsioLatenciesChanged:
@@ -668,8 +671,8 @@ void AsioDevice::OnSampleRateChangedCallback(ASIOSampleRate sampleRate) {
 	// sample rate status of an AES/EBU or S/PDIF digital input at the
 	// audio device.
 
-	Singleton<AsioCallbackInfo>::Get().device->StopStream();
-	Singleton<AsioCallbackInfo>::Get().device->callback_->OnError(SampleRateChangedException());
+	Singleton<AsioCallbackInfo>::GetInstance().device->StopStream();
+	Singleton<AsioCallbackInfo>::GetInstance().device->callback_->OnError(SampleRateChangedException());
 }
 
 }

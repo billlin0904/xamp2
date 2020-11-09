@@ -89,7 +89,7 @@ public:
         }
 
         quality_spec |= (SOXR_ROLLOFF_NONE | SOXR_HI_PREC_CLOCK | SOXR_VR | SOXR_DOUBLE_PRECISION);
-        auto soxr_quality = Singleton<SoxrLib>::Get().soxr_quality_spec(quality_spec, 0);
+        auto soxr_quality = Singleton<SoxrLib>::GetInstance().soxr_quality_spec(quality_spec, 0);
 
         switch (phase_) {
         case SoxrPhaseResponse::LINEAR_PHASE:
@@ -106,11 +106,11 @@ public:
         soxr_quality.passband_end = passband_;
         soxr_quality.stopband_begin = stopband_;
 
-        auto iospec = Singleton<SoxrLib>::Get().soxr_io_spec(SOXR_FLOAT32_I, SOXR_FLOAT32_I);
-        auto runtimespec = Singleton<SoxrLib>::Get().soxr_runtime_spec(1);
+        auto iospec = Singleton<SoxrLib>::GetInstance().soxr_io_spec(SOXR_FLOAT32_I, SOXR_FLOAT32_I);
+        auto runtimespec = Singleton<SoxrLib>::GetInstance().soxr_runtime_spec(1);
 
         soxr_error_t error = nullptr;
-        handle_.reset(Singleton<SoxrLib>::Get().soxr_create(input_samplerate,
+        handle_.reset(Singleton<SoxrLib>::GetInstance().soxr_create(input_samplerate,
                                                       output_samplerate,
                                                       num_channels,
                                                       &error,
@@ -163,7 +163,7 @@ public:
         if (!handle_) {
             return;
         }
-        Singleton<SoxrLib>::Get().soxr_clear(handle_.get());
+        Singleton<SoxrLib>::GetInstance().soxr_clear(handle_.get());
         buffer_.clear();
     }
 
@@ -179,7 +179,7 @@ public:
 
         size_t samples_done = 0;
 
-        Singleton<SoxrLib>::Get().soxr_process(handle_.get(),
+        Singleton<SoxrLib>::GetInstance().soxr_process(handle_.get(),
                                          samples,
                                          num_sample / num_channels_,
                                          nullptr,
@@ -211,7 +211,7 @@ public:
         }
 
         static void close(soxr_t value) noexcept {
-            Singleton<SoxrLib>::Get().soxr_delete(value);
+            Singleton<SoxrLib>::GetInstance().soxr_delete(value);
         }
     };
 
@@ -237,7 +237,7 @@ SoxrResampler::SoxrResampler()
 SoxrResampler::~SoxrResampler() = default;
 
 void SoxrResampler::LoadSoxrLib() {
-    (void)Singleton<SoxrLib>::Get();
+    (void)Singleton<SoxrLib>::GetInstance();
 }
 
 void SoxrResampler::Start(uint32_t input_samplerate, uint32_t num_channels, uint32_t output_samplerate, uint32_t) {

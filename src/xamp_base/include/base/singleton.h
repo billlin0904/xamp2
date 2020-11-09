@@ -14,7 +14,11 @@ namespace xamp::base {
 template <typename T>
 class XAMP_BASE_API_ONLY_EXPORT Singleton {
 public:
-	static T& Get();
+	/// <summary>
+	/// 不允許跨Library呼叫, 因為不會產生單例物件.
+	/// </summary>
+	/// <returns></returns>
+	static T& GetInstance();
 
 protected:
 	Singleton() noexcept = default;
@@ -25,7 +29,7 @@ public:
 };
 
 template <typename T>
-T& Singleton<T>::Get() {
+T& Singleton<T>::GetInstance() {
 	static T instance;
 	return instance;
 }

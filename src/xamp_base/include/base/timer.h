@@ -29,7 +29,7 @@ public:
 	void Start(std::chrono::milliseconds timeout, TimerCallback&& callback) {
 		is_stop_ = false;
 		timer_.SetTimeout(timeout);
-		thread_ = ThreadPool::Default().Run([this, callback]() {
+		thread_ = ThreadPool::GetInstance().Run([this, callback]() {
 			SetThreadName("Timer");
 
 			while (!is_stop_) {

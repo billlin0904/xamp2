@@ -31,7 +31,7 @@ PixmapCache::PixmapCache()
 QPixmap PixmapCache::FindFileDirCover(const QString& file_path) {
     const auto dir = QFileInfo(file_path).path();
 
-    for (QDirIterator itr(dir, Singleton<PixmapCache>::Get().cover_ext_,
+    for (QDirIterator itr(dir, Singleton<PixmapCache>::GetInstance().cover_ext_,
                           QDir::Files | QDir::NoDotAndDotDot);
          itr.hasNext();) {
         const auto image_file_path = itr.next();

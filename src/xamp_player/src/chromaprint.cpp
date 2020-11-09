@@ -60,19 +60,19 @@ public:
 	}
 
     void Start(uint32_t sample_rate, uint32_t num_channels, uint32_t num_buffer_frames) {
-        context_.reset(Singleton<ChromaprintLib>::Get().chromaprint_new(algorithm_));
+        context_.reset(Singleton<ChromaprintLib>::GetInstance().chromaprint_new(algorithm_));
         buffer_.resize(static_cast<size_t>(num_buffer_frames));
-		Singleton<ChromaprintLib>::Get().chromaprint_start(context_.get(),
+		Singleton<ChromaprintLib>::GetInstance().chromaprint_start(context_.get(),
                                                      static_cast<int32_t>(sample_rate),
                                                      static_cast<int32_t>(num_channels));
 	}
 
     int32_t Feed(int16_t const * data, uint32_t size) const {
-        return Singleton<ChromaprintLib>::Get().chromaprint_feed(context_.get(), data, static_cast<int32_t>(size));
+        return Singleton<ChromaprintLib>::GetInstance().chromaprint_feed(context_.get(), data, static_cast<int32_t>(size));
 	}
 
     int32_t Finish() const {
-		return Singleton<ChromaprintLib>::Get().chromaprint_finish(context_.get());
+		return Singleton<ChromaprintLib>::GetInstance().chromaprint_finish(context_.get());
 	}	
 
 	std::vector<uint8_t> GetFingerprint() const {
@@ -89,7 +89,7 @@ public:
         int32_t encoded_size = 0;
 
 		try {			
-			Singleton<ChromaprintLib>::Get().chromaprint_encode_fingerprint(fprint,
+			Singleton<ChromaprintLib>::GetInstance().chromaprint_encode_fingerprint(fprint,
 				size,
 				algorithm_,
 				&encoded,
@@ -102,15 +102,15 @@ public:
 		catch (...) {
 		}		
 
-		Singleton<ChromaprintLib>::Get().chromaprint_dealloc(fprint);
-		Singleton<ChromaprintLib>::Get().chromaprint_dealloc(encoded);
+		Singleton<ChromaprintLib>::GetInstance().chromaprint_dealloc(fprint);
+		Singleton<ChromaprintLib>::GetInstance().chromaprint_dealloc(encoded);
 
 		return fingerprint;
 	}	
 
 private:
     int32_t GetRawFingerprint(uint32_t** fingerprint, int32_t* size) const {
-		return Singleton<ChromaprintLib>::Get().chromaprint_get_raw_fingerprint(context_.get(), fingerprint, size);
+		return Singleton<ChromaprintLib>::GetInstance().chromaprint_get_raw_fingerprint(context_.get(), fingerprint, size);
 	}
 
 	struct ChromaprintContextTraits final {
@@ -119,7 +119,7 @@ private:
 		}
 
 		static void close(ChromaprintContext* value) noexcept {
-			Singleton<ChromaprintLib>::Get().chromaprint_free(value);
+			Singleton<ChromaprintLib>::GetInstance().chromaprint_free(value);
 		}
 	};
 
@@ -137,7 +137,7 @@ Chromaprint::Chromaprint()
 XAMP_PIMPL_IMPL(Chromaprint)
 
 void Chromaprint::LoadChromaprintLib() {
-	(void) Singleton<ChromaprintLib>::Get();
+	(void) Singleton<ChromaprintLib>::GetInstance();
 }
 
 void Chromaprint::Start(uint32_t sample_rate, uint32_t num_channels, uint32_t num_buffer_frames) {

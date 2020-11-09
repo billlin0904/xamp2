@@ -132,8 +132,8 @@ inline void Convert2432Helper(int32_t* XAMP_RESTRICT output, float const* XAMP_R
 	}
 }
 
-template <InterleavedFormat InputFormat, InterleavedFormat OutputFormat>
-struct DataConverter {
+template <PackedFormat InputFormat, PackedFormat OutputFormat>
+struct XAMP_BASE_API_ONLY_EXPORT DataConverter {
 	// INFO: Only for DSD file
 	static void Convert(int8_t* XAMP_RESTRICT output, int8_t const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {
         for (size_t i = 0; i < context.convert_size; ++i) {
@@ -193,8 +193,15 @@ struct DataConverter {
     }
 };
 
+static void FastDSDConvert(int8_t* XAMP_RESTRICT output, int8_t const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {
+	for (auto i = 0; i != context.convert_size; ++i) {
+		output[(i * 2) + 0] = input[i + (0 * context.convert_size)];
+		output[(i * 2) + 1] = input[i + (1 * context.convert_size)];
+	}
+}
+
 template <>
-struct DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEAVED> {
+struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED> {
 	static void ConvertToInt16(int16_t* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {
 		ConvertHelper<int16_t>(output, input, kFloat16Scaler, context);
 	}

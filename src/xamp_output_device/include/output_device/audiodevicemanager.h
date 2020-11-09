@@ -54,7 +54,7 @@ public:
 
     bool IsDeviceTypeExist(Uuid const& id) const noexcept;
 
-    static AudioDeviceManager& Default();
+    static AudioDeviceManager& GetInstance();
 
     static bool IsExclusiveDevice(DeviceInfo const &info) noexcept;
 

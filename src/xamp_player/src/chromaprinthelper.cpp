@@ -24,7 +24,7 @@ std::tuple<double, std::vector<uint8_t>> ReadFingerprint(std::wstring const & fi
 		source_format.GetChannels(),
 		ByteFormat::FLOAT32,
 		source_format.GetSampleRate(),
-		InterleavedFormat::INTERLEAVED
+		PackedFormat::INTERLEAVED
 	};
 
     auto isamples = MakeBuffer<float>(1024 + kReadSampleSize * input_format.GetChannels());
@@ -36,7 +36,7 @@ std::tuple<double, std::vector<uint8_t>> ReadFingerprint(std::wstring const & fi
 		input_format.GetChannels(),
 		ByteFormat::FLOAT32,
 		input_format.GetSampleRate(),
-		InterleavedFormat::INTERLEAVED
+		PackedFormat::INTERLEAVED
 	};
 
 	const auto ctx = MakeConvert(input_format, input_format, kReadSampleSize);
@@ -58,7 +58,7 @@ std::tuple<double, std::vector<uint8_t>> ReadFingerprint(std::wstring const & fi
 			}
 		}
 
-		DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEAVED>
+		DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>
             ::ConvertToInt16(osamples.get(), isamples.get(), ctx);
         chromaprint.Feed(osamples.get(), deocode_size * input_format.GetChannels());
 	}	

@@ -282,7 +282,7 @@ void ExclusiveWasapiDevice::GetSample(uint32_t frame_available) noexcept {
 
 	if (callback_->OnGetSamples(buffer_.Get(), frame_available, stream_time_float, sample_time) == 0) {
 		if (!raw_mode_) {
-			(void)DataConverter<InterleavedFormat::INTERLEAVED, InterleavedFormat::INTERLEAVED>::ConvertToInt2432(
+			(void)DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::ConvertToInt2432(
 				reinterpret_cast<int32_t*>(data),
 				buffer_.Get(),
 				data_convert_);
@@ -416,8 +416,8 @@ void ExclusiveWasapiDevice::SetMute(const bool mute) const {
 void ExclusiveWasapiDevice::DisplayControlPanel() {
 }
 
-InterleavedFormat ExclusiveWasapiDevice::GetInterleavedFormat() const noexcept {
-    return InterleavedFormat::INTERLEAVED;
+PackedFormat ExclusiveWasapiDevice::GetInterleavedFormat() const noexcept {
+    return PackedFormat::INTERLEAVED;
 }
 
 uint32_t ExclusiveWasapiDevice::GetBufferSize() const noexcept {

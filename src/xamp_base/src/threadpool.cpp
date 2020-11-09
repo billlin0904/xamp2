@@ -19,7 +19,7 @@ void ThreadPool::SetAffinityMask(int32_t core) {
 	scheduler_.SetAffinityMask(core);
 }
 
-ThreadPool& ThreadPool::Default() {
+ThreadPool& ThreadPool::GetInstance() {
 	static ThreadPool default_pool;
 	return default_pool;
 }
