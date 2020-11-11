@@ -73,7 +73,7 @@ public:
 
 	void AbortStream() noexcept override;
 
-	static void RemoveCurrentDriver();
+	static void RemoveDriver();
 
 private:
 	static ASIOTime* OnBufferSwitchTimeInfoCallback(ASIOTime* timeInfo, long index, ASIOBool processNow) noexcept;

@@ -34,7 +34,7 @@ public:
 
     void Clear();
 
-    [[nodiscard]] std::optional<AlignPtr<DeviceType>> CreateDefaultDevice() const;
+    [[nodiscard]] std::optional<AlignPtr<DeviceType>> CreateDefaultDeviceType() const;
 
     [[nodiscard]] std::optional<AlignPtr<DeviceType>> Create(Uuid const& id) const;
 
@@ -60,7 +60,7 @@ public:
 
     static bool IsASIODevice(Uuid const& id) noexcept;
 
-    static void RemoveASIOCurrentDriver();
+    static void RemoveASIODriver();
 
     static void PreventSleep(bool allow);
 private:

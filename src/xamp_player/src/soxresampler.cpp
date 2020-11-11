@@ -46,6 +46,8 @@ public:
 
 class SoxrResampler::SoxrResamplerImpl {
 public:
+    static constexpr size_t kInitBufferSize = 1024 * 1204;
+
     SoxrResamplerImpl() noexcept
         : enable_steep_filter_(false)
         , quality_(SoxrQuality::VHQ)
@@ -54,7 +56,7 @@ public:
         , num_channels_(0)
         , ratio_(0)
         , passband_(0.99)
-        , stopband_(1.0) {
+        , stopband_(1.0) {        
     }
 
     ~SoxrResamplerImpl() noexcept {
@@ -62,6 +64,8 @@ public:
     }
 
     void Start(uint32_t input_samplerate, uint32_t num_channels, uint32_t output_samplerate) {
+        AllocateAndLock(kInitBufferSize);
+
         Close();
 
         unsigned long quality_spec = 0;
@@ -130,7 +134,7 @@ public:
                        input_samplerate,
                        output_samplerate,
                        EnumToString(quality_),
-                       EnumToString(phase_));
+                       EnumToString(phase_));        
     }
 
     void Close() noexcept {
@@ -172,9 +176,7 @@ public:
 
         auto required_size = static_cast<size_t>(num_sample * ratio_) + 256;
         if (required_size > buffer_.size()) {
-            vmlock_.UnLock();
-            buffer_.resize(required_size);
-            vmlock_.Lock(buffer_.data(), required_size * sizeof(float));
+            AllocateAndLock(required_size);
         }        
 
         size_t samples_done = 0;
@@ -198,11 +200,15 @@ public:
 
         required_size = samples_done * num_channels_;
         if (required_size > buffer_.size()) {
-            vmlock_.UnLock();
-            buffer_.resize(samples_done * num_channels_);
-            vmlock_.Lock(buffer_.data(), required_size * sizeof(float));
+            AllocateAndLock(required_size);
         }        
         return true;
+    }
+
+    void AllocateAndLock(size_t required_size) {
+        vmlock_.UnLock();
+        buffer_.resize(required_size);
+        vmlock_.Lock(buffer_.data(), required_size * sizeof(float));
     }
 
     struct SoxrHandleTraits final {

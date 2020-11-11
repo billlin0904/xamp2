@@ -124,6 +124,8 @@ public:
 
     bool IsGaplessPlay() const;
 
+    void EnableGaplessPlay(bool enable);
+
     void ClearPlayQueue();
 
     static AlignPtr<FileStream> MakeFileStream(std::wstring const& file_ext, AlignPtr<FileStream> old_stream = nullptr);
@@ -192,12 +194,13 @@ private:
     uint32_t read_sample_size_; 
     std::atomic<bool> is_playing_;
     std::atomic<bool> is_paused_;
+    std::atomic<bool> enable_gapless_play_;
     std::atomic<double> sample_end_time_;
-    std::atomic<double> total_stream_time_;
+    std::atomic<double> stream_duration_;
     std::atomic<AudioSlice> slice_;
     mutable std::mutex pause_mutex_;
     mutable std::mutex stream_read_mutex_;
-    std::atomic<GaplessPlayState> gapless_play_state_ = GaplessPlayState::INIT;
+    GaplessPlayState gapless_play_state_ = GaplessPlayState::INIT;
 #ifdef _DEBUG
     std::chrono::microseconds min_process_time_{ 0 };
     std::chrono::microseconds max_process_time_{ 0 };

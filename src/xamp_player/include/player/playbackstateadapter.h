@@ -21,6 +21,8 @@ using namespace output_device;
 
 class XAMP_PLAYER_API XAMP_NO_VTABLE PlaybackStateAdapter {
 public:
+    friend class AudioPlayer;
+
     virtual ~PlaybackStateAdapter() = default;
 
 	virtual void OnError(Exception const & ex) = 0;
@@ -42,10 +44,11 @@ public:
     virtual AlignPtr<FileStream>& PlayQueueFont() = 0;
 
     virtual void PopPlayQueue() = 0;
-
-    virtual void ClearPlayQueue() = 0;
+    
 protected:
     PlaybackStateAdapter() = default;
+
+    virtual void ClearPlayQueue() = 0;
 };
 
 }

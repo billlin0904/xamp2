@@ -125,12 +125,12 @@ void AudioDeviceManager::Clear() {
     factory_.clear();
 }
 
-std::optional<AlignPtr<DeviceType>> AudioDeviceManager::CreateDefaultDevice() const {
-    auto itr = factory_.begin();
-    if (itr == factory_.end()) {
-        return std::nullopt;
-    }
-    return (*itr).second();
+std::optional<AlignPtr<DeviceType>> AudioDeviceManager::CreateDefaultDeviceType() const {
+#ifdef XAMP_OS_WIN
+    return Create(win32::SharedWasapiDeviceType::Id);
+#else
+    return Create(win32::CoreAudioDeviceType::Id);
+#endif
 }
 
 std::optional<AlignPtr<DeviceType>> AudioDeviceManager::Create(Uuid const& id) const {
@@ -172,9 +172,9 @@ bool AudioDeviceManager::IsASIODevice(Uuid const& id) noexcept {
 #endif
 }
 
-void AudioDeviceManager::RemoveASIOCurrentDriver() {
-#if ENABLE_ASIO
-    AsioDevice::RemoveCurrentDriver();
+void AudioDeviceManager::RemoveASIODriver() {
+#if defined(ENABLE_ASIO) && defined(XAMP_OS_WIN)
+    AsioDevice::RemoveDriver();
 #endif
 }
 

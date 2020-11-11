@@ -120,7 +120,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>Full</Optimization>
+      <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
@@ -128,7 +128,7 @@
       <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/spdlog/include/;../thirdparty/asiosdk/common/;../thirdparty/asiosdk/driver/;../thirdparty/robin_hood/</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PreprocessorDefinitions>XAMP_OUTPUT_DEVICE_API_EXPORTS;ENABLE_ASIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <OmitFramePointers>true</OmitFramePointers>
+      <OmitFramePointers>false</OmitFramePointers>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <DebugInformationFormat>None</DebugInformationFormat>
       <BrowseInformation>true</BrowseInformation>
@@ -155,7 +155,7 @@
     <ClInclude Include="include\output_device\asioexception.h" />
     <ClInclude Include="include\output_device\audiocallback.h" />
     <ClInclude Include="include\output_device\device.h" />
-    <ClInclude Include="include\output_device\devicefactory.h" />
+    <ClInclude Include="include\output_device\audiodevicemanager.h" />
     <ClInclude Include="include\output_device\deviceinfo.h" />
     <ClInclude Include="include\output_device\devicestate.h" />
     <ClInclude Include="include\output_device\devicestatelistener.h" />
@@ -182,7 +182,7 @@
     <ClCompile Include="include\output_device\asiodevice.cpp" />
     <ClCompile Include="src\asiodevicetype.cpp" />
     <ClCompile Include="src\asioexception.cpp" />
-    <ClCompile Include="src\devicefactory.cpp" />
+    <ClCompile Include="src\audiodevicemanager.cpp" />
     <ClCompile Include="src\win32\exclusivewasapidevice.cpp" />
     <ClCompile Include="src\win32\exclusivewasapidevicetype.cpp" />
     <ClCompile Include="src\win32\hrexception.cpp" />

@@ -117,7 +117,7 @@ bool AsioDevice::IsSupportDsdFormat() const {
 	return error == ASE_SUCCESS;
 }
 
-void AsioDevice::RemoveCurrentDriver() {
+void AsioDevice::RemoveDriver() {
 	if (!Singleton<AsioCallbackInfo>::GetInstance().drivers) {
 		return;
 	}

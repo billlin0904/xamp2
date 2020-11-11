@@ -99,8 +99,9 @@ AudioPlayer::AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter)
     , read_sample_size_(0)
     , is_playing_(false)
     , is_paused_(false)
+    , enable_gapless_play_(false)
     , sample_end_time_(0)
-    , total_stream_time_(0)
+    , stream_duration_(0)
     , state_adapter_(adapter)
     , buffer_(kPreallocateBufferSize)
     , msg_queue_(kMsgQueueSize) {
@@ -120,7 +121,7 @@ void AudioPlayer::Destroy() {
     resampler_.reset();
     equalizer_.reset();
 #ifdef ENABLE_ASIO
-    AudioDeviceManager::RemoveASIOCurrentDriver();
+    AudioDeviceManager::RemoveASIODriver();
 #endif
     ThreadPool::GetInstance().Stop();
     BassFileStream::FreeBassLib();
@@ -191,7 +192,7 @@ void AudioPlayer::CreateDevice(Uuid const & device_type_id, std::string const & 
         || device_type_id_ != device_type_id
         || open_always) {
         if (device_type_id_ != device_type_id) {
-            AudioDeviceManager::RemoveASIOCurrentDriver();
+            AudioDeviceManager::RemoveASIODriver();
         }
         if (auto result = AudioDeviceManager::GetInstance().Create(device_type_id)) {            
             device_type_ = std::move(result.value());
@@ -266,7 +267,7 @@ void AudioPlayer::OpenStream(std::wstring const & file_path, std::wstring const 
     dsd_mode_ = SetStreamDsdMode(stream_, device_info);
     XAMP_LOG_DEBUG("Use stream type: {}.", stream_->GetDescription());
     stream_->OpenFile(file_path);
-    total_stream_time_ = stream_->GetDuration();
+    stream_duration_ = stream_->GetDuration();
 }
 
 void AudioPlayer::SetState(const PlayerState play_state) {
@@ -406,12 +407,10 @@ std::optional<uint32_t> AudioPlayer::GetDSDSpeed() const {
 }
 
 double AudioPlayer::GetDuration() const {
-    std::lock_guard guard{ stream_read_mutex_ };
-
     if (!stream_) {
         return 0.0;
     }
-    return stream_->GetDuration();
+    return stream_duration_;
 }
 
 PlayerState AudioPlayer::GetState() const noexcept {
@@ -765,8 +764,8 @@ void AudioPlayer::OnGaplessPlayState(std::unique_lock<std::mutex>& lock, AlignPt
         return;
     }
 
-    if (adapter->GetPlayQueueSize() == 0) {
-        stopped_cond_.wait_for(lock, kReadSampleWaitTime);
+    if (adapter->GetPlayQueueSize() == 0 || !enable_gapless_play_) {
+        stopped_cond_.wait_for(lock, kWaitForStreamStopTime);
         return;
     }
 
@@ -785,7 +784,7 @@ void AudioPlayer::OnGaplessPlayState(std::unique_lock<std::mutex>& lock, AlignPt
             dsd_mode_ = SetStreamDsdMode(stream_, device_info_);
             resampler_ = std::move(resampler);
             adapter->PopPlayQueue();
-            total_stream_time_ = stream_->GetDuration();
+            stream_duration_ = stream_->GetDuration();
             msg_queue_.Pop();
             gapless_play_state_ = GaplessPlayState::INIT;
             break;
@@ -843,8 +842,12 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_read_sample
     }
 }
 
+void AudioPlayer::EnableGaplessPlay(bool enable) {
+    enable_gapless_play_ = enable;
+}
+
 bool AudioPlayer::IsGaplessPlay() const {
-    return IsPlaying() && true;
+    return IsPlaying() && enable_gapless_play_;
 }
 
 void AudioPlayer::ClearPlayQueue() {
@@ -872,7 +875,7 @@ int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, dou
 //    else
 //#endif
     {
-        if (stream_time >= total_stream_time_) {
+        if (stream_time >= stream_duration_) {
             device_->SetStreamTime(0);
             msg_queue_.TryPush(GaplessPlayMsgID::SWITCH);
         }

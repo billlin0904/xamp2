@@ -15,17 +15,17 @@
 #include <player/playstate.h>
 
 using xamp::player::PlayerState;
+using xamp::player::PlaybackStateAdapter;
 using xamp::base::Errors;
 using xamp::base::AlignPtr;
 using xamp::base::Exception;
 using xamp::base::SpscQueue;
 using xamp::output_device::DeviceInfo;
 using xamp::stream::FileStream;
-using PlaybackStateAdapterBase = xamp::player::PlaybackStateAdapter;
 
 class UIPlayerStateAdapter final
     : public QObject
-    , public PlaybackStateAdapterBase {
+    , public PlaybackStateAdapter {
     Q_OBJECT
 public:
     explicit UIPlayerStateAdapter(QObject *parent = nullptr);
@@ -48,9 +48,7 @@ public:
 
     void OnSampleDataChanged(const float *samples, size_t size) override;
 
-    void OnGaplessPlayback() override;
-
-    void ClearPlayQueue() override;
+    void OnGaplessPlayback() override;    
 
     void addPlayQueue(const std::wstring &file_ext, const std::wstring &file_path, const QModelIndex &index, const DeviceInfo& device);
 
@@ -76,6 +74,8 @@ signals:
 protected:
     static constexpr auto kPlayQueueSize = 8;
     static constexpr auto kIndexQueueSize = 8;
+
+    void ClearPlayQueue() override;
 
     SpscQueue<AlignPtr<FileStream>> play_queue_;
     SpscQueue<QModelIndex> index_queue_;
