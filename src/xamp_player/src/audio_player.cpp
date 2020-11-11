@@ -765,7 +765,7 @@ void AudioPlayer::OnGaplessPlayState(std::unique_lock<std::mutex>& lock, AlignPt
     }
 
     if (adapter->GetPlayQueueSize() == 0 || !enable_gapless_play_) {
-        stopped_cond_.wait_for(lock, kWaitForStreamStopTime);
+        stopped_cond_.wait_for(lock, kReadSampleWaitTime);
         return;
     }
 

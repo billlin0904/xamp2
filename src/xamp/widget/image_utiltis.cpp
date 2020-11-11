@@ -1,4 +1,7 @@
+#include <cmath>
+
 #include <array>
+#include <algorithm>
 
 #include <base/threadpool.h>
 #include <base/align_ptr.h>
@@ -321,6 +324,107 @@ static void stackblurJob(uint8_t* src,
 			}
 		}
 	}
+}
+
+struct Float3 {
+	float x = 0.0f, y = 0.0f, z = 0.0f;	
+};
+
+inline QColor operator *(QColor const& value1, float value2) noexcept {
+	return QColor{ (int32_t)std::rint(value1.red() * value2),
+		(int32_t)std::rint(value1.green() * value2),
+		(int32_t)std::rint(value1.blue() * value2) };
+}
+
+inline QColor operator +(QColor const& value1, float value2) noexcept {
+	return QColor{ (int32_t)std::rint(value1.red() + value2),
+		(int32_t)std::rint(value1.green() + value2),
+		(int32_t)std::rint(value1.blue() + value2) };
+}
+
+static float frac(float v) noexcept {
+	return v - floor(v);
+}
+
+#if !_HAS_CXX20
+static float lerp(float a, float b, float t) noexcept {
+	return (1 - t) * a + t * b;
+}
+#endif
+
+constexpr float HCLgamma = 3;
+constexpr float HCLy0 = 100;
+constexpr float HCLmaxL = 0.530454533953517; // == exp(HCLgamma / HCLy0) - 0.5
+constexpr float PI = 3.1415926536;
+
+static QColor HCLtoRGB(Float3 HCL) noexcept {
+	QColor RGB;
+	if (HCL.z != 0) {
+		float H = HCL.x;
+		float C = HCL.y;
+		float L = HCL.z * HCLmaxL;
+		float Q = exp((1 - C / (2 * L)) * (HCLgamma / HCLy0));
+		float U = (2 * L - C) / (2 * Q - 1);
+		float V = C / Q;
+		float A = (H + (std::min)(frac(2 * H) / 4, frac(-2 * H) / 8)) * PI * 2;
+		float T;
+
+		H *= 6;
+		if (H <= 0.999) {
+			T = tan(A);
+			RGB.setRed(1);
+			RGB.setGreen(T / (1 + T));
+		} else if (H <= 1.001) {
+			RGB.setRed(1);
+			RGB.setGreen(1);
+		} else if (H <= 2) {
+			T = tan(A);
+			RGB.setRed((1 + T) / T);
+			RGB.setGreen(1);
+		} else if (H <= 3) {
+			T = tan(A);
+			RGB.setGreen(1);
+			RGB.setBlue(1 + T);
+		} else if (H <= 3.999) {
+			T = tan(A);
+			RGB.setGreen(1 / (1 + T));
+			RGB.setBlue(1);
+		} else if (H <= 4.001) {
+			RGB.setGreen(0);
+			RGB.setBlue(1);
+		} else if (H <= 5) {
+			T = tan(A);
+			RGB.setRed(-1 / T);
+			RGB.setBlue(1);
+		} else {
+			T = tan(A);
+			RGB.setRed(1);
+			RGB.setBlue(-T);
+		}
+
+		RGB = RGB * V + U;
+	}
+	return RGB;
+}
+
+static Float3 RGBtoHCL(QColor RGB) noexcept {
+	Float3 HCL;
+	float H = 0;
+	float U = (std::min)(RGB.red(), (std::min)(RGB.green(), RGB.blue()));
+	float V = (std::max)(RGB.red(), (std::max)(RGB.green(), RGB.blue()));
+	float Q = HCLgamma / HCLy0;
+	HCL.y = V - U;
+
+	if (HCL.y != 0) {
+		H = atan2(RGB.green() - RGB.blue(), RGB.red() - RGB.green()) / PI;
+		Q *= U / V;
+	}
+
+	Q = exp(Q);
+	HCL.x = frac(H / 2 - (std::min)(frac(H), frac(-H)) / 6);
+	HCL.y *= Q;
+	HCL.z = lerp(-U, V, Q) / (HCLmaxL * 2);
+	return HCL;
 }
 
 class Stackblur final {
