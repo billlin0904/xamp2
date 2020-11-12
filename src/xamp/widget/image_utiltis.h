@@ -6,9 +6,29 @@
 #pragma once
 
 #include <QPainter>
+#include <QColor>
 #include <QPixmap>
 
 namespace Pixmap {
+
+class ImageColorAnalyzer final {
+public:
+	explicit ImageColorAnalyzer(QImage const& image);
+
+	QColor GetPrimaryColor() const {
+		return primary_color_;
+	}
+
+	QColor GetSecondaryColor() const {
+		return secondary_color_;
+	}
+
+private:
+	void Analyze(QImage const& image);
+
+	QColor primary_color_;
+	QColor secondary_color_;	
+};
 
 QPixmap resizeImage(const QPixmap& source, const QSize& size, bool is_aspect_ratio = false);
 

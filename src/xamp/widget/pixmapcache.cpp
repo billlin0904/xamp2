@@ -94,6 +94,10 @@ void PixmapCache::LoadCache() const {
 	XAMP_LOG_DEBUG("PixmapCache cache count: {}", i);
 }
 
+std::optional<const std::pair<QColor, QColor>*> PixmapCache::findColor(const QString& tag_id) const {
+	return color_cache_.Find(tag_id);
+}
+
 std::optional<const QPixmap*> PixmapCache::find(const QString& tag_id) const {
     //XAMP_ON_SCOPE_EXIT(
     //	XAMP_LOG_DEBUG("PixmapCache miss {}%", cache_.GetMissCount() * 100 / cache_.GetMaxSize());
@@ -128,6 +132,9 @@ QString PixmapCache::Add(const QPixmap& cover) const {
 		tag_name = FileTag::getTagId(array);
 		(void)cache_cover.save(cache_path_ + tag_name + Q_UTF8(".cache"), "JPG", 100);
 	}
+
+	Pixmap::ImageColorAnalyzer analyzer(cache_cover.toImage());
+	color_cache_.Insert(tag_name, std::make_pair(analyzer.GetPrimaryColor(), analyzer.GetSecondaryColor()));
 
     cache_.Insert(tag_name, cache_cover);
 	return tag_name;

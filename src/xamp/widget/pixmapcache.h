@@ -35,6 +35,8 @@ public:
 
 	std::optional<const QPixmap*> find(const QString& tag_id) const;
 
+	std::optional<const std::pair<QColor, QColor>*> findColor(const QString& tag_id) const;
+
     QPixmap FromFileCache(const QString& tag_id) const;
 
     QString Add(const QPixmap& cover) const;
@@ -62,4 +64,5 @@ private:
     QStringList cover_ext_;
     QStringList cache_ext_;
 	mutable LruCache<QString, QPixmap> cache_;
+	mutable LruCache<QString, std::pair<QColor, QColor>> color_cache_;
 };
