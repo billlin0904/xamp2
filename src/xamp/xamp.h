@@ -146,6 +146,8 @@ private:
 
     void addPlayQueue();
 
+	void applyConfig();
+
 	bool is_seeking_;
 	std::pair<double, double> loop_time{0,0};
 	PlayerOrder order_;

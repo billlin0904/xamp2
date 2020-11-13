@@ -47,12 +47,12 @@
 #include "thememanager.h"
 #include "xamp.h"
 
-static QMessageBox::StandardButton showStopGaplessDialog(QWidget* widget) {
+static QMessageBox::StandardButton showAskDialog(QWidget* widget, const char text[]) {
     QMessageBox msgbox;
     msgbox.setWindowTitle(Q_UTF8("XAMP"));
-    msgbox.setText(widget->tr("If yout change device will be stop gapless play?"));
+    msgbox.setText(widget->tr(text));
     msgbox.setIcon(QMessageBox::Icon::Question);
-    msgbox.addButton(QMessageBox::Ok);
+    msgbox.addButton(QMessageBox::Yes);
     msgbox.addButton(QMessageBox::No);
     msgbox.setDefaultButton(QMessageBox::No);
     return static_cast<QMessageBox::StandardButton>(msgbox.exec());
@@ -308,7 +308,8 @@ void Xamp::initialDeviceList() {
 
             auto trigger_callback = [device_info, this]() {
                 if (player_->IsGaplessPlay()) {
-                    if (showStopGaplessDialog(this) == QMessageBox::Yes) {
+                    const char text[] = "If yout change device will be stop gapless play?";
+                    if (showAskDialog(this, text) == QMessageBox::Yes) {
                         stopPlayedClicked();
                     }
                     else {
@@ -386,6 +387,27 @@ void Xamp::initialController() {
     (void)QObject::connect(ui.closeButton, &QToolButton::pressed, [this]() {
         QWidget::close();
     });
+
+    (void)QObject::connect(ui.gaplessPlayButton, &QToolButton::pressed, [this]() {        
+        auto enable = AppSettings::getValueAsBool(kAppSettingEnableGaplessPlay);
+        if (!enable) {
+            XAMP_LOG_DEBUG("Enable gapless play");
+        }
+        else {
+            XAMP_LOG_DEBUG("Disable gapless play");
+        }
+        if (!enable) {
+            const char text[] = "Enable grapless play will be stop first, Do you still want enable this.?";
+            if (showAskDialog(this, text) == QMessageBox::Yes) {
+                stopPlayedClicked();
+            }
+            else {
+                return;
+            }
+        }
+        AppSettings::setValue(kAppSettingEnableGaplessPlay, !enable);
+        applyConfig();
+        });
 
     (void)QObject::connect(ui.seekSlider, &SeekSlider::leftButtonValueChanged, [this](auto value) {
         try {
@@ -597,7 +619,20 @@ void Xamp::initialController() {
     ui.seekSlider->setEnabled(false);
     ui.startPosLabel->setText(Time::msToString(0));
     ui.endPosLabel->setText(Time::msToString(0));
-    ui.searchLineEdit->setPlaceholderText(tr("Search anything"));   
+    ui.searchLineEdit->setPlaceholderText(tr("Search anything"));
+
+    applyConfig();
+}
+
+void Xamp::applyConfig() {
+    if (AppSettings::getValueAsBool(kAppSettingEnableGaplessPlay)) {
+        ui.gaplessPlayButton->setStyleSheet(Q_UTF8("QToolButton#gaplessPlayButton { color: rgb(255, 255, 255); }"));
+        player_->EnableGaplessPlay(true);
+    }
+    else {
+        ui.gaplessPlayButton->setStyleSheet(Q_UTF8("QToolButton#gaplessPlayButton { color: gray; }"));
+        player_->EnableGaplessPlay(false);
+    }
 }
 
 void Xamp::applyTheme(QColor color) {

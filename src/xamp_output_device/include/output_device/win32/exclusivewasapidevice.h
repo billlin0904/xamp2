@@ -85,7 +85,8 @@ private:
 	MmcssThreadPriority thread_priority_;
 	uint32_t buffer_frames_;
 	uint32_t valid_bits_samples_;
-	DWORD queue_id_;
+	DWORD volume_support_mask_;
+	DWORD queue_id_;	
 	std::atomic<int64_t> stream_time_;
 	WinHandle sample_ready_;
 	std::wstring mmcss_name_;
@@ -104,7 +105,7 @@ private:
 	AlignedBuffer<float> buffer_;
 	std::condition_variable condition_;
 	AudioCallback* callback_;
-	VmMemLock vmlock_;
+	VmMemLock vmlock_;	
 };
 
 }

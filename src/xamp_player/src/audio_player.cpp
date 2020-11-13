@@ -789,7 +789,6 @@ void AudioPlayer::OnGaplessPlayState(std::unique_lock<std::mutex>& lock, AlignPt
             gapless_play_state_ = GaplessPlayState::INIT;
             break;
         }
-
         return;
     }
 
@@ -803,11 +802,13 @@ void AudioPlayer::OnGaplessPlayState(std::unique_lock<std::mutex>& lock, AlignPt
             input_format.GetChannels(),
             target_samplerate_,
             num_read_sample_ / input_format_.GetChannels());
+        gapless_play_state_ = GaplessPlayState::BUFFING;
     }
 
-    // 等待上一首播放結束並繼續緩衝資料.
-    BufferSamples(stream, resampler);
-    gapless_play_state_ = GaplessPlayState::BUFFING;
+    if (gapless_play_state_ == GaplessPlayState::BUFFING) {
+        // 等待上一首播放結束並繼續緩衝資料.
+        BufferSamples(stream, resampler);        
+    }
 }
 
 void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_read_sample, std::unique_lock<std::mutex>& lock, AlignPtr<Resampler>& resampler) {
@@ -843,7 +844,13 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_read_sample
 }
 
 void AudioPlayer::EnableGaplessPlay(bool enable) {
+    std::lock_guard guard{ stream_read_mutex_ };
     enable_gapless_play_ = enable;
+    if (enable == false) {
+        if (auto adapter = state_adapter_.lock()) {
+            adapter->ClearPlayQueue();
+        }
+    }    
 }
 
 bool AudioPlayer::IsGaplessPlay() const {
@@ -861,7 +868,7 @@ int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, dou
     const auto num_samples = num_buffer_frames * output_format_.GetChannels();
     const auto sample_size = num_samples * sample_size_;
     
-#ifdef _DUBUG
+#ifdef _DEBUG
     auto elapsed = sw_.Elapsed();
     max_process_time_ = std::max(elapsed, max_process_time_);
     min_process_time_ = std::min(elapsed, min_process_time_);
@@ -875,7 +882,7 @@ int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, dou
 //    else
 //#endif
     {
-        if (stream_time >= stream_duration_) {
+        if (stream_time >= stream_duration_ && enable_gapless_play_) {
             device_->SetStreamTime(0);
             msg_queue_.TryPush(GaplessPlayMsgID::SWITCH);
         }
@@ -947,6 +954,7 @@ void AudioPlayer::StartPlay(double start_time, double end_time) {
 
                 if (p->buffer_.GetAvailableWrite() < num_sample_write) {
                     p->wait_timer_.Wait();
+
                     continue;
                 }
 
