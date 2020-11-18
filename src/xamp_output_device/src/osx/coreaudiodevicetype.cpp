@@ -85,6 +85,7 @@ std::vector<DeviceInfo> CoreAudioDeviceType::GetDeviceInfo() const {
         return device_infos;
     }
 
+    device_infos.reserve(device_count);
     auto default_device_info = GetDefaultDeviceInfo();
 
     for (auto device_id : device_list) {
@@ -96,6 +97,8 @@ std::vector<DeviceInfo> CoreAudioDeviceType::GetDeviceInfo() const {
         info.name = GetPropertyName(device_id);
         info.device_id = GetDeviceUid(device_id);
         info.device_type_id = GetTypeId();
+        // 用SampleRate判斷是否支援DOP有缺陷,
+        // 由使用者判斷是否支援DOP.
         info.is_support_dsd = IsSupportDopMode(device_id);
         if (default_device_info) {
             if (default_device_info.value().device_id == info.device_id) {

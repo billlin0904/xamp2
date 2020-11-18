@@ -45,10 +45,11 @@ static DsdDevice* AsDsdDevice(AlignPtr<Device> const &device) noexcept {
     return dynamic_cast<DsdDevice*>(device.get());
 }
 
-DsdModes AudioPlayer::SetStreamDsdMode(AlignPtr<FileStream>& stream, const DeviceInfo& device_info) {
+DsdModes AudioPlayer::SetStreamDsdMode(AlignPtr<FileStream>& stream, const DeviceInfo& device_info, bool use_native_dsd) {
     DsdModes dsd_mode = DsdModes::DSD_MODE_PCM;
 
     if (auto* dsd_stream = AsDsdStream(stream)) {
+        // ASIO device (win32).
         if (AudioDeviceManager::GetInstance().IsASIODevice(device_info.device_type_id)) {
             if (device_info.is_support_dsd) {
                 dsd_stream->SetDSDMode(DsdModes::DSD_MODE_NATIVE);
@@ -61,8 +62,9 @@ DsdModes AudioPlayer::SetStreamDsdMode(AlignPtr<FileStream>& stream, const Devic
                 XAMP_LOG_DEBUG("Use PCM mode.");
             }
         }
+        // WASAPI or CoreAudio old device.
         else {
-            if (device_info.is_support_dsd) {
+            if (device_info.is_support_dsd && use_native_dsd) {
                 dsd_stream->SetDSDMode(DsdModes::DSD_MODE_DOP);
                 XAMP_LOG_DEBUG("Use DOP mode.");
                 dsd_mode = DsdModes::DSD_MODE_DOP;

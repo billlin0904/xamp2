@@ -144,6 +144,19 @@
               </widget>
              </item>
              <item>
+              <widget class="QToolButton" name="gaplessPlayButton">
+               <property name="maximumSize">
+                <size>
+                 <width>22</width>
+                 <height>22</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>G</string>
+               </property>
+              </widget>
+             </item>
+             <item>
               <widget class="QToolButton" name="addPlaylistButton">
                <property name="maximumSize">
                 <size>

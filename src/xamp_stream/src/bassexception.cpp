@@ -1,4 +1,5 @@
 #include <bass/bass.h>
+#include <stream/basslib.h>
 #include <stream/bassexception.h>
 
 namespace xamp::stream {
@@ -88,6 +89,10 @@ static std::string GetBassErrorMessage(int error) {
     default:
         return "Some other mystery problem";
     }
+}
+
+BassException::BassException()
+    : BassException(Singleton<BassLib>::GetInstance().BASS_ErrorGetCode()) {
 }
 
 BassException::BassException(int error)

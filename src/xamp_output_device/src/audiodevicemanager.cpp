@@ -129,7 +129,7 @@ std::optional<AlignPtr<DeviceType>> AudioDeviceManager::CreateDefaultDeviceType(
 #ifdef XAMP_OS_WIN
     return Create(win32::SharedWasapiDeviceType::Id);
 #else
-    return Create(win32::CoreAudioDeviceType::Id);
+    return Create(osx::CoreAudioDeviceType::Id);
 #endif
 }
 

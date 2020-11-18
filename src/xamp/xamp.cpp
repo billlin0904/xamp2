@@ -944,15 +944,6 @@ void Xamp::updateUI(const MusicEntity& item, bool open_done) {
         else {
             setCover(nullptr);
         }
-        // TODO: 增加按鈕開啟或是關閉.
-        /*if (auto color = Singleton<PixmapCache>::GetInstance().findColor(item.cover_id)) {
-            if (qGray(color.value()->first.rgb()) < 255) {
-                ThemeManager::instance().setBackgroundColor(ui, color.value()->first);
-            }
-            else {
-                ThemeManager::instance().setBackgroundColor(ui, color.value()->second);
-            }
-        }*/
     }
 
     ui.titleLabel->setText(item.title);

@@ -12,7 +12,7 @@ namespace xamp::stream {
 
 class XAMP_STREAM_API XAMP_NO_VTABLE FileStream : public AudioStream {
 public:
-	virtual ~FileStream() = default;
+    virtual ~FileStream() override = default;
 
 	bool IsFile() const noexcept override {
 		return true;

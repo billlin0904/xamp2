@@ -14,6 +14,8 @@ using namespace base;
 
 class XAMP_STREAM_API BassException final : public Exception {
 public:
+    BassException();
+
     explicit BassException(int error);
 
     ~BassException() override;

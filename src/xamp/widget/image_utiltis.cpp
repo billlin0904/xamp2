@@ -58,7 +58,7 @@ static float Lerp(float a, float b, float t) noexcept {
 
 constexpr float HCLgamma = 3;
 constexpr float HCLy0 = 100;
-constexpr float HCLmaxL = 0.530454533953517; // == exp(HCLgamma / HCLy0) - 0.5
+constexpr float HCLmaxL = 0.530454533953517F; // == exp(HCLgamma / HCLy0) - 0.5
 constexpr float PI = 3.1415926536;
 
 static QColor HCLtoRGB(Float3 HCL) noexcept {

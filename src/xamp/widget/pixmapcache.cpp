@@ -132,10 +132,6 @@ QString PixmapCache::Add(const QPixmap& cover) const {
 		tag_name = FileTag::getTagId(array);
 		(void)cache_cover.save(cache_path_ + tag_name + Q_UTF8(".cache"), "JPG", 100);
 	}
-
-	Pixmap::ImageColorAnalyzer analyzer(cache_cover.toImage());
-	color_cache_.Insert(tag_name, std::make_pair(analyzer.GetPrimaryColor(), analyzer.GetSecondaryColor()));
-
     cache_.Insert(tag_name, cache_cover);
 	return tag_name;
 }

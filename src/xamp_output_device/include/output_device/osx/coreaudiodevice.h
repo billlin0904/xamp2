@@ -56,7 +56,7 @@ public:
 
     void DisplayControlPanel() override;
 
-    InterleavedFormat GetInterleavedFormat() const noexcept override;
+    PackedFormat GetInterleavedFormat() const noexcept override;
 
     uint32_t GetBufferSize() const noexcept override;
 

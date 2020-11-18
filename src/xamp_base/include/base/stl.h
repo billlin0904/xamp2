@@ -16,6 +16,7 @@
 
 namespace xamp::base {
 
+#if 0
 template <typename E, typename T, int N>
 std::basic_istream<E, T>& operator>>(std::basic_istream<E, T>& in, const E(&sliteral)[N]) {
 	std::array<E, N - 1> buffer; //get buffer
@@ -41,6 +42,7 @@ template <typename E, typename T, int N>
 std::basic_istream<E, T>& operator>>(std::basic_istream<E, T>& in, E(&carray)[N]) {
 	return std::operator>>(in, carray);
 }
+#endif
 
 template <typename K, typename V, typename H = std::hash<K>, typename E = std::equal_to<K>>
 using HashMap = robin_hood::unordered_map<K, V, H, E>;

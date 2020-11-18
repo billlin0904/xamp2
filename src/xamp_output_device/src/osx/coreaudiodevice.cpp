@@ -303,7 +303,7 @@ void CoreAudioDevice::OpenStream(AudioFormat const &output_format) {
         SetHogMode(device_id_);
     }
 
-    (void) Singleton<MachTimeBaseInfo>::Get();
+    (void) Singleton<MachTimeBaseInfo>::GetInstance();
 }
 
 void CoreAudioDevice::SetAudioCallback(AudioCallback *callback) noexcept {
@@ -370,8 +370,8 @@ bool CoreAudioDevice::IsHardwareControlVolume() const {
 void CoreAudioDevice::DisplayControlPanel() {
 }
 
-InterleavedFormat CoreAudioDevice::GetInterleavedFormat() const noexcept {
-    return InterleavedFormat::INTERLEAVED;
+PackedFormat CoreAudioDevice::GetInterleavedFormat() const noexcept {
+    return PackedFormat::INTERLEAVED;
 }
 
 uint32_t CoreAudioDevice::GetBufferSize() const noexcept {

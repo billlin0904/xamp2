@@ -493,6 +493,10 @@ void AlbumView::payNextMusic() {
 
 void AlbumView::OnThemeColorChanged(QColor backgroundColor, QColor color) {
     dynamic_cast<AlbumViewStyledDelegate*>(itemDelegate())->setTextColor(color);
+    setBackgroundColor(backgroundColor);
+}
+
+void AlbumView::setBackgroundColor(QColor backgroundColor) {
     setStyleSheet(backgroundColorToString(backgroundColor));
 }
 
