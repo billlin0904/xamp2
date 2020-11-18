@@ -43,10 +43,7 @@ size_t UIPlayerStateAdapter::GetPlayQueueSize() const {
     return play_queue_.size();
 }
 
-void UIPlayerStateAdapter::addPlayQueue(const std::wstring &file_ext, const std::wstring &file_path, const QModelIndex &index, const DeviceInfo &device) {
-    auto stream = AudioPlayer::MakeFileStream(file_ext);   
-    AudioPlayer::SetStreamDsdMode(stream, device);
-    stream->OpenFile(file_path);
+void UIPlayerStateAdapter::addPlayQueue(AlignPtr<FileStream>&& stream, const QModelIndex &index) {    
     play_queue_.TryEnqueue(std::move(stream));
     index_queue_.TryPush(index);
 }

@@ -49,16 +49,12 @@ Exception::Exception(Errors error, const std::string& message, std::string_view 
         ostr << error << "(" << ErrorToString(error) << ")";
 		message_ = ostr.str();
 	}
-#ifdef XAMP_OS_WIN
     stacktrace_ = StackTrace{}.CaptureStack();
-#endif
 }
 
-#ifdef XAMP_OS_WIN
 char const* Exception::GetStackTrace() const noexcept {
     return stacktrace_.c_str();
 }
-#endif
 
 char const * Exception::what() const noexcept {
     return what_.data();

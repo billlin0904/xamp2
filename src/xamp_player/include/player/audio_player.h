@@ -62,7 +62,7 @@ public:
 
     static void Initial();
 
-    void Open(std::wstring const& file_path, std::wstring const& file_ext, const DeviceInfo& device_info);
+    void Open(std::wstring const& file_path, std::wstring const& file_ext, const DeviceInfo& device_info, bool use_native_dsd);
 
     void StartPlay(double start_time = 0.0, double end_time = 0.0);
 
@@ -112,6 +112,8 @@ public:
 
     void EnableResampler(bool enable = true);
 
+    bool IsEnableResampler() const;
+
     void EnableEQ(bool enable = true);
 
     void SetEQ(uint32_t band, float gain, float Q);
@@ -135,7 +137,7 @@ public:
 private:
     void Startup();
     	
-    void OpenStream(std::wstring const & file_path, std::wstring const & file_ext, DeviceInfo const& device_info);
+    void OpenStream(std::wstring const & file_path, std::wstring const & file_ext, DeviceInfo const& device_info, bool use_native_dsd);
 
     void CreateDevice(Uuid const& device_type_id, std::string const & device_id, bool open_always);
 

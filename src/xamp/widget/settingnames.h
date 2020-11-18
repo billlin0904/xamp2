@@ -18,6 +18,7 @@ inline constexpr ConstLatin1String kAppSettingVolume{ "AppSettings/volume" };
 inline constexpr ConstLatin1String kAppSettingOrder{ "AppSettings/order" };
 inline constexpr ConstLatin1String kAppSettingNightMode{ "AppSettings/nightMode" };
 inline constexpr ConstLatin1String kAppSettingEnableGaplessPlay("AppSettings/enableGaplessPlay");
+inline constexpr ConstLatin1String kAppSettingUseNativeDSDMode("AppSettings/useNativeDSDMode");
 
 inline constexpr ConstLatin1String kAppSettingBackgroundColor{ "AppSettings/theme/backgroundColor" };
 inline constexpr ConstLatin1String kAppSettingBottomColor{ "AppSettings/theme/bottomColor" };

@@ -888,19 +888,21 @@ void Xamp::playMusic(const MusicEntity& item) {
         player_->Stop(false, true);
         );
 
+#ifndef Q_OS_WIN32
+    const auto use_native_dsd = AppSettings::getValueAsBool(kAppSettingUseNativeDSDMode);
+#else
+    const auto use_native_dsd = true;
+#endif
+
     try {
-        player_->Open(item.file_path.toStdWString(), item.file_ext.toStdWString(), device_info_);
+        player_->Open(item.file_path.toStdWString(), item.file_ext.toStdWString(), device_info_, use_native_dsd);
         setupResampler();
         setupEQ();
         player_->StartPlay(loop_time.first, loop_time.second);
         open_done = true;
     }
     catch (const Exception & e) {
-#ifdef XAMP_OS_WIN
         XAMP_LOG_DEBUG("Exception: {} {}", e.GetErrorMessage(), e.GetStackTrace());
-#else
-        XAMP_LOG_DEBUG("Exception: {}", e.GetErrorMessage());
-#endif
         Toast::showTip(Q_UTF8(e.GetErrorMessage()), this);
     }
     catch (const std::exception & e) {
@@ -938,12 +940,17 @@ void Xamp::updateUI(const MusicEntity& item, bool open_done) {
     }
 
     if (current_entiry_.cover_id != item.cover_id) {
-        if (auto cover = Singleton<PixmapCache>::GetInstance().find(item.cover_id)) {
-            setCover(cover.value());
-        }
-        else {
+        if (item.cover_id == Singleton<PixmapCache>::GetInstance().GetUnknownCoverId()) {
             setCover(nullptr);
         }
+        else {
+            if (auto cover = Singleton<PixmapCache>::GetInstance().find(item.cover_id)) {
+                setCover(cover.value());
+            }
+            else {
+                setCover(nullptr);
+            }
+        }        
     }
 
     ui.titleLabel->setText(item.title);
@@ -1045,12 +1052,28 @@ void Xamp::addPlayQueue() {
         break;
     }
 
-    if (next_index.isValid()) {
+    if (!next_index.isValid()) {
+        return;
+    }
+
+    if (!player_->IsEnableResampler()) {
+        return;
+    }
+
+#ifndef Q_OS_WIN32
+    const auto use_native_dsd = AppSettings::getValueAsBool(kAppSettingUseNativeDSDMode);
+#else
+    const auto use_native_dsd = true;
+#endif
+
+    try {
         auto item = playlist_view->item(next_index);
-        state_adapter_->addPlayQueue(item.file_ext.toStdWString(),
-            item.file_path.toStdWString(),
-            next_index,
-            device_info_);
+        auto stream = AudioPlayer::MakeFileStream(item.file_ext.toStdWString());
+        AudioPlayer::SetStreamDsdMode(stream, device_info_, use_native_dsd);
+        stream->OpenFile(item.file_path.toStdWString());        
+        state_adapter_->addPlayQueue(std::move(stream), next_index);
+    }
+    catch (...) {
     }
 }
 

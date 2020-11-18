@@ -50,7 +50,7 @@ public:
 
     void OnGaplessPlayback() override;    
 
-    void addPlayQueue(const std::wstring &file_ext, const std::wstring &file_path, const QModelIndex &index, const DeviceInfo& device);
+    void addPlayQueue(AlignPtr<FileStream> &&stream, const QModelIndex &index);
 
     QModelIndex popIndexQueue();
 

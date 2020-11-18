@@ -44,7 +44,7 @@ public:
     XAMP_DECLARE_DLL(soxr_clear) soxr_clear;
 };
 
-class SoxrResampler::SoxrResamplerImpl {
+class SoxrResampler::SoxrResamplerImpl final {
 public:
     static constexpr size_t kInitBufferSize = 1024 * 1204;
 
@@ -236,6 +236,8 @@ public:
     std::vector<float> buffer_;
 };
 
+const std::string_view SoxrResampler::VERSION = "Soxr " SOXR_THIS_VERSION_STR;
+
 SoxrResampler::SoxrResampler()
     : impl_(MakeAlign<SoxrResamplerImpl>()) {
 }
@@ -271,7 +273,7 @@ void SoxrResampler::SetStopBand(double stopband) {
 }
 
 std::string_view SoxrResampler::GetDescription() const noexcept {
-    return "Soxr " SOXR_THIS_VERSION_STR;
+    return VERSION;
 }
 
 bool SoxrResampler::Process(float const * samples, uint32_t num_sample, AudioBuffer<int8_t>& buffer) {

@@ -31,6 +31,8 @@ MAKE_ENUM(SoxrPhaseResponse,
 
 class XAMP_PLAYER_API SoxrResampler final : public Resampler {
 public:
+    static const std::string_view VERSION;
+
     SoxrResampler();
 
     ~SoxrResampler() override;

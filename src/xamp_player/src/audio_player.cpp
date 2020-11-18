@@ -167,10 +167,13 @@ void AudioPlayer::Initial() {
     }     
 }
 
-void AudioPlayer::Open(std::wstring const & file_path, std::wstring const & file_ext, DeviceInfo const & device_info) {
+void AudioPlayer::Open(std::wstring const & file_path, 
+    std::wstring const & file_ext,
+    DeviceInfo const & device_info, 
+    bool use_native_dsd) {
     Startup();
     CloseDevice(true);
-    OpenStream(file_path, file_ext, device_info);
+    OpenStream(file_path, file_ext, device_info, use_native_dsd);
     device_info_ = device_info;
 }
 
@@ -264,9 +267,9 @@ AlignPtr<FileStream> AudioPlayer::MakeFileStream(std::wstring const & file_ext, 
     return MakeAlign<FileStream, AvFileStream>();
 }
 
-void AudioPlayer::OpenStream(std::wstring const & file_path, std::wstring const & file_ext, DeviceInfo const & device_info) {
+void AudioPlayer::OpenStream(std::wstring const & file_path, std::wstring const & file_ext, DeviceInfo const & device_info, bool use_native_dsd) {
     stream_ = MakeFileStream(file_ext, std::move(stream_));
-    dsd_mode_ = SetStreamDsdMode(stream_, device_info);
+    dsd_mode_ = SetStreamDsdMode(stream_, device_info, use_native_dsd);
     XAMP_LOG_DEBUG("Use stream type: {}.", stream_->GetDescription());
     stream_->OpenFile(file_path);
     stream_duration_ = stream_->GetDuration();
@@ -532,6 +535,10 @@ void AudioPlayer::CreateBuffer() {
 
 void AudioPlayer::EnableResampler(bool enable) {
     enable_resample_ = enable;
+}
+
+bool AudioPlayer::IsEnableResampler() const {
+    return enable_resample_;
 }
 
 void AudioPlayer::SetDeviceFormat() {
