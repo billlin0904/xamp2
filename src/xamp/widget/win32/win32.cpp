@@ -84,27 +84,55 @@ SetWindowCompositionAttribute(
 
 typedef BOOL(WINAPI* pfnSetWindowCompositionAttribute)(HWND, WINDOWCOMPOSITIONATTRIBDATA*);
 
+namespace win32 {
+
+class User32Lib {
+public:
+	User32Lib() 
+		: module_(LoadModule("user32.dll"))
+		, SetWindowCompositionAttribute(module_, "SetWindowCompositionAttribute") {
+	}
+
+private:
+	ModuleHandle module_;
+
+public:
+	XAMP_DECLARE_DLL(SetWindowCompositionAttribute) SetWindowCompositionAttribute;
+};
+
+class DwmapiLib {
+public:
+	DwmapiLib()
+		: module_(LoadModule("dwmapi.dll"))
+		, DwmIsCompositionEnabled(module_, "DwmIsCompositionEnabled")
+		, DwmSetWindowAttribute(module_, "DwmSetWindowAttribute")
+		, DwmExtendFrameIntoClientArea(module_, "DwmExtendFrameIntoClientArea")
+		, DwmSetPresentParameters(module_, "DwmSetPresentParameters") {
+	}
+
+private:
+	ModuleHandle module_;
+
+public:
+	XAMP_DECLARE_DLL(DwmIsCompositionEnabled) DwmIsCompositionEnabled;
+	XAMP_DECLARE_DLL(DwmSetWindowAttribute) DwmSetWindowAttribute;
+	XAMP_DECLARE_DLL(DwmExtendFrameIntoClientArea) DwmExtendFrameIntoClientArea;
+	XAMP_DECLARE_DLL(DwmSetPresentParameters) DwmSetPresentParameters;
+};
+
 void setBlurMaterial(HWND hWnd, bool enable) {
 	try {
-		auto user32_module = LoadModule("user32.dll");
-		XAMP_DECLARE_DLL(SetWindowCompositionAttribute) SetWindowCompositionAttribute {
-			user32_module, "SetWindowCompositionAttribute"
-		};
-
-		if (SetWindowCompositionAttribute) {
-			ACCENT_POLICY policy = { enable ? ACCENT_ENABLE_BLURBEHIND : ACCENT_DISABLED, 0, 0, 0 };
-			WINDOWCOMPOSITIONATTRIBDATA data;
-			data.Attrib = WCA_ACCENT_POLICY;
-			data.pvData = &policy;
-			data.cbData = sizeof(policy);
-			SetWindowCompositionAttribute(hWnd, &data);
-		}
+		ACCENT_POLICY policy = { enable ? ACCENT_ENABLE_BLURBEHIND : ACCENT_DISABLED, 0, 0, 0 };
+		WINDOWCOMPOSITIONATTRIBDATA data;
+		data.Attrib = WCA_ACCENT_POLICY;
+		data.pvData = &policy;
+		data.cbData = sizeof(policy);
+		Singleton<User32Lib>::GetInstance().SetWindowCompositionAttribute(hWnd, &data);
 	}
 	catch (...) {
 	}
 }
 
-namespace win32 {
 void setBlurMaterial(const QWidget* widget, bool enable) {
 	if (enable) {
 		auto hwnd = reinterpret_cast<HWND>(widget->winId());
@@ -115,33 +143,15 @@ void setBlurMaterial(const QWidget* widget, bool enable) {
 void setWinStyle(const QWidget* widget) {
 	auto hwnd = reinterpret_cast<HWND>(widget->winId());
 
-	auto dwm_module = LoadModule("dwmapi.dll");
-
-	XAMP_DECLARE_DLL(DwmIsCompositionEnabled) DwmIsCompositionEnabled {
-		dwm_module, "DwmIsCompositionEnabled"
-	};
-
-	XAMP_DECLARE_DLL(DwmSetWindowAttribute) DwmSetWindowAttribute {
-		dwm_module, "DwmSetWindowAttribute"
-	};
-
-	XAMP_DECLARE_DLL(DwmExtendFrameIntoClientArea) DwmExtendFrameIntoClientArea {
-		dwm_module, "DwmExtendFrameIntoClientArea"
-	};
-
-	XAMP_DECLARE_DLL(DwmSetPresentParameters) DwmSetPresentParameters {
-		dwm_module, "DwmSetPresentParameters"
-	};
-
 	BOOL is_dwm_enable = false;
-	DwmIsCompositionEnabled(&is_dwm_enable);
+	Singleton<DwmapiLib>::GetInstance().DwmIsCompositionEnabled(&is_dwm_enable);
 
 	if (is_dwm_enable) {
 		DWMNCRENDERINGPOLICY ncrp = DWMNCRP_ENABLED;
-		DwmSetWindowAttribute(hwnd, DWMWA_NCRENDERING_POLICY, &ncrp, sizeof(ncrp));
+		Singleton<DwmapiLib>::GetInstance().DwmSetWindowAttribute(hwnd, DWMWA_NCRENDERING_POLICY, &ncrp, sizeof(ncrp));
 
-		MARGINS borderless = { 0, 0, 0, 0 };
-		DwmExtendFrameIntoClientArea(hwnd, &borderless);
+		MARGINS borderless = { -1, -1, -1, -1 };
+		Singleton<DwmapiLib>::GetInstance().DwmExtendFrameIntoClientArea(hwnd, &borderless);
 
 		DWM_PRESENT_PARAMETERS dpp{ 0 };
 		dpp.cbSize = sizeof(dpp);
@@ -150,7 +160,7 @@ void setWinStyle(const QWidget* widget) {
 		dpp.fUseSourceRate = FALSE;
 		dpp.cRefreshesPerFrame = 1;
 		dpp.eSampling = DWM_SOURCE_FRAME_SAMPLING_POINT;
-		DwmSetPresentParameters(hwnd, &dpp);
+		Singleton<DwmapiLib>::GetInstance().DwmSetPresentParameters(hwnd, &dpp);
 	}
 
 	auto style = ::GetWindowLong(hwnd, GWL_STYLE);

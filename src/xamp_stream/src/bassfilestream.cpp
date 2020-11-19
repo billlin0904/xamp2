@@ -62,7 +62,7 @@ public:
 
         file_.Close();
 
-        if (mode_ == DsdModes::DSD_MODE_PCM && !TestDsdFileFormat(file_path)) {
+        if (!TestDsdFileFormat(file_path)) {
             if (enable_file_mapped_) {
                 file_.Open(file_path);
                 stream_.reset(Singleton<BassLib>::GetInstance().BASS_StreamCreateFile(TRUE,
@@ -82,6 +82,8 @@ public:
             // BassLib DSD module default use 6dB gain.
             // 不設定的話會爆音!
             Singleton<BassLib>::GetInstance().BASS_ChannelSetAttribute(stream_.get(), BASS_ATTRIB_DSD_GAIN, 0.0);
+
+            mode_ = DsdModes::DSD_MODE_PCM;
         } else {
             EnsureDsdDecoderInit();
 

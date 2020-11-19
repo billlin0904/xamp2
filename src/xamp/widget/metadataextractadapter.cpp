@@ -152,9 +152,6 @@ void MetadataExtractAdapter::Reset() {
 }
 
 void MetadataExtractAdapter::ProcessMetadata(const std::vector<Metadata>& result, PlayListTableView* playlist) {
-    xamp::base::Stopwatch watch;
-	watch.Reset();
-	
     DatabaseIdCache cache;
 
     auto playlist_id = -1;
@@ -163,14 +160,9 @@ void MetadataExtractAdapter::ProcessMetadata(const std::vector<Metadata>& result
     }
 
     // TODO: 查找artist的時候使用最長長度的名稱.
-    auto itr = std::max_element(result.begin(), result.end(), [](auto largest, auto next) {
-        return next.artist.length() > largest.artist.length();
-        });
-
-    auto artist = QString::fromStdWString((*itr).artist);
-
     for (const auto& metadata : result) {
         auto album = QString::fromStdWString(metadata.album);
+        auto artist = QString::fromStdWString(metadata.artist);
 
         auto is_unknown_album = false;
         if (album.isEmpty()) {
@@ -207,5 +199,4 @@ void MetadataExtractAdapter::ProcessMetadata(const std::vector<Metadata>& result
             playlist->appendItem(entity);
         }        
     }
-	XAMP_LOG_DEBUG("ProcessMetadata elapsed {} sec", watch.ElapsedSeconds());
 }

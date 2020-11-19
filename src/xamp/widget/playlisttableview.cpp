@@ -67,7 +67,7 @@ void PlayListTableView::initial() {
 
     auto f = font();
 #ifdef Q_OS_WIN
-    f.setPointSize(9);
+    f.setPointSize(10);
 #else
     f.setPointSize(14);
 #endif
@@ -85,7 +85,6 @@ void PlayListTableView::initial() {
     hideColumn(PLAYLIST_MUSIC_ID);
     hideColumn(PLAYLIST_FILEPATH);
     hideColumn(PLAYLIST_FILE_NAME);
-    //hideColumn(PLAYLIST_BITRATE);
     hideColumn(PLAYLIST_SAMPLE_RATE);
 
     setHorizontalScrollMode(ScrollPerPixel);

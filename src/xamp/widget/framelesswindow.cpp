@@ -43,7 +43,7 @@ FramelessWindow::FramelessWindow(QWidget* parent)
         font-family: "UI";
 		background: transparent;        
     )"));    
-    ui_font.setPointSizeF(9);
+    ui_font.setPointSizeF(10);
     qApp->setFont(ui_font);
 #else
     setStyleSheet(Q_UTF8(R"(

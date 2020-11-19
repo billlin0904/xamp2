@@ -273,6 +273,9 @@ void AudioPlayer::OpenStream(std::wstring const & file_path, std::wstring const 
     XAMP_LOG_DEBUG("Use stream type: {}.", stream_->GetDescription());
     stream_->OpenFile(file_path);
     stream_duration_ = stream_->GetDuration();
+    if (auto stream = AsDsdStream(stream_)) {
+        dsd_mode_ = stream->GetDsdMode();
+    }
 }
 
 void AudioPlayer::SetState(const PlayerState play_state) {
