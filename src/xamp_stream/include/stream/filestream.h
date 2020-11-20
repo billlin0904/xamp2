@@ -20,6 +20,8 @@ public:
 
     virtual void OpenFile(std::wstring const & file_path) = 0;
 
+	virtual uint64_t GetTotalFrames() const = 0;
+
 protected:
     FileStream() = default;
 };

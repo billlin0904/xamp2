@@ -9,7 +9,6 @@ static void EnsureDsdDecoderInit() {
     if (!Singleton<BassLib>::GetInstance().DSDLib) {
         Singleton<BassLib>::GetInstance().DSDLib = MakeAlign<BassDSDLib>();
         // TODO: Set hightest dsd2pcm samplerate?
-        //Singleton<BassLib>::GetInstance().BASS_SetConfig(BASS_CONFIG_DSD_FREQ, 88200);
         Singleton<BassLib>::GetInstance().BASS_SetConfig(BASS_CONFIG_DSD_FREQ,  174000);
     }
 
@@ -208,6 +207,10 @@ public:
     uint32_t GetDsdSpeed() const noexcept {
         return GetDsdSampleRate() / kPcmSampleRate441;
     }
+
+    uint64_t GetTotalFrames() const {
+        return 0;
+    }
 private:
     XAMP_ALWAYS_INLINE uint32_t InternalGetSamples(void *buffer, uint32_t length) const noexcept {
         const auto bytes_read = Singleton<BassLib>::GetInstance().BASS_ChannelGetData(stream_.get(), buffer, length);
@@ -298,6 +301,10 @@ void BassFileStream::SetDsdToPcmSampleRate(uint32_t samplerate) {
 
 uint32_t BassFileStream::GetDsdSpeed() const noexcept {
     return stream_->GetDsdSpeed();
+}
+
+uint64_t BassFileStream::GetTotalFrames() const {
+    return stream_->GetTotalFrames();
 }
 
 }

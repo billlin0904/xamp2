@@ -56,6 +56,8 @@ public:
 
     uint32_t GetDsdSpeed() const noexcept override;
 
+	uint64_t GetTotalFrames() const override;
+
 private:
 	class BassFileStreamImpl;
 	AlignPtr<BassFileStreamImpl> stream_;

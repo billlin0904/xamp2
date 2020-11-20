@@ -11,18 +11,8 @@
 #include <QPixmap>
 #include <QScopedPointer>
 
+#include <base/align_ptr.h>
 #include <widget/widget_shared.h>
-
-enum class FileHandlingMode { 
-    FULL_CACHE,
-    DISK_MODE
-};
-
-enum class DrawingMode {
-    OVERVIEW,
-    MACRO, 
-    NO_MODE
-};
 
 class Waveform final : public QWidget {
 public:
@@ -36,21 +26,28 @@ public:
         currentFileHandlingMode_ = mode;
     }
 
+    void load(const std::wstring & file_ext);
+
 protected:
 	void paintEvent(QPaintEvent* event) override;
 
 	void resizeEvent(QResizeEvent* event) override;
 
 private:
+    void establishDrawingMode();
+
+    void overviewDraw(QPaintEvent* event);
+
     void recalculatePeaks();
 
-    DrawingMode currentDrawingMode_;
-    FileHandlingMode currentFileHandlingMode_;
-    double max_peak_;
-    double padding_;
-    double scaleFactor_;    
+    std::vector<float> peakForRegion(int region_start_frame, int region_end_frame);
+
+    float max_peak_;
+    float padding_;
+    float scaleFactor_;    
     QSize lastSize_;
     QColor waveformColor_;
+    AlignPtr<FileStream> stream_;
     std::vector<double> peeks_;
     std::vector<double> datas_;
 };

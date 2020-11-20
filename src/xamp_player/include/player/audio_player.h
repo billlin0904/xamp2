@@ -128,11 +128,7 @@ public:
 
     void EnableGaplessPlay(bool enable);
 
-    void ClearPlayQueue();
-
-    static AlignPtr<FileStream> MakeFileStream(std::wstring const& file_ext, AlignPtr<FileStream> old_stream = nullptr);
-
-    static DsdModes SetStreamDsdMode(AlignPtr<FileStream>& stream, const DeviceInfo& device_info, bool use_native_dsd = true);
+    void ClearPlayQueue();    
 
 private:
     void Startup();

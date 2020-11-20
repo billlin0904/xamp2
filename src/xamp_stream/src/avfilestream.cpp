@@ -75,8 +75,9 @@ using AvPtr = std::unique_ptr<T, AvResourceDeleter<T>>;
 class AvFileStream::AvFileStreamImpl {
 public:
     AvFileStreamImpl()
-        : audio_stream_id_(-1)
-        , duration_(0.0) {
+        : audio_stream_id_(-1)        
+        , duration_(0.0)
+        , total_frames_(0) {
     }
     
     ~AvFileStreamImpl() noexcept {
@@ -128,6 +129,8 @@ public:
         }
 
         const auto stream = format_context_->streams[audio_stream_id_];
+        total_frames_ = stream->nb_frames;
+
         duration_ = ::av_q2d(stream->time_base) * static_cast<double>(stream->duration);
     }
 
@@ -264,6 +267,10 @@ public:
         ::avcodec_flush_buffers(codec_contex_.get());
     }
 
+    uint64_t GetTotalFrames() const {
+        return total_frames_;
+    }
+
 private:
     [[nodiscard]] bool HasAudio() const noexcept {
         return audio_stream_id_ >= 0;
@@ -287,6 +294,7 @@ private:
 
     int32_t audio_stream_id_;
     double duration_;
+    uint64_t total_frames_;
     AudioFormat audio_format_;
     AvPtr<SwrContext> swr_context_;
     AvPtr<AVFrame> audio_frame_;
@@ -330,6 +338,10 @@ std::string_view AvFileStream::GetDescription() const noexcept {
 
 uint8_t AvFileStream::GetSampleSize() const noexcept {
     return impl_->GetSampleSize();
+}
+
+uint64_t AvFileStream::GetTotalFrames() const {
+    return impl_->GetTotalFrames();
 }
 
 }

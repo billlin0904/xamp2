@@ -44,6 +44,11 @@ std::basic_istream<E, T>& operator>>(std::basic_istream<E, T>& in, E(&carray)[N]
 }
 #endif
 
+template <typename T>
+T Max(const std::vector<T>& v) {
+	return *std::max_element(std::begin(v), std::end(v));
+}
+
 template <typename K, typename V, typename H = std::hash<K>, typename E = std::equal_to<K>>
 using HashMap = robin_hood::unordered_map<K, V, H, E>;
 

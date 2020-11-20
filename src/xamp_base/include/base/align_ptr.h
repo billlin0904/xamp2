@@ -123,7 +123,8 @@ public:
     AlignedBuffer() = default;
 
     explicit AlignedBuffer(size_t size)
-        : ptr_(MakeBuffer<T>(size)), size_(size) {
+        : ptr_(MakeBuffer<T>(size))
+        , size_(size) {
     }
 
     AlignedBuffer(const AlignedBuffer& other)

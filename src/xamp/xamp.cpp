@@ -19,6 +19,7 @@
 
 #include <player/chromaprinthelper.h>
 #include <player/soxresampler.h>
+#include <player/audio_util.h>
 
 #include <widget/albumview.h>
 #include <widget/lyricsshowwideget.h>
@@ -1068,9 +1069,9 @@ void Xamp::addPlayQueue() {
 
     try {
         auto item = playlist_view->item(next_index);
-        auto stream = AudioPlayer::MakeFileStream(item.file_ext.toStdWString());
-        AudioPlayer::SetStreamDsdMode(stream, device_info_, use_native_dsd);
-        stream->OpenFile(item.file_path.toStdWString());        
+        auto stream = MakeFileStream(item.file_ext.toStdWString());
+        SetStreamDsdMode(stream, device_info_, use_native_dsd);
+        stream->OpenFile(item.file_path.toStdWString());       
         state_adapter_->addPlayQueue(std::move(stream), next_index);
     }
     catch (...) {

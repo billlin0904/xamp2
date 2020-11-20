@@ -16,6 +16,7 @@
 #include <player/resampler.h>
 #include <player/nullresampler.h>
 #include <player/chromaprint.h>
+#include <player/audio_util.h>
 #include <player/audio_player.h>
 
 namespace xamp::player {
@@ -35,53 +36,6 @@ static void LogTime(std::string msg, std::chrono::microseconds time) {
     auto c = time.count();
     XAMP_LOG_DEBUG(msg + ": {}.{:03}'{:03}sec",
         (c % 1'000'000'000) / 1'000'000, (c % 1'000'000) / 1'000, c % 1'000);
-}
-
-static DsdStream* AsDsdStream(AlignPtr<FileStream> const &stream) noexcept {
-    return dynamic_cast<DsdStream*>(stream.get());
-}
-
-static DsdDevice* AsDsdDevice(AlignPtr<Device> const &device) noexcept {
-    return dynamic_cast<DsdDevice*>(device.get());
-}
-
-DsdModes AudioPlayer::SetStreamDsdMode(AlignPtr<FileStream>& stream, const DeviceInfo& device_info, bool use_native_dsd) {
-    DsdModes dsd_mode = DsdModes::DSD_MODE_PCM;
-
-    if (auto* dsd_stream = AsDsdStream(stream)) {
-        // ASIO device (win32).
-        if (AudioDeviceManager::GetInstance().IsASIODevice(device_info.device_type_id)) {
-            if (device_info.is_support_dsd) {
-                dsd_stream->SetDSDMode(DsdModes::DSD_MODE_NATIVE);
-                dsd_mode = DsdModes::DSD_MODE_NATIVE;
-                XAMP_LOG_DEBUG("Use Native DSD mode.");
-            }
-            else {
-                dsd_stream->SetDSDMode(DsdModes::DSD_MODE_PCM);
-                dsd_mode = DsdModes::DSD_MODE_PCM;
-                XAMP_LOG_DEBUG("Use PCM mode.");
-            }
-        }
-        // WASAPI or CoreAudio old device.
-        else {
-            if (device_info.is_support_dsd && use_native_dsd) {
-                dsd_stream->SetDSDMode(DsdModes::DSD_MODE_DOP);
-                XAMP_LOG_DEBUG("Use DOP mode.");
-                dsd_mode = DsdModes::DSD_MODE_DOP;
-            }
-            else {
-                dsd_stream->SetDSDMode(DsdModes::DSD_MODE_PCM);
-                XAMP_LOG_DEBUG("Use PCM mode.");
-                dsd_mode = DsdModes::DSD_MODE_PCM;
-            }
-        }
-    }
-    else {
-        dsd_mode = DsdModes::DSD_MODE_PCM;
-        XAMP_LOG_DEBUG("Use PCM mode.");
-    }
-
-    return dsd_mode;
 }
 
 AudioPlayer::AudioPlayer()
@@ -232,41 +186,6 @@ bool AudioPlayer::IsDsdStream() const noexcept {
     return dynamic_cast<DsdStream*>(stream_.get()) != nullptr;
 }
 
-AlignPtr<FileStream> AudioPlayer::MakeFileStream(std::wstring const & file_ext, AlignPtr<FileStream> old_stream) {
-    static const HashSet<std::wstring_view> dsd_ext {
-        {L".dsf"},
-        {L".dff"}
-    };
-    static const HashSet<std::wstring_view> use_bass {
-        //{L".flac"},
-        {L".m4a"},
-        {L".ape"},
-    };
-
-    const auto is_dsd_stream = dsd_ext.find(file_ext) != dsd_ext.end();
-    const auto is_use_bass = use_bass.find(file_ext) != use_bass.end();
-
-    if (old_stream != nullptr) {
-        if (is_dsd_stream || is_use_bass) {
-            if (auto stream = dynamic_cast<BassFileStream*>(old_stream.get())) {
-                old_stream->Close();
-                return old_stream;
-            }
-        }
-        else {
-            if (auto stream = dynamic_cast<AvFileStream*>(old_stream.get())) {
-                old_stream->Close();
-                return old_stream;
-            }
-        }
-    }
-
-    if (is_dsd_stream || is_use_bass) {
-        return MakeAlign<FileStream, BassFileStream>();
-    }
-    return MakeAlign<FileStream, AvFileStream>();
-}
-
 void AudioPlayer::OpenStream(std::wstring const & file_path, std::wstring const & file_ext, DeviceInfo const & device_info, bool use_native_dsd) {
     stream_ = MakeFileStream(file_ext, std::move(stream_));
     dsd_mode_ = SetStreamDsdMode(stream_, device_info, use_native_dsd);
@@ -275,7 +194,7 @@ void AudioPlayer::OpenStream(std::wstring const & file_path, std::wstring const 
     stream_duration_ = stream_->GetDuration();
     if (auto stream = AsDsdStream(stream_)) {
         dsd_mode_ = stream->GetDsdMode();
-    }
+    }    
 }
 
 void AudioPlayer::SetState(const PlayerState play_state) {
@@ -658,15 +577,13 @@ void AudioPlayer::SetLoop(double start_time, double end_time) {
 }
 
 void AudioPlayer::Seek(double stream_time) {
-    std::lock_guard guard{ stream_read_mutex_ };
-
     if (!device_) {
         return;
     }
     if (device_->IsStreamOpen()) {
+        Pause();
         gapless_play_state_ = GaplessPlayState::INIT;
 
-        Pause();
         try {
             stream_->Seek(stream_time);
         }
@@ -781,6 +698,8 @@ void AudioPlayer::OnGaplessPlayState(std::unique_lock<std::mutex>& lock, AlignPt
         return;
     }
 
+    std::lock_guard guard{ stream_read_mutex_ };
+
     auto& stream = adapter->PlayQueueFont();
 
     if (msg_queue_.size() > 0) {
@@ -825,8 +744,6 @@ void AudioPlayer::OnGaplessPlayState(std::unique_lock<std::mutex>& lock, AlignPt
 
 void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_read_sample, std::unique_lock<std::mutex>& lock, AlignPtr<Resampler>& resampler) {
     while (is_playing_) {
-        std::lock_guard guard{ stream_read_mutex_ };
-
         const auto num_samples = stream_->GetSamples(sample_buffer, max_read_sample);
 
         if (num_samples > 0) {
@@ -848,7 +765,7 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_read_sample
             // TODO: 如果在這裡做資料轉換(ex:float->int32_t),
             // 可能需要處理GetSamples不滿足轉換上長度的需求.
         }
-        else {
+        else {            
             OnGaplessPlayState(lock, resampler);
         }
         break;
