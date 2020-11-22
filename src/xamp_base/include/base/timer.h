@@ -6,12 +6,13 @@
 #pragma once
 
 #include <chrono>
-#include <functional>
 #include <atomic>
-#include <thread>
+#include <future>
 
+#include <base/platform_thread.h>
 #include <base/base.h>
 #include <base/memory.h>
+#include <base/logger.h>
 #include <base/threadpool.h>
 #include <base/waitabletimer.h>
 
@@ -29,7 +30,7 @@ public:
 	void Start(std::chrono::milliseconds timeout, TimerCallback&& callback) {
 		is_stop_ = false;
 		timer_.SetTimeout(timeout);
-		thread_ = ThreadPool::GetInstance().Run([this, callback]() {
+		thread_ = ThreadPool::GetInstance().Run(std::launch::async, [this, callback]() {
 			SetThreadName("Timer");
 
 			while (!is_stop_) {

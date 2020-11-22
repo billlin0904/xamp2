@@ -1,6 +1,7 @@
 #include <QMap>
 #include <base/base.h>
 #include <base/threadpool.h>
+#include <base/threadpool.h>
 #include <metadata/taglibmetareader.h>
 
 #ifdef XAMP_OS_WIN

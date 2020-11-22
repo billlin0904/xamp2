@@ -160,6 +160,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\audio_player.cpp" />
+    <ClCompile Include="src\audio_util.cpp" />
     <ClCompile Include="src\chromaprint.cpp" />
     <ClCompile Include="src\chromaprinthelper.cpp" />
     <ClCompile Include="src\nullresampler.cpp" />

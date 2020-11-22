@@ -19,10 +19,13 @@
 #include <base/memory.h>
 #include <base/singleton.h>
 #include <base/align_ptr.h>
-#include <base/logger.h>
 #include <base/stl.h>
 #include <base/bounded_queue.h>
 #include <base/platform_thread.h>
+
+#ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
+#include <base/logger.h>
+#endif
 
 namespace xamp::base {
 
@@ -41,7 +44,9 @@ class FunctionWrapper {
         }
 
         virtual ~ImplType() noexcept override {
+#ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
             XAMP_LOG_DEBUG("ImplType was deleted.");
+#endif
         }
 
         void Call() override {
@@ -101,7 +106,9 @@ public:
     		is_stopped_ = true;
     		throw;
     	}
+#ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
         XAMP_LOG_DEBUG("TaskScheduler initial max thread:{} affinity:{}", max_thread, core);
+#endif
     }    
 
     ~TaskScheduler() noexcept {
@@ -113,12 +120,16 @@ public:
         for (size_t n = 0; n < max_thread_ * K; ++n) {
 			const auto index = (i + n) % max_thread_;
             if (shared_queues_.at(index)->TryEnqueue(std::move(task))) {
+#ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
                 XAMP_LOG_DEBUG("Enqueue thread {} queue.", index);
+#endif
                 return;
             }
         }
         pool_queue_.Enqueue(std::move(task));
+#ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
         XAMP_LOG_DEBUG("Enqueue pool queue.");
+#endif
     }
 
     void SetAffinityMask(int32_t core) {
@@ -142,8 +153,9 @@ public:
             catch (...) {
             }
         }
-
+#ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
         XAMP_LOG_DEBUG("Thread pool was destory.");
+#endif
     }
 
     size_t GetActiveThreadCount() const noexcept {
@@ -155,7 +167,9 @@ private:
         constexpr auto kWaitTimeout = std::chrono::milliseconds(30);
         TaskType task;
         if (pool_queue_.Dequeue(task, kWaitTimeout)) {
+#ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
             XAMP_LOG_DEBUG("Pop pool thread queue.");
+#endif
             return std::move(task);
         }
         return std::nullopt;
@@ -164,7 +178,9 @@ private:
     std::optional<TaskType> TryPopLocalQueue(size_t index) {
         TaskType task;
         if (shared_queues_.at(index)->TryDequeue(task)) {
+#ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
             XAMP_LOG_DEBUG("Pop local thread queue.");
+#endif
             return std::move(task);
         }
         return std::nullopt;
@@ -180,7 +196,9 @@ private:
 
             const auto index = (i + n) % max_thread_;
             if (shared_queues_.at(index)->TryDequeue(task)) {
+#ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
                 XAMP_LOG_DEBUG("Steal other thread queue.");
+#endif
                 return std::move(task);
             }
         }
@@ -196,9 +214,9 @@ private:
             std::this_thread::sleep_for(std::chrono::milliseconds(900));
 #endif
             SetCurrentThreadName(i);
-
+#ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
             XAMP_LOG_DEBUG("Thread {} start.", i);
-
+#endif
             for (;!is_stopped_;) {                
                 auto task = TrySteal();                
                 if (!task) {
@@ -214,18 +232,25 @@ private:
                 }
 
                 auto active_thread = ++active_thread_;
+#ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
                 XAMP_LOG_DEBUG("Thread {} weakup, active:{}.", i, active_thread);
+#endif
                 try {
                     (*task)();
                 }
                 catch (std::exception const& e) {
+#ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
                     XAMP_LOG_ERROR("Thread {} got exception: {}", e.what());
+#endif
                 }                
                 --active_thread_;
+#ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
                 XAMP_LOG_DEBUG("Thread {} execute finished.", i);
+#endif
             }
-
+#ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
             XAMP_LOG_DEBUG("Thread {} done.", i);
+#endif
         }));
 
         SetThreadAffinity(threads_.at(i), core_);
@@ -250,7 +275,7 @@ private:
 
 class XAMP_BASE_API ThreadPool final {
 public:
-    static constexpr uint32_t kMaxThread = 8;
+    static constexpr uint32_t kMaxThread = 32;
     
 	XAMP_DISABLE_COPY(ThreadPool)
 

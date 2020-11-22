@@ -1039,6 +1039,12 @@ void Xamp::addPlayQueue() {
     auto playlist_view = playlist_page_->playlist();
     QModelIndex next_index;
 
+    const auto count = playlist_view->model()->rowCount();
+    if (count == 0) {
+        stopPlayedClicked();
+        return;
+    }
+
     switch (order_) {
     case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:
         next_index = playlist_view->nextIndex(1);

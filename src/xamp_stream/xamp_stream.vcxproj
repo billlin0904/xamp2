@@ -163,6 +163,7 @@
     <ClCompile Include="src\bassequalizer.cpp" />
     <ClCompile Include="src\bassexception.cpp" />
     <ClCompile Include="src\bassfilestream.cpp" />
+    <ClCompile Include="src\basslib.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

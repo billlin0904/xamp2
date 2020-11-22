@@ -1,8 +1,8 @@
 #include <base/str_utilts.h>
 #include <base/platform_thread.h>
 #include <base/logger.h>
-#include <base/threadpool.h>
 #include <base/stl.h>
+#include <base/threadpool.h>
 
 #include <output_device/audiodevicemanager.h>
 #include <output_device/asiodevicetype.h>
@@ -79,7 +79,6 @@ void AudioPlayer::Destroy() {
 #ifdef ENABLE_ASIO
     AudioDeviceManager::RemoveASIODriver();
 #endif
-    ThreadPool::GetInstance().Stop();
     BassFileStream::FreeBassLib();
 }
 
@@ -92,8 +91,7 @@ void AudioPlayer::UpdateSlice(float const *samples, int32_t sample_size, double 
 void AudioPlayer::Initial() {
     AudioDeviceManager::PreventSleep(true);
 
-    (void)ThreadPool::GetInstance();
-    XAMP_LOG_DEBUG("ThreadPool init success.");
+    ThreadPool::GetInstance();
 
     (void)AudioDeviceManager::GetInstance();
     XAMP_LOG_DEBUG("AudioDeviceManager init success.");
