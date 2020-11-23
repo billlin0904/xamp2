@@ -46,7 +46,7 @@ public:
 
 class SoxrResampler::SoxrResamplerImpl final {
 public:
-    static constexpr size_t kInitBufferSize = 1024 * 1204;
+    static constexpr size_t kInitBufferSize = 4 * 1024 * 1204;
 
     SoxrResamplerImpl() noexcept
         : enable_steep_filter_(false)

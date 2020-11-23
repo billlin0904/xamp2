@@ -151,7 +151,15 @@ public:
         return ptr_.get();
     }
 
+    T* data() noexcept {
+        return ptr_.get();
+    }
+
     const T* Get() const noexcept {
+        return ptr_.get();
+    }
+
+    const T* data() const noexcept {
         return ptr_.get();
     }
 

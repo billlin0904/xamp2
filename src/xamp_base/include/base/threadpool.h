@@ -14,6 +14,7 @@
 #include <vector>
 #include <optional>
 #include <type_traits>
+#include <memory>
 
 #include <base/base.h>
 #include <base/memory.h>
@@ -29,7 +30,7 @@
 
 namespace xamp::base {
 
-class FunctionWrapper {
+class TaskWrapper {
     struct ImplBase {        
         virtual ~ImplBase() = default;
     	virtual void Call() = 0;
@@ -42,12 +43,11 @@ class FunctionWrapper {
         ImplType(F&& f)
     		: f_(std::move(f)) {	        
         }
-
-        virtual ~ImplType() noexcept override {
 #ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
+        virtual ~ImplType() noexcept override {
             XAMP_LOG_DEBUG("ImplType was deleted.");
-#endif
         }
+#endif
 
         void Call() override {
 	        f_();
@@ -58,7 +58,7 @@ class FunctionWrapper {
 	
 public:
     template <typename F>
-    FunctionWrapper(F&& f)
+    TaskWrapper(F&& f)
         : impl_(MakeAlign<ImplBase, ImplType<F>>(std::move(f))) {
     }
 	
@@ -66,18 +66,18 @@ public:
 	    impl_->Call();
     }
 	
-    FunctionWrapper() = default;
+    TaskWrapper() = default;
 	
-    FunctionWrapper(FunctionWrapper&& other) noexcept
+    TaskWrapper(TaskWrapper&& other) noexcept
 		: impl_(std::move(other.impl_)) {	    
     }
 	
-    FunctionWrapper& operator=(FunctionWrapper&& other) noexcept {
+    TaskWrapper& operator=(TaskWrapper&& other) noexcept {
         impl_ = std::move(other.impl_);
         return *this;
     }
 	
-    XAMP_DISABLE_COPY(FunctionWrapper)
+    XAMP_DISABLE_COPY(TaskWrapper)
 };
 
 template 
@@ -88,7 +88,7 @@ template
 >
 class TaskScheduler final {
 public:
-    explicit TaskScheduler(size_t max_thread, int32_t core = 1)
+    explicit TaskScheduler(size_t max_thread, int32_t core = -1)
         : is_stopped_(false)
         , active_thread_(0)
         , core_(core)
@@ -218,18 +218,20 @@ private:
             XAMP_LOG_DEBUG("Thread {} start.", i);
 #endif
             for (;!is_stopped_;) {                
-                auto task = TrySteal();                
+                auto task = TrySteal();
                 if (!task) {
                     task = TryPopLocalQueue(i);
-                }
-                if (!task) {
-                    std::this_thread::yield();
-                    task = TryPopPoolQueue();
-                }
-                if (!task) {
-                    std::this_thread::yield();
-                    continue;
-                }
+
+                    if (!task) {
+                        task = TryPopPoolQueue();
+                    }
+
+                    if (!task) {
+                        // 如果連TryPopPoolQueue都會資料代表有經過等待. 就不切出CPU給其他的Thread.
+                        // std::this_thread::yield();
+                        continue;
+                    }
+                }                
 
                 auto active_thread = ++active_thread_;
 #ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
@@ -253,7 +255,9 @@ private:
 #endif
         }));
 
-        SetThreadAffinity(threads_.at(i), core_);
+        if (core_ != -1) {
+            SetThreadAffinity(threads_.at(i), core_);
+        }        
     }
 
     using TaskQueue = Queue<TaskType>;
@@ -293,7 +297,7 @@ public:
 private:
 	ThreadPool();
 	
-	using Task = FunctionWrapper;
+	using Task = TaskWrapper;
     TaskScheduler<Task> scheduler_;
 };
 

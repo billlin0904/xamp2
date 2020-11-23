@@ -829,14 +829,14 @@ void Xamp::resetSeekPosValue() {
 }
 
 void Xamp::setupResampler() {
-    if (AppSettings::getValue(kAppSettingResamplerEnable).toBool()) {
+    if (AppSettings::getValue(kAppSettingResamplerEnable).toBool()) {        
         auto soxr_settings = JsonSettings::getValue(AppSettings::getValueAsString(kAppSettingSoxrSettingName)).toMap();
 
         auto samplerate = soxr_settings[kSoxrResampleSampleRate].toUInt();
         auto quality = static_cast<SoxrQuality>(soxr_settings[kSoxrQuality].toInt());
         auto phase = static_cast<SoxrPhaseResponse>(soxr_settings[kSoxrPhase].toInt());
         auto passband = soxr_settings[kSoxrPassBand].toInt();
-        auto enable_steep_filter = soxr_settings[kSoxrEnableSteepFilter].toBool();
+        auto enable_steep_filter = soxr_settings[kSoxrEnableSteepFilter].toBool();       
 
         auto resampler = MakeAlign<Resampler, SoxrResampler>();
         auto soxr = dynamic_cast<SoxrResampler*>(resampler.get());
@@ -1057,13 +1057,9 @@ void Xamp::addPlayQueue() {
         break;
     default:
         break;
-    }
+    }    
 
     if (!next_index.isValid()) {
-        return;
-    }
-
-    if (!player_->IsEnableResampler()) {
         return;
     }
 
@@ -1086,6 +1082,17 @@ void Xamp::addPlayQueue() {
 
 void Xamp::play(const QModelIndex&, const PlayListEntity& item) {
     player_->ClearPlayQueue();
+
+    if (AppSettings::getValueAsBool(kAppSettingEnableGaplessPlay)) {
+        if (!AppSettings::getValueAsBool(kAppSettingResamplerEnable)) {
+            auto result = showAskDialog(this, "Gapless play must enable resampler first");
+            if (result == QMessageBox::Yes) {
+                PreferenceDialog dialog;
+                dialog.setFont(font());
+                dialog.exec();
+            }
+        }        
+    }
 
     addPlayQueue();
 

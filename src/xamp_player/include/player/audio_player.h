@@ -128,7 +128,7 @@ public:
 
     void EnableGaplessPlay(bool enable);
 
-    void ClearPlayQueue();    
+    void ClearPlayQueue();   
 
 private:
     void Startup();
