@@ -448,7 +448,7 @@ void ExclusiveWasapiDevice::SetMute(const bool mute) const {
 void ExclusiveWasapiDevice::DisplayControlPanel() {
 }
 
-PackedFormat ExclusiveWasapiDevice::GetInterleavedFormat() const noexcept {
+PackedFormat ExclusiveWasapiDevice::GetPackedFormat() const noexcept {
     return PackedFormat::INTERLEAVED;
 }
 

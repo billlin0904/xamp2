@@ -444,8 +444,7 @@ void AudioPlayer::CreateBuffer() {
         assert(target_samplerate_ > 0);
         resampler_->Start(input_format_.GetSampleRate(),
                           input_format_.GetChannels(),
-                          target_samplerate_,
-                          num_read_sample_ / input_format_.GetChannels());
+                          target_samplerate_);
     }
 
     XAMP_LOG_DEBUG("Output device format: {} num_read_sample: {} resampler: {} buffer: {}.",
@@ -581,9 +580,7 @@ void AudioPlayer::Seek(double stream_time) {
         return;
     }
     if (device_->IsStreamOpen()) {
-        Pause();
-        gapless_play_state_ = GaplessPlayState::INIT;
-
+        Pause();       
         try {
             stream_->Seek(stream_time);
         }
@@ -602,6 +599,14 @@ void AudioPlayer::Seek(double stream_time) {
         buffer_.Clear();
         BufferStream(stream_time);
         Resume();
+
+        std::lock_guard guard{ stream_read_mutex_ };
+        if (auto adapter = state_adapter_.lock()) {
+            if (adapter->GetPlayQueueSize() > 0) {
+                auto& entry = adapter->PlayQueueFont();
+                entry.first->Seek(0);
+            }            
+        }
     }
 }
 
@@ -687,7 +692,7 @@ void AudioPlayer::Startup() {
         });
 }
 
-void AudioPlayer::OnGaplessPlayState(std::unique_lock<std::mutex>& lock, AlignPtr<Resampler> &resampler) {
+void AudioPlayer::OnGaplessPlayState(std::unique_lock<std::mutex>& lock) {
     auto adapter = state_adapter_.lock();
     if (!adapter) {
         return;
@@ -700,7 +705,7 @@ void AudioPlayer::OnGaplessPlayState(std::unique_lock<std::mutex>& lock, AlignPt
 
     std::lock_guard guard{ stream_read_mutex_ };
 
-    auto& stream = adapter->PlayQueueFont();
+    auto& entry = adapter->PlayQueueFont();
 
     if (msg_queue_.size() > 0) {
         // 處理播放完畢後替換掉Stream.
@@ -711,38 +716,22 @@ void AudioPlayer::OnGaplessPlayState(std::unique_lock<std::mutex>& lock, AlignPt
             XAMP_LOG_DEBUG("Receive SWITCH");
             adapter->OnGaplessPlayback();
             stream_->Close();
-            stream_ = std::move(stream);
+            stream_ = std::move(entry.first);            
+            resampler_ = std::move(entry.second);
             dsd_mode_ = SetStreamDsdMode(stream_, device_info_);
-            resampler_ = std::move(resampler);
             adapter->PopPlayQueue();
             stream_duration_ = stream_->GetDuration();
             msg_queue_.Pop();
-            gapless_play_state_ = GaplessPlayState::INIT;
             break;
-        }
-        return;
+        }        
     }
-
-    if (gapless_play_state_ == GaplessPlayState::INIT) {
-        XAMP_LOG_DEBUG("Gapless play initial!");
-        // 有可能使用者進行Seek的動作需要重置位置.
-        stream->Seek(0);
-        resampler = resampler_->Clone();
-        auto input_format = stream->GetFormat();
-        resampler->Start(input_format.GetSampleRate(),
-            input_format.GetChannels(),
-            target_samplerate_,
-            num_read_sample_ / input_format_.GetChannels());
-        gapless_play_state_ = GaplessPlayState::BUFFING;
-    }
-
-    if (gapless_play_state_ == GaplessPlayState::BUFFING) {
+    else {
         // 等待上一首播放結束並繼續緩衝資料.
-        BufferSamples(stream, resampler);        
-    }
+        BufferSamples(entry.first, entry.second);
+    }    
 }
 
-void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_read_sample, std::unique_lock<std::mutex>& lock, AlignPtr<Resampler>& resampler) {
+void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_read_sample, std::unique_lock<std::mutex>& lock) {
     while (is_playing_) {
         const auto num_samples = stream_->GetSamples(sample_buffer, max_read_sample);
 
@@ -767,7 +756,7 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_read_sample
             // 可能需要處理GetSamples不滿足轉換上長度的需求.
         }
         else {            
-            OnGaplessPlayState(lock, resampler);
+            OnGaplessPlayState(lock);
         }
         break;
     }
@@ -794,6 +783,10 @@ void AudioPlayer::ClearPlayQueue() {
     }
 }
 
+AlignPtr<Resampler> AudioPlayer::CloneResampler() {
+    return resampler_->Clone();
+}
+
 int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, double stream_time, double sample_time) noexcept {
     const auto num_samples = num_buffer_frames * output_format_.GetChannels();
     const auto sample_size = num_samples * sample_size_;
@@ -804,31 +797,22 @@ int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, dou
     min_process_time_ = std::min(elapsed, min_process_time_);
 #endif
 
-//  TODO: Gapless play不支援以後需要調整.
-//#ifdef XAMP_OS_WIN
-//    if (sample_time > sample_end_time_) {
-//        std::memset(static_cast<int8_t*>(samples), 0, sample_size);
-//    }
-//    else
-//#endif
-    {
-        if (stream_time >= stream_duration_ && enable_gapless_play_) {
-            device_->SetStreamTime(0);
-            msg_queue_.TryPush(GaplessPlayMsgID::SWITCH);
-        }
+    if (stream_time >= stream_duration_ && enable_gapless_play_) {
+        device_->SetStreamTime(0);
+        msg_queue_.TryPush(GaplessPlayMsgID::SWITCH);
+    }
 
-        if (XAMP_LIKELY(buffer_.TryRead(static_cast<int8_t*>(samples), sample_size))) {
-            UpdateSlice(static_cast<const float*>(samples), static_cast<int32_t>(num_samples), stream_time);
+    if (XAMP_LIKELY(buffer_.TryRead(static_cast<int8_t*>(samples), sample_size))) {
+        UpdateSlice(static_cast<const float*>(samples), static_cast<int32_t>(num_samples), stream_time);
 #ifdef _DEBUG
-            sw_.Reset();
+        sw_.Reset();
 #endif
-            return 0;
-        }
+        return 0;
+    }
 
-        if (sample_time <= sample_end_time_) {
-            std::memset(static_cast<int8_t*>(samples), 0, sample_size);
-            return 0;
-        }
+    if (sample_time <= sample_end_time_) {
+        std::memset(static_cast<int8_t*>(samples), 0, sample_size);
+        return 0;
     }
 
     UpdateSlice(nullptr, -1, stream_time);
@@ -858,8 +842,6 @@ void AudioPlayer::StartPlay(double start_time, double end_time) {
     XAMP_LOG_INFO("Stream end time {} sec", sample_end_time_);
     Play();
 
-    gapless_play_state_ = GaplessPlayState::INIT;
-
 #ifdef _DEBUG
     Stopwatch sw;
 #endif
@@ -872,7 +854,6 @@ void AudioPlayer::StartPlay(double start_time, double end_time) {
         auto sample_buffer = p->sample_buffer_.Get();
         const auto max_read_sample = p->num_read_sample_;
         const auto num_sample_write = max_read_sample * kMaxWriteRatio;
-        AlignPtr<Resampler> resampler;
 
         XAMP_LOG_DEBUG("max_read_sample: {}, num_sample_write: {}", max_read_sample, num_sample_write);
 
@@ -888,7 +869,7 @@ void AudioPlayer::StartPlay(double start_time, double end_time) {
                     continue;
                 }
 
-                p->ReadSampleLoop(sample_buffer, max_read_sample, lock, resampler);
+                p->ReadSampleLoop(sample_buffer, max_read_sample, lock);
             }
         }
         catch (const std::exception& e) {

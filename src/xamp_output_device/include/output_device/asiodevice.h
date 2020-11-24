@@ -55,7 +55,7 @@ public:
 
 	void DisplayControlPanel() override;
 
-	PackedFormat GetInterleavedFormat() const noexcept override;
+	PackedFormat GetPackedFormat() const noexcept override;
 
 	void SetIoFormat(DsdIoFormat format) override;
 

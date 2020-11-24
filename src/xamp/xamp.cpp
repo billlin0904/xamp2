@@ -897,7 +897,6 @@ void Xamp::playMusic(const MusicEntity& item) {
 
     try {
         player_->Open(item.file_path.toStdWString(), item.file_ext.toStdWString(), device_info_, use_native_dsd);
-        setupResampler();
         setupEQ();
         player_->StartPlay(loop_time.first, loop_time.second);
         open_done = true;
@@ -1036,14 +1035,14 @@ void Xamp::playNextItem(int32_t forward) {
 }
 
 void Xamp::addPlayQueue() {
-    auto playlist_view = playlist_page_->playlist();
-    QModelIndex next_index;
-
+    auto playlist_view = playlist_page_->playlist();    
     const auto count = playlist_view->model()->rowCount();
     if (count == 0) {
         stopPlayedClicked();
         return;
     }
+
+    QModelIndex next_index;
 
     switch (order_) {
     case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:
@@ -1069,14 +1068,23 @@ void Xamp::addPlayQueue() {
     const auto use_native_dsd = true;
 #endif
 
+    if (!player_->IsEnableResampler()) {
+        setupResampler();
+    }
+
     try {
         auto item = playlist_view->item(next_index);
         auto stream = MakeFileStream(item.file_ext.toStdWString());
         SetStreamDsdMode(stream, device_info_, use_native_dsd);
-        stream->OpenFile(item.file_path.toStdWString());       
-        state_adapter_->addPlayQueue(std::move(stream), next_index);
+        stream->OpenFile(item.file_path.toStdWString());   
+        auto output_format = player_->GetOutputFormat();
+        auto resampler = player_->CloneResampler();
+        auto input_format = stream->GetFormat();
+        resampler->Start(input_format.GetSampleRate(), input_format.GetChannels(), output_format.GetSampleRate());
+        state_adapter_->addPlayQueue(std::move(stream), std::move(resampler), next_index);
     }
-    catch (...) {
+    catch (std::exception const &e) {
+        XAMP_LOG_DEBUG("addPlayQueue ex:{} ", e.what());
     }
 }
 

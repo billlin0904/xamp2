@@ -151,14 +151,17 @@
     <ClInclude Include="include\player\audio_player.h" />
     <ClInclude Include="include\player\chromaprint.h" />
     <ClInclude Include="include\player\chromaprinthelper.h" />
+    <ClInclude Include="include\player\mempool.h" />
     <ClInclude Include="include\player\nullresampler.h" />
     <ClInclude Include="include\player\playbackstateadapter.h" />
     <ClInclude Include="include\player\player.h" />
     <ClInclude Include="include\player\playstate.h" />
     <ClInclude Include="include\player\resampler.h" />
     <ClInclude Include="include\player\soxresampler.h" />
+    <ClInclude Include="include\player\ssrcresampler.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="include\player\ssrcresampler.cpp" />
     <ClCompile Include="src\audio_player.cpp" />
     <ClCompile Include="src\audio_util.cpp" />
     <ClCompile Include="src\chromaprint.cpp" />

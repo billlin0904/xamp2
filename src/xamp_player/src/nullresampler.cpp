@@ -22,7 +22,7 @@ NullResampler::NullResampler(DsdModes dsd_mode, uint8_t sample_size)
     }
 }
 
-void NullResampler::Start(uint32_t, uint32_t, uint32_t, uint32_t) {
+void NullResampler::Start(uint32_t, uint32_t, uint32_t) {
 }
 
 bool NullResampler::Process(float const * sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer) {

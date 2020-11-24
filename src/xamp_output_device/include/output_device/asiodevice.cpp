@@ -572,7 +572,7 @@ void AsioDevice::DisplayControlPanel() {
 	AsioIfFailedThrow(::ASIOControlPanel());
 }
 
-PackedFormat AsioDevice::GetInterleavedFormat() const noexcept {
+PackedFormat AsioDevice::GetPackedFormat() const noexcept {
 	return PackedFormat::PLANAR;
 }
 

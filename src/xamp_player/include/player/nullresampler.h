@@ -14,7 +14,7 @@ class XAMP_PLAYER_API NullResampler final : public Resampler {
 public:
     explicit NullResampler(DsdModes dsd_mode, uint8_t sample_size);
 
-    void Start(uint32_t, uint32_t, uint32_t, uint32_t) override;
+    void Start(uint32_t, uint32_t, uint32_t) override;
 
     bool Process(float const * sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer) override;
 

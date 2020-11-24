@@ -19,6 +19,8 @@ using namespace base;
 using namespace stream;
 using namespace output_device;
 
+using GaplessPlayEntry = std::pair<AlignPtr<FileStream>, AlignPtr<Resampler>>;
+
 class XAMP_PLAYER_API XAMP_NO_VTABLE PlaybackStateAdapter {
 public:
     friend class AudioPlayer;
@@ -41,7 +43,7 @@ public:
 
     virtual size_t GetPlayQueueSize() const = 0;
 
-    virtual AlignPtr<FileStream>& PlayQueueFont() = 0;
+    virtual GaplessPlayEntry& PlayQueueFont() = 0;
 
     virtual void PopPlayQueue() = 0;
     

@@ -56,7 +56,7 @@ public:
 
 	bool IsMuted() const override;
 
-	PackedFormat GetInterleavedFormat() const noexcept override;
+	PackedFormat GetPackedFormat() const noexcept override;
 
 	void SetSchedulerService(std::wstring const & mmcss_name, MmcssThreadPriority thread_priority);
 

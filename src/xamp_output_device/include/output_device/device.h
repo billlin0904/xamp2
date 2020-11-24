@@ -46,7 +46,7 @@ public:
 
 	virtual void DisplayControlPanel() = 0;
 
-	virtual PackedFormat GetInterleavedFormat() const noexcept = 0;
+	virtual PackedFormat GetPackedFormat() const noexcept = 0;
 
     virtual uint32_t GetBufferSize() const noexcept = 0;
 

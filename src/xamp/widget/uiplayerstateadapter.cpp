@@ -43,8 +43,8 @@ size_t UIPlayerStateAdapter::GetPlayQueueSize() const {
     return play_queue_.size();
 }
 
-void UIPlayerStateAdapter::addPlayQueue(AlignPtr<FileStream>&& stream, const QModelIndex &index) {    
-    play_queue_.TryEnqueue(std::move(stream));
+void UIPlayerStateAdapter::addPlayQueue(AlignPtr<FileStream>&& stream, AlignPtr<Resampler>&& resampler, const QModelIndex &index) {    
+    play_queue_.TryEnqueue(std::make_pair(std::move(stream), std::move(resampler)));
     index_queue_.TryPush(index);
 }
 
@@ -58,7 +58,7 @@ QModelIndex UIPlayerStateAdapter::currentIndex() {
     return *index_queue_.Front();
 }
 
-AlignPtr<FileStream>& UIPlayerStateAdapter::PlayQueueFont() {
+GaplessPlayEntry& UIPlayerStateAdapter::PlayQueueFont() {
     return *play_queue_.Front();
 }
 

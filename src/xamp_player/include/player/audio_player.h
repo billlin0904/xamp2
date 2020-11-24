@@ -42,14 +42,8 @@ class XAMP_PLAYER_API AudioPlayer final :
     public DeviceStateListener,
     public std::enable_shared_from_this<AudioPlayer> {
 public:
-    enum class GaplessPlayState {
-        INIT,
-        BUFFING,
-        ABORT,
-    };
-
     enum class GaplessPlayMsgID {
-        SWITCH,
+        SWITCH,        
     };
 
     XAMP_DISABLE_COPY(AudioPlayer)
@@ -130,6 +124,8 @@ public:
 
     void ClearPlayQueue();   
 
+    AlignPtr<Resampler> CloneResampler();
+
 private:
     void Startup();
     	
@@ -157,13 +153,13 @@ private:
 
     void SetState(PlayerState play_state);
 
-    void ReadSampleLoop(int8_t* sample_buffer, uint32_t max_read_sample, std::unique_lock<std::mutex> &lock, AlignPtr<Resampler> &resampler);
+    void ReadSampleLoop(int8_t* sample_buffer, uint32_t max_read_sample, std::unique_lock<std::mutex> &lock);
 
     void BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<Resampler> &resampler, int32_t buffer_count = 1);
 
     void UpdateSlice(float const *samples = nullptr, int32_t sample_size = 0, double stream_time = 0.0) noexcept;
 
-    void OnGaplessPlayState(std::unique_lock<std::mutex>& lock, AlignPtr<Resampler> &resampler);
+    void OnGaplessPlayState(std::unique_lock<std::mutex>& lock);
 
     struct XAMP_CACHE_ALIGNED(kMallocAlignSize) AudioSlice {
         AudioSlice(float const *samples = nullptr, int32_t sample_size = 0, double stream_time = 0.0) noexcept
@@ -198,7 +194,6 @@ private:
     std::atomic<AudioSlice> slice_;
     mutable std::mutex pause_mutex_;
     mutable std::mutex stream_read_mutex_;
-    GaplessPlayState gapless_play_state_ = GaplessPlayState::INIT;
 #ifdef _DEBUG
     std::chrono::microseconds min_process_time_{ 0 };
     std::chrono::microseconds max_process_time_{ 0 };

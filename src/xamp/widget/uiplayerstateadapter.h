@@ -12,14 +12,19 @@
 #include <output_device/devicestatelistener.h>
 #include <stream/filestream.h>
 #include <player/playbackstateadapter.h>
+#include <player/resampler.h>
 #include <player/playstate.h>
 
-using xamp::player::PlayerState;
-using xamp::player::PlaybackStateAdapter;
 using xamp::base::Errors;
 using xamp::base::AlignPtr;
 using xamp::base::Exception;
 using xamp::base::SpscQueue;
+
+using xamp::player::PlayerState;
+using xamp::player::Resampler;
+using xamp::player::PlaybackStateAdapter;
+using xamp::player::GaplessPlayEntry;
+
 using xamp::output_device::DeviceInfo;
 using xamp::stream::FileStream;
 
@@ -32,7 +37,7 @@ public:
 
     size_t GetPlayQueueSize() const override;
 
-    AlignPtr<FileStream>& PlayQueueFont() override;
+    GaplessPlayEntry& PlayQueueFont() override;
 
     void PopPlayQueue() override;
 
@@ -50,7 +55,7 @@ public:
 
     void OnGaplessPlayback() override;    
 
-    void addPlayQueue(AlignPtr<FileStream> &&stream, const QModelIndex &index);
+    void addPlayQueue(AlignPtr<FileStream> &&stream, AlignPtr<Resampler> &&resampler, const QModelIndex &index);
 
     QModelIndex popIndexQueue();
 
@@ -77,6 +82,6 @@ protected:
 
     void ClearPlayQueue() override;
 
-    SpscQueue<AlignPtr<FileStream>> play_queue_;
+    SpscQueue<GaplessPlayEntry> play_queue_;
     SpscQueue<QModelIndex> index_queue_;
 };

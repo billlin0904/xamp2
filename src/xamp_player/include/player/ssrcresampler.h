@@ -15,39 +15,13 @@
 
 namespace xamp::player {
 
-using namespace xamp::base;
-
-MAKE_ENUM(SoxrQuality,
-          LOW,
-          MQ,
-          HQ,
-          VHQ,
-          UHQ)
-
-MAKE_ENUM(SoxrPhaseResponse,
-          LINEAR_PHASE,
-          INTERMEDIATE_PHASE,
-          MINIMUM_PHASE)
-
-class XAMP_PLAYER_API SoxrResampler final : public Resampler {
+class XAMP_PLAYER_API SSRCResampler final : public Resampler {
 public:
     static const std::string_view VERSION;
 
-    SoxrResampler();
+    SSRCResampler();
 
-    ~SoxrResampler() override;
-
-    static void LoadSoxrLib();
-
-    void SetSteepFilter(bool enable);
-
-    void SetQuality(SoxrQuality quality);
-
-    void SetPhase(SoxrPhaseResponse phase);
-
-    void SetStopBand(double stopband);
-
-    void SetPassBand(double passband);
+    ~SSRCResampler() override;
 
     std::string_view GetDescription() const noexcept override;
 
@@ -60,9 +34,10 @@ public:
     AlignPtr<Resampler> Clone() override;
 
 private:
-    class SoxrResamplerImpl;
-    AlignPtr<SoxrResamplerImpl> impl_;
+    class SSRCResamplerImpl;
+    AlignPtr<SSRCResamplerImpl> impl_;
 };
+
 
 }
 
