@@ -3,13 +3,6 @@
 
 namespace xamp::player {
 
-#define CheckBufferFlow(expr) \
-    do {\
-        if (!(expr)) {\
-        throw LibrarySpecException("Buffer overflow.");\
-        }\
-    } while(false)
-
 NullResampler::NullResampler(DsdModes dsd_mode, uint8_t sample_size)
     : dsd_mode_(dsd_mode)
     , sample_size_(sample_size)

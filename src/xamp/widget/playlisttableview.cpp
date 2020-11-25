@@ -10,13 +10,17 @@
 #include <QFutureWatcher>
 #include <QFormLayout>
 #include <QTimeEdit>
+#include <QLineEdit>
 #include <QDialogButtonBox>
+#include <QJsonDocument>
+#include <QJsonArray>
 
 #include <base/rng.h>
 #include <metadata/metadatareader.h>
 #include <metadata/taglibmetareader.h>
 #include <metadata/taglibmetawriter.h>
 
+#include <widget/http.h>
 #include <widget/toast.h>
 #include <widget/image_utiltis.h>
 #include <widget/appsettings.h>
@@ -152,12 +156,58 @@ void PlayListTableView::initial() {
             });
 
         (void)action_map.addAction(tr("Load file directory"), [this]() {
-            auto dir_name = QFileDialog::getExistingDirectory(this,
-                tr("Select a Directory"),
-                AppSettings::getMyMusicFolderPath());
-            append(dir_name);
+                auto dir_name = QFileDialog::getExistingDirectory(this,
+                    tr("Select a Directory"),
+                    AppSettings::getMyMusicFolderPath());
+                append(dir_name);
+                });
+
+        auto import_file_from_url_act = action_map.addAction(tr("Import file from meta.json"));
+
+        action_map.setCallback(import_file_from_url_act, [this]() {
+            QDialog dialog(this);
+            dialog.setWindowTitle(tr("Import file from meta.json"));
+            dialog.setWindowFlags(dialog.windowFlags() & ~Qt::WindowContextHelpButtonHint);
+
+            QFormLayout form(&dialog);
+            auto url_edit = new QLineEdit(&dialog);
+            url_edit->setText(Q_UTF8("https://static.suisei.moe/music/meta.json"));
+            form.addRow(tr("URL:"), url_edit);
+
+            QDialogButtonBox buttonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
+                Qt::Horizontal, &dialog);
+            form.addRow(&buttonBox);
+            QObject::connect(&buttonBox, SIGNAL(accepted()), &dialog, SLOT(accept()));
+            QObject::connect(&buttonBox, SIGNAL(rejected()), &dialog, SLOT(reject()));
+
+            if (dialog.exec() != QDialog::Accepted) {
+                return;
+            }
+
+            http::HttpClient(url_edit->text()).success([this](const QString& json) {
+                QJsonParseError error;
+                auto doc = QJsonDocument::fromJson(json.toUtf8(), &error);
+                if (error.error == QJsonParseError::NoError) {
+                    auto result = doc.array();
+                    std::vector<Metadata> metadatas;
+                    metadatas.reserve(result.size());
+                    for (const auto& entry : result) {
+                        auto object = entry.toVariant().toMap();
+                        auto url = object.value(Q_UTF8("url")).toString();
+                        auto title = object.value(Q_UTF8("title")).toString();
+                        auto performer = object.value(Q_UTF8("performer")).toString();
+                        Metadata metadata;
+                        metadata.file_path = url.toStdWString();
+                        metadata.title = title.toStdWString();
+                        metadata.artist = performer.toStdWString();
+                        metadatas.push_back(metadata);
+                    }
+                    MetadataExtractAdapter::ProcessMetadata(metadatas, this);
+                }
+                }).get();
+
             });
-    	
+
         action_map.addSeparator();
 
         auto open_local_file_path_act = action_map.addAction(tr("Open local file path"));
@@ -168,100 +218,103 @@ void PlayListTableView::initial() {
         auto copy_title_act = action_map.addAction(tr("Copy title"));
         auto set_cover_art_act = action_map.addAction(tr("Set cover art"));
         auto set_start_and_loop_act = action_map.addAction(tr("Set start and end loop time"));
-
-        if (!model_.isEmpty() && index.isValid()) {
-            auto item = model_.item(proxy_model_.mapToSource(index));
-
-            action_map.setCallback(open_local_file_path_act, [item]() {
-                QDesktopServices::openUrl(QUrl::fromLocalFile(item.parent_path));
-            });
-
-            action_map.setCallback(reload_file_meta_act, [this]() {
-                reloadSelectMetadata();
-            });
-
-            action_map.setCallback(reload_file_fingerprint_act, [this]() {
-                const auto rows = selectItemIndex();
-                for (const auto& select_item : rows) {
-                    auto entity = this->item(select_item.second);
-                    emit readFingerprint(select_item.second, entity);
-                }
-                });
-            action_map.addSeparator();
-            action_map.setCallback(copy_album_act, [item]() {
-                QApplication::clipboard()->setText(item.album);
-                });
-            action_map.setCallback(copy_artist_act, [item]() {
-                QApplication::clipboard()->setText(item.artist);
-                });
-            action_map.setCallback(copy_title_act, [item]() {
-                QApplication::clipboard()->setText(item.title);
-                });
-
-            action_map.setCallback(set_cover_art_act, [item, this]() {
-                const auto fileName = QFileDialog::getOpenFileName(this, tr("Open Cover Art Image"),
-                    tr("C:\\"), tr("Image Files (*.png *.jpeg *.jpg)"));
-                if (fileName.isEmpty()) {
-                    return;
-                }
-
-                QPixmap image(fileName);
-                if (image.isNull()) {
-                    Toast::showTip(tr("Can't read image file."), this);
-                    return;
-                }
-
-                const QSize kMaxCoverArtSize(500, 500);
-                auto resize_cover = Pixmap::resizeImage(image, kMaxCoverArtSize, true);
-
-                const auto image_data = Pixmap::getImageDate(resize_cover);
-                const auto rows = selectItemIndex();
-                for (const auto& select_item : rows) {
-                    auto entity = this->item(select_item.second);
-                    xamp::metadata::TaglibMetadataWriter writer;
-                    try {
-                        writer.WriteEmbeddedCover(entity.file_path.toStdWString(), image_data);
-                    }
-                    catch (std::exception& e) {
-                        Toast::showTip(QString::fromStdString(e.what()), this);
-                    }
-                }
-                });
-
-            action_map.setCallback(set_start_and_loop_act, [item, this]() {
-                QDialog dialog(this);
-                dialog.setWindowTitle(tr("Set Loop Time Range"));
-                dialog.setWindowFlags(dialog.windowFlags() & ~Qt::WindowContextHelpButtonHint);
-
-                QFormLayout form(&dialog);
-
-                auto start_time_edit = new QTimeEdit(&dialog);
-                form.addRow(tr("Loop start time:"), start_time_edit);
-                auto end_time_edit = new QTimeEdit(&dialog);                
-                form.addRow(tr("Loop end time:"), end_time_edit);
-
-                auto max_time = Time::toQTime(item.duration);
-                start_time_edit->setDisplayFormat(Q_UTF8("mm:ss.zzz"));
-                end_time_edit->setDisplayFormat(Q_UTF8("mm:ss.zzz"));
-
-                end_time_edit->setTime(max_time);
-
-                start_time_edit->setMaximumTime(max_time);
-                end_time_edit->setMaximumTime(max_time);
-
-                QDialogButtonBox buttonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
-                    Qt::Horizontal, &dialog);
-                form.addRow(&buttonBox);
-                QObject::connect(&buttonBox, SIGNAL(accepted()), &dialog, SLOT(accept()));
-                QObject::connect(&buttonBox, SIGNAL(rejected()), &dialog, SLOT(reject()));
-
-                if (dialog.exec() == QDialog::Accepted) {
-                    auto ds_time = Time::toDoubleTime(start_time_edit->time());
-                    auto de_time = Time::toDoubleTime(end_time_edit->time());
-                    emit setLoopTime(ds_time, de_time);
-                }
-                });
+        
+        if (model_.isEmpty() || !index.isValid()) {
+            action_map.exec(pt);
+            return;
         }
+        
+        auto item = model_.item(proxy_model_.mapToSource(index));
+
+        action_map.setCallback(open_local_file_path_act, [item]() {
+            QDesktopServices::openUrl(QUrl::fromLocalFile(item.parent_path));
+            });
+
+        action_map.setCallback(reload_file_meta_act, [this]() {
+            reloadSelectMetadata();
+            });
+
+        action_map.setCallback(reload_file_fingerprint_act, [this]() {
+            const auto rows = selectItemIndex();
+            for (const auto& select_item : rows) {
+                auto entity = this->item(select_item.second);
+                emit readFingerprint(select_item.second, entity);
+            }
+            });
+        action_map.addSeparator();
+        action_map.setCallback(copy_album_act, [item]() {
+            QApplication::clipboard()->setText(item.album);
+            });
+        action_map.setCallback(copy_artist_act, [item]() {
+            QApplication::clipboard()->setText(item.artist);
+            });
+        action_map.setCallback(copy_title_act, [item]() {
+            QApplication::clipboard()->setText(item.title);
+            });
+
+        action_map.setCallback(set_cover_art_act, [item, this]() {
+            const auto fileName = QFileDialog::getOpenFileName(this, tr("Open Cover Art Image"),
+                tr("C:\\"), tr("Image Files (*.png *.jpeg *.jpg)"));
+            if (fileName.isEmpty()) {
+                return;
+            }
+
+            QPixmap image(fileName);
+            if (image.isNull()) {
+                Toast::showTip(tr("Can't read image file."), this);
+                return;
+            }
+
+            const QSize kMaxCoverArtSize(500, 500);
+            auto resize_cover = Pixmap::resizeImage(image, kMaxCoverArtSize, true);
+
+            const auto image_data = Pixmap::getImageDate(resize_cover);
+            const auto rows = selectItemIndex();
+            for (const auto& select_item : rows) {
+                auto entity = this->item(select_item.second);
+                xamp::metadata::TaglibMetadataWriter writer;
+                try {
+                    writer.WriteEmbeddedCover(entity.file_path.toStdWString(), image_data);
+                }
+                catch (std::exception& e) {
+                    Toast::showTip(QString::fromStdString(e.what()), this);
+                }
+            }
+            });
+
+        action_map.setCallback(set_start_and_loop_act, [item, this]() {
+            QDialog dialog(this);
+            dialog.setWindowTitle(tr("Set Loop Time Range"));
+            dialog.setWindowFlags(dialog.windowFlags() & ~Qt::WindowContextHelpButtonHint);
+
+            QFormLayout form(&dialog);
+
+            auto start_time_edit = new QTimeEdit(&dialog);
+            form.addRow(tr("Loop start time:"), start_time_edit);
+            auto end_time_edit = new QTimeEdit(&dialog);
+            form.addRow(tr("Loop end time:"), end_time_edit);
+
+            auto max_time = Time::toQTime(item.duration);
+            start_time_edit->setDisplayFormat(Q_UTF8("mm:ss.zzz"));
+            end_time_edit->setDisplayFormat(Q_UTF8("mm:ss.zzz"));
+
+            end_time_edit->setTime(max_time);
+
+            start_time_edit->setMaximumTime(max_time);
+            end_time_edit->setMaximumTime(max_time);
+
+            QDialogButtonBox buttonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
+                Qt::Horizontal, &dialog);
+            form.addRow(&buttonBox);
+            QObject::connect(&buttonBox, SIGNAL(accepted()), &dialog, SLOT(accept()));
+            QObject::connect(&buttonBox, SIGNAL(rejected()), &dialog, SLOT(reject()));
+
+            if (dialog.exec() == QDialog::Accepted) {
+                auto ds_time = Time::toDoubleTime(start_time_edit->time());
+                auto de_time = Time::toDoubleTime(end_time_edit->time());
+                emit setLoopTime(ds_time, de_time);
+            }
+            });
 
         action_map.exec(pt);
         });

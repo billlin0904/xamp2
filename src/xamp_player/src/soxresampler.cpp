@@ -63,9 +63,7 @@ public:
         Close();
     }
 
-    void Start(uint32_t input_samplerate, uint32_t num_channels, uint32_t output_samplerate) {
-        AllocateAndLock(kInitBufferSize);
-
+    void Start(uint32_t input_samplerate, uint32_t num_channels, uint32_t output_samplerate) {        
         Close();
 
         unsigned long quality_spec = 0;
@@ -125,6 +123,7 @@ public:
             XAMP_LOG_DEBUG("soxr error: {}", !error ? "" : error);
             throw LibrarySpecException("sox_create return failure!");
         }
+
         input_samplerate_ = input_samplerate;
         num_channels_ = num_channels;
 
@@ -134,7 +133,9 @@ public:
                        input_samplerate,
                        output_samplerate,
                        EnumToString(quality_),
-                       EnumToString(phase_));        
+                       EnumToString(phase_));
+
+        AllocateAndLock(kInitBufferSize);
     }
 
     void Close() noexcept {
@@ -168,7 +169,6 @@ public:
             return;
         }
         Singleton<SoxrLib>::GetInstance().soxr_clear(handle_.get());
-        buffer_.clear();
     }
 
     bool Process(float const * samples, uint32_t num_sample, AudioBuffer<int8_t>& buffer) {
@@ -194,9 +194,7 @@ public:
         }
 
         size_t write_size(samples_done * num_channels_ * sizeof(float));
-        if (!buffer.TryWrite(reinterpret_cast<int8_t const *>(buffer_.data()), write_size)) {
-            throw LibrarySpecException("Buffer overflow!");
-        }
+        CheckBufferFlow(buffer.TryWrite(reinterpret_cast<int8_t const*>(buffer_.data()), write_size));
 
         required_size = samples_done * num_channels_;
         if (required_size > buffer_.size()) {
@@ -233,7 +231,7 @@ public:
     double stopband_;
     SoxrHandle handle_;
     VmMemLock vmlock_;
-    std::vector<float> buffer_;
+    Buffer<float> buffer_;
 };
 
 const std::string_view SoxrResampler::VERSION = "Soxr " SOXR_THIS_VERSION_STR;

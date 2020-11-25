@@ -43,7 +43,7 @@ class XAMP_PLAYER_API AudioPlayer final :
     public std::enable_shared_from_this<AudioPlayer> {
 public:
     enum class GaplessPlayMsgID {
-        SWITCH,        
+        EVENT_SWITCH,        
     };
 
     XAMP_DISABLE_COPY(AudioPlayer)
@@ -205,7 +205,7 @@ private:
     std::condition_variable stopped_cond_;
     AudioFormat input_format_;
     AudioFormat output_format_;
-    AlignedBuffer<int8_t> sample_buffer_;
+    Buffer<int8_t> sample_buffer_;
     Timer timer_;
     AlignPtr<FileStream> stream_;
     AlignPtr<DeviceType> device_type_;

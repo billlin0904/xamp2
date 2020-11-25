@@ -307,8 +307,8 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 		size_t allocate_bytes = buffer_size_ * format_.GetBytesPerSample() * format_.GetChannels();
 		Singleton<AsioCallbackInfo>::GetInstance().data_context = MakeConvert(input_fomrat, format_, buffer_size_);
 		buffer_bytes_ = buffer_size_ * (int64_t)format_.GetBytesPerSample();
-		buffer_ = AlignedBuffer<int8_t>(allocate_bytes * buffer_size_);
-		device_buffer_ = AlignedBuffer<int8_t>(allocate_bytes * buffer_size_);
+		buffer_ = Buffer<int8_t>(allocate_bytes * buffer_size_);
+		device_buffer_ = Buffer<int8_t>(allocate_bytes * buffer_size_);
 		buffer_vmlock_.Lock(buffer_.Get(), allocate_bytes * buffer_size_);
 		device_buffer_vmlock_.Lock(device_buffer_.Get(), allocate_bytes * buffer_size_);
 	}
@@ -335,8 +335,8 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 		auto channel_buffer_size = buffer_size_ / 8;
 		buffer_bytes_ = channel_buffer_size;
 		size_t allocate_bytes = buffer_size_;
-		device_buffer_ = AlignedBuffer<int8_t>(allocate_bytes);
-		buffer_ = AlignedBuffer<int8_t>(allocate_bytes);
+		device_buffer_ = Buffer<int8_t>(allocate_bytes);
+		buffer_ = Buffer<int8_t>(allocate_bytes);
 		buffer_vmlock_.Lock(buffer_.Get(), allocate_bytes);
 		device_buffer_vmlock_.Lock(device_buffer_.Get(), allocate_bytes);
 		Singleton<AsioCallbackInfo>::GetInstance().data_context = MakeConvert(input_fomrat, format_, channel_buffer_size);

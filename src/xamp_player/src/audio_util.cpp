@@ -22,7 +22,7 @@ std::vector<float> GetNormalizedPeaks(AlignPtr<FileStream>& stream) {
     std::vector<float> result(num_stream_ch);
     stream->Seek(0);
     
-    AlignedBuffer<float> buffer(kReadSampleSize * num_stream_ch);
+    Buffer<float> buffer(kReadSampleSize * num_stream_ch);
 
     while (true) {
         auto num_samples = stream->GetSamples(buffer.Get(), buffer.GetSize());

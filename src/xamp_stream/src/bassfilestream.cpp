@@ -19,14 +19,12 @@ static bool TestDsdFileFormat(std::wstring const & file_path) {
 
     EnsureDsdDecoderInit();
 
-    MemoryMappedFile file;
-    file.Open(file_path);
-    stream.reset(Singleton<BassLib>::GetInstance().DSDLib->BASS_DSD_StreamCreateFile(TRUE,
-                                                                       file.GetData(),
-                                                                       0,
-                                                                       file.GetLength(),
-                                                                       BASS_DSD_RAW | BASS_STREAM_DECODE,
-                                                                       0));
+    stream.reset(Singleton<BassLib>::GetInstance().DSDLib->BASS_DSD_StreamCreateFile(FALSE,
+        file_path.data(),
+        0,
+        0,
+        BASS_DSD_RAW | BASS_STREAM_DECODE,
+        0));
 
     return stream.is_valid();
 }
@@ -34,7 +32,7 @@ static bool TestDsdFileFormat(std::wstring const & file_path) {
 class BassFileStream::BassFileStreamImpl {
 public:
     BassFileStreamImpl() noexcept
-        : enable_file_mapped_(true)
+        : enable_file_mapped_(false)
         , mode_(DsdModes::DSD_MODE_PCM) {
         info_ = BASS_CHANNELINFO{};
     }

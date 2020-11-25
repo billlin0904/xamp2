@@ -31,7 +31,7 @@ public:
 		free_.clear();
 	}
 	
-	AlignedBuffer<T> Allocate() {
+	Buffer<T> Allocate() {
 		std::lock_guard guard{ mutex_ };
 		if (free_.empty()) {
 			FillPool(num_entries_);
@@ -42,7 +42,7 @@ public:
 		return result;
 	}
 
-	void Release(AlignedBuffer<T> &buffer) {
+	void Release(Buffer<T> &buffer) {
 		std::lock_guard guard{ mutex_ };
 		free_.push_back(std::move(buffer));
 	}
@@ -50,7 +50,7 @@ public:
 private:
 	void FillPool(size_t num_entries) {
 		for (size_t i = 0; i < num_entries; ++i) {
-			free_.push_back(AlignedBuffer<T>(buf_size_));
+			free_.push_back(Buffer<T>(buf_size_));
 		}
 		num_entries_ += num_entries;
 	}
@@ -58,7 +58,7 @@ private:
 	size_t buf_size_;
 	size_t num_entries_;
 	mutable std::mutex mutex_;
-	std::vector<AlignedBuffer<T>> free_;
+	std::vector<Buffer<T>> free_;
 };
 
 }

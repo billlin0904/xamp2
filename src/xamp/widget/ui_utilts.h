@@ -45,9 +45,10 @@ static QString format2String(const xamp::player::AudioPlayer* player, const QStr
     }
 
     QString dsd_speed_format;
-    if (player->IsDSDFile()) {
-        auto dsd_speed = player->GetDSDSpeed();
-        dsd_speed_format = Q_UTF8(" DSD") + QString::number(dsd_speed.value()) + Q_UTF8(" ");
+    if (player->IsDSDFile()) {        
+        if (auto dsd_speed = player->GetDSDSpeed()) {
+            dsd_speed_format = Q_UTF8(" DSD") + QString::number(dsd_speed.value()) + Q_UTF8(" ");
+        }        
     }
 
     QString dsd_mode;

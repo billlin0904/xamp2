@@ -422,7 +422,7 @@ void AudioPlayer::CreateBuffer() {
         num_buffer_samples_ = allocate_size * kTotalBufferStreamCount;
         num_read_sample_ = require_read_sample;
         XAMP_LOG_DEBUG("Allocate interal buffer : {}.", FormatBytes(allocate_size));
-        sample_buffer_ = AlignedBuffer<int8_t>(allocate_size);
+        sample_buffer_ = Buffer<int8_t>(allocate_size);
         sample_buffer_lock_.Lock(sample_buffer_.Get(), sample_buffer_.GetByteSize());
         read_sample_size_ = allocate_size;
     }
@@ -575,41 +575,6 @@ void AudioPlayer::SetLoop(double start_time, double end_time) {
     sample_end_time_ = end_time - start_time;
 }
 
-void AudioPlayer::Seek(double stream_time) {
-    if (!device_) {
-        return;
-    }
-    if (device_->IsStreamOpen()) {
-        Pause();       
-        try {
-            stream_->Seek(stream_time);
-        }
-        catch (std::exception const & e) {
-            XAMP_LOG_DEBUG(e.what());
-            Resume();
-            return;
-        }
-        device_->SetStreamTime(stream_time);
-        sample_end_time_ = stream_->GetDuration() - stream_time;
-        XAMP_LOG_DEBUG("Player duration:{} seeking:{} sec, end time:{} sec.",
-                       stream_->GetDuration(),
-                       stream_time,
-                       sample_end_time_);
-        UpdateSlice(nullptr, 0, stream_time);
-        buffer_.Clear();
-        BufferStream(stream_time);
-        Resume();
-
-        std::lock_guard guard{ stream_read_mutex_ };
-        if (auto adapter = state_adapter_.lock()) {
-            if (adapter->GetPlayQueueSize() > 0) {
-                auto& entry = adapter->PlayQueueFont();
-                entry.first->Seek(0);
-            }            
-        }
-    }
-}
-
 void AudioPlayer::BufferStream(double stream_time) {
     buffer_.Clear();
 
@@ -692,6 +657,41 @@ void AudioPlayer::Startup() {
         });
 }
 
+void AudioPlayer::Seek(double stream_time) {
+    if (!device_) {
+        return;
+    }
+    if (device_->IsStreamOpen()) {
+        Pause();
+        try {
+            stream_->Seek(stream_time);
+        }
+        catch (std::exception const& e) {
+            XAMP_LOG_DEBUG(e.what());
+            Resume();
+            return;
+        }
+        device_->SetStreamTime(stream_time);
+        sample_end_time_ = stream_->GetDuration() - stream_time;
+        XAMP_LOG_DEBUG("Player duration:{} seeking:{} sec, end time:{} sec.",
+            stream_->GetDuration(),
+            stream_time,
+            sample_end_time_);
+        UpdateSlice(nullptr, 0, stream_time);
+        buffer_.Clear();
+        BufferStream(stream_time);
+        Resume();
+        
+        if (auto adapter = state_adapter_.lock()) {
+            std::lock_guard guard{ stream_read_mutex_ };
+            if (adapter->GetPlayQueueSize() > 0) {
+                auto& entry = adapter->PlayQueueFont();
+                entry.first->Seek(0);
+            }
+        }
+    }
+}
+
 void AudioPlayer::OnGaplessPlayState(std::unique_lock<std::mutex>& lock) {
     auto adapter = state_adapter_.lock();
     if (!adapter) {
@@ -712,21 +712,19 @@ void AudioPlayer::OnGaplessPlayState(std::unique_lock<std::mutex>& lock) {
         auto msg_id = *msg_queue_.Front();
 
         switch (msg_id) {
-        case GaplessPlayMsgID::SWITCH:
-            XAMP_LOG_DEBUG("Receive SWITCH");
-            adapter->OnGaplessPlayback();
+        case GaplessPlayMsgID::EVENT_SWITCH:
+            XAMP_LOG_DEBUG("Receive EVENT_SWITCH");            
             stream_->Close();
             stream_ = std::move(entry.first);            
-            resampler_ = std::move(entry.second);
-            dsd_mode_ = SetStreamDsdMode(stream_, device_info_);
-            adapter->PopPlayQueue();
+            resampler_ = std::move(entry.second);        
             stream_duration_ = stream_->GetDuration();
             msg_queue_.Pop();
+            adapter->PopPlayQueue();
+            adapter->OnGaplessPlayback();
             break;
         }        
     }
     else {
-        // 等待上一首播放結束並繼續緩衝資料.
         BufferSamples(entry.first, entry.second);
     }    
 }
@@ -799,7 +797,7 @@ int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, dou
 
     if (stream_time >= stream_duration_ && enable_gapless_play_) {
         device_->SetStreamTime(0);
-        msg_queue_.TryPush(GaplessPlayMsgID::SWITCH);
+        msg_queue_.TryPush(GaplessPlayMsgID::EVENT_SWITCH);
     }
 
     if (XAMP_LIKELY(buffer_.TryRead(static_cast<int8_t*>(samples), sample_size))) {

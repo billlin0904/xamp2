@@ -239,7 +239,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	
 	vmlock_.UnLock();
 	size_t buffer_size = buffer_frames_ * output_format.GetChannels();
-	buffer_ = AlignedBuffer<float>(buffer_size);
+	buffer_ = Buffer<float>(buffer_size);
 	vmlock_.Lock(buffer_.Get(), buffer_.GetByteSize());
     data_convert_ = MakeConvert(output_format, valid_output_format, buffer_frames_);
 	XAMP_LOG_DEBUG("WASAPI internal buffer: {}.", FormatBytes(buffer_.GetByteSize()));

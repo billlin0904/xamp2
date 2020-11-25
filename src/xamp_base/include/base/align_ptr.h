@@ -16,6 +16,10 @@ XAMP_BASE_API void* AlignedMalloc(size_t size, size_t aligned_size) noexcept;
 
 XAMP_BASE_API void AlignedFree(void* p) noexcept;
 
+XAMP_BASE_API void* StackAlloc(size_t size);
+
+XAMP_BASE_API void StackFree(void* p);
+
 template <typename Type>
 XAMP_BASE_API_ONLY_EXPORT Type* AlignedMallocOf(size_t aligned_size) noexcept {
     return static_cast<Type*>(AlignedMalloc(sizeof(Type), aligned_size));
@@ -44,11 +48,7 @@ struct XAMP_BASE_API_ONLY_EXPORT AlignedClassDeleter {
 template <typename Type>
 struct XAMP_BASE_API_ONLY_EXPORT StackBufferDeleter {
     void operator()(Type* p) const noexcept {
-#ifdef XAMP_OS_WIN
-        _freea(p);
-#else
-        (void)p;
-#endif
+        StackFree(p);
     }
 };
 
@@ -106,11 +106,7 @@ XAMP_BASE_API_ONLY_EXPORT AlignBufferPtr<Type> MakeBuffer(size_t n, size_t align
 
 template <typename Type, typename U = std::enable_if_t<std::is_trivially_copyable<Type>::value>>
 XAMP_BASE_API_ONLY_EXPORT StackBufferPtr<Type> MakeStackBuffer(size_t n) {
-#ifdef XAMP_OS_MAC
-    auto ptr = alloca(sizeof(Type) * n);
-#else
-    auto ptr =  _malloca(sizeof(Type) * n);
-#endif
+    auto ptr = StackAlloc(sizeof(Type) * n);
     if (!ptr) {
         throw std::bad_alloc();
     }
@@ -118,42 +114,38 @@ XAMP_BASE_API_ONLY_EXPORT StackBufferPtr<Type> MakeStackBuffer(size_t n) {
 }
 
 template <typename T>
-class XAMP_BASE_API_ONLY_EXPORT AlignedBuffer {
+class XAMP_BASE_API_ONLY_EXPORT Buffer {
 public:
-    AlignedBuffer() = default;
+    Buffer() = default;
 
-    explicit AlignedBuffer(size_t size)
+    explicit Buffer(size_t size)
         : ptr_(MakeBuffer<T>(size))
         , size_(size) {
     }
 
-    AlignedBuffer(const AlignedBuffer& other)
-        : AlignedBuffer(other.size_) {
+    Buffer(const Buffer& other)
+        : Buffer(other.size_) {
         std::memcpy(ptr_.get(), other.ptr_.get(), size_ * sizeof(T));
     }
 
-    AlignedBuffer(AlignedBuffer&&) = default;
+    Buffer(Buffer&&) = default;
 
-    AlignedBuffer& operator=(const AlignedBuffer& other) {
-        AlignedBuffer copy(other);
+    Buffer& operator=(const Buffer& other) {
+        Buffer copy(other);
         swap(*this, copy);
         return *this;
     }
 
-    AlignedBuffer& operator=(AlignedBuffer&&) = default;
+    Buffer& operator=(Buffer&&) = default;
 
-    friend void swap(AlignedBuffer& a, AlignedBuffer& b) noexcept {
+    friend void swap(Buffer& a, Buffer& b) noexcept {
         std::swap(a.ptr_, b.ptr_);
         std::swap(a.size_, b.size_);
     }
 
     T* Get() noexcept { 
         return ptr_.get();
-    }
-
-    T* data() noexcept {
-        return ptr_.get();
-    }
+    }    
 
     const T* Get() const noexcept {
         return ptr_.get();
@@ -163,7 +155,19 @@ public:
         return ptr_.get();
     }
 
+    [[nodiscard]] size_t GetSize() const noexcept {
+        return size_;
+    }
+
+    [[nodiscard]] size_t GetByteSize() const noexcept {
+        return size_ * sizeof(T);
+    }
+
     // 兼容STL容器相關函數.
+
+    T* data() noexcept {
+        return ptr_.get();
+    }
 
     T& operator[](size_t i) noexcept {
         return ptr_[i]; 
@@ -177,12 +181,14 @@ public:
         return size_;
     }
 
-    [[nodiscard]] size_t GetSize() const noexcept {
-        return size_;
+    void resize(size_t new_size) {
+        clear();
+        *this = Buffer<T>(new_size);
     }
 
-    [[nodiscard]] size_t GetByteSize() const noexcept {
-        return size_ * sizeof(T);
+    void clear() {
+        ptr_.reset();
+        size_ = 0;
     }
 
 private:

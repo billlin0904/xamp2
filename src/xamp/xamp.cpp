@@ -83,6 +83,25 @@ static std::tuple<bool, QMessageBox::StandardButton> showDontShowAgainDialog(QWi
     return { is_show_agin, QMessageBox::Yes };
 }
 
+static std::pair<uint32_t, AlignPtr<Resampler>> MakeResampler() {
+    auto soxr_settings = JsonSettings::getValue(AppSettings::getValueAsString(kAppSettingSoxrSettingName)).toMap();
+
+    auto samplerate = soxr_settings[kSoxrResampleSampleRate].toUInt();
+    auto quality = static_cast<SoxrQuality>(soxr_settings[kSoxrQuality].toInt());
+    auto phase = static_cast<SoxrPhaseResponse>(soxr_settings[kSoxrPhase].toInt());
+    auto passband = soxr_settings[kSoxrPassBand].toInt();
+    auto enable_steep_filter = soxr_settings[kSoxrEnableSteepFilter].toBool();
+
+    auto resampler = MakeAlign<Resampler, SoxrResampler>();
+    auto soxr = dynamic_cast<SoxrResampler*>(resampler.get());
+    soxr->SetQuality(quality);
+    soxr->SetPhase(phase);
+    soxr->SetPassBand(passband / 100.0);
+    soxr->SetSteepFilter(enable_steep_filter);
+
+    return std::make_pair(samplerate, std::move(resampler));
+}
+
 Xamp::Xamp(QWidget *parent)
     : FramelessWindow(parent)
     , is_seeking_(false)
@@ -830,21 +849,8 @@ void Xamp::resetSeekPosValue() {
 
 void Xamp::setupResampler() {
     if (AppSettings::getValue(kAppSettingResamplerEnable).toBool()) {        
-        auto soxr_settings = JsonSettings::getValue(AppSettings::getValueAsString(kAppSettingSoxrSettingName)).toMap();
-
-        auto samplerate = soxr_settings[kSoxrResampleSampleRate].toUInt();
-        auto quality = static_cast<SoxrQuality>(soxr_settings[kSoxrQuality].toInt());
-        auto phase = static_cast<SoxrPhaseResponse>(soxr_settings[kSoxrPhase].toInt());
-        auto passband = soxr_settings[kSoxrPassBand].toInt();
-        auto enable_steep_filter = soxr_settings[kSoxrEnableSteepFilter].toBool();       
-
-        auto resampler = MakeAlign<Resampler, SoxrResampler>();
-        auto soxr = dynamic_cast<SoxrResampler*>(resampler.get());
-        soxr->SetQuality(quality);
-        soxr->SetPhase(phase);
-        soxr->SetPassBand(passband / 100.0);
-        soxr->SetSteepFilter(enable_steep_filter);
-        player_->SetResampler(samplerate, std::move(resampler));
+        auto resampler = MakeResampler();
+        player_->SetResampler(resampler.first, std::move(resampler.second));
     }
     else {
         player_->EnableResampler(false);
@@ -1072,26 +1078,42 @@ void Xamp::addPlayQueue() {
         setupResampler();
     }
 
+    auto item = playlist_view->item(next_index);
+    auto stream = MakeFileStream(item.file_ext.toStdWString());
+    SetStreamDsdMode(stream, device_info_, use_native_dsd);
+
     try {
-        auto item = playlist_view->item(next_index);
-        auto stream = MakeFileStream(item.file_ext.toStdWString());
-        SetStreamDsdMode(stream, device_info_, use_native_dsd);
-        stream->OpenFile(item.file_path.toStdWString());   
-        auto output_format = player_->GetOutputFormat();
-        auto resampler = player_->CloneResampler();
-        auto input_format = stream->GetFormat();
-        resampler->Start(input_format.GetSampleRate(), input_format.GetChannels(), output_format.GetSampleRate());
-        state_adapter_->addPlayQueue(std::move(stream), std::move(resampler), next_index);
+        stream->OpenFile(item.file_path.toStdWString());
     }
     catch (std::exception const &e) {
         XAMP_LOG_DEBUG("addPlayQueue ex:{} ", e.what());
+        return;
     }
+
+    auto input_format = stream->GetFormat();
+    auto output_format = player_->GetOutputFormat();
+
+    AlignPtr<Resampler> resampler;
+
+    if (output_format == AudioFormat::UnknowFormat) {
+        auto resampler_settings = MakeResampler();
+        resampler = std::move(resampler_settings.second);       
+        resampler->Start(input_format.GetSampleRate(), input_format.GetChannels(), resampler_settings.first);
+    }
+    else {
+        auto soxr_settings = JsonSettings::getValue(AppSettings::getValueAsString(kAppSettingSoxrSettingName)).toMap();
+        auto samplerate = soxr_settings[kSoxrResampleSampleRate].toUInt();
+        resampler = player_->CloneResampler();
+        resampler->Start(input_format.GetSampleRate(), input_format.GetChannels(), samplerate);
+    }    
+
+    state_adapter_->addPlayQueue(std::move(stream), std::move(resampler), next_index);
 }
 
 void Xamp::play(const QModelIndex&, const PlayListEntity& item) {
     player_->ClearPlayQueue();
 
-    if (AppSettings::getValueAsBool(kAppSettingEnableGaplessPlay)) {
+    while (AppSettings::getValueAsBool(kAppSettingEnableGaplessPlay)) {
         if (!AppSettings::getValueAsBool(kAppSettingResamplerEnable)) {
             auto result = showAskDialog(this, "Gapless play must enable resampler first");
             if (result == QMessageBox::Yes) {
@@ -1099,7 +1121,10 @@ void Xamp::play(const QModelIndex&, const PlayListEntity& item) {
                 dialog.setFont(font());
                 dialog.exec();
             }
-        }        
+        }
+        else {
+            break;
+        }
     }
 
     addPlayQueue();

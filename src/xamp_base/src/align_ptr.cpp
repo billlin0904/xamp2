@@ -19,13 +19,34 @@ void* AlignedMalloc(size_t size, size_t aligned_size) noexcept {
 void AlignedFree(void* p) noexcept {
     return ::free(p);
 }
+
+void* StackAlloc(size_t size) {
+    auto ptr = alloca(size);
+    return ptr;
+}
+
+void StackFree(void* p) {
+    (void)p;
+}
+
 #else
 void* AlignedMalloc(size_t size, size_t aligned_size) noexcept {
     return ::_aligned_malloc(size, aligned_size);
 }
 
 void AlignedFree(void* p) noexcept {
+    assert(p != nullptr);
     ::_aligned_free(p);
+}
+
+void* StackAlloc(size_t size) {
+    auto ptr = _malloca(size);
+    return ptr;
+}
+
+void StackFree(void* p) {
+    assert(p != nullptr);
+    _freea(p);
 }
 #endif
 

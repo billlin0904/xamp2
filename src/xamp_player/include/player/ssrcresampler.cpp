@@ -18,7 +18,7 @@ public:
     }
 };
 
-const std::string_view SSRCResampler::VERSION = "SSRC ";
+const std::string_view SSRCResampler::VERSION = "dBpoweramp/SSRC";
 
 SSRCResampler::SSRCResampler()
     : impl_(MakeAlign<SSRCResamplerImpl>()) {
