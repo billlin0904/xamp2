@@ -611,6 +611,7 @@ void AudioPlayer::BufferSamples(AlignPtr<FileStream> &stream, AlignPtr<Resampler
             }
 
             if (use_resampler) {
+                assert(resampler != nullptr);
                 if (!resampler->Process(samples, num_samples, buffer_)) {
                     continue;
                 }
