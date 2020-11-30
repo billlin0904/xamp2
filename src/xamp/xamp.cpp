@@ -1121,6 +1121,9 @@ void Xamp::play(const QModelIndex&, const PlayListEntity& item) {
                 dialog.setFont(font());
                 dialog.exec();
             }
+            else {
+                AppSettings::setValue(kAppSettingEnableGaplessPlay, false);
+            }
         }
         else {
             break;

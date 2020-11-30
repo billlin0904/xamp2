@@ -44,8 +44,6 @@ public:
 
     static void ReadFileMetadata(MetadataExtractAdapter* adapter, QString const& file_name);
 
-    static void DownloadFile(const PlayListEntity &entity);
-
 signals:
 	void readCompleted(std::vector<Metadata> enitiy);
 
@@ -53,8 +51,8 @@ public:
     static void ProcessMetadata(const std::vector<Metadata>& result, PlayListTableView *playlist = nullptr);
 	    
 private:
-	Stopwatch watch_;
     std::atomic<bool> cancel_;
     std::vector<Metadata> metadatas_;
+	Stopwatch watch_;	
 };
 

@@ -47,7 +47,7 @@ AlignPtr<Device> ExclusiveWasapiDeviceType::MakeDevice(std::string const & devic
 }
 
 std::string_view ExclusiveWasapiDeviceType::GetDescription() const {
-	return "WASAPI (Exclusive)";
+	return "WASAPI (exclusive)";
 }
 
 Uuid ExclusiveWasapiDeviceType::GetTypeId() const {

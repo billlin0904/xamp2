@@ -26,7 +26,7 @@ public:
 
 	XAMP_DISABLE_COPY(MemPool)
 
-	void clear() {
+	void Clear() {
 		std::lock_guard guard{ mutex_ };
 		free_.clear();
 	}

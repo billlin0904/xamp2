@@ -38,7 +38,7 @@ ASIODeviceType::ASIODeviceType() {
 }
 
 std::string_view ASIODeviceType::GetDescription() const {
-	return "ASIO";
+	return "ASIO 2.0";
 }
 
 Uuid ASIODeviceType::GetTypeId() const {

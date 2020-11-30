@@ -36,7 +36,11 @@ public:
 
     HttpClient& success(std::function<void (const QString &)> successHandler);
 
-    void download(std::function<void (const QByteArray &)> downloadHandler);
+    HttpClient& error(std::function<void(const QString&)> errorHandler);
+
+    void download(std::function<void (const QByteArray &)> downloadHandler, std::function<void(const QString&)> errorHandler = nullptr);
+
+    void downloadFile(const QString &file_name, std::function<void(const QString&)> downloadHandler, std::function<void(const QString&)> errorHandler = nullptr);
 
     void get();
 

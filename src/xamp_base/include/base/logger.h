@@ -21,7 +21,7 @@ class XAMP_BASE_API Logger final {
 public:
 	static constexpr int kMaxLogFileSize = 1024 * 1024;
 
-	static Logger& Instance() noexcept;
+	static Logger& GetInstance() noexcept;
 
 	XAMP_DISABLE_COPY(Logger)
 
@@ -46,11 +46,11 @@ private:
 	std::shared_ptr<spdlog::logger> default_logger_;
 };
 
-#define XAMP_SET_LOG_LEVEL(level) xamp::base::Logger::Instance().GetDefaultLogger()->set_level(level)
-#define XAMP_LOG_DEBUG(...) xamp::base::Logger::Instance().GetDefaultLogger()->debug(__VA_ARGS__)
-#define XAMP_LOG_INFO(...) xamp::base::Logger::Instance().GetDefaultLogger()->info(__VA_ARGS__)
-#define XAMP_LOG_ERROR(...) xamp::base::Logger::Instance().GetDefaultLogger()->error(__VA_ARGS__)
-#define XAMP_LOG_TRACE(...) xamp::base::Logger::Instance().GetDefaultLogger()->trace(__VA_ARGS__)
+#define XAMP_SET_LOG_LEVEL(level) xamp::base::Logger::GetInstance().GetDefaultLogger()->set_level(level)
+#define XAMP_LOG_DEBUG(...) xamp::base::Logger::GetInstance().GetDefaultLogger()->debug(__VA_ARGS__)
+#define XAMP_LOG_INFO(...) xamp::base::Logger::GetInstance().GetDefaultLogger()->info(__VA_ARGS__)
+#define XAMP_LOG_ERROR(...) xamp::base::Logger::GetInstance().GetDefaultLogger()->error(__VA_ARGS__)
+#define XAMP_LOG_TRACE(...) xamp::base::Logger::GetInstance().GetDefaultLogger()->trace(__VA_ARGS__)
 
 }
 

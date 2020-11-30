@@ -3,6 +3,7 @@
 #include <QNetworkAccessManager>
 #include <QUrlQuery>
 #include <QUrl>
+#include <QTemporaryFile>
 
 #include <memory>
 #include <base/logger.h>
@@ -17,6 +18,7 @@ struct HttpContext {
     QString userAgent;
     QNetworkAccessManager* manager;
     std::function<void (const QString &)> successHandler;
+    std::function<void(const QString&)> errorHandler;
 };
 
 class HttpClient::HttpClientImpl {
@@ -45,6 +47,7 @@ public:
     QNetworkAccessManager *manager;
     QHash<QString, QString> headers;
     std::function<void (const QString &)> successHandler;
+    std::function<void(const QString&)> errorHandler;
     std::function<void (const QByteArray &)> downloadHandler;
 };
 
@@ -59,6 +62,7 @@ HttpClient::HttpClientImpl::HttpClientImpl(const QString &url, QNetworkAccessMan
 HttpContext HttpClient::HttpClientImpl::makeContext() {
     HttpContext context;
     context.successHandler = successHandler;
+    context.errorHandler = errorHandler;
     context.manager = manager;
     context.charset = charset;
     context.userAgent = userAgent;
@@ -121,6 +125,9 @@ void HttpClient::HttpClientImpl::handleFinish(HttpContext context, QNetworkReply
             context.successHandler(successMessage);
         }
     } else {
+        if (context.errorHandler != nullptr) {
+            context.errorHandler(successMessage);
+        }
         XAMP_LOG_DEBUG("{}", successMessage.toStdString());
     }
 
@@ -216,6 +223,11 @@ HttpClient& HttpClient::success(std::function<void (const QString &)> successHan
     return *this;
 }
 
+HttpClient& HttpClient::error(std::function<void(const QString&)> errorHandler) {
+    impl_->errorHandler = errorHandler;
+    return *this;
+}
+
 void HttpClient::get() {
     HttpClientImpl::executeQuery(impl_.get(), HttpMethod::HTTP_GET);
 }
@@ -224,12 +236,34 @@ void HttpClient::post() {
     HttpClientImpl::executeQuery(impl_.get(), HttpMethod::HTTP_POST);
 }
 
-void HttpClient::download(std::function<void (const QByteArray &)> downloadHandler) {
+void HttpClient::downloadFile(const QString& file_name, std::function<void(const QString&)> downloadHandler, std::function<void(const QString&)> errorHandler) {
+    QSharedPointer<QTemporaryFile> tempfile(new QTemporaryFile());
+    if (!tempfile->open()) {
+        return;
+    }
+
+    tempfile->setAutoRemove(false);
+
+    success([=](auto) {
+        tempfile->rename(file_name);
+        downloadHandler(file_name);
+        });
+
+    error(errorHandler);
+
+    HttpClientImpl::download(impl_.get(), [tempfile](auto buffer) {
+        tempfile->write(buffer);
+        });
+}
+
+void HttpClient::download(std::function<void (const QByteArray &)> downloadHandler, std::function<void(const QString&)> errorHandler) {
     auto data = std::make_shared<QByteArray>();
 
     success([=](auto) {
         downloadHandler(*data);
     });
+
+    error(errorHandler);
 
     HttpClientImpl::download(impl_.get(), [data](auto buffer) {
         data->append(buffer);

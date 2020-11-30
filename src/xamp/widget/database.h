@@ -78,6 +78,8 @@ public:
 
     void UpdateMusicFingerprint(int32_t music_id, const QString& fingerprint);
 
+    void UpdateMusicFilePath(int32_t music_id, const QString& file_path);
+
     void UpdateMusicRating(int32_t music_id, int32_t rating);
 
     int32_t AddOrUpdateAlbum(const QString& album, int32_t artist_id);
@@ -157,7 +159,6 @@ WHERE
             entity.cover_id = query.value(Q_UTF8("coverId")).toString();
             entity.fingerprint = query.value(Q_UTF8("fingerprint")).toString();
             entity.rating = query.value(Q_UTF8("rating")).toUInt();
-            entity.url = query.value(Q_UTF8("url")).toString();
             fun(entity);
         }
     }
@@ -210,7 +211,6 @@ WHERE
             entity.cover_id = query.value(Q_UTF8("coverId")).toString();
             entity.fingerprint = query.value(Q_UTF8("fingerprint")).toString();
             entity.rating = query.value(Q_UTF8("rating")).toUInt();
-            entity.url = query.value(Q_UTF8("url")).toString();
             fun(entity);
         }
     }

@@ -1,5 +1,4 @@
 #include <QMap>
-#include <QTemporaryFile>
 
 #include <base/base.h>
 #include <base/threadpool.h>
@@ -173,7 +172,7 @@ void MetadataExtractAdapter::ProcessMetadata(const std::vector<Metadata>& result
         if (album.isEmpty()) {
             album = tr("Unknown album");
             is_unknown_album = true;
-        }
+        }        
 
         auto music_id = Database::instance().AddOrUpdateMusic(metadata, playlist_id);
 
@@ -202,23 +201,7 @@ void MetadataExtractAdapter::ProcessMetadata(const std::vector<Metadata>& result
             entity.artist_id = artist_id;
             entity.cover_id = cover_id;
             playlist->appendItem(entity);
-
-            const QUrl url_parse(entity.file_path);
-            if (url_parse.scheme() == Q_UTF8("http") || url_parse.scheme() == Q_UTF8("https")) {
-                entity.url = entity.file_path;
-            }
         }
     }
 }
 
-void MetadataExtractAdapter::DownloadFile(const PlayListEntity &entity) {
-    QSharedPointer<QTemporaryFile> tempfile(new QTemporaryFile());
-    if (!tempfile->open()) {
-        return;
-    }
-
-    http::HttpClient(entity.url.toString()).download([tempfile](const auto &buffer) {
-        tempfile->write(buffer);
-        tempfile->close();
-    });
-}

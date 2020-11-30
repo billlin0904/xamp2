@@ -48,7 +48,7 @@ Uuid SharedWasapiDeviceType::GetTypeId() const {
 }
 
 std::string_view SharedWasapiDeviceType::GetDescription() const {
-	return "WASAPI (Shared)";
+	return "WASAPI (shared)";
 }
 
 size_t SharedWasapiDeviceType::GetDeviceCount() const {

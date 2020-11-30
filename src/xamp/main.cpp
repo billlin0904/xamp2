@@ -90,7 +90,7 @@ static int excute(int argc, char* argv[]) {
 
     StackTrace::RegisterAbortHandler();
 
-    Logger::Instance()
+    Logger::GetInstance()
 #ifdef Q_OS_WIN
         .AddDebugOutputLogger()
 #else
@@ -183,7 +183,7 @@ static int tryExcute(int argc, char* argv[]) {
 
 int main(int argc, char *argv[]) {
     XAMP_ON_SCOPE_EXIT(
-        Logger::Instance().Shutdown();
+        Logger::GetInstance().Shutdown();
         JsonSettings::save();
         AppSettings::save();
     );
