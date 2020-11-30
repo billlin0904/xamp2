@@ -9,6 +9,7 @@
 
 #include <QString>
 #include <QIcon>
+#include <QUrl>
 
 #include <widget/starrating.h>
 
@@ -21,6 +22,7 @@ struct PlayListEntity {
     uint32_t samplerate{0};
     uint32_t rating{0};
     double duration{0};
+    QUrl url;
     QString file_path;
     QString parent_path;
     QString title;

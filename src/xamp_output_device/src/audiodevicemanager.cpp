@@ -102,7 +102,6 @@ AudioDeviceManager::AudioDeviceManager() {
     XAMP_REGISTER_DEVICE_TYPE(ExclusiveWasapiDeviceType);
 #else
     using namespace osx;
-    SetRealtimeProcessPriority();
     XAMP_REGISTER_DEVICE_TYPE(CoreAudioDeviceType);
     XAMP_REGISTER_DEVICE_TYPE(HogCoreAudioDeviceType);
 #endif

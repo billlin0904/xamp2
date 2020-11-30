@@ -89,7 +89,7 @@ template <typename Type, typename U>
 void AudioBuffer<Type, U>::Resize(size_t size) {
 	if (size > size_) {
 		lock_.UnLock();
-        auto new_buffer = MakeBuffer<Type>(size);
+        auto new_buffer = MakeBufferPtr<Type>(size);
         if (GetSize() > 0) {
             (void)FastMemcpy(new_buffer.get(), buffer_.get(), sizeof(Type) * GetSize());
         }

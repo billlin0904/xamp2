@@ -370,7 +370,7 @@ bool CoreAudioDevice::IsHardwareControlVolume() const {
 void CoreAudioDevice::DisplayControlPanel() {
 }
 
-PackedFormat CoreAudioDevice::GetInterleavedFormat() const noexcept {
+PackedFormat CoreAudioDevice::GetPackedFormat() const noexcept {
     return PackedFormat::INTERLEAVED;
 }
 

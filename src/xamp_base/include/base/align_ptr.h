@@ -96,7 +96,7 @@ XAMP_BASE_API_ONLY_EXPORT AlignPtr<Type> MakeAlign(Args&& ... args) {
 }
 
 template <typename Type, typename U = std::enable_if_t<std::is_trivially_copyable<Type>::value>>
-XAMP_BASE_API_ONLY_EXPORT AlignBufferPtr<Type> MakeBuffer(size_t n, size_t alignment = kMallocAlignSize) {
+XAMP_BASE_API_ONLY_EXPORT AlignBufferPtr<Type> MakeBufferPtr(size_t n, size_t alignment = kMallocAlignSize) {
     auto ptr = AlignedMallocCountOf<Type>(n, alignment);
     if (!ptr) {
         throw std::bad_alloc();
@@ -119,7 +119,7 @@ public:
     Buffer() = default;
 
     explicit Buffer(size_t size)
-        : ptr_(MakeBuffer<T>(size))
+        : ptr_(MakeBufferPtr<T>(size))
         , size_(size) {
     }
 
@@ -196,6 +196,10 @@ private:
     size_t size_ = 0;
 };
 
+template <typename T>
+XAMP_BASE_API_ONLY_EXPORT Buffer<T> MakeBuffer(size_t size) {
+    return Buffer<T>(size);
+}
 
 }
 

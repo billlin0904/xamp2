@@ -28,8 +28,8 @@ std::tuple<double, std::vector<uint8_t>> ReadFingerprint(std::wstring const & fi
 		PackedFormat::INTERLEAVED
 	};
 
-    auto isamples = MakeBuffer<float>(1024 + kReadSampleSize * input_format.GetChannels());
-    auto osamples = MakeBuffer<int16_t>(1024 + kReadSampleSize * input_format.GetChannels());
+    auto isamples = MakeBufferPtr<float>(1024 + kReadSampleSize * input_format.GetChannels());
+    auto osamples = MakeBufferPtr<int16_t>(1024 + kReadSampleSize * input_format.GetChannels());
     uint32_t num_samples = 0;
 
 	const AudioFormat output_format { 

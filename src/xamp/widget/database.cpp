@@ -47,6 +47,7 @@ void Database::CreateTableIfNotExist() {
                        title TEXT,
                        path TEXT NOT NULL,
                        parentPath TEXT NO NULL,
+                       url TEXT,
                        offset DOUBLE,
                        duration DOUBLE,
                        durationStr TEXT,
@@ -435,8 +436,8 @@ int32_t Database::AddOrUpdateMusic(const Metadata& metadata, int32_t playlist_id
 	Q_UTF8(
 	R"(
     INSERT OR REPLACE INTO musics
-    (musicId, title, track, path, fileExt, fileName, duration, durationStr, parentPath, bitrate, samplerate, offset)
-    VALUES ((SELECT musicId FROM musics WHERE path = :path and offset = :offset), :title, :track, :path, :fileExt, :fileName, :duration, :durationStr, :parentPath, :bitrate, :samplerate, :offset)
+    (musicId, title, track, path, fileExt, fileName, duration, durationStr, parentPath, bitrate, samplerate, offset, url)
+    VALUES ((SELECT musicId FROM musics WHERE path = :path and offset = :offset), :title, :track, :path, :fileExt, :fileName, :duration, :durationStr, :parentPath, :bitrate, :samplerate, :offset, :url)
     )")
 	);
 
@@ -454,6 +455,7 @@ int32_t Database::AddOrUpdateMusic(const Metadata& metadata, int32_t playlist_id
 	query.bindValue(Q_UTF8(":bitrate"), metadata.bitrate);
 	query.bindValue(Q_UTF8(":samplerate"), metadata.samplerate);
 	query.bindValue(Q_UTF8(":offset"), metadata.offset);
+    query.bindValue(Q_UTF8(":url"), QString::fromStdString(metadata.url));
 
 	db_.transaction();
 

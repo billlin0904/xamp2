@@ -131,4 +131,5 @@ inline constexpr size_t kMallocAlignSize{ 32 };
 
 inline constexpr ptrdiff_t kLoopUnRollingIntCount{ 4 };
 
+inline constexpr int32_t kDefaultAffinityCpuCore{ 0 };
 }

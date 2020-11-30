@@ -44,6 +44,8 @@ public:
 
     static void ReadFileMetadata(MetadataExtractAdapter* adapter, QString const& file_name);
 
+    static void DownloadFile(const PlayListEntity &entity);
+
 signals:
 	void readCompleted(std::vector<Metadata> enitiy);
 

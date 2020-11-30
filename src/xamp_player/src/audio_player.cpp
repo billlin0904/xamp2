@@ -422,7 +422,7 @@ void AudioPlayer::CreateBuffer() {
         num_buffer_samples_ = allocate_size * kTotalBufferStreamCount;
         num_read_sample_ = require_read_sample;
         XAMP_LOG_DEBUG("Allocate interal buffer : {}.", FormatBytes(allocate_size));
-        sample_buffer_ = Buffer<int8_t>(allocate_size);
+        sample_buffer_ = MakeBuffer<int8_t>(allocate_size);
         sample_buffer_lock_.Lock(sample_buffer_.Get(), sample_buffer_.GetByteSize());
         read_sample_size_ = allocate_size;
     }

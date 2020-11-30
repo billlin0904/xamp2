@@ -7,9 +7,9 @@
 #ifdef XAMP_OS_WIN
 #include <base/windows_handle.h>
 #include <base/str_utilts.h>
-#include <base/stacktrace.h>
 #endif
 
+#include <base/stacktrace.h>
 #include <base/stl.h>
 #include <base/exception.h>
 

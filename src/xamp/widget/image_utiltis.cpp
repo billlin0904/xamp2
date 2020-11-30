@@ -504,7 +504,7 @@ void Stackblur::blur(uint8_t* src,
 	}
 
 	auto div = (radius * 2) + 1;
-	auto stack = MakeBuffer<uint8_t>(div * 4 * cores);
+	auto stack = MakeBufferPtr<uint8_t>(div * 4 * cores);
 
 	if (cores == 1) {		
 		stackblurJob(src, width, height, radius, 1, 0, 1, stack.get());

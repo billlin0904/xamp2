@@ -144,7 +144,7 @@ WHERE
             entity.artist_id = query.value(Q_UTF8("artistId")).toInt();
             entity.music_id = query.value(Q_UTF8("musicId")).toInt();
             entity.file_path = query.value(Q_UTF8("path")).toString();
-            entity.track = query.value(Q_UTF8("track")).toInt();
+            entity.track = query.value(Q_UTF8("track")).toUInt();
             entity.title = query.value(Q_UTF8("title")).toString();
             entity.file_name = query.value(Q_UTF8("fileName")).toString();
             entity.album = query.value(Q_UTF8("album")).toString();
@@ -152,11 +152,12 @@ WHERE
             entity.file_ext = query.value(Q_UTF8("fileExt")).toString();
             entity.parent_path = query.value(Q_UTF8("parentPath")).toString();
             entity.duration = query.value(Q_UTF8("duration")).toDouble();
-            entity.bitrate = query.value(Q_UTF8("bitrate")).toInt();
-            entity.samplerate = query.value(Q_UTF8("samplerate")).toInt();
+            entity.bitrate = query.value(Q_UTF8("bitrate")).toUInt();
+            entity.samplerate = query.value(Q_UTF8("samplerate")).toUInt();
             entity.cover_id = query.value(Q_UTF8("coverId")).toString();
             entity.fingerprint = query.value(Q_UTF8("fingerprint")).toString();
-            entity.rating = query.value(Q_UTF8("rating")).toInt();
+            entity.rating = query.value(Q_UTF8("rating")).toUInt();
+            entity.url = query.value(Q_UTF8("url")).toString();
             fun(entity);
         }
     }
@@ -196,7 +197,7 @@ WHERE
             entity.artist_id = query.value(Q_UTF8("artistId")).toInt();
             entity.music_id = query.value(Q_UTF8("musicId")).toInt();
             entity.file_path = query.value(Q_UTF8("path")).toString();
-            entity.track = query.value(Q_UTF8("track")).toInt();
+            entity.track = query.value(Q_UTF8("track")).toUInt();
             entity.title = query.value(Q_UTF8("title")).toString();
             entity.file_name = query.value(Q_UTF8("fileName")).toString();
             entity.album = query.value(Q_UTF8("album")).toString();
@@ -204,11 +205,12 @@ WHERE
             entity.file_ext = query.value(Q_UTF8("fileExt")).toString();
             entity.parent_path = query.value(Q_UTF8("parentPath")).toString();
             entity.duration = query.value(Q_UTF8("duration")).toDouble();
-            entity.bitrate = query.value(Q_UTF8("bitrate")).toInt();
-            entity.samplerate = query.value(Q_UTF8("samplerate")).toInt();
+            entity.bitrate = query.value(Q_UTF8("bitrate")).toUInt();
+            entity.samplerate = query.value(Q_UTF8("samplerate")).toUInt();
             entity.cover_id = query.value(Q_UTF8("coverId")).toString();
             entity.fingerprint = query.value(Q_UTF8("fingerprint")).toString();
-            entity.rating = query.value(Q_UTF8("rating")).toInt();
+            entity.rating = query.value(Q_UTF8("rating")).toUInt();
+            entity.url = query.value(Q_UTF8("url")).toString();
             fun(entity);
         }
     }
