@@ -16,15 +16,15 @@ namespace xamp::player {
 using namespace base;
 
 template <typename T>
-class XAMP_PLAYER_API MemPool {
+class XAMP_PLAYER_API MemoryPool {
 public:
-	explicit MemPool(size_t buf_size, size_t num_entries = 8)
+	explicit MemoryPool(size_t buf_size, size_t num_entries = 8)
 		: buf_size_(buf_size)
 		, num_entries_(0) {
 		FillPool(num_entries);
 	}
 
-	XAMP_DISABLE_COPY(MemPool)
+	XAMP_DISABLE_COPY(MemoryPool)
 
 	void Clear() {
 		std::lock_guard guard{ mutex_ };

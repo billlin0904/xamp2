@@ -123,6 +123,7 @@ void AsioDevice::RemoveDriver() {
 	}
 	Singleton<AsioDriver>::GetInstance().drivers->removeCurrentDriver();
 	Singleton<AsioDriver>::GetInstance().drivers.reset();
+	XAMP_LOG_DEBUG("Remove ASIO driver");
 }
 
 void AsioDevice::ReOpen() {
@@ -389,6 +390,7 @@ void AsioDevice::OnBufferSwitch(long index, double sample_time) noexcept {
 	if (!is_streaming_) {
 		is_stop_streaming_ = true;
 		condition_.notify_all();
+		::ASIOOutputReady();
 		return;
 	}
 

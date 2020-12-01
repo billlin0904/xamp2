@@ -4,11 +4,13 @@
 #include <optional>
 #include <map>
 #include <sstream>
+#include <filesystem>
 
 #include <base/logger.h>
 #include <base/stl.h>
 #include <base/singleton.h>
 #include <base/stacktrace.h>
+#include <base/str_utilts.h>
 
 #ifdef XAMP_OS_WIN
 #include <base/windows_handle.h>
@@ -119,6 +121,10 @@ static size_t WalkStack(CONTEXT const* context, StackTrace::CaptureStackAddress&
     return frame_count;
 }
 
+std::string GetFileName(std::filesystem::path const &path) {
+    return ToUtf8String(path.filename());
+}
+
 void StackTrace::WriteLog(size_t frame_count, std::ostream& ostr) {
     std::vector<uint8_t> symbol(sizeof(SYMBOL_INFO) + sizeof(wchar_t) * MAX_SYM_NAME);
     auto current_process = Singleton<SymLoader>::GetInstance().GetProcess().get();
@@ -156,7 +162,7 @@ void StackTrace::WriteLog(size_t frame_count, std::ostream& ostr) {
             if (has_line) {                
                 ostr << "0x" << std::hex << reinterpret_cast<DWORD64>(frame) << " " 
                     << std::dec << displacement << " "
-                    << line.FileName << ":" << line.LineNumber << "\r\n";
+                    << GetFileName(line.FileName) << ":" << line.LineNumber << "\r\n";
             }
             else {                
                 ostr << "0x" << std::hex << reinterpret_cast<DWORD64>(frame) << " "

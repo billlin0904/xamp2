@@ -50,6 +50,7 @@ public:
 
     SoxrResamplerImpl() noexcept
         : enable_steep_filter_(false)
+        , enable_dither_(true)
         , quality_(SoxrQuality::VHQ)
         , phase_(SoxrPhaseResponse::LINEAR_PHASE)
         , input_samplerate_(0)
@@ -86,12 +87,12 @@ public:
             break;
 		}
 
+        auto flags = (SOXR_ROLLOFF_NONE | SOXR_HI_PREC_CLOCK | SOXR_VR | SOXR_DOUBLE_PRECISION);
         if (enable_steep_filter_) {
-            quality_spec |= SOXR_STEEP_FILTER;
+            flags |= SOXR_STEEP_FILTER;
         }
 
-        quality_spec |= (SOXR_ROLLOFF_NONE | SOXR_HI_PREC_CLOCK | SOXR_VR | SOXR_DOUBLE_PRECISION);
-        auto soxr_quality = Singleton<SoxrLib>::GetInstance().soxr_quality_spec(quality_spec, 0);
+        auto soxr_quality = Singleton<SoxrLib>::GetInstance().soxr_quality_spec(quality_spec, flags);
 
         switch (phase_) {
         case SoxrPhaseResponse::LINEAR_PHASE:
@@ -109,6 +110,11 @@ public:
         soxr_quality.stopband_begin = stopband_;
 
         auto iospec = Singleton<SoxrLib>::GetInstance().soxr_io_spec(SOXR_FLOAT32_I, SOXR_FLOAT32_I);
+
+        if (!enable_dither_) {
+            iospec.flags |= SOXR_NO_DITHER;
+        }
+
         auto runtimespec = Singleton<SoxrLib>::GetInstance().soxr_runtime_spec(1);
 
         soxr_error_t error = nullptr;
@@ -142,6 +148,10 @@ public:
         vmlock_.UnLock();
         handle_.reset();
         buffer_.clear();
+    }
+
+    void SetDither(bool enable) {
+        enable_dither_ = enable;
     }
 
     void SetSteepFilter(bool enable) {
@@ -222,6 +232,7 @@ public:
     using SoxrHandle = UniqueHandle<soxr_t, SoxrHandleTraits>;
 
     bool enable_steep_filter_;
+    bool enable_dither_;
     SoxrQuality quality_;
     SoxrPhaseResponse phase_;
     uint32_t input_samplerate_;
@@ -270,6 +281,10 @@ void SoxrResampler::SetStopBand(double stopband) {
     impl_->SetStopBand(stopband);
 }
 
+void SoxrResampler::SetDither(bool enable) {
+    impl_->SetDither(enable);
+}
+
 std::string_view SoxrResampler::GetDescription() const noexcept {
     return VERSION;
 }
@@ -290,6 +305,7 @@ AlignPtr<Resampler> SoxrResampler::Clone() {
     soxr->SetPhase(impl_->phase_);
     soxr->SetStopBand(impl_->stopband_);
     soxr->SetSteepFilter(impl_->enable_steep_filter_);
+    soxr->SetDither(impl_->enable_dither_);
     return std::move(other);
 }
 

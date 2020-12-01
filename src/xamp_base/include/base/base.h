@@ -74,7 +74,7 @@
 
 #ifdef _WIN32
 // Optimization function call
-#ifdef NDEBUG
+#ifndef DEBUG
 #define XAMP_ALWAYS_INLINE __forceinline
 #else
 #define XAMP_ALWAYS_INLINE inline

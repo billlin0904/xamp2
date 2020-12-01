@@ -154,9 +154,9 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
 		reinterpret_cast<void**>(&endpoint_volume)
 	));
 
+#ifdef _DEBUG
 	HrIfFailledThrow(endpoint_volume->QueryHardwareSupport(&volume_support_mask_));
 
-#ifdef _DEBUG
 	if (volume_support_mask_ & ENDPOINT_HARDWARE_SUPPORT_VOLUME) {
 		XAMP_LOG_DEBUG("Hardware support volume control.");
 	}
@@ -239,7 +239,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	
 	vmlock_.UnLock();
 	size_t buffer_size = buffer_frames_ * output_format.GetChannels();
-	buffer_ = Buffer<float>(buffer_size);
+	buffer_ = MakeBuffer<float>(buffer_size);
 	vmlock_.Lock(buffer_.Get(), buffer_.GetByteSize());
     data_convert_ = MakeConvert(output_format, valid_output_format, buffer_frames_);
 	XAMP_LOG_DEBUG("WASAPI internal buffer: {}.", FormatBytes(buffer_.GetByteSize()));

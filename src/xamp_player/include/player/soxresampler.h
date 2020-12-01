@@ -49,6 +49,8 @@ public:
 
     void SetPassBand(double passband);
 
+    void SetDither(bool enable);
+
     std::string_view GetDescription() const noexcept override;
 
     void Start(uint32_t input_samplerate, uint32_t num_channels, uint32_t output_samplerate) override;

@@ -23,7 +23,7 @@ static bool TestDsdFileFormat(std::wstring const & file_path) {
         file_path.data(),
         0,
         0,
-        BASS_DSD_RAW | BASS_STREAM_DECODE,
+        BASS_DSD_RAW | BASS_STREAM_DECODE | BASS_UNICODE,
         0));
 
     return stream.is_valid();
@@ -32,7 +32,7 @@ static bool TestDsdFileFormat(std::wstring const & file_path) {
 class BassFileStream::BassFileStreamImpl {
 public:
     BassFileStreamImpl() noexcept
-        : enable_file_mapped_(false)
+        : enable_file_mapped_(true)
         , mode_(DsdModes::DSD_MODE_PCM) {
         info_ = BASS_CHANNELINFO{};
     }
