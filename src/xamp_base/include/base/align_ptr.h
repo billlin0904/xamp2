@@ -113,7 +113,7 @@ XAMP_BASE_API_ONLY_EXPORT StackBufferPtr<Type> MakeStackBuffer(size_t n) {
     return StackBufferPtr<Type>(static_cast<Type*>(ptr));
 }
 
-template <typename T>
+template <typename T, typename U = std::enable_if_t<std::is_trivially_copyable<T>::value>>
 class XAMP_BASE_API_ONLY_EXPORT Buffer {
 public:
     Buffer() = default;
@@ -182,8 +182,11 @@ public:
     }
 
     void resize(size_t new_size) {
-        clear();
-        *this = Buffer<T>(new_size);
+        if (new_size != size_) {
+            Buffer<T> new_buf(new_size);
+            FastMemcpy(new_buf.data(), ptr_.get(), (std::min)(new_size, size_));
+            *this = std::move(new_buf);
+        }
     }
 
     void clear() {

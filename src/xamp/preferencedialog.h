@@ -6,6 +6,7 @@
 #pragma once
 
 #include <QDialog>
+#include <QMap>
 
 #include "ui_preferencedialog.h"
 
@@ -23,6 +24,8 @@ private:
 	void initSoxResampler();
 
     void initLang();
+
+    QMap<QString, QVariant> getSoxrSettings() const;
 
     Ui::PreferenceDialog ui_;
 };

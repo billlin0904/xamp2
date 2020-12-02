@@ -33,11 +33,12 @@ inline constexpr ConstLatin1String kAppSettingMinimizeToTray{ "AppSettings/minim
 inline constexpr ConstLatin1String kAppSettingResamplerEnable{ "AppSettings/soxr/enable" };
 inline constexpr ConstLatin1String kAppSettingSoxrSettingName{ "AppSettings/soxr/userSettingName" };
 
-inline constexpr ConstLatin1String kSoxrResampleSampleRate{ "resampleSampleRate" };
-inline constexpr ConstLatin1String kSoxrEnableSteepFilter{ "enableSteepFilter" };
-inline constexpr ConstLatin1String kSoxrQuality{ "quality" };
-inline constexpr ConstLatin1String kSoxrPhase{ "phase" };
-inline constexpr ConstLatin1String kSoxrPassBand{ "passBand" };
+inline constexpr ConstLatin1String kSoxrResampleSampleRate{ "AppSettings/soxr/resampleSampleRate" };
+inline constexpr ConstLatin1String kSoxrEnableSteepFilter{ "AppSettings/soxr/enableSteepFilter" };
+inline constexpr ConstLatin1String kSoxrEnableDither{ "AppSettings/soxr/enableDither" };
+inline constexpr ConstLatin1String kSoxrQuality{ "AppSettings/soxr/quality" };
+inline constexpr ConstLatin1String kSoxrPhase{ "AppSettings/soxr/phase" };
+inline constexpr ConstLatin1String kSoxrPassBand{ "AppSettings/soxr/passBand" };
 inline constexpr ConstLatin1String kSoxrDefaultSettingName{ "default" };
 
 inline constexpr ConstLatin1String kEnableEQ{ "AppSettings/enableEQ" };

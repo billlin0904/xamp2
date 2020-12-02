@@ -88,6 +88,7 @@ static AlignPtr<Resampler> MakeResampler(const QVariantMap &soxr_settings) {
     auto phase = static_cast<SoxrPhaseResponse>(soxr_settings[kSoxrPhase].toInt());
     auto passband = soxr_settings[kSoxrPassBand].toInt();
     auto enable_steep_filter = soxr_settings[kSoxrEnableSteepFilter].toBool();
+    auto enable_dither = soxr_settings[kSoxrEnableDither].toBool();
 
     auto resampler = MakeAlign<Resampler, SoxrResampler>();
     auto soxr = dynamic_cast<SoxrResampler*>(resampler.get());
@@ -95,6 +96,7 @@ static AlignPtr<Resampler> MakeResampler(const QVariantMap &soxr_settings) {
     soxr->SetPhase(phase);
     soxr->SetPassBand(passband / 100.0);
     soxr->SetSteepFilter(enable_steep_filter);
+    soxr->SetDither(enable_dither);
 
     return std::move(resampler);
 }
@@ -252,6 +254,11 @@ void Xamp::initialUI() {
     f.setPointSize(8);
     ui.artistLabel->setFont(f);
 #ifdef Q_OS_WIN
+    if (use_native_window_) {
+        ui.closeButton->hide();
+        ui.maxWinButton->hide();
+        ui.minWinButton->hide();
+    }
     f.setPointSize(7);
     ui.startPosLabel->setFont(f);
     ui.endPosLabel->setFont(f);

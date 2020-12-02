@@ -24,6 +24,7 @@
 
 FramelessWindow::FramelessWindow(QWidget* parent)
     : QWidget(parent)
+    , use_native_window_(false)
 #if defined(Q_OS_WIN)
 	, is_maximized_(false)
     , border_width_(5)
@@ -31,18 +32,22 @@ FramelessWindow::FramelessWindow(QWidget* parent)
 {    
     setAcceptDrops(true);
     setMouseTracking(true);
-    installEventFilter(this);
+    if (!use_native_window_) {
+        installEventFilter(this);
+    }    
     setupUIFont();    
     QFont ui_font(Q_UTF8("UI"));
     ui_font.setStyleStrategy(QFont::PreferAntialias);
 #if defined(Q_OS_WIN)
-    win32::setWinStyle(this);
-    ThemeManager::instance().enableBlur(this, AppSettings::getValueAsBool(kAppSettingEnableBlur));    
+    if (!use_native_window_) {
+        win32::setWinStyle(this);
+        ThemeManager::instance().enableBlur(this, AppSettings::getValueAsBool(kAppSettingEnableBlur));
+    }    
     createThumbnailToolBar();   
     setStyleSheet(Q_UTF8(R"(
         font-family: "UI";
 		background: transparent;        
-    )"));    
+    )"));
     ui_font.setPointSizeF(10);
     qApp->setFont(ui_font);
 #else
@@ -280,26 +285,28 @@ bool FramelessWindow::hitTest(MSG const* msg, long* result) const {
 #endif
 
 bool FramelessWindow::nativeEvent(const QByteArray& event_type, void * message, long * result) {
-    #if defined(Q_OS_WIN)
-    const auto msg = static_cast<MSG const*>(message);
-    switch (msg->message) {
-    case WM_NCHITTEST:
-        if (!isMaximized()) {
-            *result = HTCAPTION;
-            return hitTest(msg, result);
+    if (!use_native_window_) {
+#if defined(Q_OS_WIN)
+        const auto msg = static_cast<MSG const*>(message);
+        switch (msg->message) {
+        case WM_NCHITTEST:
+            if (!isMaximized()) {
+                *result = HTCAPTION;
+                return hitTest(msg, result);
+            }
+            break;
+        case WM_NCCALCSIZE:
+            // this kills the window frame and title bar we added with WS_THICKFRAME and WS_CAPTION
+            if (msg->wParam == TRUE) {
+                *result = 0;
+                return true;
+            }
+            return false;
+        default:
+            break;
         }
-        break;
-    case WM_NCCALCSIZE:
-        // this kills the window frame and title bar we added with WS_THICKFRAME and WS_CAPTION
-        if (msg->wParam == TRUE) {
-            *result = 0;
-            return true;
-        }        
-        return false;
-    default:
-        break;
-    }
-    #endif
+#endif
+    }    
     return QWidget::nativeEvent(event_type, message, result);
 }
 

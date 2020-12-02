@@ -38,6 +38,12 @@ static void LogTime(std::string msg, std::chrono::microseconds time) {
         (c % 1'000'000'000) / 1'000'000, (c % 1'000'000) / 1'000, c % 1'000);
 }
 
+static DsdModes GetStreamDsdMode(std::wstring const& file_path, std::wstring const& file_ext, DeviceInfo const& device_info, bool use_native_dsd) {
+    auto test_dsd_mode_stream = MakeFileStream(file_ext);
+    test_dsd_mode_stream->OpenFile(file_path);
+    return SetStreamDsdMode(test_dsd_mode_stream, device_info, use_native_dsd);
+}
+
 AudioPlayer::AudioPlayer()
     : AudioPlayer(std::weak_ptr<PlaybackStateAdapter>()) {
 }
@@ -184,15 +190,15 @@ bool AudioPlayer::IsDsdStream() const noexcept {
     return dynamic_cast<DsdStream*>(stream_.get()) != nullptr;
 }
 
-void AudioPlayer::OpenStream(std::wstring const & file_path, std::wstring const & file_ext, DeviceInfo const & device_info, bool use_native_dsd) {
+void AudioPlayer::OpenStream(std::wstring const & file_path, std::wstring const & file_ext, DeviceInfo const & device_info, bool use_native_dsd) {   
+    dsd_mode_ = GetStreamDsdMode(file_path, file_ext, device_info, use_native_dsd);
     stream_ = MakeFileStream(file_ext, std::move(stream_));
-    dsd_mode_ = SetStreamDsdMode(stream_, device_info, use_native_dsd);
-    XAMP_LOG_DEBUG("Use stream type: {}.", stream_->GetDescription());
-    stream_->OpenFile(file_path);
-    stream_duration_ = stream_->GetDuration();
-    if (auto stream = AsDsdStream(stream_)) {
-        dsd_mode_ = stream->GetDsdMode();
-    }    
+    if (auto dsd_stream = AsDsdStream(stream_)) {
+        dsd_stream->SetDSDMode(dsd_mode_);
+    }
+    stream_->OpenFile(file_path);    
+    stream_duration_ = stream_->GetDuration();   
+    XAMP_LOG_DEBUG("Use stream type: {} {} {}.", stream_->GetDescription(), dsd_mode_, stream_duration_);
 }
 
 void AudioPlayer::SetState(const PlayerState play_state) {

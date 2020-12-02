@@ -547,9 +547,16 @@
               </widget>
              </item>
              <item>
-              <widget class="QCheckBox" name="soxrAllowAliasingCheckBox">
+              <widget class="QCheckBox" name="enableSteepFilterBox">
                <property name="text">
                 <string>Enable Steep Filter</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="enableDitherBox">
+               <property name="text">
+                <string>Enable Dither</string>
                </property>
               </widget>
              </item>

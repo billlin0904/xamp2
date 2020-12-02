@@ -73,6 +73,9 @@ protected:
 
     virtual void stopPlayedClicked() = 0;
 
+protected:
+	bool use_native_window_;
+
 private:
 	void setupUIFont();
 
