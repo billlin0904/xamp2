@@ -56,7 +56,7 @@ public:
         , input_samplerate_(0)
         , num_channels_(0)
         , ratio_(0)
-        , passband_(0.99)
+        , passband_(0.997)
         , stopband_(1.0) {        
     }
 
@@ -203,7 +203,7 @@ public:
             return false;
         }
 
-        size_t write_size(samples_done * num_channels_ * sizeof(float));
+        const size_t write_size(samples_done * num_channels_ * sizeof(float));
         CheckBufferFlow(buffer.TryWrite(reinterpret_cast<int8_t const*>(buffer_.data()), write_size));
 
         required_size = samples_done * num_channels_;

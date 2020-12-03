@@ -42,7 +42,7 @@ class XAMP_PLAYER_API AudioPlayer final :
     public DeviceStateListener,
     public std::enable_shared_from_this<AudioPlayer> {
 public:
-    enum class GaplessPlayMsgID {
+    enum class MsgID {
         EVENT_SWITCH,        
     };
 
@@ -108,11 +108,9 @@ public:
 
     bool IsEnableResampler() const;
 
+    void SetEQ(AlignPtr<Equalizer> &&equalizer);
+
     void EnableEQ(bool enable = true);
-
-    void SetEQ(uint32_t band, float gain, float Q);
-
-    void SetEQ(std::array<EQSettings, kMaxBand> const &bands);
 
     void SetDevice(const DeviceInfo& device_info);
 
@@ -197,8 +195,8 @@ private:
 #ifdef _DEBUG
     std::chrono::microseconds min_process_time_{ 0 };
     std::chrono::microseconds max_process_time_{ 0 };
-#endif
     Stopwatch sw_;
+#endif    
     std::string device_id_;
     Uuid device_type_id_;
     std::condition_variable pause_cond_;
@@ -215,11 +213,10 @@ private:
     WaitableTimer wait_timer_;
     AlignPtr<Resampler> resampler_;   
     AlignPtr<Equalizer> equalizer_;
-    VmMemLock sample_buffer_lock_;
-    EQBands eqsettings_;
+    VmMemLock sample_buffer_lock_;    
     DeviceInfo device_info_;
     std::shared_future<void> stream_task_;
-    SpscQueue<GaplessPlayMsgID> msg_queue_;
+    SpscQueue<MsgID> msg_queue_;
 };
 
 }

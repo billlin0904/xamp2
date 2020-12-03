@@ -129,7 +129,7 @@ void StackTrace::WriteLog(size_t frame_count, std::ostream& ostr) {
     std::vector<uint8_t> symbol(sizeof(SYMBOL_INFO) + sizeof(wchar_t) * MAX_SYM_NAME);
     auto current_process = Singleton<SymLoader>::GetInstance().GetProcess().get();
 
-    ostr << "\r\n";    
+    ostr << "stack backtrace:\r\n";    
 
     for (size_t i = 0; i < frame_count; ++i) {
         auto frame = addrlist_[i];
@@ -160,17 +160,16 @@ void StackTrace::WriteLog(size_t frame_count, std::ostream& ostr) {
                 &line);
 
             if (has_line) {                
-                ostr << "0x" << std::hex << reinterpret_cast<DWORD64>(frame) << " " 
-                    << std::dec << displacement << " "
+                ostr << std::setw(2) << i << ":" << std::setw(6) << "0x" << std::hex << reinterpret_cast<DWORD64>(frame) << " - "
                     << GetFileName(line.FileName) << ":" << line.LineNumber << "\r\n";
             }
             else {                
-                ostr << "0x" << std::hex << reinterpret_cast<DWORD64>(frame) << " "
-                    << std::dec << displacement << "\r\n";
+                ostr << std::setw(2) << i << ":" << std::setw(6) << "0x" << std::hex << reinterpret_cast<DWORD64>(frame) << " - "
+                    << "<unknown>" << std::dec << displacement << "\r\n";
             }
         }
         else {
-            ostr << "0x" << reinterpret_cast<DWORD64>(frame) << "(No symbol)" << "\r\n";
+            ostr << std::setw(2) << i << ":" << std::setw(6) << "0x" << reinterpret_cast<DWORD64>(frame) << "<unknown>" << "\r\n";
         }
     }
 }

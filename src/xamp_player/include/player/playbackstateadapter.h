@@ -7,7 +7,7 @@
 
 #include <base/base.h>
 #include <base/exception.h>
-#include <base/spsc_queue.h>
+#include <base/align_ptr.h>
 #include <player/player.h>
 #include <stream/filestream.h>
 #include <output_device/devicestatelistener.h>

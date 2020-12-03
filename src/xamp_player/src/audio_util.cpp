@@ -118,4 +118,10 @@ DsdModes SetStreamDsdMode(AlignPtr<FileStream>& stream, const DeviceInfo& device
     return dsd_mode;
 }
 
+DsdModes GetStreamDsdMode(std::wstring const& file_path, std::wstring const& file_ext, DeviceInfo const& device_info, bool use_native_dsd) {
+    auto test_dsd_mode_stream = MakeFileStream(file_ext);
+    test_dsd_mode_stream->OpenFile(file_path);
+    return SetStreamDsdMode(test_dsd_mode_stream, device_info, use_native_dsd);
+}
+
 }

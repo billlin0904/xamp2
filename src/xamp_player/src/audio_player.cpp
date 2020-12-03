@@ -21,7 +21,6 @@
 
 namespace xamp::player {
 
-inline constexpr int32_t kMinEQSampleRate = 44100;
 inline constexpr int32_t kBufferStreamCount = 5;
 inline constexpr int32_t kTotalBufferStreamCount = 10;
 inline constexpr int32_t kPreallocateBufferSize = 16 * 1024 * 1024;
@@ -32,16 +31,10 @@ inline constexpr std::chrono::milliseconds kUpdateSampleInterval(30);
 inline constexpr std::chrono::milliseconds kReadSampleWaitTime(30);
 inline constexpr std::chrono::seconds kWaitForStreamStopTime(10);
 
-static void LogTime(std::string msg, std::chrono::microseconds time) {
+static void LogTime(const std::string & msg, const std::chrono::microseconds &time) {
     auto c = time.count();
     XAMP_LOG_DEBUG(msg + ": {}.{:03}'{:03}sec",
         (c % 1'000'000'000) / 1'000'000, (c % 1'000'000) / 1'000, c % 1'000);
-}
-
-static DsdModes GetStreamDsdMode(std::wstring const& file_path, std::wstring const& file_ext, DeviceInfo const& device_info, bool use_native_dsd) {
-    auto test_dsd_mode_stream = MakeFileStream(file_ext);
-    test_dsd_mode_stream->OpenFile(file_path);
-    return SetStreamDsdMode(test_dsd_mode_stream, device_info, use_native_dsd);
 }
 
 AudioPlayer::AudioPlayer()
@@ -97,7 +90,7 @@ void AudioPlayer::UpdateSlice(float const *samples, int32_t sample_size, double 
 void AudioPlayer::Initial() {
     AudioDeviceManager::PreventSleep(true);
 
-    ThreadPool::GetInstance();
+    (void)ThreadPool::GetInstance();
 
     (void)AudioDeviceManager::GetInstance();
     XAMP_LOG_DEBUG("AudioDeviceManager init success.");
@@ -177,7 +170,7 @@ bool AudioPlayer::IsDSDFile() const {
     if (!stream_) {
         return false;
     }
-    if (auto dsd_stream = dynamic_cast<DsdStream const*>(stream_.get())) {
+    if (const auto dsd_stream = dynamic_cast<DsdStream const*>(stream_.get())) {
         return dsd_stream->IsDsdFile();
     }
     return false;
@@ -193,7 +186,7 @@ bool AudioPlayer::IsDsdStream() const noexcept {
 void AudioPlayer::OpenStream(std::wstring const & file_path, std::wstring const & file_ext, DeviceInfo const & device_info, bool use_native_dsd) {   
     dsd_mode_ = GetStreamDsdMode(file_path, file_ext, device_info, use_native_dsd);
     stream_ = MakeFileStream(file_ext, std::move(stream_));
-    if (auto dsd_stream = AsDsdStream(stream_)) {
+    if (auto* dsd_stream = AsDsdStream(stream_)) {
         dsd_stream->SetDSDMode(dsd_mode_);
     }
     stream_->OpenFile(file_path);    
@@ -413,7 +406,7 @@ void AudioPlayer::CreateBuffer() {
     if (AudioDeviceManager::GetInstance().IsSupportASIO()) {
         if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE
             || AudioDeviceManager::GetInstance().IsASIODevice(device_type_id_)) {
-            require_read_sample = kMaxSamplerate;
+            require_read_sample = output_format_.GetSampleRate();
         }
         else {
             require_read_sample = device_->GetBufferSize() * kMaxReadRatio;
@@ -525,8 +518,8 @@ void AudioPlayer::OnDeviceStateChange(DeviceState state, std::string const & dev
 
 void AudioPlayer::OpenDevice(double stream_time) {
 #ifdef ENABLE_ASIO
-    if (auto dsd_output = AsDsdDevice(device_)) {
-        if (const auto dsd_stream = AsDsdStream(stream_)) {
+    if (auto* dsd_output = AsDsdDevice(device_)) {
+        if (auto* const dsd_stream = AsDsdStream(stream_)) {
             if (dsd_stream->GetDsdMode() == DsdModes::DSD_MODE_NATIVE) {
                 dsd_output->SetIoFormat(DsdIoFormat::IO_FORMAT_DSD);
                 dsd_mode_ = DsdModes::DSD_MODE_NATIVE;
@@ -542,38 +535,16 @@ void AudioPlayer::OpenDevice(double stream_time) {
 #endif
     device_->OpenStream(output_format_);
     device_->SetStreamTime(stream_time);
+}
 
-    if (equalizer_ != nullptr) {
-        if (output_format_.GetSampleRate() == kMinEQSampleRate) {
-            equalizer_ = MakeAlign<Equalizer, BassEqualizer>();
-            equalizer_->Start(output_format_.GetChannels(), output_format_.GetSampleRate());
-            equalizer_->SetEQ(eqsettings_);
-        }
-        else {
-            equalizer_.reset();
-        }
-    }
+void AudioPlayer::SetEQ(AlignPtr<Equalizer>&& equalizer) {
+    equalizer_ = std::move(equalizer);
 }
 
 void AudioPlayer::EnableEQ(bool enable) {
-    if (enable) {
-        equalizer_ = MakeAlign<Equalizer, BassEqualizer>();
-    }
-    else {
+	if (!enable) {
         equalizer_.reset();
-    }
-}
-
-void AudioPlayer::SetEQ(std::array<EQSettings, kMaxBand> const &bands) {
-    eqsettings_ = bands;
-}
-
-void AudioPlayer::SetEQ(uint32_t band, float gain, float Q) {    
-    if (band >= eqsettings_.size()) {
-        return;
-    }
-    eqsettings_[band].gain = gain;
-    eqsettings_[band].Q = Q;
+	}
 }
 
 void AudioPlayer::SetLoop(double start_time, double end_time) {
@@ -606,7 +577,7 @@ void AudioPlayer::BufferSamples(AlignPtr<FileStream> &stream, AlignPtr<Resampler
                 return;
             }
 
-            const auto samples = reinterpret_cast<const float*>(sample_buffer);
+            const auto* samples = reinterpret_cast<const float*>(sample_buffer);
 
             auto use_resampler = true;
             if (equalizer_ != nullptr) {
@@ -712,18 +683,18 @@ void AudioPlayer::OnGaplessPlayState(std::unique_lock<std::mutex>& lock) {
 
     std::lock_guard guard{ stream_read_mutex_ };
 
-    auto& entry = adapter->PlayQueueFont();
+    auto& [file_stream, resampler] = adapter->PlayQueueFont();
 
-    if (msg_queue_.size() > 0) {
+    if (!msg_queue_.empty()) {
         // 處理播放完畢後替換掉Stream.
-        auto msg_id = *msg_queue_.Front();
+        const auto msg_id = *msg_queue_.Front();
 
         switch (msg_id) {
-        case GaplessPlayMsgID::EVENT_SWITCH:
+        case MsgID::EVENT_SWITCH:
             XAMP_LOG_DEBUG("Receive EVENT_SWITCH");            
             stream_->Close();
-            stream_ = std::move(entry.first);            
-            resampler_ = std::move(entry.second);        
+            stream_ = std::move(file_stream);            
+            resampler_ = std::move(resampler);
             stream_duration_ = stream_->GetDuration();
             msg_queue_.Pop();
             adapter->PopPlayQueue();
@@ -732,7 +703,7 @@ void AudioPlayer::OnGaplessPlayState(std::unique_lock<std::mutex>& lock) {
         }        
     }
     else {
-        BufferSamples(entry.first, entry.second);
+        BufferSamples(file_stream, resampler);
     }    
 }
 
@@ -797,14 +768,14 @@ int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, dou
     const auto sample_size = num_samples * sample_size_;
     
 #ifdef _DEBUG
-    auto elapsed = sw_.Elapsed();
+    const auto elapsed = sw_.Elapsed();
     max_process_time_ = std::max(elapsed, max_process_time_);
     min_process_time_ = std::min(elapsed, min_process_time_);
 #endif
 
     if (stream_time >= stream_duration_ && enable_gapless_play_) {
         device_->SetStreamTime(0);
-        msg_queue_.TryPush(GaplessPlayMsgID::EVENT_SWITCH);
+        msg_queue_.TryPush(MsgID::EVENT_SWITCH);
     }
 
     if (XAMP_LIKELY(buffer_.TryRead(static_cast<int8_t*>(samples), sample_size))) {
@@ -821,7 +792,7 @@ int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, dou
     }
 
     UpdateSlice(nullptr, -1, stream_time);
-    return 1;
+    return -1;
 }
 
 void AudioPlayer::StartPlay(double start_time, double end_time) {

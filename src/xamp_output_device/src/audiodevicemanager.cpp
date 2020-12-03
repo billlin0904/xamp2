@@ -17,7 +17,6 @@
 #include <output_device/osx/coreaudiodevicestatenotification.h>
 #endif
 
-#include <base/platform_thread.h>
 #include <output_device/audiodevicemanager.h>
 
 namespace xamp::output_device {

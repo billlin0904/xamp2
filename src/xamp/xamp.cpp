@@ -48,6 +48,8 @@
 #include "thememanager.h"
 #include "xamp.h"
 
+#include <stream/bassequalizer.h>
+
 static QMessageBox::StandardButton showAskDialog(QWidget* widget, const char text[]) {
     QMessageBox msgbox;
     msgbox.setWindowTitle(Q_UTF8("XAMP"));
@@ -863,28 +865,31 @@ void Xamp::setupResampler() {
     }
 }
 
-void Xamp::processMeatadata(const std::vector<Metadata>& medata) {    
+void Xamp::processMeatadata(const std::vector<Metadata>& medata) const {    
     MetadataExtractAdapter::ProcessMetadata(medata);
     emit album_artist_page_->album()->refreshOnece();
     emit album_artist_page_->artist()->refreshOnece();    
 }
 
 void Xamp::setupEQ() {
-    auto enable_eq = AppSettings::getValueAsBool(kEnableEQ);
+    const auto enable_eq = AppSettings::getValueAsBool(kEnableEQ);
+    if (!enable_eq) {
+        player_->EnableEQ(false);
+        return;
+    }
 
-    player_->EnableEQ(enable_eq);
+    const auto eq_name = AppSettings::getValueAsString(kEQName);
+    if (eq_name.isEmpty() || eqsettings_.isEmpty()) {
+        eqsettings_ = AppSettings::getEQPreset().first();
+    }
 
-    if (enable_eq) {
-        auto eqName = AppSettings::getValueAsString(kEQName);
-        if (eqName.isEmpty() || eqsettings_.isEmpty()) {
-            eqsettings_ = AppSettings::getEQPreset().first();
-        }
+    auto equalizer = MakeAlign<Equalizer, BassEqualizer>();
+    int i = 0;
+    for (const auto band : eqsettings_) {
+        equalizer->SetEQ(i++, band.gain, band.Q);
+    }
 
-        uint32_t i = 0;
-        for (auto band : eqsettings_) {
-            player_->SetEQ(i++, band.gain, band.Q);
-        }
-    }    
+    player_->SetEQ(std::move(equalizer));
 }
 
 void Xamp::playMusic(const MusicEntity& item) {

@@ -29,5 +29,7 @@ XAMP_PLAYER_API AlignPtr<FileStream> MakeFileStream(std::wstring const& file_ext
 
 XAMP_PLAYER_API DsdModes SetStreamDsdMode(AlignPtr<FileStream>& stream, const DeviceInfo& device_info, bool use_native_dsd = true);
 
+XAMP_PLAYER_API DsdModes GetStreamDsdMode(std::wstring const& file_path, std::wstring const& file_ext, DeviceInfo const& device_info, bool use_native_dsd);
+
 }
 

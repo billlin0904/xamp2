@@ -6,8 +6,8 @@
 #pragma once
 
 #include <atomic>
+
 #include <base/base.h>
-#include <base/align_ptr.h>
 
 namespace xamp::base {
 
@@ -16,7 +16,7 @@ class XAMP_BASE_API_ONLY_EXPORT SpscQueue {
 public:
     using Allocator = std::allocator<Type>;
 
-    SpscQueue(size_t capacity)
+    explicit SpscQueue(size_t capacity)
         : capacity_(capacity)
         , head_(0)
         , tail_(0) {
@@ -26,8 +26,8 @@ public:
         }
         slots_ = std::allocator_traits<Allocator>::allocate(allocator_,
                                                             capacity_ + 2 * kPadding);
-        static_assert(alignof(SpscQueue<Type>) == kCacheAlignSize, "");
-        static_assert(sizeof(SpscQueue<Type>) >= 3 * kCacheAlignSize, "");
+        static_assert(alignof(SpscQueue<Type>) == kCacheAlignSize);
+        static_assert(sizeof(SpscQueue<Type>) >= 3 * kCacheAlignSize);
         assert(reinterpret_cast<char *>(&tail_) -
                    reinterpret_cast<char *>(&head_) >=
                static_cast<std::ptrdiff_t>(kCacheAlignSize));
@@ -66,15 +66,15 @@ public:
     template <typename... Args>
     bool TryEnqueue(Args &&... args) {
         auto const head = head_.load(std::memory_order_relaxed);
-        auto nextHead = head + 1;
-        if (nextHead == capacity_) {
-            nextHead = 0;
+        auto next_head = head + 1;
+        if (next_head == capacity_) {
+            next_head = 0;
         }
-        if (nextHead == tail_.load(std::memory_order_acquire)) {
+        if (next_head == tail_.load(std::memory_order_acquire)) {
             return false;
         }
         new (&slots_[head + kPadding]) Type(std::forward<Args>(args)...);
-        head_.store(nextHead, std::memory_order_release);
+        head_.store(next_head, std::memory_order_release);
         return true;
     }
 
@@ -90,11 +90,11 @@ public:
         auto const tail = tail_.load(std::memory_order_relaxed);
         assert(head_.load(std::memory_order_acquire) != tail);
         slots_[tail + kPadding].~Type();
-        auto nextTail = tail + 1;
-        if (nextTail == capacity_) {
-            nextTail = 0;
+        auto next_tail = tail + 1;
+        if (next_tail == capacity_) {
+            next_tail = 0;
         }
-        tail_.store(nextTail, std::memory_order_release);
+        tail_.store(next_tail, std::memory_order_release);
     }
 
     XAMP_DISABLE_COPY(SpscQueue)

@@ -21,7 +21,7 @@ public:
 
     virtual void Start(uint32_t input_samplerate, uint32_t num_channels, uint32_t output_samplerate) = 0;
 
-	virtual std::string_view GetDescription() const noexcept = 0;
+    [[nodiscard]] virtual std::string_view GetDescription() const noexcept = 0;
 
     virtual bool Process(float const * samples, uint32_t num_sample, AudioBuffer<int8_t>& buffer) = 0;
 
