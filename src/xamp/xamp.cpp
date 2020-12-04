@@ -12,6 +12,7 @@
 #include <QSystemTrayIcon>
 #include <QMessageBox>
 
+#include <stream/dsdstream.h>
 #include <base/scopeguard.h>
 #include <base/str_utilts.h>
 
@@ -1092,10 +1093,16 @@ void Xamp::addPlayQueue() {
     const auto use_native_dsd = true;
 #endif
 
-    auto item = playlist_view->item(next_index);
+    const auto item = playlist_view->item(next_index);
     auto stream = MakeFileStream(item.file_ext.toStdWString());
-    SetStreamDsdMode(stream, device_info_, use_native_dsd);
+    const auto dsd_mode = GetStreamDsdMode(item.file_path.toStdWString(), 
+        item.file_ext.toStdWString(), 
+        device_info_, use_native_dsd);
 
+    if (auto* dsd_stream = AsDsdStream(stream)) {
+        dsd_stream->SetDSDMode(dsd_mode);
+    }
+	
     try {
         stream->OpenFile(item.file_path.toStdWString());
     }

@@ -20,6 +20,8 @@ enum class HttpMethod {
 
 class HttpClient {
 public:
+    HttpClient(const QUrl& url, QNetworkAccessManager* manager = nullptr);
+	
     HttpClient(const QString &url, QNetworkAccessManager* manager = nullptr);
 
     ~HttpClient();

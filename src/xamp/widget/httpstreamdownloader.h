@@ -8,13 +8,12 @@
 #include <QObject>
 #include <QUrl>
 #include <QList>
+#include <QTimer>
 
 class HttpStreamDownloader : public QObject {
 	Q_OBJECT
 public:
-	explicit HttpStreamDownloader(QObject *parent = nullptr);
-
-	void start();
+	explicit HttpStreamDownloader(QObject *parent = nullptr);	
 
 	void addQueue(int32_t music_id, const QUrl &url, const QString &file_name);
 
@@ -23,13 +22,16 @@ signals:
 
 	void stateChange(int32_t music_id);
 
-private:	
+private:
+	void download();
+	
 	struct DownloadEntry {
 		int32_t music_id;		
 		const QUrl url;
 		const QString file_name;
 	};
 
+	QTimer timer_;
 	QList<DownloadEntry> entries_;
 };
 

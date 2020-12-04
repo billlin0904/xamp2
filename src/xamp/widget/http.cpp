@@ -25,7 +25,7 @@ class HttpClient::HttpClientImpl {
 public:
     HttpClientImpl(const QString &url, QNetworkAccessManager* manager);
 
-    HttpContext makeContext();
+    HttpContext makeContext() const;
 
     static QNetworkRequest createRequest(HttpClientImpl *d, HttpMethod method);
 
@@ -46,9 +46,9 @@ public:
     QString userAgent;
     QNetworkAccessManager *manager;
     QHash<QString, QString> headers;
-    std::function<void (const QString &)> successHandler;
-    std::function<void(const QString&)> errorHandler;
-    std::function<void (const QByteArray &)> downloadHandler;
+    std::function<void (const QString &)> success_handler_;
+    std::function<void(const QString&)> error_handler_;
+    std::function<void (const QByteArray &)> download_handler_;
 };
 
 HttpClient::HttpClientImpl::HttpClientImpl(const QString &url, QNetworkAccessManager* manager)
@@ -59,10 +59,10 @@ HttpClient::HttpClientImpl::HttpClientImpl(const QString &url, QNetworkAccessMan
     , manager(manager == nullptr ? new QNetworkAccessManager() : manager) {
 }
 
-HttpContext HttpClient::HttpClientImpl::makeContext() {
+HttpContext HttpClient::HttpClientImpl::makeContext() const {
     HttpContext context;
-    context.successHandler = successHandler;
-    context.errorHandler = errorHandler;
+    context.successHandler = success_handler_;
+    context.errorHandler = error_handler_;
     context.manager = manager;
     context.charset = charset;
     context.userAgent = userAgent;
@@ -181,12 +181,15 @@ QNetworkRequest HttpClient::HttpClientImpl::createRequest(HttpClientImpl *d, Htt
     return request;
 }
 
+HttpClient::HttpClient(const QUrl& url, QNetworkAccessManager* manager)
+    : HttpClient(url.toString(), manager) {
+}
+
 HttpClient::HttpClient(const QString &url, QNetworkAccessManager* manager)
     : impl_(new HttpClientImpl(url, manager)) {
 }
 
-HttpClient::~HttpClient() {
-}
+HttpClient::~HttpClient() = default;
 
 HttpClient& HttpClient::param(const QString &name, const QVariant &value) {
     impl_->params.addQueryItem(name, value.toString());
@@ -219,12 +222,12 @@ HttpClient& HttpClient::headers(const QMap<QString, QString> nameValues) {
 }
 
 HttpClient& HttpClient::success(std::function<void (const QString &)> successHandler) {
-    impl_->successHandler = successHandler;
+    impl_->success_handler_ = successHandler;
     return *this;
 }
 
 HttpClient& HttpClient::error(std::function<void(const QString&)> errorHandler) {
-    impl_->errorHandler = errorHandler;
+    impl_->error_handler_ = errorHandler;
     return *this;
 }
 
