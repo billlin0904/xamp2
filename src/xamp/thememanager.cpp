@@ -148,7 +148,7 @@ void ThemeManager::setBackgroundColor(Ui::XampWindow& ui, QColor color) {
 
     AppSettings::setValue(kAppSettingBackgroundColor, color);
     background_color_ = color;    
-    setThemeIcon(ui);
+    setThemeIcon(ui);    
 }
 
 QIcon ThemeManager::playArrow() const noexcept {
@@ -195,6 +195,13 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) {
                                          background-color: transparent;
                                          }
                                          )"));
+
+    ui.artistLabel->setStyleSheet(Q_UTF8(R"(
+                                         QLabel#artistLabel {
+                                         color: gray;
+                                         background-color: transparent;
+                                         }
+                                         )"));   
 
     ui.nextPageButton->setStyleSheet(Q_STR(R"(
                                             QToolButton#nextPageButton {
@@ -339,6 +346,13 @@ void ThemeManager::setDefaultStyle(Ui::XampWindow& ui) {
                                             }
                                             )"));
 
+    ui.gaplessPlayButton->setStyleSheet(Q_UTF8(R"(
+                                         QToolButton#gaplessPlayButton {
+										 border: none;
+                                         background-color: transparent;
+                                         }
+                                         )"));
+
     ui.playlistButton->setStyleSheet(Q_UTF8(R"(
                                             QToolButton#playlistButton {
                                             border: none;
@@ -372,13 +386,7 @@ void ThemeManager::setDefaultStyle(Ui::XampWindow& ui) {
                                         background-color: transparent;
                                         }
                                         )"));
-
-    ui.artistLabel->setStyleSheet(Q_UTF8(R"(
-                                         QLabel#artistLabel {
-                                         color: gray;
-                                         background-color: transparent;
-                                         }
-                                         )"));
+    
     QIcon search_icon(Q_UTF8(":/xamp/Resource/White/search.png"));
     ui.searchLineEdit->setClearButtonEnabled(true);
     ui.searchLineEdit->addAction(search_icon, QLineEdit::LeadingPosition);

@@ -84,7 +84,7 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalLibraryDirectories>../xamp/x64/Debug/;../thirdparty/ffmpeg/lib/x64/debug/</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../xamp/x64/Debug/;../thirdparty/ffmpeg/lib/x64/</AdditionalLibraryDirectories>
       <AdditionalDependencies>xamp_base.lib;libavcodec.a;libavdevice.a;libavfilter.a;libavformat.a;libavutil.a;libswresample.a;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Bscmake>

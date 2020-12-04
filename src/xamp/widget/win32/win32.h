@@ -9,6 +9,6 @@
 
 namespace win32 {
 	void setBlurMaterial(const QWidget* widget, bool enable);
-	void setWinStyle(const QWidget* widget);
+	void setWinStyle(QWidget* widget);
 }
 

@@ -278,7 +278,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 
     (void)QObject::connect(playlist_, &QTableView::doubleClicked, [this](const QModelIndex& index) {
         emit playMusic(getAlbumEntity(index));
-        });
+        });   
 }
 
 void AlbumViewPage::setAlbum(const QString& album) {

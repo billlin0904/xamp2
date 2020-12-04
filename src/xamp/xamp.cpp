@@ -187,14 +187,13 @@ void Xamp::createTrayIcon() {
         SLOT(onActivated(QSystemTrayIcon::ActivationReason)));
 }
 
-//void Xamp::paintEvent(QPaintEvent* event) {
-//    QPainter painter(this);
-//    
-//    auto cover = lrc_page_->cover()->pixmap();
-//    if (cover != nullptr) {
-//    	painter.drawPixmap(rect(), Pixmap::blurImage(*cover, 12));
-//    }
-//}
+void Xamp::paintEvent(QPaintEvent* event) {
+    QPainter painter(this);    
+    //auto cover = lrc_page_->cover()->pixmap();
+    //if (cover != nullptr) {
+    //	painter.drawPixmap(rect(), Pixmap::blurImage(*cover, 12));
+    //}
+}
 
 void Xamp::closeEvent(QCloseEvent* event) {
     auto is_min_system_tray = AppSettings::getValueAsBool(kAppSettingMinimizeToTray);
@@ -233,8 +232,13 @@ void Xamp::closeEvent(QCloseEvent* event) {
 }
 
 void Xamp::setDefaultStyle() {
+    ui.centralWidget->setStyleSheet(Q_UTF8("#contentWidget { border:none; border-radius: 15px;}"));
+	
+    /*ui.volumeFrame->setStyleSheet(Q_UTF8("#volumeFrame { border-radius: 15px;}"));
+    ui.controlFrame->setStyleSheet(Q_UTF8("#controlFrame { border-radius: 15px; }"));*/
     ThemeManager::instance().setDefaultStyle(ui);
     applyTheme(ThemeManager::instance().getBackgroundColor());
+    ThemeManager::instance().enableBlur(this, AppSettings::getValueAsBool(kAppSettingEnableBlur));
 }
 
 void Xamp::registerMetaType() {
@@ -612,7 +616,7 @@ void Xamp::initialController() {
     auto theme_color_menu = new QMenu(tr("Theme color"));
     auto widget_action = new QWidgetAction(theme_color_menu);
     widget_action->setDefaultWidget(select_color_widget);
-    (void)QObject::connect(select_color_widget, &SelectColorWidget::colorButtonClicked, [this](auto color) {        
+    (void)QObject::connect(select_color_widget, &SelectColorWidget::colorButtonClicked, [this](auto color) {
         applyTheme(color);
     });
     theme_color_menu->addAction(widget_action);
@@ -662,6 +666,8 @@ void Xamp::applyConfig() {
 }
 
 void Xamp::applyTheme(QColor color) {
+    color.setAlpha(50);
+	
     if (qGray(color.rgb()) > 200) {      
         emit themeChanged(color, Qt::black);
         ThemeManager::instance().setThemeColor(ThemeColor::WHITE_THEME);
@@ -1458,6 +1464,11 @@ PlyalistPage* Xamp::newPlaylist(int32_t playlist_id) {
             loop_time.first = start_time;
             loop_time.second = end_time;
         });
+
+    (void)QObject::connect(this,
+        &Xamp::themeChanged,
+        playlist_page,
+        &PlyalistPage::OnThemeColorChanged);
 
     (void)QObject::connect(playlist_page->playlist(), &PlayListTableView::removeItems,
                             [](auto playlist_id, const auto& select_music_ids) {

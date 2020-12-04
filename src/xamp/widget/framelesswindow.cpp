@@ -6,6 +6,7 @@
 #include <QSystemTrayIcon>
 #include <QMenu>
 #include <QAction>
+#include <QDesktopWidget>
 
 #if defined(Q_OS_WIN)
 #include <Windows.h>
@@ -28,6 +29,7 @@ FramelessWindow::FramelessWindow(QWidget* parent)
 #if defined(Q_OS_WIN)
 	, is_maximized_(false)
     , border_width_(5)
+	, current_screen_(nullptr)
 #endif
 {    
     setAcceptDrops(true);
@@ -39,10 +41,9 @@ FramelessWindow::FramelessWindow(QWidget* parent)
     QFont ui_font(Q_UTF8("UI"));
     ui_font.setStyleStrategy(QFont::PreferAntialias);
 #if defined(Q_OS_WIN)
-    if (!use_native_window_) {
-        win32::setWinStyle(this);
-        ThemeManager::instance().enableBlur(this, AppSettings::getValueAsBool(kAppSettingEnableBlur));
-    }    
+   if (!use_native_window_) {
+        win32::setWinStyle(this);        
+    }
     createThumbnailToolBar();   
     setStyleSheet(Q_UTF8(R"(
         font-family: "UI";
@@ -334,6 +335,17 @@ void FramelessWindow::mouseMoveEvent(QMouseEvent* event) {
 #if defined(Q_OS_WIN)
     if (!last_pos_.isNull()) {
         move(event->globalPos() - last_pos_);
+    }
+
+    if (current_screen_ == nullptr) {
+        current_screen_ = QApplication::desktop()->screen();
+    }
+    else if (current_screen_ != QApplication::desktop()->screen()) {
+        current_screen_ = QApplication::desktop()->screen();
+
+        ::SetWindowPos(reinterpret_cast<HWND>(winId()), nullptr, 0, 0, 0, 0,
+            SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
+            SWP_NOOWNERZORDER | SWP_FRAMECHANGED | SWP_NOACTIVATE);
     }
 #else
     QWidget::mouseMoveEvent(event);

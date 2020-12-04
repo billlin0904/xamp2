@@ -93,6 +93,8 @@ public:
 		, SetWindowCompositionAttribute(module_, "SetWindowCompositionAttribute") {
 	}
 
+	XAMP_DISABLE_COPY(User32Lib)
+
 private:
 	ModuleHandle module_;
 
@@ -110,6 +112,8 @@ public:
 		, DwmSetPresentParameters(module_, "DwmSetPresentParameters") {
 	}
 
+	XAMP_DISABLE_COPY(DwmapiLib)
+
 private:
 	ModuleHandle module_;
 
@@ -120,51 +124,22 @@ public:
 	XAMP_DECLARE_DLL(DwmSetPresentParameters) DwmSetPresentParameters;
 };
 
-void setBlurMaterial(HWND hWnd, bool enable) {
-	try {
-		ACCENT_POLICY policy = { enable ? ACCENT_ENABLE_BLURBEHIND : ACCENT_DISABLED, 0, 0, 0 };
-		WINDOWCOMPOSITIONATTRIBDATA data;
-		data.Attrib = WCA_ACCENT_POLICY;
-		data.pvData = &policy;
-		data.cbData = sizeof(policy);
-		Singleton<User32Lib>::GetInstance().SetWindowCompositionAttribute(hWnd, &data);
-	}
-	catch (...) {
-	}
-}
-
 void setBlurMaterial(const QWidget* widget, bool enable) {
-	if (enable) {
-		auto hwnd = reinterpret_cast<HWND>(widget->winId());
-		setBlurMaterial(hwnd, enable);
-	}	
+	auto hwnd = reinterpret_cast<HWND>(widget->winId());
+	
+	ACCENT_POLICY policy = {
+		enable ? ACCENT_ENABLE_BLURBEHIND : ACCENT_DISABLED, 0, 0, 0
+	};
+	WINDOWCOMPOSITIONATTRIBDATA data;
+	data.Attrib = WCA_ACCENT_POLICY;
+	data.pvData = &policy;
+	data.cbData = sizeof(policy);
+	Singleton<User32Lib>::GetInstance().SetWindowCompositionAttribute(hwnd, &data);
 }
 
-void setWinStyle(const QWidget* widget) {
+void setWinStyle(QWidget* widget) {
 	auto hwnd = reinterpret_cast<HWND>(widget->winId());
-
-	BOOL is_dwm_enable = false;
-	Singleton<DwmapiLib>::GetInstance().DwmIsCompositionEnabled(&is_dwm_enable);
-
-	if (is_dwm_enable) {
-		DWMNCRENDERINGPOLICY ncrp = DWMNCRP_ENABLED;
-		Singleton<DwmapiLib>::GetInstance().DwmSetWindowAttribute(hwnd, DWMWA_NCRENDERING_POLICY, &ncrp, sizeof(ncrp));
-
-		MARGINS borderless = { -1, -1, -1, -1 };
-		Singleton<DwmapiLib>::GetInstance().DwmExtendFrameIntoClientArea(hwnd, &borderless);
-
-		DWM_PRESENT_PARAMETERS dpp{ 0 };
-		dpp.cbSize = sizeof(dpp);
-		dpp.fQueue = TRUE;
-		dpp.cBuffer = 2;
-		dpp.fUseSourceRate = FALSE;
-		dpp.cRefreshesPerFrame = 1;
-		dpp.eSampling = DWM_SOURCE_FRAME_SAMPLING_POINT;
-		Singleton<DwmapiLib>::GetInstance().DwmSetPresentParameters(hwnd, &dpp);
-	}
-
-	auto style = ::GetWindowLong(hwnd, GWL_STYLE);
-	::SetWindowLong(hwnd, GWL_STYLE, style | WS_MAXIMIZEBOX | WS_THICKFRAME | WS_CAPTION);
+	::SetWindowLongPtr(hwnd, GWL_STYLE, WS_POPUP | WS_THICKFRAME | WS_CAPTION | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX);
 }
 }
 
