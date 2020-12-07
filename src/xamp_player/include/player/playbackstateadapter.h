@@ -19,7 +19,7 @@ using namespace base;
 using namespace stream;
 using namespace output_device;
 
-using GaplessPlayEntry = std::pair<AlignPtr<FileStream>, AlignPtr<Resampler>>;
+using GaplessPlayEntry = std::pair<AlignPtr<FileStream>, AlignPtr<SampleRateConverter>>;
 
 class XAMP_PLAYER_API XAMP_NO_VTABLE PlaybackStateAdapter {
 public:

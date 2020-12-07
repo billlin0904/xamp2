@@ -13,8 +13,8 @@
 #include <stream/bassequalizer.h>
 
 #include <player/soxresampler.h>
-#include <player/resampler.h>
-#include <player/nullresampler.h>
+#include <player/samplerateconverter.h>
+#include <player/passthroughsamplerateconverter.h>
 #include <player/chromaprint.h>
 #include <player/audio_util.h>
 #include <player/audio_player.h>
@@ -98,7 +98,7 @@ void AudioPlayer::Initial() {
     BassFileStream::LoadBassLib();
     XAMP_LOG_DEBUG("Load BASS dll success.");
 
-    SoxrResampler::LoadSoxrLib();
+    SoxrSampleRateConverter::LoadSoxrLib();
     XAMP_LOG_DEBUG("Load Soxr dll success.");
 	
     try {
@@ -128,10 +128,10 @@ void AudioPlayer::Open(std::wstring const & file_path,
     device_info_ = device_info;
 }
 
-void AudioPlayer::SetResampler(uint32_t samplerate, AlignPtr<Resampler>&& resampler) {
+void AudioPlayer::SetSampleRateConverter(uint32_t samplerate, AlignPtr<SampleRateConverter>&& resampler) {
     target_samplerate_ = samplerate;
     resampler_ = std::move(resampler);
-    EnableResampler(true);
+    EnableSampleRateConverter(true);
 }
 
 void AudioPlayer::SetDevice(const DeviceInfo& device_info) {
@@ -429,7 +429,7 @@ void AudioPlayer::CreateBuffer() {
     if (!enable_resample_
         || dsd_mode_ == DsdModes::DSD_MODE_NATIVE
         || dsd_mode_ == DsdModes::DSD_MODE_DOP) {
-        resampler_ = MakeAlign<Resampler, NullResampler>(dsd_mode_, stream_->GetSampleSize());
+        resampler_ = MakeAlign<SampleRateConverter, PassThroughSampleRateConverter>(dsd_mode_, stream_->GetSampleSize());
     }
 
     if (!enable_resample_) {
@@ -453,11 +453,11 @@ void AudioPlayer::CreateBuffer() {
                    FormatBytes(buffer_.GetSize()));
 }
 
-void AudioPlayer::EnableResampler(bool enable) {
+void AudioPlayer::EnableSampleRateConverter(bool enable) {
     enable_resample_ = enable;
 }
 
-bool AudioPlayer::IsEnableResampler() const {
+bool AudioPlayer::IsEnableSampleRateConverter() const {
     return enable_resample_;
 }
 
@@ -567,7 +567,7 @@ void AudioPlayer::BufferStream(double stream_time) {
     BufferSamples(stream_, resampler_, kBufferStreamCount);
 }
 
-void AudioPlayer::BufferSamples(AlignPtr<FileStream> &stream, AlignPtr<Resampler>& resampler, int32_t buffer_count) {
+void AudioPlayer::BufferSamples(AlignPtr<FileStream> &stream, AlignPtr<SampleRateConverter>& resampler, int32_t buffer_count) {
     auto* const sample_buffer = sample_buffer_.Get();
     
     for (auto i = 0; i < buffer_count; ++i) {
@@ -681,9 +681,9 @@ void AudioPlayer::OnGaplessPlayState(std::unique_lock<std::mutex>& lock) {
         return;
     }
 
-    std::lock_guard guard{ stream_read_mutex_ };
+    std::lock_guard<std::mutex> guard{stream_read_mutex_};
 
-    auto& [file_stream, resampler] = adapter->PlayQueueFont();
+    auto& [file_stream, sample_rate_converter] = adapter->PlayQueueFont();
 
     if (!msg_queue_.empty()) {
         // 處理播放完畢後替換掉Stream.
@@ -694,7 +694,7 @@ void AudioPlayer::OnGaplessPlayState(std::unique_lock<std::mutex>& lock) {
             XAMP_LOG_DEBUG("Receive EVENT_SWITCH");            
             stream_->Close();
             stream_ = std::move(file_stream);            
-            resampler_ = std::move(resampler);
+            resampler_ = std::move(sample_rate_converter);
             stream_duration_ = stream_->GetDuration();
             msg_queue_.Pop();
             adapter->PopPlayQueue();
@@ -703,7 +703,7 @@ void AudioPlayer::OnGaplessPlayState(std::unique_lock<std::mutex>& lock) {
         }        
     }
     else {
-        BufferSamples(file_stream, resampler);
+        BufferSamples(file_stream, sample_rate_converter);
     }    
 }
 
@@ -712,17 +712,17 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_read_sample
         const auto num_samples = stream_->GetSamples(sample_buffer, max_read_sample);
 
         if (num_samples > 0) {
-	        const auto samples = reinterpret_cast<const float*>(sample_buffer_.Get());
+	        const auto *samples = reinterpret_cast<const float*>(sample_buffer);
 
-            auto use_resampler = true;
+            auto use_sample_rate_converter = true;
             if (equalizer_ != nullptr) {
                 if (dsd_mode_ == DsdModes::DSD_MODE_PCM) {
                     equalizer_->Process(samples, num_samples, buffer_);
-                    use_resampler = false;
+                    use_sample_rate_converter = false;
                 }
             } 
 
-            if (use_resampler) {
+            if (use_sample_rate_converter) {
                 assert(resampler_ != nullptr);
                 if (!resampler_->Process(samples, num_samples, buffer_)) {
                     continue;
@@ -739,7 +739,7 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_read_sample
 }
 
 void AudioPlayer::EnableGaplessPlay(bool enable) {
-    std::lock_guard guard{ stream_read_mutex_ };
+	std::lock_guard<std::mutex> guard{stream_read_mutex_};
     enable_gapless_play_ = enable;
     if (enable == false) {
         if (auto adapter = state_adapter_.lock()) {
@@ -752,14 +752,14 @@ bool AudioPlayer::IsGaplessPlay() const {
     return IsPlaying() && enable_gapless_play_;
 }
 
-void AudioPlayer::ClearPlayQueue() {
-    std::lock_guard guard{ stream_read_mutex_ };
+void AudioPlayer::ClearPlayQueue() const {
+	std::lock_guard<std::mutex> guard{stream_read_mutex_};
     if (auto adapter = state_adapter_.lock()) {
         adapter->ClearPlayQueue();
     }
 }
 
-AlignPtr<Resampler> AudioPlayer::CloneResampler() {
+AlignPtr<SampleRateConverter> AudioPlayer::CloneSampleRateConverter() const {
     return resampler_->Clone();
 }
 
@@ -774,8 +774,8 @@ int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, dou
 #endif
 
     if (stream_time >= stream_duration_ && enable_gapless_play_) {
-        device_->SetStreamTime(0);
         msg_queue_.TryPush(MsgID::EVENT_SWITCH);
+        device_->SetStreamTime(0);
     }
 
     if (XAMP_LIKELY(buffer_.TryRead(static_cast<int8_t*>(samples), sample_size))) {
@@ -849,7 +849,7 @@ void AudioPlayer::StartPlay(double start_time, double end_time) {
             }
         }
         catch (const std::exception& e) {
-            XAMP_LOG_DEBUG("Stream thread read has exception: {}.", e.what());
+            XAMP_LOG_DEBUG("Stream thread read has exception: {}", e.what());
         }
 
         XAMP_LOG_DEBUG("Stream thread end");

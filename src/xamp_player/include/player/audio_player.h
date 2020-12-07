@@ -102,11 +102,11 @@ public:
 
     bool IsDsdStream() const noexcept;
 
-    void SetResampler(uint32_t samplerate, AlignPtr<Resampler> &&resampler);
+    void SetSampleRateConverter(uint32_t samplerate, AlignPtr<SampleRateConverter> &&resampler);
 
-    void EnableResampler(bool enable = true);
+    void EnableSampleRateConverter(bool enable = true);
 
-    bool IsEnableResampler() const;
+    bool IsEnableSampleRateConverter() const;
 
     void SetEQ(AlignPtr<Equalizer> &&equalizer);
 
@@ -120,9 +120,9 @@ public:
 
     void EnableGaplessPlay(bool enable);
 
-    void ClearPlayQueue();   
+    void ClearPlayQueue() const;   
 
-    AlignPtr<Resampler> CloneResampler();
+    AlignPtr<SampleRateConverter> CloneSampleRateConverter() const;
 
 private:
     void Startup();
@@ -153,7 +153,7 @@ private:
 
     void ReadSampleLoop(int8_t* sample_buffer, uint32_t max_read_sample, std::unique_lock<std::mutex> &lock);
 
-    void BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<Resampler> &resampler, int32_t buffer_count = 1);
+    void BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<SampleRateConverter> &resampler, int32_t buffer_count = 1);
 
     void UpdateSlice(float const *samples = nullptr, int32_t sample_size = 0, double stream_time = 0.0) noexcept;
 
@@ -211,7 +211,7 @@ private:
     std::weak_ptr<PlaybackStateAdapter> state_adapter_;
     AudioBuffer<int8_t> buffer_;
     WaitableTimer wait_timer_;
-    AlignPtr<Resampler> resampler_;   
+    AlignPtr<SampleRateConverter> resampler_;   
     AlignPtr<Equalizer> equalizer_;
     VmMemLock sample_buffer_lock_;    
     DeviceInfo device_info_;

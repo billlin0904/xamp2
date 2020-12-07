@@ -43,7 +43,7 @@ size_t UIPlayerStateAdapter::GetPlayQueueSize() const {
     return play_queue_.size();
 }
 
-void UIPlayerStateAdapter::addPlayQueue(AlignPtr<FileStream>&& stream, AlignPtr<Resampler>&& resampler, const QModelIndex &index) {    
+void UIPlayerStateAdapter::addPlayQueue(AlignPtr<FileStream>&& stream, AlignPtr<SampleRateConverter>&& resampler, const QModelIndex &index) {    
     play_queue_.TryEnqueue(std::make_pair(std::move(stream), std::move(resampler)));
     index_queue_.TryPush(index);
 }

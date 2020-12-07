@@ -44,7 +44,7 @@ public:
     XAMP_DECLARE_DLL(soxr_clear) soxr_clear;
 };
 
-class SoxrResampler::SoxrResamplerImpl final {
+class SoxrSampleRateConverter::SoxrResamplerImpl final {
 public:
     static constexpr size_t kInitBufferSize = 4 * 1024 * 1204;
 
@@ -64,7 +64,7 @@ public:
         Close();
     }
 
-    void Start(uint32_t input_samplerate, uint32_t num_channels, uint32_t output_samplerate) {        
+    void Start(uint32_t input_sample_rate, uint32_t num_channels, uint32_t output_sample_rate) {        
         Close();
 
         unsigned long quality_spec = 0;
@@ -118,8 +118,8 @@ public:
         auto runtimespec = Singleton<SoxrLib>::GetInstance().soxr_runtime_spec(1);
 
         soxr_error_t error = nullptr;
-        handle_.reset(Singleton<SoxrLib>::GetInstance().soxr_create(input_samplerate,
-                                                      output_samplerate,
+        handle_.reset(Singleton<SoxrLib>::GetInstance().soxr_create(input_sample_rate,
+                                                      output_sample_rate,
                                                       num_channels,
                                                       &error,
                                                       &iospec,
@@ -130,14 +130,14 @@ public:
             throw LibrarySpecException("sox_create return failure!");
         }
 
-        input_samplerate_ = input_samplerate;
+        input_samplerate_ = input_sample_rate;
         num_channels_ = num_channels;
 
-        ratio_ = static_cast<double>(output_samplerate) / static_cast<double>(input_samplerate_);
+        ratio_ = static_cast<double>(output_sample_rate) / static_cast<double>(input_samplerate_);
 
         XAMP_LOG_DEBUG("Soxr resampler setting=> input:{} output:{} quality:{} phase:{}",
-                       input_samplerate,
-                       output_samplerate,
+                       input_sample_rate,
+                       output_sample_rate,
                        EnumToString(quality_),
                        EnumToString(phase_));
 
@@ -245,61 +245,61 @@ public:
     Buffer<float> buffer_;
 };
 
-const std::string_view SoxrResampler::VERSION = "Soxr " SOXR_THIS_VERSION_STR;
+const std::string_view SoxrSampleRateConverter::VERSION = "Soxr " SOXR_THIS_VERSION_STR;
 
-SoxrResampler::SoxrResampler()
+SoxrSampleRateConverter::SoxrSampleRateConverter()
     : impl_(MakeAlign<SoxrResamplerImpl>()) {
 }
 
-SoxrResampler::~SoxrResampler() = default;
+SoxrSampleRateConverter::~SoxrSampleRateConverter() = default;
 
-void SoxrResampler::LoadSoxrLib() {
+void SoxrSampleRateConverter::LoadSoxrLib() {
     (void)Singleton<SoxrLib>::GetInstance();
 }
 
-void SoxrResampler::Start(uint32_t input_samplerate, uint32_t num_channels, uint32_t output_samplerate) {
+void SoxrSampleRateConverter::Start(uint32_t input_samplerate, uint32_t num_channels, uint32_t output_samplerate) {
     impl_->Start(input_samplerate, num_channels, output_samplerate);
 }
 
-void SoxrResampler::SetSteepFilter(bool enable) {
+void SoxrSampleRateConverter::SetSteepFilter(bool enable) {
     impl_->SetSteepFilter(enable);
 }
 
-void SoxrResampler::SetQuality(SoxrQuality quality) {
+void SoxrSampleRateConverter::SetQuality(SoxrQuality quality) {
     impl_->SetQuality(quality);
 }
 
-void SoxrResampler::SetPhase(SoxrPhaseResponse phase) {
+void SoxrSampleRateConverter::SetPhase(SoxrPhaseResponse phase) {
     impl_->SetPhase(phase);
 }
 
-void SoxrResampler::SetPassBand(double passband) {
+void SoxrSampleRateConverter::SetPassBand(double passband) {
     impl_->SetPassBand(passband);
 }
 
-void SoxrResampler::SetStopBand(double stopband) {
+void SoxrSampleRateConverter::SetStopBand(double stopband) {
     impl_->SetStopBand(stopband);
 }
 
-void SoxrResampler::SetDither(bool enable) {
+void SoxrSampleRateConverter::SetDither(bool enable) {
     impl_->SetDither(enable);
 }
 
-std::string_view SoxrResampler::GetDescription() const noexcept {
+std::string_view SoxrSampleRateConverter::GetDescription() const noexcept {
     return VERSION;
 }
 
-bool SoxrResampler::Process(float const * samples, uint32_t num_sample, AudioBuffer<int8_t>& buffer) {
+bool SoxrSampleRateConverter::Process(float const * samples, uint32_t num_sample, AudioBuffer<int8_t>& buffer) {
     return impl_->Process(samples, num_sample, buffer);
 }
 
-void SoxrResampler::Flush() {
+void SoxrSampleRateConverter::Flush() {
     impl_->Flush();
 }
 
-AlignPtr<Resampler> SoxrResampler::Clone() {
-    auto other = MakeAlign<Resampler, SoxrResampler>();
-    auto soxr = reinterpret_cast<SoxrResampler*>(other.get());
+AlignPtr<SampleRateConverter> SoxrSampleRateConverter::Clone() {
+    auto other = MakeAlign<SampleRateConverter, SoxrSampleRateConverter>();
+    auto soxr = reinterpret_cast<SoxrSampleRateConverter*>(other.get());
     soxr->SetQuality(impl_->quality_);
     soxr->SetPassBand(impl_->passband_);
     soxr->SetPhase(impl_->phase_);

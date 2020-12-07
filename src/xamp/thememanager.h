@@ -78,7 +78,7 @@ public:
 
     QSize getAlbumCoverSize() const noexcept;
 
-    QColor getBackgroundColor() const noexcept;
+    QColor getBackgroundColor() const noexcept;    
 
     QIcon playArrow() const noexcept;
 

@@ -60,13 +60,13 @@ AlignPtr<FileStream> MakeFileStream(std::wstring const& file_ext, AlignPtr<FileS
 
     if (old_stream != nullptr) {
         if (is_dsd_stream || is_use_bass) {
-            if (auto stream = dynamic_cast<BassFileStream*>(old_stream.get())) {
+            if (auto* stream = dynamic_cast<BassFileStream*>(old_stream.get())) {
                 old_stream->Close();
                 return old_stream;
             }
         }
         else {
-            if (auto stream = dynamic_cast<AvFileStream*>(old_stream.get())) {
+            if (auto* stream = dynamic_cast<AvFileStream*>(old_stream.get())) {
                 old_stream->Close();
                 return old_stream;
             }

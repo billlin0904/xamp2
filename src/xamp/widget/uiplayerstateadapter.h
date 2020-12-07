@@ -12,7 +12,7 @@
 #include <output_device/devicestatelistener.h>
 #include <stream/filestream.h>
 #include <player/playbackstateadapter.h>
-#include <player/resampler.h>
+#include <player/SampleRateConverter.h>
 #include <player/playstate.h>
 
 using xamp::base::Errors;
@@ -21,7 +21,7 @@ using xamp::base::Exception;
 using xamp::base::SpscQueue;
 
 using xamp::player::PlayerState;
-using xamp::player::Resampler;
+using xamp::player::SampleRateConverter;
 using xamp::player::PlaybackStateAdapter;
 using xamp::player::GaplessPlayEntry;
 
@@ -55,7 +55,7 @@ public:
 
     void OnGaplessPlayback() override;    
 
-    void addPlayQueue(AlignPtr<FileStream> &&stream, AlignPtr<Resampler> &&resampler, const QModelIndex &index);
+    void addPlayQueue(AlignPtr<FileStream> &&stream, AlignPtr<SampleRateConverter> &&resampler, const QModelIndex &index);
 
     QModelIndex popIndexQueue();
 

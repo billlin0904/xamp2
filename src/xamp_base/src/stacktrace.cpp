@@ -127,12 +127,14 @@ std::string GetFileName(std::filesystem::path const &path) {
 
 void StackTrace::WriteLog(size_t frame_count, std::ostream& ostr) {
     std::vector<uint8_t> symbol(sizeof(SYMBOL_INFO) + sizeof(wchar_t) * MAX_SYM_NAME);
-    auto current_process = Singleton<SymLoader>::GetInstance().GetProcess().get();
+    auto* const current_process = Singleton<SymLoader>::GetInstance().GetProcess().get();
 
-    ostr << "stack backtrace:\r\n";    
+    ostr << "\r\nstack backtrace:\r\n";
+
+    frame_count = (std::min)(addrlist_.size(), frame_count);
 
     for (size_t i = 0; i < frame_count; ++i) {
-        auto frame = addrlist_[i];
+        auto * frame = addrlist_[i];
         symbol.clear();
 
         auto* const symbol_info = reinterpret_cast<SYMBOL_INFO*>(symbol.data());
@@ -160,27 +162,30 @@ void StackTrace::WriteLog(size_t frame_count, std::ostream& ostr) {
                 &line);
 
             if (has_line) {                
-                ostr << std::setw(2) << i << ":" << std::setw(6) << "0x" << std::hex << reinterpret_cast<DWORD64>(frame) << " - "
-                    << GetFileName(line.FileName) << ":" << line.LineNumber << "\r\n";
+                ostr << std::setw(2) << i << ":" << std::setw(8) << "0x" << std::hex << reinterpret_cast<DWORD64>(frame) << " "
+            	    << symbol_info->Name
+            	    << " "
+                    << GetFileName(line.FileName) << ":" << std::dec << line.LineNumber << "\r\n";
             }
             else {                
-                ostr << std::setw(2) << i << ":" << std::setw(6) << "0x" << std::hex << reinterpret_cast<DWORD64>(frame) << " - "
-                    << "<unknown>" << std::dec << displacement << "\r\n";
+                ostr << std::setw(2) << i << ":" << std::setw(8) << "0x" << std::hex << reinterpret_cast<DWORD64>(frame) << " "
+                    << symbol_info->Name
+                    << " offset " << std::dec << displacement << "\r\n";
             }
         }
         else {
-            ostr << std::setw(2) << i << ":" << std::setw(6) << "0x" << reinterpret_cast<DWORD64>(frame) << "<unknown>" << "\r\n";
+            ostr << std::setw(2) << i << ":" << std::setw(8) << "0x" << reinterpret_cast<DWORD64>(frame) << " <unknown>" << "\r\n";
         }
     }
 }
 
 void StackTrace::PrintStackTrace(EXCEPTION_POINTERS const* info) {
-    auto exceptionCode = info->ExceptionRecord->ExceptionCode;
+	const auto exception_code = info->ExceptionRecord->ExceptionCode;
 
-    if ((exceptionCode & ERROR_SEVERITY_ERROR) != ERROR_SEVERITY_ERROR) {
+    if ((exception_code & ERROR_SEVERITY_ERROR) != ERROR_SEVERITY_ERROR) {
         return;
     }
-    if (exceptionCode & APPLICATION_ERROR_MASK) {
+    if (exception_code & APPLICATION_ERROR_MASK) {
         return;
     }
 
@@ -193,7 +198,7 @@ void StackTrace::PrintStackTrace(EXCEPTION_POINTERS const* info) {
     }
 
     std::ostringstream ostr;
-    auto frame_count = WalkStack(info->ContextRecord, addrlist_);
+	const auto frame_count = WalkStack(info->ContextRecord, addrlist_);
     WriteLog(frame_count - 1, ostr);
     XAMP_LOG_DEBUG(ostr.str());
     std::exit(-1);

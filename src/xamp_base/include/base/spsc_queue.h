@@ -8,6 +8,7 @@
 #include <atomic>
 
 #include <base/base.h>
+#include <base/vmmemlock.h>
 
 namespace xamp::base {
 
@@ -26,6 +27,7 @@ public:
         }
         slots_ = std::allocator_traits<Allocator>::allocate(allocator_,
                                                             capacity_ + 2 * kPadding);
+        lock_.Lock(slots_, sizeof(Type) + capacity_ + 2 * kPadding);
         static_assert(alignof(SpscQueue<Type>) == kCacheAlignSize);
         static_assert(sizeof(SpscQueue<Type>) >= 3 * kCacheAlignSize);
         assert(reinterpret_cast<char *>(&tail_) -
@@ -59,12 +61,12 @@ public:
         return static_cast<size_t>(diff);
     }
 
-    bool TryPush(const Type &v) {
+    bool TryPush(const Type &v) noexcept {
         return TryEnqueue(v);
     }
 
     template <typename... Args>
-    bool TryEnqueue(Args &&... args) {
+    bool TryEnqueue(Args &&... args) noexcept {
         auto const head = head_.load(std::memory_order_relaxed);
         auto next_head = head + 1;
         if (next_head == capacity_) {
@@ -110,6 +112,7 @@ private:
     XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<size_t> tail_;
 
     uint8_t padding_[kCacheAlignSize - sizeof(tail_)]{ 0 };
+    VmMemLock lock_;
 };
 
 }

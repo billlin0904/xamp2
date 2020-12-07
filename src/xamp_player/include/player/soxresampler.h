@@ -10,7 +10,7 @@
 #include <base/enum.h>
 #include <base/align_ptr.h>
 #include <base/audiobuffer.h>
-#include <player/resampler.h>
+#include <player/samplerateconverter.h>
 #include <player/player.h>
 
 namespace xamp::player {
@@ -29,13 +29,13 @@ MAKE_ENUM(SoxrPhaseResponse,
           INTERMEDIATE_PHASE,
           MINIMUM_PHASE)
 
-class XAMP_PLAYER_API SoxrResampler final : public Resampler {
+class XAMP_PLAYER_API SoxrSampleRateConverter final : public SampleRateConverter {
 public:
     static const std::string_view VERSION;
 
-    SoxrResampler();
+    SoxrSampleRateConverter();
 
-    ~SoxrResampler() override;
+    ~SoxrSampleRateConverter() override;
 
     static void LoadSoxrLib();
 
@@ -59,7 +59,7 @@ public:
 
     void Flush() override;
 
-    AlignPtr<Resampler> Clone() override;
+    AlignPtr<SampleRateConverter> Clone() override;
 
 private:
     class SoxrResamplerImpl;

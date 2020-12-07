@@ -21,9 +21,9 @@ namespace xamp::player {
 	class AudioPlayer;	
 	class PlaybackStateAdapter;
 	class Chromaprint;
-	class Resampler;
-    class SoxrResampler;
-    class NullResampler;
+	class SampleRateConverter;
+    class SoxrSampleRateConverter;
+    class PassThroughSampleRateConverter;
 }
 
 

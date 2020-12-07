@@ -127,7 +127,7 @@ XAMP_DECLARE_EXCEPTION_CLASS(NotFoundDllExportFuncException)
 #define CheckBufferFlow(expr) \
     do {\
         if (!(expr)) {\
-        throw LibrarySpecException("Buffer overflow.");\
+        throw LibrarySpecException("Buffer overflow.", "Buffer overflow.");\
         }\
     } while(false)
 

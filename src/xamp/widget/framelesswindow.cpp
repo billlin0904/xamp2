@@ -45,7 +45,7 @@ FramelessWindow::FramelessWindow(QWidget* parent)
         win32::setWinStyle(this);        
     }
     createThumbnailToolBar();   
-    setStyleSheet(Q_UTF8(R"(
+    setStyleSheet(Q_UTF8(R"(		
         font-family: "UI";
 		background: transparent;        
     )"));

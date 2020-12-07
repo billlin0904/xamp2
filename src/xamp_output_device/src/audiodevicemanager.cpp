@@ -39,7 +39,7 @@ public:
 #endif
     }
 
-    void Run() {
+    void Run() const {
         notification_->Run();
     }
 

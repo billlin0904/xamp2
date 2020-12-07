@@ -86,15 +86,15 @@ static std::tuple<bool, QMessageBox::StandardButton> showDontShowAgainDialog(QWi
     return { is_show_agin, QMessageBox::Yes };
 }
 
-static AlignPtr<Resampler> MakeResampler(const QVariantMap &soxr_settings) {
+static AlignPtr<SampleRateConverter> MakeResampler(const QVariantMap &soxr_settings) {
     auto quality = static_cast<SoxrQuality>(soxr_settings[kSoxrQuality].toInt());
     auto phase = static_cast<SoxrPhaseResponse>(soxr_settings[kSoxrPhase].toInt());
     auto passband = soxr_settings[kSoxrPassBand].toInt();
     auto enable_steep_filter = soxr_settings[kSoxrEnableSteepFilter].toBool();
     auto enable_dither = soxr_settings[kSoxrEnableDither].toBool();
 
-    auto resampler = MakeAlign<Resampler, SoxrResampler>();
-    auto soxr = dynamic_cast<SoxrResampler*>(resampler.get());
+    auto resampler = MakeAlign<SampleRateConverter, SoxrSampleRateConverter>();
+    auto soxr = dynamic_cast<SoxrSampleRateConverter*>(resampler.get());
     soxr->SetQuality(quality);
     soxr->SetPhase(phase);
     soxr->SetPassBand(passband / 100.0);
@@ -307,7 +307,7 @@ void Xamp::initialDeviceList() {
         menu = new QMenu(this);
         ui.selectDeviceButton->setMenu(menu);
     }
-
+    
     menu->clear();
 
     DeviceInfo init_device_info;
@@ -685,7 +685,9 @@ void Xamp::applyTheme(QColor color) {
         ThemeManager::instance().setPlayOrPauseButton(ui, false);
     }
 
-    ThemeManager::instance().setBackgroundColor(ui, color);    
+    ThemeManager::instance().setBackgroundColor(ui, color);
+
+    setStyleSheet(Q_UTF8("QMenu { background-color: rgba(18, 18, 18, 1); }"));
 }
 
 void Xamp::getNextPage() {
@@ -865,10 +867,10 @@ void Xamp::setupResampler() {
         auto soxr_settings = JsonSettings::getValue(AppSettings::getValueAsString(kAppSettingSoxrSettingName)).toMap();
         auto resampler = MakeResampler(soxr_settings);
         auto samplerate = soxr_settings[kSoxrResampleSampleRate].toUInt();
-        player_->SetResampler(samplerate, std::move(resampler));
+        player_->SetSampleRateConverter(samplerate, std::move(resampler));
     }
     else {
-        player_->EnableResampler(false);
+        player_->EnableSampleRateConverter(false);
     }
 }
 
@@ -1117,7 +1119,7 @@ void Xamp::addPlayQueue() {
     auto soxr_settings = JsonSettings::getValue(AppSettings::getValueAsString(kAppSettingSoxrSettingName)).toMap();
     auto samplerate = soxr_settings[kSoxrResampleSampleRate].toUInt();
 
-    AlignPtr<Resampler> resampler;
+    AlignPtr<SampleRateConverter> resampler;
 
     if (output_format == AudioFormat::UnknowFormat) {
         resampler = MakeResampler(soxr_settings);   
@@ -1128,7 +1130,7 @@ void Xamp::addPlayQueue() {
             stopPlayedClicked();
             return;
         }
-        resampler = player_->CloneResampler();
+        resampler = player_->CloneSampleRateConverter();
         resampler->Start(input_format.GetSampleRate(), input_format.GetChannels(), samplerate);
     }    
 
