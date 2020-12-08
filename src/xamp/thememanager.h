@@ -19,7 +19,7 @@ inline QString colorToString(QColor color) noexcept {
         color.red(), color.green(), color.blue(), color.alpha());
 }
 
-inline QString backgroundColorToString(QColor color) {
+inline QString backgroundColorToString(QColor color) noexcept {
     return Q_UTF8("background-color: ") + colorToString(color) + Q_UTF8(";");
 }
 
@@ -70,7 +70,7 @@ public:
 
     void setBackgroundColor(Ui::XampWindow& ui, QColor color);
 
-    void enableBlur(const QWidget* widget, bool enable);
+    void enableBlur(const QWidget* widget, bool enable) const;
 
     QSize getDefaultCoverSize() const noexcept;
 
@@ -82,15 +82,17 @@ public:
 
     QIcon playArrow() const noexcept;
 
-    void setThemeIcon(Ui::XampWindow& ui);
+    void setThemeIcon(Ui::XampWindow& ui) const;
 
-    void setShufflePlayorder(Ui::XampWindow& ui);
+    void setShufflePlayorder(Ui::XampWindow& ui) const;
 
-    void setRepeatOnePlayorder(Ui::XampWindow& ui);
+    void setRepeatOnePlayOrder(Ui::XampWindow& ui) const;
 
-    void setRepeatOncePlayorder(Ui::XampWindow& ui);
+    void setRepeatOncePlayOrder(Ui::XampWindow& ui) const;
 
     void setThemeColor(ThemeColor theme_color);
+
+    static void setBackgoundColor(QWidget* widget);
 
 signals:
     void themeChanged(ThemeColor theme_color);    

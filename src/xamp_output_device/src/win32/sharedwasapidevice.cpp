@@ -149,7 +149,7 @@ void SharedWasapiDevice::CloseStream() {
 void SharedWasapiDevice::InitialDeviceFormat(AudioFormat const & output_format) {
 	uint32_t fundamental_period_in_frame = 0;
 	uint32_t current_period_in_frame = 0;
-	uint32_t default_period_in_rame = 0;
+	uint32_t default_period_in_frame = 0;
 	uint32_t max_period_in_frame = 0;
 	uint32_t min_period_in_frame = 0;
 
@@ -160,7 +160,7 @@ void SharedWasapiDevice::InitialDeviceFormat(AudioFormat const & output_format) 
 
 	// The pFormat parameter below is optional (Its needed only for MATCH_FORMAT clients).
 	const auto hr = client_->GetSharedModeEnginePeriod(mix_format_,
-		&default_period_in_rame,
+		&default_period_in_frame,
 		&fundamental_period_in_frame,
 		&min_period_in_frame,
 		&max_period_in_frame);
@@ -171,11 +171,11 @@ void SharedWasapiDevice::InitialDeviceFormat(AudioFormat const & output_format) 
 
 	XAMP_LOG_DEBUG("Initital device format fundamental:{}, current:{}, min:{} max:{}.",
 		fundamental_period_in_frame,
-		default_period_in_rame,
+		default_period_in_frame,
 		min_period_in_frame,
 		max_period_in_frame);
 
-	latency_ = default_period_in_rame;
+	latency_ = default_period_in_frame;
 
 	XAMP_LOG_DEBUG("Use latency: {}", latency_);
 }
@@ -231,7 +231,7 @@ void SharedWasapiDevice::OpenStream(AudioFormat const & output_format) {
 	HrIfFailledThrow(::MFGetWorkQueueMMCSSPriority(queue_id_, &priority));
 
 	XAMP_LOG_DEBUG("MCSS task id:{} queue id:{}, priority:{} ({}).",
-		task_id, queue_id_, thread_priority_, (MmcssThreadPriority)priority);
+		task_id, queue_id_, thread_priority_, static_cast<MmcssThreadPriority>(priority));
 
 	sample_ready_callback_.Release();
 	sample_ready_async_result_.Release();
@@ -390,13 +390,16 @@ void SharedWasapiDevice::StartStream() {
 
 	// Note: 必要! 某些音效卡會爆音!
 	FillSilentSample(buffer_frames_);
-
-	is_running_ = true;
+	
 	HrIfFailledThrow(client_->Start());
+	HrIfFailledThrow(::MFPutWaitingWorkItem(sample_ready_.get(),
+		0, 
+		sample_ready_async_result_,
+		&sample_raedy_key_));
 
-	HrIfFailledThrow(::MFPutWaitingWorkItem(sample_ready_.get(), 0, sample_ready_async_result_, &sample_raedy_key_));
-
+	// is_running_必須要確認都成功才能設置為true.
 	is_stop_streaming_ = false;
+	is_running_ = true;
 
 	XAMP_LOG_DEBUG("Start shared mode stream!");
 }

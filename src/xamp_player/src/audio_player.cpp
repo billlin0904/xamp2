@@ -73,7 +73,7 @@ void AudioPlayer::Destroy() {
     }
     Stop(false, true);
     stream_.reset();
-    resampler_.reset();
+    converter_.reset();
     equalizer_.reset();
 #ifdef ENABLE_ASIO
     AudioDeviceManager::RemoveASIODriver();
@@ -128,9 +128,9 @@ void AudioPlayer::Open(std::wstring const & file_path,
     device_info_ = device_info;
 }
 
-void AudioPlayer::SetSampleRateConverter(uint32_t samplerate, AlignPtr<SampleRateConverter>&& resampler) {
-    target_samplerate_ = samplerate;
-    resampler_ = std::move(resampler);
+void AudioPlayer::SetSampleRateConverter(uint32_t sample_rate, AlignPtr<SampleRateConverter>&& converter) {
+    target_samplerate_ = sample_rate;
+    converter_ = std::move(converter);
     EnableSampleRateConverter(true);
 }
 
@@ -170,7 +170,7 @@ bool AudioPlayer::IsDSDFile() const {
     if (!stream_) {
         return false;
     }
-    if (const auto dsd_stream = dynamic_cast<DsdStream const*>(stream_.get())) {
+    if (const auto* dsd_stream = dynamic_cast<DsdStream const*>(stream_.get())) {
         return dsd_stream->IsDsdFile();
     }
     return false;
@@ -191,7 +191,7 @@ void AudioPlayer::OpenStream(std::wstring const & file_path, std::wstring const 
     }
     stream_->OpenFile(file_path);    
     stream_duration_ = stream_->GetDuration();   
-    XAMP_LOG_DEBUG("Use stream type: {} {} {}.", stream_->GetDescription(), dsd_mode_, stream_duration_);
+    XAMP_LOG_DEBUG("Open stream type: {} {} {}.", stream_->GetDescription(), dsd_mode_, stream_duration_);
 }
 
 void AudioPlayer::SetState(const PlayerState play_state) {
@@ -212,7 +212,7 @@ void AudioPlayer::Play() {
         if (!device_->IsStreamRunning()) {
             device_->SetVolume(volume_);
             device_->SetMute(is_muted_);
-            XAMP_LOG_DEBUG("Volume:{} IsMuted:{}.", volume_, is_muted_);
+            XAMP_LOG_DEBUG("Play vol:{} muted:{}.", volume_, is_muted_);
             device_->StartStream();
             SetState(PlayerState::PLAYER_STATE_RUNNING);
         }
@@ -318,7 +318,7 @@ void AudioPlayer::SetMute(bool mute) {
 }
 
 std::optional<uint32_t> AudioPlayer::GetDSDSpeed() const {
-    std::lock_guard guard{ stream_read_mutex_ };
+    std::lock_guard<std::mutex> guard{ stream_read_mutex_ };
 
     if (!stream_) {
         return std::nullopt;
@@ -429,7 +429,7 @@ void AudioPlayer::CreateBuffer() {
     if (!enable_resample_
         || dsd_mode_ == DsdModes::DSD_MODE_NATIVE
         || dsd_mode_ == DsdModes::DSD_MODE_DOP) {
-        resampler_ = MakeAlign<SampleRateConverter, PassThroughSampleRateConverter>(dsd_mode_, stream_->GetSampleSize());
+        converter_ = MakeAlign<SampleRateConverter, PassThroughSampleRateConverter>(dsd_mode_, stream_->GetSampleSize());
     }
 
     if (!enable_resample_) {
@@ -441,7 +441,7 @@ void AudioPlayer::CreateBuffer() {
     }
     else {
         assert(target_samplerate_ > 0);
-        resampler_->Start(input_format_.GetSampleRate(),
+        converter_->Start(input_format_.GetSampleRate(),
                           input_format_.GetChannels(),
                           target_samplerate_);
     }
@@ -449,7 +449,7 @@ void AudioPlayer::CreateBuffer() {
     XAMP_LOG_DEBUG("Output device format: {} num_read_sample: {} resampler: {} buffer: {}.",
                    output_format_,
                    num_read_sample_,
-                   resampler_->GetDescription(),
+                   converter_->GetDescription(),
                    FormatBytes(buffer_.GetSize()));
 }
 
@@ -560,14 +560,14 @@ void AudioPlayer::BufferStream(double stream_time) {
     }
 
     if (enable_resample_) {
-        resampler_->Flush();
+        converter_->Flush();
     }
 
     sample_size_ = stream_->GetSampleSize();
-    BufferSamples(stream_, resampler_, kBufferStreamCount);
+    BufferSamples(stream_, converter_, kBufferStreamCount);
 }
 
-void AudioPlayer::BufferSamples(AlignPtr<FileStream> &stream, AlignPtr<SampleRateConverter>& resampler, int32_t buffer_count) {
+void AudioPlayer::BufferSamples(AlignPtr<FileStream> &stream, AlignPtr<SampleRateConverter>& converter, int32_t buffer_count) {
     auto* const sample_buffer = sample_buffer_.Get();
     
     for (auto i = 0; i < buffer_count; ++i) {
@@ -579,17 +579,17 @@ void AudioPlayer::BufferSamples(AlignPtr<FileStream> &stream, AlignPtr<SampleRat
 
             const auto* samples = reinterpret_cast<const float*>(sample_buffer);
 
-            auto use_resampler = true;
+            auto use_converter = true;
             if (equalizer_ != nullptr) {
                 if (dsd_mode_ == DsdModes::DSD_MODE_PCM) {
                     equalizer_->Process(samples, num_samples, buffer_);
-                    use_resampler = false;
+                    use_converter = false;
                 }
             }
 
-            if (use_resampler) {
-                assert(resampler != nullptr);
-                if (!resampler->Process(samples, num_samples, buffer_)) {
+            if (use_converter) {
+                assert(converter != nullptr);
+                if (!converter->Process(samples, num_samples, buffer_)) {
                     continue;
                 }
             }
@@ -661,7 +661,7 @@ void AudioPlayer::Seek(double stream_time) {
         Resume();
         
         if (auto adapter = state_adapter_.lock()) {
-            std::lock_guard guard{ stream_read_mutex_ };
+	        std::lock_guard<std::mutex> guard{stream_read_mutex_};
             if (adapter->GetPlayQueueSize() > 0) {
                 auto& entry = adapter->PlayQueueFont();
                 entry.first->Seek(0);
@@ -694,7 +694,7 @@ void AudioPlayer::OnGaplessPlayState(std::unique_lock<std::mutex>& lock) {
             XAMP_LOG_DEBUG("Receive EVENT_SWITCH");            
             stream_->Close();
             stream_ = std::move(file_stream);            
-            resampler_ = std::move(sample_rate_converter);
+            converter_ = std::move(sample_rate_converter);
             stream_duration_ = stream_->GetDuration();
             msg_queue_.Pop();
             adapter->PopPlayQueue();
@@ -723,8 +723,8 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_read_sample
             } 
 
             if (use_sample_rate_converter) {
-                assert(resampler_ != nullptr);
-                if (!resampler_->Process(samples, num_samples, buffer_)) {
+                assert(converter_ != nullptr);
+                if (!converter_->Process(samples, num_samples, buffer_)) {
                     continue;
                 }
             }
@@ -760,7 +760,7 @@ void AudioPlayer::ClearPlayQueue() const {
 }
 
 AlignPtr<SampleRateConverter> AudioPlayer::CloneSampleRateConverter() const {
-    return resampler_->Clone();
+    return converter_->Clone();
 }
 
 int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, double stream_time, double sample_time) noexcept {

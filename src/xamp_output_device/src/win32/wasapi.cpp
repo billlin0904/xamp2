@@ -38,7 +38,7 @@ struct PropVariant final : PROPVARIANT {
 		::PropVariantClear(this);
 	}
 
-	std::wstring ToString() noexcept {
+	[[nodiscard]] std::wstring ToString() const noexcept {
 		std::wstring result;
 		PWSTR psz = nullptr;
 		if (SUCCEEDED(::PropVariantToStringAlloc(*this, &psz))) {
@@ -80,7 +80,7 @@ std::wstring GetDevicePropertyString(PROPERTYKEY const& key, VARTYPE type, CComP
 	case VT_BLOB:
 	{
 		std::wostringstream ostr;
-		auto format = reinterpret_cast<const WAVEFORMATEX*>(prop_variant.blob.pBlobData);
+		const auto* format = reinterpret_cast<const WAVEFORMATEX*>(prop_variant.blob.pBlobData);
 		if (format != nullptr) {
 			ostr << format->nChannels << "," << format->wBitsPerSample << "," << format->nSamplesPerSec;
 		}		

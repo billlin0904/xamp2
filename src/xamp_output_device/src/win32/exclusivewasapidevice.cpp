@@ -393,16 +393,18 @@ void ExclusiveWasapiDevice::StartStream() {
 
 	// Note: 必要! 某些音效卡會爆音!
 	FillSilentSample(buffer_frames_);
-
-    is_running_ = true;
-	HrIfFailledThrow(client_->Start());
-	
+    
+	HrIfFailledThrow(client_->Start());	
 	HrIfFailledThrow(::MFPutWaitingWorkItem(sample_ready_.get(),
 		0,
 		sample_ready_async_result_,
 		&sample_ready_key_));
 
-    is_stop_streaming_ = false;
+	// is_running_必須要確認都成功才能設置為true.
+    is_stop_streaming_ = false;	
+	is_running_ = true;
+
+	XAMP_LOG_DEBUG("Start exclusive mode stream!");
 }
 
 void ExclusiveWasapiDevice::SetStreamTime(const double stream_time) noexcept {

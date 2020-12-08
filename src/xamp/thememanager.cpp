@@ -18,9 +18,9 @@ ThemeManager& ThemeManager::instance() {
 }
 
 ThemeManager::ThemeManager() {
-    const auto sceen_size = qApp->primaryScreen()->size();
+    const auto screen_size = qApp->primaryScreen()->size();
 
-    if ((sceen_size.width() <= 1920 || sceen_size.width() <= 2560) && sceen_size.height() <= 1080) {
+    if ((screen_size.width() <= 1920 || screen_size.width() <= 2560) && screen_size.height() <= 1080) {
         cover_size_ = QSize(110, 110);
     }
     else {
@@ -28,8 +28,8 @@ ThemeManager::ThemeManager() {
     }
 
     tableTextColor = QColor(Qt::black);
-    background_color_ = QColor(228, 233, 237, 230);
-    control_background_color_ = QColor(228, 233, 237, 220);
+    background_color_ = QColor(228, 233, 237, 150);
+    control_background_color_ = background_color_;
     album_cover_size_ = QSize(250, 250);
     menu_color_ = QColor(228, 233, 237, 150);
     menu_text_color_ = QColor(Qt::black);
@@ -111,7 +111,11 @@ QColor ThemeManager::getBackgroundColor() const noexcept {
     return background_color_;
 }
 
-void ThemeManager::enableBlur(const QWidget* widget, bool enable) {
+void ThemeManager::setBackgoundColor(QWidget* widget) {
+    widget->setStyleSheet(backgroundColorToString(AppSettings::getValueAsString(kAppSettingBackgroundColor)));
+}
+
+void ThemeManager::enableBlur(const QWidget* widget, bool enable) const {
 #if defined(Q_OS_WIN)
     win32::setBlurMaterial(widget, enable);
     AppSettings::setValue(kAppSettingEnableBlur, enable);
@@ -126,17 +130,19 @@ QIcon ThemeManager::appIcon() const {
 }
 
 void ThemeManager::setBackgroundColor(Ui::XampWindow& ui, QColor color) {
+    color.setAlpha(150);
+	
     ui.currentView->setStyleSheet(backgroundColorToString(color));
     ui.titleFrame->setStyleSheet(backgroundColorToString(color));
-    
-    QColor bottomColor = color.lighter(30);
+
+    auto bottom_color = color.lighter(30);
     if (AppSettings::contains(kAppSettingBottomColor)) {
-        bottomColor = AppSettings::getValueAsString(kAppSettingBottomColor);
+        bottom_color = AppSettings::getValueAsString(kAppSettingBottomColor);
     }
 
-    ui.playingFrame->setStyleSheet(backgroundColorToString(bottomColor));
-    ui.volumeFrame->setStyleSheet(backgroundColorToString(bottomColor));
-    ui.controlFrame->setStyleSheet(backgroundColorToString(bottomColor));
+    ui.playingFrame->setStyleSheet(backgroundColorToString(bottom_color));
+    ui.volumeFrame->setStyleSheet(backgroundColorToString(bottom_color));
+    ui.controlFrame->setStyleSheet(backgroundColorToString(bottom_color));
 
     QColor alphaColor = color;
     alphaColor.setAlpha(200);
@@ -155,7 +161,7 @@ QIcon ThemeManager::playArrow() const noexcept {
     return QIcon(Q_STR(":/xamp/Resource/%1/play_arrow.png").arg(themeColorPath()));
 }
 
-void ThemeManager::setShufflePlayorder(Ui::XampWindow& ui) {
+void ThemeManager::setShufflePlayorder(Ui::XampWindow& ui) const {
     const auto style_sheet = Q_STR(R"(
     QToolButton#repeatButton {
     image: url(:/xamp/Resource/%1/shuffle.png);
@@ -166,7 +172,7 @@ void ThemeManager::setShufflePlayorder(Ui::XampWindow& ui) {
     ui.repeatButton->setStyleSheet(style_sheet);
 }
 
-void ThemeManager::setRepeatOnePlayorder(Ui::XampWindow& ui) {
+void ThemeManager::setRepeatOnePlayOrder(Ui::XampWindow& ui) const {
     const auto style_sheet = Q_STR(R"(
     QToolButton#repeatButton {
     image: url(:/xamp/Resource/%1/repeat.png);
@@ -177,7 +183,7 @@ void ThemeManager::setRepeatOnePlayorder(Ui::XampWindow& ui) {
     ui.repeatButton->setStyleSheet(style_sheet);
 }
 
-void ThemeManager::setRepeatOncePlayorder(Ui::XampWindow& ui) {
+void ThemeManager::setRepeatOncePlayOrder(Ui::XampWindow& ui) const {
     const auto style_sheet = Q_STR(R"(
     QToolButton#repeatButton {
     image: url(:/xamp/Resource/%1/repeat_one.png);
@@ -188,7 +194,7 @@ void ThemeManager::setRepeatOncePlayorder(Ui::XampWindow& ui) {
     ui.repeatButton->setStyleSheet(style_sheet);
 }
 
-void ThemeManager::setThemeIcon(Ui::XampWindow& ui) {
+void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
     ui.titleLabel->setStyleSheet(Q_UTF8(R"(
                                          QLabel#titleLabel {
                                          color: white;

@@ -61,8 +61,7 @@ FramelessWindow::FramelessWindow(QWidget* parent)
 #endif    
 }
 
-FramelessWindow::~FramelessWindow() {
-}
+FramelessWindow::~FramelessWindow() = default;
 
 void FramelessWindow::createThumbnailToolBar() {
 #if defined(Q_OS_WIN)

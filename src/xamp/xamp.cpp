@@ -66,7 +66,7 @@ static std::tuple<bool, QMessageBox::StandardButton> showDontShowAgainDialog(QWi
     bool is_show_agin = true;
 
     if (show_agin) {
-        auto cb = new QCheckBox(widget->tr("Don't show this agin"));
+        auto cb = new QCheckBox(widget->tr("Don't show this again"));
         QMessageBox msgbox;
         msgbox.setWindowTitle(Q_UTF8("XAMP"));
         msgbox.setText(widget->tr("Hide XAMP to system tray?"));
@@ -86,22 +86,22 @@ static std::tuple<bool, QMessageBox::StandardButton> showDontShowAgainDialog(QWi
     return { is_show_agin, QMessageBox::Yes };
 }
 
-static AlignPtr<SampleRateConverter> MakeResampler(const QVariantMap &soxr_settings) {
-    auto quality = static_cast<SoxrQuality>(soxr_settings[kSoxrQuality].toInt());
-    auto phase = static_cast<SoxrPhaseResponse>(soxr_settings[kSoxrPhase].toInt());
-    auto passband = soxr_settings[kSoxrPassBand].toInt();
-    auto enable_steep_filter = soxr_settings[kSoxrEnableSteepFilter].toBool();
-    auto enable_dither = soxr_settings[kSoxrEnableDither].toBool();
+static AlignPtr<SampleRateConverter> MakeSampleRateConverter(const QVariantMap &settings) {
+    auto quality = static_cast<SoxrQuality>(settings[kSoxrQuality].toInt());
+    auto phase = static_cast<SoxrPhaseResponse>(settings[kSoxrPhase].toInt());
+    auto passband = settings[kSoxrPassBand].toInt();
+    auto enable_steep_filter = settings[kSoxrEnableSteepFilter].toBool();
+    auto enable_dither = settings[kSoxrEnableDither].toBool();
 
-    auto resampler = MakeAlign<SampleRateConverter, SoxrSampleRateConverter>();
-    auto soxr = dynamic_cast<SoxrSampleRateConverter*>(resampler.get());
-    soxr->SetQuality(quality);
-    soxr->SetPhase(phase);
-    soxr->SetPassBand(passband / 100.0);
-    soxr->SetSteepFilter(enable_steep_filter);
-    soxr->SetDither(enable_dither);
+    auto converter = MakeAlign<SampleRateConverter, SoxrSampleRateConverter>();
+    auto soxr_sample_rate_converter = dynamic_cast<SoxrSampleRateConverter*>(converter.get());
+    soxr_sample_rate_converter->SetQuality(quality);
+    soxr_sample_rate_converter->SetPhase(phase);
+    soxr_sample_rate_converter->SetPassBand(passband / 100.0);
+    soxr_sample_rate_converter->SetSteepFilter(enable_steep_filter);
+    soxr_sample_rate_converter->SetDither(enable_dither);
 
-    return std::move(resampler);
+    return std::move(converter);
 }
 
 Xamp::Xamp(QWidget *parent)
@@ -233,10 +233,6 @@ void Xamp::closeEvent(QCloseEvent* event) {
 }
 
 void Xamp::setDefaultStyle() {
-    ui.centralWidget->setStyleSheet(Q_UTF8("#contentWidget { border:none; border-radius: 15px;}"));
-	
-    /*ui.volumeFrame->setStyleSheet(Q_UTF8("#volumeFrame { border-radius: 15px;}"));
-    ui.controlFrame->setStyleSheet(Q_UTF8("#controlFrame { border-radius: 15px; }"));*/
     ThemeManager::instance().setDefaultStyle(ui);
     applyTheme(ThemeManager::instance().getBackgroundColor());
     ThemeManager::instance().enableBlur(this, AppSettings::getValueAsBool(kAppSettingEnableBlur));
@@ -281,12 +277,12 @@ void Xamp::initialUI() {
 }
 
 QWidgetAction* Xamp::createTextSeparator(const QString& text) {
-    auto label = new QLabel(text);
+	auto* label = new QLabel(text);
     label->setObjectName(Q_UTF8("textSeparator"));
     auto f = font();
     f.setBold(true);
     label->setFont(f);
-    auto separator = new QWidgetAction(this);
+    auto* separator = new QWidgetAction(this);
     separator->setDefaultWidget(label);
     return separator;
 }
@@ -302,18 +298,19 @@ void Xamp::onDeviceStateChanged(DeviceState state) {
 }
 
 void Xamp::initialDeviceList() {    
-    auto menu = ui.selectDeviceButton->menu();
+    auto* menu = ui.selectDeviceButton->menu();
     if (!menu) {
         menu = new QMenu(this);
         ui.selectDeviceButton->setMenu(menu);
     }
-    
+
+    ThemeManager::instance().setBackgoundColor(menu);
     menu->clear();
 
     DeviceInfo init_device_info;
     auto is_find_setting_device = false;
 
-    auto device_action_group = new QActionGroup(this);
+    auto* device_action_group = new QActionGroup(this);
     device_action_group->setExclusive(true);
 
     std::map<std::string, QAction*> device_id_action;
@@ -331,15 +328,15 @@ void Xamp::initialDeviceList() {
 
         menu->addAction(createTextSeparator(fromStdStringView(device_type->GetDescription())));
 
-        for (auto device_info : device_info_list) {
-            auto device_action = new QAction(QString::fromStdWString(device_info.name), this);
+        for (const auto& device_info : device_info_list) {
+            auto* device_action = new QAction(QString::fromStdWString(device_info.name), this);
             device_action_group->addAction(device_action);
             device_action->setCheckable(true);
             device_id_action[device_info.device_id] = device_action;
 
             auto trigger_callback = [device_info, this]() {
                 if (player_->IsGaplessPlay()) {
-                    const char text[] = "If yout change device will be stop gapless play?";
+                    const char text[] = "If you change device will be stop gapless play?";
                     if (showAskDialog(this, text) == QMessageBox::Yes) {
                         stopPlayedClicked();
                     }
@@ -666,9 +663,7 @@ void Xamp::applyConfig() {
     }
 }
 
-void Xamp::applyTheme(QColor color) {
-    color.setAlpha(50);
-	
+void Xamp::applyTheme(QColor color) {    
     if (qGray(color.rgb()) > 200) {      
         emit themeChanged(color, Qt::black);
         ThemeManager::instance().setThemeColor(ThemeColor::WHITE_THEME);
@@ -685,9 +680,7 @@ void Xamp::applyTheme(QColor color) {
         ThemeManager::instance().setPlayOrPauseButton(ui, false);
     }
 
-    ThemeManager::instance().setBackgroundColor(ui, color);
-
-    setStyleSheet(Q_UTF8("QMenu { background-color: rgba(18, 18, 18, 1); }"));
+    ThemeManager::instance().setBackgroundColor(ui, color);    
 }
 
 void Xamp::getNextPage() {
@@ -784,12 +777,12 @@ void Xamp::deleteKeyPress() {
 void Xamp::setPlayerOrder() {
     switch (order_) {
     case PlayerOrder::PLAYER_ORDER_REPEAT_ONCE:
-        ThemeManager::instance().setRepeatOncePlayorder(ui);
+        ThemeManager::instance().setRepeatOncePlayOrder(ui);
         AppSettings::setValue(kAppSettingOrder,
                               static_cast<int>(PlayerOrder::PLAYER_ORDER_REPEAT_ONCE));
         break;
     case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:
-        ThemeManager::instance().setRepeatOnePlayorder(ui);
+        ThemeManager::instance().setRepeatOnePlayOrder(ui);
         AppSettings::setValue(kAppSettingOrder,
                               static_cast<int>(PlayerOrder::PLAYER_ORDER_REPEAT_ONE));
         break;
@@ -865,7 +858,7 @@ void Xamp::resetSeekPosValue() {
 void Xamp::setupResampler() {
     if (AppSettings::getValue(kAppSettingResamplerEnable).toBool()) {        
         auto soxr_settings = JsonSettings::getValue(AppSettings::getValueAsString(kAppSettingSoxrSettingName)).toMap();
-        auto resampler = MakeResampler(soxr_settings);
+        auto resampler = MakeSampleRateConverter(soxr_settings);
         auto samplerate = soxr_settings[kSoxrResampleSampleRate].toUInt();
         player_->SetSampleRateConverter(samplerate, std::move(resampler));
     }
@@ -936,7 +929,7 @@ void Xamp::playMusic(const MusicEntity& item) {
         Toast::showTip(Q_UTF8(e.what()), this);
     }
     catch (...) {
-        Toast::showTip(tr("uknown error"), this);
+        Toast::showTip(tr("unknown error"), this);
     }
 
     ThemeManager::instance().setPlayOrPauseButton(ui, true);
@@ -961,7 +954,7 @@ void Xamp::updateUI(const MusicEntity& item, bool open_done) {
         Database::instance().AddPlaybackHistory(item.album_id, item.artist_id, item.music_id);
         playback_history_page_->refreshOnece();
 
-        ui.seekSlider->setRange(0, int32_t(player_->GetDuration() * 1000));
+        ui.seekSlider->setRange(0, static_cast<int32_t>(player_->GetDuration() * 1000));
         ui.endPosLabel->setText(Time::msToString(player_->GetDuration()));
         playlist_page_->format()->setText(format2String(player_.get(), item.file_ext));
     }
@@ -1117,24 +1110,24 @@ void Xamp::addPlayQueue() {
     auto output_format = player_->GetOutputFormat();
 
     auto soxr_settings = JsonSettings::getValue(AppSettings::getValueAsString(kAppSettingSoxrSettingName)).toMap();
-    auto samplerate = soxr_settings[kSoxrResampleSampleRate].toUInt();
+    auto output_sample_rate = soxr_settings[kSoxrResampleSampleRate].toUInt();
 
-    AlignPtr<SampleRateConverter> resampler;
+    AlignPtr<SampleRateConverter> sample_rate_converter;
 
     if (output_format == AudioFormat::UnknowFormat) {
-        resampler = MakeResampler(soxr_settings);   
-        resampler->Start(input_format.GetSampleRate(), input_format.GetChannels(), samplerate);
+        sample_rate_converter = MakeSampleRateConverter(soxr_settings);   
+        sample_rate_converter->Start(input_format.GetSampleRate(), input_format.GetChannels(), output_sample_rate);
     }
     else {
-        if (output_format.GetSampleRate() != samplerate) {
+        if (output_format.GetSampleRate() != output_sample_rate) {
             stopPlayedClicked();
             return;
         }
-        resampler = player_->CloneSampleRateConverter();
-        resampler->Start(input_format.GetSampleRate(), input_format.GetChannels(), samplerate);
+        sample_rate_converter = player_->CloneSampleRateConverter();
+        sample_rate_converter->Start(input_format.GetSampleRate(), input_format.GetChannels(), output_sample_rate);
     }    
 
-    state_adapter_->addPlayQueue(std::move(stream), std::move(resampler), next_index);
+    state_adapter_->addPlayQueue(std::move(stream), std::move(sample_rate_converter), next_index);
 }
 
 void Xamp::play(const QModelIndex&, const PlayListEntity& item) {
