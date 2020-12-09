@@ -304,7 +304,7 @@ void Xamp::initialDeviceList() {
         ui.selectDeviceButton->setMenu(menu);
     }
 
-    ThemeManager::instance().setBackgoundColor(menu);
+    ThemeManager::instance().setBackgroundColor(menu);
     menu->clear();
 
     DeviceInfo init_device_info;
@@ -1106,8 +1106,8 @@ void Xamp::addPlayQueue() {
         return;
     }
 
-    auto input_format = stream->GetFormat();
-    auto output_format = player_->GetOutputFormat();
+    const auto input_format = stream->GetFormat();
+    const auto output_format = player_->GetOutputFormat();
 
     auto soxr_settings = JsonSettings::getValue(AppSettings::getValueAsString(kAppSettingSoxrSettingName)).toMap();
     auto output_sample_rate = soxr_settings[kSoxrResampleSampleRate].toUInt();

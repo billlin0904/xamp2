@@ -66,9 +66,7 @@ public:
 
     void setPlayOrPauseButton(Ui::XampWindow &ui, bool is_playing);
 
-    void setDefaultStyle(Ui::XampWindow &ui);
-
-    void setBackgroundColor(Ui::XampWindow& ui, QColor color);
+    void setDefaultStyle(Ui::XampWindow &ui);    
 
     void enableBlur(const QWidget* widget, bool enable) const;
 
@@ -92,7 +90,9 @@ public:
 
     void setThemeColor(ThemeColor theme_color);
 
-    static void setBackgoundColor(QWidget* widget);
+    void setBackgroundColor(Ui::XampWindow& ui, QColor color);
+
+    void setBackgroundColor(QWidget* widget);
 
 signals:
     void themeChanged(ThemeColor theme_color);    

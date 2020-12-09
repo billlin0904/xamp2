@@ -46,15 +46,14 @@ FramelessWindow::FramelessWindow(QWidget* parent)
     }
     createThumbnailToolBar();   
     setStyleSheet(Q_UTF8(R"(		
-        font-family: "UI";
-		background: transparent;        
+        font-family: "UI";		   
     )"));
     ui_font.setPointSizeF(10);
     qApp->setFont(ui_font);
 #else
     setStyleSheet(Q_UTF8(R"(
         font-family: "UI";
-        background-color: rgba(18, 18, 18, 1);
+        background-color: rgba(18, 18, 18, 255);
     )"));
     ui_font.setPointSizeF(14);
     qApp->setFont(ui_font);

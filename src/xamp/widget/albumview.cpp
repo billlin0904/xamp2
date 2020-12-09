@@ -278,7 +278,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 
     (void)QObject::connect(playlist_, &QTableView::doubleClicked, [this](const QModelIndex& index) {
         emit playMusic(getAlbumEntity(index));
-        });   
+        });
 }
 
 void AlbumViewPage::setAlbum(const QString& album) {
@@ -378,6 +378,8 @@ AlbumView::AlbumView(QWidget* parent)
         }
 
         page_->move(QPoint(list_view_rect.x(), 0));
+        ThemeManager::instance().setBackgroundColor(page_);
+    	
         page_->show();
         });
 

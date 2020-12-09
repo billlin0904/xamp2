@@ -35,7 +35,7 @@ struct AsioDriver {
 };
 
 static XAMP_ALWAYS_INLINE long GetLatencyMs(long latency, long sampleRate) noexcept {
-	return (long((latency * 1000) / sampleRate));
+	return static_cast<long>((latency * 1000) / sampleRate);
 }
 
 static XAMP_ALWAYS_INLINE int64_t ASIO64toDouble(const ASIOSamples &a) noexcept {
@@ -54,8 +54,8 @@ AsioDevice::AsioDevice(std::string const & device_id)
 	, is_stopped_(true)
 	, is_streaming_(false)
 	, is_stop_streaming_(false)
-	, sample_format_(DsdFormat::DSD_INT8MSB)
 	, io_format_(DsdIoFormat::IO_FORMAT_PCM)
+	, sample_format_(DsdFormat::DSD_INT8MSB)
 	, volume_(0)
 	, buffer_size_(0)
 	, buffer_bytes_(0)
@@ -398,7 +398,8 @@ void AsioDevice::OnBufferSwitch(long index, double sample_time) noexcept {
 
 	auto pcm_convert = [this, &got_samples, cache_played_bytes, sample_time]() noexcept {
 		// PCM mode input float to output format.
-		if (callback_->OnGetSamples(reinterpret_cast<float*>(buffer_.Get()), buffer_size_, double(cache_played_bytes) / format_.GetAvgBytesPerSec(), sample_time) == 0) {
+		const auto stream_time = static_cast<double>(cache_played_bytes) / format_.GetAvgBytesPerSec();
+		if (callback_->OnGetSamples(reinterpret_cast<float*>(buffer_.Get()), buffer_size_, stream_time, sample_time) == 0) {
 			switch (format_.GetByteFormat()) {
 			case ByteFormat::SINT16:
 				DataConverter<PackedFormat::PLANAR,
@@ -428,7 +429,8 @@ void AsioDevice::OnBufferSwitch(long index, double sample_time) noexcept {
 	auto dsd_convert = [this, &got_samples, sample_time]() noexcept {
 		// DSD mode input output same format (int8_t).
 		const auto avg_byte_per_sec = format_.GetAvgBytesPerSec() / 8;
-		if (callback_->OnGetSamples(buffer_.Get(), buffer_bytes_, double(played_bytes_) / avg_byte_per_sec, sample_time) == 0) {
+		const auto stream_time = static_cast<double>(played_bytes_) / avg_byte_per_sec;
+		if (callback_->OnGetSamples(buffer_.Get(), buffer_bytes_, stream_time, sample_time) == 0) {
 			DataConverter<PackedFormat::PLANAR,
 				PackedFormat::INTERLEAVED>::Convert(
 					device_buffer_.Get(), 

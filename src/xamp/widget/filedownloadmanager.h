@@ -10,10 +10,10 @@
 #include <QList>
 #include <QTimer>
 
-class HttpStreamDownloader : public QObject {
+class FileDownloadManager : public QObject {
 	Q_OBJECT
 public:
-	explicit HttpStreamDownloader(QObject *parent = nullptr);	
+	explicit FileDownloadManager(QObject *parent = nullptr);	
 
 	void addQueue(int32_t music_id, const QUrl &url, const QString &file_name);
 

@@ -13,19 +13,19 @@
 namespace http {
 
 struct HttpContext {
-    bool useInternal;
+    bool use_internal;
     QString charset;
-    QString userAgent;
+    QString user_agent;
     QNetworkAccessManager* manager;
-    std::function<void (const QString &)> successHandler;
-    std::function<void(const QString&)> errorHandler;
+    std::function<void (const QString &)> success_handler;
+    std::function<void(const QString&)> error_handler;
 };
 
 class HttpClient::HttpClientImpl {
 public:
     HttpClientImpl(const QString &url, QNetworkAccessManager* manager);
 
-    HttpContext makeContext() const;
+    HttpContext createContext() const;
 
     static QNetworkRequest createRequest(HttpClientImpl *d, HttpMethod method);
 
@@ -37,13 +37,13 @@ public:
 
     static void handleFinish(HttpContext context, QNetworkReply *reply, const QString &successMessage);
 
-    bool useJson;
-    bool useInternal;
-    QString url;
-    QString json;
+    bool use_json_;
+    bool use_internal_;
+    QString url_;
+    QString json_;
     QUrlQuery params;
-    QString charset;
-    QString userAgent;
+    QString charset_;
+    QString user_agent_;
     QNetworkAccessManager *manager;
     QHash<QString, QString> headers;
     std::function<void (const QString &)> success_handler_;
@@ -52,26 +52,26 @@ public:
 };
 
 HttpClient::HttpClientImpl::HttpClientImpl(const QString &url, QNetworkAccessManager* manager)
-    : useJson(false)
-    , useInternal(manager == nullptr)
-    , url(url)
-    , charset(Q_UTF8("UTF-8"))
+    : use_json_(false)
+    , use_internal_(manager == nullptr)
+    , url_(url)
+    , charset_(Q_UTF8("UTF-8"))
     , manager(manager == nullptr ? new QNetworkAccessManager() : manager) {
 }
 
-HttpContext HttpClient::HttpClientImpl::makeContext() const {
+HttpContext HttpClient::HttpClientImpl::createContext() const {
     HttpContext context;
-    context.successHandler = success_handler_;
-    context.errorHandler = error_handler_;
+    context.success_handler = success_handler_;
+    context.error_handler = error_handler_;
     context.manager = manager;
-    context.charset = charset;
-    context.userAgent = userAgent;
-    context.useInternal = useInternal;
+    context.charset = charset_;
+    context.user_agent = user_agent_;
+    context.use_internal = use_internal_;
     return context;
 }
 
 void HttpClient::HttpClientImpl::executeQuery(HttpClientImpl *d, HttpMethod method) {
-    auto context = d->makeContext();
+    auto context = d->createContext();
 
     auto request = HttpClientImpl::createRequest(d, method);
     QNetworkReply *reply = nullptr;
@@ -82,14 +82,14 @@ void HttpClient::HttpClientImpl::executeQuery(HttpClientImpl *d, HttpMethod meth
         break;
     case HttpMethod::HTTP_POST:
         reply = context.manager->post(request,
-                                      d->useJson
-                                      ? d->json.toUtf8()
+                                      d->use_json_
+                                      ? d->json_.toUtf8()
                                       : d->params.toString(QUrl::FullyEncoded).toUtf8());
         break;
     case HttpMethod::HTTP_PUT:
         reply = context.manager->put(request,
-                                     d->useJson
-                                     ? d->json.toUtf8()
+                                     d->use_json_
+                                     ? d->json_.toUtf8()
                                      : d->params.toString(QUrl::FullyEncoded).toUtf8());
         break;
     case HttpMethod::HTTP_DELETE:
@@ -105,7 +105,7 @@ void HttpClient::HttpClientImpl::executeQuery(HttpClientImpl *d, HttpMethod meth
 }
 
 void HttpClient::HttpClientImpl::download(HttpClientImpl *d, std::function<void (const QByteArray &)> readyRead) {
-    auto context = d->makeContext();
+    auto context = d->createContext();
 
     auto request = HttpClientImpl::createRequest(d, HttpMethod::HTTP_GET);
     auto reply = context.manager->get(request);
@@ -121,12 +121,12 @@ void HttpClient::HttpClientImpl::download(HttpClientImpl *d, std::function<void 
 
 void HttpClient::HttpClientImpl::handleFinish(HttpContext context, QNetworkReply *reply, const QString &successMessage) {
     if (reply->error() == QNetworkReply::NoError) {
-        if (context.successHandler != nullptr) {
-            context.successHandler(successMessage);
+        if (context.success_handler != nullptr) {
+            context.success_handler(successMessage);
         }
     } else {
-        if (context.errorHandler != nullptr) {
-            context.errorHandler(successMessage);
+        if (context.error_handler != nullptr) {
+            context.error_handler(successMessage);
         }
         XAMP_LOG_DEBUG("{}", successMessage.toStdString());
     }
@@ -135,7 +135,7 @@ void HttpClient::HttpClientImpl::handleFinish(HttpContext context, QNetworkReply
         reply->deleteLater();
     }
 
-    if (context.useInternal) {
+    if (context.use_internal) {
         if (context.manager != nullptr) {
             context.manager->deleteLater();
         }
@@ -157,24 +157,24 @@ QString HttpClient::HttpClientImpl::readReply(QNetworkReply *reply, const QStrin
 
 QNetworkRequest HttpClient::HttpClientImpl::createRequest(HttpClientImpl *d, HttpMethod method) {
     auto get = method == HttpMethod::HTTP_GET;
-    auto withForm = !get && !d->useJson;
-    auto withJson = !get &&  d->useJson;
+    auto with_form = !get && !d->use_json_;
+    auto with_json = !get &&  d->use_json_;
 
     if (get && !d->params.isEmpty()) {
-        d->url += Q_UTF8("?") + d->params.toString(QUrl::FullyEncoded);
+        d->url_ += Q_UTF8("?") + d->params.toString(QUrl::FullyEncoded);
     }
 
-    if (withForm) {
+    if (with_form) {
         d->headers[Q_UTF8("Content-Type")] = Q_UTF8("application/x-www-form-urlencoded");
-    } else if (withJson) {
+    } else if (with_json) {
         d->headers[Q_UTF8("Content-Type")] = Q_UTF8("application/json; charset=utf-8");
     }
 
-    if (d->userAgent.isEmpty()) {
+    if (d->user_agent_.isEmpty()) {
         d->headers[Q_UTF8("User-Agent")] = Q_UTF8("xamp-player/1.0.0");
     }
 
-    QNetworkRequest request(QUrl(d->url));
+    QNetworkRequest request(QUrl(d->url_));
     for (auto i = d->headers.cbegin(); i != d->headers.cend(); ++i) {
         request.setRawHeader(i.key().toUtf8(), i.value().toUtf8());
     }
@@ -197,15 +197,15 @@ HttpClient& HttpClient::param(const QString &name, const QVariant &value) {
 }
 
 HttpClient& HttpClient::params(const QMap<QString, QVariant> &ps) {
-    for (auto iter = ps.cbegin(); iter != ps.cend(); ++iter) {
-        impl_->params.addQueryItem(iter.key(), iter.value().toString());
+    for (auto itr = ps.cbegin(); itr != ps.cend(); ++itr) {
+        impl_->params.addQueryItem(itr.key(), itr.value().toString());
     }
     return *this;
 }
 
 HttpClient& HttpClient::json(const QString &json) {
-    impl_->json    = json;
-    impl_->useJson = true;
+    impl_->json_    = json;
+    impl_->use_json_ = true;
     return *this;
 }
 
@@ -239,7 +239,7 @@ void HttpClient::post() {
     HttpClientImpl::executeQuery(impl_.get(), HttpMethod::HTTP_POST);
 }
 
-void HttpClient::downloadFile(const QString& file_name, std::function<void(const QString&)> downloadHandler, std::function<void(const QString&)> errorHandler) {
+void HttpClient::downloadFile(const QString& file_name, std::function<void(const QString&)> download_handler, std::function<void(const QString&)> error_handler) {
     QSharedPointer<QTemporaryFile> tempfile(new QTemporaryFile());
     if (!tempfile->open()) {
         return;
@@ -249,24 +249,24 @@ void HttpClient::downloadFile(const QString& file_name, std::function<void(const
 
     success([=](auto) {
         tempfile->rename(file_name);
-        downloadHandler(file_name);
+        download_handler(file_name);
         });
 
-    error(errorHandler);
+    error(error_handler);
 
     HttpClientImpl::download(impl_.get(), [tempfile](auto buffer) {
         tempfile->write(buffer);
         });
 }
 
-void HttpClient::download(std::function<void (const QByteArray &)> downloadHandler, std::function<void(const QString&)> errorHandler) {
+void HttpClient::download(std::function<void (const QByteArray &)> download_handler, std::function<void(const QString&)> error_handler) {
     auto data = std::make_shared<QByteArray>();
 
     success([=](auto) {
-        downloadHandler(*data);
+        download_handler(*data);
     });
 
-    error(errorHandler);
+    error(error_handler);
 
     HttpClientImpl::download(impl_.get(), [data](auto buffer) {
         data->append(buffer);
@@ -274,7 +274,7 @@ void HttpClient::download(std::function<void (const QByteArray &)> downloadHandl
 }
 
 void HttpClient::setUserAgent(const QString& user_agent) {
-    impl_->userAgent = user_agent;
+    impl_->user_agent_ = user_agent;
 }
 
 }

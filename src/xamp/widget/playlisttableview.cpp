@@ -186,7 +186,7 @@ void PlayListTableView::initial() {
 
             http::HttpClient(url_edit->text()).success([this](const QString& json) {
                 QJsonParseError error;
-                auto doc = QJsonDocument::fromJson(json.toUtf8(), &error);
+                const auto doc = QJsonDocument::fromJson(json.toUtf8(), &error);
                 if (error.error == QJsonParseError::NoError) {
                     auto result = doc.array();
                     std::vector<Metadata> metadatas;
@@ -404,18 +404,17 @@ void PlayListTableView::resizeColumn() const {
             header->resizeSection(column, 90);
             break;
         case PLAYLIST_TITLE:
-            if (header->length() > 450) {
-                header->setSectionResizeMode(column, QHeaderView::Fixed);
-            }
-            else {
-                header->setSectionResizeMode(column, QHeaderView::ResizeToContents);
-            }
-            header->resizeSection(column, 450);
+	        {
+            auto stretched_size = 330;
+            const auto size = (std::max)(sizeHintForColumn(column), stretched_size);
+            header->setSectionResizeMode(column, QHeaderView::Fixed);
+            header->resizeSection(column, size);
+	        }
             break;
         case PLAYLIST_ALBUM:
-            header->setSectionResizeMode(column, QHeaderView::ResizeToContents);
-            break;
         case PLAYLIST_ARTIST:
+            header->setSectionResizeMode(column, QHeaderView::ResizeToContents);
+            break;        
         default:
             header->setSectionResizeMode(column, QHeaderView::Stretch);
             break;

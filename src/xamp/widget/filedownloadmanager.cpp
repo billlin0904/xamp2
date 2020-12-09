@@ -1,7 +1,7 @@
 #include <widget/http.h>
-#include <widget/httpstreamdownloader.h>
+#include <widget/filedownloadmanager.h>
 
-HttpStreamDownloader::HttpStreamDownloader(QObject* parent)
+FileDownloadManager::FileDownloadManager(QObject* parent)
 	: QObject(parent) {
     (void) QObject::connect(&timer_, &QTimer::timeout, [this](){
             download();
@@ -10,11 +10,11 @@ HttpStreamDownloader::HttpStreamDownloader(QObject* parent)
     timer_.start();
 }
 
-void HttpStreamDownloader::addQueue(int32_t music_id, const QUrl& url, const QString& file_name) {
+void FileDownloadManager::addQueue(int32_t music_id, const QUrl& url, const QString& file_name) {
     entries_.push_back(DownloadEntry{ music_id, url, file_name });
 }
 
-void HttpStreamDownloader::download() {
+void FileDownloadManager::download() {
     if (entries_.isEmpty()) return;
 
     auto entry = entries_.front();
@@ -30,6 +30,8 @@ void HttpStreamDownloader::download() {
         entries_.push_back(entry);
     };
 
-    http::HttpClient(entry.url).downloadFile(entry.file_name,
-        download_handler, error_handler);
+    http::HttpClient(entry.url).downloadFile(
+        entry.file_name,
+        download_handler,
+        error_handler);
 }

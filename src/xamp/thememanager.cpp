@@ -111,7 +111,7 @@ QColor ThemeManager::getBackgroundColor() const noexcept {
     return background_color_;
 }
 
-void ThemeManager::setBackgoundColor(QWidget* widget) {
+void ThemeManager::setBackgroundColor(QWidget* widget) {
     widget->setStyleSheet(backgroundColorToString(AppSettings::getValueAsString(kAppSettingBackgroundColor)));
 }
 
