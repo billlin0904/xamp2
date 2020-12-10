@@ -40,7 +40,7 @@ ScrollLabel* LrcPage::title() {
 void LrcPage::paintEvent(QPaintEvent*) {
     QPainter painter(this);
 	painter.setCompositionMode(QPainter::CompositionMode_Source);
-	painter.setOpacity(0.8);
+	painter.setOpacity(0.5);
 	painter.drawPixmap(rect(), background_image_);
 }
 

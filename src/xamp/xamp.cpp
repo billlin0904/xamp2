@@ -104,6 +104,20 @@ static AlignPtr<SampleRateConverter> MakeSampleRateConverter(const QVariantMap &
     return std::move(converter);
 }
 
+static PlaybackFormat getPlaybackFormat(const AudioPlayer* player) {
+    PlaybackFormat format;
+
+    if (player->IsDSDFile()) {
+        format.dsd_mode = player->GetDsdModes();
+        format.dsd_speed = *player->GetDSDSpeed();
+        format.is_dsd_file = true;
+    }
+
+    format.file_format = player->GetFileFormat();
+    format.output_format = player->GetOutputFormat();
+    return format;
+}
+
 Xamp::Xamp(QWidget *parent)
     : FramelessWindow(parent)
     , is_seeking_(false)
@@ -855,7 +869,7 @@ void Xamp::resetSeekPosValue() {
     ui.startPosLabel->setText(Time::msToString(0));
 }
 
-void Xamp::setupResampler() {
+void Xamp::setupSampleRateConverter() {
     if (AppSettings::getValue(kAppSettingResamplerEnable).toBool()) {        
         auto soxr_settings = JsonSettings::getValue(AppSettings::getValueAsString(kAppSettingSoxrSettingName)).toMap();
         auto resampler = MakeSampleRateConverter(soxr_settings);
@@ -914,12 +928,16 @@ void Xamp::playMusic(const MusicEntity& item) {
     const auto use_native_dsd = true;
 #endif
 
+    PlaybackFormat playback_format;
+
     try {
         player_->Open(item.file_path.toStdWString(), item.file_ext.toStdWString(), device_info_, use_native_dsd);
-        setupResampler();
-        setupEQ();
-        player_->StartPlay(loop_time.first, loop_time.second);
-        open_done = true;
+        setupSampleRateConverter();
+        setupEQ();        
+        player_->PrepareToPlay(loop_time.first, loop_time.second);
+        playback_format = getPlaybackFormat(player_.get());
+        player_->Play();
+        open_done = true;        
     }
     catch (const Exception & e) {
         XAMP_LOG_DEBUG("Exception: {} {}", e.GetErrorMessage(), e.GetStackTrace());
@@ -933,10 +951,10 @@ void Xamp::playMusic(const MusicEntity& item) {
     }
 
     ThemeManager::instance().setPlayOrPauseButton(ui, true);
-    updateUI(item, open_done);
+    updateUI(item, playback_format, open_done);
 }
 
-void Xamp::updateUI(const MusicEntity& item, bool open_done) {
+void Xamp::updateUI(const MusicEntity& item, const PlaybackFormat& playback_format, bool open_done) {
     if (open_done) {
         if (player_->IsHardwareControlVolume()) {
             if (!player_->IsMute()) {
@@ -956,7 +974,7 @@ void Xamp::updateUI(const MusicEntity& item, bool open_done) {
 
         ui.seekSlider->setRange(0, static_cast<int32_t>(player_->GetDuration() * 1000));
         ui.endPosLabel->setText(Time::msToString(player_->GetDuration()));
-        playlist_page_->format()->setText(format2String(player_.get(), item.file_ext));
+        playlist_page_->format()->setText(format2String(playback_format, item.file_ext));
     }
 
     if (current_entiry_.cover_id != item.cover_id) {
@@ -1001,9 +1019,9 @@ void Xamp::play(const PlayListEntity& item) {
 void Xamp::onGaplessPlay(const QModelIndex &index) {
     auto item = playlist_page_->playlist()->item(index);
     playlist_page_->playlist()->setNowPlaying(index, true);
-
+	
     auto music_entity = toMusicEntity(item);
-    updateUI(music_entity, true);
+    updateUI(music_entity, getPlaybackFormat(player_.get()), true);
 
     current_entiry_ = item;
     play_index_ = index;

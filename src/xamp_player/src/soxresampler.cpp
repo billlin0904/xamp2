@@ -299,13 +299,13 @@ void SoxrSampleRateConverter::Flush() {
 
 AlignPtr<SampleRateConverter> SoxrSampleRateConverter::Clone() {
     auto other = MakeAlign<SampleRateConverter, SoxrSampleRateConverter>();
-    auto soxr = reinterpret_cast<SoxrSampleRateConverter*>(other.get());
-    soxr->SetQuality(impl_->quality_);
-    soxr->SetPassBand(impl_->passband_);
-    soxr->SetPhase(impl_->phase_);
-    soxr->SetStopBand(impl_->stopband_);
-    soxr->SetSteepFilter(impl_->enable_steep_filter_);
-    soxr->SetDither(impl_->enable_dither_);
+    auto* converter = reinterpret_cast<SoxrSampleRateConverter*>(other.get());
+    converter->SetQuality(impl_->quality_);
+    converter->SetPassBand(impl_->passband_);
+    converter->SetPhase(impl_->phase_);
+    converter->SetStopBand(impl_->stopband_);
+    converter->SetSteepFilter(impl_->enable_steep_filter_);
+    converter->SetDither(impl_->enable_dither_);
     return std::move(other);
 }
 

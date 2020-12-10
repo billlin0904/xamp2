@@ -191,7 +191,7 @@ void AudioPlayer::OpenStream(std::wstring const & file_path, std::wstring const 
     }
     stream_->OpenFile(file_path);    
     stream_duration_ = stream_->GetDuration();   
-    XAMP_LOG_DEBUG("Open stream type: {} {} {}.", stream_->GetDescription(), dsd_mode_, stream_duration_);
+    XAMP_LOG_DEBUG("Open stream type: {} {} {}.", stream_->GetDescription(), dsd_mode_, stream_duration_);    
 }
 
 void AudioPlayer::SetState(const PlayerState play_state) {
@@ -217,6 +217,51 @@ void AudioPlayer::Play() {
             SetState(PlayerState::PLAYER_STATE_RUNNING);
         }
     }
+
+	if (stream_task_.valid()) {
+        return;
+	}
+
+#ifdef _DEBUG
+    Stopwatch sw;
+#endif
+
+    stream_task_ = ThreadPool::GetInstance().Run([player = shared_from_this()]() noexcept {
+        auto* p = player.get();
+
+        std::unique_lock<std::mutex> lock{ p->pause_mutex_ };
+
+        auto sample_buffer = p->sample_buffer_.Get();
+        const auto max_read_sample = p->num_read_sample_;
+        const auto num_sample_write = max_read_sample * kMaxWriteRatio;
+
+        XAMP_LOG_DEBUG("max_read_sample: {}, num_sample_write: {}", max_read_sample, num_sample_write);
+
+        try {
+            while (p->is_playing_) {
+                while (p->is_paused_) {
+                    p->pause_cond_.wait(lock);
+                }
+
+                if (p->buffer_.GetAvailableWrite() < num_sample_write) {
+                    p->wait_timer_.Wait();
+
+                    continue;
+                }
+
+                p->ReadSampleLoop(sample_buffer, max_read_sample, lock);
+            }
+        }
+        catch (const std::exception& e) {
+            XAMP_LOG_DEBUG("Stream thread read has exception: {}", e.what());
+        }
+
+        XAMP_LOG_DEBUG("Stream thread end");
+    });
+
+#ifdef _DEBUG
+    LogTime("Create stream thread time", sw.Elapsed());
+#endif
 }
 
 void AudioPlayer::Pause() {
@@ -344,7 +389,7 @@ PlayerState AudioPlayer::GetState() const noexcept {
 }
 
 AudioFormat AudioPlayer::GetFileFormat() const noexcept {
-    std::lock_guard guard{ stream_read_mutex_ };
+	std::lock_guard<std::mutex> guard{stream_read_mutex_};
     return stream_->GetFormat();
 }
 
@@ -384,12 +429,13 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
         if (stream_task_.wait_for(kWaitForStreamStopTime) == std::future_status::timeout) {
             throw StopStreamTimeoutException();
         }
+        stream_task_ = std::shared_future<void>();
 #else
         Stopwatch sw;
         stream_task_.get();
         LogTime("Thread switch time", sw.Elapsed());
 #endif
-        XAMP_LOG_DEBUG("Stream thread was finished.");
+        XAMP_LOG_DEBUG("Stream thread was finished.");        
     }
     buffer_.Clear();
 #ifdef DEBUG
@@ -795,7 +841,7 @@ int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, dou
     return -1;
 }
 
-void AudioPlayer::StartPlay(double start_time, double end_time) {
+void AudioPlayer::PrepareToPlay(double start_time, double end_time) {
     SetDeviceFormat();
     CreateDevice(device_info_.device_type_id, device_info_.device_id, false);
     OpenDevice(start_time);
@@ -816,48 +862,6 @@ void AudioPlayer::StartPlay(double start_time, double end_time) {
     }
 
     XAMP_LOG_INFO("Stream end time {} sec", sample_end_time_);
-    Play();
-
-#ifdef _DEBUG
-    Stopwatch sw;
-#endif
-
-    stream_task_ = ThreadPool::GetInstance().Run([player = shared_from_this()]() noexcept {
-        auto* p = player.get();
-
-        std::unique_lock<std::mutex> lock{ p->pause_mutex_ };
-
-        auto sample_buffer = p->sample_buffer_.Get();
-        const auto max_read_sample = p->num_read_sample_;
-        const auto num_sample_write = max_read_sample * kMaxWriteRatio;
-
-        XAMP_LOG_DEBUG("max_read_sample: {}, num_sample_write: {}", max_read_sample, num_sample_write);
-
-        try {
-            while (p->is_playing_) {
-                while (p->is_paused_) {
-                    p->pause_cond_.wait(lock);
-                }
-
-                if (p->buffer_.GetAvailableWrite() < num_sample_write) {
-                    p->wait_timer_.Wait();
-
-                    continue;
-                }
-
-                p->ReadSampleLoop(sample_buffer, max_read_sample, lock);
-            }
-        }
-        catch (const std::exception& e) {
-            XAMP_LOG_DEBUG("Stream thread read has exception: {}", e.what());
-        }
-
-        XAMP_LOG_DEBUG("Stream thread end");
-    });
-
-#ifdef _DEBUG
-    LogTime("Create stream thread time", sw.Elapsed());
-#endif
 }
 
 }

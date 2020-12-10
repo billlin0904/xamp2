@@ -31,6 +31,7 @@ class AlbumArtistPage;
 class ArtistInfoPage;
 class PlaybackHistoryPage;
 class QWidgetAction;
+struct PlaybackFormat;
 
 class Xamp final : public FramelessWindow {
 	Q_OBJECT
@@ -130,7 +131,7 @@ private:
 
 	void setupPlayNextMusicSignals(bool add_or_remove);
 
-	void setupResampler();
+	void setupSampleRateConverter();
 
 	void registerMetaType();
 
@@ -142,7 +143,7 @@ private:
 
 	void createTrayIcon();
 
-    void updateUI(const MusicEntity& item, bool open_done);
+    void updateUI(const MusicEntity& item, const PlaybackFormat& playback_format, bool open_done);
 
     void addPlayQueue();
 

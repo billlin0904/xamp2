@@ -60,7 +60,7 @@ public:
 
             Write(path, [&cover_art](auto, auto tag) {
 				if (const auto mp4_tag = dynamic_cast<TagLib::MP4::Tag*>(tag)) {
-					auto items_list_map = mp4_tag->itemListMap();
+					auto &items_list_map = mp4_tag->itemListMap();
 					TagLib::MP4::CoverArtList cover_art_list;
 					cover_art_list.append(cover_art);
 					const TagLib::MP4::Item cover_item(cover_art_list);

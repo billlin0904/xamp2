@@ -58,7 +58,7 @@ public:
 
     void Open(std::wstring const& file_path, std::wstring const& file_ext, const DeviceInfo& device_info, bool use_native_dsd);
 
-    void StartPlay(double start_time = 0.0, double end_time = 0.0);
+    void PrepareToPlay(double start_time = 0.0, double end_time = 0.0);
 
     void Play();
 

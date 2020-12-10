@@ -10,6 +10,14 @@
 #include <widget/widget_shared.h>
 #include <widget/str_utilts.h>
 
+struct PlaybackFormat {
+    bool is_dsd_file{ false };
+    uint32_t dsd_speed{ 0 };
+    DsdModes dsd_mode{ DsdModes::DSD_MODE_PCM };
+    AudioFormat file_format;
+    AudioFormat output_format;
+};
+
 static QString samplerate2String(const AudioFormat& format) {
     auto precision = 1;
     auto is_mhz_samplerate = false;
@@ -24,8 +32,8 @@ static QString samplerate2String(const AudioFormat& format) {
         : QString::number(format.GetSampleRate() / double(1000), 'f', precision) + Q_UTF8("kHz/"));
 }
 
-static QString format2String(const xamp::player::AudioPlayer* player, const QString& file_ext) {
-    auto format = player->GetFileFormat();
+static QString format2String(const PlaybackFormat &playback_format, const QString& file_ext) {
+    auto format = playback_format.file_format;
 
     auto ext = file_ext;
     ext = ext.remove(Q_UTF8(".")).toUpper();
@@ -45,14 +53,12 @@ static QString format2String(const xamp::player::AudioPlayer* player, const QStr
     }
 
     QString dsd_speed_format;
-    if (player->IsDSDFile()) {        
-        if (auto dsd_speed = player->GetDSDSpeed()) {
-            dsd_speed_format = Q_UTF8(" DSD") + QString::number(dsd_speed.value()) + Q_UTF8(" ");
-        }        
+    if (playback_format.is_dsd_file) {
+        dsd_speed_format = Q_UTF8(" DSD") + QString::number(playback_format.dsd_speed) + Q_UTF8(" ");
     }
 
     QString dsd_mode;
-    switch (player->GetDsdModes()) {
+    switch (playback_format.dsd_mode) {
     case DsdModes::DSD_MODE_PCM:
         dsd_mode = Q_UTF8("PCM");
         break;
@@ -65,7 +71,7 @@ static QString format2String(const xamp::player::AudioPlayer* player, const QStr
     }
 
     QString output_format_str;
-    auto output_format = player->GetOutputFormat();
+    auto output_format = playback_format.output_format;
     if (format.GetFormat() != DataFormat::FORMAT_DSD && output_format != format) {
         output_format_str = samplerate2String(output_format);
     }

@@ -185,11 +185,12 @@ void MetadataExtractAdapter::ProcessMetadata(const std::vector<Metadata>& result
 
         // Database not exist find others.
         if (cover_id.isEmpty()) {
-        	if (is_unknown_album) {
+        	/*if (is_unknown_album) {
         		cover_id = Singleton<PixmapCache>::GetInstance().GetUnknownCoverId();
         	} else {
         		cover_id = cache.AddCoverCache(album_id, album, metadata);
-        	}            
+        	}*/
+            cover_id = cache.AddCoverCache(album_id, album, metadata);
         }        
 
         IgnoreSqlError(Database::instance().AddOrUpdateAlbumMusic(album_id, artist_id, music_id))

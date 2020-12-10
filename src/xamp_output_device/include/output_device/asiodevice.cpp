@@ -401,18 +401,6 @@ void AsioDevice::OnBufferSwitch(long index, double sample_time) noexcept {
 		const auto stream_time = static_cast<double>(cache_played_bytes) / format_.GetAvgBytesPerSec();
 		if (callback_->OnGetSamples(reinterpret_cast<float*>(buffer_.Get()), buffer_size_, stream_time, sample_time) == 0) {
 			switch (format_.GetByteFormat()) {
-			case ByteFormat::SINT16:
-				DataConverter<PackedFormat::PLANAR,
-					PackedFormat::INTERLEAVED>::Convert(reinterpret_cast<int16_t*>(device_buffer_.Get()),
-						reinterpret_cast<const float*>(buffer_.Get()),
-						Singleton<AsioDriver>::GetInstance().data_context);
-				break;
-			case ByteFormat::SINT24:
-				DataConverter<PackedFormat::PLANAR,
-					PackedFormat::INTERLEAVED>::Convert(reinterpret_cast<Int24*>(device_buffer_.Get()),
-						reinterpret_cast<const float*>(buffer_.Get()),
-						Singleton<AsioDriver>::GetInstance().data_context);
-				break;
 			case ByteFormat::SINT32:
 				DataConverter<PackedFormat::PLANAR,
 					PackedFormat::INTERLEAVED>::Convert(reinterpret_cast<int32_t*>(device_buffer_.Get()),
