@@ -74,11 +74,7 @@
 
 #ifdef _WIN32
 // Optimization function call
-#ifndef DEBUG
 #define XAMP_ALWAYS_INLINE __forceinline
-#else
-#define XAMP_ALWAYS_INLINE inline
-#endif
 #define XAMP_NEVER_INLINE __declspec(noinline)
 #else
 #define XAMP_ALWAYS_INLINE inline __attribute__((__always_inline__))

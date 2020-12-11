@@ -4,7 +4,7 @@
 namespace xamp::base {
 
 ThreadPool::ThreadPool()
-    : scheduler_((std::min)(std::thread::hardware_concurrency() * 2, kMaxThread)) {
+    : scheduler_((std::min)(std::thread::hardware_concurrency() * 2 + 1, kMaxThread)) {
 }
 
 size_t ThreadPool::GetActiveThreadCount() const noexcept {

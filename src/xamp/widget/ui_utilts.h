@@ -12,6 +12,7 @@
 
 struct PlaybackFormat {
     bool is_dsd_file{ false };
+    bool enable_sample_rate_convert{ false };
     uint32_t dsd_speed{ 0 };
     DsdModes dsd_mode{ DsdModes::DSD_MODE_PCM };
     AudioFormat file_format;
@@ -39,16 +40,16 @@ static QString format2String(const PlaybackFormat &playback_format, const QStrin
     ext = ext.remove(Q_UTF8(".")).toUpper();
 
     auto precision = 1;
-    auto is_mhz_samplerate = false;
+    auto is_mhz_sample_rate = false;
     if (format.GetSampleRate() / 1000 > 1000) {
-        is_mhz_samplerate = true;
+        is_mhz_sample_rate = true;
     }
     else {
         precision = format.GetSampleRate() % 1000 == 0 ? 0 : 1;
     }
 
     auto bits = format.GetBitsPerSample();
-    if (is_mhz_samplerate) {
+    if (is_mhz_sample_rate) {
         bits = 1;
     }
 
@@ -71,9 +72,8 @@ static QString format2String(const PlaybackFormat &playback_format, const QStrin
     }
 
     QString output_format_str;
-    auto output_format = playback_format.output_format;
-    if (format.GetFormat() != DataFormat::FORMAT_DSD && output_format != format) {
-        output_format_str = samplerate2String(output_format);
+    if (playback_format.enable_sample_rate_convert) {
+        output_format_str = samplerate2String(playback_format.output_format);
     }
 
     return ext

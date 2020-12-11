@@ -3,6 +3,7 @@
 
 #include <soxr.h>
 
+#include <base/dataconverter.h>
 #include <base/singleton.h>
 #include <base/dll.h>
 #include <base/logger.h>
@@ -203,7 +204,10 @@ public:
             return false;
         }
 
-        const size_t write_size(samples_done * num_channels_ * sizeof(float));
+        const auto write_size(samples_done * num_channels_ * sizeof(float));
+    	// Note: libsoxr 並不會將sample進行限制大小.
+        ClampSample(buffer_.data(), samples_done * num_channels_);
+    	
         CheckBufferFlow(buffer.TryWrite(reinterpret_cast<int8_t const*>(buffer_.data()), write_size));
 
         required_size = samples_done * num_channels_;

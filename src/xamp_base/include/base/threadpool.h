@@ -21,6 +21,7 @@
 #include <base/singleton.h>
 #include <base/align_ptr.h>
 #include <base/stl.h>
+#include <base/exception.h>
 #include <base/bounded_queue.h>
 #include <base/platform_thread.h>
 
@@ -31,7 +32,7 @@
 namespace xamp::base {
 
 class TaskWrapper {
-    struct ImplBase {        
+    struct XAMP_NO_VTABLE ImplBase {
         virtual ~ImplBase() = default;
     	virtual void Call() = 0;
     };
@@ -117,6 +118,7 @@ public:
 
     void SubmitJob(TaskType&& task) {
         const auto i = index_++;
+    	
         for (size_t n = 0; n < max_thread_ * K; ++n) {
 			const auto index = (i + n) % max_thread_;
             if (shared_queues_.at(index)->TryEnqueue(std::move(task))) {
@@ -126,7 +128,11 @@ public:
                 return;
             }
         }
-        pool_queue_.Enqueue(std::move(task));
+    	
+        if (!pool_queue_.TryEnqueue(std::move(task))) {
+            throw LibrarySpecException("Thread pool was fulled.");
+        }
+    	
 #ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
         XAMP_LOG_DEBUG("Enqueue pool queue.");
 #endif

@@ -113,6 +113,7 @@ static PlaybackFormat getPlaybackFormat(const AudioPlayer* player) {
         format.is_dsd_file = true;
     }
 
+    format.enable_sample_rate_convert = player->IsEnableSampleRateConverter();
     format.file_format = player->GetFileFormat();
     format.output_format = player->GetOutputFormat();
     return format;

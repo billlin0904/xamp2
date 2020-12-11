@@ -470,8 +470,8 @@ QModelIndex PlayListTableView::shuffeIndex() {
         return currentIndex();
     }
 
-    RNG::Instance().Shuffle(indexes);
-    auto selected = RNG::Instance()(size_t(0), indexes.size() - 1);
+    RNG::GetInstance().Shuffle(indexes);
+    auto selected = RNG::GetInstance()(size_t(0), indexes.size() - 1);
     return model()->index(indexes[selected], PLAYLIST_PLAYING);
 }
 

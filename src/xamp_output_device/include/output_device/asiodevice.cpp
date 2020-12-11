@@ -242,7 +242,7 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 		AsioIfFailedThrow(::ASIOGetChannelInfo(&Singleton<AsioDriver>::GetInstance().channel_infos[i]));
 	}
 
-	auto input_fomrat = output_format;
+	const auto in_format = output_format;
 
 	ASIOChannelInfo channel_info{};
 	channel_info.isInput = FALSE;
@@ -305,10 +305,10 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 	XAMP_LOG_INFO("Native DSD support: {}.", IsSupportDsdFormat());
 
 	if (io_format_ == DsdIoFormat::IO_FORMAT_PCM) {
-		size_t allocate_bytes = buffer_size_ * format_.GetBytesPerSample() * format_.GetChannels();
-		Singleton<AsioDriver>::GetInstance().data_context = MakeConvert(input_fomrat, format_, buffer_size_);
-		buffer_bytes_ = buffer_size_ * (int64_t)format_.GetBytesPerSample();
-		auto alloc_size = allocate_bytes * buffer_size_;
+		const auto allocate_bytes = buffer_size_ * format_.GetBytesPerSample() * format_.GetChannels();
+		Singleton<AsioDriver>::GetInstance().data_context = MakeConvert(in_format, format_, buffer_size_);
+		buffer_bytes_ = buffer_size_ * static_cast<int64_t>(format_.GetBytesPerSample());
+		const auto alloc_size = allocate_bytes * buffer_size_;
 		if (buffer_.GetSize() < alloc_size) {
 			buffer_vmlock_.UnLock();
 			buffer_ = MakeBuffer<int8_t>(alloc_size);
@@ -340,9 +340,9 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 		default:
 			throw NotSupportFormatException();
 		}
-		auto channel_buffer_size = buffer_size_ / 8;
+		const auto channel_buffer_size = buffer_size_ / 8;
 		buffer_bytes_ = channel_buffer_size;
-		size_t allocate_bytes = buffer_size_;
+		const auto allocate_bytes = buffer_size_;
 		if (device_buffer_.GetSize() < allocate_bytes) {
 			device_buffer_vmlock_.UnLock();
 			device_buffer_ = MakeBuffer<int8_t>(allocate_bytes);
@@ -353,7 +353,7 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 			buffer_ = MakeBuffer<int8_t>(allocate_bytes);
 			buffer_vmlock_.Lock(buffer_.Get(), allocate_bytes);
 		}		
-		Singleton<AsioDriver>::GetInstance().data_context = MakeConvert(input_fomrat, format_, channel_buffer_size);
+		Singleton<AsioDriver>::GetInstance().data_context = MakeConvert(in_format, format_, channel_buffer_size);
 	}
 
 	long input_latency = 0;
@@ -394,22 +394,18 @@ void AsioDevice::OnBufferSwitch(long index, double sample_time) noexcept {
 		return;
 	}
 
-	bool got_samples = false;
+	auto got_samples = false;
 
 	auto pcm_convert = [this, &got_samples, cache_played_bytes, sample_time]() noexcept {
 		// PCM mode input float to output format.
 		const auto stream_time = static_cast<double>(cache_played_bytes) / format_.GetAvgBytesPerSec();
 		if (callback_->OnGetSamples(reinterpret_cast<float*>(buffer_.Get()), buffer_size_, stream_time, sample_time) == 0) {
-			switch (format_.GetByteFormat()) {
-			case ByteFormat::SINT32:
-				DataConverter<PackedFormat::PLANAR,
-					PackedFormat::INTERLEAVED>::Convert(reinterpret_cast<int32_t*>(device_buffer_.Get()),
-						reinterpret_cast<const float*>(buffer_.Get()),
-						Singleton<AsioDriver>::GetInstance().data_context);
-				break;
-			default:
-				break;
-			}
+			assert(format_.GetByteFormat() == ByteFormat::SINT32);
+			DataConverter<PackedFormat::PLANAR,
+				PackedFormat::INTERLEAVED>::Convert(
+					reinterpret_cast<int32_t*>(device_buffer_.Get()),
+					reinterpret_cast<const float*>(buffer_.Get()),
+					Singleton<AsioDriver>::GetInstance().data_context);
 			got_samples = true;
 		}
 	};	
@@ -593,7 +589,8 @@ void AsioDevice::OnBufferSwitchCallback(long index, ASIOBool processNow) {
 	Singleton<AsioDriver>::GetInstance().device->OnBufferSwitchTimeInfoCallback(&time_info, index, processNow);
 	double sample_time = 0;
 	if (time_info.timeInfo.flags & kSamplePositionValid) {
-		sample_time = ASIO64toDouble(time_info.timeInfo.samplePosition) / Singleton<AsioDriver>::GetInstance().device->format_.GetSampleRate();
+		sample_time = ASIO64toDouble(time_info.timeInfo.samplePosition)
+		/ Singleton<AsioDriver>::GetInstance().device->format_.GetSampleRate();
 	}
 	Singleton<AsioDriver>::GetInstance().device->OnBufferSwitch(index, sample_time);
 }
