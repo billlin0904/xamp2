@@ -76,7 +76,7 @@ void AudioPlayer::Destroy() {
     converter_.reset();
     equalizer_.reset();
 #ifdef ENABLE_ASIO
-    AudioDeviceManager::RemoveASIODriver();
+    AudioDeviceManager::GetInstance().RemoveASIODriver();
 #endif
     BassFileStream::FreeBassLib();
 }
@@ -88,12 +88,10 @@ void AudioPlayer::UpdateSlice(float const *samples, int32_t sample_size, double 
 }
 
 void AudioPlayer::Initial() {
-    AudioDeviceManager::PreventSleep(true);
+    XAMP_LOG_DEBUG("AudioDeviceManager init success.");
+    AudioDeviceManager::GetInstance().PreventSleep(true);
 
     (void)ThreadPool::GetInstance();
-
-    (void)AudioDeviceManager::GetInstance();
-    XAMP_LOG_DEBUG("AudioDeviceManager init success.");
 
     BassFileStream::LoadBassLib();
     XAMP_LOG_DEBUG("Load BASS dll success.");
@@ -148,7 +146,7 @@ void AudioPlayer::CreateDevice(Uuid const & device_type_id, std::string const & 
         || device_type_id_ != device_type_id
         || open_always) {
         if (device_type_id_ != device_type_id) {
-            AudioDeviceManager::RemoveASIODriver();
+            AudioDeviceManager::GetInstance().RemoveASIODriver();
         }
         if (auto result = AudioDeviceManager::GetInstance().Create(device_type_id)) {            
             device_type_ = std::move(result.value());
@@ -434,7 +432,7 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
         stream_task_.get();
         LogTime("Thread switch time", sw.Elapsed());
 #endif
-         stream_task_ = std::shared_future<void>();
+        stream_task_ = std::shared_future<void>();
         XAMP_LOG_DEBUG("Stream thread was finished.");        
     }
     buffer_.Clear();
@@ -759,7 +757,6 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_read_sample
 
         if (num_samples > 0) {
 	        const auto *samples = reinterpret_cast<const float*>(sample_buffer);
-
             auto use_sample_rate_converter = true;
             if (equalizer_ != nullptr) {
                 if (dsd_mode_ == DsdModes::DSD_MODE_PCM) {

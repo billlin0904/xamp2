@@ -23,19 +23,106 @@ constexpr uint16_t LoWord(T val) noexcept {
     return static_cast<uint16_t>(uint32_t(val) & 0xFFFF);
 }
 
-HPLUGIN BassPluginLoadTraits::invalid() noexcept {
+std::string GetBassVersion(uint32_t version) {
+    const uint32_t major_version(HiByte(HiWord(version)));
+    const uint32_t minor_version(LowByte(HiWord(version)));
+    const uint32_t micro_version(HiByte(LoWord(version)));
+    const uint32_t build_version(LowByte(LoWord(version)));
+
+    std::ostringstream ostr;
+    ostr << major_version << "."
+        << minor_version << "."
+        << micro_version << "."
+        << build_version;
+
+    return ostr.str();
+}
+
+BassDSDLib::BassDSDLib() try
+#ifdef XAMP_OS_WIN
+    : module_(LoadModule("bassdsd.dll"))
+#else
+    : module_(LoadModule("libbassdsd.dylib"))
+#endif
+    , BASS_DSD_StreamCreateFile(module_, "BASS_DSD_StreamCreateFile") {
+}
+catch (const Exception& e) {
+    XAMP_LOG_ERROR("{}", e.GetErrorMessage());
+}
+
+BassMixLib::BassMixLib() try
+#ifdef XAMP_OS_WIN
+    : module_(LoadModule("bassmix.dll"))
+#else
+    : module_(LoadModule("libbassmix.dylib"))
+#endif
+    , BASS_Mixer_StreamCreate(module_, "BASS_Mixer_StreamCreate")
+    , BASS_Mixer_StreamAddChannel(module_, "BASS_Mixer_StreamAddChannel") {
+}
+catch (const Exception& e) {
+    XAMP_LOG_ERROR("{}", e.GetErrorMessage());
+}
+
+BassLib::BassLib() try
+#ifdef XAMP_OS_WIN
+    : module_(LoadModule("bass.dll"))
+#else
+    : module_(LoadModule("libbass.dylib"))
+#endif
+    , BASS_Init(module_, "BASS_Init")
+    , BASS_SetConfig(module_, "BASS_SetConfig")
+    , BASS_PluginLoad(module_, "BASS_PluginLoad")
+    , BASS_PluginGetInfo(module_, "BASS_PluginGetInfo")
+    , BASS_Free(module_, "BASS_Free")
+    , BASS_StreamCreateFile(module_, "BASS_StreamCreateFile")
+    , BASS_ChannelGetInfo(module_, "BASS_ChannelGetInfo")
+    , BASS_StreamFree(module_, "BASS_StreamFree")
+    , BASS_PluginFree(module_, "BASS_PluginFree")
+    , BASS_ChannelGetData(module_, "BASS_ChannelGetData")
+    , BASS_ChannelGetLength(module_, "BASS_ChannelGetLength")
+    , BASS_ChannelBytes2Seconds(module_, "BASS_ChannelBytes2Seconds")
+    , BASS_ChannelSeconds2Bytes(module_, "BASS_ChannelSeconds2Bytes")
+    , BASS_ChannelSetPosition(module_, "BASS_ChannelSetPosition")
+    , BASS_ErrorGetCode(module_, "BASS_ErrorGetCode")
+    , BASS_ChannelGetAttribute(module_, "BASS_ChannelGetAttribute")
+    , BASS_ChannelSetAttribute(module_, "BASS_ChannelSetAttribute")
+    , BASS_StreamCreate(module_, "BASS_StreamCreate")
+    , BASS_StreamPutData(module_, "BASS_StreamPutData")
+    , BASS_ChannelSetFX(module_, "BASS_ChannelSetFX")
+    , BASS_ChannelRemoveFX(module_, "BASS_ChannelRemoveFX")
+    , BASS_FXSetParameters(module_, "BASS_FXSetParameters")
+    , BASS_FXGetParameters(module_, "BASS_FXGetParameters") {
+}
+catch (const Exception& e) {
+    XAMP_LOG_ERROR("{}", e.GetErrorMessage());
+}
+
+BassFxLib::BassFxLib() try
+#ifdef XAMP_OS_WIN
+    : module_(LoadModule("bass_fx.dll"))
+#else
+    : module_(LoadModule("libbass_fx.dylib"))
+#endif        
+    , BASS_FX_TempoGetSource(module_, "BASS_FX_TempoGetSource")
+    , BASS_FX_TempoCreate(module_, "BASS_FX_TempoCreate") {
+}
+catch (const Exception& e) {
+    XAMP_LOG_ERROR("{}", e.GetErrorMessage());
+}
+
+HPLUGIN BassPluginLoadDeleter::invalid() noexcept {
     return 0;
 }
 
- void BassPluginLoadTraits::close(HPLUGIN value) {
+ void BassPluginLoadDeleter::close(HPLUGIN value) {
     Singleton<BassLib>::GetInstance().BASS_PluginFree(value);
 }
 
-HSTREAM BassStreamTraits::invalid() noexcept {
+HSTREAM BassStreamDeleter::invalid() noexcept {
     return 0;
 }
 
-void BassStreamTraits::close(HSTREAM value) {
+void BassStreamDeleter::close(HSTREAM value) {
     Singleton<BassLib>::GetInstance().BASS_StreamFree(value);
 }
 
@@ -80,17 +167,7 @@ void BassLib::LoadPlugin(std::string const & file_name) {
     }
 
     const auto info = Singleton<BassLib>::GetInstance().BASS_PluginGetInfo(plugin.get());
-    const uint32_t major_version(HiByte(HiWord(info->version)));
-    const uint32_t minor_version(LowByte(HiWord(info->version)));
-    const uint32_t micro_version(HiByte(LoWord(info->version)));
-    const uint32_t build_version(LowByte(LoWord(info->version)));
-
-    std::ostringstream ostr;
-    ostr << major_version << "."
-         << minor_version << "."
-         << micro_version << "."
-         << build_version;
-    XAMP_LOG_DEBUG("Load {} {} successfully.", file_name, ostr.str());
+    XAMP_LOG_DEBUG("Load {} {} successfully.", file_name, GetBassVersion(info->version));
 
     plugins_[file_name] = std::move(plugin);
 }

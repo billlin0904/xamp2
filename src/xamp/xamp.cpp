@@ -383,7 +383,7 @@ void Xamp::initialDeviceList() {
 
         if (!is_find_setting_device) {
             auto itr = std::find_if(device_info_list.begin(), device_info_list.end(), [](const auto& info) {
-                return info.is_default_device && !AudioDeviceManager::IsExclusiveDevice(info);
+                return info.is_default_device && !AudioDeviceManager::GetInstance().IsExclusiveDevice(info);
             });
             if (itr != device_info_list.end()) {
                 init_device_info = (*itr);

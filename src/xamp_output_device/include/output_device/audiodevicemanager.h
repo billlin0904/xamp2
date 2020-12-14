@@ -56,13 +56,13 @@ public:
 
     static AudioDeviceManager& GetInstance();
 
-    static bool IsExclusiveDevice(DeviceInfo const &info) noexcept;
+    bool IsExclusiveDevice(DeviceInfo const &info) noexcept;
 
-    static bool IsASIODevice(Uuid const& id) noexcept;
+    bool IsASIODevice(Uuid const& id) noexcept;
 
-    static void RemoveASIODriver();
+    void RemoveASIODriver();
 
-    static void PreventSleep(bool allow);
+    void PreventSleep(bool allow);
 private:
     class DeviceStateNotificationImpl;
 
