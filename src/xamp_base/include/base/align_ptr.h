@@ -7,7 +7,9 @@
 
 #include <memory>
 #include <cassert>
+#include <algorithm>
 
+#include <base/memory.h>
 #include <base/base.h>
 
 namespace xamp::base {

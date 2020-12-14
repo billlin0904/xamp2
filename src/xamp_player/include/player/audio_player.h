@@ -29,6 +29,7 @@
 
 #include <player/playstate.h>
 #include <player/playbackstateadapter.h>
+#include <player/channelmixer.h>
 #include <player/player.h>
 
 namespace xamp::player {
@@ -217,6 +218,7 @@ private:
     DeviceInfo device_info_;
     std::shared_future<void> stream_task_;
     SpscQueue<MsgID> msg_queue_;
+    ChannelMixer mixer_;
 };
 
 }

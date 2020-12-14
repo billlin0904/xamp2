@@ -91,6 +91,8 @@ XAMP_ALWAYS_INLINE void ClampSample(float *f, size_t num_samples) noexcept {
 }
 #else
 XAMP_ALWAYS_INLINE void ClampSample(float* f, size_t num_samples) noexcept {
+    const auto* end_input = f + num_samples;
+
 	switch ((end_input - f) % kLoopUnRollingIntCount) {
 	case 3:
 		*f = ClampSample(*f);
