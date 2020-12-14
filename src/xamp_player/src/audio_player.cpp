@@ -429,12 +429,12 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
         if (stream_task_.wait_for(kWaitForStreamStopTime) == std::future_status::timeout) {
             throw StopStreamTimeoutException();
         }
-        stream_task_ = std::shared_future<void>();
 #else
         Stopwatch sw;
         stream_task_.get();
         LogTime("Thread switch time", sw.Elapsed());
 #endif
+         stream_task_ = std::shared_future<void>();
         XAMP_LOG_DEBUG("Stream thread was finished.");        
     }
     buffer_.Clear();

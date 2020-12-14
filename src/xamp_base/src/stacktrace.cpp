@@ -236,8 +236,8 @@ std::string StackTrace::CaptureStack() {
 
     std::ostringstream ostr;
     auto symbollist = ::backtrace_symbols(addrlist_.data(), addrlen);
-    for (auto i = 4; i < addrlen; i++) {
-        ostr << symbollist[i];
+    for (auto i = 0; i < addrlen; i++) {
+        ostr << symbollist[i] << "\r\n";
     }
     return ostr.str();
 #endif

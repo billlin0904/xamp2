@@ -19,14 +19,31 @@ static bool TestDsdFileFormat(std::wstring const & file_path) {
 
     EnsureDsdDecoderInit();
 
+#ifdef XAMP_OS_WIN
     stream.reset(Singleton<BassLib>::GetInstance().DSDLib->BASS_DSD_StreamCreateFile(FALSE,
-        file_path.data(),
+        file_path.c_str(),
         0,
         0,
         BASS_DSD_RAW | BASS_STREAM_DECODE | BASS_UNICODE,
         0));
-
-    return stream.is_valid();
+#else
+    MemoryMappedFile file;
+    file.Open(file_path);
+    stream.reset(Singleton<BassLib>::GetInstance().DSDLib->BASS_DSD_StreamCreateFile(TRUE,
+                                                                                      file.GetData(),
+                                                                                      0,
+                                                                                      file.GetLength(),
+                                                                                      BASS_DSD_RAW | BASS_STREAM_DECODE,
+                                                                                      0));
+#endif
+    auto error = Singleton<BassLib>::GetInstance().BASS_ErrorGetCode();
+    if (error == BASS_ERROR_FILEFORM) {
+        return false;
+    }
+    if (!stream) {
+        throw BassException(error);
+    }
+    return true;
 }
 
 class BassFileStream::BassFileStreamImpl {
