@@ -151,11 +151,11 @@
     <ClInclude Include="include\player\audio_player.h" />
     <ClInclude Include="include\player\chromaprint.h" />
     <ClInclude Include="include\player\chromaprinthelper.h" />
-    <ClInclude Include="include\player\nullresampler.h" />
+    <ClInclude Include="include\player\passthroughsamplerateconverter.h" />
     <ClInclude Include="include\player\playbackstateadapter.h" />
     <ClInclude Include="include\player\player.h" />
     <ClInclude Include="include\player\playstate.h" />
-    <ClInclude Include="include\player\resampler.h" />
+    <ClInclude Include="include\player\samplerateconverter.h" />
     <ClInclude Include="include\player\soxresampler.h" />
   </ItemGroup>
   <ItemGroup>
@@ -163,7 +163,7 @@
     <ClCompile Include="src\audio_util.cpp" />
     <ClCompile Include="src\chromaprint.cpp" />
     <ClCompile Include="src\chromaprinthelper.cpp" />
-    <ClCompile Include="src\nullresampler.cpp" />
+    <ClCompile Include="src\passthroughsamplerateconverter.cpp" />
     <ClCompile Include="src\soxresampler.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
