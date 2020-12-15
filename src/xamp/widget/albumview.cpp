@@ -372,7 +372,7 @@ AlbumView::AlbumView(QWidget* parent)
         page_->setPlaylistMusic(album_id);
         page_->setFixedSize(QSize(list_view_rect.size().width() - 10, height));
 
-        if (auto album_stats = Database::instance().GetAlbumStats(album_id)) {
+        if (auto album_stats = Singleton<Database>::GetInstance().GetAlbumStats(album_id)) {
             page_->setTracks(album_stats.value().tracks);
             page_->setTotalDuration(album_stats.value().durations);
         }
@@ -398,9 +398,9 @@ AlbumView::AlbumView(QWidget* parent)
             for(auto row = 0; row < count; row++) {
                 auto index = model()->index(row, 3);
                 auto album_id = getIndexValue(index, 3).toInt();
-                Database::instance().RemoveAlbum(album_id);
+                Singleton<Database>::GetInstance().RemoveAlbum(album_id);
             }
-            Database::instance().RemoveAllArtist();
+            Singleton<Database>::GetInstance().RemoveAllArtist();
             refreshOnece();
         };
 
@@ -413,7 +413,7 @@ AlbumView::AlbumView(QWidget* parent)
             action_map.addSeparator();
 
             action_map.addAction(tr("Remove select album"), [=]() {
-                Database::instance().RemoveAlbum(album_id);
+                Singleton<Database>::GetInstance().RemoveAlbum(album_id);
                 refreshOnece();
             });
 
@@ -424,7 +424,7 @@ AlbumView::AlbumView(QWidget* parent)
             action_map.addSeparator();
 
             action_map.addAction(tr("Add album to playlist"), [=]() {
-                Database::instance().ForEachAlbumMusic(album_id, [this](const auto& entity) {
+                Singleton<Database>::GetInstance().ForEachAlbumMusic(album_id, [this](const auto& entity) {
                     emit addPlaylist(entity);
                 });
             });

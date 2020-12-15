@@ -12,6 +12,7 @@ copy x64\Release\bass.dll deploy\
 copy x64\Release\bassdsd.dll deploy\
 copy x64\Release\bass_aac.dll deploy\
 copy x64\Release\bass_fx.dll deploy\
+copy x64\Release\bassmix.dll deploy\
 
 copy x64\Release\xamp_base.dll deploy\
 copy x64\Release\xamp_stream.dll deploy\

@@ -189,7 +189,7 @@ void AudioPlayer::OpenStream(std::wstring const & file_path, std::wstring const 
     }
     stream_->OpenFile(file_path);    
     stream_duration_ = stream_->GetDuration();   
-    XAMP_LOG_DEBUG("Open stream type: {} {} {}.", stream_->GetDescription(), dsd_mode_, stream_duration_);    
+    XAMP_LOG_DEBUG("Open stream type: {}.", stream_->GetDescription());    
 }
 
 void AudioPlayer::SetState(const PlayerState play_state) {
@@ -463,8 +463,10 @@ void AudioPlayer::CreateBuffer() {
     if (require_read_sample != num_read_sample_) {
         auto allocate_size = require_read_sample * stream_->GetSampleSize() * kBufferStreamCount;
         num_buffer_samples_ = allocate_size * kTotalBufferStreamCount;
+        num_buffer_samples_ = GetPageAlignSize(num_buffer_samples_);
         num_read_sample_ = require_read_sample;
-        XAMP_LOG_DEBUG("Allocate interal buffer : {}.", FormatBytes(allocate_size));
+        allocate_size = GetPageAlignSize(allocate_size);
+        XAMP_LOG_DEBUG("Allocate interal buffer : {}.", FormatBytes(allocate_size));        
         sample_buffer_ = MakeBuffer<int8_t>(allocate_size);
         sample_buffer_lock_.Lock(sample_buffer_.Get(), sample_buffer_.GetByteSize());
         read_sample_size_ = allocate_size;
@@ -611,37 +613,6 @@ void AudioPlayer::BufferStream(double stream_time) {
     BufferSamples(stream_, converter_, kBufferStreamCount);
 }
 
-void AudioPlayer::BufferSamples(AlignPtr<FileStream> &stream, AlignPtr<SampleRateConverter>& converter, int32_t buffer_count) {
-    auto* const sample_buffer = sample_buffer_.Get();
-    
-    for (auto i = 0; i < buffer_count; ++i) {
-        while (true) {
-            const auto num_samples = stream->GetSamples(sample_buffer, num_read_sample_);
-            if (num_samples == 0) {
-                return;
-            }
-
-            const auto* samples = reinterpret_cast<const float*>(sample_buffer);
-
-            auto use_converter = true;
-            if (equalizer_ != nullptr) {
-                if (dsd_mode_ == DsdModes::DSD_MODE_PCM) {
-                    equalizer_->Process(samples, num_samples, buffer_);
-                    use_converter = false;
-                }
-            }
-
-            if (use_converter) {
-                assert(converter != nullptr);
-                if (!converter->Process(samples, num_samples, buffer_)) {
-                    continue;
-                }
-            }
-            break;
-        }
-    }
-}
-
 void AudioPlayer::Startup() {
     if (timer_.IsStarted()) {
         return;
@@ -749,6 +720,36 @@ void AudioPlayer::OnGaplessPlayState(std::unique_lock<std::mutex>& lock) {
     else {
         BufferSamples(file_stream, sample_rate_converter);
     }    
+}
+
+void AudioPlayer::BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<SampleRateConverter>& converter, int32_t buffer_count) {
+    auto* const sample_buffer = sample_buffer_.Get();
+
+    for (auto i = 0; i < buffer_count; ++i) {
+        while (true) {
+            const auto num_samples = stream->GetSamples(sample_buffer, num_read_sample_);
+            if (num_samples == 0) {
+                return;
+            }
+
+            const auto* samples = reinterpret_cast<const float*>(sample_buffer);
+            auto use_sample_rate_converter = true;
+            if (equalizer_ != nullptr) {
+                if (dsd_mode_ == DsdModes::DSD_MODE_PCM) {
+                    equalizer_->Process(samples, num_samples, buffer_);
+                    use_sample_rate_converter = false;
+                }
+            }
+
+            if (use_sample_rate_converter) {
+                assert(converter != nullptr);
+                if (!converter->Process(samples, num_samples, buffer_)) {
+                    continue;
+                }
+            }
+            break;
+        }
+    }
 }
 
 void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_read_sample, std::unique_lock<std::mutex>& lock) {

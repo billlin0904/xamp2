@@ -114,6 +114,7 @@ void PlyalistPage::initial() {
 void PlyalistPage::OnThemeColorChanged(QColor theme_color, QColor color) {
 	title_->setStyleSheet(Q_UTF8("QLabel { color: ") + colorToString(color) + Q_UTF8("; background-color: transparent; }"));
 	format_->setStyleSheet(Q_UTF8("QLabel { color: ") + colorToString(color) + Q_UTF8("; background-color: transparent; }"));
+	setStyleSheet(backgroundColorToString(theme_color));
 }
 
 QLabel* PlyalistPage::format() {

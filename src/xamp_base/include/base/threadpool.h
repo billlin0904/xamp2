@@ -44,6 +44,7 @@ class TaskWrapper {
         ImplType(F&& f)
     		: f_(std::move(f)) {	        
         }
+
 #ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
         virtual ~ImplType() noexcept override {
             XAMP_LOG_DEBUG("ImplType was deleted.");
@@ -95,7 +96,7 @@ public:
         , core_(core)
         , index_(0)
         , max_thread_(max_thread)
-        , pool_queue_(max_thread) {
+        , pool_queue_(max_thread * 16) {
     	try {
     	    for (size_t i = 0; i < max_thread_; ++i) {
                 shared_queues_.push_back(MakeAlign<TaskQueue>(max_thread));
@@ -203,7 +204,7 @@ private:
             const auto index = (i + n) % max_thread_;
             if (shared_queues_.at(index)->TryDequeue(task)) {
 #ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
-                XAMP_LOG_DEBUG("Steal other thread queue.");
+                XAMP_LOG_DEBUG("Steal other thread {} queue.", index);
 #endif
                 return std::move(task);
             }
@@ -219,9 +220,11 @@ private:
             // Sleep for set thread name.
             std::this_thread::sleep_for(std::chrono::milliseconds(900));
 #endif
-            SetCurrentThreadName(i);
+            std::ostringstream ostr;
+            ostr << "Worker Thread(" << i << ").";
+            SetThreadName(ostr.str());
 #ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
-            XAMP_LOG_DEBUG("Thread {} start.", i);
+            XAMP_LOG_DEBUG("Worker Thread {} start.", i);
 #endif
             for (;!is_stopped_;) {                
                 auto task = TrySteal();
@@ -241,19 +244,19 @@ private:
 
                 auto active_thread = ++active_thread_;
 #ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
-                XAMP_LOG_DEBUG("Thread {} weakup, active:{}.", i, active_thread);
+                XAMP_LOG_DEBUG("Worker Thread {} weakup, active:{}.", i, active_thread);
 #endif
                 try {
                     (*task)();
                 }
                 catch (std::exception const& e) {
 #ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
-                    XAMP_LOG_ERROR("Thread {} got exception: {}", e.what());
+                    XAMP_LOG_ERROR("Worker Thread {} got exception: {}", e.what());
 #endif
                 }                
                 --active_thread_;
 #ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
-                XAMP_LOG_DEBUG("Thread {} execute finished.", i);
+                XAMP_LOG_DEBUG("Worker Thread {} execute finished.", i);
 #endif
             }
 #ifdef XAMP_ENABLE_THREAD_POOL_DEBUG

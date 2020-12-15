@@ -143,7 +143,7 @@ static int excute(int argc, char* argv[]) {
         FormatBytes(Singleton<PixmapCache>::GetInstance().GetImageSize()));
 
     try {
-        Database::instance().open(Q_UTF8("xamp.db"));        
+        Singleton<Database>::GetInstance().open(Q_UTF8("xamp.db"));
     }
     catch (const std::exception& e) {
         XAMP_LOG_INFO("Initial database failure. {}", e.what());

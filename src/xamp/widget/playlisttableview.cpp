@@ -114,7 +114,7 @@ void PlayListTableView::initial() {
         }
         auto& item = model_.item(start_editor->row());
         item.rating = start_editor->starRating().starCount();
-        Database::instance().UpdateMusicRating(item.music_id, item.rating);
+        Singleton<Database>::GetInstance().UpdateMusicRating(item.music_id, item.rating);
         });
 
     setEditTriggers(DoubleClicked | SelectedClicked);
@@ -328,7 +328,6 @@ void PlayListTableView::initial() {
 }
 
 void PlayListTableView::onTextColorChanged(QColor backgroundColor, QColor color) {
-    setStyleSheet(backgroundColorToString(backgroundColor));
 }
 
 void PlayListTableView::keyPressEvent(QKeyEvent *pEvent) {
@@ -549,7 +548,7 @@ void PlayListTableView::reloadSelectMetadata() {
         entity.cover_id = cover_id;
         entity.artist_id = artist_id;
 
-        Database::instance().AddOrUpdateMusic(metadata, -1);
+        Singleton<Database>::GetInstance().AddOrUpdateMusic(metadata, -1);
     }
 
     proxy_model_.dataChanged(QModelIndex(), QModelIndex());

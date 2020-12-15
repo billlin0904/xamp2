@@ -5,6 +5,22 @@
 
 namespace xamp::stream {
 
+static uint32_t GetDOPSampleRate(uint32_t dsd_speed) {
+    switch (dsd_speed) {
+        // 64x CD
+    case 64:
+        return 176400;
+        // 128x CD
+    case 128:
+        return 352800;
+        // 256x CD
+    case 256:
+        return 705600;
+    default:
+        throw NotSupportFormatException();
+    }
+}
+
 static bool TestDsdFileFormat(std::wstring const & file_path) {
     BassStreamHandle stream;
 #ifdef XAMP_OS_WIN
@@ -122,7 +138,7 @@ public:
 
         if (mode_ == DsdModes::DSD_MODE_PCM) {
             mix_stream_.reset(Singleton<BassLib>::GetInstance().MixLib->BASS_Mixer_StreamCreate(GetFormat().GetSampleRate(),
-                GetFormat().GetChannels(),
+                kMaxChannel,
                 BASS_SAMPLE_FLOAT | BASS_STREAM_DECODE | BASS_MIXER_END));
             if (!mix_stream_) {
                 throw BassException();
@@ -131,7 +147,10 @@ public:
                 stream_.get(),
                 BASS_MIXER_BUFFER));
             XAMP_LOG_DEBUG("Mix stream {} channel to 2 channel", info_.chans);
-            info_.chans = 2;
+            info_.chans = kMaxChannel;
+        }
+        else {
+            throw NotSupportFormatException();
         }
     }
 
@@ -153,8 +172,8 @@ public:
 
     double GetDuration() const {
         assert(stream_.is_valid());
-        const auto len = Singleton<BassLib>::GetInstance().BASS_ChannelGetLength(GetHStream(), BASS_POS_BYTE);
-        return Singleton<BassLib>::GetInstance().BASS_ChannelBytes2Seconds(GetHStream(), len);
+        const auto len = Singleton<BassLib>::GetInstance().BASS_ChannelGetLength(stream_.get(), BASS_POS_BYTE);
+        return Singleton<BassLib>::GetInstance().BASS_ChannelBytes2Seconds(stream_.get(), len);
     }
 
     AudioFormat GetFormat() const noexcept {
@@ -264,9 +283,10 @@ void BassFileStream::LoadBassLib() {
         (void) Singleton<BassLib>::GetInstance().Load();
     }
     Singleton<BassLib>::GetInstance().MixLib = MakeAlign<BassMixLib>();
+    XAMP_LOG_DEBUG("Load BassMixLib {} successfully.", GetBassVersion(Singleton<BassLib>::GetInstance().MixLib->BASS_Mixer_GetVersion()));
     Singleton<BassLib>::GetInstance().DSDLib = MakeAlign<BassDSDLib>();
-    // TODO: Set hightest dsd2pcm samplerate?
     Singleton<BassLib>::GetInstance().BASS_SetConfig(BASS_CONFIG_DSD_FREQ, 174000);
+    XAMP_LOG_DEBUG("Load BassDSDLib successfully.");
 }
 
 void BassFileStream::FreeBassLib() {

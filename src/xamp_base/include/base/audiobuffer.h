@@ -173,7 +173,7 @@ bool AudioBuffer<Type, U>::TryRead(Type* data, size_t count) noexcept {
 
 	if (count > GetAvailableRead(head, tail)) {
 		return false;
-	}	
+	}
 
 	if (next_tail > size_) {
         const auto range1 = size_ - tail;

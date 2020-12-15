@@ -94,12 +94,6 @@ void SetThreadName(std::string const& name) noexcept {
 #endif
 }
 
-void SetCurrentThreadName(size_t index) {
-    std::ostringstream ostr;
-    ostr << "Streaming Thread(" << index << ").";
-    SetThreadName(ostr.str());
-}
-
 void SetThreadAffinity(std::thread& thread, int32_t core) {
 #ifdef XAMP_OS_WIN
     auto mask = (static_cast<DWORD_PTR>(1) << core);

@@ -15,32 +15,15 @@
 #include <widget/widget_shared.h>
 #include <widget/pixmapcache.h>
 
-using MetadataExtractAdapterBase = xamp::metadata::MetadataExtractAdapter;
-using xamp::metadata::Metadata;
-using xamp::metadata::Path;
-
 class PlayListTableView;
 
 class MetadataExtractAdapter final
-	: public QObject
-	, public MetadataExtractAdapterBase {
+	: public QObject {
 	Q_OBJECT
 public:
     explicit MetadataExtractAdapter(QObject* parent = nullptr);
 
 	~MetadataExtractAdapter() override;
-
-	void OnWalkFirst() override;
-		
-    void OnWalk(const Path& path, Metadata metadata) override;
-
-	void OnWalkNext() override;
-
-    bool IsCancel() const noexcept override;
-
-	void Cancel() override;
-
-    void Reset() override;
 
     static void ReadFileMetadata(MetadataExtractAdapter* adapter, QString const& file_name);
 
@@ -48,11 +31,6 @@ signals:
 	void readCompleted(std::vector<Metadata> enitiy);
 
 public:
-    static void ProcessMetadata(const std::vector<Metadata>& result, PlayListTableView *playlist = nullptr);
-	    
-private:
-    std::atomic<bool> cancel_;
-    std::vector<Metadata> metadatas_;
-	Stopwatch watch_;	
+    static void ProcessMetadata(const std::vector<Metadata>& result, PlayListTableView *playlist = nullptr);	
 };
 

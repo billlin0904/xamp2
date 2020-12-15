@@ -130,12 +130,10 @@ QIcon ThemeManager::appIcon() const {
 }
 
 void ThemeManager::setBackgroundColor(Ui::XampWindow& ui, QColor color) {
-    color.setAlpha(150);
-	
     ui.currentView->setStyleSheet(backgroundColorToString(color));
     ui.titleFrame->setStyleSheet(backgroundColorToString(color));
 
-    auto bottom_color = color.lighter(30);
+    auto bottom_color = color;  
     if (AppSettings::contains(kAppSettingBottomColor)) {
         bottom_color = AppSettings::getValueAsString(kAppSettingBottomColor);
     }
@@ -144,13 +142,12 @@ void ThemeManager::setBackgroundColor(Ui::XampWindow& ui, QColor color) {
     ui.volumeFrame->setStyleSheet(backgroundColorToString(bottom_color));
     ui.controlFrame->setStyleSheet(backgroundColorToString(bottom_color));
 
-    QColor alphaColor = color;
-    alphaColor.setAlpha(200);
+    auto alpha_color = color;
     if (AppSettings::contains(kAppSettingAlphaColor)) {
-        alphaColor = AppSettings::getValueAsString(kAppSettingAlphaColor);
+        alpha_color = AppSettings::getValueAsString(kAppSettingAlphaColor);
     }
 
-    ui.sliderFrame->setStyleSheet(backgroundColorToString(alphaColor));
+    ui.sliderFrame->setStyleSheet(backgroundColorToString(alpha_color));
 
     AppSettings::setValue(kAppSettingBackgroundColor, color);
     background_color_ = color;    

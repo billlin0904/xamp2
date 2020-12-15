@@ -35,22 +35,6 @@ inline constexpr int32_t kPcmSampleRate441 { 44100 };
         }\
     } while (false)
 
-inline uint32_t GetDOPSampleRate(uint32_t dsd_speed) {
-    switch (dsd_speed) {
-        // 64x CD
-    case 64:
-        return 176400;
-        // 128x CD
-    case 128:
-        return 352800;
-        // 256x CD
-    case 256:
-        return 705600;
-    default:
-        throw NotSupportFormatException();
-    }
-}
-
 struct XAMP_STREAM_API BassPluginLoadDeleter final {
     static HPLUGIN invalid() noexcept;
     static void close(HPLUGIN value);
@@ -91,6 +75,7 @@ private:
 public:
     XAMP_DECLARE_DLL(BASS_Mixer_StreamCreate) BASS_Mixer_StreamCreate;
     XAMP_DECLARE_DLL(BASS_Mixer_StreamAddChannel) BASS_Mixer_StreamAddChannel;
+    XAMP_DECLARE_DLL(BASS_Mixer_GetVersion) BASS_Mixer_GetVersion;
 };
 
 class BassFxLib final {

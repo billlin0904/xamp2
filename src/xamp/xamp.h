@@ -16,7 +16,6 @@
 #include <widget/framelesswindow.h>
 #include <widget/musicbrainzclient.h>
 #include <widget/playlistentity.h>
-#include <widget/filesystemwatcher.h>
 #include <widget/localelanguage.h>
 #include <widget/playerorder.h>
 #include <widget/musicentity.h>
@@ -167,7 +166,6 @@ private:
 	PlaybackHistoryPage* playback_history_page_;
 	MusicBrainzClient mbc_;
 	DiscogsClient discogs_;
-	FileSystemWatcher watch_;
     QList<AppEQSettings> eqsettings_;
 	QMenu* trayIconMenu_;
 	QSystemTrayIcon* trayIcon_;

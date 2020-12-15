@@ -21,7 +21,7 @@ void AlignedFree(void* p) noexcept {
 }
 
 void* StackAlloc(size_t size) {
-    auto ptr = alloca(size);
+    auto ptr = ::alloca(size);
     return ptr;
 }
 
@@ -46,7 +46,7 @@ void* StackAlloc(size_t size) {
 
 void StackFree(void* p) {
     assert(p != nullptr);
-    _freea(p);
+    ::_freea(p);
 }
 #endif
 

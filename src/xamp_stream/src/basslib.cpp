@@ -57,7 +57,8 @@ BassMixLib::BassMixLib() try
     : module_(LoadModule("libbassmix.dylib"))
 #endif
     , BASS_Mixer_StreamCreate(module_, "BASS_Mixer_StreamCreate")
-    , BASS_Mixer_StreamAddChannel(module_, "BASS_Mixer_StreamAddChannel") {
+    , BASS_Mixer_StreamAddChannel(module_, "BASS_Mixer_StreamAddChannel")
+    , BASS_Mixer_GetVersion(module_, "BASS_Mixer_GetVersion") {
 }
 catch (const Exception& e) {
     XAMP_LOG_ERROR("{}", e.GetErrorMessage());

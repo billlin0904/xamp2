@@ -45,10 +45,7 @@ class Database final {
 public:
     static constexpr int32_t INVALID_DATABASE_ID = -1;
 
-    static Database& instance() {
-        static Database instance;
-        return instance;
-    }
+    friend class Singleton<Database>;
 
     ~Database();
 
