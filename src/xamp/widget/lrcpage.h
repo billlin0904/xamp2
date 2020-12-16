@@ -21,7 +21,7 @@ public:
 
 	LyricsShowWideget* lyricsWidget();
 
-    QLabel* cover();
+	void setCover(const QPixmap& cover);
 
 	ScrollLabel* album();
 
@@ -31,10 +31,14 @@ public:
 
 	void setBackground(const QPixmap& cover);
 
+	QLabel* cover();
+
+	QSize coverSize() const;
+
 public slots:
     void OnThemeColorChanged(QColor theme_color, QColor color);
 
-private:
+private:	
 	void setEffect(QWidget *widget, int blurRadius);
 
 	void paintEvent(QPaintEvent*) override;

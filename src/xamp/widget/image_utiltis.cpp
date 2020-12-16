@@ -6,6 +6,7 @@
 #include <base/threadpool.h>
 #include <base/align_ptr.h>
 
+#include <QBitmap>
 #include <QBuffer>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsScene>
@@ -560,6 +561,25 @@ std::vector<uint8_t> getImageDate(const QPixmap& source) {
 	buffer.open(QIODevice::WriteOnly);
 	source.save(&buffer, "JPG");
 	return std::vector<unsigned char>(bytes.constData(), bytes.constData() + bytes.size());
+}
+
+QPixmap roundImage(const QPixmap& src, int radius) {
+	return roundImage(src, src.size(), radius);
+}
+
+QPixmap roundImage(const QPixmap& src, QSize size, int radius) {
+	QBitmap mask(size);
+	QPainter painter(&mask);
+
+	painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
+	painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+	painter.fillRect(0, 0, size.width(), size.height(), Qt::white);
+	painter.setBrush(QColor(0, 0, 0));
+	painter.drawRoundedRect(0, 0, size.width(), size.height(), radius, radius);
+
+	QPixmap image = src.scaled(size);
+	image.setMask(mask);
+	return image;
 }
 
 }

@@ -142,7 +142,7 @@ public:
                        EnumToString(quality_),
                        EnumToString(phase_));
 
-        AllocateAndLock(kInitBufferSize);
+        ResizeBuffer(kInitBufferSize);
     }
 
     void Close() noexcept {
@@ -187,7 +187,7 @@ public:
 
         auto required_size = static_cast<size_t>(num_sample * ratio_) + 256;
         if (required_size > buffer_.size()) {
-            AllocateAndLock(required_size);
+            ResizeBuffer(required_size);
         }        
 
         size_t samples_done = 0;
@@ -212,12 +212,12 @@ public:
 
         required_size = samples_done * num_channels_;
         if (required_size > buffer_.size()) {
-            AllocateAndLock(required_size);
+            ResizeBuffer(required_size);
         }        
         return true;
     }
 
-    void AllocateAndLock(size_t required_size) {
+    void ResizeBuffer(size_t required_size) {
         vmlock_.UnLock();
         buffer_.resize(required_size);
         vmlock_.Lock(buffer_.data(), required_size * sizeof(float));
@@ -310,7 +310,7 @@ AlignPtr<SampleRateConverter> SoxrSampleRateConverter::Clone() {
     converter->SetStopBand(impl_->stopband_);
     converter->SetSteepFilter(impl_->enable_steep_filter_);
     converter->SetDither(impl_->enable_dither_);
-    return std::move(other);
+    return other;
 }
 
 }

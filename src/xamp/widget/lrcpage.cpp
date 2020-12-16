@@ -2,6 +2,7 @@
 #include <QHBoxLayout>
 #include <QPainter>
 #include <QGraphicsDropShadowEffect>
+#include <QBitmap>
 
 #include "thememanager.h"
 
@@ -23,6 +24,14 @@ LyricsShowWideget* LrcPage::lyricsWidget() {
 
 QLabel* LrcPage::cover() {
     return cover_label_;
+}
+
+void LrcPage::setCover(const QPixmap& src) {	
+	cover_label_->setPixmap(Pixmap::roundImage(src, coverSize()));
+}
+
+QSize LrcPage::coverSize() const {
+	return cover_label_->size();
 }
 
 ScrollLabel* LrcPage::album() {
@@ -83,9 +92,10 @@ void LrcPage::initial() {
 	verticalLayout_3->setObjectName(QString::fromUtf8("verticalLayout_3"));	
 
     cover_label_ = new QLabel(this);
-    cover_label_->setObjectName(QString::fromUtf8("label"));
+    cover_label_->setObjectName(QString::fromUtf8("lrcCoverLabel"));
     cover_label_->setMinimumSize(QSize(250, 250));
     cover_label_->setMaximumSize(QSize(250, 250));
+	cover_label_->setStyleSheet(Q_UTF8("border-width: 0 0 0 0; border-radius: 50px;"));
 	setEffect(cover_label_, 25);
 
     verticalLayout_3->addWidget(cover_label_);

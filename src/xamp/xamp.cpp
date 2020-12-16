@@ -1200,9 +1200,13 @@ void Xamp::setCover(const QPixmap* cover) {
         lrc_page_->setBackground(*cover);
     }
 
-    ui.coverLabel->setPixmap(Pixmap::resizeImage(*cover, ui.coverLabel->size(), true));
-    playlist_page_->cover()->setPixmap(Pixmap::resizeImage(*cover, playlist_page_->cover()->size(), true));
-    lrc_page_->cover()->setPixmap(Pixmap::resizeImage(*cover, lrc_page_->cover()->size(), true));
+    auto ui_cover = Pixmap::roundImage(Pixmap::resizeImage(*cover, ui.coverLabel->size(), true));
+    ui.coverLabel->setPixmap(ui_cover);
+    
+    auto playlist_cover = Pixmap::roundImage(Pixmap::resizeImage(*cover, playlist_page_->cover()->size(), true));
+    playlist_page_->cover()->setPixmap(playlist_cover);
+
+    lrc_page_->setCover(Pixmap::resizeImage(*cover, lrc_page_->cover()->size(), true));
 }
 
 void Xamp::onPlayerStateChanged(xamp::player::PlayerState play_state) {
