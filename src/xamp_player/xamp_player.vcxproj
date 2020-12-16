@@ -50,6 +50,7 @@
     <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
+    <EnableASAN>false</EnableASAN>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -151,6 +152,7 @@
     <ClInclude Include="include\player\audio_player.h" />
     <ClInclude Include="include\player\chromaprint.h" />
     <ClInclude Include="include\player\chromaprinthelper.h" />
+    <ClInclude Include="include\player\ditheringeffect.h" />
     <ClInclude Include="include\player\passthroughsamplerateconverter.h" />
     <ClInclude Include="include\player\playbackstateadapter.h" />
     <ClInclude Include="include\player\player.h" />
