@@ -14,6 +14,7 @@
 #include <widget/starrating.h>
 
 struct PlayListEntity {
+    bool playing{false};
     int32_t music_id{0};
     int32_t album_id{0};
     int32_t artist_id{0};

@@ -225,6 +225,10 @@ WHERE
     bool IsPlaylistExist(int32_t playlist_id) const;
 
     void AddMusicToPlaylist(int32_t music_id, int32_t playlist_id) const;
+
+    void SetNowPlaying(int32_t playlist_id, int32_t music_id);
+
+    void ClearNowPlaying(int32_t playlist_id);
 private:
     Database();
 

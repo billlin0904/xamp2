@@ -723,9 +723,6 @@ void Xamp::setTablePlaylistView(int table_id) {
     if (!found) {
         auto playlist_page = newPlaylist(playlist_id);
         playlist_page->playlist()->setPlaylistId(playlist_id);
-        Singleton<Database>::GetInstance().ForEachPlaylistMusic(playlist_id, [this](const auto& entityy) {
-            playlist_page_->playlist()->appendItem(entityy);
-        });
         pushWidget(playlist_page);
     }
 }
@@ -1018,7 +1015,7 @@ void Xamp::play(const PlayListEntity& item) {
 }
 
 void Xamp::onGaplessPlay(const QModelIndex &index) {
-    auto item = playlist_page_->playlist()->item(index);
+    auto item = playlist_page_->playlist()->nomapItem(index);
     playlist_page_->playlist()->setNowPlaying(index, true);
 	
     auto music_entity = toMusicEntity(item);
@@ -1064,13 +1061,8 @@ void Xamp::playNextItem(int32_t forward) {
         play_index_ = playlist_view->model()->index(0, 0);
     }
 
-    if (loop_time.second != 0.0) {
-        play(playlist_view->item(play_index_));
-    }
-    else {
-        playlist_view->setNowPlaying(play_index_, true);
-        playlist_view->play(play_index_);
-    }
+    playlist_view->setNowPlaying(play_index_, true);
+    playlist_view->play(play_index_);
 }
 
 void Xamp::addPlayQueue() {
@@ -1107,7 +1099,7 @@ void Xamp::addPlayQueue() {
     const auto use_native_dsd = true;
 #endif
 
-    const auto item = playlist_view->item(next_index);
+    const auto item = playlist_view->nomapItem(next_index);
     auto stream = MakeFileStream(item.file_ext.toStdWString());
     const auto dsd_mode = GetStreamDsdMode(item.file_path.toStdWString(), 
         item.file_ext.toStdWString(), 
@@ -1188,7 +1180,7 @@ void Xamp::onArtistIdChanged(const QString& artist, const QString& /*cover_id*/,
 void Xamp::addPlaylistItem(const PlayListEntity &entity) {
     auto playlist_view = playlist_page_->playlist();
     Singleton<Database>::GetInstance().AddMusicToPlaylist(entity.music_id, playlist_view->playlistId());
-    playlist_view->appendItem(entity);
+    playlist_view->refresh();
 }
 
 void Xamp::setCover(const QPixmap* cover) {
@@ -1248,18 +1240,22 @@ void Xamp::initialPlaylist() {
         if (!playlist_page_) {
             playlist_page_ = newPlaylist(playlist_id);
             playlist_page_->playlist()->setPlaylistId(playlist_id);
+            /*
             Singleton<Database>::GetInstance().ForEachPlaylistMusic(playlist_id, [this](const auto& entityy) {
                 playlist_page_->playlist()->appendItem(entityy);
             });
             return;
+            */
         }
 
         if (playlist_page_->playlist()->playlistId() != playlist_id) {
             playlist_page_ = newPlaylist(playlist_id);
             playlist_page_->playlist()->setPlaylistId(playlist_id);
+            /*
             Singleton<Database>::GetInstance().ForEachPlaylistMusic(playlist_id, [this](const auto& entityy) {
                 playlist_page_->playlist()->appendItem(entityy);
             });
+            */
         }
     });
 
@@ -1270,9 +1266,11 @@ void Xamp::initialPlaylist() {
         }
         playlist_page_ = newPlaylist(playlist_id);
         playlist_page_->playlist()->setPlaylistId(playlist_id);
+        /*
         Singleton<Database>::GetInstance().ForEachPlaylistMusic(playlist_id, [this](const auto& entityy) {
             playlist_page_->playlist()->appendItem(entityy);
         });
+        */
     }
 
     lrc_page_ = new LrcPage(this);

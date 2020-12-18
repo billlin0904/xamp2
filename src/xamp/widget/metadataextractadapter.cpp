@@ -215,12 +215,7 @@ void MetadataExtractAdapter::ProcessMetadata(const std::vector<Metadata>& result
         IgnoreSqlError(Singleton<Database>::GetInstance().AddOrUpdateAlbumMusic(album_id, artist_id, music_id))
 
         if (playlist != nullptr) {
-            auto entity = PlayListTableView::fromMetadata(metadata);
-            entity.music_id = music_id;
-            entity.album_id = album_id;
-            entity.artist_id = artist_id;
-            entity.cover_id = cover_id;
-            playlist->appendItem(entity);
+            Singleton<Database>::GetInstance().AddMusicToPlaylist(music_id, playlist_id);
         }
     }
 }

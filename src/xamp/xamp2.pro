@@ -36,6 +36,7 @@ SOURCES += \
     widget/discogsclient.cpp \
     widget/artistview.cpp \
     widget/http.cpp \
+    widget/playlistsqlquerytablemodel.cpp \
     widget/seekslider.cpp \
     widget/albumartistpage.cpp \
     widget/albumview.cpp \
@@ -58,7 +59,6 @@ SOURCES += \
     widget/uiplayerstateadapter.cpp \
     widget/vinylwidget.cpp \
     widget/wheelablewidget.cpp \
-    widget/filesystemwatcher.cpp \
     widget/selectcolorwidget.cpp \
     widget/artistinfopage.cpp \
     widget/starrating.cpp \
@@ -86,6 +86,7 @@ HEADERS += \
     widget/artistview.h \
     widget/http.h \
     widget/playerorder.h \
+    widget/playlistsqlquerytablemodel.h \
     widget/seekslider.h \
     widget/actionmap.h \
     widget/albumview.h \
@@ -114,7 +115,6 @@ HEADERS += \
     widget/wheelablewidget.h \
     widget/str_utilts.h \
     widget/time_utilts.h \
-    widget/filesystemwatcher.h \
     widget/selectcolorwidget.h \
     widget/artistinfopage.h \
     widget/starrating.h \

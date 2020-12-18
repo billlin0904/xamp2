@@ -21,45 +21,44 @@ public:
 	}
 
 	void Reset() {
-		mTriangleState = 0;
-		mPhase = 0;
-		mBuffer.fill(0);
+        phase_ = 0;
+        buffer_.fill(0);
 	}
 
-	void Process(float * samples, uint32_t num_sample) {
-#define DITHER_NOISE (rand() / (float)RAND_MAX - 0.5f)
+    void Process(float * samples, uint32_t num_sample) {
+        Reset();
 
-		float r = DITHER_NOISE + DITHER_NOISE;
-		
+#define DITHER_NOISE (rand() / (float)RAND_MAX - 0.5f)		
 		for (size_t i = 0; i < num_sample; ++i) {
+            float r = DITHER_NOISE + DITHER_NOISE;
+
 			auto sample = samples[i];
 			if (sample != sample) {
 				sample = 0;
 			}
 			
-			float xe = sample + mBuffer[mPhase] * SHAPED_BS[0]
-				+ mBuffer[(mPhase - 1) & BUF_MASK] * SHAPED_BS[1]
-				+ mBuffer[(mPhase - 2) & BUF_MASK] * SHAPED_BS[2]
-				+ mBuffer[(mPhase - 3) & BUF_MASK] * SHAPED_BS[3]
-				+ mBuffer[(mPhase - 4) & BUF_MASK] * SHAPED_BS[4];
+            float xe = sample + buffer_[phase_] * kShapedBs[0]
+                + buffer_[(phase_ - 1) & kBufMask] * kShapedBs[1]
+                + buffer_[(phase_ - 2) & kBufMask] * kShapedBs[2]
+                + buffer_[(phase_ - 3) & kBufMask] * kShapedBs[3]
+                + buffer_[(phase_ - 4) & kBufMask] * kShapedBs[4];
 
 			float result = xe + r;
 
-			mPhase = (mPhase + 1) & BUF_MASK;
-			mBuffer[mPhase] = xe - lrintf(result);
+            phase_ = (phase_ + 1) & kBufMask;
+            buffer_[phase_] = xe - lrintf(result);
 
 			samples[i] = result;
 		}
 	}
 	
 private:
-	static constexpr int BUF_SIZE = 8;
-	static constexpr int BUF_MASK = 7;
-	static constexpr float SHAPED_BS[] = { 2.033f, -2.165f, 1.959f, -1.590f, 0.6149f };
+    static constexpr int kBufferSize = 8;
+    static constexpr int kBufMask = 7;
+    static constexpr float kShapedBs[] = { 2.033f, -2.165f, 1.959f, -1.590f, 0.6149f };
 	
-	int mPhase;
-	float mTriangleState;
-	std::array<float, BUF_SIZE> mBuffer;
+    int32_t phase_;
+    std::array<float, kBufferSize> buffer_;
 };
 
 }

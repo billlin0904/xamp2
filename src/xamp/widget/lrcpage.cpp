@@ -93,8 +93,13 @@ void LrcPage::initial() {
 
     cover_label_ = new QLabel(this);
     cover_label_->setObjectName(QString::fromUtf8("lrcCoverLabel"));
+#ifdef Q_OS_MAC
+    cover_label_->setMinimumSize(QSize(350, 350));
+    cover_label_->setMaximumSize(QSize(350, 350));
+#else
     cover_label_->setMinimumSize(QSize(250, 250));
     cover_label_->setMaximumSize(QSize(250, 250));
+#endif
 	cover_label_->setStyleSheet(Q_UTF8("border-width: 0 0 0 0; border-radius: 50px;"));
 	setEffect(cover_label_, 25);
 

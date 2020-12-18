@@ -9,12 +9,15 @@
 
 #include <QTableView>
 #include <QKeyEvent>
+#include <QSqlTableModel>
+#include <QSqlQueryModel>
 
 #include <widget/widget_shared.h>
 
 #include <widget/playlisttablemodel.h>
 #include <widget/playlistentity.h>
 #include <widget/playlisttableproxymodel.h>
+#include <widget/playlistsqlquerytablemodel.h>
 #include <widget/metadataextractadapter.h>
 
 class StarDelegate;
@@ -46,8 +49,6 @@ public:
 
 	QModelIndex nextIndex(int forward) const;
 
-	PlayListEntity& item(const QModelIndex& index);
-
 	std::optional<QModelIndex> selectItem() const;
 
 	void play(const QModelIndex& index);
@@ -62,6 +63,10 @@ public:
 
 	static PlayListEntity fromMetadata(const Metadata& metadata);
 
+    void refresh();
+
+    PlayListEntity nomapItem(const QModelIndex& index);
+
 signals:
 	void removeItems(int32_t playlist_id, const QVector<int>& select_music_ids);
 
@@ -74,15 +79,13 @@ signals:
 public slots:
 	void processMeatadata(const std::vector<Metadata> &medata);
 
-	void appendItem(const Metadata& metadata);
-
-	void appendItem(const PlayListEntity& item);
-
 	void search(const QString& sort_str, Qt::CaseSensitivity case_sensitivity, QRegExp::PatternSyntax pattern_syntax);
 
 	void onTextColorChanged(QColor backgroundColor, QColor color);
 
 private:
+    PlayListEntity item(const QModelIndex& index);
+
 	bool eventFilter(QObject* obj, QEvent* ev) override;
 
     void keyPressEvent(QKeyEvent *pEvent) override;
@@ -96,7 +99,7 @@ private:
 	int32_t playlist_id_;
 	StarDelegate* start_delegate_;
 	QModelIndex play_index_;
-	PlayListTableModel model_;	
+    PlayListSqlQueryTableModel model_;
 	PlayListTableFilterProxyModel proxy_model_;
 };
 

@@ -463,9 +463,7 @@ void AudioPlayer::CreateBuffer() {
     if (require_read_sample != num_read_sample_) {
         auto allocate_size = require_read_sample * stream_->GetSampleSize() * kBufferStreamCount;
         num_buffer_samples_ = allocate_size * kTotalBufferStreamCount;
-        num_buffer_samples_ = GetPageAlignSize(num_buffer_samples_);
         num_read_sample_ = require_read_sample;
-        allocate_size = GetPageAlignSize(allocate_size);
         XAMP_LOG_DEBUG("Allocate interal buffer : {}.", FormatBytes(allocate_size));        
         sample_buffer_ = MakeBuffer<int8_t>(allocate_size);
         sample_buffer_lock_.Lock(sample_buffer_.Get(), sample_buffer_.GetByteSize());
@@ -732,7 +730,8 @@ void AudioPlayer::BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<SampleRat
                 return;
             }
 
-            const auto* samples = reinterpret_cast<const float*>(sample_buffer);
+            auto* samples = reinterpret_cast<float*>(sample_buffer);
+
             auto use_sample_rate_converter = true;
             if (equalizer_ != nullptr) {
                 if (dsd_mode_ == DsdModes::DSD_MODE_PCM) {
@@ -757,7 +756,8 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_read_sample
         const auto num_samples = stream_->GetSamples(sample_buffer, max_read_sample);
 
         if (num_samples > 0) {
-	        const auto *samples = reinterpret_cast<const float*>(sample_buffer);
+            auto *samples = reinterpret_cast<float*>(sample_buffer);
+
             auto use_sample_rate_converter = true;
             if (equalizer_ != nullptr) {
                 if (dsd_mode_ == DsdModes::DSD_MODE_PCM) {

@@ -144,6 +144,7 @@ void Database::CreateTableIfNotExist() {
                        CREATE TABLE IF NOT EXISTS playlistMusics (
                        playlistId integer,
                        musicId integer,
+                       playing integer,
                        FOREIGN KEY(playlistId) REFERENCES playlist(playlistId),
                        FOREIGN KEY(musicId) REFERENCES musics(musicId)
                        )
@@ -191,6 +192,23 @@ void Database::open(const QString& file_name) {
 }
 
 void Database::flush() {
+}
+
+void Database::ClearNowPlaying(int32_t playlist_id) {
+    QSqlQuery query;
+    query.prepare(Q_UTF8("UPDATE playlistMusics SET playing = 0"));
+    query.bindValue(Q_UTF8(":playlistId"), playlist_id);
+    IfFailureThrow1(query);
+}
+
+void Database::SetNowPlaying(int32_t playlist_id, int32_t music_id) {
+    ClearNowPlaying(playlist_id);
+
+    QSqlQuery query;
+    query.prepare(Q_UTF8("UPDATE playlistMusics SET playing = 1 WHERE (playlistId = :playlistId AND musicId = :musicId)"));
+    query.bindValue(Q_UTF8(":playlistId"), playlist_id);
+    query.bindValue(Q_UTF8(":musicId"), music_id);
+    IfFailureThrow1(query);
 }
 
 void Database::RemovePlaybackHistory(int32_t music_id) {
