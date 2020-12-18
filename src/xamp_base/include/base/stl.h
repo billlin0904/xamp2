@@ -44,6 +44,11 @@ std::basic_istream<E, T>& operator>>(std::basic_istream<E, T>& in, E(&carray)[N]
 }
 #endif
 
+template <typename T, size_t N>
+constexpr size_t CountOf(T const (&)[N]) noexcept {
+	return N;
+}
+
 template <typename T>
 T Max(const std::vector<T>& v) {
 	return *std::max_element(std::begin(v), std::end(v));

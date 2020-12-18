@@ -201,7 +201,6 @@ public:
     }
 
     uint32_t GetDsdSampleRate() const {
-        assert(mode_ == DsdModes::DSD_MODE_NATIVE);
         float rate = 0;
         BassIfFailedThrow(Singleton<BassLib>::GetInstance().BASS_ChannelGetAttribute(GetHStream(), BASS_ATTRIB_DSD_RATE, &rate));
         return static_cast<uint32_t>(rate);

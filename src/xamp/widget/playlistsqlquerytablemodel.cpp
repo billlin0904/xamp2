@@ -5,29 +5,19 @@
 #include <widget/time_utilts.h>
 #include <widget/playlistsqlquerytablemodel.h>
 
-static PlayListEntity getEntity(const QModelIndex& index) {
-    PlayListEntity enity;
-    enity.music_id = getIndexValue(index, PLAYLIST_MUSIC_ID).toInt();
-    enity.playing = getIndexValue(index, PLAYLIST_PLAYING).toBool();
-    enity.track = getIndexValue(index, PLAYLIST_TRACK).toUInt();
-    enity.file_path = getIndexValue(index, PLAYLIST_FILEPATH).toString();
-    enity.title = getIndexValue(index, PLAYLIST_TITLE).toString();
-    enity.file_name = getIndexValue(index, PLAYLIST_FILE_NAME).toString();
-    enity.artist = getIndexValue(index, PLAYLIST_ARTIST).toString();
-    enity.album = getIndexValue(index, PLAYLIST_ALBUM).toString();
-    enity.duration = getIndexValue(index, PLAYLIST_DURATION).toDouble();
-    enity.bitrate = getIndexValue(index, PLAYLIST_BITRATE).toUInt();
-    enity.samplerate = getIndexValue(index, PLAYLIST_SAMPLE_RATE).toUInt();
-    enity.rating = getIndexValue(index, PLAYLIST_RATING).toUInt();
-    enity.album_id = getIndexValue(index, PLAYLIST_ALBUM_ID).toInt();
-    enity.artist_id = getIndexValue(index, PLAYLIST_ARTIST_ID).toInt();
-    enity.cover_id = getIndexValue(index, PLAYLIST_COVER_ID).toString();
-    enity.fingerprint = getIndexValue(index, PLAYLIST_FINGER_PRINT).toString();
-    return enity;
-}
-
 PlayListSqlQueryTableModel::PlayListSqlQueryTableModel(QObject *parent)
     : QSqlQueryModel(parent) {
+}
+
+Qt::ItemFlags PlayListSqlQueryTableModel::flags(const QModelIndex& index) const {
+    if (!index.isValid()) {
+        return QAbstractItemModel::flags(index);
+    }
+    auto flags = Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsUserCheckable;
+    if (index.column() == PLAYLIST_RATING) {
+        flags |= Qt::ItemIsEditable;
+    }
+    return flags;
 }
 
 QVariant PlayListSqlQueryTableModel::data(const QModelIndex& index, int32_t role) const {
@@ -35,6 +25,10 @@ QVariant PlayListSqlQueryTableModel::data(const QModelIndex& index, int32_t role
     case Qt::DisplayRole:
         if (index.column() == PLAYLIST_PLAYING) {
             return QVariant();
+        }
+        else if (index.column() == PLAYLIST_RATING) {
+            auto value = QSqlQueryModel::data(index, Qt::DisplayRole);
+            return QVariant::fromValue(StarRating(value.toInt()));
         } else {
             auto value = QSqlQueryModel::data(index, Qt::DisplayRole);
             switch (index.column()) {

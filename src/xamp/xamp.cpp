@@ -1063,6 +1063,7 @@ void Xamp::playNextItem(int32_t forward) {
 
     playlist_view->setNowPlaying(play_index_, true);
     playlist_view->play(play_index_);
+    playlist_view->refresh();
 }
 
 void Xamp::addPlayQueue() {
@@ -1240,22 +1241,11 @@ void Xamp::initialPlaylist() {
         if (!playlist_page_) {
             playlist_page_ = newPlaylist(playlist_id);
             playlist_page_->playlist()->setPlaylistId(playlist_id);
-            /*
-            Singleton<Database>::GetInstance().ForEachPlaylistMusic(playlist_id, [this](const auto& entityy) {
-                playlist_page_->playlist()->appendItem(entityy);
-            });
-            return;
-            */
         }
 
         if (playlist_page_->playlist()->playlistId() != playlist_id) {
             playlist_page_ = newPlaylist(playlist_id);
             playlist_page_->playlist()->setPlaylistId(playlist_id);
-            /*
-            Singleton<Database>::GetInstance().ForEachPlaylistMusic(playlist_id, [this](const auto& entityy) {
-                playlist_page_->playlist()->appendItem(entityy);
-            });
-            */
         }
     });
 
@@ -1266,11 +1256,6 @@ void Xamp::initialPlaylist() {
         }
         playlist_page_ = newPlaylist(playlist_id);
         playlist_page_->playlist()->setPlaylistId(playlist_id);
-        /*
-        Singleton<Database>::GetInstance().ForEachPlaylistMusic(playlist_id, [this](const auto& entityy) {
-            playlist_page_->playlist()->appendItem(entityy);
-        });
-        */
     }
 
     lrc_page_ = new LrcPage(this);

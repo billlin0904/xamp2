@@ -1,20 +1,15 @@
 #include <QHeaderView>
-#include <QMenu>
-#include <QFileInfo>
 #include <QDesktopServices>
 #include <QFileDialog>
-#include <QtWidgets/QApplication>
 #include <QClipboard>
 #include <QScrollBar>
 #include <QShortcut>
-#include <QFutureWatcher>
 #include <QFormLayout>
 #include <QTimeEdit>
 #include <QLineEdit>
 #include <QDialogButtonBox>
 #include <QJsonDocument>
 #include <QJsonArray>
-#include <QStyleOptionViewItemV4>
 
 #include <base/rng.h>
 #include <metadata/metadatareader.h>
@@ -53,44 +48,27 @@ PlayListEntity PlayListTableView::fromMetadata(const Metadata& metadata) {
 }
 
 static PlayListEntity getEntity(const QModelIndex& index) {
-    PlayListEntity enity;
-    enity.music_id = getIndexValue(index, PLAYLIST_MUSIC_ID).toInt();
-    enity.track = getIndexValue(index, PLAYLIST_TRACK).toUInt();
-    enity.playing = getIndexValue(index, PLAYLIST_PLAYING).toBool();
-    enity.file_path = getIndexValue(index, PLAYLIST_FILEPATH).toString();
-    enity.title = getIndexValue(index, PLAYLIST_TITLE).toString();
-    enity.file_name = getIndexValue(index, PLAYLIST_FILE_NAME).toString();
-    enity.artist = getIndexValue(index, PLAYLIST_ARTIST).toString();
-    enity.album = getIndexValue(index, PLAYLIST_ALBUM).toString();
-    enity.duration = getIndexValue(index, PLAYLIST_DURATION).toDouble();
-    enity.bitrate = getIndexValue(index, PLAYLIST_BITRATE).toUInt();
-    enity.samplerate = getIndexValue(index, PLAYLIST_SAMPLE_RATE).toUInt();
-    enity.rating = getIndexValue(index, PLAYLIST_RATING).toUInt();
-    enity.album_id = getIndexValue(index, PLAYLIST_ALBUM_ID).toInt();
-    enity.artist_id = getIndexValue(index, PLAYLIST_ARTIST_ID).toInt();
-    enity.cover_id = getIndexValue(index, PLAYLIST_COVER_ID).toString();
-    enity.fingerprint = getIndexValue(index, PLAYLIST_FINGER_PRINT).toString();
-    return enity;
+    PlayListEntity entity;
+    entity.music_id = getIndexValue(index, PLAYLIST_MUSIC_ID).toInt();
+    entity.track = getIndexValue(index, PLAYLIST_TRACK).toUInt();
+    entity.playing = getIndexValue(index, PLAYLIST_PLAYING).toBool();
+    entity.file_path = getIndexValue(index, PLAYLIST_FILEPATH).toString();
+    entity.title = getIndexValue(index, PLAYLIST_TITLE).toString();
+    entity.file_name = getIndexValue(index, PLAYLIST_FILE_NAME).toString();
+    entity.artist = getIndexValue(index, PLAYLIST_ARTIST).toString();
+    entity.album = getIndexValue(index, PLAYLIST_ALBUM).toString();
+    entity.duration = getIndexValue(index, PLAYLIST_DURATION).toDouble();
+    entity.bitrate = getIndexValue(index, PLAYLIST_BITRATE).toUInt();
+    entity.samplerate = getIndexValue(index, PLAYLIST_SAMPLE_RATE).toUInt();
+    entity.rating = getIndexValue(index, PLAYLIST_RATING).toUInt();
+    entity.album_id = getIndexValue(index, PLAYLIST_ALBUM_ID).toInt();
+    entity.artist_id = getIndexValue(index, PLAYLIST_ARTIST_ID).toInt();
+    entity.cover_id = getIndexValue(index, PLAYLIST_COVER_ID).toString();
+    entity.fingerprint = getIndexValue(index, PLAYLIST_FINGER_PRINT).toString();
+    entity.file_ext = getIndexValue(index, PLAYLIST_FILE_EXT).toString();
+    entity.parent_path = getIndexValue(index, PLAYLIST_FILE_PARENT_PATH).toString();
+    return entity;
 }
-
-/*
-class PlayingItemDelegate : public QStyledItemDelegate  {
-public:
-    QSize sizeHint(const QStyleOptionViewItem & option, const QModelIndex & index) const override {
-        QSize result = QStyledItemDelegate::sizeHint(option, index);
-        result.setHeight(result.height() * 2);
-        return result;
-    }
-
-    void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override {
-        QStyledItemDelegate::paint(painter, option, index);
-        auto result = getIndexValue(index, PLAYLIST_PLAYING);
-        if (result.toBool()) {
-            painter->drawPixmap(QPoint(0, 0), ThemeManager::instance().playArrow().pixmap(QSize(16, 16)));
-        }
-    }
-};
-*/
 
 PlayListTableView::PlayListTableView(QWidget* parent, int32_t playlist_id)
     : QTableView(parent)
@@ -121,7 +99,9 @@ void PlayListTableView::refresh() {
     albumMusic.albumId,
     albumMusic.artistId,
     albums.coverId,
-    musics.fingerprint
+    musics.fingerprint,
+	musics.fileExt,
+	musics.parentPath
     FROM
     playlistMusics
     JOIN playlist ON playlist.playlistId = playlistMusics.playlistId
@@ -137,6 +117,8 @@ void PlayListTableView::refresh() {
 
 void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
     playlist_id_ = playlist_id;
+
+    Singleton<Database>::GetInstance().ClearNowPlaying(playlist_id_);
 
     refresh();
 
@@ -162,6 +144,9 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
     hideColumn(PLAYLIST_ARTIST_ID);
     hideColumn(PLAYLIST_COVER_ID);
     hideColumn(PLAYLIST_FINGER_PRINT);
+
+    hideColumn(PLAYLIST_FILE_EXT);
+    hideColumn(PLAYLIST_FILE_PARENT_PATH);
 }
 
 void PlayListTableView::initial() {
@@ -212,9 +197,11 @@ void PlayListTableView::initial() {
         if (!start_editor) {
             return;
         }
-        //auto item = getEntity(start_editor->row());
-        //item.rating = start_editor->starRating().starCount();
-        //Singleton<Database>::GetInstance().UpdateMusicRating(item.music_id, item.rating);
+        auto index = model()->index(start_editor->row(), PLAYLIST_RATING);
+        auto item = nomapItem(index);        
+        item.rating = start_editor->starRating().starCount();
+        Singleton<Database>::GetInstance().UpdateMusicRating(item.music_id, item.rating);
+        refresh();
     });
 
     setEditTriggers(DoubleClicked | SelectedClicked);
@@ -538,32 +525,16 @@ QModelIndex PlayListTableView::currentIndex() const {
 }
 
 QModelIndex PlayListTableView::nextIndex(int forward) const {
-    auto count = model()->rowCount();
+    auto count = proxy_model_.rowCount();
     auto play_index = currentIndex();
     auto next_index = (play_index.row() + forward) % count;
     return model()->index(next_index, PLAYLIST_PLAYING);
 }
 
-QModelIndex PlayListTableView::shuffeIndex() {
-    /*
-    std::vector<int32_t> indexes;
-    indexes.reserve(static_cast<size_t>(proxy_model_.rowCount()));
-
-    for (int n = 0; n < proxy_model_.rowCount(); n++) {
-        if (model_.nowPlaying() != n) {
-            indexes.push_back(n);
-        }
-    }
-    
-    if (indexes.size() == 0) {
-        return currentIndex();
-    }
-
-    RNG::GetInstance().Shuffle(indexes);
-    auto selected = RNG::GetInstance()(size_t(0), indexes.size() - 1);
-    return model()->index(indexes[selected], PLAYLIST_PLAYING);
-    */
-    return play_index_;
+QModelIndex PlayListTableView::shuffeIndex() {    
+    auto count = proxy_model_.rowCount();
+    auto selected = RNG::GetInstance()(0, count);
+    return model()->index(selected, PLAYLIST_PLAYING);
 }
 
 void PlayListTableView::setNowPlaying(const QModelIndex& index, bool is_scroll_to) {
@@ -612,8 +583,7 @@ void PlayListTableView::setCurrentPlayIndex(const QModelIndex& index) {
 }
 
 void PlayListTableView::play(const QModelIndex& index) {
-    play_index_ = index;
-    //emit playMusic(play_index_, item(play_index_));
+    play_index_ = index;   
     emit playMusic(play_index_, nomapItem(play_index_));
 }
 

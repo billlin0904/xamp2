@@ -6,13 +6,14 @@
 #include <base/str_utilts.h>
 #include <base/memory.h>
 #include <base/logger.h>
+#include <base/singleton.h>
 
 #include <metadata/taglib.h>
 #include <metadata/taglibmetareader.h>
 
 namespace xamp::metadata {
 
-static bool GetID3V2TagCover(TagLib::ID3v2::Tag* tag, std::vector<uint8_t>& buffer) {
+static bool GetID3V2TagCover(ID3v2::Tag* tag, std::vector<uint8_t>& buffer) {
     if (!tag) {
         return false;
     }
@@ -21,7 +22,7 @@ static bool GetID3V2TagCover(TagLib::ID3v2::Tag* tag, std::vector<uint8_t>& buff
         return false;
     }
 
-    const auto frame = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame*>(frame_list.front());
+    const auto frame = dynamic_cast<ID3v2::AttachedPictureFrame*>(frame_list.front());
     if (!frame) {
         return false;
     }
@@ -30,14 +31,14 @@ static bool GetID3V2TagCover(TagLib::ID3v2::Tag* tag, std::vector<uint8_t>& buff
     return true;
 }
 
-static bool GetApeTagCover(TagLib::APE::Tag* tag, std::vector<uint8_t>& buffer) {
+static bool GetApeTagCover(APE::Tag* tag, std::vector<uint8_t>& buffer) {
     auto const & listMap = tag->itemListMap();
 
     if (!listMap.contains("COVER ART (FRONT)")) {
         return false;
     }
 
-    const TagLib::ByteVector nullStringTerminator(1, 0);
+    const ByteVector nullStringTerminator(1, 0);
     auto item = listMap["COVER ART (FRONT)"].binaryData();
     auto pos = item.find(nullStringTerminator);	// Skip the filename
     if (++pos > 0) {
@@ -95,7 +96,7 @@ static bool GetMp4Cover(File* file, std::vector<uint8_t>& buffer) {
 }
 
 static bool GetFlacCover(File* file, std::vector<uint8_t>& buffer) {
-    if (auto flac_file = dynamic_cast<TagLib::FLAC::File*>(file)) {
+    if (auto* flac_file = dynamic_cast<TagLib::FLAC::File*>(file)) {
         const auto picture_list = flac_file->pictureList();
         if (picture_list.isEmpty()) {
             return false;
@@ -140,7 +141,7 @@ static void ExtractTitleFromFileName(Metadata &metadata) {
     }
 }
 
-static void ExtractTag(Path const & path, Tag* tag, AudioProperties*audio_properties, Metadata& metadata) {
+static void ExtractTag(Path const & path, Tag const * tag, AudioProperties*audio_properties, Metadata& metadata) {
     try {
         if (!tag->isEmpty()) {
             metadata.artist = tag->artist().toWString();
@@ -159,12 +160,9 @@ static void ExtractTag(Path const & path, Tag* tag, AudioProperties*audio_proper
 
 class TaglibHelper {
 public:
-	static TaglibHelper& Instance() {
-		static TaglibHelper instance;
-		return instance;
-	}
+    friend class Singleton<TaglibHelper>;
 
-    HashSet<std::string> const & GetSupportFileExtensions() const noexcept {
+	[[nodiscard]] HashSet<std::string> const & GetSupportFileExtensions() const noexcept {
 		return support_file_extensions_;
 	}
 
@@ -175,7 +173,7 @@ public:
 
 protected:
 	TaglibHelper() {
-		for (const auto& file_exts : TagLib::FileRef::defaultFileExtensions()) {
+		for (const auto& file_exts : FileRef::defaultFileExtensions()) {
 			support_file_extensions_.insert(std::string(".") + file_exts.toCString());
 		}
 	}
@@ -187,13 +185,13 @@ class TaglibMetadataReader::TaglibMetadataReaderImpl {
 public:
     TaglibMetadataReaderImpl() = default;
 
-    Metadata Extract(const Path& path) const {
+    [[nodiscard]] Metadata Extract(const Path& path) const {
 #ifdef XAMP_OS_WIN
         FileRef fileref(path.wstring().c_str(), true, TagLib::AudioProperties::Fast);
 #else
         FileRef fileref(path.string().c_str(), true, TagLib::AudioProperties::Fast);
 #endif
-        const auto tag = fileref.tag();
+        const auto* tag = fileref.tag();
 
         Metadata metadata;
 
@@ -225,7 +223,7 @@ public:
 #else
         FileRef fileref(path.string().c_str());
 #endif
-        const auto tag = fileref.tag();
+        const auto* tag = fileref.tag();
         if (!tag) {
             cover_.clear();
             return cover_;
@@ -236,11 +234,11 @@ public:
     }
 
     HashSet<std::string> const & GetSupportFileExtensions() const {
-        return TaglibHelper::Instance().GetSupportFileExtensions();
+        return Singleton<TaglibHelper>::GetInstance().GetSupportFileExtensions();
     }
 
     bool IsSupported(Path const & path) const noexcept {
-		return TaglibHelper::Instance().IsSupported(path);
+		return Singleton<TaglibHelper>::GetInstance().IsSupported(path);
     }
 
 private:

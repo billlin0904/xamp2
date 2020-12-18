@@ -114,12 +114,15 @@ void SharedWasapiDevice::SetAudioCallback(AudioCallback* callback) noexcept {
 }
 
 void SharedWasapiDevice::StopStream(bool wait_for_stop_stream) {
+	XAMP_LOG_DEBUG("Stop shared mode stream!");
+	
 	if (is_running_) {
 		is_running_ = false;
 
+		std::chrono::milliseconds const kTestTimeout{ 100 };
 		std::unique_lock<std::mutex> lock{ mutex_ };
 		while (wait_for_stop_stream && !is_stop_streaming_) {
-			condition_.wait(lock);
+			condition_.wait_for(lock, kTestTimeout);
 		}
 	}
 
@@ -367,6 +370,7 @@ void SharedWasapiDevice::FillSilentSample(uint32_t frame_available) noexcept {
 
 HRESULT SharedWasapiDevice::OnSampleReady(IMFAsyncResult* result) noexcept {
 	if (!is_running_) {
+		XAMP_LOG_DEBUG("Receive stop request");
 		if (!is_stop_streaming_) {
 			GetSampleRequested(true);
 		}
@@ -389,16 +393,18 @@ void SharedWasapiDevice::StartStream() {
 	LogHrFailled(client_->Reset());
 
 	// Note: 必要! 某些音效卡會爆音!
-	FillSilentSample(buffer_frames_);
+	FillSilentSample(buffer_frames_);	
 	
 	HrIfFailledThrow(client_->Start());
+
+	is_stop_streaming_ = false;
+	
 	HrIfFailledThrow(::MFPutWaitingWorkItem(sample_ready_.get(),
 		0, 
 		sample_ready_async_result_,
 		&sample_raedy_key_));
 
-	// is_running_必須要確認都成功才能設置為true.
-	is_stop_streaming_ = false;
+	// is_running_必須要確認都成功才能設置為true.	
 	is_running_ = true;
 
 	XAMP_LOG_DEBUG("Start shared mode stream!");
