@@ -492,8 +492,10 @@ void PlayListTableView::resizeColumn() const {
             break;
         case PLAYLIST_TITLE:
         {
-            auto stretched_size = 330;
-            const auto size = (std::max)(sizeHintForColumn(column), stretched_size);
+            constexpr auto kStretchedSize = 150;
+            constexpr auto kMaxStretchedSize = 350;
+            auto size = (std::max)(sizeHintForColumn(column), kStretchedSize);
+            size = (std::min)(size, kMaxStretchedSize);
             header->setSectionResizeMode(column, QHeaderView::Fixed);
             header->resizeSection(column, size);
         }
