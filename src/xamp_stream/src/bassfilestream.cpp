@@ -21,33 +21,11 @@ static uint32_t GetDOPSampleRate(uint32_t dsd_speed) {
     }
 }
 
-static bool TestDsdFileFormat(std::wstring const & file_path) {
-    BassStreamHandle stream;
-#ifdef XAMP_OS_WIN
-    stream.reset(Singleton<BassLib>::GetInstance().DSDLib->BASS_DSD_StreamCreateFile(FALSE,
-        file_path.c_str(),
-        0,
-        0,
-        BASS_DSD_RAW | BASS_STREAM_DECODE | BASS_UNICODE,
-        0));
-#else
-    MemoryMappedFile file;
-    file.Open(file_path);
-    stream.reset(Singleton<BassLib>::GetInstance().DSDLib->BASS_DSD_StreamCreateFile(TRUE,
-                                                                                      file.GetData(),
-                                                                                      0,
-                                                                                      file.GetLength(),
-                                                                                      BASS_DSD_RAW | BASS_STREAM_DECODE,
-                                                                                      0));
-#endif
-    auto error = Singleton<BassLib>::GetInstance().BASS_ErrorGetCode();
-    if (error == BASS_ERROR_FILEFORM) {
+static bool TestDsdFileFormat(MemoryMappedFile &file) {
+	if (file.GetLength() < 4) {
         return false;
-    }
-    if (!stream) {
-        throw BassException(error);
-    }
-    return true;
+	}
+    return memcmp(file.GetData(), "DSD ", 4) == 0;
 }
 
 class BassFileStream::BassFileStreamImpl {
@@ -79,23 +57,14 @@ public:
         }
 
         file_.Close();
+        file_.Open(file_path);
 
-        if (!TestDsdFileFormat(file_path)) {
-            if (enable_file_mapped_) {
-                file_.Open(file_path);
-                stream_.reset(Singleton<BassLib>::GetInstance().BASS_StreamCreateFile(TRUE,
-                                                                        file_.GetData(),
-                                                                        0,
-                                                                        file_.GetLength(),
-                                                                        flags | BASS_STREAM_DECODE));
-            }
-            else {
-                stream_.reset(Singleton<BassLib>::GetInstance().BASS_StreamCreateFile(FALSE,
-                                                                        file_path.data(),
-                                                                        0,
-                                                                        0,
-                                                                        flags | BASS_STREAM_DECODE | BASS_UNICODE));
-            }
+        if (!TestDsdFileFormat(file_)) {
+            stream_.reset(Singleton<BassLib>::GetInstance().BASS_StreamCreateFile(TRUE,
+                file_.GetData(),
+                0,
+                file_.GetLength(),
+                flags | BASS_STREAM_DECODE));
 
             // BassLib DSD module default use 6dB gain.
             // 不設定的話會爆音!
@@ -103,24 +72,14 @@ public:
 
             mode_ = DsdModes::DSD_MODE_PCM;
         } else {
-            if (enable_file_mapped_) {
-                file_.Open(file_path);
-                stream_.reset(Singleton<BassLib>::GetInstance().DSDLib->BASS_DSD_StreamCreateFile(TRUE,
-                                                                                    file_.GetData(),
-                                                                                    0,
-                                                                                    file_.GetLength(),
-                                                                                    flags | BASS_STREAM_DECODE,
-                                                                                    0));
-                PrefactchFile(file_);
-            }
-            else {
-                stream_.reset(Singleton<BassLib>::GetInstance().DSDLib->BASS_DSD_StreamCreateFile(FALSE,
-                                                                                    file_path.data(),
-                                                                                    0,
-                                                                                    0,
-                                                                                    flags | BASS_STREAM_DECODE | BASS_UNICODE,
-                                                                                    0));
-            }            
+            file_.Open(file_path);
+            stream_.reset(Singleton<BassLib>::GetInstance().DSDLib->BASS_DSD_StreamCreateFile(TRUE,
+                file_.GetData(),
+                0,
+                file_.GetLength(),
+                flags | BASS_STREAM_DECODE,
+                0));
+            PrefactchFile(file_);
         }
 
         if (!stream_) {

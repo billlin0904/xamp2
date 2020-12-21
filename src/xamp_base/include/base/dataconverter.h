@@ -53,28 +53,27 @@ XAMP_ALWAYS_INLINE float FloatMaxSSE2(float a, float b) noexcept {
 	return a;
 }
 
-XAMP_ALWAYS_INLINE float ClampFloat(float val, float minval, float maxval) noexcept {
-	_mm_store_ss(&val, _mm_min_ss(_mm_max_ss(_mm_set_ss(val), _mm_set_ss(minval)), _mm_set_ss(maxval)));
+XAMP_ALWAYS_INLINE float ClampSampleSSE2(float val, __m128 minval, __m128 maxval) noexcept {
+	_mm_store_ss(&val, _mm_min_ss(_mm_max_ss(_mm_set_ss(val), minval), maxval));
 	return val;
 }
 
-XAMP_ALWAYS_INLINE float ClampSampleSSE2(float f) noexcept {
-	return ClampFloat(f, kMinFloatSample, kMaxFloatSample);
-}
-
-XAMP_ALWAYS_INLINE void ClampSample(float *f, size_t num_samples) noexcept {	
+XAMP_ALWAYS_INLINE void ClampSample(float *f, size_t num_samples) noexcept {
+	const auto min_value = _mm_set_ss(kMinFloatSample);
+	const auto max_value = _mm_set_ss(kMaxFloatSample);
+	
 	const auto* end_input = f + num_samples;
 	switch ((end_input - f) % kLoopUnRollingIntCount) {
 	case 3:
-		*f = ClampSampleSSE2(*f);
+		*f = ClampSampleSSE2(*f, min_value, max_value);
 		++f;
 		[[fallthrough]];
 	case 2:
-		*f = ClampSampleSSE2(*f);
+		*f = ClampSampleSSE2(*f, min_value, max_value);
 		++f;
 		[[fallthrough]];
 	case 1:
-		*f = ClampSampleSSE2(*f);
+		*f = ClampSampleSSE2(*f, min_value, max_value);
 		++f;
 		[[fallthrough]];
 	case 0:
@@ -82,10 +81,10 @@ XAMP_ALWAYS_INLINE void ClampSample(float *f, size_t num_samples) noexcept {
 	}
 
 	while (f != end_input) {
-		f[0] = ClampSampleSSE2(f[0]);
-		f[1] = ClampSampleSSE2(f[1]);
-		f[2] = ClampSampleSSE2(f[2]);
-		f[3] = ClampSampleSSE2(f[3]);
+		f[0] = ClampSampleSSE2(f[0], min_value, max_value);
+		f[1] = ClampSampleSSE2(f[1], min_value, max_value);
+		f[2] = ClampSampleSSE2(f[2], min_value, max_value);
+		f[3] = ClampSampleSSE2(f[3], min_value, max_value);
 		f += 4;
 	}
 }
@@ -236,15 +235,23 @@ template <PackedFormat InputFormat, PackedFormat OutputFormat>
 struct XAMP_BASE_API_ONLY_EXPORT DataConverter {
 	// INFO: Only for DSD file
 	static void Convert(int8_t* XAMP_RESTRICT output, int8_t const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {
+		const auto output_left_offset = context.out_offset[0];
+		const auto output_right_offset = context.out_offset[1];
+
+		const auto input_left_offset = context.in_offset[0];
+		const auto input_right_offset = context.in_offset[1];
+		
         for (size_t i = 0; i < context.convert_size; ++i) {
-			output[context.out_offset[0]] = input[context.in_offset[0]];
-			output[context.out_offset[1]] = input[context.in_offset[1]];
+			output[output_left_offset] = input[input_left_offset];
+			output[output_right_offset] = input[input_right_offset];
 			input += context.in_jump;
 			output += context.out_jump;
 		}
 	}
 
 	static void Convert(int32_t* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {
+		const auto* end_input = input + static_cast<ptrdiff_t>(context.convert_size) * context.input_format.GetChannels();
+		
 		const auto output_left_offset = context.out_offset[0];
 		const auto output_right_offset = context.out_offset[1];
 

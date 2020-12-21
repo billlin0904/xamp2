@@ -23,7 +23,7 @@ namespace xamp::player {
 
 inline constexpr int32_t kBufferStreamCount = 5;
 inline constexpr int32_t kTotalBufferStreamCount = 10;
-inline constexpr int32_t kPreallocateBufferSize = 16 * 1024 * 1024;
+inline constexpr int32_t kPreallocateBufferSize = 128 * 1024 * 1024;
 inline constexpr int32_t kMaxWriteRatio = 20;
 inline constexpr int32_t kMaxReadRatio = 30;
 
@@ -450,7 +450,7 @@ void AudioPlayer::CreateBuffer() {
     if (AudioDeviceManager::GetInstance().IsSupportASIO()) {
         if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE
             || AudioDeviceManager::GetInstance().IsASIODevice(device_type_id_)) {
-            require_read_sample = output_format_.GetSampleRate();
+            require_read_sample = output_format_.GetSampleRate() / 8;
         }
         else {
             require_read_sample = device_->GetBufferSize() * kMaxReadRatio;
@@ -461,6 +461,7 @@ void AudioPlayer::CreateBuffer() {
     }
 
     if (require_read_sample != num_read_sample_) {
+        require_read_sample = std::max(require_read_sample, static_cast<uint32_t>(8192));
         auto allocate_size = require_read_sample * stream_->GetSampleSize() * kBufferStreamCount;
         num_buffer_samples_ = allocate_size * kTotalBufferStreamCount;
         num_read_sample_ = require_read_sample;

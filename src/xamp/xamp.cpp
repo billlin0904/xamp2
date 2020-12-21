@@ -1193,10 +1193,10 @@ void Xamp::setCover(const QPixmap* cover) {
         lrc_page_->setBackground(*cover);
     }
 
-    auto ui_cover = Pixmap::roundImage(Pixmap::resizeImage(*cover, ui.coverLabel->size(), true));
+    auto ui_cover = Pixmap::roundImage(Pixmap::resizeImage(*cover, ui.coverLabel->size(), true), 2);
     ui.coverLabel->setPixmap(ui_cover);
     
-    auto playlist_cover = Pixmap::roundImage(Pixmap::resizeImage(*cover, playlist_page_->cover()->size(), true));
+    auto playlist_cover = Pixmap::roundImage(Pixmap::resizeImage(*cover, playlist_page_->cover()->size(), true), 2);
     playlist_page_->cover()->setPixmap(playlist_cover);
 
     lrc_page_->setCover(Pixmap::resizeImage(*cover, lrc_page_->cover()->size(), true));
@@ -1377,9 +1377,9 @@ void Xamp::addItem(const QString& file_name) {
         }
     }
     else {
-        auto adapter = new MetadataExtractAdapter();
+        auto adapter = QSharedPointer<MetadataExtractAdapter>(new MetadataExtractAdapter());
 
-        (void)QObject::connect(adapter,
+        (void)QObject::connect(adapter.get(),
             &MetadataExtractAdapter::readCompleted,
             this,
             &Xamp::processMeatadata,

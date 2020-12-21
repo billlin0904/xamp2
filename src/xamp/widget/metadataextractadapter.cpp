@@ -1,14 +1,15 @@
 #include <QMap>
 #include <QDirIterator>
+#include <QProgressDialog>
 
 #include <base/base.h>
 #include <base/threadpool.h>
 #include <base/threadpool.h>
 #include <metadata/taglibmetareader.h>
 
-#ifdef XAMP_OS_WIN
-#include <execution>
-#endif
+#include <atomic>
+#include <metadata/metadatareader.h>
+#include <widget/widget_shared.h>
 
 #include "thememanager.h"
 
@@ -104,14 +105,13 @@ std::tuple<int32_t, int32_t, QString> DatabaseIdCache::AddCache(const QString &a
     }
 
     return std::make_tuple(album_id, artist_id, cover_id);
-}
+} 
 
-using MetadataExtractAdapterBase = xamp::metadata::MetadataExtractAdapter;
 using xamp::metadata::Metadata;
 using xamp::metadata::Path;
 
-struct ExtractAdapterProxy : public MetadataExtractAdapterBase {
-    ExtractAdapterProxy(::MetadataExtractAdapter *adapter)
+struct ExtractAdapterProxy : xamp::metadata::MetadataExtractAdapter {
+    explicit ExtractAdapterProxy(QSharedPointer<::MetadataExtractAdapter> adapter)
         : adapter_(adapter) {
         metadatas_.reserve(kCachePreallocateSize);
     }
@@ -127,11 +127,7 @@ struct ExtractAdapterProxy : public MetadataExtractAdapterBase {
         if (metadatas_.empty()) {
             return;
         }
-#ifdef XAMP_OS_WIN
-        std::stable_sort(std::execution::par,
-#else
         std::stable_sort(
-#endif
             metadatas_.begin(), metadatas_.end(), [](const auto& first, const auto& last) {
                 return first.track < last.track;
             });
@@ -150,7 +146,7 @@ struct ExtractAdapterProxy : public MetadataExtractAdapterBase {
     }
 
     std::atomic<bool> cancel_;
-    ::MetadataExtractAdapter* adapter_;
+    QSharedPointer<::MetadataExtractAdapter> adapter_;
     std::vector<Metadata> metadatas_;
 };
 
@@ -158,17 +154,24 @@ MetadataExtractAdapter::MetadataExtractAdapter(QObject* parent)
     : QObject(parent) {    
 }
 
-MetadataExtractAdapter::~MetadataExtractAdapter() = default;
+MetadataExtractAdapter::~MetadataExtractAdapter() {
+    XAMP_LOG_DEBUG("~MetadataExtractAdapter !");
+}
 
-void MetadataExtractAdapter::ReadFileMetadata(MetadataExtractAdapter *adapter, QString const & file_name) {
-    const auto dirs = GetDirList(file_name);
+void MetadataExtractAdapter::ReadFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter, QString const & file_name) {
+    auto dirs = GetDirList(file_name);
 
-    for (const auto & file_paht : dirs) {
-        ThreadPool::GetInstance().Run([adapter, file_paht]()
+	if (dirs.isEmpty()) {
+        dirs.push_back(file_name);
+	}
+
+#if 0
+    for (const auto & file_path : dirs) {
+        ThreadPool::GetInstance().Run([adapter, file_path]()
             {
                 try {
                     ExtractAdapterProxy proxy(adapter);
-                    const Path path(file_paht.toStdWString());
+                    const Path path(file_path.toStdWString());
                     TaglibMetadataReader reader;
                     WalkPath(path, &proxy, &reader);
                 }
@@ -177,10 +180,40 @@ void MetadataExtractAdapter::ReadFileMetadata(MetadataExtractAdapter *adapter, Q
                 }
             });
     }
+#else
+    QProgressDialog dialog(tr("Read file metadata"), tr("Cancel"), 0, dirs.count());
+    dialog.setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
+    dialog.setWindowTitle(tr("Read progress dialog"));
+    dialog.setWindowModality(Qt::WindowModal);
+    dialog.setMinimumSize(QSize(500, 100));
+    dialog.setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed));
+    dialog.show();
+
+    int progress = 0;
+	
+    for (const auto& file_path : dirs) {
+    	if (dialog.wasCanceled()) {
+            return;
+    	}
+    	
+        try {
+            ExtractAdapterProxy proxy(adapter);
+            const Path path(file_path.toStdWString());
+            TaglibMetadataReader reader;
+            WalkPath(path, &proxy, &reader);
+
+            dialog.setValue(progress++);
+            qApp->processEvents();
+        }
+        catch (const std::exception& e) {
+            XAMP_LOG_DEBUG("WalkPath has exception: {}", e.what());
+        }
+    }
+#endif
 }
 
 void MetadataExtractAdapter::ProcessMetadata(const std::vector<Metadata>& result, PlayListTableView* playlist) {
-    DatabaseIdCache cache;
+	const DatabaseIdCache cache;
 
     auto playlist_id = -1;
     if (playlist != nullptr) {
@@ -196,9 +229,9 @@ void MetadataExtractAdapter::ProcessMetadata(const std::vector<Metadata>& result
         if (album.isEmpty()) {
             album = tr("Unknown album");
             is_unknown_album = true;
-        }        
+        }
 
-        auto music_id = Singleton<Database>::GetInstance().AddOrUpdateMusic(metadata, playlist_id);
+        const auto music_id = Singleton<Database>::GetInstance().AddOrUpdateMusic(metadata, playlist_id);
 
         auto [album_id, artist_id, cover_id] = cache.AddCache(album, artist);
 
@@ -213,10 +246,10 @@ void MetadataExtractAdapter::ProcessMetadata(const std::vector<Metadata>& result
         }
 
         IgnoreSqlError(Singleton<Database>::GetInstance().AddOrUpdateAlbumMusic(album_id, artist_id, music_id))
+    }
 
-        if (playlist != nullptr) {
-            Singleton<Database>::GetInstance().AddMusicToPlaylist(music_id, playlist_id);
-        }
+    if (playlist != nullptr) {
+        playlist->refresh();
     }
 }
 

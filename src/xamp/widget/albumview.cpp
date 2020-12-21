@@ -311,12 +311,14 @@ void AlbumViewPage::setTotalDuration(double durations) {
 
 void AlbumViewPage::setCover(const QString& cover_id) {
     if (auto cache_small_cover = Singleton<PixmapCache>::GetInstance().find(cover_id)) {
-        cover_->setPixmap(Pixmap::resizeImage(cache_small_cover.value()->copy(),
+        auto image = Pixmap::roundImage(Pixmap::resizeImage(cache_small_cover.value()->copy(),
             ThemeManager::instance().getAlbumCoverSize()));
+        cover_->setPixmap(image);
     }
     else {
-        cover_->setPixmap(Pixmap::resizeImage(ThemeManager::instance().pixmap().defaultSizeUnknownCover(),
+        auto image = Pixmap::roundImage(Pixmap::resizeImage(ThemeManager::instance().pixmap().defaultSizeUnknownCover(),
             ThemeManager::instance().getAlbumCoverSize()));
+        cover_->setPixmap(image);
     }
 }
 
@@ -588,9 +590,9 @@ LIMIT 200
 }
 
 void AlbumView::append(const QString& file_name) {
-    auto adapter = new MetadataExtractAdapter();
+    auto adapter = QSharedPointer<MetadataExtractAdapter>(new MetadataExtractAdapter());
 
-    (void) QObject::connect(adapter,
+    (void) QObject::connect(adapter.get(),
                             &MetadataExtractAdapter::readCompleted,
                             this,
                             &AlbumView::processMeatadata);    

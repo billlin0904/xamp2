@@ -218,6 +218,8 @@ WHERE
 
     void RemoveMusic(int32_t music_id);
 
+    void RemovePlaylistAllMusic(int32_t playlist_id);
+	
     void RemovePlaylistMusic(int32_t playlist_id, const QVector<int>& select_music_ids);
 
     int32_t FindTablePlaylistId(int32_t table_id) const;

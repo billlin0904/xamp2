@@ -5,14 +5,8 @@
 
 #pragma once
 
-#include <atomic>
-
 #include <QObject>
-
-#include <metadata/metadatareader.h>
 #include <metadata/metadataextractadapter.h>
-
-#include <widget/widget_shared.h>
 #include <widget/pixmapcache.h>
 
 class PlayListTableView;
@@ -25,10 +19,10 @@ public:
 
 	~MetadataExtractAdapter() override;
 
-    static void ReadFileMetadata(MetadataExtractAdapter* adapter, QString const& file_name);
+    static void ReadFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter, QString const& file_name);
 
 signals:
-	void readCompleted(std::vector<Metadata> enitiy);
+	void readCompleted(const std::vector<Metadata> &entity);
 
 public:
     static void ProcessMetadata(const std::vector<Metadata>& result, PlayListTableView *playlist = nullptr);	

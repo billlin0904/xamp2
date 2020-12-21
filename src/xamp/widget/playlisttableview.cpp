@@ -82,7 +82,7 @@ PlayListTableView::PlayListTableView(QWidget* parent, int32_t playlist_id)
 PlayListTableView::~PlayListTableView() = default;
 
 void PlayListTableView::refresh() {
-    QString s = Q_UTF8(R"(
+	const QString s = Q_UTF8(R"(
     SELECT
     musics.musicId,
     playlistMusics.playing,
@@ -233,10 +233,10 @@ void PlayListTableView::initial() {
                 exts += Q_UTF8(" ");
             }
             exts += Q_UTF8(")");
-            auto file_name = QFileDialog::getOpenFileName(this,
-                                                          tr("Open file"),
-                                                          AppSettings::getMyMusicFolderPath(),
-                                                          tr("Music Files ") + exts);
+            const auto file_name = QFileDialog::getOpenFileName(this,
+                                                                tr("Open file"),
+                                                                AppSettings::getMyMusicFolderPath(),
+                                                                tr("Music Files ") + exts);
             if (file_name.isEmpty()) {
                 return;
             }
@@ -298,6 +298,7 @@ void PlayListTableView::initial() {
 
         action_map.addSeparator();
 
+        auto remove_all_act = action_map.addAction(tr("Remove all"));
         auto open_local_file_path_act = action_map.addAction(tr("Open local file path"));
         auto reload_file_meta_act = action_map.addAction(tr("Reload file meta"));
         auto reload_file_fingerprint_act = action_map.addAction(tr("Read file fingerprint"));
@@ -313,6 +314,12 @@ void PlayListTableView::initial() {
         }
         
         auto item = getEntity(proxy_model_.mapToSource(index));
+
+        action_map.setCallback(remove_all_act, [this, item]() {
+            Singleton<Database>::GetInstance().RemovePlaylistAllMusic(playlistId());
+            refresh();
+            removePlaying();
+            });
 
         action_map.setCallback(open_local_file_path_act, [item]() {
             QDesktopServices::openUrl(QUrl::fromLocalFile(item.parent_path));
@@ -341,13 +348,13 @@ void PlayListTableView::initial() {
         });
 
         action_map.setCallback(set_cover_art_act, [item, this]() {
-            const auto fileName = QFileDialog::getOpenFileName(this, tr("Open Cover Art Image"),
+            const auto file_name = QFileDialog::getOpenFileName(this, tr("Open Cover Art Image"),
                                                                tr("C:\\"), tr("Image Files (*.png *.jpeg *.jpg)"));
-            if (fileName.isEmpty()) {
+            if (file_name.isEmpty()) {
                 return;
             }
 
-            QPixmap image(fileName);
+            QPixmap image(file_name);
             if (image.isNull()) {
                 Toast::showTip(tr("Can't read image file."), this);
                 return;
@@ -455,9 +462,9 @@ bool PlayListTableView::eventFilter(QObject* obj, QEvent* ev) {
 }
 
 void PlayListTableView::append(const QString& file_name) {
-    auto adapter = new MetadataExtractAdapter();
+    auto adapter = QSharedPointer<MetadataExtractAdapter>(new MetadataExtractAdapter());
 
-    (void) QObject::connect(adapter,
+    (void) QObject::connect(adapter.get(),
                             &MetadataExtractAdapter::readCompleted,
                             this,
                             &PlayListTableView::processMeatadata);

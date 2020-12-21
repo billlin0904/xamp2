@@ -185,9 +185,7 @@ void Database::open(const QString& file_name) {
 	(void)db_.exec(Q_UTF8("PRAGMA cache_size = 40960"));
 	(void)db_.exec(Q_UTF8("PRAGMA temp_store = MEMORY"));
 	(void)db_.exec(Q_UTF8("PRAGMA mmap_size = 40960"));
-#ifndef _DEBUG
-	(void)db_.exec(Q_UTF8("PRAGMA locking_mode = EXCLUSIVE"));
-#endif
+
 	CreateTableIfNotExist();
 }
 
@@ -709,6 +707,13 @@ void Database::AddAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_
     IfFailureThrow1(query);
 
 	AddOrUpdateAlbumArtist(album_id, artist_id);
+}
+
+void Database::RemovePlaylistAllMusic(int32_t playlist_id) {
+	QSqlQuery query;
+	query.prepare(Q_UTF8("DELETE FROM playlistMusics WHERE playlistId=:playlistId"));
+	query.bindValue(Q_UTF8(":playlistId"), playlist_id);
+	IfFailureThrow1(query);
 }
 
 void Database::RemovePlaylistMusic(int32_t playlist_id, const QVector<int32_t>& select_music_ids) {

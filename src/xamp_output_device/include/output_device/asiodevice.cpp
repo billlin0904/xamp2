@@ -359,6 +359,7 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 	long input_latency = 0;
 	long output_latency = 0;
 	AsioIfFailedThrow(::ASIOGetLatencies(&input_latency, &output_latency));
+	XAMP_LOG_INFO("Buffer size :{} ", FormatBytes(buffer_.GetByteSize()));
 	XAMP_LOG_INFO("Ouput latency: {}ms.", GetLatencyMs(output_latency, output_format.GetSampleRate()));
 }
 
@@ -535,10 +536,8 @@ void AsioDevice::StopStream(bool wait_for_stop_stream) {
 
 void AsioDevice::CloseStream() {
 	if (!is_removed_driver_) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(20));
 		AsioIfFailedThrow(::ASIOStop());
-
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		AsioIfFailedThrow(::ASIODisposeBuffers());
 		is_removed_driver_ = true;
 	}
