@@ -80,7 +80,7 @@ AlignPtr<FileStream> MakeFileStream(std::wstring const& file_ext, AlignPtr<FileS
 }
 
 DsdModes SetStreamDsdMode(AlignPtr<FileStream>& stream, const DeviceInfo& device_info, bool use_native_dsd) {
-    DsdModes dsd_mode = DsdModes::DSD_MODE_PCM;
+    auto dsd_mode = DsdModes::DSD_MODE_PCM;
 
     if (auto* dsd_stream = AsDsdStream(stream)) {
         // ASIO device (win32).

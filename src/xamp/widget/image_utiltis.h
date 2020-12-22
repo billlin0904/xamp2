@@ -11,9 +11,12 @@
 
 namespace Pixmap {
 
-QPixmap roundImage(const QPixmap& src, int radius = 5);
+inline constexpr int32_t kImageRadius = 5;
+inline constexpr int32_t kSmallImageRadius = 2;
 
-QPixmap roundImage(const QPixmap& src, QSize size, int radius = 5);
+QPixmap roundImage(const QPixmap& src, int32_t radius = kImageRadius);
+
+QPixmap roundImage(const QPixmap& src, QSize size, int32_t radius = kImageRadius);
 
 QPixmap resizeImage(const QPixmap& source, const QSize& size, bool is_aspect_ratio = false);
 

@@ -83,7 +83,8 @@ ExclusiveWasapiDevice::ExclusiveWasapiDevice(CComPtr<IMMDevice> const & device)
 	, sample_ready_key_(0)
 	, aligned_period_(0)
 	, device_(device)
-	, callback_(nullptr) {
+	, callback_(nullptr)
+	, log_(Logger::GetInstance().GetLogger("ExclusiveWasapiDevice")) {
 }
 
 ExclusiveWasapiDevice::~ExclusiveWasapiDevice() {
@@ -116,7 +117,7 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
 		HrIfFailledThrow(client_->SetClientProperties(&device_props));
 	}
 	catch (Exception const& e) {
-		XAMP_LOG_DEBUG("SetClientProperties return failure! {}", e.GetErrorMessage());
+		XAMP_LOG_I(log_, "SetClientProperties return failure! {}", e.GetErrorMessage());
 		device_props.Options = AUDCLNT_STREAMOPTIONS_MATCH_FORMAT;
 		HrIfFailledThrow(client_->SetClientProperties(&device_props));
 	}
@@ -126,13 +127,13 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
     HrIfFailledThrow(client_->GetDevicePeriod(&default_device_period, &minimum_device_period));
 
 	SetAlignedPeriod(default_device_period, output_format);
-	XAMP_LOG_DEBUG("Exclusive mode: default:{} sec, min:{} sec.",
+	XAMP_LOG_I(log_, "Exclusive mode: default:{} sec, min:{} sec.",
 		Nano100ToSeconds(default_device_period),
 		Nano100ToSeconds(minimum_device_period));
 
-	XAMP_LOG_DEBUG("WASAPI frame per latency: {}.", buffer_frames_);
+	XAMP_LOG_I(log_, "WASAPI frame per latency: {}.", buffer_frames_);
 
-	XAMP_LOG_DEBUG("Initial aligned period: {} sec.", Nano100ToSeconds(aligned_period_));
+	XAMP_LOG_I(log_, "Initial aligned period: {} sec.", Nano100ToSeconds(aligned_period_));
 
 	const auto hr = client_->Initialize(AUDCLNT_SHAREMODE_EXCLUSIVE,
 		AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
@@ -158,22 +159,22 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
 	HrIfFailledThrow(endpoint_volume->QueryHardwareSupport(&volume_support_mask_));
 
 	if (volume_support_mask_ & ENDPOINT_HARDWARE_SUPPORT_VOLUME) {
-		XAMP_LOG_DEBUG("Hardware support volume control.");
+		XAMP_LOG_I(log_, "Hardware support volume control.");
 	}
 	else {
-		XAMP_LOG_DEBUG("Hardware not support volume control.");
+		XAMP_LOG_I(log_, "Hardware not support volume control.");
 	}
 	if (volume_support_mask_ & ENDPOINT_HARDWARE_SUPPORT_MUTE) {
-		XAMP_LOG_DEBUG("Hardware support volume mute.");
+		XAMP_LOG_I(log_, "Hardware support volume mute.");
 	}
 	else {
-		XAMP_LOG_DEBUG("Hardware not support volume mute.");
+		XAMP_LOG_I(log_, "Hardware not support volume mute.");
 	}
 	if (volume_support_mask_ & ENDPOINT_HARDWARE_SUPPORT_METER) {
-		XAMP_LOG_DEBUG("Hardware support volume meter.");
+		XAMP_LOG_I(log_, "Hardware support volume meter.");
 	}
 	else {
-		XAMP_LOG_DEBUG("Hardware not support volume meter.");
+		XAMP_LOG_I(log_, "Hardware not support volume meter.");
 	}
 #endif
 }
@@ -190,7 +191,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	valid_bits_samples_ = kValidBitPerSamples;
 
 	if (!client_) {
-		XAMP_LOG_DEBUG("Active device format: {}.", valid_output_format);
+		XAMP_LOG_I(log_, "Active device format: {}.", valid_output_format);
 
         HrIfFailledThrow(device_->Activate(kAudioClient2ID,
 			CLSCTX_ALL,
@@ -222,7 +223,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	LONG priority = 0;
 	HrIfFailledThrow(::MFGetWorkQueueMMCSSPriority(queue_id_, &priority));
 
-	XAMP_LOG_DEBUG("MCSS task id:{} queue id:{}, priority:{} ({}).",
+	XAMP_LOG_I(log_, "MCSS task id:{} queue id:{}, priority:{} ({}).",
 		task_id, queue_id_, thread_priority_, static_cast<MmcssThreadPriority>(priority));
 
     sample_ready_callback_ = new MFAsyncCallback<ExclusiveWasapiDevice>(this,
@@ -242,7 +243,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	buffer_ = MakeBuffer<float>(buffer_size);
 	vmlock_.Lock(buffer_.Get(), buffer_.GetByteSize());
     data_convert_ = MakeConvert(output_format, valid_output_format, buffer_frames_);
-	XAMP_LOG_DEBUG("WASAPI internal buffer: {}.", FormatBytes(buffer_.GetByteSize()));
+	XAMP_LOG_I(log_, "WASAPI internal buffer: {}.", FormatBytes(buffer_.GetByteSize()));
 
 #ifdef _DEBUG
 	CComPtr<IAudioEndpointVolume> endpoint_volume;
@@ -255,7 +256,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	float max_volume = 0;
 	float volume_increnment = 0;
 	HrIfFailledThrow(endpoint_volume->GetVolumeRange(&min_volume, &max_volume, &volume_increnment));
-	XAMP_LOG_DEBUG("WASAPI min_volume: {} max_volume: {} volume_increnment: {}.", min_volume, max_volume, volume_increnment);
+	XAMP_LOG_I(log_, "WASAPI min_volume: {} max_volume: {} volume_increnment: {}.", min_volume, max_volume, volume_increnment);
 #endif
 }
 
@@ -404,7 +405,7 @@ void ExclusiveWasapiDevice::StartStream() {
     is_stop_streaming_ = false;	
 	is_running_ = true;
 
-	XAMP_LOG_DEBUG("Start exclusive mode stream!");
+	XAMP_LOG_I(log_, "Start exclusive mode stream!");
 }
 
 void ExclusiveWasapiDevice::SetStreamTime(const double stream_time) noexcept {

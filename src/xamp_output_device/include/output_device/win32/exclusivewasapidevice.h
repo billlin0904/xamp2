@@ -105,7 +105,8 @@ private:
 	Buffer<float> buffer_;
 	std::condition_variable condition_;
 	AudioCallback* callback_;
-	VmMemLock vmlock_;	
+	VmMemLock vmlock_;
+	std::shared_ptr<spdlog::logger> log_;
 };
 
 }

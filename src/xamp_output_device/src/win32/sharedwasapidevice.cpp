@@ -76,10 +76,11 @@ SharedWasapiDevice::SharedWasapiDevice(CComPtr<IMMDevice> const & device)
 	, buffer_frames_(0)
 	, mmcss_name_(MMCSS_PROFILE_PRO_AUDIO)
 	, thread_priority_(MmcssThreadPriority::MMCSS_THREAD_PRIORITY_HIGH)
-    , sample_raedy_key_(0)
+    , sample_ready_key_(0)
 	, sample_ready_(nullptr)
 	, device_(device)
-	, callback_(nullptr) {
+	, callback_(nullptr)
+	, log_(Logger::GetInstance().GetLogger("SharedWasapiDevice")) {
 }
 
 SharedWasapiDevice::~SharedWasapiDevice() {
@@ -114,7 +115,7 @@ void SharedWasapiDevice::SetAudioCallback(AudioCallback* callback) noexcept {
 }
 
 void SharedWasapiDevice::StopStream(bool wait_for_stop_stream) {
-	XAMP_LOG_DEBUG("Stop shared mode stream!");
+	XAMP_LOG_I(log_, "Stop shared mode stream!");
 	
 	if (is_running_) {
 		is_running_ = false;
@@ -172,7 +173,7 @@ void SharedWasapiDevice::InitialDeviceFormat(AudioFormat const & output_format) 
 		throw DeviceUnSupportedFormatException(output_format);
 	}	
 
-	XAMP_LOG_DEBUG("Initital device format fundamental:{}, current:{}, min:{} max:{}.",
+	XAMP_LOG_I(log_, "Initital device format fundamental:{}, current:{}, min:{} max:{}.",
 		fundamental_period_in_frame,
 		default_period_in_frame,
 		min_period_in_frame,
@@ -180,7 +181,7 @@ void SharedWasapiDevice::InitialDeviceFormat(AudioFormat const & output_format) 
 
 	latency_ = default_period_in_frame;
 
-	XAMP_LOG_DEBUG("Use latency: {}", latency_);
+	XAMP_LOG_I(log_, "Use latency: {}", latency_);
 }
 
 void SharedWasapiDevice::InitialRawMode(AudioFormat const & output_format) {
@@ -195,7 +196,7 @@ void SharedWasapiDevice::OpenStream(AudioFormat const & output_format) {
 	stream_time_ = 0;
 
 	if (!client_) {
-		XAMP_LOG_DEBUG("Active device format: {}.", output_format);
+		XAMP_LOG_I(log_, "Active device format: {}.", output_format);
 		
 		HrIfFailledThrow(device_->Activate(kAudioClient3ID,
 			CLSCTX_ALL,
@@ -220,7 +221,7 @@ void SharedWasapiDevice::OpenStream(AudioFormat const & output_format) {
 	HrIfFailledThrow(client_->GetService(kAudioClockID,
 		reinterpret_cast<void**>(&clock_)));
 
-	XAMP_LOG_DEBUG("WASAPI buffer frame size:{}.", buffer_frames_);
+	XAMP_LOG_I(log_, "WASAPI buffer frame size:{}.", buffer_frames_);
 
 	// Enable MCSS
 	DWORD task_id = 0;
@@ -233,7 +234,7 @@ void SharedWasapiDevice::OpenStream(AudioFormat const & output_format) {
 	LONG priority = 0;
 	HrIfFailledThrow(::MFGetWorkQueueMMCSSPriority(queue_id_, &priority));
 
-	XAMP_LOG_DEBUG("MCSS task id:{} queue id:{}, priority:{} ({}).",
+	XAMP_LOG_I(log_, "MCSS task id:{} queue id:{}, priority:{} ({}).",
 		task_id, queue_id_, thread_priority_, static_cast<MmcssThreadPriority>(priority));
 
 	sample_ready_callback_.Release();
@@ -370,7 +371,7 @@ void SharedWasapiDevice::FillSilentSample(uint32_t frame_available) noexcept {
 
 HRESULT SharedWasapiDevice::OnSampleReady(IMFAsyncResult* result) noexcept {
 	if (!is_running_) {
-		XAMP_LOG_DEBUG("Receive stop request");
+		XAMP_LOG_I(log_, "Receive stop request");
 		if (!is_stop_streaming_) {
 			GetSampleRequested(true);
 		}
@@ -402,12 +403,12 @@ void SharedWasapiDevice::StartStream() {
 	HrIfFailledThrow(::MFPutWaitingWorkItem(sample_ready_.get(),
 		0, 
 		sample_ready_async_result_,
-		&sample_raedy_key_));
+		&sample_ready_key_));
 
 	// is_running_必須要確認都成功才能設置為true.	
 	is_running_ = true;
 
-	XAMP_LOG_DEBUG("Start shared mode stream!");
+	XAMP_LOG_I(log_, "Start shared mode stream!");
 }
 
 bool SharedWasapiDevice::IsStreamRunning() const noexcept {
@@ -433,7 +434,7 @@ void SharedWasapiDevice::GetSampleRequested(bool is_silence) noexcept {
 			GetSample(frames_available);
 		}
 	}
-	ReportError(::MFPutWaitingWorkItem(sample_ready_.get(), 0, sample_ready_async_result_, &sample_raedy_key_));
+	ReportError(::MFPutWaitingWorkItem(sample_ready_.get(), 0, sample_ready_async_result_, &sample_ready_key_));
 }
 
 void SharedWasapiDevice::AbortStream() noexcept {

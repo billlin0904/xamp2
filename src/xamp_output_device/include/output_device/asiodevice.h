@@ -14,6 +14,7 @@
 
 #include <base/align_ptr.h>
 #include <base/vmmemlock.h>
+#include <base/logger.h>
 
 #include <output_device/audiocallback.h>
 #include <output_device/device.h>
@@ -116,6 +117,7 @@ private:
 	AudioCallback* callback_;
 	VmMemLock buffer_vmlock_;
 	VmMemLock device_buffer_vmlock_;
+	std::shared_ptr<spdlog::logger> log_;
 };
 
 }

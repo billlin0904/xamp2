@@ -140,7 +140,7 @@ static int excute(int argc, char* argv[]) {
     XAMP_LOG_DEBUG("PixmapCache init success.");
 
     XAMP_LOG_DEBUG("PixmapCache cache size:{}", 
-        FormatBytes(Singleton<PixmapCache>::GetInstance().GetImageSize()));
+        FormatBytes(Singleton<PixmapCache>::GetInstance().getImageSize()));
 
     try {
         Singleton<Database>::GetInstance().open(Q_UTF8("xamp.db"));

@@ -13,6 +13,7 @@
 #ifdef XAMP_OS_WIN
 
 #include <base/vmmemlock.h>
+#include <base/logger.h>
 #include <output_device/device.h>
 
 namespace xamp::output_device::win32 {
@@ -92,7 +93,7 @@ private:
 	MmcssThreadPriority thread_priority_;
 	mutable std::mutex mutex_;
 	std::condition_variable condition_;
-	MFWORKITEM_KEY sample_raedy_key_;
+	MFWORKITEM_KEY sample_ready_key_;
 	WinHandle sample_ready_;
 	CComHeapPtr<WAVEFORMATEX> mix_format_;
 	CComPtr<IMMDevice> device_;
@@ -103,6 +104,7 @@ private:
 	CComPtr<IMFAsyncResult> sample_ready_async_result_;	
 	CComPtr<DeviceEventNotification> device_volume_notification_;
 	AudioCallback* callback_;
+	std::shared_ptr<spdlog::logger> log_;
 };
 
 }

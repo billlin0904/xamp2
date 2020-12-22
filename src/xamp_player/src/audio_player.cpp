@@ -23,7 +23,8 @@ namespace xamp::player {
 
 inline constexpr int32_t kBufferStreamCount = 5;
 inline constexpr int32_t kTotalBufferStreamCount = 10;
-inline constexpr int32_t kPreallocateBufferSize = 128 * 1024 * 1024;
+inline constexpr int32_t kPreallocateBufferSize = 32 * 1024 * 1024;
+inline constexpr int32_t kMaxPreallocateBufferSize = 128 * 1024 * 1024;
 inline constexpr int32_t kMaxWriteRatio = 20;
 inline constexpr int32_t kMaxReadRatio = 30;
 
@@ -229,7 +230,7 @@ void AudioPlayer::Play() {
 
         std::unique_lock<std::mutex> lock{ p->pause_mutex_ };
 
-        auto sample_buffer = p->sample_buffer_.Get();
+        auto* sample_buffer = p->sample_buffer_.Get();
         const auto max_read_sample = p->num_read_sample_;
         const auto num_sample_write = max_read_sample * kMaxWriteRatio;
 
@@ -460,9 +461,14 @@ void AudioPlayer::CreateBuffer() {
         require_read_sample = device_->GetBufferSize() * kMaxReadRatio;
     }
 
-    if (require_read_sample != num_read_sample_) {
+    if (require_read_sample != num_read_sample_) {    	
         require_read_sample = std::max(require_read_sample, static_cast<uint32_t>(8192));
-        auto allocate_size = require_read_sample * stream_->GetSampleSize() * kBufferStreamCount;
+        uint32_t allocate_size = 0;
+        if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE) {
+            allocate_size = kMaxPreallocateBufferSize;
+        } else {
+            allocate_size = require_read_sample * stream_->GetSampleSize() * kBufferStreamCount;
+        }        
         num_buffer_samples_ = allocate_size * kTotalBufferStreamCount;
         num_read_sample_ = require_read_sample;
         XAMP_LOG_DEBUG("Allocate interal buffer : {}.", FormatBytes(allocate_size));        
@@ -546,6 +552,9 @@ void AudioPlayer::OnDeviceStateChange(DeviceState state, std::string const & dev
         case DeviceState::DEVICE_STATE_REMOVED:
             XAMP_LOG_DEBUG("Device removed device id:{}.", device_id);
             if (device_id == device_id_) {
+            	if (AudioDeviceManager::GetInstance().IsASIODevice(Uuid::FromString(device_id))) {
+                    AudioDeviceManager::GetInstance().RemoveASIODriver();
+            	}
                 state_adapter->OnDeviceChanged(DeviceState::DEVICE_STATE_REMOVED);
                 if (device_ != nullptr) {
                     device_->AbortStream();

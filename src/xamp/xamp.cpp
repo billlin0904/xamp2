@@ -439,7 +439,7 @@ void Xamp::initialController() {
             XAMP_LOG_DEBUG("Disable gapless play");
         }
         if (!enable) {
-            const char text[] = "Enable grapless play will be stop first, Do you still want enable this ?";
+            const char text[] = "Enable gapless play will be stop first, Do you still want enable this ?";
             if (showAskDialog(this, text) == QMessageBox::Yes) {
                 stopPlayedClicked();
             }
@@ -976,7 +976,7 @@ void Xamp::updateUI(const MusicEntity& item, const PlaybackFormat& playback_form
     }
 
     if (current_entiry_.cover_id != item.cover_id) {
-        if (item.cover_id == Singleton<PixmapCache>::GetInstance().GetUnknownCoverId()) {
+        if (item.cover_id == Singleton<PixmapCache>::GetInstance().getUnknownCoverId()) {
             setCover(nullptr);
         }
         else {
@@ -1147,7 +1147,7 @@ void Xamp::play(const QModelIndex&, const PlayListEntity& item) {
 
     while (AppSettings::getValueAsBool(kAppSettingEnableGaplessPlay)) {
         if (!AppSettings::getValueAsBool(kAppSettingResamplerEnable)) {
-            auto result = showAskDialog(this, "Gapless play must enable resampler first");
+            auto result = showAskDialog(this, "Gapless play must enable DSP first");
             if (result == QMessageBox::Yes) {
                 PreferenceDialog dialog;
                 dialog.setFont(font());
@@ -1193,10 +1193,13 @@ void Xamp::setCover(const QPixmap* cover) {
         lrc_page_->setBackground(*cover);
     }
 
-    auto ui_cover = Pixmap::roundImage(Pixmap::resizeImage(*cover, ui.coverLabel->size(), true), 2);
+    const auto ui_cover = Pixmap::roundImage(Pixmap::resizeImage(*cover, ui.coverLabel->size(), false),
+                                             Pixmap::kSmallImageRadius);
     ui.coverLabel->setPixmap(ui_cover);
-    
-    auto playlist_cover = Pixmap::roundImage(Pixmap::resizeImage(*cover, playlist_page_->cover()->size(), true), 2);
+
+    const auto playlist_cover = Pixmap::roundImage(
+        Pixmap::resizeImage(*cover, playlist_page_->cover()->size(), false),
+        Pixmap::kSmallImageRadius);
     playlist_page_->cover()->setPixmap(playlist_cover);
 
     lrc_page_->setCover(Pixmap::resizeImage(*cover, lrc_page_->cover()->size(), true));

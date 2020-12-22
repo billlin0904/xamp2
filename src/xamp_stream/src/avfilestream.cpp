@@ -90,7 +90,7 @@ public:
         audio_format_.Reset();
         swr_context_.reset();
         audio_frame_.reset();
-        codec_contex_.reset();
+        codec_context_.reset();
         format_context_.reset();
     }
 
@@ -135,17 +135,17 @@ public:
     }
 
     void OpenAudioStream() {
-        codec_contex_.reset(format_context_->streams[audio_stream_id_]->codec);
+        codec_context_.reset(format_context_->streams[audio_stream_id_]->codec);
 
-        const auto codec = ::avcodec_find_decoder(codec_contex_->codec_id);
+        const auto codec = ::avcodec_find_decoder(codec_context_->codec_id);
         if (!codec) {
             throw NotSupportFormatException();
         }
 
-        AvIfFailedThrow(::avcodec_open2(codec_contex_.get(), codec, nullptr));
+        AvIfFailedThrow(::avcodec_open2(codec_context_.get(), codec, nullptr));
         audio_frame_.reset(av_frame_alloc());
 
-        switch (codec_contex_->sample_fmt) {
+        switch (codec_context_->sample_fmt) {
         case AV_SAMPLE_FMT_S16:
         case AV_SAMPLE_FMT_S32:
             XAMP_LOG_DEBUG("Stream format => INTERLEAVED");
@@ -162,23 +162,23 @@ public:
             XAMP_LOG_DEBUG("Stream input format => {}", format_context_->iformat->name);
         }
 
-        auto channel_layout = codec_contex_->channel_layout == 0 ? AV_CH_LAYOUT_STEREO : codec_contex_->channel_layout;
+        auto channel_layout = codec_context_->channel_layout == 0 ? AV_CH_LAYOUT_STEREO : codec_context_->channel_layout;
         // 固定轉成INTERLEAVED格式
         swr_context_.reset(::swr_alloc_set_opts(swr_context_.get(),
                                                 AV_CH_LAYOUT_STEREO,
                                                 AV_SAMPLE_FMT_FLT,
-                                                codec_contex_->sample_rate,
+                                                codec_context_->sample_rate,
                                                 channel_layout,
-                                                codec_contex_->sample_fmt,
-                                                codec_contex_->sample_rate,
+                                                codec_context_->sample_fmt,
+                                                codec_context_->sample_rate,
                                                 0,
                                                 nullptr));
 
         AvIfFailedThrow(::swr_init(swr_context_.get()));
         audio_format_.SetFormat(DataFormat::FORMAT_PCM);
-        audio_format_.SetChannel(static_cast<uint16_t>(codec_contex_->channels));
-        audio_format_.SetSampleRate(static_cast<uint32_t>(codec_contex_->sample_rate));
-        audio_format_.SetBitPerSample(static_cast<uint32_t>(::av_get_bytes_per_sample(codec_contex_->sample_fmt) * 8));
+        audio_format_.SetChannel(static_cast<uint16_t>(codec_context_->channels));
+        audio_format_.SetSampleRate(static_cast<uint32_t>(codec_context_->sample_rate));
+        audio_format_.SetBitPerSample(static_cast<uint32_t>(::av_get_bytes_per_sample(codec_context_->sample_fmt) * 8));
         audio_format_.SetPackedFormat(PackedFormat::INTERLEAVED);
         XAMP_LOG_DEBUG("Stream format: {}", audio_format_);        
     }
@@ -199,7 +199,7 @@ public:
                     continue;
                 }
 
-                auto ret = ::avcodec_send_packet(codec_contex_.get(), packet.get());
+                auto ret = ::avcodec_send_packet(codec_context_.get(), packet.get());
                 if (ret == AVERROR(EAGAIN)) {
                     break;
                 }
@@ -215,7 +215,7 @@ public:
                 while (ret >= 0) {
                     XAMP_ON_SCOPE_EXIT(::av_frame_unref(audio_frame_.get()));
 
-                    ret = ::avcodec_receive_frame(codec_contex_.get(), audio_frame_.get());
+                    ret = ::avcodec_receive_frame(codec_context_.get(), audio_frame_.get());
                     if (ret == AVERROR(EAGAIN)) {
                         break;
                     }
@@ -239,12 +239,12 @@ public:
     }
 
     [[nodiscard]] AudioFormat GetFormat() const noexcept {
-        assert(codec_contex_ != nullptr);
+        assert(codec_context_ != nullptr);
         return audio_format_;
     }
 
     [[nodiscard]] double GetDuration() const noexcept {
-        assert(codec_contex_ != nullptr);
+        assert(codec_context_ != nullptr);
         return duration_;
     }
 
@@ -253,7 +253,7 @@ public:
     }
 
     void Seek(double stream_time) const {
-        if (codec_contex_ == nullptr) {
+        if (codec_context_ == nullptr) {
             return;
         }
 
@@ -264,7 +264,7 @@ public:
         }
 
         AvIfFailedThrow(::av_seek_frame(format_context_.get(), -1, timestamp, AVSEEK_FLAG_BACKWARD));
-        ::avcodec_flush_buffers(codec_contex_.get());
+        ::avcodec_flush_buffers(codec_context_.get());
     }
 
     uint64_t GetTotalFrames() const {
@@ -277,7 +277,7 @@ private:
     }
 
     uint32_t ConvertSamples(float* buffer, uint32_t length) const noexcept {
-        const uint32_t frame_size = static_cast<uint32_t>(audio_frame_->nb_samples * codec_contex_->channels);
+        const uint32_t frame_size = static_cast<uint32_t>(audio_frame_->nb_samples * codec_context_->channels);
         const auto result = ::swr_convert(swr_context_.get(),
                                           reinterpret_cast<uint8_t **>(&buffer),
                                           audio_frame_->nb_samples,
@@ -287,7 +287,7 @@ private:
             return 0;
         }
         assert(result > 0);
-        const uint32_t convert_size = static_cast<uint32_t>(result * codec_contex_->channels);
+        const uint32_t convert_size = static_cast<uint32_t>(result * codec_context_->channels);
         assert(convert_size == frame_size && convert_size <= length);
         return frame_size;
     }
@@ -298,7 +298,7 @@ private:
     AudioFormat audio_format_;
     AvPtr<SwrContext> swr_context_;
     AvPtr<AVFrame> audio_frame_;
-    AvPtr<AVCodecContext> codec_contex_;
+    AvPtr<AVCodecContext> codec_context_;
     AvPtr<AVFormatContext> format_context_;
 };
 

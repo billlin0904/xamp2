@@ -13,41 +13,41 @@
 
 #ifndef QT_SPECIALIZE_STD_HASH_TO_CALL_QHASH_BY_CREF
 namespace std {
-template <>
-struct hash<QString> {
-	typedef size_t result_type;
-	typedef QString argument_type;
+	template <>
+	struct hash<QString> {
+		typedef size_t result_type;
+		typedef QString argument_type;
 
-	result_type operator()(const argument_type & s) const {
-		return qHash(s);
-	}
-};
+		result_type operator()(const argument_type& s) const {
+			return qHash(s);
+		}
+	};
 }
 #endif
 
 class PixmapCache final {
 public:
 	friend class Singleton<PixmapCache>;
-	
-    static QPixmap FindFileDirCover(const QString &file_path);
 
-    static QPixmap FindFileDirCover(const PlayListEntity &item);
+	static QPixmap FindFileDirCover(const QString& file_path);
+
+	static QPixmap FindFileDirCover(const PlayListEntity& item);
 
 	std::optional<const QPixmap*> find(const QString& tag_id) const;
 
 	std::optional<const std::pair<QColor, QColor>*> findColor(const QString& tag_id) const;
 
-    QPixmap FromFileCache(const QString& tag_id) const;
+	QPixmap fromFileCache(const QString& tag_id) const;
 
-    QString Add(const QPixmap& cover) const;
+	QString Add(const QPixmap& cover) const;
 
-	void Erase(const QString& tag_id);
+	void erase(const QString& tag_id);
 
-    bool IsExist(const QString& tag_id) const;
+	bool isExist(const QString& tag_id) const;
 
-	size_t GetImageSize() const;
+	size_t getImageSize() const;
 
-	QString GetUnknownCoverId() const {
+	QString getUnknownCoverId() const {
 		return unknown_cover_id_;
 	}
 
@@ -55,14 +55,14 @@ protected:
 	PixmapCache();
 
 private:
-    void LoadCache() const;
+	void loadCache() const;
 
-	void Clear();
+	void clear();
 
 	QString unknown_cover_id_;
 	QString cache_path_;
-    QStringList cover_ext_;
-    QStringList cache_ext_;
+	QStringList cover_ext_;
+	QStringList cache_ext_;
 	mutable LruCache<QString, QPixmap> cache_;
 	mutable LruCache<QString, std::pair<QColor, QColor>> color_cache_;
 };

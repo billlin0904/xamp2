@@ -25,20 +25,22 @@ static bool TestDsdFileFormat(MemoryMappedFile &file) {
 	if (file.GetLength() < 4) {
         return false;
 	}
-    return memcmp(file.GetData(), "DSD ", 4) == 0;
+	
+    constexpr std::string_view dsd_chunks{ "DSD " };
+    constexpr std::string_view dsdiff_chunks{ "FRM8" };
+	
+    return memcmp(file.GetData(), dsd_chunks.data(), 4) == 0
+	|| memcmp(file.GetData(), dsdiff_chunks.data(), 4) == 0;
 }
 
 class BassFileStream::BassFileStreamImpl {
 public:
     BassFileStreamImpl() noexcept
-        : enable_file_mapped_(true)
-        , mode_(DsdModes::DSD_MODE_PCM) {
-        info_ = BASS_CHANNELINFO{};
+        : mode_(DsdModes::DSD_MODE_PCM) {
+        Close();
     }
 
     void LoadFromFile(std::wstring const & file_path) {
-        info_ = BASS_CHANNELINFO{};
-
         DWORD flags = 0;
 
         switch (mode_) {
@@ -222,7 +224,6 @@ private:
         return static_cast<uint32_t>(bytes_read);
     }
 
-    bool enable_file_mapped_;
     DsdModes mode_;
     BassStreamHandle stream_;
     BassStreamHandle mix_stream_;

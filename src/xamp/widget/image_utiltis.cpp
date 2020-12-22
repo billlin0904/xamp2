@@ -411,7 +411,7 @@ QPixmap roundImage(const QPixmap& src, int radius) {
 	return roundImage(src, src.size(), radius);
 }
 
-QPixmap roundImage(const QPixmap& src, QSize size, int radius) {
+QPixmap roundImage(const QPixmap& src, QSize size, int32_t radius) {
 	QBitmap mask(size);
 	QPainter painter(&mask);
 
@@ -421,7 +421,7 @@ QPixmap roundImage(const QPixmap& src, QSize size, int radius) {
 	painter.setBrush(QColor(0, 0, 0));
 	painter.drawRoundedRect(0, 0, size.width(), size.height(), radius, radius);
 
-	QPixmap image = src.scaled(size);
+	auto image = src.scaled(size);
 	image.setMask(mask);
 	return image;
 }

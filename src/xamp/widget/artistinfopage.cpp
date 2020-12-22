@@ -57,7 +57,7 @@ void ArtistInfoPage::setArtistId(const QString& artist, const QString& cover_id,
 		cover = cache_small_cover.value();
 	}
 
-	auto small_cover = Pixmap::resizeImage(*cover, QSize(120, 120));
+	auto small_cover = Pixmap::roundImage(Pixmap::resizeImage(*cover, QSize(120, 120)), Pixmap::kSmallImageRadius);
 	cover_->setPixmap(small_cover);
 }
 
