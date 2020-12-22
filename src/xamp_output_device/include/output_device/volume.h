@@ -19,6 +19,7 @@ XAMP_ALWAYS_INLINE float LinearToLog(int32_t volume) noexcept {
 	if (volume == 0) {
 		return 0.0;
 	}
+	
 	auto db = (MIN_DB / 2) * ((100.0 - volume) / 100.0);
 	return static_cast<float>(std::pow(10, db / 20));
 }
