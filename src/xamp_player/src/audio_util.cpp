@@ -2,6 +2,7 @@
 #include <stream/dsdstream.h>
 #include <stream/bassfilestream.h>
 #include <stream/avfilestream.h>
+#include <base/dataconverter.h>
 #include <player/audio_util.h>
 
 namespace xamp::player {
@@ -14,41 +15,41 @@ DsdDevice* AsDsdDevice(AlignPtr<Device> const &device) noexcept {
     return dynamic_cast<DsdDevice*>(device.get());
 }
 
-std::vector<float> GetNormalizedPeaks(AlignPtr<FileStream>& stream) {
-    constexpr uint32_t kReadSampleSize = 8192 * 4;
+std::pair<float, float> GetNormalizedPeaks(AlignPtr<FileStream>& stream) {
+    constexpr uint32_t kReadSampleSize = 8192;
 
-    auto num_stream_ch = stream->GetFormat().GetChannels();
+    const auto num_stream_ch = stream->GetFormat().GetChannels();
 
-    std::vector<float> result(num_stream_ch);
     stream->Seek(0);
     
     Buffer<float> buffer(kReadSampleSize * num_stream_ch);
+
+    std::pair<float, float> result(0, 0);
 
     while (true) {
         auto num_samples = stream->GetSamples(buffer.Get(), buffer.GetSize());
         if (num_samples == 0) {
             break;
         }
-        for (auto i = 0; i < num_samples / num_stream_ch; ++i) {
-            if (num_stream_ch == 1) {
-                result[0] = (std::max)(buffer[i], result[0]);
+        if (num_stream_ch == 1) {
+            for (auto i = 0; i < num_samples / num_stream_ch; ++i) {
+                result.first = FloatMaxSSE2(buffer[i], result.first);
             }
-            else {
-                result[0] = (std::max)(buffer[i], result[0]);
-                result[1] = (std::max)(buffer[i+1], result[1]);
+        } else {
+            for (auto i = 0; i < num_samples / num_stream_ch; ++i) {
+                result.first = FloatMaxSSE2(buffer[i], result.first);
+                result.second = FloatMaxSSE2(buffer[i + 1], result.second);
             }
         }
     }
-
     stream->Seek(0);
-
     return result;
 }
 
 AlignPtr<FileStream> MakeFileStream(std::wstring const& file_ext, AlignPtr<FileStream> old_stream) {
     static const HashSet<std::wstring_view> dsd_ext{
         {L".dsf"},
-        {L".dff"}
+        {L".dff"},
     };
     static const HashSet<std::wstring_view> use_bass{
         {L".m4a"},

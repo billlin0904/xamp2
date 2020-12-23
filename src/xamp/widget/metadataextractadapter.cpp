@@ -39,7 +39,7 @@ public:
 
     std::tuple<int32_t, int32_t, QString> AddCache(const QString& album, const QString& artist) const;
 
-    QString AddCoverCache(int32_t album_id, const QString& album, const Metadata& metadata) const;
+    QString AddCoverCache(int32_t album_id, const QString& album, const Metadata& metadata, bool is_unknown_album) const;
 
     std::tuple<size_t, size_t, size_t> GetMissCount() const noexcept {
         return std::make_tuple(album_id_cache_.GetMissCount(), 
@@ -52,7 +52,7 @@ private:
     mutable LruCache<QString, int32_t> artist_id_cache_;
 };
 
-QString DatabaseIdCache::AddCoverCache(int32_t album_id, const QString& album, const Metadata& metadata) const {
+QString DatabaseIdCache::AddCoverCache(int32_t album_id, const QString& album, const Metadata& metadata, bool is_unknown_album) const {
     auto cover_id = Singleton<Database>::GetInstance().GetAlbumCoverId(album_id);
 	
     if (!cover_id.isEmpty()) {
@@ -68,8 +68,10 @@ QString DatabaseIdCache::AddCoverCache(int32_t album_id, const QString& album, c
             static_cast<uint32_t>(buffer.size()));
     }
     else {
-         pixmap = Singleton<PixmapCache>::GetInstance().FindFileDirCover(
-                QString::fromStdWString(metadata.file_path));  
+    	if (!is_unknown_album) {
+            pixmap = Singleton<PixmapCache>::GetInstance().FindFileDirCover(
+                QString::fromStdWString(metadata.file_path));
+    	}          
     }
     if (!pixmap.isNull()) {
         cover_id = Singleton<PixmapCache>::GetInstance().Add(pixmap);
@@ -242,7 +244,7 @@ void MetadataExtractAdapter::ProcessMetadata(const std::vector<Metadata>& result
 
         // Database not exist find others.
         if (cover_id.isEmpty()) {
-            cover_id = cache.AddCoverCache(album_id, album, metadata);
+            cover_id = cache.AddCoverCache(album_id, album, metadata, is_unknown_album);
         }
 
         IgnoreSqlError(Singleton<Database>::GetInstance().AddOrUpdateAlbumMusic(album_id, artist_id, music_id))

@@ -26,98 +26,15 @@ inline constexpr int32_t kFloat32Scale = 2147483647;
 inline constexpr float kMaxFloatSample = 1.0F;
 inline constexpr float kMinFloatSample = -1.0F;
 
-XAMP_ALWAYS_INLINE float ClampSample(float f) noexcept {	
-#ifdef XAMP_OS_WIN
-	return std::clamp(f, kMinFloatSample, kMaxFloatSample);
-#else
-	auto x = f;
-	x = ((x < kMinFloatSample) ? kMinFloatSample : ((x > kMaxFloatSample) ? kMaxFloatSample : x));
-	return x;
-#endif
-}
+XAMP_BASE_API void ClampSample(float* f, size_t num_samples) noexcept;
 
-#ifdef XAMP_OS_WIN
-XAMP_ALWAYS_INLINE void ClampSampleBaseLine(float* f, size_t num_samples) noexcept {
-	for (size_t i = 0; i < num_samples; ++i) {
-		f[i] = ClampSample(f[i]);
-	}
-}
+XAMP_BASE_API float ClampSampleSSE2(float f) noexcept;
 
-XAMP_ALWAYS_INLINE float FloatMinSSE2(float a, float b) noexcept {
-	_mm_store_ss(&a, _mm_min_ss(_mm_set_ss(a), _mm_set_ss(b)));
-	return a;
-}
+XAMP_BASE_API float ClampSample(float f) noexcept;
 
-XAMP_ALWAYS_INLINE float FloatMaxSSE2(float a, float b) noexcept {
-	_mm_store_ss(&a, _mm_max_ss(_mm_set_ss(a), _mm_set_ss(b)));
-	return a;
-}
+XAMP_BASE_API float FloatMaxSSE2(float a, float b) noexcept;
 
-XAMP_ALWAYS_INLINE float ClampSampleSSE2(float val, __m128 minval, __m128 maxval) noexcept {
-	_mm_store_ss(&val, _mm_min_ss(_mm_max_ss(_mm_set_ss(val), minval), maxval));
-	return val;
-}
-
-XAMP_ALWAYS_INLINE void ClampSample(float *f, size_t num_samples) noexcept {
-	const auto min_value = _mm_set_ss(kMinFloatSample);
-	const auto max_value = _mm_set_ss(kMaxFloatSample);
-	
-	const auto* end_input = f + num_samples;
-	switch ((end_input - f) % kLoopUnRollingIntCount) {
-	case 3:
-		*f = ClampSampleSSE2(*f, min_value, max_value);
-		++f;
-		[[fallthrough]];
-	case 2:
-		*f = ClampSampleSSE2(*f, min_value, max_value);
-		++f;
-		[[fallthrough]];
-	case 1:
-		*f = ClampSampleSSE2(*f, min_value, max_value);
-		++f;
-		[[fallthrough]];
-	case 0:
-		break;
-	}
-
-	while (f != end_input) {
-		f[0] = ClampSampleSSE2(f[0], min_value, max_value);
-		f[1] = ClampSampleSSE2(f[1], min_value, max_value);
-		f[2] = ClampSampleSSE2(f[2], min_value, max_value);
-		f[3] = ClampSampleSSE2(f[3], min_value, max_value);
-		f += 4;
-	}
-}
-#else
-XAMP_ALWAYS_INLINE void ClampSample(float* f, size_t num_samples) noexcept {
-    const auto* end_input = f + num_samples;
-
-	switch ((end_input - f) % kLoopUnRollingIntCount) {
-	case 3:
-		*f = ClampSample(*f);
-		++f;
-		[[fallthrough]];
-	case 2:
-		*f = ClampSample(*f);
-		++f;
-		[[fallthrough]];
-	case 1:
-		*f = ClampSample(*f);
-		++f;
-		[[fallthrough]];
-	case 0:
-		break;
-}
-
-	while (f != end_input) {
-		f[0] = ClampSample(f[0]);
-		f[1] = ClampSample(f[1]);
-		f[2] = ClampSample(f[2]);
-		f[3] = ClampSample(f[3]);
-		f += 4;
-	}
-}
-#endif
+XAMP_BASE_API float FloatMinSSE2(float a, float b) noexcept;
 	
 class Int24 final {
 public:
@@ -139,7 +56,7 @@ XAMP_ALWAYS_INLINE Int24::Int24(float f) noexcept {
 }
 
 XAMP_ALWAYS_INLINE Int24& Int24::operator=(float f) noexcept {
-	*this = static_cast<int32_t>(ClampSample(f) * kFloat24Scale);	
+	*this = static_cast<int32_t>(ClampSampleSSE2(f) * kFloat24Scale);
 	return *this;
 }
 
@@ -310,6 +227,7 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
 			const auto mul = ::_mm_mul_ps(in, scale);
 			const auto clamp = ::_mm_min_ps(_mm_max_ps(mul, min_val), max_val);
 			const auto result = ::_mm_cvtps_epi32(clamp);
+			::_mm_store_si128(reinterpret_cast<__m128i*>(output), result);
 			input += kLoopUnRollingIntCount;
 			output += kLoopUnRollingIntCount;
 		}

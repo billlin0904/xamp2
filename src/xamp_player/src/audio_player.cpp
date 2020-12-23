@@ -3,6 +3,7 @@
 #include <base/logger.h>
 #include <base/stl.h>
 #include <base/threadpool.h>
+#include <base/stacktrace.h>
 
 #include <output_device/audiodevicemanager.h>
 #include <output_device/asiodevicetype.h>
@@ -124,7 +125,7 @@ void AudioPlayer::Open(std::wstring const & file_path,
     Startup();
     CloseDevice(true);
     OpenStream(file_path, file_ext, device_info, use_native_dsd);
-    device_info_ = device_info;
+    device_info_ = device_info;    
 }
 
 void AudioPlayer::SetSampleRateConverter(uint32_t sample_rate, AlignPtr<SampleRateConverter>&& converter) {
