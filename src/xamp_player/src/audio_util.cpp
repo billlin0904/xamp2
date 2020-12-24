@@ -54,7 +54,7 @@ AlignPtr<FileStream> MakeStream(std::wstring const& file_ext, AlignPtr<FileStrea
     static const HashSet<std::wstring_view> use_bass{
         {L".m4a"},
         {L".ape"},
-        {L".flac"},
+        //{L".flac"},
     };
 
     const auto is_dsd_stream = dsd_ext.find(file_ext) != dsd_ext.end();
