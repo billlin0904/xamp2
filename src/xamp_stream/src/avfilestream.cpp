@@ -97,7 +97,7 @@ public:
     void LoadFromFile(std::wstring const & file_path) {
         AVFormatContext* format_ctx = nullptr;
 
-        auto file_path_ut8 = ToString(file_path);
+        const auto file_path_ut8 = ToString(file_path);
         auto err = ::avformat_open_input(&format_ctx, file_path_ut8.c_str(), nullptr, nullptr);
         if (err != 0) {
             if (err == AVERROR_INVALIDDATA) {
@@ -163,7 +163,7 @@ public:
         }
 
         auto channel_layout = codec_context_->channel_layout == 0 ? AV_CH_LAYOUT_STEREO : codec_context_->channel_layout;
-        // 固定轉成INTERLEAVED格式
+        // 固定轉成INTERLEAVED格式 立體聲
         swr_context_.reset(::swr_alloc_set_opts(swr_context_.get(),
                                                 AV_CH_LAYOUT_STEREO,
                                                 AV_SAMPLE_FMT_FLT,
@@ -224,7 +224,7 @@ public:
                         return num_read_sample;
                     }
 
-                    auto convert_size = ConvertSamples(buffer + num_read_sample, length - num_read_sample);
+                    const auto convert_size = ConvertSamples(buffer + num_read_sample, length - num_read_sample);
                     if (convert_size == 0) {
                         return 0;
                     }

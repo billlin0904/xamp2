@@ -3,7 +3,7 @@
 #include <base/logger.h>
 #include <base/stl.h>
 #include <base/threadpool.h>
-#include <base/stacktrace.h>
+#include <base/dsdsampleformat.h>
 
 #include <output_device/audiodevicemanager.h>
 #include <output_device/asiodevicetype.h>
@@ -184,14 +184,14 @@ bool AudioPlayer::IsDsdStream() const noexcept {
 }
 
 void AudioPlayer::OpenStream(std::wstring const & file_path, std::wstring const & file_ext, DeviceInfo const & device_info, bool use_native_dsd) {   
-    dsd_mode_ = GetStreamDsdMode(file_path, file_ext, device_info, use_native_dsd);
-    stream_ = MakeFileStream(file_ext, std::move(stream_));
+    auto [dsd_mode, stream] = MakeFileStream(file_path, file_ext, device_info, use_native_dsd);
+    stream_ = std::move(stream);
+    dsd_mode_ = dsd_mode;
     if (auto* dsd_stream = AsDsdStream(stream_)) {
         dsd_stream->SetDSDMode(dsd_mode_);
     }
-    stream_->OpenFile(file_path);    
     stream_duration_ = stream_->GetDuration();   
-    XAMP_LOG_DEBUG("Open stream type: {}.", stream_->GetDescription());    
+    XAMP_LOG_DEBUG("Open stream type: {} {}.", stream_->GetDescription(), dsd_mode_);
 }
 
 void AudioPlayer::SetState(const PlayerState play_state) {

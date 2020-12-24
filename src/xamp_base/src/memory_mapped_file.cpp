@@ -24,18 +24,18 @@ public:
     }
 
     void Open(std::wstring const & file_path) {
-        constexpr static DWORD kAccessMode = GENERIC_READ;
-        constexpr static DWORD kCreateType = OPEN_EXISTING;
-        constexpr static DWORD kProtect = PAGE_READONLY;
-        constexpr static DWORD kAccess = FILE_MAP_READ;
+        constexpr DWORD kAccessMode = GENERIC_READ;
+        constexpr DWORD kCreateType = OPEN_EXISTING;
+        constexpr DWORD kProtect = PAGE_READONLY;
+        constexpr DWORD kAccess = FILE_MAP_READ;
 
         file_.reset(::CreateFileW(file_path.c_str(),
                                   kAccessMode,
                                   FILE_SHARE_READ,
-                                  0,
+                                  nullptr,
                                   kCreateType,
                                   FILE_FLAG_SEQUENTIAL_SCAN,
-                                  0));
+                                  nullptr));
 
         if (file_) {
             OpenMappingFile(kProtect, kAccess);

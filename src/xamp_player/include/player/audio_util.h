@@ -25,11 +25,12 @@ XAMP_PLAYER_API DsdDevice* AsDsdDevice(AlignPtr<Device> const& device) noexcept;
 
 XAMP_PLAYER_API std::pair<float, float> GetNormalizedPeaks(AlignPtr<FileStream>& stream);
 
-XAMP_PLAYER_API AlignPtr<FileStream> MakeFileStream(std::wstring const& file_ext, AlignPtr<FileStream> old_stream = nullptr);
+AlignPtr<FileStream> MakeStream(std::wstring const& file_ext, AlignPtr<FileStream> old_stream = nullptr);
 
-XAMP_PLAYER_API DsdModes SetStreamDsdMode(AlignPtr<FileStream>& stream, const DeviceInfo& device_info, bool use_native_dsd = true);
-
-XAMP_PLAYER_API DsdModes GetStreamDsdMode(std::wstring const& file_path, std::wstring const& file_ext, DeviceInfo const& device_info, bool use_native_dsd);
+XAMP_PLAYER_API std::pair<DsdModes, AlignPtr<FileStream>> MakeFileStream(std::wstring const& file_path,
+	std::wstring const& file_ext,
+	DeviceInfo const& device_info,
+	bool use_native_dsd);
 
 }
 

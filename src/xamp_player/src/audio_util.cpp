@@ -46,7 +46,7 @@ std::pair<float, float> GetNormalizedPeaks(AlignPtr<FileStream>& stream) {
     return result;
 }
 
-AlignPtr<FileStream> MakeFileStream(std::wstring const& file_ext, AlignPtr<FileStream> old_stream) {
+AlignPtr<FileStream> MakeStream(std::wstring const& file_ext, AlignPtr<FileStream> old_stream) {
     static const HashSet<std::wstring_view> dsd_ext{
         {L".dsf"},
         {L".dff"},
@@ -54,6 +54,7 @@ AlignPtr<FileStream> MakeFileStream(std::wstring const& file_ext, AlignPtr<FileS
     static const HashSet<std::wstring_view> use_bass{
         {L".m4a"},
         {L".ape"},
+        {L".flac"},
     };
 
     const auto is_dsd_stream = dsd_ext.find(file_ext) != dsd_ext.end();
@@ -119,10 +120,13 @@ DsdModes SetStreamDsdMode(AlignPtr<FileStream>& stream, const DeviceInfo& device
     return dsd_mode;
 }
 
-DsdModes GetStreamDsdMode(std::wstring const& file_path, std::wstring const& file_ext, DeviceInfo const& device_info, bool use_native_dsd) {
-    auto test_dsd_mode_stream = MakeFileStream(file_ext);
+std::pair<DsdModes, AlignPtr<FileStream>> MakeFileStream(std::wstring const& file_path,
+    std::wstring const& file_ext,
+    DeviceInfo const& device_info,
+    bool use_native_dsd) {
+    auto test_dsd_mode_stream = MakeStream(file_ext);
     test_dsd_mode_stream->OpenFile(file_path);
-    return SetStreamDsdMode(test_dsd_mode_stream, device_info, use_native_dsd);
+    return std::make_pair(SetStreamDsdMode(test_dsd_mode_stream, device_info, use_native_dsd), std::move(test_dsd_mode_stream));
 }
 
 }

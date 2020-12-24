@@ -1101,45 +1101,39 @@ void Xamp::addPlayQueue() {
 #endif
 
     const auto item = playlist_view->nomapItem(next_index);
-    auto stream = MakeFileStream(item.file_ext.toStdWString());
-    const auto dsd_mode = GetStreamDsdMode(item.file_path.toStdWString(), 
-        item.file_ext.toStdWString(), 
-        device_info_, use_native_dsd);
-
-    if (auto* dsd_stream = AsDsdStream(stream)) {
-        dsd_stream->SetDSDMode(dsd_mode);
-    }
+    
 	
     try {
-        stream->OpenFile(item.file_path.toStdWString());
+        auto [dsd_mode, stream] = MakeFileStream(item.file_path.toStdWString(),
+            item.file_ext.toStdWString(),
+            device_info_, use_native_dsd);
+
+        const auto input_format = stream->GetFormat();
+        const auto output_format = player_->GetOutputFormat();
+
+        auto soxr_settings = JsonSettings::getValue(AppSettings::getValueAsString(kAppSettingSoxrSettingName)).toMap();
+        const auto output_sample_rate = soxr_settings[kSoxrResampleSampleRate].toUInt();
+
+        AlignPtr<SampleRateConverter> sample_rate_converter;
+
+        if (output_format == AudioFormat::UnknowFormat) {
+            sample_rate_converter = MakeSampleRateConverter(soxr_settings);
+            sample_rate_converter->Start(input_format.GetSampleRate(), input_format.GetChannels(), output_sample_rate);
+        }
+        else {
+            if (output_format.GetSampleRate() != output_sample_rate) {
+                stopPlayedClicked();
+                return;
+            }
+            sample_rate_converter = player_->CloneSampleRateConverter();
+            sample_rate_converter->Start(input_format.GetSampleRate(), input_format.GetChannels(), output_sample_rate);
+        }
+
+        state_adapter_->addPlayQueue(std::move(stream), std::move(sample_rate_converter), next_index);
     }
     catch (std::exception const &e) {
-        XAMP_LOG_DEBUG("addPlayQueue ex:{} ", e.what());
-        return;
-    }
-
-    const auto input_format = stream->GetFormat();
-    const auto output_format = player_->GetOutputFormat();
-
-    auto soxr_settings = JsonSettings::getValue(AppSettings::getValueAsString(kAppSettingSoxrSettingName)).toMap();
-    auto output_sample_rate = soxr_settings[kSoxrResampleSampleRate].toUInt();
-
-    AlignPtr<SampleRateConverter> sample_rate_converter;
-
-    if (output_format == AudioFormat::UnknowFormat) {
-        sample_rate_converter = MakeSampleRateConverter(soxr_settings);   
-        sample_rate_converter->Start(input_format.GetSampleRate(), input_format.GetChannels(), output_sample_rate);
-    }
-    else {
-        if (output_format.GetSampleRate() != output_sample_rate) {
-            stopPlayedClicked();
-            return;
-        }
-        sample_rate_converter = player_->CloneSampleRateConverter();
-        sample_rate_converter->Start(input_format.GetSampleRate(), input_format.GetChannels(), output_sample_rate);
+        XAMP_LOG_DEBUG("add play queue failure ex:{} ", e.what());
     }    
-
-    state_adapter_->addPlayQueue(std::move(stream), std::move(sample_rate_converter), next_index);
 }
 
 void Xamp::play(const QModelIndex&, const PlayListEntity& item) {

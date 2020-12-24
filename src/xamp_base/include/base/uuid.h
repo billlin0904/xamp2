@@ -88,7 +88,7 @@ struct hash<xamp::base::Uuid> {
 	typedef size_t result_type;
 	typedef xamp::base::Uuid argument_type;
 
-	result_type operator()(argument_type const& uuid) const {
+	result_type operator()(argument_type const& uuid) const noexcept {
 		return uuid.GetHash();
 	}
 };

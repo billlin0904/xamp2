@@ -156,9 +156,7 @@ MetadataExtractAdapter::MetadataExtractAdapter(QObject* parent)
     : QObject(parent) {    
 }
 
-MetadataExtractAdapter::~MetadataExtractAdapter() {
-    XAMP_LOG_DEBUG("~MetadataExtractAdapter !");
-}
+MetadataExtractAdapter::~MetadataExtractAdapter() = default;
 
 void MetadataExtractAdapter::ReadFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter, QString const & file_name) {
     auto dirs = GetDirList(file_name);
@@ -167,22 +165,6 @@ void MetadataExtractAdapter::ReadFileMetadata(const QSharedPointer<MetadataExtra
         dirs.push_back(file_name);
 	}
 
-#if 0
-    for (const auto & file_path : dirs) {
-        ThreadPool::GetInstance().Run([adapter, file_path]()
-            {
-                try {
-                    ExtractAdapterProxy proxy(adapter);
-                    const Path path(file_path.toStdWString());
-                    TaglibMetadataReader reader;
-                    WalkPath(path, &proxy, &reader);
-                }
-                catch (const std::exception& e) {
-                    XAMP_LOG_DEBUG("WalkPath has exception: {}", e.what());
-                }
-            });
-    }
-#else
     QProgressDialog dialog(tr("Read file metadata"), tr("Cancel"), 0, dirs.count());
     dialog.setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     dialog.setWindowTitle(tr("Read progress dialog"));
@@ -191,7 +173,7 @@ void MetadataExtractAdapter::ReadFileMetadata(const QSharedPointer<MetadataExtra
     dialog.setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed));
     dialog.show();
 
-    int progress = 0;
+    auto progress = 0;
 	
     for (const auto& file_path : dirs) {
     	if (dialog.wasCanceled()) {
@@ -211,7 +193,6 @@ void MetadataExtractAdapter::ReadFileMetadata(const QSharedPointer<MetadataExtra
             XAMP_LOG_DEBUG("WalkPath has exception: {}", e.what());
         }
     }
-#endif
 }
 
 void MetadataExtractAdapter::ProcessMetadata(const std::vector<Metadata>& result, PlayListTableView* playlist) {
@@ -232,6 +213,10 @@ void MetadataExtractAdapter::ProcessMetadata(const std::vector<Metadata>& result
             album = tr("Unknown album");
             is_unknown_album = true;
         }
+
+    	if (artist.isEmpty()) {
+            artist = tr("Unknown artist");
+    	}
 
         const auto music_id = Singleton<Database>::GetInstance().AddOrUpdateMusic(metadata, playlist_id);
 

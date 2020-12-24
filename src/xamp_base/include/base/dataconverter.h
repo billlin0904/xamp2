@@ -28,13 +28,21 @@ inline constexpr float kMinFloatSample = -1.0F;
 
 XAMP_BASE_API void ClampSample(float* f, size_t num_samples) noexcept;
 
-XAMP_BASE_API float ClampSampleSSE2(float f) noexcept;
-
 XAMP_BASE_API float ClampSample(float f) noexcept;
 
-XAMP_BASE_API float FloatMaxSSE2(float a, float b) noexcept;
+#ifdef XAMP_OS_WIN
+XAMP_BASE_API float ClampSampleSSE2(float f) noexcept;
 
-XAMP_BASE_API float FloatMinSSE2(float a, float b) noexcept;
+XAMP_BASE_API float FloatMaxSSE2(float a, float b) noexcept;
+#else
+XAMP_BASE_API float ClampSampleSSE2(float f) noexcept {
+	return ClampSample(f);
+}
+
+XAMP_BASE_API float FloatMax(float a, float b) noexcept {
+	return std::max(a, b);
+}
+#endif
 	
 class Int24 final {
 public:
