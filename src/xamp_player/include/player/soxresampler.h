@@ -5,8 +5,6 @@
 
 #pragma once
 
-#include <vector>
-
 #include <base/enum.h>
 #include <base/align_ptr.h>
 #include <base/audiobuffer.h>

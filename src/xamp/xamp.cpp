@@ -144,6 +144,16 @@ void Xamp::initial() {
     createTrayIcon();
     setDefaultStyle();
     AudioDeviceManager::GetInstance().RegisterDeviceListener(player_);
+
+    setStyleSheet(Q_UTF8(R"(
+	QListView#sliderBar::item {
+		border: 0px;
+		padding-left: 5px;
+	}
+	QListVieww#sliderBar::text {
+		left: 5px;
+	}
+	)"));
 }
 
 void Xamp::onActivated(QSystemTrayIcon::ActivationReason reason) {
@@ -608,7 +618,17 @@ void Xamp::initialController() {
     });
 
     (void)QObject::connect(ui.sliderBar, &TabListView::clickedTable, [this](auto table_id) {
-        setTablePlaylistView(table_id);
+    	switch (table_id) {
+        case 0:
+            ui.currentView->setCurrentWidget(album_artist_page_);
+            break;
+        case 1:
+            ui.currentView->setCurrentWidget(artist_info_page_);
+            break;
+    	default:
+            ui.currentView->setCurrentWidget(playlist_page_);
+            break;
+    	}        
     });
 
     (void)QObject::connect(ui.sliderBar, &TabListView::tableNameChanged, [](auto table_id, const auto &name) {
@@ -1100,8 +1120,7 @@ void Xamp::addPlayQueue() {
     const auto use_native_dsd = true;
 #endif
 
-    const auto item = playlist_view->nomapItem(next_index);
-    
+    const auto item = playlist_view->nomapItem(next_index);    
 	
     try {
         auto [dsd_mode, stream] = MakeFileStream(item.file_path.toStdWString(),
@@ -1225,6 +1244,10 @@ void Xamp::addTable() {
 }
 
 void Xamp::initialPlaylist() {
+    ui.sliderBar->addTab(tr("Albums"), 0, QIcon(Q_UTF8(":/xamp/Resource/Black/tab_albums.png")));
+	ui.sliderBar->addTab(tr("Artists"), 1, QIcon(Q_UTF8(":/xamp/Resource/Black/tab_artists.png")));
+    ui.sliderBar->addTab(tr("Playlists"), 2, QIcon(Q_UTF8(":/xamp/Resource/Black/tab_playlists.png")));
+	
     Singleton<Database>::GetInstance().ForEachTable([this](auto table_id,
                                              auto /*table_index*/,
                                              auto playlist_id,
@@ -1233,7 +1256,7 @@ void Xamp::initialPlaylist() {
             return;
         }
 
-        ui.sliderBar->addTab(name, table_id);
+        ui.sliderBar->addTab(name, table_id, QIcon(Q_UTF8(":/xamp/Resource/Black/tab_playlists.png")));
 
         if (!playlist_page_) {
             playlist_page_ = newPlaylist(playlist_id);

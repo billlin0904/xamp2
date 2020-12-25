@@ -49,5 +49,8 @@
         <file>Resource/Flags/JP.png</file>
         <file>Resource/Black/equalizer.png</file>
         <file>Resource/White/equalizer.png</file>
+        <file>Resource/Black/tab_albums.png</file>
+        <file>Resource/Black/tab_artists.png</file>
+        <file>Resource/Black/tab_playlists.png</file>
     </qresource>
 </RCC>

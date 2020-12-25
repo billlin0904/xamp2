@@ -13,7 +13,7 @@ class TabListView : public QListView {
 public:
     explicit TabListView(QWidget *parent = nullptr);
 
-    void addTab(const QString& name, int table_id);
+    void addTab(const QString& name, int table_id, const QIcon &icon);
 
 signals:
     void clickedTable(int table_id);

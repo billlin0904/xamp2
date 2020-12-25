@@ -1,10 +1,11 @@
+#include <widget/str_utilts.h>
 #include "tablistview.h"
 
 TabListView::TabListView(QWidget *parent)
     : QListView(parent)
     , model_(this) {
     setModel(&model_);
-    setFrameStyle(QFrame::NoFrame);
+    setFrameStyle(QFrame::NoFrame);    
 
     (void)QObject::connect(this, &QListView::clicked, [this](auto index) {
         auto table_id = index.data(Qt::UserRole + 1).toInt();
@@ -18,8 +19,9 @@ TabListView::TabListView(QWidget *parent)
     });
 }
 
-void TabListView::addTab(const QString& name, int table_id) {
+void TabListView::addTab(const QString& name, int table_id, const QIcon& icon) {
     auto item = new QStandardItem(name);
     item->setData(table_id);
+    item->setIcon(icon);
     model_.appendRow(item);
 }
