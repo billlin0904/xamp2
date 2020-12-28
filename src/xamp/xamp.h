@@ -155,7 +155,7 @@ private:
 	PlayerOrder order_;
 	QModelIndex play_index_;
 	DeviceInfo device_info_;
-    PlayListEntity current_entiry_;
+    PlayListEntity current_entity_;
 	LrcPage* lrc_page_;
 	PlyalistPage* playlist_page_;
 	AlbumArtistPage* album_artist_page_;
@@ -167,8 +167,8 @@ private:
 	MusicBrainzClient mbc_;
 	DiscogsClient discogs_;
     QList<AppEQSettings> eqsettings_;
-	QMenu* trayIconMenu_;
-	QSystemTrayIcon* trayIcon_;
+	QMenu* tray_icon_menu_;
+	QSystemTrayIcon* tray_icon_;
 	VmMemLock player_lock_;
-    Ui::XampWindow ui;
+    Ui::XampWindow ui_;
 };

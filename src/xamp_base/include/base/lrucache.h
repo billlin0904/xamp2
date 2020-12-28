@@ -26,7 +26,7 @@ public:
 
     void SetMaxSize(size_t max_size);
 
-    void Insert(Key const& key, Value const& value);
+    void AddOrUpdate(Key const& key, Value const& value);
 
     std::optional<Value const*> Find(Key const& key) const;
 
@@ -65,7 +65,7 @@ XAMP_ALWAYS_INLINE void LruCache<Key, Value>::SetMaxSize(size_t max_size) {
 }
 
 template <typename Key, typename Value>
-XAMP_ALWAYS_INLINE void LruCache<Key, Value>::Insert(Key const& key, Value const& value) {
+XAMP_ALWAYS_INLINE void LruCache<Key, Value>::AddOrUpdate(Key const& key, Value const& value) {
     auto check = map_.find(key);
     if (check != map_.cend()) {
         check->second->second = value;

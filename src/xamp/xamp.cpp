@@ -143,17 +143,7 @@ void Xamp::initial() {
     setCover(nullptr);    
     createTrayIcon();
     setDefaultStyle();
-    AudioDeviceManager::GetInstance().RegisterDeviceListener(player_);
-
-    setStyleSheet(Q_UTF8(R"(
-	QListView#sliderBar::item {
-		border: 0px;
-		padding-left: 5px;
-	}
-	QListVieww#sliderBar::text {
-		left: 5px;
-	}
-	)"));
+    AudioDeviceManager::GetInstance().RegisterDeviceListener(player_);    
 }
 
 void Xamp::onActivated(QSystemTrayIcon::ActivationReason reason) {
@@ -175,39 +165,39 @@ void Xamp::onActivated(QSystemTrayIcon::ActivationReason reason) {
 }
 
 void Xamp::createTrayIcon() {
-    auto minimizeAction = new QAction(tr("Mi&nimize"), this);
-    QObject::connect(minimizeAction, &QAction::triggered, this, &QWidget::hide);
+    auto minimize_action = new QAction(tr("Mi&nimize"), this);
+    QObject::connect(minimize_action, &QAction::triggered, this, &QWidget::hide);
 
-    auto  maximizeAction = new QAction(tr("Ma&ximize"), this);
-    QObject::connect(maximizeAction, &QAction::triggered, this, &QWidget::showMaximized);
+    auto maximize_action = new QAction(tr("Ma&ximize"), this);
+    QObject::connect(maximize_action, &QAction::triggered, this, &QWidget::showMaximized);
 
-    auto restoreAction = new QAction(tr("&Restore"), this);
-    QObject::connect(restoreAction, &QAction::triggered, this, &QWidget::showNormal);
+    auto restore_action = new QAction(tr("&Restore"), this);
+    QObject::connect(restore_action, &QAction::triggered, this, &QWidget::showNormal);
 
-    auto quitAction = new QAction(tr("&Quit"), this);
-    QObject::connect(quitAction, &QAction::triggered, this, &QWidget::close);
+    auto quit_action = new QAction(tr("&Quit"), this);
+    QObject::connect(quit_action, &QAction::triggered, this, &QWidget::close);
 
-    auto aboutAction = new QAction(tr("&About"), this);
-    (void)QObject::connect(aboutAction, &QAction::triggered, [=]() {
+    auto about_action = new QAction(tr("&About"), this);
+    (void)QObject::connect(about_action, &QAction::triggered, [=]() {
         AboutDialog aboutdlg;
         aboutdlg.setFont(font());
         aboutdlg.exec();
         });
 
-    trayIconMenu_ = new QMenu(this);
-    trayIconMenu_->addAction(minimizeAction);
-    trayIconMenu_->addAction(maximizeAction);
-    trayIconMenu_->addAction(restoreAction);
-    trayIconMenu_->addAction(aboutAction);
-    trayIconMenu_->addSeparator();
-    trayIconMenu_->addAction(quitAction);
+    tray_icon_menu_ = new QMenu(this);
+    tray_icon_menu_->addAction(minimize_action);
+    tray_icon_menu_->addAction(maximize_action);
+    tray_icon_menu_->addAction(restore_action);
+    tray_icon_menu_->addAction(about_action);
+    tray_icon_menu_->addSeparator();
+    tray_icon_menu_->addAction(quit_action);
 
-    trayIcon_ = new QSystemTrayIcon(ThemeManager::instance().appIcon(), this);
-    trayIcon_->setContextMenu(trayIconMenu_);
-    trayIcon_->setToolTip(Q_UTF8("XAMP"));
-    trayIcon_->show();
+    tray_icon_ = new QSystemTrayIcon(ThemeManager::instance().appIcon(), this);
+    tray_icon_->setContextMenu(tray_icon_menu_);
+    tray_icon_->setToolTip(Q_UTF8("XAMP"));
+    tray_icon_->show();
 
-    QObject::connect(trayIcon_,
+    QObject::connect(tray_icon_,
         SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
         this,
         SLOT(onActivated(QSystemTrayIcon::ActivationReason)));
@@ -224,7 +214,7 @@ void Xamp::paintEvent(QPaintEvent* event) {
 void Xamp::closeEvent(QCloseEvent* event) {
     auto is_min_system_tray = AppSettings::getValueAsBool(kAppSettingMinimizeToTray);
 
-    if (trayIcon_->isVisible() && !isHidden()) {        
+    if (tray_icon_->isVisible() && !isHidden()) {        
         auto show_agin = AppSettings::getValueAsBool(kAppSettingMinimizeToTrayAsk);
         QMessageBox::StandardButton reply = QMessageBox::No;
 
@@ -249,7 +239,7 @@ void Xamp::closeEvent(QCloseEvent* event) {
 
     AppSettings::setValue(kAppSettingWidth, size().width());
     AppSettings::setValue(kAppSettingHeight, size().height());
-    AppSettings::setValue(kAppSettingVolume, ui.volumeSlider->value());
+    AppSettings::setValue(kAppSettingVolume, ui_.volumeSlider->value());
 
     if (player_ != nullptr) {
         player_->Destroy();
@@ -258,9 +248,19 @@ void Xamp::closeEvent(QCloseEvent* event) {
 }
 
 void Xamp::setDefaultStyle() {
-    ThemeManager::instance().setDefaultStyle(ui);
+    ThemeManager::instance().setDefaultStyle(ui_);
     applyTheme(ThemeManager::instance().getBackgroundColor());
     ThemeManager::instance().enableBlur(this, AppSettings::getValueAsBool(kAppSettingEnableBlur));
+
+    setStyleSheet(Q_UTF8(R"(
+	QListView#sliderBar::item {
+		border: 0px;
+		padding-left: 5px;
+	}
+	QListVieww#sliderBar::text {
+		left: 5px;
+	}
+	)"));
 }
 
 void Xamp::registerMetaType() {
@@ -274,21 +274,21 @@ void Xamp::registerMetaType() {
 
 void Xamp::initialUI() {
     registerMetaType();    
-    ui.setupUi(this);
+    ui_.setupUi(this);
     auto f = font();
     f.setPointSize(10);
-    ui.titleLabel->setFont(f);
+    ui_.titleLabel->setFont(f);
     f.setPointSize(8);
-    ui.artistLabel->setFont(f);
+    ui_.artistLabel->setFont(f);
 #ifdef Q_OS_WIN
     if (use_native_window_) {
-        ui.closeButton->hide();
-        ui.maxWinButton->hide();
-        ui.minWinButton->hide();
+        ui_.closeButton->hide();
+        ui_.maxWinButton->hide();
+        ui_.minWinButton->hide();
     }
     f.setPointSize(7);
-    ui.startPosLabel->setFont(f);
-    ui.endPosLabel->setFont(f);
+    ui_.startPosLabel->setFont(f);
+    ui_.endPosLabel->setFont(f);
 #else
     ui.closeButton->hide();
     ui.maxWinButton->hide();
@@ -322,10 +322,10 @@ void Xamp::onDeviceStateChanged(DeviceState state) {
 }
 
 void Xamp::initialDeviceList() {    
-    auto* menu = ui.selectDeviceButton->menu();
+    auto* menu = ui_.selectDeviceButton->menu();
     if (!menu) {
         menu = new QMenu(this);
-        ui.selectDeviceButton->setMenu(menu);
+        ui_.selectDeviceButton->setMenu(menu);
     }
 
     ThemeManager::instance().setBackgroundColor(menu);
@@ -410,11 +410,11 @@ void Xamp::initialDeviceList() {
 }
 
 void Xamp::initialController() {
-    (void)QObject::connect(ui.minWinButton, &QToolButton::pressed, [this]() {
+    (void)QObject::connect(ui_.minWinButton, &QToolButton::pressed, [this]() {
         showMinimized();
     });
 
-    (void)QObject::connect(ui.maxWinButton, &QToolButton::pressed, [this]() {
+    (void)QObject::connect(ui_.maxWinButton, &QToolButton::pressed, [this]() {
         if (isMaximized()) {
             showNormal();
         }
@@ -423,24 +423,24 @@ void Xamp::initialController() {
         }
     });
 
-    (void)QObject::connect(ui.mutedButton, &QToolButton::pressed, [this]() {
-        if (!ui.volumeSlider->isEnabled()) {
+    (void)QObject::connect(ui_.mutedButton, &QToolButton::pressed, [this]() {
+        if (!ui_.volumeSlider->isEnabled()) {
             return;
         }
         if (player_->IsMute()) {
             player_->SetMute(false);            
-            ui.mutedButton->setIcon(ThemeManager::instance().volumeUp());
+            ui_.mutedButton->setIcon(ThemeManager::instance().volumeUp());
         } else {
             player_->SetMute(true);
-            ui.mutedButton->setIcon(ThemeManager::instance().volumeOff());
+            ui_.mutedButton->setIcon(ThemeManager::instance().volumeOff());
         }
     });
 
-    (void)QObject::connect(ui.closeButton, &QToolButton::pressed, [this]() {
+    (void)QObject::connect(ui_.closeButton, &QToolButton::pressed, [this]() {
         QWidget::close();
     });
 
-    (void)QObject::connect(ui.gaplessPlayButton, &QToolButton::pressed, [this]() {        
+    (void)QObject::connect(ui_.gaplessPlayButton, &QToolButton::pressed, [this]() {        
         auto enable = AppSettings::getValueAsBool(kAppSettingEnableGaplessPlay);
         if (!enable) {
             XAMP_LOG_DEBUG("Enable gapless play");
@@ -461,7 +461,7 @@ void Xamp::initialController() {
         applyConfig();
         });
 
-    (void)QObject::connect(ui.seekSlider, &SeekSlider::leftButtonValueChanged, [this](auto value) {
+    (void)QObject::connect(ui_.seekSlider, &SeekSlider::leftButtonValueChanged, [this](auto value) {
         try {
             player_->Seek(static_cast<double>(value / 1000.0));
         }
@@ -472,21 +472,21 @@ void Xamp::initialController() {
         }
     });
 
-    (void)QObject::connect(ui.seekSlider, &SeekSlider::sliderMoved, [this](auto value) {
-        QToolTip::showText(QCursor::pos(), Time::msToString(double(ui.seekSlider->value()) / 1000.0));
+    (void)QObject::connect(ui_.seekSlider, &SeekSlider::sliderMoved, [this](auto value) {
+        QToolTip::showText(QCursor::pos(), Time::msToString(double(ui_.seekSlider->value()) / 1000.0));
         if (!is_seeking_) {
             return;
         }
-        ui.seekSlider->setValue(value);
+        ui_.seekSlider->setValue(value);
     });
 
-    (void)QObject::connect(ui.seekSlider, &SeekSlider::sliderReleased, [this]() {
-        QToolTip::showText(QCursor::pos(), Time::msToString(double(ui.seekSlider->value()) / 1000.0));
+    (void)QObject::connect(ui_.seekSlider, &SeekSlider::sliderReleased, [this]() {
+        QToolTip::showText(QCursor::pos(), Time::msToString(double(ui_.seekSlider->value()) / 1000.0));
         if (!is_seeking_) {
             return;
         }
         try {
-            player_->Seek(static_cast<double>(ui.seekSlider->value() / 1000.0));
+            player_->Seek(static_cast<double>(ui_.seekSlider->value() / 1000.0));
         }
         catch (const Exception& e) {
             player_->Stop(false);
@@ -496,8 +496,8 @@ void Xamp::initialController() {
         is_seeking_ = false;
     });
 
-    (void)QObject::connect(ui.seekSlider, &SeekSlider::sliderPressed, [this]() {
-        QToolTip::showText(QCursor::pos(), Time::msToString(double(ui.seekSlider->value()) / 1000.0));
+    (void)QObject::connect(ui_.seekSlider, &SeekSlider::sliderPressed, [this]() {
+        QToolTip::showText(QCursor::pos(), Time::msToString(double(ui_.seekSlider->value()) / 1000.0));
         if (is_seeking_) {
             return;
         }
@@ -509,22 +509,22 @@ void Xamp::initialController() {
     setPlayerOrder();
 
     auto vol = AppSettings::getValue(kAppSettingVolume).toUInt();
-    ui.volumeSlider->setRange(0, 100);
-    ui.volumeSlider->setValue(static_cast<int32_t>(vol));
+    ui_.volumeSlider->setRange(0, 100);
+    ui_.volumeSlider->setValue(static_cast<int32_t>(vol));
     player_->SetMute(vol == 0);
     player_->SetVolume(vol);
 
-    (void)QObject::connect(ui.volumeSlider, &QSlider::valueChanged, [this](auto volume) {
+    (void)QObject::connect(ui_.volumeSlider, &QSlider::valueChanged, [this](auto volume) {
         QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + Q_UTF8("%"));
         setVolume(volume);
     });
 
-    (void)QObject::connect(ui.volumeSlider, &SeekSlider::leftButtonValueChanged, [this](auto volume) {
+    (void)QObject::connect(ui_.volumeSlider, &SeekSlider::leftButtonValueChanged, [this](auto volume) {
         QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + Q_UTF8("%"));
         setVolume(volume);
     });
 
-    (void)QObject::connect(ui.volumeSlider, &QSlider::sliderMoved, [](auto volume) {
+    (void)QObject::connect(ui_.volumeSlider, &QSlider::sliderMoved, [](auto volume) {
         QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + Q_UTF8("%"));
     });
 
@@ -552,48 +552,48 @@ void Xamp::initialController() {
                             &Xamp::onDeviceStateChanged,
                             Qt::QueuedConnection);
 
-    (void)QObject::connect(ui.searchLineEdit, &QLineEdit::textChanged, [this](const auto &text) {
-        if (ui.currentView->count() > 0) {
+    (void)QObject::connect(ui_.searchLineEdit, &QLineEdit::textChanged, [this](const auto &text) {
+        if (ui_.currentView->count() > 0) {
             auto playlist_view = playlist_page_->playlist();
             emit playlist_view->search(text, Qt::CaseSensitivity::CaseInsensitive, QRegExp::PatternSyntax());
             emit album_artist_page_->album()->onSearchTextChanged(text);
         }
     });
 
-    (void)QObject::connect(ui.nextButton, &QToolButton::pressed, [this]() {
+    (void)QObject::connect(ui_.nextButton, &QToolButton::pressed, [this]() {
         playNextClicked();
     });
 
-    (void)QObject::connect(ui.prevButton, &QToolButton::pressed, [this]() {
+    (void)QObject::connect(ui_.prevButton, &QToolButton::pressed, [this]() {
         playPreviousClicked();
     });
 
-    (void)QObject::connect(ui.repeatButton, &QToolButton::pressed, [this]() {
+    (void)QObject::connect(ui_.repeatButton, &QToolButton::pressed, [this]() {
         order_ = GetNextOrder(order_);
         XAMP_LOG_DEBUG("Set playerorder {}", order_);
         setPlayerOrder();
     });
 
-    (void)QObject::connect(ui.playButton, &QToolButton::pressed, [this]() {
+    (void)QObject::connect(ui_.playButton, &QToolButton::pressed, [this]() {
         play();
     });
 
-    (void)QObject::connect(ui.stopButton, &QToolButton::pressed, [this]() {
+    (void)QObject::connect(ui_.stopButton, &QToolButton::pressed, [this]() {
         stopPlayedClicked();
     });
 
-    (void)QObject::connect(ui.backPageButton, &QToolButton::pressed, [this]() {
+    (void)QObject::connect(ui_.backPageButton, &QToolButton::pressed, [this]() {
         goBackPage();
         album_artist_page_->refreshOnece();
     });
 
-    (void)QObject::connect(ui.nextPageButton, &QToolButton::pressed, [this]() {
+    (void)QObject::connect(ui_.nextPageButton, &QToolButton::pressed, [this]() {
         getNextPage();
         album_artist_page_->refreshOnece();
-        emit album_artist_page_->album()->onSearchTextChanged(ui.searchLineEdit->text());
+        emit album_artist_page_->album()->onSearchTextChanged(ui_.searchLineEdit->text());
     });
 
-    (void)QObject::connect(ui.addPlaylistButton, &QToolButton::pressed, [this]() {
+    (void)QObject::connect(ui_.addPlaylistButton, &QToolButton::pressed, [this]() {
         auto pos = mapFromGlobal(QCursor::pos());
         playback_history_page_->move(QPoint(pos.x() - 300, pos.y() - 410));
         playback_history_page_->setMinimumSize(QSize(550, 400));
@@ -601,7 +601,7 @@ void Xamp::initialController() {
         playback_history_page_->show();
     });
 
-    (void)QObject::connect(ui.eqButton, &QToolButton::pressed, [this]() {
+    (void)QObject::connect(ui_.eqButton, &QToolButton::pressed, [this]() {
         EQDialog eqdialog;
         eqdialog.setFont(font());
         if (eqdialog.exec() == QDialog::Accepted) {
@@ -609,29 +609,33 @@ void Xamp::initialController() {
         }        
     });
 
-    (void)QObject::connect(ui.artistLabel, &ClickableLabel::clicked, [this]() {
-        onArtistIdChanged(current_entiry_.artist, current_entiry_.cover_id, current_entiry_.artist_id);
+    (void)QObject::connect(ui_.artistLabel, &ClickableLabel::clicked, [this]() {
+        onArtistIdChanged(current_entity_.artist, current_entity_.cover_id, current_entity_.artist_id);
     });
 
-    (void)QObject::connect(ui.coverLabel, &ClickableLabel::clicked, [this]() {
-        ui.currentView->setCurrentWidget(lrc_page_);
+    (void)QObject::connect(ui_.coverLabel, &ClickableLabel::clicked, [this]() {
+        ui_.currentView->setCurrentWidget(lrc_page_);
     });
 
-    (void)QObject::connect(ui.sliderBar, &TabListView::clickedTable, [this](auto table_id) {
+    (void)QObject::connect(ui_.sliderBar, &TabListView::clickedTable, [this](auto table_id) {
     	switch (table_id) {
         case 0:
-            ui.currentView->setCurrentWidget(album_artist_page_);
+            ui_.currentView->setCurrentWidget(album_artist_page_);
             break;
         case 1:
-            ui.currentView->setCurrentWidget(artist_info_page_);
+            ui_.currentView->setCurrentWidget(artist_info_page_);
             break;
-    	default:
-            ui.currentView->setCurrentWidget(playlist_page_);
+        case 2:
+            ui_.currentView->setCurrentWidget(playlist_page_);
             break;
+        case 3:
+            ui_.currentView->setCurrentWidget(lrc_page_);
+            break;
+    	
     	}        
     });
 
-    (void)QObject::connect(ui.sliderBar, &TabListView::tableNameChanged, [](auto table_id, const auto &name) {
+    (void)QObject::connect(ui_.sliderBar, &TabListView::tableNameChanged, [](auto table_id, const auto &name) {
         Singleton<Database>::GetInstance().SetTableName(table_id, name);
     });
 
@@ -675,23 +679,23 @@ void Xamp::initialController() {
         aboutdlg.setFont(font());
         aboutdlg.exec();
     });
-    ui.settingsButton->setMenu(settings_menu);
+    ui_.settingsButton->setMenu(settings_menu);
 
-    ui.seekSlider->setEnabled(false);
-    ui.startPosLabel->setText(Time::msToString(0));
-    ui.endPosLabel->setText(Time::msToString(0));
-    ui.searchLineEdit->setPlaceholderText(tr("Search anything"));
+    ui_.seekSlider->setEnabled(false);
+    ui_.startPosLabel->setText(Time::msToString(0));
+    ui_.endPosLabel->setText(Time::msToString(0));
+    ui_.searchLineEdit->setPlaceholderText(tr("Search anything"));
 
     applyConfig();
 }
 
 void Xamp::applyConfig() {
     if (AppSettings::getValueAsBool(kAppSettingEnableGaplessPlay)) {
-        ui.gaplessPlayButton->setStyleSheet(Q_UTF8("QToolButton#gaplessPlayButton { color: rgb(255, 255, 255); }"));
+        ui_.gaplessPlayButton->setStyleSheet(Q_UTF8("QToolButton#gaplessPlayButton { color: rgb(255, 255, 255); }"));
         player_->EnableGaplessPlay(true);
     }
     else {
-        ui.gaplessPlayButton->setStyleSheet(Q_UTF8("QToolButton#gaplessPlayButton { color: gray; }"));
+        ui_.gaplessPlayButton->setStyleSheet(Q_UTF8("QToolButton#gaplessPlayButton { color: gray; }"));
         player_->EnableGaplessPlay(false);
     }
 }
@@ -709,21 +713,21 @@ void Xamp::applyTheme(QColor color) {
     }
 
     if (player_->GetState() == PlayerState::PLAYER_STATE_PAUSED) {
-        ThemeManager::instance().setPlayOrPauseButton(ui, true);
+        ThemeManager::instance().setPlayOrPauseButton(ui_, true);
     }
     else {
-        ThemeManager::instance().setPlayOrPauseButton(ui, false);
+        ThemeManager::instance().setPlayOrPauseButton(ui_, false);
     }
 
-    ThemeManager::instance().setBackgroundColor(ui, color);    
+    ThemeManager::instance().setBackgroundColor(ui_, color);    
 }
 
 void Xamp::getNextPage() {
     if (stack_page_id_.isEmpty()) {
         return;
     }
-    auto idx = ui.currentView->currentIndex();
-    ui.currentView->setCurrentIndex(idx + 1);
+    auto idx = ui_.currentView->currentIndex();
+    ui_.currentView->setCurrentIndex(idx + 1);
 }
 
 void Xamp::setTablePlaylistView(int table_id) {
@@ -731,9 +735,9 @@ void Xamp::setTablePlaylistView(int table_id) {
 
     bool found = false;
     for (auto idx : stack_page_id_) {
-        if (auto page = dynamic_cast<PlyalistPage*>(ui.currentView->widget(idx))) {
+        if (auto page = dynamic_cast<PlyalistPage*>(ui_.currentView->widget(idx))) {
             if (page->playlist()->playlistId() == playlist_id) {
-                ui.currentView->setCurrentIndex(idx);
+                ui_.currentView->setCurrentIndex(idx);
                 found = true;
                 break;
             }
@@ -751,18 +755,18 @@ void Xamp::goBackPage() {
     if (stack_page_id_.isEmpty()) {
         return;
     }
-    auto idx = ui.currentView->currentIndex();
-    ui.currentView->setCurrentIndex(idx - 1);
+    auto idx = ui_.currentView->currentIndex();
+    ui_.currentView->setCurrentIndex(idx - 1);
 }
 
 void Xamp::setVolume(int32_t volume) {
     if (volume > 0) {
         player_->SetMute(false);
-        ui.mutedButton->setIcon(ThemeManager::instance().volumeUp());
+        ui_.mutedButton->setIcon(ThemeManager::instance().volumeUp());
     }
     else {
         player_->SetMute(true);
-        ui.mutedButton->setIcon(ThemeManager::instance().volumeOff());
+        ui_.mutedButton->setIcon(ThemeManager::instance().volumeOff());
     }
 
     try {
@@ -784,7 +788,7 @@ void Xamp::initialShortcut() {
 void Xamp::stopPlayedClicked() {
     player_->Stop(false, true);
     setSeekPosValue(0);
-    ui.seekSlider->setEnabled(false);
+    ui_.seekSlider->setEnabled(false);
     playlist_page_->playlist()->removePlaying();
     player_->ClearPlayQueue();
 }
@@ -798,7 +802,7 @@ void Xamp::playPreviousClicked() {
 }
 
 void Xamp::deleteKeyPress() {
-    if (!ui.currentView->count()) {
+    if (!ui_.currentView->count()) {
         return;
     }
     auto playlist_view = playlist_page_->playlist();
@@ -809,17 +813,17 @@ void Xamp::deleteKeyPress() {
 void Xamp::setPlayerOrder() {
     switch (order_) {
     case PlayerOrder::PLAYER_ORDER_REPEAT_ONCE:
-        ThemeManager::instance().setRepeatOncePlayOrder(ui);
+        ThemeManager::instance().setRepeatOncePlayOrder(ui_);
         AppSettings::setValue(kAppSettingOrder,
                               static_cast<int>(PlayerOrder::PLAYER_ORDER_REPEAT_ONCE));
         break;
     case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:
-        ThemeManager::instance().setRepeatOnePlayOrder(ui);
+        ThemeManager::instance().setRepeatOnePlayOrder(ui_);
         AppSettings::setValue(kAppSettingOrder,
                               static_cast<int>(PlayerOrder::PLAYER_ORDER_REPEAT_ONE));
         break;
     case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL:
-        ThemeManager::instance().setShufflePlayorder(ui);
+        ThemeManager::instance().setShufflePlayorder(ui_);
         AppSettings::setValue(kAppSettingOrder,
                               static_cast<int>(PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL));
         break;
@@ -838,11 +842,11 @@ void Xamp::onSampleTimeChanged(double stream_time) {
 }
 
 void Xamp::setSeekPosValue(double stream_time) {
-    ui.endPosLabel->setText(Time::msToString(player_->GetDuration() - stream_time));
+    ui_.endPosLabel->setText(Time::msToString(player_->GetDuration() - stream_time));
     auto stream_time_as_ms = static_cast<int32_t>(stream_time * 1000.0);
-    ui.seekSlider->setValue(stream_time_as_ms);
-    ui.startPosLabel->setText(Time::msToString(stream_time));
-    setTaskbarProgress(100.0 * ui.seekSlider->value() / ui.seekSlider->maximum());
+    ui_.seekSlider->setValue(stream_time_as_ms);
+    ui_.startPosLabel->setText(Time::msToString(stream_time));
+    setTaskbarProgress(100.0 * ui_.seekSlider->value() / ui_.seekSlider->maximum());
     lrc_page_->lyricsWidget()->setLrcTime(stream_time_as_ms);
 }
 
@@ -855,17 +859,17 @@ void Xamp::play() {
     XAMP_LOG_DEBUG("Player state:{}", player_->GetState());
 
     if (player_->GetState() == PlayerState::PLAYER_STATE_RUNNING) {
-        ThemeManager::instance().setPlayOrPauseButton(ui, false);
+        ThemeManager::instance().setPlayOrPauseButton(ui_, false);
         player_->Pause();
         setTaskbarPlayerPaused();
     }
     else if (player_->GetState() == PlayerState::PLAYER_STATE_PAUSED) {
-        ThemeManager::instance().setPlayOrPauseButton(ui, true);
+        ThemeManager::instance().setPlayOrPauseButton(ui_, true);
         player_->Resume();
         setTaskbarPlayingResume();
     }
     else if (player_->GetState() == PlayerState::PLAYER_STATE_STOPPED) {
-        if (!ui.currentView->count()) {
+        if (!ui_.currentView->count()) {
             return;
         }
         if (auto select_item = playlist_page_->playlist()->selectItem()) {
@@ -883,8 +887,8 @@ void Xamp::play() {
 }
 
 void Xamp::resetSeekPosValue() {
-    ui.seekSlider->setValue(0);
-    ui.startPosLabel->setText(Time::msToString(0));
+    ui_.seekSlider->setValue(0);
+    ui_.startPosLabel->setText(Time::msToString(0));
 }
 
 void Xamp::setupSampleRateConverter() {
@@ -929,14 +933,14 @@ void Xamp::setupEQ() {
 void Xamp::playMusic(const MusicEntity& item) {
     auto open_done = false;
 
-    ui.seekSlider->setEnabled(true);
+    ui_.seekSlider->setEnabled(true);
 
     XAMP_ON_SCOPE_EXIT(
         if (open_done) {
             return;
         }
         resetSeekPosValue();
-        ui.seekSlider->setEnabled(false);
+        ui_.seekSlider->setEnabled(false);
         player_->Stop(false, true);
         );
 
@@ -968,7 +972,7 @@ void Xamp::playMusic(const MusicEntity& item) {
         Toast::showTip(tr("unknown error"), this);
     }
 
-    ThemeManager::instance().setPlayOrPauseButton(ui, true);
+    ThemeManager::instance().setPlayOrPauseButton(ui_, true);
     updateUI(item, playback_format, open_done);
 }
 
@@ -976,26 +980,26 @@ void Xamp::updateUI(const MusicEntity& item, const PlaybackFormat& playback_form
     if (open_done) {
         if (player_->IsHardwareControlVolume()) {
             if (!player_->IsMute()) {
-                setVolume(ui.volumeSlider->value());
+                setVolume(ui_.volumeSlider->value());
             }
             else {
                 setVolume(0);
             }
-            ui.volumeSlider->setDisabled(false);
+            ui_.volumeSlider->setDisabled(false);
         }
         else {
-            ui.volumeSlider->setDisabled(true);
+            ui_.volumeSlider->setDisabled(true);
         }
 
         Singleton<Database>::GetInstance().AddPlaybackHistory(item.album_id, item.artist_id, item.music_id);
         playback_history_page_->refreshOnece();
 
-        ui.seekSlider->setRange(0, static_cast<int32_t>(player_->GetDuration() * 1000));
-        ui.endPosLabel->setText(Time::msToString(player_->GetDuration()));
+        ui_.seekSlider->setRange(0, static_cast<int32_t>(player_->GetDuration() * 1000));
+        ui_.endPosLabel->setText(Time::msToString(player_->GetDuration()));
         playlist_page_->format()->setText(format2String(playback_format, item.file_ext));
     }
 
-    if (current_entiry_.cover_id != item.cover_id) {
+    if (current_entity_.cover_id != item.cover_id) {
         if (item.cover_id == Singleton<PixmapCache>::GetInstance().getUnknownCoverId()) {
             setCover(nullptr);
         }
@@ -1009,8 +1013,8 @@ void Xamp::updateUI(const MusicEntity& item, const PlaybackFormat& playback_form
         }        
     }
 
-    ui.titleLabel->setText(item.title);
-    ui.artistLabel->setText(item.artist);
+    ui_.titleLabel->setText(item.title);
+    ui_.artistLabel->setText(item.artist);
 
     playlist_page_->title()->setText(item.title);
 
@@ -1025,13 +1029,13 @@ void Xamp::updateUI(const MusicEntity& item, const PlaybackFormat& playback_form
     lrc_page_->artist()->setText(item.artist);
 
     if (isHidden()) {
-        trayIcon_->showMessage(item.album, item.title, ThemeManager::instance().appIcon(), 1000);
+        tray_icon_->showMessage(item.album, item.title, ThemeManager::instance().appIcon(), 1000);
     }
 }
 
 void Xamp::play(const PlayListEntity& item) {      
     playMusic(toMusicEntity(item));
-    current_entiry_ = item;
+    current_entity_ = item;
 }
 
 void Xamp::onGaplessPlay(const QModelIndex &index) {
@@ -1041,7 +1045,7 @@ void Xamp::onGaplessPlay(const QModelIndex &index) {
     auto music_entity = toMusicEntity(item);
     updateUI(music_entity, getPlaybackFormat(player_.get()), true);
 
-    current_entiry_ = item;
+    current_entity_ = item;
     play_index_ = index;
 
     addPlayQueue();
@@ -1087,7 +1091,7 @@ void Xamp::playNextItem(int32_t forward) {
 }
 
 void Xamp::addPlayQueue() {
-    auto playlist_view = playlist_page_->playlist();    
+	auto* playlist_view = playlist_page_->playlist();    
     const auto count = playlist_view->model()->rowCount();
     if (count == 0) {
         stopPlayedClicked();
@@ -1160,7 +1164,7 @@ void Xamp::play(const QModelIndex&, const PlayListEntity& item) {
 
     while (AppSettings::getValueAsBool(kAppSettingEnableGaplessPlay)) {
         if (!AppSettings::getValueAsBool(kAppSettingResamplerEnable)) {
-            auto result = showAskDialog(this, "Gapless play must enable DSP first");
+	        const auto result = showAskDialog(this, "Gapless play must enable DSP first");
             if (result == QMessageBox::Yes) {
                 PreferenceDialog dialog;
                 dialog.setFont(font());
@@ -1188,7 +1192,7 @@ void Xamp::play(const QModelIndex&, const PlayListEntity& item) {
 
 void Xamp::onArtistIdChanged(const QString& artist, const QString& /*cover_id*/, int32_t artist_id) {
     artist_info_page_->setArtistId(artist, Singleton<Database>::GetInstance().GetArtistCoverId(artist_id), artist_id);
-    ui.currentView->setCurrentWidget(artist_info_page_);
+    ui_.currentView->setCurrentWidget(artist_info_page_);
 }
 
 void Xamp::addPlaylistItem(const PlayListEntity &entity) {
@@ -1206,9 +1210,9 @@ void Xamp::setCover(const QPixmap* cover) {
         lrc_page_->setBackground(*cover);
     }
 
-    const auto ui_cover = Pixmap::roundImage(Pixmap::resizeImage(*cover, ui.coverLabel->size(), false),
+    const auto ui_cover = Pixmap::roundImage(Pixmap::resizeImage(*cover, ui_.coverLabel->size(), false),
                                              Pixmap::kSmallImageRadius);
-    ui.coverLabel->setPixmap(ui_cover);
+    ui_.coverLabel->setPixmap(ui_cover);
 
     const auto playlist_cover = Pixmap::roundImage(
         Pixmap::resizeImage(*cover, playlist_page_->cover()->size(), false),
@@ -1224,29 +1228,30 @@ void Xamp::onPlayerStateChanged(xamp::player::PlayerState play_state) {
     }
     if (play_state == PlayerState::PLAYER_STATE_STOPPED) {
         resetTaskbarProgress();
-        ui.seekSlider->setValue(0);
-        ui.startPosLabel->setText(Time::msToString(0));
+        ui_.seekSlider->setValue(0);
+        ui_.startPosLabel->setText(Time::msToString(0));
         playNextItem(1);
         emit payNextMusic();
     }
 }
 
 void Xamp::addTable() {
-    bool isOK = false;
+	auto is_ok = false;
     const auto table_name = QInputDialog::getText(nullptr, tr("Input Table Name"),
                                                   tr("Please input your name"),
                                                   QLineEdit::Normal,
                                                   tr("My favorite"),
-                                                  &isOK);
-    if (!isOK) {
+                                                  &is_ok);
+    if (!is_ok) {
         return;
     }
 }
 
 void Xamp::initialPlaylist() {
-    ui.sliderBar->addTab(tr("Albums"), 0, QIcon(Q_UTF8(":/xamp/Resource/Black/tab_albums.png")));
-	ui.sliderBar->addTab(tr("Artists"), 1, QIcon(Q_UTF8(":/xamp/Resource/Black/tab_artists.png")));
-    ui.sliderBar->addTab(tr("Playlists"), 2, QIcon(Q_UTF8(":/xamp/Resource/Black/tab_playlists.png")));
+    ui_.sliderBar->addTab(tr("Playlists"), 2, QIcon(Q_UTF8(":/xamp/Resource/Black/tab_playlists.png")));
+    ui_.sliderBar->addTab(tr("Albums"), 0, QIcon(Q_UTF8(":/xamp/Resource/Black/tab_albums.png")));
+	ui_.sliderBar->addTab(tr("Artists"), 1, QIcon(Q_UTF8(":/xamp/Resource/Black/tab_artists.png")));   
+    ui_.sliderBar->addTab(tr("Lyrics"), 3, QIcon(Q_UTF8(":/xamp/Resource/Black/tab_subtitles.png")));
 	
     Singleton<Database>::GetInstance().ForEachTable([this](auto table_id,
                                              auto /*table_index*/,
@@ -1256,7 +1261,7 @@ void Xamp::initialPlaylist() {
             return;
         }
 
-        ui.sliderBar->addTab(name, table_id, QIcon(Q_UTF8(":/xamp/Resource/Black/tab_playlists.png")));
+        ui_.sliderBar->addTab(name, table_id, QIcon(Q_UTF8(":/xamp/Resource/Black/tab_playlists.png")));
 
         if (!playlist_page_) {
             playlist_page_ = newPlaylist(playlist_id);
@@ -1332,7 +1337,7 @@ void Xamp::initialPlaylist() {
     (void)QObject::connect(&discogs_,
                             &DiscogsClient::downloadImageFinished,
                             [](auto artist_id, auto image) {
-                                auto cover_id = Singleton<PixmapCache>::GetInstance().Add(image);
+                                auto cover_id = Singleton<PixmapCache>::GetInstance().AddOrUpdate(image);
                                 Singleton<Database>::GetInstance().UpdateArtistCoverId(artist_id, cover_id);
                                 XAMP_LOG_DEBUG("Save artist id: {} image, cover id : {}", artist_id, cover_id.toStdString());
                             });
@@ -1385,7 +1390,7 @@ void Xamp::setupPlayNextMusicSignals(bool add_or_remove) {
 }
 
 void Xamp::addItem(const QString& file_name) {
-    auto add_playlist = dynamic_cast<PlyalistPage*>(ui.currentView->currentWidget()) != nullptr;
+    auto add_playlist = dynamic_cast<PlyalistPage*>(ui_.currentView->currentWidget()) != nullptr;
 
     if (add_playlist) {
         try {
@@ -1410,14 +1415,14 @@ void Xamp::addItem(const QString& file_name) {
 }
 
 void Xamp::pushWidget(QWidget* widget) {
-    auto id = ui.currentView->addWidget(widget);
+    auto id = ui_.currentView->addWidget(widget);
     stack_page_id_.push(id);
-    ui.currentView->setCurrentIndex(id);
+    ui_.currentView->setCurrentIndex(id);
 }
 
 QWidget* Xamp::topWidget() {
     if (!stack_page_id_.isEmpty()) {
-        return ui.currentView->widget(stack_page_id_.top());
+        return ui_.currentView->widget(stack_page_id_.top());
     }
     return nullptr;
 }
@@ -1425,10 +1430,10 @@ QWidget* Xamp::topWidget() {
 QWidget* Xamp::popWidget() {
     if (!stack_page_id_.isEmpty()) {
         auto id = stack_page_id_.pop();
-        auto widget = ui.currentView->widget(id);
-        ui.currentView->removeWidget(widget);
+        auto widget = ui_.currentView->widget(id);
+        ui_.currentView->removeWidget(widget);
         if (!stack_page_id_.isEmpty()) {
-            ui.currentView->setCurrentIndex(stack_page_id_.top());
+            ui_.currentView->setCurrentIndex(stack_page_id_.top());
             return widget;
         }
     }
@@ -1472,9 +1477,9 @@ void Xamp::readFingerprint(const QModelIndex&, const PlayListEntity& item) {
 }
 
 PlyalistPage* Xamp::newPlaylist(int32_t playlist_id) {
-    auto playlist_page = new PlyalistPage(this);
+	auto* playlist_page = new PlyalistPage(this);
 
-    ui.currentView->addWidget(playlist_page);
+    ui_.currentView->addWidget(playlist_page);
 
     (void)QObject::connect(playlist_page->playlist(), &PlayListTableView::playMusic,
                             [this](auto index, const auto& item) {

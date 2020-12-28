@@ -52,5 +52,6 @@
         <file>Resource/Black/tab_albums.png</file>
         <file>Resource/Black/tab_artists.png</file>
         <file>Resource/Black/tab_playlists.png</file>
+        <file>Resource/Black/tab_subtitles.png</file>
     </qresource>
 </RCC>

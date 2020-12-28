@@ -131,7 +131,7 @@ float ClampSampleSSE2(float f) noexcept {
 	return ClampSampleSSE2(f, min_value, max_value);
 }
 #else
-XAMP_ALWAYS_INLINE void ClampSample(float* f, size_t num_samples) noexcept {
+void ClampSample(float* f, size_t num_samples) noexcept {
 	const auto* end_input = f + num_samples;
 
 	switch ((end_input - f) % kLoopUnRollingIntCount) {
@@ -158,6 +158,14 @@ XAMP_ALWAYS_INLINE void ClampSample(float* f, size_t num_samples) noexcept {
 		f[3] = ClampSample(f[3]);
 		f += 4;
 	}
+}
+
+float ClampSampleSSE2(float f) noexcept {
+	return ClampSample(f);
+}
+
+float FloatMax(float a, float b) noexcept {
+	return std::max(a, b);
 }
 #endif
 

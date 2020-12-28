@@ -35,13 +35,9 @@ XAMP_BASE_API float ClampSampleSSE2(float f) noexcept;
 
 XAMP_BASE_API float FloatMaxSSE2(float a, float b) noexcept;
 #else
-XAMP_BASE_API float ClampSampleSSE2(float f) noexcept {
-	return ClampSample(f);
-}
+float ClampSampleSSE2(float f) noexcept;
 
-XAMP_BASE_API float FloatMax(float a, float b) noexcept {
-	return std::max(a, b);
-}
+float FloatMax(float a, float b) noexcept;
 #endif
 	
 class Int24 final {

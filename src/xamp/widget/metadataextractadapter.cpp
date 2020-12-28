@@ -74,9 +74,9 @@ QString DatabaseIdCache::AddCoverCache(int32_t album_id, const QString& album, c
     	}          
     }
     if (!pixmap.isNull()) {
-        cover_id = Singleton<PixmapCache>::GetInstance().Add(pixmap);
+        cover_id = Singleton<PixmapCache>::GetInstance().AddOrUpdate(pixmap);
         assert(!cover_id.isEmpty());
-        cover_id_cache_.Insert(album_id, cover_id);
+        cover_id_cache_.AddOrUpdate(album_id, cover_id);
         Singleton<Database>::GetInstance().SetAlbumCover(album_id, album, cover_id);
     }	
     return cover_id;
@@ -89,7 +89,7 @@ std::tuple<int32_t, int32_t, QString> DatabaseIdCache::AddCache(const QString &a
     }
     else {
         artist_id = Singleton<Database>::GetInstance().AddOrUpdateArtist(artist);
-        this->artist_id_cache_.Insert(artist, artist_id);
+        this->artist_id_cache_.AddOrUpdate(artist, artist_id);
     }
 
     int32_t album_id = 0;
@@ -98,7 +98,7 @@ std::tuple<int32_t, int32_t, QString> DatabaseIdCache::AddCache(const QString &a
     }
     else {
         album_id = Singleton<Database>::GetInstance().AddOrUpdateAlbum(album, artist_id);
-        this->album_id_cache_.Insert(album, album_id);
+        this->album_id_cache_.AddOrUpdate(album, album_id);
     }
 
     QString cover_id;
@@ -112,17 +112,23 @@ std::tuple<int32_t, int32_t, QString> DatabaseIdCache::AddCache(const QString &a
 using xamp::metadata::Metadata;
 using xamp::metadata::Path;
 
-struct ExtractAdapterProxy : xamp::metadata::MetadataExtractAdapter {
+class ExtractAdapterProxy : public xamp::metadata::MetadataExtractAdapter {
+public:
     explicit ExtractAdapterProxy(QSharedPointer<::MetadataExtractAdapter> adapter)
-        : adapter_(adapter) {
+        : cancel_(false)
+		, adapter_(adapter) {
         metadatas_.reserve(kCachePreallocateSize);
     }
 
+	XAMP_DISABLE_COPY(ExtractAdapterProxy)
+
     void OnWalkFirst() override {
+        qApp->processEvents();
     }
 
     void OnWalk(const Path& path, Metadata metadata) override {
         metadatas_.push_back(std::move(metadata));
+        qApp->processEvents();
     }
 
     void OnWalkNext() override {
@@ -134,6 +140,7 @@ struct ExtractAdapterProxy : xamp::metadata::MetadataExtractAdapter {
                 return first.track < last.track;
             });
         adapter_->readCompleted(metadatas_);
+        qApp->processEvents();
     }
 
     bool IsCancel() const noexcept override {
@@ -146,7 +153,8 @@ struct ExtractAdapterProxy : xamp::metadata::MetadataExtractAdapter {
 
     void Reset() override {
     }
-
+	
+private:
     std::atomic<bool> cancel_;
     QSharedPointer<::MetadataExtractAdapter> adapter_;
     std::vector<Metadata> metadatas_;
@@ -186,8 +194,7 @@ void MetadataExtractAdapter::ReadFileMetadata(const QSharedPointer<MetadataExtra
             TaglibMetadataReader reader;
             WalkPath(path, &proxy, &reader);
 
-            dialog.setValue(progress++);
-            qApp->processEvents();
+            dialog.setValue(progress++);            
         }
         catch (const std::exception& e) {
             XAMP_LOG_DEBUG("WalkPath has exception: {}", e.what());
@@ -203,7 +210,7 @@ void MetadataExtractAdapter::ProcessMetadata(const std::vector<Metadata>& result
         playlist_id = playlist->playlistId();
     }
 
-    // TODO: 查找artist的時候使用最長長度的名稱.
+    // TODO: 嚙範嚙踝蕭artist嚙踝蕭嚙褕候使用最迎蕭嚙踝蕭嚙論迎蕭嚙磕嚙踝蕭.
     for (const auto& metadata : result) {
         auto album = QString::fromStdWString(metadata.album);
         auto artist = QString::fromStdWString(metadata.artist);

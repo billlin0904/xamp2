@@ -542,7 +542,7 @@ QModelIndex PlayListTableView::nextIndex(int forward) const {
 
 QModelIndex PlayListTableView::shuffeIndex() {    
     auto count = proxy_model_.rowCount();
-    auto selected = RNG::GetInstance()(0, count);
+    auto selected = RNG::GetInstance()(0, count - 1);
     return model()->index(selected, PLAYLIST_PLAYING);
 }
 

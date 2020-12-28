@@ -39,7 +39,7 @@ public:
 
 	QPixmap fromFileCache(const QString& tag_id) const;
 
-	QString Add(const QPixmap& cover) const;
+	QString AddOrUpdate(const QPixmap& cover) const;
 
 	void erase(const QString& tag_id);
 

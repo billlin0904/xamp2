@@ -90,7 +90,7 @@ void AppSettings::save() {
 QString AppSettings::getMyMusicFolderPath() {
 	auto folder_path = QStandardPaths::standardLocations(QStandardPaths::MusicLocation);
 	if (folder_path.isEmpty()) {
-		return Qt::EmptyStr;
+		return Qt::EmptyString;
 	}
 	return folder_path[0];
 }
@@ -102,8 +102,8 @@ void AppSettings::saveUserEQSettings(QString const &key, QList<AppEQSettings> co
 
 void AppSettings::setOrDefaultConfig() {
     loadIniFile(Q_UTF8("xamp.ini"));
-    setDefaultValue(kAppSettingDeviceType, Qt::EmptyStr);
-    setDefaultValue(kAppSettingDeviceId, Qt::EmptyStr);
+    setDefaultValue(kAppSettingDeviceType, Qt::EmptyString);
+    setDefaultValue(kAppSettingDeviceId, Qt::EmptyString);
     setDefaultValue(kAppSettingWidth, 600);
     setDefaultValue(kAppSettingHeight, 500);
     setDefaultValue(kAppSettingVolume, 50);

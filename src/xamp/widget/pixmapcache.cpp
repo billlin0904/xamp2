@@ -25,7 +25,7 @@ PixmapCache::PixmapCache()
 	QDir dir;
 	(void)dir.mkdir(cache_path_);
 	loadCache();
-	unknown_cover_id_ = Add(QPixmap(Q_UTF8(":/xamp/Resource/White/unknown_album.png")));
+	unknown_cover_id_ = AddOrUpdate(QPixmap(Q_UTF8(":/xamp/Resource/White/unknown_album.png")));
 }
 
 QPixmap PixmapCache::FindFileDirCover(const QString& file_path) {
@@ -87,7 +87,7 @@ void PixmapCache::loadCache() const {
 		QPixmap read_cover(path);
 		if (!read_cover.isNull()) {
 			const auto tag_id = image_file_path.baseName();
-			cache_.Insert(tag_id, read_cover);
+			cache_.AddOrUpdate(tag_id, read_cover);
 		}
 	}
 
@@ -106,14 +106,14 @@ std::optional<const QPixmap*> PixmapCache::find(const QString& tag_id) const {
 			if (read_cover.isNull()) {
 				return std::nullopt;
 			}
-			cache_.Insert(tag_id, read_cover);
+			cache_.AddOrUpdate(tag_id, read_cover);
 			continue;
 		}
 		return cache;
 	}
 }
 
-QString PixmapCache::Add(const QPixmap& cover) const {
+QString PixmapCache::AddOrUpdate(const QPixmap& cover) const {
 	QByteArray array;
 	QBuffer buffer(&array);
 	buffer.open(QIODevice::WriteOnly);
@@ -127,7 +127,7 @@ QString PixmapCache::Add(const QPixmap& cover) const {
 		tag_name = FileTag::getTagId(array);
 		(void)cache_cover.save(cache_path_ + tag_name + Q_UTF8(".cache"), "JPG", 100);
 	}
-	cache_.Insert(tag_name, cache_cover);
+	cache_.AddOrUpdate(tag_name, cache_cover);
 	return tag_name;
 }
 
