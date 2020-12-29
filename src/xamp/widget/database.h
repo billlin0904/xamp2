@@ -43,7 +43,7 @@ struct AlbumStats {
 
 class Database final {
 public:
-    static constexpr int32_t INVALID_DATABASE_ID = -1;
+    static constexpr int32_t kInvalidId = -1;
 
     friend class Singleton<Database>;
 
@@ -53,52 +53,52 @@ public:
 
     void flush();
 
-    int32_t AddTable(const QString& name, int32_t table_index, int32_t playlist_id);
+    int32_t addTable(const QString& name, int32_t table_index, int32_t playlist_id);
 
-    int32_t AddPlaylist(const QString& name, int32_t playlistIndex);
+    int32_t addPlaylist(const QString& name, int32_t playlistIndex);
 
-    void SetAlbumCover(int32_t album_id, const QString& album, const QString& cover_id);
+    void setAlbumCover(int32_t album_id, const QString& album, const QString& cover_id);
 
-    std::optional<AlbumStats> GetAlbumStats(int32_t album_id) const;
+    std::optional<AlbumStats> getAlbumStats(int32_t album_id) const;
 
-    void AddTablePlaylist(int32_t tableId, int32_t playlist_id);
+    void addTablePlaylist(int32_t tableId, int32_t playlist_id);
 
-    int32_t AddOrUpdateMusic(const Metadata& medata, int32_t playlist_id);
+    int32_t addOrUpdateMusic(const Metadata& medata, int32_t playlist_id);
 
-    int32_t AddOrUpdateArtist(const QString& artist);
+    int32_t addOrUpdateArtist(const QString& artist);
 
-    void UpdateDiscogsArtistId(int32_t artist_id, const QString& discogs_artist_id);
+    void updateDiscogsArtistId(int32_t artist_id, const QString& discogs_artist_id);
 
-    void UpdateArtistCoverId(int32_t artist_id, const QString& coverId);
+    void updateArtistCoverId(int32_t artist_id, const QString& coverId);
 
-    void UpdateArtistMbid(int32_t artist_id, const QString& mbid);
+    void updateArtistMbid(int32_t artist_id, const QString& mbid);
 
-    void UpdateMusicFingerprint(int32_t music_id, const QString& fingerprint);
+    void updateMusicFingerprint(int32_t music_id, const QString& fingerprint);
 
-    void UpdateMusicFilePath(int32_t music_id, const QString& file_path);
+    void updateMusicFilePath(int32_t music_id, const QString& file_path);
 
-    void UpdateMusicRating(int32_t music_id, int32_t rating);
+    void updateMusicRating(int32_t music_id, int32_t rating);
 
-    int32_t AddOrUpdateAlbum(const QString& album, int32_t artist_id);
+    int32_t addOrUpdateAlbum(const QString& album, int32_t artist_id);
 
-    void AddOrUpdateAlbumArtist(int32_t album_id, int32_t artist_id) const;
+    void addOrUpdateAlbumArtist(int32_t album_id, int32_t artist_id) const;
 
-    void AddOrUpdateAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id);
+    void addOrUpdateAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id);
 
-    static void AddPlaybackHistory(int32_t album_id, int32_t artist_id, int32_t music_id);
+    void addPlaybackHistory(int32_t album_id, int32_t artist_id, int32_t music_id);
 
-    void DeleteOldestHistory();
+    void deleteOldestHistory();
 
-    QString GetAlbumCoverId(int32_t album_id) const;
+    QString getAlbumCoverId(int32_t album_id) const;
 
-    QString GetArtistCoverId(int32_t artist_id) const;
+    QString getArtistCoverId(int32_t artist_id) const;
 
-    void SetTableName(int32_t table_id, const QString &name);
+    void setTableName(int32_t table_id, const QString &name);
 
-    void RemoveAlbum(int32_t album_id);
+    void removeAlbum(int32_t album_id);
 
     template <typename Function>
-    void ForEachTable(Function &&fun) {
+    void forEachTable(Function &&fun) {
         QSqlTableModel model(nullptr, db_);
 
         model.setTable(Q_UTF8("tables"));
@@ -115,7 +115,7 @@ public:
     }
 
     template <typename Function>
-    void ForEachAlbumMusic(int32_t album_id, Function &&fun) {
+    void forEachAlbumMusic(int32_t album_id, Function &&fun) {
         QSqlQuery query(Q_UTF8(R"(
 SELECT
     albumMusic.albumId,
@@ -160,93 +160,41 @@ WHERE
         }
     }
 
-    template <typename Function>
-    void ForEachPlaylistMusic(int32_t playlist_id, Function &&fun) {
-        QSqlQuery query;
+    void removeAllArtist();
 
-        query.prepare(Q_UTF8(R"(
-                             SELECT
-                             albumMusic.albumId,
-                             albumMusic.artistId,
-                             albums.album,
-                             albums.coverId,
-                             artists.artist,
-                             musics.*
-                             FROM
-                             playlistMusics
-                             JOIN playlist ON playlist.playlistId = playlistMusics.playlistId
-                             JOIN albumMusic ON playlistMusics.musicId = albumMusic.musicId
-                             JOIN musics ON playlistMusics.musicId = musics.musicId
-                             JOIN albums ON albumMusic.albumId = albums.albumId
-                             JOIN artists ON albumMusic.artistId = artists.artistId
-                             WHERE
-                             playlistMusics.playlistId = :playlist_id;
-                             )"));
+    void removeArtistId(int32_t artist_id);
 
-        query.bindValue(Q_UTF8(":playlist_id"), playlist_id);
+    void removeMusic(int32_t music_id);
 
-        if (!query.exec()) {
-            XAMP_LOG_DEBUG("{}", query.lastError().text().toStdString());
-        }
-
-        while (query.next()) {
-            PlayListEntity entity;
-            entity.album_id = query.value(Q_UTF8("albumId")).toInt();
-            entity.artist_id = query.value(Q_UTF8("artistId")).toInt();
-            entity.music_id = query.value(Q_UTF8("musicId")).toInt();
-            entity.file_path = query.value(Q_UTF8("path")).toString();
-            entity.track = query.value(Q_UTF8("track")).toUInt();
-            entity.title = query.value(Q_UTF8("title")).toString();
-            entity.file_name = query.value(Q_UTF8("fileName")).toString();
-            entity.album = query.value(Q_UTF8("album")).toString();
-            entity.artist = query.value(Q_UTF8("artist")).toString();
-            entity.file_ext = query.value(Q_UTF8("fileExt")).toString();
-            entity.parent_path = query.value(Q_UTF8("parentPath")).toString();
-            entity.duration = query.value(Q_UTF8("duration")).toDouble();
-            entity.bitrate = query.value(Q_UTF8("bitrate")).toUInt();
-            entity.samplerate = query.value(Q_UTF8("samplerate")).toUInt();
-            entity.cover_id = query.value(Q_UTF8("coverId")).toString();
-            entity.fingerprint = query.value(Q_UTF8("fingerprint")).toString();
-            entity.rating = query.value(Q_UTF8("rating")).toUInt();
-            fun(entity);
-        }
-    }
-
-    void RemoveAllArtist();
-
-    void RemoveArtistId(int32_t artist_id);
-
-    void RemoveMusic(int32_t music_id);
-
-    void RemovePlaylistAllMusic(int32_t playlist_id);
+    void removePlaylistAllMusic(int32_t playlist_id);
 	
-    void RemovePlaylistMusic(int32_t playlist_id, const QVector<int>& select_music_ids);
+    void removePlaylistMusic(int32_t playlist_id, const QVector<int>& select_music_ids);
 
-    int32_t FindTablePlaylistId(int32_t table_id) const;
+    int32_t findTablePlaylistId(int32_t table_id) const;
 
-    bool IsPlaylistExist(int32_t playlist_id) const;
+    bool isPlaylistExist(int32_t playlist_id) const;
 
-    void AddMusicToPlaylist(int32_t music_id, int32_t playlist_id) const;
+    void addMusicToPlaylist(int32_t music_id, int32_t playlist_id) const;
 
-    void SetNowPlaying(int32_t playlist_id, int32_t music_id);
+    void setNowPlaying(int32_t playlist_id, int32_t music_id);
 
-    void ClearNowPlaying(int32_t playlist_id);
+    void clearNowPlaying(int32_t playlist_id);
 private:
     Database();
 
-    void RemoveAlbumArtist(int32_t album_id);
+    void removeAlbumArtist(int32_t album_id);
 
-    void RemovePlaybackHistory(int32_t music_id);
+    void removePlaybackHistory(int32_t music_id);
 
-    void RemoveAlbumMusicId(int32_t music_id);
+    void removeAlbumMusicId(int32_t music_id);
 
-    void RemovePlaylistMusics(int32_t music_id);
+    void removePlaylistMusics(int32_t music_id);
 
-    void RemoveAlbumArtistId(int32_t artist_id);
+    void removeAlbumArtistId(int32_t artist_id);
 
-    void AddAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id) const;
+    void addAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id) const;
 
-    void CreateTableIfNotExist();
+    void createTableIfNotExist();
 
     QSqlDatabase db_;
 };

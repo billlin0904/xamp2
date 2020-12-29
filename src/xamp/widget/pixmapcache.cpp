@@ -25,10 +25,10 @@ PixmapCache::PixmapCache()
 	QDir dir;
 	(void)dir.mkdir(cache_path_);
 	loadCache();
-	unknown_cover_id_ = AddOrUpdate(QPixmap(Q_UTF8(":/xamp/Resource/White/unknown_album.png")));
+	unknown_cover_id_ = addOrUpdate(QPixmap(Q_UTF8(":/xamp/Resource/White/unknown_album.png")));
 }
 
-QPixmap PixmapCache::FindFileDirCover(const QString& file_path) {
+QPixmap PixmapCache::findFileDirCover(const QString& file_path) {
 	const auto dir = QFileInfo(file_path).path();
 
 	for (QDirIterator itr(dir, Singleton<PixmapCache>::GetInstance().cover_ext_,
@@ -56,8 +56,8 @@ void PixmapCache::clear() {
 	cache_.Clear();
 }
 
-QPixmap PixmapCache::FindFileDirCover(const PlayListEntity& item) {
-	return FindFileDirCover(item.file_path);
+QPixmap PixmapCache::findFileDirCover(const PlayListEntity& item) {
+	return findFileDirCover(item.file_path);
 }
 
 void PixmapCache::erase(const QString& tag_id) {
@@ -94,10 +94,6 @@ void PixmapCache::loadCache() const {
 	XAMP_LOG_DEBUG("PixmapCache cache count: {}", i);
 }
 
-std::optional<const std::pair<QColor, QColor>*> PixmapCache::findColor(const QString& tag_id) const {
-	return color_cache_.Find(tag_id);
-}
-
 std::optional<const QPixmap*> PixmapCache::find(const QString& tag_id) const {
 	while (true) {
 		const auto cache = cache_.Find(tag_id);
@@ -113,7 +109,7 @@ std::optional<const QPixmap*> PixmapCache::find(const QString& tag_id) const {
 	}
 }
 
-QString PixmapCache::AddOrUpdate(const QPixmap& cover) const {
+QString PixmapCache::addOrUpdate(const QPixmap& cover) const {
 	QByteArray array;
 	QBuffer buffer(&array);
 	buffer.open(QIODevice::WriteOnly);

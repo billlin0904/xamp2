@@ -309,7 +309,7 @@ PlaybackHistoryPage::PlaybackHistoryPage(QWidget* parent)
 		});
 
     (void)QObject::connect(remove_button, &QPushButton::clicked, [this]() {
-		Singleton<Database>::GetInstance().DeleteOldestHistory();
+		Singleton<Database>::GetInstance().deleteOldestHistory();
 		playlist_->refreshOnece();
 		});
 

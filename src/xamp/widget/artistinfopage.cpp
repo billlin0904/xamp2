@@ -38,8 +38,8 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 				tr("Open file"),
 				Qt::EmptyString,
 				tr("Music Files *.jpg *.jpeg *.png"));
-			cover_id_ = Singleton<PixmapCache>::GetInstance().AddOrUpdate(QPixmap(file_name));
-			Singleton<Database>::GetInstance().UpdateArtistCoverId(artist_id_, cover_id_);
+			cover_id_ = Singleton<PixmapCache>::GetInstance().addOrUpdate(QPixmap(file_name));
+			Singleton<Database>::GetInstance().updateArtistCoverId(artist_id_, cover_id_);
 			setArtistId(artist_->text(), cover_id_, artist_id_);
 			});		
 		action_map.exec(pt);

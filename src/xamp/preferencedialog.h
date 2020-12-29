@@ -27,5 +27,6 @@ private:
 
     QMap<QString, QVariant> getSoxrSettings() const;
 
+    int32_t soxr_passband_;
     Ui::PreferenceDialog ui_;
 };

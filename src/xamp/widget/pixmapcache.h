@@ -29,17 +29,15 @@ class PixmapCache final {
 public:
 	friend class Singleton<PixmapCache>;
 
-	static QPixmap FindFileDirCover(const QString& file_path);
+	static QPixmap findFileDirCover(const QString& file_path);
 
-	static QPixmap FindFileDirCover(const PlayListEntity& item);
+	static QPixmap findFileDirCover(const PlayListEntity& item);
 
 	std::optional<const QPixmap*> find(const QString& tag_id) const;
 
-	std::optional<const std::pair<QColor, QColor>*> findColor(const QString& tag_id) const;
-
 	QPixmap fromFileCache(const QString& tag_id) const;
 
-	QString AddOrUpdate(const QPixmap& cover) const;
+	QString addOrUpdate(const QPixmap& cover) const;
 
 	void erase(const QString& tag_id);
 
@@ -64,5 +62,4 @@ private:
 	QStringList cover_ext_;
 	QStringList cache_ext_;
 	mutable LruCache<QString, QPixmap> cache_;
-	mutable LruCache<QString, std::pair<QColor, QColor>> color_cache_;
 };

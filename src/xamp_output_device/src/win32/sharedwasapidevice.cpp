@@ -372,9 +372,6 @@ void SharedWasapiDevice::FillSilentSample(uint32_t frame_available) noexcept {
 HRESULT SharedWasapiDevice::OnSampleReady(IMFAsyncResult* result) noexcept {
 	if (!is_running_) {
 		XAMP_LOG_I(log_, "Receive stop request");
-		if (!is_stop_streaming_) {
-			GetSampleRequested(true);
-		}
 		is_stop_streaming_ = true;
 		condition_.notify_all();
 		return S_OK;

@@ -53,7 +53,7 @@ private:
 };
 
 QString DatabaseIdCache::AddCoverCache(int32_t album_id, const QString& album, const Metadata& metadata, bool is_unknown_album) const {
-    auto cover_id = Singleton<Database>::GetInstance().GetAlbumCoverId(album_id);
+    auto cover_id = Singleton<Database>::GetInstance().getAlbumCoverId(album_id);
 	
     if (!cover_id.isEmpty()) {
     	return cover_id;
@@ -69,15 +69,15 @@ QString DatabaseIdCache::AddCoverCache(int32_t album_id, const QString& album, c
     }
     else {
     	if (!is_unknown_album) {
-            pixmap = Singleton<PixmapCache>::GetInstance().FindFileDirCover(
+            pixmap = Singleton<PixmapCache>::GetInstance().findFileDirCover(
                 QString::fromStdWString(metadata.file_path));
     	}          
     }
     if (!pixmap.isNull()) {
-        cover_id = Singleton<PixmapCache>::GetInstance().AddOrUpdate(pixmap);
+        cover_id = Singleton<PixmapCache>::GetInstance().addOrUpdate(pixmap);
         assert(!cover_id.isEmpty());
         cover_id_cache_.AddOrUpdate(album_id, cover_id);
-        Singleton<Database>::GetInstance().SetAlbumCover(album_id, album, cover_id);
+        Singleton<Database>::GetInstance().setAlbumCover(album_id, album, cover_id);
     }	
     return cover_id;
 }
@@ -88,7 +88,7 @@ std::tuple<int32_t, int32_t, QString> DatabaseIdCache::AddCache(const QString &a
         artist_id = *artist_id_op.value();
     }
     else {
-        artist_id = Singleton<Database>::GetInstance().AddOrUpdateArtist(artist);
+        artist_id = Singleton<Database>::GetInstance().addOrUpdateArtist(artist);
         this->artist_id_cache_.AddOrUpdate(artist, artist_id);
     }
 
@@ -97,7 +97,7 @@ std::tuple<int32_t, int32_t, QString> DatabaseIdCache::AddCache(const QString &a
         album_id = *album_id_op.value();
     }
     else {
-        album_id = Singleton<Database>::GetInstance().AddOrUpdateAlbum(album, artist_id);
+        album_id = Singleton<Database>::GetInstance().addOrUpdateAlbum(album, artist_id);
         this->album_id_cache_.AddOrUpdate(album, album_id);
     }
 
@@ -225,13 +225,13 @@ void MetadataExtractAdapter::ProcessMetadata(const std::vector<Metadata>& result
             artist = tr("Unknown artist");
     	}
 
-        const auto music_id = Singleton<Database>::GetInstance().AddOrUpdateMusic(metadata, playlist_id);
+        const auto music_id = Singleton<Database>::GetInstance().addOrUpdateMusic(metadata, playlist_id);
 
         auto [album_id, artist_id, cover_id] = cache.AddCache(album, artist);
 
         // Find cover id from database.
         if (cover_id.isEmpty()) {
-            cover_id = Singleton<Database>::GetInstance().GetAlbumCoverId(album_id);
+            cover_id = Singleton<Database>::GetInstance().getAlbumCoverId(album_id);
         }
 
         // Database not exist find others.
@@ -239,7 +239,7 @@ void MetadataExtractAdapter::ProcessMetadata(const std::vector<Metadata>& result
             cover_id = cache.AddCoverCache(album_id, album, metadata, is_unknown_album);
         }
 
-        IgnoreSqlError(Singleton<Database>::GetInstance().AddOrUpdateAlbumMusic(album_id, artist_id, music_id))
+        IgnoreSqlError(Singleton<Database>::GetInstance().addOrUpdateAlbumMusic(album_id, artist_id, music_id))
     }
 
     if (playlist != nullptr) {

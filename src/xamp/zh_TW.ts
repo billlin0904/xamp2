@@ -146,7 +146,22 @@
 <context>
     <name>ArtistInfoPage</name>
     <message>
-        <location filename="widget/artistinfopage.cpp" line="37"/>
+        <location filename="widget/artistinfopage.cpp" line="36"/>
+        <source>Change artist image</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widget/artistinfopage.cpp" line="38"/>
+        <source>Open file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widget/artistinfopage.cpp" line="40"/>
+        <source>Music Files *.jpg *.jpeg *.png</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widget/artistinfopage.cpp" line="58"/>
         <source>Artist Information</source>
         <translation type="unfinished">演出者資訊</translation>
     </message>
@@ -830,117 +845,122 @@
         <translation type="unfinished">音量:</translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="639"/>
+        <location filename="xamp.cpp" line="643"/>
         <source>Settings</source>
         <translation type="unfinished">設定</translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="656"/>
+        <location filename="xamp.cpp" line="660"/>
         <source>Enable blur</source>
         <translation type="unfinished">開啟模糊</translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="647"/>
+        <location filename="xamp.cpp" line="651"/>
         <source>Theme color</source>
         <translation type="unfinished">佈景主題</translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="178"/>
+        <location filename="xamp.cpp" line="168"/>
         <source>Mi&amp;nimize</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="181"/>
+        <location filename="xamp.cpp" line="171"/>
         <source>Ma&amp;ximize</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="184"/>
+        <location filename="xamp.cpp" line="174"/>
         <source>&amp;Restore</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="187"/>
+        <location filename="xamp.cpp" line="177"/>
         <source>&amp;Quit</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="190"/>
+        <location filename="xamp.cpp" line="180"/>
         <source>&amp;About</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="671"/>
+        <location filename="xamp.cpp" line="675"/>
         <source>About</source>
         <translation type="unfinished">關於</translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="683"/>
+        <location filename="xamp.cpp" line="687"/>
         <source>Search anything</source>
         <translation type="unfinished">查詢歌曲或是專輯</translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="968"/>
+        <location filename="xamp.cpp" line="972"/>
         <source>unknown error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="1077"/>
+        <location filename="xamp.cpp" line="1081"/>
         <source>Not found any playlist item.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="877"/>
+        <location filename="xamp.cpp" line="881"/>
         <source>Not found any playing item.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="1236"/>
+        <location filename="xamp.cpp" line="1240"/>
         <source>Input Table Name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="1237"/>
+        <location filename="xamp.cpp" line="1241"/>
         <source>Please input your name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="1239"/>
+        <location filename="xamp.cpp" line="1243"/>
         <source>My favorite</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="1247"/>
+        <location filename="xamp.cpp" line="1252"/>
         <source>Albums</source>
         <translation type="unfinished">專輯</translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="1248"/>
+        <location filename="xamp.cpp" line="1253"/>
         <source>Artists</source>
         <translation type="unfinished">演出者</translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="1249"/>
+        <location filename="xamp.cpp" line="1251"/>
         <source>Playlists</source>
         <translation type="unfinished">播放清單</translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="1439"/>
+        <location filename="xamp.cpp" line="1254"/>
+        <source>Lyrics</source>
+        <translation type="unfinished">歌詞</translation>
+    </message>
+    <message>
+        <location filename="xamp.cpp" line="1444"/>
         <source>Read &apos;</source>
         <translation type="unfinished">讀取</translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="1439"/>
+        <location filename="xamp.cpp" line="1444"/>
         <source>&apos; fingerprint</source>
         <translation type="unfinished">聲紋</translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="1439"/>
+        <location filename="xamp.cpp" line="1444"/>
         <source>Cancel</source>
         <translation type="unfinished">取消</translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="1442"/>
+        <location filename="xamp.cpp" line="1447"/>
         <source>Read progress dialog</source>
         <translation type="unfinished">讀取進度</translation>
     </message>

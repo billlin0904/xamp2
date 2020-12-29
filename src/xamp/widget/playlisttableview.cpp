@@ -118,7 +118,7 @@ void PlayListTableView::refresh() {
 void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
     playlist_id_ = playlist_id;
 
-    Singleton<Database>::GetInstance().ClearNowPlaying(playlist_id_);
+    Singleton<Database>::GetInstance().clearNowPlaying(playlist_id_);
 
     refresh();
 
@@ -200,7 +200,7 @@ void PlayListTableView::initial() {
         auto index = model()->index(start_editor->row(), PLAYLIST_RATING);
         auto item = nomapItem(index);        
         item.rating = start_editor->starRating().starCount();
-        Singleton<Database>::GetInstance().UpdateMusicRating(item.music_id, item.rating);
+        Singleton<Database>::GetInstance().updateMusicRating(item.music_id, item.rating);
         refresh();
     });
 
@@ -234,21 +234,21 @@ void PlayListTableView::initial() {
             }
             exts += Q_UTF8(")");
             const auto file_name = QFileDialog::getOpenFileName(this,
-                                                                tr("Open file"),
-                                                                AppSettings::getMyMusicFolderPath(),
-                                                                tr("Music Files ") + exts);
+                tr("Open file"),
+                AppSettings::getMyMusicFolderPath(),
+                tr("Music Files ") + exts);
             if (file_name.isEmpty()) {
                 return;
             }
             append(file_name);
-        });
+            });
 
         (void)action_map.addAction(tr("Load file directory"), [this]() {
             auto dir_name = QFileDialog::getExistingDirectory(this,
-                                                              tr("Select a Directory"),
-                                                              AppSettings::getMyMusicFolderPath());
+                tr("Select a Directory"),
+                AppSettings::getMyMusicFolderPath());
             append(dir_name);
-        });
+            });
 
         auto import_file_from_url_act = action_map.addAction(tr("Import file from meta.json"));
 
@@ -263,7 +263,7 @@ void PlayListTableView::initial() {
             form.addRow(tr("URL:"), url_edit);
 
             QDialogButtonBox buttonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
-                                       Qt::Horizontal, &dialog);
+                Qt::Horizontal, &dialog);
             form.addRow(&buttonBox);
             QObject::connect(&buttonBox, SIGNAL(accepted()), &dialog, SLOT(accept()));
             QObject::connect(&buttonBox, SIGNAL(rejected()), &dialog, SLOT(reject()));
@@ -273,28 +273,28 @@ void PlayListTableView::initial() {
             }
 
             http::HttpClient(url_edit->text()).success([this](const QString& json) {
-                                                  QJsonParseError error;
-                                                  const auto doc = QJsonDocument::fromJson(json.toUtf8(), &error);
-                                                  if (error.error == QJsonParseError::NoError) {
-                                                      auto result = doc.array();
-                                                      std::vector<Metadata> metadatas;
-                                                      metadatas.reserve(result.size());
-                                                      for (const auto& entry : result) {
-                                                          auto object = entry.toVariant().toMap();
-                                                          auto url = object.value(Q_UTF8("url")).toString();
-                                                          auto title = object.value(Q_UTF8("title")).toString();
-                                                          auto performer = object.value(Q_UTF8("performer")).toString();
-                                                          Metadata metadata;
-                                                          metadata.file_path = url.toStdWString();
-                                                          metadata.title = title.toStdWString();
-                                                          metadata.artist = performer.toStdWString();
-                                                          metadatas.push_back(metadata);
-                                                      }
-                                                      MetadataExtractAdapter::ProcessMetadata(metadatas, this);
-                                                  }
-                                              }).get();
+                QJsonParseError error;
+                const auto doc = QJsonDocument::fromJson(json.toUtf8(), &error);
+                if (error.error == QJsonParseError::NoError) {
+                    auto result = doc.array();
+                    std::vector<Metadata> metadatas;
+                    metadatas.reserve(result.size());
+                    for (const auto& entry : result) {
+                        auto object = entry.toVariant().toMap();
+                        auto url = object.value(Q_UTF8("url")).toString();
+                        auto title = object.value(Q_UTF8("title")).toString();
+                        auto performer = object.value(Q_UTF8("performer")).toString();
+                        Metadata metadata;
+                        metadata.file_path = url.toStdWString();
+                        metadata.title = title.toStdWString();
+                        metadata.artist = performer.toStdWString();
+                        metadatas.push_back(metadata);
+                    }
+                    MetadataExtractAdapter::ProcessMetadata(metadatas, this);
+                }
+                }).get();
 
-        });
+            });
 
         action_map.addSeparator();
 
@@ -306,28 +306,29 @@ void PlayListTableView::initial() {
         auto copy_artist_act = action_map.addAction(tr("Copy artist"));
         auto copy_title_act = action_map.addAction(tr("Copy title"));
         auto set_cover_art_act = action_map.addAction(tr("Set cover art"));
+        auto export_cover_act = action_map.addAction(tr("Export music cover"));
         auto set_start_and_loop_act = action_map.addAction(tr("Set start and end loop time"));
 
         if (model_.rowCount() == 0 || !index.isValid()) {
             action_map.exec(pt);
             return;
         }
-        
+
         auto item = getEntity(proxy_model_.mapToSource(index));
 
         action_map.setCallback(remove_all_act, [this, item]() {
-            Singleton<Database>::GetInstance().RemovePlaylistAllMusic(playlistId());
+            Singleton<Database>::GetInstance().removePlaylistAllMusic(playlistId());
             refresh();
             removePlaying();
             });
 
         action_map.setCallback(open_local_file_path_act, [item]() {
             QDesktopServices::openUrl(QUrl::fromLocalFile(item.parent_path));
-        });
+            });
 
         action_map.setCallback(reload_file_meta_act, [this]() {
             reloadSelectMetadata();
-        });
+            });
 
         action_map.setCallback(reload_file_fingerprint_act, [this]() {
             const auto rows = selectItemIndex();
@@ -335,17 +336,37 @@ void PlayListTableView::initial() {
                 auto entity = this->item(select_item.second);
                 emit readFingerprint(select_item.second, entity);
             }
-        });
+            });
         action_map.addSeparator();
         action_map.setCallback(copy_album_act, [item]() {
             QApplication::clipboard()->setText(item.album);
-        });
+            });
         action_map.setCallback(copy_artist_act, [item]() {
             QApplication::clipboard()->setText(item.artist);
-        });
+            });
         action_map.setCallback(copy_title_act, [item]() {
             QApplication::clipboard()->setText(item.title);
-        });
+            });
+
+        action_map.setCallback(export_cover_act, [item, this]() {
+            xamp::metadata::TaglibMetadataReader reader;
+            auto buffer = reader.ExtractEmbeddedCover(item.file_path.toStdWString());
+            if (buffer.empty()) {
+                return;
+            }
+            auto file_name = QFileDialog::getSaveFileName(this,
+                tr("Save cover image"),
+                Qt::EmptyString,
+                tr("Images file (*.png);;All Files (*)"));
+            if (file_name.isEmpty()) {
+                return;
+            }
+            QFile file(file_name);
+            QPixmap pixmap;
+            pixmap.loadFromData(buffer.data(),
+                static_cast<uint32_t>(buffer.size()));
+            pixmap.save(&file, "png", 100);
+            });
 
         action_map.setCallback(set_cover_art_act, [item, this]() {
             const auto file_name = QFileDialog::getOpenFileName(this, tr("Open Cover Art Image"),
@@ -553,7 +574,7 @@ void PlayListTableView::setNowPlaying(const QModelIndex& index, bool is_scroll_t
         QTableView::scrollTo(play_index_, PositionAtCenter);
     }
     auto entity = getEntity(play_index_);
-    Singleton<Database>::GetInstance().SetNowPlaying(playlist_id_, entity.music_id);
+    Singleton<Database>::GetInstance().setNowPlaying(playlist_id_, entity.music_id);
     proxy_model_.dataChanged(QModelIndex(), QModelIndex());
 }
 
@@ -597,7 +618,7 @@ void PlayListTableView::play(const QModelIndex& index) {
 }
 
 void PlayListTableView::removePlaying() {
-    Singleton<Database>::GetInstance().ClearNowPlaying(playlist_id_);
+    Singleton<Database>::GetInstance().clearNowPlaying(playlist_id_);
     proxy_model_.dataChanged(QModelIndex(), QModelIndex());
 }
 
@@ -625,7 +646,7 @@ void PlayListTableView::reloadSelectMetadata() {
         entity.cover_id = cover_id;
         entity.artist_id = artist_id;
 
-        Singleton<Database>::GetInstance().AddOrUpdateMusic(metadata, -1);
+        Singleton<Database>::GetInstance().addOrUpdateMusic(metadata, -1);
     }
 
     proxy_model_.dataChanged(QModelIndex(), QModelIndex());
@@ -638,12 +659,12 @@ void PlayListTableView::removeSelectItems() {
 
     for (auto itr = rows.rbegin(); itr != rows.rend(); ++itr) {
         if (getIndexValue((*itr).second, PLAYLIST_PLAYING).toBool()) {
-            Singleton<Database>::GetInstance().ClearNowPlaying(playlist_id_);
+            Singleton<Database>::GetInstance().clearNowPlaying(playlist_id_);
         }
         auto const music_id = model()->data((*itr).second);
         remove_music_ids.push_back(music_id.toInt());
     }
 
-    Singleton<Database>::GetInstance().RemovePlaylistMusic(playlist_id_, remove_music_ids);
+    Singleton<Database>::GetInstance().removePlaylistMusic(playlist_id_, remove_music_ids);
     setPlaylistId(playlist_id_);
 }

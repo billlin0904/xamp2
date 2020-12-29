@@ -136,11 +136,13 @@ public:
 
         ratio_ = static_cast<double>(output_sample_rate) / static_cast<double>(input_samplerate_);
 
-        XAMP_LOG_DEBUG("Soxr resampler setting=> input:{} output:{} quality:{} phase:{}",
-                       input_sample_rate,
-                       output_sample_rate,
-                       EnumToString(quality_),
-                       EnumToString(phase_));
+        XAMP_LOG_DEBUG("Soxr resampler setting=> input:{} output:{} quality:{} phase:{} pass:{} stopband:{}",
+            input_sample_rate,
+            output_sample_rate,
+            EnumToString(quality_),
+            EnumToString(phase_),
+            passband_,
+            stopband_);
 
         ResizeBuffer(kInitBufferSize);
     }

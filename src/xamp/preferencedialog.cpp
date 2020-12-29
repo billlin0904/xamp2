@@ -43,7 +43,11 @@ QMap<QString, QVariant> PreferenceDialog::getSoxrSettings() const {
 	settings[kSoxrEnableSteepFilter] = soxr_enable_steep_filter;
 	settings[kSoxrQuality] = soxr_quility;
 	settings[kSoxrPhase] = soxr_phase;
-	settings[kSoxrPassBand] = soxr_pass_band;
+	if (soxr_passband_ > 0) {
+		settings[kSoxrPassBand] = soxr_passband_;
+	} else {
+		settings[kSoxrPassBand] = soxr_pass_band;
+	}	
 	settings[kSoxrEnableDither] = soxr_enable_dither;
 
 	return settings;
@@ -126,7 +130,9 @@ void PreferenceDialog::initLang() {
 }
 
 PreferenceDialog::PreferenceDialog(QWidget *parent)
-    : QDialog(parent) {
+    : QDialog(parent)
+	, soxr_passband_(0) {
+	
     ui_.setupUi(this);
     setWindowTitle(tr("Preferences"));
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
@@ -165,7 +171,8 @@ PreferenceDialog::PreferenceDialog(QWidget *parent)
 		});
 
     (void)QObject::connect(ui_.soxrPassbandSlider, &QSlider::sliderMoved, [this](auto) {
-        ui_.soxrPassbandValue->setText(QString(Q_UTF8("%0%")).arg(ui_.soxrPassbandSlider->value()));
+		soxr_passband_ = ui_.soxrPassbandSlider->value();
+        ui_.soxrPassbandValue->setText(QString(Q_UTF8("%0%")).arg(soxr_passband_));
     });
 
     music_file_path_ = AppSettings::getValue(kAppSettingMusicFilePath).toString();

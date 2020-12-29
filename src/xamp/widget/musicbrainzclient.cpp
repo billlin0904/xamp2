@@ -90,7 +90,7 @@ void MusicBrainzClient::searchBy(const FingerprintInfo& fingerprint) {
 }
 
 void MusicBrainzClient::lookupArtist(int32_t artist_id, const QString& artist_mbid) {
-    Singleton<Database>::GetInstance().UpdateArtistMbid(artist_id, artist_mbid);
+    Singleton<Database>::GetInstance().updateArtistMbid(artist_id, artist_mbid);
 
     auto handler = [this, artist_id](const QString& msg) {
         auto str = msg.toStdString();

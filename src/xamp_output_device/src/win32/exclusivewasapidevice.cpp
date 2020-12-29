@@ -286,9 +286,6 @@ void ExclusiveWasapiDevice::ReportError(HRESULT hr) noexcept {
 
 HRESULT ExclusiveWasapiDevice::OnSampleReady(IMFAsyncResult *result) noexcept {
     if (!is_running_) {
-        if (!is_stop_streaming_) {
-			FillSilentSample(buffer_frames_);
-        }
         is_stop_streaming_ = true;
         condition_.notify_all();		
 		return S_OK;
