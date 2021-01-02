@@ -61,7 +61,7 @@ public:
         file_.Close();
         file_.Open(file_path);
 
-        if (!TestDsdFileFormat(file_)) {
+        if (mode_ == DsdModes::DSD_MODE_PCM) {
             stream_.reset(Singleton<BassLib>::GetInstance().BASS_StreamCreateFile(TRUE,
                 file_.GetData(),
                 0,

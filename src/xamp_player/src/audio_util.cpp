@@ -1,11 +1,33 @@
+#include <base/memory_mapped_file.h>
+
 #include <output_device/audiodevicemanager.h>
+
 #include <stream/dsdstream.h>
 #include <stream/bassfilestream.h>
 #include <stream/avfilestream.h>
+
 #include <base/dataconverter.h>
 #include <player/audio_util.h>
 
 namespace xamp::player {
+
+static bool TestDsdFileFormat(MemoryMappedFile &file) {
+	if (file.GetLength() < 4) {
+        return false;
+	}
+	
+    constexpr std::string_view dsd_chunks{ "DSD " };
+    constexpr std::string_view dsdiff_chunks{ "FRM8" };
+	
+    return memcmp(file.GetData(), dsd_chunks.data(), 4) == 0
+	|| memcmp(file.GetData(), dsdiff_chunks.data(), 4) == 0;
+}
+
+static bool TestDsdFileFormat(std::wstring const& file_path) {
+    MemoryMappedFile file;
+    file.Open(file_path);
+    return TestDsdFileFormat(file);
+}
 
 DsdStream* AsDsdStream(AlignPtr<FileStream> const &stream) noexcept {
     return dynamic_cast<DsdStream*>(stream.get());
@@ -81,13 +103,13 @@ AlignPtr<FileStream> MakeStream(std::wstring const& file_ext, AlignPtr<FileStrea
     return MakeAlign<FileStream, AvFileStream>();
 }
 
-DsdModes SetStreamDsdMode(AlignPtr<FileStream>& stream, const DeviceInfo& device_info, bool use_native_dsd) {
+DsdModes SetStreamDsdMode(AlignPtr<FileStream>& stream, bool is_dsd_file, const DeviceInfo& device_info, bool use_native_dsd) {
     auto dsd_mode = DsdModes::DSD_MODE_PCM;
 
     if (auto* dsd_stream = AsDsdStream(stream)) {
         // ASIO device (win32).
         if (AudioDeviceManager::GetInstance().IsASIODevice(device_info.device_type_id)) {
-            if (dsd_stream->IsDsdFile() && device_info.is_support_dsd) {
+            if (is_dsd_file && device_info.is_support_dsd) {
                 dsd_stream->SetDSDMode(DsdModes::DSD_MODE_NATIVE);
                 dsd_mode = DsdModes::DSD_MODE_NATIVE;
                 XAMP_LOG_DEBUG("Use Native DSD mode.");
@@ -100,7 +122,7 @@ DsdModes SetStreamDsdMode(AlignPtr<FileStream>& stream, const DeviceInfo& device
         }
         // WASAPI or CoreAudio old device.
         else {
-            if (dsd_stream->IsDsdFile() && device_info.is_support_dsd && use_native_dsd) {
+            if (is_dsd_file && device_info.is_support_dsd && use_native_dsd) {
                 dsd_stream->SetDSDMode(DsdModes::DSD_MODE_DOP);
                 XAMP_LOG_DEBUG("Use DOP mode.");
                 dsd_mode = DsdModes::DSD_MODE_DOP;
@@ -124,9 +146,11 @@ std::pair<DsdModes, AlignPtr<FileStream>> MakeFileStream(std::wstring const& fil
     std::wstring const& file_ext,
     DeviceInfo const& device_info,
     bool use_native_dsd) {
+    bool is_dsd_file = TestDsdFileFormat(file_path);
     auto test_dsd_mode_stream = MakeStream(file_ext);
+    auto dsd_mode = SetStreamDsdMode(test_dsd_mode_stream, is_dsd_file, device_info, use_native_dsd);
     test_dsd_mode_stream->OpenFile(file_path);
-    return std::make_pair(SetStreamDsdMode(test_dsd_mode_stream, device_info, use_native_dsd), std::move(test_dsd_mode_stream));
+    return std::make_pair(dsd_mode, std::move(test_dsd_mode_stream));
 }
 
 }
