@@ -18,7 +18,6 @@
 #include <base/align_ptr.h>
 #include <base/uuid.h>
 #include <base/spsc_queue.h>
-#include <base/stopwatch.h>
 
 #include <stream/stream.h>
 
@@ -29,6 +28,10 @@
 #include <player/playstate.h>
 #include <player/playbackstateadapter.h>
 #include <player/player.h>
+
+#ifdef _DEBUG
+#include <base/stopwatch.h>
+#endif
 
 namespace xamp::player {
 
@@ -197,17 +200,17 @@ private:
     std::condition_variable pause_cond_;
     std::condition_variable stopped_cond_;
     AudioFormat input_format_;
-    AudioFormat output_format_;
-    Buffer<int8_t> sample_buffer_;
+    AudioFormat output_format_;    
     Timer timer_;
     AlignPtr<FileStream> stream_;
     AlignPtr<DeviceType> device_type_;
     AlignPtr<Device> device_;
     std::weak_ptr<PlaybackStateAdapter> state_adapter_;
+    VmMemLock sample_buffer_lock_;
     AudioBuffer<int8_t> buffer_;
+    Buffer<int8_t> sample_buffer_;
     WaitableTimer wait_timer_;
-    AlignPtr<SampleRateConverter> converter_;
-    VmMemLock sample_buffer_lock_;    
+    AlignPtr<SampleRateConverter> converter_;       
     DeviceInfo device_info_;
     std::shared_future<void> stream_task_;
     SpscQueue<MsgID> msg_queue_;

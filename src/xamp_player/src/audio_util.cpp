@@ -115,7 +115,7 @@ std::pair<DsdModes, AlignPtr<FileStream>> MakeFileStream(std::wstring const& fil
     std::wstring const& file_ext,
     DeviceInfo const& device_info,
     bool use_native_dsd) {
-    bool is_dsd_file = TestDsdFileFormat(file_path);
+	const auto is_dsd_file = TestDsdFileFormat(file_path);
     auto test_dsd_mode_stream = MakeStream(file_ext);
     auto dsd_mode = SetStreamDsdMode(test_dsd_mode_stream, is_dsd_file, device_info, use_native_dsd);
     test_dsd_mode_stream->OpenFile(file_path);

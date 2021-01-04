@@ -111,12 +111,12 @@ private:
 	mutable std::mutex mutex_;
 	std::condition_variable condition_;
 	AudioFormat format_;
-	std::vector<ASIOClockSource> clock_source_;
+	std::vector<ASIOClockSource> clock_source_;	
 	Buffer<int8_t> buffer_;
 	Buffer<int8_t> device_buffer_;
-	AudioCallback* callback_;
 	VmMemLock buffer_vmlock_;
 	VmMemLock device_buffer_vmlock_;
+	AudioCallback* callback_;	
 	std::shared_ptr<spdlog::logger> log_;
 };
 

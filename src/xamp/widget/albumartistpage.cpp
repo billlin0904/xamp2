@@ -41,6 +41,8 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 
 	(void) QObject::connect(artist_view_, &ArtistView::clickedArtist,
 		album_view_, &AlbumView::setFilterByArtistFirstChar);
+
+	setStyleSheet(Q_UTF8("background-color: transparent"));
 }
 
 void AlbumArtistPage::refreshOnece() {

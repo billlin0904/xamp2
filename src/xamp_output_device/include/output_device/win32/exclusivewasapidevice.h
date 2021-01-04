@@ -103,9 +103,9 @@ private:
 	CComPtr<IMFAsyncResult> sample_ready_async_result_;	
 	mutable std::mutex mutex_;
 	Buffer<float> buffer_;
+	VmMemLock vmlock_;	
 	std::condition_variable condition_;
-	AudioCallback* callback_;
-	VmMemLock vmlock_;
+	AudioCallback* callback_;	
 	std::shared_ptr<spdlog::logger> log_;
 };
 

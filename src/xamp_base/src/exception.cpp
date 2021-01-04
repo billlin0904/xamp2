@@ -44,12 +44,12 @@ Exception::Exception(Errors error, const std::string& message, std::string_view 
 	: error_(error)
     , what_(what)
 	, message_(message) {
+    stacktrace_ = StackTrace{}.CaptureStack();
 	if (message_.empty()) {
         std::ostringstream ostr;
-        ostr << error << "(" << ErrorToString(error) << ")";
+        ostr << error << "(" << ErrorToString(error) << ")" << stacktrace_;
 		message_ = ostr.str();
-	}
-    stacktrace_ = StackTrace{}.CaptureStack();
+	}    
 }
 
 char const* Exception::GetStackTrace() const noexcept {
@@ -101,7 +101,7 @@ DeviceUnSupportedFormatException::DeviceUnSupportedFormatException(AudioFormat c
 	: Exception(Errors::XAMP_ERROR_DEVICE_UNSUPPORTED_FORMAT)
 	, format_(format) {
 	std::ostringstream ostr;
-	ostr << "Device unsupported file format " << format_ << ".";
+	ostr << "Device unsupported file format " << format_ << "." << GetStackTrace();
 	message_ = ostr.str();
 }
 
@@ -109,7 +109,7 @@ LoadDllFailureException::LoadDllFailureException(std::string_view dll_name)
 	: Exception(Errors::XAMP_ERROR_LOAD_DLL_FAILURE)
 	, dll_name_(dll_name) {
 	std::ostringstream ostr;
-	ostr << "Load dll " << dll_name << " failure.";
+	ostr << "Load dll " << dll_name << " failure." << GetStackTrace();
 	message_ = ostr.str();
 }
 
@@ -144,7 +144,8 @@ NotSupportVariableSampleRateException::NotSupportVariableSampleRateException(int
     const double min = (std::min)(input_samplerate, output_samplerate);
 	ostr << "Resampler not support variable resample. " << input_samplerate << "Hz to " 
         << output_samplerate << "Hz ("
-         << std::round(max / min * 100.0) / 100.0 << "x)";
+        << std::round(max / min * 100.0) / 100.0 << "x)"
+        << GetStackTrace();
 	message_ = ostr.str();
 }
 

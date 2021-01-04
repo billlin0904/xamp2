@@ -33,12 +33,12 @@ static void loadOrDefaultSoxrSetting() {
 
     QMap<QString, QVariant> defaultSetting;
 
-    defaultSetting[kSoxrResampleSampleRate] = 44100;
+    defaultSetting[kSoxrResampleSampleRate] = 96000;
     defaultSetting[kSoxrEnableSteepFilter] = false;
     defaultSetting[kSoxrEnableDither] = true;
-    defaultSetting[kSoxrQuality] = static_cast<int32_t>(SoxrQuality::VHQ);
-    defaultSetting[kSoxrPhase] = static_cast<int32_t>(SoxrPhaseResponse::LINEAR_PHASE);
-    defaultSetting[kSoxrPassBand] = 99;
+    defaultSetting[kSoxrQuality] = static_cast<int32_t>(SoxrQuality::UHQ);
+    defaultSetting[kSoxrPhase] = static_cast<int32_t>(SoxrPhaseResponse::INTERMEDIATE_PHASE);
+    defaultSetting[kSoxrPassBand] = 45;
 
     JsonSettings::setValue(kSoxrDefaultSettingName, QVariant::fromValue(defaultSetting));
     AppSettings::setValue(kAppSettingSoxrSettingName, kSoxrDefaultSettingName);
@@ -67,23 +67,6 @@ static void loadSettings() {
     }
 }
 
-#ifdef Q_OS_WIN32
-static void initWorkingSetSiz() {
-	// https://social.msdn.microsoft.com/Forums/en-US/4890ecba-0325-4edf-99a8-bfc5d4f410e8/win10-major-issue-for-audio-processing-os-special-mode-for-small-buffer?forum=windowspro-audiodevelopment
-    // Everything the SetProcessWorkingSetSize says is true. You should only lock what you need to lock.
-    // And you need to lock everything you touch from the realtime thread. Because if the realtime thread
-    // touches something that was paged out, you glitch.
-    constexpr size_t kWorkingSetSize = 1024 * 1024 * 1024;
-    if (EnablePrivilege("SeLockMemoryPrivilege", true)) {
-        XAMP_LOG_DEBUG("EnableLockMemPrivilege success.");
-
-        if (ExterndProcessWorkingSetSize(kWorkingSetSize)) {
-            XAMP_LOG_DEBUG("ExterndProcessWorkingSetSize {} success.", FormatBytes(kWorkingSetSize));
-        }
-    }
-}
-#endif
-
 static int excute(int argc, char* argv[]) {   
     ::qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
     QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
@@ -111,10 +94,6 @@ static int excute(int argc, char* argv[]) {
     else {
         XAMP_LOG_DEBUG("Load symbol failure!");
     }
-
-#ifdef Q_OS_WIN32    
-    initWorkingSetSiz();
-#endif
 
     QApplication app(argc, argv);
 

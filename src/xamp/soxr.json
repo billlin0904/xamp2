@@ -5,6 +5,6 @@
         "AppSettings/soxr/passBand": 45,
         "AppSettings/soxr/phase": 1,
         "AppSettings/soxr/quality": 4,
-        "AppSettings/soxr/resampleSampleRate": 96000
+        "AppSettings/soxr/resampleSampleRate": 192000
     }
 }

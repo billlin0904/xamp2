@@ -106,15 +106,16 @@ void PlyalistPage::initial() {
 
 	horizontalLayout_8->setStretch(1, 1);
 
-	default_layout->addLayout(horizontalLayout_8);
+	default_layout->addLayout(horizontalLayout_8); 
 
 	default_layout->setStretch(2, 1);
+
+	setStyleSheet(Q_UTF8("background-color: transparent"));
 }
 
 void PlyalistPage::OnThemeColorChanged(QColor theme_color, QColor color) {
 	title_->setStyleSheet(Q_UTF8("QLabel { color: ") + colorToString(color) + Q_UTF8("; background-color: transparent; }"));
 	format_->setStyleSheet(Q_UTF8("QLabel { color: ") + colorToString(color) + Q_UTF8("; background-color: transparent; }"));
-	setStyleSheet(backgroundColorToString(theme_color));
 }
 
 QLabel* PlyalistPage::format() {

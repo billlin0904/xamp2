@@ -89,6 +89,8 @@ void AudioPlayer::UpdateSlice(float const *samples, int32_t sample_size, double 
 }
 
 void AudioPlayer::Initial() {
+    InitWorkingSetSiz();
+	
     XAMP_LOG_DEBUG("AudioDeviceManager init success.");
     AudioDeviceManager::GetInstance().PreventSleep(true);
 
@@ -223,10 +225,12 @@ void AudioPlayer::Play() {
         std::unique_lock<std::mutex> lock{ p->pause_mutex_ };
 
         auto* sample_buffer = p->sample_buffer_.Get();
-        const auto max_read_sample = p->num_read_sample_;
-        const auto num_sample_write = max_read_sample * kMaxWriteRatio;
+        const auto max_buffer_sample = p->num_read_sample_;
+        const auto num_sample_write = max_buffer_sample * kMaxWriteRatio;
+        const auto num_sample_read = num_sample_write / 2;
+        auto sleep_count = 0;
 
-        XAMP_LOG_DEBUG("max_read_sample: {}, num_sample_write: {}", max_read_sample, num_sample_write);
+        XAMP_LOG_DEBUG("max_buffer_sample: {}, num_sample_write: {} num_sample_read: {}", max_buffer_sample, num_sample_write, num_sample_read);
 
         try {
             while (p->is_playing_) {
@@ -236,18 +240,18 @@ void AudioPlayer::Play() {
 
                 if (p->buffer_.GetAvailableWrite() < num_sample_write) {
                     p->wait_timer_.Wait();
-
+                    ++sleep_count;
                     continue;
                 }
 
-                p->ReadSampleLoop(sample_buffer, max_read_sample, lock);
+                p->ReadSampleLoop(sample_buffer, max_buffer_sample, lock);
             }
         }
         catch (const std::exception& e) {
             XAMP_LOG_DEBUG("Stream thread read has exception: {}", e.what());
         }
 
-        XAMP_LOG_DEBUG("Stream thread end");
+        XAMP_LOG_DEBUG("Stream thread end, sleep_count: {}", sleep_count);
     });
 
 #ifdef _DEBUG
@@ -733,9 +737,9 @@ void AudioPlayer::BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<SampleRat
     }
 }
 
-void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_read_sample, std::unique_lock<std::mutex>& lock) {
+void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_buffer_sample, std::unique_lock<std::mutex>& lock) {
     while (is_playing_) {
-        const auto num_samples = stream_->GetSamples(sample_buffer, max_read_sample);
+        const auto num_samples = stream_->GetSamples(sample_buffer, max_buffer_sample);
 
         if (num_samples > 0) {
             auto *samples = reinterpret_cast<float*>(sample_buffer);

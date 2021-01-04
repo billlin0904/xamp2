@@ -203,4 +203,6 @@ void LrcPage::initial() {
 	verticalLayout_2->setStretch(2, 1);
 
 	horizontalLayout_10->addLayout(verticalLayout_2);
+
+	setStyleSheet(Q_UTF8("background-color: transparent"));
 }
