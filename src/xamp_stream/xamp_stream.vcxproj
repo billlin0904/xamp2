@@ -161,7 +161,6 @@
   <ItemGroup>
     <ClCompile Include="src\avexception.cpp" />
     <ClCompile Include="src\avfilestream.cpp" />
-    <ClCompile Include="src\bassequalizer.cpp" />
     <ClCompile Include="src\bassexception.cpp" />
     <ClCompile Include="src\bassfilestream.cpp" />
     <ClCompile Include="src\basslib.cpp" />

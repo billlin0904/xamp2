@@ -3,7 +3,6 @@
 #include <QTextStream>
 #include <QSize>
 
-#include <stream/equalizer.h>
 #include <widget/playerorder.h>
 #include <widget/appsettings.h>
 
@@ -11,30 +10,6 @@ QScopedPointer<QSettings> AppSettings::settings_;
 QMap<QString, QVariant> AppSettings::default_settings_;
 LocaleLanguageManager AppSettings::manager_;
 QMap<QString, QList<AppEQSettings>> AppSettings::preset_settings_;
-
-static void saveEQ(QString const& key, QList<AppEQSettings> const& settings) {
-    const auto presetpath = QDir::currentPath() + Q_UTF8("/eqpresets/");
-
-    QFile file(presetpath + key + Q_UTF8(".eq"));
-
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        return;
-    }
-
-    size_t i = 0;
-    
-    QTextStream stream(&file);
-    for (auto setting : settings) {
-        stream << "Filter " << i
-            << ":ON PK Fc"
-            << xamp::stream::kEQBands[i] << " Hz "
-            << "Gain " << setting.gain << " dB "
-            << "Q " << setting.Q << "\r\n";
-        ++i;
-    }
-
-    file.close();
-}
 
 static QMap<QString, QList<AppEQSettings>> loadEQ() {
     QMap<QString, QList<AppEQSettings>> preset_settings;
@@ -96,7 +71,6 @@ QString AppSettings::getMyMusicFolderPath() {
 }
 
 void AppSettings::saveUserEQSettings(QString const &key, QList<AppEQSettings> const & settings) {
-    saveEQ(key, settings);
     loadEQPreset();
 }
 

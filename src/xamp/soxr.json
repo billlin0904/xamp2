@@ -1,16 +1,10 @@
 {
     "default": {
-        "enableSteepFilter": true,
-        "passBand": 99,
-        "phase": 0,
-        "quality": 4,
-        "resampleSampleRate": 176400
-    },
-    "quality_spec_1": {
-        "enableSteepFilter": false,
-        "passBand": 50,
-        "phase": 0,
-        "quality": 3,
-        "resampleSampleRate": 384000
+        "AppSettings/soxr/enableDither": false,
+        "AppSettings/soxr/enableSteepFilter": false,
+        "AppSettings/soxr/passBand": 45,
+        "AppSettings/soxr/phase": 1,
+        "AppSettings/soxr/quality": 4,
+        "AppSettings/soxr/resampleSampleRate": 96000
     }
 }

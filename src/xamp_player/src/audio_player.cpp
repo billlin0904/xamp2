@@ -27,6 +27,7 @@ inline constexpr int32_t kPreallocateBufferSize = 32 * 1024 * 1024;
 inline constexpr int32_t kMaxPreallocateBufferSize = 128 * 1024 * 1024;
 inline constexpr int32_t kMaxWriteRatio = 20;
 inline constexpr int32_t kMaxReadRatio = 30;
+inline constexpr int32_t kDefaultReadSampleSize = 8192;
 
 inline constexpr std::chrono::milliseconds kUpdateSampleInterval(30);
 inline constexpr std::chrono::milliseconds kReadSampleWaitTime(30);
@@ -453,7 +454,7 @@ void AudioPlayer::CreateBuffer() {
     }
 
     if (require_read_sample != num_read_sample_) {    	
-        require_read_sample = std::max(require_read_sample, static_cast<uint32_t>(8192));
+        require_read_sample = std::max(require_read_sample, static_cast<uint32_t>(kDefaultReadSampleSize));
         uint32_t allocate_size = 0;
         if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE) {
             allocate_size = kMaxPreallocateBufferSize;

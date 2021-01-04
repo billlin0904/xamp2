@@ -22,7 +22,7 @@ AboutDialog::AboutDialog(QWidget* parent)
 
     QString domainTxt(Q_UTF8("<html><head/><body><a href=\"http://%1\">Github</a></body></html>"));
     ui.lblDomain->setText(domainTxt.arg(Q_UTF8("github.com/billlin0904/xamp2")));
-    ui.lblCopying->setText(QString::fromStdWString(L"Copyright \u00A9 2018-2020 XAMP2 Project."));
+    ui.lblCopying->setText(QString::fromStdWString(L"Copyright \u00A9 2018-2021 XAMP2 Project."));
 
     font.setBold(false);
     font.setPointSize(9);
