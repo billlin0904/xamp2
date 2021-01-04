@@ -9,50 +9,9 @@
 QScopedPointer<QSettings> AppSettings::settings_;
 QMap<QString, QVariant> AppSettings::default_settings_;
 LocaleLanguageManager AppSettings::manager_;
-QMap<QString, QList<AppEQSettings>> AppSettings::preset_settings_;
-
-static QMap<QString, QList<AppEQSettings>> loadEQ() {
-    QMap<QString, QList<AppEQSettings>> preset_settings;
-
-    auto presetpath = QDir::currentPath() + Q_UTF8("/eqpresets/");
-    auto file_ext = QStringList() << Q_UTF8("*.eq");
-
-    for (QDirIterator itr(presetpath, file_ext, QDir::Files | QDir::NoDotAndDotDot); itr.hasNext();) {
-        QFile file(itr.next());
-        if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-            continue;
-        }
-        QTextStream in(&file);
-        auto line = in.readLine();
-        QList<AppEQSettings> bands;
-        while (!line.isNull()) {
-            auto start = line.indexOf(kGainStr);
-            auto end = line.indexOf(kDbStr);
-            if (start == -1 || end == -1) {
-                break;
-            }
-            auto gain_str = line.mid(start + kGainStr.size(), end - start - kGainStr.size()).trimmed();
-            start = line.indexOf(kQStr);
-            auto q_gain_str = line.mid(start + kQStr.size()).trimmed();
-            bands.push_back({ gain_str.toFloat(), q_gain_str.toFloat() });
-            line = in.readLine();
-        }
-        preset_settings[itr.fileInfo().baseName()] = bands;
-    }
-    return preset_settings;
-}
 
 void AppSettings::loadIniFile(const QString& file_name) {
-	settings_.reset(new QSettings(file_name, QSettings::IniFormat));
-    loadEQPreset();
-}
-
-void AppSettings::loadEQPreset() {
-    preset_settings_ = loadEQ();
-}
-
-QMap<QString, QList<AppEQSettings>> const & AppSettings::getEQPreset() {
-    return preset_settings_;
+	settings_.reset(new QSettings(file_name, QSettings::IniFormat));    
 }
 
 void AppSettings::save() {
@@ -68,10 +27,6 @@ QString AppSettings::getMyMusicFolderPath() {
 		return Qt::EmptyString;
 	}
 	return folder_path[0];
-}
-
-void AppSettings::saveUserEQSettings(QString const &key, QList<AppEQSettings> const & settings) {
-    loadEQPreset();
 }
 
 void AppSettings::setOrDefaultConfig() {

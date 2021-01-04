@@ -39,9 +39,7 @@
 #include <widget/selectcolorwidget.h>
 #include <widget/artistinfopage.h>
 #include <widget/jsonsettings.h>
-#include <widget/eqdialog.h>
 #include <widget/playbackhistorypage.h>
-#include <widget/eqdialog.h>
 #include <widget/ui_utilts.h>
 
 #include "aboutdialog.h"
@@ -597,14 +595,6 @@ void Xamp::initialController() {
         playback_history_page_->setMinimumSize(QSize(550, 400));
         playback_history_page_->refreshOnece();
         playback_history_page_->show();
-    });
-
-    (void)QObject::connect(ui_.eqButton, &QToolButton::pressed, [this]() {
-        EQDialog eqdialog;
-        eqdialog.setFont(font());
-        if (eqdialog.exec() == QDialog::Accepted) {
-            eqsettings_ = eqdialog.EQSettings;
-        }        
     });
 
     (void)QObject::connect(ui_.artistLabel, &ClickableLabel::clicked, [this]() {

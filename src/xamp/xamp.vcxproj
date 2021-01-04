@@ -156,7 +156,6 @@
     <ClCompile Include="widget\clickablelabel.cpp" />
     <ClCompile Include="widget\database.cpp" />
     <ClCompile Include="widget\discogsclient.cpp" />
-    <ClCompile Include="widget\eqdialog.cpp" />
     <ClCompile Include="widget\filedownloadmanager.cpp" />
     <ClCompile Include="widget\filetag.cpp" />
     <ClCompile Include="widget\framelesswindow.cpp" />
@@ -202,7 +201,6 @@
   <ItemGroup>
     <QtUic Include="aboutdialog.ui" />
     <QtUic Include="preferencedialog.ui" />
-    <QtUic Include="widget\eqdialog.ui" />
     <QtUic Include="widget\toast.ui" />
     <QtUic Include="xamp.ui" />
   </ItemGroup>
@@ -282,10 +280,6 @@
     <QtMoc Include="widget\discogsclient.h">
       <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtWinExtras;.\..\xamp_base\include;.\..\xamp_stream\include;.\..\xamp_output_device\include;.\..\xamp_player\include;.\..\xamp_metadata\include;.\..\thirdparty\spdlog\include;$(QTDIR)\include\QtNetwork;$(INHERIT);.\..\thirdparty\rapidjson\include</IncludePath>
       <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtWinExtras;.\..\xamp_base\include;.\..\xamp_stream\include;.\..\xamp_player\include;.\..\xamp_output_device\include;.\..\xamp_metadata\include;.\..\thirdparty\spdlog\include;$(QTDIR)\include\QtNetwork;$(INHERIT);.\..\thirdparty\rapidjson\include</IncludePath>
-    </QtMoc>
-    <QtMoc Include="widget\eqdialog.h">
-      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtWinExtras;.\..\xamp_base\include;.\..\xamp_stream\include;.\..\xamp_output_device\include;.\..\xamp_player\include;.\..\xamp_metadata\include;.\..\thirdparty\spdlog\include;$(QTDIR)\include\QtNetwork;$(INHERIT);.\..\thirdparty\rapidjson\include;$(QTDIR)\include\QtConcurrent;.\..\thirdparty\rapidxml;.\..\thirdparty\robin_hood;$(QTDIR)\include\QtCharts</IncludePath>
-      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtWinExtras;.\..\xamp_base\include;.\..\xamp_stream\include;.\..\xamp_player\include;.\..\xamp_output_device\include;.\..\xamp_metadata\include;.\..\thirdparty\spdlog\include;$(QTDIR)\include\QtNetwork;$(INHERIT);.\..\thirdparty\rapidjson\include;$(QTDIR)\include\QtConcurrent;.\..\thirdparty\rapidxml;.\..\thirdparty\robin_hood;$(QTDIR)\include\QtCharts</IncludePath>
     </QtMoc>
     <ClInclude Include="widget\filetag.h" />
     <ClInclude Include="widget\framelesswindow.h" />

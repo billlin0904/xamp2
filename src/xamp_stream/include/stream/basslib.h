@@ -78,20 +78,6 @@ public:
     XAMP_DECLARE_DLL(BASS_Mixer_GetVersion) BASS_Mixer_GetVersion;
 };
 
-class BassFxLib final {
-public:
-    BassFxLib();
-
-    XAMP_DISABLE_COPY(BassFxLib)
-
-private:
-    ModuleHandle module_;
-
-public:    
-    XAMP_DECLARE_DLL(BASS_FX_TempoGetSource) BASS_FX_TempoGetSource;
-    XAMP_DECLARE_DLL(BASS_FX_TempoCreate) BASS_FX_TempoCreate;
-};
-
 class XAMP_STREAM_API BassLib final {
 public:
     friend class Singleton<BassLib>;
@@ -106,7 +92,6 @@ public:
 
     XAMP_DISABLE_COPY(BassLib)
 
-    AlignPtr<BassFxLib> FxLib;
     AlignPtr<BassDSDLib> DSDLib;
     AlignPtr<BassMixLib> MixLib;
 

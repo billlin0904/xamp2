@@ -314,14 +314,6 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
                                                }
                                                )").arg(themeColorPath()));
 
-    ui.eqButton->setStyleSheet(Q_STR(R"(
-                                          QToolButton#eqButton {
-                                          image: url(:/xamp/Resource/%1/equalizer.png);
-                                          background-color: transparent;
-                                          border: none;
-                                          }
-                                          )").arg(themeColorPath()));
-
 }
 
 void ThemeManager::setDefaultStyle(Ui::XampWindow& ui) {

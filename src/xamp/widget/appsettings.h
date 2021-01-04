@@ -91,10 +91,6 @@ public:
 
     static QString getMyMusicFolderPath();
 
-    static QMap<QString, QList<AppEQSettings>> const & getEQPreset();
-
-    static void saveUserEQSettings(QString const &key, QList<AppEQSettings> const & settings);
-
     static void save();
 
 protected:
@@ -106,5 +102,4 @@ private:
     static QScopedPointer<QSettings> settings_;
     static QMap<QString, QVariant> default_settings_;
     static LocaleLanguageManager manager_;
-    static QMap<QString, QList<AppEQSettings>> preset_settings_;
 };
