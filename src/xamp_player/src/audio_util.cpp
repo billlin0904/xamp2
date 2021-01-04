@@ -37,37 +37,6 @@ DsdDevice* AsDsdDevice(AlignPtr<Device> const &device) noexcept {
     return dynamic_cast<DsdDevice*>(device.get());
 }
 
-std::pair<float, float> GetNormalizedPeaks(AlignPtr<FileStream>& stream) {
-    constexpr uint32_t kReadSampleSize = 8192;
-
-    const auto num_stream_ch = stream->GetFormat().GetChannels();
-
-    stream->Seek(0);
-    
-    Buffer<float> buffer(kReadSampleSize * num_stream_ch);
-
-    std::pair<float, float> result(0, 0);
-
-    while (true) {
-        auto num_samples = stream->GetSamples(buffer.Get(), buffer.GetSize());
-        if (num_samples == 0) {
-            break;
-        }
-        if (num_stream_ch == 1) {
-            for (auto i = 0; i < num_samples / num_stream_ch; ++i) {
-                result.first = FloatMaxSSE2(buffer[i], result.first);
-            }
-        } else {
-            for (auto i = 0; i < num_samples / num_stream_ch; ++i) {
-                result.first = FloatMaxSSE2(buffer[i], result.first);
-                result.second = FloatMaxSSE2(buffer[i + 1], result.second);
-            }
-        }
-    }
-    stream->Seek(0);
-    return result;
-}
-
 AlignPtr<FileStream> MakeStream(std::wstring const& file_ext, AlignPtr<FileStream> old_stream) {
     static const HashSet<std::wstring_view> dsd_ext{
         {L".dsf"},

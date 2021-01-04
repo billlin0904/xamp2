@@ -138,8 +138,6 @@ private:
 
     void readFingerprint(const QModelIndex&, const PlayListEntity& item);
 
-    void setupEQ();
-
 	void createTrayIcon();
 
     void updateUI(const MusicEntity& item, const PlaybackFormat& playback_format, bool open_done);

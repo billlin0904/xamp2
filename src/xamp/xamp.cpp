@@ -49,8 +49,6 @@
 #include "thememanager.h"
 #include "xamp.h"
 
-#include <stream/bassequalizer.h>
-
 static QMessageBox::StandardButton showAskDialog(QWidget* widget, const char text[]) {
     QMessageBox msgbox;
     msgbox.setWindowTitle(Q_UTF8("XAMP"));
@@ -290,13 +288,13 @@ void Xamp::initialUI() {
     ui_.startPosLabel->setFont(f);
     ui_.endPosLabel->setFont(f);
 #else
-    ui.closeButton->hide();
-    ui.maxWinButton->hide();
-    ui.minWinButton->hide();
+    ui_.closeButton->hide();
+    ui_.maxWinButton->hide();
+    ui_.minWinButton->hide();
     f.setPointSize(11);
-    ui.titleLabel->setFont(f);
+    ui_.titleLabel->setFont(f);
     f.setPointSize(10);
-    ui.artistLabel->setFont(f);
+    ui_.artistLabel->setFont(f);
 #endif
 }
 
@@ -640,6 +638,8 @@ void Xamp::initialController() {
     });
 
     auto settings_menu = new QMenu(this);
+    ThemeManager::instance().setBackgroundColor(settings_menu);
+
     auto settings_action = new QAction(tr("Settings"), this);
     settings_menu->addAction(settings_action);
     (void)QObject::connect(settings_action, &QAction::triggered, [=]() {
@@ -909,27 +909,6 @@ void Xamp::processMeatadata(const std::vector<Metadata>& medata) const {
     emit album_artist_page_->artist()->refreshOnece();    
 }
 
-void Xamp::setupEQ() {
-    const auto enable_eq = AppSettings::getValueAsBool(kEnableEQ);
-    if (!enable_eq) {
-        player_->EnableEQ(false);
-        return;
-    }
-
-    const auto eq_name = AppSettings::getValueAsString(kEQName);
-    if (eq_name.isEmpty() || eqsettings_.isEmpty()) {
-        eqsettings_ = AppSettings::getEQPreset().first();
-    }
-
-    auto equalizer = MakeAlign<Equalizer, BassEqualizer>();
-    int i = 0;
-    for (const auto band : eqsettings_) {
-        equalizer->SetEQ(i++, band.gain, band.Q);
-    }
-
-    player_->SetEQ(std::move(equalizer));
-}
-
 void Xamp::playMusic(const MusicEntity& item) {
     auto open_done = false;
 
@@ -954,8 +933,7 @@ void Xamp::playMusic(const MusicEntity& item) {
 
     try {
         player_->Open(item.file_path.toStdWString(), item.file_ext.toStdWString(), device_info_, use_native_dsd);
-        setupSampleRateConverter();
-        setupEQ();        
+        setupSampleRateConverter();      
         player_->PrepareToPlay(loop_time.first, loop_time.second);
         playback_format = getPlaybackFormat(player_.get());
         player_->Play();

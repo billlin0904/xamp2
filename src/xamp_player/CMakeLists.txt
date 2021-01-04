@@ -7,7 +7,7 @@ project(xamp_player)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-add_compile_definitions(ENABLE_FFMPEG=1)
+add_compile_definitions(ENABLE_FFMPEG=1 USE_ACCELERATE_FFT)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15")
 
 if (${CMAKE_BUILD_TYPE} STREQUAL Debug)
@@ -32,6 +32,7 @@ include_directories("../thirdparty/spdlog/include/")
 include_directories("../thirdparty/soxr/src/")
 include_directories("../thirdparty/robin_hood/")
 include_directories("../thirdparty/chromaprint/src")
+include_directories("../thirdparty/gist/src")
 
 file(GLOB_RECURSE SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/*.cpp")
 
@@ -62,12 +63,20 @@ find_library (
 
 message(STATUS "LIB_XAMP_STREAM: [${LIB_XAMP_STREAM}]")
 
-find_library(ACCELERATE_LIB Accelerate)
+find_library (
+    LIB_GIST
+    NAMES libGist.a
+    HINTS "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/gist/osx_${BUILD_PATH}"
+    NO_DEFAULT_PATH
+)
 
+message(STATUS "LIB_GIST: [${LIB_GIST}]")
+
+find_library(ACCELERATE_LIB Accelerate)
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
-target_link_libraries(xamp_player ${LIB_XAMP_BASE} ${LIB_XAMP_OUTPUT_DEVICE} ${LIB_XAMP_STREAM} ${ACCELERATE_LIB})
+target_link_libraries(xamp_player ${LIB_XAMP_BASE} ${LIB_XAMP_OUTPUT_DEVICE} ${LIB_XAMP_STREAM} ${ACCELERATE_LIB} ${LIB_GIST})
 
 if(LIBRARY_TESTS)
 include(FetchContent)

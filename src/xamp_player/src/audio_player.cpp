@@ -11,7 +11,6 @@
 
 #include <stream/bassfilestream.h>
 #include <stream/avfilestream.h>
-#include <stream/bassequalizer.h>
 
 #include <player/soxresampler.h>
 #include <player/samplerateconverter.h>
@@ -76,7 +75,6 @@ void AudioPlayer::Destroy() {
     Stop(false, true);
     stream_.reset();
     converter_.reset();
-    equalizer_.reset();
 #ifdef ENABLE_ASIO
     AudioDeviceManager::GetInstance().RemoveASIODriver();
 #endif
@@ -107,15 +105,7 @@ void AudioPlayer::Initial() {
     }
     catch (...) {
     	// Ignore exception.
-    }   
-
-    try {
-        BassEqualizer::LoadBassFxLib();
-        XAMP_LOG_DEBUG("Load BASS Fx dll success.");
     }
-    catch (...) {
-        // Ignore exception.
-    }     
 }
 
 void AudioPlayer::Open(std::wstring const & file_path, 
@@ -592,16 +582,6 @@ void AudioPlayer::OpenDevice(double stream_time) {
     device_->SetStreamTime(stream_time);
 }
 
-void AudioPlayer::SetEQ(AlignPtr<Equalizer>&& equalizer) {
-    equalizer_ = std::move(equalizer);
-}
-
-void AudioPlayer::EnableEQ(bool enable) {
-	if (!enable) {
-        equalizer_.reset();
-	}
-}
-
 void AudioPlayer::SetLoop(double start_time, double end_time) {
     Seek(start_time);
     sample_end_time_ = end_time - start_time;
@@ -743,19 +723,9 @@ void AudioPlayer::BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<SampleRat
 
             auto* samples = reinterpret_cast<float*>(sample_buffer);
 
-            auto use_sample_rate_converter = true;
-            if (equalizer_ != nullptr) {
-                if (dsd_mode_ == DsdModes::DSD_MODE_PCM) {
-                    equalizer_->Process(samples, num_samples, buffer_);
-                    use_sample_rate_converter = false;
-                }
-            }
-
-            if (use_sample_rate_converter) {
-                assert(converter != nullptr);
-                if (!converter->Process(samples, num_samples, buffer_)) {
-                    continue;
-                }
+            assert(converter != nullptr);
+            if (!converter->Process(samples, num_samples, buffer_)) {
+                continue;
             }
             break;
         }
@@ -769,19 +739,9 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_read_sample
         if (num_samples > 0) {
             auto *samples = reinterpret_cast<float*>(sample_buffer);
 
-            auto use_sample_rate_converter = true;
-            if (equalizer_ != nullptr) {
-                if (dsd_mode_ == DsdModes::DSD_MODE_PCM) {
-                    equalizer_->Process(samples, num_samples, buffer_);
-                    use_sample_rate_converter = false;
-                }
-            } 
-
-            if (use_sample_rate_converter) {
-                assert(converter_ != nullptr);
-                if (!converter_->Process(samples, num_samples, buffer_)) {
-                    continue;
-                }
+            assert(converter_ != nullptr);
+            if (!converter_->Process(samples, num_samples, buffer_)) {
+                continue;
             }
             // TODO: 如果在這裡做資料轉換(ex:float->int32_t),
             // 可能需要處理GetSamples不滿足轉換上長度的需求.

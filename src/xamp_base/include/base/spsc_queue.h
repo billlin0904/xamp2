@@ -6,6 +6,7 @@
 #pragma once
 
 #include <atomic>
+#include <memory>
 
 #include <base/base.h>
 #include <base/vmmemlock.h>

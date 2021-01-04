@@ -21,7 +21,6 @@
 #include <base/stopwatch.h>
 
 #include <stream/stream.h>
-#include <stream/equalizer.h>
 
 #include <output_device/output_device.h>
 #include <output_device/audiocallback.h>
@@ -107,10 +106,6 @@ public:
     void EnableSampleRateConverter(bool enable = true);
 
     bool IsEnableSampleRateConverter() const;
-
-    void SetEQ(AlignPtr<Equalizer> &&equalizer);
-
-    void EnableEQ(bool enable = true);
 
     void SetDevice(const DeviceInfo& device_info);
 
@@ -211,8 +206,7 @@ private:
     std::weak_ptr<PlaybackStateAdapter> state_adapter_;
     AudioBuffer<int8_t> buffer_;
     WaitableTimer wait_timer_;
-    AlignPtr<SampleRateConverter> converter_;   
-    AlignPtr<Equalizer> equalizer_;
+    AlignPtr<SampleRateConverter> converter_;
     VmMemLock sample_buffer_lock_;    
     DeviceInfo device_info_;
     std::shared_future<void> stream_task_;
