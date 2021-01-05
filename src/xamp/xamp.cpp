@@ -931,7 +931,7 @@ void Xamp::playMusic(const MusicEntity& item) {
     }
     catch (const Exception & e) {
         XAMP_LOG_DEBUG("Exception: {} {}", e.GetErrorMessage(), e.GetStackTrace());
-        Toast::showTip(Q_UTF8(e.GetErrorMessage()), this);
+        Toast::showTip(Q_UTF8(e.what()), this);
     }
     catch (const std::exception & e) {
         Toast::showTip(Q_UTF8(e.what()), this);

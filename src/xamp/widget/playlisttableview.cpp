@@ -511,7 +511,7 @@ void PlayListTableView::resizeColumn() const {
         case PLAYLIST_TRACK:
         case PLAYLIST_PLAYING:
             header->setSectionResizeMode(column, QHeaderView::ResizeToContents);
-            header->resizeSection(column, 12);
+            header->resizeSection(column, 8);
             break;
         case PLAYLIST_DURATION:
         case PLAYLIST_BITRATE:

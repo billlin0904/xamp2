@@ -21,18 +21,6 @@ static uint32_t GetDOPSampleRate(uint32_t dsd_speed) {
     }
 }
 
-static bool TestDsdFileFormat(MemoryMappedFile &file) {
-	if (file.GetLength() < 4) {
-        return false;
-	}
-	
-    constexpr std::string_view dsd_chunks{ "DSD " };
-    constexpr std::string_view dsdiff_chunks{ "FRM8" };
-	
-    return memcmp(file.GetData(), dsd_chunks.data(), 4) == 0
-	|| memcmp(file.GetData(), dsdiff_chunks.data(), 4) == 0;
-}
-
 class BassFileStream::BassFileStreamImpl {
 public:
     BassFileStreamImpl() noexcept
@@ -314,6 +302,10 @@ uint32_t BassFileStream::GetDsdSpeed() const noexcept {
 
 uint64_t BassFileStream::GetTotalFrames() const {
     return stream_->GetTotalFrames();
+}
+
+std::vector<std::string> BassFileStream::GetSupportFileExtensions() {
+    return Singleton<BassLib>::GetInstance().GetSupportFileExtensions();
 }
 
 }

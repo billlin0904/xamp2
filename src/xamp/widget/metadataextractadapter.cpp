@@ -3,11 +3,15 @@
 #include <QProgressDialog>
 
 #include <base/base.h>
+#include <base/str_utilts.h>
 #include <base/threadpool.h>
 #include <base/threadpool.h>
 #include <metadata/taglibmetareader.h>
 
+#include <player/audio_util.h>
+
 #include <atomic>
+#include <utility>
 #include <metadata/metadatareader.h>
 #include <widget/widget_shared.h>
 
@@ -114,13 +118,20 @@ using xamp::metadata::Path;
 
 class ExtractAdapterProxy : public xamp::metadata::MetadataExtractAdapter {
 public:
-    explicit ExtractAdapterProxy(QSharedPointer<::MetadataExtractAdapter> adapter)
-        : cancel_(false)
-		, adapter_(adapter) {
-        metadatas_.reserve(kCachePreallocateSize);
+    explicit ExtractAdapterProxy(const QSharedPointer<::MetadataExtractAdapter> &adapter)
+        : adapter_(adapter) {
+      metadatas_.reserve(kCachePreallocateSize);
+      for (auto file_ext : GetSupportFileExtensions()) {
+          support_file_ext_.insert(file_ext);
+      }
     }
 
-	XAMP_DISABLE_COPY(ExtractAdapterProxy)
+    bool IsSupported(Path const& path) const noexcept {
+        const auto file_ext = ToLower(path.extension().string());
+        return support_file_ext_.find(file_ext) != support_file_ext_.end();
+    }
+
+    XAMP_DISABLE_COPY(ExtractAdapterProxy)
 
     void OnWalkFirst() override {
         qApp->processEvents();
@@ -140,24 +151,14 @@ public:
                 return first.track < last.track;
             });
         adapter_->readCompleted(metadatas_);
+        metadatas_.clear();
         qApp->processEvents();
-    }
-
-    bool IsCancel() const noexcept override {
-        return cancel_;
-    }
-
-    void Cancel() override {
-        cancel_ = true;
-    }
-
-    void Reset() override {
     }
 	
 private:
-    std::atomic<bool> cancel_;
     QSharedPointer<::MetadataExtractAdapter> adapter_;
     std::vector<Metadata> metadatas_;
+    HashSet<std::string> support_file_ext_;
 };
 
 MetadataExtractAdapter::MetadataExtractAdapter(QObject* parent)
@@ -166,11 +167,11 @@ MetadataExtractAdapter::MetadataExtractAdapter(QObject* parent)
 
 MetadataExtractAdapter::~MetadataExtractAdapter() = default;
 
-void MetadataExtractAdapter::ReadFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter, QString const & file_name) {
-    auto dirs = GetDirList(file_name);
+void MetadataExtractAdapter::ReadFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter, QString const & file_path) {
+    auto dirs = GetDirList(file_path);
 
 	if (dirs.isEmpty()) {
-        dirs.push_back(file_name);
+        dirs.push_back(file_path);
 	}
 
     QProgressDialog dialog(tr("Read file metadata"), tr("Cancel"), 0, dirs.count());
@@ -181,20 +182,24 @@ void MetadataExtractAdapter::ReadFileMetadata(const QSharedPointer<MetadataExtra
     dialog.setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed));
     dialog.show();
 
-    auto progress = 0;
+    dialog.setMinimumDuration(1000);
 	
-    for (const auto& file_path : dirs) {
+    auto progress = 0;
+
+    ExtractAdapterProxy proxy(adapter);
+	
+    for (const auto& file_dir_or_path : dirs) {
     	if (dialog.wasCanceled()) {
             return;
     	}
+
+        dialog.setLabelText(file_dir_or_path);
     	
-        try {
-            ExtractAdapterProxy proxy(adapter);
-            const Path path(file_path.toStdWString());
+        try {            
+            const Path path(file_dir_or_path.toStdWString());
             TaglibMetadataReader reader;
             WalkPath(path, &proxy, &reader);
-
-            dialog.setValue(progress++);            
+            dialog.setValue(progress++);
         }
         catch (const std::exception& e) {
             XAMP_LOG_DEBUG("WalkPath has exception: {}", e.what());
@@ -203,14 +208,13 @@ void MetadataExtractAdapter::ReadFileMetadata(const QSharedPointer<MetadataExtra
 }
 
 void MetadataExtractAdapter::ProcessMetadata(const std::vector<Metadata>& result, PlayListTableView* playlist) {
-	const DatabaseIdCache cache;
+  const DatabaseIdCache cache;
 
     auto playlist_id = -1;
     if (playlist != nullptr) {
         playlist_id = playlist->playlistId();
     }
 
-    // TODO: �d��artist���ɭԨϥγ̪����ת��W��.
     for (const auto& metadata : result) {
         auto album = QString::fromStdWString(metadata.album);
         auto artist = QString::fromStdWString(metadata.artist);

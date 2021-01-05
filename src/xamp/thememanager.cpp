@@ -348,12 +348,6 @@ void ThemeManager::setDefaultStyle(Ui::XampWindow& ui) {
                                          }
                                          )"));
 
-    ui.playlistButton->setStyleSheet(Q_UTF8(R"(
-                                            QToolButton#playlistButton {
-                                            border: none;
-                                            background-color: transparent;
-                                            }
-                                            )"));
     ui.volumeSlider->setStyleSheet(Q_UTF8(R"(
                                           QSlider#volumeSlider {
                                           border: none;

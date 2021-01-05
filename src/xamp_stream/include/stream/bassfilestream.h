@@ -58,6 +58,8 @@ public:
 
 	uint64_t GetTotalFrames() const override;
 
+	static std::vector<std::string> GetSupportFileExtensions();
+
 private:
 	class BassFileStreamImpl;
 	AlignPtr<BassFileStreamImpl> stream_;

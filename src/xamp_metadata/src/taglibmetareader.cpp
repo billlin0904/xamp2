@@ -22,7 +22,7 @@ static bool GetID3V2TagCover(ID3v2::Tag* tag, std::vector<uint8_t>& buffer) {
         return false;
     }
 
-    const auto frame = dynamic_cast<ID3v2::AttachedPictureFrame*>(frame_list.front());
+    const auto * frame = dynamic_cast<ID3v2::AttachedPictureFrame*>(frame_list.front());
     if (!frame) {
         return false;
     }
@@ -51,8 +51,8 @@ static bool GetApeTagCover(APE::Tag* tag, std::vector<uint8_t>& buffer) {
 }
 
 static bool GetMp3Cover(File* file, std::vector<uint8_t>& buffer) {
-    bool found = false;
-    if (auto mpeg_file = dynamic_cast<TagLib::MPEG::File*>(file)) {
+    auto found = false;
+    if (auto * mpeg_file = dynamic_cast<TagLib::MPEG::File*>(file)) {
         if (mpeg_file->ID3v2Tag()) {
             found = GetID3V2TagCover(mpeg_file->ID3v2Tag(), buffer);
         }
@@ -64,15 +64,15 @@ static bool GetMp3Cover(File* file, std::vector<uint8_t>& buffer) {
 }
 
 static bool GetApeCover(File* file, std::vector<uint8_t>& buffer) {
-    if (const auto ape_file = dynamic_cast<TagLib::APE::File*>(file)) {
+    if (auto * ape_file = dynamic_cast<TagLib::APE::File*>(file)) {
         return GetApeTagCover(ape_file->APETag(), buffer);
     }
     return false;
 }
 
 static bool GetMp4Cover(File* file, std::vector<uint8_t>& buffer) {
-    if (auto mp4_file = dynamic_cast<TagLib::MP4::File*>(file)) {
-        auto tag = mp4_file->tag();
+    if (const auto * mp4_file = dynamic_cast<TagLib::MP4::File*>(file)) {
+        auto * tag = mp4_file->tag();
         if (!tag) {
             return false;
         }

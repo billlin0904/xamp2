@@ -58,13 +58,13 @@
         <property name="minimumSize">
          <size>
           <width>0</width>
-          <height>50</height>
+          <height>55</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
           <width>16777215</width>
-          <height>50</height>
+          <height>55</height>
          </size>
         </property>
         <property name="frameShape">
@@ -369,25 +369,6 @@
           </widget>
          </item>
          <item>
-          <widget class="QToolButton" name="playlistButton">
-           <property name="minimumSize">
-            <size>
-             <width>24</width>
-             <height>24</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>24</width>
-             <height>24</height>
-            </size>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item>
           <widget class="QToolButton" name="mutedButton">
            <property name="minimumSize">
             <size>
@@ -441,7 +422,7 @@
       <item row="2" column="0">
        <widget class="QFrame" name="controlFrame">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
@@ -449,13 +430,13 @@
         <property name="minimumSize">
          <size>
           <width>200</width>
-          <height>50</height>
+          <height>0</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
           <width>200</width>
-          <height>50</height>
+          <height>16777215</height>
          </size>
         </property>
         <property name="frameShape">

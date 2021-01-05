@@ -10,6 +10,7 @@
 #include <string>
 #include <iomanip>
 #include <algorithm>
+#include <vector>
 
 #include <base/base.h>
 
@@ -72,6 +73,25 @@ std::string StringPrint(const char *format, Args... args) {
     buffer.resize(size);
     StringPrint(&buffer[0], buffer.size() + 1, format, args...);
     return buffer;
+}
+
+XAMP_ALWAYS_INLINE std::vector<std::string_view> Split(std::string_view s, std::string_view delims = " ") {
+    std::vector<std::string_view> output;
+    size_t first = 0;
+
+    while (first < s.size()) {
+        const auto second = s.find_first_of(delims, first);
+
+        if (first != second) {
+            output.emplace_back(s.substr(first, second - first));
+        }            
+
+        if (second == std::string_view::npos) {
+            break;
+        }
+        first = second + 1;
+    }
+    return output;
 }
 
 }

@@ -111,6 +111,20 @@ DsdModes SetStreamDsdMode(AlignPtr<FileStream>& stream, bool is_dsd_file, const 
     return dsd_mode;
 }
 
+std::vector<std::string> GetSupportFileExtensions() {
+    auto av = AvFileStream::GetSupportFileExtensions();
+    std::sort(av.begin(), av.end());
+
+	auto bass = BassFileStream::GetSupportFileExtensions();
+    std::sort(bass.begin(), bass.end());
+	
+    std::vector<std::string> v;
+    std::set_union(av.begin(), av.end(),
+        bass.begin(), bass.end(),
+        std::back_inserter(v));
+    return v;
+}
+
 std::pair<DsdModes, AlignPtr<FileStream>> MakeFileStream(std::wstring const& file_path,
     std::wstring const& file_ext,
     DeviceInfo const& device_info,

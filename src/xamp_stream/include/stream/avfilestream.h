@@ -5,6 +5,9 @@
 
 #pragma once
 
+#include <vector>
+
+#include <base/stl.h>
 #include <base/audioformat.h>
 #include <base/memory.h>
 #include <base/align_ptr.h>
@@ -39,6 +42,8 @@ public:
 	[[nodiscard]] uint8_t GetSampleSize() const noexcept override;
 
 	uint64_t GetTotalFrames() const override;
+
+	static std::vector<std::string> GetSupportFileExtensions();
 private:
 	class AvFileStreamImpl;
     AlignPtr<AvFileStreamImpl> impl_;

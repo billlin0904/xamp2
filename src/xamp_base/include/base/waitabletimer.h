@@ -18,14 +18,9 @@ public:
 
 	~WaitableTimer() noexcept = default;
 
-	void SetTimeout(std::chrono::milliseconds timeout) noexcept {
-		timeout_ = timeout;
-	}
+	void SetTimeout(std::chrono::milliseconds timeout) noexcept;
 
-	void Wait() noexcept {
-		tp_ += timeout_;
-		std::this_thread::sleep_until(tp_);
-	}
+	void Wait() noexcept;
 private:
 	std::chrono::milliseconds timeout_;
 	std::chrono::steady_clock::time_point tp_;

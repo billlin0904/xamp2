@@ -1,4 +1,5 @@
 #include <base/singleton.h>
+#include <base/str_utilts.h>
 #include <stream/basslib.h>
 
 namespace xamp::stream {
@@ -154,10 +155,30 @@ void BassLib::LoadPlugin(std::string const & file_name) {
         return;
     }
 
-    const auto info = Singleton<BassLib>::GetInstance().BASS_PluginGetInfo(plugin.get());
+    const auto* info = Singleton<BassLib>::GetInstance().BASS_PluginGetInfo(plugin.get());
     XAMP_LOG_DEBUG("Load {} {} successfully.", file_name, GetBassVersion(info->version));
 
     plugins_[file_name] = std::move(plugin);
 }
+
+std::vector<std::string> BassLib::GetSupportFileExtensions() const {
+    std::vector<std::string> result;
+	
+	for (const auto& [key, value] : plugins_) {
+        const auto* info = Singleton<BassLib>::GetInstance().BASS_PluginGetInfo(value.get());
+		
+        for (auto i = 0; i < info->formatc; ++i) {
+        	for (auto file_ext : Split(info->formats[i].exts, ";")) {
+                std::string ext(file_ext);
+                auto pos = ext.find('*');
+        		if (pos != std::string::npos) {
+                    ext.erase(pos, 1);
+        		}                
+                result.push_back(ext);
+        	}           
+        }
+	}
+    return result;
+} 
 
 }

@@ -19,10 +19,6 @@ void WalkPath(Path const & path, MetadataExtractAdapter* adapter, MetadataReader
         Path root_path;
 
         for (auto const & file_or_dir : RecursiveDirectoryIterator(path, options)) {
-            if (adapter->IsCancel()) {
-                return;
-            }
-
             auto const & current_path = file_or_dir.path();
             if (root_path.empty()) {
                 root_path = current_path;
@@ -37,7 +33,7 @@ void WalkPath(Path const & path, MetadataExtractAdapter* adapter, MetadataReader
             }
 
             if (!is_directory(current_path)) {
-                if (reader->IsSupported(current_path)) {
+                if (adapter->IsSupported(current_path)) {
                     adapter->OnWalk(path, reader->Extract(current_path));
                 }
             }
@@ -46,7 +42,7 @@ void WalkPath(Path const & path, MetadataExtractAdapter* adapter, MetadataReader
         adapter->OnWalkNext();
     }
     else {
-        if (reader->IsSupported(path)) {
+        if (adapter->IsSupported(path)) {
             adapter->OnWalk(path, reader->Extract(path));
             adapter->OnWalkNext();
         }

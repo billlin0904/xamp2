@@ -227,10 +227,8 @@ void AudioPlayer::Play() {
         auto* sample_buffer = p->sample_buffer_.Get();
         const auto max_buffer_sample = p->num_read_sample_;
         const auto num_sample_write = max_buffer_sample * kMaxWriteRatio;
-        const auto num_sample_read = num_sample_write / 2;
-        auto sleep_count = 0;
 
-        XAMP_LOG_DEBUG("max_buffer_sample: {}, num_sample_write: {} num_sample_read: {}", max_buffer_sample, num_sample_write, num_sample_read);
+        XAMP_LOG_DEBUG("max_buffer_sample: {}, num_sample_write: {}", max_buffer_sample, num_sample_write);
 
         try {
             while (p->is_playing_) {
@@ -240,18 +238,18 @@ void AudioPlayer::Play() {
 
                 if (p->buffer_.GetAvailableWrite() < num_sample_write) {
                     p->wait_timer_.Wait();
-                    ++sleep_count;
                     continue;
                 }
 
                 p->ReadSampleLoop(sample_buffer, max_buffer_sample, lock);
             }
         }
+        catch (const Exception& e) {
+            XAMP_LOG_DEBUG("Stream thread read has exception: {}", e.what());
+        }
         catch (const std::exception& e) {
             XAMP_LOG_DEBUG("Stream thread read has exception: {}", e.what());
         }
-
-        XAMP_LOG_DEBUG("Stream thread end, sleep_count: {}", sleep_count);
     });
 
 #ifdef _DEBUG
@@ -672,8 +670,8 @@ void AudioPlayer::Seek(double stream_time) {
         if (auto adapter = state_adapter_.lock()) {
 	        std::lock_guard<std::mutex> guard{stream_read_mutex_};
             if (adapter->GetPlayQueueSize() > 0) {
-                auto& entry = adapter->PlayQueueFont();
-                entry.first->Seek(0);
+                auto& [file, convert] = adapter->PlayQueueFont();
+                file->Seek(0);
             }
         }
     }

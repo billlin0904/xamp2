@@ -90,6 +90,8 @@ public:
         return !plugins_.empty();
     }
 
+    std::vector<std::string> GetSupportFileExtensions() const;
+
     XAMP_DISABLE_COPY(BassLib)
 
     AlignPtr<BassDSDLib> DSDLib;

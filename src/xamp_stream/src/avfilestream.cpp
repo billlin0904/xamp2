@@ -92,7 +92,7 @@ public:
         audio_frame_.reset();
         codec_context_.reset();
         format_context_.reset();
-    }
+    }    
 
     void LoadFromFile(std::wstring const & file_path) {
         AVFormatContext* format_ctx = nullptr;
@@ -342,6 +342,22 @@ uint8_t AvFileStream::GetSampleSize() const noexcept {
 
 uint64_t AvFileStream::GetTotalFrames() const {
     return impl_->GetTotalFrames();
+}
+
+std::vector<std::string> AvFileStream::GetSupportFileExtensions() {
+    void* format_opaque = nullptr;
+    const AVInputFormat* format;
+    std::vector<std::string> result;
+    const std::string dot(".");
+    while ((format = av_demuxer_iterate(&format_opaque)) != nullptr) {
+        if (!format->extensions) {
+            continue;
+        }
+        for (auto ext : Split(format->extensions, ",")) {
+            result.emplace_back(dot + std::string(ext));
+        }
+    }
+    return result;
 }
 
 }

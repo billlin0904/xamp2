@@ -17,9 +17,11 @@ using namespace xamp::base;
 
 class XAMP_PLAYER_API XAMP_NO_VTABLE SampleRateConverter {
 public:
+    XAMP_DISABLE_COPY(SampleRateConverter)
+	
     virtual ~SampleRateConverter() = default;
 
-    virtual void Start(uint32_t input_samplerate, uint32_t num_channels, uint32_t output_samplerate) = 0;
+    virtual void Start(uint32_t input_sample_rate, uint32_t num_channels, uint32_t output_sample_rate) = 0;
 
     [[nodiscard]] virtual std::string_view GetDescription() const noexcept = 0;
 
