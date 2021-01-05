@@ -709,7 +709,7 @@ void Xamp::applyTheme(QColor color) {
         ThemeManager::instance().setPlayOrPauseButton(ui_, false);
     }
 
-    ThemeManager::instance().setBackgroundColor(ui_, color);    
+    ThemeManager::instance().setBackgroundColor(ui_, color);
 }
 
 void Xamp::getNextPage() {

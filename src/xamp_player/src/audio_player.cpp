@@ -33,11 +33,13 @@ inline constexpr std::chrono::milliseconds kUpdateSampleInterval(30);
 inline constexpr std::chrono::milliseconds kReadSampleWaitTime(30);
 inline constexpr std::chrono::seconds kWaitForStreamStopTime(10);
 
+#ifdef _DEBUG
 static void LogTime(const std::string & msg, const std::chrono::microseconds &time) {
     auto c = time.count();
     XAMP_LOG_DEBUG(msg + ": {}.{:03}'{:03}sec",
         (c % 1'000'000'000) / 1'000'000, (c % 1'000'000) / 1'000, c % 1'000);
 }
+#endif
 
 AudioPlayer::AudioPlayer()
     : AudioPlayer(std::weak_ptr<PlaybackStateAdapter>()) {
@@ -89,8 +91,9 @@ void AudioPlayer::UpdateSlice(float const *samples, int32_t sample_size, double 
 }
 
 void AudioPlayer::Initial() {
+#ifdef XAMP_OS_WIN
     InitWorkingSetSiz();
-	
+#endif
     XAMP_LOG_DEBUG("AudioDeviceManager init success.");
     AudioDeviceManager::GetInstance().PreventSleep(true);
 
@@ -423,9 +426,7 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
             throw StopStreamTimeoutException();
         }
 #else
-        Stopwatch sw;
         stream_task_.get();
-        LogTime("Thread switch time", sw.Elapsed());
 #endif
         stream_task_ = std::shared_future<void>();
         XAMP_LOG_DEBUG("Stream thread was finished.");        

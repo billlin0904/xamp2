@@ -55,6 +55,12 @@ public:
     explicit ActionMap(Type* object)
         : object_(object)
         , menu_(object) {
+        const auto menu_style_sheet = Q_STR(R"(
+    QMenu {
+    background-color: %1;
+    }
+    )").arg(colorToString(ThemeManager::instance().getBackgroundColor()));
+        menu_.setStyleSheet(menu_style_sheet);
     }
 
     QAction* addAction(const QString& menu_name) {
@@ -90,7 +96,7 @@ public:
     }
 
     QScopedPointer<SubMenu> addSubMenu(const QString &menu_name) {
-        return new SubMenu>(menu_name, &menu_, map_);
+        return new SubMenu(menu_name, &menu_, map_);
     }
 
     void addSeparator() {

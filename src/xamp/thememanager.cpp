@@ -150,7 +150,8 @@ void ThemeManager::setBackgroundColor(Ui::XampWindow& ui, QColor color) {
     ui.sliderFrame->setStyleSheet(backgroundColorToString(alpha_color));
 
     AppSettings::setValue(kAppSettingBackgroundColor, color);
-    background_color_ = color;    
+    background_color_ = color;
+
     setThemeIcon(ui);    
 }
 
