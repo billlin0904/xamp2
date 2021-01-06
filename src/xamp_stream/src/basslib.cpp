@@ -178,6 +178,11 @@ std::vector<std::string> BassLib::GetSupportFileExtensions() const {
         	}           
         }
 	}
+
+	// Workaround!
+    result.push_back(".dff");
+    result.push_back(".dsf");
+	
     return result;
 } 
 

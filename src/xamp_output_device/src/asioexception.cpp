@@ -32,7 +32,7 @@ ASIOException::ASIOException(Errors error)
 }
 
 ASIOException::ASIOException(ASIOError error) {
-	message_ = ErrorMessage(error);
+	what_ = ErrorMessage(error);
 }
 
 }

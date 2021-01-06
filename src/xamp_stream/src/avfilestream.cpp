@@ -349,6 +349,7 @@ std::vector<std::string> AvFileStream::GetSupportFileExtensions() {
     const AVInputFormat* format;
     std::vector<std::string> result;
     const std::string dot(".");
+	
     while ((format = av_demuxer_iterate(&format_opaque)) != nullptr) {
         if (!format->extensions) {
             continue;

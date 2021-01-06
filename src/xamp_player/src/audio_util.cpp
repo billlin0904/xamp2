@@ -1,3 +1,4 @@
+#include <base/str_utilts.h>
 #include <base/memory_mapped_file.h>
 
 #include <output_device/audiodevicemanager.h>
@@ -29,6 +30,15 @@ static bool TestDsdFileFormat(std::wstring const& file_path) {
     return TestDsdFileFormat(file);
 }
 
+template <typename T>
+static HashSet<std::wstring> GetSupportFileExtensions() {
+    HashSet<std::wstring> file_ext;
+	for (const auto & ext : T::GetSupportFileExtensions()) {
+        file_ext.insert(ToStdWString(ext));
+	}
+    return file_ext;
+}
+
 DsdStream* AsDsdStream(AlignPtr<FileStream> const &stream) noexcept {
     return dynamic_cast<DsdStream*>(stream.get());
 }
@@ -38,21 +48,14 @@ DsdDevice* AsDsdDevice(AlignPtr<Device> const &device) noexcept {
 }
 
 AlignPtr<FileStream> MakeStream(std::wstring const& file_ext, AlignPtr<FileStream> old_stream) {
-    static const HashSet<std::wstring_view> dsd_ext{
-        {L".dsf"},
-        {L".dff"},
-    };
-    static const HashSet<std::wstring_view> use_bass{
-        {L".m4a"},
-        {L".ape"},
-        //{L".flac"},
-    };
+    static const HashSet<std::wstring> use_av = GetSupportFileExtensions<AvFileStream>();
+    static const HashSet<std::wstring> use_bass = GetSupportFileExtensions<BassFileStream>();
 
-    const auto is_dsd_stream = dsd_ext.find(file_ext) != dsd_ext.end();
-    const auto is_use_bass = use_bass.find(file_ext) != use_bass.end();
+    const auto is_use_av_stream = use_av.find(file_ext) != use_av.end();
+    const auto is_use_bass_stream = use_bass.find(file_ext) != use_bass.end();
 
     if (old_stream != nullptr) {
-        if (is_dsd_stream || is_use_bass) {
+        if (is_use_av_stream || is_use_bass_stream) {
             if (auto* stream = dynamic_cast<BassFileStream*>(old_stream.get())) {
                 old_stream->Close();
                 return old_stream;
@@ -66,10 +69,10 @@ AlignPtr<FileStream> MakeStream(std::wstring const& file_ext, AlignPtr<FileStrea
         }
     }
 
-    if (is_dsd_stream || is_use_bass) {
-        return MakeAlign<FileStream, BassFileStream>();
+    if (is_use_av_stream) {
+        return MakeAlign<FileStream, AvFileStream>();
     }
-    return MakeAlign<FileStream, AvFileStream>();
+    return MakeAlign<FileStream, BassFileStream>();    
 }
 
 DsdModes SetStreamDsdMode(AlignPtr<FileStream>& stream, bool is_dsd_file, const DeviceInfo& device_info, bool use_native_dsd) {
@@ -97,9 +100,9 @@ DsdModes SetStreamDsdMode(AlignPtr<FileStream>& stream, bool is_dsd_file, const 
                 dsd_mode = DsdModes::DSD_MODE_DOP;
             }
             else {
-                dsd_stream->SetDSDMode(DsdModes::DSD_MODE_PCM);
-                XAMP_LOG_DEBUG("Use PCM mode.");
-                dsd_mode = DsdModes::DSD_MODE_PCM;
+                dsd_stream->SetDSDMode(DsdModes::DSD_MODE_DSD2PCM);
+                XAMP_LOG_DEBUG("Use DSD2PCM mode.");
+                dsd_mode = DsdModes::DSD_MODE_DSD2PCM;
             }
         }
     }
@@ -113,9 +116,11 @@ DsdModes SetStreamDsdMode(AlignPtr<FileStream>& stream, bool is_dsd_file, const 
 
 std::vector<std::string> GetSupportFileExtensions() {
     auto av = AvFileStream::GetSupportFileExtensions();
+    XAMP_LOG_DEBUG("Get AvFileStream support file ext: {}", Join(av));
     std::sort(av.begin(), av.end());
 
 	auto bass = BassFileStream::GetSupportFileExtensions();
+    XAMP_LOG_DEBUG("Get BassFileStream support file ext: {}", Join(av));
     std::sort(bass.begin(), bass.end());
 	
     std::vector<std::string> v;
@@ -129,8 +134,8 @@ std::pair<DsdModes, AlignPtr<FileStream>> MakeFileStream(std::wstring const& fil
     std::wstring const& file_ext,
     DeviceInfo const& device_info,
     bool use_native_dsd) {
-	const auto is_dsd_file = TestDsdFileFormat(file_path);
-    auto test_dsd_mode_stream = MakeStream(file_ext);
+    auto is_dsd_file = TestDsdFileFormat(file_path);
+    auto test_dsd_mode_stream = MakeStream(file_ext);    
     auto dsd_mode = SetStreamDsdMode(test_dsd_mode_stream, is_dsd_file, device_info, use_native_dsd);
     test_dsd_mode_stream->OpenFile(file_path);
     return std::make_pair(dsd_mode, std::move(test_dsd_mode_stream));

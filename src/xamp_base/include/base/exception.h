@@ -57,7 +57,7 @@ private:
     Errors error_;
 
 protected:	
-	std::string_view what_;
+	std::string what_;
     std::string message_;
     std::string stacktrace_;
 };

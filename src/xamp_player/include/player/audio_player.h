@@ -205,10 +205,10 @@ private:
     AlignPtr<FileStream> stream_;
     AlignPtr<DeviceType> device_type_;
     AlignPtr<Device> device_;
-    std::weak_ptr<PlaybackStateAdapter> state_adapter_;
-    VmMemLock sample_buffer_lock_;
+    std::weak_ptr<PlaybackStateAdapter> state_adapter_;    
     AudioBuffer<int8_t> buffer_;
     Buffer<int8_t> sample_buffer_;
+    VmMemLock sample_buffer_lock_;
     WaitableTimer wait_timer_;
     AlignPtr<SampleRateConverter> converter_;       
     DeviceInfo device_info_;
