@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <deque>
+#include <iterator>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -16,33 +17,15 @@
 
 namespace xamp::base {
 
-#if 0
-template <typename E, typename T, int N>
-std::basic_istream<E, T>& operator>>(std::basic_istream<E, T>& in, const E(&sliteral)[N]) {
-	std::array<E, N - 1> buffer; //get buffer
-	in >> buffer[0]; //skips whitespace
-	if (N > 2)
-		in.read(&buffer[1], N - 2); //read the rest
-	if (strncmp(&buffer[0], sliteral, N - 1)) //if it failed
-		in.setstate(in.rdstate() | std::ios::failbit); //set the state
-	return in;
+template <typename T, typename C>
+std::vector<T> Union(C const &a, C const &b) {
+	std::vector<T> result;
+	result.reserve(a.size() + b.size());
+	std::set_union(a.begin(), a.end(),
+		b.begin(), b.end(),
+		std::back_inserter(result));
+	return result;
 }
-
-template <typename E, typename T>
-std::basic_istream<E, T>& operator>>(std::basic_istream<E, T>& in, const E& cliteral) {
-	E buffer;  //get buffer
-	in >> buffer; //read data
-	if (buffer != cliteral) //if it failed
-		in.setstate(in.rdstate() | std::ios::failbit); //set the state
-	return in;
-}
-
-// Redirect mutable char arrays to their normal function
-template <typename E, typename T, int N>
-std::basic_istream<E, T>& operator>>(std::basic_istream<E, T>& in, E(&carray)[N]) {
-	return std::operator>>(in, carray);
-}
-#endif
 
 template <typename T, size_t N>
 constexpr size_t CountOf(T const (&)[N]) noexcept {

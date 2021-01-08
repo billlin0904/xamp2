@@ -117,17 +117,11 @@ DsdModes SetStreamDsdMode(AlignPtr<FileStream>& stream, bool is_dsd_file, const 
 std::vector<std::string> GetSupportFileExtensions() {
     auto av = AvFileStream::GetSupportFileExtensions();
     XAMP_LOG_DEBUG("Get AvFileStream support file ext: {}", Join(av));
-    std::sort(av.begin(), av.end());
 
 	auto bass = BassFileStream::GetSupportFileExtensions();
     XAMP_LOG_DEBUG("Get BassFileStream support file ext: {}", Join(av));
-    std::sort(bass.begin(), bass.end());
-	
-    std::vector<std::string> v;
-    std::set_union(av.begin(), av.end(),
-        bass.begin(), bass.end(),
-        std::back_inserter(v));
-    return v;
+
+    return Union<std::string>(av, bass);
 }
 
 std::pair<DsdModes, AlignPtr<FileStream>> MakeFileStream(std::wstring const& file_path,

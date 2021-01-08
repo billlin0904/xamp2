@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <vector>
+#include <set>
 
 #include <base/stl.h>
 #include <base/audioformat.h>
@@ -43,7 +43,7 @@ public:
 
 	uint64_t GetTotalFrames() const override;
 
-	static std::vector<std::string> GetSupportFileExtensions();
+	static std::set<std::string> GetSupportFileExtensions();
 private:
 	class AvFileStreamImpl;
     AlignPtr<AvFileStreamImpl> impl_;

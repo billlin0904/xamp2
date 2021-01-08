@@ -344,10 +344,10 @@ uint64_t AvFileStream::GetTotalFrames() const {
     return impl_->GetTotalFrames();
 }
 
-std::vector<std::string> AvFileStream::GetSupportFileExtensions() {
+std::set<std::string> AvFileStream::GetSupportFileExtensions() {
     void* format_opaque = nullptr;
     const AVInputFormat* format;
-    std::vector<std::string> result;
+    std::set<std::string> result;
     const std::string dot(".");
 	
     while ((format = av_demuxer_iterate(&format_opaque)) != nullptr) {
@@ -355,7 +355,7 @@ std::vector<std::string> AvFileStream::GetSupportFileExtensions() {
             continue;
         }
         for (auto ext : Split(format->extensions, ",")) {
-            result.emplace_back(dot + std::string(ext));
+            result.insert(dot + std::string(ext));
         }
     }
     return result;

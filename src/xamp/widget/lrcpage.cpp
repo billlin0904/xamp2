@@ -48,9 +48,9 @@ ScrollLabel* LrcPage::title() {
 
 void LrcPage::paintEvent(QPaintEvent*) {
     QPainter painter(this);
-	/*painter.setCompositionMode(QPainter::CompositionMode_Source);
-	painter.setOpacity(0.5);
-	painter.drawPixmap(rect(), background_image_);*/
+    //painter.setCompositionMode(QPainter::CompositionMode_Source);
+	//painter.setOpacity(0.5);
+	//painter.drawPixmap(rect(), background_image_);
 }
 
 void LrcPage::setBackground(const QPixmap& cover) {
@@ -58,7 +58,8 @@ void LrcPage::setBackground(const QPixmap& cover) {
 		background_image_ = QPixmap();
 	}
 	else {
-        background_image_ = Pixmap::blurImage(cover, 15);
+        //background_image_ = Pixmap::blurImage(cover, 5);
+		//background_image_ = cover.copy();
 	}
 	update();
 }

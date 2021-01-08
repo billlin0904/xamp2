@@ -691,7 +691,7 @@ void Xamp::applyConfig() {
 }
 
 void Xamp::applyTheme(QColor color) {   
-    XAMP_LOG_DEBUG("Apply theme color {}", colorToString(color).toStdString());
+    XAMP_LOG_DEBUG("Apply theme color {}", colorToString(color).toStdString());	
 
     if (qGray(color.rgb()) > 200) {      
         emit themeChanged(color, Qt::black);

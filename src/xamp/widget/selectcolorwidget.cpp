@@ -4,6 +4,7 @@
 
 #include "thememanager.h"
 
+#include <widget/appsettings.h>
 #include <widget/str_utilts.h>
 #include <widget/selectcolorwidget.h>
 
@@ -90,7 +91,11 @@ SelectColorWidget::SelectColorWidget(QWidget* parent)
 
     (void) QObject::connect(group,
         static_cast<void(QButtonGroup::*)(int)>(&QButtonGroup::buttonClicked), [this](auto index) {
-        emit colorButtonClicked(GetColors()[index]);
+            auto color = GetColors()[index];
+            if (!AppSettings::getValue(kAppSettingEnableBlur).toBool()) {
+                color.setAlpha(255);
+            }
+        emit colorButtonClicked(color);
         });
 
     setStyleSheet(Q_UTF8("background-color: rgb(18, 18, 18);"));

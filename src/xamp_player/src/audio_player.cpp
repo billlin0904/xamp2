@@ -307,8 +307,12 @@ void AudioPlayer::Stop(bool signal_to_stop, bool shutdown_device, bool wait_for_
 
     buffer_.Clear();
     if (shutdown_device) {
-        device_.reset();
+        if (AudioDeviceManager::GetInstance().IsASIODevice(device_type_id_)) {
+            AudioDeviceManager::GetInstance().RemoveASIODriver();
+            device_.reset();
+        }
         device_id_.clear();
+        device_.reset();
     }
     stream_.reset();
     // 必須只能在Device關閉的狀況下清除.

@@ -6,6 +6,7 @@
 #pragma once
 
 #include <cstdint>
+#include <set>
 
 #include <bass/bass.h>
 #include <bass/bassdsd.h>
@@ -90,7 +91,7 @@ public:
         return !plugins_.empty();
     }
 
-    std::vector<std::string> GetSupportFileExtensions() const;
+    std::set<std::string> GetSupportFileExtensions() const;
 
     XAMP_DISABLE_COPY(BassLib)
 

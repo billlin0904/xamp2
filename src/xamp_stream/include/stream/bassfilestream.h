@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <set>
+
 #include <base/audioformat.h>
 #include <base/align_ptr.h>
 
@@ -58,7 +60,7 @@ public:
 
 	uint64_t GetTotalFrames() const override;
 
-	static std::vector<std::string> GetSupportFileExtensions();
+	static std::set<std::string> GetSupportFileExtensions();
 
 private:
 	class BassFileStreamImpl;

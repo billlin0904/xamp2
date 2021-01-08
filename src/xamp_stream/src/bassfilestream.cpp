@@ -316,7 +316,7 @@ uint64_t BassFileStream::GetTotalFrames() const {
     return stream_->GetTotalFrames();
 }
 
-std::vector<std::string> BassFileStream::GetSupportFileExtensions() {
+std::set<std::string> BassFileStream::GetSupportFileExtensions() {
     return Singleton<BassLib>::GetInstance().GetSupportFileExtensions();
 }
 

@@ -161,8 +161,8 @@ void BassLib::LoadPlugin(std::string const & file_name) {
     plugins_[file_name] = std::move(plugin);
 }
 
-std::vector<std::string> BassLib::GetSupportFileExtensions() const {
-    std::vector<std::string> result;
+std::set<std::string> BassLib::GetSupportFileExtensions() const {
+    std::set<std::string> result;
 	
 	for (const auto& [key, value] : plugins_) {
         const auto* info = Singleton<BassLib>::GetInstance().BASS_PluginGetInfo(value.get());
@@ -174,14 +174,14 @@ std::vector<std::string> BassLib::GetSupportFileExtensions() const {
         		if (pos != std::string::npos) {
                     ext.erase(pos, 1);
         		}                
-                result.push_back(ext);
+                result.insert(ext);
         	}           
         }
 	}
 
 	// Workaround!
-    result.push_back(".dff");
-    result.push_back(".dsf");
+    result.insert(".dff");
+    result.insert(".dsf");
 	
     return result;
 } 

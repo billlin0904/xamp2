@@ -75,18 +75,22 @@ std::string StringPrint(const char *format, Args... args) {
     return buffer;
 }
 
-XAMP_ALWAYS_INLINE std::string Join(const std::vector<std::string>& pieces, std::string_view separator = ",") {
+template <typename  C>
+std::string Join(C const& pieces, std::string_view const separator = ",") {
     std::string s;
+    s.reserve(pieces.size() * 16);
+    auto prev = std::prev(pieces.end());
+	
     for (auto p = pieces.begin(); p != pieces.end(); ++p) {
         s += *p;
-        if (p != pieces.end() - 1) {
+        if (p != prev) {
             s += separator;
         }            
     }
     return s;
 }
 
-XAMP_ALWAYS_INLINE std::vector<std::string_view> Split(std::string_view s, std::string_view delims = " ") {
+XAMP_ALWAYS_INLINE std::vector<std::string_view> Split(std::string_view s, const std::string_view delims = " ") {
     std::vector<std::string_view> output;
     size_t first = 0;
 
