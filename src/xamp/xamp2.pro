@@ -29,6 +29,9 @@ INCLUDEPATH += ../thirdparty/rapidxml/
 INCLUDEPATH += ../thirdparty/rapidjson/include/
 INCLUDEPATH += ../thirdparty/robin_hood/
 
+OBJECTIVE_SOURCES += \
+    widget/osx/osx.mm
+
 SOURCES += \
     widget/playbackhistorypage.cpp \
     widget/musicbrainzclient.cpp \
@@ -78,6 +81,7 @@ SOURCES += \
 
 HEADERS += \
     singleinstanceapplication.h \
+    widget/osx/osx.h \
     widget/playbackhistorypage.h \
     widget/musicbrainzclient.h \
     widget/discogsclient.h \
@@ -143,6 +147,11 @@ TRANSLATIONS += \
     zh_TW.ts \
     ja_JP.ts \
 
+# Additionally include Cocoa for OS X code
+
+LIBS += -framework Foundation -framework Cocoa
+INCLUDEPATH += /System/Library/Frameworks/Foundation.framework/Versions/C/Headers
+
 CONFIG(debug, debug|release) {
 LIBS += -L"../thirdparty/ffmpeg/lib/x64/mac/" -lavcodec.58 \
 
@@ -168,4 +177,3 @@ QMAKE_CFLAGS_RELEASE += -O3
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
-

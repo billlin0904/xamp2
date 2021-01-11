@@ -19,6 +19,10 @@ struct PlaybackFormat {
     AudioFormat output_format;
 };
 
+static QString dsdSampleRate2String(uint32_t dsd_speed) {
+    return Q_STR("%1 MHz").arg((dsd_speed / 64) * 2.8);
+}
+
 static QString samplerate2String(const AudioFormat& format) {
     auto precision = 1;
     auto is_mhz_samplerate = false;
@@ -58,28 +62,30 @@ static QString format2String(const PlaybackFormat &playback_format, const QStrin
         dsd_speed_format = Q_UTF8(" DSD") + QString::number(playback_format.dsd_speed) + Q_UTF8(" ");
     }
 
+    QString output_format_str;
     QString dsd_mode;
+    QString bit_format;
+
     switch (playback_format.dsd_mode) {
     case DsdModes::DSD_MODE_PCM:
         dsd_mode = Q_UTF8("PCM");
+        output_format_str = samplerate2String(playback_format.output_format);
+        bit_format = QString::number(bits) + Q_UTF8("bit");
         break;
     case DsdModes::DSD_MODE_NATIVE:
         dsd_mode = Q_UTF8("Native DSD");
+        output_format_str = dsdSampleRate2String(playback_format.dsd_speed);
         break;
     case DsdModes::DSD_MODE_DOP:
         dsd_mode = Q_UTF8("DOP");
+        output_format_str = dsdSampleRate2String(playback_format.dsd_speed);
         break;
-    }
-
-    QString output_format_str;
-    if (playback_format.enable_sample_rate_convert) {
-        output_format_str = samplerate2String(playback_format.output_format);
     }
 
     return ext
         + Q_UTF8(" | ")
         + dsd_speed_format
-        + samplerate2String(format) + output_format_str
-        + QString::number(bits) + Q_UTF8("bit")
+        + output_format_str
+        + bit_format
         + Q_UTF8(" | ") + dsd_mode;
 }

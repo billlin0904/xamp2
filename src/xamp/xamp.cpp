@@ -286,9 +286,9 @@ void Xamp::initialUI() {
     ui_.startPosLabel->setFont(f);
     ui_.endPosLabel->setFont(f);
 #else
-    ui_.closeButton->hide();
-    ui_.maxWinButton->hide();
-    ui_.minWinButton->hide();
+    //ui_.closeButton->hide();
+    //ui_.maxWinButton->hide();
+    //ui_.minWinButton->hide();
     f.setPointSize(11);
     ui_.titleLabel->setFont(f);
     f.setPointSize(10);
@@ -914,7 +914,8 @@ void Xamp::playMusic(const MusicEntity& item) {
         );
 
 #ifndef Q_OS_WIN32
-    const auto use_native_dsd = AppSettings::getValueAsBool(kAppSettingUseNativeDSDMode);
+    //const auto use_native_dsd = AppSettings::getValueAsBool(kAppSettingUseNativeDSDMode);
+    const auto use_native_dsd = true;
 #else
     const auto use_native_dsd = true;
 #endif

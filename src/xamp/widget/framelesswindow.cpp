@@ -16,6 +16,8 @@
 #include <QtWinExtras/QWinThumbnailToolBar>
 #include <QtWinExtras/QWinThumbnailToolButton>
 #include <widget/win32/win32.h>
+#else
+#include <widget/osx/osx.h>
 #endif
 
 #include "thememanager.h"
@@ -57,6 +59,7 @@ FramelessWindow::FramelessWindow(QWidget* parent)
     )"));
     ui_font.setPointSizeF(14);
     qApp->setFont(ui_font);
+    osx::hideTitleBar(this);
 #endif    
 }
 
@@ -309,6 +312,11 @@ bool FramelessWindow::nativeEvent(const QByteArray& event_type, void * message, 
     return QWidget::nativeEvent(event_type, message, result);
 }
 
+void FramelessWindow::changeEvent(QEvent * event) {
+#if defined(Q_OS_MAC)
+    osx::hideTitleBar(this);
+#endif
+}
 
 void FramelessWindow::mousePressEvent(QMouseEvent* event) {
     if (event->button() != Qt::LeftButton) {

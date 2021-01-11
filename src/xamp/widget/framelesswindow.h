@@ -65,6 +65,8 @@ protected:
 
 	void showEvent(QShowEvent * event) override;
 
+    void changeEvent(QEvent * event) override;
+
     virtual void play() = 0;
 
     virtual void playNextClicked() = 0;
