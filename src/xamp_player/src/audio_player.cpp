@@ -470,7 +470,7 @@ void AudioPlayer::CreateBuffer() {
         }        
         num_buffer_samples_ = allocate_size * kTotalBufferStreamCount;
         num_read_sample_ = require_read_sample;
-        XAMP_LOG_DEBUG("Allocate interal buffer : {}.", FormatBytes(allocate_size));        
+        XAMP_LOG_DEBUG("Allocate interal buffer : {}.", String::FormatBytes(allocate_size));
         sample_buffer_ = MakeBuffer<int8_t>(allocate_size);
         sample_buffer_lock_.Lock(sample_buffer_.Get(), sample_buffer_.GetByteSize());
         read_sample_size_ = allocate_size;
@@ -486,7 +486,7 @@ void AudioPlayer::CreateBuffer() {
         if (buffer_.GetSize() == 0 || buffer_.GetSize() < num_buffer_samples_) {
             XAMP_LOG_DEBUG("Buffer too small reallocate.");
             buffer_.Resize(num_buffer_samples_);
-            XAMP_LOG_DEBUG("Allocate player buffer : {}.", FormatBytes(num_buffer_samples_));
+            XAMP_LOG_DEBUG("Allocate player buffer : {}.", String::FormatBytes(num_buffer_samples_));
         }
     }
     else {
@@ -497,10 +497,10 @@ void AudioPlayer::CreateBuffer() {
     }
 
     XAMP_LOG_DEBUG("Output device format: {} num_read_sample: {} resampler: {} buffer: {}.",
-                   output_format_,
-                   num_read_sample_,
-                   converter_->GetDescription(),
-                   FormatBytes(buffer_.GetSize()));
+        output_format_,
+        num_read_sample_,
+        converter_->GetDescription(),
+        String::FormatBytes(buffer_.GetSize()));
 }
 
 void AudioPlayer::EnableSampleRateConverter(bool enable) {

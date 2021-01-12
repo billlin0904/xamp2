@@ -8,14 +8,14 @@
 #include <mutex>
 #include <atomic>
 
-#include <base/memory.h>
+#include <base/logger.h>
+#include <base/align_ptr.h>
 #include <base/dataconverter.h>
 #include <base/vmmemlock.h>
 
 #ifdef XAMP_OS_WIN
 
 #include <output_device/audiocallback.h>
-#include <output_device/dsddevice.h>
 #include <output_device/device.h>
 
 namespace xamp::output_device::win32 {

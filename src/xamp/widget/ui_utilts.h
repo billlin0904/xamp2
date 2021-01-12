@@ -68,8 +68,11 @@ static QString format2String(const PlaybackFormat &playback_format, const QStrin
 
     switch (playback_format.dsd_mode) {
     case DsdModes::DSD_MODE_PCM:
-        dsd_mode = Q_UTF8("PCM");
-        output_format_str = samplerate2String(playback_format.output_format);
+        dsd_mode = Q_UTF8("PCM");    	
+        output_format_str = samplerate2String(playback_format.file_format);
+    	if (playback_format.file_format.GetSampleRate() != playback_format.output_format.GetSampleRate()) {
+            output_format_str += samplerate2String(playback_format.output_format);
+    	}
         bit_format = QString::number(bits) + Q_UTF8("bit");
         break;
     case DsdModes::DSD_MODE_NATIVE:

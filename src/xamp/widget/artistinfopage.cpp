@@ -5,6 +5,7 @@
 #include <widget/database.h>
 #include "thememanager.h"
 
+#include <widget/time_utilts.h>
 #include <widget/albumview.h>
 #include <widget/actionmap.h>
 #include <widget/image_utiltis.h>
@@ -60,6 +61,38 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 	title->setFont(f);
 	default_layout->addWidget(title);
 
+	f.setBold(false);
+	f.setPointSize(10);
+
+	albums_ = new QLabel(this);
+	albums_->setFixedSize(QSize(16777215, 64));
+	albums_->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
+	albums_->setFont(f);
+	albums_->setStyleSheet(Q_UTF8("background-color: transparent;"));
+
+	tracks_ = new QLabel(this);
+	tracks_->setFixedSize(QSize(16777215, 64));
+	tracks_->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
+	tracks_->setFont(f);
+	tracks_->setStyleSheet(Q_UTF8("background-color: transparent;"));
+
+	durtions_ = new QLabel(this);
+	durtions_->setFixedSize(QSize(16777215, 64));
+	durtions_->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
+	durtions_->setFont(f);
+	durtions_->setStyleSheet(Q_UTF8("background-color: transparent;"));
+
+	auto artist_layout = new QHBoxLayout();
+	artist_layout->setSpacing(0);
+	artist_layout->setContentsMargins(0, 0, 0, 0);
+
+	artist_layout->addWidget(albums_);
+	artist_layout->addWidget(tracks_);
+	artist_layout->addWidget(durtions_);
+	artist_layout->setStretch(0, 0);
+	artist_layout->setStretch(1, 2);
+	artist_layout->setStretch(2, 2);	
+
 	auto cover_spacer2 = new QSpacerItem(50, 10, QSizePolicy::Minimum, QSizePolicy::Fixed);
 
 	child_layout->addWidget(cover_);
@@ -69,12 +102,17 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 	album_view_ = new AlbumView(this);
 
 	default_layout->addLayout(child_layout);
-	default_layout->addWidget(album_view_);
+	default_layout->addLayout(artist_layout);
+	default_layout->addWidget(album_view_);	
 
 	album_view_->hideWidget();
 	setArtistId(Qt::EmptyString, Qt::EmptyString, -1);
 
 	setStyleSheet(Q_UTF8("background-color: transparent"));
+
+	setAlbumCount(0);
+	setTracks(0);
+	setTotalDuration(0);
 }
 
 QPixmap ArtistInfoPage::getArtistImage(QPixmap const* cover) const {
@@ -95,9 +133,27 @@ void ArtistInfoPage::setArtistId(const QString& artist, const QString& cover_id,
 
 	artist_id_ = artist_id;
 	cover_id_ = cover_id;
+
+	if (auto artist_stats = Singleton<Database>::GetInstance().getArtistStats(artist_id)) {
+		setAlbumCount(artist_stats.value().albums);
+		setTracks(artist_stats.value().tracks);
+		setTotalDuration(artist_stats.value().durations);
+	}
 }
 
 void ArtistInfoPage::OnThemeColorChanged(QColor backgroundColor, QColor color) {
     artist_->setStyleSheet(Q_UTF8("QLabel { color: ") + colorToString(color) + Q_UTF8(";}"));
 	album_view_->OnThemeColorChanged(backgroundColor, color);
+}
+
+void ArtistInfoPage::setAlbumCount(int32_t album_count) {
+	albums_->setText(tr("%1 Albums").arg(album_count));
+}
+
+void ArtistInfoPage::setTracks(int32_t tracks) {
+	tracks_->setText(tr("%1 Songs").arg(tracks));
+}
+
+void ArtistInfoPage::setTotalDuration(double durations) {
+	durtions_->setText(Time::msToString(durations));
 }

@@ -243,7 +243,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	buffer_ = MakeBuffer<float>(buffer_size);
 	vmlock_.Lock(buffer_.Get(), buffer_.GetByteSize());
     data_convert_ = MakeConvert(output_format, valid_output_format, buffer_frames_);
-	XAMP_LOG_I(log_, "WASAPI internal buffer: {}.", FormatBytes(buffer_.GetByteSize()));
+	XAMP_LOG_I(log_, "WASAPI internal buffer: {}.", String::FormatBytes(buffer_.GetByteSize()));
 
 #ifdef _DEBUG
 	CComPtr<IAudioEndpointVolume> endpoint_volume;

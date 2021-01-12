@@ -122,7 +122,7 @@ static size_t WalkStack(CONTEXT const* context, StackTrace::CaptureStackAddress&
 }
 
 std::string GetFileName(std::filesystem::path const &path) {
-    return ToUtf8String(path.filename());
+    return String::ToUtf8String(path.filename());
 }
 
 void StackTrace::WriteLog(size_t frame_count, std::ostream& ostr) {

@@ -74,7 +74,7 @@ std::wstring GetDevicePropertyString(PROPERTYKEY const& key, VARTYPE type, CComP
 	case VT_UI4:
 	{
 		auto factor = static_cast<EndpointFactor>(prop_variant.ulVal);
-		return ToStdWString(EnumToString(factor).data());
+		return String::ToStdWString(EnumToString(factor).data());
 	}
 		break;
 	case VT_BLOB:
@@ -122,7 +122,7 @@ DeviceInfo GetDeviceInfo(CComPtr<IMMDevice>& device, Uuid const& device_type_id)
 	CComHeapPtr<WCHAR> id;
 	HrIfFailledThrow(device->GetId(&id));
 	info.device_type_id = device_type_id;
-	info.device_id = ToUtf8String(std::wstring(id));
+	info.device_id = String::ToUtf8String(std::wstring(id));
 
 	return info;
 }

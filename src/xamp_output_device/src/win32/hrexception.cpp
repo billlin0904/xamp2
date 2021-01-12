@@ -3,7 +3,6 @@
 #ifdef XAMP_OS_WIN
 
 #include <iomanip>
-#include <system_error>
 #include <output_device/win32/hrexception.h>
 
 namespace xamp::output_device::win32 {

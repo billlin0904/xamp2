@@ -1,7 +1,4 @@
 #if ENABLE_ASIO
-#include <vector>
-#include <algorithm>
-
 #include <output_device/asioexception.h>
 
 namespace xamp::output_device {

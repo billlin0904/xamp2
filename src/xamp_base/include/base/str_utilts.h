@@ -14,7 +14,7 @@
 
 #include <base/base.h>
 
-namespace xamp::base {
+namespace xamp::base::String {
 
 XAMP_BASE_API std::wstring ToStdWString(std::string const& utf8);
 

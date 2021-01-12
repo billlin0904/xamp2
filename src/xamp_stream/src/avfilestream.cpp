@@ -97,7 +97,7 @@ public:
     void LoadFromFile(std::wstring const & file_path) {
         AVFormatContext* format_ctx = nullptr;
 
-        const auto file_path_ut8 = ToString(file_path);
+        const auto file_path_ut8 = String::ToString(file_path);
         auto err = ::avformat_open_input(&format_ctx, file_path_ut8.c_str(), nullptr, nullptr);
         if (err != 0) {
             if (err == AVERROR_INVALIDDATA) {
@@ -354,7 +354,7 @@ std::set<std::string> AvFileStream::GetSupportFileExtensions() {
         if (!format->extensions) {
             continue;
         }
-        for (auto ext : Split(format->extensions, ",")) {
+        for (auto ext : String::Split(format->extensions, ",")) {
             result.insert(dot + std::string(ext));
         }
     }

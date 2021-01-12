@@ -113,13 +113,15 @@ void FramelessWindow::setupUIFont() {
     QList<QString> fallback_fonts;
 
 #ifdef Q_OS_WIN
-    fallback_fonts.append(Q_UTF8("Segoe UI"));
-    fallback_fonts.append(Q_UTF8("Segoe UI Bold"));
+    //fallback_fonts.append(Q_UTF8("Segoe UI"));
+    //fallback_fonts.append(Q_UTF8("Segoe UI Bold"));
+    fallback_fonts.append(Q_UTF8("OpenSans"));
+    fallback_fonts.append(Q_UTF8("OpenSans Bold"));
     fallback_fonts.append(Q_UTF8("Microsoft Yahei UI"));
     fallback_fonts.append(Q_UTF8("Microsoft Yahei UI Bold"));
-    fallback_fonts.append(Q_UTF8("Meiryo UI"));
-    fallback_fonts.append(Q_UTF8("Meiryo UI Bold"));
-    fallback_fonts.append(Q_UTF8("Arial"));
+    //fallback_fonts.append(Q_UTF8("Meiryo UI"));
+    //fallback_fonts.append(Q_UTF8("Meiryo UI Bold"));
+    //fallback_fonts.append(Q_UTF8("Arial"));
 #else
     fallback_fonts.append(Q_UTF8("SF Pro Display"));
     fallback_fonts.append(Q_UTF8("SF Pro Text"));

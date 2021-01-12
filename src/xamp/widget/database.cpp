@@ -165,6 +165,17 @@ void Database::createTableIfNotExist() {
                        )
                        )"));
 
+	create_table_sql.push_back(
+		Q_UTF8(R"(
+                       CREATE TABLE IF NOT EXISTS audioDevices (
+                       deviceId TEXT,
+                       deviceTypeId TEXT,
+                       name TEXT NOT NULL,
+					   supportSampleRates TEXT NOT NULL,
+					   is_support_dsd integer DEFAULT 0
+                       )
+                       )"));
+
 	QSqlQuery query(db_);
 	for (const auto& sql : create_table_sql) {
 		IfFailureThrow(query, sql);
@@ -328,6 +339,22 @@ int32_t Database::addPlaylist(const QString& name, int32_t playlist_index) {
 	return model.query().lastInsertId().toInt();
 }
 
+void Database::addDevice(const QString& deviceId, const QString& deviceTypeId, const QString& name, const QStringList& supportSampleRates, bool is_support_dsd) {
+	QSqlQuery query;
+
+	query.prepare(Q_UTF8(R"(
+                         INSERT INTO audioDevices (deviceId, deviceTypeId, name, supportSampleRates, is_support_dsd) VALUES (:deviceId, :deviceTypeId, :name, :supportSampleRates, :is_support_dsd)
+                         )"));
+
+	query.bindValue(Q_UTF8(":deviceId"), deviceId);
+	query.bindValue(Q_UTF8(":deviceTypeId"), deviceTypeId);
+	query.bindValue(Q_UTF8(":name"), name);
+	query.bindValue(Q_UTF8(":supportSampleRates"), supportSampleRates.join(Q_UTF8(",")));
+	query.bindValue(Q_UTF8(":is_support_dsd"), is_support_dsd);
+
+	IfFailureThrow1(query);
+}
+
 void Database::setTableName(int32_t table_id, const QString& name) {
 	QSqlQuery query;
 
@@ -348,6 +375,36 @@ void Database::setAlbumCover(int32_t album_id, const QString& album, const QStri
 	query.bindValue(Q_UTF8(":coverId"), cover_id);
 
     IfFailureThrow1(query);
+}
+
+std::optional<ArtistStats> Database::getArtistStats(int32_t artist_id) const {
+	QSqlQuery query;
+
+	query.prepare(Q_UTF8(R"(
+        SELECT
+            SUM(musics.duration) AS durations,
+            (SELECT COUNT( * ) AS albums FROM albums WHERE albums.artistId = :artistId) AS albums,
+			(SELECT COUNT( * ) AS tracks FROM albumMusic WHERE albumMusic.artistId = :artistId) AS tracks
+        FROM
+	        albumMusic
+	    JOIN albums ON albums.artistId = albumMusic.artistId 
+        JOIN musics ON musics.musicId = albumMusic.musicId 
+        WHERE
+	        albums.artistId = :artistId;)"));
+
+	query.bindValue(Q_UTF8(":artistId"), artist_id);
+
+	IfFailureThrow1(query);
+
+	while (query.next()) {
+		ArtistStats stats;
+		stats.albums = query.value(Q_UTF8("albums")).toInt();
+		stats.tracks = query.value(Q_UTF8("tracks")).toInt();
+		stats.durations = query.value(Q_UTF8("durations")).toDouble();
+		return stats;
+	}
+
+	return std::nullopt;
 }
 
 std::optional<AlbumStats> Database::getAlbumStats(int32_t album_id) const {

@@ -65,8 +65,7 @@ using AlignBufferPtr = std::unique_ptr<Type[], AlignedDeleter<Type>>;
 
 template <typename BaseType, typename ImplType, typename... Args>
 XAMP_BASE_API_ONLY_EXPORT AlignPtr<BaseType> MakeAlign(Args&& ... args) {
-    auto ptr = AlignedMallocOf<ImplType>(kMallocAlignSize);
-
+    auto* ptr = AlignedMallocOf<ImplType>(kMallocAlignSize);
     if (!ptr) {
         throw std::bad_alloc();
     }
@@ -83,7 +82,7 @@ XAMP_BASE_API_ONLY_EXPORT AlignPtr<BaseType> MakeAlign(Args&& ... args) {
 
 template <typename Type, typename... Args>
 XAMP_BASE_API_ONLY_EXPORT AlignPtr<Type> MakeAlign(Args&& ... args) {
-    auto ptr = AlignedMallocOf<Type>(kMallocAlignSize);
+    auto* ptr = AlignedMallocOf<Type>(kMallocAlignSize);
     if (!ptr) {
         throw std::bad_alloc();
     }
@@ -98,8 +97,8 @@ XAMP_BASE_API_ONLY_EXPORT AlignPtr<Type> MakeAlign(Args&& ... args) {
 }
 
 template <typename Type, typename U = std::enable_if_t<std::is_trivially_copyable<Type>::value>>
-XAMP_BASE_API_ONLY_EXPORT AlignBufferPtr<Type> MakeBufferPtr(size_t n, size_t alignment = kMallocAlignSize) {
-    auto ptr = AlignedMallocCountOf<Type>(n, alignment);
+XAMP_BASE_API_ONLY_EXPORT AlignBufferPtr<Type> MakeBufferPtr(size_t n) {
+    auto ptr = AlignedMallocCountOf<Type>(n, kMallocAlignSize);
     if (!ptr) {
         throw std::bad_alloc();
     }
@@ -108,7 +107,7 @@ XAMP_BASE_API_ONLY_EXPORT AlignBufferPtr<Type> MakeBufferPtr(size_t n, size_t al
 
 template <typename Type, typename U = std::enable_if_t<std::is_trivially_copyable<Type>::value>>
 XAMP_BASE_API_ONLY_EXPORT StackBufferPtr<Type> MakeStackBuffer(size_t n) {
-    auto ptr = StackAlloc(sizeof(Type) * n);
+    auto* ptr = StackAlloc(sizeof(Type) * n);
     if (!ptr) {
         throw std::bad_alloc();
     }

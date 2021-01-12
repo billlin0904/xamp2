@@ -22,11 +22,20 @@ public slots:
 
 	void setArtistId(const QString& artist, const QString& cover_id, int32_t artist_id);
 
+	void setAlbumCount(int32_t album_count);
+
+	void setTracks(int32_t tracks);
+
+	void setTotalDuration(double durations);
+
 private:
 	QPixmap getArtistImage(QPixmap const* cover) const;
 	
 	QLabel* cover_;
 	QLabel* artist_;
+	QLabel* tracks_;
+	QLabel* albums_;
+	QLabel* durtions_;
 	QString cover_id_;
 	int32_t artist_id_;
 	AlbumView* album_view_;

@@ -1,17 +1,10 @@
 #if ENABLE_ASIO
-#include <asiosys.h>
-#include <asio.h>
 #include <asiodrivers.h>
 
 #include <base/str_utilts.h>
 
-#include <output_device/asioexception.h>
 #include <output_device/asiodevice.h>
 #include <output_device/asiodevicetype.h>
-
-#ifdef XAMP_OS_WIN
-#include <iasiodrv.h>
-#endif
 
 namespace xamp::output_device {
 
@@ -32,7 +25,6 @@ static std::string CLSIDToString(CLSID guid) {
 		guid.Data4[7]);
     return std::string(output.data());
 }
-
 
 ASIODeviceType::ASIODeviceType() {
 }
@@ -89,10 +81,10 @@ void ASIODeviceType::ScanNewDevice() {
 			char driver_name[kMaxPathLen + 1]{};
 			drivers.asioGetDriverName(i, driver_name, kMaxPathLen);
 			auto device_id = CLSIDToString(clsid);
-			if (device_list_.find(device_id) != device_list_.end()) {
+			if (device_list_.find(driver_name) != device_list_.end()) {
 				continue;
 			}
-			device_list_[device_id] = GetDeviceInfo(ToStdWString(driver_name), driver_name);
+			device_list_[driver_name] = GetDeviceInfo(String::ToStdWString(driver_name), driver_name);
 		}
 	}
 }

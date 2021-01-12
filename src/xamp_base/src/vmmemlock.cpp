@@ -31,7 +31,7 @@ void VmMemLock::Lock(void* address, size_t size) {
 	size_ = size;
 
 	XAMP_LOG_DEBUG("VmMemLock lock address: 0x{:08x} size: {}.",
-		reinterpret_cast<int64_t>(address_), FormatBytes(size_));
+		reinterpret_cast<int64_t>(address_), String::FormatBytes(size_));
 }
 
 void VmMemLock::UnLock() noexcept {
@@ -41,7 +41,7 @@ void VmMemLock::UnLock() noexcept {
 				::GetLastError(), StackTrace{}.CaptureStack());
 		}
 		XAMP_LOG_DEBUG("VmMemLock unlock address: 0x{:08x} size: {}.",
-			reinterpret_cast<int64_t>(address_), FormatBytes(size_));
+			reinterpret_cast<int64_t>(address_), String::FormatBytes(size_));
 	}
 	address_ = nullptr;
 	size_ = 0;

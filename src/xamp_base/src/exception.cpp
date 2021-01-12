@@ -24,7 +24,7 @@ static std::string LocaleStringToUTF8(const std::string &str) {
         -1, 
         wszTo.data(),
         static_cast<int>(str.length()));
-    return ToUtf8String(wszTo.data());
+    return String::ToUtf8String(wszTo.data());
 }
 
 static std::string GetPlatformErrorMessage(int32_t err) {

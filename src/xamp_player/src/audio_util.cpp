@@ -34,7 +34,7 @@ template <typename T>
 static HashSet<std::wstring> GetSupportFileExtensions() {
     HashSet<std::wstring> file_ext;
 	for (const auto & ext : T::GetSupportFileExtensions()) {
-        file_ext.insert(ToStdWString(ext));
+        file_ext.insert(String::ToStdWString(ext));
 	}
     return file_ext;
 }
@@ -116,10 +116,10 @@ DsdModes SetStreamDsdMode(AlignPtr<FileStream>& stream, bool is_dsd_file, const 
 
 std::vector<std::string> GetSupportFileExtensions() {
     auto av = AvFileStream::GetSupportFileExtensions();
-    XAMP_LOG_DEBUG("Get AvFileStream support file ext: {}", Join(av));
+    XAMP_LOG_DEBUG("Get AvFileStream support file ext: {}", String::Join(av));
 
 	auto bass = BassFileStream::GetSupportFileExtensions();
-    XAMP_LOG_DEBUG("Get BassFileStream support file ext: {}", Join(av));
+    XAMP_LOG_DEBUG("Get BassFileStream support file ext: {}", String::Join(av));
 
     return Union<std::string>(av, bass);
 }

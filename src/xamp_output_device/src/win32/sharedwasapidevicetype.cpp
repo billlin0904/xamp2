@@ -10,8 +10,7 @@
 
 namespace xamp::output_device::win32 {
 
-SharedWasapiDeviceType::SharedWasapiDeviceType() noexcept {
-}
+SharedWasapiDeviceType::SharedWasapiDeviceType() noexcept = default;
 
 void SharedWasapiDeviceType::ScanNewDevice() {
 	Initial();
@@ -31,7 +30,7 @@ CComPtr<IMMDevice> SharedWasapiDeviceType::GetDeviceById(std::wstring const & de
 }
 
 AlignPtr<Device> SharedWasapiDeviceType::MakeDevice(std::string const & device_id) {
-	return MakeAlign<Device, SharedWasapiDevice>(GetDeviceById(ToStdWString(device_id)));
+	return MakeAlign<Device, SharedWasapiDevice>(GetDeviceById(String::ToStdWString(device_id)));
 }
 
 DeviceInfo SharedWasapiDeviceType::GetDeviceInfo(uint32_t device) const {

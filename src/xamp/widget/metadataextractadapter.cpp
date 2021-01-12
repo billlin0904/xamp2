@@ -127,7 +127,7 @@ public:
     }
 
     bool IsSupported(Path const& path) const noexcept {
-        const auto file_ext = ToLower(path.extension().string());
+        const auto file_ext = String::ToLower(path.extension().string());
         return support_file_ext_.find(file_ext) != support_file_ext_.end();
     }
 

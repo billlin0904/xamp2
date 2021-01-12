@@ -72,7 +72,7 @@ void SetThreadName(std::string const& name) noexcept {
             SetThreadDescription(LoadModule("Kernel32.dll"), "SetThreadDescription");
 
         if (SetThreadDescription) {
-            SetThreadDescription(thread.get(), ToStdWString(name).c_str());
+            SetThreadDescription(thread.get(), String::ToStdWString(name).c_str());
         }
     }
     catch (...) {
@@ -192,7 +192,7 @@ void InitWorkingSetSiz() {
         XAMP_LOG_DEBUG("EnableLockMemPrivilege success.");
 
         if (ExterndProcessWorkingSetSize(kWorkingSetSize)) {
-            XAMP_LOG_DEBUG("ExterndProcessWorkingSetSize {} success.", FormatBytes(kWorkingSetSize));
+            XAMP_LOG_DEBUG("ExterndProcessWorkingSetSize {} success.", String::FormatBytes(kWorkingSetSize));
         }
     }
 }

@@ -44,7 +44,7 @@ STDMETHODIMP Win32DeviceStateNotification::OnPropertyValueChanged(LPCWSTR device
 
 STDMETHODIMP Win32DeviceStateNotification::OnDeviceAdded(LPCWSTR device_id) {
 	if (auto callback = callback_.lock()) {
-		auto utf8_device_id = base::ToUtf8String(device_id);
+		const auto utf8_device_id = String::ToUtf8String(device_id);
 		callback->OnDeviceStateChange(DeviceState::DEVICE_STATE_ADDED, utf8_device_id);
 	}
 	return S_OK;
@@ -52,7 +52,7 @@ STDMETHODIMP Win32DeviceStateNotification::OnDeviceAdded(LPCWSTR device_id) {
 
 STDMETHODIMP Win32DeviceStateNotification::OnDeviceRemoved(LPCWSTR device_id) {
 	if (auto callback = callback_.lock()) {
-		auto utf8_device_id = base::ToUtf8String(device_id);
+		const auto utf8_device_id = String::ToUtf8String(device_id);
 		callback->OnDeviceStateChange(DeviceState::DEVICE_STATE_REMOVED, utf8_device_id);
 	}
 	return S_OK;
@@ -73,7 +73,7 @@ STDMETHODIMP Win32DeviceStateNotification::OnDeviceStateChanged(LPCWSTR device_i
 	}
 
 	if (auto callback = callback_.lock()) {
-		auto utf8_device_id = base::ToUtf8String(device_id);
+		const auto utf8_device_id = String::ToUtf8String(device_id);
 		callback->OnDeviceStateChange(state, utf8_device_id);
 	}
 	return S_OK;
@@ -81,7 +81,7 @@ STDMETHODIMP Win32DeviceStateNotification::OnDeviceStateChanged(LPCWSTR device_i
 
 STDMETHODIMP Win32DeviceStateNotification::OnDefaultDeviceChanged(EDataFlow flow, ERole role, LPCWSTR new_default_device_id) {
 	if (auto callback = callback_.lock()) {
-		auto utf8_device_id = base::ToUtf8String(new_default_device_id);
+		const auto utf8_device_id = String::ToUtf8String(new_default_device_id);
 		callback->OnDeviceStateChange(DeviceState::DEVICE_STATE_DEFAULT_DEVICE_CHANGE, utf8_device_id);
 	}
 	return S_OK;

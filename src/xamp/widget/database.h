@@ -41,6 +41,12 @@ struct AlbumStats {
     double durations{ 0 };
 };
 
+struct ArtistStats {
+    int32_t albums{ 0 };
+    int32_t tracks{ 0 };
+    double durations{ 0 };
+};
+
 class Database final {
 public:
     static constexpr int32_t kInvalidId = -1;
@@ -57,9 +63,13 @@ public:
 
     int32_t addPlaylist(const QString& name, int32_t playlistIndex);
 
+    void addDevice(const QString& deviceId, const QString& deviceTypeId, const QString& name, const QStringList & supportSampleRates, bool is_support_dsd);
+
     void setAlbumCover(int32_t album_id, const QString& album, const QString& cover_id);
 
     std::optional<AlbumStats> getAlbumStats(int32_t album_id) const;
+
+    std::optional<ArtistStats> getArtistStats(int32_t artist_id) const;
 
     void addTablePlaylist(int32_t tableId, int32_t playlist_id);
 

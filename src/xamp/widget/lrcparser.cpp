@@ -140,17 +140,17 @@ bool LrcParser::ParseStream(std::wistream &istr) {
 		if (!start_read_lrc) {
 			if (line.find(L"[ti") != std::wstring::npos) {
 				title_ = TagParser<>::ParseIdTag(L"ti", line);
-				XAMP_LOG_DEBUG("title: {}", ToUtf8String(title_));
+				XAMP_LOG_DEBUG("title: {}", String::ToUtf8String(title_));
 				continue;
 			}
 			if (line.find(L"[ar") != std::wstring::npos) {
 				artist_ = TagParser<>::ParseIdTag(L"ar", line);
-				XAMP_LOG_DEBUG("artist: {}", ToUtf8String(artist_));
+				XAMP_LOG_DEBUG("artist: {}", String::ToUtf8String(artist_));
 				continue;
 			}
 			if (line.find(L"[al") != std::wstring::npos) {
 				album_ = TagParser<>::ParseIdTag(L"al", line);
-				XAMP_LOG_DEBUG("album: {}", ToUtf8String(album_));
+				XAMP_LOG_DEBUG("album: {}", String::ToUtf8String(album_));
 				continue;
 			}
 			if (line.find(L"[offset") != std::wstring::npos) {

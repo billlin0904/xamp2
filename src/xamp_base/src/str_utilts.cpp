@@ -3,7 +3,7 @@
 #include <base/logger.h>
 #include <base/str_utilts.h>
 
-namespace xamp::base {
+namespace xamp::base::String {
 
 std::wstring ToStdWString(std::string const & utf8) {
 	std::wstring utf16;

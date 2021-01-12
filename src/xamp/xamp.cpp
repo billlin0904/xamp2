@@ -286,14 +286,12 @@ void Xamp::initialUI() {
     ui_.startPosLabel->setFont(f);
     ui_.endPosLabel->setFont(f);
 #else
-    //ui_.closeButton->hide();
-    //ui_.maxWinButton->hide();
-    //ui_.minWinButton->hide();
     f.setPointSize(11);
     ui_.titleLabel->setFont(f);
     f.setPointSize(10);
     ui_.artistLabel->setFont(f);
 #endif
+    ui_.stopButton->hide();
 }
 
 QWidgetAction* Xamp::createTextSeparator(const QString& text) {
@@ -367,15 +365,19 @@ void Xamp::initialDeviceList() {
 
                 device_info_ = device_info;
                 AppSettings::setValue(kAppSettingDeviceType, device_info_.device_type_id);
-                AppSettings::setValue(kAppSettingDeviceId, device_info_.device_id);
-
-                XAMP_LOG_DEBUG("Save device id:{} {} {}",
-                    ToUtf8String(device_info_.name),
-                    device_info_.device_id,
-                    device_info_.device_type_id);
+                AppSettings::setValue(kAppSettingDeviceId, device_info_.device_id);                
             };
 
             (void)QObject::connect(device_action, &QAction::triggered, trigger_callback);
+
+            QStringList support_sample_rate{ Q_UTF8("44100") };
+
+            Singleton<Database>::GetInstance().addDevice(
+                QString::fromStdString(device_info.device_id),
+                QString::fromStdString(device_info.device_type_id),
+                QString::fromStdWString(device_info.name),
+                support_sample_rate,
+                device_info.is_support_dsd);
 
             menu->addAction(device_action);
 
