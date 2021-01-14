@@ -51,7 +51,7 @@ public:
     }
 
 	void WriteEmbeddedCover(Path const& path, std::vector<uint8_t> const & image) const {
-		const auto ext = ToLower(path.extension().string());
+		const auto ext = String::ToLower(path.extension().string());
 
 		const TagLib::ByteVector imagedata(reinterpret_cast<const char *>(image.data()), image.size());
 

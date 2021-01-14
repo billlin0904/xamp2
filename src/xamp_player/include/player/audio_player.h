@@ -29,9 +29,7 @@
 #include <player/playbackstateadapter.h>
 #include <player/player.h>
 
-#ifdef _DEBUG
 #include <base/stopwatch.h>
-#endif
 
 namespace xamp::player {
 
@@ -58,7 +56,7 @@ public:
 
     static void Initial();
 
-    void Open(std::wstring const& file_path, std::wstring const& file_ext, const DeviceInfo& device_info, bool use_native_dsd);
+    void Open(std::wstring const& file_path, std::wstring const& file_ext, const DeviceInfo& device_info);
 
     void PrepareToPlay(double start_time = 0.0, double end_time = 0.0);
 
@@ -71,10 +69,8 @@ public:
     void Stop(bool signal_to_stop = true, bool shutdown_device = false, bool wait_for_stop_stream = true);
 
     void Destroy();
-
-    void SetLoop(double start_time, double end_time);
-
-    void Seek(double stream_time);    
+    	
+    void Seek(double stream_time);
 
     void SetVolume(uint32_t volume);
 
@@ -98,7 +94,7 @@ public:
 
     PlayerState GetState() const noexcept;
 
-    AudioFormat GetFileFormat() const noexcept;
+    AudioFormat GetInputFormat() const noexcept;
 
     AudioFormat GetOutputFormat() const noexcept;
 
@@ -125,7 +121,7 @@ public:
 private:
     void Startup();
     	
-    void OpenStream(std::wstring const & file_path, std::wstring const & file_ext, DeviceInfo const& device_info, bool use_native_dsd);
+    void OpenStream(std::wstring const & file_path, std::wstring const & file_ext, DeviceInfo const& device_info);
 
     void CreateDevice(Uuid const& device_type_id, std::string const & device_id, bool open_always);
 
@@ -149,7 +145,7 @@ private:
 
     void SetState(PlayerState play_state);
 
-    void ReadSampleLoop(int8_t* sample_buffer, uint32_t max_read_sample, std::unique_lock<std::mutex> &lock);
+    void ReadSampleLoop(int8_t* sample_buffer, uint32_t max_buffer_sample, std::unique_lock<std::mutex> &lock);
 
     void BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<SampleRateConverter> &converter, int32_t buffer_count = 1);
 
@@ -157,12 +153,14 @@ private:
 
     void OnGaplessPlayState(std::unique_lock<std::mutex>& lock);
 
+    void AllocateReadBuffer(uint32_t allocate_size);
+
+    void ResizeBuffer();
+
     struct XAMP_CACHE_ALIGNED(kMallocAlignSize) AudioSlice {
-        AudioSlice(float const *samples = nullptr, int32_t sample_size = 0, double stream_time = 0.0) noexcept
-            : samples(samples)
-            , sample_size(sample_size)
-            , stream_time(stream_time) {
-        }
+	    explicit AudioSlice(float const* samples = nullptr,
+            int32_t sample_size = 0,
+	        double stream_time = 0.0) noexcept;
         float const *samples;
         int32_t sample_size;
         double stream_time;
@@ -190,11 +188,9 @@ private:
     std::atomic<AudioSlice> slice_;
     mutable std::mutex pause_mutex_;
     mutable std::mutex stream_read_mutex_;
-#ifdef _DEBUG
     std::chrono::microseconds min_process_time_{ 0 };
     std::chrono::microseconds max_process_time_{ 0 };
-    Stopwatch sw_;
-#endif    
+    Stopwatch sw_; 
     std::string device_id_;
     Uuid device_type_id_;
     std::condition_variable pause_cond_;
@@ -207,8 +203,8 @@ private:
     AlignPtr<Device> device_;
     std::weak_ptr<PlaybackStateAdapter> state_adapter_;    
     AudioBuffer<int8_t> buffer_;
-    Buffer<int8_t> sample_buffer_;
-    VmMemLock sample_buffer_lock_;
+    Buffer<int8_t> sample_read_buffer_;
+    VmMemLock sample_read_buffer_lock_;
     WaitableTimer wait_timer_;
     AlignPtr<SampleRateConverter> converter_;       
     DeviceInfo device_info_;

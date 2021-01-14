@@ -26,6 +26,7 @@ using namespace win32;
 struct AsioDriver {
 	AsioDriver() = default;
 	bool is_xrun{ false };
+	bool post_output{ false };
 	AsioDevice* device{ nullptr };
 	AlignPtr<AsioDrivers> drivers{};
 	AudioConvertContext data_context{};
@@ -134,7 +135,7 @@ void AsioDevice::ReOpen() {
 	}
 	if (!Singleton<AsioDriver>::GetInstance().drivers) {
 		Singleton<AsioDriver>::GetInstance().drivers = MakeAlign<AsioDrivers>();
-	}
+	}	
 	Singleton<AsioDriver>::GetInstance().drivers->removeCurrentDriver();
 	if (!Singleton<AsioDriver>::GetInstance().drivers->loadDriver(const_cast<char*>(device_id_.c_str()))) {
 		throw DeviceNotFoundException();
@@ -362,6 +363,9 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 	AsioIfFailedThrow(::ASIOGetLatencies(&input_latency, &output_latency));
 	XAMP_LOG_I(log_, "Buffer size :{} ", String::FormatBytes(buffer_.GetByteSize()));
 	XAMP_LOG_I(log_, "Ouput latency: {}ms.", GetLatencyMs(output_latency, output_format.GetSampleRate()));
+
+	Singleton<AsioDriver>::GetInstance().post_output = ::ASIOOutputReady() == ASE_OK;
+	XAMP_LOG_I(log_, "Drvier support post output: {}", Singleton<AsioDriver>::GetInstance().post_output);
 }
 
 uint32_t AsioDevice::GetVolume() const {
@@ -380,13 +384,6 @@ void AsioDevice::SetMute(bool mute) const {
 }
 
 void AsioDevice::OnBufferSwitch(long index, double sample_time) noexcept {
-	const auto vol = volume_.load();
-	if (Singleton<AsioDriver>::GetInstance().data_context.cache_volume != vol) {
-		// 如果100% 音量會爆音,
-		Singleton<AsioDriver>::GetInstance().data_context.volume_factor = LinearToLog(vol - 1);
-		Singleton<AsioDriver>::GetInstance().data_context.cache_volume = vol;
-	}
-
 	auto cache_played_bytes = played_bytes_.load();
 	cache_played_bytes += buffer_bytes_ * format_.GetChannels();
 	played_bytes_ = cache_played_bytes;
@@ -394,15 +391,24 @@ void AsioDevice::OnBufferSwitch(long index, double sample_time) noexcept {
 	if (!is_streaming_) {
 		is_stop_streaming_ = true;
 		condition_.notify_all();
-		::ASIOOutputReady();
+		if (Singleton<AsioDriver>::GetInstance().post_output) {
+			::ASIOOutputReady();
+		}		
 		return;
 	}
 
 	auto got_samples = false;
 
-	auto pcm_convert = [this, &got_samples, cache_played_bytes, sample_time]() noexcept {
+	auto pcm_convert = [this, &got_samples, sample_time]() noexcept {
+		const auto vol = volume_.load();
+		if (Singleton<AsioDriver>::GetInstance().data_context.cache_volume != vol) {
+			// 如果100% 音量會爆音,
+			Singleton<AsioDriver>::GetInstance().data_context.volume_factor = LinearToLog(vol - 1);
+			Singleton<AsioDriver>::GetInstance().data_context.cache_volume = vol;
+		}
+		
 		// PCM mode input float to output format.
-		const auto stream_time = static_cast<double>(cache_played_bytes) / format_.GetAvgBytesPerSec();
+		const auto stream_time = static_cast<double>(played_bytes_) / format_.GetAvgBytesPerSec();
 		if (callback_->OnGetSamples(reinterpret_cast<float*>(buffer_.Get()), buffer_size_, stream_time, sample_time) == 0) {
 			assert(format_.GetByteFormat() == ByteFormat::SINT32);
 			DataConverter<PackedFormat::PLANAR,
@@ -441,7 +447,10 @@ void AsioDevice::OnBufferSwitch(long index, double sample_time) noexcept {
 				&device_buffer_[j++ * buffer_bytes_],
 				buffer_bytes_);
 		}
-		::ASIOOutputReady();
+
+		if (Singleton<AsioDriver>::GetInstance().post_output) {
+			::ASIOOutputReady();
+		}
 	}
 }
 
@@ -588,12 +597,14 @@ void AsioDevice::OnBufferSwitchCallback(long index, ASIOBool processNow) {
 	if (::ASIOGetSamplePosition(&time_info.timeInfo.samplePosition, &time_info.timeInfo.systemTime) == ASE_OK) {
 		time_info.timeInfo.flags = kSystemTimeValid | kSamplePositionValid;
 	}
+	
 	Singleton<AsioDriver>::GetInstance().device->OnBufferSwitchTimeInfoCallback(&time_info, index, processNow);
 	double sample_time = 0;
 	if (time_info.timeInfo.flags & kSamplePositionValid) {
 		sample_time = ASIO64toDouble(time_info.timeInfo.samplePosition)
 		/ Singleton<AsioDriver>::GetInstance().device->format_.GetSampleRate();
 	}
+
 	Singleton<AsioDriver>::GetInstance().device->OnBufferSwitch(index, sample_time);
 }
 

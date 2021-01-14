@@ -14,12 +14,12 @@
 
 ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 	: QFrame(parent) {
-	auto default_layout = new QVBoxLayout(this);
+	auto* default_layout = new QVBoxLayout(this);
 	default_layout->setSpacing(0);
 	default_layout->setObjectName(QString::fromUtf8("default_layout"));
 	default_layout->setContentsMargins(0, 20, 0, 0);
 
-	auto child_layout = new QHBoxLayout();
+	auto* child_layout = new QHBoxLayout();
 	child_layout->setSpacing(0);
 	child_layout->setObjectName(QString::fromUtf8("horizontalLayout_7"));
 	child_layout->setContentsMargins(20, 0, 20, 0);
@@ -35,10 +35,10 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 		}
 		ActionMap<ArtistInfoPage, std::function<void()>> action_map(this);
 		action_map.addAction(tr("Change artist image"), [=]() {
-			auto file_name = QFileDialog::getOpenFileName(this,
-				tr("Open file"),
-				Qt::EmptyString,
-				tr("Music Files *.jpg *.jpeg *.png"));
+			const auto file_name = QFileDialog::getOpenFileName(this,
+			                                                    tr("Open file"),
+			                                                    Qt::EmptyString,
+			                                                    tr("Music Files *.jpg *.jpeg *.png"));
 			cover_id_ = Singleton<PixmapCache>::GetInstance().addOrUpdate(QPixmap(file_name));
 			Singleton<Database>::GetInstance().updateArtistCoverId(artist_id_, cover_id_);
 			setArtistId(artist_->text(), cover_id_, artist_id_);
@@ -53,7 +53,7 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 	artist_->setFont(f);
 	artist_->setStyleSheet(Q_UTF8("background-color: transparent"));
 
-	auto title = new QLabel();
+	auto* title = new QLabel();
 	title->setStyleSheet(Q_UTF8("background-color: transparent"));
 	title->setObjectName(QString::fromUtf8("label_2"));
 	title->setText(tr("Artist Information"));
@@ -82,7 +82,7 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 	durtions_->setFont(f);
 	durtions_->setStyleSheet(Q_UTF8("background-color: transparent;"));
 
-	auto artist_layout = new QHBoxLayout();
+	auto* artist_layout = new QHBoxLayout();
 	artist_layout->setSpacing(0);
 	artist_layout->setContentsMargins(0, 0, 0, 0);
 
@@ -93,7 +93,7 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 	artist_layout->setStretch(1, 2);
 	artist_layout->setStretch(2, 2);	
 
-	auto cover_spacer2 = new QSpacerItem(50, 10, QSizePolicy::Minimum, QSizePolicy::Fixed);
+	auto* cover_spacer2 = new QSpacerItem(50, 10, QSizePolicy::Minimum, QSizePolicy::Fixed);
 
 	child_layout->addWidget(cover_);
 	child_layout->addItem(cover_spacer2);
@@ -123,7 +123,7 @@ void ArtistInfoPage::setArtistId(const QString& artist, const QString& cover_id,
 	artist_->setText(artist);
 	album_view_->setFilterByArtistId(artist_id);
 
-	auto cover = &ThemeManager::instance().pixmap().defaultSizeUnknownCover();
+	const auto* cover = &ThemeManager::instance().pixmap().defaultSizeUnknownCover();
 	if (auto cache_small_cover = Singleton<PixmapCache>::GetInstance().find(cover_id)) {
 		cover = cache_small_cover.value();
 	}

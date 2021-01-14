@@ -168,7 +168,7 @@ std::set<std::string> BassLib::GetSupportFileExtensions() const {
         const auto* info = Singleton<BassLib>::GetInstance().BASS_PluginGetInfo(value.get());
 		
         for (auto i = 0; i < info->formatc; ++i) {
-        	for (auto file_ext : Split(info->formats[i].exts, ";")) {
+        	for (auto file_ext : String::Split(info->formats[i].exts, ";")) {
                 std::string ext(file_ext);
                 auto pos = ext.find('*');
         		if (pos != std::string::npos) {

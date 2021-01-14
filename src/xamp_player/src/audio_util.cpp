@@ -75,7 +75,7 @@ AlignPtr<FileStream> MakeStream(std::wstring const& file_ext, AlignPtr<FileStrea
     return MakeAlign<FileStream, BassFileStream>();    
 }
 
-DsdModes SetStreamDsdMode(AlignPtr<FileStream>& stream, bool is_dsd_file, const DeviceInfo& device_info, bool use_native_dsd) {
+DsdModes SetStreamDsdMode(AlignPtr<FileStream>& stream, bool is_dsd_file, const DeviceInfo& device_info) {
     auto dsd_mode = DsdModes::DSD_MODE_PCM;
 
     if (auto* dsd_stream = AsDsdStream(stream)) {
@@ -94,7 +94,7 @@ DsdModes SetStreamDsdMode(AlignPtr<FileStream>& stream, bool is_dsd_file, const 
         }
         // WASAPI or CoreAudio old device.
         else {
-            if (is_dsd_file && device_info.is_support_dsd && use_native_dsd) {
+            if (is_dsd_file && device_info.is_support_dsd) {
                 dsd_stream->SetDSDMode(DsdModes::DSD_MODE_DOP);
                 XAMP_LOG_DEBUG("Use DOP mode.");
                 dsd_mode = DsdModes::DSD_MODE_DOP;
@@ -126,11 +126,10 @@ std::vector<std::string> GetSupportFileExtensions() {
 
 std::pair<DsdModes, AlignPtr<FileStream>> MakeFileStream(std::wstring const& file_path,
     std::wstring const& file_ext,
-    DeviceInfo const& device_info,
-    bool use_native_dsd) {
+    DeviceInfo const& device_info) {
     auto is_dsd_file = TestDsdFileFormat(file_path);
     auto test_dsd_mode_stream = MakeStream(file_ext);    
-    auto dsd_mode = SetStreamDsdMode(test_dsd_mode_stream, is_dsd_file, device_info, use_native_dsd);
+    auto dsd_mode = SetStreamDsdMode(test_dsd_mode_stream, is_dsd_file, device_info);
     test_dsd_mode_stream->OpenFile(file_path);
     return std::make_pair(dsd_mode, std::move(test_dsd_mode_stream));
 }

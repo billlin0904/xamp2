@@ -137,7 +137,8 @@ void setBlurMaterial(const QWidget* widget, bool enable) {
 	Singleton<User32Lib>::GetInstance().SetWindowCompositionAttribute(hwnd, &data);
 
 	// 如果使用-1會有問題, 會導致Max,Min,Close按鈕有陰影.
-	MARGINS borderless = { 1, 1, 1, 1 };
+	//MARGINS borderless = { 1, 1, 1, 1 };
+	MARGINS borderless = { 0, 0, 0, 1 };
 	Singleton<DwmapiLib>::GetInstance().DwmExtendFrameIntoClientArea(hwnd, &borderless);
 }
 

@@ -60,11 +60,13 @@ static QString format2String(const PlaybackFormat &playback_format, const QStrin
     QString dsd_speed_format;
     if (playback_format.is_dsd_file) {
         dsd_speed_format = Q_UTF8(" DSD") + QString::number(playback_format.dsd_speed) + Q_UTF8(" ");
+        dsd_speed_format = Q_UTF8("(") + dsd_speed_format + Q_UTF8(")");
+    } else {
+        dsd_speed_format = Q_UTF8(" ");
     }
 
     QString output_format_str;
     QString dsd_mode;
-    QString bit_format;
 
     switch (playback_format.dsd_mode) {
     case DsdModes::DSD_MODE_PCM:
@@ -72,12 +74,11 @@ static QString format2String(const PlaybackFormat &playback_format, const QStrin
         output_format_str = samplerate2String(playback_format.file_format);
     	if (playback_format.file_format.GetSampleRate() != playback_format.output_format.GetSampleRate()) {
             output_format_str += samplerate2String(playback_format.output_format);
-    	}
-        bit_format = QString::number(bits) + Q_UTF8("bit");
+    	}        
         break;
     case DsdModes::DSD_MODE_NATIVE:
         dsd_mode = Q_UTF8("Native DSD");
-        output_format_str = dsdSampleRate2String(playback_format.dsd_speed);
+        output_format_str = dsdSampleRate2String(playback_format.dsd_speed);        
         break;
     case DsdModes::DSD_MODE_DOP:
         dsd_mode = Q_UTF8("DOP");
@@ -85,10 +86,11 @@ static QString format2String(const PlaybackFormat &playback_format, const QStrin
         break;
     }
 
+    auto bit_format = QString::number(bits) + Q_UTF8("bit");
+
     return ext
-        + Q_UTF8(" | ")
         + dsd_speed_format
         + output_format_str
-        + bit_format
+        + bit_format        
         + Q_UTF8(" | ") + dsd_mode;
 }

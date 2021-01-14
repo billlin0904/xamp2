@@ -90,9 +90,9 @@ std::vector<DeviceInfo> SharedWasapiDeviceType::GetDeviceInfoList() const {
 
 		auto info = helper::GetDeviceInfo(device, Id);
 #ifdef _DEBUG
-		XAMP_LOG_DEBUG("Get {} device {} property.", GetDescription(), ToUtf8String(info.name));
+		XAMP_LOG_DEBUG("Get {} device {} property.", GetDescription(), String::ToUtf8String(info.name));
 		for (const auto& property : helper::GetDeviceProperty(device)) {
-			XAMP_LOG_DEBUG("{}: {}", property.first, ToUtf8String(property.second));
+			XAMP_LOG_DEBUG("{}: {}", property.first, String::ToUtf8String(property.second));
 		}
 #endif  
 		if (default_device_name == info.name) {

@@ -29,8 +29,7 @@ XAMP_PLAYER_API AlignPtr<FileStream> MakeStream(std::wstring const& file_ext, Al
 
 XAMP_PLAYER_API std::pair<DsdModes, AlignPtr<FileStream>> MakeFileStream(std::wstring const& file_path,
 	std::wstring const& file_ext,
-	DeviceInfo const& device_info,
-	bool use_native_dsd);
+	DeviceInfo const& device_info);
 
 }
 

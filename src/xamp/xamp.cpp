@@ -110,7 +110,7 @@ static PlaybackFormat getPlaybackFormat(const AudioPlayer* player) {
     }
 
     format.enable_sample_rate_convert = player->IsEnableSampleRateConverter();
-    format.file_format = player->GetFileFormat();
+    format.file_format = player->GetInputFormat();
     format.output_format = player->GetOutputFormat();
     return format;
 }
@@ -199,12 +199,11 @@ void Xamp::createTrayIcon() {
         SLOT(onActivated(QSystemTrayIcon::ActivationReason)));
 }
 
+void Xamp::drawRounded(QPainter &painter, RoundStyle style) {
+}
+
 void Xamp::paintEvent(QPaintEvent* event) {
-    QPainter painter(this);    
-    //auto cover = lrc_page_->cover()->pixmap();
-    //if (cover != nullptr) {
-    //	painter.drawPixmap(rect(), Pixmap::blurImage(*cover, 12));
-    //}
+    QPainter painter(this);
 }
 
 void Xamp::closeEvent(QCloseEvent* event) {
@@ -291,7 +290,6 @@ void Xamp::initialUI() {
     f.setPointSize(10);
     ui_.artistLabel->setFont(f);
 #endif
-    ui_.stopButton->hide();
 }
 
 QWidgetAction* Xamp::createTextSeparator(const QString& text) {
@@ -915,17 +913,10 @@ void Xamp::playMusic(const MusicEntity& item) {
         player_->Stop(false, true);
         );
 
-#ifndef Q_OS_WIN32
-    //const auto use_native_dsd = AppSettings::getValueAsBool(kAppSettingUseNativeDSDMode);
-    const auto use_native_dsd = true;
-#else
-    const auto use_native_dsd = true;
-#endif
-
     PlaybackFormat playback_format;
 
     try {
-        player_->Open(item.file_path.toStdWString(), item.file_ext.toStdWString(), device_info_, use_native_dsd);
+        player_->Open(item.file_path.toStdWString(), item.file_ext.toStdWString(), device_info_);
         setupSampleRateConverter();      
         player_->PrepareToPlay(loop_time.first, loop_time.second);
         playback_format = getPlaybackFormat(player_.get());
@@ -1093,18 +1084,12 @@ void Xamp::addPlayQueue() {
         return;
     }
 
-#ifndef Q_OS_WIN32
-    const auto use_native_dsd = AppSettings::getValueAsBool(kAppSettingUseNativeDSDMode);
-#else
-    const auto use_native_dsd = true;
-#endif
-
     const auto item = playlist_view->nomapItem(next_index);    
 	
     try {
         auto [dsd_mode, stream] = MakeFileStream(item.file_path.toStdWString(),
             item.file_ext.toStdWString(),
-            device_info_, use_native_dsd);
+            device_info_);
 
         const auto input_format = stream->GetFormat();
         const auto output_format = player_->GetOutputFormat();
@@ -1465,12 +1450,6 @@ PlyalistPage* Xamp::newPlaylist(int32_t playlist_id) {
 
     (void)QObject::connect(playlist_page->playlist(), &PlayListTableView::setLoopTime,
         [this](double start_time, double end_time) {
-            if (!player_->IsPlaying()) {
-                return;
-            }            
-            player_->SetLoop(start_time, end_time);
-            loop_time.first = start_time;
-            loop_time.second = end_time;
         });
 
     (void)QObject::connect(this,

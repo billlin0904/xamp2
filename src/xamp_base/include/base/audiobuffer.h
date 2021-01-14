@@ -57,6 +57,7 @@ private:
 	size_t size_;
 	XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<size_t> head_;
     XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<size_t> tail_;
+	uint8_t padding_[kCacheAlignSize - sizeof(tail_)]{ 0 };
 };
 
 template <typename Type, typename U>
