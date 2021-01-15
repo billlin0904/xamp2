@@ -28,7 +28,7 @@ public:
 
     void AddOrUpdate(Key const& key, Value const& value);
 
-    std::optional<Value const*> Find(Key const& key) const;
+    Value const* Find(Key const& key) const;
 
     CacheIterator begin() noexcept {
         return cache_.begin();
@@ -82,11 +82,11 @@ XAMP_ALWAYS_INLINE void LruCache<Key, Value>::AddOrUpdate(Key const& key, Value 
 }
 
 template <typename Key, typename Value>
-XAMP_ALWAYS_INLINE std::optional<Value const*> LruCache<Key, Value>::Find(Key const& key) const {
+XAMP_ALWAYS_INLINE Value const* LruCache<Key, Value>::Find(Key const& key) const {
     const auto check = map_.find(key);
     if (check == map_.end()) {
         ++miss_count_;
-        return std::nullopt;
+        return nullptr;
     }
     cache_.splice(cache_.begin(), cache_, check->second);
     return &check->second->second;

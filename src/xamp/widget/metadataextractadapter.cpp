@@ -88,8 +88,8 @@ QString DatabaseIdCache::AddCoverCache(int32_t album_id, const QString& album, c
 
 std::tuple<int32_t, int32_t, QString> DatabaseIdCache::AddCache(const QString &album, const QString &artist) const {
     int32_t artist_id = 0;
-    if (auto artist_id_op = this->artist_id_cache_.Find(artist)) {
-        artist_id = *artist_id_op.value();
+    if (auto const * artist_id_op = this->artist_id_cache_.Find(artist)) {
+        artist_id = *artist_id_op;
     }
     else {
         artist_id = Singleton<Database>::GetInstance().addOrUpdateArtist(artist);
@@ -97,8 +97,8 @@ std::tuple<int32_t, int32_t, QString> DatabaseIdCache::AddCache(const QString &a
     }
 
     int32_t album_id = 0;
-    if (auto album_id_op = this->album_id_cache_.Find(album)) {
-        album_id = *album_id_op.value();
+    if (auto const* album_id_op = this->album_id_cache_.Find(album)) {
+        album_id = *album_id_op;
     }
     else {
         album_id = Singleton<Database>::GetInstance().addOrUpdateAlbum(album, artist_id);
@@ -106,8 +106,8 @@ std::tuple<int32_t, int32_t, QString> DatabaseIdCache::AddCache(const QString &a
     }
 
     QString cover_id;
-    if (auto cover_id_op = this->cover_id_cache_.Find(album_id)) {
-        cover_id = *cover_id_op.value();
+    if (auto const* cover_id_op = this->cover_id_cache_.Find(album_id)) {
+        cover_id = *cover_id_op;
     }
 
     return std::make_tuple(album_id, artist_id, cover_id);

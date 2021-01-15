@@ -146,7 +146,7 @@ void AudioPlayer::CreateDevice(Uuid const & device_type_id, std::string const & 
             AudioDeviceManager::GetInstance().RemoveASIODriver();
         }
         if (auto result = AudioDeviceManager::GetInstance().Create(device_type_id)) {            
-            device_type_ = std::move(result.value());
+            device_type_ = std::move(result);
             // TODO: remove ScanNewDevice ?
             device_type_->ScanNewDevice();
             device_ = device_type_->MakeDevice(device_id);

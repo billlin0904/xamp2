@@ -34,9 +34,9 @@ public:
 
     void Clear();
 
-    [[nodiscard]] std::optional<AlignPtr<DeviceType>> CreateDefaultDeviceType() const;
+    [[nodiscard]] AlignPtr<DeviceType> CreateDefaultDeviceType() const;
 
-    [[nodiscard]] std::optional<AlignPtr<DeviceType>> Create(Uuid const& id) const;
+    [[nodiscard]] AlignPtr<DeviceType> Create(Uuid const& id) const;
 
     template <typename Function>
     void ForEach(Function &&fun) {

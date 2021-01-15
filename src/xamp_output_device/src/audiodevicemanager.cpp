@@ -122,7 +122,7 @@ void AudioDeviceManager::Clear() {
     factory_.clear();
 }
 
-std::optional<AlignPtr<DeviceType>> AudioDeviceManager::CreateDefaultDeviceType() const {
+AlignPtr<DeviceType> AudioDeviceManager::CreateDefaultDeviceType() const {
 #ifdef XAMP_OS_WIN
     return Create(win32::SharedWasapiDeviceType::Id);
 #else
@@ -130,10 +130,10 @@ std::optional<AlignPtr<DeviceType>> AudioDeviceManager::CreateDefaultDeviceType(
 #endif
 }
 
-std::optional<AlignPtr<DeviceType>> AudioDeviceManager::Create(Uuid const& id) const {
+AlignPtr<DeviceType> AudioDeviceManager::Create(Uuid const& id) const {
     auto itr = factory_.find(id);
     if (itr == factory_.end()) {
-        return std::nullopt;
+        throw DeviceNotFoundException();
     }
     return (*itr).second();
 }

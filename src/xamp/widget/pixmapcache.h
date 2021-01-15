@@ -33,7 +33,7 @@ public:
 
 	static QPixmap findFileDirCover(const PlayListEntity& item);
 
-	std::optional<const QPixmap*> find(const QString& tag_id) const;
+	const QPixmap* find(const QString& tag_id) const;
 
 	QPixmap fromFileCache(const QString& tag_id) const;
 

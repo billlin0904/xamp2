@@ -970,8 +970,8 @@ void Xamp::updateUI(const MusicEntity& item, const PlaybackFormat& playback_form
             setCover(nullptr);
         }
         else {
-            if (auto cover = Singleton<PixmapCache>::GetInstance().find(item.cover_id)) {
-                setCover(cover.value());
+            if (const auto * cover = Singleton<PixmapCache>::GetInstance().find(item.cover_id)) {
+                setCover(cover);
             }
             else {
                 setCover(nullptr);

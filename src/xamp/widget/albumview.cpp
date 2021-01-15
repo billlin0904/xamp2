@@ -81,8 +81,8 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
 
     auto album_cover = &ThemeManager::instance().pixmap().defaultSizeUnknownCover();
 
-    if (auto cache_small_cover = Singleton<PixmapCache>::GetInstance().find(cover_id)) {
-        album_cover = cache_small_cover.value();        
+    if (const auto * cache_small_cover = Singleton<PixmapCache>::GetInstance().find(cover_id)) {
+        album_cover = cache_small_cover;        
         painter->drawPixmap(cover_rect, Pixmap::roundImage(*album_cover, Pixmap::kSmallImageRadius));
     }
     else {
@@ -310,14 +310,14 @@ void AlbumViewPage::setTotalDuration(double durations) {
 }
 
 void AlbumViewPage::setCover(const QString& cover_id) {
-    if (auto cache_small_cover = Singleton<PixmapCache>::GetInstance().find(cover_id)) {
-        auto image = Pixmap::roundImage(Pixmap::resizeImage(cache_small_cover.value()->copy(),
+    if (auto const * cache_small_cover = Singleton<PixmapCache>::GetInstance().find(cover_id)) {
+        auto image = Pixmap::roundImage(Pixmap::resizeImage(cache_small_cover->copy(),
             ThemeManager::instance().getAlbumCoverSize()));
         cover_->setPixmap(image);
     }
     else {
-        auto image = Pixmap::roundImage(Pixmap::resizeImage(ThemeManager::instance().pixmap().defaultSizeUnknownCover(),
-            ThemeManager::instance().getAlbumCoverSize()));
+	    const auto image = Pixmap::roundImage(Pixmap::resizeImage(ThemeManager::instance().pixmap().defaultSizeUnknownCover(),
+	                                                              ThemeManager::instance().getAlbumCoverSize()));
         cover_->setPixmap(image);
     }
 }

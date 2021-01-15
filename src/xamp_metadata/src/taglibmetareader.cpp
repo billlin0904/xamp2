@@ -167,7 +167,7 @@ public:
 	}
 
 	[[nodiscard]] bool IsSupported(Path const & path) const noexcept {
-		const auto file_ext = ToLower(path.extension().string());
+		const auto file_ext = String::ToLower(path.extension().string());
 		return support_file_extensions_.find(file_ext) != support_file_extensions_.end();
 	}
 
@@ -228,7 +228,7 @@ public:
             cover_.clear();
             return cover_;
         }
-        const auto ext = ToLower(path.extension().string());
+        const auto ext = String::ToLower(path.extension().string());
         GetCover(ext, fileref.file(), cover_);
         return cover_;
     }

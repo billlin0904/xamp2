@@ -6,8 +6,11 @@
 #pragma once
 
 #include <string>
-
 #include <base/base.h>
+
+#ifdef XAMP_OS_WIN
+#include <intrin.h>
+#endif
 
 namespace xamp::base {
 
@@ -23,7 +26,7 @@ XAMP_BASE_API bool PrefactchFile(MemoryMappedFile &file);
 
 XAMP_BASE_API bool PrefetchMemory(void* adddr, size_t length) noexcept;
 
-#define FastMemcpy(dest, src, size) std::memcpy(dest, src, size)
-
+XAMP_BASE_API void FastMemcpy(void* dest, const void* src, size_t size);
+	
 }
 
