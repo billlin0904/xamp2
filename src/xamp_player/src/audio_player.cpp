@@ -217,10 +217,6 @@ void AudioPlayer::Play() {
         return;
 	}
 
-#ifdef _DEBUG
-    Stopwatch sw;
-#endif
-
     stream_task_ = ThreadPool::GetInstance().Run([player = shared_from_this()]() noexcept {
         auto* p = player.get();
 
@@ -253,10 +249,6 @@ void AudioPlayer::Play() {
             XAMP_LOG_DEBUG("Stream thread read has exception: {}", e.what());
         }
     });
-
-#ifdef _DEBUG
-    LogTime("Create stream thread time", sw.Elapsed());
-#endif
 }
 
 void AudioPlayer::Pause() {
@@ -474,8 +466,10 @@ void AudioPlayer::CreateBuffer() {
         uint32_t allocate_size = 0;
         if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE) {
             allocate_size = kMaxPreallocateBufferSize;
+            allocate_size = AlignUp(allocate_size);
         } else {
             allocate_size = (std::min)(kMaxPreallocateBufferSize, require_read_sample * stream_->GetSampleSize() * kBufferStreamCount);
+            allocate_size = AlignUp(allocate_size);
             num_buffer_samples_ = allocate_size * kTotalBufferStreamCount;
         }        
         num_read_sample_ = require_read_sample;

@@ -47,14 +47,5 @@ bool PrefactchFile(std::wstring const & file_name) {
 	file.Open(file_name);
     return PrefactchFile(file);
 }
-
-void FastMemcpy(void* dest, const void* src, size_t size) {
-#ifdef XAMP_OS_WIN
-	//__movsb(static_cast<PBYTE>(dest), static_cast<const BYTE*>(src), size);
-	(void) std::memcpy(dest, src, size);
-#else
-	(void) std::memcpy(dest, src, size);
-#endif
-}
 	
 }

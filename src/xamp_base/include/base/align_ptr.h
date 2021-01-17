@@ -22,6 +22,11 @@ XAMP_BASE_API void* StackAlloc(size_t size);
 
 XAMP_BASE_API void StackFree(void* p);
 
+template <typename T>
+constexpr T AlignUp(T value, size_t aligned_size = kMallocAlignSize) {
+    return T((value + (T(aligned_size) - 1)) & ~T(aligned_size - 1));
+}
+
 template <typename Type>
 XAMP_BASE_API_ONLY_EXPORT Type* AlignedMallocOf(size_t aligned_size) noexcept {
     return static_cast<Type*>(AlignedMalloc(sizeof(Type), aligned_size));

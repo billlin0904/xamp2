@@ -105,7 +105,7 @@ std::wstring GetDeviceName(AudioDeviceID id, AudioObjectPropertySelector selecto
         return L"";
     }
 
-    return ToStdWString(SysCFStringRefToUTF8(cfname));
+    return String::ToStdWString(SysCFStringRefToUTF8(cfname));
 }
 
 std::wstring GetPropertyName(AudioDeviceID id) {

@@ -26,7 +26,13 @@ XAMP_BASE_API bool PrefactchFile(MemoryMappedFile &file);
 
 XAMP_BASE_API bool PrefetchMemory(void* adddr, size_t length) noexcept;
 
-XAMP_BASE_API void FastMemcpy(void* dest, const void* src, size_t size);
+#ifdef XAMP_OS_WIN
+inline void FastMemcpy(void* dest, const void* src, size_t size) {
+    __movsb(static_cast<PBYTE>(dest), static_cast<const BYTE*>(src), size);
+}
+#else
+#define FastMemcpy(dest, src, size) (void) std::memcpy(dest, src, size)
+#endif
 	
 }
 

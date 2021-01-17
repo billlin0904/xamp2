@@ -91,7 +91,7 @@ public:
     }
 
     void Open(std::wstring const& file_path) {
-        file_.reset(::open(ToUtf8String(file_path).c_str(), O_RDONLY));
+        file_.reset(::open(String::ToUtf8String(file_path).c_str(), O_RDONLY));
         if (!file_) {
             throw FileNotFoundException();
         }
