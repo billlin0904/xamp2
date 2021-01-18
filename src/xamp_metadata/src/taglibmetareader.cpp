@@ -27,7 +27,7 @@ static bool GetID3V2TagCover(ID3v2::Tag* tag, std::vector<uint8_t>& buffer) {
         return false;
     }
     buffer.resize(frame->picture().size());
-    (void) FastMemcpy(buffer.data(), frame->picture().data(), static_cast<int32_t>(frame->picture().size()));
+    FastMemcpy(buffer.data(), frame->picture().data(), static_cast<int32_t>(frame->picture().size()));
     return true;
 }
 
@@ -44,7 +44,7 @@ static bool GetApeTagCover(APE::Tag* tag, std::vector<uint8_t>& buffer) {
     if (++pos > 0) {
         auto pic = item.mid(pos);
         buffer.resize(pic.size());
-        (void) FastMemcpy(buffer.data(), pic.data(), static_cast<int32_t>(pic.size()));
+        FastMemcpy(buffer.data(), pic.data(), static_cast<int32_t>(pic.size()));
         return true;
     }
     return false;
@@ -87,7 +87,7 @@ static bool GetMp4Cover(File* file, std::vector<uint8_t>& buffer) {
         }
         if (cover_list[0].data().size() > 0) {
             buffer.resize(cover_list[0].data().size());
-            (void) FastMemcpy(buffer.data(), cover_list[0].data().data(),
+            FastMemcpy(buffer.data(), cover_list[0].data().data(),
                 static_cast<int32_t>(cover_list[0].data().size()));
             return true;
         }
@@ -105,7 +105,7 @@ static bool GetFlacCover(File* file, std::vector<uint8_t>& buffer) {
         for (const auto &picture : picture_list) {
             if (picture->type() == TagLib::FLAC::Picture::FrontCover) {                
                 buffer.resize(picture->data().size());
-                (void)FastMemcpy(buffer.data(), picture->data().data(), picture->data().size());
+                FastMemcpy(buffer.data(), picture->data().data(), picture->data().size());
                 return true;
             }
         }
