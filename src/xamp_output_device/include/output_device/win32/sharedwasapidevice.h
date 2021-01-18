@@ -22,7 +22,7 @@ class XAMP_OUTPUT_DEVICE_API SharedWasapiDevice final : public Device {
 public:
 	explicit SharedWasapiDevice(CComPtr<IMMDevice> const & device);
 
-	virtual ~SharedWasapiDevice();
+	virtual ~SharedWasapiDevice() override;
 
 	void OpenStream(AudioFormat const & output_format) override;
 

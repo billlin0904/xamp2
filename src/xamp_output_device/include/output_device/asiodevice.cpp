@@ -443,7 +443,7 @@ void AsioDevice::OnBufferSwitch(long index, double sample_time) noexcept {
 
 	if (got_samples) {
 		for (size_t i = 0, j = 0; i < format_.GetChannels(); ++i) {
-			(void)FastMemcpy(Singleton<AsioDriver>::GetInstance().buffer_infos[i].buffers[index],
+			MemoryCopy(Singleton<AsioDriver>::GetInstance().buffer_infos[i].buffers[index],
 				&device_buffer_[j++ * buffer_bytes_],
 				buffer_bytes_);
 		}
@@ -463,7 +463,7 @@ void AsioDevice::OpenStream(AudioFormat const & output_format) {
 	ReOpen();
 
 	auto name_len = (std::min)(sizeof(asio_driver_info.name) - 1, device_id_.length());
-	(void)FastMemcpy(asio_driver_info.name, device_id_.c_str(), name_len);
+	MemoryCopy(asio_driver_info.name, device_id_.c_str(), name_len);
 
 	AsioIfFailedThrow(::ASIOInit(&asio_driver_info));
 

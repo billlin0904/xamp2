@@ -19,7 +19,7 @@ using namespace xamp::base;
 using namespace xamp::stream;
 using namespace xamp::output_device;
 
-XAMP_PLAYER_API std::vector<std::string> GetSupportFileExtensions();
+XAMP_PLAYER_API std::vector<std::string> GetStreamSupportFileExtensions();
 
 XAMP_PLAYER_API DsdStream* AsDsdStream(AlignPtr<FileStream> const& stream) noexcept;
 

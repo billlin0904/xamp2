@@ -1,6 +1,8 @@
 #include <algorithm>
 #include <base/base.h>
 
+#include <base/align_ptr.h>
+
 #ifdef XAMP_OS_WIN
 #include <base/windows_handle.h>
 #else
@@ -20,7 +22,7 @@ size_t GetPageSize() noexcept {
 
 bool PrefetchMemory(void* adddr, size_t length) noexcept {
 	_WIN32_MEMORY_RANGE_ENTRY address_range{ adddr, length };
-	WinHandle current_process(::GetCurrentProcess());
+	const WinHandle current_process(::GetCurrentProcess());
 	return ::PrefetchVirtualMemory(current_process.get(), 1, &address_range, 0);
 }
 #else
@@ -34,18 +36,18 @@ bool PrefetchMemory(void* adddr, size_t length) noexcept {
 #endif
 
 size_t GetPageAlignSize(size_t value) noexcept {
-	auto align_size = (value + (GetPageSize() - 1)) & ~(GetPageSize() - 1);
-	return align_size;
+	const auto align_size = GetPageSize();
+	return AlignUp(value, align_size);
 }
 
-bool PrefactchFile(MemoryMappedFile &file) {
+bool PrefetchFile(MemoryMappedFile &file) {
     return PrefetchMemory(const_cast<void*>(file.GetData()), file.GetLength());
 }
 
-bool PrefactchFile(std::wstring const & file_name) {
+bool PrefetchFile(std::wstring const & file_name) {
 	MemoryMappedFile file;
 	file.Open(file_name);
-    return PrefactchFile(file);
+    return PrefetchFile(file);
 }
 	
 }

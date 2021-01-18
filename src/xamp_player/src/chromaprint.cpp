@@ -97,7 +97,7 @@ public:
 				1);
 
             fingerprint.resize(static_cast<size_t>(encoded_size));
-            (void)FastMemcpy(fingerprint.data(), encoded, static_cast<size_t>(encoded_size));
+            MemoryCopy(fingerprint.data(), encoded, static_cast<size_t>(encoded_size));
 		}
 		catch (...) {
 		}		

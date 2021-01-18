@@ -8,7 +8,7 @@
 #include <string>
 #include <base/base.h>
 
-#ifdef XAMP_OS_WIN
+#if defined(XAMP_OS_WIN) && defined(XAMP_ENABLE_REP_MOVSB)
 #include <intrin.h>
 #endif
 
@@ -20,18 +20,27 @@ XAMP_BASE_API size_t GetPageSize() noexcept;
 
 XAMP_BASE_API size_t GetPageAlignSize(size_t value) noexcept;
 
-XAMP_BASE_API bool PrefactchFile(std::wstring const &file_name);
+XAMP_BASE_API bool PrefetchFile(std::wstring const &file_name);
 
-XAMP_BASE_API bool PrefactchFile(MemoryMappedFile &file);
+XAMP_BASE_API bool PrefetchFile(MemoryMappedFile &file);
 
 XAMP_BASE_API bool PrefetchMemory(void* adddr, size_t length) noexcept;
 
-#ifdef XAMP_OS_WIN
-inline void FastMemcpy(void* dest, const void* src, size_t size) {
+#ifdef XAMP_ENABLE_REP_MOVSB
+inline void MemorySet(void* dest, int32_t c, size_t size) {
+	__stosb(static_cast<unsigned char*>(dest), static_cast<unsigned char>(c), size);
+}
+#else
+#define MemorySet(dest, c, size) (void) std::memset(dest, c, size)
+#endif
+
+#ifdef XAMP_ENABLE_REP_MOVSB
+inline void MemoryCopy(void* dest, const void* src, size_t size) {
+	// 優化在拷貝的資料量較大時效果明顯，而當拷貝的資料量較小時，rep movsb 指令本身存在的開銷會導致其優化效果不明顯.
     __movsb(static_cast<unsigned char *>(dest), static_cast<const unsigned char*>(src), size);
 }
 #else
-#define FastMemcpy(dest, src, size) (void) std::memcpy(dest, src, size)
+#define MemoryCopy(dest, src, size) (void) std::memcpy(dest, src, size)
 #endif
 	
 }

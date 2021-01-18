@@ -19,8 +19,8 @@ VmMemLock::~VmMemLock() noexcept {
 void VmMemLock::Lock(void* address, size_t size) {
 	UnLock();
 
-	if (!ExterndProcessWorkingSetSize(size)) {
-		throw PlatformSpecException("ExterndProcessWorkingSetSize return failure!");
+	if (!ExtendProcessWorkingSetSize(size)) {
+		throw PlatformSpecException("ExtendProcessWorkingSetSize return failure!");
 	}
 
 	if (!::VirtualLock(address, size)) {
@@ -55,7 +55,7 @@ void VmMemLock::Lock(void* address, size_t size) {
     UnLock();
 
     if (::mlock(address, size)) {
-        throw PlatformSpecException("ExterndProcessWorkingSetSize return failure!");
+        throw PlatformSpecException("ExtendProcessWorkingSetSize return failure!");
     }
 
     address_ = address;

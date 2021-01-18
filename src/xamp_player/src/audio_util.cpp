@@ -69,44 +69,45 @@ AlignPtr<FileStream> MakeStream(std::wstring const& file_ext, AlignPtr<FileStrea
         }
     }
 
-    if (is_use_av_stream) {
-        return MakeAlign<FileStream, AvFileStream>();
+    if (is_use_bass_stream) {
+        return MakeAlign<FileStream, BassFileStream>();
     }
-    return MakeAlign<FileStream, BassFileStream>();    
+    return MakeAlign<FileStream, AvFileStream>();    
 }
 
 DsdModes SetStreamDsdMode(AlignPtr<FileStream>& stream, bool is_dsd_file, const DeviceInfo& device_info) {
     auto dsd_mode = DsdModes::DSD_MODE_PCM;
 
-    if (auto* dsd_stream = AsDsdStream(stream)) {
-        // ASIO device (win32).
-        if (AudioDeviceManager::GetInstance().IsASIODevice(device_info.device_type_id)) {
-            if (is_dsd_file && device_info.is_support_dsd) {
-                dsd_stream->SetDSDMode(DsdModes::DSD_MODE_NATIVE);
-                dsd_mode = DsdModes::DSD_MODE_NATIVE;
-                XAMP_LOG_DEBUG("Use Native DSD mode.");
+    if (is_dsd_file) {
+        if (auto* dsd_stream = AsDsdStream(stream)) {
+            // ASIO device (win32).
+            if (AudioDeviceManager::GetInstance().IsASIODevice(device_info.device_type_id)) {
+                if (is_dsd_file && device_info.is_support_dsd) {
+                    dsd_stream->SetDSDMode(DsdModes::DSD_MODE_NATIVE);
+                    dsd_mode = DsdModes::DSD_MODE_NATIVE;
+                    XAMP_LOG_DEBUG("Use Native DSD mode.");
+                }
+                else {
+                    dsd_stream->SetDSDMode(DsdModes::DSD_MODE_PCM);
+                    dsd_mode = DsdModes::DSD_MODE_PCM;
+                    XAMP_LOG_DEBUG("Use PCM mode.");
+                }
             }
+            // WASAPI or CoreAudio old device.
             else {
-                dsd_stream->SetDSDMode(DsdModes::DSD_MODE_PCM);
-                dsd_mode = DsdModes::DSD_MODE_PCM;
-                XAMP_LOG_DEBUG("Use PCM mode.");
+                if (is_dsd_file && device_info.is_support_dsd) {
+                    dsd_stream->SetDSDMode(DsdModes::DSD_MODE_DOP);
+                    XAMP_LOG_DEBUG("Use DOP mode.");
+                    dsd_mode = DsdModes::DSD_MODE_DOP;
+                }
+                else {
+                    dsd_stream->SetDSDMode(DsdModes::DSD_MODE_DSD2PCM);
+                    XAMP_LOG_DEBUG("Use DSD2PCM mode.");
+                    dsd_mode = DsdModes::DSD_MODE_DSD2PCM;
+                }
             }
         }
-        // WASAPI or CoreAudio old device.
-        else {
-            if (is_dsd_file && device_info.is_support_dsd) {
-                dsd_stream->SetDSDMode(DsdModes::DSD_MODE_DOP);
-                XAMP_LOG_DEBUG("Use DOP mode.");
-                dsd_mode = DsdModes::DSD_MODE_DOP;
-            }
-            else {
-                dsd_stream->SetDSDMode(DsdModes::DSD_MODE_DSD2PCM);
-                XAMP_LOG_DEBUG("Use DSD2PCM mode.");
-                dsd_mode = DsdModes::DSD_MODE_DSD2PCM;
-            }
-        }
-    }
-    else {
+    } else {
         dsd_mode = DsdModes::DSD_MODE_PCM;
         XAMP_LOG_DEBUG("Use PCM mode.");
     }
@@ -114,7 +115,7 @@ DsdModes SetStreamDsdMode(AlignPtr<FileStream>& stream, bool is_dsd_file, const 
     return dsd_mode;
 }
 
-std::vector<std::string> GetSupportFileExtensions() {
+std::vector<std::string> GetStreamSupportFileExtensions() {
     auto av = AvFileStream::GetSupportFileExtensions();
     XAMP_LOG_DEBUG("Get AvFileStream support file ext: {}", String::Join(av));
 

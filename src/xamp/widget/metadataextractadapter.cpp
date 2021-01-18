@@ -39,17 +39,9 @@ static QList<QString> GetDirList(QString const& root_dir) {
 
 class DatabaseIdCache final {
 public:
-    DatabaseIdCache() = default;
-
     std::tuple<int32_t, int32_t, QString> AddCache(const QString& album, const QString& artist) const;
 
     QString AddCoverCache(int32_t album_id, const QString& album, const Metadata& metadata, bool is_unknown_album) const;
-
-    std::tuple<size_t, size_t, size_t> GetMissCount() const noexcept {
-        return std::make_tuple(album_id_cache_.GetMissCount(), 
-            artist_id_cache_.GetMissCount(),
-            cover_id_cache_.GetMissCount());
-    }
 private:	
     mutable LruCache<int32_t, QString> cover_id_cache_;
     mutable LruCache<QString, int32_t> album_id_cache_;
@@ -111,7 +103,15 @@ std::tuple<int32_t, int32_t, QString> DatabaseIdCache::AddCache(const QString &a
     }
 
     return std::make_tuple(album_id, artist_id, cover_id);
-} 
+}
+
+HashSet<std::string> GetSupportFileExtensions() {
+    HashSet<std::string> support_file_ext;
+    for (const auto file_ext : xamp::player::GetStreamSupportFileExtensions()) {
+        support_file_ext.insert(file_ext);
+    }
+    return support_file_ext;
+}
 
 using xamp::metadata::Metadata;
 using xamp::metadata::Path;
@@ -121,12 +121,10 @@ public:
     explicit ExtractAdapterProxy(const QSharedPointer<::MetadataExtractAdapter> &adapter)
         : adapter_(adapter) {
       metadatas_.reserve(kCachePreallocateSize);
-      for (auto file_ext : GetSupportFileExtensions()) {
-          support_file_ext_.insert(file_ext);
-      }
+      support_file_ext_ = GetSupportFileExtensions();
     }
 
-    bool IsSupported(Path const& path) const noexcept override {
+    [[nodiscard]] bool IsSupported(Path const& path) const noexcept override {
         const auto file_ext = String::ToLower(path.extension().string());
         return support_file_ext_.find(file_ext) != support_file_ext_.end();
     }
@@ -198,12 +196,13 @@ void MetadataExtractAdapter::ReadFileMetadata(const QSharedPointer<MetadataExtra
         try {            
             const Path path(file_dir_or_path.toStdWString());
             TaglibMetadataReader reader;
-            WalkPath(path, &proxy, &reader);
-            dialog.setValue(progress++);
+            WalkPath(path, &proxy, &reader);            
         }
         catch (const std::exception& e) {
             XAMP_LOG_DEBUG("WalkPath has exception: {}", e.what());
         }
+
+        dialog.setValue(progress++);
     }
 }
 
