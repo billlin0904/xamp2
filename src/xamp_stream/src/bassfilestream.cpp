@@ -81,7 +81,9 @@ public:
                 file_.GetLength(),
                 flags | BASS_STREAM_DECODE,
                 0));
-            PrefactchFile(file_);
+            if (!PrefetchFile(file_)) {
+                XAMP_LOG_DEBUG("PrefetchFile return failure!");
+            }
         }
 
         if (!stream_) {

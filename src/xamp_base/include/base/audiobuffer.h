@@ -92,7 +92,7 @@ void AudioBuffer<Type, U>::Resize(size_t size) {
 		lock_.UnLock();
         auto new_buffer = MakeBufferPtr<Type>(size);
         if (GetSize() > 0) {
-            (void)FastMemcpy(new_buffer.get(), buffer_.get(), sizeof(Type) * GetSize());
+            MemoryCopy(new_buffer.get(), buffer_.get(), sizeof(Type) * GetSize());
         }
         buffer_ = std::move(new_buffer);
 		size_ = size;
@@ -108,7 +108,7 @@ void AudioBuffer<Type, U>::Clear() noexcept {
 
 template <typename Type, typename U>
 void AudioBuffer<Type, U>::Fill(Type value) noexcept {
-    (void)std::memset(buffer_.get(), value, sizeof(Type) * size_);
+	MemorySet(buffer_.get(), value, sizeof(Type) * size_);
 }
 
 template <typename Type, typename U>
@@ -152,11 +152,11 @@ bool AudioBuffer<Type, U>::TryWrite(const Type* data, size_t count) noexcept {
 	if (next_head > size_) {
         const auto range1 = size_ - head;
         const auto range2 = count - range1;
-		(void)FastMemcpy(buffer_.get() + head, data, range1 * sizeof(Type));
-		(void)FastMemcpy(buffer_.get(), data + range1, range2 * sizeof(Type));
+		MemoryCopy(buffer_.get() + head, data, range1 * sizeof(Type));
+		MemoryCopy(buffer_.get(), data + range1, range2 * sizeof(Type));
 		next_head -= size_;
 	} else {
-		(void)FastMemcpy(buffer_.get() + head, data, count * sizeof(Type));
+		MemoryCopy(buffer_.get() + head, data, count * sizeof(Type));
 		if (next_head == size_) {
 			next_head = 0;
 		}
@@ -179,12 +179,12 @@ bool AudioBuffer<Type, U>::TryRead(Type* data, size_t count) noexcept {
 	if (next_tail > size_) {
         const auto range1 = size_ - tail;
         const auto range2 = count - range1;
-        (void)FastMemcpy(data, buffer_.get() + tail, range1 * sizeof(Type));
-		(void)FastMemcpy(data + range1, buffer_.get(), range2 * sizeof(Type));
+        MemoryCopy(data, buffer_.get() + tail, range1 * sizeof(Type));
+		MemoryCopy(data + range1, buffer_.get(), range2 * sizeof(Type));
 		next_tail -= size_;
 	}
 	else {
-		(void)FastMemcpy(data, buffer_.get() + tail, count * sizeof(Type));
+		MemoryCopy(data, buffer_.get() + tail, count * sizeof(Type));
 		if (next_tail == size_) {
 			next_tail = 0;
 		}

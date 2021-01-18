@@ -62,7 +62,7 @@ AudioPlayer::AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter)
     , sample_end_time_(0)
     , stream_duration_(0)
     , state_adapter_(adapter)
-    , buffer_(kPreallocateBufferSize)
+    , buffer_(GetPageAlignSize(kPreallocateBufferSize))
     , msg_queue_(kMsgQueueSize) {
 }
 
@@ -92,7 +92,7 @@ void AudioPlayer::UpdateSlice(float const *samples, int32_t sample_size, double 
 
 void AudioPlayer::Initial() {
 #ifdef XAMP_OS_WIN
-    InitWorkingSetSiz();
+    InitWorkingSetSize();
 #endif
     XAMP_LOG_DEBUG("AudioDeviceManager init success.");
     AudioDeviceManager::GetInstance().PreventSleep(true);

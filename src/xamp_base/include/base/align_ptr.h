@@ -190,7 +190,7 @@ public:
     void resize(size_t new_size) {
         if (new_size != size_) {
             Buffer<T> new_buf(new_size);
-            FastMemcpy(new_buf.data(), ptr_.get(), (std::min)(new_size, size_));
+            MemoryCopy(new_buf.data(), ptr_.get(), (std::min)(new_size, size_));
             *this = std::move(new_buf);
         }
     }

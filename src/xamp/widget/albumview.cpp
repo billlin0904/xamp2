@@ -453,24 +453,23 @@ AlbumView::AlbumView(QWidget* parent)
         action_map.addSeparator();
 
         (void)action_map.addAction(tr("Load local file"), [this]() {
-            xamp::metadata::TaglibMetadataReader reader;
             QString exts(Q_UTF8("("));
-            for (auto file_ext : reader.GetSupportFileExtensions()) {
+            for (const auto file_ext : GetSupportFileExtensions()) {
                 exts += Q_UTF8("*") + QString::fromStdString(file_ext);
                 exts += Q_UTF8(" ");
             }
             exts += Q_UTF8(")");
-            auto file_name = QFileDialog::getOpenFileName(this,
-                tr("Open file"),
-                AppSettings::getMyMusicFolderPath(),
-                tr("Music Files ") + exts);
+            const auto file_name = QFileDialog::getOpenFileName(this,
+                                                                tr("Open file"),
+                                                                AppSettings::getMyMusicFolderPath(),
+                                                                tr("Music Files ") + exts);
             append(file_name);
             });
 
         (void)action_map.addAction(tr("Load file directory"), [this]() {
-            auto dir_name = QFileDialog::getExistingDirectory(this,
-                tr("Select a directory"),
-                AppSettings::getMyMusicFolderPath());
+	        const auto dir_name = QFileDialog::getExistingDirectory(this,
+	                                                                tr("Select a directory"),
+	                                                                AppSettings::getMyMusicFolderPath());
             append(dir_name);
             });
 

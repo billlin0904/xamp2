@@ -20,9 +20,6 @@ namespace xamp::base {
 
 class MemoryMappedFile::MemoryMappedFileImpl {
 public:
-    MemoryMappedFileImpl() noexcept {
-    }
-
     void Open(std::wstring const & file_path) {
         constexpr DWORD kAccessMode = GENERIC_READ;
         constexpr DWORD kCreateType = OPEN_EXISTING;

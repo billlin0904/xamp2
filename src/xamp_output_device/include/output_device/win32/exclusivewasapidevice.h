@@ -26,7 +26,7 @@ class XAMP_OUTPUT_DEVICE_API ExclusiveWasapiDevice final : public Device {
 public:
 	explicit ExclusiveWasapiDevice(CComPtr<IMMDevice> const & device);
 
-	virtual ~ExclusiveWasapiDevice();
+	virtual ~ExclusiveWasapiDevice() override;
 
 	void OpenStream(AudioFormat const & output_format) override;
 

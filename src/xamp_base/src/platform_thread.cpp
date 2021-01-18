@@ -128,7 +128,7 @@ void SetCurrentThreadAffinity(int32_t core) {
 }
 
 #ifdef XAMP_OS_WIN
-bool ExterndProcessWorkingSetSize(size_t size) noexcept {
+bool ExtendProcessWorkingSetSize(size_t size) noexcept {
     SIZE_T minimum = 0;
     SIZE_T maximum = 0;
 
@@ -182,7 +182,7 @@ static bool EnablePrivilege(std::string_view privilege, bool enable) noexcept {
     return false;
 }
 
-void InitWorkingSetSiz() {
+void InitWorkingSetSize() {
     // https://social.msdn.microsoft.com/Forums/en-US/4890ecba-0325-4edf-99a8-bfc5d4f410e8/win10-major-issue-for-audio-processing-os-special-mode-for-small-buffer?forum=windowspro-audiodevelopment
     // Everything the SetProcessWorkingSetSize says is true. You should only lock what you need to lock.
     // And you need to lock everything you touch from the realtime thread. Because if the realtime thread
@@ -191,8 +191,8 @@ void InitWorkingSetSiz() {
     if (EnablePrivilege("SeLockMemoryPrivilege", true)) {
         XAMP_LOG_DEBUG("EnableLockMemPrivilege success.");
 
-        if (ExterndProcessWorkingSetSize(kWorkingSetSize)) {
-            XAMP_LOG_DEBUG("ExterndProcessWorkingSetSize {} success.", String::FormatBytes(kWorkingSetSize));
+        if (ExtendProcessWorkingSetSize(kWorkingSetSize)) {
+            XAMP_LOG_DEBUG("ExtendProcessWorkingSetSize {} success.", String::FormatBytes(kWorkingSetSize));
         }
     }
 }
