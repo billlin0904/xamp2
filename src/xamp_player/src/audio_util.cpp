@@ -1,3 +1,5 @@
+#include <fstream>
+
 #include <base/str_utilts.h>
 #include <base/memory_mapped_file.h>
 
@@ -12,22 +14,41 @@
 
 namespace xamp::player {
 
-static bool TestDsdFileFormat(MemoryMappedFile &file) {
-	if (file.GetLength() < 4) {
-        return false;
-	}
-	
-    constexpr std::string_view dsd_chunks{ "DSD " };
-    constexpr std::string_view dsdiff_chunks{ "FRM8" };
-	
-    return memcmp(file.GetData(), dsd_chunks.data(), 4) == 0
-	|| memcmp(file.GetData(), dsdiff_chunks.data(), 4) == 0;
+static bool TestDsdFileFormat(std::string_view const & file_chunks) noexcept {
+    static constexpr std::array<std::string_view, 2> knows_chunks{
+        "DSD ", // .dsd file
+        "FRM8"  // .dsdiff fille
+    };	
+    return std::find(knows_chunks.begin(), knows_chunks.end(), file_chunks)
+        != knows_chunks.end();
 }
 
-static bool TestDsdFileFormat(std::wstring const& file_path) {
+bool TestDsdFileFormatStd(std::wstring const& file_path) {
+#ifdef XAMP_OS_WIN
+    std::ifstream file(file_path, std::ios_base::binary);
+#else
+    std::ifstream file(String::ToString(file_path), std::ios_base::binary);
+#endif
+    if (!file.is_open()) {
+        return false;
+    }
+    std::array<char, 4> buffer{ 0 };
+    file.read(buffer.data(), buffer.size());
+    if (file.gcount() < 4) {
+        return false;
+    }
+    const std::string_view file_chunks{ buffer.data(), 4 };
+    return TestDsdFileFormat(file_chunks);
+}
+
+bool TestDsdFileFormat(std::wstring const& file_path) {
     MemoryMappedFile file;
     file.Open(file_path);
-    return TestDsdFileFormat(file);
+    if (file.GetLength() < 4) {
+        return false;
+    }
+    const std::string_view file_chunks{ static_cast<char const*>(file.GetData()), 4 };
+    return TestDsdFileFormat(file_chunks);
 }
 
 template <typename T>
@@ -120,7 +141,7 @@ std::vector<std::string> GetStreamSupportFileExtensions() {
     XAMP_LOG_DEBUG("Get AvFileStream support file ext: {}", String::Join(av));
 
 	auto bass = BassFileStream::GetSupportFileExtensions();
-    XAMP_LOG_DEBUG("Get BassFileStream support file ext: {}", String::Join(av));
+    XAMP_LOG_DEBUG("Get BassFileStream support file ext: {}", String::Join(bass));
 
     return Union<std::string>(av, bass);
 }
@@ -128,7 +149,7 @@ std::vector<std::string> GetStreamSupportFileExtensions() {
 std::pair<DsdModes, AlignPtr<FileStream>> MakeFileStream(std::wstring const& file_path,
     std::wstring const& file_ext,
     DeviceInfo const& device_info) {
-    auto is_dsd_file = TestDsdFileFormat(file_path);
+	const auto is_dsd_file = TestDsdFileFormatStd(file_path);
     auto test_dsd_mode_stream = MakeStream(file_ext);    
     auto dsd_mode = SetStreamDsdMode(test_dsd_mode_stream, is_dsd_file, device_info);
     test_dsd_mode_stream->OpenFile(file_path);

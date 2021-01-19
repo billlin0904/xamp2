@@ -12,26 +12,26 @@
 #include <new>
 
 #ifdef _WIN32
-#ifdef BASE_API_EXPORTS
-    #define XAMP_BASE_API __declspec(dllexport)
-    #define XAMP_BASE_API_ONLY_EXPORT __declspec(dllexport)
+	#ifdef BASE_API_EXPORTS
+		#define XAMP_BASE_API __declspec(dllexport)
+		#define XAMP_BASE_API_ONLY_EXPORT __declspec(dllexport)
+	#else
+		#define XAMP_BASE_API __declspec(dllimport)
+		#define XAMP_BASE_API_ONLY_EXPORT
+	#endif
+	#define XAMP_LIKELY(x) if(x) [[likely]]
+	#define XAMP_UNLIKELY(x) if (!x) [[unlikely]]
+	#pragma warning(disable: 4251)
+	#pragma warning(disable: 4275)
+	#define XAMP_OS_WIN 1
+	#define WIN32_LEAN_AND_MEAN
+	#define XAMP_ENABLE_REP_MOVSB 1
 #else
-    #define XAMP_BASE_API __declspec(dllimport)
-    #define XAMP_BASE_API_ONLY_EXPORT
-#endif
-#define XAMP_LIKELY(x) (x)
-#define XAMP_UNLIKELY(x) !(x)
-#pragma warning(disable: 4251)
-#pragma warning(disable: 4275)
-#define XAMP_OS_WIN 1
-#define WIN32_LEAN_AND_MEAN
-#define XAMP_ENABLE_REP_MOVSB 1
-#else
-#define XAMP_BASE_API
-#define XAMP_BASE_API_ONLY_EXPORT
-#define XAMP_LIKELY(x) __builtin_expect(!!(x), 1)
-#define XAMP_UNLIKELY(x) __builtin_expect(!!(x), 0)
-#define XAMP_OS_MAC 1
+	#define XAMP_BASE_API
+	#define XAMP_BASE_API_ONLY_EXPORT
+	#define XAMP_LIKELY(x) if (__builtin_expect(!!(x), 1))
+	#define XAMP_UNLIKELY(x) if (__builtin_expect(!!(x), 0))
+	#define XAMP_OS_MAC 1
 #endif
 
 #define XAMP_DISABLE_COPY(Class) \

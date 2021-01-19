@@ -21,10 +21,10 @@ namespace xamp::base {
 class MemoryMappedFile::MemoryMappedFileImpl {
 public:
     void Open(std::wstring const & file_path) {
-        constexpr DWORD kAccessMode = GENERIC_READ;
-        constexpr DWORD kCreateType = OPEN_EXISTING;
-        constexpr DWORD kProtect = PAGE_READONLY;
-        constexpr DWORD kAccess = FILE_MAP_READ;
+        static constexpr DWORD kAccessMode = GENERIC_READ;
+        static constexpr DWORD kCreateType = OPEN_EXISTING;
+        static constexpr DWORD kProtect = PAGE_READONLY;
+        static constexpr DWORD kAccess = FILE_MAP_READ;
 
         file_.reset(::CreateFileW(file_path.c_str(),
                                   kAccessMode,
@@ -51,11 +51,11 @@ public:
         file_.reset();
     }
 
-    void const * GetData() const noexcept {
+    [[nodiscard]] void const * GetData() const noexcept {
         return address_.get();
     }
 
-	size_t GetLength() const {
+    [[nodiscard]] size_t GetLength() const {
         LARGE_INTEGER li{};
 		::GetFileSizeEx(file_.get(), &li);
         return li.QuadPart;
@@ -63,7 +63,7 @@ public:
 private:
     void OpenMappingFile(DWORD protect, DWORD access) {
         MappingFileHandle const mapping_handle(::CreateFileMapping(file_.get(),
-            0,
+            nullptr,
             protect,
             0, 
             0,
@@ -71,7 +71,11 @@ private:
         if (!mapping_handle) {
             throw PlatformSpecException();
         }
-        address_.reset(::MapViewOfFile(mapping_handle.get(), access, 0, 0, 0));
+        address_.reset(::MapViewOfFile(mapping_handle.get(),
+            access,
+            0,
+            0,
+            0));
         if (!address_) {
             throw PlatformSpecException();
         }

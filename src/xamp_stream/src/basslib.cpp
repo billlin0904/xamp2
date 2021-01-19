@@ -16,12 +16,12 @@ constexpr uint8_t LowByte(T val) noexcept {
 
 template <typename T>
 constexpr uint16_t HiWord(T val) noexcept {
-    return static_cast<uint16_t>((uint32_t(val) >> 16) & 0xFFFF);
+    return static_cast<uint16_t>((static_cast<uint32_t>(val) >> 16) & 0xFFFF);
 }
 
 template <typename T>
 constexpr uint16_t LoWord(T val) noexcept {
-    return static_cast<uint16_t>(uint32_t(val) & 0xFFFF);
+    return static_cast<uint16_t>(static_cast<uint32_t>(val) & 0xFFFF);
 }
 
 std::string GetBassVersion(uint32_t version) {

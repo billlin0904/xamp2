@@ -797,14 +797,14 @@ int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, dou
         device_->SetStreamTime(0);
     }
 
-    if (XAMP_LIKELY(buffer_.TryRead(static_cast<int8_t*>(samples), sample_size))) {
+    XAMP_LIKELY(buffer_.TryRead(static_cast<int8_t*>(samples), sample_size)) {
         UpdateSlice(static_cast<const float*>(samples), static_cast<int32_t>(num_samples), stream_time);
         sw_.Reset();
         return 0;
     }
 
     if (sample_time <= sample_end_time_) {
-        std::memset(static_cast<int8_t*>(samples), 0, sample_size);
+        MemorySet(static_cast<int8_t*>(samples), 0, sample_size);
         return 0;
     }
 

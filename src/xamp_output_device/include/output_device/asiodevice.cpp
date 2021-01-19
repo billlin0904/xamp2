@@ -385,6 +385,11 @@ void AsioDevice::SetMute(bool mute) const {
 
 void AsioDevice::OnBufferSwitch(long index, double sample_time) noexcept {
 	auto cache_played_bytes = played_bytes_.load();
+
+	if (cache_played_bytes == 0) {
+		mmcss_.BoostPriority();
+	}
+	
 	cache_played_bytes += buffer_bytes_ * format_.GetChannels();
 	played_bytes_ = cache_played_bytes;
 
@@ -455,6 +460,8 @@ void AsioDevice::OnBufferSwitch(long index, double sample_time) noexcept {
 }
 
 void AsioDevice::OpenStream(AudioFormat const & output_format) {
+	Mmcss::LoadAvrtLib();
+	
 	ASIODriverInfo asio_driver_info{};
 	asio_driver_info.asioVersion = 2;
 	asio_driver_info.sysRef = ::GetDesktopWindow();
@@ -553,13 +560,14 @@ void AsioDevice::CloseStream() {
 		AsioIfFailedThrow(::ASIODisposeBuffers());
 		is_removed_driver_ = true;
 	}
-	callback_ = nullptr;
+	callback_ = nullptr;	
 }
 
-void AsioDevice::StartStream() {	
+void AsioDevice::StartStream() {
+	mmcss_.RevertPriority();
 	AsioIfFailedThrow(::ASIOStart());
 	is_streaming_ = true;
-	is_stop_streaming_ = false;
+	is_stop_streaming_ = false;	
 }
 
 bool AsioDevice::IsStreamRunning() const noexcept {

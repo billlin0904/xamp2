@@ -19,6 +19,7 @@
 #include <output_device/audiocallback.h>
 #include <output_device/device.h>
 #include <output_device/dsddevice.h>
+#include <output_device/win32/mmcss.h>
 
 namespace xamp::output_device {
 
@@ -116,7 +117,8 @@ private:
 	Buffer<int8_t> device_buffer_;
 	VmMemLock buffer_vmlock_;
 	VmMemLock device_buffer_vmlock_;
-	AudioCallback* callback_;	
+	AudioCallback* callback_;
+	win32::Mmcss mmcss_;
 	std::shared_ptr<spdlog::logger> log_;
 };
 

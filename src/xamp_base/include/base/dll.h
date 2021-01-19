@@ -38,7 +38,7 @@ public:
     }
 
 #ifdef XAMP_OS_WIN
-    DllFunction(ModuleHandle const& dll, uint64_t addr) {
+    DllFunction(ModuleHandle const& dll, const uint64_t addr) {
         *reinterpret_cast<void**>(&func_) = LoadModuleSymbol(dll, addr);
     }
 #endif

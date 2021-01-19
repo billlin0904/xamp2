@@ -4,6 +4,7 @@
 
 #include <base/dll.h>
 #include <base/windows_handle.h>
+#include <base/singleton.h>
 #include <avrt.h>
 
 #include <base/logger.h>
@@ -13,10 +14,7 @@ namespace xamp::output_device::win32 {
 
 class AvrtLib {
 public:
-	static AvrtLib& Instance() {
-		static AvrtLib instance;
-		return instance;
-	}
+	friend class Singleton<AvrtLib>;
 
 	XAMP_DISABLE_COPY(AvrtLib)
 
@@ -46,9 +44,9 @@ public:
 	void BoostPriority(std::wstring_view task_name) {
 		RevertPriority();
 
-		avrt_handle_ = AvrtLib::Instance().AvSetMmThreadCharacteristicsW(task_name.data(), &avrt_task_index_);
+		avrt_handle_ = Singleton<AvrtLib>::GetInstance().AvSetMmThreadCharacteristicsW(task_name.data(), &avrt_task_index_);
 		if (avrt_handle_ != nullptr) {
-			AvrtLib::Instance().AvSetMmThreadPriority(avrt_handle_, AVRT_PRIORITY_HIGH);
+			Singleton<AvrtLib>::GetInstance().AvSetMmThreadPriority(avrt_handle_, AVRT_PRIORITY_HIGH);
 			return;
 		}
 		
@@ -63,7 +61,7 @@ public:
 			return;
 		}
 		
-		if (!AvrtLib::Instance().AvRevertMmThreadCharacteristics(avrt_handle_)) {
+		if (!Singleton<AvrtLib>::GetInstance().AvRevertMmThreadCharacteristics(avrt_handle_)) {
 			auto last_error = ::GetLastError();
 			XAMP_LOG_ERROR("AvSetMmThreadCharacteristicsW return failure! Error:{} {}",
 				last_error,
@@ -86,7 +84,7 @@ Mmcss::~Mmcss() {
 }
 
 void Mmcss::LoadAvrtLib() {
-	AvrtLib::Instance();
+	(void)Singleton<AvrtLib>::GetInstance();
 }
 
 void Mmcss::BoostPriority(std::wstring_view task_name) {

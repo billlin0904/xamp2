@@ -19,8 +19,8 @@ ModuleHandle LoadModule(std::string_view file_name) {
 	return ModuleHandle(module);
 }
 
-void* LoadModuleSymbol(const ModuleHandle& dll, uint64_t addr) {
-    auto func = ::GetProcAddress(dll.get(), (LPCSTR)addr);
+void* LoadModuleSymbol(const ModuleHandle& dll, const uint64_t addr) {
+    auto func = ::GetProcAddress(dll.get(), reinterpret_cast<LPCSTR>(addr));
     if (!func) {
         throw NotFoundDllExportFuncException();
     }

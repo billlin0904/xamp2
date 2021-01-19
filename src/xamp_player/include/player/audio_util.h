@@ -9,8 +9,8 @@
 #include <vector>
 
 #include <base/align_ptr.h>
-#include <stream/filestream.h>
 #include <output_device/dsddevice.h>
+#include <stream/filestream.h>
 #include <player/player.h>
 
 namespace xamp::player {
@@ -18,6 +18,10 @@ namespace xamp::player {
 using namespace xamp::base;
 using namespace xamp::stream;
 using namespace xamp::output_device;
+
+XAMP_PLAYER_API bool TestDsdFileFormatStd(std::wstring const& file_path);
+
+XAMP_PLAYER_API bool TestDsdFileFormat(std::wstring const& file_path);
 
 XAMP_PLAYER_API std::vector<std::string> GetStreamSupportFileExtensions();
 

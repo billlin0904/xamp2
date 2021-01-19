@@ -21,18 +21,6 @@ static uint32_t GetDOPSampleRate(uint32_t dsd_speed) {
     }
 }
 
-static bool TestDsdFileFormat(MemoryMappedFile& file) {
-    if (file.GetLength() < 4) {
-        return false;
-    }
-
-    constexpr std::string_view dsd_chunks{ "DSD " };
-    constexpr std::string_view dsdiff_chunks{ "FRM8" };
-
-    return memcmp(file.GetData(), dsd_chunks.data(), 4) == 0
-        || memcmp(file.GetData(), dsdiff_chunks.data(), 4) == 0;
-}
-
 class BassFileStream::BassFileStreamImpl {
 public:
     BassFileStreamImpl() noexcept
@@ -133,13 +121,13 @@ public:
         return static_cast<uint32_t>(InternalGetSamples(buffer, length * GetSampleSize()) / GetSampleSize());
     }
 
-    double GetDuration() const {
+    [[nodiscard]] double GetDuration() const {
         assert(stream_.is_valid());
         const auto len = Singleton<BassLib>::GetInstance().BASS_ChannelGetLength(stream_.get(), BASS_POS_BYTE);
         return Singleton<BassLib>::GetInstance().BASS_ChannelBytes2Seconds(stream_.get(), len);
     }
 
-    AudioFormat GetFormat() const noexcept {
+    [[nodiscard]] AudioFormat GetFormat() const noexcept {
         assert(stream_.is_valid());
         if (mode_ == DsdModes::DSD_MODE_NATIVE) {
             return AudioFormat(DataFormat::FORMAT_DSD,
@@ -163,21 +151,21 @@ public:
         BassIfFailedThrow(Singleton<BassLib>::GetInstance().BASS_ChannelSetPosition(GetHStream(), pos_bytes, BASS_POS_BYTE));
     }
 
-    uint32_t GetDsdSampleRate() const {
+    [[nodiscard]]  uint32_t GetDsdSampleRate() const {
         float rate = 0;
         BassIfFailedThrow(Singleton<BassLib>::GetInstance().BASS_ChannelGetAttribute(GetHStream(), BASS_ATTRIB_DSD_RATE, &rate));
         return static_cast<uint32_t>(rate);
     }
 
-    bool SupportDOP() const noexcept {
+    [[nodiscard]] bool SupportDOP() const noexcept {
         return true;
     }
 
-    bool SupportDOP_AA() const noexcept {
+    [[nodiscard]] bool SupportDOP_AA() const noexcept {
         return false;
     }
 
-    bool SupportRAW() const noexcept {
+    [[nodiscard]] bool SupportRAW() const noexcept {
         return true;
     }
 
@@ -185,15 +173,15 @@ public:
         mode_ = mode;
     }
 
-    DsdModes GetDSDMode() const noexcept {
+    [[nodiscard]] DsdModes GetDSDMode() const noexcept {
         return mode_;       
     }
 
-    uint8_t GetSampleSize() const noexcept {
+    [[nodiscard]] uint8_t GetSampleSize() const noexcept {
         return mode_ == DsdModes::DSD_MODE_NATIVE ? sizeof(int8_t) : sizeof(float);
     }
 
-    DsdFormat GetDsdFormat() const noexcept {
+    [[nodiscard]] DsdFormat GetDsdFormat() const noexcept {
         return DsdFormat::DSD_INT8MSB;
     }
 
@@ -201,11 +189,11 @@ public:
         Singleton<BassLib>::GetInstance().BASS_SetConfig(BASS_CONFIG_DSD_FREQ, samplerate);
     }
 
-    uint32_t GetDsdSpeed() const noexcept {
+    [[nodiscard]] uint32_t GetDsdSpeed() const noexcept {
         return GetDsdSampleRate() / kPcmSampleRate441;
     }
 
-    uint64_t GetTotalFrames() const {
+    [[nodiscard]] uint64_t GetTotalFrames() const {
         return 0;
     }
 private:
