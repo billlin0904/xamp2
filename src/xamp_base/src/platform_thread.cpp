@@ -56,9 +56,6 @@ void SetThreadNameById(DWORD dwThreadID, char const* threadName) {
     } __except (EXCEPTION_EXECUTE_HANDLER) {
     }
 }
-
-void SetRealtimeProcessPriority() {
-}
 #endif
 
 void SetThreadName(std::string const& name) noexcept {
@@ -68,7 +65,7 @@ void SetThreadName(std::string const& name) noexcept {
     try {
         // At Windows 10 1607 Supported.
         // The SetThreadDescription API works even if no debugger is attached.
-        DllFunction<HRESULT(HANDLE hThread, PCWSTR lpThreadDescription)>
+        DllFunction<HRESULT(HANDLE, PCWSTR)>
             SetThreadDescription(LoadModule("Kernel32.dll"), "SetThreadDescription");
 
         if (SetThreadDescription) {

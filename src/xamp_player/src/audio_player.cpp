@@ -98,6 +98,7 @@ void AudioPlayer::Initial() {
     AudioDeviceManager::GetInstance().PreventSleep(true);
 
     (void)ThreadPool::GetInstance();
+    ThreadPool::GetInstance().SetAffinityMask(1);
 
     BassFileStream::LoadBassLib();
     XAMP_LOG_DEBUG("Load BASS dll success.");

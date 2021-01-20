@@ -21,22 +21,23 @@ Qt::ItemFlags PlayListSqlQueryTableModel::flags(const QModelIndex& index) const 
 }
 
 QVariant PlayListSqlQueryTableModel::data(const QModelIndex& index, int32_t role) const {
+    QVariant value;
     switch (role) {
     case Qt::DisplayRole:
         if (index.column() == PLAYLIST_PLAYING) {
             return QVariant();
         }
         else if (index.column() == PLAYLIST_RATING) {
-            auto value = QSqlQueryModel::data(index, Qt::DisplayRole);
+            value = QSqlQueryModel::data(index, Qt::DisplayRole);
             return QVariant::fromValue(StarRating(value.toInt()));
         } else {
-            auto value = QSqlQueryModel::data(index, Qt::DisplayRole);
+            value = QSqlQueryModel::data(index, Qt::DisplayRole);
             switch (index.column()) {
             case PLAYLIST_BITRATE:
                 if (value.toInt() > 10000) {
                     return QString(Q_UTF8("%0 Mbps")).arg(value.toInt() / 1000.0);
                 }
-                return QString(Q_UTF8("%0 bps")).arg(value.toInt());
+                return QString(Q_UTF8("%0 Kbps")).arg(value.toInt());
             case PLAYLIST_DURATION:
                 return Time::msToString(value.toDouble());
             }

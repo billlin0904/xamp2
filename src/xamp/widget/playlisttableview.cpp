@@ -160,7 +160,7 @@ void PlayListTableView::initial() {
 
     auto f = font();
 #ifdef Q_OS_WIN
-    f.setPointSize(8);
+    f.setPixelSize(14);
 #else
     f.setPointSize(14);
 #endif
@@ -250,6 +250,7 @@ void PlayListTableView::initial() {
             append(dir_name);
             });
 
+#if 0
         auto import_file_from_url_act = action_map.addAction(tr("Import file from meta.json"));
 
         action_map.setCallback(import_file_from_url_act, [this]() {
@@ -295,7 +296,7 @@ void PlayListTableView::initial() {
                 }).get();
 
             });
-
+#endif
         action_map.addSeparator();
 
         auto remove_all_act = action_map.addAction(tr("Remove all"));

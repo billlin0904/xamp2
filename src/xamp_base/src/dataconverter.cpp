@@ -80,23 +80,23 @@ void ClampSampleBaseLine(float* f, size_t num_samples) noexcept {
 }
 
 float FloatMinSSE2(float a, float b) noexcept {
-	_mm_store_ss(&a, _mm_min_ss(_mm_set_ss(a), _mm_set_ss(b)));
+	::_mm_store_ss(&a, ::_mm_min_ss(::_mm_set_ss(a), ::_mm_set_ss(b)));
 	return a;
 }
 
 float FloatMaxSSE2(float a, float b) noexcept {
-	_mm_store_ss(&a, _mm_max_ss(_mm_set_ss(a), _mm_set_ss(b)));
+	::_mm_store_ss(&a, ::_mm_max_ss(::_mm_set_ss(a), ::_mm_set_ss(b)));
 	return a;
 }
 
 float ClampSampleSSE2(float val, __m128 minval, __m128 maxval) noexcept {
-	_mm_store_ss(&val, _mm_min_ss(_mm_max_ss(_mm_set_ss(val), minval), maxval));
+	::_mm_store_ss(&val, ::_mm_min_ss(::_mm_max_ss(::_mm_set_ss(val), minval), maxval));
 	return val;
 }
 
 void ClampSample(float* f, size_t num_samples) noexcept {
-	const auto min_value = _mm_set_ss(kMinFloatSample);
-	const auto max_value = _mm_set_ss(kMaxFloatSample);
+	const auto min_value = ::_mm_set_ss(kMinFloatSample);
+	const auto max_value = ::_mm_set_ss(kMaxFloatSample);
 
 	const auto* end_input = f + num_samples;
 	switch ((end_input - f) % kLoopUnRollingIntCount) {
@@ -126,8 +126,8 @@ void ClampSample(float* f, size_t num_samples) noexcept {
 }
 
 float ClampSampleSSE2(float f) noexcept {
-	const auto min_value = _mm_set_ss(kMinFloatSample);
-	const auto max_value = _mm_set_ss(kMaxFloatSample);
+	const auto min_value = ::_mm_set_ss(kMinFloatSample);
+	const auto max_value = ::_mm_set_ss(kMaxFloatSample);
 	return ClampSampleSSE2(f, min_value, max_value);
 }
 #else
