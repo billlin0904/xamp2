@@ -32,7 +32,6 @@ XAMP_BASE_API float ClampSample(float f) noexcept;
 
 #ifdef XAMP_OS_WIN
 XAMP_BASE_API float ClampSampleSSE2(float f) noexcept;
-
 XAMP_BASE_API float FloatMaxSSE2(float a, float b) noexcept;
 #else
 float ClampSampleSSE2(float f) noexcept;
@@ -60,7 +59,7 @@ XAMP_ALWAYS_INLINE Int24::Int24(float f) noexcept {
 }
 
 XAMP_ALWAYS_INLINE Int24& Int24::operator=(float f) noexcept {
-	*this = static_cast<int32_t>(ClampSampleSSE2(f) * kFloat24Scale);
+	*this = static_cast<int32_t>(f * kFloat24Scale);
 	return *this;
 }
 
@@ -180,10 +179,10 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter {
 		const auto input_right_offset = context.in_offset[1];
 
 		for (size_t i = 0; i < context.convert_size; ++i) {
-			const auto left = ClampSampleSSE2(input[input_left_offset] * context.volume_factor);
+			const auto left = input[input_left_offset] * context.volume_factor;
 			output[output_left_offset] = static_cast<int32_t>(left * kFloat32Scale);
 
-			const auto right = ClampSampleSSE2(input[input_right_offset] * context.volume_factor);
+			const auto right = input[input_right_offset] * context.volume_factor;
 			output[output_right_offset] = static_cast<int32_t>(right * kFloat32Scale);
 			
 			input += context.in_jump;

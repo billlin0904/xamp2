@@ -39,9 +39,7 @@ FramelessWindow::FramelessWindow(QWidget* parent)
     if (!use_native_window_) {
         installEventFilter(this);
     }    
-    setupUIFont();    
-    QFont ui_font(Q_UTF8("UI"));
-    ui_font.setStyleStrategy(QFont::PreferAntialias);
+    auto ui_font = setupUIFont();        
 #if defined(Q_OS_WIN)
    if (!use_native_window_) {
         win32::setWinStyle(this);        
@@ -50,14 +48,14 @@ FramelessWindow::FramelessWindow(QWidget* parent)
     setStyleSheet(Q_UTF8(R"(		
         font-family: "UI";		   
     )"));
-    ui_font.setPointSizeF(10);
+    ui_font.setPointSize(10);
     qApp->setFont(ui_font);
 #else
     setStyleSheet(Q_UTF8(R"(
         font-family: "UI";
         background-color: rgba(18, 18, 18, 255);
     )"));
-    ui_font.setPointSizeF(14);
+    ui_font.setPointSize(14);
     qApp->setFont(ui_font);
     osx::hideTitleBar(this);
 #endif    
@@ -109,19 +107,19 @@ void FramelessWindow::createThumbnailToolBar() {
 #endif
 }
 
-void FramelessWindow::setupUIFont() {
+QFont FramelessWindow::setupUIFont() const {
     QList<QString> fallback_fonts;
+    QFont ui_font(Q_UTF8("UI"));
 
 #ifdef Q_OS_WIN
     fallback_fonts.append(Q_UTF8("Segoe UI"));
-    fallback_fonts.append(Q_UTF8("Segoe UI Bold"));
-    fallback_fonts.append(Q_UTF8("Microsoft JhengHei"));
-    fallback_fonts.append(Q_UTF8("Microsoft JhengHei Bold"));
-    fallback_fonts.append(Q_UTF8("Microsoft YaHei"));
-    fallback_fonts.append(Q_UTF8("Microsoft YaHei Bold"));
+    fallback_fonts.append(Q_UTF8("Segoe UI Bold"));    
     fallback_fonts.append(Q_UTF8("Meiryo UI"));
     fallback_fonts.append(Q_UTF8("Meiryo UI Bold"));
-    fallback_fonts.append(Q_UTF8("Arial"));
+    fallback_fonts.append(Q_UTF8("Microsoft JhengHei UI"));
+    fallback_fonts.append(Q_UTF8("Microsoft JhengHei Bold UI"));
+    fallback_fonts.append(Q_UTF8("Microsoft YaHei UI"));
+    fallback_fonts.append(Q_UTF8("Microsoft YaHei Bold UI"));
 #else
     fallback_fonts.append(Q_UTF8("SF Pro Display"));
     fallback_fonts.append(Q_UTF8("SF Pro Text"));
@@ -129,6 +127,8 @@ void FramelessWindow::setupUIFont() {
     fallback_fonts.append(Q_UTF8("Helvetica"));
 #endif
     QFont::insertSubstitutions(Q_UTF8("UI"), fallback_fonts);
+    ui_font.setStyleStrategy(QFont::PreferAntialias);
+    return ui_font;
 }
 
 void FramelessWindow::setTaskbarProgress(const double percent) {

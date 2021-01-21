@@ -79,7 +79,7 @@ protected:
 	bool use_native_window_;
 
 private:
-	void setupUIFont();
+	QFont setupUIFont() const;
 
 	void createThumbnailToolBar();
 

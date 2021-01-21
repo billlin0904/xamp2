@@ -310,9 +310,10 @@ void ExclusiveWasapiDevice::GetSample(uint32_t frame_available) noexcept {
 
 	auto sample_time = helper::GetStreamPosInMilliseconds(clock_) / 1000.0;
 
-	if (callback_->OnGetSamples(buffer_.Get(), frame_available, stream_time_float, sample_time) == 0) {
+	XAMP_LIKELY(callback_->OnGetSamples(buffer_.Get(), frame_available, stream_time_float, sample_time) == 0) {
 		if (!raw_mode_) {
-			(void)DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::ConvertToInt2432(
+			ClampSample(buffer_.Get(), data_convert_.convert_size * kMaxChannel);
+			DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::ConvertToInt2432(
 				reinterpret_cast<int32_t*>(data),
 				buffer_.Get(),
 				data_convert_);

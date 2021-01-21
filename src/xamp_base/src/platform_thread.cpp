@@ -91,7 +91,7 @@ void SetThreadName(std::string const& name) noexcept {
 #endif
 }
 
-void SetThreadAffinity(std::thread& thread, int32_t core) {
+void SetThreadAffinity(std::thread& thread, int32_t core) noexcept {
 #ifdef XAMP_OS_WIN
     auto mask = (static_cast<DWORD_PTR>(1) << core);
     ::SetThreadAffinityMask(thread.native_handle(), mask);
@@ -107,7 +107,7 @@ void SetThreadAffinity(std::thread& thread, int32_t core) {
 #endif
 }
 
-void SetCurrentThreadAffinity(int32_t core) {
+void SetCurrentThreadAffinity(int32_t core) noexcept {
 #ifdef XAMP_OS_WIN
     WinHandle current_thread(::GetCurrentThread());
     auto mask = (static_cast<DWORD_PTR>(1) << core);
@@ -179,19 +179,14 @@ static bool EnablePrivilege(std::string_view privilege, bool enable) noexcept {
     return false;
 }
 
-void InitWorkingSetSize() {
-    // https://social.msdn.microsoft.com/Forums/en-US/4890ecba-0325-4edf-99a8-bfc5d4f410e8/win10-major-issue-for-audio-processing-os-special-mode-for-small-buffer?forum=windowspro-audiodevelopment
-    // Everything the SetProcessWorkingSetSize says is true. You should only lock what you need to lock.
-    // And you need to lock everything you touch from the realtime thread. Because if the realtime thread
-    // touches something that was paged out, you glitch.
-    constexpr size_t kWorkingSetSize = 1024 * 1024 * 1024;
+bool InitWorkingSetSize(size_t working_set_size) noexcept {
     if (EnablePrivilege("SeLockMemoryPrivilege", true)) {
-        XAMP_LOG_DEBUG("EnableLockMemPrivilege success.");
-
-        if (ExtendProcessWorkingSetSize(kWorkingSetSize)) {
-            XAMP_LOG_DEBUG("ExtendProcessWorkingSetSize {} success.", String::FormatBytes(kWorkingSetSize));
+        if (ExtendProcessWorkingSetSize(working_set_size)) {
+            XAMP_LOG_DEBUG("InitWorkingSetSize {} success.", String::FormatBytes(working_set_size));
+            return true;
         }
     }
+    return false;
 }
 #endif
 

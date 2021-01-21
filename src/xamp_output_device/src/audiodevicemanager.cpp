@@ -1,6 +1,7 @@
 #include <base/base.h>
 
 #ifdef XAMP_OS_WIN
+#include <base/platform_thread.h>
 #include <output_device/win32/hrexception.h>
 #include <output_device/win32/exclusivewasapidevicetype.h>
 #include <output_device/win32/sharedwasapidevicetype.h>
@@ -85,17 +86,26 @@ static struct IopmAssertion {
 #endif
 
 #define XAMP_REGISTER_DEVICE_TYPE(DeviceTypeClass) \
+	XAMP_LOG_DEBUG("Register {} success", #DeviceTypeClass); \
 	factory_.emplace(DeviceTypeClass::Id, []() {\
 		return MakeAlign<DeviceType, DeviceTypeClass>();\
 	})
 
 AudioDeviceManager::AudioDeviceManager() {
 #ifdef XAMP_OS_WIN
+    // https://social.msdn.microsoft.com/Forums/en-US/4890ecba-0325-4edf-99a8-bfc5d4f410e8/win10-major-issue-for-audio-processing-os-special-mode-for-small-buffer?forum=windowspro-audiodevelopment
+    // Everything the SetProcessWorkingSetSize says is true. You should only lock what you need to lock.
+    // And you need to lock everything you touch from the realtime thread. Because if the realtime thread
+    // touches something that was paged out, you glitch.
+    constexpr size_t kWorkingSetSize = 2048 * 1024 * 1024;	
+    InitWorkingSetSize(kWorkingSetSize);	
     using namespace win32;
     HrIfFailledThrow(::MFStartup(MF_VERSION, MFSTARTUP_LITE));
+    XAMP_LOG_DEBUG("MFStartup startup success");
 #if ENABLE_ASIO
     Mmcss::LoadAvrtLib();
-    XAMP_REGISTER_DEVICE_TYPE(ASIODeviceType);
+    XAMP_LOG_DEBUG("LoadAvrtLib success");
+    XAMP_REGISTER_DEVICE_TYPE(ASIODeviceType);    
 #endif
     XAMP_REGISTER_DEVICE_TYPE(SharedWasapiDeviceType);
     XAMP_REGISTER_DEVICE_TYPE(ExclusiveWasapiDeviceType);
@@ -111,7 +121,7 @@ AudioDeviceManager& AudioDeviceManager::GetInstance() {
 }
 
 AudioDeviceManager::~AudioDeviceManager() {
-#ifdef XAMP_OS_WIN
+#ifdef XAMP_OS_WIN	
     ::MFShutdown();
 #else
     iopmAssertion.Reset();

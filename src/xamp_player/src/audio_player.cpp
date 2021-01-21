@@ -90,15 +90,13 @@ void AudioPlayer::UpdateSlice(float const *samples, int32_t sample_size, double 
         std::memory_order_relaxed);
 }
 
-void AudioPlayer::Initial() {
-#ifdef XAMP_OS_WIN
-    InitWorkingSetSize();
-#endif
-    XAMP_LOG_DEBUG("AudioDeviceManager init success.");
+void AudioPlayer::Initial() {    
     AudioDeviceManager::GetInstance().PreventSleep(true);
+    XAMP_LOG_DEBUG("AudioDeviceManager init success.");
 
     (void)ThreadPool::GetInstance();
     ThreadPool::GetInstance().SetAffinityMask(1);
+    XAMP_LOG_DEBUG("ThreadPool init success.");
 
     BassFileStream::LoadBassLib();
     XAMP_LOG_DEBUG("Load BASS dll success.");

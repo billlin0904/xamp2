@@ -207,7 +207,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 
     auto f = font();
 
-    f.setPixelSize(22);
+    f.setPointSize(22);
     f.setBold(true);
     album_ = new QLabel(this);
     album_->setMaximumSize(QSize(16777215, 32));
@@ -218,7 +218,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
     artist_layout->setSpacing(0);
     artist_layout->setContentsMargins(0, 0, 0, 0);
 
-    f.setPixelSize(14);
+    f.setPointSize(14);
     f.setBold(false);
     artist_ = new ClickableLabel(this);
     artist_->setMaximumSize(QSize(400, 32));

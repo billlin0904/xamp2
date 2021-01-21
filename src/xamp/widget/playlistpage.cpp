@@ -52,11 +52,11 @@ void PlyalistPage::initial() {
     title_ = new ScrollLabel(this);
 	auto f = font();
 	f.setBold(true);
-	f.setPixelSize(25);
+	f.setPointSize(22);
 	title_->setFont(f);
 	title_->setObjectName(QString::fromUtf8("label_2"));
-	title_->setMinimumSize(QSize(0, 35));
-	title_->setMaximumSize(QSize(16777215, 35));
+	title_->setMinimumSize(QSize(0, 40));
+	title_->setMaximumSize(QSize(16777215, 40));
 
 	format_ = new QLabel(this);
 	f.setBold(false);

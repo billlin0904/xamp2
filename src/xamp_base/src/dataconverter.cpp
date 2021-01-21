@@ -73,12 +73,6 @@ float ClampSample(float f) noexcept {
 }
 
 #ifdef XAMP_OS_WIN
-void ClampSampleBaseLine(float* f, size_t num_samples) noexcept {
-	for (size_t i = 0; i < num_samples; ++i) {
-		f[i] = ClampSample(f[i]);
-	}
-}
-
 float FloatMinSSE2(float a, float b) noexcept {
 	::_mm_store_ss(&a, ::_mm_min_ss(::_mm_set_ss(a), ::_mm_set_ss(b)));
 	return a;
@@ -89,7 +83,7 @@ float FloatMaxSSE2(float a, float b) noexcept {
 	return a;
 }
 
-float ClampSampleSSE2(float val, __m128 minval, __m128 maxval) noexcept {
+inline float ClampSampleSSE2(float val, __m128 minval, __m128 maxval) noexcept {
 	::_mm_store_ss(&val, ::_mm_min_ss(::_mm_max_ss(::_mm_set_ss(val), minval), maxval));
 	return val;
 }
@@ -117,6 +111,7 @@ void ClampSample(float* f, size_t num_samples) noexcept {
 	}
 
 	while (f != end_input) {
+		::_mm_prefetch(reinterpret_cast<char const*>(f), _MM_HINT_T0);
 		f[0] = ClampSampleSSE2(f[0], min_value, max_value);
 		f[1] = ClampSampleSSE2(f[1], min_value, max_value);
 		f[2] = ClampSampleSSE2(f[2], min_value, max_value);

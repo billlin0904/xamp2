@@ -404,18 +404,18 @@ void AsioDevice::OnBufferSwitch(long index, double sample_time) noexcept {
 
 	auto got_samples = false;
 
-	auto pcm_convert = [this, &got_samples, sample_time]() noexcept {
+	if (io_format_ == DsdIoFormat::IO_FORMAT_PCM) {
 		const auto vol = volume_.load();
 		if (Singleton<AsioDriver>::GetInstance().data_context.cache_volume != vol) {
 			// 如果100% 音量會爆音,
 			Singleton<AsioDriver>::GetInstance().data_context.volume_factor = LinearToLog(vol - 1);
 			Singleton<AsioDriver>::GetInstance().data_context.cache_volume = vol;
 		}
-		
+
 		// PCM mode input float to output format.
 		const auto stream_time = static_cast<double>(played_bytes_) / format_.GetAvgBytesPerSec();
-		if (callback_->OnGetSamples(reinterpret_cast<float*>(buffer_.Get()), buffer_size_, stream_time, sample_time) == 0) {
-			assert(format_.GetByteFormat() == ByteFormat::SINT32);
+		XAMP_LIKELY(callback_->OnGetSamples(reinterpret_cast<float*>(buffer_.Get()), buffer_size_, stream_time, sample_time) == 0) {
+			ClampSample(reinterpret_cast<float*>(buffer_.Get()), Singleton<AsioDriver>::GetInstance().data_context.convert_size * kMaxChannel);
 			DataConverter<PackedFormat::PLANAR,
 				PackedFormat::INTERLEAVED>::Convert(
 					reinterpret_cast<int32_t*>(device_buffer_.Get()),
@@ -423,27 +423,19 @@ void AsioDevice::OnBufferSwitch(long index, double sample_time) noexcept {
 					Singleton<AsioDriver>::GetInstance().data_context);
 			got_samples = true;
 		}
-	};	
-
-	auto dsd_convert = [this, &got_samples, sample_time]() noexcept {
+	}
+	else {
 		// DSD mode input output same format (int8_t).
 		const auto avg_byte_per_sec = format_.GetAvgBytesPerSec() / 8;
 		const auto stream_time = static_cast<double>(played_bytes_) / avg_byte_per_sec;
-		if (callback_->OnGetSamples(buffer_.Get(), buffer_bytes_, stream_time, sample_time) == 0) {
+		XAMP_LIKELY(callback_->OnGetSamples(buffer_.Get(), buffer_bytes_, stream_time, sample_time) == 0) {
 			DataConverter<PackedFormat::PLANAR,
 				PackedFormat::INTERLEAVED>::Convert(
-					device_buffer_.Get(), 
+					device_buffer_.Get(),
 					buffer_.Get(),
 					Singleton<AsioDriver>::GetInstance().data_context);
 			got_samples = true;
 		}
-	};
-
-	if (io_format_ == DsdIoFormat::IO_FORMAT_PCM) {
-		pcm_convert();
-	}
-	else {
-		dsd_convert();
 	}
 
 	if (got_samples) {
