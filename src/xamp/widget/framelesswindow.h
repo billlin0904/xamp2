@@ -44,6 +44,10 @@ public:
 
 	void setTaskbarPlayerStop();
 
+	bool UseNativeWindow() const {
+		return use_native_window_;
+	}
+
 protected:
     bool eventFilter(QObject* object, QEvent* event) override;
 
@@ -74,6 +78,8 @@ protected:
     virtual void playPreviousClicked() = 0;
 
     virtual void stopPlayedClicked() = 0;
+
+    void paintEvent(QPaintEvent* event) override;
 
 protected:
 	bool use_native_window_;

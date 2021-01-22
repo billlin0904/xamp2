@@ -684,6 +684,31 @@
           </spacer>
          </item>
          <item>
+          <widget class="QToolButton" name="settingsButton">
+           <property name="minimumSize">
+            <size>
+             <width>24</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>24</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="popupMode">
+            <enum>QToolButton::InstantPopup</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
           <spacer name="horizontalSpacer_15">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
@@ -875,31 +900,6 @@
               </size>
              </property>
             </spacer>
-           </item>
-           <item>
-            <widget class="QToolButton" name="settingsButton">
-             <property name="minimumSize">
-              <size>
-               <width>24</width>
-               <height>24</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>24</width>
-               <height>24</height>
-              </size>
-             </property>
-             <property name="focusPolicy">
-              <enum>Qt::NoFocus</enum>
-             </property>
-             <property name="text">
-              <string/>
-             </property>
-             <property name="popupMode">
-              <enum>QToolButton::InstantPopup</enum>
-             </property>
-            </widget>
            </item>
            <item>
             <spacer name="horizontalSpacer_17">

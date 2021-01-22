@@ -199,13 +199,6 @@ void Xamp::createTrayIcon() {
         SLOT(onActivated(QSystemTrayIcon::ActivationReason)));
 }
 
-void Xamp::drawRounded(QPainter &painter, RoundStyle style) {
-}
-
-void Xamp::paintEvent(QPaintEvent* event) {
-    QPainter painter(this);
-}
-
 void Xamp::closeEvent(QCloseEvent* event) {
     auto is_min_system_tray = AppSettings::getValueAsBool(kAppSettingMinimizeToTray);
 
@@ -245,7 +238,7 @@ void Xamp::closeEvent(QCloseEvent* event) {
 void Xamp::setDefaultStyle() {
     ThemeManager::instance().setDefaultStyle(ui_);
     applyTheme(ThemeManager::instance().getBackgroundColor());
-    ThemeManager::instance().enableBlur(this, AppSettings::getValueAsBool(kAppSettingEnableBlur));
+    ThemeManager::instance().enableBlur(this, AppSettings::getValueAsBool(kAppSettingEnableBlur), UseNativeWindow());
 
     setStyleSheet(Q_UTF8(R"(
 	QListView#sliderBar::item {
@@ -657,7 +650,7 @@ void Xamp::initialController() {
         auto enable = AppSettings::getValueAsBool(kAppSettingEnableBlur);
         enable = !enable;
         enable_blur_material_mode_action->setChecked(enable);
-        ThemeManager::instance().enableBlur(this, enable);
+        ThemeManager::instance().enableBlur(this, enable, UseNativeWindow());
         });
     settings_menu->addAction(enable_blur_material_mode_action);
 #endif

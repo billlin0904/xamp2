@@ -146,22 +146,6 @@ private:
 
 	void applyConfig();
 
-	void paintEvent(QPaintEvent* event) override;
-
-	enum RoundStyle {
-		LeftTop,
-		RightTop,
-		LeftBottom,
-		RightBottom,
-		Top,
-		Bottom,
-		Left,
-		Right,
-		All,
-	};
-
-	void drawRounded(QPainter& painter, RoundStyle style = RoundStyle::All);
-
 	bool is_seeking_;
 	std::pair<double, double> loop_time{0,0};
 	PlayerOrder order_;

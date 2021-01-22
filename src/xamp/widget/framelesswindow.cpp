@@ -6,6 +6,7 @@
 #include <QSystemTrayIcon>
 #include <QMenu>
 #include <QAction>
+#include <QPainter>
 #include <QDesktopWidget>
 
 #if defined(Q_OS_WIN)
@@ -29,13 +30,13 @@ FramelessWindow::FramelessWindow(QWidget* parent)
     : QWidget(parent)
     , use_native_window_(false)
 #if defined(Q_OS_WIN)
-	, is_maximized_(false)
+    , is_maximized_(false)
     , border_width_(5)
-	, current_screen_(nullptr)
+    , current_screen_(nullptr)
 #endif
 {    
     setAcceptDrops(true);
-    setMouseTracking(true);
+    setMouseTracking(true);    
     if (!use_native_window_) {
         installEventFilter(this);
     }    
@@ -45,8 +46,8 @@ FramelessWindow::FramelessWindow(QWidget* parent)
         win32::setWinStyle(this);        
     }
     createThumbnailToolBar();   
-    setStyleSheet(Q_UTF8(R"(		
-        font-family: "UI";		   
+    setStyleSheet(Q_UTF8(R"(
+        font-family: "UI";
     )"));
     ui_font.setPointSize(10);
     qApp->setFont(ui_font);
@@ -62,6 +63,15 @@ FramelessWindow::FramelessWindow(QWidget* parent)
 }
 
 FramelessWindow::~FramelessWindow() = default;
+
+void FramelessWindow::paintEvent(QPaintEvent* event) {
+    QPainter painter(this);
+    /*painter.setRenderHint(QPainter::Antialiasing);    
+    auto rect = this->rect();
+    rect.setWidth(rect.width() - 1);
+    rect.setHeight(rect.height() - 1);
+    painter.drawRoundedRect(rect, 15, 15);*/
+}
 
 void FramelessWindow::createThumbnailToolBar() {
 #if defined(Q_OS_WIN)
@@ -341,6 +351,11 @@ void FramelessWindow::mouseReleaseEvent(QMouseEvent* event) {
 
 void FramelessWindow::mouseMoveEvent(QMouseEvent* event) {
 #if defined(Q_OS_WIN)
+    if (use_native_window_) {
+        QWidget::mouseMoveEvent(event);
+        return;
+    }
+
     if (!last_pos_.isNull()) {
         move(event->globalPos() - last_pos_);
     }

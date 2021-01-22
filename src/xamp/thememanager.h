@@ -68,7 +68,7 @@ public:
 
     void setDefaultStyle(Ui::XampWindow &ui);    
 
-    void enableBlur(const QWidget* widget, bool enable) const;
+    void enableBlur(const QWidget* widget, bool enable, bool use_native_window) const;
 
     QSize getDefaultCoverSize() const noexcept;
 

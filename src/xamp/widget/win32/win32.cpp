@@ -124,7 +124,7 @@ public:
 	XAMP_DECLARE_DLL(DwmSetPresentParameters) DwmSetPresentParameters;
 };
 
-void setBlurMaterial(const QWidget* widget, bool enable) {
+void setBlurMaterial(const QWidget* widget, bool enable, bool use_native_window) {
 	auto hwnd = reinterpret_cast<HWND>(widget->winId());
 	
 	ACCENT_POLICY policy = {
@@ -136,10 +136,12 @@ void setBlurMaterial(const QWidget* widget, bool enable) {
 	data.cbData = sizeof(policy);
 	Singleton<User32Lib>::GetInstance().SetWindowCompositionAttribute(hwnd, &data);
 
-	// 如果使用-1會有問題, 會導致Max,Min,Close按鈕有陰影.
-	//MARGINS borderless = { 1, 1, 1, 1 };
-	MARGINS borderless = { 0, 0, 0, 1 };
-	Singleton<DwmapiLib>::GetInstance().DwmExtendFrameIntoClientArea(hwnd, &borderless);
+	if (!use_native_window) {
+		// 如果使用-1會有問題, 會導致Max,Min,Close按鈕有陰影.
+		//MARGINS borderless = { 1, 1, 1, 1 };
+		MARGINS borderless = { 0, 0, 0, 1 };
+		Singleton<DwmapiLib>::GetInstance().DwmExtendFrameIntoClientArea(hwnd, &borderless);
+	}	
 }
 
 void setWinStyle(QWidget* widget) {

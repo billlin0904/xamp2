@@ -115,9 +115,9 @@ void ThemeManager::setBackgroundColor(QWidget* widget) {
     widget->setStyleSheet(backgroundColorToString(AppSettings::getValueAsString(kAppSettingBackgroundColor)));
 }
 
-void ThemeManager::enableBlur(const QWidget* widget, bool enable) const {
+void ThemeManager::enableBlur(const QWidget* widget, bool enable, bool use_native_window) const {
 #if defined(Q_OS_WIN)
-    win32::setBlurMaterial(widget, enable);
+    win32::setBlurMaterial(widget, enable, use_native_window);
     AppSettings::setValue(kAppSettingEnableBlur, enable);
 #else
     (void)widget;

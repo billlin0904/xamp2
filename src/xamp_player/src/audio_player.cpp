@@ -241,6 +241,7 @@ void AudioPlayer::Play() {
                 }
 
             	if (auto const * stream_time = p->seek_queue_.Front()) {
+                    XAMP_LOG_DEBUG("Receive seek {} message", *stream_time);
                     p->DoSeek(*stream_time);
                     p->seek_queue_.Pop();
             	}
