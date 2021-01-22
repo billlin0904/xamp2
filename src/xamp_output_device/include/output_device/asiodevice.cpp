@@ -415,7 +415,6 @@ void AsioDevice::OnBufferSwitch(long index, double sample_time) noexcept {
 		// PCM mode input float to output format.
 		const auto stream_time = static_cast<double>(played_bytes_) / format_.GetAvgBytesPerSec();
 		XAMP_LIKELY(callback_->OnGetSamples(reinterpret_cast<float*>(buffer_.Get()), buffer_size_, stream_time, sample_time) == 0) {
-			ClampSample(reinterpret_cast<float*>(buffer_.Get()), Singleton<AsioDriver>::GetInstance().data_context.convert_size * kMaxChannel);
 			DataConverter<PackedFormat::PLANAR,
 				PackedFormat::INTERLEAVED>::Convert(
 					reinterpret_cast<int32_t*>(device_buffer_.Get()),

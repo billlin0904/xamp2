@@ -124,7 +124,7 @@ class XAMP_BASE_API_ONLY_EXPORT Buffer {
 public:
     Buffer() = default;
 
-    explicit Buffer(size_t size)
+    explicit Buffer(const size_t size)
         : ptr_(MakeBufferPtr<T>(size))
         , size_(size) {
     }
@@ -132,9 +132,7 @@ public:
     Buffer(const Buffer& other)
         : Buffer(other.size_) {
         std::memcpy(ptr_.get(), other.ptr_.get(), size_ * sizeof(T));
-    }
-
-    Buffer(Buffer&&) = default;
+    }    
 
     Buffer& operator=(const Buffer& other) {
         Buffer copy(other);
@@ -142,7 +140,18 @@ public:
         return *this;
     }
 
-    Buffer& operator=(Buffer&&) = default;
+    Buffer(Buffer&& other) noexcept {
+        *this = std::move(other);
+    }
+
+    Buffer& operator=(Buffer&& other) noexcept {
+        if (this != &other) {
+            ptr_ = std::move(other.ptr_);
+            size_ = other.size_;
+            other.size_ = 0;
+        }
+        return *this;
+    }
 
     friend void swap(Buffer& a, Buffer& b) noexcept {
         std::swap(a.ptr_, b.ptr_);

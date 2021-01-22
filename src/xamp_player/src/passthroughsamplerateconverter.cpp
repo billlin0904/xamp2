@@ -1,4 +1,5 @@
 #include <base/exception.h>
+#include <base/dataconverter.h>
 #include <player/passthroughsamplerateconverter.h>
 
 namespace xamp::player {
@@ -18,7 +19,7 @@ PassThroughSampleRateConverter::PassThroughSampleRateConverter(DsdModes dsd_mode
 void PassThroughSampleRateConverter::Start(uint32_t, uint32_t, uint32_t) {
 }
 
-bool PassThroughSampleRateConverter::Process(float const * sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer) {
+bool PassThroughSampleRateConverter::Process(float const * sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer) {    
     return (*this.*process_)(reinterpret_cast<int8_t const*>(sample_buffer), num_samples, buffer);
 }
 

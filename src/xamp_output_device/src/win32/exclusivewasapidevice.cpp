@@ -312,7 +312,6 @@ void ExclusiveWasapiDevice::GetSample(uint32_t frame_available) noexcept {
 
 	XAMP_LIKELY(callback_->OnGetSamples(buffer_.Get(), frame_available, stream_time_float, sample_time) == 0) {
 		if (!raw_mode_) {
-			ClampSample(buffer_.Get(), data_convert_.convert_size * kMaxChannel);
 			DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::ConvertToInt2432(
 				reinterpret_cast<int32_t*>(data),
 				buffer_.Get(),

@@ -119,6 +119,8 @@ public:
     AlignPtr<SampleRateConverter> CloneSampleRateConverter() const;
 
 private:
+    void DoSeek(double stream_time);
+    	
     void Startup();
     	
     void OpenStream(std::wstring const & file_path, std::wstring const & file_ext, DeviceInfo const& device_info);
@@ -168,7 +170,7 @@ private:
 
     XAMP_ENFORCE_TRIVIAL(AudioSlice)
 
-    static constexpr auto kMsgQueueSize = 8;
+    static constexpr auto kMsgQueueSize = 30;
 
     bool is_muted_;
     bool enable_resample_;
@@ -210,6 +212,7 @@ private:
     DeviceInfo device_info_;
     std::shared_future<void> stream_task_;
     SpscQueue<MsgID> msg_queue_;
+    SpscQueue<double> seek_queue_;
 };
 
 }

@@ -4,6 +4,7 @@
 #include <base/stl.h>
 #include <base/threadpool.h>
 #include <base/dsdsampleformat.h>
+#include <base/dataconverter.h>
 
 #include <output_device/audiodevicemanager.h>
 #include <output_device/asiodevicetype.h>
@@ -63,6 +64,7 @@ AudioPlayer::AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter)
     , stream_duration_(0)
     , state_adapter_(adapter)
     , buffer_(GetPageAlignSize(kPreallocateBufferSize))
+	, seek_queue_(kMsgQueueSize)
     , msg_queue_(kMsgQueueSize) {
 }
 
@@ -119,7 +121,7 @@ void AudioPlayer::Open(std::wstring const & file_path,
     Startup();
     CloseDevice(true);
     OpenStream(file_path, file_ext, device_info);
-    device_info_ = device_info;    
+    device_info_ = device_info;
 }
 
 void AudioPlayer::SetSampleRateConverter(uint32_t sample_rate, AlignPtr<SampleRateConverter>&& converter) {
@@ -237,6 +239,11 @@ void AudioPlayer::Play() {
                     p->wait_timer_.Wait();
                     continue;
                 }
+
+            	if (auto const * stream_time = p->seek_queue_.Front()) {
+                    p->DoSeek(*stream_time);
+                    p->seek_queue_.Pop();
+            	}
 
                 p->ReadSampleLoop(sample_buffer, max_buffer_sample, lock);
             }
@@ -597,7 +604,7 @@ void AudioPlayer::BufferStream(double stream_time) {
         converter_->Flush();
     }
 
-    sample_size_ = stream_->GetSampleSize();
+    sample_size_ = stream_->GetSampleSize();    
     BufferSamples(stream_, converter_, kBufferStreamCount);
 }
 
@@ -642,33 +649,37 @@ void AudioPlayer::Seek(double stream_time) {
     if (!device_) {
         return;
     }
+
     if (device_->IsStreamOpen()) {
-        Pause();
-        try {
-            stream_->Seek(stream_time);
-        }
-        catch (std::exception const& e) {
-            XAMP_LOG_DEBUG(e.what());
-            Resume();
-            return;
-        }
-        device_->SetStreamTime(stream_time);
-        sample_end_time_ = stream_->GetDuration() - stream_time;
-        XAMP_LOG_DEBUG("Player duration:{} seeking:{} sec, end time:{} sec.",
-            stream_->GetDuration(),
-            stream_time,
-            sample_end_time_);
-        UpdateSlice(nullptr, 0, stream_time);
-        buffer_.Clear();
-        BufferStream(stream_time);
+        seek_queue_.TryPush(stream_time);
+    }
+}
+
+void AudioPlayer::DoSeek(double stream_time) {
+    Pause();
+    try {
+        stream_->Seek(stream_time);
+    }
+    catch (std::exception const& e) {
+        XAMP_LOG_DEBUG(e.what());
         Resume();
-        
-        if (auto adapter = state_adapter_.lock()) {
-	        std::lock_guard<std::mutex> guard{stream_read_mutex_};
-            if (adapter->GetPlayQueueSize() > 0) {
-                auto& [file, convert] = adapter->PlayQueueFont();
-                file->Seek(0);
-            }
+        return;
+    }
+    device_->SetStreamTime(stream_time);
+    sample_end_time_ = stream_->GetDuration() - stream_time;
+    XAMP_LOG_DEBUG("Player duration:{} seeking:{} sec, end time:{} sec.",
+        stream_->GetDuration(),
+        stream_time,
+        sample_end_time_);
+    UpdateSlice(nullptr, 0, stream_time);
+    buffer_.Clear();
+    BufferStream(stream_time);
+    Resume();
+
+    if (auto adapter = state_adapter_.lock()) {
+        if (adapter->GetPlayQueueSize() > 0) {
+            auto& [file, convert] = adapter->PlayQueueFont();
+            file->Seek(0);
         }
     }
 }
@@ -683,9 +694,7 @@ void AudioPlayer::OnGaplessPlayState(std::unique_lock<std::mutex>& lock) {
         stopped_cond_.wait_for(lock, kReadSampleWaitTime);
         return;
     }
-
-    std::lock_guard<std::mutex> guard{stream_read_mutex_};
-
+	
     auto& [file_stream, sample_rate_converter] = adapter->PlayQueueFont();
 
     if (!msg_queue_.empty()) {
@@ -694,7 +703,8 @@ void AudioPlayer::OnGaplessPlayState(std::unique_lock<std::mutex>& lock) {
 
         switch (msg_id) {
         case MsgID::EVENT_SWITCH:
-            XAMP_LOG_DEBUG("Receive EVENT_SWITCH");            
+            XAMP_LOG_DEBUG("Receive EVENT_SWITCH");
+            std::lock_guard<std::mutex> guard{ stream_read_mutex_ };
             stream_->Close();
             stream_ = std::move(file_stream);            
             converter_ = std::move(sample_rate_converter);
@@ -742,7 +752,7 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_buffer_samp
         const auto num_samples = stream_->GetSamples(sample_buffer, max_buffer_sample);
 
         if (num_samples > 0) {
-            auto *samples = reinterpret_cast<float*>(sample_buffer);
+            auto *samples = reinterpret_cast<float*>(sample_buffer);         
 
             assert(converter_ != nullptr);
             if (!converter_->Process(samples, num_samples, buffer_)) {
