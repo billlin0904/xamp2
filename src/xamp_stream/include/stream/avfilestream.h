@@ -41,8 +41,6 @@ public:
 
 	[[nodiscard]] uint8_t GetSampleSize() const noexcept override;
 
-	[[nodiscard]] uint64_t GetTotalFrames() const override;
-
 	static std::set<std::string> GetSupportFileExtensions();
 private:
 	class AvFileStreamImpl;

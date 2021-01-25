@@ -5,23 +5,26 @@
 
 #pragma once
 
-#include <stream/stream.h>
-#include <stream/audiostream.h>
+#include <base/enum.h>
+#include <base/align_ptr.h>
+#include <base/audiobuffer.h>
+#include <player/player.h>
 
-namespace xamp::stream {
+namespace xamp::player {
 
-class XAMP_STREAM_API XAMP_NO_VTABLE FileStream : public AudioStream {
+using namespace xamp::base;
+
+class XAMP_PLAYER_API ReplayGain {
 public:
-    virtual ~FileStream() override = default;
+	explicit ReplayGain(uint32_t num_channels, uint32_t output_sample_rate);
 
-	bool IsFile() const noexcept override {
-		return true;
-	}
+	XAMP_PIMPL(ReplayGain)
 
-    virtual void OpenFile(std::wstring const & file_path) = 0;
+	void Process(float* samples, uint32_t num_sample);
 
-protected:
-    FileStream() = default;
+private:
+	class ReplayGainImpl;
+	AlignPtr<ReplayGainImpl> impl_;
 };
 
 }

@@ -28,7 +28,7 @@
 
 FramelessWindow::FramelessWindow(QWidget* parent)
     : QWidget(parent)
-    , use_native_window_(false)
+    , use_native_window_(true)
 #if defined(Q_OS_WIN)
     , is_maximized_(false)
     , border_width_(5)
@@ -37,9 +37,7 @@ FramelessWindow::FramelessWindow(QWidget* parent)
 {    
     setAcceptDrops(true);
     setMouseTracking(true);    
-    if (!use_native_window_) {
-        installEventFilter(this);
-    }    
+    installEventFilter(this);
     auto ui_font = setupUIFont();        
 #if defined(Q_OS_WIN)
    if (!use_native_window_) {

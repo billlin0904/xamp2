@@ -90,6 +90,10 @@ public:
 
     void setThemeColor(ThemeColor theme_color);
 
+    ThemeColor themeColor() const {
+        return theme_color_;
+    }
+
     void setBackgroundColor(Ui::XampWindow& ui, QColor color);
 
     void setBackgroundColor(QWidget* widget);

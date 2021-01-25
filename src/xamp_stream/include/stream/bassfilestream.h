@@ -58,8 +58,6 @@ public:
 
     uint32_t GetDsdSpeed() const noexcept override;
 
-	uint64_t GetTotalFrames() const override;
-
 	static std::set<std::string> GetSupportFileExtensions();
 
 private:

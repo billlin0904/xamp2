@@ -531,6 +531,9 @@ void AudioPlayer::SetDeviceFormat() {
         }
         output_format_ = input_format_;
     }
+    if (dsd_mode_ == DsdModes::DSD_MODE_PCM) {
+        replay_gain_ = MakeAlign<ReplayGain>(output_format_.GetChannels(), output_format_.GetSampleRate());
+    }
 }
 
 void AudioPlayer::OnVolumeChange(float vol) noexcept {
@@ -657,7 +660,9 @@ void AudioPlayer::Seek(double stream_time) {
 }
 
 void AudioPlayer::DoSeek(double stream_time) {
-    Pause();
+	if (state_ != PlayerState::PLAYER_STATE_PAUSED) {
+        Pause();
+	}    
     try {
         stream_->Seek(stream_time);
     }
@@ -739,6 +744,10 @@ void AudioPlayer::BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<SampleRat
 
             auto* samples = reinterpret_cast<float*>(sample_buffer);
 
+        	if (dsd_mode_ == DsdModes::DSD_MODE_PCM) {
+                replay_gain_->Process(samples, num_samples);
+        	}
+
             assert(converter != nullptr);
             if (!converter->Process(samples, num_samples, buffer_)) {
                 continue;
@@ -753,14 +762,16 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_buffer_samp
         const auto num_samples = stream_->GetSamples(sample_buffer, max_buffer_sample);
 
         if (num_samples > 0) {
-            auto *samples = reinterpret_cast<float*>(sample_buffer);         
+            auto *samples = reinterpret_cast<float*>(sample_buffer);
+
+            if (dsd_mode_ == DsdModes::DSD_MODE_PCM) {
+                replay_gain_->Process(samples, num_samples);
+            }
 
             assert(converter_ != nullptr);
             if (!converter_->Process(samples, num_samples, buffer_)) {
                 continue;
-            }
-            // TODO: 如果在這裡做資料轉換(ex:float->int32_t),
-            // 可能需要處理GetSamples不滿足轉換上長度的需求.
+            }            
         }
         else {            
             OnGaplessPlayState(lock);

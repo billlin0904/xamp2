@@ -243,10 +243,10 @@ void Xamp::setDefaultStyle() {
     setStyleSheet(Q_UTF8(R"(
 	QListView#sliderBar::item {
 		border: 0px;
-		padding-left: 5px;
+		padding-left: 15px;
 	}
 	QListVieww#sliderBar::text {
-		left: 5px;
+		left: 15px;
 	}
 	)"));
 }
@@ -274,9 +274,11 @@ void Xamp::initialUI() {
         ui_.maxWinButton->hide();
         ui_.minWinButton->hide();
     }
-    f.setPointSize(7);
-    ui_.startPosLabel->setFont(f);
-    ui_.endPosLabel->setFont(f);
+    //f.setPointSize(7);
+    //ui_.startPosLabel->setFont(f);
+    //ui_.endPosLabel->setFont(f);
+    ui_.startPosLabel->hide();
+    ui_.endPosLabel->hide();
 #else
     f.setPointSize(11);
     ui_.titleLabel->setFont(f);
@@ -486,7 +488,7 @@ void Xamp::initialController() {
     });
 
     (void)QObject::connect(ui_.seekSlider, &SeekSlider::sliderPressed, [this]() {
-        QToolTip::showText(QCursor::pos(), Time::msToString(double(ui_.seekSlider->value()) / 1000.0));
+        QToolTip::showText(QCursor::pos(), Time::msToString(static_cast<double>(ui_.seekSlider->value()) / 1000.0));
         if (is_seeking_) {
             return;
         }

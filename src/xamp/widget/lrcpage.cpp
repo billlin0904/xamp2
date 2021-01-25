@@ -74,8 +74,14 @@ void LrcPage::OnThemeColorChanged(QColor theme_color, QColor color) {
 
 void LrcPage::setEffect(QWidget* widget, int blurRadius) {
 	auto effect = new QGraphicsDropShadowEffect();
-	effect->setOffset(0, 0);
-	effect->setColor(Qt::black);
+	if (ThemeManager::instance().themeColor() == ThemeColor::DARK_THEME) {
+		effect->setOffset(0, 5);
+		effect->setColor(Qt::white);
+	}
+	else {
+		effect->setOffset(0, 0);
+		effect->setColor(Qt::black);
+	}
 	effect->setBlurRadius(blurRadius);
 	widget->setGraphicsEffect(effect);
 }

@@ -138,16 +138,23 @@ void ThemeManager::setBackgroundColor(Ui::XampWindow& ui, QColor color) {
         bottom_color = AppSettings::getValueAsString(kAppSettingBottomColor);
     }
 
-    ui.playingFrame->setStyleSheet(backgroundColorToString(bottom_color));
+    //ui.playingFrame->setStyleSheet(backgroundColorToString(bottom_color));
+    ui.playingFrame->setStyleSheet(backgroundColorToString(QColor(77, 77, 77)));
     ui.volumeFrame->setStyleSheet(backgroundColorToString(bottom_color));
-    ui.controlFrame->setStyleSheet(backgroundColorToString(bottom_color));
+    //ui.controlFrame->setStyleSheet(backgroundColorToString(bottom_color));
+    ui.controlFrame->setStyleSheet(backgroundColorToString(QColor(45,45,45)));
 
     auto alpha_color = color;
     if (AppSettings::contains(kAppSettingAlphaColor)) {
         alpha_color = AppSettings::getValueAsString(kAppSettingAlphaColor);
     }
 
-    ui.sliderFrame->setStyleSheet(backgroundColorToString(alpha_color));
+    //ui.sliderFrame->setStyleSheet(backgroundColorToString(alpha_color));
+    if (AppSettings::contains(kAppSettingEnableBlur)) {
+        ui.sliderFrame->setStyleSheet(backgroundColorToString(QColor(37, 37, 39, 210)));
+    } else {
+        ui.sliderFrame->setStyleSheet(backgroundColorToString(QColor(37, 37, 39)));
+    }
 
     AppSettings::setValue(kAppSettingBackgroundColor, color);
     background_color_ = color;
@@ -202,7 +209,7 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
 
     ui.artistLabel->setStyleSheet(Q_UTF8(R"(
                                          QLabel#artistLabel {
-                                         color: gray;
+                                         color: red;
                                          background-color: transparent;
                                          }
                                          )"));   

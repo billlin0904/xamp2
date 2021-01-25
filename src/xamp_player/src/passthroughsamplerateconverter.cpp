@@ -16,7 +16,10 @@ PassThroughSampleRateConverter::PassThroughSampleRateConverter(DsdModes dsd_mode
     }
 }
 
-void PassThroughSampleRateConverter::Start(uint32_t, uint32_t, uint32_t) {
+void PassThroughSampleRateConverter::Start(uint32_t, uint32_t num_channels, uint32_t output_sample_rate) {
+    if (dsd_mode_ == DsdModes::DSD_MODE_PCM) {
+        replay_gain_ = MakeAlign<ReplayGain>(num_channels, output_sample_rate);
+    }
 }
 
 bool PassThroughSampleRateConverter::Process(float const * sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer) {    
@@ -35,7 +38,7 @@ bool PassThroughSampleRateConverter::ProcessNativeDsd(int8_t const * sample_buff
     return true;
 }
 
-bool PassThroughSampleRateConverter::ProcessPcm(int8_t const * sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer) {
+bool PassThroughSampleRateConverter::ProcessPcm(int8_t const * sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer) {    
     CheckBufferFlow(buffer.TryWrite(sample_buffer, num_samples * sample_size_));
     return true;
 }

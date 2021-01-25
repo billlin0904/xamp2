@@ -9,6 +9,7 @@
 #include <base/logger.h>
 #include <base/vmmemlock.h>
 #include <player/soxresampler.h>
+#include <player/replaygain.h>
 
 namespace xamp::player {
 
@@ -144,7 +145,7 @@ public:
             passband_,
             stopband_);
 
-        ResizeBuffer(kInitBufferSize);
+        ResizeBuffer(kInitBufferSize);        
     }
 
     void Close() noexcept {
@@ -207,6 +208,7 @@ public:
         }
 
         const auto write_size(samples_done * num_channels_ * sizeof(float));
+
     	// Note: libsoxr 並不會將sample進行限制大小.
         ClampSample(buffer_.data(), samples_done * num_channels_);
     	

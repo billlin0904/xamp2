@@ -6,6 +6,7 @@
 #pragma once
 
 #include <player/samplerateconverter.h>
+#include <player/replaygain.h>
 #include <base/dsdsampleformat.h>
 
 namespace xamp::player {
@@ -14,7 +15,7 @@ class XAMP_PLAYER_API PassThroughSampleRateConverter final : public SampleRateCo
 public:
     explicit PassThroughSampleRateConverter(DsdModes dsd_mode, uint8_t sample_size);
 
-    void Start(uint32_t, uint32_t, uint32_t) override;
+    void Start(uint32_t, uint32_t num_channels, uint32_t output_sample_rate) override;
 
     bool Process(float const * sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer) override;
 
@@ -32,6 +33,7 @@ private:
 	DsdModes dsd_mode_;
     uint8_t sample_size_;
 	ProcessDispatch process_;
+    AlignPtr<ReplayGain> replay_gain_;
 };
 
 }

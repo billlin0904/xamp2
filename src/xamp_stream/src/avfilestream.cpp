@@ -267,10 +267,6 @@ public:
         ::avcodec_flush_buffers(codec_context_.get());
     }
 
-    uint64_t GetTotalFrames() const {
-        return total_frames_;
-    }
-
 private:
     [[nodiscard]] bool HasAudio() const noexcept {
         return audio_stream_id_ >= 0;
@@ -338,10 +334,6 @@ std::string_view AvFileStream::GetDescription() const noexcept {
 
 uint8_t AvFileStream::GetSampleSize() const noexcept {
     return impl_->GetSampleSize();
-}
-
-uint64_t AvFileStream::GetTotalFrames() const {
-    return impl_->GetTotalFrames();
 }
 
 std::set<std::string> AvFileStream::GetSupportFileExtensions() {

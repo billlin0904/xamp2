@@ -192,10 +192,6 @@ public:
     [[nodiscard]] uint32_t GetDsdSpeed() const noexcept {
         return GetDsdSampleRate() / kPcmSampleRate441;
     }
-
-    [[nodiscard]] uint64_t GetTotalFrames() const {
-        return 0;
-    }
 private:
     XAMP_ALWAYS_INLINE HSTREAM GetHStream() const {
         if (mix_stream_.is_valid()) {
@@ -300,10 +296,6 @@ void BassFileStream::SetDsdToPcmSampleRate(uint32_t samplerate) {
 
 uint32_t BassFileStream::GetDsdSpeed() const noexcept {
     return stream_->GetDsdSpeed();
-}
-
-uint64_t BassFileStream::GetTotalFrames() const {
-    return stream_->GetTotalFrames();
 }
 
 std::set<std::string> BassFileStream::GetSupportFileExtensions() {
