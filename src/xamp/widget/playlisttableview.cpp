@@ -303,6 +303,7 @@ void PlayListTableView::initial() {
         auto open_local_file_path_act = action_map.addAction(tr("Open local file path"));
         auto reload_file_meta_act = action_map.addAction(tr("Reload file meta"));
         auto reload_file_fingerprint_act = action_map.addAction(tr("Read file fingerprint"));
+        auto read_file_lufs_act = action_map.addAction(tr("Read file LUFS"));
         auto copy_album_act = action_map.addAction(tr("Copy album"));
         auto copy_artist_act = action_map.addAction(tr("Copy artist"));
         auto copy_title_act = action_map.addAction(tr("Copy title"));
@@ -338,6 +339,14 @@ void PlayListTableView::initial() {
                 emit readFingerprint(select_item.second, entity);
             }
             });
+        action_map.setCallback(read_file_lufs_act, [this]() {
+            const auto rows = selectItemIndex();
+            for (const auto& select_item : rows) {
+                auto entity = this->item(select_item.second);
+                emit readFileLUFS(select_item.second, entity);
+            }
+            });
+    	
         action_map.addSeparator();
         action_map.setCallback(copy_album_act, [item]() {
             QApplication::clipboard()->setText(item.album);

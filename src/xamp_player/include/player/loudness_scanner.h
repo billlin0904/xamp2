@@ -5,26 +5,25 @@
 
 #pragma once
 
-#include <base/enum.h>
 #include <base/align_ptr.h>
-#include <base/audiobuffer.h>
 #include <player/player.h>
 
 namespace xamp::player {
 
 using namespace xamp::base;
 
-class XAMP_PLAYER_API ReplayGain {
+class XAMP_PLAYER_API LoudnessScanner {
 public:
-	explicit ReplayGain(uint32_t num_channels, uint32_t output_sample_rate);
+	explicit LoudnessScanner(uint32_t num_channels, uint32_t output_sample_rate);
 
-	XAMP_PIMPL(ReplayGain)
+	XAMP_PIMPL(LoudnessScanner)
 
-	void Process(float* samples, uint32_t num_sample);
+	void Process(float const * samples, uint32_t num_sample);
 
+	[[nodiscard]] double GetLoudness() const;	
 private:
-	class ReplayGainImpl;
-	AlignPtr<ReplayGainImpl> impl_;
+	class LoudnessScannerImpl;
+	AlignPtr<LoudnessScannerImpl> impl_;
 };
 
 }

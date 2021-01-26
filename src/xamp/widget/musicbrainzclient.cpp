@@ -4,7 +4,6 @@
 #include <rapidxml.hpp>
 
 #include <widget/database.h>
-#include <player/chromaprinthelper.h>
 #include <widget/str_utilts.h>
 #include <widget/musicbrainzclient.h>
 

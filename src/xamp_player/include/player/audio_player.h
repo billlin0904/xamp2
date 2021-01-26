@@ -211,7 +211,6 @@ private:
     AlignPtr<SampleRateConverter> converter_;       
     DeviceInfo device_info_;
     std::shared_future<void> stream_task_;
-    AlignPtr<ReplayGain> replay_gain_;
     SpscQueue<MsgID> msg_queue_;
     SpscQueue<double> seek_queue_;
 };

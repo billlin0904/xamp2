@@ -531,9 +531,6 @@ void AudioPlayer::SetDeviceFormat() {
         }
         output_format_ = input_format_;
     }
-    if (dsd_mode_ == DsdModes::DSD_MODE_PCM) {
-        replay_gain_ = MakeAlign<ReplayGain>(output_format_.GetChannels(), output_format_.GetSampleRate());
-    }
 }
 
 void AudioPlayer::OnVolumeChange(float vol) noexcept {
@@ -743,11 +740,6 @@ void AudioPlayer::BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<SampleRat
             }
 
             auto* samples = reinterpret_cast<float*>(sample_buffer);
-
-        	if (dsd_mode_ == DsdModes::DSD_MODE_PCM) {
-                replay_gain_->Process(samples, num_samples);
-        	}
-
             assert(converter != nullptr);
             if (!converter->Process(samples, num_samples, buffer_)) {
                 continue;
@@ -763,10 +755,6 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_buffer_samp
 
         if (num_samples > 0) {
             auto *samples = reinterpret_cast<float*>(sample_buffer);
-
-            if (dsd_mode_ == DsdModes::DSD_MODE_PCM) {
-                replay_gain_->Process(samples, num_samples);
-            }
 
             assert(converter_ != nullptr);
             if (!converter_->Process(samples, num_samples, buffer_)) {

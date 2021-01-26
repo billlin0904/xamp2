@@ -6,7 +6,6 @@
 #pragma once
 
 #include <player/samplerateconverter.h>
-#include <player/replaygain.h>
 #include <base/dsdsampleformat.h>
 
 namespace xamp::player {
@@ -33,7 +32,6 @@ private:
 	DsdModes dsd_mode_;
     uint8_t sample_size_;
 	ProcessDispatch process_;
-    AlignPtr<ReplayGain> replay_gain_;
 };
 
 }

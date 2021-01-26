@@ -18,7 +18,7 @@
 
 #include <output_device/audiodevicemanager.h>
 
-#include <player/chromaprinthelper.h>
+#include <player/read_helper.h>
 #include <player/soxresampler.h>
 #include <player/audio_util.h>
 
@@ -46,6 +46,17 @@
 #include "preferencedialog.h"
 #include "thememanager.h"
 #include "xamp.h"
+
+static std::unique_ptr<QProgressDialog> MakeProgressDialog(QString const& title, QString const& text, QString const& cancel) {
+    auto dialog = std::make_unique<QProgressDialog>(text, cancel, 0, 100);
+    dialog->setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
+    dialog->setFont(qApp->font());
+    dialog->setWindowTitle(title);
+    dialog->setWindowModality(Qt::WindowModal);
+    dialog->setMinimumSize(QSize(500, 100));
+    dialog->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed));
+    return dialog;
+}
 
 static QMessageBox::StandardButton showAskDialog(QWidget* widget, const char text[]) {
     QMessageBox msgbox;
@@ -1395,15 +1406,31 @@ QWidget* Xamp::popWidget() {
     return nullptr;
 }
 
+void Xamp::readFileLUFS(const QModelIndex&, const PlayListEntity& item) {    
+    auto dialog = MakeProgressDialog(tr("Read progress dialog"),
+        tr("Read '") + item.title + tr("' EBUR128 loudness"),
+        tr("Cancel"));
+    dialog->show();
+
+    const auto music_lufs = ReadFileLUFS(item.file_path.toStdWString(),
+                                         item.file_ext.toStdWString(),
+                                         [&](auto progress) -> bool {
+	                                         dialog->setValue(progress);
+	                                         qApp->processEvents();
+	                                         return dialog->wasCanceled() != true;
+                                         });
+
+    XAMP_LOG_DEBUG("EBUR128 result => {} LUFS {} gain.",
+        music_lufs, GetGainScale(music_lufs));
+}
+
 void Xamp::readFingerprint(const QModelIndex&, const PlayListEntity& item) {
-    QProgressDialog dialog(tr("Read '") + item.title + tr("' fingerprint"), tr("Cancel"), 0, 100);
-    dialog.setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
-    dialog.setFont(font());
-    dialog.setWindowTitle(tr("Read progress dialog"));
-    dialog.setWindowModality(Qt::WindowModal);
-    dialog.setMinimumSize(QSize(500, 100));
-    dialog.setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed));
-    dialog.show();
+    auto dialog = MakeProgressDialog(
+        tr("Read progress dialog"),
+        tr("Read '") + item.title + tr("' fingerprint"),
+        tr("Cancel"));
+    
+    dialog->show();
 
     FingerprintInfo fingerprint_info;
     QByteArray fingerprint;
@@ -1413,9 +1440,9 @@ void Xamp::readFingerprint(const QModelIndex&, const PlayListEntity& item) {
             ReadFingerprint(item.file_path.toStdWString(),
                             item.file_ext.toStdWString(),
                             [&](auto progress) -> bool {
-                                dialog.setValue(progress);
+                                dialog->setValue(progress);
                                 qApp->processEvents();
-                                return dialog.wasCanceled() != true;
+                                return dialog->wasCanceled() != true;
                             });
 
         fingerprint.append(reinterpret_cast<char const *>(fingerprint_result.data()),
@@ -1459,6 +1486,9 @@ PlyalistPage* Xamp::newPlaylist(int32_t playlist_id) {
 
     (void)QObject::connect(playlist_page->playlist(), &PlayListTableView::readFingerprint,
                             this, &Xamp::readFingerprint);
+
+    (void)QObject::connect(playlist_page->playlist(), &PlayListTableView::readFileLUFS,
+        this, &Xamp::readFileLUFS);
 
     (void)QObject::connect(this, &Xamp::themeChanged,
                             playlist_page->playlist(),

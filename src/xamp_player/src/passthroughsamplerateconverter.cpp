@@ -17,9 +17,6 @@ PassThroughSampleRateConverter::PassThroughSampleRateConverter(DsdModes dsd_mode
 }
 
 void PassThroughSampleRateConverter::Start(uint32_t, uint32_t num_channels, uint32_t output_sample_rate) {
-    if (dsd_mode_ == DsdModes::DSD_MODE_PCM) {
-        replay_gain_ = MakeAlign<ReplayGain>(num_channels, output_sample_rate);
-    }
 }
 
 bool PassThroughSampleRateConverter::Process(float const * sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer) {    

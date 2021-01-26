@@ -24,7 +24,7 @@ namespace xamp::player {
 	class SampleRateConverter;
     class SoxrSampleRateConverter;
     class PassThroughSampleRateConverter;
-	class ReplayGain;
+	class LoudnessScanner;
 }
 
 

@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1022</width>
+    <width>1032</width>
     <height>505</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>xamp</string>
+   <string/>
   </property>
   <property name="styleSheet">
    <string notr="true"/>

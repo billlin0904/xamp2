@@ -9,7 +9,6 @@
 #include <base/logger.h>
 #include <base/vmmemlock.h>
 #include <player/soxresampler.h>
-#include <player/replaygain.h>
 
 namespace xamp::player {
 
