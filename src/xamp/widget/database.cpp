@@ -56,7 +56,8 @@ void Database::createTableIfNotExist() {
                        bitrate integer,
                        samplerate integer,
 					   rating integer,
-                       dateTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                       dateTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                       lufs DOUBLE
                        )
                        )"));
 
@@ -571,6 +572,17 @@ void Database::updateMusicRating(int32_t music_id, int32_t rating) {
 
 	query.bindValue(Q_UTF8(":musicId"), music_id);
 	query.bindValue(Q_UTF8(":rating"), rating);
+
+    IfFailureThrow1(query);
+}
+
+void Database::updateLUFS(int32_t music_id, double lufs) {
+    QSqlQuery query;
+
+    query.prepare(Q_UTF8("UPDATE musics SET lufs = :lufs WHERE (musicId = :musicId)"));
+
+    query.bindValue(Q_UTF8(":musicId"), music_id);
+    query.bindValue(Q_UTF8(":lufs"), lufs);
 
     IfFailureThrow1(query);
 }

@@ -38,6 +38,7 @@ public:
 	[[nodiscard]] double GetLoudness() const {
 		double loudness = 0;
 		::ebur128_loudness_global(ebur128_.get(), &loudness);
+        loudness = std::round(loudness * 100) / 100.0;
 		return loudness;
 	}
 

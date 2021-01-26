@@ -140,7 +140,8 @@ void ThemeManager::setBackgroundColor(Ui::XampWindow& ui, QColor color) {
 
     //ui.playingFrame->setStyleSheet(backgroundColorToString(bottom_color));
     ui.playingFrame->setStyleSheet(backgroundColorToString(QColor(77, 77, 77)));
-    ui.volumeFrame->setStyleSheet(backgroundColorToString(bottom_color));
+    ui.volumeFrame->setStyleSheet(backgroundColorToString(QColor(45,45,45)));
+    //ui.volumeFrame->setStyleSheet(backgroundColorToString(bottom_color));
     //ui.controlFrame->setStyleSheet(backgroundColorToString(bottom_color));
     ui.controlFrame->setStyleSheet(backgroundColorToString(QColor(45,45,45)));
 

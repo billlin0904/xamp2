@@ -89,6 +89,8 @@ public:
 
     void updateMusicRating(int32_t music_id, int32_t rating);
 
+    void updateLUFS(int32_t music_id, double lufs);
+
     int32_t addOrUpdateAlbum(const QString& album, int32_t artist_id);
 
     void addOrUpdateAlbumArtist(int32_t album_id, int32_t artist_id) const;
@@ -166,6 +168,7 @@ WHERE
             entity.cover_id = query.value(Q_UTF8("coverId")).toString();
             entity.fingerprint = query.value(Q_UTF8("fingerprint")).toString();
             entity.rating = query.value(Q_UTF8("rating")).toUInt();
+            entity.lufs = query.value(Q_UTF8("lufs")).toDouble();
             fun(entity);
         }
     }

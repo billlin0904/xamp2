@@ -101,7 +101,8 @@ void PlayListTableView::refresh() {
     albums.coverId,
     musics.fingerprint,
 	musics.fileExt,
-	musics.parentPath
+    musics.parentPath,
+    musics.lufs
     FROM
     playlistMusics
     JOIN playlist ON playlist.playlistId = playlistMusics.playlistId
@@ -345,6 +346,7 @@ void PlayListTableView::initial() {
                 auto entity = this->item(select_item.second);
                 emit readFileLUFS(select_item.second, entity);
             }
+            refresh();
             });
     	
         action_map.addSeparator();
@@ -530,10 +532,11 @@ void PlayListTableView::resizeColumn() const {
             break;
         case PLAYLIST_TITLE:
         {
-            constexpr auto kStretchedSize = 150;
+            //constexpr auto kStretchedSize = 150;
             constexpr auto kMaxStretchedSize = 350;
-            auto size = (std::max)(sizeHintForColumn(column), kStretchedSize);
-            size = (std::min)(size, kMaxStretchedSize);
+            //auto size = (std::max)(sizeHintForColumn(column), kStretchedSize);
+            //size = (std::min)(size, kMaxStretchedSize);
+            auto size = kMaxStretchedSize;
             header->setSectionResizeMode(column, QHeaderView::Fixed);
             header->resizeSection(column, size);
         }

@@ -23,6 +23,7 @@ struct PlayListEntity {
     uint32_t samplerate{0};
     uint32_t rating{0};
     double duration{0};
+    double lufs{0};
     QString file_path;
     QString parent_path;
     QString title;

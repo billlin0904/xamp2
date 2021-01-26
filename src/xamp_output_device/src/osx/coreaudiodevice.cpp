@@ -412,10 +412,10 @@ void CoreAudioDevice::AudioDeviceIOProc(AudioBufferList *output_data, double sam
                                                           / format_.GetChannels());
         stream_time_ = stream_time_ + num_sample * 2;
         auto stream_time = stream_time_ / static_cast<double>(format_.GetAvgFramesPerSec());
-        if (XAMP_UNLIKELY(callback_->OnGetSamples(static_cast<float*>(buffer.mData),
+        XAMP_UNLIKELY(callback_->OnGetSamples(static_cast<float*>(buffer.mData),
                                                   num_sample,
                                                   stream_time,
-                                                  sample_time) == 0)) {
+                                                  sample_time) != 0) {
             is_running_ = false;
             break;
         }

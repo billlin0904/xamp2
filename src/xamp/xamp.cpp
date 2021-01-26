@@ -1422,6 +1422,8 @@ void Xamp::readFileLUFS(const QModelIndex&, const PlayListEntity& item) {
 
     XAMP_LOG_DEBUG("EBUR128 result => {} LUFS {} gain.",
         music_lufs, GetGainScale(music_lufs));
+
+    Singleton<Database>::GetInstance().updateLUFS(item.music_id, music_lufs);
 }
 
 void Xamp::readFingerprint(const QModelIndex&, const PlayListEntity& item) {

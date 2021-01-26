@@ -34,7 +34,7 @@ include_directories("../thirdparty/robin_hood/")
 include_directories("../thirdparty/chromaprint/src")
 include_directories("../thirdparty/gist/src")
 
-file(GLOB_RECURSE SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/*.cpp")
+file(GLOB_RECURSE SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/*.cpp" "${CMAKE_CURRENT_LIST_DIR}/src/libebur128/*.c")
 
 find_library (
     LIB_XAMP_BASE
