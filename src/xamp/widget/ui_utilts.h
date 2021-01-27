@@ -59,8 +59,8 @@ static QString format2String(const PlaybackFormat &playback_format, const QStrin
 
     QString dsd_speed_format;
     if (playback_format.is_dsd_file) {
-        dsd_speed_format = Q_UTF8(" DSD") + QString::number(playback_format.dsd_speed) + Q_UTF8(" ");
-        dsd_speed_format = Q_UTF8("(") + dsd_speed_format + Q_UTF8(")");
+        dsd_speed_format = Q_UTF8("DSD") + QString::number(playback_format.dsd_speed);
+        dsd_speed_format = Q_UTF8("(") + dsd_speed_format + Q_UTF8(") | ");
     } else {
         dsd_speed_format = Q_UTF8(" ");
     }
@@ -70,6 +70,7 @@ static QString format2String(const PlaybackFormat &playback_format, const QStrin
 
     switch (playback_format.dsd_mode) {
     case DsdModes::DSD_MODE_PCM:
+    case DsdModes::DSD_MODE_DSD2PCM:
         dsd_mode = Q_UTF8("PCM");    	
         output_format_str = samplerate2String(playback_format.file_format);
     	if (playback_format.file_format.GetSampleRate() != playback_format.output_format.GetSampleRate()) {
@@ -86,11 +87,12 @@ static QString format2String(const PlaybackFormat &playback_format, const QStrin
         break;
     }
 
-    auto bit_format = QString::number(bits) + Q_UTF8("bit");
+    const auto bit_format = QString::number(bits) + Q_UTF8("bit");
 
     return ext
         + dsd_speed_format
-        + output_format_str
-        + bit_format        
+        + bit_format
+        + Q_UTF8("/")
+        + output_format_str        
         + Q_UTF8(" | ") + dsd_mode;
 }

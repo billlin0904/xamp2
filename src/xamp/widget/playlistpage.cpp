@@ -38,7 +38,6 @@ void PlyalistPage::initial() {
 
 	left_space_layout->addWidget(cover_);
 
-
 	child_layout->addLayout(left_space_layout);
 
 	auto horizontal_spacer = new QSpacerItem(40, 20, QSizePolicy::Fixed, QSizePolicy::Minimum);
@@ -59,13 +58,14 @@ void PlyalistPage::initial() {
 	title_->setMaximumSize(QSize(16777215, 40));
 
 	format_ = new QLabel(this);
-	f.setBold(false);
+
+	QFont format_font(Q_UTF8("FormatFont"));
 #ifdef Q_OS_WIN
-	f.setPointSize(10);
+	format_font.setPointSize(10);
 #else
-    f.setPointSize(18);
+	format_font.setPointSize(18);
 #endif
-	format_->setFont(f);
+	format_->setFont(format_font);
 
 	album_title_layout->addWidget(title_);
 

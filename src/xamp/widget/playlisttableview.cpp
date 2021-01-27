@@ -132,7 +132,7 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
     model_.setHeaderData(PLAYLIST_ALBUM, Qt::Horizontal, tr("Album"));
     model_.setHeaderData(PLAYLIST_ARTIST, Qt::Horizontal, tr("Artist"));
     model_.setHeaderData(PLAYLIST_DURATION, Qt::Horizontal, tr("Duration"));
-    model_.setHeaderData(PLAYLIST_BITRATE, Qt::Horizontal, tr("Bitrate"));
+    model_.setHeaderData(PLAYLIST_BITRATE, Qt::Horizontal, tr("Bit rate"));
     model_.setHeaderData(PLAYLIST_SAMPLE_RATE, Qt::Horizontal, tr("SampleRate"));
     model_.setHeaderData(PLAYLIST_RATING, Qt::Horizontal, tr("Rating"));
 

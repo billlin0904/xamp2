@@ -64,8 +64,8 @@ AudioPlayer::AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter)
     , stream_duration_(0)
     , state_adapter_(adapter)
     , buffer_(GetPageAlignSize(kPreallocateBufferSize))
-	, seek_queue_(kMsgQueueSize)
-    , msg_queue_(kMsgQueueSize) {
+	, msg_queue_(kMsgQueueSize)
+    , seek_queue_(kMsgQueueSize) {
 }
 
 AudioPlayer::~AudioPlayer() = default;

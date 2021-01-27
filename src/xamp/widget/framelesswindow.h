@@ -24,7 +24,7 @@ class FramelessWindow : public QWidget {
 public:
     explicit FramelessWindow(QWidget *parent = nullptr);
 
-    ~FramelessWindow() override;
+	virtual ~FramelessWindow() override;
 
     Q_DISABLE_COPY(FramelessWindow)
 
@@ -44,7 +44,7 @@ public:
 
 	void setTaskbarPlayerStop();
 
-	bool UseNativeWindow() const {
+	[[nodiscard]] bool UseNativeWindow() const noexcept {
 		return use_native_window_;
 	}
 
@@ -71,6 +71,8 @@ protected:
 
     void changeEvent(QEvent * event) override;
 
+	void paintEvent(QPaintEvent * event) override;
+
     virtual void play() = 0;
 
     virtual void playNextClicked() = 0;
@@ -79,11 +81,6 @@ protected:
 
     virtual void stopPlayedClicked() = 0;
 
-    void paintEvent(QPaintEvent* event) override;
-
-protected:
-	bool use_native_window_;
-
 private:
 	QFont setupUIFont() const;
 
@@ -91,6 +88,7 @@ private:
 
     bool nativeEvent(const QByteArray& event_type, void* message, long* result) override;	
 
+	bool use_native_window_;
 #if defined(Q_OS_WIN)
 	bool is_maximized_;
 	int32_t border_width_;

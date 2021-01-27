@@ -11,11 +11,11 @@ void PlayListTableFilterProxyModel::setFilterByColumn(int32_t column) {
 }
 
 bool PlayListTableFilterProxyModel::lessThan(const QModelIndex& left, const QModelIndex& right) const {
-    auto leftData = sourceModel()->data(left);
-    auto rightData = sourceModel()->data(right);
+	const auto left_data = sourceModel()->data(left);
+	const auto right_data = sourceModel()->data(right);
     if (left.column() == PlayListColumn::PLAYLIST_RATING) {
-        auto left_rating = qvariant_cast<StarRating>(leftData);
-        auto right_rating = qvariant_cast<StarRating>(rightData);
+        const auto left_rating = qvariant_cast<StarRating>(left_data);
+        const auto right_rating = qvariant_cast<StarRating>(right_data);
         return left_rating.starCount() > right_rating.starCount();
     }
     return QSortFilterProxyModel::lessThan(left, right);

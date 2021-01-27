@@ -280,7 +280,7 @@ void Xamp::initialUI() {
     f.setPointSize(8);
     ui_.artistLabel->setFont(f);
 #ifdef Q_OS_WIN
-    if (use_native_window_) {
+    if (UseNativeWindow()) {
         ui_.closeButton->hide();
         ui_.maxWinButton->hide();
         ui_.minWinButton->hide();
@@ -289,7 +289,7 @@ void Xamp::initialUI() {
     //ui_.startPosLabel->setFont(f);
     //ui_.endPosLabel->setFont(f);
     ui_.startPosLabel->hide();
-    ui_.endPosLabel->hide();
+    ui_.endPosLabel->hide();	
 #else
     f.setPointSize(11);
     ui_.titleLabel->setFont(f);

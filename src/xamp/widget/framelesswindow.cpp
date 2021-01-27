@@ -28,7 +28,7 @@
 
 FramelessWindow::FramelessWindow(QWidget* parent)
     : QWidget(parent)
-    , use_native_window_(true)
+    , use_native_window_(false)
 #if defined(Q_OS_WIN)
     , is_maximized_(false)
     , border_width_(5)
@@ -60,16 +60,8 @@ FramelessWindow::FramelessWindow(QWidget* parent)
 #endif    
 }
 
+// QScopedPointer require default destructor.
 FramelessWindow::~FramelessWindow() = default;
-
-void FramelessWindow::paintEvent(QPaintEvent* event) {
-    QPainter painter(this);
-    /*painter.setRenderHint(QPainter::Antialiasing);    
-    auto rect = this->rect();
-    rect.setWidth(rect.width() - 1);
-    rect.setHeight(rect.height() - 1);
-    painter.drawRoundedRect(rect, 15, 15);*/
-}
 
 void FramelessWindow::createThumbnailToolBar() {
 #if defined(Q_OS_WIN)
@@ -135,6 +127,12 @@ QFont FramelessWindow::setupUIFont() const {
     fallback_fonts.append(Q_UTF8("Helvetica"));
 #endif
     QFont::insertSubstitutions(Q_UTF8("UI"), fallback_fonts);
+
+    QList<QString> format_fallback_fonts;
+    format_fallback_fonts << Q_UTF8("Dosis");
+    format_fallback_fonts << Q_UTF8("PragmataPro Mono");
+    QFont::insertSubstitutions(Q_UTF8("FormatFont"), format_fallback_fonts);
+	
     ui_font.setStyleStrategy(QFont::PreferAntialias);
     return ui_font;
 }
@@ -328,7 +326,14 @@ void FramelessWindow::changeEvent(QEvent * event) {
 #endif
 }
 
+void FramelessWindow::paintEvent(QPaintEvent* event) {
+    QWidget::paintEvent(event);
+}
+
 void FramelessWindow::mousePressEvent(QMouseEvent* event) {
+	if (UseNativeWindow()) {
+        QWidget::mousePressEvent(event);
+	}
     if (event->button() != Qt::LeftButton) {
         return;
     }
@@ -340,6 +345,9 @@ void FramelessWindow::mousePressEvent(QMouseEvent* event) {
 }
 
 void FramelessWindow::mouseReleaseEvent(QMouseEvent* event) {
+    if (UseNativeWindow()) {
+        QWidget::mouseReleaseEvent(event);
+}
 #if defined(Q_OS_WIN)
     last_pos_ = QPoint();
 #else
@@ -349,7 +357,7 @@ void FramelessWindow::mouseReleaseEvent(QMouseEvent* event) {
 
 void FramelessWindow::mouseMoveEvent(QMouseEvent* event) {
 #if defined(Q_OS_WIN)
-    if (use_native_window_) {
+    if (UseNativeWindow()) {
         QWidget::mouseMoveEvent(event);
         return;
     }
