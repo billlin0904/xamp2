@@ -129,8 +129,8 @@ QFont FramelessWindow::setupUIFont() const {
     QFont::insertSubstitutions(Q_UTF8("UI"), fallback_fonts);
 
     QList<QString> format_fallback_fonts;
-    format_fallback_fonts << Q_UTF8("Dosis");
-    format_fallback_fonts << Q_UTF8("PragmataPro Mono");
+    format_fallback_fonts.append(Q_UTF8("Dosis"));
+    format_fallback_fonts.append(Q_UTF8("Dosis Bold"));
     QFont::insertSubstitutions(Q_UTF8("FormatFont"), format_fallback_fonts);
 	
     ui_font.setStyleStrategy(QFont::PreferAntialias);

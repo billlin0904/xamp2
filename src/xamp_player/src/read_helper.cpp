@@ -18,10 +18,10 @@ constexpr uint32_t kReadSampleSize = 8192 * 4;
 
 static double ReadProcess(std::wstring const& file_path,
 	std::wstring const& file_ext,
-	std::function<bool(uint32_t)> progress,
+	std::function<bool(uint32_t)> const& progress,
 	uint32_t max_duration,
-	std::function<void(AudioFormat const &, AudioFormat const&)> prepare,
-	std::function<void(float const *, uint32_t)> func) {
+	std::function<void(AudioFormat const &, AudioFormat const&)> const& prepare,
+	std::function<void(float const *, uint32_t)> const& func) {
 
 	auto file_stream = MakeStream(file_ext);
 	file_stream->OpenFile(file_path);
@@ -74,7 +74,7 @@ static double ReadProcess(std::wstring const& file_path,
 	return file_stream->GetDuration();
 }
 
-double ReadFileLUFS(std::wstring const& file_path, std::wstring const& file_ext, std::function<bool(uint32_t)> progress) {
+double ReadFileLUFS(std::wstring const& file_path, std::wstring const& file_ext, std::function<bool(uint32_t)> const& progress) {
 	std::optional<LoudnessScanner> replay_gain;
 	
 	ReadProcess(file_path, file_ext, std::move(progress), INT_MAX,
@@ -102,13 +102,13 @@ double GetGainScale(double lu, double reference_loudness) {
 
 std::tuple<double, std::vector<uint8_t>> ReadFingerprint(std::wstring const & file_path,
                                                          std::wstring const & file_ext,
-                                                         std::function<bool(uint32_t)> progress) {
+                                                         std::function<bool(uint32_t)> const& progress) {
 	AudioConvertContext ctx;
 	Chromaprint chromaprint;
 
 	AlignBufferPtr<int16_t> osamples;
 
-	auto duraiton = ReadProcess(file_path, file_ext, std::move(progress), kFingerprintDuration,
+	auto duration = ReadProcess(file_path, file_ext, std::move(progress), kFingerprintDuration,
 		[&ctx, &chromaprint, &osamples](AudioFormat const &input_format, AudioFormat const& output_format)
 		{
 			ctx = MakeConvert(input_format, output_format, kReadSampleSize);
@@ -127,7 +127,7 @@ std::tuple<double, std::vector<uint8_t>> ReadFingerprint(std::wstring const & fi
 	(void)chromaprint.Finish();
 
 	return {
-		duraiton,
+		duration,
 		chromaprint.GetFingerprint(),
 	};
 }

@@ -14,12 +14,14 @@
 
 namespace xamp::player {
 
-XAMP_PLAYER_API std::tuple<double, std::vector<uint8_t>> ReadFingerprint(std::wstring const & file_path,
-                                                                         std::wstring const & file_ext,
-                                                                         std::function<bool(uint32_t)> progress);
+XAMP_PLAYER_API std::tuple<double, std::vector<uint8_t>> ReadFingerprint(
+	std::wstring const & file_path,
+    std::wstring const & file_ext,
+    std::function<bool(uint32_t)> const & progress);
+	
 XAMP_PLAYER_API double ReadFileLUFS(std::wstring const& file_path,
-								 std::wstring const& file_ext,
-								 std::function<bool(uint32_t)> progress);
+	std::wstring const& file_ext,
+	std::function<bool(uint32_t)> const& progress);
 
 XAMP_PLAYER_API double GetGainScale(double lu, double reference_loudness = -18.0);
 }

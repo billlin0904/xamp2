@@ -47,7 +47,7 @@
 #include "thememanager.h"
 #include "xamp.h"
 
-static std::unique_ptr<QProgressDialog> MakeProgressDialog(QString const& title, QString const& text, QString const& cancel) {
+static std::unique_ptr<QProgressDialog> makeProgressDialog(QString const& title, QString const& text, QString const& cancel) {
     auto dialog = std::make_unique<QProgressDialog>(text, cancel, 0, 100);
     dialog->setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     dialog->setFont(qApp->font());
@@ -93,7 +93,7 @@ static std::tuple<bool, QMessageBox::StandardButton> showDontShowAgainDialog(QWi
     return { is_show_agin, QMessageBox::Yes };
 }
 
-static AlignPtr<SampleRateConverter> MakeSampleRateConverter(const QVariantMap &settings) {
+static AlignPtr<SampleRateConverter> makeSampleRateConverter(const QVariantMap &settings) {
     auto quality = static_cast<SoxrQuality>(settings[kSoxrQuality].toInt());
     auto phase = static_cast<SoxrPhaseResponse>(settings[kSoxrPhase].toInt());
     auto passband = settings[kSoxrPassBand].toInt();
@@ -101,7 +101,7 @@ static AlignPtr<SampleRateConverter> MakeSampleRateConverter(const QVariantMap &
     auto enable_dither = settings[kSoxrEnableDither].toBool();
 
     auto converter = MakeAlign<SampleRateConverter, SoxrSampleRateConverter>();
-    auto soxr_sample_rate_converter = dynamic_cast<SoxrSampleRateConverter*>(converter.get());
+    auto *soxr_sample_rate_converter = dynamic_cast<SoxrSampleRateConverter*>(converter.get());
     soxr_sample_rate_converter->SetQuality(quality);
     soxr_sample_rate_converter->SetPhase(phase);
     soxr_sample_rate_converter->SetPassBand(passband / 100.0);
@@ -259,7 +259,7 @@ void Xamp::setDefaultStyle() {
 	QListVieww#sliderBar::text {
 		left: 15px;
 	}
-	)"));
+	)"));    
 }
 
 void Xamp::registerMetaType() {
@@ -697,8 +697,6 @@ void Xamp::applyConfig() {
 }
 
 void Xamp::applyTheme(QColor color) {   
-    XAMP_LOG_DEBUG("Apply theme color {}", colorToString(color).toStdString());	
-
     if (qGray(color.rgb()) > 200) {      
         emit themeChanged(color, Qt::black);
         ThemeManager::instance().setThemeColor(ThemeColor::WHITE_THEME);
@@ -716,6 +714,10 @@ void Xamp::applyTheme(QColor color) {
     }
 
     ThemeManager::instance().setBackgroundColor(ui_, color);
+
+    setStyleSheet(Q_STR(R"(
+        background-color: %1;
+    )").arg(colorToString(color)));
 }
 
 void Xamp::getNextPage() {
@@ -890,7 +892,7 @@ void Xamp::resetSeekPosValue() {
 void Xamp::setupSampleRateConverter() {
     if (AppSettings::getValue(kAppSettingResamplerEnable).toBool()) {        
         auto soxr_settings = JsonSettings::getValue(AppSettings::getValueAsString(kAppSettingSoxrSettingName)).toMap();
-        auto resampler = MakeSampleRateConverter(soxr_settings);
+        auto resampler = makeSampleRateConverter(soxr_settings);
         auto samplerate = soxr_settings[kSoxrResampleSampleRate].toUInt();
         player_->SetSampleRateConverter(samplerate, std::move(resampler));
     }
@@ -1106,7 +1108,7 @@ void Xamp::addPlayQueue() {
         AlignPtr<SampleRateConverter> sample_rate_converter;
 
         if (output_format == AudioFormat::UnknowFormat) {
-            sample_rate_converter = MakeSampleRateConverter(soxr_settings);
+            sample_rate_converter = makeSampleRateConverter(soxr_settings);
             sample_rate_converter->Start(input_format.GetSampleRate(), input_format.GetChannels(), output_sample_rate);
         }
         else {
@@ -1407,7 +1409,7 @@ QWidget* Xamp::popWidget() {
 }
 
 void Xamp::readFileLUFS(const QModelIndex&, const PlayListEntity& item) {    
-    auto dialog = MakeProgressDialog(tr("Read progress dialog"),
+    auto dialog = makeProgressDialog(tr("Read progress dialog"),
         tr("Read '") + item.title + tr("' EBUR128 loudness"),
         tr("Cancel"));
     dialog->show();
@@ -1427,7 +1429,7 @@ void Xamp::readFileLUFS(const QModelIndex&, const PlayListEntity& item) {
 }
 
 void Xamp::readFingerprint(const QModelIndex&, const PlayListEntity& item) {
-    auto dialog = MakeProgressDialog(
+    auto dialog = makeProgressDialog(
         tr("Read progress dialog"),
         tr("Read '") + item.title + tr("' fingerprint"),
         tr("Cancel"));
