@@ -159,6 +159,8 @@ private:
 
     void ResizeBuffer();
 
+    void ProcessSeek();
+
     struct XAMP_CACHE_ALIGNED(kMallocAlignSize) AudioSlice {
 	    explicit AudioSlice(float const* samples = nullptr,
             int32_t sample_size = 0,

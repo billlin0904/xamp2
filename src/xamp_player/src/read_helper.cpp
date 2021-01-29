@@ -1,7 +1,7 @@
 #include <utility>
 #include <base/align_ptr.h>
 #include <base/dataconverter.h>
-#include <stream/avfilestream.h>
+#include <stream/dsdstream.h>
 
 #include <player/chromaprint.h>
 #include <player/audio_player.h>
@@ -21,7 +21,10 @@ static double ReadProcess(std::wstring const& file_path,
 	std::function<bool(uint32_t)> const& progress,
 	uint32_t max_duration,
 	std::function<void(AudioFormat const &, AudioFormat const&)> const& prepare,
-	std::function<void(float const *, uint32_t)> const& func) {
+	std::function<void(float const *, uint32_t)> const& func) {	
+	if (TestDsdFileFormatStd(file_path)) {
+		throw NotSupportFormatException();
+	}
 
 	auto file_stream = MakeStream(file_ext);
 	file_stream->OpenFile(file_path);
@@ -74,10 +77,10 @@ static double ReadProcess(std::wstring const& file_path,
 	return file_stream->GetDuration();
 }
 
-double ReadFileLUFS(std::wstring const& file_path, std::wstring const& file_ext, std::function<bool(uint32_t)> const& progress) {
+std::tuple<double, double> ReadFileLUFS(std::wstring const& file_path, std::wstring const& file_ext, std::function<bool(uint32_t)> const& progress) {
 	std::optional<LoudnessScanner> replay_gain;
 	
-	ReadProcess(file_path, file_ext, std::move(progress), INT_MAX,
+	ReadProcess(file_path, file_ext, progress, INT_MAX,
 		[&replay_gain](AudioFormat const& input_format, AudioFormat const& output_format)
 		{
 			replay_gain = LoudnessScanner(input_format.GetChannels(), input_format.GetSampleRate());
@@ -86,7 +89,7 @@ double ReadFileLUFS(std::wstring const& file_path, std::wstring const& file_ext,
 			replay_gain.value().Process(samples, sample_size);
 		});
 
-	return replay_gain->GetLoudness();
+	return std::make_tuple(replay_gain->GetLoudness(), replay_gain->GetTruePeek());
 }
 
 double GetGainScale(double lu, double reference_loudness) {
@@ -108,7 +111,7 @@ std::tuple<double, std::vector<uint8_t>> ReadFingerprint(std::wstring const & fi
 
 	AlignBufferPtr<int16_t> osamples;
 
-	auto duration = ReadProcess(file_path, file_ext, std::move(progress), kFingerprintDuration,
+	auto duration = ReadProcess(file_path, file_ext, progress, kFingerprintDuration,
 		[&ctx, &chromaprint, &osamples](AudioFormat const &input_format, AudioFormat const& output_format)
 		{
 			ctx = MakeConvert(input_format, output_format, kReadSampleSize);

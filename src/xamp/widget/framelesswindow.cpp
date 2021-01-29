@@ -28,7 +28,7 @@
 
 FramelessWindow::FramelessWindow(QWidget* parent)
     : QWidget(parent)
-    , use_native_window_(false)
+    , use_native_window_(true)
 #if defined(Q_OS_WIN)
     , is_maximized_(false)
     , border_width_(5)
@@ -37,7 +37,7 @@ FramelessWindow::FramelessWindow(QWidget* parent)
 {    
     setAcceptDrops(true);
     setMouseTracking(true);    
-    installEventFilter(this);
+    installEventFilter(this);    
     auto ui_font = setupUIFont();        
 #if defined(Q_OS_WIN)
    if (!use_native_window_) {
@@ -57,7 +57,8 @@ FramelessWindow::FramelessWindow(QWidget* parent)
     ui_font.setPointSize(14);
     qApp->setFont(ui_font);
     osx::hideTitleBar(this);
-#endif    
+#endif
+    setWindowTitle(Qt::EmptyString);
 }
 
 // QScopedPointer require default destructor.
@@ -333,6 +334,7 @@ void FramelessWindow::paintEvent(QPaintEvent* event) {
 void FramelessWindow::mousePressEvent(QMouseEvent* event) {
 	if (UseNativeWindow()) {
         QWidget::mousePressEvent(event);
+        return;
 	}
     if (event->button() != Qt::LeftButton) {
         return;
@@ -347,7 +349,8 @@ void FramelessWindow::mousePressEvent(QMouseEvent* event) {
 void FramelessWindow::mouseReleaseEvent(QMouseEvent* event) {
     if (UseNativeWindow()) {
         QWidget::mouseReleaseEvent(event);
-}
+        return;
+	}
 #if defined(Q_OS_WIN)
     last_pos_ = QPoint();
 #else
@@ -382,6 +385,9 @@ void FramelessWindow::mouseMoveEvent(QMouseEvent* event) {
 }
 
 void FramelessWindow::showEvent(QShowEvent* event) {
+#ifdef Q_OS_WIN32
+    taskbar_button_->setWindow(windowHandle());
+#endif
     event->accept();
 }
 

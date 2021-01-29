@@ -61,7 +61,7 @@ void PlyalistPage::initial() {
 
 	QFont format_font(Q_UTF8("FormatFont"));
 #ifdef Q_OS_WIN
-	format_font.setPointSize(10);
+	format_font.setPointSize(11);
 #else
 	format_font.setPointSize(18);
 #endif

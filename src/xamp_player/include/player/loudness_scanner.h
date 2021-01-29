@@ -20,7 +20,9 @@ public:
 
 	void Process(float const * samples, uint32_t num_sample);
 
-	[[nodiscard]] double GetLoudness() const;	
+	[[nodiscard]] double GetLoudness() const;
+
+	[[nodiscard]] double GetTruePeek() const;
 private:
 	class LoudnessScannerImpl;
 	AlignPtr<LoudnessScannerImpl> impl_;

@@ -34,13 +34,21 @@ public:
 	}
 	
 	void Init() {
-		state_.reset(::ebur128_init(num_channels_, output_sample_rate_, EBUR128_MODE_I));		
+		state_.reset(::ebur128_init(num_channels_, output_sample_rate_, EBUR128_MODE_I | EBUR128_MODE_TRUE_PEAK));
 		::ebur128_set_channel(state_.get(), 0, EBUR128_LEFT);
 		::ebur128_set_channel(state_.get(), 1, EBUR128_RIGHT);
 	}
 
 	void Process(float const* samples, uint32_t num_sample) {
 		::ebur128_add_frames_float(state_.get(), samples, num_sample / num_channels_);
+	}
+
+	[[nodiscard]] double GetTruePeek() const {
+		double left_true_peek = 0;
+		double right_true_peek = 0;
+		::ebur128_true_peak(state_.get(), 0, &left_true_peek);
+		::ebur128_true_peak(state_.get(), 0, &right_true_peek);
+		return Round((left_true_peek + right_true_peek) / 2.0, 2);
 	}
 
 	[[nodiscard]] double GetLoudness() const {
@@ -66,6 +74,10 @@ void LoudnessScanner::Process(float const * samples, uint32_t num_sample) {
 
 double LoudnessScanner::GetLoudness() const {
 	return impl_->GetLoudness();
+}
+
+double LoudnessScanner::GetTruePeek() const {
+	return impl_->GetTruePeek();
 }
 	
 }

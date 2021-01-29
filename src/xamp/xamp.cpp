@@ -475,7 +475,7 @@ void Xamp::initialController() {
     });
 
     (void)QObject::connect(ui_.seekSlider, &SeekSlider::sliderMoved, [this](auto value) {
-        QToolTip::showText(QCursor::pos(), Time::msToString(double(ui_.seekSlider->value()) / 1000.0));
+        QToolTip::showText(QCursor::pos(), Time::msToString(static_cast<double>(ui_.seekSlider->value()) / 1000.0));
         if (!is_seeking_) {
             return;
         }
@@ -483,7 +483,8 @@ void Xamp::initialController() {
     });
 
     (void)QObject::connect(ui_.seekSlider, &SeekSlider::sliderReleased, [this]() {
-        QToolTip::showText(QCursor::pos(), Time::msToString(double(ui_.seekSlider->value()) / 1000.0));
+        XAMP_LOG_DEBUG("SeekSlider release!");
+        QToolTip::showText(QCursor::pos(), Time::msToString(static_cast<double>(ui_.seekSlider->value()) / 1000.0));
         if (!is_seeking_) {
             return;
         }
@@ -715,9 +716,7 @@ void Xamp::applyTheme(QColor color) {
 
     ThemeManager::instance().setBackgroundColor(ui_, color);
 
-    setStyleSheet(Q_STR(R"(
-        background-color: %1;
-    )").arg(colorToString(color)));
+    setStyleSheet(Q_STR(R"(background-color: %1;)").arg(colorToString(color)));
 }
 
 void Xamp::getNextPage() {
@@ -1414,18 +1413,25 @@ void Xamp::readFileLUFS(const QModelIndex&, const PlayListEntity& item) {
         tr("Cancel"));
     dialog->show();
 
-    const auto music_lufs = ReadFileLUFS(item.file_path.toStdWString(),
-                                         item.file_ext.toStdWString(),
-                                         [&](auto progress) -> bool {
-	                                         dialog->setValue(progress);
-	                                         qApp->processEvents();
-	                                         return dialog->wasCanceled() != true;
-                                         });
+    try {
+        auto [lufs, true_peek] = ReadFileLUFS(item.file_path.toStdWString(),
+            item.file_ext.toStdWString(),
+            [&](auto progress) -> bool {
+                dialog->setValue(progress);
+                qApp->processEvents();
+                return dialog->wasCanceled() != true;
+            });
+        XAMP_LOG_DEBUG("EBUR128 result => {} LUFS {} gain True peek: {}.",
+            lufs, 
+            GetGainScale(lufs),
+            true_peek);
 
-    XAMP_LOG_DEBUG("EBUR128 result => {} LUFS {} gain.",
-        music_lufs, GetGainScale(music_lufs));
-
-    Singleton<Database>::GetInstance().updateLUFS(item.music_id, music_lufs);
+        Singleton<Database>::GetInstance().updateLUFS(item.music_id, lufs);
+    }
+    catch (Exception const &e) {
+        Toast::showTip(Q_UTF8(e.what()), this);
+        return;
+    }    
 }
 
 void Xamp::readFingerprint(const QModelIndex&, const PlayListEntity& item) {
@@ -1453,7 +1459,8 @@ void Xamp::readFingerprint(const QModelIndex&, const PlayListEntity& item) {
                            static_cast<int32_t>(fingerprint_result.size()));
         Singleton<Database>::GetInstance().updateMusicFingerprint(item.music_id, fingerprint_info.fingerprint);
         fingerprint_info.duration = static_cast<int32_t>(duration);
-    } catch (...) {
+    } catch (Exception const& e) {
+        Toast::showTip(Q_UTF8(e.what()), this);
         return;
     }
 

@@ -198,6 +198,14 @@ void AudioPlayer::SetState(const PlayerState play_state) {
     XAMP_LOG_DEBUG("Set state: {}.", EnumToString(state_));
 }
 
+void AudioPlayer::ProcessSeek() {
+    if (auto const* stream_time = seek_queue_.Front()) {
+        XAMP_LOG_DEBUG("Receive seek {} message", *stream_time);
+        DoSeek(*stream_time);
+        seek_queue_.Pop();
+    }
+}
+	
 void AudioPlayer::Play() {
     if (!device_) {
         return;
@@ -232,20 +240,16 @@ void AudioPlayer::Play() {
         try {
             while (p->is_playing_) {
                 while (p->is_paused_) {
-                    p->pause_cond_.wait(lock);
+                    p->pause_cond_.wait_for(lock, std::chrono::milliseconds(100));
+                    p->ProcessSeek();
                 }
+
+                p->ProcessSeek();
 
                 if (p->buffer_.GetAvailableWrite() < num_sample_write) {
                     p->wait_timer_.Wait();
                     continue;
                 }
-
-            	if (auto const * stream_time = p->seek_queue_.Front()) {
-                    XAMP_LOG_DEBUG("Receive seek {} message", *stream_time);
-                    p->DoSeek(*stream_time);
-                    p->seek_queue_.Pop();
-            	}
-
                 p->ReadSampleLoop(sample_buffer, max_buffer_sample, lock);
             }
         }
@@ -255,6 +259,8 @@ void AudioPlayer::Play() {
         catch (const std::exception& e) {
             XAMP_LOG_DEBUG("Stream thread read has exception: {}", e.what());
         }
+
+        XAMP_LOG_DEBUG("Stream thread done!");
     });
 }
 
@@ -268,7 +274,7 @@ void AudioPlayer::Pause() {
         if (device_->IsStreamOpen()) {
             is_paused_ = true;
             device_->StopStream();
-            SetState(PlayerState::PLAYER_STATE_PAUSED);
+            SetState(PlayerState::PLAYER_STATE_PAUSED);            
         }
     }
 }
