@@ -122,7 +122,6 @@ QFont FramelessWindow::setupUIFont() const {
     fallback_fonts.append(Q_UTF8("Microsoft YaHei UI"));
     fallback_fonts.append(Q_UTF8("Microsoft YaHei Bold UI"));
 #else
-    fallback_fonts.append(Q_UTF8("SF Pro Display"));
     fallback_fonts.append(Q_UTF8("SF Pro Text"));
     fallback_fonts.append(Q_UTF8("Helvetica Neue"));
     fallback_fonts.append(Q_UTF8("Helvetica"));

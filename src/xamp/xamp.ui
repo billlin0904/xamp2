@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1032</width>
+    <width>1120</width>
     <height>505</height>
    </rect>
   </property>
@@ -57,13 +57,13 @@
        <widget class="QFrame" name="sliderFrame">
         <property name="minimumSize">
          <size>
-          <width>200</width>
+          <width>220</width>
           <height>0</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>200</width>
+          <width>220</width>
           <height>16777215</height>
          </size>
         </property>
@@ -148,13 +148,13 @@
            </property>
            <property name="minimumSize">
             <size>
-             <width>200</width>
+             <width>220</width>
              <height>0</height>
             </size>
            </property>
            <property name="maximumSize">
             <size>
-             <width>200</width>
+             <width>220</width>
              <height>16777215</height>
             </size>
            </property>
@@ -210,6 +210,19 @@
           </widget>
          </item>
          <item>
+          <widget class="SeekSlider" name="volumeSlider">
+           <property name="minimumSize">
+            <size>
+             <width>100</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QToolButton" name="mutedButton">
            <property name="minimumSize">
             <size>
@@ -225,19 +238,6 @@
            </property>
            <property name="text">
             <string/>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="SeekSlider" name="volumeSlider">
-           <property name="minimumSize">
-            <size>
-             <width>100</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
            </property>
           </widget>
          </item>
@@ -297,22 +297,6 @@
           <number>0</number>
          </property>
          <item>
-          <spacer name="horizontalSpacer_16">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeType">
-            <enum>QSizePolicy::Fixed</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>10</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
           <widget class="ClickableLabel" name="coverLabel">
            <property name="minimumSize">
             <size>
@@ -332,7 +316,7 @@
           </widget>
          </item>
          <item>
-          <spacer name="horizontalSpacer_8">
+          <spacer name="horizontalSpacer_16">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
@@ -386,7 +370,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QToolButton" name="addPlaylistButton">
+              <widget class="QToolButton" name="repeatButton">
                <property name="maximumSize">
                 <size>
                  <width>22</width>
@@ -399,7 +383,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QToolButton" name="repeatButton">
+              <widget class="QToolButton" name="addPlaylistButton">
                <property name="maximumSize">
                 <size>
                  <width>22</width>
@@ -558,13 +542,13 @@
         </property>
         <property name="minimumSize">
          <size>
-          <width>200</width>
+          <width>290</width>
           <height>0</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>200</width>
+          <width>290</width>
           <height>16777215</height>
          </size>
         </property>
@@ -817,6 +801,19 @@
            <property name="sizeHint" stdset="0">
             <size>
              <width>650</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_18">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
              <height>20</height>
             </size>
            </property>
