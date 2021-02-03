@@ -44,6 +44,7 @@ void AppSettings::setOrDefaultConfig() {
     setDefaultValue(kLyricsFontSize, 12);
     setDefaultValue(kAppSettingMinimizeToTrayAsk, true);
     setDefaultValue(kAppSettingMinimizeToTray, false);
+	setDefaultValue(kAppSettingEnableGaplessPlay, false);
 }
 
 Uuid AppSettings::getID(const QString& key) {

@@ -1012,6 +1012,10 @@ void Xamp::play(const PlayListEntity& item) {
 }
 
 void Xamp::onGaplessPlay(const QModelIndex &index) {
+    if (!AppSettings::getValueAsBool(kAppSettingEnableGaplessPlay)) {
+        return;
+    }
+	
     auto item = playlist_page_->playlist()->nomapItem(index);
     playlist_page_->playlist()->setNowPlaying(index, true);
 	
@@ -1070,6 +1074,10 @@ void Xamp::addPlayQueue() {
         stopPlayedClicked();
         return;
     }
+
+	if (!AppSettings::getValueAsBool(kAppSettingEnableGaplessPlay)) {
+        return;
+	}
 
     QModelIndex next_index;
 
@@ -1409,28 +1417,22 @@ QWidget* Xamp::popWidget() {
 
 void Xamp::readFileLUFS(const QModelIndex&, const PlayListEntity& item) {    
     auto dialog = makeProgressDialog(tr("Read progress dialog"),
-        tr("Read '") + item.title + tr("' EBUR128 loudness"),
+        tr("Read '") + item.title + tr("' loudness"),
         tr("Cancel"));
     dialog->show();
 
     try {
-        auto [lufs, true_peek] = ReadFileLUFS(item.file_path.toStdWString(),
+        auto [lufs, true_peak] = ReadFileLUFS(item.file_path.toStdWString(),
             item.file_ext.toStdWString(),
             [&](auto progress) -> bool {
                 dialog->setValue(progress);
                 qApp->processEvents();
                 return dialog->wasCanceled() != true;
             });
-        XAMP_LOG_DEBUG("EBUR128 result => {} LUFS {} gain True peek: {}.",
-            lufs, 
-            GetGainScale(lufs),
-            true_peek);
-
-        Singleton<Database>::GetInstance().updateLUFS(item.music_id, lufs);
+        Singleton<Database>::GetInstance().updateLUFS(item.music_id, lufs, true_peak);
     }
     catch (Exception const &e) {
-        Toast::showTip(Q_UTF8(e.what()), this);
-        return;
+        Toast::showTip(Q_UTF8(e.what()), this);        
     }    
 }
 

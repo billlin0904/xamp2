@@ -21,12 +21,14 @@ static double ReadProcess(std::wstring const& file_path,
 	std::function<bool(uint32_t)> const& progress,
 	uint32_t max_duration,
 	std::function<void(AudioFormat const &, AudioFormat const&)> const& prepare,
-	std::function<void(float const *, uint32_t)> const& func) {	
-	if (TestDsdFileFormatStd(file_path)) {
-		throw NotSupportFormatException();
-	}
-
+	std::function<void(float const *, uint32_t)> const& func) {
+	const auto is_dsd_file = TestDsdFileFormatStd(file_path);	
 	auto file_stream = MakeStream(file_ext);
+	if (auto stream = dynamic_cast<DsdStream*>(file_stream.get())) {
+		if (is_dsd_file) {
+			stream->SetDSDMode(DsdModes::DSD_MODE_DSD2PCM);
+		}
+	}
 	file_stream->OpenFile(file_path);
 
 	const auto source_format = file_stream->GetFormat();

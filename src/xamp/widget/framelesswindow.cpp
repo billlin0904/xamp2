@@ -28,7 +28,7 @@
 
 FramelessWindow::FramelessWindow(QWidget* parent)
     : QWidget(parent)
-    , use_native_window_(true)
+    , use_native_window_(false)
 #if defined(Q_OS_WIN)
     , is_maximized_(false)
     , border_width_(5)

@@ -1,5 +1,3 @@
-#include <QTime>
-
 #include "thememanager.h"
 #include <widget/str_utilts.h>
 #include <widget/time_utilts.h>

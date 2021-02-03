@@ -102,7 +102,8 @@ void PlayListTableView::refresh() {
     musics.fingerprint,
 	musics.fileExt,
     musics.parentPath,
-    musics.lufs
+    musics.lufs,
+	musics.true_peak
     FROM
     playlistMusics
     JOIN playlist ON playlist.playlistId = playlistMusics.playlistId

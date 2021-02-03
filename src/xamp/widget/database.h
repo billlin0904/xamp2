@@ -89,7 +89,7 @@ public:
 
     void updateMusicRating(int32_t music_id, int32_t rating);
 
-    void updateLUFS(int32_t music_id, double lufs);
+    void updateLUFS(int32_t music_id, double lufs, double true_peak);
 
     int32_t addOrUpdateAlbum(const QString& album, int32_t artist_id);
 
