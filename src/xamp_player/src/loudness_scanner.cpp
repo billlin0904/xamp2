@@ -54,7 +54,7 @@ public:
 	[[nodiscard]] double GetLoudness() const {
 		double loudness = 0;
 		::ebur128_loudness_global(state_.get(), &loudness);
-		return Round(loudness, 2);
+        return Round(loudness, 2);
 	}
 private:
 	Ebur128StatePtr state_;
