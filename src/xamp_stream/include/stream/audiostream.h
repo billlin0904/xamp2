@@ -14,7 +14,7 @@ using namespace base;
 
 class XAMP_STREAM_API XAMP_NO_VTABLE AudioStream {
 public:
-    virtual ~AudioStream() = default;
+    XAMP_BASE_CLASS(AudioStream)
 
 	virtual bool IsFile() const noexcept = 0;
 

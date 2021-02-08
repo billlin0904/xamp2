@@ -31,9 +31,9 @@ class XAMP_PLAYER_API SoxrSampleRateConverter final : public SampleRateConverter
 public:
     static const std::string_view VERSION;
 
-    SoxrSampleRateConverter();
+    XAMP_PIMPL(SoxrSampleRateConverter)
 
-    ~SoxrSampleRateConverter() override;
+    SoxrSampleRateConverter();    
 
     static void LoadSoxrLib();
 

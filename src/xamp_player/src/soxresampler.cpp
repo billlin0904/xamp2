@@ -258,8 +258,8 @@ SoxrSampleRateConverter::SoxrSampleRateConverter()
     : impl_(MakeAlign<SoxrResamplerImpl>()) {
 }
 
-SoxrSampleRateConverter::~SoxrSampleRateConverter() = default;
-
+XAMP_PIMPL_IMPL(SoxrSampleRateConverter)
+	
 void SoxrSampleRateConverter::LoadSoxrLib() {
     (void)Singleton<SoxrLib>::GetInstance();
 }

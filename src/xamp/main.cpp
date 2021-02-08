@@ -31,20 +31,21 @@ static void loadOrDefaultSoxrSetting() {
         return;
     }
 
-    QMap<QString, QVariant> defaultSetting;
+    QMap<QString, QVariant> default_setting;
 
-    defaultSetting[kSoxrResampleSampleRate] = 96000;
-    defaultSetting[kSoxrEnableSteepFilter] = false;
-    defaultSetting[kSoxrEnableDither] = true;
-    defaultSetting[kSoxrQuality] = static_cast<int32_t>(SoxrQuality::UHQ);
-    defaultSetting[kSoxrPhase] = static_cast<int32_t>(SoxrPhaseResponse::INTERMEDIATE_PHASE);
-    defaultSetting[kSoxrPassBand] = 45;
+    default_setting[kSoxrResampleSampleRate] = 96000;
+    default_setting[kSoxrEnableSteepFilter] = false;
+    default_setting[kSoxrEnableDither] = false;
+    default_setting[kSoxrQuality] = static_cast<int32_t>(SoxrQuality::UHQ);
+    default_setting[kSoxrPhase] = static_cast<int32_t>(SoxrPhaseResponse::MINIMUM_PHASE);
+    default_setting[kSoxrPassBand] = 45.0;
 
-    JsonSettings::setValue(kSoxrDefaultSettingName, QVariant::fromValue(defaultSetting));
+    JsonSettings::setValue(kSoxrDefaultSettingName, QVariant::fromValue(default_setting));
     AppSettings::setValue(kAppSettingSoxrSettingName, kSoxrDefaultSettingName);
     AppSettings::setDefaultValue(kAppSettingSoxrSettingName, kSoxrDefaultSettingName);
 
     JsonSettings::save();
+    AppSettings::save();
 }
 
 static void loadSettings() {

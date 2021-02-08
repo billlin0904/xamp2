@@ -6,9 +6,9 @@
 #pragma once
 
 #include <chrono>
-#include <thread>
-
 #include <base/base.h>
+#include <base/memory.h>
+#include <base/align_ptr.h>
 
 namespace xamp::base {
 
@@ -16,14 +16,16 @@ class XAMP_BASE_API WaitableTimer final {
 public:
 	WaitableTimer() noexcept;
 
-	~WaitableTimer() noexcept = default;
+	XAMP_PIMPL(WaitableTimer)
 
 	void SetTimeout(std::chrono::milliseconds timeout) noexcept;
 
 	void Wait() noexcept;
 private:
-	std::chrono::milliseconds timeout_;
-	std::chrono::steady_clock::time_point tp_;
+	class WaitableTimerImpl;
+	AlignPtr<WaitableTimerImpl> impl_;
 };
+
+XAMP_BASE_API void MSleep(std::chrono::milliseconds timeout);
 
 }

@@ -11,7 +11,6 @@
 
 #include <base/platform_thread.h>
 #include <base/base.h>
-#include <base/memory.h>
 #include <base/logger.h>
 #include <base/threadpool.h>
 #include <base/waitabletimer.h>
@@ -29,12 +28,12 @@ public:
 	template <typename TimerCallback>
 	void Start(std::chrono::milliseconds timeout, TimerCallback&& callback) {
 		is_stop_ = false;
-		timer_.SetTimeout(timeout);
-		thread_ = ThreadPool::GetInstance().Run([this, callback]() {
+		thread_ = ThreadPool::GetInstance().Run([this, timeout, callback]() {
 			SetThreadName("Timer");
+			XAMP_LOG_DEBUG("Timer thread running!");
 
 			while (!is_stop_) {
-				timer_.Wait();
+				MSleep(timeout);
 				callback();
 			}
 
@@ -49,7 +48,6 @@ public:
 private:
 	std::atomic<bool> is_stop_;
 	std::shared_future<void> thread_;
-	WaitableTimer timer_;
 };
 
 }

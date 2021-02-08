@@ -139,7 +139,7 @@ XAMP_ALWAYS_INLINE size_t AudioBuffer<Type, U>::GetAvailableRead(size_t head, si
 }
 
 template <typename Type, typename U>
-bool AudioBuffer<Type, U>::TryWrite(const Type* data, size_t count) noexcept {
+XAMP_ALWAYS_INLINE bool AudioBuffer<Type, U>::TryWrite(const Type* data, size_t count) noexcept {
     const auto head = head_.load(std::memory_order_relaxed);
     const auto tail = tail_.load(std::memory_order_acquire);
 
@@ -166,7 +166,7 @@ bool AudioBuffer<Type, U>::TryWrite(const Type* data, size_t count) noexcept {
 }
 
 template <typename Type, typename U>
-bool AudioBuffer<Type, U>::TryRead(Type* data, size_t count) noexcept {
+XAMP_ALWAYS_INLINE bool AudioBuffer<Type, U>::TryRead(Type* data, size_t count) noexcept {
     const auto head = head_.load(std::memory_order_acquire);
     const auto tail = tail_.load(std::memory_order_relaxed);
 

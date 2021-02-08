@@ -36,7 +36,7 @@ void TaskScheduler::SubmitJob(Task&& task) {
 
 	for (size_t n = 0; n < max_thread_ * K; ++n) {
 		const auto index = (i + n) % max_thread_;
-		if (shared_queues_.at(index)->TryEnqueue(std::move(task))) {
+		if (shared_queues_.at(index)->TryEnqueue(task)) {
 #ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
 			XAMP_LOG_DEBUG("Enqueue thread {} queue.", index);
 #endif
@@ -44,7 +44,7 @@ void TaskScheduler::SubmitJob(Task&& task) {
 		}
 	}
 
-	if (!pool_queue_.TryEnqueue(std::move(task))) {
+	if (!pool_queue_.TryEnqueue(task)) {
 		throw LibrarySpecException("Thread pool was fulled.");
 	}
 
@@ -125,20 +125,26 @@ std::optional<Task> TaskScheduler::TrySteal() {
 	return std::nullopt;
 }
 
-void TaskScheduler::AddThread(size_t i) {
-	threads_.push_back(std::thread([i, this]() mutable {
-		const auto L1_padding_buffer = MakeStackBuffer<uint8_t>(
-			(std::min)(kInitL1CacheLineSize * i, kMaxL1CacheLineSize));
+void TaskScheduler::SetWorkerThraedName(int32_t i) {
 #ifdef XAMP_OS_MAC
-		// Sleep for set thread name.
-		std::this_thread::sleep_for(std::chrono::milliseconds(900));
+	// Sleep for set thread name.
+	std::this_thread::sleep_for(std::chrono::milliseconds(900));
 #endif
-		std::ostringstream ostr;
-		ostr << "Worker Thread(" << i << ").";
-		SetThreadName(ostr.str());
+	std::ostringstream ostr;
+	ostr << "Worker Thread(" << i << ").";
+	SetThreadName(ostr.str());
+}
+
+void TaskScheduler::AddThread(size_t i) {
+	threads_.emplace_back([i, this]() mutable {
+		const auto allocate_stack_size = (std::min)(kInitL1CacheLineSize * i, kMaxL1CacheLineSize);
+		const auto L1_padding_buffer = MakeStackBuffer<uint8_t>(allocate_stack_size);
+		
+		SetWorkerThraedName(i);
 #ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
 		XAMP_LOG_DEBUG("Worker Thread {} start.", i);
 #endif
+		
 		for (; !is_stopped_;) {
 			auto task = TrySteal();
 			if (!task) {
@@ -154,7 +160,6 @@ void TaskScheduler::AddThread(size_t i) {
 					continue;
 				}
 			}
-
 			auto active_thread = ++active_thread_;
 #ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
 			XAMP_LOG_DEBUG("Worker Thread {} weakup, active:{}.", i, active_thread);
@@ -175,7 +180,7 @@ void TaskScheduler::AddThread(size_t i) {
 #ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
 		XAMP_LOG_DEBUG("Thread {} done.", i);
 #endif
-		}));
+		});
 
 	if (core_ != -1) {
 		SetThreadAffinity(threads_.at(i), core_);

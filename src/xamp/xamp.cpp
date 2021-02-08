@@ -47,52 +47,6 @@
 #include "thememanager.h"
 #include "xamp.h"
 
-static std::unique_ptr<QProgressDialog> makeProgressDialog(QString const& title, QString const& text, QString const& cancel) {
-    auto dialog = std::make_unique<QProgressDialog>(text, cancel, 0, 100);
-    dialog->setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
-    dialog->setFont(qApp->font());
-    dialog->setWindowTitle(title);
-    dialog->setWindowModality(Qt::WindowModal);
-    dialog->setMinimumSize(QSize(500, 100));
-    dialog->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed));
-    return dialog;
-}
-
-static QMessageBox::StandardButton showAskDialog(QWidget* widget, const char text[]) {
-    QMessageBox msgbox;
-    msgbox.setWindowTitle(Q_UTF8("XAMP"));
-    msgbox.setText(widget->tr(text));
-    msgbox.setIcon(QMessageBox::Icon::Question);
-    msgbox.addButton(QMessageBox::Yes);
-    msgbox.addButton(QMessageBox::No);
-    msgbox.setDefaultButton(QMessageBox::No);
-    return static_cast<QMessageBox::StandardButton>(msgbox.exec());
-}
-
-static std::tuple<bool, QMessageBox::StandardButton> showDontShowAgainDialog(QWidget* widget, bool show_agin) {
-    bool is_show_agin = true;
-
-    if (show_agin) {
-        auto cb = new QCheckBox(widget->tr("Don't show this again"));
-        QMessageBox msgbox;
-        msgbox.setWindowTitle(Q_UTF8("XAMP"));
-        msgbox.setText(widget->tr("Hide XAMP to system tray?"));
-        msgbox.setIcon(QMessageBox::Icon::Question);
-        msgbox.addButton(QMessageBox::Ok);
-        msgbox.addButton(QMessageBox::Cancel);
-        msgbox.setDefaultButton(QMessageBox::Cancel);
-        msgbox.setCheckBox(cb);
-
-        (void)QObject::connect(cb, &QCheckBox::stateChanged, [&is_show_agin](int state) {
-            if (static_cast<Qt::CheckState>(state) == Qt::CheckState::Checked) {
-                is_show_agin = false;
-            }
-            });
-        return { is_show_agin, static_cast<QMessageBox::StandardButton>(msgbox.exec()) };
-    }
-    return { is_show_agin, QMessageBox::Yes };
-}
-
 static AlignPtr<SampleRateConverter> makeSampleRateConverter(const QVariantMap &settings) {
     auto quality = static_cast<SoxrQuality>(settings[kSoxrQuality].toInt());
     auto phase = static_cast<SoxrPhaseResponse>(settings[kSoxrPhase].toInt());
