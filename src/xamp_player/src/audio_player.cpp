@@ -28,7 +28,7 @@ inline constexpr int32_t kPreallocateBufferSize = 300 * 1024 * 1024;
 inline constexpr uint32_t kMaxPreallocateBufferSize = 300 * 1024 * 1024;
 inline constexpr int32_t kMaxWriteRatio = 20;
 inline constexpr int32_t kMaxReadRatio = 30;
-inline constexpr int32_t kDefaultReadSampleSize = 8192;
+inline constexpr int32_t kDefaultReadSampleSize = 4096;
 
 inline constexpr std::chrono::milliseconds kUpdateSampleInterval(100);
 inline constexpr std::chrono::milliseconds kReadSampleWaitTime(30);
@@ -481,7 +481,8 @@ void AudioPlayer::CreateBuffer() {
             allocate_size = kMaxPreallocateBufferSize;
             allocate_size = AlignUp(allocate_size);
         } else {
-            allocate_size = (std::min)(kMaxPreallocateBufferSize, require_read_sample * stream_->GetSampleSize() * kBufferStreamCount);
+            allocate_size = (std::min)(kMaxPreallocateBufferSize,
+                                       require_read_sample * stream_->GetSampleSize() * kBufferStreamCount);
             allocate_size = AlignUp(allocate_size);
             num_buffer_samples_ = allocate_size * kTotalBufferStreamCount;
         }        
@@ -802,11 +803,11 @@ AlignPtr<SampleRateConverter> AudioPlayer::CloneSampleRateConverter() const {
 int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, double stream_time, double sample_time) noexcept {
     const auto num_samples = num_buffer_frames * output_format_.GetChannels();
     const auto sample_size = num_samples * sample_size_;
-    
+#ifdef _DEBUG
     const auto elapsed = sw_.Elapsed();
     max_process_time_ = std::max(elapsed, max_process_time_);
     min_process_time_ = std::min(elapsed, min_process_time_);
-
+#endif
     if (stream_time >= stream_duration_ && enable_gapless_play_) {
         msg_queue_.TryPush(MsgID::EVENT_SWITCH);
         device_->SetStreamTime(0);
@@ -833,14 +834,14 @@ void AudioPlayer::PrepareToPlay(double start_time, double end_time) {
     OpenDevice(start_time);
     CreateBuffer();
     BufferStream(start_time);
-
+#ifdef _DEBUG
     XAMP_LOG_INFO("AVG max time {} ms, AVG min time {} ms",
         max_process_time_.count() / 1000, 
         min_process_time_.count() / 1000);
     sw_.Reset();
     min_process_time_ = std::chrono::seconds(1);
-    max_process_time_ = std::chrono::microseconds(0);    
-
+    max_process_time_ = std::chrono::microseconds(0);
+#endif
     if (end_time > 0.0) {
         sample_end_time_ = end_time - start_time;
     }

@@ -51,7 +51,7 @@ public:
 
     SoxrResamplerImpl() noexcept
         : enable_steep_filter_(false)
-        , enable_dither_(true)
+        , enable_dither_(false)
         , quality_(SoxrQuality::VHQ)
         , phase_(SoxrPhaseResponse::LINEAR_PHASE)
         , input_samplerate_(0)
@@ -88,24 +88,24 @@ public:
             break;
 		}
 
+        switch (phase_) {
+        case SoxrPhaseResponse::LINEAR_PHASE:
+            quality_spec |= SOXR_LINEAR_PHASE;
+            break;
+        case SoxrPhaseResponse::INTERMEDIATE_PHASE:
+            quality_spec |= SOXR_INTERMEDIATE_PHASE;
+            break;
+        case SoxrPhaseResponse::MINIMUM_PHASE:
+            quality_spec |= SOXR_MINIMUM_PHASE;
+            break;
+        }
+
         auto flags = (SOXR_ROLLOFF_NONE | SOXR_HI_PREC_CLOCK | SOXR_VR | SOXR_DOUBLE_PRECISION);
         if (enable_steep_filter_) {
             flags |= SOXR_STEEP_FILTER;
         }
 
         auto soxr_quality = Singleton<SoxrLib>::GetInstance().soxr_quality_spec(quality_spec, flags);
-
-        switch (phase_) {
-        case SoxrPhaseResponse::LINEAR_PHASE:
-            soxr_quality.phase_response = SOXR_LINEAR_PHASE;
-            break;
-        case SoxrPhaseResponse::INTERMEDIATE_PHASE:
-            soxr_quality.phase_response = SOXR_INTERMEDIATE_PHASE;
-            break;
-        case SoxrPhaseResponse::MINIMUM_PHASE:
-            soxr_quality.phase_response = SOXR_MINIMUM_PHASE;
-            break;
-        }
 
         soxr_quality.passband_end = passband_;
         soxr_quality.stopband_begin = stopband_;
