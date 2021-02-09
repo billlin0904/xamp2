@@ -15,10 +15,7 @@ using namespace base;
 class XAMP_STREAM_API AvException final : public Exception {
 public:
     explicit AvException(int32_t error);
-
-    ~AvException() override;
 };
-
 
 #define AvIfFailedThrow(expr) \
 	do { \

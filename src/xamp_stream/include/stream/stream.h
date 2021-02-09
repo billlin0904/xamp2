@@ -13,7 +13,6 @@
 #else
     #define XAMP_STREAM_API __declspec(dllimport)
 #endif
-#define ENABLE_FFMPEG 1
 #else
 #define XAMP_STREAM_API
 #endif

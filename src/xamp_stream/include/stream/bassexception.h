@@ -17,8 +17,7 @@ public:
     BassException();
 
     explicit BassException(int error);
-
-    ~BassException() override;
+	
 private:
     int error_;
 };

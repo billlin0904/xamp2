@@ -60,19 +60,19 @@ public:
 	}
 
     void Start(uint32_t sample_rate, uint32_t num_channels, uint32_t num_buffer_frames) {
-        context_.reset(Singleton<ChromaprintLib>::GetInstance().chromaprint_new(algorithm_));
+        handle_.reset(Singleton<ChromaprintLib>::GetInstance().chromaprint_new(algorithm_));
         buffer_.resize(static_cast<size_t>(num_buffer_frames));
-		Singleton<ChromaprintLib>::GetInstance().chromaprint_start(context_.get(),
+		Singleton<ChromaprintLib>::GetInstance().chromaprint_start(handle_.get(),
                                                      static_cast<int32_t>(sample_rate),
                                                      static_cast<int32_t>(num_channels));
 	}
 
     int32_t Feed(int16_t const * data, uint32_t size) const {
-        return Singleton<ChromaprintLib>::GetInstance().chromaprint_feed(context_.get(), data, static_cast<int32_t>(size));
+        return Singleton<ChromaprintLib>::GetInstance().chromaprint_feed(handle_.get(), data, static_cast<int32_t>(size));
 	}
 
     int32_t Finish() const {
-		return Singleton<ChromaprintLib>::GetInstance().chromaprint_finish(context_.get());
+		return Singleton<ChromaprintLib>::GetInstance().chromaprint_finish(handle_.get());
 	}	
 
 	std::vector<uint8_t> GetFingerprint() const {
@@ -110,7 +110,7 @@ public:
 
 private:
     int32_t GetRawFingerprint(uint32_t** fingerprint, int32_t* size) const {
-		return Singleton<ChromaprintLib>::GetInstance().chromaprint_get_raw_fingerprint(context_.get(), fingerprint, size);
+		return Singleton<ChromaprintLib>::GetInstance().chromaprint_get_raw_fingerprint(handle_.get(), fingerprint, size);
 	}
 
 	struct ChromaprintContextTraits final {
@@ -123,10 +123,10 @@ private:
 		}
 	};
 
-	using ChromaprintContextPtr = UniqueHandle<ChromaprintContext*, ChromaprintContextTraits>;
+	using ChromaprintHandle = UniqueHandle<ChromaprintContext*, ChromaprintContextTraits>;
 
 	int32_t algorithm_;
-	ChromaprintContextPtr context_;
+	ChromaprintHandle handle_;
 	std::vector<int16_t> buffer_;
 };
 

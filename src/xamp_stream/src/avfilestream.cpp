@@ -1,7 +1,5 @@
 #include <stream/avfilestream.h>
 
-#if ENABLE_FFMPEG
-
 #ifdef XAMP_OS_WIN
 #pragma comment(lib, "crypt32")
 #pragma comment(lib, "Bcrypt")
@@ -98,7 +96,7 @@ public:
         AVFormatContext* format_ctx = nullptr;
 
         const auto file_path_ut8 = String::ToString(file_path);
-        auto err = ::avformat_open_input(&format_ctx, file_path_ut8.c_str(), nullptr, nullptr);
+        const auto err = ::avformat_open_input(&format_ctx, file_path_ut8.c_str(), nullptr, nullptr);
         if (err != 0) {
             if (err == AVERROR_INVALIDDATA) {
                 throw NotSupportFormatException();
@@ -122,13 +120,13 @@ public:
             }
         }
 
-        if (HasAudio()) {
+        if (HasAudioStream()) {
             OpenAudioStream();
         } else {
             throw NotSupportFormatException();
         }
 
-        const auto stream = format_context_->streams[audio_stream_id_];
+        auto* const stream = format_context_->streams[audio_stream_id_];
         total_frames_ = stream->nb_frames;
 
         duration_ = ::av_q2d(stream->time_base) * static_cast<double>(stream->duration);
@@ -137,7 +135,7 @@ public:
     void OpenAudioStream() {
         codec_context_.reset(format_context_->streams[audio_stream_id_]->codec);
 
-        const auto codec = ::avcodec_find_decoder(codec_context_->codec_id);
+        const auto* codec = ::avcodec_find_decoder(codec_context_->codec_id);
         if (!codec) {
             throw NotSupportFormatException();
         }
@@ -154,6 +152,16 @@ public:
         case AV_SAMPLE_FMT_FLTP:
             XAMP_LOG_DEBUG("Stream format => PLANAR");
             break;
+        case AV_SAMPLE_FMT_NONE: break;
+        case AV_SAMPLE_FMT_U8: break;
+        case AV_SAMPLE_FMT_FLT: break;
+        case AV_SAMPLE_FMT_DBL: break;
+        case AV_SAMPLE_FMT_U8P: break;
+        case AV_SAMPLE_FMT_S32P: break;
+        case AV_SAMPLE_FMT_DBLP: break;
+        case AV_SAMPLE_FMT_S64: break;
+        case AV_SAMPLE_FMT_S64P: break;
+        case AV_SAMPLE_FMT_NB: break;
         default:
             throw NotSupportFormatException();
         }
@@ -162,7 +170,8 @@ public:
             XAMP_LOG_DEBUG("Stream input format => {}", format_context_->iformat->name);
         }
 
-        auto channel_layout = codec_context_->channel_layout == 0 ? AV_CH_LAYOUT_STEREO : codec_context_->channel_layout;
+        const auto channel_layout = 
+            codec_context_->channel_layout == 0 ? AV_CH_LAYOUT_STEREO : codec_context_->channel_layout;
         // 固定轉成INTERLEAVED格式 立體聲
         swr_context_.reset(::swr_alloc_set_opts(swr_context_.get(),
                                                 AV_CH_LAYOUT_STEREO,
@@ -263,17 +272,17 @@ public:
             timestamp += format_context_->start_time;
         }
 
-        AvIfFailedThrow(::av_seek_frame(format_context_.get(), -1, timestamp, AVSEEK_FLAG_BACKWARD));
+        AvIfFailedThrow(::av_seek_frame(format_context_.get(), audio_stream_id_, timestamp, AVSEEK_FLAG_BACKWARD));
         ::avcodec_flush_buffers(codec_context_.get());
     }
 
 private:
-    [[nodiscard]] bool HasAudio() const noexcept {
+    [[nodiscard]] bool HasAudioStream() const noexcept {
         return audio_stream_id_ >= 0;
     }
 
     uint32_t ConvertSamples(float* buffer, uint32_t length) const noexcept {
-        const uint32_t frame_size = static_cast<uint32_t>(audio_frame_->nb_samples * codec_context_->channels);
+        const auto frame_size = static_cast<uint32_t>(audio_frame_->nb_samples * codec_context_->channels);
         const auto result = ::swr_convert(swr_context_.get(),
                                           reinterpret_cast<uint8_t **>(&buffer),
                                           audio_frame_->nb_samples,
@@ -283,7 +292,7 @@ private:
             return 0;
         }
         assert(result > 0);
-        const uint32_t convert_size = static_cast<uint32_t>(result * codec_context_->channels);
+        const auto convert_size = static_cast<uint32_t>(result * codec_context_->channels);
         assert(convert_size == frame_size && convert_size <= length);
         return frame_size;
     }
@@ -342,7 +351,7 @@ std::set<std::string> AvFileStream::GetSupportFileExtensions() {
     std::set<std::string> result;
     const std::string dot(".");
 	
-    while ((format = av_demuxer_iterate(&format_opaque)) != nullptr) {
+    while ((format = ::av_demuxer_iterate(&format_opaque)) != nullptr) {
         if (!format->extensions) {
             continue;
         }
@@ -354,6 +363,3 @@ std::set<std::string> AvFileStream::GetSupportFileExtensions() {
 }
 
 }
-
-#endif
-

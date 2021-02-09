@@ -151,7 +151,7 @@ public:
         BassIfFailedThrow(Singleton<BassLib>::GetInstance().BASS_ChannelSetPosition(GetHStream(), pos_bytes, BASS_POS_BYTE));
     }
 
-    [[nodiscard]]  uint32_t GetDsdSampleRate() const {
+    [[nodiscard]] uint32_t GetDsdSampleRate() const {
         float rate = 0;
         BassIfFailedThrow(Singleton<BassLib>::GetInstance().BASS_ChannelGetAttribute(GetHStream(), BASS_ATTRIB_DSD_RATE, &rate));
         return static_cast<uint32_t>(rate);
