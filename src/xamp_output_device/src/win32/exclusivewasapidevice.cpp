@@ -4,6 +4,7 @@
 
 #include <base/logger.h>
 #include <base/str_utilts.h>
+#include <base/waitabletimer.h>
 #include <output_device/win32/hrexception.h>
 #include <output_device/win32/wasapi.h>
 #include <output_device/win32/exclusivewasapidevice.h>
@@ -345,7 +346,7 @@ void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
         }
     }
 
-	::Sleep(aligned_period_ / kWasapiReftimesPerMillisec);
+	MSleep(aligned_period_ / kWasapiReftimesPerMillisec);
 
     if (client_ != nullptr) {		
 		LogHrFailled(client_->Stop());

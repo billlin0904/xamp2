@@ -82,4 +82,8 @@ void MSleep(std::chrono::milliseconds timeout) {
 	timer.Wait();
 }
 
+void MSleep(int64_t timeout) {
+	MSleep(std::chrono::milliseconds(timeout));
+}
+
 }

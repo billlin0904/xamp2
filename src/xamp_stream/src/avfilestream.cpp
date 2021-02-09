@@ -272,7 +272,8 @@ public:
             timestamp += format_context_->start_time;
         }
 
-        AvIfFailedThrow(::av_seek_frame(format_context_.get(), audio_stream_id_, timestamp, AVSEEK_FLAG_BACKWARD));
+    	// stream_index必須是-1, 不能是audio_stream_id_.
+        AvIfFailedThrow(::av_seek_frame(format_context_.get(), -1, timestamp, AVSEEK_FLAG_BACKWARD));
         ::avcodec_flush_buffers(codec_context_.get());
     }
 
@@ -282,6 +283,13 @@ private:
     }
 
     uint32_t ConvertSamples(float* buffer, uint32_t length) const noexcept {
+        auto out_samples = ::av_rescale_rnd(
+            ::swr_get_delay(swr_context_.get(), audio_format_.GetSampleRate()) +
+            audio_frame_->nb_samples,
+            audio_format_.GetSampleRate(),
+            audio_format_.GetSampleRate(),
+            AV_ROUND_UP);
+    	
         const auto frame_size = static_cast<uint32_t>(audio_frame_->nb_samples * codec_context_->channels);
         const auto result = ::swr_convert(swr_context_.get(),
                                           reinterpret_cast<uint8_t **>(&buffer),

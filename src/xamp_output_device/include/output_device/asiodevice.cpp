@@ -24,7 +24,6 @@ namespace xamp::output_device {
 using namespace win32;
 
 struct AsioDriver {
-	AsioDriver() = default;
 	bool is_xrun{ false };
 	bool post_output{ false };
 	AsioDevice* device{ nullptr };

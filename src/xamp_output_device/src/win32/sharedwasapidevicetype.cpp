@@ -107,7 +107,7 @@ std::vector<DeviceInfo> SharedWasapiDeviceType::GetDeviceInfoList() const {
 		return first.name.length() > second.name.length();
 		});
 
-	return std::move(device_list);
+	return device_list;
 }
 
 }

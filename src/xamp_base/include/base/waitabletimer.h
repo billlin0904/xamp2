@@ -28,4 +28,6 @@ private:
 
 XAMP_BASE_API void MSleep(std::chrono::milliseconds timeout);
 
+XAMP_BASE_API void MSleep(int64_t timeout);
+
 }
