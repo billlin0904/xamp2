@@ -125,22 +125,23 @@ std::optional<Task> TaskScheduler::TrySteal() {
 	return std::nullopt;
 }
 
-void TaskScheduler::SetWorkerThraedName(int32_t i) {
+void TaskScheduler::SetWorkerThreadName(int32_t i) {
 #ifdef XAMP_OS_MAC
 	// Sleep for set thread name.
 	std::this_thread::sleep_for(std::chrono::milliseconds(900));
 #endif
-	std::ostringstream ostr;
-	ostr << "Worker Thread(" << i << ").";
-	SetThreadName(ostr.str());
+	std::ostringstream stream;
+	stream << "Worker Thread(" << i << ").";
+	SetThreadName(stream.str());
 }
 
 void TaskScheduler::AddThread(size_t i) {
 	threads_.emplace_back([i, this]() mutable {
-		const auto allocate_stack_size = (std::min)(kInitL1CacheLineSize * i, kMaxL1CacheLineSize);
+		const auto allocate_stack_size = (std::min)(kInitL1CacheLineSize * i, 
+			kMaxL1CacheLineSize);
 		const auto L1_padding_buffer = MakeStackBuffer<uint8_t>(allocate_stack_size);
 		
-		SetWorkerThraedName(i);
+		SetWorkerThreadName(i);
 #ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
 		XAMP_LOG_DEBUG("Worker Thread {} start.", i);
 #endif

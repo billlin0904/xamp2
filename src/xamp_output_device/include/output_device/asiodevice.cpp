@@ -223,10 +223,10 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 	Singleton<AsioDriver>::GetInstance().asio_callbacks.bufferSwitchTimeInfo = OnBufferSwitchTimeInfoCallback;
 	Singleton<AsioDriver>::GetInstance().data_context.volume_factor = LinearToLog(volume_);
 
-	auto result = ::ASIOCreateBuffers(Singleton<AsioDriver>::GetInstance().buffer_infos.data(),
-		output_format.GetChannels(),
-		buffer_size,
-		&Singleton<AsioDriver>::GetInstance().asio_callbacks);
+	const auto result = ::ASIOCreateBuffers(Singleton<AsioDriver>::GetInstance().buffer_infos.data(),
+	                                        output_format.GetChannels(),
+	                                        buffer_size,
+	                                        &Singleton<AsioDriver>::GetInstance().asio_callbacks);
 	if (result != ASE_OK) {
 		AsioIfFailedThrow(::ASIOCreateBuffers(Singleton<AsioDriver>::GetInstance().buffer_infos.data(),
 			output_format.GetChannels(),
@@ -239,8 +239,10 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 	}
 
 	for (long i = 0; i < Singleton<AsioDriver>::GetInstance().buffer_infos.size(); ++i) {
-		Singleton<AsioDriver>::GetInstance().channel_infos[i].channel = Singleton<AsioDriver>::GetInstance().buffer_infos[i].channelNum;
-		Singleton<AsioDriver>::GetInstance().channel_infos[i].isInput = Singleton<AsioDriver>::GetInstance().buffer_infos[i].isInput;
+		Singleton<AsioDriver>::GetInstance().channel_infos[i].channel =
+			Singleton<AsioDriver>::GetInstance().buffer_infos[i].channelNum;
+		Singleton<AsioDriver>::GetInstance().channel_infos[i].isInput = 
+			Singleton<AsioDriver>::GetInstance().buffer_infos[i].isInput;
 		AsioIfFailedThrow(::ASIOGetChannelInfo(&Singleton<AsioDriver>::GetInstance().channel_infos[i]));
 	}
 
@@ -384,23 +386,22 @@ void AsioDevice::SetMute(bool mute) const {
 }
 
 void AsioDevice::OnBufferSwitch(long index, double sample_time) noexcept {
-	auto cache_played_bytes = played_bytes_.load();
-
-	if (cache_played_bytes == 0) {
-		mmcss_.BoostPriority();
-	}
-	
-	cache_played_bytes += buffer_bytes_ * format_.GetChannels();
-	played_bytes_ = cache_played_bytes;
-
 	if (!is_streaming_) {
 		is_stop_streaming_ = true;
 		condition_.notify_all();
 		if (Singleton<AsioDriver>::GetInstance().post_output) {
 			::ASIOOutputReady();
-		}		
+		}
 		return;
 	}
+	
+	auto cache_played_bytes = played_bytes_.load();
+	if (cache_played_bytes == 0) {
+		mmcss_.BoostPriority();
+	}
+	
+	cache_played_bytes += buffer_bytes_ * format_.GetChannels();
+	played_bytes_ = cache_played_bytes;	
 
 	auto got_samples = false;
 
@@ -414,7 +415,7 @@ void AsioDevice::OnBufferSwitch(long index, double sample_time) noexcept {
 
 		// PCM mode input float to output format.
 		const auto stream_time = static_cast<double>(played_bytes_) / format_.GetAvgBytesPerSec();
-		XAMP_LIKELY(callback_->OnGetSamples(reinterpret_cast<float*>(buffer_.Get()), buffer_size_, stream_time, sample_time) == 0) {
+		XAMP_LIKELY(callback_->OnGetSamples(buffer_.Get(), buffer_size_, stream_time, sample_time) == 0) {
 			DataConverter<PackedFormat::PLANAR,
 				PackedFormat::INTERLEAVED>::Convert(
 					reinterpret_cast<int32_t*>(device_buffer_.Get()),

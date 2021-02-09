@@ -32,7 +32,7 @@ public:
             if (!lock) {
                 return false;
             }
-            queue_.emplace(std::move(task));
+            queue_.emplace(std::forward<U>(task));
         }
         notify_.notify_one();
         return true;

@@ -10,7 +10,7 @@ namespace xamp::output_device {
 
 static std::string CLSIDToString(CLSID guid) {
     std::array<char, 40> output;
-    snprintf(output.data(), output.size(),
+    String::StringPrint(output.data(), output.size(),
 		"{%08X-%04hX-%04hX-%02X%02X-%02X%02X%02X%02X%02X%02X}",
 		guid.Data1,
 		guid.Data2,
