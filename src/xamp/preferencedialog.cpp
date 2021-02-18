@@ -210,6 +210,9 @@ PreferenceDialog::PreferenceDialog(QWidget *parent)
 
 		auto index = ui_.resamplerStackedWidget->currentIndex();
 		AppSettings::setValue(kAppSettingResamplerEnable, index > 0);
+
+		JsonSettings::save();
+		AppSettings::save();
 		});	
 
 	initSoxResampler();

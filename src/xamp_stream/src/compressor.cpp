@@ -1,33 +1,28 @@
 #include <stream/basslib.h>
 #include <base/memory.h>
-#include <player/peaklimiter.h>
+#include <stream/compressor.h>
 
-namespace xamp::player {
+namespace xamp::stream {
 
-using namespace xamp::stream;
-
-class PeakLimiter::PeakLimiterImpl {
+class Compressor::CompressorImpl {
 public:
-    PeakLimiterImpl() {
-    }
-
-    void SetSampleRate(uint32_t output_sample_rate) {
-        stream_.reset(BASS.BASS_StreamCreate(output_sample_rate,
+    void SetSampleRate(uint32_t sample_rate) {
+        stream_.reset(BASS.BASS_StreamCreate(sample_rate,
                                              kMaxChannel,
                                              BASS_SAMPLE_FLOAT | BASS_STREAM_DECODE,
                                              STREAMPROC_DUMMY,
                                              nullptr));
     }
 
-    void Setup(float gain, float threshold, float ratio, float attack, float release) {
-        ::BASS_BFX_COMPRESSOR2 compressord{0};
-        compressord.fGain = gain;
-        compressord.fThreshold = threshold;
-        compressord.fRatio = ratio;
-        compressord.fAttack = attack;
-        compressord.fRelease = release;
+    void Prepare(Parameters const& parameters) {
+        ::BASS_BFX_COMPRESSOR2 compressord;
+        compressord.fGain = parameters.gain;
+        compressord.fThreshold = parameters.threshold;
+        compressord.fRatio = parameters.ratio;
+        compressord.fAttack = parameters.attack;
+        compressord.fRelease = parameters.release;
         compressord.lChannel = BASS_BFX_CHANALL;
-        auto compressor_fx = BASS.BASS_ChannelSetFX(
+        const auto compressor_fx = BASS.BASS_ChannelSetFX(
             stream_.get(),
             BASS_FX_BFX_COMPRESSOR2,
             0);
@@ -47,36 +42,41 @@ public:
         if (bytes_read == kBassError) {
             return result_;
         }
-        else if (bytes_read == 0) {
+        if (bytes_read == 0) {
             return result_;
         }
-        auto frames = bytes_read / sizeof(float);
+        const auto frames = bytes_read / sizeof(float);
         buffer_.resize(frames);
         result_.insert(result_.end(), buffer_.begin(), buffer_.end());
         return result_;
     }
 
+private:
     BassStreamHandle stream_;
     std::vector<float> result_;
     std::vector<float> buffer_;
 };
 
-PeakLimiter::PeakLimiter()
-    : impl_(MakeAlign<PeakLimiterImpl>()) {
+Compressor::Compressor()
+    : impl_(MakeAlign<CompressorImpl>()) {
 }
 
-void PeakLimiter::SetSampleRate(uint32_t output_sample_rate) {
-    impl_->SetSampleRate(output_sample_rate);
+void Compressor::SetSampleRate(uint32_t sample_rate) {
+    impl_->SetSampleRate(sample_rate);
 }
 
-XAMP_PIMPL_IMPL(PeakLimiter)
+XAMP_PIMPL_IMPL(Compressor)
 
-void PeakLimiter::Setup(float gain, float threshold, float ratio, float attack, float release) {
-    impl_->Setup(gain, threshold, ratio, attack, release);
+void Compressor::Prepare(Parameters const &parameters) {
+    impl_->Prepare(parameters);
 }
 
-const std::vector<float>& PeakLimiter::Process(float const * samples, uint32_t num_samples) {
+const std::vector<float>& Compressor::Process(float const * samples, uint32_t num_samples) {
     return impl_->Process(samples, num_samples);
+}
+
+Uuid Compressor::GetTypeId() const {
+    return Id;
 }
 
 }

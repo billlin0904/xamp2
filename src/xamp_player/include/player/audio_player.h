@@ -18,19 +18,15 @@
 #include <base/align_ptr.h>
 #include <base/uuid.h>
 #include <base/spsc_queue.h>
+#include <base/stopwatch.h>
 
-#include <stream/stream.h>
-
-#include <output_device/output_device.h>
 #include <output_device/audiocallback.h>
 #include <output_device/deviceinfo.h>
 
 #include <player/playstate.h>
 #include <player/playbackstateadapter.h>
-#include <player/peaklimiter.h>
 #include <player/player.h>
 
-#include <base/stopwatch.h>
 
 namespace xamp::player {
 
@@ -101,7 +97,11 @@ public:
 
     bool IsDsdStream() const noexcept;
 
-    void SetSampleRateConverter(uint32_t samplerate, AlignPtr<SampleRateConverter> &&resampler);
+    void SetSampleRateConverter(uint32_t sample_rate, AlignPtr<SampleRateConverter> && converter);
+
+    void SetProcessor(AlignPtr<AudioProcessor> &&processor);
+
+    void RemoveProcessor();
 
     void EnableSampleRateConverter(bool enable = true);
 
@@ -162,6 +162,8 @@ private:
 
     void ProcessSeek();
 
+    void ProcessProcessor();
+
     struct XAMP_CACHE_ALIGNED(kMallocAlignSize) AudioSlice {
 	    explicit AudioSlice(float const* samples = nullptr,
             int32_t sample_size = 0,
@@ -176,11 +178,11 @@ private:
     static constexpr auto kMsgQueueSize = 30;
 
     bool is_muted_;
-    bool enable_resample_;
+    bool enable_sample_converter_;
     DsdModes dsd_mode_;
     std::atomic<PlayerState> state_;
     uint8_t sample_size_;
-    uint32_t target_samplerate_;
+    uint32_t target_sample_rate_;
     uint32_t volume_;
     uint32_t num_buffer_samples_;
     uint32_t num_read_sample_;
@@ -193,8 +195,10 @@ private:
     std::atomic<AudioSlice> slice_;
     mutable std::mutex pause_mutex_;
     mutable std::mutex stream_read_mutex_;
+#ifdef _DEBUG
     std::chrono::microseconds min_process_time_{ 0 };
     std::chrono::microseconds max_process_time_{ 0 };
+#endif
     Stopwatch sw_; 
     std::string device_id_;
     Uuid device_type_id_;
@@ -212,11 +216,12 @@ private:
     VmMemLock sample_read_buffer_lock_;
     WaitableTimer wait_timer_;
     AlignPtr<SampleRateConverter> converter_;
-    PeakLimiter limier_;
+    std::vector<AlignPtr<AudioProcessor>> dsp_chain_;
     DeviceInfo device_info_;
     std::shared_future<void> stream_task_;
     SpscQueue<MsgID> msg_queue_;
     SpscQueue<double> seek_queue_;
+    SpscQueue<AlignPtr<AudioProcessor>> processor_queue_;
 };
 
 }

@@ -137,15 +137,15 @@ DsdModes SetStreamDsdMode(AlignPtr<FileStream>& stream, bool is_dsd_file, const 
 }
 
 static HashSet<std::string> GetStreamSupportFileExtensions() {
-    auto av = AvFileStream::GetSupportFileExtensions();
-    XAMP_LOG_TRACE("Get AvFileStream support file ext: {}", String::Join(av));
+	const auto av_file_ext = AvFileStream::GetSupportFileExtensions();
+    XAMP_LOG_TRACE("Get AvFileStream support file ext: {}", String::Join(av_file_ext));
 
-	auto bass = BassFileStream::GetSupportFileExtensions();
-    XAMP_LOG_TRACE("Get BassFileStream support file ext: {}", String::Join(bass));
+    const auto bass_file_ext = BassFileStream::GetSupportFileExtensions();
+    XAMP_LOG_TRACE("Get BassFileStream support file ext: {}", String::Join(bass_file_ext));
 
     HashSet<std::string> support_file_ext;
 
-    for (const auto & file_ext : Union<std::string>(av, bass)) {
+    for (const auto & file_ext : Union<std::string>(av_file_ext, bass_file_ext)) {
         support_file_ext.insert(file_ext);
     }
     return support_file_ext;

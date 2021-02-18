@@ -5,27 +5,28 @@
 
 #pragma once
 
+#include <vector>
 #include <base/base.h>
-
-#ifdef XAMP_OS_WIN
-#ifdef STREAM_API_EXPORTS
-    #define XAMP_STREAM_API __declspec(dllexport)
-#else
-    #define XAMP_STREAM_API __declspec(dllimport)
-#endif
-#else
-#define XAMP_STREAM_API
-#endif
+#include <base/uuid.h>
+#include <stream/stream.h>
 
 namespace xamp::stream {
-	using namespace base;
 
-	class AudioProcessor;
-	class AudioStream;
+using namespace xamp::base;
+
+class XAMP_NO_VTABLE XAMP_STREAM_API AudioProcessor {
+public:
+	XAMP_BASE_CLASS(AudioProcessor)
+
+	virtual void SetSampleRate(uint32_t sample_rate) = 0;
+
+	virtual const std::vector<float>& Process(float const* samples, uint32_t num_samples) = 0;
+
+	virtual Uuid GetTypeId() const = 0;
 	
-	class FileStream;
-	class DsdStream;
-	class AvFileStream;
-	class BassFileStream;
-	class Compressor;
+protected:
+	AudioProcessor() = default;
+};
+
 }
+

@@ -58,8 +58,8 @@ public:
     AlignPtr<SampleRateConverter> Clone() override;
 
 private:
-    class SoxrResamplerImpl;
-    AlignPtr<SoxrResamplerImpl> impl_;
+    class SoxrSampleRateConverterImpl;
+    AlignPtr<SoxrSampleRateConverterImpl> impl_;
 };
 
 }

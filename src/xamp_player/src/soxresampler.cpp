@@ -45,11 +45,11 @@ public:
     XAMP_DECLARE_DLL(soxr_clear) soxr_clear;
 };
 
-class SoxrSampleRateConverter::SoxrResamplerImpl final {
+class SoxrSampleRateConverter::SoxrSampleRateConverterImpl final {
 public:
     static constexpr size_t kInitBufferSize = 4 * 1024 * 1204;
 
-    SoxrResamplerImpl() noexcept
+    SoxrSampleRateConverterImpl() noexcept
         : enable_steep_filter_(false)
         , enable_dither_(false)
         , quality_(SoxrQuality::VHQ)
@@ -61,7 +61,7 @@ public:
         , stopband_(1.0) {        
     }
 
-    ~SoxrResamplerImpl() noexcept {
+    ~SoxrSampleRateConverterImpl() noexcept {
         Close();
     }
 
@@ -244,7 +244,7 @@ public:
 const std::string_view SoxrSampleRateConverter::VERSION = "Soxr " SOXR_THIS_VERSION_STR;
 
 SoxrSampleRateConverter::SoxrSampleRateConverter()
-    : impl_(MakeAlign<SoxrResamplerImpl>()) {
+    : impl_(MakeAlign<SoxrSampleRateConverterImpl>()) {
 }
 
 XAMP_PIMPL_IMPL(SoxrSampleRateConverter)

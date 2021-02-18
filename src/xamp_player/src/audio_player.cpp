@@ -12,6 +12,7 @@
 
 #include <stream/bassfilestream.h>
 #include <stream/avfilestream.h>
+#include <stream/audioprocessor.h>
 
 #include <player/soxresampler.h>
 #include <player/samplerateconverter.h>
@@ -48,11 +49,11 @@ AudioPlayer::AudioPlayer()
 
 AudioPlayer::AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter)
     : is_muted_(false)
-    , enable_resample_(false)
+    , enable_sample_converter_(false)
     , dsd_mode_(DsdModes::DSD_MODE_PCM)
     , state_(PlayerState::PLAYER_STATE_STOPPED)
     , sample_size_(0)
-    , target_samplerate_(0)
+    , target_sample_rate_(0)
     , volume_(0)
     , num_buffer_samples_(0)
     , num_read_sample_(0)
@@ -65,7 +66,8 @@ AudioPlayer::AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter)
     , state_adapter_(adapter)
     , buffer_(GetPageAlignSize(kPreallocateBufferSize))
 	, msg_queue_(kMsgQueueSize)
-    , seek_queue_(kMsgQueueSize) {
+    , seek_queue_(kMsgQueueSize)
+	, processor_queue_(kMsgQueueSize) {
 }
 
 AudioPlayer::~AudioPlayer() = default;
@@ -125,9 +127,16 @@ void AudioPlayer::Open(std::wstring const & file_path,
 }
 
 void AudioPlayer::SetSampleRateConverter(uint32_t sample_rate, AlignPtr<SampleRateConverter>&& converter) {
-    target_samplerate_ = sample_rate;
+    target_sample_rate_ = sample_rate;
     converter_ = std::move(converter);
     EnableSampleRateConverter(true);
+}
+
+void AudioPlayer::SetProcessor(AlignPtr<AudioProcessor>&& processor) {
+    processor_queue_.TryEnqueue(std::move(processor));
+}
+
+void AudioPlayer::RemoveProcessor() {
 }
 
 void AudioPlayer::SetDevice(const DeviceInfo& device_info) {
@@ -204,6 +213,26 @@ void AudioPlayer::ProcessSeek() {
         seek_queue_.Pop();
     }
 }
+
+void AudioPlayer::ProcessProcessor() {
+	while (!processor_queue_.empty()) {
+        if (auto* processor = processor_queue_.Front()) {
+            auto id = (*processor)->GetTypeId();
+            const auto itr = std::find_if(dsp_chain_.begin(),
+                dsp_chain_.end(),
+                [id](auto const& processor) {
+                    return processor->GetTypeId() == id;
+                });
+            auto& pp = (*processor);
+            if (itr != dsp_chain_.end()) {
+                (*itr) = std::move(pp);
+            }
+            else {
+                dsp_chain_.push_back(std::move(pp));
+            }
+        }
+	}    
+}
 	
 void AudioPlayer::Play() {
     if (!device_) {
@@ -226,6 +255,7 @@ void AudioPlayer::Play() {
 	}
 
     stream_task_ = ThreadPool::GetInstance().Run([player = shared_from_this()]() noexcept {
+        constexpr auto kPauseWaitTimeout = std::chrono::milliseconds(100);
         auto* p = player.get();
 
         std::unique_lock<std::mutex> lock{ p->pause_mutex_ };
@@ -239,7 +269,7 @@ void AudioPlayer::Play() {
         try {
             while (p->is_playing_) {
                 while (p->is_paused_) {
-                    p->pause_cond_.wait_for(lock, std::chrono::milliseconds(100));
+                    p->pause_cond_.wait_for(lock, kPauseWaitTimeout);
                     p->ProcessSeek();
                 }
 
@@ -249,6 +279,8 @@ void AudioPlayer::Play() {
                     p->wait_timer_.Wait();
                     continue;
                 }
+            	
+                p->ProcessProcessor();
                 p->ReadSampleLoop(sample_buffer, max_buffer_sample, lock);
             }
         }
@@ -490,20 +522,20 @@ void AudioPlayer::CreateBuffer() {
         read_sample_size_ = allocate_size;
     }
 
-    if (!enable_resample_
+    if (!enable_sample_converter_
         || dsd_mode_ == DsdModes::DSD_MODE_NATIVE
         || dsd_mode_ == DsdModes::DSD_MODE_DOP) {
         converter_ = MakeAlign<SampleRateConverter, PassThroughSampleRateConverter>(dsd_mode_, stream_->GetSampleSize());
     }
 
-    if (!enable_resample_) {
+    if (!enable_sample_converter_) {
         ResizeBuffer();
     }
     else {
-        assert(target_samplerate_ > 0);
+        assert(target_sample_rate_ > 0);
         converter_->Start(input_format_.GetSampleRate(),
                           input_format_.GetChannels(),
-                          target_samplerate_);
+                          target_sample_rate_);
     }
 
     XAMP_LOG_DEBUG("Output device format: {} num_read_sample: {} resampler: {} buffer: {}.",
@@ -514,22 +546,22 @@ void AudioPlayer::CreateBuffer() {
 }
 
 void AudioPlayer::EnableSampleRateConverter(bool enable) {
-    enable_resample_ = enable;
+    enable_sample_converter_ = enable;
 }
 
 bool AudioPlayer::IsEnableSampleRateConverter() const {
-    return enable_resample_;
+    return enable_sample_converter_;
 }
 
 void AudioPlayer::SetDeviceFormat() {
     input_format_ = stream_->GetFormat();
 
-    if (enable_resample_ && dsd_mode_ == DsdModes::DSD_MODE_PCM) {
-        if (output_format_.GetSampleRate() != target_samplerate_) {
+    if (enable_sample_converter_ && dsd_mode_ == DsdModes::DSD_MODE_PCM) {
+        if (output_format_.GetSampleRate() != target_sample_rate_) {
             device_id_.clear();
         }
         output_format_ = input_format_;
-        output_format_.SetSampleRate(target_samplerate_);
+        output_format_.SetSampleRate(target_sample_rate_);
     }
     else {
         if (input_format_.GetSampleRate() != output_format_.GetSampleRate()) {
@@ -538,7 +570,9 @@ void AudioPlayer::SetDeviceFormat() {
         output_format_ = input_format_;
     }
 
-    limier_.SetSampleRate(input_format_.GetSampleRate());
+	for (auto &dsp : dsp_chain_) {
+        dsp->SetSampleRate(input_format_.GetSampleRate());
+	}    
 }
 
 void AudioPlayer::OnVolumeChange(float vol) noexcept {
@@ -583,8 +617,8 @@ void AudioPlayer::OnDeviceStateChange(DeviceState state, std::string const & dev
 
 void AudioPlayer::OpenDevice(double stream_time) {
 #ifdef ENABLE_ASIO
-    if (auto* dsd_output = AsDsdDevice(device_)) {
-        if (auto* const dsd_stream = AsDsdStream(stream_)) {
+    if (auto* dsd_output = audio_util::AsDsdDevice(device_)) {
+        if (auto* const dsd_stream = audio_util::AsDsdStream(stream_)) {
             if (dsd_stream->GetDsdMode() == DsdModes::DSD_MODE_NATIVE) {
                 dsd_output->SetIoFormat(DsdIoFormat::IO_FORMAT_DSD);
                 dsd_mode_ = DsdModes::DSD_MODE_NATIVE;
@@ -609,7 +643,7 @@ void AudioPlayer::BufferStream(double stream_time) {
         stream_->Seek(stream_time);
     }
 
-    if (enable_resample_) {
+    if (enable_sample_converter_) {
         converter_->Flush();
     }
 
@@ -748,10 +782,22 @@ void AudioPlayer::BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<SampleRat
             }
 
             auto* samples = reinterpret_cast<float*>(sample_buffer);
-            //auto const &buffer = limier_.Process(samples, num_samples);
-            if (!converter->Process(samples, num_samples, buffer_)) {
-                continue;
-            }
+
+        	if (!dsp_chain_.empty()) {
+                auto itr = dsp_chain_.begin();
+                auto buffer = (*itr)->Process(samples, num_samples);
+        		
+                for (; itr != dsp_chain_.end(); ++itr) {
+                    buffer = (*itr)->Process(buffer.data(), buffer.size());
+                }
+                if (!converter->Process(buffer.data(), buffer.size(), buffer_)) {
+                    continue;
+                }
+        	} else {
+                if (!converter->Process(samples, num_samples, buffer_)) {
+                    continue;
+                }
+        	}
             break;
         }
     }
@@ -763,9 +809,22 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_buffer_samp
 
         if (num_samples > 0) {
             auto *samples = reinterpret_cast<float*>(sample_buffer);
-            //auto const &buffer = limier_.Process(samples, num_samples);
-            if (!converter_->Process(samples, num_samples, buffer_)) {
-                continue;
+
+            if (!dsp_chain_.empty()) {
+                auto itr = dsp_chain_.begin();
+                auto buffer = (*itr)->Process(samples, num_samples);
+
+                for (; itr != dsp_chain_.end(); ++itr) {
+                    buffer = (*itr)->Process(buffer.data(), buffer.size());
+                }
+                if (!converter_->Process(buffer.data(), buffer.size(), buffer_)) {
+                    continue;
+                }
+            }
+            else {
+                if (!converter_->Process(samples, num_samples, buffer_)) {
+                    continue;
+                }
             }
         }
         else {            

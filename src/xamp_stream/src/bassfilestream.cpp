@@ -197,9 +197,7 @@ private:
         if (mix_stream_.is_valid()) {
             return mix_stream_.get();
         }
-        else {
-            return stream_.get();
-        }
+        return stream_.get();
     }
 
     XAMP_ALWAYS_INLINE uint32_t InternalGetSamples(void* buffer, uint32_t length) const noexcept {
@@ -230,7 +228,9 @@ void BassFileStream::LoadBassLib() {
     BASS.MixLib = MakeAlign<BassMixLib>();
     XAMP_LOG_DEBUG("Load BassMixLib {} successfully.", GetBassVersion(BASS.MixLib->BASS_Mixer_GetVersion()));
     BASS.DSDLib = MakeAlign<BassDSDLib>();
+    XAMP_LOG_DEBUG("Load BassDSDLib successfully.");
     BASS.FxLib = MakeAlign<BassFxLib>();
+    XAMP_LOG_DEBUG("Load BassFxLib successfully.");
     BASS.BASS_SetConfig(BASS_CONFIG_DSD_FREQ, 174000);
     XAMP_LOG_DEBUG("Load BassDSDLib successfully.");
 }

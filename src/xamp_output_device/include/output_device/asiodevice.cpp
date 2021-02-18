@@ -311,16 +311,16 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 		const auto allocate_bytes = buffer_size_ * format_.GetBytesPerSample() * format_.GetChannels();
 		Singleton<AsioDriver>::GetInstance().data_context = MakeConvert(in_format, format_, buffer_size_);
 		buffer_bytes_ = buffer_size_ * static_cast<int64_t>(format_.GetBytesPerSample());
-		const auto alloc_size = allocate_bytes * buffer_size_;
+		const auto alloc_size = allocate_bytes;
 		if (buffer_.GetSize() < alloc_size) {
 			buffer_vmlock_.UnLock();
 			buffer_ = MakeBuffer<int8_t>(alloc_size);
-			buffer_vmlock_.Lock(buffer_.Get(), allocate_bytes* buffer_size_);
+			buffer_vmlock_.Lock(buffer_.Get(), alloc_size);
 		}
 		if (device_buffer_.GetSize() < alloc_size) {
 			device_buffer_vmlock_.UnLock();
 			device_buffer_ = MakeBuffer<int8_t>(alloc_size);
-			device_buffer_vmlock_.Lock(device_buffer_.Get(), allocate_bytes * buffer_size_);
+			device_buffer_vmlock_.Lock(device_buffer_.Get(), alloc_size);
 		}		
 	}
 	else {

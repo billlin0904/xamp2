@@ -3,7 +3,7 @@
 #include <base/dataconverter.h>
 #include <stream/dsdstream.h>
 
-#include <player/peaklimiter.h>
+#include <stream/compressor.h>
 #include <player/chromaprint.h>
 #include <player/audio_player.h>
 #include <player/audio_util.h>
