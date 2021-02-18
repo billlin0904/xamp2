@@ -116,7 +116,7 @@ public:
 
         for (uint32_t i = 0; i < format_context_->nb_streams; ++i) {
             if ((audio_stream_id_ < 0) && (format_context_->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)) {
-                audio_stream_id_ = i;
+                audio_stream_id_ = static_cast<int32_t>(i);
             }
         }
 
@@ -127,7 +127,7 @@ public:
         }
 
         auto* const stream = format_context_->streams[audio_stream_id_];
-        total_frames_ = stream->nb_frames;
+        total_frames_ = static_cast<uint64_t>(stream->nb_frames);
 
         duration_ = ::av_q2d(stream->time_base) * static_cast<double>(stream->duration);
     }

@@ -16,7 +16,7 @@ PassThroughSampleRateConverter::PassThroughSampleRateConverter(DsdModes dsd_mode
     }
 }
 
-void PassThroughSampleRateConverter::Start(uint32_t, uint32_t num_channels, uint32_t output_sample_rate) {
+void PassThroughSampleRateConverter::Start(uint32_t, uint32_t, uint32_t) {
 }
 
 bool PassThroughSampleRateConverter::Process(float const * sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer) {    

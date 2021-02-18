@@ -105,14 +105,6 @@ std::tuple<int32_t, int32_t, QString> DatabaseIdCache::AddCache(const QString &a
     return std::make_tuple(album_id, artist_id, cover_id);
 }
 
-HashSet<std::string> GetSupportFileExtensions() {
-    HashSet<std::string> support_file_ext;
-    for (const auto file_ext : xamp::player::GetStreamSupportFileExtensions()) {
-        support_file_ext.insert(file_ext);
-    }
-    return support_file_ext;
-}
-
 using xamp::metadata::Metadata;
 using xamp::metadata::Path;
 
@@ -121,12 +113,13 @@ public:
     explicit ExtractAdapterProxy(const QSharedPointer<::MetadataExtractAdapter> &adapter)
         : adapter_(adapter) {
       metadatas_.reserve(kCachePreallocateSize);
-      support_file_ext_ = GetSupportFileExtensions();
     }
 
     [[nodiscard]] bool IsSupported(Path const& path) const noexcept override {
+        using namespace xamp::player::audio_util;
         const auto file_ext = String::ToLower(path.extension().string());
-        return support_file_ext_.find(file_ext) != support_file_ext_.end();
+        return audio_util::GetSupportFileExtensions().find(file_ext) !=
+               audio_util::GetSupportFileExtensions().end();
     }
 
     XAMP_DISABLE_COPY(ExtractAdapterProxy)
@@ -135,7 +128,7 @@ public:
         qApp->processEvents();
     }
 
-    void OnWalk(const Path& path, Metadata metadata) override {
+    void OnWalk(const Path&, Metadata metadata) override {
         metadatas_.push_back(std::move(metadata));
         qApp->processEvents();
     }
@@ -156,7 +149,6 @@ public:
 private:
     QSharedPointer<::MetadataExtractAdapter> adapter_;
     std::vector<Metadata> metadatas_;
-    HashSet<std::string> support_file_ext_;
 };
 
 MetadataExtractAdapter::MetadataExtractAdapter(QObject* parent)

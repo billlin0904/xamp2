@@ -12,7 +12,7 @@
 #include <base/dataconverter.h>
 #include <player/audio_util.h>
 
-namespace xamp::player {
+namespace xamp::player::audio_util {
 
 static bool TestDsdFileFormat(std::string_view const & file_chunks) noexcept {
     static constexpr std::array<std::string_view, 2> knows_chunks{
@@ -136,14 +136,24 @@ DsdModes SetStreamDsdMode(AlignPtr<FileStream>& stream, bool is_dsd_file, const 
     return dsd_mode;
 }
 
-std::vector<std::string> GetStreamSupportFileExtensions() {
+static HashSet<std::string> GetStreamSupportFileExtensions() {
     auto av = AvFileStream::GetSupportFileExtensions();
-    XAMP_LOG_DEBUG("Get AvFileStream support file ext: {}", String::Join(av));
+    XAMP_LOG_TRACE("Get AvFileStream support file ext: {}", String::Join(av));
 
 	auto bass = BassFileStream::GetSupportFileExtensions();
-    XAMP_LOG_DEBUG("Get BassFileStream support file ext: {}", String::Join(bass));
+    XAMP_LOG_TRACE("Get BassFileStream support file ext: {}", String::Join(bass));
 
-    return Union<std::string>(av, bass);
+    HashSet<std::string> support_file_ext;
+
+    for (const auto & file_ext : Union<std::string>(av, bass)) {
+        support_file_ext.insert(file_ext);
+    }
+    return support_file_ext;
+}
+
+HashSet<std::string> const & GetSupportFileExtensions() {
+    static auto const support_file_ext = GetStreamSupportFileExtensions();
+    return support_file_ext;
 }
 
 std::pair<DsdModes, AlignPtr<FileStream>> MakeFileStream(std::wstring const& file_path,

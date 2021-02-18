@@ -49,19 +49,16 @@
 
 static AlignPtr<SampleRateConverter> makeSampleRateConverter(const QVariantMap &settings) {
     auto quality = static_cast<SoxrQuality>(settings[kSoxrQuality].toInt());
-    auto phase = static_cast<SoxrPhaseResponse>(settings[kSoxrPhase].toInt());
+    auto phase = settings[kSoxrPhase].toInt();
     auto passband = settings[kSoxrPassBand].toInt();
     auto enable_steep_filter = settings[kSoxrEnableSteepFilter].toBool();
-    auto enable_dither = settings[kSoxrEnableDither].toBool();
 
     auto converter = MakeAlign<SampleRateConverter, SoxrSampleRateConverter>();
     auto *soxr_sample_rate_converter = dynamic_cast<SoxrSampleRateConverter*>(converter.get());
     soxr_sample_rate_converter->SetQuality(quality);
     soxr_sample_rate_converter->SetPhase(phase);
-    soxr_sample_rate_converter->SetPassBand(passband / 100.0);
+    soxr_sample_rate_converter->SetPassBand(passband);
     soxr_sample_rate_converter->SetSteepFilter(enable_steep_filter);
-    soxr_sample_rate_converter->SetDither(enable_dither);
-
     return converter;
 }
 
@@ -1056,7 +1053,7 @@ void Xamp::addPlayQueue() {
     const auto item = playlist_view->nomapItem(next_index);    
 	
     try {
-        auto [dsd_mode, stream] = MakeFileStream(item.file_path.toStdWString(),
+        auto [dsd_mode, stream] = audio_util::MakeFileStream(item.file_path.toStdWString(),
             item.file_ext.toStdWString(),
             device_info_);
 

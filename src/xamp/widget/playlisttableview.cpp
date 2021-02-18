@@ -67,6 +67,7 @@ static PlayListEntity getEntity(const QModelIndex& index) {
     entity.fingerprint = getIndexValue(index, PLAYLIST_FINGER_PRINT).toString();
     entity.file_ext = getIndexValue(index, PLAYLIST_FILE_EXT).toString();
     entity.parent_path = getIndexValue(index, PLAYLIST_FILE_PARENT_PATH).toString();
+    entity.true_peak = getIndexValue(index, PLAYLIST_TRUE_PEAK).toDouble();
     return entity;
 }
 

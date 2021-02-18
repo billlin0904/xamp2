@@ -51,7 +51,7 @@ public:
         file_.Open(file_path);
 
         if (mode_ == DsdModes::DSD_MODE_PCM) {
-            stream_.reset(Singleton<BassLib>::GetInstance().BASS_StreamCreateFile(TRUE,
+            stream_.reset(BASS.BASS_StreamCreateFile(TRUE,
                 file_.GetData(),
                 0,
                 file_.GetLength(),
@@ -59,11 +59,11 @@ public:
 
             // BassLib DSD module default use 6dB gain.
             // 不設定的話會爆音!
-            Singleton<BassLib>::GetInstance().BASS_ChannelSetAttribute(stream_.get(), BASS_ATTRIB_DSD_GAIN, 0.0);            
+            BASS.BASS_ChannelSetAttribute(stream_.get(), BASS_ATTRIB_DSD_GAIN, 0.0);
 
             mode_ = DsdModes::DSD_MODE_PCM;
         } else {
-            stream_.reset(Singleton<BassLib>::GetInstance().DSDLib->BASS_DSD_StreamCreateFile(TRUE,
+            stream_.reset(BASS.DSDLib->BASS_DSD_StreamCreateFile(TRUE,
                 file_.GetData(),
                 0,
                 file_.GetLength(),
@@ -80,21 +80,21 @@ public:
 
         XAMP_LOG_DEBUG("Stream running in {}", EnumToString(mode_));
 
-        info_ = BASS_CHANNELINFO{};	
-        BassIfFailedThrow(Singleton<BassLib>::GetInstance().BASS_ChannelGetInfo(stream_.get(), &info_));
+        info_ = BASS_CHANNELINFO{};
+        BassIfFailedThrow(BASS.BASS_ChannelGetInfo(stream_.get(), &info_));
 
         if (GetFormat().GetChannels() == kMaxChannel) {
             return;
         }
 
         if (mode_ == DsdModes::DSD_MODE_PCM) {
-            mix_stream_.reset(Singleton<BassLib>::GetInstance().MixLib->BASS_Mixer_StreamCreate(GetFormat().GetSampleRate(),
+            mix_stream_.reset(BASS.MixLib->BASS_Mixer_StreamCreate(GetFormat().GetSampleRate(),
                 kMaxChannel,
                 BASS_SAMPLE_FLOAT | BASS_STREAM_DECODE | BASS_MIXER_END));
             if (!mix_stream_) {
                 throw BassException();
             }
-            BassIfFailedThrow(Singleton<BassLib>::GetInstance().MixLib->BASS_Mixer_StreamAddChannel(mix_stream_.get(),
+            BassIfFailedThrow(BASS.MixLib->BASS_Mixer_StreamAddChannel(mix_stream_.get(),
                 stream_.get(),
                 BASS_MIXER_BUFFER));
             XAMP_LOG_DEBUG("Mix stream {} channel to 2 channel", info_.chans);
@@ -123,37 +123,37 @@ public:
 
     [[nodiscard]] double GetDuration() const {
         assert(stream_.is_valid());
-        const auto len = Singleton<BassLib>::GetInstance().BASS_ChannelGetLength(stream_.get(), BASS_POS_BYTE);
-        return Singleton<BassLib>::GetInstance().BASS_ChannelBytes2Seconds(stream_.get(), len);
+        const auto len = BASS.BASS_ChannelGetLength(stream_.get(), BASS_POS_BYTE);
+        return BASS.BASS_ChannelBytes2Seconds(stream_.get(), len);
     }
 
     [[nodiscard]] AudioFormat GetFormat() const noexcept {
         assert(stream_.is_valid());
         if (mode_ == DsdModes::DSD_MODE_NATIVE) {
             return AudioFormat(DataFormat::FORMAT_DSD,
-                               info_.chans,
+                               static_cast<uint16_t>(info_.chans),
                                ByteFormat::SINT8,
                                GetDsdSampleRate());
         } else if (mode_ == DsdModes::DSD_MODE_DOP) {
             return AudioFormat(DataFormat::FORMAT_PCM,
-                               info_.chans,
+                               static_cast<uint16_t>(info_.chans),
                                ByteFormat::FLOAT32,
                                GetDOPSampleRate(GetDsdSpeed()));
         }
         return AudioFormat(DataFormat::FORMAT_PCM,
-                           info_.chans,
+                           static_cast<uint16_t>(info_.chans),
                            ByteFormat::FLOAT32,
                            info_.freq);
     }
 
     void Seek(double stream_time) const {
-        const auto pos_bytes = Singleton<BassLib>::GetInstance().BASS_ChannelSeconds2Bytes(GetHStream(), stream_time);
-        BassIfFailedThrow(Singleton<BassLib>::GetInstance().BASS_ChannelSetPosition(GetHStream(), pos_bytes, BASS_POS_BYTE));
+        const auto pos_bytes = BASS.BASS_ChannelSeconds2Bytes(GetHStream(), stream_time);
+        BassIfFailedThrow(BASS.BASS_ChannelSetPosition(GetHStream(), pos_bytes, BASS_POS_BYTE));
     }
 
     [[nodiscard]] uint32_t GetDsdSampleRate() const {
         float rate = 0;
-        BassIfFailedThrow(Singleton<BassLib>::GetInstance().BASS_ChannelGetAttribute(GetHStream(), BASS_ATTRIB_DSD_RATE, &rate));
+        BassIfFailedThrow(BASS.BASS_ChannelGetAttribute(GetHStream(), BASS_ATTRIB_DSD_RATE, &rate));
         return static_cast<uint32_t>(rate);
     }
 
@@ -186,7 +186,7 @@ public:
     }
 
     void SetDsdToPcmSampleRate(uint32_t samplerate) {
-        Singleton<BassLib>::GetInstance().BASS_SetConfig(BASS_CONFIG_DSD_FREQ, samplerate);
+        BASS.BASS_SetConfig(BASS_CONFIG_DSD_FREQ, samplerate);
     }
 
     [[nodiscard]] uint32_t GetDsdSpeed() const noexcept {
@@ -203,7 +203,7 @@ private:
     }
 
     XAMP_ALWAYS_INLINE uint32_t InternalGetSamples(void* buffer, uint32_t length) const noexcept {
-        const auto bytes_read = Singleton<BassLib>::GetInstance().BASS_ChannelGetData(GetHStream(), buffer, length);
+        const auto bytes_read = BASS.BASS_ChannelGetData(GetHStream(), buffer, length);
         if (bytes_read == kBassError) {
             return 0;
         }
@@ -224,13 +224,14 @@ BassFileStream::BassFileStream()
 XAMP_PIMPL_IMPL(BassFileStream)
 
 void BassFileStream::LoadBassLib() {
-    if (!Singleton<BassLib>::GetInstance().IsLoaded()) {
+    if (!BASS.IsLoaded()) {
         (void) Singleton<BassLib>::GetInstance().Load();
     }
-    Singleton<BassLib>::GetInstance().MixLib = MakeAlign<BassMixLib>();
-    XAMP_LOG_DEBUG("Load BassMixLib {} successfully.", GetBassVersion(Singleton<BassLib>::GetInstance().MixLib->BASS_Mixer_GetVersion()));
-    Singleton<BassLib>::GetInstance().DSDLib = MakeAlign<BassDSDLib>();
-    Singleton<BassLib>::GetInstance().BASS_SetConfig(BASS_CONFIG_DSD_FREQ, 174000);
+    BASS.MixLib = MakeAlign<BassMixLib>();
+    XAMP_LOG_DEBUG("Load BassMixLib {} successfully.", GetBassVersion(BASS.MixLib->BASS_Mixer_GetVersion()));
+    BASS.DSDLib = MakeAlign<BassDSDLib>();
+    BASS.FxLib = MakeAlign<BassFxLib>();
+    BASS.BASS_SetConfig(BASS_CONFIG_DSD_FREQ, 174000);
     XAMP_LOG_DEBUG("Load BassDSDLib successfully.");
 }
 

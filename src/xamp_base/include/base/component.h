@@ -6,6 +6,7 @@
 #pragma once
 
 #include <any>
+#include <base/base.h>
 
 namespace xamp::base {
 

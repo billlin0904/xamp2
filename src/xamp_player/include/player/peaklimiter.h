@@ -12,20 +12,24 @@ namespace xamp::player {
 
 using namespace xamp::base;
 
-class XAMP_PLAYER_API LoudnessScanner {
+inline constexpr double kMaxTruePeak = -1.0;
+
+class XAMP_PLAYER_API PeakLimiter {
 public:
-    LoudnessScanner(uint32_t output_sample_rate);
+    PeakLimiter();
 
-	XAMP_PIMPL(LoudnessScanner)
+    XAMP_PIMPL(PeakLimiter)
 
-	void Process(float const * samples, uint32_t num_sample);
+    void SetSampleRate(uint32_t output_sample_rate);
 
-	[[nodiscard]] double GetLoudness() const;
+    void Setup(float gain, float threshold, float ratio, float attack, float release);
 
-	[[nodiscard]] double GetTruePeek() const;
+    const std::vector<float>& Process(float const * samples, uint32_t num_samples);
+
 private:
-	class LoudnessScannerImpl;
-	AlignPtr<LoudnessScannerImpl> impl_;
+    class PeakLimiterImpl;
+    AlignPtr<PeakLimiterImpl> impl_;
 };
 
 }
+

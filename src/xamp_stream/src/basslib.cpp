@@ -65,6 +65,20 @@ catch (const Exception& e) {
     XAMP_LOG_ERROR("{}", e.GetErrorMessage());
 }
 
+BassFxLib::BassFxLib() try
+#ifdef XAMP_OS_WIN
+    : module_(LoadModule("bass_fx.dll"))
+#else
+    : module_(LoadModule("libbass_fx.dylib"))
+#endif
+    , BASS_FX_TempoGetSource(module_, "BASS_FX_TempoGetSource")
+    , BASS_FX_TempoCreate(module_, "BASS_FX_TempoCreate") {
+}
+catch (const Exception& e) {
+    XAMP_LOG_ERROR("{}", e.GetErrorMessage());
+}
+
+
 BassLib::BassLib() try
 #ifdef XAMP_OS_WIN
     : module_(LoadModule("bass.dll"))

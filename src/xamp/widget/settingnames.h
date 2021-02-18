@@ -35,7 +35,6 @@ inline constexpr ConstLatin1String kAppSettingSoxrSettingName{ "AppSettings/soxr
 
 inline constexpr ConstLatin1String kSoxrResampleSampleRate{ "AppSettings/soxr/resampleSampleRate" };
 inline constexpr ConstLatin1String kSoxrEnableSteepFilter{ "AppSettings/soxr/enableSteepFilter" };
-inline constexpr ConstLatin1String kSoxrEnableDither{ "AppSettings/soxr/enableDither" };
 inline constexpr ConstLatin1String kSoxrQuality{ "AppSettings/soxr/quality" };
 inline constexpr ConstLatin1String kSoxrPhase{ "AppSettings/soxr/phase" };
 inline constexpr ConstLatin1String kSoxrPassBand{ "AppSettings/soxr/passBand" };

@@ -24,5 +24,6 @@ XAMP_PLAYER_API std::tuple<double, double> ReadFileLUFS(std::wstring const& file
 	std::function<bool(uint32_t)> const& progress);
 
 XAMP_PLAYER_API double GetGainScale(double lu, double reference_loudness = -18.0);
+
 }
 

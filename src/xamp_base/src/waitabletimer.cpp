@@ -59,7 +59,7 @@ public:
 	
 	std::chrono::milliseconds timeout_;
 	std::chrono::steady_clock::time_point tp_;
-}
+};
 #endif
 
 WaitableTimer::WaitableTimer() noexcept

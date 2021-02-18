@@ -53,7 +53,7 @@ public:
         : enable_steep_filter_(false)
         , enable_dither_(false)
         , quality_(SoxrQuality::VHQ)
-        , phase_(SoxrPhaseResponse::LINEAR_PHASE)
+        , phase_(100.0)
         , input_samplerate_(0)
         , num_channels_(0)
         , ratio_(0)
@@ -88,18 +88,6 @@ public:
             break;
 		}
 
-        switch (phase_) {
-        case SoxrPhaseResponse::LINEAR_PHASE:
-            quality_spec |= SOXR_LINEAR_PHASE;
-            break;
-        case SoxrPhaseResponse::INTERMEDIATE_PHASE:
-            quality_spec |= SOXR_INTERMEDIATE_PHASE;
-            break;
-        case SoxrPhaseResponse::MINIMUM_PHASE:
-            quality_spec |= SOXR_MINIMUM_PHASE;
-            break;
-        }
-
         auto flags = (SOXR_ROLLOFF_NONE | SOXR_HI_PREC_CLOCK | SOXR_VR | SOXR_DOUBLE_PRECISION);
         if (enable_steep_filter_) {
             flags |= SOXR_STEEP_FILTER;
@@ -109,6 +97,7 @@ public:
 
         soxr_quality.passband_end = passband_;
         soxr_quality.stopband_begin = stopband_;
+        soxr_quality.phase_response = phase_;
 
         auto iospec = Singleton<SoxrLib>::GetInstance().soxr_io_spec(SOXR_FLOAT32_I, SOXR_FLOAT32_I);
 
@@ -140,7 +129,7 @@ public:
             input_sample_rate,
             output_sample_rate,
             EnumToString(quality_),
-            EnumToString(phase_),
+            phase_,
             passband_,
             stopband_);
 
@@ -165,7 +154,7 @@ public:
         quality_ = quality;
     }
 
-    void SetPhase(SoxrPhaseResponse phase) {
+    void SetPhase(double phase) {
         phase_ = phase;
     }
 
@@ -241,7 +230,7 @@ public:
     bool enable_steep_filter_;
     bool enable_dither_;
     SoxrQuality quality_;
-    SoxrPhaseResponse phase_;
+    double phase_;
     uint32_t input_samplerate_;
     uint32_t num_channels_;
     double ratio_;
@@ -276,7 +265,7 @@ void SoxrSampleRateConverter::SetQuality(SoxrQuality quality) {
     impl_->SetQuality(quality);
 }
 
-void SoxrSampleRateConverter::SetPhase(SoxrPhaseResponse phase) {
+void SoxrSampleRateConverter::SetPhase(double phase) {
     impl_->SetPhase(phase);
 }
 
@@ -286,10 +275,6 @@ void SoxrSampleRateConverter::SetPassBand(double passband) {
 
 void SoxrSampleRateConverter::SetStopBand(double stopband) {
     impl_->SetStopBand(stopband);
-}
-
-void SoxrSampleRateConverter::SetDither(bool enable) {
-    impl_->SetDither(enable);
 }
 
 std::string_view SoxrSampleRateConverter::GetDescription() const noexcept {
@@ -312,7 +297,6 @@ AlignPtr<SampleRateConverter> SoxrSampleRateConverter::Clone() {
     converter->SetPhase(impl_->phase_);
     converter->SetStopBand(impl_->stopband_);
     converter->SetSteepFilter(impl_->enable_steep_filter_);
-    converter->SetDither(impl_->enable_dither_);
     return other;
 }
 

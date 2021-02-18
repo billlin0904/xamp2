@@ -28,7 +28,7 @@ XAMP_BASE_API bool PrefetchMemory(void* adddr, size_t length) noexcept;
 
 #ifdef XAMP_ENABLE_REP_MOVSB
 inline void MemorySet(void* dest, int32_t c, size_t size) {
-	__stosb(static_cast<unsigned char*>(dest), static_cast<unsigned char>(c), size);
+    __stosb(static_cast<unsigned char*>(dest), static_cast<unsigned char>(c), size);
 }
 #else
 #define MemorySet(dest, c, size) (void) std::memset(dest, c, size)
@@ -36,12 +36,12 @@ inline void MemorySet(void* dest, int32_t c, size_t size) {
 
 #ifdef XAMP_ENABLE_REP_MOVSB
 inline void MemoryCopy(void* dest, const void* src, size_t size) {
-	// 優化在拷貝的資料量較大時效果明顯，而當拷貝的資料量較小時，rep movsb 指令本身存在的開銷會導致其優化效果不明顯.
+    // ?u??b??????????q???j???G?????A?????????????q???p??Arep movsb ???O?????s?b???}?P?|??P???u???G??????.
     __movsb(static_cast<unsigned char *>(dest), static_cast<const unsigned char*>(src), size);
 }
 #else
 #define MemoryCopy(dest, src, size) (void) std::memcpy(dest, src, size)
 #endif
-	
+
 }
 

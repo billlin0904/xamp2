@@ -18,9 +18,10 @@
 void PreferenceDialog::loadSoxrResampler(const QVariantMap& soxr_settings) {
 	ui_.soxrTargetSampleRateComboBox->setCurrentText(QString::number(soxr_settings[kSoxrResampleSampleRate].toInt()));
 	ui_.soxrResampleQualityComboBox->setCurrentIndex(soxr_settings[kSoxrQuality].toInt());
-	ui_.soxrPhaseComboBox->setCurrentIndex(soxr_settings[kSoxrPhase].toInt());
 	ui_.soxrPassbandSlider->setValue(soxr_settings[kSoxrPassBand].toInt());
 	ui_.soxrPassbandValue->setText(QString(Q_UTF8("%0%")).arg(ui_.soxrPassbandSlider->value()));
+    ui_.soxrPhaseSlider->setValue(soxr_settings[kSoxrPhase].toInt());
+    ui_.soxrPhaseValue->setText(QString(Q_UTF8("%0%")).arg(ui_.soxrPhaseSlider->value()));
 
 	if (soxr_settings[kSoxrEnableSteepFilter].toBool()) {
 		ui_.enableSteepFilterBox->setChecked(true);
@@ -33,23 +34,24 @@ void PreferenceDialog::loadSoxrResampler(const QVariantMap& soxr_settings) {
 QMap<QString, QVariant> PreferenceDialog::getSoxrSettings() const {
 	const auto soxr_sample_rate = ui_.soxrTargetSampleRateComboBox->currentText().toInt();
 	const auto soxr_quility = ui_.soxrResampleQualityComboBox->currentIndex();
-	const auto soxr_phase = ui_.soxrPhaseComboBox->currentIndex();
 	const auto soxr_pass_band = ui_.soxrPassbandSlider->value();
 	const auto soxr_enable_steep_filter = ui_.enableSteepFilterBox->checkState() == Qt::Checked;
-	const auto soxr_enable_dither = ui_.enableDitherBox->checkState() == Qt::Checked;
 
 	QMap<QString, QVariant> settings;
 	settings[kSoxrResampleSampleRate] = soxr_sample_rate;
 	settings[kSoxrEnableSteepFilter] = soxr_enable_steep_filter;
 	settings[kSoxrQuality] = soxr_quility;
-	settings[kSoxrPhase] = soxr_phase;
 	if (soxr_passband_ > 0) {
 		settings[kSoxrPassBand] = soxr_passband_;
 	} else {
 		settings[kSoxrPassBand] = soxr_pass_band;
-	}	
-	settings[kSoxrEnableDither] = soxr_enable_dither;
+    }
 
+    if (soxr_phase_ > 0) {
+        settings[kSoxrPhase] = soxr_phase_;
+    } else {
+        settings[kSoxrPhase] = soxr_phase_;
+    }
 	return settings;
 }
 
@@ -125,19 +127,17 @@ void PreferenceDialog::initLang() {
 		AppSettings::setValue(kAppSettingLang, ui_.langCombo->itemText(index));
 		ui_.retranslateUi(this);
 		});
-
-	ui_.enableDitherBox->hide();
 }
 
 PreferenceDialog::PreferenceDialog(QWidget *parent)
     : QDialog(parent)
-	, soxr_passband_(0) {
-	
+    , soxr_passband_(0)
+    , soxr_phase_(0) {
     ui_.setupUi(this);
     setWindowTitle(tr("Preferences"));
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     ui_.preferenceTreeWidget->header()->hide();
-	setFixedSize(QSize(700, 640));
+    setFixedSize(QSize(750, 640));
 
     auto playback_item = new QTreeWidgetItem(QStringList() << tr("Playback"));
     playback_item->setChildIndicatorPolicy(QTreeWidgetItem::ShowIndicator);
@@ -170,9 +170,20 @@ PreferenceDialog::PreferenceDialog(QWidget *parent)
 		ui_.resamplerStackedWidget->setCurrentIndex(index);
 		});
 
-    (void)QObject::connect(ui_.soxrPassbandSlider, &QSlider::sliderMoved, [this](auto) {
-		soxr_passband_ = ui_.soxrPassbandSlider->value();
+    (void)QObject::connect(ui_.soxrPassbandSlider, &QSlider::valueChanged, [this](auto value) {
+        soxr_passband_ = value;
         ui_.soxrPassbandValue->setText(QString(Q_UTF8("%0%")).arg(soxr_passband_));
+    });
+
+    (void)QObject::connect(ui_.soxrPhaseSlider, &QSlider::valueChanged, [this](auto value) {
+        soxr_phase_ = value;
+        auto str = QString(Q_UTF8("%0%")).arg(soxr_phase_);
+        if (soxr_phase_ == 0) {
+            str += tr(" (minimun)");
+        } else if (soxr_phase_ == 50) {
+            str += tr(" (linear)");
+        }
+        ui_.soxrPhaseValue->setText(str);
     });
 
     music_file_path_ = AppSettings::getValue(kAppSettingMusicFilePath).toString();

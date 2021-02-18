@@ -9,11 +9,12 @@
 #include <vector>
 
 #include <base/align_ptr.h>
+#include <base/stl.h>
 #include <output_device/dsddevice.h>
 #include <stream/filestream.h>
 #include <player/player.h>
 
-namespace xamp::player {
+namespace xamp::player::audio_util {
 
 using namespace xamp::base;
 using namespace xamp::stream;
@@ -23,7 +24,7 @@ XAMP_PLAYER_API bool TestDsdFileFormatStd(std::wstring const& file_path);
 
 XAMP_PLAYER_API bool TestDsdFileFormat(std::wstring const& file_path);
 
-XAMP_PLAYER_API std::vector<std::string> GetStreamSupportFileExtensions();
+XAMP_PLAYER_API HashSet<std::string> const & GetSupportFileExtensions();
 
 XAMP_PLAYER_API DsdStream* AsDsdStream(AlignPtr<FileStream> const& stream) noexcept;
 

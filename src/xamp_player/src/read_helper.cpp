@@ -3,6 +3,7 @@
 #include <base/dataconverter.h>
 #include <stream/dsdstream.h>
 
+#include <player/peaklimiter.h>
 #include <player/chromaprint.h>
 #include <player/audio_player.h>
 #include <player/audio_util.h>
@@ -13,17 +14,17 @@ namespace xamp::player {
 
 using namespace xamp::base;
 
-constexpr uint32_t kFingerprintDuration = 120;
-constexpr uint32_t kReadSampleSize = 8192 * 4;
+inline constexpr uint32_t kFingerprintDuration = 120;
+inline constexpr uint32_t kReadSampleSize = 8192 * 4;
 
 static double ReadProcess(std::wstring const& file_path,
 	std::wstring const& file_ext,
 	std::function<bool(uint32_t)> const& progress,
 	uint32_t max_duration,
 	std::function<void(AudioFormat const &, AudioFormat const&)> const& prepare,
-	std::function<void(float const *, uint32_t)> const& func) {
-	const auto is_dsd_file = TestDsdFileFormatStd(file_path);	
-	auto file_stream = MakeStream(file_ext);
+    std::function<void(float const *, uint32_t)> const& func) {
+    const auto is_dsd_file = audio_util::TestDsdFileFormatStd(file_path);
+    auto file_stream = audio_util::MakeStream(file_ext);
 	if (auto stream = dynamic_cast<DsdStream*>(file_stream.get())) {
 		if (is_dsd_file) {
 			stream->SetDSDMode(DsdModes::DSD_MODE_DSD2PCM);
@@ -61,9 +62,12 @@ static double ReadProcess(std::wstring const& file_path,
 	while (num_samples / input_format.GetSampleRate() < max_duration) {
 		const auto read_size = file_stream->GetSamples(isamples.get(), 
 			kReadSampleSize) / input_format.GetChannels();
+
 		if (!read_size) {
 			break;
 		}
+
+        //auto const & buffer = limier.Process(isamples.get(), read_size * input_format.GetChannels());
 
 		num_samples += read_size;
 		if (progress != nullptr) {
@@ -73,7 +77,7 @@ static double ReadProcess(std::wstring const& file_path,
 			}
 		}
 
-		func(isamples.get(), read_size * input_format.GetChannels());
+        func(isamples.get(), read_size * input_format.GetChannels());
 	}
 
 	return file_stream->GetDuration();
@@ -83,9 +87,9 @@ std::tuple<double, double> ReadFileLUFS(std::wstring const& file_path, std::wstr
 	std::optional<LoudnessScanner> replay_gain;
 	
 	ReadProcess(file_path, file_ext, progress, INT_MAX,
-		[&replay_gain](AudioFormat const& input_format, AudioFormat const& output_format)
+        [&replay_gain](AudioFormat const& input_format, AudioFormat const&)
 		{
-			replay_gain = LoudnessScanner(input_format.GetChannels(), input_format.GetSampleRate());
+            replay_gain = LoudnessScanner(input_format.GetSampleRate());
 		}, [&replay_gain](float const* samples, uint32_t sample_size)
 		{
 			replay_gain.value().Process(samples, sample_size);

@@ -148,7 +148,6 @@ void AudioPlayer::CreateDevice(Uuid const & device_type_id, std::string const & 
         }
         if (auto result = AudioDeviceManager::GetInstance().Create(device_type_id)) {            
             device_type_ = std::move(result);
-            // TODO: remove ScanNewDevice ?
             device_type_->ScanNewDevice();
             device_ = device_type_->MakeDevice(device_id);
             device_type_id_ = device_type_id;
@@ -179,11 +178,11 @@ bool AudioPlayer::IsDsdStream() const noexcept {
     return dynamic_cast<DsdStream*>(stream_.get()) != nullptr;
 }
 
-void AudioPlayer::OpenStream(std::wstring const & file_path, std::wstring const & file_ext, DeviceInfo const & device_info) {   
-    auto [dsd_mode, stream] = MakeFileStream(file_path, file_ext, device_info);
+void AudioPlayer::OpenStream(std::wstring const & file_path, std::wstring const & file_ext, DeviceInfo const & device_info) {
+    auto [dsd_mode, stream] = audio_util::MakeFileStream(file_path, file_ext, device_info);
     stream_ = std::move(stream);
     dsd_mode_ = dsd_mode;
-    if (auto* dsd_stream = AsDsdStream(stream_)) {
+    if (auto* dsd_stream = audio_util::AsDsdStream(stream_)) {
         dsd_stream->SetDSDMode(dsd_mode_);
     }
     stream_duration_ = stream_->GetDuration();   
@@ -373,7 +372,7 @@ std::optional<uint32_t> AudioPlayer::GetDSDSpeed() const {
         return std::nullopt;
     }
 
-    if (auto* const dsd_stream = AsDsdStream(stream_)) {
+    if (auto* const dsd_stream = audio_util::AsDsdStream(stream_)) {
         if (dsd_stream->IsDsdFile()) {
             return dsd_stream->GetDsdSpeed();
         }
@@ -538,6 +537,8 @@ void AudioPlayer::SetDeviceFormat() {
         }
         output_format_ = input_format_;
     }
+
+    limier_.SetSampleRate(input_format_.GetSampleRate());
 }
 
 void AudioPlayer::OnVolumeChange(float vol) noexcept {
@@ -747,7 +748,7 @@ void AudioPlayer::BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<SampleRat
             }
 
             auto* samples = reinterpret_cast<float*>(sample_buffer);
-            assert(converter != nullptr);
+            //auto const &buffer = limier_.Process(samples, num_samples);
             if (!converter->Process(samples, num_samples, buffer_)) {
                 continue;
             }
@@ -762,11 +763,10 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_buffer_samp
 
         if (num_samples > 0) {
             auto *samples = reinterpret_cast<float*>(sample_buffer);
-
-            assert(converter_ != nullptr);
+            //auto const &buffer = limier_.Process(samples, num_samples);
             if (!converter_->Process(samples, num_samples, buffer_)) {
                 continue;
-            }            
+            }
         }
         else {            
             OnGaplessPlayState(lock);

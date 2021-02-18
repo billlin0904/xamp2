@@ -27,6 +27,7 @@
 
 #include <player/playstate.h>
 #include <player/playbackstateadapter.h>
+#include <player/peaklimiter.h>
 #include <player/player.h>
 
 #include <base/stopwatch.h>
@@ -210,7 +211,8 @@ private:
     Buffer<int8_t> sample_read_buffer_;
     VmMemLock sample_read_buffer_lock_;
     WaitableTimer wait_timer_;
-    AlignPtr<SampleRateConverter> converter_;       
+    AlignPtr<SampleRateConverter> converter_;
+    PeakLimiter limier_;
     DeviceInfo device_info_;
     std::shared_future<void> stream_task_;
     SpscQueue<MsgID> msg_queue_;

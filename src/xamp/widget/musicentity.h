@@ -17,6 +17,7 @@ struct MusicEntity final {
     int32_t album_id{ 0 };
     int32_t artist_id{ 0 };
     int32_t music_id{ 0 };
+    double true_peak {-1.0};
     QString album;
     QString title;
     QString artist;
@@ -64,6 +65,7 @@ inline MusicEntity toMusicEntity(const PlayListEntity& item) {
     music_entity.artist_id = item.artist_id;
     music_entity.album_id = item.album_id;
     music_entity.cover_id = item.cover_id;
+    music_entity.true_peak = item.true_peak;
     music_entity.title = item.title;
     music_entity.album = item.album;
     music_entity.artist = item.artist;
