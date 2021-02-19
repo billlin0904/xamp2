@@ -21,10 +21,15 @@ public:
     constexpr static auto Id = std::string_view("263079D0-FDD4-46DF-9BB3-71821AF95EDB");
 	
     struct Parameters {
+    	// Output gain in dB of signal after compression.
         float gain{ 0 };
+    	// Point in dB at which compression begins, in decibels, in the range from -60 to 0.
         float threshold{ 0 };
+    	// Compression ratio, in the range from 1 to 100.
         float ratio{ 0 };
+    	// Time in ms before compression reaches its full value, in the range from 0.01 to 500.
         float attack{ 0 };
+    	// Time (speed) in ms at which compression is stopped after input drops below fThreshold, in the range from 50 to 3000. 
         float release{ 0 };
     };
 	

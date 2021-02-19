@@ -25,7 +25,7 @@ static double ReadProcess(std::wstring const& file_path,
     std::function<void(float const *, uint32_t)> const& func) {
     const auto is_dsd_file = audio_util::TestDsdFileFormatStd(file_path);
     auto file_stream = audio_util::MakeStream(file_ext);
-	if (auto stream = dynamic_cast<DsdStream*>(file_stream.get())) {
+	if (auto* stream = dynamic_cast<DsdStream*>(file_stream.get())) {
 		if (is_dsd_file) {
 			stream->SetDSDMode(DsdModes::DSD_MODE_DSD2PCM);
 		}
@@ -59,6 +59,17 @@ static double ReadProcess(std::wstring const& file_path,
 		max_duration = file_stream->GetDuration();
 	}
 
+	Compressor compressor;
+	compressor.SetSampleRate(input_format.GetSampleRate());
+
+	Compressor::Parameters parameters;
+	parameters.gain = -1.0;
+	parameters.threshold = 0;
+	parameters.ratio = 1;
+	parameters.attack = 20;
+	parameters.release = 200;
+	compressor.Prepare(parameters);
+
 	while (num_samples / input_format.GetSampleRate() < max_duration) {
 		const auto read_size = file_stream->GetSamples(isamples.get(), 
 			kReadSampleSize) / input_format.GetChannels();
@@ -67,7 +78,7 @@ static double ReadProcess(std::wstring const& file_path,
 			break;
 		}
 
-        //auto const & buffer = limier.Process(isamples.get(), read_size * input_format.GetChannels());
+        auto const & buffer = compressor.Process(isamples.get(), read_size * input_format.GetChannels());
 
 		num_samples += read_size;
 		if (progress != nullptr) {
@@ -77,7 +88,8 @@ static double ReadProcess(std::wstring const& file_path,
 			}
 		}
 
-        func(isamples.get(), read_size * input_format.GetChannels());
+        //func(isamples.get(), read_size * input_format.GetChannels());
+		func(buffer.data(), buffer.size());
 	}
 
 	return file_stream->GetDuration();

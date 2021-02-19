@@ -230,6 +230,7 @@ void AudioPlayer::ProcessProcessor() {
             else {
                 dsp_chain_.push_back(std::move(pp));
             }
+            processor_queue_.Pop();
         }
 	}    
 }
@@ -783,7 +784,7 @@ void AudioPlayer::BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<SampleRat
 
             auto* samples = reinterpret_cast<float*>(sample_buffer);
 
-        	if (!dsp_chain_.empty()) {
+        	if (CanProcess() && !dsp_chain_.empty()) {
                 auto itr = dsp_chain_.begin();
                 auto buffer = (*itr)->Process(samples, num_samples);
         		
@@ -803,6 +804,10 @@ void AudioPlayer::BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<SampleRat
     }
 }
 
+bool AudioPlayer::CanProcess() const noexcept {
+    return (dsd_mode_ == DsdModes::DSD_MODE_PCM || dsd_mode_ == DsdModes::DSD_MODE_DSD2PCM);
+}
+
 void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_buffer_sample, std::unique_lock<std::mutex>& lock) {
     while (is_playing_) {
         const auto num_samples = stream_->GetSamples(sample_buffer, max_buffer_sample);
@@ -810,7 +815,7 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_buffer_samp
         if (num_samples > 0) {
             auto *samples = reinterpret_cast<float*>(sample_buffer);
 
-            if (!dsp_chain_.empty()) {
+            if (CanProcess() && !dsp_chain_.empty()) {
                 auto itr = dsp_chain_.begin();
                 auto buffer = (*itr)->Process(samples, num_samples);
 
@@ -874,7 +879,9 @@ int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, dou
 
     XAMP_LIKELY(buffer_.TryRead(static_cast<int8_t*>(samples), sample_size)) {
         UpdateSlice(static_cast<const float*>(samples), static_cast<int32_t>(num_samples), stream_time);
+#ifdef _DEBUG
         sw_.Reset();
+#endif
         return 0;
     }
 

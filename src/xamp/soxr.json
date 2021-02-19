@@ -1,10 +1,9 @@
 {
     "default": {
-        "AppSettings/soxr/enableDither": false,
-        "AppSettings/soxr/enableSteepFilter": false,
-        "AppSettings/soxr/passBand": 45,
-        "AppSettings/soxr/phase": 1,
-        "AppSettings/soxr/quality": 4,
-        "AppSettings/soxr/resampleSampleRate": 192000
+        "enableSteepFilter": false,
+        "passBand": 95,
+        "phase": 45,
+        "quality": 3,
+        "resampleSampleRate": 352800
     }
 }

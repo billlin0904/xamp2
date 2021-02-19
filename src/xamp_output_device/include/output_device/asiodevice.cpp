@@ -408,7 +408,7 @@ void AsioDevice::OnBufferSwitch(long index, double sample_time) noexcept {
 		const auto vol = volume_.load();
 		if (Singleton<AsioDriver>::GetInstance().data_context.cache_volume != vol) {
 			// 如果100% 音量會爆音,
-			Singleton<AsioDriver>::GetInstance().data_context.volume_factor = LinearToLog(vol - 1);
+			Singleton<AsioDriver>::GetInstance().data_context.volume_factor = LinearToLog(vol);
 			Singleton<AsioDriver>::GetInstance().data_context.cache_volume = vol;
 		}
 

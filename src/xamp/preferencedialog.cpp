@@ -35,6 +35,7 @@ QMap<QString, QVariant> PreferenceDialog::getSoxrSettings() const {
 	const auto soxr_sample_rate = ui_.soxrTargetSampleRateComboBox->currentText().toInt();
 	const auto soxr_quility = ui_.soxrResampleQualityComboBox->currentIndex();
 	const auto soxr_pass_band = ui_.soxrPassbandSlider->value();
+	const auto soxr_phase = ui_.soxrPhaseSlider->value();
 	const auto soxr_enable_steep_filter = ui_.enableSteepFilterBox->checkState() == Qt::Checked;
 
 	QMap<QString, QVariant> settings;
@@ -50,7 +51,7 @@ QMap<QString, QVariant> PreferenceDialog::getSoxrSettings() const {
     if (soxr_phase_ > 0) {
         settings[kSoxrPhase] = soxr_phase_;
     } else {
-        settings[kSoxrPhase] = soxr_phase_;
+        settings[kSoxrPhase] = soxr_phase;
     }
 	return settings;
 }
@@ -139,10 +140,10 @@ PreferenceDialog::PreferenceDialog(QWidget *parent)
     ui_.preferenceTreeWidget->header()->hide();
     setFixedSize(QSize(750, 640));
 
-    auto playback_item = new QTreeWidgetItem(QStringList() << tr("Playback"));
+    auto* playback_item = new QTreeWidgetItem(QStringList() << tr("Playback"));
     playback_item->setChildIndicatorPolicy(QTreeWidgetItem::ShowIndicator);
 
-    const auto dsp_manager_item = new QTreeWidgetItem(QStringList() << tr("Resampler"));
+    auto* dsp_manager_item = new QTreeWidgetItem(QStringList() << tr("Resampler"));
     playback_item->addChild(dsp_manager_item);
 
     ui_.preferenceTreeWidget->addTopLevelItem(playback_item);
@@ -179,14 +180,14 @@ PreferenceDialog::PreferenceDialog(QWidget *parent)
         soxr_phase_ = value;
         auto str = QString(Q_UTF8("%0%")).arg(soxr_phase_);
         if (soxr_phase_ == 0) {
-            str += tr(" (minimun)");
+            str += tr(" (minimum)");
         } else if (soxr_phase_ == 50) {
             str += tr(" (linear)");
         }
         ui_.soxrPhaseValue->setText(str);
     });
 
-    music_file_path_ = AppSettings::getValue(kAppSettingMusicFilePath).toString();
+    /*music_file_path_ = AppSettings::getValue(kAppSettingMusicFilePath).toString();
     ui_.musicFilePath->setText(music_file_path_);
 
 	(void)QObject::connect(ui_.setPathButton, &QPushButton::clicked, [this]() {
@@ -196,7 +197,7 @@ PreferenceDialog::PreferenceDialog(QWidget *parent)
 			QDir::currentPath());
         AppSettings::setValue(kAppSettingMusicFilePath, music_file_path_);
         ui_.musicFilePath->setText(music_file_path_);
-		});
+		});*/
 
 	(void)QObject::connect(ui_.resetAllButton, &QPushButton::clicked, [this]() {
 		initSoxResampler();

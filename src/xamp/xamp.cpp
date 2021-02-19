@@ -3,18 +3,15 @@
 #include <QMenu>
 #include <QCloseEvent>
 #include <QFileInfo>
-#include <QDesktopWidget>
 #include <QInputDialog>
 #include <QShortcut>
-#include <QScreen>
 #include <QProgressDialog>
 #include <QWidgetAction>
-#include <QSystemTrayIcon>
 #include <QMessageBox>
 
-#include <stream/dsdstream.h>
 #include <base/scopeguard.h>
 #include <base/str_utilts.h>
+#include <stream/compressor.h>
 
 #include <output_device/audiodevicemanager.h>
 
@@ -27,7 +24,6 @@
 #include <widget/playlisttableview.h>
 #include <widget/albumartistpage.h>
 #include <widget/lrcpage.h>
-#include <widget/albumview.h>
 #include <widget/artistview.h>
 #include <widget/str_utilts.h>
 #include <widget/playlistpage.h>
@@ -41,6 +37,7 @@
 #include <widget/jsonsettings.h>
 #include <widget/playbackhistorypage.h>
 #include <widget/ui_utilts.h>
+#include <widget/compressordialog.h>
 
 #include "aboutdialog.h"
 #include "preferencedialog.h"
@@ -60,6 +57,20 @@ static AlignPtr<SampleRateConverter> makeSampleRateConverter(const QVariantMap &
     soxr_sample_rate_converter->SetPassBand(passband);
     soxr_sample_rate_converter->SetSteepFilter(enable_steep_filter);
     return converter;
+}
+
+static AlignPtr<AudioProcessor> makeCompressor(uint32_t sample_rate) {
+    auto processor = MakeAlign<AudioProcessor, Compressor>();
+    auto* compressor = dynamic_cast<Compressor*>(processor.get());
+    compressor->SetSampleRate(sample_rate);
+    Compressor::Parameters parameters;
+    parameters.gain = AppSettings::getAsInt(kCompressorGain);
+    parameters.threshold = AppSettings::getAsInt(kCompressorThreshold);
+    parameters.ratio = AppSettings::getAsInt(kCompressorRatio);
+    parameters.attack = AppSettings::getAsInt(kCompressorAttack);
+    parameters.release = AppSettings::getAsInt(kCompressorRelease);
+    compressor->Prepare(parameters);
+    return processor;
 }
 
 static PlaybackFormat getPlaybackFormat(const AudioPlayer* player) {
@@ -139,7 +150,7 @@ void Xamp::createTrayIcon() {
     (void)QObject::connect(about_action, &QAction::triggered, [=]() {
         AboutDialog aboutdlg;
         aboutdlg.setFont(font());
-        aboutdlg.exec();
+        aboutdlg.exec();       
         });
 
     tray_icon_menu_ = new QMenu(this);
@@ -625,7 +636,7 @@ void Xamp::initialController() {
     (void)QObject::connect(about_action, &QAction::triggered, [=]() {
         AboutDialog aboutdlg;
         aboutdlg.setFont(font());
-        aboutdlg.exec();
+        aboutdlg.exec();       
     });
     ui_.settingsButton->setMenu(settings_menu);
 
@@ -843,8 +854,11 @@ void Xamp::setupSampleRateConverter() {
     if (AppSettings::getValue(kAppSettingResamplerEnable).toBool()) {        
         auto soxr_settings = JsonSettings::getValue(AppSettings::getValueAsString(kAppSettingSoxrSettingName)).toMap();
         auto resampler = makeSampleRateConverter(soxr_settings);
-        auto samplerate = soxr_settings[kSoxrResampleSampleRate].toUInt();
-        player_->SetSampleRateConverter(samplerate, std::move(resampler));
+        auto sample_rate = soxr_settings[kSoxrResampleSampleRate].toUInt();
+        player_->SetSampleRateConverter(sample_rate, std::move(resampler));
+
+        auto compressor = makeCompressor(sample_rate);
+        player_->SetProcessor(std::move(compressor));
     }
     else {
         player_->EnableSampleRateConverter(false);

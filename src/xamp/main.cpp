@@ -35,7 +35,7 @@ static void loadOrDefaultSoxrSetting() {
 
     default_setting[kSoxrResampleSampleRate] = 96000;
     default_setting[kSoxrEnableSteepFilter] = false;
-    default_setting[kSoxrQuality] = static_cast<int32_t>(SoxrQuality::UHQ);
+    default_setting[kSoxrQuality] = static_cast<int32_t>(SoxrQuality::VHQ);
     default_setting[kSoxrPhase] = 45;
     default_setting[kSoxrPassBand] = 95;
 
@@ -50,21 +50,31 @@ static void loadOrDefaultSoxrSetting() {
 static void loadSettings() {
     AppSettings::setOrDefaultConfig();
     JsonSettings::loadJsonFile(Q_UTF8("soxr.json"));
+	
     loadOrDefaultSoxrSetting();
 
     XAMP_LOG_DEBUG("setOrDefaultConfig success.");
 
     if (AppSettings::getValueAsString(kAppSettingLang).isEmpty()) {
-        LocaleLanguage l;
-        XAMP_LOG_DEBUG("Load locale lang file: {}.", l.getIsoCode().toStdString());
-        AppSettings::loadLanguage(l.getIsoCode());
-        AppSettings::setValue(kAppSettingLang, l.getIsoCode());
+	    const LocaleLanguage lang;
+        XAMP_LOG_DEBUG("Load locale lang file: {}.", lang.getIsoCode().toStdString());
+        AppSettings::loadLanguage(lang.getIsoCode());
+        AppSettings::setValue(kAppSettingLang, lang.getIsoCode());
     }
     else {
         AppSettings::loadLanguage(AppSettings::getValueAsString(kAppSettingLang));
         XAMP_LOG_DEBUG("Load locale lang file: {}.",
             AppSettings::getValueAsString(kAppSettingLang).toStdString());
     }
+
+	if (!AppSettings::contains(kEnableCompressor)) {
+        AppSettings::setDefaultValue(kEnableCompressor, true);
+        AppSettings::setDefaultValue(kCompressorGain, -1);
+        AppSettings::setDefaultValue(kCompressorThreshold, 0);
+        AppSettings::setDefaultValue(kCompressorRatio, 1);
+        AppSettings::setDefaultValue(kCompressorAttack, 20);
+        AppSettings::setDefaultValue(kCompressorRelease, 200);
+	}
 }
 
 static int excute(int argc, char* argv[]) {   
@@ -149,7 +159,7 @@ static int tryExcute(int argc, char* argv[]) {
     __try {
         return excute(argc, argv);
     }
-    __except (code = GetExceptionCode(), info = GetExceptionInformation(), EXCEPTION_EXECUTE_HANDLER) {
+    __except (code = ::GetExceptionCode(), info = GetExceptionInformation(), EXCEPTION_EXECUTE_HANDLER) {
         char buffer[256];
         sprintf_s(buffer, sizeof(buffer), "Exception code: 0x%08x", code);
         ::MessageBoxA(nullptr, buffer, "Something wrong!", MB_OK);

@@ -12,6 +12,7 @@ public:
                                              BASS_SAMPLE_FLOAT | BASS_STREAM_DECODE,
                                              STREAMPROC_DUMMY,
                                              nullptr));
+        MemorySet(&compressord_, 0, sizeof(compressord_));
     }
 
     void Prepare(Parameters const& parameters) {
@@ -28,6 +29,7 @@ public:
             0);
         BassIfFailedThrow(compressor_fx);
         BassIfFailedThrow(BASS.BASS_FXSetParameters(compressor_fx, &compressord));
+        compressord_ = compressord;
     }
 
     const std::vector<float>& Process(float const * samples, uint32_t num_samples) {
@@ -53,6 +55,7 @@ public:
 
 private:
     BassStreamHandle stream_;
+    ::BASS_BFX_COMPRESSOR2 compressord_;
     std::vector<float> result_;
     std::vector<float> buffer_;
 };

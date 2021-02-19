@@ -77,7 +77,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/ffmpeg/include/;../thirdparty/bass/include/;../thirdparty/spdlog/include/;../thirdparty/robin_hood/</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STREAM_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
@@ -121,14 +121,14 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/ffmpeg/include/;../thirdparty/bass/include/;../thirdparty/spdlog/include/;../thirdparty/robin_hood/</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STREAM_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <OmitFramePointers>false</OmitFramePointers>
       <DebugInformationFormat>None</DebugInformationFormat>
@@ -155,7 +155,9 @@
     <ClInclude Include="include\stream\avfilestream.h" />
     <ClInclude Include="include\stream\bassfilestream.h" />
     <ClInclude Include="include\stream\dsdstream.h" />
+    <ClInclude Include="include\stream\audioprocessor.h" />
     <ClInclude Include="include\stream\filestream.h" />
+    <ClInclude Include="include\stream\compressor.h" />
     <ClInclude Include="include\stream\stream.h" />
   </ItemGroup>
   <ItemGroup>
@@ -164,6 +166,7 @@
     <ClCompile Include="src\bassexception.cpp" />
     <ClCompile Include="src\bassfilestream.cpp" />
     <ClCompile Include="src\basslib.cpp" />
+    <ClCompile Include="src\compressor.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

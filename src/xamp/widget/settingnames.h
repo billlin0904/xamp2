@@ -33,12 +33,19 @@ inline constexpr ConstLatin1String kAppSettingMinimizeToTray{ "AppSettings/minim
 inline constexpr ConstLatin1String kAppSettingResamplerEnable{ "AppSettings/soxr/enable" };
 inline constexpr ConstLatin1String kAppSettingSoxrSettingName{ "AppSettings/soxr/userSettingName" };
 
-inline constexpr ConstLatin1String kSoxrResampleSampleRate{ "AppSettings/soxr/resampleSampleRate" };
-inline constexpr ConstLatin1String kSoxrEnableSteepFilter{ "AppSettings/soxr/enableSteepFilter" };
-inline constexpr ConstLatin1String kSoxrQuality{ "AppSettings/soxr/quality" };
-inline constexpr ConstLatin1String kSoxrPhase{ "AppSettings/soxr/phase" };
-inline constexpr ConstLatin1String kSoxrPassBand{ "AppSettings/soxr/passBand" };
+inline constexpr ConstLatin1String kSoxrResampleSampleRate{ "resampleSampleRate" };
+inline constexpr ConstLatin1String kSoxrEnableSteepFilter{ "enableSteepFilter" };
+inline constexpr ConstLatin1String kSoxrQuality{ "quality" };
+inline constexpr ConstLatin1String kSoxrPhase{ "phase" };
+inline constexpr ConstLatin1String kSoxrPassBand{ "passBand" };
 inline constexpr ConstLatin1String kSoxrDefaultSettingName{ "default" };
+
+inline constexpr ConstLatin1String kEnableCompressor{ "AppSettings/compressor/enableCompressor" };
+inline constexpr ConstLatin1String kCompressorGain{ "AppSettings/compressor/gain" };
+inline constexpr ConstLatin1String kCompressorThreshold{ "AppSettings/compressor/threshold" };
+inline constexpr ConstLatin1String kCompressorRatio{ "AppSettings/compressor/ratio" };
+inline constexpr ConstLatin1String kCompressorAttack{ "AppSettings/compressor/attack" };
+inline constexpr ConstLatin1String kCompressorRelease{ "AppSettings/compressor/release" };
 
 inline constexpr ConstLatin1String kEnableEQ{ "AppSettings/enableEQ" };
 inline constexpr ConstLatin1String kEQName{ "AppSettings/EQName" };

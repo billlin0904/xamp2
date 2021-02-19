@@ -22,11 +22,6 @@ MAKE_ENUM(SoxrQuality,
           VHQ,
           UHQ)
 
-MAKE_ENUM(SoxrPhaseResponse,
-          LINEAR_PHASE,
-          INTERMEDIATE_PHASE,
-          MINIMUM_PHASE)
-
 class XAMP_PLAYER_API SoxrSampleRateConverter final : public SampleRateConverter {
 public:
     static const std::string_view VERSION;
