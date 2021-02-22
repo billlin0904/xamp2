@@ -38,13 +38,13 @@ public:
 
     void SetPhase(double phase);
 
-    void SetStopBand(double stopband);
+    void SetStopBand(double stop_band);
 
-    void SetPassBand(double passband);
+    void SetPassBand(double pass_band);
 
     std::string_view GetDescription() const noexcept override;
 
-    void Start(uint32_t input_samplerate, uint32_t num_channels, uint32_t output_samplerate) override;
+    void Start(uint32_t input_sample_rate, uint32_t num_channels, uint32_t output_sample_rate) override;
 
     bool Process(float const * samples, uint32_t num_sample, AudioBuffer<int8_t> &buffer) override;
 

@@ -33,13 +33,13 @@ using Ebur128StatePtr = std::unique_ptr<ebur128_state, Ebur128Deleter>;
 
 class LoudnessScanner::LoudnessScannerImpl {
 public:
-    LoudnessScannerImpl(uint32_t output_sample_rate)
-        : output_sample_rate_(output_sample_rate) {
+	explicit LoudnessScannerImpl(uint32_t sample_rate)
+        : sample_rate_(sample_rate) {
 		Init();
 	}
 	
 	void Init() {
-        state_.reset(::ebur128_init(kMaxChannel, output_sample_rate_, EBUR128_MODE_I | EBUR128_MODE_TRUE_PEAK));
+        state_.reset(::ebur128_init(kMaxChannel, sample_rate_, EBUR128_MODE_I | EBUR128_MODE_TRUE_PEAK));
         IfFailThrow(::ebur128_set_channel(state_.get(), 0, EBUR128_LEFT))
         IfFailThrow(::ebur128_set_channel(state_.get(), 1, EBUR128_RIGHT))
 	}
@@ -63,11 +63,11 @@ public:
 	}
 private:
 	Ebur128StatePtr state_;
-	uint32_t output_sample_rate_;
+	uint32_t sample_rate_;
 };
 
-LoudnessScanner::LoudnessScanner(uint32_t output_sample_rate)
-    : impl_(MakeAlign<LoudnessScannerImpl>(output_sample_rate)) {
+LoudnessScanner::LoudnessScanner(uint32_t sample_rate)
+    : impl_(MakeAlign<LoudnessScannerImpl>(sample_rate)) {
 }
 
 XAMP_PIMPL_IMPL(LoudnessScanner)

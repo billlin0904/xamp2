@@ -11,7 +11,6 @@
 #include <base/align_ptr.h>
 
 #include <output_device/win32/mmcss_types.h>
-#include <output_device/output_device.h>
 
 namespace xamp::output_device::win32 {
 
@@ -21,11 +20,9 @@ class Mmcss final {
 public:
 	Mmcss();
 
-	~Mmcss();
+	XAMP_PIMPL(Mmcss)
 
-	static void LoadAvrtLib();
-
-	XAMP_DISABLE_COPY(Mmcss)
+	static void LoadAvrtLib();	
 
 	void BoostPriority(std::wstring_view task_name = MMCSS_PROFILE_PRO_AUDIO);
 

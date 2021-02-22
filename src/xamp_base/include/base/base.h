@@ -120,7 +120,6 @@ XAMP_ENFORCE_TRIVIAL(Name);
 #define XAMP_ENABLE_THREAD_POOL_DEBUG
 
 namespace xamp::base {
-
 // <summary>
 // Avoid cache-pollution padding size.
 // </summary>

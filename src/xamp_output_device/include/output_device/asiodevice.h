@@ -15,6 +15,7 @@
 #include <base/align_ptr.h>
 #include <base/vmmemlock.h>
 #include <base/logger.h>
+#include <base/dsdsampleformat.h>
 
 #include <output_device/audiocallback.h>
 #include <output_device/device.h>

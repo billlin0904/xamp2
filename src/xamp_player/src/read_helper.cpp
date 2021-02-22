@@ -55,20 +55,9 @@ static double ReadProcess(std::wstring const& file_path,
 
 	prepare(input_format, output_format);
 
-	if (max_duration == INT_MAX) {
+	if (max_duration == std::numeric_limits<uint32_t>::max()) {
 		max_duration = file_stream->GetDuration();
 	}
-
-	Compressor compressor;
-	compressor.SetSampleRate(input_format.GetSampleRate());
-
-	Compressor::Parameters parameters;
-	parameters.gain = -1.0;
-	parameters.threshold = 0;
-	parameters.ratio = 1;
-	parameters.attack = 20;
-	parameters.release = 200;
-	compressor.Prepare(parameters);
 
 	while (num_samples / input_format.GetSampleRate() < max_duration) {
 		const auto read_size = file_stream->GetSamples(isamples.get(), 
@@ -78,8 +67,6 @@ static double ReadProcess(std::wstring const& file_path,
 			break;
 		}
 
-        auto const & buffer = compressor.Process(isamples.get(), read_size * input_format.GetChannels());
-
 		num_samples += read_size;
 		if (progress != nullptr) {
 			const auto percent = (num_samples / input_format.GetSampleRate() * 100) / max_duration;
@@ -88,8 +75,7 @@ static double ReadProcess(std::wstring const& file_path,
 			}
 		}
 
-        //func(isamples.get(), read_size * input_format.GetChannels());
-		func(buffer.data(), buffer.size());
+        func(isamples.get(), read_size * input_format.GetChannels());
 	}
 
 	return file_stream->GetDuration();
@@ -98,7 +84,7 @@ static double ReadProcess(std::wstring const& file_path,
 std::tuple<double, double> ReadFileLUFS(std::wstring const& file_path, std::wstring const& file_ext, std::function<bool(uint32_t)> const& progress) {
 	std::optional<LoudnessScanner> replay_gain;
 	
-	ReadProcess(file_path, file_ext, progress, INT_MAX,
+	ReadProcess(file_path, file_ext, progress, std::numeric_limits<uint32_t>::max(),
         [&replay_gain](AudioFormat const& input_format, AudioFormat const&)
 		{
             replay_gain = LoudnessScanner(input_format.GetSampleRate());

@@ -55,7 +55,7 @@ public:
 
     void OnGaplessPlayback() override;    
 
-    void addPlayQueue(AlignPtr<FileStream> &&stream, AlignPtr<SampleRateConverter> &&resampler, const QModelIndex &index);
+    void addPlayQueue(AlignPtr<FileStream> &&stream, AlignPtr<SampleRateConverter> &&sample_rate_converter, const QModelIndex &index);
 
     QModelIndex popIndexQueue();
 

@@ -10,8 +10,8 @@
 #ifdef XAMP_OS_WIN
 
 #include <cassert>
-#include <Windows.h>
-#include <Mfidl.h>
+#include <windows.h>
+#include <mfidl.h>
 
 #include <output_device/win32/unknownimpl.h>
 

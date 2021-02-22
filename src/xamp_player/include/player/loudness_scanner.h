@@ -14,7 +14,7 @@ using namespace xamp::base;
 
 class XAMP_PLAYER_API LoudnessScanner {
 public:
-    LoudnessScanner(uint32_t output_sample_rate);
+	explicit LoudnessScanner(uint32_t sample_rate);
 
 	XAMP_PIMPL(LoudnessScanner)
 

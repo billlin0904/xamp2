@@ -80,8 +80,7 @@ Mmcss::Mmcss()
 	: impl_(MakeAlign<MmcssImpl>()) {
 }
 
-Mmcss::~Mmcss() {
-}
+XAMP_PIMPL_IMPL(Mmcss)
 
 void Mmcss::LoadAvrtLib() {
 	(void)Singleton<AvrtLib>::GetInstance();

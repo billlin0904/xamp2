@@ -74,6 +74,7 @@ static void loadSettings() {
         AppSettings::setDefaultValue(kCompressorRatio, 1);
         AppSettings::setDefaultValue(kCompressorAttack, 20);
         AppSettings::setDefaultValue(kCompressorRelease, 200);
+        AppSettings::save();
 	}
 }
 

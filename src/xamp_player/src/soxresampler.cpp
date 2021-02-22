@@ -54,11 +54,11 @@ public:
         , enable_dither_(false)
         , quality_(SoxrQuality::VHQ)
         , phase_(100.0)
-        , input_samplerate_(0)
+        , input_sample_rate_(0)
         , num_channels_(0)
         , ratio_(0)
-        , passband_(0.997)
-        , stopband_(1.0) {        
+        , pass_band_(0.997)
+        , stop_band_(1.0) {        
     }
 
     ~SoxrSampleRateConverterImpl() noexcept {
@@ -95,8 +95,8 @@ public:
 
         auto soxr_quality = Singleton<SoxrLib>::GetInstance().soxr_quality_spec(quality_spec, flags);
 
-        soxr_quality.passband_end = passband_;
-        soxr_quality.stopband_begin = stopband_;
+        soxr_quality.passband_end = pass_band_;
+        soxr_quality.stopband_begin = stop_band_;
         soxr_quality.phase_response = phase_;
 
         auto iospec = Singleton<SoxrLib>::GetInstance().soxr_io_spec(SOXR_FLOAT32_I, SOXR_FLOAT32_I);
@@ -120,18 +120,18 @@ public:
             throw LibrarySpecException("sox_create return failure!");
         }
 
-        input_samplerate_ = input_sample_rate;
+        input_sample_rate_ = input_sample_rate;
         num_channels_ = num_channels;
 
-        ratio_ = static_cast<double>(output_sample_rate) / static_cast<double>(input_samplerate_);
+        ratio_ = static_cast<double>(output_sample_rate) / static_cast<double>(input_sample_rate_);
 
         XAMP_LOG_DEBUG("Soxr resampler setting=> input:{} output:{} quality:{} phase:{} pass:{} stopband:{}",
             input_sample_rate,
             output_sample_rate,
             EnumToString(quality_),
             phase_,
-            passband_,
-            stopband_);
+            pass_band_,
+            stop_band_);
 
         ResizeBuffer(kInitBufferSize);        
     }
@@ -159,11 +159,11 @@ public:
     }
 
     void SetPassBand(double passband) {
-        passband_ = passband;
+        pass_band_ = passband;
     }
 
     void SetStopBand(double stopband) {
-        stopband_ = stopband;
+        stop_band_ = stopband;
     }
 
     void Flush() {
@@ -232,11 +232,11 @@ public:
     bool enable_dither_;
     SoxrQuality quality_;
     double phase_;
-    uint32_t input_samplerate_;
+    uint32_t input_sample_rate_;
     uint32_t num_channels_;
     double ratio_;
-    double passband_;
-    double stopband_;
+    double pass_band_;
+    double stop_band_;
     SoxrHandle handle_;
     VmMemLock vmlock_;
     Buffer<float> buffer_;
@@ -254,8 +254,8 @@ void SoxrSampleRateConverter::LoadSoxrLib() {
     (void)Singleton<SoxrLib>::GetInstance();
 }
 
-void SoxrSampleRateConverter::Start(uint32_t input_samplerate, uint32_t num_channels, uint32_t output_samplerate) {
-    impl_->Start(input_samplerate, num_channels, output_samplerate);
+void SoxrSampleRateConverter::Start(uint32_t input_sample_rate, uint32_t num_channels, uint32_t output_sample_rate) {
+    impl_->Start(input_sample_rate, num_channels, output_sample_rate);
 }
 
 void SoxrSampleRateConverter::SetSteepFilter(bool enable) {
@@ -270,12 +270,12 @@ void SoxrSampleRateConverter::SetPhase(double phase) {
     impl_->SetPhase(phase);
 }
 
-void SoxrSampleRateConverter::SetPassBand(double passband) {
-    impl_->SetPassBand(passband);
+void SoxrSampleRateConverter::SetPassBand(double pass_band) {
+    impl_->SetPassBand(pass_band);
 }
 
-void SoxrSampleRateConverter::SetStopBand(double stopband) {
-    impl_->SetStopBand(stopband);
+void SoxrSampleRateConverter::SetStopBand(double stop_band) {
+    impl_->SetStopBand(stop_band);
 }
 
 std::string_view SoxrSampleRateConverter::GetDescription() const noexcept {
@@ -294,9 +294,9 @@ AlignPtr<SampleRateConverter> SoxrSampleRateConverter::Clone() {
     auto other = MakeAlign<SampleRateConverter, SoxrSampleRateConverter>();
     auto* converter = reinterpret_cast<SoxrSampleRateConverter*>(other.get());
     converter->SetQuality(impl_->quality_);
-    converter->SetPassBand(impl_->passband_);
+    converter->SetPassBand(impl_->pass_band_);
     converter->SetPhase(impl_->phase_);
-    converter->SetStopBand(impl_->stopband_);
+    converter->SetStopBand(impl_->stop_band_);
     converter->SetSteepFilter(impl_->enable_steep_filter_);
     return other;
 }

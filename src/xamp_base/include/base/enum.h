@@ -40,7 +40,8 @@
     EXPAND_VISUAL_STUDIO_HELPER(ALL_ARGUMENTS_TO_STRING_HELPER( \
         0, __VA_ARGS__, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
 
-#define MAKE_ENUM(EnumName, ...) enum class EnumName : uint8_t { __VA_ARGS__ }; \
+// Dll export must be in namespace scope. so we put this in global.
+#define MAKE_ENUM(EnumName, ...) enum class EnumName  { __VA_ARGS__ }; \
 namespace {\
 inline constexpr std::string_view EnumName##_enum_names[] = {\
     ALL_ARGUMENTS_TO_STRING(__VA_ARGS__)\

@@ -10,6 +10,7 @@
 
 #include <base/align_ptr.h>
 #include <base/stl.h>
+#include <base/dsdsampleformat.h>
 #include <output_device/dsddevice.h>
 #include <stream/filestream.h>
 #include <player/player.h>

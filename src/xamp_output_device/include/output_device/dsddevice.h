@@ -6,8 +6,8 @@
 #pragma once
 
 #include <base/enum.h>
-#include <base/dsdsampleformat.h>
-#include <output_device/device.h>
+#include <base/base.h>
+#include <output_device/output_device.h>
 
 namespace xamp::output_device {
 

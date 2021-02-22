@@ -47,7 +47,7 @@ public:
 
 	Int24& operator=(float f) noexcept;
 
-	int32_t To2432Int() const noexcept;
+	[[nodiscard]] int32_t To2432Int() const noexcept;
 protected:
 	std::array<uint8_t, 3> c3;
 };

@@ -8,6 +8,7 @@
 #include <cguid.h>
 
 #include <base/stl.h>
+#include <base/enum.h>
 #include <base/str_utilts.h>
 #include <output_device/win32/hrexception.h>
 #include <output_device/win32/wasapi.h>
