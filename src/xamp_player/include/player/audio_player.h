@@ -49,7 +49,7 @@ public:
 
     virtual ~AudioPlayer() override;
 
-    explicit AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter);
+    explicit AudioPlayer(const std::weak_ptr<PlaybackStateAdapter>& adapter);
 
     static void Initial();
 

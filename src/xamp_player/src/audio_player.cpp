@@ -25,11 +25,12 @@ namespace xamp::player {
 
 inline constexpr int32_t kBufferStreamCount = 5;
 inline constexpr int32_t kTotalBufferStreamCount = 10;
-inline constexpr int32_t kPreallocateBufferSize = 300 * 1024 * 1024;
-inline constexpr uint32_t kMaxPreallocateBufferSize = 300 * 1024 * 1024;
-inline constexpr int32_t kMaxWriteRatio = 20;
-inline constexpr int32_t kMaxReadRatio = 30;
-inline constexpr int32_t kDefaultReadSampleSize = 4096;
+inline constexpr int32_t kPreallocateBufferSize = 320 * 1024 * 1024;
+inline constexpr uint32_t kMaxPreallocateBufferSize = 320 * 1024 * 1024;
+inline constexpr int32_t kMaxWriteRatio = 80;
+inline constexpr int32_t kMaxReadRatio = 2;
+// NOTE: 4KB的話libav resample會導致緩衝過大的問題產生.
+inline constexpr int32_t kDefaultReadSampleSize = 8 * 1024;
 
 inline constexpr std::chrono::milliseconds kUpdateSampleInterval(100);
 inline constexpr std::chrono::milliseconds kReadSampleWaitTime(30);
@@ -47,7 +48,7 @@ AudioPlayer::AudioPlayer()
     : AudioPlayer(std::weak_ptr<PlaybackStateAdapter>()) {
 }
 
-AudioPlayer::AudioPlayer(std::weak_ptr<PlaybackStateAdapter> adapter)
+AudioPlayer::AudioPlayer(const std::weak_ptr<PlaybackStateAdapter> &adapter)
     : is_muted_(false)
     , enable_sample_converter_(false)
     , dsd_mode_(DsdModes::DSD_MODE_PCM)
@@ -493,17 +494,10 @@ void AudioPlayer::CreateBuffer() {
 
     uint32_t require_read_sample = 0;
 
-    if (AudioDeviceManager::GetInstance().IsSupportASIO()) {
-        if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE
-            || AudioDeviceManager::GetInstance().IsASIODevice(device_type_id_)) {
-            require_read_sample = output_format_.GetSampleRate() / 8;
-        }
-        else {
-            require_read_sample = device_->GetBufferSize() * kMaxReadRatio;
-        }
-    }
-    else {
-        require_read_sample = device_->GetBufferSize() * kMaxReadRatio;
+    if (dsd_mode_ != DsdModes::DSD_MODE_NATIVE) {
+	    require_read_sample = device_->GetBufferSize() * kMaxReadRatio;
+    } else {
+        require_read_sample = output_format_.GetSampleRate() / 8;
     }
 
     if (require_read_sample != num_read_sample_) {    	

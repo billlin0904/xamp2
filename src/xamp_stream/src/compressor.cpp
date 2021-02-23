@@ -33,8 +33,6 @@ public:
     }
 
     const std::vector<float>& Process(float const * samples, uint32_t num_samples) {
-        result_.clear();
-
         buffer_.resize(num_samples);
         MemoryCopy(buffer_.data(), samples, num_samples * sizeof(float));
 
@@ -42,21 +40,19 @@ public:
                                                          buffer_.data(),
                                                          buffer_.size() * sizeof(float));
         if (bytes_read == kBassError) {
-            return result_;
+            return buffer_;
         }
         if (bytes_read == 0) {
-            return result_;
+            return buffer_;
         }
         const auto frames = bytes_read / sizeof(float);
         buffer_.resize(frames);
-        result_.insert(result_.end(), buffer_.begin(), buffer_.end());
-        return result_;
+        return buffer_;
     }
 
 private:
     BassStreamHandle stream_;
     ::BASS_BFX_COMPRESSOR2 compressord_;
-    std::vector<float> result_;
     std::vector<float> buffer_;
 };
 
