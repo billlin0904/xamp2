@@ -196,6 +196,7 @@ std::set<std::string> BassLib::GetSupportFileExtensions() const {
 	// Workaround!
     result.insert(".dff");
     result.insert(".dsf");
+    result.insert(".wav");
 	
     return result;
 } 

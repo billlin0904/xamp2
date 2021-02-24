@@ -407,7 +407,6 @@ void AsioDevice::OnBufferSwitch(long index, double sample_time) noexcept {
 	if (io_format_ == DsdIoFormat::IO_FORMAT_PCM) {
 		const auto vol = volume_.load();
 		if (Singleton<AsioDriver>::GetInstance().data_context.cache_volume != vol) {
-			// 如果100% 音量會爆音,
 			Singleton<AsioDriver>::GetInstance().data_context.volume_factor = LinearToLog(vol);
 			Singleton<AsioDriver>::GetInstance().data_context.cache_volume = vol;
 		}

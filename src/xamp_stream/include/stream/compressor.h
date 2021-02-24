@@ -22,15 +22,15 @@ public:
 	
     struct Parameters {
     	// Output gain in dB of signal after compression.
-        float gain{ 0 };
+        float gain{ -1 };
     	// Point in dB at which compression begins, in decibels, in the range from -60 to 0.
         float threshold{ 0 };
     	// Compression ratio, in the range from 1 to 100.
-        float ratio{ 0 };
+        float ratio{ 1 };
     	// Time in ms before compression reaches its full value, in the range from 0.01 to 500.
-        float attack{ 0 };
+        float attack{ 20 };
     	// Time (speed) in ms at which compression is stopped after input drops below fThreshold, in the range from 50 to 3000. 
-        float release{ 0 };
+        float release{ 200 };
     };
 	
     Compressor();
@@ -39,7 +39,7 @@ public:
 
     void SetSampleRate(uint32_t sample_rate) override;
 
-    void Prepare(Parameters const &parameters);
+    void Prepare(Parameters const &parameters = Parameters());
 
     const std::vector<float>& Process(float const * samples, uint32_t num_samples) override;
 

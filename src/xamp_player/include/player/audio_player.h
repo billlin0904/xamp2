@@ -120,7 +120,7 @@ public:
     AlignPtr<SampleRateConverter> CloneSampleRateConverter() const;
 
 private:
-    bool CanProcess() const noexcept;
+    bool CanProcessFile() const noexcept;
     	
     void DoSeek(double stream_time);
     	

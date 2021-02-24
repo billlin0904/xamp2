@@ -44,6 +44,8 @@
 #include "thememanager.h"
 #include "xamp.h"
 
+#include <QFileDialog>
+
 static AlignPtr<SampleRateConverter> makeSampleRateConverter(const QVariantMap &settings) {
     auto quality = static_cast<SoxrQuality>(settings[kSoxrQuality].toInt());
     auto phase = settings[kSoxrPhase].toInt();
@@ -1401,6 +1403,35 @@ void Xamp::readFileLUFS(const QModelIndex&, const PlayListEntity& item) {
     }    
 }
 
+void Xamp::exportWaveFile(const QModelIndex&, const PlayListEntity& item) {
+    const auto file_name = QFileDialog::getSaveFileName(this, tr("Save WAVE file"),
+        Qt::EmptyString,
+        tr("WAVE Files (*.wav)"));
+	
+    if (file_name.isNull()) {
+        return;
+    }
+
+    auto dialog = makeProgressDialog(tr("Read progress dialog"),
+        tr("Read '") + item.title + tr("' loudness"),
+        tr("Cancel"));
+    dialog->show();
+
+    try {
+        Export2WaveFile(item.file_path.toStdWString(),
+            item.file_ext.toStdWString(),
+            file_name.toStdWString(),
+            [&](auto progress) -> bool {
+                dialog->setValue(progress);
+                qApp->processEvents();
+                return dialog->wasCanceled() != true;
+            });
+    }
+    catch (Exception const& e) {
+        Toast::showTip(Q_UTF8(e.what()), this);
+    }
+}
+
 void Xamp::readFingerprint(const QModelIndex&, const PlayListEntity& item) {
     auto dialog = makeProgressDialog(
         tr("Read progress dialog"),
@@ -1467,6 +1498,9 @@ PlyalistPage* Xamp::newPlaylist(int32_t playlist_id) {
 
     (void)QObject::connect(playlist_page->playlist(), &PlayListTableView::readFileLUFS,
         this, &Xamp::readFileLUFS);
+
+    (void)QObject::connect(playlist_page->playlist(), &PlayListTableView::exportWaveFile,
+        this, &Xamp::exportWaveFile);
 
     (void)QObject::connect(this, &Xamp::themeChanged,
                             playlist_page->playlist(),

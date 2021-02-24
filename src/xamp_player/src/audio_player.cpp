@@ -551,7 +551,7 @@ bool AudioPlayer::IsEnableSampleRateConverter() const {
 void AudioPlayer::SetDeviceFormat() {
     input_format_ = stream_->GetFormat();
 
-    if (enable_sample_converter_ && dsd_mode_ == DsdModes::DSD_MODE_PCM) {
+    if (enable_sample_converter_ && CanProcessFile()) {
         if (output_format_.GetSampleRate() != target_sample_rate_) {
             device_id_.clear();
         }
@@ -778,7 +778,7 @@ void AudioPlayer::BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<SampleRat
 
             auto* samples = reinterpret_cast<float*>(sample_buffer);
 
-        	if (CanProcess() && !dsp_chain_.empty()) {
+        	if (CanProcessFile() && !dsp_chain_.empty()) {
                 auto itr = dsp_chain_.begin();
                 auto buffer = (*itr)->Process(samples, num_samples);
         		
@@ -798,7 +798,7 @@ void AudioPlayer::BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<SampleRat
     }
 }
 
-bool AudioPlayer::CanProcess() const noexcept {
+bool AudioPlayer::CanProcessFile() const noexcept {
     return (dsd_mode_ == DsdModes::DSD_MODE_PCM || dsd_mode_ == DsdModes::DSD_MODE_DSD2PCM);
 }
 
@@ -809,7 +809,7 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_buffer_samp
         if (num_samples > 0) {
             auto *samples = reinterpret_cast<float*>(sample_buffer);
 
-            if (CanProcess() && !dsp_chain_.empty()) {
+            if (CanProcessFile() && !dsp_chain_.empty()) {
                 auto itr = dsp_chain_.begin();
                 auto buffer = (*itr)->Process(samples, num_samples);
 
@@ -866,7 +866,7 @@ int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, dou
     max_process_time_ = std::max(elapsed, max_process_time_);
     min_process_time_ = std::min(elapsed, min_process_time_);
 #endif
-    if (stream_time >= stream_duration_ && enable_gapless_play_) {
+    if (enable_gapless_play_ && stream_time >= stream_duration_) {
         msg_queue_.TryPush(MsgID::EVENT_SWITCH);
         device_->SetStreamTime(0);
     }

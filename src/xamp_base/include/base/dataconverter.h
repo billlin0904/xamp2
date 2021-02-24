@@ -48,8 +48,8 @@ public:
 	Int24& operator=(float f) noexcept;
 
 	[[nodiscard]] int32_t To2432Int() const noexcept;
-protected:
-	std::array<uint8_t, 3> c3;
+
+	std::array<uint8_t, 3> data;
 };
 
 XAMP_ENFORCE_TRIVIAL(Int24)
@@ -64,18 +64,18 @@ XAMP_ALWAYS_INLINE Int24& Int24::operator=(float f) noexcept {
 }
 
 XAMP_ALWAYS_INLINE Int24& Int24::operator=(int32_t i) noexcept {
-	c3[0] = reinterpret_cast<uint8_t*>(&i)[0];
-	c3[1] = reinterpret_cast<uint8_t*>(&i)[1];
-	c3[2] = reinterpret_cast<uint8_t*>(&i)[2];
+	data[0] = reinterpret_cast<uint8_t*>(&i)[0];
+	data[1] = reinterpret_cast<uint8_t*>(&i)[1];
+	data[2] = reinterpret_cast<uint8_t*>(&i)[2];
 	return *this;
 }
 
 XAMP_ALWAYS_INLINE int32_t Int24::To2432Int() const noexcept {
 	int32_t v{ 0 };
 	reinterpret_cast<uint8_t*>(&v)[0] = 0;
-	reinterpret_cast<uint8_t*>(&v)[0] = c3[0];
-	reinterpret_cast<uint8_t*>(&v)[1] = c3[1];
-	reinterpret_cast<uint8_t*>(&v)[2] = c3[2];
+	reinterpret_cast<uint8_t*>(&v)[0] = data[0];
+	reinterpret_cast<uint8_t*>(&v)[1] = data[1];
+	reinterpret_cast<uint8_t*>(&v)[2] = data[2];
 	return v << 8;
 }
 

@@ -140,6 +140,8 @@ private:
 
 	void readFileLUFS(const QModelIndex&, const PlayListEntity& item);
 
+	void exportWaveFile(const QModelIndex&, const PlayListEntity& item);
+
 	void createTrayIcon();
 
     void updateUI(const MusicEntity& item, const PlaybackFormat& playback_format, bool open_done);

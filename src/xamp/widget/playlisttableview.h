@@ -78,6 +78,8 @@ signals:
 
 	void setLoopTime(double start_time, double end_time);
 
+	void exportWaveFile(const QModelIndex& index, const PlayListEntity& item);
+
 public slots:
 	void processMeatadata(const std::vector<Metadata> &medata);
 

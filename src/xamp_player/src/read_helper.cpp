@@ -4,6 +4,8 @@
 #include <stream/dsdstream.h>
 
 #include <stream/compressor.h>
+#include <stream/wavefilewriter.h>
+
 #include <player/chromaprint.h>
 #include <player/audio_player.h>
 #include <player/audio_util.h>
@@ -19,10 +21,10 @@ inline constexpr uint32_t kReadSampleSize = 8192 * 4;
 
 static double ReadProcess(std::wstring const& file_path,
 	std::wstring const& file_ext,
-	std::function<bool(uint32_t)> const& progress,
-	uint32_t max_duration,
-	std::function<void(AudioFormat const &, AudioFormat const&)> const& prepare,
-    std::function<void(float const *, uint32_t)> const& func) {
+	std::function<bool(uint32_t)> const& progress,	
+	std::function<void(AudioFormat const &)> const& prepare,
+    std::function<void(float const *, uint32_t)> const& func,
+	uint32_t max_duration = std::numeric_limits<uint32_t>::max()) {
     const auto is_dsd_file = audio_util::TestDsdFileFormatStd(file_path);
     auto file_stream = audio_util::MakeStream(file_ext);
 	if (auto* stream = dynamic_cast<DsdStream*>(file_stream.get())) {
@@ -45,15 +47,7 @@ static double ReadProcess(std::wstring const& file_path,
 		1024 + kReadSampleSize * input_format.GetChannels());	
 	uint32_t num_samples = 0;
 
-	const AudioFormat output_format{
-		DataFormat::FORMAT_PCM,
-		input_format.GetChannels(),
-		ByteFormat::FLOAT32,
-		input_format.GetSampleRate(),
-		PackedFormat::INTERLEAVED
-	};
-
-	prepare(input_format, output_format);
+	prepare(input_format);
 
 	if (max_duration == std::numeric_limits<uint32_t>::max()) {
 		max_duration = file_stream->GetDuration();
@@ -81,30 +75,46 @@ static double ReadProcess(std::wstring const& file_path,
 	return file_stream->GetDuration();
 }
 
-std::tuple<double, double> ReadFileLUFS(std::wstring const& file_path, std::wstring const& file_ext, std::function<bool(uint32_t)> const& progress) {
-	std::optional<LoudnessScanner> replay_gain;
-	
-	ReadProcess(file_path, file_ext, progress, std::numeric_limits<uint32_t>::max(),
-        [&replay_gain](AudioFormat const& input_format, AudioFormat const&)
-		{
-            replay_gain = LoudnessScanner(input_format.GetSampleRate());
-		}, [&replay_gain](float const* samples, uint32_t sample_size)
-		{
-			replay_gain.value().Process(samples, sample_size);
+void Export2WaveFile(std::wstring const& file_path,
+	std::wstring const& file_ext,
+	std::wstring const& output_file_path,
+	std::function<bool(uint32_t)> const& progress, 
+	bool enable_compressor) {
+	WaveFileWriter file;
+	Compressor compressor;
+	ReadProcess(file_path, file_ext, progress,
+		[&file, output_file_path, &compressor](AudioFormat const& output_format) {
+			auto input_format = output_format;
+			input_format.SetByteFormat(ByteFormat::SINT24);
+			file.Open(output_file_path, input_format);
+			compressor.SetSampleRate(input_format.GetSampleRate());
+			compressor.Prepare();
+		}, [&file, &compressor, enable_compressor](float const* samples, uint32_t sample_size) {
+			if (enable_compressor) {
+				auto const& buf = compressor.Process(samples, sample_size);
+				file.Write(buf.data(), buf.size());
+			} else {
+				file.Write(samples, sample_size);
+			}			
 		});
-
-	return std::make_tuple(replay_gain->GetLoudness(), replay_gain->GetTruePeek());
+	file.Close();
 }
 
-double GetGainScale(double lu, double reference_loudness) {
-	// EBUR128 sets the target level to -23 LUFS = 84dB
-	// -> -23 - loudness = track gain to get to 84dB
+std::tuple<double, double> ReadFileLUFS(std::wstring const& file_path, 
+	std::wstring const& file_ext,
+	std::function<bool(uint32_t)> const& progress) {
+	std::optional<LoudnessScanner> scanner;
+	
+	ReadProcess(file_path, file_ext, progress,
+		[&scanner](AudioFormat const& input_format)
+		{
+            scanner = LoudnessScanner(input_format.GetSampleRate());
+		}, [&scanner](float const* samples, uint32_t sample_size)
+		{
+			scanner.value().Process(samples, sample_size);
+		});
 
-	if (lu == std::numeric_limits<double>::quiet_NaN()
-		|| lu == std::numeric_limits<double>::infinity() || lu < -70) {
-		return 1.0;
-	}
-	return std::pow(10.0, (reference_loudness - lu) / 20.0);
+	return std::make_tuple(scanner->GetLoudness(), scanner->GetTruePeek());
 }
 
 std::tuple<double, std::vector<uint8_t>> ReadFingerprint(std::wstring const & file_path,
@@ -115,10 +125,10 @@ std::tuple<double, std::vector<uint8_t>> ReadFingerprint(std::wstring const & fi
 
 	AlignBufferPtr<int16_t> osamples;
 
-	auto duration = ReadProcess(file_path, file_ext, progress, kFingerprintDuration,
-		[&ctx, &chromaprint, &osamples](AudioFormat const &input_format, AudioFormat const& output_format)
+	auto duration = ReadProcess(file_path, file_ext, progress,
+		[&ctx, &chromaprint, &osamples](AudioFormat const &input_format)
 		{
-			ctx = MakeConvert(input_format, output_format, kReadSampleSize);
+			ctx = MakeConvert(input_format, input_format, kReadSampleSize);
 			osamples = MakeBufferPtr<int16_t>(1024 + kReadSampleSize * input_format.GetChannels());
 			chromaprint.Start(input_format.GetSampleRate(), 
 				input_format.GetChannels(),
@@ -128,7 +138,7 @@ std::tuple<double, std::vector<uint8_t>> ReadFingerprint(std::wstring const & fi
 			DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>
 				::ConvertToInt16(osamples.get(), samples, ctx);
 			(void) chromaprint.Feed(osamples.get(), sample_size * kMaxChannel);
-		});
+		}, kFingerprintDuration);
 	
 
 	(void)chromaprint.Finish();

@@ -156,9 +156,9 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
 		reinterpret_cast<void**>(&endpoint_volume)
 	));
 
-#ifdef _DEBUG
 	HrIfFailledThrow(endpoint_volume->QueryHardwareSupport(&volume_support_mask_));
-
+	
+#ifdef _DEBUG
 	if (volume_support_mask_ & ENDPOINT_HARDWARE_SUPPORT_VOLUME) {
 		XAMP_LOG_I(log_, "Hardware support volume control.");
 	}
@@ -214,7 +214,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	HrIfFailledThrow(client_->GetService(kAudioClockID,
 		reinterpret_cast<void**>(&clock_)));
 
-	DWORD task_id = 0;
+	DWORD task_id = MF_STANDARD_WORKQUEUE;
 	queue_id_ = 0;
 	HrIfFailledThrow(::MFLockSharedWorkQueue(mmcss_name_.c_str(),
 		static_cast<LONG>(thread_priority_),
@@ -234,7 +234,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	HrIfFailledThrow(::MFCreateAsyncResult(nullptr, sample_ready_callback_, nullptr, &sample_ready_async_result_));
 
 	if (!sample_ready_) {
-		sample_ready_.reset(::CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS));
+		sample_ready_.reset(::CreateEventEx(nullptr, nullptr, 0, EVENT_MODIFY_STATE | SYNCHRONIZE));
 		assert(sample_ready_);
 		HrIfFailledThrow(client_->SetEventHandle(sample_ready_.get()));
 	}

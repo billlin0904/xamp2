@@ -34,7 +34,9 @@ public:
 		LARGE_INTEGER timespan = { 0 };
 		timespan.LowPart = static_cast<DWORD>(file_times & 0xFFFFFFFF);
 		timespan.HighPart = static_cast<LONG>(file_times >> 32);
-		::SetWaitableTimer(timer_.get(), &timespan, 0, nullptr, nullptr, FALSE);
+		if (!::SetWaitableTimer(timer_.get(), &timespan, 0, nullptr, nullptr, FALSE)) {
+			throw PlatformSpecException();
+		}
 	}
 
 	WinHandle timer_;

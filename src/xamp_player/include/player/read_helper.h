@@ -23,7 +23,11 @@ XAMP_PLAYER_API std::tuple<double, double> ReadFileLUFS(std::wstring const& file
 	std::wstring const& file_ext,
 	std::function<bool(uint32_t)> const& progress);
 
-XAMP_PLAYER_API double GetGainScale(double lu, double reference_loudness = -18.0);
+XAMP_PLAYER_API void Export2WaveFile(std::wstring const& file_path,
+	std::wstring const& file_ext,
+	std::wstring const& output_file_path,
+	std::function<bool(uint32_t)> const& progress,
+	bool enable_compressor = true);
 
 }
 

@@ -307,6 +307,7 @@ void PlayListTableView::initial() {
         auto reload_file_meta_act = action_map.addAction(tr("Reload file meta"));
         auto reload_file_fingerprint_act = action_map.addAction(tr("Read file fingerprint"));
         auto read_file_lufs_act = action_map.addAction(tr("Read file LUFS"));
+        auto export_wave_file_act = action_map.addAction(tr("Export wave file"));
         auto copy_album_act = action_map.addAction(tr("Copy album"));
         auto copy_artist_act = action_map.addAction(tr("Copy artist"));
         auto copy_title_act = action_map.addAction(tr("Copy title"));
@@ -347,6 +348,15 @@ void PlayListTableView::initial() {
             for (const auto& select_item : rows) {
                 auto entity = this->item(select_item.second);
                 emit readFileLUFS(select_item.second, entity);
+            }
+            refresh();
+            });
+
+        action_map.setCallback(export_wave_file_act, [this]() {
+            const auto rows = selectItemIndex();
+            for (const auto& select_item : rows) {
+                auto entity = this->item(select_item.second);
+                emit exportWaveFile(select_item.second, entity);
             }
             refresh();
             });

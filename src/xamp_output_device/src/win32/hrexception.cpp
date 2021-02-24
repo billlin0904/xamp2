@@ -72,6 +72,7 @@ HRException::HRException(HRESULT hresult, std::string_view expr)
 	, hr_(hresult)
 	, expr_(expr) {	
 	message_ = ErrorToStringHelper(hresult);
+    what_ = message_;
 }
 
 HRESULT HRException::GetHResult() const {

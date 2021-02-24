@@ -367,6 +367,8 @@ std::set<std::string> AvFileStream::GetSupportFileExtensions() {
             result.insert(dot + std::string(ext));
         }
     }
+
+    result.insert(".wav");
     return result;
 }
 

@@ -225,7 +225,7 @@ void SharedWasapiDevice::OpenStream(AudioFormat const & output_format) {
 	XAMP_LOG_I(log_, "WASAPI buffer frame size:{}.", buffer_frames_);
 
 	// Enable MCSS
-	DWORD task_id = 0;
+	DWORD task_id = MF_STANDARD_WORKQUEUE;
 	queue_id_ = 0;
 	HrIfFailledThrow(::MFLockSharedWorkQueue(mmcss_name_.c_str(),
 		static_cast<LONG>(thread_priority_),
@@ -251,7 +251,7 @@ void SharedWasapiDevice::OpenStream(AudioFormat const & output_format) {
 		&sample_ready_async_result_));
 
 	if (!sample_ready_) {
-		sample_ready_.reset(::CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS));
+		sample_ready_.reset(::CreateEventEx(nullptr, nullptr, 0, EVENT_MODIFY_STATE | SYNCHRONIZE));
 		assert(sample_ready_);
 		HrIfFailledThrow(client_->SetEventHandle(sample_ready_.get()));
 	}
