@@ -166,9 +166,8 @@ private:
 	PlaybackHistoryPage* playback_history_page_;
 	MusicBrainzClient mbc_;
 	DiscogsClient discogs_;
-    QList<AppEQSettings> eqsettings_;
-	QMenu* tray_icon_menu_;
-	QSystemTrayIcon* tray_icon_;
+	QMenu* tray_icon_menu_{};
+	QSystemTrayIcon* tray_icon_{};
 	VmMemLock player_lock_;
-    Ui::XampWindow ui_;
+    Ui::XampWindow ui_{};
 };

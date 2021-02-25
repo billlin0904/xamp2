@@ -16,7 +16,7 @@ namespace xamp::player {
 
 using namespace xamp::base;
 
-inline constexpr uint32_t kFingerprintDuration = 120;
+inline constexpr uint64_t kFingerprintDuration = 120;
 inline constexpr uint32_t kReadSampleSize = 8192 * 4;
 
 static double ReadProcess(std::wstring const& file_path,
@@ -24,7 +24,7 @@ static double ReadProcess(std::wstring const& file_path,
 	std::function<bool(uint32_t)> const& progress,	
 	std::function<void(AudioFormat const &)> const& prepare,
     std::function<void(float const *, uint32_t)> const& func,
-	uint32_t max_duration = std::numeric_limits<uint32_t>::max()) {
+	uint64_t max_duration = std::numeric_limits<uint64_t>::max()) {
     const auto is_dsd_file = audio_util::TestDsdFileFormatStd(file_path);
     auto file_stream = audio_util::MakeStream(file_ext);
 	if (auto* stream = dynamic_cast<DsdStream*>(file_stream.get())) {
@@ -49,8 +49,8 @@ static double ReadProcess(std::wstring const& file_path,
 
 	prepare(input_format);
 
-	if (max_duration == std::numeric_limits<uint32_t>::max()) {
-		max_duration = file_stream->GetDuration();
+	if (max_duration == std::numeric_limits<uint64_t>::max()) {
+		max_duration = static_cast<uint64_t>(file_stream->GetDuration());
 	}
 
 	while (num_samples / input_format.GetSampleRate() < max_duration) {
@@ -63,7 +63,7 @@ static double ReadProcess(std::wstring const& file_path,
 
 		num_samples += read_size;
 		if (progress != nullptr) {
-			const auto percent = (num_samples / input_format.GetSampleRate() * 100) / max_duration;
+			const auto percent = static_cast<uint32_t>((num_samples / input_format.GetSampleRate() * 100) / max_duration);
 			if (!progress(percent)) {
 				break;
 			}

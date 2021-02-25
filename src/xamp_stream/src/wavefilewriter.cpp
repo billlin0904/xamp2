@@ -29,6 +29,11 @@ struct DATA_HEADER {
 	CHUNK descriptor;
 };
 
+struct LIST {
+	CHUNK descriptor;
+	char name[4]{ 0 };
+};
+
 struct COMBINED_HEADER {
 	RIFF_HEADER riff;
 	WAVE_HEADER wave;
@@ -103,7 +108,7 @@ void WaveFileWriter::WriteHeader(AudioFormat const& format) {
 	MemoryCopy(header.riff.type, "WAVE", 4);
 	MemoryCopy(header.wave.descriptor.id, "fmt ", 4);
 	header.wave.descriptor.size = 16;
-	header.wave.audio_format = 1;
+	header.wave.audio_format = 1; // 1: WAVE_FORMAT_PCM
 	header.wave.num_channels = static_cast<uint16_t>(format.GetChannels());
 	header.wave.sample_rate = static_cast<uint32_t>(format.GetSampleRate());
 	header.wave.byte_rate = static_cast<uint32_t>(format.GetSampleRate() * format.GetChannels() * format.GetBytesPerSample());
@@ -111,12 +116,54 @@ void WaveFileWriter::WriteHeader(AudioFormat const& format) {
 	header.wave.bits_per_sample = static_cast<uint16_t>(format.GetBitsPerSample());
 	MemoryCopy(header.data.descriptor.id, "data", 4);
 	header.data.descriptor.size = 0;
-	file_.write(reinterpret_cast<const char*>(&header), sizeof(COMBINED_HEADER));
-	if (!file_) {
+	if (!file_.write(reinterpret_cast<const char*>(&header), sizeof(COMBINED_HEADER))) {
 		throw PlatformSpecException();
 	}
 	format_ = format;
 }
 
+void WaveFileWriter::SetTrackNumber(uint32_t track) {
+	list_["ITRK"] = std::to_string(track);
+}
+
+void WaveFileWriter::SetAlbum(std::string const& album) {
+	if (album.length() == 0) {
+		return;
+	}
+	list_["IPRD"] = album;
+}
+
+void WaveFileWriter::SetTitle(std::string const& title) {
+	if (title.length() == 0) {
+		return;
+	}
+	list_["INAM"] = title;
+}
+
+void WaveFileWriter::SetArtist(std::string const& artist) {
+	if (artist.length() == 0) {
+		return;
+	}
+	list_["IART"] = artist;
+}
+
+void WaveFileWriter::WriteInfoChunk(std::string const& name, std::string const& value) {
+	LIST list;
+	MemoryCopy(list.descriptor.id, "LIST", 4);
+	list.descriptor.size = value.size();
+	if (name.length() != 4) {
+		throw Exception();
+	}
+	MemoryCopy(list.name, name.c_str(), 4);
+	if (!file_.write(reinterpret_cast<const char*>(&list.descriptor), sizeof(list.descriptor))) {
+		throw PlatformSpecException();
+	}
+	if (!file_.write(list.name, 4)) {
+		throw PlatformSpecException();
+	}
+	if (!file_.write(value.c_str(), value.length())) {
+		throw PlatformSpecException();
+	}
+}
 
 }

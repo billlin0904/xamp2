@@ -65,13 +65,14 @@ static AlignPtr<AudioProcessor> makeCompressor(uint32_t sample_rate) {
     auto processor = MakeAlign<AudioProcessor, Compressor>();
     auto* compressor = dynamic_cast<Compressor*>(processor.get());
     compressor->SetSampleRate(sample_rate);
-    Compressor::Parameters parameters;
+    /*CompressorParameters parameters;
     parameters.gain = AppSettings::getAsInt(kCompressorGain);
     parameters.threshold = AppSettings::getAsInt(kCompressorThreshold);
     parameters.ratio = AppSettings::getAsInt(kCompressorRatio);
     parameters.attack = AppSettings::getAsInt(kCompressorAttack);
     parameters.release = AppSettings::getAsInt(kCompressorRelease);
-    compressor->Prepare(parameters);
+    compressor->Prepare(parameters);*/
+    compressor->Prepare();
     return processor;
 }
 
@@ -174,16 +175,16 @@ void Xamp::createTrayIcon() {
         SLOT(onActivated(QSystemTrayIcon::ActivationReason)));
 }
 
-void Xamp::closeEvent(QCloseEvent* event) {
-    auto is_min_system_tray = AppSettings::getValueAsBool(kAppSettingMinimizeToTray);
-
-    if (tray_icon_->isVisible() && !isHidden()) {        
-        auto show_agin = AppSettings::getValueAsBool(kAppSettingMinimizeToTrayAsk);
+void Xamp::closeEvent(QCloseEvent* event) {    
+    if (tray_icon_->isVisible() && !isHidden()) {
+	    const auto minimize_to_tray_ask = AppSettings::getValueAsBool(kAppSettingMinimizeToTrayAsk);
         QMessageBox::StandardButton reply = QMessageBox::No;
 
-        if (!is_min_system_tray && show_agin) {
-            auto [show_agin_res, reply_res] = showDontShowAgainDialog(this, show_agin);
-            AppSettings::setValue(kAppSettingMinimizeToTrayAsk, show_agin_res);
+        auto is_min_system_tray = AppSettings::getValueAsBool(kAppSettingMinimizeToTray);
+
+        if (!is_min_system_tray && minimize_to_tray_ask) {
+            auto [show_again_res, reply_res] = showDontShowAgainDialog(this, minimize_to_tray_ask);
+            AppSettings::setValue(kAppSettingMinimizeToTrayAsk, show_again_res);
             AppSettings::setValue(kAppSettingMinimizeToTray, reply == QMessageBox::Ok);
             reply = reply_res;
         }
@@ -249,11 +250,11 @@ void Xamp::initialUI() {
         ui_.maxWinButton->hide();
         ui_.minWinButton->hide();
     }
-    //f.setPointSize(7);
-    //ui_.startPosLabel->setFont(f);
-    //ui_.endPosLabel->setFont(f);
-    ui_.startPosLabel->hide();
-    ui_.endPosLabel->hide();	
+    f.setPointSize(7);
+    ui_.startPosLabel->setFont(f);
+    ui_.endPosLabel->setFont(f);
+    /*ui_.startPosLabel->hide();
+    ui_.endPosLabel->hide();	*/
 #else
     f.setPointSize(11);
     ui_.titleLabel->setFont(f);

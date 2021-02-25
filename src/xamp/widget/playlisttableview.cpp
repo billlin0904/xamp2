@@ -593,6 +593,7 @@ QModelIndex PlayListTableView::shuffeIndex() {
 }
 
 void PlayListTableView::setNowPlaying(const QModelIndex& index, bool is_scroll_to) {
+    auto count = proxy_model_.rowCount();
     play_index_ = index;
     setCurrentIndex(play_index_);
     if (is_scroll_to) {

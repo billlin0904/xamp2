@@ -15,7 +15,7 @@ public:
         MemorySet(&compressord_, 0, sizeof(compressord_));
     }
 
-    void Prepare(Parameters const& parameters) {
+    void Prepare(CompressorParameters const& parameters) {
         ::BASS_BFX_COMPRESSOR2 compressord;
         compressord.fGain = parameters.gain;
         compressord.fThreshold = parameters.threshold;
@@ -52,7 +52,7 @@ public:
 
 private:
     BassStreamHandle stream_;
-    ::BASS_BFX_COMPRESSOR2 compressord_;
+    ::BASS_BFX_COMPRESSOR2 compressord_{0};
     std::vector<float> buffer_;
 };
 
@@ -66,7 +66,7 @@ void Compressor::SetSampleRate(uint32_t sample_rate) {
 
 XAMP_PIMPL_IMPL(Compressor)
 
-void Compressor::Prepare(Parameters const &parameters) {
+void Compressor::Prepare(CompressorParameters const &parameters) {
     impl_->Prepare(parameters);
 }
 

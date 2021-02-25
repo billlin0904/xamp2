@@ -7,6 +7,7 @@
 
 #include <fstream>
 #include <filesystem>
+#include <map>
 
 #include <base/audioformat.h>
 #include <stream/stream.h>
@@ -24,6 +25,14 @@ public:
 	void Close();
 
 	void Write(float const* sample, uint32_t num_samples);
+
+	void SetTrackNumber(uint32_t track);
+
+	void SetTitle(std::string const& title);
+
+	void SetArtist(std::string const& artist);
+
+	void SetAlbum(std::string const& album);
 	
 private:
 	void WriteHeader(AudioFormat const& format);
@@ -32,9 +41,12 @@ private:
 
 	void WriteSample(float sample);
 
+	void WriteInfoChunk(std::string const &name, std::string const &value);
+
 	uint32_t data_length_{0};
 	AudioFormat format_;
 	std::ofstream file_;
+	std::map<std::string, std::string> list_;
 };
 
 }

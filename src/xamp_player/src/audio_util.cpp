@@ -90,12 +90,9 @@ AlignPtr<FileStream> MakeStream(std::wstring const& file_ext, AlignPtr<FileStrea
         }
     }
 
-    if (is_use_av_stream) {
-        return MakeAlign<FileStream, AvFileStream>();
-    }
-    /*if (is_use_bass_stream) {
+    if (is_use_bass_stream) {
         return MakeAlign<FileStream, BassFileStream>();
-    }*/
+    }
     return MakeAlign<FileStream, AvFileStream>();
 }
 

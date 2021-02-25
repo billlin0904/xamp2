@@ -16,22 +16,30 @@ inline constexpr double kMaxTruePeak = -1.0;
 
 using namespace xamp::base;
 
+struct XAMP_STREAM_API CompressorParameters final {
+    CompressorParameters() noexcept
+        : gain(-1)
+        , threshold(0)
+        , ratio(100)
+        , attack(0.01f)
+        , release(200) {
+    }
+
+    // Output gain in dB of signal after compression.
+    float gain;
+    // Point in dB at which compression begins, in decibels, in the range from -60 to 0.
+    float threshold;
+    // Compression ratio, in the range from 1 to 100.
+    float ratio;
+    // Time in ms before compression reaches its full value, in the range from 0.01 to 500.
+    float attack;
+    // Time (speed) in ms at which compression is stopped after input drops below fThreshold, in the range from 50 to 3000. 
+    float release;
+};
+
 class XAMP_STREAM_API Compressor : public AudioProcessor {
 public:
-    constexpr static auto Id = std::string_view("263079D0-FDD4-46DF-9BB3-71821AF95EDB");
-	
-    struct Parameters {
-    	// Output gain in dB of signal after compression.
-        float gain{ -1 };
-    	// Point in dB at which compression begins, in decibels, in the range from -60 to 0.
-        float threshold{ 0 };
-    	// Compression ratio, in the range from 1 to 100.
-        float ratio{ 1 };
-    	// Time in ms before compression reaches its full value, in the range from 0.01 to 500.
-        float attack{ 20 };
-    	// Time (speed) in ms at which compression is stopped after input drops below fThreshold, in the range from 50 to 3000. 
-        float release{ 200 };
-    };
+    constexpr static auto Id = std::string_view("263079D0-FDD4-46DF-9BB3-71821AF95EDB");    
 	
     Compressor();
 
@@ -39,11 +47,11 @@ public:
 
     void SetSampleRate(uint32_t sample_rate) override;
 
-    void Prepare(Parameters const &parameters = Parameters());
+    void Prepare(CompressorParameters const &parameters = CompressorParameters());
 
     const std::vector<float>& Process(float const * samples, uint32_t num_samples) override;
 
-    Uuid GetTypeId() const override;
+    [[nodiscard]] Uuid GetTypeId() const override;
 
 private:
     class CompressorImpl;

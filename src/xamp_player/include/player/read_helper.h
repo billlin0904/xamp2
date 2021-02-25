@@ -27,7 +27,7 @@ XAMP_PLAYER_API void Export2WaveFile(std::wstring const& file_path,
 	std::wstring const& file_ext,
 	std::wstring const& output_file_path,
 	std::function<bool(uint32_t)> const& progress,
-	bool enable_compressor = true);
+	bool enable_compressor = false);
 
 }
 
