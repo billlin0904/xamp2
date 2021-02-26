@@ -853,15 +853,17 @@ void Xamp::resetSeekPosValue() {
     ui_.startPosLabel->setText(Time::msToString(0));
 }
 
-void Xamp::setupSampleRateConverter() {
+void Xamp::setupSampleRateConverter(bool enable_dsp) {
     if (AppSettings::getValue(kAppSettingResamplerEnable).toBool()) {        
         auto soxr_settings = JsonSettings::getValue(AppSettings::getValueAsString(kAppSettingSoxrSettingName)).toMap();
         auto resampler = makeSampleRateConverter(soxr_settings);
         auto sample_rate = soxr_settings[kSoxrResampleSampleRate].toUInt();
         player_->SetSampleRateConverter(sample_rate, std::move(resampler));
-
-        auto compressor = makeCompressor(sample_rate);
-        player_->SetProcessor(std::move(compressor));
+    	if (enable_dsp) {
+            auto compressor = makeCompressor(sample_rate);
+            player_->SetProcessor(std::move(compressor));
+    	}
+    	player_->EnableProcessor(enable_dsp);
     }
     else {
         player_->EnableSampleRateConverter(false);
@@ -892,7 +894,7 @@ void Xamp::playMusic(const MusicEntity& item) {
 
     try {
         player_->Open(item.file_path.toStdWString(), item.file_ext.toStdWString(), device_info_);
-        setupSampleRateConverter();      
+        setupSampleRateConverter(item.true_peak > 1.0);
         player_->PrepareToPlay(loop_time.first, loop_time.second);
         playback_format = getPlaybackFormat(player_.get());
         player_->Play();
@@ -1406,18 +1408,24 @@ void Xamp::readFileLUFS(const QModelIndex&, const PlayListEntity& item) {
 
 void Xamp::exportWaveFile(const QModelIndex&, const PlayListEntity& item) {
     const auto file_name = QFileDialog::getSaveFileName(this, tr("Save WAVE file"),
-        Qt::EmptyString,
+        item.title,
         tr("WAVE Files (*.wav)"));
 	
     if (file_name.isNull()) {
         return;
     }
 
-    auto dialog = makeProgressDialog(tr("Read progress dialog"),
-        tr("Read '") + item.title + tr("' loudness"),
+    auto dialog = makeProgressDialog(tr("Export progress dialog"),
+        tr("Export '") + item.title + tr("' to wave file"),
         tr("Cancel"));
     dialog->show();
 
+    Metadata metadata;
+    metadata.album = item.album.toStdWString();
+    metadata.artist = item.artist.toStdWString();
+    metadata.title = item.title.toStdWString();
+    metadata.track = item.track;
+	
     try {
         Export2WaveFile(item.file_path.toStdWString(),
             item.file_ext.toStdWString(),
@@ -1426,7 +1434,7 @@ void Xamp::exportWaveFile(const QModelIndex&, const PlayListEntity& item) {
                 dialog->setValue(progress);
                 qApp->processEvents();
                 return dialog->wasCanceled() != true;
-            });
+            }, metadata);
     }
     catch (Exception const& e) {
         Toast::showTip(Q_UTF8(e.what()), this);

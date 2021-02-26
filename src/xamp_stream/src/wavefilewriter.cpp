@@ -31,7 +31,7 @@ struct DATA_HEADER {
 
 struct LIST {
 	CHUNK descriptor;
-	char name[4]{ 0 };
+	char type_id[4]{ 0 };
 };
 
 struct COMBINED_HEADER {
@@ -42,9 +42,15 @@ struct COMBINED_HEADER {
 
 void WaveFileWriter::Close() {
 	if (data_length_ == 0) {
+		file_.close();
 		return;
 	}
 	WriteDataLength();
+	// TODO: Use ID3V4 tag.
+	/*const auto cur_pos = file_.tellp();
+	WriteDataLength();
+	file_.seekp(cur_pos);
+	WriteInfoChunk();*/
 	file_.close();
 	data_length_ = 0;
 }
@@ -58,7 +64,20 @@ void WaveFileWriter::Open(std::filesystem::path const& file_path, AudioFormat co
 	if (!file_) {
 		throw PlatformSpecException();
 	}
-	WriteHeader(format);
+	WriteHeader(format);	
+}
+
+void WaveFileWriter::WriteInfoChunk() {
+	auto total_size = 0;
+	for (const auto& [fst, snd] : list_) {
+		total_size += sizeof(CHUNK) + snd.length();
+	}
+	if (total_size > 0) {
+		StartWriteInfoChunk(total_size - 8);
+		for (const auto& [fst, snd] : list_) {
+			WriteInfoChunk(fst, snd);
+		}
+	}	
 }
 
 void WaveFileWriter::Write(float const* sample, uint32_t num_samples) {
@@ -147,18 +166,24 @@ void WaveFileWriter::SetArtist(std::string const& artist) {
 	list_["IART"] = artist;
 }
 
-void WaveFileWriter::WriteInfoChunk(std::string const& name, std::string const& value) {
+void WaveFileWriter::StartWriteInfoChunk(uint32_t info_chunk_size) {
 	LIST list;
 	MemoryCopy(list.descriptor.id, "LIST", 4);
-	list.descriptor.size = value.size();
-	if (name.length() != 4) {
-		throw Exception();
-	}
-	MemoryCopy(list.name, name.c_str(), 4);
-	if (!file_.write(reinterpret_cast<const char*>(&list.descriptor), sizeof(list.descriptor))) {
+	list.descriptor.size = info_chunk_size;
+	MemoryCopy(list.type_id, "INFO", 4);
+	if (!file_.write(reinterpret_cast<const char*>(&list), sizeof(list))) {
 		throw PlatformSpecException();
 	}
-	if (!file_.write(list.name, 4)) {
+}
+
+void WaveFileWriter::WriteInfoChunk(std::string const& name, std::string const& value) {
+	if (name.length() != 4) {
+		throw Exception();
+	}	
+	CHUNK info_chunk;	
+	MemoryCopy(info_chunk.id, name.c_str(), 4);
+	info_chunk.size = value.size();	
+	if (!file_.write(reinterpret_cast<const char*>(&info_chunk), sizeof(info_chunk))) {
 		throw PlatformSpecException();
 	}
 	if (!file_.write(value.c_str(), value.length())) {

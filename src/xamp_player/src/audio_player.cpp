@@ -51,6 +51,7 @@ AudioPlayer::AudioPlayer()
 AudioPlayer::AudioPlayer(const std::weak_ptr<PlaybackStateAdapter> &adapter)
     : is_muted_(false)
     , enable_sample_converter_(false)
+	, enable_processor_(true)
     , dsd_mode_(DsdModes::DSD_MODE_PCM)
     , state_(PlayerState::PLAYER_STATE_STOPPED)
     , sample_size_(0)
@@ -137,7 +138,9 @@ void AudioPlayer::SetProcessor(AlignPtr<AudioProcessor>&& processor) {
     processor_queue_.TryEnqueue(std::move(processor));
 }
 
-void AudioPlayer::RemoveProcessor() {
+void AudioPlayer::EnableProcessor(bool enable) {
+    enable_processor_ = enable;
+    XAMP_LOG_DEBUG("Enable processor {}", enable);
 }
 
 void AudioPlayer::SetDevice(const DeviceInfo& device_info) {
@@ -778,7 +781,7 @@ void AudioPlayer::BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<SampleRat
 
             auto* samples = reinterpret_cast<float*>(sample_buffer);
 
-        	if (CanProcessFile() && !dsp_chain_.empty()) {
+        	if (CanProcessFile() && !dsp_chain_.empty() && enable_processor_) {
                 auto itr = dsp_chain_.begin();
                 auto buffer = (*itr)->Process(samples, num_samples);
         		
@@ -809,7 +812,7 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_buffer_samp
         if (num_samples > 0) {
             auto *samples = reinterpret_cast<float*>(sample_buffer);
 
-            if (CanProcessFile() && !dsp_chain_.empty()) {
+            if (CanProcessFile() && !dsp_chain_.empty() && enable_processor_) {
                 auto itr = dsp_chain_.begin();
                 auto buffer = (*itr)->Process(samples, num_samples);
 

@@ -10,9 +10,12 @@
 #include <functional>
 #include <tuple>
 
+#include <base/metadata.h>
 #include <player/player.h>
 
 namespace xamp::player {
+
+using namespace xamp::base;
 
 XAMP_PLAYER_API std::tuple<double, std::vector<uint8_t>> ReadFingerprint(
 	std::wstring const & file_path,
@@ -27,6 +30,7 @@ XAMP_PLAYER_API void Export2WaveFile(std::wstring const& file_path,
 	std::wstring const& file_ext,
 	std::wstring const& output_file_path,
 	std::function<bool(uint32_t)> const& progress,
+	Metadata const &metadata,
 	bool enable_compressor = false);
 
 }

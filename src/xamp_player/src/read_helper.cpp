@@ -6,6 +6,7 @@
 #include <stream/compressor.h>
 #include <stream/wavefilewriter.h>
 
+#include <base/str_utilts.h>
 #include <player/chromaprint.h>
 #include <player/audio_player.h>
 #include <player/audio_util.h>
@@ -78,15 +79,16 @@ static double ReadProcess(std::wstring const& file_path,
 void Export2WaveFile(std::wstring const& file_path,
 	std::wstring const& file_ext,
 	std::wstring const& output_file_path,
-	std::function<bool(uint32_t)> const& progress, 
+	std::function<bool(uint32_t)> const& progress,
+	Metadata const& metadata,
 	bool enable_compressor) {
 	WaveFileWriter file;
 	Compressor compressor;
 	ReadProcess(file_path, file_ext, progress,
-		[&file, output_file_path, &compressor](AudioFormat const& output_format) {
+		[&file, &metadata, output_file_path, &compressor](AudioFormat const& output_format) {
 			auto input_format = output_format;
 			input_format.SetByteFormat(ByteFormat::SINT24);
-			file.Open(output_file_path, input_format);
+			file.Open(output_file_path, input_format);			
 			compressor.SetSampleRate(input_format.GetSampleRate());
 			compressor.Prepare();
 		}, [&file, &compressor, enable_compressor](float const* samples, uint32_t sample_size) {
@@ -97,6 +99,12 @@ void Export2WaveFile(std::wstring const& file_path,
 				file.Write(samples, sample_size);
 			}			
 		});
+	// TODO: Use ID3V4 tag.
+	/*file.SetAlbum(String::ToString(metadata.album));
+	file.SetTitle(String::ToString(metadata.title));
+	file.SetArtist(String::ToString(metadata.artist));
+	file.SetTrackNumber(metadata.track);
+	file.WriteInfoChunk();*/	
 	file.Close();
 }
 

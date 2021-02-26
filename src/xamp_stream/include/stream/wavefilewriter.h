@@ -33,6 +33,8 @@ public:
 	void SetArtist(std::string const& artist);
 
 	void SetAlbum(std::string const& album);
+
+	void WriteInfoChunk();
 	
 private:
 	void WriteHeader(AudioFormat const& format);
@@ -40,6 +42,8 @@ private:
 	void WriteDataLength();
 
 	void WriteSample(float sample);
+
+	void StartWriteInfoChunk(uint32_t info_chunk_size);
 
 	void WriteInfoChunk(std::string const &name, std::string const &value);
 

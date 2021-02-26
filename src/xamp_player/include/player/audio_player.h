@@ -101,7 +101,7 @@ public:
 
     void SetProcessor(AlignPtr<AudioProcessor> &&processor);
 
-    void RemoveProcessor();
+    void EnableProcessor(bool enable = true);
 
     void EnableSampleRateConverter(bool enable = true);
 
@@ -181,6 +181,7 @@ private:
 
     bool is_muted_;
     bool enable_sample_converter_;
+    bool enable_processor_;
     DsdModes dsd_mode_;
     std::atomic<PlayerState> state_;
     uint8_t sample_size_;
