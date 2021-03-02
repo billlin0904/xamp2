@@ -60,11 +60,11 @@ static HashSet<std::wstring> GetSupportFileExtensions() {
     return file_ext;
 }
 
-DsdStream* AsDsdStream(AlignPtr<FileStream> const &stream) noexcept {
+DsdStream * AsDsdStream(AlignPtr<FileStream> const &stream) noexcept {
     return dynamic_cast<DsdStream*>(stream.get());
 }
 
-DsdDevice* AsDsdDevice(AlignPtr<Device> const &device) noexcept {
+DsdDevice * AsDsdDevice(AlignPtr<Device> const &device) noexcept {
     return dynamic_cast<DsdDevice*>(device.get());
 }
 

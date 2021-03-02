@@ -124,7 +124,7 @@ XAMP_DECLARE_EXCEPTION_CLASS(ResamplerNotSupportSampleRateException)
 XAMP_DECLARE_EXCEPTION_CLASS(NotFoundDllExportFuncException)
 
 
-#define CheckBufferFlow(expr) \
+#define BufferOverFlowThrow(expr) \
     do {\
         if (!(expr)) {\
         throw LibrarySpecException("Buffer overflow.", "Buffer overflow.");\

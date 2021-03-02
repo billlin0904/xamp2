@@ -113,7 +113,9 @@ void PlayListTableView::refresh() {
     JOIN albums ON albumMusic.albumId = albums.albumId
     JOIN artists ON albumMusic.artistId = artists.artistId
     WHERE
-    playlistMusics.playlistId = %1;
+    playlistMusics.playlistId = %1
+	ORDER BY
+	playlistMusics.playlistMusicsId;
     )");
     model_.setQuery(s.arg(playlist_id_));
 }

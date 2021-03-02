@@ -27,9 +27,9 @@ XAMP_PLAYER_API bool TestDsdFileFormat(std::wstring const& file_path);
 
 XAMP_PLAYER_API HashSet<std::string> const & GetSupportFileExtensions();
 
-XAMP_PLAYER_API DsdStream* AsDsdStream(AlignPtr<FileStream> const& stream) noexcept;
+XAMP_PLAYER_API DsdStream * AsDsdStream(AlignPtr<FileStream> const & stream) noexcept;
 
-XAMP_PLAYER_API DsdDevice* AsDsdDevice(AlignPtr<Device> const& device) noexcept;
+XAMP_PLAYER_API DsdDevice * AsDsdDevice(AlignPtr<Device> const & device) noexcept;
 
 XAMP_PLAYER_API AlignPtr<FileStream> MakeStream(std::wstring const& file_ext, AlignPtr<FileStream> old_stream = nullptr);
 

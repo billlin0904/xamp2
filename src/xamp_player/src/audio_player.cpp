@@ -218,7 +218,7 @@ void AudioPlayer::ProcessSeek() {
     }
 }
 
-void AudioPlayer::ProcessProcessor() {
+void AudioPlayer::ProcessSamples() {
 	while (!processor_queue_.empty()) {
         if (auto* processor = processor_queue_.Front()) {
             auto id = (*processor)->GetTypeId();
@@ -285,7 +285,7 @@ void AudioPlayer::Play() {
                     continue;
                 }
             	
-                p->ProcessProcessor();
+                p->ProcessSamples();
                 p->ReadSampleLoop(sample_buffer, max_buffer_sample, lock);
             }
         }
@@ -409,7 +409,7 @@ std::optional<uint32_t> AudioPlayer::GetDSDSpeed() const {
         return std::nullopt;
     }
 
-    if (auto* const dsd_stream = audio_util::AsDsdStream(stream_)) {
+    if (auto* dsd_stream = audio_util::AsDsdStream(stream_)) {
         if (dsd_stream->IsDsdFile()) {
             return dsd_stream->GetDsdSpeed();
         }

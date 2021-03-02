@@ -31,12 +31,12 @@ void PassThroughSampleRateConverter::Flush() {
 }
 
 bool PassThroughSampleRateConverter::ProcessNativeDsd(int8_t const * sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer) {
-    CheckBufferFlow(buffer.TryWrite(sample_buffer, num_samples));
+    BufferOverFlowThrow(buffer.TryWrite(sample_buffer, num_samples));
     return true;
 }
 
 bool PassThroughSampleRateConverter::ProcessPcm(int8_t const * sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer) {    
-    CheckBufferFlow(buffer.TryWrite(sample_buffer, num_samples * sample_size_));
+    BufferOverFlowThrow(buffer.TryWrite(sample_buffer, num_samples * sample_size_));
     return true;
 }
 

@@ -179,10 +179,9 @@ public:
         auto required_size = static_cast<size_t>(num_sample * ratio_) + 256;
         if (required_size > buffer_.size()) {
             ResizeBuffer(required_size);
-        }        
+        }
 
         size_t samples_done = 0;
-
         Singleton<SoxrLib>::GetInstance().soxr_process(handle_.get(),
                                          samples,
                                          num_sample / num_channels_,
@@ -201,7 +200,7 @@ public:
     	// Note: libsoxr 並不會將sample進行限制大小.
         //ClampSample(buffer_.data(), samples_done * num_channels_);
     	
-        CheckBufferFlow(buffer.TryWrite(reinterpret_cast<int8_t const*>(buffer_.data()), write_size));
+        BufferOverFlowThrow(buffer.TryWrite(reinterpret_cast<int8_t const*>(buffer_.data()), write_size));
 
         required_size = samples_done * num_channels_;
         if (required_size > buffer_.size()) {

@@ -8,11 +8,32 @@
 #include <atomic>
 
 #include <base/base.h>
+#include <base/exception.h>
 #include <base/align_ptr.h>
 #include <base/memory.h>
 #include <base/vmmemlock.h>
 
 namespace xamp::base {
+
+template <typename Type>
+struct XAMP_BASE_API_ONLY_EXPORT FixedBufferView {
+	void Write(const Type* data, size_t count) noexcept {
+		if (next_head > size) {
+			const auto range1 = size - head;
+			const auto range2 = count - range1;
+			MemoryCopy(ptr + head, data, range1 * sizeof(Type));
+			MemoryCopy(ptr, data + range1, range2 * sizeof(Type));
+		}
+		else {
+			MemoryCopy(ptr + head, data, count * sizeof(Type));
+		}
+	}
+	
+	Type* ptr{ nullptr };
+	size_t size{0};
+	size_t head{ 0 };
+	size_t next_head{ 0 };	
+};
 
 template 
 <
@@ -46,6 +67,8 @@ public:
     bool TryRead(Type* data, size_t count) noexcept;
 
 	void Fill(Type value) noexcept;
+
+	FixedBufferView<Type> Allocate(size_t count);
 
 private:
     size_t GetAvailableWrite(size_t head, size_t tail) const noexcept;
@@ -137,6 +160,25 @@ XAMP_ALWAYS_INLINE size_t AudioBuffer<Type, U>::GetAvailableRead(size_t head, si
 	}
 	return head + size_ - tail;
 }
+	
+template <typename Type, typename U>
+FixedBufferView<Type> AudioBuffer<Type, U>::Allocate(size_t count) {
+	const auto head = head_.load(std::memory_order_relaxed);
+	const auto tail = tail_.load(std::memory_order_acquire);
+
+	auto next_head = head + count;
+
+	if (count > GetAvailableWrite(head, tail)) {
+		throw LibrarySpecException("Buffer overflow.", "Buffer overflow.");
+	}
+
+	FixedBufferView<Type> view;
+	view.head = head;
+	view.size = size_;
+	view.next_head = next_head;
+	view.ptr = buffer_.get();	
+	return view;
+}
 
 template <typename Type, typename U>
 XAMP_ALWAYS_INLINE bool AudioBuffer<Type, U>::TryWrite(const Type* data, size_t count) noexcept {
@@ -147,7 +189,7 @@ XAMP_ALWAYS_INLINE bool AudioBuffer<Type, U>::TryWrite(const Type* data, size_t 
 
 	if (count > GetAvailableWrite(head, tail)) {
 		return false;
-	}	
+	}
 
 	if (next_head > size_) {
         const auto range1 = size_ - head;

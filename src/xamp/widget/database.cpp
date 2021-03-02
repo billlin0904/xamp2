@@ -144,6 +144,7 @@ void Database::createTableIfNotExist() {
 	create_table_sql.push_back(
 		Q_UTF8(R"(
                        CREATE TABLE IF NOT EXISTS playlistMusics (
+					   playlistMusicsId integer primary key autoincrement,
                        playlistId integer,
                        musicId integer,
                        playing integer,
@@ -593,7 +594,7 @@ void Database::addMusicToPlaylist(int32_t music_id, int32_t playlist_id) const {
 	QSqlQuery query;
 
 	query.prepare(Q_UTF8(R"(
-                         INSERT INTO playlistMusics (playlistId, musicId) VALUES (:playlistId, :musicId)
+                         INSERT INTO playlistMusics (playlistMusicsId, playlistId, musicId) VALUES (NULL, :playlistId, :musicId)
                          )"));
 
 	query.bindValue(Q_UTF8(":playlistId"), playlist_id);
