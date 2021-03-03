@@ -29,6 +29,8 @@ inline constexpr int32_t kPreallocateBufferSize = 320 * 1024 * 1024;
 inline constexpr uint32_t kMaxPreallocateBufferSize = 320 * 1024 * 1024;
 inline constexpr int32_t kMaxWriteRatio = 80;
 inline constexpr int32_t kMaxReadRatio = 2;
+inline constexpr int32_t kFFTSize = 8192;
+	
 // NOTE: 4KB的話libav resample會導致緩衝過大的問題產生.
 inline constexpr int32_t kDefaultReadSampleSize = 8 * 1024;
 
@@ -116,7 +118,7 @@ void AudioPlayer::Initial() {
     }
     catch (...) {
     	// Ignore exception.
-    }
+    }    
 }
 
 void AudioPlayer::Open(std::wstring const & file_path, 
@@ -654,6 +656,7 @@ void AudioPlayer::Startup() {
         return;
     }
 
+    fft_.Init(kFFTSize);
     wait_timer_.SetTimeout(kReadSampleWaitTime);
 
     std::weak_ptr<AudioPlayer> player = shared_from_this();
@@ -862,7 +865,7 @@ AlignPtr<SampleRateConverter> AudioPlayer::CloneSampleRateConverter() const {
 }
 
 int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, double stream_time, double sample_time) noexcept {
-    const auto num_samples = num_buffer_frames * output_format_.GetChannels();
+    const auto num_samples = static_cast<int32_t>(num_buffer_frames * output_format_.GetChannels());
     const auto sample_size = num_samples * sample_size_;
 #ifdef _DEBUG
     const auto elapsed = sw_.Elapsed();
@@ -875,6 +878,7 @@ int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, dou
     }
 
     XAMP_LIKELY(buffer_.TryRead(static_cast<int8_t*>(samples), sample_size)) {
+        fft_.Forward(static_cast<const float*>(samples), std::min(num_samples, kFFTSize));
         UpdateSlice(static_cast<const float*>(samples), static_cast<int32_t>(num_samples), stream_time);
 #ifdef _DEBUG
         sw_.Reset();

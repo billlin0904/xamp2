@@ -15,8 +15,7 @@ using namespace base;
 
 MAKE_ENUM(DsdIoFormat,
     IO_FORMAT_PCM,
-    IO_FORMAT_DSD,
-    _MAX_ASIO_IO_FORMAT_)
+    IO_FORMAT_DSD)
 
 class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE DsdDevice {
 public:

@@ -23,6 +23,7 @@
 #include <output_device/audiocallback.h>
 #include <output_device/deviceinfo.h>
 
+#include <player/fft.h>
 #include <player/playstate.h>
 #include <player/playbackstateadapter.h>
 #include <player/player.h>
@@ -201,8 +202,8 @@ private:
 #ifdef _DEBUG
     std::chrono::microseconds min_process_time_{ 0 };
     std::chrono::microseconds max_process_time_{ 0 };
-#endif
-    Stopwatch sw_; 
+    Stopwatch sw_;
+#endif    
     std::string device_id_;
     Uuid device_type_id_;
     std::condition_variable pause_cond_;
@@ -225,6 +226,7 @@ private:
     SpscQueue<MsgID> msg_queue_;
     SpscQueue<double> seek_queue_;
     SpscQueue<AlignPtr<AudioProcessor>> processor_queue_;
+    FFT fft_;
 };
 
 }

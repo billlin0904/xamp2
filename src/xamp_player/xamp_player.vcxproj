@@ -78,7 +78,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../xamp_output_device/include/;../xamp_stream/include/;../thirdparty/spdlog/include/;../thirdparty/chromaprint/src/;../thirdparty/soxr/src/;../thirdparty/robin_hood/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../xamp_output_device/include/;../xamp_stream/include/;../thirdparty/spdlog/include/;../thirdparty/chromaprint/src/;../thirdparty/soxr/src/;../thirdparty/robin_hood/;../thirdparty/fftw/</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>XAMP_PALYER_API_EXPORTS;ENABLE_ASIO;USE_KISS_FFT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BrowseInformation>true</BrowseInformation>
     </ClCompile>
@@ -126,7 +126,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../xamp_output_device/include/;../xamp_stream/include/;../thirdparty/spdlog/include/;../thirdparty/chromaprint/src/;../thirdparty/soxr/src/;../thirdparty/robin_hood/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../xamp_output_device/include/;../xamp_stream/include/;../thirdparty/spdlog/include/;../thirdparty/chromaprint/src/;../thirdparty/soxr/src/;../thirdparty/robin_hood/;../thirdparty/fftw/</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <OmitFramePointers>false</OmitFramePointers>
       <PreprocessorDefinitions>XAMP_PALYER_API_EXPORTS;ENABLE_ASIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -152,6 +152,7 @@
   <ItemGroup>
     <ClInclude Include="include\player\audio_player.h" />
     <ClInclude Include="include\player\chromaprint.h" />
+    <ClInclude Include="include\player\fft.h" />
     <ClInclude Include="include\player\loudness_scanner.h" />
     <ClInclude Include="include\player\read_helper.h" />
     <ClInclude Include="include\player\passthroughsamplerateconverter.h" />
@@ -160,6 +161,7 @@
     <ClInclude Include="include\player\playstate.h" />
     <ClInclude Include="include\player\samplerateconverter.h" />
     <ClInclude Include="include\player\soxresampler.h" />
+    <ClInclude Include="include\player\spectrum.h" />
     <ClInclude Include="src\libebur128\ebur128.h" />
     <ClInclude Include="src\libebur128\sys_queue.h" />
   </ItemGroup>
@@ -167,11 +169,13 @@
     <ClCompile Include="src\audio_player.cpp" />
     <ClCompile Include="src\audio_util.cpp" />
     <ClCompile Include="src\chromaprint.cpp" />
+    <ClCompile Include="src\fft.cpp" />
     <ClCompile Include="src\loudness_scanner.cpp" />
     <ClCompile Include="src\read_helper.cpp" />
     <ClCompile Include="src\libebur128\ebur128.c" />
     <ClCompile Include="src\passthroughsamplerateconverter.cpp" />
     <ClCompile Include="src\soxresampler.cpp" />
+    <ClCompile Include="src\spectrum.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

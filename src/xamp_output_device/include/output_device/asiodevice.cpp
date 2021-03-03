@@ -10,6 +10,7 @@
 #include <base/logger.h>
 #include <base/singleton.h>
 #include <base/platform_thread.h>
+#include <base/waitabletimer.h>
 
 #ifdef XAMP_OS_WIN
 #include <output_device/win32/mmcss.h>
@@ -550,7 +551,7 @@ void AsioDevice::StopStream(bool wait_for_stop_stream) {
 void AsioDevice::CloseStream() {
 	if (!is_removed_driver_) {
 		AsioIfFailedThrow(::ASIOStop());
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		MSleep(std::chrono::milliseconds(100));
 		AsioIfFailedThrow(::ASIODisposeBuffers());
 		is_removed_driver_ = true;
 	}
