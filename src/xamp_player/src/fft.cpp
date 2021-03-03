@@ -95,20 +95,20 @@ private:
 	Window window_;
 	Buffer<float> input_;
 };
-#elif !defined(USE_FFTW) && defined(XAMP_OS_MAC)
+#elif defined(XAMP_OS_MAC)
 class Window {
 public:
     void Init(size_t size, WindowType type = WindowType::HAMMING) {
         window_ = MakeBuffer<float>(size);
         (void)type;
-        ::vDSP_hamm_window(window_.get(), size, vDSP_HANN_DENORM);
+        ::vDSP_hamm_window(window_.data(), size, vDSP_HANN_DENORM);
     }
 
     void operator()(float const* samples, float* buffer, size_t size) {
-        ::vDSP_vmul(samples, 1, window_.get(), 1, buffer, 1, size);
+        ::vDSP_vmul(samples, 1, window_.data(), 1, buffer, 1, size);
     }
 protected:
-    AlignBufferPtr<float> window_;
+    Buffer<float> window_;
 };
 
 class FFT::FFTImpl {
@@ -120,32 +120,32 @@ public:
         window_.Init(size);
         size_ = size;
         size_over2_ = size_ / 2;
-        log2n_size_ = Log2(size);
+        bin_.resize(size_over2_, Complex());
+        log2n_size_ = std::log2(size);
         input_ = MakeBuffer<float>(size);
         output_ = MakeBuffer<float>(size);
         fft_setup_.reset(::vDSP_create_fftsetup(log2n_size_, FFT_RADIX2));
         re_ = MakeBuffer<float>(size_over2_);
         im_ = MakeBuffer<float>(size_over2_);
-        split_complex_.realp = re_.get();
-        split_complex_.imagp = im_.get();
+        split_complex_.realp = re_.data();
+        split_complex_.imagp = im_.data();
     }
 
     std::valarray<Complex> Forward(float const* signals, size_t size) {
-        window_(signals, input_.get(), size);
+        window_(signals, input_.data(), size);
 
-        ::vDSP_ctoz(reinterpret_cast<const COMPLEX*>(input_.get()), 2, &split_complex_, 1, size_over2_);
+        ::vDSP_ctoz(reinterpret_cast<const COMPLEX*>(input_.data()), 2, &split_complex_, 1, size_over2_);
         ::vDSP_fft_zrip(fft_setup_.get(), &split_complex_, 1, log2n_size_, FFT_FORWARD);
 
         split_complex_.imagp[0] = 0.0;
 
-        auto re = re_.get();
-        auto im = im_.get();
+        auto re = re_.data();
+        auto im = im_.data();
 
-        std::valarray<Complex> output(Complex(), size_over2_);
         for (size_t i = 0; i < size_over2_; ++i) {
-            output[i] = Complex(re[i], im[i]);
+            bin_[i] = Complex(re[i], im[i]);
         }
-        return output;
+        return bin_;
     }
 
 private:
@@ -167,10 +167,11 @@ private:
     FFTSetupHandle fft_setup_;
     Window window_;
     DSPSplitComplex split_complex_;
-    AlignBufferPtr<float> input_;
-    AlignBufferPtr<float> output_;
-    AlignBufferPtr<float> re_;
-    AlignBufferPtr<float> im_;
+    Buffer<float> input_;
+    Buffer<float> output_;
+    Buffer<float> re_;
+    Buffer<float> im_;
+    std::valarray<Complex> bin_;
 };
 #else
 class FFTWLib {
