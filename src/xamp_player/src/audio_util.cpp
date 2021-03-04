@@ -90,10 +90,10 @@ AlignPtr<FileStream> MakeStream(std::wstring const& file_ext, AlignPtr<FileStrea
         }
     }
 
-    if (is_use_bass_stream) {
-        return MakeAlign<FileStream, BassFileStream>();
+    if (is_use_av_stream) {
+        return MakeAlign<FileStream, AvFileStream>();
     }
-    return MakeAlign<FileStream, AvFileStream>();
+    return MakeAlign<FileStream, BassFileStream>();
 }
 
 DsdModes SetStreamDsdMode(AlignPtr<FileStream>& stream, bool is_dsd_file, const DeviceInfo& device_info) {

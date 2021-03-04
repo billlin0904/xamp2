@@ -22,7 +22,6 @@ XAMP_ALWAYS_INLINE float VolumeToDb(int32_t volume) noexcept {
 }
 
 XAMP_ALWAYS_INLINE float LinearToLog(int32_t volume) noexcept {
-	volume = std::clamp(volume, 0, 100);
 	constexpr float kDbConvert = -kDbPerStep * 2.302585093f / 20.0f;
 	return volume ? exp(static_cast<float>(100 - volume) * kDbConvert) : 0;
 }

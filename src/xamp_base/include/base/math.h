@@ -18,16 +18,20 @@ inline constexpr float kMiBin = static_cast<float>(1e-9);
 	
 using Complex = std::complex<float>;
 	
-inline float Lin2Db(float power) noexcept {
+XAMP_ALWAYS_INLINE float Lin2Db(float power) noexcept {
     return power < kMiBin ? kMinDb : 10.0f * std::log10(power);
 }
 
-inline float Mag2Db(float amplitude) noexcept {
-	return 2.0f * Lin2Db(amplitude);
+XAMP_ALWAYS_INLINE float Mag2Db(float mag) noexcept {
+	return 2.0f * Lin2Db(mag);
 }
 
-inline float GetMagnitude(Complex const & c) noexcept {
+XAMP_ALWAYS_INLINE float GetMag(Complex const & c) noexcept {
 	return std::hypot(c.imag(), c.real());
+}
+
+XAMP_ALWAYS_INLINE float Mag2Db(Complex const& c) noexcept {
+	return Mag2Db(GetMag(c));
 }
 	
 }

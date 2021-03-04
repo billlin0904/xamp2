@@ -879,7 +879,7 @@ int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, dou
 
     XAMP_LIKELY(buffer_.TryRead(static_cast<int8_t*>(samples), sample_size)) {
         fft_.Forward(static_cast<const float*>(samples), std::min(num_samples, kFFTSize));
-        UpdateSlice(static_cast<const float*>(samples), static_cast<int32_t>(num_samples), stream_time);
+        UpdateSlice(static_cast<const float*>(samples), num_samples, stream_time);
 #ifdef _DEBUG
         sw_.Reset();
 #endif

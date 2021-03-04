@@ -383,8 +383,8 @@ uint32_t AsioDevice::GetVolume() const {
 }
 
 void AsioDevice::SetVolume(uint32_t volume) const {
-	volume_ = volume;
-	XAMP_LOG_I(log_, "Set volume {} db", VolumeToDb(volume));
+	volume_ = std::clamp(volume, static_cast<uint32_t>(0), static_cast<uint32_t>(99));
+	XAMP_LOG_I(log_, "Set volume {} db", VolumeToDb(volume_));
 }
 
 void AsioDevice::SetMute(bool mute) const {
