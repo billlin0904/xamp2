@@ -856,9 +856,9 @@ void Xamp::resetSeekPosValue() {
 void Xamp::setupSampleRateConverter(bool enable_dsp) {
     if (AppSettings::getValue(kAppSettingResamplerEnable).toBool()) {        
         auto soxr_settings = JsonSettings::getValue(AppSettings::getValueAsString(kAppSettingSoxrSettingName)).toMap();
-        auto resampler = makeSampleRateConverter(soxr_settings);
+        auto sample_rate_converter = makeSampleRateConverter(soxr_settings);
         auto sample_rate = soxr_settings[kSoxrResampleSampleRate].toUInt();
-        player_->SetSampleRateConverter(sample_rate, std::move(resampler));
+        player_->SetSampleRateConverter(sample_rate, std::move(sample_rate_converter));
     	if (enable_dsp) {
             auto compressor = makeCompressor(sample_rate);
             player_->SetProcessor(std::move(compressor));
@@ -1425,19 +1425,39 @@ void Xamp::exportWaveFile(const QModelIndex&, const PlayListEntity& item) {
     metadata.artist = item.artist.toStdWString();
     metadata.title = item.title.toStdWString();
     metadata.track = item.track;
-	
-    try {
-        Export2WaveFile(item.file_path.toStdWString(),
-            item.file_ext.toStdWString(),
-            file_name.toStdWString(),
-            [&](auto progress) -> bool {
-                dialog->setValue(progress);
-                qApp->processEvents();
-                return dialog->wasCanceled() != true;
-            }, metadata);
-    }
-    catch (Exception const& e) {
-        Toast::showTip(Q_UTF8(e.what()), this);
+
+    if (AppSettings::getValue(kAppSettingResamplerEnable).toBool()) {
+        auto soxr_settings = JsonSettings::getValue(AppSettings::getValueAsString(kAppSettingSoxrSettingName)).toMap();
+        auto sample_rate = soxr_settings[kSoxrResampleSampleRate].toUInt();
+        auto sample_rate_converter = makeSampleRateConverter(soxr_settings);
+
+        try {
+            Export2WaveFile(item.file_path.toStdWString(),
+                item.file_ext.toStdWString(),
+                file_name.toStdWString(),
+                [&](auto progress) -> bool {
+                    dialog->setValue(progress);
+                    qApp->processEvents();
+                    return dialog->wasCanceled() != true;
+                }, metadata, sample_rate, sample_rate_converter);
+        }
+        catch (Exception const& e) {
+            Toast::showTip(Q_UTF8(e.what()), this);
+        }
+    }  else {
+        try {
+            Export2WaveFile(item.file_path.toStdWString(),
+                item.file_ext.toStdWString(),
+                file_name.toStdWString(),
+                [&](auto progress) -> bool {
+                    dialog->setValue(progress);
+                    qApp->processEvents();
+                    return dialog->wasCanceled() != true;
+                }, metadata);
+        }
+        catch (Exception const& e) {
+            Toast::showTip(Q_UTF8(e.what()), this);
+        }
     }
 }
 

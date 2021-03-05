@@ -18,6 +18,8 @@ public:
 
     bool Process(float const * sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer) override;
 
+    bool Process(float const* samples, uint32_t num_sample, SampleWriter& writer) override;
+
     [[nodiscard]] std::string_view GetDescription() const noexcept override;
 
     void Flush() override;
@@ -31,6 +33,7 @@ private:
     typedef bool (PassThroughSampleRateConverter::*ProcessDispatch)(int8_t const *, uint32_t, AudioBuffer<int8_t>&);
 	DsdModes dsd_mode_;
     uint8_t sample_size_;
+    uint32_t output_sample_rate_;
 	ProcessDispatch process_;
 };
 

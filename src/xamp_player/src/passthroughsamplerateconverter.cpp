@@ -16,11 +16,16 @@ PassThroughSampleRateConverter::PassThroughSampleRateConverter(DsdModes dsd_mode
     }
 }
 
-void PassThroughSampleRateConverter::Start(uint32_t, uint32_t, uint32_t) {
+void PassThroughSampleRateConverter::Start(uint32_t, uint32_t, uint32_t output_sample_rate) {
+    output_sample_rate_ = output_sample_rate;
 }
 
 bool PassThroughSampleRateConverter::Process(float const * sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer) {    
     return (*this.*process_)(reinterpret_cast<int8_t const*>(sample_buffer), num_samples, buffer);
+}
+
+bool PassThroughSampleRateConverter::Process(float const* samples, uint32_t num_sample, SampleWriter& writer) {
+    return writer.TryWrite(samples, num_sample);
 }
 
 std::string_view PassThroughSampleRateConverter::GetDescription() const noexcept {

@@ -78,7 +78,6 @@ catch (const Exception& e) {
     XAMP_LOG_ERROR("{}", e.GetErrorMessage());
 }
 
-
 BassLib::BassLib() try
 #ifdef XAMP_OS_WIN
     : module_(LoadModule("bass.dll"))

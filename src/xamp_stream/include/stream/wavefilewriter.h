@@ -10,11 +10,12 @@
 #include <map>
 
 #include <base/audioformat.h>
+#include <base/samplewriter.h>
 #include <stream/stream.h>
 
 namespace xamp::stream {
 
-class XAMP_STREAM_API WaveFileWriter final {
+class XAMP_STREAM_API WaveFileWriter final : public SampleWriter {
 public:
 	WaveFileWriter() = default;
 	
@@ -23,6 +24,8 @@ public:
 	XAMP_DISABLE_COPY(WaveFileWriter)
 
 	void Close();
+
+	bool TryWrite(float const* sample, uint32_t num_samples) override;
 
 	void Write(float const* sample, uint32_t num_samples);
 

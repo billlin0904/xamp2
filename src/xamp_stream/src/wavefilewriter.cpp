@@ -40,17 +40,28 @@ struct COMBINED_HEADER {
 	DATA_HEADER data;
 };
 
+static bool ContainsOnlyASCII(const std::string& s) {
+	return !std::any_of(s.begin(), s.end(), [](char c) {
+		return static_cast<unsigned char>(c) > 127;
+		});
+}
+
 void WaveFileWriter::Close() {
 	if (data_length_ == 0) {
 		file_.close();
 		return;
+	}	
+	auto is_metadata_all_ascii = std::any_of(list_.begin(), list_.end(), [](auto const& pair) {
+		return ContainsOnlyASCII(pair.second);
+		});	
+	if (is_metadata_all_ascii) {		
+		const auto cur_pos = file_.tellp();
+		WriteDataLength();
+		file_.seekp(cur_pos);
+		WriteInfoChunk();
+	} else {
+		WriteDataLength();
 	}
-	WriteDataLength();
-	// TODO: Use ID3V4 tag.
-	/*const auto cur_pos = file_.tellp();
-	WriteDataLength();
-	file_.seekp(cur_pos);
-	WriteInfoChunk();*/
 	file_.close();
 	data_length_ = 0;
 }
@@ -78,6 +89,11 @@ void WaveFileWriter::WriteInfoChunk() {
 			WriteInfoChunk(fst, snd);
 		}
 	}	
+}
+
+bool WaveFileWriter::TryWrite(float const* sample, uint32_t num_samples) {
+	Write(sample, num_samples);
+	return true;
 }
 
 void WaveFileWriter::Write(float const* sample, uint32_t num_samples) {

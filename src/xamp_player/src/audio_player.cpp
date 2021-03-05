@@ -30,6 +30,7 @@ inline constexpr uint32_t kMaxPreallocateBufferSize = 320 * 1024 * 1024;
 inline constexpr int32_t kMaxWriteRatio = 80;
 inline constexpr int32_t kMaxReadRatio = 2;
 inline constexpr int32_t kFFTSize = 8192;
+inline constexpr int32_t kMsgQueueSize = 30;
 	
 // NOTE: 4KB的話libav resample會導致緩衝過大的問題產生.
 inline constexpr int32_t kDefaultReadSampleSize = 8 * 1024;
@@ -37,6 +38,7 @@ inline constexpr int32_t kDefaultReadSampleSize = 8 * 1024;
 inline constexpr std::chrono::milliseconds kUpdateSampleInterval(100);
 inline constexpr std::chrono::milliseconds kReadSampleWaitTime(30);
 inline constexpr std::chrono::seconds kWaitForStreamStopTime(10);
+inline constexpr std::chrono::milliseconds kPauseWaitTimeout(100);
 
 #ifdef _DEBUG
 static void LogTime(const std::string & msg, const std::chrono::microseconds &time) {
@@ -261,8 +263,7 @@ void AudioPlayer::Play() {
         return;
 	}
 
-    stream_task_ = ThreadPool::GetInstance().Run([player = shared_from_this()]() noexcept {
-        constexpr auto kPauseWaitTimeout = std::chrono::milliseconds(100);
+    stream_task_ = ThreadPool::GetInstance().Run([player = shared_from_this()]() noexcept {        
         auto* p = player.get();
 
         std::unique_lock<std::mutex> lock{ p->pause_mutex_ };
@@ -287,7 +288,6 @@ void AudioPlayer::Play() {
                     continue;
                 }
             	
-                p->ProcessSamples();
                 p->ReadSampleLoop(sample_buffer, max_buffer_sample, lock);
             }
         }
@@ -773,6 +773,8 @@ AudioPlayer::AudioSlice::AudioSlice(float const* samples, int32_t const sample_s
 }
 
 void AudioPlayer::BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<SampleRateConverter>& converter, int32_t buffer_count) {
+    ProcessSamples();
+	
     auto* const sample_buffer = sample_read_buffer_.Get();
 
     for (auto i = 0; i < buffer_count; ++i) {

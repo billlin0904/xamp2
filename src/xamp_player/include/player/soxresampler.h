@@ -48,6 +48,8 @@ public:
 
     bool Process(float const * samples, uint32_t num_sample, AudioBuffer<int8_t> &buffer) override;
 
+    bool Process(float const* samples, uint32_t num_sample, SampleWriter& writer) override;
+
     void Flush() override;
 
     AlignPtr<SampleRateConverter> Clone() override;

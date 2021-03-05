@@ -33,5 +33,13 @@ XAMP_PLAYER_API void Export2WaveFile(std::wstring const& file_path,
 	Metadata const &metadata,
 	bool enable_compressor = false);
 
+XAMP_PLAYER_API void Export2WaveFile(std::wstring const& file_path,
+	std::wstring const& file_ext,
+	std::wstring const& output_file_path,
+	std::function<bool(uint32_t)> const& progress,
+	Metadata const& metadata,
+	uint32_t output_sample_rate,
+	AlignPtr<SampleRateConverter> &converter);
+	
 }
 

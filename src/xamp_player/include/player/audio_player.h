@@ -176,9 +176,7 @@ private:
         double stream_time;
     };
 
-    XAMP_ENFORCE_TRIVIAL(AudioSlice)
-
-    static constexpr auto kMsgQueueSize = 30;
+    XAMP_ENFORCE_TRIVIAL(AudioSlice)    
 
     bool is_muted_;
     bool enable_sample_converter_;

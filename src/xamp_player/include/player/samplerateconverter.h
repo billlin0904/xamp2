@@ -9,6 +9,7 @@
 
 #include <base/align_ptr.h>
 #include <base/audiobuffer.h>
+#include <base/samplewriter.h>
 #include <player/player.h>
 
 namespace xamp::player {
@@ -24,6 +25,8 @@ public:
     [[nodiscard]] virtual std::string_view GetDescription() const noexcept = 0;
 
     virtual bool Process(float const * samples, uint32_t num_sample, AudioBuffer<int8_t>& buffer) = 0;
+
+    virtual bool Process(float const* samples, uint32_t num_sample, SampleWriter& writer) = 0;
 
 	virtual void Flush() = 0;
 

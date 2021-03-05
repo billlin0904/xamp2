@@ -121,6 +121,7 @@ public:
         }
 
         input_sample_rate_ = input_sample_rate;
+        output_sample_rate_ = output_sample_rate_;
         num_channels_ = num_channels;
 
         ratio_ = static_cast<double>(output_sample_rate) / static_cast<double>(input_sample_rate_);
@@ -134,6 +135,10 @@ public:
             stop_band_);
 
         ResizeBuffer(kInitBufferSize);        
+    }
+
+    [[nodiscard]] uint32_t GetOutPutSampleRate() const noexcept {
+        return output_sample_rate_;
     }
 
     void Close() noexcept {
@@ -197,7 +202,7 @@ public:
         const auto write_size(samples_done * num_channels_ * sizeof(float));
 
     	// 加入limiter之後就不再需進行ClampSample.
-    	// Note: libsoxr 並不會將sample進行限制大小.
+    	// Note: libsoxr 並不會將sample進行限制大小(-1 < 0 < 1).
         //ClampSample(buffer_.data(), samples_done * num_channels_);
     	
         BufferOverFlowThrow(buffer.TryWrite(reinterpret_cast<int8_t const*>(buffer_.data()), write_size));
@@ -206,6 +211,35 @@ public:
         if (required_size > buffer_.size()) {
             ResizeBuffer(required_size);
         }        
+        return true;
+    }
+
+    bool Process(float const* samples, uint32_t num_sample, SampleWriter& writer) {
+        assert(num_channels_ != 0);
+
+        auto required_size = static_cast<size_t>(num_sample * ratio_) + 256;
+        if (required_size > buffer_.size()) {
+            ResizeBuffer(required_size);
+        }
+
+        size_t samples_done = 0;
+        Singleton<SoxrLib>::GetInstance().soxr_process(handle_.get(),
+            samples,
+            num_sample / num_channels_,
+            nullptr,
+            buffer_.data(),
+            buffer_.size() / num_channels_,
+            &samples_done);
+
+        if (!samples_done) {
+            return false;
+        }
+
+        BufferOverFlowThrow(writer.TryWrite(buffer_.data(), samples_done * num_channels_));
+        required_size = samples_done * num_channels_;
+        if (required_size > buffer_.size()) {
+            ResizeBuffer(required_size);
+        }
         return true;
     }
 
@@ -232,6 +266,7 @@ public:
     SoxrQuality quality_;
     double phase_;
     uint32_t input_sample_rate_;
+    uint32_t output_sample_rate_;
     uint32_t num_channels_;
     double ratio_;
     double pass_band_;
@@ -283,6 +318,10 @@ std::string_view SoxrSampleRateConverter::GetDescription() const noexcept {
 
 bool SoxrSampleRateConverter::Process(float const * samples, uint32_t num_sample, AudioBuffer<int8_t>& buffer) {
     return impl_->Process(samples, num_sample, buffer);
+}
+
+bool SoxrSampleRateConverter::Process(float const* samples, uint32_t num_sample, SampleWriter& writer) {
+    return impl_->Process(samples, num_sample, writer);
 }
 
 void SoxrSampleRateConverter::Flush() {

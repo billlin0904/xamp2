@@ -12,6 +12,7 @@
 #include <base/align_ptr.h>
 #include <base/memory.h>
 #include <base/vmmemlock.h>
+#include <base/samplewriter.h>
 
 namespace xamp::base {
 
