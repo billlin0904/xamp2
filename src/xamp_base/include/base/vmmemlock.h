@@ -6,26 +6,25 @@
 #pragma once
 
 #include <base/base.h>
+#include <base/align_ptr.h>
 
 namespace xamp::base {
 
 class XAMP_BASE_API VmMemLock final {
 public:
 	VmMemLock() noexcept;
-	
+
 	VmMemLock(void* address, size_t size);
-
-	XAMP_DISABLE_COPY(VmMemLock)
-
-	~VmMemLock() noexcept;
+	
+	XAMP_PIMPL(VmMemLock)
 
 	void Lock(void* address, size_t size);
 
 	void UnLock() noexcept;
 
 private:
-	void* address_;
-	size_t size_;
+	class VmMemLockImpl;
+	AlignPtr<VmMemLockImpl> impl_;
 };
 
 }

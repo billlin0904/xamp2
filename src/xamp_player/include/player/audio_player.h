@@ -19,6 +19,7 @@
 #include <base/uuid.h>
 #include <base/spsc_queue.h>
 #include <base/stopwatch.h>
+#include <base/buffer.h>
 
 #include <output_device/audiocallback.h>
 #include <output_device/deviceinfo.h>
@@ -139,7 +140,7 @@ private:
 
     void BufferStream(double stream_time = 0.0);
 
-    int32_t OnGetSamples(void* samples, uint32_t num_buffer_frames, double stream_time, double sample_time) noexcept override;
+    DataCallbackResult OnGetSamples(void* samples, uint32_t num_buffer_frames, double stream_time, double sample_time) noexcept override;
 
     void OnVolumeChange(float vol) noexcept override;
 
@@ -215,7 +216,6 @@ private:
     std::weak_ptr<PlaybackStateAdapter> state_adapter_;    
     AudioBuffer<int8_t> buffer_;
     Buffer<int8_t> sample_read_buffer_;
-    VmMemLock sample_read_buffer_lock_;
     WaitableTimer wait_timer_;
     AlignPtr<SampleRateConverter> converter_;
     std::vector<AlignPtr<AudioProcessor>> dsp_chain_;

@@ -121,9 +121,11 @@ static int excute(int argc, char* argv[]) {
     XAMP_LOG_DEBUG("Preload dll success.");
 
     SingleInstanceApplication singleApp;
+#ifndef _DEBUG
     if (!singleApp.attach(QCoreApplication::arguments())) {
         return -1;
     }
+#endif
     XAMP_LOG_DEBUG("attach app success.");
 
     (void)Singleton<PixmapCache>::GetInstance();

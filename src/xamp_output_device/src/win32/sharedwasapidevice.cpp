@@ -350,7 +350,7 @@ void SharedWasapiDevice::GetSample(uint32_t frame_available) noexcept {
 
 	auto sample_time = helper::GetStreamPosInMilliseconds(clock_) / 1000.0;	
 
-	XAMP_LIKELY(callback_->OnGetSamples(reinterpret_cast<float*>(data), frame_available, stream_time_float, sample_time) == 0) {
+	XAMP_LIKELY(callback_->OnGetSamples(reinterpret_cast<float*>(data), frame_available, stream_time_float, sample_time) == DataCallbackResult::CONTINUE) {
 		ReportError(render_client_->ReleaseBuffer(frame_available, 0));
 	}
 	else {

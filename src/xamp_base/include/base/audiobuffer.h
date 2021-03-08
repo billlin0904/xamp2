@@ -11,8 +11,7 @@
 #include <base/exception.h>
 #include <base/align_ptr.h>
 #include <base/memory.h>
-#include <base/vmmemlock.h>
-#include <base/samplewriter.h>
+#include <base/buffer.h>
 
 namespace xamp::base {
 
@@ -76,8 +75,7 @@ private:
 
     size_t GetAvailableRead(size_t head, size_t tail) const noexcept;
     
-    AlignBufferPtr<Type> buffer_;
-	VmMemLock lock_;
+	Buffer<Type> buffer_;
 	size_t size_;
 	XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<size_t> head_;
     XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<size_t> tail_;
@@ -113,14 +111,12 @@ size_t AudioBuffer<Type, U>::GetSize() const noexcept {
 template <typename Type, typename U>
 void AudioBuffer<Type, U>::Resize(size_t size) {
 	if (size > size_) {
-		lock_.UnLock();
-        auto new_buffer = MakeBufferPtr<Type>(size);
+        auto new_buffer = MakeBuffer<Type>(size);
         if (GetSize() > 0) {
             MemoryCopy(new_buffer.get(), buffer_.get(), sizeof(Type) * GetSize());
         }
         buffer_ = std::move(new_buffer);
 		size_ = size;
-		lock_.Lock(buffer_.get(), sizeof(Type) * size);
 	}
 }
 

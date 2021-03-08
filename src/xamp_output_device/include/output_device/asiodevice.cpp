@@ -322,14 +322,10 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 		buffer_bytes_ = buffer_size_ * static_cast<int64_t>(format_.GetBytesPerSample());
 		const auto alloc_size = allocate_bytes;
 		if (buffer_.GetSize() < alloc_size) {
-			buffer_vmlock_.UnLock();
 			buffer_ = MakeBuffer<int8_t>(alloc_size);
-			buffer_vmlock_.Lock(buffer_.Get(), alloc_size);
 		}
 		if (device_buffer_.GetSize() < alloc_size) {
-			device_buffer_vmlock_.UnLock();
 			device_buffer_ = MakeBuffer<int8_t>(alloc_size);
-			device_buffer_vmlock_.Lock(device_buffer_.Get(), alloc_size);
 		}		
 	}
 	else {
@@ -356,14 +352,10 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 		buffer_bytes_ = channel_buffer_size;
 		const auto allocate_bytes = buffer_size_;
 		if (device_buffer_.GetSize() < allocate_bytes) {
-			device_buffer_vmlock_.UnLock();
 			device_buffer_ = MakeBuffer<int8_t>(allocate_bytes);
-			device_buffer_vmlock_.Lock(device_buffer_.Get(), allocate_bytes);
 		}		
 		if (buffer_.GetSize() < allocate_bytes) {
-			buffer_vmlock_.UnLock();
 			buffer_ = MakeBuffer<int8_t>(allocate_bytes);
-			buffer_vmlock_.Lock(buffer_.Get(), allocate_bytes);
 		}		
 		ASIODriver.data_context = MakeConvert(in_format, format_, channel_buffer_size);
 	}
@@ -420,7 +412,7 @@ void AsioDevice::OnBufferSwitch(long index, double sample_time) noexcept {
 
 		// PCM mode input float to output format.
 		const auto stream_time = static_cast<double>(played_bytes_) / format_.GetAvgBytesPerSec();
-		XAMP_LIKELY(callback_->OnGetSamples(buffer_.Get(), buffer_size_, stream_time, sample_time) == 0) {
+		XAMP_LIKELY(callback_->OnGetSamples(buffer_.Get(), buffer_size_, stream_time, sample_time) == DataCallbackResult::CONTINUE) {
 			DataConverter<PackedFormat::PLANAR,
 				PackedFormat::INTERLEAVED>::Convert(
 					reinterpret_cast<int32_t*>(device_buffer_.Get()),
@@ -433,7 +425,7 @@ void AsioDevice::OnBufferSwitch(long index, double sample_time) noexcept {
 		// DSD mode input output same format (int8_t).
 		const auto avg_byte_per_sec = format_.GetAvgBytesPerSec() / 8;
 		const auto stream_time = static_cast<double>(played_bytes_) / avg_byte_per_sec;
-		XAMP_LIKELY(callback_->OnGetSamples(buffer_.Get(), buffer_bytes_, stream_time, sample_time) == 0) {
+		XAMP_LIKELY(callback_->OnGetSamples(buffer_.Get(), buffer_bytes_, stream_time, sample_time) == DataCallbackResult::CONTINUE) {
 			DataConverter<PackedFormat::PLANAR,
 				PackedFormat::INTERLEAVED>::Convert(
 					device_buffer_.Get(),

@@ -53,27 +53,28 @@ public:
     XAMP_DECLARE_DLL(chromaprint_dealloc) chromaprint_dealloc;
 };
 
+#define CPDLL Singleton<ChromaprintLib>::GetInstance()
+
 class Chromaprint::ChromaprintImpl {
 public:
 	explicit ChromaprintImpl(int32_t algorithm = CHROMAPRINT_ALGORITHM_DEFAULT)
 		: algorithm_(algorithm) {
 	}
 
-    void Start(uint32_t sample_rate, uint32_t num_channels, uint32_t num_buffer_frames) {
-        handle_.reset(Singleton<ChromaprintLib>::GetInstance().chromaprint_new(algorithm_));
-        buffer_.resize(static_cast<size_t>(num_buffer_frames));
-		Singleton<ChromaprintLib>::GetInstance().chromaprint_start(handle_.get(),
-                                                     static_cast<int32_t>(sample_rate),
-                                                     static_cast<int32_t>(num_channels));
+	void Start(uint32_t sample_rate, uint32_t num_channels, uint32_t num_buffer_frames) {
+		handle_.reset(CPDLL.chromaprint_new(algorithm_));
+		CPDLL.chromaprint_start(handle_.get(),
+			static_cast<int32_t>(sample_rate),
+			static_cast<int32_t>(num_channels));
 	}
 
-    int32_t Feed(int16_t const * data, uint32_t size) const {
-        return Singleton<ChromaprintLib>::GetInstance().chromaprint_feed(handle_.get(), data, static_cast<int32_t>(size));
+	int32_t Feed(int16_t const* data, uint32_t size) const {
+		return CPDLL.chromaprint_feed(handle_.get(), data, static_cast<int32_t>(size));
 	}
 
-    int32_t Finish() const {
-		return Singleton<ChromaprintLib>::GetInstance().chromaprint_finish(handle_.get());
-	}	
+	int32_t Finish() const {
+		return CPDLL.chromaprint_finish(handle_.get());
+	}
 
 	std::vector<uint8_t> GetFingerprint() const {
 		std::vector<uint8_t> fingerprint;
@@ -86,31 +87,31 @@ public:
 		}
 
 		char* encoded = nullptr;
-        int32_t encoded_size = 0;
+		int32_t encoded_size = 0;
 
-		try {			
-			Singleton<ChromaprintLib>::GetInstance().chromaprint_encode_fingerprint(fprint,
+		try {
+			CPDLL.chromaprint_encode_fingerprint(fprint,
 				size,
 				algorithm_,
 				&encoded,
 				&encoded_size,
 				1);
 
-            fingerprint.resize(static_cast<size_t>(encoded_size));
-            MemoryCopy(fingerprint.data(), encoded, static_cast<size_t>(encoded_size));
+			fingerprint.resize(static_cast<size_t>(encoded_size));
+			MemoryCopy(fingerprint.data(), encoded, static_cast<size_t>(encoded_size));
 		}
 		catch (...) {
-		}		
+		}
 
-		Singleton<ChromaprintLib>::GetInstance().chromaprint_dealloc(fprint);
-		Singleton<ChromaprintLib>::GetInstance().chromaprint_dealloc(encoded);
+		CPDLL.chromaprint_dealloc(fprint);
+		CPDLL.chromaprint_dealloc(encoded);
 
 		return fingerprint;
-	}	
+	}
 
 private:
-    int32_t GetRawFingerprint(uint32_t** fingerprint, int32_t* size) const {
-		return Singleton<ChromaprintLib>::GetInstance().chromaprint_get_raw_fingerprint(handle_.get(), fingerprint, size);
+	int32_t GetRawFingerprint(uint32_t** fingerprint, int32_t* size) const {
+		return CPDLL.chromaprint_get_raw_fingerprint(handle_.get(), fingerprint, size);
 	}
 
 	struct ChromaprintContextTraits final {
@@ -119,7 +120,7 @@ private:
 		}
 
 		static void close(ChromaprintContext* value) noexcept {
-			Singleton<ChromaprintLib>::GetInstance().chromaprint_free(value);
+			CPDLL.chromaprint_free(value);
 		}
 	};
 
@@ -127,7 +128,6 @@ private:
 
 	int32_t algorithm_;
 	ChromaprintHandle handle_;
-	std::vector<int16_t> buffer_;
 };
 
 Chromaprint::Chromaprint()

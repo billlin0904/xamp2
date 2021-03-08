@@ -200,29 +200,31 @@ public:
 	XAMP_DECLARE_DLL(fftwf_execute_split_dft_c2r) fftwf_execute_split_dft_c2r;
 };
 
+#define FFTWDLL Singleton<FFTWLib>::GetInstance()
+
 struct FFTWFloatPtrTraits final {
 	static float* invalid() {
 		return nullptr;
 	}
 
 	static void close(float* value) {
-		Singleton<FFTWLib>::GetInstance().fftwf_free(value);
+		FFTWDLL.fftwf_free(value);
 	}
 };
 
 using FFTWPtr = UniqueHandle<float*, FFTWFloatPtrTraits>;
 
 static FFTWPtr MakeBuffer(size_t size) {
-	return FFTWPtr(static_cast<float*>(Singleton<FFTWLib>::GetInstance().fftwf_malloc(sizeof(float) * size)));
+	return FFTWPtr(static_cast<float*>(FFTWDLL.fftwf_malloc(sizeof(float) * size)));
 }
 
 class Window {
 public:
 	void Init(size_t size, WindowType type = WindowType::HAMMING) {
 		window_ = MakeBuffer(size);
-		const auto m = size - 1;
-		for (auto i = 0; i < size; ++i) {
-			window_.get()[i] = 0.54 - 0.46 * std::cos((2.0f * kPI * i) / m);
+		const auto m = static_cast<float>(size - 1);
+		for (size_t i = 0; i < size; ++i) {
+			window_.get()[i] = 0.54f - 0.46f * std::cos((2.0f * kPI * static_cast<float>(i)) / m);
 		}
 	}
 
@@ -249,7 +251,7 @@ public:
 		dim.n = static_cast<int>(size);
 		dim.is = 1;
 		dim.os = 1;
-		forward_.reset(Singleton<FFTWLib>::GetInstance().fftwf_plan_guru_split_dft_r2c(1,
+		forward_.reset(FFTWDLL.fftwf_plan_guru_split_dft_r2c(1,
 			&dim,
 			0,
 			nullptr,
@@ -257,8 +259,10 @@ public:
 			re_.get(),
 			im_.get(),
 			FFTW_ESTIMATE));
-
-		backward_.reset(Singleton<FFTWLib>::GetInstance().fftwf_plan_guru_split_dft_c2r(1,
+		if (!forward_.is_valid()) {
+			throw LibrarySpecException("fftwf_plan_guru_split_dft_r2c return null.");
+		}
+		backward_.reset(FFTWDLL.fftwf_plan_guru_split_dft_c2r(1,
 			&dim,
 			0,
 			nullptr,
@@ -266,12 +270,15 @@ public:
 			im_.get(),
 			input_.get(),
 			FFTW_ESTIMATE));
+		if (!forward_.is_valid()) {
+			throw LibrarySpecException("fftwf_plan_guru_split_dft_c2r return null.");
+		}
 	}
 
 	std::valarray<Complex> Forward(float const* signals, size_t size) {
 		window_(signals, input_.get(), size);
 
-		Singleton<FFTWLib>::GetInstance().fftwf_execute_split_dft_r2c(forward_.get(),
+		FFTWDLL.fftwf_execute_split_dft_r2c(forward_.get(),
 			input_.get(),
 			re_.get(),
 			im_.get());
@@ -282,7 +289,6 @@ public:
 		for (size_t i = 0; i < complex_size_; ++i) {
 			output_[i] = Complex(re[i], im[i]);
 		}
-
 		return output_;
 	}
 
@@ -293,7 +299,7 @@ private:
 		}
 
 		static void close(fftwf_plan value) {
-			Singleton<FFTWLib>::GetInstance().fftwf_destroy_plan(value);
+			FFTWDLL.fftwf_destroy_plan(value);
 		}
 	};
 

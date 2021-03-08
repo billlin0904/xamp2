@@ -6,17 +6,20 @@
 #pragma once
 
 #include <base/exception.h>
+#include <base/enum.h>
 #include <output_device/output_device.h>
 
 namespace xamp::output_device {
 
 using namespace base;
 
+MAKE_ENUM(DataCallbackResult, CONTINUE = 0, STOP)
+
 class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE AudioCallback {
 public:
 	virtual ~AudioCallback() = default;
 
-    virtual int32_t OnGetSamples(void* samples, uint32_t num_buffer_frames, double stream_time, double sample_time) noexcept = 0;
+    virtual DataCallbackResult OnGetSamples(void* samples, uint32_t num_buffer_frames, double stream_time, double sample_time) noexcept = 0;
 
     virtual void OnError(Exception const & exception) noexcept = 0;
 

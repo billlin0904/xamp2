@@ -11,7 +11,7 @@
 #include <base/logger.h>
 #include <base/align_ptr.h>
 #include <base/dataconverter.h>
-#include <base/vmmemlock.h>
+#include <base/buffer.h>
 
 #ifdef XAMP_OS_WIN
 
@@ -103,7 +103,6 @@ private:
 	CComPtr<IMFAsyncResult> sample_ready_async_result_;	
 	mutable std::mutex mutex_;
 	Buffer<float> buffer_;
-	VmMemLock vmlock_;	
 	std::condition_variable condition_;
 	AudioCallback* callback_;	
 	std::shared_ptr<spdlog::logger> log_;

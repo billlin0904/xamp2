@@ -5,6 +5,7 @@
 #include <base/threadpool.h>
 #include <base/dsdsampleformat.h>
 #include <base/dataconverter.h>
+#include <base/buffer.h>
 
 #include <output_device/audiodevicemanager.h>
 #include <output_device/asiodevicetype.h>
@@ -482,9 +483,7 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
 
 void AudioPlayer::AllocateReadBuffer(uint32_t allocate_size) {
     XAMP_LOG_DEBUG("Allocate read buffer : {}.", String::FormatBytes(allocate_size));
-    sample_read_buffer_lock_.UnLock();
     sample_read_buffer_ = MakeBuffer<int8_t>(allocate_size);
-    sample_read_buffer_lock_.Lock(sample_read_buffer_.Get(), sample_read_buffer_.GetByteSize());
 }
 
 void AudioPlayer::ResizeBuffer() {
@@ -866,7 +865,7 @@ AlignPtr<SampleRateConverter> AudioPlayer::CloneSampleRateConverter() const {
     return converter_->Clone();
 }
 
-int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, double stream_time, double sample_time) noexcept {
+DataCallbackResult AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, double stream_time, double sample_time) noexcept {
     const auto num_samples = static_cast<int32_t>(num_buffer_frames * output_format_.GetChannels());
     const auto sample_size = num_samples * sample_size_;
 #ifdef _DEBUG
@@ -885,16 +884,16 @@ int32_t AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, dou
 #ifdef _DEBUG
         sw_.Reset();
 #endif
-        return 0;
+        return DataCallbackResult::CONTINUE;
     }
 
     if (sample_time <= sample_end_time_) {
         MemorySet(static_cast<int8_t*>(samples), 0, sample_size);
-        return 0;
+        return DataCallbackResult::CONTINUE;
     }
 
     UpdateSlice(nullptr, -1, stream_time);
-    return -1;
+    return DataCallbackResult::STOP;
 }
 
 void AudioPlayer::PrepareToPlay(double start_time, double end_time) {

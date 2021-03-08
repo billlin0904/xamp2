@@ -3,7 +3,7 @@
         "enableSteepFilter": false,
         "passBand": 95,
         "phase": 45,
-        "quality": 4,
-        "resampleSampleRate": 352800
+        "quality": 3,
+        "resampleSampleRate": 192000
     }
 }

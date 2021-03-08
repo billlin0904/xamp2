@@ -16,6 +16,7 @@
 #include <base/vmmemlock.h>
 #include <base/logger.h>
 #include <base/dsdsampleformat.h>
+#include <base/buffer.h>
 
 #include <output_device/audiocallback.h>
 #include <output_device/device.h>
@@ -115,9 +116,7 @@ private:
 	AudioFormat format_;
 	std::vector<ASIOClockSource> clock_source_;	
 	Buffer<int8_t> buffer_;
-	Buffer<int8_t> device_buffer_;
-	VmMemLock buffer_vmlock_;
-	VmMemLock device_buffer_vmlock_;
+	Buffer<int8_t> device_buffer_;	
 	AudioCallback* callback_;
 	win32::Mmcss mmcss_;
 	std::shared_ptr<spdlog::logger> log_;
