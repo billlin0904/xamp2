@@ -50,18 +50,18 @@ public:
 	void Init(size_t size) {
 		complex_size_ = ComplexSize(size) * sizeof(float);
 		input_ = MakeBuffer<float>(size);
+		output_.resize(complex_size_, Complex());
 		window_.Init(size);
 	}
 
-	std::valarray<Complex> Forward(float const* signals, size_t size) {
+	const std::valarray<Complex>& Forward(float const* signals, size_t size) {
 		window_(signals, input_.data(), size);
 		
-		std::valarray<Complex> output(Complex(), size);
 		std::transform(&input_[0], &input_[size], &output[0], [](auto signal) {
 			return Complex(signal, 0.0F);
 			});
-		Forward(output);
-		return output;
+		Forward(output_);
+		return output_;
 	}
 
 private:
@@ -94,6 +94,7 @@ private:
 	size_t complex_size_{ 0 };
 	Window window_;
 	Buffer<float> input_;
+	std::valarray<Complex> output_;
 };
 #elif defined(XAMP_OS_MAC)
 class Window {
@@ -131,7 +132,7 @@ public:
         split_complex_.imagp = im_.data();
     }
 
-    std::valarray<Complex> Forward(float const* signals, size_t size) {
+	const std::valarray<Complex>& Forward(float const* signals, size_t size) {
         window_(signals, input_.data(), size);
 
         ::vDSP_ctoz(reinterpret_cast<const COMPLEX*>(input_.data()), 2, &split_complex_, 1, size_over2_);
@@ -229,8 +230,35 @@ public:
 	}
 
 	void operator()(float const* samples, float* buffer, size_t size) {
-		for (size_t i = 0; i < size; ++i) {
+		/*for (size_t i = 0; i < size; ++i) {
 			buffer[i] = samples[i] * window_.get()[i];
+		}*/
+
+		const auto* windowp = window_.get();
+		const auto* endp = samples + size;
+		
+		switch (size % kLoopUnRollingIntCount) {
+		case 3:
+			*buffer++ = *samples++ * *windowp++;
+			[[fallthrough]];
+		case 2:
+			*buffer++ = *samples++ * *windowp++;
+			[[fallthrough]];
+		case 1:
+			*buffer++ = *samples++ * *windowp++;
+			[[fallthrough]];
+		case 0:
+			break;
+		}
+					
+		while (endp != samples) {
+			buffer[0] = samples[0] * windowp[0];
+			buffer[1] = samples[1] * windowp[1];
+			buffer[2] = samples[2] * windowp[2];
+			buffer[3] = samples[3] * windowp[3];
+			buffer += kLoopUnRollingIntCount;
+			samples += kLoopUnRollingIntCount;
+			windowp += kLoopUnRollingIntCount;
 		}
 	}
 protected:
@@ -275,7 +303,7 @@ public:
 		}
 	}
 
-	std::valarray<Complex> Forward(float const* signals, size_t size) {
+	const std::valarray<Complex> & Forward(float const* signals, size_t size) {
 		window_(signals, input_.get(), size);
 
 		FFTWDLL.fftwf_execute_split_dft_r2c(forward_.get(),
@@ -326,7 +354,7 @@ void FFT::Init(size_t size) {
 	impl_->Init(size);
 }
 
-std::valarray<Complex> FFT::Forward(float const* data, size_t size) {
+const std::valarray<Complex>& FFT::Forward(float const* data, size_t size) {
 	return impl_->Forward(data, size);
 }
 	

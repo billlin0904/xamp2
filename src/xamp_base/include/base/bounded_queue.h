@@ -103,7 +103,7 @@ private:
     std::atomic<bool> done_;
     mutable std::mutex mutex_;
     std::condition_variable notify_;
-    CircularBuffer<Type> queue_;
+    CircularBuffer<Type> queue_;    
 };
 
 }

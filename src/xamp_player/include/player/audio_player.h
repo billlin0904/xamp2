@@ -25,6 +25,7 @@
 #include <output_device/deviceinfo.h>
 
 #include <player/fft.h>
+#include <player/spectrum.h>
 #include <player/playstate.h>
 #include <player/playbackstateadapter.h>
 #include <player/player.h>
@@ -225,6 +226,7 @@ private:
     SpscQueue<double> seek_queue_;
     SpscQueue<AlignPtr<AudioProcessor>> processor_queue_;
     FFT fft_;
+    Spectrum spectrum_;
 };
 
 }

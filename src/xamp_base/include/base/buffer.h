@@ -16,22 +16,10 @@ public:
     Buffer() = default;
 
     explicit Buffer(const size_t size)
-        : ptr_(MakeBufferPtr<T>(size))
-        , size_(size) {
+        : size_(size)
+        , ptr_(MakeBufferPtr<T>(size)) {
         lock_.Lock(ptr_.get(), GetByteSize());
     }
-
-    /*
-    Buffer(const Buffer& other)
-        : Buffer(other.size_) {
-        std::memcpy(ptr_.get(), other.ptr_.get(), size_ * sizeof(T));
-    }    
-
-    Buffer& operator=(const Buffer& other) {
-        Buffer copy(other);
-        swap(*this, copy);
-        return *this;
-    }*/
 
     Buffer(Buffer&& other) noexcept {
         *this = std::move(other);
@@ -47,20 +35,15 @@ public:
         return *this;
     }
 
-    /*friend void swap(Buffer& a, Buffer& b) noexcept {
-        std::swap(a.ptr_, b.ptr_);
-        std::swap(a.size_, b.size_);
-    }*/
-
     T* Get() noexcept { 
         return ptr_.get();
     }    
 
-    const T* Get() const noexcept {
+    [[nodiscard]] const T* Get() const noexcept {
         return ptr_.get();
     }
 
-    const T* data() const noexcept {
+    [[nodiscard]] const T* data() const noexcept {
         return ptr_.get();
     }
 

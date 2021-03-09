@@ -15,7 +15,9 @@ namespace xamp::base {
 #ifdef XAMP_OS_WIN
 class VmMemLock::VmMemLockImpl {
 public:
-	VmMemLockImpl() {		
+	VmMemLockImpl()
+		: address_(nullptr)
+		, size_(0) {
 	}
 	
 	~VmMemLockImpl() noexcept {
@@ -52,8 +54,8 @@ public:
 		address_ = nullptr;
 		size_ = 0;
 	}
-	void* address_{nullptr};
-	size_t size_{0};
+	void* address_;
+	size_t size_;
 };
 #else
 	class VmMemLock::VmMemLockImpl {

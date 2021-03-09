@@ -8,8 +8,6 @@
 #include <string>
 #include <future>
 #include <atomic>
-#include <queue>
-#include <mutex>
 #include <functional>
 #include <vector>
 #include <optional>
@@ -17,13 +15,11 @@
 #include <memory>
 
 #include <base/base.h>
-#include <base/memory.h>
 #include <base/singleton.h>
 #include <base/align_ptr.h>
 #include <base/stl.h>
 #include <base/exception.h>
 #include <base/bounded_queue.h>
-#include <base/platform_thread.h>
 
 #ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
 #include <base/logger.h>

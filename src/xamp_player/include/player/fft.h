@@ -25,7 +25,7 @@ public:
 
 	void Init(size_t size);
 
-    std::valarray<Complex> Forward(float const* data, size_t size);
+    const std::valarray<Complex>& Forward(float const* data, size_t size);
 
 private:
     class FFTImpl;

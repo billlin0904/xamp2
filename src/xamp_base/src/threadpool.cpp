@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <base/platform_thread.h>
 #include <base/threadpool.h>
 
 namespace xamp::base {
@@ -136,7 +137,7 @@ void TaskScheduler::SetWorkerThreadName(int32_t i) {
 }
 
 void TaskScheduler::AddThread(size_t i) {
-	threads_.emplace_back([i, this]() mutable {
+	threads_.emplace_back([i, this]() mutable {		
 		const auto allocate_stack_size = (std::min)(kInitL1CacheLineSize * i, 
 			kMaxL1CacheLineSize);
 		const auto L1_padding_buffer = MakeStackBuffer<uint8_t>(allocate_stack_size);
