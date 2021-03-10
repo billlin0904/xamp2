@@ -93,7 +93,7 @@ void Export2WaveFile(std::wstring const& file_path,
 			format.SetSampleRate(output_sample_rate);
 			file.Open(output_file_path, format);
 			compressor.SetSampleRate(input_format.GetSampleRate());
-			compressor.Prepare();
+			compressor.Init();
 			converter->Start(input_format.GetSampleRate(), input_format.GetChannels(), output_sample_rate);
 		}, [&file, &compressor, &converter](float const* samples, uint32_t sample_size) {
 			auto const& buf = compressor.Process(samples, sample_size);
@@ -115,7 +115,7 @@ void Export2WaveFile(std::wstring const& file_path,
 			format.SetByteFormat(ByteFormat::SINT24);
 			file.Open(output_file_path, format);
 			compressor.SetSampleRate(format.GetSampleRate());
-			compressor.Prepare();
+			compressor.Init();
 		}, [&file, &compressor, enable_compressor](float const* samples, uint32_t sample_size) {
 			if (enable_compressor) {
 				auto const& buf = compressor.Process(samples, sample_size);

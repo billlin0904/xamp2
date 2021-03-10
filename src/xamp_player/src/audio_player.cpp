@@ -71,7 +71,7 @@ AudioPlayer::AudioPlayer(const std::weak_ptr<PlaybackStateAdapter> &adapter)
     , sample_end_time_(0)
     , stream_duration_(0)
     , state_adapter_(adapter)
-    , buffer_(GetPageAlignSize(kPreallocateBufferSize))
+    , fifo_(GetPageAlignSize(kPreallocateBufferSize))
 	, msg_queue_(kMsgQueueSize)
     , seek_queue_(kMsgQueueSize)
 	, processor_queue_(kMsgQueueSize) {
@@ -163,6 +163,7 @@ void AudioPlayer::CreateDevice(Uuid const & device_type_id, std::string const & 
         || open_always) {
         if (device_type_id_ != device_type_id) {
             AudioDeviceManager::GetInstance().RemoveASIODriver();
+            device_.reset();
         }
         if (auto result = AudioDeviceManager::GetInstance().Create(device_type_id)) {            
             device_type_ = std::move(result);
@@ -284,7 +285,7 @@ void AudioPlayer::Play() {
 
                 p->ProcessSeek();
 
-                if (p->buffer_.GetAvailableWrite() < num_sample_write) {
+                if (p->fifo_.GetAvailableWrite() < num_sample_write) {
                     p->wait_timer_.Wait();
                     continue;
                 }
@@ -348,11 +349,11 @@ void AudioPlayer::Stop(bool signal_to_stop, bool shutdown_device, bool wait_for_
         }
     }    
 
-    buffer_.Clear();
+    fifo_.Clear();
     if (shutdown_device) {
         if (AudioDeviceManager::GetInstance().IsASIODevice(device_type_id_)) {
-            AudioDeviceManager::GetInstance().RemoveASIODriver();
             device_.reset();
+            AudioDeviceManager::GetInstance().RemoveASIODriver();            
         }
         device_id_.clear();
         device_.reset();
@@ -478,7 +479,7 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
         stream_task_ = std::shared_future<void>();
         XAMP_LOG_DEBUG("Stream thread was finished.");        
     }
-    buffer_.Clear();
+    fifo_.Clear();
 }
 
 void AudioPlayer::AllocateReadBuffer(uint32_t allocate_size) {
@@ -487,9 +488,9 @@ void AudioPlayer::AllocateReadBuffer(uint32_t allocate_size) {
 }
 
 void AudioPlayer::ResizeBuffer() {
-    if (buffer_.GetSize() == 0 || buffer_.GetSize() < num_buffer_samples_) {
+    if (fifo_.GetSize() == 0 || fifo_.GetSize() < num_buffer_samples_) {
         XAMP_LOG_DEBUG("Allocate internal buffer : {}.", String::FormatBytes(num_buffer_samples_));
-        buffer_.Resize(num_buffer_samples_);
+        fifo_.Resize(num_buffer_samples_);
     }
 }
 
@@ -541,7 +542,7 @@ void AudioPlayer::CreateBuffer() {
         output_format_,
         num_read_sample_,
         converter_->GetDescription(),
-        String::FormatBytes(buffer_.GetSize()));
+        String::FormatBytes(fifo_.GetSize()));
 }
 
 void AudioPlayer::EnableSampleRateConverter(bool enable) {
@@ -636,7 +637,7 @@ void AudioPlayer::OpenDevice(double stream_time) {
 }
 
 void AudioPlayer::BufferStream(double stream_time) {
-    buffer_.Clear();
+    fifo_.Clear();
 
     if (stream_time > 0.0) {
         stream_->Seek(stream_time);
@@ -717,7 +718,7 @@ void AudioPlayer::DoSeek(double stream_time) {
         stream_time,
         sample_end_time_);
     UpdateSlice(nullptr, 0, stream_time);
-    buffer_.Clear();
+    fifo_.Clear();
     BufferStream(stream_time);
     Resume();
 
@@ -792,11 +793,11 @@ void AudioPlayer::BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<SampleRat
                 for (; itr != dsp_chain_.end(); ++itr) {
                     buffer = (*itr)->Process(buffer.data(), buffer.size());
                 }
-                if (!converter->Process(buffer.data(), buffer.size(), buffer_)) {
+                if (!converter->Process(buffer.data(), buffer.size(), fifo_)) {
                     continue;
                 }
         	} else {
-                if (!converter->Process(samples, num_samples, buffer_)) {
+                if (!converter->Process(samples, num_samples, fifo_)) {
                     continue;
                 }
         	}
@@ -823,12 +824,12 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_buffer_samp
                 for (; itr != dsp_chain_.end(); ++itr) {
                     buffer = (*itr)->Process(buffer.data(), buffer.size());
                 }
-                if (!converter_->Process(buffer.data(), buffer.size(), buffer_)) {
+                if (!converter_->Process(buffer.data(), buffer.size(), fifo_)) {
                     continue;
                 }
             }
             else {
-                if (!converter_->Process(samples, num_samples, buffer_)) {
+                if (!converter_->Process(samples, num_samples, fifo_)) {
                     continue;
                 }
             }
@@ -878,7 +879,7 @@ DataCallbackResult AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_
         device_->SetStreamTime(0);
     }
 
-    XAMP_LIKELY(buffer_.TryRead(static_cast<int8_t*>(samples), sample_size)) {
+    XAMP_LIKELY(fifo_.TryRead(static_cast<int8_t*>(samples), sample_size)) {
         //spectrum_.Process(fft_.Forward(static_cast<const float*>(samples), std::min(num_samples, kFFTSize)));
         //spectrum_.GetSpectralCentroid();
         UpdateSlice(static_cast<const float*>(samples), num_samples, stream_time);

@@ -107,9 +107,8 @@ std::optional<Task> TaskScheduler::TryPopLocalQueue(size_t index) {
 	return std::nullopt;
 }
 
-std::optional<Task> TaskScheduler::TrySteal() {
+std::optional<Task> TaskScheduler::TrySteal(size_t i) {
 	Task task;
-	const auto i = 0;
 	for (size_t n = 0; n != max_thread_ * K; ++n) {
 		if (is_stopped_) {
 			return std::nullopt;
@@ -148,7 +147,7 @@ void TaskScheduler::AddThread(size_t i) {
 #endif
 		
 		for (; !is_stopped_;) {
-			auto task = TrySteal();
+			auto task = TrySteal(i + 1);
 			if (!task) {
 				task = TryPopLocalQueue(i);
 

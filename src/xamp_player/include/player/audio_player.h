@@ -215,7 +215,7 @@ private:
     AlignPtr<DeviceType> device_type_;
     AlignPtr<Device> device_;
     std::weak_ptr<PlaybackStateAdapter> state_adapter_;    
-    AudioBuffer<int8_t> buffer_;
+    AudioBuffer<int8_t> fifo_;
     Buffer<int8_t> sample_read_buffer_;
     WaitableTimer wait_timer_;
     AlignPtr<SampleRateConverter> converter_;

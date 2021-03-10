@@ -15,7 +15,7 @@
 
 namespace xamp::base {
 
-template <typename Type>
+template <typename T>
 class XAMP_BASE_API_ONLY_EXPORT BoundedQueue final {
 public:
 	explicit BoundedQueue(size_t size)
@@ -32,7 +32,7 @@ public:
             if (!lock) {
                 return false;
             }
-            queue_.emplace(std::move(task));
+            queue_.emplace(std::forward<T>(task));
         }
         notify_.notify_one();
         return true;
@@ -42,12 +42,12 @@ public:
     void Enqueue(U &&task) {        
         {
             std::lock_guard guard{ mutex_ };
-            queue_.emplace(std::move(task));
+            queue_.emplace(std::forward<T>(task));
         }
         notify_.notify_one();
     }
 
-	bool TryDequeue(Type& task) {
+	bool TryDequeue(T& task) {
 		const std::unique_lock<std::mutex> lock{ mutex_, std::try_to_lock };
 
 		if (!lock || queue_.empty()) {
@@ -58,7 +58,7 @@ public:
 		return true;
 	}
 
-	bool Dequeue(Type& task) {
+	bool Dequeue(T& task) {
 		std::unique_lock<std::mutex> guard{ mutex_ };
 
 		while (queue_.empty() && !done_) {
@@ -73,7 +73,7 @@ public:
 		return true;
 	}
 
-    bool Dequeue(Type& task, const std::chrono::milliseconds wait_time) {
+    bool Dequeue(T& task, const std::chrono::milliseconds wait_time) {
         std::unique_lock<std::mutex> guard{mutex_};
 
         // Note: cv.wait_for() does not deal with spurious weak up
@@ -103,7 +103,7 @@ private:
     std::atomic<bool> done_;
     mutable std::mutex mutex_;
     std::condition_variable notify_;
-    CircularBuffer<Type> queue_;    
+    CircularBuffer<T> queue_;    
 };
 
 }

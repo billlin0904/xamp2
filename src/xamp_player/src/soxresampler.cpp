@@ -204,7 +204,7 @@ public:
 
 		// 加入limiter之後就不再需進行ClampSample.
 		// Note: libsoxr 並不會將sample進行限制大小(-1 < 0 < 1).
-		//ClampSample(buffer_.data(), samples_done * num_channels_);
+		//ClampSample(fifo_.data(), samples_done * num_channels_);
 
 		BufferOverFlowThrow(buffer.TryWrite(reinterpret_cast<int8_t const*>(buffer_.data()), write_size));
 

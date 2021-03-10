@@ -47,7 +47,7 @@ public:
 
     void SetSampleRate(uint32_t sample_rate) override;
 
-    void Prepare(CompressorParameters const &parameters = CompressorParameters());
+    void Init(CompressorParameters const &parameters = CompressorParameters());
 
     const std::vector<float>& Process(float const * samples, uint32_t num_samples) override;
 

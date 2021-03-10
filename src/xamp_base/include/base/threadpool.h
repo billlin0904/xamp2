@@ -104,7 +104,7 @@ private:
 
     std::optional<Task> TryPopLocalQueue(size_t index);
 
-    std::optional<Task> TrySteal();
+    std::optional<Task> TrySteal(size_t i);
 
     void AddThread(size_t i);
 

@@ -71,8 +71,8 @@ static AlignPtr<AudioProcessor> makeCompressor(uint32_t sample_rate) {
     parameters.ratio = AppSettings::getAsInt(kCompressorRatio);
     parameters.attack = AppSettings::getAsInt(kCompressorAttack);
     parameters.release = AppSettings::getAsInt(kCompressorRelease);
-    compressor->Prepare(parameters);*/
-    compressor->Prepare();
+    compressor->Init(parameters);*/
+    compressor->Init();
     return processor;
 }
 
