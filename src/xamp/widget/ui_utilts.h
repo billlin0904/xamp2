@@ -36,7 +36,7 @@ static QString samplerate2String(const AudioFormat& format) {
     }
 
     return (is_mhz_samplerate ? QString::number(format.GetSampleRate() / double(1000000), 'f', 2) + Q_UTF8("MHz/")
-        : QString::number(format.GetSampleRate() / double(1000), 'f', precision) + Q_UTF8("kHz/"));
+        : QString::number(format.GetSampleRate() / double(1000), 'f', precision) + Q_UTF8("kHz"));
 }
 
 static QString format2String(const PlaybackFormat &playback_format, const QString& file_ext) {
@@ -76,7 +76,7 @@ static QString format2String(const PlaybackFormat &playback_format, const QStrin
         dsd_mode = Q_UTF8("PCM");    	
         output_format_str = samplerate2String(playback_format.file_format);
     	if (playback_format.file_format.GetSampleRate() != playback_format.output_format.GetSampleRate()) {
-            output_format_str += samplerate2String(playback_format.output_format);
+            output_format_str += Q_UTF8("/") + samplerate2String(playback_format.output_format);
     	}        
         break;
     case DsdModes::DSD_MODE_NATIVE:

@@ -788,11 +788,7 @@ void AudioPlayer::BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<SampleRat
 
         	if (CanProcessFile() && !dsp_chain_.empty() && enable_processor_) {
                 auto itr = dsp_chain_.begin();
-                auto buffer = (*itr)->Process(samples, num_samples);
-        		
-                for (; itr != dsp_chain_.end(); ++itr) {
-                    buffer = (*itr)->Process(buffer.data(), buffer.size());
-                }
+                auto const & buffer = (*itr)->Process(samples, num_samples);
                 if (!converter->Process(buffer.data(), buffer.size(), fifo_)) {
                     continue;
                 }
@@ -819,11 +815,7 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_buffer_samp
 
             if (CanProcessFile() && !dsp_chain_.empty() && enable_processor_) {
                 auto itr = dsp_chain_.begin();
-                auto buffer = (*itr)->Process(samples, num_samples);
-
-                for (; itr != dsp_chain_.end(); ++itr) {
-                    buffer = (*itr)->Process(buffer.data(), buffer.size());
-                }
+                auto const & buffer = (*itr)->Process(samples, num_samples);
                 if (!converter_->Process(buffer.data(), buffer.size(), fifo_)) {
                     continue;
                 }

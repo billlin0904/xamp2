@@ -49,7 +49,7 @@ public:
 
     void Init(CompressorParameters const &parameters = CompressorParameters());
 
-    const std::vector<float>& Process(float const * samples, uint32_t num_samples) override;
+    const Buffer<float>& Process(float const * samples, uint32_t num_samples) override;
 
     [[nodiscard]] Uuid GetTypeId() const override;
 

@@ -8,6 +8,7 @@
 #include <vector>
 #include <base/base.h>
 #include <base/uuid.h>
+#include <base/buffer.h>
 #include <stream/stream.h>
 
 namespace xamp::stream {
@@ -20,7 +21,7 @@ public:
 
 	virtual void SetSampleRate(uint32_t sample_rate) = 0;
 
-	virtual const std::vector<float>& Process(float const* samples, uint32_t num_samples) = 0;
+	virtual const Buffer<float>& Process(float const* samples, uint32_t num_samples) = 0;
 
 	[[nodiscard]] virtual Uuid GetTypeId() const = 0;
 	

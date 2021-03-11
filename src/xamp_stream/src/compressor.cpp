@@ -1,5 +1,6 @@
 #include <stream/basslib.h>
 #include <base/memory.h>
+#include <base/buffer.h>
 #include <stream/compressor.h>
 
 namespace xamp::stream {
@@ -16,7 +17,7 @@ public:
     }
 
     void Init(CompressorParameters const& parameters) {
-        ::BASS_BFX_COMPRESSOR2 compressord;
+        ::BASS_BFX_COMPRESSOR2 compressord{0};
         compressord.fGain = parameters.gain;
         compressord.fThreshold = parameters.threshold;
         compressord.fRatio = parameters.ratio;
@@ -32,7 +33,7 @@ public:
         compressord_ = compressord;
     }
 
-    const std::vector<float>& Process(float const * samples, uint32_t num_samples) {
+    const Buffer<float>& Process(float const * samples, uint32_t num_samples) {
         buffer_.resize(num_samples);
         MemoryCopy(buffer_.data(), samples, num_samples * sizeof(float));
 
@@ -53,7 +54,7 @@ public:
 private:
     BassStreamHandle stream_;
     ::BASS_BFX_COMPRESSOR2 compressord_{0};
-    std::vector<float> buffer_;
+    Buffer<float> buffer_;
 };
 
 Compressor::Compressor()
@@ -70,7 +71,7 @@ void Compressor::Init(CompressorParameters const &parameters) {
     impl_->Init(parameters);
 }
 
-const std::vector<float>& Compressor::Process(float const * samples, uint32_t num_samples) {
+const Buffer<float>& Compressor::Process(float const * samples, uint32_t num_samples) {
     return impl_->Process(samples, num_samples);
 }
 
