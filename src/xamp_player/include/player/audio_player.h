@@ -224,8 +224,7 @@ private:
     std::shared_future<void> stream_task_;
     SpscQueue<MsgID> msg_queue_;
     SpscQueue<double> seek_queue_;
-    SpscQueue<AlignPtr<AudioProcessor>> processor_queue_;
-    FFT fft_;
+    SpscQueue<AlignPtr<AudioProcessor>> processor_queue_;    
     Spectrum spectrum_;
 };
 

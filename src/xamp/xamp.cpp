@@ -137,19 +137,19 @@ void Xamp::onActivated(QSystemTrayIcon::ActivationReason reason) {
 }
 
 void Xamp::createTrayIcon() {
-    auto minimize_action = new QAction(tr("Mi&nimize"), this);
+    auto* minimize_action = new QAction(tr("Mi&nimize"), this);
     QObject::connect(minimize_action, &QAction::triggered, this, &QWidget::hide);
 
-    auto maximize_action = new QAction(tr("Ma&ximize"), this);
+    auto* maximize_action = new QAction(tr("Ma&ximize"), this);
     QObject::connect(maximize_action, &QAction::triggered, this, &QWidget::showMaximized);
 
-    auto restore_action = new QAction(tr("&Restore"), this);
+    auto* restore_action = new QAction(tr("&Restore"), this);
     QObject::connect(restore_action, &QAction::triggered, this, &QWidget::showNormal);
 
-    auto quit_action = new QAction(tr("&Quit"), this);
+    auto* quit_action = new QAction(tr("&Quit"), this);
     QObject::connect(quit_action, &QAction::triggered, this, &QWidget::close);
 
-    auto about_action = new QAction(tr("&About"), this);
+    auto* about_action = new QAction(tr("&About"), this);
     (void)QObject::connect(about_action, &QAction::triggered, [=]() {
         AboutDialog aboutdlg;
         aboutdlg.setFont(font());

@@ -104,6 +104,12 @@ public:
             throw AvException(err);
         }
 
+        if (!PrefetchFile(file_path)) {
+            XAMP_LOG_DEBUG("Prefetch file failure!");
+        } else {
+            XAMP_LOG_DEBUG("Prefetch file successfully!");
+        }
+
         if (format_ctx != nullptr) {
             format_context_.reset(format_ctx);
         } else {

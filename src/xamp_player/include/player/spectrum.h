@@ -11,6 +11,8 @@
 #include <base/base.h>
 #include <base/math.h>
 #include <base/enum.h>
+#include <base/audioformat.h>
+#include <player/fft.h>
 
 namespace xamp::player {
 
@@ -20,13 +22,17 @@ class Spectrum {
 public:
 	//Spectrum(int32_t num_bands, int32_t min_freq, int32_t max_freq, int32_t frame_size, int32_t sample_rate);
 
-	void Init(size_t size);
+	void Init(AudioFormat const &format);
 
-	void Process(std::valarray<Complex> const& frames);
+	void Feed(float const* samples, size_t num_samples);
 
 	float GetSpectralCentroid() const;
 private:
+	void Process(std::valarray<Complex> const& frames);
+	
 	std::vector<float> magnitude_;
+	FFT fft_;
+	AudioFormat format_;
 };
 
 }

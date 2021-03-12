@@ -28,11 +28,12 @@
 
 FramelessWindow::FramelessWindow(QWidget* parent)
     : QWidget(parent)
-    , use_native_window_(false)
+    , use_native_window_(true)
 #if defined(Q_OS_WIN)
     , is_maximized_(false)
     , border_width_(5)
     , current_screen_(nullptr)
+	, taskbar_progress_(nullptr)
 #endif
 {    
     setAcceptDrops(true);
@@ -81,21 +82,21 @@ void FramelessWindow::createThumbnailToolBar() {
     taskbar_progress_ = taskbar_button_->progress();
     taskbar_progress_->setVisible(true);
 
-    auto play_tool_button = new QWinThumbnailToolButton(thumbnail_tool_bar_.get());
+    auto* play_tool_button = new QWinThumbnailToolButton(thumbnail_tool_bar_.get());
     play_tool_button->setIcon(play_icon_);
     (void)QObject::connect(play_tool_button,
         &QWinThumbnailToolButton::clicked,
         this,
         &FramelessWindow::play);
 
-    auto forward_tool_button = new QWinThumbnailToolButton(thumbnail_tool_bar_.get());
+    auto* forward_tool_button = new QWinThumbnailToolButton(thumbnail_tool_bar_.get());
     forward_tool_button->setIcon(seek_forward_icon_);
     (void)QObject::connect(forward_tool_button,
         &QWinThumbnailToolButton::clicked,
         this,
         &FramelessWindow::playNextClicked);
 
-    auto backward_tool_button = new QWinThumbnailToolButton(thumbnail_tool_bar_.get());
+    auto* backward_tool_button = new QWinThumbnailToolButton(thumbnail_tool_bar_.get());
     backward_tool_button->setIcon(seek_backward_icon_);
     (void)QObject::connect(backward_tool_button,
         &QWinThumbnailToolButton::clicked,
@@ -128,10 +129,9 @@ QFont FramelessWindow::setupUIFont() const {
 #endif
     QFont::insertSubstitutions(Q_UTF8("UI"), fallback_fonts);
 
-    QList<QString> format_fallback_fonts;
-    format_fallback_fonts.append(Q_UTF8("Dosis"));
-    format_fallback_fonts.append(Q_UTF8("Dosis Bold"));
-    QFont::insertSubstitutions(Q_UTF8("FormatFont"), format_fallback_fonts);
+    const auto font_id = QFontDatabase::addApplicationFont(Q_UTF8(":/xamp/fonts/Electrolize-Regular.ttf"));
+    const auto font_families = QFontDatabase::applicationFontFamilies(font_id);
+    QFont::insertSubstitutions(Q_UTF8("FormatFont"), font_families);
 	
     ui_font.setStyleStrategy(QFont::PreferAntialias);
     return ui_font;

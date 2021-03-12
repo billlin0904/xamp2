@@ -59,14 +59,6 @@ void PlyalistPage::initial() {
 
 	format_ = new QLabel(this);
 
-	QFont format_font(Q_UTF8("FormatFont"));
-#ifdef Q_OS_WIN
-	format_font.setPointSize(11);
-#else
-	format_font.setPointSize(18);
-#endif
-	format_->setFont(format_font);
-
 	album_title_layout->addWidget(title_);
 
 	auto middle_spacer = new QSpacerItem(20, 20, QSizePolicy::Minimum, QSizePolicy::Expanding);
@@ -115,7 +107,7 @@ void PlyalistPage::initial() {
 
 void PlyalistPage::OnThemeColorChanged(QColor theme_color, QColor color) {
 	title_->setStyleSheet(Q_UTF8("QLabel { color: ") + colorToString(color) + Q_UTF8("; background-color: transparent; }"));
-	format_->setStyleSheet(Q_UTF8("QLabel { color: ") + colorToString(color) + Q_UTF8("; background-color: transparent; }"));
+	format_->setStyleSheet(Q_UTF8("QLabel { font-family: FormatFont; font-size: 16px; color: ") + colorToString(color) + Q_UTF8("; background-color: transparent; }"));	
 }
 
 QLabel* PlyalistPage::format() {

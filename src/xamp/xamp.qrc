@@ -53,5 +53,6 @@
         <file>Resource/Black/tab_artists.png</file>
         <file>Resource/Black/tab_playlists.png</file>
         <file>Resource/Black/tab_subtitles.png</file>
+        <file>fonts/Electrolize-Regular.ttf</file>
     </qresource>
 </RCC>

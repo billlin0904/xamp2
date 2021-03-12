@@ -26,6 +26,8 @@ public:
 
     int32_t Feed(int16_t const * data, uint32_t size) const;
 
+	void Feed(float const* data, uint32_t size) const;
+
     int32_t Finish() const;
 
 	std::vector<uint8_t> GetFingerprint() const;

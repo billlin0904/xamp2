@@ -30,11 +30,10 @@ inline constexpr int32_t kPreallocateBufferSize = 320 * 1024 * 1024;
 inline constexpr uint32_t kMaxPreallocateBufferSize = 320 * 1024 * 1024;
 inline constexpr int32_t kMaxWriteRatio = 80;
 inline constexpr int32_t kMaxReadRatio = 2;
-inline constexpr int32_t kFFTSize = 8192;
 inline constexpr int32_t kMsgQueueSize = 30;
 	
 // NOTE: 4KB的話libav resample會導致緩衝過大的問題產生.
-inline constexpr int32_t kDefaultReadSampleSize = 8 * 1024;
+inline constexpr int32_t kDefaultReadSampleSize = 8192 * 4;
 
 inline constexpr std::chrono::milliseconds kUpdateSampleInterval(100);
 inline constexpr std::chrono::milliseconds kReadSampleWaitTime(30);
@@ -131,6 +130,7 @@ void AudioPlayer::Open(std::wstring const & file_path,
     CloseDevice(true);
     OpenStream(file_path, file_ext, device_info);
     device_info_ = device_info;
+    spectrum_.Init(output_format_);
 }
 
 void AudioPlayer::SetSampleRateConverter(uint32_t sample_rate, AlignPtr<SampleRateConverter>&& converter) {
@@ -655,8 +655,7 @@ void AudioPlayer::Startup() {
     if (timer_.IsStarted()) {
         return;
     }
-
-    fft_.Init(kFFTSize);
+    
     wait_timer_.SetTimeout(kReadSampleWaitTime);
 
     std::weak_ptr<AudioPlayer> player = shared_from_this();
@@ -871,10 +870,9 @@ DataCallbackResult AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_
         device_->SetStreamTime(0);
     }
 
-    XAMP_LIKELY(fifo_.TryRead(static_cast<int8_t*>(samples), sample_size)) {
-        //spectrum_.Process(fft_.Forward(static_cast<const float*>(samples), std::min(num_samples, kFFTSize)));
-        //spectrum_.GetSpectralCentroid();
+    XAMP_LIKELY(fifo_.TryRead(static_cast<int8_t*>(samples), sample_size)) {       
         UpdateSlice(static_cast<const float*>(samples), num_samples, stream_time);
+        spectrum_.Feed(static_cast<const float*>(samples), num_samples);
 #ifdef _DEBUG
         sw_.Reset();
 #endif

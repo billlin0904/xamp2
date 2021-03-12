@@ -45,7 +45,7 @@ static double ReadProcess(std::wstring const& file_path,
 		PackedFormat::INTERLEAVED
 	};
 
-	auto isamples = MakeBufferPtr<float>(
+	auto isamples = MakeBuffer<float>(
 		1024 + kReadSampleSize * input_format.GetChannels());	
 	uint32_t num_samples = 0;
 
@@ -151,26 +151,18 @@ std::tuple<double, double> ReadFileLUFS(std::wstring const& file_path,
 std::tuple<double, std::vector<uint8_t>> ReadFingerprint(std::wstring const & file_path,
                                                          std::wstring const & file_ext,
                                                          std::function<bool(uint32_t)> const& progress) {
-	AudioConvertContext ctx;
 	Chromaprint chromaprint;
 
-	AlignBufferPtr<int16_t> osamples;
-
 	auto duration = ReadProcess(file_path, file_ext, progress,
-		[&ctx, &chromaprint, &osamples](AudioFormat const &input_format)
+		[&chromaprint](AudioFormat const &input_format)
 		{
-			ctx = MakeConvert(input_format, input_format, kReadSampleSize);
-			osamples = MakeBufferPtr<int16_t>(1024 + kReadSampleSize * input_format.GetChannels());
 			chromaprint.Start(input_format.GetSampleRate(), 
 				input_format.GetChannels(),
 				kReadSampleSize);
-		}, [&ctx, &chromaprint, &osamples](float const * samples, uint32_t sample_size)
+		}, [&chromaprint](float const * samples, uint32_t sample_size)
 		{
-			DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>
-				::ConvertToInt16(osamples.get(), samples, ctx);
-			(void) chromaprint.Feed(osamples.get(), sample_size * kMaxChannel);
+			chromaprint.Feed(samples, sample_size * kMaxChannel);
 		}, kFingerprintDuration);
-	
 
 	(void)chromaprint.Finish();
 
