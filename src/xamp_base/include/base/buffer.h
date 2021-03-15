@@ -85,7 +85,7 @@ public:
         }
     }
 
-    void clear() {
+    void reset() {
         lock_.UnLock();
         ptr_.reset();
         size_ = 0;

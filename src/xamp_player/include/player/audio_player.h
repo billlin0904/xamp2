@@ -18,16 +18,18 @@
 #include <base/align_ptr.h>
 #include <base/uuid.h>
 #include <base/spsc_queue.h>
-#include <base/stopwatch.h>
 #include <base/buffer.h>
+
+#ifdef _DEBUG
+#include <base/stopwatch.h>
+#endif
 
 #include <output_device/audiocallback.h>
 #include <output_device/deviceinfo.h>
 
-#include <player/fft.h>
-#include <player/spectrum.h>
 #include <player/playstate.h>
 #include <player/playbackstateadapter.h>
+#include <player/spectrum.h>
 #include <player/player.h>
 
 
@@ -54,7 +56,7 @@ public:
 
     explicit AudioPlayer(const std::weak_ptr<PlaybackStateAdapter>& adapter);
 
-    static void Initial();
+    static void Init();
 
     void Open(std::wstring const& file_path, std::wstring const& file_ext, const DeviceInfo& device_info);
 
@@ -224,7 +226,7 @@ private:
     std::shared_future<void> stream_task_;
     SpscQueue<MsgID> msg_queue_;
     SpscQueue<double> seek_queue_;
-    SpscQueue<AlignPtr<AudioProcessor>> processor_queue_;    
+    SpscQueue<AlignPtr<AudioProcessor>> processor_queue_;
     Spectrum spectrum_;
 };
 

@@ -322,9 +322,11 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 		buffer_bytes_ = buffer_size_ * static_cast<int64_t>(format_.GetBytesPerSample());
 		const auto alloc_size = allocate_bytes;
 		if (buffer_.GetSize() < alloc_size) {
+			buffer_.reset();
 			buffer_ = MakeBuffer<int8_t>(alloc_size);
 		}
 		if (device_buffer_.GetSize() < alloc_size) {
+			device_buffer_.reset();
 			device_buffer_ = MakeBuffer<int8_t>(alloc_size);
 		}		
 	}
@@ -352,9 +354,11 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 		buffer_bytes_ = channel_buffer_size;
 		const auto allocate_bytes = buffer_size_;
 		if (device_buffer_.GetSize() < allocate_bytes) {
+			device_buffer_.reset();
 			device_buffer_ = MakeBuffer<int8_t>(allocate_bytes);
 		}		
 		if (buffer_.GetSize() < allocate_bytes) {
+			buffer_.reset();
 			buffer_ = MakeBuffer<int8_t>(allocate_bytes);
 		}		
 		ASIODriver.data_context = MakeConvert(in_format, format_, channel_buffer_size);

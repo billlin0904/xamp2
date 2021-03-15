@@ -145,7 +145,7 @@ public:
 
 	void Close() noexcept {
 		handle_.reset();
-		buffer_.clear();
+		buffer_.reset();
 	}
 
 	void SetDither(bool enable) {

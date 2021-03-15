@@ -30,9 +30,15 @@ static std::string LocaleStringToUTF8(const std::string &str) {
 static std::string GetPlatformErrorMessage(int32_t err) {
     return LocaleStringToUTF8(std::system_category().message(err));
 }
+std::string GetLastErrorMessage() {
+    return GetPlatformErrorMessage(::GetLastError());
+}
 #else
 std::string GetPlatformErrorMessage(int32_t err) {
         return std::system_category().message(err);
+}
+std::string GetLastErrorMessage() {
+    return GetPlatformErrorMessage(errno);
 }
 #endif
 

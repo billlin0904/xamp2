@@ -109,7 +109,7 @@ static int excute(int argc, char* argv[]) {
     QApplication app(argc, argv);
 
     try {
-        AudioPlayer::Initial();
+        AudioPlayer::Init();
     }
     catch (const Exception& e) {
         QMessageBox::critical(nullptr,
@@ -138,7 +138,7 @@ static int excute(int argc, char* argv[]) {
         Singleton<Database>::GetInstance().open(Q_UTF8("xamp.db"));
     }
     catch (const std::exception& e) {
-        XAMP_LOG_INFO("Initial database failure. {}", e.what());
+        XAMP_LOG_INFO("Init database failure. {}", e.what());
         return -1;
     }
 

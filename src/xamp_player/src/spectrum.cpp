@@ -1,13 +1,14 @@
+#include <base/stl.h>
+#include <base/logger.h>
 #include <player/spectrum.h>
 
 namespace xamp::player {
 
 inline constexpr size_t kFFTSize = 32768;
 inline constexpr size_t kVideoFrameRate = 30;
-
-//Spectrum::Spectrum(int32_t num_bands, int32_t min_freq, int32_t max_freq, int32_t frame_size, int32_t sample_rate) {
-//	magnitude_.reserve(frame_size);
-//}
+inline constexpr size_t kDisplaySize = 1024;
+inline constexpr size_t kFreqVaryingOffset = static_cast<size_t>(kFFTSize * 0.000005);
+inline constexpr size_t kFixedOffset = 0;
 
 /*
 https://dsp.stackexchange.com/questions/27703/how-does-adobe-after-effects-generate-its-audio-spectrum-effect
@@ -27,27 +28,46 @@ for frame from 1 to ...:
  // now draw the bars on the video frame using the contents of buf
  */
 
-static float GetMedian(std::vector<float> const &v) {
-	auto n = v.size() / 2;
-	std::nth_element(v.begin(), v.begin() + n, v.end());
-	return v[n];
-}
-
 void Spectrum::Init(AudioFormat const& format) {
 	format_ = format;
 	magnitude_.resize(kFFTSize);
 	fft_.Init(kFFTSize);
+	display_.resize(kDisplaySize);
+	fifo_.Resize(16 * 1024 * 1024);
+	buffer_.resize(kFFTSize);
+	frame_size_ = 0;
+	last_frame_size_ = 0;
 }
 
+const std::vector<float>& Spectrum::Update() {
+	frame_size_++;
+
+	const auto next_frame_size = frame_size_ / kVideoFrameRate * format_.GetSampleRate();
+
+	if (last_frame_size_ != next_frame_size) {
+		last_frame_size_ = next_frame_size;
+
+		fifo_.TryRead(buffer_.data(), kFFTSize);
+
+		Process(fft_.Forward(buffer_.data(), buffer_.size()));
+
+		MemoryCopy(display_.data(), magnitude_.data(), display_.size() * sizeof(float));
+
+		const auto mid = Median(display_);
+		const auto offset = kFixedOffset - mid;
+		
+		for (size_t i = 0; i < display_.size(); ++i) {
+			display_[i] = display_[i] - offset + i * kFreqVaryingOffset;
+		}
+	}
+	return display_;
+}
+	
 void Spectrum::Feed(float const* samples, size_t num_samples) {
-	auto display_length = 1024;
-	auto freq_varying_offset = kFFTSize * 0.000005;
-	auto fixed_offset = 0;
-	
-	const auto start = num_samples / kVideoFrameRate * format_.GetSampleRate();
-	Process(fft_.Forward(&samples[start], start + kFFTSize));
-	
-	auto offset = fixed_offset - GetMedian(magnitude_);
+	fifo_.TryWrite(samples, num_samples);
+	//frame_size_++;
+	//const auto next_frame_size = frame_size_ / kVideoFrameRate * format_.GetSampleRate();
+	//XAMP_LOG_DEBUG("next_frame_size:{} ", next_frame_size);
 }
 	
 float Spectrum::GetSpectralCentroid() const {

@@ -51,7 +51,7 @@ public:
 
     void OnVolumeChanged(float vol) override;
 
-    void OnSampleDataChanged(const float *samples, size_t size) override;
+    void OnDisplayChanged(std::vector<float> const& display) override;
 
     void OnGaplessPlayback() override;    
 
@@ -72,9 +72,9 @@ signals:
 
     void volumeChanged(float vol);
 
-    void sampleDataChanged(std::vector<float> const &samples);
-
     void gaplessPlayback(const QModelIndex &index);
+
+    void displayChanged(std::vector<float> const& display);
 
 protected:
     static constexpr auto kPlayQueueSize = 8;

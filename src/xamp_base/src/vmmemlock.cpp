@@ -46,7 +46,7 @@ public:
 		if (address_) {
 			if (!::VirtualUnlock(address_, size_)) {
 				XAMP_LOG_DEBUG("VirtualUnlock return failure! error:{} {}.",
-					::GetLastError(), StackTrace{}.CaptureStack());
+					GetLastErrorMessage(), StackTrace{}.CaptureStack());
 			}
 			XAMP_LOG_DEBUG("VmMemLock unlock address: 0x{:08x} size: {}.",
 				reinterpret_cast<int64_t>(address_), String::FormatBytes(size_));

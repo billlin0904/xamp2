@@ -31,7 +31,8 @@ void UIPlayerStateAdapter::OnVolumeChanged(float vol) {
     emit volumeChanged(vol);
 }
 
-void UIPlayerStateAdapter::OnSampleDataChanged(const float *, size_t) {
+void UIPlayerStateAdapter::OnDisplayChanged(std::vector<float> const& display) {
+    emit displayChanged(display);
 }
 
 void UIPlayerStateAdapter::OnGaplessPlayback() {

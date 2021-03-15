@@ -8,9 +8,8 @@
 #include <valarray>
 #include <vector>
 
-#include <base/base.h>
 #include <base/math.h>
-#include <base/enum.h>
+#include <base/audiobuffer.h>
 #include <base/audioformat.h>
 #include <player/fft.h>
 
@@ -20,17 +19,23 @@ using namespace xamp::base;
 
 class Spectrum {
 public:
-	//Spectrum(int32_t num_bands, int32_t min_freq, int32_t max_freq, int32_t frame_size, int32_t sample_rate);
-
 	void Init(AudioFormat const &format);
 
 	void Feed(float const* samples, size_t num_samples);
 
+	const std::vector<float>& Update();
+	
 	float GetSpectralCentroid() const;
+
 private:
 	void Process(std::valarray<Complex> const& frames);
-	
+
+	size_t frame_size_{ 0 };
+	size_t last_frame_size_{ 0 };
 	std::vector<float> magnitude_;
+	std::vector<float> buffer_;
+	AudioBuffer<float> fifo_;
+	std::vector<float> display_;
 	FFT fft_;
 	AudioFormat format_;
 };

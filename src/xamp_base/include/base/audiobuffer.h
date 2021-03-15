@@ -6,6 +6,7 @@
 #pragma once
 
 #include <atomic>
+#include <vector>
 
 #include <base/base.h>
 #include <base/exception.h>
@@ -15,30 +16,47 @@
 
 namespace xamp::base {
 
-template <typename Type>
+template <typename T>
 struct XAMP_BASE_API_ONLY_EXPORT FixedBufferView {
-	void Write(const Type* data, size_t count) noexcept {
+	void Write(const T* data, size_t count) noexcept {
 		if (next_head > size) {
 			const auto range1 = size - head;
 			const auto range2 = count - range1;
-			MemoryCopy(ptr + head, data, range1 * sizeof(Type));
-			MemoryCopy(ptr, data + range1, range2 * sizeof(Type));
+			MemoryCopy(ptr + head, data, range1 * sizeof(T));
+			MemoryCopy(ptr, data + range1, range2 * sizeof(T));
 		}
 		else {
-			MemoryCopy(ptr + head, data, count * sizeof(Type));
+			MemoryCopy(ptr + head, data, count * sizeof(T));
 		}
 	}
+
+	std::vector<float> Read(size_t count) {
+		std::vector<float> buffer(count);
+		
+		if (next_tail > size) {
+			const auto range1 = size - tail;
+			const auto range2 = count - range1;
+			MemoryCopy(buffer.data(), ptr + tail, range1 * sizeof(T));
+			MemoryCopy(buffer.data() + range1, ptr, range2 * sizeof(T));
+		}
+		else {
+			MemoryCopy(buffer.data(), ptr + tail, count * sizeof(T));
+		}
+		return buffer;
+	}
 	
-	Type* ptr{ nullptr };
+	T* ptr{ nullptr };
 	size_t size{0};
 	size_t head{ 0 };
-	size_t next_head{ 0 };	
+	size_t tail{ 0 };
+	size_t next_head{ 0 };
+	size_t next_tail{ 0 };
 };
 
 template 
 <
-	typename Type,
-	typename U = std::enable_if_t<std::is_trivially_copyable<Type>::value>
+	typename T,
+	typename U = std::enable_if_t<std::is_trivially_copyable<T>::value>
 >
 class XAMP_BASE_API_ONLY_EXPORT AudioBuffer final {
 public:
@@ -50,7 +68,7 @@ public:
 
 	XAMP_DISABLE_COPY(AudioBuffer)
 
-	Type* GetData() const noexcept;
+	T* GetData() const noexcept;
 	
 	void Clear() noexcept;
 
@@ -62,20 +80,20 @@ public:
 
     size_t GetAvailableRead() const noexcept;
 
-    bool TryWrite(const Type* data, size_t count) noexcept;
+    bool TryWrite(const T* data, size_t count) noexcept;
 
-    bool TryRead(Type* data, size_t count) noexcept;
+    bool TryRead(T* data, size_t count) noexcept;
 
-	void Fill(Type value) noexcept;
+	void Fill(T value) noexcept;
 
-	FixedBufferView<Type> Allocate(size_t count);
+	FixedBufferView<T> Allocate(size_t count);
 
 private:
     size_t GetAvailableWrite(size_t head, size_t tail) const noexcept;
 
     size_t GetAvailableRead(size_t head, size_t tail) const noexcept;
     
-	Buffer<Type> buffer_;
+	Buffer<T> buffer_;
 	size_t size_;
 	XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<size_t> head_;
     XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<size_t> tail_;

@@ -12,6 +12,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <list>
+#include <numeric>
 
 #include <robin_hood.h>
 
@@ -25,6 +26,32 @@ std::vector<T> Union(C const &a, C const &b) {
 		b.begin(), b.end(),
 		std::back_inserter(result));
 	return result;
+}
+	
+template <typename C>
+double Median(C const& v) {
+	C temp;
+	std::copy(v.begin(), v.end(), std::back_inserter(temp));
+	auto n = temp.size();
+	
+	if (n % 2 == 0) {
+		std::nth_element(temp.begin(),
+			temp.begin() + n / 2,
+			temp.end());
+		
+		std::nth_element(temp.begin(),
+			temp.begin() + (n - 1) / 2,
+			temp.end());
+
+		return static_cast<double>(temp[(n - 1) / 2]
+				+ temp[n / 2])
+				/ 2.0;
+	} else {
+		std::nth_element(temp.begin(),
+			temp.begin() + n / 2,
+			temp.end());
+		return static_cast<double>(temp[n / 2]);
+	}
 }
 
 template <typename T, size_t N>

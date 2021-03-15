@@ -380,10 +380,10 @@ void PlayListTableView::initial() {
             if (buffer.empty()) {
                 return;
             }
-            auto file_name = QFileDialog::getSaveFileName(this,
-                tr("Save cover image"),
-                Qt::EmptyString,
-                tr("Images file (*.png);;All Files (*)"));
+            const auto file_name = QFileDialog::getSaveFileName(this,
+                                                                tr("Save cover image"),
+                                                                Qt::EmptyString,
+                                                                tr("Images file (*.png);;All Files (*)"));
             if (file_name.isEmpty()) {
                 return;
             }

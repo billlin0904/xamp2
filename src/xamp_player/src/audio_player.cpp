@@ -35,7 +35,7 @@ inline constexpr int32_t kMsgQueueSize = 30;
 // NOTE: 4KB的話libav resample會導致緩衝過大的問題產生.
 inline constexpr int32_t kDefaultReadSampleSize = 8192 * 4;
 
-inline constexpr std::chrono::milliseconds kUpdateSampleInterval(100);
+inline constexpr std::chrono::milliseconds kUpdateSampleInterval(30);
 inline constexpr std::chrono::milliseconds kReadSampleWaitTime(30);
 inline constexpr std::chrono::seconds kWaitForStreamStopTime(10);
 inline constexpr std::chrono::milliseconds kPauseWaitTimeout(100);
@@ -100,7 +100,7 @@ void AudioPlayer::UpdateSlice(float const *samples, int32_t sample_size, double 
         std::memory_order_relaxed);
 }
 
-void AudioPlayer::Initial() {    
+void AudioPlayer::Init() {    
     AudioDeviceManager::GetInstance().PreventSleep(true);
     XAMP_LOG_DEBUG("AudioDeviceManager init success.");
 
@@ -129,8 +129,7 @@ void AudioPlayer::Open(std::wstring const & file_path,
     Startup();
     CloseDevice(true);
     OpenStream(file_path, file_ext, device_info);
-    device_info_ = device_info;
-    spectrum_.Init(output_format_);
+    device_info_ = device_info;    
 }
 
 void AudioPlayer::SetSampleRateConverter(uint32_t sample_rate, AlignPtr<SampleRateConverter>&& converter) {
@@ -679,7 +678,8 @@ void AudioPlayer::Startup() {
 
         const auto slice = p->slice_.load();
         if (slice.sample_size > 0) {
-            adapter->OnSampleTime(slice.stream_time);
+            adapter->OnSampleTime(slice.stream_time);            
+            adapter->OnDisplayChanged(p->spectrum_.Update());
         }
         else if (p->is_playing_ && slice.sample_size == -1) {
             p->SetState(PlayerState::PLAYER_STATE_STOPPED);
@@ -872,10 +872,10 @@ DataCallbackResult AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_
 
     XAMP_LIKELY(fifo_.TryRead(static_cast<int8_t*>(samples), sample_size)) {       
         UpdateSlice(static_cast<const float*>(samples), num_samples, stream_time);
-        spectrum_.Feed(static_cast<const float*>(samples), num_samples);
 #ifdef _DEBUG
         sw_.Reset();
 #endif
+        spectrum_.Feed(static_cast<const float*>(samples), num_samples);
         return DataCallbackResult::CONTINUE;
     }
 
@@ -894,6 +894,8 @@ void AudioPlayer::PrepareToPlay(double start_time, double end_time) {
     OpenDevice(start_time);
     CreateBuffer();
     BufferStream(start_time);
+    spectrum_.Init(output_format_);
+	
 #ifdef _DEBUG
     XAMP_LOG_INFO("AVG max time {} ms, AVG min time {} ms",
         max_process_time_.count() / 1000, 

@@ -34,6 +34,8 @@ MAKE_ENUM(Errors,
 
 XAMP_BASE_API std::string GetPlatformErrorMessage(int32_t err);
 
+XAMP_BASE_API std::string GetLastErrorMessage();
+
 class XAMP_BASE_API Exception : public std::exception {
 public:
     explicit Exception(Errors error = Errors::XAMP_ERROR_SUCCESS,

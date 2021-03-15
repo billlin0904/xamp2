@@ -152,6 +152,7 @@
   <ItemGroup>
     <ClInclude Include="include\player\audio_player.h" />
     <ClInclude Include="include\player\chromaprint.h" />
+    <ClInclude Include="include\player\dspchain.h" />
     <ClInclude Include="include\player\fft.h" />
     <ClInclude Include="include\player\loudness_scanner.h" />
     <ClInclude Include="include\player\read_helper.h" />

@@ -509,6 +509,12 @@ void Xamp::initialController() {
                             Qt::QueuedConnection);
 
     (void)QObject::connect(state_adapter_.get(),
+        &UIPlayerStateAdapter::displayChanged,
+        this,
+        &Xamp::onDisplayChanged,
+        Qt::QueuedConnection);
+
+    (void)QObject::connect(state_adapter_.get(),
                             &UIPlayerStateAdapter::gaplessPlayback,
                             this,
                             &Xamp::onGaplessPlay,
@@ -801,6 +807,10 @@ void Xamp::onSampleTimeChanged(double stream_time) {
     if (player_->GetState() == PlayerState::PLAYER_STATE_RUNNING) {         
         setSeekPosValue(stream_time);
     }
+}
+
+void Xamp::onDisplayChanged(std::vector<float> const& display) {
+	
 }
 
 void Xamp::setSeekPosValue(double stream_time) {

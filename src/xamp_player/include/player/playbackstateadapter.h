@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <vector>
+
 #include <base/base.h>
 #include <base/exception.h>
 #include <base/align_ptr.h>
@@ -37,7 +39,7 @@ public:
 
 	virtual void OnVolumeChanged(float vol) = 0;
 
-    virtual void OnSampleDataChanged(const float *samples, size_t size) = 0;
+    virtual void OnDisplayChanged(std::vector<float> const &display) = 0;
 
     virtual void OnGaplessPlayback() = 0;
 

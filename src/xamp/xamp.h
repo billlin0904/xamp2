@@ -57,6 +57,8 @@ public slots:
 	void onActivated(QSystemTrayIcon::ActivationReason reason);
 
     void onGaplessPlay(const QModelIndex &index);
+
+	void onDisplayChanged(std::vector<float> const& display);
 private:
     void initial();
 
