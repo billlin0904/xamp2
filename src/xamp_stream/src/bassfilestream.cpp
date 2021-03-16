@@ -185,8 +185,8 @@ public:
         return DsdFormat::DSD_INT8MSB;
     }
 
-    void SetDsdToPcmSampleRate(uint32_t samplerate) {
-        BASS.BASS_SetConfig(BASS_CONFIG_DSD_FREQ, samplerate);
+    void SetDsdToPcmSampleRate(uint32_t sample_rate) {
+        BASS.BASS_SetConfig(BASS_CONFIG_DSD_FREQ, sample_rate);
     }
 
     [[nodiscard]] uint32_t GetDsdSpeed() const noexcept {
@@ -291,8 +291,8 @@ DsdFormat BassFileStream::GetDsdFormat() const noexcept {
     return stream_->GetDsdFormat();
 }
 
-void BassFileStream::SetDsdToPcmSampleRate(uint32_t samplerate) {
-    stream_->SetDsdToPcmSampleRate(samplerate);
+void BassFileStream::SetDsdToPcmSampleRate(uint32_t sample_rate) {
+    stream_->SetDsdToPcmSampleRate(sample_rate);
 }
 
 uint32_t BassFileStream::GetDsdSpeed() const noexcept {

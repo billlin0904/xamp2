@@ -118,7 +118,22 @@ static int excute(int argc, char* argv[]) {
         return -1;
     }
 
+#ifdef XAMP_OS_WIN
+    std::vector<std::string_view> preload_dll_file_name{
+    	"comctl32.dll",
+        "WindowsCodecs.dll",
+        "thumbcache.dll",
+    	"psapi.dll"
+    };
+    std::vector<ModuleHandle> preload_module;
+	for (auto file_name : preload_dll_file_name) {
+        try {
+            preload_module.push_back(LoadModule(file_name));
+        } catch (...) {	        
+        }
+	}
     XAMP_LOG_DEBUG("Preload dll success.");
+#endif    
 
     SingleInstanceApplication singleApp;
 #ifndef _DEBUG

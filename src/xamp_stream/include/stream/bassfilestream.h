@@ -54,7 +54,7 @@ public:
 
 	DsdFormat GetDsdFormat() const noexcept override;
 
-    void SetDsdToPcmSampleRate(uint32_t samplerate) override;
+    void SetDsdToPcmSampleRate(uint32_t sample_rate) override;
 
     uint32_t GetDsdSpeed() const noexcept override;
 
