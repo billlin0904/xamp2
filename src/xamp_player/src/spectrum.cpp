@@ -30,28 +30,35 @@ for frame from 1 to ...:
 
 void Spectrum::Init(AudioFormat const& format) {
 	format_ = format;
-	magnitude_.resize(kFFTSize);
 	fft_.Init(kFFTSize);
+	magnitude_.resize(kFFTSize);	
 	display_.resize(kDisplaySize);
 	fifo_.Resize(16 * 1024 * 1024);
 	buffer_.resize(kFFTSize);
-	frame_size_ = 0;
-	last_frame_size_ = 0;
+	frame_index_ = 0;
+	last_frame_ = 0;
 }
 
 const std::vector<float>& Spectrum::Update() {
-	frame_size_++;
+	frame_index_++;
 
-	const auto next_frame_size = frame_size_ / kVideoFrameRate * format_.GetSampleRate();
+	const auto next_frame = frame_index_ / kVideoFrameRate * format_.GetSampleRate();
 
-	if (last_frame_size_ != next_frame_size) {
-		last_frame_size_ = next_frame_size;
+	if (last_frame_ != next_frame) {
+		last_frame_ = next_frame;
 
+		MemorySet(buffer_.data(), 
+			0, 
+			kFFTSize * sizeof(float));
+
+		auto read_size = fifo_.GetAvailableRead();
 		fifo_.TryRead(buffer_.data(), kFFTSize);
 
 		Process(fft_.Forward(buffer_.data(), buffer_.size()));
 
-		MemoryCopy(display_.data(), magnitude_.data(), display_.size() * sizeof(float));
+		MemoryCopy(display_.data(), 
+			magnitude_.data(), 
+			display_.size() * sizeof(float));
 
 		const auto mid = Median(display_);
 		const auto offset = kFixedOffset - mid;
@@ -65,32 +72,17 @@ const std::vector<float>& Spectrum::Update() {
 	
 void Spectrum::Feed(float const* samples, size_t num_samples) {
 	fifo_.TryWrite(samples, num_samples);
-	//frame_size_++;
-	//const auto next_frame_size = frame_size_ / kVideoFrameRate * format_.GetSampleRate();
+	//frame_index_++;
+	//const auto next_frame_size = frame_index_ / kVideoFrameRate * format_.GetSampleRate();
 	//XAMP_LOG_DEBUG("next_frame_size:{} ", next_frame_size);
-}
-	
-float Spectrum::GetSpectralCentroid() const {
-	auto sum_amplitudes = 0.0f;
-	auto sum_weighted_amplitudes = 0.0f;
-	auto i = 0;
-	
-	for (auto mag : magnitude_) {
-		sum_amplitudes += mag;
-		sum_weighted_amplitudes += mag * static_cast<float>(i++);
-	}
-	
-	if (sum_amplitudes > 0) {
-		return sum_weighted_amplitudes / sum_amplitudes;
-	}
-	return 0.0f;
 }
 
 void Spectrum::Process(std::valarray<Complex> const& frames) {
 	magnitude_.resize(frames.size());
 	auto i = 0;
 	for (auto const & frame : frames) {
-		magnitude_[i++] = std::sqrt(frame.real() * frame.real() + frame.imag() * frame.imag());
+		// magnitude [dB] = 20 * Log(sqr(Re^2 + Im^2))
+		magnitude_[i++] = 10 * std::log10(frame.real() * frame.real() + frame.imag() * frame.imag());
 	}	
 }
 

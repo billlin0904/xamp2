@@ -25,17 +25,15 @@ public:
 
 	const std::vector<float>& Update();
 	
-	float GetSpectralCentroid() const;
-
 private:
 	void Process(std::valarray<Complex> const& frames);
 
-	size_t frame_size_{ 0 };
-	size_t last_frame_size_{ 0 };
+	size_t frame_index_{ 0 };
+	size_t last_frame_{ 0 };
 	std::vector<float> magnitude_;
-	std::vector<float> buffer_;
-	AudioBuffer<float> fifo_;
+	std::vector<float> buffer_;	
 	std::vector<float> display_;
+	AudioBuffer<float> fifo_;
 	FFT fft_;
 	AudioFormat format_;
 };
