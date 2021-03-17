@@ -214,7 +214,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	HrIfFailledThrow(client_->GetService(kAudioClockID,
 		reinterpret_cast<void**>(&clock_)));
 
-	DWORD task_id = MF_MULTITHREADED_WORKQUEUE;
+	DWORD task_id = 0;
 	queue_id_ = 0;
 	HrIfFailledThrow(::MFLockSharedWorkQueue(mmcss_name_.c_str(),
 		static_cast<LONG>(thread_priority_),
@@ -298,16 +298,15 @@ HRESULT ExclusiveWasapiDevice::OnStopPlayback(IMFAsyncResult* result) noexcept {
 	FillSilentSample(buffer_frames_);
 
 	condition_.notify_all();
+	is_running_ = false;
+	XAMP_LOG_I(log_, "OnStopPlayback");
 	return S_OK;
 }
 
 HRESULT ExclusiveWasapiDevice::OnSampleReady(IMFAsyncResult *result) noexcept {
-    if (!is_running_) {
-        is_stop_streaming_ = true;
-        //condition_.notify_all();
+	if (!is_running_) {
 		return S_OK;
 	}
-
 	GetSample(buffer_frames_);
     return S_OK;
 }
@@ -350,20 +349,18 @@ void ExclusiveWasapiDevice::GetSample(uint32_t frame_available) noexcept {
 }
 
 void ExclusiveWasapiDevice::AbortStream() noexcept {
-	is_stop_streaming_ = true;
 }
 
 void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
-    if (is_running_) {
+	if (is_running_) {
 		::MFPutWorkItem2(MFASYNC_CALLBACK_QUEUE_MULTITHREADED, 0, stop_playback_callback_, nullptr);
 
-        is_running_ = false;
-
-        std::unique_lock<std::mutex> lock{ mutex_ };
-        while (wait_for_stop_stream && !is_stop_streaming_) {
-            condition_.wait(lock);
-        }
-    }
+		std::unique_lock<std::mutex> lock{ mutex_ };
+		std::chrono::milliseconds const kTestTimeout{ 100 };
+		while (is_running_) {
+			condition_.wait_for(lock, kTestTimeout);
+		}
+	}
 
     if (client_ != nullptr) {		
 		LogHrFailled(client_->Stop());
@@ -397,7 +394,6 @@ void ExclusiveWasapiDevice::CloseStream() {
 	stop_playback_callback_.Release();
 	stop_playback_async_result_.Release();
 	clock_.Release();
-	callback_ = nullptr;
 }
 
 void ExclusiveWasapiDevice::StartStream() {
@@ -406,13 +402,13 @@ void ExclusiveWasapiDevice::StartStream() {
 	}
 
 	assert(callback_ != nullptr);
-	
-	// Note: 必要! 某些音效卡會爆音!
-	FillSilentSample(buffer_frames_);
 
 	LogHrFailled(client_->Reset());
 
-	HrIfFailledThrow(client_->Start());		
+	// Note: 必要! 某些音效卡會爆音!
+	FillSilentSample(buffer_frames_);
+
+	HrIfFailledThrow(client_->Start());	
 	
 	HrIfFailledThrow(::MFPutWaitingWorkItem(sample_ready_.get(),
 		0,

@@ -91,6 +91,7 @@ void AudioPlayer::Destroy() {
     Stop(false, true);
     stream_.reset();
     converter_.reset();
+    sample_read_buffer_.reset();
 #ifdef ENABLE_ASIO
     AudioDeviceManager::GetInstance().RemoveASIODriver();
 #endif
@@ -307,6 +308,7 @@ void AudioPlayer::Play() {
         }
 
         XAMP_LOG_DEBUG("Stream thread done!");
+        p->stream_.reset();
     });
 }
 
@@ -511,7 +513,7 @@ void AudioPlayer::CreateBuffer() {
         require_read_sample = output_format_.GetSampleRate() / 8;
     }
 
-    if (require_read_sample != num_read_sample_) {    	
+    if (require_read_sample > num_read_sample_) {    	
         require_read_sample = std::max(require_read_sample, static_cast<uint32_t>(kDefaultReadSampleSize));
         uint32_t allocate_size = 0;
         if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE) {
