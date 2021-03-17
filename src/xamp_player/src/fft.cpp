@@ -1,8 +1,9 @@
 #include <base/base.h>
 #include <base/math.h>
 #include <base/enum.h>
+#include <base/buffer.h>
 
-#define USE_FFTW
+//#define USE_FFTW
 
 #ifdef XAMP_OS_WIN
 	#ifdef USE_FFTW
@@ -57,7 +58,7 @@ public:
 	const std::valarray<Complex>& Forward(float const* signals, size_t size) {
 		window_(signals, input_.data(), size);
 		
-		std::transform(&input_[0], &input_[size], &output[0], [](auto signal) {
+		std::transform(&input_[0], &input_[size], &output_[0], [](auto signal) {
 			return Complex(signal, 0.0F);
 			});
 		Forward(output_);

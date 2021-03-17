@@ -354,7 +354,9 @@ void ExclusiveWasapiDevice::AbortStream() noexcept {
 }
 
 void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
-    /*if (is_running_) {
+    if (is_running_) {
+		::MFPutWorkItem2(MFASYNC_CALLBACK_QUEUE_MULTITHREADED, 0, stop_playback_callback_, nullptr);
+
         is_running_ = false;
 
         std::unique_lock<std::mutex> lock{ mutex_ };
@@ -362,8 +364,6 @@ void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
             condition_.wait(lock);
         }
     }
-
-	MSleep(aligned_period_ / kWasapiReftimesPerMillisec);*/
 
     if (client_ != nullptr) {		
 		LogHrFailled(client_->Stop());
@@ -385,17 +385,7 @@ bool ExclusiveWasapiDevice::IsStreamRunning() const noexcept {
     return is_running_;
 }
 
-void ExclusiveWasapiDevice::CloseStream() {
-	if (is_running_) {
-		auto wait_for_stop_stream = true;		
-		is_running_ = false;
-
-		std::unique_lock<std::mutex> lock{ mutex_ };
-		while (wait_for_stop_stream && !is_stop_streaming_) {
-			condition_.wait(lock);
-		}
-	}
-	
+void ExclusiveWasapiDevice::CloseStream() {	
     if (queue_id_ != 0) {
 		HrIfFailledThrow(::MFUnlockWorkQueue(queue_id_));		
 		queue_id_ = 0;
@@ -417,12 +407,12 @@ void ExclusiveWasapiDevice::StartStream() {
 
 	assert(callback_ != nullptr);
 	
+	// Note: 必要! 某些音效卡會爆音!
+	FillSilentSample(buffer_frames_);
+
 	LogHrFailled(client_->Reset());
 
-	HrIfFailledThrow(client_->Start());
-
-	// Note: 必要! 某些音效卡會爆音!
-	FillSilentSample(buffer_frames_);	
+	HrIfFailledThrow(client_->Start());		
 	
 	HrIfFailledThrow(::MFPutWaitingWorkItem(sample_ready_.get(),
 		0,

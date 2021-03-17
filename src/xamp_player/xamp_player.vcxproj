@@ -78,14 +78,14 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../xamp_output_device/include/;../xamp_stream/include/;../thirdparty/spdlog/include/;../thirdparty/chromaprint/src/;../thirdparty/soxr/src/;../thirdparty/robin_hood/;../thirdparty/fftw/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../xamp_output_device/include/;../xamp_metadata/include/;../xamp_stream/include/;../thirdparty/spdlog/include/;../thirdparty/chromaprint/src/;../thirdparty/soxr/src/;../thirdparty/robin_hood/;../thirdparty/fftw/</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>XAMP_PALYER_API_EXPORTS;ENABLE_ASIO;USE_KISS_FFT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BrowseInformation>true</BrowseInformation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <AdditionalLibraryDirectories>../xamp/x64/Debug/</AdditionalLibraryDirectories>
-      <AdditionalDependencies>xamp_output_device.lib;xamp_stream.lib;xamp_base.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>xamp_output_device.lib;xamp_stream.lib;xamp_metadata.lib;xamp_base.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Bscmake>
