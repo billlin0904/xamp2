@@ -38,6 +38,7 @@
 #include <widget/playbackhistorypage.h>
 #include <widget/ui_utilts.h>
 #include <widget/compressordialog.h>
+#include <widget/spectrograph.h>
 
 #include "aboutdialog.h"
 #include "preferencedialog.h"
@@ -506,13 +507,7 @@ void Xamp::initialController() {
                             &UIPlayerStateAdapter::sampleTimeChanged,
                             this,
                             &Xamp::onSampleTimeChanged,
-                            Qt::QueuedConnection);
-
-    (void)QObject::connect(state_adapter_.get(),
-        &UIPlayerStateAdapter::displayChanged,
-        this,
-        &Xamp::onDisplayChanged,
-        Qt::QueuedConnection);
+                            Qt::QueuedConnection);    
 
     (void)QObject::connect(state_adapter_.get(),
                             &UIPlayerStateAdapter::gaplessPlayback,
@@ -1246,6 +1241,12 @@ void Xamp::initialPlaylist() {
     playback_history_page_->hide();
 
     artist_info_page_ = new ArtistInfoPage(this);
+
+    (void)QObject::connect(state_adapter_.get(),
+        &UIPlayerStateAdapter::displayChanged,
+        lrc_page_->spectrograph(),
+        &Spectrograph::onDisplayChanged,
+        Qt::QueuedConnection);
     
     pushWidget(lrc_page_);    
     pushWidget(playlist_page_);

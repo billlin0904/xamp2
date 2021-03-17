@@ -214,7 +214,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	HrIfFailledThrow(client_->GetService(kAudioClockID,
 		reinterpret_cast<void**>(&clock_)));
 
-	DWORD task_id = MF_STANDARD_WORKQUEUE;
+	DWORD task_id = MF_MULTITHREADED_WORKQUEUE;
 	queue_id_ = 0;
 	HrIfFailledThrow(::MFLockSharedWorkQueue(mmcss_name_.c_str(),
 		static_cast<LONG>(thread_priority_),
@@ -232,6 +232,12 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 		queue_id_);
 
 	HrIfFailledThrow(::MFCreateAsyncResult(nullptr, sample_ready_callback_, nullptr, &sample_ready_async_result_));
+
+	stop_playback_callback_ = new MFAsyncCallback<ExclusiveWasapiDevice>(this,
+		&ExclusiveWasapiDevice::OnStopPlayback,
+		queue_id_);
+
+	HrIfFailledThrow(::MFCreateAsyncResult(nullptr, stop_playback_callback_, nullptr, &stop_playback_async_result_));
 
 	if (!sample_ready_) {
 		sample_ready_.reset(::CreateEventEx(nullptr, nullptr, 0, EVENT_MODIFY_STATE | SYNCHRONIZE));
@@ -283,10 +289,22 @@ void ExclusiveWasapiDevice::ReportError(HRESULT hr) noexcept {
 	}	
 }
 
+HRESULT ExclusiveWasapiDevice::OnStopPlayback(IMFAsyncResult* result) noexcept {
+	if (sample_ready_key_ > 0) {
+		::MFCancelWorkItem(sample_ready_key_);		
+		sample_ready_key_ = 0;
+	}
+
+	FillSilentSample(buffer_frames_);
+
+	condition_.notify_all();
+	return S_OK;
+}
+
 HRESULT ExclusiveWasapiDevice::OnSampleReady(IMFAsyncResult *result) noexcept {
     if (!is_running_) {
         is_stop_streaming_ = true;
-        condition_.notify_all();		
+        //condition_.notify_all();
 		return S_OK;
 	}
 
@@ -319,8 +337,9 @@ void ExclusiveWasapiDevice::GetSample(uint32_t frame_available) noexcept {
 		ReportError(render_client_->ReleaseBuffer(frame_available, 0));
 	}
 	else {
-		ReportError(render_client_->ReleaseBuffer(frame_available, AUDCLNT_BUFFERFLAGS_SILENT));
+		ReportError(render_client_->ReleaseBuffer(frame_available, AUDCLNT_BUFFERFLAGS_SILENT));		
 		is_running_ = false;
+		::MFPutWorkItem2(MFASYNC_CALLBACK_QUEUE_MULTITHREADED, 0, stop_playback_callback_, nullptr);
 		return;
 	}
 
@@ -335,7 +354,7 @@ void ExclusiveWasapiDevice::AbortStream() noexcept {
 }
 
 void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
-    if (is_running_) {
+    /*if (is_running_) {
         is_running_ = false;
 
         std::unique_lock<std::mutex> lock{ mutex_ };
@@ -344,7 +363,7 @@ void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
         }
     }
 
-	MSleep(aligned_period_ / kWasapiReftimesPerMillisec);
+	MSleep(aligned_period_ / kWasapiReftimesPerMillisec);*/
 
     if (client_ != nullptr) {		
 		LogHrFailled(client_->Stop());
@@ -367,14 +386,26 @@ bool ExclusiveWasapiDevice::IsStreamRunning() const noexcept {
 }
 
 void ExclusiveWasapiDevice::CloseStream() {
+	if (is_running_) {
+		auto wait_for_stop_stream = true;		
+		is_running_ = false;
+
+		std::unique_lock<std::mutex> lock{ mutex_ };
+		while (wait_for_stop_stream && !is_stop_streaming_) {
+			condition_.wait(lock);
+		}
+	}
+	
     if (queue_id_ != 0) {
-		HrIfFailledThrow(::MFUnlockWorkQueue(queue_id_));
+		HrIfFailledThrow(::MFUnlockWorkQueue(queue_id_));		
 		queue_id_ = 0;
 	}
 
 	render_client_.Release();
 	sample_ready_callback_.Release();
 	sample_ready_async_result_.Release();
+	stop_playback_callback_.Release();
+	stop_playback_async_result_.Release();
 	clock_.Release();
 	callback_ = nullptr;
 }
@@ -388,10 +419,11 @@ void ExclusiveWasapiDevice::StartStream() {
 	
 	LogHrFailled(client_->Reset());
 
+	HrIfFailledThrow(client_->Start());
+
 	// Note: 必要! 某些音效卡會爆音!
-	FillSilentSample(buffer_frames_);
-    
-	HrIfFailledThrow(client_->Start());	
+	FillSilentSample(buffer_frames_);	
+	
 	HrIfFailledThrow(::MFPutWaitingWorkItem(sample_ready_.get(),
 		0,
 		sample_ready_async_result_,

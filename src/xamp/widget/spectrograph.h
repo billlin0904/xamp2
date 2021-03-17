@@ -13,8 +13,6 @@ class Spectrograph : public QWidget {
 public:
     explicit Spectrograph(QWidget* parent = nullptr);
 	
-    void init();
-	
 public slots:
     void onDisplayChanged(std::vector<float> const& display);
 
@@ -24,9 +22,12 @@ private:
     void updateBars();
 
     struct Bar {
-        Bar() : value(0.0), clipped(false) { }
-        qreal   value;
-        bool    clipped;
+        Bar()
+    		: value(0.0f)
+    		, clipped(false) {	        
+        }
+        float value;
+        bool clipped;
     };
 
     QTimer timer_;

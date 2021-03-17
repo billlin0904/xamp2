@@ -56,7 +56,7 @@ public:
 
     explicit AudioPlayer(const std::weak_ptr<PlaybackStateAdapter>& adapter);
 
-    static void Init();
+    static void Initial();
 
     void Open(std::wstring const& file_path, std::wstring const& file_ext, const DeviceInfo& device_info);
 
@@ -107,6 +107,8 @@ public:
     void SetProcessor(AlignPtr<AudioProcessor> &&processor);
 
     void EnableProcessor(bool enable = true);
+
+    bool IsEnableProcessor() const;
 
     void EnableSampleRateConverter(bool enable = true);
 
@@ -159,7 +161,7 @@ private:
 
     void BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<SampleRateConverter> &converter, int32_t buffer_count = 1);
 
-    void UpdateSlice(float const *samples = nullptr, int32_t sample_size = 0, double stream_time = 0.0) noexcept;
+    void UpdateSlice(int32_t sample_size = 0, double stream_time = 0.0) noexcept;
 
     void OnGaplessPlayState(std::unique_lock<std::mutex>& lock);
 
@@ -172,10 +174,8 @@ private:
     void ProcessSamples();
 
     struct XAMP_CACHE_ALIGNED(kMallocAlignSize) AudioSlice {
-	    explicit AudioSlice(float const* samples = nullptr,
-            int32_t sample_size = 0,
-	        double stream_time = 0.0) noexcept;
-        float const *samples;
+	    explicit AudioSlice(int32_t sample_size = 0,
+	        double stream_time = 0.0) noexcept;        
         int32_t sample_size;
         double stream_time;
     };

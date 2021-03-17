@@ -9,15 +9,12 @@ namespace xamp::metadata {
 
 class TaglibMetadataWriter::TaglibMetadataWriterImpl {
 public:
-	TaglibMetadataWriterImpl() {
-	}
-
-	bool IsFileReadOnly(Path const & path) const {
+	[[nodiscard]] bool IsFileReadOnly(Path const & path) const {
 		namespace Fs = std::filesystem;
 		return (Fs::status(path).permissions() & Fs::perms::owner_read) != Fs::perms::none;		
 	}
 
-    void Write(Path const &path, Metadata &metadata) const {
+    void Write(Path const &path, Metadata const &metadata) const {
         Write(path, [metadata](auto, auto tag) {
 			tag->setAlbum(metadata.album);
 			tag->setArtist(metadata.artist);
@@ -59,7 +56,7 @@ public:
 			TagLib::MP4::CoverArt cover_art(static_cast<TagLib::MP4::CoverArt::Format>(0x0D), imagedata);
 
             Write(path, [&cover_art](auto, auto tag) {
-				if (const auto mp4_tag = dynamic_cast<TagLib::MP4::Tag*>(tag)) {
+				if (auto* mp4_tag = dynamic_cast<TagLib::MP4::Tag*>(tag)) {
 					auto &items_list_map = mp4_tag->itemListMap();
 					TagLib::MP4::CoverArtList cover_art_list;
 					cover_art_list.append(cover_art);
@@ -70,16 +67,16 @@ public:
 		}
 		else if (ext == ".mp3") {
             Write(path, [&imagedata](auto file, auto) {
-				if (const auto mp3_file = dynamic_cast<TagLib::MPEG::File*>(file)) {
-					if (const auto mp3_tag = mp3_file->ID3v2Tag(true)) {
+				if (auto* mp3_file = dynamic_cast<TagLib::MPEG::File*>(file)) {
+					if (auto* mp3_tag = mp3_file->ID3v2Tag(true)) {
 						const auto frame_list = mp3_tag->frameList("APIC");
-						for (auto it : frame_list) {
-							const auto frame = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame *>(it);
+						for (auto* it : frame_list) {
+							auto* frame = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame *>(it);
 							if (frame != nullptr) {
 								mp3_tag->removeFrame(frame, true);
 							}
 						}
-						auto frame = new TagLib::ID3v2::AttachedPictureFrame("APIC");
+						auto* frame = new TagLib::ID3v2::AttachedPictureFrame("APIC");
 						frame->setType(TagLib::ID3v2::AttachedPictureFrame::FrontCover);
 						frame->setMimeType("image/jpeg");
 						frame->setPicture(imagedata);
@@ -89,9 +86,9 @@ public:
 			});
 		} else if (ext == ".flac") {
             Write(path, [&imagedata](auto file, auto) {
-				if (const auto flac_file = dynamic_cast<TagLib::FLAC::File*>(file)) {
+				if (auto* const flac_file = dynamic_cast<TagLib::FLAC::File*>(file)) {
 					flac_file->removePictures();
-					auto picture = new TagLib::FLAC::Picture();
+					auto* picture = new TagLib::FLAC::Picture();
 					picture->setMimeType("image/jpeg");
 					picture->setData(imagedata);
 					picture->setType(TagLib::FLAC::Picture::FrontCover);
@@ -128,7 +125,7 @@ void TaglibMetadataWriter::WriteTitle(Path const & path, std::wstring const & ti
     writer_->WriteTitle(path, title);
 }
 
-void TaglibMetadataWriter::Write(Path const & path, Metadata& metadata) {
+void TaglibMetadataWriter::Write(Path const & path, Metadata const& metadata) {
     writer_->Write(path, metadata);
 }
 

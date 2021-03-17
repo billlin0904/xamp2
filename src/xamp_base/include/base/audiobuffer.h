@@ -6,52 +6,12 @@
 #pragma once
 
 #include <atomic>
-#include <vector>
 
 #include <base/base.h>
-#include <base/exception.h>
-#include <base/align_ptr.h>
 #include <base/memory.h>
 #include <base/buffer.h>
 
 namespace xamp::base {
-
-template <typename T>
-struct XAMP_BASE_API_ONLY_EXPORT FixedBufferView {
-	void Write(const T* data, size_t count) noexcept {
-		if (next_head > size) {
-			const auto range1 = size - head;
-			const auto range2 = count - range1;
-			MemoryCopy(ptr + head, data, range1 * sizeof(T));
-			MemoryCopy(ptr, data + range1, range2 * sizeof(T));
-		}
-		else {
-			MemoryCopy(ptr + head, data, count * sizeof(T));
-		}
-	}
-
-	std::vector<float> Read(size_t count) {
-		std::vector<float> buffer(count);
-		
-		if (next_tail > size) {
-			const auto range1 = size - tail;
-			const auto range2 = count - range1;
-			MemoryCopy(buffer.data(), ptr + tail, range1 * sizeof(T));
-			MemoryCopy(buffer.data() + range1, ptr, range2 * sizeof(T));
-		}
-		else {
-			MemoryCopy(buffer.data(), ptr + tail, count * sizeof(T));
-		}
-		return buffer;
-	}
-	
-	T* ptr{ nullptr };
-	size_t size{0};
-	size_t head{ 0 };
-	size_t tail{ 0 };
-	size_t next_head{ 0 };
-	size_t next_tail{ 0 };
-};
 
 template 
 <
@@ -85,8 +45,6 @@ public:
     bool TryRead(T* data, size_t count) noexcept;
 
 	void Fill(T value) noexcept;
-
-	FixedBufferView<T> Allocate(size_t count);
 
 private:
     size_t GetAvailableWrite(size_t head, size_t tail) const noexcept;
@@ -174,25 +132,6 @@ XAMP_ALWAYS_INLINE size_t AudioBuffer<Type, U>::GetAvailableRead(size_t head, si
 		return head - tail;
 	}
 	return head + size_ - tail;
-}
-	
-template <typename Type, typename U>
-FixedBufferView<Type> AudioBuffer<Type, U>::Allocate(size_t count) {
-	const auto head = head_.load(std::memory_order_relaxed);
-	const auto tail = tail_.load(std::memory_order_acquire);
-
-	auto next_head = head + count;
-
-	if (count > GetAvailableWrite(head, tail)) {
-		throw LibrarySpecException("Buffer overflow.", "Buffer overflow.");
-	}
-
-	FixedBufferView<Type> view;
-	view.head = head;
-	view.size = size_;
-	view.next_head = next_head;
-	view.ptr = buffer_.get();	
-	return view;
 }
 
 template <typename Type, typename U>

@@ -50,18 +50,8 @@ void WaveFileWriter::Close() {
 	if (data_length_ == 0) {
 		file_.close();
 		return;
-	}	
-	auto is_metadata_all_ascii = std::any_of(list_.begin(), list_.end(), [](auto const& pair) {
-		return ContainsOnlyASCII(pair.second);
-		});	
-	if (is_metadata_all_ascii) {		
-		const auto cur_pos = file_.tellp();
-		WriteDataLength();
-		file_.seekp(cur_pos);
-		WriteInfoChunk();
-	} else {
-		WriteDataLength();
 	}
+	WriteDataLength();
 	file_.close();
 	data_length_ = 0;
 }
@@ -76,19 +66,6 @@ void WaveFileWriter::Open(std::filesystem::path const& file_path, AudioFormat co
 		throw PlatformSpecException();
 	}
 	WriteHeader(format);	
-}
-
-void WaveFileWriter::WriteInfoChunk() {
-	auto total_size = 0;
-	for (const auto& [fst, snd] : list_) {
-		total_size += sizeof(CHUNK) + snd.length();
-	}
-	if (total_size > 0) {
-		StartWriteInfoChunk(total_size - 8);
-		for (const auto& [fst, snd] : list_) {
-			WriteInfoChunk(fst, snd);
-		}
-	}	
 }
 
 bool WaveFileWriter::TryWrite(float const* sample, uint32_t num_samples) {
@@ -155,56 +132,6 @@ void WaveFileWriter::WriteHeader(AudioFormat const& format) {
 		throw PlatformSpecException();
 	}
 	format_ = format;
-}
-
-void WaveFileWriter::SetTrackNumber(uint32_t track) {
-	list_["ITRK"] = std::to_string(track);
-}
-
-void WaveFileWriter::SetAlbum(std::string const& album) {
-	if (album.length() == 0) {
-		return;
-	}
-	list_["IPRD"] = album;
-}
-
-void WaveFileWriter::SetTitle(std::string const& title) {
-	if (title.length() == 0) {
-		return;
-	}
-	list_["INAM"] = title;
-}
-
-void WaveFileWriter::SetArtist(std::string const& artist) {
-	if (artist.length() == 0) {
-		return;
-	}
-	list_["IART"] = artist;
-}
-
-void WaveFileWriter::StartWriteInfoChunk(uint32_t info_chunk_size) {
-	LIST list;
-	MemoryCopy(list.descriptor.id, "LIST", 4);
-	list.descriptor.size = info_chunk_size;
-	MemoryCopy(list.type_id, "INFO", 4);
-	if (!file_.write(reinterpret_cast<const char*>(&list), sizeof(list))) {
-		throw PlatformSpecException();
-	}
-}
-
-void WaveFileWriter::WriteInfoChunk(std::string const& name, std::string const& value) {
-	if (name.length() != 4) {
-		throw Exception();
-	}	
-	CHUNK info_chunk;	
-	MemoryCopy(info_chunk.id, name.c_str(), 4);
-	info_chunk.size = value.size();	
-	if (!file_.write(reinterpret_cast<const char*>(&info_chunk), sizeof(info_chunk))) {
-		throw PlatformSpecException();
-	}
-	if (!file_.write(value.c_str(), value.length())) {
-		throw PlatformSpecException();
-	}
 }
 
 }

@@ -21,7 +21,7 @@ public:
 
     [[nodiscard]] bool IsFileReadOnly(const Path& path) const override;
    
-    void Write(Path const & path, Metadata& metadata) override;
+    void Write(Path const & path, Metadata const& metadata) override;
 
     void WriteTitle(Path const & path, std::wstring const & title) const;
 

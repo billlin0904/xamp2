@@ -16,7 +16,7 @@ public:
 
     [[nodiscard]] virtual bool IsFileReadOnly(Path const & path) const = 0;
     
-    virtual void Write(Path const &path, Metadata &metadata) = 0;
+    virtual void Write(Path const &path, Metadata const& metadata) = 0;
 
 protected:
     MetadataWriter() = default;

@@ -79,6 +79,8 @@ private:
 
 	HRESULT OnSampleReady(IMFAsyncResult* result) noexcept;
 
+	HRESULT OnStopPlayback(IMFAsyncResult* result) noexcept;
+
 	bool raw_mode_;
 	std::atomic<bool> is_running_;
 	std::atomic<bool> is_stop_streaming_;
@@ -100,7 +102,9 @@ private:
 	CComPtr<IAudioClock> clock_;
 	CComHeapPtr<WAVEFORMATEX> mix_format_;
 	CComPtr<MFAsyncCallback<ExclusiveWasapiDevice>> sample_ready_callback_;
-	CComPtr<IMFAsyncResult> sample_ready_async_result_;	
+	CComPtr<IMFAsyncResult> sample_ready_async_result_;
+	CComPtr<MFAsyncCallback<ExclusiveWasapiDevice>> stop_playback_callback_;
+	CComPtr<IMFAsyncResult> stop_playback_async_result_;
 	mutable std::mutex mutex_;
 	Buffer<float> buffer_;
 	std::condition_variable condition_;

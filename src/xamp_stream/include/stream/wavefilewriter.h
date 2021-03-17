@@ -28,16 +28,6 @@ public:
 	bool TryWrite(float const* sample, uint32_t num_samples) override;
 
 	void Write(float const* sample, uint32_t num_samples);
-
-	void SetTrackNumber(uint32_t track);
-
-	void SetTitle(std::string const& title);
-
-	void SetArtist(std::string const& artist);
-
-	void SetAlbum(std::string const& album);
-
-	void WriteInfoChunk();
 	
 private:
 	void WriteHeader(AudioFormat const& format);
@@ -46,14 +36,9 @@ private:
 
 	void WriteSample(float sample);
 
-	void StartWriteInfoChunk(uint32_t info_chunk_size);
-
-	void WriteInfoChunk(std::string const &name, std::string const &value);
-
 	uint32_t data_length_{0};
 	AudioFormat format_;
 	std::ofstream file_;
-	std::map<std::string, std::string> list_;
 };
 
 }

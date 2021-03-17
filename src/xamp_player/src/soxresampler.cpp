@@ -95,7 +95,8 @@ public:
 			flags |= SOXR_STEEP_FILTER;
 		}
 
-		auto soxr_quality = SoxrDLL.soxr_quality_spec(quality_spec, flags);
+		constexpr auto default_phase = SOXR_INTERMEDIATE_PHASE;
+		auto soxr_quality = SoxrDLL.soxr_quality_spec(quality_spec | default_phase, flags);
 
 		soxr_quality.passband_end = pass_band_;
 		soxr_quality.stopband_begin = stop_band_;

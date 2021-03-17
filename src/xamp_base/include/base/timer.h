@@ -30,11 +30,13 @@ public:
 		is_stop_ = false;
 		thread_ = ThreadPool::GetInstance().Run([this, timeout, callback]() {
 			SetThreadName("Timer");
+			WaitableTimer timer;
 			XAMP_LOG_DEBUG("Timer thread running!");
 
-			while (!is_stop_) {
-				MSleep(timeout);
+			while (!is_stop_) {				
 				callback();
+				timer.SetTimeout(timeout);
+				timer.Wait();
 			}
 
 			XAMP_LOG_DEBUG("Timer thread finished.");

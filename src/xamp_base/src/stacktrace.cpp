@@ -2,7 +2,6 @@
 #include <csignal>
 #include <vector>
 #include <optional>
-#include <map>
 #include <sstream>
 #include <filesystem>
 
@@ -55,7 +54,7 @@ static HashMap<DWORD, std::string_view> const & GetWellKnownExceptionCode() {
 
 class SymLoader {
 public:
-    const WinHandle & GetProcess() const noexcept {
+	[[nodiscard]] const WinHandle & GetProcess() const noexcept {
 		return process_;
 	}
 
@@ -64,12 +63,15 @@ public:
 
         ::SymSetOptions(SYMOPT_DEFERRED_LOADS |
             SYMOPT_UNDNAME |
-            SYMOPT_LOAD_LINES);
+            SYMOPT_LOAD_LINES |
+            SYMOPT_DEBUG);
 
-        init_state_ = ::SymInitialize(process_.get(), nullptr, TRUE);
+        init_state_ = ::SymInitialize(process_.get(),
+            nullptr, 
+            TRUE);
     }
 
-    bool IsInit() const noexcept {
+    [[nodiscard]] bool IsInit() const noexcept {
         return init_state_;
     }
 

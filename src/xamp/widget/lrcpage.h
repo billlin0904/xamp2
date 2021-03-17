@@ -13,6 +13,7 @@ class VinylWidget;
 class ScrollLabel;
 class LyricsShowWideget;
 class QPaintEvent;
+class Spectrograph;
 
 class LrcPage : public QFrame {
 	Q_OBJECT
@@ -35,6 +36,8 @@ public:
 
 	QSize coverSize() const;
 
+	Spectrograph* spectrograph();
+
 public slots:
     void OnThemeColorChanged(QColor theme_color, QColor color);
 
@@ -52,5 +55,6 @@ private:
 	ScrollLabel* album_;
 	ScrollLabel* artist_;
     ScrollLabel* title_;
+	Spectrograph* spectrograph_;
 	QPixmap background_image_;
 };

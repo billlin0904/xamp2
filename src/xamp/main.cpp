@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include <base/logger.h>
 #include <base/scopeguard.h>
 #include <base/dll.h>
@@ -78,7 +80,7 @@ static void loadSettings() {
 	}
 }
 
-static int excute(int argc, char* argv[]) {   
+static int excute(int argc, char* argv[]) {
     ::qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
     QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
@@ -109,7 +111,7 @@ static int excute(int argc, char* argv[]) {
     QApplication app(argc, argv);
 
     try {
-        AudioPlayer::Init();
+        AudioPlayer::Initial();
     }
     catch (const Exception& e) {
         QMessageBox::critical(nullptr,

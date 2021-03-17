@@ -11,6 +11,7 @@
 #include <widget/scrolllabel.h>
 #include <widget/lyricsshowwideget.h>
 #include <widget/str_utilts.h>
+#include <widget/spectrograph.h>
 #include <widget/lrcpage.h>
 
 LrcPage::LrcPage(QWidget* parent)
@@ -62,6 +63,10 @@ void LrcPage::setBackground(const QPixmap& cover) {
 		//background_image_ = cover.copy();
 	}
 	update();
+}
+
+Spectrograph* LrcPage::spectrograph() {
+	return spectrograph_;
 }
 
 void LrcPage::resizeEvent(QResizeEvent*) {
@@ -206,6 +211,10 @@ void LrcPage::initial() {
 	lyrics_widget_->setObjectName(QString::fromUtf8("lyrics"));
 	lyrics_widget_->setMinimumSize(QSize(200, 60));	
 	verticalLayout_2->addWidget(lyrics_widget_);
+
+	spectrograph_ = new Spectrograph();
+	spectrograph_->hide();
+	verticalLayout_2->addWidget(spectrograph_);
 
 	verticalLayout_2->setStretch(2, 1);
 

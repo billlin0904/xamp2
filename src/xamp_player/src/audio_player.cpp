@@ -26,8 +26,11 @@ namespace xamp::player {
 
 inline constexpr int32_t kBufferStreamCount = 5;
 inline constexpr int32_t kTotalBufferStreamCount = 10;
-inline constexpr int32_t kPreallocateBufferSize = 320 * 1024 * 1024;
-inline constexpr uint32_t kMaxPreallocateBufferSize = 320 * 1024 * 1024;
+
+// 352800hz/32bit/3.3Min ~= 330.8MB
+inline constexpr int32_t kPreallocateBufferSize = 540 * 1024 * 1024;
+inline constexpr uint32_t kMaxPreallocateBufferSize = 540 * 1024 * 1024;
+	
 inline constexpr int32_t kMaxWriteRatio = 80;
 inline constexpr int32_t kMaxReadRatio = 2;
 inline constexpr int32_t kMsgQueueSize = 30;
@@ -94,13 +97,13 @@ void AudioPlayer::Destroy() {
     BassFileStream::FreeBassLib();
 }
 
-void AudioPlayer::UpdateSlice(float const *samples, int32_t sample_size, double stream_time) noexcept {
+void AudioPlayer::UpdateSlice(int32_t sample_size, double stream_time) noexcept {
     std::atomic_exchange_explicit(&slice_,
-        AudioSlice{ samples, sample_size, stream_time },
+        AudioSlice{ sample_size, stream_time },
         std::memory_order_relaxed);
 }
 
-void AudioPlayer::Init() {    
+void AudioPlayer::Initial() {
     AudioDeviceManager::GetInstance().PreventSleep(true);
     XAMP_LOG_DEBUG("AudioDeviceManager init success.");
 
@@ -145,6 +148,10 @@ void AudioPlayer::SetProcessor(AlignPtr<AudioProcessor>&& processor) {
 void AudioPlayer::EnableProcessor(bool enable) {
     enable_processor_ = enable;
     XAMP_LOG_DEBUG("Enable processor {}", enable);
+}
+
+bool AudioPlayer::IsEnableProcessor() const {
+    return enable_processor_;
 }
 
 void AudioPlayer::SetDevice(const DeviceInfo& device_info) {
@@ -457,7 +464,7 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
         if (device_->IsStreamOpen()) {
             XAMP_LOG_DEBUG("Stop output device");
             try {
-                device_->StopStream(wait_for_stop_stream);
+                device_->StopStream(wait_for_stop_stream);                
                 device_->CloseStream();
             } catch (const Exception &e) {
                 XAMP_LOG_DEBUG("Close device failure. {}", e.what());
@@ -555,7 +562,7 @@ bool AudioPlayer::IsEnableSampleRateConverter() const {
 void AudioPlayer::SetDeviceFormat() {
     input_format_ = stream_->GetFormat();
 
-    if (enable_sample_converter_ && CanProcessFile()) {
+    if (IsEnableSampleRateConverter() && CanProcessFile()) {
         if (output_format_.GetSampleRate() != target_sample_rate_) {
             device_id_.clear();
         }
@@ -679,7 +686,7 @@ void AudioPlayer::Startup() {
         const auto slice = p->slice_.load();
         if (slice.sample_size > 0) {
             adapter->OnSampleTime(slice.stream_time);            
-            adapter->OnDisplayChanged(p->spectrum_.Update());
+            //adapter->OnDisplayChanged(p->spectrum_.Update());
         }
         else if (p->is_playing_ && slice.sample_size == -1) {
             p->SetState(PlayerState::PLAYER_STATE_STOPPED);
@@ -716,7 +723,7 @@ void AudioPlayer::DoSeek(double stream_time) {
         stream_->GetDuration(),
         stream_time,
         sample_end_time_);
-    UpdateSlice(nullptr, 0, stream_time);
+    UpdateSlice(0, stream_time);
     fifo_.Clear();
     BufferStream(stream_time);
     Resume();
@@ -762,12 +769,11 @@ void AudioPlayer::OnGaplessPlayState(std::unique_lock<std::mutex>& lock) {
     }
     else {
         BufferSamples(file_stream, sample_rate_converter);
-    }    
+    }
 }
 
-AudioPlayer::AudioSlice::AudioSlice(float const* samples, int32_t const sample_size, double const stream_time) noexcept
-	: samples(samples)
-	, sample_size(sample_size)
+AudioPlayer::AudioSlice::AudioSlice(int32_t const sample_size, double const stream_time) noexcept
+	: sample_size(sample_size)
 	, stream_time(stream_time) {
 }
 
@@ -785,7 +791,7 @@ void AudioPlayer::BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<SampleRat
 
             auto* samples = reinterpret_cast<float*>(sample_buffer);
 
-        	if (CanProcessFile() && !dsp_chain_.empty() && enable_processor_) {
+        	if (CanProcessFile() && !dsp_chain_.empty() && IsEnableProcessor()) {
                 auto itr = dsp_chain_.begin();
                 auto const & buffer = (*itr)->Process(samples, num_samples);
                 if (!converter->Process(buffer.data(), buffer.size(), fifo_)) {
@@ -812,7 +818,7 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_buffer_samp
         if (num_samples > 0) {
             auto *samples = reinterpret_cast<float*>(sample_buffer);
 
-            if (CanProcessFile() && !dsp_chain_.empty() && enable_processor_) {
+            if (CanProcessFile() && !dsp_chain_.empty() && IsEnableProcessor()) {
                 auto itr = dsp_chain_.begin();
                 auto const & buffer = (*itr)->Process(samples, num_samples);
                 if (!converter_->Process(buffer.data(), buffer.size(), fifo_)) {
@@ -871,11 +877,11 @@ DataCallbackResult AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_
     }
 
     XAMP_LIKELY(fifo_.TryRead(static_cast<int8_t*>(samples), sample_size)) {       
-        UpdateSlice(static_cast<const float*>(samples), num_samples, stream_time);
+        UpdateSlice(num_samples, stream_time);
 #ifdef _DEBUG
         sw_.Reset();
 #endif
-        spectrum_.Feed(static_cast<const float*>(samples), num_samples);
+        //spectrum_.Feed(static_cast<const float*>(samples), num_samples);
         return DataCallbackResult::CONTINUE;
     }
 
@@ -884,7 +890,7 @@ DataCallbackResult AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_
         return DataCallbackResult::CONTINUE;
     }
 
-    UpdateSlice(nullptr, -1, stream_time);
+    UpdateSlice(-1, stream_time);
     return DataCallbackResult::STOP;
 }
 
@@ -894,7 +900,7 @@ void AudioPlayer::PrepareToPlay(double start_time, double end_time) {
     OpenDevice(start_time);
     CreateBuffer();
     BufferStream(start_time);
-    spectrum_.Init(output_format_);
+    //spectrum_.Init(output_format_);
 	
 #ifdef _DEBUG
     XAMP_LOG_INFO("AVG max time {} ms, AVG min time {} ms",

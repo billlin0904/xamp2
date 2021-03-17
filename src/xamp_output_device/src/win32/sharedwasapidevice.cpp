@@ -225,7 +225,7 @@ void SharedWasapiDevice::OpenStream(AudioFormat const & output_format) {
 	XAMP_LOG_I(log_, "WASAPI buffer frame size:{}.", buffer_frames_);
 
 	// Enable MCSS
-	DWORD task_id = MF_STANDARD_WORKQUEUE;
+	DWORD task_id = MF_MULTITHREADED_WORKQUEUE;
 	queue_id_ = 0;
 	HrIfFailledThrow(::MFLockSharedWorkQueue(mmcss_name_.c_str(),
 		static_cast<LONG>(thread_priority_),

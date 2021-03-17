@@ -22,7 +22,7 @@ PixmapCache::PixmapCache()
 	cache_path_ = QDir::currentPath() + Q_UTF8("/caches/");
 	cover_ext_ << Q_UTF8("*.jpeg") << Q_UTF8("*.jpg") << Q_UTF8("*.png") << Q_UTF8("*.bmp");
 	cache_ext_ << Q_UTF8("*.cache");
-	QDir dir;
+	const QDir dir;
 	(void)dir.mkdir(cache_path_);
 	loadCache();
 	unknown_cover_id_ = addOrUpdate(QPixmap(Q_UTF8(":/xamp/Resource/White/unknown_album.png")));
@@ -113,10 +113,10 @@ QString PixmapCache::addOrUpdate(const QPixmap& cover) const {
 	QByteArray array;
 	QBuffer buffer(&array);
 	buffer.open(QIODevice::WriteOnly);
-	auto cover_size = ThemeManager::instance().getCacheCoverSize();
+	const auto cover_size = ThemeManager::instance().getCacheCoverSize();
 
 	// Cover必須要忽略圖片比例, 不然從cache抓出來的時候無法正確縮放.
-	auto cache_cover = Pixmap::resizeImage(cover, cover_size, true);
+	const auto cache_cover = Pixmap::resizeImage(cover, cover_size, true);
 
 	QString tag_name;
 	if (cache_cover.save(&buffer, "JPG")) {
@@ -133,10 +133,10 @@ bool PixmapCache::isExist(const QString& tag_id) const {
 
 size_t PixmapCache::getImageSize() const {
 	size_t size = 0;
-	for (auto cache : cache_) {
-		size += cache.second.size().width()
-			* cache.second.size().height()
-			* cache.second.devicePixelRatio();
+	for (auto const & [fst, snd] : cache_) {
+		size += snd.size().width()
+			* snd.size().height()
+			* snd.devicePixelRatio();
 	}
 	return size;
 }

@@ -1,12 +1,14 @@
 #include <utility>
 #include <base/align_ptr.h>
 #include <base/dataconverter.h>
-#include <stream/dsdstream.h>
+#include <base/str_utilts.h>
 
+#include <stream/dsdstream.h>
 #include <stream/compressor.h>
 #include <stream/wavefilewriter.h>
 
-#include <base/str_utilts.h>
+#include <metadata/taglibmetawriter.h>
+
 #include <player/chromaprint.h>
 #include <player/audio_player.h>
 #include <player/audio_util.h>
@@ -99,6 +101,9 @@ void Export2WaveFile(std::wstring const& file_path,
 			auto const& buf = compressor.Process(samples, sample_size);
 			converter->Process(buf.data(), buf.size(), file);
 		});
+	file.Close();
+	metadata::TaglibMetadataWriter writer;
+	writer.Write(output_file_path, metadata);
 }
 
 void Export2WaveFile(std::wstring const& file_path,
@@ -124,11 +129,9 @@ void Export2WaveFile(std::wstring const& file_path,
 				file.Write(samples, sample_size);
 			}			
 		});
-	file.SetAlbum(String::ToString(metadata.album));
-	file.SetTitle(String::ToString(metadata.title));
-	file.SetArtist(String::ToString(metadata.artist));
-	file.SetTrackNumber(metadata.track);
 	file.Close();
+	metadata::TaglibMetadataWriter writer;
+	writer.Write(output_file_path, metadata);
 }
 
 std::tuple<double, double> ReadFileLUFS(std::wstring const& file_path, 
