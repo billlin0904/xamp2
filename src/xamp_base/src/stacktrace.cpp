@@ -63,8 +63,7 @@ public:
 
         ::SymSetOptions(SYMOPT_DEFERRED_LOADS |
             SYMOPT_UNDNAME |
-            SYMOPT_LOAD_LINES |
-            SYMOPT_DEBUG);
+            SYMOPT_LOAD_LINES /*| SYMOPT_DEBUG*/);
 
         init_state_ = ::SymInitialize(process_.get(),
             nullptr, 

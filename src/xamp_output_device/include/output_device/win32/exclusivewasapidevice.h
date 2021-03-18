@@ -77,13 +77,17 @@ private:
 
 	void GetSample(uint32_t frame_available) noexcept;
 
-	HRESULT OnSampleReady(IMFAsyncResult* result) noexcept;
+	HRESULT OnSampleReady(IMFAsyncResult* result);
 
-	HRESULT OnStopPlayback(IMFAsyncResult* result) noexcept;
+	HRESULT OnStartPlayback(IMFAsyncResult* result);
+
+	HRESULT OnPausePlayback(IMFAsyncResult* result);
+
+	HRESULT OnStopPlayback(IMFAsyncResult* result);
 
 	bool raw_mode_;
 	std::atomic<bool> is_running_;
-	std::atomic<bool> is_stop_streaming_;
+	std::atomic<bool> is_stop_require_;
 	MmcssThreadPriority thread_priority_;
 	uint32_t buffer_frames_;
 	uint32_t valid_bits_samples_;
@@ -100,16 +104,20 @@ private:
 	CComPtr<IAudioRenderClient> render_client_;
 	CComPtr<IAudioEndpointVolume> endpoint_volume_;
 	CComPtr<IAudioClock> clock_;
-	CComHeapPtr<WAVEFORMATEX> mix_format_;
-	CComPtr<MFAsyncCallback<ExclusiveWasapiDevice>> sample_ready_callback_;
-	CComPtr<IMFAsyncResult> sample_ready_async_result_;
-	CComPtr<MFAsyncCallback<ExclusiveWasapiDevice>> stop_playback_callback_;
-	CComPtr<IMFAsyncResult> stop_playback_async_result_;
+	CComHeapPtr<WAVEFORMATEX> mix_format_;	
 	mutable std::mutex mutex_;
 	Buffer<float> buffer_;
 	std::condition_variable condition_;
 	AudioCallback* callback_;	
 	std::shared_ptr<spdlog::logger> log_;
+	CComPtr<MFAsyncCallback<ExclusiveWasapiDevice>> sample_ready_callback_;
+	CComPtr<IMFAsyncResult> sample_ready_async_result_;
+	CComPtr<MFAsyncCallback<ExclusiveWasapiDevice>> start_playback_callback_;
+	CComPtr<IMFAsyncResult> start_playback_async_result_;
+	CComPtr<MFAsyncCallback<ExclusiveWasapiDevice>> pause_playback_callback_;
+	CComPtr<IMFAsyncResult> pause_playback_async_result_;
+	CComPtr<MFAsyncCallback<ExclusiveWasapiDevice>> stop_playback_callback_;
+	CComPtr<IMFAsyncResult> stop_playback_async_result_;	
 };
 
 }

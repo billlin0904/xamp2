@@ -72,7 +72,7 @@ static constexpr IID kAudioClockID = __uuidof(IAudioClock);
 ExclusiveWasapiDevice::ExclusiveWasapiDevice(CComPtr<IMMDevice> const & device)
 	: raw_mode_(false)
 	, is_running_(false)
-	, is_stop_streaming_(false)
+	, is_stop_require_(false)
 	, thread_priority_(MmcssThreadPriority::MMCSS_THREAD_PRIORITY_NORMAL)
 	, buffer_frames_(0)
 	, valid_bits_samples_(0)
@@ -239,14 +239,28 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 
 	HrIfFailledThrow(::MFCreateAsyncResult(nullptr, stop_playback_callback_, nullptr, &stop_playback_async_result_));
 
+	pause_playback_callback_ = new MFAsyncCallback<ExclusiveWasapiDevice>(this,
+		&ExclusiveWasapiDevice::OnPausePlayback,
+		queue_id_);
+
+	HrIfFailledThrow(::MFCreateAsyncResult(nullptr, pause_playback_callback_, nullptr, &pause_playback_async_result_));
+
+	start_playback_callback_ = new MFAsyncCallback<ExclusiveWasapiDevice>(this,
+		&ExclusiveWasapiDevice::OnStartPlayback,
+		queue_id_);
+
+	HrIfFailledThrow(::MFCreateAsyncResult(nullptr, start_playback_callback_, nullptr, &start_playback_async_result_));
+
 	if (!sample_ready_) {
 		sample_ready_.reset(::CreateEventEx(nullptr, nullptr, 0, EVENT_MODIFY_STATE | SYNCHRONIZE));
 		assert(sample_ready_);
 		HrIfFailledThrow(client_->SetEventHandle(sample_ready_.get()));
 	}
-	
-	size_t buffer_size = buffer_frames_ * output_format.GetChannels();
-	buffer_ = MakeBuffer<float>(buffer_size);
+
+    const size_t buffer_size = buffer_frames_ * output_format.GetChannels();
+	if (buffer_.size() != buffer_size) {
+		buffer_ = MakeBuffer<float>(buffer_size);		
+	}	
     data_convert_ = MakeConvert(output_format, valid_output_format, buffer_frames_);
 	XAMP_LOG_I(log_, "WASAPI internal buffer: {}.", String::FormatBytes(buffer_.GetByteSize()));
 
@@ -289,13 +303,44 @@ void ExclusiveWasapiDevice::ReportError(HRESULT hr) noexcept {
 	}	
 }
 
-HRESULT ExclusiveWasapiDevice::OnStopPlayback(IMFAsyncResult* result) noexcept {
+HRESULT ExclusiveWasapiDevice::OnStartPlayback(IMFAsyncResult* result) {
+	client_->Reset();
+	
+	// Note: 必要! 某些音效卡會爆音!
+	FillSilentSample(buffer_frames_);	
+
+	HrIfFailledThrow(client_->Start());
+
+	HrIfFailledThrow(::MFPutWaitingWorkItem(sample_ready_.get(),
+		0,
+		sample_ready_async_result_,
+		&sample_ready_key_));
+
+	// is_running_必須要確認都成功才能設置為true.
+	is_running_ = true;
+
+	XAMP_LOG_I(log_, "Start exclusive mode stream!");
+	return S_OK;
+}
+
+HRESULT ExclusiveWasapiDevice::OnPausePlayback(IMFAsyncResult* result) {
+	LogHrFailled(client_->Stop());
+
+	condition_.notify_all();
+	is_running_ = false;
+	XAMP_LOG_I(log_, "OnPausePlayback");
+	return S_OK;
+}
+
+HRESULT ExclusiveWasapiDevice::OnStopPlayback(IMFAsyncResult* result) {
 	if (sample_ready_key_ > 0) {
-		::MFCancelWorkItem(sample_ready_key_);		
+		::MFCancelWorkItem(sample_ready_key_);
 		sample_ready_key_ = 0;
 	}
 
 	FillSilentSample(buffer_frames_);
+
+	LogHrFailled(client_->Stop());
 
 	condition_.notify_all();
 	is_running_ = false;
@@ -303,9 +348,9 @@ HRESULT ExclusiveWasapiDevice::OnStopPlayback(IMFAsyncResult* result) noexcept {
 	return S_OK;
 }
 
-HRESULT ExclusiveWasapiDevice::OnSampleReady(IMFAsyncResult *result) noexcept {
+HRESULT ExclusiveWasapiDevice::OnSampleReady(IMFAsyncResult *result) {
 	if (!is_running_) {
-		return S_OK;
+		return E_FAIL;
 	}
 	GetSample(buffer_frames_);
     return S_OK;
@@ -338,7 +383,10 @@ void ExclusiveWasapiDevice::GetSample(uint32_t frame_available) noexcept {
 	else {
 		ReportError(render_client_->ReleaseBuffer(frame_available, AUDCLNT_BUFFERFLAGS_SILENT));		
 		is_running_ = false;
-		::MFPutWorkItem2(MFASYNC_CALLBACK_QUEUE_MULTITHREADED, 0, stop_playback_callback_, nullptr);
+		ReportError(::MFPutWorkItem2(queue_id_,
+			0,
+			stop_playback_callback_, 
+			nullptr));
 		return;
 	}
 
@@ -346,28 +394,6 @@ void ExclusiveWasapiDevice::GetSample(uint32_t frame_available) noexcept {
 		0,
 		sample_ready_async_result_,
 		&sample_ready_key_));
-}
-
-void ExclusiveWasapiDevice::AbortStream() noexcept {
-}
-
-void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
-	if (is_running_) {
-		::MFPutWorkItem2(MFASYNC_CALLBACK_QUEUE_MULTITHREADED, 0, stop_playback_callback_, nullptr);
-
-		std::unique_lock<std::mutex> lock{ mutex_ };
-		std::chrono::milliseconds const kTestTimeout{ 100 };
-		while (is_running_) {
-			condition_.wait_for(lock, kTestTimeout);
-		}
-	}
-
-    if (client_ != nullptr) {		
-		LogHrFailled(client_->Stop());
-		LogHrFailled(client_->Reset());
-    }
-
-	::ResetEvent(sample_ready_.get());
 }
 
 void ExclusiveWasapiDevice::SetAudioCallback(AudioCallback* callback) noexcept {
@@ -391,35 +417,57 @@ void ExclusiveWasapiDevice::CloseStream() {
 	render_client_.Release();
 	sample_ready_callback_.Release();
 	sample_ready_async_result_.Release();
+	start_playback_callback_.Release();
+	start_playback_async_result_.Release();
+	pause_playback_callback_.Release();
+	pause_playback_async_result_.Release();
 	stop_playback_callback_.Release();
 	stop_playback_async_result_.Release();
 	clock_.Release();
 }
 
-void ExclusiveWasapiDevice::StartStream() {
-    if (!client_) {
-		throw HRException(AUDCLNT_E_NOT_INITIALIZED);
+void ExclusiveWasapiDevice::AbortStream() noexcept {
+}
+
+void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
+	if (!is_running_) {
+		return;
+	}
+	
+	is_stop_require_ = true;
+
+	if (wait_for_stop_stream) {
+		HrIfFailledThrow(::MFPutWorkItem2(queue_id_,
+			0,
+			stop_playback_callback_,
+			nullptr));
+		XAMP_LOG_I(log_, "Start stop playback callback");
+	}
+	else {
+		HrIfFailledThrow(::MFPutWorkItem2(queue_id_,
+			0,
+			pause_playback_callback_,
+			nullptr));
+		XAMP_LOG_I(log_, "Start pause playback callback");
 	}
 
-	assert(callback_ != nullptr);
+	std::unique_lock<std::mutex> lock{ mutex_ };
+	std::chrono::milliseconds const kTestTimeout{ 100 };
+	while (is_running_) {
+		condition_.wait_for(lock, kTestTimeout);
+		XAMP_LOG_I(log_, "Wait stop playback callback");
+	}
+}
 
-	LogHrFailled(client_->Reset());
-
-	// Note: 必要! 某些音效卡會爆音!
-	FillSilentSample(buffer_frames_);
-
-	HrIfFailledThrow(client_->Start());	
+void ExclusiveWasapiDevice::StartStream() {
+	if (!client_) {
+		throw HRException(AUDCLNT_E_NOT_INITIALIZED);
+	}
 	
-	HrIfFailledThrow(::MFPutWaitingWorkItem(sample_ready_.get(),
+	HrIfFailledThrow(::MFPutWorkItem2(queue_id_,
 		0,
-		sample_ready_async_result_,
-		&sample_ready_key_));
-
-	// is_running_必須要確認都成功才能設置為true.
-    is_stop_streaming_ = false;	
-	is_running_ = true;
-
-	XAMP_LOG_I(log_, "Start exclusive mode stream!");
+		start_playback_callback_,
+		nullptr));
 }
 
 void ExclusiveWasapiDevice::SetStreamTime(const double stream_time) noexcept {

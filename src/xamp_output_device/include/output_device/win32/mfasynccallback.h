@@ -48,10 +48,6 @@ public:
 		return S_OK;
 	}
 
-	[[nodiscard]] DWORD GetWorkQueueId() const noexcept {
-		return queue_id_;
-	}
-
 	STDMETHODIMP GetParameters(DWORD* flags, DWORD* queue) override {
 		*flags = 0;
 		*queue = queue_id_;
