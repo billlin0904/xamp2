@@ -363,13 +363,21 @@ void ExclusiveWasapiDevice::GetSample(uint32_t frame_available) noexcept {
 	stream_time_ = stream_time;
 	auto stream_time_float = static_cast<double>(stream_time) / static_cast<double>(mix_format_->nSamplesPerSec);
 
-	auto hr = render_client_->GetBuffer(frame_available, &data);
+	UINT32 padding_frames = 0;
+	auto hr = client_->GetCurrentPadding(&padding_frames);
+	if (SUCCEEDED(hr)) {
+		if (padding_frames != frame_available) {
+			XAMP_LOG_I(log_, "padding_frames > 0");
+		}
+	}
+	
+	hr = render_client_->GetBuffer(frame_available, &data);
 	if (FAILED(hr)) {
 		ReportError(hr);
 		return;
 	}
 
-	auto sample_time = helper::GetStreamPosInMilliseconds(clock_) / 1000.0;
+	auto sample_time = GetStreamPosInMilliseconds(clock_) / 1000.0;
 
 	XAMP_LIKELY(callback_->OnGetSamples(buffer_.Get(), frame_available, stream_time_float, sample_time) == DataCallbackResult::CONTINUE) {
 		if (!raw_mode_) {
