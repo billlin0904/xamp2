@@ -184,6 +184,7 @@
     <ClCompile Include="widget\playlisttableproxymodel.cpp" />
     <ClCompile Include="widget\playlisttablequerymodel.cpp" />
     <ClCompile Include="widget\playlisttableview.cpp" />
+    <ClCompile Include="widget\read_helper.cpp" />
     <ClCompile Include="widget\scrolllabel.cpp" />
     <ClCompile Include="widget\seekslider.cpp" />
     <ClCompile Include="widget\selectcolorwidget.cpp" />

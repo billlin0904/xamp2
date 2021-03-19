@@ -126,7 +126,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../xamp_output_device/include/;../xamp_metadata/include/;../xamp_stream/include/;../thirdparty/spdlog/include/;../thirdparty/chromaprint/src/;../thirdparty/soxr/src/;../thirdparty/robin_hood/;../thirdparty/fftw/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../xamp_output_device/include/;../xamp_stream/include/;../thirdparty/spdlog/include/;../thirdparty/chromaprint/src/;../thirdparty/soxr/src/;../thirdparty/robin_hood/;../thirdparty/fftw/</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <OmitFramePointers>false</OmitFramePointers>
       <PreprocessorDefinitions>XAMP_PALYER_API_EXPORTS;ENABLE_ASIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -142,7 +142,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>../xamp/x64/Release/</AdditionalLibraryDirectories>
-      <AdditionalDependencies>xamp_output_device.lib;xamp_stream.lib;xamp_metadata.lib;xamp_base.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>xamp_output_device.lib;xamp_stream.lib;xamp_base.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
     </Link>
     <Bscmake>
@@ -155,7 +155,6 @@
     <ClInclude Include="include\player\dspchain.h" />
     <ClInclude Include="include\player\fft.h" />
     <ClInclude Include="include\player\loudness_scanner.h" />
-    <ClInclude Include="include\player\read_helper.h" />
     <ClInclude Include="include\player\passthroughsamplerateconverter.h" />
     <ClInclude Include="include\player\playbackstateadapter.h" />
     <ClInclude Include="include\player\player.h" />
@@ -172,7 +171,6 @@
     <ClCompile Include="src\chromaprint.cpp" />
     <ClCompile Include="src\fft.cpp" />
     <ClCompile Include="src\loudness_scanner.cpp" />
-    <ClCompile Include="src\read_helper.cpp" />
     <ClCompile Include="src\libebur128\ebur128.c" />
     <ClCompile Include="src\passthroughsamplerateconverter.cpp" />
     <ClCompile Include="src\soxresampler.cpp" />

@@ -122,6 +122,9 @@ static int excute(int argc, char* argv[]) {
 
 #ifdef XAMP_OS_WIN
     std::vector<std::string_view> preload_dll_file_name{
+    	"AudioSes.dll",
+        "ResourcePolicyClient.dll",
+        "AUDIOKSE.dll",
     	"comctl32.dll",
         "WindowsCodecs.dll",
         "thumbcache.dll",

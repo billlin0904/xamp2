@@ -15,7 +15,6 @@
 
 #include <output_device/audiodevicemanager.h>
 
-#include <player/read_helper.h>
 #include <player/soxresampler.h>
 #include <player/audio_util.h>
 
@@ -39,6 +38,7 @@
 #include <widget/ui_utilts.h>
 #include <widget/compressordialog.h>
 #include <widget/spectrograph.h>
+#include <widget/read_helper.h>
 
 #include "aboutdialog.h"
 #include "preferencedialog.h"

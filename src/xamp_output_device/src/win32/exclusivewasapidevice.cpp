@@ -207,6 +207,25 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
         InitialDeviceFormat(valid_output_format, valid_bits_samples_);
     }
 
+	/*XAMP_LOG_I(log_, "Active device format: {}.", valid_output_format);
+
+	client_.Release();
+	endpoint_volume_.Release();
+	mix_format_.Free();
+	sample_ready_.reset();
+
+	HrIfFailledThrow(device_->Activate(kAudioClient2ID,
+		CLSCTX_ALL,
+		nullptr,
+		reinterpret_cast<void**>(&client_)));
+
+	HrIfFailledThrow(device_->Activate(kAudioEndpointVolumeID,
+		CLSCTX_ALL,
+		nullptr,
+		reinterpret_cast<void**>(&endpoint_volume_)));
+
+	InitialDeviceFormat(valid_output_format, valid_bits_samples_);*/
+
     HrIfFailledThrow(client_->Reset());
     HrIfFailledThrow(client_->GetService(kAudioRenderClientID,
 		reinterpret_cast<void**>(&render_client_)));
@@ -304,8 +323,6 @@ void ExclusiveWasapiDevice::ReportError(HRESULT hr) noexcept {
 }
 
 HRESULT ExclusiveWasapiDevice::OnStartPlayback(IMFAsyncResult* result) {
-	client_->Reset();
-	
 	// Note: 必要! 某些音效卡會爆音!
 	FillSilentSample(buffer_frames_);	
 
@@ -319,6 +336,7 @@ HRESULT ExclusiveWasapiDevice::OnStartPlayback(IMFAsyncResult* result) {
 	// is_running_必須要確認都成功才能設置為true.
 	is_running_ = true;
 
+	XAMP_LOG_I(log_, "OnStartPlayback");
 	XAMP_LOG_I(log_, "Start exclusive mode stream!");
 	return S_OK;
 }
@@ -334,11 +352,9 @@ HRESULT ExclusiveWasapiDevice::OnPausePlayback(IMFAsyncResult* result) {
 
 HRESULT ExclusiveWasapiDevice::OnStopPlayback(IMFAsyncResult* result) {
 	if (sample_ready_key_ > 0) {
-		::MFCancelWorkItem(sample_ready_key_);
+		LogHrFailled(::MFCancelWorkItem(sample_ready_key_));
 		sample_ready_key_ = 0;
 	}
-
-	FillSilentSample(buffer_frames_);
 
 	LogHrFailled(client_->Stop());
 
@@ -350,52 +366,44 @@ HRESULT ExclusiveWasapiDevice::OnStopPlayback(IMFAsyncResult* result) {
 
 HRESULT ExclusiveWasapiDevice::OnSampleReady(IMFAsyncResult *result) {
 	if (!is_running_) {
+		XAMP_LOG_I(log_, "Device is not running.");
 		return E_FAIL;
 	}
 	GetSample(buffer_frames_);
     return S_OK;
 }
 
-void ExclusiveWasapiDevice::GetSample(uint32_t frame_available) noexcept {
+void ExclusiveWasapiDevice::GetSample(uint32_t frames_available) noexcept {
 	BYTE* data = nullptr;
 
-	auto stream_time = stream_time_ + frame_available;
-	stream_time_ = stream_time;
-	auto stream_time_float = static_cast<double>(stream_time) / static_cast<double>(mix_format_->nSamplesPerSec);
-
-	UINT32 padding_frames = 0;
-	auto hr = client_->GetCurrentPadding(&padding_frames);
-	if (SUCCEEDED(hr)) {
-		if (padding_frames != frame_available) {
-			XAMP_LOG_I(log_, "padding_frames > 0");
-		}
-	}
-	
-	hr = render_client_->GetBuffer(frame_available, &data);
+	auto hr = render_client_->GetBuffer(frames_available, &data);
 	if (FAILED(hr)) {
 		ReportError(hr);
 		return;
 	}
+	
+	auto stream_time = stream_time_ + frames_available;
+	stream_time_ = stream_time;
+	auto stream_time_float = static_cast<double>(stream_time) / static_cast<double>(mix_format_->nSamplesPerSec);
 
 	auto sample_time = GetStreamPosInMilliseconds(clock_) / 1000.0;
 
-	XAMP_LIKELY(callback_->OnGetSamples(buffer_.Get(), frame_available, stream_time_float, sample_time) == DataCallbackResult::CONTINUE) {
+	XAMP_LIKELY(callback_->OnGetSamples(buffer_.Get(), frames_available, stream_time_float, sample_time) == DataCallbackResult::CONTINUE) {
 		if (!raw_mode_) {
 			DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::ConvertToInt2432(
 				reinterpret_cast<int32_t*>(data),
 				buffer_.Get(),
 				data_convert_);
 		}
-		ReportError(render_client_->ReleaseBuffer(frame_available, 0));
+		ReportError(render_client_->ReleaseBuffer(frames_available, 0));
 	}
 	else {
-		ReportError(render_client_->ReleaseBuffer(frame_available, AUDCLNT_BUFFERFLAGS_SILENT));		
+		ReportError(render_client_->ReleaseBuffer(frames_available, AUDCLNT_BUFFERFLAGS_SILENT));
 		is_running_ = false;
 		ReportError(::MFPutWorkItem2(queue_id_,
 			0,
 			stop_playback_callback_, 
 			nullptr));
-		return;
 	}
 
 	ReportError(::MFPutWaitingWorkItem(sample_ready_.get(),
@@ -432,6 +440,9 @@ void ExclusiveWasapiDevice::CloseStream() {
 	stop_playback_callback_.Release();
 	stop_playback_async_result_.Release();
 	clock_.Release();
+
+	// Workaround!
+	MSleep(500);
 }
 
 void ExclusiveWasapiDevice::AbortStream() noexcept {

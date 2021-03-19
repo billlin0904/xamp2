@@ -1,11 +1,12 @@
+#include <functional>
 #include <utility>
 #include <base/align_ptr.h>
-#include <base/dataconverter.h>
 #include <base/str_utilts.h>
 
-#include <stream/dsdstream.h>
+#include <stream/stream.h>
 #include <stream/compressor.h>
 #include <stream/wavefilewriter.h>
+#include <stream/dsdstream.h>
 
 #include <metadata/taglibmetawriter.h>
 
@@ -14,11 +15,12 @@
 #include <player/audio_util.h>
 #include <player/loudness_scanner.h>
 #include <player/samplerateconverter.h>
-#include <player/read_helper.h>
 
-namespace xamp::player {
+#include <widget/read_helper.h>
 
 using namespace xamp::base;
+using namespace xamp::stream;
+using namespace xamp::metadata;
 
 inline constexpr uint64_t kFingerprintDuration = 120;
 inline constexpr uint32_t kReadSampleSize = 8192 * 4;
@@ -102,7 +104,7 @@ void Export2WaveFile(std::wstring const& file_path,
 			converter->Process(buf.data(), buf.size(), file);
 		});
 	file.Close();
-	metadata::TaglibMetadataWriter writer;
+	TaglibMetadataWriter writer;
 	writer.Write(output_file_path, metadata);
 }
 
@@ -130,7 +132,7 @@ void Export2WaveFile(std::wstring const& file_path,
 			}			
 		});
 	file.Close();
-	metadata::TaglibMetadataWriter writer;
+	TaglibMetadataWriter writer;
 	writer.Write(output_file_path, metadata);
 }
 
@@ -175,4 +177,3 @@ std::tuple<double, std::vector<uint8_t>> ReadFingerprint(std::wstring const & fi
 	};
 }
 
-}

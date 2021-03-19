@@ -647,9 +647,7 @@ void AudioPlayer::OpenDevice(double stream_time) {
 void AudioPlayer::BufferStream(double stream_time) {
     fifo_.Clear();
 
-    if (stream_time > 0.0) {
-        stream_->Seek(stream_time);
-    }
+    stream_->Seek(stream_time);
 
     if (enable_sample_converter_) {
         converter_->Flush();
