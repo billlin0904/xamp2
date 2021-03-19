@@ -71,6 +71,8 @@ SOURCES += \
     widget/scrolllabel.cpp \
     widget/xampdialog.cpp \
     widget/image_utiltis.cpp \
+    widget/spectrograph.cpp \
+    widget/read_helper.cpp \
     DarkStyle.cpp \
     singleinstanceapplication.cpp \
     thememanager.cpp \
@@ -125,7 +127,9 @@ HEADERS += \
     widget/localelanguage.h \
     widget/jsonsettings.h \
     widget/scrolllabel.h \
+    widget/spectrograph.h \
     widget/xampdialog.h \
+    widget/read_helper.h \
     DarkStyle.h \
     thememanager.h \
     aboutdialog.h \

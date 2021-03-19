@@ -27,6 +27,7 @@ include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
 include_directories("../xamp_base/include")
 include_directories("../xamp_output_device/include")
 include_directories("../xamp_stream/include")
+include_directories("../xamp_metadata/include")
 include_directories("../thirdparty/bass/include/")
 include_directories("../thirdparty/spdlog/include/")
 include_directories("../thirdparty/soxr/src/")
@@ -64,6 +65,15 @@ find_library (
 message(STATUS "LIB_XAMP_STREAM: [${LIB_XAMP_STREAM}]")
 
 find_library (
+    LIB_XAMP_METADATA
+    NAMES xamp_metadata libxamp_metadata
+    HINTS "${CMAKE_CURRENT_LIST_DIR}/../xamp_metadata/${BUILD_PATH}/"
+    NO_DEFAULT_PATH
+)
+
+message(STATUS "LIB_XAMP_METADATA: [${LIB_XAMP_METADATA}]")
+
+find_library (
     LIB_GIST
     NAMES libGist.a
     HINTS "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/gist/osx_${BUILD_PATH}"
@@ -76,7 +86,7 @@ find_library(ACCELERATE_LIB Accelerate)
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
-target_link_libraries(xamp_player ${LIB_XAMP_BASE} ${LIB_XAMP_OUTPUT_DEVICE} ${LIB_XAMP_STREAM} ${ACCELERATE_LIB} ${LIB_GIST})
+target_link_libraries(xamp_player ${LIB_XAMP_BASE} ${LIB_XAMP_OUTPUT_DEVICE} ${LIB_XAMP_STREAM} ${LIB_XAMP_METADATA} ${ACCELERATE_LIB} ${LIB_GIST})
 
 if(LIBRARY_TESTS)
 include(FetchContent)
