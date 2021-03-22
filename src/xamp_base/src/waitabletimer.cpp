@@ -31,10 +31,7 @@ public:
 
 	void Reset() {
 		constexpr auto kMilliSecond = -10000;
-		//const auto file_times = static_cast<int64_t>(-10000) * timeout_.count();
 		LARGE_INTEGER timespan = { 0 };
-		//timespan.LowPart = static_cast<DWORD>(file_times & 0xFFFFFFFF);
-		//timespan.HighPart = static_cast<LONG>(file_times >> 32);
 		timespan.QuadPart = kMilliSecond * timeout_.count();
 		if (!::SetWaitableTimer(timer_.get(), &timespan, 0, nullptr, nullptr, FALSE)) {
 			throw PlatformSpecException();
@@ -81,7 +78,7 @@ void WaitableTimer::Wait() noexcept {
 }
 
 void MSleep(std::chrono::milliseconds timeout) {
-	static thread_local WaitableTimer timer;
+	WaitableTimer timer;
 	timer.SetTimeout(timeout);
 	timer.Wait();
 }

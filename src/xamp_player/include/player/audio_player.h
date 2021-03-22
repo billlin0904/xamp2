@@ -29,7 +29,6 @@
 
 #include <player/playstate.h>
 #include <player/playbackstateadapter.h>
-#include <player/spectrum.h>
 #include <player/player.h>
 
 
@@ -205,6 +204,7 @@ private:
     std::chrono::microseconds min_process_time_{ 0 };
     std::chrono::microseconds max_process_time_{ 0 };
     Stopwatch sw_;
+    std::string render_thread_id_;
 #endif    
     std::string device_id_;
     Uuid device_type_id_;
@@ -227,7 +227,6 @@ private:
     SpscQueue<MsgID> msg_queue_;
     SpscQueue<double> seek_queue_;
     SpscQueue<AlignPtr<AudioProcessor>> processor_queue_;
-    Spectrum spectrum_;
 };
 
 }

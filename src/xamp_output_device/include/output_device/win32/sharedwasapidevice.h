@@ -12,8 +12,8 @@
 
 #ifdef XAMP_OS_WIN
 
-#include <base/vmmemlock.h>
 #include <base/logger.h>
+#include <output_device/win32/fastmutex.h>
 #include <output_device/device.h>
 
 namespace xamp::output_device::win32 {
@@ -79,12 +79,22 @@ private:
 
 	void FillSilentSample(uint32_t frame_available) noexcept;
 
-	HRESULT OnSampleReady(IMFAsyncResult* result) noexcept;
+	HRESULT OnSampleReady(IMFAsyncResult* result);
+
+	HRESULT OnStartPlayback(IMFAsyncResult* result);
+
+	HRESULT OnPausePlayback(IMFAsyncResult* result);
+
+	HRESULT OnStopPlayback(IMFAsyncResult* result);
+
+	static CComPtr<MFAsyncCallback<SharedWasapiDevice>> MakeAsyncCallback(SharedWasapiDevice* pThis,
+		MFAsyncCallback<SharedWasapiDevice>::Callback callback,
+		DWORD queue_id);
 
 	class DeviceEventNotification;
 
 	std::atomic<bool> is_running_;
-	std::atomic<bool> is_stop_streaming_;
+	std::atomic<bool> is_stop_require_;
 	std::atomic<int64_t> stream_time_;
 	DWORD queue_id_;
 	uint32_t latency_;
@@ -92,6 +102,7 @@ private:
 	std::wstring mmcss_name_;
 	MmcssThreadPriority thread_priority_;
 	mutable std::mutex mutex_;
+	mutable FastMutex render_mutex_;
 	std::condition_variable condition_;
 	MFWORKITEM_KEY sample_ready_key_;
 	WinHandle sample_ready_;
@@ -100,9 +111,15 @@ private:
 	CComPtr<IAudioClient3> client_;
 	CComPtr<IAudioClock> clock_;
 	CComPtr<IAudioRenderClient> render_client_;
-	CComPtr<MFAsyncCallback<SharedWasapiDevice>> sample_ready_callback_;
-	CComPtr<IMFAsyncResult> sample_ready_async_result_;	
 	CComPtr<DeviceEventNotification> device_volume_notification_;
+	CComPtr<MFAsyncCallback<SharedWasapiDevice>> sample_ready_callback_;
+	CComPtr<IMFAsyncResult> sample_ready_async_result_;
+	CComPtr<MFAsyncCallback<SharedWasapiDevice>> start_playback_callback_;
+	CComPtr<IMFAsyncResult> start_playback_async_result_;
+	CComPtr<MFAsyncCallback<SharedWasapiDevice>> pause_playback_callback_;
+	CComPtr<IMFAsyncResult> pause_playback_async_result_;
+	CComPtr<MFAsyncCallback<SharedWasapiDevice>> stop_playback_callback_;
+	CComPtr<IMFAsyncResult> stop_playback_async_result_;
 	AudioCallback* callback_;
 	std::shared_ptr<spdlog::logger> log_;
 };

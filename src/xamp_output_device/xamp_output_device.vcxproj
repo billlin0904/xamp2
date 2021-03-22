@@ -167,6 +167,7 @@
     <ClInclude Include="include\output_device\volume.h" />
     <ClInclude Include="include\output_device\win32\exclusivewasapidevice.h" />
     <ClInclude Include="include\output_device\win32\exclusivewasapidevicetype.h" />
+    <ClInclude Include="include\output_device\win32\fastmutex.h" />
     <ClInclude Include="include\output_device\win32\hrexception.h" />
     <ClInclude Include="include\output_device\win32\mfasynccallback.h" />
     <ClInclude Include="include\output_device\win32\mmcss.h" />

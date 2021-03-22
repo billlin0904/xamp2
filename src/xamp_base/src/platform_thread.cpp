@@ -124,6 +124,12 @@ void SetCurrentThreadAffinity(int32_t core) noexcept {
 #endif
 }
 
+std::string GetCurrentThreadId() {
+    std::ostringstream ostr;
+    ostr << std::this_thread::get_id();
+    return ostr.str();
+}
+
 #ifdef XAMP_OS_WIN
 bool ExtendProcessWorkingSetSize(size_t size) noexcept {
     SIZE_T minimum = 0;

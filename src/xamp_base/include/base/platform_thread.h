@@ -18,6 +18,8 @@ XAMP_BASE_API void SetThreadAffinity(std::thread& thread, int32_t core = kDefaul
 
 XAMP_BASE_API void SetCurrentThreadAffinity(int32_t core = kDefaultAffinityCpuCore) noexcept;
 
+XAMP_BASE_API std::string GetCurrentThreadId();
+
 #ifdef XAMP_OS_WIN
 XAMP_BASE_API bool ExtendProcessWorkingSetSize(size_t size) noexcept;
 XAMP_BASE_API bool InitWorkingSetSize(size_t working_set_size) noexcept;

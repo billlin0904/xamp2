@@ -686,7 +686,6 @@ void AudioPlayer::Startup() {
         const auto slice = p->slice_.load();
         if (slice.sample_size > 0) {
             adapter->OnSampleTime(slice.stream_time);            
-            //adapter->OnDisplayChanged(p->spectrum_.Update());
         }
         else if (p->is_playing_ && slice.sample_size == -1) {
             p->SetState(PlayerState::PLAYER_STATE_STOPPED);
@@ -876,12 +875,22 @@ DataCallbackResult AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_
         device_->SetStreamTime(0);
     }
 
+#ifdef _DEBUG
+    if (render_thread_id_.empty()) {
+        render_thread_id_ = GetCurrentThreadId();
+    } else {
+	    if (render_thread_id_ != GetCurrentThreadId()) {
+            XAMP_LOG_INFO("Render thread was change : {}", render_thread_id_);
+	    }
+        render_thread_id_ = GetCurrentThreadId();
+    }
+#endif
+
     XAMP_LIKELY(fifo_.TryRead(static_cast<int8_t*>(samples), sample_size)) {       
         UpdateSlice(num_samples, stream_time);
 #ifdef _DEBUG
         sw_.Reset();
-#endif
-        //spectrum_.Feed(static_cast<const float*>(samples), num_samples);
+#endif        
         return DataCallbackResult::CONTINUE;
     }
 
@@ -899,10 +908,11 @@ void AudioPlayer::PrepareToPlay(double start_time, double end_time) {
     CreateDevice(device_info_.device_type_id, device_info_.device_id, false);
     OpenDevice(start_time);
     CreateBuffer();
-    BufferStream(start_time);
-    //spectrum_.Init(output_format_);
-	
+    BufferStream(start_time);    
+    
 #ifdef _DEBUG
+    render_thread_id_.clear();
+	
     XAMP_LOG_INFO("AVG max time {} ms, AVG min time {} ms",
         max_process_time_.count() / 1000, 
         min_process_time_.count() / 1000);

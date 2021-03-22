@@ -19,7 +19,7 @@ struct FingerprintInfo {
 class MusicBrainzClient : public QObject {
 	Q_OBJECT
 public:
-	MusicBrainzClient(QObject* parent = nullptr);
+	explicit MusicBrainzClient(QObject* parent = nullptr);
 
 	void searchBy(const FingerprintInfo& fingerprint);
 

@@ -15,6 +15,7 @@
 
 #ifdef XAMP_OS_WIN
 
+#include <output_device/win32/fastmutex.h>
 #include <output_device/audiocallback.h>
 #include <output_device/device.h>
 
@@ -85,6 +86,10 @@ private:
 
 	HRESULT OnStopPlayback(IMFAsyncResult* result);
 
+	static CComPtr<MFAsyncCallback<ExclusiveWasapiDevice>> MakeAsyncCallback(ExclusiveWasapiDevice* pThis,
+		MFAsyncCallback<ExclusiveWasapiDevice>::Callback callback,
+		DWORD queue_id);	
+
 	bool raw_mode_;
 	std::atomic<bool> is_running_;
 	std::atomic<bool> is_stop_require_;
@@ -106,6 +111,7 @@ private:
 	CComPtr<IAudioClock> clock_;
 	CComHeapPtr<WAVEFORMATEX> mix_format_;	
 	mutable std::mutex mutex_;
+	mutable FastMutex render_mutex_;
 	Buffer<float> buffer_;
 	std::condition_variable condition_;
 	AudioCallback* callback_;	
@@ -117,7 +123,7 @@ private:
 	CComPtr<MFAsyncCallback<ExclusiveWasapiDevice>> pause_playback_callback_;
 	CComPtr<IMFAsyncResult> pause_playback_async_result_;
 	CComPtr<MFAsyncCallback<ExclusiveWasapiDevice>> stop_playback_callback_;
-	CComPtr<IMFAsyncResult> stop_playback_async_result_;	
+	CComPtr<IMFAsyncResult> stop_playback_async_result_;
 };
 
 }

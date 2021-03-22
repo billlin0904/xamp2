@@ -100,10 +100,11 @@ Xamp::Xamp(QWidget *parent)
     , playlist_page_(nullptr)
     , album_artist_page_(nullptr)
     , artist_info_page_(nullptr)
+	, tray_icon_menu_(nullptr)
+	, tray_icon_(nullptr)
+    , playback_history_page_(nullptr)
     , state_adapter_(std::make_shared<UIPlayerStateAdapter>())
-    , player_(std::make_shared<AudioPlayer>(state_adapter_))
-    , playback_history_page_(nullptr) 
-    , player_lock_(player_.get(), sizeof(AudioPlayer)) {
+    , player_(std::make_shared<AudioPlayer>(state_adapter_)) {
     initial();
 }
 

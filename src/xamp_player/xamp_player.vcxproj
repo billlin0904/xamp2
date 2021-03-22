@@ -161,7 +161,6 @@
     <ClInclude Include="include\player\playstate.h" />
     <ClInclude Include="include\player\samplerateconverter.h" />
     <ClInclude Include="include\player\soxresampler.h" />
-    <ClInclude Include="include\player\spectrum.h" />
     <ClInclude Include="src\libebur128\ebur128.h" />
     <ClInclude Include="src\libebur128\sys_queue.h" />
   </ItemGroup>
@@ -174,7 +173,6 @@
     <ClCompile Include="src\libebur128\ebur128.c" />
     <ClCompile Include="src\passthroughsamplerateconverter.cpp" />
     <ClCompile Include="src\soxresampler.cpp" />
-    <ClCompile Include="src\spectrum.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

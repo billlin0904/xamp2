@@ -13,7 +13,7 @@
 class DiscogsClient final : public QObject {
     Q_OBJECT
 public:
-    DiscogsClient(QNetworkAccessManager* manager = nullptr, QObject *parent = nullptr);
+    explicit DiscogsClient(QNetworkAccessManager* manager = nullptr, QObject *parent = nullptr);
 
     void searchArtist(int32_t artist_id, const QString &artist);
 

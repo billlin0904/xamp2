@@ -2,7 +2,7 @@
 
 #ifdef XAMP_OS_WIN
 #include <base/logger.h>
-#include <base/dataconverter.h>
+#include <base/waitabletimer.h>
 
 #include <output_device/audiocallback.h>
 #include <output_device/win32/hrexception.h>
@@ -70,7 +70,7 @@ private:
 
 SharedWasapiDevice::SharedWasapiDevice(CComPtr<IMMDevice> const & device)
 	: is_running_(false)
-	, is_stop_streaming_(false)
+	, is_stop_require_(false)
 	, stream_time_(0)
 	, queue_id_(0)
 	, latency_(0)
@@ -82,6 +82,15 @@ SharedWasapiDevice::SharedWasapiDevice(CComPtr<IMMDevice> const & device)
 	, device_(device)
 	, callback_(nullptr)
 	, log_(Logger::GetInstance().GetLogger("SharedWasapiDevice")) {
+}
+
+CComPtr<MFAsyncCallback<SharedWasapiDevice>>
+SharedWasapiDevice::MakeAsyncCallback(SharedWasapiDevice* pThis,
+	MFAsyncCallback<SharedWasapiDevice>::Callback callback,
+	DWORD queue_id) {
+	return CComPtr<MFAsyncCallback<SharedWasapiDevice>>(new MFAsyncCallback<SharedWasapiDevice>(pThis,
+		callback,
+		queue_id));
 }
 
 SharedWasapiDevice::~SharedWasapiDevice() {
@@ -116,24 +125,31 @@ void SharedWasapiDevice::SetAudioCallback(AudioCallback* callback) noexcept {
 }
 
 void SharedWasapiDevice::StopStream(bool wait_for_stop_stream) {
-	XAMP_LOG_I(log_, "Stop shared mode stream!");
-	
-	if (is_running_) {
-		is_running_ = false;
-
-		std::chrono::milliseconds const kTestTimeout{ 100 };
-		std::unique_lock<std::mutex> lock{ mutex_ };
-		while (wait_for_stop_stream && !is_stop_streaming_) {
-			condition_.wait_for(lock, kTestTimeout);
-		}
+	if (!is_running_) {
+		return;
 	}
 
-	if (client_ != nullptr) {
-		LogHrFailled(client_->Stop());
-		LogHrFailled(client_->Reset());
+	if (wait_for_stop_stream) {
+		HrIfFailledThrow(::MFPutWorkItem2(queue_id_,
+			0,
+			stop_playback_callback_,
+			nullptr));
+		XAMP_LOG_I(log_, "Start stop playback callback");
+	}
+	else {
+		HrIfFailledThrow(::MFPutWorkItem2(queue_id_,
+			0,
+			pause_playback_callback_,
+			nullptr));
+		XAMP_LOG_I(log_, "Start pause playback callback");
 	}
 
-	::ResetEvent(sample_ready_.get());
+	std::unique_lock<std::mutex> lock{ mutex_ };
+	std::chrono::milliseconds const kTestTimeout{ 100 };
+	while (is_running_) {
+		condition_.wait_for(lock, kTestTimeout);
+		XAMP_LOG_I(log_, "Wait stop playback callback");
+	}
 }
 
 void SharedWasapiDevice::CloseStream() {
@@ -142,13 +158,20 @@ void SharedWasapiDevice::CloseStream() {
 		queue_id_ = 0;
 	}
 
+	// Workaround!
+	MSleep(500);
+
 	render_client_.Release();
-	clock_.Release();
-	
 	sample_ready_callback_.Release();
 	sample_ready_async_result_.Release();
-
-	callback_ = nullptr;
+	start_playback_callback_.Release();
+	start_playback_async_result_.Release();
+	pause_playback_callback_.Release();
+	pause_playback_async_result_.Release();
+	stop_playback_callback_.Release();
+	stop_playback_async_result_.Release();
+	clock_.Release();
+	device_volume_notification_.Release();
 }
 
 void SharedWasapiDevice::InitialDeviceFormat(AudioFormat const & output_format) {
@@ -238,17 +261,17 @@ void SharedWasapiDevice::OpenStream(AudioFormat const & output_format) {
 	XAMP_LOG_I(log_, "MCSS task id:{} queue id:{}, priority:{} ({}).",
 		task_id, queue_id_, thread_priority_, static_cast<MmcssThreadPriority>(priority));
 
-	sample_ready_callback_.Release();
-	sample_ready_async_result_.Release();
+	sample_ready_callback_ = MakeAsyncCallback(this, &SharedWasapiDevice::OnSampleReady, queue_id_);
+	HrIfFailledThrow(::MFCreateAsyncResult(nullptr, sample_ready_callback_, nullptr, &sample_ready_async_result_));
 
-	sample_ready_callback_ = new MFAsyncCallback<SharedWasapiDevice>(this,
-		&SharedWasapiDevice::OnSampleReady,
-		queue_id_);
+	stop_playback_callback_ = MakeAsyncCallback(this, &SharedWasapiDevice::OnStopPlayback, queue_id_);
+	HrIfFailledThrow(::MFCreateAsyncResult(nullptr, stop_playback_callback_, nullptr, &stop_playback_async_result_));
 
-	HrIfFailledThrow(::MFCreateAsyncResult(nullptr, 
-		sample_ready_callback_,
-		nullptr,
-		&sample_ready_async_result_));
+	pause_playback_callback_ = MakeAsyncCallback(this, &SharedWasapiDevice::OnPausePlayback, queue_id_);
+	HrIfFailledThrow(::MFCreateAsyncResult(nullptr, pause_playback_callback_, nullptr, &pause_playback_async_result_));
+
+	start_playback_callback_ = MakeAsyncCallback(this, &SharedWasapiDevice::OnStartPlayback, queue_id_);
+	HrIfFailledThrow(::MFCreateAsyncResult(nullptr, start_playback_callback_, nullptr, &start_playback_async_result_));
 
 	if (!sample_ready_) {
 		sample_ready_.reset(::CreateEventEx(nullptr, nullptr, 0, EVENT_MODIFY_STATE | SYNCHRONIZE));
@@ -355,30 +378,73 @@ void SharedWasapiDevice::GetSample(uint32_t frame_available) noexcept {
 	}
 	else {
 		ReportError(render_client_->ReleaseBuffer(frame_available, AUDCLNT_BUFFERFLAGS_SILENT));
+		ReportError(::MFPutWorkItem2(queue_id_,
+			0,
+			stop_playback_callback_,
+			nullptr));
+	}
+}
+
+void SharedWasapiDevice::FillSilentSample(uint32_t frames_available) noexcept {
+	BYTE* data = nullptr;
+	if (!render_client_) {
+		return;
+	}
+	ReportError(render_client_->GetBuffer(frames_available, &data));
+	ReportError(render_client_->ReleaseBuffer(frames_available, AUDCLNT_BUFFERFLAGS_SILENT));
+}
+
+HRESULT SharedWasapiDevice::OnSampleReady(IMFAsyncResult* result) {
+	if (is_stop_require_) {
+		XAMP_LOG_I(log_, "Device is not running.");
 		is_running_ = false;
-	}
-}
-
-void SharedWasapiDevice::FillSilentSample(uint32_t frame_available) noexcept {
-	try {
-		BYTE* data;
-		ReportError(render_client_->GetBuffer(frame_available, &data));
-		ReportError(render_client_->ReleaseBuffer(frame_available, AUDCLNT_BUFFERFLAGS_SILENT));
-	}
-	catch (...) {
-		ReportError(E_POINTER);
-	}
-}
-
-HRESULT SharedWasapiDevice::OnSampleReady(IMFAsyncResult* result) noexcept {
-	if (!is_running_) {
-		XAMP_LOG_I(log_, "Receive stop request");
-		is_stop_streaming_ = true;
 		condition_.notify_all();
-		return S_OK;
+		return E_FAIL;
+	}
+	
+	GetSampleRequested(false);	
+	return S_OK;
+}
+
+HRESULT SharedWasapiDevice::OnStartPlayback(IMFAsyncResult* result) {
+	// Note: 必要! 某些音效卡會爆音!
+	GetSampleRequested(true);
+
+	HrIfFailledThrow(client_->Start());
+
+	/*HrIfFailledThrow(::MFPutWaitingWorkItem(sample_ready_.get(),
+		0,
+		sample_ready_async_result_,
+		&sample_ready_key_));*/
+
+	// is_running_必須要確認都成功才能設置為true.
+	is_running_ = true;
+	is_stop_require_ = false;
+
+	XAMP_LOG_I(log_, "OnStartPlayback");
+	XAMP_LOG_I(log_, "Start exclusive mode stream!");
+	return S_OK;
+}
+
+HRESULT SharedWasapiDevice::OnPausePlayback(IMFAsyncResult* result) {
+	LogHrFailled(client_->Stop());
+
+	condition_.notify_all();
+	is_running_ = false;
+	XAMP_LOG_I(log_, "OnPausePlayback");
+	return S_OK;
+}
+
+HRESULT SharedWasapiDevice::OnStopPlayback(IMFAsyncResult* result) {
+	if (sample_ready_key_ > 0) {
+		LogHrFailled(::MFCancelWorkItem(sample_ready_key_));
+		sample_ready_key_ = 0;
 	}
 
-	GetSampleRequested(false);	
+	is_stop_require_ = true;
+
+	LogHrFailled(client_->Stop());
+	XAMP_LOG_I(log_, "OnStopPlayback");
 	return S_OK;
 }
 
@@ -387,26 +453,10 @@ void SharedWasapiDevice::StartStream() {
 		throw HRException(AUDCLNT_E_NOT_INITIALIZED);
 	}
 
-	assert(callback_ != nullptr);
-
-	LogHrFailled(client_->Reset());
-
-	// Note: 必要! 某些音效卡會爆音!
-	FillSilentSample(buffer_frames_);	
-	
-	HrIfFailledThrow(client_->Start());
-
-	is_stop_streaming_ = false;
-	
-	HrIfFailledThrow(::MFPutWaitingWorkItem(sample_ready_.get(),
-		0, 
-		sample_ready_async_result_,
-		&sample_ready_key_));
-
-	// is_running_必須要確認都成功才能設置為true.	
-	is_running_ = true;
-
-	XAMP_LOG_I(log_, "Start shared mode stream!");
+	HrIfFailledThrow(::MFPutWorkItem2(queue_id_,
+		0,
+		start_playback_callback_,
+		nullptr));
 }
 
 bool SharedWasapiDevice::IsStreamRunning() const noexcept {
@@ -436,7 +486,6 @@ void SharedWasapiDevice::GetSampleRequested(bool is_silence) noexcept {
 }
 
 void SharedWasapiDevice::AbortStream() noexcept {
-	is_stop_streaming_ = true;
 }
 
 bool SharedWasapiDevice::IsHardwareControlVolume() const {
