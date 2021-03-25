@@ -201,7 +201,6 @@ private:
     mutable std::mutex pause_mutex_;
     mutable std::mutex stream_read_mutex_;
 #ifdef _DEBUG
-    std::chrono::microseconds min_process_time_{ 0 };
     std::chrono::microseconds max_process_time_{ 0 };
     Stopwatch sw_;
     std::string render_thread_id_;

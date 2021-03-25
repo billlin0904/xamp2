@@ -5,28 +5,33 @@
 
 #pragma once
 
+#ifdef XAMP_OS_WIN
+
 #include <base/windows_handle.h>
+#include <output_device/win32/hrexception.h>
 
 namespace xamp::output_device::win32 {
 
 class FastMutex {
 public:
 	FastMutex() {
-		::InitializeCriticalSectionEx(&cs_, 1, 0);
+		if (!::InitializeCriticalSectionEx(&cs_, 1, 0)) {
+			throw PlatformSpecException();
+		}
 		::SetCriticalSectionSpinCount(&cs_, 0);
 	}
 
 	XAMP_DISABLE_COPY(FastMutex)
 
-	~FastMutex() {
+	~FastMutex() noexcept {
 		::DeleteCriticalSection(&cs_);
 	}
 
-	void lock() {
+	void lock() noexcept {
 		::EnterCriticalSection(&cs_);
 	}
 	
-	void unlock() {
+	void unlock() noexcept {
 		::LeaveCriticalSection(&cs_);
 	}
 
@@ -35,4 +40,4 @@ private:
 };
 
 }
-
+#endif

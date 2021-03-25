@@ -51,6 +51,8 @@ public:
     XAMP_ALWAYS_INLINE operator bool() const noexcept {
         return func_ != nullptr;
     }
+
+    XAMP_DISABLE_COPY(DllFunction)
 private:
     T *func_;
 };

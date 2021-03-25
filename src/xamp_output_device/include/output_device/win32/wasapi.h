@@ -48,6 +48,8 @@ namespace xamp::output_device::win32::helper {
 inline constexpr int32_t kWasapiReftimesPerMillisec = 10000;
 inline constexpr double kWasapiReftimesPerSec = 10000000;
 
+inline constexpr DWORD kAsyncCallbackWorkQueue = MFASYNC_CALLBACK_QUEUE_MULTITHREADED;
+
 DeviceInfo GetDeviceInfo(CComPtr<IMMDevice>& device, Uuid const& device_type_id);
 
 CComPtr<IMMDeviceEnumerator> CreateDeviceEnumerator();
@@ -76,6 +78,13 @@ XAMP_ALWAYS_INLINE constexpr UINT32 ReferenceTimeToFrames(REFERENCE_TIME period,
 
 XAMP_ALWAYS_INLINE constexpr REFERENCE_TIME MakeHnsPeriod(UINT32 frames, UINT32 samplerate) noexcept {
 	return static_cast<REFERENCE_TIME>(10000.0 * 1000.0 / double(samplerate) * double(frames) + 0.5);
+}
+
+template <typename T>
+CComPtr<MFAsyncCallback<T>> MakeAsyncCallback(T* ptr, typename MFAsyncCallback<T>::Callback callback, DWORD queue_id) {
+	return CComPtr<MFAsyncCallback<T>>(new MFAsyncCallback<T>(ptr,
+		callback,
+		queue_id));
 }
 
 }

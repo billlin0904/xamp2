@@ -58,4 +58,5 @@ private:
 			HRException::ThrowFromHResult(hresult, #hresult); \
 		} \
 	} while (false)
+
 #endif

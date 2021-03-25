@@ -86,10 +86,6 @@ private:
 
 	HRESULT OnStopPlayback(IMFAsyncResult* result);
 
-	static CComPtr<MFAsyncCallback<ExclusiveWasapiDevice>> MakeAsyncCallback(ExclusiveWasapiDevice* pThis,
-		MFAsyncCallback<ExclusiveWasapiDevice>::Callback callback,
-		DWORD queue_id);	
-
 	bool raw_mode_;
 	std::atomic<bool> is_running_;
 	std::atomic<bool> is_stop_require_;

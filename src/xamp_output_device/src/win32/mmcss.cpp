@@ -50,10 +50,8 @@ public:
 			return;
 		}
 		
-		auto last_error = ::GetLastError();
-		XAMP_LOG_ERROR("AvSetMmThreadCharacteristicsW return failure! Error:{} {}",
-			last_error,
-			GetPlatformErrorMessage(last_error));
+		XAMP_LOG_ERROR("AvSetMmThreadCharacteristicsW return failure! Error:{}",
+			GetLastErrorMessage());
 	}
 
 	void RevertPriority() {
@@ -62,10 +60,8 @@ public:
 		}
 		
 		if (!Singleton<AvrtLib>::GetInstance().AvRevertMmThreadCharacteristics(avrt_handle_)) {
-			auto last_error = ::GetLastError();
-			XAMP_LOG_ERROR("AvSetMmThreadCharacteristicsW return failure! Error:{} {}",
-				last_error,
-				GetPlatformErrorMessage(last_error));
+			XAMP_LOG_ERROR("AvSetMmThreadCharacteristicsW return failure! Error:{}",
+				GetLastErrorMessage());
 		}
 
 		avrt_handle_ = nullptr;

@@ -87,10 +87,6 @@ private:
 
 	HRESULT OnStopPlayback(IMFAsyncResult* result);
 
-	static CComPtr<MFAsyncCallback<SharedWasapiDevice>> MakeAsyncCallback(SharedWasapiDevice* pThis,
-		MFAsyncCallback<SharedWasapiDevice>::Callback callback,
-		DWORD queue_id);
-
 	class DeviceEventNotification;
 
 	std::atomic<bool> is_running_;

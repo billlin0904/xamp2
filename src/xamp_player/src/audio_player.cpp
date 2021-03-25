@@ -263,6 +263,9 @@ void AudioPlayer::Play() {
             device_->SetVolume(volume_);
             device_->SetMute(is_muted_);
             XAMP_LOG_DEBUG("Play vol:{} muted:{}.", volume_, is_muted_);
+#ifdef _DEBUG
+            sw_.Reset();
+#endif
             device_->StartStream();
             SetState(PlayerState::PLAYER_STATE_RUNNING);
         }
@@ -338,6 +341,9 @@ void AudioPlayer::Resume() {
         is_paused_ = false;
         pause_cond_.notify_all();
         stopped_cond_.notify_all();
+#ifdef _DEBUG
+        sw_.Reset();
+#endif
         device_->StartStream();
         SetState(PlayerState::PLAYER_STATE_RUNNING);
     }
@@ -369,6 +375,13 @@ void AudioPlayer::Stop(bool signal_to_stop, bool shutdown_device, bool wait_for_
     stream_.reset();
     // 必須只能在Device關閉的狀況下清除.
     msg_queue_.clear();
+
+#ifdef _DEBUG
+    render_thread_id_.clear();
+    XAMP_LOG_INFO("AVG max time {} ms", max_process_time_.count() / 1000);
+    sw_.Reset();
+    max_process_time_ = std::chrono::microseconds(0);
+#endif
 }
 
 void AudioPlayer::SetVolume(uint32_t volume) {
@@ -868,7 +881,6 @@ DataCallbackResult AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_
 #ifdef _DEBUG
     const auto elapsed = sw_.Elapsed();
     max_process_time_ = std::max(elapsed, max_process_time_);
-    min_process_time_ = std::min(elapsed, min_process_time_);
 #endif
     if (enable_gapless_play_ && stream_time >= stream_duration_) {
         msg_queue_.TryPush(MsgID::EVENT_SWITCH);
@@ -910,16 +922,6 @@ void AudioPlayer::PrepareToPlay(double start_time, double end_time) {
     CreateBuffer();
     BufferStream(start_time);    
     
-#ifdef _DEBUG
-    render_thread_id_.clear();
-	
-    XAMP_LOG_INFO("AVG max time {} ms, AVG min time {} ms",
-        max_process_time_.count() / 1000, 
-        min_process_time_.count() / 1000);
-    sw_.Reset();
-    min_process_time_ = std::chrono::seconds(1);
-    max_process_time_ = std::chrono::microseconds(0);
-#endif
     if (end_time > 0.0) {
         sample_end_time_ = end_time - start_time;
     }

@@ -95,15 +95,6 @@ ExclusiveWasapiDevice::~ExclusiveWasapiDevice() {
     } catch (...) {
     }
 }
-
-CComPtr<MFAsyncCallback<ExclusiveWasapiDevice>>
-	ExclusiveWasapiDevice::MakeAsyncCallback(ExclusiveWasapiDevice* pThis,
-		MFAsyncCallback<ExclusiveWasapiDevice>::Callback callback, 
-		DWORD queue_id) {
-	return CComPtr<MFAsyncCallback<ExclusiveWasapiDevice>>(new MFAsyncCallback<ExclusiveWasapiDevice>(pThis,
-		callback,
-		queue_id));
-}
 	
 void ExclusiveWasapiDevice::SetAlignedPeriod(REFERENCE_TIME device_period, const AudioFormat &output_format) {
 	buffer_frames_ = ReferenceTimeToFrames(device_period, output_format.GetSampleRate());
@@ -155,8 +146,9 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
 		throw DeviceUnSupportedFormatException(output_format);
 	}
 
-	HrIfFailledThrow(hr);
-
+	HrIfFailledThrow(hr);	
+	
+#ifdef _DEBUG
 	CComPtr<IAudioEndpointVolume> endpoint_volume;
 
 	HrIfFailledThrow(device_->Activate(kAudioEndpointVolumeID,
@@ -167,7 +159,6 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
 
 	HrIfFailledThrow(endpoint_volume->QueryHardwareSupport(&volume_support_mask_));
 	
-#ifdef _DEBUG
 	if (volume_support_mask_ & ENDPOINT_HARDWARE_SUPPORT_VOLUME) {
 		XAMP_LOG_I(log_, "Hardware support volume control.");
 	}
@@ -249,7 +240,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	HrIfFailledThrow(::MFCreateAsyncResult(nullptr, start_playback_callback_, nullptr, &start_playback_async_result_));
 
 	if (!sample_ready_) {
-		sample_ready_.reset(::CreateEventEx(nullptr, nullptr, 0, EVENT_MODIFY_STATE | SYNCHRONIZE));
+		sample_ready_.reset(::CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS));
 		assert(sample_ready_);
 		HrIfFailledThrow(client_->SetEventHandle(sample_ready_.get()));
 	}
@@ -269,9 +260,9 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	));
 	float min_volume = 0;
 	float max_volume = 0;
-	float volume_increnment = 0;
-	HrIfFailledThrow(endpoint_volume->GetVolumeRange(&min_volume, &max_volume, &volume_increnment));
-	XAMP_LOG_I(log_, "WASAPI min_volume: {} max_volume: {} volume_increnment: {}.", min_volume, max_volume, volume_increnment);
+	float volume_increment = 0;
+	HrIfFailledThrow(endpoint_volume->GetVolumeRange(&min_volume, &max_volume, &volume_increment));
+	XAMP_LOG_I(log_, "WASAPI min_volume: {} max_volume: {} volume_increnment: {}.", min_volume, max_volume, volume_increment);
 #endif
 }
 
@@ -379,7 +370,7 @@ void ExclusiveWasapiDevice::GetSample(uint32_t frames_available) noexcept {
 	}
 	else {
 		ReportError(render_client_->ReleaseBuffer(frames_available, AUDCLNT_BUFFERFLAGS_SILENT));
-		ReportError(::MFPutWorkItem2(queue_id_,
+		ReportError(::MFPutWorkItem2(kAsyncCallbackWorkQueue,
 			0,
 			stop_playback_callback_, 
 			nullptr));
@@ -433,14 +424,14 @@ void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
 	}
 
 	if (wait_for_stop_stream) {
-		HrIfFailledThrow(::MFPutWorkItem2(queue_id_,
+		HrIfFailledThrow(::MFPutWorkItem2(kAsyncCallbackWorkQueue,
 			0,
 			stop_playback_callback_,
 			nullptr));
 		XAMP_LOG_I(log_, "Start stop playback callback");
 	}
 	else {
-		HrIfFailledThrow(::MFPutWorkItem2(queue_id_,
+		HrIfFailledThrow(::MFPutWorkItem2(kAsyncCallbackWorkQueue,
 			0,
 			pause_playback_callback_,
 			nullptr));
@@ -460,7 +451,7 @@ void ExclusiveWasapiDevice::StartStream() {
 		throw HRException(AUDCLNT_E_NOT_INITIALIZED);
 	}
 	
-	HrIfFailledThrow(::MFPutWorkItem2(queue_id_,
+	HrIfFailledThrow(::MFPutWorkItem2(kAsyncCallbackWorkQueue,
 		0,
 		start_playback_callback_,
 		nullptr));

@@ -34,12 +34,15 @@ public:
     }
 
     const Buffer<float>& Process(float const * samples, uint32_t num_samples) {
-        buffer_.resize(num_samples);
+    	if (buffer_.size() < num_samples) {
+            buffer_.resize(num_samples);
+    	}        
         MemoryCopy(buffer_.data(), samples, num_samples * sizeof(float));
 
-        const auto bytes_read = BASS.BASS_ChannelGetData(stream_.get(),
-                                                         buffer_.data(),
-                                                         buffer_.size() * sizeof(float));
+        const auto bytes_read = 
+            BASS.BASS_ChannelGetData(stream_.get(),
+                buffer_.data(), 
+                num_samples * sizeof(float));
         if (bytes_read == kBassError) {
             return buffer_;
         }

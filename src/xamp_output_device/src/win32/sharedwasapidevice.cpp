@@ -11,6 +11,8 @@
 
 namespace xamp::output_device::win32 {
 
+using namespace xamp::output_device::win32::helper;
+
 static void SetWaveformatEx(WAVEFORMATEX *input_fromat, uint32_t samplerate) noexcept {
 	auto &format = *reinterpret_cast<WAVEFORMATEXTENSIBLE *>(input_fromat);
 
@@ -84,15 +86,6 @@ SharedWasapiDevice::SharedWasapiDevice(CComPtr<IMMDevice> const & device)
 	, log_(Logger::GetInstance().GetLogger("SharedWasapiDevice")) {
 }
 
-CComPtr<MFAsyncCallback<SharedWasapiDevice>>
-SharedWasapiDevice::MakeAsyncCallback(SharedWasapiDevice* pThis,
-	MFAsyncCallback<SharedWasapiDevice>::Callback callback,
-	DWORD queue_id) {
-	return CComPtr<MFAsyncCallback<SharedWasapiDevice>>(new MFAsyncCallback<SharedWasapiDevice>(pThis,
-		callback,
-		queue_id));
-}
-
 SharedWasapiDevice::~SharedWasapiDevice() {
     try {
         CloseStream();
@@ -130,14 +123,14 @@ void SharedWasapiDevice::StopStream(bool wait_for_stop_stream) {
 	}
 
 	if (wait_for_stop_stream) {
-		HrIfFailledThrow(::MFPutWorkItem2(queue_id_,
+		HrIfFailledThrow(::MFPutWorkItem2(kAsyncCallbackWorkQueue,
 			0,
 			stop_playback_callback_,
 			nullptr));
 		XAMP_LOG_I(log_, "Start stop playback callback");
 	}
 	else {
-		HrIfFailledThrow(::MFPutWorkItem2(queue_id_,
+		HrIfFailledThrow(::MFPutWorkItem2(kAsyncCallbackWorkQueue,
 			0,
 			pause_playback_callback_,
 			nullptr));
@@ -274,7 +267,7 @@ void SharedWasapiDevice::OpenStream(AudioFormat const & output_format) {
 	HrIfFailledThrow(::MFCreateAsyncResult(nullptr, start_playback_callback_, nullptr, &start_playback_async_result_));
 
 	if (!sample_ready_) {
-		sample_ready_.reset(::CreateEventEx(nullptr, nullptr, 0, EVENT_MODIFY_STATE | SYNCHRONIZE));
+		sample_ready_.reset(::CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS));
 		assert(sample_ready_);
 		HrIfFailledThrow(client_->SetEventHandle(sample_ready_.get()));
 	}
@@ -371,14 +364,14 @@ void SharedWasapiDevice::GetSample(uint32_t frame_available) noexcept {
 		return;
 	}
 
-	auto sample_time = helper::GetStreamPosInMilliseconds(clock_) / 1000.0;	
+	auto sample_time = GetStreamPosInMilliseconds(clock_) / 1000.0;	
 
 	XAMP_LIKELY(callback_->OnGetSamples(reinterpret_cast<float*>(data), frame_available, stream_time_float, sample_time) == DataCallbackResult::CONTINUE) {
 		ReportError(render_client_->ReleaseBuffer(frame_available, 0));
 	}
 	else {
 		ReportError(render_client_->ReleaseBuffer(frame_available, AUDCLNT_BUFFERFLAGS_SILENT));
-		ReportError(::MFPutWorkItem2(queue_id_,
+		ReportError(::MFPutWorkItem2(kAsyncCallbackWorkQueue,
 			0,
 			stop_playback_callback_,
 			nullptr));
@@ -401,7 +394,7 @@ HRESULT SharedWasapiDevice::OnSampleReady(IMFAsyncResult* result) {
 		condition_.notify_all();
 		return E_FAIL;
 	}
-	
+	std::lock_guard<FastMutex> render_lock{ render_mutex_ };
 	GetSampleRequested(false);	
 	return S_OK;
 }
@@ -411,11 +404,6 @@ HRESULT SharedWasapiDevice::OnStartPlayback(IMFAsyncResult* result) {
 	GetSampleRequested(true);
 
 	HrIfFailledThrow(client_->Start());
-
-	/*HrIfFailledThrow(::MFPutWaitingWorkItem(sample_ready_.get(),
-		0,
-		sample_ready_async_result_,
-		&sample_ready_key_));*/
 
 	// is_running_必須要確認都成功才能設置為true.
 	is_running_ = true;
@@ -453,7 +441,7 @@ void SharedWasapiDevice::StartStream() {
 		throw HRException(AUDCLNT_E_NOT_INITIALIZED);
 	}
 
-	HrIfFailledThrow(::MFPutWorkItem2(queue_id_,
+	HrIfFailledThrow(::MFPutWorkItem2(kAsyncCallbackWorkQueue,
 		0,
 		start_playback_callback_,
 		nullptr));

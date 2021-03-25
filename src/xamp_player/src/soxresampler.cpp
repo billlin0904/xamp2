@@ -1,9 +1,7 @@
-#include <vector>
 #include <cassert>
 
 #include <soxr.h>
 
-#include <base/dataconverter.h>
 #include <base/singleton.h>
 #include <base/dll.h>
 #include <base/logger.h>
@@ -230,7 +228,7 @@ public:
 			num_sample / num_channels_,
 			nullptr,
 			buffer_.data(),
-			buffer_.size() / num_channels_,
+			required_size / num_channels_,
 			&samples_done);
 
 		if (!samples_done) {
