@@ -73,7 +73,7 @@ ExclusiveWasapiDevice::ExclusiveWasapiDevice(CComPtr<IMMDevice> const & device)
 	: raw_mode_(false)
 	, is_running_(false)
 	, is_stop_require_(false)
-	, thread_priority_(MmcssThreadPriority::MMCSS_THREAD_PRIORITY_NORMAL)
+	, thread_priority_(MmcssThreadPriority::MMCSS_THREAD_PRIORITY_CRITICAL)
 	, buffer_frames_(0)
 	, valid_bits_samples_(0)
 	, volume_support_mask_(0)
@@ -225,7 +225,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	HrIfFailledThrow(::MFGetWorkQueueMMCSSPriority(queue_id_, &priority));
 
 	XAMP_LOG_I(log_, "MCSS task id:{} queue id:{}, priority:{} ({}).",
-		task_id, queue_id_, thread_priority_, static_cast<MmcssThreadPriority>(priority));
+		task_id, queue_id_, thread_priority_, EnumToString(static_cast<MmcssThreadPriority>(priority)));
 
     sample_ready_callback_ = MakeAsyncCallback(this, &ExclusiveWasapiDevice::OnSampleReady, queue_id_);
 	HrIfFailledThrow(::MFCreateAsyncResult(nullptr, sample_ready_callback_, nullptr, &sample_ready_async_result_));
@@ -319,15 +319,51 @@ HRESULT ExclusiveWasapiDevice::OnPausePlayback(IMFAsyncResult* result) {
 	return S_OK;
 }
 
+void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
+	if (!is_running_) {
+		return;
+	}
+
+	if (wait_for_stop_stream) {
+		HrIfFailledThrow(::MFPutWorkItem2(kAsyncCallbackWorkQueue,
+			0,
+			stop_playback_callback_,
+			nullptr));
+		XAMP_LOG_I(log_, "Start stop playback callback");
+	}
+	else {
+		HrIfFailledThrow(::MFPutWorkItem2(kAsyncCallbackWorkQueue,
+			0,
+			pause_playback_callback_,
+			nullptr));
+		XAMP_LOG_I(log_, "Start pause playback callback");
+	}
+
+	std::unique_lock<std::mutex> lock{ mutex_ };
+	std::chrono::milliseconds const kTestTimeout{ 100 };
+	while (is_running_) {
+		condition_.wait_for(lock, kTestTimeout);
+		XAMP_LOG_I(log_, "Wait stop playback callback");
+	}
+}
+
 HRESULT ExclusiveWasapiDevice::OnStopPlayback(IMFAsyncResult* result) {
 	if (sample_ready_key_ > 0) {
 		LogHrFailled(::MFCancelWorkItem(sample_ready_key_));
 		sample_ready_key_ = 0;
 	}
+	
+	GetSample(true);
+
+	MSleep(2000);
 
 	is_stop_require_ = true;
-
 	LogHrFailled(client_->Stop());
+
+	sample_ready_async_result_.Release();
+	is_running_ = false;
+	condition_.notify_all();
+	
 	XAMP_LOG_I(log_, "OnStopPlayback");
 	return S_OK;
 }
@@ -335,51 +371,57 @@ HRESULT ExclusiveWasapiDevice::OnStopPlayback(IMFAsyncResult* result) {
 HRESULT ExclusiveWasapiDevice::OnSampleReady(IMFAsyncResult *result) {	
 	if (is_stop_require_) {
 		XAMP_LOG_I(log_, "Device is not running.");
-		is_running_ = false;
-		condition_.notify_all();
+		//is_running_ = false;
+		//condition_.notify_all();
 		return E_FAIL;
-	}
-	std::lock_guard<FastMutex> render_lock{ render_mutex_ };
-	GetSample(buffer_frames_);
-    return S_OK;
+	}	
+	return GetSample(false);
 }
 
-void ExclusiveWasapiDevice::GetSample(uint32_t frames_available) noexcept {
+HRESULT ExclusiveWasapiDevice::GetSample(bool is_silence) noexcept {
+	std::lock_guard<FastMutex> render_lock{ render_mutex_ };
+	
 	BYTE* data = nullptr;
 
-	auto hr = render_client_->GetBuffer(frames_available, &data);
+	auto hr = render_client_->GetBuffer(buffer_frames_, &data);
 	if (FAILED(hr)) {
-		ReportError(hr);
-		return;
+		return hr;
 	}
 	
-	auto stream_time = stream_time_ + frames_available;
+	auto stream_time = stream_time_ + buffer_frames_;
 	stream_time_ = stream_time;
 	auto stream_time_float = static_cast<double>(stream_time) / static_cast<double>(mix_format_->nSamplesPerSec);
 
 	auto sample_time = GetStreamPosInMilliseconds(clock_) / 1000.0;
 
-	XAMP_LIKELY(callback_->OnGetSamples(buffer_.Get(), frames_available, stream_time_float, sample_time) == DataCallbackResult::CONTINUE) {
+	const DWORD flags = is_silence ? AUDCLNT_BUFFERFLAGS_SILENT : 0;
+
+	XAMP_LIKELY(callback_->OnGetSamples(buffer_.Get(), buffer_frames_, stream_time_float, sample_time) == DataCallbackResult::CONTINUE) {
 		if (!raw_mode_) {
 			DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::ConvertToInt2432(
 				reinterpret_cast<int32_t*>(data),
 				buffer_.Get(),
 				data_convert_);
 		}
-		ReportError(render_client_->ReleaseBuffer(frames_available, 0));
+		hr = render_client_->ReleaseBuffer(buffer_frames_, flags);
 	}
 	else {
-		ReportError(render_client_->ReleaseBuffer(frames_available, AUDCLNT_BUFFERFLAGS_SILENT));
-		ReportError(::MFPutWorkItem2(kAsyncCallbackWorkQueue,
-			0,
-			stop_playback_callback_, 
-			nullptr));
+		// EOF data
+		hr = render_client_->ReleaseBuffer(buffer_frames_, AUDCLNT_BUFFERFLAGS_SILENT);		
 	}
 
-	ReportError(::MFPutWaitingWorkItem(sample_ready_.get(),
-		0,
-		sample_ready_async_result_,
-		&sample_ready_key_));
+	if (FAILED(hr)) {
+		hr = ::MFPutWorkItem2(kAsyncCallbackWorkQueue,
+			0,
+			stop_playback_callback_,
+			nullptr);
+	} else {
+		hr = ::MFPutWaitingWorkItem(sample_ready_.get(),
+			0,
+			sample_ready_async_result_,
+			&sample_ready_key_);
+	}
+	return hr;
 }
 
 void ExclusiveWasapiDevice::SetAudioCallback(AudioCallback* callback) noexcept {
@@ -416,34 +458,6 @@ void ExclusiveWasapiDevice::CloseStream() {
 }
 
 void ExclusiveWasapiDevice::AbortStream() noexcept {
-}
-
-void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
-	if (!is_running_) {
-		return;
-	}
-
-	if (wait_for_stop_stream) {
-		HrIfFailledThrow(::MFPutWorkItem2(kAsyncCallbackWorkQueue,
-			0,
-			stop_playback_callback_,
-			nullptr));
-		XAMP_LOG_I(log_, "Start stop playback callback");
-	}
-	else {
-		HrIfFailledThrow(::MFPutWorkItem2(kAsyncCallbackWorkQueue,
-			0,
-			pause_playback_callback_,
-			nullptr));
-		XAMP_LOG_I(log_, "Start pause playback callback");
-	}
-
-	std::unique_lock<std::mutex> lock{ mutex_ };
-	std::chrono::milliseconds const kTestTimeout{ 100 };
-	while (is_running_) {
-		condition_.wait_for(lock, kTestTimeout);
-		XAMP_LOG_I(log_, "Wait stop playback callback");
-	}
 }
 
 void ExclusiveWasapiDevice::StartStream() {

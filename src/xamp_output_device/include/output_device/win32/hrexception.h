@@ -41,7 +41,7 @@ private:
 	do {\
 		auto hr = expr;\
 		if (FAILED(hr)) {\
-			XAMP_LOG_DEBUG("{}", HRException::ErrorToStringHelper(hr));\
+			XAMP_LOG_DEBUG("{} {}", #expr, HRException::ErrorToStringHelper(hr));\
 		}\
 	} while(false)
 

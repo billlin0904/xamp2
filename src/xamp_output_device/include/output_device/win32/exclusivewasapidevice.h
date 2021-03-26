@@ -76,7 +76,7 @@ private:
 
 	void ReportError(HRESULT hr) noexcept;
 
-	void GetSample(uint32_t frame_available) noexcept;
+	HRESULT GetSample(bool is_silence) noexcept;
 
 	HRESULT OnSampleReady(IMFAsyncResult* result);
 
