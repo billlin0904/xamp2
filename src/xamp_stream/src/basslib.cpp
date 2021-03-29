@@ -137,11 +137,11 @@ void BassLib::Load() {
 #ifdef XAMP_OS_WIN
     // Disable Media Foundation
     Singleton<BassLib>::GetInstance().BASS_SetConfig(BASS_CONFIG_MF_DISABLE, true);
-    Singleton<BassLib>::GetInstance().BASS_SetConfig(BASS_CONFIG_MF_VIDEO, false);
+    Singleton<BassLib>::GetInstance().BASS_SetConfig(BASS_CONFIG_MF_VIDEO, false);    
+#endif
     LoadPlugin("bass_aac.dll");
     LoadPlugin("bassflac.dll");
     LoadPlugin("bass_ape.dll");
-#endif
     Singleton<BassLib>::GetInstance().BASS_SetConfig(BASS_CONFIG_FLOATDSP, true);
 }
 

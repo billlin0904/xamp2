@@ -246,17 +246,15 @@ void Xamp::initialUI() {
     ui_.titleLabel->setFont(f);
     f.setPointSize(8);
     ui_.artistLabel->setFont(f);
-#ifdef Q_OS_WIN
     if (UseNativeWindow()) {
         ui_.closeButton->hide();
         ui_.maxWinButton->hide();
         ui_.minWinButton->hide();
     }
+#ifdef Q_OS_WIN
     f.setPointSize(7);
     ui_.startPosLabel->setFont(f);
     ui_.endPosLabel->setFont(f);
-    /*ui_.startPosLabel->hide();
-    ui_.endPosLabel->hide();	*/
 #else
     f.setPointSize(11);
     ui_.titleLabel->setFont(f);
@@ -916,12 +914,12 @@ void Xamp::playMusic(const MusicEntity& item) {
     catch (...) {
         Toast::showTip(tr("unknown error"), this);
     }
-
-    ThemeManager::instance().setPlayOrPauseButton(ui_, true);
     updateUI(item, playback_format, open_done);
 }
 
 void Xamp::updateUI(const MusicEntity& item, const PlaybackFormat& playback_format, bool open_done) {
+    ThemeManager::instance().setPlayOrPauseButton(ui_, open_done);
+	
     if (open_done) {
         if (player_->IsHardwareControlVolume()) {
             if (!player_->IsMute()) {

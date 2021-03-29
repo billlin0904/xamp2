@@ -1,6 +1,3 @@
-#include <base/base.h>
-#include <base/logger.h>
-
 #include <metadata/metadataextractadapter.h>
 #include <metadata/metadatareader.h>
 

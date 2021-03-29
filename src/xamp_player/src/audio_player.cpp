@@ -28,14 +28,16 @@ inline constexpr int32_t kBufferStreamCount = 5;
 inline constexpr int32_t kTotalBufferStreamCount = 10;
 
 // 352800hz/32bit/3.3Min ~= 330.8MB
-inline constexpr int32_t kPreallocateBufferSize = 540 * 1024 * 1024;
-inline constexpr uint32_t kMaxPreallocateBufferSize = 540 * 1024 * 1024;
+//inline constexpr int32_t kPreallocateBufferSize = 540 * 1024 * 1024;
+//inline constexpr uint32_t kMaxPreallocateBufferSize = 540 * 1024 * 1024;
+inline constexpr int32_t kPreallocateBufferSize = 4 * 1024 * 1024;
+inline constexpr uint32_t kMaxPreallocateBufferSize = 135 * 1024 * 1024;
 	
 inline constexpr int32_t kMaxWriteRatio = 80;
 inline constexpr int32_t kMaxReadRatio = 2;
 inline constexpr int32_t kMsgQueueSize = 30;
 	
-// NOTE: 4KB的話libav resample會導致緩衝過大的問題產生.
+// NOTE: 4KB的話libav resample會導致緩衝過小的問題產生.
 inline constexpr int32_t kDefaultReadSampleSize = 8192 * 4;
 
 inline constexpr std::chrono::milliseconds kUpdateSampleInterval(30);

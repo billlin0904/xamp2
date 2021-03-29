@@ -47,7 +47,7 @@ public:
 
 class SoxrSampleRateConverter::SoxrSampleRateConverterImpl final {
 public:
-	static constexpr size_t kInitBufferSize = 4 * 1024 * 1204;
+	static constexpr size_t kInitBufferSize = 1 * 1024 * 1204;
 
 	SoxrSampleRateConverterImpl() noexcept
 		: enable_steep_filter_(false)

@@ -33,18 +33,18 @@ FramelessWindow::FramelessWindow(QWidget* parent)
     , is_maximized_(false)
     , border_width_(5)
     , current_screen_(nullptr)
-	, taskbar_progress_(nullptr)
+    , taskbar_progress_(nullptr)
 #endif
-{    
+{
     setAcceptDrops(true);
-    setMouseTracking(true);    
-    installEventFilter(this);    
-    auto ui_font = setupUIFont();        
+    setMouseTracking(true);
+    installEventFilter(this);
+    auto ui_font = setupUIFont();
 #if defined(Q_OS_WIN)
-   if (!use_native_window_) {
-        win32::setWinStyle(this);        
+    if (!use_native_window_) {
+        win32::setWinStyle(this);
     }
-    createThumbnailToolBar();   
+    createThumbnailToolBar();
     setStyleSheet(Q_UTF8(R"(
         font-family: "UI";
     )"));
@@ -57,7 +57,9 @@ FramelessWindow::FramelessWindow(QWidget* parent)
     )"));
     ui_font.setPointSize(14);
     qApp->setFont(ui_font);
-    osx::hideTitleBar(this);
+    if (!use_native_window_) {
+        osx::hideTitleBar(this);
+	}
 #endif
     setWindowTitle(Qt::EmptyString);
 }
@@ -320,9 +322,11 @@ bool FramelessWindow::nativeEvent(const QByteArray& event_type, void * message, 
     return QWidget::nativeEvent(event_type, message, result);
 }
 
-void FramelessWindow::changeEvent(QEvent * event) {
+void FramelessWindow::changeEvent(QEvent*) {
 #if defined(Q_OS_MAC)
-    osx::hideTitleBar(this);
+    if (!use_native_window_) {
+        osx::hideTitleBar(this);
+	}
 #endif
 }
 

@@ -139,7 +139,7 @@ void TaskScheduler::AddThread(size_t i) {
 	threads_.emplace_back([i, this]() mutable {		
 		const auto allocate_stack_size = (std::min)(kInitL1CacheLineSize * i, 
 			kMaxL1CacheLineSize);
-		const auto L1_padding_buffer = MakeStackBuffer<uint8_t>(allocate_stack_size);
+		//const auto L1_padding_buffer = MakeStackBuffer<uint8_t>(allocate_stack_size);
 		
 		SetWorkerThreadName(i);
 #ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
