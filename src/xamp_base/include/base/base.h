@@ -117,8 +117,6 @@ static_assert(std::is_trivially_destructible_v<t>);\
 struct Name __VA_ARGS__;\
 XAMP_ENFORCE_TRIVIAL(Name);
 
-#define XAMP_ENABLE_THREAD_POOL_DEBUG
-
 namespace xamp::base {
 // <summary>
 // Avoid cache-pollution padding size.

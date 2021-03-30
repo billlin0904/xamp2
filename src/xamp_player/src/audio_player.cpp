@@ -40,7 +40,7 @@ inline constexpr int32_t kMsgQueueSize = 30;
 // NOTE: 4KB的話libav resample會導致緩衝過小的問題產生.
 inline constexpr int32_t kDefaultReadSampleSize = 8192 * 4;
 
-inline constexpr std::chrono::milliseconds kUpdateSampleInterval(30);
+inline constexpr std::chrono::milliseconds kUpdateSampleInterval(100);
 inline constexpr std::chrono::milliseconds kReadSampleWaitTime(30);
 inline constexpr std::chrono::seconds kWaitForStreamStopTime(10);
 inline constexpr std::chrono::milliseconds kPauseWaitTimeout(100);
@@ -889,7 +889,7 @@ DataCallbackResult AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_
         device_->SetStreamTime(0);
     }
 
-#ifdef _DEBUG
+#if 0
     if (render_thread_id_.empty()) {
         render_thread_id_ = GetCurrentThreadId();
     } else {

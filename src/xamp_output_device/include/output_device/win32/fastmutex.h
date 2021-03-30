@@ -15,7 +15,7 @@ namespace xamp::output_device::win32 {
 class FastMutex {
 public:
 	FastMutex() {
-		if (!::InitializeCriticalSectionEx(&cs_, 1, 0)) {
+		if (!::InitializeCriticalSectionEx(&cs_, 1, CRITICAL_SECTION_NO_DEBUG_INFO)) {
 			throw PlatformSpecException();
 		}
 		::SetCriticalSectionSpinCount(&cs_, 0);

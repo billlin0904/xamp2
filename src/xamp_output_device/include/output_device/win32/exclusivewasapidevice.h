@@ -72,8 +72,6 @@ private:
 
 	void SetAlignedPeriod(REFERENCE_TIME device_period, AudioFormat const & output_format);
 
-	void FillSilentSample(uint32_t frames_available) noexcept;
-
 	void ReportError(HRESULT hr) noexcept;
 
 	HRESULT GetSample(bool is_silence) noexcept;
@@ -105,11 +103,9 @@ private:
 	CComPtr<IAudioRenderClient> render_client_;
 	CComPtr<IAudioEndpointVolume> endpoint_volume_;
 	CComPtr<IAudioClock> clock_;
-	CComHeapPtr<WAVEFORMATEX> mix_format_;	
-	mutable std::mutex mutex_;
+	CComHeapPtr<WAVEFORMATEX> mix_format_;
 	mutable FastMutex render_mutex_;
 	Buffer<float> buffer_;
-	std::condition_variable condition_;
 	AudioCallback* callback_;	
 	std::shared_ptr<spdlog::logger> log_;
 	CComPtr<MFAsyncCallback<ExclusiveWasapiDevice>> sample_ready_callback_;

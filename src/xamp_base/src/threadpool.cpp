@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <base/logger.h>
 #include <base/platform_thread.h>
 #include <base/threadpool.h>
 
@@ -23,9 +24,7 @@ TaskScheduler::TaskScheduler(size_t max_thread, int32_t core)
 		is_stopped_ = true;
 		throw;
 	}
-#ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
 	XAMP_LOG_DEBUG("TaskScheduler initial max thread:{} affinity:{}", max_thread, core);
-#endif
 }
 
 TaskScheduler::~TaskScheduler() noexcept {
@@ -38,9 +37,7 @@ void TaskScheduler::SubmitJob(Task&& task) {
 	for (size_t n = 0; n < max_thread_ * K; ++n) {
 		const auto index = (i + n) % max_thread_;
 		if (shared_queues_.at(index)->TryEnqueue(task)) {
-#ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
 			XAMP_LOG_DEBUG("Enqueue thread {} queue.", index);
-#endif
 			return;
 		}
 	}
@@ -49,9 +46,7 @@ void TaskScheduler::SubmitJob(Task&& task) {
 		throw LibrarySpecException("Thread pool was fulled.");
 	}
 
-#ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
 	XAMP_LOG_DEBUG("Enqueue pool queue.");
-#endif
 }
 
 void TaskScheduler::SetAffinityMask(int32_t core) {
@@ -75,9 +70,7 @@ void TaskScheduler::Destroy() noexcept {
 		catch (...) {
 		}
 	}
-#ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
 	XAMP_LOG_DEBUG("Thread pool was destory.");
-#endif
 }
 
 size_t TaskScheduler::GetActiveThreadCount() const noexcept {
@@ -88,9 +81,7 @@ std::optional<Task> TaskScheduler::TryPopPoolQueue() {
 	constexpr auto kWaitTimeout = std::chrono::milliseconds(30);
 	Task task;
 	if (pool_queue_.Dequeue(task, kWaitTimeout)) {
-#ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
 		XAMP_LOG_DEBUG("Pop pool thread queue.");
-#endif
 		return std::move(task);
 	}
 	return std::nullopt;
@@ -99,9 +90,7 @@ std::optional<Task> TaskScheduler::TryPopPoolQueue() {
 std::optional<Task> TaskScheduler::TryPopLocalQueue(size_t index) {
 	Task task;
 	if (shared_queues_.at(index)->TryDequeue(task)) {
-#ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
 		XAMP_LOG_DEBUG("Pop local thread queue.");
-#endif
 		return std::move(task);
 	}
 	return std::nullopt;
@@ -116,9 +105,7 @@ std::optional<Task> TaskScheduler::TrySteal(size_t i) {
 
 		const auto index = (i + n) % max_thread_;
 		if (shared_queues_.at(index)->TryDequeue(task)) {
-#ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
 			XAMP_LOG_DEBUG("Steal other thread {} queue.", index);
-#endif
 			return std::move(task);
 		}
 	}
@@ -140,11 +127,11 @@ void TaskScheduler::AddThread(size_t i) {
 		const auto allocate_stack_size = (std::min)(kInitL1CacheLineSize * i, 
 			kMaxL1CacheLineSize);
 		//const auto L1_padding_buffer = MakeStackBuffer<uint8_t>(allocate_stack_size);
+		auto thread_id = GetCurrentThreadId();
 		
 		SetWorkerThreadName(i);
-#ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
+		
 		XAMP_LOG_DEBUG("Worker Thread {} start.", i);
-#endif
 		
 		for (; !is_stopped_;) {
 			auto task = TrySteal(i + 1);
@@ -162,25 +149,16 @@ void TaskScheduler::AddThread(size_t i) {
 				}
 			}
 			auto active_thread = ++active_thread_;
-#ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
-			XAMP_LOG_DEBUG("Worker Thread {} weakup, active:{}.", i, active_thread);
-#endif
+			XAMP_LOG_DEBUG("Worker Thread {} ({}) weakup, active:{}.", i, thread_id, active_thread);
 			try {
 				(*task)();
 			}
 			catch (std::exception const& e) {
-#ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
 				XAMP_LOG_ERROR("Worker Thread {} got exception: {}", e.what());
-#endif
 			}
 			--active_thread_;
-#ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
-			XAMP_LOG_DEBUG("Worker Thread {} execute finished.", i);
-#endif
+			XAMP_LOG_DEBUG("Worker Thread {} ({}) execute finished.", i, thread_id);
 		}
-#ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
-		XAMP_LOG_DEBUG("Thread {} done.", i);
-#endif
 		});
 
 	if (core_ != -1) {
