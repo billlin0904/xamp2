@@ -118,30 +118,37 @@ void SharedWasapiDevice::SetAudioCallback(AudioCallback* callback) noexcept {
 }
 
 void SharedWasapiDevice::StopStream(bool wait_for_stop_stream) {
+	static constexpr std::chrono::milliseconds kTestTimeout{ 10 };
+
 	if (!is_running_) {
 		return;
 	}
 
 	if (wait_for_stop_stream) {
-		HrIfFailledThrow(::MFPutWorkItem2(kAsyncCallbackWorkQueue,
-			0,
-			stop_playback_callback_,
-			nullptr));
-		XAMP_LOG_I(log_, "Start stop playback callback");
+		if (sample_ready_key_ > 0) {
+			LogHrFailled(::MFCancelWorkItem(sample_ready_key_));
+			XAMP_LOG_I(log_, "Cancel waitting item!");
+			sample_ready_key_ = 0;
+		}
+
+		GetSampleRequested(true);
+
+		is_stop_require_ = true;
+
+		while (is_running_) {
+			std::this_thread::sleep_for(kTestTimeout);
+			XAMP_LOG_I(log_, "Wait stop playback callback");
+		}
+
+		sample_ready_.reset();
+		LogHrFailled(client_->Stop());
+
+		sample_ready_async_result_.Release();
+		XAMP_LOG_I(log_, "OnStopPlayback");
 	}
 	else {
-		HrIfFailledThrow(::MFPutWorkItem2(kAsyncCallbackWorkQueue,
-			0,
-			pause_playback_callback_,
-			nullptr));
-		XAMP_LOG_I(log_, "Start pause playback callback");
-	}
-
-	std::unique_lock<std::mutex> lock{ mutex_ };
-	std::chrono::milliseconds const kTestTimeout{ 100 };
-	while (is_running_) {
-		condition_.wait_for(lock, kTestTimeout);
-		XAMP_LOG_I(log_, "Wait stop playback callback");
+		LogHrFailled(client_->Stop());
+		XAMP_LOG_I(log_, "OnPausePlayback");
 	}
 }
 
@@ -240,8 +247,7 @@ void SharedWasapiDevice::OpenStream(AudioFormat const & output_format) {
 
 	XAMP_LOG_I(log_, "WASAPI buffer frame size:{}.", buffer_frames_);
 
-	// Enable MCSS
-	DWORD task_id = MF_MULTITHREADED_WORKQUEUE;
+	DWORD task_id = 0;
 	queue_id_ = 0;
 	HrIfFailledThrow(::MFLockSharedWorkQueue(mmcss_name_.c_str(),
 		static_cast<LONG>(thread_priority_),
@@ -252,18 +258,18 @@ void SharedWasapiDevice::OpenStream(AudioFormat const & output_format) {
 	HrIfFailledThrow(::MFGetWorkQueueMMCSSPriority(queue_id_, &priority));
 
 	XAMP_LOG_I(log_, "MCSS task id:{} queue id:{}, priority:{} ({}).",
-		task_id, queue_id_, thread_priority_, static_cast<MmcssThreadPriority>(priority));
+		task_id, queue_id_, thread_priority_, EnumToString(static_cast<MmcssThreadPriority>(priority)));
 
 	sample_ready_callback_ = MakeAsyncCallback(this, &SharedWasapiDevice::OnSampleReady, queue_id_);
 	HrIfFailledThrow(::MFCreateAsyncResult(nullptr, sample_ready_callback_, nullptr, &sample_ready_async_result_));
 
-	stop_playback_callback_ = MakeAsyncCallback(this, &SharedWasapiDevice::OnStopPlayback, queue_id_);
+	stop_playback_callback_ = MakeAsyncCallback(this, &SharedWasapiDevice::OnStopPlayback, kAsyncCallbackWorkQueue);
 	HrIfFailledThrow(::MFCreateAsyncResult(nullptr, stop_playback_callback_, nullptr, &stop_playback_async_result_));
 
-	pause_playback_callback_ = MakeAsyncCallback(this, &SharedWasapiDevice::OnPausePlayback, queue_id_);
+	pause_playback_callback_ = MakeAsyncCallback(this, &SharedWasapiDevice::OnPausePlayback, kAsyncCallbackWorkQueue);
 	HrIfFailledThrow(::MFCreateAsyncResult(nullptr, pause_playback_callback_, nullptr, &pause_playback_async_result_));
 
-	start_playback_callback_ = MakeAsyncCallback(this, &SharedWasapiDevice::OnStartPlayback, queue_id_);
+	start_playback_callback_ = MakeAsyncCallback(this, &SharedWasapiDevice::OnStartPlayback, kAsyncCallbackWorkQueue);
 	HrIfFailledThrow(::MFCreateAsyncResult(nullptr, start_playback_callback_, nullptr, &start_playback_async_result_));
 
 	if (!sample_ready_) {
@@ -347,56 +353,55 @@ void SharedWasapiDevice::ReportError(HRESULT hr) {
 	if (FAILED(hr)) {
 		const HRException exception(hr);
 		callback_->OnError(exception);
-		condition_.notify_one();
 		is_running_ = false;
 	}
 }
 
-void SharedWasapiDevice::GetSample(uint32_t frame_available) noexcept {
+HRESULT SharedWasapiDevice::GetSample(uint32_t frame_available, bool is_silence) noexcept {
 	double stream_time = stream_time_ + frame_available;
 	stream_time_ = stream_time;
 	auto stream_time_float = static_cast<double>(stream_time) / static_cast<double>(mix_format_->nSamplesPerSec);
 
+	const DWORD flags = is_silence ? AUDCLNT_BUFFERFLAGS_SILENT : 0;
+
 	BYTE* data = nullptr;
 	auto hr = render_client_->GetBuffer(frame_available, &data);
 	if (FAILED(hr)) {
-		ReportError(hr);
-		return;
+		return hr;
 	}
 
 	auto sample_time = GetStreamPosInMilliseconds(clock_) / 1000.0;	
 
 	XAMP_LIKELY(callback_->OnGetSamples(reinterpret_cast<float*>(data), frame_available, stream_time_float, sample_time) == DataCallbackResult::CONTINUE) {
-		ReportError(render_client_->ReleaseBuffer(frame_available, 0));
+		hr = render_client_->ReleaseBuffer(frame_available, flags);
 	}
 	else {
-		ReportError(render_client_->ReleaseBuffer(frame_available, AUDCLNT_BUFFERFLAGS_SILENT));
-		ReportError(::MFPutWorkItem2(kAsyncCallbackWorkQueue,
-			0,
-			stop_playback_callback_,
-			nullptr));
+		hr = render_client_->ReleaseBuffer(frame_available, AUDCLNT_BUFFERFLAGS_SILENT);
 	}
-}
-
-void SharedWasapiDevice::FillSilentSample(uint32_t frames_available) noexcept {
-	BYTE* data = nullptr;
-	if (!render_client_) {
-		return;
-	}
-	ReportError(render_client_->GetBuffer(frames_available, &data));
-	ReportError(render_client_->ReleaseBuffer(frames_available, AUDCLNT_BUFFERFLAGS_SILENT));
+	return hr;
 }
 
 HRESULT SharedWasapiDevice::OnSampleReady(IMFAsyncResult* result) {
 	if (is_stop_require_) {
 		XAMP_LOG_I(log_, "Device is not running.");
 		is_running_ = false;
-		condition_.notify_all();
-		return E_FAIL;
+		return S_OK;
+	}	
+	auto hr = GetSampleRequested(false);
+
+	if (FAILED(hr)) {
+		hr = ::MFPutWorkItem2(kAsyncCallbackWorkQueue,
+			0,
+			stop_playback_callback_,
+			nullptr);
 	}
-	std::lock_guard<FastMutex> render_lock{ render_mutex_ };
-	GetSampleRequested(false);	
-	return S_OK;
+	else {
+		hr = ::MFPutWaitingWorkItem(sample_ready_.get(),
+			0,
+			sample_ready_async_result_,
+			&sample_ready_key_);
+	}
+	return hr;
 }
 
 HRESULT SharedWasapiDevice::OnStartPlayback(IMFAsyncResult* result) {
@@ -405,34 +410,24 @@ HRESULT SharedWasapiDevice::OnStartPlayback(IMFAsyncResult* result) {
 
 	HrIfFailledThrow(client_->Start());
 
+	HrIfFailledThrow(::MFPutWaitingWorkItem(sample_ready_.get(),
+		0,
+		sample_ready_async_result_,
+		&sample_ready_key_));
+
 	// is_running_必須要確認都成功才能設置為true.
 	is_running_ = true;
 	is_stop_require_ = false;
 
 	XAMP_LOG_I(log_, "OnStartPlayback");
-	XAMP_LOG_I(log_, "Start exclusive mode stream!");
 	return S_OK;
 }
 
 HRESULT SharedWasapiDevice::OnPausePlayback(IMFAsyncResult* result) {
-	LogHrFailled(client_->Stop());
-
-	condition_.notify_all();
-	is_running_ = false;
-	XAMP_LOG_I(log_, "OnPausePlayback");
 	return S_OK;
 }
 
-HRESULT SharedWasapiDevice::OnStopPlayback(IMFAsyncResult* result) {
-	if (sample_ready_key_ > 0) {
-		LogHrFailled(::MFCancelWorkItem(sample_ready_key_));
-		sample_ready_key_ = 0;
-	}
-
-	is_stop_require_ = true;
-
-	LogHrFailled(client_->Stop());
-	XAMP_LOG_I(log_, "OnStopPlayback");
+HRESULT SharedWasapiDevice::OnStopPlayback(IMFAsyncResult* result) {	
 	return S_OK;
 }
 
@@ -445,32 +440,35 @@ void SharedWasapiDevice::StartStream() {
 		0,
 		start_playback_callback_,
 		nullptr));
+
+	XAMP_LOG_I(log_, "Start shared mode stream!");
 }
 
 bool SharedWasapiDevice::IsStreamRunning() const noexcept {
 	return is_running_;
 }
 
-void SharedWasapiDevice::GetSampleRequested(bool is_silence) noexcept {
+HRESULT SharedWasapiDevice::GetSampleRequested(bool is_silence) noexcept {
+	std::lock_guard<FastMutex> render_lock{ render_mutex_ };
+	
 	uint32_t padding_frames = 0;
 
 	const auto hr = client_->GetCurrentPadding(&padding_frames);
 	if (FAILED(hr)) {
-		ReportError(hr);
-		return;
+		return hr;
 	}
 
 	const auto frames_available = buffer_frames_ - padding_frames;
 
 	if (frames_available > 0) {
 		if (is_silence) {
-			FillSilentSample(frames_available);
+			return GetSample(frames_available, true);
 		}
 		else {
-			GetSample(frames_available);
+			return GetSample(frames_available, false);
 		}
 	}
-	ReportError(::MFPutWaitingWorkItem(sample_ready_.get(), 0, sample_ready_async_result_, &sample_ready_key_));
+	return S_OK;
 }
 
 void SharedWasapiDevice::AbortStream() noexcept {

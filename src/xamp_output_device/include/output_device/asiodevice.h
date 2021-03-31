@@ -25,7 +25,7 @@
 
 namespace xamp::output_device {
 
-class XAMP_OUTPUT_DEVICE_API AsioDevice final
+class AsioDevice final
 	: public Device
 	, public DsdDevice {
 public:

@@ -18,7 +18,7 @@
 
 namespace xamp::output_device::win32 {
 
-class XAMP_OUTPUT_DEVICE_API SharedWasapiDevice final : public Device {
+class SharedWasapiDevice final : public Device {
 public:
 	explicit SharedWasapiDevice(CComPtr<IMMDevice> const & device);
 
@@ -73,11 +73,9 @@ private:
 
 	void InitialDeviceFormat(AudioFormat const & output_format);
 
-	void GetSampleRequested(bool is_silence) noexcept;
+	HRESULT GetSampleRequested(bool is_silence) noexcept;
 
-	void GetSample(uint32_t frame_available) noexcept;
-
-	void FillSilentSample(uint32_t frame_available) noexcept;
+	HRESULT GetSample(uint32_t frame_available, bool is_silence) noexcept;
 
 	HRESULT OnSampleReady(IMFAsyncResult* result);
 
@@ -97,9 +95,7 @@ private:
 	uint32_t buffer_frames_;
 	std::wstring mmcss_name_;
 	MmcssThreadPriority thread_priority_;
-	mutable std::mutex mutex_;
 	mutable FastMutex render_mutex_;
-	std::condition_variable condition_;
 	MFWORKITEM_KEY sample_ready_key_;
 	WinHandle sample_ready_;
 	CComHeapPtr<WAVEFORMATEX> mix_format_;

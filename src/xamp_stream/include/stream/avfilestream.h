@@ -17,7 +17,7 @@
 
 namespace xamp::stream {
 
-class XAMP_STREAM_API AvFileStream final : public FileStream {
+class AvFileStream final : public FileStream {
 public:
 	AvFileStream();
 

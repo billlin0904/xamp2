@@ -19,7 +19,7 @@ namespace xamp::output_device::win32 {
 
 using namespace base;
 
-class XAMP_OUTPUT_DEVICE_API ExclusiveWasapiDeviceType final : public DeviceType {
+class ExclusiveWasapiDeviceType final : public DeviceType {
 public:
 	constexpr static auto Id = std::string_view("089F8446-C980-495B-AC80-5A437A4E73F6");
 

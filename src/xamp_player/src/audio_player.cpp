@@ -97,7 +97,7 @@ void AudioPlayer::Destroy() {
 #ifdef ENABLE_ASIO
     AudioDeviceManager::GetInstance().RemoveASIODriver();
 #endif
-    BassFileStream::FreeBassLib();
+    FreeBassLib();
 }
 
 void AudioPlayer::UpdateSlice(int32_t sample_size, double stream_time) noexcept {
@@ -114,7 +114,7 @@ void AudioPlayer::Initial() {
     ThreadPool::GetInstance().SetAffinityMask(1);
     XAMP_LOG_DEBUG("ThreadPool init success.");
 
-    BassFileStream::LoadBassLib();
+    LoadBassLib();
     XAMP_LOG_DEBUG("Load BASS dll success.");
 
     SoxrSampleRateConverter::LoadSoxrLib();
@@ -322,10 +322,10 @@ void AudioPlayer::Pause() {
         return;
     }
 
-    if (!is_paused_) {
-        XAMP_LOG_DEBUG("Player pasue.");
-        if (device_->IsStreamOpen()) {
-            is_paused_ = true;
+    XAMP_LOG_DEBUG("Player pasue.");
+    if (!is_paused_) {        
+        if (device_->IsStreamOpen()) {        	
+            is_paused_ = true;            
             device_->StopStream(false);
             SetState(PlayerState::PLAYER_STATE_PAUSED);            
         }

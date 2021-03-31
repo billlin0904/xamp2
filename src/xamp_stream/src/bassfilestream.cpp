@@ -221,24 +221,6 @@ BassFileStream::BassFileStream()
 
 XAMP_PIMPL_IMPL(BassFileStream)
 
-void BassFileStream::LoadBassLib() {
-    if (!BASS.IsLoaded()) {
-        (void) Singleton<BassLib>::GetInstance().Load();
-    }
-    BASS.MixLib = MakeAlign<BassMixLib>();
-    XAMP_LOG_DEBUG("Load BassMixLib {} successfully.", GetBassVersion(BASS.MixLib->BASS_Mixer_GetVersion()));
-    BASS.DSDLib = MakeAlign<BassDSDLib>();
-    XAMP_LOG_DEBUG("Load BassDSDLib successfully.");
-    BASS.FxLib = MakeAlign<BassFxLib>();
-    XAMP_LOG_DEBUG("Load BassFxLib successfully.");
-    BASS.BASS_SetConfig(BASS_CONFIG_DSD_FREQ, 174000);
-    XAMP_LOG_DEBUG("Load BassDSDLib successfully.");
-}
-
-void BassFileStream::FreeBassLib() {
-    Singleton<BassLib>::GetInstance().Free();
-}
-
 void BassFileStream::OpenFile(std::wstring const & file_path)  {
     stream_->LoadFromFile(file_path);
 }
@@ -301,6 +283,24 @@ uint32_t BassFileStream::GetDsdSpeed() const noexcept {
 
 std::set<std::string> BassFileStream::GetSupportFileExtensions() {
     return Singleton<BassLib>::GetInstance().GetSupportFileExtensions();
+}
+
+void LoadBassLib() {
+    if (!BASS.IsLoaded()) {
+        (void)Singleton<BassLib>::GetInstance().Load();
+    }
+    BASS.MixLib = MakeAlign<BassMixLib>();
+    XAMP_LOG_DEBUG("Load BassMixLib {} successfully.", GetBassVersion(BASS.MixLib->BASS_Mixer_GetVersion()));
+    BASS.DSDLib = MakeAlign<BassDSDLib>();
+    XAMP_LOG_DEBUG("Load BassDSDLib successfully.");
+    BASS.FxLib = MakeAlign<BassFxLib>();
+    XAMP_LOG_DEBUG("Load BassFxLib successfully.");
+    BASS.BASS_SetConfig(BASS_CONFIG_DSD_FREQ, 174000);
+    XAMP_LOG_DEBUG("Load BassDSDLib successfully.");
+}
+
+void FreeBassLib() {
+    Singleton<BassLib>::GetInstance().Free();
 }
 
 }

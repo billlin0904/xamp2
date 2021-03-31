@@ -23,7 +23,7 @@ namespace xamp::output_device::win32 {
 
 using namespace base;
 
-class XAMP_OUTPUT_DEVICE_API ExclusiveWasapiDevice final : public Device {
+class ExclusiveWasapiDevice final : public Device {
 public:
 	explicit ExclusiveWasapiDevice(CComPtr<IMMDevice> const & device);
 
@@ -89,7 +89,6 @@ private:
 	std::atomic<bool> is_stop_require_;
 	MmcssThreadPriority thread_priority_;
 	uint32_t buffer_frames_;
-	uint32_t valid_bits_samples_;
 	DWORD volume_support_mask_;
 	DWORD queue_id_;	
 	std::atomic<int64_t> stream_time_;

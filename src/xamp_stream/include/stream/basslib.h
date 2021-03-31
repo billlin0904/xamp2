@@ -93,7 +93,7 @@ public:
     XAMP_DECLARE_DLL(BASS_FX_TempoCreate) BASS_FX_TempoCreate;
 };
 
-class XAMP_STREAM_API BassLib final {
+class BassLib final {
 public:
     friend class Singleton<BassLib>;
 

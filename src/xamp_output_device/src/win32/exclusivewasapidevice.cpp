@@ -75,7 +75,6 @@ ExclusiveWasapiDevice::ExclusiveWasapiDevice(CComPtr<IMMDevice> const & device)
 	, is_stop_require_(false)
 	, thread_priority_(MmcssThreadPriority::MMCSS_THREAD_PRIORITY_HIGH)
 	, buffer_frames_(0)
-	, valid_bits_samples_(0)
 	, volume_support_mask_(0)
 	, queue_id_(0)
 	, stream_time_(0)
@@ -189,7 +188,6 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 
 	// Note: 由於轉換出來就是float格式, 所以固定採用24/32格式進行撥放!
 	valid_output_format.SetByteFormat(ByteFormat::SINT32);
-	valid_bits_samples_ = kValidBitPerSamples;
 
 	if (!client_) {
 		XAMP_LOG_I(log_, "Active device format: {}.", valid_output_format);
@@ -204,7 +202,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 			nullptr,
 			reinterpret_cast<void**>(&endpoint_volume_)));
 
-        InitialDeviceFormat(valid_output_format, valid_bits_samples_);
+        InitialDeviceFormat(valid_output_format, kValidBitPerSamples);
     }
 
     HrIfFailledThrow(client_->Reset());
@@ -299,20 +297,14 @@ HRESULT ExclusiveWasapiDevice::OnStartPlayback(IMFAsyncResult* result) {
 	return S_OK;
 }
 
-HRESULT ExclusiveWasapiDevice::OnPausePlayback(IMFAsyncResult* result) {
-	LogHrFailled(client_->Stop());
-
-	is_running_ = false;
-	XAMP_LOG_I(log_, "OnPausePlayback");
-	return S_OK;
-}
-
 void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
-	static constexpr std::chrono::milliseconds kTestTimeout{ 10 };
-	
+	static constexpr std::chrono::milliseconds kTestTimeout{ 10 };	
 	if (!is_running_) {
+		XAMP_LOG_I(log_, "StopStream is_running_: {}", is_running_);
 		return;
 	}
+
+	XAMP_LOG_I(log_, "StopStream is_running_: {}", is_running_);
 
 	if (wait_for_stop_stream) {
 		if (sample_ready_key_ > 0) {
@@ -334,23 +326,18 @@ void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
 		LogHrFailled(client_->Stop());
 
 		sample_ready_async_result_.Release();
-		is_running_ = false;
-
 		XAMP_LOG_I(log_, "OnStopPlayback");
 	}
 	else {
-		HrIfFailledThrow(::MFPutWorkItem2(kAsyncCallbackWorkQueue,
-			0,
-			pause_playback_callback_,
-			nullptr));
-		XAMP_LOG_I(log_, "Start pause playback async");		
-		while (is_running_) {
-			std::this_thread::sleep_for(kTestTimeout);
-			XAMP_LOG_I(log_, "Wait pause playback callback");
-		}
+		LogHrFailled(client_->Stop());
+		XAMP_LOG_I(log_, "OnPausePlayback");
 	}
 }
 
+HRESULT ExclusiveWasapiDevice::OnPausePlayback(IMFAsyncResult* result) {
+	return S_OK;
+}
+	
 HRESULT ExclusiveWasapiDevice::OnStopPlayback(IMFAsyncResult* result) {
 	return S_OK;
 }

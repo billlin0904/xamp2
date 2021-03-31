@@ -16,17 +16,13 @@
 
 namespace xamp::stream {
 
-class XAMP_STREAM_API BassFileStream final
+class BassFileStream final
 	: public FileStream
 	, public DsdStream {
 public:
 	BassFileStream();
 
-	XAMP_PIMPL(BassFileStream)
-
-	static void LoadBassLib();
-
-	static void FreeBassLib();
+	XAMP_PIMPL(BassFileStream)	
 
 	void OpenFile(std::wstring const & file_path) override;
 
@@ -64,6 +60,10 @@ private:
 	class BassFileStreamImpl;
 	AlignPtr<BassFileStreamImpl> stream_;
 };
+
+XAMP_STREAM_API void LoadBassLib();
+
+XAMP_STREAM_API void FreeBassLib();
 
 }
 

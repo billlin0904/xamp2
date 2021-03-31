@@ -16,13 +16,13 @@
 
 namespace xamp::output_device::win32 {
 
-class XAMP_OUTPUT_DEVICE_API Win32DeviceStateNotification 
+class Win32DeviceStateNotification 
 	: public UnknownImpl<IMMNotificationClient>
 	, public DeviceStateNotification {
 public:
 	explicit Win32DeviceStateNotification(std::weak_ptr<DeviceStateListener> callback);
 
-	virtual ~Win32DeviceStateNotification();
+	virtual ~Win32DeviceStateNotification() override;
 
 	void Run();
 

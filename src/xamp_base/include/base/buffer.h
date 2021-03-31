@@ -21,6 +21,8 @@ public:
         lock_.Lock(ptr_.get(), GetByteSize());
     }
 
+	XAMP_DISABLE_COPY(Buffer)
+
     Buffer(Buffer&& other) noexcept {
         *this = std::move(other);
     }

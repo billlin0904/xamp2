@@ -14,17 +14,18 @@ class XAMP_BASE_API VmMemLock final {
 public:
 	VmMemLock() noexcept;
 
-	VmMemLock(void* address, size_t size);
-	
-	XAMP_PIMPL(VmMemLock)
+	~VmMemLock() noexcept;
+
+	XAMP_DISABLE_COPY(VmMemLock)
 
 	void Lock(void* address, size_t size);
 
 	void UnLock() noexcept;
-
+	
+	VmMemLock& operator=(VmMemLock&& other) noexcept;
 private:
-	class VmMemLockImpl;
-	AlignPtr<VmMemLockImpl> impl_;
+	void* address_{ nullptr };
+	size_t size_{ 0 };
 };
 
 }

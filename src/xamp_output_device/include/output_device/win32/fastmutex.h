@@ -12,6 +12,37 @@
 
 namespace xamp::output_device::win32 {
 
+struct SpinLock {
+public:
+	XAMP_DISABLE_COPY(SpinLock)
+		
+	void Lock() noexcept {
+		for (;;) {
+			if (!lock_.exchange(true, std::memory_order_acquire)) {
+				return;
+			}
+			while (lock_.load(std::memory_order_relaxed)) {
+				// Issue X86 PAUSE or ARM YIELD instruction to reduce contention between
+				// hyper-threads
+				//__builtin_ia32_pause();
+				YieldProcessor();
+			}
+		}
+	}
+	
+	bool TryLock() noexcept {
+		return !lock_.load(std::memory_order_relaxed) &&
+			!lock_.exchange(true, std::memory_order_acquire);
+	}
+
+	void Unlock() noexcept {
+		lock_.store(false, std::memory_order_release);
+	}
+	
+private:
+	std::atomic<bool> lock_ = { false };
+};
+
 class FastMutex {
 public:
 	FastMutex() {
