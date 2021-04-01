@@ -119,7 +119,8 @@ void SharedWasapiDevice::SetAudioCallback(AudioCallback* callback) noexcept {
 
 void SharedWasapiDevice::StopStream(bool wait_for_stop_stream) {
 	static constexpr std::chrono::milliseconds kTestTimeout{ 10 };
-
+	static constexpr auto kMaxRetryCount = 10;
+	
 	if (!is_running_) {
 		return;
 	}
@@ -135,16 +136,18 @@ void SharedWasapiDevice::StopStream(bool wait_for_stop_stream) {
 
 		is_stop_require_ = true;
 
-		while (is_running_) {
+		MSleep(500);
+
+		auto i = 0;
+		while (is_running_ && i < kMaxRetryCount) {
 			std::this_thread::sleep_for(kTestTimeout);
 			XAMP_LOG_I(log_, "Wait stop playback callback");
+			++i;
 		}
-
-		sample_ready_.reset();
+		
 		LogHrFailled(client_->Stop());
-
-		sample_ready_async_result_.Release();
 		XAMP_LOG_I(log_, "OnStopPlayback");
+		is_running_ = false;
 	}
 	else {
 		LogHrFailled(client_->Stop());
@@ -157,9 +160,6 @@ void SharedWasapiDevice::CloseStream() {
 		HrIfFailledThrow(::MFUnlockWorkQueue(queue_id_));
 		queue_id_ = 0;
 	}
-
-	// Workaround!
-	MSleep(500);
 
 	render_client_.Release();
 	sample_ready_callback_.Release();

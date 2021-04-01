@@ -71,9 +71,7 @@ std::shared_ptr<spdlog::logger> Logger::GetLogger(const std::string &name) {
 
 Logger& Logger::AddDebugOutputLogger() {
 #ifdef XAMP_OS_WIN
-#if defined(DEBUG) || defined(_DEBUG)
 	sinks_.push_back(std::make_shared<DebugOutputSink>());
-#endif
 #endif
 	return *this;
 }

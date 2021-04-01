@@ -7,54 +7,56 @@
 
 #ifdef XAMP_OS_WIN
 
+#include <mutex>
 #include <base/windows_handle.h>
 #include <output_device/win32/hrexception.h>
 
 namespace xamp::output_device::win32 {
 
-struct SpinLock {
+// https://probablydance.com/2019/12/30/measuring-mutexes-spinlocks-and-how-bad-the-linux-scheduler-really-is/
+struct XAMP_CACHE_ALIGNED(kMallocAlignSize) SpinLock {
 public:
+	static constexpr auto kSpinCount = 16;
+	
+	SpinLock() = default;
+	
 	XAMP_DISABLE_COPY(SpinLock)
-		
-	void Lock() noexcept {
-		for (;;) {
-			if (!lock_.exchange(true, std::memory_order_acquire)) {
-				return;
-			}
-			while (lock_.load(std::memory_order_relaxed)) {
-				// Issue X86 PAUSE or ARM YIELD instruction to reduce contention between
-				// hyper-threads
-				//__builtin_ia32_pause();
+
+	void lock() noexcept {
+		for (auto spin_count = 0; !try_lock(); ++spin_count) {
+			if (spin_count < kSpinCount) {
 				YieldProcessor();
+			} else {
+				std::this_thread::yield();
+				spin_count = 0;
 			}
 		}
 	}
-	
-	bool TryLock() noexcept {
-		return !lock_.load(std::memory_order_relaxed) &&
-			!lock_.exchange(true, std::memory_order_acquire);
-	}
 
-	void Unlock() noexcept {
+	void unlock() noexcept {
 		lock_.store(false, std::memory_order_release);
 	}
 	
 private:
+	bool try_lock() noexcept {
+		return !lock_.load(std::memory_order_relaxed) &&
+			!lock_.exchange(true, std::memory_order_acquire);
+	}
 	std::atomic<bool> lock_ = { false };
 };
 
-class FastMutex {
+class CriticalSection {
 public:
-	FastMutex() {
+	CriticalSection() {
 		if (!::InitializeCriticalSectionEx(&cs_, 1, CRITICAL_SECTION_NO_DEBUG_INFO)) {
 			throw PlatformSpecException();
 		}
 		::SetCriticalSectionSpinCount(&cs_, 0);
 	}
 
-	XAMP_DISABLE_COPY(FastMutex)
+	XAMP_DISABLE_COPY(CriticalSection)
 
-	~FastMutex() noexcept {
+	~CriticalSection() noexcept {
 		::DeleteCriticalSection(&cs_);
 	}
 
@@ -70,5 +72,9 @@ private:
 	CRITICAL_SECTION cs_;
 };
 
+//typedef std::mutex FastMutex;
+//typedef CriticalSection FastMutex;
+typedef SpinLock FastMutex;
+	
 }
 #endif
