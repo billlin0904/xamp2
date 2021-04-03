@@ -2,6 +2,7 @@
 
 #include <QScrollBar>
 #include <QApplication>
+#include <QPainterPath>
 
 #include <widget/pixmapcache.h>
 #include <widget/database.h>

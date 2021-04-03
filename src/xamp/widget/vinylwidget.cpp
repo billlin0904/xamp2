@@ -1,3 +1,5 @@
+#include <QPainterPath>
+
 #include <thememanager.h>
 #include <widget/image_utiltis.h>
 #include <widget/str_utilts.h>
