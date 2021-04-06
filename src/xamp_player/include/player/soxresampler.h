@@ -46,9 +46,9 @@ public:
 
     void Start(uint32_t input_sample_rate, uint32_t num_channels, uint32_t output_sample_rate) override;
 
-    bool Process(float const * samples, uint32_t num_sample, AudioBuffer<int8_t> &buffer) override;
+    bool Process(float const * samples, size_t num_sample, AudioBuffer<int8_t> &buffer) override;
 
-    bool Process(float const* samples, uint32_t num_sample, SampleWriter& writer) override;
+    bool Process(float const* samples, size_t num_sample, SampleWriter& writer) override;
 
     void Flush() override;
 

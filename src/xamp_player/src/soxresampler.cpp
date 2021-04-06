@@ -178,7 +178,7 @@ public:
 		SoxrDLL.soxr_clear(handle_.get());
 	}
 
-	bool Process(float const* samples, uint32_t num_sample, AudioBuffer<int8_t>& buffer) {
+	bool Process(float const* samples, size_t num_sample, AudioBuffer<int8_t>& buffer) {
 		assert(num_channels_ != 0);
 
 		auto required_size = static_cast<size_t>(num_sample * ratio_) + 256;
@@ -214,7 +214,7 @@ public:
 		return true;
 	}
 
-	bool Process(float const* samples, uint32_t num_sample, SampleWriter& writer) {
+	bool Process(float const* samples, size_t num_sample, SampleWriter& writer) {
 		assert(num_channels_ != 0);
 
 		auto required_size = static_cast<size_t>(num_sample * ratio_) + 256;
@@ -313,11 +313,11 @@ std::string_view SoxrSampleRateConverter::GetDescription() const noexcept {
     return VERSION;
 }
 
-bool SoxrSampleRateConverter::Process(float const * samples, uint32_t num_sample, AudioBuffer<int8_t>& buffer) {
+bool SoxrSampleRateConverter::Process(float const * samples, size_t num_sample, AudioBuffer<int8_t>& buffer) {
     return impl_->Process(samples, num_sample, buffer);
 }
 
-bool SoxrSampleRateConverter::Process(float const* samples, uint32_t num_sample, SampleWriter& writer) {
+bool SoxrSampleRateConverter::Process(float const* samples, size_t num_sample, SampleWriter& writer) {
     return impl_->Process(samples, num_sample, writer);
 }
 

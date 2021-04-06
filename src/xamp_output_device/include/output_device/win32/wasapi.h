@@ -26,7 +26,7 @@
 
 #include <base/stl.h>
 #include <base/windows_handle.h>
-#include <base/Uuid.h>
+#include <base/uuid.h>
 
 #include <avrt.h>
 #include <Mferror.h>
@@ -40,7 +40,6 @@ struct IMFAsyncResult;
 struct IAudioClient;
 struct IAudioRenderClient;
 struct IMMNotificationClient;
-struct IMMDeviceEnumerator;
 struct IMMDeviceEnumerator;
 
 namespace xamp::output_device::win32::helper {

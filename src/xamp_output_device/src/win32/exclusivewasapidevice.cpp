@@ -319,7 +319,7 @@ void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
 
 		is_stop_require_ = true;
 
-		MSleep(500);
+		MSleep(800);
 
 		auto i = 0;
 		while (is_running_ && i < kMaxRetryCount) {

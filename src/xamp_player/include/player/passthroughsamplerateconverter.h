@@ -16,9 +16,9 @@ public:
 
     void Start(uint32_t, uint32_t num_channels, uint32_t output_sample_rate) override;
 
-    bool Process(float const * sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer) override;
+    bool Process(float const * sample_buffer, size_t num_samples, AudioBuffer<int8_t>& buffer) override;
 
-    bool Process(float const* samples, uint32_t num_sample, SampleWriter& writer) override;
+    bool Process(float const* samples, size_t num_sample, SampleWriter& writer) override;
 
     [[nodiscard]] std::string_view GetDescription() const noexcept override;
 
@@ -26,11 +26,11 @@ public:
 
     AlignPtr<SampleRateConverter> Clone() override;
 private:
-    bool ProcessNativeDsd(int8_t const * sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer);
+    bool ProcessNativeDsd(int8_t const * sample_buffer, size_t num_samples, AudioBuffer<int8_t>& buffer);
 
-    bool ProcessPcm(int8_t const * sample_buffer, uint32_t num_samples, AudioBuffer<int8_t>& buffer);
+    bool ProcessPcm(int8_t const * sample_buffer, size_t num_samples, AudioBuffer<int8_t>& buffer);
 
-    typedef bool (PassThroughSampleRateConverter::*ProcessDispatch)(int8_t const *, uint32_t, AudioBuffer<int8_t>&);
+    typedef bool (PassThroughSampleRateConverter::*ProcessDispatch)(int8_t const *, size_t, AudioBuffer<int8_t>&);
 	DsdModes dsd_mode_;
     uint8_t sample_size_;
     uint32_t output_sample_rate_;

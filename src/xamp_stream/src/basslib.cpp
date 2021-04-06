@@ -180,7 +180,7 @@ std::set<std::string> BassLib::GetSupportFileExtensions() const {
 	for (const auto& [key, value] : plugins_) {
         const auto* info = Singleton<BassLib>::GetInstance().BASS_PluginGetInfo(value.get());
 		
-        for (auto i = 0; i < info->formatc; ++i) {
+        for (DWORD i = 0; i < info->formatc; ++i) {
         	for (auto file_ext : String::Split(info->formats[i].exts, ";")) {
                 std::string ext(file_ext);
                 auto pos = ext.find('*');

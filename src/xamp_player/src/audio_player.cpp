@@ -27,11 +27,9 @@ namespace xamp::player {
 inline constexpr int32_t kBufferStreamCount = 5;
 inline constexpr int32_t kTotalBufferStreamCount = 10;
 
-// 352800hz/32bit/3.3Min ~= 330.8MB
-//inline constexpr int32_t kPreallocateBufferSize = 540 * 1024 * 1024;
-//inline constexpr uint32_t kMaxPreallocateBufferSize = 540 * 1024 * 1024;
+// 352.8Khz/32bit/3.3Min ~= 330.8MB
 inline constexpr int32_t kPreallocateBufferSize = 4 * 1024 * 1024;
-inline constexpr uint32_t kMaxPreallocateBufferSize = 135 * 1024 * 1024;
+inline constexpr uint32_t kMaxPreallocateBufferSize = 540 * 1024 * 1024;
 	
 inline constexpr int32_t kMaxWriteRatio = 80;
 inline constexpr int32_t kMaxReadRatio = 2;
@@ -436,7 +434,7 @@ std::optional<uint32_t> AudioPlayer::GetDSDSpeed() const {
         return std::nullopt;
     }
 
-    if (auto* dsd_stream = audio_util::AsDsdStream(stream_)) {
+    if (auto* dsd_stream = AsDsdStream(stream_)) {
         if (dsd_stream->IsDsdFile()) {
             return dsd_stream->GetDsdSpeed();
         }
