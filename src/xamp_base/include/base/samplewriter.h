@@ -13,7 +13,7 @@ class XAMP_BASE_API XAMP_NO_VTABLE SampleWriter {
 public:
 	virtual ~SampleWriter();
 
-	virtual bool TryWrite(float const* sample, uint32_t num_samples) = 0;
+	virtual bool TryWrite(float const* sample, size_t num_samples) = 0;
 protected:
 	SampleWriter();
 };

@@ -41,9 +41,8 @@ XAMP_ALWAYS_INLINE void FutexWakeAll(std::atomic<T>& to_wake) {
 #endif
 }
 
-
 // https://probablydance.com/2019/12/30/measuring-mutexes-spinlocks-and-how-bad-the-linux-scheduler-really-is/
-struct XAMP_CACHE_ALIGNED(kMallocAlignSize) SpinLock {
+class XAMP_CACHE_ALIGNED(kMallocAlignSize) SpinLock {
 public:
 	static constexpr auto kSpinCount = 16;
 	
@@ -74,7 +73,7 @@ private:
 	std::atomic<bool> lock_ = { false };
 };
 
-struct FutexMutex {
+class FutexMutex {
 public:
 	FutexMutex() = default;
 
@@ -116,6 +115,10 @@ public:
 	
 	void unlock() noexcept {
 		::ReleaseSRWLockExclusive(&lock_);
+	}
+
+	[[nodiscard]] bool try_lock() noexcept {
+		return ::TryAcquireSRWLockExclusive(&lock_);
 	}
 private:
 	SRWLOCK lock_ = SRWLOCK_INIT;

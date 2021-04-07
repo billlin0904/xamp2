@@ -24,6 +24,7 @@
 #include <base/stopwatch.h>
 #endif
 
+#include <output_device/audiodevicemanager.h>
 #include <output_device/audiocallback.h>
 #include <output_device/deviceinfo.h>
 
@@ -125,6 +126,8 @@ public:
 
     AlignPtr<SampleRateConverter> CloneSampleRateConverter() const;
 
+    AudioDeviceManager& GetAudioDeviceManager();
+
 private:
     bool CanProcessFile() const noexcept;
     	
@@ -191,7 +194,6 @@ private:
     uint32_t volume_;
     uint32_t num_buffer_samples_;
     uint32_t num_read_sample_;
-    uint32_t read_sample_size_; 
     std::atomic<bool> is_playing_;
     std::atomic<bool> is_paused_;
     std::atomic<bool> enable_gapless_play_;
@@ -222,6 +224,7 @@ private:
     AlignPtr<SampleRateConverter> converter_;
     std::vector<AlignPtr<AudioProcessor>> dsp_chain_;
     DeviceInfo device_info_;
+    AudioDeviceManager device_manager_;
     std::shared_future<void> stream_task_;
     SpscQueue<MsgID> msg_queue_;
     SpscQueue<double> seek_queue_;

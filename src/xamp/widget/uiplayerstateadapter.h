@@ -26,6 +26,7 @@ using xamp::player::PlaybackStateAdapter;
 using xamp::player::GaplessPlayEntry;
 
 using xamp::output_device::DeviceInfo;
+using xamp::output_device::DeviceState;
 using xamp::stream::FileStream;
 
 class UIPlayerStateAdapter final
@@ -68,7 +69,7 @@ signals:
 
     void playbackError(Errors error, const QString &message);
 
-    void deviceChanged(xamp::output_device::DeviceState state);
+    void deviceChanged(DeviceState state);
 
     void volumeChanged(float vol);
 

@@ -41,12 +41,12 @@ public:
     explicit AudioFormat(DataFormat format = DataFormat::FORMAT_PCM,
         uint16_t number_of_channels = 0,
         uint32_t bits_per_sample = 0,
-        uint32_t samplerate = 0) noexcept;
+        uint32_t sample_rate = 0) noexcept;
 
     explicit AudioFormat(DataFormat format,
         uint16_t number_of_channels,
         ByteFormat byte_format,
-        uint32_t samplerate,
+        uint32_t sample_rate,
         PackedFormat packed_format = PackedFormat::INTERLEAVED) noexcept;
 
     void SetFormat(DataFormat format) noexcept;
@@ -83,6 +83,16 @@ public:
 
     void Reset() noexcept;
 
+	static AudioFormat MakeFloatFormat(AudioFormat const & source_format) noexcept {
+        return AudioFormat{
+        	DataFormat::FORMAT_PCM,
+        	source_format.GetChannels(),
+        	ByteFormat::FLOAT32,
+			source_format.GetSampleRate(),
+        	PackedFormat::INTERLEAVED
+        };
+	}
+
 private:
     XAMP_BASE_API friend bool operator==(const AudioFormat& format, const AudioFormat& other) noexcept;
 
@@ -103,25 +113,25 @@ XAMP_ENFORCE_TRIVIAL(AudioFormat);
 XAMP_ALWAYS_INLINE AudioFormat::AudioFormat(DataFormat format,
     uint16_t number_of_channels,
     ByteFormat byte_format,
-    uint32_t samplerate,
+    uint32_t sample_rate,
     PackedFormat interleaved_format) noexcept
     : format_(format)
     , byte_format_(ByteFormat::INVALID_FORMAT)
     , packed_format_(interleaved_format)
     , num_channels_(number_of_channels)
-    , sample_rate_(samplerate) {
+    , sample_rate_(sample_rate) {
     SetByteFormat(byte_format);
 }
 
 XAMP_ALWAYS_INLINE AudioFormat::AudioFormat(DataFormat format,
     uint16_t number_of_channels,
     uint32_t bits_per_sample,
-    uint32_t samplerate) noexcept
+    uint32_t sample_rate) noexcept
     : format_(format)
     , byte_format_(ByteFormat::INVALID_FORMAT)
     , packed_format_(PackedFormat::INTERLEAVED)
     , num_channels_(number_of_channels)
-    , sample_rate_(samplerate) {
+    , sample_rate_(sample_rate) {
     SetBitPerSample(bits_per_sample);
 }
 

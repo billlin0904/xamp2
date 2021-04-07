@@ -470,7 +470,8 @@ AlbumView::AlbumView(QWidget* parent)
         (void)action_map.addAction(tr("Load file directory"), [this]() {
 	        const auto dir_name = QFileDialog::getExistingDirectory(this,
 	                                                                tr("Select a directory"),
-	                                                                AppSettings::getMyMusicFolderPath());
+	                                                                AppSettings::getMyMusicFolderPath(),
+                QFileDialog::DontUseNativeDialog | QFileDialog::ShowDirsOnly);
             append(dir_name);
             });
 
@@ -597,11 +598,11 @@ void AlbumView::append(const QString& file_name) {
                             &MetadataExtractAdapter::readCompleted,
                             this,
                             &AlbumView::processMeatadata);    
-    MetadataExtractAdapter::ReadFileMetadata(adapter, file_name);
+    MetadataExtractAdapter::readFileMetadata(adapter, file_name);
 }
 
 void AlbumView::processMeatadata(const std::vector<Metadata> &medata) {    
-    MetadataExtractAdapter::ProcessMetadata(medata);
+    MetadataExtractAdapter::processMetadata(medata);
     refreshOnece();
 }
 

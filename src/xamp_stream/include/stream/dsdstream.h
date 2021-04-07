@@ -18,17 +18,17 @@ public:
 
     virtual void SetDSDMode(DsdModes mode) noexcept = 0;
 
-    virtual DsdModes GetDsdMode() const noexcept = 0;
+    [[nodiscard]] virtual DsdModes GetDsdMode() const noexcept = 0;
 
-    virtual uint32_t GetDsdSampleRate() const = 0;
+    [[nodiscard]] virtual uint32_t GetDsdSampleRate() const = 0;
 
-	virtual DsdFormat GetDsdFormat() const noexcept = 0;
+    [[nodiscard]] virtual DsdFormat GetDsdFormat() const noexcept = 0;
 
-    virtual void SetDsdToPcmSampleRate(uint32_t samplerate) = 0;
+    virtual void SetDsdToPcmSampleRate(uint32_t sample_rate) = 0;
 
-    virtual uint32_t GetDsdSpeed() const noexcept = 0;
+    [[nodiscard]] virtual uint32_t GetDsdSpeed() const noexcept = 0;
 
-    virtual bool IsDsdFile() const noexcept = 0;
+    [[nodiscard]] virtual bool IsDsdFile() const noexcept = 0;
 protected:
     DsdStream() = default;
 };

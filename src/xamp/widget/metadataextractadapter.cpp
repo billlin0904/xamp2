@@ -28,15 +28,6 @@ inline constexpr size_t kCachePreallocateSize = 500;
 
 using xamp::metadata::TaglibMetadataReader;
 
-static QList<QString> GetDirList(QString const& root_dir) {
-    QList<QString> dir_or_files;
-    QDirIterator itr(root_dir, QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);
-    while (itr.hasNext()) {
-        dir_or_files.append(itr.next());
-    }
-    return dir_or_files;
-}
-
 class DatabaseIdCache final {
 public:
     std::tuple<int32_t, int32_t, QString> AddCache(const QString& album, const QString& artist) const;
@@ -157,24 +148,29 @@ MetadataExtractAdapter::MetadataExtractAdapter(QObject* parent)
 
 MetadataExtractAdapter::~MetadataExtractAdapter() = default;
 
-void MetadataExtractAdapter::ReadFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter, QString const & file_path) {
-    auto dirs = GetDirList(file_path);
-
-	if (dirs.isEmpty()) {
-        dirs.push_back(file_path);
-	}
-
-    QProgressDialog dialog(tr("Read file metadata"), tr("Cancel"), 0, dirs.count());
+void MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter, QString const & file_path) {
+    QProgressDialog dialog(tr("Read file metadata"), tr("Cancel"), 0, 0);
     dialog.setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     dialog.setWindowTitle(tr("Read progress dialog"));
     dialog.setWindowModality(Qt::WindowModal);
     dialog.setMinimumSize(QSize(500, 100));
     dialog.setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed));
     dialog.show();
-
     dialog.setMinimumDuration(1000);
-	
+
+    QList<QString> dirs;
+    QDirIterator itr(file_path, QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);
+    while (itr.hasNext()) {
+        dirs.append(itr.next());
+        qApp->processEvents();
+    }
+
+	if (dirs.isEmpty()) {
+        dirs.push_back(file_path);
+	}
+    
     auto progress = 0;
+    dialog.setMaximum(dirs.count());
 
     ExtractAdapterProxy proxy(adapter);
 	
@@ -198,7 +194,7 @@ void MetadataExtractAdapter::ReadFileMetadata(const QSharedPointer<MetadataExtra
     }
 }
 
-void MetadataExtractAdapter::ProcessMetadata(const std::vector<Metadata>& result, PlayListTableView* playlist) {
+void MetadataExtractAdapter::processMetadata(const std::vector<Metadata>& result, PlayListTableView* playlist) {
   const DatabaseIdCache cache;
 
     auto playlist_id = -1;

@@ -116,8 +116,7 @@ void Xamp::initial() {
     initialShortcut();
     setCover(nullptr);    
     createTrayIcon();
-    setDefaultStyle();
-    AudioDeviceManager::GetInstance().RegisterDeviceListener(player_);    
+    setDefaultStyle();        
 }
 
 void Xamp::onActivated(QSystemTrayIcon::ActivationReason reason) {
@@ -305,7 +304,7 @@ void Xamp::initialDeviceList() {
     const auto device_type_id = AppSettings::getID(kAppSettingDeviceType);
     const auto device_id = AppSettings::getValueAsString(kAppSettingDeviceId).toStdString();
 
-    AudioDeviceManager::GetInstance().ForEach([&](const auto &device_type) {
+    player_->GetAudioDeviceManager().ForEach([&](const auto &device_type) {
         device_type->ScanNewDevice();
 
         const auto device_info_list = device_type->GetDeviceInfo();
@@ -359,7 +358,7 @@ void Xamp::initialDeviceList() {
 
         if (!is_find_setting_device) {
             auto itr = std::find_if(device_info_list.begin(), device_info_list.end(), [](const auto& info) {
-                return info.is_default_device && !AudioDeviceManager::GetInstance().IsExclusiveDevice(info);
+                return info.is_default_device && !AudioDeviceManager::IsExclusiveDevice(info);
             });
             if (itr != device_info_list.end()) {
                 init_device_info = (*itr);
@@ -804,7 +803,6 @@ void Xamp::onSampleTimeChanged(double stream_time) {
 }
 
 void Xamp::onDisplayChanged(std::vector<float> const& display) {
-	
 }
 
 void Xamp::setSeekPosValue(double stream_time) {
@@ -875,7 +873,7 @@ void Xamp::setupSampleRateConverter(bool enable_dsp) {
 }
 
 void Xamp::processMeatadata(const std::vector<Metadata>& medata) const {    
-    MetadataExtractAdapter::ProcessMetadata(medata);
+    MetadataExtractAdapter::processMetadata(medata);
     emit album_artist_page_->album()->refreshOnece();
     emit album_artist_page_->artist()->refreshOnece();    
 }
@@ -1365,7 +1363,7 @@ void Xamp::addItem(const QString& file_name) {
             &Xamp::processMeatadata,
             Qt::QueuedConnection);
         
-        MetadataExtractAdapter::ReadFileMetadata(adapter, file_name);
+        MetadataExtractAdapter::readFileMetadata(adapter, file_name);
     }
 }
 

@@ -1,7 +1,7 @@
 #include <fstream>
 
 #include <base/str_utilts.h>
-#include <base/memory_mapped_file.h>
+#include <base/logger.h>
 
 #include <output_device/audiodevicemanager.h>
 
@@ -10,7 +10,6 @@
 #include <stream/avfilestream.h>
 #include <stream/stream_util.h>
 
-#include <base/dataconverter.h>
 #include <player/audio_util.h>
 
 namespace xamp::player::audio_util {
@@ -24,8 +23,8 @@ DsdModes SetStreamDsdMode(AlignPtr<FileStream>& stream, bool is_dsd_file, const 
 
     if (is_dsd_file) {
         if (auto* dsd_stream = AsDsdStream(stream)) {
-            // ASIO device (win32).
-            if (AudioDeviceManager::GetInstance().IsASIODevice(device_info.device_type_id)) {
+            // ASIO device (win32) or support native DSD format.
+            if (AudioDeviceManager::IsASIODevice(device_info.device_type_id)) {
                 if (is_dsd_file && device_info.is_support_dsd) {
                     dsd_stream->SetDSDMode(DsdModes::DSD_MODE_NATIVE);
                     dsd_mode = DsdModes::DSD_MODE_NATIVE;

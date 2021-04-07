@@ -68,13 +68,13 @@ void WaveFileWriter::Open(std::filesystem::path const& file_path, AudioFormat co
 	WriteHeader(format);	
 }
 
-bool WaveFileWriter::TryWrite(float const* sample, uint32_t num_samples) {
+bool WaveFileWriter::TryWrite(float const* sample, size_t num_samples) {
 	Write(sample, num_samples);
 	return true;
 }
 
-void WaveFileWriter::Write(float const* sample, uint32_t num_samples) {
-	for (uint32_t i = 0; i < num_samples; ++i) {
+void WaveFileWriter::Write(float const* sample, size_t num_samples) {
+	for (size_t i = 0; i < num_samples; ++i) {
 		WriteSample(sample[i]);
 	}
 }

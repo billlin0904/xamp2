@@ -556,9 +556,9 @@ void AsioDevice::CloseStream() {
 
 void AsioDevice::StartStream() {
 	mmcss_.RevertPriority();
-	AsioIfFailedThrow(::ASIOStart());
 	is_streaming_ = true;
-	is_stop_streaming_ = false;	
+	is_stop_streaming_ = false;
+	AsioIfFailedThrow(::ASIOStart());	
 }
 
 bool AsioDevice::IsStreamRunning() const noexcept {

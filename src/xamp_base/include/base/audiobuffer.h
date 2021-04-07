@@ -36,6 +36,8 @@ public:
 
 	size_t GetSize() const noexcept;
 
+	size_t GetByteSize() const noexcept;
+
     size_t GetAvailableWrite() const noexcept;
 
     size_t GetAvailableRead() const noexcept;
@@ -82,6 +84,11 @@ Type* AudioBuffer<Type, U>::GetData() const noexcept {
 template <typename Type, typename U>
 size_t AudioBuffer<Type, U>::GetSize() const noexcept {
 	return size_;
+}
+	
+template <typename Type, typename U>
+size_t AudioBuffer<Type, U>::GetByteSize() const noexcept {
+	return GetSize() * 8;
 }
 
 template <typename Type, typename U>

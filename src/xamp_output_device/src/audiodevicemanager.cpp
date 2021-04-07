@@ -32,7 +32,7 @@ public:
     using DeviceStateNotificationPtr = AlignPtr<DeviceStateNotification>;
 #endif
 
-    explicit DeviceStateNotificationImpl(std::weak_ptr<DeviceStateListener> callback) {
+    explicit DeviceStateNotificationImpl(std::weak_ptr<DeviceStateListener> const& callback) {
 #ifdef XAMP_OS_WIN
         notification_ = new DeviceStateNotification(callback);
 #else
@@ -115,11 +115,6 @@ AudioDeviceManager::AudioDeviceManager() {
 #endif
 }
 
-AudioDeviceManager& AudioDeviceManager::GetInstance() {
-    static AudioDeviceManager manager;
-    return manager;
-}
-
 AudioDeviceManager::~AudioDeviceManager() {
 #ifdef XAMP_OS_WIN	
     ::MFShutdown();
@@ -189,7 +184,7 @@ bool AudioDeviceManager::IsDeviceTypeExist(Uuid const& id) const noexcept {
     return factory_.find(id) != factory_.end();
 }
 
-void AudioDeviceManager::RegisterDeviceListener(std::weak_ptr<DeviceStateListener> callback) {	
+void AudioDeviceManager::RegisterDeviceListener(std::weak_ptr<DeviceStateListener> const& callback) {
     impl_ = MakeAlign<DeviceStateNotificationImpl>(callback);
     impl_->Run();
 }

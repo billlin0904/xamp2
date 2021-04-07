@@ -18,7 +18,7 @@ public:
 
 	XAMP_PIMPL(LoudnessScanner)
 
-	void Process(float const * samples, uint32_t num_sample);
+	void Process(float const * samples, size_t num_sample);
 
 	[[nodiscard]] double GetLoudness() const;
 

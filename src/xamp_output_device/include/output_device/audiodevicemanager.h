@@ -13,7 +13,6 @@
 #include <base/uuid.h>
 #include <base/exception.h>
 #include <base/align_ptr.h>
-#include <base/logger.h>
 
 #include <output_device/output_device.h>
 #include <output_device/device_type.h>
@@ -24,11 +23,13 @@ using namespace base;
 
 class XAMP_OUTPUT_DEVICE_API AudioDeviceManager final {
 public:
+    AudioDeviceManager();
+	
     ~AudioDeviceManager();
 
     XAMP_DISABLE_COPY(AudioDeviceManager)
 
-    void RegisterDeviceListener(std::weak_ptr<DeviceStateListener> callback);
+    void RegisterDeviceListener(std::weak_ptr<DeviceStateListener> const & callback);
 
     void Clear();
 
@@ -36,39 +37,30 @@ public:
 
     [[nodiscard]] AlignPtr<DeviceType> Create(Uuid const& id) const;
 
-    template <typename Function>
-    void ForEach(Function &&fun) {
-    	std::for_each(factory_.begin(), factory_.end(), [fun](auto const& creator) {
-    		try {
-                fun(creator.second());
-            }
-            catch (Exception const& e) {
-                XAMP_LOG_DEBUG("{}", e.GetErrorMessage());
-            }
-    	});        
+    template <typename Func>
+    void ForEach(Func&& func) {
+    	std::for_each(factory_.begin(), factory_.end(), [func](auto const& creator) {
+            func(creator.second());
+    	});
     }
 
-    bool IsSupportASIO() const noexcept;
+    [[nodiscard]] bool IsSupportASIO() const noexcept;
 
-    bool IsDeviceTypeExist(Uuid const& id) const noexcept;
+    [[nodiscard]] bool IsDeviceTypeExist(Uuid const& id) const noexcept;    
 
-    static AudioDeviceManager& GetInstance();
+    static bool IsExclusiveDevice(DeviceInfo const &info) noexcept;
 
-    bool IsExclusiveDevice(DeviceInfo const &info) noexcept;
+    static bool IsASIODevice(Uuid const& id) noexcept;
 
-    bool IsASIODevice(Uuid const& id) noexcept;
+    static void RemoveASIODriver();
 
-    void RemoveASIODriver();
-
-    void PreventSleep(bool allow);
+    static void PreventSleep(bool allow);
 private:
-    class DeviceStateNotificationImpl;
+    class DeviceStateNotificationImpl;    
 
-    AudioDeviceManager();
-
-    template <typename Function>
-    void RegisterCreator(Uuid const &id, Function&& fun) {
-        factory_[id] = std::forward<Function>(fun);
+    template <typename Func>
+    void RegisterCreator(Uuid const &id, Func&& func) {
+        factory_[id] = std::forward<Func>(func);
     }
 
     AlignPtr<DeviceStateNotificationImpl> impl_;    

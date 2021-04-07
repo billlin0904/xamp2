@@ -21,7 +21,7 @@ static HashSet<std::wstring> GetSupportFileExtensions() {
 static bool TestDsdFileFormat(std::string_view const & file_chunks) noexcept {
     static constexpr std::array<std::string_view, 2> knows_chunks{
         "DSD ", // .dsd file
-        "FRM8"  // .dsdiff fille
+        "FRM8"  // .dsdiff file
     };	
     return std::find(knows_chunks.begin(), knows_chunks.end(), file_chunks)
         != knows_chunks.end();

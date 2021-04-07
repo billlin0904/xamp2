@@ -29,7 +29,7 @@ inline constexpr int32_t kTotalBufferStreamCount = 10;
 
 // 352.8Khz/32bit/3.3Min ~= 330.8MB
 inline constexpr int32_t kPreallocateBufferSize = 4 * 1024 * 1024;
-inline constexpr uint32_t kMaxPreallocateBufferSize = 540 * 1024 * 1024;
+inline constexpr uint32_t kMaxPreallocateBufferSize = 100 * 1024 * 1024;
 	
 inline constexpr int32_t kMaxWriteRatio = 80;
 inline constexpr int32_t kMaxReadRatio = 2;
@@ -66,7 +66,6 @@ AudioPlayer::AudioPlayer(const std::weak_ptr<PlaybackStateAdapter> &adapter)
     , volume_(0)
     , num_buffer_samples_(0)
     , num_read_sample_(0)
-    , read_sample_size_(0)
     , is_playing_(false)
     , is_paused_(false)
     , enable_gapless_play_(false)
@@ -93,7 +92,7 @@ void AudioPlayer::Destroy() {
     converter_.reset();
     sample_read_buffer_.reset();
 #ifdef ENABLE_ASIO
-    AudioDeviceManager::GetInstance().RemoveASIODriver();
+    AudioDeviceManager::RemoveASIODriver();
 #endif
     FreeBassLib();
 }
@@ -105,7 +104,7 @@ void AudioPlayer::UpdateSlice(int32_t sample_size, double stream_time) noexcept 
 }
 
 void AudioPlayer::Initial() {
-    AudioDeviceManager::GetInstance().PreventSleep(true);
+    AudioDeviceManager::PreventSleep(true);
     XAMP_LOG_DEBUG("AudioDeviceManager init success.");
 
     (void)ThreadPool::GetInstance();
@@ -169,10 +168,10 @@ void AudioPlayer::CreateDevice(Uuid const & device_type_id, std::string const & 
         || device_type_id_ != device_type_id
         || open_always) {
         if (device_type_id_ != device_type_id) {
-            AudioDeviceManager::GetInstance().RemoveASIODriver();
+            AudioDeviceManager::RemoveASIODriver();
             device_.reset();
         }
-        if (auto result = AudioDeviceManager::GetInstance().Create(device_type_id)) {            
+        if (auto result = device_manager_.Create(device_type_id)) {            
             device_type_ = std::move(result);
             device_type_->ScanNewDevice();
             device_ = device_type_->MakeDevice(device_id);
@@ -208,7 +207,7 @@ void AudioPlayer::OpenStream(std::wstring const & file_path, std::wstring const 
     auto [dsd_mode, stream] = audio_util::MakeFileStream(file_path, file_ext, device_info);
     stream_ = std::move(stream);
     dsd_mode_ = dsd_mode;
-    if (auto* dsd_stream = audio_util::AsDsdStream(stream_)) {
+    if (auto* dsd_stream = AsDsdStream(stream_)) {
         dsd_stream->SetDSDMode(dsd_mode_);
     }
     stream_duration_ = stream_->GetDuration();   
@@ -365,9 +364,9 @@ void AudioPlayer::Stop(bool signal_to_stop, bool shutdown_device, bool wait_for_
 
     fifo_.Clear();
     if (shutdown_device) {
-        if (AudioDeviceManager::GetInstance().IsASIODevice(device_type_id_)) {
+        if (AudioDeviceManager::IsASIODevice(device_type_id_)) {
             device_.reset();
-            AudioDeviceManager::GetInstance().RemoveASIODriver();            
+            AudioDeviceManager::RemoveASIODriver();            
         }
         device_id_.clear();
         device_.reset();
@@ -530,8 +529,8 @@ void AudioPlayer::CreateBuffer() {
         require_read_sample = std::max(require_read_sample, static_cast<uint32_t>(kDefaultReadSampleSize));
         uint32_t allocate_size = 0;
         if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE) {
-            allocate_size = kMaxPreallocateBufferSize;
-            allocate_size = AlignUp(allocate_size);
+            allocate_size = AlignUp(kMaxPreallocateBufferSize);
+            num_buffer_samples_ = allocate_size * kTotalBufferStreamCount;
         } else {
             allocate_size = (std::min)(kMaxPreallocateBufferSize,
                                        require_read_sample * stream_->GetSampleSize() * kBufferStreamCount);
@@ -540,7 +539,6 @@ void AudioPlayer::CreateBuffer() {
         }        
         num_read_sample_ = require_read_sample;
         AllocateReadBuffer(allocate_size);
-        read_sample_size_ = allocate_size;
     }
 
     if (!enable_sample_converter_
@@ -549,10 +547,9 @@ void AudioPlayer::CreateBuffer() {
         converter_ = MakeAlign<SampleRateConverter, PassThroughSampleRateConverter>(dsd_mode_, stream_->GetSampleSize());
     }
 
-    if (!enable_sample_converter_) {
-        ResizeBuffer();
-    }
-    else {
+    ResizeBuffer();
+	
+    if (enable_sample_converter_) {
         assert(target_sample_rate_ > 0);
         converter_->Start(input_format_.GetSampleRate(),
                           input_format_.GetChannels(),
@@ -618,8 +615,8 @@ void AudioPlayer::OnDeviceStateChange(DeviceState state, std::string const & dev
         case DeviceState::DEVICE_STATE_REMOVED:
             XAMP_LOG_DEBUG("Device removed device id:{}.", device_id);
             if (device_id == device_id_) {
-            	if (AudioDeviceManager::GetInstance().IsASIODevice(Uuid::FromString(device_id))) {
-                    AudioDeviceManager::GetInstance().RemoveASIODriver();
+            	if (AudioDeviceManager::IsASIODevice(Uuid::FromString(device_id))) {
+                    AudioDeviceManager::RemoveASIODriver();
             	}
                 state_adapter->OnDeviceChanged(DeviceState::DEVICE_STATE_REMOVED);
                 if (device_ != nullptr) {
@@ -674,7 +671,8 @@ void AudioPlayer::Startup() {
     if (timer_.IsStarted()) {
         return;
     }
-    
+
+    device_manager_.RegisterDeviceListener(shared_from_this());
     wait_timer_.SetTimeout(kReadSampleWaitTime);
 
     std::weak_ptr<AudioPlayer> player = shared_from_this();
@@ -873,6 +871,10 @@ void AudioPlayer::ClearPlayQueue() const {
 
 AlignPtr<SampleRateConverter> AudioPlayer::CloneSampleRateConverter() const {
     return converter_->Clone();
+}
+
+AudioDeviceManager& AudioPlayer::GetAudioDeviceManager() {
+    return device_manager_;
 }
 
 DataCallbackResult AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, double stream_time, double sample_time) noexcept {

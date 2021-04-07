@@ -249,9 +249,10 @@ void PlayListTableView::initial() {
             });
 
         (void)action_map.addAction(tr("Load file directory"), [this]() {
-            auto dir_name = QFileDialog::getExistingDirectory(this,
-                tr("Select a Directory"),
-                AppSettings::getMyMusicFolderPath());
+	        const auto dir_name = QFileDialog::getExistingDirectory(this,
+	                                                                tr("Select a Directory"),
+	                                                                AppSettings::getMyMusicFolderPath(),
+	                                                                QFileDialog::DontUseNativeDialog | QFileDialog::ShowDirsOnly);
             append(dir_name);
             });
 
@@ -296,7 +297,7 @@ void PlayListTableView::initial() {
                         metadata.artist = performer.toStdWString();
                         metadatas.push_back(metadata);
                     }
-                    MetadataExtractAdapter::ProcessMetadata(metadatas, this);
+                    MetadataExtractAdapter::processMetadata(metadatas, this);
                 }
                 }).get();
 
@@ -516,11 +517,11 @@ void PlayListTableView::append(const QString& file_name) {
                             this,
                             &PlayListTableView::processMeatadata);
 
-    MetadataExtractAdapter::ReadFileMetadata(adapter, file_name);
+    MetadataExtractAdapter::readFileMetadata(adapter, file_name);
 }
 
 void PlayListTableView::processMeatadata(const std::vector<Metadata>& medata) {    
-    MetadataExtractAdapter::ProcessMetadata(medata, this);
+    MetadataExtractAdapter::processMetadata(medata, this);
     resizeColumn();
 }
 

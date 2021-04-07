@@ -25,9 +25,9 @@ public:
 
 	void Close();
 
-	bool TryWrite(float const* sample, uint32_t num_samples) override;
+	bool TryWrite(float const* sample, size_t num_samples) override;
 
-	void Write(float const* sample, uint32_t num_samples);
+	void Write(float const* sample, size_t num_samples);
 	
 private:
 	void WriteHeader(AudioFormat const& format);

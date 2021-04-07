@@ -25,18 +25,13 @@ static double Round(double d, int32_t index) {
 
 class LoudnessScanner::LoudnessScannerImpl {
 public:
-	explicit LoudnessScannerImpl(uint32_t sample_rate)
-        : sample_rate_(sample_rate) {
-		Init();
-	}
-	
-	void Init() {
-        state_.reset(::ebur128_init(kMaxChannel, sample_rate_, EBUR128_MODE_I | EBUR128_MODE_TRUE_PEAK));
+	explicit LoudnessScannerImpl(uint32_t sample_rate) {
+		state_.reset(::ebur128_init(kMaxChannel, sample_rate, EBUR128_MODE_I | EBUR128_MODE_TRUE_PEAK));
 		IfFailThrow(::ebur128_set_channel(state_.get(), 0, EBUR128_LEFT));
 		IfFailThrow(::ebur128_set_channel(state_.get(), 1, EBUR128_RIGHT));
 	}
 
-	void Process(float const* samples, uint32_t num_sample) {
+	void Process(float const* samples, size_t num_sample) {
 		IfFailThrow(::ebur128_add_frames_float(state_.get(), samples, num_sample / kMaxChannel));
 	}
 
@@ -62,7 +57,6 @@ private:
 
 	using Ebur128StatePtr = std::unique_ptr<ebur128_state, Ebur128Deleter>;
 
-	uint32_t sample_rate_;
 	Ebur128StatePtr state_;	
 };
 
@@ -72,7 +66,7 @@ LoudnessScanner::LoudnessScanner(uint32_t sample_rate)
 
 XAMP_PIMPL_IMPL(LoudnessScanner)
 
-void LoudnessScanner::Process(float const * samples, uint32_t num_sample) {
+void LoudnessScanner::Process(float const * samples, size_t num_sample) {
 	impl_->Process(samples, num_sample);
 }
 

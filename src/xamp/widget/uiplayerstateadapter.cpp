@@ -1,9 +1,6 @@
 #include <player/audio_player.h>
 #include <widget/uiplayerstateadapter.h>
 
-using xamp::player::AudioPlayer;
-using xamp::output_device::DeviceInfo;
-
 UIPlayerStateAdapter::UIPlayerStateAdapter(QObject *parent)
     : QObject(parent)
     , play_queue_(kPlayQueueSize)
@@ -23,7 +20,7 @@ void UIPlayerStateAdapter::OnError(const Exception &ex) {
                                           ? QString::fromStdString(ex.what()) : QString());
 }
 
-void UIPlayerStateAdapter::OnDeviceChanged(xamp::output_device::DeviceState state) {
+void UIPlayerStateAdapter::OnDeviceChanged(DeviceState state) {
     emit deviceChanged(state);
 }
 
