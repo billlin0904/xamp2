@@ -9,6 +9,7 @@
 #include <mutex>
 #include <future>
 #include <optional>
+#include <filesystem>
 
 #include <base/base.h>
 #include <base/audiobuffer.h>
@@ -44,10 +45,6 @@ class XAMP_PLAYER_API AudioPlayer final :
     public DeviceStateListener,
     public std::enable_shared_from_this<AudioPlayer> {
 public:
-    enum class MsgID {
-        EVENT_SWITCH,        
-    };
-
     XAMP_DISABLE_COPY(AudioPlayer)
 
     AudioPlayer();
@@ -58,7 +55,11 @@ public:
 
     static void Initial();
 
+    void Open(std::filesystem::path const& file_path, const DeviceInfo& device_info);
+
     void Open(std::wstring const& file_path, std::wstring const& file_ext, const DeviceInfo& device_info);
+
+    void Open(std::wstring const& file_path, std::wstring const& file_ext);
 
     void PrepareToPlay(double start_time = 0.0, double end_time = 0.0);
 
@@ -129,6 +130,10 @@ public:
     AudioDeviceManager& GetAudioDeviceManager();
 
 private:
+    enum class MsgID {
+        EVENT_SWITCH,
+    };
+    	
     bool CanProcessFile() const noexcept;
     	
     void DoSeek(double stream_time);
@@ -169,11 +174,11 @@ private:
 
     void AllocateReadBuffer(uint32_t allocate_size);
 
-    void ResizeBuffer();
+    void ResizeFifo();
 
-    void ProcessSeek();
+    void ProcessEvent();
 
-    void ProcessSamples();
+    void InitProcessor();
 
     struct XAMP_CACHE_ALIGNED(kMallocAlignSize) AudioSlice {
 	    explicit AudioSlice(int32_t sample_size = 0,
@@ -192,7 +197,7 @@ private:
     uint8_t sample_size_;
     uint32_t target_sample_rate_;
     uint32_t volume_;
-    uint32_t num_buffer_samples_;
+    uint32_t fifo_size_;
     uint32_t num_read_sample_;
     std::atomic<bool> is_playing_;
     std::atomic<bool> is_paused_;
@@ -214,6 +219,7 @@ private:
     AudioFormat input_format_;
     AudioFormat output_format_;    
     Timer timer_;
+    AudioDeviceManager device_manager_;
     AlignPtr<FileStream> stream_;
     AlignPtr<DeviceType> device_type_;
     AlignPtr<Device> device_;
@@ -223,8 +229,7 @@ private:
     WaitableTimer wait_timer_;
     AlignPtr<SampleRateConverter> converter_;
     std::vector<AlignPtr<AudioProcessor>> dsp_chain_;
-    DeviceInfo device_info_;
-    AudioDeviceManager device_manager_;
+    DeviceInfo device_info_;    
     std::shared_future<void> stream_task_;
     SpscQueue<MsgID> msg_queue_;
     SpscQueue<double> seek_queue_;

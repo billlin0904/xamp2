@@ -30,8 +30,6 @@ public:
 
     SoxrSampleRateConverter();    
 
-    static void LoadSoxrLib();
-
     void SetSteepFilter(bool enable);
 
     void SetQuality(SoxrQuality quality);
@@ -58,6 +56,8 @@ private:
     class SoxrSampleRateConverterImpl;
     AlignPtr<SoxrSampleRateConverterImpl> impl_;
 };
+
+void LoadSoxrLib();
 
 }
 

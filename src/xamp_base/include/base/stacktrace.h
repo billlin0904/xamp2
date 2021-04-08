@@ -9,6 +9,10 @@
 
 #include <base/base.h>
 
+#ifdef XAMP_OS_WIN
+#include <base/windows_handle.h>
+#endif
+
 namespace xamp::base {
 
 class XAMP_BASE_API StackTrace {

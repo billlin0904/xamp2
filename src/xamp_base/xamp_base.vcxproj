@@ -154,6 +154,7 @@
     <ClInclude Include="include\base\bounded_queue.h" />
     <ClInclude Include="include\base\buffer.h" />
     <ClInclude Include="include\base\enum.h" />
+    <ClInclude Include="include\base\fastmutex.h" />
     <ClInclude Include="include\base\math.h" />
     <ClInclude Include="include\base\samplewriter.h" />
     <ClInclude Include="include\base\scopeguard.h" />
@@ -193,6 +194,7 @@
     <ClCompile Include="src\dataconverter.cpp" />
     <ClCompile Include="src\dll.cpp" />
     <ClCompile Include="src\exception.cpp" />
+    <ClCompile Include="src\fastmutex.cpp" />
     <ClCompile Include="src\memory_mapped_file.cpp" />
     <ClCompile Include="src\samplewriter.cpp" />
     <ClCompile Include="src\uuid.cpp" />

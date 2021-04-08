@@ -28,15 +28,15 @@ inline constexpr int32_t kBufferStreamCount = 5;
 inline constexpr int32_t kTotalBufferStreamCount = 10;
 
 // 352.8Khz/32bit/3.3Min ~= 330.8MB
-inline constexpr int32_t kPreallocateBufferSize = 4 * 1024 * 1024;
+inline constexpr uint32_t kPreallocateBufferSize = 4 * 1024 * 1024;
 inline constexpr uint32_t kMaxPreallocateBufferSize = 100 * 1024 * 1024;
 	
-inline constexpr int32_t kMaxWriteRatio = 80;
-inline constexpr int32_t kMaxReadRatio = 2;
-inline constexpr int32_t kMsgQueueSize = 30;
+inline constexpr uint32_t kMaxWriteRatio = 80;
+inline constexpr uint32_t kMaxReadRatio = 2;
+inline constexpr uint32_t kMsgQueueSize = 30;
 	
 // NOTE: 4KB的話libav resample會導致緩衝過小的問題產生.
-inline constexpr int32_t kDefaultReadSampleSize = 8192 * 4;
+inline constexpr uint32_t kDefaultReadSample = 8192 * 4;
 
 inline constexpr std::chrono::milliseconds kUpdateSampleInterval(100);
 inline constexpr std::chrono::milliseconds kReadSampleWaitTime(30);
@@ -64,7 +64,7 @@ AudioPlayer::AudioPlayer(const std::weak_ptr<PlaybackStateAdapter> &adapter)
     , sample_size_(0)
     , target_sample_rate_(0)
     , volume_(0)
-    , num_buffer_samples_(0)
+    , fifo_size_(0)
     , num_read_sample_(0)
     , is_playing_(false)
     , is_paused_(false)
@@ -114,7 +114,7 @@ void AudioPlayer::Initial() {
     LoadBassLib();
     XAMP_LOG_DEBUG("Load BASS dll success.");
 
-    SoxrSampleRateConverter::LoadSoxrLib();
+    LoadSoxrLib();
     XAMP_LOG_DEBUG("Load Soxr dll success.");
 	
     try {
@@ -126,6 +126,10 @@ void AudioPlayer::Initial() {
     }    
 }
 
+void AudioPlayer::Open(std::filesystem::path const& file_path, const DeviceInfo& device_info) {
+    Open(file_path.wstring(), file_path.extension(), device_info);
+}
+
 void AudioPlayer::Open(std::wstring const & file_path, 
     std::wstring const & file_ext,
     DeviceInfo const & device_info) {
@@ -133,6 +137,14 @@ void AudioPlayer::Open(std::wstring const & file_path,
     CloseDevice(true);
     OpenStream(file_path, file_ext, device_info);
     device_info_ = device_info;    
+}
+
+void AudioPlayer::Open(std::wstring const& file_path, std::wstring const& file_ext) {
+    auto device = device_manager_.CreateDefaultDeviceType();
+    device->ScanNewDevice();
+    if (auto device_info = device->GetDefaultDeviceInfo()) {
+        Open(file_path, file_ext, *device_info);
+    }
 }
 
 void AudioPlayer::SetSampleRateConverter(uint32_t sample_rate, AlignPtr<SampleRateConverter>&& converter) {
@@ -222,7 +234,7 @@ void AudioPlayer::SetState(const PlayerState play_state) {
     XAMP_LOG_DEBUG("Set state: {}.", EnumToString(state_));
 }
 
-void AudioPlayer::ProcessSeek() {
+void AudioPlayer::ProcessEvent() {
     if (auto const* stream_time = seek_queue_.Front()) {
         XAMP_LOG_DEBUG("Receive seek {} message", *stream_time);
         DoSeek(*stream_time);
@@ -230,7 +242,7 @@ void AudioPlayer::ProcessSeek() {
     }
 }
 
-void AudioPlayer::ProcessSamples() {
+void AudioPlayer::InitProcessor() {
 	while (!processor_queue_.empty()) {
         if (auto* processor = processor_queue_.Front()) {
             auto id = (*processor)->GetTypeId();
@@ -289,10 +301,10 @@ void AudioPlayer::Play() {
             while (p->is_playing_) {
                 while (p->is_paused_) {
                     p->pause_cond_.wait_for(lock, kPauseWaitTimeout);
-                    p->ProcessSeek();
+                    p->ProcessEvent();
                 }
 
-                p->ProcessSeek();
+                p->ProcessEvent();
 
                 if (p->fifo_.GetAvailableWrite() < num_sample_write) {
                     p->wait_timer_.Wait();
@@ -503,14 +515,16 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
 }
 
 void AudioPlayer::AllocateReadBuffer(uint32_t allocate_size) {
-    XAMP_LOG_DEBUG("Allocate read buffer : {}.", String::FormatBytes(allocate_size));
-    sample_read_buffer_ = MakeBuffer<int8_t>(allocate_size);
+    if (sample_read_buffer_.GetSize() == 0 || sample_read_buffer_.GetSize() != fifo_size_) {
+        XAMP_LOG_DEBUG("Allocate read buffer : {}.", String::FormatBytes(allocate_size));
+        sample_read_buffer_ = MakeBuffer<int8_t>(allocate_size);
+    }
 }
 
-void AudioPlayer::ResizeBuffer() {
-    if (fifo_.GetSize() == 0 || fifo_.GetSize() < num_buffer_samples_) {
-        XAMP_LOG_DEBUG("Allocate internal buffer : {}.", String::FormatBytes(num_buffer_samples_));
-        fifo_.Resize(num_buffer_samples_);
+void AudioPlayer::ResizeFifo() {
+    if (fifo_.GetSize() == 0 || fifo_.GetSize() != fifo_size_) {
+        XAMP_LOG_DEBUG("Allocate internal buffer : {}.", String::FormatBytes(fifo_size_));
+        fifo_.Resize(fifo_size_);
     }
 }
 
@@ -525,29 +539,28 @@ void AudioPlayer::CreateBuffer() {
         require_read_sample = output_format_.GetSampleRate() / 8;
     }
 
-    if (require_read_sample > num_read_sample_) {    	
-        require_read_sample = std::max(require_read_sample, static_cast<uint32_t>(kDefaultReadSampleSize));
-        uint32_t allocate_size = 0;
+    if (require_read_sample != num_read_sample_) {    	
+        require_read_sample = std::max(require_read_sample, kDefaultReadSample);
+        uint32_t allocate_read_size = 0;
         if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE) {
-            allocate_size = AlignUp(kMaxPreallocateBufferSize);
-            num_buffer_samples_ = allocate_size * kTotalBufferStreamCount;
+            allocate_read_size = (std::min)(kMaxPreallocateBufferSize, 
+										AlignUp(require_read_sample * kBufferStreamCount));
         } else {
-            allocate_size = (std::min)(kMaxPreallocateBufferSize,
+            allocate_read_size = (std::min)(kMaxPreallocateBufferSize,
                                        require_read_sample * stream_->GetSampleSize() * kBufferStreamCount);
-            allocate_size = AlignUp(allocate_size);
-            num_buffer_samples_ = allocate_size * kTotalBufferStreamCount;
-        }        
+            allocate_read_size = AlignUp(allocate_read_size);           
+        }
+        fifo_size_ = allocate_read_size * kTotalBufferStreamCount;
         num_read_sample_ = require_read_sample;
-        AllocateReadBuffer(allocate_size);
+        AllocateReadBuffer(allocate_read_size);
+        ResizeFifo();
     }
 
     if (!enable_sample_converter_
         || dsd_mode_ == DsdModes::DSD_MODE_NATIVE
         || dsd_mode_ == DsdModes::DSD_MODE_DOP) {
         converter_ = MakeAlign<SampleRateConverter, PassThroughSampleRateConverter>(dsd_mode_, stream_->GetSampleSize());
-    }
-
-    ResizeBuffer();
+    }    
 	
     if (enable_sample_converter_) {
         assert(target_sample_rate_ > 0);
@@ -788,7 +801,7 @@ AudioPlayer::AudioSlice::AudioSlice(int32_t const sample_size, double const stre
 }
 
 void AudioPlayer::BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<SampleRateConverter>& converter, int32_t buffer_count) {
-    ProcessSamples();
+    InitProcessor();
 	
     auto* const sample_buffer = sample_read_buffer_.Get();
 

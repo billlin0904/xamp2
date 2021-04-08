@@ -280,10 +280,6 @@ SoxrSampleRateConverter::SoxrSampleRateConverter()
 }
 
 XAMP_PIMPL_IMPL(SoxrSampleRateConverter)
-	
-void SoxrSampleRateConverter::LoadSoxrLib() {
-    (void)Singleton<SoxrLib>::GetInstance();
-}
 
 void SoxrSampleRateConverter::Start(uint32_t input_sample_rate, uint32_t num_channels, uint32_t output_sample_rate) {
     impl_->Start(input_sample_rate, num_channels, output_sample_rate);
@@ -336,5 +332,9 @@ AlignPtr<SampleRateConverter> SoxrSampleRateConverter::Clone() {
     return other;
 }
 
+void LoadSoxrLib() {
+	(void)Singleton<SoxrLib>::GetInstance();
+}
+	
 }
 

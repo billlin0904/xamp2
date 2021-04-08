@@ -15,7 +15,7 @@
 
 #ifdef XAMP_OS_WIN
 
-#include <output_device/win32/fastmutex.h>
+#include <base/fastmutex.h>
 #include <output_device/audiocallback.h>
 #include <output_device/device.h>
 
