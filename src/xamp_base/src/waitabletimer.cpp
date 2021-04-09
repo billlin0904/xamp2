@@ -7,6 +7,8 @@
 
 namespace xamp::base {
 
+//#define XAMP_USE_APC_TIMER
+
 #if defined(XAMP_OS_WIN) && defined(XAMP_USE_APC_TIMER)
 // Windows 10 2004 Sleep已經不準確, 改換為使用 CreateWaitableTimerEx
 // 並加入CREATE_WAITABLE_TIMER_HIGH_RESOLUTION這個Flag.

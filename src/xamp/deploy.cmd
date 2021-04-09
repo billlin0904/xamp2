@@ -35,4 +35,4 @@ xcopy /Y /S /I /E eqpresets deploy\eqpresets
 xcopy /Y /S /I /E Resource deploy\Resource
 xcopy /Y /S /I /E x64\Release\langs deploy\langs
 
-C:\Qt\Qt5.12.9\5.12.9\msvc2017_64\bin\windeployqt --force deploy x64\Release\xamp.exe --release
+C:\Qt\5.15.2\msvc2019_64\bin\windeployqt --force deploy x64\Release\xamp.exe --release

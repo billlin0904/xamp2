@@ -90,7 +90,7 @@ void AudioPlayer::Destroy() {
     Stop(false, true);
     stream_.reset();
     converter_.reset();
-    sample_read_buffer_.reset();
+    read_buffer_.reset();
 #ifdef ENABLE_ASIO
     AudioDeviceManager::RemoveASIODriver();
 #endif
@@ -105,11 +105,7 @@ void AudioPlayer::UpdateSlice(int32_t sample_size, double stream_time) noexcept 
 
 void AudioPlayer::Initial() {
     AudioDeviceManager::PreventSleep(true);
-    XAMP_LOG_DEBUG("AudioDeviceManager init success.");
-
-    (void)ThreadPool::GetInstance();
-    ThreadPool::GetInstance().SetAffinityMask(1);
-    XAMP_LOG_DEBUG("ThreadPool init success.");
+    XAMP_LOG_DEBUG("AudioDeviceManager init success.");    
 
     LoadBassLib();
     XAMP_LOG_DEBUG("Load BASS dll success.");
@@ -126,27 +122,21 @@ void AudioPlayer::Initial() {
     }    
 }
 
-void AudioPlayer::Open(std::filesystem::path const& file_path, const DeviceInfo& device_info) {
-    Open(file_path.wstring(), file_path.extension(), device_info);
-}
-
-void AudioPlayer::Open(std::wstring const & file_path, 
-    std::wstring const & file_ext,
-    DeviceInfo const & device_info) {
-    Startup();
-    CloseDevice(true);
-    OpenStream(file_path, file_ext, device_info);
-    device_info_ = device_info;    
-}
-
-void AudioPlayer::Open(std::wstring const& file_path, std::wstring const& file_ext) {
+void AudioPlayer::Open(std::filesystem::path const& file_path) {
     auto device = device_manager_.CreateDefaultDeviceType();
     device->ScanNewDevice();
     if (auto device_info = device->GetDefaultDeviceInfo()) {
-        Open(file_path, file_ext, *device_info);
+        Open(file_path, *device_info);
     }
 }
 
+void AudioPlayer::Open(std::filesystem::path const& file_path, const DeviceInfo& device_info) {
+    Startup();
+    CloseDevice(true);
+    OpenStream(file_path, file_path.extension().wstring(), device_info);
+    device_info_ = device_info;
+}
+	
 void AudioPlayer::SetSampleRateConverter(uint32_t sample_rate, AlignPtr<SampleRateConverter>&& converter) {
     target_sample_rate_ = sample_rate;
     converter_ = std::move(converter);
@@ -263,69 +253,6 @@ void AudioPlayer::InitProcessor() {
 	}    
 }
 	
-void AudioPlayer::Play() {
-    if (!device_) {
-        return;
-    }
-
-    is_playing_ = true;
-    if (device_->IsStreamOpen()) {
-        if (!device_->IsStreamRunning()) {
-            device_->SetVolume(volume_);
-            device_->SetMute(is_muted_);
-            XAMP_LOG_DEBUG("Play vol:{} muted:{}.", volume_, is_muted_);
-#ifdef _DEBUG
-            sw_.Reset();
-#endif
-            device_->StartStream();
-            SetState(PlayerState::PLAYER_STATE_RUNNING);
-        }
-    }
-
-	if (stream_task_.valid()) {
-        return;
-	}
-
-    stream_task_ = ThreadPool::GetInstance().Run([player = shared_from_this()]() noexcept {        
-        auto* p = player.get();
-
-        std::unique_lock<std::mutex> lock{ p->pause_mutex_ };
-
-        auto* sample_buffer = p->sample_read_buffer_.Get();
-        const auto max_buffer_sample = p->num_read_sample_;
-        const auto num_sample_write = max_buffer_sample * kMaxWriteRatio;
-
-        XAMP_LOG_DEBUG("max_buffer_sample: {}, num_sample_write: {}", max_buffer_sample, num_sample_write);
-
-        try {
-            while (p->is_playing_) {
-                while (p->is_paused_) {
-                    p->pause_cond_.wait_for(lock, kPauseWaitTimeout);
-                    p->ProcessEvent();
-                }
-
-                p->ProcessEvent();
-
-                if (p->fifo_.GetAvailableWrite() < num_sample_write) {
-                    p->wait_timer_.Wait();
-                    continue;
-                }
-            	
-                p->ReadSampleLoop(sample_buffer, max_buffer_sample, lock);
-            }
-        }
-        catch (const Exception& e) {
-            XAMP_LOG_DEBUG("Stream thread read has exception: {}", e.what());
-        }
-        catch (const std::exception& e) {
-            XAMP_LOG_DEBUG("Stream thread read has exception: {}", e.what());
-        }
-
-        XAMP_LOG_DEBUG("Stream thread done!");
-        p->stream_.reset();
-    });
-}
-
 void AudioPlayer::Pause() {
     if (!device_) {
         return;
@@ -367,6 +294,7 @@ void AudioPlayer::Stop(bool signal_to_stop, bool shutdown_device, bool wait_for_
 
     XAMP_LOG_DEBUG("Player stop.");
     if (device_->IsStreamOpen()) {
+        XAMP_LOG_DEBUG("Close device.");
         CloseDevice(wait_for_stop_stream);
         UpdateSlice();
         if (signal_to_stop) {
@@ -376,6 +304,7 @@ void AudioPlayer::Stop(bool signal_to_stop, bool shutdown_device, bool wait_for_
 
     fifo_.Clear();
     if (shutdown_device) {
+        XAMP_LOG_DEBUG("Shutdown device.");
         if (AudioDeviceManager::IsASIODevice(device_type_id_)) {
             device_.reset();
             AudioDeviceManager::RemoveASIODriver();            
@@ -515,9 +444,9 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
 }
 
 void AudioPlayer::AllocateReadBuffer(uint32_t allocate_size) {
-    if (sample_read_buffer_.GetSize() == 0 || sample_read_buffer_.GetSize() != fifo_size_) {
+    if (read_buffer_.GetSize() == 0 || read_buffer_.GetSize() != fifo_size_) {
         XAMP_LOG_DEBUG("Allocate read buffer : {}.", String::FormatBytes(allocate_size));
-        sample_read_buffer_ = MakeBuffer<int8_t>(allocate_size);
+        read_buffer_ = MakeBuffer<int8_t>(allocate_size);
     }
 }
 
@@ -684,6 +613,9 @@ void AudioPlayer::Startup() {
     if (timer_.IsStarted()) {
         return;
     }
+    
+    ThreadPool::GetInstance().SetAffinityMask(-1);
+    XAMP_LOG_DEBUG("ThreadPool init success.");
 
     device_manager_.RegisterDeviceListener(shared_from_this());
     wait_timer_.SetTimeout(kReadSampleWaitTime);
@@ -803,7 +735,7 @@ AudioPlayer::AudioSlice::AudioSlice(int32_t const sample_size, double const stre
 void AudioPlayer::BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<SampleRateConverter>& converter, int32_t buffer_count) {
     InitProcessor();
 	
-    auto* const sample_buffer = sample_read_buffer_.Get();
+    auto* const sample_buffer = read_buffer_.Get();
 
     for (auto i = 0; i < buffer_count; ++i) {
         while (true) {
@@ -888,6 +820,69 @@ AlignPtr<SampleRateConverter> AudioPlayer::CloneSampleRateConverter() const {
 
 AudioDeviceManager& AudioPlayer::GetAudioDeviceManager() {
     return device_manager_;
+}
+
+void AudioPlayer::Play() {
+    if (!device_) {
+        return;
+    }
+
+    is_playing_ = true;
+    if (device_->IsStreamOpen()) {
+        if (!device_->IsStreamRunning()) {
+            device_->SetVolume(volume_);
+            device_->SetMute(is_muted_);
+            XAMP_LOG_DEBUG("Play vol:{} muted:{}.", volume_, is_muted_);
+#ifdef _DEBUG
+            sw_.Reset();
+#endif
+            device_->StartStream();
+            SetState(PlayerState::PLAYER_STATE_RUNNING);
+        }
+    }
+
+    if (stream_task_.valid()) {
+        return;
+    }
+
+    stream_task_ = ThreadPool::GetInstance().Run([player = shared_from_this()]() noexcept {
+        auto* p = player.get();
+
+        std::unique_lock<std::mutex> lock{ p->pause_mutex_ };
+
+        auto* sample_buffer = p->read_buffer_.Get();
+        const auto max_buffer_sample = p->num_read_sample_;
+        const auto num_sample_write = max_buffer_sample * kMaxWriteRatio;
+
+        XAMP_LOG_DEBUG("max_buffer_sample: {}, num_sample_write: {}", max_buffer_sample, num_sample_write);
+
+        try {
+            while (p->is_playing_) {
+                while (p->is_paused_) {
+                    p->pause_cond_.wait_for(lock, kPauseWaitTimeout);
+                    p->ProcessEvent();
+                }
+
+                p->ProcessEvent();
+
+                if (p->fifo_.GetAvailableWrite() < num_sample_write) {
+                    p->wait_timer_.Wait();
+                    continue;
+                }
+
+                p->ReadSampleLoop(sample_buffer, max_buffer_sample, lock);
+            }
+        }
+        catch (const Exception& e) {
+            XAMP_LOG_DEBUG("Stream thread read has exception: {}", e.what());
+        }
+        catch (const std::exception& e) {
+            XAMP_LOG_DEBUG("Stream thread read has exception: {}", e.what());
+        }
+
+        XAMP_LOG_DEBUG("Stream thread done!");
+        p->stream_.reset();
+    });
 }
 
 DataCallbackResult AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, double stream_time, double sample_time) noexcept {

@@ -55,11 +55,9 @@ public:
 
     static void Initial();
 
-    void Open(std::filesystem::path const& file_path, const DeviceInfo& device_info);
+    void Open(std::filesystem::path const& file_path);
 
-    void Open(std::wstring const& file_path, std::wstring const& file_ext, const DeviceInfo& device_info);
-
-    void Open(std::wstring const& file_path, std::wstring const& file_ext);
+    void Open(std::filesystem::path const& file_path, const DeviceInfo& device_info);       
 
     void PrepareToPlay(double start_time = 0.0, double end_time = 0.0);
 
@@ -133,7 +131,7 @@ private:
     enum class MsgID {
         EVENT_SWITCH,
     };
-    	
+
     bool CanProcessFile() const noexcept;
     	
     void DoSeek(double stream_time);
@@ -225,7 +223,7 @@ private:
     AlignPtr<Device> device_;
     std::weak_ptr<PlaybackStateAdapter> state_adapter_;    
     AudioBuffer<int8_t> fifo_;
-    Buffer<int8_t> sample_read_buffer_;
+    Buffer<int8_t> read_buffer_;
     WaitableTimer wait_timer_;
     AlignPtr<SampleRateConverter> converter_;
     std::vector<AlignPtr<AudioProcessor>> dsp_chain_;

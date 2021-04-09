@@ -126,12 +126,12 @@ void TaskScheduler::AddThread(size_t i) {
 	threads_.emplace_back([i, this]() mutable {		
 		const auto allocate_stack_size = (std::min)(kInitL1CacheLineSize * i, 
 			kMaxL1CacheLineSize);
-		//const auto L1_padding_buffer = MakeStackBuffer<uint8_t>(allocate_stack_size);
+		const auto L1_padding_buffer = MakeStackBuffer<uint8_t>(allocate_stack_size);
 		auto thread_id = GetCurrentThreadId();
 		
 		SetWorkerThreadName(i);
 		
-		XAMP_LOG_DEBUG("Worker Thread {} start.", i);
+		XAMP_LOG_DEBUG("Worker Thread {} ({}) start.", thread_id, i);
 		
 		for (; !is_stopped_;) {
 			auto task = TrySteal(i + 1);

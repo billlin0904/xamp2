@@ -29,9 +29,9 @@ namespace xamp::base {
 
 class TaskWrapper {
 public:
-    template <typename F>
-    TaskWrapper(F&& f)
-        : impl_(MakeAlign<ImplBase, ImplType<F>>(std::move(f))) {
+    template <typename Func>
+    TaskWrapper(Func&& f)
+        : impl_(MakeAlign<ImplBase, ImplType<Func>>(std::move(f))) {
     }
 	
     void operator()() {
@@ -59,9 +59,9 @@ private:
 
     AlignPtr<ImplBase> impl_;
 
-    template <typename F>
+    template <typename Func>
     struct ImplType final : ImplBase {
-	    ImplType(F&& f)
+	    ImplType(Func&& f)
             : f_(std::move(f)) {
         }
 
@@ -75,7 +75,7 @@ private:
             f_();
         }
 
-        F f_;
+        Func f_;
     };
 };
 

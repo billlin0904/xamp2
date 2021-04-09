@@ -38,6 +38,7 @@ public:
 
     ~SpscQueue() {
         clear();
+        lock_.UnLock();
         std::allocator_traits<Allocator>::deallocate(allocator_,
                                                      slots_,
                                                      capacity_ + 2 * kPadding);

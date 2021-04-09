@@ -895,7 +895,7 @@ void Xamp::playMusic(const MusicEntity& item) {
     PlaybackFormat playback_format;
 
     try {
-        player_->Open(item.file_path.toStdWString(), item.file_ext.toStdWString(), device_info_);
+        player_->Open(item.file_path.toStdWString(), device_info_);
         setupSampleRateConverter(item.true_peak > 1.0);
         player_->PrepareToPlay(loop_time.first, loop_time.second);
         playback_format = getPlaybackFormat(player_.get());

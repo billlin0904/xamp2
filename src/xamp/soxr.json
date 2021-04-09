@@ -4,6 +4,6 @@
         "passBand": 95,
         "phase": 45,
         "quality": 3,
-        "resampleSampleRate": 192000
+        "resampleSampleRate": 384000
     }
 }
