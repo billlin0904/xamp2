@@ -20,6 +20,7 @@
 #include <base/uuid.h>
 #include <base/spsc_queue.h>
 #include <base/buffer.h>
+#include <base/fastmutex.h>
 
 #ifdef _DEBUG
 #include <base/stopwatch.h>
@@ -99,8 +100,6 @@ public:
 
     AudioFormat GetOutputFormat() const noexcept;
 
-    bool IsDsdStream() const noexcept;
-
     void SetSampleRateConverter(uint32_t sample_rate, AlignPtr<SampleRateConverter> && converter);
 
     void SetProcessor(AlignPtr<AudioProcessor> &&processor);
@@ -178,6 +177,10 @@ private:
 
     void InitProcessor();
 
+#ifdef _DEBUG
+    void CheckRace();
+#endif
+
     struct XAMP_CACHE_ALIGNED(kMallocAlignSize) AudioSlice {
 	    explicit AudioSlice(int32_t sample_size = 0,
 	        double stream_time = 0.0) noexcept;        
@@ -190,6 +193,7 @@ private:
     bool is_muted_;
     bool enable_sample_converter_;
     bool enable_processor_;
+    bool is_dsd_file_;
     DsdModes dsd_mode_;
     std::atomic<PlayerState> state_;
     uint8_t sample_size_;
@@ -197,6 +201,7 @@ private:
     uint32_t volume_;
     uint32_t fifo_size_;
     uint32_t num_read_sample_;
+    std::optional<uint32_t> dsd_speed_;
     std::atomic<bool> is_playing_;
     std::atomic<bool> is_paused_;
     std::atomic<bool> enable_gapless_play_;
@@ -208,6 +213,7 @@ private:
 #ifdef _DEBUG
     std::chrono::microseconds max_process_time_{ 0 };
     Stopwatch sw_;
+    FastMutex debug_mutex_;
     std::string render_thread_id_;
 #endif    
     std::string device_id_;

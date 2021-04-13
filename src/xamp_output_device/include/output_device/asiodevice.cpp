@@ -81,6 +81,8 @@ AsioDevice::~AsioDevice() {
 	}
 	catch (...) {
 	}
+	buffer_.reset();
+	device_buffer_.reset();
 }
 
 bool AsioDevice::IsHardwareControlVolume() const {

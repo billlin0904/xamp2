@@ -59,6 +59,7 @@ AudioPlayer::AudioPlayer(const std::weak_ptr<PlaybackStateAdapter> &adapter)
     : is_muted_(false)
     , enable_sample_converter_(false)
 	, enable_processor_(true)
+	, is_dsd_file_(false)
     , dsd_mode_(DsdModes::DSD_MODE_PCM)
     , state_(PlayerState::PLAYER_STATE_STOPPED)
     , sample_size_(0)
@@ -127,13 +128,15 @@ void AudioPlayer::Open(std::filesystem::path const& file_path) {
     device->ScanNewDevice();
     if (auto device_info = device->GetDefaultDeviceInfo()) {
         Open(file_path, *device_info);
+    } else {
+        throw DeviceNotFoundException();
     }
 }
 
 void AudioPlayer::Open(std::filesystem::path const& file_path, const DeviceInfo& device_info) {
     Startup();
     CloseDevice(true);
-    OpenStream(file_path, file_path.extension().wstring(), device_info);
+    OpenStream(file_path.wstring(), file_path.extension().wstring(), device_info);
     device_info_ = device_info;
 }
 	
@@ -173,36 +176,19 @@ void AudioPlayer::CreateDevice(Uuid const & device_type_id, std::string const & 
             AudioDeviceManager::RemoveASIODriver();
             device_.reset();
         }
-        if (auto result = device_manager_.Create(device_type_id)) {            
-            device_type_ = std::move(result);
-            device_type_->ScanNewDevice();
-            device_ = device_type_->MakeDevice(device_id);
-            device_type_id_ = device_type_id;
-            device_id_ = device_id;
-            XAMP_LOG_DEBUG("Create device: {}", device_type_->GetDescription());
-        }
-        else {
-            throw DeviceNotFoundException();
-        }
+    	
+        device_type_ = device_manager_.Create(device_type_id);
+        device_type_->ScanNewDevice();
+        device_ = device_type_->MakeDevice(device_id);
+        device_type_id_ = device_type_id;
+        device_id_ = device_id;
+        XAMP_LOG_DEBUG("Create device: {}", device_type_->GetDescription());
     }
     device_->SetAudioCallback(this);
 }
 
 bool AudioPlayer::IsDSDFile() const {
-    if (!stream_) {
-        return false;
-    }
-    if (const auto* dsd_stream = dynamic_cast<DsdStream const*>(stream_.get())) {
-        return dsd_stream->IsDsdFile();
-    }
-    return false;
-}
-
-bool AudioPlayer::IsDsdStream() const noexcept {
-    if (!stream_) {
-        return false;
-    }
-    return dynamic_cast<DsdStream*>(stream_.get()) != nullptr;
+    return is_dsd_file_;
 }
 
 void AudioPlayer::OpenStream(std::wstring const & file_path, std::wstring const & file_ext, DeviceInfo const & device_info) {
@@ -211,6 +197,13 @@ void AudioPlayer::OpenStream(std::wstring const & file_path, std::wstring const 
     dsd_mode_ = dsd_mode;
     if (auto* dsd_stream = AsDsdStream(stream_)) {
         dsd_stream->SetDSDMode(dsd_mode_);
+        if (dsd_stream->IsDsdFile()) {
+            is_dsd_file_ = true;
+            dsd_speed_ = dsd_stream->GetDsdSpeed();
+        } else {
+            is_dsd_file_ = false;
+            dsd_speed_ = std::nullopt;
+        }        
     }
     stream_duration_ = stream_->GetDuration();   
     XAMP_LOG_DEBUG("Open stream type: {} {}.", stream_->GetDescription(), dsd_mode_);
@@ -368,18 +361,7 @@ void AudioPlayer::SetMute(bool mute) {
 }
 
 std::optional<uint32_t> AudioPlayer::GetDSDSpeed() const {
-    std::lock_guard<std::mutex> guard{ stream_read_mutex_ };
-
-    if (!stream_) {
-        return std::nullopt;
-    }
-
-    if (auto* dsd_stream = AsDsdStream(stream_)) {
-        if (dsd_stream->IsDsdFile()) {
-            return dsd_stream->GetDsdSpeed();
-        }
-    }
-    return std::nullopt;
+    return dsd_speed_;	
 }
 
 double AudioPlayer::GetDuration() const {
@@ -394,8 +376,7 @@ PlayerState AudioPlayer::GetState() const noexcept {
 }
 
 AudioFormat AudioPlayer::GetInputFormat() const noexcept {
-	std::lock_guard<std::mutex> guard{stream_read_mutex_};
-    return stream_->GetFormat();
+    return input_format_;
 }
 
 AudioFormat AudioPlayer::GetOutputFormat() const noexcept {
@@ -720,7 +701,7 @@ void AudioPlayer::OnGaplessPlayState(std::unique_lock<std::mutex>& lock) {
             adapter->PopPlayQueue();
             adapter->OnGaplessPlayback();
             break;
-        }        
+        }
     }
     else {
         BufferSamples(file_stream, sample_rate_converter);
@@ -885,7 +866,26 @@ void AudioPlayer::Play() {
     });
 }
 
+#ifdef _DEBUG
+void AudioPlayer::CheckRace() {
+    std::lock_guard<FastMutex> guard{ debug_mutex_ };
+    if (render_thread_id_.empty()) {
+        render_thread_id_ = GetCurrentThreadId();
+    }
+    else {
+        if (render_thread_id_ != GetCurrentThreadId()) {
+            XAMP_LOG_INFO("Render thread was change : {}", render_thread_id_);
+        }
+        render_thread_id_ = GetCurrentThreadId();
+    }
+}
+#endif
+
 DataCallbackResult AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, double stream_time, double sample_time) noexcept {
+#ifdef _DEBUG
+    CheckRace();
+#endif
+	
     const auto num_samples = static_cast<int32_t>(num_buffer_frames * output_format_.GetChannels());
     const auto sample_size = num_samples * sample_size_;
 #ifdef _DEBUG
@@ -896,17 +896,6 @@ DataCallbackResult AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_
         msg_queue_.TryPush(MsgID::EVENT_SWITCH);
         device_->SetStreamTime(0);
     }
-
-#if 0
-    if (render_thread_id_.empty()) {
-        render_thread_id_ = GetCurrentThreadId();
-    } else {
-	    if (render_thread_id_ != GetCurrentThreadId()) {
-            XAMP_LOG_INFO("Render thread was change : {}", render_thread_id_);
-	    }
-        render_thread_id_ = GetCurrentThreadId();
-    }
-#endif
 
     XAMP_LIKELY(fifo_.TryRead(static_cast<int8_t*>(samples), sample_size)) {       
         UpdateSlice(num_samples, stream_time);
