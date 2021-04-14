@@ -149,7 +149,7 @@ private:
 
     void BufferStream(double stream_time = 0.0);
 
-    DataCallbackResult OnGetSamples(void* samples, uint32_t num_buffer_frames, double stream_time, double sample_time) noexcept override;
+    DataCallbackResult OnGetSamples(void* samples, size_t num_buffer_frames, double stream_time, double sample_time) noexcept override;
 
     void OnVolumeChange(float vol) noexcept override;
 

@@ -32,7 +32,7 @@ public:
         static_assert(alignof(SpscQueue<Type>) == kCacheAlignSize);
         static_assert(sizeof(SpscQueue<Type>) >= 3 * kCacheAlignSize);
         assert(reinterpret_cast<char *>(&tail_) -
-                   reinterpret_cast<char *>(&head_) >=
+               reinterpret_cast<char *>(&head_) >=
                static_cast<std::ptrdiff_t>(kCacheAlignSize));
     }
 

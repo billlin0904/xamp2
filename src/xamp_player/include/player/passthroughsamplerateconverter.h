@@ -20,6 +20,8 @@ public:
 
     bool Process(float const* samples, size_t num_sample, SampleWriter& writer) override;
 
+    bool Process(Buffer<float> const& input, AudioBuffer<int8_t>& buffer) override;
+
     [[nodiscard]] std::string_view GetDescription() const noexcept override;
 
     void Flush() override;

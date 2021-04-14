@@ -28,6 +28,10 @@ bool PassThroughSampleRateConverter::Process(float const* samples, size_t num_sa
     return writer.TryWrite(samples, num_sample);
 }
 
+bool PassThroughSampleRateConverter::Process(Buffer<float> const& input, AudioBuffer<int8_t>& buffer) {
+    return Process(input.data(), input.size(), buffer);
+}
+
 std::string_view PassThroughSampleRateConverter::GetDescription() const noexcept {
     return "Pass Through";
 }

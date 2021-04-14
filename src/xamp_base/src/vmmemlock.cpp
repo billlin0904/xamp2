@@ -12,8 +12,7 @@
 
 namespace xamp::base {
 
-VmMemLock::VmMemLock() noexcept {
-}
+VmMemLock::VmMemLock() noexcept = default;
 
 VmMemLock::~VmMemLock() noexcept {
 	UnLock();
@@ -21,14 +20,15 @@ VmMemLock::~VmMemLock() noexcept {
 	
 #ifdef XAMP_OS_WIN
 void VmMemLock::Lock(void* address, size_t size) {
-	UnLock();
+	UnLock();	
 
-	if (!ExtendProcessWorkingSetSize(size)) {
-		throw PlatformSpecException("ExtendProcessWorkingSetSize return failure!");
-	}
-
-	if (!::VirtualLock(address, size)) {
-		throw PlatformSpecException("VirtualLock return failure!");
+	if (!::VirtualLock(address, size)) { // try lock memory!
+		if (!ExtendProcessWorkingSetSize(size)) {
+			throw PlatformSpecException("ExtendProcessWorkingSetSize return failure!");
+		}
+		if (!::VirtualLock(address, size)) {
+			throw PlatformSpecException("VirtualLock return failure!");
+		}		
 	}
 
 	address_ = address;
@@ -40,6 +40,7 @@ void VmMemLock::Lock(void* address, size_t size) {
 
 void VmMemLock::UnLock() noexcept {
 	if (address_) {
+		::SecureZeroMemory(address_, size_);
 		if (!::VirtualUnlock(address_, size_)) {
 			XAMP_LOG_DEBUG("VirtualUnlock return failure! error:{} {}.",
 				GetLastErrorMessage(), StackTrace{}.CaptureStack());

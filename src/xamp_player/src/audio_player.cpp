@@ -29,7 +29,7 @@ inline constexpr int32_t kTotalBufferStreamCount = 10;
 
 // 352.8Khz/32bit/3.3Min ~= 330.8MB
 inline constexpr uint32_t kPreallocateBufferSize = 4 * 1024 * 1024;
-inline constexpr uint32_t kMaxPreallocateBufferSize = 100 * 1024 * 1024;
+inline constexpr uint32_t kMaxPreallocateBufferSize = 16 * 1024 * 1024;
 	
 inline constexpr uint32_t kMaxWriteRatio = 80;
 inline constexpr uint32_t kMaxReadRatio = 2;
@@ -449,22 +449,20 @@ void AudioPlayer::CreateBuffer() {
         require_read_sample = output_format_.GetSampleRate() / 8;
     }
 
-    if (require_read_sample != num_read_sample_) {    	
-        require_read_sample = std::max(require_read_sample, kDefaultReadSample);
-        uint32_t allocate_read_size = 0;
-        if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE) {
-            allocate_read_size = (std::min)(kMaxPreallocateBufferSize, 
-										AlignUp(require_read_sample * kBufferStreamCount));
-        } else {
-            allocate_read_size = (std::min)(kMaxPreallocateBufferSize,
-                                       require_read_sample * stream_->GetSampleSize() * kBufferStreamCount);
-            allocate_read_size = AlignUp(allocate_read_size);           
-        }
-        fifo_size_ = allocate_read_size * kTotalBufferStreamCount;
-        num_read_sample_ = require_read_sample;
-        AllocateReadBuffer(allocate_read_size);
-        ResizeFifo();
+    require_read_sample = std::max(require_read_sample, kDefaultReadSample);
+    uint32_t allocate_read_size = 0;
+    if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE) {
+        allocate_read_size = kMaxPreallocateBufferSize;
     }
+    else {
+        allocate_read_size = (std::min)(kMaxPreallocateBufferSize,
+            require_read_sample * stream_->GetSampleSize() * kBufferStreamCount);
+        allocate_read_size = AlignUp(allocate_read_size);
+    }
+    fifo_size_ = allocate_read_size * kTotalBufferStreamCount;
+    num_read_sample_ = require_read_sample;
+    AllocateReadBuffer(allocate_read_size);
+    ResizeFifo();
 
     if (!enable_sample_converter_
         || dsd_mode_ == DsdModes::DSD_MODE_NATIVE
@@ -729,8 +727,7 @@ void AudioPlayer::BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<SampleRat
 
         	if (CanProcessFile() && !dsp_chain_.empty() && IsEnableProcessor()) {
                 auto itr = dsp_chain_.begin();
-                auto const & buffer = (*itr)->Process(samples, num_samples);
-                if (!converter->Process(buffer.data(), buffer.size(), fifo_)) {
+                if (!converter->Process((*itr)->Process(samples, num_samples), fifo_)) {
                     continue;
                 }
         	} else {
@@ -756,8 +753,7 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_buffer_samp
 
             if (CanProcessFile() && !dsp_chain_.empty() && IsEnableProcessor()) {
                 auto itr = dsp_chain_.begin();
-                auto const & buffer = (*itr)->Process(samples, num_samples);
-                if (!converter_->Process(buffer.data(), buffer.size(), fifo_)) {
+                if (!converter_->Process((*itr)->Process(samples, num_samples), fifo_)) {
                     continue;
                 }
             }
@@ -881,12 +877,12 @@ void AudioPlayer::CheckRace() {
 }
 #endif
 
-DataCallbackResult AudioPlayer::OnGetSamples(void* samples, uint32_t num_buffer_frames, double stream_time, double sample_time) noexcept {
+DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_frames, double stream_time, double sample_time) noexcept {
 #ifdef _DEBUG
     CheckRace();
 #endif
 	
-    const auto num_samples = static_cast<int32_t>(num_buffer_frames * output_format_.GetChannels());
+    const auto num_samples = num_buffer_frames * output_format_.GetChannels();
     const auto sample_size = num_samples * sample_size_;
 #ifdef _DEBUG
     const auto elapsed = sw_.Elapsed();

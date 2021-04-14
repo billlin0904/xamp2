@@ -317,6 +317,10 @@ bool SoxrSampleRateConverter::Process(float const* samples, size_t num_sample, S
     return impl_->Process(samples, num_sample, writer);
 }
 
+bool SoxrSampleRateConverter::Process(Buffer<float> const& input, AudioBuffer<int8_t>& buffer) {
+	return Process(input.data(), input.size(), buffer);
+}
+
 void SoxrSampleRateConverter::Flush() {
     impl_->Flush();
 }
