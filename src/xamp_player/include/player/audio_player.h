@@ -56,6 +56,8 @@ public:
 
     static void Initial();
 
+    void Startup();
+
     void Open(std::filesystem::path const& file_path);
 
     void Open(std::filesystem::path const& file_path, const DeviceInfo& device_info);       
@@ -133,11 +135,9 @@ private:
 
     bool CanProcessFile() const noexcept;
     	
-    void DoSeek(double stream_time);
+    void DoSeek(double stream_time);        
     	
-    void Startup();
-    	
-    void OpenStream(std::wstring const & file_path, std::wstring const & file_ext, DeviceInfo const& device_info);
+    void OpenStream(std::filesystem::path const& file_path, DeviceInfo const& device_info);
 
     void CreateDevice(Uuid const& device_type_id, std::string const & device_id, bool open_always);
 
@@ -165,7 +165,7 @@ private:
 
     void BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<SampleRateConverter> &converter, int32_t buffer_count = 1);
 
-    void UpdateSlice(int32_t sample_size = 0, double stream_time = 0.0) noexcept;
+    void UpdateSlice(size_t sample_size = 0, double stream_time = 0.0) noexcept;
 
     void OnGaplessPlayState(std::unique_lock<std::mutex>& lock);
 
@@ -182,9 +182,9 @@ private:
 #endif
 
     struct XAMP_CACHE_ALIGNED(kMallocAlignSize) AudioSlice {
-	    explicit AudioSlice(int32_t sample_size = 0,
+	    explicit AudioSlice(size_t sample_size = 0,
 	        double stream_time = 0.0) noexcept;        
-        int32_t sample_size;
+        size_t sample_size;
         double stream_time;
     };
 

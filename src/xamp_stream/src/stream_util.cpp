@@ -1,4 +1,5 @@
 #include <fstream>
+#include <base/singleton.h>
 #include <base/memory_mapped_file.h>
 #include <base/str_utilts.h>
 #include <base/logger.h>
@@ -9,6 +10,8 @@
 
 namespace xamp::stream {
 
+using namespace xamp::base;
+
 template <typename T>
 static HashSet<std::wstring> GetSupportFileExtensions() {
     HashSet<std::wstring> file_ext;
@@ -17,6 +20,35 @@ static HashSet<std::wstring> GetSupportFileExtensions() {
 	}
     return file_ext;
 }
+
+struct StreamSupportFileExtensions {
+    friend class Singleton<StreamSupportFileExtensions>;
+	
+    StreamSupportFileExtensions()
+	    : libav_file_support(GetSupportFileExtensions<AvFileStream>())
+		, bass_file_support(GetSupportFileExtensions<BassFileStream>())
+		, file_support(GetStreamSupportFileExtensions()) {
+    }
+
+    static HashSet<std::string> GetStreamSupportFileExtensions() {
+        const auto av_file_ext = AvFileStream::GetSupportFileExtensions();
+        XAMP_LOG_TRACE("Get AvFileStream support file ext: {}", String::Join(av_file_ext));
+
+        const auto bass_file_ext = BassFileStream::GetSupportFileExtensions();
+        XAMP_LOG_TRACE("Get BassFileStream support file ext: {}", String::Join(bass_file_ext));
+
+        HashSet<std::string> support_file_ext;
+
+        for (const auto& file_ext : Union<std::string>(av_file_ext, bass_file_ext)) {
+            support_file_ext.insert(file_ext);
+        }
+        return support_file_ext;
+    }
+
+    HashSet<std::wstring> libav_file_support;
+    HashSet<std::wstring> bass_file_support;
+    HashSet<std::string> file_support;
+};
 
 static bool TestDsdFileFormat(std::string_view const & file_chunks) noexcept {
     static constexpr std::array<std::string_view, 2> knows_chunks{
@@ -56,8 +88,8 @@ bool TestDsdFileFormat(std::wstring const& file_path) {
 }
 
 AlignPtr<FileStream> MakeStream(std::wstring const& file_ext, AlignPtr<FileStream> old_stream) {
-    static const HashSet<std::wstring> use_av = GetSupportFileExtensions<AvFileStream>();
-    static const HashSet<std::wstring> use_bass = GetSupportFileExtensions<BassFileStream>();
+    static const auto& use_av = Singleton<StreamSupportFileExtensions>::GetInstance().libav_file_support;
+    static const auto& use_bass = Singleton<StreamSupportFileExtensions>::GetInstance().bass_file_support;
 
     const auto is_use_av_stream = use_av.find(file_ext) != use_av.end();
     const auto is_use_bass_stream = use_bass.find(file_ext) != use_bass.end();
@@ -83,28 +115,12 @@ AlignPtr<FileStream> MakeStream(std::wstring const& file_ext, AlignPtr<FileStrea
     return MakeAlign<FileStream, BassFileStream>();
 }
 
-static HashSet<std::string> GetStreamSupportFileExtensions() {
-	const auto av_file_ext = AvFileStream::GetSupportFileExtensions();
-    XAMP_LOG_TRACE("Get AvFileStream support file ext: {}", String::Join(av_file_ext));
-
-    const auto bass_file_ext = BassFileStream::GetSupportFileExtensions();
-    XAMP_LOG_TRACE("Get BassFileStream support file ext: {}", String::Join(bass_file_ext));
-
-    HashSet<std::string> support_file_ext;
-
-    for (const auto & file_ext : Union<std::string>(av_file_ext, bass_file_ext)) {
-        support_file_ext.insert(file_ext);
-    }
-    return support_file_ext;
-}
-
 DsdStream* AsDsdStream(AlignPtr<FileStream> const& stream) noexcept {
     return dynamic_cast<DsdStream*>(stream.get());
 }
 	
 HashSet<std::string> const & GetSupportFileExtensions() {
-    static auto const support_file_ext = GetStreamSupportFileExtensions();
-    return support_file_ext;
+    return Singleton<StreamSupportFileExtensions>::GetInstance().file_support;
 }
 
 }

@@ -48,7 +48,7 @@ public:
 
     void OnError(const Exception &ex) override;
 
-    void OnDeviceChanged(xamp::output_device::DeviceState state) override;
+    void OnDeviceChanged(DeviceState state) override;
 
     void OnVolumeChanged(float vol) override;
 

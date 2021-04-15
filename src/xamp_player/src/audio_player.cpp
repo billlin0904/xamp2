@@ -27,7 +27,6 @@ namespace xamp::player {
 inline constexpr int32_t kBufferStreamCount = 5;
 inline constexpr int32_t kTotalBufferStreamCount = 10;
 
-// 352.8Khz/32bit/3.3Min ~= 330.8MB
 inline constexpr uint32_t kPreallocateBufferSize = 4 * 1024 * 1024;
 inline constexpr uint32_t kMaxPreallocateBufferSize = 16 * 1024 * 1024;
 	
@@ -35,7 +34,6 @@ inline constexpr uint32_t kMaxWriteRatio = 80;
 inline constexpr uint32_t kMaxReadRatio = 2;
 inline constexpr uint32_t kMsgQueueSize = 30;
 	
-// NOTE: 4KB的話libav resample會導致緩衝過小的問題產生.
 inline constexpr uint32_t kDefaultReadSample = 8192 * 4;
 
 inline constexpr std::chrono::milliseconds kUpdateSampleInterval(100);
@@ -98,7 +96,7 @@ void AudioPlayer::Destroy() {
     FreeBassLib();
 }
 
-void AudioPlayer::UpdateSlice(int32_t sample_size, double stream_time) noexcept {
+void AudioPlayer::UpdateSlice(size_t sample_size, double stream_time) noexcept {
     std::atomic_exchange_explicit(&slice_,
         AudioSlice{ sample_size, stream_time },
         std::memory_order_relaxed);
@@ -136,7 +134,7 @@ void AudioPlayer::Open(std::filesystem::path const& file_path) {
 void AudioPlayer::Open(std::filesystem::path const& file_path, const DeviceInfo& device_info) {
     Startup();
     CloseDevice(true);
-    OpenStream(file_path.wstring(), file_path.extension().wstring(), device_info);
+    OpenStream(file_path, device_info);
     device_info_ = device_info;
 }
 	
@@ -191,8 +189,8 @@ bool AudioPlayer::IsDSDFile() const {
     return is_dsd_file_;
 }
 
-void AudioPlayer::OpenStream(std::wstring const & file_path, std::wstring const & file_ext, DeviceInfo const & device_info) {
-    auto [dsd_mode, stream] = audio_util::MakeFileStream(file_path, file_ext, device_info);
+void AudioPlayer::OpenStream(std::filesystem::path const& file_path, DeviceInfo const & device_info) {
+    auto [dsd_mode, stream] = audio_util::MakeFileStream(file_path, device_info);
     stream_ = std::move(stream);
     dsd_mode_ = dsd_mode;
     if (auto* dsd_stream = AsDsdStream(stream_)) {
@@ -706,7 +704,7 @@ void AudioPlayer::OnGaplessPlayState(std::unique_lock<std::mutex>& lock) {
     }
 }
 
-AudioPlayer::AudioSlice::AudioSlice(int32_t const sample_size, double const stream_time) noexcept
+AudioPlayer::AudioSlice::AudioSlice(size_t const sample_size, double const stream_time) noexcept
 	: sample_size(sample_size)
 	, stream_time(stream_time) {
 }
@@ -879,7 +877,7 @@ void AudioPlayer::CheckRace() {
 
 DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_frames, double stream_time, double sample_time) noexcept {
 #ifdef _DEBUG
-    CheckRace();
+    //CheckRace();
 #endif
 	
     const auto num_samples = num_buffer_frames * output_format_.GetChannels();

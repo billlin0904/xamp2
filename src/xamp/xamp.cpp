@@ -109,6 +109,8 @@ Xamp::Xamp(QWidget *parent)
 }
 
 void Xamp::initial() {
+    player_->Startup();
+	
     initialUI();
     initialController();
     initialDeviceList();
@@ -1074,9 +1076,7 @@ void Xamp::addPlayQueue() {
     const auto item = playlist_view->nomapItem(next_index);    
 	
     try {
-        auto [dsd_mode, stream] = audio_util::MakeFileStream(item.file_path.toStdWString(),
-            item.file_ext.toStdWString(),
-            device_info_);
+        auto [dsd_mode, stream] = audio_util::MakeFileStream(item.file_path.toStdWString(), device_info_);
 
         const auto input_format = stream->GetFormat();
         const auto output_format = player_->GetOutputFormat();

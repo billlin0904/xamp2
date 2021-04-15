@@ -7,6 +7,7 @@
 
 #include <string>
 #include <vector>
+#include <filesystem>
 
 #include <base/align_ptr.h>
 #include <base/stl.h>
@@ -23,9 +24,7 @@ using namespace xamp::output_device;
 
 XAMP_PLAYER_API DsdDevice * AsDsdDevice(AlignPtr<Device> const & device) noexcept;
 	
-XAMP_PLAYER_API std::pair<DsdModes, AlignPtr<FileStream>> MakeFileStream(std::wstring const& file_path,
-	std::wstring const& file_ext,
-	DeviceInfo const& device_info);
+XAMP_PLAYER_API std::pair<DsdModes, AlignPtr<FileStream>> MakeFileStream(std::filesystem::path const &path,	DeviceInfo const& device_info);
 
 }
 
