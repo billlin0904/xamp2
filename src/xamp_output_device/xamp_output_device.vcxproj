@@ -164,6 +164,7 @@
     <ClInclude Include="include\output_device\device_type.h" />
     <ClInclude Include="include\output_device\dsddevice.h" />
     <ClInclude Include="include\output_device\output_device.h" />
+    <ClInclude Include="include\output_device\posix\alsadevicetype.h" />
     <ClInclude Include="include\output_device\volume.h" />
     <ClInclude Include="include\output_device\win32\exclusivewasapidevice.h" />
     <ClInclude Include="include\output_device\win32\exclusivewasapidevicetype.h" />
@@ -181,6 +182,7 @@
     <ClCompile Include="..\thirdparty\asiosdk\driver\asiolist.cpp" />
     <ClCompile Include="..\thirdparty\asiosdk\host\asiodrivers.cpp" />
     <ClCompile Include="include\output_device\asiodevice.cpp" />
+    <ClCompile Include="include\output_device\posix\alsadevicetype.cpp" />
     <ClCompile Include="src\asiodevicetype.cpp" />
     <ClCompile Include="src\asioexception.cpp" />
     <ClCompile Include="src\audiodevicemanager.cpp" />

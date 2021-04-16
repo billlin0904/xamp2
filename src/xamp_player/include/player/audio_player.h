@@ -46,15 +46,15 @@ class XAMP_PLAYER_API AudioPlayer final :
     public DeviceStateListener,
     public std::enable_shared_from_this<AudioPlayer> {
 public:
-    XAMP_DISABLE_COPY(AudioPlayer)
-
     AudioPlayer();
 
     virtual ~AudioPlayer() override;
 
     explicit AudioPlayer(const std::weak_ptr<PlaybackStateAdapter>& adapter);
 
-    static void Initial();
+    static void LoadDecoder();
+
+    XAMP_DISABLE_COPY(AudioPlayer)
 
     void Startup();
 
@@ -165,13 +165,13 @@ private:
 
     void BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<SampleRateConverter> &converter, int32_t buffer_count = 1);
 
-    void UpdateSlice(size_t sample_size = 0, double stream_time = 0.0) noexcept;
+    void UpdateSlice(int32_t sample_size = 0, double stream_time = 0.0) noexcept;
 
     void OnGaplessPlayState(std::unique_lock<std::mutex>& lock);
 
     void AllocateReadBuffer(uint32_t allocate_size);
 
-    void ResizeFifo();
+    void AllocateFifo();
 
     void ProcessEvent();
 
@@ -182,9 +182,9 @@ private:
 #endif
 
     struct XAMP_CACHE_ALIGNED(kMallocAlignSize) AudioSlice {
-	    explicit AudioSlice(size_t sample_size = 0,
+	    explicit AudioSlice(int32_t sample_size = 0,
 	        double stream_time = 0.0) noexcept;        
-        size_t sample_size;
+        int32_t sample_size;
         double stream_time;
     };
 

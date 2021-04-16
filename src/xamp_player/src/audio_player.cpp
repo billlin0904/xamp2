@@ -96,13 +96,13 @@ void AudioPlayer::Destroy() {
     FreeBassLib();
 }
 
-void AudioPlayer::UpdateSlice(size_t sample_size, double stream_time) noexcept {
+void AudioPlayer::UpdateSlice(int32_t sample_size, double stream_time) noexcept {
     std::atomic_exchange_explicit(&slice_,
         AudioSlice{ sample_size, stream_time },
         std::memory_order_relaxed);
 }
 
-void AudioPlayer::Initial() {
+void AudioPlayer::LoadDecoder() {
     AudioDeviceManager::PreventSleep(true);
     XAMP_LOG_DEBUG("AudioDeviceManager init success.");    
 
@@ -423,13 +423,13 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
 }
 
 void AudioPlayer::AllocateReadBuffer(uint32_t allocate_size) {
-    if (read_buffer_.GetSize() == 0 || read_buffer_.GetSize() != fifo_size_) {
+    if (read_buffer_.GetSize() == 0 || read_buffer_.GetSize() != allocate_size) {
         XAMP_LOG_DEBUG("Allocate read buffer : {}.", String::FormatBytes(allocate_size));
         read_buffer_ = MakeBuffer<int8_t>(allocate_size);
     }
 }
 
-void AudioPlayer::ResizeFifo() {
+void AudioPlayer::AllocateFifo() {
     if (fifo_.GetSize() == 0 || fifo_.GetSize() != fifo_size_) {
         XAMP_LOG_DEBUG("Allocate internal buffer : {}.", String::FormatBytes(fifo_size_));
         fifo_.Resize(fifo_size_);
@@ -460,19 +460,19 @@ void AudioPlayer::CreateBuffer() {
     fifo_size_ = allocate_read_size * kTotalBufferStreamCount;
     num_read_sample_ = require_read_sample;
     AllocateReadBuffer(allocate_read_size);
-    ResizeFifo();
+    AllocateFifo();
 
     if (!enable_sample_converter_
         || dsd_mode_ == DsdModes::DSD_MODE_NATIVE
         || dsd_mode_ == DsdModes::DSD_MODE_DOP) {
         converter_ = MakeAlign<SampleRateConverter, PassThroughSampleRateConverter>(dsd_mode_, stream_->GetSampleSize());
-    }    
-	
-    if (enable_sample_converter_) {
-        assert(target_sample_rate_ > 0);
+    } else {
+        if (target_sample_rate_ == 0) {
+            throw NotSupportResampleSampleRateException();
+        }
         converter_->Start(input_format_.GetSampleRate(),
-                          input_format_.GetChannels(),
-                          target_sample_rate_);
+            input_format_.GetChannels(),
+            target_sample_rate_);
     }
 
     XAMP_LOG_DEBUG("Output device format: {} num_read_sample: {} resampler: {} buffer: {}.",
@@ -704,7 +704,7 @@ void AudioPlayer::OnGaplessPlayState(std::unique_lock<std::mutex>& lock) {
     }
 }
 
-AudioPlayer::AudioSlice::AudioSlice(size_t const sample_size, double const stream_time) noexcept
+AudioPlayer::AudioSlice::AudioSlice(int32_t const sample_size, double const stream_time) noexcept
 	: sample_size(sample_size)
 	, stream_time(stream_time) {
 }

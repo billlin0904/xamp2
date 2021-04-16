@@ -15,6 +15,11 @@
 
 namespace xamp::base {
 
+#define IMP_EXCEPTION_CLASS(ExceptionClassName, error) \
+ExceptionClassName::ExceptionClassName()\
+    : Exception(error) {\
+}
+
 #ifdef XAMP_OS_WIN
 static std::string LocaleStringToUTF8(const std::string &str) {
     std::vector<wchar_t> wszTo(str.length() + 1);
@@ -97,7 +102,7 @@ std::string_view Exception::ErrorToString(Errors error) {
         { Errors::XAMP_ERROR_NOT_SUPPORT_FORMAT, "Not support format." },
         { Errors::XAMP_ERROR_LOAD_DLL_FAILURE, "Load dll failure." },
         { Errors::XAMP_ERROR_STOP_STREAM_TIMEOUT, "Stop stream thread timeout." },
-        { Errors::XAMP_ERROR_NOT_SUPPORT_VARIABLE_RESAMPLE, "Resampler not support variable resample." },
+        { Errors::XAMP_ERROR_NOT_SUPPORT_RESAMPLE_SAMPLERATE, "Resampler not support variable resample." },
         { Errors::XAMP_ERROR_SAMPLERATE_CHANGED, "Samplerate was changed." },
         { Errors::XAMP_ERROR_NOT_FOUND_DLL_EXPORT_FUNC, "Not found dll export function." },
         };
@@ -148,23 +153,6 @@ PlatformSpecException::PlatformSpecException(std::string_view what, int32_t err)
     : Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, GetPlatformErrorMessage(err), what) {
 }
 
-NotSupportVariableSampleRateException::NotSupportVariableSampleRateException(int32_t input_samplerate, int32_t output_samplerate) 
-	: Exception(Errors::XAMP_ERROR_NOT_SUPPORT_VARIABLE_RESAMPLE) {
-	std::ostringstream ostr;
-    const double max = (std::max)(input_samplerate, output_samplerate);
-    const double min = (std::min)(input_samplerate, output_samplerate);
-	ostr << "Resampler not support variable resample. " << input_samplerate << "Hz to " 
-        << output_samplerate << "Hz ("
-        << std::round(max / min * 100.0) / 100.0 << "x)"
-        << GetStackTrace();
-	message_ = ostr.str();
-}
-
-#define IMP_EXCEPTION_CLASS(ExceptionClassName, error) \
-ExceptionClassName::ExceptionClassName()\
-    : Exception(error) {\
-}\
-
 IMP_EXCEPTION_CLASS(DeviceNotInititalzedException, Errors::XAMP_ERROR_DEVICE_NOT_INITIALIZED)
 IMP_EXCEPTION_CLASS(DeviceInUseException, Errors::XAMP_ERROR_DEVICE_IN_USE)
 IMP_EXCEPTION_CLASS(DeviceNotFoundException, Errors::XAMP_ERROR_DEVICE_NOT_FOUND)
@@ -174,5 +162,6 @@ IMP_EXCEPTION_CLASS(NotSupportFormatException, Errors::XAMP_ERROR_NOT_SUPPORT_FO
 IMP_EXCEPTION_CLASS(StopStreamTimeoutException, Errors::XAMP_ERROR_STOP_STREAM_TIMEOUT)
 IMP_EXCEPTION_CLASS(SampleRateChangedException, Errors::XAMP_ERROR_SAMPLERATE_CHANGED);
 IMP_EXCEPTION_CLASS(NotFoundDllExportFuncException, Errors::XAMP_ERROR_NOT_FOUND_DLL_EXPORT_FUNC);
-
+IMP_EXCEPTION_CLASS(NotSupportResampleSampleRateException, Errors::XAMP_ERROR_NOT_SUPPORT_RESAMPLE_SAMPLERATE);
+    	
 }

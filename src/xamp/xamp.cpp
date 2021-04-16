@@ -477,11 +477,13 @@ void Xamp::initialController() {
     order_ = static_cast<PlayerOrder>(AppSettings::getAsInt(kAppSettingOrder));
     setPlayerOrder();
 
-    auto vol = AppSettings::getValue(kAppSettingVolume).toUInt();
     ui_.volumeSlider->setRange(0, 100);
+    auto vol = AppSettings::getValue(kAppSettingVolume).toUInt();
+	if (vol <= 0) {
+        setVolume(0);
+	}
     ui_.volumeSlider->setValue(static_cast<int32_t>(vol));
     player_->SetMute(vol == 0);
-    player_->SetVolume(vol);
 
     (void)QObject::connect(ui_.volumeSlider, &QSlider::valueChanged, [this](auto volume) {
         QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + Q_UTF8("%"));
