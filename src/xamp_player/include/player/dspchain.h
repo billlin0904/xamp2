@@ -18,7 +18,7 @@ public:
 		for (auto state : states_) {
 			filter.process(num_samples, samples, state);
 		}
-	}	
+	}
 private:
 	std::array<StateType, N> states_{0};
 };

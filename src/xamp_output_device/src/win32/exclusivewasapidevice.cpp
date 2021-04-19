@@ -327,7 +327,6 @@ void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
 			XAMP_LOG_I(log_, "Wait stop playback callback");
 			++i;
 		}
-
 		LogHrFailled(client_->Stop());
 		XAMP_LOG_I(log_, "OnStopPlayback");
 		is_running_ = false;

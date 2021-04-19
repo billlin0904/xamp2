@@ -509,7 +509,7 @@ void AudioPlayer::SetDeviceFormat() {
 
 	for (auto &dsp : dsp_chain_) {
         dsp->SetSampleRate(input_format_.GetSampleRate());
-	}    
+	}
 }
 
 void AudioPlayer::OnVolumeChange(float vol) noexcept {
@@ -640,7 +640,8 @@ void AudioPlayer::Seek(double stream_time) {
 void AudioPlayer::DoSeek(double stream_time) {
 	if (state_ != PlayerState::PLAYER_STATE_PAUSED) {
         Pause();
-	}    
+	}
+	
     try {
         stream_->Seek(stream_time);
     }
@@ -649,6 +650,7 @@ void AudioPlayer::DoSeek(double stream_time) {
         Resume();
         return;
     }
+	
     device_->SetStreamTime(stream_time);
     sample_end_time_ = stream_->GetDuration() - stream_time;
     XAMP_LOG_DEBUG("Player duration:{} seeking:{} sec, end time:{} sec.",

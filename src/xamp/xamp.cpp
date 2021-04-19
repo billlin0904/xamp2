@@ -232,7 +232,7 @@ void Xamp::setDefaultStyle() {
 
 void Xamp::registerMetaType() {
     qRegisterMetaType<std::vector<Metadata>>("std::vector<Metadata>");
-    qRegisterMetaType<DeviceState>("xamp::output_device::DeviceState");
+    qRegisterMetaType<DeviceState>("DeviceState");
     qRegisterMetaType<PlayerState>("PlayerState");
     qRegisterMetaType<Errors>("Errors");
     qRegisterMetaType<std::vector<float>>("std::vector<float>");

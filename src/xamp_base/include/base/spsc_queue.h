@@ -28,7 +28,6 @@ public:
         }
         slots_ = std::allocator_traits<Allocator>::allocate(allocator_,
                                                             capacity_ + 2 * kPadding);
-        lock_.Lock(slots_, sizeof(Type) + capacity_ + 2 * kPadding);
         static_assert(alignof(SpscQueue<Type>) == kCacheAlignSize);
         static_assert(sizeof(SpscQueue<Type>) >= 3 * kCacheAlignSize);
         assert(reinterpret_cast<char *>(&tail_) -
@@ -37,8 +36,7 @@ public:
     }
 
     ~SpscQueue() {
-        clear();
-        lock_.UnLock();
+        clear();        
         std::allocator_traits<Allocator>::deallocate(allocator_,
                                                      slots_,
                                                      capacity_ + 2 * kPadding);
@@ -114,7 +112,6 @@ private:
     XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<size_t> tail_;
 
     uint8_t padding_[kCacheAlignSize - sizeof(tail_)]{ 0 };
-    VmMemLock lock_;
 };
 
 }
