@@ -299,7 +299,7 @@ HRESULT ExclusiveWasapiDevice::OnStartPlayback(IMFAsyncResult* result) {
 
 void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
 	static constexpr std::chrono::milliseconds kTestTimeout{ 10 };
-	static constexpr auto kMaxRetryCount = 10;
+	static constexpr auto kMaxRetryCount = 100;
 	
 	if (!is_running_) {
 		XAMP_LOG_I(log_, "StopStream is_running_: {}", is_running_);
@@ -318,8 +318,6 @@ void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
 		GetSample(true);
 
 		is_stop_require_ = true;
-
-		MSleep(800);
 
 		auto i = 0;
 		while (is_running_ && i < kMaxRetryCount) {

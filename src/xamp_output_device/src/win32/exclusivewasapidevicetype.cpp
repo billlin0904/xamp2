@@ -9,6 +9,7 @@
 namespace xamp::output_device::win32 {
 
 ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceType() noexcept {
+	ScanNewDevice();
 }
 
 void ExclusiveWasapiDeviceType::Initial() {
@@ -28,7 +29,7 @@ std::optional<DeviceInfo> ExclusiveWasapiDeviceType::GetDefaultDeviceInfo() cons
 	HrIfFailledThrow2(hr, ERROR_NOT_FOUND);
 	if (hr == ERROR_NOT_FOUND) {
 		return std::nullopt;
-	}	
+	}
 	return helper::GetDeviceInfo(default_output_device, Id);
 }
 

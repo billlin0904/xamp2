@@ -46,8 +46,9 @@ public:
 
 	[[nodiscard]] bool UseNativeWindow() const noexcept {
 		return use_native_window_;
-	}
+	}	
 
+	virtual void onFileChanged(const QString& file_path) = 0;
 protected:
     bool eventFilter(QObject* object, QEvent* event) override;
 
@@ -79,7 +80,7 @@ protected:
 
     virtual void playPreviousClicked() = 0;
 
-    virtual void stopPlayedClicked() = 0;
+    virtual void stopPlayedClicked() = 0;	
 
 private:
 	QFont setupUIFont() const;
@@ -102,5 +103,5 @@ private:
 	QScopedPointer<QWinThumbnailToolBar> thumbnail_tool_bar_;
 	QScopedPointer<QWinTaskbarButton> taskbar_button_;
 	QWinTaskbarProgress* taskbar_progress_;
-#endif	
+#endif
 };

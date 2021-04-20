@@ -119,7 +119,7 @@ void SharedWasapiDevice::SetAudioCallback(AudioCallback* callback) noexcept {
 
 void SharedWasapiDevice::StopStream(bool wait_for_stop_stream) {
 	static constexpr std::chrono::milliseconds kTestTimeout{ 10 };
-	static constexpr auto kMaxRetryCount = 10;
+	static constexpr auto kMaxRetryCount = 100;
 	
 	if (!is_running_) {
 		return;
@@ -135,8 +135,6 @@ void SharedWasapiDevice::StopStream(bool wait_for_stop_stream) {
 		GetSampleRequested(true);
 
 		is_stop_require_ = true;
-
-		MSleep(500);
 
 		auto i = 0;
 		while (is_running_ && i < kMaxRetryCount) {

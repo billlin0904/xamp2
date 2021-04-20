@@ -96,6 +96,13 @@
           </layout>
          </item>
          <item>
+          <widget class="QCheckBox" name="enableFramelessWindowCheckBox">
+           <property name="text">
+            <string>Use Frameless Window(Experimental)</string>
+           </property>
+          </widget>
+         </item>
+         <item>
           <spacer name="verticalSpacer">
            <property name="orientation">
             <enum>Qt::Vertical</enum>

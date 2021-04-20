@@ -35,10 +35,11 @@ FramelessWindow::FramelessWindow(QWidget* parent)
     , current_screen_(nullptr)
     , taskbar_progress_(nullptr)
 #endif
-{
+{    
     setAcceptDrops(true);
     setMouseTracking(true);
     installEventFilter(this);
+    use_native_window_ = !AppSettings::getValueAsBool(kAppSettingUseFramelessWindow);
     auto ui_font = setupUIFont();
 #if defined(Q_OS_WIN)
     if (!use_native_window_) {
@@ -62,6 +63,7 @@ FramelessWindow::FramelessWindow(QWidget* parent)
 	}
 #endif
     setWindowTitle(Qt::EmptyString);
+    
 }
 
 // QScopedPointer require default destructor.

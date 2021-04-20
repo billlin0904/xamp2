@@ -3,12 +3,26 @@
 #include <QTextStream>
 #include <QSize>
 
+#include <widget/framelesswindow.h>
 #include <widget/playerorder.h>
 #include <widget/appsettings.h>
 
 QScopedPointer<QSettings> AppSettings::settings_;
 QMap<QString, QVariant> AppSettings::default_settings_;
 LocaleLanguageManager AppSettings::manager_;
+QFileSystemWatcher AppSettings::file_watcher_;
+
+void AppSettings::startMonitorFile(FramelessWindow *window) {
+	//const auto myMusicPath = AppSettings::getMyMusicFolderPath();
+	//file_watcher_.addPath(myMusicPath);
+	(void)QObject::connect(&file_watcher_, &QFileSystemWatcher::fileChanged, [window](auto const file_path) {
+		window->onFileChanged(file_path);
+		});
+}
+
+void AppSettings::addMonitorFile(QString const& file_name) {
+	file_watcher_.addPath(file_name);
+}
 
 void AppSettings::loadIniFile(const QString& file_name) {
 	settings_.reset(new QSettings(file_name, QSettings::IniFormat));    

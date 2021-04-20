@@ -110,7 +110,7 @@ Xamp::Xamp(QWidget *parent)
 
 void Xamp::initial() {
     player_->Startup();
-	
+    AppSettings::startMonitorFile(this);
     initialUI();
     initialController();
     initialDeviceList();
@@ -1552,4 +1552,30 @@ PlyalistPage* Xamp::newPlaylist(int32_t playlist_id) {
 
 void Xamp::addDropFileItem(const QUrl& url) {
     addItem(url.toLocalFile());
+}
+void Xamp::onFileChanged(const QString& file_path) {    
+	if (!QFile::exists(file_path)) {
+        XAMP_LOG_DEBUG("File is removed: {}", file_path.toStdString());
+	}
+
+    QMessageBox msgbox;
+    msgbox.setWindowTitle(Q_UTF8("XAMP"));
+    msgbox.setText(tr("File has been modified outside of source editor. Do you want to reload it?"));
+    msgbox.setIcon(QMessageBox::Icon::Question);
+    msgbox.addButton(QMessageBox::Ok);
+    msgbox.addButton(QMessageBox::Cancel);
+    msgbox.setDefaultButton(QMessageBox::Cancel);
+
+    const auto reply = static_cast<QMessageBox::StandardButton>(msgbox.exec());
+    if (reply != QMessageBox::Ok) {
+        return;
+    }
+	
+    auto adapter = QSharedPointer<MetadataExtractAdapter>(new MetadataExtractAdapter());
+    (void)QObject::connect(adapter.get(),
+        &MetadataExtractAdapter::readCompleted,
+        this,
+        &Xamp::processMeatadata,
+        Qt::QueuedConnection);
+    MetadataExtractAdapter::readFileMetadata(adapter, AppSettings::getMyMusicFolderPath());
 }

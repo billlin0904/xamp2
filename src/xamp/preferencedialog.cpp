@@ -81,6 +81,14 @@ void PreferenceDialog::initSoxResampler() {
 
 	loadSoxrResampler(soxr_settings);
 
+	ui_.enableFramelessWindowCheckBox->setCheckState(
+		AppSettings::getValueAsBool(kAppSettingUseFramelessWindow) ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
+
+	(void)QObject::connect(ui_.enableFramelessWindowCheckBox, &QCheckBox::stateChanged, [this](auto state) {
+		AppSettings::setValue(kAppSettingUseFramelessWindow,
+			static_cast<Qt::CheckState>(state) == Qt::CheckState::Checked);
+		});
+
     (void)QObject::connect(ui_.saveSoxrSettingBtn, &QPushButton::pressed, [this]() {
         auto setting_name = QInputDialog::getText(this, tr("Save soxr setting"), 
 			tr("Setting name:"),

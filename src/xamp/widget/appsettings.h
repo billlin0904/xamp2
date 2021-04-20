@@ -8,6 +8,7 @@
 #include <base/uuid.h>
 
 #include <QColor>
+#include <QFileSystemWatcher>
 #include <QSettings>
 #include <QScopedPointer>
 
@@ -22,9 +23,15 @@ struct AppEQSettings {
 };
 Q_DECLARE_METATYPE(AppEQSettings);
 
+class FramelessWindow;
+
 class AppSettings final {
 public:    
     static void loadIniFile(QString const & file_name);
+
+    static void addMonitorFile(QString const& file_name);
+
+    static void startMonitorFile(FramelessWindow* window);
 
     template <typename T, typename = std::enable_if_t<std::is_integral<T>::value, T>>
     static void setValue(QString const& key, T value) {
@@ -102,4 +109,5 @@ private:
     static QScopedPointer<QSettings> settings_;
     static QMap<QString, QVariant> default_settings_;
     static LocaleLanguageManager manager_;
+    static QFileSystemWatcher file_watcher_;
 };

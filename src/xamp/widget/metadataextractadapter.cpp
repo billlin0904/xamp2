@@ -20,6 +20,7 @@
 #include <widget/http.h>
 #include <widget/toast.h>
 #include <widget/database.h>
+#include <widget/appsettings.h>
 #include <widget/playlisttableview.h>
 #include <widget/image_utiltis.h>
 #include <widget/metadataextractadapter.h>
@@ -120,7 +121,8 @@ public:
     }
 
     void OnWalk(const Path&, Metadata metadata) override {
-        metadatas_.push_back(std::move(metadata));
+        AppSettings::addMonitorFile(QString::fromStdWString(metadata.file_path));
+        metadatas_.push_back(std::move(metadata));        
         qApp->processEvents();
     }
 
@@ -180,7 +182,7 @@ void MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExtra
     	}
 
         dialog.setLabelText(file_dir_or_path);
-    	
+        
         try {            
             const Path path(file_dir_or_path.toStdWString());
             TaglibMetadataReader reader;

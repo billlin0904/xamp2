@@ -10,7 +10,9 @@
 
 namespace xamp::output_device::win32 {
 
-SharedWasapiDeviceType::SharedWasapiDeviceType() noexcept = default;
+SharedWasapiDeviceType::SharedWasapiDeviceType() noexcept {
+	ScanNewDevice();
+}
 
 void SharedWasapiDeviceType::ScanNewDevice() {
 	Initial();
