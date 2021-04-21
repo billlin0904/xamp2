@@ -2,7 +2,6 @@
 #include <QToolTip>
 #include <QMenu>
 #include <QCloseEvent>
-#include <QFileInfo>
 #include <QInputDialog>
 #include <QShortcut>
 #include <QProgressDialog>
@@ -1357,15 +1356,7 @@ void Xamp::addItem(const QString& file_name) {
         }
     }
     else {
-        auto adapter = QSharedPointer<MetadataExtractAdapter>(new MetadataExtractAdapter());
-
-        (void)QObject::connect(adapter.get(),
-            &MetadataExtractAdapter::readCompleted,
-            this,
-            &Xamp::processMeatadata,
-            Qt::QueuedConnection);
-        
-        MetadataExtractAdapter::readFileMetadata(adapter, file_name);
+        extractFile(file_name);
     }
 }
 
@@ -1556,6 +1547,7 @@ void Xamp::addDropFileItem(const QUrl& url) {
 void Xamp::onFileChanged(const QString& file_path) {    
 	if (!QFile::exists(file_path)) {
         XAMP_LOG_DEBUG("File is removed: {}", file_path.toStdString());
+        Singleton<Database>::GetInstance().removeMusic(file_path);
 	}
 
     QMessageBox msgbox;
@@ -1571,11 +1563,14 @@ void Xamp::onFileChanged(const QString& file_path) {
         return;
     }
 	
-    auto adapter = QSharedPointer<MetadataExtractAdapter>(new MetadataExtractAdapter());
+    extractFile(AppSettings::getMyMusicFolderPath());
+}
+
+void Xamp::extractFile(const QString& file_path) {
+	const auto adapter = QSharedPointer<MetadataExtractAdapter>(new MetadataExtractAdapter());
     (void)QObject::connect(adapter.get(),
         &MetadataExtractAdapter::readCompleted,
         this,
-        &Xamp::processMeatadata,
-        Qt::QueuedConnection);
-    MetadataExtractAdapter::readFileMetadata(adapter, AppSettings::getMyMusicFolderPath());
+        &Xamp::processMeatadata);
+    MetadataExtractAdapter::readFileMetadata(adapter, file_path);
 }

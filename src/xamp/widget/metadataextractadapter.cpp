@@ -121,7 +121,8 @@ public:
     }
 
     void OnWalk(const Path&, Metadata metadata) override {
-        AppSettings::addMonitorFile(QString::fromStdWString(metadata.file_path));
+        AppSettings::addMonitorPath(QString::fromStdWString(metadata.parent_path));
+        AppSettings::addMonitorPath(QString::fromStdWString(metadata.file_path));
         metadatas_.push_back(std::move(metadata));        
         qApp->processEvents();
     }
@@ -179,7 +180,7 @@ void MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExtra
     for (const auto& file_dir_or_path : dirs) {
     	if (dialog.wasCanceled()) {
             return;
-    	}
+    	}      
 
         dialog.setLabelText(file_dir_or_path);
         

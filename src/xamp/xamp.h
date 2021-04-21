@@ -154,6 +154,8 @@ private:
 
 	void onFileChanged(const QString& file_path);
 
+	void extractFile(const QString &file_path);
+
 	bool is_seeking_;
 	std::pair<double, double> loop_time{0,0};
 	PlayerOrder order_;

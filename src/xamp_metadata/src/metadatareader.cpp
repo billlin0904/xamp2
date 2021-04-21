@@ -15,7 +15,7 @@ void WalkPath(Path const & path, MetadataExtractAdapter* adapter, MetadataReader
     if (is_directory(path)) {
         Path root_path;
 
-        for (auto const & file_or_dir : RecursiveDirectoryIterator(path, options)) {
+        for (auto const & file_or_dir : RecursiveDirectoryIterator(std::filesystem::absolute(path), options)) {
             auto const & current_path = file_or_dir.path();
             if (root_path.empty()) {
                 root_path = current_path;

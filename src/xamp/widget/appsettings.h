@@ -29,7 +29,7 @@ class AppSettings final {
 public:    
     static void loadIniFile(QString const & file_name);
 
-    static void addMonitorFile(QString const& file_name);
+    static void addMonitorPath(QString const& file_name);
 
     static void startMonitorFile(FramelessWindow* window);
 

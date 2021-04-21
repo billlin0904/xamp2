@@ -40,12 +40,6 @@ struct COMBINED_HEADER {
 	DATA_HEADER data;
 };
 
-static bool ContainsOnlyASCII(const std::string& s) {
-	return !std::any_of(s.begin(), s.end(), [](char c) {
-		return static_cast<unsigned char>(c) > 127;
-		});
-}
-
 void WaveFileWriter::Close() {
 	if (data_length_ == 0) {
 		file_.close();

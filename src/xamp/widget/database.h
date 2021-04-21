@@ -179,6 +179,8 @@ WHERE
 
     void removeMusic(int32_t music_id);
 
+    void removeMusic(QString const& file_path);
+
     void removePlaylistAllMusic(int32_t playlist_id);
 	
     void removePlaylistMusic(int32_t playlist_id, const QVector<int>& select_music_ids);

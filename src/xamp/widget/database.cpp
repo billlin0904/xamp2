@@ -258,6 +258,25 @@ void Database::removeMusic(int32_t music_id) {
     IfFailureThrow1(query);
 }
 
+void Database::removeMusic(QString const& file_path) {
+	QSqlQuery query;
+
+	query.prepare(Q_UTF8("SELECT musicId FROM musics WHERE path = (:path)"));
+	query.bindValue(Q_UTF8(":path"), file_path);
+	
+	query.exec();
+
+	while (query.next()) {		
+		auto music_id = query.value(Q_UTF8("musicId")).toInt();
+		removePlaybackHistory(music_id);
+		removePlaylistMusic(1, QVector<int32_t>{ music_id });
+		removeAlbumMusicId(music_id);
+		removeAlbumArtistId(music_id);
+		removeMusic(music_id);
+		return;
+	}
+}
+
 void Database::removeAlbumArtist(int32_t album_id) {
     QSqlQuery query;
     query.prepare(Q_UTF8("DELETE FROM albumArtist WHERE albumId=:albumId"));
