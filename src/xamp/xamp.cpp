@@ -211,6 +211,8 @@ void Xamp::closeEvent(QCloseEvent* event) {
         player_->Destroy();
         player_.reset();
     }
+
+    AppSettings::shutdownMonitorFile();
 }
 
 void Xamp::setDefaultStyle() {

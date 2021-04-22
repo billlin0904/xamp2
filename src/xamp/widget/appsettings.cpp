@@ -10,16 +10,18 @@
 QScopedPointer<QSettings> AppSettings::settings_;
 QMap<QString, QVariant> AppSettings::default_settings_;
 LocaleLanguageManager AppSettings::manager_;
-QFileSystemWatcher AppSettings::file_watcher_;
+DirectoryWatcher AppSettings::file_watcher_;
 
 void AppSettings::startMonitorFile(FramelessWindow *window) {
-	(void)QObject::connect(&file_watcher_, &QFileSystemWatcher::fileChanged, [window](auto const file_path) {
+	(void)QObject::connect(&file_watcher_, &DirectoryWatcher::fileChanged, [window](auto const file_path) {
 		window->onFileChanged(file_path);
 		});
+	file_watcher_.start();
+}
 
-	(void)QObject::connect(&file_watcher_, &QFileSystemWatcher::directoryChanged, [window](auto const file_path) {
-		window->onFileChanged(file_path);
-		});
+void AppSettings::shutdownMonitorFile() {
+	file_watcher_.shutdown();
+	file_watcher_.wait();
 }
 
 void AppSettings::addMonitorPath(QString const& file_name) {

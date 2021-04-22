@@ -212,6 +212,12 @@
     <ClCompile Include="widget\uiplayerstateadapter.cpp" />
     <ClCompile Include="widget\vinylwidget.cpp" />
     <ClCompile Include="widget\wheelablewidget.cpp" />
+    <ClCompile Include="widget\win32\directorywatcher.cpp">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">input</DynamicSource>
+      <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).moc</QtMocFileName>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">input</DynamicSource>
+      <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).moc</QtMocFileName>
+    </ClCompile>
     <ClCompile Include="widget\win32\win32.cpp" />
     <ClCompile Include="widget\xampdialog.cpp" />
     <ClCompile Include="xamp.cpp" />
@@ -235,6 +241,7 @@
     </QtMoc>
     <QtMoc Include="widget\compressordialog.h">
     </QtMoc>
+    <QtMoc Include="widget\directorywatcher.h" />
     <ClInclude Include="widget\playlistsqlquerytablemodel.h" />
     <ClInclude Include="widget\playlisttablequerymodel.h" />
     <QtMoc Include="widget\uiplayerstateadapter.h">

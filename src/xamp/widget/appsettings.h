@@ -8,7 +8,6 @@
 #include <base/uuid.h>
 
 #include <QColor>
-#include <QFileSystemWatcher>
 #include <QSettings>
 #include <QScopedPointer>
 
@@ -16,6 +15,7 @@
 #include <widget/str_utilts.h>
 #include <widget/settingnames.h>
 #include <widget/localelanguage.h>
+#include <widget/directorywatcher.h>
 
 struct AppEQSettings {
     float gain{0};
@@ -32,6 +32,8 @@ public:
     static void addMonitorPath(QString const& file_name);
 
     static void startMonitorFile(FramelessWindow* window);
+
+    static void shutdownMonitorFile();
 
     template <typename T, typename = std::enable_if_t<std::is_integral<T>::value, T>>
     static void setValue(QString const& key, T value) {
@@ -109,5 +111,5 @@ private:
     static QScopedPointer<QSettings> settings_;
     static QMap<QString, QVariant> default_settings_;
     static LocaleLanguageManager manager_;
-    static QFileSystemWatcher file_watcher_;
+    static DirectoryWatcher file_watcher_;
 };
