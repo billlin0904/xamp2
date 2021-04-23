@@ -41,11 +41,11 @@ public:
 	void removePath(const QString& file);
 	
 Q_SIGNALS:
-	void fileChanged(const QString& path, QPrivateSignal);
+	void fileChanged(const QString& path);
 
 protected:
 	void run() override;
-	
+
 private:
 	class WatcherWorkerImpl;
 	AlignPtr<WatcherWorkerImpl> impl_;

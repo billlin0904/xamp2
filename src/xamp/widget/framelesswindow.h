@@ -46,8 +46,8 @@ public:
 
 	[[nodiscard]] bool UseNativeWindow() const noexcept {
 		return use_native_window_;
-	}	
-
+	}
+	
 	virtual void onFileChanged(const QString& file_path) = 0;
 protected:
     bool eventFilter(QObject* object, QEvent* event) override;
