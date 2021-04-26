@@ -118,6 +118,7 @@ void PlayListTableView::refresh() {
 	playlistMusics.playlistMusicsId;
     )");
     model_.setQuery(s.arg(playlist_id_));
+    proxy_model_.dataChanged(QModelIndex(), QModelIndex());
 }
 
 void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
@@ -653,13 +654,16 @@ void PlayListTableView::removeSelectItems() {
     QVector<int> remove_music_ids;
 
     for (auto itr = rows.rbegin(); itr != rows.rend(); ++itr) {
-        if (getIndexValue((*itr).second, PLAYLIST_PLAYING).toBool()) {
-            Singleton<Database>::GetInstance().clearNowPlaying(playlist_id_);
-        }
-        auto const music_id = model()->data((*itr).second);
-        remove_music_ids.push_back(music_id.toInt());
+        auto const music_id = model()->data((*itr).second).toInt();
+        Singleton<Database>::GetInstance().clearNowPlaying(playlist_id_, music_id);
+        remove_music_ids.push_back(music_id);
     }
+	
+    auto count = proxy_model_.rowCount();
+	if (!count) {
+        Singleton<Database>::GetInstance().clearNowPlaying(playlist_id_);       
+	}
 
     Singleton<Database>::GetInstance().removePlaylistMusic(playlist_id_, remove_music_ids);
-    setPlaylistId(playlist_id_);
+    refresh();    
 }

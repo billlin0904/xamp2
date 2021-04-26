@@ -32,8 +32,7 @@ public:
 			const auto action = new QAction(menu_name, nullptr);
 			action->setCheckable(true);
 
-			if (checked)
-				action->setChecked(checked);
+			action->setChecked(checked);
 
 			action_map_[action] = callback;
 			submenu_->addAction(action);
@@ -80,7 +79,7 @@ public:
 		Callable&& callback,
 		bool add_eparator = false,
 		bool checked = false) {
-		auto action = new QAction(menu_name, nullptr);
+		auto* action = new QAction(menu_name, nullptr);
 
 		map_[action] = callback;
 		menu_.addAction(action);
@@ -88,7 +87,7 @@ public:
 		if (add_eparator)
 			menu_.addSeparator();
 
-		action->setCheckable(true);
+		action->setCheckable(false);
 		if (checked)
 			action->setChecked(checked);
 

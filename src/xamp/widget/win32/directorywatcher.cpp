@@ -131,13 +131,13 @@ public:
     void notifyChanges() {
         for (auto& entry : change_entries_) {
             switch (entry.action) {
-            case DirectoryAction::kAdd:
+            case FileChangeAction::kAdd:
                 watcher_->fileChanged(QString::fromStdWString(entry.new_path.wstring()));
                 break;
-            case DirectoryAction::kRemove:
+            case FileChangeAction::kRemove:
                 watcher_->fileChanged(QString::fromStdWString(entry.old_path.wstring()));
                 break;
-            case DirectoryAction::kRename:
+            case FileChangeAction::kRename:
                 watcher_->fileChanged(QString::fromStdWString(entry.old_path.wstring()));                
                 break;
             }        	
@@ -167,15 +167,15 @@ public:
             switch (notifies->Action) {
             case FILE_ACTION_ADDED:
                 change_entries_.push_back(
-                    { DirectoryAction::kAdd, Path(), raw_path });
+                    { FileChangeAction::kAdd, Path(), raw_path });
                 break;
             case FILE_ACTION_REMOVED:
                 change_entries_.push_back(
-                    { DirectoryAction::kRemove, raw_path, Path() });
+                    { FileChangeAction::kRemove, raw_path, Path() });
                 break;
             case FILE_ACTION_MODIFIED:
                 change_entries_.push_back(
-                    { DirectoryAction::kModify, Path(), raw_path });
+                    { FileChangeAction::kModify, Path(), raw_path });
                 break;
             case FILE_ACTION_RENAMED_OLD_NAME:
                 if (rename_new_names.empty()) {
@@ -183,7 +183,7 @@ public:
                 }
                 else {
                     change_entries_.push_back(
-                        { DirectoryAction::kRename, raw_path, rename_old_names.top() });
+                        { FileChangeAction::kRename, raw_path, rename_old_names.top() });
                     rename_new_names.pop();
                 }
                 break;
@@ -193,7 +193,7 @@ public:
                 }
                 else {
                     change_entries_.push_back(
-                        { DirectoryAction::kRename, rename_old_names.top(),raw_path });
+                        { FileChangeAction::kRename, rename_old_names.top(),raw_path });
                     rename_old_names.pop();
                 }
                 break;

@@ -213,6 +213,14 @@ void Database::clearNowPlaying(int32_t playlist_id) {
     IfFailureThrow1(query);
 }
 
+void Database::clearNowPlaying(int32_t playlist_id, int32_t music_id) {
+	QSqlQuery query;
+	query.prepare(Q_UTF8("UPDATE playlistMusics SET playing = 0 WHERE (playlistId = :playlistId AND musicId = :musicId)"));
+	query.bindValue(Q_UTF8(":playlistId"), playlist_id);
+	query.bindValue(Q_UTF8(":musicId"), music_id);
+	IfFailureThrow1(query);
+}
+
 void Database::setNowPlaying(int32_t playlist_id, int32_t music_id) {
     clearNowPlaying(playlist_id);
 

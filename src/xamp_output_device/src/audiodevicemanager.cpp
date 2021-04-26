@@ -1,4 +1,5 @@
 #include <base/base.h>
+#include <base/logger.h>
 
 #ifdef XAMP_OS_WIN
 #include <base/platform_thread.h>

@@ -194,6 +194,8 @@ WHERE
     void setNowPlaying(int32_t playlist_id, int32_t music_id);
 
     void clearNowPlaying(int32_t playlist_id);
+
+    void clearNowPlaying(int32_t playlist_id, int32_t music_id);
 private:
     Database();
 

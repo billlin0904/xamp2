@@ -11,7 +11,7 @@
 #include <base/align_ptr.h>
 #include <metadata/metadata.h>
 
-enum class DirectoryAction {
+enum class FileChangeAction {
 	kRename,
 	kModify,
 	kRemove,
@@ -22,7 +22,7 @@ using xamp::metadata::Path;
 using xamp::base::AlignPtr;
 
 struct DirectoryChangeEntry {
-	DirectoryAction action;
+	FileChangeAction action;
 	Path old_path;
 	Path new_path;
 };

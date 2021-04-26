@@ -31,6 +31,12 @@ public:
         BassIfFailedThrow(compressor_fx);
         BassIfFailedThrow(BASS.BASS_FXSetParameters(compressor_fx, &compressord));
         compressord_ = compressord;
+        XAMP_LOG_DEBUG("Compressor gain:{} threshold:{} ratio:{} attack:{} release:{}",
+            compressord.fGain,
+            compressord.fThreshold,
+            compressord.fRatio,
+            compressord.fAttack,
+            compressord.fRelease);
     }
 
     const Buffer<float>& Process(float const * samples, uint32_t num_samples) {

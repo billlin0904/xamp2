@@ -263,6 +263,7 @@ void Xamp::initialUI() {
     f.setPointSize(10);
     ui_.artistLabel->setFont(f);
 #endif
+    ui_.sliderFrame->hide();	
 }
 
 QWidgetAction* Xamp::createTextSeparator(const QString& text) {
@@ -902,7 +903,7 @@ void Xamp::playMusic(const MusicEntity& item) {
     try {
         player_->Open(item.file_path.toStdWString(), device_info_);
         setupSampleRateConverter(item.true_peak > 1.0);
-        player_->PrepareToPlay(loop_time.first, loop_time.second);
+        player_->PrepareToPlay();
         playback_format = getPlaybackFormat(player_.get());
         player_->Play();
         open_done = true;        
@@ -1508,7 +1509,6 @@ PlyalistPage* Xamp::newPlaylist(int32_t playlist_id) {
                             [this](auto index, const auto& item) {
                                 setupPlayNextMusicSignals(false);
                                 play(index, item);
-                                loop_time = std::make_pair(0, 0);
                             });
 
     (void)QObject::connect(playlist_page->playlist(), &PlayListTableView::setLoopTime,
