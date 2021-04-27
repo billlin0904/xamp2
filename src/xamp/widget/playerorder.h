@@ -11,9 +11,9 @@ MAKE_ENUM(PlayerOrder,
     PLAYER_ORDER_REPEAT_ONCE,
     PLAYER_ORDER_REPEAT_ONE,
     PLAYER_ORDER_SHUFFLE_ALL,
-    _MAX_PLAYER_ORDER_)    
+    PLAYER_ORDER_MAX)
 
 inline PlayerOrder GetNextOrder(PlayerOrder cur) noexcept {
     return static_cast<PlayerOrder>((static_cast<int32_t>(cur) + 1)
-        % static_cast<int32_t>(PlayerOrder::_MAX_PLAYER_ORDER_));
+        % static_cast<uint32_t>(PlayerOrder::PLAYER_ORDER_MAX));
 }

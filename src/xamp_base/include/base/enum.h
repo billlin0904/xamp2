@@ -5,10 +5,11 @@
 
 #pragma once
 
-#include <base/base.h>
-
 #include <ostream>
 #include <string_view>
+
+#include <base/base.h>
+#include <base/stl.h>
 
 #define EXPAND_VISUAL_STUDIO_HELPER(x) x
 #define ALL_ARGUMENTS_TO_STRING_HELPER(zero,                                                     \
@@ -36,6 +37,8 @@
 #a1, #a2, #a3, #a4, #a5, #a6, #a7, #a8, #a9, #a10, #a11, #a12, #a13, #a14, #a15, #a16, #a17, \
         #a18, #a19, #a20
 
+#define PP_NARG(...) PP_NARG_(__VA_ARGS__, PP_RSEQ_N())
+	
 #define ALL_ARGUMENTS_TO_STRING(...)                            \
     EXPAND_VISUAL_STUDIO_HELPER(ALL_ARGUMENTS_TO_STRING_HELPER( \
         0, __VA_ARGS__, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
