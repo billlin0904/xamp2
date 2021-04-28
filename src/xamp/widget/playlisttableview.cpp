@@ -153,13 +153,17 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
 
     hideColumn(PLAYLIST_FILE_EXT);
     hideColumn(PLAYLIST_FILE_PARENT_PATH);
+
+    hideColumn(PLAYLIST_BITRATE);
+    hideColumn(PLAYLIST_ALBUM);
+    hideColumn(PLAYLIST_LRUS);
+    hideColumn(PLAYLIST_TRUE_PEAK);
+    hideColumn(PLAYLIST_RATING);
+    hideColumn(PLAYLIST_DURATION);
 }
 
 void PlayListTableView::initial() {
     proxy_model_.setSourceModel(&model_);
-    proxy_model_.setFilterByColumn(PLAYLIST_ALBUM);
-    proxy_model_.setFilterByColumn(PLAYLIST_ARTIST);
-    proxy_model_.setFilterByColumn(PLAYLIST_TITLE);
     proxy_model_.setFilterByColumn(PLAYLIST_RATING);
     proxy_model_.setDynamicSortFilter(true);
     setModel(&proxy_model_);
@@ -191,8 +195,9 @@ void PlayListTableView::initial() {
     verticalHeader()->setDefaultSectionSize(40);
 
     horizontalScrollBar()->setDisabled(true);
+    horizontalHeader()->setVisible(false);
     horizontalHeader()->setHighlightSections(false);
-    horizontalHeader()->setStretchLastSection(true);
+    horizontalHeader()->setStretchLastSection(false);
     horizontalHeader()->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 
     start_delegate_ = new StarDelegate(this);
@@ -504,7 +509,7 @@ void PlayListTableView::resizeColumn() const {
         switch (column) {
         case PLAYLIST_TRACK:
         case PLAYLIST_PLAYING:
-            header->setSectionResizeMode(column, QHeaderView::ResizeToContents);
+            header->setSectionResizeMode(column, QHeaderView::Fixed);
             header->resizeSection(column, 8);
             break;
         case PLAYLIST_DURATION:
@@ -514,19 +519,22 @@ void PlayListTableView::resizeColumn() const {
             break;
         case PLAYLIST_TITLE:
         {
-            //constexpr auto kStretchedSize = 150;
-            constexpr auto kMaxStretchedSize = 350;
+            //constexpr auto kStretchedSize = 650;
+            //constexpr auto kMaxStretchedSize = 350;
             //auto size = (std::max)(sizeHintForColumn(column), kStretchedSize);
             //size = (std::min)(size, kMaxStretchedSize);
-            auto size = kMaxStretchedSize;
-            header->setSectionResizeMode(column, QHeaderView::Fixed);
-            header->resizeSection(column, size);
+            //auto size = kMaxStretchedSize;
+            header->setSectionResizeMode(column, QHeaderView::Stretch);
+            //header->resizeSection(column, size);
+            //header->setSectionResizeMode(column, QHeaderView::Stretch);
         }
-        break;
-        case PLAYLIST_ALBUM:
+        break;        
         case PLAYLIST_ARTIST:
             header->setSectionResizeMode(column, QHeaderView::ResizeToContents);
-            break;        
+            //header->setSectionResizeMode(column, QHeaderView::Fixed);
+            //header->resizeSection(column, 15);
+            break;
+        case PLAYLIST_ALBUM:
         default:
             header->setSectionResizeMode(column, QHeaderView::Stretch);
             break;

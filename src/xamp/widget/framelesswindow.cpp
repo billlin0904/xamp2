@@ -337,7 +337,7 @@ void FramelessWindow::paintEvent(QPaintEvent* event) {
 }
 
 void FramelessWindow::mousePressEvent(QMouseEvent* event) {
-	if (UseNativeWindow()) {
+	if (useNativeWindow()) {
         QWidget::mousePressEvent(event);
         return;
 	}
@@ -352,7 +352,7 @@ void FramelessWindow::mousePressEvent(QMouseEvent* event) {
 }
 
 void FramelessWindow::mouseReleaseEvent(QMouseEvent* event) {
-    if (UseNativeWindow()) {
+    if (useNativeWindow()) {
         QWidget::mouseReleaseEvent(event);
         return;
 	}
@@ -365,7 +365,7 @@ void FramelessWindow::mouseReleaseEvent(QMouseEvent* event) {
 
 void FramelessWindow::mouseMoveEvent(QMouseEvent* event) {
 #if defined(Q_OS_WIN)
-    if (UseNativeWindow()) {
+    if (useNativeWindow()) {
         QWidget::mouseMoveEvent(event);
         return;
     }

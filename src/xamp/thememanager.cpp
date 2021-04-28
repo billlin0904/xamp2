@@ -307,14 +307,6 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
                                          }
                                          )").arg(themeColorPath()));
 
-    ui.repeatButton->setStyleSheet(Q_STR(R"(
-                                          QToolButton#repeatButton {
-                                          image: url(:/xamp/Resource/%1/repeat.png);
-                                          background-color: transparent;
-                                          border: none;
-                                          }
-                                          )").arg(themeColorPath()));
-
     ui.addPlaylistButton->setStyleSheet(Q_STR(R"(
                                                QToolButton#addPlaylistButton {
                                                image: url(:/xamp/Resource/%1/create_new_folder.png);

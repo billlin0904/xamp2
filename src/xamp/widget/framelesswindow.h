@@ -44,7 +44,7 @@ public:
 
 	void setTaskbarPlayerStop();
 
-	[[nodiscard]] bool UseNativeWindow() const noexcept {
+	[[nodiscard]] bool useNativeWindow() const noexcept {
 		return use_native_window_;
 	}
 	

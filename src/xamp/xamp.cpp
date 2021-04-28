@@ -218,7 +218,7 @@ void Xamp::closeEvent(QCloseEvent* event) {
 void Xamp::setDefaultStyle() {
     ThemeManager::instance().setDefaultStyle(ui_);
     applyTheme(ThemeManager::instance().getBackgroundColor());
-    ThemeManager::instance().enableBlur(this, AppSettings::getValueAsBool(kAppSettingEnableBlur), UseNativeWindow());
+    ThemeManager::instance().enableBlur(this, AppSettings::getValueAsBool(kAppSettingEnableBlur), useNativeWindow());
 
     setStyleSheet(Q_UTF8(R"(
 	QListView#sliderBar::item {
@@ -248,7 +248,7 @@ void Xamp::initialUI() {
     ui_.titleLabel->setFont(f);
     f.setPointSize(8);
     ui_.artistLabel->setFont(f);
-    if (UseNativeWindow()) {
+    if (useNativeWindow()) {
         ui_.closeButton->hide();
         ui_.maxWinButton->hide();
         ui_.minWinButton->hide();
@@ -434,6 +434,8 @@ void Xamp::initialController() {
     (void)QObject::connect(ui_.seekSlider, &SeekSlider::leftButtonValueChanged, [this](auto value) {
         try {
             player_->Seek(static_cast<double>(value / 1000.0));
+            ThemeManager::instance().setPlayOrPauseButton(ui_, true);
+            setTaskbarPlayingResume();
         }
         catch (const Exception & e) {
             player_->Stop(false);
@@ -634,7 +636,7 @@ void Xamp::initialController() {
         auto enable = AppSettings::getValueAsBool(kAppSettingEnableBlur);
         enable = !enable;
         enable_blur_material_mode_action->setChecked(enable);
-        ThemeManager::instance().enableBlur(this, enable, UseNativeWindow());
+        ThemeManager::instance().enableBlur(this, enable, useNativeWindow());
         });
     settings_menu->addAction(enable_blur_material_mode_action);
 #endif
@@ -667,7 +669,9 @@ void Xamp::applyConfig() {
     }
 }
 
-void Xamp::applyTheme(QColor color) {   
+void Xamp::applyTheme(QColor color) {
+    color.setAlpha(90);
+	
     if (qGray(color.rgb()) > 200) {      
         emit themeChanged(color, Qt::black);
         ThemeManager::instance().setThemeColor(ThemeColor::WHITE_THEME);
