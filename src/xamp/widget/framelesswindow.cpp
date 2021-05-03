@@ -118,6 +118,8 @@ QFont FramelessWindow::setupUIFont() const {
     QFont ui_font(Q_UTF8("UI"));
 
 #ifdef Q_OS_WIN
+    fallback_fonts.append(Q_UTF8("Open Sans"));
+    fallback_fonts.append(Q_UTF8("Open Sans Bold"));
     fallback_fonts.append(Q_UTF8("Segoe UI"));
     fallback_fonts.append(Q_UTF8("Segoe UI Bold"));    
     fallback_fonts.append(Q_UTF8("Meiryo UI"));

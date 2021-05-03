@@ -44,19 +44,20 @@ QVariant PlayListSqlQueryTableModel::data(const QModelIndex& index, int32_t role
         }
         break;
     case Qt::DecorationRole:
-    {
         if (index.column() == PLAYLIST_PLAYING) {
             auto value = QSqlQueryModel::data(index, Qt::DisplayRole);
             if (value.toBool()) {
                 return ThemeManager::instance().playArrow();
-            } else {
+            }
+            else {
                 return QVariant();
             }
         }
-    }
         break;
     case Qt::TextAlignmentRole:
         switch (index.column()) {
+        case PLAYLIST_ARTIST:
+            return Qt::AlignRight;
         case PLAYLIST_DURATION:
             return Qt::AlignCenter;
         }

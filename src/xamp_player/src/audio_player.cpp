@@ -5,6 +5,7 @@
 #include <base/threadpool.h>
 #include <base/dsdsampleformat.h>
 #include <base/dataconverter.h>
+#include <base/dsdsampleformat.h>
 #include <base/buffer.h>
 
 #include <output_device/audiodevicemanager.h>
@@ -131,17 +132,17 @@ void AudioPlayer::Open(std::filesystem::path const& file_path) {
     }
 }
 
-void AudioPlayer::Open(std::filesystem::path const& file_path, const DeviceInfo& device_info) {
+void AudioPlayer::Open(std::filesystem::path const& file_path, 
+    const DeviceInfo& device_info,
+    uint32_t target_sample_rate,
+    AlignPtr<SampleRateConverter> converter) {
     Startup();
     CloseDevice(true);
+    enable_sample_converter_ = converter != nullptr;
+    converter_  = std::move(converter);
+    target_sample_rate_ = target_sample_rate;
     OpenStream(file_path, device_info);
     device_info_ = device_info;
-}
-	
-void AudioPlayer::SetSampleRateConverter(uint32_t sample_rate, AlignPtr<SampleRateConverter>&& converter) {
-    target_sample_rate_ = sample_rate;
-    converter_ = std::move(converter);
-    EnableSampleRateConverter(true);
 }
 
 void AudioPlayer::SetProcessor(AlignPtr<AudioProcessor>&& processor) {
@@ -190,7 +191,7 @@ bool AudioPlayer::IsDSDFile() const {
 }
 
 void AudioPlayer::OpenStream(std::filesystem::path const& file_path, DeviceInfo const & device_info) {
-    auto [dsd_mode, stream] = audio_util::MakeFileStream(file_path, device_info);
+    auto [dsd_mode, stream] = audio_util::MakeFileStream(file_path, device_info, enable_sample_converter_);
     stream_ = std::move(stream);
     dsd_mode_ = dsd_mode;
     if (auto* dsd_stream = AsDsdStream(stream_)) {
@@ -480,10 +481,6 @@ void AudioPlayer::CreateBuffer() {
         num_read_sample_,
         converter_->GetDescription(),
         String::FormatBytes(fifo_.GetSize()));
-}
-
-void AudioPlayer::EnableSampleRateConverter(bool enable) {
-    enable_sample_converter_ = enable;
 }
 
 bool AudioPlayer::IsEnableSampleRateConverter() const {

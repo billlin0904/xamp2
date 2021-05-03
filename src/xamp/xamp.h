@@ -132,8 +132,6 @@ private:
 
 	void setupPlayNextMusicSignals(bool add_or_remove);
 
-	void setupSampleRateConverter(bool enable_dsp);
-
 	void registerMetaType();
 
     void onDeviceStateChanged(DeviceState state);

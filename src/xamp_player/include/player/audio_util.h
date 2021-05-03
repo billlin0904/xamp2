@@ -24,7 +24,9 @@ using namespace xamp::output_device;
 
 XAMP_PLAYER_API DsdDevice * AsDsdDevice(AlignPtr<Device> const & device) noexcept;
 	
-XAMP_PLAYER_API std::pair<DsdModes, AlignPtr<FileStream>> MakeFileStream(std::filesystem::path const &path,	DeviceInfo const& device_info);
+XAMP_PLAYER_API std::pair<DsdModes, AlignPtr<FileStream>> MakeFileStream(std::filesystem::path const &path,	
+	DeviceInfo const& device_info,
+	bool enable_sample_converter = false);
 
 }
 

@@ -197,7 +197,7 @@ void PlayListTableView::initial() {
     horizontalScrollBar()->setDisabled(true);
     horizontalHeader()->setVisible(false);
     horizontalHeader()->setHighlightSections(false);
-    horizontalHeader()->setStretchLastSection(false);
+    horizontalHeader()->setStretchLastSection(true);
     horizontalHeader()->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 
     start_delegate_ = new StarDelegate(this);
@@ -259,56 +259,12 @@ void PlayListTableView::initial() {
 	                                                                tr("Select a Directory"),
 	                                                                AppSettings::getMyMusicFolderPath(),
 	                                                                QFileDialog::DontUseNativeDialog | QFileDialog::ShowDirsOnly);
+        	if (dir_name.isEmpty()) {
+                return;
+        	}
             append(dir_name);
             });
 
-#if 0
-        auto import_file_from_url_act = action_map.addAction(tr("Import file from meta.json"));
-
-        action_map.setCallback(import_file_from_url_act, [this]() {
-            QDialog dialog(this);
-            dialog.setWindowTitle(tr("Import file from meta.json"));
-            dialog.setWindowFlags(dialog.windowFlags() & ~Qt::WindowContextHelpButtonHint);
-
-            QFormLayout form(&dialog);
-            auto url_edit = new QLineEdit(&dialog);
-            url_edit->setText(Q_UTF8("https://static.suisei.moe/music/meta.json"));
-            form.addRow(tr("URL:"), url_edit);
-
-            QDialogButtonBox buttonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
-                Qt::Horizontal, &dialog);
-            form.addRow(&buttonBox);
-            QObject::connect(&buttonBox, SIGNAL(accepted()), &dialog, SLOT(accept()));
-            QObject::connect(&buttonBox, SIGNAL(rejected()), &dialog, SLOT(reject()));
-
-            if (dialog.exec() != QDialog::Accepted) {
-                return;
-            }
-
-            http::HttpClient(url_edit->text()).success([this](const QString& json) {
-                QJsonParseError error;
-                const auto doc = QJsonDocument::fromJson(json.toUtf8(), &error);
-                if (error.error == QJsonParseError::NoError) {
-                    auto result = doc.array();
-                    std::vector<Metadata> metadatas;
-                    metadatas.reserve(result.size());
-                    for (const auto& entry : result) {
-                        auto object = entry.toVariant().toMap();
-                        auto url = object.value(Q_UTF8("url")).toString();
-                        auto title = object.value(Q_UTF8("title")).toString();
-                        auto performer = object.value(Q_UTF8("performer")).toString();
-                        Metadata metadata;
-                        metadata.file_path = url.toStdWString();
-                        metadata.title = title.toStdWString();
-                        metadata.artist = performer.toStdWString();
-                        metadatas.push_back(metadata);
-                    }
-                    MetadataExtractAdapter::processMetadata(metadatas, this);
-                }
-                }).get();
-
-            });
-#endif
         action_map.addSeparator();
 
         auto remove_all_act = action_map.addAction(tr("Remove all"));
@@ -503,7 +459,7 @@ void PlayListTableView::resizeEvent(QResizeEvent* event) {
 }
 
 void PlayListTableView::resizeColumn() const {
-    auto header = horizontalHeader();
+    auto* header = horizontalHeader();
 
     for (auto column = 0; column < header->count(); ++column) {
         switch (column) {
@@ -530,7 +486,7 @@ void PlayListTableView::resizeColumn() const {
         }
         break;        
         case PLAYLIST_ARTIST:
-            header->setSectionResizeMode(column, QHeaderView::ResizeToContents);
+            header->setSectionResizeMode(column, QHeaderView::Stretch);
             //header->setSectionResizeMode(column, QHeaderView::Fixed);
             //header->resizeSection(column, 15);
             break;

@@ -670,7 +670,9 @@ void Xamp::applyConfig() {
 }
 
 void Xamp::applyTheme(QColor color) {
-    color.setAlpha(90);
+    if (AppSettings::getValueAsBool(kAppSettingEnableBlur)) {
+        color.setAlpha(90);
+    }    
 	
     if (qGray(color.rgb()) > 200) {      
         emit themeChanged(color, Qt::black);
@@ -865,23 +867,6 @@ void Xamp::resetSeekPosValue() {
     ui_.startPosLabel->setText(Time::msToString(0));
 }
 
-void Xamp::setupSampleRateConverter(bool enable_dsp) {
-    if (AppSettings::getValue(kAppSettingResamplerEnable).toBool()) {        
-        auto soxr_settings = JsonSettings::getValue(AppSettings::getValueAsString(kAppSettingSoxrSettingName)).toMap();
-        auto sample_rate_converter = makeSampleRateConverter(soxr_settings);
-        auto sample_rate = soxr_settings[kSoxrResampleSampleRate].toUInt();
-        player_->SetSampleRateConverter(sample_rate, std::move(sample_rate_converter));
-    	if (enable_dsp) {
-            auto compressor = makeCompressor(sample_rate);
-            player_->SetProcessor(std::move(compressor));
-    	}
-    	player_->EnableProcessor(enable_dsp);
-    }
-    else {
-        player_->EnableSampleRateConverter(false);
-    }
-}
-
 void Xamp::processMeatadata(const std::vector<Metadata>& medata) const {    
     MetadataExtractAdapter::processMetadata(medata);
     emit album_artist_page_->album()->refreshOnece();
@@ -903,14 +888,25 @@ void Xamp::playMusic(const MusicEntity& item) {
         );
 
     PlaybackFormat playback_format;
-
+    AlignPtr<SampleRateConverter> converter;
+    uint32_t target_sample_rate = 0;	
+	
     try {
-        player_->Open(item.file_path.toStdWString(), device_info_);
-        setupSampleRateConverter(item.true_peak > 1.0);
+        if (AppSettings::getValue(kAppSettingResamplerEnable).toBool()) {
+            auto soxr_settings = JsonSettings::getValue(AppSettings::getValueAsString(kAppSettingSoxrSettingName)).toMap();
+            converter = makeSampleRateConverter(soxr_settings);
+            target_sample_rate = soxr_settings[kSoxrResampleSampleRate].toUInt();
+        }
+        player_->Open(item.file_path.toStdWString(), device_info_, target_sample_rate, std::move(converter));
+        const auto enable_dsp = item.true_peak > 1.0;
+        if (enable_dsp) {
+            auto compressor = makeCompressor(player_->GetOutputFormat().GetSampleRate());
+            player_->SetProcessor(std::move(compressor));
+        }
         player_->PrepareToPlay();
         playback_format = getPlaybackFormat(player_.get());
         player_->Play();
-        open_done = true;        
+        open_done = true;
     }
     catch (const Exception & e) {
         XAMP_LOG_DEBUG("Exception: {} {}", e.GetErrorMessage(), e.GetStackTrace());

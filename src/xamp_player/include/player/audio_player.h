@@ -60,7 +60,10 @@ public:
 
     void Open(std::filesystem::path const& file_path);
 
-    void Open(std::filesystem::path const& file_path, const DeviceInfo& device_info);       
+    void Open(std::filesystem::path const& file_path,
+        const DeviceInfo& device_info,
+        uint32_t target_sample_rate = 0,
+        AlignPtr<SampleRateConverter> converter = nullptr);       
 
     void PrepareToPlay(double start_time = 0.0, double end_time = 0.0);
 
@@ -102,15 +105,11 @@ public:
 
     AudioFormat GetOutputFormat() const noexcept;
 
-    void SetSampleRateConverter(uint32_t sample_rate, AlignPtr<SampleRateConverter> && converter);
-
     void SetProcessor(AlignPtr<AudioProcessor> &&processor);
 
     void EnableProcessor(bool enable = true);
 
     bool IsEnableProcessor() const;
-
-    void EnableSampleRateConverter(bool enable = true);
 
     bool IsEnableSampleRateConverter() const;
 
