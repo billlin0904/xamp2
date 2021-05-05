@@ -5,6 +5,8 @@
 
 namespace xamp::base {
 
+inline auto kPopWaitTimeout = std::chrono::milliseconds(10);
+
 TaskScheduler::TaskScheduler(size_t max_thread, int32_t core)
 	: is_stopped_(false)
 	, active_thread_(0)
@@ -77,10 +79,9 @@ size_t TaskScheduler::GetActiveThreadCount() const noexcept {
 	return active_thread_;
 }
 
-std::optional<Task> TaskScheduler::TryPopPoolQueue() {
-	constexpr auto kWaitTimeout = std::chrono::milliseconds(30);
+std::optional<Task> TaskScheduler::TryPopPoolQueue() {	
 	Task task;
-	if (pool_queue_.Dequeue(task, kWaitTimeout)) {
+	if (pool_queue_.Dequeue(task, kPopWaitTimeout)) {
 		XAMP_LOG_DEBUG("Pop pool thread queue.");
 		return std::move(task);
 	}

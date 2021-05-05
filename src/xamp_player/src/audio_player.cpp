@@ -891,7 +891,7 @@ DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_fr
     }
 
     XAMP_LIKELY(fifo_.TryRead(static_cast<int8_t*>(samples), sample_size)) {       
-        UpdateSlice(num_samples, stream_time);
+        UpdateSlice(static_cast<int32_t>(num_samples), stream_time);
 #ifdef _DEBUG
         sw_.Reset();
 #endif        
@@ -907,19 +907,14 @@ DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_fr
     return DataCallbackResult::STOP;
 }
 
-void AudioPlayer::PrepareToPlay(double start_time, double end_time) {
+void AudioPlayer::PrepareToPlay() {
     SetDeviceFormat();
     CreateDevice(device_info_.device_type_id, device_info_.device_id, false);
-    OpenDevice(start_time);
+    OpenDevice(0);
     CreateBuffer();
-    BufferStream(start_time);    
+    BufferStream(0);    
     
-    if (end_time > 0.0) {
-        sample_end_time_ = end_time - start_time;
-    }
-    else {
-        sample_end_time_ = stream_->GetDuration();
-    }
+    sample_end_time_ = stream_->GetDuration();
 
     XAMP_LOG_INFO("Stream end time {} sec", sample_end_time_);
 }

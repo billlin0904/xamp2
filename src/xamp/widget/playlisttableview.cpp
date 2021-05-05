@@ -267,18 +267,17 @@ void PlayListTableView::initial() {
 
         action_map.addSeparator();
 
-        auto remove_all_act = action_map.addAction(tr("Remove all"));
-        auto open_local_file_path_act = action_map.addAction(tr("Open local file path"));
-        auto reload_file_meta_act = action_map.addAction(tr("Reload file meta"));
-        auto reload_file_fingerprint_act = action_map.addAction(tr("Read file fingerprint"));
-        auto read_file_lufs_act = action_map.addAction(tr("Read file LUFS"));
-        auto export_wave_file_act = action_map.addAction(tr("Export wave file"));
-        auto copy_album_act = action_map.addAction(tr("Copy album"));
-        auto copy_artist_act = action_map.addAction(tr("Copy artist"));
-        auto copy_title_act = action_map.addAction(tr("Copy title"));
-        auto set_cover_art_act = action_map.addAction(tr("Set cover art"));
-        auto export_cover_act = action_map.addAction(tr("Export music cover"));
-        auto set_start_and_loop_act = action_map.addAction(tr("Set start and end loop time"));
+        auto * remove_all_act = action_map.addAction(tr("Remove all"));
+        auto * open_local_file_path_act = action_map.addAction(tr("Open local file path"));
+        auto * reload_file_meta_act = action_map.addAction(tr("Reload file meta"));
+        auto * reload_file_fingerprint_act = action_map.addAction(tr("Read file fingerprint"));
+        auto * read_file_lufs_act = action_map.addAction(tr("Read file LUFS"));
+        auto * export_wave_file_act = action_map.addAction(tr("Export wave file"));
+        auto * copy_album_act = action_map.addAction(tr("Copy album"));
+        auto * copy_artist_act = action_map.addAction(tr("Copy artist"));
+        auto * copy_title_act = action_map.addAction(tr("Copy title"));
+        auto * set_cover_art_act = action_map.addAction(tr("Set cover art"));
+        auto * export_cover_act = action_map.addAction(tr("Export music cover"));
 
         if (model_.rowCount() == 0 || !index.isValid()) {
             action_map.exec(pt);
@@ -371,7 +370,7 @@ void PlayListTableView::initial() {
             }
 
             const QSize kMaxCoverArtSize(500, 500);
-            auto resize_cover = Pixmap::resizeImage(image, kMaxCoverArtSize, true);
+            const auto resize_cover = Pixmap::resizeImage(image, kMaxCoverArtSize, true);
 
             const auto image_data = Pixmap::getImageDate(resize_cover);
             const auto rows = selectItemIndex();

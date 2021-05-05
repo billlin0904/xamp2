@@ -60,7 +60,8 @@ static QString format2String(const PlaybackFormat &playback_format, const QStrin
     }
 
     QString dsd_speed_format;
-    if (playback_format.is_dsd_file && playback_format.dsd_mode == DsdModes::DSD_MODE_NATIVE) {
+    if (playback_format.is_dsd_file
+        && (playback_format.dsd_mode == DsdModes::DSD_MODE_NATIVE || playback_format.dsd_mode == DsdModes::DSD_MODE_DOP)) {
         dsd_speed_format = Q_UTF8("DSD") + QString::number(playback_format.dsd_speed);
         dsd_speed_format = Q_UTF8("(") + dsd_speed_format + Q_UTF8(") | ");
     } else {

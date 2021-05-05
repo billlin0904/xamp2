@@ -8,9 +8,9 @@
 #include <base/logger.h>
 #include <widget/directorywatcher.h>
 
-#ifdef XAMP_OS_WIN
 using namespace xamp::base;
 
+#ifdef XAMP_OS_WIN
 static Path getPath(WCHAR const* path, const DWORD size_in_bytes) {
     return { path, path + size_in_bytes / sizeof(WCHAR) };
 }
@@ -57,9 +57,16 @@ public:
         if (watch_file_handles_.find(path) != watch_file_handles_.end()) {
             return;
         }
-        auto dir_handle(createDirHandle(path));
-        attachHandle(iocp_handle_.get(), dir_handle);
-        startMonitor(dir_handle, path);
+        WinHandle dir_handle(createDirHandle(path));
+        auto ov = MakeAlign<OverlappedEx>();        
+    	if (attachHandle(iocp_handle_.get(), dir_handle.get()) != iocp_handle_.get()) {
+            throw PlatformSpecException();
+    	}
+        ov->handle = std::move(dir_handle);
+        ov->buf.fill(0);
+        ov->full_path = path;
+        readDirAsync(ov.get());
+        watch_file_handles_[path] = std::move(ov);
     }
 
     void removePath(std::wstring const& path) {
@@ -67,7 +74,7 @@ public:
         watch_file_handles_.erase(path);
     }
 
-	void monitorChange(OverlappedEx * ov) {
+	void readDirAsync(OverlappedEx * ov) {
         auto ret = ::ReadDirectoryChangesW(ov->handle.get(),
             ov->buf.data(),
             kChangesBufferSize,
@@ -81,28 +88,6 @@ public:
         if (!ret) {
             throw PlatformSpecException();
         }
-    }
-
-    void startMonitor(HANDLE dir_handle, std::wstring const& path) {
-        auto ov = MakeAlign<OverlappedEx>();
-        ov->handle.reset(dir_handle);
-        ov->buf.fill(0);
-        ov->full_path = path;
-
-        auto ret = ::ReadDirectoryChangesW(ov->handle.get(),
-            ov->buf.data(),
-            kChangesBufferSize,
-            FALSE,
-            kNotifyFilter,
-            nullptr,
-            ov.get(),
-            nullptr
-        );
-
-        if (!ret) {
-            throw PlatformSpecException();
-        }
-        watch_file_handles_[path] = std::move(ov);
     }
 
     void run() {
@@ -129,7 +114,7 @@ public:
     }
 
     void notifyChanges() {
-        for (auto& entry : change_entries_) {
+        for (const auto& entry : change_entries_) {
             switch (entry.action) {
             case FileChangeAction::kAdd:
                 watcher_->fileChanged(QString::fromStdWString(entry.new_path.wstring()));
@@ -140,9 +125,13 @@ public:
             case FileChangeAction::kRename:
                 watcher_->fileChanged(QString::fromStdWString(entry.old_path.wstring()));                
                 break;
+            case FileChangeAction::kModify:
+                watcher_->fileChanged(QString::fromStdWString(entry.new_path.wstring()));
+                break;
             }        	
         }
-        monitorChange(watch_file_handles_.begin()->second.get());
+        std::lock_guard<FastMutex> guard{ mutex_ };
+        readDirAsync(watch_file_handles_.begin()->second.get());
     }
 
     void shutdown() {
@@ -216,6 +205,9 @@ DirectoryWatcher::DirectoryWatcher(QObject* parent)
 	, impl_(MakeAlign<WatcherWorkerImpl>(this)) {
 }
 
+DirectoryWatcher::~DirectoryWatcher() {
+}
+
 void DirectoryWatcher::run() {
     impl_->run();
 }
@@ -224,11 +216,27 @@ void DirectoryWatcher::shutdown() {
     impl_->shutdown();
 }
 
+void DirectoryWatcher::addPath(const QString& file) {
+    impl_->addPath(file.toStdWString());
+}
+
+void DirectoryWatcher::removePath(const QString& file) {
+}
+#else
+DirectoryWatcher::DirectoryWatcher(QObject* parent)
+    : QThread(parent) {
+}
+
 DirectoryWatcher::~DirectoryWatcher() {
 }
 
+void DirectoryWatcher::run() {
+}
+
+void DirectoryWatcher::shutdown() {
+}
+
 void DirectoryWatcher::addPath(const QString& file) {
-    impl_->addPath(file.toStdWString());
 }
 
 void DirectoryWatcher::removePath(const QString& file) {

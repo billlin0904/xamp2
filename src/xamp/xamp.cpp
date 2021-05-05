@@ -7,6 +7,7 @@
 #include <QProgressDialog>
 #include <QWidgetAction>
 #include <QMessageBox>
+#include <QFileDialog>
 
 #include <base/scopeguard.h>
 #include <base/str_utilts.h>
@@ -43,8 +44,6 @@
 #include "preferencedialog.h"
 #include "thememanager.h"
 #include "xamp.h"
-
-#include <QFileDialog>
 
 static AlignPtr<SampleRateConverter> makeSampleRateConverter(const QVariantMap &settings) {
     auto quality = static_cast<SoxrQuality>(settings[kSoxrQuality].toInt());
@@ -672,7 +671,9 @@ void Xamp::applyConfig() {
 void Xamp::applyTheme(QColor color) {
     if (AppSettings::getValueAsBool(kAppSettingEnableBlur)) {
         color.setAlpha(90);
-    }    
+    } else {
+        color.setAlpha(100);
+    }
 	
     if (qGray(color.rgb()) > 200) {      
         emit themeChanged(color, Qt::black);
@@ -894,16 +895,15 @@ void Xamp::playMusic(const MusicEntity& item) {
     try {
         if (AppSettings::getValue(kAppSettingResamplerEnable).toBool()) {
             auto soxr_settings = JsonSettings::getValue(AppSettings::getValueAsString(kAppSettingSoxrSettingName)).toMap();
-            converter = makeSampleRateConverter(soxr_settings);
             target_sample_rate = soxr_settings[kSoxrResampleSampleRate].toUInt();
+            converter = makeSampleRateConverter(soxr_settings);            
         }
-        player_->Open(item.file_path.toStdWString(), device_info_, target_sample_rate, std::move(converter));
+        player_->Open(item.file_path.toStdWString(), device_info_, target_sample_rate, std::move(converter));        
+        player_->PrepareToPlay();
         const auto enable_dsp = item.true_peak > 1.0;
         if (enable_dsp) {
-            auto compressor = makeCompressor(player_->GetOutputFormat().GetSampleRate());
-            player_->SetProcessor(std::move(compressor));
+            player_->SetProcessor(makeCompressor(player_->GetInputFormat().GetSampleRate()));
         }
-        player_->PrepareToPlay();
         playback_format = getPlaybackFormat(player_.get());
         player_->Play();
         open_done = true;

@@ -65,7 +65,7 @@ public:
         uint32_t target_sample_rate = 0,
         AlignPtr<SampleRateConverter> converter = nullptr);       
 
-    void PrepareToPlay(double start_time = 0.0, double end_time = 0.0);
+    void PrepareToPlay();
 
     void Play();
 

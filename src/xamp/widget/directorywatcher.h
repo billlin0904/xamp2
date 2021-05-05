@@ -47,7 +47,9 @@ protected:
 	void run() override;
 
 private:
+#ifdef XAMP_OS_WIN
 	class WatcherWorkerImpl;
 	AlignPtr<WatcherWorkerImpl> impl_;
+#endif
 };
 
