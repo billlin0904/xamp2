@@ -48,17 +48,18 @@ public:
 class SoxrSampleRateConverter::SoxrSampleRateConverterImpl final {
 public:
 	static constexpr size_t kInitBufferSize = 1 * 1024 * 1204;
+	static constexpr double kDefaultPassBand = 0.96;
+	static constexpr double kDefaultStopBand = 1.0;
 
 	SoxrSampleRateConverterImpl() noexcept
 		: enable_steep_filter_(false)
-		, enable_dither_(false)
 		, quality_(SoxrQuality::VHQ)
 		, phase_(100.0)
 		, input_sample_rate_(0)
 		, num_channels_(0)
 		, ratio_(0)
-		, pass_band_(0.997)
-		, stop_band_(1.0) {
+		, pass_band_(kDefaultPassBand)
+		, stop_band_(kDefaultStopBand) {
 	}
 
 	~SoxrSampleRateConverterImpl() noexcept {
@@ -101,10 +102,8 @@ public:
 		soxr_quality.phase_response = phase_;
 
 		auto iospec = SoxrDLL.soxr_io_spec(SOXR_FLOAT32_I, SOXR_FLOAT32_I);
-
-		if (!enable_dither_) {
-			iospec.flags |= SOXR_NO_DITHER;
-		}
+		iospec.flags |= SOXR_NO_DITHER;
+		
 
 		auto runtimespec = SoxrDLL.soxr_runtime_spec(1);
 
@@ -145,10 +144,6 @@ public:
 	void Close() noexcept {
 		handle_.reset();
 		buffer_.reset();
-	}
-
-	void SetDither(bool enable) {
-		enable_dither_ = enable;
 	}
 
 	void SetSteepFilter(bool enable) {
@@ -259,8 +254,7 @@ public:
 
 	using SoxrHandle = UniqueHandle<soxr_t, SoxrHandleTraits>;
 
-	bool enable_steep_filter_;
-	bool enable_dither_;
+	bool enable_steep_filter_;	
 	SoxrQuality quality_;
 	double phase_;
 	uint32_t input_sample_rate_;

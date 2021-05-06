@@ -171,7 +171,7 @@
     <ClInclude Include="include\base\dsdsampleformat.h" />
     <ClInclude Include="include\base\exception.h" />
     <ClInclude Include="include\base\lrucache.h" />
-    <ClInclude Include="include\base\platform_thread.h" />
+    <ClInclude Include="include\base\platform.h" />
     <ClInclude Include="include\base\stacktrace.h" />
     <ClInclude Include="include\base\stopwatch.h" />
     <ClInclude Include="include\base\threadpool.h" />
@@ -201,7 +201,7 @@
     <ClCompile Include="src\logger.cpp" />
     <ClCompile Include="src\memory.cpp" />
     <ClCompile Include="src\metadata.cpp" />
-    <ClCompile Include="src\platform_thread.cpp" />
+    <ClCompile Include="src\platform.cpp" />
     <ClCompile Include="src\rng.cpp" />
     <ClCompile Include="src\stacktrace.cpp" />
     <ClCompile Include="src\stopwatch.cpp" />

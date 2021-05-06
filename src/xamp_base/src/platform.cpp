@@ -3,7 +3,7 @@
 #include <base/dll.h>
 #include <base/str_utilts.h>
 #include <base/logger.h>
-#include <base/platform_thread.h>
+#include <base/platform.h>
 
 #ifdef XAMP_OS_WIN
 #include <base/windows_handle.h>
@@ -137,14 +137,16 @@ bool ExtendProcessWorkingSetSize(size_t size) noexcept {
 
     const WinHandle current_process(::GetCurrentProcess());
 
-    if (::GetProcessWorkingSetSize(current_process.get(), &minimum, &maximum)) {
-        minimum += size;
-        if (maximum < minimum + size) {
-            maximum = minimum + size;
-        }
-        return ::SetProcessWorkingSetSize(current_process.get(), minimum, maximum);
+    if (!::GetProcessWorkingSetSize(current_process.get(), &minimum, &maximum)) {
+        XAMP_LOG_DEBUG("GetProcessWorkingSetSize return failure! error:{}.", GetLastErrorMessage());
+        return false;
+    }   
+
+    minimum += size;
+    if (maximum < minimum + size) {
+        maximum = minimum + size;
     }
-    return false;
+    return ::SetProcessWorkingSetSize(current_process.get(), minimum, maximum);
 }
 
 static bool EnablePrivilege(std::string_view privilege, bool enable) noexcept {
@@ -153,45 +155,47 @@ static bool EnablePrivilege(std::string_view privilege, bool enable) noexcept {
     WinHandle token;
     HANDLE process_token;
 
-    if (::OpenProcessToken(current_process.get(),
+    if (!::OpenProcessToken(current_process.get(),
         TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY,
-        &process_token)) {
-        token.reset(process_token);
-
-        TOKEN_PRIVILEGES tp;
-        tp.PrivilegeCount = 1;
-        if (!::LookupPrivilegeValueA(nullptr,
-            privilege.data(),
-            &tp.Privileges[0].Luid)) {
-            XAMP_LOG_DEBUG("LookupPrivilegeValueA return failure! error:{}.", GetLastError());
-            return false;
-        }
-
-        tp.Privileges->Attributes = enable ? SE_PRIVILEGE_ENABLED : 0;
-        if (!::AdjustTokenPrivileges(token.get(),
-            FALSE,
-            &tp,
-            sizeof(TOKEN_PRIVILEGES),
-            nullptr,
-            nullptr)) {
-            XAMP_LOG_DEBUG("AdjustTokenPrivileges return failure! error:{}.", GetLastError());
-            return false;
-        }
-
-        return true;
+        &process_token)) {       
+        XAMP_LOG_DEBUG("OpenProcessToken return failure! error:{}.", GetLastErrorMessage());
+        return false;
     }
 
-    XAMP_LOG_DEBUG("OpenProcessToken return failure! error:{}.", GetLastError());
-    return false;
+    token.reset(process_token);
+	
+    TOKEN_PRIVILEGES tp;
+    tp.PrivilegeCount = 1;
+    if (!::LookupPrivilegeValueA(nullptr,
+        privilege.data(),
+        &tp.Privileges[0].Luid)) {
+        XAMP_LOG_DEBUG("LookupPrivilegeValueA return failure! error:{}.", GetLastErrorMessage());
+        return false;
+    }
+
+    tp.Privileges->Attributes = enable ? SE_PRIVILEGE_ENABLED : 0;
+    if (!::AdjustTokenPrivileges(token.get(),
+        FALSE,
+        &tp,
+        sizeof(TOKEN_PRIVILEGES),
+        nullptr,
+        nullptr)) {
+        XAMP_LOG_DEBUG("AdjustTokenPrivileges return failure! error:{}.", GetLastErrorMessage());
+        return false;
+    }
+
+    return true;
 }
 
 bool InitWorkingSetSize(size_t working_set_size) noexcept {
-    if (EnablePrivilege("SeLockMemoryPrivilege", true)) {
-        if (ExtendProcessWorkingSetSize(working_set_size)) {
-            XAMP_LOG_DEBUG("InitWorkingSetSize {} success.", String::FormatBytes(working_set_size));
-            return true;
-        }
+    if (!EnablePrivilege("SeLockMemoryPrivilege", true)) {
+        return false;
     }
+    if (!ExtendProcessWorkingSetSize(working_set_size)) {
+        XAMP_LOG_DEBUG("ExtendProcessWorkingSetSize return failure! error:{}.", GetLastErrorMessage());
+        return false;
+    }
+    XAMP_LOG_DEBUG("InitWorkingSetSize {} success.", String::FormatBytes(working_set_size));
     return false;
 }
 #endif

@@ -147,7 +147,6 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
 
 	HrIfFailledThrow(hr);	
 	
-#ifdef _DEBUG
 	CComPtr<IAudioEndpointVolume> endpoint_volume;
 
 	HrIfFailledThrow(device_->Activate(kAudioEndpointVolumeID,
@@ -176,7 +175,6 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
 	else {
 		XAMP_LOG_I(log_, "Hardware not support volume meter.");
 	}
-#endif
 }
 
 void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {

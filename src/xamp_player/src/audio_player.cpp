@@ -1,5 +1,5 @@
 #include <base/str_utilts.h>
-#include <base/platform_thread.h>
+#include <base/platform.h>
 #include <base/logger.h>
 #include <base/stl.h>
 #include <base/threadpool.h>
@@ -590,6 +590,9 @@ void AudioPlayer::Startup() {
     
     ThreadPool::GetInstance().SetAffinityMask(-1);
     XAMP_LOG_DEBUG("ThreadPool init success.");
+
+    constexpr size_t kWorkingSetSize = 2048ul * 1024ul * 1024ul;
+    device_manager_.SetWorkingSetSize(kWorkingSetSize);
 
     device_manager_.RegisterDeviceListener(shared_from_this());
     wait_timer_.SetTimeout(kReadSampleWaitTime);

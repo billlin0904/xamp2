@@ -4,7 +4,7 @@
 #include <base/scopeguard.h>
 #include <base/dll.h>
 #include <base/stacktrace.h>
-#include <base/platform_thread.h>
+#include <base/platform.h>
 #include <base/vmmemlock.h>
 #include <base/str_utilts.h>
 

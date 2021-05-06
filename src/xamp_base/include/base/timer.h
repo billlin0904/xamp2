@@ -9,7 +9,7 @@
 #include <atomic>
 #include <future>
 
-#include <base/platform_thread.h>
+#include <base/platform.h>
 #include <base/base.h>
 #include <base/logger.h>
 #include <base/threadpool.h>

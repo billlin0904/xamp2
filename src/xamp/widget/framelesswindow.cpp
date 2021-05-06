@@ -49,7 +49,7 @@ FramelessWindow::FramelessWindow(QWidget* parent)
     setStyleSheet(Q_UTF8(R"(
         font-family: "UI";
     )"));
-    ui_font.setPointSize(10);
+    ui_font.setPixelSize(15);
     qApp->setFont(ui_font);
 #else
     setStyleSheet(Q_UTF8(R"(
@@ -117,7 +117,20 @@ QFont FramelessWindow::setupUIFont() const {
     QList<QString> fallback_fonts;
     QFont ui_font(Q_UTF8("UI"));
 
-#ifdef Q_OS_WIN
+#ifdef Q_OS_WIN    
+#if 0
+    std::vector<ConstLatin1String> noto_sans_font_list{
+        Q_UTF8("./Resource/Fonts/SourceHanSans.ttc"),
+    };
+
+    for (const auto& path : noto_sans_font_list) {
+        const auto font_id = QFontDatabase::addApplicationFont(path);
+        for (const auto & font_families : QFontDatabase::applicationFontFamilies(font_id)) {
+            fallback_fonts.append(font_families);
+        }        
+	}
+    QFont::insertSubstitutions(Q_UTF8("UI"), fallback_fonts);
+#else
     fallback_fonts.append(Q_UTF8("Open Sans"));
     fallback_fonts.append(Q_UTF8("Open Sans Bold"));
     fallback_fonts.append(Q_UTF8("Segoe UI"));
@@ -128,18 +141,21 @@ QFont FramelessWindow::setupUIFont() const {
     fallback_fonts.append(Q_UTF8("Microsoft JhengHei Bold UI"));
     fallback_fonts.append(Q_UTF8("Microsoft YaHei UI"));
     fallback_fonts.append(Q_UTF8("Microsoft YaHei Bold UI"));
+    QFont::insertSubstitutions(Q_UTF8("UI"), fallback_fonts);
+#endif
 #else
     fallback_fonts.append(Q_UTF8("SF Pro Text"));
     fallback_fonts.append(Q_UTF8("Helvetica Neue"));
     fallback_fonts.append(Q_UTF8("Helvetica"));
-#endif
     QFont::insertSubstitutions(Q_UTF8("UI"), fallback_fonts);
-
+#endif    
+	
     const auto font_id = QFontDatabase::addApplicationFont(Q_UTF8(":/xamp/fonts/Electrolize-Regular.ttf"));
     const auto font_families = QFontDatabase::applicationFontFamilies(font_id);
     QFont::insertSubstitutions(Q_UTF8("FormatFont"), font_families);
 	
-    ui_font.setStyleStrategy(QFont::PreferAntialias);
+    ui_font.setStyleStrategy(QFont::PreferQuality);
+    ui_font.setHintingPreference(QFont::PreferFullHinting);
     return ui_font;
 }
 

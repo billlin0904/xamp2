@@ -22,6 +22,7 @@
     <ClCompile Include="src\win32\mmcss.cpp" />
     <ClCompile Include="src\win32\win32devicestatenotification.cpp" />
     <ClCompile Include="src\audiodevicemanager.cpp" />
+    <ClCompile Include="include\output_device\posix\alsadevicetype.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\output_device\audiocallback.h" />
@@ -48,6 +49,7 @@
     <ClInclude Include="include\output_device\devicestatenotification.h" />
     <ClInclude Include="include\output_device\win32\win32devicestatenotification.h" />
     <ClInclude Include="include\output_device\audiodevicemanager.h" />
+    <ClInclude Include="include\output_device\posix\alsadevicetype.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="asiosdk">

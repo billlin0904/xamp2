@@ -29,6 +29,8 @@ public:
 
     XAMP_DISABLE_COPY(AudioDeviceManager)
 
+    void SetWorkingSetSize(size_t workingset_size);
+
     void RegisterDeviceListener(std::weak_ptr<DeviceStateListener> const & callback);
 
     void Clear();
