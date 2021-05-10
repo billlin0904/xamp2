@@ -56,8 +56,10 @@ QVariant PlayListSqlQueryTableModel::data(const QModelIndex& index, int32_t role
         break;
     case Qt::TextAlignmentRole:
         switch (index.column()) {
+        case PLAYLIST_LRUS:
+        case PLAYLIST_TRUE_PEAK:
         case PLAYLIST_ARTIST:
-            return Qt::AlignRight;
+            return QVariant(Qt::AlignVCenter | Qt::AlignRight);
         case PLAYLIST_DURATION:
             return Qt::AlignCenter;
         }

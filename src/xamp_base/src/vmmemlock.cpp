@@ -7,7 +7,7 @@
 #include <base/str_utilts.h>
 #include <base/stacktrace.h>
 #include <base/exception.h>
-#include <base/platform_thread.h>
+#include <base/platform.h>
 #include <base/vmmemlock.h>
 
 namespace xamp::base {
@@ -64,10 +64,10 @@ void VmMemLock::Lock(void* address, size_t size) {
 }
 void VmMemLock::UnLock() noexcept {
 	if (address_) {
-		if (::munlock(address_, size_)) {
-			XAMP_LOG_DEBUG("munlock return failure! error:{}.", errno);
-			}
-		}
+    if (::munlock(address_, size_)) {
+        XAMP_LOG_DEBUG("munlock return failure! error:{}.", errno);
+        }
+    }
 	address_ = nullptr;
 	size_ = 0;
 }

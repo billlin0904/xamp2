@@ -117,39 +117,20 @@ QFont FramelessWindow::setupUIFont() const {
     QList<QString> fallback_fonts;
     QFont ui_font(Q_UTF8("UI"));
 
-#ifdef Q_OS_WIN    
-#if 0
-    std::vector<ConstLatin1String> noto_sans_font_list{
-        Q_UTF8("./Resource/Fonts/SourceHanSans.ttc"),
-    };
+    auto appPah = QCoreApplication::applicationDirPath();
+    std::vector<QString> noto_sans_font_list{
+        appPah + Q_UTF8("/Resource/Fonts/SourceHanSans.ttc"),
+        };
 
     for (const auto& path : noto_sans_font_list) {
         const auto font_id = QFontDatabase::addApplicationFont(path);
-        for (const auto & font_families : QFontDatabase::applicationFontFamilies(font_id)) {
-            fallback_fonts.append(font_families);
-        }        
-	}
+        auto font_families = QFontDatabase::applicationFontFamilies(font_id);
+        for (const auto & family : font_families) {
+            fallback_fonts.append(family);
+        }
+    }
     QFont::insertSubstitutions(Q_UTF8("UI"), fallback_fonts);
-#else
-    fallback_fonts.append(Q_UTF8("Open Sans"));
-    fallback_fonts.append(Q_UTF8("Open Sans Bold"));
-    fallback_fonts.append(Q_UTF8("Segoe UI"));
-    fallback_fonts.append(Q_UTF8("Segoe UI Bold"));    
-    fallback_fonts.append(Q_UTF8("Meiryo UI"));
-    fallback_fonts.append(Q_UTF8("Meiryo UI Bold"));
-    fallback_fonts.append(Q_UTF8("Microsoft JhengHei UI"));
-    fallback_fonts.append(Q_UTF8("Microsoft JhengHei Bold UI"));
-    fallback_fonts.append(Q_UTF8("Microsoft YaHei UI"));
-    fallback_fonts.append(Q_UTF8("Microsoft YaHei Bold UI"));
-    QFont::insertSubstitutions(Q_UTF8("UI"), fallback_fonts);
-#endif
-#else
-    fallback_fonts.append(Q_UTF8("SF Pro Text"));
-    fallback_fonts.append(Q_UTF8("Helvetica Neue"));
-    fallback_fonts.append(Q_UTF8("Helvetica"));
-    QFont::insertSubstitutions(Q_UTF8("UI"), fallback_fonts);
-#endif    
-	
+
     const auto font_id = QFontDatabase::addApplicationFont(Q_UTF8(":/xamp/fonts/Electrolize-Regular.ttf"));
     const auto font_families = QFontDatabase::applicationFontFamilies(font_id);
     QFont::insertSubstitutions(Q_UTF8("FormatFont"), font_families);

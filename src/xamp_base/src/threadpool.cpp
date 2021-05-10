@@ -1,6 +1,6 @@
 #include <algorithm>
 #include <base/logger.h>
-#include <base/platform_thread.h>
+#include <base/platform.h>
 #include <base/threadpool.h>
 
 namespace xamp::base {
