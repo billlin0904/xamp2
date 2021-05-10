@@ -9,7 +9,7 @@
 #include <base/dataconverter.h>
 #include <base/logger.h>
 #include <base/singleton.h>
-#include <base/platform_thread.h>
+#include <base/platform.h>
 #include <base/waitabletimer.h>
 
 #ifdef XAMP_OS_WIN

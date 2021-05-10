@@ -4,6 +4,7 @@
 #include <widget/str_utilts.h>
 #include <widget/artistview.h>
 #include <widget/albumview.h>
+#include <thememanager.h>
 #include <widget/albumartistpage.h>
 
 AlbumArtistPage::AlbumArtistPage(QWidget* parent)
@@ -48,4 +49,8 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 void AlbumArtistPage::refreshOnece() {
 	artist_view_->refreshOnece();
 	album_view_->refreshOnece();
+}
+
+void AlbumArtistPage::onThemeChanged(QColor theme_color, QColor color) {
+	setStyleSheet(backgroundColorToString(theme_color));
 }

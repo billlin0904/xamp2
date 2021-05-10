@@ -224,7 +224,7 @@ void PlayListTableView::initial() {
     });
 
     (void)QObject::connect(this, &QTableView::doubleClicked, [this](const QModelIndex& index) {
-        auto current_index = proxy_model_.mapToSource(index);
+        const auto current_index = proxy_model_.mapToSource(index);
         setNowPlaying(current_index);
         refresh();
         emit playMusic(current_index, getEntity(current_index));
@@ -239,7 +239,7 @@ void PlayListTableView::initial() {
         (void)action_map.addAction(tr("Load local file"), [this]() {
             xamp::metadata::TaglibMetadataReader reader;
             QString exts(Q_UTF8("("));
-            for (auto file_ext : reader.GetSupportFileExtensions()) {
+            for (const auto file_ext : reader.GetSupportFileExtensions()) {
                 exts += Q_UTF8("*") + QString::fromStdString(file_ext);
                 exts += Q_UTF8(" ");
             }
@@ -363,7 +363,7 @@ void PlayListTableView::initial() {
                 return;
             }
 
-            QPixmap image(file_name);
+            const QPixmap image(file_name);
             if (image.isNull()) {
                 Toast::showTip(tr("Can't read image file."), this);
                 return;
@@ -389,7 +389,7 @@ void PlayListTableView::initial() {
         action_map.exec(pt);
     });
 
-    auto control_A_key = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_A), this);
+    const auto *control_A_key = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_A), this);
     (void) QObject::connect(control_A_key, &QShortcut::activated, [this]() {
         selectAll();
     });
@@ -397,7 +397,8 @@ void PlayListTableView::initial() {
     installEventFilter(this);
 }
 
-void PlayListTableView::onTextColorChanged(QColor backgroundColor, QColor color) {
+void PlayListTableView::onThemeColorChanged(QColor backgroundColor, QColor color) {
+    setStyleSheet(backgroundColorToString(backgroundColor));
 }
 
 void PlayListTableView::keyPressEvent(QKeyEvent *pEvent) {
@@ -425,9 +426,9 @@ void PlayListTableView::keyPressEvent(QKeyEvent *pEvent) {
 }
 
 bool PlayListTableView::eventFilter(QObject* obj, QEvent* ev) {
-    auto type = ev->type();
+    const auto type = ev->type();
     if (this == obj && type == QEvent::KeyPress) {
-        auto event = static_cast<QKeyEvent*>(ev);
+        auto* event = static_cast<QKeyEvent*>(ev);
         if (event->key() == Qt::Key_Delete) {
             removeSelectItems();
             return true;
@@ -437,7 +438,7 @@ bool PlayListTableView::eventFilter(QObject* obj, QEvent* ev) {
 }
 
 void PlayListTableView::append(const QString& file_name) {
-    auto adapter = QSharedPointer<MetadataExtractAdapter>(new MetadataExtractAdapter());
+	const auto adapter = QSharedPointer<MetadataExtractAdapter>(new MetadataExtractAdapter());
 
     (void) QObject::connect(adapter.get(),
                             &MetadataExtractAdapter::readCompleted,
@@ -458,12 +459,16 @@ void PlayListTableView::resizeEvent(QResizeEvent* event) {
 }
 
 void PlayListTableView::resizeColumn() const {
+    constexpr auto kStretchedSize = 650;
     auto* header = horizontalHeader();
-
+	
     for (auto column = 0; column < header->count(); ++column) {
         switch (column) {
-        case PLAYLIST_TRACK:
         case PLAYLIST_PLAYING:
+            header->setSectionResizeMode(column, QHeaderView::Fixed);
+            header->resizeSection(column, 3);
+            break;
+        case PLAYLIST_TRACK:
             header->setSectionResizeMode(column, QHeaderView::Fixed);
             header->resizeSection(column, 30);
             break;
@@ -477,20 +482,12 @@ void PlayListTableView::resizeColumn() const {
             header->resizeSection(column, 90);
             break;
         case PLAYLIST_TITLE:
-        {
-            constexpr auto kStretchedSize = 650;
-            auto size = (std::max)(sizeHintForColumn(column), kStretchedSize);
-            //size = (std::min)(size, kMaxStretchedSize);
-            //auto size = kMaxStretchedSize;
-            header->resizeSection(column, size);
-            //header->setSectionResizeMode(column, QHeaderView::Stretch);
-            //header->setSectionResizeMode(column, QHeaderView::Stretch);
-        }
-        break;        
+            header->resizeSection(column,
+                (std::max)(sizeHintForColumn(column), kStretchedSize));
+        	break;        
         case PLAYLIST_ARTIST:
-            //header->setSectionResizeMode(column, QHeaderView::Stretch);
             header->setSectionResizeMode(column, QHeaderView::Fixed);
-            header->resizeSection(column, 150);
+            header->resizeSection(column, 200);
             break;
         case PLAYLIST_ALBUM:
         default:
@@ -516,15 +513,15 @@ QModelIndex PlayListTableView::currentIndex() const {
 }
 
 QModelIndex PlayListTableView::nextIndex(int forward) const {
-    auto count = proxy_model_.rowCount();
-    auto play_index = currentIndex();
-    auto next_index = (play_index.row() + forward) % count;
+    const auto count = proxy_model_.rowCount();
+    const auto play_index = currentIndex();
+    const auto next_index = (play_index.row() + forward) % count;
     return model()->index(next_index, PLAYLIST_PLAYING);
 }
 
 QModelIndex PlayListTableView::shuffeIndex() {    
-    auto count = proxy_model_.rowCount();
-    auto selected = RNG::GetInstance()(0, count - 1);
+    const auto count = proxy_model_.rowCount();
+    const auto selected = RNG::GetInstance()(0, count - 1);
     return model()->index(selected, PLAYLIST_PLAYING);
 }
 
@@ -535,7 +532,7 @@ void PlayListTableView::setNowPlaying(const QModelIndex& index, bool is_scroll_t
     if (is_scroll_to) {
         QTableView::scrollTo(play_index_, PositionAtCenter);
     }
-    auto entity = getEntity(play_index_);
+    const auto entity = getEntity(play_index_);
     Singleton<Database>::GetInstance().setNowPlaying(playlist_id_, entity.music_id);
     proxy_model_.dataChanged(QModelIndex(), QModelIndex());
 }
@@ -594,10 +591,10 @@ void PlayListTableView::reloadSelectMetadata() {
 
     for (const auto &select_item : rows) {
         auto entity = item(select_item.second);
-        auto album_id = entity.album_id;
-        auto music_id = entity.music_id;
-        auto cover_id = entity.cover_id;
-        auto artist_id = entity.artist_id;
+        const auto album_id = entity.album_id;
+        const auto music_id = entity.music_id;
+        const auto cover_id = entity.cover_id;
+        const auto artist_id = entity.artist_id;
 
         const xamp::metadata::Path path(entity.file_path.toStdWString());
         auto metadata = reader.Extract(path);
@@ -624,8 +621,8 @@ void PlayListTableView::removeSelectItems() {
         Singleton<Database>::GetInstance().clearNowPlaying(playlist_id_, music_id);
         remove_music_ids.push_back(music_id);
     }
-	
-    auto count = proxy_model_.rowCount();
+
+    const auto count = proxy_model_.rowCount();
 	if (!count) {
         Singleton<Database>::GetInstance().clearNowPlaying(playlist_id_);       
 	}

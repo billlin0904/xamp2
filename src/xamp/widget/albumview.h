@@ -127,7 +127,7 @@ public slots:
 
 	void payNextMusic();
 
-    void OnThemeColorChanged(QColor backgroundColor, QColor color);
+    void onThemeChanged(QColor backgroundColor, QColor color);
 
     void append(const QString& file_name);
 

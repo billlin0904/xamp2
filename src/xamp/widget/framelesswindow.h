@@ -32,7 +32,7 @@ public:
 
     virtual void deleteKeyPress();
 
-	void setTaskbarProgress(double percent);
+	void setTaskbarProgress(int32_t percent);
 
 	void resetTaskbarProgress();
 

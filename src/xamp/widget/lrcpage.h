@@ -39,7 +39,7 @@ public:
 	Spectrograph* spectrograph();
 
 public slots:
-    void OnThemeColorChanged(QColor theme_color, QColor color);
+    void onThemeChanged(QColor theme_color, QColor color);
 
 private:	
 	void setEffect(QWidget *widget, int blurRadius);

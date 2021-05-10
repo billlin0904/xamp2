@@ -28,18 +28,17 @@
 
 FramelessWindow::FramelessWindow(QWidget* parent)
     : QWidget(parent)
-    , use_native_window_(false)
+    , use_native_window_(!AppSettings::getValueAsBool(kAppSettingUseFramelessWindow))
 #if defined(Q_OS_WIN)
     , is_maximized_(false)
     , border_width_(5)
     , current_screen_(nullptr)
     , taskbar_progress_(nullptr)
 #endif
-{    
+{
     setAcceptDrops(true);
     setMouseTracking(true);
-    installEventFilter(this);
-    use_native_window_ = !AppSettings::getValueAsBool(kAppSettingUseFramelessWindow);
+    installEventFilter(this);    
     auto ui_font = setupUIFont();
 #if defined(Q_OS_WIN)
     if (!use_native_window_) {
@@ -49,7 +48,7 @@ FramelessWindow::FramelessWindow(QWidget* parent)
     setStyleSheet(Q_UTF8(R"(
         font-family: "UI";
     )"));
-    ui_font.setPixelSize(15);
+    ui_font.setPixelSize(14);
     qApp->setFont(ui_font);
 #else
     setStyleSheet(Q_UTF8(R"(
@@ -117,16 +116,23 @@ QFont FramelessWindow::setupUIFont() const {
     QList<QString> fallback_fonts;
     QFont ui_font(Q_UTF8("UI"));
 
-    auto appPah = QCoreApplication::applicationDirPath();
-    std::vector<QString> noto_sans_font_list{
-        appPah + Q_UTF8("/Resource/Fonts/SourceHanSans.ttc"),
+    const auto app_path = QCoreApplication::applicationDirPath();
+    std::vector<QString> default_font_list{
+        app_path + Q_UTF8("/Resource/Fonts/SourceHanSans.ttc"),
         };
 
-    for (const auto& path : noto_sans_font_list) {
+    for (const auto& path : default_font_list) {
         const auto font_id = QFontDatabase::addApplicationFont(path);
         auto font_families = QFontDatabase::applicationFontFamilies(font_id);
         for (const auto & family : font_families) {
-            fallback_fonts.append(family);
+            if (!family.contains(Q_UTF8("Normal")) 
+                && !family.contains(Q_UTF8("ExtraLight"))
+                && !family.contains(Q_UTF8("Heavy"))
+                && !family.contains(Q_UTF8("Medium"))
+                && !family.contains(Q_UTF8("HW"))
+                && !family.contains(Q_UTF8("Light"))) {
+                fallback_fonts.append(family);
+        	}
         }
     }
     QFont::insertSubstitutions(Q_UTF8("UI"), fallback_fonts);
@@ -140,7 +146,7 @@ QFont FramelessWindow::setupUIFont() const {
     return ui_font;
 }
 
-void FramelessWindow::setTaskbarProgress(const double percent) {
+void FramelessWindow::setTaskbarProgress(const int32_t percent) {
 #if defined(Q_OS_WIN)
     taskbar_progress_->setValue(percent);
 #else

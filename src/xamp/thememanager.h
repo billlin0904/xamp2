@@ -109,7 +109,7 @@ private:
     ThemeColor theme_color_;
     QSize album_cover_size_;
     QSize cover_size_;
-    QColor tableTextColor;
+    QColor table_text_color_;
     QColor menu_color_;
     QColor menu_text_color_;
     QColor background_color_;

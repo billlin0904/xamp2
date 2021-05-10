@@ -18,7 +18,7 @@ public:
 	explicit ArtistInfoPage(QWidget* parent = nullptr);
 
 public slots:
-    void OnThemeColorChanged(QColor backgroundColor, QColor color);
+    void onThemeChanged(QColor backgroundColor, QColor color);
 
 	void setArtistId(const QString& artist, const QString& cover_id, int32_t artist_id);
 

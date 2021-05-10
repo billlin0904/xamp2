@@ -1,9 +1,9 @@
 {
     "default": {
         "enableSteepFilter": false,
-        "passBand": 95,
-        "phase": 45,
+        "passBand": 96,
+        "phase": 46,
         "quality": 3,
-        "resampleSampleRate": 192000
+        "resampleSampleRate": 384000
     }
 }

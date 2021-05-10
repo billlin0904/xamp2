@@ -72,9 +72,11 @@ Spectrograph* LrcPage::spectrograph() {
 void LrcPage::resizeEvent(QResizeEvent*) {
 }
 
-void LrcPage::OnThemeColorChanged(QColor theme_color, QColor color) {
+void LrcPage::onThemeChanged(QColor theme_color, QColor color) {
 	lyrics_widget_->setLrcColor(color);
 	lyrics_widget_->setLrcHightLight(color);
+	lyrics_widget_->setBackgroundColor(theme_color);
+	setStyleSheet(backgroundColorToString(theme_color));
 }
 
 void LrcPage::setEffect(QWidget* widget, int blurRadius) {

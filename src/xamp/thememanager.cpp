@@ -27,7 +27,7 @@ ThemeManager::ThemeManager() {
         cover_size_ = QSize(150, 150);
     }
 
-    tableTextColor = QColor(Qt::black);
+    table_text_color_ = QColor(Qt::black);
     background_color_ = QColor(228, 233, 237, 150);
     control_background_color_ = background_color_;
     album_cover_size_ = QSize(250, 250);
@@ -138,11 +138,8 @@ void ThemeManager::setBackgroundColor(Ui::XampWindow& ui, QColor color) {
         bottom_color = AppSettings::getValueAsString(kAppSettingBottomColor);
     }
 
-    //ui.playingFrame->setStyleSheet(backgroundColorToString(bottom_color));
     ui.playingFrame->setStyleSheet(backgroundColorToString(QColor(77, 77, 77)));
     ui.volumeFrame->setStyleSheet(backgroundColorToString(QColor(45,45,45)));
-    //ui.volumeFrame->setStyleSheet(backgroundColorToString(bottom_color));
-    //ui.controlFrame->setStyleSheet(backgroundColorToString(bottom_color));
     ui.controlFrame->setStyleSheet(backgroundColorToString(QColor(45,45,45)));
 
     auto alpha_color = color;
@@ -150,7 +147,6 @@ void ThemeManager::setBackgroundColor(Ui::XampWindow& ui, QColor color) {
         alpha_color = AppSettings::getValueAsString(kAppSettingAlphaColor);
     }
 
-    //ui.sliderFrame->setStyleSheet(backgroundColorToString(alpha_color));
     if (AppSettings::contains(kAppSettingEnableBlur)) {
         ui.sliderFrame->setStyleSheet(backgroundColorToString(QColor(37, 37, 39, 210)));
     } else {
@@ -376,8 +372,8 @@ void ThemeManager::setDefaultStyle(Ui::XampWindow& ui) {
                                         background-color: transparent;
                                         }
                                         )"));
-    
-    QIcon search_icon(Q_UTF8(":/xamp/Resource/White/search.png"));
+
     ui.searchLineEdit->setClearButtonEnabled(true);
-    ui.searchLineEdit->addAction(search_icon, QLineEdit::LeadingPosition);
+    ui.searchLineEdit->addAction(QIcon(Q_UTF8(":/xamp/Resource/White/search.png")),
+        QLineEdit::LeadingPosition);
 }

@@ -76,8 +76,6 @@ signals:
 
 	void readFileLUFS(const QModelIndex& index, const PlayListEntity& item);
 
-	void setLoopTime(double start_time, double end_time);
-
 	void exportWaveFile(const QModelIndex& index, const PlayListEntity& item);
 
 public slots:
@@ -85,7 +83,7 @@ public slots:
 
 	void search(const QString& sort_str, Qt::CaseSensitivity case_sensitivity, QRegExp::PatternSyntax pattern_syntax);
 
-	void onTextColorChanged(QColor backgroundColor, QColor color);
+	void onThemeColorChanged(QColor backgroundColor, QColor color);
 
 private:
     PlayListEntity item(const QModelIndex& index);

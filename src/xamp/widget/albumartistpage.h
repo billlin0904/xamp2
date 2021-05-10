@@ -25,6 +25,9 @@ public:
 
 	void refreshOnece();
 
+public slots:
+	void onThemeChanged(QColor theme_color, QColor color);
+
 private:
 	ArtistView* artist_view_;
 	AlbumView* album_view_;

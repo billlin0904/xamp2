@@ -32,7 +32,9 @@ public:
 
 	int32_t itemHeight() const override;
 
-	int32_t itemCount() const override;	
+	int32_t itemCount() const override;
+
+	void setBackgroundColor(QColor color);
 
 public slots:
 	void stop();	
@@ -70,7 +72,8 @@ private:
 	QFont lrc_font_;
 	QFont current_mask_font_;
 	QColor lrc_color_;
-	QColor lrc_hightlight_color_;	
+	QColor lrc_hightlight_color_;
+	QColor background_color_;
 	QString lrc_;
 	LrcParser lyric_;	
 };

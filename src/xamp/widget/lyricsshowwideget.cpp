@@ -59,6 +59,10 @@ void LyricsShowWideget::initial() {
 	setAcceptDrops(true);
 }
 
+void LyricsShowWideget::setBackgroundColor(QColor color) {
+	background_color_ = color;
+}
+
 void LyricsShowWideget::setDefaultLrc() {
 	LyricEntry entry;
 	entry.lrc = tr("Not found lyrics").toStdWString();
@@ -117,7 +121,8 @@ void LyricsShowWideget::paintItem(QPainter* painter, const int32_t index, QRect&
 		Qt::AlignLeft, text);
 }
 
-void LyricsShowWideget::paintBackground(QPainter*) {
+void LyricsShowWideget::paintBackground(QPainter* painter) {
+	painter->fillRect(rect(), background_color_);
 }
 
 void LyricsShowWideget::paintItemMask(QPainter* painter) {
