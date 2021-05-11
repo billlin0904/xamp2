@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1120</width>
+    <width>1132</width>
     <height>505</height>
    </rect>
   </property>
@@ -357,7 +357,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QToolButton" name="gaplessPlayButton">
+              <widget class="QToolButton" name="sampleConverterButton">
                <property name="maximumSize">
                 <size>
                  <width>22</width>
@@ -365,7 +365,7 @@
                 </size>
                </property>
                <property name="text">
-                <string>G</string>
+                <string>C</string>
                </property>
               </widget>
              </item>

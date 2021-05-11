@@ -117,10 +117,6 @@ public:
 
     DeviceInfo GetDevice() const;
 
-    bool IsGaplessPlay() const;
-
-    void EnableGaplessPlay(bool enable);
-
     void ClearPlayQueue() const;   
 
     AlignPtr<SampleRateConverter> CloneSampleRateConverter() const;
@@ -203,7 +199,6 @@ private:
     std::optional<uint32_t> dsd_speed_;
     std::atomic<bool> is_playing_;
     std::atomic<bool> is_paused_;
-    std::atomic<bool> enable_gapless_play_;
     std::atomic<double> sample_end_time_;
     std::atomic<double> stream_duration_;
     std::atomic<AudioSlice> slice_;

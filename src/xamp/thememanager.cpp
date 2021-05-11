@@ -338,9 +338,10 @@ void ThemeManager::setDefaultStyle(Ui::XampWindow& ui) {
                                             }
                                             )"));
 
-    ui.gaplessPlayButton->setStyleSheet(Q_UTF8(R"(
-                                         QToolButton#gaplessPlayButton {
+    ui.sampleConverterButton->setStyleSheet(Q_UTF8(R"(
+                                         QToolButton#sampleConverterButton {
 										 border: none;
+										 font-weight: bold;
                                          background-color: transparent;
                                          }
                                          )"));

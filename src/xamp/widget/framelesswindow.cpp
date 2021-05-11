@@ -113,6 +113,9 @@ void FramelessWindow::createThumbnailToolBar() {
 }
 
 QFont FramelessWindow::setupUIFont() const {
+    const auto font_id = QFontDatabase::addApplicationFont(Q_UTF8(":/xamp/fonts/Electrolize-Regular.ttf"));
+    const auto digital_font_families = QFontDatabase::applicationFontFamilies(font_id);
+	
     QList<QString> fallback_fonts;
     QFont ui_font(Q_UTF8("UI"));
 
@@ -135,11 +138,9 @@ QFont FramelessWindow::setupUIFont() const {
         	}
         }
     }
-    QFont::insertSubstitutions(Q_UTF8("UI"), fallback_fonts);
 
-    const auto font_id = QFontDatabase::addApplicationFont(Q_UTF8(":/xamp/fonts/Electrolize-Regular.ttf"));
-    const auto font_families = QFontDatabase::applicationFontFamilies(font_id);
-    QFont::insertSubstitutions(Q_UTF8("FormatFont"), font_families);
+    QFont::insertSubstitutions(Q_UTF8("UI"), fallback_fonts);    
+    QFont::insertSubstitutions(Q_UTF8("FormatFont"), digital_font_families);
 	
     ui_font.setStyleStrategy(QFont::PreferQuality);
     ui_font.setHintingPreference(QFont::PreferFullHinting);

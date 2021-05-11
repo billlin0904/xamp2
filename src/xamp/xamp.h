@@ -148,7 +148,7 @@ private:
 
     void addPlayQueue();
 
-	void applyConfig();
+	void setButtonState();
 
 	void onFileChanged(const QString& file_path);
 

@@ -39,17 +39,17 @@ private:
 
     const QLatin1String seperator = QLatin1String("   ");
 
-	bool scrollEnabled_;
+	bool scroll_enabled_;
 	bool waiting_;
-	int leftMargin_;
-	int scrollPos_;
-	int singleTextWidth_;
+	int left_margin_;
+	int scroll_pos_;
+	int single_text_width_;
     QStaticText static_text_;
 	QString text_;
 	QTimer timer_;
 	QTimer wait_timer_;
-	QSize wholeTextSize_;
+	QSize whole_text_size_;
 	QImage buffer_;
-	QImage alphaChannel_;
+	QImage alpha_channel_;
 };
 

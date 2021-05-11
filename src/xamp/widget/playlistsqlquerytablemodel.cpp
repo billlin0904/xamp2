@@ -23,6 +23,15 @@ Qt::ItemFlags PlayListSqlQueryTableModel::flags(const QModelIndex& index) const 
 QVariant PlayListSqlQueryTableModel::data(const QModelIndex& index, int32_t role) const {
     QVariant value;
     switch (role) {
+    case Qt::FontRole:
+        if (index.column() == PLAYLIST_TRACK 
+            || index.column() == PLAYLIST_DURATION 
+            || index.column() == PLAYLIST_BITRATE
+            || index.column() == PLAYLIST_TRUE_PEAK
+            || index.column() == PLAYLIST_LRUS) {
+            return QFont(Q_UTF8("FormatFont"));
+        }
+        break;
     case Qt::DisplayRole:
         if (index.column() == PLAYLIST_PLAYING) {
             return QVariant();
@@ -56,10 +65,11 @@ QVariant PlayListSqlQueryTableModel::data(const QModelIndex& index, int32_t role
         break;
     case Qt::TextAlignmentRole:
         switch (index.column()) {
-        case PLAYLIST_LRUS:
-        case PLAYLIST_TRUE_PEAK:
+        case PLAYLIST_LRUS:        
         case PLAYLIST_ARTIST:
             return QVariant(Qt::AlignVCenter | Qt::AlignRight);
+        case PLAYLIST_TRUE_PEAK:
+            return QVariant(Qt::AlignVCenter | Qt::AlignLeft);
         case PLAYLIST_DURATION:
             return Qt::AlignCenter;
         }

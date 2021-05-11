@@ -171,6 +171,7 @@ static int excute(int argc, char* argv[]) {
     Xamp win;
     win.show();
     win.activateWindow();
+    win.resize(500, 800);
     return app.exec();
 }
 

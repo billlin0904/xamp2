@@ -140,6 +140,8 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
     model_.setHeaderData(PLAYLIST_BITRATE, Qt::Horizontal, tr("Bit rate"));
     model_.setHeaderData(PLAYLIST_SAMPLE_RATE, Qt::Horizontal, tr("SampleRate"));
     model_.setHeaderData(PLAYLIST_RATING, Qt::Horizontal, tr("Rating"));
+    model_.setHeaderData(PLAYLIST_LRUS, Qt::Horizontal, tr("LRUS"));
+    model_.setHeaderData(PLAYLIST_TRUE_PEAK, Qt::Horizontal, tr("TP"));
 
     hideColumn(PLAYLIST_MUSIC_ID);
     hideColumn(PLAYLIST_FILEPATH);
@@ -459,7 +461,7 @@ void PlayListTableView::resizeEvent(QResizeEvent* event) {
 }
 
 void PlayListTableView::resizeColumn() const {
-    constexpr auto kStretchedSize = 650;
+    constexpr auto kStretchedSize = 500;
     auto* header = horizontalHeader();
 	
     for (auto column = 0; column < header->count(); ++column) {
@@ -470,9 +472,12 @@ void PlayListTableView::resizeColumn() const {
             break;
         case PLAYLIST_TRACK:
             header->setSectionResizeMode(column, QHeaderView::Fixed);
-            header->resizeSection(column, 30);
+            header->resizeSection(column, 5);
             break;
         case PLAYLIST_LRUS:
+            header->setSectionResizeMode(column, QHeaderView::Fixed);
+            header->resizeSection(column, 30);
+            break;
         case PLAYLIST_TRUE_PEAK:
             header->setSectionResizeMode(column, QHeaderView::Stretch);
             break;

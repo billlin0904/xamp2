@@ -68,7 +68,6 @@ AudioPlayer::AudioPlayer(const std::weak_ptr<PlaybackStateAdapter> &adapter)
     , num_read_sample_(0)
     , is_playing_(false)
     , is_paused_(false)
-    , enable_gapless_play_(false)
     , sample_end_time_(0)
     , stream_duration_(0)
     , state_adapter_(adapter)
@@ -676,7 +675,7 @@ void AudioPlayer::OnGaplessPlayState(std::unique_lock<std::mutex>& lock) {
         return;
     }
 
-    if (adapter->GetPlayQueueSize() == 0 || !enable_gapless_play_) {
+    if (adapter->GetPlayQueueSize() == 0) {
         stopped_cond_.wait_for(lock, kReadSampleWaitTime);
         return;
     }
@@ -768,20 +767,6 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_buffer_samp
         }
         break;
     }
-}
-
-void AudioPlayer::EnableGaplessPlay(bool enable) {
-	std::lock_guard<std::mutex> guard{stream_read_mutex_};
-    enable_gapless_play_ = enable;
-    if (enable == false) {
-        if (auto adapter = state_adapter_.lock()) {
-            adapter->ClearPlayQueue();
-        }
-    }    
-}
-
-bool AudioPlayer::IsGaplessPlay() const {
-    return IsPlaying() && enable_gapless_play_;
 }
 
 void AudioPlayer::ClearPlayQueue() const {
@@ -888,7 +873,7 @@ DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_fr
     const auto elapsed = sw_.Elapsed();
     max_process_time_ = std::max(elapsed, max_process_time_);
 #endif
-    if (enable_gapless_play_ && stream_time >= stream_duration_) {
+    if (stream_time >= stream_duration_) {
         msg_queue_.TryPush(MsgID::EVENT_SWITCH);
         device_->SetStreamTime(0);
     }
