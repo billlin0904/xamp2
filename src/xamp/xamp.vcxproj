@@ -181,7 +181,7 @@
     <ClCompile Include="widget\localelanguage.cpp" />
     <ClCompile Include="widget\lrcpage.cpp" />
     <ClCompile Include="widget\lrcparser.cpp" />
-    <ClCompile Include="widget\lyricsshowwideget.cpp" />
+    <ClCompile Include="widget\LyricsShowWidget.cpp" />
     <ClCompile Include="widget\musicbrainzclient.cpp" />
     <ClCompile Include="widget\pixmapcache.cpp" />
     <ClCompile Include="widget\metadataextractadapter.cpp">
@@ -199,6 +199,7 @@
     <ClCompile Include="widget\playlisttableproxymodel.cpp" />
     <ClCompile Include="widget\playlisttablequerymodel.cpp" />
     <ClCompile Include="widget\playlisttableview.cpp" />
+    <ClCompile Include="widget\readlufsworker.cpp" />
     <ClCompile Include="widget\read_helper.cpp" />
     <ClCompile Include="widget\scrolllabel.cpp" />
     <ClCompile Include="widget\seekslider.cpp" />
@@ -248,6 +249,8 @@
     </QtMoc>
     <QtMoc Include="widget\spectrograph.h">
     </QtMoc>
+    <QtMoc Include="widget\readlufsworker.h" />
+    <ClInclude Include="widget\read_helper.h" />
     <ClInclude Include="widget\ui_utilts.h" />
     <ClInclude Include="widget\widget_shared.h" />
     <QtMoc Include="widget\xampdialog.h">
@@ -289,7 +292,7 @@
     <ClInclude Include="widget\jsonsettings.h" />
     <ClInclude Include="widget\localelanguage.h" />
     <ClInclude Include="widget\lrcparser.h" />
-    <QtMoc Include="widget\lyricsshowwideget.h">
+    <QtMoc Include="widget\LyricsShowWidget.h">
     </QtMoc>
     <QtMoc Include="widget\musicbrainzclient.h">
     </QtMoc>

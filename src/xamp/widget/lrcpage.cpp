@@ -9,7 +9,7 @@
 #include <widget/image_utiltis.h>
 #include <widget/vinylwidget.h>
 #include <widget/scrolllabel.h>
-#include <widget/lyricsshowwideget.h>
+#include <widget/LyricsShowWidget.h>
 #include <widget/str_utilts.h>
 #include <widget/spectrograph.h>
 #include <widget/lrcpage.h>
@@ -19,7 +19,7 @@ LrcPage::LrcPage(QWidget* parent)
 	initial();
 }
 
-LyricsShowWideget* LrcPage::lyricsWidget() {
+LyricsShowWidget* LrcPage::lyricsWidget() {
 	return lyrics_widget_;
 }
 
@@ -47,29 +47,8 @@ ScrollLabel* LrcPage::title() {
 	return title_;
 }
 
-void LrcPage::paintEvent(QPaintEvent*) {
-    QPainter painter(this);
-    //painter.setCompositionMode(QPainter::CompositionMode_Source);
-	//painter.setOpacity(0.5);
-	//painter.drawPixmap(rect(), background_image_);
-}
-
-void LrcPage::setBackground(const QPixmap& cover) {
-	if (cover.isNull()) {
-		background_image_ = QPixmap();
-	}
-	else {
-        //background_image_ = Pixmap::blurImage(cover, 5);
-		//background_image_ = cover.copy();
-	}
-	update();
-}
-
 Spectrograph* LrcPage::spectrograph() {
 	return spectrograph_;
-}
-
-void LrcPage::resizeEvent(QResizeEvent*) {
 }
 
 void LrcPage::onThemeChanged(QColor theme_color, QColor color) {
@@ -209,7 +188,7 @@ void LrcPage::initial() {
 
 	verticalLayout_2->addLayout(horizontalLayout_9);
 
-	lyrics_widget_ = new LyricsShowWideget(this);
+	lyrics_widget_ = new LyricsShowWidget(this);
 	lyrics_widget_->setObjectName(QString::fromUtf8("lyrics"));
 	lyrics_widget_->setMinimumSize(QSize(200, 60));	
 	verticalLayout_2->addWidget(lyrics_widget_);
@@ -221,6 +200,4 @@ void LrcPage::initial() {
 	verticalLayout_2->setStretch(2, 1);
 
 	horizontalLayout_10->addLayout(verticalLayout_2);
-
-	setStyleSheet(Q_UTF8("background-color: transparent"));
 }

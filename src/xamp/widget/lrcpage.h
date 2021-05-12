@@ -11,7 +11,7 @@
 class QLabel;
 class VinylWidget;
 class ScrollLabel;
-class LyricsShowWideget;
+class LyricsShowWidget;
 class QPaintEvent;
 class Spectrograph;
 
@@ -20,7 +20,7 @@ class LrcPage : public QFrame {
 public:
 	explicit LrcPage(QWidget* parent = nullptr);
 
-	LyricsShowWideget* lyricsWidget();
+	LyricsShowWidget* lyricsWidget();
 
 	void setCover(const QPixmap& cover);
 
@@ -29,8 +29,6 @@ public:
 	ScrollLabel* artist();
 
     ScrollLabel* title();
-
-	void setBackground(const QPixmap& cover);
 
 	QLabel* cover();
 
@@ -44,13 +42,9 @@ public slots:
 private:	
 	void setEffect(QWidget *widget, int blurRadius);
 
-	void paintEvent(QPaintEvent*) override;
-
-	void resizeEvent(QResizeEvent*) override;
-
 	void initial();
 
-	LyricsShowWideget* lyrics_widget_;
+	LyricsShowWidget* lyrics_widget_;
     QLabel* cover_label_;
 	ScrollLabel* album_;
 	ScrollLabel* artist_;

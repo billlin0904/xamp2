@@ -231,10 +231,6 @@ public:
 	}
 
 	void operator()(float const* samples, float* buffer, size_t size) {
-		/*for (size_t i = 0; i < size; ++i) {
-			buffer[i] = samples[i] * window_.get()[i];
-		}*/
-
 		const auto* windowp = window_.get();
 		const auto* endp = samples + size;
 		

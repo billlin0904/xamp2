@@ -8,17 +8,14 @@
 #include <optional>
 
 #include <QTableView>
-#include <QKeyEvent>
-#include <QSqlTableModel>
-#include <QSqlQueryModel>
-
-#include <widget/widget_shared.h>
+#include <QThread>
 
 #include <widget/playlisttablemodel.h>
 #include <widget/playlistentity.h>
 #include <widget/playlisttableproxymodel.h>
 #include <widget/playlistsqlquerytablemodel.h>
 #include <widget/metadataextractadapter.h>
+#include <widget/readlufsworker.h>
 
 class StarDelegate;
 
@@ -78,12 +75,16 @@ signals:
 
 	void exportWaveFile(const QModelIndex& index, const PlayListEntity& item);
 
+	void readLUFS(const PlayListEntity& item);
+
 public slots:
 	void processMeatadata(const std::vector<Metadata> &medata);
 
 	void search(const QString& sort_str, Qt::CaseSensitivity case_sensitivity, QRegExp::PatternSyntax pattern_syntax);
 
 	void onThemeColorChanged(QColor backgroundColor, QColor color);
+
+	void onReadCompleted(int32_t music_id, double lrus, double trure_peak);
 
 private:
     PlayListEntity item(const QModelIndex& index);
@@ -99,8 +100,10 @@ private:
 	void initial();
 
 	int32_t playlist_id_;
-	StarDelegate* start_delegate_;
+	StarDelegate* start_delegate_;	
 	QModelIndex play_index_;
+	QThread thread_;
+	ReadLufsWorker read_worker_;
     PlayListSqlQueryTableModel model_;
 	PlayListTableFilterProxyModel proxy_model_;
 };

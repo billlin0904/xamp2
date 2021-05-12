@@ -8,9 +8,9 @@
 #include <widget/appsettings.h>
 #include <widget/actionmap.h>
 #include <widget/str_utilts.h>
-#include <widget/lyricsshowwideget.h>
+#include <widget/LyricsShowWidget.h>
 
-LyricsShowWideget::LyricsShowWideget(QWidget* parent) 
+LyricsShowWidget::LyricsShowWidget(QWidget* parent) 
 	: WheelableWidget(false, parent)
 	, pos_(0)
 	, last_lyric_index_(0)
@@ -20,7 +20,7 @@ LyricsShowWideget::LyricsShowWideget(QWidget* parent)
     initial();
 }
 
-void LyricsShowWideget::initial() {
+void LyricsShowWidget::initial() {
     lrc_font_ = font();
 
 	lrc_font_.setPointSize(AppSettings::getAsInt(kLyricsFontSize));
@@ -28,8 +28,8 @@ void LyricsShowWideget::initial() {
 	setDefaultLrc();
 
 	setContextMenuPolicy(Qt::CustomContextMenu);
-	(void)QObject::connect(this, &LyricsShowWideget::customContextMenuRequested, [this](auto pt) {
-		ActionMap<LyricsShowWideget, std::function<void()>> action_map(this);
+	(void)QObject::connect(this, &LyricsShowWidget::customContextMenuRequested, [this](auto pt) {
+		ActionMap<LyricsShowWidget, std::function<void()>> action_map(this);
 		(void)action_map.addAction(tr("Set font size(small)"), [this]() {
 			AppSettings::setValue(kLyricsFontSize, 12);
 			lrc_font_.setPointSize(12);
@@ -59,17 +59,17 @@ void LyricsShowWideget::initial() {
 	setAcceptDrops(true);
 }
 
-void LyricsShowWideget::setBackgroundColor(QColor color) {
+void LyricsShowWidget::setBackgroundColor(QColor color) {
 	background_color_ = color;
 }
 
-void LyricsShowWideget::setDefaultLrc() {
+void LyricsShowWidget::setDefaultLrc() {
 	LyricEntry entry;
 	entry.lrc = tr("Not found lyrics").toStdWString();
 	lyric_.AddLrc(entry);
 }
 
-void LyricsShowWideget::setCurrentTime(const int32_t time, const bool is_adding) {
+void LyricsShowWidget::setCurrentTime(const int32_t time, const bool is_adding) {
 	auto time2 = time;
 
 	if (!is_adding) {
@@ -81,7 +81,7 @@ void LyricsShowWideget::setCurrentTime(const int32_t time, const bool is_adding)
 	}
 }
 
-void LyricsShowWideget::paintItem(QPainter* painter, const int32_t index, QRect& rect) {
+void LyricsShowWidget::paintItem(QPainter* painter, const int32_t index, QRect& rect) {
 	const int32_t ih = itemHeight() * 1.2 / 10;
 	const int32_t ch = item_offset_ * 1.2 / 10;
 
@@ -121,11 +121,11 @@ void LyricsShowWideget::paintItem(QPainter* painter, const int32_t index, QRect&
 		Qt::AlignLeft, text);
 }
 
-void LyricsShowWideget::paintBackground(QPainter* painter) {
+void LyricsShowWidget::paintBackground(QPainter* painter) {
 	painter->fillRect(rect(), background_color_);
 }
 
-void LyricsShowWideget::paintItemMask(QPainter* painter) {
+void LyricsShowWidget::paintItemMask(QPainter* painter) {
 	if (item_offset_ == 0) {
 		painter->setFont(current_mask_font_);
 		painter->setPen(lrc_hightlight_color_);
@@ -140,16 +140,16 @@ void LyricsShowWideget::paintItemMask(QPainter* painter) {
 	}
 }
 
-int32_t LyricsShowWideget::itemHeight() const {
+int32_t LyricsShowWidget::itemHeight() const {
     QFontMetrics metrics(lrc_font_);
     return metrics.height() * 1.5;
 }
 
-int32_t LyricsShowWideget::itemCount() const {
+int32_t LyricsShowWidget::itemCount() const {
 	return lyric_.GetSize();
 }
 
-void LyricsShowWideget::stop() {
+void LyricsShowWidget::stop() {
 	mask_length_ = -1000;
 	last_lyric_index_ = -1;
 	current_rollrect_ = QRect(0, 0, 0, 0);
@@ -158,19 +158,19 @@ void LyricsShowWideget::stop() {
 	update();
 }
 
-void LyricsShowWideget::dragEnterEvent(QDragEnterEvent* event) {
+void LyricsShowWidget::dragEnterEvent(QDragEnterEvent* event) {
 	event->acceptProposedAction();
 }
 
-void LyricsShowWideget::dragMoveEvent(QDragMoveEvent* event) {
+void LyricsShowWidget::dragMoveEvent(QDragMoveEvent* event) {
 	event->acceptProposedAction();
 }
 
-void LyricsShowWideget::dragLeaveEvent(QDragLeaveEvent* event) {
+void LyricsShowWidget::dragLeaveEvent(QDragLeaveEvent* event) {
 	event->accept();
 }
 
-void LyricsShowWideget::dropEvent(QDropEvent* event) {
+void LyricsShowWidget::dropEvent(QDropEvent* event) {
 	const auto* mime_data = event->mimeData();
 
 	if (mime_data->hasUrls()) {
@@ -182,7 +182,7 @@ void LyricsShowWideget::dropEvent(QDropEvent* event) {
 	}
 }
 
-void LyricsShowWideget::loadLrcFile(const QString &file_path) {
+void LyricsShowWidget::loadLrcFile(const QString &file_path) {
 	stop();
 	if (!lyric_.ParseFile(file_path.toStdWString())) {
 		setDefaultLrc();
@@ -191,7 +191,7 @@ void LyricsShowWideget::loadLrcFile(const QString &file_path) {
 	update();
 }
 
-void LyricsShowWideget::addFullLrc(const QString& lrc, std::chrono::milliseconds duration) {
+void LyricsShowWidget::addFullLrc(const QString& lrc, std::chrono::milliseconds duration) {
     auto i = 0;
 	const auto lyrics = lrc.split(Q_UTF8("\n"));
 	const auto min_duration = duration / lyrics.count();
@@ -205,7 +205,7 @@ void LyricsShowWideget::addFullLrc(const QString& lrc, std::chrono::milliseconds
 	}
 }
 
-void LyricsShowWideget::loadLrc(const QString& lrc) {
+void LyricsShowWidget::loadLrc(const QString& lrc) {
 	std::wistringstream stream{ lrc.toStdWString() };
 	if (!lyric_.Parse(stream)) {
 		return;
@@ -213,13 +213,13 @@ void LyricsShowWideget::loadLrc(const QString& lrc) {
 	update();
 }
 
-void LyricsShowWideget::setLrc(const QString &lrc) {
+void LyricsShowWidget::setLrc(const QString &lrc) {
 	lrc_ = lrc;
 	stop();
 	loadLrc(lrc_);
 }
 
-void LyricsShowWideget::setLrcTime(int32_t stream_time) {
+void LyricsShowWidget::setLrcTime(int32_t stream_time) {
 	stream_time = stream_time + kScrollTime;
 	pos_ = stream_time;
 
@@ -264,18 +264,18 @@ void LyricsShowWideget::setLrcTime(int32_t stream_time) {
 	update();
 }
 
-void LyricsShowWideget::setLrcFont(const QFont & font) {
+void LyricsShowWidget::setLrcFont(const QFont & font) {
 	lrc_font_ = font;
 	current_mask_font_ = font;
 	update();
 }
 
-void LyricsShowWideget::setLrcHightLight(const QColor & color) {
+void LyricsShowWidget::setLrcHightLight(const QColor & color) {
 	lrc_hightlight_color_ = color;
 	update();
 }
 
-void LyricsShowWideget::setLrcColor(const QColor& color) {
+void LyricsShowWidget::setLrcColor(const QColor& color) {
 	lrc_color_ = color;
 	update();
 }

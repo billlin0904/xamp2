@@ -28,9 +28,7 @@ void WheelableWidget::setCurrentIndex(const int32_t index) {
 }
 
 void WheelableWidget::paintEvent(QPaintEvent*) {
-	QPainter painter(this);
-
-	paintBackground(&painter);
+	QPainter painter(this);	
 
 	const auto w = width();
 	const auto h = height();
@@ -63,6 +61,7 @@ void WheelableWidget::paintEvent(QPaintEvent*) {
 	}
 
 	paintItemMask(&painter);
+	paintBackground(&painter);
 }
 
 void WheelableWidget::mousePressEvent(QMouseEvent* event) {

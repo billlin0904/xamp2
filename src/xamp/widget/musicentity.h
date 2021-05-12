@@ -26,7 +26,8 @@ struct MusicEntity final {
     QString cover_id;
 };
 
-Q_DECLARE_METATYPE(MusicEntity)
+// for QVariantÂà´«¨Ï¥Î
+Q_DECLARE_METATYPE(MusicEntity) 
 
 inline QVariant getIndexValue(const QModelIndex& index, int i) {
     return index.model()->data(index.model()->index(index.row(), i));

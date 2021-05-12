@@ -53,7 +53,6 @@ public:
     }
 
     void addPath(std::wstring const& path) {
-        std::lock_guard<FastMutex> guard{ mutex_ };
         if (watch_file_handles_.find(path) != watch_file_handles_.end()) {
             return;
         }
@@ -70,7 +69,6 @@ public:
     }
 
     void removePath(std::wstring const& path) {
-        std::lock_guard<FastMutex> guard{ mutex_ };
         watch_file_handles_.erase(path);
     }
 
@@ -130,7 +128,6 @@ public:
                 break;
             }        	
         }
-        std::lock_guard<FastMutex> guard{ mutex_ };
         readDirAsync(watch_file_handles_.begin()->second.get());
     }
 
@@ -196,17 +193,15 @@ public:
     WinHandle iocp_handle_;
     std::vector<DirectoryChangeEntry> change_entries_;
     HashMap<std::wstring, AlignPtr<OverlappedEx>> watch_file_handles_;
-    FastMutex mutex_;
     DirectoryWatcher* watcher_;
 };
 
-DirectoryWatcher::DirectoryWatcher(QObject* parent)
-	: QThread(parent)
-	, impl_(MakeAlign<WatcherWorkerImpl>(this)) {
+DirectoryWatcher::DirectoryWatcher()
+	: impl_(MakeAlign<WatcherWorkerImpl>(this)) {
+    moveToThread(this);
 }
 
-DirectoryWatcher::~DirectoryWatcher() {
-}
+DirectoryWatcher::~DirectoryWatcher() = default;
 
 void DirectoryWatcher::run() {
     impl_->run();
@@ -223,12 +218,10 @@ void DirectoryWatcher::addPath(const QString& file) {
 void DirectoryWatcher::removePath(const QString& file) {
 }
 #else
-DirectoryWatcher::DirectoryWatcher(QObject* parent)
-    : QThread(parent) {
+DirectoryWatcher::DirectoryWatcher() {
 }
 
-DirectoryWatcher::~DirectoryWatcher() {
-}
+DirectoryWatcher::~DirectoryWatcher() = default;
 
 void DirectoryWatcher::run() {
 }

@@ -7,7 +7,6 @@
 #include <QFormLayout>
 #include <QTimeEdit>
 #include <QLineEdit>
-#include <QDialogButtonBox>
 #include <QJsonDocument>
 #include <QJsonArray>
 
@@ -67,6 +66,7 @@ static PlayListEntity getEntity(const QModelIndex& index) {
     entity.fingerprint = getIndexValue(index, PLAYLIST_FINGER_PRINT).toString();
     entity.file_ext = getIndexValue(index, PLAYLIST_FILE_EXT).toString();
     entity.parent_path = getIndexValue(index, PLAYLIST_FILE_PARENT_PATH).toString();
+    entity.lufs = getIndexValue(index, PLAYLIST_LRUS).toDouble();
     entity.true_peak = getIndexValue(index, PLAYLIST_TRUE_PEAK).toDouble();
     return entity;
 }
@@ -80,7 +80,10 @@ PlayListTableView::PlayListTableView(QWidget* parent, int32_t playlist_id)
     initial();
 }
 
-PlayListTableView::~PlayListTableView() = default;
+PlayListTableView::~PlayListTableView() {
+    thread_.quit();
+    thread_.wait();    
+}
 
 void PlayListTableView::refresh() {
 	const QString s = Q_UTF8(R"(
@@ -229,7 +232,11 @@ void PlayListTableView::initial() {
         const auto current_index = proxy_model_.mapToSource(index);
         setNowPlaying(current_index);
         refresh();
-        emit playMusic(current_index, getEntity(current_index));
+        auto play_item = getEntity(current_index);
+    	if (play_item.lufs == 0.0) {
+            readLUFS(play_item);
+    	}        
+        emit playMusic(current_index, play_item);
     });
 
     setContextMenuPolicy(Qt::CustomContextMenu);
@@ -397,6 +404,23 @@ void PlayListTableView::initial() {
     });
 
     installEventFilter(this);
+
+    read_worker_.moveToThread(&thread_);
+    QObject::connect(this,
+        &PlayListTableView::readLUFS,
+        &read_worker_,
+        &ReadLufsWorker::addEntity);
+    QObject::connect(&read_worker_, 
+        &ReadLufsWorker::readCompleted,
+        this,
+        &PlayListTableView::onReadCompleted);
+    thread_.start();
+}
+
+void PlayListTableView::onReadCompleted(int32_t music_id, double lrus, double trure_peak) {
+    XAMP_LOG_DEBUG("onReadCompleted {} {}, {}", music_id, lrus, trure_peak);
+    Singleton<Database>::GetInstance().updateLUFS(music_id, lrus, trure_peak);
+    refresh();
 }
 
 void PlayListTableView::onThemeColorChanged(QColor backgroundColor, QColor color) {
@@ -406,17 +430,17 @@ void PlayListTableView::onThemeColorChanged(QColor backgroundColor, QColor color
 void PlayListTableView::keyPressEvent(QKeyEvent *pEvent) {
     if (pEvent->key() == Qt::Key_Return) {
         // we captured the Enter key press, now we need to move to the next row
-        qint32 nNextRow = currentIndex().row() + 1;
-        if (nNextRow + 1 > model()->rowCount(currentIndex())) {
+        auto n_next_row = currentIndex().row() + 1;
+        if (n_next_row + 1 > model()->rowCount(currentIndex())) {
             // we are all the way down, we can't go any further
-            nNextRow = nNextRow - 1;
+            n_next_row = n_next_row - 1;
         }
 
         if (state() == QAbstractItemView::EditingState) {
             // if we are editing, confirm and move to the row below
-            QModelIndex oNextIndex = model()->index(nNextRow, currentIndex().column());
-            setCurrentIndex(oNextIndex);
-            selectionModel()->select(oNextIndex, QItemSelectionModel::ClearAndSelect);
+            const auto o_next_index = model()->index(n_next_row, currentIndex().column());
+            setCurrentIndex(o_next_index);
+            selectionModel()->select(o_next_index, QItemSelectionModel::ClearAndSelect);
         } else {
             // if we're not editing, start editing
             edit(currentIndex());
@@ -430,7 +454,7 @@ void PlayListTableView::keyPressEvent(QKeyEvent *pEvent) {
 bool PlayListTableView::eventFilter(QObject* obj, QEvent* ev) {
     const auto type = ev->type();
     if (this == obj && type == QEvent::KeyPress) {
-        auto* event = static_cast<QKeyEvent*>(ev);
+        auto* event = dynamic_cast<QKeyEvent*>(ev);
         if (event->key() == Qt::Key_Delete) {
             removeSelectItems();
             return true;
@@ -447,12 +471,13 @@ void PlayListTableView::append(const QString& file_name) {
                             this,
                             &PlayListTableView::processMeatadata);
 
-    MetadataExtractAdapter::readFileMetadata(adapter, file_name);
+    MetadataExtractAdapter::readFileMetadata(adapter, file_name);    
 }
 
 void PlayListTableView::processMeatadata(const std::vector<Metadata>& medata) {    
     MetadataExtractAdapter::processMetadata(medata, this);
     resizeColumn();
+    refresh();
 }
 
 void PlayListTableView::resizeEvent(QResizeEvent* event) {
@@ -472,7 +497,7 @@ void PlayListTableView::resizeColumn() const {
             break;
         case PLAYLIST_TRACK:
             header->setSectionResizeMode(column, QHeaderView::Fixed);
-            header->resizeSection(column, 5);
+            header->resizeSection(column, 40);
             break;
         case PLAYLIST_LRUS:
             header->setSectionResizeMode(column, QHeaderView::Fixed);
@@ -492,7 +517,7 @@ void PlayListTableView::resizeColumn() const {
         	break;        
         case PLAYLIST_ARTIST:
             header->setSectionResizeMode(column, QHeaderView::Fixed);
-            header->resizeSection(column, 200);
+            header->resizeSection(column, 300);
             break;
         case PLAYLIST_ALBUM:
         default:
@@ -539,7 +564,7 @@ void PlayListTableView::setNowPlaying(const QModelIndex& index, bool is_scroll_t
     }
     const auto entity = getEntity(play_index_);
     Singleton<Database>::GetInstance().setNowPlaying(playlist_id_, entity.music_id);
-    proxy_model_.dataChanged(QModelIndex(), QModelIndex());
+    refresh();
 }
 
 void PlayListTableView::scrollToIndex(const QModelIndex& index) {
@@ -577,13 +602,17 @@ void PlayListTableView::setCurrentPlayIndex(const QModelIndex& index) {
 }
 
 void PlayListTableView::play(const QModelIndex& index) {
-    play_index_ = index;   
-    emit playMusic(play_index_, nomapItem(play_index_));
+    play_index_ = index;
+    const auto play_item = nomapItem(play_index_);
+	if (play_item.lufs == 0.0) {
+        readLUFS(play_item);
+	}
+    emit playMusic(play_index_, play_item);
 }
 
 void PlayListTableView::removePlaying() {
     Singleton<Database>::GetInstance().clearNowPlaying(playlist_id_);
-    proxy_model_.dataChanged(QModelIndex(), QModelIndex());
+    refresh();
 }
 
 void PlayListTableView::removeItem(const QModelIndex& index) {
@@ -601,7 +630,7 @@ void PlayListTableView::reloadSelectMetadata() {
         const auto cover_id = entity.cover_id;
         const auto artist_id = entity.artist_id;
 
-        const xamp::metadata::Path path(entity.file_path.toStdWString());
+        const Path path(entity.file_path.toStdWString());
         auto metadata = reader.Extract(path);
 
         entity = fromMetadata(metadata);
@@ -613,7 +642,7 @@ void PlayListTableView::reloadSelectMetadata() {
         Singleton<Database>::GetInstance().addOrUpdateMusic(metadata, -1);
     }
 
-    proxy_model_.dataChanged(QModelIndex(), QModelIndex());
+    refresh();
 }
 
 void PlayListTableView::removeSelectItems() {

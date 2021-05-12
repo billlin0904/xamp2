@@ -19,7 +19,7 @@
 #include <player/audio_util.h>
 
 #include <widget/albumview.h>
-#include <widget/lyricsshowwideget.h>
+#include <widget/LyricsShowWidget.h>
 #include <widget/playlisttableview.h>
 #include <widget/albumartistpage.h>
 #include <widget/lrcpage.h>
@@ -48,14 +48,14 @@
 static AlignPtr<SampleRateConverter> makeSampleRateConverter(const QVariantMap &settings) {
     const auto quality = static_cast<SoxrQuality>(settings[kSoxrQuality].toInt());
     const auto phase = settings[kSoxrPhase].toInt();
-    const auto passband = settings[kSoxrPassBand].toInt();
+    const auto pass_band = settings[kSoxrPassBand].toInt();
     const auto enable_steep_filter = settings[kSoxrEnableSteepFilter].toBool();
 
     auto converter = MakeAlign<SampleRateConverter, SoxrSampleRateConverter>();
     auto *soxr_sample_rate_converter = dynamic_cast<SoxrSampleRateConverter*>(converter.get());
     soxr_sample_rate_converter->SetQuality(quality);
     soxr_sample_rate_converter->SetPhase(phase);
-    soxr_sample_rate_converter->SetPassBand(passband);
+    soxr_sample_rate_converter->SetPassBand(pass_band);
     soxr_sample_rate_converter->SetSteepFilter(enable_steep_filter);
     return converter;
 }
@@ -235,9 +235,11 @@ void Xamp::registerMetaType() {
     qRegisterMetaType<std::vector<Metadata>>("std::vector<Metadata>");
     qRegisterMetaType<DeviceState>("DeviceState");
     qRegisterMetaType<PlayerState>("PlayerState");
+    qRegisterMetaType<PlayListEntity>("PlayListEntity");
     qRegisterMetaType<Errors>("Errors");
     qRegisterMetaType<std::vector<float>>("std::vector<float>");
     qRegisterMetaType<size_t>("size_t");
+    qRegisterMetaType<int32_t>("int32_t");
 }
 
 void Xamp::initialUI() {
@@ -447,7 +449,7 @@ void Xamp::initialController() {
     setPlayerOrder();
 
     ui_.volumeSlider->setRange(0, 100);
-    auto vol = AppSettings::getValue(kAppSettingVolume).toUInt();
+    const auto vol = AppSettings::getValue(kAppSettingVolume).toUInt();
 	if (vol <= 0) {
         setVolume(0);
 	}
@@ -478,12 +480,6 @@ void Xamp::initialController() {
                             &UIPlayerStateAdapter::sampleTimeChanged,
                             this,
                             &Xamp::onSampleTimeChanged,
-                            Qt::QueuedConnection);    
-
-    (void)QObject::connect(state_adapter_.get(),
-                            &UIPlayerStateAdapter::gaplessPlayback,
-                            this,
-                            &Xamp::onGaplessPlay,
                             Qt::QueuedConnection);
 
     (void)QObject::connect(state_adapter_.get(),
@@ -534,7 +530,7 @@ void Xamp::initialController() {
     });
 
     (void)QObject::connect(ui_.addPlaylistButton, &QToolButton::pressed, [this]() {
-        auto pos = mapFromGlobal(QCursor::pos());
+	    const auto pos = mapFromGlobal(QCursor::pos());
         playback_history_page_->move(QPoint(pos.x() - 300, pos.y() - 410));
         playback_history_page_->setMinimumSize(QSize(550, 400));
         playback_history_page_->refreshOnece();
@@ -728,7 +724,6 @@ void Xamp::stopPlayedClicked() {
     setSeekPosValue(0);
     ui_.seekSlider->setEnabled(false);
     playlist_page_->playlist()->removePlaying();
-    player_->ClearPlayQueue();
 }
 
 void Xamp::playNextClicked() {
@@ -745,7 +740,6 @@ void Xamp::deleteKeyPress() {
     }
     auto* playlist_view = playlist_page_->playlist();
     playlist_view->removeSelectItems();
-    player_->ClearPlayQueue();
 }
 
 void Xamp::setPlayerOrder() {
@@ -954,9 +948,6 @@ void Xamp::play(const PlayListEntity& item) {
     applyTheme(ThemeManager::instance().getBackgroundColor());
 }
 
-void Xamp::onGaplessPlay(const QModelIndex &index) {
-}
-
 void Xamp::playNextItem(int32_t forward) {
     auto* playlist_view = playlist_page_->playlist();
     const auto count = playlist_view->model()->rowCount();
@@ -996,11 +987,7 @@ void Xamp::playNextItem(int32_t forward) {
     playlist_view->refresh();
 }
 
-void Xamp::addPlayQueue() {
-}
-
 void Xamp::play(const QModelIndex&, const PlayListEntity& item) {
-    player_->ClearPlayQueue();
     playLocalFile(item);
     if (!player_->IsPlaying()) {
         playlist_page_->format()->setText(Q_UTF8(""));
@@ -1020,11 +1007,7 @@ void Xamp::addPlaylistItem(const PlayListEntity &entity) {
 
 void Xamp::setCover(const QPixmap* cover) {
     if (!cover) {
-        cover = &ThemeManager::instance().pixmap().unknownCover();
-        lrc_page_->setBackground(QPixmap());        
-    }
-    else {
-        lrc_page_->setBackground(*cover);
+        cover = &ThemeManager::instance().pixmap().unknownCover();    
     }
 
     const auto ui_cover = Pixmap::roundImage(Pixmap::resizeImage(*cover, ui_.coverLabel->size(), false),
@@ -1436,10 +1419,10 @@ void Xamp::onFileChanged(const QString& file_path) {
 }
 
 void Xamp::extractFile(const QString& file_path) {
-	const auto adapter = QSharedPointer<MetadataExtractAdapter>(new MetadataExtractAdapter());
+    const auto adapter = QSharedPointer<MetadataExtractAdapter>(new MetadataExtractAdapter());
     (void)QObject::connect(adapter.get(),
         &MetadataExtractAdapter::readCompleted,
         this,
         &Xamp::processMeatadata);
     MetadataExtractAdapter::readFileMetadata(adapter, file_path);
-}
+};

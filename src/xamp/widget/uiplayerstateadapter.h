@@ -12,7 +12,7 @@
 #include <output_device/devicestatelistener.h>
 #include <stream/filestream.h>
 #include <player/playbackstateadapter.h>
-#include <player/SampleRateConverter.h>
+#include <player/samplerateconverter.h>
 #include <player/playstate.h>
 
 using xamp::base::Errors;
@@ -23,7 +23,6 @@ using xamp::base::SpscQueue;
 using xamp::player::PlayerState;
 using xamp::player::SampleRateConverter;
 using xamp::player::PlaybackStateAdapter;
-using xamp::player::GaplessPlayEntry;
 
 using xamp::output_device::DeviceInfo;
 using xamp::output_device::DeviceState;
@@ -35,12 +34,6 @@ class UIPlayerStateAdapter final
     Q_OBJECT
 public:
     explicit UIPlayerStateAdapter(QObject *parent = nullptr);
-
-    size_t GetPlayQueueSize() const override;
-
-    GaplessPlayEntry& PlayQueueFont() override;
-
-    void PopPlayQueue() override;
 
     void OnSampleTime(double stream_time) override;
 
@@ -54,14 +47,6 @@ public:
 
     void OnDisplayChanged(std::vector<float> const& display) override;
 
-    void OnGaplessPlayback() override;    
-
-    void addPlayQueue(AlignPtr<FileStream> &&stream, AlignPtr<SampleRateConverter> &&sample_rate_converter, const QModelIndex &index);
-
-    QModelIndex popIndexQueue();
-
-    QModelIndex currentIndex();
-
 signals:
     void sampleTimeChanged(double stream_time);
 
@@ -73,16 +58,5 @@ signals:
 
     void volumeChanged(float vol);
 
-    void gaplessPlayback(const QModelIndex &index);
-
     void displayChanged(std::vector<float> const& display);
-
-protected:
-    static constexpr auto kPlayQueueSize = 8;
-    static constexpr auto kIndexQueueSize = 8;
-
-    void ClearPlayQueue() override;
-
-    SpscQueue<GaplessPlayEntry> play_queue_;
-    SpscQueue<QModelIndex> index_queue_;
 };

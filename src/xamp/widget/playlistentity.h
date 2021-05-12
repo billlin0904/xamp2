@@ -13,7 +13,7 @@
 
 #include <widget/starrating.h>
 
-struct PlayListEntity {
+struct PlayListEntity final {
     bool playing{false};
     int32_t music_id{0};
     int32_t album_id{0};
@@ -36,5 +36,6 @@ struct PlayListEntity {
     QString fingerprint;
 };
 
+// for QVariantÂà´«¨Ï¥Î
 Q_DECLARE_METATYPE(PlayListEntity)
 

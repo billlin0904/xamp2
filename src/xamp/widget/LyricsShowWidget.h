@@ -10,15 +10,15 @@
 
 class QDropEvent;
 
-class LyricsShowWideget : public WheelableWidget {
+class LyricsShowWidget : public WheelableWidget {
 	Q_OBJECT
 
 public:
-	explicit LyricsShowWideget(QWidget *parent = nullptr);
+	explicit LyricsShowWidget(QWidget *parent = nullptr);
 
-    ~LyricsShowWideget() = default;
+    ~LyricsShowWidget() = default;
 
-	Q_DISABLE_COPY(LyricsShowWideget)
+	Q_DISABLE_COPY(LyricsShowWidget)
 
 	void loadLrcFile(const QString &file_path);
 

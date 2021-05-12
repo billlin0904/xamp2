@@ -30,22 +30,23 @@ struct DirectoryChangeEntry {
 class DirectoryWatcher : public QThread {
 	Q_OBJECT
 public:
-	explicit DirectoryWatcher(QObject* parent = nullptr);
+	DirectoryWatcher();
 
-	~DirectoryWatcher();
+	virtual ~DirectoryWatcher() override;
 
 	void shutdown();
 
-	void addPath(const QString& file);
-	
-	void removePath(const QString& file);
-	
 Q_SIGNALS:
 	void fileChanged(const QString& path);
 
+public slots:
+	void addPath(const QString& file);
+
+	void removePath(const QString& file);
+
 protected:
 	void run() override;
-
+	
 private:
 #ifdef XAMP_OS_WIN
 	class WatcherWorkerImpl;

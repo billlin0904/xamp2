@@ -131,7 +131,7 @@ static int excute(int argc, char* argv[]) {
     	"psapi.dll"
     };
     std::vector<ModuleHandle> preload_module;
-	for (auto file_name : preload_dll_file_name) {
+	for (const auto file_name : preload_dll_file_name) {
         try {
             preload_module.push_back(LoadModule(file_name));
         } catch (...) {	        
@@ -140,9 +140,9 @@ static int excute(int argc, char* argv[]) {
     XAMP_LOG_DEBUG("Preload dll success.");
 #endif    
 
-    SingleInstanceApplication singleApp;
+    SingleInstanceApplication single_app;
 #ifndef _DEBUG
-    if (!singleApp.attach(QCoreApplication::arguments())) {
+    if (!single_app.attach(QCoreApplication::arguments())) {
         return -1;
     }
 #endif
@@ -171,7 +171,7 @@ static int excute(int argc, char* argv[]) {
     Xamp win;
     win.show();
     win.activateWindow();
-    win.resize(500, 800);
+    win.resize(1020, 800);
     return app.exec();
 }
 

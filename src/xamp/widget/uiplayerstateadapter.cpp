@@ -2,9 +2,7 @@
 #include <widget/uiplayerstateadapter.h>
 
 UIPlayerStateAdapter::UIPlayerStateAdapter(QObject *parent)
-    : QObject(parent)
-    , play_queue_(kPlayQueueSize)
-    , index_queue_(kIndexQueueSize) {
+    : QObject(parent) {
 }
 
 void UIPlayerStateAdapter::OnSampleTime(double stream_time) {
@@ -30,41 +28,4 @@ void UIPlayerStateAdapter::OnVolumeChanged(float vol) {
 
 void UIPlayerStateAdapter::OnDisplayChanged(std::vector<float> const& display) {
     emit displayChanged(display);
-}
-
-void UIPlayerStateAdapter::OnGaplessPlayback() {
-    auto index = popIndexQueue();
-    emit gaplessPlayback(index);
-}
-
-size_t UIPlayerStateAdapter::GetPlayQueueSize() const {
-    return play_queue_.size();
-}
-
-void UIPlayerStateAdapter::addPlayQueue(AlignPtr<FileStream>&& stream, AlignPtr<SampleRateConverter>&& sample_rate_converter, const QModelIndex &index) {    
-    play_queue_.TryEnqueue(std::make_pair(std::move(stream), std::move(sample_rate_converter)));
-    index_queue_.TryPush(index);
-}
-
-QModelIndex UIPlayerStateAdapter::popIndexQueue() {
-    auto index = *index_queue_.Front();
-    index_queue_.Pop();
-    return index;
-}
-
-QModelIndex UIPlayerStateAdapter::currentIndex() {
-    return *index_queue_.Front();
-}
-
-GaplessPlayEntry& UIPlayerStateAdapter::PlayQueueFont() {
-    return *play_queue_.Front();
-}
-
-void UIPlayerStateAdapter::PopPlayQueue() {
-    play_queue_.Pop();
-}
-
-void UIPlayerStateAdapter::ClearPlayQueue() {
-    play_queue_.clear();
-    index_queue_.clear();
 }

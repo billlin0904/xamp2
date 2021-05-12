@@ -117,17 +117,11 @@ public:
 
     DeviceInfo GetDevice() const;
 
-    void ClearPlayQueue() const;   
-
     AlignPtr<SampleRateConverter> CloneSampleRateConverter() const;
 
     AudioDeviceManager& GetAudioDeviceManager();
 
 private:
-    enum class MsgID {
-        EVENT_SWITCH,
-    };
-
     bool CanProcessFile() const noexcept;
     	
     void DoSeek(double stream_time);        
@@ -161,8 +155,6 @@ private:
     void BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<SampleRateConverter> &converter, int32_t buffer_count = 1);
 
     void UpdateSlice(int32_t sample_size = 0, double stream_time = 0.0) noexcept;
-
-    void OnGaplessPlayState(std::unique_lock<std::mutex>& lock);
 
     void AllocateReadBuffer(uint32_t allocate_size);
 
@@ -229,7 +221,6 @@ private:
     std::vector<AlignPtr<AudioProcessor>> dsp_chain_;
     DeviceInfo device_info_;    
     std::shared_future<void> stream_task_;
-    SpscQueue<MsgID> msg_queue_;
     SpscQueue<double> seek_queue_;
     SpscQueue<AlignPtr<AudioProcessor>> processor_queue_;
 };

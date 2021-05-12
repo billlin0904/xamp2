@@ -72,7 +72,6 @@ AudioPlayer::AudioPlayer(const std::weak_ptr<PlaybackStateAdapter> &adapter)
     , stream_duration_(0)
     , state_adapter_(adapter)
     , fifo_(GetPageAlignSize(kPreallocateBufferSize))
-	, msg_queue_(kMsgQueueSize)
     , seek_queue_(kMsgQueueSize)
 	, processor_queue_(kMsgQueueSize) {
 }
@@ -304,8 +303,6 @@ void AudioPlayer::Stop(bool signal_to_stop, bool shutdown_device, bool wait_for_
         device_.reset();
     }
     stream_.reset();
-    // 必須只能在Device關閉的狀況下清除.
-    msg_queue_.clear();
 
 #ifdef _DEBUG
     render_thread_id_.clear();
@@ -660,49 +657,6 @@ void AudioPlayer::DoSeek(double stream_time) {
     fifo_.Clear();
     BufferStream(stream_time);
     Resume();
-
-    if (auto adapter = state_adapter_.lock()) {
-        if (adapter->GetPlayQueueSize() > 0) {
-            auto& [file, convert] = adapter->PlayQueueFont();
-            file->Seek(0);
-        }
-    }
-}
-
-void AudioPlayer::OnGaplessPlayState(std::unique_lock<std::mutex>& lock) {
-    auto adapter = state_adapter_.lock();
-    if (!adapter) {
-        return;
-    }
-
-    if (adapter->GetPlayQueueSize() == 0) {
-        stopped_cond_.wait_for(lock, kReadSampleWaitTime);
-        return;
-    }
-	
-    auto& [file_stream, sample_rate_converter] = adapter->PlayQueueFont();
-
-    if (!msg_queue_.empty()) {
-        // 處理播放完畢後替換掉Stream.
-        const auto msg_id = *msg_queue_.Front();
-
-        switch (msg_id) {
-        case MsgID::EVENT_SWITCH:
-            XAMP_LOG_DEBUG("Receive EVENT_SWITCH");
-            std::lock_guard<std::mutex> guard{ stream_read_mutex_ };
-            stream_->Close();
-            stream_ = std::move(file_stream);            
-            converter_ = std::move(sample_rate_converter);
-            stream_duration_ = stream_->GetDuration();
-            msg_queue_.Pop();
-            adapter->PopPlayQueue();
-            adapter->OnGaplessPlayback();
-            break;
-        }
-    }
-    else {
-        BufferSamples(file_stream, sample_rate_converter);
-    }
 }
 
 AudioPlayer::AudioSlice::AudioSlice(int32_t const sample_size, double const stream_time) noexcept
@@ -762,17 +716,7 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_buffer_samp
                 }
             }
         }
-        else {            
-            OnGaplessPlayState(lock);
-        }
         break;
-    }
-}
-
-void AudioPlayer::ClearPlayQueue() const {
-	std::lock_guard<std::mutex> guard{stream_read_mutex_};
-    if (auto adapter = state_adapter_.lock()) {
-        adapter->ClearPlayQueue();
     }
 }
 
@@ -873,10 +817,6 @@ DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_fr
     const auto elapsed = sw_.Elapsed();
     max_process_time_ = std::max(elapsed, max_process_time_);
 #endif
-    if (stream_time >= stream_duration_) {
-        msg_queue_.TryPush(MsgID::EVENT_SWITCH);
-        device_->SetStreamTime(0);
-    }
 
     XAMP_LIKELY(fifo_.TryRead(static_cast<int8_t*>(samples), sample_size)) {       
         UpdateSlice(static_cast<int32_t>(num_samples), stream_time);
