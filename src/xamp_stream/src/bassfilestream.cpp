@@ -62,11 +62,15 @@ public:
                     file_.GetLength(),
                     flags | BASS_STREAM_DECODE));
             } else {
-                /*stream_.reset(BASS.BASS_StreamCreateURL(file_path.c_str(),
-                    0,
-                    0,
-                    flags | BASS_STREAM_DECODE | BASS_UNICODE));*/
-            }            
+                auto url = const_cast<wchar_t*>(file_path.c_str());
+                // auto url = const_cast<wchar_t*>(L"http://devweb.cqgame.games/206/assets/sound/BGM_MG.mp3");
+                stream_.reset(BASS.BASS_StreamCreateURL(
+                    url,
+                    0,   
+                    flags | BASS_STREAM_DECODE | BASS_UNICODE | BASS_STREAM_STATUS,
+                    &BassFileStreamImpl::DownloadProc,
+                    nullptr));
+            }
 
             // BassLib DSD module default use 6dB gain.
             // 不設定的話會爆音!
@@ -114,6 +118,13 @@ public:
         else {
             throw NotSupportFormatException();
         }
+    }
+
+	static void DownloadProc(const void* buffer, DWORD length, void* user) {
+    	if (length == 0) {
+            auto status = static_cast<char const*>(buffer);
+            XAMP_LOG_DEBUG("{}", status);
+    	}        
     }
 
     void Close() noexcept {
@@ -307,7 +318,7 @@ void LoadBassLib() {
     BASS.FxLib = MakeAlign<BassFxLib>();
     XAMP_LOG_DEBUG("Load BassFxLib successfully.");
     BASS.BASS_SetConfig(BASS_CONFIG_DSD_FREQ, 88200);
-    XAMP_LOG_DEBUG("Load BassDSDLib successfully.");
+    XAMP_LOG_DEBUG("Load BassDSDLib successfully.");    
 }
 
 void FreeBassLib() {

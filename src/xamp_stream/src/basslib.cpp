@@ -86,6 +86,7 @@ BassLib::BassLib() try
 #endif
     , BASS_Init(module_, "BASS_Init")
     , BASS_SetConfig(module_, "BASS_SetConfig")
+	, BASS_SetConfigPtr(module_, "BASS_SetConfigPtr")
     , BASS_PluginLoad(module_, "BASS_PluginLoad")
     , BASS_PluginGetInfo(module_, "BASS_PluginGetInfo")
     , BASS_Free(module_, "BASS_Free")
@@ -106,7 +107,8 @@ BassLib::BassLib() try
     , BASS_ChannelSetFX(module_, "BASS_ChannelSetFX")
     , BASS_ChannelRemoveFX(module_, "BASS_ChannelRemoveFX")
     , BASS_FXSetParameters(module_, "BASS_FXSetParameters")
-    , BASS_FXGetParameters(module_, "BASS_FXGetParameters") {
+    , BASS_FXGetParameters(module_, "BASS_FXGetParameters")
+	, BASS_StreamCreateURL(module_, "BASS_StreamCreateURL") {
 }
 catch (const Exception& e) {
     XAMP_LOG_ERROR("{}", e.GetErrorMessage());
@@ -133,16 +135,18 @@ void BassLib::Load() {
         return;
     }
 
-    Singleton<BassLib>::GetInstance().BASS_Init(0, 44100, 0, nullptr, nullptr);
+    BASS.BASS_Init(0, 44100, 0, nullptr, nullptr);
 #ifdef XAMP_OS_WIN
     // Disable Media Foundation
-    Singleton<BassLib>::GetInstance().BASS_SetConfig(BASS_CONFIG_MF_DISABLE, true);
-    Singleton<BassLib>::GetInstance().BASS_SetConfig(BASS_CONFIG_MF_VIDEO, false);    
+    BASS.BASS_SetConfig(BASS_CONFIG_MF_DISABLE, true);
+    BASS.BASS_SetConfig(BASS_CONFIG_MF_VIDEO, false);    
 #endif
     LoadPlugin("bass_aac.dll");
     LoadPlugin("bassflac.dll");
     LoadPlugin("bass_ape.dll");
-    Singleton<BassLib>::GetInstance().BASS_SetConfig(BASS_CONFIG_FLOATDSP, true);
+    BASS.BASS_SetConfig(BASS_CONFIG_FLOATDSP, true);
+    BASS.BASS_SetConfig(BASS_CONFIG_NET_BUFFER, 50000);
+    BASS.BASS_SetConfigPtr(BASS_CONFIG_NET_AGENT, L"xamp2");
 }
 
 void BassLib::Free() {

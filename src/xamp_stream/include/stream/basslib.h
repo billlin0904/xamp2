@@ -122,6 +122,7 @@ private:
 public:
     XAMP_DECLARE_DLL(BASS_Init) BASS_Init;
     XAMP_DECLARE_DLL(BASS_SetConfig) BASS_SetConfig;
+    DllFunction<BOOL(DWORD option, const wchar_t *)> BASS_SetConfigPtr;
     DllFunction<HPLUGIN(const char *, DWORD)> BASS_PluginLoad;
     XAMP_DECLARE_DLL(BASS_PluginGetInfo) BASS_PluginGetInfo;
     XAMP_DECLARE_DLL(BASS_Free) BASS_Free;
@@ -142,7 +143,8 @@ public:
     XAMP_DECLARE_DLL(BASS_ChannelSetFX) BASS_ChannelSetFX;
     XAMP_DECLARE_DLL(BASS_ChannelRemoveFX) BASS_ChannelRemoveFX;
     XAMP_DECLARE_DLL(BASS_FXSetParameters) BASS_FXSetParameters;
-    XAMP_DECLARE_DLL(BASS_FXGetParameters) BASS_FXGetParameters;    
+    XAMP_DECLARE_DLL(BASS_FXGetParameters) BASS_FXGetParameters;
+    DllFunction<HSTREAM(wchar_t*, DWORD, DWORD, DOWNLOADPROC*, void*)> BASS_StreamCreateURL;
 
 private:
     void LoadPlugin(std::string const & file_name);
