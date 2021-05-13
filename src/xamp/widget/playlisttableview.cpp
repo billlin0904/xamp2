@@ -9,11 +9,16 @@
 #include <QLineEdit>
 #include <QJsonDocument>
 #include <QJsonArray>
+#include <QDialogButtonBox>
+#include <QXmlStreamReader>
 
 #include <base/rng.h>
+#include <base/str_utilts.h>
 #include <metadata/metadatareader.h>
 #include <metadata/taglibmetareader.h>
 #include <metadata/taglibmetawriter.h>
+
+#include <rapidxml.hpp>
 
 #include <thememanager.h>
 #include <widget/http.h>
@@ -29,6 +34,60 @@
 #include <widget/time_utilts.h>
 #include <widget/musicentity.h>
 #include <widget/playlisttableview.h>
+
+using namespace rapidxml;
+
+template <typename Ch>
+static std::wstring parseCDATA(xml_node<Ch> *node) {
+    auto nest_node = node->first_node();
+    std::string cddata(nest_node->value(), nest_node->value_size());
+    return String::ToString(cddata);
+}
+
+static std::vector<Metadata> parsePodcastXML(QString const &src) {
+    auto str = src.toStdString();
+
+    std::vector<Metadata> metadatas;
+    xml_document<> doc;
+    doc.parse<0>(const_cast<char*>(str.data()));    
+
+    auto rss = doc.first_node("rss");
+    if (!rss) {
+        return metadatas;
+    }
+
+    auto channel = rss->first_node("channel");
+    if (!channel) {
+        return metadatas;
+    }
+
+	for (auto item = channel->first_node("item") ; item; item = item->next_sibling("item")) {
+        Metadata metadata;
+        for (auto node = item->first_node(); node; node = node->next_sibling()) {
+            std::string name(node->name(), node->name_size());
+            std::string value(node->value(), node->value_size());
+            if (name == "title") {
+                metadata.title = parseCDATA(node);
+            }
+            else if (name == "dc:creator") {
+                metadata.artist = parseCDATA(node);
+                metadata.album = parseCDATA(node);
+            }
+            else if (name == "enclosure") {
+                auto url = node->first_attribute("url");
+                if (!url) {
+                    continue;
+                }
+                std::string path(url->value(), url->value_size());
+                metadata.file_path = String::ToString(path);
+            }
+        }
+
+        metadatas.push_back(metadata);
+	}
+
+    return metadatas;
+}
 
 PlayListEntity PlayListTableView::fromMetadata(const Metadata& metadata) {
     PlayListEntity item;
@@ -256,7 +315,9 @@ void PlayListTableView::initial() {
             const auto file_name = QFileDialog::getOpenFileName(this,
                 tr("Open file"),
                 AppSettings::getMyMusicFolderPath(),
-                tr("Music Files ") + exts);
+                tr("Music Files ") + exts,
+                nullptr,
+                QFileDialog::DontUseNativeDialog);
             if (file_name.isEmpty()) {
                 return;
             }
@@ -287,8 +348,13 @@ void PlayListTableView::initial() {
         auto * copy_title_act = action_map.addAction(tr("Copy title"));
         auto * set_cover_art_act = action_map.addAction(tr("Set cover art"));
         auto * export_cover_act = action_map.addAction(tr("Export music cover"));
+        auto* import_podcast_act = action_map.addAction(tr("Import podcast"));
 
         if (model_.rowCount() == 0 || !index.isValid()) {
+            action_map.setCallback(import_podcast_act, [this]() {
+                importPodcast();
+                });
+        	
             action_map.exec(pt);
             return;
         }
@@ -354,7 +420,9 @@ void PlayListTableView::initial() {
             const auto file_name = QFileDialog::getSaveFileName(this,
                                                                 tr("Save cover image"),
                                                                 Qt::EmptyString,
-                                                                tr("Images file (*.png);;All Files (*)"));
+                                                                tr("Images file (*.png);;All Files (*)"),
+                nullptr,
+                QFileDialog::DontUseNativeDialog);
             if (file_name.isEmpty()) {
                 return;
             }
@@ -366,8 +434,12 @@ void PlayListTableView::initial() {
             });
 
         action_map.setCallback(set_cover_art_act, [item, this]() {
-            const auto file_name = QFileDialog::getOpenFileName(this, tr("Open Cover Art Image"),
-                                                               tr("C:\\"), tr("Image Files (*.png *.jpeg *.jpg)"));
+            const auto file_name = QFileDialog::getOpenFileName(this, 
+                tr("Open Cover Art Image"),
+                tr("C:\\"), 
+                tr("Image Files (*.png *.jpeg *.jpg)"),
+                nullptr,
+                QFileDialog::DontUseNativeDialog);
             if (file_name.isEmpty()) {
                 return;
             }
@@ -483,6 +555,52 @@ void PlayListTableView::processMeatadata(const std::vector<Metadata>& medata) {
 void PlayListTableView::resizeEvent(QResizeEvent* event) {
     QTableView::resizeEvent(event);
     resizeColumn();
+}
+
+void PlayListTableView::importPodcast() {
+    QDialog dialog(this);
+    dialog.setWindowTitle(tr("Import file from meta.json"));
+    dialog.setWindowFlags(dialog.windowFlags() & ~Qt::WindowContextHelpButtonHint);
+    dialog.resize(600, 20);
+
+    QFormLayout form(&dialog);
+    auto* url_edit = new QLineEdit(&dialog);
+    //url_edit->setText(Q_UTF8("https://static.suisei.moe/music/meta.json"));
+    url_edit->setText(Q_UTF8("https://suisei.moe/podcast.xml"));
+    form.addRow(tr("URL:"), url_edit);
+
+    QDialogButtonBox buttonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
+        Qt::Horizontal, &dialog);
+    form.addRow(&buttonBox);
+    (void) QObject::connect(&buttonBox, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+    (void) QObject::connect(&buttonBox, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+
+    if (dialog.exec() != QDialog::Accepted) {
+        return;
+    }
+
+    http::HttpClient(url_edit->text()).success([this](const QString& json) {
+        /*QJsonParseError error;
+        const auto doc = QJsonDocument::fromJson(json.toUtf8(), &error);
+        if (error.error == QJsonParseError::NoError) {
+            auto result = doc.array();
+            std::vector<Metadata> metadatas;
+            metadatas.reserve(result.size());
+            for (const auto& entry : result) {
+                auto object = entry.toVariant().toMap();
+                auto url = object.value(Q_UTF8("url")).toString();
+                auto title = object.value(Q_UTF8("title")).toString();
+                auto performer = object.value(Q_UTF8("performer")).toString();
+                Metadata metadata;
+                metadata.file_path = url.toStdWString();
+                metadata.title = title.toStdWString();
+                metadata.artist = performer.toStdWString();
+                metadatas.push_back(metadata);
+            }
+            MetadataExtractAdapter::processMetadata(metadatas, this);
+        }*/
+        MetadataExtractAdapter::processMetadata(parsePodcastXML(json), this);
+        }).get();
 }
 
 void PlayListTableView::resizeColumn() const {

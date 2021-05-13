@@ -38,7 +38,9 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 			const auto file_name = QFileDialog::getOpenFileName(this,
 			                                                    tr("Open file"),
 			                                                    Qt::EmptyString,
-			                                                    tr("Music Files *.jpg *.jpeg *.png"));
+			                                                    tr("Music Files *.jpg *.jpeg *.png"),
+				nullptr,
+				QFileDialog::DontUseNativeDialog);
 			cover_id_ = Singleton<PixmapCache>::GetInstance().addOrUpdate(QPixmap(file_name));
 			Singleton<Database>::GetInstance().updateArtistCoverId(artist_id_, cover_id_);
 			setArtistId(artist_->text(), cover_id_, artist_id_);

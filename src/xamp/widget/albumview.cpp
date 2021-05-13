@@ -461,9 +461,11 @@ AlbumView::AlbumView(QWidget* parent)
             }
             exts += Q_UTF8(")");
             const auto file_name = QFileDialog::getOpenFileName(this,
-                                                                tr("Open file"),
-                                                                AppSettings::getMyMusicFolderPath(),
-                                                                tr("Music Files ") + exts);
+                tr("Open file"),
+                AppSettings::getMyMusicFolderPath(),
+                tr("Music Files ") + exts,
+                nullptr,
+                QFileDialog::DontUseNativeDialog);
             append(file_name);
             });
 

@@ -22,6 +22,10 @@ inline constexpr uint32_t kReadSampleSize = 8192 * 4;
 ReadLufsWorker::ReadLufsWorker() = default;
 
 void ReadLufsWorker::addEntity(PlayListEntity const& entity) {
+	if (!entity.samplerate) {
+		return;
+	}
+	
 	LoudnessScanner scanner(entity.samplerate);
 	const auto is_dsd_file = TestDsdFileFormatStd(entity.file_path.toStdWString());
 	auto file_stream = MakeStream(entity.file_ext.toStdWString());

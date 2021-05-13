@@ -97,6 +97,8 @@ private:
 
     void resizeEvent(QResizeEvent* event) override;
 
+	void importPodcast();
+
 	void initial();
 
 	int32_t playlist_id_;

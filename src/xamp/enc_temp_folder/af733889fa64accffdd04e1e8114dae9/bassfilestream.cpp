@@ -62,10 +62,11 @@ public:
                     file_.GetLength(),
                     flags | BASS_STREAM_DECODE));
             } else {
-                /*stream_.reset(BASS.BASS_StreamCreateURL(file_path.c_str(),
+                stream_.reset(BASS.BASS_StreamCreateFile(FALSE,
+                    file_path.c_str(),
                     0,
                     0,
-                    flags | BASS_STREAM_DECODE | BASS_UNICODE));*/
+                    flags | BASS_STREAM_DECODE | BASS_UNICODE));
             }            
 
             // BassLib DSD module default use 6dB gain.
