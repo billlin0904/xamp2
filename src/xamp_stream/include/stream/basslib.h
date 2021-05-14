@@ -121,6 +121,7 @@ private:
 
 public:
     XAMP_DECLARE_DLL(BASS_Init) BASS_Init;
+    XAMP_DECLARE_DLL(BASS_GetVersion) BASS_GetVersion;
     XAMP_DECLARE_DLL(BASS_SetConfig) BASS_SetConfig;
     DllFunction<BOOL(DWORD option, const wchar_t *)> BASS_SetConfigPtr;
     DllFunction<HPLUGIN(const char *, DWORD)> BASS_PluginLoad;

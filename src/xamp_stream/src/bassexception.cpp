@@ -14,6 +14,8 @@ static Errors TranslateBassError(int error) noexcept {
 }
 
 static std::string GetBassErrorMessage(int error) {
+#define BASS_ERROR_MP4_NOSTREAM 6000
+	
     switch (error) {
     case BASS_OK:
         return "All is OK";
@@ -85,6 +87,8 @@ static std::string GetBassErrorMessage(int error) {
         return "The channel/file has ended";
     case BASS_ERROR_BUSY:
         return "The device is busy";
+    case BASS_ERROR_MP4_NOSTREAM:
+        return "Non-streamable due to MP4 atom order ('mdat' before 'moov')";
     case BASS_ERROR_UNKNOWN:
     default:
         return "Some other mystery problem";

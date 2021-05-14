@@ -44,6 +44,29 @@ static std::wstring parseCDATA(xml_node<Ch> *node) {
     return String::ToString(cddata);
 }
 
+static std::vector<Metadata> parseJson(QString const& json) {
+    QJsonParseError error;
+    std::vector<Metadata> metadatas;
+	
+    const auto doc = QJsonDocument::fromJson(json.toUtf8(), &error);
+    if (error.error == QJsonParseError::NoError) {
+        auto result = doc.array();        
+        metadatas.reserve(result.size());
+        for (const auto& entry : result) {
+            auto object = entry.toVariant().toMap();
+            auto url = object.value(Q_UTF8("url")).toString();
+            auto title = object.value(Q_UTF8("title")).toString();
+            auto performer = object.value(Q_UTF8("performer")).toString();
+            Metadata metadata;
+            metadata.file_path = url.toStdWString();
+            metadata.title = title.toStdWString();
+            metadata.artist = performer.toStdWString();
+            metadatas.push_back(metadata);
+        }        
+    }
+    return metadatas;
+}
+
 static std::vector<Metadata> parsePodcastXML(QString const &src) {
     auto str = src.toStdString();
 
@@ -51,12 +74,12 @@ static std::vector<Metadata> parsePodcastXML(QString const &src) {
     xml_document<> doc;
     doc.parse<0>(const_cast<char*>(str.data()));    
 
-    auto rss = doc.first_node("rss");
+    auto* rss = doc.first_node("rss");
     if (!rss) {
         return metadatas;
     }
 
-    auto channel = rss->first_node("channel");
+    auto* channel = rss->first_node("channel");
     if (!channel) {
         return metadatas;
     }
@@ -179,7 +202,11 @@ void PlayListTableView::refresh() {
 	ORDER BY
 	playlistMusics.playlistMusicsId;
     )");
-    model_.setQuery(s.arg(playlist_id_));
+    QSqlQuery query(s.arg(playlist_id_));    
+    model_.setQuery(query);
+    while (model_.canFetchMore()) {
+        model_.fetchMore();
+    }
     proxy_model_.dataChanged(QModelIndex(), QModelIndex());
 }
 
@@ -289,13 +316,13 @@ void PlayListTableView::initial() {
 
     (void)QObject::connect(this, &QTableView::doubleClicked, [this](const QModelIndex& index) {
         const auto current_index = proxy_model_.mapToSource(index);
-        setNowPlaying(current_index);
-        refresh();
+        setNowPlaying(current_index);        
         auto play_item = getEntity(current_index);
     	if (play_item.lufs == 0.0) {
             readLUFS(play_item);
     	}        
         emit playMusic(current_index, play_item);
+        refresh();
     });
 
     setContextMenuPolicy(Qt::CustomContextMenu);
@@ -567,6 +594,7 @@ void PlayListTableView::importPodcast() {
     auto* url_edit = new QLineEdit(&dialog);
     //url_edit->setText(Q_UTF8("https://static.suisei.moe/music/meta.json"));
     url_edit->setText(Q_UTF8("https://suisei.moe/podcast.xml"));
+    //url_edit->setText(Q_UTF8("https://suisei-podcast.outv.im/test-moov.xml"));
     form.addRow(tr("URL:"), url_edit);
 
     QDialogButtonBox buttonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
@@ -580,25 +608,6 @@ void PlayListTableView::importPodcast() {
     }
 
     http::HttpClient(url_edit->text()).success([this](const QString& json) {
-        /*QJsonParseError error;
-        const auto doc = QJsonDocument::fromJson(json.toUtf8(), &error);
-        if (error.error == QJsonParseError::NoError) {
-            auto result = doc.array();
-            std::vector<Metadata> metadatas;
-            metadatas.reserve(result.size());
-            for (const auto& entry : result) {
-                auto object = entry.toVariant().toMap();
-                auto url = object.value(Q_UTF8("url")).toString();
-                auto title = object.value(Q_UTF8("title")).toString();
-                auto performer = object.value(Q_UTF8("performer")).toString();
-                Metadata metadata;
-                metadata.file_path = url.toStdWString();
-                metadata.title = title.toStdWString();
-                metadata.artist = performer.toStdWString();
-                metadatas.push_back(metadata);
-            }
-            MetadataExtractAdapter::processMetadata(metadatas, this);
-        }*/
         MetadataExtractAdapter::processMetadata(parsePodcastXML(json), this);
         }).get();
 }

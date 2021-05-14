@@ -49,7 +49,8 @@ public:
 
         file_.Close();
 
-        auto use_filemap = file_path.find(L"https") == std::string::npos;
+        const auto use_filemap = file_path.find(L"https") == std::string::npos
+    	|| file_path.find(L"http") == std::string::npos;
     	if (use_filemap) {            
             file_.Open(file_path);
     	}        
@@ -63,19 +64,13 @@ public:
                     flags | BASS_STREAM_DECODE));
             } else {
                 auto url = const_cast<wchar_t*>(file_path.c_str());
-                // auto url = const_cast<wchar_t*>(L"http://devweb.cqgame.games/206/assets/sound/BGM_MG.mp3");
                 stream_.reset(BASS.BASS_StreamCreateURL(
                     url,
                     0,   
-                    flags | BASS_STREAM_DECODE | BASS_UNICODE | BASS_STREAM_STATUS,
+                    flags | BASS_STREAM_DECODE | BASS_UNICODE | BASS_STREAM_STATUS | BASS_STREAM_BLOCK,
                     &BassFileStreamImpl::DownloadProc,
                     nullptr));
             }
-
-            // BassLib DSD module default use 6dB gain.
-            // 不設定的話會爆音!
-            BASS.BASS_ChannelSetAttribute(stream_.get(), BASS_ATTRIB_DSD_GAIN, 0.0);
-
             mode_ = DsdModes::DSD_MODE_PCM;
         } else {
             stream_.reset(BASS.DSDLib->BASS_DSD_StreamCreateFile(TRUE,
@@ -87,6 +82,9 @@ public:
             if (!PrefetchFile(file_)) {
                 XAMP_LOG_DEBUG("PrefetchFile return failure!");
             }
+        	// BassLib DSD module default use 6dB gain.
+            // 不設定的話會爆音!
+            BASS.BASS_ChannelSetAttribute(stream_.get(), BASS_ATTRIB_DSD_GAIN, 0.0);
         }
 
         if (!stream_) {
