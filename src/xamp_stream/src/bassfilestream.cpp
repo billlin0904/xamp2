@@ -67,7 +67,7 @@ public:
                 stream_.reset(BASS.BASS_StreamCreateURL(
                     url,
                     0,   
-                    flags | BASS_STREAM_DECODE | BASS_UNICODE | BASS_STREAM_STATUS | BASS_STREAM_BLOCK,
+                    flags | BASS_STREAM_DECODE | BASS_UNICODE | BASS_STREAM_STATUS /*| BASS_STREAM_BLOCK*/,
                     &BassFileStreamImpl::DownloadProc,
                     nullptr));
             }

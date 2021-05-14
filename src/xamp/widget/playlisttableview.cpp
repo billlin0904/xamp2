@@ -104,6 +104,10 @@ static std::vector<Metadata> parsePodcastXML(QString const &src) {
                 std::string path(url->value(), url->value_size());
                 metadata.file_path = String::ToString(path);
             }
+            else if (name == "pubDate") {
+				auto datetime = QDateTime::fromString(QString::fromStdString(value), Qt::RFC2822Date);
+                metadata.timestamp = datetime.toTime_t();
+            }
         }
 
         metadatas.push_back(metadata);

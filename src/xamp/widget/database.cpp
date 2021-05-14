@@ -1,7 +1,7 @@
 #include <QSqlTableModel>
 #include <QSqlRecord>
 #include <QDebug>
-
+#include <QDate>
 #include <widget/time_utilts.h>
 #include <widget/database.h>
 
@@ -538,8 +538,8 @@ int32_t Database::addOrUpdateMusic(const Metadata& metadata, int32_t playlist_id
 	Q_UTF8(
 	R"(
     INSERT OR REPLACE INTO musics
-    (musicId, title, track, path, fileExt, fileName, duration, durationStr, parentPath, bitrate, samplerate, offset)
-    VALUES ((SELECT musicId FROM musics WHERE path = :path and offset = :offset), :title, :track, :path, :fileExt, :fileName, :duration, :durationStr, :parentPath, :bitrate, :samplerate, :offset)
+    (musicId, title, track, path, fileExt, fileName, duration, durationStr, parentPath, bitrate, samplerate, offset, dateTime)
+    VALUES ((SELECT musicId FROM musics WHERE path = :path and offset = :offset), :title, :track, :path, :fileExt, :fileName, :duration, :durationStr, :parentPath, :bitrate, :samplerate, :offset, :dateTime)
     )")
 	);
 
@@ -554,6 +554,12 @@ int32_t Database::addOrUpdateMusic(const Metadata& metadata, int32_t playlist_id
 	query.bindValue(Q_UTF8(":bitrate"), metadata.bitrate);
 	query.bindValue(Q_UTF8(":samplerate"), metadata.samplerate);
 	query.bindValue(Q_UTF8(":offset"), metadata.offset);
+	if (metadata.timestamp == 0) {
+		QDateTime asd(QDateTime::currentDateTime());
+		query.bindValue(Q_UTF8(":dateTime"), asd.toTime_t());
+	} else {
+		query.bindValue(Q_UTF8(":dateTime"), metadata.timestamp);
+	}
 
 	db_.transaction();
 
