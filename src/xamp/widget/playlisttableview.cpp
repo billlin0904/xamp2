@@ -254,6 +254,7 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
 
     hideColumn(PLAYLIST_BITRATE);
     hideColumn(PLAYLIST_ALBUM);
+    hideColumn(PLAYLIST_TIMESTAMP);
     //hideColumn(PLAYLIST_LRUS);
     //hideColumn(PLAYLIST_TRUE_PEAK);
     hideColumn(PLAYLIST_RATING);

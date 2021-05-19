@@ -27,6 +27,7 @@ QVariant PlayListSqlQueryTableModel::data(const QModelIndex& index, int32_t role
         if (index.column() == PLAYLIST_TRACK 
             || index.column() == PLAYLIST_DURATION 
             || index.column() == PLAYLIST_BITRATE
+            || index.column() == PLAYLIST_TIMESTAMP
             || index.column() == PLAYLIST_TRUE_PEAK
             || index.column() == PLAYLIST_LRUS) {
             return QFont(Q_UTF8("FormatFont"));
