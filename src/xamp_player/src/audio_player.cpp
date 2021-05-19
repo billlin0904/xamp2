@@ -26,8 +26,8 @@
 
 namespace xamp::player {
 
-inline constexpr int32_t kBufferStreamCount = 10;
-inline constexpr int32_t kTotalBufferStreamCount = 20;
+inline constexpr int32_t kBufferStreamCount = 5;
+inline constexpr int32_t kTotalBufferStreamCount = 10;
 
 inline constexpr uint32_t kPreallocateBufferSize = 4 * 1024 * 1024;
 inline constexpr uint32_t kMaxPreallocateBufferSize = 16 * 1024 * 1024;
@@ -720,6 +720,8 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_buffer_samp
                     continue;
                 }
             }
+        } else {
+            wait_timer_.Wait();
         }
         break;
     }

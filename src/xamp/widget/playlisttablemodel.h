@@ -5,11 +5,6 @@
 
 #pragma once
 
-#include <vector>
-#include <widget/playlistentity.h>
-
-#include <QStandardItemModel>
-
 enum PlayListColumn {
 	PLAYLIST_MUSIC_ID = 0,
 	PLAYLIST_PLAYING,
@@ -30,7 +25,7 @@ enum PlayListColumn {
 	PLAYLIST_FILE_EXT,
 	PLAYLIST_FILE_PARENT_PATH,
     PLAYLIST_TIMESTAMP,
-    PLAYLIST_LRUS,
+    PLAYLIST_LUFS,
     PLAYLIST_TRUE_PEAK,    
 	_PLAYLIST_MAX_COLUMN_,
 };

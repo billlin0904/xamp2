@@ -20,7 +20,20 @@ namespace Qt {
 #define Q_UTF8(str) ConstLatin1String{str}
 #define Q_STR(str) QString(QLatin1String(str))
 
-inline QLatin1String fromStdStringView(std::string_view const &s) {
+static QLatin1String fromStdStringView(std::string_view const &s) {
     return QLatin1String{ s.data(), static_cast<int>(s.length()) };
 }
 
+static QString samplerate2String(uint32_t samplerate) {
+    auto precision = 1;
+    auto is_mhz_samplerate = false;
+    if (samplerate / 1000 > 1000) {
+        is_mhz_samplerate = true;
+    }
+    else {
+        precision = samplerate % 1000 == 0 ? 0 : 1;
+    }
+
+    return (is_mhz_samplerate ? QString::number(samplerate / 1000000.0, 'f', 2) + Q_UTF8("MHz")
+        : QString::number(samplerate / 1000.0, 'f', precision) + Q_UTF8("kHz"));
+}

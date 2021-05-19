@@ -10,6 +10,7 @@
 #include <widget/widget_shared.h>
 #include <widget/str_utilts.h>
 
+#include <QProgressDialog>
 #include <QCheckBox>
 
 struct PlaybackFormat {
@@ -26,17 +27,7 @@ static QString dsdSampleRate2String(uint32_t dsd_speed) {
 }
 
 static QString samplerate2String(const AudioFormat& format) {
-    auto precision = 1;
-    auto is_mhz_samplerate = false;
-    if (format.GetSampleRate() / 1000 > 1000) {
-        is_mhz_samplerate = true;
-    }
-    else {
-        precision = format.GetSampleRate() % 1000 == 0 ? 0 : 1;
-    }
-
-    return (is_mhz_samplerate ? QString::number(format.GetSampleRate() / double(1000000), 'f', 2) + Q_UTF8("MHz/")
-        : QString::number(format.GetSampleRate() / double(1000), 'f', precision) + Q_UTF8("kHz"));
+    return samplerate2String(format.GetSampleRate());
 }
 
 static QString format2String(const PlaybackFormat &playback_format, const QString& file_ext) {

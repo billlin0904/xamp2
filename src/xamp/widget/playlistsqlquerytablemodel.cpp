@@ -27,9 +27,10 @@ QVariant PlayListSqlQueryTableModel::data(const QModelIndex& index, int32_t role
         if (index.column() == PLAYLIST_TRACK 
             || index.column() == PLAYLIST_DURATION 
             || index.column() == PLAYLIST_BITRATE
+            || index.column() == PLAYLIST_SAMPLE_RATE
             || index.column() == PLAYLIST_TIMESTAMP
             || index.column() == PLAYLIST_TRUE_PEAK
-            || index.column() == PLAYLIST_LRUS) {
+            || index.column() == PLAYLIST_LUFS) {
             return QFont(Q_UTF8("FormatFont"));
         }
         break;
@@ -48,6 +49,8 @@ QVariant PlayListSqlQueryTableModel::data(const QModelIndex& index, int32_t role
                     return QString(Q_UTF8("%0 Mbps")).arg(value.toInt() / 1000.0);
                 }
                 return QString(Q_UTF8("%0 Kbps")).arg(value.toInt());
+            case PLAYLIST_SAMPLE_RATE:
+                return samplerate2String(value.toInt());
             case PLAYLIST_DURATION:
                 return Time::msToString(value.toDouble());
             case PLAYLIST_TIMESTAMP:
@@ -68,7 +71,7 @@ QVariant PlayListSqlQueryTableModel::data(const QModelIndex& index, int32_t role
         break;
     case Qt::TextAlignmentRole:
         switch (index.column()) {
-        case PLAYLIST_LRUS:        
+        case PLAYLIST_LUFS:        
         case PLAYLIST_ARTIST:
             return QVariant(Qt::AlignVCenter | Qt::AlignRight);
         case PLAYLIST_TRUE_PEAK:

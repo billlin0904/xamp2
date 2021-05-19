@@ -152,7 +152,7 @@ static PlayListEntity getEntity(const QModelIndex& index) {
     entity.fingerprint = getIndexValue(index, PLAYLIST_FINGER_PRINT).toString();
     entity.file_ext = getIndexValue(index, PLAYLIST_FILE_EXT).toString();
     entity.parent_path = getIndexValue(index, PLAYLIST_FILE_PARENT_PATH).toString();
-    entity.lufs = getIndexValue(index, PLAYLIST_LRUS).toDouble();
+    entity.lufs = getIndexValue(index, PLAYLIST_LUFS).toDouble();
     entity.true_peak = getIndexValue(index, PLAYLIST_TRUE_PEAK).toDouble();
     entity.timestamp = getIndexValue(index, PLAYLIST_TIMESTAMP).toULongLong();
     return entity;
@@ -235,7 +235,7 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
     model_.setHeaderData(PLAYLIST_BITRATE, Qt::Horizontal, tr("Bit rate"));
     model_.setHeaderData(PLAYLIST_SAMPLE_RATE, Qt::Horizontal, tr("SampleRate"));
     model_.setHeaderData(PLAYLIST_RATING, Qt::Horizontal, tr("Rating"));
-    model_.setHeaderData(PLAYLIST_LRUS, Qt::Horizontal, tr("LRUS"));
+    model_.setHeaderData(PLAYLIST_LUFS, Qt::Horizontal, tr("LRUS"));
     model_.setHeaderData(PLAYLIST_TRUE_PEAK, Qt::Horizontal, tr("TP"));
     model_.setHeaderData(PLAYLIST_TIMESTAMP, Qt::Horizontal, tr("Date"));
 
@@ -255,7 +255,7 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
     hideColumn(PLAYLIST_BITRATE);
     hideColumn(PLAYLIST_ALBUM);
     hideColumn(PLAYLIST_TIMESTAMP);
-    //hideColumn(PLAYLIST_LRUS);
+    //hideColumn(PLAYLIST_LUFS);
     //hideColumn(PLAYLIST_TRUE_PEAK);
     hideColumn(PLAYLIST_RATING);
     hideColumn(PLAYLIST_DURATION);
@@ -333,6 +333,37 @@ void PlayListTableView::initial() {
         emit playMusic(current_index, play_item);
         refresh();
     });
+
+    horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
+    (void)QObject::connect(horizontalHeader(), &QHeaderView::customContextMenuRequested, [this](auto pt) {
+        auto* menu = new QMenu(this);
+        auto* header_view = horizontalHeader();
+
+        auto last_referred_logical_column = header_view->logicalIndexAt(pt);
+
+        auto* hide_column_action = new QAction(tr("Hide this column"), this);
+        (void) QObject::connect(hide_column_action, &QAction::triggered, [last_referred_logical_column, this]() {
+			setColumnHidden(last_referred_logical_column, true);
+        });
+
+        auto* show_hide_columns_action = new QAction(tr("Select columns to show..."), this);
+        (void) QObject::connect(show_hide_columns_action, &QAction::triggered, [pt, header_view, this]() {
+            ActionMap<PlayListTableView, std::function<void()>> action_map(this);
+            for (auto column = 0; column < header_view->count(); ++column) {
+                auto header_name = model()->headerData(column, Qt::Horizontal).toString();
+                auto action = action_map.addAction(header_name, [this, column]() {
+                    setColumnHidden(column, false);
+                }, false, true);
+            }
+            action_map.exec(pt);
+        });
+    	
+        if (header_view->hiddenSectionCount() < header_view->count() - 1) {
+            menu->addAction(hide_column_action);
+        }
+        menu->addAction(show_hide_columns_action);
+        menu->popup(header_view->viewport()->mapToGlobal(pt));
+        });
 
     setContextMenuPolicy(Qt::CustomContextMenu);
     (void)QObject::connect(this, &QTableView::customContextMenuRequested, [this](auto pt) {
@@ -628,7 +659,7 @@ void PlayListTableView::resizeColumn() const {
             header->setSectionResizeMode(column, QHeaderView::Fixed);
             header->resizeSection(column, 40);
             break;
-        case PLAYLIST_LRUS:
+        case PLAYLIST_LUFS:
             header->setSectionResizeMode(column, QHeaderView::Fixed);
             header->resizeSection(column, 50);
             break;
