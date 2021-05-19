@@ -93,8 +93,6 @@ private:
 
     void keyPressEvent(QKeyEvent *pEvent) override;
 
-	void reloadSelectMetadata();
-
     void resizeEvent(QResizeEvent* event) override;
 
 	void importPodcast();

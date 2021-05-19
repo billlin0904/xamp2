@@ -2,6 +2,7 @@
 #include <QSqlRecord>
 #include <QDebug>
 #include <QDate>
+#include <base/time.h>
 #include <widget/time_utilts.h>
 #include <widget/database.h>
 
@@ -554,9 +555,8 @@ int32_t Database::addOrUpdateMusic(const Metadata& metadata, int32_t playlist_id
 	query.bindValue(Q_UTF8(":bitrate"), metadata.bitrate);
 	query.bindValue(Q_UTF8(":samplerate"), metadata.samplerate);
 	query.bindValue(Q_UTF8(":offset"), metadata.offset);
-	if (metadata.timestamp == 0) {
-		QDateTime asd(QDateTime::currentDateTime());
-		query.bindValue(Q_UTF8(":dateTime"), asd.toTime_t());
+    if (metadata.timestamp == 0) {
+        query.bindValue(Q_UTF8(":dateTime"), QDateTime::currentSecsSinceEpoch());
 	} else {
 		query.bindValue(Q_UTF8(":dateTime"), metadata.timestamp);
 	}

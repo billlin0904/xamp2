@@ -154,6 +154,7 @@ static PlayListEntity getEntity(const QModelIndex& index) {
     entity.parent_path = getIndexValue(index, PLAYLIST_FILE_PARENT_PATH).toString();
     entity.lufs = getIndexValue(index, PLAYLIST_LRUS).toDouble();
     entity.true_peak = getIndexValue(index, PLAYLIST_TRUE_PEAK).toDouble();
+    entity.timestamp = getIndexValue(index, PLAYLIST_TIMESTAMP).toULongLong();
     return entity;
 }
 
@@ -192,8 +193,9 @@ void PlayListTableView::refresh() {
     musics.fingerprint,
 	musics.fileExt,
     musics.parentPath,
+    musics.dateTime,
     musics.lufs,
-	musics.true_peak
+    musics.true_peak
     FROM
     playlistMusics
     JOIN playlist ON playlist.playlistId = playlistMusics.playlistId
@@ -235,6 +237,7 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
     model_.setHeaderData(PLAYLIST_RATING, Qt::Horizontal, tr("Rating"));
     model_.setHeaderData(PLAYLIST_LRUS, Qt::Horizontal, tr("LRUS"));
     model_.setHeaderData(PLAYLIST_TRUE_PEAK, Qt::Horizontal, tr("TP"));
+    model_.setHeaderData(PLAYLIST_TIMESTAMP, Qt::Horizontal, tr("Date"));
 
     hideColumn(PLAYLIST_MUSIC_ID);
     hideColumn(PLAYLIST_FILEPATH);
@@ -260,6 +263,7 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
 void PlayListTableView::initial() {
     proxy_model_.setSourceModel(&model_);
     proxy_model_.setFilterByColumn(PLAYLIST_RATING);
+    proxy_model_.setFilterByColumn(PLAYLIST_TITLE);
     proxy_model_.setDynamicSortFilter(true);
     setModel(&proxy_model_);
 
@@ -370,7 +374,6 @@ void PlayListTableView::initial() {
 
         auto * remove_all_act = action_map.addAction(tr("Remove all"));
         auto * open_local_file_path_act = action_map.addAction(tr("Open local file path"));
-        auto * reload_file_meta_act = action_map.addAction(tr("Reload file meta"));
         auto * reload_file_fingerprint_act = action_map.addAction(tr("Read file fingerprint"));
         auto * read_file_lufs_act = action_map.addAction(tr("Read file LUFS"));
         auto * export_wave_file_act = action_map.addAction(tr("Export wave file"));
@@ -400,10 +403,6 @@ void PlayListTableView::initial() {
 
         action_map.setCallback(open_local_file_path_act, [item]() {
             QDesktopServices::openUrl(QUrl::fromLocalFile(item.parent_path));
-            });
-
-        action_map.setCallback(reload_file_meta_act, [this]() {
-            reloadSelectMetadata();
             });
 
         action_map.setCallback(reload_file_fingerprint_act, [this]() {
@@ -509,11 +508,11 @@ void PlayListTableView::initial() {
     installEventFilter(this);
 
     read_worker_.moveToThread(&thread_);
-    QObject::connect(this,
+    (void) QObject::connect(this,
         &PlayListTableView::readLUFS,
         &read_worker_,
         &ReadLufsWorker::addEntity);
-    QObject::connect(&read_worker_, 
+    (void) QObject::connect(&read_worker_,
         &ReadLufsWorker::readCompleted,
         this,
         &PlayListTableView::onReadCompleted);
@@ -596,9 +595,7 @@ void PlayListTableView::importPodcast() {
 
     QFormLayout form(&dialog);
     auto* url_edit = new QLineEdit(&dialog);
-    //url_edit->setText(Q_UTF8("https://static.suisei.moe/music/meta.json"));
     url_edit->setText(Q_UTF8("https://suisei.moe/podcast.xml"));
-    //url_edit->setText(Q_UTF8("https://suisei-podcast.outv.im/test-moov.xml"));
     form.addRow(tr("URL:"), url_edit);
 
     QDialogButtonBox buttonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
@@ -632,7 +629,7 @@ void PlayListTableView::resizeColumn() const {
             break;
         case PLAYLIST_LRUS:
             header->setSectionResizeMode(column, QHeaderView::Fixed);
-            header->resizeSection(column, 30);
+            header->resizeSection(column, 50);
             break;
         case PLAYLIST_TRUE_PEAK:
             header->setSectionResizeMode(column, QHeaderView::Stretch);
@@ -748,32 +745,6 @@ void PlayListTableView::removePlaying() {
 
 void PlayListTableView::removeItem(const QModelIndex& index) {
     proxy_model_.removeRows(index.row(), 1, index);
-}
-
-void PlayListTableView::reloadSelectMetadata() {
-    xamp::metadata::TaglibMetadataReader reader;
-    const auto rows = selectItemIndex();
-
-    for (const auto &select_item : rows) {
-        auto entity = item(select_item.second);
-        const auto album_id = entity.album_id;
-        const auto music_id = entity.music_id;
-        const auto cover_id = entity.cover_id;
-        const auto artist_id = entity.artist_id;
-
-        const Path path(entity.file_path.toStdWString());
-        auto metadata = reader.Extract(path);
-
-        entity = fromMetadata(metadata);
-        entity.album_id = album_id;
-        entity.music_id = music_id;
-        entity.cover_id = cover_id;
-        entity.artist_id = artist_id;
-
-        Singleton<Database>::GetInstance().addOrUpdateMusic(metadata, -1);
-    }
-
-    refresh();
 }
 
 void PlayListTableView::removeSelectItems() {

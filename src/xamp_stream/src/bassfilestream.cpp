@@ -1,4 +1,5 @@
- #include <stream/basslib.h>
+#include <stream/basslib.h>
+#include <base/str_utilts.h>
 #include <base/singleton.h>
 #include <stream/bassexception.h>
 #include <stream/bassfilestream.h>
@@ -63,6 +64,15 @@ public:
                     file_.GetLength(),
                     flags | BASS_STREAM_DECODE));
             } else {
+#ifdef XAMP_OS_MAC
+                auto utf8 = String::ToString(file_path);
+                stream_.reset(BASS.BASS_StreamCreateURL(
+                    utf8.c_str(),
+                    0,
+                    flags | BASS_STREAM_DECODE | BASS_STREAM_STATUS,
+                    &BassFileStreamImpl::DownloadProc,
+                    nullptr));
+#else
                 auto url = const_cast<wchar_t*>(file_path.c_str());
                 stream_.reset(BASS.BASS_StreamCreateURL(
                     url,
@@ -70,6 +80,7 @@ public:
                     flags | BASS_STREAM_DECODE | BASS_UNICODE | BASS_STREAM_STATUS /*| BASS_STREAM_BLOCK*/,
                     &BassFileStreamImpl::DownloadProc,
                     nullptr));
+#endif
             }
             mode_ = DsdModes::DSD_MODE_PCM;
         } else {

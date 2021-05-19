@@ -6,6 +6,7 @@
 #include <base/str_utilts.h>
 #include <base/threadpool.h>
 #include <base/threadpool.h>
+#include <base/time.h>
 #include <metadata/taglibmetareader.h>
 
 #include <player/audio_util.h>

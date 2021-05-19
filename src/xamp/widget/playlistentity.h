@@ -24,7 +24,8 @@ struct PlayListEntity final {
     uint32_t rating{0};
     double duration{0};
     double lufs{0};
-    double true_peak{ 0 };
+    double true_peak{0};
+    uint64_t timestamp{0};
     QString file_path;
     QString parent_path;
     QString title;

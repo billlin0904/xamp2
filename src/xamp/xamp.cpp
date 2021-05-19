@@ -265,7 +265,7 @@ void Xamp::initialUI() {
     f.setPointSize(10);
     ui_.artistLabel->setFont(f);
 #endif
-    ui_.sliderFrame->hide();	
+    //ui_.sliderFrame->hide();
 }
 
 QWidgetAction* Xamp::createTextSeparator(const QString& text) {

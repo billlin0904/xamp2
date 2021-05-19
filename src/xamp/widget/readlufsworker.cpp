@@ -30,9 +30,13 @@ void ReadLufsWorker::addEntity(PlayListEntity const& entity) {
 		if (is_dsd_file) {
 			stream->SetDSDMode(DsdModes::DSD_MODE_DSD2PCM);
 		}
-	}
-	
-	file_stream->OpenFile(entity.file_path.toStdWString());
+    }
+
+    try {
+        file_stream->OpenFile(entity.file_path.toStdWString());
+    } catch (...) {
+        return;
+    }
 
 	const auto source_format = file_stream->GetFormat();
 	const auto input_format = AudioFormat::MakeFloatFormat(source_format);

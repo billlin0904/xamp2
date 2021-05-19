@@ -109,6 +109,11 @@ AlignPtr<FileStream> MakeStream(std::wstring const& file_ext, AlignPtr<FileStrea
         }
     }
 
+#ifdef XAMP_OS_MAC
+    if (file_ext == L".m4a") {
+        return MakeAlign<FileStream, BassFileStream>();
+    }
+#endif
     if (is_use_av_stream) {
         return MakeAlign<FileStream, AvFileStream>();
     }

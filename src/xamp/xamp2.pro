@@ -49,7 +49,7 @@ SOURCES += \
     widget/framelesswindow.cpp \
     widget/lrcpage.cpp \
     widget/lrcparser.cpp \
-    widget/lyricsshowwideget.cpp \
+    widget/LyricsShowWidget.cpp \
     widget/metadataextractadapter.cpp \
     widget/pixmapcache.cpp \
     widget/playlistpage.cpp \
@@ -74,6 +74,7 @@ SOURCES += \
     widget/spectrograph.cpp \
     widget/read_helper.cpp \
     widget/win32/directorywatcher.cpp \
+    widget/readlufsworker.cpp \
     DarkStyle.cpp \
     singleinstanceapplication.cpp \
     thememanager.cpp \
@@ -104,7 +105,7 @@ HEADERS += \
     widget/image_utiltis.h \
     widget/lrcpage.h \
     widget/lrcparser.h \
-    widget/lyricsshowwideget.h \
+    widget/LyricsShowWidget.h \
     widget/metadataextractadapter.h \
     widget/pixmapcache.h \
     widget/playlistpage.h \
@@ -132,6 +133,7 @@ HEADERS += \
     widget/xampdialog.h \
     widget/read_helper.h \
     widget/directorywatcher.h \
+    widget/readlufsworker.h \
     DarkStyle.h \
     thememanager.h \
     aboutdialog.h \

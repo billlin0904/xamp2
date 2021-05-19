@@ -49,6 +49,8 @@ QVariant PlayListSqlQueryTableModel::data(const QModelIndex& index, int32_t role
                 return QString(Q_UTF8("%0 Kbps")).arg(value.toInt());
             case PLAYLIST_DURATION:
                 return Time::msToString(value.toDouble());
+            case PLAYLIST_TIMESTAMP:
+                return QDateTime::fromSecsSinceEpoch(value.toULongLong());
             }
         }
         break;

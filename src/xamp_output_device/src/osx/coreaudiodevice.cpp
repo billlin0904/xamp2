@@ -389,7 +389,7 @@ OSStatus CoreAudioDevice::OnAudioDeviceIOProc(AudioDeviceID,
 
     double sample_time = 0.0;
     if ((outputTimeStamp->mFlags & kAudioTimeStampHostTimeValid) == 0) {
-        sample_time = GetUnixTime();
+        sample_time = static_cast<double>(GetUnixTime());
     } else {
         sample_time =
             outputTimeStamp->mSampleTime
