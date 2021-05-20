@@ -116,8 +116,9 @@ void Xamp::initial() {
     initialDeviceList();
     initialPlaylist();
     initialShortcut();
-    setCover(nullptr);
     createTrayIcon();
+    setCover(nullptr, playlist_page_);
+    setCover(nullptr, podcast_page_);
     setDefaultStyle();        
 }
 
@@ -1118,7 +1119,6 @@ void Xamp::initialPlaylist() {
 
     playlist_page_->playlist()->setPodcastMode(false);
     podcast_page_->playlist()->setPodcastMode(true);
-    setCover(nullptr, podcast_page_);
     current_playlist_page_ = playlist_page_;
 
     lrc_page_ = new LrcPage(this);
