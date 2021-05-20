@@ -58,8 +58,6 @@ public:
 
 	void append(const QString& file_name);
 
-	static PlayListEntity fromMetadata(const Metadata& metadata);
-
     void refresh();
 
     PlayListEntity nomapItem(const QModelIndex& index);

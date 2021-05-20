@@ -84,12 +84,16 @@ public:
 		map_[action] = callback;
 		menu_.addAction(action);
 
-		if (add_eparator)
-			menu_.addSeparator();
+        if (add_eparator) {
+            menu_.addSeparator();
+        }
 
-		action->setCheckable(false);
-		if (checked)
-			action->setChecked(checked);
+        if (checked) {
+            action->setCheckable(true);
+            action->setChecked(checked);
+        } else {
+            action->setCheckable(false);
+        }
 
 		return action;
 	}

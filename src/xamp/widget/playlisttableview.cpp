@@ -116,22 +116,6 @@ static std::vector<Metadata> parsePodcastXML(QString const &src) {
     return metadatas;
 }
 
-PlayListEntity PlayListTableView::fromMetadata(const Metadata& metadata) {
-    PlayListEntity item;
-    item.track = metadata.track;
-    item.duration = metadata.duration;
-    item.samplerate = metadata.samplerate;
-    item.title = QString::fromStdWString(metadata.title);
-    item.file_ext = QString::fromStdWString(metadata.file_ext);
-    item.album = QString::fromStdWString(metadata.album);
-    item.artist = QString::fromStdWString(metadata.artist);
-    item.parent_path = QString::fromStdWString(metadata.parent_path);
-    item.file_path = QString::fromStdWString(metadata.file_path);
-    item.bitrate = metadata.bitrate;
-    item.file_name = QString::fromStdWString(metadata.file_name);
-    return item;
-}
-
 static PlayListEntity getEntity(const QModelIndex& index) {
     PlayListEntity entity;
     entity.music_id = getIndexValue(index, PLAYLIST_MUSIC_ID).toInt();
@@ -351,9 +335,9 @@ void PlayListTableView::initial() {
             ActionMap<PlayListTableView, std::function<void()>> action_map(this);
             for (auto column = 0; column < header_view->count(); ++column) {
                 auto header_name = model()->headerData(column, Qt::Horizontal).toString();
-                auto action = action_map.addAction(header_name, [this, column]() {
+                action_map.addAction(header_name, [this, column]() {
                     setColumnHidden(column, false);
-                }, false, true);
+                    }, false, !isColumnHidden(column));
             }
             action_map.exec(pt);
         });
@@ -371,10 +355,14 @@ void PlayListTableView::initial() {
 
         ActionMap<PlayListTableView, std::function<void()>> action_map(this);
 
+        (void)action_map.addAction(tr("Jump to current playing"), [index, this]() {
+            scrollToIndex(proxy_model_.mapToSource(play_index_));
+        });
+
         (void)action_map.addAction(tr("Load local file"), [this]() {
             xamp::metadata::TaglibMetadataReader reader;
             QString exts(Q_UTF8("("));
-            for (const auto file_ext : reader.GetSupportFileExtensions()) {
+            for (const auto &file_ext : reader.GetSupportFileExtensions()) {
                 exts += Q_UTF8("*") + QString::fromStdString(file_ext);
                 exts += Q_UTF8(" ");
             }

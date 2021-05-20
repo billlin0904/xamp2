@@ -53,7 +53,6 @@ SOURCES += \
     widget/metadataextractadapter.cpp \
     widget/pixmapcache.cpp \
     widget/playlistpage.cpp \
-    widget/playlisttablemodel.cpp \
     widget/playlisttableproxymodel.cpp \
     widget/playlisttableview.cpp \
     widget/tablistview.cpp \
