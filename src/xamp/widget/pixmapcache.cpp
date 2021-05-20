@@ -109,6 +109,24 @@ const QPixmap* PixmapCache::find(const QString& tag_id) const {
 	}
 }
 
+QString PixmapCache::addOrUpdate(const QByteArray& data) const {
+	QByteArray array;
+	QBuffer buffer(&array);
+	QPixmap cover;
+	cover.loadFromData(data);
+
+	const auto cover_size = ThemeManager::instance().getCacheCoverSize();
+	const auto cache_cover = Pixmap::resizeImage(cover, cover_size, true);
+
+	QString tag_name;
+	if (cache_cover.save(&buffer, "JPG")) {
+		tag_name = FileTag::getTagId(array);
+		(void)cache_cover.save(cache_path_ + tag_name + Q_UTF8(".cache"), "JPG", 100);
+	}
+	cache_.AddOrUpdate(tag_name, cache_cover);
+	return tag_name;
+}
+
 QString PixmapCache::addOrUpdate(const QPixmap& cover) const {
 	QByteArray array;
 	QBuffer buffer(&array);

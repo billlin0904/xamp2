@@ -195,7 +195,6 @@
     <ClCompile Include="widget\playbackhistorypage.cpp" />
     <ClCompile Include="widget\playlistpage.cpp" />
     <ClCompile Include="widget\playlistsqlquerytablemodel.cpp" />
-    <ClCompile Include="widget\playlisttablemodel.cpp" />
     <ClCompile Include="widget\playlisttableproxymodel.cpp" />
     <ClCompile Include="widget\playlisttablequerymodel.cpp" />
     <ClCompile Include="widget\playlisttableview.cpp" />
@@ -321,8 +320,7 @@
     <QtMoc Include="widget\metadataextractadapter.h">
     </QtMoc>
     <ClInclude Include="widget\playlistentity.h" />
-    <QtMoc Include="widget\playlisttablemodel.h">
-    </QtMoc>
+    <ClInclude Include="widget\playlisttablemodel.h" />
     <QtMoc Include="widget\playlisttableview.h">
     </QtMoc>
     <QtMoc Include="widget\toast.h">

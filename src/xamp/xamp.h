@@ -64,7 +64,7 @@ private:
 
 	void setDefaultStyle();
 
-	void setCover(const QPixmap* cover);
+	void setCover(const QPixmap* cover, PlyalistPage *page = nullptr);
 
 	void closeEvent(QCloseEvent* event) override;
 
@@ -150,6 +150,8 @@ private:
 
 	void extractFile(const QString &file_path);
 
+	PlyalistPage* currentPlyalistPage();
+
 	bool is_seeking_;
 	PlayerOrder order_;
 	QModelIndex play_index_;
@@ -157,6 +159,8 @@ private:
     PlayListEntity current_entity_;
 	LrcPage* lrc_page_;
 	PlyalistPage* playlist_page_;
+	PlyalistPage* podcast_page_;
+	PlyalistPage* current_playlist_page_;
 	AlbumArtistPage* album_artist_page_;
 	ArtistInfoPage* artist_info_page_;
 	QStack<int32_t> stack_page_id_;	    	

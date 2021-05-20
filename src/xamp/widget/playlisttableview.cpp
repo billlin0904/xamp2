@@ -67,7 +67,7 @@ static std::vector<Metadata> parseJson(QString const& json) {
     return metadatas;
 }
 
-static std::vector<Metadata> parsePodcastXML(QString const &src) {
+static std::pair<std::string, std::vector<Metadata>> parsePodcastXML(QString const &src) {
     auto str = src.toStdString();
 
     std::vector<Metadata> metadatas;
@@ -76,17 +76,27 @@ static std::vector<Metadata> parsePodcastXML(QString const &src) {
 
     auto* rss = doc.first_node("rss");
     if (!rss) {
-        return metadatas;
+        return std::make_pair("", metadatas);
     }
 
     auto* channel = rss->first_node("channel");
     if (!channel) {
-        return metadatas;
+        return std::make_pair("", metadatas);
     }
 
-	for (auto item = channel->first_node("item") ; item; item = item->next_sibling("item")) {
+    std::string image_url;
+    auto* image = channel->first_node("image");
+	if (image != nullptr) {
+        auto* url = image->first_node("url");
+		if (url != nullptr) {
+            std::string url_value(url->value(), url->value_size());
+            image_url = url_value;
+		}
+	}
+
+	for (auto* item = channel->first_node("item") ; item; item = item->next_sibling("item")) {
         Metadata metadata;
-        for (auto node = item->first_node(); node; node = node->next_sibling()) {
+        for (auto* node = item->first_node(); node; node = node->next_sibling()) {
             std::string name(node->name(), node->name_size());
             std::string value(node->value(), node->value_size());
             if (name == "title") {
@@ -97,7 +107,7 @@ static std::vector<Metadata> parsePodcastXML(QString const &src) {
                 metadata.album = parseCDATA(node);
             }
             else if (name == "enclosure") {
-                auto url = node->first_attribute("url");
+                auto* url = node->first_attribute("url");
                 if (!url) {
                     continue;
                 }
@@ -113,7 +123,7 @@ static std::vector<Metadata> parsePodcastXML(QString const &src) {
         metadatas.push_back(metadata);
 	}
 
-    return metadatas;
+    return std::make_pair(image_url, metadatas);
 }
 
 static PlayListEntity getEntity(const QModelIndex& index) {
@@ -402,13 +412,15 @@ void PlayListTableView::initial() {
         auto * copy_title_act = action_map.addAction(tr("Copy title"));
         auto * set_cover_art_act = action_map.addAction(tr("Set cover art"));
         auto * export_cover_act = action_map.addAction(tr("Export music cover"));
-        auto* import_podcast_act = action_map.addAction(tr("Import podcast"));
 
-        if (model_.rowCount() == 0 || !index.isValid()) {
+        if (podcast_mode_) {
+            auto* import_podcast_act = action_map.addAction(tr("Import podcast"));
             action_map.setCallback(import_podcast_act, [this]() {
                 importPodcast();
                 });
-        	
+        }
+    	
+        if (model_.rowCount() == 0 || !index.isValid()) {
             action_map.exec(pt);
             return;
         }
@@ -526,13 +538,18 @@ void PlayListTableView::initial() {
     });
 
     installEventFilter(this);
+}
 
+void PlayListTableView::setPodcastMode(bool enable) {
+	if (enable) {
+        return;
+	}
     read_worker_.moveToThread(&thread_);
-    (void) QObject::connect(this,
+    (void)QObject::connect(this,
         &PlayListTableView::readLUFS,
         &read_worker_,
         &ReadLufsWorker::addEntity);
-    (void) QObject::connect(&read_worker_,
+    (void)QObject::connect(&read_worker_,
         &ReadLufsWorker::readCompleted,
         this,
         &PlayListTableView::onReadCompleted);
@@ -621,15 +638,24 @@ void PlayListTableView::importPodcast() {
     QDialogButtonBox buttonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
         Qt::Horizontal, &dialog);
     form.addRow(&buttonBox);
-    (void) QObject::connect(&buttonBox, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
-    (void) QObject::connect(&buttonBox, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+    (void)QObject::connect(&buttonBox, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+    (void)QObject::connect(&buttonBox, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
 
     if (dialog.exec() != QDialog::Accepted) {
         return;
     }
 
     http::HttpClient(url_edit->text()).success([this](const QString& json) {
-        MetadataExtractAdapter::processMetadata(parsePodcastXML(json), this);
+        auto const podcast_info = parsePodcastXML(json);
+        MetadataExtractAdapter::processMetadata(podcast_info.second, this);
+
+        http::HttpClient(QString::fromStdString(podcast_info.first))
+    	.download([=](auto data) {
+            auto cover_id = Singleton<PixmapCache>::GetInstance().addOrUpdate(data);
+            auto play_item = getEntity(this->model()->index(0, 0));
+            Singleton<Database>::GetInstance().setAlbumCover(play_item.album_id, play_item.album, cover_id);
+            });
+    	
         }).get();
 }
 

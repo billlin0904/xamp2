@@ -28,6 +28,8 @@ public:
 
 	void setPlaylistId(int32_t playlist_id);
 
+	void setPodcastMode(bool enable = true);
+
 	int32_t playlistId() const;
 
 	void removePlaying();
@@ -97,6 +99,7 @@ private:
 
 	void initial();
 
+	bool podcast_mode_;
 	int32_t playlist_id_;
 	StarDelegate* start_delegate_;	
 	QModelIndex play_index_;

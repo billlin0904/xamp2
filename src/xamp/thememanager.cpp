@@ -74,6 +74,26 @@ QIcon ThemeManager::volumeOff() const {
     return QIcon(Q_STR(":/xamp/Resource/%1/volume_off.png").arg(themeColorPath()));
 }
 
+QIcon ThemeManager::playlistIcon() const {
+    return QIcon(Q_STR(":/xamp/Resource/%1/tab_playlists.png").arg(themeColorPath()));
+}
+
+QIcon ThemeManager::podcastIcon() const {
+    return QIcon(Q_STR(":/xamp/Resource/%1/podcast.png").arg(themeColorPath()));
+}
+
+QIcon ThemeManager::albumsIcon() const {
+    return QIcon(Q_STR(":/xamp/Resource/%1/tab_albums.png").arg(themeColorPath()));
+}
+
+QIcon ThemeManager::artistsIcon() const {
+    return QIcon(Q_STR(":/xamp/Resource/%1/tab_artists.png").arg(themeColorPath()));
+}
+
+QIcon ThemeManager::subtitleIcon() const {
+    return QIcon(Q_STR(":/xamp/Resource/%1/tab_subtitles.png").arg(themeColorPath()));
+}
+
 void ThemeManager::setPlayOrPauseButton(Ui::XampWindow& ui, bool is_playing) {
     if (is_playing) {
         ui.playButton->setStyleSheet(Q_STR(R"(

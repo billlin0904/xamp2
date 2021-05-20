@@ -96,6 +96,8 @@ Xamp::Xamp(QWidget *parent)
     , order_(PlayerOrder::PLAYER_ORDER_REPEAT_ONCE)
     , lrc_page_(nullptr)
     , playlist_page_(nullptr)
+	, podcast_page_(nullptr)
+	, current_playlist_page_(nullptr)
     , album_artist_page_(nullptr)
     , artist_info_page_(nullptr)
 	, tray_icon_menu_(nullptr)
@@ -114,7 +116,7 @@ void Xamp::initial() {
     initialDeviceList();
     initialPlaylist();
     initialShortcut();
-    setCover(nullptr);    
+    setCover(nullptr);
     createTrayIcon();
     setDefaultStyle();        
 }
@@ -265,7 +267,6 @@ void Xamp::initialUI() {
     f.setPointSize(10);
     ui_.artistLabel->setFont(f);
 #endif
-    //ui_.sliderFrame->hide();
 }
 
 QWidgetAction* Xamp::createTextSeparator(const QString& text) {
@@ -506,7 +507,6 @@ void Xamp::initialController() {
 
     (void)QObject::connect(ui_.repeatButton, &QToolButton::pressed, [this]() {
         order_ = GetNextOrder(order_);
-        XAMP_LOG_DEBUG("Set playerorder {}", order_);
         setPlayerOrder();
     });
 
@@ -553,10 +553,15 @@ void Xamp::initialController() {
         case 1:
             ui_.currentView->setCurrentWidget(artist_info_page_);
             break;
+        case 3:
+            ui_.currentView->setCurrentWidget(podcast_page_);
+            current_playlist_page_ = podcast_page_;
+            break;
         case 2:
             ui_.currentView->setCurrentWidget(playlist_page_);
+            current_playlist_page_ = playlist_page_;
             break;
-        case 3:
+        case 4:
             ui_.currentView->setCurrentWidget(lrc_page_);
             break;
     	}        
@@ -880,6 +885,8 @@ void Xamp::playMusic(const MusicEntity& item) {
 }
 
 void Xamp::updateUI(const MusicEntity& item, const PlaybackFormat& playback_format, bool open_done) {
+    current_playlist_page_ = currentPlyalistPage();
+	
     ThemeManager::instance().setPlayOrPauseButton(ui_, open_done);
 	
     if (open_done) {
@@ -901,7 +908,7 @@ void Xamp::updateUI(const MusicEntity& item, const PlaybackFormat& playback_form
 
         ui_.seekSlider->setRange(0, static_cast<int32_t>(player_->GetDuration() * 1000));
         ui_.endPosLabel->setText(Time::msToString(player_->GetDuration()));
-        playlist_page_->format()->setText(format2String(playback_format, item.file_ext));
+        current_playlist_page_->format()->setText(format2String(playback_format, item.file_ext));
 
         artist_info_page_->setArtistId(item.artist,
             Singleton<Database>::GetInstance().getArtistCoverId(item.artist_id),
@@ -925,7 +932,7 @@ void Xamp::updateUI(const MusicEntity& item, const PlaybackFormat& playback_form
     ui_.titleLabel->setText(item.title);
     ui_.artistLabel->setText(item.artist);
 
-    playlist_page_->title()->setText(item.title);
+    current_playlist_page_->title()->setText(item.title);
 
     const QFileInfo file_info(item.file_path);
     const auto lrc_path = file_info.path()
@@ -940,6 +947,13 @@ void Xamp::updateUI(const MusicEntity& item, const PlaybackFormat& playback_form
     if (isHidden()) {
         tray_icon_->showMessage(item.album, item.title, ThemeManager::instance().appIcon(), 1000);
     }
+}
+
+PlyalistPage* Xamp::currentPlyalistPage() {
+	if (!current_playlist_page_) {
+        current_playlist_page_ = dynamic_cast<PlyalistPage*>(ui_.currentView->currentWidget());
+	}
+    return current_playlist_page_;
 }
 
 void Xamp::play(const PlayListEntity& item) {    
@@ -1005,21 +1019,27 @@ void Xamp::addPlaylistItem(const PlayListEntity &entity) {
     playlist_view->refresh();
 }
 
-void Xamp::setCover(const QPixmap* cover) {
+void Xamp::setCover(const QPixmap* cover, PlyalistPage* page) {
     if (!cover) {
         cover = &ThemeManager::instance().pixmap().unknownCover();    
     }
 
-    const auto ui_cover = Pixmap::roundImage(Pixmap::resizeImage(*cover, ui_.coverLabel->size(), false),
-                                             Pixmap::kSmallImageRadius);
+	if (!page) {
+        page = current_playlist_page_;
+	}
+
+    const auto ui_cover = Pixmap::roundImage(
+        Pixmap::resizeImage(*cover, ui_.coverLabel->size(), false),
+           Pixmap::kSmallImageRadius);
     ui_.coverLabel->setPixmap(ui_cover);
 
     const auto playlist_cover = Pixmap::roundImage(
-        Pixmap::resizeImage(*cover, playlist_page_->cover()->size(), false),
+        Pixmap::resizeImage(*cover, page->cover()->size(), false),
         Pixmap::kSmallImageRadius);
-    playlist_page_->cover()->setPixmap(playlist_cover);
-
-    lrc_page_->setCover(Pixmap::resizeImage(*cover, lrc_page_->cover()->size(), true));
+    page->cover()->setPixmap(playlist_cover);
+    if (lrc_page_ != nullptr) {
+        lrc_page_->setCover(Pixmap::resizeImage(*cover, lrc_page_->cover()->size(), true));
+    }   
 }
 
 void Xamp::onPlayerStateChanged(xamp::player::PlayerState play_state) {
@@ -1048,10 +1068,11 @@ void Xamp::addTable() {
 }
 
 void Xamp::initialPlaylist() {
-    ui_.sliderBar->addTab(tr("Playlists"), 2, QIcon(Q_UTF8(":/xamp/Resource/Black/tab_playlists.png")));
-    ui_.sliderBar->addTab(tr("Albums"), 0, QIcon(Q_UTF8(":/xamp/Resource/Black/tab_albums.png")));
-	ui_.sliderBar->addTab(tr("Artists"), 1, QIcon(Q_UTF8(":/xamp/Resource/Black/tab_artists.png")));   
-    ui_.sliderBar->addTab(tr("Lyrics"), 3, QIcon(Q_UTF8(":/xamp/Resource/Black/tab_subtitles.png")));
+    ui_.sliderBar->addTab(tr("Playlists"), 2, ThemeManager::instance().playlistIcon());
+    ui_.sliderBar->addTab(tr("Podcast"), 3, ThemeManager::instance().podcastIcon());
+    ui_.sliderBar->addTab(tr("Albums"), 0, ThemeManager::instance().albumsIcon());
+	ui_.sliderBar->addTab(tr("Artists"), 1, ThemeManager::instance().artistsIcon());
+    ui_.sliderBar->addTab(tr("Lyrics"), 4, ThemeManager::instance().subtitleIcon());
 	
     Singleton<Database>::GetInstance().forEachTable([this](auto table_id,
                                              auto /*table_index*/,
@@ -1061,7 +1082,7 @@ void Xamp::initialPlaylist() {
             return;
         }
 
-        ui_.sliderBar->addTab(name, table_id, QIcon(Q_UTF8(":/xamp/Resource/Black/tab_playlists.png")));
+        ui_.sliderBar->addTab(name, table_id, ThemeManager::instance().playlistIcon());
 
         if (!playlist_page_) {
             playlist_page_ = newPlaylist(playlist_id);
@@ -1074,14 +1095,31 @@ void Xamp::initialPlaylist() {
         }
     });
 
+    constexpr auto kDefaultPlaylistId = 1;
+    constexpr auto kDefaultPodcastId = 2;
+
     if (!playlist_page_) {
-        int32_t playlist_id = 1;
+        auto playlist_id = kDefaultPlaylistId;
         if (!Singleton<Database>::GetInstance().isPlaylistExist(playlist_id)) {
-            playlist_id = Singleton<Database>::GetInstance().addPlaylist(Q_UTF8(""), 0);
+            playlist_id = Singleton<Database>::GetInstance().addPlaylist(Qt::EmptyString, 0);
         }
-        playlist_page_ = newPlaylist(playlist_id);
-        playlist_page_->playlist()->setPlaylistId(playlist_id);
+        playlist_page_ = newPlaylist(kDefaultPlaylistId);
+        playlist_page_->playlist()->setPlaylistId(kDefaultPlaylistId);
     }
+
+    if (!podcast_page_) {
+        auto playlist_id = kDefaultPodcastId;
+        if (!Singleton<Database>::GetInstance().isPlaylistExist(playlist_id)) {
+            playlist_id = Singleton<Database>::GetInstance().addPlaylist(Qt::EmptyString, 1);
+        }
+        podcast_page_ = newPlaylist(playlist_id);
+        podcast_page_->playlist()->setPlaylistId(playlist_id);
+    }
+
+    playlist_page_->playlist()->setPodcastMode(false);
+    podcast_page_->playlist()->setPodcastMode(true);
+    setCover(nullptr, podcast_page_);
+    current_playlist_page_ = playlist_page_;
 
     lrc_page_ = new LrcPage(this);
     album_artist_page_ = new AlbumArtistPage(this);
@@ -1107,6 +1145,8 @@ void Xamp::initialPlaylist() {
     pushWidget(playlist_page_);
     pushWidget(album_artist_page_);
     pushWidget(artist_info_page_);
+    pushWidget(podcast_page_);
+    goBackPage();
     goBackPage();
     goBackPage();
 

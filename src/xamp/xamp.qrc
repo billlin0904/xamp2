@@ -54,5 +54,6 @@
         <file>Resource/Black/tab_playlists.png</file>
         <file>Resource/Black/tab_subtitles.png</file>
         <file>fonts/Electrolize-Regular.ttf</file>
+        <file>Resource/Black/podcast.png</file>
     </qresource>
 </RCC>

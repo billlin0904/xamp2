@@ -62,6 +62,16 @@ public:
 
     QIcon volumeOff() const;
 
+    QIcon playlistIcon() const;
+
+    QIcon podcastIcon() const;
+
+    QIcon albumsIcon() const;
+
+    QIcon artistsIcon() const;
+
+    QIcon subtitleIcon() const;
+
     const StylePixmapManager& pixmap() noexcept;
 
     void setPlayOrPauseButton(Ui::XampWindow &ui, bool is_playing);
