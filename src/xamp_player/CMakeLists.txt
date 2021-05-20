@@ -87,22 +87,3 @@ find_library(ACCELERATE_LIB Accelerate)
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
 target_link_libraries(xamp_player ${LIB_XAMP_BASE} ${LIB_XAMP_OUTPUT_DEVICE} ${LIB_XAMP_STREAM} ${LIB_XAMP_METADATA} ${ACCELERATE_LIB} ${LIB_GIST})
-
-if(LIBRARY_TESTS)
-include(FetchContent)
-FetchContent_Declare(
-  googletest
-  GIT_REPOSITORY https://github.com/google/googletest.git
-  GIT_TAG        release-1.8.0
-)
-
-FetchContent_GetProperties(googletest)
-if(NOT googletest_POPULATED)
-  FetchContent_Populate(googletest)
-  add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
-endif()
-
-include(CTest)
-enable_testing()
-add_subdirectory(test)
-endif()

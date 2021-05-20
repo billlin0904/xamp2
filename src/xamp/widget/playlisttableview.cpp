@@ -154,6 +154,7 @@ static PlayListEntity getEntity(const QModelIndex& index) {
 
 PlayListTableView::PlayListTableView(QWidget* parent, int32_t playlist_id)
     : QTableView(parent)
+    , podcast_mode_(true)
     , playlist_id_(playlist_id)
     , start_delegate_(nullptr)
     , model_(this)
@@ -162,8 +163,13 @@ PlayListTableView::PlayListTableView(QWidget* parent, int32_t playlist_id)
 }
 
 PlayListTableView::~PlayListTableView() {
+#ifdef XAMP_OS_WIN
+    if (podcast_mode_) {
+        return;
+    }
     thread_.quit();
-    thread_.wait();    
+    thread_.wait();
+#endif
 }
 
 void PlayListTableView::refresh() {
@@ -541,6 +547,7 @@ void PlayListTableView::initial() {
 }
 
 void PlayListTableView::setPodcastMode(bool enable) {
+#ifdef XAMP_OS_WIN
 	if (enable) {
         return;
 	}
@@ -554,6 +561,7 @@ void PlayListTableView::setPodcastMode(bool enable) {
         this,
         &PlayListTableView::onReadCompleted);
     thread_.start();
+#endif
 }
 
 void PlayListTableView::onReadCompleted(int32_t music_id, double lrus, double trure_peak) {
