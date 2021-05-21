@@ -255,8 +255,6 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
     hideColumn(PLAYLIST_BITRATE);
     hideColumn(PLAYLIST_ALBUM);
     hideColumn(PLAYLIST_TIMESTAMP);
-    //hideColumn(PLAYLIST_LUFS);
-    //hideColumn(PLAYLIST_TRUE_PEAK);
     hideColumn(PLAYLIST_RATING);
     hideColumn(PLAYLIST_DURATION);
 }
@@ -325,8 +323,8 @@ void PlayListTableView::initial() {
 
     (void)QObject::connect(this, &QTableView::doubleClicked, [this](const QModelIndex& index) {
         const auto current_index = proxy_model_.mapToSource(index);
-        setNowPlaying(current_index);        
-        auto play_item = getEntity(current_index);
+        setNowPlaying(current_index);
+        const auto play_item = getEntity(current_index);
     	if (play_item.lufs == 0.0) {
             readLUFS(play_item);
     	}        
@@ -463,9 +461,9 @@ void PlayListTableView::initial() {
 
         action_map.setCallback(export_wave_file_act, [this]() {
             const auto rows = selectItemIndex();
-            for (const auto& select_item : rows) {
-                auto entity = this->item(select_item.second);
-                emit exportWaveFile(select_item.second, entity);
+            for (const auto& [fst, snd] : rows) {
+                auto entity = this->item(snd);
+                emit exportWaveFile(snd, entity);
             }
             refresh();
             });
@@ -663,6 +661,9 @@ void PlayListTableView::importPodcast() {
         http::HttpClient(QString::fromStdString(podcast_info.first))
     	.download([=](auto data) {
             auto cover_id = Singleton<PixmapCache>::GetInstance().addOrUpdate(data);
+    		if (!model()->rowCount()) {
+                return;
+    		}
             auto play_item = getEntity(this->model()->index(0, 0));
             Singleton<Database>::GetInstance().setAlbumCover(play_item.album_id, play_item.album, cover_id);
             });
