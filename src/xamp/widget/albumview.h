@@ -105,8 +105,6 @@ class AlbumView final : public QListView {
 public:
 	explicit AlbumView(QWidget* parent = nullptr);
 
-    void setBackgroundColor(QColor backgroundColor);
-
 signals:
     void playMusic(const MusicEntity& entity);
 
@@ -114,6 +112,9 @@ signals:
 
 	void clickedArtist(const QString& artist, const QString& cover_id, int32_t artist_id);
 
+	void removeAll();
+
+	void loadCompleted();
 public slots:
 	void refreshOnece();
 

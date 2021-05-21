@@ -23,10 +23,10 @@ public:
 		return album_view_;
 	}
 
-	void refreshOnece();
-
 public slots:
 	void onThemeChanged(QColor theme_color, QColor color);
+
+	void refreshOnece();
 
 private:
 	ArtistView* artist_view_;

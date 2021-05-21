@@ -404,6 +404,7 @@ AlbumView::AlbumView(QWidget* parent)
             }
             Singleton<Database>::GetInstance().removeAllArtist();
             refreshOnece();
+            emit removeAll();
         };
 
         if (index.isValid()) {
@@ -502,10 +503,8 @@ void AlbumView::payNextMusic() {
 
 void AlbumView::onThemeChanged(QColor backgroundColor, QColor color) {
     dynamic_cast<AlbumViewStyledDelegate*>(itemDelegate())->setTextColor(color);
-}
-
-void AlbumView::setBackgroundColor(QColor backgroundColor) {
-    setStyleSheet(backgroundColorToString(backgroundColor));
+    //setStyleSheet(backgroundColorToString(backgroundColor));
+    //page_->setStyleSheet(backgroundColorToString(backgroundColor));
 }
 
 void AlbumView::setFilterByArtistId(int32_t artist_id) {
@@ -605,7 +604,7 @@ void AlbumView::append(const QString& file_name) {
 
 void AlbumView::processMeatadata(const std::vector<Metadata> &medata) {    
     MetadataExtractAdapter::processMetadata(medata);
-    refreshOnece();
+    emit loadCompleted();
 }
 
 void AlbumView::hideWidget() {

@@ -154,7 +154,7 @@ static PlayListEntity getEntity(const QModelIndex& index) {
 
 PlayListTableView::PlayListTableView(QWidget* parent, int32_t playlist_id)
     : QTableView(parent)
-    , podcast_mode_(true)
+    , podcast_mode_(false)
     , playlist_id_(playlist_id)
     , start_delegate_(nullptr)
     , model_(this)
@@ -375,38 +375,40 @@ void PlayListTableView::initial() {
             scrollToIndex(proxy_model_.mapToSource(play_index_));
         });
 
-        (void)action_map.addAction(tr("Load local file"), [this]() {
-            xamp::metadata::TaglibMetadataReader reader;
-            QString exts(Q_UTF8("("));
-            for (const auto &file_ext : reader.GetSupportFileExtensions()) {
-                exts += Q_UTF8("*") + QString::fromStdString(file_ext);
-                exts += Q_UTF8(" ");
-            }
-            exts += Q_UTF8(")");
-            const auto file_name = QFileDialog::getOpenFileName(this,
-                tr("Open file"),
-                AppSettings::getMyMusicFolderPath(),
-                tr("Music Files ") + exts,
-                nullptr,
-                QFileDialog::DontUseNativeDialog);
-            if (file_name.isEmpty()) {
-                return;
-            }
-            append(file_name);
-            });
+    	if (!podcast_mode_) {
+            (void)action_map.addAction(tr("Load local file"), [this]() {
+                xamp::metadata::TaglibMetadataReader reader;
+                QString exts(Q_UTF8("("));
+                for (const auto& file_ext : reader.GetSupportFileExtensions()) {
+                    exts += Q_UTF8("*") + QString::fromStdString(file_ext);
+                    exts += Q_UTF8(" ");
+                }
+                exts += Q_UTF8(")");
+                const auto file_name = QFileDialog::getOpenFileName(this,
+                    tr("Open file"),
+                    AppSettings::getMyMusicFolderPath(),
+                    tr("Music Files ") + exts,
+                    nullptr,
+                    QFileDialog::DontUseNativeDialog);
+                if (file_name.isEmpty()) {
+                    return;
+                }
+                append(file_name);
+                });
 
-        (void)action_map.addAction(tr("Load file directory"), [this]() {
-	        const auto dir_name = QFileDialog::getExistingDirectory(this,
-	                                                                tr("Select a Directory"),
-	                                                                AppSettings::getMyMusicFolderPath(),
-	                                                                QFileDialog::DontUseNativeDialog | QFileDialog::ShowDirsOnly);
-        	if (dir_name.isEmpty()) {
-                return;
-        	}
-            append(dir_name);
-            });
+            (void)action_map.addAction(tr("Load file directory"), [this]() {
+                const auto dir_name = QFileDialog::getExistingDirectory(this,
+                    tr("Select a Directory"),
+                    AppSettings::getMyMusicFolderPath(),
+                    QFileDialog::DontUseNativeDialog | QFileDialog::ShowDirsOnly);
+                if (dir_name.isEmpty()) {
+                    return;
+                }
+                append(dir_name);
+                });
 
-        action_map.addSeparator();
+            action_map.addSeparator();
+    	}
 
         auto * remove_all_act = action_map.addAction(tr("Remove all"));
         auto * open_local_file_path_act = action_map.addAction(tr("Open local file path"));
@@ -547,6 +549,7 @@ void PlayListTableView::initial() {
 }
 
 void PlayListTableView::setPodcastMode(bool enable) {
+    podcast_mode_ = enable;
 #ifdef XAMP_OS_WIN
 	if (enable) {
         return;
