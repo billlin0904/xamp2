@@ -548,6 +548,11 @@ void PlayListTableView::initial() {
 
 void PlayListTableView::setPodcastMode(bool enable) {
     podcast_mode_ = enable;
+	if (podcast_mode_) {
+        hideColumn(PLAYLIST_LUFS);
+        hideColumn(PLAYLIST_TRUE_PEAK);
+        setColumnHidden(PLAYLIST_TIMESTAMP, false);
+	}
 #ifdef XAMP_OS_WIN
 	if (enable) {
         return;

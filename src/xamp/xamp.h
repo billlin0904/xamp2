@@ -57,6 +57,8 @@ public slots:
 	void onActivated(QSystemTrayIcon::ActivationReason reason);
 
 	void onDisplayChanged(std::vector<float> const& display);
+
+	void onVolumeChanged(float volume);
 private:
     void initial();
 

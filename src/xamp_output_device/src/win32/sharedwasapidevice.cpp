@@ -96,17 +96,17 @@ SharedWasapiDevice::~SharedWasapiDevice() {
 }
 
 void SharedWasapiDevice::UnRegisterDeviceVolumeChange() {
+	endpoint_volume_->UnregisterControlChangeNotify(device_volume_notification_);
 }
 
 void SharedWasapiDevice::RegisterDeviceVolumeChange() {
-	CComPtr<IAudioEndpointVolume> endpoint_volume;
 	HrIfFailledThrow(device_->Activate(kAudioEndpointVolumeID,
 		CLSCTX_INPROC_SERVER,
 		nullptr,
-		reinterpret_cast<void**>(&endpoint_volume)
+		reinterpret_cast<void**>(&endpoint_volume_)
 	));
 	device_volume_notification_ = new DeviceEventNotification(callback_);
-	HrIfFailledThrow(endpoint_volume->RegisterControlChangeNotify(device_volume_notification_));
+	HrIfFailledThrow(endpoint_volume_->RegisterControlChangeNotify(device_volume_notification_));
 }
 
 bool SharedWasapiDevice::IsStreamOpen() const noexcept {

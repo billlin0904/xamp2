@@ -112,6 +112,7 @@ private:
 	CComPtr<IMFAsyncResult> pause_playback_async_result_;
 	CComPtr<MFAsyncCallback<SharedWasapiDevice>> stop_playback_callback_;
 	CComPtr<IMFAsyncResult> stop_playback_async_result_;
+	CComPtr<IAudioEndpointVolume> endpoint_volume_;
 	AudioCallback* callback_;
 	std::shared_ptr<spdlog::logger> log_;
 };

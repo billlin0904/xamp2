@@ -281,6 +281,18 @@ QWidgetAction* Xamp::createTextSeparator(const QString& text) {
     return separator;
 }
 
+void Xamp::onVolumeChanged(float volume) {
+    if (volume > 0) {
+        player_->SetMute(false);
+        ui_.mutedButton->setIcon(ThemeManager::instance().volumeUp());
+    }
+    else {
+        player_->SetMute(true);
+        ui_.mutedButton->setIcon(ThemeManager::instance().volumeOff());
+    }
+    ui_.volumeSlider->setValue(static_cast<int32_t>(volume * 100.0));
+}
+
 void Xamp::onDeviceStateChanged(DeviceState state) {
     if (state == DeviceState::DEVICE_STATE_REMOVED) {
         player_->Stop(true, true, true);
@@ -490,9 +502,15 @@ void Xamp::initialController() {
                             &Xamp::onDeviceStateChanged,
                             Qt::QueuedConnection);
 
+    (void)QObject::connect(state_adapter_.get(),
+        &UIPlayerStateAdapter::volumeChanged,
+        this,
+        &Xamp::onVolumeChanged,
+        Qt::QueuedConnection);
+
     (void)QObject::connect(ui_.searchLineEdit, &QLineEdit::textChanged, [this](const auto &text) {
         if (ui_.currentView->count() > 0) {
-	        auto* playlist_view = playlist_page_->playlist();
+            auto* playlist_view = currentPlyalistPage()->playlist();
             emit playlist_view->search(text, Qt::CaseSensitivity::CaseInsensitive, QRegExp::PatternSyntax());
             emit album_artist_page_->album()->onSearchTextChanged(text);
         }

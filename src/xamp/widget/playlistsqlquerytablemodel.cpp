@@ -28,7 +28,6 @@ QVariant PlayListSqlQueryTableModel::data(const QModelIndex& index, int32_t role
             || index.column() == PLAYLIST_DURATION 
             || index.column() == PLAYLIST_BITRATE
             || index.column() == PLAYLIST_SAMPLE_RATE
-            || index.column() == PLAYLIST_TIMESTAMP
             || index.column() == PLAYLIST_TRUE_PEAK
             || index.column() == PLAYLIST_LUFS) {
             return QFont(Q_UTF8("FormatFont"));
@@ -54,7 +53,7 @@ QVariant PlayListSqlQueryTableModel::data(const QModelIndex& index, int32_t role
             case PLAYLIST_DURATION:
                 return Time::msToString(value.toDouble());
             case PLAYLIST_TIMESTAMP:
-                return QDateTime::fromSecsSinceEpoch(value.toULongLong());
+                return QDateTime::fromSecsSinceEpoch(value.toULongLong()).toString(Q_UTF8("yyyy-MM-dd HH:mm:ss"));
             }
         }
         break;
