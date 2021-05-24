@@ -183,6 +183,7 @@
     <ClCompile Include="widget\lrcparser.cpp" />
     <ClCompile Include="widget\LyricsShowWidget.cpp" />
     <ClCompile Include="widget\musicbrainzclient.cpp" />
+    <ClCompile Include="widget\musixmatchclient.cpp" />
     <ClCompile Include="widget\pixmapcache.cpp" />
     <ClCompile Include="widget\metadataextractadapter.cpp">
       <OutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles\$(ConfigurationName)\%(Filename).moc</OutputFile>
@@ -242,6 +243,7 @@
     <QtMoc Include="widget\compressordialog.h">
     </QtMoc>
     <QtMoc Include="widget\directorywatcher.h" />
+    <QtMoc Include="widget\musixmatchclient.h" />
     <ClInclude Include="widget\playlistsqlquerytablemodel.h" />
     <ClInclude Include="widget\playlisttablequerymodel.h" />
     <QtMoc Include="widget\uiplayerstateadapter.h">

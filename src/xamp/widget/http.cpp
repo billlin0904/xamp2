@@ -44,8 +44,8 @@ public:
     QUrlQuery params;
     QString charset_;
     QString user_agent_;
-    QNetworkAccessManager *manager;
-    QHash<QString, QString> headers;
+    QNetworkAccessManager *manager_;
+    QHash<QString, QString> headers_;
     std::function<void (const QString &)> success_handler_;
     std::function<void(const QString&)> error_handler_;
     std::function<void (const QByteArray &)> download_handler_;
@@ -56,14 +56,14 @@ HttpClient::HttpClientImpl::HttpClientImpl(const QString &url, QNetworkAccessMan
     , use_internal_(manager == nullptr)
     , url_(url)
     , charset_(Q_UTF8("UTF-8"))
-    , manager(manager == nullptr ? new QNetworkAccessManager() : manager) {
+    , manager_(manager == nullptr ? new QNetworkAccessManager() : manager) {
 }
 
 HttpContext HttpClient::HttpClientImpl::createContext() const {
     HttpContext context;
     context.success_handler = success_handler_;
     context.error_handler = error_handler_;
-    context.manager = manager;
+    context.manager = manager_;
     context.charset = charset_;
     context.user_agent = user_agent_;
     context.use_internal = use_internal_;
@@ -73,7 +73,7 @@ HttpContext HttpClient::HttpClientImpl::createContext() const {
 void HttpClient::HttpClientImpl::executeQuery(HttpClientImpl *d, HttpMethod method) {
     auto context = d->createContext();
 
-    auto request = HttpClientImpl::createRequest(d, method);
+    const auto request = createRequest(d, method);
     QNetworkReply *reply = nullptr;
 
     switch (method) {
@@ -98,24 +98,24 @@ void HttpClient::HttpClientImpl::executeQuery(HttpClientImpl *d, HttpMethod meth
     }
 
     (void) QObject::connect(reply, &QNetworkReply::finished, [=] {
-        auto successMessage = HttpClientImpl::readReply(reply,
-             QString::fromStdString(context.charset.toUtf8().toStdString()));
-        HttpClientImpl::handleFinish(context, reply, successMessage);
+	    const auto success_message = readReply(reply,
+	                                           QString::fromStdString(context.charset.toUtf8().toStdString()));
+	    handleFinish(context, reply, success_message);
     });
 }
 
 void HttpClient::HttpClientImpl::download(HttpClientImpl *d, std::function<void (const QByteArray &)> readyRead) {
     auto context = d->createContext();
 
-    auto request = HttpClientImpl::createRequest(d, HttpMethod::HTTP_GET);
-    auto reply = context.manager->get(request);
+    auto request = createRequest(d, HttpMethod::HTTP_GET);
+    auto* reply = context.manager->get(request);
 
     (void) QObject::connect(reply, &QNetworkReply::readyRead, [=] {
         readyRead(reply->readAll());
     });
 
     (void) QObject::connect(reply, &QNetworkReply::finished, [=] {
-        HttpClientImpl::handleFinish(context, reply, QString());
+        handleFinish(context, reply, QString());
     });
 }
 
@@ -165,17 +165,19 @@ QNetworkRequest HttpClient::HttpClientImpl::createRequest(HttpClientImpl *d, Htt
     }
 
     if (with_form) {
-        d->headers[Q_UTF8("Content-Type")] = Q_UTF8("application/x-www-form-urlencoded");
+        d->headers_[Q_UTF8("Content-Type")] = Q_UTF8("application/x-www-form-urlencoded");
     } else if (with_json) {
-        d->headers[Q_UTF8("Content-Type")] = Q_UTF8("application/json; charset=utf-8");
+        d->headers_[Q_UTF8("Content-Type")] = Q_UTF8("application/json; charset=utf-8");
     }
 
     if (d->user_agent_.isEmpty()) {
-        d->headers[Q_UTF8("User-Agent")] = Q_UTF8("xamp-player/1.0.0");
+        d->headers_[Q_UTF8("User-Agent")] = Q_UTF8("xamp-player/1.0.0");
     }
 
+    XAMP_LOG_DEBUG("Request url: {}", QUrl(d->url_).toEncoded().toStdString());
+
     QNetworkRequest request(QUrl(d->url_));
-    for (auto i = d->headers.cbegin(); i != d->headers.cend(); ++i) {
+    for (auto i = d->headers_.cbegin(); i != d->headers_.cend(); ++i) {
         request.setRawHeader(i.key().toUtf8(), i.value().toUtf8());
     }
     return request;
@@ -210,13 +212,13 @@ HttpClient& HttpClient::json(const QString &json) {
 }
 
 HttpClient& HttpClient::header(const QString &name, const QString &value) {
-    impl_->headers[name] = value;
+    impl_->headers_[name] = value;
     return *this;
 }
 
 HttpClient& HttpClient::headers(const QMap<QString, QString> nameValues) {
     for (auto i = nameValues.cbegin(); i != nameValues.cend(); ++i) {
-        impl_->headers[i.key()] = i.value();
+        impl_->headers_[i.key()] = i.value();
     }
     return *this;
 }

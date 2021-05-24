@@ -953,6 +953,9 @@ void Xamp::updateUI(const MusicEntity& item, const PlaybackFormat& playback_form
 
     current_playlist_page_->title()->setText(item.title);
 
+	//todo:
+    musixmatcher_.matcherLyrics(item.title, item.artist);
+
     const QFileInfo file_info(item.file_path);
     const auto lrc_path = file_info.path()
                           + Q_UTF8("/")

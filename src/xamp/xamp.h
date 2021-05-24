@@ -18,6 +18,7 @@
 #include <widget/playlistentity.h>
 #include <widget/localelanguage.h>
 #include <widget/playerorder.h>
+#include <widget/musixmatchclient.h>
 #include <widget/musicentity.h>
 
 #include "ui_xamp.h"
@@ -167,7 +168,8 @@ private:
 	ArtistInfoPage* artist_info_page_;
 	QStack<int32_t> stack_page_id_;	    	
 	MusicBrainzClient mbc_;
-	DiscogsClient discogs_;	
+	DiscogsClient discogs_;
+	MusixmatchClient musixmatcher_;
 	QMenu* tray_icon_menu_;
 	QSystemTrayIcon* tray_icon_;
 	PlaybackHistoryPage* playback_history_page_;
