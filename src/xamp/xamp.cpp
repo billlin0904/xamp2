@@ -953,21 +953,25 @@ void Xamp::updateUI(const MusicEntity& item, const PlaybackFormat& playback_form
 
     current_playlist_page_->title()->setText(item.title);
 
-	//todo:
-    musixmatcher_.matcherLyrics(item.title, item.artist);
-
     const QFileInfo file_info(item.file_path);
     const auto lrc_path = file_info.path()
                           + Q_UTF8("/")
                           + file_info.completeBaseName()
                           + Q_UTF8(".lrc");
-    lrc_page_->lyricsWidget()->loadLrcFile(lrc_path);
+    if (!lrc_page_->lyricsWidget()->loadLrcFile(lrc_path)) {
+        //todo:
+		//musixmatcher_.matcherLyrics(item.title, item.artist);
+    }
+	
     lrc_page_->title()->setText(item.title);
     lrc_page_->album()->setText(item.album);
     lrc_page_->artist()->setText(item.artist);
 
     if (isHidden()) {
-        tray_icon_->showMessage(item.album, item.title, ThemeManager::instance().appIcon(), 1000);
+        tray_icon_->showMessage(item.album, 
+            item.title, 
+            ThemeManager::instance().appIcon(), 
+            1000);
     }
 }
 

@@ -182,13 +182,14 @@ void LyricsShowWidget::dropEvent(QDropEvent* event) {
 	}
 }
 
-void LyricsShowWidget::loadLrcFile(const QString &file_path) {
+bool LyricsShowWidget::loadLrcFile(const QString &file_path) {
 	stop();
 	if (!lyric_.ParseFile(file_path.toStdWString())) {
 		setDefaultLrc();
-		return;
+		return false;
 	}
 	update();
+	return true;
 }
 
 void LyricsShowWidget::addFullLrc(const QString& lrc, std::chrono::milliseconds duration) {

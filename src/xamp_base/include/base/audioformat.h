@@ -8,6 +8,7 @@
 #include <ostream>
 #include <sstream>
 #include <iomanip>
+#include <chrono>
 
 #include <base/base.h>
 #include <base/enum.h>
@@ -16,10 +17,10 @@ namespace xamp::base {
 
 MAKE_ENUM(ByteFormat,
           INVALID_FORMAT,
-          SINT16,
-          SINT24,
-          SINT8,
-          SINT32,
+		  SINT8 = 1,
+          SINT16 = 2,
+          SINT24 = 3,
+          SINT32 = 4,
           FLOAT32,
           FLOAT64)
 
@@ -80,6 +81,8 @@ public:
     [[nodiscard]] uint32_t GetBlockAlign() const noexcept;
 
     [[nodiscard]] ByteFormat GetByteFormat() const noexcept;
+
+    [[nodiscard]] uint64_t GetSecondsSize(double sec) const noexcept;
 
     void Reset() noexcept;
 
@@ -201,6 +204,10 @@ XAMP_ALWAYS_INLINE uint32_t AudioFormat::GetBlockAlign() const noexcept {
 
 XAMP_ALWAYS_INLINE ByteFormat AudioFormat::GetByteFormat() const noexcept {
     return byte_format_;
+}
+
+XAMP_ALWAYS_INLINE uint64_t AudioFormat::GetSecondsSize(double sec) const noexcept {
+    return static_cast<uint64_t>(GetSampleRate() * GetBytesPerSample() * GetChannels() * sec);
 }
 
 XAMP_ALWAYS_INLINE void AudioFormat::SetByteFormat(ByteFormat format) noexcept {

@@ -20,7 +20,7 @@ public:
 
 	Q_DISABLE_COPY(LyricsShowWidget)
 
-	void loadLrcFile(const QString &file_path);
+	bool loadLrcFile(const QString &file_path);
 
 	void setCurrentTime(int32_t time, bool is_adding = true);
 

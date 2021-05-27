@@ -109,7 +109,8 @@ BassLib::BassLib() try
     , BASS_ChannelRemoveFX(module_, "BASS_ChannelRemoveFX")
     , BASS_FXSetParameters(module_, "BASS_FXSetParameters")
     , BASS_FXGetParameters(module_, "BASS_FXGetParameters")
-	, BASS_StreamCreateURL(module_, "BASS_StreamCreateURL") {
+	, BASS_StreamCreateURL(module_, "BASS_StreamCreateURL")
+	, BASS_StreamGetFilePosition(module_, "BASS_StreamGetFilePosition") {
 }
 catch (const Exception& e) {
     XAMP_LOG_ERROR("{}", e.GetErrorMessage());

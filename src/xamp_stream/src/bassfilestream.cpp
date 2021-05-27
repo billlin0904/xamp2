@@ -6,6 +6,8 @@
 
 namespace xamp::stream {
 
+using namespace xamp::base;
+
 static uint32_t GetDOPSampleRate(uint32_t dsd_speed) {
     switch (dsd_speed) {
         // 64x CD
@@ -25,7 +27,8 @@ static uint32_t GetDOPSampleRate(uint32_t dsd_speed) {
 class BassFileStream::BassFileStreamImpl {
 public:
     BassFileStreamImpl() noexcept
-        : mode_(DsdModes::DSD_MODE_PCM) {
+        : mode_(DsdModes::DSD_MODE_PCM)
+		, download_size_(0) {
         Close();
     }
 
@@ -79,7 +82,7 @@ public:
                     0,   
                     flags | BASS_STREAM_DECODE | BASS_UNICODE | BASS_STREAM_STATUS /*| BASS_STREAM_BLOCK*/,
                     &BassFileStreamImpl::DownloadProc,
-                    nullptr));
+                    this));
 #endif
             }
             mode_ = DsdModes::DSD_MODE_PCM;
@@ -129,11 +132,26 @@ public:
         }
     }
 
+	float GetReadProgress() const {
+        auto file_len = BASS.BASS_StreamGetFilePosition(GetHStream(), BASS_FILEPOS_END);
+        auto buffer = BASS.BASS_StreamGetFilePosition(GetHStream(), BASS_FILEPOS_BUFFER);
+    	return 100.0 * buffer / file_len;
+    }
+
 	static void DownloadProc(const void* buffer, DWORD length, void* user) {
-    	if (length == 0) {
-            auto status = static_cast<char const*>(buffer);
-            XAMP_LOG_DEBUG("{}", status);
-    	}        
+    	if (!buffer) {
+            XAMP_LOG_DEBUG("Downloading 100% completed!");
+            return;
+    	}
+        if (length == 0) {
+            auto *ptr = static_cast<char const*>(buffer);
+            std::string http_status(ptr);
+            XAMP_LOG_DEBUG("{}", http_status);
+    	} else {           
+            auto* impl = reinterpret_cast<BassFileStreamImpl*>(user);
+            impl->download_size_ += length;
+            XAMP_LOG_DEBUG("Downloading {}% {}", impl->GetReadProgress(), String::FormatBytes(impl->download_size_));
+    	} 
     }
 
     void Close() noexcept {
@@ -141,6 +159,7 @@ public:
         mix_stream_.reset();
         mode_ = DsdModes::DSD_MODE_PCM;
         info_ = BASS_CHANNELINFO{};
+        download_size_ = 0;
     }
 
     [[nodiscard]] bool IsDsdFile() const noexcept {
@@ -240,6 +259,7 @@ private:
     }
 
     DsdModes mode_;
+    int64_t download_size_;
     BassStreamHandle stream_;
     BassStreamHandle mix_stream_;
     BASS_CHANNELINFO info_;

@@ -145,6 +145,7 @@ public:
     XAMP_DECLARE_DLL(BASS_ChannelRemoveFX) BASS_ChannelRemoveFX;
     XAMP_DECLARE_DLL(BASS_FXSetParameters) BASS_FXSetParameters;
     XAMP_DECLARE_DLL(BASS_FXGetParameters) BASS_FXGetParameters;
+    XAMP_DECLARE_DLL(BASS_StreamGetFilePosition) BASS_StreamGetFilePosition;
 #ifdef XAMP_OS_MAC
     DllFunction<HSTREAM(const char*, DWORD, DWORD, DOWNLOADPROC*, void*)> BASS_StreamCreateURL;
 #else
