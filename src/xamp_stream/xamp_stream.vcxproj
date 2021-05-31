@@ -158,6 +158,7 @@
     <ClInclude Include="include\stream\audioprocessor.h" />
     <ClInclude Include="include\stream\filestream.h" />
     <ClInclude Include="include\stream\compressor.h" />
+    <ClInclude Include="include\stream\podcastcache.h" />
     <ClInclude Include="include\stream\stream.h" />
     <ClInclude Include="include\stream\stream_util.h" />
     <ClInclude Include="include\stream\wavefilewriter.h" />

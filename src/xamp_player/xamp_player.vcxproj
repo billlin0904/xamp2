@@ -159,7 +159,6 @@
     <ClInclude Include="include\player\playbackstateadapter.h" />
     <ClInclude Include="include\player\player.h" />
     <ClInclude Include="include\player\playstate.h" />
-    <ClInclude Include="include\player\podcastcache.h" />
     <ClInclude Include="include\player\samplerateconverter.h" />
     <ClInclude Include="include\player\soxresampler.h" />
     <ClInclude Include="src\libebur128\ebur128.h" />

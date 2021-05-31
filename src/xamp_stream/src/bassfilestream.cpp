@@ -1,6 +1,7 @@
 #include <stream/basslib.h>
 #include <base/str_utilts.h>
 #include <base/singleton.h>
+#include <stream/podcastcache.h>
 #include <stream/bassexception.h>
 #include <stream/bassfilestream.h>
 
@@ -52,12 +53,22 @@ public:
         }
 
         file_.Close();
+        cache_callback_.reset();
 
-        const auto use_filemap = file_path.find(L"https") == std::string::npos
+        auto use_filemap = file_path.find(L"https") == std::string::npos
     	|| file_path.find(L"http") == std::string::npos;
     	if (use_filemap) {            
             file_.Open(file_path);
-    	}        
+    	} else {
+            auto file_cache =
+                Singleton<PodcastFileCache>::GetInstance().GetOrAdd(String::ToString(file_path));
+    		if (file_cache->IsCompleted()) {
+                file_.Open(file_cache->GetFilePath());
+                use_filemap = true;
+    		} else {
+                cache_callback_ = file_cache;
+    		}
+    	}
 
         if (mode_ == DsdModes::DSD_MODE_PCM) {
             if (use_filemap) {
@@ -139,21 +150,21 @@ public:
     }
 
 	static void DownloadProc(const void* buffer, DWORD length, void* user) {
+        auto* impl = reinterpret_cast<BassFileStreamImpl*>(user);
     	if (!buffer) {
             XAMP_LOG_DEBUG("Downloading 100% completed!");
+            impl->cache_callback_->Close();
             return;
     	}
-        /*
         if (length == 0) {
             auto *ptr = static_cast<char const*>(buffer);
             std::string http_status(ptr);
             XAMP_LOG_DEBUG("{}", http_status);
-    	} else {           
-            auto* impl = reinterpret_cast<BassFileStreamImpl*>(user);
+    	} else {                      
             impl->download_size_ += length;
             XAMP_LOG_DEBUG("Downloading {}% {}", impl->GetReadProgress(), String::FormatBytes(impl->download_size_));
+            impl->cache_callback_->Write(buffer, length);
         }
-        */
     }
 
     void Close() noexcept {
@@ -162,6 +173,7 @@ public:
         mode_ = DsdModes::DSD_MODE_PCM;
         info_ = BASS_CHANNELINFO{};
         download_size_ = 0;
+        cache_callback_.reset();
     }
 
     [[nodiscard]] bool IsDsdFile() const noexcept {
@@ -266,6 +278,7 @@ private:
     BassStreamHandle mix_stream_;
     BASS_CHANNELINFO info_;
     MemoryMappedFile file_;
+    std::shared_ptr<PadcastFileCacheCallback> cache_callback_;
 };
 
 BassFileStream::BassFileStream()
