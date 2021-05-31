@@ -74,6 +74,7 @@ SOURCES += \
     widget/read_helper.cpp \
     widget/win32/directorywatcher.cpp \
     widget/readlufsworker.cpp \
+    widget/musixmatchclient.cpp \
     DarkStyle.cpp \
     singleinstanceapplication.cpp \
     thememanager.cpp \
@@ -133,6 +134,7 @@ HEADERS += \
     widget/read_helper.h \
     widget/directorywatcher.h \
     widget/readlufsworker.h \
+    widget/musixmatchclient.h \
     DarkStyle.h \
     thememanager.h \
     aboutdialog.h \

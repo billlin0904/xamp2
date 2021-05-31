@@ -2,14 +2,6 @@
 
 namespace xamp::base {
 
-std::string GetDllFileName(const std::string &name) {
-#ifdef XAMP_OS_WIN
-    return name + ".dll";
-#else
-    return name + ".dylib";
-#endif
-}
-
 #ifdef XAMP_OS_WIN
 ModuleHandle LoadModule(std::string_view file_name) {
 	auto module = ::LoadLibraryA(file_name.data());

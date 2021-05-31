@@ -143,6 +143,7 @@ public:
             XAMP_LOG_DEBUG("Downloading 100% completed!");
             return;
     	}
+        /*
         if (length == 0) {
             auto *ptr = static_cast<char const*>(buffer);
             std::string http_status(ptr);
@@ -151,7 +152,8 @@ public:
             auto* impl = reinterpret_cast<BassFileStreamImpl*>(user);
             impl->download_size_ += length;
             XAMP_LOG_DEBUG("Downloading {}% {}", impl->GetReadProgress(), String::FormatBytes(impl->download_size_));
-    	} 
+        }
+        */
     }
 
     void Close() noexcept {
