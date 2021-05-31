@@ -333,7 +333,7 @@ uint32_t BassFileStream::GetDsdSpeed() const noexcept {
 }
 
 std::set<std::string> BassFileStream::GetSupportFileExtensions() {
-    return Singleton<BassLib>::GetInstance().GetSupportFileExtensions();
+    return BASS.GetSupportFileExtensions();
 }
 
 void LoadBassLib() {

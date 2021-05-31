@@ -989,7 +989,7 @@ void Xamp::play(const PlayListEntity& item) {
 }
 
 void Xamp::playNextItem(int32_t forward) {
-    auto* playlist_view = playlist_page_->playlist();
+    auto* playlist_view = currentPlyalistPage()->playlist();
     const auto count = playlist_view->model()->rowCount();
     if (count == 0) {
         stopPlayedClicked();
