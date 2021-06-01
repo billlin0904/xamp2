@@ -87,15 +87,7 @@ public:
 
     void Reset() noexcept;
 
-	static AudioFormat MakeFloatFormat(AudioFormat const & source_format) noexcept {
-        return AudioFormat{
-        	DataFormat::FORMAT_PCM,
-        	source_format.GetChannels(),
-        	ByteFormat::FLOAT32,
-			source_format.GetSampleRate(),
-        	PackedFormat::INTERLEAVED
-        };
-	}
+    static AudioFormat ToFloatFormat(AudioFormat const& source_format) noexcept;
 
 private:
     XAMP_BASE_API friend bool operator==(const AudioFormat& format, const AudioFormat& other) noexcept;

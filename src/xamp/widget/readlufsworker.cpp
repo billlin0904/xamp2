@@ -25,7 +25,7 @@ void ReadLufsWorker::addEntity(PlayListEntity const& entity) {
 	const auto is_dsd_file = TestDsdFileFormatStd(entity.file_path.toStdWString());
 	auto file_stream = MakeStream(entity.file_ext.toStdWString());
 
-	// DSD格式無法讀取任何訊息, 故需要轉換為PCM格式.
+	// DSD嚙賣式嚙盤嚙糊讀嚙踝蕭嚙踝蕭嚙確嚙踝蕭, 嚙瘦嚙豎要嚙賞換嚙踝蕭PCM嚙賣式.
 	if (auto* stream = dynamic_cast<DsdStream*>(file_stream.get())) {
 		if (is_dsd_file) {
 			stream->SetDSDMode(DsdModes::DSD_MODE_DSD2PCM);
@@ -39,7 +39,7 @@ void ReadLufsWorker::addEntity(PlayListEntity const& entity) {
     }
 
 	const auto source_format = file_stream->GetFormat();
-	const auto input_format = AudioFormat::MakeFloatFormat(source_format);
+	const auto input_format = AudioFormat::ToFloatFormat(source_format);
 
 	LoudnessScanner scanner(input_format.GetSampleRate());
 

@@ -17,20 +17,19 @@ using xamp::base::LruCache;
 using xamp::base::AudioFormat;
 using xamp::stream::WaveFileWriter;
 
-class XAMP_STREAM_API PadcastFileCacheCallback : public std::enable_shared_from_this<PadcastFileCacheCallback> {
+class XAMP_STREAM_API PadcastFileCache : public std::enable_shared_from_this<PadcastFileCache> {
 public:
-	explicit PadcastFileCacheCallback(std::string const& cache_id)
+	explicit PadcastFileCache(std::string const& cache_id)
 		: is_completed_(false)
 		, cache_id_(cache_id) {
 		auto file_name = std::tmpnam(nullptr) + std::string(".m4a");
-		auto tmp_dir_path{
-			std::filesystem::temp_directory_path() /= file_name };
+		auto tmp_dir_path =	std::filesystem::temp_directory_path();
+		tmp_dir_path /= file_name;
 		path_ = tmp_dir_path;
-		//tempfile_.Open(path_, AudioFormat::PCM48Khz);
 		file_.open(path_, std::ios::binary);
 	}
 
-	virtual ~PadcastFileCacheCallback() {
+	virtual ~PadcastFileCache() {
 		try {
 			std::filesystem::remove(path_);
 		} catch (...) {	
@@ -38,12 +37,10 @@ public:
 	}
 	
 	void Write(void const* buf, size_t buf_size) {
-		//tempfile_.Write(buf, buf_size);
 		file_.write(static_cast<const char*>(buf), buf_size);
 	}
 
 	void Close() {
-		//tempfile_.Close();
 		file_.close();
 		is_completed_ = true;
 	}
@@ -56,27 +53,61 @@ public:
 		return is_completed_;
 	}
 
+	[[nodiscard]] std::string GetCacheID() {
+		return cache_id_;
+	}
 private:
 	bool is_completed_;
 	std::filesystem::path path_;
 	std::string cache_id_;
-	//WaveFileWriter tempfile_;
 	std::ofstream file_;
 };
 
-class XAMP_STREAM_API PodcastFileCache {
+class XAMP_STREAM_API PodcastFileCacheManager {
 public:
-	std::shared_ptr<PadcastFileCacheCallback> GetOrAdd(std::string const& cache_id) {
+	friend class Singleton<PodcastFileCacheManager>;
+
+	XAMP_DISABLE_COPY(PodcastFileCacheManager)
+	
+	std::shared_ptr<PadcastFileCache> GetOrAdd(std::string const& cache_id) {
 		auto cache = cache_.Find(cache_id);
 		if (!cache) {
-			cache_.AddOrUpdate(cache_id, std::make_shared<PadcastFileCacheCallback>(cache_id));
+			cache_.AddOrUpdate(cache_id, std::make_shared<PadcastFileCache>(cache_id));
 			cache = cache_.Find(cache_id);
 		}
 		return (*cache)->shared_from_this();
 	}
+
+	void Remove(std::string const& cache_id) {
+		cache_.Erase(cache_id);
+	}
+
+	void Remove(std::shared_ptr<PadcastFileCache> const & file_cache) {
+		Remove(file_cache->GetCacheID());
+	}
+
+	void Load(std::filesystem::path const& path) {
+		constexpr auto options = (
+			std::filesystem::directory_options::follow_directory_symlink |
+			std::filesystem::directory_options::skip_permission_denied
+			);
+
+		for (auto const& file_or_dir 
+			: std::filesystem::recursive_directory_iterator(std::filesystem::absolute(path), options)) {
+		}
+	}
+
+	static std::string ToCacheID(std::filesystem::path const& file_path) {
+		std::filesystem::path path(file_path);
+		auto dot_pos = path.filename().string().find(".");
+		auto cache_id = path.filename().string().substr(0, dot_pos);
+		return cache_id;
+	}
 	
 private:
-	LruCache<std::string, std::shared_ptr<PadcastFileCacheCallback>> cache_;
+	PodcastFileCacheManager() = default;
+	
+	LruCache<std::string, std::shared_ptr<PadcastFileCache>> cache_;
 };
 
 }

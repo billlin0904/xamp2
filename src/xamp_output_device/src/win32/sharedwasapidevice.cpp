@@ -96,7 +96,9 @@ SharedWasapiDevice::~SharedWasapiDevice() {
 }
 
 void SharedWasapiDevice::UnRegisterDeviceVolumeChange() {
-	endpoint_volume_->UnregisterControlChangeNotify(device_volume_notification_);
+	if (endpoint_volume_ != nullptr) {
+		endpoint_volume_->UnregisterControlChangeNotify(device_volume_notification_);
+	}
 }
 
 void SharedWasapiDevice::RegisterDeviceVolumeChange() {

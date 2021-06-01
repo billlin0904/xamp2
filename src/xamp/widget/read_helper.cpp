@@ -35,7 +35,7 @@ static double ReadProcess(std::wstring const& file_path,
 	const auto is_dsd_file = TestDsdFileFormatStd(file_path);
 	auto file_stream = MakeStream(file_ext);
 
-	// DSD格式無法讀取任何訊息, 故需要轉換為PCM格式.
+	// DSD嚙賣式嚙盤嚙糊讀嚙踝蕭嚙踝蕭嚙確嚙踝蕭, 嚙瘦嚙豎要嚙賞換嚙踝蕭PCM嚙賣式.
 	if (auto* stream = dynamic_cast<DsdStream*>(file_stream.get())) {
 		if (is_dsd_file) {
 			stream->SetDSDMode(DsdModes::DSD_MODE_DSD2PCM);
@@ -45,7 +45,7 @@ static double ReadProcess(std::wstring const& file_path,
 	file_stream->OpenFile(file_path);
 
 	const auto source_format = file_stream->GetFormat();
-	const AudioFormat input_format = AudioFormat::MakeFloatFormat(source_format);
+	const AudioFormat input_format = AudioFormat::ToFloatFormat(source_format);
 
 	auto isamples = MakeBuffer<float>(
 		1024 + kReadSampleSize * input_format.GetChannels());

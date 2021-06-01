@@ -52,22 +52,16 @@ public:
             XAMP_NO_DEFAULT;
         }
 
+FlushFileCache:
         file_.Close();
-        cache_callback_.reset();
+        file_cache_.reset();
 
         auto use_filemap = file_path.find(L"https") == std::string::npos
     	|| file_path.find(L"http") == std::string::npos;
     	if (use_filemap) {            
             file_.Open(file_path);
     	} else {
-            auto file_cache =
-                Singleton<PodcastFileCache>::GetInstance().GetOrAdd(String::ToString(file_path));
-    		if (file_cache->IsCompleted()) {
-                file_.Open(file_cache->GetFilePath());
-                use_filemap = true;
-    		} else {
-                cache_callback_ = file_cache;
-    		}
+            InitFileCache(file_path, use_filemap);
     	}
 
         if (mode_ == DsdModes::DSD_MODE_PCM) {
@@ -91,7 +85,7 @@ public:
                 stream_.reset(BASS.BASS_StreamCreateURL(
                     url,
                     0,   
-                    flags | BASS_STREAM_DECODE | BASS_UNICODE | BASS_STREAM_STATUS /*| BASS_STREAM_BLOCK*/,
+                    flags | BASS_STREAM_DECODE | BASS_UNICODE | BASS_STREAM_STATUS,
                     &BassFileStreamImpl::DownloadProc,
                     this));
 #endif
@@ -116,11 +110,15 @@ public:
             throw BassException();
         }
 
-        XAMP_LOG_DEBUG("Stream running in {}", EnumToString(mode_));
-
         info_ = BASS_CHANNELINFO{};
         BassIfFailedThrow(BASS.BASS_ChannelGetInfo(stream_.get(), &info_));
 
+        if (GetDuration() < 1.0 && file_cache_->IsCompleted()) {
+            Singleton<PodcastFileCacheManager>::GetInstance().Remove(file_cache_);
+            file_cache_.reset();
+            goto FlushFileCache;
+        }
+    	
         if (GetFormat().GetChannels() == kMaxChannel) {
             return;
         }
@@ -153,7 +151,7 @@ public:
         auto* impl = reinterpret_cast<BassFileStreamImpl*>(user);
     	if (!buffer) {
             XAMP_LOG_DEBUG("Downloading 100% completed!");
-            impl->cache_callback_->Close();
+            impl->file_cache_->Close();
             return;
     	}
         if (length == 0) {
@@ -163,7 +161,7 @@ public:
     	} else {                      
             impl->download_size_ += length;
             XAMP_LOG_DEBUG("Downloading {}% {}", impl->GetReadProgress(), String::FormatBytes(impl->download_size_));
-            impl->cache_callback_->Write(buffer, length);
+            impl->file_cache_->Write(buffer, length);
         }
     }
 
@@ -173,7 +171,7 @@ public:
         mode_ = DsdModes::DSD_MODE_PCM;
         info_ = BASS_CHANNELINFO{};
         download_size_ = 0;
-        cache_callback_.reset();
+        file_cache_.reset();
     }
 
     [[nodiscard]] bool IsDsdFile() const noexcept {
@@ -257,6 +255,19 @@ public:
         return GetDsdSampleRate() / kPcmSampleRate441;
     }
 private:
+    void InitFileCache(std::wstring const& file_path, bool& use_filemap) {
+        auto cache_id = PodcastFileCacheManager::ToCacheID(file_path);
+        auto file_cache =
+            Singleton<PodcastFileCacheManager>::GetInstance().GetOrAdd(cache_id);
+        if (file_cache->IsCompleted()) {
+            file_.Open(file_cache->GetFilePath());
+            use_filemap = true;
+        }
+        else {
+            file_cache_ = file_cache;
+        }
+    }
+	
     XAMP_ALWAYS_INLINE HSTREAM GetHStream() const {
         if (mix_stream_.is_valid()) {
             return mix_stream_.get();
@@ -278,7 +289,7 @@ private:
     BassStreamHandle mix_stream_;
     BASS_CHANNELINFO info_;
     MemoryMappedFile file_;
-    std::shared_ptr<PadcastFileCacheCallback> cache_callback_;
+    std::shared_ptr<PadcastFileCache> file_cache_;
 };
 
 BassFileStream::BassFileStream()
