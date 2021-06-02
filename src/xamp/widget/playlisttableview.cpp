@@ -93,7 +93,7 @@ static std::pair<std::string, std::vector<Metadata>> parsePodcastXML(QString con
             image_url = url_value;
 		}
 	}
-
+    size_t i = 1;
 	for (auto* item = channel->first_node("item") ; item; item = item->next_sibling("item")) {
         Metadata metadata;
         for (auto* node = item->first_node(); node; node = node->next_sibling()) {
@@ -101,6 +101,7 @@ static std::pair<std::string, std::vector<Metadata>> parsePodcastXML(QString con
             std::string value(node->value(), node->value_size());
             if (name == "title") {
                 metadata.title = parseCDATA(node);
+                metadata.track = i++;
             }
             else if (name == "dc:creator") {
                 metadata.artist = parseCDATA(node);
