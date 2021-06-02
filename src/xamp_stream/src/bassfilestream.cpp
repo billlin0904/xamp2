@@ -56,12 +56,13 @@ FlushFileCache:
         file_.Close();
         file_cache_.reset();
 
+        std::string cache_id;
         auto use_filemap = file_path.find(L"https") == std::string::npos
     	|| file_path.find(L"http") == std::string::npos;
     	if (use_filemap) {            
             file_.Open(file_path);
     	} else {
-            InitFileCache(file_path, use_filemap);
+            cache_id = InitFileCache(file_path, use_filemap);
     	}
 
         if (mode_ == DsdModes::DSD_MODE_PCM) {
@@ -79,7 +80,7 @@ FlushFileCache:
                     0,
                     flags | BASS_STREAM_DECODE | BASS_STREAM_STATUS,
                     &BassFileStreamImpl::DownloadProc,
-                    nullptr));
+                    this));
 #else
                 auto url = const_cast<wchar_t*>(file_path.c_str());
                 stream_.reset(BASS.BASS_StreamCreateURL(
@@ -113,12 +114,15 @@ FlushFileCache:
         info_ = BASS_CHANNELINFO{};
         BassIfFailedThrow(BASS.BASS_ChannelGetInfo(stream_.get(), &info_));
 
-        if (GetDuration() < 1.0 && file_cache_->IsCompleted()) {
-            Singleton<PodcastFileCacheManager>::GetInstance().Remove(file_cache_);
-            file_cache_.reset();
-            goto FlushFileCache;
+        if (use_filemap) {
+            auto file_duration = GetDuration();
+            if (file_duration < 1.0) {
+                Singleton<PodcastFileCacheManager>::GetInstance().Remove(cache_id);
+                file_cache_.reset();
+                goto FlushFileCache;
+            }
         }
-    	
+
         if (GetFormat().GetChannels() == kMaxChannel) {
             return;
         }
@@ -255,17 +259,18 @@ FlushFileCache:
         return GetDsdSampleRate() / kPcmSampleRate441;
     }
 private:
-    void InitFileCache(std::wstring const& file_path, bool& use_filemap) {
+    std::string InitFileCache(std::wstring const& file_path, bool& use_filemap) {
         auto cache_id = PodcastFileCacheManager::ToCacheID(file_path);
         auto file_cache =
             Singleton<PodcastFileCacheManager>::GetInstance().GetOrAdd(cache_id);
         if (file_cache->IsCompleted()) {
-            file_.Open(file_cache->GetFilePath());
+            file_.Open(file_cache->GetFilePath().wstring());
             use_filemap = true;
         }
         else {
             file_cache_ = file_cache;
         }
+        return cache_id;
     }
 	
     XAMP_ALWAYS_INLINE HSTREAM GetHStream() const {

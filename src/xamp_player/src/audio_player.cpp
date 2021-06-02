@@ -203,8 +203,8 @@ void AudioPlayer::OpenStream(std::filesystem::path const& file_path, DeviceInfo 
             dsd_speed_ = std::nullopt;
         }        
     }
-    stream_duration_ = stream_->GetDuration();   
-    XAMP_LOG_DEBUG("Open stream type: {} {}.", stream_->GetDescription(), dsd_mode_);
+    stream_duration_ = stream_->GetDuration();
+    XAMP_LOG_DEBUG("Open stream type: {} {} duration:{}.", stream_->GetDescription(), dsd_mode_, stream_duration_.load());
 }
 
 void AudioPlayer::SetState(const PlayerState play_state) {
