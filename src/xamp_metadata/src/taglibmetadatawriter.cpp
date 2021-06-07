@@ -10,7 +10,6 @@ namespace xamp::metadata {
 class TaglibMetadataWriter::TaglibMetadataWriterImpl {
 public:
 	[[nodiscard]] bool IsFileReadOnly(Path const & path) const {
-		namespace Fs = std::filesystem;
 		return (Fs::status(path).permissions() & Fs::perms::owner_read) != Fs::perms::none;		
 	}
 

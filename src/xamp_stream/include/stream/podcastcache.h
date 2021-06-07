@@ -23,7 +23,7 @@ public:
 		: is_completed_(false)
 		, cache_id_(cache_id) {
 		auto file_name = std::tmpnam(nullptr) + std::string(".m4a");
-		auto tmp_dir_path =	std::filesystem::temp_directory_path();
+		auto tmp_dir_path =	Fs::temp_directory_path();
 		tmp_dir_path /= file_name;
 		path_ = tmp_dir_path;
 		file_.open(path_, std::ios::binary);
@@ -45,7 +45,7 @@ public:
 		is_completed_ = true;
 	}
 
-	[[nodiscard]] std::filesystem::path GetFilePath() const {
+	[[nodiscard]] Path GetFilePath() const {
 		return path_;
 	}
 
@@ -58,7 +58,7 @@ public:
 	}
 private:
 	bool is_completed_;
-	std::filesystem::path path_;
+	Path path_;
 	std::string cache_id_;
 	std::ofstream file_;
 };
@@ -86,19 +86,14 @@ public:
 		Remove(file_cache->GetCacheID());
 	}
 
-	void Load(std::filesystem::path const& path) {
-		constexpr auto options = (
-			std::filesystem::directory_options::follow_directory_symlink |
-			std::filesystem::directory_options::skip_permission_denied
-			);
-
+	void Load(Path const& path) {
 		for (auto const& file_or_dir 
-			: std::filesystem::recursive_directory_iterator(std::filesystem::absolute(path), options)) {
+			: RecursiveDirectoryIterator(Fs::absolute(path), kIteratorOptions)) {
 		}
 	}
 
-	static std::string ToCacheID(std::filesystem::path const& file_path) {
-		std::filesystem::path path(file_path);
+	static std::string ToCacheID(Path const& file_path) {
+		Path path(file_path);
 		auto dot_pos = path.filename().string().find(".");
 		auto cache_id = path.filename().string().substr(0, dot_pos);
 		return cache_id;

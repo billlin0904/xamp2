@@ -4,18 +4,12 @@
 namespace xamp::metadata {
 	
 void WalkPath(Path const & path, MetadataExtractAdapter* adapter, MetadataReader *reader) {
-    using namespace std::filesystem;
-    constexpr auto options = (
-        directory_options::follow_directory_symlink |
-        directory_options::skip_permission_denied
-        );
-
 	adapter->OnWalkFirst();
 	
-    if (is_directory(path)) {
+    if (Fs::is_directory(path)) {
         Path root_path;
 
-        for (auto const & file_or_dir : RecursiveDirectoryIterator(std::filesystem::absolute(path), options)) {
+        for (auto const & file_or_dir : RecursiveDirectoryIterator(Fs::absolute(path), kIteratorOptions)) {
             auto const & current_path = file_or_dir.path();
             if (root_path.empty()) {
                 root_path = current_path;
@@ -29,7 +23,7 @@ void WalkPath(Path const & path, MetadataExtractAdapter* adapter, MetadataReader
                 root_path = current_path;
             }
 
-            if (!is_directory(current_path)) {
+            if (!Fs::is_directory(current_path)) {
                 if (adapter->IsSupported(current_path)) {
                     adapter->OnWalk(path, reader->Extract(current_path));
                 }

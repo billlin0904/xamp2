@@ -30,10 +30,10 @@ private:
 #endif
 
 static void CreateLogsDir() {
-	const std::filesystem::path log_path("logs");
+	const Path log_path("logs");
 	
-	if (!std::filesystem::exists(log_path)) {
-        std::filesystem::create_directory(log_path);
+	if (!Fs::exists(log_path)) {
+        Fs::create_directory(log_path);
 	}
 }
 

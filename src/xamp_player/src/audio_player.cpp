@@ -121,7 +121,7 @@ void AudioPlayer::LoadDecoder() {
     }    
 }
 
-void AudioPlayer::Open(std::filesystem::path const& file_path) {
+void AudioPlayer::Open(Path const& file_path) {
     auto device = device_manager_.CreateDefaultDeviceType();
     device->ScanNewDevice();
     if (auto device_info = device->GetDefaultDeviceInfo()) {
@@ -131,7 +131,7 @@ void AudioPlayer::Open(std::filesystem::path const& file_path) {
     }
 }
 
-void AudioPlayer::Open(std::filesystem::path const& file_path, 
+void AudioPlayer::Open(Path const& file_path,
     const DeviceInfo& device_info,
     uint32_t target_sample_rate,
     AlignPtr<SampleRateConverter> converter) {
@@ -189,7 +189,7 @@ bool AudioPlayer::IsDSDFile() const {
     return is_dsd_file_;
 }
 
-void AudioPlayer::OpenStream(std::filesystem::path const& file_path, DeviceInfo const & device_info) {
+void AudioPlayer::OpenStream(Path const& file_path, DeviceInfo const & device_info) {
     auto [dsd_mode, stream] = audio_util::MakeFileStream(file_path, device_info, enable_sample_converter_);
     stream_ = std::move(stream);
     dsd_mode_ = dsd_mode;

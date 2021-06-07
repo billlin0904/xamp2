@@ -19,7 +19,7 @@ class XAMP_STREAM_API WaveFileWriter final : public SampleWriter {
 public:
 	WaveFileWriter() = default;
 	
-	void Open(std::filesystem::path const& file_path, AudioFormat const& format);
+	void Open(Path const& file_path, AudioFormat const& format);
 
 	XAMP_DISABLE_COPY(WaveFileWriter)
 

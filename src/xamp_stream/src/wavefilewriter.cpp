@@ -50,7 +50,7 @@ void WaveFileWriter::Close() {
 	data_length_ = 0;
 }
 
-void WaveFileWriter::Open(std::filesystem::path const& file_path, AudioFormat const& format) {
+void WaveFileWriter::Open(Path const& file_path, AudioFormat const& format) {
 	if (format.GetBitsPerSample() != 16 && format.GetBitsPerSample() != 24) {
 		throw NotSupportFormatException();
 	}

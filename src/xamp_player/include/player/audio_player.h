@@ -58,9 +58,9 @@ public:
 
     void Startup();
 
-    void Open(std::filesystem::path const& file_path);
+    void Open(Path const& file_path);
 
-    void Open(std::filesystem::path const& file_path,
+    void Open(Path const& file_path,
         const DeviceInfo& device_info,
         uint32_t target_sample_rate = 0,
         AlignPtr<SampleRateConverter> converter = nullptr);       
@@ -126,7 +126,7 @@ private:
     	
     void DoSeek(double stream_time);        
     	
-    void OpenStream(std::filesystem::path const& file_path, DeviceInfo const& device_info);
+    void OpenStream(Path const& file_path, DeviceInfo const& device_info);
 
     void CreateDevice(Uuid const& device_type_id, std::string const & device_id, bool open_always);
 

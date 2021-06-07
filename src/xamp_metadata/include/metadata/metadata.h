@@ -17,14 +17,8 @@
 #define XAMP_METADATA_API
 #endif
 
-#include <filesystem>
-
 namespace xamp::metadata {
     using namespace xamp::base;
-
-    using RecursiveDirectoryIterator = std::filesystem::recursive_directory_iterator;
-    using DirectoryIterator = std::filesystem::directory_iterator;
-    using Path = std::filesystem::path;
 
     class MetadataExtractAdapter;
     class MetadataReader;

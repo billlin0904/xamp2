@@ -8,6 +8,7 @@
 #include <cassert>
 #include <cstdint>
 #include <cstddef>
+#include <filesystem>
 
 #include <new>
 
@@ -138,4 +139,15 @@ inline constexpr ptrdiff_t kLoopUnRollingIntCount{ 4 };
 /// Default thread pool affinity core.
 /// </summary>
 inline constexpr int32_t kDefaultAffinityCpuCore{ 0 };
+
+namespace Fs = std::filesystem;
+using RecursiveDirectoryIterator = Fs::recursive_directory_iterator;
+using DirectoryIterator = Fs::directory_iterator;
+using Path = Fs::path;
+
+inline constexpr auto kIteratorOptions = (
+	std::filesystem::directory_options::follow_directory_symlink |
+	std::filesystem::directory_options::skip_permission_denied
+	);
+	
 }

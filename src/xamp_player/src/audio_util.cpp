@@ -49,7 +49,7 @@ DsdModes SetStreamDsdMode(AlignPtr<FileStream>& stream, bool is_dsd_file, const 
     return dsd_mode;
 }
 
-std::pair<DsdModes, AlignPtr<FileStream>> MakeFileStream(std::filesystem::path const& path,
+std::pair<DsdModes, AlignPtr<FileStream>> MakeFileStream(Path const& path,
     DeviceInfo const& device_info,
     bool enable_sample_converter) {
     auto const file_path = path.wstring();
