@@ -150,6 +150,7 @@ static PlayListEntity getEntity(const QModelIndex& index) {
     entity.lufs = getIndexValue(index, PLAYLIST_LUFS).toDouble();
     entity.true_peak = getIndexValue(index, PLAYLIST_TRUE_PEAK).toDouble();
     entity.timestamp = getIndexValue(index, PLAYLIST_TIMESTAMP).toULongLong();
+    entity.playlist_music_id = getIndexValue(index, PLAYLIST_PLAYLIST_MUSIC_ID).toInt();
     return entity;
 }
 
@@ -196,7 +197,8 @@ void PlayListTableView::refresh() {
     musics.parentPath,
     musics.dateTime,
     musics.lufs,
-    musics.true_peak
+    musics.true_peak,
+	playlistMusics.playlistMusicsId
     FROM
     playlistMusics
     JOIN playlist ON playlist.playlistId = playlistMusics.playlistId
@@ -239,6 +241,7 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
     model_.setHeaderData(PLAYLIST_LUFS, Qt::Horizontal, tr("LRUS"));
     model_.setHeaderData(PLAYLIST_TRUE_PEAK, Qt::Horizontal, tr("TP"));
     model_.setHeaderData(PLAYLIST_TIMESTAMP, Qt::Horizontal, tr("Date"));
+    model_.setHeaderData(PLAYLIST_FINGER_PRINT, Qt::Horizontal, tr("Fingerprint"));
 
     hideColumn(PLAYLIST_MUSIC_ID);
     hideColumn(PLAYLIST_FILEPATH);
@@ -258,6 +261,7 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
     hideColumn(PLAYLIST_TIMESTAMP);
     hideColumn(PLAYLIST_RATING);
     hideColumn(PLAYLIST_DURATION);
+    hideColumn(PLAYLIST_PLAYLIST_MUSIC_ID);
 }
 
 void PlayListTableView::initial() {
@@ -755,7 +759,7 @@ void PlayListTableView::setNowPlaying(const QModelIndex& index, bool is_scroll_t
         QTableView::scrollTo(play_index_, PositionAtCenter);
     }
     const auto entity = getEntity(play_index_);
-    Singleton<Database>::GetInstance().setNowPlaying(playlist_id_, entity.music_id);
+    Singleton<Database>::GetInstance().setNowPlaying(playlist_id_, entity.playlist_music_id);
     refresh();
 }
 

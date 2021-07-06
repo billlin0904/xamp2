@@ -46,6 +46,8 @@ void MusicBrainzClient::searchBy(const FingerprintInfo& fingerprint) {
             auto id = result.FindMember("id");
             if (id != result.MemberEnd()) {
                 acoust_id = toQString(id);
+                Singleton<Database>::GetInstance().updateMusicFingerprint(fingerprint.music_id, acoust_id);
+                qDebug() << "Found acoust_id:" << acoust_id;
             }
             auto recordings = result.FindMember("recordings");
             if (recordings != result.MemberEnd()) {

@@ -16,6 +16,7 @@
 struct PlayListEntity final {
     bool playing{false};
     int32_t music_id{0};
+    int32_t playlist_music_id{0};
     int32_t album_id{0};
     int32_t artist_id{0};
     uint32_t track{0};

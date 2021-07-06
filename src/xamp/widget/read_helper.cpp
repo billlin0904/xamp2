@@ -2,6 +2,7 @@
 #include <utility>
 #include <base/align_ptr.h>
 #include <base/str_utilts.h>
+#include <base/dataconverter.h>
 
 #include <stream/compressor.h>
 #include <stream/wavefilewriter.h>
@@ -191,15 +192,21 @@ std::tuple<double, std::vector<uint8_t>> ReadFingerprint(std::wstring const& fil
 	std::function<bool(uint32_t)> const& progress) {
 	Chromaprint chromaprint;
 
+	std::vector<int16_t> osamples;
+	AudioFormat convert_format;
+
 	auto duration = ReadProcess(file_path, file_ext, progress,
-		[&chromaprint](AudioFormat const& input_format)
+		[&chromaprint, &convert_format, &osamples](AudioFormat const& input_format)
 		{
-			chromaprint.Start(input_format.GetSampleRate(),
-				input_format.GetChannels(),
-				kReadSampleSize);
-		}, [&chromaprint](auto const* samples, auto sample_size)
+			convert_format = input_format;
+			chromaprint.Start(input_format.GetSampleRate(), input_format.GetChannels());
+		}, [&chromaprint, &convert_format, &osamples](auto const* samples, auto sample_size)
 		{
-			chromaprint.Feed(samples, sample_size * kMaxChannel);
+			auto ctx = MakeConvert(convert_format, convert_format, sample_size / convert_format.GetChannels());
+			osamples.resize(sample_size);
+			DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>
+				::ConvertToInt16(osamples.data(), samples, ctx);
+			chromaprint.Feed(osamples.data(), sample_size);
 		}, kFingerprintDuration);
 
 	(void)chromaprint.Finish();

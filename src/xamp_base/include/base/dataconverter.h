@@ -96,6 +96,7 @@ XAMP_BASE_API AudioConvertContext MakeConvert(AudioFormat const& in_format, Audi
 
 template <typename T>
 void ConvertHelper(T* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, int32_t float_scale, AudioConvertContext const& context) noexcept {
+#if 0
 	static_assert(kLoopUnRollingIntCount == 4);
 
 	const auto* end_input = input + static_cast<ptrdiff_t>(context.convert_size) * context.input_format.GetChannels();
@@ -124,6 +125,14 @@ void ConvertHelper(T* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, in
 		_output[3] = static_cast<T>(_input[3] * float_scale);
 		_input += kLoopUnRollingIntCount;
 		_output += kLoopUnRollingIntCount;
+	}
+#endif
+
+	const auto* end_input = input + static_cast<ptrdiff_t>(context.convert_size) * context.input_format.GetChannels();
+	while (input != end_input) {
+		*output = static_cast<T>(*input * float_scale);
+		++input;
+		++output;
 	}
 }
 

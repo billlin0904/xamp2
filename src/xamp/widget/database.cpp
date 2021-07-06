@@ -214,21 +214,21 @@ void Database::clearNowPlaying(int32_t playlist_id) {
     IfFailureThrow1(query);
 }
 
-void Database::clearNowPlaying(int32_t playlist_id, int32_t music_id) {
+void Database::clearNowPlaying(int32_t playlist_id, int32_t playlist_music_id) {
 	QSqlQuery query;
-	query.prepare(Q_UTF8("UPDATE playlistMusics SET playing = 0 WHERE (playlistId = :playlistId AND musicId = :musicId)"));
+	query.prepare(Q_UTF8("UPDATE playlistMusics SET playing = 0 WHERE (playlistId = :playlistId AND playlistMusicsId = :playlistMusicsId)"));
 	query.bindValue(Q_UTF8(":playlistId"), playlist_id);
-	query.bindValue(Q_UTF8(":musicId"), music_id);
+	query.bindValue(Q_UTF8(":playlistMusicsId"), playlist_music_id);
 	IfFailureThrow1(query);
 }
 
-void Database::setNowPlaying(int32_t playlist_id, int32_t music_id) {
+void Database::setNowPlaying(int32_t playlist_id, int32_t playlist_music_id) {
     clearNowPlaying(playlist_id);
 
     QSqlQuery query;
-    query.prepare(Q_UTF8("UPDATE playlistMusics SET playing = 1 WHERE (playlistId = :playlistId AND musicId = :musicId)"));
+    query.prepare(Q_UTF8("UPDATE playlistMusics SET playing = 1 WHERE (playlistId = :playlistId AND playlistMusicsId = :playlistMusicsId)"));
     query.bindValue(Q_UTF8(":playlistId"), playlist_id);
-    query.bindValue(Q_UTF8(":musicId"), music_id);
+    query.bindValue(Q_UTF8(":playlistMusicsId"), playlist_music_id);
     IfFailureThrow1(query);
 }
 

@@ -61,7 +61,7 @@ public:
 		: algorithm_(algorithm) {
 	}
 
-	void Start(uint32_t sample_rate, uint32_t num_channels, uint32_t num_buffer_frames) {
+	void Start(uint32_t sample_rate, uint32_t num_channels) {
 		handle_.reset(CPDLL.chromaprint_new(algorithm_));
 		CPDLL.chromaprint_start(handle_.get(),
 			static_cast<int32_t>(sample_rate),
@@ -70,15 +70,6 @@ public:
 
 	int32_t Feed(int16_t const* data, uint32_t size) const {
 		return CPDLL.chromaprint_feed(handle_.get(), data, static_cast<int32_t>(size));
-	}
-
-	void Feed(float const* data, uint32_t size) const {
-		for (uint32_t i = 0; i < size ; ++i) {
-			auto output = static_cast<int16_t>(kFloat16Scale * data[i]);
-			if (!Feed(&output, 1)) {
-				throw LibrarySpecException("chromaprint_feed return failed.");
-			}
-		}
 	}
 
 	int32_t Finish() const {
@@ -149,15 +140,11 @@ void Chromaprint::LoadChromaprintLib() {
 	(void) Singleton<ChromaprintLib>::GetInstance();
 }
 
-void Chromaprint::Start(uint32_t sample_rate, uint32_t num_channels, uint32_t num_buffer_frames) {
-	return impl_->Start(sample_rate, num_channels, num_buffer_frames);
+void Chromaprint::Start(uint32_t sample_rate, uint32_t num_channels) {
+	return impl_->Start(sample_rate, num_channels);
 }
 
 int32_t Chromaprint::Feed(int16_t const * data, uint32_t size) const {
-	return impl_->Feed(data, size);
-}
-
-void Chromaprint::Feed(float const* data, uint32_t size) const {
 	return impl_->Feed(data, size);
 }
 

@@ -11,6 +11,7 @@
 #include <widget/http.h>
 
 struct FingerprintInfo {
+	int32_t music_id{ 0 };
 	int32_t artist_id{ 0 };
 	int32_t duration{ 0 };
 	QString fingerprint;

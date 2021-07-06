@@ -1407,15 +1407,16 @@ void Xamp::readFingerprint(const QModelIndex&, const PlayListEntity& item) {
 
         fingerprint.append(reinterpret_cast<char const *>(fingerprint_result.data()),
                            static_cast<int32_t>(fingerprint_result.size()));
-        Singleton<Database>::GetInstance().updateMusicFingerprint(item.music_id, fingerprint_info.fingerprint);
         fingerprint_info.duration = static_cast<int32_t>(duration);
     } catch (Exception const& e) {
         Toast::showTip(Q_UTF8(e.what()), this);
         return;
     }
 
+    fingerprint_info.music_id = item.music_id;
     fingerprint_info.artist_id = item.artist_id;
     fingerprint_info.fingerprint = QString::fromLatin1(fingerprint);
+    XAMP_LOG_DEBUG("music id:{} fingerprint:{}", item.music_id, fingerprint_info.fingerprint.toUtf8().toStdString());
     mbc_.searchBy(fingerprint_info);
 }
 
