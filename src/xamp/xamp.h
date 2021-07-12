@@ -149,7 +149,7 @@ private:
 
 	void setButtonState();
 
-	void onFileChanged(const QString& file_path);
+    void onFileChanged(const QString& file_path) override;
 
 	void extractFile(const QString &file_path);
 
@@ -165,15 +165,15 @@ private:
 	PlyalistPage* podcast_page_;
 	PlyalistPage* current_playlist_page_;
 	AlbumArtistPage* album_artist_page_;
-	ArtistInfoPage* artist_info_page_;
+    ArtistInfoPage* artist_info_page_;
+    QMenu* tray_icon_menu_;
+    QSystemTrayIcon* tray_icon_;
+    PlaybackHistoryPage* playback_history_page_;
 	QStack<int32_t> stack_page_id_;	    	
 	MusicBrainzClient mbc_;
 	DiscogsClient discogs_;
 	MusixmatchClient musixmatcher_;
-	QMenu* tray_icon_menu_;
-	QSystemTrayIcon* tray_icon_;
-	PlaybackHistoryPage* playback_history_page_;
 	std::shared_ptr<UIPlayerStateAdapter> state_adapter_;
 	std::shared_ptr<AudioPlayer> player_;
-    Ui::XampWindow ui_{};
+    Ui::XampWindow ui_;
 };

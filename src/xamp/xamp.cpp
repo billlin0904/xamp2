@@ -19,7 +19,7 @@
 #include <player/audio_util.h>
 
 #include <widget/albumview.h>
-#include <widget/LyricsShowWidget.h>
+#include <widget/lyricsshowwidget.h>
 #include <widget/playlisttableview.h>
 #include <widget/albumartistpage.h>
 #include <widget/lrcpage.h>
@@ -667,10 +667,10 @@ void Xamp::applyTheme(QColor color) {
     }
 
     if (player_->GetState() == PlayerState::PLAYER_STATE_PAUSED) {
-        ThemeManager::instance().setPlayOrPauseButton(ui_, true);
+        ThemeManager::instance().setPlayOrPauseButton(ui_, false);
     }
     else {
-        ThemeManager::instance().setPlayOrPauseButton(ui_, false);
+        ThemeManager::instance().setPlayOrPauseButton(ui_, true);
     }
 
     ThemeManager::instance().setBackgroundColor(ui_, color);
@@ -852,8 +852,8 @@ void Xamp::resetSeekPosValue() {
 
 void Xamp::processMeatadata(const std::vector<Metadata>& medata) const {    
     MetadataExtractAdapter::processMetadata(medata);
-    emit album_artist_page_->album()->refreshOnece();
-    emit album_artist_page_->artist()->refreshOnece();    
+    album_artist_page_->album()->refreshOnece();
+    album_artist_page_->artist()->refreshOnece();
 }
 
 void Xamp::playMusic(const MusicEntity& item) {
@@ -904,7 +904,7 @@ void Xamp::playMusic(const MusicEntity& item) {
 }
 
 void Xamp::updateUI(const MusicEntity& item, const PlaybackFormat& playback_format, bool open_done) {
-    current_playlist_page_ = currentPlyalistPage();
+    auto* cur_page = currentPlyalistPage();
 	
     ThemeManager::instance().setPlayOrPauseButton(ui_, open_done);
 	
@@ -927,7 +927,7 @@ void Xamp::updateUI(const MusicEntity& item, const PlaybackFormat& playback_form
 
         ui_.seekSlider->setRange(0, static_cast<int32_t>(player_->GetDuration() * 1000));
         ui_.endPosLabel->setText(Time::msToString(player_->GetDuration()));
-        current_playlist_page_->format()->setText(format2String(playback_format, item.file_ext));
+        cur_page->format()->setText(format2String(playback_format, item.file_ext));
 
         artist_info_page_->setArtistId(item.artist,
             Singleton<Database>::GetInstance().getArtistCoverId(item.artist_id),
@@ -951,7 +951,7 @@ void Xamp::updateUI(const MusicEntity& item, const PlaybackFormat& playback_form
     ui_.titleLabel->setText(item.title);
     ui_.artistLabel->setText(item.artist);
 
-    current_playlist_page_->title()->setText(item.title);
+    cur_page->title()->setText(item.title);
 
     const QFileInfo file_info(item.file_path);
     const auto lrc_path = file_info.path()
@@ -976,9 +976,10 @@ void Xamp::updateUI(const MusicEntity& item, const PlaybackFormat& playback_form
 }
 
 PlyalistPage* Xamp::currentPlyalistPage() {
-	if (!current_playlist_page_) {
-        current_playlist_page_ = dynamic_cast<PlyalistPage*>(ui_.currentView->currentWidget());
-	}
+    current_playlist_page_ = dynamic_cast<PlyalistPage*>(ui_.currentView->currentWidget());
+    if (!current_playlist_page_) {
+        current_playlist_page_ = dynamic_cast<PlyalistPage*>(ui_.currentView->widget(1));
+    }
     return current_playlist_page_;
 }
 
@@ -1077,7 +1078,7 @@ void Xamp::onPlayerStateChanged(xamp::player::PlayerState play_state) {
         ui_.seekSlider->setValue(0);
         ui_.startPosLabel->setText(Time::msToString(0));
         playNextItem(1);
-        emit payNextMusic();
+        payNextMusic();
     }
 }
 
@@ -1462,6 +1463,7 @@ PlyalistPage* Xamp::newPlaylist(int32_t playlist_id) {
 void Xamp::addDropFileItem(const QUrl& url) {
     addItem(url.toLocalFile());
 }
+
 void Xamp::onFileChanged(const QString& file_path) {    
 	if (!QFile::exists(file_path)) {
         XAMP_LOG_DEBUG("File is removed: {}", file_path.toStdString());

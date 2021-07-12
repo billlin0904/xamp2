@@ -35,8 +35,4 @@ static double toDoubleTime(const QTime &time) {
 	return result.count() / 1000.0;
 }
 
-static QTime toQTime(const double stream_time) {
-	return QTime::fromString(Q_UTF8("00:") + msToString(stream_time));
-}
-
 }

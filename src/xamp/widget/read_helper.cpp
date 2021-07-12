@@ -149,7 +149,7 @@ void Export2WaveFile(std::wstring const& file_path,
 		WaveFileWriter file;
 		Compressor compressor;
 		ReadProcess(file_path, file_ext, progress,
-			[&file, &metadata, dest_file_path, &compressor](AudioFormat const& input_format) {
+            [&file, dest_file_path, &compressor](AudioFormat const& input_format) {
 				auto format = input_format;
 				format.SetByteFormat(ByteFormat::SINT24);
 				file.Open(dest_file_path, format);
@@ -196,7 +196,7 @@ std::tuple<double, std::vector<uint8_t>> ReadFingerprint(std::wstring const& fil
 	AudioFormat convert_format;
 
 	auto duration = ReadProcess(file_path, file_ext, progress,
-		[&chromaprint, &convert_format, &osamples](AudioFormat const& input_format)
+        [&chromaprint, &convert_format](AudioFormat const& input_format)
 		{
 			convert_format = input_format;
 			chromaprint.Start(input_format.GetSampleRate(), input_format.GetChannels());

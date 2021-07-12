@@ -9,7 +9,7 @@
 #include <widget/image_utiltis.h>
 #include <widget/vinylwidget.h>
 #include <widget/scrolllabel.h>
-#include <widget/LyricsShowWidget.h>
+#include <widget/lyricsshowwidget.h>
 #include <widget/str_utilts.h>
 #include <widget/spectrograph.h>
 #include <widget/lrcpage.h>

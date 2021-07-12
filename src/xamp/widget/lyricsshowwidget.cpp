@@ -8,7 +8,7 @@
 #include <widget/appsettings.h>
 #include <widget/actionmap.h>
 #include <widget/str_utilts.h>
-#include <widget/LyricsShowWidget.h>
+#include <widget/lyricsshowwidget.h>
 
 LyricsShowWidget::LyricsShowWidget(QWidget* parent) 
 	: WheelableWidget(false, parent)
@@ -142,7 +142,7 @@ void LyricsShowWidget::paintItemMask(QPainter* painter) {
 
 int32_t LyricsShowWidget::itemHeight() const {
     QFontMetrics metrics(lrc_font_);
-    return metrics.height() * 1.5;
+    return static_cast<int32_t>(metrics.height() * 1.5);
 }
 
 int32_t LyricsShowWidget::itemCount() const {

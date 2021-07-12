@@ -25,7 +25,6 @@ void ReadLufsWorker::addEntity(PlayListEntity const& entity) {
 	const auto is_dsd_file = TestDsdFileFormatStd(entity.file_path.toStdWString());
 	auto file_stream = MakeStream(entity.file_ext.toStdWString());
 
-	// DSD�榡�L�kŪ�����T��, �G�ݭn�ഫ��PCM�榡.
 	if (auto* stream = dynamic_cast<DsdStream*>(file_stream.get())) {
 		if (is_dsd_file) {
 			stream->SetDSDMode(DsdModes::DSD_MODE_DSD2PCM);
@@ -44,7 +43,6 @@ void ReadLufsWorker::addEntity(PlayListEntity const& entity) {
 	LoudnessScanner scanner(input_format.GetSampleRate());
 
 	auto isamples = MakeBuffer<float>(1024 + kReadSampleSize * input_format.GetChannels());
-	uint32_t num_samples = 0;
 
 	while (true) {
 		const auto read_size = file_stream->GetSamples(isamples.get(),

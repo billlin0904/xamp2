@@ -8,6 +8,7 @@
 #include <memory.h>
 #include <fstream>
 
+#include <base/singleton.h>
 #include <base/lrucache.h>
 #include <stream/wavefilewriter.h>
 

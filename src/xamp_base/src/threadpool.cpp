@@ -19,7 +19,7 @@ TaskScheduler::TaskScheduler(size_t max_thread, int32_t core)
 			shared_queues_.push_back(MakeAlign<TaskQueue>(max_thread));
 		}
 		for (size_t i = 0; i < max_thread_; ++i) {
-			AddThread(static_cast<int32_t>(i));
+            AddThread(i);
 		}
 	}
 	catch (...) {
@@ -113,7 +113,7 @@ std::optional<Task> TaskScheduler::TrySteal(size_t i) {
 	return std::nullopt;
 }
 
-void TaskScheduler::SetWorkerThreadName(int32_t i) {
+void TaskScheduler::SetWorkerThreadName(size_t i) {
 #ifdef XAMP_OS_MAC
 	// Sleep for set thread name.
 	std::this_thread::sleep_for(std::chrono::milliseconds(900));

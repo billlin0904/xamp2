@@ -84,6 +84,8 @@ private:
     std::atomic<double> stream_time_;
     mutable AudioObjectPropertyAddress audio_property_;
     AudioFormat format_;
+    std::mutex mutex_;
+    std::condition_variable stop_event_;
 };
 
 }

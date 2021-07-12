@@ -16,8 +16,6 @@ class LyricsShowWidget : public WheelableWidget {
 public:
 	explicit LyricsShowWidget(QWidget *parent = nullptr);
 
-    ~LyricsShowWidget() = default;
-
 	Q_DISABLE_COPY(LyricsShowWidget)
 
 	bool loadLrcFile(const QString &file_path);

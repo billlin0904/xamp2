@@ -98,7 +98,7 @@ public:
     size_t GetActiveThreadCount() const noexcept;
 
 private:
-    static void SetWorkerThreadName(int32_t i);
+    static void SetWorkerThreadName(size_t i);
 	
     std::optional<Task> TryPopPoolQueue();
 

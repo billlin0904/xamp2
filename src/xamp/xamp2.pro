@@ -33,6 +33,7 @@ OBJECTIVE_SOURCES += \
     widget/osx/osx.mm
 
 SOURCES += \
+    widget/lyricsshowwidget.cpp \
     widget/playbackhistorypage.cpp \
     widget/musicbrainzclient.cpp \
     widget/discogsclient.cpp \
@@ -49,7 +50,6 @@ SOURCES += \
     widget/framelesswindow.cpp \
     widget/lrcpage.cpp \
     widget/lrcparser.cpp \
-    widget/LyricsShowWidget.cpp \
     widget/metadataextractadapter.cpp \
     widget/pixmapcache.cpp \
     widget/playlistpage.cpp \
@@ -84,7 +84,7 @@ SOURCES += \
     xamp.cpp
 
 HEADERS += \
-    singleinstanceapplication.h \
+    widget/lyricsshowwidget.h \
     widget/osx/osx.h \
     widget/playbackhistorypage.h \
     widget/musicbrainzclient.h \
@@ -105,7 +105,6 @@ HEADERS += \
     widget/image_utiltis.h \
     widget/lrcpage.h \
     widget/lrcparser.h \
-    widget/LyricsShowWidget.h \
     widget/metadataextractadapter.h \
     widget/pixmapcache.h \
     widget/playlistpage.h \
@@ -135,6 +134,7 @@ HEADERS += \
     widget/directorywatcher.h \
     widget/readlufsworker.h \
     widget/musixmatchclient.h \
+    singleinstanceapplication.h \
     DarkStyle.h \
     thememanager.h \
     aboutdialog.h \

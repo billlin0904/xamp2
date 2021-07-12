@@ -319,6 +319,11 @@ bool CoreAudioDevice::IsStreamRunning() const noexcept {
 }
 
 void CoreAudioDevice::StopStream(bool /*wait_for_stop_stream*/) {
+    if (is_running_) {
+        is_running_ = false;
+        std::unique_lock<std::mutex> lock{mutex_};
+        stop_event_.wait(lock);
+    }
     CoreAudioThrowIfError(::AudioDeviceStop(device_id_, ioproc_id_));
     is_running_ = false;
 }
@@ -386,6 +391,13 @@ OSStatus CoreAudioDevice::OnAudioDeviceIOProc(AudioDeviceID,
                                               AudioTimeStamp const* outputTimeStamp,
                                               void *user_data) {
     auto device = static_cast<CoreAudioDevice*>(user_data);
+
+    if (!device->is_running_) {
+        std::unique_lock<std::mutex> lock{device->mutex_};
+        device->StopStream();
+        device->stop_event_.notify_one();
+        return noErr;
+    }
 
     double sample_time = 0.0;
     if ((outputTimeStamp->mFlags & kAudioTimeStampHostTimeValid) == 0) {
