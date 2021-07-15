@@ -532,9 +532,11 @@ void AudioPlayer::OnDeviceStateChange(DeviceState state, std::string const & dev
         case DeviceState::DEVICE_STATE_REMOVED:
             XAMP_LOG_DEBUG("Device removed device id:{}.", device_id);
             if (device_id == device_id_) {
-            	if (AudioDeviceManager::IsASIODevice(Uuid::FromString(device_id))) {
+                // TODO: In many system has more ASIO device.
+                if (AudioDeviceManager::IsASIODevice(device_type_->GetTypeId())) {
                     AudioDeviceManager::RemoveASIODriver();
-            	}
+                }
+                
                 state_adapter->OnDeviceChanged(DeviceState::DEVICE_STATE_REMOVED);
                 if (device_ != nullptr) {
                     device_->AbortStream();
