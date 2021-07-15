@@ -111,8 +111,8 @@ public:
     [[nodiscard]] bool IsSupported(Path const& path) const noexcept override {
         using namespace xamp::player::audio_util;
         const auto file_ext = String::ToLower(path.extension().string());
-        return audio_util::GetSupportFileExtensions().find(file_ext) !=
-               audio_util::GetSupportFileExtensions().end();
+        auto const& support_file_set = GetSupportFileExtensions();
+        return support_file_set.find(file_ext) != support_file_set.end();
     }
 
     XAMP_DISABLE_COPY(ExtractAdapterProxy)

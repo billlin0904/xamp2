@@ -3,6 +3,7 @@
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
+#if 0
 #pragma once
 
 #include <base/exception.h>
@@ -26,4 +27,4 @@ public:
 	} while (false)
 
 }
-
+#endif

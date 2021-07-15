@@ -7,7 +7,6 @@
 
 #include <stream/dsdstream.h>
 #include <stream/bassfilestream.h>
-#include <stream/avfilestream.h>
 #include <stream/stream_util.h>
 
 #include <player/audio_util.h>

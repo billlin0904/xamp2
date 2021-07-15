@@ -14,7 +14,6 @@
 #include <output_device/dsddevice.h>
 
 #include <stream/bassfilestream.h>
-#include <stream/avfilestream.h>
 #include <stream/audioprocessor.h>
 
 #include <player/soxresampler.h>

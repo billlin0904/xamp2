@@ -13,18 +13,18 @@ LocaleLanguageManager AppSettings::manager_;
 DirectoryWatcher AppSettings::file_watcher_;
 
 void AppSettings::startMonitorFile(FramelessWindow *window) {
-	(void)QObject::connect(&file_watcher_,
+	/*(void)QObject::connect(&file_watcher_,
 		&DirectoryWatcher::fileChanged,
 		window, 
 		&FramelessWindow::onFileChanged,
 		Qt::QueuedConnection);
 	file_watcher_.start();
-	file_watcher_.addPath(getMyMusicFolderPath());
+	file_watcher_.addPath(getMyMusicFolderPath());*/
 }
 
 void AppSettings::shutdownMonitorFile() {
-	file_watcher_.shutdown();
-	file_watcher_.wait();
+	//file_watcher_.shutdown();
+	//file_watcher_.wait();
 }
 
 void AppSettings::addMonitorPath(QString const& file_name) {
