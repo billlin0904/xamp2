@@ -20,6 +20,7 @@ inline constexpr ConstLatin1String kAppSettingNightMode{ "AppSettings/nightMode"
 inline constexpr ConstLatin1String kAppSettingEnableGaplessPlay{ "AppSettings/enableGaplessPlay" };
 inline constexpr ConstLatin1String kAppSettingUseNativeDSDMode{ "AppSettings/useNativeDSDMode" };
 inline constexpr ConstLatin1String kAppSettingUseFramelessWindow{ "AppSettings/useFramelessWindow" };
+inline constexpr ConstLatin1String kAppSettingShowLeftList{ "AppSettings/showLeftList" };
 
 inline constexpr ConstLatin1String kAppSettingBackgroundColor{ "AppSettings/theme/backgroundColor" };
 inline constexpr ConstLatin1String kAppSettingBottomColor{ "AppSettings/theme/bottomColor" };

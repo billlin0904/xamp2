@@ -601,6 +601,7 @@ void Xamp::initialController() {
         dialog.exec();
         setButtonState();
     });
+	// Theme color
     auto* select_color_widget = new SelectColorWidget();
     auto* theme_color_menu = new QMenu(tr("Theme color"));
     auto* widget_action = new QWidgetAction(theme_color_menu);
@@ -610,6 +611,23 @@ void Xamp::initialController() {
     });
     theme_color_menu->addAction(widget_action);
     settings_menu->addMenu(theme_color_menu);
+    // Hide left list
+    auto* hide_left_list_action = new QAction(tr("Show left list"), this);
+    hide_left_list_action->setCheckable(true);
+	if (AppSettings::getValue(kAppSettingShowLeftList).toBool()) {
+        hide_left_list_action->setChecked(true);
+        ui_.sliderFrame->setVisible(true);
+	} else {
+        ui_.sliderFrame->setVisible(false);
+	}
+    (void)QObject::connect(hide_left_list_action, &QAction::triggered, [=]() {
+        auto enable = AppSettings::getValueAsBool(kAppSettingShowLeftList);
+        enable = !enable;
+        hide_left_list_action->setChecked(enable);
+        ui_.sliderFrame->setVisible(enable);
+        AppSettings::setValue(kAppSettingShowLeftList, enable);
+        });
+    settings_menu->addAction(hide_left_list_action);
 #ifdef Q_OS_WIN
     auto* enable_blur_material_mode_action = new QAction(tr("Enable blur"), this);
     enable_blur_material_mode_action->setCheckable(true);
