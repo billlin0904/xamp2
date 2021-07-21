@@ -175,5 +175,6 @@ private:
 	MusixmatchClient musixmatcher_;
 	std::shared_ptr<UIPlayerStateAdapter> state_adapter_;
 	std::shared_ptr<AudioPlayer> player_;
+	QTimer timer_;
     Ui::XampWindow ui_;
 };

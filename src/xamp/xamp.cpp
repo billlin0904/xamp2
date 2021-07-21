@@ -119,7 +119,10 @@ void Xamp::initial() {
     createTrayIcon();
     setCover(nullptr, playlist_page_);
     setCover(nullptr, podcast_page_);
-    setDefaultStyle();        
+    setDefaultStyle();    
+    timer_.singleShot(1000, [this]() {
+        ThemeManager::instance().enableBlur(this, AppSettings::getValueAsBool(kAppSettingEnableBlur), useNativeWindow());
+        });
 }
 
 void Xamp::onActivated(QSystemTrayIcon::ActivationReason reason) {
@@ -218,9 +221,7 @@ void Xamp::closeEvent(QCloseEvent* event) {
 }
 
 void Xamp::setDefaultStyle() {
-    ThemeManager::instance().setDefaultStyle(ui_);    
-    ThemeManager::instance().enableBlur(this, AppSettings::getValueAsBool(kAppSettingEnableBlur), useNativeWindow());
-
+    ThemeManager::instance().setDefaultStyle(ui_);
     setStyleSheet(Q_UTF8(R"(
 	QListView#sliderBar::item {
 		border: 0px;
