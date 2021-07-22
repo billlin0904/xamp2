@@ -117,7 +117,7 @@ FlushFileCache:
         if (use_filemap) {
             auto file_duration = GetDuration();
             if (file_duration < 1.0) {
-                Singleton<PodcastFileCacheManager>::GetInstance().Remove(cache_id);
+                PodcastCache.Remove(cache_id);
                 file_cache_.reset();
                 goto FlushFileCache;
             }
@@ -185,8 +185,7 @@ FlushFileCache:
     }
 
     uint32_t GetSamples(void *buffer, uint32_t length) const noexcept {
-        return static_cast<uint32_t>(InternalGetSamples(buffer, length * GetSampleSize())
-                                     / GetSampleSize());
+        return InternalGetSamples(buffer, length * GetSampleSize()) / GetSampleSize();
     }
 
     [[nodiscard]] double GetDuration() const {
@@ -263,8 +262,7 @@ FlushFileCache:
 private:
     std::string InitFileCache(std::wstring const& file_path, bool& use_filemap) {
         auto cache_id = ToCacheID(file_path);
-        auto file_cache =
-            Singleton<PodcastFileCacheManager>::GetInstance().GetOrAdd(cache_id);
+        auto file_cache = PodcastCache.GetOrAdd(cache_id);
         if (file_cache->IsCompleted()) {
             file_.Open(file_cache->GetFilePath().wstring());
             use_filemap = true;

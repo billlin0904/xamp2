@@ -63,4 +63,6 @@ private:
 	LruCache<std::string, std::shared_ptr<PadcastFileCache>> cache_;
 };
 
+#define PodcastCache Singleton<PodcastFileCacheManager>::GetInstance()
+
 }

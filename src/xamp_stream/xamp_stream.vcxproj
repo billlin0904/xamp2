@@ -167,6 +167,7 @@
     <ClCompile Include="src\bassfilestream.cpp" />
     <ClCompile Include="src\basslib.cpp" />
     <ClCompile Include="src\compressor.cpp" />
+    <ClCompile Include="src\padcastcache.cpp" />
     <ClCompile Include="src\stream_util.cpp" />
     <ClCompile Include="src\wavefilewriter.cpp" />
   </ItemGroup>
