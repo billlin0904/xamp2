@@ -15,91 +15,48 @@
 namespace xamp::stream {
 
 using xamp::base::LruCache;
-using xamp::base::AudioFormat;
-using xamp::stream::WaveFileWriter;
 
-class XAMP_STREAM_API PadcastFileCache : public std::enable_shared_from_this<PadcastFileCache> {
+class XAMP_STREAM_API PadcastFileCache
+    : public std::enable_shared_from_this<PadcastFileCache> {
 public:
-	explicit PadcastFileCache(std::string const& cache_id)
-		: is_completed_(false)
-		, cache_id_(cache_id) {
-		auto file_name = std::tmpnam(nullptr) + std::string(".m4a");
-		auto tmp_dir_path =	Fs::temp_directory_path();
-		tmp_dir_path /= file_name;
-		path_ = tmp_dir_path;
-		file_.open(path_, std::ios::binary);
-	}
+    PadcastFileCache(std::string const& cache_id, std::string const &file_ext);
 
-	virtual ~PadcastFileCache() {
-		try {
-			std::filesystem::remove(path_);
-		} catch (...) {	
-		}
-	}
-	
-	void Write(void const* buf, size_t buf_size) {
-		file_.write(static_cast<const char*>(buf), buf_size);
-	}
+    virtual ~PadcastFileCache();
 
-	void Close() {
-		file_.close();
-		is_completed_ = true;
-	}
+    [[nodiscard]] bool IsOpen() const;
 
-	[[nodiscard]] Path GetFilePath() const {
-		return path_;
-	}
+    void Write(void const* buf, size_t buf_size);
 
-	[[nodiscard]] bool IsCompleted() const noexcept {
-		return is_completed_;
-	}
+    void Close();
 
-	[[nodiscard]] std::string GetCacheID() {
-		return cache_id_;
-	}
+    [[nodiscard]] Path GetFilePath() const;
+
+    [[nodiscard]] bool IsCompleted() const noexcept;
+
+    [[nodiscard]] std::string GetCacheID();
 private:
-	bool is_completed_;
-	Path path_;
-	std::string cache_id_;
-	std::ofstream file_;
+    bool is_completed_;
+    Path path_;
+    std::string cache_id_;
+    std::ofstream file_;
 };
+
+std::string ToCacheID(Path const& file_path);
 
 class XAMP_STREAM_API PodcastFileCacheManager {
 public:
 	friend class Singleton<PodcastFileCacheManager>;
 
-	XAMP_DISABLE_COPY(PodcastFileCacheManager)
-	
-	std::shared_ptr<PadcastFileCache> GetOrAdd(std::string const& cache_id) {
-		auto cache = cache_.Find(cache_id);
-		if (!cache) {
-			cache_.AddOrUpdate(cache_id, std::make_shared<PadcastFileCache>(cache_id));
-			cache = cache_.Find(cache_id);
-		}
-		return (*cache)->shared_from_this();
-	}
+    XAMP_DISABLE_COPY(PodcastFileCacheManager)
 
-	void Remove(std::string const& cache_id) {
-		cache_.Erase(cache_id);
-	}
+    std::shared_ptr<PadcastFileCache> GetOrAdd(std::string const& cache_id);
 
-	void Remove(std::shared_ptr<PadcastFileCache> const & file_cache) {
-		Remove(file_cache->GetCacheID());
-	}
+    void Remove(std::string const& cache_id);
 
-	void Load(Path const& path) {
-		for (auto const& file_or_dir 
-			: RecursiveDirectoryIterator(Fs::absolute(path), kIteratorOptions)) {
-		}
-	}
+    void Remove(std::shared_ptr<PadcastFileCache> const & file_cache);
 
-	static std::string ToCacheID(Path const& file_path) {
-		Path path(file_path);
-		auto dot_pos = path.filename().string().find(".");
-		auto cache_id = path.filename().string().substr(0, dot_pos);
-		return cache_id;
-	}
-	
+    void Load(Path const& path);
+
 private:
 	PodcastFileCacheManager() = default;
 	

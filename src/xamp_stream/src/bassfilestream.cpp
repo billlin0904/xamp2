@@ -145,10 +145,10 @@ FlushFileCache:
         }
     }
 
-	float GetReadProgress() const {
+    double GetReadProgress() const {
         auto file_len = BASS.BASS_StreamGetFilePosition(GetHStream(), BASS_FILEPOS_END);
         auto buffer = BASS.BASS_StreamGetFilePosition(GetHStream(), BASS_FILEPOS_BUFFER);
-    	return 100.0 * buffer / file_len;
+        return 100.0 * double(buffer) / double(file_len);
     }
 
 	static void DownloadProc(const void* buffer, DWORD length, void* user) {
@@ -164,7 +164,8 @@ FlushFileCache:
             XAMP_LOG_DEBUG("{}", http_status);
     	} else {                      
             impl->download_size_ += length;
-            XAMP_LOG_DEBUG("Downloading {}% {}", impl->GetReadProgress(), String::FormatBytes(impl->download_size_));
+            XAMP_LOG_DEBUG("Downloading {}% {}", impl->GetReadProgress(),
+                           String::FormatBytes(impl->download_size_));
             impl->file_cache_->Write(buffer, length);
         }
     }
@@ -184,7 +185,8 @@ FlushFileCache:
     }
 
     uint32_t GetSamples(void *buffer, uint32_t length) const noexcept {
-        return static_cast<uint32_t>(InternalGetSamples(buffer, length * GetSampleSize()) / GetSampleSize());
+        return static_cast<uint32_t>(InternalGetSamples(buffer, length * GetSampleSize())
+                                     / GetSampleSize());
     }
 
     [[nodiscard]] double GetDuration() const {
@@ -260,7 +262,7 @@ FlushFileCache:
     }
 private:
     std::string InitFileCache(std::wstring const& file_path, bool& use_filemap) {
-        auto cache_id = PodcastFileCacheManager::ToCacheID(file_path);
+        auto cache_id = ToCacheID(file_path);
         auto file_cache =
             Singleton<PodcastFileCacheManager>::GetInstance().GetOrAdd(cache_id);
         if (file_cache->IsCompleted()) {
@@ -289,7 +291,7 @@ private:
     }
 
     DsdModes mode_;
-    int64_t download_size_;
+    size_t download_size_;
     BassStreamHandle stream_;
     BassStreamHandle mix_stream_;
     BASS_CHANNELINFO info_;

@@ -142,11 +142,14 @@ void BassLib::Load() {
 #ifdef XAMP_OS_WIN
     // Disable Media Foundation
     BASS.BASS_SetConfig(BASS_CONFIG_MF_DISABLE, true);
-    BASS.BASS_SetConfig(BASS_CONFIG_MF_VIDEO, false);    
-#endif
+    BASS.BASS_SetConfig(BASS_CONFIG_MF_VIDEO, false);
     LoadPlugin("bass_aac.dll");
     LoadPlugin("bassflac.dll");
     LoadPlugin("bass_ape.dll");
+#else
+    LoadPlugin("libbassflac.dylib");
+#endif
+
     BASS.BASS_SetConfig(BASS_CONFIG_FLOATDSP, true);
     BASS.BASS_SetConfig(BASS_CONFIG_NET_TIMEOUT, 15 * 1000);
     BASS.BASS_SetConfig(BASS_CONFIG_NET_BUFFER, 50000);
@@ -203,7 +206,12 @@ std::set<std::string> BassLib::GetSupportFileExtensions() const {
     result.insert(".dff");
     result.insert(".dsf");
     result.insert(".wav");
-	
+
+    // Workaround!
+    #ifdef XAMP_OS_MAC
+    result.insert(".m4a");
+    #endif
+
     return result;
 } 
 

@@ -130,6 +130,16 @@ std::string GetCurrentThreadId() {
     return ostr.str();
 }
 
+std::string MakeTempFileName() {
+    char filename[64] = "xamp-podcast-cache-XXXXXX";
+#if XAMP_OS_MAC
+    mkstemp(filename);
+#else
+    _mktemp_s(filename, sizeof(filename));
+#endif
+    return filename;
+}
+
 #ifdef XAMP_OS_WIN
 bool ExtendProcessWorkingSetSize(size_t size) noexcept {
     SIZE_T minimum = 0;

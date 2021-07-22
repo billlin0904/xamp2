@@ -2,6 +2,7 @@
 #include <utility>
 #include <base/align_ptr.h>
 #include <base/str_utilts.h>
+#include <base/platform.h>
 #include <base/dataconverter.h>
 
 #include <stream/compressor.h>
@@ -85,7 +86,7 @@ public:
 	explicit  ExceptedFile(std::filesystem::path const& dest_file_path) {
 		dest_file_path_ = dest_file_path;
 		temp_file_path_ = Fs::temp_directory_path()
-			/ Fs::path(std::tmpnam(nullptr));
+            / Fs::path(MakeTempFileName());
 	}
 
 	template <typename Func>
