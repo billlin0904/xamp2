@@ -10,12 +10,12 @@
 
 #include <base/base.h>
 #include <base/align_ptr.h>
-#include <base/math.h>
 #include <player/player.h>
 
 namespace xamp::player {
 
 using namespace xamp::base;
+using Complex = std::complex<float>;
 
 class FFT final {
 public:

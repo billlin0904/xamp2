@@ -14,6 +14,7 @@ public:
 	virtual ~SampleWriter();
 
 	virtual bool TryWrite(float const* sample, size_t num_samples) = 0;
+
 protected:
 	SampleWriter();
 };

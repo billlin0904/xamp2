@@ -1,5 +1,7 @@
+#define _USE_MATH_DEFINES
+#include <cmath>
+
 #include <base/base.h>
-#include <base/math.h>
 #include <base/enum.h>
 #include <base/buffer.h>
 
@@ -33,7 +35,7 @@ public:
 		window_ = MakeBuffer<float>(size);
 		size_t m = size - 1;
 		for (auto i = 0; i < size; ++i) {
-			window_[i] = 0.54 - 0.46 * std::cos((2.0 * kPI * i) / m);
+			window_[i] = 0.54 - 0.46 * std::cos((2.0 * M_PI * i) / m);
 		}
 	}
 
@@ -79,7 +81,7 @@ private:
 		Forward(odd);
 
 		for (size_t k = 0; k < N / 2; ++k) {
-			auto t = std::polar(1.0f, -2.0f * kPI * k / N) * odd[k];
+			auto t = std::polar(1.0f, -2.0f * static_cast<float>(M_PI) * k / N) * odd[k];
 			x[k] = even[k] + t;
 			x[k + N / 2] = even[k] - t;
 		}

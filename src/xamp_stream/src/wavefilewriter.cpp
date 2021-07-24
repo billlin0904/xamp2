@@ -63,7 +63,12 @@ void WaveFileWriter::Open(Path const& file_path, AudioFormat const& format) {
 }
 
 bool WaveFileWriter::TryWrite(float const* sample, size_t num_samples) {
-	Write(sample, num_samples);
+	try {
+		Write(sample, num_samples);
+	}
+	catch (...) {
+		return false;
+	}
 	return true;
 }
 
