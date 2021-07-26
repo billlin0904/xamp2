@@ -294,7 +294,7 @@ private:
     BassStreamHandle mix_stream_;
     BASS_CHANNELINFO info_;
     MemoryMappedFile file_;
-    std::shared_ptr<PadcastFileCache> file_cache_;
+    std::shared_ptr<PodcastFileCache> file_cache_;
 };
 
 BassFileStream::BassFileStream()

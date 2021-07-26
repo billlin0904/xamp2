@@ -5,7 +5,6 @@
 
 #pragma once
 
-#include <vector>
 #include <base/base.h>
 #include <base/uuid.h>
 #include <base/buffer.h>

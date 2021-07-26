@@ -12,6 +12,7 @@
 #include <base/scopeguard.h>
 #include <base/str_utilts.h>
 #include <stream/compressor.h>
+#include <stream/podcastcache.h>
 
 #include <output_device/audiodevicemanager.h>
 
@@ -111,6 +112,7 @@ Xamp::Xamp(QWidget *parent)
 void Xamp::initial() {
     player_->Startup();
     AppSettings::startMonitorFile(this);
+    PodcastCache.SetTempPath(AppSettings::getValue(kAppSettingPodcastCachePath).toString().toStdWString());
     initialUI();
     initialController();
     initialDeviceList();

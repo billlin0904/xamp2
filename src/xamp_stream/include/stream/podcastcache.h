@@ -5,7 +5,6 @@
 #pragma once
 
 #include <filesystem>
-#include <memory.h>
 #include <fstream>
 
 #include <base/singleton.h>
@@ -16,12 +15,14 @@ namespace xamp::stream {
 
 using xamp::base::LruCache;
 
-class XAMP_STREAM_API PadcastFileCache
-    : public std::enable_shared_from_this<PadcastFileCache> {
+class XAMP_STREAM_API PodcastFileCache
+    : public std::enable_shared_from_this<PodcastFileCache> {
 public:
-    PadcastFileCache(std::string const& cache_id, std::string const &file_ext);
+    explicit PodcastFileCache(std::string const& cache_id);
 
-    virtual ~PadcastFileCache();
+    void SetTempPath(std::string const& file_ext, Path const& path);
+
+    virtual ~PodcastFileCache();
 
     [[nodiscard]] bool IsOpen() const;
 
@@ -33,7 +34,7 @@ public:
 
     [[nodiscard]] bool IsCompleted() const noexcept;
 
-    [[nodiscard]] std::string GetCacheID();
+    [[nodiscard]] std::string GetCacheID() const;
 private:
     bool is_completed_;
     Path path_;
@@ -49,20 +50,26 @@ public:
 
     XAMP_DISABLE_COPY(PodcastFileCacheManager)
 
-    std::shared_ptr<PadcastFileCache> GetOrAdd(std::string const& cache_id);
+    std::shared_ptr<PodcastFileCache> GetOrAdd(std::string const& cache_id);
 
     void Remove(std::string const& cache_id);
 
-    void Remove(std::shared_ptr<PadcastFileCache> const & file_cache);
+    void Remove(std::shared_ptr<PodcastFileCache> const & file_cache);
 
     void Load(Path const& path);
 
+    void SetTempPath(Path const& path);
+
+    static PodcastFileCacheManager& GetInstance();
+
 private:
-	PodcastFileCacheManager() = default;
-	
-	LruCache<std::string, std::shared_ptr<PadcastFileCache>> cache_;
+	PodcastFileCacheManager();
+
+    Path path_;
+	LruCache<std::string, std::shared_ptr<PodcastFileCache>> cache_;
 };
 
-#define PodcastCache Singleton<PodcastFileCacheManager>::GetInstance()
-
 }
+
+
+#define PodcastCache xamp::stream::PodcastFileCacheManager::GetInstance()

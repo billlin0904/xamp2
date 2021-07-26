@@ -31,6 +31,7 @@ inline constexpr ConstLatin1String kAppSettingMusicFilePath{ "AppSettings/musicF
 inline constexpr ConstLatin1String kAppSettingMinimizeToTrayAsk{ "AppSettings/minimizeToTrayAsk" };
 inline constexpr ConstLatin1String kAppSettingMinimizeToTray{ "AppSettings/minimizeToTray" };
 
+inline constexpr ConstLatin1String kAppSettingPodcastCachePath{ "AppSettings/podcastCachePath" };
 
 inline constexpr ConstLatin1String kAppSettingResamplerEnable{ "AppSettings/soxr/enable" };
 inline constexpr ConstLatin1String kAppSettingSoxrSettingName{ "AppSettings/soxr/userSettingName" };

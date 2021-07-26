@@ -181,7 +181,7 @@
     <ClCompile Include="widget\localelanguage.cpp" />
     <ClCompile Include="widget\lrcpage.cpp" />
     <ClCompile Include="widget\lrcparser.cpp" />
-    <ClCompile Include="widget\LyricsShowWidget.cpp" />
+    <ClCompile Include="widget\lyricsshowwidget.cpp" />
     <ClCompile Include="widget\musicbrainzclient.cpp" />
     <ClCompile Include="widget\musixmatchclient.cpp" />
     <ClCompile Include="widget\pixmapcache.cpp" />
@@ -244,6 +244,7 @@
     </QtMoc>
     <QtMoc Include="widget\directorywatcher.h" />
     <QtMoc Include="widget\musixmatchclient.h" />
+    <QtMoc Include="widget\lyricsshowwidget.h" />
     <ClInclude Include="widget\playlistsqlquerytablemodel.h" />
     <ClInclude Include="widget\playlisttablequerymodel.h" />
     <QtMoc Include="widget\uiplayerstateadapter.h">
@@ -293,8 +294,6 @@
     <ClInclude Include="widget\jsonsettings.h" />
     <ClInclude Include="widget\localelanguage.h" />
     <ClInclude Include="widget\lrcparser.h" />
-    <QtMoc Include="widget\LyricsShowWidget.h">
-    </QtMoc>
     <QtMoc Include="widget\musicbrainzclient.h">
     </QtMoc>
     <ClInclude Include="widget\musicentity.h" />

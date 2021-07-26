@@ -7,6 +7,7 @@
 #include <QInputDialog>
 
 #include <base/uuid.h>
+#include <stream/podcastcache.h>
 
 #include <widget/str_utilts.h>
 #include <widget/appsettings.h>
@@ -210,7 +211,21 @@ PreferenceDialog::PreferenceDialog(QWidget *parent)
 
 		JsonSettings::save();
 		AppSettings::save();
-		});	
+		});
+
+	ui_.podcastCachePathLineEdit->setText(AppSettings::getValue(kAppSettingPodcastCachePath).toString());
+	(void)QObject::connect(ui_.setPodcastCacheButton, &QPushButton::clicked, [this]() {
+		const auto dir_name = QFileDialog::getExistingDirectory(this,
+			tr("Select a directory"),
+			AppSettings::getMyMusicFolderPath(),
+			QFileDialog::DontUseNativeDialog | QFileDialog::ShowDirsOnly);
+		if (dir_name.isEmpty()) {
+			return;
+		}
+		PodcastCache.SetTempPath(dir_name.toStdWString());
+		AppSettings::setValue(kAppSettingPodcastCachePath, dir_name);
+		ui_.podcastCachePathLineEdit->setText(dir_name);
+		});
 
 	initSoxResampler();
 	initLang();

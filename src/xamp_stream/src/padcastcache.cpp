@@ -10,70 +10,93 @@ std::string ToCacheID(Path const& file_path) {
     return cache_id;
 }
 
-PadcastFileCache::PadcastFileCache(std::string const& cache_id, std::string const &file_ext)
+PodcastFileCache::PodcastFileCache(std::string const& cache_id)
     : is_completed_(false)
     , cache_id_(cache_id) {
-    auto file_name = MakeTempFileName() + file_ext;
-    auto tmp_dir_path =	Fs::temp_directory_path();
-    tmp_dir_path /= file_name;
-    path_ = tmp_dir_path;
-    file_.open(path_, std::ios::binary);
 }
 
-PadcastFileCache::~PadcastFileCache() {
+PodcastFileCache::~PodcastFileCache() {
     try {
         std::filesystem::remove(path_);
     } catch (...) {
     }
 }
 
-[[nodiscard]] bool PadcastFileCache::IsOpen() const {
+void PodcastFileCache::SetTempPath(std::string const& file_ext, Path const& path) {
+	const auto file_name = MakeTempFileName() + cache_id_ + file_ext;
+    auto tmp_dir_path = path;
+    tmp_dir_path /= file_name;
+    path_ = tmp_dir_path;
+    file_.open(path_, std::ios::binary);
+}
+
+[[nodiscard]] bool PodcastFileCache::IsOpen() const {
     return file_.is_open();
 }
 
-void PadcastFileCache::Write(void const* buf, size_t buf_size) {
+void PodcastFileCache::Write(void const* buf, size_t buf_size) {
     file_.write(static_cast<const char*>(buf), buf_size);
 }
 
-void PadcastFileCache::Close() {
+void PodcastFileCache::Close() {
     file_.close();
     is_completed_ = true;
 }
 
-[[nodiscard]] Path PadcastFileCache::GetFilePath() const {
+[[nodiscard]] Path PodcastFileCache::GetFilePath() const {
     return path_;
 }
 
-[[nodiscard]] bool PadcastFileCache::IsCompleted() const noexcept {
+[[nodiscard]] bool PodcastFileCache::IsCompleted() const noexcept {
     return is_completed_;
 }
 
-[[nodiscard]] std::string PadcastFileCache::GetCacheID() {
+[[nodiscard]] std::string PodcastFileCache::GetCacheID() const {
     return cache_id_;
 }
 
-std::shared_ptr<PadcastFileCache> PodcastFileCacheManager::GetOrAdd(std::string const& cache_id) {
+PodcastFileCacheManager::PodcastFileCacheManager()
+	: path_(Fs::temp_directory_path()) {
+}
+
+std::shared_ptr<PodcastFileCache> PodcastFileCacheManager::GetOrAdd(std::string const& cache_id) {
     auto cache = cache_.Find(cache_id);
     bool found = false;
     if (!cache) {
-        cache_.AddOrUpdate(cache_id, std::make_shared<PadcastFileCache>(cache_id, ".m4a"));
+        auto file = std::make_shared<PodcastFileCache>(cache_id);
+        file->SetTempPath(".m4a", path_);
+        cache_.AddOrUpdate(cache_id, file);
         cache = cache_.Find(cache_id);
     } else {
         found = true;
     }
     if (found && !(*cache)->IsCompleted()) {
         cache_.Erase(cache_id);
-        cache_.AddOrUpdate(cache_id, std::make_shared<PadcastFileCache>(cache_id, ".m4a"));
+        auto file = std::make_shared<PodcastFileCache>(cache_id);
+        file->SetTempPath(".m4a", path_);
+        cache_.AddOrUpdate(cache_id, file);
         cache = cache_.Find(cache_id);
     }
     return (*cache)->shared_from_this();
+}
+
+PodcastFileCacheManager& PodcastFileCacheManager::GetInstance() {
+    return Singleton<PodcastFileCacheManager>::GetInstance();
+}
+
+void PodcastFileCacheManager::SetTempPath(Path const& path) {
+	if (!path.empty()) {
+        path_ = path;
+	} else {
+        path_ = Fs::temp_directory_path();
+	}
 }
 
 void PodcastFileCacheManager::Remove(std::string const& cache_id) {
     cache_.Erase(cache_id);
 }
 
-void PodcastFileCacheManager::Remove(std::shared_ptr<PadcastFileCache> const & file_cache) {
+void PodcastFileCacheManager::Remove(std::shared_ptr<PodcastFileCache> const & file_cache) {
     Remove(file_cache->GetCacheID());
 }
 
@@ -81,7 +104,9 @@ void PodcastFileCacheManager::Load(Path const& path) {
     for (auto const& file_or_dir
             : RecursiveDirectoryIterator(Fs::absolute(path), kIteratorOptions)) {
         auto cache_id = ToCacheID(file_or_dir);
-        cache_.AddOrUpdate(cache_id, std::make_shared<PadcastFileCache>(cache_id, ".m4a"));
+        auto file = std::make_shared<PodcastFileCache>(cache_id);
+        file->SetTempPath(".m4a", path_);
+        cache_.AddOrUpdate(cache_id, file);
     }
 }
 
