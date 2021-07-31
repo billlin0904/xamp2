@@ -155,6 +155,8 @@ private:
 
 	PlyalistPage* currentPlyalistPage();
 
+	QString translasteError(Errors error);
+
 	bool is_seeking_;
 	PlayerOrder order_;
 	QModelIndex play_index_;

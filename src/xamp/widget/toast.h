@@ -20,7 +20,7 @@ public:
 
 	void setText(const QString& text);
 
-	void showAnimation(int timeout = 2000);
+	void showAnimation(int timeout = 3000);
 
 	void hideAnimation();
 

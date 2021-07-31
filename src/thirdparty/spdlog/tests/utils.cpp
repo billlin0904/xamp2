@@ -1,33 +1,29 @@
 #include "includes.h"
 
-#ifndef _WIN32
-#include <sys/types.h>
-#include <dirent.h>
+#ifdef _WIN32
+#    include <Windows.h>
+#else
+#    include <sys/types.h>
+#    include <dirent.h>
 #endif
 
 void prepare_logdir()
 {
     spdlog::drop_all();
 #ifdef _WIN32
-    system("if not exist logs mkdir logs");
-    system("del /F /Q logs\\*");
+    system("rmdir /S /Q test_logs");
 #else
-    auto rv = system("mkdir -p logs");
+    auto rv = system("rm -rf test_logs");
     if (rv != 0)
     {
-        throw std::runtime_error("Failed to mkdir -p logs");
-    }
-    rv = system("rm -f logs/*");
-    if (rv != 0)
-    {
-        throw std::runtime_error("Failed to rm -f logs/*");
+        throw std::runtime_error("Failed to rm -rf test_logs");
     }
 #endif
 }
 
 std::string file_contents(const std::string &filename)
 {
-    std::ifstream ifs(filename);
+    std::ifstream ifs(filename, std::ios_base::binary);
     if (!ifs)
     {
         throw std::runtime_error("Failed open file ");
@@ -48,6 +44,18 @@ std::size_t count_lines(const std::string &filename)
     while (std::getline(ifs, line))
         counter++;
     return counter;
+}
+
+void require_message_count(const std::string &filename, const std::size_t messages)
+{
+    if (strlen(spdlog::details::os::default_eol) == 0)
+    {
+        REQUIRE(count_lines(filename) == 1);
+    }
+    else
+    {
+        REQUIRE(count_lines(filename) == messages);
+    }
 }
 
 std::size_t get_filesize(const std::string &filename)
@@ -76,7 +84,7 @@ bool ends_with(std::string const &value, std::string const &ending)
 std::size_t count_files(const std::string &folder)
 {
     size_t counter = 0;
-    WIN32_FIND_DATA ffd;
+    WIN32_FIND_DATAA ffd;
 
     // Start iterating over the files in the folder directory.
     HANDLE hFind = ::FindFirstFileA((folder + "\\*").c_str(), &ffd);
@@ -86,7 +94,7 @@ std::size_t count_files(const std::string &folder)
         {
             if (ffd.cFileName[0] != '.')
                 counter++;
-        } while (::FindNextFile(hFind, &ffd) != 0);
+        } while (::FindNextFileA(hFind, &ffd) != 0);
         ::FindClose(hFind);
     }
     else
@@ -107,7 +115,7 @@ std::size_t count_files(const std::string &folder)
         throw std::runtime_error("Failed open folder " + folder);
     }
 
-    struct dirent *ep;
+    struct dirent *ep = nullptr;
     while ((ep = readdir(dp)) != nullptr)
     {
         if (ep->d_name[0] != '.')

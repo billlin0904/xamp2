@@ -91,6 +91,30 @@ static PlaybackFormat getPlaybackFormat(const AudioPlayer* player) {
     return format;
 }
 
+QString Xamp::translasteError(Errors error) {
+    static const QMap<Errors, QString> error_str_lut = {
+        { Errors::XAMP_ERROR_SUCCESS, tr("Success.") },
+        { Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, tr("Platform spec error.") },
+        { Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR, tr("Library spec error.") },
+        { Errors::XAMP_ERROR_DEVICE_NOT_INITIALIZED, tr("Device not initialized.") },
+        { Errors::XAMP_ERROR_DEVICE_UNSUPPORTED_FORMAT, tr("Device unsupported format.") },
+        { Errors::XAMP_ERROR_DEVICE_IN_USE, tr("Device in use.") },
+        { Errors::XAMP_ERROR_DEVICE_NOT_FOUND, tr("Device not found.") },
+        { Errors::XAMP_ERROR_FILE_NOT_FOUND, tr("File not found.") },
+        { Errors::XAMP_ERROR_NOT_SUPPORT_SAMPLERATE, tr("Not support samplerate.") },
+        { Errors::XAMP_ERROR_NOT_SUPPORT_FORMAT, tr("Not support format.") },
+        { Errors::XAMP_ERROR_LOAD_DLL_FAILURE, tr("Load dll failure.") },
+        { Errors::XAMP_ERROR_STOP_STREAM_TIMEOUT, tr("Stop stream thread timeout.") },
+        { Errors::XAMP_ERROR_NOT_SUPPORT_RESAMPLE_SAMPLERATE, tr("Resampler not support variable resample.") },
+        { Errors::XAMP_ERROR_SAMPLERATE_CHANGED, tr("Samplerate was changed.") },
+        { Errors::XAMP_ERROR_NOT_FOUND_DLL_EXPORT_FUNC, tr("Not found dll export function.") },
+    };
+    if (error_str_lut.contains(error)) {
+        return error_str_lut.value(error);
+    }
+    return Qt::EmptyString;
+}
+
 Xamp::Xamp(QWidget *parent)
     : FramelessWindow(parent)
     , is_seeking_(false)
@@ -913,7 +937,7 @@ void Xamp::playMusic(const MusicEntity& item) {
     }
     catch (const Exception & e) {
         XAMP_LOG_DEBUG("Exception: {} {}", e.GetErrorMessage(), e.GetStackTrace());
-        Toast::showTip(Q_UTF8(e.what()), this);
+        Toast::showTip(translasteError(e.GetError()), this);
     }
     catch (const std::exception & e) {
         Toast::showTip(Q_UTF8(e.what()), this);
