@@ -20,7 +20,10 @@
 #include <widget/playerorder.h>
 #include <widget/musixmatchclient.h>
 #include <widget/musicentity.h>
+
+#ifdef Q_OS_WIN
 #include <widget/discordnotify.h>
+#endif
 
 #include "ui_xamp.h"
 
@@ -179,6 +182,8 @@ private:
 	std::shared_ptr<UIPlayerStateAdapter> state_adapter_;
 	std::shared_ptr<AudioPlayer> player_;
 	QTimer timer_;
-	DicordNotify discord_notify_;
+#ifdef Q_OS_WIN
+    DicordNotify discord_notify_;
+#endif
     Ui::XampWindow ui_;
 };

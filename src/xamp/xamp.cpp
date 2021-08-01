@@ -129,8 +129,12 @@ Xamp::Xamp(QWidget *parent)
 	, tray_icon_(nullptr)
     , playback_history_page_(nullptr)
     , state_adapter_(std::make_shared<UIPlayerStateAdapter>())
+#ifdef Q_OS_WIN
     , player_(std::make_shared<AudioPlayer>(state_adapter_))
     , discord_notify_(this) {
+#else
+    , player_(std::make_shared<AudioPlayer>(state_adapter_)) {
+#endif
     initial();
 }
 
@@ -150,7 +154,7 @@ void Xamp::initial() {
     timer_.singleShot(1000, [this]() {
         ThemeManager::instance().enableBlur(this, AppSettings::getValueAsBool(kAppSettingEnableBlur), useNativeWindow());
         });
-    discord_notify_.discordInit();
+    //discord_notify_.discordInit();
 }
 
 void Xamp::onActivated(QSystemTrayIcon::ActivationReason reason) {
@@ -619,6 +623,7 @@ void Xamp::initialController() {
         Singleton<Database>::GetInstance().setTableName(table_id, name);
     });
 
+#ifdef Q_OS_WIN
     (void)QObject::connect(this,
         &Xamp::nowPlaying,
         &discord_notify_,
@@ -629,6 +634,7 @@ void Xamp::initialController() {
         &discord_notify_,
         &DicordNotify::OnStateChanged,
         Qt::QueuedConnection);
+#endif
 
     auto* settings_menu = new QMenu(this);
     ThemeManager::instance().setBackgroundColor(settings_menu);
