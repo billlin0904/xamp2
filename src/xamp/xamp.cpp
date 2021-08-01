@@ -154,7 +154,9 @@ void Xamp::initial() {
     timer_.singleShot(1000, [this]() {
         ThemeManager::instance().enableBlur(this, AppSettings::getValueAsBool(kAppSettingEnableBlur), useNativeWindow());
         });
-    //discord_notify_.discordInit();
+#ifdef Q_OS_WIN
+    discord_notify_.discordInit();
+#endif
 }
 
 void Xamp::onActivated(QSystemTrayIcon::ActivationReason reason) {
