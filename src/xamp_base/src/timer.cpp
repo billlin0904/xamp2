@@ -13,8 +13,8 @@ Timer::~Timer() {
 
 void Timer::Stop() {
     is_stop_ = true;
-	if (thread_.valid()) {
-		thread_.get();
+	if (thread_.joinable()) {
+		thread_.join();
 	}	
 }
 

@@ -37,8 +37,6 @@ public:
 
 	virtual void OnVolumeChanged(float vol) = 0;
 
-    virtual void OnDisplayChanged(std::vector<float> const &display) = 0;
-    
 protected:
     PlaybackStateAdapter() = default;
 };

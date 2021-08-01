@@ -16,7 +16,7 @@ XAMP_STREAM_API bool TestDsdFileFormatStd(std::wstring const& file_path);
 
 XAMP_STREAM_API bool TestDsdFileFormat(std::wstring const& file_path);
 
-XAMP_STREAM_API std::set<std::string> const& GetSupportFileExtensions();
+XAMP_STREAM_API HashSet<std::string> const& GetSupportFileExtensions();
 
 XAMP_STREAM_API DsdStream * AsDsdStream(AlignPtr<FileStream> const & stream) noexcept;
 	

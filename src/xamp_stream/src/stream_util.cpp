@@ -65,7 +65,7 @@ DsdStream* AsDsdStream(AlignPtr<FileStream> const& stream) noexcept {
     return dynamic_cast<DsdStream*>(stream.get());
 }
 	
-std::set<std::string> const& GetSupportFileExtensions() {
+HashSet<std::string> const& GetSupportFileExtensions() {
     static const auto bass_file_ext = BassFileStream::GetSupportFileExtensions();
     return bass_file_ext;
 }

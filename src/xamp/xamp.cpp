@@ -129,14 +129,15 @@ Xamp::Xamp(QWidget *parent)
 	, tray_icon_(nullptr)
     , playback_history_page_(nullptr)
     , state_adapter_(std::make_shared<UIPlayerStateAdapter>())
-    , player_(std::make_shared<AudioPlayer>(state_adapter_)) {
+    , player_(std::make_shared<AudioPlayer>(state_adapter_))
+    , discord_notify_(this) {
     initial();
 }
 
 void Xamp::initial() {
     player_->Startup();
     AppSettings::startMonitorFile(this);
-    PodcastCache.SetTempPath(AppSettings::getValue(kAppSettingPodcastCachePath).toString().toStdWString());
+    PodcastCache.SetTempPath(AppSettings::getValueAsString(kAppSettingPodcastCachePath).toStdWString());
     initialUI();
     initialController();
     initialDeviceList();
@@ -149,6 +150,7 @@ void Xamp::initial() {
     timer_.singleShot(1000, [this]() {
         ThemeManager::instance().enableBlur(this, AppSettings::getValueAsBool(kAppSettingEnableBlur), useNativeWindow());
         });
+    discord_notify_.discordInit();
 }
 
 void Xamp::onActivated(QSystemTrayIcon::ActivationReason reason) {
@@ -617,6 +619,17 @@ void Xamp::initialController() {
         Singleton<Database>::GetInstance().setTableName(table_id, name);
     });
 
+    (void)QObject::connect(this,
+        &Xamp::nowPlaying,
+        &discord_notify_,
+        &DicordNotify::OnNowPlaying);
+
+    (void)QObject::connect(state_adapter_.get(),
+        &UIPlayerStateAdapter::stateChanged,
+        &discord_notify_,
+        &DicordNotify::OnStateChanged,
+        Qt::QueuedConnection);
+
     auto* settings_menu = new QMenu(this);
     ThemeManager::instance().setBackgroundColor(settings_menu);
 
@@ -842,9 +855,6 @@ void Xamp::onSampleTimeChanged(double stream_time) {
     }
 }
 
-void Xamp::onDisplayChanged(std::vector<float> const& display) {
-}
-
 void Xamp::setSeekPosValue(double stream_time) {
     ui_.endPosLabel->setText(Time::msToString(player_->GetDuration() - stream_time));
     const auto stream_time_as_ms = static_cast<int32_t>(stream_time * 1000.0);
@@ -956,9 +966,12 @@ void Xamp::updateUI(const MusicEntity& item, const PlaybackFormat& playback_form
     if (open_done) {
         if (player_->IsHardwareControlVolume()) {
             if (!player_->IsMute()) {
-                setVolume(ui_.volumeSlider->value());
-            }
-            else {
+                if (player_->GetDsdModes() == DsdModes::DSD_MODE_DOP) {
+                    setVolume(100);
+                } else {
+                    setVolume(ui_.volumeSlider->value());
+                }
+            } else {
                 setVolume(0);
             }
             ui_.volumeSlider->setDisabled(false);
@@ -977,6 +990,8 @@ void Xamp::updateUI(const MusicEntity& item, const PlaybackFormat& playback_form
         artist_info_page_->setArtistId(item.artist,
             Singleton<Database>::GetInstance().getArtistCoverId(item.artist_id),
             item.artist_id);
+
+        emit nowPlaying(item.artist, item.title);
     }
 
     if (current_entity_.cover_id != item.cover_id) {
@@ -1205,12 +1220,6 @@ void Xamp::initialPlaylist() {
         &AlbumArtistPage::onThemeChanged);
 
     artist_info_page_ = new ArtistInfoPage(this);
-
-    (void)QObject::connect(state_adapter_.get(),
-        &UIPlayerStateAdapter::displayChanged,
-        lrc_page_->spectrograph(),
-        &Spectrograph::onDisplayChanged,
-        Qt::QueuedConnection);
     
     pushWidget(lrc_page_);    
     pushWidget(playlist_page_);

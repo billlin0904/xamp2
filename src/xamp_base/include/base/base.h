@@ -20,8 +20,13 @@
 		#define XAMP_BASE_API __declspec(dllimport)
 		#define XAMP_BASE_API_ONLY_EXPORT
 	#endif
+#ifdef _HAS_CXX20
 	#define XAMP_LIKELY(x) if(x) [[likely]]
 	#define XAMP_UNLIKELY(x) if (!x) [[unlikely]]
+#else
+	#define XAMP_LIKELY(x)
+	#define XAMP_UNLIKELY(x)
+#endif
 	#pragma warning(disable: 4251)
 	#pragma warning(disable: 4275)
 	#define XAMP_OS_WIN 1

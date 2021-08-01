@@ -20,6 +20,7 @@
 #include <widget/playerorder.h>
 #include <widget/musixmatchclient.h>
 #include <widget/musicentity.h>
+#include <widget/discordnotify.h>
 
 #include "ui_xamp.h"
 
@@ -44,6 +45,8 @@ signals:
 
     void themeChanged(QColor backgroundColor, QColor color);
 
+	void nowPlaying(QString const& artist, QString const& title);
+
 public slots:
     void playMusic(const MusicEntity& item);
 
@@ -56,8 +59,6 @@ public slots:
 	void processMeatadata(const std::vector<Metadata>& medata) const;
 
 	void onActivated(QSystemTrayIcon::ActivationReason reason);
-
-	void onDisplayChanged(std::vector<float> const& display);
 
 	void onVolumeChanged(float volume);
 private:
@@ -178,5 +179,6 @@ private:
 	std::shared_ptr<UIPlayerStateAdapter> state_adapter_;
 	std::shared_ptr<AudioPlayer> player_;
 	QTimer timer_;
+	DicordNotify discord_notify_;
     Ui::XampWindow ui_;
 };

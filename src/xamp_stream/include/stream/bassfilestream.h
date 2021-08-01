@@ -54,7 +54,7 @@ public:
 
     uint32_t GetDsdSpeed() const noexcept override;
 
-	static std::set<std::string> GetSupportFileExtensions();
+	static HashSet<std::string> GetSupportFileExtensions();
 
 private:
 	class BassFileStreamImpl;

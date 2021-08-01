@@ -7,12 +7,11 @@
 
 #include <chrono>
 #include <atomic>
-#include <future>
+#include <thread>
 
 #include <base/platform.h>
 #include <base/base.h>
 #include <base/logger.h>
-#include <base/threadpool.h>
 #include <base/waitabletimer.h>
 
 namespace xamp::base {
@@ -27,8 +26,12 @@ public:
 
 	template <typename TimerCallback>
 	void Start(std::chrono::milliseconds timeout, TimerCallback&& callback) {
+		if (!is_stop_) {
+			return;
+		}
+
 		is_stop_ = false;
-		thread_ = ThreadPool::GetInstance().Run([this, timeout, callback]() {
+		thread_ = std::thread([this, timeout, callback]() {
 			SetThreadName("Timer");
 			WaitableTimer timer;
 			XAMP_LOG_DEBUG("Timer thread running!");
@@ -49,7 +52,7 @@ public:
 
 private:
 	std::atomic<bool> is_stop_;
-	std::shared_future<void> thread_;
+	std::thread thread_;
 };
 
 }

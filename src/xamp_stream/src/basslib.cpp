@@ -184,8 +184,8 @@ void BassLib::LoadPlugin(std::string const & file_name) {
     plugins_[file_name] = std::move(plugin);
 }
 
-std::set<std::string> BassLib::GetSupportFileExtensions() const {
-    std::set<std::string> result;
+HashSet<std::string> BassLib::GetSupportFileExtensions() const {
+    HashSet<std::string> result;
 	
 	for (const auto& [key, value] : plugins_) {
         const auto* info = BASS.BASS_PluginGetInfo(value.get());

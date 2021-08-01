@@ -25,7 +25,3 @@ void UIPlayerStateAdapter::OnDeviceChanged(DeviceState state) {
 void UIPlayerStateAdapter::OnVolumeChanged(float vol) {
     emit volumeChanged(vol);
 }
-
-void UIPlayerStateAdapter::OnDisplayChanged(std::vector<float> const& display) {
-    emit displayChanged(display);
-}

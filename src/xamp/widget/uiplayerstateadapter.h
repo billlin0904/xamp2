@@ -45,8 +45,6 @@ public:
 
     void OnVolumeChanged(float vol) override;
 
-    void OnDisplayChanged(std::vector<float> const& display) override;
-
 signals:
     void sampleTimeChanged(double stream_time);
 
@@ -57,6 +55,4 @@ signals:
     void deviceChanged(DeviceState state);
 
     void volumeChanged(float vol);
-
-    void displayChanged(std::vector<float> const& display);
 };

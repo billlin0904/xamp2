@@ -397,15 +397,13 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
         if (device_->IsStreamOpen()) {
             XAMP_LOG_DEBUG("Stop output device");
             try {
-                device_->StopStream(wait_for_stop_stream);                
+                device_->StopStream(wait_for_stop_stream);
                 device_->CloseStream();
             } catch (const Exception &e) {
                 XAMP_LOG_DEBUG("Close device failure. {}", e.what());
             }
         }
     }
-
-
 
     if (stream_task_.valid()) {
         XAMP_LOG_DEBUG("Try to stop stream thread.");        

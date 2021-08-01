@@ -105,7 +105,7 @@ public:
         return !plugins_.empty();
     }
 
-    std::set<std::string> GetSupportFileExtensions() const;
+    HashSet<std::string> GetSupportFileExtensions() const;
 
     XAMP_DISABLE_COPY(BassLib)
 

@@ -5,7 +5,7 @@
 
 namespace xamp::base {
 
-inline auto kPopWaitTimeout = std::chrono::milliseconds(10);
+inline auto kPopWaitTimeout = std::chrono::milliseconds(5);
 
 TaskScheduler::TaskScheduler(size_t max_thread, int32_t core)
 	: is_stopped_(false)
@@ -90,7 +90,7 @@ std::optional<Task> TaskScheduler::TryPopPoolQueue() {
 
 std::optional<Task> TaskScheduler::TryPopLocalQueue(size_t index) {
 	Task task;
-	if (shared_queues_.at(index)->TryDequeue(task)) {
+	if (shared_queues_.at(index)->Dequeue(task)) {
 		XAMP_LOG_DEBUG("Pop local thread queue.");
 		return std::move(task);
 	}
@@ -153,9 +153,10 @@ void TaskScheduler::AddThread(size_t i) {
 			XAMP_LOG_DEBUG("Worker Thread {} ({}) weakup, active:{}.", i, thread_id, active_thread);
 			try {
 				(*task)();
-			}
-			catch (std::exception const& e) {
+			} catch (std::exception const& e) {
 				XAMP_LOG_ERROR("Worker Thread {} got exception: {}", e.what());
+			} catch (...) {
+				XAMP_LOG_ERROR("unknown exception!");
 			}
 			--active_thread_;
 			XAMP_LOG_DEBUG("Worker Thread {} ({}) execute finished.", i, thread_id);

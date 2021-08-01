@@ -576,7 +576,6 @@ void PlayListTableView::setPodcastMode(bool enable) {
 }
 
 void PlayListTableView::onReadCompleted(int32_t music_id, double lrus, double trure_peak) {
-    XAMP_LOG_DEBUG("onReadCompleted {} {}, {}", music_id, lrus, trure_peak);
     Singleton<Database>::GetInstance().updateLUFS(music_id, lrus, trure_peak);
     refresh();
 }

@@ -180,7 +180,6 @@ FlushFileCache:
     }
 
     [[nodiscard]] bool IsDsdFile() const noexcept {
-        assert(stream_.is_valid());
         return info_.ctype == BASS_CTYPE_STREAM_DSD;
     }
 
@@ -189,13 +188,11 @@ FlushFileCache:
     }
 
     [[nodiscard]] double GetDuration() const {
-        assert(stream_.is_valid());
         const auto len = BASS.BASS_ChannelGetLength(stream_.get(), BASS_POS_BYTE);
         return BASS.BASS_ChannelBytes2Seconds(stream_.get(), len);
     }
 
     [[nodiscard]] AudioFormat GetFormat() const noexcept {
-        assert(stream_.is_valid());
         if (mode_ == DsdModes::DSD_MODE_NATIVE) {
             return AudioFormat(DataFormat::FORMAT_DSD,
                                static_cast<uint16_t>(info_.chans),
@@ -273,7 +270,7 @@ private:
         return cache_id;
     }
 	
-    XAMP_ALWAYS_INLINE HSTREAM GetHStream() const {
+    XAMP_ALWAYS_INLINE HSTREAM GetHStream() const noexcept {
         if (mix_stream_.is_valid()) {
             return mix_stream_.get();
         }
@@ -363,7 +360,7 @@ uint32_t BassFileStream::GetDsdSpeed() const noexcept {
     return stream_->GetDsdSpeed();
 }
 
-std::set<std::string> BassFileStream::GetSupportFileExtensions() {
+HashSet<std::string> BassFileStream::GetSupportFileExtensions() {
     return BASS.GetSupportFileExtensions();
 }
 
