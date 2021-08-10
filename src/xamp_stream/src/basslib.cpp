@@ -146,6 +146,7 @@ void BassLib::Load() {
     LoadPlugin("bass_aac.dll");
     LoadPlugin("bassflac.dll");
     LoadPlugin("bass_ape.dll");
+    LoadPlugin("basscd.dll");
 #else
     LoadPlugin("libbassflac.dylib");
 #endif
@@ -210,6 +211,7 @@ HashSet<std::string> BassLib::GetSupportFileExtensions() const {
     // Workaround!
     #ifdef XAMP_OS_MAC
     result.insert(".m4a");
+    result.insert(".aac");
     #endif
 
     return result;

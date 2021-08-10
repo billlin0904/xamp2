@@ -814,6 +814,7 @@ void Xamp::stopPlayedClicked() {
     setSeekPosValue(0);
     ui_.seekSlider->setEnabled(false);
     playlist_page_->playlist()->removePlaying();
+    ThemeManager::instance().setPlayOrPauseButton(ui_, false);
 }
 
 void Xamp::playNextClicked() {

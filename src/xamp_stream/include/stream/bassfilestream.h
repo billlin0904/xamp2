@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <set>
+#include <base/stl.h>
 
 #include <base/audioformat.h>
 #include <base/align_ptr.h>

@@ -16,10 +16,10 @@ PodcastFileCache::PodcastFileCache(std::string const& cache_id)
 }
 
 PodcastFileCache::~PodcastFileCache() {
-    try {
+    /*try {
         std::filesystem::remove(path_);
     } catch (...) {
-    }
+    }*/
 }
 
 void PodcastFileCache::SetTempPath(std::string const& file_ext, Path const& path) {
@@ -43,15 +43,15 @@ void PodcastFileCache::Close() {
     is_completed_ = true;
 }
 
-[[nodiscard]] Path PodcastFileCache::GetFilePath() const {
+Path PodcastFileCache::GetFilePath() const {
     return path_;
 }
 
-[[nodiscard]] bool PodcastFileCache::IsCompleted() const noexcept {
+bool PodcastFileCache::IsCompleted() const noexcept {
     return is_completed_;
 }
 
-[[nodiscard]] std::string PodcastFileCache::GetCacheID() const {
+std::string PodcastFileCache::GetCacheID() const {
     return cache_id_;
 }
 

@@ -91,6 +91,10 @@ public:
     T operator()(T min, T max) noexcept {
         return std::uniform_int_distribution(min, max)(engine_);
     }
+
+    int32_t GetInt() {
+        return std::uniform_int_distribution(0)(engine_);
+    }
 private:
     RNG();
     XoroshiroStarStar64 engine_;

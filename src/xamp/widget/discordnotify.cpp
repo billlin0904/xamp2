@@ -41,7 +41,7 @@ void DicordNotify::OnNowPlaying(QString const& artist, QString const& title) {
 	strcpy_s(details_.data(), details_.size(), format.data());
 
 	discord_presence_.state = "Listening";
-	discord_presence_.smallImageKey = "play";
+	discord_presence_.smallImageKey = "xamp";
 	discord_presence_.details = details_.data();
 }
 
@@ -60,8 +60,8 @@ void DicordNotify::initDiscordPresence() {
 	MemorySet(&discord_presence_, 0, sizeof(discord_presence_));
 	discord_presence_.state = "Initialized";
 	discord_presence_.details = "Waiting ...";
-	discord_presence_.largeImageKey = "logo";
-	discord_presence_.smallImageKey = "stop";
+	discord_presence_.largeImageKey = "xamp";
+	discord_presence_.smallImageKey = "xamp";
 
 	updateDiscordPresence();
 }
