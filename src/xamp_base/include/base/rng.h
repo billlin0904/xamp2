@@ -93,7 +93,7 @@ public:
     }
 
     int32_t GetInt() {
-        return std::uniform_int_distribution(0)(engine_);
+        return std::uniform_int_distribution<int32_t>(0)(engine_);
     }
 private:
     RNG();

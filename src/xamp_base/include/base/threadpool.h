@@ -31,7 +31,7 @@ class TaskWrapper {
 public:
     template <typename Func>
     TaskWrapper(Func&& f)
-        : impl_(MakeAlign<ImplBase, ImplType<Func>>(std::move(f))) {
+        : impl_(MakeAlign<ImplBase, ImplType<Func>>(std::forward<Func>(f))) {
     }
 	
     void operator()() {
@@ -62,7 +62,7 @@ private:
     template <typename Func>
     struct ImplType final : ImplBase {
 	    ImplType(Func&& f)
-            : f_(std::move(f)) {
+            : f_(std::forward<Func>(f)) {
         }
 
 #ifdef XAMP_ENABLE_THREAD_POOL_DEBUG

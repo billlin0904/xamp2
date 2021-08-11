@@ -54,7 +54,7 @@ public:
 
     void scrollToIndex(const QModelIndex& index);
 
-	void resizeColumn() const;
+	void resizeColumn();
 
 	std::map<int32_t, QModelIndex> selectItemIndex() const;
 

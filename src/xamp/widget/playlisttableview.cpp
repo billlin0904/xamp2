@@ -680,19 +680,19 @@ void PlayListTableView::importPodcast() {
         }).get();
 }
 
-void PlayListTableView::resizeColumn() const {
+void PlayListTableView::resizeColumn() {
     constexpr auto kStretchedSize = 500;
     auto* header = horizontalHeader();
-	
-    for (auto column = 0; column < header->count(); ++column) {
+
+    for (auto column = 0; column < _PLAYLIST_MAX_COLUMN_; ++column) {
         switch (column) {
         case PLAYLIST_PLAYING:
-            header->setSectionResizeMode(column, QHeaderView::Fixed);
+			header->setSectionResizeMode(column, QHeaderView::ResizeToContents);
             header->resizeSection(column, 3);
             break;
         case PLAYLIST_TRACK:
             header->setSectionResizeMode(column, QHeaderView::Fixed);
-            header->resizeSection(column, 40);
+            header->resizeSection(column, 10);
             break;
         case PLAYLIST_LUFS:
             header->setSectionResizeMode(column, QHeaderView::Fixed);

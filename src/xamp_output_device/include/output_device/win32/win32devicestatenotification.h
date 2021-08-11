@@ -24,7 +24,7 @@ public:
 
 	virtual ~Win32DeviceStateNotification() override;
 
-	void Run();
+	void Run() override;
 
 	STDMETHOD(QueryInterface)(REFIID iid, void** object) override;
 

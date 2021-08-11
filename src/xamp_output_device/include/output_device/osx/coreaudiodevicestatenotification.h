@@ -27,7 +27,7 @@ public:
 
     ~CoreAudioDeviceStateNotification() override;
 
-    void Run();
+    void Run() override;
 
 private:
     void AddPropertyListener();

@@ -13,6 +13,8 @@ class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE DeviceStateNotification {
 public:
 	virtual ~DeviceStateNotification() = default;
 
+	virtual void Run() = 0;
+
 protected:
 	DeviceStateNotification() = default;
 };
