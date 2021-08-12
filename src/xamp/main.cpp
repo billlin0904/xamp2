@@ -82,11 +82,12 @@ static void loadSettings() {
 
 static int excute(int argc, char* argv[]) {
     ::qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
+    ::qputenv("MIMALLOC_SHOW_STATS", "1");
+    ::qputenv("MIMALLOC_VERBOSE", "1");
+	
     QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
-
-    StackTrace::RegisterAbortHandler();
-
+    
     Logger::GetInstance()
 #ifdef Q_OS_WIN
         .AddDebugOutputLogger()
@@ -97,9 +98,32 @@ static int excute(int argc, char* argv[]) {
         .GetLogger("xamp");
 
     XAMP_SET_LOG_LEVEL(spdlog::level::debug);
-
     XAMP_LOG_DEBUG("Logger init success.");
+
+    StackTrace::RegisterAbortHandler();
     XAMP_LOG_DEBUG("RegisterAbortHandler success.");
+
+#ifdef XAMP_OS_WIN
+    std::vector<std::string_view> preload_dll_file_name{
+        "mimalloc-override.dll",
+    	"AudioSes.dll",
+        "ResourcePolicyClient.dll",
+        "AUDIOKSE.dll",
+    	"comctl32.dll",
+        "WindowsCodecs.dll",
+        "thumbcache.dll",
+    	"psapi.dll",    	
+    };
+    std::vector<ModuleHandle> preload_module;
+	for (const auto file_name : preload_dll_file_name) {
+        try {
+            preload_module.push_back(LoadModule(file_name));
+        } catch (std::exception const &e) {
+            XAMP_LOG_DEBUG("Preload {} failure! {}.", file_name, e.what());
+        }
+	}
+    XAMP_LOG_DEBUG("Preload dll success.");
+#endif 
 
     if (StackTrace::LoadSymbol()) {
         XAMP_LOG_DEBUG("Load symbol success.");
@@ -118,27 +142,7 @@ static int excute(int argc, char* argv[]) {
                               Q_UTF8("Load dll failure."),
                               QString::fromStdString(e.GetErrorMessage()));
         return -1;
-    }
-
-#ifdef XAMP_OS_WIN
-    std::vector<std::string_view> preload_dll_file_name{
-    	"AudioSes.dll",
-        "ResourcePolicyClient.dll",
-        "AUDIOKSE.dll",
-    	"comctl32.dll",
-        "WindowsCodecs.dll",
-        "thumbcache.dll",
-    	"psapi.dll"
-    };
-    std::vector<ModuleHandle> preload_module;
-	for (const auto file_name : preload_dll_file_name) {
-        try {
-            preload_module.push_back(LoadModule(file_name));
-        } catch (...) {	        
-        }
-	}
-    XAMP_LOG_DEBUG("Preload dll success.");
-#endif    
+    }   
 
     SingleInstanceApplication single_app;
 #ifndef _DEBUG

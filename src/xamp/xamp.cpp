@@ -35,10 +35,7 @@
 #include <widget/selectcolorwidget.h>
 #include <widget/artistinfopage.h>
 #include <widget/jsonsettings.h>
-#include <widget/playbackhistorypage.h>
 #include <widget/ui_utilts.h>
-#include <widget/compressordialog.h>
-#include <widget/spectrograph.h>
 #include <widget/read_helper.h>
 
 #include "aboutdialog.h"
@@ -127,7 +124,6 @@ Xamp::Xamp(QWidget *parent)
     , artist_info_page_(nullptr)
 	, tray_icon_menu_(nullptr)
 	, tray_icon_(nullptr)
-    , playback_history_page_(nullptr)
     , state_adapter_(std::make_shared<UIPlayerStateAdapter>())
 #ifdef Q_OS_WIN
     , player_(std::make_shared<AudioPlayer>(state_adapter_))
@@ -150,10 +146,13 @@ void Xamp::initial() {
     createTrayIcon();
     setCover(nullptr, playlist_page_);
     setCover(nullptr, podcast_page_);
-    setDefaultStyle();    
-    timer_.singleShot(1000, [this]() {
-        ThemeManager::instance().enableBlur(this, AppSettings::getValueAsBool(kAppSettingEnableBlur), useNativeWindow());
-        });
+    setDefaultStyle();
+    const auto enable_blur = AppSettings::getValueAsBool(kAppSettingEnableBlur);
+    if (enable_blur) {
+        QTimer::singleShot(1000, [this]() {
+            ThemeManager::instance().enableBlur(this, true, useNativeWindow());
+            });
+    }    
 #ifdef Q_OS_WIN
     discord_notify_.discordInit();
 #endif
@@ -583,14 +582,6 @@ void Xamp::initialController() {
         emit album_artist_page_->album()->onSearchTextChanged(ui_.searchLineEdit->text());
     });
 
-    (void)QObject::connect(ui_.addPlaylistButton, &QToolButton::pressed, [this]() {
-	    const auto pos = mapFromGlobal(QCursor::pos());
-        playback_history_page_->move(QPoint(pos.x() - 300, pos.y() - 410));
-        playback_history_page_->setMinimumSize(QSize(550, 400));
-        playback_history_page_->refreshOnece();
-        playback_history_page_->show();
-    });
-
     (void)QObject::connect(ui_.artistLabel, &ClickableLabel::clicked, [this]() {
         onArtistIdChanged(current_entity_.artist, current_entity_.cover_id, current_entity_.artist_id);
     });
@@ -989,9 +980,6 @@ void Xamp::updateUI(const MusicEntity& item, const PlaybackFormat& playback_form
             ui_.volumeSlider->setDisabled(true);
         }
 
-        Singleton<Database>::GetInstance().addPlaybackHistory(item.album_id, item.artist_id, item.music_id);
-        playback_history_page_->refreshOnece();
-
         ui_.seekSlider->setRange(0, static_cast<int32_t>(player_->GetDuration() * 1000));
         ui_.endPosLabel->setText(Time::msToString(player_->GetDuration()));
         cur_page->format()->setText(format2String(playback_format, item.file_ext));
@@ -1218,10 +1206,6 @@ void Xamp::initialPlaylist() {
 
     lrc_page_ = new LrcPage(this);
     album_artist_page_ = new AlbumArtistPage(this);
-    playback_history_page_ = new PlaybackHistoryPage(this);
-    playback_history_page_->setObjectName(Q_UTF8("playbackHistoryPage"));
-    playback_history_page_->setFont(font());
-    playback_history_page_->hide();
 
     (void)QObject::connect(this,
         &Xamp::themeChanged,
@@ -1288,21 +1272,6 @@ void Xamp::initialPlaylist() {
                                 addPlaylistItem(entity);
                             });
 
-    (void)QObject::connect(album_artist_page_->album(),
-                            &AlbumView::playMusic,
-                            [this](const auto& entity) {
-                                (void)QObject::disconnect(this, &Xamp::payNextMusic, playback_history_page_, &PlaybackHistoryPage::playNextMusic);
-                                (void)QObject::connect(this, &Xamp::payNextMusic, album_artist_page_->album(), &AlbumView::payNextMusic);
-                                playMusic(entity);
-                            });
-    (void)QObject::connect(playback_history_page_,
-                            &PlaybackHistoryPage::playMusic,
-                            [this](const auto& entity) {
-                                (void)QObject::disconnect(this, &Xamp::payNextMusic, album_artist_page_->album(), &AlbumView::payNextMusic);
-                                (void)QObject::connect(this, &Xamp::payNextMusic, playback_history_page_, &PlaybackHistoryPage::playNextMusic);
-                                playMusic(entity);
-                            });
-
     setupPlayNextMusicSignals(true);
 }
 
@@ -1312,20 +1281,12 @@ void Xamp::setupPlayNextMusicSignals(bool add_or_remove) {
                                 &Xamp::payNextMusic,
                                 album_artist_page_->album(),
                                 &AlbumView::payNextMusic);
-        (void)QObject::connect(this,
-                                &Xamp::payNextMusic,
-                                playback_history_page_,
-                                &PlaybackHistoryPage::playNextMusic);
     }
     else {
         (void)QObject::disconnect(this,
                                    &Xamp::payNextMusic,
                                    album_artist_page_->album(),
                                    &AlbumView::payNextMusic);
-        (void)QObject::disconnect(this,
-                                   &Xamp::payNextMusic,
-                                   playback_history_page_,
-                                   &PlaybackHistoryPage::playNextMusic);
     }    
 }
 

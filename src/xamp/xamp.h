@@ -174,14 +174,12 @@ private:
     ArtistInfoPage* artist_info_page_;
     QMenu* tray_icon_menu_;
     QSystemTrayIcon* tray_icon_;
-    PlaybackHistoryPage* playback_history_page_;
 	QStack<int32_t> stack_page_id_;	    	
 	MusicBrainzClient mbc_;
 	DiscogsClient discogs_;
 	MusixmatchClient musixmatcher_;
 	std::shared_ptr<UIPlayerStateAdapter> state_adapter_;
 	std::shared_ptr<AudioPlayer> player_;
-	QTimer timer_;
 #ifdef Q_OS_WIN
     DicordNotify discord_notify_;
 #endif

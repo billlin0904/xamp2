@@ -15,7 +15,15 @@
 
 namespace xamp::base {
 
-template <typename T>
+template
+<
+    typename T,
+    typename V = 
+    std::enable_if_t
+	<
+		std::is_nothrow_move_assignable<T>::value
+	>
+>
 class XAMP_BASE_API_ONLY_EXPORT BoundedQueue final {
 public:
 	explicit BoundedQueue(size_t size)
@@ -26,7 +34,7 @@ public:
     XAMP_DISABLE_COPY(BoundedQueue)   
 
     template <typename U>
-    bool TryEnqueue(U &&task) {
+    bool TryEnqueue(U &&task) noexcept {
         {
 	        const std::unique_lock<std::mutex> lock{mutex_, std::try_to_lock};
             if (!lock) {
@@ -39,7 +47,7 @@ public:
     }
 
     template <typename U>
-    void Enqueue(U &&task) {        
+    void Enqueue(U &&task) noexcept {
         {
             std::lock_guard guard{ mutex_ };
             queue_.emplace(std::forward<T>(task));
@@ -47,7 +55,7 @@ public:
         notify_.notify_one();
     }
 
-	bool TryDequeue(T& task) {
+	bool TryDequeue(T& task) noexcept {
 		const std::unique_lock<std::mutex> lock{ mutex_, std::try_to_lock };
 
 		if (!lock || queue_.empty()) {
@@ -58,7 +66,7 @@ public:
 		return true;
 	}
 
-	bool Dequeue(T& task) {
+	bool Dequeue(T& task) noexcept {
 		std::unique_lock<std::mutex> guard{ mutex_ };
 
 		while (queue_.empty() && !done_) {
@@ -73,7 +81,7 @@ public:
 		return true;
 	}
 
-    bool Dequeue(T& task, const std::chrono::milliseconds wait_time) {
+    bool Dequeue(T& task, const std::chrono::milliseconds wait_time) noexcept {
         std::unique_lock<std::mutex> guard{mutex_};
 
         // Note: cv.wait_for() does not deal with spurious weak up
@@ -91,7 +99,7 @@ public:
         return true;
     }
 
-    void WakeupForShutdown() {
+    void WakeupForShutdown() noexcept {
         {
             std::lock_guard<std::mutex> guard{ mutex_ };
             done_ = true;

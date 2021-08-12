@@ -63,8 +63,6 @@ public:
 
     int32_t addPlaylist(const QString& name, int32_t playlistIndex);
 
-    void addDevice(const QString& deviceId, const QString& deviceTypeId, const QString& name, const QStringList & supportSampleRates, bool is_support_dsd);
-
     void setAlbumCover(int32_t album_id, const QString& album, const QString& cover_id);
 
     std::optional<AlbumStats> getAlbumStats(int32_t album_id) const;
@@ -96,10 +94,6 @@ public:
     void addOrUpdateAlbumArtist(int32_t album_id, int32_t artist_id) const;
 
     void addOrUpdateAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id);
-
-    void addPlaybackHistory(int32_t album_id, int32_t artist_id, int32_t music_id);
-
-    void deleteOldestHistory();
 
     QString getAlbumCoverId(int32_t album_id) const;
 

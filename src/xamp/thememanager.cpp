@@ -322,15 +322,6 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
                                          background-color: transparent;
                                          }
                                          )").arg(themeColorPath()));
-
-    ui.addPlaylistButton->setStyleSheet(Q_STR(R"(
-                                               QToolButton#addPlaylistButton {
-                                               image: url(:/xamp/Resource/%1/create_new_folder.png);
-                                               border: none;
-                                               background-color: transparent;
-                                               }
-                                               )").arg(themeColorPath()));
-
 }
 
 void ThemeManager::setDefaultStyle(Ui::XampWindow& ui) {

@@ -154,32 +154,6 @@ void Database::createTableIfNotExist() {
                        )
                        )"));
 
-	create_table_sql.push_back(
-		Q_UTF8(R"(
-                       CREATE TABLE IF NOT EXISTS playbackHistory (
-                       playbackHistoryId integer primary key autoincrement,
-                       musicId integer,
-                       artistId integer,
-                       albumId integer,
-					   dateTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-					   selected integer DEFAULT 1,
-                       FOREIGN KEY(musicId) REFERENCES musics(musicId),
-                       FOREIGN KEY(artistId) REFERENCES artists(artistId),
-                       FOREIGN KEY(albumId) REFERENCES albums(albumId)					   
-                       )
-                       )"));
-
-	create_table_sql.push_back(
-		Q_UTF8(R"(
-                       CREATE TABLE IF NOT EXISTS audioDevices (
-                       deviceId TEXT,
-                       deviceTypeId TEXT,
-                       name TEXT NOT NULL,
-					   supportSampleRates TEXT NOT NULL,
-					   is_support_dsd integer DEFAULT 0
-                       )
-                       )"));
-
 	QSqlQuery query(db_);
 	for (const auto& sql : create_table_sql) {
 		IfFailureThrow(query, sql);
@@ -369,22 +343,6 @@ int32_t Database::addPlaylist(const QString& name, int32_t playlist_index) {
 
 	model.database().commit();
 	return model.query().lastInsertId().toInt();
-}
-
-void Database::addDevice(const QString& deviceId, const QString& deviceTypeId, const QString& name, const QStringList& supportSampleRates, bool is_support_dsd) {
-	QSqlQuery query;
-
-	query.prepare(Q_UTF8(R"(
-                         INSERT INTO audioDevices (deviceId, deviceTypeId, name, supportSampleRates, is_support_dsd) VALUES (:deviceId, :deviceTypeId, :name, :supportSampleRates, :is_support_dsd)
-                         )"));
-
-	query.bindValue(Q_UTF8(":deviceId"), deviceId);
-	query.bindValue(Q_UTF8(":deviceTypeId"), deviceTypeId);
-	query.bindValue(Q_UTF8(":name"), name);
-	query.bindValue(Q_UTF8(":supportSampleRates"), supportSampleRates.join(Q_UTF8(",")));
-	query.bindValue(Q_UTF8(":is_support_dsd"), is_support_dsd);
-
-	IfFailureThrow1(query);
 }
 
 void Database::setTableName(int32_t table_id, const QString& name) {
@@ -708,43 +666,6 @@ int32_t Database::addOrUpdateAlbum(const QString& album, int32_t artist_id) {
 
 	const auto album_id = query.lastInsertId().toInt();
 	return album_id;
-}
-
-void Database::deleteOldestHistory() {
-	QSqlQuery query;
-
-	query.prepare(
-		Q_UTF8(R"(
-	DELETE 
-	FROM
-		playbackHistory 
-	WHERE
-		playbackHistoryId IN (
-	SELECT
-		playbackHistoryId 
-	FROM
-		playbackHistory 
-	ORDER BY
-		playbackHistoryId 
-		LIMIT 100)	
-    )"));
-
-    IfFailureThrow1(query);
-}
-
-void Database::addPlaybackHistory(int32_t album_id, int32_t artist_id, int32_t music_id) {
-	QSqlQuery query;
-
-	query.prepare(Q_UTF8(R"(
-                         INSERT OR REPLACE INTO playbackHistory (playbackHistoryId, albumId, artistId, musicId)
-                         VALUES ((SELECT playbackHistoryId from playbackHistory where albumId = :albumId AND artistId = :artistId AND musicId = :musicId), :albumId, :artistId, :musicId)
-                         )"));
-
-	query.bindValue(Q_UTF8(":albumId"), album_id);
-	query.bindValue(Q_UTF8(":artistId"), artist_id);
-	query.bindValue(Q_UTF8(":musicId"), music_id);
-
-    IfFailureThrow1(query);
 }
 
 void Database::addOrUpdateAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id) {

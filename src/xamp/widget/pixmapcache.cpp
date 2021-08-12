@@ -96,7 +96,7 @@ void PixmapCache::loadCache() const {
 
 const QPixmap* PixmapCache::find(const QString& tag_id) const {
 	while (true) {
-		const auto cache = cache_.Find(tag_id);
+		const auto* const cache = cache_.Find(tag_id);
 		if (!cache) {
 			auto read_cover = fromFileCache(tag_id);
 			if (read_cover.isNull()) {

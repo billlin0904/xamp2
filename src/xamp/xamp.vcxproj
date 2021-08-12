@@ -169,11 +169,9 @@
     <ClCompile Include="widget\artistinfopage.cpp" />
     <ClCompile Include="widget\artistview.cpp" />
     <ClCompile Include="widget\clickablelabel.cpp" />
-    <ClCompile Include="widget\compressordialog.cpp" />
     <ClCompile Include="widget\database.cpp" />
     <ClCompile Include="widget\discogsclient.cpp" />
     <ClCompile Include="widget\discordnotify.cpp" />
-    <ClCompile Include="widget\filedownloadmanager.cpp" />
     <ClCompile Include="widget\filetag.cpp" />
     <ClCompile Include="widget\framelesswindow.cpp" />
     <ClCompile Include="widget\http.cpp" />
@@ -194,7 +192,6 @@
       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">input</DynamicSource>
       <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtWinExtras;.\..\xamp_base\include;.\..\xamp_stream\include;.\..\xamp_player\include;.\..\xamp_output_device\include;.\..\xamp_metadata\include;.\..\thirdparty\spdlog\include;$(QTDIR)\include\QtNetwork;$(INHERIT);.\..\thirdparty\rapidjson\include;.\..\thirdparty\rapidxml;.\..\thirdparty\robin_hood</IncludePath>
     </ClCompile>
-    <ClCompile Include="widget\playbackhistorypage.cpp" />
     <ClCompile Include="widget\playlistpage.cpp" />
     <ClCompile Include="widget\playlistsqlquerytablemodel.cpp" />
     <ClCompile Include="widget\playlisttableproxymodel.cpp" />
@@ -205,7 +202,6 @@
     <ClCompile Include="widget\scrolllabel.cpp" />
     <ClCompile Include="widget\seekslider.cpp" />
     <ClCompile Include="widget\selectcolorwidget.cpp" />
-    <ClCompile Include="widget\spectrograph.cpp" />
     <ClCompile Include="widget\stardelegate.cpp" />
     <ClCompile Include="widget\stareditor.cpp" />
     <ClCompile Include="widget\starrating.cpp" />
@@ -227,7 +223,6 @@
   <ItemGroup>
     <QtUic Include="aboutdialog.ui" />
     <QtUic Include="preferencedialog.ui" />
-    <QtUic Include="widget\compressordialog.ui" />
     <QtUic Include="widget\toast.ui" />
     <QtUic Include="xamp.ui" />
   </ItemGroup>
@@ -239,10 +234,6 @@
     <ResourceCompile Include="xamp.rc" />
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="widget\filedownloadmanager.h">
-    </QtMoc>
-    <QtMoc Include="widget\compressordialog.h">
-    </QtMoc>
     <QtMoc Include="widget\directorywatcher.h" />
     <QtMoc Include="widget\musixmatchclient.h" />
     <QtMoc Include="widget\lyricsshowwidget.h" />
@@ -250,8 +241,6 @@
     <ClInclude Include="widget\playlistsqlquerytablemodel.h" />
     <ClInclude Include="widget\playlisttablequerymodel.h" />
     <QtMoc Include="widget\uiplayerstateadapter.h">
-    </QtMoc>
-    <QtMoc Include="widget\spectrograph.h">
     </QtMoc>
     <QtMoc Include="widget\readlufsworker.h" />
     <ClInclude Include="widget\read_helper.h" />
@@ -303,8 +292,6 @@
     <QtMoc Include="widget\playlistpage.h">
     </QtMoc>
     <QtMoc Include="widget\seekslider.h">
-    </QtMoc>
-    <QtMoc Include="widget\playbackhistorypage.h">
     </QtMoc>
     <QtMoc Include="widget\selectcolorwidget.h">
     </QtMoc>
