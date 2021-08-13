@@ -505,11 +505,21 @@ void Xamp::initialController() {
     player_->SetMute(vol == 0);
 
     (void)QObject::connect(ui_.volumeSlider, &QSlider::valueChanged, [this](auto volume) {
+        /*auto old_value = ui_.volumeSlider->value();
+        if (!player_->IsHardwareControlVolume()) {
+            ui_.volumeSlider->setValue(old_value);
+            Toast::showTip(tr("Device not supports a software volume control."), this);
+            return;
+        }*/
         QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + Q_UTF8("%"));
         setVolume(volume);
     });
 
     (void)QObject::connect(ui_.volumeSlider, &SeekSlider::leftButtonValueChanged, [this](auto volume) {
+        /*if (!player_->IsHardwareControlVolume()) {
+            Toast::showTip(tr("Device not supports a software volume control."), this);
+            return;
+        }*/
         QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + Q_UTF8("%"));
         setVolume(volume);
     });
@@ -979,6 +989,7 @@ void Xamp::updateUI(const MusicEntity& item, const PlaybackFormat& playback_form
         else {
             ui_.volumeSlider->setDisabled(true);
         }
+        //ui_.volumeSlider->setEnabled(true);
 
         ui_.seekSlider->setRange(0, static_cast<int32_t>(player_->GetDuration() * 1000));
         ui_.endPosLabel->setText(Time::msToString(player_->GetDuration()));

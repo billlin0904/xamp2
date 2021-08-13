@@ -27,7 +27,7 @@ XAMP_BASE_API bool PrefetchFile(MemoryMappedFile &file);
 XAMP_BASE_API bool PrefetchMemory(void* adddr, size_t length) noexcept;
 
 #ifdef XAMP_ENABLE_REP_MOVSB
-inline void MemorySet(void* dest, int32_t c, size_t size) {
+XAMP_ALWAYS_INLINE void MemorySet(void* dest, int32_t c, size_t size) {
     __stosb(static_cast<unsigned char*>(dest), static_cast<unsigned char>(c), size);
 }
 #else
@@ -35,7 +35,7 @@ inline void MemorySet(void* dest, int32_t c, size_t size) {
 #endif
 
 #ifdef XAMP_ENABLE_REP_MOVSB
-inline void MemoryCopy(void* dest, const void* src, size_t size) {
+XAMP_ALWAYS_INLINE void MemoryCopy(void* dest, const void* src, size_t size) {
     __movsb(static_cast<unsigned char *>(dest), static_cast<const unsigned char*>(src), size);
 }
 #else

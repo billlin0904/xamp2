@@ -38,6 +38,7 @@ void DicordNotify::OnNowPlaying(QString const& artist, QString const& title) {
 	auto format = (artist + Q_UTF8(" - ") + title).toStdString();
 	auto details_length = (std::min)(format.length(), details_.size() - 1);
 	details_.fill(0);
+	format = format.substr(0, details_length);
 	strcpy_s(details_.data(), details_.size(), format.data());
 
 	discord_presence_.state = "Listening";

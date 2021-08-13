@@ -82,12 +82,12 @@ public:
 
     XAMP_DISABLE_COPY(RNG)
 
-    template <typename T, typename std::enable_if<std::is_floating_point<T>::value, int>::type* = nullptr>
+    template<class T, std::enable_if_t<std::is_same<T, float>::value>* = nullptr>
     T operator()(T min, T max) noexcept {
         return std::uniform_real_distribution(min, max)(engine_);
     }
 
-    template <typename T, typename std::enable_if<std::is_integral<T>::value, float>::type* = nullptr>
+    template<class T, std::enable_if_t<std::is_integral<T>::value>* = nullptr>
     T operator()(T min, T max) noexcept {
         return std::uniform_int_distribution(min, max)(engine_);
     }

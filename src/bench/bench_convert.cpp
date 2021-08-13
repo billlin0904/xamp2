@@ -1,15 +1,16 @@
-#ifndef _DEBUG
 #include <benchmark/benchmark.h>
-#include <base/singleton.h>
 
+#include <iostream>
 #include <vector>
 #include <queue>
 
+#include <base/audiobuffer.h>
+#include <base/threadpool.h>
 #include <base/memory.h>
 #include <base/rng.h>
+#include <base/fastmutex.h>
 #include <base/dataconverter.h>
 #include <base/stl.h>
-#include <player/audio_util.h>
 
 using namespace xamp::base;
 
@@ -21,6 +22,121 @@ static std::vector<float> GetRandomSamples() {
     return input;
 }
 
+static void BM_StdRandom(benchmark::State& state) {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<int> dis(0);
+    for (auto _ : state) {
+        dis(gen);
+    }
+}
+
+BENCHMARK(BM_StdRandom);
+
+static void BM_XoroshiroRandom(benchmark::State& state) {
+    RNG::GetInstance();
+    for (auto _ : state) {
+        RNG::GetInstance().GetInt();
+    }
+}
+
+BENCHMARK(BM_XoroshiroRandom);
+
+static void BM_AudioBuffer(benchmark::State& state) {
+    AudioBuffer<float> buffer(4096 * 10);
+    std::atomic<bool> running(true);
+
+    auto push_task = ThreadPool::GetInstance().Run([&buffer, &running]()
+        {
+            float s[1024] = {0};
+            while (running)
+            {
+                buffer.TryWrite(s, 1024);
+            }
+        });
+
+    float r[128] = { 0 };
+    for (auto _ : state) {
+        buffer.TryRead(r, 128);
+    }
+
+    running = false;
+    push_task.get();
+}
+
+BENCHMARK(BM_AudioBuffer);
+
+static void BM_LockAudioBuffer(benchmark::State& state) {
+    FastMutex mutex;
+    float buffer[4096 * 10];
+    std::atomic<bool> running(true);
+
+    auto push_task = ThreadPool::GetInstance().Run([&buffer, &running, &mutex]()
+        {
+            float s[1024] = { 0 };
+            while (running)
+            {
+                std::lock_guard<FastMutex> lock_guard{mutex};
+                MemoryCopy(buffer, s, 1024);
+            }
+        });
+
+    float r[128] = { 0 };
+    for (auto _ : state) {
+        std::lock_guard<FastMutex> lock_guard{ mutex };
+        MemoryCopy(r, buffer, 128);
+    }
+
+    running = false;
+    push_task.get();
+}
+
+BENCHMARK(BM_LockAudioBuffer);
+
+static void BM_ThreadPool(benchmark::State& state) {
+    (void) ThreadPool::GetInstance();
+    for (auto _ : state) {
+    	try
+    	{
+            std::vector<std::shared_future<int>> results;
+            results.reserve(16);
+            for (auto i = 0; i < 16; ++i) {
+                results.push_back(ThreadPool::GetInstance().Run([]()-> int {
+                    return 42;
+                    }));
+            }
+            for (auto& f : results) {
+                f.get();
+            }
+    	}
+        catch (std::exception const &e)
+        {
+            std::cout << e.what();
+            break;
+        }
+    }
+}
+
+BENCHMARK(BM_ThreadPool);
+
+static void BM_StdThreadPool(benchmark::State& state) {
+    for (auto _ : state) {
+        std::vector<std::shared_future<int>> results;
+        results.reserve(16);
+        for (auto i = 0; i < 16; ++i) {
+            results.emplace_back(std::async(std::launch::async, []()-> int {
+                return 42;
+                }));
+        }
+        for (auto& f : results) {
+            f.get();
+        }
+    }
+}
+
+BENCHMARK(BM_StdThreadPool);
+
+#if 0
 static void BM_ClampSampleSSE2(benchmark::State& state) {
     auto input = GetRandomSamples();
     for (auto _ : state) {
@@ -40,6 +156,7 @@ static void BM_ClampSample(benchmark::State& state) {
 }
 
 BENCHMARK(BM_ClampSample);
+#endif
 
 static void BM_ConvertToInt2432SSE(benchmark::State& state) {
     std::vector<int32_t> output(4096);
@@ -225,4 +342,3 @@ int main(int argc, char** argv) {
     }
     ::benchmark::RunSpecifiedBenchmarks();
 }
-#endif

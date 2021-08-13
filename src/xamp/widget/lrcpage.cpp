@@ -7,7 +7,6 @@
 #include "thememanager.h"
 
 #include <widget/image_utiltis.h>
-#include <widget/vinylwidget.h>
 #include <widget/scrolllabel.h>
 #include <widget/lyricsshowwidget.h>
 #include <widget/str_utilts.h>
