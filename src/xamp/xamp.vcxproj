@@ -208,7 +208,6 @@
     <ClCompile Include="widget\tablistview.cpp" />
     <ClCompile Include="widget\toast.cpp" />
     <ClCompile Include="widget\uiplayerstateadapter.cpp" />
-    <ClCompile Include="widget\vinylwidget.cpp" />
     <ClCompile Include="widget\wheelablewidget.cpp" />
     <ClCompile Include="widget\win32\directorywatcher.cpp">
       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">input</DynamicSource>
@@ -247,8 +246,6 @@
     <ClInclude Include="widget\ui_utilts.h" />
     <ClInclude Include="widget\widget_shared.h" />
     <QtMoc Include="widget\xampdialog.h">
-    </QtMoc>
-    <QtMoc Include="widget\vinylwidget.h">
     </QtMoc>
     <QtMoc Include="singleinstanceapplication.h">
     </QtMoc>
