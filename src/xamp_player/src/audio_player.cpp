@@ -130,17 +130,18 @@ void AudioPlayer::Open(Path const& file_path) {
     }
 }
 
-void AudioPlayer::Open(Path const& file_path,
-    const DeviceInfo& device_info,
-    uint32_t target_sample_rate,
-    AlignPtr<SampleRateConverter> converter) {
+void AudioPlayer::Open(Path const& file_path, const DeviceInfo& device_info, AlignPtr<SampleRateConverter> converter) {
     Startup();
     CloseDevice(true);
     enable_sample_converter_ = converter != nullptr;
     converter_  = std::move(converter);
-    target_sample_rate_ = target_sample_rate;
+    target_sample_rate_ = 0;
     OpenStream(file_path, device_info);
     device_info_ = device_info;
+}
+
+void AudioPlayer::SetTargetSampleRate(uint32_t target_sample_rate) {
+    target_sample_rate_ = target_sample_rate;
 }
 
 void AudioPlayer::SetProcessor(AlignPtr<AudioProcessor>&& processor) {
@@ -800,21 +801,17 @@ void AudioPlayer::Play() {
 #ifdef _DEBUG
 void AudioPlayer::CheckRace() {
     std::lock_guard<FastMutex> guard{ debug_mutex_ };
-    if (render_thread_id_.empty()) {
-        render_thread_id_ = GetCurrentThreadId();
+    auto current_thread = GetCurrentThreadId();
+    if (render_thread_id_ != current_thread) {
+        XAMP_LOG_INFO("********* Render thread was change : {} => {}", render_thread_id_, current_thread);
     }
-    else {
-        if (render_thread_id_ != GetCurrentThreadId()) {
-            XAMP_LOG_INFO("Render thread was change : {}", render_thread_id_);
-        }
-        render_thread_id_ = GetCurrentThreadId();
-    }
+    render_thread_id_ = current_thread;
 }
 #endif
 
 DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_frames, double stream_time, double sample_time) noexcept {
 #ifdef _DEBUG
-    //CheckRace();
+    CheckRace();
 #endif
 	
     const auto num_samples = num_buffer_frames * output_format_.GetChannels();

@@ -18,46 +18,8 @@ public:
 
 	QString getUrl(QString const &url) const;
 
-	void matcherLyrics(QString const & q_track,
-		QString const& q_artist,
-		QString format = Q_UTF8("json"));
-
-	void chartArtists(QString const &page,
-		uint32_t page_size,
-		QString country = Q_UTF8("us"),
-		QString format = Q_UTF8("json"));
-
-	void chartTrack(QString const& page,
-		uint32_t page_size,
-		bool f_has_lyrics,
-		QString country = Q_UTF8("us"),
-		QString format = Q_UTF8("json"));
-
-	void trackSearch(QString const & q_track,
-		QString const & q_artist,
-		uint32_t page_size,
-		QString const& page, 
-		uint32_t s_track_rating,
-		QString format = Q_UTF8("json"));
-
-	void track(QString const & track_id,
-		QString const& commontrack_id = Qt::EmptyString,
-		QString const& track_isrc = Qt::EmptyString,
-		QString const& track_mbid = Qt::EmptyString,
-		QString format = Q_UTF8("json"));
-
-	void trackLyrics(QString const& track_id,
-		QString const& commontrack_id = Qt::EmptyString,
-		QString format = Q_UTF8("json"));
-
-	void trackSnippet(QString const& track_id,
-		QString format = Q_UTF8("json"));
-
-	void trackSubtitle(QString const& track_id,
-		QString const& track_mbid,
-		QString const& subtitle_format = Qt::EmptyString,
-		QString const& f_subtitle_length = Qt::EmptyString,
-		QString const& f_subtitle_length_max_deviation = Qt::EmptyString,
+	void matcherLyrics(QString const & title,
+		QString const& artist,
 		QString format = Q_UTF8("json"));
 	
 private:

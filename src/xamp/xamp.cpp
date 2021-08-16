@@ -945,7 +945,8 @@ void Xamp::playMusic(const MusicEntity& item) {
             target_sample_rate = soxr_settings[kSoxrResampleSampleRate].toUInt();
             converter = makeSampleRateConverter(soxr_settings);            
         }
-        player_->Open(item.file_path.toStdWString(), device_info_, target_sample_rate, std::move(converter));        
+        player_->Open(item.file_path.toStdWString(), device_info_, std::move(converter));
+        player_->SetTargetSampleRate(target_sample_rate);
         player_->PrepareToPlay();
         const auto enable_dsp = item.true_peak > 1.0;
         if (enable_dsp) {
@@ -1028,7 +1029,7 @@ void Xamp::updateUI(const MusicEntity& item, const PlaybackFormat& playback_form
                           + Q_UTF8(".lrc");
     if (!lrc_page_->lyricsWidget()->loadLrcFile(lrc_path)) {
         //todo:
-		//musixmatcher_.matcherLyrics(item.title, item.artist);
+		musixmatcher_.matcherLyrics(item.title, item.artist);
     }
 	
     lrc_page_->title()->setText(item.title);

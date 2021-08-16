@@ -60,10 +60,9 @@ public:
 
     void Open(Path const& file_path);
 
-    void Open(Path const& file_path,
-        const DeviceInfo& device_info,
-        uint32_t target_sample_rate = 0,
-        AlignPtr<SampleRateConverter> converter = nullptr);       
+    void Open(Path const& file_path, const DeviceInfo& device_info, AlignPtr<SampleRateConverter> converter = nullptr);
+
+    void SetTargetSampleRate(uint32_t target_sample_rate = 0);
 
     void PrepareToPlay();
 

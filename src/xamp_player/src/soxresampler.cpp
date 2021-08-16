@@ -60,6 +60,7 @@ public:
 		, quality_(SoxrQuality::VHQ)
 		, phase_(100.0)
 		, input_sample_rate_(0)
+		, output_sample_rate_(0)
 		, num_channels_(0)
 		, ratio_(0)
 		, pass_band_(kDefaultPassBand)

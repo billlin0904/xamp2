@@ -180,6 +180,10 @@ QNetworkRequest HttpClient::HttpClientImpl::createRequest(HttpClientImpl *d, Htt
     for (auto i = d->headers_.cbegin(); i != d->headers_.cend(); ++i) {
         request.setRawHeader(i.key().toUtf8(), i.value().toUtf8());
     }
+
+    request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
+    request.setAttribute(QNetworkRequest::Http2AllowedAttribute, false);
+
     return request;
 }
 
