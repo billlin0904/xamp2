@@ -1029,7 +1029,7 @@ void Xamp::updateUI(const MusicEntity& item, const PlaybackFormat& playback_form
                           + Q_UTF8(".lrc");
     if (!lrc_page_->lyricsWidget()->loadLrcFile(lrc_path)) {
         //todo:
-		musixmatcher_.matcherLyrics(item.title, item.artist);
+		//musixmatcher_.matcherLyrics(item.title, item.artist);
     }
 	
     lrc_page_->title()->setText(item.title);

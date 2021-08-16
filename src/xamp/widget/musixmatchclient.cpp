@@ -1,6 +1,11 @@
+#include <rapidjson/rapidjson.h>
+#include <rapidjson/document.h>
+
 #include <QRegularExpression>
 #include <QDebug>
 #include <widget/musixmatchclient.h>
+
+using namespace rapidjson;
 
 inline ConstLatin1String kAPIKey = Q_UTF8("");
 inline ConstLatin1String kUrl = Q_UTF8("http://api.musixmatch.com/ws/1.1/");
@@ -48,6 +53,21 @@ void MusixmatchClient::matcherLyrics(QString const& title, QString const& artist
 			return;
 		}
 		qDebug() << content_json;
+
+		auto str = content_json.toStdString();
+		Document d;
+		d.Parse(str.c_str());
+		if (d.HasParseError()) {
+			return;
+		}
+		auto page = d.FindMember("page");
+		if (page == d.MemberEnd()) {
+			return;
+		}
+		auto track = page->value.FindMember("track");
+		if (track == page->value.MemberEnd()) {
+			return;
+		}
 	};
 
 	http::HttpClient(url, manager_)
