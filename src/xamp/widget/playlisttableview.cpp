@@ -688,11 +688,11 @@ void PlayListTableView::resizeColumn() {
         switch (column) {
         case PLAYLIST_PLAYING:
 			header->setSectionResizeMode(column, QHeaderView::ResizeToContents);
-            header->resizeSection(column, 3);
+            header->resizeSection(column, 15);
             break;
         case PLAYLIST_TRACK:
             header->setSectionResizeMode(column, QHeaderView::Fixed);
-            header->resizeSection(column, 10);
+            header->resizeSection(column, 30);
             break;
         case PLAYLIST_LUFS:
             header->setSectionResizeMode(column, QHeaderView::Fixed);
