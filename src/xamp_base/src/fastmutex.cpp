@@ -1,21 +1,51 @@
-#pragma comment(lib, "Synchronization.lib")
-
 #include <base/fastmutex.h>
 
-namespace xamp::base {
 #ifdef XAMP_OS_WIN
+#pragma comment(lib, "Synchronization.lib")
+#endif
 
-XAMP_ALWAYS_INLINE void FutexWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected) {
-#ifdef _WIN32
+namespace xamp::base {
+
+void FutexWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected) {
+#ifdef XAMP_OS_WIN
 	::WaitOnAddress(&to_wait_on, &expected, sizeof(expected), INFINITE);
 #else
 	::syscall(SYS_futex, &to_wait_on, FUTEX_WAIT_PRIVATE, expected, nullptr, nullptr, 0);
 #endif
 }
 
+int FutexWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, const struct timespec* to) {
+#ifdef XAMP_OS_WIN
+	if (to == nullptr) {
+		FutexWait(to_wait_on, expected);
+		return 0;
+	}
+
+	if (to->tv_nsec >= 1000000000) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	if (to->tv_sec >= 2147) {
+		::WaitOnAddress(&to_wait_on, &expected, sizeof(expected), 2147000000);
+		return 0; /* time-out out of range, claim spurious wake-up */
+	}
+
+	const DWORD ms = (to->tv_sec * 1000000) + ((to->tv_nsec + 999) / 1000);
+
+	if (!::WaitOnAddress(&to_wait_on, &expected, sizeof(expected), ms)) {
+		errno = ETIMEDOUT;
+		return -1;
+	}
+	return 0;
+#else
+	::syscall(SYS_futex, &to_wait_on, FUTEX_WAIT_PRIVATE, expected, to, nullptr, 0);
+#endif
+}
+
 template <typename T>
 XAMP_ALWAYS_INLINE void FutexWakeSingle(std::atomic<T>& to_wake) {
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
 	::WakeByAddressSingle(&to_wake);
 #else
 	::syscall(SYS_futex, &to_wake, FUTEX_WAKE_PRIVATE, 1, nullptr, nullptr, 0);
@@ -24,12 +54,14 @@ XAMP_ALWAYS_INLINE void FutexWakeSingle(std::atomic<T>& to_wake) {
 
 template <typename T>
 XAMP_ALWAYS_INLINE void FutexWakeAll(std::atomic<T>& to_wake) {
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
 	::WakeByAddressAll(&to_wake);
 #else
 	::syscall(SYS_futex, &to_wake, FUTEX_WAKE_PRIVATE, std::numeric_limits<int>::max(), nullptr, nullptr, 0);
 #endif
 }
+
+#ifdef XAMP_OS_WIN
 
 void SpinLock::lock() noexcept {
 	for (auto spin_count = 0; !try_lock(); ++spin_count) {
@@ -63,6 +95,23 @@ void FutexMutex::unlock() noexcept {
 	}
 }
 
+void FutexMutexConditionVariable::wait(std::unique_lock<FastMutex>& lock) {
+	auto old_state = state_.load(std::memory_order_relaxed);
+	lock.unlock();
+	FutexWait(state_, old_state);
+	lock.lock();
+}
+
+void FutexMutexConditionVariable::notify_one() noexcept {
+	state_.fetch_add(kLocked, std::memory_order_relaxed);
+	FutexWakeSingle(state_);
+}
+
+void FutexMutexConditionVariable::notify_all() noexcept {
+	state_.fetch_add(kLocked, std::memory_order_relaxed);
+	FutexWakeSingle(state_);
+}
+
 void SRWMutex::lock() noexcept {
 	::AcquireSRWLockExclusive(&lock_);
 }
@@ -93,9 +142,5 @@ void CriticalSection::lock() noexcept {
 void CriticalSection::unlock() noexcept {
 	::LeaveCriticalSection(&cs_);
 }
-	
-using FastMutex = SRWMutex;
-#else
-using FastMutex = std::mutex;
 #endif
 }

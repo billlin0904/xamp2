@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <time.h>
+
 #include <mutex>
 #include <base/windows_handle.h>
 #include <base/exception.h>
@@ -13,8 +15,25 @@ namespace xamp::base {
 
 #ifdef XAMP_OS_WIN
 
+template <typename Rep, typename Period>
+constexpr timespec ToTimespec(std::chrono::duration<Rep, Period> const & duration) noexcept {
+	using namespace std::chrono;
+	timespec ts;
+	ts.tv_sec = duration_cast<seconds>(duration).count();
+	ts.tv_nsec = duration_cast<nanoseconds>(duration).count() % 1000000000;
+	return ts;
+}
+
+int FutexWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, const struct timespec* to);
+
+template <typename Rep, typename Period>
+int FutexWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, std::chrono::duration<Rep, Period> const& duration) {
+	auto to = ToTimespec(duration);
+	return FutexWait(to_wait_on, expected, &to);
+}
+
 // https://probablydance.com/2019/12/30/measuring-mutexes-spinlocks-and-how-bad-the-linux-scheduler-really-is/
-class XAMP_BASE_API XAMP_CACHE_ALIGNED(kMallocAlignSize) SpinLock {
+class XAMP_BASE_API XAMP_CACHE_ALIGNED(kMallocAlignSize) SpinLock final {
 public:
 	static constexpr auto kSpinCount = 16;
 	
@@ -34,7 +53,11 @@ private:
 	std::atomic<bool> lock_ = { false };
 };
 
-class XAMP_BASE_API FutexMutex {
+static constexpr uint32_t kUnlocked = 0;
+static constexpr uint32_t kLocked = 1;
+static constexpr uint32_t kSleeper = 2;
+
+class XAMP_BASE_API FutexMutex final {
 public:
 	FutexMutex() = default;
 
@@ -44,15 +67,15 @@ public:
 	
 	void unlock() noexcept;
 
-private:
-	std::atomic<uint32_t> state_{ kUnlocked };
+	bool try_lock() noexcept {
+		return state_.exchange(kLocked) == kUnlocked;
+	}
 
-	static constexpr uint32_t kUnlocked = 0;
-	static constexpr uint32_t kLocked = 1;
-	static constexpr uint32_t kSleeper = 2;
+private:
+	std::atomic<uint32_t> state_{ kUnlocked };	
 };
 
-class XAMP_BASE_API SRWMutex {
+class XAMP_BASE_API SRWMutex final {
 public:
 	SRWMutex() = default;
 
@@ -67,7 +90,7 @@ private:
 	SRWLOCK lock_ = SRWLOCK_INIT;
 };
 
-class XAMP_BASE_API CriticalSection {
+class XAMP_BASE_API CriticalSection final {
 public:
 	CriticalSection();
 
@@ -84,6 +107,38 @@ private:
 };
 	
 using FastMutex = SRWMutex;
+
+class XAMP_BASE_API FutexMutexConditionVariable final {
+public:
+	FutexMutexConditionVariable() = default;
+
+	XAMP_DISABLE_COPY(FutexMutexConditionVariable)
+
+	void wait(std::unique_lock<FastMutex>& lock);
+
+	template <typename Predicate>
+	void wait(std::unique_lock<FastMutex>& lock, Predicate&& predicate) {
+		while (!predicate()) {
+			wait(lock);
+		}
+	}
+
+	template <typename Rep, typename Period>
+	std::cv_status wait_for(std::unique_lock<FastMutex>& lock, const std::chrono::duration<Rep, Period>& rel_time) {
+		auto old_state = state_.load(std::memory_order_relaxed);
+		lock.unlock();
+		auto ret = FutexWait(state_, old_state, rel_time) == -1
+			? std::cv_status::timeout : std::cv_status::no_timeout;
+		lock.lock();
+		return ret;
+	}
+
+	void notify_one() noexcept;
+
+	void notify_all() noexcept;
+private:
+	std::atomic<uint32_t> state_{ kUnlocked };
+};
 	
 #else
 using FastMutex = std::mutex;

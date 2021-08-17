@@ -41,15 +41,16 @@ FramelessWindow::FramelessWindow(QWidget* parent)
     installEventFilter(this);    
     auto ui_font = setupUIFont();
 #if defined(Q_OS_WIN)
-    if (!use_native_window_) {
-        win32::setWinStyle(this);
-    }
-    createThumbnailToolBar();
     setStyleSheet(Q_UTF8(R"(
         font-family: "UI";
     )"));
+    if (!use_native_window_) {
+        win32::setWinStyle(this);
+        setWindowTitle(Q_UTF8("xamp"));
+    }
+    createThumbnailToolBar();   
     ui_font.setPixelSize(14);
-    qApp->setFont(ui_font);
+    qApp->setFont(ui_font);    
 #else
     setStyleSheet(Q_UTF8(R"(
         font-family: "UI";
@@ -59,10 +60,9 @@ FramelessWindow::FramelessWindow(QWidget* parent)
     qApp->setFont(ui_font);
     if (!use_native_window_) {
         osx::hideTitleBar(this);
+        setWindowTitle(Q_UTF8("xamp"));
 	}
-#endif
-    setWindowTitle(Qt::EmptyString);
-    
+#endif    
 }
 
 // QScopedPointer require default destructor.

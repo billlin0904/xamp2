@@ -12,12 +12,15 @@
 
 #include <base/base.h>
 #include <base/circularbuffer.h>
+#include <base/fastmutex.h>
 
 namespace xamp::base {
 
 template
 <
     typename T,
+    typename Mutex = std::mutex,
+    typename ConditionVariable = std::condition_variable,
     typename V = 
     std::enable_if_t
 	<
@@ -36,7 +39,7 @@ public:
     template <typename U>
     bool TryEnqueue(U &&task) noexcept {
         {
-	        const std::unique_lock<std::mutex> lock{mutex_, std::try_to_lock};
+	        const std::unique_lock lock{mutex_, std::try_to_lock};
             if (!lock) {
                 return false;
             }
@@ -56,7 +59,7 @@ public:
     }
 
 	bool TryDequeue(T& task) noexcept {
-		const std::unique_lock<std::mutex> lock{ mutex_, std::try_to_lock };
+		const std::unique_lock lock{ mutex_, std::try_to_lock };
 
 		if (!lock || queue_.empty()) {
 			return false;
@@ -67,7 +70,7 @@ public:
 	}
 
 	bool Dequeue(T& task) noexcept {
-		std::unique_lock<std::mutex> guard{ mutex_ };
+		std::unique_lock guard{ mutex_ };
 
 		while (queue_.empty() && !done_) {
 			notify_.wait(guard);
@@ -82,7 +85,7 @@ public:
 	}
 
     bool Dequeue(T& task, const std::chrono::milliseconds wait_time) noexcept {
-        std::unique_lock<std::mutex> guard{mutex_};
+        std::unique_lock guard{mutex_};
 
         // Note: cv.wait_for() does not deal with spurious weak up
         while (queue_.empty() && !done_) {
@@ -101,7 +104,7 @@ public:
 
     void WakeupForShutdown() noexcept {
         {
-            std::lock_guard<std::mutex> guard{ mutex_ };
+            std::lock_guard guard{ mutex_ };
             done_ = true;
         }
         notify_.notify_all();
@@ -109,8 +112,8 @@ public:
 
 private:
     std::atomic<bool> done_;
-    mutable std::mutex mutex_;
-    std::condition_variable notify_;
+    mutable Mutex mutex_;
+    ConditionVariable notify_;
     CircularBuffer<T> queue_;    
 };
 

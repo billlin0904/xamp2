@@ -69,6 +69,9 @@ private:
         virtual ~ImplType() noexcept override {
             XAMP_LOG_DEBUG("ImplType was deleted.");
         }
+#else
+        virtual ~ImplType() noexcept override {            
+        }
 #endif
 
         void Call() override {
@@ -108,7 +111,7 @@ private:
 
     void AddThread(size_t i);
 
-    using TaskQueue = BoundedQueue<Task>;
+    using TaskQueue = BoundedQueue<Task, FastMutex, FutexMutexConditionVariable>;
     using SharedTaskQueuePtr = AlignPtr<TaskQueue>;
     
     static constexpr size_t K = 4;
@@ -134,7 +137,7 @@ public:
 	XAMP_DISABLE_COPY(ThreadPool)
 
     template <typename F, typename... Args>
-    decltype(auto) Run(F&& f, Args&&... args);
+    decltype(auto) Spawn(F&& f, Args&&... args);
 
     size_t GetActiveThreadCount() const noexcept;
 
@@ -150,7 +153,7 @@ private:
 };
 
 template <typename F, typename ... Args>
-decltype(auto) ThreadPool::Run(F &&f, Args&&... args) {	
+decltype(auto) ThreadPool::Spawn(F &&f, Args&&... args) {	
     using ReturnType = std::invoke_result_t<F, Args...>;
 	using PackagedTaskType = std::packaged_task<ReturnType()>;
 

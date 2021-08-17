@@ -362,7 +362,7 @@ void Stackblur::blur(uint8_t* src,
 
 			for (auto i = 0; i < cores; i++) {
 				auto buffer = stack.get() + div * 4 * i;
-				tasks.push_back(ThreadPool::GetInstance().Run([i, div, buffer, src, width, height, radius, cores, step]() {
+				tasks.push_back(ThreadPool::GetInstance().Spawn([i, div, buffer, src, width, height, radius, cores, step]() {
 					XAMP_LOG_DEBUG("Starting new stackblur job.");
 					stackblurJob(src, width, height, radius, cores, i, step, buffer);
 					}));
