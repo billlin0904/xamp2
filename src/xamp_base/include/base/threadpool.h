@@ -110,8 +110,11 @@ private:
     std::optional<Task> TrySteal(size_t i);
 
     void AddThread(size_t i);
-
+#ifdef XAMP_OS_WIN
     using TaskQueue = BoundedQueue<Task, FastMutex, FutexMutexConditionVariable>;
+#else
+    using TaskQueue = BoundedQueue<Task>;
+#endif
     using SharedTaskQueuePtr = AlignPtr<TaskQueue>;
     
     static constexpr size_t K = 4;

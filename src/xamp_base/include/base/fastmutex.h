@@ -142,6 +142,7 @@ private:
 	
 #else
 using FastMutex = std::mutex;
+using FutexMutexConditionVariable = std::condition_variable;
 #endif
 	
 }

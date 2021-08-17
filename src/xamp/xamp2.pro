@@ -34,7 +34,6 @@ OBJECTIVE_SOURCES += \
 
 SOURCES += \
     widget/lyricsshowwidget.cpp \
-    widget/playbackhistorypage.cpp \
     widget/musicbrainzclient.cpp \
     widget/discogsclient.cpp \
     widget/artistview.cpp \
@@ -58,7 +57,6 @@ SOURCES += \
     widget/tablistview.cpp \
     widget/toast.cpp \
     widget/uiplayerstateadapter.cpp \
-    widget/vinylwidget.cpp \
     widget/wheelablewidget.cpp \
     widget/selectcolorwidget.cpp \
     widget/artistinfopage.cpp \
@@ -70,7 +68,6 @@ SOURCES += \
     widget/scrolllabel.cpp \
     widget/xampdialog.cpp \
     widget/image_utiltis.cpp \
-    widget/spectrograph.cpp \
     widget/read_helper.cpp \
     widget/win32/directorywatcher.cpp \
     widget/readlufsworker.cpp \
@@ -116,7 +113,6 @@ HEADERS += \
     widget/tablistview.h \
     widget/toast.h \
     widget/uiplayerstateadapter.h \
-    widget/vinylwidget.h \
     widget/wheelablewidget.h \
     widget/str_utilts.h \
     widget/time_utilts.h \
@@ -143,7 +139,6 @@ HEADERS += \
 
 FORMS += \
     widget/toast.ui \
-    widget/compressordialog.ui \
     aboutdialog.ui \
     preferencedialog.ui \
     xamp.ui \

@@ -67,11 +67,20 @@ FlushFileCache:
 
         if (mode_ == DsdModes::DSD_MODE_PCM) {
             if (use_filemap) {
+#ifdef XAMP_OS_MAC
+                auto utf8 = String::ToString(file_path);
+                stream_.reset(BASS.BASS_StreamCreateFile(FALSE,
+                                                         utf8.c_str(),
+                                                         0,
+                                                         0,
+                                                         flags | BASS_STREAM_DECODE));
+#else
                 stream_.reset(BASS.BASS_StreamCreateFile(FALSE,
                     file_path.c_str(),
                     0,
                     0,
                     flags | BASS_UNICODE | BASS_STREAM_DECODE));
+#endif
             } else {
 #ifdef XAMP_OS_MAC
                 auto utf8 = String::ToString(file_path);

@@ -29,7 +29,6 @@ include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
 include_directories("../xamp_base/include")
 include_directories("../thirdparty/bass/include/")
 include_directories("../thirdparty/spdlog/include/")
-include_directories("../thirdparty/ffmpeg/include")
 include_directories("../thirdparty/robin_hood/")
 
 file(GLOB_RECURSE SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/*.cpp")
@@ -41,65 +40,6 @@ find_library (
     NO_DEFAULT_PATH
 )
 
-find_library (
-    LIBAVCODEC
-    NAMES "libavcodec.58.dylib"
-    HINTS "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/ffmpeg/lib/x64/mac/"
-    NO_DEFAULT_PATH
-)
-
-find_library (
-    LIBAVDEVICE
-    NAMES "libavdevice.58.dylib"
-    HINTS "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/ffmpeg/lib/x64/mac/"
-    NO_DEFAULT_PATH
-)
-
-find_library (
-    LIBAVFILTER
-    NAMES "libavfilter.7.dylib"
-    HINTS "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/ffmpeg/lib/x64/mac/"
-    NO_DEFAULT_PATH
-)
-
-find_library (
-    LIBAVFORMAT
-    NAMES "libavformat.58.dylib"
-    HINTS "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/ffmpeg/lib/x64/mac/"
-    NO_DEFAULT_PATH
-)
-
-find_library (
-    LIBAVUTIL
-    NAMES "libavutil.56.dylib"
-    HINTS "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/ffmpeg/lib/x64/mac/"
-    NO_DEFAULT_PATH
-)
-
-find_library (
-    LIBSWRESAMPLE
-    NAMES "libswresample.3.dylib"
-    HINTS "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/ffmpeg/lib/x64/mac/"
-    NO_DEFAULT_PATH
-)
-
-find_library (
-    LIBSWSCALE
-    NAMES "libswscale.5.dylib"
-    HINTS "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/ffmpeg/lib/x64/mac/"
-    NO_DEFAULT_PATH
-)
-
-set(LIBAV_LIBRARIES ${LIBAVCODEC}
-    ${LIBAVDEVICE}
-    ${LIBAVFILTER}
-    ${LIBAVFORMAT}
-    ${LIBAVUTIL}
-    ${LIBSWRESAMPLE}
-    ${LIBSWSCALE})
-
-message(STATUS "LIB_XAMP_BASE: [${LIB_XAMP_BASE}]")
-
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
-target_link_libraries(xamp_stream ${LIB_XAMP_BASE} ${LIBAV_LIBRARIES})
+target_link_libraries(xamp_stream ${LIB_XAMP_BASE})
