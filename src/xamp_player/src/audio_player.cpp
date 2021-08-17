@@ -702,7 +702,7 @@ bool AudioPlayer::CanProcessFile() const noexcept {
     return (dsd_mode_ == DsdModes::DSD_MODE_PCM || dsd_mode_ == DsdModes::DSD_MODE_DSD2PCM);
 }
 
-void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_buffer_sample, std::unique_lock<std::mutex>& lock) {
+void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_buffer_sample, std::unique_lock<FastMutex>& lock) {
     while (is_playing_) {
         const auto num_samples = stream_->GetSamples(sample_buffer, max_buffer_sample);
 
@@ -761,7 +761,7 @@ void AudioPlayer::Play() {
     stream_task_ = ThreadPool::GetInstance().Spawn([player = shared_from_this()]() noexcept {
         auto* p = player.get();
 
-        std::unique_lock<std::mutex> lock{ p->pause_mutex_ };
+        std::unique_lock lock{ p->pause_mutex_ };
 
         auto* sample_buffer = p->read_buffer_.Get();
         const auto max_buffer_sample = p->num_read_sample_;

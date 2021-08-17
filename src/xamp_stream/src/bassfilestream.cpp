@@ -67,11 +67,11 @@ FlushFileCache:
 
         if (mode_ == DsdModes::DSD_MODE_PCM) {
             if (use_filemap) {
-                stream_.reset(BASS.BASS_StreamCreateFile(TRUE,
-                    file_.GetData(),
+                stream_.reset(BASS.BASS_StreamCreateFile(FALSE,
+                    file_path.c_str(),
                     0,
-                    file_.GetLength(),
-                    flags | BASS_STREAM_DECODE));
+                    0,
+                    flags | BASS_UNICODE | BASS_STREAM_DECODE));
             } else {
 #ifdef XAMP_OS_MAC
                 auto utf8 = String::ToString(file_path);

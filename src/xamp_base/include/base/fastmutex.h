@@ -24,7 +24,7 @@ constexpr timespec ToTimespec(std::chrono::duration<Rep, Period> const & duratio
 	return ts;
 }
 
-int FutexWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, const struct timespec* to);
+XAMP_BASE_API int FutexWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, const struct timespec* to);
 
 template <typename Rep, typename Period>
 int FutexWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, std::chrono::duration<Rep, Period> const& duration) {

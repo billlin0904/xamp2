@@ -149,7 +149,7 @@ private:
 
     void SetState(PlayerState play_state);
 
-    void ReadSampleLoop(int8_t* sample_buffer, uint32_t max_buffer_sample, std::unique_lock<std::mutex> &lock);
+    void ReadSampleLoop(int8_t* sample_buffer, uint32_t max_buffer_sample, std::unique_lock<FastMutex>& lock);
 
     void BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<SampleRateConverter> &converter, int32_t buffer_count = 1);
 
@@ -193,8 +193,7 @@ private:
     std::atomic<double> sample_end_time_;
     std::atomic<double> stream_duration_;
     std::atomic<AudioSlice> slice_;
-    mutable std::mutex pause_mutex_;
-    mutable std::mutex stream_read_mutex_;
+    mutable FastMutex pause_mutex_;
 #ifdef _DEBUG
     std::chrono::microseconds max_process_time_{ 0 };
     Stopwatch sw_;
@@ -203,8 +202,8 @@ private:
 #endif    
     std::string device_id_;
     Uuid device_type_id_;
-    std::condition_variable pause_cond_;
-    std::condition_variable stopped_cond_;
+    FutexMutexConditionVariable pause_cond_;
+    FutexMutexConditionVariable stopped_cond_;
     AudioFormat input_format_;
     AudioFormat output_format_;    
     Timer timer_;

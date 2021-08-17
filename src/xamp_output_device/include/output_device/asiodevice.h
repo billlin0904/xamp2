@@ -17,6 +17,7 @@
 #include <base/logger.h>
 #include <base/dsdsampleformat.h>
 #include <base/buffer.h>
+#include <base/fastmutex.h>
 
 #include <output_device/audiocallback.h>
 #include <output_device/device.h>
@@ -111,8 +112,8 @@ private:
 	size_t buffer_bytes_;
 	std::atomic<int64_t> played_bytes_;
 	std::string device_id_;
-	mutable std::mutex mutex_;
-	std::condition_variable condition_;
+	mutable FastMutex mutex_;
+	FutexMutexConditionVariable condition_;
 	AudioFormat format_;
 	std::vector<ASIOClockSource> clock_source_;	
 	Buffer<int8_t> buffer_;

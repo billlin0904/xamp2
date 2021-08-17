@@ -537,7 +537,7 @@ void AsioDevice::StopStream(bool wait_for_stop_stream) {
 	}
 
 	is_streaming_ = false;
-	std::unique_lock<std::mutex> lock{ mutex_ };
+	std::unique_lock lock{ mutex_ };
 
 	while (wait_for_stop_stream && !is_stop_streaming_) {
 		condition_.wait(lock);
