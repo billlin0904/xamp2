@@ -117,7 +117,7 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
 		HrIfFailledThrow(client_->SetClientProperties(&device_props));
 	}
 	catch (Exception const& e) {
-		XAMP_LOG_I(log_, "SetClientProperties return failure! {}", e.GetErrorMessage());
+		XAMP_LOG_D(log_, "SetClientProperties return failure! {}", e.GetErrorMessage());
 		device_props.Options = AUDCLNT_STREAMOPTIONS_MATCH_FORMAT;
 		HrIfFailledThrow(client_->SetClientProperties(&device_props));
 	}
@@ -127,13 +127,13 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
     HrIfFailledThrow(client_->GetDevicePeriod(&default_device_period, &minimum_device_period));
 
 	SetAlignedPeriod(default_device_period, output_format);
-	XAMP_LOG_I(log_, "Exclusive mode: default:{} sec, min:{} sec.",
+	XAMP_LOG_D(log_, "Exclusive mode: default:{} sec, min:{} sec.",
 		Nano100ToSeconds(default_device_period),
 		Nano100ToSeconds(minimum_device_period));
 
-	XAMP_LOG_I(log_, "WASAPI frame per latency: {}.", buffer_frames_);
+	XAMP_LOG_D(log_, "WASAPI frame per latency: {}.", buffer_frames_);
 
-	XAMP_LOG_I(log_, "Initial aligned period: {} sec.", Nano100ToSeconds(aligned_period_));
+	XAMP_LOG_D(log_, "Initial aligned period: {} sec.", Nano100ToSeconds(aligned_period_));
 
 	const auto hr = client_->Initialize(AUDCLNT_SHAREMODE_EXCLUSIVE,
 		AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
@@ -158,22 +158,22 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
 	HrIfFailledThrow(endpoint_volume->QueryHardwareSupport(&volume_support_mask_));
 	
 	if (volume_support_mask_ & ENDPOINT_HARDWARE_SUPPORT_VOLUME) {
-		XAMP_LOG_I(log_, "Hardware support volume control.");
+		XAMP_LOG_D(log_, "Hardware support volume control.");
 	}
 	else {
-		XAMP_LOG_I(log_, "Hardware not support volume control.");
+		XAMP_LOG_D(log_, "Hardware not support volume control.");
 	}
 	if (volume_support_mask_ & ENDPOINT_HARDWARE_SUPPORT_MUTE) {
-		XAMP_LOG_I(log_, "Hardware support volume mute.");
+		XAMP_LOG_D(log_, "Hardware support volume mute.");
 	}
 	else {
-		XAMP_LOG_I(log_, "Hardware not support volume mute.");
+		XAMP_LOG_D(log_, "Hardware not support volume mute.");
 	}
 	if (volume_support_mask_ & ENDPOINT_HARDWARE_SUPPORT_METER) {
-		XAMP_LOG_I(log_, "Hardware support volume meter.");
+		XAMP_LOG_D(log_, "Hardware support volume meter.");
 	}
 	else {
-		XAMP_LOG_I(log_, "Hardware not support volume meter.");
+		XAMP_LOG_D(log_, "Hardware not support volume meter.");
 	}
 }
 
@@ -188,7 +188,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	valid_output_format.SetByteFormat(ByteFormat::SINT32);
 
 	if (!client_) {
-		XAMP_LOG_I(log_, "Active device format: {}.", valid_output_format);
+		XAMP_LOG_D(log_, "Active device format: {}.", valid_output_format);
 
         HrIfFailledThrow(device_->Activate(kAudioClient2ID,
 			CLSCTX_ALL,
@@ -220,7 +220,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	LONG priority = 0;
 	HrIfFailledThrow(::MFGetWorkQueueMMCSSPriority(queue_id_, &priority));
 
-	XAMP_LOG_I(log_, "MCSS task id:{} queue id:{}, priority:{} ({}).",
+	XAMP_LOG_D(log_, "MCSS task id:{} queue id:{}, priority:{} ({}).",
 		task_id, queue_id_, thread_priority_, EnumToString(static_cast<MmcssThreadPriority>(priority)));
 
     sample_ready_callback_ = MakeAsyncCallback(this, &ExclusiveWasapiDevice::OnSampleReady, queue_id_);
@@ -246,7 +246,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 		buffer_ = MakeBuffer<float>(buffer_size);		
 	}	
     data_convert_ = MakeConvert(output_format, valid_output_format, buffer_frames_);
-	XAMP_LOG_I(log_, "WASAPI internal buffer: {}.", String::FormatBytes(buffer_.GetByteSize()));	
+	XAMP_LOG_D(log_, "WASAPI internal buffer: {}.", String::FormatBytes(buffer_.GetByteSize()));	
 #ifdef _DEBUG
 	CComPtr<IAudioEndpointVolume> endpoint_volume;
 	HrIfFailledThrow(device_->Activate(kAudioEndpointVolumeID,
@@ -258,7 +258,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	float max_volume = 0;
 	float volume_increment = 0;
 	HrIfFailledThrow(endpoint_volume->GetVolumeRange(&min_volume, &max_volume, &volume_increment));
-	XAMP_LOG_I(log_, "WASAPI min_volume: {} max_volume: {} volume_increnment: {}.", min_volume, max_volume, volume_increment);
+	XAMP_LOG_D(log_, "WASAPI min_volume: {} max_volume: {} volume_increnment: {}.", min_volume, max_volume, volume_increment);
 #endif
 }
 
@@ -291,7 +291,7 @@ HRESULT ExclusiveWasapiDevice::OnStartPlayback(IMFAsyncResult* result) {
 		sample_ready_async_result_,
 		&sample_ready_key_));	
 
-	XAMP_LOG_I(log_, "OnStartPlayback");	
+	XAMP_LOG_D(log_, "OnStartPlayback");	
 	return S_OK;
 }
 
@@ -300,16 +300,16 @@ void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
 	static constexpr auto kMaxRetryCount = 100;
 	
 	if (!is_running_) {
-		XAMP_LOG_I(log_, "StopStream is_running_: {}", is_running_);
+		XAMP_LOG_D(log_, "StopStream is_running_: {}", is_running_);
 		return;
 	}
 
-	XAMP_LOG_I(log_, "StopStream is_running_: {}", is_running_);
+	XAMP_LOG_D(log_, "StopStream is_running_: {}", is_running_);
 
 	if (wait_for_stop_stream) {
 		if (sample_ready_key_ > 0) {
 			LogHrFailled(::MFCancelWorkItem(sample_ready_key_));
-			XAMP_LOG_I(log_, "Cancel waitting item!");
+			XAMP_LOG_D(log_, "Cancel waitting item!");
 			sample_ready_key_ = 0;
 		}
 
@@ -320,16 +320,16 @@ void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
 		auto i = 0;
 		while (is_running_ && i < kMaxRetryCount) {
 			std::this_thread::sleep_for(kTestTimeout);
-			XAMP_LOG_I(log_, "Wait stop playback callback");
+			XAMP_LOG_D(log_, "Wait stop playback callback");
 			++i;
 		}
 		LogHrFailled(client_->Stop());
-		XAMP_LOG_I(log_, "OnStopPlayback");
+		XAMP_LOG_D(log_, "OnStopPlayback");
 		is_running_ = false;
 	}
 	else {
 		LogHrFailled(client_->Stop());
-		XAMP_LOG_I(log_, "OnPausePlayback");
+		XAMP_LOG_D(log_, "OnPausePlayback");
 	}
 }
 
@@ -345,7 +345,7 @@ HRESULT ExclusiveWasapiDevice::OnSampleReady(IMFAsyncResult *result) {
 	std::lock_guard<FastMutex> render_lock{ render_mutex_ };
 
 	if (is_stop_require_) {
-		XAMP_LOG_I(log_, "Device is not running.");
+		XAMP_LOG_D(log_, "Device is not running.");
 		is_running_ = false;
 		return S_OK;
 	}
@@ -442,7 +442,7 @@ void ExclusiveWasapiDevice::StartStream() {
 		start_playback_callback_,
 		nullptr));
 
-	XAMP_LOG_I(log_, "Start exclusive mode stream!");
+	XAMP_LOG_D(log_, "Start exclusive mode stream!");
 }
 
 void ExclusiveWasapiDevice::SetStreamTime(const double stream_time) noexcept {

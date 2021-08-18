@@ -18,11 +18,9 @@ namespace xamp::output_device::win32 {
 template <typename Base>
 class UnknownImpl : public Base {
 public:
-	virtual ~UnknownImpl() = default;
+	XAMP_DISABLE_COPY(UnknownImpl)
 
-	UnknownImpl() noexcept
-		: refcount_(0) {
-	}
+	virtual ~UnknownImpl() = default;	
 
 	ULONG STDMETHODCALLTYPE AddRef() override {
 		return ::InterlockedIncrement(&refcount_);
@@ -34,6 +32,11 @@ public:
 			delete this;
 		}
 		return result;
+	}
+
+protected:
+	UnknownImpl() noexcept
+		: refcount_(0) {
 	}
 
 private:

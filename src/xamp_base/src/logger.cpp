@@ -37,9 +37,8 @@ static void CreateLogsDir() {
 	}
 }
 
-Logger & Logger::GetInstance() noexcept {
-    static Logger logger;
-    return logger;
+Logger & Logger::GetInstance() noexcept {    
+    return Singleton<Logger>::GetInstance();
 }
 
 void Logger::Shutdown() {

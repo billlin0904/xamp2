@@ -12,6 +12,7 @@
 #include <spdlog/sinks/sink.h>
 #include <spdlog/fmt/ostr.h>
 
+#include <base/singleton.h>
 #include <base/base.h>
 #include <base/memory.h>
 
@@ -28,6 +29,8 @@ inline constexpr char kAudioPlayerLoggerName[] = "audioplayer";
 class XAMP_BASE_API Logger final {
 public:
 	static constexpr int kMaxLogFileSize = 1024 * 1024;
+
+	friend class Singleton<Logger>;
 
 	static Logger& GetInstance() noexcept;
 
