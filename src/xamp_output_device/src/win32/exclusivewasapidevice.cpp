@@ -84,7 +84,7 @@ ExclusiveWasapiDevice::ExclusiveWasapiDevice(CComPtr<IMMDevice> const & device)
 	, aligned_period_(0)
 	, device_(device)
 	, callback_(nullptr)
-	, log_(Logger::GetInstance().GetLogger("ExclusiveWasapiDevice")) {
+	, log_(Logger::GetInstance().GetLogger(kExclusiveWasapiDeviceLoggerName)) {
 }
 
 ExclusiveWasapiDevice::~ExclusiveWasapiDevice() {

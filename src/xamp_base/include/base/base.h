@@ -20,12 +20,12 @@
 		#define XAMP_BASE_API __declspec(dllimport)
 		#define XAMP_BASE_API_ONLY_EXPORT
 	#endif
-#ifdef _HAS_CXX20
+#if _MSVC_LANG > 201704L // Only for C++20
 	#define XAMP_LIKELY(x) if(x) [[likely]]
 	#define XAMP_UNLIKELY(x) if (!x) [[unlikely]]
 #else
-	#define XAMP_LIKELY(x)
-	#define XAMP_UNLIKELY(x)
+	#define XAMP_LIKELY(x) if(x)
+	#define XAMP_UNLIKELY(x) if (!x)
 #endif
 	#pragma warning(disable: 4251)
 	#pragma warning(disable: 4275)
@@ -110,6 +110,8 @@
 #define XAMP_CACHE_ALIGNED(CacheLineSize) __attribute__((aligned(CacheLineSize)))
 #endif
 
+#define XAMP_ENABLE_THREAD_POOL_DEBUG
+
 #define XAMP_ENFORCE_TRIVIAL(t) \
 static_assert(std::is_standard_layout_v<t>);\
 static_assert(std::is_trivially_copyable_v<t>);\
@@ -143,7 +145,7 @@ inline constexpr ptrdiff_t kLoopUnRollingIntCount{ 4 };
 /// <summary>
 /// Default thread pool affinity core.
 /// </summary>
-inline constexpr int32_t kDefaultAffinityCpuCore{ 0 };
+inline constexpr int32_t kDefaultAffinityCpuCore{ -1 };
 
 namespace Fs = std::filesystem;
 using RecursiveDirectoryIterator = Fs::recursive_directory_iterator;

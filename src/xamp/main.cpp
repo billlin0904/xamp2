@@ -38,8 +38,8 @@ static void loadOrDefaultSoxrSetting() {
     default_setting[kSoxrResampleSampleRate] = 96000;
     default_setting[kSoxrEnableSteepFilter] = false;
     default_setting[kSoxrQuality] = static_cast<int32_t>(SoxrQuality::VHQ);
-    default_setting[kSoxrPhase] = 45;
-    default_setting[kSoxrPassBand] = 95;
+    default_setting[kSoxrPhase] = 46;
+    default_setting[kSoxrPassBand] = 96;
 
     JsonSettings::setValue(kSoxrDefaultSettingName, QVariant::fromValue(default_setting));
     AppSettings::setValue(kAppSettingSoxrSettingName, kSoxrDefaultSettingName);
@@ -80,6 +80,39 @@ static void loadSettings() {
 	}
 }
 
+static void preloadDll() {
+#ifdef XAMP_OS_WIN
+    std::vector<std::string_view> preload_dll_file_name{
+        "mimalloc-override.dll",
+        "AudioSes.dll",
+        "ResourcePolicyClient.dll",
+        "AUDIOKSE.dll",
+        "comctl32.dll",
+        "WindowsCodecs.dll",
+        "thumbcache.dll",
+        "psapi.dll",
+    };
+    std::vector<ModuleHandle> preload_module;
+    for (const auto file_name : preload_dll_file_name) {
+        try {
+            preload_module.push_back(LoadModule(file_name));
+        }
+        catch (std::exception const& e) {
+            XAMP_LOG_DEBUG("Preload {} failure! {}.", file_name, e.what());
+        }
+    }
+    XAMP_LOG_DEBUG("Preload dll success.");
+#endif 
+}
+
+static void setLogLevel() {
+    Logger::GetInstance().GetLogger(kThreadPoolLoggerName)->set_level(spdlog::level::info);
+    Logger::GetInstance().GetLogger(kExclusiveWasapiDeviceLoggerName)->set_level(spdlog::level::info);
+    Logger::GetInstance().GetLogger(kSharedWasapiDeviceLoggerName)->set_level(spdlog::level::info);
+    Logger::GetInstance().GetLogger(kAsioDeviceLoggerName)->set_level(spdlog::level::info);
+    Logger::GetInstance().GetLogger(kAudioPlayerLoggerName)->set_level(spdlog::level::info);
+}
+
 static int excute(int argc, char* argv[]) {
     ::qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
 	
@@ -94,7 +127,7 @@ static int excute(int argc, char* argv[]) {
         .AddSink(std::make_shared<QDebugSink>())
 #endif
         .AddFileLogger("xamp.log")
-        .GetLogger("xamp");
+        .GetLogger(kDefaultLoggerName);
 
     XAMP_SET_LOG_LEVEL(spdlog::level::debug);
     XAMP_LOG_DEBUG("Logger init success.");
@@ -102,27 +135,7 @@ static int excute(int argc, char* argv[]) {
     StackTrace::RegisterAbortHandler();
     XAMP_LOG_DEBUG("RegisterAbortHandler success.");
 
-#ifdef XAMP_OS_WIN
-    std::vector<std::string_view> preload_dll_file_name{
-        "mimalloc-override.dll",
-    	"AudioSes.dll",
-        "ResourcePolicyClient.dll",
-        "AUDIOKSE.dll",
-    	"comctl32.dll",
-        "WindowsCodecs.dll",
-        "thumbcache.dll",
-    	"psapi.dll",    	
-    };
-    std::vector<ModuleHandle> preload_module;
-	for (const auto file_name : preload_dll_file_name) {
-        try {
-            preload_module.push_back(LoadModule(file_name));
-        } catch (std::exception const &e) {
-            XAMP_LOG_DEBUG("Preload {} failure! {}.", file_name, e.what());
-        }
-	}
-    XAMP_LOG_DEBUG("Preload dll success.");
-#endif 
+    preloadDll();
 
     if (StackTrace::LoadSymbol()) {
         XAMP_LOG_DEBUG("Load symbol success.");
@@ -168,8 +181,10 @@ static int excute(int argc, char* argv[]) {
     XAMP_LOG_DEBUG("Database init success.");
 
     loadSettings();    
+    
+    app.setStyle(new DarkStyle());   
 
-    app.setStyle(new DarkStyle());    
+    setLogLevel();
 
     Xamp win;
     win.show();

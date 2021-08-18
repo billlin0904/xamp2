@@ -34,7 +34,7 @@ public:
         : impl_(MakeAlign<ImplBase, ImplType<Func>>(std::forward<Func>(f))) {
     }
 	
-    void operator()() {
+    XAMP_ALWAYS_INLINE void operator()() {
 	    impl_->Call();
     }
 	
@@ -65,16 +65,13 @@ private:
             : f_(std::forward<Func>(f)) {
         }
 
-#ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
+#if 0
         virtual ~ImplType() noexcept override {
             XAMP_LOG_DEBUG("ImplType was deleted.");
         }
-#else
-        virtual ~ImplType() noexcept override {            
-        }
 #endif
 
-        void Call() override {
+        XAMP_ALWAYS_INLINE void Call() override {
             f_();
         }
 
@@ -86,7 +83,7 @@ using Task = TaskWrapper;
 	
 class XAMP_BASE_API TaskScheduler final {
 public:
-    explicit TaskScheduler(size_t max_thread, int32_t core = -1);
+    explicit TaskScheduler(size_t max_thread, int32_t core = kDefaultAffinityCpuCore);
 	
     XAMP_DISABLE_COPY(TaskScheduler)
 
@@ -110,11 +107,8 @@ private:
     std::optional<Task> TrySteal(size_t i);
 
     void AddThread(size_t i);
-#ifdef XAMP_OS_WIN
+
     using TaskQueue = BoundedQueue<Task, FastMutex, FutexMutexConditionVariable>;
-#else
-    using TaskQueue = BoundedQueue<Task>;
-#endif
     using SharedTaskQueuePtr = AlignPtr<TaskQueue>;
     
     static constexpr size_t K = 4;
@@ -129,6 +123,7 @@ private:
     TaskQueue pool_queue_;
     std::vector<std::thread> threads_;
     std::vector<SharedTaskQueuePtr> shared_queues_;
+    std::shared_ptr<spdlog::logger> logger_;
 };
 
 class XAMP_BASE_API ThreadPool final {

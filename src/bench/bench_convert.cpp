@@ -4,6 +4,7 @@
 #include <vector>
 #include <queue>
 
+#include <base/scopeguard.h>
 #include <base/audiobuffer.h>
 #include <base/threadpool.h>
 #include <base/memory.h>
@@ -440,6 +441,19 @@ BENCHMARK(BM_TestDsdFileFormatStd);
 #endif
 
 int main(int argc, char** argv) {
+    Logger::GetInstance()
+        .AddDebugOutputLogger()
+        .AddFileLogger("xamp.log")
+        .GetLogger("xamp");
+
+    XAMP_ON_SCOPE_EXIT(
+        Logger::GetInstance().Shutdown();
+    );
+
+    // For debug use!
+    //XAMP_SET_LOG_LEVEL(spdlog::level::debug);
+    XAMP_LOG_DEBUG("Logger init success.");
+
     ::benchmark::Initialize(&argc, argv);
     if (::benchmark::ReportUnrecognizedArguments(argc, argv)) {
         return -1;

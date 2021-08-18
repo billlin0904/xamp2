@@ -17,6 +17,14 @@
 
 namespace xamp::base {
 
+// Logger name.
+inline constexpr char kDefaultLoggerName[] = "xamp";
+inline constexpr char kThreadPoolLoggerName[] = "threadpool";
+inline constexpr char kExclusiveWasapiDeviceLoggerName[] = "ExclusiveWasapiDevice";
+inline constexpr char kSharedWasapiDeviceLoggerName[] = "SharedWasapiDevice";
+inline constexpr char kAsioDeviceLoggerName[] = "AsioDevice";
+inline constexpr char kAudioPlayerLoggerName[] = "audioplayer";
+
 class XAMP_BASE_API Logger final {
 public:
 	static constexpr int kMaxLogFileSize = 1024 * 1024;

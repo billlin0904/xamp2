@@ -83,7 +83,7 @@ SharedWasapiDevice::SharedWasapiDevice(CComPtr<IMMDevice> const & device)
 	, sample_ready_(nullptr)
 	, device_(device)
 	, callback_(nullptr)
-	, log_(Logger::GetInstance().GetLogger("SharedWasapiDevice")) {
+	, log_(Logger::GetInstance().GetLogger(kSharedWasapiDeviceLoggerName)) {
 }
 
 SharedWasapiDevice::~SharedWasapiDevice() {
@@ -130,7 +130,7 @@ void SharedWasapiDevice::StopStream(bool wait_for_stop_stream) {
 	if (wait_for_stop_stream) {
 		if (sample_ready_key_ > 0) {
 			LogHrFailled(::MFCancelWorkItem(sample_ready_key_));
-			XAMP_LOG_I(log_, "Cancel waitting item!");
+			XAMP_LOG_D(log_, "Cancel waitting item!");
 			sample_ready_key_ = 0;
 		}
 
@@ -141,17 +141,17 @@ void SharedWasapiDevice::StopStream(bool wait_for_stop_stream) {
 		auto i = 0;
 		while (is_running_ && i < kMaxRetryCount) {
 			std::this_thread::sleep_for(kTestTimeout);
-			XAMP_LOG_I(log_, "Wait stop playback callback");
+			XAMP_LOG_D(log_, "Wait stop playback callback");
 			++i;
 		}
 		
 		LogHrFailled(client_->Stop());
-		XAMP_LOG_I(log_, "OnStopPlayback");
+		XAMP_LOG_D(log_, "OnStopPlayback");
 		is_running_ = false;
 	}
 	else {
 		LogHrFailled(client_->Stop());
-		XAMP_LOG_I(log_, "OnPausePlayback");
+		XAMP_LOG_D(log_, "OnPausePlayback");
 	}
 }
 
@@ -197,7 +197,7 @@ void SharedWasapiDevice::InitialDeviceFormat(AudioFormat const & output_format) 
 		throw DeviceUnSupportedFormatException(output_format);
 	}	
 
-	XAMP_LOG_I(log_, "Initital device format fundamental:{}, current:{}, min:{} max:{}.",
+	XAMP_LOG_D(log_, "Initital device format fundamental:{}, current:{}, min:{} max:{}.",
 		fundamental_period_in_frame,
 		default_period_in_frame,
 		min_period_in_frame,
@@ -205,7 +205,7 @@ void SharedWasapiDevice::InitialDeviceFormat(AudioFormat const & output_format) 
 
 	latency_ = default_period_in_frame;
 
-	XAMP_LOG_I(log_, "Use latency: {}", latency_);
+	XAMP_LOG_D(log_, "Use latency: {}", latency_);
 }
 
 void SharedWasapiDevice::InitialRawMode(AudioFormat const & output_format) {
@@ -220,7 +220,7 @@ void SharedWasapiDevice::OpenStream(AudioFormat const & output_format) {
 	stream_time_ = 0;
 
 	if (!client_) {
-		XAMP_LOG_I(log_, "Active device format: {}.", output_format);
+		XAMP_LOG_D(log_, "Active device format: {}.", output_format);
 		
 		HrIfFailledThrow(device_->Activate(kAudioClient3ID,
 			CLSCTX_ALL,
@@ -245,7 +245,7 @@ void SharedWasapiDevice::OpenStream(AudioFormat const & output_format) {
 	HrIfFailledThrow(client_->GetService(kAudioClockID,
 		reinterpret_cast<void**>(&clock_)));
 
-	XAMP_LOG_I(log_, "WASAPI buffer frame size:{}.", buffer_frames_);
+	XAMP_LOG_D(log_, "WASAPI buffer frame size:{}.", buffer_frames_);
 
 	DWORD task_id = 0;
 	queue_id_ = 0;
@@ -257,7 +257,7 @@ void SharedWasapiDevice::OpenStream(AudioFormat const & output_format) {
 	LONG priority = 0;
 	HrIfFailledThrow(::MFGetWorkQueueMMCSSPriority(queue_id_, &priority));
 
-	XAMP_LOG_I(log_, "MCSS task id:{} queue id:{}, priority:{} ({}).",
+	XAMP_LOG_D(log_, "MCSS task id:{} queue id:{}, priority:{} ({}).",
 		task_id, queue_id_, thread_priority_, EnumToString(static_cast<MmcssThreadPriority>(priority)));
 
 	sample_ready_callback_ = MakeAsyncCallback(this, &SharedWasapiDevice::OnSampleReady, queue_id_);
@@ -383,7 +383,7 @@ HRESULT SharedWasapiDevice::GetSample(uint32_t frame_available, bool is_silence)
 
 HRESULT SharedWasapiDevice::OnSampleReady(IMFAsyncResult* result) {
 	if (is_stop_require_) {
-		XAMP_LOG_I(log_, "Device is not running.");
+		XAMP_LOG_D(log_, "Device is not running.");
 		is_running_ = false;
 		return S_OK;
 	}	
@@ -419,7 +419,7 @@ HRESULT SharedWasapiDevice::OnStartPlayback(IMFAsyncResult* result) {
 	is_running_ = true;
 	is_stop_require_ = false;
 
-	XAMP_LOG_I(log_, "OnStartPlayback");
+	XAMP_LOG_D(log_, "OnStartPlayback");
 	return S_OK;
 }
 
@@ -441,7 +441,7 @@ void SharedWasapiDevice::StartStream() {
 		start_playback_callback_,
 		nullptr));
 
-	XAMP_LOG_I(log_, "Start shared mode stream!");
+	XAMP_LOG_D(log_, "Start shared mode stream!");
 }
 
 bool SharedWasapiDevice::IsStreamRunning() const noexcept {

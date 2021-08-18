@@ -74,6 +74,7 @@ AudioPlayer::AudioPlayer(const std::weak_ptr<PlaybackStateAdapter> &adapter)
     , fifo_(GetPageAlignSize(kPreallocateBufferSize))
     , seek_queue_(kMsgQueueSize)
 	, processor_queue_(kMsgQueueSize) {
+    logger_ = Logger::GetInstance().GetLogger(kAudioPlayerLoggerName);
 }
 
 AudioPlayer::~AudioPlayer() = default;
@@ -103,7 +104,7 @@ void AudioPlayer::UpdateSlice(int32_t sample_size, double stream_time) noexcept 
 
 void AudioPlayer::LoadDecoder() {
     AudioDeviceManager::PreventSleep(true);
-    XAMP_LOG_DEBUG("AudioDeviceManager init success.");    
+    XAMP_LOG_DEBUG("AudioDeviceManager init success.");
 
     LoadBassLib();
     XAMP_LOG_DEBUG("Load BASS dll success.");
@@ -180,7 +181,7 @@ void AudioPlayer::CreateDevice(Uuid const & device_type_id, std::string const & 
         device_ = device_type_->MakeDevice(device_id);
         device_type_id_ = device_type_id;
         device_id_ = device_id;
-        XAMP_LOG_DEBUG("Create device: {}", device_type_->GetDescription());
+        XAMP_LOG_D(logger_, "Create device: {}", device_type_->GetDescription());
     }
     device_->SetAudioCallback(this);
 }
@@ -204,7 +205,7 @@ void AudioPlayer::OpenStream(Path const& file_path, DeviceInfo const & device_in
         }        
     }
     stream_duration_ = stream_->GetDuration();
-    XAMP_LOG_DEBUG("Open stream type: {} {} duration:{}.", stream_->GetDescription(), dsd_mode_, stream_duration_.load());
+    XAMP_LOG_D(logger_, "Open stream type: {} {} duration:{}.", stream_->GetDescription(), dsd_mode_, stream_duration_.load());
 }
 
 void AudioPlayer::SetState(const PlayerState play_state) {
@@ -212,12 +213,12 @@ void AudioPlayer::SetState(const PlayerState play_state) {
         adapter->OnStateChanged(play_state);
     }
     state_ = play_state;
-    XAMP_LOG_DEBUG("Set state: {}.", EnumToString(state_));
+    XAMP_LOG_D(logger_, "Set state: {}.", EnumToString(state_));
 }
 
 void AudioPlayer::ProcessEvent() {
     if (auto const* stream_time = seek_queue_.Front()) {
-        XAMP_LOG_DEBUG("Receive seek {} message", *stream_time);
+        XAMP_LOG_D(logger_, "Receive seek {} message", *stream_time);
         DoSeek(*stream_time);
         seek_queue_.Pop();
     }
@@ -249,7 +250,7 @@ void AudioPlayer::Pause() {
         return;
     }
 
-    XAMP_LOG_DEBUG("Player pasue.");
+    XAMP_LOG_D(logger_, "Player pasue.");
     if (!is_paused_) {        
         if (device_->IsStreamOpen()) {
             is_paused_ = true;            
@@ -264,7 +265,7 @@ void AudioPlayer::Resume() {
         return;
     }
 
-    XAMP_LOG_DEBUG("Player resume.");
+    XAMP_LOG_D(logger_, "Player resume.");
     if (device_->IsStreamOpen()) {
         SetState(PlayerState::PLAYER_STATE_RESUME);
         is_paused_ = false;
@@ -283,9 +284,9 @@ void AudioPlayer::Stop(bool signal_to_stop, bool shutdown_device, bool wait_for_
         return;
     }
 
-    XAMP_LOG_DEBUG("Player stop.");
+    XAMP_LOG_D(logger_, "Player stop.");
     if (device_->IsStreamOpen()) {
-        XAMP_LOG_DEBUG("Close device.");
+        XAMP_LOG_D(logger_, "Close device.");
         CloseDevice(wait_for_stop_stream);
         UpdateSlice();
         if (signal_to_stop) {
@@ -297,7 +298,7 @@ void AudioPlayer::Stop(bool signal_to_stop, bool shutdown_device, bool wait_for_
 
     fifo_.Clear();
     if (shutdown_device) {
-        XAMP_LOG_DEBUG("Shutdown device.");
+        XAMP_LOG_D(logger_, "Shutdown device.");
         if (AudioDeviceManager::IsASIODevice(device_type_id_)) {
             device_.reset();
             AudioDeviceManager::RemoveASIODriver();            
@@ -396,18 +397,18 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
     stopped_cond_.notify_all();
     if (device_ != nullptr) {
         if (device_->IsStreamOpen()) {
-            XAMP_LOG_DEBUG("Stop output device");
+            XAMP_LOG_D(logger_, "Stop output device");
             try {
                 device_->StopStream(wait_for_stop_stream);
                 device_->CloseStream();
             } catch (const Exception &e) {
-                XAMP_LOG_DEBUG("Close device failure. {}", e.what());
+                XAMP_LOG_D(logger_, "Close device failure. {}", e.what());
             }
         }
     }
 
     if (stream_task_.valid()) {
-        XAMP_LOG_DEBUG("Try to stop stream thread.");        
+        XAMP_LOG_D(logger_, "Try to stop stream thread.");
 #ifdef XAMP_OS_WIN
         // MSVC 2019 is wait for std::packaged_task return timeout, while others such clang can't.
         if (stream_task_.wait_for(kWaitForStreamStopTime) == std::future_status::timeout) {
@@ -417,21 +418,21 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
         stream_task_.get();
 #endif
         stream_task_ = std::shared_future<void>();
-        XAMP_LOG_DEBUG("Stream thread was finished.");        
+        XAMP_LOG_D(logger_, "Stream thread was finished.");
     }
     fifo_.Clear();
 }
 
 void AudioPlayer::AllocateReadBuffer(uint32_t allocate_size) {
     if (read_buffer_.GetSize() == 0 || read_buffer_.GetSize() != allocate_size) {
-        XAMP_LOG_DEBUG("Allocate read buffer : {}.", String::FormatBytes(allocate_size));
+        XAMP_LOG_D(logger_, "Allocate read buffer : {}.", String::FormatBytes(allocate_size));
         read_buffer_ = MakeBuffer<int8_t>(allocate_size);
     }
 }
 
 void AudioPlayer::AllocateFifo() {
     if (fifo_.GetSize() == 0 || fifo_.GetSize() != fifo_size_) {
-        XAMP_LOG_DEBUG("Allocate internal buffer : {}.", String::FormatBytes(fifo_size_));
+        XAMP_LOG_D(logger_, "Allocate internal buffer : {}.", String::FormatBytes(fifo_size_));
         fifo_.Resize(fifo_size_);
     }
 }
@@ -475,7 +476,7 @@ void AudioPlayer::CreateBuffer() {
             target_sample_rate_);
     }
 
-    XAMP_LOG_DEBUG("Output device format: {} num_read_sample: {} resampler: {} buffer: {}.",
+    XAMP_LOG_D(logger_, "Output device format: {} num_read_sample: {} resampler: {} buffer: {}.",
         output_format_,
         num_read_sample_,
         converter_->GetDescription(),
@@ -511,7 +512,7 @@ void AudioPlayer::SetDeviceFormat() {
 void AudioPlayer::OnVolumeChange(float vol) noexcept {
     if (auto adapter = state_adapter_.lock()) {
         adapter->OnVolumeChanged(vol);
-        XAMP_LOG_DEBUG("Volum change: {}.", vol);
+        XAMP_LOG_D(logger_, "Volum change: {}.", vol);
     }
 }
 
@@ -524,11 +525,11 @@ void AudioPlayer::OnDeviceStateChange(DeviceState state, std::string const & dev
     if (auto state_adapter = state_adapter_.lock()) {
         switch (state) {
         case DeviceState::DEVICE_STATE_ADDED:
-            XAMP_LOG_DEBUG("Device added device id:{}.", device_id);
+            XAMP_LOG_D(logger_, "Device added device id:{}.", device_id);
             state_adapter->OnDeviceChanged(DeviceState::DEVICE_STATE_ADDED);
             break;
         case DeviceState::DEVICE_STATE_REMOVED:
-            XAMP_LOG_DEBUG("Device removed device id:{}.", device_id);
+            XAMP_LOG_D(logger_, "Device removed device id:{}.", device_id);
             if (device_id == device_id_) {
                 // TODO: In many system has more ASIO device.
                 if (AudioDeviceManager::IsASIODevice(device_type_->GetTypeId())) {
@@ -538,12 +539,12 @@ void AudioPlayer::OnDeviceStateChange(DeviceState state, std::string const & dev
                 state_adapter->OnDeviceChanged(DeviceState::DEVICE_STATE_REMOVED);
                 if (device_ != nullptr) {
                     device_->AbortStream();
-                    XAMP_LOG_DEBUG("Device abort stream id:{}.", device_id);
+                    XAMP_LOG_D(logger_, "Device abort stream id:{}.", device_id);
                 }
             }
             break;
         case DeviceState::DEVICE_STATE_DEFAULT_DEVICE_CHANGE:
-            XAMP_LOG_DEBUG("Default device device id:{}.", device_id);
+            XAMP_LOG_D(logger_, "Default device device id:{}.", device_id);
             state_adapter->OnDeviceChanged(DeviceState::DEVICE_STATE_DEFAULT_DEVICE_CHANGE);
             break;
         }
@@ -589,9 +590,6 @@ void AudioPlayer::Startup() {
         return;
     }
     
-    ThreadPool::GetInstance().SetAffinityMask(-1);
-    XAMP_LOG_DEBUG("ThreadPool init success.");
-
     constexpr size_t kWorkingSetSize = 2048ul * 1024ul * 1024ul;
     device_manager_.SetWorkingSetSize(kWorkingSetSize);
 
@@ -654,7 +652,7 @@ void AudioPlayer::DoSeek(double stream_time) {
 	
     device_->SetStreamTime(stream_time);
     sample_end_time_ = stream_->GetDuration() - stream_time;
-    XAMP_LOG_DEBUG("Player duration:{} seeking:{} sec, end time:{} sec.",
+    XAMP_LOG_D(logger_, "Player duration:{} seeking:{} sec, end time:{} sec.",
         stream_->GetDuration(),
         stream_time,
         sample_end_time_);
@@ -745,7 +743,7 @@ void AudioPlayer::Play() {
         if (!device_->IsStreamRunning()) {
             device_->SetVolume(volume_);
             device_->SetMute(is_muted_);
-            XAMP_LOG_DEBUG("Play vol:{} muted:{}.", volume_, is_muted_);
+            XAMP_LOG_D(logger_, "Play vol:{} muted:{}.", volume_, is_muted_);
 #ifdef _DEBUG
             sw_.Reset();
 #endif
@@ -767,7 +765,7 @@ void AudioPlayer::Play() {
         const auto max_buffer_sample = p->num_read_sample_;
         const auto num_sample_write = max_buffer_sample * kMaxWriteRatio;
 
-        XAMP_LOG_DEBUG("max_buffer_sample: {}, num_sample_write: {}", max_buffer_sample, num_sample_write);
+        XAMP_LOG_D(p->logger_, "max_buffer_sample: {}, num_sample_write: {}", max_buffer_sample, num_sample_write);
 
         try {
             while (p->is_playing_) {
@@ -793,7 +791,7 @@ void AudioPlayer::Play() {
             XAMP_LOG_DEBUG("Stream thread read has exception: {}", e.what());
         }
 
-        XAMP_LOG_DEBUG("Stream thread done!");
+        XAMP_LOG_D(p->logger_, "Stream thread done!");
         p->stream_.reset();
     });
 }
@@ -847,7 +845,7 @@ void AudioPlayer::PrepareToPlay() {
     
     sample_end_time_ = stream_->GetDuration();
 
-    XAMP_LOG_INFO("Stream end time {} sec", sample_end_time_);
+    XAMP_LOG_D(logger_, "Stream end time {} sec", sample_end_time_);
 }
 
 }
