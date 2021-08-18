@@ -195,8 +195,6 @@ private:
 
     void removeAlbumArtist(int32_t album_id);
 
-    void removePlaybackHistory(int32_t music_id);
-
     void removeAlbumMusicId(int32_t music_id);
 
     void removePlaylistMusics(int32_t music_id);

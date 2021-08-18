@@ -206,13 +206,6 @@ void Database::setNowPlaying(int32_t playlist_id, int32_t playlist_music_id) {
     IfFailureThrow1(query);
 }
 
-void Database::removePlaybackHistory(int32_t music_id) {
-    QSqlQuery query;
-    query.prepare(Q_UTF8("DELETE FROM playbackHistory WHERE musicId=:musicId"));
-    query.bindValue(Q_UTF8(":musicId"), music_id);
-    IfFailureThrow1(query);
-}
-
 void Database::removePlaylistMusics(int32_t music_id) {
     QSqlQuery query;
     query.prepare(Q_UTF8("DELETE FROM playlistMusics WHERE musicId=:musicId"));
@@ -251,7 +244,6 @@ void Database::removeMusic(QString const& file_path) {
 
 	while (query.next()) {		
 		auto music_id = query.value(Q_UTF8("musicId")).toInt();
-		removePlaybackHistory(music_id);
 		removePlaylistMusic(1, QVector<int32_t>{ music_id });
 		removeAlbumMusicId(music_id);
 		removeAlbumArtistId(music_id);
@@ -282,7 +274,6 @@ void Database::removeArtistId(int32_t artist_id) {
 
 void Database::removeAlbum(int32_t album_id) {
     forEachAlbumMusic(album_id, [this](auto const entity) {
-        removePlaybackHistory(entity.music_id);
         removePlaylistMusic(1, QVector<int32_t>{ entity.music_id });
 		removePlaylistMusic(2, QVector<int32_t>{ entity.music_id });
         removeAlbumMusicId(entity.music_id);
