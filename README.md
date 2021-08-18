@@ -1,14 +1,15 @@
 # XAMP 2
 
 # GOAL
-- C++
+- C++17
 - 專注本地端播放體驗
-- Qt(GUI) + Libav(ffmpeg) + Bass(un4seen)
 
 # 目標平台
 | Platform | DSD mode | Output Device Type |
 |----------|----------|----------|
 | Windows | Native DSD | ASIO |
+| Windows | DSD to PCM | WSAPI Shared Mode |
+| Windows | DSD to PCM | WSAPI Exculisive Mode |
 | MAC OSX | DOP | CoreAudio |
 
 # 展示區
