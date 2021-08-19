@@ -34,8 +34,10 @@ void VmMemLock::Lock(void* address, size_t size) {
 	address_ = address;
 	size_ = size;
 #ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
-	XAMP_LOG_DEBUG("VmMemLock lock address: 0x{:08x} size: {}.",
-		reinterpret_cast<int64_t>(address_), String::FormatBytes(size_));
+	XAMP_LOG_D(Logger::GetInstance().GetLogger(kVirtualMemoryLoggerName),
+		"VmMemLock lock address: 0x{:08x} size: {}.",
+		reinterpret_cast<int64_t>(address_),
+		String::FormatBytes(size_));
 #endif
 }
 
@@ -43,12 +45,14 @@ void VmMemLock::UnLock() noexcept {
 	if (address_) {
 		if (!::VirtualUnlock(address_, size_)) {
 #ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
-			XAMP_LOG_DEBUG("VirtualUnlock return failure! error:{} {}.",
+			XAMP_LOG_D(Logger::GetInstance().GetLogger(kVirtualMemoryLoggerName),
+				"VirtualUnlock return failure! error:{} {}.",
 				GetLastErrorMessage(), StackTrace{}.CaptureStack());
 #endif
 		}
 #ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
-		XAMP_LOG_DEBUG("VmMemLock unlock address: 0x{:08x} size: {}.",
+		XAMP_LOG_D(Logger::GetInstance().GetLogger(kVirtualMemoryLoggerName), 
+			"VmMemLock unlock address: 0x{:08x} size: {}.",
 			reinterpret_cast<int64_t>(address_), String::FormatBytes(size_));
 #endif
 	}

@@ -19,12 +19,14 @@
 namespace xamp::base {
 
 // Logger name.
-inline constexpr char kDefaultLoggerName[] = "xamp";
-inline constexpr char kThreadPoolLoggerName[] = "threadpool";
-inline constexpr char kExclusiveWasapiDeviceLoggerName[] = "ExclusiveWasapiDevice";
-inline constexpr char kSharedWasapiDeviceLoggerName[] = "SharedWasapiDevice";
-inline constexpr char kAsioDeviceLoggerName[] = "AsioDevice";
-inline constexpr char kAudioPlayerLoggerName[] = "audioplayer";
+extern "C" XAMP_BASE_API const char kDefaultLoggerName[];
+extern "C" XAMP_BASE_API const char kThreadPoolLoggerName[];
+extern "C" XAMP_BASE_API const char kExclusiveWasapiDeviceLoggerName[];
+extern "C" XAMP_BASE_API const char kSharedWasapiDeviceLoggerName[];
+extern "C" XAMP_BASE_API const char kAsioDeviceLoggerName[];
+extern "C" XAMP_BASE_API const char kAudioPlayerLoggerName[];
+extern "C" XAMP_BASE_API const char kVirtualMemoryLoggerName[];
+extern "C" XAMP_BASE_API const char kResamplerLoggerName[];
 
 class XAMP_BASE_API Logger final {
 public:

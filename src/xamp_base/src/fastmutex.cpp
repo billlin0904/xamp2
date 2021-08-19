@@ -2,7 +2,7 @@
 
 #ifdef XAMP_OS_WIN
 #pragma comment(lib, "Synchronization.lib")
-#else if defined(XAMP_OS_LINUX)
+#elif defined(XAMP_OS_LINUX)
 #include <sys/syscall.h>
 #endif
 
@@ -11,7 +11,7 @@ namespace xamp::base {
 void FutexWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected) {
 #ifdef XAMP_OS_WIN
 	::WaitOnAddress(&to_wait_on, &expected, sizeof(expected), INFINITE);
-#else if defined(XAMP_OS_LINUX)
+#elif defined(XAMP_OS_LINUX)
 	::syscall(SYS_futex, &to_wait_on, FUTEX_WAIT_PRIVATE, expected, nullptr, nullptr, 0);
 #endif
 }
@@ -40,7 +40,7 @@ int FutexWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, const struct
 		return -1;
 	}
 	return 0;
-#else if defined(XAMP_OS_LINUX)
+#elif defined(XAMP_OS_LINUX)
 	::syscall(SYS_futex, &to_wait_on, FUTEX_WAIT_PRIVATE, expected, to, nullptr, 0);
 #endif
 }
@@ -49,7 +49,7 @@ template <typename T>
 XAMP_ALWAYS_INLINE void FutexWakeSingle(std::atomic<T>& to_wake) {
 #ifdef XAMP_OS_WIN
 	::WakeByAddressSingle(&to_wake);
-#else if defined(XAMP_OS_LINUX)
+#elif defined(XAMP_OS_LINUX)
 	::syscall(SYS_futex, &to_wake, FUTEX_WAKE_PRIVATE, 1, nullptr, nullptr, 0);
 #endif
 }
@@ -58,7 +58,7 @@ template <typename T>
 XAMP_ALWAYS_INLINE void FutexWakeAll(std::atomic<T>& to_wake) {
 #ifdef XAMP_OS_WIN
 	::WakeByAddressAll(&to_wake);
-#else if defined(XAMP_OS_LINUX)
+#elif defined(XAMP_OS_LINUX)
 	::syscall(SYS_futex, &to_wake, FUTEX_WAKE_PRIVATE, std::numeric_limits<int>::max(), nullptr, nullptr, 0);
 #endif
 }

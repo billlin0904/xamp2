@@ -11,6 +11,15 @@
 
 namespace xamp::base {
 
+const char kDefaultLoggerName[] = "xamp";
+const char kThreadPoolLoggerName[] = "threadpool";
+const char kExclusiveWasapiDeviceLoggerName[] = "ExclusiveWasapiDevice";
+const char kSharedWasapiDeviceLoggerName[] = "SharedWasapiDevice";
+const char kAsioDeviceLoggerName[] = "AsioDevice";
+const char kAudioPlayerLoggerName[] = "audioplayer";
+const char kVirtualMemoryLoggerName[] = "virtualmemory";
+const char kResamplerLoggerName[] = "resampler";
+
 #ifdef XAMP_OS_WIN
 class DebugOutputSink : public spdlog::sinks::base_sink<std::mutex> {
 public:

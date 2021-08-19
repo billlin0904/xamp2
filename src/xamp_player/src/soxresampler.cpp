@@ -65,6 +65,7 @@ public:
 		, ratio_(0)
 		, pass_band_(kDefaultPassBand)
 		, stop_band_(kDefaultStopBand) {
+		logger_ = Logger::GetInstance().GetLogger(kResamplerLoggerName);
 	}
 
 	~SoxrSampleRateConverterImpl() noexcept {
@@ -121,7 +122,7 @@ public:
 			&soxr_quality,
 			&runtimespec));
 		if (!handle_) {
-			XAMP_LOG_DEBUG("soxr error: {}", !error ? "" : error);
+			XAMP_LOG_D(logger_, "soxr error: {}", !error ? "" : error);
 			throw LibrarySpecException("sox_create return failure!");
 		}
 
@@ -131,7 +132,7 @@ public:
 
 		ratio_ = static_cast<double>(output_sample_rate) / static_cast<double>(input_sample_rate_);
 
-		XAMP_LOG_DEBUG("Soxr resampler setting=> input:{} output:{} quality:{} phase:{} pass:{} stopband:{}",
+		XAMP_LOG_D(logger_, "Soxr resampler setting=> input:{} output:{} quality:{} phase:{} pass:{} stopband:{}",
 			input_sample_rate,
 			output_sample_rate,
 			EnumToString(quality_),
@@ -270,6 +271,7 @@ public:
 	double stop_band_;
 	SoxrHandle handle_;
 	Buffer<float> buffer_;
+	std::shared_ptr<spdlog::logger> logger_;
 };
 
 const std::string_view SoxrSampleRateConverter::VERSION = "Soxr " SOXR_THIS_VERSION_STR;

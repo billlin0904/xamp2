@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <time.h>
+#include <ctime>
 
 #include <mutex>
 #include <base/windows_handle.h>
@@ -15,21 +15,15 @@ namespace xamp::base {
 
 #ifdef XAMP_OS_WIN
 
-template <typename Rep, typename Period>
-constexpr timespec ToTimespec(std::chrono::duration<Rep, Period> const & duration) noexcept {
-	using namespace std::chrono;
-	timespec ts;
-	ts.tv_sec = duration_cast<seconds>(duration).count();
-	ts.tv_nsec = duration_cast<nanoseconds>(duration).count() % 1000000000;
-	return ts;
-}
-
 XAMP_BASE_API int FutexWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, const struct timespec* to);
 
 template <typename Rep, typename Period>
 int FutexWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, std::chrono::duration<Rep, Period> const& duration) {
-	auto to = ToTimespec(duration);
-	return FutexWait(to_wait_on, expected, &to);
+	using namespace std::chrono;
+	timespec ts;
+	ts.tv_sec = duration_cast<seconds>(duration).count();
+	ts.tv_nsec = duration_cast<nanoseconds>(duration).count() % 1000000000;	
+	return FutexWait(to_wait_on, expected, &ts);
 }
 
 // https://probablydance.com/2019/12/30/measuring-mutexes-spinlocks-and-how-bad-the-linux-scheduler-really-is/
@@ -140,7 +134,7 @@ private:
 	std::atomic<uint32_t> state_{ kUnlocked };
 };
 	
-#else
+#elif defined(XAMP_OS_MAC)
 using FastMutex = std::mutex;
 using FutexMutexConditionVariable = std::condition_variable;
 #endif
