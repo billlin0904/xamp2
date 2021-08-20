@@ -238,7 +238,7 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
     model_.setHeaderData(PLAYLIST_BITRATE, Qt::Horizontal, tr("Bit rate"));
     model_.setHeaderData(PLAYLIST_SAMPLE_RATE, Qt::Horizontal, tr("SampleRate"));
     model_.setHeaderData(PLAYLIST_RATING, Qt::Horizontal, tr("Rating"));
-    model_.setHeaderData(PLAYLIST_LUFS, Qt::Horizontal, tr("LRUS"));
+    model_.setHeaderData(PLAYLIST_LUFS, Qt::Horizontal, tr("LUFS"));
     model_.setHeaderData(PLAYLIST_TRUE_PEAK, Qt::Horizontal, tr("TP"));
     model_.setHeaderData(PLAYLIST_TIMESTAMP, Qt::Horizontal, tr("Date"));
     model_.setHeaderData(PLAYLIST_FINGER_PRINT, Qt::Horizontal, tr("Fingerprint"));
@@ -262,6 +262,9 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
     hideColumn(PLAYLIST_RATING);
     hideColumn(PLAYLIST_DURATION);
     hideColumn(PLAYLIST_PLAYLIST_MUSIC_ID);
+
+    hideColumn(PLAYLIST_LUFS);
+    hideColumn(PLAYLIST_TRUE_PEAK);
 }
 
 void PlayListTableView::initial() {

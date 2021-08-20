@@ -182,7 +182,6 @@
     <ClCompile Include="widget\lrcparser.cpp" />
     <ClCompile Include="widget\lyricsshowwidget.cpp" />
     <ClCompile Include="widget\musicbrainzclient.cpp" />
-    <ClCompile Include="widget\musixmatchclient.cpp" />
     <ClCompile Include="widget\pixmapcache.cpp" />
     <ClCompile Include="widget\metadataextractadapter.cpp">
       <OutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles\$(ConfigurationName)\%(Filename).moc</OutputFile>
@@ -234,7 +233,6 @@
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="widget\directorywatcher.h" />
-    <QtMoc Include="widget\musixmatchclient.h" />
     <QtMoc Include="widget\lyricsshowwidget.h" />
     <QtMoc Include="widget\discordnotify.h" />
     <ClInclude Include="widget\playlistsqlquerytablemodel.h" />

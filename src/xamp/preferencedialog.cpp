@@ -198,7 +198,6 @@ PreferenceDialog::PreferenceDialog(QWidget *parent)
 
 	(void)QObject::connect(ui_.resetAllButton, &QPushButton::clicked, [this]() {
 		initSoxResampler();
-        AppSettings::setOrDefaultConfig();
 		});
 
     (void)QObject::connect(ui_.buttonBox, &QDialogButtonBox::accepted, [this]() {

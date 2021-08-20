@@ -152,20 +152,10 @@ QIcon ThemeManager::appIcon() const {
 void ThemeManager::setBackgroundColor(Ui::XampWindow& ui, QColor color) {
     ui.currentView->setStyleSheet(backgroundColorToString(color));
     ui.titleFrame->setStyleSheet(backgroundColorToString(color));
-
-    auto bottom_color = color;  
-    if (AppSettings::contains(kAppSettingBottomColor)) {
-        bottom_color = AppSettings::getValueAsString(kAppSettingBottomColor);
-    }
-
+    
     ui.playingFrame->setStyleSheet(backgroundColorToString(QColor(77, 77, 77)));
     ui.volumeFrame->setStyleSheet(backgroundColorToString(QColor(45,45,45)));
     ui.controlFrame->setStyleSheet(backgroundColorToString(QColor(45,45,45)));
-
-    auto alpha_color = color;
-    if (AppSettings::contains(kAppSettingAlphaColor)) {
-        alpha_color = AppSettings::getValueAsString(kAppSettingAlphaColor);
-    }
 
     if (AppSettings::contains(kAppSettingEnableBlur)) {
         ui.sliderFrame->setStyleSheet(backgroundColorToString(QColor(37, 37, 39, 210)));

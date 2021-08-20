@@ -627,16 +627,18 @@ void Xamp::initialController() {
     });
 
 #ifdef Q_OS_WIN
-    (void)QObject::connect(this,
-        &Xamp::nowPlaying,
-        &discord_notify_,
-        &DicordNotify::OnNowPlaying);
+    if (AppSettings::getValueAsBool(kAppSettingDiscordNotify)) {
+        (void)QObject::connect(this,
+            &Xamp::nowPlaying,
+            &discord_notify_,
+            &DicordNotify::OnNowPlaying);
 
-    (void)QObject::connect(state_adapter_.get(),
-        &UIPlayerStateAdapter::stateChanged,
-        &discord_notify_,
-        &DicordNotify::OnStateChanged,
-        Qt::QueuedConnection);
+        (void)QObject::connect(state_adapter_.get(),
+            &UIPlayerStateAdapter::stateChanged,
+            &discord_notify_,
+            &DicordNotify::OnStateChanged,
+            Qt::QueuedConnection);
+    }    
 #endif
 
     auto* settings_menu = new QMenu(this);

@@ -18,7 +18,6 @@
 #include <widget/playlistentity.h>
 #include <widget/localelanguage.h>
 #include <widget/playerorder.h>
-#include <widget/musixmatchclient.h>
 #include <widget/musicentity.h>
 
 #ifdef Q_OS_WIN
@@ -177,7 +176,6 @@ private:
 	QStack<int32_t> stack_page_id_;	    	
 	MusicBrainzClient mbc_;
 	DiscogsClient discogs_;
-	MusixmatchClient musixmatcher_;
 	std::shared_ptr<UIPlayerStateAdapter> state_adapter_;
 	std::shared_ptr<AudioPlayer> player_;
 #ifdef Q_OS_WIN

@@ -50,7 +50,23 @@ static void loadOrDefaultSoxrSetting() {
 }
 
 static void loadSettings() {
-    AppSettings::setOrDefaultConfig();
+    AppSettings::loadIniFile(Q_UTF8("xamp.ini"));
+    AppSettings::setDefaultValue(kAppSettingDeviceType, Qt::EmptyString);
+    AppSettings::setDefaultValue(kAppSettingDeviceId, Qt::EmptyString);
+    AppSettings::setDefaultValue(kAppSettingWidth, 600);
+    AppSettings::setDefaultValue(kAppSettingHeight, 500);
+    AppSettings::setDefaultValue(kAppSettingVolume, 50);
+    AppSettings::setDefaultValue(kAppSettingNightMode, false);
+    AppSettings::setDefaultValue(kAppSettingOrder, static_cast<int32_t>(PlayerOrder::PLAYER_ORDER_REPEAT_ONCE));
+    AppSettings::setDefaultValue(kAppSettingBackgroundColor, QColor("#01121212"));
+    AppSettings::setDefaultValue(kAppSettingEnableBlur, true);
+    AppSettings::setDefaultValue(kAppSettingPreventSleep, true);
+    AppSettings::setDefaultValue(kLyricsFontSize, 12);
+    AppSettings::setDefaultValue(kAppSettingMinimizeToTrayAsk, true);
+    AppSettings::setDefaultValue(kAppSettingMinimizeToTray, false);
+    AppSettings::setDefaultValue(kAppSettingEnableGaplessPlay, false);
+    AppSettings::setDefaultValue(kAppSettingDiscordNotify, false);
+	
     JsonSettings::loadJsonFile(Q_UTF8("soxr.json"));
 	
     loadOrDefaultSoxrSetting();
@@ -80,7 +96,7 @@ static void loadSettings() {
 	}
 }
 
-static void preloadDll() {
+static std::vector<ModuleHandle> preloadDll() {
 #ifdef XAMP_OS_WIN
     std::vector<std::string_view> preload_dll_file_name{
         "mimalloc-override.dll",
@@ -102,21 +118,26 @@ static void preloadDll() {
         }
     }
     XAMP_LOG_DEBUG("Preload dll success.");
+    return preload_module;
+#else
+	return std::vector<ModuleHandle>();
 #endif 
 }
 
-static void setLogLevel() {
-    Logger::GetInstance().GetLogger(kThreadPoolLoggerName)->set_level(spdlog::level::info);
-    Logger::GetInstance().GetLogger(kExclusiveWasapiDeviceLoggerName)->set_level(spdlog::level::info);
-    Logger::GetInstance().GetLogger(kSharedWasapiDeviceLoggerName)->set_level(spdlog::level::info);
-    Logger::GetInstance().GetLogger(kAsioDeviceLoggerName)->set_level(spdlog::level::info);
-    Logger::GetInstance().GetLogger(kAudioPlayerLoggerName)->set_level(spdlog::level::info);
+static void setLogLevel(spdlog::level::level_enum level = spdlog::level::info) {
+    Logger::GetInstance().GetLogger(kThreadPoolLoggerName)->set_level(level);
+    Logger::GetInstance().GetLogger(kExclusiveWasapiDeviceLoggerName)->set_level(level);
+    Logger::GetInstance().GetLogger(kSharedWasapiDeviceLoggerName)->set_level(level);
+    Logger::GetInstance().GetLogger(kAsioDeviceLoggerName)->set_level(level);
+    Logger::GetInstance().GetLogger(kAudioPlayerLoggerName)->set_level(level);
+    Logger::GetInstance().GetLogger(kVirtualMemoryLoggerName)->set_level(level);
+    Logger::GetInstance().GetLogger(kResamplerLoggerName)->set_level(level);
 }
 
 static int excute(int argc, char* argv[]) {
     ::qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
 	
-    QApplication::setAttribute(Qt::AA_UseOpenGLES);
+    //QApplication::setAttribute(Qt::AA_UseOpenGLES);
     QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
     
@@ -135,8 +156,8 @@ static int excute(int argc, char* argv[]) {
     StackTrace::RegisterAbortHandler();
     XAMP_LOG_DEBUG("RegisterAbortHandler success.");
 
-    preloadDll();
-
+    const auto preload_module = preloadDll();
+	
     if (StackTrace::LoadSymbol()) {
         XAMP_LOG_DEBUG("Load symbol success.");
     }
