@@ -26,23 +26,19 @@ DsdModes SetStreamDsdMode(AlignPtr<FileStream>& stream, bool is_dsd_file, const 
                 if (AudioDeviceManager::IsASIODevice(device_info.device_type_id)) {
                     dsd_stream->SetDSDMode(DsdModes::DSD_MODE_NATIVE);
                     dsd_mode = DsdModes::DSD_MODE_NATIVE;
-                    XAMP_LOG_DEBUG("Use Native DSD mode.");
                 }
                 else {
                     dsd_stream->SetDSDMode(DsdModes::DSD_MODE_DOP);
-                    XAMP_LOG_DEBUG("Use DOP mode.");
                     dsd_mode = DsdModes::DSD_MODE_DOP;
                 }
             }
             else {
                 dsd_stream->SetDSDMode(DsdModes::DSD_MODE_DSD2PCM);
                 dsd_mode = DsdModes::DSD_MODE_DSD2PCM;
-                XAMP_LOG_DEBUG("Use DSD2PCM mode.");
             }
         }
     } else {
         dsd_mode = DsdModes::DSD_MODE_PCM;
-        XAMP_LOG_DEBUG("Use PCM mode.");
     }
 
     return dsd_mode;

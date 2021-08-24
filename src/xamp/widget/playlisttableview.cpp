@@ -469,9 +469,9 @@ void PlayListTableView::initial() {
 
         action_map.setCallback(export_wave_file_act, [this]() {
             const auto rows = selectItemIndex();
-            for (const auto& [fst, snd] : rows) {
-                auto entity = this->item(snd);
-                emit exportWaveFile(snd, entity);
+            for (const auto row : rows) {
+                auto entity = this->item(row.second);
+                emit exportWaveFile(row.second, entity);
             }
             refresh();
             });

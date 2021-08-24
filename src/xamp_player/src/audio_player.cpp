@@ -151,7 +151,7 @@ void AudioPlayer::SetProcessor(AlignPtr<AudioProcessor>&& processor) {
 
 void AudioPlayer::EnableProcessor(bool enable) {
     enable_processor_ = enable;
-    XAMP_LOG_DEBUG("Enable processor {}", enable);
+    XAMP_LOG_D(logger_, "Enable processor {}", enable);
 }
 
 bool AudioPlayer::IsEnableProcessor() const {
@@ -293,8 +293,6 @@ void AudioPlayer::Stop(bool signal_to_stop, bool shutdown_device, bool wait_for_
             SetState(PlayerState::PLAYER_STATE_STOPPED);                        
         }
     }
-
-    MSleep(500);
 
     fifo_.Clear();
     if (shutdown_device) {

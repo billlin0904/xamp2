@@ -33,28 +33,29 @@ QVariant PlayListSqlQueryTableModel::data(const QModelIndex& index, int32_t role
         }
         break;
     case Qt::DisplayRole:
-        if (index.column() == PLAYLIST_PLAYING) {
-            return QVariant();
-        }
-        else if (index.column() == PLAYLIST_RATING) {
-            value = QSqlQueryModel::data(index, Qt::DisplayRole);
-            return QVariant::fromValue(StarRating(value.toInt()));
-        } else {
-            value = QSqlQueryModel::data(index, Qt::DisplayRole);
-            switch (index.column()) {
-            case PLAYLIST_BITRATE:
-                if (value.toInt() > 10000) {
-                    return QString(Q_UTF8("%0 Mbps")).arg(value.toInt() / 1000.0);
-                }
-                return QString(Q_UTF8("%0 Kbps")).arg(value.toInt());
-            case PLAYLIST_SAMPLE_RATE:
-                return samplerate2String(value.toInt());
-            case PLAYLIST_DURATION:
-                return Time::msToString(value.toDouble());
-            case PLAYLIST_TIMESTAMP:
-                return QDateTime::fromSecsSinceEpoch(value.toULongLong()).toString(Q_UTF8("yyyy-MM-dd HH:mm:ss"));
-            }
-        }
+	    {
+		    if (index.column() == PLAYLIST_PLAYING) {
+			    return QVariant();
+		    }
+		    if (index.column() == PLAYLIST_RATING) {
+			    value = QSqlQueryModel::data(index, Qt::DisplayRole);
+			    return QVariant::fromValue(StarRating(value.toInt()));
+		    }
+		    value = QSqlQueryModel::data(index, Qt::DisplayRole);
+		    switch (index.column()) {
+		    case PLAYLIST_BITRATE:
+			    if (value.toInt() > 10000) {
+				    return QString(Q_UTF8("%0 Mbps")).arg(value.toInt() / 1000.0);
+			    }
+			    return QString(Q_UTF8("%0 Kbps")).arg(value.toInt());
+		    case PLAYLIST_SAMPLE_RATE:
+			    return samplerate2String(value.toInt());
+		    case PLAYLIST_DURATION:
+			    return Time::msToString(value.toDouble());
+		    case PLAYLIST_TIMESTAMP:
+			    return QDateTime::fromSecsSinceEpoch(value.toULongLong()).toString(Q_UTF8("yyyy-MM-dd HH:mm:ss"));
+		    }
+	    }
         break;
     case Qt::DecorationRole:
         if (index.column() == PLAYLIST_PLAYING) {
@@ -62,9 +63,7 @@ QVariant PlayListSqlQueryTableModel::data(const QModelIndex& index, int32_t role
             if (value.toBool()) {
                 return ThemeManager::instance().playArrow();
             }
-            else {
-                return QVariant();
-            }
+            return QVariant();
         }
         break;
     case Qt::TextAlignmentRole:
