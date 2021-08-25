@@ -101,7 +101,7 @@ XAMP_BASE_API_ONLY_EXPORT AlignPtr<Type> MakeAlign(Args&& ... args) {
     }
 }
 
-template <typename Type, typename U = std::enable_if_t<std::is_trivially_copyable<Type>::value>>
+template <typename Type, typename U = std::enable_if_t<std::is_trivially_copyable_v<Type>>>
 XAMP_BASE_API_ONLY_EXPORT AlignBufferPtr<Type> MakeBufferPtr(size_t n) {
     auto ptr = AlignedMallocCountOf<Type>(n, kMallocAlignSize);
     if (!ptr) {
@@ -110,7 +110,7 @@ XAMP_BASE_API_ONLY_EXPORT AlignBufferPtr<Type> MakeBufferPtr(size_t n) {
     return AlignBufferPtr<Type>(static_cast<Type*>(ptr));
 }
 
-template <typename Type, typename U = std::enable_if_t<std::is_trivially_copyable<Type>::value>>
+template <typename Type, typename U = std::enable_if_t<std::is_trivially_copyable_v<Type>>>
 XAMP_BASE_API_ONLY_EXPORT StackBufferPtr<Type> MakeStackBuffer(size_t n) {
     auto* ptr = StackAlloc(sizeof(Type) * n);
     if (!ptr) {

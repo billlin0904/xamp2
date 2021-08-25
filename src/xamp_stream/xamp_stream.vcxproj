@@ -152,7 +152,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="include\stream\audiostream.h" />
+    <ClInclude Include="include\stream\basscddevice.h" />
     <ClInclude Include="include\stream\bassfilestream.h" />
+    <ClInclude Include="include\stream\cddevice.h" />
     <ClInclude Include="include\stream\dsdstream.h" />
     <ClInclude Include="include\stream\audioprocessor.h" />
     <ClInclude Include="include\stream\filestream.h" />
@@ -163,6 +165,7 @@
     <ClInclude Include="include\stream\wavefilewriter.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\basscddevice.cpp" />
     <ClCompile Include="src\bassexception.cpp" />
     <ClCompile Include="src\bassfilestream.cpp" />
     <ClCompile Include="src\basslib.cpp" />

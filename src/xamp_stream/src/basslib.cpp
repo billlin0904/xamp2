@@ -39,13 +39,16 @@ std::string GetBassVersion(uint32_t version) {
     return ostr.str();
 }
 
+#define LOAD_BASS_DLL_API(DLLFunc) \
+	DLLFunc(module_, #DLLFunc)
+
 BassDSDLib::BassDSDLib() try
 #ifdef XAMP_OS_WIN
     : module_(LoadModule("bassdsd.dll"))
 #else
     : module_(LoadModule("libbassdsd.dylib"))
 #endif
-    , BASS_DSD_StreamCreateFile(module_, "BASS_DSD_StreamCreateFile") {
+    , LOAD_BASS_DLL_API(BASS_DSD_StreamCreateFile) {
 }
 catch (const Exception& e) {
     XAMP_LOG_ERROR("{}", e.GetErrorMessage());
@@ -57,9 +60,9 @@ BassMixLib::BassMixLib() try
 #else
     : module_(LoadModule("libbassmix.dylib"))
 #endif
-    , BASS_Mixer_StreamCreate(module_, "BASS_Mixer_StreamCreate")
-    , BASS_Mixer_StreamAddChannel(module_, "BASS_Mixer_StreamAddChannel")
-    , BASS_Mixer_GetVersion(module_, "BASS_Mixer_GetVersion") {
+    , LOAD_BASS_DLL_API(BASS_Mixer_StreamCreate)
+    , LOAD_BASS_DLL_API(BASS_Mixer_StreamAddChannel)
+    , LOAD_BASS_DLL_API(BASS_Mixer_GetVersion) {
 }
 catch (const Exception& e) {
     XAMP_LOG_ERROR("{}", e.GetErrorMessage());
@@ -71,8 +74,32 @@ BassFxLib::BassFxLib() try
 #else
     : module_(LoadModule("libbass_fx.dylib"))
 #endif
-    , BASS_FX_TempoGetSource(module_, "BASS_FX_TempoGetSource")
-    , BASS_FX_TempoCreate(module_, "BASS_FX_TempoCreate") {
+    , LOAD_BASS_DLL_API(BASS_FX_TempoGetSource)
+    , LOAD_BASS_DLL_API(BASS_FX_TempoCreate) {
+}
+catch (const Exception& e) {
+    XAMP_LOG_ERROR("{}", e.GetErrorMessage());
+}
+
+BassCDLib::BassCDLib() try
+#ifdef XAMP_OS_WIN
+    : module_(LoadModule("basscd.dll"))
+#else
+    : module_(LoadModule("libbasscd.dylib"))
+#endif
+    , LOAD_BASS_DLL_API(BASS_CD_GetInfo)
+	, LOAD_BASS_DLL_API(BASS_CD_GetSpeed)
+    , LOAD_BASS_DLL_API(BASS_CD_Door)
+	, LOAD_BASS_DLL_API(BASS_CD_DoorIsLocked)
+    , LOAD_BASS_DLL_API(BASS_CD_DoorIsOpen)
+	, LOAD_BASS_DLL_API(BASS_CD_SetInterface)
+	, LOAD_BASS_DLL_API(BASS_CD_SetOffset)
+	, LOAD_BASS_DLL_API(BASS_CD_SetSpeed)
+	, LOAD_BASS_DLL_API(BASS_CD_Release)
+    , LOAD_BASS_DLL_API(BASS_CD_IsReady)
+    , LOAD_BASS_DLL_API(BASS_CD_GetID)
+    , LOAD_BASS_DLL_API(BASS_CD_GetTracks)
+    , LOAD_BASS_DLL_API(BASS_CD_GetTrackLength) {
 }
 catch (const Exception& e) {
     XAMP_LOG_ERROR("{}", e.GetErrorMessage());
@@ -84,33 +111,33 @@ BassLib::BassLib() try
 #else
     : module_(LoadModule("libbass.dylib"))
 #endif
-    , BASS_Init(module_, "BASS_Init")
-	, BASS_GetVersion(module_, "BASS_GetVersion")
-    , BASS_SetConfig(module_, "BASS_SetConfig")
-	, BASS_SetConfigPtr(module_, "BASS_SetConfigPtr")
-    , BASS_PluginLoad(module_, "BASS_PluginLoad")
-    , BASS_PluginGetInfo(module_, "BASS_PluginGetInfo")
-    , BASS_Free(module_, "BASS_Free")
-    , BASS_StreamCreateFile(module_, "BASS_StreamCreateFile")
-    , BASS_ChannelGetInfo(module_, "BASS_ChannelGetInfo")
-    , BASS_StreamFree(module_, "BASS_StreamFree")
-    , BASS_PluginFree(module_, "BASS_PluginFree")
-    , BASS_ChannelGetData(module_, "BASS_ChannelGetData")
-    , BASS_ChannelGetLength(module_, "BASS_ChannelGetLength")
-    , BASS_ChannelBytes2Seconds(module_, "BASS_ChannelBytes2Seconds")
-    , BASS_ChannelSeconds2Bytes(module_, "BASS_ChannelSeconds2Bytes")
-    , BASS_ChannelSetPosition(module_, "BASS_ChannelSetPosition")
-    , BASS_ErrorGetCode(module_, "BASS_ErrorGetCode")
-    , BASS_ChannelGetAttribute(module_, "BASS_ChannelGetAttribute")
-    , BASS_ChannelSetAttribute(module_, "BASS_ChannelSetAttribute")
-    , BASS_StreamCreate(module_, "BASS_StreamCreate")
-    , BASS_StreamPutData(module_, "BASS_StreamPutData")
-    , BASS_ChannelSetFX(module_, "BASS_ChannelSetFX")
-    , BASS_ChannelRemoveFX(module_, "BASS_ChannelRemoveFX")
-    , BASS_FXSetParameters(module_, "BASS_FXSetParameters")
-    , BASS_FXGetParameters(module_, "BASS_FXGetParameters")
-	, BASS_StreamCreateURL(module_, "BASS_StreamCreateURL")
-	, BASS_StreamGetFilePosition(module_, "BASS_StreamGetFilePosition") {
+    , LOAD_BASS_DLL_API(BASS_Init)
+	, LOAD_BASS_DLL_API(BASS_GetVersion)
+    , LOAD_BASS_DLL_API(BASS_SetConfig)
+	, LOAD_BASS_DLL_API(BASS_SetConfigPtr)
+    , LOAD_BASS_DLL_API(BASS_PluginLoad)
+    , LOAD_BASS_DLL_API(BASS_PluginGetInfo)
+    , LOAD_BASS_DLL_API(BASS_Free)
+    , LOAD_BASS_DLL_API(BASS_StreamCreateFile)
+    , LOAD_BASS_DLL_API(BASS_ChannelGetInfo)
+    , LOAD_BASS_DLL_API(BASS_StreamFree)
+    , LOAD_BASS_DLL_API(BASS_PluginFree)
+    , LOAD_BASS_DLL_API(BASS_ChannelGetData)
+    , LOAD_BASS_DLL_API(BASS_ChannelGetLength)
+    , LOAD_BASS_DLL_API(BASS_ChannelBytes2Seconds)
+    , LOAD_BASS_DLL_API(BASS_ChannelSeconds2Bytes)
+    , LOAD_BASS_DLL_API(BASS_ChannelSetPosition)
+    , LOAD_BASS_DLL_API(BASS_ErrorGetCode)
+    , LOAD_BASS_DLL_API(BASS_ChannelGetAttribute)
+    , LOAD_BASS_DLL_API(BASS_ChannelSetAttribute)
+    , LOAD_BASS_DLL_API(BASS_StreamCreate)
+    , LOAD_BASS_DLL_API(BASS_StreamPutData)
+    , LOAD_BASS_DLL_API(BASS_ChannelSetFX)
+    , LOAD_BASS_DLL_API(BASS_ChannelRemoveFX)
+    , LOAD_BASS_DLL_API(BASS_FXSetParameters)
+    , LOAD_BASS_DLL_API(BASS_FXGetParameters)
+	, LOAD_BASS_DLL_API(BASS_StreamCreateURL)
+	, LOAD_BASS_DLL_API(BASS_StreamGetFilePosition) {
 }
 catch (const Exception& e) {
     XAMP_LOG_ERROR("{}", e.GetErrorMessage());
@@ -147,13 +174,18 @@ void BassLib::Load() {
     LoadPlugin("bassflac.dll");
     LoadPlugin("bass_ape.dll");
     LoadPlugin("basscd.dll");
+    // For GetSupportFileExtensions need!
+    LoadPlugin("bassdsd.dll");
 #else
     LoadPlugin("libbassflac.dylib");
 #endif
 
+    BASS.BASS_SetConfig(BASS_CONFIG_DSD_FREQ, 88200);
     BASS.BASS_SetConfig(BASS_CONFIG_FLOATDSP, true);
     BASS.BASS_SetConfig(BASS_CONFIG_NET_TIMEOUT, 15 * 1000);
     BASS.BASS_SetConfig(BASS_CONFIG_NET_BUFFER, 50000);
+    BASS.BASS_SetConfig(BASS_CONFIG_UPDATEPERIOD, false);
+    BASS.BASS_SetConfig(BASS_CONFIG_UPDATETHREADS, 0);
     BASS.BASS_SetConfigPtr(BASS_CONFIG_NET_AGENT, L"xamp2");
 }
 
@@ -192,6 +224,7 @@ HashSet<std::string> BassLib::GetSupportFileExtensions() const {
         const auto* info = BASS.BASS_PluginGetInfo(value.get());
 		
         for (DWORD i = 0; i < info->formatc; ++i) {
+            XAMP_LOG_DEBUG("Load BASS {} {}", info->formats[i].name, info->formats[i].exts);
         	for (auto file_ext : String::Split(info->formats[i].exts, ";")) {
                 std::string ext(file_ext);
                 auto pos = ext.find('*');
@@ -204,11 +237,8 @@ HashSet<std::string> BassLib::GetSupportFileExtensions() const {
 	}
 
 	// Workaround!
-    result.insert(".dff");
-    result.insert(".dsf");
     result.insert(".wav");
 
-    // Workaround!
     #ifdef XAMP_OS_MAC
     result.insert(".m4a");
     result.insert(".aac");

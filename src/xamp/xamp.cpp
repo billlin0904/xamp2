@@ -291,6 +291,8 @@ void Xamp::initialUI() {
         ui_.closeButton->hide();
         ui_.maxWinButton->hide();
         ui_.minWinButton->hide();
+    } else {
+        ui_.titleFrameLabel->setText(Q_UTF8("xamp"));
     }
 #ifdef Q_OS_WIN
     f.setPointSize(7);

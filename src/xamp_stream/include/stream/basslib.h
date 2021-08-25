@@ -12,6 +12,7 @@
 #include <bass/bassdsd.h>
 #include <bass/bass_fx.h>
 #include <bass/bassmix.h>
+#include <bass/basscd.h>
 
 #include <base/singleton.h>
 #include <base/dll.h>
@@ -93,6 +94,33 @@ public:
     XAMP_DECLARE_DLL(BASS_FX_TempoCreate) BASS_FX_TempoCreate;
 };
 
+class BassCDLib final {
+public:
+    BassCDLib();
+
+    XAMP_DISABLE_COPY(BassCDLib)
+
+private:
+    ModuleHandle module_;
+
+public:
+    // CD Driver
+    XAMP_DECLARE_DLL(BASS_CD_GetInfo) BASS_CD_GetInfo;
+    XAMP_DECLARE_DLL(BASS_CD_GetSpeed) BASS_CD_GetSpeed;
+    XAMP_DECLARE_DLL(BASS_CD_Door) BASS_CD_Door;
+    XAMP_DECLARE_DLL(BASS_CD_DoorIsLocked) BASS_CD_DoorIsLocked;
+    XAMP_DECLARE_DLL(BASS_CD_DoorIsOpen) BASS_CD_DoorIsOpen;
+    XAMP_DECLARE_DLL(BASS_CD_SetInterface) BASS_CD_SetInterface;
+    XAMP_DECLARE_DLL(BASS_CD_SetOffset) BASS_CD_SetOffset;
+    XAMP_DECLARE_DLL(BASS_CD_SetSpeed) BASS_CD_SetSpeed;
+    XAMP_DECLARE_DLL(BASS_CD_Release) BASS_CD_Release;
+    // CD
+    XAMP_DECLARE_DLL(BASS_CD_IsReady) BASS_CD_IsReady;
+    XAMP_DECLARE_DLL(BASS_CD_GetID) BASS_CD_GetID;
+    XAMP_DECLARE_DLL(BASS_CD_GetTracks) BASS_CD_GetTracks;
+    XAMP_DECLARE_DLL(BASS_CD_GetTrackLength) BASS_CD_GetTrackLength;
+};
+
 class BassLib final {
 public:
     friend class Singleton<BassLib>;
@@ -112,6 +140,7 @@ public:
     AlignPtr<BassDSDLib> DSDLib;
     AlignPtr<BassMixLib> MixLib;
     AlignPtr<BassFxLib> FxLib;
+    AlignPtr<BassCDLib> CDLib;
 
 private:
     BassLib();
