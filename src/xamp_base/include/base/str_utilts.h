@@ -58,20 +58,20 @@ T const *Argument(std::basic_string<T> const &value) noexcept {
 }
 
 template <typename... Args>
-int StringPrint(char *const buffer,
-                size_t const bufferCount,
+int _StringPrint(char *const buffer,
+                size_t const buffer_count,
                 char const *const format,
                 Args const &... args) noexcept {
-    auto const result = snprintf(buffer, bufferCount, format, Argument(args)...);
+    auto const result = snprintf(buffer, buffer_count, format, Argument(args)...);
     return result;
 }
 
 template <typename... Args>
 std::string StringPrint(const char *format, Args... args) {
     std::string buffer;
-    auto size = StringPrint(nullptr, 0, format, args...);
+    auto size = _StringPrint(nullptr, 0, format, args...);
     buffer.resize(size);
-    StringPrint(&buffer[0], buffer.size() + 1, format, args...);
+    _StringPrint(&buffer[0], buffer.size() + 1, format, args...);
     return buffer;
 }
 

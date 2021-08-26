@@ -2,6 +2,8 @@
 #include <stream/basslib.h>
 #include <stream/basscddevice.h>
 
+#ifdef XAMP_OS_WIN
+
 namespace xamp::stream {
 
 class BassCDDevice::BassCDDeviceImpl {
@@ -38,13 +40,25 @@ public:
 		}
 		while (*text) {
 			auto tag = String::Split(text, "=");
+			if (tag[0] == "TITLE") {
+				cd_text.title = String::ToStdWString(tag[1].data());
+			}
 			text += strlen(text) + 1;
 		}
 		return cd_text;
 	}
 
-	uint32_t GetTotalTracks() const {
-		return BASS.CDLib->BASS_CD_GetTracks(driver_);
+	std::vector<std::wstring> GetTotalTracks() const {
+		std::vector<std::wstring> tracks;
+		const auto num_track = BASS.CDLib->BASS_CD_GetTracks(driver_);
+		if (num_track == kBassError) {
+			return tracks;
+		}
+
+		for (uint32_t i = 0; i < num_track; ++i) {
+			tracks.push_back(String::ToStdWString(String::StringPrint("Tacks%2u", i)));
+		}
+		return tracks;
 	}
 
 	CDDeviceInfo GetCDDeviceInfo() const {
@@ -57,8 +71,18 @@ public:
 		device_info.product = String::ToStdWString(info.product);
 		device_info.vendor = String::ToStdWString(info.vendor);
 		device_info.rev = String::ToStdWString(info.rev);
-		device_info.can_cdtext = info.cdtext;
+		device_info.cache_size = info.cache;
+		device_info.max_speed = info.maxspeed;
+		device_info.can_read_cdtext = info.cdtext;
 		return device_info;
+	}
+
+	std::wstring GetCDDB() const {
+		auto const* text = BASS.CDLib->BASS_CD_GetID(driver_, BASS_CDID_TEXT);
+		if (!text) {
+			return L"";
+		}
+		return String::ToStdWString(text);
 	}
 
 	void Release() {
@@ -94,7 +118,7 @@ CDText BassCDDevice::GetCDText() const {
 	return impl_->GetCDText();
 }
 
-uint32_t BassCDDevice::GetTotalTracks() const {
+std::vector<std::wstring> BassCDDevice::GetTotalTracks() const {
 	return impl_->GetTotalTracks();
 }
 
@@ -106,5 +130,10 @@ void BassCDDevice::Release() {
 	impl_->Release();
 }
 
+std::wstring BassCDDevice::GetCDDB() const {
+	return impl_->GetCDDB();
 }
 
+}
+
+#endif

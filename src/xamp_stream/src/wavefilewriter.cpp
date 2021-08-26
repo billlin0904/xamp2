@@ -120,9 +120,9 @@ void WaveFileWriter::WriteHeader(AudioFormat const& format) {
 	MemoryCopy(header.wave.descriptor.id, "fmt ", 4);
 	header.wave.descriptor.size = 16;
 	header.wave.audio_format = 1; // 1: WAVE_FORMAT_PCM
-	header.wave.num_channels = static_cast<uint16_t>(format.GetChannels());
-	header.wave.sample_rate = static_cast<uint32_t>(format.GetSampleRate());
-	header.wave.byte_rate = static_cast<uint32_t>(format.GetSampleRate() * format.GetChannels() * format.GetBytesPerSample());
+	header.wave.num_channels = format.GetChannels();
+	header.wave.sample_rate = format.GetSampleRate();
+	header.wave.byte_rate = format.GetSampleRate() * format.GetChannels() * format.GetBytesPerSample();
 	header.wave.block_align = static_cast<uint16_t>(format.GetChannels() * format.GetBytesPerSample());
 	header.wave.bits_per_sample = static_cast<uint16_t>(format.GetBitsPerSample());
 	MemoryCopy(header.data.descriptor.id, "data", 4);

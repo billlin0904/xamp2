@@ -81,6 +81,7 @@ catch (const Exception& e) {
     XAMP_LOG_ERROR("{}", e.GetErrorMessage());
 }
 
+#ifdef XAMP_OS_WIN
 BassCDLib::BassCDLib() try
 #ifdef XAMP_OS_WIN
     : module_(LoadModule("basscd.dll"))
@@ -104,6 +105,7 @@ BassCDLib::BassCDLib() try
 catch (const Exception& e) {
     XAMP_LOG_ERROR("{}", e.GetErrorMessage());
 }
+#endif
 
 BassLib::BassLib() try
 #ifdef XAMP_OS_WIN
@@ -215,6 +217,16 @@ void BassLib::LoadPlugin(std::string const & file_name) {
     XAMP_LOG_DEBUG("Load {} {} successfully.", file_name, GetBassVersion(info->version));
 
     plugins_[file_name] = std::move(plugin);
+}
+
+HashMap<std::string, std::string> BassLib::GetLibVersion() const {
+    HashMap<std::string, std::string> vers;
+
+    for (const auto& [key, value] : plugins_) {
+        const auto* info = BASS.BASS_PluginGetInfo(value.get());
+        vers[key] = GetBassVersion(info->version);
+    }
+    return vers;
 }
 
 HashSet<std::string> BassLib::GetSupportFileExtensions() const {

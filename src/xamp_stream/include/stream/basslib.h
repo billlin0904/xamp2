@@ -142,6 +142,8 @@ public:
     AlignPtr<BassFxLib> FxLib;
     AlignPtr<BassCDLib> CDLib;
 
+    HashMap<std::string, std::string> GetLibVersion() const;
+
 private:
     BassLib();
     

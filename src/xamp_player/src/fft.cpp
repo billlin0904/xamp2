@@ -28,7 +28,7 @@ static size_t ComplexSize(size_t size) noexcept {
 	return (size / 2) + 1;
 }
 
-#ifndef USE_FFTW && defined(XAMP_OS_WIN)
+#if !defined(USE_FFTW) && defined(XAMP_OS_WIN)
 class Window {
 public:
 	void Init(size_t size, WindowType type = WindowType::HAMMING) {

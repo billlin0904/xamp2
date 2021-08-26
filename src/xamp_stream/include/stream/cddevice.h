@@ -20,9 +20,9 @@ MAKE_ENUM(CDDeviceAction,
 struct XAMP_STREAM_API CDDeviceInfo {
 	bool can_open{ false };
 	bool can_lock{ false };
-	bool can_cdtext{ false };
 	bool can_read_cdtext{ false };
 	uint32_t max_speed{ 0 };
+	uint32_t cache_size{ 0 };
 	std::wstring vendor;
 	std::wstring product;
 	std::wstring rev;
@@ -58,7 +58,9 @@ public:
 
 	virtual CDText GetCDText() const = 0;
 
-	virtual uint32_t GetTotalTracks() const = 0;
+	virtual std::vector<std::wstring> GetTotalTracks() const = 0;
+
+	virtual std::wstring GetCDDB() const = 0;
 
 	virtual void Release() = 0;
 protected:

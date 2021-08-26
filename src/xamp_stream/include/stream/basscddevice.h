@@ -8,6 +8,8 @@
 #include <stream/stream.h>
 #include <stream/cddevice.h>
 
+#ifdef XAMP_OS_WIN
+
 namespace xamp::stream {
 
 class XAMP_STREAM_API BassCDDevice final : public CDDevice {
@@ -30,7 +32,9 @@ public:
 
 	CDText GetCDText() const override;
 
-	uint32_t GetTotalTracks() const override;
+	std::vector<std::wstring> GetTotalTracks() const override;
+
+	std::wstring GetCDDB() const override;
 private:
 	class BassCDDeviceImpl;
 	AlignPtr<BassCDDeviceImpl> impl_;
@@ -38,4 +42,5 @@ private:
 
 }
 
+#endif
 

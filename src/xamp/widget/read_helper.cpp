@@ -37,7 +37,6 @@ static double ReadProcess(std::wstring const& file_path,
 	const auto is_dsd_file = TestDsdFileFormatStd(file_path);
 	auto file_stream = MakeStream(file_ext);
 
-	// DSD�榡�L�kŪ�����T��, �G�ݭn�ഫ��PCM�榡.
 	if (auto* stream = dynamic_cast<DsdStream*>(file_stream.get())) {
 		if (is_dsd_file) {
 			stream->SetDSDMode(DsdModes::DSD_MODE_DSD2PCM);

@@ -79,7 +79,7 @@ public:
 
     PlatformSpecException(std::string_view what, int32_t err);
 
-    virtual ~PlatformSpecException() = default;
+    virtual ~PlatformSpecException() override = default;
 };
 
 #define XAMP_DECLARE_EXCEPTION_CLASS(ExceptionClassName) \
@@ -103,7 +103,7 @@ class XAMP_BASE_API LoadDllFailureException final : public Exception {
 public:
     explicit LoadDllFailureException(std::string_view dll_name);
 
-    virtual ~LoadDllFailureException() = default;
+    virtual ~LoadDllFailureException() override = default;
 
 private:
     std::string_view dll_name_;

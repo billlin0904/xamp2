@@ -36,8 +36,8 @@ inline constexpr uint32_t kMaxSamplerate = 384000;
 
 class XAMP_BASE_API AudioFormat final {
 public:
-    static const AudioFormat UnknowFormat;
-    static const AudioFormat PCM48Khz;
+    static const AudioFormat kUnknowFormat;
+    static const AudioFormat kPCM48Khz;
 
     explicit AudioFormat(DataFormat format = DataFormat::FORMAT_PCM,
         uint16_t number_of_channels = 0,
@@ -273,7 +273,7 @@ XAMP_ALWAYS_INLINE bool operator==(AudioFormat const & format, AudioFormat const
 }
 
 XAMP_ALWAYS_INLINE void AudioFormat::Reset() noexcept {
-    *this = UnknowFormat;
+    *this = kUnknowFormat;
 }
 
 }
