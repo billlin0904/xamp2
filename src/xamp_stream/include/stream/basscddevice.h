@@ -16,7 +16,7 @@ class XAMP_STREAM_API BassCDDevice final : public CDDevice {
 public:
 	XAMP_PIMPL(BassCDDevice)
 
-	explicit BassCDDevice(uint32_t driver);
+	explicit BassCDDevice(char driver_letter);
 
 	void SetAction(CDDeviceAction action) override;
 

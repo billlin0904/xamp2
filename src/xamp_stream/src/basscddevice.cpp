@@ -6,10 +6,22 @@
 
 namespace xamp::stream {
 
+static DWORD Drive2BassID(char driver_letter) {
+	for (DWORD i = 0; i < 25; i++) {
+		BASS_CD_INFO cdinfo{};
+		if (BASS.CDLib->BASS_CD_GetInfo(i, &cdinfo)) {
+			if (cdinfo.letter == static_cast<int>(driver_letter)) {
+				return i;
+			}
+		}
+	}
+	throw DeviceNotFoundException();
+}
+
 class BassCDDevice::BassCDDeviceImpl {
 public:
-	explicit BassCDDeviceImpl(uint32_t driver)
-		: driver_(driver) {
+	explicit BassCDDeviceImpl(char driver_letter)
+		: driver_(Drive2BassID(driver_letter)) {
 	}
 
 	~BassCDDeviceImpl() {
@@ -24,15 +36,15 @@ public:
 		BassIfFailedThrow(BASS.CDLib->BASS_CD_SetSpeed(driver_, speed));
 	}
 
-	uint32_t GetSpeed() const {
+	[[nodiscard]] uint32_t GetSpeed() const {
 		return BASS.CDLib->BASS_CD_GetSpeed(driver_);
 	}
 
-	bool DoorIsOpen() const {
+	[[nodiscard]] bool DoorIsOpen() const {
 		return BASS.CDLib->BASS_CD_DoorIsOpen(driver_);
 	}
 
-	CDText GetCDText() const {
+	[[nodiscard]] CDText GetCDText() const {
 		CDText cd_text;
 		auto const * text = BASS.CDLib->BASS_CD_GetID(driver_, BASS_CDID_TEXT);
 		if (!text) {
@@ -48,7 +60,7 @@ public:
 		return cd_text;
 	}
 
-	std::vector<std::wstring> GetTotalTracks() const {
+	[[nodiscard]] std::vector<std::wstring> GetTotalTracks() const {
 		std::vector<std::wstring> tracks;
 		const auto num_track = BASS.CDLib->BASS_CD_GetTracks(driver_);
 		if (num_track == kBassError) {
@@ -61,7 +73,7 @@ public:
 		return tracks;
 	}
 
-	CDDeviceInfo GetCDDeviceInfo() const {
+	[[nodiscard]] CDDeviceInfo GetCDDeviceInfo() const {
 		BASS_CD_INFO info{};
 		BassIfFailedThrow(BASS.CDLib->BASS_CD_GetInfo(driver_, &info));
 		CDDeviceInfo device_info;
@@ -77,7 +89,7 @@ public:
 		return device_info;
 	}
 
-	std::wstring GetCDDB() const {
+	[[nodiscard]] std::wstring GetCDDB() const {
 		auto const* text = BASS.CDLib->BASS_CD_GetID(driver_, BASS_CDID_TEXT);
 		if (!text) {
 			return L"";
@@ -92,8 +104,8 @@ private:
 	DWORD driver_;
 };
 
-BassCDDevice::BassCDDevice(uint32_t driver)
-	: impl_(MakeAlign<BassCDDeviceImpl>(driver)) {
+BassCDDevice::BassCDDevice(char driver_letter)
+	: impl_(MakeAlign<BassCDDeviceImpl>(driver_letter)) {
 }
 
 XAMP_PIMPL_IMPL(BassCDDevice)

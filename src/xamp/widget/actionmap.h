@@ -18,10 +18,9 @@ public:
 	class SubMenu {
 	public:
 		SubMenu(const QString& menu_name, QMenu* menu, MapType& action_map)
-			: submenu_(new QMenu(menu_name, menu))
-			, action_group_(new QActionGroup(submenu_))
+			: action_group_(new QActionGroup(submenu_.get()))
 			, action_map_(action_map) {
-			menu->addMenu(submenu_);
+			submenu_.reset(menu->addMenu(menu_name));
 		}
 
 		template <typename Callable>
@@ -98,7 +97,7 @@ public:
 		return action;
 	}
 
-	QScopedPointer<SubMenu> addSubMenu(const QString& menu_name) {
+	SubMenu* addSubMenu(const QString& menu_name) {
 		return new SubMenu(menu_name, &menu_, map_);
 	}
 

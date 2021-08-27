@@ -11,9 +11,11 @@
 #include <QJsonArray>
 #include <QDialogButtonBox>
 #include <QXmlStreamReader>
+#include <QStorageInfo>
 
 #include <base/rng.h>
 #include <base/str_utilts.h>
+#include <stream/basscddevice.h>
 #include <metadata/metadatareader.h>
 #include <metadata/taglibmetareader.h>
 #include <metadata/taglibmetawriter.h>
@@ -375,7 +377,8 @@ void PlayListTableView::initial() {
     (void)QObject::connect(this, &QTableView::customContextMenuRequested, [this](auto pt) {
         auto index = indexAt(pt);
 
-        ActionMap<PlayListTableView, std::function<void()>> action_map(this);
+        using PlaylistActionMap = ActionMap<PlayListTableView, std::function<void()>>;
+        PlaylistActionMap action_map(this);
 
         (void)action_map.addAction(tr("Jump to current playing"), [index, this]() {
             scrollToIndex(proxy_model_.mapToSource(play_index_));
@@ -413,6 +416,31 @@ void PlayListTableView::initial() {
                 append(dir_name);
                 });
 
+            auto *open_cd_submenu = action_map.addSubMenu(tr("Open CD device"));
+            const QList<std::string> kCDFileSystemType = {
+            	"CDFS",
+                "UDF",
+                "ISO-9660",
+            	"ISO9660"
+            };
+            foreach(auto& storage, QStorageInfo::mountedVolumes()) {
+                if (storage.isValid() && storage.isReady()) {
+                    auto display_name = storage.displayName() + Q_UTF8("(") + storage.rootPath() + Q_UTF8(")");
+                    auto driver_letter = storage.rootPath().left(1).toStdString()[0];
+
+                    //if (kCDFileSystemType.contains(storage.fileSystemType().toUpper().toStdString())) {
+                        open_cd_submenu->addAction(display_name, [storage, driver_letter, this]()
+                        {
+                        	BassCDDevice device(driver_letter);
+                            auto cd_text = device.GetCDText();
+                            for (auto const & track : device.GetTotalTracks()) {
+                                
+                            }
+                        });
+                    //}
+                }
+            }
+
             action_map.addSeparator();
     	}
 
@@ -435,7 +463,12 @@ void PlayListTableView::initial() {
         }
     	
         if (model_.rowCount() == 0 || !index.isValid()) {
-            action_map.exec(pt);
+            try {
+                action_map.exec(pt);
+            }
+            catch (std::exception const& e) {
+                Toast::showTip(QString::fromStdString(e.what()), this);
+            }
             return;
         }
 
@@ -534,16 +567,15 @@ void PlayListTableView::initial() {
             for (const auto& select_item : rows) {
                 auto entity = this->item(select_item.second);
                 xamp::metadata::TaglibMetadataWriter writer;
-                try {
-                    writer.WriteEmbeddedCover(entity.file_path.toStdWString(), image_data);
-                }
-                catch (std::exception& e) {
-                    Toast::showTip(QString::fromStdString(e.what()), this);
-                }
+                writer.WriteEmbeddedCover(entity.file_path.toStdWString(), image_data);
             }
         });
 
-        action_map.exec(pt);
+        try {
+            action_map.exec(pt);
+        } catch (std::exception const &e){
+            Toast::showTip(QString::fromStdString(e.what()), this);
+        }
     });
 
     const auto *control_A_key = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_A), this);

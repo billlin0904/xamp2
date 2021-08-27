@@ -250,6 +250,7 @@ HashSet<std::string> BassLib::GetSupportFileExtensions() const {
 
 	// Workaround!
     result.insert(".wav");
+    result.insert(".mp3");
 
     #ifdef XAMP_OS_MAC
     result.insert(".m4a");

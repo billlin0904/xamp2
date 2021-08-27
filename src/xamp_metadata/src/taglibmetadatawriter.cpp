@@ -1,5 +1,5 @@
 #include <functional>
-
+#include <base/logger.h>
 #include <base/windows_handle.h>
 #include <base/str_utilts.h>
 #include <metadata/taglib.h>
@@ -106,7 +106,9 @@ private:
         FileRef fileref(path.string().c_str());
 #endif
         fun(fileref.file(), fileref.tag());
-        fileref.save();
+        if (!fileref.save()) {
+			XAMP_LOG_DEBUG("Write tag failure!");
+        }
     }
 };
 
