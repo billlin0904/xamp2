@@ -19,7 +19,7 @@ public:
 
 	~MetadataExtractAdapter() override;
 
-    static void readFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter, QString const& file_path);	
+    static void readFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter, QString const& file_path, bool show_progress_dialog = true);	
 
 signals:
 	void readCompleted(const std::vector<Metadata> &entity);

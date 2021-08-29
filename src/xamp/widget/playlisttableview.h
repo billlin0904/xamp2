@@ -58,7 +58,7 @@ public:
 
 	std::map<int32_t, QModelIndex> selectItemIndex() const;
 
-	void append(const QString& file_name);
+	void append(const QString& file_name, bool show_progress_dialog = true);
 
     void refresh();
 

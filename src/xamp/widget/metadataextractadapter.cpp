@@ -151,14 +151,16 @@ MetadataExtractAdapter::MetadataExtractAdapter(QObject* parent)
 
 MetadataExtractAdapter::~MetadataExtractAdapter() = default;
 
-void MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter, QString const & file_path) {
+void MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter, QString const & file_path, bool show_progress_dialog) {
     QProgressDialog dialog(tr("Read file metadata"), tr("Cancel"), 0, 0);
     dialog.setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
     dialog.setWindowTitle(tr("Read progress dialog"));
     dialog.setWindowModality(Qt::WindowModal);
     dialog.setMinimumSize(QSize(500, 100));
     dialog.setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed));
-    dialog.show();
+    if (show_progress_dialog) {
+        dialog.show();
+    }    
     dialog.setMinimumDuration(1000);
 
     QList<QString> dirs;

@@ -10,7 +10,8 @@ static DWORD Drive2BassID(char driver_letter) {
 	for (DWORD i = 0; i < 25; i++) {
 		BASS_CD_INFO cdinfo{};
 		if (BASS.CDLib->BASS_CD_GetInfo(i, &cdinfo)) {
-			if (cdinfo.letter == static_cast<int>(driver_letter)) {
+			char letter = 'A' + cdinfo.letter;
+			if (letter == driver_letter) {
 				return i;
 			}
 		}
@@ -21,7 +22,8 @@ static DWORD Drive2BassID(char driver_letter) {
 class BassCDDevice::BassCDDeviceImpl {
 public:
 	explicit BassCDDeviceImpl(char driver_letter)
-		: driver_(Drive2BassID(driver_letter)) {
+		: driver_(Drive2BassID(driver_letter))
+		, driver_letter_(driver_letter) {
 	}
 
 	~BassCDDeviceImpl() {
@@ -68,7 +70,9 @@ public:
 		}
 
 		for (uint32_t i = 0; i < num_track; ++i) {
-			tracks.push_back(String::ToStdWString(String::StringPrint("Tacks%2u", i)));
+			std::wstringstream ostr;
+			ostr << driver_letter_ << ":\\" << L"Track" << std::setfill(L'0') << std::setw(2) << i + 1 << L".cda";
+			tracks.push_back(ostr.str());
 		}
 		return tracks;
 	}
@@ -89,12 +93,8 @@ public:
 		return device_info;
 	}
 
-	[[nodiscard]] std::wstring GetCDDB() const {
-		auto const* text = BASS.CDLib->BASS_CD_GetID(driver_, BASS_CDID_TEXT);
-		if (!text) {
-			return L"";
-		}
-		return String::ToStdWString(text);
+	uint32_t GetTrackLength(uint32_t track) const {
+		return BASS.CDLib->BASS_CD_GetTrackLength(driver_, track);
 	}
 
 	void Release() {
@@ -102,6 +102,7 @@ public:
 	}
 private:
 	DWORD driver_;
+	char driver_letter_;
 };
 
 BassCDDevice::BassCDDevice(char driver_letter)
@@ -134,16 +135,16 @@ std::vector<std::wstring> BassCDDevice::GetTotalTracks() const {
 	return impl_->GetTotalTracks();
 }
 
+uint32_t BassCDDevice::GetTrackLength(uint32_t track) const {
+	return impl_->GetTrackLength(track);
+}
+
 CDDeviceInfo BassCDDevice::GetCDDeviceInfo() const {
 	return impl_->GetCDDeviceInfo();
 }
 
 void BassCDDevice::Release() {
 	impl_->Release();
-}
-
-std::wstring BassCDDevice::GetCDDB() const {
-	return impl_->GetCDDB();
 }
 
 }

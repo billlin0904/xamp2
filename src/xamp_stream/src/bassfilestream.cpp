@@ -59,9 +59,7 @@ FlushFileCache:
         std::string cache_id;
         auto use_filemap = file_path.find(L"https") == std::string::npos
     	|| file_path.find(L"http") == std::string::npos;
-    	if (use_filemap) {            
-            file_.Open(file_path);
-    	} else {
+    	if (!use_filemap) {
             cache_id = InitFileCache(file_path, use_filemap);
     	}
 

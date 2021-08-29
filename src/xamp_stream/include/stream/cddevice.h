@@ -60,9 +60,9 @@ public:
 
 	virtual std::vector<std::wstring> GetTotalTracks() const = 0;
 
-	virtual std::wstring GetCDDB() const = 0;
-
 	virtual void Release() = 0;
+
+	virtual uint32_t GetTrackLength(uint32_t track) const = 0;
 protected:
 	CDDevice() = default;
 };

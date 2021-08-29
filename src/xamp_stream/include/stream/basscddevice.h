@@ -32,9 +32,9 @@ public:
 
 	CDText GetCDText() const override;
 
-	std::vector<std::wstring> GetTotalTracks() const override;
+	uint32_t GetTrackLength(uint32_t track) const override;
 
-	std::wstring GetCDDB() const override;
+	std::vector<std::wstring> GetTotalTracks() const override;
 private:
 	class BassCDDeviceImpl;
 	AlignPtr<BassCDDeviceImpl> impl_;

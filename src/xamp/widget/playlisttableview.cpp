@@ -335,7 +335,9 @@ void PlayListTableView::initial() {
         const auto current_index = proxy_model_.mapToSource(index);
         setNowPlaying(current_index);
         const auto play_item = getEntity(current_index);
-    	if (play_item.lufs == 0.0) {
+        // todo: check .cda file format!
+        if (play_item.lufs == 0.0 
+            || play_item.lufs == -std::numeric_limits<double>::infinity()) {
             readLUFS(play_item);
     	}        
         emit playMusic(current_index, play_item);
@@ -428,16 +430,22 @@ void PlayListTableView::initial() {
                     auto display_name = storage.displayName() + Q_UTF8("(") + storage.rootPath() + Q_UTF8(")");
                     auto driver_letter = storage.rootPath().left(1).toStdString()[0];
 
-                    //if (kCDFileSystemType.contains(storage.fileSystemType().toUpper().toStdString())) {
-                        open_cd_submenu->addAction(display_name, [storage, driver_letter, this]()
-                        {
+                    if (kCDFileSystemType.contains(storage.fileSystemType().toUpper().toStdString())) {
+                        open_cd_submenu->addAction(display_name, [storage, driver_letter, this]() {
                         	BassCDDevice device(driver_letter);
-                            auto cd_text = device.GetCDText();
+                            auto device_info = device.GetCDDeviceInfo();
+                            if (device_info.can_read_cdtext) {
+                                auto cd_text = device.GetCDText();
+                            }
+                            auto max_speed = device_info.max_speed / 176.4;
+                            device.SetSpeed(max_speed);
+                            auto track_id = 0;
                             for (auto const & track : device.GetTotalTracks()) {
-                                
+                                device.GetTrackLength(track_id++);
+                                append(QString::fromStdWString(track), false);
                             }
                         });
-                    //}
+                    }
                 }
             }
 
@@ -655,7 +663,7 @@ bool PlayListTableView::eventFilter(QObject* obj, QEvent* ev) {
     return QWidget::eventFilter(obj, ev);
 }
 
-void PlayListTableView::append(const QString& file_name) {
+void PlayListTableView::append(const QString& file_name, bool show_progress_dialog) {
 	const auto adapter = QSharedPointer<MetadataExtractAdapter>(new MetadataExtractAdapter());
 
     (void) QObject::connect(adapter.get(),
@@ -663,7 +671,7 @@ void PlayListTableView::append(const QString& file_name) {
                             this,
                             &PlayListTableView::processMeatadata);
 
-    MetadataExtractAdapter::readFileMetadata(adapter, file_name);    
+    MetadataExtractAdapter::readFileMetadata(adapter, file_name, show_progress_dialog);
 }
 
 void PlayListTableView::processMeatadata(const std::vector<Metadata>& medata) {    
