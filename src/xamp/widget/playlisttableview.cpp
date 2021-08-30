@@ -15,7 +15,7 @@
 
 #include <base/rng.h>
 #include <base/str_utilts.h>
-#include <stream/basscddevice.h>
+#include <player/audio_player.h>
 #include <metadata/metadatareader.h>
 #include <metadata/taglibmetareader.h>
 #include <metadata/taglibmetawriter.h>
@@ -265,8 +265,8 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
     hideColumn(PLAYLIST_DURATION);
     hideColumn(PLAYLIST_PLAYLIST_MUSIC_ID);
 
-    hideColumn(PLAYLIST_LUFS);
-    hideColumn(PLAYLIST_TRUE_PEAK);
+    //hideColumn(PLAYLIST_LUFS);
+    //hideColumn(PLAYLIST_TRUE_PEAK);
 }
 
 void PlayListTableView::initial() {
@@ -432,16 +432,15 @@ void PlayListTableView::initial() {
 
                     if (kCDFileSystemType.contains(storage.fileSystemType().toUpper().toStdString())) {
                         open_cd_submenu->addAction(display_name, [storage, driver_letter, this]() {
-                        	BassCDDevice device(driver_letter);
-                            auto device_info = device.GetCDDeviceInfo();
+                        	auto device= AudioPlayer::MakeCDDevice(driver_letter);
+                            auto device_info = device->GetCDDeviceInfo();
                             if (device_info.can_read_cdtext) {
-                                auto cd_text = device.GetCDText();
+                                auto cd_text = device->GetCDText();
                             }
-                            auto max_speed = device_info.max_speed / 176.4;
-                            device.SetSpeed(max_speed);
+                            device->SetMaxSpeed();
                             auto track_id = 0;
-                            for (auto const & track : device.GetTotalTracks()) {
-                                device.GetTrackLength(track_id++);
+                            for (auto const & track : device->GetTotalTracks()) {
+                                device->GetTrackLength(track_id++);
                                 append(QString::fromStdWString(track), false);
                             }
                         });

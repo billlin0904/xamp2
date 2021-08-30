@@ -50,6 +50,8 @@ public:
 
 	virtual void SetSpeed(uint32_t speed) = 0;
 
+	virtual void SetMaxSpeed() = 0;
+
 	virtual uint32_t GetSpeed() const = 0;
 
 	virtual bool DoorIsOpen() const = 0;

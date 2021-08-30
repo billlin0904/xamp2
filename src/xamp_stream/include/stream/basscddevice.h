@@ -22,6 +22,8 @@ public:
 
 	void SetSpeed(uint32_t speed) override;
 
+	void SetMaxSpeed() override;
+
 	uint32_t GetSpeed() const override;
 
 	bool DoorIsOpen() const override;

@@ -6,6 +6,8 @@
 
 namespace xamp::stream {
 
+inline constexpr auto kCDSpeedMultiplier = 176.4;
+
 static DWORD Drive2BassID(char driver_letter) {
 	for (DWORD i = 0; i < 25; i++) {
 		BASS_CD_INFO cdinfo{};
@@ -22,8 +24,8 @@ static DWORD Drive2BassID(char driver_letter) {
 class BassCDDevice::BassCDDeviceImpl {
 public:
 	explicit BassCDDeviceImpl(char driver_letter)
-		: driver_(Drive2BassID(driver_letter))
-		, driver_letter_(driver_letter) {
+		: driver_letter_(driver_letter)
+		, driver_(Drive2BassID(driver_letter)) {
 	}
 
 	~BassCDDeviceImpl() {
@@ -39,7 +41,7 @@ public:
 	}
 
 	[[nodiscard]] uint32_t GetSpeed() const {
-		return BASS.CDLib->BASS_CD_GetSpeed(driver_);
+		return BASS.CDLib->BASS_CD_GetSpeed(driver_) / kCDSpeedMultiplier;
 	}
 
 	[[nodiscard]] bool DoorIsOpen() const {
@@ -100,9 +102,14 @@ public:
 	void Release() {
 		BASS.CDLib->BASS_CD_Release(driver_);
 	}
+
+	void SetMaxSpeed() {
+		// -1 = optimal performace.
+		BassIfFailedThrow(BASS.CDLib->BASS_CD_SetSpeed(driver_, -1));
+	}
 private:
-	DWORD driver_;
 	char driver_letter_;
+	DWORD driver_;
 };
 
 BassCDDevice::BassCDDevice(char driver_letter)
@@ -117,6 +124,10 @@ void BassCDDevice::SetAction(CDDeviceAction action) {
 
 void BassCDDevice::SetSpeed(uint32_t speed) {
 	impl_->SetSpeed(speed);
+}
+
+void BassCDDevice::SetMaxSpeed() {
+	impl_->SetMaxSpeed();
 }
 
 uint32_t BassCDDevice::GetSpeed() const {

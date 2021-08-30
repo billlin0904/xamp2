@@ -10,6 +10,9 @@
 #include <widget/widget_shared.h>
 #include <widget/str_utilts.h>
 
+#include <QProgressBar>
+#include <QMessageBox>
+#include <QApplication>
 #include <QProgressDialog>
 #include <QCheckBox>
 
@@ -98,6 +101,10 @@ static std::unique_ptr<QProgressDialog> makeProgressDialog(QString const& title,
     dialog->setWindowModality(Qt::WindowModal);
     dialog->setMinimumSize(QSize(500, 100));
     dialog->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed));
+    auto* progress_bar = new QProgressBar();
+    progress_bar->setFont(QFont(Q_UTF8("FormatFont")));
+    dialog->setBar(progress_bar);
+
     return dialog;
 }
 

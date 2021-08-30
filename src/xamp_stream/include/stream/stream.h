@@ -22,10 +22,11 @@ namespace xamp::stream {
 
 	class AudioProcessor;
 	class AudioStream;
-	
+	class CDDevice;
 	class FileStream;
 	class DsdStream;
 	class AvFileStream;
 	class BassFileStream;
+	class BassCDDevice;
 	class Compressor;
 }

@@ -18,6 +18,7 @@
 
 #include "thememanager.h"
 
+#include <widget/ui_utilts.h>
 #include <widget/http.h>
 #include <widget/toast.h>
 #include <widget/database.h>
@@ -152,16 +153,13 @@ MetadataExtractAdapter::MetadataExtractAdapter(QObject* parent)
 MetadataExtractAdapter::~MetadataExtractAdapter() = default;
 
 void MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter, QString const & file_path, bool show_progress_dialog) {
-    QProgressDialog dialog(tr("Read file metadata"), tr("Cancel"), 0, 0);
-    dialog.setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
-    dialog.setWindowTitle(tr("Read progress dialog"));
-    dialog.setWindowModality(Qt::WindowModal);
-    dialog.setMinimumSize(QSize(500, 100));
-    dialog.setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed));
+    auto dialog = makeProgressDialog(tr("Read file metadata"), 
+        tr("Read progress dialog"), 
+        tr("Cancel"));
     if (show_progress_dialog) {
-        dialog.show();
+        dialog->show();
     }    
-    dialog.setMinimumDuration(1000);
+    dialog->setMinimumDuration(1000);
 
     QList<QString> dirs;
     QDirIterator itr(file_path, QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);
@@ -175,16 +173,16 @@ void MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExtra
 	}
     
     auto progress = 0;
-    dialog.setMaximum(dirs.count());
+    dialog->setMaximum(dirs.count());
 
     ExtractAdapterProxy proxy(adapter);
 	
     for (const auto& file_dir_or_path : dirs) {
-    	if (dialog.wasCanceled()) {
+    	if (dialog->wasCanceled()) {
             return;
     	}      
 
-        dialog.setLabelText(file_dir_or_path);
+        dialog->setLabelText(file_dir_or_path);
         
         try {            
             const Path path(file_dir_or_path.toStdWString());
@@ -195,7 +193,7 @@ void MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExtra
             XAMP_LOG_DEBUG("WalkPath has exception: {}", e.what());
         }
 
-        dialog.setValue(progress++);
+        dialog->setValue(progress++);
     }
 }
 

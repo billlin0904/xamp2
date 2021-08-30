@@ -100,6 +100,7 @@ FlushFileCache:
             }
             mode_ = DsdModes::DSD_MODE_PCM;
         } else {
+            file_.Open(file_path);
             stream_.reset(BASS.DSDLib->BASS_DSD_StreamCreateFile(TRUE,
                 file_.GetData(),
                 0,

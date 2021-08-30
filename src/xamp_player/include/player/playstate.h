@@ -5,10 +5,6 @@
 
 #pragma once
 
-#include <variant>
-#include <mutex>
-
-#include <base/logger.h>
 #include <base/enum.h>
 
 namespace xamp::player {

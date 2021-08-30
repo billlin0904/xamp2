@@ -143,10 +143,6 @@ public:
 		ResizeBuffer(kInitBufferSize);
 	}
 
-	[[nodiscard]] uint32_t GetOutPutSampleRate() const noexcept {
-		return output_sample_rate_;
-	}
-
 	void Close() noexcept {
 		handle_.reset();
 		buffer_.reset();

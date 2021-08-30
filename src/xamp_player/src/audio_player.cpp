@@ -15,6 +15,7 @@
 
 #include <stream/bassfilestream.h>
 #include <stream/audioprocessor.h>
+#include <stream/basscddevice.h>
 
 #include <player/soxresampler.h>
 #include <player/samplerateconverter.h>
@@ -729,6 +730,10 @@ AlignPtr<SampleRateConverter> AudioPlayer::CloneSampleRateConverter() const {
 
 AudioDeviceManager& AudioPlayer::GetAudioDeviceManager() {
     return device_manager_;
+}
+
+AlignPtr<CDDevice> AudioPlayer::MakeCDDevice(char driver_letter) {
+    return MakeAlign<CDDevice, BassCDDevice>(driver_letter);
 }
 
 void AudioPlayer::Play() {

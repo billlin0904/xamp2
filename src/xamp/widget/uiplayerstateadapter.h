@@ -10,7 +10,6 @@
 
 #include <base/spsc_queue.h>
 #include <output_device/devicestatelistener.h>
-#include <stream/filestream.h>
 #include <player/playbackstateadapter.h>
 #include <player/samplerateconverter.h>
 #include <player/playstate.h>
@@ -24,7 +23,6 @@ using xamp::player::PlayerState;
 using xamp::player::SampleRateConverter;
 using xamp::player::PlaybackStateAdapter;
 
-using xamp::output_device::DeviceInfo;
 using xamp::output_device::DeviceState;
 using xamp::stream::FileStream;
 

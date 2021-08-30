@@ -138,19 +138,14 @@ void setBlurMaterial(const QWidget* widget, bool enable, bool use_native_window)
 	data.pvData = &policy;
 	data.cbData = sizeof(policy);
 	Singleton<User32Lib>::GetInstance().SetWindowCompositionAttribute(hwnd, &data);
-
-	if (!use_native_window) {
-		// 如果使用-1會有問題, 會導致Max,Min,Close按鈕有陰影.
-		//MARGINS borderless = { 1, 1, 1, 1 };
-		//MARGINS borderless = { 0, 0, 0, 1 };
-		MARGINS borderless = { 0, 0, 0, 0 };
-		Singleton<DwmapiLib>::GetInstance().DwmExtendFrameIntoClientArea(hwnd, &borderless);
-	}	
 }
 
 void setWinStyle(QWidget* widget) {
 	auto hwnd = reinterpret_cast<HWND>(widget->winId());
 	::SetWindowLongPtr(hwnd, GWL_STYLE, WS_POPUP | WS_THICKFRAME | WS_CAPTION | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX);
+
+	MARGINS borderless = { 1, 1, 1, 1 };
+	Singleton<DwmapiLib>::GetInstance().DwmExtendFrameIntoClientArea(hwnd, &borderless);
 }
 }
 

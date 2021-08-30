@@ -26,6 +26,8 @@
 #include <base/stopwatch.h>
 #endif
 
+#include <stream/cddevice.h>
+
 #include <output_device/audiodevicemanager.h>
 #include <output_device/audiocallback.h>
 #include <output_device/deviceinfo.h>
@@ -119,6 +121,8 @@ public:
     AlignPtr<SampleRateConverter> CloneSampleRateConverter() const;
 
     AudioDeviceManager& GetAudioDeviceManager();
+
+    static AlignPtr<CDDevice> MakeCDDevice(char driver_letter);
 
 private:
     bool CanProcessFile() const noexcept;
