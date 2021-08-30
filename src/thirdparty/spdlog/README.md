@@ -4,7 +4,7 @@ Very fast, header-only/compiled, C++ logging library. [![Build Status](https://t
 
 ## Install 
 #### Header only version
-Copy the source [folder](https://github.com/gabime/spdlog/tree/v1.x/include/spdlog) to your build tree and use a C++11 compiler.
+Copy the include [folder](https://github.com/gabime/spdlog/tree/v1.x/include/spdlog) to your build tree and use a C++11 compiler.
 
 #### Static lib version (recommended - much faster compile times)
 ```console
@@ -144,7 +144,7 @@ void daily_example()
 #### Backtrace support
 ```c++
 // Debug messages can be stored in a ring buffer instead of being logged immediately.
-// This is useful in order to display debug logs only when really nededed (e.g. when error happens).
+// This is useful in order to display debug logs only when really needed (e.g. when error happens).
 // When needed, call dump_backtrace() to see them.
 
 spdlog::enable_backtrace(32); // Store the latest 32 messages in a buffer. Older messages will be dropped.

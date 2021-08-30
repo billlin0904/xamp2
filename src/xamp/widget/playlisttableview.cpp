@@ -417,7 +417,7 @@ void PlayListTableView::initial() {
                 }
                 append(dir_name);
                 });
-
+#ifdef XAMP_OS_WIN
             auto *open_cd_submenu = action_map.addSubMenu(tr("Open CD device"));
             const QList<std::string> kCDFileSystemType = {
             	"CDFS",
@@ -447,7 +447,7 @@ void PlayListTableView::initial() {
                     }
                 }
             }
-
+#endif
             action_map.addSeparator();
     	}
 

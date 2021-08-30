@@ -382,8 +382,10 @@ void LoadBassLib() {
     XAMP_LOG_DEBUG("Load BassDSDLib successfully.");
     BASS.FxLib = MakeAlign<BassFxLib>();
     XAMP_LOG_DEBUG("Load BassFxLib successfully.");
+#ifdef XAMP_OS_WIN
     BASS.CDLib = MakeAlign<BassCDLib>();
     XAMP_LOG_DEBUG("Load BassCDLib successfully.");
+#endif
 }
 
 void FreeBassLib() {

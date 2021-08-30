@@ -33,7 +33,6 @@ include_directories("../thirdparty/spdlog/include/")
 include_directories("../thirdparty/soxr/src/")
 include_directories("../thirdparty/robin_hood/")
 include_directories("../thirdparty/chromaprint/src")
-include_directories("../thirdparty/gist/src")
 
 file(GLOB_RECURSE SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/*.cpp" "${CMAKE_CURRENT_LIST_DIR}/src/libebur128/*.c")
 
@@ -73,17 +72,6 @@ find_library (
 
 message(STATUS "LIB_XAMP_METADATA: [${LIB_XAMP_METADATA}]")
 
-find_library (
-    LIB_GIST
-    NAMES libGist.a
-    HINTS "${CMAKE_CURRENT_LIST_DIR}/../thirdparty/gist/osx_${BUILD_PATH}"
-    NO_DEFAULT_PATH
-)
-
-message(STATUS "LIB_GIST: [${LIB_GIST}]")
-
-find_library(ACCELERATE_LIB Accelerate)
-
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
-target_link_libraries(xamp_player ${LIB_XAMP_BASE} ${LIB_XAMP_OUTPUT_DEVICE} ${LIB_XAMP_STREAM} ${LIB_XAMP_METADATA} ${ACCELERATE_LIB} ${LIB_GIST})
+target_link_libraries(xamp_player ${LIB_XAMP_BASE} ${LIB_XAMP_OUTPUT_DEVICE} ${LIB_XAMP_STREAM} ${LIB_XAMP_METADATA})

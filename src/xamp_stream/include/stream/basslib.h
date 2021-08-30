@@ -94,6 +94,7 @@ public:
     XAMP_DECLARE_DLL(BASS_FX_TempoCreate) BASS_FX_TempoCreate;
 };
 
+#ifdef XAMP_OS_WIN
 class BassCDLib final {
 public:
     BassCDLib();
@@ -120,6 +121,7 @@ public:
     XAMP_DECLARE_DLL(BASS_CD_GetTracks) BASS_CD_GetTracks;
     XAMP_DECLARE_DLL(BASS_CD_GetTrackLength) BASS_CD_GetTrackLength;
 };
+#endif
 
 class BassLib final {
 public:
@@ -140,8 +142,10 @@ public:
     AlignPtr<BassDSDLib> DSDLib;
     AlignPtr<BassMixLib> MixLib;
     AlignPtr<BassFxLib> FxLib;
-    AlignPtr<BassCDLib> CDLib;
 
+#ifdef XAMP_OS_WIN
+    AlignPtr<BassCDLib> CDLib;
+#endif
     HashMap<std::string, std::string> GetLibVersion() const;
 
 private:

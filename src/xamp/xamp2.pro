@@ -71,7 +71,6 @@ SOURCES += \
     widget/read_helper.cpp \
     widget/win32/directorywatcher.cpp \
     widget/readlufsworker.cpp \
-    widget/musixmatchclient.cpp \
     DarkStyle.cpp \
     singleinstanceapplication.cpp \
     thememanager.cpp \
@@ -83,7 +82,6 @@ SOURCES += \
 HEADERS += \
     widget/lyricsshowwidget.h \
     widget/osx/osx.h \
-    widget/playbackhistorypage.h \
     widget/musicbrainzclient.h \
     widget/discogsclient.h \
     widget/artistview.h \
@@ -124,12 +122,10 @@ HEADERS += \
     widget/localelanguage.h \
     widget/jsonsettings.h \
     widget/scrolllabel.h \
-    widget/spectrograph.h \
     widget/xampdialog.h \
     widget/read_helper.h \
     widget/directorywatcher.h \
     widget/readlufsworker.h \
-    widget/musixmatchclient.h \
     singleinstanceapplication.h \
     DarkStyle.h \
     thememanager.h \
@@ -158,16 +154,12 @@ LIBS += -framework Foundation -framework Cocoa
 INCLUDEPATH += /System/Library/Frameworks/Foundation.framework/Versions/C/Headers
 
 CONFIG(debug, debug|release) {
-LIBS += -L"../thirdparty/ffmpeg/lib/x64/mac/" -lavcodec.58 \
-
 LIBS += -L"../xamp_base/debug/" -lxamp_base \
     -L"../xamp_metadata/debug/" -lxamp_metadata \
     -L"../xamp_output_device/debug/" -lxamp_output_device \
     -L"../xamp_stream/debug/" -lxamp_stream \
     -L"../xamp_player/debug/" -lxamp_player \
 } else {
-LIBS += -L"../thirdparty/ffmpeg/lib/x64/mac/" -lavcodec.58 \
-
 LIBS += -L"../xamp_base/release/" -lxamp_base \
     -L"../xamp_metadata/release/" -lxamp_metadata \
     -L"../xamp_output_device/release/" -lxamp_output_device \
