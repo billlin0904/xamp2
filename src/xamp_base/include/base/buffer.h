@@ -10,7 +10,7 @@
 
 namespace xamp::base {
 
-template <typename T, typename U = std::enable_if_t<std::is_trivially_copyable<T>::value>>
+template <typename T, typename U = std::enable_if_t<std::is_trivially_copyable_v<T>>>
 class XAMP_BASE_API_ONLY_EXPORT Buffer {
 public:
     Buffer() = default;

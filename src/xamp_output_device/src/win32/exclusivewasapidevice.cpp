@@ -497,7 +497,7 @@ uint32_t ExclusiveWasapiDevice::GetBufferSize() const noexcept {
 }
 
 bool ExclusiveWasapiDevice::IsHardwareControlVolume() const {
-	auto hw_support = (volume_support_mask_ & ENDPOINT_HARDWARE_SUPPORT_VOLUME)
+	const auto hw_support = (volume_support_mask_ & ENDPOINT_HARDWARE_SUPPORT_VOLUME)
 		&& (volume_support_mask_ & ENDPOINT_HARDWARE_SUPPORT_MUTE);
 	return hw_support;
 }

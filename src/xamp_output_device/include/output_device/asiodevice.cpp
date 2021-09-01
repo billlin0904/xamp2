@@ -42,7 +42,7 @@ struct AsioDriver {
 };
 
 static XAMP_ALWAYS_INLINE long GetLatencyMs(long latency, long sampleRate) noexcept {
-	return static_cast<long>((latency * 1000) / sampleRate);
+	return latency * 1000 / sampleRate;
 }
 
 static XAMP_ALWAYS_INLINE int64_t ASIO64toDouble(const ASIOSamples &a) noexcept {
@@ -50,7 +50,7 @@ static XAMP_ALWAYS_INLINE int64_t ASIO64toDouble(const ASIOSamples &a) noexcept 
 	return a;
 #else
 	constexpr double kTwoRaisedTo32 = 4294967296.;
-	return ((a).lo + (a).hi * kTwoRaisedTo32);
+	return (a).lo + (a).hi * kTwoRaisedTo32;
 #endif
 }
 
@@ -233,10 +233,11 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 	ASIODriver.asio_callbacks.bufferSwitchTimeInfo = OnBufferSwitchTimeInfoCallback;
 	ASIODriver.data_context.volume_factor = LinearToLog(volume_);
 
-	const auto result = ::ASIOCreateBuffers(ASIODriver.buffer_infos.data(),
-	                                        output_format.GetChannels(),
-	                                        buffer_size,
-	                                        &ASIODriver.asio_callbacks);
+	const auto result = ::ASIOCreateBuffers(
+		ASIODriver.buffer_infos.data(),
+	    output_format.GetChannels(),
+	    buffer_size,
+	    &ASIODriver.asio_callbacks);
 	if (result != ASE_OK) {
 		AsioIfFailedThrow(::ASIOCreateBuffers(ASIODriver.buffer_infos.data(),
 			output_format.GetChannels(),

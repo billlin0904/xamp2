@@ -242,6 +242,7 @@ static void BM_ClampSample(benchmark::State& state) {
 BENCHMARK(BM_ClampSample);
 #endif
 
+#if 0
 static void BM_ThreadPool(benchmark::State& state) {
     (void)ThreadPool::GetInstance();
     for (auto _ : state) {
@@ -260,6 +261,7 @@ static void BM_StdThreadPool(benchmark::State& state) {
 }
 
 BENCHMARK(BM_StdThreadPool);
+#endif
 
 #if 0
 static void BM_ConvertToInt2432SSE(benchmark::State& state) {
@@ -308,56 +310,6 @@ static void BM_ConvertToInt2432(benchmark::State& state) {
 }
 
 BENCHMARK(BM_ConvertToInt2432);
-
-static void BM_ConvertToInt32(benchmark::State& state) {
-    std::vector<int32_t> output(4096);
-    std::vector<float> input(4096);
-
-    AudioFormat input_format;
-    AudioFormat output_format;
-
-    input_format.SetChannel(2);
-    output_format.SetChannel(2);
-
-    for (auto& s : input) {
-        s = RNG::GetInstance()(0.0F, 1.0F);
-    }
-
-    auto ctx = MakeConvert(input_format, output_format, 2048);
-
-    for (auto _ : state) {
-        ConvertHelper<int32_t>(output.data(), input.data(), kFloat32Scale, ctx);
-    }
-}
-
-BENCHMARK(BM_ConvertToInt32);
-
-static void BM_PackedFormatConvertToInt32(benchmark::State& state) {
-    std::vector<int32_t> output(4096);
-    std::vector<float> input(4096);
-
-    AudioFormat input_format;
-    AudioFormat output_format;
-
-    input_format.SetChannel(2);
-    output_format.SetChannel(2);
-
-    for (auto& s : input) {
-        s = RNG::GetInstance()(0.0F, 1.0F);
-    }
-
-    const auto ctx = MakeConvert(input_format, output_format, 2048);
-
-    for (auto _ : state) {
-        DataConverter<PackedFormat::PLANAR,
-            PackedFormat::INTERLEAVED>::Convert(
-                reinterpret_cast<int32_t*>(output.data()),
-                reinterpret_cast<const float*>(input.data()),
-                ctx);
-    }
-}
-
-BENCHMARK(BM_PackedFormatConvertToInt32);
 
 static void BM_FindRobinHoodHashMap(benchmark::State& state) {
     HashMap<int32_t, int32_t> map;
@@ -422,6 +374,59 @@ static void BM_StdtMemcpy(benchmark::State& state) {
 BENCHMARK(BM_StdtMemcpy);
 #endif
 
+static void BM_ConvertToInt32(benchmark::State& state) {
+    std::vector<int32_t> output(4096);
+    std::vector<float> input(4096);
+
+    AudioFormat input_format;
+    AudioFormat output_format;
+
+    input_format.SetChannel(2);
+    output_format.SetChannel(2);
+
+    for (auto& s : input) {
+        s = RNG::GetInstance()(0.0F, 1.0F);
+    }
+
+    std::cin.get();
+
+    auto ctx = MakeConvert(input_format, output_format, 2048);
+
+    for (auto _ : state) {
+        ConvertHelper<int32_t>(output.data(), input.data(), kFloat32Scale, ctx);
+    }
+}
+
+BENCHMARK(BM_ConvertToInt32);
+
+
+static void BM_PackedFormatConvertToInt32(benchmark::State& state) {
+    std::vector<int32_t> output(4096);
+    std::vector<float> input(4096);
+
+    AudioFormat input_format;
+    AudioFormat output_format;
+
+    input_format.SetChannel(2);
+    output_format.SetChannel(2);
+
+    for (auto& s : input) {
+        s = RNG::GetInstance()(0.0F, 1.0F);
+    }
+
+    const auto ctx = MakeConvert(input_format, output_format, 2048);
+
+    for (auto _ : state) {
+        DataConverter<PackedFormat::PLANAR,
+            PackedFormat::INTERLEAVED>::Convert(
+                output.data(),
+                input.data(),
+                ctx);
+    }
+}
+
+BENCHMARK(BM_PackedFormatConvertToInt32);
+
 #if 0
 static void BM_TestDsdFileFormat(benchmark::State& state) {
     for (auto _ : state) {
@@ -451,7 +456,6 @@ int main(int argc, char** argv) {
     );
 
     // For debug use!
-    //XAMP_SET_LOG_LEVEL(spdlog::level::debug);
     XAMP_LOG_DEBUG("Logger init success.");
 
     ::benchmark::Initialize(&argc, argv);
@@ -459,4 +463,5 @@ int main(int argc, char** argv) {
         return -1;
     }
     ::benchmark::RunSpecifiedBenchmarks();
+    std::cin.get();
 }

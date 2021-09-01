@@ -79,7 +79,7 @@ std::vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfoList() const {
 	device_list.reserve(count);
 
 	std::wstring default_device_name;
-	if (auto default_device_info = GetDefaultDeviceInfo()) {
+	if (const auto default_device_info = GetDefaultDeviceInfo()) {
 		default_device_name = default_device_info.value().name;
 	}
 

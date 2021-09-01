@@ -337,7 +337,7 @@ void SharedWasapiDevice::SetVolume(uint32_t volume) const {
 		HrIfFailledThrow(simple_audio_volume->SetMute(false, nullptr));
 	}
 
-	const auto channel_volume = static_cast<float>(double(volume) / 100.0);
+	const auto channel_volume = static_cast<float>(static_cast<double>(volume) / 100.0);
 	HrIfFailledThrow(simple_audio_volume->SetMasterVolume(channel_volume, nullptr));
 }
 
@@ -360,7 +360,7 @@ void SharedWasapiDevice::ReportError(HRESULT hr) {
 HRESULT SharedWasapiDevice::GetSample(uint32_t frame_available, bool is_silence) noexcept {
 	double stream_time = stream_time_ + frame_available;
 	stream_time_ = stream_time;
-	auto stream_time_float = static_cast<double>(stream_time) / static_cast<double>(mix_format_->nSamplesPerSec);
+	auto stream_time_float = stream_time / static_cast<double>(mix_format_->nSamplesPerSec);
 
 	const DWORD flags = is_silence ? AUDCLNT_BUFFERFLAGS_SILENT : 0;
 
@@ -372,7 +372,7 @@ HRESULT SharedWasapiDevice::GetSample(uint32_t frame_available, bool is_silence)
 
 	auto sample_time = GetStreamPosInMilliseconds(clock_) / 1000.0;	
 
-	XAMP_LIKELY(callback_->OnGetSamples(reinterpret_cast<float*>(data), frame_available, stream_time_float, sample_time) == DataCallbackResult::CONTINUE) {
+	XAMP_LIKELY(callback_->OnGetSamples(data, frame_available, stream_time_float, sample_time) == DataCallbackResult::CONTINUE) {
 		hr = render_client_->ReleaseBuffer(frame_available, flags);
 	}
 	else {

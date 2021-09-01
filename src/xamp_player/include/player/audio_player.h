@@ -60,7 +60,7 @@ public:
 
     void Startup();
 
-    void Open(Path const& file_path);
+    void Open(Path const& file_path, std::string_view device_id = "");
 
     void Open(Path const& file_path, const DeviceInfo& device_info, AlignPtr<SampleRateConverter> converter = nullptr);
 
@@ -117,8 +117,6 @@ public:
     void SetDevice(const DeviceInfo& device_info);
 
     DeviceInfo GetDevice() const;
-
-    AlignPtr<SampleRateConverter> CloneSampleRateConverter() const;
 
     AudioDeviceManager& GetAudioDeviceManager();
 #ifdef XAMP_OS_WIN

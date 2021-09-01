@@ -152,7 +152,6 @@
   <ItemGroup>
     <ClInclude Include="include\player\audio_player.h" />
     <ClInclude Include="include\player\chromaprint.h" />
-    <ClInclude Include="include\player\fft.h" />
     <ClInclude Include="include\player\loudness_scanner.h" />
     <ClInclude Include="include\player\passthroughsamplerateconverter.h" />
     <ClInclude Include="include\player\playbackstateadapter.h" />
@@ -167,7 +166,6 @@
     <ClCompile Include="src\audio_player.cpp" />
     <ClCompile Include="src\audio_util.cpp" />
     <ClCompile Include="src\chromaprint.cpp" />
-    <ClCompile Include="src\fft.cpp" />
     <ClCompile Include="src\loudness_scanner.cpp" />
     <ClCompile Include="src\libebur128\ebur128.c" />
     <ClCompile Include="src\passthroughsamplerateconverter.cpp" />

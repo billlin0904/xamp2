@@ -156,11 +156,11 @@ FlushFileCache:
     double GetReadProgress() const {
         auto file_len = BASS.BASS_StreamGetFilePosition(GetHStream(), BASS_FILEPOS_END);
         auto buffer = BASS.BASS_StreamGetFilePosition(GetHStream(), BASS_FILEPOS_BUFFER);
-        return 100.0 * double(buffer) / double(file_len);
+        return 100.0 * static_cast<double>(buffer) / static_cast<double>(file_len);
     }
 
 	static void DownloadProc(const void* buffer, DWORD length, void* user) {
-        auto* impl = reinterpret_cast<BassFileStreamImpl*>(user);
+        auto* impl = static_cast<BassFileStreamImpl*>(user);
     	if (!buffer) {
             XAMP_LOG_DEBUG("Downloading 100% completed!");
             impl->file_cache_->Close();
