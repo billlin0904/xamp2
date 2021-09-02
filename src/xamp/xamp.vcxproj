@@ -235,6 +235,7 @@
     <QtMoc Include="widget\directorywatcher.h" />
     <QtMoc Include="widget\lyricsshowwidget.h" />
     <QtMoc Include="widget\discordnotify.h" />
+    <QtMoc Include="widget\framelesswindow.h" />
     <ClInclude Include="widget\playlistsqlquerytablemodel.h" />
     <ClInclude Include="widget\playlisttablequerymodel.h" />
     <QtMoc Include="widget\uiplayerstateadapter.h">
@@ -273,7 +274,6 @@
     <QtMoc Include="widget\discogsclient.h">
     </QtMoc>
     <ClInclude Include="widget\filetag.h" />
-    <ClInclude Include="widget\framelesswindow.h" />
     <ClInclude Include="widget\image_utiltis.h" />
     <QtMoc Include="widget\lrcpage.h">
     </QtMoc>

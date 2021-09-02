@@ -65,7 +65,7 @@ std::ostream &operator<<(std::ostream &s, Uuid const &id) {
     << std::setw(2) << static_cast<int32_t>(id.bytes_[15]);
 }
 
-Uuid const Uuid::INVALID_ID;
+Uuid const Uuid::kInvalidID;
 
 Uuid::Uuid() noexcept {
     hash_ = 0;
@@ -105,7 +105,8 @@ Uuid::Uuid(UuidBuffer const& bytes) noexcept
 }
 
 size_t Uuid::CalcHash() const noexcept {
-    return std::hash<std::string>{}(std::string());
+    std::string s = *this;
+    return std::hash<std::string>{}(s);
 }
 
 Uuid::Uuid(std::string_view const &str) {

@@ -207,6 +207,13 @@ void ThemeManager::setRepeatOncePlayOrder(Ui::XampWindow& ui) const {
 }
 
 void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
+    ui.titleFrameLabel->setStyleSheet(Q_STR(R"(
+    QLabel#titleFrameLabel {
+    border: none;
+    background: transparent;
+    }
+    )"));
+
     ui.titleLabel->setStyleSheet(Q_UTF8(R"(
                                          QLabel#titleLabel {
                                          color: white;

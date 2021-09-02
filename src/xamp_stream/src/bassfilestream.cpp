@@ -269,7 +269,6 @@ private:
         auto cache_id = ToCacheID(file_path);
         auto file_cache = PodcastCache.GetOrAdd(cache_id);
         if (file_cache->IsCompleted()) {
-            file_.Open(file_cache->GetFilePath().wstring());
             use_filemap = true;
         }
         else {

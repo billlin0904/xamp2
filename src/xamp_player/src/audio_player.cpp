@@ -120,9 +120,9 @@ void AudioPlayer::LoadDecoder() {
     }    
 }
 
-void AudioPlayer::Open(Path const& file_path, std::string_view device_id) {
+void AudioPlayer::Open(Path const& file_path, const Uuid& device_id) {
     AlignPtr<DeviceType> device_type;
-    if (device_id.empty()) {
+    if (device_id.IsValid()) {
         device_type = device_manager_.CreateDefaultDeviceType();
     } else {
         device_type = device_manager_.Create(device_id);

@@ -47,7 +47,7 @@
       <string notr="true">background-color: rgba(0,0,0,0.80);
 border-radius: 26px;
 color: #FFFFFF;
-font-family: microsoft yahei;
+font-family: UI;
 font-size: 16px;
 padding-left:25px;
 padding-right:25px;</string>

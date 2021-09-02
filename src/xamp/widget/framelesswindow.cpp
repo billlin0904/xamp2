@@ -40,29 +40,25 @@ FramelessWindow::FramelessWindow(QWidget* parent)
     setMouseTracking(true);
     installEventFilter(this);    
     auto ui_font = setupUIFont();
-#if defined(Q_OS_WIN)
     setStyleSheet(Q_UTF8(R"(
         font-family: "UI";
+		background-color: rgba(18, 18, 18, 255);
     )"));
+#if defined(Q_OS_WIN)    
     if (!use_native_window_) {
         win32::setWinStyle(this);
         setWindowTitle(Q_UTF8("xamp"));
     }
-    createThumbnailToolBar();   
-    ui_font.setPixelSize(14);
-    qApp->setFont(ui_font);    
+    createThumbnailToolBar();
 #else
-    setStyleSheet(Q_UTF8(R"(
-        font-family: "UI";
-        background-color: rgba(18, 18, 18, 255);
-    )"));
     ui_font.setPointSize(14);
-    qApp->setFont(ui_font);
     if (!use_native_window_) {
         osx::hideTitleBar(this);
         setWindowTitle(Q_UTF8("xamp"));
 	}
-#endif    
+#endif
+    ui_font.setPixelSize(14);
+    qApp->setFont(ui_font);
 }
 
 // QScopedPointer require default destructor.
@@ -113,10 +109,11 @@ void FramelessWindow::createThumbnailToolBar() {
 }
 
 QFont FramelessWindow::setupUIFont() const {
-    const auto font_id = QFontDatabase::addApplicationFont(Q_UTF8(":/xamp/fonts/Electrolize-Regular.ttf"));
+    const auto font_id = QFontDatabase::addApplicationFont(Q_UTF8(":/xamp/fonts/digital.ttf"));
     const auto digital_font_families = QFontDatabase::applicationFontFamilies(font_id);
 	
     QList<QString> fallback_fonts;
+    QFont digital_font(Q_UTF8("FormatFont"));
     QFont ui_font(Q_UTF8("UI"));
 
     const auto app_path = QCoreApplication::applicationDirPath();
@@ -142,8 +139,8 @@ QFont FramelessWindow::setupUIFont() const {
     QFont::insertSubstitutions(Q_UTF8("UI"), fallback_fonts);    
     QFont::insertSubstitutions(Q_UTF8("FormatFont"), digital_font_families);
 	
-    ui_font.setStyleStrategy(QFont::PreferQuality);
-    ui_font.setHintingPreference(QFont::PreferFullHinting);
+    digital_font.setStyleStrategy(QFont::PreferAntialias);
+    ui_font.setStyleStrategy(QFont::PreferAntialias);
     return ui_font;
 }
 

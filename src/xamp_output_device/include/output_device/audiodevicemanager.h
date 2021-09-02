@@ -46,6 +46,8 @@ public:
     	});
     }
 
+    [[nodiscard]] std::vector<Uuid> GetAvailableDeviceType() const;
+
     [[nodiscard]] bool IsSupportASIO() const noexcept;
 
     [[nodiscard]] bool IsDeviceTypeExist(Uuid const& id) const noexcept;    

@@ -152,6 +152,14 @@ bool AudioDeviceManager::IsSupportASIO() const noexcept {
 #endif
 }
 
+std::vector<Uuid> AudioDeviceManager::GetAvailableDeviceType() const {
+    std::vector<Uuid> device_types;
+	for (auto [uuid, device_type] : factory_) {
+        device_types.push_back(uuid);
+	}
+    return device_types;
+}
+
 bool AudioDeviceManager::IsExclusiveDevice(DeviceInfo const & info) noexcept {
 #ifdef XAMP_OS_WIN
     Uuid const device_type_id(info.device_type_id);

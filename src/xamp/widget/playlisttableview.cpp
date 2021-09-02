@@ -608,7 +608,8 @@ void PlayListTableView::setPodcastMode(bool enable) {
     (void)QObject::connect(this,
         &PlayListTableView::readLUFS,
         &read_worker_,
-        &ReadLufsWorker::addEntity);
+        &ReadLufsWorker::addEntity,
+        Qt::QueuedConnection);
     (void)QObject::connect(&read_worker_,
         &ReadLufsWorker::readCompleted,
         this,

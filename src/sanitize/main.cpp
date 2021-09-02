@@ -1,14 +1,15 @@
 ﻿#include <iostream>
 #include <base/scopeguard.h>
+#include <output_device/win32/exclusivewasapidevicetype.h>
 #include <output_device/asiodevicetype.h>
 #include <player/audio_player.h>
 
-int main()
-{
+int main() {
 	using namespace xamp;
 	using namespace xamp::player;
 	using namespace xamp::base;
 	using namespace xamp::output_device;
+	using namespace xamp::output_device::win32;
 
 	Logger::GetInstance()
 		.AddDebugOutputLogger()
@@ -22,7 +23,9 @@ int main()
 	AudioPlayer::LoadDecoder();
 
 	auto player = std::make_shared<AudioPlayer>();
-	player->Open("C:\\Users\\rdbill0452\\Music\\Test\\DSD.dsf", ASIODeviceType::Id);
+	auto avaiable_device_type = player->GetAudioDeviceManager().GetAvailableDeviceType();
+
+	player->Open("C:\\Users\\rdbill0452\\Music\\Test\\DSD.dsf", ExclusiveWasapiDeviceType::Id);
 	player->PrepareToPlay();
 	player->Play();
 	std::cin.get();
