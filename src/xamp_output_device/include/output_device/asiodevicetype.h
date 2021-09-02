@@ -17,6 +17,7 @@ namespace xamp::output_device {
 class ASIODeviceType final : public DeviceType {
 public:
 	constexpr static auto Id = std::string_view("0B3FF8BC-5BFD-4A08-8066-95974FB11BB5");
+	constexpr static auto Description = std::string_view("ASIO 2.0");
 
     ASIODeviceType();
 

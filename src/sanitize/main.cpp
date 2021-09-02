@@ -6,10 +6,10 @@
 
 int main() {
 	using namespace xamp;
-	using namespace xamp::player;
-	using namespace xamp::base;
-	using namespace xamp::output_device;
-	using namespace xamp::output_device::win32;
+	using namespace player;
+	using namespace base;
+	using namespace output_device;
+	using namespace win32;
 
 	Logger::GetInstance()
 		.AddDebugOutputLogger()

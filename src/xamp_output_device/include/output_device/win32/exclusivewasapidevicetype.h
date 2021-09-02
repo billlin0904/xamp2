@@ -22,6 +22,7 @@ using namespace base;
 class ExclusiveWasapiDeviceType final : public DeviceType {
 public:
 	constexpr static auto Id = std::string_view("089F8446-C980-495B-AC80-5A437A4E73F6");
+	constexpr static auto Description = std::string_view("WASAPI (exclusive)");
 
 	ExclusiveWasapiDeviceType() noexcept;
 

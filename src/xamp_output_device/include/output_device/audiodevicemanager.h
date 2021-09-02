@@ -7,6 +7,7 @@
 
 #include <functional>
 #include <memory>
+#include <map>
 
 #include <base/base.h>
 #include <base/stl.h>

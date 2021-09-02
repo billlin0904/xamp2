@@ -88,7 +88,7 @@ static struct IopmAssertion {
 
 #define XAMP_REGISTER_DEVICE_TYPE(DeviceTypeClass) \
 	XAMP_LOG_DEBUG("Register {} success", #DeviceTypeClass); \
-	factory_.emplace(DeviceTypeClass::Id, []() {\
+	factory_.emplace(DeviceTypeClass::Description, []() {\
 		return MakeAlign<DeviceType, DeviceTypeClass>();\
 	})
 
