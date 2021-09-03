@@ -33,6 +33,54 @@ public:
         Close();
     }
 
+    void LoadFileOrURL(std::wstring const& file_path, bool use_filemap, DsdModes mode, DWORD flags) {
+        if (use_filemap) {
+            file_.Open(file_path);
+            if (mode == DsdModes::DSD_MODE_PCM) {
+                stream_.reset(BASS.BASS_StreamCreateFile(TRUE,
+                    file_.GetData(),
+                    0,
+                    file_.GetLength(),
+                    flags | BASS_STREAM_DECODE));
+            } else {
+                stream_.reset(BASS.DSDLib->BASS_DSD_StreamCreateFile(TRUE,
+                    file_.GetData(),
+                    0,
+                    file_.GetLength(),
+                    flags | BASS_STREAM_DECODE,
+                    0));
+                // BassLib DSD module default use 6dB gain.
+				// 不設定的話會爆音!
+                BASS.BASS_ChannelSetAttribute(stream_.get(), BASS_ATTRIB_DSD_GAIN, 0.0);
+            }
+            if (!PrefetchFile(file_)) {
+                XAMP_LOG_DEBUG("PrefetchFile return failure!");
+            }
+        } else {
+#ifdef XAMP_OS_MAC
+            auto utf8 = String::ToString(file_path);
+            stream_.reset(BASS.BASS_StreamCreateURL(
+                utf8.c_str(),
+                0,
+                flags | BASS_STREAM_DECODE | BASS_STREAM_STATUS,
+                &BassFileStreamImpl::DownloadProc,
+                this));
+#else
+            auto url = const_cast<wchar_t*>(file_path.c_str());
+            stream_.reset(BASS.BASS_StreamCreateURL(
+                url,
+                0,
+                flags | BASS_STREAM_DECODE | BASS_UNICODE | BASS_STREAM_STATUS,
+                &BassFileStreamImpl::DownloadProc,
+                this));
+#endif
+        }
+
+        if (!stream_) {
+            throw BassException();
+        }
+    }
+
     void LoadFromFile(std::wstring const & file_path) {
         DWORD flags = 0;
 
@@ -56,67 +104,17 @@ FlushFileCache:
         file_.Close();
         file_cache_.reset();
 
-        std::string cache_id;
+        std::tuple<std::string, Path, bool> cache_info;
         auto use_filemap = file_path.find(L"https") == std::string::npos
     	|| file_path.find(L"http") == std::string::npos;
     	if (!use_filemap) {
-            cache_id = InitFileCache(file_path, use_filemap);
+            cache_info = GetFileCache(file_path, use_filemap);
     	}
 
-        if (mode_ == DsdModes::DSD_MODE_PCM) {
-            if (use_filemap) {
-#ifdef XAMP_OS_MAC
-                auto utf8 = String::ToString(file_path);
-                stream_.reset(BASS.BASS_StreamCreateFile(FALSE,
-                                                         utf8.c_str(),
-                                                         0,
-                                                         0,
-                                                         flags | BASS_STREAM_DECODE));
-#else
-                stream_.reset(BASS.BASS_StreamCreateFile(FALSE,
-                    file_path.c_str(),
-                    0,
-                    0,
-                    flags | BASS_UNICODE | BASS_STREAM_DECODE));
-#endif
-            } else {
-#ifdef XAMP_OS_MAC
-                auto utf8 = String::ToString(file_path);
-                stream_.reset(BASS.BASS_StreamCreateURL(
-                    utf8.c_str(),
-                    0,
-                    flags | BASS_STREAM_DECODE | BASS_STREAM_STATUS,
-                    &BassFileStreamImpl::DownloadProc,
-                    this));
-#else
-                auto url = const_cast<wchar_t*>(file_path.c_str());
-                stream_.reset(BASS.BASS_StreamCreateURL(
-                    url,
-                    0,   
-                    flags | BASS_STREAM_DECODE | BASS_UNICODE | BASS_STREAM_STATUS,
-                    &BassFileStreamImpl::DownloadProc,
-                    this));
-#endif
-            }
-            mode_ = DsdModes::DSD_MODE_PCM;
+        if (!std::get<2>(cache_info)) {
+            LoadFileOrURL(file_path, use_filemap, mode_, flags);	        
         } else {
-            file_.Open(file_path);
-            stream_.reset(BASS.DSDLib->BASS_DSD_StreamCreateFile(TRUE,
-                file_.GetData(),
-                0,
-                file_.GetLength(),
-                flags | BASS_STREAM_DECODE,
-                0));
-            if (!PrefetchFile(file_)) {
-                XAMP_LOG_DEBUG("PrefetchFile return failure!");
-            }
-        	// BassLib DSD module default use 6dB gain.
-            // 不設定的話會爆音!
-            BASS.BASS_ChannelSetAttribute(stream_.get(), BASS_ATTRIB_DSD_GAIN, 0.0);
-        }
-
-        if (!stream_) {
-            throw BassException();
+            LoadFileOrURL(std::get<1>(cache_info), use_filemap, mode_, flags);
         }
 
         info_ = BASS_CHANNELINFO{};
@@ -125,7 +123,7 @@ FlushFileCache:
         if (use_filemap) {
             auto file_duration = GetDuration();
             if (file_duration < 1.0) {
-                PodcastCache.Remove(cache_id);
+                PodcastCache.Remove(std::get<0>(cache_info));
                 file_cache_.reset();
                 goto FlushFileCache;
             }
@@ -169,11 +167,11 @@ FlushFileCache:
         if (length == 0) {
             auto *ptr = static_cast<char const*>(buffer);
             std::string http_status(ptr);
-            XAMP_LOG_DEBUG("{}", http_status);
+            //XAMP_LOG_DEBUG("{}", http_status);
     	} else {                      
             impl->download_size_ += length;
-            XAMP_LOG_DEBUG("Downloading {}% {}", impl->GetReadProgress(),
-                           String::FormatBytes(impl->download_size_));
+            //XAMP_LOG_DEBUG("Downloading {}% {}", impl->GetReadProgress(),
+            //               String::FormatBytes(impl->download_size_));
             impl->file_cache_->Write(buffer, length);
         }
     }
@@ -265,16 +263,18 @@ FlushFileCache:
         return GetDsdSampleRate() / kPcmSampleRate441;
     }
 private:
-    std::string InitFileCache(std::wstring const& file_path, bool& use_filemap) {
+    std::tuple<std::string, Path, bool> GetFileCache(std::wstring const& file_path, bool& use_filemap) {
         auto cache_id = ToCacheID(file_path);
         auto file_cache = PodcastCache.GetOrAdd(cache_id);
+        auto is_completed = false;
         if (file_cache->IsCompleted()) {
             use_filemap = true;
+            is_completed = true;
         }
         else {
             file_cache_ = file_cache;
         }
-        return cache_id;
+        return std::make_tuple(cache_id, file_cache->GetFilePath(), is_completed);
     }
 	
     XAMP_ALWAYS_INLINE HSTREAM GetHStream() const noexcept {
