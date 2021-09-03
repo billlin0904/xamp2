@@ -65,7 +65,7 @@ std::ostream &operator<<(std::ostream &s, Uuid const &id) {
     << std::setw(2) << static_cast<int32_t>(id.bytes_[15]);
 }
 
-Uuid const Uuid::kInvalidID;
+Uuid const Uuid::kInvalidUUID;
 
 Uuid::Uuid() noexcept {
     hash_ = 0;

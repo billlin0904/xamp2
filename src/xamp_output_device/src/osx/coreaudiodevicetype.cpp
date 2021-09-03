@@ -17,7 +17,7 @@ void CoreAudioDeviceType::ScanNewDevice() {
 }
 
 std::string_view CoreAudioDeviceType::GetDescription() const {
-    return "CoreAudio";
+    return Description;
 }
 
 AlignPtr<Device> CoreAudioDeviceType::MakeDevice(const std::string &device_id) {

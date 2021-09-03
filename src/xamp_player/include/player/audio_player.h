@@ -60,7 +60,7 @@ public:
 
     void Startup();
 
-    void Open(Path const& file_path, const Uuid& device_id = Uuid::kInvalidID);
+    void Open(Path const& file_path, const Uuid& device_id = Uuid::kInvalidUUID);
 
     void Open(Path const& file_path, const DeviceInfo& device_info, AlignPtr<SampleRateConverter> converter = nullptr);
 

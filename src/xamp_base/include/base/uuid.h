@@ -20,7 +20,7 @@ using UuidBuffer = std::array<uint8_t, kIdSize>;
 
 class XAMP_BASE_API Uuid final {
 public:
-    static Uuid const kInvalidID;
+    static Uuid const kInvalidUUID;
 
     static Uuid FromString(std::string const & str);
 
@@ -60,7 +60,7 @@ private:
 };
 
 XAMP_ALWAYS_INLINE bool Uuid::IsValid() const noexcept {
-    return *this == Uuid::kInvalidID;
+    return *this == Uuid::kInvalidUUID;
 }
 
 XAMP_ALWAYS_INLINE bool operator!=(Uuid const & other1, Uuid const & other2) noexcept {

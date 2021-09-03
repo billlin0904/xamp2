@@ -180,6 +180,7 @@ void BassLib::Load() {
     LoadPlugin("bassdsd.dll");
 #else
     LoadPlugin("libbassflac.dylib");
+    LoadPlugin("libbassdsd.dylib");
 #endif
 
     BASS.BASS_SetConfig(BASS_CONFIG_DSD_FREQ, 88200);

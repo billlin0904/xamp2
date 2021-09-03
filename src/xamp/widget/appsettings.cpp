@@ -71,7 +71,7 @@ void AppSettings::setOrDefaultConfig() {
 Uuid AppSettings::getID(const QString& key) {
 	auto str = getValue(key).toString();
 	if (str.isEmpty()) {
-		return Uuid::kInvalidID;
+        return Uuid::kInvalidUUID;
 	}
 	return Uuid::FromString(str.toStdString());
 }

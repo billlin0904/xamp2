@@ -22,6 +22,7 @@ using namespace base;
 class XAMP_OUTPUT_DEVICE_API CoreAudioDeviceType : public DeviceType {
 public:
     constexpr static auto Id = std::string_view("E6BB3BF2-F16A-489B-83EE-4A29755F42E4");
+    constexpr static auto Description = std::string_view("CoreAudio");
 
     CoreAudioDeviceType();
 
