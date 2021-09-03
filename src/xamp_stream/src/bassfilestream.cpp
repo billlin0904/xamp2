@@ -179,6 +179,7 @@ FlushFileCache:
     void Close() noexcept {
         stream_.reset();
         mix_stream_.reset();
+        file_.Close();
         mode_ = DsdModes::DSD_MODE_PCM;
         info_ = BASS_CHANNELINFO{};
         download_size_ = 0;
