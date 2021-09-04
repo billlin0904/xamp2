@@ -330,11 +330,13 @@ void PlayListTableView::initial() {
         const auto current_index = proxy_model_.mapToSource(index);
         setNowPlaying(current_index);
         const auto play_item = getEntity(current_index);
-        // todo: check .cda file format!
-        if (play_item.lufs == 0.0 
-            || play_item.lufs == -std::numeric_limits<double>::infinity()) {
-            readLUFS(play_item);
-    	}        
+        auto is_cda_file = play_item.file_path.contains(L".cda");
+        if (!is_cda_file) {
+            if (play_item.lufs == 0.0
+                || play_item.lufs == -std::numeric_limits<double>::infinity()) {
+                readLUFS(play_item);
+            }
+        }
         emit playMusic(current_index, play_item);
         refresh();
     });

@@ -35,6 +35,17 @@ public:
 
     void LoadFileOrURL(std::wstring const& file_path, bool use_filemap, DsdModes mode, DWORD flags) {
         if (use_filemap) {
+            auto is_cda_file = file_path.find(L".cda") != std::string::npos;
+
+            if (is_cda_file) {
+                stream_.reset(BASS.BASS_StreamCreateFile(FALSE,
+                    file_path.c_str(),
+                    0,
+                    0,
+                    flags | BASS_UNICODE | BASS_STREAM_DECODE));
+                return;
+            }            
+
             file_.Open(file_path);
             if (mode == DsdModes::DSD_MODE_PCM) {
                 stream_.reset(BASS.BASS_StreamCreateFile(TRUE,

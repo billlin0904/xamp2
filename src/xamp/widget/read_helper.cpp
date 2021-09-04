@@ -58,12 +58,17 @@ static double ReadProcess(std::wstring const& file_path,
 		max_duration = static_cast<uint64_t>(file_stream->GetDuration());
 	}
 
+	int32_t retry = 0;
 	while (num_samples / input_format.GetSampleRate() < max_duration) {
 		const auto read_size = file_stream->GetSamples(isamples.get(),
 			kReadSampleSize) / input_format.GetChannels();
 
 		if (!read_size) {
-			break;
+			if (retry >= 3) {
+				break;
+			}
+			++retry;
+			continue;
 		}
 
 		num_samples += read_size;
