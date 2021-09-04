@@ -50,24 +50,6 @@ QString AppSettings::getMyMusicFolderPath() {
 	return folder_path[0];
 }
 
-void AppSettings::setOrDefaultConfig() {
-    loadIniFile(Q_UTF8("xamp.ini"));
-    setDefaultValue(kAppSettingDeviceType, Qt::EmptyString);
-    setDefaultValue(kAppSettingDeviceId, Qt::EmptyString);
-    setDefaultValue(kAppSettingWidth, 600);
-    setDefaultValue(kAppSettingHeight, 500);
-    setDefaultValue(kAppSettingVolume, 50);
-    setDefaultValue(kAppSettingNightMode, false);
-    setDefaultValue(kAppSettingOrder, static_cast<int32_t>(PlayerOrder::PLAYER_ORDER_REPEAT_ONCE));
-    setDefaultValue(kAppSettingBackgroundColor, QColor("#01121212"));
-    setDefaultValue(kAppSettingEnableBlur, true);
-	setDefaultValue(kAppSettingPreventSleep, true);
-    setDefaultValue(kLyricsFontSize, 12);
-    setDefaultValue(kAppSettingMinimizeToTrayAsk, true);
-    setDefaultValue(kAppSettingMinimizeToTray, false);
-	setDefaultValue(kAppSettingEnableGaplessPlay, false);
-}
-
 Uuid AppSettings::getID(const QString& key) {
 	auto str = getValue(key).toString();
 	if (str.isEmpty()) {

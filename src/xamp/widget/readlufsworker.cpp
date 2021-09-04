@@ -5,6 +5,7 @@
 #include <base/buffer.h>
 #include <base/audioformat.h>
 #include <base/dsdsampleformat.h>
+#include <base/logger.h>
 
 #include <stream/filestream.h>
 #include <stream/dsdstream.h>
@@ -22,6 +23,8 @@ inline constexpr uint32_t kReadSampleSize = 8192 * 4;
 ReadLufsWorker::ReadLufsWorker() = default;
 
 void ReadLufsWorker::addEntity(PlayListEntity const& entity) {
+    XAMP_LOG_DEBUG("addEntity");
+
 	const auto is_dsd_file = TestDsdFileFormatStd(entity.file_path.toStdWString());
 	auto file_stream = MakeStream(entity.file_ext.toStdWString());
 

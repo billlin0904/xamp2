@@ -96,8 +96,6 @@ public:
 
     static void loadLanguage(QString const& lang);
 
-    static void setOrDefaultConfig();
-
     static QString getMyMusicFolderPath();
 
     static void save();

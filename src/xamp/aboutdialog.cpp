@@ -1,6 +1,7 @@
 #include <QFile>
 
 #include <widget/str_utilts.h>
+#include "thememanager.h"
 #include "aboutdialog.h"
 
 AboutDialog::AboutDialog(QWidget* parent) 
@@ -9,14 +10,14 @@ AboutDialog::AboutDialog(QWidget* parent)
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     ui.lblVersion->setText(Q_UTF8("0.0.0"));
 
-    QIcon icon(Q_UTF8(":/xamp/xamp.ico"));
-    ui.lblLogo->setPixmap(icon.pixmap(128, 128));
+    ui.lblLogo->setPixmap(ThemeManager::instance().appIcon().pixmap(128, 128));
 
-    QFont font = ui.lblProjectTitle->font();
+    auto font = ui.lblProjectTitle->font();
     font.setBold(true);
     font.setPointSizeF(18);
     ui.lblProjectTitle->setFont(font);
     ui.lblProjectTitle->setText(tr("XAMP2"));
+    ui.lblProjectTitle->setStyleSheet(Q_UTF8("QLabel#lblProjectTitle { border: none; background: transparent; }"));
 
     ui.lblDescription->setText(Q_UTF8("Cross-platform native DSD and low latency playback music player."));
 
@@ -36,6 +37,8 @@ AboutDialog::AboutDialog(QWidget* parent)
     QFile credits_file(Q_UTF8("credits.txt"));
     credits_file.open(QIODevice::ReadOnly);
     credits_ = QLatin1String(credits_file.readAll());
+
+    ThemeManager::instance().setBackgroundColor(this);
 }
 
 void AboutDialog::onCreditsOrLicenceChecked(bool checked) {

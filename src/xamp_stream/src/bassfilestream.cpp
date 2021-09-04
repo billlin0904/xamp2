@@ -114,7 +114,7 @@ FlushFileCache:
         if (!std::get<2>(cache_info)) {
             LoadFileOrURL(file_path, use_filemap, mode_, flags);	        
         } else {
-            LoadFileOrURL(std::get<1>(cache_info), use_filemap, mode_, flags);
+            LoadFileOrURL(std::get<1>(cache_info).wstring(), use_filemap, mode_, flags);
         }
 
         info_ = BASS_CHANNELINFO{};

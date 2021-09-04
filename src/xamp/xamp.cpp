@@ -682,7 +682,7 @@ void Xamp::initialController() {
         AppSettings::setValue(kAppSettingShowLeftList, enable);
         });
     settings_menu->addAction(hide_left_list_action);
-#ifdef Q_OS_WIN
+
     auto* enable_blur_material_mode_action = new QAction(tr("Enable blur"), this);
     enable_blur_material_mode_action->setCheckable(true);
     if (AppSettings::getValue(kAppSettingEnableBlur).toBool()) {
@@ -696,7 +696,7 @@ void Xamp::initialController() {
         ThemeManager::instance().enableBlur(this, enable, useNativeWindow());
         });
     settings_menu->addAction(enable_blur_material_mode_action);
-#endif
+
     settings_menu->addSeparator();
     auto* about_action = new QAction(tr("About"), this);
     settings_menu->addAction(about_action);
@@ -728,10 +728,10 @@ void Xamp::applyTheme(QColor color) {
     } else {
         color.setAlpha(100);
     }
-	
-    if (qGray(color.rgb()) > 200) {      
-        emit themeChanged(color, Qt::black);
-        ThemeManager::instance().setThemeColor(ThemeColor::WHITE_THEME);
+
+    if (qGray(color.rgb()) > 200) {
+      emit themeChanged(color, Qt::black);
+      ThemeManager::instance().setThemeColor(ThemeColor::WHITE_THEME);
     }
     else {
         emit themeChanged(color, Qt::white);

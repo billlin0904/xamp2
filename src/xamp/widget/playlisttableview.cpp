@@ -167,13 +167,8 @@ PlayListTableView::PlayListTableView(QWidget* parent, int32_t playlist_id)
 }
 
 PlayListTableView::~PlayListTableView() {
-#ifdef XAMP_OS_WIN
-    if (podcast_mode_) {
-        return;
-    }
     thread_.quit();
     thread_.wait();
-#endif
 }
 
 void PlayListTableView::refresh() {
@@ -259,7 +254,7 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
     hideColumn(PLAYLIST_FILE_PARENT_PATH);
 
     hideColumn(PLAYLIST_BITRATE);
-    hideColumn(PLAYLIST_ALBUM);
+    //hideColumn(PLAYLIST_ALBUM);
     hideColumn(PLAYLIST_TIMESTAMP);
     hideColumn(PLAYLIST_RATING);
     hideColumn(PLAYLIST_DURATION);
@@ -599,23 +594,19 @@ void PlayListTableView::setPodcastMode(bool enable) {
         hideColumn(PLAYLIST_LUFS);
         hideColumn(PLAYLIST_TRUE_PEAK);
         setColumnHidden(PLAYLIST_TIMESTAMP, false);
-	}
-#ifdef XAMP_OS_WIN
-	if (enable) {
         return;
-	}
+    }
     read_worker_.moveToThread(&thread_);
     (void)QObject::connect(this,
-        &PlayListTableView::readLUFS,
-        &read_worker_,
-        &ReadLufsWorker::addEntity,
-        Qt::QueuedConnection);
+                            &PlayListTableView::readLUFS,
+                            &read_worker_,
+                            &ReadLufsWorker::addEntity,
+                            Qt::QueuedConnection);
     (void)QObject::connect(&read_worker_,
-        &ReadLufsWorker::readCompleted,
-        this,
-        &PlayListTableView::onReadCompleted);
+                            &ReadLufsWorker::readCompleted,
+                            this,
+                            &PlayListTableView::onReadCompleted);
     thread_.start();
-#endif
 }
 
 void PlayListTableView::onReadCompleted(int32_t music_id, double lrus, double trure_peak) {
