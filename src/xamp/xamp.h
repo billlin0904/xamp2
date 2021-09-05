@@ -24,6 +24,7 @@
 #include <widget/discordnotify.h>
 #endif
 
+#include "xampplayer.h"
 #include "ui_xamp.h"
 
 class LrcPage;
@@ -36,12 +37,15 @@ class PlaybackHistoryPage;
 class QWidgetAction;
 struct PlaybackFormat;
 
-class Xamp final : public FramelessWindow {
+class Xamp final : public XampPlayer {
 	Q_OBJECT
 
 public:
-    explicit Xamp(QWidget *parent = nullptr);
+    Xamp();
 
+    virtual ~Xamp() override = default;
+
+    void initial(TopWindow *top_window);
 signals:
 	void payNextMusic();
 
@@ -64,7 +68,17 @@ public slots:
 
 	void onVolumeChanged(float volume);
 private:
-    void initial();
+    void stopPlayedClicked();
+
+    void playNextClicked();
+
+    void playPreviousClicked();
+
+    void play();
+
+    void deleteKeyPress() override;
+
+    void addDropFileItem(const QUrl& url) override;
 
 	void applyTheme(QColor color);
 
@@ -80,14 +94,6 @@ private:
 
 	void playLocalFile(const PlayListEntity& item);
 
-    void stopPlayedClicked() override;
-
-    void playNextClicked() override;
-
-    void playPreviousClicked() override;
-
-    void play() override;
-
 	void play(const PlayListEntity& item);
 
 	void onPlayerStateChanged(PlayerState play_state);
@@ -95,8 +101,6 @@ private:
 	void addItem(const QString& file_name);
 
     void addTable();
-
-	void addDropFileItem(const QUrl& url) override;
 
 	void setVolume(int32_t volume);
 
@@ -115,8 +119,6 @@ private:
     void setTablePlaylistView(int table_id);
 
 	void setPlayerOrder();
-
-	void deleteKeyPress() override;
 
 	PlyalistPage* newPlaylist(int32_t playlist_id);
 
@@ -152,7 +154,7 @@ private:
 
 	void setButtonState();
 
-    void onFileChanged(const QString& file_path) override;
+    void onFileChanged(const QString& file_path);
 
 	void extractFile(const QString &file_path);
 
@@ -181,5 +183,6 @@ private:
 #ifdef Q_OS_WIN
     DicordNotify discord_notify_;
 #endif
+    TopWindow *top_window_;
     Ui::XampWindow ui_;
 };

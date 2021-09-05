@@ -113,7 +113,6 @@ HEADERS += \
     widget/uiplayerstateadapter.h \
     widget/wheelablewidget.h \
     widget/str_utilts.h \
-    widget/time_utilts.h \
     widget/selectcolorwidget.h \
     widget/artistinfopage.h \
     widget/starrating.h \
@@ -126,12 +125,14 @@ HEADERS += \
     widget/read_helper.h \
     widget/directorywatcher.h \
     widget/readlufsworker.h \
+    widget/time_utilts.h \
     singleinstanceapplication.h \
     DarkStyle.h \
     thememanager.h \
     aboutdialog.h \
     preferencedialog.h \
-    xamp.h
+    xamp.h \
+    xampplayer.h
 
 FORMS += \
     widget/toast.ui \

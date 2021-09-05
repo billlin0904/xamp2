@@ -29,12 +29,6 @@ class AppSettings final {
 public:    
     static void loadIniFile(QString const & file_name);
 
-    static void addMonitorPath(QString const& file_name);
-
-    static void startMonitorFile(FramelessWindow* window);
-
-    static void shutdownMonitorFile();
-
     template <typename T, typename = std::enable_if_t<std::is_integral<T>::value, T>>
     static void setValue(QString const& key, T value) {
         setValue(key, std::to_string(value));

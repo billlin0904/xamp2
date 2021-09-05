@@ -103,8 +103,8 @@ private:
 	int32_t playlist_id_;
 	StarDelegate* start_delegate_;	
 	QModelIndex play_index_;
-	QThread thread_;
-	ReadLufsWorker read_worker_;
+    QThread thread_;
+    ReadLufsWorker read_worker_;
     PlayListSqlQueryTableModel model_;
 	PlayListTableFilterProxyModel proxy_model_;
 };

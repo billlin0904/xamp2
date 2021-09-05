@@ -12,25 +12,6 @@ QMap<QString, QVariant> AppSettings::default_settings_;
 LocaleLanguageManager AppSettings::manager_;
 DirectoryWatcher AppSettings::file_watcher_;
 
-void AppSettings::startMonitorFile(FramelessWindow *window) {
-	/*(void)QObject::connect(&file_watcher_,
-		&DirectoryWatcher::fileChanged,
-		window, 
-		&FramelessWindow::onFileChanged,
-		Qt::QueuedConnection);
-	file_watcher_.start();
-	file_watcher_.addPath(getMyMusicFolderPath());*/
-}
-
-void AppSettings::shutdownMonitorFile() {
-	//file_watcher_.shutdown();
-	//file_watcher_.wait();
-}
-
-void AppSettings::addMonitorPath(QString const& file_name) {
-	//file_watcher_.addPath(file_name);
-}
-
 void AppSettings::loadIniFile(const QString& file_name) {
 	settings_.reset(new QSettings(file_name, QSettings::IniFormat));    
 }

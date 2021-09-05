@@ -10,6 +10,8 @@
 #include <QIcon>
 #include <QDragEnterEvent>
 
+#include "xampplayer.h"
+
 #if defined(Q_OS_WIN)
 class QWinThumbnailToolBar;
 class QWinTaskbarButton;
@@ -20,35 +22,30 @@ class QAction;
 class QSystemTrayIcon;
 class QMenu;
 
-class FramelessWindow : public QWidget {
+class FramelessWindow : public TopWindow {
 public:
-    explicit FramelessWindow(QWidget *parent = nullptr);
+    FramelessWindow();
 
 	virtual ~FramelessWindow() override;
 
-    Q_DISABLE_COPY(FramelessWindow)
+    void initial(XampPlayer *content_widget);
 
-    virtual void addDropFileItem(const QUrl& url);
+    void setTaskbarProgress(int32_t percent) override;
 
-    virtual void deleteKeyPress();
+    void resetTaskbarProgress() override;
 
-	void setTaskbarProgress(int32_t percent);
+    void setTaskbarPlayingResume() override;
 
-	void resetTaskbarProgress();
+    void setTaskbarPlayerPaused() override;
 
-	void setTaskbarPlayingResume();
+    void setTaskbarPlayerPlaying() override;
 
-	void setTaskbarPlayerPaused();
+    void setTaskbarPlayerStop() override;
 
-	void setTaskbarPlayerPlaying();
-
-	void setTaskbarPlayerStop();
-
-	[[nodiscard]] bool useNativeWindow() const noexcept {
+    [[nodiscard]] bool useNativeWindow() const noexcept override {
 		return use_native_window_;
 	}
-	
-	virtual void onFileChanged(const QString& file_path) = 0;
+
 protected:
     bool eventFilter(QObject* object, QEvent* event) override;
 
@@ -74,13 +71,7 @@ protected:
 
 	void paintEvent(QPaintEvent * event) override;
 
-    virtual void play() = 0;
-
-    virtual void playNextClicked() = 0;
-
-    virtual void playPreviousClicked() = 0;
-
-    virtual void stopPlayedClicked() = 0;	
+    void closeEvent(QCloseEvent* event) override;
 
 private:
 	QFont setupUIFont() const;
@@ -104,4 +95,5 @@ private:
 	QScopedPointer<QWinTaskbarButton> taskbar_button_;
 	QWinTaskbarProgress* taskbar_progress_;
 #endif
+    XampPlayer *content_widget_;
 };

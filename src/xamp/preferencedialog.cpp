@@ -13,7 +13,7 @@
 #include <widget/appsettings.h>
 #include <widget/localelanguage.h>
 #include <widget/jsonsettings.h>
-
+#include "thememanager.h"
 #include <preferencedialog.h>
 
 void PreferenceDialog::loadSoxrResampler(const QVariantMap& soxr_settings) {
@@ -228,4 +228,6 @@ PreferenceDialog::PreferenceDialog(QWidget *parent)
 
 	initSoxResampler();
 	initLang();
+
+    ThemeManager::instance().setBackgroundColor(this);
 }

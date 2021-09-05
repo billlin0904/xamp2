@@ -29,7 +29,6 @@
 #include <widget/playlistpage.h>
 #include <widget/toast.h>
 #include <widget/image_utiltis.h>
-#include <widget/time_utilts.h>
 #include <widget/database.h>
 #include <widget/pixmapcache.h>
 #include <widget/selectcolorwidget.h>
@@ -37,6 +36,7 @@
 #include <widget/jsonsettings.h>
 #include <widget/ui_utilts.h>
 #include <widget/read_helper.h>
+#include <widget/time_utilts.h>
 
 #include "aboutdialog.h"
 #include "preferencedialog.h"
@@ -112,9 +112,8 @@ QString Xamp::translasteError(Errors error) {
     return Qt::EmptyString;
 }
 
-Xamp::Xamp(QWidget *parent)
-    : FramelessWindow(parent)
-    , is_seeking_(false)
+Xamp::Xamp()
+    : is_seeking_(false)
     , order_(PlayerOrder::PLAYER_ORDER_REPEAT_ONCE)
     , lrc_page_(nullptr)
     , playlist_page_(nullptr)
@@ -131,16 +130,14 @@ Xamp::Xamp(QWidget *parent)
 #else
     , player_(std::make_shared<AudioPlayer>(state_adapter_)) {
 #endif
-    initial();
 }
 
-void Xamp::initial() {
+void Xamp::initial(TopWindow *top_window) {
+    top_window_ = top_window;
     player_->Startup();
-    AppSettings::startMonitorFile(this);
     PodcastCache.SetTempPath(AppSettings::getValueAsString(kAppSettingPodcastCachePath).toStdWString());
     initialUI();
     initialController();
-    initialDeviceList();
     initialPlaylist();
     initialShortcut();
     createTrayIcon();
@@ -150,9 +147,12 @@ void Xamp::initial() {
     const auto enable_blur = AppSettings::getValueAsBool(kAppSettingEnableBlur);
     if (enable_blur) {
         QTimer::singleShot(1000, [this]() {
-            ThemeManager::instance().enableBlur(this, true, useNativeWindow());
+            ThemeManager::instance().enableBlur(top_window_, true, top_window_->useNativeWindow());
+            initialDeviceList();
             });
-    }    
+    } else {
+        initialDeviceList();
+    }
 #ifdef Q_OS_WIN
     discord_notify_.discordInit();
 #endif
@@ -250,7 +250,7 @@ void Xamp::closeEvent(QCloseEvent* event) {
         player_.reset();
     }
 
-    AppSettings::shutdownMonitorFile();
+    qApp->quit();
 }
 
 void Xamp::setDefaultStyle() {
@@ -287,7 +287,7 @@ void Xamp::initialUI() {
     ui_.titleLabel->setFont(f);
     f.setPointSize(8);
     ui_.artistLabel->setFont(f);
-    if (useNativeWindow()) {
+    if (top_window_->useNativeWindow()) {
         ui_.closeButton->hide();
         ui_.maxWinButton->hide();
         ui_.minWinButton->hide();
@@ -347,7 +347,18 @@ void Xamp::initialDeviceList() {
         ui_.selectDeviceButton->setMenu(menu);
     }
 
-    ThemeManager::instance().setBackgroundColor(menu);
+    auto setMenuBackgroundColor = [menu]() {
+        auto color = ThemeManager::instance().getBackgroundColor();
+        color.setAlpha(100);
+        const auto menu_style_sheet = Q_STR(R"(
+        QMenu {
+            background-color: %1;
+        }
+        )").arg(colorToString(color));
+        menu->setStyleSheet(menu_style_sheet);
+    };
+
+    setMenuBackgroundColor();
     menu->clear();
 
     DeviceInfo init_device_info;
@@ -377,10 +388,11 @@ void Xamp::initialDeviceList() {
             device_action->setCheckable(true);
             device_id_action[device_info.device_id] = device_action;
 
-            auto trigger_callback = [device_info, this]() {
+            auto trigger_callback = [device_info, setMenuBackgroundColor, this]() {
                 device_info_ = device_info;
                 AppSettings::setValue(kAppSettingDeviceType, device_info_.device_type_id);
-                AppSettings::setValue(kAppSettingDeviceId, device_info_.device_id);                
+                AppSettings::setValue(kAppSettingDeviceId, device_info_.device_id);
+                setMenuBackgroundColor();
             };
 
             (void)QObject::connect(device_action, &QAction::triggered, trigger_callback);
@@ -453,7 +465,7 @@ void Xamp::initialController() {
         try {
             player_->Seek(static_cast<double>(value / 1000.0));
             ThemeManager::instance().setPlayOrPauseButton(ui_, true);
-            setTaskbarPlayingResume();
+            top_window_->setTaskbarPlayingResume();
         }
         catch (const Exception & e) {
             player_->Stop(false);
@@ -693,7 +705,7 @@ void Xamp::initialController() {
         auto enable = AppSettings::getValueAsBool(kAppSettingEnableBlur);
         enable = !enable;
         enable_blur_material_mode_action->setChecked(enable);
-        ThemeManager::instance().enableBlur(this, enable, useNativeWindow());
+        ThemeManager::instance().enableBlur(ui_.sliderFrame, enable, top_window_->useNativeWindow());
         });
     settings_menu->addAction(enable_blur_material_mode_action);
 
@@ -724,7 +736,7 @@ void Xamp::setButtonState() {
 
 void Xamp::applyTheme(QColor color) {
     if (AppSettings::getValueAsBool(kAppSettingEnableBlur)) {
-        color.setAlpha(90);
+        color.setAlpha(0);
     } else {
         color.setAlpha(100);
     }
@@ -747,7 +759,7 @@ void Xamp::applyTheme(QColor color) {
 
     ThemeManager::instance().setBackgroundColor(ui_, color);
 
-    setStyleSheet(Q_STR(R"(background-color: %1;)").arg(colorToString(color)));
+    setStyleSheet(Q_STR(R"(QWidget#XampWindow { background-color: %1; })").arg(colorToString(color)));
 
     setButtonState();
 }
@@ -875,12 +887,12 @@ void Xamp::setSeekPosValue(double stream_time) {
     const auto stream_time_as_ms = static_cast<int32_t>(stream_time * 1000.0);
     ui_.seekSlider->setValue(stream_time_as_ms);
     ui_.startPosLabel->setText(Time::msToString(stream_time));
-    setTaskbarProgress(static_cast<int32_t>(100.0 * ui_.seekSlider->value() / ui_.seekSlider->maximum()));
+    top_window_->setTaskbarProgress(static_cast<int32_t>(100.0 * ui_.seekSlider->value() / ui_.seekSlider->maximum()));
     lrc_page_->lyricsWidget()->setLrcTime(stream_time_as_ms);
 }
 
 void Xamp::playLocalFile(const PlayListEntity& item) {
-    setTaskbarPlayerPlaying();
+    top_window_->setTaskbarPlayerPlaying();
     play(item);
 }
 
@@ -890,12 +902,12 @@ void Xamp::play() {
     if (player_->GetState() == PlayerState::PLAYER_STATE_RUNNING) {
         ThemeManager::instance().setPlayOrPauseButton(ui_, false);
         player_->Pause();
-        setTaskbarPlayerPaused();
+        top_window_->setTaskbarPlayerPaused();
     }
     else if (player_->GetState() == PlayerState::PLAYER_STATE_PAUSED) {
         ThemeManager::instance().setPlayOrPauseButton(ui_, true);
         player_->Resume();
-        setTaskbarPlayingResume();
+        top_window_->setTaskbarPlayingResume();
     }
     else if (player_->GetState() == PlayerState::PLAYER_STATE_STOPPED) {
         if (!ui_.currentView->count()) {
@@ -1148,7 +1160,7 @@ void Xamp::onPlayerStateChanged(xamp::player::PlayerState play_state) {
         return;
     }
     if (play_state == PlayerState::PLAYER_STATE_STOPPED) {
-        resetTaskbarProgress();
+        top_window_->resetTaskbarProgress();
         ui_.seekSlider->setValue(0);
         ui_.startPosLabel->setText(Time::msToString(0));
         playNextItem(1);

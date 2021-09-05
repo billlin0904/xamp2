@@ -207,10 +207,14 @@ static int excute(int argc, char* argv[]) {
 
     setLogLevel();
 
+    FramelessWindow top_win;
     Xamp win;
-    win.show();
-    win.activateWindow();
-    win.resize(1020, 800);
+    win.initial(&top_win);
+    top_win.initial(&win);
+
+    top_win.show();
+    top_win.activateWindow();
+    top_win.resize(1020, 800);
     return app.exec();
 }
 

@@ -254,14 +254,14 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
     hideColumn(PLAYLIST_FILE_PARENT_PATH);
 
     hideColumn(PLAYLIST_BITRATE);
-    //hideColumn(PLAYLIST_ALBUM);
+    hideColumn(PLAYLIST_ALBUM);
     hideColumn(PLAYLIST_TIMESTAMP);
     hideColumn(PLAYLIST_RATING);
     hideColumn(PLAYLIST_DURATION);
     hideColumn(PLAYLIST_PLAYLIST_MUSIC_ID);
 
-    //hideColumn(PLAYLIST_LUFS);
-    //hideColumn(PLAYLIST_TRUE_PEAK);
+    hideColumn(PLAYLIST_LUFS);
+    hideColumn(PLAYLIST_TRUE_PEAK);
 }
 
 void PlayListTableView::initial() {
@@ -330,7 +330,7 @@ void PlayListTableView::initial() {
         const auto current_index = proxy_model_.mapToSource(index);
         setNowPlaying(current_index);
         const auto play_item = getEntity(current_index);
-        auto is_cda_file = play_item.file_path.contains(L".cda");
+        auto is_cda_file = play_item.file_path.contains(Q_UTF8(".cda"));
         if (!is_cda_file) {
             if (play_item.lufs == 0.0
                 || play_item.lufs == -std::numeric_limits<double>::infinity()) {

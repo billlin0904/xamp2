@@ -3,6 +3,8 @@
 #include <QMacCocoaViewContainer>
 #include <Cocoa/Cocoa.h>
 
+#import <AppKit/NSWindow.h>
+
 namespace osx {
 void hideTitleBar(const QWidget* widget) {
     long winid = widget->winId();
@@ -17,12 +19,22 @@ void hideTitleBar(const QWidget* widget) {
 }
 
 void setBlurMaterial(const QWidget* widget, bool enable, bool use_native_window) {
-    //auto effect_view = [[NSVisualEffectView alloc] init];
-    //effect_view.material = NSVisualEffectMaterialDark;
-    //effect_view.blendingMode = NSVisualEffectBlendingModeBehindWindow;
-    //effect_view.state = NSVisualEffectStateFollowsWindowActiveState;
-    //auto mv = new QMacCocoaViewContainer(effect_view);
-    //widget->layout()->addWidget(mv);
-    //[effect_view release];
+    long winid = widget->winId();
+    NSView* view = reinterpret_cast<NSView *>(winid);
+    NSWindow* wndd = [view window];
+
+
+    NSRect rect = NSMakeRect(0, 0, widget->width(), widget->height());
+
+    auto effect_view = [[NSVisualEffectView alloc] init];
+    effect_view.material = NSVisualEffectMaterialPopover;
+    effect_view.blendingMode = NSVisualEffectBlendingModeBehindWindow;
+    effect_view.state = NSVisualEffectStateActive;
+    [effect_view setAutoresizingMask:NSViewWidthSizable|NSViewHeightSizable];
+    [effect_view setFrame:rect];
+
+    //[effect_view setWantsLayer:YES];
+    auto container = new QMacCocoaViewContainer(nullptr, const_cast<QWidget*>(widget));
+    [[wndd contentView] addSubview:effect_view positioned:NSWindowBelow relativeTo:container->cocoaView()];
 }
 }

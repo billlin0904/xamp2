@@ -122,8 +122,7 @@ public:
         qApp->processEvents();
     }
 
-    void OnWalk(const Path&, Metadata metadata) override {        
-        AppSettings::addMonitorPath(QString::fromStdWString(metadata.parent_path));
+    void OnWalk(const Path&, Metadata metadata) override {
         metadatas_.push_back(std::move(metadata));        
         qApp->processEvents();
     }

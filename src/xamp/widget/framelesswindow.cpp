@@ -26,8 +26,8 @@
 #include <widget/str_utilts.h>
 #include <widget/framelesswindow.h>
 
-FramelessWindow::FramelessWindow(QWidget* parent)
-    : QWidget(parent)
+FramelessWindow::FramelessWindow()
+    : TopWindow()
     , use_native_window_(!AppSettings::getValueAsBool(kAppSettingUseFramelessWindow))
 #if defined(Q_OS_WIN)
     , is_maximized_(false)
@@ -36,15 +36,25 @@ FramelessWindow::FramelessWindow(QWidget* parent)
     , taskbar_progress_(nullptr)
 #endif
 {
+}
+
+void FramelessWindow::initial(XampPlayer *content_widget) {
+    content_widget_ = content_widget;
+    auto default_layout = new QGridLayout();
+    default_layout->addWidget(content_widget_, 0, 0);
+    default_layout->setContentsMargins(0, 0, 0, 0);
+    setLayout(default_layout);
+
     setAcceptDrops(true);
     setMouseTracking(true);
-    installEventFilter(this);    
+    installEventFilter(this);
     auto ui_font = setupUIFont();
     setStyleSheet(Q_UTF8(R"(
         font-family: "UI";
-		background-color: rgba(18, 18, 18, 255);
+        border: none;
+        background-color: transparent;
     )"));
-#if defined(Q_OS_WIN)    
+#if defined(Q_OS_WIN)
     if (!use_native_window_) {
         win32::setWinStyle(this);
         setWindowTitle(Q_UTF8("xamp"));
@@ -53,14 +63,13 @@ FramelessWindow::FramelessWindow(QWidget* parent)
 #else
     ui_font.setPointSize(14);
     if (!use_native_window_) {
-        osx::hideTitleBar(this);
+        osx::hideTitleBar(content_widget_);
         setWindowTitle(Q_UTF8("xamp"));
-	}
+    }
 #endif
     ui_font.setPixelSize(14);
     qApp->setFont(ui_font);
 }
-
 // QScopedPointer require default destructor.
 FramelessWindow::~FramelessWindow() = default;
 
@@ -193,7 +202,7 @@ bool FramelessWindow::eventFilter(QObject * object, QEvent * event) {
     if (event->type() == QEvent::KeyPress) {
         const auto key_event = static_cast<QKeyEvent*>(event);
         if (key_event->key() == Qt::Key_Delete) {
-            deleteKeyPress();
+            content_widget_->deleteKeyPress();
         }
     }
     return QWidget::eventFilter(object, event);
@@ -216,7 +225,7 @@ void FramelessWindow::dropEvent(QDropEvent* event) {
 
     if (mime_data->hasUrls()) {
         for (auto const& url : mime_data->urls()) {
-            addDropFileItem(url);
+            content_widget_->addDropFileItem(url);
         }
         event->acceptProposedAction();
     }
@@ -330,13 +339,17 @@ bool FramelessWindow::nativeEvent(const QByteArray& event_type, void * message, 
 void FramelessWindow::changeEvent(QEvent*) {
 #if defined(Q_OS_MAC)
     if (!use_native_window_) {
-        osx::hideTitleBar(this);
+        osx::hideTitleBar(content_widget_);
 	}
 #endif
 }
 
 void FramelessWindow::paintEvent(QPaintEvent* event) {
     QWidget::paintEvent(event);
+}
+
+void FramelessWindow::closeEvent(QCloseEvent* event) {
+    content_widget_->close();
 }
 
 void FramelessWindow::mousePressEvent(QMouseEvent* event) {
@@ -397,10 +410,4 @@ void FramelessWindow::showEvent(QShowEvent* event) {
     taskbar_button_->setWindow(windowHandle());
 #endif
     event->accept();
-}
-
-void FramelessWindow::addDropFileItem(const QUrl&) {
-}
-
-void FramelessWindow::deleteKeyPress() {
 }
