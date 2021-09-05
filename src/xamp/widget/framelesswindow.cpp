@@ -94,22 +94,22 @@ void FramelessWindow::createThumbnailToolBar() {
     play_tool_button->setIcon(play_icon_);
     (void)QObject::connect(play_tool_button,
         &QWinThumbnailToolButton::clicked,
-        this,
-        &FramelessWindow::play);
+        content_widget_,
+        &XampPlayer::play);
 
     auto* forward_tool_button = new QWinThumbnailToolButton(thumbnail_tool_bar_.get());
     forward_tool_button->setIcon(seek_forward_icon_);
     (void)QObject::connect(forward_tool_button,
         &QWinThumbnailToolButton::clicked,
-        this,
-        &FramelessWindow::playNextClicked);
+        content_widget_,
+        &XampPlayer::playNextClicked);
 
     auto* backward_tool_button = new QWinThumbnailToolButton(thumbnail_tool_bar_.get());
     backward_tool_button->setIcon(seek_backward_icon_);
     (void)QObject::connect(backward_tool_button,
         &QWinThumbnailToolButton::clicked,
-        this,
-        &FramelessWindow::playPreviousClicked);
+        content_widget_,
+        &XampPlayer::playPreviousClicked);
 
     thumbnail_tool_bar_->addButton(backward_tool_button);
     thumbnail_tool_bar_->addButton(play_tool_button);

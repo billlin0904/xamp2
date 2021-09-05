@@ -68,13 +68,13 @@ public slots:
 
 	void onVolumeChanged(float volume);
 private:
-    void stopPlayedClicked();
+    void stopPlayedClicked() override;
 
-    void playNextClicked();
+    void playNextClicked() override;
 
-    void playPreviousClicked();
+    void playPreviousClicked() override;
 
-    void play();
+    void play() override;
 
     void deleteKeyPress() override;
 

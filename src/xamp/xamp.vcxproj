@@ -232,6 +232,7 @@
     <ResourceCompile Include="xamp.rc" />
   </ItemGroup>
   <ItemGroup>
+    <QtMoc Include="xampplayer.h" />
     <QtMoc Include="widget\directorywatcher.h" />
     <QtMoc Include="widget\lyricsshowwidget.h" />
     <QtMoc Include="widget\discordnotify.h" />

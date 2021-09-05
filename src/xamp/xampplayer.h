@@ -34,6 +34,14 @@ public:
     virtual void addDropFileItem(const QUrl& url) = 0;
 
     virtual void deleteKeyPress() = 0;
+
+    virtual void playPreviousClicked() = 0;
+
+    virtual void playNextClicked() = 0;
+
+    virtual void stopPlayedClicked() = 0;
+
+    virtual void play() = 0;
 protected:
     XampPlayer() = default;
 };
