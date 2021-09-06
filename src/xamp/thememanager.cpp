@@ -133,8 +133,12 @@ QColor ThemeManager::getBackgroundColor() const noexcept {
     return background_color_;
 }
 
-void ThemeManager::setBackgroundColor(QWidget* widget) {
-    widget->setStyleSheet(backgroundColorToString(AppSettings::getValueAsString(kAppSettingBackgroundColor)));
+void ThemeManager::setBackgroundColor(QWidget* widget, int32_t alpha) {
+    QColor color = AppSettings::getValueAsString(kAppSettingBackgroundColor);
+    if (alpha > 0) {
+        color.setAlpha(alpha);
+    }
+    widget->setStyleSheet(backgroundColorToString(color));
 }
 
 void ThemeManager::enableBlur(const QWidget* widget, bool enable, bool use_native_window) const {

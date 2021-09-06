@@ -106,7 +106,7 @@ public:
 
     void setBackgroundColor(Ui::XampWindow& ui, QColor color);
 
-    void setBackgroundColor(QWidget* widget);
+    void setBackgroundColor(QWidget* widget, int32_t alpha = -1);
 
 signals:
     void themeChanged(ThemeColor theme_color);    

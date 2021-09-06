@@ -380,7 +380,7 @@ AlbumView::AlbumView(QWidget* parent)
         }
 
         page_->move(QPoint(list_view_rect.x(), 0));
-        ThemeManager::instance().setBackgroundColor(page_);
+        ThemeManager::instance().setBackgroundColor(page_, 100);
     	
         page_->show();
         });

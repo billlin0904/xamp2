@@ -146,8 +146,9 @@ void Xamp::initial(TopWindow *top_window) {
     setDefaultStyle();
     const auto enable_blur = AppSettings::getValueAsBool(kAppSettingEnableBlur);
     if (enable_blur) {
-        QTimer::singleShot(1000, [this]() {
+        QTimer::singleShot(300, [this]() {
             ThemeManager::instance().enableBlur(top_window_, true, top_window_->useNativeWindow());
+            ThemeManager::instance().setBackgroundColor(ui_.settingsButton->menu(), 100);
             initialDeviceList();
             });
     } else {
@@ -657,7 +658,6 @@ void Xamp::initialController() {
 #endif
 
     auto* settings_menu = new QMenu(this);
-    ThemeManager::instance().setBackgroundColor(settings_menu);
 
     auto* settings_action = new QAction(tr("Settings"), this);
     settings_menu->addAction(settings_action);

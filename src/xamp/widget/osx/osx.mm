@@ -30,6 +30,7 @@ void setBlurMaterial(const QWidget* widget, bool enable, bool use_native_window)
     effect_view.material = NSVisualEffectMaterialPopover;
     effect_view.blendingMode = NSVisualEffectBlendingModeBehindWindow;
     effect_view.state = NSVisualEffectStateActive;
+    effect_view.appearance = [NSAppearance appearanceNamed:NSAppearanceNameVibrantDark];
     [effect_view setAutoresizingMask:NSViewWidthSizable|NSViewHeightSizable];
     [effect_view setFrame:rect];
 
