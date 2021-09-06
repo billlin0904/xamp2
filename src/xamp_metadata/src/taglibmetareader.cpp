@@ -130,7 +130,7 @@ static void SetAudioProperties(AudioProperties* audio_properties, Metadata& meta
 }
 
 static void ExtractTitleFromFileName(Metadata &metadata) {
-    const auto start_pos = metadata.file_name_no_ext.find(L'.');
+    auto start_pos = metadata.file_name_no_ext.find(L'.');
     if (start_pos != std::wstring::npos) {
         metadata.title = metadata.file_name_no_ext.substr(start_pos + 1);
         std::wistringstream istr(metadata.file_name_no_ext.substr(0, start_pos));
@@ -139,6 +139,14 @@ static void ExtractTitleFromFileName(Metadata &metadata) {
     else {
         metadata.title = metadata.file_name_no_ext;
     }
+#ifdef XAMP_OS_WIN
+    auto track_id = 0;
+    const auto res = swscanf_s(metadata.file_name_no_ext.c_str(), L"Track%02d",
+        &track_id);
+    if (res == 1) {
+        metadata.track = track_id;
+    }
+#endif
 }
 
 static void ExtractTag(Path const & path, Tag const * tag, AudioProperties*audio_properties, Metadata& metadata) {

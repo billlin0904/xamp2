@@ -1072,7 +1072,7 @@ PlyalistPage* Xamp::currentPlyalistPage() {
 void Xamp::play(const PlayListEntity& item) {    
     playMusic(toMusicEntity(item));
     current_entity_ = item;
-    applyTheme(ThemeManager::instance().getBackgroundColor());
+    update();
 }
 
 void Xamp::playNextItem(int32_t forward) {

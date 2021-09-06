@@ -165,6 +165,10 @@ static int excute(int argc, char* argv[]) {
         XAMP_LOG_DEBUG("Load symbol failure!");
     }
 
+    for (auto i = 0; i < argc; ++i) {
+        XAMP_LOG_DEBUG("argv:{} {}", i, argv[i]);
+    }
+
     QApplication app(argc, argv);
 
     try {
