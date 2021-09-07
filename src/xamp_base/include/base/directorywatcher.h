@@ -5,11 +5,9 @@
 
 #pragma once
 
-#include <QThread>
-#include <QObject>
-
 #include <base/align_ptr.h>
-#include <metadata/metadata.h>
+
+namespace xamp::base {
 
 enum class FileChangeAction {
 	kRename,
@@ -18,39 +16,34 @@ enum class FileChangeAction {
 	kAdd,
 };
 
-using xamp::metadata::Path;
-using xamp::base::AlignPtr;
-
 struct DirectoryChangeEntry {
 	FileChangeAction action;
 	Path old_path;
 	Path new_path;
 };
 
-class DirectoryWatcher : public QThread {
-	Q_OBJECT
+class FileChangedCallback {
 public:
-	DirectoryWatcher();
-
-	virtual ~DirectoryWatcher() override;
-
-	void shutdown();
-
-Q_SIGNALS:
-	void fileChanged(const QString& path);
-
-public slots:
-	void addPath(const QString& file);
-
-	void removePath(const QString& file);
-
+	virtual ~FileChangedCallback() = default;
+	virtual void OnFileChanged(std::wstring const& path) = 0;
 protected:
-	void run() override;
-	
-private:
-#ifdef XAMP_OS_WIN
-	class WatcherWorkerImpl;
-	AlignPtr<WatcherWorkerImpl> impl_;
-#endif
+	FileChangedCallback() = default;
 };
 
+class DirectoryWatcher {
+public:
+	explicit DirectoryWatcher(std::weak_ptr<FileChangedCallback> callback);
+
+	XAMP_PIMPL(DirectoryWatcher)
+
+	void AddPath(std::wstring const& path);
+
+	void RemovePath(std::wstring const& path);
+
+	void Shutdown();
+private:
+	class WatcherWorkerImpl;
+	AlignPtr<WatcherWorkerImpl> impl_;
+};
+
+}

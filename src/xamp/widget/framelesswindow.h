@@ -22,7 +22,7 @@ class QAction;
 class QSystemTrayIcon;
 class QMenu;
 
-class FramelessWindow : public TopWindow {
+class FramelessWindow final : public TopWindow {
 public:
     FramelessWindow();
 
@@ -45,7 +45,6 @@ public:
     [[nodiscard]] bool useNativeWindow() const noexcept override {
 		return use_native_window_;
 	}
-
 protected:
     bool eventFilter(QObject* object, QEvent* event) override;
 
@@ -72,7 +71,6 @@ protected:
 	void paintEvent(QPaintEvent * event) override;
 
     void closeEvent(QCloseEvent* event) override;
-
 private:
 	QFont setupUIFont() const;
 
@@ -82,7 +80,6 @@ private:
 
 	bool use_native_window_;
 #if defined(Q_OS_WIN)
-	bool is_maximized_;
 	int32_t border_width_;
 	QIcon play_icon_;
 	QIcon pause_icon_;

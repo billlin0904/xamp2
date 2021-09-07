@@ -30,7 +30,6 @@ FramelessWindow::FramelessWindow()
     : TopWindow()
     , use_native_window_(!AppSettings::getValueAsBool(kAppSettingUseFramelessWindow))
 #if defined(Q_OS_WIN)
-    , is_maximized_(false)
     , border_width_(5)
     , current_screen_(nullptr)
     , taskbar_progress_(nullptr)
@@ -39,21 +38,17 @@ FramelessWindow::FramelessWindow()
 }
 
 void FramelessWindow::initial(XampPlayer *content_widget) {
+    setObjectName(Q_UTF8("framelessWindow"));
+    setAttribute(Qt::WA_TranslucentBackground);
     content_widget_ = content_widget;
     auto default_layout = new QGridLayout();
     default_layout->addWidget(content_widget_, 0, 0);
     default_layout->setContentsMargins(0, 0, 0, 0);
     setLayout(default_layout);
-
     setAcceptDrops(true);
     setMouseTracking(true);
     installEventFilter(this);
     auto ui_font = setupUIFont();
-    setStyleSheet(Q_UTF8(R"(
-        font-family: "UI";
-        border: none;
-        background-color: transparent;
-    )"));
 #if defined(Q_OS_WIN)
     if (!use_native_window_) {
         win32::setWinStyle(this);
@@ -69,6 +64,13 @@ void FramelessWindow::initial(XampPlayer *content_widget) {
 #endif
     ui_font.setPixelSize(14);
     qApp->setFont(ui_font);
+    setStyleSheet(Q_UTF8(R"(
+	{
+        font-family: "UI";
+        border: none;
+        background-color: transparent;
+	}
+    )"));
 }
 // QScopedPointer require default destructor.
 FramelessWindow::~FramelessWindow() = default;
@@ -125,6 +127,12 @@ QFont FramelessWindow::setupUIFont() const {
     QFont digital_font(Q_UTF8("FormatFont"));
     QFont ui_font(Q_UTF8("UI"));
 
+#ifdef Q_OS_WIN
+    fallback_fonts.push_back(Q_UTF8("Segoe UI"));
+    fallback_fonts.push_back(Q_UTF8("Microsoft YaHei UI"));
+    fallback_fonts.push_back(Q_UTF8("Microsoft JhengHei UI"));
+    fallback_fonts.push_back(Q_UTF8("Meiryo"));
+#else
     const auto app_path = QCoreApplication::applicationDirPath();
     std::vector<QString> default_font_list{
         app_path + Q_UTF8("/Resource/Fonts/SourceHanSans.ttc"),
@@ -144,6 +152,7 @@ QFont FramelessWindow::setupUIFont() const {
         	}
         }
     }
+#endif
 
     QFont::insertSubstitutions(Q_UTF8("UI"), fallback_fonts);    
     QFont::insertSubstitutions(Q_UTF8("FormatFont"), digital_font_families);
@@ -344,10 +353,6 @@ void FramelessWindow::changeEvent(QEvent*) {
 #endif
 }
 
-void FramelessWindow::paintEvent(QPaintEvent* event) {
-    QWidget::paintEvent(event);
-}
-
 void FramelessWindow::closeEvent(QCloseEvent* event) {
     content_widget_->close();
 }
@@ -410,4 +415,14 @@ void FramelessWindow::showEvent(QShowEvent* event) {
     taskbar_button_->setWindow(windowHandle());
 #endif
     event->accept();
+}
+
+void FramelessWindow::paintEvent(QPaintEvent* event) {
+    /*int radius = 10;
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setBrush(QBrush(QColor(255, 255, 255, 255), Qt::SolidPattern));
+    painter.setPen(Qt::NoPen);
+    painter.drawRoundedRect(0, 0, this->width(), this->height(), radius, radius);*/
+    QWidget::paintEvent(event);
 }

@@ -39,6 +39,11 @@ AboutDialog::AboutDialog(QWidget* parent)
     credits_ = QLatin1String(credits_file.readAll());
 
     ThemeManager::instance().setBackgroundColor(this);
+
+    if (this->parent() && this->parent()->isWidgetType()) {
+        move((parentWidget()->width() - width()) / 2,
+            (parentWidget()->height() - height()) / 2);
+    }
 }
 
 void AboutDialog::onCreditsOrLicenceChecked(bool checked) {

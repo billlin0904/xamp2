@@ -105,6 +105,11 @@ static std::unique_ptr<QProgressDialog> makeProgressDialog(QString const& title,
     progress_bar->setFont(QFont(Q_UTF8("FormatFont")));
     dialog->setBar(progress_bar);
 
+    if (dialog->parent() && dialog->parent()->isWidgetType()) {
+        dialog->move((dialog->parentWidget()->width() - dialog->width()) / 2,
+            (dialog->parentWidget()->height() - dialog->height()) / 2);
+    }
+
     return dialog;
 }
 

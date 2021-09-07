@@ -10,6 +10,7 @@
 #include <functional>
 #include <tuple>
 
+#include <base/align_ptr.h>
 #include <base/metadata.h>
 #include <player/player.h>
 
@@ -30,7 +31,7 @@ void Export2WaveFile(std::wstring const& file_path,
 	std::wstring const& output_file_path,
 	std::function<bool(uint32_t)> const& progress,
 	Metadata const &metadata,
-	bool enable_compressor = false);
+	bool enable_compressor = true);
 
 void Export2WaveFile(std::wstring const& file_path,
 	std::wstring const& file_ext,

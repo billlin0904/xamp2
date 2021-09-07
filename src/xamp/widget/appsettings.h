@@ -15,7 +15,6 @@
 #include <widget/str_utilts.h>
 #include <widget/settingnames.h>
 #include <widget/localelanguage.h>
-#include <widget/directorywatcher.h>
 
 struct AppEQSettings {
     float gain{0};
@@ -29,12 +28,12 @@ class AppSettings final {
 public:    
     static void loadIniFile(QString const & file_name);
 
-    template <typename T, typename = std::enable_if_t<std::is_integral<T>::value, T>>
+    template <typename T, typename = std::enable_if_t<std::is_integral_v<T>, T>>
     static void setValue(QString const& key, T value) {
         setValue(key, std::to_string(value));
     }
 
-    template <typename T, typename = std::enable_if_t<std::is_integral<T>::value, T>>
+    template <typename T, typename = std::enable_if_t<std::is_integral_v<T>, T>>
     static void setValue(char const *key, T value) {
         setValue(QLatin1String(key), std::to_string(value));
     }
@@ -102,6 +101,5 @@ private:
 
     static QScopedPointer<QSettings> settings_;
     static QMap<QString, QVariant> default_settings_;
-    static LocaleLanguageManager manager_;
-    static DirectoryWatcher file_watcher_;
+    static LocaleLanguageManager manager_;;
 };

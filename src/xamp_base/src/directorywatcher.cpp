@@ -6,22 +6,22 @@
 #include <base/fastmutex.h>
 #include <base/exception.h>
 #include <base/logger.h>
-#include <widget/directorywatcher.h>
+#include <base/directorywatcher.h>
 
-using namespace xamp::base;
+namespace xamp::base {
 
 #ifdef XAMP_OS_WIN
-static Path getPath(WCHAR const* path, const DWORD size_in_bytes) {
+static Path GetPath(WCHAR const* path, const DWORD size_in_bytes) {
     return { path, path + size_in_bytes / sizeof(WCHAR) };
 }
 
-static HANDLE attachHandle(HANDLE iocp_handle, HANDLE dir_handle) {
+static HANDLE AttachHandle(HANDLE iocp_handle, HANDLE dir_handle) {
     return ::CreateIoCompletionPort(dir_handle, iocp_handle,
         reinterpret_cast<ULONG_PTR>(dir_handle),
         1);
 }
 
-static HANDLE createDirHandle(std::wstring const& path) {
+static HANDLE CreateDirHandle(std::wstring const& path) {
     return ::CreateFileW(path.c_str(),
         FILE_LIST_DIRECTORY,
         FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE,
@@ -35,44 +35,46 @@ static HANDLE createDirHandle(std::wstring const& path) {
 static constexpr std::size_t kChangesBufferSize = 65536;
 static constexpr ULONG_PTR kStopMonitorKey = -1;
 static constexpr DWORD kNotifyFilter = FILE_NOTIFY_CHANGE_FILE_NAME |
-FILE_NOTIFY_CHANGE_LAST_WRITE |
-FILE_NOTIFY_CHANGE_DIR_NAME |
-FILE_NOTIFY_CHANGE_SIZE;
+    FILE_NOTIFY_CHANGE_LAST_WRITE |
+    FILE_NOTIFY_CHANGE_DIR_NAME |
+    FILE_NOTIFY_CHANGE_SIZE;
 
-struct OverlappedEx : OVERLAPPED {    
+struct OverlappedEx : OVERLAPPED {
+    Path full_path;
     WinHandle handle;
     std::array<uint8_t, kChangesBufferSize> buf;
-    Path full_path;
 };
 
 class DirectoryWatcher::WatcherWorkerImpl {
 public:
-    explicit WatcherWorkerImpl(DirectoryWatcher* watcher)
-        : watcher_(watcher) {
-        iocp_handle_.reset(attachHandle(nullptr, INVALID_HANDLE_VALUE));
+    explicit WatcherWorkerImpl(std::weak_ptr<FileChangedCallback> callback)
+        : callback_(callback) {
+        iocp_handle_.reset(AttachHandle(nullptr, INVALID_HANDLE_VALUE));
     }
 
-    void addPath(std::wstring const& path) {
+    void AddPath(std::wstring const& path) {
+        std::lock_guard guard{ lock_ };
         if (watch_file_handles_.find(path) != watch_file_handles_.end()) {
             return;
         }
-        WinHandle dir_handle(createDirHandle(path));
-        auto ov = MakeAlign<OverlappedEx>();        
-    	if (attachHandle(iocp_handle_.get(), dir_handle.get()) != iocp_handle_.get()) {
+        WinHandle dir_handle(CreateDirHandle(path));
+        auto ov = MakeAlign<OverlappedEx>();
+        if (AttachHandle(iocp_handle_.get(), dir_handle.get()) != iocp_handle_.get()) {
             throw PlatformSpecException();
-    	}
+        }
         ov->handle = std::move(dir_handle);
         ov->buf.fill(0);
         ov->full_path = path;
-        readDirAsync(ov.get());
+        ReadDirAsync(ov.get());
         watch_file_handles_[path] = std::move(ov);
     }
 
-    void removePath(std::wstring const& path) {
+    void RemovePath(std::wstring const& path) {
+        std::lock_guard guard{ lock_ };
         watch_file_handles_.erase(path);
     }
 
-	void readDirAsync(OverlappedEx * ov) {
+    void ReadDirAsync(OverlappedEx* ov) {
         auto ret = ::ReadDirectoryChangesW(ov->handle.get(),
             ov->buf.data(),
             kChangesBufferSize,
@@ -88,7 +90,7 @@ public:
         }
     }
 
-    void run() {
+    void Run() {
         DWORD bytes_read = 0;
         ULONG_PTR key = 0;
         OVERLAPPED* ol = nullptr;
@@ -100,8 +102,8 @@ public:
                 &ol,
                 INFINITE);
             if (ret && bytes_read > 0) {
-                requireUpdate(reinterpret_cast<OverlappedEx*>(ol));
-                notifyChanges();
+                RequireUpdate(reinterpret_cast<OverlappedEx*>(ol));
+                NotifyChanges();
             }
             else if (key == kStopMonitorKey) {
                 break;
@@ -111,44 +113,49 @@ public:
         XAMP_LOG_DEBUG("WatcherWorker thread is shutdown!");
     }
 
-    void notifyChanges() {
+    void NotifyChanges() {
+        auto callback = callback_.lock();
+        if (!callback) {
+            return;
+        }
         for (const auto& entry : change_entries_) {
             switch (entry.action) {
             case FileChangeAction::kAdd:
-                watcher_->fileChanged(QString::fromStdWString(entry.new_path.wstring()));
+                callback->OnFileChanged(entry.new_path.wstring());
                 break;
             case FileChangeAction::kRemove:
-                watcher_->fileChanged(QString::fromStdWString(entry.old_path.wstring()));
+                callback->OnFileChanged(entry.old_path.wstring());
                 break;
             case FileChangeAction::kRename:
-                watcher_->fileChanged(QString::fromStdWString(entry.old_path.wstring()));                
+                callback->OnFileChanged(entry.old_path.wstring());
                 break;
             case FileChangeAction::kModify:
-                watcher_->fileChanged(QString::fromStdWString(entry.new_path.wstring()));
+                callback->OnFileChanged(entry.new_path.wstring());
                 break;
-            }        	
+            }
         }
-        readDirAsync(watch_file_handles_.begin()->second.get());
+        std::lock_guard guard{ lock_ };
+        ReadDirAsync(watch_file_handles_.begin()->second.get());
     }
 
-    void shutdown() {
+    void Shutdown() {
         ::PostQueuedCompletionStatus(iocp_handle_.get(),
             0,
             kStopMonitorKey,
             nullptr);
     }
 
-    void requireUpdate(OverlappedEx const* ov) {
+    void RequireUpdate(OverlappedEx const* ov) {
         std::stack<Path> rename_old_names;
         std::stack<Path> rename_new_names;
 
-        const auto* buffer = reinterpret_cast<const uint8_t*>(ov->buf.data());
+        const auto* buffer = ov->buf.data();
         const FILE_NOTIFY_INFORMATION* notifies = nullptr;
         change_entries_.clear();
 
         do {
             notifies = reinterpret_cast<const FILE_NOTIFY_INFORMATION*>(buffer);
-            auto raw_path = getPath(notifies->FileName, notifies->FileNameLength);
+            auto raw_path = GetPath(notifies->FileName, notifies->FileNameLength);
 
             switch (notifies->Action) {
             case FILE_ACTION_ADDED:
@@ -190,48 +197,32 @@ public:
         } while (notifies->NextEntryOffset != 0);
     }
 
+    FastMutex lock_;
     WinHandle iocp_handle_;
     std::vector<DirectoryChangeEntry> change_entries_;
     HashMap<std::wstring, AlignPtr<OverlappedEx>> watch_file_handles_;
-    DirectoryWatcher* watcher_;
+    std::weak_ptr<FileChangedCallback> callback_;
 };
-
-DirectoryWatcher::DirectoryWatcher()
-	: impl_(MakeAlign<WatcherWorkerImpl>(this)) {
-    moveToThread(this);
-}
-
-DirectoryWatcher::~DirectoryWatcher() = default;
-
-void DirectoryWatcher::run() {
-    impl_->run();
-}
-
-void DirectoryWatcher::shutdown() {
-    impl_->shutdown();
-}
-
-void DirectoryWatcher::addPath(const QString& file) {
-    impl_->addPath(file.toStdWString());
-}
-
-void DirectoryWatcher::removePath(const QString& file) {
-}
 #else
-DirectoryWatcher::DirectoryWatcher() {
-}
-
-DirectoryWatcher::~DirectoryWatcher() = default;
-
-void DirectoryWatcher::run() {
-}
-
-void DirectoryWatcher::shutdown() {
-}
-
-void DirectoryWatcher::addPath(const QString& file) {
-}
-
-void DirectoryWatcher::removePath(const QString& file) {
-}
+class DirectoryWatcher::WatcherWorkerImpl {
+	    
+};
 #endif
+
+
+XAMP_PIMPL_IMPL(DirectoryWatcher)
+
+DirectoryWatcher::DirectoryWatcher(std::weak_ptr<FileChangedCallback> callback)
+	: impl_(MakeAlign<WatcherWorkerImpl>(callback)) {
+}
+
+void DirectoryWatcher::AddPath(std::wstring const& path) {	
+}
+
+void DirectoryWatcher::RemovePath(std::wstring const& path) {	
+}
+
+void DirectoryWatcher::Shutdown() {
+}
+
+}

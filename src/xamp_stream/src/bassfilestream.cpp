@@ -92,7 +92,7 @@ public:
         }
     }
 
-    void LoadFromFile(std::wstring const & file_path) {
+    void LoadFromFile(Path const & file_path) {
         DWORD flags = 0;
 
         switch (mode_) {
@@ -116,14 +116,14 @@ FlushFileCache:
         file_cache_.reset();
 
         std::tuple<std::string, Path, bool> cache_info;
-        auto use_filemap = file_path.find(L"https") == std::string::npos
-    	|| file_path.find(L"http") == std::string::npos;
+        auto use_filemap = file_path.wstring().find(L"https") == std::string::npos
+    	|| file_path.wstring().find(L"http") == std::string::npos;
     	if (!use_filemap) {
-            cache_info = GetFileCache(file_path, use_filemap);
+            cache_info = GetFileCache(file_path.wstring(), use_filemap);
     	}
 
         if (!std::get<2>(cache_info)) {
-            LoadFileOrURL(file_path, use_filemap, mode_, flags);	        
+            LoadFileOrURL(file_path.wstring(), use_filemap, mode_, flags);	        
         } else {
             LoadFileOrURL(std::get<1>(cache_info).wstring(), use_filemap, mode_, flags);
         }
@@ -319,7 +319,7 @@ BassFileStream::BassFileStream()
 
 XAMP_PIMPL_IMPL(BassFileStream)
 
-void BassFileStream::OpenFile(std::wstring const & file_path)  {
+void BassFileStream::OpenFile(Path const & file_path)  {
     stream_->LoadFromFile(file_path);
 }
 

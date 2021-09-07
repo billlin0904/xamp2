@@ -8,7 +8,7 @@
 #include <QWidget>
 
 namespace win32 {
-	void setBlurMaterial(const QWidget* widget, bool enable, bool use_native_window);
+	void setBlurMaterial(const QWidget* widget, bool enable);
 	void setWinStyle(QWidget* widget);
 }
 

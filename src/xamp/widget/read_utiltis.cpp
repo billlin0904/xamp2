@@ -17,13 +17,11 @@
 #include <player/loudness_scanner.h>
 #include <player/samplerateconverter.h>
 
-#include <widget/read_helper.h>
+#include <widget/read_utiltis.h>
 
 using namespace xamp::base;
 using namespace xamp::stream;
 using namespace xamp::metadata;
-
-namespace Fs = std::filesystem;
 
 inline constexpr uint64_t kFingerprintDuration = 120;
 inline constexpr uint32_t kReadSampleSize = 8192 * 4;

@@ -197,7 +197,7 @@
     <ClCompile Include="widget\playlisttablequerymodel.cpp" />
     <ClCompile Include="widget\playlisttableview.cpp" />
     <ClCompile Include="widget\readlufsworker.cpp" />
-    <ClCompile Include="widget\read_helper.cpp" />
+    <ClCompile Include="widget\read_utiltis.cpp" />
     <ClCompile Include="widget\scrolllabel.cpp" />
     <ClCompile Include="widget\seekslider.cpp" />
     <ClCompile Include="widget\selectcolorwidget.cpp" />
@@ -208,12 +208,6 @@
     <ClCompile Include="widget\toast.cpp" />
     <ClCompile Include="widget\uiplayerstateadapter.cpp" />
     <ClCompile Include="widget\wheelablewidget.cpp" />
-    <ClCompile Include="widget\win32\directorywatcher.cpp">
-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">input</DynamicSource>
-      <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).moc</QtMocFileName>
-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">input</DynamicSource>
-      <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).moc</QtMocFileName>
-    </ClCompile>
     <ClCompile Include="widget\win32\win32.cpp" />
     <ClCompile Include="widget\xampdialog.cpp" />
     <ClCompile Include="xamp.cpp" />
@@ -233,16 +227,15 @@
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="xampplayer.h" />
-    <QtMoc Include="widget\directorywatcher.h" />
     <QtMoc Include="widget\lyricsshowwidget.h" />
     <QtMoc Include="widget\discordnotify.h" />
-    <QtMoc Include="widget\framelesswindow.h" />
+    <ClInclude Include="widget\framelesswindow.h" />
     <ClInclude Include="widget\playlistsqlquerytablemodel.h" />
     <ClInclude Include="widget\playlisttablequerymodel.h" />
     <QtMoc Include="widget\uiplayerstateadapter.h">
     </QtMoc>
     <QtMoc Include="widget\readlufsworker.h" />
-    <ClInclude Include="widget\read_helper.h" />
+    <ClInclude Include="widget\read_utiltis.h" />
     <ClInclude Include="widget\ui_utilts.h" />
     <ClInclude Include="widget\widget_shared.h" />
     <QtMoc Include="widget\xampdialog.h">

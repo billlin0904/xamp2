@@ -24,7 +24,7 @@ public:
 
 	XAMP_PIMPL(BassFileStream)	
 
-	void OpenFile(std::wstring const & file_path) override;
+	void OpenFile(Path const & file_path) override;
 
 	void Close() noexcept override;
 

@@ -35,7 +35,7 @@
 #include <widget/artistinfopage.h>
 #include <widget/jsonsettings.h>
 #include <widget/ui_utilts.h>
-#include <widget/read_helper.h>
+#include <widget/read_utiltis.h>
 #include <widget/time_utilts.h>
 
 #include "aboutdialog.h"
@@ -62,13 +62,6 @@ static AlignPtr<AudioProcessor> makeCompressor(uint32_t sample_rate) {
     auto processor = MakeAlign<AudioProcessor, Compressor>();
     auto* compressor = dynamic_cast<Compressor*>(processor.get());
     compressor->SetSampleRate(sample_rate);
-    /*CompressorParameters parameters;
-    parameters.gain = AppSettings::getAsInt(kCompressorGain);
-    parameters.threshold = AppSettings::getAsInt(kCompressorThreshold);
-    parameters.ratio = AppSettings::getAsInt(kCompressorRatio);
-    parameters.attack = AppSettings::getAsInt(kCompressorAttack);
-    parameters.release = AppSettings::getAsInt(kCompressorRelease);
-    compressor->Init(parameters);*/
     compressor->Init();
     return processor;
 }
@@ -147,7 +140,7 @@ void Xamp::initial(TopWindow *top_window) {
     const auto enable_blur = AppSettings::getValueAsBool(kAppSettingEnableBlur);
     if (enable_blur) {
         QTimer::singleShot(300, [this]() {
-            ThemeManager::instance().enableBlur(top_window_, true, top_window_->useNativeWindow());
+            ThemeManager::instance().enableBlur(top_window_, true);
             ThemeManager::instance().setBackgroundColor(ui_.settingsButton->menu(), 100);
             initialDeviceList();
             });
@@ -427,15 +420,15 @@ void Xamp::initialDeviceList() {
 
 void Xamp::initialController() {
     (void)QObject::connect(ui_.minWinButton, &QToolButton::pressed, [this]() {
-        showMinimized();
+        top_window_->showMinimized();
     });
 
     (void)QObject::connect(ui_.maxWinButton, &QToolButton::pressed, [this]() {
-        if (isMaximized()) {
-            showNormal();
+        if (top_window_->isMaximized()) {
+            top_window_->showNormal();
         }
         else {
-            showMaximized();
+            top_window_->showMaximized();
         }
     });
 
@@ -705,7 +698,7 @@ void Xamp::initialController() {
         auto enable = AppSettings::getValueAsBool(kAppSettingEnableBlur);
         enable = !enable;
         enable_blur_material_mode_action->setChecked(enable);
-        ThemeManager::instance().enableBlur(ui_.sliderFrame, enable, top_window_->useNativeWindow());
+        ThemeManager::instance().enableBlur(ui_.sliderFrame, enable);
         });
     settings_menu->addAction(enable_blur_material_mode_action);
 
@@ -759,8 +752,9 @@ void Xamp::applyTheme(QColor color) {
 
     ThemeManager::instance().setBackgroundColor(ui_, color);
 
-    setStyleSheet(Q_STR(R"(QWidget#XampWindow { background-color: %1; })").arg(colorToString(color)));
-
+    if (color.alpha() > 0) {
+        setStyleSheet(Q_STR(R"(#XampWindow { background-color: %1; })").arg(colorToString(color)));
+    }
     setButtonState();
 }
 
@@ -965,7 +959,7 @@ void Xamp::playMusic(const MusicEntity& item) {
         player_->Open(item.file_path.toStdWString(), device_info_, std::move(converter));
         player_->SetTargetSampleRate(target_sample_rate);
         player_->PrepareToPlay();
-        const auto enable_dsp = item.true_peak > 1.0;
+        const auto enable_dsp = item.true_peak >= 1.0;
         if (enable_dsp) {
             player_->SetProcessor(makeCompressor(player_->GetInputFormat().GetSampleRate()));
         }
@@ -1044,10 +1038,7 @@ void Xamp::updateUI(const MusicEntity& item, const PlaybackFormat& playback_form
                           + Q_UTF8("/")
                           + file_info.completeBaseName()
                           + Q_UTF8(".lrc");
-    if (!lrc_page_->lyricsWidget()->loadLrcFile(lrc_path)) {
-        //todo:
-		//musixmatcher_.matcherLyrics(item.title, item.artist);
-    }
+    lrc_page_->lyricsWidget()->loadLrcFile(lrc_path);
 	
     lrc_page_->title()->setText(item.title);
     lrc_page_->album()->setText(item.album);
@@ -1546,4 +1537,4 @@ void Xamp::extractFile(const QString& file_path) {
         this,
         &Xamp::processMeatadata);
     MetadataExtractAdapter::readFileMetadata(adapter, file_path);
-};
+}

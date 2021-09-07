@@ -3,6 +3,8 @@
 
 #if defined(Q_OS_WIN)
 
+#include <VersionHelpers.h>
+#include <wingdi.h>
 #include <dwmapi.h>
 #include <base/dll.h>
 
@@ -44,10 +46,12 @@ typedef struct _WINDOWCOMPOSITIONATTRIBDATA
 typedef enum _ACCENT_STATE
 {
 	ACCENT_DISABLED = 0,
-	ACCENT_ENABLE_GRADIENT = 1,
-	ACCENT_ENABLE_TRANSPARENTGRADIENT = 2,
-	ACCENT_ENABLE_BLURBEHIND = 3,
-	ACCENT_INVALID_STATE = 4
+	ACCENT_ENABLE_GRADIENT,
+	ACCENT_ENABLE_TRANSPARENTGRADIENT,
+	ACCENT_ENABLE_BLURBEHIND,
+	ACCENT_ENABLE_ACRYLICBLURBEHIND,
+	ACCENT_ENABLE_HOSTBACKDROP,
+	ACCENT_INVALID_STATE
 } ACCENT_STATE;
 
 typedef enum ACCENT_FLAGS {
@@ -55,7 +59,7 @@ typedef enum ACCENT_FLAGS {
 	DrawTopBorder = 0x40,
 	DrawRightBorder = 0x80,
 	DrawBottomBorder = 0x100,
-	DrawAllBorders = (DrawLeftBorder | DrawTopBorder | DrawRightBorder | DrawBottomBorder)
+	DrawAllBorders = DrawLeftBorder | DrawTopBorder | DrawRightBorder | DrawBottomBorder
 } ACCENT_FLAGS;
 
 typedef struct _ACCENT_POLICY
@@ -109,7 +113,8 @@ public:
 		, DwmIsCompositionEnabled(module_, "DwmIsCompositionEnabled")
 		, DwmSetWindowAttribute(module_, "DwmSetWindowAttribute")
 		, DwmExtendFrameIntoClientArea(module_, "DwmExtendFrameIntoClientArea")
-		, DwmSetPresentParameters(module_, "DwmSetPresentParameters") {
+		, DwmSetPresentParameters(module_, "DwmSetPresentParameters")
+		, DwmGetColorizationColor(module_, "DwmGetColorizationColor") {
 	}
 
 	XAMP_DISABLE_COPY(DwmapiLib)
@@ -122,22 +127,53 @@ public:
 	XAMP_DECLARE_DLL(DwmSetWindowAttribute) DwmSetWindowAttribute;
 	XAMP_DECLARE_DLL(DwmExtendFrameIntoClientArea) DwmExtendFrameIntoClientArea;
 	XAMP_DECLARE_DLL(DwmSetPresentParameters) DwmSetPresentParameters;
+	XAMP_DECLARE_DLL(DwmGetColorizationColor) DwmGetColorizationColor;
 };
 
-void setBlurMaterial(const QWidget* widget, bool enable, bool use_native_window) {
+#define DWMDLL Singleton<DwmapiLib>::GetInstance()
+#define User32DLL Singleton<User32Lib>::GetInstance()	
+
+static uint32_t toABGR(QColor const & color) {
+	return color.alpha() << 24
+		| color.blue() << 16
+		| color.green() << 8
+		| color.red();
+}
+
+static QColor blendColor(const QColor& i_color1, const QColor& i_color2, double i_alpha) {
+	return QColor(
+		qRound(static_cast<qreal>(i_color1.red()) * (1.0 - i_alpha) + static_cast<qreal>(i_color2.red()) * i_alpha),
+		qRound(static_cast<qreal>(i_color1.green()) * (1.0 - i_alpha) + static_cast<qreal>(i_color2.green()) * i_alpha),
+		qRound(static_cast<qreal>(i_color1.blue()) * (1.0 - i_alpha) + static_cast<qreal>(i_color2.blue()) * i_alpha),
+		qRound(static_cast<qreal>(i_color1.alpha()) * (1.0 - i_alpha) + static_cast<qreal>(i_color2.alpha()) * i_alpha)
+	);
+}
+
+void setBlurMaterial(const QWidget* widget, bool enable) {
 	auto hwnd = reinterpret_cast<HWND>(widget->winId());
-	
+	auto is_rs4_or_greater = true;
+
+	ACCENT_STATE flags = (is_rs4_or_greater ? ACCENT_ENABLE_ACRYLICBLURBEHIND : ACCENT_ENABLE_BLURBEHIND);
+
+	DWORD wincolor = 0;
+	BOOL opaque = FALSE;
+	DWMDLL.DwmGetColorizationColor(&wincolor, &opaque);
+	BYTE red = GetRValue(wincolor);
+	BYTE green = GetGValue(wincolor);
+	BYTE blue = GetBValue(wincolor);
+	auto color = QColor::fromRgb(red, green, blue, 50);
+
 	ACCENT_POLICY policy = {
-		enable ? ACCENT_ENABLE_BLURBEHIND : ACCENT_DISABLED,
+		enable ? flags : ACCENT_DISABLED,
 		0,
-		0,
+		toABGR(color),
 		0
 	};
 	WINDOWCOMPOSITIONATTRIBDATA data;
 	data.Attrib = WCA_ACCENT_POLICY;
 	data.pvData = &policy;
-	data.cbData = sizeof(policy);
-	Singleton<User32Lib>::GetInstance().SetWindowCompositionAttribute(hwnd, &data);
+	data.cbData = sizeof policy;
+	User32DLL.SetWindowCompositionAttribute(hwnd, &data);
 }
 
 void setWinStyle(QWidget* widget) {
@@ -145,7 +181,7 @@ void setWinStyle(QWidget* widget) {
 	::SetWindowLongPtr(hwnd, GWL_STYLE, WS_POPUP | WS_THICKFRAME | WS_CAPTION | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX);
 
 	MARGINS borderless = { 1, 1, 1, 1 };
-	Singleton<DwmapiLib>::GetInstance().DwmExtendFrameIntoClientArea(hwnd, &borderless);
+	DWMDLL.DwmExtendFrameIntoClientArea(hwnd, &borderless);
 }
 }
 

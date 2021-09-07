@@ -670,6 +670,10 @@ AudioPlayer::AudioSlice::AudioSlice(int32_t const sample_size, double const stre
 	, stream_time(stream_time) {
 }
 
+bool AudioPlayer::CanProcessFile() const noexcept {
+    return (dsd_mode_ == DsdModes::DSD_MODE_PCM || dsd_mode_ == DsdModes::DSD_MODE_DSD2PCM);
+}
+
 void AudioPlayer::BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<SampleRateConverter>& converter, int32_t buffer_count) {
     InitProcessor();
 	
@@ -697,10 +701,6 @@ void AudioPlayer::BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<SampleRat
             break;
         }
     }
-}
-
-bool AudioPlayer::CanProcessFile() const noexcept {
-    return (dsd_mode_ == DsdModes::DSD_MODE_PCM || dsd_mode_ == DsdModes::DSD_MODE_DSD2PCM);
 }
 
 void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_buffer_sample, std::unique_lock<FastMutex>& lock) {

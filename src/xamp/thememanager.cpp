@@ -141,11 +141,11 @@ void ThemeManager::setBackgroundColor(QWidget* widget, int32_t alpha) {
     widget->setStyleSheet(backgroundColorToString(color));
 }
 
-void ThemeManager::enableBlur(const QWidget* widget, bool enable, bool use_native_window) const {
+void ThemeManager::enableBlur(const QWidget* widget, bool enable) const {
 #if defined(Q_OS_WIN)
-    win32::setBlurMaterial(widget, enable, use_native_window);
+    win32::setBlurMaterial(widget, enable);
 #else
-    osx::setBlurMaterial(widget, enable, use_native_window);
+    osx::setBlurMaterial(widget, enable);
 #endif
     AppSettings::setValue(kAppSettingEnableBlur, enable);
 }
