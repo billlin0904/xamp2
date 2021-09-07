@@ -18,7 +18,7 @@ void hideTitleBar(const QWidget* widget) {
     [[wndd standardWindowButton:NSWindowCloseButton] setHidden:YES];
 }
 
-void setBlurMaterial(const QWidget* widget, bool enable, bool use_native_window) {
+void setBlurMaterial(const QWidget* widget, bool enable) {
     long winid = widget->winId();
     NSView* view = reinterpret_cast<NSView *>(winid);
     NSWindow* wndd = [view window];

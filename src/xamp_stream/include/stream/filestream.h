@@ -19,7 +19,7 @@ public:
 		return true;
 	}
 
-    virtual void OpenFile(Path const & file_path) = 0;
+    virtual void OpenFile(std::wstring const & file_path) = 0;
 
 protected:
     FileStream() = default;

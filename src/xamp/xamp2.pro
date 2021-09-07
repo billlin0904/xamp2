@@ -68,8 +68,7 @@ SOURCES += \
     widget/scrolllabel.cpp \
     widget/xampdialog.cpp \
     widget/image_utiltis.cpp \
-    widget/read_helper.cpp \
-    widget/win32/directorywatcher.cpp \
+    widget/read_utiltis.cpp \
     widget/readlufsworker.cpp \
     DarkStyle.cpp \
     singleinstanceapplication.cpp \
@@ -122,8 +121,7 @@ HEADERS += \
     widget/jsonsettings.h \
     widget/scrolllabel.h \
     widget/xampdialog.h \
-    widget/read_helper.h \
-    widget/directorywatcher.h \
+    widget/read_utiltis.h \
     widget/readlufsworker.h \
     widget/time_utilts.h \
     singleinstanceapplication.h \

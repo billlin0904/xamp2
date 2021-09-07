@@ -22,9 +22,9 @@ class BassFileStream final
 public:
 	BassFileStream();
 
-	XAMP_PIMPL(BassFileStream)	
+	XAMP_PIMPL(BassFileStream)
 
-	void OpenFile(Path const & file_path) override;
+    void OpenFile(std::wstring const & file_path) override;
 
 	void Close() noexcept override;
 

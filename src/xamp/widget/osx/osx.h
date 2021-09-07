@@ -9,5 +9,5 @@
 
 namespace osx {
 void hideTitleBar(const QWidget* widget);
-void setBlurMaterial(const QWidget* widget, bool enable, bool use_native_window);
+void setBlurMaterial(const QWidget* widget, bool enable);
 }
