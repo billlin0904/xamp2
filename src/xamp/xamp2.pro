@@ -73,8 +73,8 @@ SOURCES += \
     DarkStyle.cpp \
     singleinstanceapplication.cpp \
     thememanager.cpp \
-    aboutdialog.cpp \
-    preferencedialog.cpp \
+    aboutpage.cpp \
+    preferencepage.cpp \
     main.cpp \
     xamp.cpp
 
@@ -127,8 +127,8 @@ HEADERS += \
     singleinstanceapplication.h \
     DarkStyle.h \
     thememanager.h \
-    aboutdialog.h \
-    preferencedialog.h \
+    aboutpage.h \
+    preferencepage.h \
     xamp.h \
     xampplayer.h
 

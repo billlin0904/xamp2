@@ -42,6 +42,8 @@ int FutexWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, const struct
 	return 0;
 #elif defined(XAMP_OS_LINUX)
 	::syscall(SYS_futex, &to_wait_on, FUTEX_WAIT_PRIVATE, expected, to, nullptr, 0);
+#else
+    return 0;
 #endif
 }
 
