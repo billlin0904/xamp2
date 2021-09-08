@@ -56,7 +56,7 @@ public:
 		return is_valid();
 	}
 
-	void close() {
+	void close() noexcept(noexcept(Traits::close(value_))) {
 		if (is_valid()) {
 			Traits::close(value_);
 		}

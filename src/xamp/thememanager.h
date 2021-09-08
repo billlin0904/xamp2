@@ -72,6 +72,10 @@ public:
 
     QIcon subtitleIcon() const;
 
+    QIcon preferenceIcon() const;
+
+    QIcon aboutIcon() const;
+
     const StylePixmapManager& pixmap() noexcept;
 
     void setPlayOrPauseButton(Ui::XampWindow &ui, bool is_playing);

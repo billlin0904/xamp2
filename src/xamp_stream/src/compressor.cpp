@@ -7,6 +7,9 @@ namespace xamp::stream {
 
 class Compressor::CompressorImpl {
 public:
+    CompressorImpl() {
+        logger_ = Logger::GetInstance().GetLogger(kCompressorLoggerName);
+    }
     void SetSampleRate(uint32_t sample_rate) {
         stream_.reset(BASS.BASS_StreamCreate(sample_rate,
                                              kMaxChannel,
@@ -31,7 +34,7 @@ public:
         BassIfFailedThrow(compressor_fx);
         BassIfFailedThrow(BASS.BASS_FXSetParameters(compressor_fx, &compressord));
         compressord_ = compressord;
-        XAMP_LOG_DEBUG("Compressor gain:{} threshold:{} ratio:{} attack:{} release:{}",
+        XAMP_LOG_D(logger_, "Compressor gain:{} threshold:{} ratio:{} attack:{} release:{}",
             compressord.fGain,
             compressord.fThreshold,
             compressord.fRatio,
@@ -64,6 +67,7 @@ private:
     BassStreamHandle stream_;
     ::BASS_BFX_COMPRESSOR2 compressord_{0};
     Buffer<float> buffer_;
+    std::shared_ptr<spdlog::logger> logger_;
 };
 
 Compressor::Compressor()

@@ -55,5 +55,7 @@
         <file>Resource/Black/tab_subtitles.png</file>
         <file>Resource/Black/podcast.png</file>
         <file>fonts/digital.ttf</file>
+        <file>Resource/Black/preference.png</file>
+        <file>Resource/Black/help.png</file>
     </qresource>
 </RCC>

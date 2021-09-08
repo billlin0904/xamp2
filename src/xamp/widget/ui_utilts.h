@@ -10,6 +10,7 @@
 #include <widget/widget_shared.h>
 #include <widget/str_utilts.h>
 
+#include <QDesktopWidget>
 #include <QProgressBar>
 #include <QMessageBox>
 #include <QApplication>
@@ -146,4 +147,11 @@ static std::tuple<bool, QMessageBox::StandardButton> showDontShowAgainDialog(QWi
         return { is_show_agin, static_cast<QMessageBox::StandardButton>(msgbox.exec()) };
     }
     return { is_show_agin, QMessageBox::Yes };
+}
+
+static void centerDesktop(QWidget *widget) {
+    auto desktop = QApplication::desktop();
+    auto screen_num = desktop->screenNumber(QCursor::pos());
+    QRect rect = desktop->screenGeometry(screen_num);
+    widget->move(rect.center() - widget->rect().center());
 }

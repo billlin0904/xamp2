@@ -5,6 +5,7 @@
 #include <QScreen>
 #include <QPainter>
 
+#include <widget/ui_utilts.h>
 #include <widget/toast.h>
 
 Toast::Toast(QWidget* parent)
@@ -50,7 +51,7 @@ void Toast::showTip(const QString& text, QWidget* parent) {
 	toast->setWindowFlags(toast->windowFlags() | Qt::WindowStaysOnTopHint);
 	toast->setText(text);
 	toast->adjustSize();
-	toast->move(parent->geometry().center());
+	centerDesktop(toast);
 	toast->showAnimation();
 }
 

@@ -157,10 +157,10 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="aboutdialog.cpp" />
+    <ClCompile Include="aboutpage.cpp" />
     <ClCompile Include="DarkStyle.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="preferencedialog.cpp" />
+    <ClCompile Include="preferencepage.cpp" />
     <ClCompile Include="singleinstanceapplication.cpp" />
     <ClCompile Include="thememanager.cpp" />
     <ClCompile Include="widget\albumartistpage.cpp" />
@@ -242,11 +242,11 @@
     </QtMoc>
     <QtMoc Include="singleinstanceapplication.h">
     </QtMoc>
-    <QtMoc Include="aboutdialog.h">
+    <QtMoc Include="aboutpage.h">
     </QtMoc>
     <QtMoc Include="DarkStyle.h">
     </QtMoc>
-    <ClInclude Include="preferencedialog.h" />
+    <ClInclude Include="preferencepage.h" />
     <ClInclude Include="resource.h" />
     <QtMoc Include="thememanager.h">
     </QtMoc>

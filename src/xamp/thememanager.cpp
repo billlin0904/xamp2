@@ -96,6 +96,14 @@ QIcon ThemeManager::subtitleIcon() const {
     return QIcon(Q_STR(":/xamp/Resource/%1/tab_subtitles.png").arg(themeColorPath()));
 }
 
+QIcon ThemeManager::preferenceIcon() const  {
+    return QIcon(Q_STR(":/xamp/Resource/%1/preference.png").arg(themeColorPath()));
+}
+
+QIcon ThemeManager::aboutIcon() const {
+    return QIcon(Q_STR(":/xamp/Resource/%1/help.png").arg(themeColorPath()));
+}
+
 void ThemeManager::setPlayOrPauseButton(Ui::XampWindow& ui, bool is_playing) {
     if (is_playing) {
         ui.playButton->setStyleSheet(Q_STR(R"(

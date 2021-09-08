@@ -10,13 +10,14 @@
 #include <stream/podcastcache.h>
 
 #include <widget/str_utilts.h>
+#include <widget/ui_utilts.h>
 #include <widget/appsettings.h>
 #include <widget/localelanguage.h>
 #include <widget/jsonsettings.h>
 #include "thememanager.h"
-#include <preferencedialog.h>
+#include <preferencepage.h>
 
-void PreferenceDialog::loadSoxrResampler(const QVariantMap& soxr_settings) {
+void PreferencePage::loadSoxrResampler(const QVariantMap& soxr_settings) {
 	ui_.soxrTargetSampleRateComboBox->setCurrentText(QString::number(soxr_settings[kSoxrResampleSampleRate].toInt()));
 	ui_.soxrResampleQualityComboBox->setCurrentIndex(soxr_settings[kSoxrQuality].toInt());
 	ui_.soxrPassbandSlider->setValue(soxr_settings[kSoxrPassBand].toInt());
@@ -32,7 +33,7 @@ void PreferenceDialog::loadSoxrResampler(const QVariantMap& soxr_settings) {
 	}
 }
 
-QMap<QString, QVariant> PreferenceDialog::getSoxrSettings() const {
+QMap<QString, QVariant> PreferencePage::getSoxrSettings() const {
 	const auto soxr_sample_rate = ui_.soxrTargetSampleRateComboBox->currentText().toInt();
 	const auto soxr_quility = ui_.soxrResampleQualityComboBox->currentIndex();
 	const auto soxr_pass_band = ui_.soxrPassbandSlider->value();
@@ -57,11 +58,11 @@ QMap<QString, QVariant> PreferenceDialog::getSoxrSettings() const {
 	return settings;
 }
 
-void PreferenceDialog::saveSoxrResampler(const QString &name) {
+void PreferencePage::saveSoxrResampler(const QString &name) {
     JsonSettings::setValue(name, getSoxrSettings());
 }
 
-void PreferenceDialog::initSoxResampler() {
+void PreferencePage::initSoxResampler() {
     for (const auto &soxr_setting_name : JsonSettings::keys()) {
 		ui_.soxrSettingCombo->addItem(soxr_setting_name);
 	}
@@ -116,7 +117,7 @@ void PreferenceDialog::initSoxResampler() {
 		});
 }
 
-void PreferenceDialog::initLang() {
+void PreferencePage::initLang() {
 	LocaleLanguage current_lang(AppSettings::getValueAsString(kAppSettingLang));
 
 	auto current_index = 0;
@@ -139,15 +140,15 @@ void PreferenceDialog::initLang() {
 		});
 }
 
-PreferenceDialog::PreferenceDialog(QWidget *parent)
-    : QDialog(parent)
+PreferencePage::PreferencePage(QWidget *parent)
+    : QFrame(parent)
     , soxr_passband_(0)
     , soxr_phase_(0) {
     ui_.setupUi(this);
-    setWindowTitle(tr("Preferences"));
-    setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
+	setStyleSheet(Q_UTF8("background-color: transparent"));
+
     ui_.preferenceTreeWidget->header()->hide();
-    setFixedSize(QSize(750, 640));
+	ui_.preferenceTreeWidget->setStyleSheet(Q_UTF8("background-color: transparent"));
 
     auto* playback_item = new QTreeWidgetItem(QStringList() << tr("Playback"));
     playback_item->setChildIndicatorPolicy(QTreeWidgetItem::ShowIndicator);
@@ -228,6 +229,4 @@ PreferenceDialog::PreferenceDialog(QWidget *parent)
 
 	initSoxResampler();
 	initLang();
-
-    ThemeManager::instance().setBackgroundColor(this);
 }

@@ -29,6 +29,8 @@
 
 class LrcPage;
 class PlyalistPage;
+class AboutPage;
+class PreferencePage;
 class AlbumView;
 class ArtistView;
 class AlbumArtistPage;
@@ -173,6 +175,8 @@ private:
 	PlyalistPage* current_playlist_page_;
 	AlbumArtistPage* album_artist_page_;
     ArtistInfoPage* artist_info_page_;
+	PreferencePage* preference_page_;
+	AboutPage* about_page_;
     QMenu* tray_icon_menu_;
     QSystemTrayIcon* tray_icon_;
 	QStack<int32_t> stack_page_id_;	    	

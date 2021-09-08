@@ -1,7 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>AboutDialog</class>
- <widget class="QDialog" name="AboutDialog">
+ <widget class="QFrame" name="AboutDialog">
+  <property name="modal" stdset="0">
+   <bool>false</bool>
+  </property>
+  <property name="windowModality">
+   <enum>Qt::NonModal</enum>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -10,25 +16,10 @@
     <height>350</height>
    </rect>
   </property>
-  <property name="minimumSize">
-   <size>
-    <width>450</width>
-    <height>350</height>
-   </size>
-  </property>
-  <property name="maximumSize">
-   <size>
-    <width>450</width>
-    <height>350</height>
-   </size>
-  </property>
   <property name="windowTitle">
    <string>About</string>
   </property>
-  <property name="sizeGripEnabled">
-   <bool>false</bool>
-  </property>
-  <property name="modal">
+  <property name="sizeGripEnabled" stdset="0">
    <bool>false</bool>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -218,41 +209,12 @@
        </property>
       </spacer>
      </item>
-     <item>
-      <widget class="QPushButton" name="btnClose">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>Close</string>
-       </property>
-      </widget>
-     </item>
     </layout>
    </item>
   </layout>
  </widget>
  <resources/>
  <connections>
-  <connection>
-   <sender>btnClose</sender>
-   <signal>clicked()</signal>
-   <receiver>AboutDialog</receiver>
-   <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>438</x>
-     <y>338</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>249</x>
-     <y>224</y>
-    </hint>
-   </hints>
-  </connection>
   <connection>
    <sender>btnCredits</sender>
    <signal>clicked(bool)</signal>

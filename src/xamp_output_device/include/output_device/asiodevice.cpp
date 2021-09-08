@@ -242,7 +242,7 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 		AsioIfFailedThrow(::ASIOCreateBuffers(ASIODriver.buffer_infos.data(),
 			output_format.GetChannels(),
 			prefer_size,
-			&Singleton<AsioDriver>::GetInstance().asio_callbacks));
+			&ASIODriver.asio_callbacks));
 		buffer_size_ = prefer_size;
 	}
 	else {

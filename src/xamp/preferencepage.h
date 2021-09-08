@@ -9,10 +9,11 @@
 #include <QMap>
 
 #include "ui_preferencedialog.h"
+#include <widget/xampdialog.h>
 
-class PreferenceDialog final : public QDialog {
+class PreferencePage final : public QFrame {
 public:
-    explicit PreferenceDialog(QWidget *parent = nullptr);
+    explicit PreferencePage(QWidget *parent = nullptr);
 
 private:
     void loadSoxrResampler(const QVariantMap & soxr_settings);

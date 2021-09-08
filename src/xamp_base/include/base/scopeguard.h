@@ -29,19 +29,23 @@ private:
 template <typename T, bool ExceptedSuccess, bool ExceptedFailure>
 class XAMP_BASE_API_ONLY_EXPORT ScopeGuard final {
 public:
-    ScopeGuard(T&& f)
+    ScopeGuard(T&& f) noexcept(
+        std::is_nothrow_move_constructible_v<T> ||
+        std::is_nothrow_copy_constructible_v<T>)
         : f_(std::forward<T>(f)) {
     }
 
-    ScopeGuard(ScopeGuard&& other)
-        : f_(std::move(other.f_)) {
+    ScopeGuard(ScopeGuard&& other)noexcept(
+        std::is_nothrow_move_constructible_v<T> ||
+        std::is_nothrow_copy_constructible_v<T>)
+        : f_(std::move_if_noexcept(other.f_)) {
     }
 
     ScopeGuard() = delete;
 
     XAMP_DISABLE_COPY(ScopeGuard)
 
-    ~ScopeGuard() {
+    ~ScopeGuard() noexcept {
         if ((ExceptedSuccess && !detector_) || (ExceptedFailure && detector_)) {
             f_();
         }

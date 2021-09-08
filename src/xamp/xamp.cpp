@@ -38,8 +38,8 @@
 #include <widget/read_utiltis.h>
 #include <widget/time_utilts.h>
 
-#include "aboutdialog.h"
-#include "preferencedialog.h"
+#include "aboutpage.h"
+#include "preferencepage.h"
 #include "thememanager.h"
 #include "xamp.h"
 
@@ -183,18 +183,10 @@ void Xamp::createTrayIcon() {
     auto* quit_action = new QAction(tr("&Quit"), this);
     QObject::connect(quit_action, &QAction::triggered, this, &QWidget::close);
 
-    auto* about_action = new QAction(tr("&About"), this);
-    (void)QObject::connect(about_action, &QAction::triggered, [=]() {
-        AboutDialog aboutdlg;
-        aboutdlg.setFont(font());
-        aboutdlg.exec();       
-        });
-
     tray_icon_menu_ = new QMenu(this);
     tray_icon_menu_->addAction(minimize_action);
     tray_icon_menu_->addAction(maximize_action);
     tray_icon_menu_->addAction(restore_action);
-    tray_icon_menu_->addAction(about_action);
     tray_icon_menu_->addSeparator();
     tray_icon_menu_->addAction(quit_action);
 
@@ -628,6 +620,12 @@ void Xamp::initialController() {
         case 4:
             ui_.currentView->setCurrentWidget(lrc_page_);
             break;
+        case 5:
+            ui_.currentView->setCurrentWidget(preference_page_);
+            break;
+        case 6:
+            ui_.currentView->setCurrentWidget(about_page_);
+            break;
     	}        
     });
 
@@ -652,14 +650,6 @@ void Xamp::initialController() {
 
     auto* settings_menu = new QMenu(this);
 
-    auto* settings_action = new QAction(tr("Settings"), this);
-    settings_menu->addAction(settings_action);
-    (void)QObject::connect(settings_action, &QAction::triggered, [=]() {
-        PreferenceDialog dialog;
-        dialog.setFont(font());
-        dialog.exec();
-        setButtonState();
-    });
 	// Theme color
     auto* select_color_widget = new SelectColorWidget();
     auto* theme_color_menu = new QMenu(tr("Theme color"));
@@ -703,13 +693,6 @@ void Xamp::initialController() {
     settings_menu->addAction(enable_blur_material_mode_action);
 
     settings_menu->addSeparator();
-    auto* about_action = new QAction(tr("About"), this);
-    settings_menu->addAction(about_action);
-    (void)QObject::connect(about_action, &QAction::triggered, [=]() {
-        AboutDialog aboutdlg;
-        aboutdlg.setFont(font());
-        aboutdlg.exec();       
-    });
     ui_.settingsButton->setMenu(settings_menu);
 
     ui_.seekSlider->setEnabled(false);
@@ -1177,6 +1160,8 @@ void Xamp::initialPlaylist() {
     ui_.sliderBar->addTab(tr("Albums"), 0, ThemeManager::instance().albumsIcon());
 	ui_.sliderBar->addTab(tr("Artists"), 1, ThemeManager::instance().artistsIcon());
     ui_.sliderBar->addTab(tr("Lyrics"), 4, ThemeManager::instance().subtitleIcon());
+    ui_.sliderBar->addTab(tr("Settings"), 5, ThemeManager::instance().preferenceIcon());
+    ui_.sliderBar->addTab(tr("About"), 6, ThemeManager::instance().aboutIcon());
 	
     Singleton<Database>::GetInstance().forEachTable([this](auto table_id,
                                              auto /*table_index*/,
@@ -1233,12 +1218,18 @@ void Xamp::initialPlaylist() {
         &AlbumArtistPage::onThemeChanged);
 
     artist_info_page_ = new ArtistInfoPage(this);
+    preference_page_ = new PreferencePage(this);
+    about_page_ = new AboutPage(this);
     
     pushWidget(lrc_page_);    
     pushWidget(playlist_page_);
     pushWidget(album_artist_page_);
     pushWidget(artist_info_page_);
     pushWidget(podcast_page_);
+    pushWidget(preference_page_);
+    pushWidget(about_page_);
+    goBackPage();
+    goBackPage();
     goBackPage();
     goBackPage();
     goBackPage();

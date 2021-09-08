@@ -2,12 +2,13 @@
 
 #include <widget/str_utilts.h>
 #include "thememanager.h"
-#include "aboutdialog.h"
+#include "aboutpage.h"
 
-AboutDialog::AboutDialog(QWidget* parent) 
-    : XampDialog(parent) {
+AboutPage::AboutPage(QWidget* parent)
+    : QFrame(parent) {
     ui.setupUi(this);
-    setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
+    setStyleSheet(Q_UTF8("background-color: transparent"));
+
     ui.lblVersion->setText(Q_UTF8("0.0.0"));
 
     ui.lblLogo->setPixmap(ThemeManager::instance().appIcon().pixmap(128, 128));
@@ -37,16 +38,9 @@ AboutDialog::AboutDialog(QWidget* parent)
     QFile credits_file(Q_UTF8("credits.txt"));
     credits_file.open(QIODevice::ReadOnly);
     credits_ = QLatin1String(credits_file.readAll());
-
-    ThemeManager::instance().setBackgroundColor(this);
-
-    if (this->parent() && this->parent()->isWidgetType()) {
-        move((parentWidget()->width() - width()) / 2,
-            (parentWidget()->height() - height()) / 2);
-    }
 }
 
-void AboutDialog::onCreditsOrLicenceChecked(bool checked) {
+void AboutPage::onCreditsOrLicenceChecked(bool checked) {
     if (sender()->objectName() == Q_UTF8("btnLicense")) {
         ui.txtBws->setText(lincense_);
         ui.btnCredits->setChecked(false);

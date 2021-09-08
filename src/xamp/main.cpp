@@ -132,6 +132,7 @@ static void setLogLevel(spdlog::level::level_enum level = spdlog::level::info) {
     Logger::GetInstance().GetLogger(kAudioPlayerLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kVirtualMemoryLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kResamplerLoggerName)->set_level(level);
+    Logger::GetInstance().GetLogger(kCompressorLoggerName)->set_level(level);
 }
 
 static int excute(int argc, char* argv[]) {

@@ -17,3 +17,10 @@ void XampDialog::centerWidgets(QWidget* widget) {
     QRect rect = desktop->screenGeometry(screen_num);
     widget->move(rect.center() - widget->rect().center());
 }
+
+void XampDialog::centerParent() {
+    if (this->parent() && this->parent()->isWidgetType()) {
+        move((parentWidget()->width() - width()) / 2,
+            (parentWidget()->height() - height()) / 2);
+    }
+}

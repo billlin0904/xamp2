@@ -12,6 +12,7 @@ class XampDialog : public QDialog {
 public:
     explicit XampDialog(QWidget* parent = nullptr);
 
+    void centerParent();
 private:
     void centerWidgets(QWidget* widget);
 };

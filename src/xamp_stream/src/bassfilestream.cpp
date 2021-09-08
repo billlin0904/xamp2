@@ -25,6 +25,16 @@ static uint32_t GetDOPSampleRate(uint32_t dsd_speed) {
     }
 }
 
+static bool IsFilePath(std::wstring const& file_path) noexcept {
+    auto lowcase_file_path = String::ToLower(file_path);
+    return lowcase_file_path.find(L"https") == std::string::npos
+        || lowcase_file_path.find(L"http") == std::string::npos;
+}
+
+static bool IsCDAFile(Path const &path) {
+    return path.extension() == ".cda";
+}
+
 class BassFileStream::BassFileStreamImpl {
 public:
     BassFileStreamImpl() noexcept
@@ -33,11 +43,12 @@ public:
         Close();
     }
 
-    void LoadFileOrURL(std::wstring const& file_path, bool use_filemap, DsdModes mode, DWORD flags) {
-        if (use_filemap) {
-            auto is_cda_file = file_path.find(L".cda") != std::string::npos;
+    void LoadFileOrURL(std::wstring const& file_path, bool is_file_path, DsdModes mode, DWORD flags) {
+        if (is_file_path) {
+	        const auto is_cda_file = IsCDAFile(file_path);
 
             if (is_cda_file) {
+                // Only for windows.
                 stream_.reset(BASS.BASS_StreamCreateFile(FALSE,
                     file_path.c_str(),
                     0,
@@ -111,32 +122,39 @@ public:
             XAMP_NO_DEFAULT;
         }
 
+        int32_t retry_count = 0;
 FlushFileCache:
         file_.Close();
         file_cache_.reset();
 
-        std::tuple<std::string, Path, bool> cache_info;
-        auto use_filemap = file_path.find(L"https") == std::string::npos
-        || file_path.find(L"http") == std::string::npos;
-    	if (!use_filemap) {
-            cache_info = GetFileCache(file_path, use_filemap);
+        std::tuple<
+        std::string,// Catch ID
+    	Path,       // Cache File Path
+    	bool        // Is download completed?
+    	> cache_info;
+        auto is_file_path = IsFilePath(file_path);
+    	if (!is_file_path) {
+            cache_info = GetFileCache(file_path, is_file_path);
     	}
 
         if (!std::get<2>(cache_info)) {
-            LoadFileOrURL(file_path, use_filemap, mode_, flags);
+            LoadFileOrURL(file_path, is_file_path, mode_, flags);
         } else {
-            LoadFileOrURL(std::get<1>(cache_info).wstring(), use_filemap, mode_, flags);
+            LoadFileOrURL(std::get<1>(cache_info).wstring(), is_file_path, mode_, flags);
         }
 
         info_ = BASS_CHANNELINFO{};
         BassIfFailedThrow(BASS.BASS_ChannelGetInfo(stream_.get(), &info_));
 
-        if (use_filemap) {
-            auto file_duration = GetDuration();
+        if (is_file_path) {
+	        const auto file_duration = GetDuration();
             if (file_duration < 1.0) {
                 PodcastCache.Remove(std::get<0>(cache_info));
                 file_cache_.reset();
-                goto FlushFileCache;
+                ++retry_count;
+                if (retry_count < 3) {
+                    goto FlushFileCache;
+                }
             }
         }
 

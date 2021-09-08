@@ -8,10 +8,10 @@
 #include <widget/xampdialog.h>
 #include <ui_aboutdialog.h>
 
-class AboutDialog final : public XampDialog {
+class AboutPage final : public QFrame {
     Q_OBJECT
 public:
-    explicit AboutDialog(QWidget* parent = nullptr);
+    explicit AboutPage(QWidget* parent = nullptr);
 
 private slots:
     void onCreditsOrLicenceChecked(bool checked);
