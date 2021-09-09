@@ -75,11 +75,11 @@ void DicordNotify::updateDiscordPresence() {
 #endif
 	Discord_RunCallbacks();
 
-	XAMP_LOG_DEBUG("Ran Discord presence update: {}, {}, {}, {}",
+	/*XAMP_LOG_DEBUG("Ran Discord presence update: {}, {}, {}, {}",
 		discord_presence_.state,
 		discord_presence_.details,
 		discord_presence_.largeImageKey,
-		discord_presence_.smallImageKey);
+		discord_presence_.smallImageKey);*/
 }
 
 void DicordNotify::callback_discord_joingame(const char* joinSecret) {

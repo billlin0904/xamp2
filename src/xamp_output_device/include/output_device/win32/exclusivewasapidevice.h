@@ -82,6 +82,7 @@ private:
 	DWORD volume_support_mask_;
 	std::atomic<int64_t> stream_time_;
 	WinHandle sample_ready_;
+	WinHandle thread_start_;
 	WinHandle thread_exit_;
 	WinHandle close_request_;
 	std::wstring mmcss_name_;

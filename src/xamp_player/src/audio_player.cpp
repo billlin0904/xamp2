@@ -117,7 +117,10 @@ void AudioPlayer::LoadDecoder() {
     }
     catch (...) {
     	// Ignore exception.
-    }    
+    }
+
+    ThreadPool::WASAPIThreadPool().SetAffinityMask(0);
+    ThreadPool::StreamReaderThreadPool();
 }
 
 void AudioPlayer::Open(Path const& file_path, const Uuid& device_id) {
@@ -757,7 +760,7 @@ void AudioPlayer::Play() {
         return;
     }
 
-    stream_task_ = ThreadPool::GetInstance().Spawn([player = shared_from_this()]() noexcept {
+    stream_task_ = ThreadPool::StreamReaderThreadPool().Spawn([player = shared_from_this()]() noexcept {
         auto* p = player.get();
 
         std::unique_lock lock{ p->pause_mutex_ };

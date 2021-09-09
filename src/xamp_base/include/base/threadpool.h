@@ -141,14 +141,14 @@ public:
 
     void Stop();
 
-    static ThreadPool& GetInstance();
+    static ThreadPool& StreamReaderThreadPool();
 
     static ThreadPool& WASAPIThreadPool();
 
     void SetAffinityMask(int32_t core);
 
 private:
-	ThreadPool();	
+	explicit ThreadPool(uint32_t max_thread = std::thread::hardware_concurrency());
     TaskScheduler scheduler_;
 };
 

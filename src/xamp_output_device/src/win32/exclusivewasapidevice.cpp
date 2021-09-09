@@ -215,6 +215,11 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 		HrIfFailledThrow(client_->SetEventHandle(sample_ready_.get()));
 	}
 
+	if (!thread_start_) {
+		thread_start_.reset(::CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS));
+		assert(thread_start_);
+	}
+
 	if (!thread_exit_) {
 		thread_exit_.reset(::CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS));
 		assert(thread_exit_);
@@ -305,7 +310,10 @@ bool ExclusiveWasapiDevice::IsStreamRunning() const noexcept {
 }
 
 void ExclusiveWasapiDevice::CloseStream() {
+	XAMP_LOG_D(log_, "CloseStream is_running_: {}", is_running_);
+
 	sample_ready_.close();
+	thread_start_.close();
 	thread_exit_.close();
 	close_request_.close();
 	render_task_ = std::shared_future<void>();
@@ -317,8 +325,8 @@ void ExclusiveWasapiDevice::AbortStream() noexcept {
 }
 
 void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
+	XAMP_LOG_D(log_, "StopStream is_running_: {}", is_running_);
 	if (!is_running_) {
-		XAMP_LOG_D(log_, "StopStream is_running_: {}", is_running_);
 		return;
 	}
 
@@ -330,10 +338,15 @@ void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
 	if (render_task_.valid()) {
 		render_task_.get();
 	}
+
+	MSleep(std::chrono::milliseconds(100));
+
 	is_running_ = false;
 }
 
 void ExclusiveWasapiDevice::StartStream() {
+	XAMP_LOG_D(log_, "StartStream!");
+
 	Mmcss::LoadAvrtLib();
 
 	if (!client_) {
@@ -342,9 +355,11 @@ void ExclusiveWasapiDevice::StartStream() {
 
 	// Note: 必要! 某些音效卡會爆音!
 	GetSample(true);
-	
+
 	render_task_ = ThreadPool::WASAPIThreadPool().Spawn([this](){
-		XAMP_LOG_D(log_, "Start exclusive mode stream!");
+		XAMP_LOG_D(log_, "Start exclusive mode stream task!");
+
+		::SetEvent(thread_start_.get());
 
 		Mmcss mmcss;
 		mmcss.BoostPriority(mmcss_name_);
@@ -354,8 +369,12 @@ void ExclusiveWasapiDevice::StartStream() {
 		const HANDLE objects[2]{ sample_ready_.get(), close_request_.get() };
 		auto thread_exit = false;
 		while (!thread_exit) {
-			auto result = ::WaitForMultipleObjects(2, objects, FALSE, INFINITE);
+			auto result = ::WaitForMultipleObjects(2, objects, FALSE, 10 * 1000);
 			switch (result) {
+			case WAIT_TIMEOUT:
+				XAMP_LOG_D(log_, "Wait event timeout!");
+				thread_exit = true;
+				break;
 			case WAIT_OBJECT_0 + 0:
 				GetSample(false);
 				break;
@@ -368,8 +387,11 @@ void ExclusiveWasapiDevice::StartStream() {
 		LogHrFailled(client_->Stop());
 		::SetEvent(thread_exit_.get());	
 		mmcss.RevertPriority();
+
+		XAMP_LOG_D(log_, "End exclusive mode stream task!");
 		});
 
+	::WaitForSingleObject(thread_start_.get(), 60 * 1000);
 	HrIfFailledThrow(client_->Start());
 }
 

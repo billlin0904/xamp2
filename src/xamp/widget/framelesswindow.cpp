@@ -128,6 +128,8 @@ QFont FramelessWindow::setupUIFont() const {
     QFont ui_font(Q_UTF8("UI"));
 
 #ifdef Q_OS_WIN
+    // note: If we are support Source HanSans font sets must be enable Direct2D function,
+    // But Qt framework not work fine with that!
     fallback_fonts.push_back(Q_UTF8("Segoe UI"));
     fallback_fonts.push_back(Q_UTF8("Microsoft YaHei UI"));
     fallback_fonts.push_back(Q_UTF8("Microsoft JhengHei UI"));
