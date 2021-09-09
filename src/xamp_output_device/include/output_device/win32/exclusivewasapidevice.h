@@ -5,7 +5,9 @@
 
 #pragma once
 
-#include <mutex>
+#ifdef XAMP_OS_WIN
+
+#include <future>
 #include <atomic>
 
 #include <base/logger.h>
@@ -13,9 +15,6 @@
 #include <base/dataconverter.h>
 #include <base/buffer.h>
 
-#ifdef XAMP_OS_WIN
-
-#include <base/fastmutex.h>
 #include <output_device/audiocallback.h>
 #include <output_device/device.h>
 
@@ -75,27 +74,18 @@ private:
 	void ReportError(HRESULT hr) noexcept;
 
 	HRESULT GetSample(bool is_silence) noexcept;
-
-	HRESULT OnSampleReady(IMFAsyncResult* result);
-
-	HRESULT OnStartPlayback(IMFAsyncResult* result);
-
-	HRESULT OnPausePlayback(IMFAsyncResult* result);
-
-	HRESULT OnStopPlayback(IMFAsyncResult* result);
-
+	
 	bool raw_mode_;
 	std::atomic<bool> is_running_;
-	std::atomic<bool> is_stop_require_;
 	MmcssThreadPriority thread_priority_;
 	uint32_t buffer_frames_;
 	DWORD volume_support_mask_;
-	DWORD queue_id_;	
 	std::atomic<int64_t> stream_time_;
 	WinHandle sample_ready_;
+	WinHandle thread_exit_;
+	WinHandle close_request_;
 	std::wstring mmcss_name_;
 	AudioConvertContext data_convert_;
-	MFWORKITEM_KEY sample_ready_key_;
 	REFERENCE_TIME aligned_period_;
 	CComPtr<IMMDevice> device_;
 	CComPtr<IAudioClient2> client_;
@@ -103,18 +93,10 @@ private:
 	CComPtr<IAudioEndpointVolume> endpoint_volume_;
 	CComPtr<IAudioClock> clock_;
 	CComHeapPtr<WAVEFORMATEX> mix_format_;
-	mutable FastMutex render_mutex_;
 	Buffer<float> buffer_;
 	AudioCallback* callback_;	
 	std::shared_ptr<spdlog::logger> log_;
-	CComPtr<MFAsyncCallback<ExclusiveWasapiDevice>> sample_ready_callback_;
-	CComPtr<IMFAsyncResult> sample_ready_async_result_;
-	CComPtr<MFAsyncCallback<ExclusiveWasapiDevice>> start_playback_callback_;
-	CComPtr<IMFAsyncResult> start_playback_async_result_;
-	CComPtr<MFAsyncCallback<ExclusiveWasapiDevice>> pause_playback_callback_;
-	CComPtr<IMFAsyncResult> pause_playback_async_result_;
-	CComPtr<MFAsyncCallback<ExclusiveWasapiDevice>> stop_playback_callback_;
-	CComPtr<IMFAsyncResult> stop_playback_async_result_;
+	std::shared_future<void> render_task_;
 };
 
 }

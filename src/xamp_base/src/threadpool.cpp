@@ -207,7 +207,13 @@ void ThreadPool::SetAffinityMask(int32_t core) {
 }
 
 ThreadPool& ThreadPool::GetInstance() {
-	return Singleton<ThreadPool>::GetInstance();
+	static ThreadPool threadpool;
+	return threadpool;
+}
+
+ThreadPool& ThreadPool::WASAPIThreadPool() {
+	static ThreadPool wasapi_threadpool;
+	return wasapi_threadpool;
 }
 
 }

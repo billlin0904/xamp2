@@ -143,6 +143,8 @@ public:
 
     static ThreadPool& GetInstance();
 
+    static ThreadPool& WASAPIThreadPool();
+
     void SetAffinityMask(int32_t core);
 
 private:
