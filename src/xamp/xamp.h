@@ -156,8 +156,6 @@ private:
 
 	void setButtonState();
 
-    void onFileChanged(const QString& file_path);
-
 	void extractFile(const QString &file_path);
 
 	PlyalistPage* currentPlyalistPage();

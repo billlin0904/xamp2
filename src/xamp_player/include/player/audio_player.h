@@ -9,7 +9,6 @@
 #include <mutex>
 #include <future>
 #include <optional>
-#include <filesystem>
 
 #include <base/base.h>
 #include <base/audiobuffer.h>
@@ -62,9 +61,7 @@ public:
 
     void Open(Path const& file_path, const Uuid& device_id = Uuid::kInvalidUUID);
 
-    void Open(Path const& file_path, const DeviceInfo& device_info, AlignPtr<SampleRateConverter> converter = nullptr);
-
-    void SetTargetSampleRate(uint32_t target_sample_rate = 0);
+    void Open(Path const& file_path, const DeviceInfo& device_info, uint32_t target_sample_rate = 0, AlignPtr<SampleRateConverter> converter = nullptr);
 
     void PrepareToPlay();
 

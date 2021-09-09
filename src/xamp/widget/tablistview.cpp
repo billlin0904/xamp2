@@ -6,6 +6,7 @@ TabListView::TabListView(QWidget *parent)
     , model_(this) {
     setModel(&model_);
     setFrameStyle(QFrame::NoFrame);    
+    setEditTriggers(QAbstractItemView::NoEditTriggers);
 
     (void)QObject::connect(this, &QListView::clicked, [this](auto index) {
         auto table_id = index.data(Qt::UserRole + 1).toInt();

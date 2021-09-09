@@ -136,18 +136,14 @@ void AudioPlayer::Open(Path const& file_path, const Uuid& device_id) {
     }
 }
 
-void AudioPlayer::Open(Path const& file_path, const DeviceInfo& device_info, AlignPtr<SampleRateConverter> converter) {
+void AudioPlayer::Open(Path const& file_path, const DeviceInfo& device_info, uint32_t target_sample_rate, AlignPtr<SampleRateConverter> converter) {
     Startup();
     CloseDevice(true);
     enable_sample_converter_ = converter != nullptr;
     converter_  = std::move(converter);
-    target_sample_rate_ = 0;
+    target_sample_rate_ = target_sample_rate;
     OpenStream(file_path, device_info);
     device_info_ = device_info;
-}
-
-void AudioPlayer::SetTargetSampleRate(uint32_t target_sample_rate) {
-    target_sample_rate_ = target_sample_rate;
 }
 
 void AudioPlayer::SetProcessor(AlignPtr<AudioProcessor>&& processor) {

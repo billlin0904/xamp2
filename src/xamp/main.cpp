@@ -20,6 +20,7 @@
 #include <widget/pixmapcache.h>
 #include <widget/str_utilts.h>
 #include <widget/jsonsettings.h>
+#include <widget/ui_utilts.h>
 
 #include <QMessageBox>
 
@@ -207,7 +208,7 @@ static int excute(int argc, char* argv[]) {
 
     loadSettings();    
     
-    app.setStyle(new DarkStyle());   
+    app.setStyle(new DarkStyle());
 
     setLogLevel();
 
@@ -218,7 +219,8 @@ static int excute(int argc, char* argv[]) {
 
     top_win.show();
     top_win.activateWindow();
-    top_win.resize(1020, 800);
+    top_win.resize(1210, 860);
+    centerDesktop(&top_win);
     return app.exec();
 }
 

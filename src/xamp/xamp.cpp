@@ -604,6 +604,7 @@ void Xamp::initialController() {
     (void)QObject::connect(ui_.sliderBar, &TabListView::clickedTable, [this](auto table_id) {
     	switch (table_id) {
         case 0:
+            album_artist_page_->refreshOnece();
             ui_.currentView->setCurrentWidget(album_artist_page_);
             break;
         case 1:
@@ -651,7 +652,7 @@ void Xamp::initialController() {
     auto* settings_menu = new QMenu(this);
 
 	// Theme color
-    auto* select_color_widget = new SelectColorWidget();
+    /*auto* select_color_widget = new SelectColorWidget();
     auto* theme_color_menu = new QMenu(tr("Theme color"));
     auto* widget_action = new QWidgetAction(theme_color_menu);
     widget_action->setDefaultWidget(select_color_widget);
@@ -659,7 +660,7 @@ void Xamp::initialController() {
         applyTheme(color);
     });
     theme_color_menu->addAction(widget_action);
-    settings_menu->addMenu(theme_color_menu);
+    settings_menu->addMenu(theme_color_menu);*/
     // Hide left list
     auto* hide_left_list_action = new QAction(tr("Show left list"), this);
     hide_left_list_action->setCheckable(true);
@@ -939,11 +940,9 @@ void Xamp::playMusic(const MusicEntity& item) {
             target_sample_rate = soxr_settings[kSoxrResampleSampleRate].toUInt();
             converter = makeSampleRateConverter(soxr_settings);            
         }
-        player_->Open(item.file_path.toStdWString(), device_info_, std::move(converter));
-        player_->SetTargetSampleRate(target_sample_rate);
+        player_->Open(item.file_path.toStdWString(), device_info_, target_sample_rate, std::move(converter));
         player_->PrepareToPlay();
-        const auto enable_dsp = item.true_peak >= 1.0;
-        if (enable_dsp) {
+        if (item.true_peak >= 1.0) {
             player_->SetProcessor(makeCompressor(player_->GetInputFormat().GetSampleRate()));
         }
         playback_format = getPlaybackFormat(player_.get());
@@ -984,7 +983,6 @@ void Xamp::updateUI(const MusicEntity& item, const PlaybackFormat& playback_form
         else {
             ui_.volumeSlider->setDisabled(true);
         }
-        //ui_.volumeSlider->setEnabled(true);
 
         ui_.seekSlider->setRange(0, static_cast<int32_t>(player_->GetDuration() * 1000));
         ui_.endPosLabel->setText(Time::msToString(player_->GetDuration()));
@@ -1117,12 +1115,12 @@ void Xamp::setCover(const QPixmap* cover, PlyalistPage* page) {
 
     const auto ui_cover = Pixmap::roundImage(
         Pixmap::resizeImage(*cover, ui_.coverLabel->size(), false),
-           Pixmap::kSmallImageRadius);
+           Pixmap::kPlaylistImageRadius);
     ui_.coverLabel->setPixmap(ui_cover);
 
     const auto playlist_cover = Pixmap::roundImage(
         Pixmap::resizeImage(*cover, page->cover()->size(), false),
-        Pixmap::kSmallImageRadius);
+        Pixmap::kPlaylistImageRadius);
     page->cover()->setPixmap(playlist_cover);
     if (lrc_page_ != nullptr) {
         lrc_page_->setCover(Pixmap::resizeImage(*cover, lrc_page_->cover()->size(), true));
@@ -1497,28 +1495,6 @@ PlyalistPage* Xamp::newPlaylist(int32_t playlist_id) {
 
 void Xamp::addDropFileItem(const QUrl& url) {
     addItem(url.toLocalFile());
-}
-
-void Xamp::onFileChanged(const QString& file_path) {    
-	if (!QFile::exists(file_path)) {
-        XAMP_LOG_DEBUG("File is removed: {}", file_path.toStdString());
-        Singleton<Database>::GetInstance().removeMusic(file_path);
-	}
-
-    QMessageBox msgbox;
-    msgbox.setWindowTitle(Q_UTF8("XAMP"));
-    msgbox.setText(tr("File has been modified outside of source editor. Do you want to reload it?"));
-    msgbox.setIcon(QMessageBox::Icon::Question);
-    msgbox.addButton(QMessageBox::Ok);
-    msgbox.addButton(QMessageBox::Cancel);
-    msgbox.setDefaultButton(QMessageBox::Cancel);
-
-    const auto reply = static_cast<QMessageBox::StandardButton>(msgbox.exec());
-    if (reply != QMessageBox::Ok) {
-        return;
-    }
-	
-    extractFile(AppSettings::getMyMusicFolderPath());
 }
 
 void Xamp::extractFile(const QString& file_path) {

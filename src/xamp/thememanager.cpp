@@ -23,17 +23,17 @@ ThemeManager::ThemeManager() {
     const auto screen_size = qApp->primaryScreen()->size();
 
     if ((screen_size.width() <= 1920 || screen_size.width() <= 2560) && screen_size.height() <= 1080) {
-        cover_size_ = QSize(110, 110);
+        cover_size_ = QSize(243, 243);
     }
     else {
-        cover_size_ = QSize(150, 150);
+        cover_size_ = QSize(243, 243);
     }
 
     table_text_color_ = QColor(Qt::black);
-    background_color_ = QColor(228, 233, 237, 150);
+    background_color_ = QColor(228, 233, 237);
     control_background_color_ = background_color_;
     album_cover_size_ = QSize(250, 250);
-    menu_color_ = QColor(228, 233, 237, 150);
+    menu_color_ = QColor(228, 233, 237);
     menu_text_color_ = QColor(Qt::black);
     setThemeColor(ThemeColor::DARK_THEME);
 }
