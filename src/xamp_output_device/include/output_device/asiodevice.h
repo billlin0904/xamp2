@@ -78,7 +78,9 @@ public:
 
 	void AbortStream() noexcept override;
 
-	static void RemoveDriver();
+	void ReOpen();
+
+	static void ResetDriver();
 
 private:
 	static ASIOTime* OnBufferSwitchTimeInfoCallback(ASIOTime* timeInfo, long index, ASIOBool processNow) noexcept;
@@ -88,8 +90,6 @@ private:
 	static void OnSampleRateChangedCallback(ASIOSampleRate sampleRate);
 
 	static long OnAsioMessagesCallback(long selector, long value, void* message, double* opt);
-
-	void ReOpen();
 
 	void SetOutputSampleRate(AudioFormat const & output_format);
 

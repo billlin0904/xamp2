@@ -183,9 +183,9 @@ bool AudioDeviceManager::IsASIODevice(Uuid const& id) noexcept {
 #endif
 }
 
-void AudioDeviceManager::RemoveASIODriver() {
+void AudioDeviceManager::ResetASIODriver() {
 #if defined(ENABLE_ASIO) && defined(XAMP_OS_WIN)
-    AsioDevice::RemoveDriver();
+    AsioDevice::ResetDriver();
 #endif
 }
 

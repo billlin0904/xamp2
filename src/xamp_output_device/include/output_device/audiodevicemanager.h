@@ -57,7 +57,7 @@ public:
 
     static bool IsASIODevice(Uuid const& id) noexcept;
 
-    static void RemoveASIODriver();
+    static void ResetASIODriver();
 
     static void PreventSleep(bool allow);
 private:

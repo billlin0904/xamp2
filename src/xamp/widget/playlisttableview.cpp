@@ -243,23 +243,18 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
     hideColumn(PLAYLIST_MUSIC_ID);
     hideColumn(PLAYLIST_FILEPATH);
     hideColumn(PLAYLIST_FILE_NAME);
-    hideColumn(PLAYLIST_SAMPLE_RATE);
-
     hideColumn(PLAYLIST_ALBUM_ID);
     hideColumn(PLAYLIST_ARTIST_ID);
     hideColumn(PLAYLIST_COVER_ID);
     hideColumn(PLAYLIST_FINGER_PRINT);
-
     hideColumn(PLAYLIST_FILE_EXT);
     hideColumn(PLAYLIST_FILE_PARENT_PATH);
-
     hideColumn(PLAYLIST_BITRATE);
     hideColumn(PLAYLIST_ALBUM);
     hideColumn(PLAYLIST_TIMESTAMP);
     hideColumn(PLAYLIST_RATING);
     hideColumn(PLAYLIST_DURATION);
     hideColumn(PLAYLIST_PLAYLIST_MUSIC_ID);
-
     hideColumn(PLAYLIST_LUFS);
     hideColumn(PLAYLIST_TRUE_PEAK);
 }

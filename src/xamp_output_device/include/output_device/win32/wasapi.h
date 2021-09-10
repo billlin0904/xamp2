@@ -32,7 +32,6 @@
 #include <Mferror.h>
 
 #include <output_device/deviceinfo.h>
-#include <output_device/win32/mfasynccallback.h>
 #include <output_device/win32/mmcss_types.h>
 
 struct IMMDevice;
@@ -77,13 +76,6 @@ XAMP_ALWAYS_INLINE constexpr UINT32 ReferenceTimeToFrames(REFERENCE_TIME period,
 
 XAMP_ALWAYS_INLINE constexpr REFERENCE_TIME MakeHnsPeriod(UINT32 frames, UINT32 samplerate) noexcept {
 	return static_cast<REFERENCE_TIME>(10000.0 * 1000.0 / double(samplerate) * double(frames) + 0.5);
-}
-
-template <typename T>
-CComPtr<MFAsyncCallback<T>> MakeAsyncCallback(T* ptr, typename MFAsyncCallback<T>::Callback callback, DWORD queue_id) {
-	return CComPtr<MFAsyncCallback<T>>(new MFAsyncCallback<T>(ptr,
-		callback,
-		queue_id));
 }
 
 }

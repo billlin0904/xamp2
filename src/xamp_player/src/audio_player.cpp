@@ -90,7 +90,7 @@ void AudioPlayer::Destroy() {
     converter_.reset();
     read_buffer_.reset();
 #ifdef ENABLE_ASIO
-    AudioDeviceManager::RemoveASIODriver();
+    AudioDeviceManager::ResetASIODriver();
 #endif
     FreeBassLib();
 }
@@ -102,9 +102,6 @@ void AudioPlayer::UpdateSlice(int32_t sample_size, double stream_time) noexcept 
 }
 
 void AudioPlayer::LoadDecoder() {
-    AudioDeviceManager::PreventSleep(true);
-    XAMP_LOG_DEBUG("AudioDeviceManager init success.");
-
     LoadBassLib();
     XAMP_LOG_DEBUG("Load BASS dll success.");
 
@@ -119,7 +116,12 @@ void AudioPlayer::LoadDecoder() {
     	// Ignore exception.
     }
 
+    AudioDeviceManager::PreventSleep(true);
+    XAMP_LOG_DEBUG("AudioDeviceManager init success.");
+
+#ifdef XAMP_OS_WIN
     ThreadPool::WASAPIThreadPool().SetAffinityMask(0);
+#endif
     ThreadPool::StreamReaderThreadPool();
 }
 
@@ -176,7 +178,7 @@ void AudioPlayer::CreateDevice(Uuid const & device_type_id, std::string const & 
         || device_type_id_ != device_type_id
         || open_always) {
         if (device_type_id_ != device_type_id) {
-            AudioDeviceManager::RemoveASIODriver();
+            AudioDeviceManager::ResetASIODriver();
             device_.reset();
         }
     	
@@ -302,7 +304,7 @@ void AudioPlayer::Stop(bool signal_to_stop, bool shutdown_device, bool wait_for_
         XAMP_LOG_D(logger_, "Shutdown device.");
         if (AudioDeviceManager::IsASIODevice(device_type_id_)) {
             device_.reset();
-            AudioDeviceManager::RemoveASIODriver();            
+            AudioDeviceManager::ResetASIODriver();            
         }
         device_id_.clear();
         device_.reset();
@@ -535,7 +537,7 @@ void AudioPlayer::OnDeviceStateChange(DeviceState state, std::string const & dev
             if (device_id == device_id_) {
                 // TODO: In many system has more ASIO device.
                 if (AudioDeviceManager::IsASIODevice(device_type_->GetTypeId())) {
-                    AudioDeviceManager::RemoveASIODriver();
+                    AudioDeviceManager::ResetASIODriver();
                 }
                 
                 state_adapter->OnDeviceChanged(DeviceState::DEVICE_STATE_REMOVED);

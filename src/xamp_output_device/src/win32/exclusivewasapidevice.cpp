@@ -1,7 +1,7 @@
 #include <base/base.h>
 
 #ifdef XAMP_OS_WIN
-
+#include <base/scopeguard.h>
 #include <base/threadpool.h>
 #include <base/logger.h>
 #include <base/str_utilts.h>
@@ -371,20 +371,24 @@ void ExclusiveWasapiDevice::StartStream() {
 		while (!thread_exit) {
 			auto result = ::WaitForMultipleObjects(2, objects, FALSE, 10 * 1000);
 			switch (result) {
-			case WAIT_TIMEOUT:
-				XAMP_LOG_D(log_, "Wait event timeout!");
-				thread_exit = true;
-				break;
 			case WAIT_OBJECT_0 + 0:
 				GetSample(false);
 				break;
 			case WAIT_OBJECT_0 + 1:
 				thread_exit = true;
 				break;
+			case WAIT_TIMEOUT:
+				XAMP_LOG_D(log_, "Wait event timeout!");
+				thread_exit = true;
+				break;
+			default:
+				XAMP_LOG_D(log_, "Other error({})!", result);
+				thread_exit = true;
+				break;
 			}
 		}
 
-		LogHrFailled(client_->Stop());
+		client_->Stop();
 		::SetEvent(thread_exit_.get());	
 		mmcss.RevertPriority();
 

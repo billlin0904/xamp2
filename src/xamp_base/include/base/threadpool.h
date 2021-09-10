@@ -65,7 +65,7 @@ private:
             : f_(std::forward<Func>(f)) {
         }
 
-#if 0
+#if defined(XAMP_ENABLE_THREAD_POOL_DEBUG) && defined(_DEBUG)
         virtual ~ImplType() noexcept override {
             XAMP_LOG_DEBUG("ImplType was deleted.");
         }
@@ -128,7 +128,9 @@ private:
 
 class XAMP_BASE_API ThreadPool final {
 public:
-    friend class Singleton<ThreadPool>;
+    static ThreadPool& StreamReaderThreadPool();
+
+    static ThreadPool& WASAPIThreadPool();
 	
     static constexpr uint32_t kMaxThread = 32;
     
@@ -140,10 +142,6 @@ public:
     size_t GetActiveThreadCount() const noexcept;
 
     void Stop();
-
-    static ThreadPool& StreamReaderThreadPool();
-
-    static ThreadPool& WASAPIThreadPool();
 
     void SetAffinityMask(int32_t core);
 

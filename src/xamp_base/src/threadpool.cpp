@@ -5,7 +5,9 @@
 
 namespace xamp::base {
 
-inline auto kPopWaitTimeout = std::chrono::milliseconds(5);
+inline constexpr auto kPopWaitTimeout = std::chrono::milliseconds(5);
+inline constexpr auto kMaxStreamReaderThreadPoolSize{ 4 };
+inline constexpr auto kMaxWASAPIThreadPoolSize{ 4 };
 
 TaskScheduler::TaskScheduler(size_t max_thread, int32_t core)
 	: is_stopped_(false)
@@ -207,12 +209,12 @@ void ThreadPool::SetAffinityMask(int32_t core) {
 }
 
 ThreadPool& ThreadPool::StreamReaderThreadPool() {
-	static ThreadPool threadpool(4);
+	static ThreadPool threadpool(kMaxStreamReaderThreadPoolSize);
 	return threadpool;
 }
 
 ThreadPool& ThreadPool::WASAPIThreadPool() {
-	static ThreadPool wasapi_threadpool(4);
+	static ThreadPool wasapi_threadpool(kMaxWASAPIThreadPoolSize);
 	return wasapi_threadpool;
 }
 

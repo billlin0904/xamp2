@@ -8,18 +8,36 @@
 
 namespace xamp::base {
 
-void FutexWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected) {
+static XAMP_ALWAYS_INLINE void _FutexWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected) {
 #ifdef XAMP_OS_WIN
-	::WaitOnAddress(&to_wait_on, &expected, sizeof(expected), INFINITE);
+		::WaitOnAddress(&to_wait_on, &expected, sizeof(expected), INFINITE);
 #elif defined(XAMP_OS_LINUX)
-	::syscall(SYS_futex, &to_wait_on, FUTEX_WAIT_PRIVATE, expected, nullptr, nullptr, 0);
+		::syscall(SYS_futex, &to_wait_on, FUTEX_WAIT_PRIVATE, expected, nullptr, nullptr, 0);
 #endif
 }
 
-int FutexWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, const struct timespec* to) {
+template <typename T>
+XAMP_ALWAYS_INLINE void _FutexWakeSingle(std::atomic<T>& to_wake) {
+#ifdef XAMP_OS_WIN
+	::WakeByAddressSingle(&to_wake);
+#elif defined(XAMP_OS_LINUX)
+	::syscall(SYS_futex, &to_wake, FUTEX_WAKE_PRIVATE, 1, nullptr, nullptr, 0);
+#endif
+}
+
+template <typename T>
+XAMP_ALWAYS_INLINE void _FutexWakeAll(std::atomic<T>& to_wake) {
+#ifdef XAMP_OS_WIN
+	::WakeByAddressAll(&to_wake);
+#elif defined(XAMP_OS_LINUX)
+	::syscall(SYS_futex, &to_wake, FUTEX_WAKE_PRIVATE, std::numeric_limits<int>::max(), nullptr, nullptr, 0);
+#endif
+}
+
+int _FutexWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, const struct timespec* to) {
 #ifdef XAMP_OS_WIN
 	if (to == nullptr) {
-		FutexWait(to_wait_on, expected);
+		_FutexWait(to_wait_on, expected);
 		return 0;
 	}
 
@@ -47,24 +65,6 @@ int FutexWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, const struct
 #endif
 }
 
-template <typename T>
-XAMP_ALWAYS_INLINE void FutexWakeSingle(std::atomic<T>& to_wake) {
-#ifdef XAMP_OS_WIN
-	::WakeByAddressSingle(&to_wake);
-#elif defined(XAMP_OS_LINUX)
-	::syscall(SYS_futex, &to_wake, FUTEX_WAKE_PRIVATE, 1, nullptr, nullptr, 0);
-#endif
-}
-
-template <typename T>
-XAMP_ALWAYS_INLINE void FutexWakeAll(std::atomic<T>& to_wake) {
-#ifdef XAMP_OS_WIN
-	::WakeByAddressAll(&to_wake);
-#elif defined(XAMP_OS_LINUX)
-	::syscall(SYS_futex, &to_wake, FUTEX_WAKE_PRIVATE, std::numeric_limits<int>::max(), nullptr, nullptr, 0);
-#endif
-}
-
 #ifdef XAMP_OS_WIN
 
 void SpinLock::lock() noexcept {
@@ -89,31 +89,31 @@ void FutexMutex::lock() noexcept {
 	}
 
 	while (state_.exchange(kSleeper, std::memory_order_acquire) != kUnlocked) {
-		FutexWait(state_, kSleeper);
+		_FutexWait(state_, kSleeper);
 	}
 }
 
 void FutexMutex::unlock() noexcept {
 	if (state_.exchange(kUnlocked, std::memory_order_release) == kSleeper) {
-		FutexWakeSingle(state_);
+		_FutexWakeSingle(state_);
 	}
 }
 
 void FutexMutexConditionVariable::wait(std::unique_lock<FastMutex>& lock) {
 	auto old_state = state_.load(std::memory_order_relaxed);
 	lock.unlock();
-	FutexWait(state_, old_state);
+	_FutexWait(state_, old_state);
 	lock.lock();
 }
 
 void FutexMutexConditionVariable::notify_one() noexcept {
 	state_.fetch_add(kLocked, std::memory_order_relaxed);
-	FutexWakeSingle(state_);
+	_FutexWakeSingle(state_);
 }
 
 void FutexMutexConditionVariable::notify_all() noexcept {
 	state_.fetch_add(kLocked, std::memory_order_relaxed);
-	FutexWakeSingle(state_);
+	_FutexWakeSingle(state_);
 }
 
 void SRWMutex::lock() noexcept {
@@ -126,25 +126,6 @@ void SRWMutex::unlock() noexcept {
 
 [[nodiscard]] bool SRWMutex::try_lock() noexcept {
 	return ::TryAcquireSRWLockExclusive(&lock_);
-}
-
-CriticalSection::CriticalSection() {
-	if (!::InitializeCriticalSectionEx(&cs_, 1, CRITICAL_SECTION_NO_DEBUG_INFO)) {
-		throw PlatformSpecException();
-	}
-	::SetCriticalSectionSpinCount(&cs_, 0);
-}
-
-CriticalSection::~CriticalSection() noexcept {
-	::DeleteCriticalSection(&cs_);
-}
-
-void CriticalSection::lock() noexcept {
-	::EnterCriticalSection(&cs_);
-}
-
-void CriticalSection::unlock() noexcept {
-	::LeaveCriticalSection(&cs_);
 }
 #endif
 }

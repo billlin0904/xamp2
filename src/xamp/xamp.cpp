@@ -738,6 +738,7 @@ void Xamp::applyTheme(QColor color) {
 
     if (color.alpha() > 0) {
         setStyleSheet(Q_STR(R"(#XampWindow { background-color: %1; })").arg(colorToString(color)));
+        emit themeChanged(color, color);
     }
     setButtonState();
 }
@@ -950,7 +951,7 @@ void Xamp::playMusic(const MusicEntity& item) {
         open_done = true;
     }
     catch (const Exception & e) {
-        XAMP_LOG_DEBUG("Exception: {} {}", e.GetErrorMessage(), e.GetStackTrace());
+        XAMP_LOG_DEBUG("Exception: {} {} {}", e.GetErrorMessage(), e.GetExpression(), e.GetStackTrace());
         Toast::showTip(translasteError(e.GetError()), this);
     }
     catch (const std::exception & e) {

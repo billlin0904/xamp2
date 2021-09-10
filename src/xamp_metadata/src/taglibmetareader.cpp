@@ -134,7 +134,7 @@ static void ExtractTitleFromFileName(Metadata &metadata) {
     if (start_pos != std::wstring::npos) {
         metadata.title = metadata.file_name_no_ext.substr(start_pos + 1);
         std::wistringstream istr(metadata.file_name_no_ext.substr(0, start_pos));
-        istr >> metadata.title >> metadata.track;
+        istr >> metadata.track >> metadata.title;
     }
     else {
         metadata.title = metadata.file_name_no_ext;

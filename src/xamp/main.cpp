@@ -137,9 +137,6 @@ static void setLogLevel(spdlog::level::level_enum level = spdlog::level::info) {
 }
 
 static int excute(int argc, char* argv[]) {
-    ::qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
-
-    QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
     
     Logger::GetInstance()
@@ -207,10 +204,9 @@ static int excute(int argc, char* argv[]) {
     XAMP_LOG_DEBUG("Database init success.");
 
     loadSettings();    
-    
-    app.setStyle(new DarkStyle());
-
     setLogLevel();
+
+    app.setStyle(new DarkStyle());
 
     FramelessWindow top_win;
     Xamp win;
@@ -224,32 +220,11 @@ static int excute(int argc, char* argv[]) {
     return app.exec();
 }
 
-#ifdef XAMP_OS_WIN
-static int tryExcute(int argc, char* argv[]) {
-    DWORD code = 0;
-    LPEXCEPTION_POINTERS info = nullptr;
-
-    __try {
-        return excute(argc, argv);
-    }
-    __except (code = ::GetExceptionCode(), info = GetExceptionInformation(), EXCEPTION_EXECUTE_HANDLER) {
-        char buffer[256];
-        sprintf_s(buffer, sizeof(buffer), "Exception code: 0x%08x", code);
-        ::MessageBoxA(nullptr, buffer, "Something wrong!", MB_OK);
-        return -1;
-    }
-}
-#else
-static int tryExcute(int argc, char* argv[]) {
-    return excute(argc, argv);
-}
-#endif
-
 int main(int argc, char *argv[]) {
     XAMP_ON_SCOPE_EXIT(
         Logger::GetInstance().Shutdown();
         JsonSettings::save();
         AppSettings::save();
     );
-    return tryExcute(argc, argv);
+    return excute(argc, argv);
 }

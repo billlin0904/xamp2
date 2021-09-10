@@ -129,17 +129,17 @@ bool AsioDevice::IsSupportDsdFormat() const {
 	return error == ASE_SUCCESS;
 }
 
-void AsioDevice::RemoveDriver() {
-	if (!Singleton<AsioDriver>::GetInstance().drivers) {
+void AsioDevice::ResetDriver() {
+	if (!ASIODriver.drivers) {
 		return;
 	}
-	ASIODriver.drivers->removeCurrentDriver();
+	ASIODriver.device->ReOpen();
 	ASIODriver.drivers.reset();
 	XAMP_LOG_DEBUG("Remove ASIO driver");
 }
 
 void AsioDevice::ReOpen() {
-	if (Singleton<AsioDriver>::GetInstance().drivers != nullptr) {
+	if (ASIODriver.drivers != nullptr) {
 		is_removed_driver_ = false;
 		return;
 	}
@@ -373,7 +373,7 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 	XAMP_LOG_D(log_, "Buffer size :{} ", String::FormatBytes(buffer_.GetByteSize()));
 	XAMP_LOG_D(log_, "Ouput latency: {}ms.", GetLatencyMs(output_latency, output_format.GetSampleRate()));
 
-	Singleton<AsioDriver>::GetInstance().post_output = ::ASIOOutputReady() == ASE_OK;
+	ASIODriver.post_output = ::ASIOOutputReady() == ASE_OK;
 	XAMP_LOG_D(log_, "Drvier support post output: {}", ASIODriver.post_output);
 }
 

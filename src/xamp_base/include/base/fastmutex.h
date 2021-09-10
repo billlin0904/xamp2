@@ -15,16 +15,7 @@ namespace xamp::base {
 
 #ifdef XAMP_OS_WIN
 
-XAMP_BASE_API int FutexWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, const struct timespec* to);
-
-template <typename Rep, typename Period>
-int FutexWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, std::chrono::duration<Rep, Period> const& duration) {
-	using namespace std::chrono;
-	timespec ts;
-	ts.tv_sec = duration_cast<seconds>(duration).count();
-	ts.tv_nsec = duration_cast<nanoseconds>(duration).count() % 1000000000;	
-	return FutexWait(to_wait_on, expected, &ts);
-}
+XAMP_BASE_API int _FutexWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, const struct timespec* to);
 
 // https://probablydance.com/2019/12/30/measuring-mutexes-spinlocks-and-how-bad-the-linux-scheduler-really-is/
 class XAMP_BASE_API XAMP_CACHE_ALIGNED(kMallocAlignSize) SpinLock final {
@@ -83,22 +74,6 @@ public:
 private:
 	SRWLOCK lock_ = SRWLOCK_INIT;
 };
-
-class XAMP_BASE_API CriticalSection final {
-public:
-	CriticalSection();
-
-	XAMP_DISABLE_COPY(CriticalSection)
-
-	~CriticalSection() noexcept;
-
-	void lock() noexcept;
-	
-	void unlock() noexcept;
-
-private:
-	CRITICAL_SECTION cs_;
-};
 	
 using FastMutex = SRWMutex;
 
@@ -131,6 +106,14 @@ public:
 
 	void notify_all() noexcept;
 private:
+	template <typename Rep, typename Period>
+	int FutexWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, std::chrono::duration<Rep, Period> const& duration) {
+		using namespace std::chrono;
+		timespec ts;
+		ts.tv_sec = duration_cast<seconds>(duration).count();
+		ts.tv_nsec = duration_cast<nanoseconds>(duration).count() % 1000000000;
+		return _FutexWait(to_wait_on, expected, &ts);
+	}
 	std::atomic<uint32_t> state_{ kUnlocked };
 };
 	
