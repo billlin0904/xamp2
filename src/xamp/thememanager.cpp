@@ -20,15 +20,7 @@ ThemeManager& ThemeManager::instance() {
 }
 
 ThemeManager::ThemeManager() {
-    const auto screen_size = qApp->primaryScreen()->size();
-
-    if ((screen_size.width() <= 1920 || screen_size.width() <= 2560) && screen_size.height() <= 1080) {
-        cover_size_ = QSize(243, 243);
-    }
-    else {
-        cover_size_ = QSize(243, 243);
-    }
-
+    cover_size_ = QSize(210, 210);
     table_text_color_ = QColor(Qt::black);
     background_color_ = QColor(228, 233, 237);
     control_background_color_ = background_color_;

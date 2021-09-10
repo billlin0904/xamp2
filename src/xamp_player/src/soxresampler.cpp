@@ -127,7 +127,7 @@ public:
 		}
 
 		input_sample_rate_ = input_sample_rate;
-		output_sample_rate_ = output_sample_rate_;
+        output_sample_rate_ = output_sample_rate;
 		num_channels_ = num_channels;
 
 		ratio_ = static_cast<double>(output_sample_rate) / static_cast<double>(input_sample_rate_);

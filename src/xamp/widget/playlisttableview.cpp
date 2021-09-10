@@ -339,6 +339,15 @@ void PlayListTableView::initial() {
         auto* menu = new QMenu(this);
         auto* header_view = horizontalHeader();
 
+        auto color = ThemeManager::instance().getBackgroundColor();
+        color.setAlpha(100);
+        const auto menu_style_sheet = Q_STR(R"(
+        QMenu {
+            background-color: %1;
+        }
+        )").arg(colorToString(color));
+        menu->setStyleSheet(menu_style_sheet);
+
         auto last_referred_logical_column = header_view->logicalIndexAt(pt);
 
         auto* hide_column_action = new QAction(tr("Hide this column"), this);
