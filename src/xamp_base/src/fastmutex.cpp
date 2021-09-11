@@ -67,38 +67,6 @@ int _FutexWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, const struc
 
 #ifdef XAMP_OS_WIN
 
-void SpinLock::lock() noexcept {
-	for (auto spin_count = 0; !try_lock(); ++spin_count) {
-		if (spin_count < kSpinCount) {
-			YieldProcessor();
-		}
-		else {
-			std::this_thread::yield();
-			spin_count = 0;
-		}
-	}
-}
-
-void SpinLock::unlock() noexcept {
-	lock_.store(false, std::memory_order_release);
-}
-
-void FutexMutex::lock() noexcept {
-	if (state_.exchange(kLocked, std::memory_order_acquire) == kUnlocked) {
-		return;
-	}
-
-	while (state_.exchange(kSleeper, std::memory_order_acquire) != kUnlocked) {
-		_FutexWait(state_, kSleeper);
-	}
-}
-
-void FutexMutex::unlock() noexcept {
-	if (state_.exchange(kUnlocked, std::memory_order_release) == kSleeper) {
-		_FutexWakeSingle(state_);
-	}
-}
-
 void FutexMutexConditionVariable::wait(std::unique_lock<FastMutex>& lock) {
 	auto old_state = state_.load(std::memory_order_relaxed);
 	lock.unlock();
@@ -114,6 +82,10 @@ void FutexMutexConditionVariable::notify_one() noexcept {
 void FutexMutexConditionVariable::notify_all() noexcept {
 	state_.fetch_add(kLocked, std::memory_order_relaxed);
 	_FutexWakeSingle(state_);
+}
+
+SRWMutex::SRWMutex() noexcept {
+	::InitializeSRWLock(&lock_);
 }
 
 void SRWMutex::lock() noexcept {

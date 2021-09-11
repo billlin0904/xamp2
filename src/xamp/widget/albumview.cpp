@@ -258,7 +258,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
     cover_->setMaximumSize(QSize(325, 325));
     cover_->setStyleSheet(Q_UTF8("background-color: transparent;"));
 
-    auto playlist_layout = new QHBoxLayout();
+    auto* playlist_layout = new QHBoxLayout();
     playlist_ = new AlbumPlayListTableView(this);
     playlist_layout->addWidget(playlist_);
     playlist_layout->addWidget(cover_);
@@ -279,6 +279,8 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
     (void)QObject::connect(playlist_, &QTableView::doubleClicked, [this](const QModelIndex& index) {
         emit playMusic(getAlbumEntity(index));
         });
+
+    ThemeManager::instance().setBackgroundColor(this, 255);
 }
 
 void AlbumViewPage::setAlbum(const QString& album) {
@@ -380,7 +382,7 @@ AlbumView::AlbumView(QWidget* parent)
         }
 
         page_->move(QPoint(list_view_rect.x(), 0));
-        ThemeManager::instance().setBackgroundColor(page_, 100);
+        ThemeManager::instance().setBackgroundColor(page_, 255);
     	
         page_->show();
         });

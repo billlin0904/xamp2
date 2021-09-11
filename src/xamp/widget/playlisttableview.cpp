@@ -253,7 +253,6 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
     hideColumn(PLAYLIST_ALBUM);
     hideColumn(PLAYLIST_TIMESTAMP);
     hideColumn(PLAYLIST_RATING);
-    hideColumn(PLAYLIST_DURATION);
     hideColumn(PLAYLIST_PLAYLIST_MUSIC_ID);
     hideColumn(PLAYLIST_LUFS);
     hideColumn(PLAYLIST_TRUE_PEAK);
@@ -592,6 +591,8 @@ void PlayListTableView::setPodcastMode(bool enable) {
 	if (podcast_mode_) {
         hideColumn(PLAYLIST_LUFS);
         hideColumn(PLAYLIST_TRUE_PEAK);
+        hideColumn(PLAYLIST_DURATION);
+        hideColumn(PLAYLIST_SAMPLE_RATE);
         setColumnHidden(PLAYLIST_TIMESTAMP, false);
         return;
     }
@@ -644,13 +645,13 @@ void PlayListTableView::keyPressEvent(QKeyEvent *pEvent) {
 bool PlayListTableView::eventFilter(QObject* obj, QEvent* ev) {
     const auto type = ev->type();
     if (this == obj && type == QEvent::KeyPress) {
-        auto* event = dynamic_cast<QKeyEvent*>(ev);
+	    const auto* event = dynamic_cast<QKeyEvent*>(ev);
         if (event->key() == Qt::Key_Delete) {
             removeSelectItems();
             return true;
         }
     }
-    return QWidget::eventFilter(obj, ev);
+    return QAbstractItemView::eventFilter(obj, ev);
 }
 
 void PlayListTableView::append(const QString& file_name, bool show_progress_dialog) {

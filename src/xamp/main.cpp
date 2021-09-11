@@ -127,7 +127,7 @@ static std::vector<ModuleHandle> preloadDll() {
 
 static void setLogLevel(spdlog::level::level_enum level = spdlog::level::info) {
     Logger::GetInstance().GetLogger(kThreadPoolLoggerName)->set_level(level);
-    Logger::GetInstance().GetLogger(kExclusiveWasapiDeviceLoggerName)->set_level(spdlog::level::debug);
+    Logger::GetInstance().GetLogger(kExclusiveWasapiDeviceLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kSharedWasapiDeviceLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kAsioDeviceLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kAudioPlayerLoggerName)->set_level(level);
@@ -215,7 +215,7 @@ static int excute(int argc, char* argv[]) {
 
     top_win.show();
     top_win.activateWindow();
-    top_win.resize(1210, 860);
+    top_win.resize(1300, 860);
     centerDesktop(&top_win);
     return app.exec();
 }

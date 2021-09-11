@@ -307,6 +307,11 @@
                        <string>384000</string>
                       </property>
                      </item>
+                     <item>
+                      <property name="text">
+                       <string>768000</string>
+                      </property>
+                     </item>
                     </widget>
                    </item>
                    <item>
@@ -552,14 +557,17 @@
       </widget>
      </item>
      <item>
-      <widget class="QDialogButtonBox" name="buttonBox">
+      <spacer name="horizontalSpacer_2">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
-       <property name="standardButtons">
-        <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
        </property>
-      </widget>
+      </spacer>
      </item>
     </layout>
    </item>

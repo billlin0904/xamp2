@@ -2,6 +2,8 @@
 #include <base/logger.h>
 
 #ifdef XAMP_OS_WIN
+#pragma comment(lib, "Winmm.lib")
+#include <timeapi.h>
 #include <base/platform.h>
 #include <output_device/win32/hrexception.h>
 #include <output_device/win32/exclusivewasapidevicetype.h>
@@ -9,8 +11,8 @@
 #include <output_device/win32/win32devicestatenotification.h>
 #if ENABLE_ASIO
 #include <output_device/win32/mmcss.h>
-#include <output_device/asiodevicetype.h>
 #include <output_device/asiodevice.h>
+#include <output_device/asiodevicetype.h>
 #endif
 #else
 #include <IOKit/pwr_mgt/IOPMLib.h>
@@ -92,9 +94,13 @@ static struct IopmAssertion {
 		return MakeAlign<DeviceType, DeviceTypeClass>();\
 	})
 
+inline constexpr UINT kDesiredSchedulerMS = 1;
+
 AudioDeviceManager::AudioDeviceManager() {
 #ifdef XAMP_OS_WIN
     using namespace win32;
+    sleep_is_granular = (::timeBeginPeriod(kDesiredSchedulerMS) == TIMERR_NOERROR);
+    XAMP_LOG_DEBUG("Sleep is granular: {}", sleep_is_granular);
     HrIfFailledThrow(::MFStartup(MF_VERSION, MFSTARTUP_LITE));
     XAMP_LOG_DEBUG("MFStartup startup success");
 #if ENABLE_ASIO
@@ -119,6 +125,9 @@ void AudioDeviceManager::SetWorkingSetSize(size_t workingset_size) {
 AudioDeviceManager::~AudioDeviceManager() {
 #ifdef XAMP_OS_WIN	
     ::MFShutdown();
+    if (sleep_is_granular) {
+        ::timeEndPeriod(kDesiredSchedulerMS);
+    }
 #else
     iopmAssertion.Reset();
 #endif

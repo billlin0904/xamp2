@@ -68,6 +68,7 @@ private:
         factory_[id] = std::forward<Func>(func);
     }
 
+    bool sleep_is_granular{ false };
     AlignPtr<DeviceStateNotificationImpl> impl_;    
     HashMap<Uuid, std::function<AlignPtr<DeviceType>()>> factory_;
 };

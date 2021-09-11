@@ -715,7 +715,7 @@ void Xamp::applyTheme(QColor color) {
     if (AppSettings::getValueAsBool(kAppSettingEnableBlur)) {
         color.setAlpha(0);
     } else {
-        color.setAlpha(100);
+        color.setAlpha(255);
     }
 
     if (qGray(color.rgb()) > 200) {
@@ -738,7 +738,6 @@ void Xamp::applyTheme(QColor color) {
 
     if (color.alpha() > 0) {
         setStyleSheet(Q_STR(R"(#XampWindow { background-color: %1; })").arg(colorToString(color)));
-        emit themeChanged(color, color);
     }
     setButtonState();
 }

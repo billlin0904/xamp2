@@ -89,6 +89,7 @@ void PreferencePage::initSoxResampler() {
 	(void)QObject::connect(ui_.enableFramelessWindowCheckBox, &QCheckBox::stateChanged, [this](auto state) {
 		AppSettings::setValue(kAppSettingUseFramelessWindow,
 			static_cast<Qt::CheckState>(state) == Qt::CheckState::Checked);
+		saveAll();
 		});
 
     (void)QObject::connect(ui_.saveSoxrSettingBtn, &QPushButton::pressed, [this]() {
@@ -100,6 +101,7 @@ void PreferencePage::initSoxResampler() {
             return;
         }
         saveSoxrResampler(setting_name);
+		saveAll();
 		});
 
 	(void)QObject::connect(ui_.deleteSoxrSettingBtn, &QPushButton::pressed, [this]() {
@@ -109,6 +111,11 @@ void PreferencePage::initSoxResampler() {
 		}
         JsonSettings::remove(name);
         ui_.soxrSettingCombo->removeItem(ui_.soxrSettingCombo->currentIndex());
+		saveAll();
+		});
+
+	(void)QObject::connect(ui_.soxrTargetSampleRateComboBox, static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::activated), [this](auto index) {
+		saveAll();
 		});
 
 	(void)QObject::connect(ui_.soxrSettingCombo, static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::activated), [this](auto index) {
@@ -137,6 +144,7 @@ void PreferencePage::initLang() {
 		AppSettings::loadLanguage(ui_.langCombo->itemText(index));
 		AppSettings::setValue(kAppSettingLang, ui_.langCombo->itemText(index));
 		ui_.retranslateUi(this);
+		saveAll();
 		});
 }
 
@@ -201,18 +209,6 @@ PreferencePage::PreferencePage(QWidget *parent)
 		initSoxResampler();
 		});
 
-    (void)QObject::connect(ui_.buttonBox, &QDialogButtonBox::accepted, [this]() {
-		JsonSettings::setValue(ui_.soxrSettingCombo->currentText(), getSoxrSettings());
-		AppSettings::setValue(kAppSettingSoxrSettingName, ui_.soxrSettingCombo->currentText());
-		AppSettings::setDefaultValue(kAppSettingSoxrSettingName, ui_.soxrSettingCombo->currentText());
-
-		auto index = ui_.resamplerStackedWidget->currentIndex();
-		AppSettings::setValue(kAppSettingResamplerEnable, index > 0);
-
-		JsonSettings::save();
-		AppSettings::save();
-		});
-
 	ui_.podcastCachePathLineEdit->setText(AppSettings::getValue(kAppSettingPodcastCachePath).toString());
 	(void)QObject::connect(ui_.setPodcastCacheButton, &QPushButton::clicked, [this]() {
 		const auto dir_name = QFileDialog::getExistingDirectory(this,
@@ -229,4 +225,16 @@ PreferencePage::PreferencePage(QWidget *parent)
 
 	initSoxResampler();
 	initLang();
+}
+
+void PreferencePage::saveAll() {
+	JsonSettings::setValue(ui_.soxrSettingCombo->currentText(), getSoxrSettings());
+	AppSettings::setValue(kAppSettingSoxrSettingName, ui_.soxrSettingCombo->currentText());
+	AppSettings::setDefaultValue(kAppSettingSoxrSettingName, ui_.soxrSettingCombo->currentText());
+
+	auto index = ui_.resamplerStackedWidget->currentIndex();
+	AppSettings::setValue(kAppSettingResamplerEnable, index > 0);
+
+	JsonSettings::save();
+	AppSettings::save();
 }

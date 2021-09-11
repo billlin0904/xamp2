@@ -24,6 +24,8 @@ private:
 
     void initLang();
 
+    void saveAll();
+
     QMap<QString, QVariant> getSoxrSettings() const;
 
     int32_t soxr_passband_;

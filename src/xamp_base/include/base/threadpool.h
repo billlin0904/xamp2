@@ -5,20 +5,15 @@
 
 #pragma once
 
-#include <string>
 #include <future>
 #include <atomic>
-#include <functional>
 #include <vector>
 #include <optional>
 #include <type_traits>
 #include <memory>
 
 #include <base/base.h>
-#include <base/singleton.h>
 #include <base/align_ptr.h>
-#include <base/stl.h>
-#include <base/exception.h>
 #include <base/bounded_queue.h>
 
 #ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
@@ -36,6 +31,10 @@ public:
 	
     XAMP_ALWAYS_INLINE void operator()() {
 	    impl_->Call();
+    }
+
+    XAMP_ALWAYS_INLINE long long ExecutedTime() const noexcept {
+        return impl_->ExecutedTime();
     }
 	
     TaskWrapper() = default;
@@ -55,6 +54,7 @@ private:
     struct XAMP_NO_VTABLE ImplBase {
         virtual ~ImplBase() = default;
         virtual void Call() = 0;
+        virtual long long ExecutedTime() const noexcept = 0;
     };
 
     AlignPtr<ImplBase> impl_;
@@ -75,6 +75,16 @@ private:
             f_();
         }
 
+        static std::chrono::time_point<std::chrono::steady_clock> Now() noexcept {
+            return std::chrono::steady_clock::now();
+	    }
+
+        long long ExecutedTime() const noexcept override {
+            const auto end = Now();
+            return std::chrono::duration_cast<std::chrono::milliseconds>(end - start_time_).count();
+        }
+
+        const std::chrono::time_point<std::chrono::steady_clock> start_time_ = Now();
         Func f_;
     };
 };

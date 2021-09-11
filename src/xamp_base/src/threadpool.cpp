@@ -167,7 +167,8 @@ void TaskScheduler::AddThread(size_t i) {
 			}
 			auto active_thread = ++active_thread_;
 #ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
-			XAMP_LOG_D(logger_, "Worker Thread {} ({}) weakup, active:{}.", i, thread_id, active_thread);
+			XAMP_LOG_D(logger_, "Worker Thread {} ({}) weakup, active:{}. executed time:{} sec",
+				i, thread_id, active_thread, static_cast<double>((*task).ExecutedTime()) / 1000.0);
 #endif
 			try {
 				(*task)();

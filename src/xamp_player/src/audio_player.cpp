@@ -704,7 +704,7 @@ void AudioPlayer::BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<SampleRat
     }
 }
 
-void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_buffer_sample, std::unique_lock<FastMutex>& lock) {
+void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_buffer_sample) {
     while (is_playing_) {
         const auto num_samples = stream_->GetSamples(sample_buffer, max_buffer_sample);
 
@@ -787,7 +787,7 @@ void AudioPlayer::Play() {
                     continue;
                 }
 
-                p->ReadSampleLoop(sample_buffer, max_buffer_sample, lock);
+                p->ReadSampleLoop(sample_buffer, max_buffer_sample);
             }
         }
         catch (const Exception& e) {
@@ -817,7 +817,7 @@ DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_fr
 #ifdef _DEBUG
     CheckRace();
 #endif
-	
+
     const auto num_samples = num_buffer_frames * output_format_.GetChannels();
     const auto sample_size = num_samples * sample_size_;
 #ifdef _DEBUG
@@ -825,7 +825,7 @@ DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_fr
     max_process_time_ = std::max(elapsed, max_process_time_);
 #endif
 
-    XAMP_LIKELY(fifo_.TryRead(static_cast<int8_t*>(samples), sample_size)) {;
+    XAMP_LIKELY(fifo_.TryRead(static_cast<int8_t*>(samples), sample_size)) {
         UpdateSlice(static_cast<int32_t>(num_samples), stream_time);
 #ifdef _DEBUG
         sw_.Reset();

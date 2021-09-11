@@ -17,52 +17,13 @@ namespace xamp::base {
 
 XAMP_BASE_API int _FutexWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, const struct timespec* to);
 
-// https://probablydance.com/2019/12/30/measuring-mutexes-spinlocks-and-how-bad-the-linux-scheduler-really-is/
-class XAMP_BASE_API XAMP_CACHE_ALIGNED(kMallocAlignSize) SpinLock final {
-public:
-	static constexpr auto kSpinCount = 16;
-	
-	SpinLock() = default;
-	
-	XAMP_DISABLE_COPY(SpinLock)
-
-	void lock() noexcept;
-
-	void unlock() noexcept;
-	
-private:
-	bool try_lock() noexcept {
-		return !lock_.load(std::memory_order_relaxed) &&
-			!lock_.exchange(true, std::memory_order_acquire);
-	}
-	std::atomic<bool> lock_ = { false };
-};
-
 static constexpr uint32_t kUnlocked = 0;
 static constexpr uint32_t kLocked = 1;
 static constexpr uint32_t kSleeper = 2;
 
-class XAMP_BASE_API FutexMutex final {
-public:
-	FutexMutex() = default;
-
-	XAMP_DISABLE_COPY(FutexMutex)
-
-	void lock() noexcept;
-	
-	void unlock() noexcept;
-
-	bool try_lock() noexcept {
-		return state_.exchange(kLocked) == kUnlocked;
-	}
-
-private:
-	std::atomic<uint32_t> state_{ kUnlocked };	
-};
-
 class XAMP_BASE_API SRWMutex final {
 public:
-	SRWMutex() = default;
+	SRWMutex() noexcept;
 
 	XAMP_DISABLE_COPY(SRWMutex)
 
@@ -72,7 +33,7 @@ public:
 
 	[[nodiscard]] bool try_lock() noexcept;
 private:
-	SRWLOCK lock_ = SRWLOCK_INIT;
+	SRWLOCK lock_;
 };
 	
 using FastMutex = SRWMutex;

@@ -9,7 +9,16 @@ AboutPage::AboutPage(QWidget* parent)
     ui.setupUi(this);
     setStyleSheet(Q_UTF8("background-color: transparent"));
 
-    ui.lblVersion->setText(Q_UTF8("0.0.0"));
+#ifdef Q_OS_WIN32 f
+    ui.lblVersion->setText(Q_STR("Build Visual Studio 20%1.%2.%3 (%4 %5)")
+        .arg(_MSC_VER / 100)
+		.arg((_MSC_FULL_VER / 100000) % 100)
+		.arg(_MSC_FULL_VER % 100000)
+        .arg(Q_UTF8(__DATE__))
+		.arg(Q_UTF8(__TIME__)));
+#else
+    ui.lblVersion->setText(Q_UTF8("Build "));
+#endif
 
     ui.lblLogo->setPixmap(ThemeManager::instance().appIcon().pixmap(128, 128));
 
