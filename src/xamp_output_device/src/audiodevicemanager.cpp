@@ -16,6 +16,7 @@
 #endif
 #else
 #include <IOKit/pwr_mgt/IOPMLib.h>
+#include <output_device/osx/osx_utitl.h>
 #include <output_device/osx/coreaudiodevicetype.h>
 #include <output_device/osx/hogcoreaudiodevicetype.h>
 #include <output_device/osx/coreaudiodevicestatenotification.h>
@@ -94,7 +95,7 @@ static struct IopmAssertion {
 		return MakeAlign<DeviceType, DeviceTypeClass>();\
 	})
 
-inline constexpr UINT kDesiredSchedulerMS = 1;
+inline constexpr uint32_t kDesiredSchedulerMS = 1;
 
 AudioDeviceManager::AudioDeviceManager() {
 #ifdef XAMP_OS_WIN
@@ -113,6 +114,7 @@ AudioDeviceManager::AudioDeviceManager() {
 #else
     using namespace osx;
     XAMP_REGISTER_DEVICE_TYPE(CoreAudioDeviceType);
+    XAMP_REGISTER_DEVICE_TYPE(HogCoreAudioDeviceType);
 #endif
 }
 

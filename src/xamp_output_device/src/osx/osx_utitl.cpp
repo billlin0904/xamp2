@@ -175,6 +175,47 @@ bool IsOutputDevice(AudioDeviceID id) {
     return (dataSize / sizeof(AudioStreamID)) > 0;
 }
 
+bool IsAutoHogMode() {
+    UInt32 val = 0;
+    UInt32 size = sizeof(val);
+    constexpr AudioObjectPropertyAddress property = {
+        kAudioHardwarePropertyHogModeIsAllowed,
+        kAudioObjectPropertyScopeGlobal,
+        kAudioObjectPropertyElementMaster
+    };
+    auto result = ::AudioObjectGetPropertyData(kAudioObjectSystemObject,
+                                 &property,
+                                 0,
+                                 nullptr,
+                                 &size,
+                                 &val);
+    if (result != noErr) {
+        CoreAudioFailedLog(result);
+        return false;
+    }
+    return (val == 1);
+}
+
+bool SetAutoHogMode(bool enable) {
+    UInt32 val = enable ? 1 : 0;
+    constexpr AudioObjectPropertyAddress property = {
+        kAudioHardwarePropertyHogModeIsAllowed,
+        kAudioObjectPropertyScopeGlobal,
+        kAudioObjectPropertyElementMaster
+    };
+    auto result = ::AudioObjectSetPropertyData(kAudioObjectSystemObject,
+                               &property,
+                               0,
+                               nullptr,
+                               sizeof(val),
+                               &val);
+    if (result != noErr) {
+        CoreAudioFailedLog(result);
+        return false;
+    }
+    return true;
+}
+
 void ReleaseHogMode(AudioDeviceID id) {
     constexpr AudioObjectPropertyAddress property = {
         kAudioDevicePropertyHogMode,

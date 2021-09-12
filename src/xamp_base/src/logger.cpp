@@ -20,6 +20,7 @@ const char kAudioPlayerLoggerName[] = "AudioPlayer";
 const char kVirtualMemoryLoggerName[] = "VirtualMemory";
 const char kResamplerLoggerName[] = "Resampler";
 const char kCompressorLoggerName[] = "Compressor";
+const char kCoreAudioLoggerName[] = "CoreAudio";
 
 #ifdef XAMP_OS_WIN
 class DebugOutputSink : public spdlog::sinks::base_sink<std::mutex> {

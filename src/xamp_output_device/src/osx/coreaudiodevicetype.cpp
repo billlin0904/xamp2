@@ -28,7 +28,7 @@ AlignPtr<Device> CoreAudioDeviceType::MakeDevice(const std::string &device_id) {
 size_t CoreAudioDeviceType::GetDeviceCount() const {
     UInt32 data_size = 0;
 
-    AudioObjectPropertyAddress const property = {
+    AudioObjectPropertyAddress constexpr property = {
         kAudioHardwarePropertyDevices,
         kAudioObjectPropertyScopeGlobal,
         kAudioObjectPropertyElementMaster
@@ -63,7 +63,7 @@ Uuid CoreAudioDeviceType::GetTypeId() const {
 std::vector<DeviceInfo> CoreAudioDeviceType::GetDeviceInfo() const {
     std::vector<DeviceInfo> device_infos;
 
-    AudioObjectPropertyAddress const property = {
+    AudioObjectPropertyAddress constexpr property = {
         kAudioHardwarePropertyDevices,
         kAudioObjectPropertyScopeGlobal,
         kAudioObjectPropertyElementMaster
@@ -117,7 +117,7 @@ std::optional<DeviceInfo> CoreAudioDeviceType::GetDefaultDeviceInfo() const {
     AudioDeviceID id;
     UInt32 dataSize = sizeof(AudioDeviceID);
 
-    AudioObjectPropertyAddress const property = {
+    AudioObjectPropertyAddress constexpr property = {
         kAudioHardwarePropertyDefaultOutputDevice,
         kAudioObjectPropertyScopeGlobal,
         kAudioObjectPropertyElementMaster

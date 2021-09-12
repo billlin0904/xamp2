@@ -54,6 +54,8 @@ public:
 
     uint32_t GetDsdSpeed() const noexcept override;
 
+    int32_t GetBitDepth() const override;
+
 	static HashSet<std::string> GetSupportFileExtensions();
 
 private:

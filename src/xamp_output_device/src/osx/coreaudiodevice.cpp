@@ -118,22 +118,6 @@ private:
     AudioObjectPropertyAddress property_;
 };
 
-struct MachTimeBaseInfo {
-    MachTimeBaseInfo() {
-        ::mach_timebase_info(&timebase_info);
-    }
-
-    uint64_t ToMicroseconds(uint64_t mach_time) const noexcept {
-        constexpr auto kNanosecondsPerMicrosecond = 1000;
-        auto result = mach_time / kNanosecondsPerMicrosecond;
-        result *= timebase_info.numer;
-        result /= timebase_info.denom;
-        return result;
-    }
-
-    mach_timebase_info_data_t timebase_info;
-};
-
 uint32_t GetHardwareLantency(AudioDeviceID device_id, AudioObjectPropertyScope scope) {
     AudioObjectPropertyAddress property_address = {
         kAudioDevicePropertyLatency,
@@ -208,6 +192,7 @@ CoreAudioDevice::CoreAudioDevice(AudioDeviceID device_id, bool is_hog_mode)
     , stream_time_(0) {
     audio_property_.mScope = kAudioDevicePropertyScopeOutput;
     audio_property_.mElement = kAudioObjectPropertyElementMaster;
+    logger_ = Logger::GetInstance().GetLogger(kCoreAudioLoggerName);
 }
 
 CoreAudioDevice::~CoreAudioDevice() {
@@ -235,9 +220,9 @@ void CoreAudioDevice::OpenStream(AudioFormat const &output_format) {
                                                        &fmt));
 
     if (fmt.mFormatFlags & kAudioFormatFlagIsNonInterleaved) {
-        XAMP_LOG_DEBUG("Format is non interleaved.");
+        XAMP_LOG_D(logger_, "Format is non interleaved.");
     } else {
-        XAMP_LOG_DEBUG("Format is interleaved.");
+        XAMP_LOG_D(logger_, "Format is interleaved.");
     }
 
     if (!IsSupportSampleRate(device_id_, output_format.GetSampleRate())) {
@@ -264,7 +249,7 @@ void CoreAudioDevice::OpenStream(AudioFormat const &output_format) {
             throw DeviceUnSupportedFormatException(output_format);
         }
         CoreAudioThrowIfError(error);
-        XAMP_LOG_DEBUG("Update audio format {}.", output_format);
+        XAMP_LOG_D(logger_, "Update audio format {}.", output_format);
     }
 
     UInt32 bufferSize = 0;
@@ -276,7 +261,7 @@ void CoreAudioDevice::OpenStream(AudioFormat const &output_format) {
                                                        nullptr,
                                                        &dataSize,
                                                        &bufferSize));
-    XAMP_LOG_DEBUG("Allocate buffer size:{}.", bufferSize);
+    XAMP_LOG_D(logger_, "Allocate buffer size:{}.", bufferSize);
 
     UInt32 theSize = bufferSize;
     dataSize = sizeof(UInt32);
@@ -298,12 +283,29 @@ void CoreAudioDevice::OpenStream(AudioFormat const &output_format) {
                                                       &ioproc_id_));
     format_ = output_format;
 
+    /*
     if (is_hog_mode_) {
+        SetAutoHogMode(true);
+    } else {
+        SetAutoHogMode(false);
+    }
+
+    auto enable_auto_hog = IsAutoHogMode();
+    if (!enable_auto_hog) {
+        if (is_hog_mode_) {
+            XAMP_LOG_D(logger_, "Set auto hog mode failure, fallback use set hog mode.");
+            ReleaseHogMode(device_id_);
+            SetHogMode(device_id_);
+        }
+    } else {
+        XAMP_LOG_D(logger_, "Set auto hog mode!");
+    }
+    */
+    if (is_hog_mode_) {
+        XAMP_LOG_D(logger_, "Set hog mode!");
         ReleaseHogMode(device_id_);
         SetHogMode(device_id_);
     }
-
-    (void) Singleton<MachTimeBaseInfo>::GetInstance();
 }
 
 void CoreAudioDevice::SetAudioCallback(AudioCallback *callback) noexcept {
@@ -319,6 +321,7 @@ bool CoreAudioDevice::IsStreamRunning() const noexcept {
 }
 
 void CoreAudioDevice::StopStream(bool /*wait_for_stop_stream*/) {
+    XAMP_LOG_D(logger_, "StopStream");
     if (is_running_) {
         is_running_ = false;
         std::unique_lock<std::mutex> lock{mutex_};
@@ -329,6 +332,7 @@ void CoreAudioDevice::StopStream(bool /*wait_for_stop_stream*/) {
 }
 
 void CoreAudioDevice::CloseStream() {
+    XAMP_LOG_D(logger_, "CloseStream");
     CoreAudioThrowIfError(::AudioDeviceStop(device_id_, ioproc_id_));
     CoreAudioThrowIfError(::AudioDeviceDestroyIOProcID(device_id_, ioproc_id_));
     ioproc_id_ = nullptr;
@@ -336,6 +340,7 @@ void CoreAudioDevice::CloseStream() {
 }
 
 void CoreAudioDevice::StartStream() {
+    XAMP_LOG_D(logger_, "StartStream!");
     CoreAudioThrowIfError(::AudioDeviceStart(device_id_, ioproc_id_));
     is_running_ = true;
 }

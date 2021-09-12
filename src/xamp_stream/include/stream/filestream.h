@@ -21,6 +21,7 @@ public:
 
     virtual void OpenFile(std::wstring const & file_path) = 0;
 
+    virtual int32_t GetBitDepth() const = 0;
 protected:
     FileStream() = default;
 };

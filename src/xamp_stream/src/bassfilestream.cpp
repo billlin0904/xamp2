@@ -180,6 +180,13 @@ FlushFileCache:
         }
     }
 
+    int32_t GetBitDepth() const {
+        if (mode_ == DsdModes::DSD_MODE_DOP) {
+            return 8;
+        }
+        return info_.origres;
+    }
+
     double GetReadProgress() const {
         auto file_len = BASS.BASS_StreamGetFilePosition(GetHStream(), BASS_FILEPOS_END);
         auto buffer = BASS.BASS_StreamGetFilePosition(GetHStream(), BASS_FILEPOS_BUFFER);
@@ -323,9 +330,9 @@ private:
     }
 
     DsdModes mode_;
-    size_t download_size_;
     BassStreamHandle stream_;
     BassStreamHandle mix_stream_;
+    size_t download_size_;
     BASS_CHANNELINFO info_;
     MemoryMappedFile file_;
     std::shared_ptr<PodcastFileCache> file_cache_;
@@ -395,6 +402,10 @@ void BassFileStream::SetDsdToPcmSampleRate(uint32_t sample_rate) {
 
 uint32_t BassFileStream::GetDsdSpeed() const noexcept {
     return stream_->GetDsdSpeed();
+}
+
+int32_t BassFileStream::GetBitDepth() const {
+    return stream_->GetBitDepth();
 }
 
 HashSet<std::string> BassFileStream::GetSupportFileExtensions() {

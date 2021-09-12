@@ -205,7 +205,9 @@ public:
 };
 #else
 class DirectoryWatcher::WatcherWorkerImpl {
-	    
+public:
+    explicit WatcherWorkerImpl(std::weak_ptr<FileChangedCallback> callback) {
+    }
 };
 #endif
 

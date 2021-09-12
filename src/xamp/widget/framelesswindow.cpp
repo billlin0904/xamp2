@@ -65,7 +65,7 @@ void FramelessWindow::initial(XampPlayer *content_widget) {
     ui_font.setPixelSize(14);
     qApp->setFont(ui_font);
     setStyleSheet(Q_UTF8(R"(
-	{
+    QWidget#framelessWindow {
         font-family: "UI";
         border: none;
         background-color: transparent;

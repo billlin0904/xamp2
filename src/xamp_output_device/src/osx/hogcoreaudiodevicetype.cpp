@@ -13,7 +13,7 @@ HogCoreAudioDeviceType::HogCoreAudioDeviceType() {
 }
 
 std::string_view HogCoreAudioDeviceType::GetDescription() const {
-    return "CoreAudio (HogMode)";
+    return "CoreAudio (Exclusive Mode)";
 }
 
 AlignPtr<Device> HogCoreAudioDeviceType::MakeDevice(const std::string &device_id) {

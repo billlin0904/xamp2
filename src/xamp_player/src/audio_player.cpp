@@ -380,7 +380,13 @@ PlayerState AudioPlayer::GetState() const noexcept {
 }
 
 AudioFormat AudioPlayer::GetInputFormat() const noexcept {
-    return input_format_;
+    auto file_format = input_format_;
+    if (stream_->GetBitDepth() > 0) {
+        file_format.SetBitPerSample(stream_->GetBitDepth());
+    } else {
+        file_format.SetBitPerSample(16);
+    }
+    return file_format;
 }
 
 AudioFormat AudioPlayer::GetOutputFormat() const noexcept {

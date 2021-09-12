@@ -13,6 +13,7 @@
 #include <CoreServices/CoreServices.h>
 #include <AudioUnit/AudioUnit.h>
 
+#include <base/logger.h>
 #include <base/audioformat.h>
 #include <base/align_ptr.h>
 #include <base/dataconverter.h>
@@ -86,6 +87,7 @@ private:
     AudioFormat format_;
     std::mutex mutex_;
     std::condition_variable stop_event_;
+    std::shared_ptr<spdlog::logger> logger_;
 };
 
 }

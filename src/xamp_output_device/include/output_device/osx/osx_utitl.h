@@ -31,7 +31,13 @@ bool IsOutputDevice(AudioDeviceID id);
 
 void SetHogMode(AudioDeviceID id);
 
+bool SetAutoHogMode(bool enable);
+
+bool IsAutoHogMode();
+
 void ReleaseHogMode(AudioDeviceID id);
+
+bool CanSetHogMode(AudioDeviceID id);
 
 }
 
