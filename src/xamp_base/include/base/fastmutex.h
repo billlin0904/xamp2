@@ -38,11 +38,11 @@ private:
 	
 using FastMutex = SRWMutex;
 
-class XAMP_BASE_API FutexMutexConditionVariable final {
+class XAMP_BASE_API FastMutexConditionVariable final {
 public:
-	FutexMutexConditionVariable() = default;
+	FastMutexConditionVariable() = default;
 
-	XAMP_DISABLE_COPY(FutexMutexConditionVariable)
+	XAMP_DISABLE_COPY(FastMutexConditionVariable)
 
 	void wait(std::unique_lock<FastMutex>& lock);
 
@@ -80,7 +80,7 @@ private:
 	
 #elif defined(XAMP_OS_MAC)
 using FastMutex = std::mutex;
-using FutexMutexConditionVariable = std::condition_variable;
+using FastMutexConditionVariable = std::condition_variable;
 #endif
 	
 }

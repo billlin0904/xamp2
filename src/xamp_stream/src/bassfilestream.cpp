@@ -299,6 +299,13 @@ FlushFileCache:
     [[nodiscard]] uint32_t GetDsdSpeed() const noexcept {
         return GetDsdSampleRate() / kPcmSampleRate441;
     }
+
+    XAMP_ALWAYS_INLINE HSTREAM GetHStream() const noexcept {
+        if (mix_stream_.is_valid()) {
+            return mix_stream_.get();
+        }
+        return stream_.get();
+    }
 private:
     std::tuple<std::string, Path, bool> GetFileCache(std::wstring const& file_path, bool& use_filemap) {
         auto cache_id = ToCacheID(file_path);
@@ -312,13 +319,6 @@ private:
             file_cache_ = file_cache;
         }
         return std::make_tuple(cache_id, file_cache->GetFilePath(), is_completed);
-    }
-	
-    XAMP_ALWAYS_INLINE HSTREAM GetHStream() const noexcept {
-        if (mix_stream_.is_valid()) {
-            return mix_stream_.get();
-        }
-        return stream_.get();
     }
 
     XAMP_ALWAYS_INLINE uint32_t InternalGetSamples(void* buffer, uint32_t length) const noexcept {
@@ -408,6 +408,10 @@ int32_t BassFileStream::GetBitDepth() const {
     return stream_->GetBitDepth();
 }
 
+uint32_t BassFileStream::GetHStream() const noexcept {
+    return stream_->GetHStream();
+}
+
 HashSet<std::string> BassFileStream::GetSupportFileExtensions() {
     return BASS.GetSupportFileExtensions();
 }
@@ -426,6 +430,8 @@ void LoadBassLib() {
     BASS.CDLib = MakeAlign<BassCDLib>();
     XAMP_LOG_DEBUG("Load BassCDLib successfully.");
 #endif
+    BASS.EncLib = MakeAlign<BassEncLib>();
+    XAMP_LOG_DEBUG("Load BassEncLib successfully.");
 }
 
 void FreeBassLib() {

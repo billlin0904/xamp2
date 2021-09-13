@@ -67,19 +67,19 @@ int _FutexWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, const struc
 
 #ifdef XAMP_OS_WIN
 
-void FutexMutexConditionVariable::wait(std::unique_lock<FastMutex>& lock) {
+void FastMutexConditionVariable::wait(std::unique_lock<FastMutex>& lock) {
 	auto old_state = state_.load(std::memory_order_relaxed);
 	lock.unlock();
 	_FutexWait(state_, old_state);
 	lock.lock();
 }
 
-void FutexMutexConditionVariable::notify_one() noexcept {
+void FastMutexConditionVariable::notify_one() noexcept {
 	state_.fetch_add(kLocked, std::memory_order_relaxed);
 	_FutexWakeSingle(state_);
 }
 
-void FutexMutexConditionVariable::notify_all() noexcept {
+void FastMutexConditionVariable::notify_all() noexcept {
 	state_.fetch_add(kLocked, std::memory_order_relaxed);
 	_FutexWakeSingle(state_);
 }

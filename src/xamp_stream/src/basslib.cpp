@@ -107,6 +107,19 @@ catch (const Exception& e) {
 }
 #endif
 
+BassEncLib::BassEncLib() try
+#ifdef XAMP_OS_WIN
+    : module_(LoadModule("bassenc.dll"))
+#else
+    : module_(LoadModule("libbassenc.dylib"))
+#endif
+    , LOAD_BASS_DLL_API(BASS_Encode_Start)
+    , LOAD_BASS_DLL_API(BASS_Encode_Stop) {
+}
+catch (const Exception& e) {
+    XAMP_LOG_ERROR("{}", e.GetErrorMessage());
+}
+
 BassLib::BassLib() try
 #ifdef XAMP_OS_WIN
     : module_(LoadModule("bass.dll"))

@@ -153,10 +153,12 @@
   <ItemGroup>
     <ClInclude Include="include\stream\audiostream.h" />
     <ClInclude Include="include\stream\basscddevice.h" />
+    <ClInclude Include="include\stream\bassfileencoder.h" />
     <ClInclude Include="include\stream\bassfilestream.h" />
     <ClInclude Include="include\stream\cddevice.h" />
     <ClInclude Include="include\stream\dsdstream.h" />
     <ClInclude Include="include\stream\audioprocessor.h" />
+    <ClInclude Include="include\stream\fileencoder.h" />
     <ClInclude Include="include\stream\filestream.h" />
     <ClInclude Include="include\stream\compressor.h" />
     <ClInclude Include="include\stream\podcastcache.h" />
@@ -167,6 +169,7 @@
   <ItemGroup>
     <ClCompile Include="src\basscddevice.cpp" />
     <ClCompile Include="src\bassexception.cpp" />
+    <ClCompile Include="src\bassfileencoder.cpp" />
     <ClCompile Include="src\bassfilestream.cpp" />
     <ClCompile Include="src\basslib.cpp" />
     <ClCompile Include="src\compressor.cpp" />

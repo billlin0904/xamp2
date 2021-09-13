@@ -163,7 +163,7 @@ std::string GetCurrentThreadId() {
 }
 
 std::string MakeTempFileName() {
-    char filename[64] = "xamp-podcast-cache-XXXXXX";
+    char filename[64] = "xamp-cache-XXXXXX";
 #if XAMP_OS_MAC
     mkstemp(filename);
 #else

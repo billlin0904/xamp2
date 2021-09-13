@@ -201,8 +201,8 @@ private:
 #endif    
     std::string device_id_;
     Uuid device_type_id_;
-    FutexMutexConditionVariable pause_cond_;
-    FutexMutexConditionVariable stopped_cond_;
+    FastMutexConditionVariable pause_cond_;
+    FastMutexConditionVariable stopped_cond_;
     AudioFormat input_format_;
     AudioFormat output_format_;    
     Timer timer_;

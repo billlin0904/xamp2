@@ -354,8 +354,6 @@ HRESULT SharedWasapiDevice::GetSample(uint32_t frame_available, bool is_silence)
 void SharedWasapiDevice::StartStream() {
 	XAMP_LOG_D(log_, "StartStream!");
 
-	Mmcss::LoadAvrtLib();
-
 	if (!client_) {
 		throw HRException(AUDCLNT_E_NOT_INITIALIZED);
 	}
@@ -363,7 +361,7 @@ void SharedWasapiDevice::StartStream() {
 	// Note: 必要! 某些音效卡會爆音!
 	GetSampleRequested(true);
 
-	render_task_ = ThreadPool::WASAPIThreadPool().Spawn([this]() {
+	render_task_ = ThreadPool::WASAPIThreadPool().Spawn([this]() noexcept {
 		XAMP_LOG_D(log_, "Start exclusive mode stream task!");
 
 		::SetEvent(thread_start_.get());

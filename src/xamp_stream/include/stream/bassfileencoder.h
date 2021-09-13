@@ -5,33 +5,26 @@
 
 #pragma once
 
-#include <base/base.h>
-
-#ifdef XAMP_OS_WIN
 #include <base/align_ptr.h>
+#include <stream/fileencoder.h>
 
-#include <output_device/win32/mmcss_types.h>
+namespace xamp::stream {
 
-namespace xamp::output_device::win32 {
-
-using namespace base;
-
-class Mmcss final {
+class BassFileEncoder final
+	: public FileEncoder {
 public:
-	Mmcss();
+	BassFileEncoder();
 
-	XAMP_PIMPL(Mmcss)
+	XAMP_PIMPL(BassFileEncoder)
 
-	static void LoadAvrtLib();	
+	void Start(std::wstring const& input_file_path, std::wstring const& output_file_path, std::wstring const& command) override;
 
-	void BoostPriority(std::wstring_view task_name = MMCSS_PROFILE_PRO_AUDIO) noexcept;
+	void Encode(std::function<bool(uint32_t)> const& progress) override;
 
-	void RevertPriority() noexcept;
 private:
-	class MmcssImpl;
-	AlignPtr<MmcssImpl> impl_;
+	class BassFileEncoderImpl;
+	AlignPtr<BassFileEncoderImpl> impl_;
 };
 
 }
-#endif
 

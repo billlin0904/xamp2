@@ -118,7 +118,7 @@ private:
 
     void AddThread(size_t i);
 
-    using TaskQueue = BoundedQueue<Task, FastMutex, FutexMutexConditionVariable>;
+    using TaskQueue = BoundedQueue<Task, FastMutex, FastMutexConditionVariable>;
     using SharedTaskQueuePtr = AlignPtr<TaskQueue>;
     
     static constexpr size_t K = 4;

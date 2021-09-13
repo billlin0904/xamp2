@@ -13,6 +13,7 @@
 #include <bass/bass_fx.h>
 #include <bass/bassmix.h>
 #include <bass/basscd.h>
+#include <bass/bassenc.h>
 
 #include <base/singleton.h>
 #include <base/dll.h>
@@ -123,6 +124,24 @@ public:
 };
 #endif
 
+class BassEncLib final {
+public:
+    BassEncLib();
+
+    XAMP_DISABLE_COPY(BassEncLib)
+
+private:
+    ModuleHandle module_;
+
+public:
+#ifdef XAMP_OS_MAC
+    DllFunction<HSTREAM(DWORD, const char*, DWORD, ENCODEPROC*, void*)> BASS_Encode_Start;
+#else
+    DllFunction<HSTREAM(DWORD, const wchar_t*, DWORD, ENCODEPROC*, void*)> BASS_Encode_Start;
+#endif
+    XAMP_DECLARE_DLL(BASS_Encode_Stop) BASS_Encode_Stop;
+};
+
 class BassLib final {
 public:
     friend class Singleton<BassLib>;
@@ -142,6 +161,7 @@ public:
     AlignPtr<BassDSDLib> DSDLib;
     AlignPtr<BassMixLib> MixLib;
     AlignPtr<BassFxLib> FxLib;
+    AlignPtr<BassEncLib> EncLib;
 
 #ifdef XAMP_OS_WIN
     AlignPtr<BassCDLib> CDLib;

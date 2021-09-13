@@ -58,7 +58,8 @@ public:
 
 	static HashSet<std::string> GetSupportFileExtensions();
 
-private:
+	uint32_t GetHStream() const noexcept;
+private:	
 	class BassFileStreamImpl;
 	AlignPtr<BassFileStreamImpl> stream_;
 };

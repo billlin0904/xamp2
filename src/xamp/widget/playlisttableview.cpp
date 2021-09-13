@@ -267,7 +267,7 @@ void PlayListTableView::initial() {
 
     auto f = font();
 #ifdef Q_OS_WIN
-    f.setPointSize(10);
+    f.setPointSize(12);
 #else
     f.setPointSize(14);
 #endif

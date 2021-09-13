@@ -57,5 +57,7 @@
         <file>fonts/digital.ttf</file>
         <file>Resource/Black/preference.png</file>
         <file>Resource/Black/help.png</file>
+        <file>fonts/WorkSans-Bold.ttf</file>
+        <file>fonts/WorkSans-Regular.ttf</file>
     </qresource>
 </RCC>

@@ -21,10 +21,11 @@ template
     typename T,
     typename Mutex = std::mutex,
     typename ConditionVariable = std::condition_variable,
+    typename Queue = CircularBuffer<T>,
     typename V = 
     std::enable_if_t
 	<
-		std::is_nothrow_move_assignable<T>::value
+		std::is_nothrow_move_assignable_v<T>
 	>
 >
 class XAMP_BASE_API_ONLY_EXPORT BoundedQueue final {
@@ -69,7 +70,7 @@ public:
 		return true;
 	}
 
-	bool Dequeue(T& task) noexcept {
+	bool Dequeue(T& task) {
 		std::unique_lock guard{ mutex_ };
 
 		while (queue_.empty() && !done_) {
@@ -84,8 +85,8 @@ public:
 		return true;
 	}
 
-    bool Dequeue(T& task, const std::chrono::milliseconds wait_time) noexcept {
-        std::unique_lock guard{mutex_};
+    bool Dequeue(T& task, const std::chrono::milliseconds wait_time) {
+        std::unique_lock guard{ mutex_ };
 
         // Note: cv.wait_for() does not deal with spurious weak up
         while (queue_.empty() && !done_) {
@@ -114,7 +115,7 @@ private:
     std::atomic<bool> done_;
     mutable Mutex mutex_;
     ConditionVariable notify_;
-    CircularBuffer<T> queue_;    
+    Queue queue_;
 };
 
 }

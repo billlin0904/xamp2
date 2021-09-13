@@ -62,7 +62,7 @@ void FramelessWindow::initial(XampPlayer *content_widget) {
         setWindowTitle(Q_UTF8("xamp"));
     }
 #endif
-    ui_font.setPixelSize(14);
+    ui_font.setPixelSize(16);
     qApp->setFont(ui_font);
     setStyleSheet(Q_UTF8(R"(
     QWidget#framelessWindow {
@@ -120,20 +120,26 @@ void FramelessWindow::createThumbnailToolBar() {
 }
 
 QFont FramelessWindow::setupUIFont() const {
-    const auto font_id = QFontDatabase::addApplicationFont(Q_UTF8(":/xamp/fonts/digital.ttf"));
-    const auto digital_font_families = QFontDatabase::applicationFontFamilies(font_id);
-	
+    const auto digital_font_id = QFontDatabase::addApplicationFont(Q_UTF8(":/xamp/fonts/digital.ttf"));
+    const auto digital_font_families = QFontDatabase::applicationFontFamilies(digital_font_id);
+
+    const auto title_font_id = QFontDatabase::addApplicationFont(Q_UTF8(":/xamp/fonts/WorkSans-Bold.ttf"));
+    auto title_font_families = QFontDatabase::applicationFontFamilies(title_font_id);
+
+    const auto default_font_id = QFontDatabase::addApplicationFont(Q_UTF8(":/xamp/fonts/WorkSans-Regular.ttf"));
+    auto default_font_families = QFontDatabase::applicationFontFamilies(default_font_id);
+
     QList<QString> fallback_fonts;
-    QFont digital_font(Q_UTF8("FormatFont"));
     QFont ui_font(Q_UTF8("UI"));
 
 #ifdef Q_OS_WIN
     // note: If we are support Source HanSans font sets must be enable Direct2D function,
     // But Qt framework not work fine with that!
-    fallback_fonts.push_back(Q_UTF8("Segoe UI"));
-    fallback_fonts.push_back(Q_UTF8("Microsoft YaHei UI"));
+    fallback_fonts.push_back(default_font_families[0]);
+    fallback_fonts.push_back(title_font_families[0]);
+    fallback_fonts.push_back(Q_UTF8("Lucida Grande"));
+    fallback_fonts.push_back(Q_UTF8("Lucida Sans Unicode"));
     fallback_fonts.push_back(Q_UTF8("Microsoft JhengHei UI"));
-    fallback_fonts.push_back(Q_UTF8("Meiryo"));
 #else
     const auto app_path = QCoreApplication::applicationDirPath();
     std::vector<QString> default_font_list{
@@ -156,10 +162,9 @@ QFont FramelessWindow::setupUIFont() const {
     }
 #endif
 
-    QFont::insertSubstitutions(Q_UTF8("UI"), fallback_fonts);    
+    QFont::insertSubstitutions(Q_UTF8("UI"), fallback_fonts);
     QFont::insertSubstitutions(Q_UTF8("FormatFont"), digital_font_families);
-	
-    digital_font.setStyleStrategy(QFont::PreferAntialias);
+
     ui_font.setStyleStrategy(QFont::PreferAntialias);
     return ui_font;
 }
