@@ -73,7 +73,9 @@ signals:
 
 	void readFileLUFS(const QModelIndex& index, const PlayListEntity& item);
 
-	void exportWaveFile(const QModelIndex& index, const PlayListEntity& item);
+    void exportWaveFile(const PlayListEntity& item);
+
+    void encodeFlacFile(const PlayListEntity& item);
 
 	void readLUFS(const PlayListEntity& item);
 

@@ -57,7 +57,7 @@ bool TestDsdFileFormat(std::wstring const& file_path) {
     return TestDsdFileFormat(file_chunks);
 }
 
-AlignPtr<FileStream> MakeStream(std::wstring const& file_ext, AlignPtr<FileStream> old_stream) {
+AlignPtr<FileStream> MakeStream() {
     return MakeAlign<FileStream, BassFileStream>();
 }
 

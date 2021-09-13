@@ -8,6 +8,7 @@
 #include <stream/compressor.h>
 #include <stream/wavefilewriter.h>
 #include <stream/dsdstream.h>
+#include <stream/bassfileencoder.h>
 
 #include <metadata/taglibmetawriter.h>
 
@@ -26,14 +27,37 @@ using namespace xamp::metadata;
 inline constexpr uint64_t kFingerprintDuration = 120;
 inline constexpr uint32_t kReadSampleSize = 8192 * 4;
 
+class ExceptedFile {
+public:
+    explicit  ExceptedFile(std::filesystem::path const& dest_file_path) {
+        dest_file_path_ = dest_file_path;
+        temp_file_path_ = Fs::temp_directory_path()
+                          / Fs::path(MakeTempFileName());
+    }
+
+    template <typename Func>
+    void Try(Func&& func) {
+        try {
+            func(temp_file_path_);
+            Fs::rename(temp_file_path_, dest_file_path_);
+        }
+        catch (...) {
+            std::filesystem::remove(temp_file_path_);
+        }
+    }
+
+private:
+    Fs::path dest_file_path_;
+    Fs::path temp_file_path_;
+};
+
 static double ReadProcess(std::wstring const& file_path,
-	std::wstring const& file_ext,
 	std::function<bool(uint32_t)> const& progress,
 	std::function<void(AudioFormat const&)> const& prepare,
 	std::function<void(float const*, uint32_t)> const& func,
 	uint64_t max_duration = std::numeric_limits<uint64_t>::max()) {
 	const auto is_dsd_file = TestDsdFileFormatStd(file_path);
-	auto file_stream = MakeStream(file_ext);
+    auto file_stream = MakeStream();
 
 	if (auto* stream = dynamic_cast<DsdStream*>(file_stream.get())) {
 		if (is_dsd_file) {
@@ -83,32 +107,7 @@ static double ReadProcess(std::wstring const& file_path,
 	return file_stream->GetDuration();
 }
 
-class ExceptedFile {
-public:	
-	explicit  ExceptedFile(std::filesystem::path const& dest_file_path) {
-		dest_file_path_ = dest_file_path;
-		temp_file_path_ = Fs::temp_directory_path()
-            / Fs::path(MakeTempFileName());
-	}
-
-	template <typename Func>
-	void Try(Func&& func) {
-		try {
-			func(temp_file_path_);
-			Fs::rename(temp_file_path_, dest_file_path_);
-		}
-		catch (...) {
-			std::filesystem::remove(temp_file_path_);
-		}
-	}
-
-private:
-	Fs::path dest_file_path_;
-	Fs::path temp_file_path_;
-};
-
 void Export2WaveFile(std::wstring const& file_path,
-	std::wstring const& file_ext,
 	std::wstring const& output_file_path,
 	std::function<bool(uint32_t)> const& progress,
 	Metadata const& metadata,
@@ -119,7 +118,7 @@ void Export2WaveFile(std::wstring const& file_path,
 		{
 			WaveFileWriter file;
 			Compressor compressor;
-			auto prepare = [&file, &metadata, dest_file_path, &compressor, &converter, output_sample_rate](AudioFormat const& input_format) {
+            auto prepare = [&file, dest_file_path, &compressor, &converter, output_sample_rate](AudioFormat const& input_format) {
 				auto format = input_format;
 				format.SetByteFormat(ByteFormat::SINT24);
 				format.SetSampleRate(output_sample_rate);
@@ -134,7 +133,7 @@ void Export2WaveFile(std::wstring const& file_path,
 				converter->Process(buf.data(), buf.size(), file);
 			};
 
-			ReadProcess(file_path, file_ext, progress, prepare, process);
+            ReadProcess(file_path, progress, prepare, process);
 			file.Close();
 			TaglibMetadataWriter writer;
 			writer.Write(dest_file_path, metadata);
@@ -142,7 +141,6 @@ void Export2WaveFile(std::wstring const& file_path,
 }
 
 void Export2WaveFile(std::wstring const& file_path,
-	std::wstring const& file_ext,
 	std::wstring const& output_file_path,
 	std::function<bool(uint32_t)> const& progress,
 	Metadata const& metadata,
@@ -151,7 +149,7 @@ void Export2WaveFile(std::wstring const& file_path,
 	excepted.Try([&](auto const& dest_file_path) {
 		WaveFileWriter file;
 		Compressor compressor;
-		ReadProcess(file_path, file_ext, progress,
+        ReadProcess(file_path, progress,
             [&file, dest_file_path, &compressor](AudioFormat const& input_format) {
 				auto format = input_format;
 				format.SetByteFormat(ByteFormat::SINT24);
@@ -174,11 +172,10 @@ void Export2WaveFile(std::wstring const& file_path,
 }
 
 std::tuple<double, double> ReadFileLUFS(std::wstring const& file_path,
-	std::wstring const& file_ext,
 	std::function<bool(uint32_t)> const& progress) {
 	std::optional<LoudnessScanner> scanner;
 
-	ReadProcess(file_path, file_ext, progress,
+    ReadProcess(file_path, progress,
 		[&scanner](AudioFormat const& input_format)
 		{
 			scanner = LoudnessScanner(input_format.GetSampleRate());
@@ -191,14 +188,13 @@ std::tuple<double, double> ReadFileLUFS(std::wstring const& file_path,
 }
 
 std::tuple<double, std::vector<uint8_t>> ReadFingerprint(std::wstring const& file_path,
-	std::wstring const& file_ext,
 	std::function<bool(uint32_t)> const& progress) {
 	Chromaprint chromaprint;
 
 	std::vector<int16_t> osamples;
 	AudioFormat convert_format;
 
-	auto duration = ReadProcess(file_path, file_ext, progress,
+    auto duration = ReadProcess(file_path, progress,
         [&chromaprint, &convert_format](AudioFormat const& input_format)
 		{
 			convert_format = input_format;
@@ -220,3 +216,17 @@ std::tuple<double, std::vector<uint8_t>> ReadFingerprint(std::wstring const& fil
 	};
 }
 
+void EncodeFile(std::wstring const& file_path,
+                std::wstring const& output_file_path,
+                std::wstring const& command,
+                std::function<bool(uint32_t)> const& progress,
+                Metadata const& metadata) {
+    ExceptedFile excepted(output_file_path);
+    excepted.Try([&](auto const& dest_file_path) {
+        BassFileEncoder encoder;
+        encoder.Start(file_path, dest_file_path.wstring(), command);
+        encoder.Encode(progress);
+        TaglibMetadataWriter writer;
+        writer.Write(dest_file_path, metadata);
+    });
+}

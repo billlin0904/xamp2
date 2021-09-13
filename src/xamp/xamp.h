@@ -148,7 +148,9 @@ private:
 
 	void readFileLUFS(const QModelIndex&, const PlayListEntity& item);
 
-	void exportWaveFile(const QModelIndex&, const PlayListEntity& item);
+    void exportWaveFile(const PlayListEntity& item);
+
+    void encodeFlacFile(const PlayListEntity& item);
 
 	void createTrayIcon();
 

@@ -24,7 +24,7 @@ ReadLufsWorker::ReadLufsWorker() = default;
 
 void ReadLufsWorker::addEntity(PlayListEntity const& entity) {
 	const auto is_dsd_file = TestDsdFileFormatStd(entity.file_path.toStdWString());
-	auto file_stream = MakeStream(entity.file_ext.toStdWString());
+    auto file_stream = MakeStream();
 
 	if (auto* stream = dynamic_cast<DsdStream*>(file_stream.get())) {
 		if (is_dsd_file) {

@@ -449,6 +449,7 @@ void PlayListTableView::initial() {
         auto * reload_file_fingerprint_act = action_map.addAction(tr("Read file fingerprint"));
         auto * read_file_lufs_act = action_map.addAction(tr("Read file LUFS"));
         auto * export_wave_file_act = action_map.addAction(tr("Export wave file"));
+        auto * export_flac_file_act = action_map.addAction(tr("Export flac file"));
         auto * copy_album_act = action_map.addAction(tr("Copy album"));
         auto * copy_artist_act = action_map.addAction(tr("Copy artist"));
         auto * copy_title_act = action_map.addAction(tr("Copy title"));
@@ -502,12 +503,19 @@ void PlayListTableView::initial() {
 
         action_map.setCallback(export_wave_file_act, [this]() {
             const auto rows = selectItemIndex();
-            for (const auto row : rows) {
+            for (const auto& row : rows) {
                 auto entity = this->item(row.second);
-                emit exportWaveFile(row.second, entity);
+                emit exportWaveFile(entity);
             }
-            refresh();
             });
+
+        action_map.setCallback(export_flac_file_act, [this]() {
+            const auto rows = selectItemIndex();
+            for (const auto& row : rows) {
+                auto entity = this->item(row.second);
+                emit encodeFlacFile(entity);
+            }
+        });
     	
         action_map.addSeparator();
         action_map.setCallback(copy_album_act, [item]() {

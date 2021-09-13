@@ -3,6 +3,7 @@
 #include <base/dll.h>
 #include <base/str_utilts.h>
 #include <base/logger.h>
+#include <base/rng.h>
 #include <base/platform.h>
 
 #ifdef XAMP_OS_WIN
@@ -163,12 +164,11 @@ std::string GetCurrentThreadId() {
 }
 
 std::string MakeTempFileName() {
-    char filename[64] = "xamp-cache-XXXXXX";
-#if XAMP_OS_MAC
-    mkstemp(filename);
-#else
-    _mktemp_s(filename, sizeof(filename));
-#endif
+    std::string filename;
+    static constexpr std::string_view kFilenameCharacters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    for (auto i = 0; i < 8; ++i) {
+        filename += kFilenameCharacters[RNG::GetInstance()(size_t(0), kFilenameCharacters.length() - 1)];
+    }
     return filename;
 }
 

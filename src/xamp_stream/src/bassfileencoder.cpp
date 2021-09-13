@@ -1,5 +1,6 @@
 #include <fstream>
 #include <base/buffer.h>
+#include <base/str_utilts.h>
 #include <base/exception.h>
 #include <stream/bassfilestream.h>
 #include <stream/basslib.h>
@@ -27,19 +28,23 @@ public:
             break;
         }
 
-        encoder_.reset(BASS.EncLib->BASS_Encode_Start(stream_.GetHStream(),
-            command.c_str(),
-            flags | BASS_UNICODE,
-            EncoderCallback,
-            this));
+#ifdef XAMP_OS_MAC
+        auto utf8_command = String::ToString(command);
+        auto utf8_ouput_file_name = String::ToString(output_file_path);
+        encoder_.reset(BASS.EncLib->BASS_Encode_FLAC_StartFile(stream_.GetHStream(),
+                                                      utf8_command.c_str(),
+                                                      flags,
+                                                      utf8_ouput_file_name.c_str()));
+#else
+        encoder_.reset(BASS.EncLib->BASS_Encode_FLAC_StartFile(stream_.GetHStream(),
+                                                               input_file_path.c_str(),
+                                                               flags | BASS_UNICODE,
+                                                               output_file_path.c_str()));
+#endif
+
 
         if (!encoder_) {
             throw BassException();
-        }
-
-        file_.open(Path(output_file_path), std::ios::binary);
-        if (!file_) {
-            throw PlatformSpecException();
         }
     }
 
@@ -62,20 +67,14 @@ public:
             if (!progress(percent)) {
                 break;
             }
-        }        
+        }
+        Stop();
     }
 
 	void Stop() {
         BASS.EncLib->BASS_Encode_Stop(encoder_.get());
-        file_.close();
 	}
 
-    static void EncoderCallback(HENCODE, DWORD, const void *buffer, DWORD length, void *user) {
-        auto* impl = static_cast<BassFileEncoderImpl*>(user);
-        impl->file_.write(static_cast<const char*>(buffer), length);
-    }
-
-    std::ofstream file_;
     BassFileStream stream_;
     BassStreamHandle encoder_;
 };

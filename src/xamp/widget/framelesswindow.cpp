@@ -132,7 +132,6 @@ QFont FramelessWindow::setupUIFont() const {
     QList<QString> fallback_fonts;
     QFont ui_font(Q_UTF8("UI"));
 
-#ifdef Q_OS_WIN
     // note: If we are support Source HanSans font sets must be enable Direct2D function,
     // But Qt framework not work fine with that!
     fallback_fonts.push_back(default_font_families[0]);
@@ -140,27 +139,10 @@ QFont FramelessWindow::setupUIFont() const {
     fallback_fonts.push_back(Q_UTF8("Lucida Grande"));
     fallback_fonts.push_back(Q_UTF8("Lucida Sans Unicode"));
     fallback_fonts.push_back(Q_UTF8("Microsoft JhengHei UI"));
-#else
-    const auto app_path = QCoreApplication::applicationDirPath();
-    std::vector<QString> default_font_list{
-        app_path + Q_UTF8("/Resource/Fonts/SourceHanSans.ttc"),
-        };
-
-    for (const auto& path : default_font_list) {
-        const auto font_id = QFontDatabase::addApplicationFont(path);
-        auto font_families = QFontDatabase::applicationFontFamilies(font_id);
-        for (const auto & family : font_families) {
-            if (!family.contains(Q_UTF8("Normal")) 
-                && !family.contains(Q_UTF8("ExtraLight"))
-                && !family.contains(Q_UTF8("Heavy"))
-                && !family.contains(Q_UTF8("Medium"))
-                && !family.contains(Q_UTF8("HW"))
-                && !family.contains(Q_UTF8("Light"))) {
-                fallback_fonts.append(family);
-        	}
-        }
-    }
-#endif
+    fallback_fonts.push_back(Q_UTF8("Helvetica Neue"));
+    // macOS fallback font
+    fallback_fonts.push_back(Q_UTF8("PingFang TC"));
+    fallback_fonts.push_back(Q_UTF8("Heiti TC"));
 
     QFont::insertSubstitutions(Q_UTF8("UI"), fallback_fonts);
     QFont::insertSubstitutions(Q_UTF8("FormatFont"), digital_font_families);

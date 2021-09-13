@@ -13,7 +13,7 @@
 #include <bass/bass_fx.h>
 #include <bass/bassmix.h>
 #include <bass/basscd.h>
-#include <bass/bassenc.h>
+#include <bass/bassenc_flac.h>
 
 #include <base/singleton.h>
 #include <base/dll.h>
@@ -134,11 +134,7 @@ private:
     ModuleHandle module_;
 
 public:
-#ifdef XAMP_OS_MAC
-    DllFunction<HSTREAM(DWORD, const char*, DWORD, ENCODEPROC*, void*)> BASS_Encode_Start;
-#else
-    DllFunction<HSTREAM(DWORD, const wchar_t*, DWORD, ENCODEPROC*, void*)> BASS_Encode_Start;
-#endif
+    XAMP_DECLARE_DLL(BASS_Encode_FLAC_StartFile) BASS_Encode_FLAC_StartFile;
     XAMP_DECLARE_DLL(BASS_Encode_Stop) BASS_Encode_Stop;
 };
 

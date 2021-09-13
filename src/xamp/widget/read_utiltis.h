@@ -19,25 +19,27 @@ using namespace xamp::player;
 
 std::tuple<double, std::vector<uint8_t>> ReadFingerprint(
 	std::wstring const & file_path,
-    std::wstring const & file_ext,
     std::function<bool(uint32_t)> const & progress);
 	
 std::tuple<double, double> ReadFileLUFS(std::wstring const& file_path,
-	std::wstring const& file_ext,
 	std::function<bool(uint32_t)> const& progress);
 
 void Export2WaveFile(std::wstring const& file_path,
-	std::wstring const& file_ext,
 	std::wstring const& output_file_path,
 	std::function<bool(uint32_t)> const& progress,
 	Metadata const &metadata,
 	bool enable_compressor = true);
 
 void Export2WaveFile(std::wstring const& file_path,
-	std::wstring const& file_ext,
 	std::wstring const& output_file_path,
 	std::function<bool(uint32_t)> const& progress,
 	Metadata const& metadata,
 	uint32_t output_sample_rate,
 	AlignPtr<SampleRateConverter> &converter);
+
+void EncodeFile(std::wstring const& file_path,
+    std::wstring const& output_file_path,
+    std::wstring const& command,
+    std::function<bool(uint32_t)> const& progress,
+    Metadata const& metadata);
 

@@ -20,7 +20,7 @@ XAMP_STREAM_API HashSet<std::string> const& GetSupportFileExtensions();
 
 XAMP_STREAM_API DsdStream * AsDsdStream(AlignPtr<FileStream> const & stream) noexcept;
 	
-XAMP_STREAM_API AlignPtr<FileStream> MakeStream(std::wstring const& file_ext, AlignPtr<FileStream> old_stream = nullptr);
+XAMP_STREAM_API AlignPtr<FileStream> MakeStream();
 
 
 }

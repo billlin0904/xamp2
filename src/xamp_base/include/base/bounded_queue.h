@@ -59,7 +59,7 @@ public:
         notify_.notify_one();
     }
 
-	bool TryDequeue(T& task) noexcept {
+    bool TryDequeue(T& task) {
 		const std::unique_lock lock{ mutex_, std::try_to_lock };
 
 		if (!lock || queue_.empty()) {

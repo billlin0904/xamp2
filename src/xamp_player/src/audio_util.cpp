@@ -48,9 +48,8 @@ std::pair<DsdModes, AlignPtr<FileStream>> MakeFileStream(Path const& path,
     DeviceInfo const& device_info,
     bool enable_sample_converter) {
     auto const file_path = path.wstring();
-    auto const file_ext = path.extension().wstring();
 	const auto is_dsd_file = TestDsdFileFormatStd(file_path);
-    auto test_dsd_mode_stream = MakeStream(file_ext);    
+    auto test_dsd_mode_stream = MakeStream();
     auto dsd_mode = SetStreamDsdMode(test_dsd_mode_stream, is_dsd_file, device_info, enable_sample_converter);
     test_dsd_mode_stream->OpenFile(file_path);
     return std::make_pair(dsd_mode, std::move(test_dsd_mode_stream));

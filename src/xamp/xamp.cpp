@@ -1350,7 +1350,6 @@ void Xamp::readFileLUFS(const QModelIndex&, const PlayListEntity& item) {
 
     try {
         auto [lufs, true_peak] = ReadFileLUFS(item.file_path.toStdWString(),
-            item.file_ext.toStdWString(),
             [&](auto progress) -> bool {
                 dialog->setValue(progress);
                 qApp->processEvents();
@@ -1363,10 +1362,45 @@ void Xamp::readFileLUFS(const QModelIndex&, const PlayListEntity& item) {
     }    
 }
 
-void Xamp::exportWaveFile(const QModelIndex&, const PlayListEntity& item) {
+void Xamp::encodeFlacFile(const PlayListEntity& item) {
+    const auto file_name = QFileDialog::getSaveFileName(this, tr("Save Flac file"),
+                                                        item.title,
+                                                        tr("WAVE Files (*.flac)"));
+
+    if (file_name.isNull()) {
+        return;
+    }
+
+    auto dialog = makeProgressDialog(tr("Export progress dialog"),
+                                     tr("Export '") + item.title + tr("' to flac file"),
+                                     tr("Cancel"));
+    dialog->show();
+
+    Metadata metadata;
+    metadata.album = item.album.toStdWString();
+    metadata.artist = item.artist.toStdWString();
+    metadata.title = item.title.toStdWString();
+    metadata.track = item.track;
+
+    try {
+        EncodeFile(item.file_path.toStdWString(),
+            file_name.toStdWString(),
+            L"-8",
+            [&](auto progress) -> bool {
+                dialog->setValue(progress);
+                qApp->processEvents();
+                return dialog->wasCanceled() != true;
+            }, metadata);
+    }
+    catch (Exception const& e) {
+        Toast::showTip(Q_UTF8(e.what()), this);
+    }
+}
+
+void Xamp::exportWaveFile(const PlayListEntity& item) {
     const auto file_name = QFileDialog::getSaveFileName(this, tr("Save WAVE file"),
-        item.title,
-        tr("WAVE Files (*.wav)"));
+                                                        item.title,
+                                                        tr("WAVE Files (*.wav)"));
 	
     if (file_name.isNull()) {
         return;
@@ -1390,7 +1424,6 @@ void Xamp::exportWaveFile(const QModelIndex&, const PlayListEntity& item) {
 
         try {
             Export2WaveFile(item.file_path.toStdWString(),
-                item.file_ext.toStdWString(),
                 file_name.toStdWString(),
                 [&](auto progress) -> bool {
                     dialog->setValue(progress);
@@ -1404,7 +1437,6 @@ void Xamp::exportWaveFile(const QModelIndex&, const PlayListEntity& item) {
     }  else {
         try {
             Export2WaveFile(item.file_path.toStdWString(),
-                item.file_ext.toStdWString(),
                 file_name.toStdWString(),
                 [&](auto progress) -> bool {
                     dialog->setValue(progress);
@@ -1432,7 +1464,6 @@ void Xamp::readFingerprint(const QModelIndex&, const PlayListEntity& item) {
     try {
         const auto [duration, fingerprint_result] =
             ReadFingerprint(item.file_path.toStdWString(),
-                            item.file_ext.toStdWString(),
                             [&](auto progress) -> bool {
                                 dialog->setValue(progress);
                                 qApp->processEvents();
@@ -1483,6 +1514,9 @@ PlyalistPage* Xamp::newPlaylist(int32_t playlist_id) {
 
     (void)QObject::connect(playlist_page->playlist(), &PlayListTableView::exportWaveFile,
         this, &Xamp::exportWaveFile);
+
+    (void)QObject::connect(playlist_page->playlist(), &PlayListTableView::encodeFlacFile,
+                            this, &Xamp::encodeFlacFile);
 
     (void)QObject::connect(this, &Xamp::themeChanged,
                             playlist_page->playlist(),
