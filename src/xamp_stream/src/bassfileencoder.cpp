@@ -4,39 +4,39 @@
 #include <base/exception.h>
 #include <stream/bassfilestream.h>
 #include <stream/basslib.h>
+#include <stream/stream_util.h>
 #include <stream/bassfileencoder.h>
 
 namespace xamp::stream {
 
 class BassFileEncoder::BassFileEncoderImpl {
 public:
-    ~BassFileEncoderImpl() {
-        Stop();
-    }
-
     void Start(std::wstring const& input_file_path, std::wstring const& output_file_path, std::wstring const& command) {
-        DWORD flags = 0;
+        DWORD flags = BASS_ENCODE_AUTOFREE;
 
+        if (TestDsdFileFormatStd(input_file_path)) {
+            stream_.SetDSDMode(DsdModes::DSD_MODE_DSD2PCM);
+        }
         stream_.OpenFile(input_file_path);
 
         switch (stream_.GetBitDepth()) {
         case 24:
-            flags = BASS_ENCODE_FP_24BIT;
+            flags |= BASS_ENCODE_FP_24BIT;
             break;
         default:
-            flags = BASS_ENCODE_FP_16BIT;
+            flags |= BASS_ENCODE_FP_16BIT;
             break;
         }
 
 #ifdef XAMP_OS_MAC
         auto utf8_command = String::ToString(command);
         auto utf8_ouput_file_name = String::ToString(output_file_path);
-        encoder_.reset(BASS.EncLib->BASS_Encode_FLAC_StartFile(stream_.GetHStream(),
+        encoder_.reset(BASS.FlacEncLib->BASS_Encode_FLAC_StartFile(stream_.GetHStream(),
                                                       utf8_command.c_str(),
                                                       flags,
                                                       utf8_ouput_file_name.c_str()));
 #else
-        encoder_.reset(BASS.EncLib->BASS_Encode_FLAC_StartFile(stream_.GetHStream(),
+        encoder_.reset(BASS.FlacEncLib->BASS_Encode_FLAC_StartFile(stream_.GetHStream(),
                                                                input_file_path.c_str(),
                                                                flags | BASS_UNICODE,
                                                                output_file_path.c_str()));
@@ -68,12 +68,7 @@ public:
                 break;
             }
         }
-        Stop();
     }
-
-	void Stop() {
-        BASS.EncLib->BASS_Encode_Stop(encoder_.get());
-	}
 
     BassFileStream stream_;
     BassStreamHandle encoder_;

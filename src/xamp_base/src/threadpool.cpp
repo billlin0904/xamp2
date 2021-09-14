@@ -9,10 +9,10 @@ inline constexpr auto kPopWaitTimeout = std::chrono::milliseconds(5);
 inline constexpr auto kMaxStreamReaderThreadPoolSize{ 4 };
 inline constexpr auto kMaxWASAPIThreadPoolSize{ 4 };
 
-TaskScheduler::TaskScheduler(size_t max_thread, int32_t core)
+TaskScheduler::TaskScheduler(size_t max_thread, int32_t affinity)
 	: is_stopped_(false)
 	, active_thread_(0)
-	, core_(core)
+	, affinity_(affinity)
 	, index_(0)
 	, max_thread_(max_thread)
 	, pool_queue_(max_thread * 16) {
@@ -30,7 +30,7 @@ TaskScheduler::TaskScheduler(size_t max_thread, int32_t core)
 		throw;
 	}	
 #ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
-	XAMP_LOG_D(logger_, "TaskScheduler initial max thread:{} affinity:{}", max_thread, core);
+	XAMP_LOG_D(logger_, "TaskScheduler initial max thread:{} affinity:{}", max_thread, affinity);
 #endif
 }
 
@@ -63,7 +63,7 @@ void TaskScheduler::SetAffinityMask(int32_t core) {
 	for (size_t i = 0; i < max_thread_; ++i) {
 		SetThreadAffinity(threads_.at(i), core);
 	}
-	core_ = core;
+	affinity_ = core;
 }
 
 void TaskScheduler::Destroy() noexcept {
@@ -188,13 +188,13 @@ void TaskScheduler::AddThread(size_t i) {
 		}
 		});
 
-	if (core_ != -1) {
-		SetThreadAffinity(threads_.at(i), core_);
+	if (affinity_ != -1) {
+		SetThreadAffinity(threads_.at(i), affinity_);
 	}
 }
 
-ThreadPool::ThreadPool(uint32_t max_thread)
-	: scheduler_((std::min)(max_thread, kMaxThread)) {
+ThreadPool::ThreadPool(uint32_t max_thread, int32_t affinity)
+	: scheduler_((std::min)(max_thread, kMaxThread), affinity) {
 }
 
 size_t ThreadPool::GetActiveThreadCount() const noexcept {
@@ -215,7 +215,7 @@ ThreadPool& ThreadPool::StreamReaderThreadPool() {
 }
 
 ThreadPool& ThreadPool::WASAPIThreadPool() {
-	static ThreadPool wasapi_threadpool(kMaxWASAPIThreadPoolSize);
+	static ThreadPool wasapi_threadpool(kMaxWASAPIThreadPoolSize, 0);
 	return wasapi_threadpool;
 }
 

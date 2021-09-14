@@ -8,13 +8,13 @@
 #include <stream/compressor.h>
 #include <stream/wavefilewriter.h>
 #include <stream/dsdstream.h>
-#include <stream/bassfileencoder.h>
+#include <stream/stream_util.h>
+#include <stream/fileencoder.h>
 
 #include <metadata/taglibmetawriter.h>
 
 #include <player/chromaprint.h>
 #include <player/audio_player.h>
-#include <player/audio_util.h>
 #include <player/loudness_scanner.h>
 #include <player/samplerateconverter.h>
 
@@ -36,14 +36,16 @@ public:
     }
 
     template <typename Func>
-    void Try(Func&& func) {
+    bool Try(Func&& func) noexcept {
         try {
             func(temp_file_path_);
             Fs::rename(temp_file_path_, dest_file_path_);
+			return true;
         }
         catch (...) {
             std::filesystem::remove(temp_file_path_);
         }
+		return false;
     }
 
 private:
@@ -222,11 +224,12 @@ void EncodeFile(std::wstring const& file_path,
                 std::function<bool(uint32_t)> const& progress,
                 Metadata const& metadata) {
     ExceptedFile excepted(output_file_path);
-    excepted.Try([&](auto const& dest_file_path) {
-        BassFileEncoder encoder;
-        encoder.Start(file_path, dest_file_path.wstring(), command);
-        encoder.Encode(progress);
-        TaglibMetadataWriter writer;
-        writer.Write(dest_file_path, metadata);
-    });
+    if (excepted.Try([&](auto const& dest_file_path) {
+	    auto encoder = MakeEncoder();
+        encoder->Start(file_path, dest_file_path.wstring(), command);
+        encoder->Encode(progress);
+    })) {
+		TaglibMetadataWriter writer;
+		writer.Write(output_file_path, metadata);
+    }
 }

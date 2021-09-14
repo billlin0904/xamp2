@@ -93,7 +93,7 @@ using Task = TaskWrapper;
 	
 class XAMP_BASE_API TaskScheduler final {
 public:
-    explicit TaskScheduler(size_t max_thread, int32_t core = kDefaultAffinityCpuCore);
+    explicit TaskScheduler(size_t max_thread, int32_t affinity);
 	
     XAMP_DISABLE_COPY(TaskScheduler)
 
@@ -127,7 +127,7 @@ private:
 
 	std::atomic<bool> is_stopped_;
     std::atomic<size_t> active_thread_;
-    int32_t core_;
+    int32_t affinity_;
 	size_t index_;
     size_t max_thread_;
     TaskQueue pool_queue_;
@@ -156,13 +156,16 @@ public:
     void SetAffinityMask(int32_t core);
 
 private:
-	explicit ThreadPool(uint32_t max_thread = std::thread::hardware_concurrency());
+	explicit ThreadPool(uint32_t max_thread = std::thread::hardware_concurrency(), int32_t affinity = kDefaultAffinityCpuCore);
     TaskScheduler scheduler_;
 };
 
 template <typename F, typename ... Args>
 decltype(auto) ThreadPool::Spawn(F &&f, Args&&... args) {	
     using ReturnType = std::invoke_result_t<F, Args...>;
+
+    // MSVC packaged_task can't be constructed from a move-only lambda
+    // https://github.com/microsoft/STL/issues/321
 	using PackagedTaskType = std::packaged_task<ReturnType()>;
 
     auto task = std::make_shared<PackagedTaskType>(

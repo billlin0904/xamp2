@@ -53,7 +53,7 @@ public:
 
     explicit AudioPlayer(const std::weak_ptr<PlaybackStateAdapter>& adapter);
 
-    static void LoadDecoder();
+    static void Initialize();
 
     XAMP_DISABLE_COPY(AudioPlayer)
 

@@ -107,14 +107,13 @@ catch (const Exception& e) {
 }
 #endif
 
-BassEncLib::BassEncLib() try
+BassFlacEncLib::BassFlacEncLib() try
 #ifdef XAMP_OS_WIN
     : module_(LoadModule("bassenc_flac.dll"))
 #else
     : module_(LoadModule("libbassenc_flac.dylib"))
 #endif
-    , LOAD_BASS_DLL_API(BASS_Encode_FLAC_StartFile)
-    , LOAD_BASS_DLL_API(BASS_Encode_Stop) {
+    , LOAD_BASS_DLL_API(BASS_Encode_FLAC_StartFile) {
 }
 catch (const Exception& e) {
     XAMP_LOG_ERROR("{}", e.GetErrorMessage());
@@ -194,7 +193,6 @@ void BassLib::Load() {
 #else
     LoadPlugin("libbassflac.dylib");
     LoadPlugin("libbassdsd.dylib");
-    LoadPlugin("libbassenc_flac.dylib");
 #endif
 
     BASS.BASS_SetConfig(BASS_CONFIG_DSD_FREQ, 88200);

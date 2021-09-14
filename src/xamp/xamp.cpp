@@ -1365,7 +1365,7 @@ void Xamp::readFileLUFS(const QModelIndex&, const PlayListEntity& item) {
 void Xamp::encodeFlacFile(const PlayListEntity& item) {
     const auto file_name = QFileDialog::getSaveFileName(this, tr("Save Flac file"),
                                                         item.title,
-                                                        tr("WAVE Files (*.flac)"));
+                                                        tr("FLAC Files (*.flac)"));
 
     if (file_name.isNull()) {
         return;

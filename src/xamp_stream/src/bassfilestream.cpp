@@ -184,6 +184,9 @@ FlushFileCache:
         if (mode_ == DsdModes::DSD_MODE_DOP) {
             return 8;
         }
+        if (mode_ == DsdModes::DSD_MODE_DSD2PCM) {
+            return 24;
+        }
         return info_.origres;
     }
 
@@ -430,7 +433,7 @@ void LoadBassLib() {
     BASS.CDLib = MakeAlign<BassCDLib>();
     XAMP_LOG_DEBUG("Load BassCDLib successfully.");
 #endif
-    BASS.EncLib = MakeAlign<BassEncLib>();
+    BASS.FlacEncLib = MakeAlign<BassFlacEncLib>();
     XAMP_LOG_DEBUG("Load BassEncLib successfully.");
 }
 

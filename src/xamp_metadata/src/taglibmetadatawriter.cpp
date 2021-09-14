@@ -105,6 +105,10 @@ private:
 #else
         FileRef fileref(path.string().c_str());
 #endif
+		if (!fileref.tag()) {
+			XAMP_LOG_DEBUG("tag is NULL!");
+			return;
+		}
         fun(fileref.file(), fileref.tag());
         if (!fileref.save()) {
 			XAMP_LOG_DEBUG("Write tag failure!");

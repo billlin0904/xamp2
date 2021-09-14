@@ -101,7 +101,7 @@ void AudioPlayer::UpdateSlice(int32_t sample_size, double stream_time) noexcept 
         std::memory_order_relaxed);
 }
 
-void AudioPlayer::LoadDecoder() {
+void AudioPlayer::Initialize() {
     LoadBassLib();
     XAMP_LOG_DEBUG("Load BASS dll success.");
 
@@ -120,7 +120,7 @@ void AudioPlayer::LoadDecoder() {
     XAMP_LOG_DEBUG("AudioDeviceManager init success.");
 
 #ifdef XAMP_OS_WIN
-    ThreadPool::WASAPIThreadPool().SetAffinityMask(0);
+    ThreadPool::WASAPIThreadPool();
 #endif
     ThreadPool::StreamReaderThreadPool();
 }

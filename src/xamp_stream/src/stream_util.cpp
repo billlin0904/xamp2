@@ -1,10 +1,11 @@
 #include <fstream>
-#include <base/singleton.h>
 #include <base/memory_mapped_file.h>
 #include <base/str_utilts.h>
 #include <base/logger.h>
 #include <stream/dsdstream.h>
 #include <stream/bassfilestream.h>
+#include <stream/fileencoder.h>
+#include <stream/bassfileencoder.h>
 #include <stream/stream_util.h>
 
 namespace xamp::stream {
@@ -47,18 +48,12 @@ bool TestDsdFileFormatStd(std::wstring const& file_path) {
     return TestDsdFileFormat(file_chunks);
 }
 
-bool TestDsdFileFormat(std::wstring const& file_path) {
-    MemoryMappedFile file;
-    file.Open(file_path);
-    if (file.GetLength() < 4) {
-        return false;
-    }
-    const std::string_view file_chunks{ static_cast<char const*>(file.GetData()), 4 };
-    return TestDsdFileFormat(file_chunks);
-}
-
 AlignPtr<FileStream> MakeStream() {
     return MakeAlign<FileStream, BassFileStream>();
+}
+
+AlignPtr<FileEncoder> MakeEncoder() {
+    return MakeAlign<FileEncoder, BassFileEncoder>();
 }
 
 DsdStream* AsDsdStream(AlignPtr<FileStream> const& stream) noexcept {

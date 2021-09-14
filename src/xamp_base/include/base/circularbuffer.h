@@ -111,7 +111,7 @@ public:
         }
     }
 
-    void push(const T item) {
+    void push(const T & item) {
         head_ = next_pos();
         data_[head_] = item;
 
@@ -120,7 +120,7 @@ public:
         }
     }
 
-    T& pop() noexcept {
+    T& pop() {
         if (empty()) {
             throw std::runtime_error("empty buffer");
         }

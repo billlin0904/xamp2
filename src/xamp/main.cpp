@@ -171,7 +171,7 @@ static int excute(int argc, char* argv[]) {
     QApplication app(argc, argv);
 
     try {
-        AudioPlayer::LoadDecoder();
+        AudioPlayer::Initialize();
     }
     catch (const Exception& e) {
         QMessageBox::critical(nullptr,

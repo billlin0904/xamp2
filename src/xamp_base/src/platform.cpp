@@ -140,23 +140,6 @@ void SetThreadAffinity(std::thread& thread, int32_t core) noexcept {
 #endif
 }
 
-void SetCurrentThreadAffinity(int32_t core) noexcept {
-#ifdef XAMP_OS_WIN
-    WinHandle current_thread(::GetCurrentThread());
-    auto mask = (static_cast<DWORD_PTR>(1) << core);
-    ::SetThreadAffinityMask(current_thread.get(), mask);
-#else
-    thread_affinity_policy_data_t policy = { core };
-    auto thread_id = std::this_thread::get_id();
-    auto native_handle = *reinterpret_cast<std::thread::native_handle_type*>(&thread_id);
-    ::thread_policy_set(
-        ::pthread_mach_thread_np(native_handle),
-        THREAD_AFFINITY_POLICY,
-        reinterpret_cast<thread_policy_t>(&policy),
-        1);
-#endif
-}
-
 std::string GetCurrentThreadId() {
     std::ostringstream ostr;
     ostr << std::this_thread::get_id();
@@ -164,10 +147,10 @@ std::string GetCurrentThreadId() {
 }
 
 std::string MakeTempFileName() {
-    std::string filename;
+    std::string filename = "xamp_temp_";
     static constexpr std::string_view kFilenameCharacters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     for (auto i = 0; i < 8; ++i) {
-        filename += kFilenameCharacters[RNG::GetInstance()(size_t(0), kFilenameCharacters.length() - 1)];
+        filename += kFilenameCharacters[RNG::GetInstance()(static_cast<size_t>(0), kFilenameCharacters.length() - 1)];
     }
     return filename;
 }
