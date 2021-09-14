@@ -22,4 +22,8 @@ XAMP_STREAM_API AlignPtr<FileStream> MakeStream();
 
 XAMP_STREAM_API AlignPtr<FileEncoder> MakeEncoder();
 
+#ifdef XAMP_OS_WIN
+XAMP_STREAM_API AlignPtr<CDDevice> MakeCDDevice(char driver_letter);
+#endif
+
 }

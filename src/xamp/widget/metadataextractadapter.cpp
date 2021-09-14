@@ -240,3 +240,8 @@ void MetadataExtractAdapter::processMetadata(const std::vector<Metadata>& result
     }
 }
 
+Metadata MetadataExtractAdapter::getMetadata(QString const& file_path) {
+    const Path path(file_path.toStdWString());
+    TaglibMetadataReader reader;
+    return reader.Extract(path);
+}

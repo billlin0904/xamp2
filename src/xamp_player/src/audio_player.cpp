@@ -739,12 +739,6 @@ AudioDeviceManager& AudioPlayer::GetAudioDeviceManager() {
     return device_manager_;
 }
 
-#ifdef XAMP_OS_WIN
-AlignPtr<CDDevice> AudioPlayer::MakeCDDevice(char driver_letter) {
-    return MakeAlign<CDDevice, BassCDDevice>(driver_letter);
-}
-#endif
-
 void AudioPlayer::Play() {
     if (!device_) {
         return;

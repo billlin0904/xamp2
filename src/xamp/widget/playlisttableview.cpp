@@ -15,6 +15,7 @@
 
 #include <base/rng.h>
 #include <base/str_utilts.h>
+#include <stream/stream_util.h>
 #include <player/audio_player.h>
 #include <metadata/metadatareader.h>
 #include <metadata/taglibmetareader.h>
@@ -425,17 +426,18 @@ void PlayListTableView::initial() {
 
                     if (kCDFileSystemType.contains(storage.fileSystemType().toUpper().toStdString())) {
                         open_cd_submenu->addAction(display_name, [storage, driver_letter, this]() {
-                        	auto device= AudioPlayer::MakeCDDevice(driver_letter);
-                            auto device_info = device->GetCDDeviceInfo();
-                            if (device_info.can_read_cdtext) {
-                                auto cd_text = device->GetCDText();
-                            }
+                        	auto device= xamp::stream::MakeCDDevice(driver_letter);
+                            auto device_info = device->GetCDDeviceInfo();                            
                             device->SetMaxSpeed();
                             auto track_id = 0;
                             for (auto const & track : device->GetTotalTracks()) {
-                                device->GetTrackLength(track_id++);
-                                append(QString::fromStdWString(track), false);
+                                auto metadata = MetadataExtractAdapter::getMetadata(QString::fromStdWString(track));
+                                //auto isrc = device->GetISRC(track_id);
+                                metadata.duration = device->GetDuration(track_id++);
+                                metadata.samplerate = 44100;                                
+                                Singleton<Database>::GetInstance().addOrUpdateMusic(metadata, playlist_id_);
                             }
+                            refresh();
                         });
                     }
                 }

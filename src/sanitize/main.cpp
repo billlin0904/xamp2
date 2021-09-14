@@ -20,7 +20,7 @@ int main() {
 		Logger::GetInstance().Shutdown();
 	);
 
-	AudioPlayer::LoadDecoder();
+	AudioPlayer::Initialize();
 
 	auto player = std::make_shared<AudioPlayer>();
 	auto avaiable_device_type = player->GetAudioDeviceManager().GetAvailableDeviceType();

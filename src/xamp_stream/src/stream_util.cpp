@@ -6,6 +6,7 @@
 #include <stream/bassfilestream.h>
 #include <stream/fileencoder.h>
 #include <stream/bassfileencoder.h>
+#include <stream/basscddevice.h>
 #include <stream/stream_util.h>
 
 namespace xamp::stream {
@@ -55,7 +56,11 @@ AlignPtr<FileStream> MakeStream() {
 AlignPtr<FileEncoder> MakeEncoder() {
     return MakeAlign<FileEncoder, BassFileEncoder>();
 }
-
+#ifdef XAMP_OS_WIN
+AlignPtr<CDDevice> MakeCDDevice(char driver_letter) {
+    return MakeAlign<CDDevice, BassCDDevice>(driver_letter);
+}
+#endif
 DsdStream* AsDsdStream(AlignPtr<FileStream> const& stream) noexcept {
     return dynamic_cast<DsdStream*>(stream.get());
 }

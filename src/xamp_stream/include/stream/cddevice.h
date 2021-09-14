@@ -64,7 +64,9 @@ public:
 
 	virtual void Release() = 0;
 
-	virtual uint32_t GetTrackLength(uint32_t track) const = 0;
+	virtual double GetDuration(uint32_t track) const = 0;
+
+	virtual std::string GetISRC(uint32_t track) const = 0;
 protected:
 	CDDevice() = default;
 };

@@ -116,9 +116,6 @@ public:
     DeviceInfo GetDevice() const;
 
     AudioDeviceManager& GetAudioDeviceManager();
-#ifdef XAMP_OS_WIN
-    static AlignPtr<CDDevice> MakeCDDevice(char driver_letter);
-#endif
 private:
     bool CanProcessFile() const noexcept;
     	

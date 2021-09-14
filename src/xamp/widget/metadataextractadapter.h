@@ -25,6 +25,8 @@ signals:
 	void readCompleted(const std::vector<Metadata> &entity);
 
 public:
-    static void processMetadata(const std::vector<Metadata>& result, PlayListTableView *playlist = nullptr);	
+    static void processMetadata(const std::vector<Metadata>& result, PlayListTableView *playlist = nullptr);
+
+	static Metadata getMetadata(QString const& file_path);
 };
 

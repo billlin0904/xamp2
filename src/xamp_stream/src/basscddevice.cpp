@@ -48,6 +48,14 @@ public:
 		return BASS.CDLib->BASS_CD_DoorIsOpen(driver_);
 	}
 
+	std::string GetISRC(uint32_t track) const {
+		auto const* text = BASS.CDLib->BASS_CD_GetID(driver_, BASS_CDID_ISRC + track);
+		if (!text) {
+			return "";
+		}
+		return text;
+	}
+
 	[[nodiscard]] CDText GetCDText() const {
 		CDText cd_text;
 		auto const * text = BASS.CDLib->BASS_CD_GetID(driver_, BASS_CDID_TEXT);
@@ -107,6 +115,11 @@ public:
 		// -1 = optimal performace.
 		BassIfFailedThrow(BASS.CDLib->BASS_CD_SetSpeed(driver_, -1));
 	}
+
+	double GetDuration(uint32_t track) const {
+		double kCDBytesPerSecond = 176400;
+		return BASS.CDLib->BASS_CD_GetTrackLength(driver_, track) / kCDBytesPerSecond;
+	}
 private:
 	char driver_letter_;
 	DWORD driver_;
@@ -146,8 +159,12 @@ std::vector<std::wstring> BassCDDevice::GetTotalTracks() const {
 	return impl_->GetTotalTracks();
 }
 
-uint32_t BassCDDevice::GetTrackLength(uint32_t track) const {
-	return impl_->GetTrackLength(track);
+double BassCDDevice::GetDuration(uint32_t track) const {
+	return impl_->GetDuration(track);
+}
+
+std::string BassCDDevice::GetISRC(uint32_t track) const {
+	return impl_->GetISRC(track);
 }
 
 CDDeviceInfo BassCDDevice::GetCDDeviceInfo() const {
