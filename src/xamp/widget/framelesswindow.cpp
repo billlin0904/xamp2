@@ -62,7 +62,7 @@ void FramelessWindow::initial(XampPlayer *content_widget) {
         setWindowTitle(Q_UTF8("xamp"));
     }
 #endif
-    ui_font.setPixelSize(16);
+    ui_font.setPixelSize(14);
     qApp->setFont(ui_font);
     setStyleSheet(Q_UTF8(R"(
     QWidget#framelessWindow {

@@ -1,4 +1,5 @@
 #include <widget/widget_shared.h>
+#include <widget/appsettings.h>
 #include <widget/win32/win32.h>
 
 #if defined(Q_OS_WIN)
@@ -140,12 +141,12 @@ static uint32_t toABGR(QColor const & color) {
 		| color.red();
 }
 
-static QColor blendColor(const QColor& i_color1, const QColor& i_color2, double i_alpha) {
+static QColor blendColor(const QColor& i_color1, const QColor& i_color2, double alpha) {
 	return QColor(
-		qRound(static_cast<qreal>(i_color1.red()) * (1.0 - i_alpha) + static_cast<qreal>(i_color2.red()) * i_alpha),
-		qRound(static_cast<qreal>(i_color1.green()) * (1.0 - i_alpha) + static_cast<qreal>(i_color2.green()) * i_alpha),
-		qRound(static_cast<qreal>(i_color1.blue()) * (1.0 - i_alpha) + static_cast<qreal>(i_color2.blue()) * i_alpha),
-		qRound(static_cast<qreal>(i_color1.alpha()) * (1.0 - i_alpha) + static_cast<qreal>(i_color2.alpha()) * i_alpha)
+		qRound(static_cast<qreal>(i_color1.red()) * (1.0 - alpha) + static_cast<qreal>(i_color2.red()) * alpha),
+		qRound(static_cast<qreal>(i_color1.green()) * (1.0 - alpha) + static_cast<qreal>(i_color2.green()) * alpha),
+		qRound(static_cast<qreal>(i_color1.blue()) * (1.0 - alpha) + static_cast<qreal>(i_color2.blue()) * alpha),
+		qRound(static_cast<qreal>(i_color1.alpha()) * (1.0 - alpha) + static_cast<qreal>(i_color2.alpha()) * alpha)
 	);
 }
 
@@ -155,18 +156,16 @@ void setBlurMaterial(const QWidget* widget, bool enable) {
 
 	ACCENT_STATE flags = (is_rs4_or_greater ? ACCENT_ENABLE_ACRYLICBLURBEHIND : ACCENT_ENABLE_BLURBEHIND);
 
-	DWORD wincolor = 0;
-	BOOL opaque = FALSE;
-	DWMDLL.DwmGetColorizationColor(&wincolor, &opaque);
-	BYTE red = GetRValue(wincolor);
-	BYTE green = GetGValue(wincolor);
-	BYTE blue = GetBValue(wincolor);
-	auto color = QColor::fromRgb(red, green, blue, 50);
-
+	//DWORD wincolor = 0;
+	//BOOL opaque = FALSE;
+	//DWMDLL.DwmGetColorizationColor(&wincolor, &opaque);
+	//auto background_color = QColor::fromRgba(wincolor);
+	QColor background_color(AppSettings::getValueAsString(kAppSettingBackgroundColor));
+	background_color.setAlpha(50);
 	ACCENT_POLICY policy = {
 		enable ? flags : ACCENT_DISABLED,
 		0,
-		toABGR(color),
+		toABGR(background_color),
 		0
 	};
 	WINDOWCOMPOSITIONATTRIBDATA data;

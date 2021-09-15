@@ -57,16 +57,14 @@ static void loadSettings() {
     AppSettings::setDefaultValue(kAppSettingWidth, 600);
     AppSettings::setDefaultValue(kAppSettingHeight, 500);
     AppSettings::setDefaultValue(kAppSettingVolume, 50);
-    AppSettings::setDefaultValue(kAppSettingNightMode, false);
     AppSettings::setDefaultValue(kAppSettingOrder, static_cast<int32_t>(PlayerOrder::PLAYER_ORDER_REPEAT_ONCE));
     AppSettings::setDefaultValue(kAppSettingBackgroundColor, QColor("#01121212"));
     AppSettings::setDefaultValue(kAppSettingEnableBlur, true);
-    AppSettings::setDefaultValue(kAppSettingPreventSleep, true);
     AppSettings::setDefaultValue(kLyricsFontSize, 12);
     AppSettings::setDefaultValue(kAppSettingMinimizeToTrayAsk, true);
     AppSettings::setDefaultValue(kAppSettingMinimizeToTray, false);
-    AppSettings::setDefaultValue(kAppSettingEnableGaplessPlay, false);
     AppSettings::setDefaultValue(kAppSettingDiscordNotify, false);
+    AppSettings::setDefaultValue(kFlacEncodingLevel, 8);
 	
     JsonSettings::loadJsonFile(Q_UTF8("soxr.json"));
 	
@@ -86,15 +84,7 @@ static void loadSettings() {
             AppSettings::getValueAsString(kAppSettingLang).toStdString());
     }
 
-	if (!AppSettings::contains(kEnableCompressor)) {
-        AppSettings::setDefaultValue(kEnableCompressor, true);
-        AppSettings::setDefaultValue(kCompressorGain, -1);
-        AppSettings::setDefaultValue(kCompressorThreshold, 0);
-        AppSettings::setDefaultValue(kCompressorRatio, 1);
-        AppSettings::setDefaultValue(kCompressorAttack, 20);
-        AppSettings::setDefaultValue(kCompressorRelease, 200);
-        AppSettings::save();
-	}
+    AppSettings::save();
 }
 
 static std::vector<ModuleHandle> preloadDll() {

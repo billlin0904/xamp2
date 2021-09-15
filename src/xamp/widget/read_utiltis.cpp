@@ -218,7 +218,7 @@ std::tuple<double, std::vector<uint8_t>> ReadFingerprint(std::wstring const& fil
 	};
 }
 
-void EncodeFile(std::wstring const& file_path,
+void EncodeFlacFile(std::wstring const& file_path,
                 std::wstring const& output_file_path,
                 std::wstring const& command,
                 std::function<bool(uint32_t)> const& progress,

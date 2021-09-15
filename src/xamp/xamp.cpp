@@ -118,10 +118,10 @@ Xamp::Xamp()
 	, tray_icon_(nullptr)
     , state_adapter_(std::make_shared<UIPlayerStateAdapter>())
 #ifdef Q_OS_WIN
-    , player_(std::make_shared<AudioPlayer>(state_adapter_))
+    , player_(MakeAlignedShared<AudioPlayer>(state_adapter_))
     , discord_notify_(this) {
 #else
-    , player_(std::make_shared<AudioPlayer>(state_adapter_)) {
+    , player_(MakeAlignedShared<AudioPlayer>(state_adapter_)) {
 #endif
 }
 
@@ -1363,17 +1363,20 @@ void Xamp::readFileLUFS(const QModelIndex&, const PlayListEntity& item) {
 }
 
 void Xamp::encodeFlacFile(const PlayListEntity& item) {
-    const auto file_name = QFileDialog::getSaveFileName(this, tr("Save Flac file"),
-                                                        item.title,
-                                                        tr("FLAC Files (*.flac)"));
+    const auto save_file_name = item.album + Q_UTF8("-") + item.title;
+    const auto file_name = QFileDialog::getSaveFileName(this,
+        tr("Save Flac file"),
+        save_file_name,
+        tr("FLAC Files (*.flac)"));
 
     if (file_name.isNull()) {
         return;
     }
 
-    auto dialog = makeProgressDialog(tr("Export progress dialog"),
-                                     tr("Export '") + item.title + tr("' to flac file"),
-                                     tr("Cancel"));
+    auto dialog = makeProgressDialog(
+        tr("Export progress dialog"),
+         tr("Export '") + item.title + tr("' to flac file"),
+         tr("Cancel"));
     dialog->show();
 
     Metadata metadata;
@@ -1382,10 +1385,13 @@ void Xamp::encodeFlacFile(const PlayListEntity& item) {
     metadata.title = item.title.toStdWString();
     metadata.track = item.track;
 
+    const auto command
+    	= Q_STR("-%1 -V").arg(AppSettings::getValue(kFlacEncodingLevel).toInt()).toStdWString();
+
     try {
-        EncodeFile(item.file_path.toStdWString(),
+        EncodeFlacFile(item.file_path.toStdWString(),
             file_name.toStdWString(),
-            L"-8",
+            command,
             [&](auto progress) -> bool {
                 dialog->setValue(progress);
                 qApp->processEvents();

@@ -164,6 +164,9 @@ PreferencePage::PreferencePage(QWidget *parent)
     auto* dsp_manager_item = new QTreeWidgetItem(QStringList() << tr("Resampler"));
     playback_item->addChild(dsp_manager_item);
 
+	auto* flac_encoding_item = new QTreeWidgetItem(QStringList() << tr("Flac Encoding"));
+	playback_item->addChild(flac_encoding_item);
+
     ui_.preferenceTreeWidget->addTopLevelItem(playback_item);
     ui_.preferenceTreeWidget->expandAll();
 
@@ -171,6 +174,7 @@ PreferencePage::PreferencePage(QWidget *parent)
         const std::map<QString, int32_t> stack_page_map{
             { tr("Playback"), 0 },
             { tr("Resampler"), 1 },
+			{ tr("Flac Encoding"), 2 },
         };
 
 	    const auto select_type = item->text(column);
@@ -225,12 +229,19 @@ PreferencePage::PreferencePage(QWidget *parent)
 
 	initSoxResampler();
 	initLang();
+
+	ui_.flacCompressionLevelSlider->setValue(AppSettings::getValue(kFlacEncodingLevel).toInt());
+	(void)QObject::connect(ui_.flacCompressionLevelSlider, &QSlider::valueChanged, [this](auto value) {
+		AppSettings::setValue(kFlacEncodingLevel, value);
+		saveAll();
+		});
 }
 
 void PreferencePage::saveAll() {
 	JsonSettings::setValue(ui_.soxrSettingCombo->currentText(), getSoxrSettings());
 	AppSettings::setValue(kAppSettingSoxrSettingName, ui_.soxrSettingCombo->currentText());
 	AppSettings::setDefaultValue(kAppSettingSoxrSettingName, ui_.soxrSettingCombo->currentText());
+	AppSettings::setValue(kFlacEncodingLevel, ui_.flacCompressionLevelSlider->value());
 
 	auto index = ui_.resamplerStackedWidget->currentIndex();
 	AppSettings::setValue(kAppSettingResamplerEnable, index > 0);

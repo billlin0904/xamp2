@@ -140,7 +140,8 @@ void TaskScheduler::SetWorkerThreadName(size_t i) {
 }
 
 void TaskScheduler::AddThread(size_t i) {
-	threads_.emplace_back([i, this]() mutable {		
+	threads_.emplace_back([i, this]() mutable {
+		// Avoid 64K Aliasing in L1 Cache (Intel hyper-threading)
 		const auto allocate_stack_size = (std::min)(kInitL1CacheLineSize * i, 
 			kMaxL1CacheLineSize);
 		const auto L1_padding_buffer = MakeStackBuffer<uint8_t>(allocate_stack_size);

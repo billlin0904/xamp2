@@ -129,13 +129,13 @@ namespace xamp::base {
 // <summary>
 // Avoid cache-pollution padding size.
 // </summary>
-inline constexpr size_t kCacheAlignSize{ 32 };
+inline constexpr size_t kCacheAlignSize{ 64 };
 
 /// <summary>
 /// Memory allocate aligned size
 /// Assume we need 64-byte alignment for AVX2 instructions.
 /// </summary>
-inline constexpr size_t kMallocAlignSize{ 32 };
+inline constexpr size_t kMallocAlignSize{ 64 };
 
 /// <summary>
 /// SSE2 rolling count.

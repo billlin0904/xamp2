@@ -122,8 +122,8 @@ private:
     using SharedTaskQueuePtr = AlignPtr<TaskQueue>;
     
     static constexpr size_t K = 4;
-    static constexpr size_t kInitL1CacheLineSize = 4 * 1024;
-    static constexpr size_t kMaxL1CacheLineSize = 64 * 1024;
+    static constexpr size_t kInitL1CacheLineSize = 64 * 1024;
+    static constexpr size_t kMaxL1CacheLineSize = 256 * 1024;
 
 	std::atomic<bool> is_stopped_;
     std::atomic<size_t> active_thread_;

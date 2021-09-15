@@ -37,7 +37,7 @@ void Export2WaveFile(std::wstring const& file_path,
 	uint32_t output_sample_rate,
 	AlignPtr<SampleRateConverter> &converter);
 
-void EncodeFile(std::wstring const& file_path,
+void EncodeFlacFile(std::wstring const& file_path,
     std::wstring const& output_file_path,
     std::wstring const& command,
     std::function<bool(uint32_t)> const& progress,
