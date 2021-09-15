@@ -427,12 +427,13 @@ void PlayListTableView::initial() {
                     if (kCDFileSystemType.contains(storage.fileSystemType().toUpper().toStdString())) {
                         open_cd_submenu->addAction(display_name, [storage, driver_letter, this]() {
                         	auto device= xamp::stream::MakeCDDevice(driver_letter);
-                            auto device_info = device->GetCDDeviceInfo();                            
+                            auto cd_text = device->GetCDText();
                             device->SetMaxSpeed();
                             auto track_id = 0;
                             for (auto const & track : device->GetTotalTracks()) {
                                 auto metadata = MetadataExtractAdapter::getMetadata(QString::fromStdWString(track));
-                                //auto isrc = device->GetISRC(track_id);
+                                auto isrc = device->GetISRC(track_id);
+                                XAMP_LOG_DEBUG("ISRC: {}", isrc);
                                 metadata.duration = device->GetDuration(track_id++);
                                 metadata.samplerate = 44100;                                
                                 Singleton<Database>::GetInstance().addOrUpdateMusic(metadata, playlist_id_);
@@ -735,13 +736,8 @@ void PlayListTableView::resizeColumn() {
             header->resizeSection(column, 15);
             break;
         case PLAYLIST_TRACK:
-#if defined(Q_OS_WIN)
-            header->setSectionResizeMode(column, QHeaderView::Fixed);
-            header->resizeSection(column, 15);
-#else
             header->setSectionResizeMode(column, QHeaderView::Fixed);
             header->resizeSection(column, 30);
-#endif
             break;
         case PLAYLIST_LUFS:
             header->setSectionResizeMode(column, QHeaderView::Fixed);
