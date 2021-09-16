@@ -147,6 +147,7 @@ void Xamp::initial(TopWindow *top_window) {
     } else {
         initialDeviceList();
     }
+    setWindowFlags(Qt::FramelessWindowHint);
 #ifdef Q_OS_WIN
     discord_notify_.discordInit();
 #endif
@@ -240,17 +241,8 @@ void Xamp::closeEvent(QCloseEvent* event) {
 }
 
 void Xamp::setDefaultStyle() {
+    setAttribute(Qt::WA_StyledBackground, true);
     ThemeManager::instance().setDefaultStyle(ui_);
-    setStyleSheet(Q_UTF8(R"(
-	QListView#sliderBar::item {
-		border: 0px;
-		padding-left: 15px;
-	}
-	QListVieww#sliderBar::text {
-		left: 15px;
-	}
-	)"));
-
     applyTheme(ThemeManager::instance().getBackgroundColor());
 }
 

@@ -122,6 +122,8 @@ public:
             XAMP_NO_DEFAULT;
         }
 
+        XAMP_LOG_DEBUG("Use DsdModes: {}", mode_);
+
         int32_t retry_count = 0;
 FlushFileCache:
         file_.Close();

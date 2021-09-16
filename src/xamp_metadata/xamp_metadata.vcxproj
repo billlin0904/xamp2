@@ -78,9 +78,10 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/taglib2/taglib;../thirdparty/taglib2/taglib/ape;../thirdparty/taglib2/taglib/mpeg;../thirdparty/taglib2/taglib/toolkit;../thirdparty/taglib2/taglib/mp4;../thirdparty/taglib2/taglib/flac;../thirdparty/taglib2/taglib/mpeg/id3v2;../thirdparty/robin_hood/;../thirdparty/spdlog/include/</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <PreprocessorDefinitions>METADATA_API_EXPORTS;TAGLIB_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BrowseInformation>true</BrowseInformation>
+      <DisableSpecificWarnings>4996;4819</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -135,6 +136,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <IntelJCCErratum>true</IntelJCCErratum>
       <FloatingPointModel>Fast</FloatingPointModel>
+      <DisableSpecificWarnings>4996;4819</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -153,12 +155,14 @@
     <ClInclude Include="include\metadata\metadataextractadapter.h" />
     <ClInclude Include="include\metadata\metadatareader.h" />
     <ClInclude Include="include\metadata\metadatawriter.h" />
+    <ClInclude Include="include\metadata\metadata_util.h" />
     <ClInclude Include="include\metadata\taglib.h" />
     <ClInclude Include="include\metadata\taglibmetareader.h" />
     <ClInclude Include="include\metadata\taglibmetawriter.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\metadatareader.cpp" />
+    <ClCompile Include="src\metadata_util.cpp" />
     <ClCompile Include="src\taglibmetadatawriter.cpp" />
     <ClCompile Include="src\taglibmetareader.cpp" />
   </ItemGroup>

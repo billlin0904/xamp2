@@ -6,6 +6,7 @@
 #include <timeapi.h>
 #include <base/platform.h>
 #include <output_device/win32/hrexception.h>
+#include <output_device/win32/exclusivewasapidevice.h>
 #include <output_device/win32/exclusivewasapidevicetype.h>
 #include <output_device/win32/sharedwasapidevicetype.h>
 #include <output_device/win32/win32devicestatenotification.h>

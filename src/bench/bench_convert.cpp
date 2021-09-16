@@ -242,21 +242,23 @@ static void BM_ClampSample(benchmark::State& state) {
 BENCHMARK(BM_ClampSample);
 #endif
 
-#if 0
+#if 1
 static void BM_ThreadPool(benchmark::State& state) {
-    (void)ThreadPool::GetInstance();
+    ThreadPool thread_pool;
     for (auto _ : state) {
-        ThreadPool::GetInstance().Spawn([]() {
-            }).get();
+        for (auto i =0 ; i < 10000; ++i) {
+            thread_pool.Spawn([]() {}).get();
+        }        
     }
 }
 
 BENCHMARK(BM_ThreadPool);
 
 static void BM_StdThreadPool(benchmark::State& state) {
-    for (auto _ : state) {
-        std::async(std::launch::async, []() {
-            }).get();
+    for (auto _ : state) {        
+        for (auto i = 0; i < 10000; ++i) {
+            std::async(std::launch::async, []() {}).get();
+        }
     }
 }
 
@@ -374,6 +376,7 @@ static void BM_StdtMemcpy(benchmark::State& state) {
 BENCHMARK(BM_StdtMemcpy);
 #endif
 
+#if 0
 static void BM_ConvertToInt32(benchmark::State& state) {
     std::vector<int32_t> output(4096);
     std::vector<float> input(4096);
@@ -426,6 +429,7 @@ static void BM_PackedFormatConvertToInt32(benchmark::State& state) {
 }
 
 BENCHMARK(BM_PackedFormatConvertToInt32);
+#endif
 
 #if 0
 static void BM_TestDsdFileFormat(benchmark::State& state) {

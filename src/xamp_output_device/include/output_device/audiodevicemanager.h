@@ -51,7 +51,7 @@ public:
 
     [[nodiscard]] bool IsSupportASIO() const noexcept;
 
-    [[nodiscard]] bool IsDeviceTypeExist(Uuid const& id) const noexcept;    
+    [[nodiscard]] bool IsDeviceTypeExist(Uuid const& id) const noexcept;
 
     static bool IsExclusiveDevice(DeviceInfo const &info) noexcept;
 

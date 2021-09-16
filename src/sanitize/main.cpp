@@ -22,7 +22,7 @@ int main() {
 
 	AudioPlayer::Initialize();
 
-	auto player = std::make_shared<AudioPlayer>();
+	auto player = MakeAlignedShared<AudioPlayer>();
 	auto avaiable_device_type = player->GetAudioDeviceManager().GetAvailableDeviceType();
 
 	player->Open("C:\\Users\\rdbill0452\\Music\\Test\\DSD.dsf", ExclusiveWasapiDeviceType::Id);

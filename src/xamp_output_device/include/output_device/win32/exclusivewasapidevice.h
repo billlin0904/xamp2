@@ -15,6 +15,7 @@
 #include <base/dataconverter.h>
 #include <base/buffer.h>
 
+#include <output_device/dsddevice.h>
 #include <output_device/audiocallback.h>
 #include <output_device/device.h>
 
@@ -22,7 +23,9 @@ namespace xamp::output_device::win32 {
 
 using namespace base;
 
-class ExclusiveWasapiDevice final : public Device {
+class ExclusiveWasapiDevice final
+	: public Device
+	, public DsdDevice {
 public:
 	explicit ExclusiveWasapiDevice(CComPtr<IMMDevice> const & device);
 
@@ -65,6 +68,10 @@ public:
 	bool IsHardwareControlVolume() const override;
 
 	void AbortStream() noexcept override;
+
+	void SetIoFormat(DsdIoFormat format);
+
+	DsdIoFormat GetIoFormat() const;
 private:	
 
 	void InitialDeviceFormat(AudioFormat const & output_format, uint32_t valid_bits_samples);	

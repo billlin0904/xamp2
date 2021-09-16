@@ -5,8 +5,6 @@
 
 #pragma once
 
-#include <cstdint>
-#include <mutex>
 #include <future>
 #include <optional>
 
@@ -25,11 +23,11 @@
 #include <base/stopwatch.h>
 #endif
 
-#include <stream/cddevice.h>
-
 #include <output_device/audiodevicemanager.h>
 #include <output_device/audiocallback.h>
 #include <output_device/deviceinfo.h>
+
+#include <stream/audioprocessor.h>
 
 #include <player/playstate.h>
 #include <player/playbackstateadapter.h>

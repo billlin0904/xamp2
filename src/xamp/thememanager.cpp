@@ -387,6 +387,17 @@ void ThemeManager::setDefaultStyle(Ui::XampWindow& ui) {
                                         }
                                         )"));
 
+    ui.sliderBar->setStyleSheet(Q_UTF8(R"(
+	QListView#sliderBar::item {
+		border: 0px;
+		padding-left: 15px;
+	}
+	QListVieww#sliderBar::text {
+		left: 15px;
+	}
+	)"));
+
+
     ui.searchLineEdit->setClearButtonEnabled(true);
     ui.searchLineEdit->addAction(QIcon(Q_UTF8(":/xamp/Resource/White/search.png")),
         QLineEdit::LeadingPosition);

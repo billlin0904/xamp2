@@ -9,6 +9,7 @@
 #include <QModelIndex>
 
 #include <base/spsc_queue.h>
+#include <stream/filestream.h>
 #include <output_device/devicestatelistener.h>
 #include <player/playbackstateadapter.h>
 #include <player/samplerateconverter.h>

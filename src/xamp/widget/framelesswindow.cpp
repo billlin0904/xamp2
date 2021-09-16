@@ -39,7 +39,6 @@ FramelessWindow::FramelessWindow()
 
 void FramelessWindow::initial(XampPlayer *content_widget) {
     setObjectName(Q_UTF8("framelessWindow"));
-    setAttribute(Qt::WA_TranslucentBackground);
     content_widget_ = content_widget;
     auto default_layout = new QGridLayout();
     default_layout->addWidget(content_widget_, 0, 0);

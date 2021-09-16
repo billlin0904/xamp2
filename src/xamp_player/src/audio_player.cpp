@@ -564,10 +564,10 @@ void AudioPlayer::OnDeviceStateChange(DeviceState state, std::string const & dev
 void AudioPlayer::OpenDevice(double stream_time) {
 #ifdef ENABLE_ASIO
     if (auto* dsd_output = audio_util::AsDsdDevice(device_)) {
-        if (auto* const dsd_stream = audio_util::AsDsdStream(stream_)) {
-            if (dsd_stream->GetDsdMode() == DsdModes::DSD_MODE_NATIVE) {
+        if (auto* const dsd_stream = AsDsdStream(stream_)) {
+            if (dsd_stream->GetDsdMode() == DsdModes::DSD_MODE_NATIVE || dsd_stream->GetDsdMode() == DsdModes::DSD_MODE_DOP) {
                 dsd_output->SetIoFormat(DsdIoFormat::IO_FORMAT_DSD);
-                dsd_mode_ = DsdModes::DSD_MODE_NATIVE;
+                dsd_mode_ = dsd_stream->GetDsdMode();
             }
             else {
                 dsd_output->SetIoFormat(DsdIoFormat::IO_FORMAT_PCM);
@@ -848,10 +848,8 @@ void AudioPlayer::PrepareToPlay() {
     CreateDevice(device_info_.device_type_id, device_info_.device_id, false);
     OpenDevice(0);
     CreateBuffer();
-    BufferStream(0);    
-    
-    sample_end_time_ = stream_->GetDuration();
-
+    BufferStream(0);
+	sample_end_time_ = stream_->GetDuration();
     XAMP_LOG_D(logger_, "Stream end time {} sec", sample_end_time_);
 }
 

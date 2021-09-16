@@ -9,6 +9,7 @@
 #include <stream/wavefilewriter.h>
 #include <stream/dsdstream.h>
 #include <stream/stream_util.h>
+#include <stream/filestream.h>
 #include <stream/fileencoder.h>
 
 #include <metadata/taglibmetawriter.h>

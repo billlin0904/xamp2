@@ -31,7 +31,7 @@ public:
 
     void WriteTrack(Path const & path, int32_t track) const;
 
-    void WriteEmbeddedCover(Path const & path, std::vector<uint8_t> const &image) const;
+    void WriteEmbeddedCover(Path const & path, std::vector<uint8_t> const &image) const override;
 private:
     class TaglibMetadataWriterImpl;
 	AlignPtr<TaglibMetadataWriterImpl> writer_;

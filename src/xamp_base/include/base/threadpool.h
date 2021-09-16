@@ -143,6 +143,10 @@ public:
     static ThreadPool& WASAPIThreadPool();
 	
     static constexpr uint32_t kMaxThread = 32;
+
+    explicit ThreadPool(uint32_t max_thread = std::thread::hardware_concurrency(), int32_t affinity = kDefaultAffinityCpuCore);
+
+    ~ThreadPool();
     
 	XAMP_DISABLE_COPY(ThreadPool)
 
@@ -156,7 +160,6 @@ public:
     void SetAffinityMask(int32_t core);
 
 private:
-	explicit ThreadPool(uint32_t max_thread = std::thread::hardware_concurrency(), int32_t affinity = kDefaultAffinityCpuCore);
     TaskScheduler scheduler_;
 };
 
@@ -168,7 +171,7 @@ decltype(auto) ThreadPool::Spawn(F &&f, Args&&... args) {
     // https://github.com/microsoft/STL/issues/321
 	using PackagedTaskType = std::packaged_task<ReturnType()>;
 
-    auto task = std::make_shared<PackagedTaskType>(
+    auto task = MakeAlignedShared<PackagedTaskType>(
         [
             Func = std::forward<F>(f),
             Args = std::make_tuple(std::forward<Args>(args)...)

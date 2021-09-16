@@ -16,10 +16,12 @@
 #include <base/rng.h>
 #include <base/str_utilts.h>
 #include <stream/stream_util.h>
+#include <stream/cddevice.h>
 #include <player/audio_player.h>
+
 #include <metadata/metadatareader.h>
-#include <metadata/taglibmetareader.h>
-#include <metadata/taglibmetawriter.h>
+#include <metadata/metadatawriter.h>
+#include <metadata/metadata_util.h>
 
 #include <rapidxml.hpp>
 
@@ -39,6 +41,7 @@
 #include <widget/playlisttableview.h>
 
 using namespace rapidxml;
+using namespace xamp::metadata;
 
 template <typename Ch>
 static std::wstring parseCDATA(xml_node<Ch> *node) {
@@ -382,9 +385,9 @@ void PlayListTableView::initial() {
 
     	if (!podcast_mode_) {
             (void)action_map.addAction(tr("Load local file"), [this]() {
-                xamp::metadata::TaglibMetadataReader reader;
+                auto reader = MakeMetadataReader();
                 QString exts(Q_UTF8("("));
-                for (const auto& file_ext : reader.GetSupportFileExtensions()) {
+                for (const auto& file_ext : reader->GetSupportFileExtensions()) {
                     exts += Q_UTF8("*") + QString::fromStdString(file_ext);
                     exts += Q_UTF8(" ");
                 }
@@ -431,7 +434,7 @@ void PlayListTableView::initial() {
                             device->SetMaxSpeed();
                             auto track_id = 0;
                             for (auto const & track : device->GetTotalTracks()) {
-                                auto metadata = MetadataExtractAdapter::getMetadata(QString::fromStdWString(track));
+                                auto metadata = ::MetadataExtractAdapter::getMetadata(QString::fromStdWString(track));
                                 auto isrc = device->GetISRC(track_id);
                                 XAMP_LOG_DEBUG("ISRC: {}", isrc);
                                 metadata.duration = device->GetDuration(track_id++);
@@ -532,8 +535,8 @@ void PlayListTableView::initial() {
             });
 
         action_map.setCallback(export_cover_act, [item, this]() {
-            xamp::metadata::TaglibMetadataReader reader;
-            auto buffer = reader.ExtractEmbeddedCover(item.file_path.toStdWString());
+            auto reader = MakeMetadataReader();
+            auto buffer = reader->ExtractEmbeddedCover(item.file_path.toStdWString());
             if (buffer.empty()) {
                 return;
             }
@@ -577,8 +580,8 @@ void PlayListTableView::initial() {
             const auto rows = selectItemIndex();
             for (const auto& select_item : rows) {
                 auto entity = this->item(select_item.second);
-                xamp::metadata::TaglibMetadataWriter writer;
-                writer.WriteEmbeddedCover(entity.file_path.toStdWString(), image_data);
+                auto writer = MakeMetadataWriter();
+                writer->WriteEmbeddedCover(entity.file_path.toStdWString(), image_data);
             }
         });
 
@@ -666,18 +669,18 @@ bool PlayListTableView::eventFilter(QObject* obj, QEvent* ev) {
 }
 
 void PlayListTableView::append(const QString& file_name, bool show_progress_dialog) {
-	const auto adapter = QSharedPointer<MetadataExtractAdapter>(new MetadataExtractAdapter());
+	const auto adapter = QSharedPointer<::MetadataExtractAdapter>(new ::MetadataExtractAdapter());
 
     (void) QObject::connect(adapter.get(),
-                            &MetadataExtractAdapter::readCompleted,
+                            &::MetadataExtractAdapter::readCompleted,
                             this,
                             &PlayListTableView::processMeatadata);
 
-    MetadataExtractAdapter::readFileMetadata(adapter, file_name, show_progress_dialog);
+   ::MetadataExtractAdapter::readFileMetadata(adapter, file_name, show_progress_dialog);
 }
 
 void PlayListTableView::processMeatadata(const std::vector<Metadata>& medata) {    
-    MetadataExtractAdapter::processMetadata(medata, this);
+    ::MetadataExtractAdapter::processMetadata(medata, this);
     resizeColumn();
     refresh();
 }
@@ -710,7 +713,7 @@ void PlayListTableView::importPodcast() {
 
     http::HttpClient(url_edit->text()).success([this](const QString& json) {
         auto const podcast_info = parsePodcastXML(json);
-        MetadataExtractAdapter::processMetadata(podcast_info.second, this);
+        ::MetadataExtractAdapter::processMetadata(podcast_info.second, this);
 
         http::HttpClient(QString::fromStdString(podcast_info.first))
     	.download([=](auto data) {

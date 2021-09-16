@@ -100,7 +100,7 @@ std::vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfoList() const {
 		}
 #endif
 		// TODO: 一些DAC有支援WASAPI DOP模式.
-		//info.is_support_dsd = true;
+		info.is_support_dsd = true;
 		device_list.emplace_back(info);
 	}
 

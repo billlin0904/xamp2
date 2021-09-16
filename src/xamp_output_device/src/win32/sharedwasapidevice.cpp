@@ -211,8 +211,16 @@ void SharedWasapiDevice::OpenStream(AudioFormat const & output_format) {
 		device_props.bIsOffload = FALSE;
 		device_props.cbSize = sizeof(device_props);
 		device_props.eCategory = AudioCategory_Media;
-		device_props.Options = AUDCLNT_STREAMOPTIONS_MATCH_FORMAT;
-		HrIfFailledThrow(client_->SetClientProperties(&device_props));
+		device_props.Options = AUDCLNT_STREAMOPTIONS_MATCH_FORMAT | AUDCLNT_STREAMOPTIONS_RAW;
+		try {
+			HrIfFailledThrow(client_->SetClientProperties(&device_props));
+		}
+		catch (Exception const& e) {
+			XAMP_LOG_D(log_, "SetClientProperties return failure! {}", e.GetErrorMessage());
+			device_props.Options = AUDCLNT_STREAMOPTIONS_MATCH_FORMAT;
+			HrIfFailledThrow(client_->SetClientProperties(&device_props));
+		}
+
 		InitialRawMode(output_format);
 		RegisterDeviceVolumeChange();
 	}
@@ -362,7 +370,7 @@ void SharedWasapiDevice::StartStream() {
 	GetSampleRequested(true);
 
 	render_task_ = ThreadPool::WASAPIThreadPool().Spawn([this]() noexcept {
-		XAMP_LOG_D(log_, "Start exclusive mode stream task!");
+		XAMP_LOG_D(log_, "Start shared mode stream task!");
 
 		::SetEvent(thread_start_.get());
 

@@ -157,11 +157,7 @@ void TaskScheduler::AddThread(size_t i) {
 				task = TryPopLocalQueue(i);
 
 				if (!task) {
-					task = TryPopPoolQueue();
-				}
-
-				if (!task) {
-					// 狦硈TryPopPoolQueue常穦戈Τ竒筁单. 碞ぃちCPU倒ㄤThread.
+					// 狦硈TryPopLocalQueue常穦戈Τ竒筁单. 碞ぃちCPU倒ㄤThread.
 					// std::this_thread::yield();
 					continue;
 				}
@@ -196,6 +192,10 @@ void TaskScheduler::AddThread(size_t i) {
 
 ThreadPool::ThreadPool(uint32_t max_thread, int32_t affinity)
 	: scheduler_((std::min)(max_thread, kMaxThread), affinity) {
+}
+
+ThreadPool::~ThreadPool() {
+	Stop();
 }
 
 size_t ThreadPool::GetActiveThreadCount() const noexcept {

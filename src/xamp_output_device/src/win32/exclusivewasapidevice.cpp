@@ -13,7 +13,7 @@
 
 namespace xamp::output_device::win32 {
 
-using namespace xamp::output_device::win32::helper;
+using namespace helper;
 
 static void SetWaveformatEx(WAVEFORMATEX *input_fromat, const AudioFormat &audio_format, const int32_t valid_bits_samples) noexcept {
 	auto &format = *reinterpret_cast<WAVEFORMATEXTENSIBLE *>(input_fromat);
@@ -105,11 +105,12 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
 
 	SetWaveformatEx(mix_format_, output_format, valid_bits_samples);
 
+#if 0
 	// Note: 使用IsFormatSupported()某些音效卡格式判斷會不正確, 改用Initialize()進行處理!
-    AudioClientProperties device_props{};
-    device_props.bIsOffload = FALSE;
-    device_props.cbSize = sizeof(device_props);
-    device_props.eCategory = AudioCategory_Media;
+	AudioClientProperties device_props{};
+	device_props.bIsOffload = FALSE;
+	device_props.cbSize = sizeof(device_props);
+	device_props.eCategory = AudioCategory_Media;
 	device_props.Options = AUDCLNT_STREAMOPTIONS_MATCH_FORMAT | (raw_mode_ ? AUDCLNT_STREAMOPTIONS_RAW : AUDCLNT_STREAMOPTIONS_NONE);;
 
 	try {
@@ -120,6 +121,7 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
 		device_props.Options = AUDCLNT_STREAMOPTIONS_MATCH_FORMAT;
 		HrIfFailledThrow(client_->SetClientProperties(&device_props));
 	}
+#endif
 
     REFERENCE_TIME default_device_period = 0;
     REFERENCE_TIME minimum_device_period = 0;
@@ -181,12 +183,11 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 
     auto valid_output_format = output_format;
 
-	constexpr int32_t kValidBitPerSamples = 24;
-
-	// Note: 由於轉換出來就是float格式, 所以固定採用24/32格式進行撥放!
+    // Note: 由於轉換出來就是float格式, 所以固定採用24/32格式進行撥放!
 	valid_output_format.SetByteFormat(ByteFormat::SINT32);
 
 	if (!client_) {
+		constexpr uint32_t kValidBitPerSamples = 24;
 		XAMP_LOG_D(log_, "Active device format: {}.", valid_output_format);
 
         HrIfFailledThrow(device_->Activate(kAudioClient2ID,
@@ -282,12 +283,10 @@ HRESULT ExclusiveWasapiDevice::GetSample(bool is_silence) noexcept {
 	const DWORD flags = is_silence ? AUDCLNT_BUFFERFLAGS_SILENT : 0;
 
 	XAMP_LIKELY(callback_->OnGetSamples(buffer_.Get(), buffer_frames_, stream_time_float, sample_time) == DataCallbackResult::CONTINUE) {
-		if (!raw_mode_) {
-			DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::ConvertToInt2432(
-				reinterpret_cast<int32_t*>(data),
-				buffer_.Get(),
-				data_convert_);
-		}
+		DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::ConvertToInt2432(
+			reinterpret_cast<int32_t*>(data),
+			buffer_.Get(),
+			data_convert_);
 		hr = render_client_->ReleaseBuffer(buffer_frames_, flags);
 	}
 	else {
@@ -322,6 +321,18 @@ void ExclusiveWasapiDevice::CloseStream() {
 }
 
 void ExclusiveWasapiDevice::AbortStream() noexcept {
+}
+
+void ExclusiveWasapiDevice::SetIoFormat(DsdIoFormat format) {
+	if (format == DsdIoFormat::IO_FORMAT_DSD) {
+		raw_mode_ = true;
+	} else {
+		raw_mode_ = false;
+	}
+}
+
+DsdIoFormat ExclusiveWasapiDevice::GetIoFormat() const {
+	return raw_mode_ ? DsdIoFormat::IO_FORMAT_DSD : DsdIoFormat::IO_FORMAT_PCM;
 }
 
 void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {

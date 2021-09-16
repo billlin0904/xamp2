@@ -97,7 +97,7 @@ void SetThreadAffinity(std::thread& thread, int32_t core) noexcept {
 #if (_WIN32_WINNT >= 0x0601)
     const auto groups = ::GetActiveProcessorGroupCount();
     auto total_processors = 0, group = 0, number = 0;
-    for (int i = 0; i < groups; i++) {
+    for (DWORD i = 0; i < groups; i++) {
 	    const auto processors = ::GetActiveProcessorCount(i);
         if (total_processors + processors > core) {
             group = i;
