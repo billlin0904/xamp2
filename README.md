@@ -8,9 +8,10 @@
 | Platform | DSD mode | Output Device Type |
 |----------|----------|----------|
 | Windows | Native DSD | ASIO |
-| Windows | DSD to PCM | WSAPI Shared Mode |
-| Windows | DSD to PCM | WSAPI Exculisive Mode |
+| Windows | DSD to PCM | WSAPI (Exculisive Mode / Shared Mode) |
 | MAC OSX | DOP | CoreAudio |
+| Windows | DOP | WSAPI Exculisive Mode |
+| 
 
 # 展示區
 ![image](https://github.com/billlin0904/xamp2/blob/master/github/demo.JPG)
