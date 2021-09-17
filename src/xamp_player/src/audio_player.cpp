@@ -49,6 +49,9 @@ static void LogTime(const std::string & msg, const std::chrono::microseconds &ti
 }
 #endif
 
+
+AlignPtr<CDDevice> AudioPlayer::cd_device_;
+
 AudioPlayer::AudioPlayer()
     : AudioPlayer(std::weak_ptr<PlaybackStateAdapter>()) {
 }
@@ -123,6 +126,17 @@ void AudioPlayer::Initialize() {
     ThreadPool::WASAPIThreadPool();
 #endif
     ThreadPool::StreamReaderThreadPool();
+}
+
+AlignPtr<CDDevice>& AudioPlayer::OpenCD(int32_t driver_letter) {
+    if (!cd_device_) {
+        cd_device_ = MakeCDDevice(driver_letter);
+    }
+    return cd_device_;
+}
+
+void AudioPlayer::CloseCD() {
+    cd_device_.reset();
 }
 
 void AudioPlayer::Open(Path const& file_path, const Uuid& device_id) {

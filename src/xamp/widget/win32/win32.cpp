@@ -177,9 +177,11 @@ void setBlurMaterial(const QWidget* widget, bool enable) {
 
 void setWinStyle(QWidget* widget) {
 	auto hwnd = reinterpret_cast<HWND>(widget->winId());
-	::SetWindowLongPtr(hwnd, GWL_STYLE, WS_POPUP | WS_THICKFRAME | WS_CAPTION | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX);
 
-	::SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+	const DWORD style = ::GetWindowLong(hwnd, GWL_STYLE);
+
+	::SetWindowLongPtr(hwnd, GWL_STYLE,
+		style | WS_POPUP | WS_THICKFRAME | WS_CAPTION | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX);
 
 	MARGINS borderless = { 1, 1, 1, 1 };
 	DWMDLL.DwmExtendFrameIntoClientArea(hwnd, &borderless);

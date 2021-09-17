@@ -21,6 +21,8 @@
 #include <widget/osx/osx.h>
 #endif
 
+#include <QGraphicsDropShadowEffect>
+
 #include "thememanager.h"
 #include <widget/appsettings.h>
 #include <widget/str_utilts.h>
@@ -40,18 +42,22 @@ FramelessWindow::FramelessWindow()
 void FramelessWindow::initial(XampPlayer *content_widget) {
     setObjectName(Q_UTF8("framelessWindow"));
     content_widget_ = content_widget;
-    auto default_layout = new QGridLayout();
-    default_layout->addWidget(content_widget_, 0, 0);
-    default_layout->setContentsMargins(0, 0, 0, 0);
-    setLayout(default_layout);
+    if (content_widget_ != nullptr) {
+        auto default_layout = new QGridLayout();
+        default_layout->addWidget(content_widget_, 0, 0);
+        default_layout->setContentsMargins(1, 1, 1, 1);
+        setLayout(default_layout);
+    }
     setAcceptDrops(true);
     setMouseTracking(true);
     installEventFilter(this);
     auto ui_font = setupUIFont();
 #if defined(Q_OS_WIN)
     if (!use_native_window_) {
+        setWindowFlags(Qt::FramelessWindowHint | Qt::WindowMinimizeButtonHint);
+        setAttribute(Qt::WA_TranslucentBackground, true);
         win32::setWinStyle(this);
-        setWindowTitle(Q_UTF8("xamp"));
+        setWindowTitle(Q_UTF8("xamp"));        
     }
     createThumbnailToolBar();
 #else
@@ -63,13 +69,6 @@ void FramelessWindow::initial(XampPlayer *content_widget) {
 #endif
     ui_font.setPixelSize(14);
     qApp->setFont(ui_font);
-    setStyleSheet(Q_UTF8(R"(
-    QWidget#framelessWindow {
-        font-family: "UI";
-        border: none;
-        background-color: transparent;
-	}
-    )"));
 }
 // QScopedPointer require default destructor.
 FramelessWindow::~FramelessWindow() = default;
@@ -129,8 +128,7 @@ QFont FramelessWindow::setupUIFont() const {
     auto default_font_families = QFontDatabase::applicationFontFamilies(default_font_id);
 
     QList<QString> fallback_fonts;
-    QFont ui_font(Q_UTF8("UI"));
-
+    
     // note: If we are support Source HanSans font sets must be enable Direct2D function,
     // But Qt framework not work fine with that!
     fallback_fonts.push_back(default_font_families[0]);
@@ -146,6 +144,7 @@ QFont FramelessWindow::setupUIFont() const {
     QFont::insertSubstitutions(Q_UTF8("UI"), fallback_fonts);
     QFont::insertSubstitutions(Q_UTF8("FormatFont"), digital_font_families);
 
+    QFont ui_font(Q_UTF8("UI"));
     ui_font.setStyleStrategy(QFont::PreferAntialias);
     return ui_font;
 }
@@ -318,6 +317,18 @@ bool FramelessWindow::nativeEvent(const QByteArray& event_type, void * message, 
                 return hitTest(msg, result);
             }
             break;
+        case WM_GETMINMAXINFO:
+            if (::IsZoomed(msg->hwnd)) {
+                RECT frame = { 0, 0, 0, 0 };
+                ::AdjustWindowRectEx(&frame, WS_OVERLAPPEDWINDOW, FALSE, 0);
+                frame.left = abs(frame.left);
+                frame.top = abs(frame.bottom);
+                this->setContentsMargins(frame.left, frame.top, frame.right, frame.bottom);
+            } else {
+                this->setContentsMargins(2, 2, 2, 2);
+            }
+            *result = ::DefWindowProc(msg->hwnd, msg->message, msg->wParam, msg->lParam);
+            break;
         case WM_NCCALCSIZE:
             // this kills the window frame and title bar we added with WS_THICKFRAME and WS_CAPTION
             if (msg->wParam == TRUE) {
@@ -384,10 +395,10 @@ void FramelessWindow::mouseMoveEvent(QMouseEvent* event) {
     }
 
     if (current_screen_ == nullptr) {
-        current_screen_ = QApplication::desktop()->screen();
+        current_screen_ = content_widget_->screen();
     }
-    else if (current_screen_ != QApplication::desktop()->screen()) {
-        current_screen_ = QApplication::desktop()->screen();
+    else if (current_screen_ != content_widget_->screen()) {
+        current_screen_ = content_widget_->screen();
 
         ::SetWindowPos(reinterpret_cast<HWND>(winId()), nullptr, 0, 0, 0, 0,
             SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
@@ -406,11 +417,10 @@ void FramelessWindow::showEvent(QShowEvent* event) {
 }
 
 void FramelessWindow::paintEvent(QPaintEvent* event) {
-    /*int radius = 10;
+    QColor background_color(AppSettings::getValueAsString(kAppSettingBackgroundColor));
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
-    painter.setBrush(QBrush(QColor(255, 255, 255, 255), Qt::SolidPattern));
-    painter.setPen(Qt::NoPen);
-    painter.drawRoundedRect(0, 0, this->width(), this->height(), radius, radius);*/
-    QWidget::paintEvent(event);
+    painter.setBrush(QBrush(background_color, Qt::SolidPattern));
+    painter.setPen(Qt::transparent);
+    painter.drawRoundedRect(0, 0, width(), height(), kUIRadius, kUIRadius);
 }

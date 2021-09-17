@@ -203,6 +203,7 @@ static int excute(int argc, char* argv[]) {
     Xamp win;
     win.initial(&top_win);
     top_win.initial(&win);
+    //top_win.initial(nullptr);
 
     top_win.show();
     top_win.activateWindow();

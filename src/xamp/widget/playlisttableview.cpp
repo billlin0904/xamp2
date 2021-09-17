@@ -15,7 +15,6 @@
 
 #include <base/rng.h>
 #include <base/str_utilts.h>
-#include <stream/stream_util.h>
 #include <stream/cddevice.h>
 #include <player/audio_player.h>
 
@@ -428,15 +427,14 @@ void PlayListTableView::initial() {
                     auto driver_letter = storage.rootPath().left(1).toStdString()[0];
 
                     if (kCDFileSystemType.contains(storage.fileSystemType().toUpper().toStdString())) {
-                        open_cd_submenu->addAction(display_name, [storage, driver_letter, this]() {
-                        	auto device= xamp::stream::MakeCDDevice(driver_letter);
-                            auto cd_text = device->GetCDText();
+                        auto &device = AudioPlayer::OpenCD(driver_letter);
+                        auto device_info = device->GetCDDeviceInfo();
+                        display_name += QString::fromStdWString(L" " + device_info.product);
+                        open_cd_submenu->addAction(display_name, [&device, driver_letter, this]() {
                             device->SetMaxSpeed();
                             auto track_id = 0;
                             for (auto const & track : device->GetTotalTracks()) {
                                 auto metadata = ::MetadataExtractAdapter::getMetadata(QString::fromStdWString(track));
-                                auto isrc = device->GetISRC(track_id);
-                                XAMP_LOG_DEBUG("ISRC: {}", isrc);
                                 metadata.duration = device->GetDuration(track_id++);
                                 metadata.samplerate = 44100;                                
                                 Singleton<Database>::GetInstance().addOrUpdateMusic(metadata, playlist_id_);
@@ -740,7 +738,7 @@ void PlayListTableView::resizeColumn() {
             break;
         case PLAYLIST_TRACK:
             header->setSectionResizeMode(column, QHeaderView::Fixed);
-            header->resizeSection(column, 30);
+            header->resizeSection(column, 50);
             break;
         case PLAYLIST_LUFS:
             header->setSectionResizeMode(column, QHeaderView::Fixed);

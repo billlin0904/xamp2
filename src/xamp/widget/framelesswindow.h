@@ -19,6 +19,7 @@ class QWinTaskbarProgress;
 #endif
 
 class QAction;
+class QScreen;
 class QSystemTrayIcon;
 class QMenu;
 
@@ -87,7 +88,7 @@ private:
 	QIcon seek_forward_icon_;
 	QIcon seek_backward_icon_;
 	QPoint last_pos_;
-	QWidget* current_screen_;
+    QScreen* current_screen_;
 	QScopedPointer<QWinThumbnailToolBar> thumbnail_tool_bar_;
 	QScopedPointer<QWinTaskbarButton> taskbar_button_;
 	QWinTaskbarProgress* taskbar_progress_;

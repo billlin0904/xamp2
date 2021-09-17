@@ -61,6 +61,10 @@ public:
 
     void Open(Path const& file_path, const DeviceInfo& device_info, uint32_t target_sample_rate = 0, AlignPtr<SampleRateConverter> converter = nullptr);
 
+    static AlignPtr<CDDevice> & OpenCD(int32_t driver_letter);
+
+    static void CloseCD();
+
     void PrepareToPlay();
 
     void Play();
@@ -168,8 +172,9 @@ private:
         double stream_time;
     };
 
-    XAMP_ENFORCE_TRIVIAL(AudioSlice)    
+    XAMP_ENFORCE_TRIVIAL(AudioSlice)
 
+    static AlignPtr<CDDevice> cd_device_;
     bool is_muted_;
     bool enable_sample_converter_;
     bool enable_processor_;

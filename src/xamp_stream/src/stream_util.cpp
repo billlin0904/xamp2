@@ -57,8 +57,8 @@ AlignPtr<FileEncoder> MakeEncoder() {
     return MakeAlign<FileEncoder, BassFileEncoder>();
 }
 #ifdef XAMP_OS_WIN
-AlignPtr<CDDevice> MakeCDDevice(char driver_letter) {
-    return MakeAlign<CDDevice, BassCDDevice>(driver_letter);
+AlignPtr<CDDevice> MakeCDDevice(int32_t driver_letter) {
+    return MakeAlign<CDDevice, BassCDDevice>(static_cast<char>(driver_letter));
 }
 #endif
 DsdStream* AsDsdStream(AlignPtr<FileStream> const& stream) noexcept {

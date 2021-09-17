@@ -123,6 +123,8 @@ Xamp::Xamp()
 #else
     , player_(MakeAlignedShared<AudioPlayer>(state_adapter_)) {
 #endif
+    registerMetaType();
+    ui_.setupUi(this);
 }
 
 void Xamp::initial(TopWindow *top_window) {
@@ -147,7 +149,6 @@ void Xamp::initial(TopWindow *top_window) {
     } else {
         initialDeviceList();
     }
-    setWindowFlags(Qt::FramelessWindowHint);
 #ifdef Q_OS_WIN
     discord_notify_.discordInit();
 #endif
@@ -237,11 +238,11 @@ void Xamp::closeEvent(QCloseEvent* event) {
         player_.reset();
     }
 
-    qApp->quit();
+    //qApp->quit();
+    window()->close();
 }
 
 void Xamp::setDefaultStyle() {
-    setAttribute(Qt::WA_StyledBackground, true);
     ThemeManager::instance().setDefaultStyle(ui_);
     applyTheme(ThemeManager::instance().getBackgroundColor());
 }
@@ -258,8 +259,6 @@ void Xamp::registerMetaType() {
 }
 
 void Xamp::initialUI() {
-    registerMetaType();    
-    ui_.setupUi(this);
     auto f = font();
     f.setPointSize(10);
     ui_.titleLabel->setFont(f);
@@ -653,21 +652,47 @@ void Xamp::initialController() {
     });
     theme_color_menu->addAction(widget_action);
     settings_menu->addMenu(theme_color_menu);*/
+    auto hide_widget = [this](bool enable) {
+        if (!enable) {
+            top_window_->resize(QSize(500, 85));
+            top_window_->setMinimumSize(QSize(500, 85));
+            top_window_->setMaximumSize(QSize(500, 85));
+        }
+        else {
+            top_window_->resize(QSize(1300, 860));
+            top_window_->setMinimumSize(QSize(16777215, 16777215));
+            top_window_->setMaximumSize(QSize(16777215, 16777215));
+        }
+    };
+
     // Hide left list
     auto* hide_left_list_action = new QAction(tr("Show left list"), this);
     hide_left_list_action->setCheckable(true);
 	if (AppSettings::getValue(kAppSettingShowLeftList).toBool()) {
         hide_left_list_action->setChecked(true);
+        hide_widget(true);
         ui_.sliderFrame->setVisible(true);
+        ui_.currentView->setVisible(true);
+        ui_.controlFrame->setVisible(true);
+        ui_.volumeFrame->setVisible(true);
 	} else {
+        hide_widget(false);
         ui_.sliderFrame->setVisible(false);
+        ui_.currentView->setVisible(false);
+        ui_.controlFrame->setVisible(false);
+        ui_.volumeFrame->setVisible(false);
 	}
+
     (void)QObject::connect(hide_left_list_action, &QAction::triggered, [=]() {
         auto enable = AppSettings::getValueAsBool(kAppSettingShowLeftList);
         enable = !enable;
         hide_left_list_action->setChecked(enable);
-        ui_.sliderFrame->setVisible(enable);
         AppSettings::setValue(kAppSettingShowLeftList, enable);
+        hide_widget(enable);
+        ui_.sliderFrame->setVisible(enable);
+        ui_.currentView->setVisible(enable);
+        ui_.controlFrame->setVisible(enable);
+        ui_.volumeFrame->setVisible(enable);
         });
     settings_menu->addAction(hide_left_list_action);
 
@@ -795,6 +820,11 @@ void Xamp::initialShortcut() {
     (void)QObject::connect(space_key, &QShortcut::activated, [this]() {
         play();
     });
+
+    auto* play_key = new QShortcut(QKeySequence(Qt::Key_F4), this);
+    (void)QObject::connect(play_key, &QShortcut::activated, [this]() {
+        playNextItem(1);
+        });
 }
 
 void Xamp::stopPlayedClicked() {

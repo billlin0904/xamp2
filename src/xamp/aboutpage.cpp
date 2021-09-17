@@ -25,21 +25,23 @@ AboutPage::AboutPage(QWidget* parent)
 
     ui.lblLogo->setPixmap(ThemeManager::instance().appIcon().pixmap(128, 128));
 
-    auto font = ui.lblProjectTitle->font();
+    QFont font(Q_UTF8("Lucida Sans Unicode"));
     font.setBold(true);
     font.setPointSizeF(18);
+    font.setStyleStrategy(QFont::PreferAntialias);
+
     ui.lblProjectTitle->setFont(font);
     ui.lblProjectTitle->setText(tr("XAMP2"));
     ui.lblProjectTitle->setStyleSheet(Q_UTF8("QLabel#lblProjectTitle { border: none; background: transparent; }"));
 
     ui.lblDescription->setText(Q_UTF8("Cross-platform native DSD and low latency playback music player."));
 
-    QString domainTxt(Q_UTF8("<html><head/><body><a href=\"http://%1\">Github</a></body></html>"));
-    ui.lblDomain->setText(domainTxt.arg(Q_UTF8("github.com/billlin0904/xamp2")));
+    QString domain_txt(Q_UTF8("<html><head/><body><a href=\"http://%1\">Github</a></body></html>"));
+    ui.lblDomain->setText(domain_txt.arg(Q_UTF8("github.com/billlin0904/xamp2")));
     ui.lblCopying->setText(QString::fromStdWString(L"Copyright \u00A9 2018-2021 XAMP2 Project."));
 
     font.setBold(false);
-    font.setPointSize(9);
+    font.setPointSize(10);
     ui.txtBws->setFont(font);
     ui.txtBws->setVisible(false);
 
