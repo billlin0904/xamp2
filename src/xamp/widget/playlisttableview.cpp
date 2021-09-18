@@ -57,7 +57,7 @@ static std::vector<Metadata> parseJson(QString const& json) {
     if (error.error == QJsonParseError::NoError) {
         auto result = doc.array();        
         metadatas.reserve(result.size());
-        for (const auto& entry : result) {
+        for (const auto entry : result) {
             auto object = entry.toVariant().toMap();
             auto url = object.value(Q_UTF8("url")).toString();
             auto title = object.value(Q_UTF8("title")).toString();
@@ -823,7 +823,7 @@ std::optional<QModelIndex> PlayListTableView::selectItem() const {
 std::map<int32_t, QModelIndex> PlayListTableView::selectItemIndex() const {
     std::map<int32_t, QModelIndex> select_items;
 
-    foreach(auto index, selectionModel()->selectedRows()) {
+    Q_FOREACH(auto index, selectionModel()->selectedRows()) {
         auto const row = index.row();
         select_items.emplace(row, index);
     }

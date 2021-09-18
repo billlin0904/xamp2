@@ -132,6 +132,8 @@ HEADERS += \
     xamp.h \
     xampplayer.h
 
+ICON = xamp2.icns \
+
 FORMS += \
     widget/toast.ui \
     aboutdialog.ui \

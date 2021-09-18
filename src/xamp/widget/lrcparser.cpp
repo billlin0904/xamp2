@@ -120,7 +120,7 @@ void LrcParser::ParseMultiLrc(std::wstring const & line) {
     }
 
     auto lrc = temp;
-    for (auto time : times) {
+    for (auto const &time : times) {
         LyricEntry entry;
         entry.timestamp = ParseTime(time);
         entry.lrc = lrc;

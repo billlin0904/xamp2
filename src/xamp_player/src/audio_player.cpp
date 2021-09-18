@@ -127,14 +127,14 @@ void AudioPlayer::Initialize() {
 #endif
     ThreadPool::StreamReaderThreadPool();
 }
-
+#ifdef XAMP_OS_WIN
 AlignPtr<CDDevice>& AudioPlayer::OpenCD(int32_t driver_letter) {
     if (!cd_device_) {
         cd_device_ = MakeCDDevice(driver_letter);
     }
     return cd_device_;
 }
-
+#endif
 void AudioPlayer::CloseCD() {
     cd_device_.reset();
 }

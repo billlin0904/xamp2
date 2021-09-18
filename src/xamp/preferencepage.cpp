@@ -63,7 +63,7 @@ void PreferencePage::saveSoxrResampler(const QString &name) {
 }
 
 void PreferencePage::initSoxResampler() {
-    for (const auto &soxr_setting_name : JsonSettings::keys()) {
+    Q_FOREACH (const auto &soxr_setting_name, JsonSettings::keys()) {
 		ui_.soxrSettingCombo->addItem(soxr_setting_name);
 	}
 
@@ -129,7 +129,7 @@ void PreferencePage::initLang() {
 
 	auto current_index = 0;
 	auto index = 0;
-	for (auto lang : LocaleLanguageManager::languageNames()) {
+    Q_FOREACH (auto lang, LocaleLanguageManager::languageNames()) {
         QIcon ico(Q_STR(":/xamp/Resource/Flags/%1.png").arg(lang.countryIsoCode()));
 		ui_.langCombo->addItem(ico, lang.getIsoCode());
 		if (current_lang.getIsoCode() == lang.getIsoCode()) {

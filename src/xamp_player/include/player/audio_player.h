@@ -60,9 +60,9 @@ public:
     void Open(Path const& file_path, const Uuid& device_id = Uuid::kInvalidUUID);
 
     void Open(Path const& file_path, const DeviceInfo& device_info, uint32_t target_sample_rate = 0, AlignPtr<SampleRateConverter> converter = nullptr);
-
+#ifdef XAMP_OS_WIN
     static AlignPtr<CDDevice> & OpenCD(int32_t driver_letter);
-
+#endif
     static void CloseCD();
 
     void PrepareToPlay();
