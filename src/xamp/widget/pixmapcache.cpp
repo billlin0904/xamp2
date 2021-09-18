@@ -15,7 +15,7 @@
 #include <widget/filetag.h>
 #include <widget/pixmapcache.h>
 
-inline constexpr size_t kDefaultCacheSize = 1024;
+inline constexpr size_t kDefaultCacheSize = 32;
 
 PixmapCache::PixmapCache()
 	: cache_(kDefaultCacheSize) {
@@ -24,7 +24,6 @@ PixmapCache::PixmapCache()
 	cache_ext_ << Q_UTF8("*.cache");
 	const QDir dir;
 	(void)dir.mkdir(cache_path_);
-	loadCache();
 	unknown_cover_id_ = addOrUpdate(QPixmap(Q_UTF8(":/xamp/Resource/White/unknown_album.png")));
 }
 
@@ -123,7 +122,6 @@ QString PixmapCache::addOrUpdate(const QByteArray& data) const {
 		tag_name = FileTag::getTagId(array);
 		(void)cache_cover.save(cache_path_ + tag_name + Q_UTF8(".cache"), "JPG", 100);
 	}
-	cache_.AddOrUpdate(tag_name, cache_cover);
 	return tag_name;
 }
 
@@ -141,7 +139,6 @@ QString PixmapCache::addOrUpdate(const QPixmap& cover) const {
 		tag_name = FileTag::getTagId(array);
 		(void)cache_cover.save(cache_path_ + tag_name + Q_UTF8(".cache"), "JPG", 100);
 	}
-	cache_.AddOrUpdate(tag_name, cache_cover);
 	return tag_name;
 }
 

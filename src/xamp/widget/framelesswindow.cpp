@@ -7,6 +7,7 @@
 #include <QMenu>
 #include <QAction>
 #include <QPainter>
+#include <QWindow>
 #include <QDesktopWidget>
 
 #if defined(Q_OS_WIN)
@@ -395,10 +396,10 @@ void FramelessWindow::mouseMoveEvent(QMouseEvent* event) {
     }
 
     if (current_screen_ == nullptr) {
-        current_screen_ = content_widget_->screen();
+        current_screen_ = content_widget_->window()->windowHandle()->screen();
     }
-    else if (current_screen_ != content_widget_->screen()) {
-        current_screen_ = content_widget_->screen();
+    else if (current_screen_ != content_widget_->window()->windowHandle()->screen()) {
+        current_screen_ = content_widget_->window()->windowHandle()->screen();
 
         ::SetWindowPos(reinterpret_cast<HWND>(winId()), nullptr, 0, 0, 0, 0,
             SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
