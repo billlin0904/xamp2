@@ -43,10 +43,17 @@ FramelessWindow::FramelessWindow()
 void FramelessWindow::initial(XampPlayer *content_widget) {
     setObjectName(Q_UTF8("framelessWindow"));
     content_widget_ = content_widget;
+    const auto enable_blur = AppSettings::getValueAsBool(kAppSettingEnableBlur);
     if (content_widget_ != nullptr) {
         auto default_layout = new QGridLayout();
         default_layout->addWidget(content_widget_, 0, 0);
-        default_layout->setContentsMargins(1, 1, 1, 1);
+#ifdef XAMP_OS_WIN
+        if (!enable_blur) {
+            default_layout->setContentsMargins(1, 1, 1, 1);
+        } else {
+            default_layout->setContentsMargins(0, 0, 0, 0);
+        }
+#endif
         setLayout(default_layout);
     }
     setAcceptDrops(true);
@@ -56,9 +63,11 @@ void FramelessWindow::initial(XampPlayer *content_widget) {
 #if defined(Q_OS_WIN)
     if (!use_native_window_) {
         setWindowFlags(Qt::FramelessWindowHint | Qt::WindowMinimizeButtonHint);
-        setAttribute(Qt::WA_TranslucentBackground, true);
+        if (!enable_blur) {
+            setAttribute(Qt::WA_TranslucentBackground, true);
+        }
         win32::setWinStyle(this);
-        setWindowTitle(Q_UTF8("xamp"));        
+        setWindowTitle(Q_UTF8("xamp"));
     }
     createThumbnailToolBar();
 #else
