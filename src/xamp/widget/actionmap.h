@@ -53,14 +53,7 @@ public:
 	explicit ActionMap(Type* object)
 		: object_(object)
 		, menu_(object) {
-        auto color = ThemeManager::instance().getBackgroundColor();
-        color.setAlpha(100);
-		const auto menu_style_sheet = Q_STR(R"(
-        QMenu {
-            background-color: %1;
-        }
-        )").arg(colorToString(color));
-		menu_.setStyleSheet(menu_style_sheet);
+        ThemeManager::instance().setMenuStlye(&menu_);
 	}
 
 	QAction* addAction(const QString& menu_name) {

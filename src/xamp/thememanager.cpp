@@ -3,6 +3,7 @@
 #include <widget/image_utiltis.h>
 
 #include <QScreen>
+#include <QMenu>
 #include <QApplication>
 
 #if defined(Q_OS_WIN)
@@ -211,6 +212,27 @@ void ThemeManager::setRepeatOncePlayOrder(Ui::XampWindow& ui) const {
     ui.repeatButton->setStyleSheet(style_sheet);
 }
 
+QString ThemeManager::getMenuStlye() const {
+    auto color = ThemeManager::instance().getBackgroundColor();
+    color.setAlpha(255);
+    color.setRed(74);
+    color.setGreen(84);
+    color.setBlue(89);
+    return Q_STR(R"(
+        QMenu {
+            background: %1;
+            border-radius: 4px;
+            border: none;
+        }
+        )").arg(colorToString(color));
+}
+
+void ThemeManager::setMenuStlye(QMenu *menu) const {
+    menu->setStyleSheet(getMenuStlye());
+    menu->setWindowFlag(Qt::FramelessWindowHint);
+    menu->setAttribute(Qt::WA_TranslucentBackground);
+}
+
 void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
     ui.titleFrameLabel->setStyleSheet(Q_STR(R"(
     QLabel#titleFrameLabel {
@@ -283,6 +305,9 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
                                             image: none;
                                             }
                                             )").arg(themeColorPath()));
+
+
+    setMenuStlye(ui.settingsButton->menu());
 
     ui.stopButton->setStyleSheet(Q_STR(R"(
                                          QToolButton#stopButton {

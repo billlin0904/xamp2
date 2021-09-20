@@ -7,6 +7,7 @@
 
 #include <QPixmap>
 #include <QIcon>
+#include <QMenu>
 
 #include <widget/str_utilts.h>
 
@@ -15,8 +16,11 @@ class XampWindow;
 }
 
 inline QString colorToString(QColor color) noexcept {
-    return QString().sprintf("rgba(%d,%d,%d,%d)",
-        color.red(), color.green(), color.blue(), color.alpha());
+    return QString(Q_UTF8("rgba(%1,%2,%3,%4)"))
+        .arg(color.red())
+        .arg(color.green())
+        .arg(color.blue())
+        .arg(color.alpha());
 }
 
 inline QString backgroundColorToString(QColor color) noexcept {
@@ -105,6 +109,10 @@ public:
     void setRepeatOncePlayOrder(Ui::XampWindow& ui) const;
 
     void setThemeColor(ThemeColor theme_color);
+
+    QString getMenuStlye() const;
+
+    void setMenuStlye(QMenu *menu) const;
 
     ThemeColor themeColor() const {
         return theme_color_;

@@ -325,14 +325,7 @@ void Xamp::initialDeviceList() {
     }
 
     auto setMenuBackgroundColor = [menu]() {
-        auto color = ThemeManager::instance().getBackgroundColor();
-        color.setAlpha(100);
-        const auto menu_style_sheet = Q_STR(R"(
-        QMenu {
-            background-color: %1;
-        }
-        )").arg(colorToString(color));
-        menu->setStyleSheet(menu_style_sheet);
+        ThemeManager::instance().setMenuStlye(menu);
     };
 
     setMenuBackgroundColor();

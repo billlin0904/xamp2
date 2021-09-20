@@ -335,15 +335,7 @@ void PlayListTableView::initial() {
     (void)QObject::connect(horizontalHeader(), &QHeaderView::customContextMenuRequested, [this](auto pt) {
         auto* menu = new QMenu(this);
         auto* header_view = horizontalHeader();
-
-        auto color = ThemeManager::instance().getBackgroundColor();
-        color.setAlpha(100);
-        const auto menu_style_sheet = Q_STR(R"(
-        QMenu {
-            background-color: %1;
-        }
-        )").arg(colorToString(color));
-        menu->setStyleSheet(menu_style_sheet);
+        ThemeManager::instance().setMenuStlye(menu);
 
         auto last_referred_logical_column = header_view->logicalIndexAt(pt);
 

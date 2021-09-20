@@ -42,17 +42,19 @@ FramelessWindow::FramelessWindow()
 
 void FramelessWindow::initial(XampPlayer *content_widget) {
     setObjectName(Q_UTF8("framelessWindow"));
-    content_widget_ = content_widget;
-    const auto enable_blur = AppSettings::getValueAsBool(kAppSettingEnableBlur);
-    if (content_widget_ != nullptr) {
+    content_widget_ = content_widget;    
+    if (content_widget_ != nullptr) {        
         auto default_layout = new QGridLayout();
         default_layout->addWidget(content_widget_, 0, 0);
 #ifdef XAMP_OS_WIN
+        const auto enable_blur = AppSettings::getValueAsBool(kAppSettingEnableBlur);
         if (!enable_blur) {
             default_layout->setContentsMargins(1, 1, 1, 1);
         } else {
             default_layout->setContentsMargins(0, 0, 0, 0);
         }
+#else
+        default_layout->setContentsMargins(0, 0, 0, 0);
 #endif
         setLayout(default_layout);
     }
@@ -63,6 +65,7 @@ void FramelessWindow::initial(XampPlayer *content_widget) {
 #if defined(Q_OS_WIN)
     if (!use_native_window_) {
         setWindowFlags(Qt::FramelessWindowHint | Qt::WindowMinimizeButtonHint);
+        const auto enable_blur = AppSettings::getValueAsBool(kAppSettingEnableBlur);
         if (!enable_blur) {
             setAttribute(Qt::WA_TranslucentBackground, true);
         }
@@ -363,7 +366,7 @@ void FramelessWindow::changeEvent(QEvent*) {
 }
 
 void FramelessWindow::closeEvent(QCloseEvent* event) {
-    content_widget_->close();
+    QWidget::closeEvent(event);
 }
 
 void FramelessWindow::mousePressEvent(QMouseEvent* event) {
@@ -427,10 +430,14 @@ void FramelessWindow::showEvent(QShowEvent* event) {
 }
 
 void FramelessWindow::paintEvent(QPaintEvent* event) {
+#ifdef Q_OS_WIN32
     QColor background_color(AppSettings::getValueAsString(kAppSettingBackgroundColor));
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
     painter.setBrush(QBrush(background_color, Qt::SolidPattern));
     painter.setPen(Qt::transparent);
     painter.drawRoundedRect(0, 0, width(), height(), kUIRadius, kUIRadius);
+#else
+    QWidget::paintEvent(event);
+#endif
 }
