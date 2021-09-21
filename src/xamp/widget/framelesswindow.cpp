@@ -9,6 +9,7 @@
 #include <QPainter>
 #include <QWindow>
 #include <QDesktopWidget>
+#include <QStyleOption>
 
 #if defined(Q_OS_WIN)
 #include <Windows.h>
@@ -336,9 +337,9 @@ bool FramelessWindow::nativeEvent(const QByteArray& event_type, void * message, 
                 ::AdjustWindowRectEx(&frame, WS_OVERLAPPEDWINDOW, FALSE, 0);
                 frame.left = abs(frame.left);
                 frame.top = abs(frame.bottom);
-                this->setContentsMargins(frame.left, frame.top, frame.right, frame.bottom);
+                setContentsMargins(frame.left, frame.top, frame.right, frame.bottom);
             } else {
-                this->setContentsMargins(2, 2, 2, 2);
+                setContentsMargins(2, 2, 2, 2);
             }
             *result = ::DefWindowProc(msg->hwnd, msg->message, msg->wParam, msg->lParam);
             break;
@@ -357,12 +358,13 @@ bool FramelessWindow::nativeEvent(const QByteArray& event_type, void * message, 
     return QWidget::nativeEvent(event_type, message, result);
 }
 
-void FramelessWindow::changeEvent(QEvent*) {
+void FramelessWindow::changeEvent(QEvent* event) {
 #if defined(Q_OS_MAC)
     if (!use_native_window_) {
         osx::hideTitleBar(content_widget_);
 	}
 #endif
+    QWidget::changeEvent(event);
 }
 
 void FramelessWindow::closeEvent(QCloseEvent* event) {
@@ -433,10 +435,21 @@ void FramelessWindow::paintEvent(QPaintEvent* event) {
 #ifdef Q_OS_WIN32
     QColor background_color(AppSettings::getValueAsString(kAppSettingBackgroundColor));
     QPainter painter(this);
-    painter.setRenderHint(QPainter::Antialiasing);
-    painter.setBrush(QBrush(background_color, Qt::SolidPattern));
+    QRectF rect(QPointF(0, 0), size());
+    qreal pen_width = border_width_;
+    if (pen_width < 0.0) {
+        QStyleOption opt;
+        opt.initFrom(this);
+        pen_width = style()->pixelMetric(QStyle::PM_DefaultFrameWidth, &opt, this);
+    }
+    if (pen_width > 0.0) {      
+        const qreal dlta = pen_width * 0.5;
+        rect.adjust(dlta, dlta, -dlta, -dlta);
+    }
     painter.setPen(Qt::transparent);
-    painter.drawRoundedRect(0, 0, width(), height(), kUIRadius, kUIRadius);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setBrush(QBrush(background_color, Qt::SolidPattern));    
+    painter.drawRoundedRect(rect, kUIRadius, kUIRadius);
 #else
     QWidget::paintEvent(event);
 #endif
