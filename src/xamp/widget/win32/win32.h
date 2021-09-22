@@ -9,6 +9,7 @@
 
 namespace win32 {
 	void setBlurMaterial(const QWidget* widget, bool enable);
-	void setWinStyle(QWidget* widget);
+	void setFramelessWindowStyle(const QWidget* widget);
+	void drawDwmShadow(const QWidget* widget);
 }
 

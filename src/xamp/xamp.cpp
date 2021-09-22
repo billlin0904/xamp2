@@ -1175,6 +1175,7 @@ void Xamp::initialPlaylist() {
     ui_.sliderBar->addTab(tr("Lyrics"), 4, ThemeManager::instance().subtitleIcon());
     ui_.sliderBar->addTab(tr("Settings"), 5, ThemeManager::instance().preferenceIcon());
     ui_.sliderBar->addTab(tr("About"), 6, ThemeManager::instance().aboutIcon());
+    ui_.sliderBar->setCurrentIndex(ui_.sliderBar->model()->index(0, 0));
 	
     Singleton<Database>::GetInstance().forEachTable([this](auto table_id,
                                              auto /*table_index*/,

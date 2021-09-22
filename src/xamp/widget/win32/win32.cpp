@@ -175,16 +175,17 @@ void setBlurMaterial(const QWidget* widget, bool enable) {
 	User32DLL.SetWindowCompositionAttribute(hwnd, &data);
 }
 
-void setWinStyle(QWidget* widget) {
+void drawDwmShadow(const QWidget* widget) {
 	auto hwnd = reinterpret_cast<HWND>(widget->winId());
-
-	const DWORD style = ::GetWindowLong(hwnd, GWL_STYLE);
-
-	::SetWindowLongPtr(hwnd, GWL_STYLE,
-		style | WS_POPUP | WS_THICKFRAME | WS_CAPTION | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX);
-
 	MARGINS borderless = { 1, 1, 1, 1 };
 	DWMDLL.DwmExtendFrameIntoClientArea(hwnd, &borderless);
+}
+
+void setFramelessWindowStyle(const QWidget* widget) {
+	auto hwnd = reinterpret_cast<HWND>(widget->winId());
+	const DWORD style = ::GetWindowLong(hwnd, GWL_STYLE);
+	::SetWindowLong(hwnd, GWL_STYLE, style | WS_POPUP | WS_CAPTION | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX);
+	drawDwmShadow(widget);
 }
 }
 

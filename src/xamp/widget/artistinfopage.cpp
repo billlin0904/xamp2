@@ -49,7 +49,7 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 		});
 
 	auto f = font();
-	f.setPointSize(15);
+	f.setPointSize(30);
 	f.setBold(true);
 	artist_ = new QLabel(this);
 	artist_->setFont(f);
@@ -59,7 +59,7 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 	title->setStyleSheet(Q_UTF8("background-color: transparent"));
 	title->setObjectName(QString::fromUtf8("label_2"));
 	title->setText(tr("Artist Information"));
-	f.setPointSize(18);
+	f.setPointSize(35);
 	title->setFont(f);
 	default_layout->addWidget(title);
 
@@ -118,7 +118,7 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 }
 
 QPixmap ArtistInfoPage::getArtistImage(QPixmap const* cover) const {
-	return  Pixmap::roundImage(Pixmap::resizeImage(*cover, cover_->size()), Pixmap::kSmallImageRadius);
+	return  Pixmap::roundImage(Pixmap::resizeImage(*cover, cover_->size()), Pixmap::kPlaylistImageRadius);
 }
 
 void ArtistInfoPage::setArtistId(const QString& artist, const QString& cover_id, int32_t artist_id) {

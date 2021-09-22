@@ -17,7 +17,7 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 	verticalLayout_2->setObjectName(QString::fromUtf8("verticalLayout_2"));
 
 	auto f = font();
-	f.setPointSize(18);
+	f.setPointSize(35);
 	f.setBold(true);
 
 	auto* title = new QLabel();
@@ -50,6 +50,8 @@ AlbumArtistPage::AlbumArtistPage(QWidget* parent)
 		this, &AlbumArtistPage::refreshOnece);
 
 	setStyleSheet(Q_UTF8("background-color: transparent"));
+
+	artist_view_->hide();
 }
 
 void AlbumArtistPage::refreshOnece() {

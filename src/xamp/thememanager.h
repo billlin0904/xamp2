@@ -126,6 +126,8 @@ signals:
     void themeChanged(ThemeColor theme_color);    
 
 private:
+    QIcon makeIcon(const QString& path) const;
+
     QLatin1String themeColorPath() const;
 
     ThemeManager();

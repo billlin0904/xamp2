@@ -141,12 +141,13 @@ void TaskScheduler::SetWorkerThreadName(size_t i) {
 
 void TaskScheduler::AddThread(size_t i) {
 	threads_.emplace_back([i, this]() mutable {
+#ifdef XAMP_OS_WIN
 		// Avoid 64K Aliasing in L1 Cache (Intel hyper-threading)
 		const auto allocate_stack_size = (std::min)(kInitL1CacheLineSize * i, 
 			kMaxL1CacheLineSize);
 		const auto L1_padding_buffer = MakeStackBuffer<uint8_t>(allocate_stack_size);
+#endif
 		auto thread_id = GetCurrentThreadId();
-		
 		SetWorkerThreadName(i);
 #ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) start.", thread_id, i);

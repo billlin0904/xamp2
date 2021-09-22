@@ -338,3 +338,13 @@ background-color: rgb(219, 219, 219);
 QSlider::sub-page:horizontal {
 background-color: rgb(187, 134, 252);
 }
+QListView#sliderBar {
+	show-decoration-selected: 1;
+	padding-left: 8px;
+	padding-right: 8px;
+}
+QListView#sliderBar:item:selected {
+    background-color: palette(highlight);
+	color: white;
+	border-radius: 4px;
+}

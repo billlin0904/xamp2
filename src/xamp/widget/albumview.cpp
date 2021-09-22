@@ -207,7 +207,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 
     auto f = font();
 
-    f.setPointSize(22);
+    f.setPointSize(30);
     f.setBold(true);
     album_ = new QLabel(this);
     album_->setMaximumSize(QSize(16777215, 32));

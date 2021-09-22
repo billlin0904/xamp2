@@ -69,32 +69,39 @@ QIcon ThemeManager::volumeOff() const {
     return QIcon(Q_STR(":/xamp/Resource/%1/volume_off.png").arg(themeColorPath()));
 }
 
+QIcon ThemeManager::makeIcon(const QString &path) const {
+    QIcon icon;
+    icon.addPixmap(path.arg(themeColorPath()), QIcon::Normal);
+    icon.addPixmap(path.arg(themeColorPath()), QIcon::Selected);
+    return icon;
+}
+
 QIcon ThemeManager::playlistIcon() const {
-    return QIcon(Q_STR(":/xamp/Resource/%1/tab_playlists.png").arg(themeColorPath()));
+    return makeIcon(Q_STR(":/xamp/Resource/%1/tab_playlists.png"));
 }
 
 QIcon ThemeManager::podcastIcon() const {
-    return QIcon(Q_STR(":/xamp/Resource/%1/podcast.png").arg(themeColorPath()));
+    return makeIcon(Q_STR(":/xamp/Resource/%1/podcast.png"));
 }
 
 QIcon ThemeManager::albumsIcon() const {
-    return QIcon(Q_STR(":/xamp/Resource/%1/tab_albums.png").arg(themeColorPath()));
+    return makeIcon(Q_STR(":/xamp/Resource/%1/tab_albums.png"));
 }
 
 QIcon ThemeManager::artistsIcon() const {
-    return QIcon(Q_STR(":/xamp/Resource/%1/tab_artists.png").arg(themeColorPath()));
+    return makeIcon(Q_STR(":/xamp/Resource/%1/tab_artists.png"));
 }
 
 QIcon ThemeManager::subtitleIcon() const {
-    return QIcon(Q_STR(":/xamp/Resource/%1/tab_subtitles.png").arg(themeColorPath()));
+    return makeIcon(Q_STR(":/xamp/Resource/%1/tab_subtitles.png"));
 }
 
 QIcon ThemeManager::preferenceIcon() const  {
-    return QIcon(Q_STR(":/xamp/Resource/%1/preference.png").arg(themeColorPath()));
+    return makeIcon(Q_STR(":/xamp/Resource/%1/preference.png"));
 }
 
 QIcon ThemeManager::aboutIcon() const {
-    return QIcon(Q_STR(":/xamp/Resource/%1/help.png").arg(themeColorPath()));
+    return makeIcon(Q_STR(":/xamp/Resource/%1/help.png"));
 }
 
 void ThemeManager::setPlayOrPauseButton(Ui::XampWindow& ui, bool is_playing) {
@@ -213,23 +220,24 @@ void ThemeManager::setRepeatOncePlayOrder(Ui::XampWindow& ui) const {
 }
 
 QString ThemeManager::getMenuStlye() const {
-    auto color = ThemeManager::instance().getBackgroundColor();
-    color.setAlpha(255);
-    color.setRed(74);
-    color.setGreen(84);
-    color.setBlue(89);
+    QColor color(37, 37, 39);
     return Q_STR(R"(
         QMenu {
             background: %1;
             border-radius: 4px;
             border: none;
         }
+		QMenu:item:selected {
+            background-color: palette(highlight);
+			color: white;
+			border-radius: 4px;
+        }
         )").arg(colorToString(color));
 }
 
 void ThemeManager::setMenuStlye(QMenu *menu) const {
     menu->setStyleSheet(getMenuStlye());
-    menu->setWindowFlag(Qt::FramelessWindowHint);
+    menu->setWindowFlags(menu->windowFlags() | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
     menu->setAttribute(Qt::WA_TranslucentBackground);
 }
 

@@ -170,13 +170,13 @@ static int excute(int argc, char* argv[]) {
         return -1;
     }   
 
-    SingleInstanceApplication single_app;
-#ifndef _DEBUG
-    if (!single_app.attach(QCoreApplication::arguments())) {
-        return -1;
-    }
-#endif
-    XAMP_LOG_DEBUG("attach app success.");
+//    SingleInstanceApplication single_app;
+//#ifndef _DEBUG
+//    if (!single_app.attach(QCoreApplication::arguments())) {
+//        return -1;
+//    }
+//#endif
+//    XAMP_LOG_DEBUG("attach app success.");
 
     (void)Singleton<PixmapCache>::GetInstance();
     XAMP_LOG_DEBUG("PixmapCache init success.");

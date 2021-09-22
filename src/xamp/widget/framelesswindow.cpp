@@ -1,14 +1,8 @@
 #include <QApplication>
 #include <QLayout>
-#include <QStyle>
 #include <QFontDatabase>
-#include <QTranslator>
-#include <QSystemTrayIcon>
-#include <QMenu>
-#include <QAction>
 #include <QPainter>
 #include <QWindow>
-#include <QDesktopWidget>
 #include <QStyleOption>
 
 #if defined(Q_OS_WIN)
@@ -64,13 +58,13 @@ void FramelessWindow::initial(XampPlayer *content_widget) {
     installEventFilter(this);
     auto ui_font = setupUIFont();
 #if defined(Q_OS_WIN)
-    if (!use_native_window_) {
+    if (!useNativeWindow()) {
         setWindowFlags(Qt::FramelessWindowHint | Qt::WindowMinimizeButtonHint);
         const auto enable_blur = AppSettings::getValueAsBool(kAppSettingEnableBlur);
         if (!enable_blur) {
             setAttribute(Qt::WA_TranslucentBackground, true);
         }
-        win32::setWinStyle(this);
+        win32::setFramelessWindowStyle(this);
         setWindowTitle(Q_UTF8("xamp"));
     }
     createThumbnailToolBar();
@@ -433,6 +427,9 @@ void FramelessWindow::showEvent(QShowEvent* event) {
 
 void FramelessWindow::paintEvent(QPaintEvent* event) {
 #ifdef Q_OS_WIN32
+    if (useNativeWindow()) {
+        return QWidget::paintEvent(event);
+    }
     QColor background_color(AppSettings::getValueAsString(kAppSettingBackgroundColor));
     QPainter painter(this);
     QRectF rect(QPointF(0, 0), size());
