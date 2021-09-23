@@ -8,7 +8,7 @@
 #include <QString>
 #include <QByteArray>
 
-class FileTag {
+class QEtag {
 public:
 	static QString getTagId(const QByteArray &buffer) noexcept;
 	static QString getTagId(const QString &file_name) noexcept;

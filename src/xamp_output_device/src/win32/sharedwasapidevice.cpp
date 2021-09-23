@@ -194,6 +194,11 @@ void SharedWasapiDevice::InitialRawMode(AudioFormat const & output_format) {
 		latency_,
 		mix_format_,
 		nullptr));
+
+	BOOL offload_capable = FALSE;
+	if (SUCCEEDED(client_->IsOffloadCapable(AudioCategory_Media, &offload_capable))) {
+		XAMP_LOG_D(log_, "Devive support offload: {}", offload_capable ? "yes" : "no");
+	}
 }
 
 void SharedWasapiDevice::OpenStream(AudioFormat const & output_format) {

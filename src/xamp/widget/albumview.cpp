@@ -407,6 +407,7 @@ AlbumView::AlbumView(QWidget* parent)
             Singleton<Database>::GetInstance().removeAllArtist();
             refreshOnece();
             emit removeAll();
+            Singleton<PixmapCache>::GetInstance().clear();
         };
 
         if (index.isValid()) {

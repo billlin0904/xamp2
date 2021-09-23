@@ -12,7 +12,7 @@
 
 #include <widget/image_utiltis.h>
 #include <widget/str_utilts.h>
-#include <widget/filetag.h>
+#include <widget/qetag.h>
 #include <widget/pixmapcache.h>
 
 inline constexpr size_t kDefaultCacheSize = 32;
@@ -119,7 +119,7 @@ QString PixmapCache::addOrUpdate(const QByteArray& data) const {
 
 	QString tag_name;
 	if (cache_cover.save(&buffer, "JPG")) {
-		tag_name = FileTag::getTagId(array);
+		tag_name = QEtag::getTagId(array);
 		(void)cache_cover.save(cache_path_ + tag_name + Q_UTF8(".cache"), "JPG", 100);
 	}
 	return tag_name;
@@ -136,7 +136,7 @@ QString PixmapCache::addOrUpdate(const QPixmap& cover) const {
 
 	QString tag_name;
 	if (cache_cover.save(&buffer, "JPG")) {
-		tag_name = FileTag::getTagId(array);
+		tag_name = QEtag::getTagId(array);
 		(void)cache_cover.save(cache_path_ + tag_name + Q_UTF8(".cache"), "JPG", 100);
 	}
 	return tag_name;

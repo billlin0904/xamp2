@@ -2,9 +2,9 @@
 #include <QFileInfo>
 #include <QDataStream>
 
-#include <widget/filetag.h>
+#include <widget/qetag.h>
 
-constexpr int32_t kTagIdChunkSize = 1 << 22;
+constexpr int32_t kTagIdChunkSize = 1 << 22; // 4MB
 constexpr char kPrepareHeader = static_cast<char>(0x96);
 
 static QByteArray sha1(const QByteArray& data) noexcept {
@@ -17,14 +17,20 @@ static QString urlSafeBase64Encode(const QByteArray& data) noexcept {
     return QLatin1String(data.toBase64(QByteArray::Base64UrlEncoding));
 }
 
-QString FileTag::getTagId(const QByteArray &buffer) noexcept {
+QString QEtag::getTagId(const QByteArray &buffer) noexcept {
+    // 七牛雲儲存etag演算法
+	// https://github.com/qiniu/qetag
+	// 如果你能夠確認文件 <= 4M，那麼 hash = UrlsafeBase64([0x16, sha1(FileContent)])
+	// 如果文件 > 4M，則 hash = UrlsafeBase64([0x96, sha1([sha1(Block1), sha1(Block2), ...])])
+	// 其中 Block 是把文件內容切分為 4M 為單位的一個個塊，也就是 BlockI = FileContent[I * 4M:(I + 1) * 4M]
+
     if (buffer.size() <= kTagIdChunkSize) {
         const auto sha1_data = sha1(buffer);
         auto hash_data = sha1_data;
         hash_data.prepend(0x16);
         return urlSafeBase64Encode(hash_data);
     } else {
-        auto chunk_count = static_cast<int32_t>(buffer.size())
+        auto chunk_count = buffer.size()
                              / kTagIdChunkSize;
         if (buffer.size() % kTagIdChunkSize != 0) {
             chunk_count += 1;
@@ -32,6 +38,7 @@ QString FileTag::getTagId(const QByteArray &buffer) noexcept {
 
         QDataStream reader(buffer);
         QByteArray sha1_all_data;
+        sha1_all_data.reserve(chunk_count);
 
         for (auto i = 0; i < chunk_count; i++) {
             auto chunk_size = kTagIdChunkSize;
@@ -50,7 +57,7 @@ QString FileTag::getTagId(const QByteArray &buffer) noexcept {
     }
 }
 
-QString FileTag::getTagId(const QString& file_name) noexcept {
+QString QEtag::getTagId(const QString& file_name) noexcept {
 	QString etag;
     QFileInfo fi(file_name);
 

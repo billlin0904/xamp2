@@ -105,24 +105,6 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
 
 	SetWaveformatEx(mix_format_, output_format, valid_bits_samples);
 
-#if 0
-	// Note: 使用IsFormatSupported()某些音效卡格式判斷會不正確, 改用Initialize()進行處理!
-	AudioClientProperties device_props{};
-	device_props.bIsOffload = FALSE;
-	device_props.cbSize = sizeof(device_props);
-	device_props.eCategory = AudioCategory_Media;
-	device_props.Options = AUDCLNT_STREAMOPTIONS_MATCH_FORMAT | (raw_mode_ ? AUDCLNT_STREAMOPTIONS_RAW : AUDCLNT_STREAMOPTIONS_NONE);;
-
-	try {
-		HrIfFailledThrow(client_->SetClientProperties(&device_props));
-	}
-	catch (Exception const& e) {
-		XAMP_LOG_D(log_, "SetClientProperties return failure! {}", e.GetErrorMessage());
-		device_props.Options = AUDCLNT_STREAMOPTIONS_MATCH_FORMAT;
-		HrIfFailledThrow(client_->SetClientProperties(&device_props));
-	}
-#endif
-
     REFERENCE_TIME default_device_period = 0;
     REFERENCE_TIME minimum_device_period = 0;
     HrIfFailledThrow(client_->GetDevicePeriod(&default_device_period, &minimum_device_period));

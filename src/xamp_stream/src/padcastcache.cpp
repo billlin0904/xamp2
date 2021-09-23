@@ -15,12 +15,7 @@ PodcastFileCache::PodcastFileCache(std::string const& cache_id)
     , cache_id_(cache_id) {
 }
 
-PodcastFileCache::~PodcastFileCache() {
-    /*try {
-        std::filesystem::remove(path_);
-    } catch (...) {
-    }*/
-}
+PodcastFileCache::~PodcastFileCache() = default;
 
 void PodcastFileCache::SetTempPath(std::string const& file_ext, Path const& path) {
 	const auto file_name = MakeTempFileName() + cache_id_ + file_ext;
@@ -98,16 +93,6 @@ void PodcastFileCacheManager::Remove(std::string const& cache_id) {
 
 void PodcastFileCacheManager::Remove(std::shared_ptr<PodcastFileCache> const & file_cache) {
     Remove(file_cache->GetCacheID());
-}
-
-void PodcastFileCacheManager::Load(Path const& path) {
-    for (auto const& file_or_dir
-            : RecursiveDirectoryIterator(Fs::absolute(path), kIteratorOptions)) {
-        auto cache_id = ToCacheID(file_or_dir);
-        auto file = std::make_shared<PodcastFileCache>(cache_id);
-        file->SetTempPath(".m4a", path_);
-        cache_.AddOrUpdate(cache_id, file);
-    }
 }
 
 }

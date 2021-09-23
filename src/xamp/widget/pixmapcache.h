@@ -51,13 +51,13 @@ public:
 		return unknown_cover_id_;
 	}
 
+	void clear();
+
 protected:
 	PixmapCache();
 
 private:
 	void loadCache() const;
-
-	void clear();
 
 	QString unknown_cover_id_;
 	QString cache_path_;

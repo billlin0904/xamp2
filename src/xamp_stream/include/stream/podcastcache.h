@@ -56,8 +56,6 @@ public:
 
     void Remove(std::shared_ptr<PodcastFileCache> const & file_cache);
 
-    void Load(Path const& path);
-
     void SetTempPath(Path const& path);
 
     static PodcastFileCacheManager& GetInstance();

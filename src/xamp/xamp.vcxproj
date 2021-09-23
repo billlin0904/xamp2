@@ -76,6 +76,7 @@
       <BasicRuntimeChecks>StackFrameRuntimeCheck</BasicRuntimeChecks>
       <IntelJCCErratum>true</IntelJCCErratum>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <DisableSpecificWarnings>4819</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -124,6 +125,7 @@
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <DisableSpecificWarnings>4819</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -172,7 +174,7 @@
     <ClCompile Include="widget\database.cpp" />
     <ClCompile Include="widget\discogsclient.cpp" />
     <ClCompile Include="widget\discordnotify.cpp" />
-    <ClCompile Include="widget\filetag.cpp" />
+    <ClCompile Include="widget\qetag.cpp" />
     <ClCompile Include="widget\framelesswindow.cpp" />
     <ClCompile Include="widget\http.cpp" />
     <ClCompile Include="widget\image_utiltis.cpp" />
@@ -267,7 +269,7 @@
     </QtMoc>
     <QtMoc Include="widget\discogsclient.h">
     </QtMoc>
-    <ClInclude Include="widget\filetag.h" />
+    <ClInclude Include="widget\qetag.h" />
     <ClInclude Include="widget\image_utiltis.h" />
     <QtMoc Include="widget\lrcpage.h">
     </QtMoc>
