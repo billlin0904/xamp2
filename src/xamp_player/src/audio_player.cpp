@@ -468,7 +468,7 @@ void AudioPlayer::CreateBuffer() {
     uint32_t require_read_sample = 0;
 
     if (dsd_mode_ != DsdModes::DSD_MODE_NATIVE) {
-	    require_read_sample = device_->GetBufferSize() * kMaxReadRatio;
+	    require_read_sample = device_->GetBufferSize() * output_format_.GetChannels() * kMaxReadRatio;
     } else {
         require_read_sample = output_format_.GetSampleRate() / 8;
     }

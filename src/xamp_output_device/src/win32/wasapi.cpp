@@ -8,8 +8,10 @@
 #include <cguid.h>
 
 #include <base/stl.h>
-#include <base/enum.h>
+#include <base/scopeguard.h>
 #include <base/str_utilts.h>
+#include <base/logger.h>
+#include <output_device/device_type.h>
 #include <output_device/win32/hrexception.h>
 #include <output_device/win32/wasapi.h>
 
@@ -30,6 +32,7 @@ MAKE_ENUM(EndpointFactor,
 		DigitalAudioDisplayDevice,
 		UnknownFormFactor);
 
+
 struct PropVariant final : PROPVARIANT {
 	PropVariant() noexcept { 
 		::PropVariantInit(this);
@@ -49,6 +52,63 @@ struct PropVariant final : PROPVARIANT {
 		return result;
 	}
 };
+
+#define IfFailedRetrun(hr) \
+	if (FAILED(hr)) {\
+		return DeviceConnectType::UKNOWN;\
+	}
+
+static DeviceConnectType GetDeviceConnectType(CComPtr<IMMDevice>& device) {
+	CComPtr<IDeviceTopology> device_topology;
+	HrIfFailledThrow(device->Activate(__uuidof(IDeviceTopology),
+		CLSCTX_ALL,
+		nullptr,
+		reinterpret_cast<void**>(&device_topology)));
+
+	CComPtr<IConnector> connector;
+	HrIfFailledThrow(device_topology->GetConnector(0, &connector));
+
+	CComPtr<IPart> part;
+	HrIfFailledThrow(connector->QueryInterface(IID_PPV_ARGS(&part)));
+
+	UINT id = 0;
+	HrIfFailledThrow(part->GetLocalId(&id));
+
+	LPWSTR part_name = nullptr;
+	HrIfFailledThrow(part->GetName(&part_name));
+
+	XAMP_ON_SCOPE_EXIT({
+		::CoTaskMemFree(part_name);
+		});
+	std::wstring name(part_name);
+	XAMP_LOG_DEBUG("{}: {}", id, String::ToString(name));
+	CComPtr<IPartsList> parts_list;
+	auto hr= part->EnumPartsIncoming(&parts_list);
+	if (hr == E_NOTFOUND) {
+		CComPtr<IConnector> part_connector;
+		IfFailedRetrun(part->QueryInterface(IID_PPV_ARGS(&part_connector)));
+		CComPtr<IConnector> otherside_connector;
+		IfFailedRetrun(part_connector->GetConnectedTo(&otherside_connector));
+		CComPtr<IPart> otherside_part;
+		IfFailedRetrun(otherside_connector->QueryInterface(IID_PPV_ARGS(&otherside_part)));
+		CComPtr<IDeviceTopology> otherside_topology;
+		IfFailedRetrun(otherside_part->GetTopologyObject(&otherside_topology));
+		LPWSTR device_name = nullptr;
+		IfFailedRetrun(otherside_topology->GetDeviceId(&device_name));
+		XAMP_ON_SCOPE_EXIT({
+			::CoTaskMemFree(device_name);
+			});
+		name = device_name;
+		XAMP_LOG_DEBUG("EnumPartsIncoming: {} {}", id, String::ToString(name));
+	}
+	if (name.find(L"usb") != std::wstring::npos) {
+		return DeviceConnectType::USB;
+	}
+	if (name.find(L"hdaudio") != std::wstring::npos) {
+		return DeviceConnectType::ON_BOARD;
+	}
+	return DeviceConnectType::UKNOWN;
+}
 
 CComPtr<IMMDeviceEnumerator> CreateDeviceEnumerator() {
 	CComPtr<IMMDeviceEnumerator> enumerator;
@@ -125,6 +185,7 @@ DeviceInfo GetDeviceInfo(CComPtr<IMMDevice>& device, Uuid const& device_type_id)
 	HrIfFailledThrow(device->GetId(&id));
 	info.device_type_id = device_type_id;
 	info.device_id = String::ToUtf8String(std::wstring(id));
+	info.connect_type = GetDeviceConnectType(device);
 
 	return info;
 }
@@ -137,6 +198,8 @@ double GetStreamPosInMilliseconds(CComPtr<IAudioClock>& clock) {
 	}
 	return 1000.0 * (static_cast<double>(position) / device_frequency);
 }
+
+
 
 }
 #endif

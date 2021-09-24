@@ -119,10 +119,10 @@ void LrcPage::initial() {
 	title_->setFont(f);
 #ifdef Q_OS_WIN
     title_->setMinimumHeight(40);
-    f.setPointSize(12);
+    f.setPointSize(15);
 #else
     title_->setMinimumHeight(50);
-    f.setPointSize(20);
+    f.setPointSize(15);
 #endif
     f.setBold(false);
     title_->setFont(f);

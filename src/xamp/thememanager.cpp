@@ -76,6 +76,14 @@ QIcon ThemeManager::makeIcon(const QString &path) const {
     return icon;
 }
 
+QIcon ThemeManager::speaker() const {
+    return QIcon(Q_STR(":/xamp/Resource/%1/speaker.png").arg(themeColorPath()));
+}
+
+QIcon ThemeManager::usb() const {
+    return QIcon(Q_STR(":/xamp/Resource/%1/usb.png").arg(themeColorPath()));
+}
+
 QIcon ThemeManager::playlistIcon() const {
     return makeIcon(Q_STR(":/xamp/Resource/%1/tab_playlists.png"));
 }

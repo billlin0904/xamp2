@@ -5,9 +5,6 @@
   <property name="modal" stdset="0">
    <bool>false</bool>
   </property>
-  <property name="windowModality">
-   <enum>Qt::NonModal</enum>
-  </property>
   <property name="geometry">
    <rect>
     <x>0</x>

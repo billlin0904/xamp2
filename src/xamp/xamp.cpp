@@ -354,6 +354,14 @@ void Xamp::initialDeviceList() {
 
         for (const auto& device_info : device_info_list) {
             auto* device_action = new QAction(QString::fromStdWString(device_info.name), this);
+            switch (device_info.connect_type) {
+            case DeviceConnectType::USB:
+                device_action->setIcon(ThemeManager::instance().usb());
+                break;
+            default:
+                device_action->setIcon(ThemeManager::instance().speaker());
+                break;
+            }
             device_action_group->addAction(device_action);
             device_action->setCheckable(true);
             device_id_action[device_info.device_id] = device_action;

@@ -59,5 +59,6 @@
         <file>Resource/Black/help.png</file>
         <file>fonts/WorkSans-Bold.ttf</file>
         <file>fonts/WorkSans-Regular.ttf</file>
+        <file>Resource/Black/usb.png</file>
     </qresource>
 </RCC>

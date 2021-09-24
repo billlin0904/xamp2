@@ -45,7 +45,6 @@
 
 // Dll export must be in namespace scope. so we put this in global.
 #define MAKE_ENUM(EnumName, ...) enum class EnumName  { __VA_ARGS__ }; \
-namespace {\
 inline constexpr std::string_view EnumName##_enum_names[] = {\
     ALL_ARGUMENTS_TO_STRING(__VA_ARGS__)\
 };\
@@ -55,6 +54,5 @@ XAMP_ALWAYS_INLINE constexpr std::string_view EnumToString(EnumName value) noexc
 XAMP_ALWAYS_INLINE std::ostream &operator<<(std::ostream &os, EnumName value) {\
     os << EnumToString(value);\
     return os;\
-}\
 }\
 

@@ -100,6 +100,10 @@ public:
 
     QIcon playArrow() const noexcept;
 
+    QIcon speaker() const;
+
+    QIcon usb() const;
+
     void setThemeIcon(Ui::XampWindow& ui) const;
 
     void setShufflePlayorder(Ui::XampWindow& ui) const;

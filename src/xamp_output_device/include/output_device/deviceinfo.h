@@ -12,11 +12,12 @@
 
 namespace xamp::output_device {
 
-using namespace base;
+MAKE_ENUM(DeviceConnectType, UKNOWN, USB, ON_BOARD)
 
 struct XAMP_OUTPUT_DEVICE_API DeviceInfo final {
 	bool is_default_device{false};
 	bool is_support_dsd{false};
+	DeviceConnectType connect_type{ DeviceConnectType::UKNOWN };
 	std::wstring name;    
 	std::string device_id;
 	Uuid device_type_id;

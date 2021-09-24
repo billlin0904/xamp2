@@ -94,9 +94,9 @@ std::vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfoList() const {
 			info.is_default_device = true;
 		}
 #ifdef _DEBUG
-		XAMP_LOG_DEBUG("Get {} device {} property.", GetDescription(), String::ToUtf8String(info.name));
+		XAMP_LOG_TRACE("Get {} device {} property.", GetDescription(), String::ToUtf8String(info.name));
 		for (const auto& property : helper::GetDeviceProperty(device)) {
-			XAMP_LOG_DEBUG("{}: {}", property.first, String::ToUtf8String(property.second));
+			XAMP_LOG_TRACE("{}: {}", property.first, String::ToUtf8String(property.second));
 		}
 #endif
 		// TODO: 一些DAC有支援WASAPI DOP模式.

@@ -46,16 +46,6 @@ namespace xamp::output_device::win32::helper {
 inline constexpr int32_t kWasapiReftimesPerMillisec = 10000;
 inline constexpr double kWasapiReftimesPerSec = 10000000;
 
-inline constexpr DWORD kAsyncCallbackWorkQueue = MFASYNC_CALLBACK_QUEUE_MULTITHREADED;
-
-DeviceInfo GetDeviceInfo(CComPtr<IMMDevice>& device, Uuid const& device_type_id);
-
-CComPtr<IMMDeviceEnumerator> CreateDeviceEnumerator();
-
-HashMap<std::string, std::wstring> GetDeviceProperty(CComPtr<IMMDevice>& device);
-
-double GetStreamPosInMilliseconds(CComPtr<IAudioClock>& clock);
-
 XAMP_ALWAYS_INLINE constexpr double Nano100ToSeconds(REFERENCE_TIME ref) noexcept {
 	//  1 nano = 0.000000001 seconds
 	//100 nano = 0.0000001   seconds
@@ -77,6 +67,14 @@ XAMP_ALWAYS_INLINE constexpr UINT32 ReferenceTimeToFrames(REFERENCE_TIME period,
 XAMP_ALWAYS_INLINE constexpr REFERENCE_TIME MakeHnsPeriod(UINT32 frames, UINT32 samplerate) noexcept {
 	return static_cast<REFERENCE_TIME>(10000.0 * 1000.0 / double(samplerate) * double(frames) + 0.5);
 }
+
+DeviceInfo GetDeviceInfo(CComPtr<IMMDevice>& device, Uuid const& device_type_id);
+
+CComPtr<IMMDeviceEnumerator> CreateDeviceEnumerator();
+
+HashMap<std::string, std::wstring> GetDeviceProperty(CComPtr<IMMDevice>& device);
+
+double GetStreamPosInMilliseconds(CComPtr<IAudioClock>& clock);
 
 }
 
