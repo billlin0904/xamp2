@@ -8,6 +8,7 @@
 #include <string>
 
 #include <base/uuid.h>
+#include <base/enum.h>
 #include <output_device/output_device.h>
 
 namespace xamp::output_device {

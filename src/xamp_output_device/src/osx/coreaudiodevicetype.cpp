@@ -87,6 +87,7 @@ std::vector<DeviceInfo> CoreAudioDeviceType::GetDeviceInfo() const {
 
     device_infos.reserve(device_count);
     auto default_device_info = GetDefaultDeviceInfo();
+    auto usb_device_path = GetSystemUsbPath();
 
     for (auto device_id : device_list) {
         if (!IsOutputDevice(device_id)) {
@@ -95,8 +96,13 @@ std::vector<DeviceInfo> CoreAudioDeviceType::GetDeviceInfo() const {
 
         DeviceInfo info;
         info.name = GetPropertyName(device_id);
+        String::RTrim(info.name);
         info.device_id = GetDeviceUid(device_id);
         info.device_type_id = GetTypeId();
+        info.connect_type = std::find_if(usb_device_path.begin(), usb_device_path.end(), [&](auto usb_path) {
+                                return usb_path.find(String::ToString(info.name)) != std::string::npos;
+                            }) != usb_device_path.end() ? DeviceConnectType::USB : DeviceConnectType::ON_BOARD;
+
         // 用SampleRate判斷是否支援DOP有缺陷,
         // 由使用者判斷是否支援DOP.
         info.is_support_dsd = IsSupportDopMode(device_id);

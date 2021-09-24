@@ -5,6 +5,10 @@
 #include <cmath>
 #include <algorithm>
 
+#include <IOKit/IOKitLib.h>
+#include <IOKit/usb/IOUSBLib.h>
+#include <IOKit/IOCFPlugIn.h>
+
 #include <base/logger.h>
 #include <base/str_utilts.h>
 
@@ -16,6 +20,56 @@ namespace xamp::output_device::osx {
 
 // Minimal DOP DSD64 samplerate
 inline constexpr int32_t kMinDopSamplerate = 176400;
+
+std::vector<std::string> GetSystemUsbPath() {
+    std::vector<std::string> usb_device;
+    auto matching_dict = ::IOServiceMatching(kIOUSBDeviceClassName);
+    if (matching_dict == nullptr) {
+        return usb_device;
+    }
+
+    io_iterator_t iter;
+    auto kr = ::IOServiceGetMatchingServices(kIOMasterPortDefault, matching_dict, &iter);
+    if (kr != KERN_SUCCESS) {
+        return usb_device;
+    }
+
+    io_service_t device;
+    while ((device = ::IOIteratorNext(iter))) {
+        SInt32 score;
+        IOCFPlugInInterface** plugin = nullptr;
+        kern_return_t err;
+        err = ::IOCreatePlugInInterfaceForService(device,
+                                                kIOUSBDeviceUserClientTypeID,
+                                                kIOCFPlugInInterfaceID,
+                                                &plugin,
+                                                &score);
+        if (err == KERN_SUCCESS && plugin) {
+            IOUSBDeviceInterface245** usb_interface = nullptr;
+            err = (*plugin)->QueryInterface(plugin,
+                                            CFUUIDGetUUIDBytes(kIOUSBDeviceInterfaceID245),
+                                            reinterpret_cast<LPVOID*>(&usb_interface));
+            if (err == KERN_SUCCESS && usb_interface) {
+                //UInt16 PID = 0;
+                //UInt16 VID = 0;
+                //UInt32 LocationID = 0;
+                //err = (*usb_interface)->GetDeviceVendor(usb_interface, &VID);
+                //err = (*usb_interface)->GetDeviceProduct(usb_interface, &PID);
+                //err = (*usb_interface)->GetLocationID(usb_interface, &LocationID);
+                //XAMP_LOG_DEBUG("VID = {:x} PID = {:x} LocationID = {:x}", VID, PID, LocationID);
+                io_string_t path;
+                err = IORegistryEntryGetPath(device, kIOServicePlane, path);
+                (*usb_interface)->Release(usb_interface);
+                XAMP_LOG_DEBUG("Path: {}", path);
+                usb_device.emplace_back(path);
+            }
+            (*plugin)->Release(plugin);
+        }
+        ::IOObjectRelease(device);
+    }
+    ::IOObjectRelease(iter);
+    return usb_device;
+}
 
 std::vector<uint32_t> GetAvailableSampleRates(AudioDeviceID id) {
     constexpr AudioObjectPropertyAddress property = {

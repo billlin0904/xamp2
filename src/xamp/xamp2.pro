@@ -45,7 +45,7 @@ SOURCES += \
     widget/appsettings.cpp \
     widget/clickablelabel.cpp \
     widget/database.cpp \
-    widget/filetag.cpp \
+    widget/qetag.cpp \
     widget/framelesswindow.cpp \
     widget/lrcpage.cpp \
     widget/lrcparser.cpp \
@@ -93,7 +93,7 @@ HEADERS += \
     widget/appsettings.h \
     widget/clickablelabel.h \
     widget/database.h \
-    widget/filetag.h \
+    widget/qetag.h \
     widget/albumartistpage.h \
     widget/framelesswindow.h \
     widget/image_utiltis.h \

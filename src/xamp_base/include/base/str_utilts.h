@@ -40,6 +40,20 @@ std::basic_string<CharType> ToLower(std::basic_string<CharType> s) {
 	return s;
 }
 
+template <typename CharType>
+void LTrim(std::basic_string<CharType> &s) {
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](auto ch) {
+                return !std::isspace(ch);
+            }));
+}
+
+template <typename CharType>
+void RTrim(std::basic_string<CharType> &s) {
+    s.erase(std::find_if(s.rbegin(), s.rend(), [](auto ch) {
+                return !std::isspace(ch);
+            }).base(), s.end());
+}
+
 XAMP_BASE_API std::string FormatBytes(size_t bytes) noexcept;
 
 template <typename T>

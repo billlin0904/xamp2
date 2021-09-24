@@ -9,6 +9,8 @@
 
 #include <vector>
 #include <string>
+
+#include <output_device/deviceinfo.h>
 #include <CoreAudio/CoreAudio.h>
 
 namespace xamp::output_device::osx {
@@ -38,6 +40,8 @@ bool IsAutoHogMode();
 void ReleaseHogMode(AudioDeviceID id);
 
 bool CanSetHogMode(AudioDeviceID id);
+
+std::vector<std::string> GetSystemUsbPath();
 
 }
 
