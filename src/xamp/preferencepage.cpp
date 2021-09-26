@@ -153,7 +153,7 @@ PreferencePage::PreferencePage(QWidget *parent)
     , soxr_passband_(0)
     , soxr_phase_(0) {
     ui_.setupUi(this);
-	setStyleSheet(Q_UTF8("background-color: transparent"));
+    setStyleSheet(Q_UTF8("#PreferenceDialog { background-color: transparent }"));
 
     ui_.preferenceTreeWidget->header()->hide();
 	ui_.preferenceTreeWidget->setStyleSheet(Q_UTF8("background-color: transparent"));

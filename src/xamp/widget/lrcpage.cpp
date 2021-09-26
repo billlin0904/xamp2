@@ -122,7 +122,7 @@ void LrcPage::initial() {
     f.setPointSize(15);
 #else
     title_->setMinimumHeight(50);
-    f.setPointSize(15);
+    f.setPointSize(25);
 #endif
     f.setBold(false);
     title_->setFont(f);

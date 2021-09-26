@@ -54,6 +54,7 @@ SOURCES += \
     widget/playlistpage.cpp \
     widget/playlisttableproxymodel.cpp \
     widget/playlisttableview.cpp \
+    widget/switchbutton.cpp \
     widget/tablistview.cpp \
     widget/toast.cpp \
     widget/uiplayerstateadapter.cpp \
@@ -107,6 +108,7 @@ HEADERS += \
     widget/playlisttableview.h \
     widget/qdebugsink.h \
     widget/settingnames.h \
+    widget/switchbutton.h \
     widget/tablistview.h \
     widget/toast.h \
     widget/uiplayerstateadapter.h \
