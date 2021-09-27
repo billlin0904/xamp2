@@ -12,6 +12,7 @@ class SwitchButton : public QPushButton {
 public:
     explicit SwitchButton(QWidget *parent = nullptr);
 
+    void setSwitchOn(bool checked);
 protected:
     void paintEvent(QPaintEvent *ev) override;
 

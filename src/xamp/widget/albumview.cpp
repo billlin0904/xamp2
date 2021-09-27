@@ -468,8 +468,7 @@ AlbumView::AlbumView(QWidget* parent)
                 tr("Open file"),
                 AppSettings::getMyMusicFolderPath(),
                 tr("Music Files ") + exts,
-                nullptr,
-                QFileDialog::DontUseNativeDialog);
+                nullptr);
             append(file_name);
             });
 
@@ -477,7 +476,7 @@ AlbumView::AlbumView(QWidget* parent)
 	        const auto dir_name = QFileDialog::getExistingDirectory(this,
 	                                                                tr("Select a directory"),
 	                                                                AppSettings::getMyMusicFolderPath(),
-                QFileDialog::DontUseNativeDialog | QFileDialog::ShowDirsOnly);
+                QFileDialog::ShowDirsOnly);
             append(dir_name);
             });
 

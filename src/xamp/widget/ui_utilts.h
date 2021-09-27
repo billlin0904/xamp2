@@ -9,6 +9,7 @@
 #include <player/audio_player.h>
 #include <widget/widget_shared.h>
 #include <widget/str_utilts.h>
+#include <thememanager.h>
 
 #include <QDesktopWidget>
 #include <QProgressBar>
@@ -103,6 +104,7 @@ static std::unique_ptr<QProgressDialog> makeProgressDialog(QString const& title,
     auto* progress_bar = new QProgressBar();
     progress_bar->setFont(QFont(Q_UTF8("FormatFont")));
     dialog->setBar(progress_bar);
+    ThemeManager::instance().setBackgroundColor(dialog.get(), 255);
 
     if (dialog->parent() && dialog->parent()->isWidgetType()) {
         dialog->move((dialog->parentWidget()->width() - dialog->width()) / 2,

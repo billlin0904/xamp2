@@ -1,6 +1,7 @@
 #include <QStyleOptionButton>
 #include <QPainter>
 #include <QVariantAnimation>
+
 #include <widget/str_utilts.h>
 #include <widget/switchbutton.h>
 
@@ -26,6 +27,12 @@ SwitchButton::SwitchButton(QWidget *parent)
         background: rgb(42, 130, 218);
     }
     )"));
+}
+
+void SwitchButton::setSwitchOn(bool checked) {
+    checked_ = checked;
+    progress_ = checked ? 1.0 : 0.0;
+    update();
 }
 
 void SwitchButton::nextCheckState() {

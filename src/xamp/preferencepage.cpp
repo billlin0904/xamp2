@@ -83,14 +83,12 @@ void PreferencePage::initSoxResampler() {
 
 	loadSoxrResampler(soxr_settings);
 
-	ui_.enableFramelessWindowCheckBox->setCheckState(
-		AppSettings::getValueAsBool(kAppSettingUseFramelessWindow) ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
-
-	(void)QObject::connect(ui_.enableFramelessWindowCheckBox, &QCheckBox::stateChanged, [this](auto state) {
-		AppSettings::setValue(kAppSettingUseFramelessWindow,
-			static_cast<Qt::CheckState>(state) == Qt::CheckState::Checked);
-		saveAll();
-		});
+    ui_.enableFramelessWindowPushButton->setSwitchOn(AppSettings::getValueAsBool(kAppSettingUseFramelessWindow));
+    (void)QObject::connect(ui_.enableFramelessWindowPushButton, &SwitchButton::pressed, [this]() {
+        AppSettings::setValue(kAppSettingUseFramelessWindow,
+                              !AppSettings::getValueAsBool(kAppSettingUseFramelessWindow));
+        saveAll();
+    });
 
     (void)QObject::connect(ui_.saveSoxrSettingBtn, &QPushButton::pressed, [this]() {
         auto setting_name = QInputDialog::getText(this, tr("Save soxr setting"), 
@@ -156,7 +154,7 @@ PreferencePage::PreferencePage(QWidget *parent)
     setStyleSheet(Q_UTF8("#PreferenceDialog { background-color: transparent }"));
 
     ui_.preferenceTreeWidget->header()->hide();
-	ui_.preferenceTreeWidget->setStyleSheet(Q_UTF8("background-color: transparent"));
+    ui_.preferenceTreeWidget->setStyleSheet(Q_UTF8("QTreeView { backround: transparent; }"));
 
     auto* playback_item = new QTreeWidgetItem(QStringList() << tr("Playback"));
     playback_item->setChildIndicatorPolicy(QTreeWidgetItem::ShowIndicator);
@@ -218,7 +216,7 @@ PreferencePage::PreferencePage(QWidget *parent)
 		const auto dir_name = QFileDialog::getExistingDirectory(this,
 			tr("Select a directory"),
 			AppSettings::getMyMusicFolderPath(),
-			QFileDialog::DontUseNativeDialog | QFileDialog::ShowDirsOnly);
+            QFileDialog::ShowDirsOnly);
 		if (dir_name.isEmpty()) {
 			return;
 		}

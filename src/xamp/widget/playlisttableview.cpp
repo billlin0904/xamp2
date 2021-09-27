@@ -387,8 +387,7 @@ void PlayListTableView::initial() {
                     tr("Open file"),
                     AppSettings::getMyMusicFolderPath(),
                     tr("Music Files ") + exts,
-                    nullptr,
-                    QFileDialog::DontUseNativeDialog);
+                    nullptr);
                 if (file_name.isEmpty()) {
                     return;
                 }
@@ -398,8 +397,7 @@ void PlayListTableView::initial() {
             (void)action_map.addAction(tr("Load file directory"), [this]() {
                 const auto dir_name = QFileDialog::getExistingDirectory(this,
                     tr("Select a Directory"),
-                    AppSettings::getMyMusicFolderPath(),
-                    QFileDialog::DontUseNativeDialog | QFileDialog::ShowDirsOnly);
+                    AppSettings::getMyMusicFolderPath(), QFileDialog::ShowDirsOnly);
                 if (dir_name.isEmpty()) {
                     return;
                 }
@@ -537,8 +535,7 @@ void PlayListTableView::initial() {
                                                                 tr("Save cover image"),
                                                                 Qt::EmptyString,
                                                                 tr("Images file (*.png);;All Files (*)"),
-                nullptr,
-                QFileDialog::DontUseNativeDialog);
+                nullptr);
             if (file_name.isEmpty()) {
                 return;
             }
@@ -554,8 +551,7 @@ void PlayListTableView::initial() {
                 tr("Open Cover Art Image"),
                 tr("C:\\"), 
                 tr("Image Files (*.png *.jpeg *.jpg)"),
-                nullptr,
-                QFileDialog::DontUseNativeDialog);
+                nullptr);
             if (file_name.isEmpty()) {
                 return;
             }
