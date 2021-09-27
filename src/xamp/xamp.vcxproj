@@ -206,6 +206,7 @@
     <ClCompile Include="widget\stardelegate.cpp" />
     <ClCompile Include="widget\stareditor.cpp" />
     <ClCompile Include="widget\starrating.cpp" />
+    <ClCompile Include="widget\switchbutton.cpp" />
     <ClCompile Include="widget\tablistview.cpp" />
     <ClCompile Include="widget\toast.cpp" />
     <ClCompile Include="widget\uiplayerstateadapter.cpp" />
@@ -238,6 +239,7 @@
     </QtMoc>
     <QtMoc Include="widget\readlufsworker.h" />
     <ClInclude Include="widget\read_utiltis.h" />
+    <QtMoc Include="widget\switchbutton.h" />
     <ClInclude Include="widget\ui_utilts.h" />
     <ClInclude Include="widget\widget_shared.h" />
     <QtMoc Include="widget\xampdialog.h">

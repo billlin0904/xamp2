@@ -81,7 +81,6 @@ static DeviceConnectType GetDeviceConnectType(CComPtr<IMMDevice>& device) {
 		::CoTaskMemFree(part_name);
 		});
 	std::wstring name(part_name);
-	XAMP_LOG_DEBUG("{}: {}", id, String::ToString(name));
 	CComPtr<IPartsList> parts_list;
 	auto hr= part->EnumPartsIncoming(&parts_list);
 	if (hr == E_NOTFOUND) {
@@ -99,7 +98,7 @@ static DeviceConnectType GetDeviceConnectType(CComPtr<IMMDevice>& device) {
 			::CoTaskMemFree(device_name);
 			});
 		name = device_name;
-		XAMP_LOG_DEBUG("EnumPartsIncoming: {} {}", id, String::ToString(name));
+		XAMP_LOG_TRACE("EnumPartsIncoming: {} {}", id, String::ToString(name));
 	}
 	if (name.find(L"usb") != std::wstring::npos) {
 		return DeviceConnectType::USB;

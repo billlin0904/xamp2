@@ -10,16 +10,16 @@ SwitchButton::SwitchButton(QWidget *parent)
     SwitchButton {
         background: #CCCCCC;
         border: none;
-        border-radius: 15px;
-        height: 30px;
+        border-radius: 12px;
+        height: 24px;
     }
 
     SwitchButton::handle {
         background: white;
         border: none;
-        min-width: 30px;
-        max-width: 30px;
-        border-radius: 15px;
+        min-width: 24px;
+        max-width: 24px;
+        border-radius: 12px;
     }
 
     SwitchButton:on {
@@ -35,18 +35,18 @@ void SwitchButton::nextCheckState() {
     animation->setStartValue(0.0);
     animation->setEndValue(1.0);
     animation->setDuration(200);
-    QObject::connect(animation,
+    (void)QObject::connect(animation,
                      &QVariantAnimation::valueChanged, this, [this](const QVariant & val){
         progress_ = val.toReal();
         update();
     });
     animation->setEasingCurve(QEasingCurve::OutQuad);
 
-    auto checked = !checked_;
+    const auto checked = !checked_;
 
-    auto direction =
+    const auto direction =
         checked ? QAbstractAnimation::Forward : QAbstractAnimation::Backward;
-    bool pause = animation->state() == QAbstractAnimation::Running;
+    const auto pause = animation->state() == QAbstractAnimation::Running;
     if(pause)
         animation->pause();
     animation->setDirection(direction);
@@ -62,32 +62,37 @@ void SwitchButton::paintEvent(QPaintEvent *) {
     QPainter painter(this);
     painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
 
-    QStyleOptionButton buttonOpt;
-    initStyleOption(&buttonOpt);
-    buttonOpt.rect.adjust(0, 0, -1, 0);
-    buttonOpt.state &= ~QStyle::State_On;
-    style()->drawControl(QStyle::CE_PushButtonBevel, &buttonOpt, &painter, this);
-    //painter.setOpacity(progress_);
-    buttonOpt.state |= QStyle::State_On;
-    style()->drawControl(QStyle::CE_PushButtonBevel, &buttonOpt, &painter, this);
+    QStyleOptionButton button_opt;
+    initStyleOption(&button_opt);
+    button_opt.rect.adjust(0, 0, -1, 0);
+    button_opt.state &= ~QStyle::State_On;
+    style()->drawControl(QStyle::CE_PushButtonBevel, &button_opt, &painter, this);
+    painter.setOpacity(progress_);
+    button_opt.state |= QStyle::State_On;
+    style()->drawControl(QStyle::CE_PushButtonBevel, &button_opt, &painter, this);
 
-    int text_y = qMin(height(), width());
+    painter.setOpacity(1.0);
+
+    const auto text_y = qMin(height(), width());
     painter.setPen(QPen(Qt::white));
+    auto f = font();
+    f.setBold(true);
+    painter.setFont(f);
     if (checked_) {
         QRect text_rect(0, 0, width() - text_y, height());
-        painter.drawText(text_rect, Qt::AlignCenter, Q_UTF8("ON"));
+        painter.drawText(text_rect, Qt::AlignCenter, tr("ON"));
     } else {
         QRect text_rect(0, 0, width() + text_y, height());
-        painter.drawText(text_rect, Qt::AlignCenter, Q_UTF8("OFF"));
+        painter.drawText(text_rect, Qt::AlignCenter, tr("OFF"));
     }
 
-    QStyleOptionSlider sliderOpt;
-    sliderOpt.init(this);
-    sliderOpt.minimum = 0;
-    sliderOpt.maximum = sliderOpt.rect.width();
-    int position = int(progress_ * (sliderOpt.rect.width()));
-    sliderOpt.sliderPosition = qMin(qMax(position, 0), sliderOpt.maximum);
-    sliderOpt.sliderValue = sliderOpt.sliderPosition;
-    sliderOpt.rect = style()->subControlRect(QStyle::CC_ScrollBar, &sliderOpt, QStyle::SC_ScrollBarSlider, this);
-    style()->drawControl(QStyle::CE_ScrollBarSlider, &sliderOpt, &painter, this);
+    QStyleOptionSlider slider_opt;
+    slider_opt.init(this);
+    slider_opt.minimum = 0;
+    slider_opt.maximum = slider_opt.rect.width();
+    const auto position = static_cast<int>(progress_ * (slider_opt.rect.width()));
+    slider_opt.sliderPosition = qMin(qMax(position, 0), slider_opt.maximum);
+    slider_opt.sliderValue = slider_opt.sliderPosition;
+    slider_opt.rect = style()->subControlRect(QStyle::CC_ScrollBar, &slider_opt, QStyle::SC_ScrollBarSlider, this);
+    style()->drawControl(QStyle::CE_ScrollBarSlider, &slider_opt, &painter, this);
 }

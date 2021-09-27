@@ -143,7 +143,7 @@ void Xamp::initial(TopWindow *top_window) {
     if (enable_blur) {
         QTimer::singleShot(300, [this]() {
             ThemeManager::instance().enableBlur(top_window_, true);
-            ThemeManager::instance().setBackgroundColor(ui_.settingsButton->menu(), 100);
+            ThemeManager::instance().setBackgroundColor(ui_.settingsButton->menu(), 255);
             initialDeviceList();
             });
     } else {

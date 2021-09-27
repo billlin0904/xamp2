@@ -177,7 +177,10 @@ void setBlurMaterial(const QWidget* widget, bool enable) {
 
 void drawDwmShadow(const QWidget* widget) {
 	auto hwnd = reinterpret_cast<HWND>(widget->winId());
-	MARGINS borderless = { 1, 1, 1, 1 };
+	/*auto policy = DWMNCRENDERINGPOLICY::DWMNCRP_ENABLED;
+	DWMDLL.DwmSetWindowAttribute(hwnd, DWMWINDOWATTRIBUTE::DWMWA_NCRENDERING_POLICY, &policy, sizeof(policy));*/
+
+	MARGINS borderless = { 0, 1, 0, 1 };
 	DWMDLL.DwmExtendFrameIntoClientArea(hwnd, &borderless);
 }
 

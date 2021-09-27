@@ -1,7 +1,7 @@
 #include "ui_xamp.h"
 
 #include <widget/image_utiltis.h>
-
+#include <QGraphicsDropShadowEffect>
 #include <QScreen>
 #include <QMenu>
 #include <QApplication>
@@ -14,6 +14,8 @@
 
 #include <widget/appsettings.h>
 #include "thememanager.h"
+
+
 
 ThemeManager& ThemeManager::instance() {
     static ThemeManager manager;
@@ -178,7 +180,7 @@ void ThemeManager::setBackgroundColor(Ui::XampWindow& ui, QColor color) {
     ui.volumeFrame->setStyleSheet(backgroundColorToString(QColor(45,45,45)));
     ui.controlFrame->setStyleSheet(backgroundColorToString(QColor(45,45,45)));
 
-    if (AppSettings::contains(kAppSettingEnableBlur)) {
+    if (AppSettings::getValueAsBool(kAppSettingEnableBlur)) {
         ui.sliderFrame->setStyleSheet(backgroundColorToString(QColor(37, 37, 39, 210)));
     } else {
         ui.sliderFrame->setStyleSheet(backgroundColorToString(QColor(37, 37, 39)));
@@ -247,6 +249,12 @@ void ThemeManager::setMenuStlye(QMenu *menu) const {
     menu->setStyleSheet(getMenuStlye());
     menu->setWindowFlags(menu->windowFlags() | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
     menu->setAttribute(Qt::WA_TranslucentBackground);
+
+    /*auto* shadow_effect = new QGraphicsDropShadowEffect(menu);
+    shadow_effect->setOffset(0, 0);
+    shadow_effect->setColor(Qt::black);
+    shadow_effect->setBlurRadius(15);
+    menu->setGraphicsEffect(shadow_effect);*/
 }
 
 void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {

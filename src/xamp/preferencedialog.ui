@@ -608,7 +608,7 @@
                <item>
                 <widget class="QLabel" name="label_9">
                  <property name="text">
-                  <string>TextLabel</string>
+                  <string>TextLabel:</string>
                  </property>
                 </widget>
                </item>
@@ -616,7 +616,7 @@
                 <widget class="SwitchButton" name="pushButton">
                  <property name="minimumSize">
                   <size>
-                   <width>100</width>
+                   <width>80</width>
                    <height>0</height>
                   </size>
                  </property>
@@ -638,7 +638,7 @@
                <item>
                 <widget class="QLabel" name="label_10">
                  <property name="text">
-                  <string>TextLabel</string>
+                  <string>TextLabel:</string>
                  </property>
                 </widget>
                </item>
@@ -646,7 +646,7 @@
                 <widget class="SwitchButton" name="pushButton_2">
                  <property name="minimumSize">
                   <size>
-                   <width>100</width>
+                   <width>80</width>
                    <height>0</height>
                   </size>
                  </property>
@@ -729,7 +729,7 @@
   <customwidget>
    <class>SwitchButton</class>
    <extends>QPushButton</extends>
-   <header>widget/switchbutton.h</header>
+   <header location="global">widget/switchbutton.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
