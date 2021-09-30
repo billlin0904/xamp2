@@ -440,7 +440,7 @@ void ThemeManager::setDefaultStyle(Ui::XampWindow& ui) {
     ui.searchLineEdit->setStyleSheet(Q_STR(R"(
                                             QLineEdit#searchLineEdit {
                                             background-color: %1;
-                                            border: none;
+                                            border: gray;
                                             color: white;
                                             border-radius: 10px;
                                             }
