@@ -329,6 +329,7 @@ void CoreAudioDevice::StopStream(bool /*wait_for_stop_stream*/) {
     }
     CoreAudioThrowIfError(::AudioDeviceStop(device_id_, ioproc_id_));
     is_running_ = false;
+    std::this_thread::sleep_for(std::chrono::microseconds(latency_));
 }
 
 void CoreAudioDevice::CloseStream() {
