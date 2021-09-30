@@ -60,5 +60,6 @@
         <file>fonts/WorkSans-Bold.ttf</file>
         <file>fonts/WorkSans-Regular.ttf</file>
         <file>Resource/Black/usb.png</file>
+        <file>Resource/Black/search.png</file>
     </qresource>
 </RCC>

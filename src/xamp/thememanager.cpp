@@ -175,7 +175,7 @@ QIcon ThemeManager::appIcon() const {
 void ThemeManager::setBackgroundColor(Ui::XampWindow& ui, QColor color) {
     ui.currentView->setStyleSheet(backgroundColorToString(color));
     ui.titleFrame->setStyleSheet(backgroundColorToString(color));
-    
+
     ui.playingFrame->setStyleSheet(backgroundColorToString(QColor(77, 77, 77)));
     ui.volumeFrame->setStyleSheet(backgroundColorToString(QColor(45,45,45)));
     ui.controlFrame->setStyleSheet(backgroundColorToString(QColor(45,45,45)));
@@ -391,15 +391,6 @@ void ThemeManager::setDefaultStyle(Ui::XampWindow& ui) {
     ui.sliderBar->setStyleSheet(Q_UTF8("QListView#sliderBar { background-color: transparent; border: none; }"));
     setThemeIcon(ui);
 
-    ui.searchLineEdit->setStyleSheet(Q_UTF8(R"(
-                                            QLineEdit#searchLineEdit {
-                                            background-color: white;
-                                            border: none;
-                                            color: gray;
-                                            border-radius: 10px;
-                                            }
-                                            )"));
-
     ui.sampleConverterButton->setStyleSheet(Q_UTF8(R"(
                                          QToolButton#sampleConverterButton {
 										 border: none;
@@ -446,8 +437,17 @@ void ThemeManager::setDefaultStyle(Ui::XampWindow& ui) {
 	}
 	)"));
 
+    ui.searchLineEdit->setStyleSheet(Q_STR(R"(
+                                            QLineEdit#searchLineEdit {
+                                            background-color: %1;
+                                            border: none;
+                                            color: white;
+                                            border-radius: 10px;
+                                            }
+                                            )").arg(colorToString(background_color_)));
 
     ui.searchLineEdit->setClearButtonEnabled(true);
-    ui.searchLineEdit->addAction(QIcon(Q_UTF8(":/xamp/Resource/White/search.png")),
+    ui.searchLineEdit->addAction(QIcon(Q_STR(":/xamp/Resource/%1/search.png")
+        .arg(themeColorPath())),
         QLineEdit::LeadingPosition);
 }

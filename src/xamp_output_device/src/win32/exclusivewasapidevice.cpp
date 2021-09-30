@@ -332,7 +332,7 @@ void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
 		render_task_.get();
 	}
 
-	MSleep(std::chrono::milliseconds(100));
+	MSleep(ConvertToMilliseconds(aligned_period_));
 
 	is_running_ = false;
 }

@@ -269,7 +269,9 @@ void Xamp::initialUI() {
         ui_.maxWinButton->hide();
         ui_.minWinButton->hide();
     } else {
-        ui_.titleFrameLabel->setText(Q_UTF8("xamp"));
+        f.setBold(true);
+        ui_.titleFrameLabel->setFont(f);
+        ui_.titleFrameLabel->setText(Q_UTF8("XAMP2"));
         ui_.titleFrameLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
     }
 #ifdef Q_OS_WIN

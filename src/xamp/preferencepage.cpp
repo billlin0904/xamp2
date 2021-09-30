@@ -154,7 +154,7 @@ PreferencePage::PreferencePage(QWidget *parent)
     setStyleSheet(Q_UTF8("#PreferenceDialog { background-color: transparent }"));
 
     ui_.preferenceTreeWidget->header()->hide();
-    ui_.preferenceTreeWidget->setStyleSheet(Q_UTF8("QTreeView { backround: transparent; }"));
+    ui_.preferenceTreeWidget->setStyleSheet(Q_UTF8("QTreeView { background: transparent; }"));
 
     auto* playback_item = new QTreeWidgetItem(QStringList() << tr("Playback"));
     playback_item->setChildIndicatorPolicy(QTreeWidgetItem::ShowIndicator);

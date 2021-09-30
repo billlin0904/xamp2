@@ -847,11 +847,11 @@ DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_fr
         return DataCallbackResult::CONTINUE;
     }
 
-    MemorySet(samples, 0, sample_size);
+    /*MemorySet(samples, 0, sample_size);
 
     if (sample_time <= sample_end_time_) {
         return DataCallbackResult::CONTINUE;
-    }
+    }*/
 
     UpdateSlice(-1, stream_time);
     return DataCallbackResult::STOP;

@@ -27,7 +27,7 @@ inline QString backgroundColorToString(QColor color) noexcept {
     return Q_UTF8("background-color: ") + colorToString(color) + Q_UTF8(";");
 }
 
-inline constexpr int32_t kUIRadius = 5;
+inline constexpr int32_t kUIRadius = 9;
 
 class StylePixmapManager {
 public:

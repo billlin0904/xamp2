@@ -117,7 +117,7 @@
     <message>
         <location filename="widget/albumview.cpp" line="467"/>
         <source>Music Files </source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">音樂檔案</translation>
     </message>
     <message>
         <location filename="widget/albumview.cpp" line="473"/>
@@ -637,7 +637,7 @@
     <message>
         <location filename="preferencedialog.ui" line="14"/>
         <source>Preference</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">選項</translation>
     </message>
     <message>
         <source>Set Path</source>
@@ -651,12 +651,12 @@
     <message>
         <location filename="preferencedialog.ui" line="101"/>
         <source>Use Frameless Window(Experimental)</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">使無邊框視窗(實驗性質)</translation>
     </message>
     <message>
         <location filename="preferencedialog.ui" line="117"/>
         <source>Set Podcast Cache Path</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">設定Podcast暫存路徑</translation>
     </message>
     <message>
         <location filename="preferencedialog.ui" line="151"/>

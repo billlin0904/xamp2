@@ -12,6 +12,8 @@
 #pragma comment(lib, "Mfplat.lib")
 #pragma comment(lib, "Propsys.lib")
 
+#include <chrono>
+
 #include <atlcomcli.h>
 #include <mmdeviceapi.h>
 
@@ -52,6 +54,13 @@ XAMP_ALWAYS_INLINE constexpr double Nano100ToSeconds(REFERENCE_TIME ref) noexcep
 	//100 nano = 0.0001   milliseconds
 	constexpr double ratio = 0.0000001;
 	return (static_cast<double>(ref) * ratio);
+}
+
+XAMP_ALWAYS_INLINE constexpr std::chrono::milliseconds ConvertToMilliseconds(REFERENCE_TIME ref) noexcept {
+	const LONGLONG kMilliseconds = (1000);            // 10 ^ 3
+	const LONGLONG kNanoSeconds = (1000000000);       // 10 ^ 9
+	const LONGLONG kUnit = (kNanoSeconds / 100);      // 10 ^ 7
+	return std::chrono::milliseconds(ref / (kUnit / kMilliseconds));
 }
 
 XAMP_ALWAYS_INLINE constexpr UINT32 ReferenceTimeToFrames(REFERENCE_TIME period, UINT32 samplerate) noexcept {
