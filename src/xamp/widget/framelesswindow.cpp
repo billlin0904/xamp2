@@ -36,32 +36,21 @@ FramelessWindow::FramelessWindow()
 }
 
 void FramelessWindow::initial(XampPlayer *content_widget) {
+    // todo: DropShadow效果會讓CPU使用率偏高.
+    // todo: 使用border-radius: 5px;將無法縮放視窗
+    // todo: Qt::WA_TranslucentBackground + paintEvent 將無法縮放視窗
+    setObjectName(Q_UTF8("framelessWindow"));
     const auto enable_blur = AppSettings::getValueAsBool(kAppSettingEnableBlur);
 #if defined(Q_OS_WIN)
     if (!useNativeWindow()) {
         setWindowFlags(Qt::FramelessWindowHint | Qt::WindowMinimizeButtonHint);
-        if (!enable_blur) {
-            setAttribute(Qt::WA_TranslucentBackground, true);
-        }
     }
 #endif
-    
-    setObjectName(Q_UTF8("framelessWindow"));
     content_widget_ = content_widget;    
     if (content_widget_ != nullptr) {        
         auto* default_layout = new QGridLayout();
         default_layout->addWidget(content_widget_, 0, 0);
-#ifdef XAMP_OS_WIN
-        const auto enable_blur = AppSettings::getValueAsBool(kAppSettingEnableBlur);
-        if (!enable_blur) {
-            default_layout->setContentsMargins(7, 7, 7, 7);
-            //default_layout->setContentsMargins(5, 1, 1, 1);
-        } else {
-            default_layout->setContentsMargins(0, 0, 0, 0);
-        }
-#else
         default_layout->setContentsMargins(0, 0, 0, 0);
-#endif
         setLayout(default_layout);
     }
     setAcceptDrops(true);
@@ -70,15 +59,6 @@ void FramelessWindow::initial(XampPlayer *content_widget) {
     auto ui_font = setupUIFont();
 #if defined(Q_OS_WIN)
     if (!useNativeWindow()) {
-        if (!enable_blur && content_widget_ != nullptr) {
-            //border_width_ = 10;
-            //// todo: DropShadow效果會讓CPU使用率偏高.
-            //auto* shadow_effect = new QGraphicsDropShadowEffect(content_widget);
-            //shadow_effect->setOffset(2, 2);
-            //shadow_effect->setColor(Qt::black);
-            //shadow_effect->setBlurRadius(15);
-            //content_widget->setGraphicsEffect(shadow_effect);
-        }
         win32::setFramelessWindowStyle(this);
         setWindowTitle(Q_UTF8("xamp"));
     }
@@ -351,7 +331,7 @@ bool FramelessWindow::nativeEvent(const QByteArray& event_type, void * message, 
                 frame.top = abs(frame.bottom);
                 layout()->setContentsMargins(frame.left, frame.top, frame.right, frame.bottom);
             } else {
-                setContentsMargins(0, 0, 0, 0);
+                layout()->setContentsMargins(0, 0, 0, 0);
             }
             *result = ::DefWindowProc(msg->hwnd, msg->message, msg->wParam, msg->lParam);
             break;
@@ -448,25 +428,5 @@ void FramelessWindow::showEvent(QShowEvent* event) {
 }
 
 void FramelessWindow::paintEvent(QPaintEvent* event) {
-#ifdef Q_OS_WIN32
-    QColor background_color(AppSettings::getValueAsString(kAppSettingBackgroundColor));
-    QPainter painter(this);
-    QRectF rect(QPointF(0, 0), size());
-    qreal pen_width = border_width_;
-    if (pen_width < 0.0) {
-        QStyleOption opt;
-        opt.initFrom(this);
-        pen_width = style()->pixelMetric(QStyle::PM_DefaultFrameWidth, &opt, this);
-    }
-    if (pen_width > 0.0) {
-        const qreal dlta = pen_width * 0.5;
-        rect.adjust(dlta, dlta, -dlta, -dlta);
-    }
-    painter.setPen(Qt::transparent);
-    painter.setRenderHint(QPainter::Antialiasing);
-    painter.setBrush(QBrush(background_color, Qt::SolidPattern));
-    painter.drawRoundedRect(rect, kUIRadius, kUIRadius);
-#else
     QWidget::paintEvent(event);
-#endif
 }

@@ -247,14 +247,14 @@ QString ThemeManager::getMenuStlye() const {
 
 void ThemeManager::setMenuStlye(QMenu *menu) const {
     menu->setStyleSheet(getMenuStlye());
-    menu->setWindowFlags(menu->windowFlags() | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
-    menu->setAttribute(Qt::WA_TranslucentBackground);
 
-    /*auto* shadow_effect = new QGraphicsDropShadowEffect(menu);
-    shadow_effect->setOffset(0, 0);
-    shadow_effect->setColor(Qt::black);
-    shadow_effect->setBlurRadius(15);
-    menu->setGraphicsEffect(shadow_effect);*/
+    if (AppSettings::getValueAsBool(kAppSettingUseFramelessWindow)) {
+        menu->setWindowFlags(menu->windowFlags() | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
+    } else {
+        menu->setWindowFlags(menu->windowFlags() | Qt::FramelessWindowHint);
+    }
+
+    menu->setAttribute(Qt::WA_TranslucentBackground);
 }
 
 void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {

@@ -657,9 +657,9 @@ void Xamp::initialController() {
     settings_menu->addMenu(theme_color_menu);*/
     auto hide_widget = [this](bool enable) {
         if (!enable) {
-            top_window_->resize(QSize(500, 85));
-            top_window_->setMinimumSize(QSize(500, 85));
-            top_window_->setMaximumSize(QSize(500, 85));
+            top_window_->resize(QSize(500, 80));
+            top_window_->setMinimumSize(QSize(500, 80));
+            top_window_->setMaximumSize(QSize(500, 80));
         }
         else {
             top_window_->resize(QSize(1300, 860));
