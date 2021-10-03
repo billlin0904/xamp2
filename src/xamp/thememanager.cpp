@@ -391,6 +391,8 @@ void ThemeManager::setDefaultStyle(Ui::XampWindow& ui) {
     ui.sliderBar->setStyleSheet(Q_UTF8("QListView#sliderBar { background-color: transparent; border: none; }"));
     setThemeIcon(ui);
 
+    ui.searchFrame->setStyleSheet(Q_UTF8("QFrame#searchFrame { background-color: transparent; border: none; }"));
+
     ui.sampleConverterButton->setStyleSheet(Q_UTF8(R"(
                                          QToolButton#sampleConverterButton {
 										 border: none;
@@ -444,7 +446,7 @@ void ThemeManager::setDefaultStyle(Ui::XampWindow& ui) {
                                             color: white;
                                             border-radius: 10px;
                                             }
-                                            )").arg(colorToString(background_color_)));
+                                            )").arg(colorToString(Qt::black)));
 
     ui.searchLineEdit->setClearButtonEnabled(true);
     ui.searchLineEdit->addAction(QIcon(Q_STR(":/xamp/Resource/%1/search.png")

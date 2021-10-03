@@ -277,7 +277,7 @@ void Database::removeAlbum(int32_t album_id) {
         removePlaylistMusic(1, QVector<int32_t>{ entity.music_id });
 		removePlaylistMusic(2, QVector<int32_t>{ entity.music_id });
         removeAlbumMusicId(entity.music_id);
-        removeAlbumArtistId(entity.artist_id);
+        //removeAlbumArtistId(entity.artist_id);
         removeMusic(entity.music_id);
     });
 

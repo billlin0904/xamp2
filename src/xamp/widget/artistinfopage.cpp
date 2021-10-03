@@ -63,7 +63,7 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 	default_layout->addWidget(title);
 
 	f.setBold(false);
-	f.setPointSize(10);
+    f.setPointSize(20);
 
 	albums_ = new QLabel(this);
 	albums_->setFixedSize(QSize(16777215, 64));

@@ -238,7 +238,6 @@ void Xamp::closeEvent(QCloseEvent* event) {
         player_.reset();
     }
 
-    //qApp->quit();
     window()->close();
 }
 
@@ -270,6 +269,7 @@ void Xamp::initialUI() {
         ui_.minWinButton->hide();
     } else {
         f.setBold(true);
+        f.setPointSize(12);
         ui_.titleFrameLabel->setFont(f);
         ui_.titleFrameLabel->setText(Q_UTF8("XAMP2"));
         ui_.titleFrameLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
@@ -657,9 +657,9 @@ void Xamp::initialController() {
     settings_menu->addMenu(theme_color_menu);*/
     auto hide_widget = [this](bool enable) {
         if (!enable) {
-            top_window_->resize(QSize(500, 80));
-            top_window_->setMinimumSize(QSize(500, 80));
-            top_window_->setMaximumSize(QSize(500, 80));
+            top_window_->resize(QSize(600, 80));
+            top_window_->setMinimumSize(QSize(700, 80));
+            top_window_->setMaximumSize(QSize(700, 80));
         }
         else {
             top_window_->resize(QSize(1300, 860));
@@ -676,13 +676,11 @@ void Xamp::initialController() {
         hide_widget(true);
         ui_.sliderFrame->setVisible(true);
         ui_.currentView->setVisible(true);
-        ui_.controlFrame->setVisible(true);
         ui_.volumeFrame->setVisible(true);
 	} else {
         hide_widget(false);
         ui_.sliderFrame->setVisible(false);
         ui_.currentView->setVisible(false);
-        ui_.controlFrame->setVisible(false);
         ui_.volumeFrame->setVisible(false);
 	}
 
@@ -694,7 +692,6 @@ void Xamp::initialController() {
         hide_widget(enable);
         ui_.sliderFrame->setVisible(enable);
         ui_.currentView->setVisible(enable);
-        ui_.controlFrame->setVisible(enable);
         ui_.volumeFrame->setVisible(enable);
         });
     settings_menu->addAction(hide_left_list_action);

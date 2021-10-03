@@ -19,6 +19,7 @@ inline constexpr ConstLatin1String kAppSettingUseNativeDSDMode{ "AppSettings/use
 inline constexpr ConstLatin1String kAppSettingUseFramelessWindow{ "AppSettings/useFramelessWindow" };
 inline constexpr ConstLatin1String kAppSettingShowLeftList{ "AppSettings/showLeftList" };
 inline constexpr ConstLatin1String kAppSettingDiscordNotify{ "AppSettings/discordNotify" };
+inline constexpr ConstLatin1String kAppSettingColumnName { "AppSettings/columnName" };
 
 inline constexpr ConstLatin1String kAppSettingBackgroundColor{ "AppSettings/theme/backgroundColor" };
 inline constexpr ConstLatin1String kAppSettingBottomColor{ "AppSettings/theme/bottomColor" };

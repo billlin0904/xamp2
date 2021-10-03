@@ -259,6 +259,25 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
     hideColumn(PLAYLIST_PLAYLIST_MUSIC_ID);
     hideColumn(PLAYLIST_LUFS);
     hideColumn(PLAYLIST_TRUE_PEAK);
+
+    auto column_list = AppSettings::getList(kAppSettingColumnName);
+
+    if (column_list.empty()) {
+        for (auto column = 0; column < horizontalHeader()->count(); ++column) {
+            if (!isColumnHidden(column)) {
+                AppSettings::addList(kAppSettingColumnName, QString::number(column));
+            } else {
+                setColumnHidden(column, true);
+            }
+        }
+    } else {
+        for (auto column = 0; column < horizontalHeader()->count(); ++column) {
+            setColumnHidden(column, true);
+        }
+        Q_FOREACH(auto column, column_list) {
+            setColumnHidden(column.toInt(), false);
+        }
+    }
 }
 
 void PlayListTableView::initial() {
@@ -342,6 +361,7 @@ void PlayListTableView::initial() {
         auto* hide_column_action = new QAction(tr("Hide this column"), this);
         (void) QObject::connect(hide_column_action, &QAction::triggered, [last_referred_logical_column, this]() {
 			setColumnHidden(last_referred_logical_column, true);
+            AppSettings::removeList(kAppSettingColumnName, QString::number(last_referred_logical_column));
         });
 
         auto* show_hide_columns_action = new QAction(tr("Select columns to show..."), this);
@@ -351,6 +371,7 @@ void PlayListTableView::initial() {
                 auto header_name = model()->headerData(column, Qt::Horizontal).toString();
                 action_map.addAction(header_name, [this, column]() {
                     setColumnHidden(column, false);
+                    AppSettings::addList(kAppSettingColumnName, QString::number(column));
                     }, false, !isColumnHidden(column));
             }
             action_map.exec(pt);

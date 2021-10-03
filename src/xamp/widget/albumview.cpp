@@ -199,6 +199,13 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
     default_layout->setContentsMargins(10, 10, 10, 0);
 
     auto close_button = new QPushButton(tr("X"), this);
+    close_button->setObjectName(Q_UTF8("albumViewPageCloseButton"));
+    close_button->setStyleSheet(Q_UTF8(R"(
+                                         QPushButton#albumViewPageCloseButton {
+                                         border: 2px solid gray;
+                                         border-radius: 12px;
+                                         }
+                                         )"));
     close_button->setFixedSize(QSize(24, 24));
 
     auto hbox_layout = new QHBoxLayout();
@@ -207,7 +214,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 
     auto f = font();
 
-    f.setPointSize(30);
+    f.setPointSize(25);
     f.setBold(true);
     album_ = new QLabel(this);
     album_->setMaximumSize(QSize(16777215, 32));
@@ -510,8 +517,7 @@ void AlbumView::onThemeChanged(QColor backgroundColor, QColor color) {
 }
 
 void AlbumView::setFilterByArtistId(int32_t artist_id) {
-    QString s(
-        Q_UTF8(R"(
+    model_.setQuery(Q_STR(R"(
     SELECT
         album,
         albums.coverId,
@@ -527,10 +533,7 @@ void AlbumView::setFilterByArtistId(int32_t artist_id) {
         artists ON artists.artistId = albumArtist.artistId
     WHERE
         ( artists.artistId = '%1' )
-    )")
-    );
-
-    model_.setQuery(s.arg(artist_id));
+    )").arg(artist_id));
 }
 
 void AlbumView::setFilterByArtistFirstChar(const QString &first_char) {

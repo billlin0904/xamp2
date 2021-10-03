@@ -38,6 +38,38 @@ Uuid AppSettings::getID(const QString& key) {
 	return Uuid::FromString(str.toStdString());
 }
 
+QList<QString> AppSettings::getList(QString const& key) {
+    return AppSettings::getValueAsString(key).split(Q_UTF8(","), Qt::SkipEmptyParts);
+}
+
+void AppSettings::removeList(QString const& key, QString const & value) {
+    auto values = getList(key);
+    auto itr = std::find(values.begin(), values.end(), value);
+    if (itr != values.end()) {
+        values.erase(itr);
+    }
+    QString all;
+    Q_FOREACH(auto id, values) {
+        all += id + Q_UTF8(",");
+    }
+    AppSettings::setValue(key, all);
+}
+
+void AppSettings::addList(QString const& key, QString const & value) {
+    auto values = getList(key);
+    Q_FOREACH(auto id, values) {
+        if (id == value) {
+            return;
+        }
+    }
+    values.append(value);
+    QString all;
+    Q_FOREACH(auto id, values) {
+        all += id + Q_UTF8(",");
+    }
+    AppSettings::setValue(key, all);
+}
+
 QSize AppSettings::getSizeValue(const QString& width_key,
 	const QString& height_key) {
 	return QSize{

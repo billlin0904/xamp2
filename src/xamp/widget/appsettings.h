@@ -87,6 +87,12 @@ public:
         return settings_->contains(key);
     }
 
+    static QList<QString> getList(QString const& key);
+
+    static void removeList(QString const& key, QString const & value);
+
+    static void addList(QString const& key, QString const & value);
+
     static void loadLanguage(QString const& lang);
 
     static QString getMyMusicFolderPath();
