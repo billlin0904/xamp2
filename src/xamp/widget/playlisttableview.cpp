@@ -742,7 +742,19 @@ void PlayListTableView::resizeColumn() {
     constexpr auto kStretchedSize = 500;
     auto* header = horizontalHeader();
 
-    for (auto column = 0; column < _PLAYLIST_MAX_COLUMN_; ++column) {
+    if (header->count() == 3) {
+        QList<int> not_hide_column;
+        for (auto column = 0; column < header->count(); ++column) {
+            if (!isColumnHidden(column)) {
+                not_hide_column.append(column);
+            }
+        }
+        header->setSectionResizeMode(not_hide_column.back(), QHeaderView::Fixed);
+        header->resizeSection(not_hide_column.back(), 300);
+        return;
+    }
+
+    for (auto column = 0; column < header->count(); ++column) {
         switch (column) {
         case PLAYLIST_PLAYING:
 			header->setSectionResizeMode(column, QHeaderView::ResizeToContents);
