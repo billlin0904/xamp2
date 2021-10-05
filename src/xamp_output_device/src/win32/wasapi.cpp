@@ -53,29 +53,29 @@ struct PropVariant final : PROPVARIANT {
 	}
 };
 
-#define IfFailedRetrun(hr) \
+static DeviceConnectType GetDeviceConnectType(CComPtr<IMMDevice>& device) {
+#define IfFailedRetrunUknownType(hr) \
 	if (FAILED(hr)) {\
-		return DeviceConnectType::UKNOWN;\
+	return DeviceConnectType::UKNOWN;\
 	}
 
-static DeviceConnectType GetDeviceConnectType(CComPtr<IMMDevice>& device) {
 	CComPtr<IDeviceTopology> device_topology;
-	HrIfFailledThrow(device->Activate(__uuidof(IDeviceTopology),
+	IfFailedRetrunUknownType(device->Activate(__uuidof(IDeviceTopology),
 		CLSCTX_ALL,
 		nullptr,
 		reinterpret_cast<void**>(&device_topology)));
 
 	CComPtr<IConnector> connector;
-	HrIfFailledThrow(device_topology->GetConnector(0, &connector));
+	IfFailedRetrunUknownType(device_topology->GetConnector(0, &connector));
 
 	CComPtr<IPart> part;
-	HrIfFailledThrow(connector->QueryInterface(IID_PPV_ARGS(&part)));
+	IfFailedRetrunUknownType(connector->QueryInterface(IID_PPV_ARGS(&part)));
 
 	UINT id = 0;
-	HrIfFailledThrow(part->GetLocalId(&id));
+	IfFailedRetrunUknownType(part->GetLocalId(&id));
 
 	LPWSTR part_name = nullptr;
-	HrIfFailledThrow(part->GetName(&part_name));
+	IfFailedRetrunUknownType(part->GetName(&part_name));
 
 	XAMP_ON_SCOPE_EXIT({
 		::CoTaskMemFree(part_name);
@@ -85,20 +85,19 @@ static DeviceConnectType GetDeviceConnectType(CComPtr<IMMDevice>& device) {
 	auto hr= part->EnumPartsIncoming(&parts_list);
 	if (hr == E_NOTFOUND) {
 		CComPtr<IConnector> part_connector;
-		IfFailedRetrun(part->QueryInterface(IID_PPV_ARGS(&part_connector)));
+		IfFailedRetrunUknownType(part->QueryInterface(IID_PPV_ARGS(&part_connector)));
 		CComPtr<IConnector> otherside_connector;
-		IfFailedRetrun(part_connector->GetConnectedTo(&otherside_connector));
+		IfFailedRetrunUknownType(part_connector->GetConnectedTo(&otherside_connector));
 		CComPtr<IPart> otherside_part;
-		IfFailedRetrun(otherside_connector->QueryInterface(IID_PPV_ARGS(&otherside_part)));
+		IfFailedRetrunUknownType(otherside_connector->QueryInterface(IID_PPV_ARGS(&otherside_part)));
 		CComPtr<IDeviceTopology> otherside_topology;
-		IfFailedRetrun(otherside_part->GetTopologyObject(&otherside_topology));
+		IfFailedRetrunUknownType(otherside_part->GetTopologyObject(&otherside_topology));
 		LPWSTR device_name = nullptr;
-		IfFailedRetrun(otherside_topology->GetDeviceId(&device_name));
+		IfFailedRetrunUknownType(otherside_topology->GetDeviceId(&device_name));
 		XAMP_ON_SCOPE_EXIT({
 			::CoTaskMemFree(device_name);
 			});
 		name = device_name;
-		XAMP_LOG_TRACE("EnumPartsIncoming: {} {}", id, String::ToString(name));
 	}
 	if (name.find(L"usb") != std::wstring::npos) {
 		return DeviceConnectType::USB;
@@ -106,6 +105,7 @@ static DeviceConnectType GetDeviceConnectType(CComPtr<IMMDevice>& device) {
 	if (name.find(L"hdaudio") != std::wstring::npos) {
 		return DeviceConnectType::ON_BOARD;
 	}
+	XAMP_LOG_TRACE("EnumPartsIncoming: {} {}", id, String::ToString(name));
 	return DeviceConnectType::UKNOWN;
 }
 

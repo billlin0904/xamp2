@@ -157,7 +157,7 @@ private:
 
     void AllocateFifo();
 
-    void ProcessEvent();
+    void ProcessSeek();
 
     void InitProcessor();
 

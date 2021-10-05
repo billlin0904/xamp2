@@ -331,9 +331,6 @@ void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
 	if (render_task_.valid()) {
 		render_task_.get();
 	}
-
-	MSleep(ConvertToMilliseconds(aligned_period_));
-
 	is_running_ = false;
 }
 
@@ -379,6 +376,7 @@ void ExclusiveWasapiDevice::StartStream() {
 			}
 		}
 
+		MSleep(ConvertToMilliseconds(aligned_period_));
 		client_->Stop();
 		::SetEvent(thread_exit_.get());	
 		mmcss.RevertPriority();

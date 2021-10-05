@@ -236,7 +236,7 @@ void AudioPlayer::SetState(const PlayerState play_state) {
     XAMP_LOG_D(logger_, "Set state: {}.", EnumToString(state_));
 }
 
-void AudioPlayer::ProcessEvent() {
+void AudioPlayer::ProcessSeek() {
     if (auto const* stream_time = seek_queue_.Front()) {
         XAMP_LOG_D(logger_, "Receive seek {} message", *stream_time);
         DoSeek(*stream_time);
@@ -791,10 +791,10 @@ void AudioPlayer::Play() {
             while (p->is_playing_) {
                 while (p->is_paused_) {
                     p->pause_cond_.wait_for(lock, kPauseWaitTimeout);
-                    p->ProcessEvent();
+                    p->ProcessSeek();
                 }
 
-                p->ProcessEvent();
+                p->ProcessSeek();
 
                 if (p->fifo_.GetAvailableWrite() < num_sample_write) {
                     p->wait_timer_.Wait();
@@ -847,11 +847,7 @@ DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_fr
         return DataCallbackResult::CONTINUE;
     }
 
-    /*MemorySet(samples, 0, sample_size);
-
-    if (sample_time <= sample_end_time_) {
-        return DataCallbackResult::CONTINUE;
-    }*/
+    MemorySet(samples, 0, sample_size);
 
     UpdateSlice(-1, stream_time);
     return DataCallbackResult::STOP;
