@@ -22,14 +22,14 @@ ExceptionClassName::ExceptionClassName()\
 
 #ifdef XAMP_OS_WIN
 static std::string LocaleStringToUTF8(const std::string &str) {
-    std::vector<wchar_t> wszTo(str.length() + 1);
+    std::vector<wchar_t> buf(str.length() + 1);
     ::MultiByteToWideChar(CP_ACP,
         0,
         str.c_str(),
         -1, 
-        wszTo.data(),
+        buf.data(),
         static_cast<int>(str.length()));
-    return String::ToUtf8String(wszTo.data());
+    return String::ToUtf8String(buf.data());
 }
 
 static std::string GetPlatformErrorMessage(int32_t err) {
