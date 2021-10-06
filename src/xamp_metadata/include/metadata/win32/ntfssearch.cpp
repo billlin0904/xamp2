@@ -124,21 +124,6 @@ struct NTFS_ATTR_RESIDENT {
 	BYTE			 Padding;	  // Padding
 };
 
-struct NTFS_ATTR_FILE_NAME {
-	ULONGLONG ParentRef;	// File reference to the parent directory
-	ULONGLONG CreateTime;	// File creation time
-	ULONGLONG AlterTime;	// File altered time
-	ULONGLONG MFTTime;	    // MFT changed time
-	ULONGLONG ReadTime;	    // File read time
-	ULONGLONG AllocSize;	// Allocated size of the file
-	ULONGLONG RealSize;  	// Real size of the file
-	DWORD     Flags;		// Flags
-	DWORD	  ER;			// Used by EAs and Reparse
-	BYTE	  NameLength;	// Filename length in characters
-	BYTE	  NameSpace;	// Filename space
-	WORD	  Name[1];	    // Filename
-};
-
 struct NTFS_ATTR_VOLUME_INFORMATION {
 	BYTE Reserved1[8];	// Always 0 ?
 	BYTE MajorVersion;	// Major version
@@ -327,22 +312,12 @@ private:
 	const NTFS_ATTR_VOLUME_INFORMATION *header_;
 };
 
-class NTFSFileNameAttribut final : public NTFSAttributResident {
+class NTFSFileNameAttribut final : public NTFSAttributResident, public NTFSFileName {
 public:
 	NTFSFileNameAttribut(const NTFS_ATTR_HEADER* header, std::shared_ptr<NTFSFileRecord> record)
-		: NTFSAttributResident(header, record) {
-		header_ = reinterpret_cast<const NTFS_ATTR_FILE_NAME*>(header);
+		: NTFSAttributResident(header, record)
+		, NTFSFileName(reinterpret_cast<const NTFS_ATTR_FILE_NAME*>(header)) {
 	}
-
-	std::wstring_view GetFileName() const {
-		if (header_->NameLength > 0) {
-			return std::wstring_view(reinterpret_cast<const wchar_t *>(header_->Name), 
-				header_->NameLength);
-		}
-		return L"";
-	}
-private:
-	const NTFS_ATTR_FILE_NAME* header_;
 };
 
 void NTFSVolume::Open(std::wstring const& volume) {
@@ -353,8 +328,7 @@ void NTFSVolume::Open(std::wstring const& volume) {
 		throw PlatformSpecException();
 	}
 	record->ParseAttrs();
-	auto volume_info =
-		dynamic_cast<const NTFSVolumeInformation*>(record->FindFirstAttr(kNtfsAttrVolumeInformation));
+	auto volume_info = record->FindFirstAttr<NTFSVolumeInformation>(kNtfsAttrVolumeInformation);
 	if (volume_info != nullptr) {
 		XAMP_LOG_DEBUG("NTFS volume version: {}.{}",
 			HIBYTE(volume_info->GetVersion()), LOBYTE(volume_info->GetVersion()));
@@ -370,20 +344,18 @@ void NTFSFileRecord::SetAttrMask(DWORD mask) {
 	attr_mask_ = mask | kNtfsAttrStandardInformation | kNtfsAttrAttributeList;
 }
 
-const NTFSAttribut* NTFSFileRecord::FindFirstAttr(DWORD attr_type) const {
-	DWORD idx = NTFS_ATTR_INDEX(attr_type);
-	if (attrlist_[idx].empty()) {
-		return nullptr;
-	}
-	return attrlist_[idx].front().get();
+bool NTFSFileRecord::FindSubEntry(std::wstring const& file_name, NTFSIndexEntry& entry) {
+	return false;
 }
 
-const NTFSAttribut* NTFSFileRecord::FindNextAttr(DWORD attr_type) const {
+std::shared_ptr<NTFSAttribut> NTFSFileRecord::FindFirstAttr(DWORD attr_type) {
 	DWORD idx = NTFS_ATTR_INDEX(attr_type);
-	if (attrlist_[idx].empty()) {
-		return nullptr;
-	}
-	return attrlist_[idx].front().get();
+	return attrlist_[idx].FindFirst();
+}
+
+std::shared_ptr<NTFSAttribut> NTFSFileRecord::FindNextAttr(DWORD attr_type) {
+	DWORD idx = NTFS_ATTR_INDEX(attr_type);
+	return attrlist_[idx].FindNext();
 }
 
 std::shared_ptr<NTFSAttribut> NTFSFileRecord::Allocate(const NTFS_ATTR_HEADER* header) {
@@ -405,7 +377,7 @@ bool NTFSFileRecord::ParseAttrs(const NTFS_ATTR_HEADER* header) {
 	if (attr_index > NTFS_ATTR_MAX) {
 		return false;
 	}
-	attrlist_[attr_index].push_back(Allocate(header));
+	attrlist_[attr_index].Insert(Allocate(header));
 	return true;
 }
 

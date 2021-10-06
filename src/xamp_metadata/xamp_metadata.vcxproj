@@ -162,6 +162,7 @@
     <ClInclude Include="include\metadata\win32\ntfssearch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="include\metadata\win32\ntfssearch.cpp" />
     <ClCompile Include="src\metadatareader.cpp" />
     <ClCompile Include="src\metadata_util.cpp" />
     <ClCompile Include="src\taglibmetadatawriter.cpp" />

@@ -42,7 +42,88 @@ struct NTFS_ATTR_HEADER {
 	WORD  Id;			// Attribute Id
 };
 
+struct NTFS_ATTR_FILE_NAME {
+	ULONGLONG ParentRef;	// File reference to the parent directory
+	ULONGLONG CreateTime;	// File creation time
+	ULONGLONG AlterTime;	// File altered time
+	ULONGLONG MFTTime;	    // MFT changed time
+	ULONGLONG ReadTime;	    // File read time
+	ULONGLONG AllocSize;	// Allocated size of the file
+	ULONGLONG RealSize;  	// Real size of the file
+	DWORD     Flags;		// Flags
+	DWORD	  ER;			// Used by EAs and Reparse
+	BYTE	  NameLength;	// Filename length in characters
+	BYTE	  NameSpace;	// Filename space
+	WORD	  Name[1];	    // Filename
+};
+
+#define	INDEX_ENTRY_FLAG_SUBNODE	0x01	// Index entry points to a sub-node
+#define	INDEX_ENTRY_FLAG_LAST		0x02	// Last index entry in the node, no Stream
+
+struct NTFS_INDEX_ENTRY {
+	ULONGLONG	FileReference;	// Low 6B: MFT record index, High 2B: MFT record sequence number
+	WORD		Size;			// Length of the index entry
+	WORD		StreamSize;		// Length of the stream
+	BYTE		Flags;			// Flags
+	BYTE		Padding[3];		// Padding
+	BYTE		Stream[1];		// Stream
+	// VCN of the sub node in Index Allocation, Offset = Size - 8
+};
+
+template <typename T>
+class SList {
+public:
+	using iterator = std::deque<std::shared_ptr<T>>::iterator;
+
+	SList() {
+	}
+
+	void Insert(std::shared_ptr<T> const& entry) {
+		list_.push_back(entry);
+	}
+
+	std::shared_ptr<T> FindFirst() {
+		current_ = list_.begin();
+		if (current_ != list_.end()) {
+			return *current_;
+		}
+		return nullptr;
+	}
+
+	std::shared_ptr<T> FindNext() {
+		if (current_ != list_.end()) {
+			++current_;
+			return *current_;
+		}
+		return nullptr;
+	}
+private:
+	iterator current_;
+	std::deque<std::shared_ptr<T>> list_;
+};
+
 class NTFSFileRecord;
+
+class NTFSFileName {
+public:
+	NTFSFileName() {
+	}
+
+	explicit NTFSFileName(const NTFS_ATTR_FILE_NAME *header) {
+		SetFileName(header);
+	}
+
+	void SetFileName(const NTFS_ATTR_FILE_NAME* header) {
+		file_name_.assign(reinterpret_cast<const wchar_t*>(header->Name),
+			header->NameLength);
+	}
+
+	std::wstring GetFileName() const {
+		return file_name_;
+	}
+protected:
+	std::wstring file_name_;
+};
 
 class XAMP_METADATA_API NTFSAttribut {
 public:
@@ -99,16 +180,85 @@ private:
 	FileHandle volume_;
 };
 
+class NTFSIndexEntry : public NTFSFileName {
+public:
+	NTFSIndexEntry()
+		: entry_(nullptr) {
+	}
+
+	NTFSIndexEntry(const NTFSIndexEntry& entry) {
+		*this = entry;
+	}
+
+	NTFSIndexEntry& operator=(const NTFSIndexEntry& entry) {
+		if (this != &entry) {
+			return *this;
+		}
+		if (!entry_) {
+			return *this;
+		}
+		entry_ = (NTFS_INDEX_ENTRY*)(new BYTE[entry.entry_->Size]);
+		MemoryCopy(entry_, entry.entry_, entry.entry_->Size);
+		SetFileName((NTFS_ATTR_FILE_NAME*)entry_->Stream);
+		return *this;
+	}
+
+	explicit NTFSIndexEntry(NTFS_INDEX_ENTRY* entry) {
+		entry_ = entry;
+		if (entry_->StreamSize > 0) {
+			SetFileName((NTFS_ATTR_FILE_NAME*)(entry->Stream));
+		}
+	}
+
+	bool IsSubNodePtr() const noexcept {
+		if (entry_ != nullptr) {
+			return entry_->Flags & INDEX_ENTRY_FLAG_SUBNODE;
+		}
+		return false;
+	}
+
+	ULONGLONG GetSubNodeVCN() const noexcept {
+		if (entry_ != nullptr) {
+			return *(ULONGLONG*)((BYTE*)entry_ + entry_->Size - 8);
+		}
+		return -1;
+	}
+
+	ULONGLONG GetFileReference() const noexcept {
+		if (entry_ != nullptr) {
+			return entry_->FileReference & 0x0000FFFFFFFFFFFFUL;
+		}
+		return -1;
+	}
+private:
+	NTFS_INDEX_ENTRY* entry_;
+};
+
 class XAMP_METADATA_API NTFSFileRecord : public std::enable_shared_from_this<NTFSFileRecord> {
 public:
 	explicit NTFSFileRecord(std::shared_ptr<NTFSVolume> volume);
 
-	[[nodiscard]] const NTFSAttribut* FindFirstAttr(DWORD attr_type) const;
+	[[nodiscard]] std::shared_ptr<NTFSAttribut> FindFirstAttr(DWORD attr_type);
 
-	[[nodiscard]] const NTFSAttribut* FindNextAttr(DWORD attr_type) const;
+	[[nodiscard]] std::shared_ptr<NTFSAttribut> FindNextAttr(DWORD attr_type);
+
+	template <typename T>
+	std::shared_ptr<T> FindFirstAttr(DWORD attr_type) {
+		return std::dynamic_pointer_cast<T>(FindFirstAttr(attr_type));
+	}
+
+	template <typename T>
+	std::shared_ptr<T> FindNextAttr(DWORD attr_type) {
+		return std::dynamic_pointer_cast<T>(FindNextAttr(attr_type));
+	}
+
 	bool ParseFileRecord(ULONGLONG fileref);
+
 	void ParseAttrs();
+
 	void SetAttrMask(DWORD mask);
+
+	bool FindSubEntry(std::wstring const &file_name, NTFSIndexEntry &entry);
 private:
 	std::shared_ptr<NTFSAttribut> Allocate(const NTFS_ATTR_HEADER* header);
 	bool ParseAttrs(const NTFS_ATTR_HEADER* header);	
@@ -118,7 +268,7 @@ private:
 	DWORD attr_mask_{ 0 };
 	std::unique_ptr<NTFS_FILE_RECORD_HEADER> file_record_header_;
 	std::shared_ptr<NTFSVolume> volume_;
-	std::vector<std::deque<std::shared_ptr<NTFSAttribut>>> attrlist_;
+	std::vector<SList<NTFSAttribut>> attrlist_;
 };
 
 }
