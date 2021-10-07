@@ -22,7 +22,13 @@ void TestPlayDSD() {
 }
 
 void TestReadNTFSVolume() {
-	
+	auto volume = MakeAlignedShared<NTFSVolume>();
+	volume->Open(L"\\\\\.\\C:");
+	auto file_record = MakeAlignedShared<NTFSFileRecord>(volume);
+	file_record->ParseFileRecord(MFT_IDX_ROOT);
+	file_record->SetAttrMask(kNtfsAttrMaskIndexRoot | kNtfsAttrMaskIndexAllocation);
+	file_record->ParseAttrs();
+	file_record->TraverseSubEntries();
 }
 
 int main() {	

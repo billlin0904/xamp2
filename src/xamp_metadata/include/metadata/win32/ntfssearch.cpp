@@ -318,7 +318,7 @@ public:
 		MemoryCopy(buf, body_ + offsetd, actural);
 		return true;
 	}
-private:
+protected:
 	const NTFS_ATTR_RESIDENT* header_;
 	const BYTE* body_;
 	DWORD attr_size_;
@@ -328,14 +328,14 @@ class NTFSIndexRoot : public NTFSAttributResident, public NTFSIndexEntryList {
 public:
 	NTFSIndexRoot(const NTFS_ATTR_HEADER* header, std::shared_ptr<NTFSFileRecord> record)
 		: NTFSAttributResident(header, record) {
-		header_ = reinterpret_cast<const NTFS_ATTR_INDEX_ROOT*>(header);
+		header_ = reinterpret_cast<const NTFS_ATTR_INDEX_ROOT*>(body_);
 		if (IsFileName()) {
 			ParseIndexEntries();
 		}
 	}
 
 	bool IsFileName() const {
-		return header_->AttrType == kNtfsAttrMaskFileName;
+		return header_->AttrType == kAttrTypeFileName;
 	}
 private:
 	void ParseIndexEntries() {
@@ -343,13 +343,12 @@ private:
 			reinterpret_cast<const BYTE*>(&(header_->EntryOffset)) + header_->EntryOffset);
 		DWORD total_entry_size = entry->Size;
 		while (total_entry_size <= header_->TotalEntrySize) {
-			Insert(MakeAlignedShared<NTFSIndexEntry>(entry));
 			if (entry->Flags & INDEX_ENTRY_FLAG_LAST) {
 				break;
 			}
-			entry = reinterpret_cast<const NTFS_INDEX_ENTRY*>(
-				reinterpret_cast<const BYTE*>(entry) + entry->Size);
-			total_entry_size = entry->Size;
+			Insert(MakeAlignedShared<NTFSIndexEntry>(entry));
+			entry = PointerToNext(const NTFS_INDEX_ENTRY*, entry, entry->Size);
+			total_entry_size += entry->Size;
 		}
 	}
 
@@ -377,7 +376,7 @@ class NTFSVolumeInformation final : public NTFSAttributResident {
 public:
 	NTFSVolumeInformation(const NTFS_ATTR_HEADER* header, std::shared_ptr<NTFSFileRecord> record)
 		: NTFSAttributResident(header, record) {
-		header_ = reinterpret_cast<const NTFS_ATTR_VOLUME_INFORMATION*>(header);
+		header_ = reinterpret_cast<const NTFS_ATTR_VOLUME_INFORMATION*>(body_);
 	}
 
 	WORD GetMinorVersion() const noexcept {
@@ -428,13 +427,16 @@ void NTFSFileRecord::SetAttrMask(DWORD mask) {
 	attr_mask_ = mask | kNtfsAttrMaskStandardInformation | kNtfsAttrMaskAttributeList;
 }
 
-std::optional<NTFSIndexEntry> NTFSFileRecord::FindSubEntry(std::wstring const& file_name) {
+std::optional<std::shared_ptr<NTFSIndexEntry>> NTFSFileRecord::FindSubEntry(std::wstring const& file_name) {
 	const auto index_root = FindFirstAttr<NTFSIndexRoot>(kAttrTypeIndexRoot);
 	if (!index_root) {
 		return std::nullopt;
 	}
 	for (auto entry = index_root->FindFirst();
-		; entry = index_root->FindNext()) {		
+		entry != nullptr; entry = index_root->FindNext()) {
+		if (entry->GetFileName() == file_name) {
+			return entry;
+		}
 	}
 	return std::nullopt;
 }
@@ -549,6 +551,27 @@ bool NTFSFileRecord::ParseFileRecord(ULONGLONG fileref) {
 		return true;
 	}
 	return false;
+}
+
+void NTFSFileRecord::TraverseSubEntries() {
+	const auto index_root = FindFirstAttr<NTFSIndexRoot>(kAttrTypeIndexRoot);
+	if (!index_root) {
+		return;
+	}
+	for (auto entry = index_root->FindFirst();
+		entry != nullptr; entry = index_root->FindNext()) {
+		if (entry->IsSubNodePtr()) {
+			TraverseSubNode(entry->GetSubNodeVCN());
+		}
+	}
+}
+
+void NTFSFileRecord::TraverseSubNode(const ULONGLONG& vcn) {
+	const auto index_alloc = FindFirstAttr<NTFSIndexAlloc>(kAttrTypeIndexAllocation);
+	if (!index_alloc) {
+		return;
+	}
+
 }
 
 }

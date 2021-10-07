@@ -16,6 +16,7 @@
 namespace xamp::metadata::win32 {
 
 #define	MFT_IDX_USER 16
+#define MFT_IDX_ROOT 5
 
 #define NTFS_ATTR_MAX 16
 #define	NTFS_ATTR_INDEX(at)	(((at)>>4)-1)
@@ -177,8 +178,8 @@ public:
 	}
 
 	std::shared_ptr<T> FindNext() {
+		++current_;
 		if (current_ != list_.end()) {
-			++current_;
 			return *current_;
 		}
 		return nullptr;
@@ -322,11 +323,15 @@ public:
 
 	void SetAttrMask(DWORD mask);
 
-	std::optional<NTFSIndexEntry> FindSubEntry(std::wstring const &file_name);
+	std::optional<std::shared_ptr<NTFSIndexEntry>> FindSubEntry(std::wstring const &file_name);
 
 	std::shared_ptr<NTFSVolume> GetVolume() const {
 		return volume_;
 	}
+
+	void TraverseSubEntries();
+
+	void TraverseSubNode(const ULONGLONG& vcn);
 private:
 	std::shared_ptr<NTFSAttribut> Allocate(const NTFS_ATTR_HEADER* header);
 	bool ParseAttrs(const NTFS_ATTR_HEADER* header);	
@@ -337,6 +342,12 @@ private:
 	std::unique_ptr<NTFS_FILE_RECORD_HEADER> file_record_header_;
 	std::shared_ptr<NTFSVolume> volume_;
 	std::vector<SList<NTFSAttribut>> attrlist_;
+};
+
+class NTFSIndexBlock : public NTFSIndexEntryList {
+public:
+	NTFSIndexBlock() {
+	}
 };
 
 class XAMP_METADATA_API NTFSAttribut {
