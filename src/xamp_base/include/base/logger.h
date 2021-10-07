@@ -48,6 +48,8 @@ public:
 
     Logger& AddSink(spdlog::sink_ptr sink);
 
+	Logger& AddConsoleLogger();
+
     spdlog::logger* GetDefaultLogger() noexcept {
         return default_logger_.get();
 	}

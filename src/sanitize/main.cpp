@@ -22,15 +22,17 @@ void TestPlayDSD() {
 }
 
 void TestReadNTFSVolume() {
-	auto volume = std::make_shared<NTFSVolume>();
-	volume->Open(L"\\\\.\\C:");
+	
 }
 
 int main() {	
 	Logger::GetInstance()
 		.AddDebugOutputLogger()
+		.AddConsoleLogger()
 		.AddFileLogger("xamp.log")
 		.GetLogger("xamp");
+
+	XAMP_SET_LOG_LEVEL(spdlog::level::debug);
 
 	XAMP_ON_SCOPE_EXIT(
 		Logger::GetInstance().Shutdown();

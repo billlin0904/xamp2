@@ -15,6 +15,73 @@
 
 namespace xamp::metadata::win32 {
 
+#define	MFT_IDX_USER 16
+
+#define NTFS_ATTR_MAX 16
+#define	NTFS_ATTR_INDEX(at)	(((at)>>4)-1)
+#define	NTFS_ATTR_MASK(at)	(((DWORD)1)<<NTFS_ATTR_INDEX(at))
+
+inline constexpr std::string_view kNtfsSignature("NTFS    ");
+
+// =============================================
+// Attribut types
+// =============================================
+inline constexpr DWORD kAttrTypeStandardInformation = 0x10;
+inline constexpr DWORD kAttrTypeAttributeList = 0x20;
+inline constexpr DWORD kAttrTypeFileName = 0x30; 
+inline constexpr DWORD kAttrTypeObjectId = 0x40; // NT/2K
+inline constexpr DWORD kAttrTypeSecurityDescriptor = 0x50;
+inline constexpr DWORD kAttrTypeVolumeName = 0x60;
+inline constexpr DWORD kAttrTypeVolumeInformation = 0x70;
+inline constexpr DWORD kAttrTypeData = 0x80;
+inline constexpr DWORD kAttrTypeIndexRoot = 0x90;
+inline constexpr DWORD kAttrTypeIndexAllocation = 0xA0;
+inline constexpr DWORD kAttrTypeBitmap = 0xB0;
+inline constexpr DWORD kAttrTypeReparsePoint = 0xC0;
+inline constexpr DWORD kAttrTypeEaInformation = 0xD0;
+inline constexpr DWORD kAttrTypeEa = 0xE0;
+inline constexpr DWORD kAttrTypePropertySet = 0xF0;
+inline constexpr DWORD kAttrTypeLoggedUtilityStream = 0x100;
+inline constexpr DWORD kAttrTypeEnd = 0xFFFFFFFF;
+
+inline constexpr DWORD kNtfsAttrMaskStandardInformation = NTFS_ATTR_MASK(kAttrTypeStandardInformation);
+inline constexpr DWORD kNtfsAttrMaskAttributeList = NTFS_ATTR_MASK(kAttrTypeAttributeList);
+inline constexpr DWORD kNtfsAttrMaskFileName = NTFS_ATTR_MASK(kAttrTypeFileName);
+inline constexpr DWORD kNtfsAttrMaskObjectId = NTFS_ATTR_MASK(kAttrTypeObjectId);
+inline constexpr DWORD kNtfsAttrMaskSecurityDescriptor = NTFS_ATTR_MASK(kAttrTypeSecurityDescriptor);
+inline constexpr DWORD kNtfsAttrMaskVolumeName = NTFS_ATTR_MASK(kAttrTypeVolumeName);
+inline constexpr DWORD kNtfsAttrMaskVolumeInformation = NTFS_ATTR_MASK(kAttrTypeVolumeInformation);
+inline constexpr DWORD kNtfsAttrMaskData = NTFS_ATTR_MASK(kAttrTypeData);
+inline constexpr DWORD kNtfsAttrMaskIndexRoot = NTFS_ATTR_MASK(kAttrTypeIndexRoot);
+inline constexpr DWORD kNtfsAttrMaskIndexAllocation = NTFS_ATTR_MASK(kAttrTypeIndexAllocation);
+inline constexpr DWORD kNtfsAttrMaskBitmap = NTFS_ATTR_MASK(kAttrTypeBitmap);
+inline constexpr DWORD kNtfsAttrMaskReparsePoint = NTFS_ATTR_MASK(kAttrTypeReparsePoint);
+inline constexpr DWORD kNtfsAttrMaskEaInformation = NTFS_ATTR_MASK(kAttrTypeEaInformation);
+inline constexpr DWORD kNtfsAttrMaskEa = NTFS_ATTR_MASK(kAttrTypeEa);
+inline constexpr DWORD kNtfsAttrMaskPropertySet = NTFS_ATTR_MASK(kAttrTypePropertySet);
+inline constexpr DWORD kNtfsAttrMaskLoggedUtilityStream = NTFS_ATTR_MASK(kAttrTypeLoggedUtilityStream);
+
+// =============================================
+// MFT Indexes
+// =============================================
+inline constexpr DWORD kNtfsMftIdxMft = 0;
+inline constexpr DWORD kNtfsMftIdxMftMirr = 1;
+inline constexpr DWORD kNtfsMftIdxLogFile = 2;
+inline constexpr DWORD kNtfsMftIdxVolume = 3;
+inline constexpr DWORD kNtfsMftIdxAttrDef = 4;
+inline constexpr DWORD kNtfsMftIdxRoot = 5;
+inline constexpr DWORD kNtfsMftIdxBitmap = 6;
+inline constexpr DWORD kNtfsMftIdxBoot = 7;
+inline constexpr DWORD kNtfsMftIdxBadCluster = 8;
+inline constexpr DWORD kNtfsMftIdxSecure = 9;
+inline constexpr DWORD kNtfsMftIdxUpcase = 10;
+inline constexpr DWORD kNtfsMftIdxExtend = 11;
+inline constexpr DWORD kNtfsMftIdxReserved12 = 12;
+inline constexpr DWORD kNtfsMftIdxReserved13 = 13;
+inline constexpr DWORD kNtfsMftIdxReserved14 = 14;
+inline constexpr DWORD kNtfsMftIdxReserved15 = 15;
+inline constexpr DWORD kNtfsMftIdxUser = 16;
+
 struct NTFS_FILE_RECORD_HEADER {
 	DWORD		Magic;			// "FILE"
 	WORD		OffsetOfUS;		// Offset of Update Sequence
@@ -61,13 +128,32 @@ struct NTFS_ATTR_FILE_NAME {
 #define	INDEX_ENTRY_FLAG_LAST		0x02	// Last index entry in the node, no Stream
 
 struct NTFS_INDEX_ENTRY {
-	ULONGLONG	FileReference;	// Low 6B: MFT record index, High 2B: MFT record sequence number
-	WORD		Size;			// Length of the index entry
-	WORD		StreamSize;		// Length of the stream
-	BYTE		Flags;			// Flags
-	BYTE		Padding[3];		// Padding
-	BYTE		Stream[1];		// Stream
+	ULONGLONG FileReference;	// Low 6B: MFT record index, High 2B: MFT record sequence number
+	WORD	  Size;			// Length of the index entry
+	WORD	  StreamSize;		// Length of the stream
+	BYTE	  Flags;			// Flags
+	BYTE	  Padding[3];		// Padding
+	BYTE	  Stream[1];		// Stream
 	// VCN of the sub node in Index Allocation, Offset = Size - 8
+};
+
+struct NTFS_ATTR_HEADER_NON_RESIDENT {
+	NTFS_ATTR_HEADER Header;			// Common data structure
+	ULONGLONG		 StartVCN;		// Starting VCN
+	ULONGLONG		 LastVCN;		// Last VCN
+	WORD			 DataRunOffset;	// Offset to the Data Runs
+	WORD			 CompUnitSize;	// Compression unit size
+	DWORD			 Padding;		// Padding
+	ULONGLONG		 AllocSize;		// Allocated size of the attribute
+	ULONGLONG		 RealSize;		// Real size of the attribute
+	ULONGLONG		 IniSize;		// Initialized data size of the stream 
+};
+
+struct NTFS_DATARUN {
+	LONGLONG  LCN;		// -1 to indicate sparse data
+	ULONGLONG Clusters;
+	ULONGLONG StartVCN;
+	ULONGLONG LastVCN;
 };
 
 template <typename T>
@@ -125,17 +211,7 @@ protected:
 	std::wstring file_name_;
 };
 
-class XAMP_METADATA_API NTFSAttribut {
-public:
-	NTFSAttribut(const NTFS_ATTR_HEADER* header, std::shared_ptr<NTFSFileRecord> record) {
-		header_ = header;
-	}
-
-	virtual bool ReadData(const ULONGLONG& offset, void* buf, DWORD len, DWORD& actural) const noexcept = 0;
-
-private:
-	const NTFS_ATTR_HEADER* header_;
-};
+class NTFSAttribut;
 
 class XAMP_METADATA_API NTFSVolume : public std::enable_shared_from_this<NTFSVolume> {
 public:
@@ -149,6 +225,14 @@ public:
 		return sector_size_;
 	}
 
+	[[nodiscard]] DWORD GetClusterSize() const noexcept {
+		return cluster_size_;
+	}
+
+	[[nodiscard]] DWORD GetIndexBlockSize() const noexcept {
+		return index_block_size_;
+	}
+
 	[[nodiscard]] DWORD GetMTFAddress() const noexcept {
 		return mft_addr_;
 	}
@@ -157,7 +241,7 @@ public:
 		return file_record_size_;
 	}
 
-	[[nodiscard]] NTFSAttribut* GetMFTData() noexcept {
+	[[nodiscard]] std::shared_ptr<NTFSAttribut> GetMFTData() noexcept {
 		return mft_data_;
 	}
 
@@ -176,63 +260,43 @@ private:
 	DWORD file_record_size_ = 0;
 	DWORD index_block_size_ = 0;
 	uint64_t mft_addr_ = 0;
-	NTFSAttribut* mft_data_{ nullptr };
+	std::shared_ptr<NTFSAttribut> mft_data_;
+	std::shared_ptr<NTFSFileRecord> mft_record_;
 	FileHandle volume_;
 };
 
 class NTFSIndexEntry : public NTFSFileName {
 public:
-	NTFSIndexEntry()
-		: entry_(nullptr) {
-	}
+	NTFSIndexEntry() = delete;
+	NTFSIndexEntry(const NTFSIndexEntry& entry) = delete;
+	NTFSIndexEntry& operator=(const NTFSIndexEntry& entry) = delete;
 
-	NTFSIndexEntry(const NTFSIndexEntry& entry) {
-		*this = entry;
-	}
-
-	NTFSIndexEntry& operator=(const NTFSIndexEntry& entry) {
-		if (this != &entry) {
-			return *this;
+	explicit NTFSIndexEntry(const NTFS_INDEX_ENTRY* entry) {
+		if (entry == nullptr) {
+			throw LibrarySpecException("entry can't be null.");
 		}
-		if (!entry_) {
-			return *this;
-		}
-		entry_ = (NTFS_INDEX_ENTRY*)(new BYTE[entry.entry_->Size]);
-		MemoryCopy(entry_, entry.entry_, entry.entry_->Size);
-		SetFileName((NTFS_ATTR_FILE_NAME*)entry_->Stream);
-		return *this;
-	}
-
-	explicit NTFSIndexEntry(NTFS_INDEX_ENTRY* entry) {
 		entry_ = entry;
 		if (entry_->StreamSize > 0) {
-			SetFileName((NTFS_ATTR_FILE_NAME*)(entry->Stream));
+			SetFileName(reinterpret_cast<const NTFS_ATTR_FILE_NAME*>(entry->Stream));
 		}
 	}
 
 	bool IsSubNodePtr() const noexcept {
-		if (entry_ != nullptr) {
-			return entry_->Flags & INDEX_ENTRY_FLAG_SUBNODE;
-		}
-		return false;
+		return entry_->Flags & INDEX_ENTRY_FLAG_SUBNODE;
 	}
 
 	ULONGLONG GetSubNodeVCN() const noexcept {
-		if (entry_ != nullptr) {
-			return *(ULONGLONG*)((BYTE*)entry_ + entry_->Size - 8);
-		}
-		return -1;
+		return *reinterpret_cast<const ULONGLONG*>(reinterpret_cast<const BYTE*>(entry_) + entry_->Size - 8);
 	}
 
 	ULONGLONG GetFileReference() const noexcept {
-		if (entry_ != nullptr) {
-			return entry_->FileReference & 0x0000FFFFFFFFFFFFUL;
-		}
-		return -1;
+		return entry_->FileReference & 0x0000FFFFFFFFFFFFUL;
 	}
 private:
-	NTFS_INDEX_ENTRY* entry_;
+	const NTFS_INDEX_ENTRY* entry_;
 };
+
+using NTFSIndexEntryList = SList<NTFSIndexEntry>;
 
 class XAMP_METADATA_API NTFSFileRecord : public std::enable_shared_from_this<NTFSFileRecord> {
 public:
@@ -258,7 +322,11 @@ public:
 
 	void SetAttrMask(DWORD mask);
 
-	bool FindSubEntry(std::wstring const &file_name, NTFSIndexEntry &entry);
+	std::optional<NTFSIndexEntry> FindSubEntry(std::wstring const &file_name);
+
+	std::shared_ptr<NTFSVolume> GetVolume() const {
+		return volume_;
+	}
 private:
 	std::shared_ptr<NTFSAttribut> Allocate(const NTFS_ATTR_HEADER* header);
 	bool ParseAttrs(const NTFS_ATTR_HEADER* header);	
@@ -269,6 +337,28 @@ private:
 	std::unique_ptr<NTFS_FILE_RECORD_HEADER> file_record_header_;
 	std::shared_ptr<NTFSVolume> volume_;
 	std::vector<SList<NTFSAttribut>> attrlist_;
+};
+
+class XAMP_METADATA_API NTFSAttribut {
+public:
+	virtual ~NTFSAttribut() = default;
+
+	NTFSAttribut(const NTFS_ATTR_HEADER* header, std::shared_ptr<NTFSFileRecord> record) {
+		header_ = header;
+		sector_size_ = record->GetVolume()->GetSectorSize();
+		cluster_size_ = record->GetVolume()->GetClusterSize();
+		index_block_size_ = record->GetVolume()->GetIndexBlockSize();
+	}
+
+	virtual bool ReadData(const ULONGLONG& offset, void* buf, DWORD len, DWORD& actural) const noexcept = 0;
+
+protected:
+	DWORD sector_size_ = 0;
+	DWORD cluster_size_ = 0;
+	DWORD index_block_size_ = 0;
+
+private:
+	const NTFS_ATTR_HEADER* header_;
 };
 
 }

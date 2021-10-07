@@ -82,6 +82,14 @@ std::shared_ptr<spdlog::logger> Logger::GetLogger(const std::string &name) {
 	return logger;
 }
 
+Logger& Logger::AddConsoleLogger() {
+#ifdef XAMP_OS_WIN
+	sinks_.push_back(std::make_shared<spdlog::sinks::wincolor_stdout_sink_mt>());
+#else
+#endif
+	return *this;
+}
+
 Logger& Logger::AddDebugOutputLogger() {
 #ifdef XAMP_OS_WIN
 	sinks_.push_back(std::make_shared<DebugOutputSink>());

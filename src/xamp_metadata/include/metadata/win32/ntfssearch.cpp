@@ -6,72 +6,6 @@
 
 namespace xamp::metadata::win32 {
 
-#define	MFT_IDX_USER 16
-
-#define NTFS_ATTR_MAX 16
-#define	NTFS_ATTR_INDEX(at)	(((at)>>4)-1)
-#define	NTFS_ATTR_MASK(at)	(((DWORD)1)<<NTFS_ATTR_INDEX(at))
-
-inline constexpr std::string_view kNtfsSignature("NTFS    ");
-
-// =============================================
-// Attribut types
-// =============================================
-inline constexpr DWORD kAttrTypeStandardInformation = 0x10;
-inline constexpr DWORD kAttrTypeAttributeList = 0x20;
-inline constexpr DWORD kAttrTypeFileName = 0x30;
-inline constexpr DWORD kAttrTypeObjectId = 0x40;
-inline constexpr DWORD kAttrTypeSecurityDescriptor = 0x50;
-inline constexpr DWORD kAttrTypeVolumeName = 0x60;
-inline constexpr DWORD kAttrTypeVolumeInformation = 0x70;
-inline constexpr DWORD kAttrTypeData = 0x80;
-inline constexpr DWORD kAttrTypeIndexRoot = 0x90;
-inline constexpr DWORD kAttrTypeIndexAllocation = 0xA0;
-inline constexpr DWORD kAttrTypeBitmap = 0xB0;
-inline constexpr DWORD kAttrTypeReparsePoint = 0xC0;
-inline constexpr DWORD kAttrTypeEaInformation = 0xD0;
-inline constexpr DWORD kAttrTypeEa = 0xE0;
-inline constexpr DWORD kAttrTypeLoggedUtilityStream = 0x100;
-
-enum {
-	kNtfsAttrStandardInformation = NTFS_ATTR_MASK(kAttrTypeStandardInformation),
-    kNtfsAttrAttributeList = NTFS_ATTR_MASK(kAttrTypeAttributeList),
-    kNtfsAttrFileName = NTFS_ATTR_MASK(kAttrTypeFileName),
-    kNtfsAttrObjectId = NTFS_ATTR_MASK(kAttrTypeObjectId),
-    kNtfsAttrSecurityDescriptor = NTFS_ATTR_MASK(kAttrTypeSecurityDescriptor),
-    kNtfsAttrVolumeName = NTFS_ATTR_MASK(kAttrTypeVolumeName),
-    kNtfsAttrVolumeInformation = NTFS_ATTR_MASK(kAttrTypeVolumeInformation),
-    kNtfsAttrData = NTFS_ATTR_MASK(kAttrTypeData),
-    kNtfsAttrIndexRoot = NTFS_ATTR_MASK(kAttrTypeIndexRoot),
-    kNtfsAttrIndexAllocation = NTFS_ATTR_MASK(kAttrTypeIndexAllocation),
-    kNtfsAttrBitmap = NTFS_ATTR_MASK(kAttrTypeBitmap),
-    kNtfsAttrReparsePoint = NTFS_ATTR_MASK(kAttrTypeReparsePoint),
-    kNtfsAttrEaInformation = NTFS_ATTR_MASK(kAttrTypeEaInformation),
-    kNtfsAttrEa = NTFS_ATTR_MASK(kAttrTypeEa),
-    kNtfsAttrLoggedUtilityStream = NTFS_ATTR_MASK(kAttrTypeLoggedUtilityStream)
-};
-
-// =============================================
-// MFT Indexes
-// =============================================
-inline constexpr DWORD kNtfsMftIdxMft = 0;
-inline constexpr DWORD kNtfsMftIdxMftMirr = 1;
-inline constexpr DWORD kNtfsMftIdxLogFile = 2;
-inline constexpr DWORD kNtfsMftIdxVolume = 3;
-inline constexpr DWORD kNtfsMftIdxAttrDef = 4;
-inline constexpr DWORD kNtfsMftIdxRoot = 5;
-inline constexpr DWORD kNtfsMftIdxBitmap = 6;
-inline constexpr DWORD kNtfsMftIdxBoot = 7;
-inline constexpr DWORD kNtfsMftIdxBadCluster = 8;
-inline constexpr DWORD kNtfsMftIdxSecure = 9;
-inline constexpr DWORD kNtfsMftIdxUpcase = 10;
-inline constexpr DWORD kNtfsMftIdxExtend = 11;
-inline constexpr DWORD kNtfsMftIdxReserved12 = 12;
-inline constexpr DWORD kNtfsMftIdxReserved13 = 13;
-inline constexpr DWORD kNtfsMftIdxReserved14 = 14;
-inline constexpr DWORD kNtfsMftIdxReserved15 = 15;
-inline constexpr DWORD kNtfsMftIdxUser = 16;
-
 // =============================================
 // File Record
 // =============================================
@@ -101,18 +35,18 @@ struct NTFS_BPB {
 	DWORD		NotUsed2;
 	DWORD		NotUsed3;
 	ULONGLONG	TotalSectors;
-	ULONGLONG	LCN_MFT;
-	ULONGLONG	LCN_MFTMirr;
+	ULONGLONG	MFTLogicalClusterNumber;
+	ULONGLONG	MirrorLogicalClusterNumber;
 	DWORD		ClustersPerFileRecord;
 	DWORD		ClustersPerIndexBlock;
-	BYTE		VolumeSN[8];
+	ULONGLONG 	VolumeSN[8];
 
 	// boot code
 	BYTE		Code[430];
 
-	//0xAA55
-	BYTE		_AA;
+	//0x55AA
 	BYTE		_55;
+	BYTE		_AA;
 };
 #pragma pack()
 
@@ -132,11 +66,29 @@ struct NTFS_ATTR_VOLUME_INFORMATION {
 	BYTE Reserved2[4];	// Always 0 ?
 };
 
+struct NTFS_ATTR_INDEX_ROOT {
+	// Index Root Header
+	DWORD		AttrType;		// Attribute type (ATTR_TYPE_FILE_NAME: Directory, 0: Index View)
+	DWORD		CollRule;		// Collation rule
+	DWORD		IBSize;			// Size of index block
+	BYTE		ClustersPerIB;	// Clusters per index block (same as BPB?)
+	BYTE		Padding1[3];	// Padding
+	// Index Header
+	DWORD		EntryOffset;	// Offset to the first index entry, relative to this address(0x10)
+	DWORD		TotalEntrySize;	// Total size of the index entries
+	DWORD		AllocEntrySize;	// Allocated size of the index entries
+	BYTE		Flags;			// Flags
+	BYTE		Padding2[3];	// Padding
+};
+
 template <typename T>
 static std::unique_ptr<T> MakeHeader(DWORD bufsz) {
 	auto* buf = new BYTE[bufsz];
+	MemorySet(buf, 0, bufsz);
 	return std::unique_ptr<T>(reinterpret_cast<T*>(buf));
 }
+
+#define PointerToNext(t, p, v) ((t)(((PBYTE)p) + (v)))
 
 void NTFSVolume::OpenVolume(std::wstring const& volume) {
 	//=================================================
@@ -243,7 +195,7 @@ void NTFSVolume::OpenVolume(std::wstring const& volume) {
 				index_block_size_ = cluster_size_ * sz;
 			else
 				index_block_size_ = 1 << (-sz);
-			mft_addr_ = bpb.LCN_MFT * cluster_size_;
+			mft_addr_ = bpb.MFTLogicalClusterNumber * cluster_size_;
 			return;
 		}
 	}
@@ -254,11 +206,85 @@ class NTFSAttributNoResident : public NTFSAttribut {
 public:
 	NTFSAttributNoResident(const NTFS_ATTR_HEADER* header, std::shared_ptr<NTFSFileRecord> record)
 		: NTFSAttribut(header, record) {
+		header_ = reinterpret_cast<const NTFS_ATTR_HEADER_NON_RESIDENT*>(header);
+		buffer_.resize(cluster_size_);
+		ParseDataRun();
+	}
+
+	ULONGLONG GetDataSize(ULONGLONG* alloc_size) const {
+		if (alloc_size) {
+			*alloc_size = header_->AllocSize;
+		}
+		return header_->RealSize;
+	}
+
+	void ParseDataRun() {
+		const auto* data_run =
+			reinterpret_cast<const BYTE*>(header_) + header_->DataRunOffset;
+
+		while (*data_run) {
+			LONGLONG length = 0;
+			LONGLONG LCN_offset = 0;
+			LONGLONG LCN = 0;
+			ULONGLONG VCN = 0;
+
+			if (PickData(&data_run, &length, &LCN_offset)) {
+				LCN += LCN_offset;
+				if (LCN < 0) {
+					return;
+				}
+
+				XAMP_LOG_DEBUG("Data length = {} clusters, LCN = {}", length, LCN);
+				XAMP_LOG_DEBUG(LCN_offset == 0 ? ", Sparse Data" : "");
+
+				auto data_run = MakeAlignedShared<NTFS_DATARUN>();
+				data_run->LCN = (LCN_offset == 0) ? -1 : LCN;
+				data_run->Clusters = length;
+				data_run->StartVCN = VCN;
+				VCN += length;
+				data_run->LastVCN = VCN - 1;
+
+				if (data_run->LastVCN <= (data_run->LastVCN - data_run->StartVCN)) {
+					datarun_list_.Insert(data_run);
+				} else {
+					throw LibrarySpecException("VCN exceeds bound.");
+				}
+			} else {
+				break;
+			}
+		}
+	}
+
+	bool PickData(const BYTE** data_run, LONGLONG* length, LONGLONG* LCN_offset) {
+		BYTE size = **data_run;
+		int length_bytes = size & 0x0F;
+		int offset_bytes = size >> 4;
+		if (length_bytes > 8 || offset_bytes > 8) {
+			return false;
+		}
+
+		*length = 0;
+		MemoryCopy(length, *data_run, length_bytes);
+		(*data_run) += length_bytes;
+		*LCN_offset = 0;
+
+		if (offset_bytes) {
+			if ((*data_run)[offset_bytes - 1] & 0x80) {
+				*LCN_offset = -1;
+			}
+			MemoryCopy(LCN_offset, *data_run, offset_bytes);
+			(*data_run) += offset_bytes;
+		}
+		return true;
 	}
 
 	bool ReadData(const ULONGLONG& offset, void* buf, DWORD len, DWORD& actural) const noexcept override {
 		return false;
 	}
+private:
+	const NTFS_ATTR_HEADER_NON_RESIDENT* header_;
+	std::vector<BYTE> buffer_;
+	SList<NTFS_DATARUN> datarun_list_;
 };
 
 class NTFSAttributResident : public NTFSAttribut {
@@ -298,6 +324,55 @@ private:
 	DWORD attr_size_;
 };
 
+class NTFSIndexRoot : public NTFSAttributResident, public NTFSIndexEntryList {
+public:
+	NTFSIndexRoot(const NTFS_ATTR_HEADER* header, std::shared_ptr<NTFSFileRecord> record)
+		: NTFSAttributResident(header, record) {
+		header_ = reinterpret_cast<const NTFS_ATTR_INDEX_ROOT*>(header);
+		if (IsFileName()) {
+			ParseIndexEntries();
+		}
+	}
+
+	bool IsFileName() const {
+		return header_->AttrType == kNtfsAttrMaskFileName;
+	}
+private:
+	void ParseIndexEntries() {
+		auto* entry = reinterpret_cast<const NTFS_INDEX_ENTRY*>(
+			reinterpret_cast<const BYTE*>(&(header_->EntryOffset)) + header_->EntryOffset);
+		DWORD total_entry_size = entry->Size;
+		while (total_entry_size <= header_->TotalEntrySize) {
+			Insert(MakeAlignedShared<NTFSIndexEntry>(entry));
+			if (entry->Flags & INDEX_ENTRY_FLAG_LAST) {
+				break;
+			}
+			entry = reinterpret_cast<const NTFS_INDEX_ENTRY*>(
+				reinterpret_cast<const BYTE*>(entry) + entry->Size);
+			total_entry_size = entry->Size;
+		}
+	}
+
+	const NTFS_ATTR_INDEX_ROOT* header_;
+};
+
+class NTFSIndexAlloc final : public NTFSAttributNoResident {
+public:
+	NTFSIndexAlloc(const NTFS_ATTR_HEADER* header, std::shared_ptr<NTFSFileRecord> record)
+		: NTFSAttributNoResident(header, record) {
+		if (GetDataSize(nullptr) % index_block_size_) {
+			return;
+		}
+		index_block_count_ = GetDataSize(nullptr) / index_block_size_;
+	}
+
+	ULONGLONG GetIndexBlockCount() const noexcept {
+		return index_block_count_;
+	}
+private:
+	ULONGLONG index_block_count_;
+};
+
 class NTFSVolumeInformation final : public NTFSAttributResident {
 public:
 	NTFSVolumeInformation(const NTFS_ATTR_HEADER* header, std::shared_ptr<NTFSFileRecord> record)
@@ -305,8 +380,12 @@ public:
 		header_ = reinterpret_cast<const NTFS_ATTR_VOLUME_INFORMATION*>(header);
 	}
 
-	WORD GetVersion() const noexcept {
-		return MAKEWORD(header_->MinorVersion, header_->MajorVersion);
+	WORD GetMinorVersion() const noexcept {
+		return header_->MinorVersion;
+	}
+
+	WORD GetMajorVersion() const noexcept {
+		return header_->MajorVersion;
 	}
 private:
 	const NTFS_ATTR_VOLUME_INFORMATION *header_;
@@ -322,16 +401,21 @@ public:
 
 void NTFSVolume::Open(std::wstring const& volume) {
 	OpenVolume(volume);
-	auto record = MakeAlignedShared<NTFSFileRecord>(shared_from_this());
-	record->SetAttrMask(kNtfsAttrVolumeName | kNtfsAttrVolumeInformation);
-	if (!record->ParseFileRecord(kNtfsMftIdxVolume)) {
+
+	mft_record_ = MakeAlignedShared<NTFSFileRecord>(shared_from_this());
+	mft_record_->SetAttrMask(kNtfsAttrMaskVolumeName | kNtfsAttrMaskVolumeInformation | kNtfsAttrMaskData);
+
+	if (!mft_record_->ParseFileRecord(kNtfsMftIdxVolume)) {
 		throw PlatformSpecException();
 	}
-	record->ParseAttrs();
-	auto volume_info = record->FindFirstAttr<NTFSVolumeInformation>(kNtfsAttrVolumeInformation);
-	if (volume_info != nullptr) {
+
+	mft_record_->ParseAttrs();
+	mft_data_ = mft_record_->FindFirstAttr(kAttrTypeData);
+
+	if (const auto volume_info = 
+		mft_record_->FindFirstAttr<NTFSVolumeInformation>(kAttrTypeVolumeInformation)) {
 		XAMP_LOG_DEBUG("NTFS volume version: {}.{}",
-			HIBYTE(volume_info->GetVersion()), LOBYTE(volume_info->GetVersion()));
+			volume_info->GetMajorVersion(), volume_info->GetMinorVersion());
 	}
 }
 
@@ -341,11 +425,18 @@ NTFSFileRecord::NTFSFileRecord(std::shared_ptr<NTFSVolume> volume)
 }
 
 void NTFSFileRecord::SetAttrMask(DWORD mask) {
-	attr_mask_ = mask | kNtfsAttrStandardInformation | kNtfsAttrAttributeList;
+	attr_mask_ = mask | kNtfsAttrMaskStandardInformation | kNtfsAttrMaskAttributeList;
 }
 
-bool NTFSFileRecord::FindSubEntry(std::wstring const& file_name, NTFSIndexEntry& entry) {
-	return false;
+std::optional<NTFSIndexEntry> NTFSFileRecord::FindSubEntry(std::wstring const& file_name) {
+	const auto index_root = FindFirstAttr<NTFSIndexRoot>(kAttrTypeIndexRoot);
+	if (!index_root) {
+		return std::nullopt;
+	}
+	for (auto entry = index_root->FindFirst();
+		; entry = index_root->FindNext()) {		
+	}
+	return std::nullopt;
 }
 
 std::shared_ptr<NTFSAttribut> NTFSFileRecord::FindFirstAttr(DWORD attr_type) {
@@ -360,16 +451,22 @@ std::shared_ptr<NTFSAttribut> NTFSFileRecord::FindNextAttr(DWORD attr_type) {
 
 std::shared_ptr<NTFSAttribut> NTFSFileRecord::Allocate(const NTFS_ATTR_HEADER* header) {
 	switch (header->Type) {
-	case kNtfsAttrFileName:
+	case kAttrTypeIndexAllocation:
+		return MakeAlignedShared<NTFSIndexAlloc>(header, shared_from_this());
+	case kAttrTypeIndexRoot:
+		return MakeAlignedShared<NTFSIndexRoot>(header, shared_from_this());
+	case kAttrTypeFileName:
 		return MakeAlignedShared<NTFSFileNameAttribut>(header, shared_from_this());
-	case kNtfsAttrVolumeInformation:
+	case kAttrTypeVolumeInformation:
 		return MakeAlignedShared<NTFSVolumeInformation>(header, shared_from_this());
 	}
-	XAMP_LOG_DEBUG("Allocate ntfs type: {}", header->Type);
+
+	XAMP_LOG_DEBUG("Allocate ntfs attr type: {}", header->Type);
+
 	if (header->NonResident) {
-		return std::make_shared<NTFSAttributNoResident>(header, shared_from_this());
+		return MakeAlignedShared<NTFSAttributNoResident>(header, shared_from_this());
 	}
-	return std::make_shared<NTFSAttributResident>(header, shared_from_this());
+	return MakeAlignedShared<NTFSAttributResident>(header, shared_from_this());
 }
 
 bool NTFSFileRecord::ParseAttrs(const NTFS_ATTR_HEADER* header) {
@@ -412,7 +509,7 @@ void NTFSFileRecord::PatchUS(WORD* sector, int sectors, WORD usn, WORD* usarray)
 	for (int i = 0; i < sectors; i++) {
 		sector += ((volume_->GetSectorSize() >> 1) - 1);
 		if (*sector != usn) {
-			throw Exception(Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR, "PathUS failure.");
+			throw LibrarySpecException("PathUS failure.");
 		}
 		*sector = usarray[i];
 		sector++;
@@ -420,19 +517,16 @@ void NTFSFileRecord::PatchUS(WORD* sector, int sectors, WORD usn, WORD* usarray)
 }
 
 void NTFSFileRecord::ParseAttrs() {
-	auto* attr_header = reinterpret_cast<NTFS_ATTR_HEADER*>(reinterpret_cast<BYTE*>(file_record_header_.get())
-		+ file_record_header_->OffsetOfAttr);
-	DWORD data_ptr = file_record_header_->OffsetOfAttr;
+	auto* attr_header = PointerToNext(NTFS_ATTR_HEADER *, file_record_header_.get(), file_record_header_->OffsetOfAttr);
 
-	while (attr_header->Type != static_cast<DWORD>(-1)
-		&& (data_ptr + attr_header->TotalSize) <= volume_->GetFileRecordSize()) {
+	while (attr_header->Type != kAttrTypeEnd && attr_header->TotalSize > 0) {
+		XAMP_LOG_DEBUG("Parse ntfs attr type: {}", attr_header->Type);
 		if (NTFS_ATTR_MASK(attr_header->Type) & attr_mask_) {
 			if (!ParseAttrs(attr_header)) {
-				throw Exception(Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR, "ParseAttrs failure.");
+				throw LibrarySpecException("ParseAttrs failure.");
 			}
 		}
-		data_ptr += attr_header->TotalSize;
-		attr_header = reinterpret_cast<NTFS_ATTR_HEADER*>(reinterpret_cast<BYTE*>(attr_header) + attr_header->TotalSize);
+		attr_header = PointerToNext(NTFS_ATTR_HEADER*, attr_header, attr_header->TotalSize);
 	}
 }
 
