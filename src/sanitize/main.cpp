@@ -1,5 +1,6 @@
 ﻿#include <iostream>
 #include <base/scopeguard.h>
+#include <base/str_utilts.h>
 #include <output_device/win32/exclusivewasapidevicetype.h>
 #include <output_device/asiodevicetype.h>
 #include <metadata/win32/ntfssearch.h>
@@ -22,13 +23,13 @@ void TestPlayDSD() {
 }
 
 void TestReadNTFSVolume() {
-	auto volume = MakeAlignedShared<NTFSVolume>();
-	volume->Open(L"\\\\\.\\C:");
-	auto file_record = MakeAlignedShared<NTFSFileRecord>(volume);
-	file_record->ParseFileRecord(MFT_IDX_ROOT);
+	auto file_record = MakeAlignedShared<NTFSFileRecord>();
+	file_record->Open(L"\\\\\.\\C:");
 	file_record->SetAttrMask(kNtfsAttrMaskIndexRoot | kNtfsAttrMaskIndexAllocation);
+	file_record->ParseFileRecord(MFT_IDX_ROOT);
 	file_record->ParseAttrs();
-	file_record->TraverseSubEntries();
+	file_record->TraverseSubEntries([&](auto entry) {
+		});
 }
 
 int main() {	
@@ -43,8 +44,6 @@ int main() {
 	XAMP_ON_SCOPE_EXIT(
 		Logger::GetInstance().Shutdown();
 	);
-
-	AudioPlayer::Initialize();
 	try
 	{
 		TestReadNTFSVolume();
@@ -53,4 +52,5 @@ int main() {
 		std::cout << e.GetErrorMessage();
 		std::cin.get();
 	}
+	AudioPlayer::Initialize();
 }

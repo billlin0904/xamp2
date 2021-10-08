@@ -11,6 +11,7 @@
 #include <base/exception.h>
 #include <base/align_ptr.h>
 #include <base/memory.h>
+#include <base/logger.h>
 #include <base/windows_handle.h>
 
 namespace xamp::metadata::win32 {
@@ -83,6 +84,12 @@ inline constexpr DWORD kNtfsMftIdxReserved14 = 14;
 inline constexpr DWORD kNtfsMftIdxReserved15 = 15;
 inline constexpr DWORD kNtfsMftIdxUser = 16;
 
+#define	INDEX_ENTRY_FLAG_SUBNODE	0x01	// Index entry points to a sub-node
+#define	INDEX_ENTRY_FLAG_LAST		0x02	// Last index entry in the node, no Stream
+
+#define	INDEX_BLOCK_MAGIC 'XDNI'
+
+#pragma pack(1)
 struct NTFS_FILE_RECORD_HEADER {
 	DWORD		Magic;			// "FILE"
 	WORD		OffsetOfUS;		// Offset of Update Sequence
@@ -125,9 +132,6 @@ struct NTFS_ATTR_FILE_NAME {
 	WORD	  Name[1];	    // Filename
 };
 
-#define	INDEX_ENTRY_FLAG_SUBNODE	0x01	// Index entry points to a sub-node
-#define	INDEX_ENTRY_FLAG_LAST		0x02	// Last index entry in the node, no Stream
-
 struct NTFS_INDEX_ENTRY {
 	ULONGLONG FileReference;	// Low 6B: MFT record index, High 2B: MFT record sequence number
 	WORD	  Size;			// Length of the index entry
@@ -157,6 +161,22 @@ struct NTFS_DATARUN {
 	ULONGLONG LastVCN;
 };
 
+struct NTFS_INDEX_BLOCK {
+	// Index Block Header
+	DWORD		Magic;			// "INDX"
+	WORD		OffsetOfUS;		// Offset of Update Sequence
+	WORD		SizeOfUS;		// Size in words of Update Sequence Number & Array
+	ULONGLONG	LSN;			// $LogFile Sequence Number
+	ULONGLONG	VCN;			// VCN of this index block in the index allocation
+	// Index Header
+	DWORD		EntryOffset;	// Offset of the index entries, relative to this address(0x18)
+	DWORD		TotalEntrySize;	// Total size of the index entries
+	DWORD		AllocEntrySize;	// Allocated size of index entries
+	BYTE		NotLeaf;		// 1 if not leaf node (has children)
+	BYTE		Padding[3];		// Padding
+};
+#pragma pack()
+
 template <typename T>
 class SList {
 public:
@@ -184,10 +204,35 @@ public:
 		}
 		return nullptr;
 	}
+
+	void Clear() {
+		list_.clear();
+	}
 private:
 	iterator current_;
 	std::deque<std::shared_ptr<T>> list_;
 };
+
+template <typename T>
+static std::unique_ptr<T> MakeUniqueHeader(DWORD bufsz) {
+	auto* buf = new BYTE[bufsz];
+	MemorySet(buf, 0, bufsz);
+	assert(sizeof(T) <= bufsz);
+	return std::unique_ptr<T>(reinterpret_cast<T*>(buf));
+}
+
+inline void PatchUS(WORD* sector, int sectors, WORD usn, WORD* usarray, DWORD sector_size) {
+	XAMP_LOG_DEBUG("Patch US secotr:{} usn:{} sector_size:{}", sectors, usn, sector_size);
+
+	for (int i = 0; i < sectors; i++) {
+		sector += ((sector_size >> 1) - 1);
+		if (*sector != usn) {
+			throw LibrarySpecException("PathUS failure.");
+		}
+		*sector = usarray[i];
+		sector++;
+	}
+}
 
 class NTFSFileRecord;
 
@@ -250,8 +295,8 @@ public:
 		return ::ReadFile(volume_.get(), buf, len, &actural, nullptr);
 	}
 
-	DWORD SetFilePointer(LARGE_INTEGER& pos) noexcept {
-		return ::SetFilePointer(volume_.get(), pos.LowPart, &pos.HighPart, FILE_BEGIN);
+	DWORD SetFilePointer(LARGE_INTEGER& pos, DWORD move_method) noexcept {
+		return ::SetFilePointer(volume_.get(), pos.LowPart, &pos.HighPart, move_method);
 	}
 private:
 	void OpenVolume(std::wstring const& volume);
@@ -282,15 +327,19 @@ public:
 		}
 	}
 
-	bool IsSubNodePtr() const noexcept {
+	[[nodiscard]] bool HasFileName() const noexcept {
+		return entry_->StreamSize > 0;
+	}
+
+	[[nodiscard]] bool IsSubNodePtr() const noexcept {
 		return entry_->Flags & INDEX_ENTRY_FLAG_SUBNODE;
 	}
 
-	ULONGLONG GetSubNodeVCN() const noexcept {
+	[[nodiscard]] ULONGLONG GetSubNodeVCN() const noexcept {
 		return *reinterpret_cast<const ULONGLONG*>(reinterpret_cast<const BYTE*>(entry_) + entry_->Size - 8);
 	}
 
-	ULONGLONG GetFileReference() const noexcept {
+	[[nodiscard]] ULONGLONG GetFileReference() const noexcept {
 		return entry_->FileReference & 0x0000FFFFFFFFFFFFUL;
 	}
 private:
@@ -302,6 +351,10 @@ using NTFSIndexEntryList = SList<NTFSIndexEntry>;
 class XAMP_METADATA_API NTFSFileRecord : public std::enable_shared_from_this<NTFSFileRecord> {
 public:
 	explicit NTFSFileRecord(std::shared_ptr<NTFSVolume> volume);
+
+	NTFSFileRecord() = default;
+
+	void Open(std::wstring const& volume);
 
 	[[nodiscard]] std::shared_ptr<NTFSAttribut> FindFirstAttr(DWORD attr_type);
 
@@ -329,14 +382,13 @@ public:
 		return volume_;
 	}
 
-	void TraverseSubEntries();
+	void TraverseSubEntries(std::function<void(std::shared_ptr<NTFSIndexEntry>)> const & cb);
 
-	void TraverseSubNode(const ULONGLONG& vcn);
 private:
 	std::shared_ptr<NTFSAttribut> Allocate(const NTFS_ATTR_HEADER* header);
 	bool ParseAttrs(const NTFS_ATTR_HEADER* header);	
 	std::unique_ptr<NTFS_FILE_RECORD_HEADER> ReadFileRecord(ULONGLONG& fileref);
-	void PatchUS(WORD* sector, int sectors, WORD usn, WORD* usarray);
+	void TraverseSubNode(const ULONGLONG& vcn, std::function<void(std::shared_ptr<NTFSIndexEntry>)> const& cb);
 
 	DWORD attr_mask_{ 0 };
 	std::unique_ptr<NTFS_FILE_RECORD_HEADER> file_record_header_;
@@ -346,8 +398,16 @@ private:
 
 class NTFSIndexBlock : public NTFSIndexEntryList {
 public:
-	NTFSIndexBlock() {
+	NTFSIndexBlock() = default;
+
+	std::unique_ptr<NTFS_INDEX_BLOCK>& Alloc(DWORD size) {
+		Clear();
+		index_block_.reset();
+		index_block_ = MakeUniqueHeader<NTFS_INDEX_BLOCK>(size);
+		return index_block_;
 	}
+private:
+	std::unique_ptr<NTFS_INDEX_BLOCK> index_block_;
 };
 
 class XAMP_METADATA_API NTFSAttribut {
@@ -355,19 +415,21 @@ public:
 	virtual ~NTFSAttribut() = default;
 
 	NTFSAttribut(const NTFS_ATTR_HEADER* header, std::shared_ptr<NTFSFileRecord> record) {
+		record_ = record;
 		header_ = header;
-		sector_size_ = record->GetVolume()->GetSectorSize();
-		cluster_size_ = record->GetVolume()->GetClusterSize();
-		index_block_size_ = record->GetVolume()->GetIndexBlockSize();
+		sector_size_ = record_->GetVolume()->GetSectorSize();
+		cluster_size_ = record_->GetVolume()->GetClusterSize();
+		index_block_size_ = record_->GetVolume()->GetIndexBlockSize();
 	}
 
-	virtual bool ReadData(const ULONGLONG& offset, void* buf, DWORD len, DWORD& actural) const noexcept = 0;
+	virtual bool ReadData(const ULONGLONG& offset, void* buf, DWORD len, DWORD& actural) noexcept = 0;
 
 protected:
 	DWORD sector_size_ = 0;
 	DWORD cluster_size_ = 0;
 	DWORD index_block_size_ = 0;
 
+	std::shared_ptr<NTFSFileRecord> record_;
 private:
 	const NTFS_ATTR_HEADER* header_;
 };

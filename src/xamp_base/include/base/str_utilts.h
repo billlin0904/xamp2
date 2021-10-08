@@ -104,8 +104,9 @@ std::string Join(C const& pieces, std::string_view const separator = ",") {
     return s;
 }
 
-XAMP_ALWAYS_INLINE std::vector<std::string_view> Split(std::string_view s, const std::string_view delims = " ") {
-    std::vector<std::string_view> output;
+template <typename T>
+XAMP_ALWAYS_INLINE std::vector<std::basic_string_view<T>> Split(std::basic_string_view<T> s, const std::basic_string_view<T> delims = " ") {
+    std::vector<std::basic_string_view<T>> output;
     size_t first = 0;
 
     while (first < s.size()) {
