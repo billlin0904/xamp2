@@ -34,7 +34,7 @@ struct RawHandle {
 
 bool GetRawFileByPath(CFileRecord* File, const char* Filename)
 {
-	Filename++;
+	//Filename++;
 	if (Filename[1] != ':') return false;
 	if (Filename[2] != '\\') return false;
 
@@ -66,7 +66,7 @@ bool GetRawFileByPath(CFileRecord* File, const char* Filename)
 
 bool GetRawFileByPath(std::shared_ptr<NTFSFileRecord> File, const char* Filename)
 {
-	Filename++;
+	//Filename++;
 	if (Filename[1] != ':') return false;
 	if (Filename[2] != '\\') return false;
 
@@ -128,6 +128,7 @@ void EnumFiles(std::shared_ptr<NTFSFileRecord> record, std::wstring const &file_
 		filerefs.reserve(64 * 1024);
 		record->Traverse([&](auto entry) {
 			filerefs.push_back(entry->GetFileReference());
+			XAMP_LOG_DEBUG("{}", String::ToString(entry->GetFileName()));
 			});
 
 		while (!filerefs.empty()) {	
@@ -137,6 +138,7 @@ void EnumFiles(std::shared_ptr<NTFSFileRecord> record, std::wstring const &file_
 			record->ParseAttrs();
 			record->Traverse([&](auto entry) {
 				filerefs.push_back(entry->GetFileReference());
+				XAMP_LOG_DEBUG("{}", String::ToString(entry->GetFileName()));
 				});
 		}
 	}
@@ -164,12 +166,16 @@ void TestReadNTFSVolume() {
 	//file_record->Open(L"C");
 	//Traverse(file_record);
 	//GetRawFileByPath(file_record, "‪C:\\Users\\bill\\Downloads\\basscd24.zip");
-	file_record->Open(L"C");
+	//file_record->Open(L"C");
 	//EnumFiles(file_record, L"C:\\Users\\bill\\Pictures");
-	EnumFiles(file_record, L"C:\\Users\\bill\\Desktop\\source\\xamp2");
+	//EnumFiles(file_record, L"C:\\Users\\bill\\Desktop\\source\\xamp2");
 	//EnumFiles(file_record, L"C:\\Users\\bill\\");
-	CFileRecord record(new CNTFSVolume(L'C'));
-	GetRawFileByPath(&record, "‪C:\\Users\\bill\\Downloads\\basscd24.zip");
+	//file_record->Open(L"G");
+	//EnumFiles(file_record, L"G:\\Musics\\");
+	file_record->Open(L"D");
+	EnumFiles(file_record, L"D:\\Games\\");
+	CFileRecord record(new CNTFSVolume(L'G'));
+	GetRawFileByPath(&record, "G:\\Musics\\");
 }
 
 int main() {	
@@ -179,7 +185,7 @@ int main() {
 		.AddFileLogger("xamp.log")
 		.GetLogger("xamp");
 
-	XAMP_SET_LOG_LEVEL(spdlog::level::debug);
+	XAMP_SET_LOG_LEVEL(spdlog::level::trace);
 
 	XAMP_ON_SCOPE_EXIT(
 		Logger::GetInstance().Shutdown();

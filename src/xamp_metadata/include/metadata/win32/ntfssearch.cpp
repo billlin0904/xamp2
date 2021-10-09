@@ -528,21 +528,43 @@ std::shared_ptr<NTFSAttribut> NTFSFileRecord::FindNextAttr(DWORD attr_type) {
 
 std::shared_ptr<NTFSAttribut> NTFSFileRecord::Allocate(const NTFS_ATTR_HEADER* header) {
 	switch (header->Type) {
+	case kAttrTypeStandardInformation:
+		XAMP_LOG_TRACE("Allocate StandardInformation");
+		break;
+	case kAttrTypeAttributeList:
+		XAMP_LOG_TRACE("Allocate AttributeList");
+		break;
+	case kAttrTypeObjectId:
+		XAMP_LOG_TRACE("Allocate ObjectId");
+		break;
+	case kAttrTypeData:
+		XAMP_LOG_TRACE("Allocate Data");
+		break;
+	case kAttrTypeSecurityDescriptor:
+		XAMP_LOG_TRACE("Allocate SecurityDescriptor");
+		break;
 	case kAttrTypeIndexAllocation:
+		XAMP_LOG_TRACE("Allocate IndexAllocation");
 		return std::make_shared<NTFSIndexAlloc>(header, shared_from_this());
 	case kAttrTypeIndexRoot:
+		XAMP_LOG_TRACE("Allocate IndexRoot");
 		return std::make_shared<NTFSIndexRoot>(header, shared_from_this());
 	case kAttrTypeFileName:
+		XAMP_LOG_TRACE("Allocate FileName");
 		return std::make_shared<NTFSFileNameAttribut>(header, shared_from_this());
 	case kAttrTypeVolumeInformation:
+		XAMP_LOG_TRACE("Allocate VolumeInformation");
 		return std::make_shared<NTFSVolumeInformation>(header, shared_from_this());
+	default:
+		XAMP_LOG_TRACE("Allocate ntfs attr type: {}", header->Type);
+		break;
 	}
-
-	XAMP_LOG_TRACE("Allocate ntfs attr type: {}", header->Type);
 
 	if (header->NonResident) {
+		XAMP_LOG_TRACE("Allocate NonResident");
 		return std::make_shared<NTFSAttributNoResident>(header, shared_from_this());
 	}
+	XAMP_LOG_TRACE("Allocate Resident");
 	return std::make_shared<NTFSAttributResident>(header, shared_from_this());
 }
 
@@ -638,6 +660,7 @@ std::optional<NTFSBlockEntry> NTFSFileRecord::VisitIndexBlock(const ULONGLONG& v
 	std::wstring const& file_name) {
 	const auto index_alloc = FindFirstAttr<NTFSIndexAlloc>(kAttrTypeIndexAllocation);
 	if (!index_alloc) {
+		XAMP_LOG_TRACE("Not found IndexAllocation");
 		return std::nullopt;
 	}
 
@@ -666,6 +689,7 @@ std::optional<NTFSBlockEntry> NTFSFileRecord::VisitIndexBlock(const ULONGLONG& v
 std::optional<NTFSBlockEntry> NTFSFileRecord::FindSubEntry(std::wstring const& file_name) {
 	const auto index_root = FindFirstAttr<NTFSIndexRoot>(kAttrTypeIndexRoot);
 	if (!index_root) {
+		XAMP_LOG_TRACE("Not found IndexRoot");
 		return std::nullopt;
 	}
 
@@ -702,7 +726,8 @@ void NTFSFileRecord::TraverseSubNode(const ULONGLONG& vcn,
 			try {
 				TraverseSubNode(entry->GetSubNodeVCN(), callback);
 			}
-			catch (...) {
+			catch (std::exception const &e) {
+				XAMP_LOG_TRACE("{}", e.what());
 			}			
 		}
 
