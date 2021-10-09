@@ -93,6 +93,21 @@ bool GetRawFileByPath(std::shared_ptr<NTFSFileRecord> File, const char* Filename
 	return true;
 }
 
+ULONGLONG GetFileReference(std::shared_ptr<NTFSFileRecord> record, std::wstring const &file_path) {
+	record->SetAttrMask(kNtfsAttrMaskIndexRoot | kNtfsAttrMaskIndexAllocation);
+	record->ParseFileRecord(kNtfsMftIdxRoot);
+	record->ParseAttrs();
+
+	auto sub_path = file_path.substr(3);
+	for (const auto & path : String::Split(sub_path.c_str(), L"\\")) {
+		if (auto entry = record->FindSubEntry(path.data())) {
+			record->ParseFileRecord(entry.value().second->GetFileReference());
+			record->ParseAttrs();
+		}
+	}
+	return -1;
+}
+
 void TraverseSub(ULONGLONG fileref) {
 	auto record = std::make_shared<NTFSFileRecord>();
 	record->Open(L"C");
@@ -124,9 +139,11 @@ void Traverse(std::shared_ptr<NTFSFileRecord> record) {
 
 void TestReadNTFSVolume() {
 	auto file_record = std::make_shared<NTFSFileRecord>();
-	file_record->Open(L"C");
-	Traverse(file_record);
-	GetRawFileByPath(file_record, "‪C:\\Users\\bill\\Downloads\\basscd24.zip");
+	//file_record->Open(L"C");
+	//Traverse(file_record);
+	//GetRawFileByPath(file_record, "‪C:\\Users\\bill\\Downloads\\basscd24.zip");
+	file_record->Open(L"G");
+	GetFileReference(file_record, L"G:\\Musics\\");
 	CFileRecord record(new CNTFSVolume(L'C'));
 	GetRawFileByPath(&record, "‪C:\\Users\\bill\\Downloads\\basscd24.zip");
 }
