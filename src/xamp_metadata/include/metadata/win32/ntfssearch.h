@@ -16,9 +16,6 @@
 
 namespace xamp::metadata::win32 {
 
-#define	MFT_IDX_USER 16
-#define MFT_IDX_ROOT 5
-
 #define NTFS_ATTR_MAX 16
 #define	NTFS_ATTR_INDEX(at)	(((at)>>4)-1)
 #define	NTFS_ATTR_MASK(at)	(((DWORD)1)<<NTFS_ATTR_INDEX(at))
@@ -222,7 +219,7 @@ static std::unique_ptr<T> MakeUniqueHeader(DWORD bufsz) {
 }
 
 inline void PatchUS(WORD* sector, int sectors, WORD usn, WORD* usarray, DWORD sector_size) {
-	XAMP_LOG_DEBUG("Patch US secotr:{} usn:{} sector_size:{}", sectors, usn, sector_size);
+	XAMP_LOG_TRACE("Patch US secotr:{} usn:{} sector_size:{}", sectors, usn, sector_size);
 
 	for (int i = 0; i < sectors; i++) {
 		sector += ((sector_size >> 1) - 1);
@@ -234,6 +231,7 @@ inline void PatchUS(WORD* sector, int sectors, WORD usn, WORD* usarray, DWORD se
 	}
 }
 
+class NTFSIndexBlock;
 class NTFSFileRecord;
 
 class NTFSFileName {
@@ -343,10 +341,15 @@ public:
 		return entry_->FileReference & 0x0000FFFFFFFFFFFFUL;
 	}
 private:
+	//bool has_file_name{false};
+	//bool is_sub_node_ptr{false};
+	//ULONGLONG sub_node_vcn{0};
+	//ULONGLONG file_reference{0};
 	const NTFS_INDEX_ENTRY* entry_;
 };
 
 using NTFSIndexEntryList = SList<NTFSIndexEntry>;
+using NTFSBlockEntry = std::pair<NTFSIndexBlock, std::shared_ptr<NTFSIndexEntry>>;
 
 class XAMP_METADATA_API NTFSFileRecord : public std::enable_shared_from_this<NTFSFileRecord> {
 public:
@@ -376,19 +379,21 @@ public:
 
 	void SetAttrMask(DWORD mask);
 
-	std::optional<std::shared_ptr<NTFSIndexEntry>> FindSubEntry(std::wstring const &file_name);
+	std::optional<NTFSBlockEntry> FindSubEntry(std::wstring const &file_name);
 
 	std::shared_ptr<NTFSVolume> GetVolume() const {
 		return volume_;
 	}
 
-	void TraverseSubEntries(std::function<void(std::shared_ptr<NTFSIndexEntry>)> const & cb);
-
+	void Traverse(std::function<void(std::shared_ptr<NTFSIndexEntry> const&)> const & callback);
 private:
+	void TraverseSubNode(const ULONGLONG& vcn, std::function<void(std::shared_ptr<NTFSIndexEntry> const&)> const& callback);
+
+	void ClearAttrs();
 	std::shared_ptr<NTFSAttribut> Allocate(const NTFS_ATTR_HEADER* header);
 	bool ParseAttrs(const NTFS_ATTR_HEADER* header);	
 	std::unique_ptr<NTFS_FILE_RECORD_HEADER> ReadFileRecord(ULONGLONG& fileref);
-	void TraverseSubNode(const ULONGLONG& vcn, std::function<void(std::shared_ptr<NTFSIndexEntry>)> const& cb);
+	std::optional<NTFSBlockEntry> VisitIndexBlock(const ULONGLONG& vcn, std::wstring const& file_name);
 
 	DWORD attr_mask_{ 0 };
 	std::unique_ptr<NTFS_FILE_RECORD_HEADER> file_record_header_;
@@ -400,7 +405,7 @@ class NTFSIndexBlock : public NTFSIndexEntryList {
 public:
 	NTFSIndexBlock() = default;
 
-	std::unique_ptr<NTFS_INDEX_BLOCK>& Alloc(DWORD size) {
+	std::unique_ptr<NTFS_INDEX_BLOCK>& Allocate(DWORD size) {
 		Clear();
 		index_block_.reset();
 		index_block_ = MakeUniqueHeader<NTFS_INDEX_BLOCK>(size);

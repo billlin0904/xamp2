@@ -6,6 +6,8 @@
 #include <metadata/win32/ntfssearch.h>
 #include <player/audio_player.h>
 
+#include "NTFS.h"
+
 using namespace xamp;
 using namespace player;
 using namespace base;
@@ -22,14 +24,111 @@ void TestPlayDSD() {
 	player->Stop();
 }
 
-void TestReadNTFSVolume() {
-	auto file_record = MakeAlignedShared<NTFSFileRecord>();
-	file_record->Open(L"\\\\\.\\C:");
-	file_record->SetAttrMask(kNtfsAttrMaskIndexRoot | kNtfsAttrMaskIndexAllocation);
-	file_record->ParseFileRecord(MFT_IDX_ROOT);
-	file_record->ParseAttrs();
-	file_record->TraverseSubEntries([&](auto entry) {
+struct RawHandle {
+	class CNTFSVolume* Volume;
+	class CFileRecord* File;
+	class CAttrBase* Data;
+	uint64_t DataOffset;
+};
+
+bool GetRawFileByPath(CFileRecord* File, const char* Filename)
+{
+	Filename++;
+	if (Filename[1] != ':') return false;
+	if (Filename[2] != '\\') return false;
+
+	File->SetAttrMask(MASK_INDEX_ROOT | MASK_INDEX_ALLOCATION);
+	if (!File->ParseFileRecord(MFT_IDX_ROOT)) return false;
+	if (!File->ParseAttrs()) return false;
+
+	char* context = NULL;
+	char path[32 * 1024]; // max per MSDN, but not really
+	strncpy_s(path, Filename + 3, _TRUNCATE);
+	for (char* token = strtok_s(path, "\\", &context); token; token = strtok_s(NULL, "\\", &context))
+	{
+		size_t bytes;
+		CIndexEntry entry;
+		wchar_t wide[MAX_PATH + 1];
+		errno_t err = mbstowcs_s(&bytes, wide, sizeof(wide) / sizeof(wide[0]), token, _TRUNCATE);
+		if (err) return false;
+		if (!File->FindSubEntry(wide, entry)) return false;
+		if (!File->ParseFileRecord(entry.GetFileReference())) return false;
+		if (!File->ParseAttrs()) return false;
+	}
+	if (!File->IsDirectory())
+	{
+		File->SetAttrMask(MASK_ALL);
+		if (!File->ParseAttrs()) fprintf(stderr, "failed MASK_ALL file reparse");
+	}
+	return true;
+}
+
+bool GetRawFileByPath(std::shared_ptr<NTFSFileRecord> File, const char* Filename)
+{
+	Filename++;
+	if (Filename[1] != ':') return false;
+	if (Filename[2] != '\\') return false;
+
+	File->SetAttrMask(kNtfsAttrMaskIndexRoot | kNtfsAttrMaskIndexAllocation);
+	File->ParseFileRecord(kNtfsMftIdxRoot);
+	File->ParseAttrs();
+
+	char* context = NULL;
+	char path[32 * 1024]; // max per MSDN, but not really
+	strncpy_s(path, Filename + 3, _TRUNCATE);
+	for (char* token = strtok_s(path, "\\", &context); token; token = strtok_s(NULL, "\\", &context))
+	{
+		size_t bytes;
+		wchar_t wide[MAX_PATH + 1];
+		errno_t err = mbstowcs_s(&bytes, wide, sizeof(wide) / sizeof(wide[0]), token, _TRUNCATE);
+		if (err) return false;
+		if (auto entry = File->FindSubEntry(wide)) {
+			File->ParseFileRecord(entry.value().second->GetFileReference());
+			File->ParseAttrs();
+		}
+		else {
+			break;
+		}
+	}
+	return true;
+}
+
+void TraverseSub(ULONGLONG fileref) {
+	auto record = std::make_shared<NTFSFileRecord>();
+	record->Open(L"C");
+	record->SetAttrMask(kNtfsAttrMaskIndexRoot | kNtfsAttrMaskIndexAllocation);
+	record->ParseFileRecord(fileref);
+	record->ParseAttrs();
+	record->Traverse([&](auto entry) {
+		XAMP_LOG_DEBUG("Root file name: {}", String::ToString(entry->GetFileName()));
+		TraverseSub(entry->GetFileReference());
 		});
+}
+
+void Traverse(std::shared_ptr<NTFSFileRecord> record) {
+	std::vector<ULONGLONG> filelist;
+
+	record->SetAttrMask(kNtfsAttrMaskIndexRoot | kNtfsAttrMaskIndexAllocation);
+	record->ParseFileRecord(kNtfsMftIdxRoot);
+	record->ParseAttrs();
+
+	record->Traverse([&](auto entry) {
+		XAMP_LOG_DEBUG("Root file name: {}", String::ToString(entry->GetFileName()));
+		filelist.push_back(entry->GetFileReference());
+		});
+
+	for (const auto & fileref: filelist) {
+		TraverseSub(fileref);
+	}	
+}
+
+void TestReadNTFSVolume() {
+	auto file_record = std::make_shared<NTFSFileRecord>();
+	file_record->Open(L"C");
+	Traverse(file_record);
+	GetRawFileByPath(file_record, "‪C:\\Users\\bill\\Downloads\\basscd24.zip");
+	CFileRecord record(new CNTFSVolume(L'C'));
+	GetRawFileByPath(&record, "‪C:\\Users\\bill\\Downloads\\basscd24.zip");
 }
 
 int main() {	

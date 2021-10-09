@@ -137,7 +137,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;ENABLE_ASIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../thirdparty/robin_hood/;../xamp_base/include/;../xamp_player/include/;../xamp_stream/include/;../xamp_output_device/include/;../thirdparty/spdlog/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../thirdparty/robin_hood/;../xamp_base/include/;../xamp_player/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_metadata/include/;../thirdparty/spdlog/include/</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -146,11 +146,18 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>../xamp/x64/Release/</AdditionalLibraryDirectories>
-      <AdditionalDependencies>xamp_base.lib;xamp_stream.lib;xamp_player.lib;xamp_output_device.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>xamp_base.lib;xamp_stream.lib;xamp_player.lib;xamp_output_device.lib;xamp_metadata.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="NTFS.h" />
+    <ClInclude Include="NTFS_Attribute.h" />
+    <ClInclude Include="NTFS_Common.h" />
+    <ClInclude Include="NTFS_DataType.h" />
+    <ClInclude Include="NTFS_FileRecord.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
