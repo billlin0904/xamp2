@@ -113,22 +113,27 @@ void EnumFiles(std::shared_ptr<NTFSFileRecord> record, std::wstring const &file_
 
 	ULONGLONG fileref = -1;
 	auto sub_path = file_path.substr(3);
-	
-	for (const auto & path : String::Split(sub_path.c_str(), L"\\")) {
-		std::wstring spth(path.data(), path.length());
-		if (auto entry = record->FindSubEntry(spth)) {
-			record->ParseFileRecord(entry.value().second->GetFileReference());
-			record->ParseAttrs();
-			fileref = entry.value().second->GetFileReference();
+
+	if (!sub_path.empty()) {
+		for (const auto& path : String::Split(sub_path.c_str(), L"\\")) {
+			std::wstring spth(path.data(), path.length());
+			if (auto entry = record->FindSubEntry(spth)) {
+				record->ParseFileRecord(entry.value().second->GetFileReference());
+				record->ParseAttrs();
+				fileref = entry.value().second->GetFileReference();
+			}
 		}
 	}
-	
+	else {
+		fileref = kNtfsMftIdxRoot;
+	}
+
 	if (fileref != -1) {
 		std::vector<ULONGLONG> filerefs;
 		filerefs.reserve(64 * 1024);
 		record->Traverse([&](auto entry) {
+			//XAMP_LOG_DEBUG("{}", String::ToString(entry->GetFileName()));
 			filerefs.push_back(entry->GetFileReference());
-			XAMP_LOG_DEBUG("{}", String::ToString(entry->GetFileName()));
 			});
 
 		while (!filerefs.empty()) {	
@@ -137,8 +142,10 @@ void EnumFiles(std::shared_ptr<NTFSFileRecord> record, std::wstring const &file_
 			filerefs.pop_back();
 			record->ParseAttrs();
 			record->Traverse([&](auto entry) {
-				filerefs.push_back(entry->GetFileReference());
-				XAMP_LOG_DEBUG("{}", String::ToString(entry->GetFileName()));
+				//XAMP_LOG_DEBUG("{}", String::ToString(entry->GetFileName()));
+				if (record->IsDirectory()) {
+					filerefs.push_back(entry->GetFileReference());
+				}
 				});
 		}
 	}
@@ -163,17 +170,19 @@ void Traverse(std::shared_ptr<NTFSFileRecord> record) {
 
 void TestReadNTFSVolume() {
 	auto file_record = std::make_shared<NTFSFileRecord>();
-	//file_record->Open(L"C");
+	file_record->Open(L"C");
 	//Traverse(file_record);
 	//GetRawFileByPath(file_record, "‪C:\\Users\\bill\\Downloads\\basscd24.zip");
 	//file_record->Open(L"C");
 	//EnumFiles(file_record, L"C:\\Users\\bill\\Pictures");
 	//EnumFiles(file_record, L"C:\\Users\\bill\\Desktop\\source\\xamp2");
-	//EnumFiles(file_record, L"C:\\Users\\bill\\");
+	EnumFiles(file_record, L"C:\\Users\\");
 	//file_record->Open(L"G");
 	//EnumFiles(file_record, L"G:\\Musics\\");
-	file_record->Open(L"D");
-	EnumFiles(file_record, L"D:\\Games\\");
+	//file_record->Open(L"D");
+	//EnumFiles(file_record, L"D:\\Games\\");
+	//file_record->Open(L"E");
+	//EnumFiles(file_record, L"E:\\Musics\\");
 	CFileRecord record(new CNTFSVolume(L'G'));
 	GetRawFileByPath(&record, "G:\\Musics\\");
 }
@@ -185,7 +194,7 @@ int main() {
 		.AddFileLogger("xamp.log")
 		.GetLogger("xamp");
 
-	XAMP_SET_LOG_LEVEL(spdlog::level::trace);
+	XAMP_SET_LOG_LEVEL(spdlog::level::debug);
 
 	XAMP_ON_SCOPE_EXIT(
 		Logger::GetInstance().Shutdown();
