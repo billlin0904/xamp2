@@ -7,6 +7,7 @@
 #include <player/audio_player.h>
 
 #include "NTFS.h"
+#include <stack>
 
 using namespace xamp;
 using namespace player;
@@ -93,31 +94,52 @@ bool GetRawFileByPath(std::shared_ptr<NTFSFileRecord> File, const char* Filename
 	return true;
 }
 
-ULONGLONG GetFileReference(std::shared_ptr<NTFSFileRecord> record, std::wstring const &file_path) {
-	record->SetAttrMask(kNtfsAttrMaskIndexRoot | kNtfsAttrMaskIndexAllocation);
-	record->ParseFileRecord(kNtfsMftIdxRoot);
-	record->ParseAttrs();
-
-	auto sub_path = file_path.substr(3);
-	for (const auto & path : String::Split(sub_path.c_str(), L"\\")) {
-		if (auto entry = record->FindSubEntry(path.data())) {
-			record->ParseFileRecord(entry.value().second->GetFileReference());
-			record->ParseAttrs();
-		}
-	}
-	return -1;
-}
-
-void TraverseSub(ULONGLONG fileref) {
+void TraverseSub(ULONGLONG fileref, std::wstring const &parent = L"") {
 	auto record = std::make_shared<NTFSFileRecord>();
 	record->Open(L"C");
 	record->SetAttrMask(kNtfsAttrMaskIndexRoot | kNtfsAttrMaskIndexAllocation);
 	record->ParseFileRecord(fileref);
 	record->ParseAttrs();
 	record->Traverse([&](auto entry) {
-		XAMP_LOG_DEBUG("Root file name: {}", String::ToString(entry->GetFileName()));
-		TraverseSub(entry->GetFileReference());
+		XAMP_LOG_DEBUG("File name: {}\\{}", String::ToString(parent), String::ToString(entry->GetFileName()));
+		TraverseSub(entry->GetFileReference(), parent + L"\\" + entry->GetFileName());
 		});
+}
+
+void EnumFiles(std::shared_ptr<NTFSFileRecord> record, std::wstring const &file_path) {
+	record->SetAttrMask(kNtfsAttrMaskIndexRoot | kNtfsAttrMaskIndexAllocation);
+	record->ParseFileRecord(kNtfsMftIdxRoot);
+	record->ParseAttrs();
+
+	ULONGLONG fileref = -1;
+	auto sub_path = file_path.substr(3);
+	
+	for (const auto & path : String::Split(sub_path.c_str(), L"\\")) {
+		std::wstring spth(path.data(), path.length());
+		if (auto entry = record->FindSubEntry(spth)) {
+			record->ParseFileRecord(entry.value().second->GetFileReference());
+			record->ParseAttrs();
+			fileref = entry.value().second->GetFileReference();
+		}
+	}
+	
+	if (fileref != -1) {
+		std::vector<ULONGLONG> filerefs;
+		filerefs.reserve(64 * 1024);
+		record->Traverse([&](auto entry) {
+			filerefs.push_back(entry->GetFileReference());
+			});
+
+		while (!filerefs.empty()) {	
+			record->SetAttrMask(kNtfsAttrMaskIndexRoot | kNtfsAttrMaskIndexAllocation);
+			record->ParseFileRecord(filerefs.back());
+			filerefs.pop_back();
+			record->ParseAttrs();
+			record->Traverse([&](auto entry) {
+				filerefs.push_back(entry->GetFileReference());
+				});
+		}
+	}
 }
 
 void Traverse(std::shared_ptr<NTFSFileRecord> record) {
@@ -142,8 +164,10 @@ void TestReadNTFSVolume() {
 	//file_record->Open(L"C");
 	//Traverse(file_record);
 	//GetRawFileByPath(file_record, "‪C:\\Users\\bill\\Downloads\\basscd24.zip");
-	file_record->Open(L"G");
-	GetFileReference(file_record, L"G:\\Musics\\");
+	file_record->Open(L"C");
+	//EnumFiles(file_record, L"C:\\Users\\bill\\Pictures");
+	EnumFiles(file_record, L"C:\\Users\\bill\\Desktop\\source\\xamp2");
+	//EnumFiles(file_record, L"C:\\Users\\bill\\");
 	CFileRecord record(new CNTFSVolume(L'C'));
 	GetRawFileByPath(&record, "‪C:\\Users\\bill\\Downloads\\basscd24.zip");
 }

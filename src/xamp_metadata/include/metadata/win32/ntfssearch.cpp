@@ -8,13 +8,6 @@
 
 namespace xamp::metadata::win32 {
 
-// =============================================
-// File Record
-// =============================================
-inline constexpr DWORD kNtfsFileRecordMagic = 'ELIF';
-inline constexpr DWORD kNtfsFileRecordFlagInuse = 0x01;	// File record is in use
-inline constexpr DWORD kNtfsFileRecordFlagDir = 0x02;	// File record is a directory
-
 #pragma pack(1)
 struct NTFS_BPB {
 	// jump instruction
@@ -86,89 +79,12 @@ struct NTFS_ATTR_INDEX_ROOT {
 #define PointerToNext(t, p, v) ((t)(((PBYTE)p) + (v)))
 
 void NTFSVolume::OpenVolume(std::wstring const& volume) {
-	//=================================================
-	// Create a well-known SID for the Everyone group.
-	//=================================================
-
-	/*SID_IDENTIFIER_AUTHORITY sid_auth_world = SECURITY_WORLD_SID_AUTHORITY;
-	SID_IDENTIFIER_AUTHORITY sid_auth_nt = SECURITY_NT_AUTHORITY;
-	PSID everyone_sid = nullptr;
-	PSID admin_sid = nullptr;
-
-	if (!::AllocateAndInitializeSid(&sid_auth_world, 1,
-		SECURITY_WORLD_RID,
-		0, 0, 0, 0, 0, 0, 0,
-		&everyone_sid)) {
-		throw PlatformSpecException();
-	}
-
-	XAMP_ON_SCOPE_EXIT({
-		::FreeSid(everyone_sid);
-		});
-
-	EXPLICIT_ACCESS ea[2] = { 0 };
-	ea[0].grfAccessPermissions = GENERIC_READ | GENERIC_WRITE;
-	ea[0].grfAccessMode = SET_ACCESS;
-	ea[0].grfInheritance = NO_INHERITANCE;
-	ea[0].Trustee.TrusteeForm = TRUSTEE_IS_SID;
-	ea[0].Trustee.TrusteeType = TRUSTEE_IS_WELL_KNOWN_GROUP;
-	ea[0].Trustee.ptstrName = static_cast<LPTSTR>(everyone_sid);
-
-	if (!::AllocateAndInitializeSid(&sid_auth_nt, 2,
-		SECURITY_WORLD_RID,
-		DOMAIN_ALIAS_RID_ADMINS, 0, 0, 0, 0, 0, 0,
-		&admin_sid)) {
-		throw PlatformSpecException();
-	}
-
-	XAMP_ON_SCOPE_EXIT({
-		::FreeSid(admin_sid);
-		});
-
-	ea[1].grfAccessPermissions = GENERIC_READ | GENERIC_WRITE;
-	ea[1].grfAccessMode = SET_ACCESS;
-	ea[1].grfInheritance = NO_INHERITANCE;
-	ea[1].Trustee.TrusteeForm = TRUSTEE_IS_SID;
-	ea[1].Trustee.TrusteeType = TRUSTEE_IS_WELL_KNOWN_GROUP;
-	ea[1].Trustee.ptstrName = static_cast<LPTSTR>(admin_sid);
-
-	PACL ACL = nullptr;
-	if (::SetEntriesInAcl(2, ea, nullptr, &ACL) != ERROR_SUCCESS) {
-		throw PlatformSpecException();
-	}
-
-	XAMP_ON_SCOPE_EXIT({
-		::LocalFree(ACL);
-		});
-
-	auto SD = ::LocalAlloc(LPTR,
-	                      SECURITY_DESCRIPTOR_MIN_LENGTH);
-	if (!SD) {
-		throw PlatformSpecException();
-	}
-
-	XAMP_ON_SCOPE_EXIT({
-		::LocalFree(SD);
-		});
-
-	if (!::InitializeSecurityDescriptor(SD,
-		SECURITY_DESCRIPTOR_REVISION)) {
-		throw PlatformSpecException();
-	}
-	if (!::SetSecurityDescriptorDacl(SD, TRUE, ACL, FALSE)) {
-		throw PlatformSpecException();
-	}
-	SECURITY_ATTRIBUTES sa{};
-	sa.nLength = sizeof(SECURITY_ATTRIBUTES);
-	sa.lpSecurityDescriptor = SD;
-	sa.bInheritHandle = FALSE;*/
-	
 	volume_.reset(::CreateFileW(volume.c_str(),
 		GENERIC_READ,
 		FILE_SHARE_READ | FILE_SHARE_WRITE,
 		nullptr,
 		OPEN_EXISTING,
-		FILE_ATTRIBUTE_READONLY | FILE_FLAG_BACKUP_SEMANTICS,
+		0,
 		nullptr));
 	if (!volume_) {
 		throw PlatformSpecException();
@@ -783,7 +699,11 @@ void NTFSFileRecord::TraverseSubNode(const ULONGLONG& vcn,
 		entry != nullptr;
 		entry = block.FindNext()) {
 		if (entry->IsSubNodePtr()) {
-			TraverseSubNode(entry->GetSubNodeVCN(), callback);
+			try {
+				TraverseSubNode(entry->GetSubNodeVCN(), callback);
+			}
+			catch (...) {
+			}			
 		}
 
 		if (entry->HasFileName()) {

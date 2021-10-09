@@ -81,6 +81,13 @@ inline constexpr DWORD kNtfsMftIdxReserved14 = 14;
 inline constexpr DWORD kNtfsMftIdxReserved15 = 15;
 inline constexpr DWORD kNtfsMftIdxUser = 16;
 
+// =============================================
+// File Record
+// =============================================
+inline constexpr DWORD kNtfsFileRecordMagic = 'ELIF';
+inline constexpr DWORD kNtfsFileRecordFlagInuse = 0x01;	// File record is in use
+inline constexpr DWORD kNtfsFileRecordFlagDir = 0x02;	// File record is a directory
+
 #define	INDEX_ENTRY_FLAG_SUBNODE	0x01	// Index entry points to a sub-node
 #define	INDEX_ENTRY_FLAG_LAST		0x02	// Last index entry in the node, no Stream
 
@@ -177,7 +184,7 @@ struct NTFS_INDEX_BLOCK {
 template <typename T>
 class SList {
 public:
-	using iterator = std::deque<std::shared_ptr<T>>::iterator;
+	using iterator = std::vector<std::shared_ptr<T>>::iterator;
 
 	SList() {
 	}
@@ -207,7 +214,7 @@ public:
 	}
 private:
 	iterator current_;
-	std::deque<std::shared_ptr<T>> list_;
+	std::vector<std::shared_ptr<T>> list_;
 };
 
 template <typename T>
@@ -341,10 +348,6 @@ public:
 		return entry_->FileReference & 0x0000FFFFFFFFFFFFUL;
 	}
 private:
-	//bool has_file_name{false};
-	//bool is_sub_node_ptr{false};
-	//ULONGLONG sub_node_vcn{0};
-	//ULONGLONG file_reference{0};
 	const NTFS_INDEX_ENTRY* entry_;
 };
 
@@ -383,6 +386,14 @@ public:
 
 	std::shared_ptr<NTFSVolume> GetVolume() const {
 		return volume_;
+	}
+
+	bool IsDirectory() const noexcept {
+		return file_record_header_->Flags & kNtfsFileRecordFlagDir;
+	}
+
+	bool IsDeleted() const noexcept {
+		return !(file_record_header_->Flags & kNtfsFileRecordFlagInuse);
 	}
 
 	void Traverse(std::function<void(std::shared_ptr<NTFSIndexEntry> const&)> const & callback);
