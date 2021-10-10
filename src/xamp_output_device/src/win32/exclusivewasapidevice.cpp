@@ -344,7 +344,7 @@ void ExclusiveWasapiDevice::StartStream() {
 	// Note: 必要! 某些音效卡會爆音!
 	GetSample(true);
 
-	render_task_ = ThreadPool::WASAPIThreadPool().Spawn([this]() noexcept {
+	render_task_ = ThreadPool::WASAPIThreadPool().Spawn([this](auto idx) noexcept {
 		XAMP_LOG_D(log_, "Start exclusive mode stream task!");
 
 		::SetEvent(thread_start_.get());
