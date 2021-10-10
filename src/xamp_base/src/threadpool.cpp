@@ -89,6 +89,10 @@ size_t TaskScheduler::GetActiveThreadCount() const noexcept {
 	return active_thread_;
 }
 
+size_t TaskScheduler::GetThreadCount() const noexcept {
+	return max_thread_;
+}
+
 std::optional<Task> TaskScheduler::TryPopPoolQueue() {	
 	Task task;
 	if (pool_queue_.Dequeue(task, kPopWaitTimeout)) {
@@ -169,7 +173,7 @@ void TaskScheduler::AddThread(size_t i) {
 				i, thread_id, active_thread, static_cast<double>((*task).ExecutedTime()) / 1000.0);
 #endif
 			try {
-				(*task)();
+				(*task)(i);
 			} catch (std::exception const& e) {
 #ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
 				XAMP_LOG_D(logger_, "Worker Thread {} got exception: {}", e.what());
@@ -201,6 +205,10 @@ ThreadPool::~ThreadPool() {
 
 size_t ThreadPool::GetActiveThreadCount() const noexcept {
 	return scheduler_.GetActiveThreadCount();
+}
+
+size_t ThreadPool::GetThreadCount() const noexcept {
+	return scheduler_.GetThreadCount();
 }
 
 void ThreadPool::Stop() {

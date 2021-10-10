@@ -189,16 +189,16 @@ void StackTrace::PrintStackTrace(EXCEPTION_POINTERS const* info) {
 
     auto itr = kWellKnownExceptionCode.find(info->ExceptionRecord->ExceptionCode);
     if (itr != kWellKnownExceptionCode.end()) {
-        XAMP_LOG_DEBUG("Caught signal 0x{:08x} {}.", info->ExceptionRecord->ExceptionCode, (*itr).second);
+        XAMP_LOG_ERROR("Caught signal 0x{:08x} {}.", info->ExceptionRecord->ExceptionCode, (*itr).second);
     }
     else {
-        XAMP_LOG_DEBUG("Caught signal 0x{:08x}.", info->ExceptionRecord->ExceptionCode);
+        XAMP_LOG_ERROR("Caught signal 0x{:08x}.", info->ExceptionRecord->ExceptionCode);
     }
 
     std::ostringstream ostr;
 	const auto frame_count = WalkStack(info->ContextRecord, addrlist_);
     WriteLog(frame_count - 1, ostr);
-    XAMP_LOG_DEBUG(ostr.str());
+    XAMP_LOG_ERROR(ostr.str());
     std::exit(-1);
 }
 

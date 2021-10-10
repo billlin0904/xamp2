@@ -111,6 +111,11 @@ public:
         notify_.notify_all();
     }
 
+    bool IsEmpty() const {
+        std::lock_guard guard{ mutex_ };
+        return queue_.empty();
+    }
+
 private:
     std::atomic<bool> done_;
     mutable Mutex mutex_;

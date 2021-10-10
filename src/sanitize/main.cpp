@@ -1,5 +1,7 @@
 ﻿#include <iostream>
 #include <base/scopeguard.h>
+#include <base/threadpool.h>
+#include <base/stopwatch.h>
 #include <base/str_utilts.h>
 #include <output_device/win32/exclusivewasapidevicetype.h>
 #include <output_device/asiodevicetype.h>
@@ -106,7 +108,20 @@ void TraverseSub(ULONGLONG fileref, std::wstring const &parent = L"") {
 		});
 }
 
+
+void EnumFilesStd(std::wstring const& file_path) {
+	Stopwatch sw;
+	XAMP_LOG_DEBUG("Start enum file std");
+	for (auto const& file_or_dir : RecursiveDirectoryIterator(Fs::absolute(file_path), kIteratorOptions)) {
+		//XAMP_LOG_DEBUG("{}", file_or_dir.path().string());
+	}
+	XAMP_LOG_DEBUG("End enum file std {} sec", sw.ElapsedSeconds());
+}
+
 void EnumFiles(std::shared_ptr<NTFSFileRecord> record, std::wstring const &file_path) {
+	Stopwatch sw;
+	XAMP_LOG_DEBUG("Start enum file");
+
 	record->SetAttrMask(kNtfsAttrMaskIndexRoot | kNtfsAttrMaskIndexAllocation);
 	record->ParseFileRecord(kNtfsMftIdxRoot);
 	record->ParseAttrs();
@@ -148,7 +163,56 @@ void EnumFiles(std::shared_ptr<NTFSFileRecord> record, std::wstring const &file_
 				}
 				});
 		}
+		
+		/*
+		BoundedQueue<ULONGLONG> queue(64 * 1024);
+		std::vector<std::shared_ptr<NTFSFileRecord>> dispatch_context;
+		ThreadPool threadpool;
+
+		for (auto i = 0; i < threadpool.GetThreadCount(); ++i) {
+			auto file_record = std::make_shared<NTFSFileRecord>();
+			file_record->Open(L"C");
+			dispatch_context.push_back(file_record);
+		}
+
+		record->Traverse([&](auto entry) {
+			//XAMP_LOG_DEBUG("{}", String::ToString(entry->GetFileName()));
+			queue.Enqueue(entry->GetFileReference());
+			});
+
+		std::vector<std::shared_future<void>> tasks;
+		while (!queue.IsEmpty()) {
+			ULONGLONG fileref = 0;
+			if (!queue.TryDequeue(fileref)) {
+				break;
+			}
+
+			auto task = threadpool.Spawn([fileref, &queue, &dispatch_context](int32_t thread_index) {				 
+				auto record = dispatch_context[thread_index];
+				record->SetAttrMask(kNtfsAttrMaskIndexRoot | kNtfsAttrMaskIndexAllocation);
+				record->ParseFileRecord(fileref);
+				record->ParseAttrs();
+				record->Traverse([&](auto entry) {
+					if (record->IsDirectory()) {
+						queue.Enqueue(entry->GetFileReference());
+					}
+					else {
+						XAMP_LOG_DEBUG("{}", String::ToString(entry->GetFileName()));
+					}
+					});
+				});
+
+			tasks.push_back(task);
+			if (tasks.size() == dispatch_context.size()) {
+				for (auto& t : tasks) {
+					t.get();
+				}
+				tasks.clear();
+			}
+		}
+		*/
 	}
+	XAMP_LOG_DEBUG("End enum file {} sec", sw.ElapsedSeconds());
 }
 
 void Traverse(std::shared_ptr<NTFSFileRecord> record) {
@@ -169,6 +233,9 @@ void Traverse(std::shared_ptr<NTFSFileRecord> record) {
 }
 
 void TestReadNTFSVolume() {
+	//EnumFilesStd(L"C:\\Users\\bill\\Desktop\\source\\xamp2");
+	EnumFilesStd(L"C:\\Qt\\");
+	std::cin.get();
 	auto file_record = std::make_shared<NTFSFileRecord>();
 	file_record->Open(L"C");
 	//Traverse(file_record);
@@ -176,15 +243,16 @@ void TestReadNTFSVolume() {
 	//file_record->Open(L"C");
 	//EnumFiles(file_record, L"C:\\Users\\bill\\Pictures");
 	//EnumFiles(file_record, L"C:\\Users\\bill\\Desktop\\source\\xamp2");
-	EnumFiles(file_record, L"C:\\Users\\");
+	EnumFiles(file_record, L"C:\\Qt\\");
 	//file_record->Open(L"G");
 	//EnumFiles(file_record, L"G:\\Musics\\");
 	//file_record->Open(L"D");
 	//EnumFiles(file_record, L"D:\\Games\\");
 	//file_record->Open(L"E");
 	//EnumFiles(file_record, L"E:\\Musics\\");
-	CFileRecord record(new CNTFSVolume(L'G'));
-	GetRawFileByPath(&record, "G:\\Musics\\");
+	//CFileRecord record(new CNTFSVolume(L'G'));
+	//GetRawFileByPath(&record, "G:\\Musics\\");
+	std::cin.get();
 }
 
 int main() {	

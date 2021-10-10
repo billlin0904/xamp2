@@ -1,7 +1,4 @@
-#pragma comment(lib, "advapi32.lib")
-#include <aclapi.h>
 #include <sstream>
-#include <base/scopeguard.h>
 #include <base/str_utilts.h>
 #include <base/logger.h>
 #include <metadata/win32/ntfssearch.h>
@@ -473,6 +470,9 @@ public:
 		, NTFSFileName(reinterpret_cast<const NTFS_ATTR_FILE_NAME*>(header)) {
 	}
 };
+
+NTFSVolume::~NTFSVolume() {
+}
 
 void NTFSVolume::Open(std::wstring const& volume) {
 	OpenVolume(volume);

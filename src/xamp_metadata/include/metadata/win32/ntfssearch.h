@@ -268,7 +268,7 @@ class XAMP_METADATA_API NTFSVolume : public std::enable_shared_from_this<NTFSVol
 public:
 	NTFSVolume() = default;
 
-	~NTFSVolume() = default;
+	~NTFSVolume();
 
 	void Open(std::wstring const& volume);
 

@@ -29,8 +29,8 @@ public:
         : impl_(MakeAlign<ImplBase, ImplType<Func>>(std::forward<Func>(f))) {
     }
 	
-    XAMP_ALWAYS_INLINE void operator()() {
-	    impl_->Call();
+    XAMP_ALWAYS_INLINE void operator()(int32_t thread_index) {
+	    impl_->Call(thread_index);
     }
 
     XAMP_ALWAYS_INLINE long long ExecutedTime() const noexcept {
@@ -53,7 +53,7 @@ public:
 private:
     struct XAMP_NO_VTABLE ImplBase {
         virtual ~ImplBase() = default;
-        virtual void Call() = 0;
+        virtual void Call(int32_t thread_index) = 0;
         virtual long long ExecutedTime() const noexcept = 0;
     };
 
@@ -65,14 +65,14 @@ private:
             : f_(std::forward<Func>(f)) {
         }
 
-#if defined(XAMP_ENABLE_THREAD_POOL_DEBUG) && defined(_DEBUG)
+#if 0 // defined(XAMP_ENABLE_THREAD_POOL_DEBUG) && defined(_DEBUG)
         virtual ~ImplType() noexcept override {
             XAMP_LOG_DEBUG("ImplType was deleted.");
         }
 #endif
 
-        XAMP_ALWAYS_INLINE void Call() override {
-            f_();
+        XAMP_ALWAYS_INLINE void Call(int32_t thread_index) override {
+            f_(thread_index);
         }
 
         static std::chrono::time_point<std::chrono::steady_clock> Now() noexcept {
@@ -106,6 +106,8 @@ public:
     void Destroy() noexcept;
 
     size_t GetActiveThreadCount() const noexcept;
+
+    size_t GetThreadCount() const noexcept;
 
 private:
     static void SetWorkerThreadName(size_t i);
@@ -155,6 +157,8 @@ public:
 
     size_t GetActiveThreadCount() const noexcept;
 
+    size_t GetThreadCount() const noexcept;
+
     void Stop();
 
     void SetAffinityMask(int32_t core);
@@ -165,25 +169,21 @@ private:
 
 template <typename F, typename ... Args>
 decltype(auto) ThreadPool::Spawn(F &&f, Args&&... args) {	
-    using ReturnType = std::invoke_result_t<F, Args...>;
+    using ReturnType = std::invoke_result_t<F, int32_t, Args...>;
 
     // MSVC packaged_task can't be constructed from a move-only lambda
     // https://github.com/microsoft/STL/issues/321
-	using PackagedTaskType = std::packaged_task<ReturnType()>;
-
-    auto task = MakeAlignedShared<PackagedTaskType>(
-        [
-            Func = std::forward<F>(f),
-            Args = std::make_tuple(std::forward<Args>(args)...)
-        ] {
-            return std::apply(Func, Args);
-	    }
-    );
+	using PackagedTaskType = std::packaged_task<ReturnType(int32_t)>;
+    
+    // std::apply not support std::placeholders
+    auto task = MakeAlignedShared<PackagedTaskType>(std::bind(std::forward<F>(f),
+        std::placeholders::_1,
+        std::forward<Args>(args)...));
 
     auto future = task->get_future();
 
-	scheduler_.SubmitJob([task]() mutable {
-        (*task)();
+	scheduler_.SubmitJob([task](int32_t thread_index) mutable {
+        (*task)(thread_index);
 	});
 
     return future.share();

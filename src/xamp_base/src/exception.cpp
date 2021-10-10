@@ -55,7 +55,7 @@ Exception::Exception(Errors error, const std::string& message, std::string_view 
 	: error_(error)
     , what_(what)
 	, message_(message) {
-    stacktrace_ = StackTrace{}.CaptureStack();
+    //stacktrace_ = StackTrace{}.CaptureStack();
 	if (what.empty()) {
         std::ostringstream ostr;
         ostr << error << "(" << ErrorToString(error) << ")";
