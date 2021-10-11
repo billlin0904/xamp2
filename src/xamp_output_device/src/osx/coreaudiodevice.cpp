@@ -422,7 +422,7 @@ void CoreAudioDevice::AbortStream() noexcept {
 
 void CoreAudioDevice::AudioDeviceIOProc(AudioBufferList *output_data, double sample_time) {
     auto const buffer_count = output_data->mNumberBuffers;
-
+    size_t num_filled_frames = 0;
     for (uint32_t i = 0; i < buffer_count; ++i) {
         const auto buffer = output_data->mBuffers[i];
         const uint32_t num_sample = static_cast<uint32_t>(buffer.mDataByteSize
@@ -431,8 +431,9 @@ void CoreAudioDevice::AudioDeviceIOProc(AudioBufferList *output_data, double sam
         stream_time_ = stream_time_ + num_sample * 2;
         auto stream_time = stream_time_ / static_cast<double>(format_.GetAvgFramesPerSec());
         XAMP_LIKELY(callback_->OnGetSamples(static_cast<float*>(buffer.mData),
-                                                  num_sample,
-                                                  stream_time,
+                                            num_sample,
+                                            num_filled_frames,
+                                            stream_time,
                                             sample_time) == DataCallbackResult::CONTINUE) {
             continue;
         } else {
