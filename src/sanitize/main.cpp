@@ -5,6 +5,7 @@
 #include <base/str_utilts.h>
 #include <output_device/win32/exclusivewasapidevicetype.h>
 #include <output_device/asiodevicetype.h>
+#include <metadata/win32/ntfsjournal.h>
 #include <metadata/win32/ntfssearch.h>
 #include <player/audio_player.h>
 
@@ -234,16 +235,21 @@ void Traverse(std::shared_ptr<NTFSFileRecord> record) {
 
 void TestReadNTFSVolume() {
 	//EnumFilesStd(L"C:\\Users\\bill\\Desktop\\source\\xamp2");
-	EnumFilesStd(L"C:\\Qt\\");
-	std::cin.get();
-	auto file_record = std::make_shared<NTFSFileRecord>();
-	file_record->Open(L"C");
+	//EnumFilesStd(L"C:\\Qt\\");
+	//std::cin.get();
+	//auto file_record = std::make_shared<NTFSFileRecord>();
+	//file_record->Open(L"C");
 	//Traverse(file_record);
 	//GetRawFileByPath(file_record, "‪C:\\Users\\bill\\Downloads\\basscd24.zip");
 	//file_record->Open(L"C");
 	//EnumFiles(file_record, L"C:\\Users\\bill\\Pictures");
 	//EnumFiles(file_record, L"C:\\Users\\bill\\Desktop\\source\\xamp2");
-	EnumFiles(file_record, L"C:\\Qt\\");
+	//EnumFiles(file_record, L"C:\\Qt\\");
+	auto journal = std::make_shared<NTFSJournal>();
+	journal->Open(L"C");
+	journal->Traverse([](auto file_name) {
+		XAMP_LOG_DEBUG("{}", String::ToString(file_name));
+		});
 	//file_record->Open(L"G");
 	//EnumFiles(file_record, L"G:\\Musics\\");
 	//file_record->Open(L"D");

@@ -73,8 +73,6 @@ struct NTFS_ATTR_INDEX_ROOT {
 };
 #pragma pack()
 
-#define PointerToNext(t, p, v) ((t)(((PBYTE)p) + (v)))
-
 void NTFSVolume::OpenVolume(std::wstring const& volume) {
 	volume_.reset(::CreateFileW(volume.c_str(),
 		GENERIC_READ,
@@ -475,7 +473,9 @@ NTFSVolume::~NTFSVolume() {
 }
 
 void NTFSVolume::Open(std::wstring const& volume) {
-	OpenVolume(volume);
+	std::wostringstream ostr;
+	ostr << L"\\\\\.\\" << volume << ":";
+	OpenVolume(ostr.str());
 
 	auto mft = std::make_shared<NTFSFileRecord>(shared_from_this());
 	mft->SetAttrMask(kNtfsAttrMaskVolumeName | kNtfsAttrMaskVolumeInformation);
@@ -505,11 +505,9 @@ NTFSFileRecord::NTFSFileRecord(std::shared_ptr<NTFSVolume> volume)
 }
 
 void NTFSFileRecord::Open(std::wstring const& volume) {
-	std::wostringstream ostr;
-	ostr << L"\\\\\.\\" << volume << ":";
 	attrlist_.resize(NTFS_ATTR_MAX);
 	volume_ = std::make_shared<NTFSVolume>();
-	volume_->Open(ostr.str());
+	volume_->Open(volume);
 }
 
 void NTFSFileRecord::SetAttrMask(DWORD mask) {

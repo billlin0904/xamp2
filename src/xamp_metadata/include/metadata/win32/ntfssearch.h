@@ -5,14 +5,14 @@
 
 #pragma once
 
-#include <deque>
-
 #include <metadata/metadata.h>
 #include <base/exception.h>
 #include <base/align_ptr.h>
 #include <base/memory.h>
 #include <base/logger.h>
 #include <base/windows_handle.h>
+
+#include <winioctl.h>
 
 namespace xamp::metadata::win32 {
 
@@ -181,6 +181,8 @@ struct NTFS_INDEX_BLOCK {
 };
 #pragma pack()
 
+#define PointerToNext(t, p, v) ((t)(((PBYTE)p) + (v)))
+
 template <typename T>
 class SList {
 public:
@@ -296,6 +298,23 @@ public:
 		return mft_data_;
 	}
 
+	BOOL DeviceIoControl(DWORD dwIoControlCode,
+		LPVOID       lpInBuffer,
+		DWORD        nInBufferSize,
+		LPVOID       lpOutBuffer,
+		DWORD        nOutBufferSize,
+		LPDWORD      lpBytesReturned,
+		LPOVERLAPPED lpOverlapped) {
+		return ::DeviceIoControl(volume_.get(),
+			dwIoControlCode,
+			lpInBuffer, 
+			nInBufferSize,
+			lpOutBuffer,
+			nOutBufferSize,
+			lpBytesReturned,
+			lpOverlapped);
+	}
+
 	BOOL ReadFile(void* buf, DWORD len, DWORD& actural) noexcept {
 		return ::ReadFile(volume_.get(), buf, len, &actural, nullptr);
 	}
@@ -303,7 +322,24 @@ public:
 	DWORD SetFilePointer(LARGE_INTEGER& pos, DWORD move_method) noexcept {
 		return ::SetFilePointer(volume_.get(), pos.LowPart, &pos.HighPart, move_method);
 	}
+
+	std::wstring GetParentPath(PUSN_RECORD_V3 record) {
+		wchar_t filePath[MAX_PATH]{};
+		auto desc = GetFileIdDescriptor(record->FileReferenceNumber);
+		FileHandle hh(::OpenFileById(volume_.get(),
+			&desc, 0, 0, 0, 0));
+		::GetFinalPathNameByHandleW(hh.get(), filePath, MAX_PATH, 0);
+		return filePath;
+	}
 private:
+	static FILE_ID_DESCRIPTOR GetFileIdDescriptor(const FILE_ID_128 fileId) {
+		FILE_ID_DESCRIPTOR fileDescriptor;
+		fileDescriptor.Type = FileIdType;
+		fileDescriptor.ExtendedFileId = fileId;
+		fileDescriptor.dwSize = sizeof(fileDescriptor);
+		return fileDescriptor;
+	}
+
 	void OpenVolume(std::wstring const& volume);
 
 	DWORD sector_size_ = 0;
