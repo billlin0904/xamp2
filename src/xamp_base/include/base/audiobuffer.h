@@ -44,7 +44,7 @@ public:
 
     bool TryWrite(const T* data, size_t count) noexcept;
 
-    bool TryRead(T* data, size_t count) noexcept;
+    bool TryRead(T* data, size_t count, size_t& num_filled_count) noexcept;
 
 	void Fill(T value) noexcept;
 
@@ -169,15 +169,17 @@ XAMP_ALWAYS_INLINE bool AudioBuffer<Type, U>::TryWrite(const Type* data, size_t 
 }
 
 template <typename Type, typename U>
-XAMP_ALWAYS_INLINE bool AudioBuffer<Type, U>::TryRead(Type* data, size_t count) noexcept {
+XAMP_ALWAYS_INLINE bool AudioBuffer<Type, U>::TryRead(Type* data, size_t count, size_t& num_filled_count) noexcept {
     const auto head = head_.load(std::memory_order_acquire);
     const auto tail = tail_.load(std::memory_order_relaxed);
 
-    auto next_tail = tail + count;
-
-	if (count > GetAvailableRead(head, tail)) {
+	count = (std::min)(count, GetAvailableRead(head, tail));
+	if (!count) {
 		return false;
 	}
+	num_filled_count = count;
+
+    auto next_tail = tail + count;
 
 	if (next_tail > size_) {
         const auto range1 = size_ - tail;

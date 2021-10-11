@@ -342,7 +342,7 @@ HRESULT SharedWasapiDevice::GetSample(uint32_t frame_available, bool is_silence)
 	stream_time_ = stream_time;
 	auto stream_time_float = stream_time / static_cast<double>(mix_format_->nSamplesPerSec);
 
-	const DWORD flags = is_silence ? AUDCLNT_BUFFERFLAGS_SILENT : 0;
+	DWORD flags = is_silence ? AUDCLNT_BUFFERFLAGS_SILENT : 0;
 
 	BYTE* data = nullptr;
 	auto hr = render_client_->GetBuffer(frame_available, &data);
@@ -351,8 +351,11 @@ HRESULT SharedWasapiDevice::GetSample(uint32_t frame_available, bool is_silence)
 	}
 
 	auto sample_time = GetStreamPosInMilliseconds(clock_) / 1000.0;	
-
-	XAMP_LIKELY(callback_->OnGetSamples(data, frame_available, stream_time_float, sample_time) == DataCallbackResult::CONTINUE) {
+	size_t num_filled_frames = 0;
+	XAMP_LIKELY(callback_->OnGetSamples(data, frame_available, num_filled_frames, stream_time_float, sample_time) == DataCallbackResult::CONTINUE) {
+		if (num_filled_frames != buffer_frames_) {
+			flags = AUDCLNT_BUFFERFLAGS_SILENT;
+		}
 		hr = render_client_->ReleaseBuffer(frame_available, flags);
 	}
 	else {

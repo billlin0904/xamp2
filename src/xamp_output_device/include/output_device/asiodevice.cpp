@@ -410,6 +410,8 @@ void AsioDevice::OnBufferSwitch(long index, double sample_time) noexcept {
 
 	auto got_samples = false;
 
+	size_t num_filled_frame = 0;
+
 	if (io_format_ == DsdIoFormat::IO_FORMAT_PCM) {
 		const auto vol = volume_.load();
 		if (ASIODriver.data_context.cache_volume != vol) {
@@ -419,7 +421,7 @@ void AsioDevice::OnBufferSwitch(long index, double sample_time) noexcept {
 
 		// PCM mode input float to output format.
 		const auto stream_time = static_cast<double>(played_bytes_) / format_.GetAvgBytesPerSec();
-		XAMP_LIKELY(callback_->OnGetSamples(buffer_.Get(), buffer_size_, stream_time, sample_time) == DataCallbackResult::CONTINUE) {
+		XAMP_LIKELY(callback_->OnGetSamples(buffer_.Get(), buffer_size_, num_filled_frame, stream_time, sample_time) == DataCallbackResult::CONTINUE) {
 			DataConverter<PackedFormat::PLANAR,
 				PackedFormat::INTERLEAVED>::Convert(
 					reinterpret_cast<int32_t*>(device_buffer_.Get()),
@@ -432,7 +434,7 @@ void AsioDevice::OnBufferSwitch(long index, double sample_time) noexcept {
 		// DSD mode input output same format (int8_t).
 		const auto avg_byte_per_sec = format_.GetAvgBytesPerSec() / 8;
 		const auto stream_time = static_cast<double>(played_bytes_) / avg_byte_per_sec;
-		XAMP_LIKELY(callback_->OnGetSamples(buffer_.Get(), buffer_bytes_, stream_time, sample_time) == DataCallbackResult::CONTINUE) {
+		XAMP_LIKELY(callback_->OnGetSamples(buffer_.Get(), buffer_bytes_, num_filled_frame, stream_time, sample_time) == DataCallbackResult::CONTINUE) {
 			DataConverter<PackedFormat::PLANAR,
 				PackedFormat::INTERLEAVED>::Convert(
 					device_buffer_.Get(),
@@ -443,6 +445,15 @@ void AsioDevice::OnBufferSwitch(long index, double sample_time) noexcept {
 	}
 
 	if (got_samples) {
+		if (num_filled_frame != buffer_bytes_) {
+			for (size_t i = 0, j = 0; i < format_.GetChannels(); ++i) {
+				MemorySet(ASIODriver.buffer_infos[i].buffers[index],
+					0,
+					buffer_bytes_);
+			}
+			return;
+		}
+
 		for (size_t i = 0, j = 0; i < format_.GetChannels(); ++i) {
 			MemoryCopy(ASIODriver.buffer_infos[i].buffers[index],
 				&device_buffer_[j++ * buffer_bytes_],

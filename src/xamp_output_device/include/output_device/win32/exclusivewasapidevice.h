@@ -80,7 +80,7 @@ private:
 
 	void ReportError(HRESULT hr) noexcept;
 
-	HRESULT GetSample(bool is_silence) noexcept;
+	bool GetSample(bool is_silence) noexcept;
 	
 	bool raw_mode_;
 	std::atomic<bool> is_running_;

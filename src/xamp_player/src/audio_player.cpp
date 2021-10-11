@@ -827,7 +827,7 @@ void AudioPlayer::CheckRace() {
 }
 #endif
 
-DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_frames, double stream_time, double sample_time) noexcept {
+DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_frames, size_t & num_filled_frames, double stream_time, double sample_time) noexcept {
 #ifdef _DEBUG
     CheckRace();
 #endif
@@ -839,16 +839,21 @@ DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_fr
     max_process_time_ = std::max(elapsed, max_process_time_);
 #endif
 
-    XAMP_LIKELY(fifo_.TryRead(static_cast<int8_t*>(samples), sample_size)) {
-        UpdateSlice(static_cast<int32_t>(num_samples), stream_time);
+    size_t num_filled_bytes = 0;
+    XAMP_LIKELY(fifo_.TryRead(static_cast<int8_t*>(samples), sample_size, num_filled_bytes)) {
+        num_filled_frames = num_filled_bytes / sample_size_ / output_format_.GetChannels();
 #ifdef _DEBUG
         sw_.Reset();
 #endif        
+        if (num_buffer_frames != num_filled_frames) {
+            UpdateSlice(-1, stream_time);
+        } else {
+            UpdateSlice(static_cast<int32_t>(num_samples), stream_time);
+        }
         return DataCallbackResult::CONTINUE;
     }
 
     MemorySet(samples, 0, sample_size);
-
     UpdateSlice(-1, stream_time);
     return DataCallbackResult::STOP;
 }

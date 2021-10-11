@@ -248,12 +248,12 @@ void ExclusiveWasapiDevice::ReportError(HRESULT hr) noexcept {
 	}	
 }
 
-HRESULT ExclusiveWasapiDevice::GetSample(bool is_silence) noexcept {
+bool ExclusiveWasapiDevice::GetSample(bool is_silence) noexcept {
 	BYTE* data = nullptr;
 
 	auto hr = render_client_->GetBuffer(buffer_frames_, &data);
 	if (FAILED(hr)) {
-		return hr;
+		return false;
 	}
 	
 	auto stream_time = stream_time_ + buffer_frames_;
@@ -262,20 +262,28 @@ HRESULT ExclusiveWasapiDevice::GetSample(bool is_silence) noexcept {
 
 	auto sample_time = GetStreamPosInMilliseconds(clock_) / 1000.0;
 
-	const DWORD flags = is_silence ? AUDCLNT_BUFFERFLAGS_SILENT : 0;
+	DWORD flags = is_silence ? AUDCLNT_BUFFERFLAGS_SILENT : 0;
 
-	XAMP_LIKELY(callback_->OnGetSamples(buffer_.Get(), buffer_frames_, stream_time_float, sample_time) == DataCallbackResult::CONTINUE) {
+	size_t num_filled_frames = 0;
+	XAMP_LIKELY(callback_->OnGetSamples(buffer_.Get(), buffer_frames_, num_filled_frames, stream_time_float, sample_time) == DataCallbackResult::CONTINUE) {
+		bool result = true;
+		if (num_filled_frames != buffer_frames_) {
+			flags = AUDCLNT_BUFFERFLAGS_SILENT;
+			result = false;
+		}
 		DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::ConvertToInt2432(
 			reinterpret_cast<int32_t*>(data),
 			buffer_.Get(),
 			data_convert_);
 		hr = render_client_->ReleaseBuffer(buffer_frames_, flags);
+		return result;
 	}
 	else {
 		// EOF data
-		hr = render_client_->ReleaseBuffer(buffer_frames_, AUDCLNT_BUFFERFLAGS_SILENT);		
+		hr = render_client_->ReleaseBuffer(buffer_frames_, AUDCLNT_BUFFERFLAGS_SILENT);
+		return false;
 	}
-	return hr;
+	return false;
 }
 
 void ExclusiveWasapiDevice::SetAudioCallback(AudioCallback* callback) noexcept {
@@ -360,7 +368,9 @@ void ExclusiveWasapiDevice::StartStream() {
 			auto result = ::WaitForMultipleObjects(2, objects, FALSE, 10 * 1000);
 			switch (result) {
 			case WAIT_OBJECT_0 + 0:
-				GetSample(false);
+				if (!GetSample(false)) {
+					thread_exit = true;
+				}
 				break;
 			case WAIT_OBJECT_0 + 1:
 				thread_exit = true;
@@ -376,7 +386,6 @@ void ExclusiveWasapiDevice::StartStream() {
 			}
 		}
 
-		MSleep(ConvertToMilliseconds(aligned_period_));
 		client_->Stop();
 		::SetEvent(thread_exit_.get());	
 		mmcss.RevertPriority();

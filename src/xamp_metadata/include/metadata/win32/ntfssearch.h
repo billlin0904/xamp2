@@ -264,7 +264,7 @@ protected:
 
 class NTFSAttribut;
 
-class XAMP_METADATA_API NTFSVolume : public std::enable_shared_from_this<NTFSVolume> {
+class NTFSVolume : public std::enable_shared_from_this<NTFSVolume> {
 public:
 	NTFSVolume() = default;
 
@@ -426,7 +426,7 @@ private:
 	std::unique_ptr<NTFS_INDEX_BLOCK> index_block_;
 };
 
-class XAMP_METADATA_API NTFSAttribut {
+class NTFSAttribut {
 public:
 	virtual ~NTFSAttribut() = default;
 
