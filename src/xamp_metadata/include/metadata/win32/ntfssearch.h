@@ -193,6 +193,7 @@ public:
 
 	void Insert(std::shared_ptr<T> const& entry) {
 		list_.push_back(entry);
+		current_ = list_.begin();
 	}
 
 	std::shared_ptr<T> FindFirst() {
@@ -213,6 +214,7 @@ public:
 
 	void Clear() {
 		list_.clear();
+		current_ = list_.begin();
 	}
 private:
 	iterator current_;
@@ -304,7 +306,7 @@ public:
 		LPVOID       lpOutBuffer,
 		DWORD        nOutBufferSize,
 		LPDWORD      lpBytesReturned,
-		LPOVERLAPPED lpOverlapped) {
+		LPOVERLAPPED lpOverlapped) noexcept {
 		return ::DeviceIoControl(volume_.get(),
 			dwIoControlCode,
 			lpInBuffer, 
@@ -326,18 +328,18 @@ public:
 	std::wstring GetParentPath(PUSN_RECORD_V3 record) {
 		wchar_t filePath[MAX_PATH]{};
 		auto desc = GetFileIdDescriptor(record->FileReferenceNumber);
-		FileHandle hh(::OpenFileById(volume_.get(),
-			&desc, 0, 0, 0, 0));
-		::GetFinalPathNameByHandleW(hh.get(), filePath, MAX_PATH, 0);
+		FileHandle file(::OpenFileById(volume_.get(),
+			&desc, 0, 0, nullptr, 0));
+		::GetFinalPathNameByHandleW(file.get(), filePath, MAX_PATH, 0);
 		return filePath;
 	}
 private:
 	static FILE_ID_DESCRIPTOR GetFileIdDescriptor(const FILE_ID_128 fileId) {
-		FILE_ID_DESCRIPTOR fileDescriptor;
-		fileDescriptor.Type = FileIdType;
-		fileDescriptor.ExtendedFileId = fileId;
-		fileDescriptor.dwSize = sizeof(fileDescriptor);
-		return fileDescriptor;
+		FILE_ID_DESCRIPTOR file_descriptor{};
+		file_descriptor.Type = FileIdType;
+		file_descriptor.ExtendedFileId = fileId;
+		file_descriptor.dwSize = sizeof(file_descriptor);
+		return file_descriptor;
 	}
 
 	void OpenVolume(std::wstring const& volume);
@@ -414,8 +416,6 @@ public:
 
 	bool ParseFileRecord(ULONGLONG fileref);
 
-	void ParseAttrs();
-
 	void SetAttrMask(DWORD mask);
 
 	std::optional<NTFSBlockEntry> FindSubEntry(std::wstring const &file_name);
@@ -435,7 +435,7 @@ public:
 	void Traverse(std::function<void(std::shared_ptr<NTFSIndexEntry> const&)> const & callback);
 private:
 	void TraverseSubNode(const ULONGLONG& vcn, std::function<void(std::shared_ptr<NTFSIndexEntry> const&)> const& callback);
-
+	void ParseAttrs();
 	void ClearAttrs();
 	std::shared_ptr<NTFSAttribut> Allocate(const NTFS_ATTR_HEADER* header);
 	bool ParseAttrs(const NTFS_ATTR_HEADER* header);	

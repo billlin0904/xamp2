@@ -247,7 +247,7 @@ static void BM_ThreadPool(benchmark::State& state) {
     ThreadPool thread_pool;
     for (auto _ : state) {
         for (auto i =0 ; i < 10000; ++i) {
-            thread_pool.Spawn([]() {}).get();
+            thread_pool.Spawn([](auto thread_index) {}).get();
         }        
     }
 }

@@ -67,42 +67,11 @@ bool GetRawFileByPath(CFileRecord* File, const char* Filename)
 	return true;
 }
 
-bool GetRawFileByPath(std::shared_ptr<NTFSFileRecord> File, const char* Filename)
-{
-	//Filename++;
-	if (Filename[1] != ':') return false;
-	if (Filename[2] != '\\') return false;
-
-	File->SetAttrMask(kNtfsAttrMaskIndexRoot | kNtfsAttrMaskIndexAllocation);
-	File->ParseFileRecord(kNtfsMftIdxRoot);
-	File->ParseAttrs();
-
-	char* context = NULL;
-	char path[32 * 1024]; // max per MSDN, but not really
-	strncpy_s(path, Filename + 3, _TRUNCATE);
-	for (char* token = strtok_s(path, "\\", &context); token; token = strtok_s(NULL, "\\", &context))
-	{
-		size_t bytes;
-		wchar_t wide[MAX_PATH + 1];
-		errno_t err = mbstowcs_s(&bytes, wide, sizeof(wide) / sizeof(wide[0]), token, _TRUNCATE);
-		if (err) return false;
-		if (auto entry = File->FindSubEntry(wide)) {
-			File->ParseFileRecord(entry.value().second->GetFileReference());
-			File->ParseAttrs();
-		}
-		else {
-			break;
-		}
-	}
-	return true;
-}
-
 void TraverseSub(ULONGLONG fileref, std::wstring const &parent = L"") {
 	auto record = std::make_shared<NTFSFileRecord>();
 	record->Open(L"C");
 	record->SetAttrMask(kNtfsAttrMaskIndexRoot | kNtfsAttrMaskIndexAllocation);
 	record->ParseFileRecord(fileref);
-	record->ParseAttrs();
 	record->Traverse([&](auto entry) {
 		XAMP_LOG_DEBUG("File name: {}\\{}", String::ToString(parent), String::ToString(entry->GetFileName()));
 		TraverseSub(entry->GetFileReference(), parent + L"\\" + entry->GetFileName());
@@ -125,7 +94,6 @@ void EnumFiles(std::shared_ptr<NTFSFileRecord> record, std::wstring const &file_
 
 	record->SetAttrMask(kNtfsAttrMaskIndexRoot | kNtfsAttrMaskIndexAllocation);
 	record->ParseFileRecord(kNtfsMftIdxRoot);
-	record->ParseAttrs();
 
 	ULONGLONG fileref = -1;
 	auto sub_path = file_path.substr(3);
@@ -134,9 +102,12 @@ void EnumFiles(std::shared_ptr<NTFSFileRecord> record, std::wstring const &file_
 		for (const auto& path : String::Split(sub_path.c_str(), L"\\")) {
 			std::wstring spth(path.data(), path.length());
 			if (auto entry = record->FindSubEntry(spth)) {
+				record->SetAttrMask(kNtfsAttrMaskIndexRoot | kNtfsAttrMaskIndexAllocation);
 				record->ParseFileRecord(entry.value().second->GetFileReference());
-				record->ParseAttrs();
 				fileref = entry.value().second->GetFileReference();
+			} else {
+				XAMP_LOG_DEBUG("Not found {}", String::ToString(spth));
+				return;
 			}
 		}
 	}
@@ -145,25 +116,29 @@ void EnumFiles(std::shared_ptr<NTFSFileRecord> record, std::wstring const &file_
 	}
 
 	if (fileref != -1) {
-		std::vector<ULONGLONG> filerefs;
-		filerefs.reserve(64 * 1024);
-		record->Traverse([&](auto entry) {
-			//XAMP_LOG_DEBUG("{}", String::ToString(entry->GetFileName()));
-			filerefs.push_back(entry->GetFileReference());
+		auto journal = std::make_shared<NTFSJournal>(record->GetVolume());
+		journal->Traverse(fileref, [](auto file_name) {
+			XAMP_LOG_DEBUG("{}", String::ToString(file_name));
 			});
+		//std::vector<ULONGLONG> filerefs;
+		//filerefs.reserve(64 * 1024);
+		//record->Traverse([&](auto entry) {
+		//	//XAMP_LOG_DEBUG("{}", String::ToString(entry->GetFileName()));
+		//	filerefs.push_back(entry->GetFileReference());
+		//	});
 
-		while (!filerefs.empty()) {	
-			record->SetAttrMask(kNtfsAttrMaskIndexRoot | kNtfsAttrMaskIndexAllocation);
-			record->ParseFileRecord(filerefs.back());
-			filerefs.pop_back();
-			record->ParseAttrs();
-			record->Traverse([&](auto entry) {
-				//XAMP_LOG_DEBUG("{}", String::ToString(entry->GetFileName()));
-				if (record->IsDirectory()) {
-					filerefs.push_back(entry->GetFileReference());
-				}
-				});
-		}
+		//while (!filerefs.empty()) {	
+		//	record->SetAttrMask(kNtfsAttrMaskIndexRoot | kNtfsAttrMaskIndexAllocation);
+		//	record->ParseFileRecord(filerefs.back());
+		//	filerefs.pop_back();
+		//	record->ParseAttrs();
+		//	record->Traverse([&](auto entry) {
+		//		//XAMP_LOG_DEBUG("{}", String::ToString(entry->GetFileName()));
+		//		if (record->IsDirectory()) {
+		//			filerefs.push_back(entry->GetFileReference());
+		//		}
+		//		});
+		//}
 		
 		/*
 		BoundedQueue<ULONGLONG> queue(64 * 1024);
@@ -221,7 +196,6 @@ void Traverse(std::shared_ptr<NTFSFileRecord> record) {
 
 	record->SetAttrMask(kNtfsAttrMaskIndexRoot | kNtfsAttrMaskIndexAllocation);
 	record->ParseFileRecord(kNtfsMftIdxRoot);
-	record->ParseAttrs();
 
 	record->Traverse([&](auto entry) {
 		XAMP_LOG_DEBUG("Root file name: {}", String::ToString(entry->GetFileName()));
@@ -237,27 +211,29 @@ void TestReadNTFSVolume() {
 	//EnumFilesStd(L"C:\\Users\\bill\\Desktop\\source\\xamp2");
 	//EnumFilesStd(L"C:\\Qt\\");
 	//std::cin.get();
-	//auto file_record = std::make_shared<NTFSFileRecord>();
-	//file_record->Open(L"C");
+	auto file_record = std::make_shared<NTFSFileRecord>();
+	file_record->Open(L"C");
+	//EnumFiles(file_record, L"C:\\WorkSpaces\\SlotGameDLL\\CommonDLL\\");
+	EnumFiles(file_record, L"C:\\Users\\rdbill0452\\Music\\");
 	//Traverse(file_record);
 	//GetRawFileByPath(file_record, "‪C:\\Users\\bill\\Downloads\\basscd24.zip");
 	//file_record->Open(L"C");
 	//EnumFiles(file_record, L"C:\\Users\\bill\\Pictures");
 	//EnumFiles(file_record, L"C:\\Users\\bill\\Desktop\\source\\xamp2");
 	//EnumFiles(file_record, L"C:\\Qt\\");
-	auto journal = std::make_shared<NTFSJournal>();
+	/*auto journal = std::make_shared<NTFSJournal>();
 	journal->Open(L"C");
 	journal->Traverse([](auto file_name) {
 		XAMP_LOG_DEBUG("{}", String::ToString(file_name));
-		});
+		});*/
 	//file_record->Open(L"G");
 	//EnumFiles(file_record, L"G:\\Musics\\");
 	//file_record->Open(L"D");
 	//EnumFiles(file_record, L"D:\\Games\\");
 	//file_record->Open(L"E");
 	//EnumFiles(file_record, L"E:\\Musics\\");
-	//CFileRecord record(new CNTFSVolume(L'G'));
-	//GetRawFileByPath(&record, "G:\\Musics\\");
+	CFileRecord record(new CNTFSVolume(L'C'));
+	GetRawFileByPath(&record, "C:\\Users\\rdbill0452\\Music\\");
 	std::cin.get();
 }
 
@@ -268,7 +244,7 @@ int main() {
 		.AddFileLogger("xamp.log")
 		.GetLogger("xamp");
 
-	XAMP_SET_LOG_LEVEL(spdlog::level::debug);
+	XAMP_SET_LOG_LEVEL(spdlog::level::trace);
 
 	XAMP_ON_SCOPE_EXIT(
 		Logger::GetInstance().Shutdown();

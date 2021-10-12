@@ -140,8 +140,8 @@ public:
 					return;
 				}
 
-				XAMP_LOG_TRACE("Data length = {} clusters, LCN = {}", length, LCN);
-				XAMP_LOG_TRACE(LCN_offset == 0 ? ", Sparse Data" : ", No Sparse Data");
+				XAMP_LOG_TRACE("Data length = {} clusters, LCN = {} {}", 
+					length, LCN, LCN_offset == 0 ? ", Sparse Data" : ", No Sparse Data");
 
 				auto data_run = std::make_shared<NTFS_DATARUN>();
 				data_run->LCN = (LCN_offset == 0) ? -1 : LCN;
@@ -163,21 +163,23 @@ public:
 
 	bool PickData(const BYTE** data_run, LONGLONG* length, LONGLONG* LCN_offset) {
 		BYTE size = **data_run;
-		(*data_run)++;
 
-		const int length_bytes = size & 0x0F;
+		const int count_bytes = size & 0x0F;
 		const int offset_bytes = size >> 4;
-		if (length_bytes > 8 || offset_bytes > 8) {
+		if (count_bytes > 8 || offset_bytes > 8) {
 			return false;
 		}
 
+		assert(count_bytes <= 8);
+		assert(offset_bytes <= 8);
+
 		*length = 0;
-		MemoryCopy(length, *data_run, length_bytes);
+		MemoryCopy(length, *data_run + 1, count_bytes);
 		if (*length < 0) {
 			return false;
 		}
 
-		(*data_run) += length_bytes;
+		(*data_run) += count_bytes;
 		*LCN_offset = 0;
 
 		if (offset_bytes) {
@@ -207,6 +209,8 @@ public:
 		if (start_bytes > buf_len) {
 			start_bytes = buf_len;
 		}
+
+		XAMP_LOG_TRACE("Read data start vcn:{:#04x} offset:{:#04x}", start_VCN, start_offset);
 
 		if (start_bytes != cluster_size_) {
 			XAMP_LOG_TRACE("Start read cluster unaligned cluster");
@@ -268,6 +272,9 @@ private:
 			; entry != nullptr
 			; entry = datarun_list_.FindNext()) {
 			if (vcn >= entry->StartVCN && vcn <= entry->LastVCN) {
+				XAMP_LOG_TRACE("Start read StartVCN:{:#04x} LastVCN:{:#04x} vcn:{:#04x}",
+					entry->StartVCN, entry->LastVCN, vcn);
+
 				DWORD clusters_read = 0;
 				// Clusters from read pointer to the end
 				ULONGLONG vcns = entry->LastVCN - vcn + 1;
@@ -294,6 +301,8 @@ private:
 	}
 
 	bool ReadClusters(void* buf, DWORD clusters, LONGLONG lcn) {
+		XAMP_LOG_TRACE("Read clusters:{} lcn:{:#04x}", clusters, lcn);
+
 		if (lcn == -1) {
 			MemorySet(buf, 0, clusters * cluster_size_);
 			return true;
@@ -309,7 +318,6 @@ private:
 
 		if (record_->GetVolume()->ReadFile(buf, clusters * cluster_size_, len)
 			&& len == clusters * cluster_size_) {
-			XAMP_LOG_TRACE("Read clusters:{} lcn:{}", clusters, lcn);
 			return true;
 		}
 		return false;
@@ -407,7 +415,7 @@ public:
 			throw LibrarySpecException("Out of index blocks.");
 		}
 
-		XAMP_LOG_TRACE("Read index block vcn: {}", vcn);
+		XAMP_LOG_TRACE("!!! Read index block vcn: {} !!!", vcn);
 
 		auto& blocks = block.Allocate(index_block_size_);
 		DWORD sectors = index_block_count_ / sector_size_;
@@ -432,7 +440,11 @@ public:
 				if (entry->Flags & INDEX_ENTRY_FLAG_LAST) {
 					break;
 				}
-				XAMP_LOG_TRACE("Entry GetSubNodeVCN: {}", index_entry->GetSubNodeVCN());
+				XAMP_LOG_TRACE("Entry offset:{} file name:{} fileref:{:#04x} VCN:{:#04x}",
+					vcn * index_block_size_,
+					String::ToString(index_entry->GetFileName()),
+					index_entry->GetFileReference(),
+					index_entry->GetSubNodeVCN());
 				block.Insert(index_entry);
 				entry = PointerToNext(NTFS_INDEX_ENTRY*, entry, entry->Size);
 				entry_size += entry->Size;
@@ -465,12 +477,11 @@ class NTFSFileNameAttribut final : public NTFSAttributResident, public NTFSFileN
 public:
 	NTFSFileNameAttribut(const NTFS_ATTR_HEADER* header, std::shared_ptr<NTFSFileRecord> record)
 		: NTFSAttributResident(header, record)
-		, NTFSFileName(reinterpret_cast<const NTFS_ATTR_FILE_NAME*>(header)) {
+		, NTFSFileName(reinterpret_cast<const NTFS_ATTR_FILE_NAME*>(body_)) {
 	}
 };
 
-NTFSVolume::~NTFSVolume() {
-}
+NTFSVolume::~NTFSVolume() = default;
 
 void NTFSVolume::Open(std::wstring const& volume) {
 	std::wostringstream ostr;
@@ -482,11 +493,10 @@ void NTFSVolume::Open(std::wstring const& volume) {
 	if (!mft->ParseFileRecord(kNtfsMftIdxVolume)) {
 		throw PlatformSpecException();
 	}
-	mft->ParseAttrs();
-
+	
 	if (const auto volume_info = 
 		mft->FindFirstAttr<NTFSVolumeInformation>(kAttrTypeVolumeInformation)) {
-		XAMP_LOG_TRACE("NTFS volume version: {}.{}",
+		XAMP_LOG_TRACE("NTFS volume version:{}.{}",
 			volume_info->GetMajorVersion(), volume_info->GetMinorVersion());
 	}
 
@@ -495,7 +505,6 @@ void NTFSVolume::Open(std::wstring const& volume) {
 	if (!mft_record_->ParseFileRecord(kNtfsMftIdxMft)) {
 		throw PlatformSpecException();
 	}
-	mft_record_->ParseAttrs();
 	mft_data_ = mft_record_->FindFirstAttr<NTFSAttribut>(kAttrTypeData);
 }
 
@@ -511,7 +520,7 @@ void NTFSFileRecord::Open(std::wstring const& volume) {
 }
 
 void NTFSFileRecord::SetAttrMask(DWORD mask) {
-	attr_mask_ = mask | kNtfsAttrMaskStandardInformation | kNtfsAttrMaskAttributeList;
+	attr_mask_ = mask | kNtfsAttrMaskStandardInformation | kNtfsAttrMaskAttributeList | kNtfsAttrMaskFileName;
 }
 
 std::shared_ptr<NTFSAttribut> NTFSFileRecord::FindFirstAttr(DWORD attr_type) {
@@ -531,7 +540,6 @@ std::shared_ptr<NTFSAttribut> NTFSFileRecord::Allocate(const NTFS_ATTR_HEADER* h
 		break;
 	case kAttrTypeAttributeList:
 		XAMP_LOG_TRACE("Allocate AttributeList");
-		break;
 	case kAttrTypeObjectId:
 		XAMP_LOG_TRACE("Allocate ObjectId");
 		break;
@@ -554,7 +562,7 @@ std::shared_ptr<NTFSAttribut> NTFSFileRecord::Allocate(const NTFS_ATTR_HEADER* h
 		XAMP_LOG_TRACE("Allocate VolumeInformation");
 		return std::make_shared<NTFSVolumeInformation>(header, shared_from_this());
 	default:
-		XAMP_LOG_TRACE("Allocate ntfs attr type: {}", header->Type);
+		XAMP_LOG_TRACE("Allocate ntfs attr type:{:#04x}", header->Type);
 		break;
 	}
 
@@ -611,14 +619,14 @@ void NTFSFileRecord::ClearAttrs() {
 void NTFSFileRecord::ParseAttrs() {
 	ClearAttrs();
 
-	auto* attr_header = PointerToNext(NTFS_ATTR_HEADER *, 
+	auto* attr_header = PointerToNext(NTFS_ATTR_HEADER*, 
 		file_record_header_.get(),
 		file_record_header_->OffsetOfAttr);
 
 	auto ptr = file_record_header_->OffsetOfAttr;
 
 	while (attr_header->Type != kAttrTypeEnd && (ptr + attr_header->TotalSize) <= volume_->GetFileRecordSize()) {
-		XAMP_LOG_TRACE("Parse ntfs attr type: {}", attr_header->Type);
+		XAMP_LOG_TRACE("Parse ntfs attr type:{:#04x}", attr_header->Type);
 		if (NTFS_ATTR_MASK(attr_header->Type) & attr_mask_) {
 			if (!ParseAttrs(attr_header)) {
 				throw LibrarySpecException("ParseAttrs failure.");
@@ -630,6 +638,8 @@ void NTFSFileRecord::ParseAttrs() {
 }
 
 bool NTFSFileRecord::ParseFileRecord(ULONGLONG fileref) {
+	XAMP_LOG_TRACE("!!! Parse file record fileref:{:#04x} !!!", fileref);
+
 	ClearAttrs();
 
 	auto header = ReadFileRecord(fileref);
@@ -649,6 +659,7 @@ bool NTFSFileRecord::ParseFileRecord(ULONGLONG fileref) {
 			volume_->GetSectorSize());
 		file_record_header_ = std::move(header);
 		XAMP_LOG_TRACE("Parse file record success");
+		ParseAttrs();
 		return true;
 	}
 	return false;
@@ -656,6 +667,7 @@ bool NTFSFileRecord::ParseFileRecord(ULONGLONG fileref) {
 
 std::optional<NTFSBlockEntry> NTFSFileRecord::VisitIndexBlock(const ULONGLONG& vcn,
 	std::wstring const& file_name) {
+	XAMP_LOG_TRACE("VisitIndexBlock vcn:{:#04x}", vcn);
 	const auto index_alloc = FindFirstAttr<NTFSIndexAlloc>(kAttrTypeIndexAllocation);
 	if (!index_alloc) {
 		XAMP_LOG_TRACE("Not found IndexAllocation");
@@ -669,7 +681,8 @@ std::optional<NTFSBlockEntry> NTFSFileRecord::VisitIndexBlock(const ULONGLONG& v
 		entry != nullptr;
 		entry = block.FindNext()) {
 		if (entry->HasFileName()) {
-			XAMP_LOG_TRACE("SubNode File name: {}", String::ToString(entry->GetFileName()));
+			XAMP_LOG_TRACE("SubNode file name:{} vcn:{:#04x}",
+				String::ToString(entry->GetFileName()), entry->GetSubNodeVCN());
 			if (file_name == entry->GetFileName()) {
 				return std::make_pair(std::move(block), entry);
 			}
@@ -693,7 +706,7 @@ std::optional<NTFSBlockEntry> NTFSFileRecord::FindSubEntry(std::wstring const& f
 
 	for (auto entry = index_root->FindFirst();
 		entry != nullptr; entry = index_root->FindNext()) {
-		XAMP_LOG_TRACE("File name: {}", String::ToString(entry->GetFileName()));
+		XAMP_LOG_TRACE("File name:{}", String::ToString(entry->GetFileName()));
 
 		if (entry->GetFileName() == file_name) {
 			return std::make_pair(NTFSIndexBlock(), entry);

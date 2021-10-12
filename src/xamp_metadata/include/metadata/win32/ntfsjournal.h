@@ -9,7 +9,6 @@
 #include <functional>
 
 #include <metadata/metadata.h>
-#include <base/align_ptr.h>
 
 namespace xamp::metadata::win32 {
 
@@ -19,7 +18,11 @@ class XAMP_METADATA_API NTFSJournal {
 public:
 	NTFSJournal();
 
+	explicit NTFSJournal(std::shared_ptr<NTFSVolume> volume);
+
 	void Open(std::wstring const& volume);
+
+	void Traverse(DWORDLONG filref, std::function<void(std::wstring const&)> const& callback);
 
 	void Traverse(std::function<void(std::wstring const&)> const& callback);
 private:
