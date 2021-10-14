@@ -10,11 +10,11 @@
 #include <base/base.h>
 #include <base/align_ptr.h>
 #include <base/stl.h>
-#include <output_device/device_type.h>
+#include <output_device/idevicetype.h>
 
 namespace xamp::output_device {
 
-class ASIODeviceType final : public DeviceType {
+class ASIODeviceType final : public IDeviceType {
 public:
 	constexpr static auto Id = std::string_view("0B3FF8BC-5BFD-4A08-8066-95974FB11BB5");
 	constexpr static auto Description = std::string_view("ASIO 2.0");
@@ -35,7 +35,7 @@ public:
 
     void ScanNewDevice() override;
 
-	AlignPtr<Device> MakeDevice(std::string const &device_id) override;	
+	AlignPtr<IDevice> MakeDevice(std::string const &device_id) override;	
 private:
 	DeviceInfo GetDeviceInfo(std::wstring const& name, std::string const & device_id) const;
 

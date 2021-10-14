@@ -90,9 +90,8 @@ void EnumFilesStd(std::wstring const& file_path) {
 
 void EnumFiles(std::shared_ptr<NTFSFileRecord> record, std::wstring const &file_path) {
 	Stopwatch sw;
-	XAMP_LOG_DEBUG("Start enum file");
+	XAMP_LOG_INFO("Start enum file");
 
-	record->SetAttrMask(kNtfsAttrMaskIndexRoot | kNtfsAttrMaskIndexAllocation);
 	record->ParseFileRecord(kNtfsMftIdxRoot);
 
 	ULONGLONG fileref = -1;
@@ -102,11 +101,10 @@ void EnumFiles(std::shared_ptr<NTFSFileRecord> record, std::wstring const &file_
 		for (const auto& path : String::Split(sub_path.c_str(), L"\\")) {
 			std::wstring spth(path.data(), path.length());
 			if (auto entry = record->FindSubEntry(spth)) {
-				record->SetAttrMask(kNtfsAttrMaskIndexRoot | kNtfsAttrMaskIndexAllocation);
 				record->ParseFileRecord(entry.value().second->GetFileReference());
 				fileref = entry.value().second->GetFileReference();
 			} else {
-				XAMP_LOG_DEBUG("Not found {}", String::ToString(spth));
+				XAMP_LOG_ERROR("Not found {}", String::ToString(spth));
 				return;
 			}
 		}
@@ -188,7 +186,7 @@ void EnumFiles(std::shared_ptr<NTFSFileRecord> record, std::wstring const &file_
 		}
 		*/
 	}
-	XAMP_LOG_DEBUG("End enum file {} sec", sw.ElapsedSeconds());
+	XAMP_LOG_INFO("End enum file {} sec", sw.ElapsedSeconds());
 }
 
 void Traverse(std::shared_ptr<NTFSFileRecord> record) {

@@ -43,13 +43,13 @@
 #include "thememanager.h"
 #include "xamp.h"
 
-static AlignPtr<SampleRateConverter> makeSampleRateConverter(const QVariantMap &settings) {
+static AlignPtr<ISampleRateConverter> makeSampleRateConverter(const QVariantMap &settings) {
     const auto quality = static_cast<SoxrQuality>(settings[kSoxrQuality].toInt());
     const auto phase = settings[kSoxrPhase].toInt();
     const auto pass_band = settings[kSoxrPassBand].toInt();
     const auto enable_steep_filter = settings[kSoxrEnableSteepFilter].toBool();
 
-    auto converter = MakeAlign<SampleRateConverter, SoxrSampleRateConverter>();
+    auto converter = MakeAlign<ISampleRateConverter, SoxrSampleRateConverter>();
     auto *soxr_sample_rate_converter = dynamic_cast<SoxrSampleRateConverter*>(converter.get());
     soxr_sample_rate_converter->SetQuality(quality);
     soxr_sample_rate_converter->SetPhase(phase);
@@ -58,15 +58,15 @@ static AlignPtr<SampleRateConverter> makeSampleRateConverter(const QVariantMap &
     return converter;
 }
 
-static AlignPtr<AudioProcessor> makeCompressor(uint32_t sample_rate) {
-    auto processor = MakeAlign<AudioProcessor, Compressor>();
+static AlignPtr<IAudioProcessor> makeCompressor(uint32_t sample_rate) {
+    auto processor = MakeAlign<IAudioProcessor, Compressor>();
     auto* compressor = dynamic_cast<Compressor*>(processor.get());
     compressor->SetSampleRate(sample_rate);
     compressor->Init();
     return processor;
 }
 
-static PlaybackFormat getPlaybackFormat(const AudioPlayer* player) {
+static PlaybackFormat getPlaybackFormat(const IAudioPlayer* player) {
     PlaybackFormat format;
 
     if (player->IsDSDFile()) {
@@ -118,10 +118,10 @@ Xamp::Xamp()
 	, tray_icon_(nullptr)
     , state_adapter_(std::make_shared<UIPlayerStateAdapter>())
 #ifdef Q_OS_WIN
-    , player_(MakeAlignedShared<AudioPlayer>(state_adapter_))
+    , player_(audio_util::MakeAudioPlayer(state_adapter_))
     , discord_notify_(this) {
 #else
-    , player_(MakeAlignedShared<AudioPlayer>(state_adapter_)) {
+    , player_(audio_util::MakeAudioPlayer(state_adapter_)) {
 #endif
     registerMetaType();
     ui_.setupUi(this);
@@ -343,8 +343,10 @@ void Xamp::initialDeviceList() {
 
     const auto device_type_id = AppSettings::getID(kAppSettingDeviceType);
     const auto device_id = AppSettings::getValueAsString(kAppSettingDeviceId).toStdString();
+    const auto & device_manager = player_->GetAudioDeviceManager();
 
-    player_->GetAudioDeviceManager().ForEach([&](const auto &device_type) {
+    for (auto itr = device_manager->Begin(); itr != device_manager->End(); ++itr) {
+        auto device_type = (*itr).second();
         device_type->ScanNewDevice();
 
         const auto device_info_list = device_type->GetDeviceInfo();
@@ -393,7 +395,7 @@ void Xamp::initialDeviceList() {
                 init_device_info = (*itr);
             }
         }
-    });
+    }
 
     if (!is_find_setting_device) {
         device_info_ = init_device_info;
@@ -953,7 +955,7 @@ void Xamp::playMusic(const MusicEntity& item) {
         );
 
     PlaybackFormat playback_format;
-    AlignPtr<SampleRateConverter> converter;
+    AlignPtr<ISampleRateConverter> converter;
     uint32_t target_sample_rate = 0;	
 	
     try {

@@ -8,11 +8,11 @@
 #include <base/base.h>
 
 #ifdef XAMP_OS_LINUX
-#include <output_device/device_type.h>
+#include <output_device/idevicetype.h>
 
 namespace xamp::output_device::posix {
 
-class AlsaDeviceType final : public DeviceType {
+class AlsaDeviceType final : public IDeviceType {
 public:
 	constexpr static auto Id = std::string_view("8A530587-B9C4-4D04-81B4-7C4A3063F2EC");
 	

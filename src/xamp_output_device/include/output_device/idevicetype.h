@@ -15,35 +15,35 @@
 #include <base/stl.h>
 
 #include <output_device/deviceinfo.h>
-#include <output_device/device.h>
+#include <output_device/idevice.h>
 #include <output_device/output_device.h>
 
 namespace xamp::output_device {
 
 using namespace base;
 
-class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE DeviceType {
+class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE IDeviceType {
 public:
-	virtual ~DeviceType() = default;
+	XAMP_BASE_CLASS(IDeviceType)
 
 	virtual void ScanNewDevice() = 0;
 
-	virtual std::string_view GetDescription() const = 0;
+	[[nodiscard]] virtual std::string_view GetDescription() const = 0;
 
-    virtual Uuid GetTypeId() const = 0;
+	[[nodiscard]] virtual Uuid GetTypeId() const = 0;
 
-    virtual AlignPtr<Device> MakeDevice(std::string const & device_id) = 0;
+    virtual AlignPtr<IDevice> MakeDevice(std::string const & device_id) = 0;
 
-	virtual size_t GetDeviceCount() const = 0;
+	[[nodiscard]] virtual size_t GetDeviceCount() const = 0;
 
-    virtual DeviceInfo GetDeviceInfo(uint32_t device) const = 0;
+	[[nodiscard]] virtual DeviceInfo GetDeviceInfo(uint32_t device) const = 0;
 
-	virtual std::vector<DeviceInfo> GetDeviceInfo() const = 0;
+	[[nodiscard]] virtual std::vector<DeviceInfo> GetDeviceInfo() const = 0;
 
-	virtual std::optional<DeviceInfo> GetDefaultDeviceInfo() const = 0;
+	[[nodiscard]] virtual std::optional<DeviceInfo> GetDefaultDeviceInfo() const = 0;
 
 protected:
-	DeviceType() = default;
+	IDeviceType() = default;
 };
 
 }

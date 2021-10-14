@@ -183,7 +183,7 @@ private:
 	MusicBrainzClient mbc_;
 	DiscogsClient discogs_;
 	std::shared_ptr<UIPlayerStateAdapter> state_adapter_;
-	std::shared_ptr<AudioPlayer> player_;
+	std::shared_ptr<IAudioPlayer> player_;
 #ifdef Q_OS_WIN
     DicordNotify discord_notify_;
 #endif

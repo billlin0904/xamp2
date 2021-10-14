@@ -5,27 +5,25 @@
 
 #pragma once
 
-#include <base/exception.h>
+#include <string>
+
+#include <base/base.h>
 #include <base/enum.h>
+#include <output_device/devicestate.h>
 #include <output_device/output_device.h>
 
 namespace xamp::output_device {
 
 using namespace base;
 
-MAKE_ENUM(DataCallbackResult, CONTINUE = 0, STOP)
-
-class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE AudioCallback {
+class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE IDeviceStateListener {
 public:
-	virtual ~AudioCallback() = default;
+	XAMP_BASE_CLASS(IDeviceStateListener)
 
-    virtual DataCallbackResult OnGetSamples(void* samples, size_t num_buffer_frames, size_t & num_filled_bytes, double stream_time, double sample_time) noexcept = 0;
+    virtual void OnDeviceStateChange(DeviceState state, std::string const &device_id) = 0;
 
-    virtual void OnError(Exception const & exception) noexcept = 0;
-
-	virtual void OnVolumeChange(float vol) noexcept = 0;
 protected:
-	AudioCallback() = default;
+	IDeviceStateListener() = default;
 };
 
 }

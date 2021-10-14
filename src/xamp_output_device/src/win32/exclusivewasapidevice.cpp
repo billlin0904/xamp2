@@ -286,7 +286,7 @@ bool ExclusiveWasapiDevice::GetSample(bool is_silence) noexcept {
 	return false;
 }
 
-void ExclusiveWasapiDevice::SetAudioCallback(AudioCallback* callback) noexcept {
+void ExclusiveWasapiDevice::SetAudioCallback(IAudioCallback* callback) noexcept {
 	callback_ = callback;
 }
 
@@ -355,17 +355,16 @@ void ExclusiveWasapiDevice::StartStream() {
 	render_task_ = ThreadPool::WASAPIThreadPool().Spawn([this](auto idx) noexcept {
 		XAMP_LOG_D(log_, "Start exclusive mode stream task!");
 
-		::SetEvent(thread_start_.get());
-
 		Mmcss mmcss;
 		mmcss.BoostPriority(mmcss_name_);
 
 		is_running_ = true;
 
-		const HANDLE objects[2]{ sample_ready_.get(), close_request_.get() };
+		const std::array<HANDLE, 2> objects{ sample_ready_.get(), close_request_.get() };
 		auto thread_exit = false;
+		::SetEvent(thread_start_.get());
 		while (!thread_exit) {
-			auto result = ::WaitForMultipleObjects(2, objects, FALSE, 10 * 1000);
+			auto result = ::WaitForMultipleObjects(objects.size(), objects.data(), FALSE, 50);
 			switch (result) {
 			case WAIT_OBJECT_0 + 0:
 				if (!GetSample(false)) {

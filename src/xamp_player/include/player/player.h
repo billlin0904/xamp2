@@ -18,10 +18,10 @@
 #endif
 
 namespace xamp::player {
-	class AudioPlayer;	
-	class PlaybackStateAdapter;
+	class IAudioPlayer;	
+	class IPlaybackStateAdapter;
 	class Chromaprint;
-	class SampleRateConverter;
+	class ISampleRateConverter;
     class SoxrSampleRateConverter;
     class PassThroughSampleRateConverter;
 	class LoudnessScanner;

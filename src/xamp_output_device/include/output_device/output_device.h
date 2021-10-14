@@ -25,11 +25,12 @@ namespace xamp::output_device {
 using namespace base;
 
 struct DeviceInfo;
-class DeviceType;
-class Device;
-class DsdDevice;
-class AudioCallback;
-class AudioDeviceManager;
+class IDeviceType;
+class IDevice;
+class IDsdDevice;
+class IAudioDeviceManager;
+
+class IAudioCallback;
 class DeviceStateListener;
 class DeviceStateNotification;
 

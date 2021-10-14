@@ -15,7 +15,7 @@
 
 #include <base/rng.h>
 #include <base/str_utilts.h>
-#include <stream/cddevice.h>
+#include <stream/icddevice.h>
 #include <player/audio_player.h>
 
 #include <metadata/metadatareader.h>
@@ -438,7 +438,7 @@ void PlayListTableView::initial() {
                     auto driver_letter = storage.rootPath().left(1).toStdString()[0];
 
                     if (kCDFileSystemType.contains(storage.fileSystemType().toUpper().toStdString())) {
-                        auto &device = AudioPlayer::OpenCD(driver_letter);
+                        /*auto &device = AudioPlayer::OpenCD(driver_letter);
                         auto device_info = device->GetCDDeviceInfo();
                         display_name += QString::fromStdWString(L" " + device_info.product);
                         open_cd_submenu->addAction(display_name, [&device, driver_letter, this]() {
@@ -451,7 +451,7 @@ void PlayListTableView::initial() {
                                 Singleton<Database>::GetInstance().addOrUpdateMusic(metadata, playlist_id_);
                             }
                             refresh();
-                        });
+                        });*/
                     }
                 }
             }

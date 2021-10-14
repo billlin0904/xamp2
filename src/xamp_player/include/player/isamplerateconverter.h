@@ -16,9 +16,9 @@ namespace xamp::player {
 
 using namespace xamp::base;
 
-class XAMP_PLAYER_API XAMP_NO_VTABLE SampleRateConverter {
+class XAMP_PLAYER_API XAMP_NO_VTABLE ISampleRateConverter {
 public:
-    XAMP_BASE_CLASS(SampleRateConverter)
+    XAMP_BASE_CLASS(ISampleRateConverter)
 
     virtual void Start(uint32_t input_sample_rate, uint32_t num_channels, uint32_t output_sample_rate) = 0;
 
@@ -32,10 +32,10 @@ public:
 
 	virtual void Flush() = 0;
 
-    virtual AlignPtr<SampleRateConverter> Clone() = 0;
+    virtual AlignPtr<ISampleRateConverter> Clone() = 0;
 
 protected:
-    SampleRateConverter() = default;
+    ISampleRateConverter() = default;
 };
 
 }

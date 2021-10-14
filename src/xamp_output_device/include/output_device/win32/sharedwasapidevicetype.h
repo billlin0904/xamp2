@@ -11,11 +11,11 @@
 
 #include <base/align_ptr.h>
 #include <output_device/win32/wasapi.h>
-#include <output_device/device_type.h>
+#include <output_device/idevicetype.h>
 
 namespace xamp::output_device::win32 {
 
-class SharedWasapiDeviceType final : public DeviceType {
+class SharedWasapiDeviceType final : public IDeviceType {
 public:
 	constexpr static auto Id = std::string_view("07885EDF-7CCB-4FA6-962D-B66A759978B1");
 	constexpr static auto Description = std::string_view("WASAPI (shared)");
@@ -36,7 +36,7 @@ public:
 
 	[[nodiscard]] std::vector<DeviceInfo> GetDeviceInfo() const override;
 
-	AlignPtr<Device> MakeDevice(const std::string& device_id) override;
+	AlignPtr<IDevice> MakeDevice(const std::string& device_id) override;
 	
 private:
 	void Initial();

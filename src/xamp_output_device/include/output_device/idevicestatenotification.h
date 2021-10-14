@@ -5,25 +5,18 @@
 
 #pragma once
 
-#include <string>
-
-#include <base/base.h>
-#include <base/enum.h>
-#include <output_device/devicestate.h>
 #include <output_device/output_device.h>
 
 namespace xamp::output_device {
 
-using namespace base;
-
-class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE DeviceStateListener {
+class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE IDeviceStateNotification {
 public:
-	virtual ~DeviceStateListener() = default;
+	XAMP_BASE_CLASS(IDeviceStateNotification)
 
-    virtual void OnDeviceStateChange(DeviceState state, std::string const &device_id) = 0;
+	virtual void Run() = 0;
 
 protected:
-	DeviceStateListener() = default;
+	IDeviceStateNotification() = default;
 };
 
 }

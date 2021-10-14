@@ -8,7 +8,7 @@
 #include <base/base.h>
 #include <base/exception.h>
 #include <player/player.h>
-#include <output_device/devicestatelistener.h>
+#include <output_device/idevicestatelistener.h>
 #include <player/playstate.h>
 
 namespace xamp::player {
@@ -17,11 +17,11 @@ using namespace base;
 using namespace stream;
 using namespace output_device;
 
-class XAMP_PLAYER_API XAMP_NO_VTABLE PlaybackStateAdapter {
+class XAMP_PLAYER_API XAMP_NO_VTABLE IPlaybackStateAdapter {
 public:
     friend class AudioPlayer;
 
-    virtual ~PlaybackStateAdapter() = default;
+	XAMP_BASE_CLASS(IPlaybackStateAdapter)
 
 	virtual void OnError(Exception const & ex) = 0;
 
@@ -34,7 +34,7 @@ public:
 	virtual void OnVolumeChanged(float vol) = 0;
 
 protected:
-    PlaybackStateAdapter() = default;
+	IPlaybackStateAdapter() = default;
 };
 
 }

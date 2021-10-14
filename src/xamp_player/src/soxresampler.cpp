@@ -322,8 +322,8 @@ void SoxrSampleRateConverter::Flush() {
     impl_->Flush();
 }
 
-AlignPtr<SampleRateConverter> SoxrSampleRateConverter::Clone() {
-    auto other = MakeAlign<SampleRateConverter, SoxrSampleRateConverter>();
+AlignPtr<ISampleRateConverter> SoxrSampleRateConverter::Clone() {
+    auto other = MakeAlign<ISampleRateConverter, SoxrSampleRateConverter>();
     auto* converter = reinterpret_cast<SoxrSampleRateConverter*>(other.get());
     converter->SetQuality(impl_->quality_);
     converter->SetPassBand(impl_->pass_band_);

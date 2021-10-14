@@ -8,7 +8,7 @@
 #include <vector>
 #include <base/align_ptr.h>
 #include <stream/stream.h>
-#include <stream/audioprocessor.h>
+#include <stream/iaudioprocessor.h>
 
 namespace xamp::stream {
 
@@ -42,7 +42,7 @@ struct XAMP_STREAM_API CompressorParameters final {
     float release;
 };
 
-class XAMP_STREAM_API Compressor : public AudioProcessor {
+class XAMP_STREAM_API Compressor : public IAudioProcessor {
 public:
     constexpr static auto Id = std::string_view("263079D0-FDD4-46DF-9BB3-71821AF95EDB");    
 	

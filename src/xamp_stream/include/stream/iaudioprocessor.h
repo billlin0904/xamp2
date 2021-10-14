@@ -14,9 +14,9 @@ namespace xamp::stream {
 
 using namespace xamp::base;
 
-class XAMP_NO_VTABLE XAMP_STREAM_API AudioProcessor {
+class XAMP_NO_VTABLE XAMP_STREAM_API IAudioProcessor {
 public:
-	XAMP_BASE_CLASS(AudioProcessor)
+	XAMP_BASE_CLASS(IAudioProcessor)
 
 	virtual void SetSampleRate(uint32_t sample_rate) = 0;
 
@@ -25,7 +25,7 @@ public:
 	[[nodiscard]] virtual Uuid GetTypeId() const = 0;
 	
 protected:
-	AudioProcessor() = default;
+	IAudioProcessor() = default;
 };
 
 }

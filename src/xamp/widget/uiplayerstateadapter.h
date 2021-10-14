@@ -10,9 +10,9 @@
 
 #include <base/spsc_queue.h>
 #include <stream/filestream.h>
-#include <output_device/devicestatelistener.h>
-#include <player/playbackstateadapter.h>
-#include <player/samplerateconverter.h>
+#include <output_device/idevicestatelistener.h>
+#include <player/iplaybackstateadapter.h>
+#include <player/isamplerateconverter.h>
 #include <player/playstate.h>
 
 using xamp::base::Errors;
@@ -21,15 +21,15 @@ using xamp::base::Exception;
 using xamp::base::SpscQueue;
 
 using xamp::player::PlayerState;
-using xamp::player::SampleRateConverter;
-using xamp::player::PlaybackStateAdapter;
+using xamp::player::ISampleRateConverter;
+using xamp::player::IPlaybackStateAdapter;
 
 using xamp::output_device::DeviceState;
 using xamp::stream::FileStream;
 
 class UIPlayerStateAdapter final
     : public QObject
-    , public PlaybackStateAdapter {
+    , public IPlaybackStateAdapter {
     Q_OBJECT
 public:
     explicit UIPlayerStateAdapter(QObject *parent = nullptr);

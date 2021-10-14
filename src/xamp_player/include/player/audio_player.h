@@ -24,15 +24,15 @@
 #endif
 
 #include <output_device/audiodevicemanager.h>
-#include <output_device/audiocallback.h>
+#include <output_device/iaudiocallback.h>
 #include <output_device/deviceinfo.h>
 
-#include <stream/audioprocessor.h>
+#include <stream/iaudioprocessor.h>
 
 #include <player/playstate.h>
-#include <player/playbackstateadapter.h>
+#include <player/iplaybackstateadapter.h>
+#include <player/iaudioplayer.h>
 #include <player/player.h>
-
 
 namespace xamp::player {
 
@@ -41,83 +41,84 @@ using namespace xamp::stream;
 using namespace xamp::output_device;
 
 class XAMP_PLAYER_API AudioPlayer final :
-    public AudioCallback,
-    public DeviceStateListener,
+    public IAudioCallback,
+    public IDeviceStateListener,
+    public IAudioPlayer,
     public std::enable_shared_from_this<AudioPlayer> {
 public:
     AudioPlayer();
 
     virtual ~AudioPlayer() override;
 
-    explicit AudioPlayer(const std::weak_ptr<PlaybackStateAdapter>& adapter);
+    explicit AudioPlayer(const std::weak_ptr<IPlaybackStateAdapter>& adapter);
 
     static void Initialize();
 
     XAMP_DISABLE_COPY(AudioPlayer)
 
-    void Startup();
+    void Startup() override;
 
-    void Open(Path const& file_path, const Uuid& device_id = Uuid::kInvalidUUID);
+    void Open(Path const& file_path, const Uuid& device_id = Uuid::kInvalidUUID) override;
 
-    void Open(Path const& file_path, const DeviceInfo& device_info, uint32_t target_sample_rate = 0, AlignPtr<SampleRateConverter> converter = nullptr);
+    void Open(Path const& file_path, const DeviceInfo& device_info, uint32_t target_sample_rate = 0, AlignPtr<ISampleRateConverter> converter = nullptr)  override;
 #ifdef XAMP_OS_WIN
-    static AlignPtr<CDDevice> & OpenCD(int32_t driver_letter);
+    static AlignPtr<ICDDevice> & OpenCD(int32_t driver_letter);
 #endif
     static void CloseCD();
 
-    void PrepareToPlay();
+    void PrepareToPlay() override;
 
-    void Play();
+    void Play() override;
 
-    void Pause();
+    void Pause() override;
 
-    void Resume();
+    void Resume() override;
 
-    void Stop(bool signal_to_stop = true, bool shutdown_device = false, bool wait_for_stop_stream = true);
+    void Stop(bool signal_to_stop = true, bool shutdown_device = false, bool wait_for_stop_stream = true) override;
 
-    void Destroy();
+    void Destroy() override;
     	
-    void Seek(double stream_time);
+    void Seek(double stream_time) override;
 
-    void SetVolume(uint32_t volume);
+    void SetVolume(uint32_t volume) override;
 
-    uint32_t GetVolume() const;
+    uint32_t GetVolume() const override;
 
-    bool IsHardwareControlVolume() const;
+    bool IsHardwareControlVolume() const override;
 
-    bool IsMute() const;
+    bool IsMute() const override;
 
-    void SetMute(bool mute);
+    void SetMute(bool mute) override;
 
-    bool IsPlaying() const noexcept;
+    bool IsPlaying() const noexcept override;
 
-    DsdModes GetDsdModes() const noexcept;
+    DsdModes GetDsdModes() const noexcept override;
 
-    bool IsDSDFile() const;
+    bool IsDSDFile() const override;
 
-    std::optional<uint32_t> GetDSDSpeed() const;
+    std::optional<uint32_t> GetDSDSpeed() const override;
 
-    double GetDuration() const;
+    double GetDuration() const override;
 
-    PlayerState GetState() const noexcept;
+    PlayerState GetState() const noexcept override;
 
-    AudioFormat GetInputFormat() const noexcept;
+    AudioFormat GetInputFormat() const noexcept override;
 
-    AudioFormat GetOutputFormat() const noexcept;
+    AudioFormat GetOutputFormat() const noexcept override;
 
-    void SetProcessor(AlignPtr<AudioProcessor> &&processor);
+    void SetProcessor(AlignPtr<IAudioProcessor> &&processor) override;
 
-    void EnableProcessor(bool enable = true);
+    void EnableProcessor(bool enable = true) override;
 
-    bool IsEnableProcessor() const;
+    bool IsEnableProcessor() const override;
 
-    bool IsEnableSampleRateConverter() const;
+    bool IsEnableSampleRateConverter() const override;
 
-    void SetDevice(const DeviceInfo& device_info);
+    void SetDevice(const DeviceInfo& device_info) override;
 
-    DeviceInfo GetDevice() const;
+    DeviceInfo GetDevice() const override;
 
-    AudioDeviceManager& GetAudioDeviceManager();
+    const AlignPtr<IAudioDeviceManager>& GetAudioDeviceManager() override;
 private:
     bool CanProcessFile() const noexcept;
     	
@@ -149,7 +150,7 @@ private:
 
     void ReadSampleLoop(int8_t* sample_buffer, uint32_t max_buffer_sample);
 
-    void BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<SampleRateConverter> &converter, int32_t buffer_count = 1);
+    void BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<ISampleRateConverter> &converter, int32_t buffer_count = 1);
 
     void UpdateSlice(int32_t sample_size = 0, double stream_time = 0.0) noexcept;
 
@@ -174,7 +175,7 @@ private:
 
     XAMP_ENFORCE_TRIVIAL(AudioSlice)
 
-    static AlignPtr<CDDevice> cd_device_;
+    static AlignPtr<ICDDevice> cd_device_;
     bool is_muted_;
     bool enable_sample_converter_;
     bool enable_processor_;
@@ -206,20 +207,20 @@ private:
     AudioFormat input_format_;
     AudioFormat output_format_;    
     Timer timer_;
-    AudioDeviceManager device_manager_;
+    AlignPtr<IAudioDeviceManager> device_manager_;
     AlignPtr<FileStream> stream_;
-    AlignPtr<DeviceType> device_type_;
-    AlignPtr<Device> device_;
-    std::weak_ptr<PlaybackStateAdapter> state_adapter_;    
+    AlignPtr<IDeviceType> device_type_;
+    AlignPtr<IDevice> device_;
+    std::weak_ptr<IPlaybackStateAdapter> state_adapter_;    
     AudioBuffer<int8_t> fifo_;
     Buffer<int8_t> read_buffer_;
     WaitableTimer wait_timer_;
-    AlignPtr<SampleRateConverter> converter_;
-    std::vector<AlignPtr<AudioProcessor>> dsp_chain_;
+    AlignPtr<ISampleRateConverter> converter_;
+    std::vector<AlignPtr<IAudioProcessor>> dsp_chain_;
     DeviceInfo device_info_;    
     std::shared_future<void> stream_task_;
     SpscQueue<double> seek_queue_;
-    SpscQueue<AlignPtr<AudioProcessor>> processor_queue_;
+    SpscQueue<AlignPtr<IAudioProcessor>> processor_queue_;
     std::shared_ptr<spdlog::logger> logger_;
 };
 

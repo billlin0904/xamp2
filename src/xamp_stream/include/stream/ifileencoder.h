@@ -5,20 +5,21 @@
 
 #pragma once
 
+#include <functional>
 #include <stream/stream.h>
 
 namespace xamp::stream {
 
-class XAMP_STREAM_API XAMP_NO_VTABLE FileEncoder {
+class XAMP_STREAM_API XAMP_NO_VTABLE IFileEncoder {
 public:
-	XAMP_BASE_CLASS(FileEncoder)
+	XAMP_BASE_CLASS(IFileEncoder)
 
 	virtual void Start(std::wstring const& input_file_path, std::wstring const& output_file_path, std::wstring const& command) = 0;
 
 	virtual void Encode(std::function<bool(uint32_t)> const& progress) = 0;
 
 protected:
-	FileEncoder() = default;
+	IFileEncoder() = default;
 };
 
 }

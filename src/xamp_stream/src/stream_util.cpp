@@ -2,9 +2,9 @@
 #include <base/memory_mapped_file.h>
 #include <base/str_utilts.h>
 #include <base/logger.h>
-#include <stream/dsdstream.h>
+#include <stream/idsdstream.h>
 #include <stream/bassfilestream.h>
-#include <stream/fileencoder.h>
+#include <stream/ifileencoder.h>
 #include <stream/bassfileencoder.h>
 #include <stream/basscddevice.h>
 #include <stream/stream_util.h>
@@ -12,15 +12,6 @@
 namespace xamp::stream {
 
 using namespace xamp::base;
-
-template <typename T>
-static HashSet<std::wstring> GetSupportFileExtensions() {
-    HashSet<std::wstring> file_ext;
-	for (const auto & ext : T::GetSupportFileExtensions()) {
-        file_ext.insert(String::ToStdWString(ext));
-	}
-    return file_ext;
-}
 
 static bool TestDsdFileFormat(std::string_view const & file_chunks) noexcept {
     static constexpr std::array<std::string_view, 2> knows_chunks{
@@ -53,16 +44,16 @@ AlignPtr<FileStream> MakeStream() {
     return MakeAlign<FileStream, BassFileStream>();
 }
 
-AlignPtr<FileEncoder> MakeEncoder() {
-    return MakeAlign<FileEncoder, BassFileEncoder>();
+AlignPtr<IFileEncoder> MakeEncoder() {
+    return MakeAlign<IFileEncoder, BassFileEncoder>();
 }
 #ifdef XAMP_OS_WIN
-AlignPtr<CDDevice> MakeCDDevice(int32_t driver_letter) {
-    return MakeAlign<CDDevice, BassCDDevice>(static_cast<char>(driver_letter));
+AlignPtr<ICDDevice> MakeCDDevice(int32_t driver_letter) {
+    return MakeAlign<ICDDevice, BassCDDevice>(static_cast<char>(driver_letter));
 }
 #endif
-DsdStream* AsDsdStream(AlignPtr<FileStream> const& stream) noexcept {
-    return dynamic_cast<DsdStream*>(stream.get());
+IDsdStream* AsDsdStream(AlignPtr<FileStream> const& stream) noexcept {
+    return dynamic_cast<IDsdStream*>(stream.get());
 }
 	
 HashSet<std::string> const& GetSupportFileExtensions() {

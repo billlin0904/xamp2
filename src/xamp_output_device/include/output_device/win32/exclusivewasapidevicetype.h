@@ -13,13 +13,13 @@
 #include <base/stl.h>
 
 #include <output_device/win32/wasapi.h>
-#include <output_device/device_type.h>
+#include <output_device/idevicetype.h>
 
 namespace xamp::output_device::win32 {
 
 using namespace base;
 
-class ExclusiveWasapiDeviceType final : public DeviceType {
+class ExclusiveWasapiDeviceType final : public IDeviceType {
 public:
 	constexpr static auto Id = std::string_view("089F8446-C980-495B-AC80-5A437A4E73F6");
 	constexpr static auto Description = std::string_view("WASAPI (exclusive)");
@@ -40,7 +40,7 @@ public:
 
 	[[nodiscard]] std::vector<DeviceInfo> GetDeviceInfo() const override;
 
-	AlignPtr<Device> MakeDevice(std::string const & device_id) override;
+	AlignPtr<IDevice> MakeDevice(std::string const & device_id) override;
 
 private:
 	void Initial();

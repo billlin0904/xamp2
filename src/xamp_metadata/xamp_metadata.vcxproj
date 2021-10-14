@@ -161,6 +161,7 @@
     <ClInclude Include="include\metadata\taglibmetawriter.h" />
     <ClInclude Include="include\metadata\win32\ntfsjournal.h" />
     <ClInclude Include="include\metadata\win32\ntfssearch.h" />
+    <ClInclude Include="include\metadata\win32\ntfstypes.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="include\metadata\win32\ntfsjournal.cpp" />

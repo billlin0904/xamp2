@@ -6,13 +6,13 @@
 #pragma once
 
 #include <stream/stream.h>
-#include <stream/cddevice.h>
+#include <stream/icddevice.h>
 
 #ifdef XAMP_OS_WIN
 
 namespace xamp::stream {
 
-class XAMP_STREAM_API BassCDDevice final : public CDDevice {
+class XAMP_STREAM_API BassCDDevice final : public ICDDevice {
 public:
 	XAMP_PIMPL(BassCDDevice)
 

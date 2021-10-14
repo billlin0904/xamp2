@@ -12,9 +12,9 @@
 
 namespace xamp::stream {
 
-class XAMP_STREAM_API XAMP_NO_VTABLE DsdStream {
+class XAMP_STREAM_API XAMP_NO_VTABLE IDsdStream {
 public:
-    virtual ~DsdStream() = default;
+    XAMP_BASE_CLASS(IDsdStream)
 
     virtual void SetDSDMode(DsdModes mode) noexcept = 0;
 
@@ -30,7 +30,7 @@ public:
 
     [[nodiscard]] virtual bool IsDsdFile() const noexcept = 0;
 protected:
-    DsdStream() = default;
+    IDsdStream() = default;
 };
 
 }

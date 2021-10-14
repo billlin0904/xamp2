@@ -13,11 +13,11 @@
 #include <atomic>
 
 #include <base/logger.h>
-#include <output_device/device.h>
+#include <output_device/idevice.h>
 
 namespace xamp::output_device::win32 {
 
-class SharedWasapiDevice final : public Device {
+class SharedWasapiDevice final : public IDevice {
 public:
 	explicit SharedWasapiDevice(CComPtr<IMMDevice> const & device);
 
@@ -25,7 +25,7 @@ public:
 
 	void OpenStream(AudioFormat const & output_format) override;
 
-	void SetAudioCallback(AudioCallback* callback) noexcept override;
+	void SetAudioCallback(IAudioCallback* callback) noexcept override;
 
 	bool IsStreamOpen() const noexcept override;
 
@@ -95,7 +95,7 @@ private:
 	CComPtr<IAudioRenderClient> render_client_;
 	CComPtr<DeviceEventNotification> device_volume_notification_;
 	CComPtr<IAudioEndpointVolume> endpoint_volume_;
-	AudioCallback* callback_;
+	IAudioCallback* callback_;
 	std::shared_ptr<spdlog::logger> log_;
 	std::shared_future<void> render_task_;
 };

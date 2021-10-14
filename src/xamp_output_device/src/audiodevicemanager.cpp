@@ -37,7 +37,7 @@ public:
     using DeviceStateNotificationPtr = AlignPtr<DeviceStateNotification>;
 #endif
 
-    explicit DeviceStateNotificationImpl(std::weak_ptr<DeviceStateListener> const& callback) {
+    explicit DeviceStateNotificationImpl(std::weak_ptr<IDeviceStateListener> const& callback) {
 #ifdef XAMP_OS_WIN
         notification_ = new DeviceStateNotification(callback);
 #else
@@ -93,7 +93,7 @@ static struct IopmAssertion {
 #define XAMP_REGISTER_DEVICE_TYPE(DeviceTypeClass) \
 	XAMP_LOG_DEBUG("Register {} success", #DeviceTypeClass); \
     factory_.emplace(DeviceTypeClass::Id, []() {\
-		return MakeAlign<DeviceType, DeviceTypeClass>();\
+		return MakeAlign<IDeviceType, DeviceTypeClass>();\
 	})
 
 inline constexpr uint32_t kDesiredSchedulerMS = 1;
@@ -101,12 +101,14 @@ inline constexpr uint32_t kDesiredSchedulerMS = 1;
 AudioDeviceManager::AudioDeviceManager() {
 #ifdef XAMP_OS_WIN
     using namespace win32;
-    sleep_is_granular = (::timeBeginPeriod(kDesiredSchedulerMS) == TIMERR_NOERROR);
-    XAMP_LOG_DEBUG("Sleep is granular: {}", sleep_is_granular);
+    constexpr size_t kWorkingSetSize = 2048ul * 1024ul * 1024ul;
+    SetWorkingSetSize(kWorkingSetSize);
+    Mmcss::LoadAvrtLib();
+    sleep_is_granular_ = (::timeBeginPeriod(kDesiredSchedulerMS) == TIMERR_NOERROR);
+    XAMP_LOG_DEBUG("Sleep is granular: {}", sleep_is_granular_);
     HrIfFailledThrow(::MFStartup(MF_VERSION, MFSTARTUP_LITE));
     XAMP_LOG_DEBUG("MFStartup startup success");
 #if ENABLE_ASIO
-    Mmcss::LoadAvrtLib();
     XAMP_LOG_DEBUG("LoadAvrtLib success");
     XAMP_REGISTER_DEVICE_TYPE(ASIODeviceType);    
 #endif
@@ -128,7 +130,7 @@ void AudioDeviceManager::SetWorkingSetSize(size_t workingset_size) {
 AudioDeviceManager::~AudioDeviceManager() {
 #ifdef XAMP_OS_WIN	
     ::MFShutdown();
-    if (sleep_is_granular) {
+    if (sleep_is_granular_) {
         ::timeEndPeriod(kDesiredSchedulerMS);
     }
 #else
@@ -140,7 +142,7 @@ void AudioDeviceManager::Clear() {
     factory_.clear();
 }
 
-AlignPtr<DeviceType> AudioDeviceManager::CreateDefaultDeviceType() const {
+AlignPtr<IDeviceType> AudioDeviceManager::CreateDefaultDeviceType() const {
 #ifdef XAMP_OS_WIN
     return Create(win32::SharedWasapiDeviceType::Id);
 #else
@@ -148,7 +150,7 @@ AlignPtr<DeviceType> AudioDeviceManager::CreateDefaultDeviceType() const {
 #endif
 }
 
-AlignPtr<DeviceType> AudioDeviceManager::Create(Uuid const& id) const {
+AlignPtr<IDeviceType> AudioDeviceManager::Create(Uuid const& id) const {
     auto itr = factory_.find(id);
     if (itr == factory_.end()) {
         throw DeviceNotFoundException();
@@ -162,6 +164,14 @@ bool AudioDeviceManager::IsSupportASIO() const noexcept {
 #else
     return false;
 #endif
+}
+
+DeviceTypeFactoryMap::iterator AudioDeviceManager::Begin() {
+    return factory_.begin();
+}
+
+DeviceTypeFactoryMap::iterator AudioDeviceManager::End() {
+    return factory_.end();
 }
 
 std::vector<Uuid> AudioDeviceManager::GetAvailableDeviceType() const {
@@ -205,7 +215,7 @@ bool AudioDeviceManager::IsDeviceTypeExist(Uuid const& id) const noexcept {
     return factory_.find(id) != factory_.end();
 }
 
-void AudioDeviceManager::RegisterDeviceListener(std::weak_ptr<DeviceStateListener> const& callback) {
+void AudioDeviceManager::RegisterDeviceListener(std::weak_ptr<IDeviceStateListener> const& callback) {
     impl_ = MakeAlign<DeviceStateNotificationImpl>(callback);
     impl_->Run();
 }

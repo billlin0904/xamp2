@@ -6,12 +6,12 @@
 #pragma once
 
 #include <base/align_ptr.h>
-#include <stream/fileencoder.h>
+#include <stream/ifileencoder.h>
 
 namespace xamp::stream {
 
 class BassFileEncoder final
-	: public FileEncoder {
+	: public IFileEncoder {
 public:
 	BassFileEncoder();
 

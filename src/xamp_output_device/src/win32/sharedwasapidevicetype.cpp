@@ -31,8 +31,8 @@ CComPtr<IMMDevice> SharedWasapiDeviceType::GetDeviceById(std::wstring const & de
 	return device;
 }
 
-AlignPtr<Device> SharedWasapiDeviceType::MakeDevice(std::string const & device_id) {
-	return MakeAlign<Device, SharedWasapiDevice>(GetDeviceById(String::ToStdWString(device_id)));
+AlignPtr<IDevice> SharedWasapiDeviceType::MakeDevice(std::string const & device_id) {
+	return MakeAlign<IDevice, SharedWasapiDevice>(GetDeviceById(String::ToStdWString(device_id)));
 }
 
 DeviceInfo SharedWasapiDeviceType::GetDeviceInfo(uint32_t device) const {

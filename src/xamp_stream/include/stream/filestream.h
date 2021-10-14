@@ -7,11 +7,11 @@
 
 #include <base/base.h>
 #include <stream/stream.h>
-#include <stream/audiostream.h>
+#include <stream/iaudiostream.h>
 
 namespace xamp::stream {
 
-class XAMP_STREAM_API XAMP_NO_VTABLE FileStream : public AudioStream {
+class XAMP_STREAM_API XAMP_NO_VTABLE FileStream : public IAudioStream {
 public:
     XAMP_BASE_CLASS(FileStream)
 

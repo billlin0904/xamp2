@@ -8,7 +8,7 @@
 #include <base/enum.h>
 #include <base/align_ptr.h>
 #include <base/audiobuffer.h>
-#include <player/samplerateconverter.h>
+#include <player/isamplerateconverter.h>
 #include <player/player.h>
 
 namespace xamp::player {
@@ -22,7 +22,7 @@ MAKE_ENUM(SoxrQuality,
           VHQ,
           UHQ)
 
-class XAMP_PLAYER_API SoxrSampleRateConverter final : public SampleRateConverter {
+class XAMP_PLAYER_API SoxrSampleRateConverter final : public ISampleRateConverter {
 public:
     static const std::string_view VERSION;
 
@@ -52,7 +52,7 @@ public:
 
     void Flush() override;
 
-    AlignPtr<SampleRateConverter> Clone() override;
+    AlignPtr<ISampleRateConverter> Clone() override;
 
 private:
     class SoxrSampleRateConverterImpl;

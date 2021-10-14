@@ -10,7 +10,7 @@ namespace xamp::output_device::win32 {
 
 static constexpr IID kMMNotificationClientID = __uuidof(IMMNotificationClient);
 
-Win32DeviceStateNotification::Win32DeviceStateNotification(std::weak_ptr<DeviceStateListener> callback)
+Win32DeviceStateNotification::Win32DeviceStateNotification(std::weak_ptr<IDeviceStateListener> callback)
 	: callback_(callback) {
 }
 

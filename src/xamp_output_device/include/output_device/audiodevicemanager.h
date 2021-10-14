@@ -15,39 +15,35 @@
 #include <base/exception.h>
 #include <base/align_ptr.h>
 
+#include <output_device/iaudiodevicemanager.h>
 #include <output_device/output_device.h>
-#include <output_device/device_type.h>
+#include <output_device/idevicetype.h>
 
 namespace xamp::output_device {
 
 using namespace base;
 
-class XAMP_OUTPUT_DEVICE_API AudioDeviceManager final {
+class XAMP_OUTPUT_DEVICE_API AudioDeviceManager final : public IAudioDeviceManager {
 public:
     AudioDeviceManager();
 	
-    ~AudioDeviceManager();
+    virtual ~AudioDeviceManager();
 
     XAMP_DISABLE_COPY(AudioDeviceManager)
 
-    void SetWorkingSetSize(size_t workingset_size);
+    void RegisterDeviceListener(std::weak_ptr<IDeviceStateListener> const & callback) override;
 
-    void RegisterDeviceListener(std::weak_ptr<DeviceStateListener> const & callback);
+    void Clear() override;
 
-    void Clear();
+    [[nodiscard]] AlignPtr<IDeviceType> CreateDefaultDeviceType() const override;
 
-    [[nodiscard]] AlignPtr<DeviceType> CreateDefaultDeviceType() const;
+    [[nodiscard]] AlignPtr<IDeviceType> Create(Uuid const& id) const override;
 
-    [[nodiscard]] AlignPtr<DeviceType> Create(Uuid const& id) const;
+    DeviceTypeFactoryMap::iterator Begin() override;
 
-    template <typename Func>
-    void ForEach(Func&& func) {
-    	std::for_each(factory_.begin(), factory_.end(), [func](auto const& creator) {
-            func(creator.second());
-    	});
-    }
+    DeviceTypeFactoryMap::iterator End() override;
 
-    [[nodiscard]] std::vector<Uuid> GetAvailableDeviceType() const;
+    [[nodiscard]] std::vector<Uuid> GetAvailableDeviceType() const override;
 
     [[nodiscard]] bool IsSupportASIO() const noexcept;
 
@@ -61,16 +57,18 @@ public:
 
     static void PreventSleep(bool allow);
 private:
-    class DeviceStateNotificationImpl;    
+    class DeviceStateNotificationImpl;
+
+    void SetWorkingSetSize(size_t workingset_size);
 
     template <typename Func>
     void RegisterCreator(Uuid const &id, Func&& func) {
         factory_[id] = std::forward<Func>(func);
     }
 
-    bool sleep_is_granular{ false };
+    bool sleep_is_granular_{ false };
     AlignPtr<DeviceStateNotificationImpl> impl_;    
-    HashMap<Uuid, std::function<AlignPtr<DeviceType>()>> factory_;
+    DeviceTypeFactoryMap factory_;
 };
 
 }

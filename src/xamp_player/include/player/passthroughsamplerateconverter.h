@@ -5,12 +5,12 @@
 
 #pragma once
 
-#include <player/samplerateconverter.h>
+#include <player/isamplerateconverter.h>
 #include <base/dsdsampleformat.h>
 
 namespace xamp::player {
 
-class XAMP_PLAYER_API PassThroughSampleRateConverter final : public SampleRateConverter {
+class XAMP_PLAYER_API PassThroughSampleRateConverter final : public ISampleRateConverter {
 public:
     explicit PassThroughSampleRateConverter(DsdModes dsd_mode, uint8_t sample_size);
 
@@ -26,7 +26,7 @@ public:
 
     void Flush() override;
 
-    AlignPtr<SampleRateConverter> Clone() override;
+    AlignPtr<ISampleRateConverter> Clone() override;
 private:
     bool ProcessNativeDsd(int8_t const * sample_buffer, size_t num_samples, AudioBuffer<int8_t>& buffer);
 

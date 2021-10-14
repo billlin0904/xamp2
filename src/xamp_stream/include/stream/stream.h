@@ -20,15 +20,10 @@
 namespace xamp::stream {
 	using namespace base;
 
-	class AudioProcessor;
-	class AudioStream;
-	class CDDevice;
-	class FileEncoder;
+	class IAudioProcessor;
+	class IAudioStream;
+	class ICDDevice;
+	class IFileEncoder;
 	class FileStream;
-	class DsdStream;
-	class AvFileStream;
-	class BassFileStream;
-	class BassCDDevice;
-	class BassFileEncoder;
-	class Compressor;
+	class IDsdStream;
 }

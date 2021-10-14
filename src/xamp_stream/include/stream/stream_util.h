@@ -16,14 +16,14 @@ XAMP_STREAM_API bool TestDsdFileFormatStd(std::wstring const& file_path);
 
 XAMP_STREAM_API HashSet<std::string> const& GetSupportFileExtensions();
 
-XAMP_STREAM_API DsdStream * AsDsdStream(AlignPtr<FileStream> const & stream) noexcept;
+XAMP_STREAM_API IDsdStream* AsDsdStream(AlignPtr<FileStream> const & stream) noexcept;
 	
 XAMP_STREAM_API AlignPtr<FileStream> MakeStream();
 
-XAMP_STREAM_API AlignPtr<FileEncoder> MakeEncoder();
+XAMP_STREAM_API AlignPtr<IFileEncoder> MakeEncoder();
 
 #ifdef XAMP_OS_WIN
-XAMP_STREAM_API AlignPtr<CDDevice> MakeCDDevice(int32_t driver_letter);
+XAMP_STREAM_API AlignPtr<ICDDevice> MakeCDDevice(int32_t driver_letter);
 #endif
 
 }

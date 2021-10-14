@@ -11,14 +11,14 @@
 #include <base/align_ptr.h>
 
 #include <stream/stream.h>
-#include <stream/dsdstream.h>
+#include <stream/idsdstream.h>
 #include <stream/filestream.h>
 
 namespace xamp::stream {
 
 class BassFileStream final
 	: public FileStream
-	, public DsdStream {
+	, public IDsdStream {
 public:
 	BassFileStream();
 

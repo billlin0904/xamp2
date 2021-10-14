@@ -5,7 +5,7 @@
 #include <base/waitabletimer.h>
 #include <base/threadpool.h>
 
-#include <output_device/audiocallback.h>
+#include <output_device/iaudiocallback.h>
 #include <output_device/win32/unknownimpl.h>
 #include <output_device/win32/hrexception.h>
 #include <output_device/win32/wasapi.h>
@@ -41,7 +41,7 @@ static constexpr IID kAudioClockID = __uuidof(IAudioClock);
 class SharedWasapiDevice::DeviceEventNotification final
 	: public UnknownImpl<IAudioEndpointVolumeCallback> {
 public:
-	explicit DeviceEventNotification(AudioCallback* callback) noexcept
+	explicit DeviceEventNotification(IAudioCallback* callback) noexcept
 		: callback_(callback) {
 	}
 
@@ -70,7 +70,7 @@ public:
 	}
 
 private:
-	AudioCallback* callback_;
+	IAudioCallback* callback_;
 };
 
 SharedWasapiDevice::SharedWasapiDevice(CComPtr<IMMDevice> const & device)
@@ -115,7 +115,7 @@ bool SharedWasapiDevice::IsStreamOpen() const noexcept {
 	return render_client_ != nullptr;
 }
 
-void SharedWasapiDevice::SetAudioCallback(AudioCallback* callback) noexcept {
+void SharedWasapiDevice::SetAudioCallback(IAudioCallback* callback) noexcept {
 	callback_ = callback;
 }
 
@@ -377,17 +377,16 @@ void SharedWasapiDevice::StartStream() {
 	render_task_ = ThreadPool::WASAPIThreadPool().Spawn([this](auto idx) noexcept {
 		XAMP_LOG_D(log_, "Start shared mode stream task!");
 
-		::SetEvent(thread_start_.get());
-
 		Mmcss mmcss;
 		mmcss.BoostPriority(mmcss_name_);
 
 		is_running_ = true;
 
-		const HANDLE objects[2]{ sample_ready_.get(), close_request_.get() };
+		const std::array<HANDLE, 2> objects{ sample_ready_.get(), close_request_.get() };
 		auto thread_exit = false;
+		::SetEvent(thread_start_.get());
 		while (!thread_exit) {
-			auto result = ::WaitForMultipleObjects(2, objects, FALSE, 10 * 1000);
+			auto result = ::WaitForMultipleObjects(objects.size(), objects.data(), FALSE, 50);
 			switch (result) {
 			case WAIT_OBJECT_0 + 0:
 				GetSampleRequested(false);

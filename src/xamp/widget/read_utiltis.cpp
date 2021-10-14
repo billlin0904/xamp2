@@ -7,17 +7,17 @@
 
 #include <stream/compressor.h>
 #include <stream/wavefilewriter.h>
-#include <stream/dsdstream.h>
+#include <stream/idsdstream.h>
 #include <stream/stream_util.h>
 #include <stream/filestream.h>
-#include <stream/fileencoder.h>
+#include <stream/ifileencoder.h>
 
 #include <metadata/taglibmetawriter.h>
 
 #include <player/chromaprint.h>
 #include <player/audio_player.h>
 #include <player/loudness_scanner.h>
-#include <player/samplerateconverter.h>
+#include <player/isamplerateconverter.h>
 
 #include <widget/read_utiltis.h>
 
@@ -62,7 +62,7 @@ static double ReadProcess(std::wstring const& file_path,
 	const auto is_dsd_file = TestDsdFileFormatStd(file_path);
     auto file_stream = MakeStream();
 
-	if (auto* stream = dynamic_cast<DsdStream*>(file_stream.get())) {
+	if (auto* stream = dynamic_cast<IDsdStream*>(file_stream.get())) {
 		if (is_dsd_file) {
 			stream->SetDSDMode(DsdModes::DSD_MODE_DSD2PCM);
 		}
@@ -115,7 +115,7 @@ void Export2WaveFile(std::wstring const& file_path,
 	std::function<bool(uint32_t)> const& progress,
 	Metadata const& metadata,
 	uint32_t output_sample_rate,
-	AlignPtr<SampleRateConverter>& converter) {
+	AlignPtr<ISampleRateConverter>& converter) {
 	ExceptedFile excepted(output_file_path);
 	excepted.Try([&](auto const& dest_file_path)
 		{

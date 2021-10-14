@@ -15,17 +15,17 @@
 #include <base/dataconverter.h>
 #include <base/buffer.h>
 
-#include <output_device/dsddevice.h>
-#include <output_device/audiocallback.h>
-#include <output_device/device.h>
+#include <output_device/idsddevice.h>
+#include <output_device/iaudiocallback.h>
+#include <output_device/idevice.h>
 
 namespace xamp::output_device::win32 {
 
 using namespace base;
 
 class ExclusiveWasapiDevice final
-	: public Device
-	, public DsdDevice {
+	: public IDevice
+	, public IDsdDevice {
 public:
 	explicit ExclusiveWasapiDevice(CComPtr<IMMDevice> const & device);
 
@@ -33,7 +33,7 @@ public:
 
 	void OpenStream(AudioFormat const & output_format) override;
 
-	void SetAudioCallback(AudioCallback* callback) noexcept override;
+	void SetAudioCallback(IAudioCallback* callback) noexcept override;
 
 	bool IsStreamOpen() const noexcept override;
 
@@ -102,7 +102,7 @@ private:
 	CComPtr<IAudioClock> clock_;
 	CComHeapPtr<WAVEFORMATEX> mix_format_;
 	Buffer<float> buffer_;
-	AudioCallback* callback_;	
+	IAudioCallback* callback_;
 	std::shared_ptr<spdlog::logger> log_;
 	std::shared_future<void> render_task_;
 };

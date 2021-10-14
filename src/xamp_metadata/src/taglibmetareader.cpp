@@ -32,15 +32,15 @@ static bool GetID3V2TagCover(ID3v2::Tag* tag, std::vector<uint8_t>& buffer) {
 }
 
 static bool GetApeTagCover(APE::Tag* tag, std::vector<uint8_t>& buffer) {
-    auto const & listMap = tag->itemListMap();
+    auto const & list_map = tag->itemListMap();
 
-    if (!listMap.contains("COVER ART (FRONT)")) {
+    if (!list_map.contains("COVER ART (FRONT)")) {
         return false;
     }
 
-    const ByteVector nullStringTerminator(1, 0);
-    auto item = listMap["COVER ART (FRONT)"].binaryData();
-    auto pos = item.find(nullStringTerminator);	// Skip the filename
+    const ByteVector null_string_terminator(1, 0);
+    auto item = list_map["COVER ART (FRONT)"].binaryData();
+    auto pos = item.find(null_string_terminator);	// Skip the filename
     if (++pos > 0) {
         auto pic = item.mid(pos);
         buffer.resize(pic.size());

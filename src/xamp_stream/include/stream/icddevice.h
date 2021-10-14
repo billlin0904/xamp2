@@ -42,9 +42,9 @@ struct XAMP_STREAM_API CDText {
 	std::wstring disc_id;
 };
 
-class XAMP_STREAM_API XAMP_NO_VTABLE CDDevice {
+class XAMP_STREAM_API XAMP_NO_VTABLE ICDDevice {
 public:
-	XAMP_BASE_CLASS(CDDevice)
+	XAMP_BASE_CLASS(ICDDevice)
 
 	virtual void SetAction(CDDeviceAction action);
 
@@ -52,23 +52,23 @@ public:
 
 	virtual void SetMaxSpeed() = 0;
 
-	virtual uint32_t GetSpeed() const = 0;
+	[[nodiscard]] virtual uint32_t GetSpeed() const = 0;
 
-	virtual bool DoorIsOpen() const = 0;
+	[[nodiscard]] virtual bool DoorIsOpen() const = 0;
 
-	virtual CDDeviceInfo GetCDDeviceInfo() const = 0;
+	[[nodiscard]] virtual CDDeviceInfo GetCDDeviceInfo() const = 0;
 
-	virtual CDText GetCDText() const = 0;
+	[[nodiscard]] virtual CDText GetCDText() const = 0;
 
-	virtual std::vector<std::wstring> GetTotalTracks() const = 0;
+	[[nodiscard]] virtual std::vector<std::wstring> GetTotalTracks() const = 0;
 
 	virtual void Release() = 0;
 
-	virtual double GetDuration(uint32_t track) const = 0;
+	[[nodiscard]] virtual double GetDuration(uint32_t track) const = 0;
 
-	virtual std::string GetISRC(uint32_t track) const = 0;
+	[[nodiscard]] virtual std::string GetISRC(uint32_t track) const = 0;
 protected:
-	CDDevice() = default;
+	ICDDevice() = default;
 };
 
 }

@@ -154,12 +154,13 @@
   <ItemGroup>
     <ClInclude Include="include\player\audio_player.h" />
     <ClInclude Include="include\player\chromaprint.h" />
+    <ClInclude Include="include\player\iaudioplayer.h" />
     <ClInclude Include="include\player\loudness_scanner.h" />
     <ClInclude Include="include\player\passthroughsamplerateconverter.h" />
-    <ClInclude Include="include\player\playbackstateadapter.h" />
+    <ClInclude Include="include\player\iplaybackstateadapter.h" />
     <ClInclude Include="include\player\player.h" />
     <ClInclude Include="include\player\playstate.h" />
-    <ClInclude Include="include\player\samplerateconverter.h" />
+    <ClInclude Include="include\player\isamplerateconverter.h" />
     <ClInclude Include="include\player\soxresampler.h" />
     <ClInclude Include="src\libebur128\ebur128.h" />
     <ClInclude Include="src\libebur128\sys_queue.h" />

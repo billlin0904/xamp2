@@ -151,14 +151,14 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="include\stream\audiostream.h" />
+    <ClInclude Include="include\stream\iaudiostream.h" />
     <ClInclude Include="include\stream\basscddevice.h" />
     <ClInclude Include="include\stream\bassfileencoder.h" />
     <ClInclude Include="include\stream\bassfilestream.h" />
-    <ClInclude Include="include\stream\cddevice.h" />
-    <ClInclude Include="include\stream\dsdstream.h" />
-    <ClInclude Include="include\stream\audioprocessor.h" />
-    <ClInclude Include="include\stream\fileencoder.h" />
+    <ClInclude Include="include\stream\icddevice.h" />
+    <ClInclude Include="include\stream\idsdstream.h" />
+    <ClInclude Include="include\stream\iaudioprocessor.h" />
+    <ClInclude Include="include\stream\ifileencoder.h" />
     <ClInclude Include="include\stream\filestream.h" />
     <ClInclude Include="include\stream\compressor.h" />
     <ClInclude Include="include\stream\podcastcache.h" />

@@ -535,7 +535,7 @@ void AsioDevice::SetOutputSampleRate(AudioFormat const & output_format) {
 	}
 }
 
-void AsioDevice::SetAudioCallback(AudioCallback* callback) noexcept {
+void AsioDevice::SetAudioCallback(IAudioCallback* callback) noexcept {
 	callback_ = callback;
 }
 

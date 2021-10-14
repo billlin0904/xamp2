@@ -5,29 +5,27 @@
 
 #pragma once
 
+#include <base/exception.h>
 #include <base/enum.h>
-#include <base/base.h>
 #include <output_device/output_device.h>
 
 namespace xamp::output_device {
 
 using namespace base;
 
-MAKE_ENUM(DsdIoFormat,
-    IO_FORMAT_PCM,
-    IO_FORMAT_DSD)
+MAKE_ENUM(DataCallbackResult, CONTINUE = 0, STOP)
 
-class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE DsdDevice {
+class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE IAudioCallback {
 public:
-    virtual ~DsdDevice() = default;
+	XAMP_BASE_CLASS(IAudioCallback)
 
-    virtual void SetIoFormat(DsdIoFormat format) = 0;
+    virtual DataCallbackResult OnGetSamples(void* samples, size_t num_buffer_frames, size_t & num_filled_bytes, double stream_time, double sample_time) noexcept = 0;
 
-    virtual DsdIoFormat GetIoFormat() const = 0;
+    virtual void OnError(Exception const & exception) noexcept = 0;
 
+	virtual void OnVolumeChange(float vol) noexcept = 0;
 protected:
-    DsdDevice() = default;
+	IAudioCallback() = default;
 };
 
 }
-

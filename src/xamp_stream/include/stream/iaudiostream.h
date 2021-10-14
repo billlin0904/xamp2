@@ -12,27 +12,27 @@ namespace xamp::stream {
 
 using namespace base;
 
-class XAMP_STREAM_API XAMP_NO_VTABLE AudioStream {
+class XAMP_STREAM_API XAMP_NO_VTABLE IAudioStream {
 public:
-    XAMP_BASE_CLASS(AudioStream)
+    XAMP_BASE_CLASS(IAudioStream)
 
-	virtual bool IsFile() const noexcept = 0;
+    [[nodiscard]] virtual bool IsFile() const noexcept = 0;
 
 	virtual void Close() noexcept = 0;
 
-    virtual double GetDuration() const = 0;
+    [[nodiscard]] virtual double GetDuration() const = 0;
 
     virtual uint32_t GetSamples(void *buffer, uint32_t length) const noexcept = 0;
 
-	virtual AudioFormat GetFormat() const noexcept = 0;
+    [[nodiscard]] virtual AudioFormat GetFormat() const noexcept = 0;
 
     virtual void Seek(double stream_time) const = 0;
 
-    virtual std::string_view GetDescription() const noexcept = 0;
+    [[nodiscard]] virtual std::string_view GetDescription() const noexcept = 0;
 	
-    virtual uint8_t GetSampleSize() const noexcept = 0;
+    [[nodiscard]] virtual uint8_t GetSampleSize() const noexcept = 0;
 protected:
-    AudioStream() = default;
+    IAudioStream() = default;
 };
 
 }

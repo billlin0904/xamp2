@@ -9,18 +9,18 @@
 
 #ifdef XAMP_OS_WIN
 
-#include <output_device/devicestatelistener.h>
-#include <output_device/devicestatenotification.h>
+#include <output_device/idevicestatelistener.h>
+#include <output_device/idevicestatenotification.h>
 #include <output_device/win32/unknownimpl.h>
 #include <output_device/win32/wasapi.h>
 
 namespace xamp::output_device::win32 {
 
-class Win32DeviceStateNotification 
+class Win32DeviceStateNotification
 	: public UnknownImpl<IMMNotificationClient>
-	, public DeviceStateNotification {
+	, public IDeviceStateNotification {
 public:
-	explicit Win32DeviceStateNotification(std::weak_ptr<DeviceStateListener> callback);
+	explicit Win32DeviceStateNotification(std::weak_ptr<IDeviceStateListener> callback);
 
 	virtual ~Win32DeviceStateNotification() override;
 
@@ -39,7 +39,7 @@ private:
 
 	STDMETHOD(OnDefaultDeviceChanged)(EDataFlow flow, ERole role, LPCWSTR new_default_device_id) override;
 
-	std::weak_ptr<DeviceStateListener> callback_;
+	std::weak_ptr<IDeviceStateListener> callback_;
 	CComPtr<IMMDeviceEnumerator> enumerator_;
 };
 

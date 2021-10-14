@@ -19,16 +19,16 @@
 #include <base/buffer.h>
 #include <base/fastmutex.h>
 
-#include <output_device/audiocallback.h>
-#include <output_device/device.h>
-#include <output_device/dsddevice.h>
+#include <output_device/iaudiocallback.h>
+#include <output_device/idevice.h>
+#include <output_device/idsddevice.h>
 #include <output_device/win32/mmcss.h>
 
 namespace xamp::output_device {
 
 class AsioDevice final
-	: public Device
-	, public DsdDevice {
+	: public IDevice
+	, public IDsdDevice {
 public:
 	explicit AsioDevice(std::string const & device_id);
 
@@ -36,7 +36,7 @@ public:
 
 	void OpenStream(AudioFormat const & output_format) override;
 
-	void SetAudioCallback(AudioCallback* callback) noexcept override;
+	void SetAudioCallback(IAudioCallback* callback) noexcept override;
 
 	bool IsStreamOpen() const noexcept override;
 
@@ -118,7 +118,7 @@ private:
 	std::vector<ASIOClockSource> clock_source_;	
 	Buffer<int8_t> buffer_;
 	Buffer<int8_t> device_buffer_;	
-	AudioCallback* callback_;
+	IAudioCallback* callback_;
 	win32::Mmcss mmcss_;
 	std::shared_ptr<spdlog::logger> log_;
 };

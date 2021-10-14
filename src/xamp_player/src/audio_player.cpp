@@ -11,14 +11,14 @@
 
 #include <output_device/audiodevicemanager.h>
 #include <output_device/asiodevicetype.h>
-#include <output_device/dsddevice.h>
+#include <output_device/idsddevice.h>
 
 #include <stream/bassfilestream.h>
-#include <stream/audioprocessor.h>
+#include <stream/iaudioprocessor.h>
 #include <stream/basscddevice.h>
 
 #include <player/soxresampler.h>
-#include <player/samplerateconverter.h>
+#include <player/isamplerateconverter.h>
 #include <player/passthroughsamplerateconverter.h>
 #include <player/chromaprint.h>
 #include <player/audio_util.h>
@@ -50,13 +50,13 @@ static void LogTime(const std::string & msg, const std::chrono::microseconds &ti
 #endif
 
 
-AlignPtr<CDDevice> AudioPlayer::cd_device_;
+AlignPtr<ICDDevice> AudioPlayer::cd_device_;
 
 AudioPlayer::AudioPlayer()
-    : AudioPlayer(std::weak_ptr<PlaybackStateAdapter>()) {
+    : AudioPlayer(std::weak_ptr<IPlaybackStateAdapter>()) {
 }
 
-AudioPlayer::AudioPlayer(const std::weak_ptr<PlaybackStateAdapter> &adapter)
+AudioPlayer::AudioPlayer(const std::weak_ptr<IPlaybackStateAdapter> &adapter)
     : is_muted_(false)
     , enable_sample_converter_(false)
 	, enable_processor_(true)
@@ -72,6 +72,7 @@ AudioPlayer::AudioPlayer(const std::weak_ptr<PlaybackStateAdapter> &adapter)
     , is_paused_(false)
     , sample_end_time_(0)
     , stream_duration_(0)
+    , device_manager_(MakeAlign<IAudioDeviceManager, AudioDeviceManager>())
     , state_adapter_(adapter)
     , fifo_(GetPageAlignSize(kPreallocateBufferSize))
     , seek_queue_(kMsgQueueSize)
@@ -120,15 +121,14 @@ void AudioPlayer::Initialize() {
     }
 
     AudioDeviceManager::PreventSleep(true);
-    XAMP_LOG_DEBUG("AudioDeviceManager init success.");
-
+   
 #ifdef XAMP_OS_WIN
     ThreadPool::WASAPIThreadPool();
 #endif
     ThreadPool::StreamReaderThreadPool();
 }
 #ifdef XAMP_OS_WIN
-AlignPtr<CDDevice>& AudioPlayer::OpenCD(int32_t driver_letter) {
+AlignPtr<ICDDevice>& AudioPlayer::OpenCD(int32_t driver_letter) {
     if (!cd_device_) {
         cd_device_ = MakeCDDevice(driver_letter);
     }
@@ -140,11 +140,11 @@ void AudioPlayer::CloseCD() {
 }
 
 void AudioPlayer::Open(Path const& file_path, const Uuid& device_id) {
-    AlignPtr<DeviceType> device_type;
+    AlignPtr<IDeviceType> device_type;
     if (device_id.IsValid()) {
-        device_type = device_manager_.CreateDefaultDeviceType();
+        device_type = device_manager_->CreateDefaultDeviceType();
     } else {
-        device_type = device_manager_.Create(device_id);
+        device_type = device_manager_->Create(device_id);
     }
 
     device_type->ScanNewDevice();
@@ -155,7 +155,7 @@ void AudioPlayer::Open(Path const& file_path, const Uuid& device_id) {
     }
 }
 
-void AudioPlayer::Open(Path const& file_path, const DeviceInfo& device_info, uint32_t target_sample_rate, AlignPtr<SampleRateConverter> converter) {
+void AudioPlayer::Open(Path const& file_path, const DeviceInfo& device_info, uint32_t target_sample_rate, AlignPtr<ISampleRateConverter> converter) {
     Startup();
     CloseDevice(true);
     enable_sample_converter_ = converter != nullptr;
@@ -165,7 +165,7 @@ void AudioPlayer::Open(Path const& file_path, const DeviceInfo& device_info, uin
     device_info_ = device_info;
 }
 
-void AudioPlayer::SetProcessor(AlignPtr<AudioProcessor>&& processor) {
+void AudioPlayer::SetProcessor(AlignPtr<IAudioProcessor>&& processor) {
     processor_queue_.TryEnqueue(std::move(processor));
 }
 
@@ -196,7 +196,7 @@ void AudioPlayer::CreateDevice(Uuid const & device_type_id, std::string const & 
             device_.reset();
         }
     	
-        device_type_ = device_manager_.Create(device_type_id);
+        device_type_ = device_manager_->Create(device_type_id);
         device_type_->ScanNewDevice();
         device_ = device_type_->MakeDevice(device_id);
         device_type_id_ = device_type_id;
@@ -490,7 +490,7 @@ void AudioPlayer::CreateBuffer() {
     if (!enable_sample_converter_
         || dsd_mode_ == DsdModes::DSD_MODE_NATIVE
         || dsd_mode_ == DsdModes::DSD_MODE_DOP) {
-        converter_ = MakeAlign<SampleRateConverter, PassThroughSampleRateConverter>(dsd_mode_, stream_->GetSampleSize());
+        converter_ = MakeAlign<ISampleRateConverter, PassThroughSampleRateConverter>(dsd_mode_, stream_->GetSampleSize());
     } else {
         if (target_sample_rate_ == 0) {
             throw NotSupportResampleSampleRateException();
@@ -613,11 +613,8 @@ void AudioPlayer::Startup() {
     if (timer_.IsStarted()) {
         return;
     }
-    
-    constexpr size_t kWorkingSetSize = 2048ul * 1024ul * 1024ul;
-    device_manager_.SetWorkingSetSize(kWorkingSetSize);
 
-    device_manager_.RegisterDeviceListener(shared_from_this());
+    device_manager_->RegisterDeviceListener(shared_from_this());
     wait_timer_.SetTimeout(kReadSampleWaitTime);
 
     std::weak_ptr<AudioPlayer> player = shared_from_this();
@@ -695,7 +692,7 @@ bool AudioPlayer::CanProcessFile() const noexcept {
     return (dsd_mode_ == DsdModes::DSD_MODE_PCM || dsd_mode_ == DsdModes::DSD_MODE_DSD2PCM);
 }
 
-void AudioPlayer::BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<SampleRateConverter>& converter, int32_t buffer_count) {
+void AudioPlayer::BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<ISampleRateConverter>& converter, int32_t buffer_count) {
     InitProcessor();
 	
     auto* const sample_buffer = read_buffer_.Get();
@@ -749,7 +746,7 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_buffer_samp
     }
 }
 
-AudioDeviceManager& AudioPlayer::GetAudioDeviceManager() {
+const AlignPtr<IAudioDeviceManager>& AudioPlayer::GetAudioDeviceManager() {
     return device_manager_;
 }
 

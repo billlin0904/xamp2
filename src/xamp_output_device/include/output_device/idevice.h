@@ -6,19 +6,20 @@
 #pragma once
 
 #include <base/audioformat.h>
+#include <output_device/iaudiocallback.h>
 #include <output_device/output_device.h>
 
 namespace xamp::output_device {
 
 using namespace base;
 
-class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE Device {
+class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE IDevice {
 public:
-	XAMP_BASE_CLASS(Device)
+	XAMP_BASE_CLASS(IDevice)
 
     virtual void OpenStream(AudioFormat const & output_format) = 0;
 
-	virtual void SetAudioCallback(AudioCallback* callback) noexcept = 0;
+	virtual void SetAudioCallback(IAudioCallback* callback) noexcept = 0;
 
 	[[nodiscard]] virtual bool IsStreamOpen() const noexcept = 0;
 
@@ -53,7 +54,7 @@ public:
 	virtual void AbortStream() noexcept = 0;
 
 protected:
-    Device() = default;
+	IDevice() = default;
 };
 
 }

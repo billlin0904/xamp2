@@ -49,8 +49,8 @@ bool PassThroughSampleRateConverter::ProcessPcm(int8_t const * sample_buffer, si
     return true;
 }
 
-AlignPtr<SampleRateConverter> PassThroughSampleRateConverter::Clone() {
-    return MakeAlign<SampleRateConverter, PassThroughSampleRateConverter>(dsd_mode_, sample_size_);
+AlignPtr<ISampleRateConverter> PassThroughSampleRateConverter::Clone() {
+    return MakeAlign<ISampleRateConverter, PassThroughSampleRateConverter>(dsd_mode_, sample_size_);
 }
 
 }
