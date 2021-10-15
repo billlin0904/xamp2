@@ -11,13 +11,13 @@
 
 class PlayListTableView;
 
+Metadata getMetadata(QString const& file_path);
+
 class MetadataExtractAdapter final
 	: public QObject {
 	Q_OBJECT
 public:
     explicit MetadataExtractAdapter(QObject* parent = nullptr);
-
-	~MetadataExtractAdapter() override;
 
     static void readFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter, QString const& file_path, bool show_progress_dialog = true);	
 
@@ -26,7 +26,5 @@ signals:
 
 public:
     static void processMetadata(const std::vector<Metadata>& result, PlayListTableView *playlist = nullptr);
-
-	static Metadata getMetadata(QString const& file_path);
 };
 

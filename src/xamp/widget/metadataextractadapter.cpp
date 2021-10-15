@@ -5,10 +5,7 @@
 #include <base/base.h>
 #include <base/str_utilts.h>
 #include <base/threadpool.h>
-#include <base/threadpool.h>
-#include <base/time.h>
-#include <metadata/taglibmetareader.h>
-
+#include <metadata/api.h>
 #include <player/audio_util.h>
 
 #include <atomic>
@@ -29,7 +26,7 @@
 
 inline constexpr size_t kCachePreallocateSize = 500;
 
-using xamp::metadata::TaglibMetadataReader;
+using namespace xamp::metadata;
 
 class DatabaseIdCache final {
 public:
@@ -49,10 +46,10 @@ QString DatabaseIdCache::AddCoverCache(int32_t album_id, const QString& album, c
     	return cover_id;
     }
         
-    TaglibMetadataReader cover_reader;
+    auto cover_reader = MakeMetadataReader();
 
     QPixmap pixmap;
-    const auto& buffer = cover_reader.ExtractEmbeddedCover(metadata.file_path);
+    const auto& buffer = cover_reader->ExtractEmbeddedCover(metadata.file_path);
     if (!buffer.empty()) {
         pixmap.loadFromData(buffer.data(),
             static_cast<uint32_t>(buffer.size()));
@@ -145,13 +142,11 @@ private:
     std::vector<Metadata> metadatas_;
 };
 
-MetadataExtractAdapter::MetadataExtractAdapter(QObject* parent)
+::MetadataExtractAdapter::MetadataExtractAdapter(QObject* parent)
     : QObject(parent) {    
 }
 
-MetadataExtractAdapter::~MetadataExtractAdapter() = default;
-
-void MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter, QString const & file_path, bool show_progress_dialog) {
+void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter, QString const & file_path, bool show_progress_dialog) {
     auto dialog = makeProgressDialog(tr("Read file metadata"), 
         tr("Read progress dialog"), 
         tr("Cancel"));
@@ -185,8 +180,8 @@ void MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExtra
         
         try {            
             const Path path(file_dir_or_path.toStdWString());
-            TaglibMetadataReader reader;
-            WalkPath(path, &proxy, &reader);            
+            auto reader = MakeMetadataReader();
+            WalkPath(path, &proxy, reader.get());            
         }
         catch (const std::exception& e) {
             XAMP_LOG_DEBUG("WalkPath has exception: {}", e.what());
@@ -196,7 +191,7 @@ void MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExtra
     }
 }
 
-void MetadataExtractAdapter::processMetadata(const std::vector<Metadata>& result, PlayListTableView* playlist) {
+void ::MetadataExtractAdapter::processMetadata(const std::vector<Metadata>& result, PlayListTableView* playlist) {
   const DatabaseIdCache cache;
 
     auto playlist_id = -1;
@@ -240,8 +235,8 @@ void MetadataExtractAdapter::processMetadata(const std::vector<Metadata>& result
     }
 }
 
-Metadata MetadataExtractAdapter::getMetadata(QString const& file_path) {
+Metadata getMetadata(QString const& file_path) {
     const Path path(file_path.toStdWString());
-    TaglibMetadataReader reader;
-    return reader.Extract(path);
+    auto reader = MakeMetadataReader();
+    return reader->Extract(path);
 }

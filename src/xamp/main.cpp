@@ -10,7 +10,7 @@
 
 #include <metadata/metadatareader.h>
 
-#include <player/audio_player.h>
+#include <player/api.h>
 #include <player/soxresampler.h>
 
 #include <widget/qdebugsink.h>
@@ -161,7 +161,7 @@ static int excute(int argc, char* argv[]) {
     QApplication app(argc, argv);
 
     try {
-        AudioPlayer::Initialize();
+	    Xamp2Startup();
     }
     catch (const Exception& e) {
         QMessageBox::critical(nullptr,

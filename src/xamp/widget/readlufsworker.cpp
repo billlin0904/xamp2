@@ -8,7 +8,7 @@
 #include <base/logger.h>
 
 #include <stream/filestream.h>
-#include <stream/dsdstream.h>
+#include <stream/idsdstream.h>
 #include <stream/stream_util.h>
 
 #include <widget/playlistentity.h>
@@ -26,7 +26,7 @@ void ReadLufsWorker::addEntity(PlayListEntity const& entity) {
 	const auto is_dsd_file = TestDsdFileFormatStd(entity.file_path.toStdWString());
     auto file_stream = MakeStream();
 
-	if (auto* stream = dynamic_cast<DsdStream*>(file_stream.get())) {
+	if (auto* stream = dynamic_cast<IDsdStream*>(file_stream.get())) {
 		if (is_dsd_file) {
 			stream->SetDSDMode(DsdModes::DSD_MODE_DSD2PCM);
 		}

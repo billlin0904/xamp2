@@ -41,6 +41,10 @@ inline constexpr std::chrono::milliseconds kReadSampleWaitTime(30);
 inline constexpr std::chrono::seconds kWaitForStreamStopTime(10);
 inline constexpr std::chrono::milliseconds kPauseWaitTimeout(100);
 
+IDsdDevice* AsDsdDevice(AlignPtr<IDevice> const& device) noexcept {
+    return dynamic_cast<IDsdDevice*>(device.get());
+}
+
 #ifdef _DEBUG
 static void LogTime(const std::string & msg, const std::chrono::microseconds &time) {
     auto c = time.count();
@@ -48,9 +52,6 @@ static void LogTime(const std::string & msg, const std::chrono::microseconds &ti
         (c % 1'000'000'000) / 1'000'000, (c % 1'000'000) / 1'000, c % 1'000);
 }
 #endif
-
-
-AlignPtr<ICDDevice> AudioPlayer::cd_device_;
 
 AudioPlayer::AudioPlayer()
     : AudioPlayer(std::weak_ptr<IPlaybackStateAdapter>()) {
@@ -103,40 +104,6 @@ void AudioPlayer::UpdateSlice(int32_t sample_size, double stream_time) noexcept 
     std::atomic_exchange_explicit(&slice_,
         AudioSlice{ sample_size, stream_time },
         std::memory_order_relaxed);
-}
-
-void AudioPlayer::Initialize() {
-    LoadBassLib();
-    XAMP_LOG_DEBUG("Load BASS dll success.");
-
-    LoadSoxrLib();
-    XAMP_LOG_DEBUG("Load Soxr dll success.");
-	
-    try {
-        Chromaprint::LoadChromaprintLib();
-        XAMP_LOG_DEBUG("Load Chromaprint dll success.");
-    }
-    catch (...) {
-    	// Ignore exception.
-    }
-
-    AudioDeviceManager::PreventSleep(true);
-   
-#ifdef XAMP_OS_WIN
-    ThreadPool::WASAPIThreadPool();
-#endif
-    ThreadPool::StreamReaderThreadPool();
-}
-#ifdef XAMP_OS_WIN
-AlignPtr<ICDDevice>& AudioPlayer::OpenCD(int32_t driver_letter) {
-    if (!cd_device_) {
-        cd_device_ = MakeCDDevice(driver_letter);
-    }
-    return cd_device_;
-}
-#endif
-void AudioPlayer::CloseCD() {
-    cd_device_.reset();
 }
 
 void AudioPlayer::Open(Path const& file_path, const Uuid& device_id) {
@@ -577,7 +544,7 @@ void AudioPlayer::OnDeviceStateChange(DeviceState state, std::string const & dev
 
 void AudioPlayer::OpenDevice(double stream_time) {
 #ifdef ENABLE_ASIO
-    if (auto* dsd_output = audio_util::AsDsdDevice(device_)) {
+    if (auto* dsd_output = AsDsdDevice(device_)) {
         if (auto* const dsd_stream = AsDsdStream(stream_)) {
             if (dsd_stream->GetDsdMode() == DsdModes::DSD_MODE_NATIVE || dsd_stream->GetDsdMode() == DsdModes::DSD_MODE_DOP) {
                 dsd_output->SetIoFormat(DsdIoFormat::IO_FORMAT_DSD);

@@ -182,7 +182,7 @@ FlushFileCache:
         }
     }
 
-    int32_t GetBitDepth() const {
+    [[nodiscard]] int32_t GetBitDepth() const {
         if (mode_ == DsdModes::DSD_MODE_DOP) {
             return 8;
         }
@@ -192,7 +192,7 @@ FlushFileCache:
         return info_.origres;
     }
 
-    double GetReadProgress() const {
+    [[nodiscard]] double GetReadProgress() const {
         auto file_len = BASS.BASS_StreamGetFilePosition(GetHStream(), BASS_FILEPOS_END);
         auto buffer = BASS.BASS_StreamGetFilePosition(GetHStream(), BASS_FILEPOS_BUFFER);
         return 100.0 * static_cast<double>(buffer) / static_cast<double>(file_len);
@@ -201,18 +201,18 @@ FlushFileCache:
 	static void DownloadProc(const void* buffer, DWORD length, void* user) {
         auto* impl = static_cast<BassFileStreamImpl*>(user);
     	if (!buffer) {
-            XAMP_LOG_DEBUG("Downloading 100% completed!");
+            XAMP_LOG_TRACE("Downloading 100% completed!");
             impl->file_cache_->Close();
             return;
     	}
         if (length == 0) {
             auto *ptr = static_cast<char const*>(buffer);
             std::string http_status(ptr);
-            //XAMP_LOG_DEBUG("{}", http_status);
+            XAMP_LOG_TRACE("{}", http_status);
     	} else {                      
             impl->download_size_ += length;
-            //XAMP_LOG_DEBUG("Downloading {}% {}", impl->GetReadProgress(),
-            //               String::FormatBytes(impl->download_size_));
+            XAMP_LOG_TRACE("Downloading {}% {}", impl->GetReadProgress(),
+                           String::FormatBytes(impl->download_size_));
             impl->file_cache_->Write(buffer, length);
         }
     }

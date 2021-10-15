@@ -1,24 +1,16 @@
-#include <base/str_utilts.h>
 #include <base/logger.h>
+#include <base/threadpool.h>
 
 #include <output_device/audiodevicemanager.h>
 
 #include <stream/idsdstream.h>
 #include <stream/bassfilestream.h>
-#include <stream/stream_util.h>
+#include <stream/api.h>
 
 #include <player/audio_player.h>
 #include <player/audio_util.h>
 
 namespace xamp::player::audio_util {
-
-std::shared_ptr<IAudioPlayer> MakeAudioPlayer(const std::weak_ptr<IPlaybackStateAdapter>& adapter) {
-    return MakeAlignedShared<AudioPlayer>(adapter);
-}
-
-IDsdDevice* AsDsdDevice(AlignPtr<IDevice> const &device) noexcept {
-    return dynamic_cast<IDsdDevice*>(device.get());
-}
 
 DsdModes SetStreamDsdMode(AlignPtr<FileStream>& stream, bool is_dsd_file, const DeviceInfo& device_info, bool enable_sample_converter) {
     auto dsd_mode = DsdModes::DSD_MODE_PCM;

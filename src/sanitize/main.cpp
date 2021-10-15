@@ -7,7 +7,7 @@
 #include <output_device/asiodevicetype.h>
 #include <metadata/win32/ntfsjournal.h>
 #include <metadata/win32/ntfssearch.h>
-#include <player/audio_player.h>
+#include <player/api.h>
 
 #include "NTFS.h"
 #include <stack>
@@ -20,7 +20,7 @@ using namespace win32;
 using namespace xamp::metadata::win32;
 
 void TestPlayDSD() {
-	auto player = MakeAlignedShared<AudioPlayer>();
+	auto player = MakeAudioPlayer(std::weak_ptr<IPlaybackStateAdapter>());
 	player->Open("C:\\Users\\rdbill0452\\Music\\Test\\DSD.dsf", ExclusiveWasapiDeviceType::Id);
 	player->PrepareToPlay();
 	player->Play();
@@ -255,5 +255,5 @@ int main() {
 		std::cout << e.GetErrorMessage();
 		std::cin.get();
 	}
-	AudioPlayer::Initialize();
+	Xamp2Startup();
 }

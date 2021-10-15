@@ -15,7 +15,7 @@ namespace xamp::stream {
 
 using xamp::base::LruCache;
 
-class XAMP_STREAM_API PodcastFileCache
+class PodcastFileCache final
     : public std::enable_shared_from_this<PodcastFileCache> {
 public:
     explicit PodcastFileCache(std::string const& cache_id);

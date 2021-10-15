@@ -13,7 +13,7 @@
 
 namespace xamp::metadata {
 
-class XAMP_METADATA_API TaglibMetadataReader final : public MetadataReader {
+class TaglibMetadataReader final : public MetadataReader {
 public:
     TaglibMetadataReader();
 

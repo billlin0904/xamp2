@@ -3,18 +3,26 @@
   <ItemGroup>
     <ClCompile Include="src\audio_player.cpp" />
     <ClCompile Include="src\chromaprint.cpp" />
-    <ClCompile Include="src\chromaprinthelper.cpp" />
     <ClCompile Include="src\soxresampler.cpp" />
+    <ClCompile Include="src\audio_util.cpp" />
+    <ClCompile Include="src\loudness_scanner.cpp" />
+    <ClCompile Include="src\libebur128\ebur128.c" />
+    <ClCompile Include="src\passthroughsamplerateconverter.cpp" />
+    <ClCompile Include="src\api.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\player\audio_player.h" />
     <ClInclude Include="include\player\chromaprint.h" />
-    <ClInclude Include="include\player\chromaprinthelper.h" />
-    <ClInclude Include="include\player\playbackstateadapter.h" />
+    <ClInclude Include="include\player\iplaybackstateadapter.h" />
     <ClInclude Include="include\player\player.h" />
     <ClInclude Include="include\player\playstate.h" />
-    <ClInclude Include="include\player\resampler.h" />
     <ClInclude Include="include\player\soxresampler.h" />
-    <ClInclude Include="include\player\nullresampler.h" />
+    <ClInclude Include="include\player\loudness_scanner.h" />
+    <ClInclude Include="include\player\passthroughsamplerateconverter.h" />
+    <ClInclude Include="include\player\isamplerateconverter.h" />
+    <ClInclude Include="src\libebur128\ebur128.h" />
+    <ClInclude Include="src\libebur128\sys_queue.h" />
+    <ClInclude Include="include\player\iaudioplayer.h" />
+    <ClInclude Include="include\player\api.h" />
   </ItemGroup>
 </Project>

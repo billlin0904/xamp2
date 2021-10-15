@@ -7,6 +7,8 @@
 
 #include <base/align_ptr.h>
 #include <metadata/metadata.h>
+#include <metadata/metadatareader.h>
+#include <metadata/metadatawriter.h>
 
 namespace xamp::metadata {
 

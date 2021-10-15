@@ -1,7 +1,7 @@
 #include <metadata/taglibmetareader.h>
 #include <metadata/taglibmetawriter.h>
 
-#include <metadata/metadata_util.h>
+#include <metadata/api.h>
 
 namespace xamp::metadata {
 

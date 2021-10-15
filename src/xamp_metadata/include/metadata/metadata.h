@@ -23,7 +23,4 @@ namespace xamp::metadata {
     class MetadataExtractAdapter;
     class MetadataReader;
     class MetadataWriter;
-
-    class TaglibMetadataReader;
-    class TaglibMetadataWriter;
 }

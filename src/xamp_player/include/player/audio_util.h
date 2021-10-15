@@ -13,7 +13,7 @@
 #include <base/stl.h>
 #include <base/dsdsampleformat.h>
 #include <output_device/idsddevice.h>
-#include <stream/stream_util.h>
+#include <stream/api.h>
 #include <player/player.h>
 
 namespace xamp::player::audio_util {
@@ -22,13 +22,9 @@ using namespace xamp::base;
 using namespace xamp::stream;
 using namespace xamp::output_device;
 
-XAMP_PLAYER_API IDsdDevice * AsDsdDevice(AlignPtr<IDevice> const & device) noexcept;
-	
-XAMP_PLAYER_API std::pair<DsdModes, AlignPtr<FileStream>> MakeFileStream(std::filesystem::path const &path,	
+std::pair<DsdModes, AlignPtr<FileStream>> MakeFileStream(Path const &path,	
 	DeviceInfo const& device_info,
 	bool enable_sample_converter = false);
-
-XAMP_PLAYER_API std::shared_ptr<IAudioPlayer> MakeAudioPlayer(const std::weak_ptr<IPlaybackStateAdapter>& adapter);
 
 }
 

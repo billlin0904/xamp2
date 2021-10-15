@@ -8,11 +8,11 @@
 #include <stream/compressor.h>
 #include <stream/wavefilewriter.h>
 #include <stream/idsdstream.h>
-#include <stream/stream_util.h>
+#include <stream/api.h>
 #include <stream/filestream.h>
 #include <stream/ifileencoder.h>
 
-#include <metadata/taglibmetawriter.h>
+#include <metadata/api.h>
 
 #include <player/chromaprint.h>
 #include <player/audio_player.h>
@@ -138,8 +138,8 @@ void Export2WaveFile(std::wstring const& file_path,
 
             ReadProcess(file_path, progress, prepare, process);
 			file.Close();
-			TaglibMetadataWriter writer;
-			writer.Write(dest_file_path, metadata);
+			auto writer = MakeMetadataWriter();
+			writer->Write(dest_file_path, metadata);
 		});
 }
 
@@ -169,8 +169,8 @@ void Export2WaveFile(std::wstring const& file_path,
 				}
 			});
 		file.Close();
-		TaglibMetadataWriter writer;
-		writer.Write(dest_file_path, metadata);
+		auto writer = MakeMetadataWriter();
+		writer->Write(dest_file_path, metadata);
 		});
 }
 
@@ -230,7 +230,7 @@ void EncodeFlacFile(std::wstring const& file_path,
         encoder->Start(file_path, dest_file_path.wstring(), command);
         encoder->Encode(progress);
     })) {
-		TaglibMetadataWriter writer;
-		writer.Write(output_file_path, metadata);
+		auto writer = MakeMetadataWriter();
+		writer->Write(output_file_path, metadata);
     }
 }

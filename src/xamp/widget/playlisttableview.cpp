@@ -16,11 +16,11 @@
 #include <base/rng.h>
 #include <base/str_utilts.h>
 #include <stream/icddevice.h>
-#include <player/audio_player.h>
+#include <player/api.h>
 
 #include <metadata/metadatareader.h>
 #include <metadata/metadatawriter.h>
-#include <metadata/metadata_util.h>
+#include <metadata/api.h>
 
 #include <rapidxml.hpp>
 
@@ -438,20 +438,20 @@ void PlayListTableView::initial() {
                     auto driver_letter = storage.rootPath().left(1).toStdString()[0];
 
                     if (kCDFileSystemType.contains(storage.fileSystemType().toUpper().toStdString())) {
-                        /*auto &device = AudioPlayer::OpenCD(driver_letter);
+                        auto &device = OpenCD(driver_letter);
                         auto device_info = device->GetCDDeviceInfo();
                         display_name += QString::fromStdWString(L" " + device_info.product);
                         open_cd_submenu->addAction(display_name, [&device, driver_letter, this]() {
                             device->SetMaxSpeed();
                             auto track_id = 0;
                             for (auto const & track : device->GetTotalTracks()) {
-                                auto metadata = ::MetadataExtractAdapter::getMetadata(QString::fromStdWString(track));
+                                auto metadata = ::getMetadata(QString::fromStdWString(track));
                                 metadata.duration = device->GetDuration(track_id++);
                                 metadata.samplerate = 44100;                                
                                 Singleton<Database>::GetInstance().addOrUpdateMusic(metadata, playlist_id_);
                             }
                             refresh();
-                        });*/
+                        });
                     }
                 }
             }

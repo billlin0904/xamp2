@@ -16,7 +16,7 @@ namespace xamp::metadata {
 
 class XAMP_METADATA_API XAMP_NO_VTABLE MetadataReader {
 public:
-    virtual ~MetadataReader() = default;
+    XAMP_BASE_CLASS(MetadataReader)
 
     virtual Metadata Extract(Path const &path) = 0;
  

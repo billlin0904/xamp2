@@ -245,19 +245,47 @@ BENCHMARK(BM_ClampSample);
 #if 1
 static void BM_ThreadPool(benchmark::State& state) {
     ThreadPool thread_pool;
+    std::vector<std::shared_future<void>> tasks;
     for (auto _ : state) {
-        for (auto i =0 ; i < 10000; ++i) {
-            thread_pool.Spawn([](auto thread_index) {}).get();
-        }        
+        for (auto i =0 ; i < 8; ++i) {
+            tasks.push_back(thread_pool.Spawn([](auto thread_index) {}));
+            if (i % 8 == 0) {
+	            for (auto &t: tasks) {
+                    if (t.valid()) {
+                        t.get();
+                    }
+	            }
+                tasks.clear();
+            }
+        }
+        for (auto& t : tasks) {
+            if (t.valid()) {
+                t.get();
+            }
+        }
     }
 }
 
 BENCHMARK(BM_ThreadPool);
 
 static void BM_StdThreadPool(benchmark::State& state) {
+    std::vector<std::future<void>> tasks;
     for (auto _ : state) {        
-        for (auto i = 0; i < 10000; ++i) {
-            std::async(std::launch::async, []() {}).get();
+        for (auto i = 0; i < 8; ++i) {
+            tasks.push_back(std::async(std::launch::async, []() {}));
+            if (i % 8 == 0) {
+                for (auto& t : tasks) {
+                    if (t.valid()) {
+                        t.get();
+                    }
+                }
+                tasks.clear();
+            }
+        }
+        for (auto& t : tasks) {
+            if (t.valid()) {
+                t.get();
+            }
         }
     }
 }

@@ -12,7 +12,7 @@ namespace xamp::metadata {
 
 class XAMP_METADATA_API XAMP_NO_VTABLE MetadataWriter {
 public:
-    virtual ~MetadataWriter() = default;
+    XAMP_BASE_CLASS(MetadataWriter)
 
     [[nodiscard]] virtual bool IsFileReadOnly(Path const & path) const = 0;
     

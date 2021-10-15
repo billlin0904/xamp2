@@ -11,9 +11,10 @@
 #include <base/dsdsampleformat.h>
 
 #include <output_device/deviceinfo.h>
-#include <output_device/audiodevicemanager.h>
+#include <output_device/iaudiodevicemanager.h>
 
 #include <player/playstate.h>
+#include <stream/iaudioprocessor.h>
 #include <player/player.h>
 
 namespace xamp::player {
@@ -48,41 +49,41 @@ public:
 
     virtual void SetVolume(uint32_t volume) = 0;
 
-    virtual uint32_t GetVolume() const = 0;
+    [[nodiscard]] virtual uint32_t GetVolume() const = 0;
 
-    virtual bool IsHardwareControlVolume() const = 0;
+    [[nodiscard]] virtual bool IsHardwareControlVolume() const = 0;
 
-    virtual bool IsMute() const = 0;
+    [[nodiscard]] virtual bool IsMute() const = 0;
 
     virtual void SetMute(bool mute) = 0;
 
-    virtual bool IsPlaying() const noexcept = 0;
+    [[nodiscard]] virtual bool IsPlaying() const noexcept = 0;
 
-    virtual DsdModes GetDsdModes() const noexcept = 0;
+    [[nodiscard]] virtual DsdModes GetDsdModes() const noexcept = 0;
 
-    virtual bool IsDSDFile() const = 0;
+    [[nodiscard]] virtual bool IsDSDFile() const = 0;
 
-    virtual std::optional<uint32_t> GetDSDSpeed() const = 0;
+    [[nodiscard]] virtual std::optional<uint32_t> GetDSDSpeed() const = 0;
 
-    virtual double GetDuration() const = 0;
+    [[nodiscard]] virtual double GetDuration() const = 0;
 
-    virtual PlayerState GetState() const noexcept = 0;
+    [[nodiscard]] virtual PlayerState GetState() const noexcept = 0;
 
-    virtual AudioFormat GetInputFormat() const noexcept = 0;
+    [[nodiscard]] virtual AudioFormat GetInputFormat() const noexcept = 0;
 
-    virtual AudioFormat GetOutputFormat() const noexcept = 0;
+    [[nodiscard]] virtual AudioFormat GetOutputFormat() const noexcept = 0;
 
     virtual void SetProcessor(AlignPtr<IAudioProcessor>&& processor) = 0;
 
     virtual void EnableProcessor(bool enable = true) = 0;
 
-    virtual bool IsEnableProcessor() const = 0;
+    [[nodiscard]] virtual bool IsEnableProcessor() const = 0;
 
-    virtual bool IsEnableSampleRateConverter() const = 0;
+    [[nodiscard]] virtual bool IsEnableSampleRateConverter() const = 0;
 
-    virtual void SetDevice(const DeviceInfo& device_info) = 0;
+    [[nodiscard]] virtual void SetDevice(const DeviceInfo& device_info) = 0;
 
-    virtual DeviceInfo GetDevice() const = 0;
+    [[nodiscard]] virtual DeviceInfo GetDevice() const = 0;
 
     virtual const AlignPtr<IAudioDeviceManager>& GetAudioDeviceManager() = 0;
 

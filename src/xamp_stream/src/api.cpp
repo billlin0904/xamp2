@@ -7,7 +7,7 @@
 #include <stream/ifileencoder.h>
 #include <stream/bassfileencoder.h>
 #include <stream/basscddevice.h>
-#include <stream/stream_util.h>
+#include <stream/api.h>
 
 namespace xamp::stream {
 

@@ -17,7 +17,7 @@
 #include <output_device/audiodevicemanager.h>
 
 #include <player/soxresampler.h>
-#include <player/audio_util.h>
+#include <player/api.h>
 
 #include <widget/albumview.h>
 #include <widget/lyricsshowwidget.h>
@@ -118,7 +118,7 @@ Xamp::Xamp()
 	, tray_icon_(nullptr)
     , state_adapter_(std::make_shared<UIPlayerStateAdapter>())
 #ifdef Q_OS_WIN
-    , player_(audio_util::MakeAudioPlayer(state_adapter_))
+    , player_(MakeAudioPlayer(state_adapter_))
     , discord_notify_(this) {
 #else
     , player_(audio_util::MakeAudioPlayer(state_adapter_)) {

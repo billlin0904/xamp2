@@ -4,7 +4,7 @@
 #include <base/exception.h>
 #include <stream/bassfilestream.h>
 #include <stream/basslib.h>
-#include <stream/stream_util.h>
+#include <stream/api.h>
 #include <stream/bassfileencoder.h>
 
 namespace xamp::stream {
@@ -63,7 +63,7 @@ public:
                 break;
             }
             num_samples += read_size;
-            const auto percent = static_cast<uint32_t>((num_samples / stream_.GetFormat().GetSampleRate() * 100) / max_duration);
+            const auto percent = static_cast<uint32_t>(num_samples / stream_.GetFormat().GetSampleRate() * 100 / max_duration);
             if (!progress(percent)) {
                 break;
             }

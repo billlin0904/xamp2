@@ -40,7 +40,7 @@ using namespace xamp::base;
 using namespace xamp::stream;
 using namespace xamp::output_device;
 
-class XAMP_PLAYER_API AudioPlayer final :
+class AudioPlayer final :
     public IAudioCallback,
     public IDeviceStateListener,
     public IAudioPlayer,
@@ -52,8 +52,6 @@ public:
 
     explicit AudioPlayer(const std::weak_ptr<IPlaybackStateAdapter>& adapter);
 
-    static void Initialize();
-
     XAMP_DISABLE_COPY(AudioPlayer)
 
     void Startup() override;
@@ -61,10 +59,6 @@ public:
     void Open(Path const& file_path, const Uuid& device_id = Uuid::kInvalidUUID) override;
 
     void Open(Path const& file_path, const DeviceInfo& device_info, uint32_t target_sample_rate = 0, AlignPtr<ISampleRateConverter> converter = nullptr)  override;
-#ifdef XAMP_OS_WIN
-    static AlignPtr<ICDDevice> & OpenCD(int32_t driver_letter);
-#endif
-    static void CloseCD();
 
     void PrepareToPlay() override;
 
@@ -175,7 +169,6 @@ private:
 
     XAMP_ENFORCE_TRIVIAL(AudioSlice)
 
-    static AlignPtr<ICDDevice> cd_device_;
     bool is_muted_;
     bool enable_sample_converter_;
     bool enable_processor_;

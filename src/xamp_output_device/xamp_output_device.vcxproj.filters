@@ -25,15 +25,14 @@
     <ClCompile Include="include\output_device\posix\alsadevicetype.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\output_device\audiocallback.h" />
-    <ClInclude Include="include\output_device\device.h" />
+    <ClInclude Include="include\output_device\iaudiocallback.h" />
+    <ClInclude Include="include\output_device\idevice.h" />
     <ClInclude Include="include\output_device\deviceinfo.h" />
-    <ClInclude Include="include\output_device\device_type.h" />
+    <ClInclude Include="include\output_device\idevicetype.h" />
     <ClInclude Include="include\output_device\output_device.h" />
     <ClInclude Include="include\output_device\win32\exclusivewasapidevice.h" />
     <ClInclude Include="include\output_device\win32\exclusivewasapidevicetype.h" />
     <ClInclude Include="include\output_device\win32\hrexception.h" />
-    <ClInclude Include="include\output_device\win32\mfasynccallback.h" />
     <ClInclude Include="include\output_device\win32\mmcss_types.h" />
     <ClInclude Include="include\output_device\win32\sharedwasapidevicetype.h" />
     <ClInclude Include="include\output_device\win32\sharedwasapidevice.h" />
@@ -41,15 +40,16 @@
     <ClInclude Include="include\output_device\asiodevice.h" />
     <ClInclude Include="include\output_device\asiodevicetype.h" />
     <ClInclude Include="include\output_device\asioexception.h" />
-    <ClInclude Include="include\output_device\devicestatelistener.h" />
+    <ClInclude Include="include\output_device\idevicestatelistener.h" />
     <ClInclude Include="include\output_device\volume.h" />
-    <ClInclude Include="include\output_device\dsddevice.h" />
+    <ClInclude Include="include\output_device\idsddevice.h" />
     <ClInclude Include="include\output_device\win32\mmcss.h" />
     <ClInclude Include="include\output_device\devicestate.h" />
-    <ClInclude Include="include\output_device\devicestatenotification.h" />
+    <ClInclude Include="include\output_device\idevicestatenotification.h" />
     <ClInclude Include="include\output_device\win32\win32devicestatenotification.h" />
     <ClInclude Include="include\output_device\audiodevicemanager.h" />
     <ClInclude Include="include\output_device\posix\alsadevicetype.h" />
+    <ClInclude Include="include\output_device\iaudiodevicemanager.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="asiosdk">
