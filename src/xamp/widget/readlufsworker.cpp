@@ -9,7 +9,7 @@
 
 #include <stream/filestream.h>
 #include <stream/idsdstream.h>
-#include <stream/stream_util.h>
+#include <stream/api.h>
 
 #include <widget/playlistentity.h>
 #include <widget/readlufsworker.h>

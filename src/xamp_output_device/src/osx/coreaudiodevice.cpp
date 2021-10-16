@@ -11,7 +11,7 @@
 #include <base/singleton.h>
 
 #include <output_device/osx/osx_utitl.h>
-#include <output_device/audiocallback.h>
+#include <output_device/iaudiocallback.h>
 #include <output_device/osx/coreaudioexception.h>
 #include <output_device/osx/coreaudiodevice.h>
 
@@ -308,7 +308,7 @@ void CoreAudioDevice::OpenStream(AudioFormat const &output_format) {
     }
 }
 
-void CoreAudioDevice::SetAudioCallback(AudioCallback *callback) noexcept {
+void CoreAudioDevice::SetAudioCallback(IAudioCallback *callback) noexcept {
     callback_ = callback;
 }
 

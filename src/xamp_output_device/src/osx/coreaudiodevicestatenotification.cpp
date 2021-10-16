@@ -9,7 +9,7 @@ inline constexpr AudioObjectPropertyAddress sAddOrRemoveDevicesPropertyAddress =
     kAudioObjectPropertyElementMaster
 };
 
-CoreAudioDeviceStateNotification::CoreAudioDeviceStateNotification(std::weak_ptr<DeviceStateListener> callback)
+CoreAudioDeviceStateNotification::CoreAudioDeviceStateNotification(std::weak_ptr<IDeviceStateListener> callback)
     : callback_(callback) {
 }
 

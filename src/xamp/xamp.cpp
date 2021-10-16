@@ -121,7 +121,7 @@ Xamp::Xamp()
     , player_(MakeAudioPlayer(state_adapter_))
     , discord_notify_(this) {
 #else
-    , player_(audio_util::MakeAudioPlayer(state_adapter_)) {
+    , player_(MakeAudioPlayer(state_adapter_)) {
 #endif
     registerMetaType();
     ui_.setupUi(this);

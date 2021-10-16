@@ -81,7 +81,7 @@ public:
 
     [[nodiscard]] virtual bool IsEnableSampleRateConverter() const = 0;
 
-    [[nodiscard]] virtual void SetDevice(const DeviceInfo& device_info) = 0;
+    virtual void SetDevice(const DeviceInfo& device_info) = 0;
 
     [[nodiscard]] virtual DeviceInfo GetDevice() const = 0;
 

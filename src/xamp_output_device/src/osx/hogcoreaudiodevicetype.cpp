@@ -16,9 +16,9 @@ std::string_view HogCoreAudioDeviceType::GetDescription() const {
     return "CoreAudio (Exclusive Mode)";
 }
 
-AlignPtr<Device> HogCoreAudioDeviceType::MakeDevice(const std::string &device_id) {
+AlignPtr<IDevice> HogCoreAudioDeviceType::MakeDevice(const std::string &device_id) {
     auto id = GetAudioDeviceIdByUid(false, device_id);
-    return MakeAlign<Device, CoreAudioDevice>(id, true);
+    return MakeAlign<IDevice, CoreAudioDevice>(id, true);
 }
 
 Uuid HogCoreAudioDeviceType::GetTypeId() const {

@@ -14,16 +14,16 @@
 #include <CoreAudio/AudioHardware.h>
 
 #include <base/align_ptr.h>
-#include <output_device/devicestatelistener.h>
-#include <output_device/devicestatenotification.h>
+#include <output_device/idevicestatelistener.h>
+#include <output_device/idevicestatenotification.h>
 
 namespace xamp::output_device::osx {
 
 using namespace base;
 
-class CoreAudioDeviceStateNotification : public DeviceStateNotification {
+class CoreAudioDeviceStateNotification : public IDeviceStateNotification {
 public:
-    explicit CoreAudioDeviceStateNotification(std::weak_ptr<DeviceStateListener> callback);
+    explicit CoreAudioDeviceStateNotification(std::weak_ptr<IDeviceStateListener> callback);
 
     ~CoreAudioDeviceStateNotification() override;
 
@@ -40,7 +40,7 @@ private:
         AudioObjectPropertyAddress const addresses[],
         void* context);
 
-    std::weak_ptr<DeviceStateListener> callback_;
+    std::weak_ptr<IDeviceStateListener> callback_;
 };
 
 }

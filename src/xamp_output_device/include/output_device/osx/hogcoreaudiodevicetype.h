@@ -9,7 +9,7 @@
 
 #ifdef XAMP_OS_MAC
 
-#include <output_device/device_type.h>
+#include <output_device/idevicetype.h>
 #include <output_device/osx/coreaudiodevicetype.h>
 
 #include <CoreAudio/CoreAudio.h>
@@ -30,7 +30,7 @@ public:
 
     Uuid GetTypeId() const override;
 
-    AlignPtr<Device> MakeDevice(const std::string &device_id) override;
+    AlignPtr<IDevice> MakeDevice(const std::string &device_id) override;
 };
 
 }

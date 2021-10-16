@@ -17,13 +17,13 @@
 #include <base/audioformat.h>
 #include <base/align_ptr.h>
 #include <base/dataconverter.h>
-#include <output_device/device.h>
+#include <output_device/idevice.h>
 
 namespace xamp::output_device::osx {
 
 using namespace base;
 
-class XAMP_OUTPUT_DEVICE_API CoreAudioDevice final : public Device {
+class XAMP_OUTPUT_DEVICE_API CoreAudioDevice final : public IDevice {
 public:
     CoreAudioDevice(AudioDeviceID device_id, bool is_hog_mode);
 
@@ -31,7 +31,7 @@ public:
 
     void OpenStream(AudioFormat const &output_format) override;
 
-    void SetAudioCallback(AudioCallback *callback) noexcept override;
+    void SetAudioCallback(IAudioCallback *callback) noexcept override;
 
     bool IsStreamOpen() const noexcept override;
 
@@ -81,7 +81,7 @@ private:
     AudioDeviceIOProcID ioproc_id_;
     uint32_t buffer_size_;
     uint32_t latency_;
-    AudioCallback *callback_;
+    IAudioCallback *callback_;
     std::atomic<double> stream_time_;
     mutable AudioObjectPropertyAddress audio_property_;
     AudioFormat format_;
