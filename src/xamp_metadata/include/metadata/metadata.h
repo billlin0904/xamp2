@@ -20,7 +20,7 @@
 namespace xamp::metadata {
     using namespace xamp::base;
 
-    class MetadataExtractAdapter;
-    class MetadataReader;
-    class MetadataWriter;
+    class IMetadataExtractAdapter;
+    class IMetadataReader;
+    class IMetadataWriter;
 }

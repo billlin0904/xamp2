@@ -10,7 +10,7 @@
 
 #include <atomic>
 #include <utility>
-#include <metadata/metadatareader.h>
+#include <metadata/imetadatareader.h>
 #include <widget/widget_shared.h>
 
 #include "thememanager.h"
@@ -99,7 +99,7 @@ std::tuple<int32_t, int32_t, QString> DatabaseIdCache::AddCache(const QString &a
 using xamp::metadata::Metadata;
 using xamp::metadata::Path;
 
-class ExtractAdapterProxy : public xamp::metadata::MetadataExtractAdapter {
+class ExtractAdapterProxy : public xamp::metadata::IMetadataExtractAdapter {
 public:
     explicit ExtractAdapterProxy(const QSharedPointer<::MetadataExtractAdapter> &adapter)
         : adapter_(adapter) {

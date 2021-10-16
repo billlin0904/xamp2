@@ -14,9 +14,9 @@
 
 namespace xamp::metadata {
 
-class XAMP_METADATA_API XAMP_NO_VTABLE MetadataReader {
+class XAMP_METADATA_API XAMP_NO_VTABLE IMetadataReader {
 public:
-    XAMP_BASE_CLASS(MetadataReader)
+    XAMP_BASE_CLASS(IMetadataReader)
 
     virtual Metadata Extract(Path const &path) = 0;
  
@@ -26,9 +26,9 @@ public:
 
     [[nodiscard]] virtual bool IsSupported(Path const & path) const = 0;
 protected:
-    MetadataReader() = default;
+    IMetadataReader() = default;
 };
 
-XAMP_METADATA_API void WalkPath(Path const & path, MetadataExtractAdapter* adapter, MetadataReader* reader);
+XAMP_METADATA_API void WalkPath(Path const & path, IMetadataExtractAdapter* adapter, IMetadataReader* reader);
 
 }

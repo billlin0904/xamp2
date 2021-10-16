@@ -9,11 +9,11 @@
 #include <base/align_ptr.h>
 
 #include <metadata/metadata.h>
-#include <metadata/metadatawriter.h>
+#include <metadata/imetadatawriter.h>
 
 namespace xamp::metadata {
 
-class TaglibMetadataWriter final : public MetadataWriter {
+class TaglibMetadataWriter final : public IMetadataWriter {
 public:
     TaglibMetadataWriter();
 

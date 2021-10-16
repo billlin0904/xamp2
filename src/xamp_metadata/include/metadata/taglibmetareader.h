@@ -9,11 +9,11 @@
 #include <base/align_ptr.h>
 
 #include <metadata/metadata.h>
-#include <metadata/metadatareader.h>
+#include <metadata/imetadatareader.h>
 
 namespace xamp::metadata {
 
-class TaglibMetadataReader final : public MetadataReader {
+class TaglibMetadataReader final : public IMetadataReader {
 public:
     TaglibMetadataReader();
 

@@ -7,14 +7,14 @@
 
 #include <base/align_ptr.h>
 #include <metadata/metadata.h>
-#include <metadata/metadatareader.h>
-#include <metadata/metadatawriter.h>
+#include <metadata/imetadatareader.h>
+#include <metadata/imetadatawriter.h>
 
 namespace xamp::metadata {
 
-XAMP_METADATA_API AlignPtr<MetadataReader> MakeMetadataReader();
+XAMP_METADATA_API AlignPtr<IMetadataReader> MakeMetadataReader();
 
-XAMP_METADATA_API AlignPtr<MetadataWriter> MakeMetadataWriter();
+XAMP_METADATA_API AlignPtr<IMetadataWriter> MakeMetadataWriter();
 
 }
 

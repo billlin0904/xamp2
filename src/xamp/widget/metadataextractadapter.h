@@ -6,7 +6,7 @@
 #pragma once
 
 #include <QObject>
-#include <metadata/metadataextractadapter.h>
+#include <metadata/imetadataextractadapter.h>
 #include <widget/pixmapcache.h>
 
 class PlayListTableView;

@@ -5,12 +5,12 @@
 
 namespace xamp::metadata {
 
-AlignPtr<MetadataReader> MakeMetadataReader() {
-	return MakeAlign<MetadataReader, TaglibMetadataReader>();
+AlignPtr<IMetadataReader> MakeMetadataReader() {
+	return MakeAlign<IMetadataReader, TaglibMetadataReader>();
 }
 
-AlignPtr<MetadataWriter> MakeMetadataWriter() {
-	return MakeAlign<MetadataWriter, TaglibMetadataWriter>();
+AlignPtr<IMetadataWriter> MakeMetadataWriter() {
+	return MakeAlign<IMetadataWriter, TaglibMetadataWriter>();
 }
 
 }

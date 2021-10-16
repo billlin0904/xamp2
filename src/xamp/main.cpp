@@ -8,8 +8,6 @@
 #include <base/vmmemlock.h>
 #include <base/str_utilts.h>
 
-#include <metadata/metadatareader.h>
-
 #include <player/api.h>
 #include <player/soxresampler.h>
 
@@ -117,14 +115,14 @@ static std::vector<ModuleHandle> preloadDll() {
 
 static void setLogLevel(spdlog::level::level_enum level = spdlog::level::info) {
     Logger::GetInstance().GetLogger(kThreadPoolLoggerName)->set_level(level);
-    Logger::GetInstance().GetLogger(kExclusiveWasapiDeviceLoggerName)->set_level(spdlog::level::debug);
-    Logger::GetInstance().GetLogger(kSharedWasapiDeviceLoggerName)->set_level(spdlog::level::debug);
+    Logger::GetInstance().GetLogger(kExclusiveWasapiDeviceLoggerName)->set_level(level);
+    Logger::GetInstance().GetLogger(kSharedWasapiDeviceLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kAsioDeviceLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kAudioPlayerLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kVirtualMemoryLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kResamplerLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kCompressorLoggerName)->set_level(level);
-    Logger::GetInstance().GetLogger(kCoreAudioLoggerName)->set_level(spdlog::level::debug);
+    Logger::GetInstance().GetLogger(kCoreAudioLoggerName)->set_level(level);
 }
 
 static int excute(int argc, char* argv[]) {
@@ -170,13 +168,13 @@ static int excute(int argc, char* argv[]) {
         return -1;
     }   
 
-//    SingleInstanceApplication single_app;
-//#ifndef _DEBUG
-//    if (!single_app.attach(QCoreApplication::arguments())) {
-//        return -1;
-//    }
-//#endif
-//    XAMP_LOG_DEBUG("attach app success.");
+    SingleInstanceApplication single_app;
+#ifndef _DEBUG
+    if (!single_app.attach(QCoreApplication::arguments())) {
+        return -1;
+    }
+#endif
+    XAMP_LOG_DEBUG("attach app success.");
 
     (void)Singleton<PixmapCache>::GetInstance();
     XAMP_LOG_DEBUG("PixmapCache init success.");

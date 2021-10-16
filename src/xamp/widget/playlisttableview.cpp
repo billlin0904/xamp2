@@ -18,8 +18,6 @@
 #include <stream/icddevice.h>
 #include <player/api.h>
 
-#include <metadata/metadatareader.h>
-#include <metadata/metadatawriter.h>
 #include <metadata/api.h>
 
 #include <rapidxml.hpp>

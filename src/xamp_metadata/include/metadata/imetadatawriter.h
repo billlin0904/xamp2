@@ -10,9 +10,9 @@
 
 namespace xamp::metadata {
 
-class XAMP_METADATA_API XAMP_NO_VTABLE MetadataWriter {
+class XAMP_METADATA_API XAMP_NO_VTABLE IMetadataWriter {
 public:
-    XAMP_BASE_CLASS(MetadataWriter)
+    XAMP_BASE_CLASS(IMetadataWriter)
 
     [[nodiscard]] virtual bool IsFileReadOnly(Path const & path) const = 0;
     
@@ -21,7 +21,7 @@ public:
     virtual void WriteEmbeddedCover(Path const& path, std::vector<uint8_t> const& image) const = 0;
 
 protected:
-    MetadataWriter() = default;
+    IMetadataWriter() = default;
 };
 
 }

@@ -10,9 +10,9 @@
 
 namespace xamp::metadata {
 
-class XAMP_METADATA_API XAMP_NO_VTABLE MetadataExtractAdapter {
+class XAMP_METADATA_API XAMP_NO_VTABLE IMetadataExtractAdapter {
 public:
-    virtual ~MetadataExtractAdapter() = default;
+    virtual ~IMetadataExtractAdapter() = default;
 
     virtual void OnWalk(Path const &path, Metadata metadata) = 0;
 
@@ -22,7 +22,7 @@ public:
 
     virtual bool IsSupported(Path const& path) const noexcept = 0;
 protected:
-    MetadataExtractAdapter() = default;
+    IMetadataExtractAdapter() = default;
 };
 
 }

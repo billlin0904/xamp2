@@ -1,9 +1,9 @@
-#include <metadata/metadataextractadapter.h>
-#include <metadata/metadatareader.h>
+#include <metadata/imetadataextractadapter.h>
+#include <metadata/imetadatareader.h>
 
 namespace xamp::metadata {
 	
-void WalkPath(Path const & path, MetadataExtractAdapter* adapter, MetadataReader *reader) {
+void WalkPath(Path const & path, IMetadataExtractAdapter* adapter, IMetadataReader *reader) {
 	adapter->OnWalkFirst();
 	
     if (Fs::is_directory(path)) {
