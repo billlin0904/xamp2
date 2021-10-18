@@ -180,7 +180,7 @@ void drawDwmShadow(const QWidget* widget) {
 	/*auto policy = DWMNCRENDERINGPOLICY::DWMNCRP_ENABLED;
 	DWMDLL.DwmSetWindowAttribute(hwnd, DWMWINDOWATTRIBUTE::DWMWA_NCRENDERING_POLICY, &policy, sizeof(policy));*/
 
-	MARGINS borderless = { 0, 1, 0, 1 };
+	MARGINS borderless = { -1, -1, -1, -1 };
 	DWMDLL.DwmExtendFrameIntoClientArea(hwnd, &borderless);
 }
 

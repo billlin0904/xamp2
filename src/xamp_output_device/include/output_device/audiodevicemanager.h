@@ -23,7 +23,7 @@ namespace xamp::output_device {
 
 using namespace base;
 
-class XAMP_OUTPUT_DEVICE_API AudioDeviceManager final : public IAudioDeviceManager {
+class AudioDeviceManager final : public IAudioDeviceManager {
 public:
     AudioDeviceManager();
 	
@@ -47,15 +47,7 @@ public:
 
     [[nodiscard]] bool IsSupportASIO() const noexcept;
 
-    [[nodiscard]] bool IsDeviceTypeExist(Uuid const& id) const noexcept;
-
-    static bool IsExclusiveDevice(DeviceInfo const &info) noexcept;
-
-    static bool IsASIODevice(Uuid const& id) noexcept;
-
-    static void ResetASIODriver();
-
-    static void PreventSleep(bool allow);
+    [[nodiscard]] bool IsDeviceTypeExist(Uuid const& id) const noexcept;    
 private:
     class DeviceStateNotificationImpl;
 

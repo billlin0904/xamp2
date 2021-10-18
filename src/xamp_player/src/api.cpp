@@ -2,7 +2,7 @@
 #include <base/logger.h>
 #include <base/threadpool.h>
 
-#include <output_device/audiodevicemanager.h>
+#include <output_device/api.h>
 
 #include <stream/bassfilestream.h>
 #include <stream/icddevice.h>
@@ -50,7 +50,7 @@ void Xamp2Startup() {
         // Ignore exception.
     }
 
-    AudioDeviceManager::PreventSleep(true);
+    PreventSleep(true);
 
 #ifdef XAMP_OS_WIN
     ThreadPool::WASAPIThreadPool();

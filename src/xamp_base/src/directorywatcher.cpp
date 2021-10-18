@@ -47,7 +47,7 @@ struct OverlappedEx : OVERLAPPED {
 
 class DirectoryWatcher::WatcherWorkerImpl {
 public:
-    explicit WatcherWorkerImpl(std::weak_ptr<FileChangedCallback> callback)
+    explicit WatcherWorkerImpl(std::weak_ptr<IFileChangedCallback> callback)
         : callback_(callback) {
         iocp_handle_.reset(AttachHandle(nullptr, INVALID_HANDLE_VALUE));
     }
@@ -199,9 +199,10 @@ public:
 
     FastMutex lock_;
     WinHandle iocp_handle_;
+    std::thread thread_;
     std::vector<DirectoryChangeEntry> change_entries_;
     HashMap<std::wstring, AlignPtr<OverlappedEx>> watch_file_handles_;
-    std::weak_ptr<FileChangedCallback> callback_;
+    std::weak_ptr<IFileChangedCallback> callback_;
 };
 #else
 class DirectoryWatcher::WatcherWorkerImpl {
@@ -214,7 +215,7 @@ public:
 
 XAMP_PIMPL_IMPL(DirectoryWatcher)
 
-DirectoryWatcher::DirectoryWatcher(std::weak_ptr<FileChangedCallback> callback)
+DirectoryWatcher::DirectoryWatcher(std::weak_ptr<IFileChangedCallback> callback)
 	: impl_(MakeAlign<WatcherWorkerImpl>(callback)) {
 }
 

@@ -122,7 +122,7 @@ public:
             XAMP_NO_DEFAULT;
         }
 
-        XAMP_LOG_DEBUG("Use DsdModes: {}", mode_);
+        XAMP_LOG_TRACE("Use DsdModes: {}", mode_);
 
         int32_t retry_count = 0;
 FlushFileCache:

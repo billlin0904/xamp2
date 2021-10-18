@@ -15,6 +15,8 @@ public:
 
     void addTab(const QString& name, int table_id, const QIcon &icon);
 
+    void addSeparator();
+
 signals:
     void clickedTable(int table_id);
 

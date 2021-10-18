@@ -1,7 +1,7 @@
 #include <base/logger.h>
 #include <base/threadpool.h>
 
-#include <output_device/audiodevicemanager.h>
+#include <output_device/api.h>
 
 #include <stream/idsdstream.h>
 #include <stream/bassfilestream.h>
@@ -18,7 +18,7 @@ DsdModes SetStreamDsdMode(AlignPtr<FileStream>& stream, bool is_dsd_file, const 
     if (is_dsd_file) {
         if (auto* dsd_stream = AsDsdStream(stream)) {
             if (is_dsd_file && device_info.is_support_dsd && !enable_sample_converter) {
-                if (AudioDeviceManager::IsASIODevice(device_info.device_type_id)) {
+                if (IsASIODevice(device_info.device_type_id)) {
                     dsd_stream->SetDSDMode(DsdModes::DSD_MODE_NATIVE);
                     dsd_mode = DsdModes::DSD_MODE_NATIVE;
                 }

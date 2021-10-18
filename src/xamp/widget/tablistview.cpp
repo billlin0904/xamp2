@@ -29,3 +29,14 @@ void TabListView::addTab(const QString& name, int table_id, const QIcon& icon) {
     f.setPointSize(22);
     model_.appendRow(item);
 }
+
+void TabListView::addSeparator() {
+    auto* item = new QStandardItem();
+    item->setFlags(Qt::NoItemFlags);
+    auto* hline = new QFrame(this);
+    item->setSizeHint(QSize(80, 2));
+    hline->setFrameStyle(QFrame::HLine | QFrame::Sunken);
+    model_.appendRow(item);
+    auto index = model_.indexFromItem(item);
+    setIndexWidget(index, hline);
+}

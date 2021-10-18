@@ -15,8 +15,6 @@ namespace xamp::base {
 
 #ifdef XAMP_OS_WIN
 
-XAMP_BASE_API int _FutexWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, const struct timespec* to);
-
 static constexpr uint32_t kUnlocked = 0;
 static constexpr uint32_t kLocked = 1;
 static constexpr uint32_t kSleeper = 2;
@@ -37,6 +35,8 @@ private:
 };
 	
 using FastMutex = SRWMutex;
+
+XAMP_BASE_API int _FutexWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, const struct timespec* to);
 
 class XAMP_BASE_API FastMutexConditionVariable final {
 public:

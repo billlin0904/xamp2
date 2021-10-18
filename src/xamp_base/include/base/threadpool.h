@@ -32,11 +32,11 @@ public:
     XAMP_ALWAYS_INLINE void operator()(int32_t thread_index) {
 	    impl_->Call(thread_index);
     }
-
+#if defined(_DEBUG)
     XAMP_ALWAYS_INLINE long long ExecutedTime() const noexcept {
         return impl_->ExecutedTime();
     }
-	
+#endif
     TaskWrapper() = default;
 	
     TaskWrapper(TaskWrapper&& other) noexcept
@@ -54,7 +54,9 @@ private:
     struct XAMP_NO_VTABLE ImplBase {
         virtual ~ImplBase() = default;
         virtual void Call(int32_t thread_index) = 0;
+#if defined(_DEBUG)
         virtual long long ExecutedTime() const noexcept = 0;
+#endif
     };
 
     AlignPtr<ImplBase> impl_;
@@ -75,6 +77,7 @@ private:
             f_(thread_index);
         }
 
+#if defined(_DEBUG)
         static std::chrono::time_point<std::chrono::steady_clock> Now() noexcept {
             return std::chrono::steady_clock::now();
 	    }
@@ -85,6 +88,7 @@ private:
         }
 
         const std::chrono::time_point<std::chrono::steady_clock> start_time_ = Now();
+#endif
         Func f_;
     };
 };

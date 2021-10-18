@@ -23,7 +23,7 @@
 #include <base/stopwatch.h>
 #endif
 
-#include <output_device/audiodevicemanager.h>
+#include <output_device/iaudiodevicemanager.h>
 #include <output_device/iaudiocallback.h>
 #include <output_device/deviceinfo.h>
 

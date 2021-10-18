@@ -31,7 +31,7 @@ class IDsdDevice;
 class IAudioDeviceManager;
 
 class IAudioCallback;
-class DeviceStateListener;
-class DeviceStateNotification;
+class IDeviceStateListener;
+class IDeviceStateNotification;
 
 }

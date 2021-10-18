@@ -43,7 +43,7 @@ void TaskScheduler::SubmitJob(Task&& task) {
 
 	for (size_t n = 0; n < max_thread_ * K; ++n) {
 		const auto index = (i + n) % max_thread_;
-		if (shared_queues_.at(index)->TryEnqueue(task)) {
+		XAMP_LIKELY(shared_queues_.at(index)->TryEnqueue(task)) {
 #ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
 			XAMP_LOG_D(logger_, "Enqueue thread {} queue.", index);
 #endif
@@ -168,7 +168,7 @@ void TaskScheduler::AddThread(size_t i) {
 				}
 			}
 			auto active_thread = ++active_thread_;
-#ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
+#ifdef defined(XAMP_ENABLE_THREAD_POOL_DEBUG) && defined(_DEBUG)
 			XAMP_LOG_D(logger_, "Worker Thread {} ({}) weakup, active:{}. executed time:{} sec",
 				i, thread_id, active_thread, static_cast<double>((*task).ExecutedTime()) / 1000.0);
 #endif

@@ -8,7 +8,7 @@
 
 namespace xamp::base {
 
-static XAMP_ALWAYS_INLINE void _FutexWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected) {
+XAMP_ALWAYS_INLINE void _FutexWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected) {
 #ifdef XAMP_OS_WIN
 		::WaitOnAddress(&to_wait_on, &expected, sizeof(expected), INFINITE);
 #elif defined(XAMP_OS_LINUX)
@@ -96,7 +96,7 @@ void SRWMutex::unlock() noexcept {
 	::ReleaseSRWLockExclusive(&lock_);
 }
 
-[[nodiscard]] bool SRWMutex::try_lock() noexcept {
+bool SRWMutex::try_lock() noexcept {
 	return ::TryAcquireSRWLockExclusive(&lock_);
 }
 #endif

@@ -74,6 +74,8 @@ QVariant PlayListSqlQueryTableModel::data(const QModelIndex& index, int32_t role
         case PLAYLIST_TRUE_PEAK:
         case PLAYLIST_TIMESTAMP:
             return QVariant(Qt::AlignVCenter | Qt::AlignRight);
+        case PLAYLIST_SAMPLE_RATE:
+            return QVariant(Qt::AlignVCenter | Qt::AlignHCenter);
         }
     default:
         break;

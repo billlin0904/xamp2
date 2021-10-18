@@ -8,10 +8,10 @@
 #include <QUrl>
 #include <QWidget>
 
-class TopWindow : public QWidget {
+class ITopWindow : public QWidget {
     Q_OBJECT
 public:
-    virtual ~TopWindow() override = default;
+    virtual ~ITopWindow() override = default;
 
     virtual void setTaskbarProgress(int32_t percent) = 0;
 
@@ -27,13 +27,13 @@ public:
 
     virtual bool useNativeWindow() const noexcept = 0;
 protected:
-    TopWindow() = default;
+    ITopWindow() = default;
 };
 
-class XampPlayer : public QWidget {
+class IXampPlayer : public QWidget {
     Q_OBJECT
 public:
-    virtual ~XampPlayer() override = default;
+    virtual ~IXampPlayer() override = default;
 
     virtual void addDropFileItem(const QUrl& url) = 0;
 
@@ -47,6 +47,6 @@ public:
 
     virtual void play() = 0;
 protected:
-    XampPlayer() = default;
+    IXampPlayer() = default;
 };
 

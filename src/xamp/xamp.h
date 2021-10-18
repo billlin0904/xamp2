@@ -39,7 +39,7 @@ class PlaybackHistoryPage;
 class QWidgetAction;
 struct PlaybackFormat;
 
-class Xamp final : public XampPlayer {
+class Xamp final : public IXampPlayer {
 	Q_OBJECT
 
 public:
@@ -47,7 +47,7 @@ public:
 
     virtual ~Xamp() override = default;
 
-    void initial(TopWindow *top_window);
+    void initial(ITopWindow *top_window);
 signals:
 	void payNextMusic();
 
@@ -187,6 +187,6 @@ private:
 #ifdef Q_OS_WIN
     DicordNotify discord_notify_;
 #endif
-    TopWindow *top_window_;
+    ITopWindow *top_window_;
     Ui::XampWindow ui_;
 };

@@ -23,13 +23,13 @@ class QScreen;
 class QSystemTrayIcon;
 class QMenu;
 
-class FramelessWindow final : public TopWindow {
+class FramelessWindow final : public ITopWindow {
 public:
     FramelessWindow();
 
 	virtual ~FramelessWindow() override;
 
-    void initial(XampPlayer *content_widget);
+    void initial(IXampPlayer *content_widget);
 
     void setTaskbarProgress(int32_t percent) override;
 
@@ -93,5 +93,5 @@ private:
 	QScopedPointer<QWinTaskbarButton> taskbar_button_;
 	QWinTaskbarProgress* taskbar_progress_;
 #endif
-    XampPlayer *content_widget_;
+    IXampPlayer *content_widget_;
 };

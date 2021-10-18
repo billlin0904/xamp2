@@ -17,25 +17,24 @@
 #include <widget/osx/osx.h>
 #endif
 
-#include <QGraphicsDropShadowEffect>
-
 #include "thememanager.h"
 #include <widget/appsettings.h>
 #include <widget/str_utilts.h>
 #include <widget/framelesswindow.h>
 
 FramelessWindow::FramelessWindow()
-    : TopWindow()
+    : ITopWindow()
     , use_native_window_(!AppSettings::getValueAsBool(kAppSettingUseFramelessWindow))
 #if defined(Q_OS_WIN)
     , border_width_(5)
     , current_screen_(nullptr)
     , taskbar_progress_(nullptr)
 #endif
+	, content_widget_(nullptr)
 {
 }
 
-void FramelessWindow::initial(XampPlayer *content_widget) {
+void FramelessWindow::initial(IXampPlayer *content_widget) {
     // todo: DropShadow效果會讓CPU使用率偏高.
     // todo: 使用border-radius: 5px;將無法縮放視窗
     // todo: Qt::WA_TranslucentBackground + paintEvent 將無法縮放視窗
@@ -101,21 +100,21 @@ void FramelessWindow::createThumbnailToolBar() {
     (void)QObject::connect(play_tool_button,
         &QWinThumbnailToolButton::clicked,
         content_widget_,
-        &XampPlayer::play);
+        &IXampPlayer::play);
 
     auto* forward_tool_button = new QWinThumbnailToolButton(thumbnail_tool_bar_.get());
     forward_tool_button->setIcon(seek_forward_icon_);
     (void)QObject::connect(forward_tool_button,
         &QWinThumbnailToolButton::clicked,
         content_widget_,
-        &XampPlayer::playNextClicked);
+        &IXampPlayer::playNextClicked);
 
     auto* backward_tool_button = new QWinThumbnailToolButton(thumbnail_tool_bar_.get());
     backward_tool_button->setIcon(seek_backward_icon_);
     (void)QObject::connect(backward_tool_button,
         &QWinThumbnailToolButton::clicked,
         content_widget_,
-        &XampPlayer::playPreviousClicked);
+        &IXampPlayer::playPreviousClicked);
 
     thumbnail_tool_bar_->addButton(backward_tool_button);
     thumbnail_tool_bar_->addButton(play_tool_button);

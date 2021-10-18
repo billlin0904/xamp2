@@ -22,17 +22,17 @@ struct DirectoryChangeEntry {
 	Path new_path;
 };
 
-class FileChangedCallback {
+class IFileChangedCallback {
 public:
-	virtual ~FileChangedCallback() = default;
+	virtual ~IFileChangedCallback() = default;
 	virtual void OnFileChanged(std::wstring const& path) = 0;
 protected:
-	FileChangedCallback() = default;
+	IFileChangedCallback() = default;
 };
 
 class DirectoryWatcher {
 public:
-	explicit DirectoryWatcher(std::weak_ptr<FileChangedCallback> callback);
+	explicit DirectoryWatcher(std::weak_ptr<IFileChangedCallback> callback);
 
 	XAMP_PIMPL(DirectoryWatcher)
 

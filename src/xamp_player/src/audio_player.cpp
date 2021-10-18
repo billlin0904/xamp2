@@ -9,7 +9,7 @@
 #include <base/buffer.h>
 #include <base/timer.h>
 
-#include <output_device/audiodevicemanager.h>
+#include <output_device/api.h>
 #include <output_device/asiodevicetype.h>
 #include <output_device/idsddevice.h>
 
@@ -73,7 +73,7 @@ AudioPlayer::AudioPlayer(const std::weak_ptr<IPlaybackStateAdapter> &adapter)
     , is_paused_(false)
     , sample_end_time_(0)
     , stream_duration_(0)
-    , device_manager_(MakeAlign<IAudioDeviceManager, AudioDeviceManager>())
+    , device_manager_(MakeAudioDeviceManager())
     , state_adapter_(adapter)
     , fifo_(GetPageAlignSize(kPreallocateBufferSize))
     , seek_queue_(kMsgQueueSize)
@@ -95,7 +95,7 @@ void AudioPlayer::Destroy() {
     converter_.reset();
     read_buffer_.reset();
 #ifdef ENABLE_ASIO
-    AudioDeviceManager::ResetASIODriver();
+    ResetASIODriver();
 #endif
     FreeBassLib();
 }
@@ -159,7 +159,7 @@ void AudioPlayer::CreateDevice(Uuid const & device_type_id, std::string const & 
         || device_type_id_ != device_type_id
         || open_always) {
         if (device_type_id_ != device_type_id) {
-            AudioDeviceManager::ResetASIODriver();
+            ResetASIODriver();
             device_.reset();
         }
     	
@@ -283,9 +283,9 @@ void AudioPlayer::Stop(bool signal_to_stop, bool shutdown_device, bool wait_for_
 
     if (shutdown_device) {
         XAMP_LOG_D(logger_, "Shutdown device.");
-        if (AudioDeviceManager::IsASIODevice(device_type_id_)) {
+        if (IsASIODevice(device_type_id_)) {
             device_.reset();
-            AudioDeviceManager::ResetASIODriver();            
+            ResetASIODriver();            
         }
         device_id_.clear();
         device_.reset();
@@ -523,8 +523,8 @@ void AudioPlayer::OnDeviceStateChange(DeviceState state, std::string const & dev
             XAMP_LOG_D(logger_, "Device removed device id:{}.", device_id);
             if (device_id == device_id_) {
                 // TODO: In many system has more ASIO device.
-                if (AudioDeviceManager::IsASIODevice(device_type_->GetTypeId())) {
-                    AudioDeviceManager::ResetASIODriver();
+                if (IsASIODevice(device_type_->GetTypeId())) {
+                    ResetASIODriver();
                 }
                 
                 state_adapter->OnDeviceChanged(DeviceState::DEVICE_STATE_REMOVED);

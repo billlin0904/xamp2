@@ -14,7 +14,7 @@
 #include <stream/compressor.h>
 #include <stream/podcastcache.h>
 
-#include <output_device/audiodevicemanager.h>
+#include <output_device/api.h>
 
 #include <player/soxresampler.h>
 #include <player/api.h>
@@ -127,7 +127,7 @@ Xamp::Xamp()
     ui_.setupUi(this);
 }
 
-void Xamp::initial(TopWindow *top_window) {
+void Xamp::initial(ITopWindow *top_window) {
     top_window_ = top_window;
     player_->Startup();
     PodcastCache.SetTempPath(AppSettings::getValueAsString(kAppSettingPodcastCachePath).toStdWString());
@@ -389,7 +389,7 @@ void Xamp::initialDeviceList() {
 
         if (!is_find_setting_device) {
             auto itr = std::find_if(device_info_list.begin(), device_info_list.end(), [](const auto& info) {
-                return info.is_default_device && !AudioDeviceManager::IsExclusiveDevice(info);
+                return info.is_default_device && !IsExclusiveDevice(info);
             });
             if (itr != device_info_list.end()) {
                 init_device_info = (*itr);
@@ -1179,9 +1179,11 @@ void Xamp::addTable() {
 void Xamp::initialPlaylist() {
     ui_.sliderBar->addTab(tr("Playlists"), 2, ThemeManager::instance().playlistIcon());
     ui_.sliderBar->addTab(tr("Podcast"), 3, ThemeManager::instance().podcastIcon());
+    ui_.sliderBar->addSeparator();
     ui_.sliderBar->addTab(tr("Albums"), 0, ThemeManager::instance().albumsIcon());
 	ui_.sliderBar->addTab(tr("Artists"), 1, ThemeManager::instance().artistsIcon());
     ui_.sliderBar->addTab(tr("Lyrics"), 4, ThemeManager::instance().subtitleIcon());
+    ui_.sliderBar->addSeparator();
     ui_.sliderBar->addTab(tr("Settings"), 5, ThemeManager::instance().preferenceIcon());
     ui_.sliderBar->addTab(tr("About"), 6, ThemeManager::instance().aboutIcon());
     ui_.sliderBar->setCurrentIndex(ui_.sliderBar->model()->index(0, 0));

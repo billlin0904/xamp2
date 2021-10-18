@@ -182,35 +182,6 @@ std::vector<Uuid> AudioDeviceManager::GetAvailableDeviceType() const {
     return device_types;
 }
 
-bool AudioDeviceManager::IsExclusiveDevice(DeviceInfo const & info) noexcept {
-#ifdef XAMP_OS_WIN
-    Uuid const device_type_id(info.device_type_id);
-    return device_type_id == win32::ExclusiveWasapiDeviceType::Id
-#if ENABLE_ASIO
-           || device_type_id == ASIODeviceType::Id
-#endif
-        ;
-#else
-    (void)info;
-    return false;
-#endif
-}
-
-bool AudioDeviceManager::IsASIODevice(Uuid const& id) noexcept {
-#if defined(ENABLE_ASIO) && defined(XAMP_OS_WIN)
-    return id == ASIODeviceType::Id;
-#else
-    (void)id;
-    return false;
-#endif
-}
-
-void AudioDeviceManager::ResetASIODriver() {
-#if defined(ENABLE_ASIO) && defined(XAMP_OS_WIN)
-    AsioDevice::ResetDriver();
-#endif
-}
-
 bool AudioDeviceManager::IsDeviceTypeExist(Uuid const& id) const noexcept {
     return factory_.find(id) != factory_.end();
 }
@@ -218,22 +189,6 @@ bool AudioDeviceManager::IsDeviceTypeExist(Uuid const& id) const noexcept {
 void AudioDeviceManager::RegisterDeviceListener(std::weak_ptr<IDeviceStateListener> const& callback) {
     impl_ = MakeAlign<DeviceStateNotificationImpl>(callback);
     impl_->Run();
-}
-
-void AudioDeviceManager::PreventSleep(bool allow) {
-#ifdef XAMP_OS_WIN
-    if (allow) {
-        ::SetThreadExecutionState(ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED | ES_CONTINUOUS);
-    } else {
-        ::SetThreadExecutionState(ES_CONTINUOUS);
-    }
-#else
-    if (allow) {
-        iopmAssertion.PreventSleep();
-    } else {
-        iopmAssertion.Reset();
-    }
-#endif
 }
 
 }

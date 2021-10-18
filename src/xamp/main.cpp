@@ -169,6 +169,11 @@ static int excute(int argc, char* argv[]) {
     }   
 
     SingleInstanceApplication single_app;
+    QApplication::setApplicationName(Q_UTF8("XAMP2"));
+    QApplication::setApplicationVersion(Q_UTF8("0.0.1s"));
+    QApplication::setOrganizationName(Q_UTF8("XAMP2 Project"));
+    QApplication::setOrganizationDomain(Q_UTF8("XAMP2 Project"));
+
 #ifndef _DEBUG
     if (!single_app.attach(QCoreApplication::arguments())) {
         return -1;
