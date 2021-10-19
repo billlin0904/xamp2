@@ -1,18 +1,9 @@
-/*
-###############################################################################
-#                                                                             #
-# The MIT License                                                             #
-#                                                                             #
-# Copyright (C) 2017 by Juergen Skrotzky (JorgenVikingGod@gmail.com)          #
-#               >> https://github.com/Jorgen-VikingGod                        #
-#                                                                             #
-# Sources: https://github.com/Jorgen-VikingGod/Qt-Frameless-Window-DarkStyle  #
-#                                                                             #
-###############################################################################
-*/
+//=====================================================================================================================
+// Copyright (c) 2018-2021 xamp project. All rights reserved.
+// More license information, please see LICENSE file in module root folder.
+//=====================================================================================================================
 
-#ifndef DARKSTYLE_HPP
-#define DARKSTYLE_HPP
+#pragma once
 
 #include <QApplication>
 #include <QFile>
@@ -21,19 +12,18 @@
 #include <QStyleFactory>
 
 class DarkStyle : public QProxyStyle {
-  Q_OBJECT
+	Q_OBJECT
 
- public:
-  DarkStyle();
-  explicit DarkStyle(QStyle *style);
+public:
+	DarkStyle();
+	explicit DarkStyle(QStyle* style);
 
-  QStyle *baseStyle() const;
+	QStyle* baseStyle() const;
 
-  void polish(QPalette &palette) override;
-  void polish(QApplication *app) override;
+	void polish(QPalette& palette) override;
+	void polish(QApplication* app) override;
 
- private:
-  QStyle *styleBase(QStyle *style = Q_NULLPTR) const;
+private:
+	QStyle* styleBase(QStyle* style = Q_NULLPTR) const;
 };
 
-#endif  // DARKSTYLE_HPP

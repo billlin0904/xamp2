@@ -28,8 +28,9 @@ QVariant PlayListSqlQueryTableModel::data(const QModelIndex& index, int32_t role
             || index.column() == PLAYLIST_BITRATE
             || index.column() == PLAYLIST_SAMPLE_RATE
             || index.column() == PLAYLIST_TRUE_PEAK
-            || index.column() == PLAYLIST_LUFS) {
-            return QFont(Q_UTF8("FormatFont"));
+            || index.column() == PLAYLIST_LUFS
+            || index.column() == PLAYLIST_TIMESTAMP) {
+            return QFont(Q_UTF8("MonoFont"));
         }
         break;
     case Qt::DisplayRole:

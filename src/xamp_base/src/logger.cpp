@@ -69,13 +69,13 @@ std::shared_ptr<spdlog::logger> Logger::GetLogger(const std::string &name) {
 		std::begin(sinks_),
 		std::end(sinks_));
 
-    logger->set_level(spdlog::level::info);
+    logger->set_level(spdlog::level::debug);
 	logger->set_pattern("[%H:%M:%S.%e][%l][%n][%t] %^%v%$");
 	logger->flush_on(spdlog::level::debug);
 
 	spdlog::register_logger(logger);
 
-	if (name == "xamp") {
+	if (name == kDefaultLoggerName) {
 		default_logger_ = logger;
 	}
 

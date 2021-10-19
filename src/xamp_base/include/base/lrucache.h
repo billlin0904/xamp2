@@ -48,6 +48,7 @@ public:
 
 private:
     size_t max_size_;
+    mutable size_t hit_count_;
     mutable size_t miss_count_;
     mutable CacheMap map_;
     mutable CacheList cache_;
@@ -56,7 +57,8 @@ private:
 template <typename Key, typename Value>
 LruCache<Key, Value>::LruCache(size_t max_size) noexcept
     : max_size_(max_size)
-    , miss_count_(0) {
+    , hit_count_(0)
+	, miss_count_(0) {
 }
 
 template <typename Key, typename Value>
@@ -88,6 +90,7 @@ XAMP_ALWAYS_INLINE Value const* LruCache<Key, Value>::Find(Key const& key) const
         ++miss_count_;
         return nullptr;
     }
+    ++hit_count_;
     cache_.splice(cache_.begin(), cache_, check->second);
     return &check->second->second;
 }

@@ -6,8 +6,8 @@
 #pragma once
 
 #include <QStringList>
-#include <optional>
 
+#include <base/logger.h>
 #include <widget/widget_shared.h>
 #include <widget/playlistentity.h>
 
@@ -64,4 +64,5 @@ private:
 	QStringList cover_ext_;
 	QStringList cache_ext_;
 	mutable LruCache<QString, QPixmap> cache_;
+	std::shared_ptr<spdlog::logger> logger_;
 };

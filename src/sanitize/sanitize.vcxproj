@@ -152,13 +152,6 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
   </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="NTFS.h" />
-    <ClInclude Include="NTFS_Attribute.h" />
-    <ClInclude Include="NTFS_Common.h" />
-    <ClInclude Include="NTFS_DataType.h" />
-    <ClInclude Include="NTFS_FileRecord.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

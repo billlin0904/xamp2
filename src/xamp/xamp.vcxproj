@@ -160,7 +160,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="aboutpage.cpp" />
-    <ClCompile Include="DarkStyle.cpp" />
+    <ClCompile Include="darkstyle.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="preferencepage.cpp" />
     <ClCompile Include="singleinstanceapplication.cpp" />
@@ -248,7 +248,7 @@
     </QtMoc>
     <QtMoc Include="aboutpage.h">
     </QtMoc>
-    <QtMoc Include="DarkStyle.h">
+    <QtMoc Include="darkstyle.h">
     </QtMoc>
     <ClInclude Include="preferencepage.h" />
     <ClInclude Include="resource.h" />

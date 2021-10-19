@@ -5,7 +5,6 @@
 #include <base/threadpool.h>
 #include <base/dsdsampleformat.h>
 #include <base/dataconverter.h>
-#include <base/dsdsampleformat.h>
 #include <base/buffer.h>
 #include <base/timer.h>
 
@@ -15,12 +14,9 @@
 
 #include <stream/bassfilestream.h>
 #include <stream/iaudioprocessor.h>
-#include <stream/basscddevice.h>
 
-#include <player/soxresampler.h>
 #include <player/isamplerateconverter.h>
 #include <player/passthroughsamplerateconverter.h>
-#include <player/chromaprint.h>
 #include <player/audio_util.h>
 #include <player/audio_player.h>
 

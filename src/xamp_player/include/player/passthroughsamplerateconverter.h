@@ -10,7 +10,7 @@
 
 namespace xamp::player {
 
-class XAMP_PLAYER_API PassThroughSampleRateConverter final : public ISampleRateConverter {
+class PassThroughSampleRateConverter final : public ISampleRateConverter {
 public:
     explicit PassThroughSampleRateConverter(DsdModes dsd_mode, uint8_t sample_size);
 

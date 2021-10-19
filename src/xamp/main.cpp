@@ -22,7 +22,7 @@
 
 #include <QMessageBox>
 
-#include "DarkStyle.h"
+#include "darkstyle.h"
 #include "singleinstanceapplication.h"
 #include "xamp.h"
 
