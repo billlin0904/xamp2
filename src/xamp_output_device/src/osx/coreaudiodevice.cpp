@@ -118,7 +118,7 @@ private:
     AudioObjectPropertyAddress property_;
 };
 
-uint32_t GetHardwareLantency(AudioDeviceID device_id, AudioObjectPropertyScope scope) {
+static uint32_t GetHardwareLantency(AudioDeviceID device_id, AudioObjectPropertyScope scope) {
     AudioObjectPropertyAddress property_address = {
         kAudioDevicePropertyLatency,
         scope,
@@ -252,18 +252,18 @@ void CoreAudioDevice::OpenStream(AudioFormat const &output_format) {
         XAMP_LOG_D(logger_, "Update audio format {}.", output_format);
     }
 
-    UInt32 bufferSize = 0;
+    UInt32 buffer_size = 0;
     audio_property_.mSelector = kAudioDevicePropertyBufferFrameSize;
-    dataSize = sizeof(bufferSize);
+    dataSize = sizeof(buffer_size);
     CoreAudioThrowIfError(::AudioObjectGetPropertyData(device_id_,
                                                        &audio_property_,
                                                        0,
                                                        nullptr,
                                                        &dataSize,
-                                                       &bufferSize));
-    XAMP_LOG_D(logger_, "Allocate buffer size:{}.", bufferSize);
+                                                       &buffer_size));
+    XAMP_LOG_D(logger_, "Allocate buffer size:{}.", buffer_size);
 
-    UInt32 theSize = bufferSize;
+    UInt32 size = buffer_size;
     dataSize = sizeof(UInt32);
     audio_property_.mSelector = kAudioDevicePropertyBufferFrameSize;
     CoreAudioThrowIfError(::AudioObjectSetPropertyData(device_id_,
@@ -271,9 +271,9 @@ void CoreAudioDevice::OpenStream(AudioFormat const &output_format) {
                                                        0,
                                                        nullptr,
                                                        dataSize,
-                                                       &theSize));
+                                                       &size));
 
-    buffer_size_ = output_format.GetChannels() * bufferSize;
+    buffer_size_ = output_format.GetChannels() * buffer_size;
 
     latency_ = GetHardwareLantency(device_id_, kAudioDevicePropertyScopeOutput);
 

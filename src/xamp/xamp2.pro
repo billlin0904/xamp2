@@ -71,7 +71,7 @@ SOURCES += \
     widget/image_utiltis.cpp \
     widget/read_utiltis.cpp \
     widget/readlufsworker.cpp \
-    DarkStyle.cpp \
+    darkstyle.cpp \
     singleinstanceapplication.cpp \
     thememanager.cpp \
     aboutpage.cpp \
@@ -127,7 +127,7 @@ HEADERS += \
     widget/readlufsworker.h \
     widget/time_utilts.h \
     singleinstanceapplication.h \
-    DarkStyle.h \
+    darkstyle.h \
     thememanager.h \
     aboutpage.h \
     preferencepage.h \

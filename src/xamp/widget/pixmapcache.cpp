@@ -16,7 +16,7 @@
 #include <widget/pixmapcache.h>
 
 inline constexpr size_t kDefaultCacheSize = 32;
-inline constexpr qint64 kMaxCacheImageSize = 2 * 1024 * 1024;
+inline constexpr qint64 kMaxCacheImageSize = 4 * 1024 * 1024;
 inline constexpr auto kPixmapCacheFileExt = Q_UTF8(".cache");
 
 PixmapCache::PixmapCache()

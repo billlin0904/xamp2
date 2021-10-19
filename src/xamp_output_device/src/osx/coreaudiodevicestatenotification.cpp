@@ -3,7 +3,7 @@
 
 namespace xamp::output_device::osx {
 
-inline constexpr AudioObjectPropertyAddress sAddOrRemoveDevicesPropertyAddress = {
+inline constexpr AudioObjectPropertyAddress kAddOrRemoveDevicesPropertyAddress = {
     kAudioHardwarePropertyDevices,
     kAudioObjectPropertyScopeGlobal,
     kAudioObjectPropertyElementMaster
@@ -27,7 +27,7 @@ void CoreAudioDeviceStateNotification::Run() {
 void CoreAudioDeviceStateNotification::RemovePropertyListener() {
     CoreAudioThrowIfError(::AudioObjectRemovePropertyListener(
         kAudioObjectSystemObject,
-        &sAddOrRemoveDevicesPropertyAddress,
+        &kAddOrRemoveDevicesPropertyAddress,
         &CoreAudioDeviceStateNotification::OnDefaultDeviceChangedCallback,
         this));
 }
@@ -35,7 +35,7 @@ void CoreAudioDeviceStateNotification::RemovePropertyListener() {
 void CoreAudioDeviceStateNotification::AddPropertyListener() {
     CoreAudioThrowIfError(::AudioObjectAddPropertyListener(
         kAudioObjectSystemObject,
-        &sAddOrRemoveDevicesPropertyAddress,
+        &kAddOrRemoveDevicesPropertyAddress,
         &CoreAudioDeviceStateNotification::OnDefaultDeviceChangedCallback,
         this));
 }
@@ -47,9 +47,9 @@ OSStatus CoreAudioDeviceStateNotification::OnDefaultDeviceChangedCallback(
     void* context) {
     auto notification = static_cast<CoreAudioDeviceStateNotification*>(context);
     for (UInt32 i = 0; i < num_addresses; ++i) {
-        if (addresses[i].mSelector == sAddOrRemoveDevicesPropertyAddress.mSelector
-            && addresses[i].mScope == sAddOrRemoveDevicesPropertyAddress.mScope
-            && addresses[i].mElement == sAddOrRemoveDevicesPropertyAddress.mElement
+        if (addresses[i].mSelector == kAddOrRemoveDevicesPropertyAddress.mSelector
+            && addresses[i].mScope == kAddOrRemoveDevicesPropertyAddress.mScope
+            && addresses[i].mElement == kAddOrRemoveDevicesPropertyAddress.mElement
             && context != nullptr) {
             if (auto callback = (*notification).callback_.lock()) {
                 callback->OnDeviceStateChange(DeviceState::DEVICE_STATE_ADDED, std::to_string(object));

@@ -50,17 +50,17 @@ std::vector<std::string> GetSystemUsbPath() {
                                             CFUUIDGetUUIDBytes(kIOUSBDeviceInterfaceID245),
                                             reinterpret_cast<LPVOID*>(&usb_interface));
             if (err == KERN_SUCCESS && usb_interface) {
-                //UInt16 PID = 0;
-                //UInt16 VID = 0;
-                //UInt32 LocationID = 0;
-                //err = (*usb_interface)->GetDeviceVendor(usb_interface, &VID);
-                //err = (*usb_interface)->GetDeviceProduct(usb_interface, &PID);
-                //err = (*usb_interface)->GetLocationID(usb_interface, &LocationID);
-                //XAMP_LOG_DEBUG("VID = {:x} PID = {:x} LocationID = {:x}", VID, PID, LocationID);
+                UInt16 PID = 0;
+                UInt16 VID = 0;
+                UInt32 LocationID = 0;
+                err = (*usb_interface)->GetDeviceVendor(usb_interface, &VID);
+                err = (*usb_interface)->GetDeviceProduct(usb_interface, &PID);
+                err = (*usb_interface)->GetLocationID(usb_interface, &LocationID);
+                XAMP_LOG_TRACE("VID = {:x} PID = {:x} LocationID = {:x}", VID, PID, LocationID);
                 io_string_t path;
                 err = IORegistryEntryGetPath(device, kIOServicePlane, path);
                 (*usb_interface)->Release(usb_interface);
-                XAMP_LOG_DEBUG("Path: {}", path);
+                XAMP_LOG_TRACE("Path: {}", path);
                 usb_device.emplace_back(path);
             }
             (*plugin)->Release(plugin);
@@ -146,13 +146,13 @@ std::wstring GetDeviceName(AudioDeviceID id, AudioObjectPropertySelector selecto
         kAudioObjectPropertyElementMaster
     };
 
-    uint32_t dataSize = sizeof(CFStringRef);
+    uint32_t data_size = sizeof(CFStringRef);
     property.mSelector = selector;
     auto result = ::AudioObjectGetPropertyData(id,
                                                &property,
                                                0,
                                                nullptr,
-                                               &dataSize,
+                                               &data_size,
                                                &cfname);
     if (result != noErr) {
         CoreAudioFailedLog(result);
@@ -216,17 +216,17 @@ bool IsOutputDevice(AudioDeviceID id) {
         kAudioObjectPropertyElementMaster
     };
 
-    UInt32 dataSize = 0;
+    UInt32 data_size = 0;
     auto result = ::AudioObjectGetPropertyDataSize(id,
                                                    &property,
                                                    0,
                                                    nullptr,
-                                                   &dataSize);
+                                                   &data_size);
     if (result != noErr) {
         CoreAudioFailedLog(result);
         return false;
     }
-    return (dataSize / sizeof(AudioStreamID)) > 0;
+    return (data_size / sizeof(AudioStreamID)) > 0;
 }
 
 bool IsAutoHogMode() {
@@ -278,12 +278,12 @@ void ReleaseHogMode(AudioDeviceID id) {
     };
 
     pid_t hog_pid;
-    uint32_t dataSize = sizeof(hog_pid);
+    uint32_t data_size = sizeof(hog_pid);
     auto result = ::AudioObjectGetPropertyData(id,
                                                &property,
                                                0,
                                                nullptr,
-                                               &dataSize,
+                                               &data_size,
                                                &hog_pid);
     if (result != noErr) {
         CoreAudioFailedLog(result);
@@ -298,12 +298,12 @@ void ReleaseHogMode(AudioDeviceID id) {
                                           &property,
                                           0,
                                           nullptr,
-                                          dataSize,
+                                          data_size,
                                           &hog_pid);
     if (result != noErr) {
         CoreAudioFailedLog(result);
     }
-    XAMP_LOG_INFO("Release hog mode device id:{}", id);
+    XAMP_LOG_TRACE("Release hog mode device id:{}", id);
 }
 
 void SetHogMode(AudioDeviceID id) {
@@ -325,7 +325,7 @@ void SetHogMode(AudioDeviceID id) {
         CoreAudioFailedLog(result);
     }
 
-    XAMP_LOG_INFO("Set hog mode id:{}", id);
+    XAMP_LOG_TRACE("Set hog mode id:{}", id);
 }
 
 }
