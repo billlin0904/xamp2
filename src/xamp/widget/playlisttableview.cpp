@@ -442,13 +442,14 @@ void PlayListTableView::initial() {
                         open_cd_submenu->addAction(display_name, [&device, driver_letter, this]() {
                             device->SetMaxSpeed();
                             auto track_id = 0;
+                            std::vector<Metadata> metadatas;
                             for (auto const & track : device->GetTotalTracks()) {
                                 auto metadata = ::getMetadata(QString::fromStdWString(track));
                                 metadata.duration = device->GetDuration(track_id++);
-                                metadata.samplerate = 44100;                                
-                                Singleton<Database>::GetInstance().addOrUpdateMusic(metadata, playlist_id_);
+                                metadata.samplerate = 44100;
+                                metadatas.push_back(metadata);
                             }
-                            refresh();
+                            processMeatadata(metadatas);
                         });
                     }
                 }

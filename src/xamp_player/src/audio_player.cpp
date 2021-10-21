@@ -660,7 +660,7 @@ void AudioPlayer::BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<ISampleRa
 	
     auto* const sample_buffer = read_buffer_.Get();
 
-    for (auto i = 0; i < buffer_count; ++i) {
+    for (auto i = 0; i < buffer_count && stream_->IsActive(); ++i) {
         while (true) {
             const auto num_samples = stream->GetSamples(sample_buffer, num_read_sample_);
             if (num_samples == 0) {
@@ -685,7 +685,7 @@ void AudioPlayer::BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<ISampleRa
 }
 
 void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_buffer_sample) {
-    while (is_playing_) {
+    while (is_playing_ && stream_->IsActive()) {
         const auto num_samples = stream_->GetSamples(sample_buffer, max_buffer_sample);
 
         if (num_samples > 0) {

@@ -56,7 +56,7 @@ public:
         uint32_t num_samples = 0;
         const auto max_duration = static_cast<uint64_t>(stream_.GetDuration());
 
-        while (true) {
+        while (stream_.IsActive()) {
             const auto read_size = stream_.GetSamples(buffer.data(), kReadSampleSize)
                 / kMaxChannel;
             if (read_size == kBassError || read_size == 0) {

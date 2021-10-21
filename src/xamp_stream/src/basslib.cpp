@@ -151,7 +151,8 @@ BassLib::BassLib() try
     , LOAD_BASS_DLL_API(BASS_FXSetParameters)
     , LOAD_BASS_DLL_API(BASS_FXGetParameters)
 	, LOAD_BASS_DLL_API(BASS_StreamCreateURL)
-	, LOAD_BASS_DLL_API(BASS_StreamGetFilePosition) {
+    , LOAD_BASS_DLL_API(BASS_StreamGetFilePosition)
+    , LOAD_BASS_DLL_API(BASS_ChannelIsActive) {
 }
 catch (const Exception& e) {
     XAMP_LOG_ERROR("{}", e.GetErrorMessage());

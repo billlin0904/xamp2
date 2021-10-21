@@ -311,6 +311,10 @@ FlushFileCache:
         }
         return stream_.get();
     }
+
+    bool IsActive() const noexcept {
+        return BASS.BASS_ChannelIsActive(GetHStream()) == BASS_ACTIVE_PLAYING;
+    }
 private:
     std::tuple<std::string, Path, bool> GetFileCache(std::wstring const& file_path, bool& use_filemap) {
         auto cache_id = ToCacheID(file_path);
@@ -419,6 +423,10 @@ uint32_t BassFileStream::GetHStream() const noexcept {
 
 HashSet<std::string> BassFileStream::GetSupportFileExtensions() {
     return BASS.GetSupportFileExtensions();
+}
+
+bool BassFileStream::IsActive() const noexcept {
+    return stream_->IsActive();
 }
 
 void LoadBassLib() {

@@ -59,6 +59,8 @@ public:
 	static HashSet<std::string> GetSupportFileExtensions();
 
 	uint32_t GetHStream() const noexcept;
+
+    bool IsActive() const noexcept override;
 private:	
 	class BassFileStreamImpl;
 	AlignPtr<BassFileStreamImpl> stream_;

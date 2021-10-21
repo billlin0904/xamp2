@@ -205,6 +205,7 @@ public:
     DllFunction<HSTREAM(wchar_t*, DWORD, DWORD, DOWNLOADPROC*, void*)> BASS_StreamCreateURL;
 #endif
     XAMP_DECLARE_DLL(BASS_StreamGetFilePosition) BASS_StreamGetFilePosition;
+    XAMP_DECLARE_DLL(BASS_ChannelIsActive) BASS_ChannelIsActive;
 private:
     void LoadPlugin(std::string const & file_name);
 };
