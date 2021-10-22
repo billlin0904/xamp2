@@ -115,7 +115,7 @@ static std::vector<ModuleHandle> preloadDll() {
 
 static void setLogLevel(spdlog::level::level_enum level = spdlog::level::info) {
     Logger::GetInstance().GetLogger(kThreadPoolLoggerName)->set_level(level);
-    Logger::GetInstance().GetLogger(kExclusiveWasapiDeviceLoggerName)->set_level(level);
+    Logger::GetInstance().GetLogger(kExclusiveWasapiDeviceLoggerName)->set_level(spdlog::level::debug);
     Logger::GetInstance().GetLogger(kSharedWasapiDeviceLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kAsioDeviceLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kAudioPlayerLoggerName)->set_level(level);

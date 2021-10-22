@@ -5,7 +5,7 @@
 #ifdef XAMP_OS_WIN
 
 #include <initguid.h>
-#include <cguid.h>
+#include <cguid.h> // GUID_NULL
 
 #include <base/stl.h>
 #include <base/scopeguard.h>

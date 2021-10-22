@@ -57,7 +57,7 @@ private:
 static double ReadProcess(std::wstring const& file_path,
 	std::function<bool(uint32_t)> const& progress,
 	std::function<void(AudioFormat const&)> const& prepare,
-	std::function<void(float const*, uint32_t)> const& func,
+	std::function<void(float const*, uint32_t)> const& dsp_process,
 	uint64_t max_duration = std::numeric_limits<uint64_t>::max()) {
 	const auto is_dsd_file = TestDsdFileFormatStd(file_path);
     auto file_stream = MakeStream();
@@ -83,18 +83,9 @@ static double ReadProcess(std::wstring const& file_path,
 		max_duration = static_cast<uint64_t>(file_stream->GetDuration());
 	}
 
-    int32_t retry = 0;
     while (num_samples / input_format.GetSampleRate() < max_duration && file_stream->IsActive()) {
 		const auto read_size = file_stream->GetSamples(isamples.get(),
 			kReadSampleSize) / input_format.GetChannels();
-
-		if (!read_size) {
-			if (retry >= 3) {
-				break;
-			}
-			++retry;
-			continue;
-		}
 
 		num_samples += read_size;
 		if (progress != nullptr) {
@@ -104,7 +95,7 @@ static double ReadProcess(std::wstring const& file_path,
 			}
 		}
 
-		func(isamples.get(), read_size * input_format.GetChannels());
+		dsp_process(isamples.get(), read_size * input_format.GetChannels());
 	}
 
 	return file_stream->GetDuration();
@@ -133,7 +124,7 @@ void Export2WaveFile(std::wstring const& file_path,
 
 			auto process = [&file, &compressor, &converter](float const* samples, uint32_t sample_size) {
 				auto const& buf = compressor.Process(samples, sample_size);
-				converter->Process(buf.data(), buf.size(), file);
+				return converter->Process(buf.data(), buf.size(), file);
 			};
 
             ReadProcess(file_path, progress, prepare, process);

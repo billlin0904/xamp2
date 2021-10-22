@@ -19,20 +19,14 @@
 #include <base/buffer.h>
 #include <base/fastmutex.h>
 
-#ifdef _DEBUG
-#include <base/stopwatch.h>
-#endif
-
-#include <output_device/iaudiodevicemanager.h>
-#include <output_device/iaudiocallback.h>
+#include <output_device/output_device.h>
 #include <output_device/deviceinfo.h>
 
-#include <stream/iaudioprocessor.h>
+#include <stream/stream.h>
 
-#include <player/playstate.h>
-#include <player/iplaybackstateadapter.h>
-#include <player/iaudioplayer.h>
 #include <player/player.h>
+#include <player/playstate.h>
+#include <player/iaudioplayer.h>
 
 namespace xamp::player {
 
@@ -156,10 +150,6 @@ private:
 
     void InitProcessor();
 
-#ifdef _DEBUG
-    void CheckRace();
-#endif
-
     struct XAMP_CACHE_ALIGNED(kMallocAlignSize) AudioSlice {
 	    explicit AudioSlice(int32_t sample_size = 0,
 	        double stream_time = 0.0) noexcept;        
@@ -187,12 +177,6 @@ private:
     std::atomic<double> stream_duration_;
     std::atomic<AudioSlice> slice_;
     mutable FastMutex pause_mutex_;
-#ifdef _DEBUG
-    std::chrono::microseconds max_process_time_{ 0 };
-    Stopwatch sw_;
-    FastMutex debug_mutex_;
-    std::string render_thread_id_;
-#endif    
     std::string device_id_;
     Uuid device_type_id_;
     FastMutexConditionVariable pause_cond_;

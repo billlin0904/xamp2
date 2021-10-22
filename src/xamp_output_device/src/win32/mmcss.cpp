@@ -34,6 +34,8 @@ public:
 	XAMP_DECLARE_DLL(AvSetMmThreadCharacteristicsW) AvSetMmThreadCharacteristicsW;
 };
 
+#define AVRTLib Singleton<AvrtLib>::GetInstance()
+
 class Mmcss::MmcssImpl {
 public:
 	MmcssImpl() 
@@ -44,9 +46,9 @@ public:
 	void BoostPriority(std::wstring_view task_name) noexcept {
 		RevertPriority();
 
-		avrt_handle_ = Singleton<AvrtLib>::GetInstance().AvSetMmThreadCharacteristicsW(task_name.data(), &avrt_task_index_);
+		avrt_handle_ = AVRTLib.AvSetMmThreadCharacteristicsW(task_name.data(), &avrt_task_index_);
 		if (avrt_handle_ != nullptr) {
-			Singleton<AvrtLib>::GetInstance().AvSetMmThreadPriority(avrt_handle_, AVRT_PRIORITY_HIGH);
+			AVRTLib.AvSetMmThreadPriority(avrt_handle_, AVRT_PRIORITY_HIGH);
 			return;
 		}
 		
@@ -59,7 +61,7 @@ public:
 			return;
 		}
 		
-		if (!Singleton<AvrtLib>::GetInstance().AvRevertMmThreadCharacteristics(avrt_handle_)) {
+		if (!AVRTLib.AvRevertMmThreadCharacteristics(avrt_handle_)) {
 			XAMP_LOG_ERROR("AvSetMmThreadCharacteristicsW return failure! Error:{}",
 				GetLastErrorMessage());
 		}

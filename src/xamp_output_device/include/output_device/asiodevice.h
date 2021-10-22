@@ -7,19 +7,15 @@
 
 #if ENABLE_ASIO
 #include <atomic>
-#include <mutex>
 #include <vector>
 
 #include <asio.h>
 
-#include <base/align_ptr.h>
-#include <base/vmmemlock.h>
 #include <base/logger.h>
 #include <base/dsdsampleformat.h>
 #include <base/buffer.h>
 #include <base/fastmutex.h>
 
-#include <output_device/iaudiocallback.h>
 #include <output_device/idevice.h>
 #include <output_device/idsddevice.h>
 #include <output_device/win32/mmcss.h>

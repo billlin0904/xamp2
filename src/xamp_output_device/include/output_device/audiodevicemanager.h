@@ -5,18 +5,15 @@
 
 #pragma once
 
-#include <functional>
 #include <memory>
 #include <map>
 
 #include <base/base.h>
 #include <base/stl.h>
 #include <base/uuid.h>
-#include <base/exception.h>
 #include <base/align_ptr.h>
 
 #include <output_device/iaudiodevicemanager.h>
-#include <output_device/output_device.h>
 #include <output_device/idevicetype.h>
 
 namespace xamp::output_device {

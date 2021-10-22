@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <vector>
 
+#include <spdlog/fmt/fmt.h>
 #include <base/base.h>
 
 namespace xamp::base::String {

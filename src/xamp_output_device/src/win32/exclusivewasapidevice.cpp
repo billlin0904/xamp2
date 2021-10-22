@@ -6,6 +6,8 @@
 #include <base/logger.h>
 #include <base/str_utilts.h>
 #include <base/waitabletimer.h>
+#include <base/stopwatch.h>
+
 #include <output_device/win32/mmcss.h>
 #include <output_device/win32/hrexception.h>
 #include <output_device/win32/wasapi.h>
@@ -283,7 +285,6 @@ bool ExclusiveWasapiDevice::GetSample(bool is_silence) noexcept {
 		hr = render_client_->ReleaseBuffer(buffer_frames_, AUDCLNT_BUFFERFLAGS_SILENT);
 		return false;
 	}
-	return false;
 }
 
 void ExclusiveWasapiDevice::SetAudioCallback(IAudioCallback* callback) noexcept {
@@ -353,7 +354,9 @@ void ExclusiveWasapiDevice::StartStream() {
 	GetSample(true);
 
 	render_task_ = ThreadPool::WASAPIThreadPool().Spawn([this](auto idx) noexcept {
-		XAMP_LOG_D(log_, "Start exclusive mode stream task!");
+		XAMP_LOG_D(log_, "Start exclusive mode stream task! thread: {}", GetCurrentThreadId());
+
+		Stopwatch watch;
 
 		Mmcss mmcss;
 		mmcss.BoostPriority(mmcss_name_);
@@ -363,19 +366,31 @@ void ExclusiveWasapiDevice::StartStream() {
 		const std::array<HANDLE, 2> objects{ sample_ready_.get(), close_request_.get() };
 		auto thread_exit = false;
 		::SetEvent(thread_start_.get());
+		const auto wait_timeout = ConvertToMilliseconds(aligned_period_) + std::chrono::milliseconds(10);
+		DWORD current_timeout = INFINITE;
+
 		while (!thread_exit) {
-			auto result = ::WaitForMultipleObjects(objects.size(), objects.data(), FALSE, 50);
+			watch.Reset();
+
+			auto result = ::WaitForMultipleObjects(objects.size(), objects.data(), FALSE, current_timeout);
+
+			const auto elapsed = watch.Elapsed<std::chrono::milliseconds>();
+			if (elapsed > wait_timeout) {
+				XAMP_LOG_D(log_, "WASAPI wait too slow! {}ms", elapsed.count());
+			}
+
 			switch (result) {
 			case WAIT_OBJECT_0 + 0:
 				if (!GetSample(false)) {
 					thread_exit = true;
 				}
+				current_timeout = wait_timeout.count();
 				break;
 			case WAIT_OBJECT_0 + 1:
 				thread_exit = true;
 				break;
 			case WAIT_TIMEOUT:
-				XAMP_LOG_D(log_, "Wait event timeout!");
+				XAMP_LOG_D(log_, "Wait event timeout! {}ms", elapsed.count());
 				thread_exit = true;
 				break;
 			default:

@@ -15,6 +15,7 @@
 #include <stream/bassfilestream.h>
 #include <stream/iaudioprocessor.h>
 
+#include <player/iplaybackstateadapter.h>
 #include <player/isamplerateconverter.h>
 #include <player/passthroughsamplerateconverter.h>
 #include <player/audio_util.h>
@@ -287,14 +288,6 @@ void AudioPlayer::Stop(bool signal_to_stop, bool shutdown_device, bool wait_for_
         device_.reset();
     }
     stream_.reset();
-
-#ifdef _DEBUG
-    render_thread_id_.clear();
-    XAMP_LOG_INFO("AVG max time {} ms", max_process_time_.count() / 1000);
-    sw_.Reset();
-    max_process_time_ = std::chrono::microseconds(0);
-#endif
-
     fifo_.Clear();
 }
 
@@ -541,7 +534,7 @@ void AudioPlayer::OnDeviceStateChange(DeviceState state, std::string const & dev
 void AudioPlayer::OpenDevice(double stream_time) {
 #ifdef ENABLE_ASIO
     if (auto* dsd_output = AsDsdDevice(device_)) {
-        if (auto* const dsd_stream = AsDsdStream(stream_)) {
+        if (const auto* const dsd_stream = AsDsdStream(stream_)) {
             if (dsd_stream->GetDsdMode() == DsdModes::DSD_MODE_NATIVE || dsd_stream->GetDsdMode() == DsdModes::DSD_MODE_DOP) {
                 dsd_output->SetIoFormat(DsdIoFormat::IO_FORMAT_DSD);
                 dsd_mode_ = dsd_stream->GetDsdMode();
@@ -724,9 +717,6 @@ void AudioPlayer::Play() {
             device_->SetVolume(volume_);
             device_->SetMute(is_muted_);
             XAMP_LOG_D(logger_, "Play vol:{} muted:{}.", volume_, is_muted_);
-#ifdef _DEBUG
-            sw_.Reset();
-#endif
             device_->StartStream();
             SetState(PlayerState::PLAYER_STATE_RUNNING);
         }
@@ -776,35 +766,14 @@ void AudioPlayer::Play() {
     });
 }
 
-#ifdef _DEBUG
-void AudioPlayer::CheckRace() {
-    std::lock_guard<FastMutex> guard{ debug_mutex_ };
-    auto current_thread = GetCurrentThreadId();
-    if (render_thread_id_ != current_thread) {
-        XAMP_LOG_INFO("********* Render thread was change : {} => {}", render_thread_id_, current_thread);
-    }
-    render_thread_id_ = current_thread;
-}
-#endif
-
 DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_frames, size_t & num_filled_frames, double stream_time, double sample_time) noexcept {
-#ifdef _DEBUG
-    CheckRace();
-#endif
-
     const auto num_samples = num_buffer_frames * output_format_.GetChannels();
     const auto sample_size = num_samples * sample_size_;
-#ifdef _DEBUG
-    const auto elapsed = sw_.Elapsed();
-    max_process_time_ = std::max(elapsed, max_process_time_);
-#endif
 
     size_t num_filled_bytes = 0;
     XAMP_LIKELY(fifo_.TryRead(static_cast<int8_t*>(samples), sample_size, num_filled_bytes)) {
         num_filled_frames = num_filled_bytes / sample_size_ / output_format_.GetChannels();
-#ifdef _DEBUG
-        sw_.Reset();
-#endif        
+  
         if (num_buffer_frames != num_filled_frames) {
             UpdateSlice(-1, stream_time);
         } else {

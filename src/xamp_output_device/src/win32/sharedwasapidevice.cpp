@@ -4,6 +4,7 @@
 #include <base/logger.h>
 #include <base/waitabletimer.h>
 #include <base/threadpool.h>
+#include <base/stopwatch.h>
 
 #include <output_device/iaudiocallback.h>
 #include <output_device/win32/unknownimpl.h>
@@ -375,18 +376,28 @@ void SharedWasapiDevice::StartStream() {
 	GetSampleRequested(true);
 
 	render_task_ = ThreadPool::WASAPIThreadPool().Spawn([this](auto idx) noexcept {
-		XAMP_LOG_D(log_, "Start shared mode stream task!");
+		XAMP_LOG_D(log_, "Start shared mode stream task! thread: {}", GetCurrentThreadId());
+
+		Stopwatch watch;
 
 		Mmcss mmcss;
 		mmcss.BoostPriority(mmcss_name_);
 
 		is_running_ = true;
-
+		const auto wait_timeout = static_cast<DWORD>((static_cast<double>(latency_) / static_cast<double>(mix_format_->nSamplesPerSec)) * 1000) + 2;
 		const std::array<HANDLE, 2> objects{ sample_ready_.get(), close_request_.get() };
 		auto thread_exit = false;
 		::SetEvent(thread_start_.get());
 		while (!thread_exit) {
+			watch.Reset();
+
 			auto result = ::WaitForMultipleObjects(objects.size(), objects.data(), FALSE, 50);
+
+			const auto elapsed = watch.Elapsed<std::chrono::milliseconds>().count();
+			if (elapsed > wait_timeout) {
+				XAMP_LOG_D(log_, "WASAPI wait too slow! {}ms", wait_timeout);
+			}
+			
 			switch (result) {
 			case WAIT_OBJECT_0 + 0:
 				GetSampleRequested(false);
@@ -395,7 +406,7 @@ void SharedWasapiDevice::StartStream() {
 				thread_exit = true;
 				break;
 			case WAIT_TIMEOUT:
-				XAMP_LOG_D(log_, "Wait event timeout!");
+				XAMP_LOG_D(log_, "Wait event timeout! {}ms", elapsed);
 				thread_exit = true;
 				break;
 			default:
