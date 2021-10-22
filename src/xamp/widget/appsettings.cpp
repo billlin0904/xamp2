@@ -39,7 +39,11 @@ Uuid AppSettings::getID(const QString& key) {
 }
 
 QList<QString> AppSettings::getList(QString const& key) {
+#if QT_VERSION > QT_VERSION_CHECK(5, 14, 1)
     return AppSettings::getValueAsString(key).split(Q_UTF8(","), Qt::SkipEmptyParts);
+#else
+    return AppSettings::getValueAsString(key).split(Q_UTF8(","), QString::SkipEmptyParts);
+#endif
 }
 
 void AppSettings::removeList(QString const& key, QString const & value) {
