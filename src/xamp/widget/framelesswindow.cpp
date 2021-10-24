@@ -138,17 +138,18 @@ QFont FramelessWindow::setupUIFont() const {
     // But Qt framework not work fine with that!
     ui_fallback_fonts.push_back(default_font_families[0]);
     ui_fallback_fonts.push_back(title_font_families[0]);
-    ui_fallback_fonts.push_back(Q_UTF8("Lucida Grande"));
-    ui_fallback_fonts.push_back(Q_UTF8("Lucida Sans Unicode"));
+    ui_fallback_fonts.push_back(Q_UTF8("Lucida Grande"));    
     ui_fallback_fonts.push_back(Q_UTF8("Microsoft JhengHei UI"));
     ui_fallback_fonts.push_back(Q_UTF8("Helvetica Neue"));
-    // macOS fallback font
+#if defined(Q_OS_WIN)
+    ui_fallback_fonts.push_back(Q_UTF8("Lucida Sans Unicode"));
+    QFont::insertSubstitutions(Q_UTF8("MonoFont"), QList<QString>() << Q_UTF8("Consolas"));
+#else
+    QFont::insertSubstitutions(Q_UTF8("MonoFont"), QList<QString>() << Q_UTF8("SF Mono"));
     ui_fallback_fonts.push_back(Q_UTF8("PingFang TC"));
     ui_fallback_fonts.push_back(Q_UTF8("Heiti TC"));
-
+#endif
     QFont::insertSubstitutions(Q_UTF8("UI"), ui_fallback_fonts);
-
-    QFont::insertSubstitutions(Q_UTF8("MonoFont"), QList<QString>() << Q_UTF8("Consolas"));
     QFont::insertSubstitutions(Q_UTF8("FormatFont"), digital_font_families);
 
     QFont ui_font(Q_UTF8("UI"));

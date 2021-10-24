@@ -6,6 +6,7 @@
 #pragma once
 
 #include <QStringList>
+#include <QBuffer>
 
 #include <base/logger.h>
 #include <widget/widget_shared.h>
@@ -58,6 +59,8 @@ protected:
 
 private:
 	void loadCache() const;
+
+    QString savePixamp(const QPixmap &cover) const;
 
 	QString unknown_cover_id_;
 	QString cache_path_;

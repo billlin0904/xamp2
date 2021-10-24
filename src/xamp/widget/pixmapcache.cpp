@@ -15,7 +15,7 @@
 #include <widget/qetag.h>
 #include <widget/pixmapcache.h>
 
-inline constexpr size_t kDefaultCacheSize = 32;
+inline constexpr size_t kDefaultCacheSize = 64;
 inline constexpr qint64 kMaxCacheImageSize = 4 * 1024 * 1024;
 inline constexpr auto kPixmapCacheFileExt = Q_UTF8(".cache");
 
@@ -54,7 +54,6 @@ void PixmapCache::clear() {
 	for (QDirIterator itr(cache_path_, cache_ext_, QDir::Files | QDir::NoDotAndDotDot);
 		itr.hasNext();) {
 		const auto path = itr.next();
-		const QFileInfo image_file_path(path);
 		QFile file(path);
 		file.remove();
 		file.close();
@@ -76,6 +75,25 @@ QPixmap PixmapCache::fromFileCache(const QString& tag_id) const {
 	return QPixmap(cache_path_ + tag_id + kPixmapCacheFileExt);
 }
 
+QString PixmapCache::savePixamp(const QPixmap &cover) const {
+    QByteArray array;
+    QBuffer buffer(&array);
+
+    const auto cover_size = ThemeManager::instance().getCacheCoverSize();
+    const auto cache_cover = Pixmap::resizeImage(cover, cover_size, true);
+
+    QString tag_name;
+    if (cache_cover.save(&buffer, "JPG")) {
+        tag_name = QEtag::getTagId(array);
+        if (!cache_cover.save(cache_path_ + tag_name + kPixmapCacheFileExt, "JPG", 100)) {
+            XAMP_LOG_D(logger_, "PixmapCache add file name:{} save error!", tag_name.toStdString());
+        } else {
+            XAMP_LOG_D(logger_, "PixmapCache add file name:{} save success!", tag_name.toStdString());
+        }
+    }
+    return tag_name;
+}
+
 void PixmapCache::loadCache() const {
 	size_t i = 0;
 	for (QDirIterator itr(cache_path_, cache_ext_, QDir::Files | QDir::NoDotAndDotDot);
@@ -83,11 +101,9 @@ void PixmapCache::loadCache() const {
 		const auto path = itr.next();
 
 		const QFileInfo image_file_path(path);
-		if (i >= cache_.GetMaxSize()) {
-			QFile file(path);
-			file.remove();
-			file.close();
-			XAMP_LOG_D(logger_, "Remove image cache: {}", image_file_path.baseName().toStdString());
+        if (i >= cache_.GetMaxSize()) {
+            XAMP_LOG_D(logger_, "Not load image cache: {}", image_file_path.baseName().toStdString());
+            continue;
 		}
 
 		QPixmap read_cover(path);
@@ -105,6 +121,10 @@ const QPixmap* PixmapCache::find(const QString& tag_id) const {
 	while (true) {
 		const auto* const cache = cache_.Find(tag_id);
 		if (!cache) {
+            if (tag_id.isEmpty()) {
+                return nullptr;
+            }
+            XAMP_LOG_D(logger_, "PixmapCache load file name:{} from disk", tag_id.toStdString());
 			auto read_cover = fromFileCache(tag_id);
 			if (read_cover.isNull()) {
 				return nullptr;
@@ -117,40 +137,16 @@ const QPixmap* PixmapCache::find(const QString& tag_id) const {
 }
 
 QString PixmapCache::addOrUpdate(const QByteArray& data) const {
-	QByteArray array;
-	QBuffer buffer(&array);
 	QPixmap cover;
 	cover.loadFromData(data);
-
-	const auto cover_size = ThemeManager::instance().getCacheCoverSize();
-	const auto cache_cover = Pixmap::resizeImage(cover, cover_size, true);
-
-	QString tag_name;
-	if (cache_cover.save(&buffer, "JPG")) {
-		tag_name = QEtag::getTagId(array);
-		(void)cache_cover.save(cache_path_ + tag_name + kPixmapCacheFileExt, "JPG", 100);
-	}
-	XAMP_LOG_D(logger_, "PixmapCache add file name:{}", tag_name.toStdString());
-	return tag_name;
+    return savePixamp(cover);
 }
 
 QString PixmapCache::addOrUpdate(const QPixmap& cover) const {
 	QByteArray array;
 	QBuffer buffer(&array);
 	buffer.open(QIODevice::WriteOnly);
-	const auto cover_size = ThemeManager::instance().getCacheCoverSize();
-
-	// Cover必須要忽略圖片比例, 不然從cache抓出來的時候無法正確縮放.
-	const auto cache_cover = Pixmap::resizeImage(cover, cover_size, true);
-
-	QString tag_name;
-	if (cache_cover.save(&buffer, "JPG")) {
-		tag_name = QEtag::getTagId(array);
-		(void)cache_cover.save(cache_path_ + tag_name + kPixmapCacheFileExt, "JPG", 100);
-	}
-
-	XAMP_LOG_D(logger_, "PixmapCache add file name:{}", tag_name.toStdString());
-	return tag_name;
+    return savePixamp(cover);
 }
 
 bool PixmapCache::isExist(const QString& tag_id) const {
