@@ -14,6 +14,7 @@
 #include <widget/appsettings.h>
 #include <widget/localelanguage.h>
 #include <widget/jsonsettings.h>
+#include <widget/pixmapcache.h>
 #include "thememanager.h"
 #include <preferencepage.h>
 
@@ -224,6 +225,11 @@ PreferencePage::PreferencePage(QWidget *parent)
 		AppSettings::setValue(kAppSettingPodcastCachePath, dir_name);
 		ui_.podcastCachePathLineEdit->setText(dir_name);
 		});
+
+    ui_.albumImageCacheSizeSpinBox->setValue(AppSettings::getValue(kAppSettingAlbumImageCacheSize).toInt());
+    (void)QObject::connect(ui_.albumImageCacheSizeSpinBox, static_cast<void (QSpinBox::*)(int32_t)>(&QSpinBox::valueChanged), [](auto value) {
+        Singleton<PixmapCache>::GetInstance().setMaxSize(value);
+    });
 
 	initSoxResampler();
 	initLang();

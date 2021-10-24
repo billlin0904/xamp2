@@ -63,6 +63,7 @@ static void loadSettings() {
     AppSettings::setDefaultValue(kAppSettingMinimizeToTray, false);
     AppSettings::setDefaultValue(kAppSettingDiscordNotify, false);
     AppSettings::setDefaultValue(kFlacEncodingLevel, 8);
+    AppSettings::setDefaultValue(kAppSettingAlbumImageCacheSize, 32);
 	
     JsonSettings::loadJsonFile(Q_UTF8("soxr.json"));
 	

@@ -85,11 +85,11 @@ AudioDeviceManager::AudioDeviceManager() {
 #endif
 }
 
-void AudioDeviceManager::SetWorkingSetSize(size_t workingset_size) {
 #ifdef XAMP_OS_WIN
+void AudioDeviceManager::SetWorkingSetSize(size_t workingset_size) {
     InitWorkingSetSize(workingset_size);
-#endif
 }
+#endif
 
 AudioDeviceManager::~AudioDeviceManager() {
 #ifdef XAMP_OS_WIN	

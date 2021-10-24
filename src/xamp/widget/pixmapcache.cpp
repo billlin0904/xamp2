@@ -15,8 +15,8 @@
 #include <widget/qetag.h>
 #include <widget/pixmapcache.h>
 
-inline constexpr size_t kDefaultCacheSize = 64;
-inline constexpr qint64 kMaxCacheImageSize = 4 * 1024 * 1024;
+inline constexpr size_t kDefaultCacheSize = 32;
+inline constexpr qint64 kMaxCacheImageSize = 8 * 1024 * 1024;
 inline constexpr auto kPixmapCacheFileExt = Q_UTF8(".cache");
 
 PixmapCache::PixmapCache()
@@ -117,6 +117,10 @@ void PixmapCache::loadCache() const {
 	XAMP_LOG_D(logger_, "PixmapCache cache count: {}", i);
 }
 
+size_t PixmapCache::GetMissRate() const {
+    return cache_.GetMissCount() * 100 / cache_.GetHitCount();
+}
+
 const QPixmap* PixmapCache::find(const QString& tag_id) const {
 	while (true) {
 		const auto* const cache = cache_.Find(tag_id);
@@ -124,7 +128,8 @@ const QPixmap* PixmapCache::find(const QString& tag_id) const {
             if (tag_id.isEmpty()) {
                 return nullptr;
             }
-            XAMP_LOG_D(logger_, "PixmapCache load file name:{} from disk", tag_id.toStdString());
+            XAMP_LOG_D(logger_, "PixmapCache load file name:{} from disk, miss: {}",
+                       tag_id.toStdString(), GetMissRate());
 			auto read_cover = fromFileCache(tag_id);
 			if (read_cover.isNull()) {
 				return nullptr;
@@ -140,6 +145,10 @@ QString PixmapCache::addOrUpdate(const QByteArray& data) const {
 	QPixmap cover;
 	cover.loadFromData(data);
     return savePixamp(cover);
+}
+
+void PixmapCache::setMaxSize(size_t max_size) {
+    cache_.SetMaxSize(max_size);
 }
 
 QString PixmapCache::addOrUpdate(const QPixmap& cover) const {

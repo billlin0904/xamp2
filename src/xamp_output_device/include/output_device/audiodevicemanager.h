@@ -47,9 +47,9 @@ public:
     [[nodiscard]] bool IsDeviceTypeExist(Uuid const& id) const noexcept;    
 private:
     class DeviceStateNotificationImpl;
-
+#ifdef XAMP_OS_WIN
     void SetWorkingSetSize(size_t workingset_size);
-
+#endif
     template <typename Func>
     void RegisterCreator(Uuid const &id, Func&& func) {
         factory_[id] = std::forward<Func>(func);

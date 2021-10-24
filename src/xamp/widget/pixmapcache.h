@@ -48,11 +48,15 @@ public:
 
 	size_t getImageSize() const;
 
+    void setMaxSize(size_t max_size);
+
 	QString getUnknownCoverId() const {
 		return unknown_cover_id_;
 	}
 
 	void clear();
+
+    size_t GetMissRate() const;
 
 protected:
 	PixmapCache();

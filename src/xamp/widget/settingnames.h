@@ -30,6 +30,7 @@ inline constexpr ConstLatin1String kAppSettingMinimizeToTrayAsk{ "AppSettings/mi
 inline constexpr ConstLatin1String kAppSettingMinimizeToTray{ "AppSettings/minimizeToTray" };
 
 inline constexpr ConstLatin1String kAppSettingPodcastCachePath{ "AppSettings/podcastCachePath" };
+inline constexpr ConstLatin1String kAppSettingAlbumImageCacheSize{ "AppSettings/albumImageCacheSize" };
 
 inline constexpr ConstLatin1String kAppSettingResamplerEnable{ "AppSettings/soxr/enable" };
 inline constexpr ConstLatin1String kAppSettingSoxrSettingName{ "AppSettings/soxr/userSettingName" };

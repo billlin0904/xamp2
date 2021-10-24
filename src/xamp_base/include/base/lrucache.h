@@ -40,6 +40,8 @@ public:
 
     size_t GetMissCount() const noexcept;
 
+    size_t GetHitCount() const noexcept;
+
     void Erase(Key const& key);
 
     void Clear() noexcept;
@@ -98,6 +100,11 @@ XAMP_ALWAYS_INLINE Value const* LruCache<Key, Value>::Find(Key const& key) const
 template <typename Key, typename Value>
 XAMP_ALWAYS_INLINE size_t LruCache<Key, Value>::GetMissCount() const noexcept {
     return miss_count_;
+}
+
+template <typename Key, typename Value>
+XAMP_ALWAYS_INLINE size_t LruCache<Key, Value>::GetHitCount() const noexcept {
+    return hit_count_;
 }
 
 template <typename Key, typename Value>
