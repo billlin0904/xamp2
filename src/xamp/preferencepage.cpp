@@ -229,6 +229,7 @@ PreferencePage::PreferencePage(QWidget *parent)
     ui_.albumImageCacheSizeSpinBox->setValue(AppSettings::getValue(kAppSettingAlbumImageCacheSize).toInt());
     (void)QObject::connect(ui_.albumImageCacheSizeSpinBox, static_cast<void (QSpinBox::*)(int32_t)>(&QSpinBox::valueChanged), [](auto value) {
         Singleton<PixmapCache>::GetInstance().setMaxSize(value);
+        AppSettings::setValue(kAppSettingAlbumImageCacheSize, value);
     });
 
 	initSoxResampler();
