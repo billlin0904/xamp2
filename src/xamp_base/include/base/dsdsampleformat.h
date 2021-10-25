@@ -18,6 +18,7 @@ MAKE_ENUM(DsdModes,
           DSD_MODE_PCM,
           DSD_MODE_NATIVE,
           DSD_MODE_DOP,
+		  DSD_MODE_DOP_AA,
 		  DSD_MODE_DSD2PCM)
 
 }

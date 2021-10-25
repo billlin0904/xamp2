@@ -277,7 +277,7 @@ FlushFileCache:
         return false;
     }
 
-    [[nodiscard]] bool SupportRAW() const noexcept {
+    [[nodiscard]] bool Support¢ÜativeDSD() const noexcept {
         return true;
     }
 
@@ -427,6 +427,18 @@ HashSet<std::string> BassFileStream::GetSupportFileExtensions() {
 
 bool BassFileStream::IsActive() const noexcept {
     return stream_->IsActive();
+}
+
+bool BassFileStream::SupportDOP() const noexcept {
+    return stream_->SupportDOP();
+}
+
+bool BassFileStream::SupportDOP_AA() const noexcept {
+    return stream_->SupportDOP_AA();
+}
+
+bool BassFileStream::Support¢ÜativeDSD() const noexcept {
+    return stream_->Support¢ÜativeDSD();
 }
 
 void LoadBassLib() {

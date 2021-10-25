@@ -61,6 +61,12 @@ public:
 	uint32_t GetHStream() const noexcept;
 
     bool IsActive() const noexcept override;
+
+	bool SupportDOP() const noexcept;
+
+	bool SupportDOP_AA() const noexcept;
+
+	bool Support¢ÜativeDSD() const noexcept;
 private:	
 	class BassFileStreamImpl;
 	AlignPtr<BassFileStreamImpl> stream_;

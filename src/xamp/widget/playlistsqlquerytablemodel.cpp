@@ -11,7 +11,7 @@ PlayListSqlQueryTableModel::PlayListSqlQueryTableModel(QObject *parent)
 
 Qt::ItemFlags PlayListSqlQueryTableModel::flags(const QModelIndex& index) const {
     if (!index.isValid()) {
-        return QAbstractItemModel::flags(index);
+        return QAbstractTableModel::flags(index);
     }
     auto flags = Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsUserCheckable;
     if (index.column() == PLAYLIST_RATING) {

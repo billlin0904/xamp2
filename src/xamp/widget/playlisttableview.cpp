@@ -207,7 +207,7 @@ void PlayListTableView::refresh() {
     WHERE
     playlistMusics.playlistId = %1
 	ORDER BY
-	playlistMusics.playlistMusicsId;
+	playlistMusics.playlistMusicsId, musics.path;
     )");
     QSqlQuery query(s.arg(playlist_id_));    
     model_.setQuery(query);

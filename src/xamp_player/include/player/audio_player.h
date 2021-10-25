@@ -150,6 +150,8 @@ private:
 
     void InitProcessor();
 
+    void SetDSDStreamMode(DsdModes dsd_mode, AlignPtr<FileStream>& stream);
+
     struct XAMP_CACHE_ALIGNED(kMallocAlignSize) AudioSlice {
 	    explicit AudioSlice(int32_t sample_size = 0,
 	        double stream_time = 0.0) noexcept;        

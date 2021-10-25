@@ -174,20 +174,56 @@ bool AudioPlayer::IsDSDFile() const {
     return is_dsd_file_;
 }
 
-void AudioPlayer::OpenStream(Path const& file_path, DeviceInfo const & device_info) {
-    auto [dsd_mode, stream] = audio_util::MakeFileStream(file_path, device_info, enable_sample_converter_);
-    stream_ = std::move(stream);
-    dsd_mode_ = dsd_mode;
-    if (auto* dsd_stream = AsDsdStream(stream_)) {
-        dsd_stream->SetDSDMode(dsd_mode_);
-        if (dsd_stream->IsDsdFile()) {
+void AudioPlayer::SetDSDStreamMode(DsdModes dsd_mode, AlignPtr<FileStream>& stream) {
+    if (dsd_mode == DsdModes::DSD_MODE_PCM) {
+        stream_ = std::move(stream);
+        dsd_mode_ = dsd_mode;
+        return;
+    }
+
+    if (auto* dsd_stream = AsDsdStream(stream)) {
+        switch (dsd_mode) {
+        case DsdModes::DSD_MODE_DOP:
+            if (!dsd_stream->SupportDOP()) {
+                throw NotSupportFormatException();
+            }
+            break;
+        case DsdModes::DSD_MODE_DOP_AA:
+            if (!dsd_stream->SupportDOP_AA()) {
+                throw NotSupportFormatException();
+            }
+            break;
+        case DsdModes::DSD_MODE_NATIVE:
+            if (!dsd_stream->Support¢ÜativeDSD()) {
+                throw NotSupportFormatException();
+            }
+            break;
+        default:
+            throw NotSupportFormatException();
+        }
+
+        stream_ = std::move(stream);
+        dsd_mode_ = dsd_mode;
+
+        auto* the_stream = AsDsdStream(stream_);
+        the_stream->SetDSDMode(dsd_mode_);
+        if (the_stream->IsDsdFile()) {
             is_dsd_file_ = true;
-            dsd_speed_ = dsd_stream->GetDsdSpeed();
-        } else {
+            dsd_speed_ = the_stream->GetDsdSpeed();
+        }
+        else {
             is_dsd_file_ = false;
             dsd_speed_ = std::nullopt;
-        }        
+        }
     }
+    else {
+        throw NotSupportFormatException();
+    }
+}
+
+void AudioPlayer::OpenStream(Path const& file_path, DeviceInfo const & device_info) {
+    auto [dsd_mode, stream] = audio_util::MakeFileStream(file_path, device_info, enable_sample_converter_);
+    SetDSDStreamMode(dsd_mode, stream);
     stream_duration_ = stream_->GetDuration();
     XAMP_LOG_D(logger_, "Open stream type: {} {} duration:{}.", stream_->GetDescription(), dsd_mode_, stream_duration_.load());
 }
