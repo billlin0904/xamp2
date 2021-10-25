@@ -291,9 +291,6 @@ void AudioPlayer::Resume() {
         is_paused_ = false;
         pause_cond_.notify_all();
         stopped_cond_.notify_all();
-#ifdef _DEBUG
-        sw_.Reset();
-#endif
         device_->StartStream();
         SetState(PlayerState::PLAYER_STATE_RUNNING);
     }
