@@ -118,6 +118,9 @@ void PixmapCache::loadCache() const {
 }
 
 size_t PixmapCache::GetMissRate() const {
+	if (cache_.GetHitCount() == 0) {
+		return 0;
+	}
     return cache_.GetMissCount() * 100 / cache_.GetHitCount();
 }
 

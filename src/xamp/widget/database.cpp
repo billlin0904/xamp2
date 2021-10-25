@@ -349,7 +349,7 @@ void Database::setTableName(int32_t table_id, const QString& name) {
 void Database::setAlbumCover(int32_t album_id, const QString& album, const QString& cover_id) {
 	QSqlQuery query;
 
-	query.prepare(Q_UTF8("UPDATE albums SET coverId = :coverId WHERE (albumId = :albumId) OR (album = :album)"));
+	query.prepare(Q_UTF8("UPDATE albums SET coverId = :coverId WHERE (albumId = :albumId) AND (album = :album)"));
 
 	query.bindValue(Q_UTF8(":albumId"), album_id);
 	query.bindValue(Q_UTF8(":album"), album);
@@ -474,6 +474,21 @@ QString Database::getAlbumCoverId(int32_t album_id) const {
 	query.bindValue(Q_UTF8(":albumId"), album_id);
 
     IfFailureThrow1(query);
+
+	const auto index = query.record().indexOf(Q_UTF8("coverId"));
+	if (query.next()) {
+		return query.value(index).toString();
+	}
+	return QString();
+}
+
+QString Database::getAlbumCoverId(const QString &album) const {
+	QSqlQuery query;
+
+	query.prepare(Q_UTF8("SELECT coverId FROM albums WHERE album = (:album)"));
+	query.bindValue(Q_UTF8(":album"), album);
+
+	IfFailureThrow1(query);
 
 	const auto index = query.record().indexOf(Q_UTF8("coverId"));
 	if (query.next()) {
@@ -643,8 +658,8 @@ int32_t Database::addOrUpdateAlbum(const QString& album, int32_t artist_id) {
 
 	query.prepare(
 		Q_UTF8(R"(
-                       INSERT OR REPLACE INTO albums (albumId, album, artistId, firstChar)
-                       VALUES ((SELECT albumId FROM albums WHERE album = :album), :album, :artistId, :firstChar)
+                       INSERT OR REPLACE INTO albums (albumId, album, artistId, firstChar, coverId)
+                       VALUES ((SELECT albumId FROM albums WHERE album = :album), :album, :artistId, :firstChar, :coverId)
                        )"));
 
 	auto firstChar = album.left(1);
@@ -652,6 +667,7 @@ int32_t Database::addOrUpdateAlbum(const QString& album, int32_t artist_id) {
 	query.bindValue(Q_UTF8(":album"), album);
 	query.bindValue(Q_UTF8(":artistId"), artist_id);
 	query.bindValue(Q_UTF8(":firstChar"), firstChar.toUpper());
+	query.bindValue(Q_UTF8(":coverId"), getAlbumCoverId(album));
 
     IfFailureThrow1(query);
 

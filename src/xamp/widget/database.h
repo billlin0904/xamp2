@@ -97,6 +97,8 @@ public:
 
     QString getAlbumCoverId(int32_t album_id) const;
 
+    QString getAlbumCoverId(const QString& album) const;
+
     QString getArtistCoverId(int32_t artist_id) const;
 
     void setTableName(int32_t table_id, const QString &name);

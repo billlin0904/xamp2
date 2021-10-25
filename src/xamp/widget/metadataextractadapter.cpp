@@ -30,6 +30,10 @@ using namespace xamp::metadata;
 
 class DatabaseIdCache final {
 public:
+    DatabaseIdCache()
+        : cover_reader_(MakeMetadataReader()) {
+    }
+
     std::tuple<int32_t, int32_t, QString> AddCache(const QString& album, const QString& artist) const;
 
     QString AddCoverCache(int32_t album_id, const QString& album, const Metadata& metadata, bool is_unknown_album) const;
@@ -37,19 +41,19 @@ private:
     mutable LruCache<int32_t, QString> cover_id_cache_;
     mutable LruCache<QString, int32_t> album_id_cache_;
     mutable LruCache<QString, int32_t> artist_id_cache_;
+    AlignPtr<IMetadataReader> cover_reader_;
 };
 
 QString DatabaseIdCache::AddCoverCache(int32_t album_id, const QString& album, const Metadata& metadata, bool is_unknown_album) const {
     auto cover_id = Singleton<Database>::GetInstance().getAlbumCoverId(album_id);
-	
     if (!cover_id.isEmpty()) {
     	return cover_id;
     }
-        
-    auto cover_reader = MakeMetadataReader();
+
+    XAMP_LOG_DEBUG("Album id: {} cover id is empty.", album_id);
 
     QPixmap pixmap;
-    const auto& buffer = cover_reader->ExtractEmbeddedCover(metadata.file_path);
+    const auto& buffer = cover_reader_->ExtractEmbeddedCover(metadata.file_path);
     if (!buffer.empty()) {
         pixmap.loadFromData(buffer.data(),
             static_cast<uint32_t>(buffer.size()));
@@ -60,11 +64,13 @@ QString DatabaseIdCache::AddCoverCache(int32_t album_id, const QString& album, c
                 QString::fromStdWString(metadata.file_path));
     	}          
     }
+
     if (!pixmap.isNull()) {
         cover_id = Singleton<PixmapCache>::GetInstance().addOrUpdate(pixmap);
         assert(!cover_id.isEmpty());
         cover_id_cache_.AddOrUpdate(album_id, cover_id);
         Singleton<Database>::GetInstance().setAlbumCover(album_id, album, cover_id);
+        XAMP_LOG_DEBUG("add Album id: {} cover id: {}", album_id, cover_id.toStdString());
     }	
     return cover_id;
 }
