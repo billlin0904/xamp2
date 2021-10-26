@@ -12,10 +12,10 @@
 
 class PlayListTableView;
 
-class PlyalistPage : public QFrame {
+class PlaylistPage : public QFrame {
 	Q_OBJECT
 public:
-	explicit PlyalistPage(QWidget *parent = nullptr);
+	explicit PlaylistPage(QWidget *parent = nullptr);
 
 	PlayListTableView* playlist();
 

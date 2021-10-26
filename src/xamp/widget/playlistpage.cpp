@@ -9,12 +9,12 @@
 #include <widget/playlisttableview.h>
 #include <widget/playlistpage.h>
 
-PlyalistPage::PlyalistPage(QWidget* parent)
+PlaylistPage::PlaylistPage(QWidget* parent)
 	: QFrame(parent) {
 	initial();
 }
 
-void PlyalistPage::initial() {
+void PlaylistPage::initial() {
 	auto* default_layout = new QVBoxLayout(this);
 	default_layout->setSpacing(0);
 	default_layout->setObjectName(QString::fromUtf8("default_layout"));
@@ -106,24 +106,24 @@ void PlyalistPage::initial() {
 	setStyleSheet(Q_UTF8("background-color: transparent"));
 }
 
-void PlyalistPage::OnThemeColorChanged(QColor theme_color, QColor color) {
+void PlaylistPage::OnThemeColorChanged(QColor theme_color, QColor color) {
 	title_->setStyleSheet(Q_UTF8("QLabel { color: ") + colorToString(color) + Q_UTF8("; background-color: transparent; }"));
 	format_->setStyleSheet(Q_UTF8("QLabel { font-family: FormatFont; font-size: 16px; color: ") + colorToString(color) + Q_UTF8("; background-color: transparent; }"));
 	setStyleSheet(backgroundColorToString(theme_color));
 }
 
-QLabel* PlyalistPage::format() {
+QLabel* PlaylistPage::format() {
 	return format_;
 }
 
-ScrollLabel* PlyalistPage::title() {
+ScrollLabel* PlaylistPage::title() {
 	return title_;
 }
 
-QLabel* PlyalistPage::cover() {
+QLabel* PlaylistPage::cover() {
 	return cover_;
 }
 
-PlayListTableView* PlyalistPage::playlist() {
+PlayListTableView* PlaylistPage::playlist() {
     return playlist_;
 }

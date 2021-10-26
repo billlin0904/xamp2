@@ -28,7 +28,7 @@
 #include "ui_xamp.h"
 
 class LrcPage;
-class PlyalistPage;
+class PlaylistPage;
 class AboutPage;
 class PreferencePage;
 class AlbumView;
@@ -38,6 +38,7 @@ class ArtistInfoPage;
 class PlaybackHistoryPage;
 class QWidgetAction;
 struct PlaybackFormat;
+class QWebEngineView;
 
 class Xamp final : public IXampPlayer {
 	Q_OBJECT
@@ -86,7 +87,7 @@ private:
 
 	void setDefaultStyle();
 
-	void setCover(const QPixmap* cover, PlyalistPage *page = nullptr);
+	void setCover(const QPixmap* cover, PlaylistPage *page = nullptr);
 
 	void closeEvent(QCloseEvent* event) override;
 
@@ -122,7 +123,7 @@ private:
 
 	void setPlayerOrder();
 
-	PlyalistPage* newPlaylist(int32_t playlist_id);
+	PlaylistPage* newPlaylist(int32_t playlist_id);
 
 	void pushWidget(QWidget* widget);
 
@@ -160,7 +161,7 @@ private:
 
 	void extractFile(const QString &file_path);
 
-	PlyalistPage* currentPlyalistPage();
+	PlaylistPage* currentPlyalistPage();
 
 	QString translasteError(Errors error);
 
@@ -170,9 +171,9 @@ private:
 	DeviceInfo device_info_;
     PlayListEntity current_entity_;
 	LrcPage* lrc_page_;
-	PlyalistPage* playlist_page_;
-	PlyalistPage* podcast_page_;
-	PlyalistPage* current_playlist_page_;
+	PlaylistPage* playlist_page_;
+	PlaylistPage* podcast_page_;
+	PlaylistPage* current_playlist_page_;
 	AlbumArtistPage* album_artist_page_;
     ArtistInfoPage* artist_info_page_;
 	PreferencePage* preference_page_;
@@ -182,6 +183,7 @@ private:
 	QStack<int32_t> stack_page_id_;	    	
 	MusicBrainzClient mbc_;
 	DiscogsClient discogs_;
+	QWebEngineView* ytmusic_view_;
 	std::shared_ptr<UIPlayerStateAdapter> state_adapter_;
 	std::shared_ptr<IAudioPlayer> player_;
 #ifdef Q_OS_WIN

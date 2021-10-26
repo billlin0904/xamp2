@@ -8,6 +8,8 @@
 #include <QWidgetAction>
 #include <QMessageBox>
 #include <QFileDialog>
+#include <QWebEngineView>
+#include <QNetworkProxyFactory>
 
 #include <base/scopeguard.h>
 #include <base/str_utilts.h>
@@ -42,6 +44,17 @@
 #include "preferencepage.h"
 #include "thememanager.h"
 #include "xamp.h"
+
+enum TabIndex {
+    TAB_ALBUM = 0,
+    TAB_ARTIST,
+    TAB_PLAYLIST,
+    TAB_PODCAST,
+    TAB_LYRICS,
+    TAB_SETTINGS,
+    TAB_ABOUT,
+    TAB_YT_MUSIC,
+};
 
 static AlignPtr<ISampleRateConverter> makeSampleRateConverter(const QVariantMap &settings) {
     const auto quality = static_cast<SoxrQuality>(settings[kSoxrQuality].toInt());
@@ -116,6 +129,7 @@ Xamp::Xamp()
     , artist_info_page_(nullptr)
 	, tray_icon_menu_(nullptr)
 	, tray_icon_(nullptr)
+	, ytmusic_view_(nullptr)
     , state_adapter_(std::make_shared<UIPlayerStateAdapter>())
 #ifdef Q_OS_WIN
     , player_(MakeAudioPlayer(state_adapter_))
@@ -599,29 +613,32 @@ void Xamp::initialController() {
 
     (void)QObject::connect(ui_.sliderBar, &TabListView::clickedTable, [this](auto table_id) {
     	switch (table_id) {
-        case 0:
+        case TAB_ALBUM:
             album_artist_page_->refreshOnece();
             ui_.currentView->setCurrentWidget(album_artist_page_);
             break;
-        case 1:
+        case TAB_ARTIST:
             ui_.currentView->setCurrentWidget(artist_info_page_);
             break;
-        case 3:
+        case TAB_PODCAST:
             ui_.currentView->setCurrentWidget(podcast_page_);
             current_playlist_page_ = podcast_page_;
             break;
-        case 2:
+        case TAB_PLAYLIST:
             ui_.currentView->setCurrentWidget(playlist_page_);
             current_playlist_page_ = playlist_page_;
             break;
-        case 4:
+        case TAB_LYRICS:
             ui_.currentView->setCurrentWidget(lrc_page_);
             break;
-        case 5:
+        case TAB_SETTINGS:
             ui_.currentView->setCurrentWidget(preference_page_);
             break;
-        case 6:
+        case TAB_ABOUT:
             ui_.currentView->setCurrentWidget(about_page_);
+            break;
+        case TAB_YT_MUSIC:
+            ui_.currentView->setCurrentWidget(ytmusic_view_);
             break;
     	}        
     });
@@ -646,17 +663,6 @@ void Xamp::initialController() {
 #endif
 
     auto* settings_menu = new QMenu(this);
-
-	// Theme color
-    /*auto* select_color_widget = new SelectColorWidget();
-    auto* theme_color_menu = new QMenu(tr("Theme color"));
-    auto* widget_action = new QWidgetAction(theme_color_menu);
-    widget_action->setDefaultWidget(select_color_widget);
-    (void)QObject::connect(select_color_widget, &SelectColorWidget::colorButtonClicked, [this](auto color) {
-        applyTheme(color);
-    });
-    theme_color_menu->addAction(widget_action);
-    settings_menu->addMenu(theme_color_menu);*/
     auto hide_widget = [this](bool enable) {
         if (!enable) {
             top_window_->resize(QSize(700, 80));
@@ -774,7 +780,7 @@ void Xamp::setTablePlaylistView(int table_id) {
 
     auto found = false;
     for (auto idx : stack_page_id_) {
-        if (auto* page = dynamic_cast<PlyalistPage*>(ui_.currentView->widget(idx))) {
+        if (auto* page = dynamic_cast<PlaylistPage*>(ui_.currentView->widget(idx))) {
             if (page->playlist()->playlistId() == playlist_id) {
                 ui_.currentView->setCurrentIndex(idx);
                 found = true;
@@ -1057,10 +1063,10 @@ void Xamp::updateUI(const MusicEntity& item, const PlaybackFormat& playback_form
     }
 }
 
-PlyalistPage* Xamp::currentPlyalistPage() {
-    current_playlist_page_ = dynamic_cast<PlyalistPage*>(ui_.currentView->currentWidget());
+PlaylistPage* Xamp::currentPlyalistPage() {
+    current_playlist_page_ = dynamic_cast<PlaylistPage*>(ui_.currentView->currentWidget());
     if (!current_playlist_page_) {
-        current_playlist_page_ = dynamic_cast<PlyalistPage*>(ui_.currentView->widget(1));
+        current_playlist_page_ = dynamic_cast<PlaylistPage*>(ui_.currentView->widget(1));
     }
     return current_playlist_page_;
 }
@@ -1128,7 +1134,7 @@ void Xamp::addPlaylistItem(const PlayListEntity &entity) {
     playlist_view->refresh();
 }
 
-void Xamp::setCover(const QPixmap* cover, PlyalistPage* page) {
+void Xamp::setCover(const QPixmap* cover, PlaylistPage* page) {
     if (!cover) {
         cover = &ThemeManager::instance().pixmap().unknownCover();    
     }
@@ -1177,15 +1183,16 @@ void Xamp::addTable() {
 }
 
 void Xamp::initialPlaylist() {
-    ui_.sliderBar->addTab(tr("Playlists"), 2, ThemeManager::instance().playlistIcon());
-    ui_.sliderBar->addTab(tr("Podcast"), 3, ThemeManager::instance().podcastIcon());
+    ui_.sliderBar->addTab(tr("Playlists"), TAB_PLAYLIST, ThemeManager::instance().playlistIcon());
+    ui_.sliderBar->addTab(tr("Podcast"), TAB_PODCAST, ThemeManager::instance().podcastIcon());
+    ui_.sliderBar->addTab(tr("Youtube Music"), TAB_YT_MUSIC, ThemeManager::instance().albumsIcon());
     ui_.sliderBar->addSeparator();
-    ui_.sliderBar->addTab(tr("Albums"), 0, ThemeManager::instance().albumsIcon());
-	ui_.sliderBar->addTab(tr("Artists"), 1, ThemeManager::instance().artistsIcon());
-    ui_.sliderBar->addTab(tr("Lyrics"), 4, ThemeManager::instance().subtitleIcon());
+    ui_.sliderBar->addTab(tr("Albums"), TAB_ALBUM, ThemeManager::instance().albumsIcon());
+	ui_.sliderBar->addTab(tr("Artists"), TAB_ARTIST, ThemeManager::instance().artistsIcon());
+    ui_.sliderBar->addTab(tr("Lyrics"), TAB_LYRICS, ThemeManager::instance().subtitleIcon());
     ui_.sliderBar->addSeparator();
-    ui_.sliderBar->addTab(tr("Settings"), 5, ThemeManager::instance().preferenceIcon());
-    ui_.sliderBar->addTab(tr("About"), 6, ThemeManager::instance().aboutIcon());
+    ui_.sliderBar->addTab(tr("Settings"), TAB_SETTINGS, ThemeManager::instance().preferenceIcon());
+    ui_.sliderBar->addTab(tr("About"), TAB_ABOUT, ThemeManager::instance().aboutIcon());
     ui_.sliderBar->setCurrentIndex(ui_.sliderBar->model()->index(0, 0));
 	
     Singleton<Database>::GetInstance().forEachTable([this](auto table_id,
@@ -1245,7 +1252,12 @@ void Xamp::initialPlaylist() {
     artist_info_page_ = new ArtistInfoPage(this);
     preference_page_ = new PreferencePage(this);
     about_page_ = new AboutPage(this);
-    
+
+    QNetworkProxyFactory::setUseSystemConfiguration(false);
+    ytmusic_view_ = new QWebEngineView(this);
+    ytmusic_view_->load(QUrl(Q_UTF8("https://music.youtube.com")));
+
+    pushWidget(ytmusic_view_);
     pushWidget(lrc_page_);    
     pushWidget(playlist_page_);
     pushWidget(album_artist_page_);
@@ -1327,7 +1339,7 @@ void Xamp::setupPlayNextMusicSignals(bool add_or_remove) {
 }
 
 void Xamp::addItem(const QString& file_name) {
-	const auto add_playlist = dynamic_cast<PlyalistPage*>(ui_.currentView->currentWidget()) != nullptr;
+	const auto add_playlist = dynamic_cast<PlaylistPage*>(ui_.currentView->currentWidget()) != nullptr;
 
     if (add_playlist) {
         try {
@@ -1518,8 +1530,8 @@ void Xamp::readFingerprint(const QModelIndex&, const PlayListEntity& item) {
     mbc_.searchBy(fingerprint_info);
 }
 
-PlyalistPage* Xamp::newPlaylist(int32_t playlist_id) {
-	auto* playlist_page = new PlyalistPage(this);
+PlaylistPage* Xamp::newPlaylist(int32_t playlist_id) {
+	auto* playlist_page = new PlaylistPage(this);
 
     ui_.currentView->addWidget(playlist_page);
 
@@ -1532,7 +1544,7 @@ PlyalistPage* Xamp::newPlaylist(int32_t playlist_id) {
     (void)QObject::connect(this,
         &Xamp::themeChanged,
         playlist_page,
-        &PlyalistPage::OnThemeColorChanged);
+        &PlaylistPage::OnThemeColorChanged);
 
     (void)QObject::connect(playlist_page->playlist(), &PlayListTableView::removeItems,
                             [](auto playlist_id, const auto& select_music_ids) {
