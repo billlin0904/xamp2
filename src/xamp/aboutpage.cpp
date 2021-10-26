@@ -25,7 +25,7 @@ AboutPage::AboutPage(QWidget* parent)
 
     ui.lblLogo->setPixmap(ThemeManager::instance().appIcon().pixmap(128, 128));
 
-    QFont font(Q_UTF8("Lucida Sans Unicode"));
+    QFont font(Q_UTF8("MonoFont"));
     font.setBold(true);
     font.setPointSizeF(18);
     font.setStyleStrategy(QFont::PreferAntialias);

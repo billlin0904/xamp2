@@ -277,7 +277,6 @@ void Database::removeAlbum(int32_t album_id) {
         removePlaylistMusic(1, QVector<int32_t>{ entity.music_id });
 		removePlaylistMusic(2, QVector<int32_t>{ entity.music_id });
         removeAlbumMusicId(entity.music_id);
-        //removeAlbumArtistId(entity.artist_id);
         removeMusic(entity.music_id);
     });
 
@@ -362,16 +361,16 @@ std::optional<ArtistStats> Database::getArtistStats(int32_t artist_id) const {
 	QSqlQuery query;
 
 	query.prepare(Q_UTF8(R"(
-        SELECT
-            SUM(musics.duration) AS durations,
-            (SELECT COUNT( * ) AS albums FROM albums WHERE albums.artistId = :artistId) AS albums,
-			(SELECT COUNT( * ) AS tracks FROM albumMusic WHERE albumMusic.artistId = :artistId) AS tracks
-        FROM
-	        albumMusic
-	    JOIN albums ON albums.artistId = albumMusic.artistId 
-        JOIN musics ON musics.musicId = albumMusic.musicId 
-        WHERE
-	        albums.artistId = :artistId;)"));
+    SELECT
+        SUM(musics.duration) AS durations,
+        (SELECT COUNT( * ) AS albums FROM albums WHERE albums.artistId = :artistId) AS albums,
+		(SELECT COUNT( * ) AS tracks FROM albumMusic WHERE albumMusic.artistId = :artistId) AS tracks
+    FROM
+	    albumMusic
+	JOIN albums ON albums.artistId = albumMusic.artistId 
+    JOIN musics ON musics.musicId = albumMusic.musicId 
+    WHERE
+	    albums.artistId = :artistId;)"));
 
 	query.bindValue(Q_UTF8(":artistId"), artist_id);
 
@@ -392,15 +391,15 @@ std::optional<AlbumStats> Database::getAlbumStats(int32_t album_id) const {
 	QSqlQuery query;
 
 	query.prepare(Q_UTF8(R"(
-        SELECT
-            SUM(musics.duration) AS durations,
-            (SELECT COUNT( * ) AS tracks FROM albumMusic WHERE albumMusic.albumId = :albumId) AS tracks
-        FROM
-	        albumMusic
-	    JOIN albums ON albums.albumId = albumMusic.albumId 
-        JOIN musics ON musics.musicId = albumMusic.musicId 
-        WHERE
-	        albums.albumId = :albumId;)"));
+    SELECT
+        SUM(musics.duration) AS durations,
+        (SELECT COUNT( * ) AS tracks FROM albumMusic WHERE albumMusic.albumId = :albumId) AS tracks
+    FROM
+	    albumMusic
+	JOIN albums ON albums.albumId = albumMusic.albumId 
+    JOIN musics ON musics.musicId = albumMusic.musicId 
+    WHERE
+	    albums.albumId = :albumId;)"));
 
 	query.bindValue(Q_UTF8(":albumId"), album_id);
 
@@ -443,8 +442,8 @@ void Database::addTablePlaylist(int32_t tableId, int32_t playlist_id) {
 	QSqlQuery query;
 
 	query.prepare(Q_UTF8(R"(
-                         INSERT INTO tablePlaylist (playlistId, tableId) VALUES (:playlistId, :tableId)
-                         )"));
+    INSERT INTO tablePlaylist (playlistId, tableId) VALUES (:playlistId, :tableId)
+    )"));
 
 	query.bindValue(Q_UTF8(":playlistId"), playlist_id);
 	query.bindValue(Q_UTF8(":tableId"), tableId);
@@ -500,9 +499,7 @@ QString Database::getAlbumCoverId(const QString &album) const {
 int32_t Database::addOrUpdateMusic(const Metadata& metadata, int32_t playlist_id) {
 	QSqlQuery query;
 
-	query.prepare(
-	Q_UTF8(
-	R"(
+	query.prepare(Q_UTF8(R"(
     INSERT OR REPLACE INTO musics
     (musicId, title, track, path, fileExt, fileName, duration, durationStr, parentPath, bitrate, samplerate, offset, dateTime)
     VALUES ((SELECT musicId FROM musics WHERE path = :path and offset = :offset), :title, :track, :path, :fileExt, :fileName, :duration, :durationStr, :parentPath, :bitrate, :samplerate, :offset, :dateTime)
@@ -592,8 +589,8 @@ void Database::addMusicToPlaylist(int32_t music_id, int32_t playlist_id) const {
 	QSqlQuery query;
 
 	query.prepare(Q_UTF8(R"(
-                         INSERT INTO playlistMusics (playlistMusicsId, playlistId, musicId) VALUES (NULL, :playlistId, :musicId)
-                         )"));
+    INSERT INTO playlistMusics (playlistMusicsId, playlistId, musicId) VALUES (NULL, :playlistId, :musicId)
+    )"));
 
 	query.bindValue(Q_UTF8(":playlistId"), playlist_id);
 	query.bindValue(Q_UTF8(":musicId"), music_id);
@@ -636,12 +633,10 @@ void Database::updateArtistCoverId(int32_t artist_id, const QString& coverId) {
 int32_t Database::addOrUpdateArtist(const QString& artist) {
 	QSqlQuery query;
 
-	query.prepare(
-		Q_UTF8(
-			R"(
-                    INSERT OR REPLACE INTO artists (artistId, artist, firstChar)
-                    VALUES ((SELECT artistId FROM artists WHERE artist = :artist), :artist, :firstChar)
-                    )"));
+	query.prepare(Q_UTF8(R"(
+    INSERT OR REPLACE INTO artists (artistId, artist, firstChar)
+    VALUES ((SELECT artistId FROM artists WHERE artist = :artist), :artist, :firstChar)
+    )"));
 
 	auto firstChar = artist.left(1);
 	query.bindValue(Q_UTF8(":artist"), artist);
@@ -656,11 +651,10 @@ int32_t Database::addOrUpdateArtist(const QString& artist) {
 int32_t Database::addOrUpdateAlbum(const QString& album, int32_t artist_id) {
 	QSqlQuery query;
 
-	query.prepare(
-		Q_UTF8(R"(
-                       INSERT OR REPLACE INTO albums (albumId, album, artistId, firstChar, coverId)
-                       VALUES ((SELECT albumId FROM albums WHERE album = :album), :album, :artistId, :firstChar, :coverId)
-                       )"));
+	query.prepare(Q_UTF8(R"(
+    INSERT OR REPLACE INTO albums (albumId, album, artistId, firstChar, coverId)
+    VALUES ((SELECT albumId FROM albums WHERE album = :album), :album, :artistId, :firstChar, :coverId)
+    )"));
 
 	auto firstChar = album.left(1);
 
@@ -678,25 +672,24 @@ int32_t Database::addOrUpdateAlbum(const QString& album, int32_t artist_id) {
 void Database::addOrUpdateAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id) {
 	QSqlQuery query;
 
-	query.prepare(
-		Q_UTF8(R"(
-                       SELECT
-                       albumMusicId
-                       FROM
-                       albumMusic
-                       JOIN
-                       albums ON albums.albumId = albumMusic.albumId
-                       JOIN
-                       artists ON artists.artistId = albumMusic.artistId
-                       JOIN
-                       musics ON musics.musicId = albumMusic.musicId
-                       WHERE
-                       albums.albumId = :albumId
-                       AND
-                       artists.artistId = :artistId
-                       AND
-                       musics.musicId = :musicId;
-                       )"));
+	query.prepare(Q_UTF8(R"(
+    SELECT
+    albumMusicId
+    FROM
+    albumMusic
+    JOIN
+    albums ON albums.albumId = albumMusic.albumId
+    JOIN
+    artists ON artists.artistId = albumMusic.artistId
+    JOIN
+    musics ON musics.musicId = albumMusic.musicId
+    WHERE
+    albums.albumId = :albumId
+    AND
+    artists.artistId = :artistId
+    AND
+    musics.musicId = :musicId;
+    )"));
 
 	query.bindValue(Q_UTF8(":album"), album_id);
 	query.bindValue(Q_UTF8(":artist"), artist_id);
@@ -716,9 +709,9 @@ void Database::addOrUpdateAlbumArtist(int32_t album_id, int32_t artist_id) const
 	QSqlQuery query;
 
 	query.prepare(Q_UTF8(R"(
-                         INSERT OR REPLACE INTO albumArtist (albumArtistId, albumId, artistId)
-                         VALUES ((SELECT albumArtistId from albumArtist where albumId = :albumId AND artistId = :artistId), :albumId, :artistId)
-                         )"));
+    INSERT OR REPLACE INTO albumArtist (albumArtistId, albumId, artistId)
+    VALUES ((SELECT albumArtistId from albumArtist where albumId = :albumId AND artistId = :artistId), :albumId, :artistId)
+    )"));
 
 	query.bindValue(Q_UTF8(":albumId"), album_id);
 	query.bindValue(Q_UTF8(":artistId"), artist_id);
@@ -730,9 +723,9 @@ void Database::addAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_
 	QSqlQuery query;
 
 	query.prepare(Q_UTF8(R"(
-                         INSERT OR REPLACE INTO albumMusic (albumMusicId, albumId, artistId, musicId)
-                         VALUES ((SELECT albumMusicId from albumMusic where albumId = :albumId AND artistId = :artistId AND musicId = :musicId), :albumId, :artistId, :musicId)
-                         )"));
+    INSERT OR REPLACE INTO albumMusic (albumMusicId, albumId, artistId, musicId)
+    VALUES ((SELECT albumMusicId from albumMusic where albumId = :albumId AND artistId = :artistId AND musicId = :musicId), :albumId, :artistId, :musicId)
+    )"));
 
 	query.bindValue(Q_UTF8(":albumId"), album_id);
 	query.bindValue(Q_UTF8(":artistId"), artist_id);

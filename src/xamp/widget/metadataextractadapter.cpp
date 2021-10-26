@@ -39,6 +39,7 @@ public:
     QString AddCoverCache(int32_t album_id, const QString& album, const Metadata& metadata, bool is_unknown_album) const;
 private:	
     mutable LruCache<int32_t, QString> cover_id_cache_;
+    // Key: Album + Artist
     mutable LruCache<QString, int32_t> album_id_cache_;
     mutable LruCache<QString, int32_t> artist_id_cache_;
     AlignPtr<IMetadataReader> cover_reader_;
@@ -86,7 +87,7 @@ std::tuple<int32_t, int32_t, QString> DatabaseIdCache::AddCache(const QString &a
     }
 
     int32_t album_id = 0;
-    if (auto const* album_id_op = this->album_id_cache_.Find(album)) {
+    if (auto const* album_id_op = this->album_id_cache_.Find(album + artist)) {
         album_id = *album_id_op;
     }
     else {
@@ -176,7 +177,9 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
     dialog->setMaximum(dirs.count());
 
     ExtractAdapterProxy proxy(adapter);
-	
+
+    auto reader = MakeMetadataReader();
+
     for (const auto& file_dir_or_path : dirs) {
     	if (dialog->wasCanceled()) {
             return;
@@ -186,7 +189,6 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
         
         try {            
             const Path path(file_dir_or_path.toStdWString());
-            auto reader = MakeMetadataReader();
             WalkPath(path, &proxy, reader.get());            
         }
         catch (const std::exception& e) {
