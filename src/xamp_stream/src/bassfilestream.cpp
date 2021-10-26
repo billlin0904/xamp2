@@ -277,7 +277,7 @@ FlushFileCache:
         return false;
     }
 
-    [[nodiscard]] bool Support¢ÜativeDSD() const noexcept {
+    [[nodiscard]] bool SupportNativeSD() const noexcept {
         return true;
     }
 
@@ -437,8 +437,8 @@ bool BassFileStream::SupportDOP_AA() const noexcept {
     return stream_->SupportDOP_AA();
 }
 
-bool BassFileStream::Support¢ÜativeDSD() const noexcept {
-    return stream_->Support¢ÜativeDSD();
+bool BassFileStream::SupportNativeSD() const noexcept {
+    return stream_->SupportNativeSD();
 }
 
 void LoadBassLib() {

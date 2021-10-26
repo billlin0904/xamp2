@@ -62,11 +62,11 @@ public:
 
     bool IsActive() const noexcept override;
 
-	bool SupportDOP() const noexcept;
+    bool SupportDOP() const noexcept override;
 
-	bool SupportDOP_AA() const noexcept;
+    bool SupportDOP_AA() const noexcept override;
 
-	bool Support¢ÜativeDSD() const noexcept;
+    bool SupportNativeSD() const noexcept override;
 private:	
 	class BassFileStreamImpl;
 	AlignPtr<BassFileStreamImpl> stream_;

@@ -194,7 +194,7 @@ void AudioPlayer::SetDSDStreamMode(DsdModes dsd_mode, AlignPtr<FileStream>& stre
             }
             break;
         case DsdModes::DSD_MODE_NATIVE:
-            if (!dsd_stream->Support¢ÜativeDSD()) {
+            if (!dsd_stream->SupportNativeSD()) {
                 throw NotSupportFormatException();
             }
             break;

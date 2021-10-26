@@ -34,7 +34,7 @@ public:
 
     [[nodiscard]] virtual bool SupportDOP_AA() const noexcept = 0;
 
-    [[nodiscard]] virtual bool Support¢ÜativeDSD() const noexcept = 0;
+    [[nodiscard]] virtual bool SupportNativeSD() const noexcept = 0;
 protected:
     IDsdStream() = default;
 };
