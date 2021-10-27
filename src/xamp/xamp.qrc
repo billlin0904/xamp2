@@ -61,5 +61,6 @@
         <file>fonts/WorkSans-Regular.ttf</file>
         <file>Resource/Black/usb.png</file>
         <file>Resource/Black/search.png</file>
+        <file>Resource/Black/tab_yt_music.png</file>
     </qresource>
 </RCC>

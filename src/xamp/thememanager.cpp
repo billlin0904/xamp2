@@ -114,6 +114,10 @@ QIcon ThemeManager::aboutIcon() const {
     return makeIcon(Q_STR(":/xamp/Resource/%1/help.png"));
 }
 
+QIcon ThemeManager::ytMusicIcon() const {
+    return makeIcon(Q_STR(":/xamp/Resource/%1/tab_yt_music.png"));
+}
+
 void ThemeManager::setPlayOrPauseButton(Ui::XampWindow& ui, bool is_playing) {
     if (is_playing) {
         ui.playButton->setStyleSheet(Q_STR(R"(

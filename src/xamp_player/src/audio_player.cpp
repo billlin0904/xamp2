@@ -642,6 +642,7 @@ void AudioPlayer::Seek(double stream_time) {
     }
 
     if (device_->IsStreamOpen()) {
+        stopped_cond_.notify_one();
         seek_queue_.TryPush(stream_time);
     }
 }
@@ -710,7 +711,7 @@ void AudioPlayer::BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<ISampleRa
     }
 }
 
-void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_buffer_sample) {
+void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_buffer_sample, std::unique_lock<FastMutex>& stopped_lock) {
     while (is_playing_ && stream_->IsActive()) {
         const auto num_samples = stream_->GetSamples(sample_buffer, max_buffer_sample);
 
@@ -729,7 +730,7 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_buffer_samp
                 }
             }
         } else {
-            wait_timer_.Wait();
+            stopped_cond_.wait_for(stopped_lock, std::chrono::seconds(1));
         }
         break;
     }
@@ -762,7 +763,8 @@ void AudioPlayer::Play() {
     stream_task_ = ThreadPool::StreamReaderThreadPool().Spawn([player = shared_from_this()](auto idx) noexcept {
         auto* p = player.get();
 
-        std::unique_lock lock{ p->pause_mutex_ };
+        std::unique_lock pause_lock{ p->pause_mutex_ };
+        std::unique_lock stopped_lock{ p->stopped_mutex_ };
 
         auto* sample_buffer = p->read_buffer_.Get();
         const auto max_buffer_sample = p->num_read_sample_;
@@ -773,7 +775,7 @@ void AudioPlayer::Play() {
         try {
             while (p->is_playing_) {
                 while (p->is_paused_) {
-                    p->pause_cond_.wait_for(lock, kPauseWaitTimeout);
+                    p->pause_cond_.wait_for(pause_lock, kPauseWaitTimeout);
                     p->ProcessSeek();
                 }
 
@@ -784,7 +786,7 @@ void AudioPlayer::Play() {
                     continue;
                 }
 
-                p->ReadSampleLoop(sample_buffer, max_buffer_sample);
+                p->ReadSampleLoop(sample_buffer, max_buffer_sample, stopped_lock);
             }
         }
         catch (const Exception& e) {

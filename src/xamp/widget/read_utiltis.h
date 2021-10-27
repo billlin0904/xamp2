@@ -12,34 +12,36 @@
 
 #include <base/align_ptr.h>
 #include <base/metadata.h>
-#include <player/player.h>
 
 using namespace xamp::base;
 using namespace xamp::player;
 
-std::tuple<double, std::vector<uint8_t>> ReadFingerprint(
+namespace read_utiltis {
+
+std::tuple<double, std::vector<uint8_t>> readFingerprint(
 	std::wstring const & file_path,
     std::function<bool(uint32_t)> const & progress);
 	
-std::tuple<double, double> ReadFileLUFS(std::wstring const& file_path,
+std::tuple<double, double> readFileLUFS(std::wstring const& file_path,
 	std::function<bool(uint32_t)> const& progress);
 
-void Export2WaveFile(std::wstring const& file_path,
+void export2WaveFile(std::wstring const& file_path,
 	std::wstring const& output_file_path,
 	std::function<bool(uint32_t)> const& progress,
 	Metadata const &metadata,
 	bool enable_compressor = true);
 
-void Export2WaveFile(std::wstring const& file_path,
+void export2WaveFile(std::wstring const& file_path,
 	std::wstring const& output_file_path,
 	std::function<bool(uint32_t)> const& progress,
 	Metadata const& metadata,
 	uint32_t output_sample_rate,
 	AlignPtr<ISampleRateConverter> &converter);
 
-void EncodeFlacFile(std::wstring const& file_path,
+void encodeFlacFile(std::wstring const& file_path,
     std::wstring const& output_file_path,
     std::wstring const& command,
     std::function<bool(uint32_t)> const& progress,
     Metadata const& metadata);
 
+}

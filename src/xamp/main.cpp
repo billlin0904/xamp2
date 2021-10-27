@@ -157,6 +157,7 @@ static int excute(int argc, char* argv[]) {
         XAMP_LOG_DEBUG("argv:{} {}", i, argv[i]);
     }
 
+    //QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
     QApplication app(argc, argv);
 
     try {

@@ -25,10 +25,9 @@ AboutPage::AboutPage(QWidget* parent)
 
     ui.lblLogo->setPixmap(ThemeManager::instance().appIcon().pixmap(128, 128));
 
-    QFont font(Q_UTF8("MonoFont"));
+    QFont font(Q_UTF8("UI"));
     font.setBold(true);
-    font.setPointSizeF(18);
-    font.setStyleStrategy(QFont::PreferAntialias);
+    font.setPointSizeF(26);
 
     ui.lblProjectTitle->setFont(font);
     ui.lblProjectTitle->setText(tr("XAMP2"));

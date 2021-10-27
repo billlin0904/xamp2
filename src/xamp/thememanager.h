@@ -104,6 +104,8 @@ public:
 
     QIcon usb() const;
 
+    QIcon ytMusicIcon() const;
+
     void setThemeIcon(Ui::XampWindow& ui) const;
 
     void setShufflePlayorder(Ui::XampWindow& ui) const;

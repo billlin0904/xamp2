@@ -10,6 +10,8 @@
 #include <QFileDialog>
 #include <QWebEngineView>
 #include <QNetworkProxyFactory>
+#include <QWebEngineProfile>
+#include <QWebEngineCookieStore>
 
 #include <base/scopeguard.h>
 #include <base/str_utilts.h>
@@ -1185,7 +1187,7 @@ void Xamp::addTable() {
 void Xamp::initialPlaylist() {
     ui_.sliderBar->addTab(tr("Playlists"), TAB_PLAYLIST, ThemeManager::instance().playlistIcon());
     ui_.sliderBar->addTab(tr("Podcast"), TAB_PODCAST, ThemeManager::instance().podcastIcon());
-    ui_.sliderBar->addTab(tr("Youtube Music"), TAB_YT_MUSIC, ThemeManager::instance().albumsIcon());
+    ui_.sliderBar->addTab(tr("Youtube Music"), TAB_YT_MUSIC, ThemeManager::instance().ytMusicIcon());
     ui_.sliderBar->addSeparator();
     ui_.sliderBar->addTab(tr("Albums"), TAB_ALBUM, ThemeManager::instance().albumsIcon());
 	ui_.sliderBar->addTab(tr("Artists"), TAB_ARTIST, ThemeManager::instance().artistsIcon());
@@ -1253,9 +1255,13 @@ void Xamp::initialPlaylist() {
     preference_page_ = new PreferencePage(this);
     about_page_ = new AboutPage(this);
 
-    QNetworkProxyFactory::setUseSystemConfiguration(false);
     ytmusic_view_ = new QWebEngineView(this);
-    ytmusic_view_->load(QUrl(Q_UTF8("https://music.youtube.com")));
+
+    QNetworkProxyFactory::setUseSystemConfiguration(false);
+    /*auto* profile = ytmusic_view_->page()->profile();
+    auto* cookie = profile->cookieStore();
+    cookie->deleteAllCookies();*/
+    //ytmusic_view_->load(QUrl(Q_UTF8("https://music.youtube.com")));
 
     pushWidget(ytmusic_view_);
     pushWidget(lrc_page_);    
@@ -1290,29 +1296,6 @@ void Xamp::initialPlaylist() {
                             &Xamp::themeChanged,
                             lrc_page_,
                             &LrcPage::onThemeChanged);
-
-    (void)QObject::connect(&mbc_, &MusicBrainzClient::finished,
-                            [this](auto artist_id, auto discogs_artist_id) {
-                            Singleton<Database>::GetInstance().updateDiscogsArtistId(artist_id, discogs_artist_id);
-                                if (!discogs_artist_id.isEmpty()) {
-                                    discogs_.searchArtistId(artist_id, discogs_artist_id);
-                                }
-                            });
-
-    (void)QObject::connect(&discogs_,
-                            &DiscogsClient::getArtistImageUrl,
-                            [this](auto artist_id, auto url) {
-                                discogs_.downloadArtistImage(artist_id, url);
-                                XAMP_LOG_DEBUG("Download artist id: {}, discogs image url: {}", artist_id, url.toStdString());
-                            });
-
-    (void)QObject::connect(&discogs_,
-                            &DiscogsClient::downloadImageFinished,
-                            [](auto artist_id, auto image) {
-                                auto cover_id = Singleton<PixmapCache>::GetInstance().addOrUpdate(image);
-                                Singleton<Database>::GetInstance().updateArtistCoverId(artist_id, cover_id);
-                                XAMP_LOG_DEBUG("Save artist id: {} image, cover id : {}", artist_id, cover_id.toStdString());
-                            });
 
     (void)QObject::connect(album_artist_page_->album(),
                             &AlbumView::addPlaylist,
@@ -1388,7 +1371,7 @@ void Xamp::readFileLUFS(const QModelIndex&, const PlayListEntity& item) {
     dialog->show();
 
     try {
-        auto [lufs, true_peak] = ReadFileLUFS(item.file_path.toStdWString(),
+        auto [lufs, true_peak] = read_utiltis::readFileLUFS(item.file_path.toStdWString(),
             [&](auto progress) -> bool {
                 dialog->setValue(progress);
                 qApp->processEvents();
@@ -1428,7 +1411,7 @@ void Xamp::encodeFlacFile(const PlayListEntity& item) {
     	= Q_STR("-%1 -V").arg(AppSettings::getValue(kFlacEncodingLevel).toInt()).toStdWString();
 
     try {
-        EncodeFlacFile(item.file_path.toStdWString(),
+        read_utiltis::encodeFlacFile(item.file_path.toStdWString(),
             file_name.toStdWString(),
             command,
             [&](auto progress) -> bool {
@@ -1468,7 +1451,7 @@ void Xamp::exportWaveFile(const PlayListEntity& item) {
         auto sample_rate_converter = makeSampleRateConverter(soxr_settings);
 
         try {
-            Export2WaveFile(item.file_path.toStdWString(),
+            read_utiltis::export2WaveFile(item.file_path.toStdWString(),
                 file_name.toStdWString(),
                 [&](auto progress) -> bool {
                     dialog->setValue(progress);
@@ -1481,7 +1464,7 @@ void Xamp::exportWaveFile(const PlayListEntity& item) {
         }
     }  else {
         try {
-            Export2WaveFile(item.file_path.toStdWString(),
+            read_utiltis::export2WaveFile(item.file_path.toStdWString(),
                 file_name.toStdWString(),
                 [&](auto progress) -> bool {
                     dialog->setValue(progress);
@@ -1508,7 +1491,7 @@ void Xamp::readFingerprint(const QModelIndex&, const PlayListEntity& item) {
 
     try {
         const auto [duration, fingerprint_result] =
-            ReadFingerprint(item.file_path.toStdWString(),
+            read_utiltis::readFingerprint(item.file_path.toStdWString(),
                             [&](auto progress) -> bool {
                                 dialog->setValue(progress);
                                 qApp->processEvents();
@@ -1527,7 +1510,6 @@ void Xamp::readFingerprint(const QModelIndex&, const PlayListEntity& item) {
     fingerprint_info.artist_id = item.artist_id;
     fingerprint_info.fingerprint = QString::fromLatin1(fingerprint);
     XAMP_LOG_DEBUG("music id:{} fingerprint:{}", item.music_id, fingerprint_info.fingerprint.toUtf8().toStdString());
-    mbc_.searchBy(fingerprint_info);
 }
 
 PlaylistPage* Xamp::newPlaylist(int32_t playlist_id) {

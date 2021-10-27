@@ -181,8 +181,6 @@ private:
     QMenu* tray_icon_menu_;
     QSystemTrayIcon* tray_icon_;
 	QStack<int32_t> stack_page_id_;	    	
-	MusicBrainzClient mbc_;
-	DiscogsClient discogs_;
 	QWebEngineView* ytmusic_view_;
 	std::shared_ptr<UIPlayerStateAdapter> state_adapter_;
 	std::shared_ptr<IAudioPlayer> player_;

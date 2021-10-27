@@ -136,7 +136,7 @@ private:
 
     void SetState(PlayerState play_state);
 
-    void ReadSampleLoop(int8_t* sample_buffer, uint32_t max_buffer_sample);
+    void ReadSampleLoop(int8_t* sample_buffer, uint32_t max_buffer_sample, std::unique_lock<FastMutex> &stopped_lock);
 
     void BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<ISampleRateConverter> &converter, int32_t buffer_count = 1);
 
@@ -179,6 +179,7 @@ private:
     std::atomic<double> stream_duration_;
     std::atomic<AudioSlice> slice_;
     mutable FastMutex pause_mutex_;
+    mutable FastMutex stopped_mutex_;
     std::string device_id_;
     Uuid device_type_id_;
     FastMutexConditionVariable pause_cond_;

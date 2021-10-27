@@ -508,6 +508,7 @@ void PlayListTableView::initial() {
                 auto entity = this->item(select_item.second);
                 emit readFingerprint(select_item.second, entity);
             }
+            refresh();
             });
         action_map.setCallback(read_file_lufs_act, [this]() {
             const auto rows = selectItemIndex();

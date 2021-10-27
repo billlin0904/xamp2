@@ -1,5 +1,8 @@
 #include <functional>
+#include <optional>
 #include <utility>
+#include <tuple>
+
 #include <base/align_ptr.h>
 #include <base/str_utilts.h>
 #include <base/platform.h>
@@ -15,7 +18,6 @@
 #include <metadata/api.h>
 
 #include <player/chromaprint.h>
-#include <player/audio_player.h>
 #include <player/loudness_scanner.h>
 #include <player/isamplerateconverter.h>
 
@@ -24,6 +26,8 @@
 using namespace xamp::base;
 using namespace xamp::stream;
 using namespace xamp::metadata;
+
+namespace read_utiltis {
 
 inline constexpr uint64_t kFingerprintDuration = 120;
 inline constexpr uint32_t kReadSampleSize = 8192 * 4;
@@ -54,7 +58,7 @@ private:
     Fs::path temp_file_path_;
 };
 
-static double ReadProcess(std::wstring const& file_path,
+static double readAll(std::wstring const& file_path,
 	std::function<bool(uint32_t)> const& progress,
 	std::function<void(AudioFormat const&)> const& prepare,
 	std::function<void(float const*, uint32_t)> const& dsp_process,
@@ -62,7 +66,7 @@ static double ReadProcess(std::wstring const& file_path,
 	const auto is_dsd_file = TestDsdFileFormatStd(file_path);
     auto file_stream = MakeStream();
 
-	if (auto* stream = dynamic_cast<IDsdStream*>(file_stream.get())) {
+	if (auto* stream = AsDsdStream(file_stream)) {
 		if (is_dsd_file) {
 			stream->SetDSDMode(DsdModes::DSD_MODE_DSD2PCM);
 		}
@@ -101,7 +105,7 @@ static double ReadProcess(std::wstring const& file_path,
 	return file_stream->GetDuration();
 }
 
-void Export2WaveFile(std::wstring const& file_path,
+void export2WaveFile(std::wstring const& file_path,
 	std::wstring const& output_file_path,
 	std::function<bool(uint32_t)> const& progress,
 	Metadata const& metadata,
@@ -127,14 +131,14 @@ void Export2WaveFile(std::wstring const& file_path,
 				return converter->Process(buf.data(), buf.size(), file);
 			};
 
-            ReadProcess(file_path, progress, prepare, process);
+            readAll(file_path, progress, prepare, process);
 			file.Close();
 			auto writer = MakeMetadataWriter();
 			writer->Write(dest_file_path, metadata);
 		});
 }
 
-void Export2WaveFile(std::wstring const& file_path,
+void export2WaveFile(std::wstring const& file_path,
 	std::wstring const& output_file_path,
 	std::function<bool(uint32_t)> const& progress,
 	Metadata const& metadata,
@@ -143,7 +147,7 @@ void Export2WaveFile(std::wstring const& file_path,
 	excepted.Try([&](auto const& dest_file_path) {
 		WaveFileWriter file;
 		Compressor compressor;
-        ReadProcess(file_path, progress,
+        readAll(file_path, progress,
             [&file, dest_file_path, &compressor](AudioFormat const& input_format) {
 				auto format = input_format;
 				format.SetByteFormat(ByteFormat::SINT24);
@@ -165,11 +169,11 @@ void Export2WaveFile(std::wstring const& file_path,
 		});
 }
 
-std::tuple<double, double> ReadFileLUFS(std::wstring const& file_path,
+std::tuple<double, double> readFileLUFS(std::wstring const& file_path,
 	std::function<bool(uint32_t)> const& progress) {
 	std::optional<LoudnessScanner> scanner;
 
-    ReadProcess(file_path, progress,
+    readAll(file_path, progress,
 		[&scanner](AudioFormat const& input_format)
 		{
 			scanner = LoudnessScanner(input_format.GetSampleRate());
@@ -181,14 +185,14 @@ std::tuple<double, double> ReadFileLUFS(std::wstring const& file_path,
 	return std::make_tuple(scanner->GetLoudness(), scanner->GetTruePeek());
 }
 
-std::tuple<double, std::vector<uint8_t>> ReadFingerprint(std::wstring const& file_path,
+std::tuple<double, std::vector<uint8_t>> readFingerprint(std::wstring const& file_path,
 	std::function<bool(uint32_t)> const& progress) {
 	Chromaprint chromaprint;
 
 	std::vector<int16_t> osamples;
 	AudioFormat convert_format;
 
-    auto duration = ReadProcess(file_path, progress,
+    auto duration = readAll(file_path, progress,
         [&chromaprint, &convert_format](AudioFormat const& input_format)
 		{
 			convert_format = input_format;
@@ -210,7 +214,7 @@ std::tuple<double, std::vector<uint8_t>> ReadFingerprint(std::wstring const& fil
 	};
 }
 
-void EncodeFlacFile(std::wstring const& file_path,
+void encodeFlacFile(std::wstring const& file_path,
                 std::wstring const& output_file_path,
                 std::wstring const& command,
                 std::function<bool(uint32_t)> const& progress,
@@ -224,4 +228,6 @@ void EncodeFlacFile(std::wstring const& file_path,
 		auto writer = MakeMetadataWriter();
 		writer->Write(output_file_path, metadata);
     }
+}
+
 }
