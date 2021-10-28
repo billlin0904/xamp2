@@ -8,7 +8,10 @@
 #include <set>
 #include <base/stl.h>
 #include <base/align_ptr.h>
-#include <stream/stream.h>
+
+#include <stream/idsdstream.h>
+#include <stream/ifileencoder.h>
+#include <stream/filestream.h>
 
 namespace xamp::stream {
 

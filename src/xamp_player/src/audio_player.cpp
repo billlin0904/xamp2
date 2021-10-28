@@ -712,6 +712,16 @@ void AudioPlayer::BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<ISampleRa
 }
 
 void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_buffer_sample, std::unique_lock<FastMutex>& stopped_lock) {
+    if (!stream_->IsActive()) {
+        if (is_playing_) {
+            if (stopped_cond_.wait_for(stopped_lock, std::chrono::seconds(3))
+                != std::cv_status::timeout) {
+                XAMP_LOG_D(logger_, "Weak up for seek!");
+            }
+        }
+    	return;
+    }
+
     while (is_playing_ && stream_->IsActive()) {
         const auto num_samples = stream_->GetSamples(sample_buffer, max_buffer_sample);
 
@@ -729,8 +739,6 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_buffer_samp
                     continue;
                 }
             }
-        } else {
-            stopped_cond_.wait_for(stopped_lock, std::chrono::seconds(1));
         }
         break;
     }

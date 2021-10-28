@@ -65,6 +65,14 @@ public:
         init_state_ = ::SymInitialize(process_.get(),
             nullptr, 
             TRUE);
+
+        if (init_state_) {
+            wchar_t path[MAX_PATH] = { 0 };
+            ::GetModuleFileNameW(nullptr, path, MAX_PATH);
+            Path excute_file_path(path);
+            auto parent_path = excute_file_path.parent_path();
+            ::SymSetSearchPathW(process_.get(), parent_path.c_str());
+        }
     }
 
     [[nodiscard]] bool IsInit() const noexcept {
@@ -75,49 +83,49 @@ public:
         ::SymCleanup(process_.get());
 	}
 
+    size_t WalkStack(CONTEXT const* context, StackTrace::CaptureStackAddress& addrlist) noexcept {
+        CONTEXT integer_control_context = *context;
+        integer_control_context.ContextFlags = CONTEXT_INTEGER | CONTEXT_CONTROL;
+
+        STACKFRAME64 stack_frame{};
+
+        stack_frame.AddrPC.Offset = context->Rip;
+        stack_frame.AddrPC.Mode = AddrModeFlat;
+        stack_frame.AddrStack.Offset = context->Rsp;
+        stack_frame.AddrStack.Mode = AddrModeFlat;
+
+        stack_frame.AddrFrame.Offset = context->Rbp;
+        stack_frame.AddrFrame.Mode = AddrModeFlat;
+
+        size_t frame_count = 0;
+        const WinHandle thread(::GetCurrentThread());
+
+        for (auto& address : addrlist) {
+            const auto result = ::StackWalk64(IMAGE_FILE_MACHINE_IA64,
+                process_.get(),
+                thread.get(),
+                &stack_frame,
+                &integer_control_context,
+                nullptr,
+                ::SymFunctionTableAccess64,
+                ::SymGetModuleBase64,
+                nullptr);
+            if (!result) {
+                break;
+            }
+            if (stack_frame.AddrFrame.Offset == 0) {
+                break;
+            }
+            address = reinterpret_cast<void*>(stack_frame.AddrPC.Offset);
+            ++frame_count;
+        }
+        return frame_count;
+    }
+
 private:
     bool init_state_;
 	WinHandle process_;
 };
-
-static size_t WalkStack(CONTEXT const* context, StackTrace::CaptureStackAddress& addrlist) noexcept {
-    CONTEXT integer_control_context = *context;
-    integer_control_context.ContextFlags = CONTEXT_INTEGER | CONTEXT_CONTROL;
-
-    STACKFRAME64 stack_frame{};
-
-    stack_frame.AddrPC.Offset = context->Rip;
-    stack_frame.AddrPC.Mode = AddrModeFlat;
-    stack_frame.AddrStack.Offset = context->Rsp;
-    stack_frame.AddrStack.Mode = AddrModeFlat;
-
-    stack_frame.AddrFrame.Offset = context->Rbp;
-    stack_frame.AddrFrame.Mode = AddrModeFlat;
-
-    size_t frame_count = 0;
-    const WinHandle thread(::GetCurrentThread());
-
-    for (auto &address : addrlist) {
-        const auto result = ::StackWalk64(IMAGE_FILE_MACHINE_IA64,
-            Singleton<SymLoader>::GetInstance().GetProcess().get(),
-            thread.get(),
-            &stack_frame,
-            &integer_control_context,
-            nullptr,
-            ::SymFunctionTableAccess64,
-            ::SymGetModuleBase64,
-            nullptr);
-        if (!result) {
-            break;
-        }
-        if (stack_frame.AddrFrame.Offset == 0) {
-            break;
-        }
-        address = reinterpret_cast<void*>(stack_frame.AddrPC.Offset);
-        ++frame_count;
-    }
-    return frame_count;
-}
 
 std::string GetFileName(std::filesystem::path const &path) {
     return String::ToUtf8String(path.filename());
@@ -196,9 +204,10 @@ void StackTrace::PrintStackTrace(EXCEPTION_POINTERS const* info) {
     }
 
     std::ostringstream ostr;
-	const auto frame_count = WalkStack(info->ContextRecord, addrlist_);
+	const auto frame_count = Singleton<SymLoader>::GetInstance().WalkStack(info->ContextRecord, addrlist_);
     WriteLog(frame_count - 1, ostr);
     XAMP_LOG_ERROR(ostr.str());
+    Logger::GetInstance().Shutdown();
     std::exit(-1);
 }
 
@@ -209,7 +218,7 @@ void StackTrace::PrintStackTrace() {
 #endif
 
 StackTrace::StackTrace() noexcept {
-    addrlist_.fill(nullptr);
+    addrlist_.resize(kMaxStackFrameSize);
 }
 
 bool StackTrace::LoadSymbol() {

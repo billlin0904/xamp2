@@ -52,11 +52,11 @@
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <QtInstall>msvc2019_64</QtInstall>
+    <QtInstall>5.15.2_msvc2019_64</QtInstall>
     <QtModules>core;sql;network;gui;widgets;winextras;concurrent;webenginewidgets;</QtModules>
   </PropertyGroup>
   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <QtInstall>msvc2019_64</QtInstall>
+    <QtInstall>5.15.2_msvc2019_64</QtInstall>
     <QtModules>core;sql;network;gui;widgets;winextras;concurrent;webenginewidgets;</QtModules>
   </PropertyGroup>
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.props')">
@@ -213,6 +213,7 @@
     <ClCompile Include="widget\wheelablewidget.cpp" />
     <ClCompile Include="widget\win32\win32.cpp" />
     <ClCompile Include="widget\xampdialog.cpp" />
+    <ClCompile Include="widget\ytmusicwebengineview.cpp" />
     <ClCompile Include="xamp.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -229,6 +230,7 @@
     <ResourceCompile Include="xamp.rc" />
   </ItemGroup>
   <ItemGroup>
+    <QtMoc Include="widget\ytmusicwebengineview.h" />
     <QtMoc Include="xampplayer.h" />
     <QtMoc Include="widget\lyricsshowwidget.h" />
     <QtMoc Include="widget\discordnotify.h" />

@@ -16,18 +16,9 @@
 
 namespace xamp::player {
 
-static AlignPtr<ICDDevice> cd_device_;
-
 #ifdef XAMP_OS_WIN
-AlignPtr<ICDDevice>& OpenCD(int32_t driver_letter) {
-    if (!cd_device_) {
-        cd_device_ = MakeCDDevice(driver_letter);
-    }
-    return cd_device_;
-}
-
-void CloseCD() {
-    cd_device_.reset();
+AlignPtr<ICDDevice> OpenCD(int32_t driver_letter) {
+    return MakeCDDevice(driver_letter);
 }
 #endif
 

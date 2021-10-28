@@ -18,7 +18,7 @@ namespace xamp::base {
 class XAMP_BASE_API StackTrace {
 public:
     static constexpr size_t kMaxStackFrameSize = 62;
-    using CaptureStackAddress = std::array<void*, kMaxStackFrameSize>;
+    using CaptureStackAddress = std::vector<void*>;
 
     StackTrace() noexcept;   
 

@@ -8,10 +8,7 @@
 #include <QWidgetAction>
 #include <QMessageBox>
 #include <QFileDialog>
-#include <QWebEngineView>
 #include <QNetworkProxyFactory>
-#include <QWebEngineProfile>
-#include <QWebEngineCookieStore>
 
 #include <base/scopeguard.h>
 #include <base/str_utilts.h>
@@ -35,7 +32,7 @@
 #include <widget/image_utiltis.h>
 #include <widget/database.h>
 #include <widget/pixmapcache.h>
-#include <widget/selectcolorwidget.h>
+#include <widget/ytmusicwebengineview.h>
 #include <widget/artistinfopage.h>
 #include <widget/jsonsettings.h>
 #include <widget/ui_utilts.h>
@@ -864,20 +861,24 @@ void Xamp::deleteKeyPress() {
 void Xamp::setPlayerOrder() {
     switch (order_) {
     case PlayerOrder::PLAYER_ORDER_REPEAT_ONCE:
+        Toast::showTip(tr("Repeat once"), this);
         ThemeManager::instance().setRepeatOncePlayOrder(ui_);
         AppSettings::setValue(kAppSettingOrder,
                               static_cast<int>(PlayerOrder::PLAYER_ORDER_REPEAT_ONCE));
         break;
     case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:
+        Toast::showTip(tr("Repeat one"), this);
         ThemeManager::instance().setRepeatOnePlayOrder(ui_);
         AppSettings::setValue(kAppSettingOrder,
                               static_cast<int>(PlayerOrder::PLAYER_ORDER_REPEAT_ONE));
         break;
     case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL:
+        Toast::showTip(tr("Shuffle all"), this);
         ThemeManager::instance().setShufflePlayorder(ui_);
         AppSettings::setValue(kAppSettingOrder,
                               static_cast<int>(PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL));
         break;
+    case PlayerOrder::PLAYER_ORDER_MAX:
     default:
         break;
     }
@@ -963,11 +964,11 @@ void Xamp::playMusic(const MusicEntity& item) {
         );
 
     PlaybackFormat playback_format;
-    AlignPtr<ISampleRateConverter> converter;
-    uint32_t target_sample_rate = 0;	
-	
+
     try {
-        if (AppSettings::getValue(kAppSettingResamplerEnable).toBool()) {
+	    uint32_t target_sample_rate = 0;
+	    AlignPtr<ISampleRateConverter> converter;
+	    if (AppSettings::getValue(kAppSettingResamplerEnable).toBool()) {
             auto soxr_settings = JsonSettings::getValue(AppSettings::getValueAsString(kAppSettingSoxrSettingName)).toMap();
             target_sample_rate = soxr_settings[kSoxrResampleSampleRate].toUInt();
             converter = makeSampleRateConverter(soxr_settings);            
@@ -1255,13 +1256,9 @@ void Xamp::initialPlaylist() {
     preference_page_ = new PreferencePage(this);
     about_page_ = new AboutPage(this);
 
-    ytmusic_view_ = new QWebEngineView(this);
-
     QNetworkProxyFactory::setUseSystemConfiguration(false);
-    /*auto* profile = ytmusic_view_->page()->profile();
-    auto* cookie = profile->cookieStore();
-    cookie->deleteAllCookies();*/
-    //ytmusic_view_->load(QUrl(Q_UTF8("https://music.youtube.com")));
+    ytmusic_view_ = new YtMusicWebEngineView(this);
+    ytmusic_view_->indexPage();
 
     pushWidget(ytmusic_view_);
     pushWidget(lrc_page_);    

@@ -9,8 +9,6 @@
 #include <QSystemTrayIcon>
 
 #include <widget/widget_shared.h>
-
-#include <widget/discogsclient.h>
 #include <widget/appsettings.h>
 #include <widget/uiplayerstateadapter.h>
 #include <widget/framelesswindow.h>
@@ -38,7 +36,7 @@ class ArtistInfoPage;
 class PlaybackHistoryPage;
 class QWidgetAction;
 struct PlaybackFormat;
-class QWebEngineView;
+class YtMusicWebEngineView;
 
 class Xamp final : public IXampPlayer {
 	Q_OBJECT
@@ -181,7 +179,7 @@ private:
     QMenu* tray_icon_menu_;
     QSystemTrayIcon* tray_icon_;
 	QStack<int32_t> stack_page_id_;	    	
-	QWebEngineView* ytmusic_view_;
+	YtMusicWebEngineView* ytmusic_view_;
 	std::shared_ptr<UIPlayerStateAdapter> state_adapter_;
 	std::shared_ptr<IAudioPlayer> player_;
 #ifdef Q_OS_WIN

@@ -436,7 +436,7 @@ void PlayListTableView::initial() {
                     auto driver_letter = storage.rootPath().left(1).toStdString()[0];
 
                     if (kCDFileSystemType.contains(storage.fileSystemType().toUpper().toStdString())) {
-                        auto &device = OpenCD(driver_letter);
+                        auto device = OpenCD(driver_letter);
                         auto device_info = device->GetCDDeviceInfo();
                         display_name += QString::fromStdWString(L" " + device_info.product);
                         open_cd_submenu->addAction(display_name, [&device, driver_letter, this]() {

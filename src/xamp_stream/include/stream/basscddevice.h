@@ -12,7 +12,7 @@
 
 namespace xamp::stream {
 
-class XAMP_STREAM_API BassCDDevice final : public ICDDevice {
+class BassCDDevice final : public ICDDevice {
 public:
 	XAMP_PIMPL(BassCDDevice)
 
