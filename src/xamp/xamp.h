@@ -143,9 +143,9 @@ private:
 
     void onDeviceStateChanged(DeviceState state);
 
-    void readFingerprint(const QModelIndex&, const PlayListEntity& item);
+    void readFingerprint(const PlayListEntity& item);
 
-	void readFileLUFS(const QModelIndex&, const PlayListEntity& item);
+	void readFileLUFS(const PlayListEntity& item);
 
     void exportWaveFile(const PlayListEntity& item);
 

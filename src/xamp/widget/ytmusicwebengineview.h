@@ -7,16 +7,30 @@
 
 #include <QWebEngineView>
 
+class QWebChannel;
+class YtMusicObserver;
+
 class YtMusicWebEngineView : public QWebEngineView {
 	Q_OBJECT
 public:
 	explicit YtMusicWebEngineView(QWidget* parent);
+
+	bool isLoaded() const;
 
 	void indexPage();
 
 public slots:
 	void loadFinished(bool ok);
 
+	void onFeaturePermissionRequested(const QUrl& securityOrigin, QWebEnginePage::Feature feature);
+
 private:
+	void injectQWebChannelJs();
+
 	void injectCustomCSS();
+
+	void injectObserver();
+
+	YtMusicObserver* observer_;
+	QWebChannel* channel_;
 };

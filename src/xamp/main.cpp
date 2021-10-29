@@ -118,8 +118,8 @@ static void setLogLevel(spdlog::level::level_enum level = spdlog::level::info) {
     Logger::GetInstance().GetLogger(kThreadPoolLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kExclusiveWasapiDeviceLoggerName)->set_level(spdlog::level::debug);
     Logger::GetInstance().GetLogger(kSharedWasapiDeviceLoggerName)->set_level(level);
-    Logger::GetInstance().GetLogger(kAsioDeviceLoggerName)->set_level(level);
-    Logger::GetInstance().GetLogger(kAudioPlayerLoggerName)->set_level(spdlog::level::debug);
+    Logger::GetInstance().GetLogger(kAsioDeviceLoggerName)->set_level(spdlog::level::debug);
+    Logger::GetInstance().GetLogger(kAudioPlayerLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kVirtualMemoryLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kResamplerLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kCompressorLoggerName)->set_level(level);
@@ -127,6 +127,8 @@ static void setLogLevel(spdlog::level::level_enum level = spdlog::level::info) {
 }
 
 static int excute(int argc, char* argv[]) {
+    qputenv("QTWEBENGINE_REMOTE_DEBUGGING", "9223");
+
     QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
     QApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
     

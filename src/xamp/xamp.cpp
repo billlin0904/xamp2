@@ -637,6 +637,9 @@ void Xamp::initialController() {
             ui_.currentView->setCurrentWidget(about_page_);
             break;
         case TAB_YT_MUSIC:
+            if (!ytmusic_view_->isLoaded()) {
+                ytmusic_view_->indexPage();
+            }
             ui_.currentView->setCurrentWidget(ytmusic_view_);
             break;
     	}        
@@ -1258,7 +1261,6 @@ void Xamp::initialPlaylist() {
 
     QNetworkProxyFactory::setUseSystemConfiguration(false);
     ytmusic_view_ = new YtMusicWebEngineView(this);
-    ytmusic_view_->indexPage();
 
     pushWidget(ytmusic_view_);
     pushWidget(lrc_page_);    
@@ -1361,7 +1363,7 @@ QWidget* Xamp::popWidget() {
     return nullptr;
 }
 
-void Xamp::readFileLUFS(const QModelIndex&, const PlayListEntity& item) {    
+void Xamp::readFileLUFS(const PlayListEntity& item) {    
     auto dialog = makeProgressDialog(tr("Read progress dialog"),
         tr("Read '") + item.title + tr("' loudness"),
         tr("Cancel"));
@@ -1475,7 +1477,7 @@ void Xamp::exportWaveFile(const PlayListEntity& item) {
     }
 }
 
-void Xamp::readFingerprint(const QModelIndex&, const PlayListEntity& item) {
+void Xamp::readFingerprint(const PlayListEntity& item) {
     auto dialog = makeProgressDialog(
         tr("Read progress dialog"),
         tr("Read '") + item.title + tr("' fingerprint"),

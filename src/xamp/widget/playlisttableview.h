@@ -8,7 +8,6 @@
 #include <optional>
 
 #include <QTableView>
-#include <QThread>
 
 #include <widget/playlisttablemodel.h>
 #include <widget/playlistentity.h>
@@ -69,15 +68,13 @@ signals:
 
 	void playMusic(const QModelIndex& index, const PlayListEntity& item);
 
-	void readFingerprint(const QModelIndex& index, const PlayListEntity& item);
+	void readFingerprint(const PlayListEntity& item);
 
-	void readFileLUFS(const QModelIndex& index, const PlayListEntity& item);
+	void readFileLUFS(const PlayListEntity& item);
 
     void exportWaveFile(const PlayListEntity& item);
 
     void encodeFlacFile(const PlayListEntity& item);
-
-	void readLUFS(const PlayListEntity& item);
 
 public slots:
 	void processMeatadata(const std::vector<Metadata> &medata);
@@ -105,8 +102,6 @@ private:
 	int32_t playlist_id_;
 	StarDelegate* start_delegate_;	
 	QModelIndex play_index_;
-    QThread thread_;
-    ReadLufsWorker read_worker_;
     PlayListSqlQueryTableModel model_;
 	PlayListTableFilterProxyModel proxy_model_;
 };

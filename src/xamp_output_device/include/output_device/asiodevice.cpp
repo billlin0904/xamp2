@@ -10,6 +10,7 @@
 #include <base/logger.h>
 #include <base/singleton.h>
 #include <base/platform.h>
+#include <base/stopwatch.h>
 #include <base/waitabletimer.h>
 
 #ifdef XAMP_OS_WIN
@@ -31,6 +32,7 @@ struct AsioDriver {
 	AlignPtr<AsioDrivers> drivers{};
 	AudioConvertContext data_context{};
 	ASIOCallbacks asio_callbacks{};
+	Stopwatch buffer_switch_stopwatch;
 	std::array<ASIOBufferInfo, kMaxChannel> buffer_infos{};
 	std::array<ASIOChannelInfo, kMaxChannel> channel_infos{};
 
@@ -63,6 +65,7 @@ AsioDevice::AsioDevice(std::string const & device_id)
 	, is_stopped_(true)
 	, is_streaming_(false)
 	, is_stop_streaming_(false)
+	, latency_(0)
 	, io_format_(DsdIoFormat::IO_FORMAT_PCM)
 	, sample_format_(DsdFormat::DSD_INT8MSB)
 	, volume_(0)
@@ -370,9 +373,9 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 	long input_latency = 0;
 	long output_latency = 0;
 	AsioIfFailedThrow(::ASIOGetLatencies(&input_latency, &output_latency));
+	latency_ = GetLatencyMs(output_latency, output_format.GetSampleRate());
 	XAMP_LOG_D(log_, "Buffer size :{} ", String::FormatBytes(buffer_.GetByteSize()));
-	XAMP_LOG_D(log_, "Ouput latency: {}ms.", GetLatencyMs(output_latency, output_format.GetSampleRate()));
-
+	XAMP_LOG_D(log_, "Ouput latency: {}ms.", latency_);
 	ASIODriver.post_output = ::ASIOOutputReady() == ASE_OK;
 	XAMP_LOG_D(log_, "Drvier support post output: {}", ASIODriver.post_output);
 }
@@ -445,15 +448,6 @@ void AsioDevice::OnBufferSwitch(long index, double sample_time) noexcept {
 	}
 
 	if (got_samples) {
-		if (num_filled_frame != buffer_bytes_) {
-			for (size_t i = 0, j = 0; i < format_.GetChannels(); ++i) {
-				MemorySet(ASIODriver.buffer_infos[i].buffers[index],
-					0,
-					buffer_bytes_);
-			}
-			return;
-		}
-
 		for (size_t i = 0, j = 0; i < format_.GetChannels(); ++i) {
 			MemoryCopy(ASIODriver.buffer_infos[i].buffers[index],
 				&device_buffer_[j++ * buffer_bytes_],
@@ -572,7 +566,8 @@ void AsioDevice::StartStream() {
 	mmcss_.RevertPriority();
 	is_streaming_ = true;
 	is_stop_streaming_ = false;
-	AsioIfFailedThrow(::ASIOStart());	
+	AsioIfFailedThrow(::ASIOStart());
+	ASIODriver.buffer_switch_stopwatch.Reset();
 }
 
 bool AsioDevice::IsStreamRunning() const noexcept {
@@ -618,7 +613,13 @@ void AsioDevice::OnBufferSwitchCallback(long index, ASIOBool processNow) {
 		/ ASIODriver.device->format_.GetSampleRate();
 	}
 
+	auto elapsed = ASIODriver.buffer_switch_stopwatch.Elapsed<std::chrono::milliseconds>().count();
+	if (elapsed > ASIODriver.device->latency_) {
+		XAMP_LOG_D(ASIODriver.device->log_, "Wait event timeout! {}ms", elapsed);
+	}
+
 	ASIODriver.device->OnBufferSwitch(index, sample_time);
+	ASIODriver.buffer_switch_stopwatch.Reset();
 }
 
 long AsioDevice::OnAsioMessagesCallback(long selector, long value, void* message, double* opt) {

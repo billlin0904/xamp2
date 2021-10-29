@@ -7,47 +7,46 @@
 
 #include <widget/str_utilts.h>
 
-inline constexpr ConstLatin1String kAppSettingLang{ "AppSettings/lang" };
+extern const ConstLatin1String kAppSettingLang;
+extern const ConstLatin1String kAppSettingDeviceType;
+extern const ConstLatin1String kAppSettingDeviceId;
+extern const ConstLatin1String kAppSettingWidth;
+extern const ConstLatin1String kAppSettingHeight;
+extern const ConstLatin1String kAppSettingVolume;
+extern const ConstLatin1String kAppSettingOrder;
+extern const ConstLatin1String kAppSettingUseNativeDSDMode;
+extern const ConstLatin1String kAppSettingUseFramelessWindow;
+extern const ConstLatin1String kAppSettingShowLeftList;
+extern const ConstLatin1String kAppSettingDiscordNotify;
+extern const ConstLatin1String kAppSettingColumnName;
 
-inline constexpr ConstLatin1String kAppSettingDeviceType{ "AppSettings/deviceType" };
-inline constexpr ConstLatin1String kAppSettingDeviceId{ "AppSettings/deviceId" };
-inline constexpr ConstLatin1String kAppSettingWidth{ "AppSettings/width" };
-inline constexpr ConstLatin1String kAppSettingHeight{ "AppSettings/height" };
-inline constexpr ConstLatin1String kAppSettingVolume{ "AppSettings/volume" };
-inline constexpr ConstLatin1String kAppSettingOrder{ "AppSettings/order" };
-inline constexpr ConstLatin1String kAppSettingUseNativeDSDMode{ "AppSettings/useNativeDSDMode" };
-inline constexpr ConstLatin1String kAppSettingUseFramelessWindow{ "AppSettings/useFramelessWindow" };
-inline constexpr ConstLatin1String kAppSettingShowLeftList{ "AppSettings/showLeftList" };
-inline constexpr ConstLatin1String kAppSettingDiscordNotify{ "AppSettings/discordNotify" };
-inline constexpr ConstLatin1String kAppSettingColumnName { "AppSettings/columnName" };
+extern const ConstLatin1String kAppSettingBackgroundColor;
+extern const ConstLatin1String kAppSettingBottomColor;
+extern const ConstLatin1String kAppSettingAlphaColor;
 
-inline constexpr ConstLatin1String kAppSettingBackgroundColor{ "AppSettings/theme/backgroundColor" };
-inline constexpr ConstLatin1String kAppSettingBottomColor{ "AppSettings/theme/bottomColor" };
-inline constexpr ConstLatin1String kAppSettingAlphaColor{ "AppSettings/theme/alphaColor" };
+extern const ConstLatin1String kAppSettingEnableBlur;
+extern const ConstLatin1String kAppSettingMinimizeToTrayAsk;
+extern const ConstLatin1String kAppSettingMinimizeToTray;
 
-inline constexpr ConstLatin1String kAppSettingEnableBlur{ "AppSettings/theme/enableBlur" };
-inline constexpr ConstLatin1String kAppSettingMinimizeToTrayAsk{ "AppSettings/minimizeToTrayAsk" };
-inline constexpr ConstLatin1String kAppSettingMinimizeToTray{ "AppSettings/minimizeToTray" };
+extern const ConstLatin1String kAppSettingPodcastCachePath;
+extern const ConstLatin1String kAppSettingAlbumImageCacheSize;
 
-inline constexpr ConstLatin1String kAppSettingPodcastCachePath{ "AppSettings/podcastCachePath" };
-inline constexpr ConstLatin1String kAppSettingAlbumImageCacheSize{ "AppSettings/albumImageCacheSize" };
+extern const ConstLatin1String kAppSettingResamplerEnable;
+extern const ConstLatin1String kAppSettingSoxrSettingName;
 
-inline constexpr ConstLatin1String kAppSettingResamplerEnable{ "AppSettings/soxr/enable" };
-inline constexpr ConstLatin1String kAppSettingSoxrSettingName{ "AppSettings/soxr/userSettingName" };
+extern const ConstLatin1String kSoxrResampleSampleRate;
+extern const ConstLatin1String kSoxrEnableSteepFilter;
+extern const ConstLatin1String kSoxrQuality;
+extern const ConstLatin1String kSoxrPhase;
+extern const ConstLatin1String kSoxrPassBand;
+extern const ConstLatin1String kSoxrDefaultSettingName;
 
-inline constexpr ConstLatin1String kSoxrResampleSampleRate{ "resampleSampleRate" };
-inline constexpr ConstLatin1String kSoxrEnableSteepFilter{ "enableSteepFilter" };
-inline constexpr ConstLatin1String kSoxrQuality{ "quality" };
-inline constexpr ConstLatin1String kSoxrPhase{ "phase" };
-inline constexpr ConstLatin1String kSoxrPassBand{ "passBand" };
-inline constexpr ConstLatin1String kSoxrDefaultSettingName{ "default" };
+extern const ConstLatin1String kEnableEQ;
+extern const ConstLatin1String kEQName;
 
-inline constexpr ConstLatin1String kEnableEQ{ "AppSettings/enableEQ" };
-inline constexpr ConstLatin1String kEQName{ "AppSettings/EQName" };
+extern const ConstLatin1String kLyricsFontSize;
+extern const ConstLatin1String kLyricsTextColor;
+extern const ConstLatin1String kLyricsHighLightTextColor;
 
-inline constexpr ConstLatin1String kLyricsFontSize{ "AppSettings/lyrics/fontSize" };
-inline constexpr ConstLatin1String kLyricsTextColor{ "AppSettings/lyrics/textColor" };
-inline constexpr ConstLatin1String kLyricsHighLightTextColor{ "AppSettings/lyrics/highLightTextColor" };
-
-inline constexpr ConstLatin1String kFlacEncodingLevel{ "AppSettings/flacEncodingLevel" };
+extern const ConstLatin1String kFlacEncodingLevel;
 

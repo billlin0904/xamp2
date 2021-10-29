@@ -183,7 +183,7 @@ private:
     std::string device_id_;
     Uuid device_type_id_;
     FastMutexConditionVariable pause_cond_;
-    FastMutexConditionVariable stopped_cond_;
+    FastMutexConditionVariable read_finish_and_wait_seek_signal_cond_;
     AudioFormat input_format_;
     AudioFormat output_format_;    
     Timer timer_;

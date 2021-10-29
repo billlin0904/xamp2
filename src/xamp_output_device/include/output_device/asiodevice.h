@@ -100,7 +100,8 @@ private:
 	bool is_removed_driver_;
 	std::atomic<bool> is_stopped_;
 	std::atomic<bool> is_streaming_;
-	std::atomic<bool> is_stop_streaming_;	
+	std::atomic<bool> is_stop_streaming_;
+	long latency_;
 	DsdIoFormat io_format_;
 	DsdFormat sample_format_;
 	mutable std::atomic<int32_t> volume_;
