@@ -145,7 +145,7 @@ QFont FramelessWindow::setupUIFont() const {
     ui_fallback_fonts.push_back(Q_UTF8("Lucida Sans Unicode"));
     QFont::insertSubstitutions(Q_UTF8("MonoFont"), QList<QString>() << Q_UTF8("Consolas"));
 #else
-    QFont::insertSubstitutions(Q_UTF8("MonoFont"), QList<QString>() << Q_UTF8("SF Mono"));
+    QFont::insertSubstitutions(Q_UTF8("MonoFont"), QList<QString>() << Q_UTF8("SF Mono Regular"));
     ui_fallback_fonts.push_back(Q_UTF8("PingFang TC"));
     ui_fallback_fonts.push_back(Q_UTF8("Heiti TC"));
 #endif

@@ -365,6 +365,13 @@ void PlayListTableView::initial() {
             action_map.addSeparator();
     	}
 
+        if (podcast_mode_) {
+            auto* import_podcast_act = action_map.addAction(tr("Import podcast"));
+            action_map.setCallback(import_podcast_act, [this]() {
+                importPodcast();
+            });
+        }
+
         auto * remove_all_act = action_map.addAction(tr("Remove all"));
         auto * open_local_file_path_act = action_map.addAction(tr("Open local file path"));
         auto * reload_file_fingerprint_act = action_map.addAction(tr("Read file fingerprint"));
@@ -379,13 +386,6 @@ void PlayListTableView::initial() {
         action_map.addSeparator();
         auto * set_cover_art_act = action_map.addAction(tr("Set cover art"));
         auto * export_cover_act = action_map.addAction(tr("Export music cover"));
-
-        if (podcast_mode_) {
-            auto* import_podcast_act = action_map.addAction(tr("Import podcast"));
-            action_map.setCallback(import_podcast_act, [this]() {
-                importPodcast();
-                });
-        }
     	
         if (model_.rowCount() == 0 || !index.isValid()) {
             try {

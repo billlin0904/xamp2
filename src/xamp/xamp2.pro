@@ -1,4 +1,4 @@
-QT       += core gui sql network concurrent
+QT       += core gui sql network concurrent webenginewidgets
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -71,6 +71,9 @@ SOURCES += \
     widget/image_utiltis.cpp \
     widget/read_utiltis.cpp \
     widget/readlufsworker.cpp \
+    widget/ytmusicwebengineview.cpp \
+    widget/ytmusicobserver.cpp \
+    widget/settingnames.cpp \
     darkstyle.cpp \
     singleinstanceapplication.cpp \
     thememanager.cpp \
@@ -126,6 +129,8 @@ HEADERS += \
     widget/read_utiltis.h \
     widget/readlufsworker.h \
     widget/time_utilts.h \
+    widget/ytmusicwebengineview.h \
+    widget/ytmusicobserver.h \
     singleinstanceapplication.h \
     darkstyle.h \
     thememanager.h \
@@ -172,6 +177,10 @@ LIBS += -L"../xamp_base/release/" -lxamp_base \
 QMAKE_CFLAGS_LTCG = -flto=thin -fwhole-program-vtables
 QMAKE_CFLAGS_RELEASE += -O3
 }
+
+#mac {
+#    QMAKE_INFO_PLIST = mac/Info.plist
+#}
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

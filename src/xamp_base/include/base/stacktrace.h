@@ -6,6 +6,7 @@
 #pragma once
 
 #include <array>
+#include <vector>
 
 #include <base/base.h>
 

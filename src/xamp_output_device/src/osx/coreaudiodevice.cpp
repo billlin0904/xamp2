@@ -118,69 +118,6 @@ private:
     AudioObjectPropertyAddress property_;
 };
 
-static uint32_t GetHardwareLantency(AudioDeviceID device_id, AudioObjectPropertyScope scope) {
-    AudioObjectPropertyAddress property_address = {
-        kAudioDevicePropertyLatency,
-        scope,
-        kAudioObjectPropertyElementMaster
-    };
-
-    uint32_t latency = 0.0;
-    uint32_t size = sizeof(latency);
-    auto result = ::AudioObjectGetPropertyData(device_id,
-                                               &property_address,
-                                               0,
-                                               nullptr,
-                                               &size,
-                                               &latency);
-    CoreAudioThrowIfError(result);
-
-    uint32_t safe_offet = 0;
-    property_address.mSelector = kAudioDevicePropertySafetyOffset;
-    result = ::AudioObjectGetPropertyData(device_id, &property_address,
-                               0,
-                               nullptr,
-                               &size,
-                               &safe_offet);
-    CoreAudioThrowIfError(result);
-
-    uint32_t stream_latency = 0;
-    uint32_t numStreams;
-    property_address.mSelector = kAudioDevicePropertyStreams;
-    result = ::AudioObjectGetPropertyDataSize(device_id,
-                                              &property_address,
-                                              0,
-                                              nullptr,
-                                              &numStreams);
-
-    std::vector<AudioStreamID> streams (numStreams);
-    size = sizeof (AudioStreamID*);
-    result = ::AudioObjectGetPropertyData(device_id,
-                                          &property_address,
-                                          0,
-                                          nullptr,
-                                          &size,
-                                          streams.data());
-
-    property_address.mSelector = kAudioStreamPropertyLatency;
-    size = sizeof (stream_latency);
-    // We could check all streams for the device,
-    // but it only ever seems to return the stream latency on the first stream.
-    result = ::AudioObjectGetPropertyData(streams[0],
-                                          &property_address,
-                                          0,
-                                          nullptr,
-                                          &size,
-                                          &stream_latency);
-    CoreAudioThrowIfError(result);
-
-    XAMP_LOG_DEBUG("Device latency: {} us", latency);
-    XAMP_LOG_DEBUG("Device offset: {} us", safe_offet);
-    XAMP_LOG_DEBUG("Device stream latency: {} us", stream_latency);
-
-    return latency + safe_offet + stream_latency;
-}
-
 CoreAudioDevice::CoreAudioDevice(AudioDeviceID device_id, bool is_hog_mode)
     : is_running_(false)
     , is_hog_mode_(is_hog_mode)
@@ -418,6 +355,69 @@ OSStatus CoreAudioDevice::OnAudioDeviceIOProc(AudioDeviceID,
 }
 
 void CoreAudioDevice::AbortStream() noexcept {
+}
+
+uint32_t CoreAudioDevice::GetHardwareLantency(AudioDeviceID device_id, AudioObjectPropertyScope scope) {
+    AudioObjectPropertyAddress property_address = {
+        kAudioDevicePropertyLatency,
+        scope,
+        kAudioObjectPropertyElementMaster
+    };
+
+    uint32_t latency = 0.0;
+    uint32_t size = sizeof(latency);
+    auto result = ::AudioObjectGetPropertyData(device_id,
+                                               &property_address,
+                                               0,
+                                               nullptr,
+                                               &size,
+                                               &latency);
+    CoreAudioThrowIfError(result);
+
+    uint32_t safe_offet = 0;
+    property_address.mSelector = kAudioDevicePropertySafetyOffset;
+    result = ::AudioObjectGetPropertyData(device_id, &property_address,
+                                          0,
+                                          nullptr,
+                                          &size,
+                                          &safe_offet);
+    CoreAudioThrowIfError(result);
+
+    uint32_t stream_latency = 0;
+    uint32_t numStreams;
+    property_address.mSelector = kAudioDevicePropertyStreams;
+    result = ::AudioObjectGetPropertyDataSize(device_id,
+                                              &property_address,
+                                              0,
+                                              nullptr,
+                                              &numStreams);
+
+    std::vector<AudioStreamID> streams (numStreams);
+    size = sizeof (AudioStreamID*);
+    result = ::AudioObjectGetPropertyData(device_id,
+                                          &property_address,
+                                          0,
+                                          nullptr,
+                                          &size,
+                                          streams.data());
+
+    property_address.mSelector = kAudioStreamPropertyLatency;
+    size = sizeof (stream_latency);
+    // We could check all streams for the device,
+    // but it only ever seems to return the stream latency on the first stream.
+    result = ::AudioObjectGetPropertyData(streams[0],
+                                          &property_address,
+                                          0,
+                                          nullptr,
+                                          &size,
+                                          &stream_latency);
+    CoreAudioThrowIfError(result);
+
+    XAMP_LOG_D(logger_, "Device latency: {} us", latency);
+    XAMP_LOG_D(logger_, "Device offset: {} us", safe_offet);
+    XAMP_LOG_D(logger_, "Device stream latency: {} us", stream_latency);
+
+    return latency + safe_offet + stream_latency;
 }
 
 void CoreAudioDevice::AudioDeviceIOProc(AudioBufferList *output_data, double sample_time) {

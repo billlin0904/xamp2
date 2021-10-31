@@ -75,6 +75,8 @@ private:
 
     void AudioDeviceIOProc(AudioBufferList* output_data, double device_sample_time);
 
+    uint32_t GetHardwareLantency(AudioDeviceID device_id, AudioObjectPropertyScope scope);
+
     bool is_running_;
     bool is_hog_mode_;
     AudioDeviceID device_id_;

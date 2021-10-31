@@ -29,13 +29,12 @@ void YtMusicWebEngineView::indexPage() {
     settings()->setAttribute(QWebEngineSettings::LocalStorageEnabled, false);
 #endif
     injectQWebChannelJs();
-	injectCustomCSS();
+    injectObserver();
 
     channel_ = new QWebChannel(this->page());
     observer_ = new YtMusicObserver(this);
     channel_->registerObject(Q_UTF8("observer"), observer_);
     this->page()->setWebChannel(channel_);
-    injectObserver();
 
     load(QUrl(Q_UTF8("https://music.youtube.com")));
  
@@ -50,7 +49,8 @@ void YtMusicWebEngineView::onFeaturePermissionRequested(const QUrl& securityOrig
     this->page()->setFeaturePermission(securityOrigin, feature, QWebEnginePage::PermissionPolicy::PermissionDeniedByUser);
 }
 
-void YtMusicWebEngineView::loadFinished(bool ok) { 
+void YtMusicWebEngineView::loadFinished(bool) {
+    injectCustomCSS();
 }
 
 void YtMusicWebEngineView::injectQWebChannelJs() {
@@ -62,7 +62,8 @@ void YtMusicWebEngineView::injectQWebChannelJs() {
     {
         QFile webChannelJsFile(Q_UTF8(":/qtwebchannel/qwebchannel.js"));
         webChannelJsFile.open(QFile::ReadOnly);
-        webChannelJs.setSourceCode(QString::fromUtf8(webChannelJsFile.readAll()));
+        auto js = QString::fromUtf8(webChannelJsFile.readAll());
+        webChannelJs.setSourceCode(js);
     }
     page()->scripts().insert(webChannelJs);
     XAMP_LOG_DEBUG("injectQWebChannelJs");
@@ -95,7 +96,7 @@ void YtMusicWebEngineView::injectCustomCSS() {
     js.replace(Q_UTF8("{"), Q_UTF8("\\{"));
     js.replace(Q_UTF8("}"), Q_UTF8("\\}"));
 
-    page()->runJavaScript(js, [this](const QVariant& result) {
+    page()->runJavaScript(js, [](const QVariant& result) {
         XAMP_LOG_DEBUG("injectCustomCSS result:{}", result.toString().toStdString());
         });
 }
