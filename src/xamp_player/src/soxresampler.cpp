@@ -62,6 +62,7 @@ public:
 		, input_sample_rate_(0)
 		, output_sample_rate_(0)
 		, num_channels_(0)
+        , rolloff_(SOXR_ROLLOFF_NONE)
 		, ratio_(0)
 		, pass_band_(kDefaultPassBand)
 		, stop_band_(kDefaultStopBand)
@@ -96,7 +97,7 @@ public:
 			break;
 		}
 
-		auto flags = (SOXR_ROLLOFF_NONE | SOXR_HI_PREC_CLOCK | SOXR_VR | SOXR_DOUBLE_PRECISION | SOXR_NO_DITHER);
+        auto flags = (rolloff_ | SOXR_HI_PREC_CLOCK | SOXR_VR | SOXR_DOUBLE_PRECISION | SOXR_NO_DITHER);
 		if (enable_steep_filter_) {
 			flags |= SOXR_STEEP_FILTER;
 		}
@@ -139,6 +140,20 @@ public:
 
 		ResizeBuffer(kInitBufferSize);
 	}
+
+    void SetRollOffLevel(SoxrRollOff level) {
+        switch (level) {
+        case SoxrRollOff::ROLLOFF_SMALL:
+            rolloff_ = SOXR_ROLLOFF_SMALL;
+            break;
+        case SoxrRollOff::ROLLOFF_MEDIUM:
+            rolloff_ = SOXR_ROLLOFF_MEDIUM;
+            break;
+        case SoxrRollOff::ROLLOFF_NONE:
+            rolloff_ = SOXR_ROLLOFF_NONE;
+            break;
+        }
+    }
 
 	void Close() noexcept {
 		handle_.reset();
@@ -265,6 +280,7 @@ public:
 	uint32_t input_sample_rate_;
 	uint32_t output_sample_rate_;
 	uint32_t num_channels_;
+    uint32_t rolloff_;
 	double ratio_;
 	double pass_band_;
 	double stop_band_;
@@ -304,6 +320,10 @@ void SoxrSampleRateConverter::SetStopBand(double stop_band) {
 
 void SoxrSampleRateConverter::SetPhase(int32_t phase) {
 	impl_->SetPhase(phase);
+}
+
+void SoxrSampleRateConverter::SetRollOffLevel(SoxrRollOff level) {
+    impl_->SetRollOffLevel(level);
 }
 
 std::string_view SoxrSampleRateConverter::GetDescription() const noexcept {

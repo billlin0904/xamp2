@@ -22,6 +22,11 @@ MAKE_ENUM(SoxrQuality,
           VHQ,
           UHQ)
 
+MAKE_ENUM(SoxrRollOff,
+          ROLLOFF_SMALL,
+          ROLLOFF_MEDIUM,
+          ROLLOFF_NONE)
+
 class XAMP_PLAYER_API SoxrSampleRateConverter final : public ISampleRateConverter {
 public:
     static const std::string_view VERSION;
@@ -39,6 +44,8 @@ public:
     void SetPassBand(double pass_band);
 
     void SetPhase(int32_t phase);
+
+    void SetRollOffLevel(SoxrRollOff level);
 
     std::string_view GetDescription() const noexcept override;
 

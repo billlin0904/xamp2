@@ -374,7 +374,6 @@ void PlayListTableView::initial() {
 
         auto * remove_all_act = action_map.addAction(tr("Remove all"));
         auto * open_local_file_path_act = action_map.addAction(tr("Open local file path"));
-        auto * reload_file_fingerprint_act = action_map.addAction(tr("Read file fingerprint"));
         auto * read_file_lufs_act = action_map.addAction(tr("Read file LUFS"));
         action_map.addSeparator();
         auto * export_wave_file_act = action_map.addAction(tr("Export wave file"));

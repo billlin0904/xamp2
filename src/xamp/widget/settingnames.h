@@ -33,6 +33,7 @@ extern const ConstLatin1String kAppSettingAlbumImageCacheSize;
 
 extern const ConstLatin1String kAppSettingResamplerEnable;
 extern const ConstLatin1String kAppSettingSoxrSettingName;
+extern const ConstLatin1String kAppSettingSoxrSettingRollOff;
 
 extern const ConstLatin1String kSoxrResampleSampleRate;
 extern const ConstLatin1String kSoxrEnableSteepFilter;
@@ -40,6 +41,7 @@ extern const ConstLatin1String kSoxrQuality;
 extern const ConstLatin1String kSoxrStopBand;
 extern const ConstLatin1String kSoxrPassBand;
 extern const ConstLatin1String kSoxrPhase;
+extern const ConstLatin1String kSoxrRollOffLevel;
 extern const ConstLatin1String kSoxrDefaultSettingName;
 
 extern const ConstLatin1String kEnableEQ;

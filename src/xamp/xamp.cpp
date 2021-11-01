@@ -61,6 +61,7 @@ static AlignPtr<ISampleRateConverter> makeSampleRateConverter(const QVariantMap 
     const auto pass_band = settings[kSoxrPassBand].toInt();
     const auto phase = settings[kSoxrPhase].toInt();
     const auto enable_steep_filter = settings[kSoxrEnableSteepFilter].toBool();
+    const auto rolloff_level = static_cast<SoxrRollOff>(settings[kSoxrRollOffLevel].toInt());
 
     auto converter = MakeAlign<ISampleRateConverter, SoxrSampleRateConverter>();
     auto *soxr_sample_rate_converter = dynamic_cast<SoxrSampleRateConverter*>(converter.get());
@@ -68,6 +69,7 @@ static AlignPtr<ISampleRateConverter> makeSampleRateConverter(const QVariantMap 
     soxr_sample_rate_converter->SetStopBand(stop_band);
     soxr_sample_rate_converter->SetPassBand(pass_band);
     soxr_sample_rate_converter->SetPhase(phase);
+    soxr_sample_rate_converter->SetRollOffLevel(rolloff_level);
     soxr_sample_rate_converter->SetSteepFilter(enable_steep_filter);
     return converter;
 }

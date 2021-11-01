@@ -40,6 +40,7 @@ static void loadOrDefaultSoxrSetting() {
     default_setting[kSoxrPhase] = 46;
     default_setting[kSoxrStopBand] = 100;
     default_setting[kSoxrPassBand] = 96;
+    default_setting[kAppSettingSoxrSettingRollOff] = static_cast<int32_t>(SoxrRollOff::ROLLOFF_NONE);
 
     JsonSettings::setValue(kSoxrDefaultSettingName, QVariant::fromValue(default_setting));
     AppSettings::setValue(kAppSettingSoxrSettingName, kSoxrDefaultSettingName);

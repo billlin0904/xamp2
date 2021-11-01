@@ -25,6 +25,7 @@ void PreferencePage::loadSoxrResampler(const QVariantMap& soxr_settings) {
 	ui_.soxrPassbandValue->setText(QString(Q_UTF8("%0%")).arg(ui_.soxrPassbandSlider->value()));
     ui_.soxrPhaseSlider->setValue(soxr_settings[kSoxrPhase].toInt());
     ui_.soxrPhaseValue->setText(QString(Q_UTF8("%0%")).arg(ui_.soxrPhaseSlider->value()));
+    ui_.rollOffLevelComboBox->setCurrentIndex(soxr_settings[kSoxrRollOffLevel].toInt());
 
 	if (soxr_settings[kSoxrEnableSteepFilter].toBool()) {
 		ui_.enableSteepFilterBox->setChecked(true);
@@ -39,12 +40,15 @@ QMap<QString, QVariant> PreferencePage::getSoxrSettings() const {
 	const auto soxr_quility = ui_.soxrResampleQualityComboBox->currentIndex();
 	const auto soxr_pass_band = ui_.soxrPassbandSlider->value();
 	const auto soxr_phase = ui_.soxrPhaseSlider->value();
+    const auto soxr_rolloff = ui_.rollOffLevelComboBox->currentIndex();
 	const auto soxr_enable_steep_filter = ui_.enableSteepFilterBox->checkState() == Qt::Checked;
 
 	QMap<QString, QVariant> settings;
 	settings[kSoxrResampleSampleRate] = soxr_sample_rate;
 	settings[kSoxrEnableSteepFilter] = soxr_enable_steep_filter;
-	settings[kSoxrQuality] = soxr_quility;
+    settings[kSoxrRollOffLevel] = soxr_rolloff;
+    settings[kSoxrQuality] = soxr_quility;
+
 	if (soxr_passband_ > 0) {
 		settings[kSoxrPassBand] = soxr_passband_;
 	} else {
@@ -120,6 +124,11 @@ void PreferencePage::initSoxResampler() {
 	(void)QObject::connect(ui_.soxrTargetSampleRateComboBox, static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::activated), [this](auto index) {
 		saveAll();
 		});
+
+    (void)QObject::connect(ui_.rollOffLevelComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), [this](auto index) {
+        AppSettings::setValue(kSoxrRollOffLevel, index);
+        saveSoxrResampler(ui_.selectResamplerComboBox->currentText());
+    });
 
 	(void)QObject::connect(ui_.soxrSettingCombo, static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::activated), [this](auto index) {
 		auto soxr_settings = QVariant::fromValue(JsonSettings::getValue(index)).toMap();

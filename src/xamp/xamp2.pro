@@ -34,8 +34,6 @@ OBJECTIVE_SOURCES += \
 
 SOURCES += \
     widget/lyricsshowwidget.cpp \
-    widget/musicbrainzclient.cpp \
-    widget/discogsclient.cpp \
     widget/artistview.cpp \
     widget/http.cpp \
     widget/playlistsqlquerytablemodel.cpp \
@@ -70,7 +68,6 @@ SOURCES += \
     widget/xampdialog.cpp \
     widget/image_utiltis.cpp \
     widget/read_utiltis.cpp \
-    widget/readlufsworker.cpp \
     widget/ytmusicwebengineview.cpp \
     widget/ytmusicobserver.cpp \
     widget/settingnames.cpp \
@@ -85,8 +82,6 @@ SOURCES += \
 HEADERS += \
     widget/lyricsshowwidget.h \
     widget/osx/osx.h \
-    widget/musicbrainzclient.h \
-    widget/discogsclient.h \
     widget/artistview.h \
     widget/http.h \
     widget/playerorder.h \
@@ -127,7 +122,6 @@ HEADERS += \
     widget/scrolllabel.h \
     widget/xampdialog.h \
     widget/read_utiltis.h \
-    widget/readlufsworker.h \
     widget/time_utilts.h \
     widget/ytmusicwebengineview.h \
     widget/ytmusicobserver.h \
