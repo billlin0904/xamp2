@@ -157,10 +157,10 @@ void AudioPlayer::CreateDevice(Uuid const & device_type_id, std::string const & 
         || device_type_id_ != device_type_id
         || open_always) {
         if (device_type_id_ != device_type_id) {
-            ResetASIODriver();
+            // device可能是ASIO解後再移除drvier.
             device_.reset();
-        }
-    	
+            ResetASIODriver();
+        }    	
         device_type_ = device_manager_->Create(device_type_id);
         device_type_->ScanNewDevice();
         device_ = device_type_->MakeDevice(device_id);

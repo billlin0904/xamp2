@@ -16,5 +16,7 @@ XAMP_METADATA_API AlignPtr<IMetadataReader> MakeMetadataReader();
 
 XAMP_METADATA_API AlignPtr<IMetadataWriter> MakeMetadataWriter();
 
+XAMP_METADATA_API void WalkPath(Path const& path, IMetadataExtractAdapter* adapter, IMetadataReader* reader);
+
 }
 

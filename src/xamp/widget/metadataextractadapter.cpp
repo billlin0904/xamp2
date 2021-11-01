@@ -34,7 +34,7 @@ public:
         : cover_reader_(MakeMetadataReader()) {
     }
 
-    std::tuple<int32_t, int32_t, QString> AddCache(const QString& album, const QString& artist) const;
+    std::tuple<int32_t, int32_t, QString> AddOrGetId(const QString& album, const QString& artist) const;
 
     QString AddCoverCache(int32_t album_id, const QString& album, const Metadata& metadata, bool is_unknown_album) const;
 private:	
@@ -76,7 +76,7 @@ QString DatabaseIdCache::AddCoverCache(int32_t album_id, const QString& album, c
     return cover_id;
 }
 
-std::tuple<int32_t, int32_t, QString> DatabaseIdCache::AddCache(const QString &album, const QString &artist) const {
+std::tuple<int32_t, int32_t, QString> DatabaseIdCache::AddOrGetId(const QString &album, const QString &artist) const {
     int32_t artist_id = 0;
     if (auto const * artist_id_op = this->artist_id_cache_.Find(artist)) {
         artist_id = *artist_id_op;
@@ -106,14 +106,14 @@ std::tuple<int32_t, int32_t, QString> DatabaseIdCache::AddCache(const QString &a
 using xamp::metadata::Metadata;
 using xamp::metadata::Path;
 
-class ExtractAdapterProxy : public xamp::metadata::IMetadataExtractAdapter {
+class ExtractAdapterProxy : public IMetadataExtractAdapter {
 public:
     explicit ExtractAdapterProxy(const QSharedPointer<::MetadataExtractAdapter> &adapter)
         : adapter_(adapter) {
       metadatas_.reserve(kCachePreallocateSize);
     }
 
-    [[nodiscard]] bool IsSupported(Path const& path) const noexcept override {
+    [[nodiscard]] bool IsAccept(Path const& path) const noexcept override {
         using namespace xamp::player::audio_util;
         const auto file_ext = String::ToLower(path.extension().string());
         auto const& support_file_set = GetSupportFileExtensions();
@@ -178,7 +178,7 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
 
     ExtractAdapterProxy proxy(adapter);
 
-    auto reader = MakeMetadataReader();
+    const auto reader = MakeMetadataReader();
 
     for (const auto& file_dir_or_path : dirs) {
     	if (dialog->wasCanceled()) {
@@ -223,7 +223,7 @@ void ::MetadataExtractAdapter::processMetadata(const std::vector<Metadata>& resu
 
         const auto music_id = Singleton<Database>::GetInstance().addOrUpdateMusic(metadata, playlist_id);
 
-        auto [album_id, artist_id, cover_id] = cache.AddCache(album, artist);
+        auto [album_id, artist_id, cover_id] = cache.AddOrGetId(album, artist);
 
         // Find cover id from database.
         if (cover_id.isEmpty()) {

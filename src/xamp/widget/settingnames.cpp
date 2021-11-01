@@ -31,8 +31,9 @@ const ConstLatin1String kAppSettingSoxrSettingName{ "AppSettings/soxr/userSettin
 const ConstLatin1String kSoxrResampleSampleRate{ "resampleSampleRate" };
 const ConstLatin1String kSoxrEnableSteepFilter{ "enableSteepFilter" };
 const ConstLatin1String kSoxrQuality{ "quality" };
-const ConstLatin1String kSoxrPhase{ "phase" };
+const ConstLatin1String kSoxrStopBand{ "stopBand" };
 const ConstLatin1String kSoxrPassBand{ "passBand" };
+const ConstLatin1String kSoxrPhase{ "phase" };
 const ConstLatin1String kSoxrDefaultSettingName{ "default" };
 
 const ConstLatin1String kEnableEQ{ "AppSettings/enableEQ" };

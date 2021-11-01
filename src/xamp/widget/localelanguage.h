@@ -36,6 +36,10 @@ public:
 	QString getIsoCode() const {
 		return langIsoCode() + Q_UTF8("_") + countryIsoCode();
 	}
+
+	QString nativeNameLang() const {
+		return native_name_lang_;
+	}
 private:
 	void setLanguageByLocale(const QLocale& l);
 	QString lang_;

@@ -29,6 +29,4 @@ protected:
     IMetadataReader() = default;
 };
 
-XAMP_METADATA_API void WalkPath(Path const & path, IMetadataExtractAdapter* adapter, IMetadataReader* reader);
-
 }

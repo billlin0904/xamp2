@@ -10,8 +10,6 @@
 #include <QSqlRelationalTableModel>
 #include <QStyledItemDelegate>
 
-#include <widget/discogsclient.h>
-
 class ArtistViewStyledDelegate : public QStyledItemDelegate {
     Q_OBJECT
 public:

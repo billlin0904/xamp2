@@ -14,7 +14,6 @@
 #include <widget/playlisttableproxymodel.h>
 #include <widget/playlistsqlquerytablemodel.h>
 #include <widget/metadataextractadapter.h>
-#include <widget/readlufsworker.h>
 
 class StarDelegate;
 
@@ -67,8 +66,6 @@ signals:
 	void removeItems(int32_t playlist_id, const QVector<int>& select_music_ids);
 
 	void playMusic(const QModelIndex& index, const PlayListEntity& item);
-
-	void readFingerprint(const PlayListEntity& item);
 
 	void readFileLUFS(const PlayListEntity& item);
 

@@ -172,7 +172,6 @@
     <ClCompile Include="widget\artistview.cpp" />
     <ClCompile Include="widget\clickablelabel.cpp" />
     <ClCompile Include="widget\database.cpp" />
-    <ClCompile Include="widget\discogsclient.cpp" />
     <ClCompile Include="widget\discordnotify.cpp" />
     <ClCompile Include="widget\qetag.cpp" />
     <ClCompile Include="widget\framelesswindow.cpp" />
@@ -183,7 +182,6 @@
     <ClCompile Include="widget\lrcpage.cpp" />
     <ClCompile Include="widget\lrcparser.cpp" />
     <ClCompile Include="widget\lyricsshowwidget.cpp" />
-    <ClCompile Include="widget\musicbrainzclient.cpp" />
     <ClCompile Include="widget\pixmapcache.cpp" />
     <ClCompile Include="widget\metadataextractadapter.cpp">
       <OutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles\$(ConfigurationName)\%(Filename).moc</OutputFile>
@@ -198,7 +196,6 @@
     <ClCompile Include="widget\playlisttableproxymodel.cpp" />
     <ClCompile Include="widget\playlisttablequerymodel.cpp" />
     <ClCompile Include="widget\playlisttableview.cpp" />
-    <ClCompile Include="widget\readlufsworker.cpp" />
     <ClCompile Include="widget\read_utiltis.cpp" />
     <ClCompile Include="widget\scrolllabel.cpp" />
     <ClCompile Include="widget\seekslider.cpp" />
@@ -242,7 +239,6 @@
     <ClInclude Include="widget\playlisttablequerymodel.h" />
     <QtMoc Include="widget\uiplayerstateadapter.h">
     </QtMoc>
-    <QtMoc Include="widget\readlufsworker.h" />
     <ClInclude Include="widget\podcast_uiltis.h" />
     <ClInclude Include="widget\read_utiltis.h" />
     <QtMoc Include="widget\switchbutton.h" />
@@ -275,8 +271,6 @@
     <ClInclude Include="widget\database.h" />
     <QtMoc Include="widget\albumview.h">
     </QtMoc>
-    <QtMoc Include="widget\discogsclient.h">
-    </QtMoc>
     <ClInclude Include="widget\qetag.h" />
     <ClInclude Include="widget\image_utiltis.h" />
     <QtMoc Include="widget\lrcpage.h">
@@ -284,8 +278,6 @@
     <ClInclude Include="widget\jsonsettings.h" />
     <ClInclude Include="widget\localelanguage.h" />
     <ClInclude Include="widget\lrcparser.h" />
-    <QtMoc Include="widget\musicbrainzclient.h">
-    </QtMoc>
     <ClInclude Include="widget\musicentity.h" />
     <ClInclude Include="widget\pixmapcache.h" />
     <QtMoc Include="widget\playlistpage.h">

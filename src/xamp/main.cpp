@@ -38,6 +38,7 @@ static void loadOrDefaultSoxrSetting() {
     default_setting[kSoxrEnableSteepFilter] = false;
     default_setting[kSoxrQuality] = static_cast<int32_t>(SoxrQuality::VHQ);
     default_setting[kSoxrPhase] = 46;
+    default_setting[kSoxrStopBand] = 100;
     default_setting[kSoxrPassBand] = 96;
 
     JsonSettings::setValue(kSoxrDefaultSettingName, QVariant::fromValue(default_setting));
@@ -64,7 +65,7 @@ static void loadSettings() {
     AppSettings::setDefaultValue(kAppSettingDiscordNotify, false);
     AppSettings::setDefaultValue(kFlacEncodingLevel, 8);
     AppSettings::setDefaultValue(kAppSettingAlbumImageCacheSize, 32);
-	
+    AppSettings::setDefaultValue(kAppSettingShowLeftList, true);
     JsonSettings::loadJsonFile(Q_UTF8("soxr.json"));
 	
     loadOrDefaultSoxrSetting();
@@ -121,7 +122,7 @@ static void setLogLevel(spdlog::level::level_enum level = spdlog::level::info) {
     Logger::GetInstance().GetLogger(kAsioDeviceLoggerName)->set_level(spdlog::level::debug);
     Logger::GetInstance().GetLogger(kAudioPlayerLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kVirtualMemoryLoggerName)->set_level(level);
-    Logger::GetInstance().GetLogger(kResamplerLoggerName)->set_level(level);
+    Logger::GetInstance().GetLogger(kResamplerLoggerName)->set_level(spdlog::level::debug);
     Logger::GetInstance().GetLogger(kCompressorLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kCoreAudioLoggerName)->set_level(level);
 }

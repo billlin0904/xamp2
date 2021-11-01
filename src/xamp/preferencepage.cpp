@@ -56,6 +56,10 @@ QMap<QString, QVariant> PreferencePage::getSoxrSettings() const {
     } else {
         settings[kSoxrPhase] = soxr_phase;
     }
+
+	// todo: kSoxrStopBand always set 100?
+	settings[kSoxrStopBand] = 100;
+
 	return settings;
 }
 
@@ -130,7 +134,7 @@ void PreferencePage::initLang() {
 	auto index = 0;
     Q_FOREACH (auto lang, LocaleLanguageManager::languageNames()) {
         QIcon ico(Q_STR(":/xamp/Resource/Flags/%1.png").arg(lang.countryIsoCode()));
-		ui_.langCombo->addItem(ico, lang.getIsoCode());
+		ui_.langCombo->addItem(ico, lang.nativeNameLang());
 		if (current_lang.getIsoCode() == lang.getIsoCode()) {
 			current_index = index;
 		}
@@ -190,11 +194,13 @@ PreferencePage::PreferencePage(QWidget *parent)
 
 	(void)QObject::connect(ui_.selectResamplerComboBox, static_cast<void (QComboBox::*)(int32_t)>(&QComboBox::activated), [this](auto const& index) {
 		ui_.resamplerStackedWidget->setCurrentIndex(index);
+		saveSoxrResampler(ui_.selectResamplerComboBox->currentText());
 		});
 
     (void)QObject::connect(ui_.soxrPassbandSlider, &QSlider::valueChanged, [this](auto value) {
         soxr_passband_ = value;
         ui_.soxrPassbandValue->setText(QString(Q_UTF8("%0%")).arg(soxr_passband_));
+		saveSoxrResampler(ui_.selectResamplerComboBox->currentText());
     });
 
     (void)QObject::connect(ui_.soxrPhaseSlider, &QSlider::valueChanged, [this](auto value) {

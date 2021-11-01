@@ -57,15 +57,17 @@ enum TabIndex {
 
 static AlignPtr<ISampleRateConverter> makeSampleRateConverter(const QVariantMap &settings) {
     const auto quality = static_cast<SoxrQuality>(settings[kSoxrQuality].toInt());
-    const auto phase = settings[kSoxrPhase].toInt();
+    const auto stop_band = settings[kSoxrStopBand].toInt();
     const auto pass_band = settings[kSoxrPassBand].toInt();
+    const auto phase = settings[kSoxrPhase].toInt();
     const auto enable_steep_filter = settings[kSoxrEnableSteepFilter].toBool();
 
     auto converter = MakeAlign<ISampleRateConverter, SoxrSampleRateConverter>();
     auto *soxr_sample_rate_converter = dynamic_cast<SoxrSampleRateConverter*>(converter.get());
     soxr_sample_rate_converter->SetQuality(quality);
-    soxr_sample_rate_converter->SetPhase(phase);
+    soxr_sample_rate_converter->SetStopBand(stop_band);
     soxr_sample_rate_converter->SetPassBand(pass_band);
+    soxr_sample_rate_converter->SetPhase(phase);
     soxr_sample_rate_converter->SetSteepFilter(enable_steep_filter);
     return converter;
 }
@@ -1072,7 +1074,7 @@ void Xamp::updateUI(const MusicEntity& item, const PlaybackFormat& playback_form
 PlaylistPage* Xamp::currentPlyalistPage() {
     current_playlist_page_ = dynamic_cast<PlaylistPage*>(ui_.currentView->currentWidget());
     if (!current_playlist_page_) {
-        current_playlist_page_ = dynamic_cast<PlaylistPage*>(ui_.currentView->widget(1));
+        current_playlist_page_ = playlist_page_;
     }
     return current_playlist_page_;
 }
@@ -1477,40 +1479,6 @@ void Xamp::exportWaveFile(const PlayListEntity& item) {
     }
 }
 
-void Xamp::readFingerprint(const PlayListEntity& item) {
-    auto dialog = makeProgressDialog(
-        tr("Read progress dialog"),
-        tr("Read '") + item.title + tr("' fingerprint"),
-        tr("Cancel"));
-    
-    dialog->show();
-
-    FingerprintInfo fingerprint_info;
-    QByteArray fingerprint;
-
-    try {
-        const auto [duration, fingerprint_result] =
-            read_utiltis::readFingerprint(item.file_path.toStdWString(),
-                            [&](auto progress) -> bool {
-                                dialog->setValue(progress);
-                                qApp->processEvents();
-                                return dialog->wasCanceled() != true;
-                            });
-
-        fingerprint.append(reinterpret_cast<char const *>(fingerprint_result.data()),
-                           static_cast<int32_t>(fingerprint_result.size()));
-        fingerprint_info.duration = static_cast<int32_t>(duration);
-    } catch (Exception const& e) {
-        Toast::showTip(Q_UTF8(e.what()), this);
-        return;
-    }
-
-    fingerprint_info.music_id = item.music_id;
-    fingerprint_info.artist_id = item.artist_id;
-    fingerprint_info.fingerprint = QString::fromLatin1(fingerprint);
-    XAMP_LOG_DEBUG("music id:{} fingerprint:{}", item.music_id, fingerprint_info.fingerprint.toUtf8().toStdString());
-}
-
 PlaylistPage* Xamp::newPlaylist(int32_t playlist_id) {
 	auto* playlist_page = new PlaylistPage(this);
 
@@ -1531,9 +1499,6 @@ PlaylistPage* Xamp::newPlaylist(int32_t playlist_id) {
                             [](auto playlist_id, const auto& select_music_ids) {
                                 IgnoreSqlError(Singleton<Database>::GetInstance().removePlaylistMusic(playlist_id, select_music_ids))
                             });
-
-    (void)QObject::connect(playlist_page->playlist(), &PlayListTableView::readFingerprint,
-                            this, &Xamp::readFingerprint);
 
     (void)QObject::connect(playlist_page->playlist(), &PlayListTableView::readFileLUFS,
         this, &Xamp::readFileLUFS);

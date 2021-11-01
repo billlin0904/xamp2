@@ -409,14 +409,6 @@ void PlayListTableView::initial() {
             QDesktopServices::openUrl(QUrl::fromLocalFile(item.parent_path));
             });
 
-        action_map.setCallback(reload_file_fingerprint_act, [this]() {
-            const auto rows = selectItemIndex();
-            for (const auto& select_item : rows) {
-                auto entity = this->item(select_item.second);
-                emit readFingerprint(entity);
-            }
-            refresh();
-            });
         action_map.setCallback(read_file_lufs_act, [this]() {
             const auto rows = selectItemIndex();
             for (const auto& select_item : rows) {

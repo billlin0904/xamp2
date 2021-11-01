@@ -34,11 +34,11 @@ public:
 
     void SetQuality(SoxrQuality quality);
 
-    void SetPhase(double phase);
-
     void SetStopBand(double stop_band);
 
     void SetPassBand(double pass_band);
+
+    void SetPhase(int32_t phase);
 
     std::string_view GetDescription() const noexcept override;
 

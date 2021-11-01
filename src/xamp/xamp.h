@@ -12,7 +12,6 @@
 #include <widget/appsettings.h>
 #include <widget/uiplayerstateadapter.h>
 #include <widget/framelesswindow.h>
-#include <widget/musicbrainzclient.h>
 #include <widget/playlistentity.h>
 #include <widget/localelanguage.h>
 #include <widget/playerorder.h>
@@ -142,8 +141,6 @@ private:
 	void registerMetaType();
 
     void onDeviceStateChanged(DeviceState state);
-
-    void readFingerprint(const PlayListEntity& item);
 
 	void readFileLUFS(const PlayListEntity& item);
 

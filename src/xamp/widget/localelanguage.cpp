@@ -20,7 +20,7 @@ void LocaleLanguage::setDefaultLanguage() {
 }
 
 void LocaleLanguage::setLanguage(QLocale::Language lang, QLocale::Country country) {
-	QLocale l(lang, country);
+	const QLocale l(lang, country);
 	setLanguageByLocale(l);
 }
 
@@ -48,7 +48,7 @@ LocaleLanguageManager::LocaleLanguageManager() {
 }
 
 QList<LocaleLanguage> LocaleLanguageManager::languageNames() {
-	QList<LocaleLanguage> languagesList;
+	QList<LocaleLanguage> languages_list;
 
 	auto path = QApplication::applicationDirPath();
 	path.append(Q_UTF8("/langs"));
@@ -58,16 +58,16 @@ QList<LocaleLanguage> LocaleLanguageManager::languageNames() {
 	for (auto i = 0; i < fileNames.size(); ++i) {
 		auto locale = fileNames[i];
 		locale.truncate(locale.lastIndexOf(Q_UTF8(".")));
-		languagesList.append(LocaleLanguage(locale));
+		languages_list.append(LocaleLanguage(locale));
 	}
 
-	return languagesList;
+	return languages_list;
 }
 
 void LocaleLanguageManager::loadLanguage(const QString& lang) {
 	if (current_lang_ != lang) {
 		current_lang_ = lang;
-		QLocale locale = QLocale(lang);
+		const auto locale = QLocale(lang);
 		QLocale::setDefault(locale);
 		switchTranslator(translator_, QString(Q_UTF8("%1.qm")).arg(lang));
 	}

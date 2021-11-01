@@ -20,7 +20,7 @@ public:
 
 	virtual void OnWalkFirst() = 0;
 
-    virtual bool IsSupported(Path const& path) const noexcept = 0;
+    virtual bool IsAccept(Path const& path) const noexcept = 0;
 protected:
     IMetadataExtractAdapter() = default;
 };
