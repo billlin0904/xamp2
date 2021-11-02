@@ -45,7 +45,7 @@ public:
 
     void SetPhase(int32_t phase);
 
-    void SetRollOffLevel(SoxrRollOff level);
+    void SetRollOff(SoxrRollOff level);
 
     std::string_view GetDescription() const noexcept override;
 

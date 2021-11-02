@@ -62,7 +62,7 @@ public:
 		, input_sample_rate_(0)
 		, output_sample_rate_(0)
 		, num_channels_(0)
-        , rolloff_(SOXR_ROLLOFF_NONE)
+        , rolloff_(SoxrRollOff::ROLLOFF_NONE)
 		, ratio_(0)
 		, pass_band_(kDefaultPassBand)
 		, stop_band_(kDefaultStopBand)
@@ -97,12 +97,23 @@ public:
 			break;
 		}
 
-        auto flags = (rolloff_ | SOXR_HI_PREC_CLOCK | SOXR_VR | SOXR_DOUBLE_PRECISION | SOXR_NO_DITHER);
+        auto flags = (static_cast<int32_t>(rolloff_) | SOXR_HI_PREC_CLOCK | SOXR_VR | SOXR_DOUBLE_PRECISION | SOXR_NO_DITHER);
 		if (enable_steep_filter_) {
 			flags |= SOXR_STEEP_FILTER;
 		}
 
-		auto soxr_quality = SoxrDLL.soxr_quality_spec(quality_spec | phase_, flags);
+		auto phase = SOXR_LINEAR_PHASE;
+		if (phase_ >= 50) {
+			phase = SOXR_LINEAR_PHASE;
+		}
+		if (phase_ < 50 && phase_ > 0) {
+			phase = SOXR_INTERMEDIATE_PHASE;
+		}
+		else {
+			phase = SOXR_MINIMUM_PHASE;
+		}
+
+		auto soxr_quality = SoxrDLL.soxr_quality_spec(quality_spec | phase, flags);
 
 		soxr_quality.passband_end = pass_band_ / 100.0;
 		soxr_quality.stopband_begin = stop_band_ / 100.0;
@@ -130,29 +141,20 @@ public:
 
 		ratio_ = static_cast<double>(output_sample_rate) / static_cast<double>(input_sample_rate_);
 
-		XAMP_LOG_D(logger_, "Soxr resampler setting=> input:{} output:{} quality:{} phase:{} pass:{} stopband:{}",
+		XAMP_LOG_D(logger_, "Soxr resampler setting=> input:{} output:{} quality:{} phase:{} passband:{} stopband:{} rolloff:{}",
 			input_sample_rate,
 			output_sample_rate,
 			EnumToString(quality_),
-			soxr_quality.phase_response,
+			phase,
 			pass_band_,
-			stop_band_);
+			stop_band_,
+			EnumToString(rolloff_));
 
 		ResizeBuffer(kInitBufferSize);
 	}
 
-    void SetRollOffLevel(SoxrRollOff level) {
-        switch (level) {
-        case SoxrRollOff::ROLLOFF_SMALL:
-            rolloff_ = SOXR_ROLLOFF_SMALL;
-            break;
-        case SoxrRollOff::ROLLOFF_MEDIUM:
-            rolloff_ = SOXR_ROLLOFF_MEDIUM;
-            break;
-        case SoxrRollOff::ROLLOFF_NONE:
-            rolloff_ = SOXR_ROLLOFF_NONE;
-            break;
-        }
+    void SetRollOff(SoxrRollOff level) {
+		rolloff_ = level;
     }
 
 	void Close() noexcept {
@@ -177,14 +179,7 @@ public:
 	}
 
 	void SetPhase(int32_t phase) {
-		if (phase >= 50) {
-			phase_ = SOXR_LINEAR_PHASE;
-		}
-		if (phase < 50 && phase > 0) {
-			phase_ = SOXR_INTERMEDIATE_PHASE;
-		} else {
-			phase_ = SOXR_MINIMUM_PHASE;
-		}
+		phase_ = phase;
 	}
 
 	void Flush() {
@@ -280,11 +275,11 @@ public:
 	uint32_t input_sample_rate_;
 	uint32_t output_sample_rate_;
 	uint32_t num_channels_;
-    uint32_t rolloff_;
+	int32_t phase_;
+	SoxrRollOff rolloff_;
 	double ratio_;
 	double pass_band_;
 	double stop_band_;
-	int32_t phase_;
 	SoxrHandle handle_;
 	Buffer<float> buffer_;
 	std::shared_ptr<spdlog::logger> logger_;
@@ -322,8 +317,8 @@ void SoxrSampleRateConverter::SetPhase(int32_t phase) {
 	impl_->SetPhase(phase);
 }
 
-void SoxrSampleRateConverter::SetRollOffLevel(SoxrRollOff level) {
-    impl_->SetRollOffLevel(level);
+void SoxrSampleRateConverter::SetRollOff(SoxrRollOff level) {
+    impl_->SetRollOff(level);
 }
 
 std::string_view SoxrSampleRateConverter::GetDescription() const noexcept {
@@ -352,6 +347,7 @@ AlignPtr<ISampleRateConverter> SoxrSampleRateConverter::Clone() {
     converter->SetQuality(impl_->quality_);
     converter->SetPassBand(impl_->pass_band_);
     converter->SetStopBand(impl_->stop_band_);
+	converter->SetRollOff(impl_->rolloff_);
     converter->SetSteepFilter(impl_->enable_steep_filter_);
     return other;
 }

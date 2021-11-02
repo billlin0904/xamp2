@@ -28,7 +28,6 @@ private:
 
     QMap<QString, QVariant> getSoxrSettings() const;
 
-    int32_t soxr_passband_;
-    int32_t soxr_phase_;
+    void setPhasePercentText(int32_t value);
     Ui::PreferenceDialog ui_;
 };

@@ -24,7 +24,7 @@ void PreferencePage::loadSoxrResampler(const QVariantMap& soxr_settings) {
 	ui_.soxrPassbandSlider->setValue(soxr_settings[kSoxrPassBand].toInt());
 	ui_.soxrPassbandValue->setText(QString(Q_UTF8("%0%")).arg(ui_.soxrPassbandSlider->value()));
     ui_.soxrPhaseSlider->setValue(soxr_settings[kSoxrPhase].toInt());
-    ui_.soxrPhaseValue->setText(QString(Q_UTF8("%0%")).arg(ui_.soxrPhaseSlider->value()));
+	setPhasePercentText(ui_.soxrPhaseSlider->value());
     ui_.rollOffLevelComboBox->setCurrentIndex(soxr_settings[kSoxrRollOffLevel].toInt());
 
 	if (soxr_settings[kSoxrEnableSteepFilter].toBool()) {
@@ -48,19 +48,8 @@ QMap<QString, QVariant> PreferencePage::getSoxrSettings() const {
 	settings[kSoxrEnableSteepFilter] = soxr_enable_steep_filter;
     settings[kSoxrRollOffLevel] = soxr_rolloff;
     settings[kSoxrQuality] = soxr_quility;
-
-	if (soxr_passband_ > 0) {
-		settings[kSoxrPassBand] = soxr_passband_;
-	} else {
-		settings[kSoxrPassBand] = soxr_pass_band;
-    }
-
-    if (soxr_phase_ > 0) {
-        settings[kSoxrPhase] = soxr_phase_;
-    } else {
-        settings[kSoxrPhase] = soxr_phase;
-    }
-
+	settings[kSoxrPassBand] = soxr_pass_band;
+	settings[kSoxrPhase] = soxr_phase;
 	// todo: kSoxrStopBand always set 100?
 	settings[kSoxrStopBand] = 100;
 
@@ -126,8 +115,7 @@ void PreferencePage::initSoxResampler() {
 		});
 
     (void)QObject::connect(ui_.rollOffLevelComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), [this](auto index) {
-        AppSettings::setValue(kSoxrRollOffLevel, index);
-        saveSoxrResampler(ui_.selectResamplerComboBox->currentText());
+		saveSoxrResampler(ui_.selectResamplerComboBox->currentText());
     });
 
 	(void)QObject::connect(ui_.soxrSettingCombo, static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::activated), [this](auto index) {
@@ -160,10 +148,22 @@ void PreferencePage::initLang() {
 		});
 }
 
+void PreferencePage::setPhasePercentText(int32_t value) {
+	auto str = QString(Q_UTF8("%0%")).arg(value);
+	if (value == 0) {
+		str += tr(" (minimum)");
+	}
+	else if (value < 50 && value != 0) {
+		str += tr(" (intermediate)");
+	}
+	else if (value == 50) {
+		str += tr(" (linear)");
+	}
+	ui_.soxrPhaseValue->setText(str);
+}
+
 PreferencePage::PreferencePage(QWidget *parent)
-    : QFrame(parent)
-    , soxr_passband_(0)
-    , soxr_phase_(0) {
+    : QFrame(parent) {
     ui_.setupUi(this);
     setStyleSheet(Q_UTF8("#PreferenceDialog { background-color: transparent }"));
 
@@ -207,20 +207,13 @@ PreferencePage::PreferencePage(QWidget *parent)
 		});
 
     (void)QObject::connect(ui_.soxrPassbandSlider, &QSlider::valueChanged, [this](auto value) {
-        soxr_passband_ = value;
-        ui_.soxrPassbandValue->setText(QString(Q_UTF8("%0%")).arg(soxr_passband_));
+        ui_.soxrPassbandValue->setText(QString(Q_UTF8("%0%")).arg(ui_.soxrPassbandSlider->value()));
 		saveSoxrResampler(ui_.selectResamplerComboBox->currentText());
     });
 
     (void)QObject::connect(ui_.soxrPhaseSlider, &QSlider::valueChanged, [this](auto value) {
-        soxr_phase_ = value;
-        auto str = QString(Q_UTF8("%0%")).arg(soxr_phase_);
-        if (soxr_phase_ == 0) {
-            str += tr(" (minimum)");
-        } else if (soxr_phase_ == 50) {
-            str += tr(" (linear)");
-        }
-        ui_.soxrPhaseValue->setText(str);
+		setPhasePercentText(ui_.soxrPhaseSlider->value());
+		saveSoxrResampler(ui_.selectResamplerComboBox->currentText());
     });
 
 	(void)QObject::connect(ui_.resetAllButton, &QPushButton::clicked, [this]() {

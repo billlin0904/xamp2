@@ -69,7 +69,7 @@ static AlignPtr<ISampleRateConverter> makeSampleRateConverter(const QVariantMap 
     soxr_sample_rate_converter->SetStopBand(stop_band);
     soxr_sample_rate_converter->SetPassBand(pass_band);
     soxr_sample_rate_converter->SetPhase(phase);
-    soxr_sample_rate_converter->SetRollOffLevel(rolloff_level);
+    soxr_sample_rate_converter->SetRollOff(rolloff_level);
     soxr_sample_rate_converter->SetSteepFilter(enable_steep_filter);
     return converter;
 }
