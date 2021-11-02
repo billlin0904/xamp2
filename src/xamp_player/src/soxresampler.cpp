@@ -105,11 +105,9 @@ public:
 		auto phase = SOXR_LINEAR_PHASE;
 		if (phase_ >= 50) {
 			phase = SOXR_LINEAR_PHASE;
-		}
-		if (phase_ < 50 && phase_ > 0) {
+        } else if (phase_ < 50 && phase_ > 0) {
 			phase = SOXR_INTERMEDIATE_PHASE;
-		}
-		else {
+        } else {
 			phase = SOXR_MINIMUM_PHASE;
 		}
 
