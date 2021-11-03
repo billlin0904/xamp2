@@ -817,18 +817,27 @@ DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_fr
     size_t num_filled_bytes = 0;
     XAMP_LIKELY(fifo_.TryRead(static_cast<int8_t*>(samples), sample_size, num_filled_bytes)) {
         num_filled_frames = num_filled_bytes / sample_size_ / output_format_.GetChannels();
-  
-        if (num_buffer_frames != num_filled_frames) {
-            UpdateSlice(-1, stream_time);
-        } else {
-            UpdateSlice(static_cast<int32_t>(num_samples), stream_time);
-        }
+        num_filled_frames = num_buffer_frames;
+        UpdateSlice(static_cast<int32_t>(num_samples), stream_time);
         return DataCallbackResult::CONTINUE;
     }
 
-    MemorySet(samples, 0, sample_size);
-    UpdateSlice(-1, stream_time);
-    return DataCallbackResult::STOP;
+    // note: 為了避免提早將聲音切斷(某些音效介面固定frame大小,低於某個frame大小就無法撥放 ex:WASAPI)
+    // 下次取frame的時候才將聲音停止.
+    // (WASAPI 1 frame)  (WASAPI 2 frame)
+    //       |                 |
+    //       | End time        |
+    //       V    V            V
+    // <------------------------------->
+    //
+    if (stream_time >= stream_duration_) {
+        UpdateSlice(-1, stream_time);
+        return DataCallbackResult::STOP;
+    }
+
+    num_filled_frames = num_buffer_frames;
+    UpdateSlice(static_cast<int32_t>(num_samples), stream_time);
+    return DataCallbackResult::CONTINUE;
 }
 
 void AudioPlayer::PrepareToPlay() {

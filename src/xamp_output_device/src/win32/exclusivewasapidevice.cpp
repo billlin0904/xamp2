@@ -388,6 +388,7 @@ void ExclusiveWasapiDevice::StartStream() {
 				break;
 			case WAIT_OBJECT_0 + 1:
 				thread_exit = true;
+				XAMP_LOG_D(log_, "Stop event trigger!");
 				break;
 			case WAIT_TIMEOUT:
 				XAMP_LOG_D(log_, "Wait event timeout! {}ms", elapsed.count());
