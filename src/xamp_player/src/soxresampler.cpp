@@ -62,11 +62,11 @@ public:
 		, input_sample_rate_(0)
 		, output_sample_rate_(0)
 		, num_channels_(0)
+        , phase_(kDefaultPhase)
         , rolloff_(SoxrRollOff::ROLLOFF_NONE)
-		, ratio_(0)
+        , ratio_(0)
 		, pass_band_(kDefaultPassBand)
-		, stop_band_(kDefaultStopBand)
-		, phase_(kDefaultPhase) {
+        , stop_band_(kDefaultStopBand) {
 		logger_ = Logger::GetInstance().GetLogger(kResamplerLoggerName);
 	}
 
@@ -345,6 +345,7 @@ AlignPtr<ISampleRateConverter> SoxrSampleRateConverter::Clone() {
     converter->SetQuality(impl_->quality_);
     converter->SetPassBand(impl_->pass_band_);
     converter->SetStopBand(impl_->stop_band_);
+    converter->SetPhase(impl_->phase_);
 	converter->SetRollOff(impl_->rolloff_);
     converter->SetSteepFilter(impl_->enable_steep_filter_);
     return other;

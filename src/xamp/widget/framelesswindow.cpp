@@ -362,6 +362,9 @@ void FramelessWindow::changeEvent(QEvent* event) {
 }
 
 void FramelessWindow::closeEvent(QCloseEvent* event) {
+    if (content_widget_ != nullptr) {
+        content_widget_->close();
+    }
     QWidget::closeEvent(event);
 }
 

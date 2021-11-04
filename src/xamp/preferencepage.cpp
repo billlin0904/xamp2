@@ -58,6 +58,7 @@ QMap<QString, QVariant> PreferencePage::getSoxrSettings() const {
 
 void PreferencePage::saveSoxrResampler(const QString &name) {
     JsonSettings::setValue(name, getSoxrSettings());
+    AppSettings::setValue(kAppSettingSoxrSettingName, ui_.soxrSettingCombo->currentText());
 }
 
 void PreferencePage::initSoxResampler() {
@@ -204,20 +205,24 @@ PreferencePage::PreferencePage(QWidget *parent)
 	(void)QObject::connect(ui_.selectResamplerComboBox, static_cast<void (QComboBox::*)(int32_t)>(&QComboBox::activated), [this](auto const& index) {
 		ui_.resamplerStackedWidget->setCurrentIndex(index);
 		saveSoxrResampler(ui_.selectResamplerComboBox->currentText());
+        saveAll();
 		});
 
     (void)QObject::connect(ui_.soxrPassbandSlider, &QSlider::valueChanged, [this](auto value) {
         ui_.soxrPassbandValue->setText(QString(Q_UTF8("%0%")).arg(ui_.soxrPassbandSlider->value()));
 		saveSoxrResampler(ui_.selectResamplerComboBox->currentText());
+        saveAll();
     });
 
     (void)QObject::connect(ui_.soxrPhaseSlider, &QSlider::valueChanged, [this](auto value) {
 		setPhasePercentText(ui_.soxrPhaseSlider->value());
 		saveSoxrResampler(ui_.selectResamplerComboBox->currentText());
+        saveAll();
     });
 
 	(void)QObject::connect(ui_.resetAllButton, &QPushButton::clicked, [this]() {
 		initSoxResampler();
+        saveAll();
 		});
 
 	ui_.podcastCachePathLineEdit->setText(AppSettings::getValue(kAppSettingPodcastCachePath).toString());
