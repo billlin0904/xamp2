@@ -110,7 +110,7 @@ private:
 	std::atomic<int64_t> played_bytes_;
 	std::string device_id_;
 	mutable FastMutex mutex_;
-	FastMutexConditionVariable condition_;
+	FastConditionVariable condition_;
 	AudioFormat format_;
 	std::vector<ASIOClockSource> clock_source_;	
 	Buffer<int8_t> buffer_;

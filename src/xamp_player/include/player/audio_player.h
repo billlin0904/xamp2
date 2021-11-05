@@ -182,8 +182,8 @@ private:
     mutable FastMutex stopped_mutex_;
     std::string device_id_;
     Uuid device_type_id_;
-    FastMutexConditionVariable pause_cond_;
-    FastMutexConditionVariable read_finish_and_wait_seek_signal_cond_;
+    FastConditionVariable pause_cond_;
+    FastConditionVariable read_finish_and_wait_seek_signal_cond_;
     AudioFormat input_format_;
     AudioFormat output_format_;    
     Timer timer_;

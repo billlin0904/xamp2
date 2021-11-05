@@ -3,7 +3,7 @@
 #ifdef XAMP_OS_WIN
 #include <base/logger.h>
 #include <base/waitabletimer.h>
-#include <base/threadpool.h>
+#include <base/ithreadpool.h>
 #include <base/stopwatch.h>
 
 #include <output_device/iaudiocallback.h>
@@ -375,7 +375,7 @@ void SharedWasapiDevice::StartStream() {
 	// Note: 必要! 某些音效卡會爆音!
 	GetSampleRequested(true);
 
-	render_task_ = ThreadPool::WASAPIThreadPool().Spawn([this](auto idx) noexcept {
+	render_task_ = WASAPIThreadPool().Spawn([this](auto idx) noexcept {
 		XAMP_LOG_D(log_, "Start shared mode stream task! thread: {}", GetCurrentThreadId());
 
 		Stopwatch watch;

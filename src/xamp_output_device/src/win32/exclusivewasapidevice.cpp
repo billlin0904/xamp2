@@ -2,7 +2,7 @@
 
 #ifdef XAMP_OS_WIN
 #include <base/scopeguard.h>
-#include <base/threadpool.h>
+#include <base/ithreadpool.h>
 #include <base/logger.h>
 #include <base/str_utilts.h>
 #include <base/waitabletimer.h>
@@ -353,7 +353,7 @@ void ExclusiveWasapiDevice::StartStream() {
 	// Note: 必要! 某些音效卡會爆音!
 	GetSample(true);
 
-	render_task_ = ThreadPool::WASAPIThreadPool().Spawn([this](auto idx) noexcept {
+	render_task_ = WASAPIThreadPool().Spawn([this](auto idx) noexcept {
 		XAMP_LOG_D(log_, "Start exclusive mode stream task! thread: {}", GetCurrentThreadId());
 
 		Stopwatch watch;

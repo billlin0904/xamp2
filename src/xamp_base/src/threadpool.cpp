@@ -6,17 +6,15 @@
 namespace xamp::base {
 
 inline constexpr auto kPopWaitTimeout = std::chrono::milliseconds(5);
-inline constexpr auto kMaxStreamReaderThreadPoolSize{ 4 };
-inline constexpr auto kMaxWASAPIThreadPoolSize{ 4 };
 
-TaskScheduler::TaskScheduler(size_t max_thread, int32_t affinity)
+TaskScheduler::TaskScheduler(const std::string_view& pool_name, size_t max_thread, int32_t affinity)
 	: is_stopped_(false)
-	, active_thread_(0)
+	, running_thread_(0)
 	, affinity_(affinity)
 	, index_(0)
 	, max_thread_(max_thread)
 	, pool_queue_(max_thread * 16) {
-	logger_ = Logger::GetInstance().GetLogger(kThreadPoolLoggerName);
+	logger_ = Logger::GetInstance().GetLogger(pool_name.data());
 	try {
 		for (size_t i = 0; i < max_thread_; ++i) {
 			shared_queues_.push_back(MakeAlign<TaskQueue>(max_thread));
@@ -85,8 +83,8 @@ void TaskScheduler::Destroy() noexcept {
 #endif
 }
 
-size_t TaskScheduler::GetActiveThreadCount() const noexcept {
-	return active_thread_;
+size_t TaskScheduler::GetRunningThreadCount() const noexcept {
+	return running_thread_;
 }
 
 size_t TaskScheduler::GetThreadCount() const noexcept {
@@ -167,10 +165,10 @@ void TaskScheduler::AddThread(size_t i) {
 					continue;
 				}
 			}
-			auto active_thread = ++active_thread_;
-#if defined(XAMP_ENABLE_THREAD_POOL_DEBUG) && defined(_DEBUG)
-			XAMP_LOG_D(logger_, "Worker Thread {} ({}) weakup, active:{}. executed time:{} sec",
-				i, thread_id, active_thread, static_cast<double>((*task).ExecutedTime()) / 1000.0);
+			auto running_thread = ++running_thread_;
+#ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
+			XAMP_LOG_D(logger_, "Worker Thread {} ({}) weakup, running:{} executed time:{} sec",
+				i, thread_id, running_thread, (*task).ExecutedTime());
 #endif
 			try {
 				(*task)(i);
@@ -183,7 +181,7 @@ void TaskScheduler::AddThread(size_t i) {
 				XAMP_LOG_ERROR("unknown exception!");
 #endif
 			}
-			--active_thread_;
+			--running_thread_;
 #ifdef XAMP_ENABLE_THREAD_POOL_DEBUG
 			XAMP_LOG_D(logger_, "Worker Thread {} ({}) execute finished.", i, thread_id);
 #endif
@@ -195,38 +193,28 @@ void TaskScheduler::AddThread(size_t i) {
 	}
 }
 
-ThreadPool::ThreadPool(uint32_t max_thread, int32_t affinity)
-	: scheduler_((std::min)(max_thread, kMaxThread), affinity) {
+ThreadPool::ThreadPool(const std::string_view& pool_name, uint32_t max_thread, int32_t affinity)
+	: IThreadPool(MakeAlign<ITaskScheduler, TaskScheduler>(pool_name, (std::min)(max_thread, kMaxThread), affinity)) {
 }
 
 ThreadPool::~ThreadPool() {
 	Stop();
 }
 
-size_t ThreadPool::GetActiveThreadCount() const noexcept {
-	return scheduler_.GetActiveThreadCount();
+size_t ThreadPool::GetRunningThreadCount() const noexcept {
+	return scheduler_->GetRunningThreadCount();
 }
 
 size_t ThreadPool::GetThreadCount() const noexcept {
-	return scheduler_.GetThreadCount();
+	return scheduler_->GetThreadCount();
 }
 
 void ThreadPool::Stop() {
-	scheduler_.Destroy();
+	scheduler_->Destroy();
 }
 
 void ThreadPool::SetAffinityMask(int32_t core) {
-	scheduler_.SetAffinityMask(core);
-}
-
-ThreadPool& ThreadPool::StreamReaderThreadPool() {
-	static ThreadPool threadpool(kMaxStreamReaderThreadPoolSize);
-	return threadpool;
-}
-
-ThreadPool& ThreadPool::WASAPIThreadPool() {
-	static ThreadPool wasapi_threadpool(kMaxWASAPIThreadPoolSize, 0);
-	return wasapi_threadpool;
+	scheduler_->SetAffinityMask(core);
 }
 
 }

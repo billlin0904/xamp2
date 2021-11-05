@@ -156,6 +156,7 @@
     <ClInclude Include="include\base\directorywatcher.h" />
     <ClInclude Include="include\base\enum.h" />
     <ClInclude Include="include\base\fastmutex.h" />
+    <ClInclude Include="include\base\ithreadpool.h" />
     <ClInclude Include="include\base\samplewriter.h" />
     <ClInclude Include="include\base\scopeguard.h" />
     <ClInclude Include="include\base\spsc_queue.h" />
@@ -196,6 +197,7 @@
     <ClCompile Include="src\dll.cpp" />
     <ClCompile Include="src\exception.cpp" />
     <ClCompile Include="src\fastmutex.cpp" />
+    <ClCompile Include="src\ithreadpool.cpp" />
     <ClCompile Include="src\memory_mapped_file.cpp" />
     <ClCompile Include="src\samplewriter.cpp" />
     <ClCompile Include="src\uuid.cpp" />

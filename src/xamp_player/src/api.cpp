@@ -1,6 +1,6 @@
 #include <base/str_utilts.h>
 #include <base/logger.h>
-#include <base/threadpool.h>
+#include <base/ithreadpool.h>
 
 #include <output_device/api.h>
 
@@ -44,9 +44,9 @@ void Xamp2Startup() {
     PreventSleep(true);
 
 #ifdef XAMP_OS_WIN
-    ThreadPool::WASAPIThreadPool();
+    WASAPIThreadPool();
 #endif
-    ThreadPool::StreamReaderThreadPool();
+    StreamReaderThreadPool();
 }
 
 

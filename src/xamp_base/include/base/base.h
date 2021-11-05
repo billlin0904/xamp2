@@ -57,6 +57,22 @@
     Class(Class &&) = default; \
 	Class& operator=(Class &&) = default;
 
+#define XAMP_BASE_DISABLE_COPY_AND_MOVE(Class) \
+    virtual ~Class() = default; \
+    Class(const Class &) = delete; \
+	Class& operator=(const Class &) = delete; \
+    Class(Class &&) = delete; \
+	Class& operator=(Class &&) = delete;
+
+// Rule of five
+// See more: http://en.cppreference.com/w/cpp/language/rule_of_three
+#define XAMP_BASE_CLASS(Class) \
+    virtual ~Class() = default; \
+    Class(const Class &) = default; \
+	Class& operator=(const Class &) = default; \
+    Class(Class &&) = default; \
+	Class& operator=(Class &&) = default;
+
 // Scott Meyers C++11 PIMPL
 // See more: http://oliora.github.io/2015/12/29/pimpl-and-rule-of-zero.html
 #define XAMP_PIMPL(Class) \

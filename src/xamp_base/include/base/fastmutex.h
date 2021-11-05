@@ -30,19 +30,25 @@ public:
 	void unlock() noexcept;
 
 	[[nodiscard]] bool try_lock() noexcept;
+
+	PSRWLOCK native_handle() {
+		return &lock_;
+	}
 private:
 	SRWLOCK lock_;
 };
 	
 using FastMutex = SRWMutex;
 
-XAMP_BASE_API int _FutexWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, const struct timespec* to);
+// note:
+// 在MSVC STL C++20實現了std::atomic_wait是以WaitOnAddress實現, 
+// 但是在std::condition_variable是以SleepConditionVariableSRW實現.
 
-class XAMP_BASE_API FastMutexConditionVariable final {
+class XAMP_BASE_API FastConditionVariable final {
 public:
-	FastMutexConditionVariable() = default;
+	FastConditionVariable() noexcept = default;
 
-	XAMP_DISABLE_COPY(FastMutexConditionVariable)
+	XAMP_DISABLE_COPY(FastConditionVariable)
 
 	void wait(std::unique_lock<FastMutex>& lock);
 
@@ -67,6 +73,8 @@ public:
 
 	void notify_all() noexcept;
 private:
+	static int _FutexWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, const struct timespec* to) noexcept;
+
 	template <typename Rep, typename Period>
 	int FutexWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, std::chrono::duration<Rep, Period> const& duration) {
 		using namespace std::chrono;
@@ -75,12 +83,14 @@ private:
 		ts.tv_nsec = duration_cast<nanoseconds>(duration).count() % 1000000000;
 		return _FutexWait(to_wait_on, expected, &ts);
 	}
-	std::atomic<uint32_t> state_{ kUnlocked };
+
+	XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<uint32_t> state_{ kUnlocked };
+	uint8_t padding_[kCacheAlignSize - sizeof(state_)]{ 0 };
 };
 	
 #elif defined(XAMP_OS_MAC)
 using FastMutex = std::mutex;
-using FastMutexConditionVariable = std::condition_variable;
+using FastConditionVariable = std::condition_variable;
 #endif
 	
 }
