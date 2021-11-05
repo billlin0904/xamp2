@@ -213,7 +213,7 @@ void ::MetadataExtractAdapter::processMetadata(const std::vector<Metadata>& resu
 
         auto is_unknown_album = false;
         if (album.isEmpty()) {
-            album = tr("Unknown album");
+            album = QString::fromStdWString(metadata.file_name_no_ext);
             is_unknown_album = true;
         }
 

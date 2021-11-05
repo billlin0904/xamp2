@@ -71,7 +71,7 @@ void FramelessWindow::initial(IXampPlayer *content_widget) {
 #if defined(Q_OS_WIN)
     ui_font.setPointSize(12);
 #else
-    ui_font.setPointSize(14);
+    ui_font.setPointSize(16);
 #endif
     qApp->setFont(ui_font);
 }

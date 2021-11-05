@@ -8,7 +8,8 @@
 
 namespace xamp::base {
 
-XAMP_ALWAYS_INLINE bool OSFutexWait(std::atomic<uint32_t>& to_wait_on, uint32_t &expected, DWORD millseconds = INFINITE) noexcept {
+#if defined(XAMP_OS_WIN) || defined(XAMP_OS_LINUX)
+XAMP_ALWAYS_INLINE bool OSFutexWait(std::atomic<uint32_t>& to_wait_on, uint32_t &expected, uint32_t millseconds) noexcept {
 #ifdef XAMP_OS_WIN
 		return ::WaitOnAddress(&to_wait_on, &expected, sizeof(expected), millseconds);
 #elif defined(XAMP_OS_LINUX)
@@ -37,7 +38,7 @@ XAMP_ALWAYS_INLINE void OSFutexWakeAll(std::atomic<T>& to_wake) noexcept {
 int FastConditionVariable::_FutexWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, const struct timespec* to) noexcept {
 #ifdef XAMP_OS_WIN
 	if (to == nullptr) {
-		OSFutexWait(to_wait_on, expected);
+        OSFutexWait(to_wait_on, expected, INFINITE);
 		return 0;
 	}
 
@@ -64,6 +65,7 @@ int FastConditionVariable::_FutexWait(std::atomic<uint32_t>& to_wait_on, uint32_
     return 0;
 #endif
 }
+#endif
 
 #ifdef XAMP_OS_WIN
 
