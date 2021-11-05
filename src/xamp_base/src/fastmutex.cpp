@@ -72,7 +72,7 @@ int FastConditionVariable::_FutexWait(std::atomic<uint32_t>& to_wait_on, uint32_
 void FastConditionVariable::wait(std::unique_lock<FastMutex>& lock) {
 	auto old_state = state_.load(std::memory_order_relaxed);
 	lock.unlock();
-	OSFutexWait(state_, old_state);
+	OSFutexWait(state_, old_state, INFINITE);
 	lock.lock();
 }
 
