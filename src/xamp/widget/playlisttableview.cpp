@@ -342,17 +342,18 @@ void PlayListTableView::initial() {
                     auto display_name = storage.displayName() + Q_UTF8("(") + storage.rootPath() + Q_UTF8(")");
                     auto driver_letter = storage.rootPath().left(1).toStdString()[0];
 
-                    if (kCDFileSystemType.contains(storage.fileSystemType().toUpper().toStdString())) {
+                    if (kCDFileSystemType.contains(storage.fileSystemType().toUpper().toStdString())) {                       
                         auto device = OpenCD(driver_letter);
                         auto device_info = device->GetCDDeviceInfo();
                         display_name += QString::fromStdWString(L" " + device_info.product);
-                        open_cd_submenu->addAction(display_name, [&device, driver_letter, this]() {
-                            device->SetMaxSpeed();
+                        open_cd_submenu->addAction(display_name, [driver_letter, this]() {
+                            auto cd = OpenCD(driver_letter);
+                            cd->SetMaxSpeed();
                             auto track_id = 0;
                             std::vector<Metadata> metadatas;
-                            for (auto const & track : device->GetTotalTracks()) {
+                            for (auto const & track : cd->GetTotalTracks()) {
                                 auto metadata = ::getMetadata(QString::fromStdWString(track));
-                                metadata.duration = device->GetDuration(track_id++);
+                                metadata.duration = cd->GetDuration(track_id++);
                                 metadata.samplerate = 44100;
                                 metadatas.push_back(metadata);
                             }
