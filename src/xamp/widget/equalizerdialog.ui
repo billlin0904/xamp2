@@ -1,0 +1,408 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>EqualizerDialog</class>
+ <widget class="QDialog" name="EqualizerDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>672</width>
+    <height>438</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Equalizer</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_13" stretch="0,1">
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1,0,0">
+     <item>
+      <widget class="QLabel" name="label_23">
+       <property name="text">
+        <string>Preset:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="eqPresetComboBox"/>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton">
+       <property name="text">
+        <string>Save</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton_2">
+       <property name="text">
+        <string>Delete</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout_12">
+       <item>
+        <widget class="QLabel" name="band1DbLabel_2">
+         <property name="text">
+          <string>0db</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="DoubleSlider" name="preampSlider">
+         <property name="minimum">
+          <number>-40</number>
+         </property>
+         <property name="maximum">
+          <number>40</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_7">
+         <property name="text">
+          <string>Preamp</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout">
+         <item>
+          <widget class="QLabel" name="band1DbLabel">
+           <property name="text">
+            <string>0db</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="DoubleSlider" name="band1Slider">
+           <property name="minimum">
+            <number>-15</number>
+           </property>
+           <property name="maximum">
+            <number>15</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>31.1Hz</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_2">
+         <item>
+          <widget class="QLabel" name="band2DbLabel">
+           <property name="text">
+            <string>0db</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="DoubleSlider" name="band2Slider">
+           <property name="minimum">
+            <number>-15</number>
+           </property>
+           <property name="maximum">
+            <number>15</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_2">
+           <property name="text">
+            <string>62Hz</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_3">
+         <item>
+          <widget class="QLabel" name="band3DbLabel">
+           <property name="text">
+            <string>0db</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="DoubleSlider" name="band3Slider">
+           <property name="minimum">
+            <number>-15</number>
+           </property>
+           <property name="maximum">
+            <number>15</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_3">
+           <property name="text">
+            <string>125Hz</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_4">
+         <item>
+          <widget class="QLabel" name="band4DbLabel">
+           <property name="text">
+            <string>0db</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="DoubleSlider" name="band4Slider">
+           <property name="minimum">
+            <number>-15</number>
+           </property>
+           <property name="maximum">
+            <number>15</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_4">
+           <property name="text">
+            <string>125Hz</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_5">
+         <item>
+          <widget class="QLabel" name="band5DbLabel">
+           <property name="text">
+            <string>0db</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="DoubleSlider" name="band5Slider">
+           <property name="minimum">
+            <number>-15</number>
+           </property>
+           <property name="maximum">
+            <number>15</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_5">
+           <property name="text">
+            <string>250Hz</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_6">
+         <item>
+          <widget class="QLabel" name="band6DbLabel">
+           <property name="text">
+            <string>0db</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="DoubleSlider" name="band6Slider">
+           <property name="minimum">
+            <number>-15</number>
+           </property>
+           <property name="maximum">
+            <number>15</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="tickInterval">
+            <number>1</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_6">
+           <property name="text">
+            <string>500Hz</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_7">
+         <item>
+          <widget class="QLabel" name="band7DbLabel">
+           <property name="text">
+            <string>0db</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="DoubleSlider" name="band7Slider">
+           <property name="minimum">
+            <number>-15</number>
+           </property>
+           <property name="maximum">
+            <number>15</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_13">
+           <property name="text">
+            <string>1KHz</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_8">
+         <item>
+          <widget class="QLabel" name="band8DbLabel">
+           <property name="text">
+            <string>0db</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="DoubleSlider" name="band8Slider">
+           <property name="minimum">
+            <number>-15</number>
+           </property>
+           <property name="maximum">
+            <number>15</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_15">
+           <property name="text">
+            <string>2KHz</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_9">
+         <item>
+          <widget class="QLabel" name="band9DbLabel">
+           <property name="text">
+            <string>0db</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="DoubleSlider" name="band9Slider">
+           <property name="minimum">
+            <number>-15</number>
+           </property>
+           <property name="maximum">
+            <number>15</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_17">
+           <property name="text">
+            <string>4KHz</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_10">
+         <item>
+          <widget class="QLabel" name="band10DbLabel">
+           <property name="text">
+            <string>0db</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="DoubleSlider" name="band10Slider">
+           <property name="minimum">
+            <number>-15</number>
+           </property>
+           <property name="maximum">
+            <number>15</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_19">
+           <property name="text">
+            <string>8KHz</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>DoubleSlider</class>
+   <extends>QSlider</extends>
+   <header>widget/doubleslider.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

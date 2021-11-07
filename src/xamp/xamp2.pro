@@ -33,6 +33,7 @@ OBJECTIVE_SOURCES += \
     widget/osx/osx.mm
 
 SOURCES += \
+    widget/doubleslider.cpp \
     widget/equalizerdialog.cpp \
     widget/lyricsshowwidget.cpp \
     widget/artistview.cpp \
@@ -81,6 +82,7 @@ SOURCES += \
     xamp.cpp
 
 HEADERS += \
+    widget/doubleslider.h \
     widget/equalizerdialog.h \
     widget/lyricsshowwidget.h \
     widget/osx/osx.h \
