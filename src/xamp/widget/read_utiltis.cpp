@@ -121,14 +121,15 @@ void export2WaveFile(std::wstring const& file_path,
 				format.SetByteFormat(ByteFormat::SINT24);
 				format.SetSampleRate(output_sample_rate);
 				file.Open(dest_file_path, format);
-				compressor.SetSampleRate(input_format.GetSampleRate());
+                compressor.Start(input_format.GetSampleRate());
 				compressor.Init();
 				converter->Start(input_format.GetSampleRate(), input_format.GetChannels(), output_sample_rate);
 			};
 
-			auto process = [&file, &compressor, &converter](float const* samples, uint32_t sample_size) {
-				auto const& buf = compressor.Process(samples, sample_size);
-				return converter->Process(buf.data(), buf.size(), file);
+            Buffer<float> buffer;
+            auto process = [&file, &compressor, &converter, &buffer](float const* samples, uint32_t sample_size) {
+                compressor.Process(samples, sample_size, buffer);
+                return converter->Process(buffer.data(), buffer.size(), file);
 			};
 
             readAll(file_path, progress, prepare, process);
@@ -147,17 +148,18 @@ void export2WaveFile(std::wstring const& file_path,
 	excepted.Try([&](auto const& dest_file_path) {
 		WaveFileWriter file;
 		Compressor compressor;
+        Buffer<float> buffer;
         readAll(file_path, progress,
             [&file, dest_file_path, &compressor](AudioFormat const& input_format) {
 				auto format = input_format;
 				format.SetByteFormat(ByteFormat::SINT24);
 				file.Open(dest_file_path, format);
-				compressor.SetSampleRate(format.GetSampleRate());
+                compressor.Start(format.GetSampleRate());
 				compressor.Init();
-			}, [&file, &compressor, enable_compressor](auto const* samples, auto sample_size) {
+            }, [&file, &compressor, enable_compressor, &buffer](auto const* samples, auto sample_size) {
 				if (enable_compressor) {
-					auto const& buf = compressor.Process(samples, sample_size);
-					file.Write(buf.data(), buf.size());
+                    compressor.Process(samples, sample_size, buffer);
+                    file.Write(buffer.data(), buffer.size());
 				}
 				else {
 					file.Write(samples, sample_size);

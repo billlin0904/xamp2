@@ -441,26 +441,4 @@ bool BassFileStream::SupportNativeSD() const noexcept {
     return stream_->SupportNativeSD();
 }
 
-void LoadBassLib() {
-    if (!BASS.IsLoaded()) {
-        (void)Singleton<BassLib>::GetInstance().Load();
-    }
-    BASS.MixLib = MakeAlign<BassMixLib>();
-    XAMP_LOG_DEBUG("Load BassMixLib {} successfully.", GetBassVersion(BASS.MixLib->BASS_Mixer_GetVersion()));
-    BASS.DSDLib = MakeAlign<BassDSDLib>();
-    XAMP_LOG_DEBUG("Load BassDSDLib successfully.");
-    BASS.FxLib = MakeAlign<BassFxLib>();
-    XAMP_LOG_DEBUG("Load BassFxLib successfully.");
-#ifdef XAMP_OS_WIN
-    BASS.CDLib = MakeAlign<BassCDLib>();
-    XAMP_LOG_DEBUG("Load BassCDLib successfully.");
-#endif
-    BASS.FlacEncLib = MakeAlign<BassFlacEncLib>();
-    XAMP_LOG_DEBUG("Load BassEncLib successfully.");
-}
-
-void FreeBassLib() {
-    Singleton<BassLib>::GetInstance().Free();
-}
-
 }

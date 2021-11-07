@@ -23,11 +23,11 @@ public:
 
 	XAMP_DISABLE_COPY(Buffer)
 
-    Buffer(Buffer&& other) noexcept {
+    Buffer(Buffer<T, U>&& other) noexcept {
         *this = std::move(other);
     }
 
-    Buffer& operator=(Buffer&& other) noexcept {
+    Buffer<T, U>& operator=(Buffer<T, U>&& other) noexcept {
         if (this != &other) {
             ptr_ = std::move(other.ptr_);
             lock_ = std::move(other.lock_);

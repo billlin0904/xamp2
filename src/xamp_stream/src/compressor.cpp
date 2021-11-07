@@ -10,8 +10,9 @@ public:
     CompressorImpl() {
         logger_ = Logger::GetInstance().GetLogger(kCompressorLoggerName);
     }
-    void SetSampleRate(uint32_t sample_rate) {
-        stream_.reset(BASS.BASS_StreamCreate(sample_rate,
+
+    void Start(uint32_t samplerate) {
+        stream_.reset(BASS.BASS_StreamCreate(samplerate,
                                              kMaxChannel,
                                              BASS_SAMPLE_FLOAT | BASS_STREAM_DECODE,
                                              STREAMPROC_DUMMY,
@@ -42,31 +43,29 @@ public:
             compressord.fRelease);
     }
 
-    const Buffer<float>& Process(float const * samples, uint32_t num_samples) {
-    	if (buffer_.size() < num_samples) {
-            buffer_.resize(num_samples);
+    void Process(float const * samples, uint32_t num_samples, Buffer<float>& out) {
+        if (out.size() < num_samples) {
+            out.resize(num_samples);
     	}        
-        MemoryCopy(buffer_.data(), samples, num_samples * sizeof(float));
+        MemoryCopy(out.data(), samples, num_samples * sizeof(float));
 
         const auto bytes_read = 
             BASS.BASS_ChannelGetData(stream_.get(),
-                buffer_.data(), 
+                out.data(),
                 num_samples * sizeof(float));
         if (bytes_read == kBassError) {
-            return buffer_;
+            return;
         }
         if (bytes_read == 0) {
-            return buffer_;
+            return;
         }
         const auto frames = bytes_read / sizeof(float);
-        buffer_.resize(frames);
-        return buffer_;
+        out.resize(frames);
     }
 
 private:
     BassStreamHandle stream_;
     ::BASS_BFX_COMPRESSOR2 compressord_{0};
-    Buffer<float> buffer_;
     std::shared_ptr<spdlog::logger> logger_;
 };
 
@@ -74,8 +73,8 @@ Compressor::Compressor()
     : impl_(MakeAlign<CompressorImpl>()) {
 }
 
-void Compressor::SetSampleRate(uint32_t sample_rate) {
-    impl_->SetSampleRate(sample_rate);
+void Compressor::Start(uint32_t samplerate) {
+    impl_->Start(samplerate);
 }
 
 XAMP_PIMPL_IMPL(Compressor)
@@ -84,8 +83,8 @@ void Compressor::Init(CompressorParameters const &parameters) {
     impl_->Init(parameters);
 }
 
-const Buffer<float>& Compressor::Process(float const * samples, uint32_t num_samples) {
-    return impl_->Process(samples, num_samples);
+void Compressor::Process(float const * samples, uint32_t num_samples, Buffer<float>& out) {
+    return impl_->Process(samples, num_samples, out);
 }
 
 Uuid Compressor::GetTypeId() const {

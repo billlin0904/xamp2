@@ -72,9 +72,5 @@ private:
 	AlignPtr<BassFileStreamImpl> stream_;
 };
 
-XAMP_STREAM_API void LoadBassLib();
-
-XAMP_STREAM_API void FreeBassLib();
-
 }
 

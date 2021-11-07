@@ -7,6 +7,7 @@
 
 #include <future>
 #include <optional>
+#include <any>
 
 #include <base/base.h>
 #include <base/audiobuffer.h>
@@ -23,6 +24,7 @@
 #include <output_device/deviceinfo.h>
 
 #include <stream/stream.h>
+#include <stream/iequalizer.h>
 
 #include <player/player.h>
 #include <player/playstate.h>
@@ -33,6 +35,16 @@ namespace xamp::player {
 using namespace xamp::base;
 using namespace xamp::stream;
 using namespace xamp::output_device;
+
+enum class DspCommandId {
+    DSP_EQ,
+    DSP_PREAMP,
+};
+
+struct DspMessage {
+    DspCommandId id;
+    std::any content;
+};
 
 class AudioPlayer final :
     public IAudioCallback,
@@ -94,9 +106,13 @@ public:
 
     AudioFormat GetOutputFormat() const noexcept override;
 
-    void SetProcessor(AlignPtr<IAudioProcessor> &&processor) override;
+    void AddProcessor(AlignPtr<IAudioProcessor> processor) override;
 
     void EnableProcessor(bool enable = true) override;
+
+    void SetEq(uint32_t band, float gain, float Q) override;
+
+    void SetPreamp(float preamp) override;
 
     bool IsEnableProcessor() const override;
 
@@ -148,7 +164,9 @@ private:
 
     void ProcessSeek();
 
-    void InitProcessor();
+    void InitDsp();
+
+    void ProcessDspMsg();
 
     void SetDSDStreamMode(DsdModes dsd_mode, AlignPtr<FileStream>& stream);
 
@@ -158,6 +176,19 @@ private:
         int32_t sample_size;
         double stream_time;
     };
+
+    template <typename Processor>
+    Processor* GetProcessor() {
+        auto itr = std::find_if(dsp_chain_.begin(),
+                                dsp_chain_.end(),
+                                [](auto const& processor) {
+                                    return processor->GetTypeId() == Processor::Id;
+                                });
+        if (itr == dsp_chain_.end()) {
+            return nullptr;
+        }
+        return dynamic_cast<Processor*>((*itr).get());
+    }
 
     XAMP_ENFORCE_TRIVIAL(AudioSlice)
 
@@ -180,6 +211,7 @@ private:
     std::atomic<AudioSlice> slice_;
     mutable FastMutex pause_mutex_;
     mutable FastMutex stopped_mutex_;
+    EQSettings eq_settings_;
     std::string device_id_;
     Uuid device_type_id_;
     FastConditionVariable pause_cond_;
@@ -194,13 +226,15 @@ private:
     std::weak_ptr<IPlaybackStateAdapter> state_adapter_;    
     AudioBuffer<int8_t> fifo_;
     Buffer<int8_t> read_buffer_;
+    Buffer<float> dsp_buffer_;
     WaitableTimer wait_timer_;
     AlignPtr<ISampleRateConverter> converter_;
+    std::vector<AlignPtr<IAudioProcessor>> setting_chain_;
     std::vector<AlignPtr<IAudioProcessor>> dsp_chain_;
     DeviceInfo device_info_;    
     std::shared_future<void> stream_task_;
     SpscQueue<double> seek_queue_;
-    SpscQueue<AlignPtr<IAudioProcessor>> processor_queue_;
+    SpscQueue<DspMessage> dsp_msg_queue_;
     std::shared_ptr<spdlog::logger> logger_;
 };
 

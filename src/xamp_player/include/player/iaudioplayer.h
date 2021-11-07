@@ -49,6 +49,10 @@ public:
 
     virtual void SetVolume(uint32_t volume) = 0;
 
+    virtual void SetPreamp(float preamp) = 0;
+
+    virtual void SetEq(uint32_t band, float gain, float Q) = 0;
+
     [[nodiscard]] virtual uint32_t GetVolume() const = 0;
 
     [[nodiscard]] virtual bool IsHardwareControlVolume() const = 0;
@@ -73,7 +77,7 @@ public:
 
     [[nodiscard]] virtual AudioFormat GetOutputFormat() const noexcept = 0;
 
-    virtual void SetProcessor(AlignPtr<IAudioProcessor>&& processor) = 0;
+    virtual void AddProcessor(AlignPtr<IAudioProcessor> processor) = 0;
 
     virtual void EnableProcessor(bool enable = true) = 0;
 

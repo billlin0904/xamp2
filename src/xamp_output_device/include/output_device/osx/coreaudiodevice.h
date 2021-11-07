@@ -89,7 +89,7 @@ private:
     mutable AudioObjectPropertyAddress audio_property_;
     AudioFormat format_;
     FastMutex mutex_;
-    FastMutexConditionVariable stop_event_;
+    FastConditionVariable stop_event_;
     std::shared_ptr<spdlog::logger> logger_;
 };
 

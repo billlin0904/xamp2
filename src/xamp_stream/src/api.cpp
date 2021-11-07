@@ -2,11 +2,14 @@
 #include <base/memory_mapped_file.h>
 #include <base/str_utilts.h>
 #include <base/logger.h>
+
+#include <stream/basslib.h>
 #include <stream/idsdstream.h>
 #include <stream/bassfilestream.h>
 #include <stream/ifileencoder.h>
 #include <stream/bassfileencoder.h>
 #include <stream/basscddevice.h>
+#include <stream/bassequalizer.h>
 #include <stream/api.h>
 
 namespace xamp::stream {
@@ -59,6 +62,32 @@ IDsdStream* AsDsdStream(AlignPtr<FileStream> const& stream) noexcept {
 HashSet<std::string> const& GetSupportFileExtensions() {
     static const auto bass_file_ext = BassFileStream::GetSupportFileExtensions();
     return bass_file_ext;
+}
+
+AlignPtr<IAudioProcessor> MakeEqualizer() {
+    return MakeAlign<IAudioProcessor, BassEqualizer>();
+}
+
+void LoadBassLib() {
+    if (!BASS.IsLoaded()) {
+        (void)Singleton<BassLib>::GetInstance().Load();
+    }
+    BASS.MixLib = MakeAlign<BassMixLib>();
+    XAMP_LOG_DEBUG("Load BassMixLib {} successfully.", GetBassVersion(BASS.MixLib->BASS_Mixer_GetVersion()));
+    BASS.DSDLib = MakeAlign<BassDSDLib>();
+    XAMP_LOG_DEBUG("Load BassDSDLib successfully.");
+    BASS.FxLib = MakeAlign<BassFxLib>();
+    XAMP_LOG_DEBUG("Load BassFxLib successfully.", GetBassVersion(BASS.FxLib->BASS_FX_GetVersion()));
+#ifdef XAMP_OS_WIN
+    BASS.CDLib = MakeAlign<BassCDLib>();
+    XAMP_LOG_DEBUG("Load BassCDLib successfully.");
+#endif
+    BASS.FlacEncLib = MakeAlign<BassFlacEncLib>();
+    XAMP_LOG_DEBUG("Load BassEncLib successfully.");
+}
+
+void FreeBassLib() {
+    BASS.Free();
 }
 
 }

@@ -93,6 +93,7 @@ private:
 public:
     XAMP_DECLARE_DLL(BASS_FX_TempoGetSource) BASS_FX_TempoGetSource;
     XAMP_DECLARE_DLL(BASS_FX_TempoCreate) BASS_FX_TempoCreate;
+    XAMP_DECLARE_DLL(BASS_FX_GetVersion) BASS_FX_GetVersion;
 };
 
 #ifdef XAMP_OS_WIN

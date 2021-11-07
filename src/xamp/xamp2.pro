@@ -33,6 +33,7 @@ OBJECTIVE_SOURCES += \
     widget/osx/osx.mm
 
 SOURCES += \
+    widget/equalizerdialog.cpp \
     widget/lyricsshowwidget.cpp \
     widget/artistview.cpp \
     widget/http.cpp \
@@ -80,6 +81,7 @@ SOURCES += \
     xamp.cpp
 
 HEADERS += \
+    widget/equalizerdialog.h \
     widget/lyricsshowwidget.h \
     widget/osx/osx.h \
     widget/artistview.h \
@@ -136,6 +138,7 @@ HEADERS += \
 ICON = xamp2.icns \
 
 FORMS += \
+    widget/equalizerdialog.ui \
     widget/toast.ui \
     aboutdialog.ui \
     preferencedialog.ui \

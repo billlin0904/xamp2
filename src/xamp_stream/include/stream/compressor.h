@@ -21,7 +21,7 @@ struct XAMP_STREAM_API CompressorParameters final {
         : gain(-1)
         , threshold(-1)
         , ratio(100)
-        , attack(0.1)
+        , attack(0.1f)
         , release(50) {
     }
 
@@ -50,11 +50,11 @@ public:
 
     XAMP_PIMPL(Compressor)
 
-    void SetSampleRate(uint32_t sample_rate) override;
+    void Start(uint32_t samplerate) override;
 
     void Init(CompressorParameters const &parameters = CompressorParameters());
 
-    const Buffer<float>& Process(float const * samples, uint32_t num_samples) override;
+    void Process(float const * samples, uint32_t num_samples, Buffer<float>& out) override;
 
     [[nodiscard]] Uuid GetTypeId() const override;
 

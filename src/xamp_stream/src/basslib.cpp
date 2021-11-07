@@ -75,7 +75,8 @@ BassFxLib::BassFxLib() try
     : module_(LoadModule("libbass_fx.dylib"))
 #endif
     , LOAD_BASS_DLL_API(BASS_FX_TempoGetSource)
-    , LOAD_BASS_DLL_API(BASS_FX_TempoCreate) {
+    , LOAD_BASS_DLL_API(BASS_FX_TempoCreate)
+    , LOAD_BASS_DLL_API(BASS_FX_GetVersion) {
 }
 catch (const Exception& e) {
     XAMP_LOG_ERROR("{}", e.GetErrorMessage());

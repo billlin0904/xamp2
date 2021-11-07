@@ -12,8 +12,10 @@
 
 #include <base/scopeguard.h>
 #include <base/str_utilts.h>
+
 #include <stream/compressor.h>
 #include <stream/podcastcache.h>
+#include <stream/api.h>
 
 #include <output_device/api.h>
 
@@ -38,6 +40,7 @@
 #include <widget/ui_utilts.h>
 #include <widget/read_utiltis.h>
 #include <widget/time_utilts.h>
+#include <widget/equalizerdialog.h>
 
 #include "aboutpage.h"
 #include "preferencepage.h"
@@ -77,7 +80,7 @@ static AlignPtr<ISampleRateConverter> makeSampleRateConverter(const QVariantMap 
 static AlignPtr<IAudioProcessor> makeCompressor(uint32_t sample_rate) {
     auto processor = MakeAlign<IAudioProcessor, Compressor>();
     auto* compressor = dynamic_cast<Compressor*>(processor.get());
-    compressor->SetSampleRate(sample_rate);
+    compressor->Start(sample_rate);
     compressor->Init();
     return processor;
 }
@@ -582,6 +585,20 @@ void Xamp::initialController() {
         playPreviousClicked();
     });
 
+    (void)QObject::connect(ui_.eqButton, &QToolButton::pressed, [this]() {
+        EqualizerDialog eq(this);
+
+        (void)QObject::connect(&eq, &EqualizerDialog::bandValueChange, [this](int band, float value, float Q) {
+            player_->SetEq(band, value, Q);
+        });
+
+        (void)QObject::connect(&eq, &EqualizerDialog::preampValueChange, [this](float value) {
+            player_->SetPreamp(value);
+        });
+
+        eq.exec();
+    });
+
     (void)QObject::connect(ui_.repeatButton, &QToolButton::pressed, [this]() {
         order_ = GetNextOrder(order_);
         setPlayerOrder();
@@ -980,10 +997,11 @@ void Xamp::playMusic(const MusicEntity& item) {
             target_sample_rate = soxr_settings[kSoxrResampleSampleRate].toUInt();
             converter = makeSampleRateConverter(soxr_settings);            
         }
+        player_->AddProcessor(MakeEqualizer());
         player_->Open(item.file_path.toStdWString(), device_info_, target_sample_rate, std::move(converter));
         player_->PrepareToPlay();
         if (item.true_peak >= 1.0) {
-            player_->SetProcessor(makeCompressor(player_->GetInputFormat().GetSampleRate()));
+            player_->AddProcessor(makeCompressor(player_->GetInputFormat().GetSampleRate()));
         }
         playback_format = getPlaybackFormat(player_.get());
         player_->Play();

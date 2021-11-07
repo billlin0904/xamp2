@@ -12,6 +12,7 @@
 #include <stream/idsdstream.h>
 #include <stream/ifileencoder.h>
 #include <stream/filestream.h>
+#include <stream/iequalizer.h>
 
 namespace xamp::stream {
 
@@ -25,8 +26,14 @@ XAMP_STREAM_API AlignPtr<FileStream> MakeStream();
 
 XAMP_STREAM_API AlignPtr<IFileEncoder> MakeEncoder();
 
+XAMP_STREAM_API AlignPtr<IAudioProcessor> MakeEqualizer();
+
 #ifdef XAMP_OS_WIN
 XAMP_STREAM_API AlignPtr<ICDDevice> MakeCDDevice(int32_t driver_letter);
 #endif
+
+XAMP_STREAM_API void LoadBassLib();
+
+XAMP_STREAM_API void FreeBassLib();
 
 }
