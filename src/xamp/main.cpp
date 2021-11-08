@@ -165,6 +165,8 @@ static int excute(int argc, char* argv[]) {
 
     QApplication app(argc, argv);
 
+    Xamp::registerMetaType();
+
     try {
 	    Xamp2Startup();
     }

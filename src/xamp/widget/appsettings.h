@@ -27,7 +27,7 @@ struct AppEQSettings {
         arch.setFloatingPointPrecision(QDataStream::SinglePrecision);
         arch << object.name;
         arch << object.settings.preamp;
-        arch << object.settings.bands.size();
+        arch << static_cast<quint32>(object.settings.bands.size());
         for (auto i = 0; i < object.settings.bands.size(); ++i) {
             arch << object.settings.bands[i].gain << object.settings.bands[i].Q;
         }

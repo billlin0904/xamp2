@@ -86,7 +86,8 @@ QVariant AppSettings::getValue(const QString& key) {
 	if (!settings_->contains(key)) {
 		return default_settings_.value(key);
 	}
-	return settings_->value(key);
+    auto v = settings_->value(key);
+    return v;
 }
 
 int32_t AppSettings::getAsInt(const QString& key) {

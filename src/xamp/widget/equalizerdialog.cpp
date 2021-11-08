@@ -9,43 +9,45 @@ EqualizerDialog::EqualizerDialog(QWidget *parent)
     : XampDialog(parent) {
      ui_.setupUi(this);
 
-     std::vector<DoubleSlider*> band_sliders {
-         ui_.band1Slider,
-         ui_.band2Slider,
-         ui_.band3Slider,
-         ui_.band4Slider,
-         ui_.band5Slider,
-         ui_.band6Slider,
-         ui_.band7Slider,
-         ui_.band8Slider,
-         ui_.band9Slider,
-         ui_.band10Slider,
-     };
+     setFixedSize(QSize(600, 400));
 
-     std::vector<QLabel*> band_label{
-         ui_.band1DbLabel,
-         ui_.band2DbLabel,
-         ui_.band3DbLabel,
-         ui_.band4DbLabel,
-         ui_.band5DbLabel,
-         ui_.band6DbLabel,
-         ui_.band7DbLabel,
-         ui_.band8DbLabel,
-         ui_.band9DbLabel,
-         ui_.band10DbLabel,
-     };
+     band_sliders_ = std::vector<DoubleSlider*>{
+             ui_.band1Slider,
+             ui_.band2Slider,
+             ui_.band3Slider,
+             ui_.band4Slider,
+             ui_.band5Slider,
+             ui_.band6Slider,
+             ui_.band7Slider,
+             ui_.band8Slider,
+             ui_.band9Slider,
+             ui_.band10Slider,
+             };
+
+     band_label_ = std::vector<QLabel*>{
+             ui_.band1DbLabel,
+             ui_.band2DbLabel,
+             ui_.band3DbLabel,
+             ui_.band4DbLabel,
+             ui_.band5DbLabel,
+             ui_.band6DbLabel,
+             ui_.band7DbLabel,
+             ui_.band8DbLabel,
+             ui_.band9DbLabel,
+             ui_.band10DbLabel,
+             };
 
      QFont f(Q_UTF8("MonoFont"));
      f.setPointSize(12);
-     for (auto& l : band_label) {
+     for (auto& l : band_label_) {
          l->setFont(f);
      }
 
      auto band = 0;
-     for (auto& slider : band_sliders) {
-         (void)QObject::connect(slider, &DoubleSlider::doubleValueChanged, [band, band_label, this](auto value) {
+     for (auto& slider : band_sliders_) {
+         (void)QObject::connect(slider, &DoubleSlider::doubleValueChanged, [band, this](auto value) {
              bandValueChange(band, value, 1.41);
-             band_label[band]->setText(QString(Q_UTF8("%1 db")).arg(value * 10));
+             band_label_[band]->setText(QString(Q_UTF8("%1 db")).arg(value * 10));
 
              AppEQSettings settings;
              settings.name = ui_.eqPresetComboBox->currentText();
@@ -62,7 +64,7 @@ EqualizerDialog::EqualizerDialog(QWidget *parent)
 
      parseEqFile();
 
-     (void)QObject::connect(ui_.eqPresetComboBox, static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::activated), [band_sliders, this](auto index) {
+     (void)QObject::connect(ui_.eqPresetComboBox, static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::activated), [this](auto index) {
          AppEQSettings settings;
          settings.name = index;
          settings.settings = settings_[index];
@@ -79,36 +81,13 @@ EqualizerDialog::EqualizerDialog(QWidget *parent)
 }
 
 void EqualizerDialog::applySetting(QString const& name) {
-    std::vector<DoubleSlider*> band_sliders{
-         ui_.band1Slider,
-         ui_.band2Slider,
-         ui_.band3Slider,
-         ui_.band4Slider,
-         ui_.band5Slider,
-         ui_.band6Slider,
-         ui_.band7Slider,
-         ui_.band8Slider,
-         ui_.band9Slider,
-         ui_.band10Slider,
-    };
-
-    std::vector<QLabel*> band_label{
-        ui_.band1DbLabel,
-        ui_.band2DbLabel,
-        ui_.band3DbLabel,
-        ui_.band4DbLabel,
-        ui_.band5DbLabel,
-        ui_.band6DbLabel,
-        ui_.band7DbLabel,
-        ui_.band8DbLabel,
-        ui_.band9DbLabel,
-        ui_.band10DbLabel,
-    };
-
+    if (!settings_.contains(name)) {
+        return;
+    }
     auto setting = settings_[name];
     for (auto i = 0; i < setting.bands.size(); ++i) {
-        band_sliders[i]->setValue(setting.bands[i].gain * 10);
-        band_label[i]->setText(QString(Q_UTF8("%1 db")).arg(setting.bands[i].gain * 10));
+        band_sliders_[i]->setValue(setting.bands[i].gain * 10);
+        band_label_[i]->setText(QString(Q_UTF8("%1 db")).arg(setting.bands[i].gain * 10));
     }
     ui_.preampSlider->setValue(setting.preamp * 10);
 }

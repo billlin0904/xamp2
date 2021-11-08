@@ -143,7 +143,6 @@ Xamp::Xamp()
 #else
     , player_(MakeAudioPlayer(state_adapter_)) {
 #endif
-    registerMetaType();
     ui_.setupUi(this);
 }
 

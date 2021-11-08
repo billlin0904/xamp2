@@ -30,5 +30,7 @@ private:
     void applySetting(QString const &name);
 
     Ui::EqualizerDialog ui_;
+    std::vector<DoubleSlider*> band_sliders_;
+    std::vector<QLabel*> band_label_;
     QMap<QString, EQSettings> settings_;
 };

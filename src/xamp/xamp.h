@@ -45,6 +45,8 @@ public:
 
     virtual ~Xamp() override = default;
 
+    static void registerMetaType();
+
     void initial(ITopWindow *top_window);
 signals:
 	void payNextMusic();
@@ -137,8 +139,6 @@ private:
 	void resetSeekPosValue();
 
 	void setupPlayNextMusicSignals(bool add_or_remove);
-
-	void registerMetaType();
 
     void onDeviceStateChanged(DeviceState state);
 
