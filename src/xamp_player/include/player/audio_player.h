@@ -112,6 +112,8 @@ public:
 
     void SetEq(uint32_t band, float gain, float Q) override;
 
+    void SetEq(EQSettings const& settings) override;
+
     void SetPreamp(float preamp) override;
 
     bool IsEnableProcessor() const override;

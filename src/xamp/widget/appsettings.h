@@ -8,6 +8,7 @@
 #include <base/uuid.h>
 
 #include <QColor>
+#include <QDataStream>
 #include <QSettings>
 #include <QScopedPointer>
 
@@ -16,9 +17,34 @@
 #include <widget/settingnames.h>
 #include <widget/localelanguage.h>
 
+#include <stream/iequalizer.h>
+
 struct AppEQSettings {
-    float gain{0};
-    float Q{0};
+    QString name;
+    EQSettings settings;
+
+    friend QDataStream& operator << (QDataStream& arch, const AppEQSettings& object) {
+        arch.setFloatingPointPrecision(QDataStream::SinglePrecision);
+        arch << object.name;
+        arch << object.settings.preamp;
+        arch << object.settings.bands.size();
+        for (auto i = 0; i < object.settings.bands.size(); ++i) {
+            arch << object.settings.bands[i].gain << object.settings.bands[i].Q;
+        }
+        return arch;
+    }
+
+    friend QDataStream& operator >> (QDataStream& arch, AppEQSettings& object) {
+        arch.setFloatingPointPrecision(QDataStream::SinglePrecision);
+        arch >> object.name;
+        arch >> object.settings.preamp;
+        int total = 0;
+        arch >> total;
+        for (auto i = 0; i < total; ++i) {
+            arch >> object.settings.bands[i].gain >> object.settings.bands[i].Q;
+        }
+        return arch;
+    }
 };
 Q_DECLARE_METATYPE(AppEQSettings);
 
@@ -107,5 +133,5 @@ private:
 
     static QScopedPointer<QSettings> settings_;
     static QMap<QString, QVariant> default_settings_;
-    static LocaleLanguageManager manager_;;
+    static LocaleLanguageManager manager_;
 };

@@ -90,6 +90,10 @@ QIcon ThemeManager::playlistIcon() const {
     return makeIcon(Q_STR(":/xamp/Resource/%1/tab_playlists.png"));
 }
 
+QIcon ThemeManager::equalizerIcon() const {
+    return makeIcon(Q_STR(":/xamp/Resource/%1/equalizer.png"));
+}
+
 QIcon ThemeManager::podcastIcon() const {
     return makeIcon(Q_STR(":/xamp/Resource/%1/podcast.png"));
 }
@@ -374,6 +378,14 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
                                          QToolButton#mutedButton {
                                          image: url(:/xamp/Resource/%1/volume_up.png);
                                          border: none;
+                                         background-color: transparent;
+                                         }
+                                         )").arg(themeColorPath()));
+
+    ui.eqButton->setStyleSheet(Q_STR(R"(
+                                         QToolButton#eqButton {
+                                         border: none;
+                                         image: url(:/xamp/Resource/%1/equalizer.png);
                                          background-color: transparent;
                                          }
                                          )").arg(themeColorPath()));

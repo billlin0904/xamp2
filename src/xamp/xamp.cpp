@@ -267,6 +267,7 @@ void Xamp::setDefaultStyle() {
 }
 
 void Xamp::registerMetaType() {
+    qRegisterMetaTypeStreamOperators<AppEQSettings>("AppEQSettings");
     qRegisterMetaType<std::vector<Metadata>>("std::vector<Metadata>");
     qRegisterMetaType<DeviceState>("DeviceState");
     qRegisterMetaType<PlayerState>("PlayerState");
@@ -997,8 +998,16 @@ void Xamp::playMusic(const MusicEntity& item) {
             target_sample_rate = soxr_settings[kSoxrResampleSampleRate].toUInt();
             converter = makeSampleRateConverter(soxr_settings);            
         }
-        player_->AddProcessor(MakeEqualizer());
         player_->Open(item.file_path.toStdWString(), device_info_, target_sample_rate, std::move(converter));
+        player_->AddProcessor(MakeEqualizer());
+        if (AppSettings::contains(kEQName)) {
+            auto eq_setting = AppSettings::getValue(kEQName).value<AppEQSettings>();
+            auto i = 0;
+            for (auto band : eq_setting.settings.bands) {
+                player_->SetEq(i++, band.gain, band.Q);
+            }
+            player_->SetPreamp(eq_setting.settings.preamp);
+        }
         player_->PrepareToPlay();
         if (item.true_peak >= 1.0) {
             player_->AddProcessor(makeCompressor(player_->GetInputFormat().GetSampleRate()));

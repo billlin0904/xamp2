@@ -15,6 +15,7 @@
 
 #include <player/playstate.h>
 #include <stream/iaudioprocessor.h>
+#include <stream/iequalizer.h>
 #include <player/player.h>
 
 namespace xamp::player {
@@ -52,6 +53,8 @@ public:
     virtual void SetPreamp(float preamp) = 0;
 
     virtual void SetEq(uint32_t band, float gain, float Q) = 0;
+
+    virtual void SetEq(EQSettings const &settings) = 0;
 
     [[nodiscard]] virtual uint32_t GetVolume() const = 0;
 

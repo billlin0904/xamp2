@@ -18,5 +18,8 @@ signals:
 
 public slots:
     void notifyValueChanged(int value);
+
+private:
+    double base_{10};
 };
 

@@ -168,6 +168,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\basscddevice.cpp" />
+    <ClCompile Include="src\bassequalizer.cpp" />
     <ClCompile Include="src\bassexception.cpp" />
     <ClCompile Include="src\bassfileencoder.cpp" />
     <ClCompile Include="src\bassfilestream.cpp" />

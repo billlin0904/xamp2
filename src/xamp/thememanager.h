@@ -72,6 +72,8 @@ public:
 
     QIcon podcastIcon() const;
 
+    QIcon equalizerIcon() const;
+
     QIcon albumsIcon() const;
 
     QIcon artistsIcon() const;

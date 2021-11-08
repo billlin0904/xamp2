@@ -154,6 +154,16 @@ void AudioPlayer::EnableProcessor(bool enable) {
     XAMP_LOG_D(logger_, "Enable processor {}", enable);
 }
 
+void AudioPlayer::SetEq(EQSettings const& settings) {
+    eq_settings_ = settings;
+    if (is_playing_) {
+        dsp_msg_queue_.TryPush(DspMessage{
+            DspCommandId::DSP_EQ,
+            eq_settings_
+            });
+    }
+}
+
 void AudioPlayer::SetEq(uint32_t band, float gain, float Q) {
     eq_settings_.bands[band].gain = gain;
     eq_settings_.bands[band].Q = Q;
@@ -289,6 +299,9 @@ void AudioPlayer::ProcessDspMsg() {
             {
                 auto eq_event = std::any_cast<EQSettings>(msg->content);
                 auto eq = GetProcessor<IEqualizer>();
+                if (!eq) {
+                    XAMP_LOG_D(logger_, "Not found IEqualizer");
+                }
                 eq->SetEQ(eq_event);
                 int i = 0;
                 for (auto band : eq_event.bands) {
@@ -300,6 +313,9 @@ void AudioPlayer::ProcessDspMsg() {
             case DspCommandId::DSP_PREAMP:
             {
                 auto eq = GetProcessor<IEqualizer>();
+                if (!eq) {
+                    XAMP_LOG_D(logger_, "Not found IEqualizer");
+                }
                 auto preamp = std::any_cast<float>(msg->content);
                 eq->SetPreamp(preamp);
                 XAMP_LOG_D(logger_, "Set preamp: {}", preamp);
@@ -481,6 +497,8 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
         XAMP_LOG_D(logger_, "Stream thread was finished.");
     }
     fifo_.Clear();
+    seek_queue_.clear();
+    dsp_msg_queue_.clear();
 }
 
 void AudioPlayer::AllocateReadBuffer(uint32_t allocate_size) {
@@ -730,11 +748,17 @@ void AudioPlayer::InitDsp() {
     for (auto &dsp : dsp_chain_) {
         dsp->Start(output_format_.GetSampleRate());
     }
+    if (auto eq = GetProcessor<IEqualizer>()) {
+        eq->SetEQ(eq_settings_);
+        int i = 0;
+        for (auto band : eq_settings_.bands) {
+            XAMP_LOG_D(logger_, "Set EQ band: {} gain: {} Q: {}", i++, band.gain, band.Q);
+        }
+        XAMP_LOG_D(logger_, "Set preamp: {}", eq_settings_.preamp);
+    }
 }
 
 void AudioPlayer::BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<ISampleRateConverter>& converter, int32_t buffer_count) {
-    InitDsp();
-	
     auto* const sample_buffer = read_buffer_.Get();
 
     for (auto i = 0; i < buffer_count && stream_->IsActive(); ++i) {
@@ -899,6 +923,7 @@ void AudioPlayer::PrepareToPlay() {
     CreateDevice(device_info_.device_type_id, device_info_.device_id, false);
     OpenDevice(0);
     CreateBuffer();
+    InitDsp();
     BufferStream(0);
 	sample_end_time_ = stream_->GetDuration();
     XAMP_LOG_D(logger_, "Stream end time {} sec", sample_end_time_);
