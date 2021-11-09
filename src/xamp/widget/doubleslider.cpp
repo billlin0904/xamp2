@@ -7,6 +7,6 @@ DoubleSlider::DoubleSlider(QWidget *parent)
 }
 
 void DoubleSlider::notifyValueChanged(int value) {
-    double double_value = value / base_;
+    double double_value = value / ratio_;
     emit doubleValueChanged(double_value);
 }

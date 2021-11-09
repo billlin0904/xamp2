@@ -46,7 +46,7 @@ void Xamp2Startup() {
 #ifdef XAMP_OS_WIN
     WASAPIThreadPool();
 #endif
-    StreamReaderThreadPool();
+    PlaybackThreadPool();
 }
 
 

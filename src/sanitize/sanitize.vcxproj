@@ -139,6 +139,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>../thirdparty/robin_hood/;../xamp_base/include/;../xamp_player/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_metadata/include/;../thirdparty/spdlog/include/</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <BrowseInformation>true</BrowseInformation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -148,6 +149,9 @@
       <AdditionalLibraryDirectories>../xamp/x64/Release/</AdditionalLibraryDirectories>
       <AdditionalDependencies>xamp_base.lib;xamp_stream.lib;xamp_player.lib;xamp_output_device.lib;xamp_metadata.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <Bscmake>
+      <PreserveSbr>true</PreserveSbr>
+    </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />

@@ -7,8 +7,8 @@ namespace xamp::base {
 inline constexpr auto kMaxStreamReaderThreadPoolSize{ 4 };
 inline constexpr auto kMaxWASAPIThreadPoolSize{ 4 };
 
-IThreadPool& StreamReaderThreadPool() {
-	static ThreadPool threadpool(kStreamThreadPoolLoggerName, kMaxStreamReaderThreadPoolSize);
+IThreadPool& PlaybackThreadPool() {
+	static ThreadPool threadpool(kPlaybackThreadPoolLoggerName, kMaxStreamReaderThreadPoolSize);
 	return threadpool;
 }
 

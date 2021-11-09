@@ -21,7 +21,7 @@ namespace xamp::base {
 // Logger name.
 extern "C" XAMP_BASE_API const char kDefaultLoggerName[];
 extern "C" XAMP_BASE_API const char kWASAPIThreadPoolLoggerName[];
-extern "C" XAMP_BASE_API const char kStreamThreadPoolLoggerName[];
+extern "C" XAMP_BASE_API const char kPlaybackThreadPoolLoggerName[];
 extern "C" XAMP_BASE_API const char kExclusiveWasapiDeviceLoggerName[];
 extern "C" XAMP_BASE_API const char kSharedWasapiDeviceLoggerName[];
 extern "C" XAMP_BASE_API const char kAsioDeviceLoggerName[];

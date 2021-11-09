@@ -151,7 +151,7 @@ decltype(auto) IThreadPool::Spawn(F&& f, Args&&... args) {
     return future.share();
 }
 
-XAMP_BASE_API IThreadPool& StreamReaderThreadPool();
+XAMP_BASE_API IThreadPool& PlaybackThreadPool();
 
 XAMP_BASE_API IThreadPool& WASAPIThreadPool();
 

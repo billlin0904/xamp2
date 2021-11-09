@@ -244,7 +244,7 @@ BENCHMARK(BM_ClampSample);
 
 #if 1
 static void BM_ThreadPool(benchmark::State& state) {
-    ThreadPool thread_pool;
+    auto& thread_pool = PlaybackThreadPool();
     std::vector<std::shared_future<void>> tasks;
     for (auto _ : state) {
         for (auto i =0 ; i < 8; ++i) {

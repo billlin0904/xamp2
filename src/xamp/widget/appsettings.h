@@ -125,6 +125,8 @@ public:
 
     static void save();
 
+    static const QMap<QString, EQSettings>& getEQPreset();
+
 protected:
     AppSettings() = default;
 
@@ -134,4 +136,5 @@ private:
     static QScopedPointer<QSettings> settings_;
     static QMap<QString, QVariant> default_settings_;
     static LocaleLanguageManager manager_;
+    static QMap<QString, EQSettings> eq_settings_;
 };

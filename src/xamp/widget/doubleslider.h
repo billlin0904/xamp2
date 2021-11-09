@@ -11,7 +11,11 @@ class DoubleSlider : public QSlider {
     Q_OBJECT
 
 public:
-    DoubleSlider(QWidget *parent = nullptr);
+    explicit DoubleSlider(QWidget *parent = nullptr);
+
+    double ratio() const {
+        return ratio_;
+    }
 
 signals:
     void doubleValueChanged(double value);
@@ -20,6 +24,6 @@ public slots:
     void notifyValueChanged(int value);
 
 private:
-    double base_{10};
+    double ratio_{10};
 };
 

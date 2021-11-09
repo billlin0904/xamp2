@@ -10,9 +10,51 @@
 QScopedPointer<QSettings> AppSettings::settings_;
 QMap<QString, QVariant> AppSettings::default_settings_;
 LocaleLanguageManager AppSettings::manager_;
+QMap<QString, EQSettings> AppSettings::eq_settings_;
 
 void AppSettings::loadIniFile(const QString& file_name) {
-	settings_.reset(new QSettings(file_name, QSettings::IniFormat));    
+	settings_.reset(new QSettings(file_name, QSettings::IniFormat));
+    loadEQPreset();
+}
+
+const QMap<QString, EQSettings>& AppSettings::getEQPreset() {
+    return eq_settings_;
+}
+
+void AppSettings::loadEQPreset() {
+    auto path = QDir::currentPath() + Q_UTF8("/eqpresets/");
+    auto file_ext = QStringList() << Q_UTF8("*.*");
+
+    for (QDirIterator itr(path, file_ext, QDir::Files | QDir::NoDotAndDotDot);
+        itr.hasNext();) {
+        const auto filepath = itr.next();
+        const QFileInfo file_info(filepath);
+        QFile file(filepath);
+        if (file.open(QIODevice::ReadOnly)) {
+            QTextStream in(&file);
+            EQSettings settings;
+            int i = 0;
+            while (!in.atEnd()) {
+                auto line = in.readLine();
+                auto result = line.split(Q_UTF8(":"));
+                auto str = result[1].toStdWString();
+                if (result[0] == Q_UTF8("Preamp")) {
+                    swscanf(str.c_str(), L"%f dB",
+                        &settings.preamp);
+                }
+                else if (result[0].indexOf(Q_UTF8("Filter") != -1)) {
+                    auto pos = str.find(L"Gain");
+                    if (pos == std::wstring::npos) {
+                        continue;
+                    }
+                    swscanf(&str[pos], L"Gain %f dB Q %f",
+                        &settings.bands[i].gain, &settings.bands[i].Q);
+                    ++i;
+                }
+            }
+            eq_settings_[file_info.baseName()] = settings;
+        }
+    }
 }
 
 void AppSettings::save() {

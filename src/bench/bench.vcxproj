@@ -93,6 +93,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <Optimization>Full</Optimization>
       <OmitFramePointers>true</OmitFramePointers>
+      <BrowseInformation>true</BrowseInformation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -102,6 +103,9 @@
       <AdditionalLibraryDirectories>../xamp/x64/Release/;../thirdparty/benchmark/msvc/src/Release/</AdditionalLibraryDirectories>
       <AdditionalDependencies>xamp_base.lib;xamp_stream.lib;xamp_player.lib;Shlwapi.lib;benchmark.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <Bscmake>
+      <PreserveSbr>true</PreserveSbr>
+    </Bscmake>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
