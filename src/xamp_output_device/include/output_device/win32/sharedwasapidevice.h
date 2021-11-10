@@ -14,6 +14,7 @@
 
 #include <base/logger.h>
 #include <output_device/idevice.h>
+#include <output_device/win32/wasapiworkqueue.h>
 
 namespace xamp::output_device::win32 {
 
@@ -76,6 +77,8 @@ private:
 
 	void InitialDeviceFormat(AudioFormat const & output_format);
 
+	HRESULT OnInvoke(IMFAsyncResult* async_result);
+
 	class DeviceEventNotification;
 
 	std::atomic<bool> is_running_;
@@ -96,6 +99,7 @@ private:
 	CComPtr<DeviceEventNotification> device_volume_notification_;
 	CComPtr<IAudioEndpointVolume> endpoint_volume_;
 	IAudioCallback* callback_;
+	CComPtr<WASAPIWorkQueue<SharedWasapiDevice>> workqueue_;
 	std::shared_ptr<spdlog::logger> log_;
 	std::shared_future<void> render_task_;
 };

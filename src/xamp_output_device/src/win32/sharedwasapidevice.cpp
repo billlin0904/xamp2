@@ -126,15 +126,17 @@ void SharedWasapiDevice::StopStream(bool wait_for_stop_stream) {
 		return;
 	}
 
-	::SignalObjectAndWait(close_request_.get(),
+	/*::SignalObjectAndWait(close_request_.get(),
 		thread_exit_.get(),
 		INFINITE,
 		FALSE);
 
 	if (render_task_.valid()) {
 		render_task_.get();
-	}
+	}*/
 	is_running_ = false;
+	workqueue_->Destory();
+	client_->Stop();
 }
 
 void SharedWasapiDevice::CloseStream() {
@@ -150,6 +152,7 @@ void SharedWasapiDevice::CloseStream() {
 	render_client_.Release();
 	clock_.Release();
 	device_volume_notification_.Release();
+	workqueue_.Release();
 }
 
 void SharedWasapiDevice::InitialDeviceFormat(AudioFormat const & output_format) {
@@ -258,6 +261,8 @@ void SharedWasapiDevice::OpenStream(AudioFormat const & output_format) {
 		close_request_.reset(::CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS));
 		assert(close_request_);
 	}
+
+	workqueue_ = MakeWASAPIWorkQueue(mmcss_name_, this, &SharedWasapiDevice::OnInvoke);
 }
 
 bool SharedWasapiDevice::IsMuted() const {
@@ -354,7 +359,7 @@ HRESULT SharedWasapiDevice::GetSample(uint32_t frame_available, bool is_silence)
 	auto sample_time = GetStreamPosInMilliseconds(clock_) / 1000.0;	
 	size_t num_filled_frames = 0;
 	XAMP_LIKELY(callback_->OnGetSamples(data, frame_available, num_filled_frames, stream_time_float, sample_time) == DataCallbackResult::CONTINUE) {
-		if (num_filled_frames != buffer_frames_) {
+		if (num_filled_frames != frame_available) {
 			flags = AUDCLNT_BUFFERFLAGS_SILENT;
 		}
 		hr = render_client_->ReleaseBuffer(frame_available, flags);
@@ -363,6 +368,14 @@ HRESULT SharedWasapiDevice::GetSample(uint32_t frame_available, bool is_silence)
 		hr = render_client_->ReleaseBuffer(frame_available, AUDCLNT_BUFFERFLAGS_SILENT);
 	}
 	return hr;
+}
+
+HRESULT SharedWasapiDevice::OnInvoke(IMFAsyncResult * async_result) {
+	if (is_running_) {
+		GetSampleRequested(false);
+		workqueue_->Queue(sample_ready_.get());
+	}
+	return S_OK;
 }
 
 void SharedWasapiDevice::StartStream() {
@@ -375,7 +388,7 @@ void SharedWasapiDevice::StartStream() {
 	// Note: 必要! 某些音效卡會爆音!
 	GetSampleRequested(true);
 
-	render_task_ = WASAPIThreadPool().Spawn([this](auto idx) noexcept {
+	/*render_task_ = WASAPIThreadPool().Spawn([this](auto idx) noexcept {
 		XAMP_LOG_D(log_, "Start shared mode stream task! thread: {}", GetCurrentThreadId());
 
 		Stopwatch watch;
@@ -428,7 +441,10 @@ void SharedWasapiDevice::StartStream() {
 		XAMP_LOG_D(log_, "End exclusive mode stream task!");
 		});
 
-	::WaitForSingleObject(thread_start_.get(), 60 * 1000);
+	::WaitForSingleObject(thread_start_.get(), 60 * 1000);*/
+	workqueue_->Initial();
+	workqueue_->Queue(sample_ready_.get());
+	is_running_ = true;
 	HrIfFailledThrow(client_->Start());
 }
 
