@@ -364,10 +364,12 @@ void ExclusiveWasapiDevice::StartStream() {
 		is_running_ = true;
 
 		const std::array<HANDLE, 2> objects{ sample_ready_.get(), close_request_.get() };
-		auto thread_exit = false;
-		::SetEvent(thread_start_.get());
+
 		const auto wait_timeout = ConvertToMilliseconds(aligned_period_) + std::chrono::milliseconds(10);
 		DWORD current_timeout = INFINITE;
+
+		auto thread_exit = false;
+		::SetEvent(thread_start_.get());
 
 		while (!thread_exit) {
 			watch.Reset();
@@ -377,6 +379,8 @@ void ExclusiveWasapiDevice::StartStream() {
 			const auto elapsed = watch.Elapsed<std::chrono::milliseconds>();
 			if (elapsed > wait_timeout) {
 				XAMP_LOG_D(log_, "WASAPI wait too slow! {}ms", elapsed.count());
+				thread_exit = true;
+				continue;
 			}
 
 			switch (result) {

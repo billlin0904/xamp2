@@ -3,6 +3,8 @@
 #ifdef XAMP_OS_WIN
 
 #include <iomanip>
+
+#include <output_device/win32/wasapi.h>
 #include <output_device/win32/hrexception.h>
 
 namespace xamp::output_device::win32 {

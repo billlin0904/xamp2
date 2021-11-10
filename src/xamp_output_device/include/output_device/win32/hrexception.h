@@ -10,7 +10,7 @@
 #ifdef XAMP_OS_WIN
 
 #include <base/exception.h>
-#include <output_device/win32/wasapi.h>
+#include <base/windows_handle.h>
 
 namespace xamp::output_device::win32 {
 

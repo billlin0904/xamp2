@@ -386,8 +386,10 @@ void SharedWasapiDevice::StartStream() {
 		is_running_ = true;
 		const auto wait_timeout = static_cast<DWORD>((static_cast<double>(latency_) / static_cast<double>(mix_format_->nSamplesPerSec)) * 1000) + 2;
 		const std::array<HANDLE, 2> objects{ sample_ready_.get(), close_request_.get() };
+
 		auto thread_exit = false;
 		::SetEvent(thread_start_.get());
+
 		while (!thread_exit) {
 			watch.Reset();
 
@@ -396,6 +398,8 @@ void SharedWasapiDevice::StartStream() {
 			const auto elapsed = watch.Elapsed<std::chrono::milliseconds>().count();
 			if (elapsed > wait_timeout) {
 				XAMP_LOG_D(log_, "WASAPI wait too slow! {}ms", wait_timeout);
+				thread_exit = true;
+				continue;
 			}
 			
 			switch (result) {

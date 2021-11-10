@@ -14,6 +14,7 @@
 #include <base/dataconverter.h>
 #include <base/buffer.h>
 
+#include <output_device/win32/wasapi.h>
 #include <output_device/idsddevice.h>
 #include <output_device/idevice.h>
 
