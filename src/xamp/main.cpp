@@ -120,7 +120,7 @@ static void setLogLevel(spdlog::level::level_enum level = spdlog::level::info) {
     Logger::GetInstance().GetLogger(kWASAPIThreadPoolLoggerName)->set_level(spdlog::level::debug);
     Logger::GetInstance().GetLogger(kPlaybackThreadPoolLoggerName)->set_level(spdlog::level::debug);
     Logger::GetInstance().GetLogger(kExclusiveWasapiDeviceLoggerName)->set_level(spdlog::level::debug);
-    Logger::GetInstance().GetLogger(kSharedWasapiDeviceLoggerName)->set_level(level);
+    Logger::GetInstance().GetLogger(kSharedWasapiDeviceLoggerName)->set_level(spdlog::level::debug);
     Logger::GetInstance().GetLogger(kAsioDeviceLoggerName)->set_level(spdlog::level::debug);
     Logger::GetInstance().GetLogger(kAudioPlayerLoggerName)->set_level(spdlog::level::debug);
     Logger::GetInstance().GetLogger(kVirtualMemoryLoggerName)->set_level(level);
@@ -147,8 +147,8 @@ static int excute(int argc, char* argv[]) {
     XAMP_SET_LOG_LEVEL(spdlog::level::debug);
     XAMP_LOG_DEBUG("Logger init success.");
 
-    StackTrace::RegisterAbortHandler();
-    XAMP_LOG_DEBUG("RegisterAbortHandler success.");
+    auto handler = StackTrace::RegisterExceptionHandler();
+    XAMP_LOG_DEBUG("RegistertExceptionHandler success.");
 
     const auto preload_module = preloadDll();
 	

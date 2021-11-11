@@ -10,6 +10,8 @@
 #include <base/singleton.h>
 #include <base/stacktrace.h>
 #include <base/str_utilts.h>
+#include <base/align_ptr.h>
+#include <base/bounded_queue.h>
 
 #ifdef XAMP_OS_WIN
 #include <base/windows_handle.h>
@@ -131,8 +133,8 @@ public:
         return frame_count;
     }
 
-    void WriteLog(size_t frame_count, CaptureStackAddress& addrlist) {
-        ostr_ << "\r\nstack backtrace:\r\n";
+    void WriteLog(std::ostringstream &ostr, size_t frame_count, CaptureStackAddress& addrlist) {
+        ostr << "\r\nstack backtrace:\r\n";
 
         frame_count = (std::min)(addrlist.size(), frame_count);
 
@@ -165,23 +167,21 @@ public:
                     &line);
 
                 if (has_line) {
-                    ostr_ << std::setw(2) << i << ":" << std::setw(8) << "0x" << std::hex << reinterpret_cast<DWORD64>(frame) << " "
+                    ostr << std::setw(2) << i << ":" << std::setw(8) << "0x" << std::hex << reinterpret_cast<DWORD64>(frame) << " "
                         << symbol_info->Name
                         << " "
                         << GetFileName(line.FileName) << ":" << std::dec << line.LineNumber << "\r\n";
                 }
                 else {
-                    ostr_ << std::setw(2) << i << ":" << std::setw(8) << "0x" << std::hex << reinterpret_cast<DWORD64>(frame) << " "
+                    ostr << std::setw(2) << i << ":" << std::setw(8) << "0x" << std::hex << reinterpret_cast<DWORD64>(frame) << " "
                         << symbol_info->Name
                         << " offset " << std::dec << displacement << "\r\n";
                 }
             }
             else {
-                ostr_ << std::setw(2) << i << ":" << std::setw(8) << "0x" << reinterpret_cast<DWORD64>(frame) << " <unknown>" << "\r\n";
+                ostr << std::setw(2) << i << ":" << std::setw(8) << "0x" << reinterpret_cast<DWORD64>(frame) << " <unknown>" << "\r\n";
             }
         }
-
-        XAMP_LOG_ERROR(ostr_.str());
     }
 
 private:
@@ -190,45 +190,125 @@ private:
     WinHandle thread_;
     CONTEXT context_;
     std::vector<uint8_t> symbol_;
-    std::ostringstream ostr_;
 };
 
 #define SYMBOL_LOADER Singleton<SymLoader>::GetInstance()
 
+class ExceptionHandler;
+
+static std::vector<ExceptionHandler*> handlers_;
+static std::atomic<int32_t> handler_index_{ 0 };
+static FastMutex handlers_lock_;
+
+class ExceptionHandler : public IExceptionHandler {
+public:
+    static constexpr int32_t kExceptionHandlerThreadInitialStackSize = 64 * 1024;
+    static constexpr int32_t kHandleQueueSize = 64;
+
+    ExceptionHandler()
+		: is_shutdown_(false)
+		, handle_queue_(kHandleQueueSize) {
+        DWORD thread_id;
+        handler_thread_.reset(::CreateThread(nullptr, // lpThreadAttributes
+            kExceptionHandlerThreadInitialStackSize,
+            ExceptionHandlerThreadMain,
+            this,         // lpParameter
+            0,            // dwCreationFlags
+            &thread_id));
+        handlers_.push_back(this);
+    }
+
+    virtual ~ExceptionHandler() {
+        is_shutdown_ = true;
+        handle_queue_.WakeupForShutdown();
+    }
+
+    void Send(EXCEPTION_POINTERS const* info) override {
+        handle_queue_.Enqueue(info);
+    }
+
+private:
+    void WriteCrashLog(EXCEPTION_POINTERS const* info) {
+        const auto exception_code = info->ExceptionRecord->ExceptionCode;
+
+        if ((exception_code & ERROR_SEVERITY_ERROR) != ERROR_SEVERITY_ERROR) {
+            return;
+        }
+        if (exception_code & APPLICATION_ERROR_MASK) {
+            return;
+        }
+
+        auto itr = kWellKnownExceptionCode.find(info->ExceptionRecord->ExceptionCode);
+        if (itr != kWellKnownExceptionCode.end()) {
+            XAMP_LOG_DEBUG("Caught signal 0x{:08x} {}.", info->ExceptionRecord->ExceptionCode, (*itr).second);
+        }
+        else {
+            XAMP_LOG_DEBUG("Caught signal 0x{:08x}.", info->ExceptionRecord->ExceptionCode);
+        }
+
+        CaptureStackAddress addrlist;
+        SYMBOL_LOADER.SetContext(info->ContextRecord);
+        const auto frame_count = SYMBOL_LOADER.WalkStack(addrlist);
+        SYMBOL_LOADER.WriteLog(ostr_, frame_count - 1, addrlist);
+        XAMP_LOG_DEBUG(ostr_.str());
+    }
+
+    static DWORD ExceptionHandlerThreadMain(void* param) {
+        auto* self = static_cast<ExceptionHandler*>(param);
+
+        while (!self->is_shutdown_) {
+            EXCEPTION_POINTERS const* pointer = nullptr;
+            if (!self->handle_queue_.Dequeue(pointer)) {
+	            continue;
+            }
+
+            if (!pointer) {
+                break;
+            }
+            self->WriteCrashLog(pointer);
+        }
+        return 0;
+    }
+
+    std::atomic<bool> is_shutdown_;
+    WinHandle handler_thread_;
+    BoundedQueue<EXCEPTION_POINTERS const*> handle_queue_;
+    std::ostringstream ostr_;
+};
+
+struct ExceptionHandlerGuard {
+    ExceptionHandlerGuard() {
+        handlers_lock_.lock();
+        handler_ = handlers_[handler_index_];
+    }
+
+    ~ExceptionHandlerGuard() {
+        handlers_lock_.unlock();
+    }
+
+    [[nodiscard]] ExceptionHandler* handler() const {
+        return handler_;
+    }
+private:
+    ExceptionHandler* handler_;
+};
+
 void StackTrace::PrintStackTrace(EXCEPTION_POINTERS const* info) {
-	const auto exception_code = info->ExceptionRecord->ExceptionCode;
-
-    if ((exception_code & ERROR_SEVERITY_ERROR) != ERROR_SEVERITY_ERROR) {
-        return;
-    }
-    if (exception_code & APPLICATION_ERROR_MASK) {
-        return;
-    }
-
-    auto itr = kWellKnownExceptionCode.find(info->ExceptionRecord->ExceptionCode);
-    if (itr != kWellKnownExceptionCode.end()) {
-        XAMP_LOG_ERROR("Caught signal 0x{:08x} {}.", info->ExceptionRecord->ExceptionCode, (*itr).second);
-    }
-    else {
-        XAMP_LOG_ERROR("Caught signal 0x{:08x}.", info->ExceptionRecord->ExceptionCode);
-    }
-
+    CaptureStackAddress addrlist;
     SYMBOL_LOADER.SetContext(info->ContextRecord);
-	const auto frame_count = SYMBOL_LOADER.WalkStack(addrlist_);
-    SYMBOL_LOADER.WriteLog(frame_count - 1, addrlist_);
-    Logger::GetInstance().Shutdown();
-    std::exit(-1);
+    const auto frame_count = SYMBOL_LOADER.WalkStack(addrlist);
+    std::ostringstream ostr;
+    SYMBOL_LOADER.WriteLog(ostr, frame_count - 1, addrlist);
+    XAMP_LOG_ERROR(ostr.str());
 }
 
 #else
 void StackTrace::PrintStackTrace() {
-    XAMP_LOG_DEBUG("{}", CaptureStack());
+    
 }
 #endif
 
-StackTrace::StackTrace() noexcept {
-    addrlist_.resize(kMaxStackFrameSize);
-}
+StackTrace::StackTrace() noexcept = default;
 
 bool StackTrace::LoadSymbol() {
 #ifdef XAMP_OS_WIN
@@ -239,10 +319,11 @@ bool StackTrace::LoadSymbol() {
 }
 
 std::string StackTrace::CaptureStack() {
+    CaptureStackAddress addrlist;
 #ifdef XAMP_OS_WIN
     std::ostringstream ostr;
-    auto frame_count = ::CaptureStackBackTrace(0, kMaxStackFrameSize, addrlist_.data(), nullptr);
-    SYMBOL_LOADER.WriteLog(frame_count - 1, addrlist_);
+    auto frame_count = ::CaptureStackBackTrace(0, kMaxStackFrameSize, addrlist.data(), nullptr);
+    SYMBOL_LOADER.WriteLog(ostr, frame_count - 1, addrlist);
     return ostr.str();
 #else
     auto addrlen = ::backtrace(addrlist_.data(), static_cast<int32_t>(addrlist_.size()));
@@ -259,7 +340,7 @@ std::string StackTrace::CaptureStack() {
 #endif
 }
 
-void StackTrace::RegisterAbortHandler() {
+AlignPtr<IExceptionHandler> StackTrace::RegisterExceptionHandler() {
 #ifdef XAMP_OS_WIN    
     (void) ::AddVectoredExceptionHandler(1, AbortHandler);
 #else
@@ -268,12 +349,13 @@ void StackTrace::RegisterAbortHandler() {
     ::signal(SIGILL, AbortHandler);
     ::signal(SIGFPE, AbortHandler);
 #endif
+    return MakeAlign<IExceptionHandler, ExceptionHandler>();
 }
 
 #ifdef XAMP_OS_WIN
 LONG WINAPI StackTrace::AbortHandler(EXCEPTION_POINTERS* info) {
-    StackTrace trace;
-    trace.PrintStackTrace(info);
+    ExceptionHandlerGuard gaurd;
+    gaurd.handler()->Send(info);
     return EXCEPTION_CONTINUE_SEARCH;
 }
 #else
@@ -299,9 +381,7 @@ void StackTrace::AbortHandler(int32_t signum) {
     }
 
     XAMP_LOG_DEBUG("Caught signal {} {}", signum, !name ? "" : name);
-
-    StackTrace trace;
-    trace.PrintStackTrace();
+    
 }
 #endif
 
