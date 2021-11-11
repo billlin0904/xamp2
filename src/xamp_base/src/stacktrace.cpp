@@ -95,6 +95,8 @@ public:
     }
 
     size_t WalkStack(CaptureStackAddress& addrlist) noexcept {
+        addrlist.fill(0);
+
         CONTEXT integer_control_context = context_;
         integer_control_context.ContextFlags = CONTEXT_INTEGER | CONTEXT_CONTROL;
 
@@ -139,9 +141,8 @@ public:
         frame_count = (std::min)(addrlist.size(), frame_count);
 
         for (size_t i = 0; i < frame_count; ++i) {
+            MemorySet(symbol_.data(), 0, symbol_.size());
             auto* frame = addrlist[i];
-            symbol_.clear();
-
             auto* const symbol_info = reinterpret_cast<SYMBOL_INFO*>(symbol_.data());
 
             symbol_info->SizeOfStruct = sizeof(SYMBOL_INFO);
@@ -193,119 +194,6 @@ private:
 };
 
 #define SYMBOL_LOADER Singleton<SymLoader>::GetInstance()
-
-class ExceptionHandler;
-
-static std::vector<ExceptionHandler*> handlers_;
-static std::atomic<int32_t> handler_index_{ 0 };
-static FastMutex handlers_lock_;
-
-class ExceptionHandler : public IExceptionHandler {
-public:
-    static constexpr int32_t kExceptionHandlerThreadInitialStackSize = 64 * 1024;
-    static constexpr int32_t kHandleQueueSize = 64;
-
-    ExceptionHandler()
-		: is_shutdown_(false)
-		, handle_queue_(kHandleQueueSize) {
-        DWORD thread_id;
-        handler_thread_.reset(::CreateThread(nullptr, // lpThreadAttributes
-            kExceptionHandlerThreadInitialStackSize,
-            ExceptionHandlerThreadMain,
-            this,         // lpParameter
-            0,            // dwCreationFlags
-            &thread_id));
-        handlers_.push_back(this);
-    }
-
-    virtual ~ExceptionHandler() {
-        is_shutdown_ = true;
-        handle_queue_.WakeupForShutdown();
-    }
-
-    void Send(EXCEPTION_POINTERS const* info) override {
-        handle_queue_.Enqueue(info);
-    }
-
-private:
-    void WriteCrashLog(EXCEPTION_POINTERS const* info) {
-        const auto exception_code = info->ExceptionRecord->ExceptionCode;
-
-        if ((exception_code & ERROR_SEVERITY_ERROR) != ERROR_SEVERITY_ERROR) {
-            return;
-        }
-        if (exception_code & APPLICATION_ERROR_MASK) {
-            return;
-        }
-
-        auto itr = kWellKnownExceptionCode.find(info->ExceptionRecord->ExceptionCode);
-        if (itr != kWellKnownExceptionCode.end()) {
-            XAMP_LOG_DEBUG("Caught signal 0x{:08x} {}.", info->ExceptionRecord->ExceptionCode, (*itr).second);
-        }
-        else {
-            XAMP_LOG_DEBUG("Caught signal 0x{:08x}.", info->ExceptionRecord->ExceptionCode);
-        }
-
-        CaptureStackAddress addrlist;
-        SYMBOL_LOADER.SetContext(info->ContextRecord);
-        const auto frame_count = SYMBOL_LOADER.WalkStack(addrlist);
-        SYMBOL_LOADER.WriteLog(ostr_, frame_count - 1, addrlist);
-        XAMP_LOG_DEBUG(ostr_.str());
-    }
-
-    static DWORD ExceptionHandlerThreadMain(void* param) {
-        auto* self = static_cast<ExceptionHandler*>(param);
-
-        while (!self->is_shutdown_) {
-            EXCEPTION_POINTERS const* pointer = nullptr;
-            if (!self->handle_queue_.Dequeue(pointer)) {
-	            continue;
-            }
-
-            if (!pointer) {
-                break;
-            }
-            self->WriteCrashLog(pointer);
-        }
-        return 0;
-    }
-
-    std::atomic<bool> is_shutdown_;
-    WinHandle handler_thread_;
-    BoundedQueue<EXCEPTION_POINTERS const*> handle_queue_;
-    std::ostringstream ostr_;
-};
-
-struct ExceptionHandlerGuard {
-    ExceptionHandlerGuard() {
-        handlers_lock_.lock();
-        handler_ = handlers_[handler_index_];
-    }
-
-    ~ExceptionHandlerGuard() {
-        handlers_lock_.unlock();
-    }
-
-    [[nodiscard]] ExceptionHandler* handler() const {
-        return handler_;
-    }
-private:
-    ExceptionHandler* handler_;
-};
-
-void StackTrace::PrintStackTrace(EXCEPTION_POINTERS const* info) {
-    CaptureStackAddress addrlist;
-    SYMBOL_LOADER.SetContext(info->ContextRecord);
-    const auto frame_count = SYMBOL_LOADER.WalkStack(addrlist);
-    std::ostringstream ostr;
-    SYMBOL_LOADER.WriteLog(ostr, frame_count - 1, addrlist);
-    XAMP_LOG_ERROR(ostr.str());
-}
-
-#else
-void StackTrace::PrintStackTrace() {
-    
-}
 #endif
 
 StackTrace::StackTrace() noexcept = default;
@@ -321,6 +209,7 @@ bool StackTrace::LoadSymbol() {
 std::string StackTrace::CaptureStack() {
     CaptureStackAddress addrlist;
 #ifdef XAMP_OS_WIN
+    addrlist.fill(0);
     std::ostringstream ostr;
     auto frame_count = ::CaptureStackBackTrace(0, kMaxStackFrameSize, addrlist.data(), nullptr);
     SYMBOL_LOADER.WriteLog(ostr, frame_count - 1, addrlist);
@@ -339,50 +228,5 @@ std::string StackTrace::CaptureStack() {
     return ostr.str();
 #endif
 }
-
-AlignPtr<IExceptionHandler> StackTrace::RegisterExceptionHandler() {
-#ifdef XAMP_OS_WIN    
-    (void) ::AddVectoredExceptionHandler(1, AbortHandler);
-#else
-    ::signal(SIGABRT, AbortHandler);
-    ::signal(SIGSEGV, AbortHandler);
-    ::signal(SIGILL, AbortHandler);
-    ::signal(SIGFPE, AbortHandler);
-#endif
-    return MakeAlign<IExceptionHandler, ExceptionHandler>();
-}
-
-#ifdef XAMP_OS_WIN
-LONG WINAPI StackTrace::AbortHandler(EXCEPTION_POINTERS* info) {
-    ExceptionHandlerGuard gaurd;
-    gaurd.handler()->Send(info);
-    return EXCEPTION_CONTINUE_SEARCH;
-}
-#else
-void StackTrace::AbortHandler(int32_t signum) {
-    const char* name = "";
-
-    switch (signum) {
-    case SIGABRT:
-        name = "SIGABRT";
-        break;
-    case SIGSEGV:
-        name = "SIGSEGV";
-        break;
-    case SIGBUS:
-        name = "SIGBUS";
-        break;
-    case SIGILL:
-        name = "SIGILL";
-        break;
-    case SIGFPE:
-        name = "SIGFPE";
-        break;
-    }
-
-    XAMP_LOG_DEBUG("Caught signal {} {}", signum, !name ? "" : name);
-    
-}
-#endif
 
 }

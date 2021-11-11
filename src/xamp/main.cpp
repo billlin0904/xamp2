@@ -147,9 +147,6 @@ static int excute(int argc, char* argv[]) {
     XAMP_SET_LOG_LEVEL(spdlog::level::debug);
     XAMP_LOG_DEBUG("Logger init success.");
 
-    auto handler = StackTrace::RegisterExceptionHandler();
-    XAMP_LOG_DEBUG("RegistertExceptionHandler success.");
-
     const auto preload_module = preloadDll();
 	
     if (StackTrace::LoadSymbol()) {

@@ -3,24 +3,32 @@
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
+#if  0
 #pragma once
 
-#include <array>
+#include <base/align_ptr.h>
 
-namespace xamp::base {
+#include <QString>
 
-static constexpr size_t kMaxStackFrameSize = 62;
-using CaptureStackAddress = std::array<void*, kMaxStackFrameSize>;
+using xamp::base::AlignPtr;
 
-class XAMP_BASE_API StackTrace {
+class CrashHandler {
 public:
-    StackTrace() noexcept;   
+	static CrashHandler& instance();
 
-    static bool LoadSymbol();
+	void init(const QString& reportPath);
 
-    std::string CaptureStack();
+	void setReportCrashesToSystem(bool report);
+	
+	void setReporter(const QString& reporter);
+
+	bool writeMinidump();
+
+private:
+	class CrashHandlerImpl;
+	
+	CrashHandler();
+
+	AlignPtr<CrashHandlerImpl> impl_;
 };
-
-}
-
-
+#endif
