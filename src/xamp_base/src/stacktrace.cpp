@@ -48,6 +48,9 @@ static const HashMap<DWORD, std::string_view> kWellKnownExceptionCode = {
         DECLARE_EXCEPTION_CODE(EXCEPTION_INVALID_HANDLE)
     };
 
+static std::string GetFileName(std::filesystem::path const& path) {
+    return String::ToUtf8String(path.filename());
+}
 
 class SymLoader {
 public:
@@ -56,7 +59,9 @@ public:
 	}
 
     SymLoader() {
+        symbol_.resize(sizeof(SYMBOL_INFO) + sizeof(wchar_t) * MAX_SYM_NAME);
         process_.reset(::GetCurrentProcess());
+        thread_.reset(::GetCurrentThread());
 
         ::SymSetOptions(SYMOPT_DEFERRED_LOADS |
             SYMOPT_UNDNAME |
@@ -83,27 +88,30 @@ public:
         ::SymCleanup(process_.get());
 	}
 
-    size_t WalkStack(CONTEXT const* context, StackTrace::CaptureStackAddress& addrlist) noexcept {
-        CONTEXT integer_control_context = *context;
+    void SetContext(CONTEXT const* context) {
+        MemoryCopy(&context_, context, sizeof(CONTEXT));
+    }
+
+    size_t WalkStack(CaptureStackAddress& addrlist) noexcept {
+        CONTEXT integer_control_context = context_;
         integer_control_context.ContextFlags = CONTEXT_INTEGER | CONTEXT_CONTROL;
 
         STACKFRAME64 stack_frame{};
 
-        stack_frame.AddrPC.Offset = context->Rip;
+        stack_frame.AddrPC.Offset = context_.Rip;
         stack_frame.AddrPC.Mode = AddrModeFlat;
-        stack_frame.AddrStack.Offset = context->Rsp;
+        stack_frame.AddrStack.Offset = context_.Rsp;
         stack_frame.AddrStack.Mode = AddrModeFlat;
 
-        stack_frame.AddrFrame.Offset = context->Rbp;
+        stack_frame.AddrFrame.Offset = context_.Rbp;
         stack_frame.AddrFrame.Mode = AddrModeFlat;
 
         size_t frame_count = 0;
-        const WinHandle thread(::GetCurrentThread());
 
         for (auto& address : addrlist) {
             const auto result = ::StackWalk64(IMAGE_FILE_MACHINE_IA64,
                 process_.get(),
-                thread.get(),
+                thread_.get(),
                 &stack_frame,
                 &integer_control_context,
                 nullptr,
@@ -111,6 +119,7 @@ public:
                 ::SymGetModuleBase64,
                 nullptr);
             if (!result) {
+                address = nullptr;
                 break;
             }
             if (stack_frame.AddrFrame.Offset == 0) {
@@ -122,68 +131,69 @@ public:
         return frame_count;
     }
 
+    void WriteLog(size_t frame_count, CaptureStackAddress& addrlist) {
+        ostr_ << "\r\nstack backtrace:\r\n";
+
+        frame_count = (std::min)(addrlist.size(), frame_count);
+
+        for (size_t i = 0; i < frame_count; ++i) {
+            auto* frame = addrlist[i];
+            symbol_.clear();
+
+            auto* const symbol_info = reinterpret_cast<SYMBOL_INFO*>(symbol_.data());
+
+            symbol_info->SizeOfStruct = sizeof(SYMBOL_INFO);
+            symbol_info->MaxNameLen = 256;
+            symbol_info->SizeOfStruct = sizeof(SYMBOL_INFO);
+            symbol_info->MaxNameLen = 256;
+
+            DWORD64 displacement = 0;
+            const auto has_symbol = ::SymFromAddr(process_.get(),
+                reinterpret_cast<DWORD64>(frame),
+                &displacement,
+                symbol_info);
+
+            if (has_symbol) {
+                DWORD line_displacement = 0;
+
+                IMAGEHLP_LINE64 line{};
+                line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
+
+                const auto has_line = ::SymGetLineFromAddr64(process_.get(),
+                    reinterpret_cast<DWORD64>(frame),
+                    &line_displacement,
+                    &line);
+
+                if (has_line) {
+                    ostr_ << std::setw(2) << i << ":" << std::setw(8) << "0x" << std::hex << reinterpret_cast<DWORD64>(frame) << " "
+                        << symbol_info->Name
+                        << " "
+                        << GetFileName(line.FileName) << ":" << std::dec << line.LineNumber << "\r\n";
+                }
+                else {
+                    ostr_ << std::setw(2) << i << ":" << std::setw(8) << "0x" << std::hex << reinterpret_cast<DWORD64>(frame) << " "
+                        << symbol_info->Name
+                        << " offset " << std::dec << displacement << "\r\n";
+                }
+            }
+            else {
+                ostr_ << std::setw(2) << i << ":" << std::setw(8) << "0x" << reinterpret_cast<DWORD64>(frame) << " <unknown>" << "\r\n";
+            }
+        }
+
+        XAMP_LOG_ERROR(ostr_.str());
+    }
+
 private:
     bool init_state_;
 	WinHandle process_;
+    WinHandle thread_;
+    CONTEXT context_;
+    std::vector<uint8_t> symbol_;
+    std::ostringstream ostr_;
 };
 
-std::string GetFileName(std::filesystem::path const &path) {
-    return String::ToUtf8String(path.filename());
-}
-
-void StackTrace::WriteLog(size_t frame_count, std::ostream& ostr) {
-    std::vector<uint8_t> symbol(sizeof(SYMBOL_INFO) + sizeof(wchar_t) * MAX_SYM_NAME);
-    auto* const current_process = Singleton<SymLoader>::GetInstance().GetProcess().get();
-
-    ostr << "\r\nstack backtrace:\r\n";
-
-    frame_count = (std::min)(addrlist_.size(), frame_count);
-
-    for (size_t i = 0; i < frame_count; ++i) {
-        auto * frame = addrlist_[i];
-        symbol.clear();
-
-        auto* const symbol_info = reinterpret_cast<SYMBOL_INFO*>(symbol.data());
-
-        symbol_info->SizeOfStruct = sizeof(SYMBOL_INFO);
-        symbol_info->MaxNameLen = 256;
-        symbol_info->SizeOfStruct = sizeof(SYMBOL_INFO);
-        symbol_info->MaxNameLen = 256;
-
-        DWORD64 displacement = 0;
-        const auto has_symbol = ::SymFromAddr(current_process,
-            reinterpret_cast<DWORD64>(frame),
-            &displacement,
-            symbol_info);
-
-        if (has_symbol) {
-            DWORD line_displacement = 0;
-
-            IMAGEHLP_LINE64 line{};
-            line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
-
-            const auto has_line = ::SymGetLineFromAddr64(current_process,
-                reinterpret_cast<DWORD64>(frame),
-                &line_displacement,
-                &line);
-
-            if (has_line) {                
-                ostr << std::setw(2) << i << ":" << std::setw(8) << "0x" << std::hex << reinterpret_cast<DWORD64>(frame) << " "
-            	    << symbol_info->Name
-            	    << " "
-                    << GetFileName(line.FileName) << ":" << std::dec << line.LineNumber << "\r\n";
-            }
-            else {                
-                ostr << std::setw(2) << i << ":" << std::setw(8) << "0x" << std::hex << reinterpret_cast<DWORD64>(frame) << " "
-                    << symbol_info->Name
-                    << " offset " << std::dec << displacement << "\r\n";
-            }
-        }
-        else {
-            ostr << std::setw(2) << i << ":" << std::setw(8) << "0x" << reinterpret_cast<DWORD64>(frame) << " <unknown>" << "\r\n";
-        }
-    }
-}
+#define SYMBOL_LOADER Singleton<SymLoader>::GetInstance()
 
 void StackTrace::PrintStackTrace(EXCEPTION_POINTERS const* info) {
 	const auto exception_code = info->ExceptionRecord->ExceptionCode;
@@ -203,10 +213,9 @@ void StackTrace::PrintStackTrace(EXCEPTION_POINTERS const* info) {
         XAMP_LOG_ERROR("Caught signal 0x{:08x}.", info->ExceptionRecord->ExceptionCode);
     }
 
-    std::ostringstream ostr;
-	const auto frame_count = Singleton<SymLoader>::GetInstance().WalkStack(info->ContextRecord, addrlist_);
-    WriteLog(frame_count - 1, ostr);
-    XAMP_LOG_ERROR(ostr.str());
+    SYMBOL_LOADER.SetContext(info->ContextRecord);
+	const auto frame_count = SYMBOL_LOADER.WalkStack(addrlist_);
+    SYMBOL_LOADER.WriteLog(frame_count - 1, addrlist_);
     Logger::GetInstance().Shutdown();
     std::exit(-1);
 }
@@ -223,7 +232,7 @@ StackTrace::StackTrace() noexcept {
 
 bool StackTrace::LoadSymbol() {
 #ifdef XAMP_OS_WIN
-    return Singleton<SymLoader>::GetInstance().IsInit();
+    return SYMBOL_LOADER.IsInit();
 #else
     return true;
 #endif
@@ -233,7 +242,7 @@ std::string StackTrace::CaptureStack() {
 #ifdef XAMP_OS_WIN
     std::ostringstream ostr;
     auto frame_count = ::CaptureStackBackTrace(0, kMaxStackFrameSize, addrlist_.data(), nullptr);
-    WriteLog(frame_count - 1, ostr);
+    SYMBOL_LOADER.WriteLog(frame_count - 1, addrlist_);
     return ostr.str();
 #else
     auto addrlen = ::backtrace(addrlist_.data(), static_cast<int32_t>(addrlist_.size()));

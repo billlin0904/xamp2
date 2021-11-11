@@ -16,11 +16,12 @@
 
 namespace xamp::base {
 
+using CaptureStackAddress = std::vector<void*>;
+
 class XAMP_BASE_API StackTrace {
 public:
     static constexpr size_t kMaxStackFrameSize = 62;
-    using CaptureStackAddress = std::vector<void*>;
-
+    
     StackTrace() noexcept;   
 
     static void RegisterAbortHandler();
@@ -33,7 +34,6 @@ private:
 #ifdef XAMP_OS_WIN
     static LONG WINAPI AbortHandler(EXCEPTION_POINTERS* info);    
     void PrintStackTrace(EXCEPTION_POINTERS const * info);
-    void WriteLog(size_t frame_count, std::ostream& ostr);
 #else
     static void AbortHandler(int32_t signum);
     void PrintStackTrace();
