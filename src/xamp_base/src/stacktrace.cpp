@@ -215,13 +215,13 @@ std::string StackTrace::CaptureStack() {
     SYMBOL_LOADER.WriteLog(ostr, frame_count - 1, addrlist);
     return ostr.str();
 #else
-    auto addrlen = ::backtrace(addrlist_.data(), static_cast<int32_t>(addrlist_.size()));
+    auto addrlen = ::backtrace(addrlist.data(), static_cast<int32_t>(addrlist.size()));
     if (addrlen == 0) {
         return "";
     }
 
     std::ostringstream ostr;
-    auto symbollist = ::backtrace_symbols(addrlist_.data(), addrlen);
+    auto symbollist = ::backtrace_symbols(addrlist.data(), addrlen);
     for (auto i = 0; i < addrlen; i++) {
         ostr << symbollist[i] << "\r\n";
     }
