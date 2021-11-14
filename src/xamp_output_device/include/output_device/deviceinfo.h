@@ -13,7 +13,7 @@
 
 namespace xamp::output_device {
 
-MAKE_ENUM(DeviceConnectType, UKNOWN, USB, ON_BOARD)
+MAKE_XAMP_ENUM(DeviceConnectType, UKNOWN, USB, ON_BOARD)
 
 struct XAMP_OUTPUT_DEVICE_API DeviceInfo final {
 	bool is_default_device{false};

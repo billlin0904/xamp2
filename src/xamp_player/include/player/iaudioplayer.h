@@ -84,6 +84,8 @@ public:
 
     virtual void EnableProcessor(bool enable = true) = 0;
 
+    virtual void RemoveProcess(Uuid const &id) = 0;
+
     [[nodiscard]] virtual bool IsEnableProcessor() const = 0;
 
     [[nodiscard]] virtual bool IsEnableSampleRateConverter() const = 0;

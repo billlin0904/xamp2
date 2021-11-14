@@ -11,7 +11,7 @@
 
 namespace xamp::stream {
 
-MAKE_ENUM(CDDeviceAction,
+MAKE_XAMP_ENUM(CDDeviceAction,
 		CD_DOOR_CLOSE,
 		CD_DOOR_OPEN,
 		CD_DOOR_LOCK,

@@ -261,12 +261,11 @@ void CoreAudioDevice::StopStream(bool /*wait_for_stop_stream*/) {
     XAMP_LOG_D(logger_, "StopStream");
     if (is_running_) {
         is_running_ = false;
-        std::unique_lock<std::mutex> lock{mutex_};
+        std::unique_lock<FastMutex> lock{mutex_};
         stop_event_.wait(lock);
     }
     CoreAudioThrowIfError(::AudioDeviceStop(device_id_, ioproc_id_));
     is_running_ = false;
-    std::this_thread::sleep_for(std::chrono::microseconds(latency_));
 }
 
 void CoreAudioDevice::CloseStream() {
@@ -326,6 +325,29 @@ uint32_t CoreAudioDevice::GetBufferSize() const noexcept {
     return buffer_size_;
 }
 
+void CoreAudioDevice::AudioDeviceIOProc(AudioBufferList *output_data, double sample_time) {
+    auto const buffer_count = output_data->mNumberBuffers;
+    size_t num_filled_frames = 0;
+    for (uint32_t i = 0; i < buffer_count; ++i) {
+        const auto buffer = output_data->mBuffers[i];
+        const uint32_t num_sample = static_cast<uint32_t>(buffer.mDataByteSize
+                                                          / sizeof(float)
+                                                          / format_.GetChannels());
+        stream_time_ = stream_time_ + num_sample * 2;
+        auto stream_time = stream_time_ / static_cast<double>(format_.GetAvgFramesPerSec());
+        XAMP_LIKELY(callback_->OnGetSamples(static_cast<float*>(buffer.mData),
+                                            num_sample,
+                                            num_filled_frames,
+                                            stream_time,
+                                            sample_time) == DataCallbackResult::CONTINUE) {
+            continue;
+        } else {
+            is_running_ = false;
+            break;
+        }
+    }
+}
+
 OSStatus CoreAudioDevice::OnAudioDeviceIOProc(AudioDeviceID,
                                               AudioTimeStamp const*,
                                               AudioBufferList const*,
@@ -333,11 +355,10 @@ OSStatus CoreAudioDevice::OnAudioDeviceIOProc(AudioDeviceID,
                                               AudioBufferList *output_data,
                                               AudioTimeStamp const* outputTimeStamp,
                                               void *user_data) {
-    auto device = static_cast<CoreAudioDevice*>(user_data);
+    auto* device = static_cast<CoreAudioDevice*>(user_data);
 
     if (!device->is_running_) {
-        std::unique_lock<std::mutex> lock{device->mutex_};
-        device->StopStream();
+        std::unique_lock<FastMutex> lock{device->mutex_};
         device->stop_event_.notify_one();
         return noErr;
     }
@@ -350,6 +371,7 @@ OSStatus CoreAudioDevice::OnAudioDeviceIOProc(AudioDeviceID,
             outputTimeStamp->mSampleTime
             + device->latency_;
     }
+
     device->AudioDeviceIOProc(output_data, sample_time);
     return noErr;
 }
@@ -418,29 +440,6 @@ uint32_t CoreAudioDevice::GetHardwareLantency(AudioDeviceID device_id, AudioObje
     XAMP_LOG_D(logger_, "Device stream latency: {} us", stream_latency);
 
     return latency + safe_offet + stream_latency;
-}
-
-void CoreAudioDevice::AudioDeviceIOProc(AudioBufferList *output_data, double sample_time) {
-    auto const buffer_count = output_data->mNumberBuffers;
-    size_t num_filled_frames = 0;
-    for (uint32_t i = 0; i < buffer_count; ++i) {
-        const auto buffer = output_data->mBuffers[i];
-        const uint32_t num_sample = static_cast<uint32_t>(buffer.mDataByteSize
-                                                          / sizeof(float)
-                                                          / format_.GetChannels());
-        stream_time_ = stream_time_ + num_sample * 2;
-        auto stream_time = stream_time_ / static_cast<double>(format_.GetAvgFramesPerSec());
-        XAMP_LIKELY(callback_->OnGetSamples(static_cast<float*>(buffer.mData),
-                                            num_sample,
-                                            num_filled_frames,
-                                            stream_time,
-                                            sample_time) == DataCallbackResult::CONTINUE) {
-            continue;
-        } else {
-            is_running_ = false;
-            break;
-        }
-    }
 }
 
 }

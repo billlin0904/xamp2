@@ -50,8 +50,6 @@ public:
     virtual void SetEQ(EQSettings const &settings) = 0;
 
     virtual void SetPreamp(float preamp) = 0;
-
-    virtual void Disable() = 0;
 protected:
     IEqualizer() = default;
 };

@@ -28,6 +28,8 @@ XAMP_STREAM_API AlignPtr<IFileEncoder> MakeEncoder();
 
 XAMP_STREAM_API AlignPtr<IAudioProcessor> MakeEqualizer();
 
+XAMP_STREAM_API AlignPtr<IAudioProcessor> MakeCompressor();
+
 #ifdef XAMP_OS_WIN
 XAMP_STREAM_API AlignPtr<ICDDevice> MakeCDDevice(int32_t driver_letter);
 #endif

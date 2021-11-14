@@ -8,7 +8,7 @@
 #include <base/platform.h>
 #include <base/dataconverter.h>
 
-#include <stream/compressor.h>
+#include <stream/basscompressor.h>
 #include <stream/wavefilewriter.h>
 #include <stream/idsdstream.h>
 #include <stream/api.h>
@@ -57,6 +57,14 @@ private:
     Fs::path dest_file_path_;
     Fs::path temp_file_path_;
 };
+
+AlignPtr<IAudioProcessor> makeCompressor(uint32_t sample_rate) {
+    auto processor = MakeCompressor();
+    auto* compressor = dynamic_cast<BassCompressor*>(processor.get());
+    compressor->Start(sample_rate);
+    compressor->Init();
+    return processor;
+}
 
 static double readAll(std::wstring const& file_path,
 	std::function<bool(uint32_t)> const& progress,
@@ -115,20 +123,20 @@ void export2WaveFile(std::wstring const& file_path,
 	excepted.Try([&](auto const& dest_file_path)
 		{
 			WaveFileWriter file;
-			Compressor compressor;
+            auto compressor = MakeCompressor();
             auto prepare = [&file, dest_file_path, &compressor, &converter, output_sample_rate](AudioFormat const& input_format) {
 				auto format = input_format;
 				format.SetByteFormat(ByteFormat::SINT24);
 				format.SetSampleRate(output_sample_rate);
 				file.Open(dest_file_path, format);
-                compressor.Start(input_format.GetSampleRate());
-				compressor.Init();
+                compressor->Start(input_format.GetSampleRate());
+                dynamic_cast<BassCompressor*>(compressor.get())->Init();
 				converter->Start(input_format.GetSampleRate(), input_format.GetChannels(), output_sample_rate);
 			};
 
             Buffer<float> buffer;
             auto process = [&file, &compressor, &converter, &buffer](float const* samples, uint32_t sample_size) {
-                compressor.Process(samples, sample_size, buffer);
+                compressor->Process(samples, sample_size, buffer);
                 return converter->Process(buffer.data(), buffer.size(), file);
 			};
 
@@ -147,18 +155,18 @@ void export2WaveFile(std::wstring const& file_path,
 	ExceptedFile excepted(output_file_path);
 	excepted.Try([&](auto const& dest_file_path) {
 		WaveFileWriter file;
-		Compressor compressor;
+        auto compressor = MakeCompressor();
         Buffer<float> buffer;
         readAll(file_path, progress,
             [&file, dest_file_path, &compressor](AudioFormat const& input_format) {
 				auto format = input_format;
 				format.SetByteFormat(ByteFormat::SINT24);
 				file.Open(dest_file_path, format);
-                compressor.Start(format.GetSampleRate());
-				compressor.Init();
+                compressor->Start(format.GetSampleRate());
+                dynamic_cast<BassCompressor*>(compressor.get())->Init();
             }, [&file, &compressor, enable_compressor, &buffer](auto const* samples, auto sample_size) {
 				if (enable_compressor) {
-                    compressor.Process(samples, sample_size, buffer);
+                    compressor->Process(samples, sample_size, buffer);
                     file.Write(buffer.data(), buffer.size());
 				}
 				else {

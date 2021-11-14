@@ -194,6 +194,95 @@ private:
 };
 
 #define SYMBOL_LOADER Singleton<SymLoader>::GetInstance()
+
+#else
+
+static bool HaveSiginfo(int signum) {
+    struct sigaction old_action, new_action;
+    MemorySet(&new_action, 0, sizeof(new_action));
+
+    new_action.sa_handler = SIG_DFL;
+    new_action.sa_flags = SA_RESTART;
+    sigemptyset(&new_action.sa_mask);
+
+    if (::sigaction(signum, &new_action, &old_action) < 0) {
+        return false;
+    }
+
+    bool result = (old_action.sa_flags & SA_SIGINFO) != 0;
+    if (::sigaction(signum, &old_action, nullptr) == -1) {
+        XAMP_LOG_ERROR("Restore failed in test for SA_SIGINFO: {}", strerror(errno));
+    }
+
+    return result;
+}
+
+static void LogCrashSignal(int signum, const siginfo_t* info) {
+    const char* signal_name = "???";
+    bool has_address = false;
+
+    switch (signum) {
+    case SIGABRT:
+        signal_name = "SIGABRT";
+        break;
+    case SIGBUS:
+        signal_name = "SIGBUS";
+        has_address = true;
+        break;
+    case SIGFPE:
+        signal_name = "SIGFPE";
+        has_address = true;
+        break;
+    case SIGILL:
+        signal_name = "SIGILL";
+        has_address = true;
+        break;
+    case SIGSEGV:
+        signal_name = "SIGSEGV";
+        has_address = true;
+        break;
+    case SIGTRAP:
+        signal_name = "SIGTRAP";
+        break;
+    }
+
+    XAMP_LOG_ERROR("Fatal signal {} ({}){}{}",
+                   signum, signal_name, info->si_code, info->si_addr);
+    StackTrace trace;
+    XAMP_LOG_ERROR(trace.CaptureStack());
+}
+
+ [[noreturn]] static void CrashSignalHandler(int signal_number, siginfo_t* info, void*) {
+    if (!HaveSiginfo(signal_number)) {
+        info = nullptr;
+    }
+
+    LogCrashSignal(signal_number, info);
+
+    // Reset signal to SIG_DFL
+    ::signal(signal_number, SIG_DFL);
+
+    std::exit(0);
+}
+
+static void InstallCrashSignal() {
+    struct sigaction action;
+    MemorySet(&action, 0, sizeof(action));
+
+    sigemptyset(&action.sa_mask);
+    action.sa_sigaction = CrashSignalHandler;
+    action.sa_flags = SA_RESTART | SA_SIGINFO;
+    action.sa_flags |= SA_ONSTACK;
+
+    ::sigaction(SIGABRT, &action, nullptr);
+    ::sigaction(SIGBUS, &action, nullptr);
+    ::sigaction(SIGFPE, &action, nullptr);
+    ::sigaction(SIGILL, &action, nullptr);
+    ::sigaction(SIGPIPE, &action, nullptr);
+    ::sigaction(SIGSEGV, &action, nullptr);
+    ::sigaction(SIGTRAP, &action, nullptr);
+}
+
 #endif
 
 StackTrace::StackTrace() noexcept = default;
@@ -202,6 +291,7 @@ bool StackTrace::LoadSymbol() {
 #ifdef XAMP_OS_WIN
     return SYMBOL_LOADER.IsInit();
 #else
+    InstallCrashSignal();
     return true;
 #endif
 }

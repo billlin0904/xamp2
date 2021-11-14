@@ -110,6 +110,8 @@ public:
 
     void EnableProcessor(bool enable = true) override;
 
+    void RemoveProcess(Uuid const &id) override;
+
     void SetEq(uint32_t band, float gain, float Q) override;
 
     void SetEq(EQSettings const& settings) override;

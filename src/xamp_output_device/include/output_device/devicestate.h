@@ -9,7 +9,7 @@
 
 namespace xamp::output_device {
 
-MAKE_ENUM(DeviceState,
+MAKE_XAMP_ENUM(DeviceState,
           DEVICE_STATE_ADDED,
           DEVICE_STATE_REMOVED,
           DEVICE_STATE_DEFAULT_DEVICE_CHANGE)

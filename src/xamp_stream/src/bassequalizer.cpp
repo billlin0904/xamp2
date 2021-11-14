@@ -137,10 +137,6 @@ void BassEqualizer::Process(float const* samples, uint32_t num_samples, Buffer<f
     return impl_->Process(samples, num_samples, out);
 }
 
-void BassEqualizer::Disable() {
-    impl_->Disable();
-}
-
 Uuid BassEqualizer::GetTypeId() const {
     return Id;
 }

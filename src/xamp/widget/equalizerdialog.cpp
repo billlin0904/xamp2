@@ -66,6 +66,12 @@ EqualizerDialog::EqualizerDialog(QWidget *parent)
         ui_.preampLabel->setText(QString(Q_UTF8("%1")).arg(value));
     });
 
+    (void)QObject::connect(ui_.enableEqCheckBox, &QCheckBox::stateChanged, [this](auto value) {
+        AppSettings::setValue(kEnableEQ, value == Qt::CheckState::Checked);
+    });
+
+    ui_.enableEqCheckBox->setCheckState(AppSettings::getValueAsBool(kEnableEQ) ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
+
     for (auto name : AppSettings::getEQPreset().keys()) {
         ui_.eqPresetComboBox->addItem(name);
     }

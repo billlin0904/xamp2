@@ -13,7 +13,7 @@
 #include <base/scopeguard.h>
 #include <base/str_utilts.h>
 
-#include <stream/compressor.h>
+#include <stream/basscompressor.h>
 #include <stream/podcastcache.h>
 #include <stream/api.h>
 
@@ -75,14 +75,6 @@ static AlignPtr<ISampleRateConverter> makeSampleRateConverter(const QVariantMap 
     soxr_sample_rate_converter->SetRollOff(rolloff_level);
     soxr_sample_rate_converter->SetSteepFilter(enable_steep_filter);
     return converter;
-}
-
-static AlignPtr<IAudioProcessor> makeCompressor(uint32_t sample_rate) {
-    auto processor = MakeAlign<IAudioProcessor, Compressor>();
-    auto* compressor = dynamic_cast<Compressor*>(processor.get());
-    compressor->Start(sample_rate);
-    compressor->Init();
-    return processor;
 }
 
 static PlaybackFormat getPlaybackFormat(const IAudioPlayer* player) {
@@ -998,19 +990,23 @@ void Xamp::playMusic(const MusicEntity& item) {
             converter = makeSampleRateConverter(soxr_settings);            
         }
         player_->Open(item.file_path.toStdWString(), device_info_, target_sample_rate, std::move(converter));
-        player_->AddProcessor(MakeEqualizer());
-        if (AppSettings::contains(kEQName)) {
-            auto eq_setting = AppSettings::getValue(kEQName).value<AppEQSettings>();
-            auto i = 0;
-            for (auto band : eq_setting.settings.bands) {
-                player_->SetEq(i++, band.gain, band.Q);
-            }
-            player_->SetPreamp(eq_setting.settings.preamp);
-        }
-        player_->PrepareToPlay();
         if (item.true_peak >= 1.0) {
-            player_->AddProcessor(makeCompressor(player_->GetInputFormat().GetSampleRate()));
+            player_->AddProcessor(read_utiltis::makeCompressor(player_->GetInputFormat().GetSampleRate()));
         }
+        if (AppSettings::getValueAsBool(kEnableEQ)) {
+            player_->AddProcessor(MakeEqualizer());
+            if (AppSettings::contains(kEQName)) {
+                auto eq_setting = AppSettings::getValue(kEQName).value<AppEQSettings>();
+                uint32_t i = 0;
+                for (auto band : eq_setting.settings.bands) {
+                    player_->SetEq(i++, band.gain, band.Q);
+                }
+                player_->SetPreamp(eq_setting.settings.preamp);
+            }
+        } else {
+            player_->RemoveProcess(IEqualizer::Id);
+        }
+        player_->PrepareToPlay();        
         playback_format = getPlaybackFormat(player_.get());
         player_->Play();
         open_done = true;
@@ -1036,11 +1032,7 @@ void Xamp::updateUI(const MusicEntity& item, const PlaybackFormat& playback_form
     if (open_done) {
         if (player_->IsHardwareControlVolume()) {
             if (!player_->IsMute()) {
-                if (player_->GetDsdModes() == DsdModes::DSD_MODE_DOP) {
-                    setVolume(100);
-                } else {
-                    setVolume(ui_.volumeSlider->value());
-                }
+                setVolume(ui_.volumeSlider->value());
             } else {
                 setVolume(0);
             }

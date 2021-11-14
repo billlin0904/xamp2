@@ -13,7 +13,7 @@ namespace xamp::output_device {
 
 using namespace base;
 
-MAKE_ENUM(DataCallbackResult, CONTINUE = 0, STOP)
+MAKE_XAMP_ENUM(DataCallbackResult, CONTINUE = 0, STOP)
 
 class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE IAudioCallback {
 public:

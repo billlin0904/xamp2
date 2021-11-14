@@ -15,14 +15,14 @@ namespace xamp::player {
 
 using namespace xamp::base;
 
-MAKE_ENUM(SoxrQuality,
+MAKE_XAMP_ENUM(SoxrQuality,
           LOW,
           MQ,
           HQ,
           VHQ,
           UHQ)
 
-MAKE_ENUM(SoxrRollOff,
+MAKE_XAMP_ENUM(SoxrRollOff,
           ROLLOFF_SMALL,
           ROLLOFF_MEDIUM,
           ROLLOFF_NONE)

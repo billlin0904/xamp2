@@ -22,8 +22,8 @@ public:
 
     virtual void Process(float const* samples, uint32_t num_samples, Buffer<float>& out) = 0;
 
-	[[nodiscard]] virtual Uuid GetTypeId() const = 0;
-	
+    [[nodiscard]] virtual Uuid GetTypeId() const = 0;
+
 protected:
 	IAudioProcessor() = default;
 };

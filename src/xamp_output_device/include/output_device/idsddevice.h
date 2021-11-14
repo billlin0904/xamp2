@@ -13,7 +13,7 @@ namespace xamp::output_device {
 
 using namespace base;
 
-MAKE_ENUM(DsdIoFormat,
+MAKE_XAMP_ENUM(DsdIoFormat,
     IO_FORMAT_PCM,
     IO_FORMAT_DSD)
 

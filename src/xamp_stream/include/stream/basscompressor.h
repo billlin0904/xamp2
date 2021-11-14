@@ -42,13 +42,13 @@ struct XAMP_STREAM_API CompressorParameters final {
     float release;
 };
 
-class XAMP_STREAM_API Compressor : public IAudioProcessor {
+class XAMP_STREAM_API BassCompressor : public IAudioProcessor {
 public:
     constexpr static auto Id = std::string_view("263079D0-FDD4-46DF-9BB3-71821AF95EDB");    
 	
-    Compressor();
+    BassCompressor();
 
-    XAMP_PIMPL(Compressor)
+    XAMP_PIMPL(BassCompressor)
 
     void Start(uint32_t samplerate) override;
 
@@ -59,8 +59,8 @@ public:
     [[nodiscard]] Uuid GetTypeId() const override;
 
 private:
-    class CompressorImpl;
-    AlignPtr<CompressorImpl> impl_;
+    class BassCompressorImpl;
+    AlignPtr<BassCompressorImpl> impl_;
 };
 
 }

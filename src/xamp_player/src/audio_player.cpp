@@ -12,8 +12,6 @@
 #include <output_device/asiodevicetype.h>
 #include <output_device/idsddevice.h>
 
-#include <stream/compressor.h>
-#include <stream/bassfilestream.h>
 #include <stream/iaudioprocessor.h>
 #include <stream/iequalizer.h>
 
@@ -152,6 +150,14 @@ void AudioPlayer::AddProcessor(AlignPtr<IAudioProcessor> processor) {
 void AudioPlayer::EnableProcessor(bool enable) {
     enable_processor_ = enable;
     XAMP_LOG_D(logger_, "Enable processor {}", enable);
+}
+
+void AudioPlayer::RemoveProcess(Uuid const &id) {
+    std::remove_if(setting_chain_.begin(),
+                 setting_chain_.end(),
+                 [id](auto const& processor) {
+                     return processor->GetTypeId() == id;
+                 });
 }
 
 void AudioPlayer::SetEq(EQSettings const& settings) {
@@ -301,6 +307,7 @@ void AudioPlayer::ProcessDspMsg() {
                 auto eq = GetProcessor<IEqualizer>();
                 if (!eq) {
                     XAMP_LOG_D(logger_, "Not found IEqualizer");
+                    continue;
                 }
                 eq->SetEQ(eq_event);
                 int i = 0;
@@ -315,6 +322,7 @@ void AudioPlayer::ProcessDspMsg() {
                 auto eq = GetProcessor<IEqualizer>();
                 if (!eq) {
                     XAMP_LOG_D(logger_, "Not found IEqualizer");
+                    continue;
                 }
                 auto preamp = std::any_cast<float>(msg->content);
                 eq->SetPreamp(preamp);
@@ -744,17 +752,22 @@ bool AudioPlayer::CanProcessFile() const noexcept {
 }
 
 void AudioPlayer::InitDsp() {
-    dsp_chain_ = std::move(setting_chain_);
-    for (auto &dsp : dsp_chain_) {
-        dsp->Start(output_format_.GetSampleRate());
-    }
-    if (auto eq = GetProcessor<IEqualizer>()) {
-        eq->SetEQ(eq_settings_);
-        int i = 0;
-        for (auto band : eq_settings_.bands) {
-            XAMP_LOG_D(logger_, "Set EQ band: {} gain: {} Q: {}", i++, band.gain, band.Q);
+    if (enable_processor_) {
+        dsp_chain_ = std::move(setting_chain_);
+        for (auto &dsp : dsp_chain_) {
+            dsp->Start(output_format_.GetSampleRate());
         }
-        XAMP_LOG_D(logger_, "Set preamp: {}", eq_settings_.preamp);
+
+        if (auto eq = GetProcessor<IEqualizer>()) {
+            eq->SetEQ(eq_settings_);
+            int i = 0;
+            for (auto band : eq_settings_.bands) {
+                XAMP_LOG_D(logger_, "Set EQ band: {} gain: {} Q: {}", i++, band.gain, band.Q);
+            }
+            XAMP_LOG_D(logger_, "Set preamp: {}", eq_settings_.preamp);
+        }
+    } else {
+        dsp_chain_.clear();
     }
 }
 

@@ -1,13 +1,13 @@
 #include <stream/basslib.h>
 #include <base/memory.h>
 #include <base/buffer.h>
-#include <stream/compressor.h>
+#include <stream/basscompressor.h>
 
 namespace xamp::stream {
 
-class Compressor::CompressorImpl {
+class BassCompressor::BassCompressorImpl {
 public:
-    CompressorImpl() {
+    BassCompressorImpl() {
         logger_ = Logger::GetInstance().GetLogger(kCompressorLoggerName);
     }
 
@@ -69,25 +69,25 @@ private:
     std::shared_ptr<spdlog::logger> logger_;
 };
 
-Compressor::Compressor()
-    : impl_(MakeAlign<CompressorImpl>()) {
+BassCompressor::BassCompressor()
+    : impl_(MakeAlign<BassCompressorImpl>()) {
 }
 
-void Compressor::Start(uint32_t samplerate) {
+void BassCompressor::Start(uint32_t samplerate) {
     impl_->Start(samplerate);
 }
 
-XAMP_PIMPL_IMPL(Compressor)
+XAMP_PIMPL_IMPL(BassCompressor)
 
-void Compressor::Init(CompressorParameters const &parameters) {
+void BassCompressor::Init(CompressorParameters const &parameters) {
     impl_->Init(parameters);
 }
 
-void Compressor::Process(float const * samples, uint32_t num_samples, Buffer<float>& out) {
+void BassCompressor::Process(float const * samples, uint32_t num_samples, Buffer<float>& out) {
     return impl_->Process(samples, num_samples, out);
 }
 
-Uuid Compressor::GetTypeId() const {
+Uuid BassCompressor::GetTypeId() const {
     return Id;
 }
 

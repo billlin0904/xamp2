@@ -15,7 +15,7 @@
 
 namespace xamp::base {
 
-MAKE_ENUM(Errors,
+MAKE_XAMP_ENUM(Errors,
           XAMP_ERROR_SUCCESS = 0,
           XAMP_ERROR_PLATFORM_SPEC_ERROR,
           XAMP_ERROR_LIBRARY_SPEC_ERROR,

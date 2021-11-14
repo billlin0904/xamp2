@@ -13,10 +13,16 @@
 #include <base/align_ptr.h>
 #include <base/metadata.h>
 
+#include <stream/iaudioprocessor.h>
+#include <player/isamplerateconverter.h>
+
 using namespace xamp::base;
 using namespace xamp::player;
+using namespace xamp::stream;
 
 namespace read_utiltis {
+
+AlignPtr<IAudioProcessor> makeCompressor(uint32_t sample_rate);
 
 std::tuple<double, std::vector<uint8_t>> readFingerprint(
 	std::wstring const & file_path,

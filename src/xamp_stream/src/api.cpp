@@ -9,6 +9,7 @@
 #include <stream/ifileencoder.h>
 #include <stream/bassfileencoder.h>
 #include <stream/basscddevice.h>
+#include <stream/basscompressor.h>
 #include <stream/bassequalizer.h>
 #include <stream/api.h>
 
@@ -66,6 +67,10 @@ HashSet<std::string> const& GetSupportFileExtensions() {
 
 AlignPtr<IAudioProcessor> MakeEqualizer() {
     return MakeAlign<IAudioProcessor, BassEqualizer>();
+}
+
+AlignPtr<IAudioProcessor> MakeCompressor() {
+    return MakeAlign<IAudioProcessor, BassCompressor>();
 }
 
 void LoadBassLib() {
