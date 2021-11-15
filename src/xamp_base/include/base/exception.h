@@ -30,7 +30,8 @@ MAKE_XAMP_ENUM(Errors,
           XAMP_ERROR_STOP_STREAM_TIMEOUT,
           XAMP_ERROR_SAMPLERATE_CHANGED,
           XAMP_ERROR_NOT_SUPPORT_RESAMPLE_SAMPLERATE,
-          XAMP_ERROR_NOT_FOUND_DLL_EXPORT_FUNC)
+          XAMP_ERROR_NOT_FOUND_DLL_EXPORT_FUNC,
+          XAMP_ERROR_NOT_SUPPORT_EXCLUSIVE_MODE)
 
 XAMP_BASE_API std::string GetPlatformErrorMessage(int32_t err);
 
@@ -119,6 +120,7 @@ XAMP_DECLARE_EXCEPTION_CLASS(StopStreamTimeoutException)
 XAMP_DECLARE_EXCEPTION_CLASS(SampleRateChangedException)
 XAMP_DECLARE_EXCEPTION_CLASS(NotFoundDllExportFuncException)
 XAMP_DECLARE_EXCEPTION_CLASS(NotSupportResampleSampleRateException)
+XAMP_DECLARE_EXCEPTION_CLASS(NotSupportExclusiveModeException)
 
 
 #define BufferOverFlowThrow(expr) \

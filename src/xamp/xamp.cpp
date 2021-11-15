@@ -109,6 +109,7 @@ QString Xamp::translasteError(Errors error) {
         { Errors::XAMP_ERROR_NOT_SUPPORT_RESAMPLE_SAMPLERATE, tr("Resampler not support variable resample.") },
         { Errors::XAMP_ERROR_SAMPLERATE_CHANGED, tr("Samplerate was changed.") },
         { Errors::XAMP_ERROR_NOT_FOUND_DLL_EXPORT_FUNC, tr("Not found dll export function.") },
+        { Errors::XAMP_ERROR_NOT_SUPPORT_EXCLUSIVE_MODE, tr("Not support exclusive mode.") },
     };
     if (error_str_lut.contains(error)) {
         return error_str_lut.value(error);
@@ -991,10 +992,10 @@ void Xamp::playMusic(const MusicEntity& item) {
         }
         player_->Open(item.file_path.toStdWString(), device_info_, target_sample_rate, std::move(converter));
         if (item.true_peak >= 1.0) {
-            player_->AddProcessor(read_utiltis::makeCompressor(player_->GetInputFormat().GetSampleRate()));
+            player_->AddDSP(read_utiltis::makeCompressor(player_->GetInputFormat().GetSampleRate()));
         }
         if (AppSettings::getValueAsBool(kEnableEQ)) {
-            player_->AddProcessor(MakeEqualizer());
+            player_->AddDSP(MakeEqualizer());
             if (AppSettings::contains(kEQName)) {
                 auto eq_setting = AppSettings::getValue(kEQName).value<AppEQSettings>();
                 uint32_t i = 0;
@@ -1004,7 +1005,7 @@ void Xamp::playMusic(const MusicEntity& item) {
                 player_->SetPreamp(eq_setting.settings.preamp);
             }
         } else {
-            player_->RemoveProcess(IEqualizer::Id);
+            player_->RemoveDSP(IEqualizer::Id);
         }
         player_->PrepareToPlay();        
         playback_format = getPlaybackFormat(player_.get());

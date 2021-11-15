@@ -55,7 +55,7 @@ Exception::Exception(Errors error, const std::string& message, std::string_view 
 	: error_(error)
     , what_(what)
 	, message_(message) {
-    //stacktrace_ = StackTrace{}.CaptureStack();
+    stacktrace_ = StackTrace{}.CaptureStack();
 	if (what.empty()) {
         std::ostringstream ostr;
         ostr << error << "(" << ErrorToString(error) << ")";
@@ -63,7 +63,7 @@ Exception::Exception(Errors error, const std::string& message, std::string_view 
 	}
 	if (message_.empty()) {
         std::ostringstream ostr;
-        ostr << error << "(" << ErrorToString(error) << ")" << stacktrace_;
+        ostr << error << "(" << ErrorToString(error) << ")";
 		message_ = ostr.str();
 	}    
 }
@@ -103,8 +103,9 @@ std::string_view Exception::ErrorToString(Errors error) {
         { Errors::XAMP_ERROR_LOAD_DLL_FAILURE, "Load dll failure." },
         { Errors::XAMP_ERROR_STOP_STREAM_TIMEOUT, "Stop stream thread timeout." },
         { Errors::XAMP_ERROR_NOT_SUPPORT_RESAMPLE_SAMPLERATE, "Resampler not support variable resample." },
-        { Errors::XAMP_ERROR_SAMPLERATE_CHANGED, "Samplerate was changed." },
+        { Errors::XAMP_ERROR_SAMPLERATE_CHANGED, "SampleRate was changed." },
         { Errors::XAMP_ERROR_NOT_FOUND_DLL_EXPORT_FUNC, "Not found dll export function." },
+        { Errors::XAMP_ERROR_NOT_SUPPORT_EXCLUSIVE_MODE, "Not support exclusive mode." },
         };
     auto const itr = error_msgs.find(error);
     if (itr != error_msgs.end()) {
@@ -117,7 +118,7 @@ DeviceUnSupportedFormatException::DeviceUnSupportedFormatException(AudioFormat c
 	: Exception(Errors::XAMP_ERROR_DEVICE_UNSUPPORTED_FORMAT)
 	, format_(format) {
 	std::ostringstream ostr;
-	ostr << "Device unsupported file format " << format_ << "." << GetStackTrace();
+	ostr << "Device unsupported file format." << format_;
 	message_ = ostr.str();
 }
 
@@ -125,7 +126,7 @@ LoadDllFailureException::LoadDllFailureException(std::string_view dll_name)
 	: Exception(Errors::XAMP_ERROR_LOAD_DLL_FAILURE)
 	, dll_name_(dll_name) {
 	std::ostringstream ostr;
-	ostr << "Load dll " << dll_name << " failure." << GetStackTrace();
+	ostr << "Load dll " << dll_name << " failure.";
 	message_ = ostr.str();
 }
 
@@ -163,5 +164,6 @@ IMP_EXCEPTION_CLASS(StopStreamTimeoutException, Errors::XAMP_ERROR_STOP_STREAM_T
 IMP_EXCEPTION_CLASS(SampleRateChangedException, Errors::XAMP_ERROR_SAMPLERATE_CHANGED);
 IMP_EXCEPTION_CLASS(NotFoundDllExportFuncException, Errors::XAMP_ERROR_NOT_FOUND_DLL_EXPORT_FUNC);
 IMP_EXCEPTION_CLASS(NotSupportResampleSampleRateException, Errors::XAMP_ERROR_NOT_SUPPORT_RESAMPLE_SAMPLERATE);
+IMP_EXCEPTION_CLASS(NotSupportExclusiveModeException, Errors::XAMP_ERROR_NOT_SUPPORT_EXCLUSIVE_MODE)
     	
 }

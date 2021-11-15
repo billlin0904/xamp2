@@ -106,11 +106,11 @@ public:
 
     AudioFormat GetOutputFormat() const noexcept override;
 
-    void AddProcessor(AlignPtr<IAudioProcessor> processor) override;
+    void AddDSP(AlignPtr<IAudioProcessor> processor) override;
 
-    void EnableProcessor(bool enable = true) override;
+    void EnableDSP(bool enable = true) override;
 
-    void RemoveProcess(Uuid const &id) override;
+    void RemoveDSP(Uuid const &id) override;
 
     void SetEq(uint32_t band, float gain, float Q) override;
 
@@ -118,7 +118,7 @@ public:
 
     void SetPreamp(float preamp) override;
 
-    bool IsEnableProcessor() const override;
+    bool IsEnableDSP() const override;
 
     bool IsEnableSampleRateConverter() const override;
 
@@ -128,6 +128,8 @@ public:
 
     const AlignPtr<IAudioDeviceManager>& GetAudioDeviceManager() override;
 private:
+    bool CanConverter() const noexcept;
+
     bool CanProcessFile() const noexcept;
     	
     void DoSeek(double stream_time);        

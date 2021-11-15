@@ -80,13 +80,13 @@ public:
 
     [[nodiscard]] virtual AudioFormat GetOutputFormat() const noexcept = 0;
 
-    virtual void AddProcessor(AlignPtr<IAudioProcessor> processor) = 0;
+    virtual void AddDSP(AlignPtr<IAudioProcessor> processor) = 0;
 
-    virtual void EnableProcessor(bool enable = true) = 0;
+    virtual void EnableDSP(bool enable = true) = 0;
 
-    virtual void RemoveProcess(Uuid const &id) = 0;
+    virtual void RemoveDSP(Uuid const &id) = 0;
 
-    [[nodiscard]] virtual bool IsEnableProcessor() const = 0;
+    [[nodiscard]] virtual bool IsEnableDSP() const = 0;
 
     [[nodiscard]] virtual bool IsEnableSampleRateConverter() const = 0;
 

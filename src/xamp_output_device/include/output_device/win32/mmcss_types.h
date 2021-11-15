@@ -24,7 +24,7 @@ inline constexpr std::wstring_view MMCSS_PROFILE_PLAYBACK(L"Playback");
 inline constexpr std::wstring_view MMCSS_PROFILE_PRO_AUDIO(L"Pro Audio");
 inline constexpr std::wstring_view MMCSS_PROFILE_WINDOWS_MANAGER(L"Window Manager");
 
-MAKE_ENUM(MmcssThreadPriority,
+MAKE_XAMP_ENUM(MmcssThreadPriority,
 	      MMCSS_THREAD_PRIORITY_NORMAL,
 	      MMCSS_THREAD_PRIORITY_HIGH,
 	      MMCSS_THREAD_PRIORITY_CRITICAL)

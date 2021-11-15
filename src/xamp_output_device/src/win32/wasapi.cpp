@@ -19,7 +19,7 @@
 
 namespace xamp::output_device::win32::helper {
 
-MAKE_ENUM(EndpointFactor,
+MAKE_XAMP_ENUM(EndpointFactor,
 		RemoteNetworkDevice,
 		Speakers,
 		LineLevel,

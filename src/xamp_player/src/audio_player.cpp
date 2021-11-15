@@ -7,6 +7,7 @@
 #include <base/dataconverter.h>
 #include <base/buffer.h>
 #include <base/timer.h>
+#include <base/scopeguard.h>
 
 #include <output_device/api.h>
 #include <output_device/asiodevicetype.h>
@@ -130,7 +131,7 @@ void AudioPlayer::Open(Path const& file_path, const DeviceInfo& device_info, uin
     device_info_ = device_info;
 }
 
-void AudioPlayer::AddProcessor(AlignPtr<IAudioProcessor> processor) {
+void AudioPlayer::AddDSP(AlignPtr<IAudioProcessor> processor) {
     if (is_playing_) {
         return;
     }
@@ -147,12 +148,12 @@ void AudioPlayer::AddProcessor(AlignPtr<IAudioProcessor> processor) {
     }
 }
 
-void AudioPlayer::EnableProcessor(bool enable) {
+void AudioPlayer::EnableDSP(bool enable) {
     enable_processor_ = enable;
     XAMP_LOG_D(logger_, "Enable processor {}", enable);
 }
 
-void AudioPlayer::RemoveProcess(Uuid const &id) {
+void AudioPlayer::RemoveDSP(Uuid const &id) {
     std::remove_if(setting_chain_.begin(),
                  setting_chain_.end(),
                  [id](auto const& processor) {
@@ -191,7 +192,7 @@ void AudioPlayer::SetPreamp(float preamp) {
     }
 }
 
-bool AudioPlayer::IsEnableProcessor() const {
+bool AudioPlayer::IsEnableDSP() const {
     return enable_processor_;
 }
 
@@ -300,6 +301,9 @@ void AudioPlayer::ProcessSeek() {
 void AudioPlayer::ProcessDspMsg() {
     while (!dsp_msg_queue_.empty()) {
         if (auto* msg = dsp_msg_queue_.Front()) {
+            XAMP_ON_SCOPE_EXIT({
+                dsp_msg_queue_.Pop();
+                });
             switch (msg->id) {
             case DspCommandId::DSP_EQ:
             {
@@ -330,7 +334,6 @@ void AudioPlayer::ProcessDspMsg() {
             }
                 break;
             }
-            dsp_msg_queue_.Pop();
         }
 	}    
 }
@@ -575,7 +578,7 @@ bool AudioPlayer::IsEnableSampleRateConverter() const {
 void AudioPlayer::SetDeviceFormat() {
     input_format_ = stream_->GetFormat();
 
-    if (IsEnableSampleRateConverter() && CanProcessFile()) {
+    if (IsEnableSampleRateConverter() && CanConverter()) {
         if (output_format_.GetSampleRate() != target_sample_rate_) {
             device_id_.clear();
         }
@@ -746,9 +749,12 @@ AudioPlayer::AudioSlice::AudioSlice(int32_t const sample_size, double const stre
 	, stream_time(stream_time) {
 }
 
+bool AudioPlayer::CanConverter() const noexcept {
+    return (dsd_mode_ == DsdModes::DSD_MODE_PCM || dsd_mode_ == DsdModes::DSD_MODE_DSD2PCM);
+}
+
 bool AudioPlayer::CanProcessFile() const noexcept {
-    return (dsd_mode_ == DsdModes::DSD_MODE_PCM || dsd_mode_ == DsdModes::DSD_MODE_DSD2PCM)
-           && !dsp_chain_.empty() && IsEnableProcessor();
+    return CanConverter() && !dsp_chain_.empty() && IsEnableDSP();
 }
 
 void AudioPlayer::InitDsp() {

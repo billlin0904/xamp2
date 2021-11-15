@@ -105,6 +105,11 @@ void ExclusiveWasapiDevice::SetAlignedPeriod(REFERENCE_TIME device_period, const
 void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_format, const uint32_t valid_bits_samples) {
     HrIfFailledThrow(client_->GetMixFormat(&mix_format_));
 
+	auto hr = client_->IsFormatSupported(AUDCLNT_SHAREMODE_EXCLUSIVE, mix_format_, nullptr);
+	if (hr == AUDCLNT_E_UNSUPPORTED_FORMAT) {
+		throw NotSupportExclusiveModeException();
+	}
+
 	SetWaveformatEx(mix_format_, output_format, valid_bits_samples);
 
     REFERENCE_TIME default_device_period = 0;
@@ -120,7 +125,7 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
 
 	XAMP_LOG_D(log_, "Initial aligned period: {} sec.", Nano100ToSeconds(aligned_period_));
 
-	const auto hr = client_->Initialize(AUDCLNT_SHAREMODE_EXCLUSIVE,
+	hr = client_->Initialize(AUDCLNT_SHAREMODE_EXCLUSIVE,
 		AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
 		aligned_period_,
 		aligned_period_,
