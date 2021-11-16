@@ -1,13 +1,16 @@
-#include <new.h>
 #include <base/crashhandler.h>
 #include <base/dll.h>
 #include <base/memory.h>
+#include <base/logger.h>
+#include <base/stacktrace.h>
 
 #ifdef XAMP_OS_WIN
+#include <new.h>
 #include <base/windows_handle.h>
 #include <dbghelp.h>
 #include <minidumpapiset.h>
 #else
+#include <signal.h>
 #include <execinfo.h>
 #endif
 
@@ -15,6 +18,112 @@ namespace xamp::base {
 
 CrashHandler::CrashHandler() = default;
 CrashHandler::~CrashHandler() = default;
+
+#ifdef XAMP_OS_WIN
+void CrashHandler::CreateMiniDump(EXCEPTION_POINTERS* exception_pointers) {
+    FileHandle crashdump_file(::CreateFileW(
+        L"crashdump.dmp",
+        GENERIC_WRITE,
+        0,
+        nullptr,
+        CREATE_ALWAYS,
+        FILE_ATTRIBUTE_NORMAL,
+        nullptr));
+    MINIDUMP_EXCEPTION_INFORMATION mei;
+    MINIDUMP_CALLBACK_INFORMATION mci;
+
+    // Write minidump to the file
+    mei.ThreadId = GetCurrentThreadId();
+    mei.ExceptionPointers = exception_pointers;
+    mei.ClientPointers = FALSE;
+    mci.CallbackRoutine = nullptr;
+    mci.CallbackParam = nullptr;
+
+    WinHandle process(::GetCurrentProcess());
+
+    ::MiniDumpWriteDump(
+        process.get(),
+        ::GetCurrentProcessId(),
+        crashdump_file.get(),
+        MiniDumpNormal,
+        &mei,
+        nullptr,
+        &mci);
+}
+
+LONG CrashHandler::SehHandler(PEXCEPTION_POINTERS exception_pointers) {
+    CreateMiniDump(exception_pointers);
+    ::TerminateProcess(GetCurrentProcess(), 1);
+    return EXCEPTION_EXECUTE_HANDLER;
+}
+
+LONG CrashHandler::VectoredHandler(PEXCEPTION_POINTERS exception_pointers) {
+    CreateMiniDump(exception_pointers);
+    ::TerminateProcess(GetCurrentProcess(), 1);
+    return EXCEPTION_EXECUTE_HANDLER;
+}
+
+void CrashHandler::TerminateHandler() {
+    EXCEPTION_POINTERS* exception_pointers = nullptr;
+    GetExceptionPointers(0, &exception_pointers);
+    CreateMiniDump(exception_pointers);
+    WinHandle process(::GetCurrentProcess());
+    ::TerminateProcess(process.get(), 1);
+}
+
+void CrashHandler::UnexpectedHandler() {
+    EXCEPTION_POINTERS* exception_pointers = nullptr;
+    GetExceptionPointers(0, &exception_pointers);
+    CreateMiniDump(exception_pointers);
+    WinHandle process(::GetCurrentProcess());
+    ::TerminateProcess(process.get(), 1);
+}
+
+void CrashHandler::PureCallHandler() {
+    EXCEPTION_POINTERS* exception_pointers = nullptr;
+    GetExceptionPointers(0, &exception_pointers);
+    CreateMiniDump(exception_pointers);
+    WinHandle process(::GetCurrentProcess());
+    ::TerminateProcess(process.get(), 1);
+}
+
+void CrashHandler::InvalidParameterHandler(const wchar_t* expression,
+                                           const wchar_t* function, const wchar_t* file,
+                                           unsigned int line, uintptr_t reserved) {
+    EXCEPTION_POINTERS* exception_pointers = nullptr;
+    GetExceptionPointers(0, &exception_pointers);
+    CreateMiniDump(exception_pointers);
+    WinHandle process(::GetCurrentProcess());
+    ::TerminateProcess(process.get(), 1);
+}
+
+int CrashHandler::NewHandler(size_t) {
+    EXCEPTION_POINTERS* exception_pointers = nullptr;
+    GetExceptionPointers(0, &exception_pointers);
+    CreateMiniDump(exception_pointers);
+    WinHandle process(::GetCurrentProcess());
+    ::TerminateProcess(process.get(), 1);
+    return 0;
+}
+
+void CrashHandler::GetExceptionPointers(DWORD exception_code, EXCEPTION_POINTERS** exception_pointers) {
+    EXCEPTION_RECORD ExceptionRecord{ 0 };
+    CONTEXT stack_context_record{ 0 };
+
+    ::RtlCaptureContext(&stack_context_record);
+    ExceptionRecord.ExceptionCode = exception_code;
+    ExceptionRecord.ExceptionAddress = ::_ReturnAddress();
+
+    auto* exception_record = new EXCEPTION_RECORD();
+    MemoryCopy(exception_record, &ExceptionRecord, sizeof(EXCEPTION_RECORD));
+    auto* context_record = new CONTEXT();
+    MemoryCopy(context_record, &stack_context_record, sizeof(CONTEXT));
+
+    *exception_pointers = new EXCEPTION_POINTERS;
+    (*exception_pointers)->ExceptionRecord = exception_record;
+    (*exception_pointers)->ContextRecord = context_record;
+}
+#endif
 
 void CrashHandler::SetProcessExceptionHandlers() {
 #ifdef XAMP_OS_WIN
@@ -120,7 +229,7 @@ static void LogCrashSignal(int signum, const siginfo_t* info) {
     XAMP_LOG_ERROR(trace.CaptureStack());
 }
 
-[[noreturn]] static void CrashSignalHandler(int signal_number, siginfo_t* info, void*) {
+void CrashHandler::CrashSignalHandler(int signal_number, siginfo_t* info, void*) {
     if (!HaveSiginfo(signal_number)) {
         info = nullptr;
     }
@@ -151,109 +260,5 @@ void CrashHandler::InstallSignalHandler() {
     ::sigaction(SIGTRAP, &action, nullptr);
 }
 #endif
-
-void CrashHandler::CreateMiniDump(EXCEPTION_POINTERS* exception_pointers) {
-    FileHandle crashdump_file(::CreateFileW(
-        L"crashdump.dmp",
-        GENERIC_WRITE,
-        0,
-        nullptr,
-        CREATE_ALWAYS,
-        FILE_ATTRIBUTE_NORMAL,
-        nullptr));
-    MINIDUMP_EXCEPTION_INFORMATION mei;
-    MINIDUMP_CALLBACK_INFORMATION mci;
-
-    // Write minidump to the file
-    mei.ThreadId = GetCurrentThreadId();
-    mei.ExceptionPointers = exception_pointers;
-    mei.ClientPointers = FALSE;
-    mci.CallbackRoutine = nullptr;
-    mci.CallbackParam = nullptr;
-
-    WinHandle process(::GetCurrentProcess());
-
-    ::MiniDumpWriteDump(
-        process.get(),
-        ::GetCurrentProcessId(),
-        crashdump_file.get(),
-        MiniDumpNormal,
-        &mei,
-        nullptr,
-        &mci);
-}
-
-LONG CrashHandler::SehHandler(PEXCEPTION_POINTERS exception_pointers) {
-    CreateMiniDump(exception_pointers);
-    ::TerminateProcess(GetCurrentProcess(), 1);
-    return EXCEPTION_EXECUTE_HANDLER;
-}
-
-LONG CrashHandler::VectoredHandler(PEXCEPTION_POINTERS exception_pointers) {
-    CreateMiniDump(exception_pointers);
-    ::TerminateProcess(GetCurrentProcess(), 1);
-    return EXCEPTION_EXECUTE_HANDLER;
-}
-
-void CrashHandler::TerminateHandler() {
-    EXCEPTION_POINTERS* exception_pointers = nullptr;
-    GetExceptionPointers(0, &exception_pointers);
-    CreateMiniDump(exception_pointers);
-    WinHandle process(::GetCurrentProcess());
-    ::TerminateProcess(process.get(), 1);
-}
-
-void CrashHandler::UnexpectedHandler() {
-    EXCEPTION_POINTERS* exception_pointers = nullptr;
-    GetExceptionPointers(0, &exception_pointers);
-    CreateMiniDump(exception_pointers);
-    WinHandle process(::GetCurrentProcess());
-    ::TerminateProcess(process.get(), 1);
-}
-
-void CrashHandler::PureCallHandler() {
-    EXCEPTION_POINTERS* exception_pointers = nullptr;
-    GetExceptionPointers(0, &exception_pointers);
-    CreateMiniDump(exception_pointers);
-    WinHandle process(::GetCurrentProcess());
-    ::TerminateProcess(process.get(), 1);
-}
-
-void CrashHandler::InvalidParameterHandler(const wchar_t* expression,
-    const wchar_t* function, const wchar_t* file,
-    unsigned int line, uintptr_t reserved) {
-    EXCEPTION_POINTERS* exception_pointers = nullptr;
-    GetExceptionPointers(0, &exception_pointers);
-    CreateMiniDump(exception_pointers);
-    WinHandle process(::GetCurrentProcess());
-    ::TerminateProcess(process.get(), 1);
-}
-
-int CrashHandler::NewHandler(size_t) {
-    EXCEPTION_POINTERS* exception_pointers = nullptr;
-    GetExceptionPointers(0, &exception_pointers);
-    CreateMiniDump(exception_pointers);
-    WinHandle process(::GetCurrentProcess());
-    ::TerminateProcess(process.get(), 1);
-    return 0;
-}
-
-void CrashHandler::GetExceptionPointers(DWORD exception_code, EXCEPTION_POINTERS** exception_pointers) {
-    EXCEPTION_RECORD ExceptionRecord{ 0 };
-    CONTEXT stack_context_record{ 0 };
-
-    ::RtlCaptureContext(&stack_context_record);
-    ExceptionRecord.ExceptionCode = exception_code;
-    ExceptionRecord.ExceptionAddress = ::_ReturnAddress();
-
-    auto* exception_record = new EXCEPTION_RECORD();
-    MemoryCopy(exception_record, &ExceptionRecord, sizeof(EXCEPTION_RECORD));
-    auto* context_record = new CONTEXT();
-    MemoryCopy(context_record, &stack_context_record, sizeof(CONTEXT));
-
-    *exception_pointers = new EXCEPTION_POINTERS;
-    (*exception_pointers)->ExceptionRecord = exception_record;
-    (*exception_pointers)->ContextRecord = context_record;
-}
 
 }

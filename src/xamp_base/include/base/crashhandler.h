@@ -24,7 +24,6 @@ public:
 	void SetProcessExceptionHandlers();
 
 	void SetThreadExceptionHandlers();
-
 private:
 #ifdef XAMP_OS_WIN
 	static int __cdecl NewHandler(size_t);
