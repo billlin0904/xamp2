@@ -13,9 +13,11 @@
 #include <output_device/deviceinfo.h>
 #include <output_device/iaudiodevicemanager.h>
 
-#include <player/playstate.h>
 #include <stream/iaudioprocessor.h>
+#include <stream/basscompressor.h>
 #include <stream/iequalizer.h>
+
+#include <player/playstate.h>
 #include <player/player.h>
 
 namespace xamp::player {
@@ -85,6 +87,8 @@ public:
     virtual void EnableDSP(bool enable = true) = 0;
 
     virtual void RemoveDSP(Uuid const &id) = 0;
+
+    virtual void SetCompressorParameters(CompressorParameters const& parameters) = 0;
 
     [[nodiscard]] virtual bool IsEnableDSP() const = 0;
 

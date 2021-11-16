@@ -58,14 +58,6 @@ private:
     Fs::path temp_file_path_;
 };
 
-AlignPtr<IAudioProcessor> makeCompressor(uint32_t sample_rate) {
-    auto processor = MakeCompressor();
-    auto* compressor = dynamic_cast<BassCompressor*>(processor.get());
-    compressor->Start(sample_rate);
-    compressor->Init();
-    return processor;
-}
-
 static double readAll(std::wstring const& file_path,
 	std::function<bool(uint32_t)> const& progress,
 	std::function<void(AudioFormat const&)> const& prepare,

@@ -991,21 +991,18 @@ void Xamp::playMusic(const MusicEntity& item) {
             converter = makeSampleRateConverter(soxr_settings);            
         }
         player_->Open(item.file_path.toStdWString(), device_info_, target_sample_rate, std::move(converter));
-        if (item.true_peak >= 1.0) {
-            player_->AddDSP(read_utiltis::makeCompressor(player_->GetInputFormat().GetSampleRate()));
-        }
         if (AppSettings::getValueAsBool(kEnableEQ)) {
             player_->AddDSP(MakeEqualizer());
             if (AppSettings::contains(kEQName)) {
-                auto eq_setting = AppSettings::getValue(kEQName).value<AppEQSettings>();
-                uint32_t i = 0;
-                for (auto band : eq_setting.settings.bands) {
-                    player_->SetEq(i++, band.gain, band.Q);
-                }
-                player_->SetPreamp(eq_setting.settings.preamp);
+                const auto eq_setting = AppSettings::getValue(kEQName).value<AppEQSettings>();
+                player_->SetEq(eq_setting.settings);
             }
         } else {
             player_->RemoveDSP(IEqualizer::Id);
+        }
+        if (item.true_peak >= 1.0) {
+            player_->AddDSP(MakeCompressor());
+            player_->SetCompressorParameters(CompressorParameters());
         }
         player_->PrepareToPlay();        
         playback_format = getPlaybackFormat(player_.get());

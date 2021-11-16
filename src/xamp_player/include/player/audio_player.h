@@ -118,6 +118,8 @@ public:
 
     void SetPreamp(float preamp) override;
 
+    void SetCompressorParameters(CompressorParameters const& parameters) override;
+
     bool IsEnableDSP() const override;
 
     bool IsEnableSampleRateConverter() const override;
@@ -218,6 +220,7 @@ private:
     mutable FastMutex pause_mutex_;
     mutable FastMutex stopped_mutex_;
     EQSettings eq_settings_;
+    CompressorParameters compressor_parameters_;
     std::string device_id_;
     Uuid device_type_id_;
     FastConditionVariable pause_cond_;

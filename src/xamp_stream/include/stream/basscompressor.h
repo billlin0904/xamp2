@@ -5,7 +5,6 @@
 
 #pragma once
 
-#include <vector>
 #include <base/align_ptr.h>
 #include <stream/stream.h>
 #include <stream/iaudioprocessor.h>

@@ -126,16 +126,8 @@ void SharedWasapiDevice::StopStream(bool wait_for_stop_stream) {
 		return;
 	}
 
-	/*::SignalObjectAndWait(close_request_.get(),
-		thread_exit_.get(),
-		INFINITE,
-		FALSE);
-
-	if (render_task_.valid()) {
-		render_task_.get();
-	}*/
 	is_running_ = false;
-	workqueue_->Destory();
+	rt_work_queue_->Destory();
 	client_->Stop();
 }
 
@@ -145,14 +137,10 @@ void SharedWasapiDevice::CloseStream() {
 	// We don't close sample ready event immediately,
 	// WASAPI can be in same samplerate payback to reset and reuse sample ready event.
 	//sample_ready_.close();
-	thread_start_.close();
-	thread_exit_.close();
-	close_request_.close();
-	render_task_ = std::shared_future<void>();
 	render_client_.Release();
 	clock_.Release();
 	device_volume_notification_.Release();
-	workqueue_.Release();
+	rt_work_queue_.Release();
 }
 
 void SharedWasapiDevice::InitialDeviceFormat(AudioFormat const & output_format) {
@@ -247,22 +235,7 @@ void SharedWasapiDevice::OpenStream(AudioFormat const & output_format) {
 		HrIfFailledThrow(client_->SetEventHandle(sample_ready_.get()));
 	}
 
-	if (!thread_start_) {
-		thread_start_.reset(::CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS));
-		assert(thread_start_);
-	}
-
-	if (!thread_exit_) {
-		thread_exit_.reset(::CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS));
-		assert(thread_exit_);
-	}
-
-	if (!close_request_) {
-		close_request_.reset(::CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS));
-		assert(close_request_);
-	}
-
-	workqueue_ = MakeWASAPIWorkQueue(mmcss_name_, this, &SharedWasapiDevice::OnInvoke);
+	rt_work_queue_ = MakeWASAPIWorkQueue(mmcss_name_, this, &SharedWasapiDevice::OnInvoke);
 }
 
 bool SharedWasapiDevice::IsMuted() const {
@@ -370,10 +343,10 @@ HRESULT SharedWasapiDevice::GetSample(uint32_t frame_available, bool is_silence)
 	return hr;
 }
 
-HRESULT SharedWasapiDevice::OnInvoke(IMFAsyncResult * async_result) {
+HRESULT SharedWasapiDevice::OnInvoke(IMFAsyncResult *) {
 	if (is_running_) {
 		GetSampleRequested(false);
-		workqueue_->Queue(sample_ready_.get());
+		rt_work_queue_->Queue(sample_ready_.get());
 	}
 	return S_OK;
 }
@@ -387,63 +360,8 @@ void SharedWasapiDevice::StartStream() {
 
 	// Note: 必要! 某些音效卡會爆音!
 	GetSampleRequested(true);
-
-	/*render_task_ = WASAPIThreadPool().Spawn([this](auto idx) noexcept {
-		XAMP_LOG_D(log_, "Start shared mode stream task! thread: {}", GetCurrentThreadId());
-
-		Stopwatch watch;
-
-		Mmcss mmcss;
-		mmcss.BoostPriority(mmcss_name_);
-
-		is_running_ = true;
-		const auto wait_timeout = static_cast<DWORD>((static_cast<double>(latency_) / static_cast<double>(mix_format_->nSamplesPerSec)) * 1000) + 2;
-		const std::array<HANDLE, 2> objects{ sample_ready_.get(), close_request_.get() };
-
-		auto thread_exit = false;
-		::SetEvent(thread_start_.get());
-
-		while (!thread_exit) {
-			watch.Reset();
-
-			auto result = ::WaitForMultipleObjects(objects.size(), objects.data(), FALSE, 50);
-
-			const auto elapsed = watch.Elapsed<std::chrono::milliseconds>().count();
-			if (elapsed > wait_timeout) {
-				XAMP_LOG_D(log_, "WASAPI wait too slow! {}ms", wait_timeout);
-				thread_exit = true;
-				continue;
-			}
-			
-			switch (result) {
-			case WAIT_OBJECT_0 + 0:
-				GetSampleRequested(false);
-				break;
-			case WAIT_OBJECT_0 + 1:
-				thread_exit = true;
-				break;
-			case WAIT_TIMEOUT:
-				XAMP_LOG_D(log_, "Wait event timeout! {}ms", elapsed);
-				thread_exit = true;
-				break;
-			default:
-				XAMP_LOG_D(log_, "Other error({})!", result);
-				thread_exit = true;
-				break;
-			}
-		}
-
-		MSleep(ConvertToMilliseconds(latency_));
-		client_->Stop();
-		::SetEvent(thread_exit_.get());
-		mmcss.RevertPriority();
-
-		XAMP_LOG_D(log_, "End exclusive mode stream task!");
-		});
-
-	::WaitForSingleObject(thread_start_.get(), 60 * 1000);*/
-	workqueue_->Initial();
-	workqueue_->Queue(sample_ready_.get());
+	rt_work_queue_->Initial();
+	rt_work_queue_->Queue(sample_ready_.get());
 	is_running_ = true;
 	HrIfFailledThrow(client_->Start());
 }

@@ -192,6 +192,10 @@ void AudioPlayer::SetPreamp(float preamp) {
     }
 }
 
+void AudioPlayer::SetCompressorParameters(CompressorParameters const& parameters) {
+    compressor_parameters_ = parameters;
+}
+
 bool AudioPlayer::IsEnableDSP() const {
     return enable_processor_;
 }
@@ -252,6 +256,8 @@ void AudioPlayer::SetDSDStreamMode(DsdModes dsd_mode, AlignPtr<FileStream>& stre
                 throw NotSupportFormatException();
             }
             break;
+        case DsdModes::DSD_MODE_DSD2PCM:
+            break;
         default:
             throw NotSupportFormatException();
         }
@@ -279,6 +285,7 @@ void AudioPlayer::OpenStream(Path const& file_path, DeviceInfo const & device_in
     auto [dsd_mode, stream] = audio_util::MakeFileStream(file_path, device_info, enable_sample_converter_);
     SetDSDStreamMode(dsd_mode, stream);
     stream_duration_ = stream_->GetDuration();
+    input_format_ = stream_->GetFormat();
     XAMP_LOG_D(logger_, "Open stream type: {} {} duration:{}.", stream_->GetDescription(), dsd_mode_, stream_duration_.load());
 }
 
@@ -576,8 +583,6 @@ bool AudioPlayer::IsEnableSampleRateConverter() const {
 }
 
 void AudioPlayer::SetDeviceFormat() {
-    input_format_ = stream_->GetFormat();
-
     if (IsEnableSampleRateConverter() && CanConverter()) {
         if (output_format_.GetSampleRate() != target_sample_rate_) {
             device_id_.clear();
@@ -763,8 +768,10 @@ void AudioPlayer::InitDsp() {
         for (auto &dsp : dsp_chain_) {
             dsp->Start(output_format_.GetSampleRate());
         }
-
-        if (auto eq = GetProcessor<IEqualizer>()) {
+        if (auto* compressor = GetProcessor<BassCompressor>()) {
+            compressor->Init(compressor_parameters_);
+        }
+        if (auto* eq = GetProcessor<IEqualizer>()) {
             eq->SetEQ(eq_settings_);
             int i = 0;
             for (auto band : eq_settings_.bands) {

@@ -88,8 +88,6 @@ private:
 	std::wstring mmcss_name_;
 	MmcssThreadPriority thread_priority_;
 	WinHandle sample_ready_;
-	WinHandle thread_start_;
-	WinHandle thread_exit_;
 	WinHandle close_request_;
 	CComHeapPtr<WAVEFORMATEX> mix_format_;
 	CComPtr<IMMDevice> device_;
@@ -99,9 +97,8 @@ private:
 	CComPtr<DeviceEventNotification> device_volume_notification_;
 	CComPtr<IAudioEndpointVolume> endpoint_volume_;
 	IAudioCallback* callback_;
-	CComPtr<WASAPIWorkQueue<SharedWasapiDevice>> workqueue_;
+	CComPtr<WASAPIWorkQueue<SharedWasapiDevice>> rt_work_queue_;
 	std::shared_ptr<spdlog::logger> log_;
-	std::shared_future<void> render_task_;
 };
 
 }

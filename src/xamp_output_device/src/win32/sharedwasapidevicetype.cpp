@@ -100,7 +100,7 @@ std::vector<DeviceInfo> SharedWasapiDeviceType::GetDeviceInfoList() const {
 		if (default_device_name == info.name) {
 			info.is_default_device = true;
 		}
-		info.is_support_dsd = false;
+		info.is_support_dsd = true;
 		device_list.emplace_back(info);
 	}
 
