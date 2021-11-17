@@ -5,6 +5,7 @@
 #include <base/waitabletimer.h>
 #include <base/ithreadpool.h>
 #include <base/stopwatch.h>
+#include <base/dataconverter.h>
 
 #include <output_device/iaudiocallback.h>
 #include <output_device/win32/unknownimpl.h>

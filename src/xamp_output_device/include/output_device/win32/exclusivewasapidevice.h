@@ -73,7 +73,7 @@ public:
 	DsdIoFormat GetIoFormat() const;
 private:	
 
-	void InitialDeviceFormat(AudioFormat const & output_format, uint32_t valid_bits_samples);	
+	void InitialDeviceFormat(AudioFormat const & output_format, const uint32_t valid_bits_samples);
 
 	void SetAlignedPeriod(REFERENCE_TIME device_period, AudioFormat const & output_format);
 

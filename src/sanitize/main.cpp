@@ -1,6 +1,7 @@
 ﻿#include <iostream>
 
 #include <base/scopeguard.h>
+#include <base/str_utilts.h>
 #include <output_device/win32/exclusivewasapidevicetype.h>
 #include <player/api.h>
 
@@ -10,16 +11,16 @@ using namespace player;
 using namespace output_device;
 using namespace win32;
 
-void TestPlayDSD() {
+void TestPlayDSD(std::wstring const &file_path) {
 	auto player = MakeAudioPlayer(std::weak_ptr<IPlaybackStateAdapter>());
-	player->Open("C:\\Users\\rdbill0452\\Music\\Test\\DSD.dsf", ExclusiveWasapiDeviceType::Id);
+	player->Open(file_path, ExclusiveWasapiDeviceType::Id);
 	player->PrepareToPlay();
 	player->Play();
 	std::cin.get();
 	player->Stop();
 }
 
-int main() {	
+int main(int argc, char* argv[]) {
 	Logger::GetInstance()
 		.AddDebugOutputLogger()
 		.AddConsoleLogger()
@@ -33,5 +34,5 @@ int main() {
 	);
 
 	Xamp2Startup();
-	TestPlayDSD();
+	TestPlayDSD(String::ToStdWString(argv[1]));
 }

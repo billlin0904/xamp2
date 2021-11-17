@@ -12,11 +12,7 @@
 
 #include <base/base.h>
 #include <base/audioformat.h>
-
-#ifdef XAMP_OS_WIN
-#include <intrin.h>
-#include <xmmintrin.h>
-#endif
+#include <base/pvector.h>
 
 namespace xamp::base {
 
@@ -25,19 +21,6 @@ inline constexpr int32_t kFloat24Scale = 8388607;
 inline constexpr int32_t kFloat32Scale = 2147483647;
 inline constexpr float kMaxFloatSample = 1.0F;
 inline constexpr float kMinFloatSample = -1.0F;
-
-XAMP_BASE_API void ClampSample(float* f, size_t num_samples) noexcept;
-
-XAMP_BASE_API float ClampSample(float f) noexcept;
-
-#ifdef XAMP_OS_WIN
-XAMP_BASE_API float ClampSampleSSE2(float f) noexcept;
-XAMP_BASE_API float FloatMaxSSE2(float a, float b) noexcept;
-#else
-float ClampSampleSSE2(float f) noexcept;
-
-float FloatMax(float a, float b) noexcept;
-#endif
 	
 class Int24 final {
 public:
@@ -96,67 +79,11 @@ XAMP_BASE_API AudioConvertContext MakeConvert(AudioFormat const& in_format, Audi
 
 template <typename T>
 void ConvertHelper(T* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, int32_t float_scale, AudioConvertContext const& context) noexcept {
-#if 0
-	static_assert(kLoopUnRollingIntCount == 4);
-
-	const auto* end_input = input + static_cast<ptrdiff_t>(context.convert_size) * context.input_format.GetChannels();
-
-	switch ((end_input - input) % kLoopUnRollingIntCount) {
-	case 3:
-		*output++ = static_cast<T>(*input++ * float_scale);
-		[[fallthrough]];
-	case 2:
-		*output++ = static_cast<T>(*input++ * float_scale);
-		[[fallthrough]];
-	case 1:
-		*output++ = static_cast<T>(*input++ * float_scale);
-		[[fallthrough]];
-	case 0:
-		break;
-	}
-
-    auto * XAMP_RESTRICT _input = const_cast<float*>(input);
-    auto * XAMP_RESTRICT _output = static_cast<T*>(output);
-
-    while (_input != end_input) {
-        _output[0] = static_cast<T>(_input[0] * float_scale);
-		_output[1] = static_cast<T>(_input[1] * float_scale);
-		_output[2] = static_cast<T>(_input[2] * float_scale);
-		_output[3] = static_cast<T>(_input[3] * float_scale);
-		_input += kLoopUnRollingIntCount;
-		_output += kLoopUnRollingIntCount;
-	}
-#endif
-
 	const auto* end_input = input + static_cast<ptrdiff_t>(context.convert_size) * context.input_format.GetChannels();
 	while (input != end_input) {
 		*output = static_cast<T>(*input * float_scale);
 		++input;
 		++output;
-	}
-}
-
-inline void Convert2432Helper(int32_t* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {
-	static_assert(kLoopUnRollingIntCount == 4);
-
-	const auto* end_input = input + static_cast<ptrdiff_t>(context.convert_size) * context.input_format.GetChannels();
-
-	switch ((end_input - input) % kLoopUnRollingIntCount) {
-	case 3:
-		*output++ = Int24(*input++).To2432Int();
-		[[fallthrough]];
-	case 2:
-		*output++ = Int24(*input++).To2432Int();
-		[[fallthrough]];
-	case 1:
-		*output++ = Int24(*input++).To2432Int();
-		[[fallthrough]];
-	case 0:
-		break;
-	}
-
-	while (input != end_input) {
-		*output++ = Int24(*input++).To2432Int();
 	}
 }
 
@@ -212,71 +139,57 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
 
 #ifdef XAMP_OS_WIN
 	static void ConvertToInt32(int32_t* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {
-		static_assert(kLoopUnRollingIntCount == 4);
-
 		const auto* end_input = input + static_cast<ptrdiff_t>(context.convert_size) * context.input_format.GetChannels();
 
-		const auto scale = ::_mm_set1_ps(kFloat24Scale);
-		const auto max_val = ::_mm_set1_ps(kFloat24Scale - 1);
-		const auto min_val = ::_mm_set1_ps(-kFloat24Scale);
+		const auto scale = F32Set1Ps(kFloat32Scale);
+		const auto max_val = F32Set1Ps(kFloat32Scale - 1);
+		const auto min_val = F32Set1Ps(-kFloat32Scale);
 
-		switch ((end_input - input) % kLoopUnRollingIntCount) {
-		case 3:
+		auto aligned_bytes = (__F32VEC_SIZE / sizeof(float));
+		auto unaligned_size = (end_input - input) % aligned_bytes;
+
+		for (auto i = 0; i < unaligned_size; ++i) {
 			*output++ = Int24(*input++).To2432Int();
-			[[fallthrough]];
-		case 2:
-			*output++ = Int24(*input++).To2432Int();
-			[[fallthrough]];
-		case 1:
-			*output++ = Int24(*input++).To2432Int();
-			[[fallthrough]];
-		case 0:
-			break;
 		}
 
 		while (input != end_input) {
-			const auto in = ::_mm_load_ps(input);
-			const auto mul = ::_mm_mul_ps(in, scale);
-			const auto clamp = ::_mm_min_ps(_mm_max_ps(mul, min_val), max_val);
-			const auto result = ::_mm_cvtps_epi32(clamp);
-			::_mm_store_si128(reinterpret_cast<__m128i*>(output), result);
-			input += kLoopUnRollingIntCount;
-			output += kLoopUnRollingIntCount;
+			const auto in = F32VecLoadAligned(input);
+			const auto mul = F32MulPs(in, scale);
+			const auto clamp = F32MinPs(F32MaxPs(mul, min_val), max_val);
+			F32ToS32Aligned(output, clamp);
+			input += aligned_bytes;
+			output += aligned_bytes;
 		}
 	}
 
-	static void ConvertToInt2432(int32_t* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {		
-		static_assert(kLoopUnRollingIntCount == 4);
+	static void ConvertToInt2432Std(int32_t* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {
+		const auto* end_input = input + static_cast<ptrdiff_t>(context.convert_size) * context.input_format.GetChannels();
+		while (input != end_input) {
+			*output++ = Int24(*input++).To2432Int();
+		}
+	}
 
+	static void ConvertToInt2432(int32_t* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {
 		const auto* end_input = input + static_cast<ptrdiff_t>(context.convert_size) * context.input_format.GetChannels();
 
-		const auto scale = ::_mm_set1_ps(kFloat24Scale);
-		const auto max_val = ::_mm_set1_ps(kFloat24Scale - 1);
-		const auto min_val = ::_mm_set1_ps(-kFloat24Scale);
+		const auto scale = F32Set1Ps(kFloat24Scale);
+		const auto max_val = F32Set1Ps(kFloat24Scale - 1);
+		const auto min_val = F32Set1Ps(-kFloat24Scale);
 
-		switch ((end_input - input) % kLoopUnRollingIntCount) {
-		case 3:
+		auto aligned_bytes = (__F32VEC_SIZE / sizeof(float));
+		auto unaligned_size = (end_input - input) % aligned_bytes;
+
+		for (auto i = 0; i < unaligned_size; ++i) {
 			*output++ = Int24(*input++).To2432Int();
-			[[fallthrough]];
-		case 2:
-			*output++ = Int24(*input++).To2432Int();
-			[[fallthrough]];
-		case 1:
-			*output++ = Int24(*input++).To2432Int();
-			[[fallthrough]];
-		case 0:
-			break;
 		}
 
 		while (input != end_input) {
-			const auto in = ::_mm_load_ps(input);
-			const auto mul = ::_mm_mul_ps(in, scale);
-			const auto clamp = ::_mm_min_ps(_mm_max_ps(mul, min_val), max_val);
-			const auto result = ::_mm_cvtps_epi32(clamp);
-			const auto shift = ::_mm_slli_si128(result, 1);
-			::_mm_store_si128(reinterpret_cast<__m128i*>(output), shift);
-			input += kLoopUnRollingIntCount;
-			output += kLoopUnRollingIntCount;
+			const auto in = F32VecLoadAligned(input);
+			const auto mul = F32MulPs(in, scale);
+			const auto clamp = F32MinPs(F32MaxPs(mul, min_val), max_val);
+			F32ToS32Aligned<1>(output, clamp);
+			input += aligned_bytes;
+			output += aligned_bytes;
 		}
     }
 #endif

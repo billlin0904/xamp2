@@ -87,33 +87,7 @@ std::vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfoList() const {
 		CComPtr<IMMDevice> device;
 
 		HrIfFailledThrow(devices->Item(i, &device));
-
 		auto info = helper::GetDeviceInfo(device, Id);
-
-		// 不是所有設備都支援獨佔模式, 可以透過IsFormatSupported進行檢查.
-		CComPtr<IAudioClient2> client;
-		auto hr = device->Activate(__uuidof(IAudioClient2),
-			CLSCTX_ALL,
-			nullptr,
-			reinterpret_cast<void**>(&client));
-
-		if (SUCCEEDED(hr)) {
-			CComHeapPtr<WAVEFORMATEX> mix_format;
-			hr = client->GetMixFormat(&mix_format);
-			if (hr != S_OK) {
-				XAMP_LOG_ERROR(HRException::ErrorToStringHelper((hr)));
-				continue;
-			}
-			hr = client->IsFormatSupported(AUDCLNT_SHAREMODE_EXCLUSIVE, mix_format, nullptr);
-			if (hr == AUDCLNT_E_UNSUPPORTED_FORMAT) {
-				continue;
-			} else if (hr != S_OK) {
-				XAMP_LOG_ERROR(HRException::ErrorToStringHelper((hr)));
-				continue;
-			}
-		} else {
-			XAMP_LOG_ERROR(HRException::ErrorToStringHelper((hr)));
-		}
 
 		if (default_device_name == info.name) {
 			info.is_default_device = true;

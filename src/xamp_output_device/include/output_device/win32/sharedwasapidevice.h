@@ -12,6 +12,7 @@
 #include <future>
 #include <atomic>
 
+#include <base/buffer.h>
 #include <base/logger.h>
 #include <output_device/idevice.h>
 #include <output_device/win32/wasapiworkqueue.h>

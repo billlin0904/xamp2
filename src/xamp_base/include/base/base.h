@@ -22,7 +22,7 @@
 	#endif
 #if _MSVC_LANG > 201704L // Only for C++20
 	#define XAMP_LIKELY(x) if(x) [[likely]]
-	#define XAMP_UNLIKELY(x) if (!x) [[unlikely]]
+	#define XAMP_UNLIKELY(x) if (!x) [[unlikely]]	
 #else
 	#define XAMP_LIKELY(x) if(x)
 	#define XAMP_UNLIKELY(x) if (!x)
@@ -32,6 +32,7 @@
 	#define XAMP_OS_WIN 1
 	#define WIN32_LEAN_AND_MEAN
 	#define XAMP_ENABLE_REP_MOVSB
+	#define XAMP_OPTIMIZE_AVX
 #else
 	#define XAMP_BASE_API
 	#define XAMP_BASE_API_ONLY_EXPORT
@@ -149,14 +150,9 @@ inline constexpr size_t kCacheAlignSize{ 64 };
 
 /// <summary>
 /// Memory allocate aligned size
-/// Assume we need 64-byte alignment for AVX2 instructions.
+/// Assume we need 32-byte alignment for AVX2 instructions.
 /// </summary>
-inline constexpr size_t kMallocAlignSize{ 64 };
-
-/// <summary>
-/// SSE2 rolling count.
-/// </summary>
-inline constexpr ptrdiff_t kLoopUnRollingIntCount{ 4 };
+inline constexpr size_t kMallocAlignSize{ 32 };
 
 /// <summary>
 /// Default thread pool affinity core.

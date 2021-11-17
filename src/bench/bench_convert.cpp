@@ -220,26 +220,6 @@ static void BM_LockAudioBuffer(benchmark::State& state) {
 }
 
 BENCHMARK(BM_LockAudioBuffer);
-
-static void BM_ClampSampleSSE2(benchmark::State& state) {
-    auto input = GetRandomSamples();
-    for (auto _ : state) {
-        for (auto &v : input) {
-            v = ClampSampleSSE2(v);
-        }
-    }
-}
-
-BENCHMARK(BM_ClampSampleSSE2);
-
-static void BM_ClampSample(benchmark::State& state) {
-    auto input = GetRandomSamples();
-    for (auto _ : state) {
-        ClampSample(input.data(), input.size());
-    }
-}
-
-BENCHMARK(BM_ClampSample);
 #endif
 
 #if 1
@@ -293,7 +273,7 @@ static void BM_StdThreadPool(benchmark::State& state) {
 BENCHMARK(BM_StdThreadPool);
 #endif
 
-#if 0
+#if 1
 static void BM_ConvertToInt2432SSE(benchmark::State& state) {
     std::vector<int32_t> output(4096);
     std::vector<float> input(4096);
@@ -335,7 +315,8 @@ static void BM_ConvertToInt2432(benchmark::State& state) {
     auto ctx = MakeConvert(input_format, output_format, 2048);
 
     for (auto _ : state) {
-        Convert2432Helper(output.data(), input.data(), ctx);
+        DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::
+            ConvertToInt2432Std(output.data(), input.data(), ctx);
     }
 }
 

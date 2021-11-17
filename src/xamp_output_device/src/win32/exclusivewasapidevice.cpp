@@ -103,13 +103,6 @@ void ExclusiveWasapiDevice::SetAlignedPeriod(REFERENCE_TIME device_period, const
 }
 
 void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_format, const uint32_t valid_bits_samples) {
-    HrIfFailledThrow(client_->GetMixFormat(&mix_format_));
-
-	auto hr = client_->IsFormatSupported(AUDCLNT_SHAREMODE_EXCLUSIVE, mix_format_, nullptr);
-	if (hr == AUDCLNT_E_UNSUPPORTED_FORMAT) {
-		throw NotSupportExclusiveModeException();
-	}
-
 	SetWaveformatEx(mix_format_, output_format, valid_bits_samples);
 
     REFERENCE_TIME default_device_period = 0;
@@ -125,7 +118,7 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
 
 	XAMP_LOG_D(log_, "Initial aligned period: {} sec.", Nano100ToSeconds(aligned_period_));
 
-	hr = client_->Initialize(AUDCLNT_SHAREMODE_EXCLUSIVE,
+	auto hr = client_->Initialize(AUDCLNT_SHAREMODE_EXCLUSIVE,
 		AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
 		aligned_period_,
 		aligned_period_,
@@ -189,7 +182,19 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 			nullptr,
 			reinterpret_cast<void**>(&endpoint_volume_)));
 
-        InitialDeviceFormat(valid_output_format, kValidBitPerSamples);
+		HrIfFailledThrow(client_->GetMixFormat(&mix_format_));
+
+		HRESULT hr = S_OK;
+		hr = client_->IsFormatSupported(AUDCLNT_SHAREMODE_EXCLUSIVE, mix_format_, nullptr);
+		// note: 某些DAC drvier不支援24/32 format, 如果出現AUDCLNT_E_UNSUPPORTED_FORMAT嘗試改用32.
+		// 不管是24/32或是32/32 format資料都是24/32.
+		if (hr == AUDCLNT_E_UNSUPPORTED_FORMAT) {
+			InitialDeviceFormat(valid_output_format, 32);
+			XAMP_LOG_D(log_, "Fallback use valid output format: 32");
+		} else {			
+			InitialDeviceFormat(valid_output_format, kValidBitPerSamples);
+			XAMP_LOG_D(log_, "Use valid output format: {}", kValidBitPerSamples);
+		}
     }
 
     HrIfFailledThrow(client_->Reset());
@@ -370,7 +375,7 @@ void ExclusiveWasapiDevice::StartStream() {
 
 		const std::array<HANDLE, 2> objects{ sample_ready_.get(), close_request_.get() };
 
-		const auto wait_timeout = ConvertToMilliseconds(aligned_period_) + std::chrono::milliseconds(10);
+		const auto wait_timeout = ConvertToMilliseconds(aligned_period_) + std::chrono::milliseconds(20);
 		DWORD current_timeout = INFINITE;
 
 		auto thread_exit = false;
