@@ -26,8 +26,9 @@ public:
 
     template <typename ForwardIterator>
     explicit Uuid(ForwardIterator first, ForwardIterator last) {
-        if (std::distance(first, last) == kIdSize)
+        if (std::distance(first, last) == kIdSize) {
             std::copy(first, last, std::begin(bytes_));
+        }
     }
 
     explicit Uuid(uint8_t(&arr)[16]) noexcept {

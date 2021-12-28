@@ -29,6 +29,7 @@ QVariant PlayListSqlQueryTableModel::data(const QModelIndex& index, int32_t role
             || index.column() == PLAYLIST_SAMPLE_RATE
             || index.column() == PLAYLIST_ALBUM_PK
             || index.column() == PLAYLIST_ALBUM_RG
+            || index.column() == PLAYLIST_TRACK_PK
             || index.column() == PLAYLIST_TRACK_RG
             || index.column() == PLAYLIST_TIMESTAMP) {
             return QFont(Q_UTF8("MonoFont"));
@@ -37,7 +38,7 @@ QVariant PlayListSqlQueryTableModel::data(const QModelIndex& index, int32_t role
     case Qt::DisplayRole:
 	    {
 		    if (index.column() == PLAYLIST_PLAYING) {
-			    return QVariant();
+			    return {};
 		    }
 		    if (index.column() == PLAYLIST_RATING) {
 			    value = QSqlQueryModel::data(index, Qt::DisplayRole);
@@ -65,19 +66,21 @@ QVariant PlayListSqlQueryTableModel::data(const QModelIndex& index, int32_t role
             if (value.toBool()) {
                 return ThemeManager::instance().playArrow();
             }
-            return QVariant();
+            return {};
         }
         break;
     case Qt::TextAlignmentRole:
         switch (index.column()) {
-        case PLAYLIST_ALBUM_RG:        
-        case PLAYLIST_ARTIST:
-        case PLAYLIST_DURATION:
+        case PLAYLIST_ALBUM_RG:
         case PLAYLIST_ALBUM_PK:
+        case PLAYLIST_TRACK_RG:
+        case PLAYLIST_TRACK_PK:
+        case PLAYLIST_ARTIST:
+        case PLAYLIST_DURATION:        
         case PLAYLIST_TIMESTAMP:
-            return QVariant(Qt::AlignVCenter | Qt::AlignRight);
+            return {Qt::AlignVCenter | Qt::AlignRight};
         case PLAYLIST_SAMPLE_RATE:
-            return QVariant(Qt::AlignVCenter | Qt::AlignHCenter);
+            return {Qt::AlignVCenter | Qt::AlignHCenter};
         }
     default:
         break;

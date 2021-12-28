@@ -39,7 +39,7 @@ signals:
                     double track_peak);
 
 public Q_SLOT:
-    void addEntities(const std::vector<PlayListEntity>& items);
+    void addEntities(bool force, const std::vector<PlayListEntity>& items);
 
 private:
     bool is_stop_{false};

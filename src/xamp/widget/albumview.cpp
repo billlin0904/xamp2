@@ -11,7 +11,7 @@
 #include <QFuture>
 
 #include <metadata/taglibmetareader.h>
-#include <player/audio_util.h>
+#include <stream/api.h>
 #include <base/logger.h>
 
 #include <widget/appsettings.h>
@@ -30,6 +30,8 @@
 #include <widget/image_utiltis.h>
 #include <widget/pixmapcache.h>
 #include <widget/albumview.h>
+
+using namespace xamp::stream;
 
 AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
     : QStyledItemDelegate(parent)
@@ -465,9 +467,8 @@ AlbumView::AlbumView(QWidget* parent)
         action_map.addSeparator();
 
         (void)action_map.addAction(tr("Load local file"), [this]() {
-            using namespace audio_util;
             QString exts(Q_UTF8("("));
-            for (const auto & file_ext : audio_util::GetSupportFileExtensions()) {
+            for (const auto & file_ext : GetSupportFileExtensions()) {
                 exts += Q_UTF8("*") + QString::fromStdString(file_ext);
                 exts += Q_UTF8(" ");
             }

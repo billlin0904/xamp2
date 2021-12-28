@@ -68,7 +68,7 @@ void FramelessWindow::initial(IXampPlayer *content_widget) {
     }
 #endif
 #if defined(Q_OS_WIN)
-    ui_font.setPointSize(8);
+    ui_font.setPointSize(12);
 #else
     ui_font.setPointSize(12);
 #endif
@@ -137,11 +137,11 @@ QFont FramelessWindow::setupUIFont() const {
     // But Qt framework not work fine with that!
     ui_fallback_fonts.push_back(default_font_families[0]);
     ui_fallback_fonts.push_back(title_font_families[0]);
-    ui_fallback_fonts.push_back(Q_UTF8("Lucida Grande"));
-    ui_fallback_fonts.push_back(Q_UTF8("Helvetica Neue"));
+    //ui_fallback_fonts.push_back(Q_UTF8("Lucida Grande"));
+    //ui_fallback_fonts.push_back(Q_UTF8("Helvetica Neue"));
 #if defined(Q_OS_WIN)
     ui_fallback_fonts.push_back(Q_UTF8("Microsoft JhengHei UI"));
-    ui_fallback_fonts.push_back(Q_UTF8("Lucida Sans Unicode"));
+    //ui_fallback_fonts.push_back(Q_UTF8("Lucida Sans Unicode"));
     QFont::insertSubstitutions(Q_UTF8("MonoFont"), QList<QString>() << Q_UTF8("Consolas"));
 #else
     QList<QString> mono_fonts;

@@ -197,7 +197,6 @@
     <ClCompile Include="widget\playlistpage.cpp" />
     <ClCompile Include="widget\playlistsqlquerytablemodel.cpp" />
     <ClCompile Include="widget\playlisttableproxymodel.cpp" />
-    <ClCompile Include="widget\playlisttablequerymodel.cpp" />
     <ClCompile Include="widget\playlisttableview.cpp" />
     <ClCompile Include="widget\read_utiltis.cpp" />
     <ClCompile Include="widget\replaygainworker.cpp" />
@@ -245,7 +244,6 @@
     <ClInclude Include="crashhandler.h" />
     <ClInclude Include="widget\framelesswindow.h" />
     <ClInclude Include="widget\playlistsqlquerytablemodel.h" />
-    <ClInclude Include="widget\playlisttablequerymodel.h" />
     <QtMoc Include="widget\uiplayerstateadapter.h">
     </QtMoc>
     <ClInclude Include="widget\podcast_uiltis.h" />

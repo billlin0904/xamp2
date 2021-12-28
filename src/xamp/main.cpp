@@ -59,7 +59,8 @@ static void loadSettings() {
     AppSettings::setDefaultValue(kAppSettingHeight, 500);
     AppSettings::setDefaultValue(kAppSettingVolume, 50);
     AppSettings::setDefaultValue(kAppSettingOrder, static_cast<int32_t>(PlayerOrder::PLAYER_ORDER_REPEAT_ONCE));
-    AppSettings::setDefaultValue(kAppSettingEnableBlur, true);
+    AppSettings::setDefaultValue(kAppSettingEnableBlur, false);
+    AppSettings::setDefaultValue(kAppSettingUseFramelessWindow, true);
     AppSettings::setDefaultValue(kLyricsFontSize, 12);
     AppSettings::setDefaultValue(kAppSettingMinimizeToTrayAsk, true);
     AppSettings::setDefaultValue(kAppSettingMinimizeToTray, false);
@@ -96,12 +97,12 @@ static std::vector<ModuleHandle> preloadDll() {
     std::vector<std::string_view> preload_dll_file_name{
         "mimalloc-override.dll",
         "AudioSes.dll",
-        "ResourcePolicyClient.dll",
-        "AUDIOKSE.dll",
-        "comctl32.dll",
-        "WindowsCodecs.dll",
-        "thumbcache.dll",
         "psapi.dll",
+        //"ResourcePolicyClient.dll",
+        //"AUDIOKSE.dll",
+        //"comctl32.dll",
+        //"WindowsCodecs.dll",
+        //"thumbcache.dll",
     };
     std::vector<ModuleHandle> preload_module;
     for (const auto file_name : preload_dll_file_name) {

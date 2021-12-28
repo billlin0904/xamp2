@@ -62,12 +62,12 @@ static PlayListEntity getEntity(const QModelIndex& index) {
     entity.fingerprint = getIndexValue(index, PLAYLIST_FINGER_PRINT).toString();
     entity.file_ext = getIndexValue(index, PLAYLIST_FILE_EXT).toString();
     entity.parent_path = getIndexValue(index, PLAYLIST_FILE_PARENT_PATH).toString();
+    entity.timestamp = getIndexValue(index, PLAYLIST_TIMESTAMP).toULongLong();
+    entity.playlist_music_id = getIndexValue(index, PLAYLIST_PLAYLIST_MUSIC_ID).toInt();
     entity.album_replay_gain = getIndexValue(index, PLAYLIST_ALBUM_RG).toDouble();
     entity.album_peak = getIndexValue(index, PLAYLIST_ALBUM_PK).toDouble();
     entity.track_replay_gain = getIndexValue(index, PLAYLIST_TRACK_RG).toDouble();
-    entity.timestamp = getIndexValue(index, PLAYLIST_TIMESTAMP).toULongLong();
-    entity.playlist_music_id = getIndexValue(index, PLAYLIST_PLAYLIST_MUSIC_ID).toInt();
-    entity.track_peak = getIndexValue(index, PLAYLIST_TRACK_PEAK).toDouble();
+    entity.track_peak = getIndexValue(index, PLAYLIST_TRACK_PK).toDouble();
     return entity;
 }
 
@@ -105,9 +105,9 @@ void PlayListTableView::refresh() {
 	musics.fileExt,
     musics.parentPath,
     musics.dateTime,
-    musics.album_replay_gain,
-    musics.album_peak,
 	playlistMusics.playlistMusicsId,
+    musics.album_replay_gain,
+    musics.album_peak,	
     musics.track_replay_gain,
 	musics.track_peak
     FROM
@@ -154,7 +154,7 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
     model_.setHeaderData(PLAYLIST_TIMESTAMP, Qt::Horizontal, tr("Date"));
     model_.setHeaderData(PLAYLIST_FINGER_PRINT, Qt::Horizontal, tr("Fingerprint"));
     model_.setHeaderData(PLAYLIST_TRACK_RG, Qt::Horizontal, tr("Track RG"));
-    model_.setHeaderData(PLAYLIST_TRACK_PEAK, Qt::Horizontal, tr("Track Peak"));
+    model_.setHeaderData(PLAYLIST_TRACK_PK, Qt::Horizontal, tr("Track Peak"));
 
     hideColumn(PLAYLIST_MUSIC_ID);
     hideColumn(PLAYLIST_FILEPATH);
@@ -173,7 +173,7 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
     hideColumn(PLAYLIST_ALBUM_RG);
     hideColumn(PLAYLIST_ALBUM_PK);
     hideColumn(PLAYLIST_TRACK_RG);
-    hideColumn(PLAYLIST_TRACK_PEAK);
+    hideColumn(PLAYLIST_TRACK_PK);
 
     auto column_list = AppSettings::getList(kAppSettingColumnName);
 
@@ -444,7 +444,7 @@ void PlayListTableView::initial() {
             for (const auto& row : rows) {
                 items.push_back(this->item(row.second));
             }
-            emit addPlaylistReplayGain(items);
+            emit addPlaylistReplayGain(true, items);
         });
 
         action_map.setCallback(export_flac_file_act, [this]() {
@@ -629,7 +629,6 @@ void PlayListTableView::importPodcast() {
 	.success([this](const QString& json) {
         auto const podcast_info = parsePodcastXML(json);
         ::MetadataExtractAdapter::processMetadata(podcast_info.second, this, podcast_mode_);
-
         http::HttpClient(QString::fromStdString(podcast_info.first))
     	.download([=](auto data) {
             auto cover_id = Singleton<PixmapCache>::GetInstance().addOrUpdate(data);
@@ -638,8 +637,7 @@ void PlayListTableView::importPodcast() {
     		}
             auto play_item = getEntity(this->model()->index(0, 0));
             Singleton<Database>::GetInstance().setAlbumCover(play_item.album_id, play_item.album, cover_id);
-            });
-    	
+            });    	
         }).get();
 }
 
@@ -670,10 +668,9 @@ void PlayListTableView::resizeColumn() {
             header->resizeSection(column, 50);
             break;
         case PLAYLIST_ALBUM_RG:
-            header->setSectionResizeMode(column, QHeaderView::Fixed);
-            header->resizeSection(column, 50);
-            break;
         case PLAYLIST_ALBUM_PK:
+        case PLAYLIST_TRACK_RG:
+        case PLAYLIST_TRACK_PK:
             header->setSectionResizeMode(column, QHeaderView::Stretch);
             break;
         case PLAYLIST_DURATION:
@@ -721,7 +718,7 @@ QModelIndex PlayListTableView::nextIndex(int forward) const {
 
 QModelIndex PlayListTableView::shuffeIndex() {    
     const auto count = proxy_model_.rowCount();
-    const auto selected = PRNG::GetInstance()(0, count - 1);
+    const auto selected = PRNG::NextInt(0, count - 1);
     return model()->index(selected, PLAYLIST_PLAYING);
 }
 

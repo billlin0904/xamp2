@@ -22,7 +22,7 @@ void ReplayGainWorker::stopThreadPool() {
     is_stop_ = true;
 }
 
-void ReplayGainWorker::addEntities(const std::vector<PlayListEntity>& items) {
+void ReplayGainWorker::addEntities(bool force, const std::vector<PlayListEntity>& items) {
     std::vector<std::shared_future<int32_t>> replay_gain_tasks;
 
     const auto target_gain = AppSettings::getValue(kAppSettingReplayGainTargetGain).toDouble();
@@ -35,9 +35,9 @@ void ReplayGainWorker::addEntities(const std::vector<PlayListEntity>& items) {
     replay_gain_tasks.reserve(items.size());
 
     for (const auto &item : items) {
-        replay_gain_tasks.emplace_back(pool_->Spawn([&scanners, item, &mutex, this](auto ) {
+        replay_gain_tasks.emplace_back(pool_->Spawn([&scanners, force, item, &mutex, this](auto ) {
             AlignPtr<LoudnessScanner> scanner;
-            if (item.album_replay_gain == 0.0) {
+            if (!force && item.album_replay_gain != 0.0) {
                 return item.music_id;
             }
 
@@ -54,12 +54,13 @@ void ReplayGainWorker::addEntities(const std::vector<PlayListEntity>& items) {
                         }
                         scanner->Process(samples, sample_size);
                     });
+
+                std::lock_guard<FastMutex> guard{ mutex };
+                scanners.push_back(std::move(scanner));
             }
             catch (std::exception const& e) {
                 XAMP_LOG_DEBUG("{}", e.what());
             }
-            std::lock_guard<FastMutex> guard{ mutex };
-            scanners.push_back(std::move(scanner));
             return item.music_id;
         }));
     }

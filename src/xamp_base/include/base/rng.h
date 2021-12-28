@@ -22,28 +22,24 @@ public:
 
     XAMP_DISABLE_COPY(PRNG)
 
-    template<class T, std::enable_if_t<std::is_same_v<T, float>>* = nullptr>
+    template <class T, std::enable_if_t<std::is_same_v<T, float>>* = nullptr>
     T operator()(T min, T max) noexcept {
         return std::uniform_real_distribution(min, max)(engine_);
     }
 
-    template<class T, std::enable_if_t<std::is_integral_v<T>>* = nullptr>
+    template <class T, std::enable_if_t<std::is_integral_v<T>>* = nullptr>
     T operator()(T min, T max) noexcept {
         return std::uniform_int_distribution(min, max)(engine_);
     }
 
-    static int32_t NextInt() {
-        return GetInstance()(
-            (std::numeric_limits<int32_t>::min)(),
-            (std::numeric_limits<int32_t>::max)()
-            );
+    static int32_t NextInt(const int32_t min = (std::numeric_limits<int32_t>::min)(),
+        const int32_t max = (std::numeric_limits<int32_t>::max)()) noexcept {
+        return GetInstance()(min, max);
     }
 
-    static float NextFloat() {
-        return GetInstance()(
-            (std::numeric_limits<float>::min)(),
-            (std::numeric_limits<float>::max)()
-            );
+    static float NextFloat(const float min = (std::numeric_limits<float>::min)(),
+        const float max = (std::numeric_limits<float>::max)()) noexcept {
+        return GetInstance()(min, max);
     }
 
     static AlignArray<float> GetRandomFloat(size_t size,

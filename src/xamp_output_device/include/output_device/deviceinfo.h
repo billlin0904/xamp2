@@ -20,7 +20,7 @@ struct XAMP_OUTPUT_DEVICE_API DeviceInfo final {
 	bool is_support_dsd{false};
 	float min_volume{ 0 };
 	float max_volume{0};
-	float volume_increment{ 0 };
+	float volume_increment{ 1.0 };
 	DeviceConnectType connect_type{ DeviceConnectType::UKNOWN };
 	std::wstring name;    
 	std::string device_id;

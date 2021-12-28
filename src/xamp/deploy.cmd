@@ -4,9 +4,7 @@ copy x64\Release\libcrypto-1_1-x64.dll deploy\
 copy x64\Release\libfftw3f-3.dll deploy\
 copy x64\Release\taglib.dll deploy\
 copy x64\Release\libssl-1_1-x64.dll deploy\
-copy x64\Release\chromaprint.dll deploy\
 copy x64\Release\libsoxr.dll deploy\
-copy x64\Release\r8bsrc.dll deploy\
 copy x64\Release\bassmix.dll deploy\
 copy x64\Release\mimalloc-override.dll deploy\
 copy x64\Release\mimalloc-redirect.dll deploy\
@@ -17,6 +15,9 @@ copy x64\Release\bass_aac.dll deploy\
 copy x64\Release\bassflac.dll deploy\
 copy x64\Release\bass_fx.dll deploy\
 copy x64\Release\bassmix.dll deploy\
+copy x64\Release\basscd.dll deploy\
+copy x64\Release\bassenc.dll deploy\
+copy x64\Release\bassenc_flac.dll deploy\
 
 copy x64\Release\xamp_base.dll deploy\
 copy x64\Release\xamp_stream.dll deploy\

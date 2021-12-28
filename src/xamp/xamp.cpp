@@ -1203,7 +1203,7 @@ void Xamp::onArtistIdChanged(const QString& artist, const QString& /*cover_id*/,
 void Xamp::addPlaylistItem(const std::vector<int32_t>& music_ids, const std::vector<PlayListEntity> & entities) {
     auto playlist_view = playlist_page_->playlist();
     Singleton<Database>::GetInstance().addMusicToPlaylist(music_ids, playlist_view->playlistId());
-    emit playlist_view->addPlaylistReplayGain(entities);
+    emit playlist_view->addPlaylistReplayGain(false, entities);
     playlist_view->refresh();
 }
 
