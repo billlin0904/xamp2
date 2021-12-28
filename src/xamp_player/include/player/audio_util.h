@@ -18,10 +18,6 @@
 
 namespace xamp::player::audio_util {
 
-using namespace xamp::base;
-using namespace xamp::stream;
-using namespace xamp::output_device;
-
 std::pair<DsdModes, AlignPtr<FileStream>> MakeFileStream(Path const &path,	
 	DeviceInfo const& device_info,
 	bool enable_sample_converter = false);

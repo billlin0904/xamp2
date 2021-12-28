@@ -155,7 +155,6 @@
   <ItemGroup>
     <ClInclude Include="include\player\api.h" />
     <ClInclude Include="include\player\audio_player.h" />
-    <ClInclude Include="include\player\chromaprint.h" />
     <ClInclude Include="include\player\fft.h" />
     <ClInclude Include="include\player\iaudioplayer.h" />
     <ClInclude Include="include\player\loudness_scanner.h" />
@@ -169,7 +168,6 @@
     <ClCompile Include="src\api.cpp" />
     <ClCompile Include="src\audio_player.cpp" />
     <ClCompile Include="src\audio_util.cpp" />
-    <ClCompile Include="src\chromaprint.cpp" />
     <ClCompile Include="src\fft.cpp" />
     <ClCompile Include="src\loudness_scanner.cpp" />
     <ClCompile Include="src\libebur128\ebur128.c" />

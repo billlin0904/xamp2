@@ -2,7 +2,6 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="src\audio_player.cpp" />
-    <ClCompile Include="src\chromaprint.cpp" />
     <ClCompile Include="src\audio_util.cpp" />
     <ClCompile Include="src\loudness_scanner.cpp" />
     <ClCompile Include="src\libebur128\ebur128.c" />
@@ -11,7 +10,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\player\audio_player.h" />
-    <ClInclude Include="include\player\chromaprint.h" />
     <ClInclude Include="include\player\iplaybackstateadapter.h" />
     <ClInclude Include="include\player\player.h" />
     <ClInclude Include="include\player\playstate.h" />

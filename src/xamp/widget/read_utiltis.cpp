@@ -19,7 +19,6 @@
 #include <metadata/imetadatareader.h>
 #include <metadata/imetadatawriter.h>
 
-#include <player/chromaprint.h>
 #include <player/loudness_scanner.h>
 #include <stream/isamplerateconverter.h>
 
@@ -190,35 +189,6 @@ std::tuple<double, double> readFileLUFS(std::wstring const& file_path,
 
     return std::make_tuple(scanner->GetLoudness(),
                            scanner->GetTruePeek());
-}
-
-std::tuple<double, std::vector<uint8_t>> readFingerprint(std::wstring const& file_path,
-	std::function<bool(uint32_t)> const& progress) {
-	Chromaprint chromaprint;
-
-	std::vector<int16_t> osamples;
-	AudioFormat convert_format;
-
-    auto duration = readAll(file_path, progress,
-        [&chromaprint, &convert_format](AudioFormat const& input_format)
-		{
-			convert_format = input_format;
-			chromaprint.Start(input_format.GetSampleRate(), input_format.GetChannels());
-		}, [&chromaprint, &convert_format, &osamples](auto const* samples, auto sample_size)
-		{
-			auto ctx = MakeConvert(convert_format, convert_format, sample_size / convert_format.GetChannels());
-			osamples.resize(sample_size);
-			DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>
-				::Convert(osamples.data(), samples, ctx);
-			chromaprint.Feed(osamples.data(), sample_size);
-        }, kReadFingerprintDuration);
-
-	(void)chromaprint.Finish();
-
-	return {
-		duration,
-		chromaprint.GetFingerprint(),
-	};
 }
 
 void encodeFlacFile(std::wstring const& file_path,

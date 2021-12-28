@@ -23,10 +23,6 @@ using namespace xamp::stream;
 
 namespace read_utiltis {
 
-std::tuple<double, std::vector<uint8_t>> readFingerprint(
-	std::wstring const & file_path,
-    std::function<bool(uint32_t)> const & progress);
-
 double readAll(std::wstring const& file_path,
                std::function<bool(uint32_t)> const& progress,
                std::function<void(AudioFormat const&)> const& prepare,

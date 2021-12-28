@@ -8,7 +8,6 @@
 #include <player/fft.h>
 #include <player/audio_player.h>
 #include <stream/soxresampler.h>
-#include <player/chromaprint.h>
 #include <player/audio_util.h>
 
 #include <player/api.h>
@@ -31,14 +30,6 @@ void PlayerStartup() {
 
     LoadSoxrLib();
     XAMP_LOG_DEBUG("Load Soxr dll success.");
-
-    try {
-        Chromaprint::LoadChromaprintLib();
-        XAMP_LOG_DEBUG("Load Chromaprint dll success.");
-    }
-    catch (...) {
-        // Ignore exception.
-    }
 
     FFT::LoadFFTLib();
 

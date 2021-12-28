@@ -23,10 +23,9 @@ namespace xamp::player {
 	using namespace base;
 	using namespace stream;
 	using namespace output_device;
-	
+
 	class IAudioPlayer;	
 	class IPlaybackStateAdapter;
-	class Chromaprint;
 	class LoudnessScanner;
 }
 
