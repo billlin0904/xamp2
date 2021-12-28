@@ -1,0 +1,28 @@
+{
+    "Disable": {
+        "enableSteepFilter": false,
+        "passBand": 96,
+        "phase": 46,
+        "quality": 4,
+        "resampleSampleRate": 384000,
+        "rolloffLevel": 0,
+        "stopBand": 100
+    },
+    "Soxr": {
+        "enableSteepFilter": false,
+        "passBand": 96,
+        "phase": 46,
+        "quality": 4,
+        "resampleSampleRate": 384000,
+        "rolloffLevel": 0,
+        "stopBand": 100
+    },
+    "default": {
+        "enableSteepFilter": false,
+        "passBand": 96,
+        "phase": 46,
+        "quality": 3,
+        "resampleSampleRate": 192000,
+        "stopBand": 100
+    }
+}

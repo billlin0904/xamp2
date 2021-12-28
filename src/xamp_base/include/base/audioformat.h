@@ -1,0 +1,279 @@
+//=====================================================================================================================
+// Copyright (c) 2018-2021 xamp project. All rights reserved.
+// More license information, please see LICENSE file in module root folder.
+//=====================================================================================================================
+
+#pragma once
+
+#include <ostream>
+#include <sstream>
+#include <iomanip>
+
+#include <base/base.h>
+#include <base/enum.h>
+
+namespace xamp::base {
+
+MAKE_XAMP_ENUM(ByteFormat,
+          INVALID_FORMAT,
+		  SINT8 = 1,
+          SINT16 = 2,
+          SINT24 = 3,
+          SINT32 = 4,
+          FLOAT32,
+          FLOAT64)
+
+MAKE_XAMP_ENUM(PackedFormat,
+          INTERLEAVED,
+          PLANAR)
+
+MAKE_XAMP_ENUM(DataFormat,
+          FORMAT_DSD,
+          FORMAT_PCM)
+
+inline constexpr uint32_t kMaxChannel = 2;
+inline constexpr uint32_t kMaxSamplerate = 384000;
+
+class XAMP_BASE_API AudioFormat final {
+public:
+    static const AudioFormat kUnknowFormat;
+    static const AudioFormat kPCM48Khz;
+
+    explicit AudioFormat(DataFormat format = DataFormat::FORMAT_PCM,
+        uint16_t number_of_channels = 0,
+        uint32_t bits_per_sample = 0,
+        uint32_t sample_rate = 0) noexcept;
+
+    explicit AudioFormat(DataFormat format,
+        uint16_t number_of_channels,
+        ByteFormat byte_format,
+        uint32_t sample_rate,
+        PackedFormat packed_format = PackedFormat::INTERLEAVED) noexcept;
+
+    void SetFormat(DataFormat format) noexcept;
+
+    void SetSampleRate(uint32_t sample_rate) noexcept;
+
+    void SetBitPerSample(uint32_t bits_per_sample) noexcept;
+
+    void SetChannel(uint16_t num_channels) noexcept;
+
+    void SetByteFormat(ByteFormat format) noexcept;
+
+    void SetPackedFormat(PackedFormat format) noexcept;
+
+    [[nodiscard]] DataFormat GetFormat() const noexcept;
+
+    [[nodiscard]] PackedFormat GetPackedFormat() const noexcept;
+
+    [[nodiscard]] uint32_t GetSampleRate() const noexcept;
+
+    [[nodiscard]] uint32_t GetAvgBytesPerSec() const noexcept;
+
+    [[nodiscard]] uint32_t GetAvgFramesPerSec() const noexcept;
+
+    [[nodiscard]] uint16_t GetChannels() const noexcept;
+
+    [[nodiscard]] uint32_t GetBitsPerSample() const noexcept;
+
+    [[nodiscard]] uint32_t GetBytesPerSample() const noexcept;
+
+    [[nodiscard]] uint32_t GetBlockAlign() const noexcept;
+
+    [[nodiscard]] ByteFormat GetByteFormat() const noexcept;
+
+    [[nodiscard]] uint64_t GetSecondsSize(double sec) const noexcept;
+
+    void Reset() noexcept;
+
+    static AudioFormat ToFloatFormat(AudioFormat const& source_format) noexcept;
+
+private:
+    XAMP_BASE_API friend bool operator==(const AudioFormat& format, const AudioFormat& other) noexcept;
+
+    XAMP_BASE_API friend bool operator!=(const AudioFormat& format, const AudioFormat& other) noexcept;
+
+    XAMP_BASE_API friend std::ostream& operator<<(std::ostream& ostr, const AudioFormat& format);
+
+    DataFormat format_;
+    ByteFormat byte_format_;
+    PackedFormat packed_format_;
+    uint16_t num_channels_;
+    uint32_t sample_rate_;
+    uint32_t bits_per_sample_;
+};
+
+XAMP_ENFORCE_TRIVIAL(AudioFormat);
+
+XAMP_ALWAYS_INLINE AudioFormat::AudioFormat(DataFormat format,
+    uint16_t number_of_channels,
+    ByteFormat byte_format,
+    uint32_t sample_rate,
+    PackedFormat interleaved_format) noexcept
+    : format_(format)
+    , byte_format_(ByteFormat::INVALID_FORMAT)
+    , packed_format_(interleaved_format)
+    , num_channels_(number_of_channels)
+    , sample_rate_(sample_rate) {
+    SetByteFormat(byte_format);
+}
+
+XAMP_ALWAYS_INLINE AudioFormat::AudioFormat(DataFormat format,
+    uint16_t number_of_channels,
+    uint32_t bits_per_sample,
+    uint32_t sample_rate) noexcept
+    : format_(format)
+    , byte_format_(ByteFormat::INVALID_FORMAT)
+    , packed_format_(PackedFormat::INTERLEAVED)
+    , num_channels_(number_of_channels)
+    , sample_rate_(sample_rate) {
+    SetBitPerSample(bits_per_sample);
+}
+
+XAMP_ALWAYS_INLINE DataFormat AudioFormat::GetFormat() const noexcept {
+    return format_;
+}
+
+XAMP_ALWAYS_INLINE void AudioFormat::SetFormat(DataFormat format) noexcept {
+    format_ = format;
+}
+
+XAMP_ALWAYS_INLINE uint16_t AudioFormat::GetChannels() const noexcept {
+    return num_channels_;
+}
+
+XAMP_ALWAYS_INLINE uint32_t AudioFormat::GetBitsPerSample() const noexcept {
+    return bits_per_sample_;
+}
+
+XAMP_ALWAYS_INLINE uint32_t AudioFormat::GetBytesPerSample() const noexcept {
+    return bits_per_sample_ / 8;
+}
+
+XAMP_ALWAYS_INLINE void AudioFormat::SetSampleRate(uint32_t sample_rate) noexcept {
+    sample_rate_ = sample_rate;
+}
+
+XAMP_ALWAYS_INLINE void AudioFormat::SetChannel(uint16_t num_channels) noexcept {
+    num_channels_ = num_channels;
+}
+
+XAMP_ALWAYS_INLINE void AudioFormat::SetBitPerSample(uint32_t bits_per_sample) noexcept {
+    switch (bits_per_sample) {
+    case 8:
+        SetByteFormat(ByteFormat::SINT8);
+        break;
+    case 16:
+        SetByteFormat(ByteFormat::SINT16);
+        break;
+    case 24:
+        SetByteFormat(ByteFormat::SINT24);
+        break;
+    case 32:
+        SetByteFormat(ByteFormat::SINT32);
+        break;
+    default:
+        SetByteFormat(ByteFormat::INVALID_FORMAT);
+        break;
+    }
+}
+
+XAMP_ALWAYS_INLINE uint32_t AudioFormat::GetSampleRate() const noexcept {
+    return sample_rate_;
+}
+
+XAMP_ALWAYS_INLINE uint32_t AudioFormat::GetAvgBytesPerSec() const noexcept {
+    return GetSampleRate() * GetBlockAlign();
+}
+
+XAMP_ALWAYS_INLINE uint32_t AudioFormat::GetAvgFramesPerSec() const noexcept {
+    return GetSampleRate() * GetChannels();
+}
+
+XAMP_ALWAYS_INLINE uint32_t AudioFormat::GetBlockAlign() const noexcept {
+    return GetBytesPerSample() * GetChannels();
+}
+
+XAMP_ALWAYS_INLINE ByteFormat AudioFormat::GetByteFormat() const noexcept {
+    return byte_format_;
+}
+
+XAMP_ALWAYS_INLINE uint64_t AudioFormat::GetSecondsSize(double sec) const noexcept {
+    return static_cast<uint64_t>(GetSampleRate() * GetBytesPerSample() * GetChannels() * sec);
+}
+
+XAMP_ALWAYS_INLINE void AudioFormat::SetByteFormat(ByteFormat format) noexcept {
+    switch (format) {
+    case ByteFormat::FLOAT64:
+        bits_per_sample_ = 64;
+        byte_format_ = format;
+        break;
+    case ByteFormat::SINT32:
+    case ByteFormat::FLOAT32:
+        bits_per_sample_ = 32;
+        byte_format_ = format;
+        break;
+    case ByteFormat::SINT24:
+        bits_per_sample_ = 24;
+        byte_format_ = format;
+        break;
+    case ByteFormat::SINT16:
+        bits_per_sample_ = 16;
+        byte_format_ = format;
+        break;
+    case ByteFormat::SINT8:
+        bits_per_sample_ = 8;
+        byte_format_ = format;
+        break;
+    case ByteFormat::INVALID_FORMAT:
+        bits_per_sample_ = 0;
+        byte_format_ = format;
+        break;
+    }
+}
+
+XAMP_ALWAYS_INLINE void AudioFormat::SetPackedFormat(PackedFormat format) noexcept {
+    packed_format_ = format;
+}
+
+XAMP_ALWAYS_INLINE PackedFormat AudioFormat::GetPackedFormat() const noexcept {
+    return packed_format_;
+}
+
+XAMP_ALWAYS_INLINE std::ostream& operator<<(std::ostream& ostr, AudioFormat const & format) {
+    ostr << format.GetByteFormat() << "-" << format.GetPackedFormat() << "-"
+         << format.GetBitsPerSample() << "bits/";
+
+    if (format.GetSampleRate() % 1000 > 0) {
+        ostr << std::fixed << std::setprecision(1) << static_cast<float>(format.GetSampleRate()) / 1000.0f << " Khz";
+    }
+    else {
+        ostr << format.GetSampleRate() / 1000 << "kHZ";
+    }
+
+    return ostr;
+}
+
+XAMP_ALWAYS_INLINE bool operator!=(AudioFormat const & format, AudioFormat const & other) noexcept {
+    return format.format_ != other.format_
+           || format.num_channels_ != other.num_channels_
+           || format.sample_rate_ != other.sample_rate_
+           || format.bits_per_sample_ != other.bits_per_sample_
+           || format.byte_format_ != other.byte_format_
+           || format.packed_format_ != other.packed_format_;
+}
+
+XAMP_ALWAYS_INLINE bool operator==(AudioFormat const & format, AudioFormat const & other) noexcept {
+    return format.format_ == other.format_
+           && format.num_channels_ == other.num_channels_
+           && format.sample_rate_ == other.sample_rate_
+           && format.bits_per_sample_ == other.bits_per_sample_
+           && format.byte_format_ == other.byte_format_
+           && format.packed_format_ == other.packed_format_;
+}
+
+XAMP_ALWAYS_INLINE void AudioFormat::Reset() noexcept {
+    *this = kUnknowFormat;
+}
+
+}

@@ -1,0 +1,38 @@
+//=====================================================================================================================
+// Copyright (c) 2018-2021 xamp project. All rights reserved.
+// More license information, please see LICENSE file in module root folder.
+//=====================================================================================================================
+
+#pragma once
+
+#include <string>
+#include <base/base.h>
+
+namespace xamp::base {
+
+class MemoryMappedFile;
+
+XAMP_BASE_API size_t GetPageSize() noexcept;
+
+XAMP_BASE_API size_t GetPageAlignSize(size_t value) noexcept;
+
+XAMP_BASE_API bool PrefetchFile(std::wstring const &file_name);
+
+XAMP_BASE_API bool PrefetchFile(MemoryMappedFile &file);
+
+XAMP_BASE_API bool PrefetchMemory(void* adddr, size_t length) noexcept;
+
+#ifdef XAMP_ENABLE_REP_MOVSB
+XAMP_BASE_API void MemorySet(void* dest, int32_t c, size_t size);
+#else
+#define MemorySet(dest, c, size) (void) std::memset(dest, c, size)
+#endif
+
+#ifdef XAMP_ENABLE_REP_MOVSB
+XAMP_BASE_API void MemoryCopy(void* dest, const void* src, size_t size);
+#else
+#define MemoryCopy(dest, src, size) (void) __builtin_memcpy(dest, src, size)
+#endif
+
+}
+

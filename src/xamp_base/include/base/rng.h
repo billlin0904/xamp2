@@ -1,0 +1,87 @@
+//=====================================================================================================================
+// Copyright (c) 2018-2021 xamp project. All rights reserved.
+// More license information, please see LICENSE file in module root folder.
+//=====================================================================================================================
+
+#pragma once
+
+#include <cstdlib>
+
+#include <random>
+#include <array>
+
+#include <base/base.h>
+#include <base/align_ptr.h>
+#include <base/xoshiro.h>
+
+namespace xamp::base {
+
+class XAMP_BASE_API PRNG final {
+public:
+    static PRNG& GetInstance();
+
+    XAMP_DISABLE_COPY(PRNG)
+
+    template<class T, std::enable_if_t<std::is_same_v<T, float>>* = nullptr>
+    T operator()(T min, T max) noexcept {
+        return std::uniform_real_distribution(min, max)(engine_);
+    }
+
+    template<class T, std::enable_if_t<std::is_integral_v<T>>* = nullptr>
+    T operator()(T min, T max) noexcept {
+        return std::uniform_int_distribution(min, max)(engine_);
+    }
+
+    static int32_t NextInt() {
+        return GetInstance()(
+            (std::numeric_limits<int32_t>::min)(),
+            (std::numeric_limits<int32_t>::max)()
+            );
+    }
+
+    static float NextFloat() {
+        return GetInstance()(
+            (std::numeric_limits<float>::min)(),
+            (std::numeric_limits<float>::max)()
+            );
+    }
+
+    static AlignArray<float> GetRandomFloat(size_t size,
+                                            const float min = (std::numeric_limits<float>::min)(),
+                                            const float max = (std::numeric_limits<float>::max)()) {
+        auto output = MakeAlignedArray<float>(size);
+        for (auto i = 0; i < size; ++i) {
+            output[i] = GetInstance()(min, max);
+        }
+        return output;
+    }
+
+    static AlignArray<int32_t> GetRandomInt(size_t size,
+                                            const int32_t min = (std::numeric_limits<int32_t>::min)(),
+                                            const int32_t max = (std::numeric_limits<int32_t>::max)()) {
+        auto output = MakeAlignedArray<int32_t>(size);
+        for (auto i = 0; i < size; ++i) {
+            output[i] = GetInstance()(min, max);
+        }
+        return output;
+    }
+
+    static AlignArray<int8_t> GetRandomBytes(size_t size,
+                                             const int32_t min = (std::numeric_limits<int8_t>::min)(),
+                                             const int32_t max = (std::numeric_limits<int8_t>::max)()) {
+        auto output = MakeAlignedArray<int8_t>(size);
+        for (auto i = 0; i < size; ++i) {
+            output[i] = static_cast<int8_t>(GetInstance()(min, max));
+		}
+        return output;
+	}
+private:
+    PRNG();
+#ifdef XAMP_OS_WIN
+    std::default_random_engine engine_;
+#else
+    Xoshiro256PlusPlusEngine engine_;
+#endif
+};
+
+}
