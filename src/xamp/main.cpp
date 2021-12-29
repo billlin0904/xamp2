@@ -154,17 +154,6 @@ static int excute(int argc, char* argv[]) {
     XAMP_LOG_DEBUG("Logger init success.");
 
     const auto preload_module = preloadDll();
-	
-    if (StackTrace::LoadSymbol()) {
-        XAMP_LOG_DEBUG("Load symbol success.");
-    }
-    else {
-        XAMP_LOG_DEBUG("Load symbol failure!");
-    }
-
-    for (auto i = 0; i < argc; ++i) {
-        XAMP_LOG_DEBUG("argv:{} {}", i, argv[i]);
-    }
 
     QApplication app(argc, argv);
 
@@ -194,12 +183,6 @@ static int excute(int argc, char* argv[]) {
     XAMP_LOG_DEBUG("attach app success.");
 
     loadSettings();
-
-    (void)Singleton<PixmapCache>::GetInstance();
-    XAMP_LOG_DEBUG("PixmapCache init success.");
-
-    XAMP_LOG_DEBUG("PixmapCache cache size:{}", 
-        String::FormatBytes(Singleton<PixmapCache>::GetInstance().getImageSize()));
 
     try {
         Singleton<Database>::GetInstance().open(Q_UTF8("xamp.db"));
