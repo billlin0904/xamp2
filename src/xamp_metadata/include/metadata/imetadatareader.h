@@ -19,6 +19,8 @@ public:
     XAMP_BASE_CLASS(IMetadataReader)
 
     virtual Metadata Extract(Path const &path) = 0;
+
+    virtual std::optional<ReplayGain> GetReplayGain(const Path& path) = 0;
  
     virtual const std::vector<uint8_t>& ExtractEmbeddedCover(Path const &path) = 0;
 

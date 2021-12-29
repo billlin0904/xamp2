@@ -87,7 +87,7 @@ public:
 
     void updateMusicRating(int32_t music_id, int32_t rating);
 
-    void updateLUFS(int music_id,
+    void updateReplayGain(int music_id,
                     double album_rg_gain,
                     double album_peak,
                     double track_rg_gain,

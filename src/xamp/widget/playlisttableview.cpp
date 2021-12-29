@@ -534,12 +534,12 @@ void PlayListTableView::onThemeColorChanged(QColor backgroundColor, QColor color
     //setStyleSheet(backgroundColorToString(backgroundColor));
 }
 
-void PlayListTableView::updateLUFS(int music_id,
+void PlayListTableView::updateReplayGain(int music_id,
     double album_rg_gain,
     double album_peak,
     double track_rg_gain,
     double track_peak) {
-    Singleton<Database>::GetInstance().updateLUFS(
+    Singleton<Database>::GetInstance().updateReplayGain(
         music_id, album_rg_gain, album_peak, track_rg_gain, track_peak);
     XAMP_LOG_DEBUG("Update DB music id : {}, album_rg_gain: {:.2f} album_peak: {:.2f} track_rg_gain: {:.2f} track_peak: {:.2f}",
         music_id, album_rg_gain, album_peak, track_rg_gain, track_peak);

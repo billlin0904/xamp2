@@ -3,6 +3,8 @@
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
+#pragma once
+
 #include <QObject>
 
 #include <base/ithreadpool.h>
@@ -11,16 +13,14 @@
 using xamp::base::AlignPtr;
 using xamp::base::IThreadPool;
 
-struct ReplayGain final {
+struct ReplayGainResult final {
     double album_peak{0};
     double album_replay_gain{0};
-    std::vector<int32_t> music_id;
+    std::vector<PlayListEntity> music_id;
     std::vector<double> lufs;
     std::vector<double> track_peak;
     std::vector<double> track_replay_gain;
 };
-
-struct PlayListEntity;
 
 class ReplayGainWorker : public QObject {
     Q_OBJECT
@@ -32,7 +32,7 @@ public:
     virtual ~ReplayGainWorker();
 
 signals:
-    void updateLUFS(int music_id,
+    void updateReplayGain(int music_id,
                     double album_rg_gain,
                     double album_peak,
                     double track_rg_gain,

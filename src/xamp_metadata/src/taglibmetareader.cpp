@@ -95,6 +95,42 @@ static bool GetMp4Cover(File* file, std::vector<uint8_t>& buffer) {
     return false;
 }
 
+static std::optional<ReplayGain> GetFlacReplayGain(File* file) {
+    ReplayGain replay_gain;
+    bool found = false;
+    if (auto* const flac_file = dynamic_cast<TagLib::FLAC::File*>(file)) {
+        if (auto* xiph_comment = flac_file->xiphComment()) {
+            auto field_map = xiph_comment->fieldListMap();
+            for (auto& field : field_map) {
+                if (field.first == "REPLAYGAIN_ALBUM_GAIN") {
+                    replay_gain.album_gain = std::stod(field.second[0].to8Bit());
+                    found = true;
+                }
+                else if (field.first == "REPLAYGAIN_TRACK_PEAK") {
+                    replay_gain.track_peak = std::stod(field.second[0].to8Bit());
+                    found = true;
+                }
+                else if (field.first == "REPLAYGAIN_ALBUM_PEAK") {
+                    replay_gain.album_peak = std::stod(field.second[0].to8Bit());
+                    found = true;
+                }
+                else if (field.first == "REPLAYGAIN_TRACK_GAIN") {
+                    replay_gain.track_gain = std::stod(field.second[0].to8Bit());
+                    found = true;
+                }
+                else if (field.first == "REPLAYGAIN_REFERENCE_LOUDNESS") {
+                    replay_gain.ref_loudness = std::stod(field.second[0].to8Bit());
+                    found = true;
+                }
+            }
+        }
+    }
+    if (!found) {
+        return std::nullopt;
+    }
+    return replay_gain;
+}
+
 static bool GetFlacCover(File* file, std::vector<uint8_t>& buffer) {
     if (auto* flac_file = dynamic_cast<TagLib::FLAC::File*>(file)) {
         const auto picture_list = flac_file->pictureList();
@@ -193,12 +229,17 @@ class TaglibMetadataReader::TaglibMetadataReaderImpl {
 public:
     TaglibMetadataReaderImpl() = default;
 
-    [[nodiscard]] Metadata Extract(const Path& path) const {
+    static FileRef GetFileRef(const Path& path) {
 #ifdef XAMP_OS_WIN
-        FileRef fileref(path.wstring().c_str(), true, TagLib::AudioProperties::Fast);
+        return FileRef(path.wstring().c_str(), true, TagLib::AudioProperties::Accurate);
 #else
-        FileRef fileref(path.string().c_str(), true, TagLib::AudioProperties::Fast);
+        return FileRef(path.string().c_str(), true, TagLib::AudioProperties::Accurate);
 #endif
+    }
+
+    [[nodiscard]] Metadata Extract(const Path& path) const {
+        auto fileref = GetFileRef(path);
+
         const auto* tag = fileref.tag();
 
         Metadata metadata;
@@ -215,6 +256,8 @@ public:
             ExtractTitleFromFileName(metadata);
         }
 
+        const auto ext = String::ToLower(path.extension().string());
+        metadata.replay_gain = GetReplayGain(ext, fileref.file());
         return metadata;
     }
 
@@ -226,11 +269,7 @@ public:
 			return cover_;
 		}
 
-#ifdef XAMP_OS_WIN
-        FileRef fileref(path.wstring().c_str());
-#else
-        FileRef fileref(path.string().c_str());
-#endif
+        auto fileref = GetFileRef(path);
         const auto* tag = fileref.tag();
         if (!tag) {
             cover_.clear();
@@ -249,7 +288,25 @@ public:
 		return Singleton<TaglibHelper>::GetInstance().IsSupported(path);
     }
 
+    std::optional<ReplayGain> GetReplayGain(const Path& path) const {
+        auto fileref = GetFileRef(path);
+        const auto ext = String::ToLower(path.extension().string());
+        return GetReplayGain(ext, fileref.file());
+    }
+
 private:
+    static std::optional<ReplayGain> GetReplayGain(std::string const& ext, File* file) {
+        static const HashMap<std::string, std::function<std::optional<ReplayGain>(File*)>>
+            parse_cover_table{
+            { ".flac", GetFlacReplayGain },
+        };
+        auto itr = parse_cover_table.find(ext);
+        if (itr != parse_cover_table.end()) {
+            return (*itr).second(file);
+        }
+        return std::nullopt;
+    }
+
     static void GetCover(std::string const & ext, File*file, std::vector<uint8_t>& cover) {
         static const HashMap<std::string, std::function<bool(File *, std::vector<uint8_t> &)>>
             parse_cover_table{
@@ -275,6 +332,10 @@ TaglibMetadataReader::TaglibMetadataReader()
 
 Metadata TaglibMetadataReader::Extract(const Path& path) {
     return reader_->Extract(path);
+}
+
+std::optional<ReplayGain> TaglibMetadataReader::GetReplayGain(const Path& path) {
+    return reader_->GetReplayGain(path);
 }
 
 const std::vector<uint8_t>& TaglibMetadataReader::ExtractEmbeddedCover(Path const & path) {

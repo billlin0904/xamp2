@@ -18,6 +18,8 @@ public:
     
     virtual void Write(Path const &path, Metadata const& metadata) = 0;
 
+    virtual void WriteReplayGain(Path const& path, const ReplayGain& replay_gain) = 0;
+
     virtual void WriteEmbeddedCover(Path const& path, std::vector<uint8_t> const& image) const = 0;
 
 protected:

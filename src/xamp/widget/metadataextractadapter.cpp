@@ -202,7 +202,7 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
 }
 
 void ::MetadataExtractAdapter::processMetadata(const std::vector<Metadata>& result, PlayListTableView* playlist, bool is_podcast) {
-  const DatabaseIdCache cache;
+	const DatabaseIdCache cache;
 
     auto playlist_id = -1;
     if (playlist != nullptr) {

@@ -6,6 +6,7 @@
 #include <base/exception.h>
 #include <base/audioformat.h>
 #include <base/dataconverter.h>
+#include <base/metadata.h>
 #include <player/loudness_scanner.h>
 
 namespace xamp::player {
@@ -120,7 +121,7 @@ double LoudnessScanner::GetMultipleEbur128Gain(std::vector<AlignPtr<LoudnessScan
 double LoudnessScanner::GetEbur128Gain(double loudness, double targetdb) {
 	// EBUR128 sets the target level to -23 LUFS = 84dB
 	// -23 - loudness = track gain to get to 84dB		
-	return (-23.0 - loudness + targetdb - 84.0);
+	return (-23.0 - loudness + targetdb - kReferenceLoudness);
 }
 	
 }

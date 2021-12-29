@@ -16,6 +16,8 @@ public:
     TaglibMetadataReader();
 
     XAMP_PIMPL(TaglibMetadataReader)
+
+	std::optional<ReplayGain> GetReplayGain(const Path& path) override;
     
     Metadata Extract(Path const &path) override;
 

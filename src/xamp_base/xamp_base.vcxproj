@@ -146,6 +146,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>Dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Bscmake>
       <PreserveSbr>true</PreserveSbr>
@@ -208,6 +209,7 @@
     <ClCompile Include="src\ithreadpool.cpp" />
     <ClCompile Include="src\memory_mapped_file.cpp" />
     <ClCompile Include="src\samplewriter.cpp" />
+    <ClCompile Include="src\stl.cpp" />
     <ClCompile Include="src\uuid.cpp" />
     <ClCompile Include="src\logger.cpp" />
     <ClCompile Include="src\memory.cpp" />

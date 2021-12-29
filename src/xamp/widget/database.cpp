@@ -583,8 +583,8 @@ int32_t Database::addOrUpdateMusic(const Metadata& metadata, int32_t playlist_id
 
 	query.prepare(Q_UTF8(R"(
     INSERT OR REPLACE INTO musics
-    (musicId, title, track, path, fileExt, fileName, duration, durationStr, parentPath, bitrate, samplerate, offset, dateTime)
-    VALUES ((SELECT musicId FROM musics WHERE path = :path and offset = :offset), :title, :track, :path, :fileExt, :fileName, :duration, :durationStr, :parentPath, :bitrate, :samplerate, :offset, :dateTime)
+    (musicId, title, track, path, fileExt, fileName, duration, durationStr, parentPath, bitrate, samplerate, offset, dateTime, album_replay_gain, track_replay_gain, album_peak, track_peak)
+    VALUES ((SELECT musicId FROM musics WHERE path = :path and offset = :offset), :title, :track, :path, :fileExt, :fileName, :duration, :durationStr, :parentPath, :bitrate, :samplerate, :offset, :dateTime, :album_replay_gain, :track_replay_gain, :album_peak, :track_peak)
     )")
 	);
 
@@ -599,6 +599,18 @@ int32_t Database::addOrUpdateMusic(const Metadata& metadata, int32_t playlist_id
 	query.bindValue(Q_UTF8(":bitrate"), metadata.bitrate);
 	query.bindValue(Q_UTF8(":samplerate"), metadata.samplerate);
 	query.bindValue(Q_UTF8(":offset"), metadata.offset);
+	if (metadata.replay_gain) {
+		query.bindValue(Q_UTF8(":album_replay_gain"), metadata.replay_gain.value().album_gain);
+		query.bindValue(Q_UTF8(":track_replay_gain"), metadata.replay_gain.value().track_gain);
+		query.bindValue(Q_UTF8(":album_peak"), metadata.replay_gain.value().album_peak);
+		query.bindValue(Q_UTF8(":track_peak"), metadata.replay_gain.value().track_peak);
+	}
+	else {
+		query.bindValue(Q_UTF8(":album_replay_gain"), 0);
+		query.bindValue(Q_UTF8(":track_replay_gain"), 0);
+		query.bindValue(Q_UTF8(":album_peak"), 0);
+		query.bindValue(Q_UTF8(":track_peak"), 0);
+	}
     if (metadata.timestamp == 0) {
         query.bindValue(Q_UTF8(":dateTime"), QDateTime::currentSecsSinceEpoch());
 	} else {
@@ -655,7 +667,7 @@ void Database::updateMusicRating(int32_t music_id, int32_t rating) {
     IfFailureThrow1(query);
 }
 
-void Database::updateLUFS(int music_id,
+void Database::updateReplayGain(int music_id,
                           double album_rg_gain,
                           double album_peak,
                           double track_rg_gain,

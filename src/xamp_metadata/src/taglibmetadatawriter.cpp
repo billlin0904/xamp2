@@ -7,6 +7,10 @@
 
 namespace xamp::metadata {
 
+static TagLib::String ToTaglibString(const std::string_view &s) {
+	return {s.data()};
+}
+
 class TaglibMetadataWriter::TaglibMetadataWriterImpl {
 public:
 	[[nodiscard]] bool IsFileReadOnly(Path const & path) const {
@@ -46,9 +50,30 @@ public:
 	    });
     }
 
-	void WriteEmbeddedCover(Path const& path, std::vector<uint8_t> const & image) const {
+	void WriteReplayGain(Path const& path, const ReplayGain & replay_gain) {
 		const auto ext = String::ToLower(path.extension().string());
 
+		if (ext == ".flac") {
+			Write(path, [replay_gain](auto* file, Tag* tag) {
+				if (auto* const flac_file = dynamic_cast<TagLib::FLAC::File*>(file)) {
+					Ogg::XiphComment* comment = nullptr;
+					if (!flac_file->hasXiphComment()){
+						comment = flac_file->xiphComment(true);
+					} else {
+						comment = flac_file->xiphComment(false);
+					}
+					comment->addField(ToTaglibString(kReplaygainAlbumGain), std::to_string(replay_gain.album_gain));
+					comment->addField(ToTaglibString(kReplaygainTrackGain), std::to_string(replay_gain.track_gain));
+					comment->addField(ToTaglibString(kReplaygainAlbumPeak), std::to_string(replay_gain.album_peak));
+					comment->addField(ToTaglibString(kReplaygainTrackPeak), std::to_string(replay_gain.track_peak));
+					comment->addField(ToTaglibString(kReplaygainReferenceLoudness), std::to_string(replay_gain.ref_loudness));
+				}
+				});
+		}		
+	}
+
+	void WriteEmbeddedCover(Path const& path, std::vector<uint8_t> const & image) const {
+		const auto ext = String::ToLower(path.extension().string());
 		const TagLib::ByteVector imagedata(reinterpret_cast<const char *>(image.data()), image.size());
 
 		if (ext == ".m4a") {			
@@ -120,6 +145,10 @@ XAMP_PIMPL_IMPL(TaglibMetadataWriter)
 
 TaglibMetadataWriter::TaglibMetadataWriter()
     : writer_(MakeAlign<TaglibMetadataWriterImpl>()) {
+}
+
+void TaglibMetadataWriter::WriteReplayGain(Path const& path, const ReplayGain& replay_gain) {
+	return writer_->WriteReplayGain(path, replay_gain);
 }
 
 bool TaglibMetadataWriter::IsFileReadOnly(Path const & path) const {

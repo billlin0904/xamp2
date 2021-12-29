@@ -80,7 +80,7 @@ public slots:
 
 	void onThemeColorChanged(QColor backgroundColor, QColor color);
 
-	void updateLUFS(int music_id,
+	void updateReplayGain(int music_id,
 		double album_rg_gain,
 		double album_peak,
 		double track_rg_gain,

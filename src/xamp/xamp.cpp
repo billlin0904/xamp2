@@ -1553,8 +1553,8 @@ PlaylistPage* Xamp::newPlaylist(int32_t playlist_id) {
     (void)QObject::connect(playlist_page->playlist(), &PlayListTableView::addPlaylistReplayGain,
                             &replay_gain_worker_, &ReplayGainWorker::addEntities);
 
-    (void)QObject::connect(&replay_gain_worker_, &ReplayGainWorker::updateLUFS,
-        playlist_page->playlist(), &PlayListTableView::updateLUFS);
+    (void)QObject::connect(&replay_gain_worker_, &ReplayGainWorker::updateReplayGain,
+        playlist_page->playlist(), &PlayListTableView::updateReplayGain);
 
     (void)QObject::connect(this, &Xamp::themeChanged,
                             playlist_page->playlist(),

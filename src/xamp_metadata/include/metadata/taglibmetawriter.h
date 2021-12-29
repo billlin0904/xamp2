@@ -17,6 +17,8 @@ public:
 	XAMP_PIMPL(TaglibMetadataWriter)
 
     [[nodiscard]] bool IsFileReadOnly(const Path& path) const override;
+
+    void WriteReplayGain(Path const& path, const ReplayGain& replay_gain) override;
    
     void Write(Path const & path, Metadata const& metadata) override;
 

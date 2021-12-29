@@ -428,7 +428,9 @@ AlbumView::AlbumView(QWidget* parent)
                 std::vector<PlayListEntity> entities;
                 std::vector<int32_t> music_ids;
                 Singleton<Database>::GetInstance().forEachAlbumMusic(album_id, [&entities, &music_ids](const auto& entity) {
-                    entities.push_back(entity);
+                    if (entity.album_replay_gain == 0) {
+                        entities.push_back(entity);
+                    }
                     music_ids.push_back(entity.music_id);
                 });
                 addPlaylist(music_ids, entities);
