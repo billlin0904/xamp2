@@ -13,6 +13,18 @@
 
 namespace xamp::metadata {
 
+static double ParseStringList(std::string const& s, bool string_dummy = true) {
+    std::stringstream ss;
+    ss << s;
+    if (string_dummy) {
+        std::string dummy;
+        ss >> dummy;
+    }
+    double d = 0;
+    ss >> d;
+    return d;
+}
+
 static bool GetID3V2TagCover(ID3v2::Tag* tag, std::vector<uint8_t>& buffer) {
     if (!tag) {
         return false;
@@ -50,6 +62,47 @@ static bool GetApeTagCover(APE::Tag* tag, std::vector<uint8_t>& buffer) {
     return false;
 }
 
+static std::optional<ReplayGain> GetMp3ReplayGain(File* file) {
+    ReplayGain replay_gain;
+    bool found = false;
+    if (auto* mp3_file = dynamic_cast<TagLib::MPEG::File*>(file)) {
+        if (auto* tag = mp3_file->ID3v2Tag(false)) {
+            const auto& frame_list = tag->frameList("TXXX");
+            for (auto* it : frame_list) {
+                auto* fr = dynamic_cast<TagLib::ID3v2::UserTextIdentificationFrame*>(it);
+                if (fr) {
+                    const auto desc = fr->description().upper();
+                    const auto value = ParseStringList(fr->fieldList().toString().to8Bit());
+                    if (desc == String::AsStdString(kReplaygainAlbumGain)) {
+                        replay_gain.album_gain = value;
+                        found = true;
+                    }
+                    else if (desc == String::AsStdString(kReplaygainTrackGain)) {
+                        replay_gain.track_gain = value;
+                        found = true;
+                    }
+                    else if (desc == String::AsStdString(kReplaygainAlbumPeak)) {
+                        replay_gain.album_peak = value;
+                        found = true;
+                    }
+                    else if (desc == String::AsStdString(kReplaygainTrackPeak)) {
+                        replay_gain.track_peak = value;
+                        found = true;
+                    }
+                    else if (desc == String::AsStdString(kReplaygainReferenceLoudness)) {
+                        replay_gain.ref_loudness = value;
+                        found = true;
+                    }
+                }
+            }
+        }
+    }
+    if (!found) {
+        return std::nullopt;
+    }
+    return replay_gain;
+}
+
 static bool GetMp3Cover(File* file, std::vector<uint8_t>& buffer) {
     auto found = false;
     if (auto * mpeg_file = dynamic_cast<TagLib::MPEG::File*>(file)) {
@@ -68,6 +121,36 @@ static bool GetApeCover(File* file, std::vector<uint8_t>& buffer) {
         return GetApeTagCover(ape_file->APETag(), buffer);
     }
     return false;
+}
+
+static std::optional<ReplayGain> GetMp4ReplayGain(File* file) {
+    ReplayGain replay_gain;
+    auto found = false;
+    if (const auto* mp4_file = dynamic_cast<TagLib::MP4::File*>(file)) {
+        if (const auto* tag = mp4_file->tag()) {
+            auto const& dict = tag->itemMap();
+            if (dict.contains(String::AsStdString(kITunesReplaygainAlbumGain))) {
+                replay_gain.track_gain = ParseStringList(dict[String::AsStdString(kITunesReplaygainAlbumGain)].toStringList()[0].to8Bit(), false);
+                found = true;
+            }
+            if (dict.contains(String::AsStdString(kITunesReplaygainAlbumGain))) {
+                replay_gain.track_peak = ParseStringList(dict[String::AsStdString(kITunesReplaygainAlbumGain)].toStringList()[0].to8Bit(), false);
+                found = true;
+            }
+            if (dict.contains(String::AsStdString(kITunesReplaygainAlbumGain))) {
+                replay_gain.album_gain = ParseStringList(dict[String::AsStdString(kITunesReplaygainAlbumGain)].toStringList()[0].to8Bit(), false);
+                found = true;
+            }
+            if (dict.contains(String::AsStdString(kITunesReplaygainAlbumGain))) {
+                replay_gain.album_peak = ParseStringList(dict[String::AsStdString(kITunesReplaygainAlbumGain)].toStringList()[0].to8Bit(), false);
+                found = true;
+            }
+        }
+    }
+    if (!found) {
+        return std::nullopt;
+    }
+    return replay_gain;
 }
 
 static bool GetMp4Cover(File* file, std::vector<uint8_t>& buffer) {
@@ -102,23 +185,23 @@ static std::optional<ReplayGain> GetFlacReplayGain(File* file) {
         if (auto* xiph_comment = flac_file->xiphComment()) {
             auto field_map = xiph_comment->fieldListMap();
             for (auto& field : field_map) {
-                if (field.first == "REPLAYGAIN_ALBUM_GAIN") {
+                if (field.first == String::AsStdString(kReplaygainAlbumGain)) {
                     replay_gain.album_gain = std::stod(field.second[0].to8Bit());
                     found = true;
                 }
-                else if (field.first == "REPLAYGAIN_TRACK_PEAK") {
+                else if (field.first == String::AsStdString(kReplaygainTrackPeak)) {
                     replay_gain.track_peak = std::stod(field.second[0].to8Bit());
                     found = true;
                 }
-                else if (field.first == "REPLAYGAIN_ALBUM_PEAK") {
+                else if (field.first == String::AsStdString(kReplaygainAlbumPeak)) {
                     replay_gain.album_peak = std::stod(field.second[0].to8Bit());
                     found = true;
                 }
-                else if (field.first == "REPLAYGAIN_TRACK_GAIN") {
+                else if (field.first == String::AsStdString(kReplaygainTrackGain)) {
                     replay_gain.track_gain = std::stod(field.second[0].to8Bit());
                     found = true;
                 }
-                else if (field.first == "REPLAYGAIN_REFERENCE_LOUDNESS") {
+                else if (field.first == String::AsStdString(kReplaygainReferenceLoudness)) {
                     replay_gain.ref_loudness = std::stod(field.second[0].to8Bit());
                     found = true;
                 }
@@ -296,9 +379,11 @@ public:
 
 private:
     static std::optional<ReplayGain> GetReplayGain(std::string const& ext, File* file) {
-        static const HashMap<std::string, std::function<std::optional<ReplayGain>(File*)>>
+        static const HashMap<std::string_view, std::function<std::optional<ReplayGain>(File*)>>
             parse_cover_table{
             { ".flac", GetFlacReplayGain },
+            { ".mp3", GetMp3ReplayGain },
+            { ".m4a", GetMp4ReplayGain }
         };
         auto itr = parse_cover_table.find(ext);
         if (itr != parse_cover_table.end()) {
@@ -308,7 +393,7 @@ private:
     }
 
     static void GetCover(std::string const & ext, File*file, std::vector<uint8_t>& cover) {
-        static const HashMap<std::string, std::function<bool(File *, std::vector<uint8_t> &)>>
+        static const HashMap<std::string_view, std::function<bool(File *, std::vector<uint8_t> &)>>
             parse_cover_table{
             { ".flac", GetFlacCover },
             { ".mp3",  GetMp3Cover },

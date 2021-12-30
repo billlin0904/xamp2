@@ -21,6 +21,7 @@
 #include <ape/apefile.h>
 
 #include <mpegfile.h>
+#include <id3v2/frames/textidentificationframe.h>
 #include <id3v2/frames/attachedpictureframe.h>
 #include <id3v2/id3v2tag.h>
 

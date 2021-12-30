@@ -29,6 +29,10 @@ XAMP_ALWAYS_INLINE std::string ToString(std::wstring const& utf16) {
 	return ToUtf8String(utf16);
 }
 
+XAMP_ALWAYS_INLINE std::string AsStdString(const std::string_view& s) {
+    return { s.data(), s.size() };
+}
+
 template <typename CharType>
 std::basic_string<CharType> ToUpper(std::basic_string<CharType> s) {
 	std::transform(s.begin(), s.end(), s.begin(), ::toupper);

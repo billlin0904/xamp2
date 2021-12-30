@@ -7,8 +7,31 @@
 
 namespace xamp::metadata {
 
-static TagLib::String ToTaglibString(const std::string_view &s) {
-	return {s.data()};
+static bool ClearTxxTag(ID3v2::Tag* tag, 
+	TagLib::String const& tag_name,
+	double* old_content = nullptr) {
+	const auto& frame_list = tag->frameList("TXXX");
+	for (auto* it : frame_list) {
+		auto* fr = dynamic_cast<TagLib::ID3v2::UserTextIdentificationFrame*>(it);
+		if (fr && fr->description().upper() == tag_name) {
+			if (old_content) {
+				*old_content = std::stod(fr->fieldList().toString().to8Bit());
+			}
+			tag->removeFrame(fr);
+			return true;
+		}
+	}
+	return false;
+}
+
+static void SetTxxTag(ID3v2::Tag* tag, std::string const& tag_name, std::string const& value) {
+	auto* txxx_frame = TagLib::ID3v2::UserTextIdentificationFrame::find(tag, tag_name);
+	if (!txxx_frame) {
+		txxx_frame = new TagLib::ID3v2::UserTextIdentificationFrame();
+		txxx_frame->setDescription(tag_name);
+		tag->addFrame(txxx_frame);
+	}
+	txxx_frame->setText(value);
 }
 
 class TaglibMetadataWriter::TaglibMetadataWriterImpl {
@@ -62,14 +85,49 @@ public:
 					} else {
 						comment = flac_file->xiphComment(false);
 					}
-					comment->addField(ToTaglibString(kReplaygainAlbumGain), std::to_string(replay_gain.album_gain));
-					comment->addField(ToTaglibString(kReplaygainTrackGain), std::to_string(replay_gain.track_gain));
-					comment->addField(ToTaglibString(kReplaygainAlbumPeak), std::to_string(replay_gain.album_peak));
-					comment->addField(ToTaglibString(kReplaygainTrackPeak), std::to_string(replay_gain.track_peak));
-					comment->addField(ToTaglibString(kReplaygainReferenceLoudness), std::to_string(replay_gain.ref_loudness));
+					comment->addField(String::AsStdString(kReplaygainAlbumGain), std::to_string(replay_gain.album_gain));
+					comment->addField(String::AsStdString(kReplaygainTrackGain), std::to_string(replay_gain.track_gain));
+					comment->addField(String::AsStdString(kReplaygainAlbumPeak), std::to_string(replay_gain.album_peak));
+					comment->addField(String::AsStdString(kReplaygainTrackPeak), std::to_string(replay_gain.track_peak));
+					comment->addField(String::AsStdString(kReplaygainReferenceLoudness), std::to_string(replay_gain.ref_loudness));
 				}
 				});
-		}		
+		}
+		else if (ext == ".mp3") {
+			Write(path, [replay_gain](auto* file, Tag* tag) {
+				if (auto* mp3_file = dynamic_cast<TagLib::MPEG::File*>(file)) {
+					if (auto* mp3_tag = mp3_file->ID3v2Tag(true)) {
+						auto version = mp3_tag->header()->majorVersion();
+						while (ClearTxxTag(mp3_tag, String::AsStdString(kReplaygainAlbumGain))) {}
+						while (ClearTxxTag(mp3_tag, String::AsStdString(kReplaygainTrackGain))) {}
+						while (ClearTxxTag(mp3_tag, String::AsStdString(kReplaygainAlbumPeak))) {}
+						while (ClearTxxTag(mp3_tag, String::AsStdString(kReplaygainTrackPeak))) {}
+						while (ClearTxxTag(mp3_tag, String::AsStdString(kReplaygainReferenceLoudness))) {}
+						SetTxxTag(mp3_tag, String::AsStdString(kReplaygainAlbumGain), std::to_string(replay_gain.album_gain));
+						SetTxxTag(mp3_tag, String::AsStdString(kReplaygainTrackGain), std::to_string(replay_gain.track_gain));
+						SetTxxTag(mp3_tag, String::AsStdString(kReplaygainAlbumPeak), std::to_string(replay_gain.album_peak));
+						SetTxxTag(mp3_tag, String::AsStdString(kReplaygainTrackPeak), std::to_string(replay_gain.track_peak));
+						SetTxxTag(mp3_tag, String::AsStdString(kReplaygainReferenceLoudness), std::to_string(replay_gain.ref_loudness));
+					}
+				}
+				});
+		}
+		else if (ext == ".m4a") {
+			Write(path, [replay_gain](auto* file, Tag* tag) {
+				if (auto* mp4_tag = dynamic_cast<TagLib::MP4::Tag*>(tag)) {
+					mp4_tag->setItem(String::AsStdString(kITunesReplaygainTrackGain),
+						TagLib::StringList(std::to_string(replay_gain.track_gain)));
+					mp4_tag->setItem(String::AsStdString(kITunesReplaygainTrackPeak),
+						TagLib::StringList(std::to_string(replay_gain.track_peak)));
+					mp4_tag->setItem(String::AsStdString(kITunesReplaygainAlbumGain),
+						TagLib::StringList(std::to_string(replay_gain.album_gain)));
+					mp4_tag->setItem(String::AsStdString(kITunesReplaygainAlbumPeak),
+						TagLib::StringList(std::to_string(replay_gain.album_peak)));
+					mp4_tag->setItem(String::AsStdString(kReplaygainReferenceLoudness),
+						TagLib::StringList(std::to_string(replay_gain.ref_loudness)));
+				}
+				});
+		}
 	}
 
 	void WriteEmbeddedCover(Path const& path, std::vector<uint8_t> const & image) const {

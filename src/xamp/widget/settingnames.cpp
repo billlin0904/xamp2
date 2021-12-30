@@ -23,6 +23,7 @@ const ConstLatin1String kAppSettingBackgroundColor{ "AppSettings/theme/backgroun
 const ConstLatin1String kAppSettingPodcastCachePath{ "AppSettings/podcastCachePath" };
 const ConstLatin1String kAppSettingAlbumImageCacheSize{ "AppSettings/albumImageCacheSize" };
 const ConstLatin1String kAppSettingEnableReplayGain{ "AppSettings/enableReplayGain" };
+const ConstLatin1String kAppSettingReplayGainMode{ "AppSettings/replayGainMode" };
 const ConstLatin1String kAppSettingReplayGainTargetGain{ "AppSettings/replayGainTargetGain" };
 
 const ConstLatin1String kAppSettingResamplerEnable{ "AppSettings/soxr/enable" };

@@ -68,7 +68,8 @@ static void loadSettings() {
     AppSettings::setDefaultValue(kFlacEncodingLevel, 8);
     AppSettings::setDefaultValue(kAppSettingAlbumImageCacheSize, 32);
     AppSettings::setDefaultValue(kAppSettingShowLeftList, true);
-    AppSettings::setDefaultValue(kAppSettingReplayGainTargetGain, 89);
+    AppSettings::setDefaultValue(kAppSettingReplayGainTargetGain, kReferenceLoudness);
+    AppSettings::setDefaultValue(kAppSettingReplayGainMode, static_cast<int32_t>(ReplayGainMode::RG_TRACK_MODE));
     AppSettings::setDefaultValue(kAppSettingEnableReplayGain, true);
     AppSettings::setDefaultValue(kAppSettingTheme, static_cast<int32_t>(ThemeColor::LIGHT_THEME));
     JsonSettings::loadJsonFile(Q_UTF8("soxr.json"));
@@ -131,6 +132,7 @@ static void setLogLevel(spdlog::level::level_enum level = spdlog::level::debug) 
     Logger::GetInstance().GetLogger(kResamplerLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kCompressorLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kCoreAudioLoggerName)->set_level(level);
+    Logger::GetInstance().GetLogger("PixmapCache")->set_level(level);
 }
 
 static int excute(int argc, char* argv[]) {
@@ -194,6 +196,10 @@ static int excute(int argc, char* argv[]) {
 
     XAMP_LOG_DEBUG("Database init success.");
     setLogLevel(spdlog::level::info);
+
+    foreach(const QString & path, app.libraryPaths()) {
+        XAMP_LOG_DEBUG("Library path : {}.", path.toStdString());
+    }
 
     FramelessWindow top_win;
     Xamp win;

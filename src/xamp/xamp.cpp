@@ -1036,7 +1036,12 @@ void Xamp::playMusic(const MusicEntity& item) {
 
         if (AppSettings::getValueAsBool(kAppSettingEnableReplayGain)) {
             player_->AddDSP(MakeVolume());
-            player_->SetReplayGain(item.album_replay_gain);
+            auto mode = static_cast<ReplayGainMode>(AppSettings::getValue(kAppSettingReplayGainMode).toInt());
+            if (mode == ReplayGainMode::RG_ALBUM_MODE) {
+                player_->SetReplayGain(item.album_replay_gain);
+            } else if (mode == ReplayGainMode::RG_TRACK_MODE) {
+                player_->SetReplayGain(item.track_replay_gain);
+            }
         }
 
         if (AppSettings::getValueAsBool(kEnableEQ)) {

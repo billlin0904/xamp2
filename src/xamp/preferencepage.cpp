@@ -202,6 +202,22 @@ PreferencePage::PreferencePage(QWidget *parent)
 
 	ui_.selectResamplerComboBox->removeItem(2);
 
+	(void)QObject::connect(ui_.replayGainModeCombo, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), [this](auto index) {
+		switch (index) {
+		case 0:
+			AppSettings::setValue(kAppSettingReplayGainMode, static_cast<int32_t>(ReplayGainMode::RG_ALBUM_MODE));
+			break;
+		case 1:
+			AppSettings::setValue(kAppSettingReplayGainMode, static_cast<int32_t>(ReplayGainMode::RG_TRACK_MODE));
+			break;
+		case 2:
+			AppSettings::setValue(kAppSettingReplayGainMode, static_cast<int32_t>(ReplayGainMode::RG_NONE_MODE));
+			break;
+		}
+		});
+
+	ui_.replayGainModeCombo->setCurrentIndex(AppSettings::getValue(kAppSettingReplayGainMode).toInt());
+
 	(void)QObject::connect(ui_.selectResamplerComboBox, static_cast<void (QComboBox::*)(int32_t)>(&QComboBox::activated), [this](auto const& index) {
 		ui_.resamplerStackedWidget->setCurrentIndex(index);
 		saveSoxrResampler(ui_.selectResamplerComboBox->currentText());

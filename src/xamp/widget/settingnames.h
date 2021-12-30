@@ -29,6 +29,7 @@ extern const ConstLatin1String kAppSettingBackgroundColor;
 extern const ConstLatin1String kAppSettingPodcastCachePath;
 extern const ConstLatin1String kAppSettingAlbumImageCacheSize;
 extern const ConstLatin1String kAppSettingEnableReplayGain;
+extern const ConstLatin1String kAppSettingReplayGainMode;
 extern const ConstLatin1String kAppSettingReplayGainTargetGain;
 
 extern const ConstLatin1String kAppSettingResamplerEnable;

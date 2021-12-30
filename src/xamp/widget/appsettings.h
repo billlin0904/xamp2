@@ -14,11 +14,9 @@
 
 #include <stream/eqsettings.h>
 #include <widget/widget_shared.h>
+#include <widget/localelanguage.h>
 #include <widget/str_utilts.h>
 #include <widget/settingnames.h>
-#include <widget/localelanguage.h>
-
-#include <stream/eqsettings.h>
 
 struct AppEQSettings {
     QString name;
@@ -49,7 +47,11 @@ struct AppEQSettings {
 };
 Q_DECLARE_METATYPE(AppEQSettings);
 
-class FramelessWindow;
+enum ReplayGainMode {
+	RG_ALBUM_MODE,
+    RG_TRACK_MODE,
+    RG_NONE_MODE,
+};
 
 class AppSettings final {
 public:    
