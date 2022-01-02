@@ -41,7 +41,7 @@ public:
 	}
 
     void Write(Path const &path, Metadata const &metadata) const {
-        Write(path, [metadata](auto, auto tag) {
+        Write(path, [&metadata = std::as_const(metadata)](auto, auto tag) {
 			tag->setAlbum(metadata.album);
 			tag->setArtist(metadata.artist);
 			tag->setTrack(metadata.track);
@@ -50,19 +50,19 @@ public:
     }
 
     void WriteTitle(Path const& path, std::wstring const &title) const {
-        Write(path, [title](auto, auto tag) {
+        Write(path, [&title = std::as_const(title)](auto, auto tag) {
 	        tag->setTitle(title);
 	    });
     }
 
     void WriteArtist(Path const& path, std::wstring const &artist) const {
-        Write(path, [artist](auto, auto tag) {
+        Write(path, [&artist = std::as_const(artist)](auto, auto tag) {
 	        tag->setArtist(artist);
 	    });
     }
 
     void WriteAlbum(Path const& path, std::wstring const &album) const {
-        Write(path, [album](auto, auto tag) {
+        Write(path, [&album = std::as_const(album)](auto, auto tag) {
 	        tag->setAlbum(album);
 	    });
     }
@@ -77,7 +77,7 @@ public:
 		const auto ext = String::ToLower(path.extension().string());
 
 		if (ext == ".flac") {
-			Write(path, [replay_gain](auto* file, Tag* tag) {
+            Write(path, [&replay_gain = std::as_const(replay_gain)](auto* file, Tag* tag) {
 				if (auto* const flac_file = dynamic_cast<TagLib::FLAC::File*>(file)) {
 					Ogg::XiphComment* comment = nullptr;
 					if (!flac_file->hasXiphComment()){
@@ -94,7 +94,7 @@ public:
 				});
 		}
 		else if (ext == ".mp3") {
-			Write(path, [replay_gain](auto* file, Tag* tag) {
+            Write(path, [&replay_gain = std::as_const(replay_gain)](auto* file, Tag* tag) {
 				if (auto* mp3_file = dynamic_cast<TagLib::MPEG::File*>(file)) {
 					if (auto* mp3_tag = mp3_file->ID3v2Tag(true)) {
 						auto version = mp3_tag->header()->majorVersion();
@@ -113,7 +113,7 @@ public:
 				});
 		}
 		else if (ext == ".m4a") {
-			Write(path, [replay_gain](auto* file, Tag* tag) {
+            Write(path, [&replay_gain = std::as_const(replay_gain)](auto* file, Tag* tag) {
 				if (auto* mp4_tag = dynamic_cast<TagLib::MP4::Tag*>(tag)) {
 					mp4_tag->setItem(String::AsStdString(kITunesReplaygainTrackGain),
 						TagLib::StringList(std::to_string(replay_gain.track_gain)));
@@ -137,7 +137,7 @@ public:
 		if (ext == ".m4a") {			
 			TagLib::MP4::CoverArt cover_art(static_cast<TagLib::MP4::CoverArt::Format>(0x0D), imagedata);
 
-            Write(path, [&cover_art](auto, auto tag) {
+            Write(path, [&cover_art = std::as_const(cover_art)](auto, auto tag) {
 				if (auto* mp4_tag = dynamic_cast<TagLib::MP4::Tag*>(tag)) {
 					auto &items_list_map = mp4_tag->itemListMap();
 					TagLib::MP4::CoverArtList cover_art_list;
@@ -148,7 +148,7 @@ public:
 			});
 		}
 		else if (ext == ".mp3") {
-            Write(path, [&imagedata](auto file, auto) {
+            Write(path, [&imagedata = std::as_const(imagedata)](auto file, auto) {
 				if (auto* mp3_file = dynamic_cast<TagLib::MPEG::File*>(file)) {
 					if (auto* mp3_tag = mp3_file->ID3v2Tag(true)) {
 						const auto frame_list = mp3_tag->frameList("APIC");
@@ -167,7 +167,7 @@ public:
 				}
 			});
 		} else if (ext == ".flac") {
-            Write(path, [&imagedata](auto file, auto) {
+            Write(path, [&imagedata = std::as_const(imagedata)](auto file, auto) {
 				if (auto* const flac_file = dynamic_cast<TagLib::FLAC::File*>(file)) {
 					flac_file->removePictures();
 					auto* picture = new TagLib::FLAC::Picture();

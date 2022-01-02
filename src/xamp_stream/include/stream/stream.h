@@ -13,8 +13,8 @@
 #else
     #define XAMP_STREAM_API __declspec(dllimport)
 #endif
-#else
-#define XAMP_STREAM_API
+#elif defined(XAMP_OS_MAC)
+#define XAMP_STREAM_API __attribute__((visibility("default")))
 #endif
 
 namespace xamp::stream {

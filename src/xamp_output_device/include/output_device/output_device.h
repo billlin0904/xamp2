@@ -16,8 +16,8 @@
 #else
 #define XAMP_OUTPUT_DEVICE_API __declspec(dllimport)
 #endif
-#else
-#define XAMP_OUTPUT_DEVICE_API
+#elif defined(XAMP_OS_MAC)
+#define XAMP_OUTPUT_DEVICE_API __attribute__((visibility("default")))
 #endif
 
 namespace xamp::output_device {

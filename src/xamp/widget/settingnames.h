@@ -45,8 +45,8 @@ extern const ConstLatin1String kSoxrPhase;
 extern const ConstLatin1String kSoxrRollOffLevel;
 extern const ConstLatin1String kSoxrDefaultSettingName;
 
-extern const ConstLatin1String kEnableEQ;
-extern const ConstLatin1String kEQName;
+extern const ConstLatin1String kAppSettingEnableEQ;
+extern const ConstLatin1String kAppSettingEQName;
 
 extern const ConstLatin1String kLyricsFontSize;
 extern const ConstLatin1String kLyricsTextColor;

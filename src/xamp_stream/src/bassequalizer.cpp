@@ -41,7 +41,7 @@ public:
     }
 
     void Process(float const* samples, uint32_t num_samples, Buffer<float>& out) {
-        if (out.size() < num_samples) {
+        if (out.size() != num_samples) {
             out.resize(num_samples);
         }
         MemoryCopy(out.data(), samples, num_samples * sizeof(float));

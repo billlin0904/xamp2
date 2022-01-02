@@ -24,8 +24,7 @@ QVariant PlayListSqlQueryTableModel::data(const QModelIndex& index, int32_t role
     QVariant value;
     switch (role) {
     case Qt::FontRole:
-        if (index.column() == PLAYLIST_DURATION 
-            || index.column() == PLAYLIST_BITRATE
+        if (index.column() == PLAYLIST_BITRATE
             || index.column() == PLAYLIST_SAMPLE_RATE
             || index.column() == PLAYLIST_ALBUM_PK
             || index.column() == PLAYLIST_ALBUM_RG

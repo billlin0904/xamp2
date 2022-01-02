@@ -915,11 +915,11 @@ void AudioPlayer::Play() {
         return;
     }
 
-    stream_task_ = PlaybackThreadPool().Spawn([player = shared_from_this()](auto idx) noexcept {
+    stream_task_ = PlaybackThreadPool().Spawn([player = shared_from_this()](auto /*thread_index*/) noexcept {
         auto* p = player.get();
 
-        std::unique_lock pause_lock{ p->pause_mutex_ };
-        std::unique_lock stopped_lock{ p->stopped_mutex_ };
+        std::unique_lock<FastMutex> pause_lock{ p->pause_mutex_ };
+        std::unique_lock<FastMutex> stopped_lock{ p->stopped_mutex_ };
 
         auto* sample_buffer = p->read_buffer_.Get();
         const auto max_buffer_sample = p->num_read_sample_;
@@ -956,7 +956,7 @@ void AudioPlayer::Play() {
     });
 }
 
-DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_frames, size_t & num_filled_frames, double stream_time, double sample_time) noexcept {
+DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_frames, size_t & num_filled_frames, double stream_time, double /*sample_time*/) noexcept {
     const auto num_samples = num_buffer_frames * output_format_.GetChannels();
     const auto sample_size = num_samples * sample_size_;
 

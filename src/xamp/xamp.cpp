@@ -268,7 +268,9 @@ void Xamp::changeTheme() {
     QTextStream ts(&f);
     qApp->setStyleSheet(ts.readAll());
     f.close();
-    applyTheme(ThemeManager::instance().palette().color(QPalette::Base), color);
+    auto bk_color = ThemeManager::instance().palette().color(QPalette::Foreground);
+    XAMP_LOG_DEBUG("changeTheme {}", colorToString(bk_color).toStdString());
+    applyTheme(bk_color, color);
 }
 
 void Xamp::registerMetaType() {
@@ -1041,13 +1043,17 @@ void Xamp::playMusic(const MusicEntity& item) {
                 player_->SetReplayGain(item.album_replay_gain);
             } else if (mode == ReplayGainMode::RG_TRACK_MODE) {
                 player_->SetReplayGain(item.track_replay_gain);
+            } else {
+                player_->SetReplayGain(0.0);
             }
+        } else {
+            player_->SetReplayGain(0.0);
         }
 
-        if (AppSettings::getValueAsBool(kEnableEQ)) {
+        if (AppSettings::getValueAsBool(kAppSettingEnableEQ)) {
             player_->AddDSP(MakeEqualizer());
-            if (AppSettings::contains(kEQName)) {
-                const auto eq_setting = AppSettings::getValue(kEQName).value<AppEQSettings>();
+            if (AppSettings::contains(kAppSettingEQName)) {
+                const auto eq_setting = AppSettings::getValue(kAppSettingEQName).value<AppEQSettings>();
                 player_->SetEq(eq_setting.settings);
             }
         } else {

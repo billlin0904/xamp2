@@ -1,4 +1,4 @@
-#include <widget/settingnames.h>
+﻿#include <widget/settingnames.h>
 
 const ConstLatin1String kAppSettingLang{ "AppSettings/lang" };
 
@@ -39,8 +39,8 @@ const ConstLatin1String kSoxrPhase{ "phase" };
 const ConstLatin1String kSoxrRollOffLevel{ "rolloffLevel" };
 const ConstLatin1String kSoxrDefaultSettingName{ "default" };
 
-const ConstLatin1String kEnableEQ{ "AppSettings/enableEQ" };
-const ConstLatin1String kEQName{ "AppSettings/EQName" };
+const ConstLatin1String kAppSettingEnableEQ{ "AppSettings/enableEQ" };
+const ConstLatin1String kAppSettingEQName{ "AppSettings/EQName" };
 
 const ConstLatin1String kLyricsFontSize{ "AppSettings/lyrics/fontSize" };
 const ConstLatin1String kLyricsTextColor{ "AppSettings/lyrics/textColor" };

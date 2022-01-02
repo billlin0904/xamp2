@@ -112,7 +112,7 @@ decltype(auto) IThreadPool::Spawn(F&& f, Args&&... args) {
     // https://github.com/microsoft/STL/issues/321
     using PackagedTaskType = std::packaged_task<ReturnType(size_t)>;
 
-#if _MSVC_LANG > 201704L
+#if __cplusplus >= 202002L
     using std::bind_front;
 #endif
     auto task = MakeAlignedShared<PackagedTaskType>(bind_front(std::forward<F>(f),
@@ -120,7 +120,7 @@ decltype(auto) IThreadPool::Spawn(F&& f, Args&&... args) {
 
     auto future = task->get_future();
 
-    scheduler_->SubmitJob([task](size_t thread_index) mutable {
+    scheduler_->SubmitJob([task](size_t thread_index) {
         (*task)(thread_index);
         });
 

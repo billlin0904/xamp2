@@ -15,8 +15,8 @@
 #else
 #define XAMP_PLAYER_API __declspec(dllimport)
 #endif
-#else
-#define XAMP_PLAYER_API
+#elif defined(XAMP_OS_MAC)
+#define XAMP_PLAYER_API __attribute__((visibility("default")))
 #endif
 
 namespace xamp::player {

@@ -191,7 +191,7 @@ public:
 		assert(num_channels_ != 0);
 
 		auto required_size = static_cast<size_t>(num_sample * ratio_) + 256;
-		if (required_size > buffer_.size()) {
+        if (required_size != buffer_.size()) {
 			ResizeBuffer(required_size);
 		}
 
@@ -217,7 +217,7 @@ public:
 		BufferOverFlowThrow(buffer.TryWrite(reinterpret_cast<int8_t const*>(buffer_.data()), write_size));
 
 		required_size = samples_done * num_channels_;
-		if (required_size > buffer_.size()) {
+        if (required_size != buffer_.size()) {
 			ResizeBuffer(required_size);
 		}
 		return true;

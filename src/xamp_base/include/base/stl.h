@@ -19,7 +19,7 @@
 
 namespace xamp::base {
 
-#if _MSVC_LANG < 201704L
+#if __cplusplus < 202002L
 template <typename T, typename ...Args>
 auto tuple_append(T&& t, Args&&...args) {
     return std::tuple_cat(

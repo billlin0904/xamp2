@@ -33,7 +33,7 @@
 	#define WIN32_LEAN_AND_MEAN
 	#define XAMP_ENABLE_REP_MOVSB
 #else
-	#define XAMP_BASE_API
+    #define XAMP_BASE_API __attribute__((visibility("default")))
 	#define XAMP_BASE_API_ONLY_EXPORT
 	#define XAMP_LIKELY(x) if (__builtin_expect(!!(x), 1))
 	#define XAMP_UNLIKELY(x) if (__builtin_expect(!!(x), 0))

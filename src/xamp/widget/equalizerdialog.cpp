@@ -53,10 +53,10 @@ EqualizerDialog::EqualizerDialog(QWidget *parent)
             bandValueChange(band, value, 1.41);
             band_label_[band]->setText(QString(Q_UTF8("%1")).arg(value));
 
-            auto settings = AppSettings::getValue(kEQName).value<AppEQSettings>();
+            auto settings = AppSettings::getValue(kAppSettingEQName).value<AppEQSettings>();
             settings.settings.bands[band].gain = value;
             settings.settings.bands[band].Q = 1.41;
-            AppSettings::setValue(kEQName, QVariant::fromValue(settings));
+            AppSettings::setValue(kAppSettingEQName, QVariant::fromValue(settings));
         });
         ++band;
     }
@@ -67,10 +67,10 @@ EqualizerDialog::EqualizerDialog(QWidget *parent)
     });
 
     (void)QObject::connect(ui_.enableEqCheckBox, &QCheckBox::stateChanged, [this](auto value) {
-        AppSettings::setValue(kEnableEQ, value == Qt::CheckState::Checked);
+        AppSettings::setValue(kAppSettingEnableEQ, value == Qt::CheckState::Checked);
     });
 
-    ui_.enableEqCheckBox->setCheckState(AppSettings::getValueAsBool(kEnableEQ) ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
+    ui_.enableEqCheckBox->setCheckState(AppSettings::getValueAsBool(kAppSettingEnableEQ) ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
 
     for (auto &name : AppSettings::getEQPreset().keys()) {
         ui_.eqPresetComboBox->addItem(name);
@@ -80,13 +80,13 @@ EqualizerDialog::EqualizerDialog(QWidget *parent)
         AppEQSettings settings;
         settings.name = index;
         settings.settings = AppSettings::getEQPreset()[index];
-        AppSettings::setValue(kEQName, QVariant::fromValue(settings));
+        AppSettings::setValue(kAppSettingEQName, QVariant::fromValue(settings));
         applySetting(index, settings.settings);
         AppSettings::save();
     });
 
-    if (AppSettings::contains(kEQName)) {
-        auto [name, settings] = AppSettings::getValue(kEQName).value<AppEQSettings>();
+    if (AppSettings::contains(kAppSettingEQName)) {
+        auto [name, settings] = AppSettings::getValue(kAppSettingEQName).value<AppEQSettings>();
         ui_.eqPresetComboBox->setCurrentText(name);
         applySetting(name, settings);
     }
@@ -98,7 +98,7 @@ EqualizerDialog::EqualizerDialog(QWidget *parent)
 	        band.Q = 1.41;
         }
         applySetting(settings.name, settings.settings);
-        AppSettings::setValue(kEQName, QVariant::fromValue(settings));
+        AppSettings::setValue(kAppSettingEQName, QVariant::fromValue(settings));
         AppSettings::save();
         });
 }
