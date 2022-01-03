@@ -26,7 +26,7 @@ QLabel* LrcPage::cover() {
 }
 
 void LrcPage::setCover(const QPixmap& src) {	
-	cover_label_->setPixmap(Pixmap::roundImage(src, coverSize()));
+	cover_label_->setPixmap(Pixmap::roundImage(src));
 }
 
 QSize LrcPage::coverSize() const {
@@ -74,6 +74,7 @@ void LrcPage::initial() {
     cover_label_->setMaximumSize(QSize(250, 250));
 #endif
 	cover_label_->setStyleSheet(Q_UTF8("border-width: 0 0 0 0; border-radius: 50px;"));
+	cover_label_->setAttribute(Qt::WA_StaticContents);
 
     verticalLayout_3->addWidget(cover_label_);
 	verticalLayout_3->setContentsMargins(0, 20, 0, 0);

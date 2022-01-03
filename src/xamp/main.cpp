@@ -58,7 +58,7 @@ static void loadSettings() {
     AppSettings::setDefaultValue(kAppSettingWidth, 600);
     AppSettings::setDefaultValue(kAppSettingHeight, 500);
     AppSettings::setDefaultValue(kAppSettingVolume, 50);
-    AppSettings::setDefaultValue(kAppSettingOrder, static_cast<int32_t>(PlayerOrder::PLAYER_ORDER_REPEAT_ONCE));
+    AppSettings::setDefaultEnumValue(kAppSettingOrder, PlayerOrder::PLAYER_ORDER_REPEAT_ONCE);
     AppSettings::setDefaultValue(kAppSettingEnableBlur, false);
     AppSettings::setDefaultValue(kAppSettingUseFramelessWindow, true);
     AppSettings::setDefaultValue(kLyricsFontSize, 12);
@@ -69,9 +69,10 @@ static void loadSettings() {
     AppSettings::setDefaultValue(kAppSettingAlbumImageCacheSize, 32);
     AppSettings::setDefaultValue(kAppSettingShowLeftList, true);
     AppSettings::setDefaultValue(kAppSettingReplayGainTargetGain, kReferenceLoudness);
-    AppSettings::setDefaultValue(kAppSettingReplayGainMode, static_cast<int32_t>(ReplayGainMode::RG_TRACK_MODE));
+    AppSettings::setDefaultEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_TRACK_MODE);
+    AppSettings::setDefaultEnumValue(kAppSettingReplayGainScanMode, ReplayGainScanMode::RG_SCAN_MODE_FAST);
     AppSettings::setDefaultValue(kAppSettingEnableReplayGain, true);
-    AppSettings::setDefaultValue(kAppSettingTheme, static_cast<int32_t>(ThemeColor::LIGHT_THEME));
+    AppSettings::setDefaultEnumValue(kAppSettingTheme, ThemeColor::LIGHT_THEME);
     JsonSettings::loadJsonFile(Q_UTF8("soxr.json"));
 	
     loadOrDefaultSoxrSetting();

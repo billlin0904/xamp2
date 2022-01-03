@@ -29,6 +29,7 @@ void ReplayGainWorker::addEntities(bool force, const std::vector<PlayListEntity>
     std::vector<std::shared_future<PlayListEntity>> replay_gain_tasks;
 
     const auto target_gain = AppSettings::getValue(kAppSettingReplayGainTargetGain).toDouble();
+    const auto scan_mode = AppSettings::getAsEnum<ReplayGainScanMode>(kAppSettingReplayGainScanMode);
 
     std::vector<AlignPtr<LoudnessScanner>> scanners;
     FastMutex mutex;
@@ -38,11 +39,14 @@ void ReplayGainWorker::addEntities(bool force, const std::vector<PlayListEntity>
     replay_gain_tasks.reserve(items.size());
 
     for (const auto &item : items) {
-        replay_gain_tasks.emplace_back(pool_->Spawn([&scanners, force, item, &mutex, this](auto ) {
+        replay_gain_tasks.emplace_back(pool_->Spawn([&scanners, scan_mode, item, &mutex, this](auto ) {
 	        try {
 		        AlignPtr<LoudnessScanner> scanner;
 		        read_utiltis::readAll(item.file_path.toStdWString(),
-		                              [](auto progress) {
+		                              [scan_mode](auto progress) {
+                                          if (scan_mode == ReplayGainScanMode::RG_SCAN_MODE_FAST && progress > 50) {
+                                              return false;
+                                          }
 			                              return true;
 		                              },
 		                              [&scanner](AudioFormat const& input_format) mutable {
@@ -90,24 +94,25 @@ void ReplayGainWorker::addEntities(bool force, const std::vector<PlayListEntity>
 
     replay_gain.album_peak = 100.0;
     for (auto const &scanner : scanners) {
-        replay_gain.album_peak = (std::min)(scanner->GetSamplePeak(), replay_gain.album_peak);
-        replay_gain.track_peak.push_back(scanner->GetSamplePeak());
-        replay_gain.lufs.push_back(scanner->GetLoudness());
-        replay_gain.track_replay_gain.push_back(LoudnessScanner::GetEbur128Gain(scanner->GetLoudness(), target_gain));
+        const auto track_peak = scanner->GetSamplePeak();
+        replay_gain.album_peak = (std::min)(track_peak, replay_gain.album_peak);
+        replay_gain.track_peak.push_back(track_peak);
+        const auto track_lufs = scanner->GetLoudness();
+        replay_gain.lufs.push_back(track_lufs);
+        replay_gain.track_replay_gain.push_back(LoudnessScanner::GetEbur128Gain(track_lufs, target_gain));
     }
 
     using namespace xamp::metadata;
     auto writer = MakeMetadataWriter();
 
     for (auto i = 0; i < replay_gain_tasks.size(); ++i) {
-	    xamp::base::ReplayGain rg;
+	    ReplayGain rg;
         rg.album_gain = replay_gain.album_replay_gain;
         rg.track_gain = replay_gain.track_replay_gain[i];
         rg.album_peak = replay_gain.album_peak;
         rg.track_peak = replay_gain.track_peak[i];
-        rg.ref_loudness = kReferenceLoudness;
+        rg.ref_loudness = target_gain;
         writer->WriteReplayGain(replay_gain.music_id[i].file_path.toStdWString(), rg);
-        XAMP_LOG_DEBUG("Music id: {} LUFS : {} ", replay_gain.music_id[i].music_id, replay_gain.lufs[i]);
         emit updateReplayGain(replay_gain.music_id[i].music_id,
                         replay_gain.album_replay_gain,
                         replay_gain.album_peak,

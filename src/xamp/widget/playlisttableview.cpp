@@ -224,6 +224,8 @@ void PlayListTableView::initial() {
     setSelectionMode(ExtendedSelection);
     setSelectionBehavior(SelectRows);
 
+    viewport()->setAttribute(Qt::WA_StaticContents);
+
     verticalHeader()->setVisible(false);
     verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
     verticalHeader()->setDefaultSectionSize(40);

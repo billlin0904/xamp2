@@ -160,6 +160,8 @@ private:
 
 	void cleanup();
 
+	void avoidRedrawOnResize();
+
 	bool is_seeking_;
 	PlayerOrder order_;
 	QModelIndex play_index_;

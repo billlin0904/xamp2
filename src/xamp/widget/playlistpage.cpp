@@ -35,6 +35,7 @@ void PlaylistPage::initial() {
 	cover_->setObjectName(QString::fromUtf8("label"));
 	cover_->setMinimumSize(QSize(150, 150));
 	cover_->setMaximumSize(QSize(200, 150));
+	cover_->setAttribute(Qt::WA_StaticContents);
 
 	left_space_layout->addWidget(cover_);
 

@@ -8,26 +8,7 @@
 
 namespace xamp::output_device {
 
-static std::string CLSIDToString(CLSID guid) {
-    std::array<char, 40> output{};
-    String::StringPrint(output.data(), output.size(),
-		"{%08X-%04hX-%04hX-%02X%02X-%02X%02X%02X%02X%02X%02X}",
-		guid.Data1,
-		guid.Data2,
-		guid.Data3,
-		guid.Data4[0],
-		guid.Data4[1], 
-		guid.Data4[2], 
-		guid.Data4[3],
-		guid.Data4[4],
-		guid.Data4[5],
-		guid.Data4[6],
-		guid.Data4[7]);
-    return std::string(output.data());
-}
-
-ASIODeviceType::ASIODeviceType() {
-}
+ASIODeviceType::ASIODeviceType() = default;
 
 std::string_view ASIODeviceType::GetDescription() const {
 	return Description;
@@ -80,7 +61,6 @@ void ASIODeviceType::ScanNewDevice() {
 		if (drivers.asioGetDriverCLSID(i, &clsid) == 0) {
 			char driver_name[kMaxPathLen + 1]{};
 			drivers.asioGetDriverName(i, driver_name, kMaxPathLen);
-			auto device_id = CLSIDToString(clsid);
 			if (device_list_.find(driver_name) != device_list_.end()) {
 				continue;
 			}

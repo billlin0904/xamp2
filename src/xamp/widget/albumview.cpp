@@ -337,8 +337,7 @@ void AlbumViewPage::setCover(const QString& cover_id) {
 
 AlbumView::AlbumView(QWidget* parent)
     : QListView(parent)
-    , page_(nullptr)
-    , model_(this) {
+    , page_(new AlbumViewPage(this)), model_(this) {
     setModel(&model_);
     refreshOnece();
     setUniformItemSizes(true);
@@ -354,8 +353,8 @@ AlbumView::AlbumView(QWidget* parent)
     setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     setItemDelegate(new AlbumViewStyledDelegate(this));
     setAutoScroll(false);
+    viewport()->setAttribute(Qt::WA_StaticContents);
 
-    page_ = new AlbumViewPage(this);
     page_->hide();
 
     (void)QObject::connect(page_,

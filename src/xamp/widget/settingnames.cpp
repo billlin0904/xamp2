@@ -25,6 +25,7 @@ const ConstLatin1String kAppSettingAlbumImageCacheSize{ "AppSettings/albumImageC
 const ConstLatin1String kAppSettingEnableReplayGain{ "AppSettings/enableReplayGain" };
 const ConstLatin1String kAppSettingReplayGainMode{ "AppSettings/replayGainMode" };
 const ConstLatin1String kAppSettingReplayGainTargetGain{ "AppSettings/replayGainTargetGain" };
+const ConstLatin1String kAppSettingReplayGainScanMode{ "AppSettings/replayGainScanMode" };
 
 const ConstLatin1String kAppSettingResamplerEnable{ "AppSettings/soxr/enable" };
 const ConstLatin1String kAppSettingSoxrSettingName{ "AppSettings/soxr/userSettingName" };

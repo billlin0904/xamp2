@@ -53,6 +53,11 @@ enum ReplayGainMode {
     RG_NONE_MODE,
 };
 
+enum ReplayGainScanMode {
+    RG_SCAN_MODE_FAST,
+    RG_SCAN_MODE_FULL,
+};
+
 class AppSettings final {
 public:    
     static void loadIniFile(QString const & file_name);
@@ -96,6 +101,12 @@ public:
         default_settings_[key] = value;
     }
 
+    template <typename T>
+    static void setDefaultEnumValue(const QString& key, T value) {
+        static_assert(std::is_enum_v<T>, "T must be enum value");
+        setDefaultValue<int32_t>(key, static_cast<int32_t>(value));
+    }
+
     static Uuid getID(QString const & key);
 
     static QSize getSizeValue(QString const& width_key, QString const& height_key);
@@ -103,6 +114,12 @@ public:
     static QVariant getValue(QString const& key);
 
     static int32_t getAsInt(QString const& key);
+
+    template <typename T>
+    static T getAsEnum(QString const& key) {
+        static_assert(std::is_enum_v<T>, "T must be enum value");
+        return static_cast<T>(getAsInt(key));
+    }
 
     static bool getValueAsBool(QString const& key) {
         return getValue(key).toBool();

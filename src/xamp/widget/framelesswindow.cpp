@@ -41,7 +41,8 @@ void FramelessWindow::initial(IXampPlayer *content_widget) {
     setObjectName(Q_UTF8("framelessWindow"));
 #if defined(Q_OS_WIN)
     if (!useNativeWindow()) {
-        setWindowFlags(Qt::FramelessWindowHint | Qt::WindowMinimizeButtonHint);
+        //setWindowFlags(Qt::FramelessWindowHint | Qt::WindowMinimizeButtonHint);
+        setWindowFlags(Qt::FramelessWindowHint | Qt::CustomizeWindowHint);
     }
 #endif
     content_widget_ = content_widget;    
@@ -58,6 +59,7 @@ void FramelessWindow::initial(IXampPlayer *content_widget) {
 #if defined(Q_OS_WIN)
     if (!useNativeWindow()) {
         win32::setFramelessWindowStyle(this);
+        win32::drawDwmShadow(this);
         setWindowTitle(Q_UTF8("xamp"));
     }
     createThumbnailToolBar();

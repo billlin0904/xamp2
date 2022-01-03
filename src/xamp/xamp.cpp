@@ -157,6 +157,11 @@ void Xamp::initial(ITopWindow *top_window) {
         initialDeviceList();
     }
     discord_notify_.discordInit();
+    avoidRedrawOnResize();
+}
+
+void Xamp::avoidRedrawOnResize() {
+    ui_.coverLabel->setAttribute(Qt::WA_StaticContents);
 }
 
 void Xamp::onActivated(QSystemTrayIcon::ActivationReason reason) {
@@ -526,7 +531,7 @@ void Xamp::initialController() {
         player_->Pause();
     });
 
-    order_ = static_cast<PlayerOrder>(AppSettings::getAsInt(kAppSettingOrder));
+    order_ = AppSettings::getAsEnum<PlayerOrder>(kAppSettingOrder);
     setPlayerOrder();
 
     ui_.volumeSlider->setRange(0, 100);
@@ -908,7 +913,7 @@ void Xamp::deleteKeyPress() {
 }
 
 void Xamp::setPlayerOrder() {
-    auto order = static_cast<PlayerOrder>(AppSettings::getAsInt(kAppSettingOrder));
+    auto order = AppSettings::getAsEnum<PlayerOrder>(kAppSettingOrder);
 
     switch (order_) {
     case PlayerOrder::PLAYER_ORDER_REPEAT_ONCE:

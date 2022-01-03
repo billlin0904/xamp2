@@ -31,6 +31,7 @@ extern const ConstLatin1String kAppSettingAlbumImageCacheSize;
 extern const ConstLatin1String kAppSettingEnableReplayGain;
 extern const ConstLatin1String kAppSettingReplayGainMode;
 extern const ConstLatin1String kAppSettingReplayGainTargetGain;
+extern const ConstLatin1String kAppSettingReplayGainScanMode;
 
 extern const ConstLatin1String kAppSettingResamplerEnable;
 extern const ConstLatin1String kAppSettingSoxrSettingName;
