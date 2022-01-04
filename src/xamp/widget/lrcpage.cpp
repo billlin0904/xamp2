@@ -25,8 +25,8 @@ QLabel* LrcPage::cover() {
     return cover_label_;
 }
 
-void LrcPage::setCover(const QPixmap& src) {	
-	cover_label_->setPixmap(Pixmap::roundImage(src));
+void LrcPage::setCover(const QPixmap& src) {
+	cover_label_->setPixmap(Pixmap::roundImage(src, QSize(250, 250), 5));
 }
 
 QSize LrcPage::coverSize() const {
@@ -70,10 +70,9 @@ void LrcPage::initial() {
     cover_label_->setMinimumSize(QSize(350, 350));
     cover_label_->setMaximumSize(QSize(350, 350));
 #else
-    cover_label_->setMinimumSize(QSize(250, 250));
-    cover_label_->setMaximumSize(QSize(250, 250));
+    cover_label_->setMinimumSize(QSize(300, 300));
+    cover_label_->setMaximumSize(QSize(300, 300));
 #endif
-	cover_label_->setStyleSheet(Q_UTF8("border-width: 0 0 0 0; border-radius: 50px;"));
 	cover_label_->setAttribute(Qt::WA_StaticContents);
 
     verticalLayout_3->addWidget(cover_label_);
@@ -149,7 +148,7 @@ void LrcPage::initial() {
 	label_7->setObjectName(QString::fromUtf8("label_4"));
 	label_7->setText(tr("Album:"));
 
-	label_7->setMinimumWidth(60);
+	label_7->setMinimumWidth(50);
 	label_7->setFont(f);
     label_7->setStyleSheet(Q_UTF8("background-color: transparent; color: gray;"));
 	horizontalLayout_7->addWidget(label_7);
@@ -170,10 +169,11 @@ void LrcPage::initial() {
 
 	lyrics_widget_ = new LyricsShowWidget(this);
 	lyrics_widget_->setObjectName(QString::fromUtf8("lyrics"));
-	lyrics_widget_->setMinimumSize(QSize(200, 60));	
+	lyrics_widget_->setMinimumSize(QSize(180, 60));	
 	verticalLayout_2->addWidget(lyrics_widget_);
 
 	verticalLayout_2->setStretch(2, 1);
 
 	horizontalLayout_10->addLayout(verticalLayout_2);
+	horizontalLayout_10->setStretch(1, 1);
 }

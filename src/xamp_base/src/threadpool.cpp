@@ -108,7 +108,7 @@ std::optional<Task> TaskScheduler::TrySteal(size_t i) {
 		}
 
 		const auto index = (i + n) % max_thread_;
-		if (shared_queues_.at(index)->TryDequeue(task)) {
+		XAMP_LIKELY(shared_queues_.at(index)->TryDequeue(task)) {
 			XAMP_LOG_D(logger_, "Steal other thread {} queue.", index);
 			return std::move(task);
 		}
@@ -135,7 +135,7 @@ void TaskScheduler::AddThread(size_t i) {
 		auto thread_id = GetCurrentThreadId();
 		SetWorkerThreadName(i);
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) start.", thread_id, i);
-		for (; !is_stopped_;) {
+		while (!is_stopped_) {
 			auto task = TrySteal(i + 1);
 			if (!task) {
 				task = TryPopLocalQueue(i);

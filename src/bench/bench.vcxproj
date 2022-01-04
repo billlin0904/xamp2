@@ -89,7 +89,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../thirdparty/benchmark/include/;../thirdparty/robin_hood/;../xamp_base/include/;../xamp_output_device/include/;../xamp_player/include/;../xamp_stream/include/;../thirdparty/spdlog/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../thirdparty/benchmark/include/;../thirdparty/robin_hood/;../xamp_base/include/;../xamp_output_device/include/;../xamp_player/include/;../xamp_stream/include/;../thirdparty/spdlog/include/;../thirdparty/t1ha/</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <Optimization>Full</Optimization>
       <OmitFramePointers>true</OmitFramePointers>

@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2021 xamp project. All rights reserved.
+// Copyright (c) 2018-2022 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -13,19 +13,15 @@
 #include <base/base.h>
 #include <robin_hood.h>
 
-#if 0
-#include <t1ha.h>
-#endif
-
 namespace xamp::base {
 
-#if __cplusplus < 202002L
+#if __cplusplus < XAMP_CPP20_LANG_VER
 template <typename T, typename ...Args>
 auto tuple_append(T&& t, Args&&...args) {
-    return std::tuple_cat(
-        std::forward<T>(t),
-        std::forward_as_tuple(args...)
-    );
+	return std::tuple_cat(
+		std::forward<T>(t),
+		std::forward_as_tuple(args...)
+	);
 }
 
 template<typename F, typename ...FrontArgs>

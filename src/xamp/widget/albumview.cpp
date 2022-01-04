@@ -337,7 +337,8 @@ void AlbumViewPage::setCover(const QString& cover_id) {
 
 AlbumView::AlbumView(QWidget* parent)
     : QListView(parent)
-    , page_(new AlbumViewPage(this)), model_(this) {
+    , page_(new AlbumViewPage(this))
+	, model_(this) {
     setModel(&model_);
     refreshOnece();
     setUniformItemSizes(true);

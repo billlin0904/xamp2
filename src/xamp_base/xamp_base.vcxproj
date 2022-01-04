@@ -137,8 +137,8 @@
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <IntelJCCErratum>true</IntelJCCErratum>
-      <AdditionalOptions>/d2SSAOptimizer- %(AdditionalOptions)</AdditionalOptions>
+      <IntelJCCErratum>false</IntelJCCErratum>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -195,7 +195,6 @@
     <ClInclude Include="include\base\win32\win32_threadpool.h" />
     <ClInclude Include="include\base\windows_handle.h" />
     <ClInclude Include="include\base\xoshiro.h" />
-    <ClInclude Include="include\xoshiro.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\align_ptr.cpp" />

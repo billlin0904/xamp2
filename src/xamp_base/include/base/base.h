@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2021 xamp project. All rights reserved.
+// Copyright (c) 2018-2022 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -10,7 +10,7 @@
 #include <cstddef>
 #include <filesystem>
 
-#include <new>
+#define XAMP_CPP20_LANG_VER 202002L
 
 #ifdef _WIN32
 	#ifdef BASE_API_EXPORTS
@@ -20,7 +20,7 @@
 		#define XAMP_BASE_API __declspec(dllimport)
 		#define XAMP_BASE_API_ONLY_EXPORT
 	#endif
-#if _MSVC_LANG > 201704L // Only for C++20
+#if __cplusplus >= XAMP_CPP20_LANG_VER // Only for C++20
 	#define XAMP_LIKELY(x) if(x) [[likely]]
 	#define XAMP_UNLIKELY(x) if (!x) [[unlikely]]	
 #else

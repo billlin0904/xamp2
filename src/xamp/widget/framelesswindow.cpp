@@ -17,45 +17,48 @@
 #include <widget/osx/osx.h>
 #endif
 
-#include "thememanager.h"
 #include <widget/appsettings.h>
 #include <widget/str_utilts.h>
 #include <widget/framelesswindow.h>
 
-FramelessWindow::FramelessWindow()
+FramelessWindow::FramelessWindow(bool use_native_window)
     : ITopWindow()
-    , use_native_window_(!AppSettings::getValueAsBool(kAppSettingUseFramelessWindow))
+    , use_native_window_(use_native_window)
 #if defined(Q_OS_WIN)
     , border_width_(5)
     , current_screen_(nullptr)
     , taskbar_progress_(nullptr)
 #endif
-	, content_widget_(nullptr)
-{
+	, content_widget_(nullptr) {
+    setObjectName(Q_UTF8("framelessWindow"));
 }
 
 void FramelessWindow::initial(IXampPlayer *content_widget) {
     // todo: DropShadow效果會讓CPU使用率偏高.
     // todo: 使用border-radius: 5px;將無法縮放視窗
     // todo: Qt::WA_TranslucentBackground + paintEvent 將無法縮放視窗
-    setObjectName(Q_UTF8("framelessWindow"));
 #if defined(Q_OS_WIN)
     if (!useNativeWindow()) {
+        setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
         //setWindowFlags(Qt::FramelessWindowHint | Qt::WindowMinimizeButtonHint);
-        setWindowFlags(Qt::FramelessWindowHint | Qt::CustomizeWindowHint);
+        //setWindowFlags(Qt::Window | Qt::FramelessWindowHint | Qt::CustomizeWindowHint);
+        //setAttribute(Qt::WA_TranslucentBackground);
     }
 #endif
     content_widget_ = content_widget;    
     if (content_widget_ != nullptr) {        
         auto* default_layout = new QGridLayout();
         default_layout->addWidget(content_widget_, 0, 0);
-        default_layout->setContentsMargins(0, 0, 0, 0);
+        if (!useNativeWindow()) {
+            default_layout->setContentsMargins(20, 20, 20, 20);
+        } else {
+            default_layout->setContentsMargins(0, 0, 0, 0);
+        }
         setLayout(default_layout);
     }
     setAcceptDrops(true);
     setMouseTracking(true);
     installEventFilter(this);
-    auto ui_font = setupUIFont();
 #if defined(Q_OS_WIN)
     if (!useNativeWindow()) {
         win32::setFramelessWindowStyle(this);
@@ -69,12 +72,6 @@ void FramelessWindow::initial(IXampPlayer *content_widget) {
         setWindowTitle(Q_UTF8("xamp"));
     }
 #endif
-#if defined(Q_OS_WIN)
-    ui_font.setPointSize(10);
-#else
-    ui_font.setPointSize(12);
-#endif
-    qApp->setFont(ui_font);
 }
 // QScopedPointer require default destructor.
 FramelessWindow::~FramelessWindow() = default;
@@ -121,45 +118,6 @@ void FramelessWindow::createThumbnailToolBar() {
     thumbnail_tool_bar_->addButton(play_tool_button);
     thumbnail_tool_bar_->addButton(forward_tool_button);
 #endif
-}
-
-QFont FramelessWindow::setupUIFont() const {
-    const auto digital_font_id = QFontDatabase::addApplicationFont(Q_UTF8(":/xamp/fonts/digital.ttf"));
-    const auto digital_font_families = QFontDatabase::applicationFontFamilies(digital_font_id);
-
-    const auto title_font_id = QFontDatabase::addApplicationFont(Q_UTF8(":/xamp/fonts/WorkSans-Bold.ttf"));
-    auto title_font_families = QFontDatabase::applicationFontFamilies(title_font_id);
-
-    const auto default_font_id = QFontDatabase::addApplicationFont(Q_UTF8(":/xamp/fonts/WorkSans-Regular.ttf"));
-    auto default_font_families = QFontDatabase::applicationFontFamilies(default_font_id);
-
-    QList<QString> ui_fallback_fonts;
-    
-    // note: If we are support Source HanSans font sets must be enable Direct2D function,
-    // But Qt framework not work fine with that!
-    ui_fallback_fonts.push_back(default_font_families[0]);
-    ui_fallback_fonts.push_back(title_font_families[0]);
-    //ui_fallback_fonts.push_back(Q_UTF8("Lucida Grande"));
-    //ui_fallback_fonts.push_back(Q_UTF8("Helvetica Neue"));
-#if defined(Q_OS_WIN)
-    ui_fallback_fonts.push_back(Q_UTF8("Microsoft JhengHei UI"));
-    //ui_fallback_fonts.push_back(Q_UTF8("Lucida Sans Unicode"));
-    QFont::insertSubstitutions(Q_UTF8("MonoFont"), QList<QString>() << Q_UTF8("Consolas"));
-#else
-    QList<QString> mono_fonts;
-    auto family = QFontDatabase::systemFont(QFontDatabase::FixedFont).family();
-    XAMP_LOG_DEBUG("MonoFont Family : {}", family.toStdString());
-    mono_fonts.push_back(family);
-    QFont::insertSubstitutions(Q_UTF8("MonoFont"), mono_fonts);
-    ui_fallback_fonts.push_back(Q_UTF8("PingFang TC"));
-    ui_fallback_fonts.push_back(Q_UTF8("Heiti TC"));
-#endif
-    QFont::insertSubstitutions(Q_UTF8("UI"), ui_fallback_fonts);
-    QFont::insertSubstitutions(Q_UTF8("FormatFont"), digital_font_families);
-
-    QFont ui_font(Q_UTF8("UI"));
-    ui_font.setStyleStrategy(QFont::PreferAntialias);
-    return ui_font;
 }
 
 void FramelessWindow::setTaskbarProgress(const int32_t percent) {
@@ -209,7 +167,7 @@ void FramelessWindow::setTaskbarPlayerStop() {
 
 bool FramelessWindow::eventFilter(QObject * object, QEvent * event) {
     if (event->type() == QEvent::KeyPress) {
-        const auto key_event = static_cast<QKeyEvent*>(event);
+        const auto* key_event = dynamic_cast<QKeyEvent*>(event);
         if (key_event->key() == Qt::Key_Delete) {
             content_widget_->deleteKeyPress();
         }
@@ -320,44 +278,46 @@ bool FramelessWindow::hitTest(MSG const* msg, long* result) const {
 #endif
 
 bool FramelessWindow::nativeEvent(const QByteArray& event_type, void * message, long * result) {
-    if (!use_native_window_) {
+    if (use_native_window_) {
+        return QWidget::nativeEvent(event_type, message, result);
+    }
+
 #if defined(Q_OS_WIN)
-        const auto msg = static_cast<MSG const*>(message);
-        switch (msg->message) {
-        case WM_NCHITTEST:
-            if (!isMaximized()) {
-                *result = HTCAPTION;
-                return hitTest(msg, result);
-            }
-            break;
-        case WM_GETMINMAXINFO:
-            if (layout() != nullptr) {
-                if (::IsZoomed(msg->hwnd)) {
-                    RECT frame = { 0, 0, 0, 0 };
-                    ::AdjustWindowRectEx(&frame, WS_OVERLAPPEDWINDOW, FALSE, 0);
-                    frame.left = abs(frame.left);
-                    frame.top = abs(frame.bottom);
-                    layout()->setContentsMargins(frame.left, frame.top, frame.right, frame.bottom);
-                }
-                else {
-                    layout()->setContentsMargins(0, 0, 0, 0);
-                }
-            }            
-            *result = ::DefWindowProc(msg->hwnd, msg->message, msg->wParam, msg->lParam);
-            break;
-        case WM_NCCALCSIZE:
-            // this kills the window frame and title bar we added with WS_THICKFRAME and WS_CAPTION
-            if (msg->wParam == TRUE) {
-                *result = 0;
-                return true;
-            }
-            return false;
-        default:
-            break;
+    const auto *msg = static_cast<MSG const*>(message);
+    switch (msg->message) {
+    case WM_NCHITTEST:
+        if (!isMaximized()) {
+            *result = HTCAPTION;
+            return hitTest(msg, result);
         }
-#endif
-    }    
+        break;
+    case WM_GETMINMAXINFO:
+        if (layout() != nullptr) {
+            if (::IsZoomed(msg->hwnd)) {
+                RECT frame = { 0, 0, 0, 0 };
+                ::AdjustWindowRectEx(&frame, WS_OVERLAPPEDWINDOW, FALSE, 0);
+                frame.left = abs(frame.left);
+                frame.top = abs(frame.bottom);
+                layout()->setContentsMargins(frame.left, frame.top, frame.right, frame.bottom);
+            }
+            else {
+                layout()->setContentsMargins(0, 0, 0, 0);
+            }
+        }            
+        *result = ::DefWindowProc(msg->hwnd, msg->message, msg->wParam, msg->lParam);
+        break;
+    case WM_NCCALCSIZE:
+        // this kills the window frame and title bar we added with WS_THICKFRAME and WS_CAPTION
+        if (msg->wParam == TRUE) {
+            *result = 0;
+            return true;
+        }
+        return false;
+    default:
+        break;
+    }
     return QWidget::nativeEvent(event_type, message, result);
+#endif
 }
 
 void FramelessWindow::changeEvent(QEvent* event) {

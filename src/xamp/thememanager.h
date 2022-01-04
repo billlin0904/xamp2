@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2021 xamp project. All rights reserved.
+// Copyright (c) 2018-2022 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -15,17 +15,9 @@ namespace Ui {
 class XampWindow;
 }
 
-inline QString colorToString(QColor color) noexcept {
-    return QString(Q_UTF8("rgba(%1,%2,%3,%4)"))
-        .arg(color.red())
-        .arg(color.green())
-        .arg(color.blue())
-        .arg(color.alpha());
-}
+QString colorToString(QColor color) noexcept;
 
-inline QString backgroundColorToString(QColor color) noexcept {
-    return Q_UTF8("background-color: ") + colorToString(color) + Q_UTF8(";");
-}
+QString backgroundColorToString(QColor color) noexcept;
 
 inline constexpr int32_t kUIRadius = 9;
 
@@ -64,6 +56,10 @@ public:
 
     const QPalette& palette() const {
         return palette_;
+    }
+
+    const QFont& defaultFont() const {
+        return ui_font_;
     }
 
     QIcon appIcon() const;
@@ -141,6 +137,8 @@ public:
     void setBackgroundColor(QWidget* widget, int32_t alpha = 255);
 
 private:
+    QFont loadFonts();
+
     void setPalette();
 
     QIcon makeIcon(const QString& path) const;
@@ -154,5 +152,6 @@ private:
     QSize cover_size_;
     QColor background_color_;
     QPalette palette_;
+    QFont ui_font_;
 };
 

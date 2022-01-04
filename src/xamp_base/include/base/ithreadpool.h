@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2021 xamp project. All rights reserved.
+// Copyright (c) 2018-2022 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -112,7 +112,7 @@ decltype(auto) IThreadPool::Spawn(F&& f, Args&&... args) {
     // https://github.com/microsoft/STL/issues/321
     using PackagedTaskType = std::packaged_task<ReturnType(size_t)>;
 
-#if __cplusplus >= 202002L
+#if __cplusplus >= XAMP_CPP20_LANG_VER
     using std::bind_front;
 #endif
     auto task = MakeAlignedShared<PackagedTaskType>(bind_front(std::forward<F>(f),

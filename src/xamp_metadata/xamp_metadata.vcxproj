@@ -137,7 +137,7 @@
       <IntelJCCErratum>true</IntelJCCErratum>
       <FloatingPointModel>Fast</FloatingPointModel>
       <DisableSpecificWarnings>4996;4819</DisableSpecificWarnings>
-      <AdditionalOptions>/d2SSAOptimizer- %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

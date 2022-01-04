@@ -20,6 +20,7 @@
 
 #include <player/api.h>
 
+#include <widget/appsettings.h>
 #include <widget/albumview.h>
 #include <widget/lyricsshowwidget.h>
 #include <widget/playlisttableview.h>
@@ -1238,7 +1239,7 @@ void Xamp::setCover(const QPixmap* cover, PlaylistPage* page) {
     ui_.coverLabel->setPixmap(ui_cover);
 
     const auto playlist_cover = Pixmap::roundImage(
-        Pixmap::resizeImage(*cover, page->cover()->size(), false),
+        Pixmap::resizeImage(*cover, QSize(130, 130), false),
         Pixmap::kPlaylistImageRadius);
     page->cover()->setPixmap(playlist_cover);
     if (lrc_page_ != nullptr) {

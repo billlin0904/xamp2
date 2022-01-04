@@ -3,9 +3,7 @@
 #include <base/logger.h>
 #include <base/scopeguard.h>
 #include <base/dll.h>
-#include <base/stacktrace.h>
 #include <base/platform.h>
-#include <base/vmmemlock.h>
 #include <base/str_utilts.h>
 #include <base/simd.h>
 
@@ -13,17 +11,18 @@
 #include <stream/soxresampler.h>
 
 #include <widget/qdebugsink.h>
-
 #include <widget/appsettings.h>
 #include <widget/database.h>
 #include <widget/pixmapcache.h>
 #include <widget/str_utilts.h>
 #include <widget/jsonsettings.h>
 #include <widget/ui_utilts.h>
+#include <widget/framelesswindow.h>
 
 #include <QMessageBox>
 #include <QProcess>
 
+#include "thememanager.h"
 #include "singleinstanceapplication.h"
 #include "xamp.h"
 
@@ -100,11 +99,22 @@ static std::vector<ModuleHandle> preloadDll() {
         "mimalloc-override.dll",
         "AudioSes.dll",
         "psapi.dll",
-        //"ResourcePolicyClient.dll",
-        //"AUDIOKSE.dll",
-        //"comctl32.dll",
-        //"WindowsCodecs.dll",
-        //"thumbcache.dll",
+        "ResourcePolicyClient.dll",
+        "AUDIOKSE.dll",
+        "comctl32.dll",
+        "WindowsCodecs.dll",
+        "thumbcache.dll",
+        "setupapi.dll",
+        "DataExchange.dll",
+        "dcomp.dll",
+        "twinapi.appcore.dll",
+        "ExplorerFrame.dll",
+        "TextInputFramework.dll",
+        "CoreUIComponents.dll",
+        "CoreMessaging.dll",
+        "ntmarta.dll",
+        "WinTypes.dll",
+        "WinTypes.dll",
     };
     std::vector<ModuleHandle> preload_module;
     for (const auto file_name : preload_dll_file_name) {
@@ -174,7 +184,7 @@ static int excute(int argc, char* argv[]) {
 
     SingleInstanceApplication single_app;
     QApplication::setApplicationName(Q_UTF8("XAMP2"));
-    QApplication::setApplicationVersion(Q_UTF8("0.0.1s"));
+    QApplication::setApplicationVersion(Q_UTF8("0.0.1"));
     QApplication::setOrganizationName(Q_UTF8("XAMP2 Project"));
     QApplication::setOrganizationDomain(Q_UTF8("XAMP2 Project"));
 
@@ -202,7 +212,9 @@ static int excute(int argc, char* argv[]) {
         XAMP_LOG_DEBUG("Library path : {}.", path.toStdString());
     }
 
-    FramelessWindow top_win;
+    QApplication::setFont(ThemeManager::instance().defaultFont());
+
+    FramelessWindow top_win(!AppSettings::getValueAsBool(kAppSettingUseFramelessWindow));
     Xamp win;
     win.initial(&top_win);
     top_win.initial(&win);
@@ -226,3 +238,4 @@ int main(int argc, char *argv[]) {
     }
     return 0;
 }
+

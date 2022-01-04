@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2021 xamp project. All rights reserved.
+// Copyright (c) 2018-2022 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -10,11 +10,8 @@
 #include <QSystemTrayIcon>
 
 #include <widget/widget_shared.h>
-#include <widget/appsettings.h>
 #include <widget/uiplayerstateadapter.h>
-#include <widget/framelesswindow.h>
 #include <widget/playlistentity.h>
-#include <widget/localelanguage.h>
 #include <widget/playerorder.h>
 #include <widget/replaygainworker.h>
 #include <widget/musicentity.h>

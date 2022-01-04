@@ -2,6 +2,8 @@
 
 #include <iostream>
 #include <vector>
+#include <unordered_map>
+#include <unordered_set>
 #include <queue>
 
 #include <base/scopeguard.h>
@@ -11,6 +13,7 @@
 #include <base/rng.h>
 #include <base/fastmutex.h>
 #include <base/dataconverter.h>
+#include <base/lrucache.h>
 #include <base/stl.h>
 
 #include <player/fft.h>
@@ -329,6 +332,20 @@ static void BM_unordered_set(benchmark::State& state) {
     }
 }
 
+static void BM_LruCache(benchmark::State& state) {
+    auto length = state.range(0);
+
+    LruCache<int32_t, int32_t> cache;
+
+    for (auto i = 0; i < length; ++i) {
+        cache.AddOrUpdate(PRNG::NextInt(1, 1000), PRNG::NextInt(1, 1000));
+    }
+    
+    for (auto _ : state) {
+        cache.Find(PRNG::NextInt(1, 1000));
+    }
+}
+
 static void BM_FFT(benchmark::State& state) {
     auto length = state.range(0);
 
@@ -356,6 +373,7 @@ BENCHMARK(BM_unordered_set);
 BENCHMARK(BM_FindRobinHoodHashSet);
 BENCHMARK(BM_unordered_map);
 BENCHMARK(BM_FindRobinHoodHashMap);
+BENCHMARK(BM_LruCache)->RangeMultiplier(2)->Range(4096, 8 << 16);
 BENCHMARK(BM_FastMemset)->RangeMultiplier(2)->Range(4096, 8 << 10);
 BENCHMARK(BM_StdtMemset)->RangeMultiplier(2)->Range(4096, 8 << 10);
 BENCHMARK(BM_FastMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 10);

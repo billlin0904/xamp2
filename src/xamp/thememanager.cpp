@@ -5,6 +5,7 @@
 #include <QScreen>
 #include <QResource>
 #include <QApplication>
+#include <QFontDatabase>
 
 #if defined(Q_OS_WIN)
 #include <widget/win32/win32.h>
@@ -15,9 +16,59 @@
 #include <widget/appsettings.h>
 #include "thememanager.h"
 
+QString colorToString(QColor color) noexcept {
+    return QString(Q_UTF8("rgba(%1,%2,%3,%4)"))
+        .arg(color.red())
+        .arg(color.green())
+        .arg(color.blue())
+        .arg(color.alpha());
+}
+
+QString backgroundColorToString(QColor color) noexcept {
+    return Q_UTF8("background-color: ") + colorToString(color) + Q_UTF8(";");
+}
+
 ThemeManager& ThemeManager::instance() {
     static ThemeManager manager;
     return manager;
+}
+
+QFont ThemeManager::loadFonts() {
+    const auto digital_font_id = QFontDatabase::addApplicationFont(Q_UTF8(":/xamp/fonts/digital.ttf"));
+    const auto digital_font_families = QFontDatabase::applicationFontFamilies(digital_font_id);
+
+    const auto title_font_id = QFontDatabase::addApplicationFont(Q_UTF8(":/xamp/fonts/WorkSans-Bold.ttf"));
+    auto title_font_families = QFontDatabase::applicationFontFamilies(title_font_id);
+
+    const auto default_font_id = QFontDatabase::addApplicationFont(Q_UTF8(":/xamp/fonts/WorkSans-Regular.ttf"));
+    auto default_font_families = QFontDatabase::applicationFontFamilies(default_font_id);
+
+    QList<QString> ui_fallback_fonts;
+
+    // note: If we are support Source HanSans font sets must be enable Direct2D function,
+    // But Qt framework not work fine with that!
+    ui_fallback_fonts.push_back(default_font_families[0]);
+    ui_fallback_fonts.push_back(title_font_families[0]);
+#if defined(Q_OS_WIN)
+    ui_fallback_fonts.push_back(Q_UTF8("Lucida Grande"));
+    ui_fallback_fonts.push_back(Q_UTF8("Helvetica Neue"));
+    ui_fallback_fonts.push_back(Q_UTF8("Microsoft JhengHei UI"));
+    QFont::insertSubstitutions(Q_UTF8("MonoFont"), QList<QString>() << Q_UTF8("Consolas"));
+#else
+    QList<QString> mono_fonts;
+    auto family = QFontDatabase::systemFont(QFontDatabase::FixedFont).family();
+    XAMP_LOG_DEBUG("MonoFont Family : {}", family.toStdString());
+    mono_fonts.push_back(family);
+    QFont::insertSubstitutions(Q_UTF8("MonoFont"), mono_fonts);
+    ui_fallback_fonts.push_back(Q_UTF8("PingFang TC"));
+    ui_fallback_fonts.push_back(Q_UTF8("Heiti TC"));
+#endif
+    QFont::insertSubstitutions(Q_UTF8("UI"), ui_fallback_fonts);
+    QFont::insertSubstitutions(Q_UTF8("FormatFont"), digital_font_families);
+
+    QFont ui_font(Q_UTF8("UI"));
+    ui_font.setStyleStrategy(QFont::PreferAntialias);
+    return ui_font;
 }
 
 void ThemeManager::setPalette() {
@@ -37,6 +88,12 @@ ThemeManager::ThemeManager() {
     //setThemeColor(ThemeColor::LIGHT_THEME);
     const auto theme = static_cast<ThemeColor>(AppSettings::getValue(kAppSettingTheme).toInt());
     setThemeColor(theme);
+    ui_font_ = loadFonts();
+#if defined(Q_OS_WIN)
+    ui_font_.setPointSize(10);
+#else
+    ui_font_.setPointSize(12);
+#endif
 }
 
 void ThemeManager::setThemeColor(ThemeColor theme_color) {

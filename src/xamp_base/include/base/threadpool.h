@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2021 xamp project. All rights reserved.
+// Copyright (c) 2018-2022 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -76,9 +76,9 @@ public:
     template <typename F, typename... Args>
     decltype(auto) Spawn(F&& f, Args&&... args);
 
-    void Stop();
+    void Stop() override;
 
-    void SetAffinityMask(int32_t core);
+    void SetAffinityMask(int32_t core) override;
 };
 
 }

@@ -4,7 +4,7 @@
 
 #if defined(Q_OS_WIN)
 
-#include <winuser.h>
+#include <WinUser.h>
 #include <wingdi.h>
 #include <dwmapi.h>
 #include <base/dll.h>
@@ -180,7 +180,7 @@ void drawDwmShadow(const QWidget* widget) {
 	/*auto policy = DWMNCRENDERINGPOLICY::DWMNCRP_ENABLED;
 	DWMDLL.DwmSetWindowAttribute(hwnd, DWMWINDOWATTRIBUTE::DWMWA_NCRENDERING_POLICY, &policy, sizeof(policy));*/
 
-	MARGINS borderless = { -1, -1, -1, -1 };
+	MARGINS borderless = { 1, 1, 1, 1 };
 	DWMDLL.DwmExtendFrameIntoClientArea(hwnd, &borderless);
 }
 

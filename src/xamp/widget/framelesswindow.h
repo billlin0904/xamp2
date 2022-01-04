@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2021 xamp project. All rights reserved.
+// Copyright (c) 2018-2022 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -16,16 +16,12 @@
 class QWinThumbnailToolBar;
 class QWinTaskbarButton;
 class QWinTaskbarProgress;
-#endif
-
-class QAction;
 class QScreen;
-class QSystemTrayIcon;
-class QMenu;
+#endif
 
 class FramelessWindow final : public ITopWindow {
 public:
-    FramelessWindow();
+    explicit FramelessWindow(bool use_native_window);
 
 	virtual ~FramelessWindow() override;
 
@@ -73,13 +69,12 @@ protected:
 
     void closeEvent(QCloseEvent* event) override;
 private:
-	QFont setupUIFont() const;
-
 	void createThumbnailToolBar();
 
     bool nativeEvent(const QByteArray& event_type, void* message, long* result) override;	
 
 	bool use_native_window_;
+
 #if defined(Q_OS_WIN)
 	int32_t border_width_;
 	QIcon play_icon_;
