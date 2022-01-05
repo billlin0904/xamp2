@@ -271,6 +271,18 @@ PreferencePage::PreferencePage(QWidget *parent)
 		});
 }
 
+void PreferencePage::update() {
+	auto enable_resampler = AppSettings::getValueAsBool(kAppSettingResamplerEnable);
+	if (!enable_resampler) {
+		ui_.resamplerStackedWidget->setCurrentIndex(0);
+		ui_.selectResamplerComboBox->setCurrentIndex(0);
+	}
+	else {
+		ui_.resamplerStackedWidget->setCurrentIndex(1);
+		ui_.selectResamplerComboBox->setCurrentIndex(1);
+	}
+}
+
 void PreferencePage::saveAll() {
 	JsonSettings::setValue(ui_.soxrSettingCombo->currentText(), getSoxrSettings());
 	AppSettings::setValue(kAppSettingSoxrSettingName, ui_.soxrSettingCombo->currentText());

@@ -15,6 +15,7 @@ class PreferencePage final : public QFrame {
 public:
     explicit PreferencePage(QWidget *parent = nullptr);
 
+    void update();
 private:
     void loadSoxrResampler(const QVariantMap & soxr_settings);
 

@@ -64,6 +64,25 @@ struct XAMP_BASE_API MappingMemoryAddressTraits final {
 	}
 };
 
+struct XAMP_BASE_API WorkDeleter final {
+	static PTP_WORK invalid() noexcept { return nullptr; }
+	static void close(PTP_WORK value) { ::CloseThreadpoolWork(value); }
+};
+
+struct XAMP_BASE_API ThreadPoolDeleter final {
+	static PTP_POOL invalid() noexcept { return nullptr; }
+	static void close(PTP_POOL value) { ::CloseThreadpool(value); }
+};
+
+struct XAMP_BASE_API CleanupThreadGroupDeleter final {
+	static PTP_CLEANUP_GROUP invalid() noexcept { return nullptr; }
+	static void close(PTP_CLEANUP_GROUP value) { ::CloseThreadpoolCleanupGroup(value); }
+};
+
+using WorkHandle = UniqueHandle<PTP_WORK, WorkDeleter>;
+using CleanupThreadGroupHandle = UniqueHandle<PTP_CLEANUP_GROUP, CleanupThreadGroupDeleter>;
+using ThreadPoolHandle = UniqueHandle<PTP_POOL, ThreadPoolDeleter>;
+
 using WinHandle = UniqueHandle<HANDLE, HandleTraits>;
 using ModuleHandle = UniqueHandle<HMODULE, ModuleHandleTraits>;
 using FileHandle = UniqueHandle<HANDLE, FileHandleTraits>;

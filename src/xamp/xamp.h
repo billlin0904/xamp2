@@ -31,7 +31,6 @@ class ArtistInfoPage;
 class PlaybackHistoryPage;
 class QWidgetAction;
 struct PlaybackFormat;
-class YtMusicWebEngineView;
 
 class Xamp final : public IXampPlayer {
 	Q_OBJECT
@@ -119,7 +118,7 @@ private:
 
 	void setPlayerOrder();
 
-	PlaylistPage* newPlaylist(int32_t playlist_id);
+	PlaylistPage* newPlaylistPage(int32_t playlist_id);
 
 	void pushWidget(QWidget* widget);
 
@@ -167,6 +166,7 @@ private:
 	LrcPage* lrc_page_;
 	PlaylistPage* playlist_page_;
 	PlaylistPage* podcast_page_;
+	PlaylistPage* music_page_;
 	PlaylistPage* current_playlist_page_;
 	AlbumArtistPage* album_artist_page_;
     ArtistInfoPage* artist_info_page_;
@@ -175,7 +175,6 @@ private:
     QMenu* tray_icon_menu_;
     QSystemTrayIcon* tray_icon_;
 	QStack<int32_t> stack_page_id_;	    	
-	YtMusicWebEngineView* ytmusic_view_;
     ReplayGainWorker replay_gain_worker_;
     QThread replay_gain_thread_;
 	std::shared_ptr<UIPlayerStateAdapter> state_adapter_;

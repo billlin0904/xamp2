@@ -9,30 +9,11 @@
 #include <base/logger.h>
 #include <base/bounded_queue.h>
 #include <base/ithreadpool.h>
-#include <base/unique_handle.h>
+#include <base/windows_handle.h>
 
 #ifdef XAMP_OS_WIN
 
 namespace xamp::base::win32 {
-
-struct XAMP_BASE_API WorkDeleter final {
-	static PTP_WORK invalid() noexcept { return nullptr; }
-	static void close(PTP_WORK value) { ::CloseThreadpoolWork(value); }
-};
-
-struct XAMP_BASE_API ThreadPoolDeleter final {
-	static PTP_POOL invalid() noexcept { return nullptr; }
-	static void close(PTP_POOL value) { ::CloseThreadpool(value); }
-};
-
-struct XAMP_BASE_API CleanupThreadGroupDeleter final {
-	static PTP_CLEANUP_GROUP invalid() noexcept { return nullptr; }
-	static void close(PTP_CLEANUP_GROUP value) { ::CloseThreadpoolCleanupGroup(value); }
-};
-
-using WorkHandle = UniqueHandle<PTP_WORK, WorkDeleter>;
-using CleanupThreadGroupHandle = UniqueHandle<PTP_CLEANUP_GROUP, CleanupThreadGroupDeleter>;
-using ThreadPoolHandle = UniqueHandle<PTP_POOL, ThreadPoolDeleter>;
 
 class TaskScheduler;
 
@@ -40,7 +21,7 @@ class XAMP_BASE_API ThreadPool : public IThreadPool {
 public:
 	friend class TaskScheduler;
 
-	ThreadPool(const std::string_view& pool_name, uint32_t max_thread = std::thread::hardware_concurrency(), int32_t affinity = kDefaultAffinityCpuCore);
+	explicit ThreadPool(const std::string_view& pool_name, uint32_t max_thread = std::thread::hardware_concurrency(), int32_t affinity = kDefaultAffinityCpuCore);
 
 	XAMP_DISABLE_COPY(ThreadPool)
 

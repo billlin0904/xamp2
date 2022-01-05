@@ -47,6 +47,10 @@ struct ArtistStats {
     double durations{ 0 };
 };
 
+constexpr auto kDefaultPlaylistId = 1;
+constexpr auto kDefaultPodcastPlaylistId = 2;
+constexpr auto kDefaultMusicPlaylistId = 3;
+
 class Database final {
 public:
     static constexpr int32_t kInvalidId = -1;
@@ -130,6 +134,8 @@ public:
     int32_t findTablePlaylistId(int32_t table_id) const;
 
     bool isPlaylistExist(int32_t playlist_id) const;
+
+    void addMusicToPlaylist(int32_t music_id, int32_t playlist_id) const;
 
     void addMusicToPlaylist(const std::vector<int32_t> & music_id, int32_t playlist_id) const;
 

@@ -8,7 +8,7 @@
 namespace xamp::base {
 
 inline constexpr auto kMaxPlaybackThreadPoolSize{ 4 };
-inline constexpr auto kMaxWASAPIThreadPoolSize{ 4 };
+inline constexpr auto kMaxWASAPIThreadPoolSize{ 2 };
 
 #ifdef XAMP_OS_WIN
 //using FastThreadPool = win32::ThreadPool;

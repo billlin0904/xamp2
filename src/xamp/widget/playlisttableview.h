@@ -8,6 +8,7 @@
 #include <optional>
 
 #include <QTableView>
+#include <base/rng.h>
 
 #include <widget/playlisttablemodel.h>
 #include <widget/playlistentity.h>
@@ -17,12 +18,14 @@
 
 class StarDelegate;
 
-class PlayListTableView final : public QTableView {
+class PlayListTableView : public QTableView {
 	Q_OBJECT
 public:
 	explicit PlayListTableView(QWidget* parent = nullptr, int32_t playlist_id = 1);
 
-	~PlayListTableView() override;
+	virtual ~PlayListTableView() override;
+
+	virtual void refresh();
 
 	void setPlaylistId(int32_t playlist_id);
 
@@ -57,8 +60,6 @@ public:
 	std::map<int32_t, QModelIndex> selectItemIndex() const;
 
 	void append(const QString& file_name, bool show_progress_dialog = true);
-
-    void refresh();
 
     PlayListEntity nomapItem(const QModelIndex& index);
 
@@ -98,12 +99,14 @@ private:
 
 	void initial();
 
+protected:
 	bool podcast_mode_;
 	int32_t playlist_id_;
 	StarDelegate* start_delegate_;	
 	QModelIndex play_index_;
     PlayListSqlQueryTableModel model_;
 	PlayListTableFilterProxyModel proxy_model_;
+	PRNG rng_;
 };
 
 

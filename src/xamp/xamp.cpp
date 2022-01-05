@@ -6,7 +6,6 @@
 #include <QWidgetAction>
 #include <QFileDialog>
 #include <QProcess>
-#include <QNetworkProxyFactory>
 
 #include <base/scopeguard.h>
 #include <base/str_utilts.h>
@@ -33,13 +32,13 @@
 #include <widget/image_utiltis.h>
 #include <widget/database.h>
 #include <widget/pixmapcache.h>
-#include <widget/ytmusicwebengineview.h>
 #include <widget/artistinfopage.h>
 #include <widget/jsonsettings.h>
 #include <widget/ui_utilts.h>
 #include <widget/read_utiltis.h>
 #include <widget/time_utilts.h>
 #include <widget/equalizerdialog.h>
+#include <widget/playlisttablemodel.h>
 
 #include "aboutpage.h"
 #include "preferencepage.h"
@@ -122,12 +121,12 @@ Xamp::Xamp()
     , lrc_page_(nullptr)
     , playlist_page_(nullptr)
 	, podcast_page_(nullptr)
+	, music_page_(nullptr)
 	, current_playlist_page_(nullptr)
     , album_artist_page_(nullptr)
     , artist_info_page_(nullptr)
 	, tray_icon_menu_(nullptr)
 	, tray_icon_(nullptr)
-	, ytmusic_view_(nullptr)
     , state_adapter_(std::make_shared<UIPlayerStateAdapter>())
     , player_(MakeAudioPlayer(state_adapter_))
     , discord_notify_(this) {
@@ -680,10 +679,8 @@ void Xamp::initialController() {
             ui_.currentView->setCurrentWidget(about_page_);
             break;
         case TAB_YT_MUSIC:
-            //if (!ytmusic_view_->isLoaded()) {
-            //    ytmusic_view_->indexPage();
-            //}
-            //ui_.currentView->setCurrentWidget(ytmusic_view_);
+            /*ui_.currentView->setCurrentWidget(music_page_);
+            current_playlist_page_ = music_page_;*/
             break;
     	}        
     });
@@ -806,6 +803,7 @@ void Xamp::updateButtonState() {
     else {
         ThemeManager::instance().setPlayOrPauseButton(ui_, true);
     }
+    preference_page_->update();
 }
 
 void Xamp::applyTheme(QColor backgroundColor, QColor color) {
@@ -844,7 +842,7 @@ void Xamp::setTablePlaylistView(int table_id) {
     }
 
     if (!found) {
-        auto* playlist_page = newPlaylist(playlist_id);
+        auto* playlist_page = newPlaylistPage(playlist_id);
         playlist_page->playlist()->setPlaylistId(playlist_id);
         pushWidget(playlist_page);
     }
@@ -1296,39 +1294,49 @@ void Xamp::initialPlaylist() {
         ui_.sliderBar->addTab(name, table_id, ThemeManager::instance().playlistIcon());
 
         if (!playlist_page_) {
-            playlist_page_ = newPlaylist(playlist_id);
+            playlist_page_ = newPlaylistPage(playlist_id);
             playlist_page_->playlist()->setPlaylistId(playlist_id);
         }
 
         if (playlist_page_->playlist()->playlistId() != playlist_id) {
-            playlist_page_ = newPlaylist(playlist_id);
+            playlist_page_ = newPlaylistPage(playlist_id);
             playlist_page_->playlist()->setPlaylistId(playlist_id);
         }
     });
-
-    constexpr auto kDefaultPlaylistId = 1;
-    constexpr auto kDefaultPodcastId = 2;
 
     if (!playlist_page_) {
         auto playlist_id = kDefaultPlaylistId;
         if (!Singleton<Database>::GetInstance().isPlaylistExist(playlist_id)) {
             playlist_id = Singleton<Database>::GetInstance().addPlaylist(Qt::EmptyString, 0);
         }
-        playlist_page_ = newPlaylist(kDefaultPlaylistId);
+        playlist_page_ = newPlaylistPage(kDefaultPlaylistId);
         playlist_page_->playlist()->setPlaylistId(kDefaultPlaylistId);
     }
 
     if (!podcast_page_) {
-        auto playlist_id = kDefaultPodcastId;
+        auto playlist_id = kDefaultPodcastPlaylistId;
         if (!Singleton<Database>::GetInstance().isPlaylistExist(playlist_id)) {
             playlist_id = Singleton<Database>::GetInstance().addPlaylist(Qt::EmptyString, 1);
         }
-        podcast_page_ = newPlaylist(playlist_id);
+        podcast_page_ = newPlaylistPage(playlist_id);
         podcast_page_->playlist()->setPlaylistId(playlist_id);
     }
 
+    /*if (!music_page_) {
+        auto playlist_id = kDefaultMusicPlaylistId;
+        if (!Singleton<Database>::GetInstance().isPlaylistExist(playlist_id)) {
+            playlist_id = Singleton<Database>::GetInstance().addPlaylist(Qt::EmptyString, 2);
+        }
+        music_page_ = newPlaylistPage(playlist_id);
+        music_page_->playlist()->setPlaylistId(playlist_id);
+        music_page_->cover()->hide();
+        music_page_->title()->hide();
+        music_page_->format()->hide();
+    }*/
+
     playlist_page_->playlist()->setPodcastMode(false);
     podcast_page_->playlist()->setPodcastMode(true);
+    //music_page_->playlist()->setPodcastMode(true);
     current_playlist_page_ = playlist_page_;
 
     lrc_page_ = new LrcPage(this);
@@ -1343,10 +1351,7 @@ void Xamp::initialPlaylist() {
     preference_page_ = new PreferencePage(this);
     about_page_ = new AboutPage(this);
 
-    QNetworkProxyFactory::setUseSystemConfiguration(false);
-    //ytmusic_view_ = new YtMusicWebEngineView(this);
-
-    //pushWidget(ytmusic_view_);
+    //pushWidget(music_page_);
     pushWidget(lrc_page_);    
     pushWidget(playlist_page_);
     pushWidget(album_artist_page_);
@@ -1540,7 +1545,7 @@ void Xamp::exportWaveFile(const PlayListEntity& item) {
     }
 }
 
-PlaylistPage* Xamp::newPlaylist(int32_t playlist_id) {
+PlaylistPage* Xamp::newPlaylistPage(int32_t playlist_id) {
 	auto* playlist_page = new PlaylistPage(this);
 
     ui_.currentView->addWidget(playlist_page);

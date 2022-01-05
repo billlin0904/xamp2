@@ -55,7 +55,7 @@
   </PropertyGroup>
   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <QtInstall>5.15.2_msvc2019_64</QtInstall>
-    <QtModules>core;sql;network;gui;widgets;winextras;concurrent;webenginewidgets;</QtModules>
+    <QtModules>core;sql;network;gui;widgets;winextras;</QtModules>
   </PropertyGroup>
   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <QtInstall>5.15.2_msvc2019_64</QtInstall>
@@ -217,8 +217,6 @@
     <ClCompile Include="widget\wheelablewidget.cpp" />
     <ClCompile Include="widget\win32\win32.cpp" />
     <ClCompile Include="widget\xampdialog.cpp" />
-    <ClCompile Include="widget\ytmusicobserver.cpp" />
-    <ClCompile Include="widget\ytmusicwebengineview.cpp" />
     <ClCompile Include="xamp.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -237,8 +235,6 @@
     <ResourceCompile Include="xamp.rc" />
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="widget\ytmusicobserver.h" />
-    <QtMoc Include="widget\ytmusicwebengineview.h" />
     <ClInclude Include="xampplayer.h" />
     <QtMoc Include="widget\lyricsshowwidget.h" />
     <QtMoc Include="widget\discordnotify.h" />
