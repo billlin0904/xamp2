@@ -5,11 +5,9 @@
 
 #pragma once
 
-#include <QDialog>
 #include <QMap>
 
 #include "ui_preferencedialog.h"
-#include <widget/xampdialog.h>
 
 class PreferencePage final : public QFrame {
 public:

@@ -1,12 +1,7 @@
-#include <QSlider>
-#include <QTreeWidget>
-#include <QComboBox>
-#include <QDialogButtonBox>
 #include <QFileDialog>
 #include <QDir>
 #include <QInputDialog>
 
-#include <base/uuid.h>
 #include <stream/podcastcache.h>
 
 #include <widget/str_utilts.h>

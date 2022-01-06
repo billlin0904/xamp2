@@ -26,7 +26,7 @@ public:
     void Init(float volume) {
         volume_.lChannel = -1;
         volume_.fVolume = static_cast<float>(std::pow(10, (volume / 20)));
-        XAMP_LOG_D(logger_, "Volume: {}", volume_.fVolume);
+        XAMP_LOG_D(logger_, "Volume level: {}", static_cast<int32_t>(volume_.fVolume * 100));
         BassIfFailedThrow(BASS.BASS_FXSetParameters(volume_handle_, &volume_));
     }
 

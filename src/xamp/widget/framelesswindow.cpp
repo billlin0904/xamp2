@@ -40,8 +40,6 @@ void FramelessWindow::initial(IXampPlayer *content_widget) {
 #if defined(Q_OS_WIN)
     if (!useNativeWindow()) {
         setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
-        //setWindowFlags(Qt::FramelessWindowHint | Qt::WindowMinimizeButtonHint);
-        //setWindowFlags(Qt::Window | Qt::FramelessWindowHint | Qt::CustomizeWindowHint);
         //setAttribute(Qt::WA_TranslucentBackground);
     }
 #endif
@@ -49,11 +47,7 @@ void FramelessWindow::initial(IXampPlayer *content_widget) {
     if (content_widget_ != nullptr) {        
         auto* default_layout = new QGridLayout();
         default_layout->addWidget(content_widget_, 0, 0);
-        if (!useNativeWindow()) {
-            default_layout->setContentsMargins(20, 20, 20, 20);
-        } else {
-            default_layout->setContentsMargins(0, 0, 0, 0);
-        }
+        default_layout->setContentsMargins(0, 0, 0, 0);
         setLayout(default_layout);
     }
     setAcceptDrops(true);
@@ -308,11 +302,21 @@ bool FramelessWindow::nativeEvent(const QByteArray& event_type, void * message, 
         break;
     case WM_NCCALCSIZE:
         // this kills the window frame and title bar we added with WS_THICKFRAME and WS_CAPTION
-        if (msg->wParam == TRUE) {
+        if (msg->wParam == FALSE) {
             *result = 0;
             return true;
         }
-        return false;
+        /*
+        if (!::IsZoomed(msg->hwnd)) {
+            *result = WVR_REDRAW;
+            return true;
+        } else {
+            *result = 0;
+            return true;
+        }
+        */
+        *result = WVR_REDRAW;
+        return true;
     default:
         break;
     }

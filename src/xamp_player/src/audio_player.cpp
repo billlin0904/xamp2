@@ -320,7 +320,7 @@ void AudioPlayer::OpenStream(Path const& file_path, DeviceInfo const & device_in
     SetDSDStreamMode(dsd_mode, stream);
     stream_duration_ = stream_->GetDuration();
     input_format_ = stream_->GetFormat();
-    XAMP_LOG_D(logger_, "Open stream type: {} {} duration:{:.2f}.",
+    XAMP_LOG_D(logger_, "Open stream type: {} {} duration:{:.2f} sec.",
         stream_->GetDescription(), dsd_mode_, stream_duration_.load());
 }
 
@@ -576,6 +576,8 @@ void AudioPlayer::CreateBuffer() {
     } else {
         require_read_sample = output_format_.GetSampleRate() / 8;
     }
+
+    require_read_sample = GetPageAlignSize(require_read_sample);
 
     uint32_t allocate_read_size = 0;
     if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE) {
@@ -925,7 +927,9 @@ void AudioPlayer::Play() {
         const auto max_buffer_sample = p->num_read_sample_;
         const auto num_sample_write = max_buffer_sample * kMaxWriteRatio;
 
-        XAMP_LOG_D(p->logger_, "max_buffer_sample: {}, num_sample_write: {}", max_buffer_sample, num_sample_write);
+        XAMP_LOG_D(p->logger_, "max_buffer_sample: {}, num_sample_write: {}",
+            String::FormatBytes(max_buffer_sample),
+            String::FormatBytes(num_sample_write));
 
         try {
             while (p->is_playing_) {

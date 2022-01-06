@@ -768,16 +768,14 @@ void Xamp::initialController() {
     light_mode_action_ = theme_menu_->addAction(tr("Light"));
     light_mode_action_->setIcon(ThemeManager::instance().lightModeIcon());
     (void)QObject::connect(dark_mode_action_, &QAction::triggered, [=]() {
-        ThemeManager::instance().setThemeColor(ThemeColor::DARK_THEME);
-        //changeTheme();
+        AppSettings::setEnumValue(kAppSettingTheme, ThemeColor::DARK_THEME);
         cleanup();
         QMessageBox::about(nullptr, Q_UTF8("XAMP"), 
             tr("Program will be restart to apply these changes!"));
         qApp->exit(-2);
         });
     (void)QObject::connect(light_mode_action_, &QAction::triggered, [=]() {
-        ThemeManager::instance().setThemeColor(ThemeColor::LIGHT_THEME);
-        //changeTheme();
+        AppSettings::setEnumValue(kAppSettingTheme, ThemeColor::LIGHT_THEME);
         cleanup();
         QMessageBox::about(nullptr, Q_UTF8("XAMP"), 
             tr("Program will be restart to apply these changes!"));

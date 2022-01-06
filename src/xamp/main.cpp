@@ -114,7 +114,17 @@ static std::vector<ModuleHandle> preloadDll() {
         "CoreMessaging.dll",
         "ntmarta.dll",
         "WinTypes.dll",
-        "WinTypes.dll",
+        "msacm32.dll",
+        "wtsapi32.dll",
+        "windows.storage.dll",
+        "wldp.dll",
+        "profapi.dll",
+        "d3d9.dll",
+        "opengl32.dll",
+        "glu32.dll",
+        "msctf.dll",
+        "AppXDeploymentClient.dll",
+        "DWrite.dll"
     };
     std::vector<ModuleHandle> preload_module;
     for (const auto file_name : preload_dll_file_name) {
@@ -135,10 +145,9 @@ static std::vector<ModuleHandle> preloadDll() {
 static void setLogLevel(spdlog::level::level_enum level = spdlog::level::debug) {
     Logger::GetInstance().GetLogger(kWASAPIThreadPoolLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kPlaybackThreadPoolLoggerName)->set_level(level);
-    Logger::GetInstance().GetLogger(kExclusiveWasapiDeviceLoggerName)->set_level(level);
+    //Logger::GetInstance().GetLogger(kExclusiveWasapiDeviceLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kSharedWasapiDeviceLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kAsioDeviceLoggerName)->set_level(level);
-    Logger::GetInstance().GetLogger(kAudioPlayerLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kVirtualMemoryLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kResamplerLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kCompressorLoggerName)->set_level(level);
@@ -153,15 +162,6 @@ static int excute(int argc, char* argv[]) {
 
     QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
     QApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
-    
-    Logger::GetInstance()
-#ifdef Q_OS_WIN
-        .AddDebugOutputLogger()
-#else
-        .AddSink(std::make_shared<QDebugSink>())
-#endif
-        .AddFileLogger("xamp.log")
-        .GetLogger(kDefaultLoggerName);
 
     XAMP_SET_LOG_LEVEL(spdlog::level::debug);
     XAMP_LOG_DEBUG("Logger init success.");
@@ -193,6 +193,7 @@ static int excute(int argc, char* argv[]) {
         return -1;
     }
 #endif
+
     XAMP_LOG_DEBUG("attach app success.");
 
     loadSettings();
@@ -207,6 +208,8 @@ static int excute(int argc, char* argv[]) {
 
     XAMP_LOG_DEBUG("Database init success.");
     setLogLevel(spdlog::level::info);
+    Logger::GetInstance().GetLogger(kAudioPlayerLoggerName)->set_level(spdlog::level::debug);
+    Logger::GetInstance().GetLogger(kExclusiveWasapiDeviceLoggerName)->set_level(spdlog::level::debug);
 
     foreach(const QString & path, app.libraryPaths()) {
         XAMP_LOG_DEBUG("Library path : {}.", path.toStdString());
@@ -228,11 +231,21 @@ static int excute(int argc, char* argv[]) {
 }
 
 int main(int argc, char *argv[]) {
+    Logger::GetInstance()
+#ifdef Q_OS_WIN
+        .AddDebugOutputLogger()
+#else
+        .AddSink(std::make_shared<QDebugSink>())
+#endif
+        .AddFileLogger("xamp.log")
+        .GetLogger(kDefaultLoggerName);
+
     XAMP_ON_SCOPE_EXIT(
         Logger::GetInstance().Shutdown();
         JsonSettings::save();
         AppSettings::save();
     );
+
     if (excute(argc, argv) == -2) {
         QProcess::startDetached(Q_STR(argv[0]), qApp->arguments());
     }

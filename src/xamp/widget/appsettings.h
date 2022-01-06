@@ -72,6 +72,12 @@ public:
         setValue(QLatin1String(key), std::to_string(value));
     }
 
+    template <typename T>
+    static void setEnumValue(const QString& key, T value) {
+        static_assert(std::is_enum_v<T>, "T must be enum value");
+        setValue<int32_t>(key, static_cast<int32_t>(value));
+    }
+
     static void setValue(QString const & key, QColor value) {
         settings_->setValue(key, value.name(QColor::HexArgb));
     }

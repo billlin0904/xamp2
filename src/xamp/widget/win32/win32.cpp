@@ -187,7 +187,7 @@ void drawDwmShadow(const QWidget* widget) {
 void setFramelessWindowStyle(const QWidget* widget) {
 	auto hwnd = reinterpret_cast<HWND>(widget->winId());
 	const DWORD style = ::GetWindowLong(hwnd, GWL_STYLE);
-	::SetWindowLong(hwnd, GWL_STYLE, style | WS_POPUP | WS_CAPTION | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX);
+	::SetWindowLong(hwnd, GWL_STYLE, style | WS_MAXIMIZEBOX | WS_THICKFRAME | WS_CAPTION);
 }
 }
 

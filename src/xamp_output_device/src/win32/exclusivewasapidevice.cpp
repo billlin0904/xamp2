@@ -114,7 +114,7 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
 		Nano100ToSeconds(default_device_period),
 		Nano100ToSeconds(minimum_device_period));
 
-	XAMP_LOG_D(log_, "WASAPI frame per latency: {}.", buffer_frames_);
+	XAMP_LOG_D(log_, "WASAPI frame per latency: {} frame.", GetBufferSize());
 
 	XAMP_LOG_D(log_, "Initial aligned period: {} sec.", Nano100ToSeconds(aligned_period_));
 
@@ -343,7 +343,7 @@ void ExclusiveWasapiDevice::StopStream(bool wait_for_stop_stream) {
 void ExclusiveWasapiDevice::StartStream() {
 	XAMP_LOG_D(log_, "StartStream!");
 
-	if (!client_) {
+	if (!client_ || !render_client_) {
 		throw HRException(AUDCLNT_E_NOT_INITIALIZED);
 	}
 

@@ -49,6 +49,8 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <LinkIncremental>false</LinkIncremental>
+    <EnableMicrosoftCodeAnalysis>false</EnableMicrosoftCodeAnalysis>
+    <EnableClangTidyCodeAnalysis>false</EnableClangTidyCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
@@ -127,7 +129,7 @@
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <DisableSpecificWarnings>4819</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4819;</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -179,6 +181,7 @@
     <ClCompile Include="widget\doubleslider.cpp" />
     <ClCompile Include="widget\equalizerdialog.cpp" />
     <ClCompile Include="widget\musicentity.cpp" />
+    <ClCompile Include="widget\podcast_uiltis.cpp" />
     <ClCompile Include="widget\qetag.cpp" />
     <ClCompile Include="widget\framelesswindow.cpp" />
     <ClCompile Include="widget\http.cpp" />
@@ -210,10 +213,12 @@
     <ClCompile Include="widget\stardelegate.cpp" />
     <ClCompile Include="widget\stareditor.cpp" />
     <ClCompile Include="widget\starrating.cpp" />
+    <ClCompile Include="widget\str_utilts.cpp" />
     <ClCompile Include="widget\switchbutton.cpp" />
     <ClCompile Include="widget\tablistview.cpp" />
     <ClCompile Include="widget\toast.cpp" />
     <ClCompile Include="widget\uiplayerstateadapter.cpp" />
+    <ClCompile Include="widget\ui_utilts.cpp" />
     <ClCompile Include="widget\wheelablewidget.cpp" />
     <ClCompile Include="widget\win32\win32.cpp" />
     <ClCompile Include="widget\xampdialog.cpp" />
