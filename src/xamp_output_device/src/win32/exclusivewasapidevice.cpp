@@ -76,12 +76,12 @@ static constexpr IID kAudioClockID = __uuidof(IAudioClock);
 ExclusiveWasapiDevice::ExclusiveWasapiDevice(CComPtr<IMMDevice> const & device)
 	: raw_mode_(false)
 	, is_running_(false)
-	, thread_priority_(MmcssThreadPriority::MMCSS_THREAD_PRIORITY_HIGH)
+	, thread_priority_(MmcssThreadPriority::MMCSS_THREAD_PRIORITY_NORMAL)
 	, buffer_frames_(0)
 	, volume_support_mask_(0)
 	, stream_time_(0)
 	, sample_ready_(nullptr)
-	, mmcss_name_(MMCSS_PROFILE_PRO_AUDIO)
+	, mmcss_name_(kMmcssProfileProAudio)
 	, aligned_period_(0)
 	, device_(device)
 	, callback_(nullptr)
@@ -108,27 +108,30 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
     REFERENCE_TIME default_device_period = 0;
     REFERENCE_TIME minimum_device_period = 0;
     HrIfFailledThrow(client_->GetDevicePeriod(&default_device_period, &minimum_device_period));
+	//default_device_period = minimum_device_period;
 
 	SetAlignedPeriod(default_device_period, output_format);
-	XAMP_LOG_D(log_, "Exclusive mode: default:{} sec, min:{} sec.",
-		Nano100ToSeconds(default_device_period),
-		Nano100ToSeconds(minimum_device_period));
 
-	XAMP_LOG_D(log_, "WASAPI frame per latency: {} frame.", GetBufferSize());
+	XAMP_LOG_D(log_, "Device period: default: {:.2f} msec, min: {:.2f} msec.",
+		Nano100ToMillis(default_device_period),
+		Nano100ToMillis(minimum_device_period));
+	XAMP_LOG_D(log_, "Initial aligned period: {:.2f} msec, buffer frames: {}.",
+		Nano100ToMillis(aligned_period_), 
+		GetBufferSize());
 
-	XAMP_LOG_D(log_, "Initial aligned period: {} sec.", Nano100ToSeconds(aligned_period_));
+	const auto hr = client_->Initialize(AUDCLNT_SHAREMODE_EXCLUSIVE,
+	                                    AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
+	                                    aligned_period_,
+	                                    aligned_period_,
+	                                    mix_format_,
+	                                    nullptr);
 
-	auto hr = client_->Initialize(AUDCLNT_SHAREMODE_EXCLUSIVE,
-		AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
-		aligned_period_,
-		aligned_period_,
-		mix_format_,
-		nullptr);
-	if (hr == AUDCLNT_E_UNSUPPORTED_FORMAT) {
-		throw DeviceUnSupportedFormatException(output_format);
+	if (FAILED(hr)) {
+		if (hr == AUDCLNT_E_UNSUPPORTED_FORMAT) {
+			throw DeviceUnSupportedFormatException(output_format);
+		}
+		HRException::ThrowFromHResult(hr, "");
 	}
-
-	HrIfFailledThrow(hr);	
 	
 	CComPtr<IAudioEndpointVolume> endpoint_volume;
 
@@ -190,10 +193,10 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 		// 不管是24/32或是32/32 format資料都是24/32.
 		if (hr == AUDCLNT_E_UNSUPPORTED_FORMAT) {
 			InitialDeviceFormat(valid_output_format, 32);
-			XAMP_LOG_D(log_, "Fallback use valid output format: 32");
+			XAMP_LOG_D(log_, "Fallback use valid output format: 32.");
 		} else {			
 			InitialDeviceFormat(valid_output_format, kValidBitPerSamples);
-			XAMP_LOG_D(log_, "Use valid output format: {}", kValidBitPerSamples);
+			XAMP_LOG_D(log_, "Use valid output format: {}.", kValidBitPerSamples);
 		}
     }
 
@@ -206,23 +209,19 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 
 	if (!sample_ready_) {
 		sample_ready_.reset(::CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS));
-		assert(sample_ready_);
 		HrIfFailledThrow(client_->SetEventHandle(sample_ready_.get()));
 	}
 
 	if (!thread_start_) {
 		thread_start_.reset(::CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS));
-		assert(thread_start_);
 	}
 
 	if (!thread_exit_) {
 		thread_exit_.reset(::CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS));
-		assert(thread_exit_);
 	}
 
 	if (!close_request_) {
 		close_request_.reset(::CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS));
-		assert(close_request_);
 	}
 
     const size_t buffer_size = buffer_frames_ * output_format.GetChannels();
@@ -234,7 +233,7 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 }
 
 void ExclusiveWasapiDevice::SetSchedulerService(std::wstring const &mmcss_name, MmcssThreadPriority thread_priority) {
-	assert(!mmcss_name.empty());
+	XAMP_ASSERT(!mmcss_name.empty());
 	thread_priority_ = thread_priority;
 	mmcss_name_ = mmcss_name;
 }
@@ -248,6 +247,9 @@ void ExclusiveWasapiDevice::ReportError(HRESULT hr) noexcept {
 }
 
 bool ExclusiveWasapiDevice::GetSample(bool is_silence) noexcept {
+	XAMP_ASSERT(render_client_ != nullptr);
+	XAMP_ASSERT(callback_ != nullptr);
+
 	BYTE* data = nullptr;
 
 	auto hr = render_client_->GetBuffer(buffer_frames_, &data);
@@ -347,6 +349,11 @@ void ExclusiveWasapiDevice::StartStream() {
 		throw HRException(AUDCLNT_E_NOT_INITIALIZED);
 	}
 
+	XAMP_ASSERT(sample_ready_);
+	XAMP_ASSERT(thread_start_);
+	XAMP_ASSERT(thread_exit_);
+	XAMP_ASSERT(close_request_);
+
 	// Note: 必要! 某些音效卡會爆音!
 	GetSample(true);
 
@@ -356,13 +363,16 @@ void ExclusiveWasapiDevice::StartStream() {
 		Stopwatch watch;
 
 		Mmcss mmcss;
-		mmcss.BoostPriority(mmcss_name_);
+		mmcss.BoostPriority(mmcss_name_, thread_priority_);
 
 		is_running_ = true;
 
 		const std::array<HANDLE, 2> objects{ sample_ready_.get(), close_request_.get() };
 
-		const auto wait_timeout = ConvertToMilliseconds(aligned_period_) + std::chrono::milliseconds(20);
+		const auto wait_timeout =
+			std::chrono::milliseconds(static_cast<uint64_t>(Nano100ToMillis(aligned_period_)))
+			+ std::chrono::milliseconds(20);
+
 		DWORD current_timeout = INFINITE;
 
 		auto thread_exit = false;
@@ -375,7 +385,7 @@ void ExclusiveWasapiDevice::StartStream() {
 
 			const auto elapsed = watch.Elapsed<std::chrono::milliseconds>();
 			if (elapsed > wait_timeout) {
-				XAMP_LOG_D(log_, "WASAPI wait too slow! {}ms", elapsed.count());
+				XAMP_LOG_D(log_, "WASAPI wait too slow! {}msec.", elapsed.count());
 				thread_exit = true;
 				continue;
 			}
@@ -392,7 +402,7 @@ void ExclusiveWasapiDevice::StartStream() {
 				XAMP_LOG_D(log_, "Stop event trigger!");
 				break;
 			case WAIT_TIMEOUT:
-				XAMP_LOG_D(log_, "Wait event timeout! {}ms", elapsed.count());
+				XAMP_LOG_D(log_, "Wait event timeout! {}msec.", elapsed.count());
 				thread_exit = true;
 				break;
 			default:
@@ -445,7 +455,7 @@ void ExclusiveWasapiDevice::SetVolume(const uint32_t volume) const {
 	const auto volume_scalar = volume / 100.0F;
 	HrIfFailledThrow(endpoint_volume_->SetMasterVolumeLevelScalar(volume_scalar, &GUID_NULL));
 
-	XAMP_LOG_D(log_, "Current volume: {}", GetVolume());
+	XAMP_LOG_D(log_, "Current volume: {}.", GetVolume());
 }
 
 bool ExclusiveWasapiDevice::IsMuted() const {

@@ -56,11 +56,9 @@ XAMP_ALWAYS_INLINE constexpr double Nano100ToSeconds(REFERENCE_TIME ref) noexcep
 	return (static_cast<double>(ref) * ratio);
 }
 
-XAMP_ALWAYS_INLINE constexpr std::chrono::milliseconds ConvertToMilliseconds(REFERENCE_TIME ref) noexcept {
-	const LONGLONG kMilliseconds = (1000);            // 10 ^ 3
-	const LONGLONG kNanoSeconds = (1000000000);       // 10 ^ 9
-	const LONGLONG kUnit = (kNanoSeconds / 100);      // 10 ^ 7
-	return std::chrono::milliseconds(ref / (kUnit / kMilliseconds));
+XAMP_ALWAYS_INLINE constexpr double Nano100ToMillis(REFERENCE_TIME ref) noexcept {
+	constexpr double ratio = 0.0001;
+	return (static_cast<double>(ref) * ratio);
 }
 
 XAMP_ALWAYS_INLINE constexpr UINT32 ReferenceTimeToFrames(REFERENCE_TIME period, UINT32 samplerate) noexcept {
@@ -74,7 +72,7 @@ XAMP_ALWAYS_INLINE constexpr UINT32 ReferenceTimeToFrames(REFERENCE_TIME period,
 }
 
 XAMP_ALWAYS_INLINE constexpr REFERENCE_TIME MakeHnsPeriod(UINT32 frames, UINT32 samplerate) noexcept {
-	return static_cast<REFERENCE_TIME>(10000.0 * 1000.0 / double(samplerate) * double(frames) + 0.5);
+	return static_cast<REFERENCE_TIME>(10000.0 * 1000.0 / static_cast<double>(samplerate) * static_cast<double>(frames) + 0.5);
 }
 
 DeviceInfo GetDeviceInfo(CComPtr<IMMDevice>& device, Uuid const& device_type_id);

@@ -6,6 +6,7 @@
 #pragma once
 
 #include <vector>
+#include <base/assert.h>
 
 namespace xamp::base {
 
@@ -46,7 +47,7 @@ public:
     }
 
     bool operator== (self_type const& other) const {
-        assert(compatible(other));
+        XAMP_ASSERT(compatible(other));
         return index_ == other.index_ && last_ == other.last_;
     }
 

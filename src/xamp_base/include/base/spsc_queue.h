@@ -9,6 +9,7 @@
 #include <memory>
 
 #include <base/base.h>
+#include <base/assert.h>
 #include <base/vmmemlock.h>
 
 namespace xamp::base {
@@ -30,7 +31,7 @@ public:
                                                             capacity_ + 2 * kPadding);
         static_assert(alignof(SpscQueue<Type>) == kCacheAlignSize);
         static_assert(sizeof(SpscQueue<Type>) >= 3 * kCacheAlignSize);
-        assert(reinterpret_cast<char *>(&tail_) -
+        XAMP_ASSERT(reinterpret_cast<char *>(&tail_) -
                reinterpret_cast<char *>(&head_) >=
                static_cast<std::ptrdiff_t>(kCacheAlignSize));
     }
@@ -90,7 +91,7 @@ public:
 
     void Pop() noexcept {
         auto const tail = tail_.load(std::memory_order_relaxed);
-        assert(head_.load(std::memory_order_acquire) != tail);
+        XAMP_ASSERT(head_.load(std::memory_order_acquire) != tail);
         slots_[tail + kPadding].~Type();
         auto next_tail = tail + 1;
         if (next_tail == capacity_) {

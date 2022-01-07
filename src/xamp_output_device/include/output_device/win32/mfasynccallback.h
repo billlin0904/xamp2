@@ -13,6 +13,7 @@
 #include <windows.h>
 #include <mfidl.h>
 
+#include <base/assert.h>
 #include <output_device/win32/unknownimpl.h>
 
 namespace xamp::output_device::win32 {
@@ -26,8 +27,8 @@ public:
 		: queue_id_(queue_id)
 		, parent_(parent)
 		, callback_(fn) {
-		assert(parent != nullptr);
-		assert(fn != nullptr);
+		XAMP_ASSERT(parent != nullptr);
+		XAMP_ASSERT(fn != nullptr);
 	}
 
 	STDMETHODIMP QueryInterface(REFIID iid, void** ppv) override {

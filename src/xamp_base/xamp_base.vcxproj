@@ -153,6 +153,7 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="include\base\assert.h" />
     <ClInclude Include="include\base\bounded_queue.h" />
     <ClInclude Include="include\base\buffer.h" />
     <ClInclude Include="include\base\crashhandler.h" />
@@ -198,6 +199,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\align_ptr.cpp" />
+    <ClCompile Include="src\assert.cpp" />
     <ClCompile Include="src\audioformat.cpp" />
     <ClCompile Include="src\crashhandler.cpp" />
     <ClCompile Include="src\dataconverter.cpp" />

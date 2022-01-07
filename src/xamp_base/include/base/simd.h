@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include <cassert>
 #include <base/base.h>
+#include <base/assert.h>
 
 #ifdef XAMP_OS_WIN
 #include <intrin.h>
@@ -237,7 +237,7 @@ struct InterleaveToPlanar<float, int32_t> {
         size_t len,
         float mul = 1.0) {
         constexpr auto offset = kFloatAlignedSize * 2;
-        assert(len % offset == 0);
+        XAMP_ASSERT(len % offset == 0);
 
         for (size_t i = 0; i < len;) {
             auto hi = in;

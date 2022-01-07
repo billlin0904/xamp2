@@ -1,4 +1,5 @@
 #include <base/base.h>
+#include <base/assert.h>
 
 #ifdef XAMP_OS_WIN
 #include <base/logger.h>
@@ -79,7 +80,7 @@ SharedWasapiDevice::SharedWasapiDevice(CComPtr<IMMDevice> const & device)
 	, stream_time_(0)
 	, latency_(0)
 	, buffer_frames_(0)
-	, mmcss_name_(MMCSS_PROFILE_PRO_AUDIO)
+	, mmcss_name_(kMmcssProfileProAudio)
 	, thread_priority_(MmcssThreadPriority::MMCSS_THREAD_PRIORITY_HIGH)
 	, sample_ready_(nullptr)
 	, device_(device)
@@ -231,7 +232,7 @@ void SharedWasapiDevice::OpenStream(AudioFormat const & output_format) {
 
 	if (!sample_ready_) {
 		sample_ready_.reset(::CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS));
-		assert(sample_ready_);
+		XAMP_ASSERT(sample_ready_);
 		HrIfFailledThrow(client_->SetEventHandle(sample_ready_.get()));
 	}
 
@@ -276,7 +277,7 @@ uint32_t SharedWasapiDevice::GetBufferSize() const noexcept {
 }
 
 void SharedWasapiDevice::SetSchedulerService(std::wstring const & mmcss_name, MmcssThreadPriority thread_priority) {
-	assert(!mmcss_name.empty());
+	XAMP_ASSERT(!mmcss_name.empty());
 	thread_priority_ = thread_priority;
 	mmcss_name_ = mmcss_name;
 }
@@ -319,6 +320,9 @@ void SharedWasapiDevice::ReportError(HRESULT hr) {
 }
 
 HRESULT SharedWasapiDevice::GetSample(uint32_t frame_available, bool is_silence) noexcept {
+	XAMP_ASSERT(render_client_ != nullptr);
+	XAMP_ASSERT(callback_ != nullptr);
+
 	double stream_time = stream_time_ + frame_available;
 	stream_time_ = stream_time;
 	auto stream_time_float = stream_time / static_cast<double>(mix_format_->nSamplesPerSec);

@@ -87,7 +87,7 @@
     Class::Class(Class &&) noexcept = default; \
     Class& Class::operator=(Class &&) noexcept = default;
 
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
 #define XAMP_NO_VTABLE __declspec(novtable)
 #define XAMP_RESTRICT __restrict
 #else
@@ -95,7 +95,7 @@
 #define XAMP_RESTRICT __restrict__
 #endif
 
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
 // Optimization function call
 #define XAMP_ALWAYS_INLINE __forceinline
 #define XAMP_NEVER_INLINE __declspec(noinline)
@@ -104,23 +104,19 @@
 #define XAMP_NEVER_INLINE __attribute__((__noinline__))
 #endif
 
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
 #define XAMP_ALIGN_ASSUME_ALIGNED(ptr, alignment) ptr
 #else
 #define XAMP_ALIGN_ASSUME_ALIGNED(ptr, alignment) __builtin_assume_aligned(ptr, alignment)
 #endif
 
-#ifdef _WIN32
-#ifndef NDEBUG
+#ifdef XAMP_OS_WIN
 # define XAMP_NO_DEFAULT __assume(0)
 #else
-# define XAMP_NO_DEFAULT assert(0)
-#endif
-#else
-# define XAMP_NO_DEFAULT assert(0)
+#define XAMP_NO_DEFAULT ((void)0)
 #endif
 
-#ifdef _WIN32
+#ifdef XAMP_OS_WIN
 #define XAMP_CACHE_ALIGNED(CacheLineSize) __declspec(align(CacheLineSize))
 #else
 #define XAMP_CACHE_ALIGNED(CacheLineSize) __attribute__((aligned(CacheLineSize)))

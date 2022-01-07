@@ -2,6 +2,7 @@
 
 #include <soxr.h>
 
+#include <base/assert.h>
 #include <base/singleton.h>
 #include <base/dll.h>
 #include <base/logger.h>
@@ -188,7 +189,7 @@ public:
 	}
 
 	bool Process(float const* samples, size_t num_sample, AudioBuffer<int8_t>& buffer) {
-		assert(num_channels_ != 0);
+		XAMP_ASSERT(num_channels_ != 0);
 
 		auto required_size = static_cast<size_t>(num_sample * ratio_) + 256;
         if (required_size != buffer_.size()) {
@@ -224,7 +225,7 @@ public:
 	}
 
 	bool Process(float const* samples, size_t num_sample, SampleWriter& writer) {
-		assert(num_channels_ != 0);
+		XAMP_ASSERT(num_channels_ != 0);
 
 		auto required_size = static_cast<size_t>(num_sample * ratio_) + 256;
 		if (required_size > buffer_.size()) {

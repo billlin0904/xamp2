@@ -8,8 +8,7 @@
 #include <QTimeEdit>
 #include <QLineEdit>
 #include <QJsonDocument>
-#include <QJsonArray>
-#include <QDialogButtonBox>
+#include <QSqlQuery>
 #include <QXmlStreamReader>
 #include <QStorageInfo>
 

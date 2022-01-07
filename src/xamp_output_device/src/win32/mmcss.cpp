@@ -43,12 +43,12 @@ public:
 		, avrt_handle_(nullptr) {
 	}
 
-	void BoostPriority(std::wstring_view task_name) noexcept {
+	void BoostPriority(std::wstring_view task_name, MmcssThreadPriority priority) noexcept {
 		RevertPriority();
 
 		avrt_handle_ = AVRTLib.AvSetMmThreadCharacteristicsW(task_name.data(), &avrt_task_index_);
 		if (avrt_handle_ != nullptr) {
-			AVRTLib.AvSetMmThreadPriority(avrt_handle_, AVRT_PRIORITY_HIGH);
+			AVRTLib.AvSetMmThreadPriority(avrt_handle_, static_cast<AVRT_PRIORITY>(priority));
 			return;
 		}
 		
@@ -84,8 +84,8 @@ void Mmcss::LoadAvrtLib() {
 	(void)Singleton<AvrtLib>::GetInstance();
 }
 
-void Mmcss::BoostPriority(std::wstring_view task_name) noexcept {
-	impl_->BoostPriority(task_name);
+void Mmcss::BoostPriority(std::wstring_view task_name, MmcssThreadPriority priority) noexcept {
+	impl_->BoostPriority(task_name, priority);
 }
 
 void Mmcss::RevertPriority() noexcept {

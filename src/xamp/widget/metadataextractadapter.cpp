@@ -36,7 +36,7 @@ public:
         : cover_reader_(MakeMetadataReader()) {
     }
 
-    std::tuple<int32_t, int32_t, QString> AddOrGetAblumAndArtistId(const QString& album, const QString& artist, bool is_podcast) const;
+    std::tuple<int32_t, int32_t, QString> AddOrGetAlbumAndArtistId(const QString& album, const QString& artist, bool is_podcast) const;
 
     QString AddCoverCache(int32_t album_id, const QString& album, const Metadata& metadata, bool is_unknown_album) const;
 private:	
@@ -53,8 +53,6 @@ QString DatabaseIdCache::AddCoverCache(int32_t album_id, const QString& album, c
     	return cover_id;
     }
 
-    XAMP_LOG_DEBUG("Album id: {} cover id is empty.", album_id);
-
     QPixmap pixmap;
     const auto& buffer = cover_reader_->ExtractEmbeddedCover(metadata.file_path);
     if (!buffer.empty()) {
@@ -63,14 +61,13 @@ QString DatabaseIdCache::AddCoverCache(int32_t album_id, const QString& album, c
     }
     else {
     	if (!is_unknown_album) {
-            pixmap = Singleton<PixmapCache>::GetInstance().findFileDirCover(
-                QString::fromStdWString(metadata.file_path));
+            pixmap = PixmapCache::findFileDirCover(QString::fromStdWString(metadata.file_path));
     	}          
     }
 
     if (!pixmap.isNull()) {
         cover_id = Singleton<PixmapCache>::GetInstance().addOrUpdate(pixmap);
-        assert(!cover_id.isEmpty());
+        XAMP_ASSERT(!cover_id.isEmpty());
         cover_id_cache_.AddOrUpdate(album_id, cover_id);
         Singleton<Database>::GetInstance().setAlbumCover(album_id, album, cover_id);
         XAMP_LOG_DEBUG("add Album id: {} cover id: {}", album_id, cover_id.toStdString());
@@ -78,7 +75,7 @@ QString DatabaseIdCache::AddCoverCache(int32_t album_id, const QString& album, c
     return cover_id;
 }
 
-std::tuple<int32_t, int32_t, QString> DatabaseIdCache::AddOrGetAblumAndArtistId(const QString &album, const QString &artist, bool is_podcast) const {
+std::tuple<int32_t, int32_t, QString> DatabaseIdCache::AddOrGetAlbumAndArtistId(const QString &album, const QString &artist, bool is_podcast) const {
     int32_t artist_id = 0;
     if (auto const * artist_id_op = this->artist_id_cache_.Find(artist)) {
         artist_id = *artist_id_op;
@@ -108,7 +105,7 @@ std::tuple<int32_t, int32_t, QString> DatabaseIdCache::AddOrGetAblumAndArtistId(
 using xamp::metadata::Metadata;
 using xamp::metadata::Path;
 
-class ExtractAdapterProxy : public IMetadataExtractAdapter {
+class ExtractAdapterProxy final : public IMetadataExtractAdapter {
 public:
     explicit ExtractAdapterProxy(const QSharedPointer<::MetadataExtractAdapter> &adapter)
         : adapter_(adapter) {
@@ -210,8 +207,8 @@ void ::MetadataExtractAdapter::processMetadata(const std::vector<Metadata>& resu
     }
 
     for (const auto& metadata : result) {
-        auto album = QString::fromStdWString(metadata.album);
-        auto artist = QString::fromStdWString(metadata.artist);
+        auto album = QString::fromWCharArray(metadata.album.c_str());
+        auto artist = QString::fromWCharArray(metadata.artist.c_str());
 
         auto is_unknown_album = false;
         if (album.isEmpty()) {
@@ -225,7 +222,7 @@ void ::MetadataExtractAdapter::processMetadata(const std::vector<Metadata>& resu
 
         const auto music_id = Singleton<Database>::GetInstance().addOrUpdateMusic(metadata, playlist_id);
 
-        auto [album_id, artist_id, cover_id] = cache.AddOrGetAblumAndArtistId(album, artist, is_podcast);
+        auto [album_id, artist_id, cover_id] = cache.AddOrGetAlbumAndArtistId(album, artist, is_podcast);
 
         // Find cover id from database.
         if (cover_id.isEmpty()) {

@@ -3,7 +3,7 @@
 #ifdef XAMP_OS_WIN
 #include <malloc.h>
 #endif
-
+#include <base/assert.h>
 #include <base/align_ptr.h>
 
 namespace xamp::base {
@@ -33,7 +33,7 @@ void* AlignedMalloc(size_t size, size_t aligned_size) noexcept {
 }
 
 void AlignedFree(void* p) noexcept {
-    assert(p != nullptr);
+    XAMP_ASSERT(p != nullptr);
     ::_aligned_free(p);
 }
 
@@ -43,7 +43,7 @@ void* StackAlloc(size_t size) {
 }
 
 void StackFree(void* p) {
-    assert(p != nullptr);
+    XAMP_ASSERT(p != nullptr);
     ::_freea(p);
 }
 #endif

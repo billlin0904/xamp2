@@ -13,18 +13,20 @@
 
 namespace xamp::output_device::win32 {
 
-inline constexpr std::wstring_view MMCSS_PROFILE_AUDIO(L"Audio");
-inline constexpr std::wstring_view MMCSS_PROFILE_CAPTURE(L"Capture");
-inline constexpr std::wstring_view MMCSS_MODE_DISTRIBUTION(L"Distribution");
-inline constexpr std::wstring_view MMCSS_PROFILE_GAME(L"Games");
-inline constexpr std::wstring_view MMCSS_PROFILE_PLAYBACK(L"Playback");
-inline constexpr std::wstring_view MMCSS_PROFILE_PRO_AUDIO(L"Pro Audio");
-inline constexpr std::wstring_view MMCSS_PROFILE_WINDOWS_MANAGER(L"Window Manager");
+inline constexpr std::wstring_view kMmcssProfileAudio(L"Audio");
+inline constexpr std::wstring_view kMmcssProfileCapture(L"Capture");
+inline constexpr std::wstring_view kMmcssModeDistribution(L"Distribution");
+inline constexpr std::wstring_view kMmcssProfileGame(L"Games");
+inline constexpr std::wstring_view kMmcssProfilePlayback(L"Playback");
+inline constexpr std::wstring_view kMmcssProfileProAudio(L"Pro Audio");
+inline constexpr std::wstring_view kMmcssProfileWindowsManager(L"Window Manager");
 
 MAKE_XAMP_ENUM(MmcssThreadPriority,
-	      MMCSS_THREAD_PRIORITY_NORMAL,
-	      MMCSS_THREAD_PRIORITY_HIGH,
-	      MMCSS_THREAD_PRIORITY_CRITICAL)
+	MMCSS_THREAD_PRIORITY_VERYLOW = -2,
+	MMCSS_THREAD_PRIORITY_LOW,
+	MMCSS_THREAD_PRIORITY_NORMAL,
+	MMCSS_THREAD_PRIORITY_HIGH,
+	MMCSS_THREAD_PRIORITY_CRITICAL)
 
 }
 #endif

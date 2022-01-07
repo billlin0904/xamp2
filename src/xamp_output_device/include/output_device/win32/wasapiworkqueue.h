@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <base/assert.h>
 #include <output_device/win32/hrexception.h>
 #include <output_device/win32/unknownimpl.h>
 
@@ -22,8 +23,8 @@ public:
 		, workitem_key_(0)
 		, parent_(parent)
 		, callback_(fn) {
-		assert(parent != nullptr);
-		assert(fn != nullptr);
+		XAMP_ASSERT(parent != nullptr);
+		XAMP_ASSERT(fn != nullptr);
 	}
 
 	~WASAPIWorkQueue() override {

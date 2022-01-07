@@ -7,11 +7,10 @@
 
 #include <cassert>
 #include <array>
-#include <cmath>
-#include <algorithm>
 
 #include <base/base.h>
 #include <base/audioformat.h>
+#include <base/assert.h>
 #include <base/simd.h>
 
 namespace xamp::base {
@@ -217,7 +216,7 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
 		}
 
 		while (input != end_input) {
-            assert(end_input - input > 0);
+			XAMP_ASSERT(end_input - input > 0);
             const auto in = SIMD::LoadPs(input);
             const auto mul = SIMD::MulPs(in, scale);
             //const auto clamp = SIMD::MinPs(SIMD::MaxPs(mul, min_val), max_val);

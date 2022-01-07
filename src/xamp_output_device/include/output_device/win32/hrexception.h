@@ -17,7 +17,7 @@ namespace xamp::output_device::win32 {
 
 class HRException final : public PlatformSpecException {
 public:
-	static void ThrowFromHResult(HRESULT hresult, std::string_view expr);
+	static void ThrowFromHResult(HRESULT hresult, std::string_view expr = "");
 
 	static std::string_view ErrorToString(HRESULT hr) noexcept;
 

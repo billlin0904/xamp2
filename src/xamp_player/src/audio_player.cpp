@@ -342,7 +342,7 @@ void AudioPlayer::ProcessPlayerAction() {
             case PlayerActionId::PLAYER_SEEK:
             {
                 auto stream_time = std::any_cast<double>(msg->content);
-                XAMP_LOG_D(logger_, "Receive seek {:.2f} message", stream_time);
+                XAMP_LOG_D(logger_, "Receive seek {:.2f} message.", stream_time);
                 DoSeek(stream_time);
             }
                 break;
@@ -351,27 +351,27 @@ void AudioPlayer::ProcessPlayerAction() {
                 auto eq_event = std::any_cast<EQSettings>(msg->content);
                 auto eq = GetProcessor<IEqualizer>();
                 if (!eq) {
-                    XAMP_LOG_D(logger_, "Not found IEqualizer");
+                    XAMP_LOG_D(logger_, "Not found IEqualizer!");
                     continue;
                 }
                 eq->SetEQ(eq_event);
                 int i = 0;
                 for (auto [gain, Q] : eq_event.bands) {
-                    XAMP_LOG_D(logger_, "Set EQ band: {} gain: {} Q: {}", i++, gain, Q);
+                    XAMP_LOG_D(logger_, "Set EQ band: {} gain: {} Q: {}.", i++, gain, Q);
                 }
-                XAMP_LOG_D(logger_, "Set preamp: {}", eq_event.preamp);
+                XAMP_LOG_D(logger_, "Set preamp: {}.", eq_event.preamp);
             }
                 break;
             case PlayerActionId::DSP_PREAMP:
             {
                 auto eq = GetProcessor<IEqualizer>();
                 if (!eq) {
-                    XAMP_LOG_D(logger_, "Not found IEqualizer");
+                    XAMP_LOG_D(logger_, "Not found IEqualizer!");
                     continue;
                 }
                 auto preamp = std::any_cast<float>(msg->content);
                 eq->SetPreamp(preamp);
-                XAMP_LOG_D(logger_, "Set preamp: {}", preamp);
+                XAMP_LOG_D(logger_, "Set preamp: {}.", preamp);
             }
                 break;
             }
@@ -606,7 +606,7 @@ void AudioPlayer::CreateBuffer() {
             target_sample_rate_);
     }
 
-    XAMP_LOG_D(logger_, "Output device format: {} num_read_sample: {} resampler: {} buffer: {}.",
+    XAMP_LOG_D(logger_, "Output device format: {} num_read_sample: {} resampler: {} fifo buffer: {}.",
         output_format_,
         num_read_sample_,
         converter_->GetDescription(),
@@ -808,7 +808,7 @@ void AudioPlayer::InitDsp() {
         }
         if (auto* volume = GetProcessor<BassVolume>()) {
             volume->Init(replay_gain_);
-            XAMP_LOG_D(logger_, "Set replay gain: {}", replay_gain_);
+            XAMP_LOG_D(logger_, "Set replay gain: {} db.", replay_gain_);
         }
         if (auto* compressor = GetProcessor<BassCompressor>()) {
             compressor->Init(compressor_parameters_);
@@ -817,9 +817,9 @@ void AudioPlayer::InitDsp() {
             eq->SetEQ(eq_settings_);
             int i = 0;
             for (auto band : eq_settings_.bands) {
-                XAMP_LOG_D(logger_, "Set EQ band: {} gain: {} Q: {}", i++, band.gain, band.Q);
+                XAMP_LOG_D(logger_, "Set EQ band: {} gain: {} Q: {}.", i++, band.gain, band.Q);
             }
-            XAMP_LOG_D(logger_, "Set preamp: {}", eq_settings_.preamp);
+            XAMP_LOG_D(logger_, "Set preamp: {}.", eq_settings_.preamp);
         }
     } else {
         dsp_chain_.clear();
@@ -927,7 +927,7 @@ void AudioPlayer::Play() {
         const auto max_buffer_sample = p->num_read_sample_;
         const auto num_sample_write = max_buffer_sample * kMaxWriteRatio;
 
-        XAMP_LOG_D(p->logger_, "max_buffer_sample: {}, num_sample_write: {}",
+        XAMP_LOG_D(p->logger_, "max_buffer_sample: {}, num_sample_write: {}.",
             String::FormatBytes(max_buffer_sample),
             String::FormatBytes(num_sample_write));
 
@@ -949,10 +949,10 @@ void AudioPlayer::Play() {
             }
         }
         catch (const Exception& e) {
-            XAMP_LOG_D(p->logger_, "Stream thread read has exception: {}", e.what());
+            XAMP_LOG_D(p->logger_, "Stream thread read has exception: {}.", e.what());
         }
         catch (const std::exception& e) {
-            XAMP_LOG_D(p->logger_, "Stream thread read has exception: {}", e.what());
+            XAMP_LOG_D(p->logger_, "Stream thread read has exception: {}.", e.what());
         }
 
         XAMP_LOG_D(p->logger_, "Stream thread done!");
@@ -999,7 +999,7 @@ void AudioPlayer::PrepareToPlay() {
     InitFFT();
     BufferStream(0);
 	sample_end_time_ = stream_->GetDuration();
-    XAMP_LOG_D(logger_, "Stream end time {:.2f} sec", sample_end_time_);
+    XAMP_LOG_D(logger_, "Stream end time: {:.2f} sec.", sample_end_time_);
 }
 
 }

@@ -9,16 +9,8 @@
 
 #include <QString>
 #include <QSqlDatabase>
-#include <QSqlQuery>
-#include <QSqlError>
-#include <QSqlTableModel>
-#include <QSqlRecord>
-
-#include <QVariant>
 
 #include <widget/widget_shared.h>
-
-#include <widget/str_utilts.h>
 #include <widget/playlistentity.h>
 
 class SqlException final : public Exception {
@@ -47,14 +39,14 @@ struct ArtistStats {
     double durations{ 0 };
 };
 
-constexpr auto kDefaultPlaylistId = 1;
-constexpr auto kDefaultPodcastPlaylistId = 2;
-constexpr auto kDefaultMusicPlaylistId = 3;
+inline constexpr int32_t kInvalidId = -1;
+
+inline constexpr auto kDefaultPlaylistId = 1;
+inline constexpr auto kDefaultPodcastPlaylistId = 2;
+inline constexpr auto kDefaultMusicPlaylistId = 3;
 
 class Database final {
 public:
-    static constexpr int32_t kInvalidId = -1;
-
     friend class Singleton<Database>;
 
     ~Database();
