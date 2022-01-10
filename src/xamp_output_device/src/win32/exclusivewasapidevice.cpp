@@ -108,7 +108,7 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
     REFERENCE_TIME default_device_period = 0;
     REFERENCE_TIME minimum_device_period = 0;
     HrIfFailledThrow(client_->GetDevicePeriod(&default_device_period, &minimum_device_period));
-	//default_device_period = minimum_device_period;
+	default_device_period = 50000;// 8ms = 80000, 30ms = 300000
 
 	SetAlignedPeriod(default_device_period, output_format);
 
@@ -130,7 +130,7 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
 		if (hr == AUDCLNT_E_UNSUPPORTED_FORMAT) {
 			throw DeviceUnSupportedFormatException(output_format);
 		}
-		HRException::ThrowFromHResult(hr, "");
+		HRException::ThrowFromHResult(hr);
 	}
 	
 	CComPtr<IAudioEndpointVolume> endpoint_volume;
@@ -172,7 +172,6 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	valid_output_format.SetByteFormat(ByteFormat::SINT32);
 
 	if (!client_) {
-		constexpr uint32_t kValidBitPerSamples = 24;
 		XAMP_LOG_D(log_, "Active device format: {}.", valid_output_format);
 
         HrIfFailledThrow(device_->Activate(kAudioClient2ID,
@@ -194,7 +193,8 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 		if (hr == AUDCLNT_E_UNSUPPORTED_FORMAT) {
 			InitialDeviceFormat(valid_output_format, 32);
 			XAMP_LOG_D(log_, "Fallback use valid output format: 32.");
-		} else {			
+		} else {
+			constexpr uint32_t kValidBitPerSamples = 24;
 			InitialDeviceFormat(valid_output_format, kValidBitPerSamples);
 			XAMP_LOG_D(log_, "Use valid output format: {}.", kValidBitPerSamples);
 		}

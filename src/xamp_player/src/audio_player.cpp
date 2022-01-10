@@ -154,7 +154,7 @@ void AudioPlayer::Open(Path const& file_path, const DeviceInfo& device_info, uin
     target_sample_rate_ = target_sample_rate;
     OpenStream(file_path, device_info);
     device_info_ = device_info;
-    XAMP_LOG_D(logger_, "Deveice min_volume: {}dBFS max_volume: {}dBFS volume_increnment: {}dBFS volume leve: {}.",
+    XAMP_LOG_D(logger_, "Deveice min_volume: {:.2f} dBFS, max_volume:{:.2f} dBFS, volume_increnment:{:.2f} dBFS, volume leve:{:.2f}.",
         device_info_.min_volume,
         device_info_.max_volume,
         device_info_.volume_increment,
@@ -812,6 +812,13 @@ void AudioPlayer::InitDsp() {
         }
         if (auto* compressor = GetProcessor<BassCompressor>()) {
             compressor->Init(compressor_parameters_);
+            XAMP_LOG_D(logger_, "Set compressor: gain: {} db, threshold:{} db, ratio: {}, attack: {}, release: {}",
+                compressor_parameters_.gain,
+                compressor_parameters_.threshold,
+                compressor_parameters_.ratio,
+                compressor_parameters_.attack,
+                compressor_parameters_.release);
+            compressor->Start(output_format_.GetSampleRate());
         }
         if (auto* eq = GetProcessor<IEqualizer>()) {
             eq->SetEQ(eq_settings_);

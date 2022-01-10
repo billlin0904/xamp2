@@ -23,13 +23,13 @@ XAMP_BASE_API bool PrefetchFile(MemoryMappedFile &file);
 XAMP_BASE_API bool PrefetchMemory(void* adddr, size_t length) noexcept;
 
 #ifdef XAMP_ENABLE_REP_MOVSB
-XAMP_BASE_API void MemorySet(void* dest, int32_t c, size_t size);
+XAMP_BASE_API void MemorySet(void* dest, int32_t c, size_t size) noexcept;
 #else
 #define MemorySet(dest, c, size) (void) std::memset(dest, c, size)
 #endif
 
 #ifdef XAMP_ENABLE_REP_MOVSB
-XAMP_BASE_API void MemoryCopy(void* dest, const void* src, size_t size);
+XAMP_BASE_API void MemoryCopy(void* dest, const void* src, size_t size) noexcept;
 #else
 #define MemoryCopy(dest, src, size) (void) __builtin_memcpy(dest, src, size)
 #endif

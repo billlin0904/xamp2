@@ -72,8 +72,12 @@ XAMP_BASE_API AudioConvertContext MakeConvert(AudioFormat const& in_format, Audi
 
 template <typename T>
 void ConvertBench(T* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, int32_t float_scale, AudioConvertContext const& context) noexcept {
+	XAMP_ASSERT(output != nullptr);
+	XAMP_ASSERT(input != nullptr);
+
 	const auto* end_input = input + static_cast<ptrdiff_t>(context.convert_size) * context.input_format.GetChannels();
 	while (input != end_input) {
+		XAMP_ASSERT(end_input - input > 0);
 		*output = static_cast<T>(*input * float_scale);
 		++input;
 		++output;
@@ -86,6 +90,9 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter {
     static void Convert(int8_t* XAMP_RESTRICT output,
                         int8_t const* XAMP_RESTRICT input,
                         AudioConvertContext const& context) noexcept {
+		XAMP_ASSERT(output != nullptr);
+		XAMP_ASSERT(input != nullptr);
+
 		const auto output_left_offset = context.out_offset[0];
 		const auto output_right_offset = context.out_offset[1];
 
@@ -103,6 +110,9 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter {
     static void Convert(int32_t* XAMP_RESTRICT output,
                         float const* XAMP_RESTRICT input,
                         AudioConvertContext const& context) noexcept {
+		XAMP_ASSERT(output != nullptr);
+		XAMP_ASSERT(input != nullptr);
+
 		const auto output_left_offset = context.out_offset[0];
 		const auto output_right_offset = context.out_offset[1];
 
@@ -127,11 +137,17 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
     static void ConvertInt16Bench(int16_t* XAMP_RESTRICT output,
                                   float const* XAMP_RESTRICT input,
                                   AudioConvertContext const& context) noexcept {
+		XAMP_ASSERT(output != nullptr);
+		XAMP_ASSERT(input != nullptr);
+
 		ConvertBench<int16_t>(output, input, kFloat16Scale, context);
 	}
 
 	static void Convert(int16_t* XAMP_RESTRICT output, float const* XAMP_RESTRICT input, AudioConvertContext const& context) noexcept {
-		const auto* end_input = input + static_cast<ptrdiff_t>(context.convert_size) * context.input_format.GetChannels();
+		XAMP_ASSERT(output != nullptr);
+		XAMP_ASSERT(input != nullptr);
+
+    	const auto* end_input = input + static_cast<ptrdiff_t>(context.convert_size) * context.input_format.GetChannels();
 
         const auto scale = SIMD::Set1Ps(kFloat16Scale);
         //const auto max_val = SIMD::Set1Ps(kFloat16Scale - 1);
@@ -145,6 +161,7 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
 		}
 
 		while (input != end_input) {
+			XAMP_ASSERT(end_input - input > 0);
             const auto in = SIMD::LoadPs(input);
             const auto mul = SIMD::MulPs(in, scale);
             //const auto clamp = SIMD::MinPs(SIMD::MaxPs(mul, min_val), max_val);
@@ -158,12 +175,18 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
     static void ConvertInt32Bench(int32_t* XAMP_RESTRICT output,
                                   float const* XAMP_RESTRICT input,
                                   AudioConvertContext const& context) noexcept {
+		XAMP_ASSERT(output != nullptr);
+		XAMP_ASSERT(input != nullptr);
+
 		ConvertBench<int32_t>(output, input, kFloat32Scale, context);
     }		
 
     static void Convert(int32_t* XAMP_RESTRICT output,
                         float const* XAMP_RESTRICT input,
                         AudioConvertContext const& context) noexcept {
+		XAMP_ASSERT(output != nullptr);
+		XAMP_ASSERT(input != nullptr);
+
 		const auto* end_input = input + static_cast<ptrdiff_t>(context.convert_size) * context.input_format.GetChannels();
 
         const auto scale = SIMD::Set1Ps(kFloat32Scale); 
@@ -178,6 +201,7 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
 		}
 
 		while (input != end_input) {
+			XAMP_ASSERT(end_input - input > 0);
             const auto in = SIMD::LoadPs(input);
             const auto mul = SIMD::MulPs(in, scale);
             //const auto clamp = SIMD::MinPs(SIMD::MaxPs(mul, min_val), max_val);
@@ -191,8 +215,12 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
     static void ConvertToInt2432Bench(int32_t* XAMP_RESTRICT output,
                                       float const* XAMP_RESTRICT input,
                                       AudioConvertContext const& context) noexcept {
+		XAMP_ASSERT(output != nullptr);
+		XAMP_ASSERT(input != nullptr);
+
 		const auto* end_input = input + static_cast<ptrdiff_t>(context.convert_size) * context.input_format.GetChannels();
 		while (input != end_input) {
+			XAMP_ASSERT(end_input - input > 0);
 			*output++ = Int24(*input++).To2432Int();
 		}
 	}
@@ -200,6 +228,9 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
     static void ConvertToInt2432(int32_t* XAMP_RESTRICT output,
                                  float const* XAMP_RESTRICT input,
                                  AudioConvertContext const& context) noexcept {
+		XAMP_ASSERT(output != nullptr);
+		XAMP_ASSERT(input != nullptr);
+
 		const auto* end_input = input + static_cast<ptrdiff_t>(context.convert_size) * context.input_format.GetChannels();
 
 		const auto scale = SIMD::Set1Ps(kFloat24Scale);

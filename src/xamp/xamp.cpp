@@ -1062,6 +1062,7 @@ void Xamp::playMusic(const MusicEntity& item) {
             player_->RemoveDSP(IEqualizer::Id);
         }
 
+        player_->AddDSP(MakeCompressor());
         player_->PrepareToPlay();        
         playback_format = getPlaybackFormat(player_.get());
         player_->Play();

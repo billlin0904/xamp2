@@ -116,13 +116,6 @@ static bool GetMp3Cover(File* file, std::vector<uint8_t>& buffer) {
     return found;
 }
 
-static bool GetApeCover(File* file, std::vector<uint8_t>& buffer) {
-    if (auto * ape_file = dynamic_cast<TagLib::APE::File*>(file)) {
-        return GetApeTagCover(ape_file->APETag(), buffer);
-    }
-    return false;
-}
-
 static std::optional<ReplayGain> GetMp4ReplayGain(File* file) {
     ReplayGain replay_gain;
     auto found = false;
@@ -398,7 +391,6 @@ private:
             { ".flac", GetFlacCover },
             { ".mp3",  GetMp3Cover },
             { ".m4a",  GetMp4Cover },
-            { ".ape",  GetApeCover },
         };
         auto itr = parse_cover_table.find(ext);
         if (itr != parse_cover_table.end()) {

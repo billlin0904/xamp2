@@ -12,8 +12,6 @@
 
 namespace xamp::stream {
 
-using namespace xamp::base;
-
 MAKE_XAMP_ENUM(SoxrQuality,
           LOW,
           MQ,
