@@ -37,7 +37,7 @@ public:
 
 	[[nodiscard]] std::vector<DeviceInfo> GetDeviceInfo() const override;
 
-	AlignPtr<IDevice> MakeDevice(std::string const & device_id) override;
+	AlignPtr<IOutputDevice> MakeDevice(std::string const & device_id) override;
 
 private:
 	void Initial();

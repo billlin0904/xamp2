@@ -269,8 +269,10 @@ void PlayListTableView::initial() {
     horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
     (void)QObject::connect(horizontalHeader(), &QHeaderView::customContextMenuRequested, [this](auto pt) {
         auto* menu = new QMenu(this);
+        menu->setWindowFlags(Qt::Popup | Qt::FramelessWindowHint);
+        menu->setAttribute(Qt::WA_TranslucentBackground);
+
         auto* header_view = horizontalHeader();
-        ThemeManager::instance().setMenuStlye(menu);
 
         auto last_referred_logical_column = header_view->logicalIndexAt(pt);
 

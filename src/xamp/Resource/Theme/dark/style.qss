@@ -386,7 +386,8 @@ https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qmenu
 
 --------------------------------------------------------------------------- */
 QMenu {
-  border: 0px solid #455364;
+  border-radius: 3;
+  border: 1px solid #37414F;
   color: #E0E1E3;
   margin: 0px;
   background-color: #37414F;

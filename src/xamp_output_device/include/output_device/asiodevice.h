@@ -16,14 +16,14 @@
 #include <base/buffer.h>
 #include <base/fastmutex.h>
 
-#include <output_device/idevice.h>
+#include <output_device/ioutputdevice.h>
 #include <output_device/idsddevice.h>
 #include <output_device/win32/mmcss.h>
 
 namespace xamp::output_device {
 
 class AsioDevice final
-	: public IDevice
+	: public IOutputDevice
 	, public IDsdDevice {
 public:
 	explicit AsioDevice(std::string const & device_id);
@@ -77,7 +77,6 @@ public:
 	void ReOpen();
 
 	static void ResetDriver();
-
 private:
 	static ASIOTime* OnBufferSwitchTimeInfoCallback(ASIOTime* timeInfo, long index, ASIOBool processNow) noexcept;
 

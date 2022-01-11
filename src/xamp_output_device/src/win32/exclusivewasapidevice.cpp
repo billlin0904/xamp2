@@ -78,6 +78,8 @@ ExclusiveWasapiDevice::ExclusiveWasapiDevice(CComPtr<IMMDevice> const & device)
 	, is_running_(false)
 	, thread_priority_(MmcssThreadPriority::MMCSS_THREAD_PRIORITY_NORMAL)
 	, buffer_frames_(0)
+	, buffer_duration_ms_(0)
+	, buffer_period_(0)
 	, volume_support_mask_(0)
 	, stream_time_(0)
 	, sample_ready_(nullptr)
@@ -105,10 +107,14 @@ void ExclusiveWasapiDevice::SetAlignedPeriod(REFERENCE_TIME device_period, const
 void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_format, const uint32_t valid_bits_samples) {
 	SetWaveformatEx(mix_format_, output_format, valid_bits_samples);
 
-    REFERENCE_TIME default_device_period = 0;
-    REFERENCE_TIME minimum_device_period = 0;
-    HrIfFailledThrow(client_->GetDevicePeriod(&default_device_period, &minimum_device_period));
-	default_device_period = 50000;// 8ms = 80000, 30ms = 300000
+	REFERENCE_TIME default_device_period = 0;
+	REFERENCE_TIME minimum_device_period = 0;
+
+	if (buffer_period_ == 0) {		
+		HrIfFailledThrow(client_->GetDevicePeriod(&default_device_period, &minimum_device_period));
+	} else {
+		default_device_period = buffer_period_;
+	}
 
 	SetAlignedPeriod(default_device_period, output_format);
 
@@ -279,11 +285,9 @@ bool ExclusiveWasapiDevice::GetSample(bool is_silence) noexcept {
 		hr = render_client_->ReleaseBuffer(buffer_frames_, flags);
 		return result;
 	}
-	else {
-		// EOF data
-		hr = render_client_->ReleaseBuffer(buffer_frames_, AUDCLNT_BUFFERFLAGS_SILENT);
-		return false;
-	}
+	// EOF data
+	hr = render_client_->ReleaseBuffer(buffer_frames_, AUDCLNT_BUFFERFLAGS_SILENT);
+	return false;
 }
 
 void ExclusiveWasapiDevice::SetAudioCallback(IAudioCallback* callback) noexcept {
@@ -432,7 +436,7 @@ double ExclusiveWasapiDevice::GetStreamTime() const noexcept {
 }
 
 uint32_t ExclusiveWasapiDevice::GetVolume() const {
-	// todo: GetVolume回傳level, CoreAudio, ASIO均無法設備的dBFS
+	// todo: GetVolume回傳level, CoreAudio, ASIO均無法讀取設備的dBFS
 	//float volume_level = 0.0;
 	//HrIfFailledThrow(endpoint_volume_->GetMasterVolumeLevel(&volume_level));
 	auto volume_scalar = 0.0F;

@@ -14,7 +14,7 @@
 #include <base/align_ptr.h>
 
 #include <output_device/deviceinfo.h>
-#include <output_device/idevice.h>
+#include <output_device/ioutputdevice.h>
 #include <output_device/output_device.h>
 
 namespace xamp::output_device {
@@ -29,7 +29,7 @@ public:
 
 	[[nodiscard]] virtual Uuid GetTypeId() const = 0;
 
-    virtual AlignPtr<IDevice> MakeDevice(std::string const & device_id) = 0;
+    virtual AlignPtr<IOutputDevice> MakeDevice(std::string const & device_id) = 0;
 
 	[[nodiscard]] virtual size_t GetDeviceCount() const = 0;
 

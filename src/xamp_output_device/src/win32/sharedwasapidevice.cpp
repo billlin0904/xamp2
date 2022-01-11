@@ -78,8 +78,9 @@ private:
 SharedWasapiDevice::SharedWasapiDevice(CComPtr<IMMDevice> const & device)
 	: is_running_(false)
 	, stream_time_(0)
-	, latency_(0)
 	, buffer_frames_(0)
+	, buffer_duration_ms_(0)
+	, buffer_time_(0)
 	, mmcss_name_(kMmcssProfileProAudio)
 	, thread_priority_(MmcssThreadPriority::MMCSS_THREAD_PRIORITY_HIGH)
 	, sample_ready_(nullptr)
@@ -165,7 +166,7 @@ void SharedWasapiDevice::InitialDeviceFormat(AudioFormat const & output_format) 
 
 	if (hr == AUDCLNT_E_UNSUPPORTED_FORMAT) {
 		throw DeviceUnSupportedFormatException(output_format);
-	}	
+	}
 
 	XAMP_LOG_D(log_, "Initital device format fundamental:{}, current:{}, min:{} max:{}.",
 		fundamental_period_in_frame,
@@ -173,15 +174,15 @@ void SharedWasapiDevice::InitialDeviceFormat(AudioFormat const & output_format) 
 		min_period_in_frame,
 		max_period_in_frame);
 
-	latency_ = default_period_in_frame;
+	buffer_time_ = default_period_in_frame;
 
-	XAMP_LOG_D(log_, "Use latency: {}", latency_);
+	XAMP_LOG_D(log_, "Use latency: {}", buffer_time_);
 }
 
 void SharedWasapiDevice::InitialRawMode(AudioFormat const & output_format) {
 	InitialDeviceFormat(output_format);
 	HrIfFailledThrow(client_->InitializeSharedAudioStream(AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
-		latency_,
+		buffer_time_,
 		mix_format_,
 		nullptr));
 

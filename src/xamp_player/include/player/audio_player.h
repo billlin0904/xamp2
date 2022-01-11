@@ -236,7 +236,7 @@ private:
     AlignPtr<IAudioDeviceManager> device_manager_;
     AlignPtr<FileStream> stream_;
     AlignPtr<IDeviceType> device_type_;
-    AlignPtr<IDevice> device_;
+    AlignPtr<IOutputDevice> device_;
     std::weak_ptr<IPlaybackStateAdapter> state_adapter_;    
     AudioBuffer<int8_t> fifo_;
     Buffer<int8_t> read_buffer_;

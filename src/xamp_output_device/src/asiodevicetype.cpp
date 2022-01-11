@@ -79,8 +79,8 @@ DeviceInfo ASIODeviceType::GetDeviceInfo(std::wstring const& name, std::string c
 	return info;
 }
 
-AlignPtr<IDevice> ASIODeviceType::MakeDevice(std::string const & device_id) {
-	return MakeAlign<IDevice, AsioDevice>(device_id);
+AlignPtr<IOutputDevice> ASIODeviceType::MakeDevice(std::string const & device_id) {
+	return MakeAlign<IOutputDevice, AsioDevice>(device_id);
 }
 
 }

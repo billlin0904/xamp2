@@ -157,7 +157,7 @@
     <ClInclude Include="include\output_device\asiodevicetype.h" />
     <ClInclude Include="include\output_device\asioexception.h" />
     <ClInclude Include="include\output_device\iaudiocallback.h" />
-    <ClInclude Include="include\output_device\idevice.h" />
+    <ClInclude Include="include\output_device\ioutputdevice.h" />
     <ClInclude Include="include\output_device\audiodevicemanager.h" />
     <ClInclude Include="include\output_device\deviceinfo.h" />
     <ClInclude Include="include\output_device\devicestate.h" />

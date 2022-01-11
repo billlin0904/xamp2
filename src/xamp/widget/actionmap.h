@@ -21,6 +21,8 @@ public:
 			: action_group_(new QActionGroup(submenu_.get()))
 			, action_map_(action_map) {
 			submenu_.reset(menu->addMenu(menu_name));
+			submenu_->setWindowFlags(Qt::Popup | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
+			submenu_->setAttribute(Qt::WA_TranslucentBackground);
 		}
 
 		template <typename Callable>
@@ -53,7 +55,8 @@ public:
 	explicit ActionMap(Type* object)
 		: object_(object)
 		, menu_(object) {
-        ThemeManager::instance().setMenuStlye(&menu_);
+		menu_.setWindowFlags(Qt::Popup | Qt::FramelessWindowHint);
+		menu_.setAttribute(Qt::WA_TranslucentBackground);
 	}
 
 	QAction* addAction(const QString& menu_name) {

@@ -16,12 +16,12 @@
 
 #include <output_device/win32/wasapi.h>
 #include <output_device/idsddevice.h>
-#include <output_device/idevice.h>
+#include <output_device/ioutputdevice.h>
 
 namespace xamp::output_device::win32 {
 
 class ExclusiveWasapiDevice final
-	: public IDevice
+	: public IOutputDevice
 	, public IDsdDevice {
 public:
 	explicit ExclusiveWasapiDevice(CComPtr<IMMDevice> const & device);
@@ -66,9 +66,9 @@ public:
 
 	void AbortStream() noexcept override;
 
-	void SetIoFormat(DsdIoFormat format);
+	void SetIoFormat(DsdIoFormat format) override;
 
-	DsdIoFormat GetIoFormat() const;
+	DsdIoFormat GetIoFormat() const override;
 private:	
 
 	void InitialDeviceFormat(AudioFormat const & output_format, const uint32_t valid_bits_samples);
@@ -83,6 +83,8 @@ private:
 	std::atomic<bool> is_running_;
 	MmcssThreadPriority thread_priority_;
 	uint32_t buffer_frames_;
+	uint32_t buffer_duration_ms_;
+	REFERENCE_TIME buffer_period_;
 	DWORD volume_support_mask_;
 	std::atomic<int64_t> stream_time_;
 	WinHandle sample_ready_;

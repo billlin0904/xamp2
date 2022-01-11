@@ -14,12 +14,12 @@
 
 #include <base/buffer.h>
 #include <base/logger.h>
-#include <output_device/idevice.h>
+#include <output_device/ioutputdevice.h>
 #include <output_device/win32/wasapiworkqueue.h>
 
 namespace xamp::output_device::win32 {
 
-class SharedWasapiDevice final : public IDevice {
+class SharedWasapiDevice final : public IOutputDevice {
 public:
 	explicit SharedWasapiDevice(CComPtr<IMMDevice> const & device);
 
@@ -62,7 +62,6 @@ public:
 	bool IsHardwareControlVolume() const override;
 
 	void AbortStream() noexcept override;
-
 private:
 	HRESULT GetSampleRequested(bool is_silence) noexcept;
 
@@ -84,8 +83,10 @@ private:
 
 	std::atomic<bool> is_running_;
 	std::atomic<int64_t> stream_time_;
-	uint32_t latency_;
+	
 	uint32_t buffer_frames_;
+	uint32_t buffer_duration_ms_;
+	REFERENCE_TIME buffer_time_;
 	std::wstring mmcss_name_;
 	MmcssThreadPriority thread_priority_;
 	WinHandle sample_ready_;

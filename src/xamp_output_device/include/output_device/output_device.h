@@ -26,7 +26,7 @@ using namespace base;
 
 struct DeviceInfo;
 class IDeviceType;
-class IDevice;
+class IOutputDevice;
 class IDsdDevice;
 class IAudioDeviceManager;
 

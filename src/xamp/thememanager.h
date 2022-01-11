@@ -126,8 +126,6 @@ public:
 
     void setThemeColor(ThemeColor theme_color);
 
-    void setMenuStlye(QMenu *menu) const;
-
     ThemeColor themeColor() const {
         return theme_color_;
     }

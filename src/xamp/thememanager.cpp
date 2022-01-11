@@ -82,7 +82,6 @@ void ThemeManager::setPalette() {
 
 ThemeManager::ThemeManager() {
     cover_size_ = QSize(210, 210);
-    background_color_ = QColor(228, 233, 237);
     album_cover_size_ = QSize(250, 250);
     //setThemeColor(ThemeColor::DARK_THEME);
     //setThemeColor(ThemeColor::LIGHT_THEME);
@@ -259,24 +258,6 @@ QIcon ThemeManager::appIcon() const {
 }
 
 void ThemeManager::setBackgroundColor(Ui::XampWindow& ui, QColor color) {
-    /*ui.currentView->setStyleSheet(backgroundColorToString(color));
-    ui.titleFrame->setStyleSheet(backgroundColorToString(color));*/
-
-    //ui.playingFrame->setStyleSheet(backgroundColorToString(QColor(77, 77, 77)));
-    //ui.volumeFrame->setStyleSheet(backgroundColorToString(QColor(45,45,45)));
-    //ui.controlFrame->setStyleSheet(backgroundColorToString(QColor(45,45,45)));
-
-    /*if (AppSettings::getValueAsBool(kAppSettingEnableBlur)) {
-        ui.sliderFrame->setStyleSheet(backgroundColorToString(QColor(color.red(), color.green(), color.blue(), 210)));
-    } else {
-        ui.sliderFrame->setStyleSheet(backgroundColorToString(QColor(color.red(), color.green(), color.blue())));
-    }*/
-
-    /*if (AppSettings::getValueAsBool(kAppSettingEnableBlur)) {
-        ui.currentView->setStyleSheet(backgroundColorToString(QColor(color.red(), color.green(), color.blue(), 210)));
-        ui.sliderFrame->setStyleSheet(backgroundColorToString(QColor(color.red(), color.green(), color.blue(), 210)));
-    }*/
-
     background_color_ = color;
     AppSettings::setValue(kAppSettingBackgroundColor, color);
 }
@@ -316,33 +297,6 @@ void ThemeManager::setRepeatOncePlayOrder(Ui::XampWindow& ui) const {
     }
     )").arg(themeColorPath());
     ui.repeatButton->setStyleSheet(style_sheet);
-}
-
-void ThemeManager::setMenuStlye(QMenu *menu) const {
-    /*
-    auto color = palette_.color(QPalette::Base);
-    auto style = Q_STR(R"(
-        QMenu {
-            background: %1;
-            border-radius: 4px;
-            border: none;
-        }
-        QMenu:item:selected {
-            background-color: palette(Highlight);
-            color: palette(HighlightedText);
-            border-radius: 4px;
-        }
-        )").arg(colorToString(color));
-        
-    menu->setStyleSheet(style);
-
-    if (AppSettings::getValueAsBool(kAppSettingUseFramelessWindow)) {
-        menu->setWindowFlags(menu->windowFlags() | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
-    } else {
-        menu->setWindowFlags(menu->windowFlags() | Qt::FramelessWindowHint);
-    }
-
-    menu->setAttribute(Qt::WA_TranslucentBackground);*/
 }
 
 void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
@@ -398,8 +352,6 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
                                             )").arg(themeColorPath()));
 
 
-    setMenuStlye(ui.settingsButton->menu());
-
     ui.stopButton->setStyleSheet(Q_STR(R"(
                                          QToolButton#stopButton {
                                          border: none;
@@ -451,17 +403,6 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
 }
 
 void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
-    //if (!AppSettings::getValueAsString(kAppSettingBackgroundColor).isEmpty()) {
-    //    setBackgroundColor(ui, AppSettings::getValueAsString(kAppSettingBackgroundColor));
-    //}
-    //else {
-    //    setBackgroundColor(ui, background_color_);
-    //}
-
-    //ui.controlFrame->setStyleSheet(backgroundColorToString(control_background_color_));
-    //ui.volumeFrame->setStyleSheet(backgroundColorToString(control_background_color_));
-    //ui.playingFrame->setStyleSheet(backgroundColorToString(control_background_color_));
-
     ui.searchLineEdit->setStyleSheet(Q_UTF8(""));
     ui.sliderBar->setStyleSheet(Q_UTF8("QListView#sliderBar { background-color: transparent; border: none; }"));
     

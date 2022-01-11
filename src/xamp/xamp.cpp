@@ -196,6 +196,9 @@ void Xamp::createTrayIcon() {
     QObject::connect(quit_action, &QAction::triggered, this, &QWidget::close);
 
     tray_icon_menu_ = new QMenu(this);
+    tray_icon_menu_->setWindowFlags(Qt::Popup | Qt::FramelessWindowHint);
+    tray_icon_menu_->setAttribute(Qt::WA_TranslucentBackground);
+
     tray_icon_menu_->addAction(minimize_action);
     tray_icon_menu_->addAction(maximize_action);
     tray_icon_menu_->addAction(restore_action);
@@ -364,14 +367,11 @@ void Xamp::initialDeviceList() {
     auto* menu = ui_.selectDeviceButton->menu();
     if (!menu) {
         menu = new QMenu(this);
+        menu->setWindowFlags(Qt::Popup | Qt::FramelessWindowHint);
+        menu->setAttribute(Qt::WA_TranslucentBackground);
         ui_.selectDeviceButton->setMenu(menu);
     }
 
-    auto setMenuBackgroundColor = [menu]() {
-        ThemeManager::instance().setMenuStlye(menu);
-    };
-
-    setMenuBackgroundColor();
     menu->clear();
 
     DeviceInfo init_device_info;
@@ -399,23 +399,23 @@ void Xamp::initialDeviceList() {
 
         for (const auto& device_info : device_info_list) {
             auto* device_action = new QAction(QString::fromStdWString(device_info.name), this);
-            switch (device_info.connect_type) {
+            /*switch (device_info.connect_type) {
             case DeviceConnectType::USB:
                 device_action->setIcon(ThemeManager::instance().usb());
                 break;
             default:
                 device_action->setIcon(ThemeManager::instance().speaker());
                 break;
-            }
+            }*/
             device_action_group->addAction(device_action);
             device_action->setCheckable(true);
+            device_action->setChecked(false);
             device_id_action[device_info.device_id] = device_action;
 
-            auto trigger_callback = [device_info, setMenuBackgroundColor, this]() {
+            auto trigger_callback = [device_info, this]() {
                 device_info_ = device_info;
                 AppSettings::setValue(kAppSettingDeviceType, device_info_.device_type_id);
                 AppSettings::setValue(kAppSettingDeviceId, device_info_.device_id);
-                setMenuBackgroundColor();                
             };
 
             (void)QObject::connect(device_action, &QAction::triggered, trigger_callback);
@@ -512,7 +512,7 @@ void Xamp::initialController() {
             return;
         }
         try {
-            player_->Seek(static_cast<double>(ui_.seekSlider->value() / 1000.0));
+            player_->Seek(ui_.seekSlider->value() / 1000.0);
         }
         catch (const Exception& e) {
             player_->Stop(false);
@@ -703,6 +703,9 @@ void Xamp::initialController() {
     }
 
     auto* settings_menu = new QMenu(this);
+    settings_menu->setWindowFlags(Qt::Popup | Qt::FramelessWindowHint);
+    settings_menu->setAttribute(Qt::WA_TranslucentBackground);
+
     auto hide_widget = [this](bool enable) {
         if (!enable) {
             top_window_->resize(QSize(700, 80));

@@ -75,6 +75,10 @@ XAMP_ALWAYS_INLINE constexpr REFERENCE_TIME MakeHnsPeriod(UINT32 frames, UINT32 
 	return static_cast<REFERENCE_TIME>(10000.0 * 1000.0 / static_cast<double>(samplerate) * static_cast<double>(frames) + 0.5);
 }
 
+XAMP_ALWAYS_INLINE constexpr REFERENCE_TIME MsToPeriod(uint32_t ms) {
+	return ms * 10000;
+}
+
 DeviceInfo GetDeviceInfo(CComPtr<IMMDevice>& device, Uuid const& device_type_id);
 
 CComPtr<IMMDeviceEnumerator> CreateDeviceEnumerator();

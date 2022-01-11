@@ -43,8 +43,8 @@ CComPtr<IMMDevice> ExclusiveWasapiDeviceType::GetDeviceById(std::wstring const &
 	return device;
 }
 
-AlignPtr<IDevice> ExclusiveWasapiDeviceType::MakeDevice(std::string const & device_id) {
-	return MakeAlign<IDevice, ExclusiveWasapiDevice>(GetDeviceById(String::ToStdWString(device_id)));
+AlignPtr<IOutputDevice> ExclusiveWasapiDeviceType::MakeDevice(std::string const & device_id) {
+	return MakeAlign<IOutputDevice, ExclusiveWasapiDevice>(GetDeviceById(String::ToStdWString(device_id)));
 }
 
 std::string_view ExclusiveWasapiDeviceType::GetDescription() const {

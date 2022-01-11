@@ -10,9 +10,9 @@
 
 namespace xamp::output_device {
 
-class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE IDevice {
+class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE IOutputDevice {
 public:
-	XAMP_BASE_CLASS(IDevice)
+	XAMP_BASE_CLASS(IOutputDevice)
 
     virtual void OpenStream(AudioFormat const & output_format) = 0;
 
@@ -49,9 +49,8 @@ public:
 	[[nodiscard]] virtual uint32_t GetBufferSize() const noexcept = 0;
 
 	virtual void AbortStream() noexcept = 0;
-
 protected:
-	IDevice() = default;
+	IOutputDevice() = default;
 };
 
 }

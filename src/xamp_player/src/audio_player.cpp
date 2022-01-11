@@ -70,7 +70,7 @@ inline constexpr std::chrono::seconds kWaitForSignalWhenReadFinish(3);
 //    return fft.Forward(signal.data(), signal.size());
 //}
 
-IDsdDevice* AsDsdDevice(AlignPtr<IDevice> const& device) noexcept {
+IDsdDevice* AsDsdDevice(AlignPtr<IOutputDevice> const& device) noexcept {
     return dynamic_cast<IDsdDevice*>(device.get());
 }
 
