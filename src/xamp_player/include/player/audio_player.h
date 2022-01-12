@@ -20,16 +20,9 @@
 #include <base/buffer.h>
 #include <base/fastmutex.h>
 
-#include <player/player.h>
-
-#include <output_device/output_device.h>
 #include <output_device/iaudiocallback.h>
 #include <output_device/idevicestatelistener.h>
 #include <output_device/deviceinfo.h>
-
-#include <stream/stream.h>
-#include <stream/compressorparameters.h>
-#include <stream/eqsettings.h>
 
 #include <player/fft.h>
 #include <player/playstate.h>
@@ -38,9 +31,7 @@
 namespace xamp::player {
 
 enum class PlayerActionId {
-    PLAYER_SEEK,
-    DSP_EQ,
-    DSP_PREAMP,
+    PLAYER_SEEK
 };
 
 struct PlayerAction {
@@ -66,7 +57,7 @@ public:
 
     void Open(Path const& file_path, const Uuid& device_id = Uuid::kInvalidUUID) override;
 
-    void Open(Path const& file_path, const DeviceInfo& device_info, uint32_t target_sample_rate = 0, AlignPtr<ISampleRateConverter> converter = nullptr)  override;
+    void Open(Path const& file_path, const DeviceInfo& device_info, uint32_t target_sample_rate = 0) override;
 
     void PrepareToPlay() override;
 
@@ -108,36 +99,16 @@ public:
 
     AudioFormat GetOutputFormat() const noexcept override;
 
-    void AddDSP(AlignPtr<IAudioProcessor> processor) override;
-
-    void EnableDSP(bool enable = true) override;
-
-    void RemoveDSP(Uuid const &id) override;
-
-    void SetEq(uint32_t band, float gain, float Q) override;
-
-    void SetEq(EQSettings const& settings) override;
-
-    void SetPreamp(float preamp) override;
-
-    void SetReplayGain(float volume) override;
-
-    void SetCompressorParameters(CompressorParameters const& parameters) override;
-
-    bool IsEnableDSP() const override;
-
-    bool IsEnableSampleRateConverter() const override;
-
     void SetDevice(const DeviceInfo& device_info) override;
 
     DeviceInfo GetDevice() const override;
 
     const AlignPtr<IAudioDeviceManager>& GetAudioDeviceManager() override;
-private:
-    bool CanConverter() const noexcept;
 
-    bool CanProcessFile() const noexcept;
-    	
+    AlignPtr<DSPManager>& GetDSPManager() override;
+
+    bool CanConverter() const noexcept;
+private:    	
     void DoSeek(double stream_time);        
     	
     void OpenStream(Path const& file_path, DeviceInfo const& device_info);
@@ -166,15 +137,13 @@ private:
 
     void ReadSampleLoop(int8_t* sample_buffer, uint32_t max_buffer_sample, std::unique_lock<FastMutex> &stopped_lock);
 
-    void BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<ISampleRateConverter> &converter, int32_t buffer_count = 1);
+    void BufferSamples(const AlignPtr<FileStream>& stream, int32_t buffer_count = 1);
 
     void UpdateSlice(int32_t sample_size = 0, double stream_time = 0.0) noexcept;
 
     void AllocateReadBuffer(uint32_t allocate_size);
 
     void AllocateFifo();
-
-    void InitDsp();
 
     void InitFFT();
 
@@ -187,35 +156,19 @@ private:
 	        double stream_time = 0.0) noexcept;        
         int32_t sample_size;
         double stream_time;
-    };
-
-    template <typename Processor>
-    Processor* GetProcessor() {
-        auto itr = std::find_if(dsp_chain_.begin(),
-                                dsp_chain_.end(),
-                                [](auto const& processor) {
-                                    return processor->GetTypeId() == Processor::Id;
-                                });
-        if (itr == dsp_chain_.end()) {
-            return nullptr;
-        }
-        return dynamic_cast<Processor*>((*itr).get());
-    }
+    };    
 
     XAMP_ENFORCE_TRIVIAL(AudioSlice)
 
     bool is_muted_;
-    bool enable_sample_converter_;
-    bool enable_processor_;
     bool is_dsd_file_;
-    float replay_gain_;
     DsdModes dsd_mode_;
     std::atomic<PlayerState> state_;
     uint8_t sample_size_;
     uint32_t target_sample_rate_;
-    uint32_t volume_;
     uint32_t fifo_size_;
     uint32_t num_read_sample_;
+    uint32_t volume_;
     std::optional<uint32_t> dsd_speed_;
     std::atomic<bool> is_playing_;
     std::atomic<bool> is_paused_;
@@ -224,8 +177,6 @@ private:
     std::atomic<AudioSlice> slice_;
     mutable FastMutex pause_mutex_;
     mutable FastMutex stopped_mutex_;
-    EQSettings eq_settings_;
-    CompressorParameters compressor_parameters_;
     std::string device_id_;
     Uuid device_type_id_;
     FastConditionVariable pause_cond_;
@@ -242,14 +193,12 @@ private:
     Buffer<int8_t> read_buffer_;
     Buffer<float> dsp_buffer_;
     WaitableTimer wait_timer_;
-    AlignPtr<ISampleRateConverter> converter_;
-    std::vector<AlignPtr<IAudioProcessor>> setting_chain_;
-    std::vector<AlignPtr<IAudioProcessor>> dsp_chain_;
     DeviceInfo device_info_;    
     std::shared_future<void> stream_task_;
     SpscQueue<PlayerAction> action_queue_;
     std::vector<float> signal_;
     FFT fft_;
+    AlignPtr<DSPManager> dsp_manager_;
     std::shared_ptr<spdlog::logger> logger_;
 };
 

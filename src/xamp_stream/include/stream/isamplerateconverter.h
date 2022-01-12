@@ -26,7 +26,7 @@ public:
 
     [[nodiscard]] virtual bool Process(Buffer<float> const &input, AudioBuffer<int8_t>& buffer) = 0;
 	
-    [[nodiscard]] virtual bool Process(float const * samples, size_t num_sample, AudioBuffer<int8_t>& buffer) = 0;
+    virtual bool Process(float const * samples, size_t num_sample, AudioBuffer<int8_t>& buffer) = 0;
 
     [[nodiscard]] virtual bool Process(float const* samples, size_t num_sample, SampleWriter& writer) = 0;
 

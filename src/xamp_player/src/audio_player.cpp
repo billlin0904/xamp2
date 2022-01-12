@@ -18,9 +18,11 @@
 #include <stream/bassvolume.h>
 #include <stream/iaudioprocessor.h>
 #include <stream/iequalizer.h>
+#include <stream/dspmanager.h>
 #include <stream/isamplerateconverter.h>
 #include <stream/passthroughsamplerateconverter.h>
 #include <stream/basscompressor.h>
+#include <stream/soxresampler.h>
 
 #include <player/iplaybackstateadapter.h>
 #include <player/audio_util.h>
@@ -80,22 +82,20 @@ AudioPlayer::AudioPlayer()
 
 AudioPlayer::AudioPlayer(const std::weak_ptr<IPlaybackStateAdapter> &adapter)
     : is_muted_(false)
-    , enable_sample_converter_(false)
-	, enable_processor_(true)
 	, is_dsd_file_(false)
-    , replay_gain_(0)
     , dsd_mode_(DsdModes::DSD_MODE_PCM)
     , state_(PlayerState::PLAYER_STATE_STOPPED)
     , sample_size_(0)
     , target_sample_rate_(0)
-    , volume_(0)
     , fifo_size_(0)
     , num_read_sample_(0)
+    , volume_(0)
     , is_playing_(false)
     , is_paused_(false)
     , sample_end_time_(0)
     , stream_duration_(0)
     , device_manager_(MakeAudioDeviceManager())
+    , dsp_manager_(MakeAlign<DSPManager>())
     , state_adapter_(adapter)
     , fifo_(GetPageAlignSize(kPreallocateBufferSize))
     , action_queue_(kActionQueueSize) {
@@ -116,7 +116,6 @@ void AudioPlayer::Destroy() {
     }
     Stop(false, true);
     stream_.reset();
-    converter_.reset();
     read_buffer_.reset();
 #ifdef ENABLE_ASIO
     ResetASIODriver();
@@ -139,18 +138,16 @@ void AudioPlayer::Open(Path const& file_path, const Uuid& device_id) {
     }
 
     device_type->ScanNewDevice();
-    if (auto device_info = device_type->GetDefaultDeviceInfo()) {
+    if (const auto device_info = device_type->GetDefaultDeviceInfo()) {
         Open(file_path, *device_info);
     } else {
         throw DeviceNotFoundException();
     }
 }
 
-void AudioPlayer::Open(Path const& file_path, const DeviceInfo& device_info, uint32_t target_sample_rate, AlignPtr<ISampleRateConverter> converter) {
+void AudioPlayer::Open(Path const& file_path, const DeviceInfo& device_info, uint32_t target_sample_rate) {
     Startup();
     CloseDevice(true);
-    enable_sample_converter_ = converter != nullptr;
-    converter_  = std::move(converter);
     target_sample_rate_ = target_sample_rate;
     OpenStream(file_path, device_info);
     device_info_ = device_info;
@@ -159,79 +156,6 @@ void AudioPlayer::Open(Path const& file_path, const DeviceInfo& device_info, uin
         device_info_.max_volume,
         device_info_.volume_increment,
         (device_info_.max_volume - device_info_.min_volume) / device_info_.volume_increment);
-}
-
-void AudioPlayer::AddDSP(AlignPtr<IAudioProcessor> processor) {
-    if (is_playing_) {
-        return;
-    }
-    auto id = processor->GetTypeId();
-    const auto itr = std::find_if(setting_chain_.begin(),
-                                  setting_chain_.end(),
-                                  [id](auto const& processor) {
-	                                  return processor->GetTypeId() == id;
-                                  });
-    if (itr != setting_chain_.end()) {
-        *itr = std::move(processor);
-    } else {
-        setting_chain_.push_back(std::move(processor));
-    }
-}
-
-void AudioPlayer::EnableDSP(bool enable) {
-    enable_processor_ = enable;
-    XAMP_LOG_D(logger_, "Enable processor {}", enable);
-}
-
-void AudioPlayer::RemoveDSP(Uuid const &id) {
-    std::remove_if(setting_chain_.begin(),
-                 setting_chain_.end(),
-                 [id](auto const& processor) {
-                     return processor->GetTypeId() == id;
-                 });
-}
-
-void AudioPlayer::SetEq(EQSettings const& settings) {
-    eq_settings_ = settings;
-    if (is_playing_) {
-        action_queue_.TryPush(PlayerAction{
-            PlayerActionId::DSP_EQ,
-            eq_settings_
-            });
-    }
-}
-
-void AudioPlayer::SetEq(uint32_t band, float gain, float Q) {
-    eq_settings_.bands[band].gain = gain;
-    eq_settings_.bands[band].Q = Q;
-    if (is_playing_) {
-        action_queue_.TryPush(PlayerAction {
-            PlayerActionId::DSP_EQ,
-            eq_settings_
-        });
-    }
-}
-
-void AudioPlayer::SetPreamp(float preamp) {
-    eq_settings_.preamp = preamp;
-    if (is_playing_) {
-        action_queue_.TryPush(PlayerAction {
-            PlayerActionId::DSP_PREAMP,
-            preamp
-        });
-    }
-}
-
-void AudioPlayer::SetReplayGain(float volume) {
-    replay_gain_ = volume;
-}
-
-void AudioPlayer::SetCompressorParameters(CompressorParameters const& parameters) {
-    compressor_parameters_ = parameters;
-}
-
-bool AudioPlayer::IsEnableDSP() const {
-    return enable_processor_;
 }
 
 void AudioPlayer::SetDevice(const DeviceInfo& device_info) {
@@ -316,7 +240,7 @@ void AudioPlayer::SetDSDStreamMode(DsdModes dsd_mode, AlignPtr<FileStream>& stre
 }
 
 void AudioPlayer::OpenStream(Path const& file_path, DeviceInfo const & device_info) {
-    auto [dsd_mode, stream] = audio_util::MakeFileStream(file_path, device_info, enable_sample_converter_);
+    auto [dsd_mode, stream] = audio_util::MakeFileStream(file_path, device_info, target_sample_rate_ != 0);
     SetDSDStreamMode(dsd_mode, stream);
     stream_duration_ = stream_->GetDuration();
     input_format_ = stream_->GetFormat();
@@ -325,7 +249,7 @@ void AudioPlayer::OpenStream(Path const& file_path, DeviceInfo const & device_in
 }
 
 void AudioPlayer::SetState(const PlayerState play_state) {
-    if (auto adapter = state_adapter_.lock()) {
+    if (const auto adapter = state_adapter_.lock()) {
         adapter->OnStateChanged(play_state);
     }
     state_ = play_state;
@@ -346,35 +270,8 @@ void AudioPlayer::ProcessPlayerAction() {
                 DoSeek(stream_time);
             }
                 break;
-            case PlayerActionId::DSP_EQ:
-            {
-                auto eq_event = std::any_cast<EQSettings>(msg->content);
-                auto eq = GetProcessor<IEqualizer>();
-                if (!eq) {
-                    XAMP_LOG_D(logger_, "Not found IEqualizer!");
-                    continue;
-                }
-                eq->SetEQ(eq_event);
-                int i = 0;
-                for (auto [gain, Q] : eq_event.bands) {
-                    XAMP_LOG_D(logger_, "Set EQ band: {} gain: {} Q: {}.", i++, gain, Q);
-                }
-                XAMP_LOG_D(logger_, "Set preamp: {}.", eq_event.preamp);
             }
-                break;
-            case PlayerActionId::DSP_PREAMP:
-            {
-                auto eq = GetProcessor<IEqualizer>();
-                if (!eq) {
-                    XAMP_LOG_D(logger_, "Not found IEqualizer!");
-                    continue;
-                }
-                auto preamp = std::any_cast<float>(msg->content);
-                eq->SetPreamp(preamp);
-                XAMP_LOG_D(logger_, "Set preamp: {}.", preamp);
-            }
-                break;
-            }
+
         }
 	}    
 }
@@ -593,32 +490,14 @@ void AudioPlayer::CreateBuffer() {
     AllocateReadBuffer(allocate_read_size);
     AllocateFifo();
 
-    if (!enable_sample_converter_
-        || dsd_mode_ == DsdModes::DSD_MODE_NATIVE
-        || dsd_mode_ == DsdModes::DSD_MODE_DOP) {
-        converter_ = MakeAlign<ISampleRateConverter, PassThroughSampleRateConverter>(dsd_mode_, stream_->GetSampleSize());
-    } else {
-        if (target_sample_rate_ == 0) {
-            throw NotSupportResampleSampleRateException();
-        }
-        converter_->Start(input_format_.GetSampleRate(),
-            input_format_.GetChannels(),
-            target_sample_rate_);
-    }
-
-    XAMP_LOG_D(logger_, "Output device format: {} num_read_sample: {} resampler: {} fifo buffer: {}.",
+    XAMP_LOG_D(logger_, "Output device format: {} num_read_sample: {} fifo buffer: {}.",
         output_format_,
         num_read_sample_,
-        converter_->GetDescription(),
         String::FormatBytes(fifo_.GetSize()));
 }
 
-bool AudioPlayer::IsEnableSampleRateConverter() const {
-    return enable_sample_converter_;
-}
-
 void AudioPlayer::SetDeviceFormat() {
-    if (IsEnableSampleRateConverter() && CanConverter()) {
+    if (target_sample_rate_ != 0 && CanConverter()) {
         if (output_format_.GetSampleRate() != target_sample_rate_) {
             device_id_.clear();
         }
@@ -634,7 +513,7 @@ void AudioPlayer::SetDeviceFormat() {
 }
 
 void AudioPlayer::OnVolumeChange(float vol) noexcept {
-    if (auto adapter = state_adapter_.lock()) {
+    if (const auto adapter = state_adapter_.lock()) {
         adapter->OnVolumeChanged(vol);
         XAMP_LOG_D(logger_, "Volum change: {}.", vol);
     }
@@ -646,7 +525,7 @@ void AudioPlayer::OnError(const Exception& e) noexcept {
 }
 
 void AudioPlayer::OnDeviceStateChange(DeviceState state, std::string const & device_id) {    
-    if (auto state_adapter = state_adapter_.lock()) {
+    if (const auto state_adapter = state_adapter_.lock()) {
         switch (state) {
         case DeviceState::DEVICE_STATE_ADDED:
             XAMP_LOG_D(logger_, "Device added device id:{}.", device_id);
@@ -701,12 +580,8 @@ void AudioPlayer::BufferStream(double stream_time) {
 
     stream_->Seek(stream_time);
 
-    if (enable_sample_converter_) {
-        converter_->Flush();
-    }
-
     sample_size_ = stream_->GetSampleSize();    
-    BufferSamples(stream_, converter_, kBufferStreamCount);
+    BufferSamples(stream_, kBufferStreamCount);
 }
 
 void AudioPlayer::Startup() {
@@ -796,44 +671,7 @@ bool AudioPlayer::CanConverter() const noexcept {
     return (dsd_mode_ == DsdModes::DSD_MODE_PCM || dsd_mode_ == DsdModes::DSD_MODE_DSD2PCM);
 }
 
-bool AudioPlayer::CanProcessFile() const noexcept {
-    return CanConverter() && !dsp_chain_.empty() && IsEnableDSP();
-}
-
-void AudioPlayer::InitDsp() {
-    if (enable_processor_) {
-        dsp_chain_ = std::move(setting_chain_);
-        for (auto &dsp : dsp_chain_) {
-            dsp->Start(output_format_.GetSampleRate());
-        }
-        if (auto* volume = GetProcessor<BassVolume>()) {
-            volume->Init(replay_gain_);
-            XAMP_LOG_D(logger_, "Set replay gain: {} db.", replay_gain_);
-        }
-        if (auto* compressor = GetProcessor<BassCompressor>()) {
-            compressor->Init(compressor_parameters_);
-            XAMP_LOG_D(logger_, "Set compressor: gain: {} db, threshold:{} db, ratio: {}, attack: {}, release: {}",
-                compressor_parameters_.gain,
-                compressor_parameters_.threshold,
-                compressor_parameters_.ratio,
-                compressor_parameters_.attack,
-                compressor_parameters_.release);
-            compressor->Start(output_format_.GetSampleRate());
-        }
-        if (auto* eq = GetProcessor<IEqualizer>()) {
-            eq->SetEQ(eq_settings_);
-            int i = 0;
-            for (auto band : eq_settings_.bands) {
-                XAMP_LOG_D(logger_, "Set EQ band: {} gain: {} Q: {}.", i++, band.gain, band.Q);
-            }
-            XAMP_LOG_D(logger_, "Set preamp: {}.", eq_settings_.preamp);
-        }
-    } else {
-        dsp_chain_.clear();
-    }
-}
-
-void AudioPlayer::BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<ISampleRateConverter>& converter, int32_t buffer_count) {
+void AudioPlayer::BufferSamples(const AlignPtr<FileStream>& stream, int32_t buffer_count) {
     auto* const sample_buffer = read_buffer_.Get();
 
     for (auto i = 0; i < buffer_count && stream_->IsActive(); ++i) {
@@ -844,19 +682,9 @@ void AudioPlayer::BufferSamples(AlignPtr<FileStream>& stream, AlignPtr<ISampleRa
             }
 
             auto* samples = reinterpret_cast<const float*>(sample_buffer);
-
-            if (CanProcessFile()) {
-                for (auto &dsp : dsp_chain_) {
-                    dsp->Process(samples, num_samples, dsp_buffer_);
-                }
-                if (!converter_->Process(dsp_buffer_, fifo_)) {
-                    continue;
-                }
-        	} else {
-                if (!converter->Process(samples, num_samples, fifo_)) {
-                    continue;
-                }
-        	}
+            if (dsp_manager_->ProcessDSP(samples, num_samples, fifo_)) {
+                continue;
+            }            
             break;
         }
     }
@@ -879,18 +707,8 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_buffer_samp
         if (num_samples > 0) {
             auto *samples = reinterpret_cast<const float*>(sample_buffer);
 
-            if (CanProcessFile()) {
-                for (auto &dsp : dsp_chain_) {
-                    dsp->Process(samples, num_samples, dsp_buffer_);
-                }
-                if (!converter_->Process(dsp_buffer_, fifo_)) {
-                    continue;
-                }
-            }
-            else {
-                if (!converter_->Process(samples, num_samples, fifo_)) {
-                    continue;
-                }
+            if (dsp_manager_->ProcessDSP(samples, num_samples, fifo_)) {
+                continue;
             }
         }
         break;
@@ -899,6 +717,10 @@ void AudioPlayer::ReadSampleLoop(int8_t *sample_buffer, uint32_t max_buffer_samp
 
 const AlignPtr<IAudioDeviceManager>& AudioPlayer::GetAudioDeviceManager() {
     return device_manager_;
+}
+
+AlignPtr<DSPManager>& AudioPlayer::GetDSPManager() {
+    return dsp_manager_;
 }
 
 void AudioPlayer::Play() {
@@ -1002,7 +824,7 @@ void AudioPlayer::PrepareToPlay() {
     CreateDevice(device_info_.device_type_id, device_info_.device_id, false);
     OpenDevice(0);
     CreateBuffer();
-    InitDsp();
+    dsp_manager_->InitDsp(input_format_, output_format_, dsd_mode_, stream_->GetSampleSize());
     InitFFT();
     BufferStream(0);
 	sample_end_time_ = stream_->GetDuration();

@@ -10,6 +10,8 @@
 #include <base/audiobuffer.h>
 #include <stream/isamplerateconverter.h>
 
+#include "iaudioprocessor.h"
+
 namespace xamp::stream {
 
 MAKE_XAMP_ENUM(SoxrQuality,
@@ -24,8 +26,9 @@ MAKE_XAMP_ENUM(SoxrRollOff,
           ROLLOFF_MEDIUM,
           ROLLOFF_NONE)
 
-class XAMP_STREAM_API SoxrSampleRateConverter final : public ISampleRateConverter {
+class XAMP_STREAM_API SoxrSampleRateConverter final : public IAudioProcessor {
 public:
+    constexpr static auto Id = std::string_view("F986498A-9678-456F-96A7-2F6C2E5D13CB");
     static const std::string_view VERSION;
 
     XAMP_PIMPL(SoxrSampleRateConverter)
@@ -44,19 +47,17 @@ public:
 
     void SetRollOff(SoxrRollOff level);
 
-    std::string_view GetDescription() const noexcept override;
+    void Init(uint32_t input_sample_rate);
 
-    void Start(uint32_t input_sample_rate, uint32_t num_channels, uint32_t output_sample_rate) override;
+    void Start(uint32_t output_sample_rate) override;
 
-    bool Process(float const * samples, size_t num_sample, AudioBuffer<int8_t> &buffer) override;
+    bool Process(float const* samples, size_t num_sample, SampleWriter& writer);
 
-    bool Process(float const* samples, size_t num_sample, SampleWriter& writer) override;
+    bool Process(float const* samples, uint32_t num_samples, Buffer<float>& output) override;
 
-    bool Process(Buffer<float> const& input, AudioBuffer<int8_t>& buffer) override;
+    Uuid GetTypeId() const override;
 
-    void Flush() override;
-
-    AlignPtr<ISampleRateConverter> Clone() override;
+    void Flush();
 
 private:
     class SoxrSampleRateConverterImpl;

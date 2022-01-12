@@ -19,11 +19,11 @@ public:
 
     XAMP_PIMPL(BassVolume)
 
-    void Start(uint32_t samplerate) override;
+    void Start(uint32_t sample_rate) override;
 
     void Init(float volume);
 
-    void Process(float const * samples, uint32_t num_samples, Buffer<float>& out) override;
+    bool Process(float const * samples, uint32_t num_samples, Buffer<float>& out) override;
 
     [[nodiscard]] Uuid GetTypeId() const override;
 

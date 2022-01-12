@@ -29,7 +29,7 @@ public:
 
 	virtual void Open(Path const& file_path, const Uuid& device_id = Uuid::kInvalidUUID) = 0;
 
-    virtual void Open(Path const& file_path, const DeviceInfo& device_info, uint32_t target_sample_rate = 0, AlignPtr<ISampleRateConverter> converter = nullptr) = 0;
+    virtual void Open(Path const& file_path, const DeviceInfo& device_info, uint32_t target_sample_rate = 0) = 0;
 
     virtual void PrepareToPlay() = 0;
 
@@ -46,14 +46,6 @@ public:
     virtual void Seek(double stream_time) = 0;
 
     virtual void SetVolume(uint32_t volume) = 0;
-
-    virtual void SetPreamp(float preamp) = 0;
-
-    virtual void SetReplayGain(float volume) = 0;
-
-    virtual void SetEq(uint32_t band, float gain, float Q) = 0;
-
-    virtual void SetEq(EQSettings const &settings) = 0;
 
     [[nodiscard]] virtual uint32_t GetVolume() const = 0;
 
@@ -79,23 +71,13 @@ public:
 
     [[nodiscard]] virtual AudioFormat GetOutputFormat() const noexcept = 0;
 
-    virtual void AddDSP(AlignPtr<IAudioProcessor> processor) = 0;
-
-    virtual void EnableDSP(bool enable = true) = 0;
-
-    virtual void RemoveDSP(Uuid const &id) = 0;
-
-    virtual void SetCompressorParameters(CompressorParameters const& parameters) = 0;
-
-    [[nodiscard]] virtual bool IsEnableDSP() const = 0;
-
-    [[nodiscard]] virtual bool IsEnableSampleRateConverter() const = 0;
-
     virtual void SetDevice(const DeviceInfo& device_info) = 0;
 
     [[nodiscard]] virtual DeviceInfo GetDevice() const = 0;
 
     virtual const AlignPtr<IAudioDeviceManager>& GetAudioDeviceManager() = 0;
+
+    virtual AlignPtr<DSPManager>& GetDSPManager() = 0;
 
 protected:
 	IAudioPlayer() = default;

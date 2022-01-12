@@ -8,11 +8,8 @@
 #include <QClipboard>
 #include <QStandardPaths>
 #include <QFileDialog>
-#include <QFuture>
 
-#include <metadata/taglibmetareader.h>
 #include <stream/api.h>
-#include <base/logger.h>
 
 #include <widget/appsettings.h>
 #include <widget/database.h>

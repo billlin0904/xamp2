@@ -22,6 +22,7 @@ namespace xamp::stream {
 
 	struct CompressorParameters;
 	struct EQSettings;
+	class DSPManager;
 
     class ISampleRateConverter;
 	class IAudioProcessor;

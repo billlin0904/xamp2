@@ -40,7 +40,7 @@ public:
         }
     }
 
-    void Process(float const* samples, uint32_t num_samples, Buffer<float>& out) {
+    bool Process(float const* samples, uint32_t num_samples, Buffer<float>& out) {
         if (out.size() != num_samples) {
             out.resize(num_samples);
         }
@@ -51,13 +51,14 @@ public:
                                      out.data(),
                                      num_samples * sizeof(float));
         if (bytes_read == kBassError) {
-            return;
+            return false;
         }
         if (bytes_read == 0) {
-            return;
+            return false;
         }
         const auto frames = bytes_read / sizeof(float);
         out.resize(frames);
+        return true;
     }
 
     void SetEQ(EQSettings const &settings) {
@@ -118,8 +119,8 @@ BassEqualizer::BassEqualizer()
 
 XAMP_PIMPL_IMPL(BassEqualizer)
 
-void BassEqualizer::Start(uint32_t samplerate) {
-    impl_->Start(samplerate);
+void BassEqualizer::Start(uint32_t sample_rate) {
+    impl_->Start(sample_rate);
 }
 
 void BassEqualizer::SetEQ(uint32_t band, float gain, float Q) {
@@ -134,7 +135,7 @@ void BassEqualizer::SetPreamp(float preamp) {
     impl_->SetPreamp(preamp);
 }
 
-void BassEqualizer::Process(float const* samples, uint32_t num_samples, Buffer<float>& out)  {
+bool BassEqualizer::Process(float const* samples, uint32_t num_samples, Buffer<float>& out)  {
     return impl_->Process(samples, num_samples, out);
 }
 

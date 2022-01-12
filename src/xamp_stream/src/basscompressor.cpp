@@ -11,8 +11,8 @@ public:
         logger_ = Logger::GetInstance().GetLogger(kCompressorLoggerName);
     }
 
-    void Start(uint32_t samplerate) {
-        stream_.reset(BASS.BASS_StreamCreate(samplerate,
+    void Start(uint32_t sample_rate) {
+        stream_.reset(BASS.BASS_StreamCreate(sample_rate,
                                              kMaxChannel,
                                              BASS_SAMPLE_FLOAT | BASS_STREAM_DECODE,
                                              STREAMPROC_DUMMY,
@@ -43,7 +43,7 @@ public:
             compressord.fRelease);
     }
 
-    void Process(float const * samples, uint32_t num_samples, Buffer<float>& out) {
+    bool Process(float const * samples, uint32_t num_samples, Buffer<float>& out) {
         if (out.size() != num_samples) {
             out.resize(num_samples);
     	}        
@@ -54,13 +54,14 @@ public:
                 out.data(),
                 num_samples * sizeof(float));
         if (bytes_read == kBassError) {
-            return;
+            return false;
         }
         if (bytes_read == 0) {
-            return;
+            return false;
         }
         const auto frames = bytes_read / sizeof(float);
         out.resize(frames);
+        return true;
     }
 
 private:
@@ -73,8 +74,8 @@ BassCompressor::BassCompressor()
     : impl_(MakeAlign<BassCompressorImpl>()) {
 }
 
-void BassCompressor::Start(uint32_t samplerate) {
-    impl_->Start(samplerate);
+void BassCompressor::Start(uint32_t sample_rate) {
+    impl_->Start(sample_rate);
 }
 
 XAMP_PIMPL_IMPL(BassCompressor)
@@ -83,7 +84,7 @@ void BassCompressor::Init(CompressorParameters const &parameters) {
     impl_->Init(parameters);
 }
 
-void BassCompressor::Process(float const * samples, uint32_t num_samples, Buffer<float>& out) {
+bool BassCompressor::Process(float const * samples, uint32_t num_samples, Buffer<float>& out) {
     return impl_->Process(samples, num_samples, out);
 }
 

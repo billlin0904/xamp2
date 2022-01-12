@@ -19,13 +19,13 @@ public:
 
     XAMP_PIMPL(BassEqualizer)
 
-    void Start(uint32_t samplerate) override;
+    void Start(uint32_t sample_rate) override;
 
     void SetEQ(uint32_t band, float gain, float Q) override;
 
     void SetEQ(EQSettings const &settingss) override;
 
-    void Process(float const* samples, uint32_t num_samples, Buffer<float>& out) override;
+    bool Process(float const* samples, uint32_t num_samples, Buffer<float>& out) override;
 
     Uuid GetTypeId() const override;
 

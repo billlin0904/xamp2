@@ -12,6 +12,7 @@
 
 #include <stream/podcastcache.h>
 #include <stream/soxresampler.h>
+#include <stream/dspmanager.h>
 #include <stream/api.h>
 
 #include <output_device/api.h>
@@ -56,26 +57,26 @@ enum TabIndex {
     TAB_YT_MUSIC,
 };
 
-static AlignPtr<ISampleRateConverter> makeSampleRateConverter(const QVariantMap &settings) {
+static AlignPtr<IAudioProcessor> makeSampleRateConverter(const QVariantMap &settings) {
     const auto quality = static_cast<SoxrQuality>(settings[kSoxrQuality].toInt());
     const auto stop_band = settings[kSoxrStopBand].toInt();
     const auto pass_band = settings[kSoxrPassBand].toInt();
     const auto phase = settings[kSoxrPhase].toInt();
     const auto enable_steep_filter = settings[kSoxrEnableSteepFilter].toBool();
-    const auto rolloff_level = static_cast<SoxrRollOff>(settings[kSoxrRollOffLevel].toInt());
+    const auto roll_off_level = static_cast<SoxrRollOff>(settings[kSoxrRollOffLevel].toInt());
 
-    auto converter = MakeAlign<ISampleRateConverter, SoxrSampleRateConverter>();
+    auto converter = MakeAlign<IAudioProcessor, SoxrSampleRateConverter>();
     auto *soxr_sample_rate_converter = dynamic_cast<SoxrSampleRateConverter*>(converter.get());
     soxr_sample_rate_converter->SetQuality(quality);
     soxr_sample_rate_converter->SetStopBand(stop_band);
     soxr_sample_rate_converter->SetPassBand(pass_band);
     soxr_sample_rate_converter->SetPhase(phase);
-    soxr_sample_rate_converter->SetRollOff(rolloff_level);
+    soxr_sample_rate_converter->SetRollOff(roll_off_level);
     soxr_sample_rate_converter->SetSteepFilter(enable_steep_filter);
     return converter;
 }
 
-static PlaybackFormat getPlaybackFormat(const IAudioPlayer* player) {
+static PlaybackFormat getPlaybackFormat(IAudioPlayer* player) {
     PlaybackFormat format;
 
     if (player->IsDSDFile()) {
@@ -84,7 +85,7 @@ static PlaybackFormat getPlaybackFormat(const IAudioPlayer* player) {
         format.is_dsd_file = true;
     }
 
-    format.enable_sample_rate_convert = player->IsEnableSampleRateConverter();
+    format.enable_sample_rate_convert = player->GetDSPManager()->IsEnableSampleRateConverter();
     format.file_format = player->GetInputFormat();
     format.output_format = player->GetOutputFormat();
     return format;
@@ -610,11 +611,11 @@ void Xamp::initialController() {
         EqualizerDialog eq(this);
 
         (void)QObject::connect(&eq, &EqualizerDialog::bandValueChange, [this](int band, float value, float Q) {
-            player_->SetEq(band, value, Q);
+            //player_->GetDSPManager()->SetEq(band, value, Q);
         });
 
         (void)QObject::connect(&eq, &EqualizerDialog::preampValueChange, [this](float value) {
-            player_->SetPreamp(value);
+            //player_->GetDSPManager()->SetPreamp(value);
         });
 
         eq.exec();
@@ -1032,40 +1033,42 @@ void Xamp::playMusic(const MusicEntity& item) {
 
     try {
 	    uint32_t target_sample_rate = 0;
-	    AlignPtr<ISampleRateConverter> converter;
+        auto soxr_settings = JsonSettings::getValue(AppSettings::getValueAsString(kAppSettingSoxrSettingName)).toMap();
+
 	    if (AppSettings::getValue(kAppSettingResamplerEnable).toBool()) {
-            auto soxr_settings = JsonSettings::getValue(AppSettings::getValueAsString(kAppSettingSoxrSettingName)).toMap();
             target_sample_rate = soxr_settings[kSoxrResampleSampleRate].toUInt();
-            converter = makeSampleRateConverter(soxr_settings);            
         }
 
-        player_->Open(item.file_path.toStdWString(), device_info_, target_sample_rate, std::move(converter));
+        player_->Open(item.file_path.toStdWString(), device_info_, target_sample_rate);
+
+        if (target_sample_rate != 0) {
+            player_->GetDSPManager()->AddPreDSP(makeSampleRateConverter(soxr_settings));
+        }
 
         if (AppSettings::getValueAsBool(kAppSettingEnableReplayGain)) {
-            player_->AddDSP(MakeVolume());
+            player_->GetDSPManager()->AddPreDSP(MakeVolume());
             auto mode = static_cast<ReplayGainMode>(AppSettings::getValue(kAppSettingReplayGainMode).toInt());
             if (mode == ReplayGainMode::RG_ALBUM_MODE) {
-                player_->SetReplayGain(item.album_replay_gain);
+                player_->GetDSPManager()->SetReplayGain(item.album_replay_gain);
             } else if (mode == ReplayGainMode::RG_TRACK_MODE) {
-                player_->SetReplayGain(item.track_replay_gain);
+                player_->GetDSPManager()->SetReplayGain(item.track_replay_gain);
             } else {
-                player_->SetReplayGain(0.0);
+                player_->GetDSPManager()->SetReplayGain(0.0);
             }
         } else {
-            player_->SetReplayGain(0.0);
+            player_->GetDSPManager()->SetReplayGain(0.0);
         }
 
         if (AppSettings::getValueAsBool(kAppSettingEnableEQ)) {
-            player_->AddDSP(MakeEqualizer());
+            player_->GetDSPManager()->AddPreDSP(MakeEqualizer());
             if (AppSettings::contains(kAppSettingEQName)) {
                 const auto eq_setting = AppSettings::getValue(kAppSettingEQName).value<AppEQSettings>();
-                player_->SetEq(eq_setting.settings);
+                player_->GetDSPManager()->SetEq(eq_setting.settings);
             }
         } else {
-            player_->RemoveDSP(IEqualizer::Id);
+            player_->GetDSPManager()->RemovePreDSP(IEqualizer::Id);
         }
 
-        player_->AddDSP(MakeCompressor());
         player_->PrepareToPlay();        
         playback_format = getPlaybackFormat(player_.get());
         player_->Play();
@@ -1495,6 +1498,7 @@ void Xamp::encodeFlacFile(const PlayListEntity& item) {
 }
 
 void Xamp::exportWaveFile(const PlayListEntity& item) {
+#if 0
     const auto file_name = QFileDialog::getSaveFileName(this, tr("Save WAVE file"),
                                                         item.title,
                                                         tr("WAVE Files (*.wav)"));
@@ -1545,6 +1549,7 @@ void Xamp::exportWaveFile(const PlayListEntity& item) {
             Toast::showTip(Q_UTF8(e.what()), this);
         }
     }
+#endif
 }
 
 PlaylistPage* Xamp::newPlaylistPage(int32_t playlist_id) {
