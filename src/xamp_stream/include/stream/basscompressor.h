@@ -30,6 +30,7 @@ public:
 
     [[nodiscard]] Uuid GetTypeId() const override;
 
+    [[nodiscard]] std::string_view GetDescription() const noexcept override;
 private:
     class BassCompressorImpl;
     AlignPtr<BassCompressorImpl> impl_;

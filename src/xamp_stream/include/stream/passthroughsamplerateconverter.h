@@ -14,8 +14,6 @@ class XAMP_STREAM_API PassThroughSampleRateConverter final : public ISampleRateC
 public:
     explicit PassThroughSampleRateConverter(DsdModes dsd_mode, uint8_t sample_size);
 
-    void Start(uint32_t, uint32_t num_channels, uint32_t output_sample_rate) override;
-
     bool Process(float const * sample_buffer, size_t num_samples, AudioBuffer<int8_t>& buffer) override;
 
     bool Process(float const* samples, size_t num_sample, SampleWriter& writer) override;
@@ -24,9 +22,6 @@ public:
 
     [[nodiscard]] std::string_view GetDescription() const noexcept override;
 
-    void Flush() override;
-
-    AlignPtr<ISampleRateConverter> Clone() override;
 private:
     bool ProcessNativeDsd(int8_t const * sample_buffer, size_t num_samples, AudioBuffer<int8_t>& buffer);
 

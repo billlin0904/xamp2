@@ -23,7 +23,7 @@ public:
         volume_handle_ = BASS.BASS_ChannelSetFX(stream_.get(), BASS_FX_BFX_VOLUME, 0);
     }
 
-    void Init(float volume) {
+    void Init(double volume) {
         volume_.lChannel = -1;
         volume_.fVolume = static_cast<float>(std::pow(10, (volume / 20)));
         XAMP_LOG_D(logger_, "Volume level: {}", static_cast<int32_t>(volume_.fVolume * 100));
@@ -68,7 +68,7 @@ void BassVolume::Start(uint32_t sample_rate) {
 
 XAMP_PIMPL_IMPL(BassVolume)
 
-void BassVolume::Init(float volume) {
+void BassVolume::Init(double volume) {
     impl_->Init(volume);
 }
 
@@ -78,6 +78,10 @@ bool BassVolume::Process(float const * samples, uint32_t num_samples, Buffer<flo
 
 Uuid BassVolume::GetTypeId() const {
     return Id;
+}
+
+std::string_view BassVolume::GetDescription() const noexcept {
+    return "Volume";
 }
 
 }

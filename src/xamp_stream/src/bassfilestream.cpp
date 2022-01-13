@@ -182,12 +182,15 @@ FlushFileCache:
         }
     }
 
-    [[nodiscard]] int32_t GetBitDepth() const {
+    [[nodiscard]] uint32_t GetBitDepth() const {
         if (mode_ == DsdModes::DSD_MODE_DOP) {
             return 8;
         }
         if (mode_ == DsdModes::DSD_MODE_DSD2PCM) {
             return 24;
+        }
+        if (info_.origres == 0) {
+            return 16;
         }
         return info_.origres;
     }
@@ -413,7 +416,7 @@ uint32_t BassFileStream::GetDsdSpeed() const noexcept {
     return stream_->GetDsdSpeed();
 }
 
-int32_t BassFileStream::GetBitDepth() const {
+uint32_t BassFileStream::GetBitDepth() const {
     return stream_->GetBitDepth();
 }
 

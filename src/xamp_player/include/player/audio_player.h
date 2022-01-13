@@ -188,7 +188,7 @@ private:
     AlignPtr<FileStream> stream_;
     AlignPtr<IDeviceType> device_type_;
     AlignPtr<IOutputDevice> device_;
-    std::weak_ptr<IPlaybackStateAdapter> state_adapter_;    
+    std::weak_ptr<IPlaybackStateAdapter> state_adapter_;
     AudioBuffer<int8_t> fifo_;
     Buffer<int8_t> read_buffer_;
     Buffer<float> dsp_buffer_;
@@ -196,8 +196,6 @@ private:
     DeviceInfo device_info_;    
     std::shared_future<void> stream_task_;
     SpscQueue<PlayerAction> action_queue_;
-    std::vector<float> signal_;
-    FFT fft_;
     AlignPtr<DSPManager> dsp_manager_;
     std::shared_ptr<spdlog::logger> logger_;
 };

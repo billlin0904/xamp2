@@ -124,7 +124,11 @@ static std::vector<ModuleHandle> preloadDll() {
         "glu32.dll",
         "msctf.dll",
         "AppXDeploymentClient.dll",
-        "DWrite.dll"
+        "DWrite.dll",
+        "wininet.dll",
+        "iertutil.dll",
+        "winnsi.dll",
+        "urlmon.dll",
     };
     std::vector<ModuleHandle> preload_module;
     for (const auto file_name : preload_dll_file_name) {

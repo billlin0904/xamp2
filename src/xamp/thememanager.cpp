@@ -201,6 +201,15 @@ QIcon ThemeManager::themeIcon() const {
     return makeIcon(Q_STR(":/xamp/Resource/%1/theme.png"));
 }
 
+void ThemeManager::setResamplerButton(Ui::XampWindow& ui, bool enable) {
+    if (enable) {
+        ui.sampleConverterButton->setStyleSheet(Q_UTF8("QToolButton#sampleConverterButton { border: none; font-weight: bold; color: rgb(255, 255, 255); }"));
+    }
+    else {
+        ui.sampleConverterButton->setStyleSheet(Q_UTF8("QToolButton#sampleConverterButton { border: none; font-weight: bold; color: gray; }"));
+    }
+}
+
 void ThemeManager::setPlayOrPauseButton(Ui::XampWindow& ui, bool is_playing) {
     if (is_playing) {
         ui.playButton->setStyleSheet(Q_STR(R"(

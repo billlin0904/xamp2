@@ -390,7 +390,6 @@ void PlayListTableView::initial() {
         auto * open_local_file_path_act = action_map.addAction(tr("Open local file path"));
         auto * read_select_item_replaygain_act = action_map.addAction(tr("Read replay gain"));
         action_map.addSeparator();
-        auto * export_wave_file_act = action_map.addAction(tr("Export wave file"));
         auto * export_flac_file_act = action_map.addAction(tr("Export flac file"));
         action_map.addSeparator();
         auto * copy_album_act = action_map.addAction(tr("Copy album"));
@@ -420,14 +419,6 @@ void PlayListTableView::initial() {
 
         action_map.setCallback(open_local_file_path_act, [item]() {
             QDesktopServices::openUrl(QUrl::fromLocalFile(item.parent_path));
-            });
-
-        action_map.setCallback(export_wave_file_act, [this]() {
-            const auto rows = selectItemIndex();
-            for (const auto& row : rows) {
-                auto entity = this->item(row.second);
-                emit exportWaveFile(entity);
-            }
             });
     	
         action_map.addSeparator();

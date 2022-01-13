@@ -30,6 +30,8 @@ public:
     Uuid GetTypeId() const override;
 
     void SetPreamp(float preamp) override;
+
+    [[nodiscard]] std::string_view GetDescription() const noexcept override;
 private:
     class BassEqualizerImpl;
     AlignPtr<BassEqualizerImpl> impl_;

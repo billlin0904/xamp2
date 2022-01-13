@@ -138,8 +138,6 @@ private:
 
     void onDeviceStateChanged(DeviceState state);
 
-    void exportWaveFile(const PlayListEntity& item);
-
     void encodeFlacFile(const PlayListEntity& item);
 
 	void createTrayIcon();

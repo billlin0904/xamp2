@@ -68,8 +68,6 @@ signals:
 
 	void playMusic(const QModelIndex& index, const PlayListEntity& item);
 
-    void exportWaveFile(const PlayListEntity& item);
-
     void encodeFlacFile(const PlayListEntity& item);
 
     void addPlaylistReplayGain(bool force, const std::vector<PlayListEntity> &entities);

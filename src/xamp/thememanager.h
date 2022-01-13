@@ -96,6 +96,8 @@ public:
 
     void setPlayOrPauseButton(Ui::XampWindow &ui, bool is_playing);
 
+    void setResamplerButton(Ui::XampWindow& ui, bool enable);
+
     void setWidgetStyle(Ui::XampWindow &ui);    
 
     void enableBlur(const QWidget* widget, bool enable) const;

@@ -544,21 +544,11 @@ void Xamp::initialController() {
     player_->SetMute(vol == 0);
 
     (void)QObject::connect(ui_.volumeSlider, &QSlider::valueChanged, [this](auto volume) {
-        /*auto old_value = ui_.volumeSlider->value();
-        if (!player_->IsHardwareControlVolume()) {
-            ui_.volumeSlider->setValue(old_value);
-            Toast::showTip(tr("Device not supports a software volume control."), this);
-            return;
-        }*/
         QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + Q_UTF8("%"));
         setVolume(volume);
     });
 
     (void)QObject::connect(ui_.volumeSlider, &SeekSlider::leftButtonValueChanged, [this](auto volume) {
-        /*if (!player_->IsHardwareControlVolume()) {
-            Toast::showTip(tr("Device not supports a software volume control."), this);
-            return;
-        }*/
         QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + Q_UTF8("%"));
         setVolume(volume);
     });
@@ -709,9 +699,9 @@ void Xamp::initialController() {
 
     auto hide_widget = [this](bool enable) {
         if (!enable) {
-            top_window_->resize(QSize(700, 80));
-            top_window_->setMinimumSize(QSize(700, 80));
-            top_window_->setMaximumSize(QSize(700, 80));
+            top_window_->resize(QSize(400, 80));
+            top_window_->setMinimumSize(QSize(400, 80));
+            top_window_->setMaximumSize(QSize(400, 80));
         }
         else {
             top_window_->resize(QSize(1300, 860));
@@ -721,7 +711,7 @@ void Xamp::initialController() {
     };
 
     // Hide left list
-    auto* hide_left_list_action = new QAction(tr("Show left list"), this);
+    auto* hide_left_list_action = new QAction(tr("Compact"), this);
     hide_left_list_action->setCheckable(true);
 	if (AppSettings::getValue(kAppSettingShowLeftList).toBool()) {
         hide_left_list_action->setChecked(true);
@@ -729,22 +719,24 @@ void Xamp::initialController() {
         ui_.sliderFrame->setVisible(true);
         ui_.currentView->setVisible(true);
         ui_.volumeFrame->setVisible(true);
+        ui_.controlFrame->setVisible(true);
 	} else {
         hide_widget(false);
         ui_.sliderFrame->setVisible(false);
         ui_.currentView->setVisible(false);
         ui_.volumeFrame->setVisible(false);
+        ui_.controlFrame->setVisible(false);
 	}
 
     (void)QObject::connect(hide_left_list_action, &QAction::triggered, [=]() {
         auto enable = AppSettings::getValueAsBool(kAppSettingShowLeftList);
-        enable = !enable;
         hide_left_list_action->setChecked(enable);
         AppSettings::setValue(kAppSettingShowLeftList, enable);
         hide_widget(enable);
         ui_.sliderFrame->setVisible(enable);
         ui_.currentView->setVisible(enable);
         ui_.volumeFrame->setVisible(enable);
+        ui_.controlFrame->setVisible(enable);
         });
     settings_menu->addAction(hide_left_list_action);
 
@@ -793,18 +785,8 @@ void Xamp::initialController() {
 }
 
 void Xamp::updateButtonState() {
-    if (AppSettings::getValueAsBool(kAppSettingResamplerEnable)) {
-        ui_.sampleConverterButton->setStyleSheet(Q_UTF8("QToolButton#sampleConverterButton { border: none; font-weight: bold; color: rgb(255, 255, 255); }"));
-    }
-    else {
-        ui_.sampleConverterButton->setStyleSheet(Q_UTF8("QToolButton#sampleConverterButton { border: none; font-weight: bold; color: gray; }"));
-    }
-    if (player_->GetState() == PlayerState::PLAYER_STATE_PAUSED) {
-        ThemeManager::instance().setPlayOrPauseButton(ui_, false);
-    }
-    else {
-        ThemeManager::instance().setPlayOrPauseButton(ui_, true);
-    }
+    ThemeManager::instance().setResamplerButton(ui_, AppSettings::getValueAsBool(kAppSettingResamplerEnable));
+    ThemeManager::instance().setPlayOrPauseButton(ui_, player_->GetState() != PlayerState::PLAYER_STATE_PAUSED);
     preference_page_->update();
 }
 
@@ -990,7 +972,7 @@ void Xamp::play() {
         if (!ui_.currentView->count()) {
             return;
         }
-        if (auto select_item = playlist_page_->playlist()->selectItem()) {
+        if (const auto select_item = playlist_page_->playlist()->selectItem()) {
             play_index_ = select_item.value();
         }
         play_index_ = playlist_page_->playlist()->model()->index(
@@ -1497,61 +1479,6 @@ void Xamp::encodeFlacFile(const PlayListEntity& item) {
     }
 }
 
-void Xamp::exportWaveFile(const PlayListEntity& item) {
-#if 0
-    const auto file_name = QFileDialog::getSaveFileName(this, tr("Save WAVE file"),
-                                                        item.title,
-                                                        tr("WAVE Files (*.wav)"));
-	
-    if (file_name.isNull()) {
-        return;
-    }
-
-    auto dialog = makeProgressDialog(tr("Export progress dialog"),
-        tr("Export '") + item.title + tr("' to wave file"),
-        tr("Cancel"));
-    dialog->show();
-
-    Metadata metadata;
-    metadata.album = item.album.toStdWString();
-    metadata.artist = item.artist.toStdWString();
-    metadata.title = item.title.toStdWString();
-    metadata.track = item.track;
-
-    if (AppSettings::getValue(kAppSettingResamplerEnable).toBool()) {
-        const auto soxr_settings = JsonSettings::getValue(AppSettings::getValueAsString(kAppSettingSoxrSettingName)).toMap();
-        const auto sample_rate = soxr_settings[kSoxrResampleSampleRate].toUInt();
-        auto sample_rate_converter = makeSampleRateConverter(soxr_settings);
-
-        try {
-            read_utiltis::export2WaveFile(item.file_path.toStdWString(),
-                file_name.toStdWString(),
-                [&](auto progress) -> bool {
-                    dialog->setValue(progress);
-                    qApp->processEvents();
-                    return dialog->wasCanceled() != true;
-                }, metadata, sample_rate, sample_rate_converter);
-        }
-        catch (Exception const& e) {
-            Toast::showTip(Q_UTF8(e.what()), this);
-        }
-    }  else {
-        try {
-            read_utiltis::export2WaveFile(item.file_path.toStdWString(),
-                file_name.toStdWString(),
-                [&](auto progress) -> bool {
-                    dialog->setValue(progress);
-                    qApp->processEvents();
-                    return dialog->wasCanceled() != true;
-                }, metadata);
-        }
-        catch (Exception const& e) {
-            Toast::showTip(Q_UTF8(e.what()), this);
-        }
-    }
-#endif
-}
-
 PlaylistPage* Xamp::newPlaylistPage(int32_t playlist_id) {
 	auto* playlist_page = new PlaylistPage(this);
 
@@ -1572,9 +1499,6 @@ PlaylistPage* Xamp::newPlaylistPage(int32_t playlist_id) {
                             [](auto playlist_id, const auto& select_music_ids) {
                                 IgnoreSqlError(Singleton<Database>::GetInstance().removePlaylistMusic(playlist_id, select_music_ids))
                             });
-
-    (void)QObject::connect(playlist_page->playlist(), &PlayListTableView::exportWaveFile,
-        this, &Xamp::exportWaveFile);
 
     (void)QObject::connect(playlist_page->playlist(), &PlayListTableView::encodeFlacFile,
                             this, &Xamp::encodeFlacFile);

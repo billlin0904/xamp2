@@ -33,19 +33,6 @@ std::tuple<double, double> readFileLUFS(std::wstring const& file_path,
     std::function<bool(uint32_t)> const& progress,
     uint64_t max_duration = (std::numeric_limits<uint64_t>::max)());
 
-void export2WaveFile(std::wstring const& file_path,
-	std::wstring const& output_file_path,
-	std::function<bool(uint32_t)> const& progress,
-	Metadata const &metadata,
-	bool enable_compressor = true);
-
-void export2WaveFile(std::wstring const& file_path,
-	std::wstring const& output_file_path,
-	std::function<bool(uint32_t)> const& progress,
-	Metadata const& metadata,
-	uint32_t output_sample_rate,
-	AlignPtr<ISampleRateConverter> &converter);
-
 void encodeFlacFile(std::wstring const& file_path,
     std::wstring const& output_file_path,
     std::wstring const& command,

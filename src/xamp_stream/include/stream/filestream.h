@@ -14,15 +14,15 @@ class XAMP_STREAM_API XAMP_NO_VTABLE FileStream : public IAudioStream {
 public:
     XAMP_BASE_CLASS(FileStream)
 
-	bool IsFile() const noexcept override {
+    [[nodiscard]] bool IsFile() const noexcept override {
 		return true;
 	}
 
     virtual void OpenFile(std::wstring const & file_path) = 0;
 
-    virtual int32_t GetBitDepth() const = 0;
+    [[nodiscard]] virtual uint32_t GetBitDepth() const = 0;
 
-    virtual bool IsActive() const noexcept = 0;
+    [[nodiscard]] virtual bool IsActive() const noexcept = 0;
 
 protected:
     FileStream() = default;

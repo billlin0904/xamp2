@@ -14,15 +14,8 @@
 #include <output_device/idsddevice.h>
 #include <output_device/iaudiodevicemanager.h>
 
-#include <stream/iequalizer.h>
-#include <stream/bassvolume.h>
-#include <stream/iaudioprocessor.h>
-#include <stream/iequalizer.h>
 #include <stream/dspmanager.h>
 #include <stream/isamplerateconverter.h>
-#include <stream/passthroughsamplerateconverter.h>
-#include <stream/basscompressor.h>
-#include <stream/soxresampler.h>
 
 #include <player/iplaybackstateadapter.h>
 #include <player/audio_util.h>
@@ -395,11 +388,7 @@ PlayerState AudioPlayer::GetState() const noexcept {
 
 AudioFormat AudioPlayer::GetInputFormat() const noexcept {
     auto file_format = input_format_;
-    if (stream_->GetBitDepth() > 0) {
-        file_format.SetBitPerSample(stream_->GetBitDepth());
-    } else {
-        file_format.SetBitPerSample(16);
-    }
+    file_format.SetBitPerSample(stream_->GetBitDepth());
     return file_format;
 }
 

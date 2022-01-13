@@ -21,11 +21,13 @@ public:
 
     void Start(uint32_t sample_rate) override;
 
-    void Init(float volume);
+    void Init(double volume);
 
     bool Process(float const * samples, uint32_t num_samples, Buffer<float>& out) override;
 
     [[nodiscard]] Uuid GetTypeId() const override;
+
+    [[nodiscard]] std::string_view GetDescription() const noexcept override;
 
 private:
     class BassVolumeImpl;

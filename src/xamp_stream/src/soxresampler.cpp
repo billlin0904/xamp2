@@ -346,6 +346,10 @@ void SoxrSampleRateConverter::Flush() {
     impl_->Flush();
 }
 
+std::string_view SoxrSampleRateConverter::GetDescription() const noexcept {
+	return VERSION;
+}
+
 void LoadSoxrLib() {
 	(void)Singleton<SoxrLib>::GetInstance();
 }

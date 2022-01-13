@@ -92,5 +92,9 @@ Uuid BassCompressor::GetTypeId() const {
     return Id;
 }
 
+std::string_view BassCompressor::GetDescription() const noexcept {
+    return "Compressor";
+}
+
 }
 

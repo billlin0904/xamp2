@@ -10,12 +10,12 @@
 #include <base/uuid.h>
 #include <base/buffer.h>
 #include <base/audiobuffer.h>
-#include <spdlog/logger.h>
-#include <stream/stream.h>
+#include <base/logger.h>
+#include <base/audioformat.h>
+#include <base/dsdsampleformat.h>
 
-#include "eqsettings.h"
-#include "base/audioformat.h"
-#include "base/dsdsampleformat.h"
+#include <stream/stream.h>
+#include <stream/eqsettings.h>
 
 namespace xamp::stream {
 
@@ -23,8 +23,13 @@ class XAMP_STREAM_API DSPManager {
 public:
     DSPManager();
 
+    XAMP_DISABLE_COPY(DSPManager)
+
     void InitDsp(AudioFormat input_format, AudioFormat output_format, DsdModes dsd_mode, uint32_t sample_size);
 
+    /*
+     * return true (fetch more data).
+     */
     bool ProcessDSP(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo);
 
     void AddPreDSP(AlignPtr<IAudioProcessor> processor);
@@ -37,15 +42,15 @@ public:
 
     void RemovePostDSP(Uuid const& id);
 
-    void SetEq(uint32_t band, float gain, float Q);
+    void SetEq(uint32_t band, double gain, double Q);
 
     void SetEq(EQSettings const& settings);
 
-    void SetPreamp(float preamp);
+    void SetPreamp(double preamp);
 
-    void SetReplayGain(float volume);
+    void SetReplayGain(double volume);
 
-    bool IsEnableDSP() const;
+    bool IsEnableDSP() const noexcept;
 
     bool IsEnableSampleRateConverter() const;
 
@@ -57,33 +62,31 @@ private:
     bool ApplyDSP(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo);
 
     template <typename TDSP>
-    TDSP* GetPreDSP() const {
-        auto itr = std::find_if(pre_dsp_.begin(),
-            pre_dsp_.end(),
-            [](auto const& processor) {
-                return processor->GetTypeId() == TDSP::Id;
+    std::optional<TDSP*> GetDSP(
+        std::vector<AlignPtr<IAudioProcessor>>::const_iterator begin,
+        std::vector<AlignPtr<IAudioProcessor>>::const_iterator end
+    ) const {
+        auto itr = std::find_if(begin, end, [](auto const& processor) {
+            return processor->GetTypeId() == TDSP::Id;
             });
-        if (itr == pre_dsp_.end()) {
-            return nullptr;
+        if (itr == end) {
+            return std::nullopt;
         }
         return dynamic_cast<TDSP*>((*itr).get());
     }
 
     template <typename TDSP>
-    TDSP* GetPostDSP() const {
-        auto itr = std::find_if(post_dsp_.begin(),
-            post_dsp_.end(),
-            [](auto const& processor) {
-                return processor->GetTypeId() == TDSP::Id;
-            });
-        if (itr == post_dsp_.end()) {
-            return nullptr;
-        }
-        return dynamic_cast<TDSP*>((*itr).get());
+    std::optional<TDSP*> GetPreDSP() const {
+        return GetDSP<TDSP>(pre_dsp_.begin(), pre_dsp_.end());
+    }
+
+    template <typename TDSP>
+    std::optional<TDSP*> GetPostDSP() const {
+        return GetDSP<TDSP>(post_dsp_.begin(), post_dsp_.end());
     }
 
     bool enable_processor_;
-    float replay_gain_;
+    double replay_gain_;
     DsdModes dsd_modes_;
     EQSettings eq_settings_;
     std::vector<AlignPtr<IAudioProcessor>> setting_pre_dsp_chain_;

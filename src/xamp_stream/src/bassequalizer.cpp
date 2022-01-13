@@ -143,4 +143,8 @@ Uuid BassEqualizer::GetTypeId() const {
     return Id;
 }
 
+std::string_view BassEqualizer::GetDescription() const noexcept {
+    return "Equalizer";
+}
+
 }
