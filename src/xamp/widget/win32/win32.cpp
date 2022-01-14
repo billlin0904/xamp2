@@ -1,13 +1,25 @@
+#include <QObject>
+
+#if defined(Q_OS_WIN)
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <dwmapi.h>
+#include <unknwn.h>
+#include <gdiplus.h>
+#endif
+
 #include <widget/widget_shared.h>
 #include <widget/appsettings.h>
 #include <widget/win32/win32.h>
 
 #if defined(Q_OS_WIN)
-
 #include <WinUser.h>
 #include <wingdi.h>
-#include <dwmapi.h>
+
 #include <base/dll.h>
+
+#pragma comment(lib, "gdiplus")
+namespace gdip = Gdiplus;
 
 typedef enum _WINDOWCOMPOSITIONATTRIB
 {
@@ -150,6 +162,15 @@ static QColor blendColor(const QColor& i_color1, const QColor& i_color2, double 
 	);
 }
 
+GdiPlusInit::GdiPlusInit() {
+	const gdip::GdiplusStartupInput gdiplusStartupInput;
+	gdip::GdiplusStartup(&token, &gdiplusStartupInput, nullptr);
+}
+
+GdiPlusInit::~GdiPlusInit() {
+	gdip::GdiplusShutdown(token);
+}
+
 void setBlurMaterial(const QWidget* widget, bool enable) {
 	auto hwnd = reinterpret_cast<HWND>(widget->winId());
 	auto is_rs4_or_greater = true;
@@ -175,18 +196,49 @@ void setBlurMaterial(const QWidget* widget, bool enable) {
 	User32DLL.SetWindowCompositionAttribute(hwnd, &data);
 }
 
+#define DWL_MSGRESULT 0
+
+void removeStandardFrame(void* message) {
+	auto* msg = static_cast<MSG*>(message);
+	SetWindowLong(msg->hwnd, DWL_MSGRESULT, 0);
+}
+
+void setResizeable(void* message) {
+	auto* msg = static_cast<MSG*>(message);
+	SetWindowLong(msg->hwnd, DWL_MSGRESULT, HTCAPTION);
+}
+
+void drawGdiShadow(void* message) {
+	auto* msg = static_cast<MSG*>(message);
+
+	PAINTSTRUCT ps{ 0 };
+	HDC hdc = BeginPaint(msg->hwnd, &ps);
+
+	// Draw with GDI+ to make sure the alpha channel is opaque.
+	gdip::Graphics gfx{ hdc };
+	gdip::SolidBrush brush{ gdip::Color{ 255, 255, 255 } };
+	gfx.FillRectangle(&brush, ps.rcPaint.left, ps.rcPaint.top,
+		ps.rcPaint.right - ps.rcPaint.left, ps.rcPaint.bottom - ps.rcPaint.top);
+
+	EndPaint(msg->hwnd, &ps);
+}
+
 void drawDwmShadow(const QWidget* widget) {
 	auto hwnd = reinterpret_cast<HWND>(widget->winId());
 	/*auto policy = DWMNCRENDERINGPOLICY::DWMNCRP_ENABLED;
 	DWMDLL.DwmSetWindowAttribute(hwnd, DWMWINDOWATTRIBUTE::DWMWA_NCRENDERING_POLICY, &policy, sizeof(policy));*/
 
-	MARGINS borderless = { 1, 1, 1, 1 };
+	//MARGINS borderless = { 1, 1, 1, 1 };
+	MARGINS borderless = { 0, 0, 0, 1 };
 	DWMDLL.DwmExtendFrameIntoClientArea(hwnd, &borderless);
+
+	::SetWindowPos(hwnd, nullptr, 0, 0, 0, 0,
+		SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
 }
 
 void setFramelessWindowStyle(const QWidget* widget) {
 	auto hwnd = reinterpret_cast<HWND>(widget->winId());
-	const DWORD style = ::GetWindowLong(hwnd, GWL_STYLE);
+	DWORD style = ::GetWindowLong(hwnd, GWL_STYLE);
 	::SetWindowLong(hwnd, GWL_STYLE, style | WS_MAXIMIZEBOX | WS_THICKFRAME | WS_CAPTION);
 }
 }

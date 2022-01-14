@@ -221,7 +221,7 @@
     <ClCompile Include="widget\ui_utilts.cpp" />
     <ClCompile Include="widget\wheelablewidget.cpp" />
     <ClCompile Include="widget\win32\win32.cpp" />
-    <ClCompile Include="widget\xampdialog.cpp" />
+    <ClCompile Include="widget\xdialog.cpp" />
     <ClCompile Include="xamp.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -240,6 +240,7 @@
     <ResourceCompile Include="xamp.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="widget\xmessagebox.h" />
     <ClInclude Include="xampplayer.h" />
     <QtMoc Include="widget\lyricsshowwidget.h" />
     <QtMoc Include="widget\discordnotify.h" />
@@ -256,7 +257,7 @@
     <QtMoc Include="widget\replaygainworker.h" />
     <ClInclude Include="widget\ui_utilts.h" />
     <ClInclude Include="widget\widget_shared.h" />
-    <QtMoc Include="widget\xampdialog.h">
+    <QtMoc Include="widget\xdialog.h">
     </QtMoc>
     <QtMoc Include="singleinstanceapplication.h">
     </QtMoc>

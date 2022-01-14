@@ -5,16 +5,13 @@
 
 #pragma once
 
-#include <QMap>
-
 #include <stream/iequalizer.h>
-#include <widget/xampdialog.h>
 
 #include "ui_equalizerdialog.h"
 
 using xamp::stream::EQSettings;
 
-class EqualizerDialog : public XampDialog {
+class EqualizerDialog : public QFrame {
     Q_OBJECT
 public:
     explicit EqualizerDialog(QWidget *parent = nullptr);

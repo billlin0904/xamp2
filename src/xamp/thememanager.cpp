@@ -33,6 +33,10 @@ ThemeManager& ThemeManager::instance() {
     return manager;
 }
 
+bool ThemeManager::useNativeWindow() const {
+    return use_native_window_;
+}
+
 QFont ThemeManager::loadFonts() {
     const auto digital_font_id = QFontDatabase::addApplicationFont(Q_UTF8(":/xamp/fonts/digital.ttf"));
     const auto digital_font_families = QFontDatabase::applicationFontFamilies(digital_font_id);
@@ -88,6 +92,7 @@ ThemeManager::ThemeManager() {
     const auto theme = static_cast<ThemeColor>(AppSettings::getValue(kAppSettingTheme).toInt());
     setThemeColor(theme);
     ui_font_ = loadFonts();
+    use_native_window_ = !AppSettings::getValueAsBool(kAppSettingUseFramelessWindow);
 #if defined(Q_OS_WIN)
     ui_font_.setPointSize(10);
 #else
@@ -106,6 +111,18 @@ QLatin1String ThemeManager::themeColorPath() const {
         return Q_UTF8("Black");
     }
     return Q_UTF8("White");
+}
+
+void ThemeManager::setMenuStyle(QMenu* menu) {
+	menu->setWindowFlags(Qt::Popup | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
+    menu->setAttribute(Qt::WA_TranslucentBackground);
+    /*menu->setWindowFlags(Qt::Popup | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
+    menu->setAttribute(Qt::WA_TranslucentBackground);
+    auto* shadow = new QGraphicsDropShadowEffect();
+    shadow->setOffset(0, 0);
+    shadow->setColor(Qt::black);
+    shadow->setBlurRadius(10);
+    menu->setGraphicsEffect(shadow);*/
 }
 
 DefaultStylePixmapManager::DefaultStylePixmapManager()

@@ -22,6 +22,10 @@
 #include <QMessageBox>
 #include <QProcess>
 
+#if defined(Q_OS_WIN)
+#include <widget/win32/win32.h>
+#endif
+
 #include "thememanager.h"
 #include "singleinstanceapplication.h"
 #include "xamp.h"
@@ -221,7 +225,7 @@ static int excute(int argc, char* argv[]) {
 
     QApplication::setFont(ThemeManager::instance().defaultFont());
 
-    FramelessWindow top_win(!AppSettings::getValueAsBool(kAppSettingUseFramelessWindow));
+    FramelessWindow top_win;
     Xamp win;
     win.initial(&top_win);
     top_win.initial(&win);

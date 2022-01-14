@@ -5,15 +5,19 @@
 
 #pragma once
 
-#include <QDialog>
+#include <QLabel>
+#include <QLayout>
+#include <QFrame>
 
-class XampDialog : public QDialog {
-    Q_OBJECT
+#include <widget/xdialog.h>
+
+struct XMessageBox {
 public:
-    explicit XampDialog(QWidget* parent = nullptr);
-
-    void centerParent();
-private:
-    void centerWidgets(QWidget* widget);
+	static void about(const QString &msg, QWidget *parent) {
+        auto *text = new QLabel(parent);
+        text->setText(msg);
+        XDialog dialog(parent);
+        dialog.setContentWidget(text);
+        dialog.exec();
+	}
 };
-

@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <widget/xampdialog.h>
+#include <widget/XDialog.h>
 #include <ui_aboutdialog.h>
 
 class AboutPage final : public QFrame {

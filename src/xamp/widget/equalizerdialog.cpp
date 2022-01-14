@@ -9,7 +9,7 @@
 #include <widget/equalizerdialog.h>
 
 EqualizerDialog::EqualizerDialog(QWidget *parent)
-    : XampDialog(parent) {
+    : QFrame(parent) {
     ui_.setupUi(this);
 
     ThemeManager::instance().setBackgroundColor(this);

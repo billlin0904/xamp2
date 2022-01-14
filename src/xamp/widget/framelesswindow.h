@@ -21,7 +21,7 @@ class QScreen;
 
 class FramelessWindow final : public ITopWindow {
 public:
-    explicit FramelessWindow(bool use_native_window);
+    FramelessWindow();
 
 	virtual ~FramelessWindow() override;
 
@@ -38,10 +38,6 @@ public:
     void setTaskbarPlayerPlaying() override;
 
     void setTaskbarPlayerStop() override;
-
-    [[nodiscard]] bool useNativeWindow() const noexcept override {
-		return use_native_window_;
-	}
 protected:
     bool eventFilter(QObject* object, QEvent* event) override;
 
@@ -72,8 +68,6 @@ private:
 	void createThumbnailToolBar();
 
     bool nativeEvent(const QByteArray& event_type, void* message, long* result) override;	
-
-	bool use_native_window_;
 
 #if defined(Q_OS_WIN)
 	int32_t border_width_;

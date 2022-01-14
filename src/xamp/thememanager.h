@@ -54,6 +54,8 @@ class ThemeManager : public QObject {
 public:    
     static ThemeManager& instance();
 
+    bool useNativeWindow() const;
+
     const QPalette& palette() const {
         return palette_;
     }
@@ -136,6 +138,10 @@ public:
 
     void setBackgroundColor(QWidget* widget, int32_t alpha = 255);
 
+    QLatin1String themeColorPath() const;
+
+    void setMenuStyle(QMenu* menu);
+
 private:
     QFont loadFonts();
 
@@ -143,10 +149,9 @@ private:
 
     QIcon makeIcon(const QString& path) const;
 
-    QLatin1String themeColorPath() const;
-
     ThemeManager();
 
+    bool use_native_window_;
     ThemeColor theme_color_;
     QSize album_cover_size_;
     QSize cover_size_;
