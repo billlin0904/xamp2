@@ -20,9 +20,9 @@ std::string_view CoreAudioDeviceType::GetDescription() const {
     return Description;
 }
 
-AlignPtr<IDevice> CoreAudioDeviceType::MakeDevice(const std::string &device_id) {
+AlignPtr<IOutputDevice> CoreAudioDeviceType::MakeDevice(const std::string &device_id) {
     auto id = GetAudioDeviceIdByUid(false, device_id);
-    return MakeAlign<IDevice, CoreAudioDevice>(id, false);
+    return MakeAlign<IOutputDevice, CoreAudioDevice>(id, false);
 }
 
 size_t CoreAudioDeviceType::GetDeviceCount() const {

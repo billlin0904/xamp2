@@ -17,8 +17,6 @@
 
 namespace xamp::output_device::osx {
 
-using namespace base;
-
 class XAMP_OUTPUT_DEVICE_API CoreAudioDeviceType : public IDeviceType {
 public:
     constexpr static auto Id = std::string_view("E6BB3BF2-F16A-489B-83EE-4A29755F42E4");
@@ -32,7 +30,7 @@ public:
 
     Uuid GetTypeId() const override;
 
-    AlignPtr<IDevice> MakeDevice(const std::string &device_id) override;
+    AlignPtr<IOutputDevice> MakeDevice(const std::string &device_id) override;
 
     size_t GetDeviceCount() const override;
 

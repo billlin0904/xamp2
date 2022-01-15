@@ -72,9 +72,11 @@ SOURCES += \
     widget/xampdialog.cpp \
     widget/image_utiltis.cpp \
     widget/read_utiltis.cpp \
-    widget/ytmusicwebengineview.cpp \
-    widget/ytmusicobserver.cpp \
     widget/settingnames.cpp \
+    widget/str_utilts.cpp \
+    widget/musicentity.cpp \
+    widget/ui_utilts.cpp \
+    widget/podcast_uiltis.cpp \
     singleinstanceapplication.cpp \
     thememanager.cpp \
     aboutpage.cpp \
@@ -129,8 +131,6 @@ HEADERS += \
     widget/xampdialog.h \
     widget/read_utiltis.h \
     widget/time_utilts.h \
-    widget/ytmusicwebengineview.h \
-    widget/ytmusicobserver.h \
     widget/replaygainworker.h \
     singleinstanceapplication.h \
     thememanager.h \
