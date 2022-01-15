@@ -23,8 +23,6 @@ public:
     virtual void setTaskbarPlayerPlaying() = 0;
 
     virtual void setTaskbarPlayerStop() = 0;
-
-    virtual bool useNativeWindow() const noexcept = 0;
 protected:
     ITopWindow() = default;
 };

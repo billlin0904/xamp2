@@ -20,6 +20,9 @@
 
 #include <player/api.h>
 
+#include <widget/xdialog.h>
+#include <widget/xmessagebox.h>
+
 #include <widget/appsettings.h>
 #include <widget/albumview.h>
 #include <widget/lyricsshowwidget.h>
@@ -197,8 +200,7 @@ void Xamp::createTrayIcon() {
     QObject::connect(quit_action, &QAction::triggered, this, &QWidget::close);
 
     tray_icon_menu_ = new QMenu(this);
-    tray_icon_menu_->setWindowFlags(Qt::Popup | Qt::FramelessWindowHint);
-    tray_icon_menu_->setAttribute(Qt::WA_TranslucentBackground);
+    ThemeManager::instance().setMenuStyle(tray_icon_menu_);
 
     tray_icon_menu_->addAction(minimize_action);
     tray_icon_menu_->addAction(maximize_action);
@@ -301,7 +303,7 @@ void Xamp::initialUI() {
     ui_.titleLabel->setFont(f);
     f.setPointSize(8);
     ui_.artistLabel->setFont(f);
-    if (top_window_->useNativeWindow()) {
+    if (ThemeManager::instance().useNativeWindow()) {
         ui_.closeButton->hide();
         ui_.maxWinButton->hide();
         ui_.minWinButton->hide();
@@ -368,8 +370,7 @@ void Xamp::initialDeviceList() {
     auto* menu = ui_.selectDeviceButton->menu();
     if (!menu) {
         menu = new QMenu(this);
-        menu->setWindowFlags(Qt::Popup | Qt::FramelessWindowHint);
-        menu->setAttribute(Qt::WA_TranslucentBackground);
+        ThemeManager::instance().setMenuStyle(menu);
         ui_.selectDeviceButton->setMenu(menu);
     }
 
@@ -598,7 +599,10 @@ void Xamp::initialController() {
     });
 
     (void)QObject::connect(ui_.eqButton, &QToolButton::pressed, [this]() {
-        EqualizerDialog eq(this);
+        XDialog dialog(this);
+        EqualizerDialog eq;
+
+        dialog.setContentWidget(&eq);
 
         (void)QObject::connect(&eq, &EqualizerDialog::bandValueChange, [this](int band, float value, float Q) {
             //player_->GetDSPManager()->SetEq(band, value, Q);
@@ -608,7 +612,7 @@ void Xamp::initialController() {
             //player_->GetDSPManager()->SetPreamp(value);
         });
 
-        eq.exec();
+        dialog.exec();
     });
 
     (void)QObject::connect(ui_.repeatButton, &QToolButton::pressed, [this]() {
@@ -694,8 +698,7 @@ void Xamp::initialController() {
     }
 
     auto* settings_menu = new QMenu(this);
-    settings_menu->setWindowFlags(Qt::Popup | Qt::FramelessWindowHint);
-    settings_menu->setAttribute(Qt::WA_TranslucentBackground);
+    ThemeManager::instance().setMenuStyle(settings_menu);
 
     auto hide_widget = [this](bool enable) {
         if (!enable) {
@@ -758,6 +761,7 @@ void Xamp::initialController() {
     ui_.settingsButton->setMenu(settings_menu);
 
     theme_menu_ = settings_menu->addMenu(tr("Theme"));
+    ThemeManager::instance().setMenuStyle(theme_menu_);
     theme_menu_->setIcon(ThemeManager::instance().themeIcon());
     dark_mode_action_ = theme_menu_->addAction(tr("Dark"));
     dark_mode_action_->setIcon(ThemeManager::instance().darkModeIcon());
@@ -766,15 +770,13 @@ void Xamp::initialController() {
     (void)QObject::connect(dark_mode_action_, &QAction::triggered, [=]() {
         AppSettings::setEnumValue(kAppSettingTheme, ThemeColor::DARK_THEME);
         cleanup();
-        QMessageBox::about(nullptr, Q_UTF8("XAMP"), 
-            tr("Program will be restart to apply these changes!"));
+        XMessageBox::about(tr("Program will be restart to apply these changes!"), this);
         qApp->exit(-2);
         });
     (void)QObject::connect(light_mode_action_, &QAction::triggered, [=]() {
         AppSettings::setEnumValue(kAppSettingTheme, ThemeColor::LIGHT_THEME);
         cleanup();
-        QMessageBox::about(nullptr, Q_UTF8("XAMP"), 
-            tr("Program will be restart to apply these changes!"));
+        XMessageBox::about(tr("Program will be restart to apply these changes!"), this);
         qApp->exit(-2);
         });
 

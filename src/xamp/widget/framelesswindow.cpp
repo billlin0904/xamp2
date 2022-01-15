@@ -21,9 +21,10 @@
 #include <widget/str_utilts.h>
 #include <widget/framelesswindow.h>
 
-FramelessWindow::FramelessWindow(bool use_native_window)
+#include "thememanager.h"
+
+FramelessWindow::FramelessWindow()
     : ITopWindow()
-    , use_native_window_(use_native_window)
 #if defined(Q_OS_WIN)
     , border_width_(5)
     , current_screen_(nullptr)
@@ -38,7 +39,7 @@ void FramelessWindow::initial(IXampPlayer *content_widget) {
     // todo: 使用border-radius: 5px;將無法縮放視窗
     // todo: Qt::WA_TranslucentBackground + paintEvent 將無法縮放視窗
 #if defined(Q_OS_WIN)
-    if (!useNativeWindow()) {
+    if (!ThemeManager::instance().useNativeWindow()) {
         setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
         //setAttribute(Qt::WA_TranslucentBackground);
     }
@@ -54,7 +55,7 @@ void FramelessWindow::initial(IXampPlayer *content_widget) {
     setMouseTracking(true);
     installEventFilter(this);
 #if defined(Q_OS_WIN)
-    if (!useNativeWindow()) {
+    if (!ThemeManager::instance().useNativeWindow()) {
         win32::setFramelessWindowStyle(this);
         win32::drawDwmShadow(this);
         setWindowTitle(Q_UTF8("xamp"));
@@ -272,7 +273,7 @@ bool FramelessWindow::hitTest(MSG const* msg, long* result) const {
 #endif
 
 bool FramelessWindow::nativeEvent(const QByteArray& event_type, void * message, long * result) {
-    if (use_native_window_) {
+    if (ThemeManager::instance().useNativeWindow()) {
         return QWidget::nativeEvent(event_type, message, result);
     }
 
@@ -326,7 +327,7 @@ bool FramelessWindow::nativeEvent(const QByteArray& event_type, void * message, 
 
 void FramelessWindow::changeEvent(QEvent* event) {
 #if defined(Q_OS_MAC)
-    if (!use_native_window_ && content_widget_ != nullptr) {
+    if (!ThemeManager::instance().useNativeWindow() && content_widget_ != nullptr) {
         osx::hideTitleBar(content_widget_);
 	}
 #endif
@@ -341,7 +342,7 @@ void FramelessWindow::closeEvent(QCloseEvent* event) {
 }
 
 void FramelessWindow::mousePressEvent(QMouseEvent* event) {
-	if (useNativeWindow()) {
+	if (ThemeManager::instance().useNativeWindow()) {
         QWidget::mousePressEvent(event);
         return;
 	}
@@ -356,7 +357,7 @@ void FramelessWindow::mousePressEvent(QMouseEvent* event) {
 }
 
 void FramelessWindow::mouseReleaseEvent(QMouseEvent* event) {
-    if (useNativeWindow()) {
+    if (ThemeManager::instance().useNativeWindow()) {
         QWidget::mouseReleaseEvent(event);
         return;
 	}
@@ -369,7 +370,7 @@ void FramelessWindow::mouseReleaseEvent(QMouseEvent* event) {
 
 void FramelessWindow::mouseMoveEvent(QMouseEvent* event) {
 #if defined(Q_OS_WIN)
-    if (useNativeWindow()) {
+    if (ThemeManager::instance().useNativeWindow()) {
         QWidget::mouseMoveEvent(event);
         return;
     }
