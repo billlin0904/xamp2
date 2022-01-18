@@ -69,7 +69,7 @@ SOURCES += \
     widget/localelanguage.cpp \
     widget/jsonsettings.cpp \
     widget/scrolllabel.cpp \
-    widget/xampdialog.cpp \
+    widget/xdialog.cpp \
     widget/image_utiltis.cpp \
     widget/read_utiltis.cpp \
     widget/settingnames.cpp \
@@ -128,7 +128,7 @@ HEADERS += \
     widget/localelanguage.h \
     widget/jsonsettings.h \
     widget/scrolllabel.h \
-    widget/xampdialog.h \
+    widget/xdialog.h \
     widget/read_utiltis.h \
     widget/time_utilts.h \
     widget/replaygainworker.h \

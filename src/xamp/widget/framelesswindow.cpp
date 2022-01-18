@@ -62,7 +62,7 @@ void FramelessWindow::initial(IXampPlayer *content_widget) {
     }
     createThumbnailToolBar();
 #else
-    if (!use_native_window_) {
+    if (!ThemeManager::instance().useNativeWindow()) {
         osx::hideTitleBar(content_widget_);
         setWindowTitle(Q_UTF8("xamp"));
     }
