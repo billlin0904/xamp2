@@ -183,7 +183,7 @@
     <ClCompile Include="widget\musicentity.cpp" />
     <ClCompile Include="widget\podcast_uiltis.cpp" />
     <ClCompile Include="widget\qetag.cpp" />
-    <ClCompile Include="widget\framelesswindow.cpp" />
+    <ClCompile Include="widget\xwindow.cpp" />
     <ClCompile Include="widget\http.cpp" />
     <ClCompile Include="widget\image_utiltis.cpp" />
     <ClCompile Include="widget\jsonsettings.cpp" />
@@ -222,6 +222,7 @@
     <ClCompile Include="widget\wheelablewidget.cpp" />
     <ClCompile Include="widget\win32\win32.cpp" />
     <ClCompile Include="widget\xdialog.cpp" />
+    <ClCompile Include="widget\xframe.cpp" />
     <ClCompile Include="xamp.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -240,6 +241,7 @@
     <ResourceCompile Include="xamp.rc" />
   </ItemGroup>
   <ItemGroup>
+    <QtMoc Include="widget\xframe.h" />
     <ClInclude Include="widget\xmessagebox.h" />
     <ClInclude Include="xampplayer.h" />
     <QtMoc Include="widget\lyricsshowwidget.h" />
@@ -247,7 +249,7 @@
     <QtMoc Include="widget\doubleslider.h" />
     <QtMoc Include="widget\equalizerdialog.h" />
     <ClInclude Include="crashhandler.h" />
-    <ClInclude Include="widget\framelesswindow.h" />
+    <ClInclude Include="widget\xwindow.h" />
     <ClInclude Include="widget\playlistsqlquerytablemodel.h" />
     <QtMoc Include="widget\uiplayerstateadapter.h">
     </QtMoc>

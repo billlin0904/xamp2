@@ -5,27 +5,19 @@
 
 #pragma once
 
-#include <QWidget>
-#include <QMimeData>
-#include <QIcon>
-#include <QDragEnterEvent>
-
 #include "xampplayer.h"
 
 #if defined(Q_OS_WIN)
-class QWinThumbnailToolBar;
-class QWinTaskbarButton;
-class QWinTaskbarProgress;
 class QScreen;
 #endif
 
-class FramelessWindow final : public ITopWindow {
+class XWindow final : public IXWindow {
 public:
-    FramelessWindow();
+    XWindow();
 
-	virtual ~FramelessWindow() override;
+	virtual ~XWindow() override;
 
-    void initial(IXampPlayer *content_widget);
+    void setContentWidget(IXampPlayer *content_widget);
 
     void setTaskbarProgress(int32_t percent) override;
 
@@ -48,39 +40,28 @@ protected:
     void dragLeaveEvent(QDragLeaveEvent *event) override;
 
     void dropEvent(QDropEvent *event) override;
-#if defined(Q_OS_WIN)
-    bool hitTest(MSG const* msg, long* result) const;
-#endif
+
     void mousePressEvent(QMouseEvent *event) override;
 
     void mouseReleaseEvent(QMouseEvent * event) override;
 
     void mouseMoveEvent(QMouseEvent * event) override;
 
-	void showEvent(QShowEvent * event) override;
-
     void changeEvent(QEvent * event) override;
-
-	void paintEvent(QPaintEvent * event) override;
 
     void closeEvent(QCloseEvent* event) override;
 private:
-	void createThumbnailToolBar();
-
     bool nativeEvent(const QByteArray& event_type, void* message, long* result) override;	
 
 #if defined(Q_OS_WIN)
-	int32_t border_width_;
-	QIcon play_icon_;
-	QIcon pause_icon_;
-	QIcon stop_play_icon_;
-	QIcon seek_forward_icon_;
-	QIcon seek_backward_icon_;
+    void showEvent(QShowEvent* event) override;
+    bool hitTest(MSG const* msg, long* result) const;
+
+    struct WinTaskbar;
+    int border_width_;
 	QPoint last_pos_;
     QScreen* current_screen_;
-	QScopedPointer<QWinThumbnailToolBar> thumbnail_tool_bar_;
-	QScopedPointer<QWinTaskbarButton> taskbar_button_;
-	QWinTaskbarProgress* taskbar_progress_;
+    QScopedPointer<WinTaskbar> taskbar_;
 #endif
     IXampPlayer *content_widget_;
 };

@@ -24,7 +24,7 @@ std::shared_ptr<IAudioPlayer> MakeAudioPlayer(const std::weak_ptr<IPlaybackState
     return MakeAlignedShared<AudioPlayer>(adapter);
 }
 
-void PlayerStartup() {
+void XStartup() {
     LoadBassLib();
     XAMP_LOG_DEBUG("Load BASS dll success.");
 
@@ -32,13 +32,17 @@ void PlayerStartup() {
     XAMP_LOG_DEBUG("Load Soxr dll success.");
 
     FFT::LoadFFTLib();
+    XAMP_LOG_DEBUG("Load FFT dll success.");
 
     PreventSleep(true);
 
 #ifdef XAMP_OS_WIN
     WASAPIThreadPool();
+    XAMP_LOG_DEBUG("Start WASAPI thread pool success.");
 #endif
+
     PlaybackThreadPool();
+    XAMP_LOG_DEBUG("Start Playback thread pool success.");
 }
 
 

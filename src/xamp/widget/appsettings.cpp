@@ -3,7 +3,7 @@
 #include <QTextStream>
 #include <QSize>
 
-#include <widget/framelesswindow.h>
+#include <widget/XWindow.h>
 #include <widget/playerorder.h>
 #include <widget/appsettings.h>
 

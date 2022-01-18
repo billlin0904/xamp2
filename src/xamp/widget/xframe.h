@@ -5,18 +5,18 @@
 
 #pragma once
 
-#include <QLabel>
-#include <QProgressBar>
+#include <QFrame>
 
-#include <widget/xdialog.h>
-
-struct XMessageBox {
+class XFrame : public QFrame {
+	Q_OBJECT
 public:
-	static void about(const QString &msg, QWidget *parent) {
-        auto *text = new QLabel(parent);
-        text->setText(msg);
-        XDialog dialog(parent);
-        dialog.setContentWidget(text);
-        dialog.exec();
-	}
+	explicit XFrame(QWidget* parent = nullptr);
+
+	void setContentWidget(QWidget* content);
+
+signals:
+	void closeFrame();
+
+private:
+	QWidget* content_widget_{ nullptr };
 };

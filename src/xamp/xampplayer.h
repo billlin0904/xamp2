@@ -4,13 +4,11 @@
 //=====================================================================================================================
 #pragma once
 
-#include <QString>
-#include <QUrl>
 #include <QWidget>
 
-class ITopWindow : public QWidget {
+class IXWindow : public QWidget {
 public:
-    virtual ~ITopWindow() override = default;
+    virtual ~IXWindow() override = default;
 
     virtual void setTaskbarProgress(int32_t percent) = 0;
 
@@ -24,7 +22,7 @@ public:
 
     virtual void setTaskbarPlayerStop() = 0;
 protected:
-    ITopWindow() = default;
+    IXWindow() = default;
 };
 
 class IXampPlayer : public QWidget {

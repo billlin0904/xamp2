@@ -137,7 +137,7 @@ Xamp::Xamp()
     ui_.setupUi(this);
 }
 
-void Xamp::initial(ITopWindow *top_window) {
+void Xamp::setXWindow(IXWindow* top_window) {
     top_window_ = top_window;
     player_->Startup();
     replay_gain_worker_.moveToThread(&replay_gain_thread_);
@@ -151,16 +151,10 @@ void Xamp::initial(ITopWindow *top_window) {
     setCover(nullptr, playlist_page_);
     setCover(nullptr, podcast_page_);
     changeTheme();
-    if (const auto enable_blur = AppSettings::getValueAsBool(kAppSettingEnableBlur)) {
-        QTimer::singleShot(300, [this]() {
-            ThemeManager::instance().enableBlur(top_window_, true);
-            ThemeManager::instance().setBackgroundColor(ui_.settingsButton->menu(), 255);
-            initialDeviceList();
-            });
-    } else {
+    QTimer::singleShot(300, [this]() {
         initialDeviceList();
-    }
-    discord_notify_.discordInit();
+        discord_notify_.discordInit();
+        });
     avoidRedrawOnResize();
 }
 
@@ -605,11 +599,11 @@ void Xamp::initialController() {
         dialog.setContentWidget(&eq);
 
         (void)QObject::connect(&eq, &EqualizerDialog::bandValueChange, [this](int band, float value, float Q) {
-            //player_->GetDSPManager()->SetEq(band, value, Q);
+            AppSettings::save();
         });
 
         (void)QObject::connect(&eq, &EqualizerDialog::preampValueChange, [this](float value) {
-            //player_->GetDSPManager()->SetPreamp(value);
+            AppSettings::save();
         });
 
         dialog.exec();

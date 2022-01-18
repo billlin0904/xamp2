@@ -5,7 +5,6 @@
 #include <windows.h>
 #include <dwmapi.h>
 #include <unknwn.h>
-#include <gdiplus.h>
 #endif
 
 #include <widget/widget_shared.h>
@@ -17,9 +16,6 @@
 #include <wingdi.h>
 
 #include <base/dll.h>
-
-#pragma comment(lib, "gdiplus")
-namespace gdip = Gdiplus;
 
 typedef enum _WINDOWCOMPOSITIONATTRIB
 {
@@ -162,15 +158,6 @@ static QColor blendColor(const QColor& i_color1, const QColor& i_color2, double 
 	);
 }
 
-GdiPlusInit::GdiPlusInit() {
-	const gdip::GdiplusStartupInput gdiplusStartupInput;
-	gdip::GdiplusStartup(&token, &gdiplusStartupInput, nullptr);
-}
-
-GdiPlusInit::~GdiPlusInit() {
-	gdip::GdiplusShutdown(token);
-}
-
 void setBlurMaterial(const QWidget* widget, bool enable) {
 	auto hwnd = reinterpret_cast<HWND>(widget->winId());
 	auto is_rs4_or_greater = true;
@@ -206,21 +193,6 @@ void removeStandardFrame(void* message) {
 void setResizeable(void* message) {
 	auto* msg = static_cast<MSG*>(message);
 	SetWindowLong(msg->hwnd, DWL_MSGRESULT, HTCAPTION);
-}
-
-void drawGdiShadow(void* message) {
-	auto* msg = static_cast<MSG*>(message);
-
-	PAINTSTRUCT ps{ 0 };
-	HDC hdc = BeginPaint(msg->hwnd, &ps);
-
-	// Draw with GDI+ to make sure the alpha channel is opaque.
-	gdip::Graphics gfx{ hdc };
-	gdip::SolidBrush brush{ gdip::Color{ 255, 255, 255 } };
-	gfx.FillRectangle(&brush, ps.rcPaint.left, ps.rcPaint.top,
-		ps.rcPaint.right - ps.rcPaint.left, ps.rcPaint.bottom - ps.rcPaint.top);
-
-	EndPaint(msg->hwnd, &ps);
 }
 
 void drawDwmShadow(const QWidget* widget) {

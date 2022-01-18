@@ -6,6 +6,7 @@
 #pragma once
 
 #include <QDialog>
+#include <widget/xframe.h>
 
 class XDialog : public QDialog {
     Q_OBJECT
@@ -14,12 +15,8 @@ public:
 
     void setContentWidget(QWidget* content);
 
-    void centerParent();
-
 private:
     bool nativeEvent(const QByteArray& event_type, void* message, long* result) override;
-
-    void centerWidgets(QWidget* widget);
 
 #if defined(Q_OS_WIN)
     void mousePressEvent(QMouseEvent* event) override;
@@ -33,7 +30,7 @@ private:
     const int32_t border_width_{ 5 };
     QPoint last_pos_{0, 0};
     QScreen* current_screen_{nullptr};
-    QWidget* content_widget_{ nullptr };
 #endif
+    XFrame* frame_;
 };
 

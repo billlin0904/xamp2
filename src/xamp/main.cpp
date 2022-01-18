@@ -17,7 +17,7 @@
 #include <widget/str_utilts.h>
 #include <widget/jsonsettings.h>
 #include <widget/ui_utilts.h>
-#include <widget/framelesswindow.h>
+#include <widget/xwindow.h>
 
 #include <QMessageBox>
 #include <QProcess>
@@ -153,7 +153,7 @@ static std::vector<ModuleHandle> preloadDll() {
 static void setLogLevel(spdlog::level::level_enum level = spdlog::level::debug) {
     Logger::GetInstance().GetLogger(kWASAPIThreadPoolLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kPlaybackThreadPoolLoggerName)->set_level(level);
-    //Logger::GetInstance().GetLogger(kExclusiveWasapiDeviceLoggerName)->set_level(level);
+    Logger::GetInstance().GetLogger(kExclusiveWasapiDeviceLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kSharedWasapiDeviceLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kAsioDeviceLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kVirtualMemoryLoggerName)->set_level(level);
@@ -164,10 +164,6 @@ static void setLogLevel(spdlog::level::level_enum level = spdlog::level::debug) 
 }
 
 static int excute(int argc, char* argv[]) {
-#ifdef _DEBUG
-    qputenv("QTWEBENGINE_REMOTE_DEBUGGING", "9223");
-#endif
-
     QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
     QApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
 
@@ -181,7 +177,7 @@ static int excute(int argc, char* argv[]) {
     Xamp::registerMetaType();
 
     try {
-	    PlayerStartup();
+	    XStartup();
     }
     catch (const Exception& e) {
         QMessageBox::critical(nullptr,
@@ -225,11 +221,11 @@ static int excute(int argc, char* argv[]) {
 
     QApplication::setFont(ThemeManager::instance().defaultFont());
 
-    FramelessWindow top_win;
+    XWindow top_win;
     Xamp win;
-    win.initial(&top_win);
-    top_win.initial(&win);
-    //top_win.initial(nullptr);
+    win.setXWindow(&top_win);
+    top_win.setContentWidget(&win);
+    //top_win.setContentWidget(nullptr);
 
     top_win.show();
     top_win.activateWindow();

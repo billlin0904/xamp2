@@ -42,7 +42,7 @@ public:
 
     static void registerMetaType();
 
-    void initial(ITopWindow *top_window);
+    void setXWindow(IXWindow* top_window);
 signals:
 	void payNextMusic();
 
@@ -182,6 +182,6 @@ private:
 	QAction* dark_mode_action_;
 	QAction* light_mode_action_;
 	QMenu* theme_menu_;
-    ITopWindow *top_window_;
+    IXWindow *top_window_;
     Ui::XampWindow ui_;
 };
