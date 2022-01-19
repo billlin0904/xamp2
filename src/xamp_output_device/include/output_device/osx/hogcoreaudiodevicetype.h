@@ -31,7 +31,7 @@ public:
 
     Uuid GetTypeId() const override;
 
-    AlignPtr<IDevice> MakeDevice(const std::string &device_id) override;
+    AlignPtr<IOutputDevice> MakeDevice(const std::string &device_id) override;
 };
 
 }

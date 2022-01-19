@@ -69,12 +69,14 @@ SOURCES += \
     widget/localelanguage.cpp \
     widget/jsonsettings.cpp \
     widget/scrolllabel.cpp \
-    widget/xampdialog.cpp \
+    widget/xdialog.cpp \
     widget/image_utiltis.cpp \
     widget/read_utiltis.cpp \
-    widget/ytmusicwebengineview.cpp \
-    widget/ytmusicobserver.cpp \
     widget/settingnames.cpp \
+    widget/str_utilts.cpp \
+    widget/musicentity.cpp \
+    widget/ui_utilts.cpp \
+    widget/podcast_uiltis.cpp \
     singleinstanceapplication.cpp \
     thememanager.cpp \
     aboutpage.cpp \
@@ -126,11 +128,9 @@ HEADERS += \
     widget/localelanguage.h \
     widget/jsonsettings.h \
     widget/scrolllabel.h \
-    widget/xampdialog.h \
+    widget/xdialog.h \
     widget/read_utiltis.h \
     widget/time_utilts.h \
-    widget/ytmusicwebengineview.h \
-    widget/ytmusicobserver.h \
     widget/replaygainworker.h \
     singleinstanceapplication.h \
     thememanager.h \

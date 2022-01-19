@@ -18,13 +18,11 @@
 #include <base/audioformat.h>
 #include <base/align_ptr.h>
 #include <base/dataconverter.h>
-#include <output_device/idevice.h>
+#include <output_device/ioutputdevice.h>
 
 namespace xamp::output_device::osx {
 
-using namespace base;
-
-class XAMP_OUTPUT_DEVICE_API CoreAudioDevice final : public IDevice {
+class XAMP_OUTPUT_DEVICE_API CoreAudioDevice final : public IOutputDevice {
 public:
     CoreAudioDevice(AudioDeviceID device_id, bool is_hog_mode);
 

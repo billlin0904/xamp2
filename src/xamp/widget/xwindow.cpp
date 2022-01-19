@@ -158,7 +158,7 @@ void XWindow::setContentWidget(IXampPlayer *content_widget) {
     }
     taskbar_.reset(new WinTaskbar(this, content_widget));
 #else
-    if (!use_native_window_) {
+    if (!ThemeManager::instance().useNativeWindow()) {
         osx::hideTitleBar(content_widget_);
         setWindowTitle(Q_UTF8("xamp"));
     }
