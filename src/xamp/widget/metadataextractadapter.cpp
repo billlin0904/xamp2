@@ -153,12 +153,14 @@ private:
 }
 
 void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter, QString const & file_path, bool show_progress_dialog) {
-    auto dialog = makeProgressDialog(tr("Read file metadata"), 
-        tr("Read progress dialog"), 
-        tr("Cancel"));
+	const auto xdialog = makeProgressDialog(tr("Read file metadata"), 
+	                                        tr("Read progress dialog"), 
+	                                        tr("Cancel"));
     if (show_progress_dialog) {
-        dialog->show();
-    }    
+        xdialog->show();
+    }
+
+    auto* dialog = dynamic_cast<QProgressDialog*>(xdialog->contentWidget());
     dialog->setMinimumDuration(1000);
 
     QList<QString> dirs;
@@ -193,21 +195,19 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
         catch (const std::exception& e) {
             XAMP_LOG_DEBUG("WalkPath has exception: {}", e.what());
         }
-
         dialog->setValue(progress++);
     }
 }
 
 void ::MetadataExtractAdapter::processMetadata(const std::vector<Metadata>& result, PlayListTableView* playlist, bool is_podcast) {
-	const DatabaseIdCache cache;
-
-    auto playlist_id = -1;
+	auto playlist_id = -1;
     if (playlist != nullptr) {
         playlist_id = playlist->playlistId();
     }
 
     for (const auto& metadata : result) {
-        auto album = QString::fromWCharArray(metadata.album.c_str());
+	    const DatabaseIdCache cache;
+	    auto album = QString::fromWCharArray(metadata.album.c_str());
         auto artist = QString::fromWCharArray(metadata.artist.c_str());
 
         auto is_unknown_album = false;

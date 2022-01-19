@@ -42,7 +42,7 @@ size_t GetPageAlignSize(size_t value) noexcept {
 
 bool PrefetchFile(MemoryMappedFile &file) {
 	static constexpr size_t kMaxPreReadFileSize = 8 * 1024 * 1024;
-	auto preread_file_size = (std::min)(kMaxPreReadFileSize, file.GetLength());
+	const auto preread_file_size = (std::min)(kMaxPreReadFileSize, file.GetLength());
     return PrefetchMemory(const_cast<void*>(file.GetData()), preread_file_size);
 }
 

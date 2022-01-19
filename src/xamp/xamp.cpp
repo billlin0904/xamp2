@@ -49,6 +49,8 @@
 #include "thememanager.h"
 #include "xamp.h"
 
+#include <QProgressDialog>
+
 enum TabIndex {
     TAB_ALBUM = 0,
     TAB_ARTIST,
@@ -204,7 +206,7 @@ void Xamp::createTrayIcon() {
 
     tray_icon_ = new QSystemTrayIcon(ThemeManager::instance().appIcon(), this);
     tray_icon_->setContextMenu(tray_icon_menu_);
-    tray_icon_->setToolTip(Q_UTF8("XAMP"));
+    tray_icon_->setToolTip(kAppTitle);
     tray_icon_->show();
 
     QObject::connect(tray_icon_,
@@ -696,9 +698,9 @@ void Xamp::initialController() {
 
     auto hide_widget = [this](bool enable) {
         if (!enable) {
-            top_window_->resize(QSize(400, 80));
-            top_window_->setMinimumSize(QSize(400, 80));
-            top_window_->setMaximumSize(QSize(400, 80));
+            top_window_->resize(QSize(400, 90));
+            top_window_->setMinimumSize(QSize(400, 90));
+            top_window_->setMaximumSize(QSize(400, 90));
         }
         else {
             top_window_->resize(QSize(1300, 860));
@@ -708,7 +710,7 @@ void Xamp::initialController() {
     };
 
     // Hide left list
-    auto* hide_left_list_action = new QAction(tr("Compact"), this);
+    auto* hide_left_list_action = new QAction(tr("Show Left List"), this);
     hide_left_list_action->setCheckable(true);
 	if (AppSettings::getValue(kAppSettingShowLeftList).toBool()) {
         hide_left_list_action->setChecked(true);
@@ -726,7 +728,7 @@ void Xamp::initialController() {
 	}
 
     (void)QObject::connect(hide_left_list_action, &QAction::triggered, [=]() {
-        auto enable = AppSettings::getValueAsBool(kAppSettingShowLeftList);
+        auto enable = !AppSettings::getValueAsBool(kAppSettingShowLeftList);
         hide_left_list_action->setChecked(enable);
         AppSettings::setValue(kAppSettingShowLeftList, enable);
         hide_widget(enable);
@@ -1445,11 +1447,12 @@ void Xamp::encodeFlacFile(const PlayListEntity& item) {
         return;
     }
 
-    auto dialog = makeProgressDialog(
+    auto xdialog = makeProgressDialog(
         tr("Export progress dialog"),
          tr("Export '") + item.title + tr("' to flac file"),
          tr("Cancel"));
-    dialog->show();
+ 
+    auto* dialog = dynamic_cast<QProgressDialog*>(xdialog->contentWidget());
 
     Metadata metadata;
     metadata.album = item.album.toStdWString();

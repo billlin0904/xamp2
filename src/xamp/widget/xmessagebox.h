@@ -6,17 +6,16 @@
 #pragma once
 
 #include <QLabel>
-#include <QProgressBar>
-
+#include <widget/str_utilts.h>
 #include <widget/xdialog.h>
 
 struct XMessageBox {
-public:
-	static void about(const QString &msg, QWidget *parent) {
+	static void about(const QString &msg, QWidget *parent, const QString& title= kAppTitle) {
         auto *text = new QLabel(parent);
         text->setText(msg);
         XDialog dialog(parent);
         dialog.setContentWidget(text);
+        dialog.setTitle(title);
         dialog.exec();
 	}
 };

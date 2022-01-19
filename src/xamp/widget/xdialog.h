@@ -15,6 +15,14 @@ public:
 
     void setContentWidget(QWidget* content);
 
+    QWidget* contentWidget() const {
+        return frame_->contentWidget();
+    }
+
+    void setTitle(const QString& title) const {
+        frame_->setTitle(title);
+    }
+
 private:
     bool nativeEvent(const QByteArray& event_type, void* message, long* result) override;
 
@@ -29,8 +37,8 @@ private:
 
     const int32_t border_width_{ 5 };
     QPoint last_pos_{0, 0};
-    QScreen* current_screen_{nullptr};
+    QScreen* current_screen_{ nullptr };
 #endif
-    XFrame* frame_;
+    XFrame* frame_{ nullptr };
 };
 

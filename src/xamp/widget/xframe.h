@@ -6,6 +6,7 @@
 #pragma once
 
 #include <QFrame>
+#include <QLabel>
 
 class XFrame : public QFrame {
 	Q_OBJECT
@@ -14,9 +15,15 @@ public:
 
 	void setContentWidget(QWidget* content);
 
+	void setTitle(const QString& title) const;
+
+	QWidget* contentWidget() const {
+		return content_;
+	}
 signals:
 	void closeFrame();
 
 private:
-	QWidget* content_widget_{ nullptr };
+	QLabel* title_frame_label{ nullptr };
+	QWidget* content_{ nullptr };
 };

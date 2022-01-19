@@ -17,6 +17,8 @@ namespace Qt {
     inline constexpr ConstLatin1String EmptyString{ "" };
 }
 
+inline constexpr ConstLatin1String kAppTitle{ "XAMP" };
+
 QString samplerate2String(uint32_t samplerate);
 
 constexpr ConstLatin1String Q_UTF8(const char str[]) noexcept {

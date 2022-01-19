@@ -165,7 +165,6 @@ static void setLogLevel(spdlog::level::level_enum level = spdlog::level::debug) 
 
 static int excute(int argc, char* argv[]) {
     QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
-    QApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
 
     XAMP_SET_LOG_LEVEL(spdlog::level::debug);
     XAMP_LOG_DEBUG("Logger init success.");

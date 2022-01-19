@@ -1,4 +1,3 @@
-#include <QGraphicsDropShadowEffect>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QSpacerItem>
@@ -12,8 +11,12 @@ XFrame::XFrame(QWidget* parent)
     : QFrame(parent) {
 }
 
+void XFrame::setTitle(const QString& title) const {
+    title_frame_label->setText(title);
+}
+
 void XFrame::setContentWidget(QWidget* content) {
-    content_widget_ = content;
+    content_ = content;
 
     auto* default_layout = new QGridLayout(this);
     default_layout->setSpacing(0);
@@ -21,64 +24,58 @@ void XFrame::setContentWidget(QWidget* content) {
     default_layout->setContentsMargins(0, 0, 0, 20);
     setLayout(default_layout);
 
-    auto* titleFrame = new QFrame(this);
-    titleFrame->setObjectName(QString::fromUtf8("titleFrame"));
-    titleFrame->setMinimumSize(QSize(0, 24));
-    titleFrame->setFrameShape(QFrame::NoFrame);
-    titleFrame->setFrameShadow(QFrame::Plain);
-    titleFrame->setStyleSheet(Q_UTF8("QFrame#titleFrame { border: none; }"));
+    auto* title_frame = new QFrame(this);
+    title_frame->setObjectName(QString::fromUtf8("titleFrame"));
+    title_frame->setMinimumSize(QSize(0, 24));
+    title_frame->setFrameShape(QFrame::NoFrame);
+    title_frame->setFrameShadow(QFrame::Plain);
+    title_frame->setStyleSheet(Q_UTF8("QFrame#titleFrame { border: none; }"));
 
-    auto* titleFrameLabel = new QLabel(titleFrame);
-    titleFrameLabel->setObjectName(QString::fromUtf8("titleFrameLabel"));
+    title_frame_label = new QLabel(title_frame);
+    title_frame_label->setObjectName(QString::fromUtf8("titleFrameLabel"));
     QSizePolicy sizePolicy3(QSizePolicy::Preferred, QSizePolicy::Preferred);
     sizePolicy3.setHorizontalStretch(1);
     sizePolicy3.setVerticalStretch(0);
-    sizePolicy3.setHeightForWidth(titleFrameLabel->sizePolicy().hasHeightForWidth());
-    titleFrameLabel->setSizePolicy(sizePolicy3);
+    sizePolicy3.setHeightForWidth(title_frame_label->sizePolicy().hasHeightForWidth());
+    title_frame_label->setSizePolicy(sizePolicy3);
 
-    auto* closeButton = new QToolButton(titleFrame);
-    closeButton->setObjectName(QString::fromUtf8("closeButton"));
-    closeButton->setMinimumSize(QSize(24, 24));
-    closeButton->setMaximumSize(QSize(24, 24));
-    closeButton->setFocusPolicy(Qt::NoFocus);
+    auto* close_button = new QToolButton(title_frame);
+    close_button->setObjectName(QString::fromUtf8("closeButton"));
+    close_button->setMinimumSize(QSize(24, 24));
+    close_button->setMaximumSize(QSize(24, 24));
+    close_button->setFocusPolicy(Qt::NoFocus);
 
-    auto* maxWinButton = new QToolButton(titleFrame);
-    maxWinButton->setObjectName(QString::fromUtf8("maxWinButton"));
-    maxWinButton->setMinimumSize(QSize(24, 24));
-    maxWinButton->setMaximumSize(QSize(24, 24));
-    maxWinButton->setFocusPolicy(Qt::NoFocus);
+    auto* max_win_button = new QToolButton(title_frame);
+    max_win_button->setObjectName(QString::fromUtf8("maxWinButton"));
+    max_win_button->setMinimumSize(QSize(24, 24));
+    max_win_button->setMaximumSize(QSize(24, 24));
+    max_win_button->setFocusPolicy(Qt::NoFocus);
 
-    auto* minWinButton = new QToolButton(titleFrame);
-    minWinButton->setObjectName(QString::fromUtf8("minWinButton"));
-    minWinButton->setMinimumSize(QSize(24, 24));
-    minWinButton->setMaximumSize(QSize(24, 24));
-    minWinButton->setFocusPolicy(Qt::NoFocus);
-    minWinButton->setPopupMode(QToolButton::InstantPopup);
+    auto* min_win_button = new QToolButton(title_frame);
+    min_win_button->setObjectName(QString::fromUtf8("minWinButton"));
+    min_win_button->setMinimumSize(QSize(24, 24));
+    min_win_button->setMaximumSize(QSize(24, 24));
+    min_win_button->setFocusPolicy(Qt::NoFocus);
+    min_win_button->setPopupMode(QToolButton::InstantPopup);
 
-    auto* horizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+    auto* horizontal_spacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
-    auto* horizontalLayout = new QHBoxLayout(titleFrame);
-    horizontalLayout->addItem(horizontalSpacer);
-    horizontalLayout->addWidget(titleFrameLabel);
-    horizontalLayout->addWidget(minWinButton);
-    horizontalLayout->addWidget(maxWinButton);
-    horizontalLayout->addWidget(closeButton);
+    auto* horizontal_layout = new QHBoxLayout(title_frame);
+    horizontal_layout->addItem(horizontal_spacer);
+    horizontal_layout->addWidget(title_frame_label);
+    horizontal_layout->addWidget(min_win_button);
+    horizontal_layout->addWidget(max_win_button);
+    horizontal_layout->addWidget(close_button);
 
-    horizontalLayout->setSpacing(0);
-    horizontalLayout->setObjectName(QString::fromUtf8("horizontalLayout"));
-    horizontalLayout->setContentsMargins(0, 0, 0, 0);
+    horizontal_layout->setSpacing(0);
+    horizontal_layout->setObjectName(QString::fromUtf8("horizontalLayout"));
+    horizontal_layout->setContentsMargins(0, 0, 0, 0);
 
-    default_layout->addWidget(titleFrame, 0, 1, 1, 3);
+    default_layout->addWidget(title_frame, 0, 1, 1, 3);
 
-    /*auto* shadow = new QGraphicsDropShadowEffect(content_widget_);
-    shadow->setOffset(0, 0);
-    shadow->setColor(Qt::black);
-    shadow->setBlurRadius(20);
-    content_widget_->setGraphicsEffect(shadow);*/
+    default_layout->addWidget(content_, 2, 1, 1, 2);
 
-    default_layout->addWidget(content_widget_, 2, 1, 1, 2);
-
-    closeButton->setStyleSheet(Q_STR(R"(
+    close_button->setStyleSheet(Q_STR(R"(
                                          QToolButton#closeButton {
                                          border: none;
                                          image: url(:/xamp/Resource/%1/close.png);
@@ -86,7 +83,7 @@ void XFrame::setContentWidget(QWidget* content) {
                                          }
                                          )").arg(ThemeManager::instance().themeColorPath()));
 
-    minWinButton->setStyleSheet(Q_STR(R"(
+    min_win_button->setStyleSheet(Q_STR(R"(
                                           QToolButton#minWinButton {
                                           border: none;
                                           image: url(:/xamp/Resource/%1/minimize.png);
@@ -94,7 +91,7 @@ void XFrame::setContentWidget(QWidget* content) {
                                           }
                                           )").arg(ThemeManager::instance().themeColorPath()));
 
-    maxWinButton->setStyleSheet(Q_STR(R"(
+    max_win_button->setStyleSheet(Q_STR(R"(
                                           QToolButton#maxWinButton {
                                           border: none;
                                           image: url(:/xamp/Resource/%1/maximize.png);
@@ -102,10 +99,10 @@ void XFrame::setContentWidget(QWidget* content) {
                                           }
                                           )").arg(ThemeManager::instance().themeColorPath()));
 
-    maxWinButton->setDisabled(true);
-    minWinButton->setDisabled(true);
+    max_win_button->setDisabled(true);
+    min_win_button->setDisabled(true);
 
-    (void)QObject::connect(closeButton, &QToolButton::pressed, [this]() {
+    (void)QObject::connect(close_button, &QToolButton::pressed, [this]() {
         QWidget::close();
         emit closeFrame();
         });

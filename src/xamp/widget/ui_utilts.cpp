@@ -1,7 +1,9 @@
 #include <QDesktopWidget>
 #include <QProgressBar>
 #include <QCheckBox>
+#include <QProgressDialog>
 
+#include <widget/xdialog.h>
 #include <widget/str_utilts.h>
 #include <widget/ui_utilts.h>
 
@@ -75,9 +77,19 @@ QString format2String(const PlaybackFormat& playback_format, const QString& file
         + Q_UTF8(" | ") + dsd_mode;
 }
 
-std::unique_ptr<QProgressDialog> makeProgressDialog(QString const& title, QString const& text, QString const& cancel) {
-    auto dialog = std::make_unique<QProgressDialog>(text, cancel, 0, 100);
-    dialog->setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
+void centerParent(QWidget *dialog) {
+    if (dialog->parent() && dialog->parent()->isWidgetType()) {
+        dialog->move((dialog->parentWidget()->width() - dialog->width()) / 2,
+            (dialog->parentWidget()->height() - dialog->height()) / 2);
+    }
+}
+
+std::unique_ptr<XDialog> makeProgressDialog(QString const& title, QString const& text, QString const& cancel) {
+    auto xdialog = std::make_unique<XDialog>();
+    auto* dialog = new QProgressDialog(text, cancel, 0, 100);
+    xdialog->setContentWidget(dialog);
+    dialog->setWindowFlags(Qt::FramelessWindowHint);
+    dialog->setAttribute(Qt::WA_TranslucentBackground, true);
     dialog->setFont(qApp->font());
     dialog->setWindowTitle(title);
     dialog->setWindowModality(Qt::WindowModal);
@@ -86,19 +98,12 @@ std::unique_ptr<QProgressDialog> makeProgressDialog(QString const& title, QStrin
     auto* progress_bar = new QProgressBar();
     progress_bar->setFont(QFont(Q_UTF8("FormatFont")));
     dialog->setBar(progress_bar);
-    ThemeManager::instance().setBackgroundColor(dialog.get(), 255);
-
-    if (dialog->parent() && dialog->parent()->isWidgetType()) {
-        dialog->move((dialog->parentWidget()->width() - dialog->width()) / 2,
-            (dialog->parentWidget()->height() - dialog->height()) / 2);
-    }
-
-    return dialog;
+    return xdialog;
 }
 
 QMessageBox::StandardButton showAskDialog(QWidget* widget, const char text[]) {
     QMessageBox msgbox;
-    msgbox.setWindowTitle(Q_UTF8("XAMP"));
+    msgbox.setWindowTitle(kAppTitle);
     msgbox.setText(widget->tr(text));
     msgbox.setIcon(QMessageBox::Icon::Question);
     msgbox.addButton(QMessageBox::Yes);
@@ -113,7 +118,7 @@ std::tuple<bool, QMessageBox::StandardButton> showDontShowAgainDialog(QWidget* w
     if (show_agin) {
         auto cb = new QCheckBox(widget->tr("Don't show this again"));
         QMessageBox msgbox;
-        msgbox.setWindowTitle(Q_UTF8("XAMP"));
+        msgbox.setWindowTitle(kAppTitle);
         msgbox.setText(widget->tr("Hide XAMP to system tray?"));
         msgbox.setIcon(QMessageBox::Icon::Question);
         msgbox.addButton(QMessageBox::Ok);

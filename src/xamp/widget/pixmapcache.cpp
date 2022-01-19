@@ -17,7 +17,7 @@
 
 inline constexpr size_t kDefaultCacheSize = 32;
 inline constexpr qint64 kMaxCacheImageSize = 8 * 1024 * 1024;
-inline constexpr auto kPixmapCacheFileExt = Q_UTF8(".cache");
+inline constexpr auto kPixmapCacheFileExt = Q_UTF8(".jpg");
 
 PixmapCache::PixmapCache()
 	: cache_(kDefaultCacheSize)

@@ -33,7 +33,7 @@ void TestToInterleave() {
 }
 
 void TestToF32ToI32Planar() {
-	auto input = PRNG::GetRandomFloat(16, -1.0, 1.0);
+	auto input = PRNG::GetInstance().GetRandomFloat(16, -1.0, 1.0);
 	auto left = MakeAlignedArray<int32_t>(8);
 	auto right = MakeAlignedArray<int32_t>(8);
 	InterleaveToPlanar<float, int32_t>::Convert(
@@ -48,7 +48,7 @@ void TestFloatConverter() {
 
 	for (auto x = 0; x < 10000; ++x) {
 		auto output = MakeAlignedArray<int32_t>(kMaxTestSize);
-		auto input = PRNG::GetRandomFloat(kMaxTestSize, -1.0, 1.0);
+		auto input = PRNG::GetInstance().GetRandomFloat(kMaxTestSize, -1.0, 1.0);
 
 		AudioFormat input_format;
 		AudioFormat output_format;
@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
 		.AddDebugOutputLogger()
 		.AddConsoleLogger()
 		.AddFileLogger("xamp.log")
-		.GetLogger("xamp");
+		.GetLogger(kDefaultLoggerName);
 
 	XAMP_SET_LOG_LEVEL(spdlog::level::trace);
 
@@ -134,6 +134,6 @@ int main(int argc, char* argv[]) {
 		Logger::GetInstance().Shutdown();
 	);
 
-	PlayerStartup();
+	XStartup();
 	TestPlayDSD(String::ToStdWString(argv[1]));
 }

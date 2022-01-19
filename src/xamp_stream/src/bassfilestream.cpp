@@ -58,6 +58,9 @@ public:
             }            
 
             file_.Open(file_path);
+            if (!PrefetchFile(file_)) {
+                XAMP_LOG_DEBUG("PrefetchFile return failure!");
+            }
             if (mode == DsdModes::DSD_MODE_PCM) {
                 stream_.reset(BASS.BASS_StreamCreateFile(TRUE,
                     file_.GetData(),
@@ -74,9 +77,6 @@ public:
                 // BassLib DSD module default use 6dB gain.
 				// 不設定的話會爆音!
                 BASS.BASS_ChannelSetAttribute(stream_.get(), BASS_ATTRIB_DSD_GAIN, 0.0);
-            }
-            if (!PrefetchFile(file_)) {
-                XAMP_LOG_DEBUG("PrefetchFile return failure!");
             }
         } else {
 #ifdef XAMP_OS_MAC
