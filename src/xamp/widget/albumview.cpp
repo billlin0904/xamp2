@@ -288,7 +288,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
         emit playMusic(getAlbumEntity(index));
         });
 
-    ThemeManager::instance().setBackgroundColor(this, 255);
+    ThemeManager::instance().setBackgroundColor(this);
 }
 
 void AlbumViewPage::setAlbum(const QString& album) {
@@ -390,7 +390,7 @@ AlbumView::AlbumView(QWidget* parent)
         }
 
         page_->move(QPoint(list_view_rect.x(), 0));
-        ThemeManager::instance().setBackgroundColor(page_, 255);
+        ThemeManager::instance().setBackgroundColor(page_);
     	
         page_->show();
         });

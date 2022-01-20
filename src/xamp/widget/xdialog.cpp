@@ -5,11 +5,11 @@
 #include <QMouseEvent>
 
 #if defined(Q_OS_WIN)
+#include <windowsx.h>
 #include <Windows.h>
 #endif
 
 #include <QGraphicsDropShadowEffect>
-#include <windowsx.h>
 
 #include "thememanager.h"
 #include <widget/xdialog.h>

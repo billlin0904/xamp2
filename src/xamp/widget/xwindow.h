@@ -47,6 +47,8 @@ protected:
 
     void mouseMoveEvent(QMouseEvent * event) override;
 
+    void mouseDoubleClickEvent(QMouseEvent* event) override;
+
     void changeEvent(QEvent * event) override;
 
     void closeEvent(QCloseEvent* event) override;

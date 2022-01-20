@@ -56,6 +56,8 @@ public:
 
     bool useNativeWindow() const;
 
+    bool enableBlur() const;
+
     const QPalette& palette() const {
         return palette_;
     }
@@ -102,7 +104,7 @@ public:
 
     void setWidgetStyle(Ui::XampWindow &ui);    
 
-    void enableBlur(const QWidget* widget, bool enable) const;
+    void enableBlur(QWidget* widget, bool enable) const;
 
     QSize getDefaultCoverSize() const noexcept;
 
@@ -136,7 +138,7 @@ public:
 
     void setBackgroundColor(Ui::XampWindow& ui, QColor color);
 
-    void setBackgroundColor(QWidget* widget, int32_t alpha = 255);
+    void setBackgroundColor(QWidget* widget);
 
     QLatin1String themeColorPath() const;
 

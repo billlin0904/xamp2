@@ -18,7 +18,7 @@ void XFrame::setTitle(const QString& title) const {
 void XFrame::setContentWidget(QWidget* content) {
     content_ = content;
 
-    auto* default_layout = new QGridLayout(this);
+    auto* default_layout = new QVBoxLayout(this);
     default_layout->setSpacing(0);
     default_layout->setObjectName(QString::fromUtf8("default_layout"));
     default_layout->setContentsMargins(0, 0, 0, 20);
@@ -71,9 +71,9 @@ void XFrame::setContentWidget(QWidget* content) {
     horizontal_layout->setObjectName(QString::fromUtf8("horizontalLayout"));
     horizontal_layout->setContentsMargins(0, 0, 0, 0);
 
-    default_layout->addWidget(title_frame, 0, 1, 1, 3);
+    default_layout->addWidget(title_frame, 0);
 
-    default_layout->addWidget(content_, 2, 1, 1, 2);
+    default_layout->addWidget(content_, 1);
 
     close_button->setStyleSheet(Q_STR(R"(
                                          QToolButton#closeButton {

@@ -158,29 +158,30 @@ static QColor blendColor(const QColor& i_color1, const QColor& i_color2, double 
 	);
 }
 
-void setBlurMaterial(const QWidget* widget, bool enable) {
-	auto hwnd = reinterpret_cast<HWND>(widget->winId());
+void setAccentPolicy(HWND hwnd, bool enable, int animation_id) {
 	auto is_rs4_or_greater = true;
 
 	ACCENT_STATE flags = (is_rs4_or_greater ? ACCENT_ENABLE_ACRYLICBLURBEHIND : ACCENT_ENABLE_BLURBEHIND);
 
-	//DWORD wincolor = 0;
-	//BOOL opaque = FALSE;
-	//DWMDLL.DwmGetColorizationColor(&wincolor, &opaque);
-	//auto background_color = QColor::fromRgba(wincolor);
 	QColor background_color(AppSettings::getValueAsString(kAppSettingBackgroundColor));
+
 	background_color.setAlpha(50);
 	ACCENT_POLICY policy = {
 		enable ? flags : ACCENT_DISABLED,
-		0,
+		ACCENT_FLAGS::DrawAllBorders,
 		toABGR(background_color),
-		0
+		animation_id
 	};
 	WINDOWCOMPOSITIONATTRIBDATA data;
 	data.Attrib = WCA_ACCENT_POLICY;
 	data.pvData = &policy;
 	data.cbData = sizeof policy;
 	User32DLL.SetWindowCompositionAttribute(hwnd, &data);
+}
+
+void setBlurMaterial(const QWidget* widget, bool enable, int animation_id) {
+	auto hwnd = reinterpret_cast<HWND>(widget->winId());
+	setAccentPolicy(hwnd, enable, animation_id);
 }
 
 #define DWL_MSGRESULT 0
@@ -195,24 +196,41 @@ void setResizeable(void* message) {
 	SetWindowLong(msg->hwnd, DWL_MSGRESULT, HTCAPTION);
 }
 
-void drawDwmShadow(const QWidget* widget) {
-	auto hwnd = reinterpret_cast<HWND>(widget->winId());
-	/*auto policy = DWMNCRENDERINGPOLICY::DWMNCRP_ENABLED;
-	DWMDLL.DwmSetWindowAttribute(hwnd, DWMWINDOWATTRIBUTE::DWMWA_NCRENDERING_POLICY, &policy, sizeof(policy));*/
+void drawDwmShadow(const QMenu* menu) {
+	auto policy = DWMNCRENDERINGPOLICY::DWMNCRP_ENABLED;
+	auto hwnd = reinterpret_cast<HWND>(menu->winId());
+	DWMDLL.DwmSetWindowAttribute(hwnd, DWMWINDOWATTRIBUTE::DWMWA_NCRENDERING_POLICY, &policy, sizeof(policy));
 
-	//MARGINS borderless = { 1, 1, 1, 1 };
-	MARGINS borderless = { 0, 0, 0, 1 };
+	MARGINS borderless = { -1, -1, -1, -1 };
 	DWMDLL.DwmExtendFrameIntoClientArea(hwnd, &borderless);
+}
 
-	::SetWindowPos(hwnd, nullptr, 0, 0, 0, 0,
-		SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
+void setBlurMaterial(const QMenu* menu, bool enable, int animation_id) {
+	auto hwnd = reinterpret_cast<HWND>(menu->winId());
+	setAccentPolicy(hwnd, enable, animation_id);
+}
+
+void drawDwmShadow(const QWidget* widget) {
+	MARGINS borderless = { -1, -1, -1, -1 };
+	auto hwnd = reinterpret_cast<HWND>(widget->winId());
+	DWMDLL.DwmExtendFrameIntoClientArea(hwnd, &borderless);
 }
 
 void setFramelessWindowStyle(const QWidget* widget) {
 	auto hwnd = reinterpret_cast<HWND>(widget->winId());
 	DWORD style = ::GetWindowLong(hwnd, GWL_STYLE);
-	::SetWindowLong(hwnd, GWL_STYLE, style | WS_MAXIMIZEBOX | WS_THICKFRAME | WS_CAPTION);
+	::SetWindowLong(hwnd, GWL_STYLE, style | WS_MAXIMIZEBOX | WS_THICKFRAME | WS_CAPTION | CS_DBLCLKS);
 }
+
+bool isWindowMaximized(const QWidget* widget) {
+	auto hwnd = reinterpret_cast<HWND>(widget->winId());
+	WINDOWPLACEMENT pl{};
+	if (!::GetWindowPlacement(hwnd, &pl)) {
+		return false;
+	}
+	return pl.showCmd == SW_MAXIMIZE;
+}
+
 }
 
 #endif

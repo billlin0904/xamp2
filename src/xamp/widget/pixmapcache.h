@@ -56,6 +56,8 @@ public:
 
 	void clear();
 
+	void clearCache();
+
     size_t GetMissRate() const;
 
 protected:

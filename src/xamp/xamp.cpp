@@ -6,6 +6,7 @@
 #include <QWidgetAction>
 #include <QFileDialog>
 #include <QProcess>
+#include <QProgressDialog>
 
 #include <base/scopeguard.h>
 #include <base/str_utilts.h>
@@ -223,7 +224,7 @@ void Xamp::closeEvent(QCloseEvent* event) {
 	    const auto is_min_system_tray = AppSettings::getValueAsBool(kAppSettingMinimizeToTray);
 
         if (!is_min_system_tray && minimize_to_tray_ask) {
-            auto [show_again_res, reply_res] = showDontShowAgainDialog(this, minimize_to_tray_ask);
+            auto [show_again_res, reply_res] = showDontShowAgainDialog(minimize_to_tray_ask);
             AppSettings::setValue(kAppSettingMinimizeToTrayAsk, show_again_res);
             AppSettings::setValue(kAppSettingMinimizeToTray, reply == QMessageBox::Ok);
             reply = reply_res;

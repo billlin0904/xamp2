@@ -89,22 +89,24 @@ std::unique_ptr<XDialog> makeProgressDialog(QString const& title, QString const&
     auto* dialog = new QProgressDialog(text, cancel, 0, 100);
     xdialog->setContentWidget(dialog);
     dialog->setWindowFlags(Qt::FramelessWindowHint);
-    dialog->setAttribute(Qt::WA_TranslucentBackground, true);
+    dialog->setAttribute(Qt::WA_TranslucentBackground);
     dialog->setFont(qApp->font());
     dialog->setWindowTitle(title);
     dialog->setWindowModality(Qt::WindowModal);
-    dialog->setMinimumSize(QSize(500, 100));
+    dialog->setMinimumSize(QSize(1000, 100));
     dialog->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed));
     auto* progress_bar = new QProgressBar();
     progress_bar->setFont(QFont(Q_UTF8("FormatFont")));
     dialog->setBar(progress_bar);
+    xdialog->show();
     return xdialog;
 }
 
-QMessageBox::StandardButton showAskDialog(QWidget* widget, const char text[]) {
+QMessageBox::StandardButton showAskDialog(const char text[]) {
+    auto xdialog = std::make_unique<XDialog>();
     QMessageBox msgbox;
     msgbox.setWindowTitle(kAppTitle);
-    msgbox.setText(widget->tr(text));
+    msgbox.setText(qApp->tr(text));
     msgbox.setIcon(QMessageBox::Icon::Question);
     msgbox.addButton(QMessageBox::Yes);
     msgbox.addButton(QMessageBox::No);
@@ -112,14 +114,14 @@ QMessageBox::StandardButton showAskDialog(QWidget* widget, const char text[]) {
     return static_cast<QMessageBox::StandardButton>(msgbox.exec());
 }
 
-std::tuple<bool, QMessageBox::StandardButton> showDontShowAgainDialog(QWidget* widget, bool show_agin) {
+std::tuple<bool, QMessageBox::StandardButton> showDontShowAgainDialog(bool show_agin) {
     bool is_show_agin = true;
 
     if (show_agin) {
-        auto cb = new QCheckBox(widget->tr("Don't show this again"));
+        auto cb = new QCheckBox(qApp->tr("Don't show this again"));
         QMessageBox msgbox;
         msgbox.setWindowTitle(kAppTitle);
-        msgbox.setText(widget->tr("Hide XAMP to system tray?"));
+        msgbox.setText(qApp->tr("Hide XAMP to system tray?"));
         msgbox.setIcon(QMessageBox::Icon::Question);
         msgbox.addButton(QMessageBox::Ok);
         msgbox.addButton(QMessageBox::Cancel);

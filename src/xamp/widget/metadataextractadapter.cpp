@@ -240,6 +240,8 @@ void ::MetadataExtractAdapter::processMetadata(const std::vector<Metadata>& resu
     if (playlist != nullptr) {
         playlist->refresh();
     }
+
+    Singleton<PixmapCache>::GetInstance().clearCache();
 }
 
 Metadata getMetadata(QString const& file_path) {

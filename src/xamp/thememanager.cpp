@@ -37,6 +37,10 @@ bool ThemeManager::useNativeWindow() const {
     return use_native_window_;
 }
 
+bool ThemeManager::enableBlur() const {
+    return AppSettings::getValueAsBool(kAppSettingEnableBlur);
+}
+
 QFont ThemeManager::loadFonts() {
     const auto digital_font_id = QFontDatabase::addApplicationFont(Q_UTF8(":/xamp/fonts/digital.ttf"));
     const auto digital_font_families = QFontDatabase::applicationFontFamilies(digital_font_id);
@@ -116,13 +120,14 @@ QLatin1String ThemeManager::themeColorPath() const {
 void ThemeManager::setMenuStyle(QMenu* menu) {
 	menu->setWindowFlags(Qt::Popup | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
     menu->setAttribute(Qt::WA_TranslucentBackground);
-    /*menu->setWindowFlags(Qt::Popup | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
-    menu->setAttribute(Qt::WA_TranslucentBackground);
-    auto* shadow = new QGraphicsDropShadowEffect();
+    menu->setAttribute(Qt::WA_StyledBackground);
+    /*auto* shadow = new QGraphicsDropShadowEffect(menu);
     shadow->setOffset(0, 0);
     shadow->setColor(Qt::black);
     shadow->setBlurRadius(10);
     menu->setGraphicsEffect(shadow);*/
+    //win32::drawDwmShadow(menu);
+    //win32::setBlurMaterial(menu, true);
 }
 
 DefaultStylePixmapManager::DefaultStylePixmapManager()
@@ -264,18 +269,18 @@ QColor ThemeManager::getBackgroundColor() const noexcept {
     return background_color_;
 }
 
-void ThemeManager::setBackgroundColor(QWidget* widget, int32_t alpha) {
-    auto color = ThemeManager::instance().palette().color(QPalette::Foreground);
-    XAMP_LOG_DEBUG("setBackgroundColor {}", colorToString(color).toStdString());
+void ThemeManager::setBackgroundColor(QWidget* widget) {
+    auto color = ThemeManager::instance().palette().color(QPalette::Foreground);    
     widget->setStyleSheet(backgroundColorToString(color));
 }
 
-void ThemeManager::enableBlur(const QWidget* widget, bool enable) const {
+void ThemeManager::enableBlur(QWidget* widget, bool enable) const {
 #if defined(Q_OS_WIN)
     win32::setBlurMaterial(widget, enable);
 #else
     osx::setBlurMaterial(widget, enable);
 #endif
+    widget->setStyleSheet(Q_UTF8("background-color: transparent"));
     AppSettings::setValue(kAppSettingEnableBlur, enable);
 }
 

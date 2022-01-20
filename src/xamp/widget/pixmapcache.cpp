@@ -50,6 +50,10 @@ QPixmap PixmapCache::findFileDirCover(const QString& file_path) {
 	return QPixmap();
 }
 
+void PixmapCache::clearCache() {
+	cache_.Clear();
+}
+
 void PixmapCache::clear() {
 	for (QDirIterator itr(cache_path_, cache_ext_, QDir::Files | QDir::NoDotAndDotDot);
 		itr.hasNext();) {

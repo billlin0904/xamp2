@@ -11,6 +11,7 @@
 #if defined(Q_OS_WIN)
 #include <Windows.h>
 #include <windowsx.h>
+#include <QtWin>
 #include <QtWinExtras/QWinTaskbarButton>
 #include <QtWinExtras/QWinTaskbarProgress>
 #include <QtWinExtras/QWinThumbnailToolBar>
@@ -136,8 +137,7 @@ void XWindow::setContentWidget(IXampPlayer *content_widget) {
     // todo: Qt::WA_TranslucentBackground + paintEvent 將無法縮放視窗
 #if defined(Q_OS_WIN)
     if (!ThemeManager::instance().useNativeWindow()) {
-        setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
-        //setAttribute(Qt::WA_TranslucentBackground);
+        setWindowFlags(Qt::WindowSystemMenuHint | Qt::WindowMinimizeButtonHint | Qt::WindowMaximizeButtonHint | Qt::FramelessWindowHint);
     }
 #endif
     content_widget_ = content_widget;    
@@ -152,8 +152,8 @@ void XWindow::setContentWidget(IXampPlayer *content_widget) {
     installEventFilter(this);
 #if defined(Q_OS_WIN)
     if (!ThemeManager::instance().useNativeWindow()) {
-        win32::setFramelessWindowStyle(this);
         win32::drawDwmShadow(this);
+        win32::setFramelessWindowStyle(this);
         setWindowTitle(kAppTitle);
     }
     taskbar_.reset(new WinTaskbar(this, content_widget));
@@ -391,6 +391,9 @@ void XWindow::mousePressEvent(QMouseEvent* event) {
         QWidget::mousePressEvent(event);
         return;
 	}
+    if (isMaximized()) {
+        return;
+    }
     if (event->button() != Qt::LeftButton) {
         return;
     }
@@ -411,6 +414,14 @@ void XWindow::mouseReleaseEvent(QMouseEvent* event) {
 #else
     QWidget::mouseReleaseEvent(event);
 #endif
+}
+
+void XWindow::mouseDoubleClickEvent(QMouseEvent* event) {
+    if (isMaximized()) {
+        showNormal();
+    } else {
+        showMaximized();
+    }
 }
 
 void XWindow::mouseMoveEvent(QMouseEvent* event) {
