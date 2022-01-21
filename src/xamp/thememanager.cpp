@@ -223,12 +223,28 @@ QIcon ThemeManager::themeIcon() const {
     return makeIcon(Q_STR(":/xamp/Resource/%1/theme.png"));
 }
 
-void ThemeManager::setResamplerButton(Ui::XampWindow& ui, bool enable) {
+void ThemeManager::setSampleConverterButton(Ui::XampWindow& ui, bool enable) {
     if (enable) {
-        ui.sampleConverterButton->setStyleSheet(Q_UTF8("QToolButton#sampleConverterButton { border: none; font-weight: bold; color: rgb(255, 255, 255); }"));
+        ui.sampleConverterButton->setStyleSheet(Q_STR(
+            R"(
+                QToolButton#sampleConverterButton {
+                    image: url(:/xamp/Resource/%1/enable_converter.png);
+                    border: none;
+                    background-color: transparent;
+                }
+            )"
+        ).arg(themeColorPath()));
     }
     else {
-        ui.sampleConverterButton->setStyleSheet(Q_UTF8("QToolButton#sampleConverterButton { border: none; font-weight: bold; color: gray; }"));
+        ui.sampleConverterButton->setStyleSheet(Q_STR(
+            R"(
+                QToolButton#sampleConverterButton {
+                    image: url(:/xamp/Resource/%1/disable_converter.png);
+                    border: none;
+                    background-color: transparent;
+                }
+            )"
+        ).arg(themeColorPath()));
     }
 }
 

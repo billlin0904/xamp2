@@ -477,6 +477,9 @@ AlbumView::AlbumView(QWidget* parent)
                 AppSettings::getMyMusicFolderPath(),
                 tr("Music Files ") + exts,
                 nullptr);
+            if (file_name.isEmpty()) {
+                return;
+            }
             append(file_name);
             });
 
@@ -485,6 +488,9 @@ AlbumView::AlbumView(QWidget* parent)
 	                                                                tr("Select a directory"),
 	                                                                AppSettings::getMyMusicFolderPath(),
                 QFileDialog::ShowDirsOnly);
+            if (dir_name.isEmpty()) {
+                return;
+            }
             append(dir_name);
             });
 

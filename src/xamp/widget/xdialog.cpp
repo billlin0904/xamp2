@@ -10,6 +10,7 @@
 #endif
 
 #include <QGraphicsDropShadowEffect>
+#include <QPropertyAnimation>
 
 #include "thememanager.h"
 #include <widget/xdialog.h>
@@ -33,13 +34,12 @@ void XDialog::setContentWidget(QWidget* content) {
     auto* default_layout = new QGridLayout(this);
     default_layout->setSpacing(0);
     default_layout->setObjectName(QString::fromUtf8("default_layout"));
-    default_layout->setContentsMargins(25, 25, 25, 25);
+    default_layout->setContentsMargins(50, 50, 50, 50);
     setLayout(default_layout);
 
     auto* shadow = new QGraphicsDropShadowEffect(frame_);
     shadow->setOffset(0, 0);
-    shadow->setColor(Qt::black);
-    shadow->setBlurRadius(25);
+    shadow->setBlurRadius(50);
     frame_->setGraphicsEffect(shadow);
 
 	default_layout->addWidget(frame_, 2, 2, 1, 2);
@@ -47,7 +47,7 @@ void XDialog::setContentWidget(QWidget* content) {
     setMouseTracking(true);
 
     (void)QObject::connect(frame_, &XFrame::closeFrame, [this]() {
-        QWidget::close();
+        QDialog::close();
         });
 }
 
@@ -228,4 +228,36 @@ bool XDialog::nativeEvent(const QByteArray& event_type, void* message, long* res
 #else
     return QWidget::nativeEvent(event_type, message, result);
 #endif
+}
+
+void XDialog::showEvent(QShowEvent* event) {
+    auto *opacityEffect = new QGraphicsOpacityEffect(this);
+    setGraphicsEffect(opacityEffect);
+    auto* opacityAnimation = new QPropertyAnimation(opacityEffect, "opacity", this);
+    opacityAnimation->setStartValue(0);
+    opacityAnimation->setEndValue(1);
+    opacityAnimation->setDuration(200);
+    opacityAnimation->setEasingCurve(QEasingCurve::InSine);
+    (void)QObject::connect(opacityAnimation,
+        &QPropertyAnimation::finished, 
+        opacityEffect, 
+        &QGraphicsOpacityEffect::deleteLater);
+    opacityAnimation->start();
+    QDialog::showEvent(event);
+}
+
+void XDialog::closeEvent(QCloseEvent* event) {
+    auto* opacityEffect = new QGraphicsOpacityEffect(this);
+    setGraphicsEffect(opacityEffect);
+    auto* opacityAnimation = new QPropertyAnimation(opacityEffect, "opacity", this);
+    opacityAnimation->setStartValue(1);
+    opacityAnimation->setEndValue(0);
+    opacityAnimation->setDuration(100);
+    opacityAnimation->setEasingCurve(QEasingCurve::OutCubic);
+    (void)QObject::connect(opacityAnimation,
+        &QPropertyAnimation::finished,
+        this,
+        &XDialog::deleteLater);
+    opacityAnimation->start();    
+    event->ignore();
 }

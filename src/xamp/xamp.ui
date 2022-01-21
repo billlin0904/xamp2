@@ -340,8 +340,8 @@
            <widget class="QToolButton" name="eqButton">
             <property name="maximumSize">
              <size>
-              <width>22</width>
-              <height>22</height>
+              <width>24</width>
+              <height>24</height>
              </size>
             </property>
             <property name="text">
@@ -353,12 +353,9 @@
            <widget class="QToolButton" name="sampleConverterButton">
             <property name="maximumSize">
              <size>
-              <width>22</width>
-              <height>22</height>
+              <width>24</width>
+              <height>24</height>
              </size>
-            </property>
-            <property name="text">
-             <string>C</string>
             </property>
            </widget>
           </item>
@@ -366,8 +363,8 @@
            <widget class="QToolButton" name="repeatButton">
             <property name="maximumSize">
              <size>
-              <width>22</width>
-              <height>22</height>
+              <width>24</width>
+              <height>24</height>
              </size>
             </property>
             <property name="text">

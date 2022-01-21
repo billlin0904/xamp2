@@ -13,9 +13,9 @@ struct XMessageBox {
 	static void about(const QString &msg, QWidget *parent, const QString& title= kAppTitle) {
         auto *text = new QLabel(parent);
         text->setText(msg);
-        XDialog dialog(parent);
-        dialog.setContentWidget(text);
-        dialog.setTitle(title);
-        dialog.exec();
+        auto* dialog = new XDialog(parent);
+        dialog->setContentWidget(text);
+        dialog->setTitle(title);
+        dialog->exec();
 	}
 };

@@ -596,20 +596,20 @@ void Xamp::initialController() {
     });
 
     (void)QObject::connect(ui_.eqButton, &QToolButton::pressed, [this]() {
-        XDialog dialog(this);
-        EqualizerDialog eq;
+        auto* dialog = new XDialog(this);
+        auto* eq = new EqualizerDialog(dialog);
 
-        dialog.setContentWidget(&eq);
+        dialog->setContentWidget(eq);
 
-        (void)QObject::connect(&eq, &EqualizerDialog::bandValueChange, [this](int band, float value, float Q) {
+        (void)QObject::connect(eq, &EqualizerDialog::bandValueChange, [this](int band, float value, float Q) {
             AppSettings::save();
         });
 
-        (void)QObject::connect(&eq, &EqualizerDialog::preampValueChange, [this](float value) {
+        (void)QObject::connect(eq, &EqualizerDialog::preampValueChange, [this](float value) {
             AppSettings::save();
         });
 
-        dialog.exec();
+        dialog->exec();
     });
 
     (void)QObject::connect(ui_.repeatButton, &QToolButton::pressed, [this]() {
@@ -784,7 +784,7 @@ void Xamp::initialController() {
 }
 
 void Xamp::updateButtonState() {
-    ThemeManager::instance().setResamplerButton(ui_, AppSettings::getValueAsBool(kAppSettingResamplerEnable));
+    ThemeManager::instance().setSampleConverterButton(ui_, AppSettings::getValueAsBool(kAppSettingResamplerEnable));
     ThemeManager::instance().setPlayOrPauseButton(ui_, player_->GetState() != PlayerState::PLAYER_STATE_PAUSED);
     preference_page_->update();
 }

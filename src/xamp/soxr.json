@@ -1,8 +1,8 @@
 {
     "Disable": {
         "enableSteepFilter": false,
-        "passBand": 96,
-        "phase": 46,
+        "passBand": 99,
+        "phase": 50,
         "quality": 4,
         "resampleSampleRate": 384000,
         "rolloffLevel": 0,
@@ -10,8 +10,8 @@
     },
     "Soxr": {
         "enableSteepFilter": false,
-        "passBand": 96,
-        "phase": 46,
+        "passBand": 99,
+        "phase": 50,
         "quality": 4,
         "resampleSampleRate": 384000,
         "rolloffLevel": 0,

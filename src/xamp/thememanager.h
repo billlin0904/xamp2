@@ -100,7 +100,7 @@ public:
 
     void setPlayOrPauseButton(Ui::XampWindow &ui, bool is_playing);
 
-    void setResamplerButton(Ui::XampWindow& ui, bool enable);
+    void setSampleConverterButton(Ui::XampWindow& ui, bool enable);
 
     void setWidgetStyle(Ui::XampWindow &ui);    
 
@@ -152,7 +152,7 @@ private:
     QIcon makeIcon(const QString& path) const;
 
     ThemeManager();
-
+    
     bool use_native_window_;
     ThemeColor theme_color_;
     QSize album_cover_size_;
