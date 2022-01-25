@@ -58,6 +58,7 @@ QFont ThemeManager::loadFonts() {
     ui_fallback_fonts.push_back(default_font_families[0]);
     ui_fallback_fonts.push_back(title_font_families[0]);
 #if defined(Q_OS_WIN)
+    ui_fallback_fonts.push_back(Q_UTF8("Arial"));
     ui_fallback_fonts.push_back(Q_UTF8("Lucida Grande"));
     ui_fallback_fonts.push_back(Q_UTF8("Helvetica Neue"));
     ui_fallback_fonts.push_back(Q_UTF8("Microsoft JhengHei UI"));

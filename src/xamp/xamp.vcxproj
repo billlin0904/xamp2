@@ -176,6 +176,7 @@
     <ClCompile Include="widget\artistinfopage.cpp" />
     <ClCompile Include="widget\artistview.cpp" />
     <ClCompile Include="widget\clickablelabel.cpp" />
+    <ClCompile Include="widget\colorthief.cpp" />
     <ClCompile Include="widget\database.cpp" />
     <ClCompile Include="widget\discordnotify.cpp" />
     <ClCompile Include="widget\doubleslider.cpp" />
@@ -242,6 +243,7 @@
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="widget\xframe.h" />
+    <ClInclude Include="widget\colorthief.h" />
     <ClInclude Include="widget\xmessagebox.h" />
     <ClInclude Include="xampplayer.h" />
     <QtMoc Include="widget\lyricsshowwidget.h" />

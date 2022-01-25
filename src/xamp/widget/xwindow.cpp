@@ -333,7 +333,7 @@ bool XWindow::nativeEvent(const QByteArray& event_type, void * message, long * r
         break;
     case WM_GETMINMAXINFO:
         if (layout() != nullptr) {
-            if (::IsZoomed(msg->hwnd)) {
+            if (win32::isWindowMaximized(this)) {
                 RECT frame = { 0, 0, 0, 0 };
                 ::AdjustWindowRectEx(&frame, WS_OVERLAPPEDWINDOW, FALSE, 0);
                 frame.left = abs(frame.left);
@@ -352,15 +352,6 @@ bool XWindow::nativeEvent(const QByteArray& event_type, void * message, long * r
             *result = 0;
             return true;
         }
-        /*
-        if (!::IsZoomed(msg->hwnd)) {
-            *result = WVR_REDRAW;
-            return true;
-        } else {
-            *result = 0;
-            return true;
-        }
-        */
         *result = WVR_REDRAW;
         return true;
     default:
@@ -425,12 +416,12 @@ void XWindow::mouseDoubleClickEvent(QMouseEvent* event) {
 }
 
 void XWindow::mouseMoveEvent(QMouseEvent* event) {
-#if defined(Q_OS_WIN)
     if (ThemeManager::instance().useNativeWindow()) {
         QWidget::mouseMoveEvent(event);
         return;
     }
 
+#if defined(Q_OS_WIN)
     if (!last_pos_.isNull()) {
         move(event->globalPos() - last_pos_);
     }

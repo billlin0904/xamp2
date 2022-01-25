@@ -89,7 +89,7 @@ std::unique_ptr<XDialog> makeProgressDialog(QString const& title, QString const&
     auto* dialog = new QProgressDialog(text, cancel, 0, 100);
     xdialog->setContentWidget(dialog);
     dialog->setWindowFlags(Qt::FramelessWindowHint);
-    dialog->setAttribute(Qt::WA_TranslucentBackground);
+    //dialog->setAttribute(Qt::WA_TranslucentBackground);
     dialog->setFont(qApp->font());
     dialog->setWindowTitle(title);
     dialog->setWindowModality(Qt::WindowModal);

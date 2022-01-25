@@ -224,11 +224,15 @@ void setFramelessWindowStyle(const QWidget* widget) {
 
 bool isWindowMaximized(const QWidget* widget) {
 	auto hwnd = reinterpret_cast<HWND>(widget->winId());
+#if 0
 	WINDOWPLACEMENT pl{};
 	if (!::GetWindowPlacement(hwnd, &pl)) {
 		return false;
 	}
 	return pl.showCmd == SW_MAXIMIZE;
+#else
+	return ::GetWindowLong(hwnd, GWL_STYLE) & WS_MINIMIZE;
+#endif
 }
 
 }
