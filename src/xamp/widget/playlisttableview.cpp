@@ -451,7 +451,7 @@ void PlayListTableView::initial() {
 
         action_map.setCallback(export_cover_act, [item, this]() {
             auto reader = MakeMetadataReader();
-            auto buffer = reader->ExtractEmbeddedCover(item.file_path.toStdWString());
+            auto buffer = reader->GetEmbeddedCover(item.file_path.toStdWString());
             if (buffer.empty()) {
                 return;
             }

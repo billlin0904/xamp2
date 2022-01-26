@@ -226,12 +226,12 @@ static ColorStatis FromPixels(const std::vector<Color>& pixels, std::vector<int3
 		const auto red = std::get<0>(pixel) >> ColorStatis::RSHIFT;
 		const auto green = std::get<1>(pixel) >> ColorStatis::RSHIFT;
 		const auto blue = std::get<2>(pixel) >> ColorStatis::RSHIFT;
-		rmin = std::min(red, rmin);
-		rmax = std::max(red, rmax);
-		gmin = std::min(green, gmin);
-		gmax = std::max(green, gmax);
-		bmin = std::min(blue, bmin);
-		bmax = std::max(blue, bmax);
+		rmin = (std::min)(red, rmin);
+		rmax = (std::max)(red, rmax);
+		gmin = (std::min)(green, gmin);
+		gmax = (std::max)(green, gmax);
+		bmin = (std::min)(blue, bmin);
+		bmax = (std::max)(blue, bmax);
 	}
 	return { rmin, rmax, gmin, gmax, bmin, bmax, histo };
 }
@@ -420,9 +420,23 @@ static ColorStatisQueue Quantize(std::vector<Color>& pixels, int32_t max_color) 
 std::vector<QColor> GetPalette(const QImage& image, int32_t color_count, int32_t quality) {
 	const auto img = image.convertToFormat(QImage::Format_RGBA8888, Qt::AutoColor);
 
+	/*std::vector<Color> pixels;
+	pixels.reserve(img.byteCount() / 4);
+
+	const auto* rgb = reinterpret_cast<const QRgb*>(img.constBits());
+	const auto* const last = rgb + img.byteCount() / 4;
+
+	for (; rgb != last; ++rgb) {
+		if (qAlpha(*rgb) >= 125) {
+			if (qRed(*rgb) < 250 || qGreen(*rgb) < 250 || qBlue(*rgb) < 250) {
+				pixels.emplace_back(qRed(*rgb), qGreen(*rgb), qBlue(*rgb));
+			}
+		}
+	}*/
+
 	std::vector<Color> pixels;
-	for (auto row = 0; row + quality < img.height(); row += quality) {
-		for (auto col = 0; col + quality < img.width(); col += quality) {
+	for (auto row = 0; row < img.height(); ++row) {
+		for (auto col = 0; col < img.width(); ++col) {
 			QColor rgba(img.pixel(row, col));
 			if (rgba.alpha() >= 125) {
 				if (rgba.red() < 250 || rgba.green() < 250 || rgba.blue() < 250) {

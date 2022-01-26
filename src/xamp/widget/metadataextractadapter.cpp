@@ -55,7 +55,7 @@ QString DatabaseIdCache::AddCoverCache(int32_t album_id, const QString& album, c
     }
 
     QPixmap pixmap;
-    const auto& buffer = cover_reader_->ExtractEmbeddedCover(metadata.file_path);
+    const auto& buffer = cover_reader_->GetEmbeddedCover(metadata.file_path);
     if (!buffer.empty()) {
         pixmap.loadFromData(buffer.data(),
             static_cast<uint32_t>(buffer.size()));
@@ -67,7 +67,7 @@ QString DatabaseIdCache::AddCoverCache(int32_t album_id, const QString& album, c
     }
 
     if (!pixmap.isNull()) {
-        auto pallette = GetPalette(pixmap.toImage());
+        auto palette = GetPalette(pixmap.toImage(), 10, 1);
         cover_id = Singleton<PixmapCache>::GetInstance().addOrUpdate(pixmap);
         XAMP_ASSERT(!cover_id.isEmpty());
         cover_id_cache_.AddOrUpdate(album_id, cover_id);

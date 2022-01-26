@@ -415,7 +415,7 @@ std::optional<ReplayGain> TaglibMetadataReader::GetReplayGain(const Path& path) 
     return reader_->GetReplayGain(path);
 }
 
-const std::vector<uint8_t>& TaglibMetadataReader::ExtractEmbeddedCover(Path const & path) {
+const std::vector<uint8_t>& TaglibMetadataReader::GetEmbeddedCover(Path const & path) {
     return reader_->ExtractCover(path);
 }
 
