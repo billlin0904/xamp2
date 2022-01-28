@@ -45,11 +45,14 @@ ScrollLabel* LrcPage::title() {
 	return title_;
 }
 
+void LrcPage::setBackgroundColor(QColor backgroundColor) {
+	lyrics_widget_->setBackgroundColor(backgroundColor);
+	setStyleSheet(backgroundColorToString(backgroundColor));
+}
+
 void LrcPage::onThemeChanged(QColor backgroundColor, QColor color) {
 	lyrics_widget_->setLrcColor(color);
 	lyrics_widget_->setLrcHightLight(color);
-	//lyrics_widget_->setBackgroundColor(backgroundColor);
-    //setStyleSheet(backgroundColorToString(backgroundColor));
 }
 
 void LrcPage::initial() {

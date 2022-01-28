@@ -33,6 +33,8 @@ public:
 
 	QSize coverSize() const;
 
+	void setBackgroundColor(QColor backgroundColor);
+
 public slots:
     void onThemeChanged(QColor backgroundColor, QColor color);
 

@@ -44,6 +44,7 @@
 #include <widget/time_utilts.h>
 #include <widget/equalizerdialog.h>
 #include <widget/playlisttablemodel.h>
+#include <widget/colorthief.h>
 
 #include "aboutpage.h"
 #include "preferencepage.h"
@@ -1101,13 +1102,20 @@ void Xamp::updateUI(const MusicEntity& item, const PlaybackFormat& playback_form
     if (current_entity_.cover_id != item.cover_id) {
         if (item.cover_id == Singleton<PixmapCache>::GetInstance().getUnknownCoverId()) {
             setCover(nullptr);
+            lrc_page_->setBackgroundColor(ThemeManager::instance().getBackgroundColor());
         }
         else {
             if (const auto * cover = Singleton<PixmapCache>::GetInstance().find(item.cover_id)) {
                 setCover(cover);
+                const auto palette = GetPalette(cover->toImage(), 10, 1);
+                for (const auto& color : palette) {
+                    XAMP_LOG_DEBUG("Color: {}", color.name().toStdString());
+                }
+                lrc_page_->setBackgroundColor(palette[0]);
             }
             else {
                 setCover(nullptr);
+                lrc_page_->setBackgroundColor(ThemeManager::instance().getBackgroundColor());
             }
         }        
     }

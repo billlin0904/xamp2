@@ -24,7 +24,6 @@
 #include <widget/appsettings.h>
 #include <widget/playlisttableview.h>
 #include <widget/image_utiltis.h>
-#include <widget/colorthief.h>
 #include <widget/metadataextractadapter.h>
 
 inline constexpr size_t kCachePreallocateSize = 500;
@@ -67,7 +66,6 @@ QString DatabaseIdCache::AddCoverCache(int32_t album_id, const QString& album, c
     }
 
     if (!pixmap.isNull()) {
-        auto palette = GetPalette(pixmap.toImage(), 10, 1);
         cover_id = Singleton<PixmapCache>::GetInstance().addOrUpdate(pixmap);
         XAMP_ASSERT(!cover_id.isEmpty());
         cover_id_cache_.AddOrUpdate(album_id, cover_id);

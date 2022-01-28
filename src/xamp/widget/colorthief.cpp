@@ -4,6 +4,7 @@
 #include <optional>
 
 #include <base/stl.h>
+#include <base/assert.h>
 
 #include <QPixmap>
 #include <widget/colorthief.h>
@@ -255,12 +256,12 @@ enum class CutColor {
 	kBlue,
 };
 
-#define SUM_LOOP(color1_min, color1_max, color2_min, color2_max, color3_min, color3_max) \
-for (auto i = color1_min; i < color1_max + 1; ++i) { \
+#define SUM_LOOP(color1_min, color1_max, color2_min, color2_max, color3_min, color3_max, index1, index2, index3) \
+for (auto i = color1_min; i < (color1_max) + 1; ++i) { \
 	auto sum = 0;\
-	for (int j = color2_min; j < color2_max + 1; j++) {\
-		for (int k = color3_min; k < color3_max + 1; k++) {\
-			const auto index = ColorStatis::GetColorIndex(i, j, k);\
+	for (int j = color2_min; j < (color2_max) + 1; j++) {\
+		for (int k = color3_min; k < (color3_max) + 1; k++) {\
+			const auto index = ColorStatis::GetColorIndex(index1, index2, index3);\
 			sum += histo[index];\
 		}\
 	}\
@@ -272,7 +273,7 @@ static std::tuple<std::optional<ColorStatis>, std::optional<ColorStatis>> GetMed
 	auto rw = statis.red_max - statis.red_min + 1;
 	auto gw = statis.green_max - statis.green_min + 1;
 	auto bw = statis.blue_max - statis.blue_min + 1;
-	auto maxw = std::max(rw, std::max(gw, bw));
+	auto maxw = (std::max)(rw, (std::max)(gw, bw));
 
 	if (statis.GetCount() == 1) {
 		return { {statis}, {} };
@@ -284,18 +285,18 @@ static std::tuple<std::optional<ColorStatis>, std::optional<ColorStatis>> GetMed
 
 	HashMap<int32_t, int32_t> partial_sum;
 	HashMap<int32_t, int32_t> lookahead_sum;
-	CutColor do_cut_color = CutColor::kRed;
+	auto do_cut_color = CutColor::kRed;
 
 	if (maxw == rw) {
 		do_cut_color = CutColor::kRed;
-		SUM_LOOP(statis.red_min, statis.red_max, statis.green_min, statis.green_max, statis.blue_min, statis.blue_max)
+		SUM_LOOP(statis.red_min, statis.red_max, statis.green_min, statis.green_max, statis.blue_min, statis.blue_max, i, j, k)
 	} else if (maxw == gw) {
 		do_cut_color = CutColor::kGreen;
-		SUM_LOOP(statis.green_min, statis.green_max, statis.red_min, statis.red_max, statis.blue_min, statis.blue_max)
+		SUM_LOOP(statis.green_min, statis.green_max, statis.red_min, statis.red_max, statis.blue_min, statis.blue_max, j, i, k)
 	} else {
 		do_cut_color = CutColor::kBlue;
 		SUM_LOOP(
-			statis.blue_min, statis.blue_max, statis.red_min, statis.red_max, statis.green_min, statis.green_max)
+			statis.blue_min, statis.blue_max, statis.red_min, statis.red_max, statis.green_min, statis.green_max, j, k, i)
 	}
 
 	for (auto [i, d] : partial_sum) {
@@ -319,7 +320,8 @@ static std::tuple<std::optional<ColorStatis>, std::optional<ColorStatis>> GetMed
 	}
 
 	for (auto i = dim1_val; i < dim2_val + 1; ++i) {
-		if (partial_sum[i] > total / 2) {
+		const auto sum = partial_sum[i];
+		if (sum > total / 2) {
 			auto s1 = statis;
 			auto s2 = statis;
 
@@ -328,10 +330,10 @@ static std::tuple<std::optional<ColorStatis>, std::optional<ColorStatis>> GetMed
 			auto d2 = 0;
 
 			if (left <= right) {
-				d2 = std::min(dim2_val - 1, static_cast<int>(i + right / 2.0));
+				d2 = (std::min)(dim2_val - 1, static_cast<int>(i + right / 2.0));
 			}
 			else {
-				d2 = std::max(dim1_val, static_cast<int>(i - 1 - left / 2.0));
+				d2 = (std::max)(dim1_val, static_cast<int>(i - 1 - left / 2.0));
 			}
 
 			while (!(partial_sum.count(d2) > 0 && partial_sum[d2] > 0)) {
@@ -381,8 +383,10 @@ static void MakeColorMedian(SortedQueue<ColorStatis, Compare>& CQ, double target
 		}
 
 		auto [s1, s2] = GetMedianCut(histo, statis);
+		XAMP_ASSERT(s1.has_value());
 
 		CQ.Push(s1.value());
+
 		if (s2) {
 			CQ.Push(s2.value());
 			num_color += 1;
@@ -420,11 +424,11 @@ static ColorStatisQueue Quantize(std::vector<Color>& pixels, int32_t max_color) 
 std::vector<QColor> GetPalette(const QImage& image, int32_t color_count, int32_t quality) {
 	const auto img = image.convertToFormat(QImage::Format_RGBA8888, Qt::AutoColor);
 
-	/*std::vector<Color> pixels;
-	pixels.reserve(img.byteCount() / 4);
+	std::vector<Color> pixels;
+	pixels.reserve(img.sizeInBytes() / 4);
 
-	const auto* rgb = reinterpret_cast<const QRgb*>(img.constBits());
-	const auto* const last = rgb + img.byteCount() / 4;
+	/*const auto* rgb = reinterpret_cast<const QRgb*>(img.constBits());
+	const auto* const last = rgb + img.sizeInBytes() / 4;
 
 	for (; rgb != last; ++rgb) {
 		if (qAlpha(*rgb) >= 125) {
@@ -434,10 +438,9 @@ std::vector<QColor> GetPalette(const QImage& image, int32_t color_count, int32_t
 		}
 	}*/
 
-	std::vector<Color> pixels;
-	for (auto row = 0; row < img.height(); ++row) {
-		for (auto col = 0; col < img.width(); ++col) {
-			QColor rgba(img.pixel(row, col));
+	for (auto x = 0; x < img.width(); ++x) {
+		for (auto y = 0; y < img.height(); ++y) {
+			QColor rgba(img.pixel(x, y));
 			if (rgba.alpha() >= 125) {
 				if (rgba.red() < 250 || rgba.green() < 250 || rgba.blue() < 250) {
 					pixels.emplace_back(rgba.red(), rgba.green(), rgba.blue());

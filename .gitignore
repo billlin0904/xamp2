@@ -63,3 +63,8 @@ CMakeLists.txt.user
 /src/xamp/xamp.aps
 /src/xamp/VTune Amplifier Results/xamp/r002hs
 /src/xamp/VTune Amplifier Results/xamp
+/src/bench/x64
+/src/bench/logs
+/src/bench/bench.vcxproj.user
+/src/sanitize/sanitize.vcxproj.user
+/src/sanitize/x64
