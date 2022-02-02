@@ -1017,7 +1017,7 @@ void Xamp::playMusic(const MusicEntity& item) {
 	    uint32_t target_sample_rate = 0;
         auto soxr_settings = JsonSettings::getValue(AppSettings::getValueAsString(kAppSettingSoxrSettingName)).toMap();
 
-	    if (AppSettings::getValue(kAppSettingResamplerEnable).toBool()) {
+	    if (AppSettings::getValueAsBool(kAppSettingResamplerEnable)) {
             target_sample_rate = soxr_settings[kSoxrResampleSampleRate].toUInt();
         }
 
@@ -1029,7 +1029,7 @@ void Xamp::playMusic(const MusicEntity& item) {
 
         if (AppSettings::getValueAsBool(kAppSettingEnableReplayGain)) {
             player_->GetDSPManager()->AddPreDSP(MakeVolume());
-            auto mode = static_cast<ReplayGainMode>(AppSettings::getValue(kAppSettingReplayGainMode).toInt());
+            auto mode = AppSettings::getAsEnum<ReplayGainMode>(kAppSettingReplayGainMode);
             if (mode == ReplayGainMode::RG_ALBUM_MODE) {
                 player_->GetDSPManager()->SetReplayGain(item.album_replay_gain);
             } else if (mode == ReplayGainMode::RG_TRACK_MODE) {
@@ -1096,6 +1096,7 @@ void Xamp::updateUI(const MusicEntity& item, const PlaybackFormat& playback_form
             Singleton<Database>::GetInstance().getArtistCoverId(item.artist_id),
             item.artist_id);
 
+        updateButtonState();
         emit nowPlaying(item.artist, item.title);
     }
 
