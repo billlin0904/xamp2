@@ -24,10 +24,6 @@ void XDialog::setContentWidget(QWidget* content) {
     frame_->setContentWidget(content);
 
     setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint);
-
-#if defined(Q_OS_MAC)
-    setWindowFlags(windowFlags() | Qt::Sheet);
-#endif
     setAttribute(Qt::WA_TranslucentBackground, true);
 
     auto* default_layout = new QGridLayout(this);

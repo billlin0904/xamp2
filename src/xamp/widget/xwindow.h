@@ -53,13 +53,12 @@ protected:
 
     void closeEvent(QCloseEvent* event) override;
 private:
-    bool nativeEvent(const QByteArray& event_type, void* message, long* result) override;	
+    bool nativeEvent(const QByteArray& event_type, void* message, long* result) override;
 
+    struct WinTaskbar;
 #if defined(Q_OS_WIN)
     void showEvent(QShowEvent* event) override;
     bool hitTest(MSG const* msg, long* result) const;
-
-    struct WinTaskbar;
     int border_width_;
 	QPoint last_pos_;
     QScreen* current_screen_;

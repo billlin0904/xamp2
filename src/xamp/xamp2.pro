@@ -48,7 +48,7 @@ SOURCES += \
     widget/clickablelabel.cpp \
     widget/database.cpp \
     widget/qetag.cpp \
-    widget/framelesswindow.cpp \
+    widget/xwindow.cpp \
     widget/lrcpage.cpp \
     widget/lrcparser.cpp \
     widget/metadataextractadapter.cpp \
@@ -70,6 +70,7 @@ SOURCES += \
     widget/jsonsettings.cpp \
     widget/scrolllabel.cpp \
     widget/xdialog.cpp \
+    widget/xframe.cpp \
     widget/image_utiltis.cpp \
     widget/read_utiltis.cpp \
     widget/settingnames.cpp \
@@ -77,6 +78,7 @@ SOURCES += \
     widget/musicentity.cpp \
     widget/ui_utilts.cpp \
     widget/podcast_uiltis.cpp \
+    widget/colorthief.cpp \
     singleinstanceapplication.cpp \
     thememanager.cpp \
     aboutpage.cpp \
@@ -129,9 +131,11 @@ HEADERS += \
     widget/jsonsettings.h \
     widget/scrolllabel.h \
     widget/xdialog.h \
+    widget/xframe.h \
     widget/read_utiltis.h \
     widget/time_utilts.h \
     widget/replaygainworker.h \
+    widget/colorthief.h \
     singleinstanceapplication.h \
     thememanager.h \
     aboutpage.h \
