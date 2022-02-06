@@ -182,9 +182,9 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
     const auto reader = MakeMetadataReader();
 
     for (const auto& file_dir_or_path : dirs) {
-    	if (dialog->wasCanceled()) {
+        if (dialog->wasCanceled()) {
             return;
-    	}      
+        }
 
         dialog->setLabelText(file_dir_or_path);
         
@@ -240,8 +240,6 @@ void ::MetadataExtractAdapter::processMetadata(const std::vector<Metadata>& resu
     if (playlist != nullptr) {
         playlist->refresh();
     }
-
-    Singleton<PixmapCache>::GetInstance().clearCache();
 }
 
 Metadata getMetadata(QString const& file_path) {

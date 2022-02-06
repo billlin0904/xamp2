@@ -27,7 +27,7 @@ struct AppEQSettings {
         arch << object.name;
         arch << object.settings.preamp;
         arch << static_cast<quint32>(object.settings.bands.size());
-        for (auto i = 0; i < object.settings.bands.size(); ++i) {
+        for (size_t i = 0; i < object.settings.bands.size(); ++i) {
             arch << object.settings.bands[i].gain << object.settings.bands[i].Q;
         }
         return arch;

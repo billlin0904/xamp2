@@ -139,6 +139,8 @@ void XWindow::setContentWidget(IXampPlayer *content_widget) {
     if (!ThemeManager::instance().useNativeWindow()) {
         setWindowFlags(Qt::WindowSystemMenuHint | Qt::WindowMinimizeButtonHint | Qt::WindowMaximizeButtonHint | Qt::FramelessWindowHint);
     }
+#else
+
 #endif
     content_widget_ = content_widget;    
     if (content_widget_ != nullptr) {        
@@ -158,9 +160,12 @@ void XWindow::setContentWidget(IXampPlayer *content_widget) {
     }
     taskbar_.reset(new WinTaskbar(this, content_widget));
 #else
-    if (!ThemeManager::instance().useNativeWindow()) {
+    if (!ThemeManager::instance().useNativeWindow() && content_widget_ != nullptr) {
         osx::hideTitleBar(content_widget_);
         setWindowTitle(kAppTitle);
+        if (AppSettings::getValueAsBool(kAppSettingEnableBlur)) {
+            ThemeManager::instance().enableBlur(this, true);
+        }
     }
 #endif
 }
@@ -358,6 +363,8 @@ bool XWindow::nativeEvent(const QByteArray& event_type, void * message, long * r
         break;
     }
     return QWidget::nativeEvent(event_type, message, result);
+#else
+    return QWidget::nativeEvent(event_type, message, result);
 #endif
 }
 
@@ -407,7 +414,7 @@ void XWindow::mouseReleaseEvent(QMouseEvent* event) {
 #endif
 }
 
-void XWindow::mouseDoubleClickEvent(QMouseEvent* event) {
+void XWindow::mouseDoubleClickEvent(QMouseEvent*) {
     if (isMaximized()) {
         showNormal();
     } else {

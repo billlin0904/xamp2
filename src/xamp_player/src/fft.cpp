@@ -186,7 +186,6 @@ public:
 	FFTImpl() = default;
 
 	void Init(size_t size) {
-		window_.Init(size);
 		size_ = size;
         size_over2_ = size_ / 2;
         log2n_size_ = std::log2(size);
@@ -198,7 +197,6 @@ public:
 		im_ = MakeAlignedArray<float>(size_over2_);
 		split_complex_.realp = re_.get();
 		split_complex_.imagp = im_.get();
-		output_ = ComplexValarray(Complex(), complex_size_); (Complex(), complex_size_);
 	}
 
 	const ComplexValarray& Forward(float const* signals, size_t size) {
@@ -237,7 +235,6 @@ private:
 	size_t size_over2_{ 0 };
     size_t complex_size_{ 0 };
 	FFTSetupHandle fft_setup_;
-	Window window_;
 	DSPSplitComplex split_complex_;
 	AlignArray<float> input_;
 	AlignArray<float> re_;

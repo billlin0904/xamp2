@@ -1,0 +1,3 @@
+/Users/bill/Documents/xamp2/src/build-xamp_player-Desktop_Qt_5_15_2_clang_64bit-Release/CMakeFiles/rebuild_cache.dir
+/Users/bill/Documents/xamp2/src/build-xamp_player-Desktop_Qt_5_15_2_clang_64bit-Release/CMakeFiles/edit_cache.dir
+/Users/bill/Documents/xamp2/src/build-xamp_player-Desktop_Qt_5_15_2_clang_64bit-Release/CMakeFiles/xamp_player.dir

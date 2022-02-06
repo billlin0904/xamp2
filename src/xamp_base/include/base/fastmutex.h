@@ -76,7 +76,7 @@ public:
 
 	void notify_all() noexcept;
 private:
-	static int _FutexWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, const struct timespec* to) noexcept;
+    static int Wait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, const struct timespec* to) noexcept;
 
 	template <typename Rep, typename Period>
 	int FutexWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, std::chrono::duration<Rep, Period> const& duration) {
@@ -84,7 +84,7 @@ private:
 		timespec ts;
 		ts.tv_sec = duration_cast<seconds>(duration).count();
 		ts.tv_nsec = duration_cast<nanoseconds>(duration).count() % 1000000000;
-		return _FutexWait(to_wait_on, expected, &ts);
+        return Wait(to_wait_on, expected, &ts);
 	}
 
 	XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<uint32_t> state_{ kUnlocked };

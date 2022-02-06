@@ -155,7 +155,7 @@ static void BM_default_random_engine(benchmark::State& state) {
 static void BM_PRNG(benchmark::State& state) {
     PRNG prng;
     for (auto _ : state) {
-        size_t n = prng.NextInt(INT64_MIN, INT64_MAX);
+        size_t n = prng.NextInt64(INT64_MIN, INT64_MAX);
         benchmark::DoNotOptimize(n);
     }
     state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(float));
@@ -163,7 +163,7 @@ static void BM_PRNG(benchmark::State& state) {
 
 static void BM_PRNG_GetInstance(benchmark::State& state) {
     for (auto _ : state) {
-        size_t n = PRNG::GetInstance().NextInt(INT64_MIN, INT64_MAX);
+        size_t n = PRNG::GetInstance().NextInt64(INT64_MIN, INT64_MAX);
         benchmark::DoNotOptimize(n);
     }
     state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(float));
@@ -316,32 +316,32 @@ static void BM_StdtMemset(benchmark::State& state) {
 static void BM_FindRobinHoodHashMap(benchmark::State& state) {
     HashMap<int64_t, int64_t> map;
     for (auto _ : state) {
-        map.emplace(std::make_pair(PRNG::GetInstance().NextInt(), PRNG::GetInstance().NextInt()));
-        (void)map.find(PRNG::GetInstance().NextInt());
+        map.emplace(std::make_pair(PRNG::GetInstance().NextInt64(), PRNG::GetInstance().NextInt64()));
+        (void)map.find(PRNG::GetInstance().NextInt64());
     }
 }
 
 static void BM_unordered_map(benchmark::State& state) {
     std::unordered_map<int64_t, int64_t> map;
     for (auto _ : state) {
-        map.emplace(std::make_pair(PRNG::GetInstance().NextInt(), PRNG::GetInstance().NextInt()));
-        (void)map.find(PRNG::GetInstance().NextInt());
+        map.emplace(std::make_pair(PRNG::GetInstance().NextInt64(), PRNG::GetInstance().NextInt64()));
+        (void)map.find(PRNG::GetInstance().NextInt64());
     }
 }
 
 static void BM_FindRobinHoodHashSet(benchmark::State& state) {
     HashSet<int64_t> map;
     for (auto _ : state) {
-        map.emplace(PRNG::GetInstance().NextInt());
-        (void)map.find(PRNG::GetInstance().NextInt());
+        map.emplace(PRNG::GetInstance().NextInt64());
+        (void)map.find(PRNG::GetInstance().NextInt64());
     }
 }
 
 static void BM_unordered_set(benchmark::State& state) {
     std::unordered_set<int64_t> map;
     for (auto _ : state) {
-        map.emplace(PRNG::GetInstance().NextInt());
-        (void)map.find(PRNG::GetInstance().NextInt());
+        map.emplace(PRNG::GetInstance().NextInt64());
+        (void)map.find(PRNG::GetInstance().NextInt64());
     }
 }
 
@@ -351,12 +351,12 @@ static void BM_LruCache(benchmark::State& state) {
     LruCache<int64_t, int64_t> cache;
 
     for (auto i = 0; i < length; ++i) {
-        cache.AddOrUpdate(PRNG::GetInstance().NextInt(1, 1000),\
-            PRNG::GetInstance().NextInt(1, 1000));
+        cache.AddOrUpdate(PRNG::GetInstance().NextInt64(1, 1000),\
+            PRNG::GetInstance().NextInt64(1, 1000));
     }
     
     for (auto _ : state) {
-        cache.Find(PRNG::GetInstance().NextInt(1, 1000));
+        cache.Find(PRNG::GetInstance().NextInt64(1, 1000));
     }
 }
 
@@ -402,7 +402,7 @@ BENCHMARK(BM_ThreadPool);
 
 
 int main(int argc, char** argv) {
-    std::cin.get();
+    //std::cin.get();
 
     Logger::GetInstance()
         .AddDebugOutputLogger()

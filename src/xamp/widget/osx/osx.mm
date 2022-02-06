@@ -10,6 +10,7 @@ void hideTitleBar(const QWidget* widget) {
     long winid = widget->winId();
     NSView* view = reinterpret_cast<NSView *>(winid);
     NSWindow* wndd = [view window];
+
     wndd.titlebarAppearsTransparent = YES;
     wndd.titleVisibility = NSWindowTitleHidden;
     wndd.styleMask |= NSFullSizeContentViewWindowMask;
@@ -22,8 +23,6 @@ void setBlurMaterial(const QWidget* widget, bool enable) {
     long winid = widget->winId();
     NSView* view = reinterpret_cast<NSView *>(winid);
     NSWindow* wndd = [view window];
-
-
     NSRect rect = NSMakeRect(0, 0, widget->width(), widget->height());
 
     auto effect_view = [[NSVisualEffectView alloc] init];

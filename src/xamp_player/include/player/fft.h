@@ -9,6 +9,7 @@
 #include <valarray>
 
 #include <base/align_ptr.h>
+#include <base/enum.h>
 #include <player/player.h>
 
 namespace xamp::player {

@@ -34,7 +34,7 @@ public:
         return std::uniform_int_distribution<T>(min, max)(engine_);
     }
 
-    int64_t NextInt(
+    int64_t NextInt64(
         const int64_t min = (std::numeric_limits<int64_t>::min)(),
         const int64_t max = (std::numeric_limits<int64_t>::max)()) noexcept {
         // note: xoshiro隨機數演算法只在64bit資料處理很快, 所以只保留int64_t類型.
@@ -51,7 +51,7 @@ public:
 		const float min = (std::numeric_limits<float>::min)(),
 		const float max = (std::numeric_limits<float>::max)()) {
 		auto output = MakeAlignedArray<float>(size);
-		for (auto i = 0; i < size; ++i) {
+        for (size_t i = 0; i < size; ++i) {
 			output[i] = (*this)(min, max);
 		}
 		return output;
@@ -61,7 +61,7 @@ public:
 		const int32_t min = (std::numeric_limits<int32_t>::min)(),
 		const int32_t max = (std::numeric_limits<int32_t>::max)()) {
 		auto output = MakeAlignedArray<int32_t>(size);
-		for (auto i = 0; i < size; ++i) {
+        for (size_t i = 0; i < size; ++i) {
 			output[i] = (*this)(min, max);
 		}
 		return output;
@@ -71,7 +71,7 @@ public:
 		const int32_t min = (std::numeric_limits<int8_t>::min)(),
 		const int32_t max = (std::numeric_limits<int8_t>::max)()) {
 		auto output = MakeAlignedArray<int8_t>(size);
-		for (auto i = 0; i < size; ++i) {
+        for (size_t i = 0; i < size; ++i) {
 			output[i] = static_cast<int8_t>((*this)(min, max));
 		}
 		return output;

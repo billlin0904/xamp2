@@ -83,10 +83,10 @@ QFont ThemeManager::loadFonts() {
 void ThemeManager::setPalette() {
     palette_ = QPalette();
     if (theme_color_ == ThemeColor::LIGHT_THEME) {
-        palette_.setColor(QPalette::Foreground, QColor(250, 250, 250));
+        palette_.setColor(QPalette::WindowText, QColor(250, 250, 250));
         background_color_ = QColor(250, 250, 250);
     } else {
-        palette_.setColor(QPalette::Foreground, QColor(25, 35, 45));
+        palette_.setColor(QPalette::WindowText, QColor(25, 35, 45));
         background_color_ = QColor(25, 35, 45);
     }
 }
@@ -289,7 +289,7 @@ QColor ThemeManager::getBackgroundColor() const noexcept {
 }
 
 void ThemeManager::setBackgroundColor(QWidget* widget) {
-    auto color = ThemeManager::instance().palette().color(QPalette::Foreground);    
+    auto color = ThemeManager::instance().palette().color(QPalette::WindowText);
     widget->setStyleSheet(backgroundColorToString(color));
 }
 

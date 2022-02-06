@@ -13,7 +13,7 @@
 
 #include <widget/widget_shared.h>
 
-#include <widget/musicentity.h>
+#include <widget/albumentity.h>
 #include <widget/playlistentity.h>
 
 class QLabel;
@@ -66,7 +66,7 @@ public:
 	}
 
 signals:
-    void playMusic(const MusicEntity& entity);
+    void playMusic(const AlbumEntity& entity);
 
 	void clickedArtist(const QString& artist, const QString& cover_id, int32_t artist_id);
 
@@ -106,7 +106,7 @@ public:
 	explicit AlbumView(QWidget* parent = nullptr);
 
 signals:
-    void playMusic(const MusicEntity& entity);
+    void playMusic(const AlbumEntity& entity);
 
     void addPlaylist(const std::vector<int32_t> &music_ids, const std::vector<PlayListEntity> &entities);
 

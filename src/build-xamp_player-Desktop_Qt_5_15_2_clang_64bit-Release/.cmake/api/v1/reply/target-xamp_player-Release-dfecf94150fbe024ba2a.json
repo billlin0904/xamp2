@@ -1,0 +1,306 @@
+{
+	"artifacts" : 
+	[
+		{
+			"path" : "/Users/bill/Documents/xamp2/src/xamp_player/release/libxamp_player.dylib"
+		}
+	],
+	"backtrace" : 1,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_library",
+			"include_directories"
+		],
+		"files" : 
+		[
+			"CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 80,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 29,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 30,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 31,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 32,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 33,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 34,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 35,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 36,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 37,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 38,
+				"parent" : 0
+			}
+		]
+	},
+	"compileGroups" : 
+	[
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : "-O3 -DNDEBUG -DNDEBUG -O3 -ftree-vectorize -march=native -mtune=native -mavx2 -flto=thin -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.0.sdk -mmacosx-version-min=10.15 -fPIC   -std=gnu++1z"
+				}
+			],
+			"defines" : 
+			[
+				{
+					"define" : "xamp_player_EXPORTS"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 2,
+					"path" : "/Users/bill/Documents/xamp2/src/xamp_player/include"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "/Users/bill/Documents/xamp2/src/xamp_player/../xamp_base/include"
+				},
+				{
+					"backtrace" : 4,
+					"path" : "/Users/bill/Documents/xamp2/src/xamp_player/../xamp_output_device/include"
+				},
+				{
+					"backtrace" : 5,
+					"path" : "/Users/bill/Documents/xamp2/src/xamp_player/../xamp_stream/include"
+				},
+				{
+					"backtrace" : 6,
+					"path" : "/Users/bill/Documents/xamp2/src/xamp_player/../xamp_metadata/include"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "/Users/bill/Documents/xamp2/src/xamp_player/../thirdparty/bass/include"
+				},
+				{
+					"backtrace" : 8,
+					"path" : "/Users/bill/Documents/xamp2/src/xamp_player/../thirdparty/spdlog/include"
+				},
+				{
+					"backtrace" : 9,
+					"path" : "/Users/bill/Documents/xamp2/src/xamp_player/../thirdparty/soxr/src"
+				},
+				{
+					"backtrace" : 10,
+					"path" : "/Users/bill/Documents/xamp2/src/xamp_player/../thirdparty/robin_hood"
+				},
+				{
+					"backtrace" : 11,
+					"path" : "/Users/bill/Documents/xamp2/src/xamp_player/../thirdparty/chromaprint/src"
+				}
+			],
+			"language" : "CXX",
+			"sourceIndexes" : 
+			[
+				0,
+				1,
+				2,
+				3,
+				4,
+				6
+			]
+		},
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : "-O3 -DNDEBUG -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.0.sdk -mmacosx-version-min=10.15 -fPIC  "
+				}
+			],
+			"defines" : 
+			[
+				{
+					"define" : "xamp_player_EXPORTS"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 2,
+					"path" : "/Users/bill/Documents/xamp2/src/xamp_player/include"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "/Users/bill/Documents/xamp2/src/xamp_player/../xamp_base/include"
+				},
+				{
+					"backtrace" : 4,
+					"path" : "/Users/bill/Documents/xamp2/src/xamp_player/../xamp_output_device/include"
+				},
+				{
+					"backtrace" : 5,
+					"path" : "/Users/bill/Documents/xamp2/src/xamp_player/../xamp_stream/include"
+				},
+				{
+					"backtrace" : 6,
+					"path" : "/Users/bill/Documents/xamp2/src/xamp_player/../xamp_metadata/include"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "/Users/bill/Documents/xamp2/src/xamp_player/../thirdparty/bass/include"
+				},
+				{
+					"backtrace" : 8,
+					"path" : "/Users/bill/Documents/xamp2/src/xamp_player/../thirdparty/spdlog/include"
+				},
+				{
+					"backtrace" : 9,
+					"path" : "/Users/bill/Documents/xamp2/src/xamp_player/../thirdparty/soxr/src"
+				},
+				{
+					"backtrace" : 10,
+					"path" : "/Users/bill/Documents/xamp2/src/xamp_player/../thirdparty/robin_hood"
+				},
+				{
+					"backtrace" : 11,
+					"path" : "/Users/bill/Documents/xamp2/src/xamp_player/../thirdparty/chromaprint/src"
+				}
+			],
+			"language" : "C",
+			"sourceIndexes" : 
+			[
+				5
+			]
+		}
+	],
+	"id" : "xamp_player::@6890427a1f51a3e7e1df",
+	"link" : 
+	{
+		"commandFragments" : 
+		[
+			{
+				"fragment" : "-Wl,-rpath,/Users/bill/Documents/xamp2/src/xamp_output_device/release -Wl,-rpath,/Users/bill/Documents/xamp2/src/xamp_stream/release -Wl,-rpath,/Users/bill/Documents/xamp2/src/xamp_metadata/release /Users/bill/Documents/xamp2/src/xamp_base/release/libxamp_base.dylib /Users/bill/Documents/xamp2/src/xamp_output_device/release/libxamp_output_device.dylib /Users/bill/Documents/xamp2/src/xamp_stream/release/libxamp_stream.dylib /Users/bill/Documents/xamp2/src/xamp_metadata/release/libxamp_metadata.dylib -framework Accelerate",
+				"role" : "libraries"
+			}
+		],
+		"language" : "CXX"
+	},
+	"name" : "xamp_player",
+	"nameOnDisk" : "libxamp_player.dylib",
+	"paths" : 
+	{
+		"build" : ".",
+		"source" : "."
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "Source Files",
+			"sourceIndexes" : 
+			[
+				0,
+				1,
+				2,
+				3,
+				4,
+				5,
+				6
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/api.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/audio_player.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/audio_util.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/chromaprint.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/fft.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "src/libebur128/ebur128.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/loudness_scanner.cpp",
+			"sourceGroupIndex" : 0
+		}
+	],
+	"type" : "SHARED_LIBRARY"
+}

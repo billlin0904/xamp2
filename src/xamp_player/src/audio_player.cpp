@@ -65,10 +65,6 @@ inline constexpr std::chrono::seconds kWaitForSignalWhenReadFinish(3);
 //    return fft.Forward(signal.data(), signal.size());
 //}
 
-IDsdDevice* AsDsdDevice(AlignPtr<IOutputDevice> const& device) noexcept {
-    return dynamic_cast<IDsdDevice*>(device.get());
-}
-
 AudioPlayer::AudioPlayer()
     : AudioPlayer(std::weak_ptr<IPlaybackStateAdapter>()) {
 }
@@ -88,10 +84,10 @@ AudioPlayer::AudioPlayer(const std::weak_ptr<IPlaybackStateAdapter> &adapter)
     , sample_end_time_(0)
     , stream_duration_(0)
     , device_manager_(MakeAudioDeviceManager())
-    , dsp_manager_(MakeAlign<DSPManager>())
     , state_adapter_(adapter)
     , fifo_(GetPageAlignSize(kPreallocateBufferSize))
-    , action_queue_(kActionQueueSize) {
+    , action_queue_(kActionQueueSize)
+    , dsp_manager_(MakeAlign<DSPManager>()) {
     logger_ = Logger::GetInstance().GetLogger(kAudioPlayerLoggerName);
 }
 

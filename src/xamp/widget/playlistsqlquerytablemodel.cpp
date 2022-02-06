@@ -1,6 +1,6 @@
 #include <thememanager.h>
 #include <widget/playlisttablemodel.h>
-#include <widget/musicentity.h>
+#include <widget/albumentity.h>
 #include <widget/str_utilts.h>
 #include <widget/time_utilts.h>
 #include <widget/playlistsqlquerytablemodel.h>

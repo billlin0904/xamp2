@@ -208,7 +208,7 @@ static int excute(int argc, char* argv[]) {
 
     top_win.show();
     top_win.activateWindow();
-    top_win.resize(1100, 560);
+    top_win.resize(1250, 960);
     centerDesktop(&top_win);
     return app.exec();
 }

@@ -1,10 +1,10 @@
-#include <widget/musicentity.h>
+#include <widget/albumentity.h>
 
 QVariant getIndexValue(const QModelIndex& index, int i) {
     return index.model()->data(index.model()->index(index.row(), i));
 }
 
-MusicEntity getAlbumEntity(const QModelIndex& index) {
+AlbumEntity getAlbumEntity(const QModelIndex& index) {
     auto title = getIndexValue(index, 1).toString();
     auto musicId = getIndexValue(index, 3).toInt();
     auto artist = getIndexValue(index, 4).toString();
@@ -16,7 +16,7 @@ MusicEntity getAlbumEntity(const QModelIndex& index) {
     auto artistId = getIndexValue(index, 9).toInt();
     auto albumId = getIndexValue(index, 10).toInt();
 
-    MusicEntity entity;
+    AlbumEntity entity;
 
     entity.music_id = musicId;
     entity.album = album;
@@ -31,8 +31,8 @@ MusicEntity getAlbumEntity(const QModelIndex& index) {
     return entity;
 }
 
-MusicEntity toMusicEntity(const PlayListEntity& item) {
-    MusicEntity music_entity;
+AlbumEntity toAlbumEntity(const PlayListEntity& item) {
+    AlbumEntity music_entity;
     music_entity.music_id = item.music_id;
     music_entity.artist_id = item.artist_id;
     music_entity.album_id = item.album_id;

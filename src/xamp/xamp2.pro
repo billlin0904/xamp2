@@ -33,6 +33,7 @@ OBJECTIVE_SOURCES += \
     widget/osx/osx.mm
 
 SOURCES += \
+    widget/albumentity.cpp \
     widget/discordnotify.cpp \
     widget/doubleslider.cpp \
     widget/equalizerdialog.cpp \
@@ -61,7 +62,6 @@ SOURCES += \
     widget/toast.cpp \
     widget/uiplayerstateadapter.cpp \
     widget/wheelablewidget.cpp \
-    widget/selectcolorwidget.cpp \
     widget/artistinfopage.cpp \
     widget/starrating.cpp \
     widget/stareditor.cpp \
@@ -75,7 +75,6 @@ SOURCES += \
     widget/read_utiltis.cpp \
     widget/settingnames.cpp \
     widget/str_utilts.cpp \
-    widget/musicentity.cpp \
     widget/ui_utilts.cpp \
     widget/podcast_uiltis.cpp \
     widget/colorthief.cpp \
@@ -87,6 +86,7 @@ SOURCES += \
     xamp.cpp
 
 HEADERS += \
+    widget/albumentity.h \
     widget/discordnotify.h \
     widget/doubleslider.h \
     widget/equalizerdialog.h \
@@ -122,7 +122,6 @@ HEADERS += \
     widget/uiplayerstateadapter.h \
     widget/wheelablewidget.h \
     widget/str_utilts.h \
-    widget/selectcolorwidget.h \
     widget/artistinfopage.h \
     widget/starrating.h \
     widget/stareditor.h \

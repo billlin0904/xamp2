@@ -157,7 +157,7 @@ void Xamp::setXWindow(IXWindow* top_window) {
     changeTheme();
     QTimer::singleShot(300, [this]() {
         initialDeviceList();
-        discord_notify_.discordInit();
+        discord_notify_.discordInit();        
         });
     avoidRedrawOnResize();
 }
@@ -277,8 +277,8 @@ void Xamp::changeTheme() {
     QTextStream ts(&f);
     qApp->setStyleSheet(ts.readAll());
     f.close();
-    auto bk_color = ThemeManager::instance().palette().color(QPalette::Foreground);
-    XAMP_LOG_DEBUG("changeTheme {}", colorToString(bk_color).toStdString());
+    auto bk_color = ThemeManager::instance().palette().color(QPalette::WindowText);
+    //XAMP_LOG_DEBUG("changeTheme {}", colorToString(bk_color).toStdString());
     applyTheme(bk_color, color);
 }
 
@@ -307,14 +307,11 @@ void Xamp::initialUI() {
         ui_.minWinButton->hide();
     } else {
         f.setBold(true);
-        f.setPointSize(9);
+        f.setPointSize(12);
         ui_.titleFrameLabel->setFont(f);
         ui_.titleFrameLabel->setText(Q_UTF8("XAMP2"));
         ui_.titleFrameLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
     }
-
-    search_action_ = ui_.searchLineEdit->addAction(ThemeManager::instance().seachIcon(),
-        QLineEdit::LeadingPosition);
 #ifdef Q_OS_WIN
     f.setPointSize(8);
     ui_.startPosLabel->setFont(f);
@@ -329,6 +326,9 @@ void Xamp::initialUI() {
     f.setPointSize(10);
     ui_.artistLabel->setFont(f);
 #endif
+
+    search_action_ = ui_.searchLineEdit->addAction(ThemeManager::instance().seachIcon(),
+                                                   QLineEdit::LeadingPosition);
 }
 
 QWidgetAction* Xamp::createTextSeparator(const QString& text) {
@@ -351,7 +351,7 @@ void Xamp::onVolumeChanged(float volume) {
         player_->SetMute(true);
         ui_.mutedButton->setIcon(ThemeManager::instance().volumeOff());
     }
-    ui_.volumeSlider->setValue(static_cast<int32_t>(volume * 100.0));
+    ui_.volumeSlider->setValue(static_cast<int32_t>(volume * 100.0f));
 }
 
 void Xamp::onDeviceStateChanged(DeviceState state) {
@@ -602,11 +602,11 @@ void Xamp::initialController() {
 
         dialog->setContentWidget(eq);
 
-        (void)QObject::connect(eq, &EqualizerDialog::bandValueChange, [this](int band, float value, float Q) {
+        (void)QObject::connect(eq, &EqualizerDialog::bandValueChange, [](auto, auto, auto) {
             AppSettings::save();
         });
 
-        (void)QObject::connect(eq, &EqualizerDialog::preampValueChange, [this](float value) {
+        (void)QObject::connect(eq, &EqualizerDialog::preampValueChange, [](auto) {
             AppSettings::save();
         });
 
@@ -797,9 +797,6 @@ void Xamp::applyTheme(QColor backgroundColor, QColor color) {
     light_mode_action_->setIcon(ThemeManager::instance().lightModeIcon());
     ThemeManager::instance().setBackgroundColor(ui_, backgroundColor);
     ThemeManager::instance().setWidgetStyle(ui_);
-	/*if (!AppSettings::getValueAsBool(kAppSettingEnableBlur)) {
-        setStyleSheet(Q_STR(R"(#XampWindow { background-color: %1; })").arg(colorToString(backgroundColor)));
-	}*/
     updateButtonState();
 }
 
@@ -997,7 +994,7 @@ void Xamp::processMeatadata(const std::vector<Metadata>& medata) const {
     album_artist_page_->artist()->refreshOnece();
 }
 
-void Xamp::playMusic(const MusicEntity& item) {
+void Xamp::playMusic(const AlbumEntity& item) {
     auto open_done = false;
 
     ui_.seekSlider->setEnabled(true);
@@ -1070,7 +1067,7 @@ void Xamp::playMusic(const MusicEntity& item) {
     updateUI(item, playback_format, open_done);
 }
 
-void Xamp::updateUI(const MusicEntity& item, const PlaybackFormat& playback_format, bool open_done) {
+void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_format, bool open_done) {
     auto* cur_page = currentPlyalistPage();
 	
     ThemeManager::instance().setPlayOrPauseButton(ui_, open_done);
@@ -1153,8 +1150,8 @@ PlaylistPage* Xamp::currentPlyalistPage() {
     return current_playlist_page_;
 }
 
-void Xamp::play(const PlayListEntity& item) {    
-    playMusic(toMusicEntity(item));
+void Xamp::play(const PlayListEntity& item) {
+    playMusic(toAlbumEntity(item));
     current_entity_ = item;
     update();
 }

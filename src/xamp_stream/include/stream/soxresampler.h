@@ -57,7 +57,7 @@ public:
 
     [[nodiscard]] Uuid GetTypeId() const override;
 
-    [[nodiscard]] std::string_view GetDescription() const noexcept;
+    [[nodiscard]] std::string_view GetDescription() const noexcept override;
 
     void Flush();
 

@@ -174,7 +174,7 @@ void LyricsShowWidget::dropEvent(QDropEvent* event) {
 	const auto* mime_data = event->mimeData();
 
 	if (mime_data->hasUrls()) {
-		for (auto const& url : mime_data->urls()) {
+        Q_FOREACH(auto const& url, mime_data->urls()) {
 			loadLrcFile(url.toLocalFile());
 			break;
 		}

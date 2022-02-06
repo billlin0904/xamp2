@@ -13,7 +13,7 @@
 
 #include <widget/playlistentity.h>
 
-struct MusicEntity final {
+struct AlbumEntity final {
     int32_t album_id{ 0 };
     int32_t artist_id{ 0 };
     int32_t music_id{ 0 };
@@ -28,9 +28,9 @@ struct MusicEntity final {
 };
 
 // for QVariantÂà´«¨Ï¥Î
-Q_DECLARE_METATYPE(MusicEntity)
+Q_DECLARE_METATYPE(AlbumEntity)
 
 QVariant getIndexValue(const QModelIndex& index, int i);
-MusicEntity getAlbumEntity(const QModelIndex& index);
-MusicEntity toMusicEntity(const PlayListEntity& item);
+AlbumEntity getAlbumEntity(const QModelIndex& index);
+AlbumEntity toAlbumEntity(const PlayListEntity& item);
 

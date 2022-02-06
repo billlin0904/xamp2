@@ -14,7 +14,7 @@
 #include <widget/playlistentity.h>
 #include <widget/playerorder.h>
 #include <widget/replaygainworker.h>
-#include <widget/musicentity.h>
+#include <widget/albumentity.h>
 #include <widget/discordnotify.h>
 
 #include "xampplayer.h"
@@ -51,7 +51,7 @@ signals:
 	void nowPlaying(QString const& artist, QString const& title);
 
 public slots:
-    void playMusic(const MusicEntity& item);
+    void playMusic(const AlbumEntity& item);
 
 	void play(const QModelIndex& index, const PlayListEntity& item);
 
@@ -142,7 +142,7 @@ private:
 
 	void createTrayIcon();
 
-    void updateUI(const MusicEntity& item, const PlaybackFormat& playback_format, bool open_done);
+    void updateUI(const AlbumEntity& item, const PlaybackFormat& playback_format, bool open_done);
 
 	void updateButtonState();
 

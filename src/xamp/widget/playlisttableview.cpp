@@ -35,7 +35,7 @@
 #include <widget/actionmap.h>
 #include <widget/stareditor.h>
 #include <widget/time_utilts.h>
-#include <widget/musicentity.h>
+#include <widget/albumentity.h>
 #include <widget/podcast_uiltis.h>
 #include <widget/playlisttableview.h>
 
@@ -712,7 +712,7 @@ QModelIndex PlayListTableView::nextIndex(int forward) const {
 
 QModelIndex PlayListTableView::shuffeIndex() {    
     const auto count = proxy_model_.rowCount();
-    const auto selected = rng_.NextInt(0) & (count - 1);
+    const auto selected = rng_.NextInt64(0) % count;
     return model()->index(selected, PLAYLIST_PLAYING);
 }
 
