@@ -12,6 +12,7 @@
 #include <rpc.h>
 #include <base/windows_handle.h>
 #else
+#include <uuid/uuid.h>
 #include <mach/mach.h>
 #include <mach/mach_time.h>
 #include <mach/thread_policy.h>
@@ -144,18 +145,23 @@ void SetThreadAffinity(std::thread& thread, int32_t core) noexcept {
 }
 
 std::string MakeUuidString() {
-    std::string result;
 #ifdef XAMP_OS_WIN
+    std::string result;
     UUID uuid;
     if (::UuidCreate(&uuid) == RPC_S_OK) {
         char* str = nullptr;
         ::UuidToStringA(&uuid, reinterpret_cast<RPC_CSTR*>(&str));
         result = str;
         ::RpcStringFreeA(reinterpret_cast<RPC_CSTR*>(&str));
-    }    
-#else
-#endif
+    }
     return result;
+#else
+    uuid_t uuid;
+    ::uuid_generate(uuid);
+    char buf[37] = {0};
+    ::uuid_unparse(uuid, buf);
+    return buf;
+#endif    
 }
 
 std::string GetCurrentThreadId() {

@@ -3,7 +3,7 @@
 #include <QTextStream>
 #include <QSize>
 
-#include <widget/XWindow.h>
+#include <widget/xwindow.h>
 #include <widget/playerorder.h>
 #include <widget/appsettings.h>
 
@@ -90,30 +90,33 @@ QList<QString> AppSettings::getList(QString const& key) {
 
 void AppSettings::removeList(QString const& key, QString const & value) {
     auto values = getList(key);
+
     auto itr = std::find(values.begin(), values.end(), value);
     if (itr != values.end()) {
         values.erase(itr);
     }
-    QString all;
+
+    QStringList all;
     Q_FOREACH(auto id, values) {
-        all += id + Q_UTF8(",");
+        all << id;
     }
-    AppSettings::setValue(key, all);
+    AppSettings::setValue(key, all.join(Q_UTF8(",")));
 }
 
 void AppSettings::addList(QString const& key, QString const & value) {
     auto values = getList(key);
-    Q_FOREACH(auto id, values) {
-        if (id == value) {
-            return;
-        }
+
+    auto itr = std::find(values.begin(), values.end(), value);
+    if (itr != values.end()) {
+        return;
     }
+
     values.append(value);
-    QString all;
+    QStringList all;
     Q_FOREACH(auto id, values) {
-        all += id + Q_UTF8(",");
+        all << id;
     }
-    AppSettings::setValue(key, all);
+    AppSettings::setValue(key, all.join(Q_UTF8(",")));
 }
 
 QSize AppSettings::getSizeValue(const QString& width_key,
