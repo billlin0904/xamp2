@@ -65,6 +65,12 @@ inline constexpr std::chrono::seconds kWaitForSignalWhenReadFinish(3);
 //    return fft.Forward(signal.data(), signal.size());
 //}
 
+#ifdef ENABLE_ASIO
+IDsdDevice* AsDsdDevice(AlignPtr<IOutputDevice> const& device) noexcept {
+    return dynamic_cast<IDsdDevice*>(device.get());
+}
+#endif
+
 AudioPlayer::AudioPlayer()
     : AudioPlayer(std::weak_ptr<IPlaybackStateAdapter>()) {
 }
@@ -809,7 +815,7 @@ void AudioPlayer::PrepareToPlay() {
     CreateDevice(device_info_.device_type_id, device_info_.device_id, false);
     OpenDevice(0);
     CreateBuffer();
-    dsp_manager_->InitDsp(input_format_, output_format_, dsd_mode_, stream_->GetSampleSize());
+    dsp_manager_->Init(input_format_, output_format_, dsd_mode_, stream_->GetSampleSize());
     InitFFT();
     BufferStream(0);
 	sample_end_time_ = stream_->GetDuration();

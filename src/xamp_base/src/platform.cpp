@@ -7,6 +7,9 @@
 #include <base/platform.h>
 
 #ifdef XAMP_OS_WIN
+#pragma comment(lib, "rpcrt4.lib")
+#include <rpcnterr.h>
+#include <rpc.h>
 #include <base/windows_handle.h>
 #else
 #include <mach/mach.h>
@@ -138,6 +141,21 @@ void SetThreadAffinity(std::thread& thread, int32_t core) noexcept {
         reinterpret_cast<thread_policy_t>(&policy),
         1);
 #endif
+}
+
+std::string MakeUuidString() {
+    std::string result;
+#ifdef XAMP_OS_WIN
+    UUID uuid;
+    if (::UuidCreate(&uuid) == RPC_S_OK) {
+        char* str = nullptr;
+        ::UuidToStringA(&uuid, reinterpret_cast<RPC_CSTR*>(&str));
+        result = str;
+        ::RpcStringFreeA(reinterpret_cast<RPC_CSTR*>(&str));
+    }    
+#else
+#endif
+    return result;
 }
 
 std::string GetCurrentThreadId() {

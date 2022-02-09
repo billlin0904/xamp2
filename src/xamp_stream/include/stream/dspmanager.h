@@ -25,7 +25,7 @@ public:
 
     XAMP_DISABLE_COPY(DSPManager)
 
-    void InitDsp(AudioFormat input_format, AudioFormat output_format, DsdModes dsd_mode, uint32_t sample_size);
+    void Init(AudioFormat input_format, AudioFormat output_format, DsdModes dsd_mode, uint32_t sample_size);
 
     /*
      * return true (fetch more data).
@@ -42,11 +42,11 @@ public:
 
     void RemovePostDSP(Uuid const& id);
 
-    void SetEq(uint32_t band, double gain, double Q);
+    void SetEq(uint32_t band, float gain, float Q);
 
     void SetEq(EQSettings const& settings);
 
-    void SetPreamp(double preamp);
+    void SetPreamp(float preamp);
 
     void SetReplayGain(double volume);
 
@@ -61,10 +61,12 @@ public:
 private:
     bool ApplyDSP(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo);
 
+    using DspIterator = std::vector<AlignPtr<IAudioProcessor>>::const_iterator;
+
     template <typename TDSP>
     std::optional<TDSP*> GetDSP(
-        std::vector<AlignPtr<IAudioProcessor>>::const_iterator begin,
-        std::vector<AlignPtr<IAudioProcessor>>::const_iterator end
+        DspIterator begin,
+        DspIterator end
     ) const {
         auto itr = std::find_if(begin, end, [](auto const& processor) {
             return processor->GetTypeId() == TDSP::Id;
@@ -89,11 +91,10 @@ private:
     double replay_gain_;
     DsdModes dsd_modes_;
     EQSettings eq_settings_;
-    std::vector<AlignPtr<IAudioProcessor>> setting_pre_dsp_chain_;
-    std::vector<AlignPtr<IAudioProcessor>> setting_post_dsp_chain_;
     std::vector<AlignPtr<IAudioProcessor>> pre_dsp_;
     std::vector<AlignPtr<IAudioProcessor>> post_dsp_;
     AlignPtr<ISampleRateConverter> converter_;
+    Buffer<float> temp_;
     Buffer<float> dsp_buffer_;
     std::shared_ptr<spdlog::logger> logger_;
 };

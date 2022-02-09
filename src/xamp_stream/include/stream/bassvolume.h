@@ -19,7 +19,7 @@ public:
 
     XAMP_PIMPL(BassVolume)
 
-    void Start(uint32_t sample_rate) override;
+    void Start(uint32_t output_sample_rate) override;
 
     void Init(double volume);
 
@@ -28,6 +28,8 @@ public:
     [[nodiscard]] Uuid GetTypeId() const override;
 
     [[nodiscard]] std::string_view GetDescription() const noexcept override;
+
+    void Flush() override;
 
 private:
     class BassVolumeImpl;

@@ -20,6 +20,8 @@ XAMP_BASE_API std::string GetCurrentThreadId();
 
 XAMP_BASE_API std::string MakeTempFileName();
 
+XAMP_BASE_API std::string MakeUuidString();
+
 #ifdef XAMP_OS_WIN
 XAMP_BASE_API bool ExtendProcessWorkingSetSize(size_t size) noexcept;
 XAMP_BASE_API bool InitWorkingSetSize(size_t working_set_size) noexcept;

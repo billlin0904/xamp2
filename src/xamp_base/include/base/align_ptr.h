@@ -124,9 +124,9 @@ using AlignPtr = std::unique_ptr<Type, AlignedClassDeleter<Type>>;
 template <typename Type>
 using AlignArray = std::unique_ptr<Type[], AlignedDeleter<Type>>;
 
-template <typename BaseType, typename ImplType, typename... Args>
+template <typename BaseType, typename ImplType, typename... Args, size_t AlignSize = kMallocAlignSize>
 XAMP_BASE_API_ONLY_EXPORT AlignPtr<BaseType> MakeAlign(Args&& ... args) {
-    auto* ptr = AlignedMallocOf<ImplType>(kMallocAlignSize);
+    auto* ptr = AlignedMallocOf<ImplType>(AlignSize);
     if (!ptr) {
         throw std::bad_alloc();
     }
@@ -141,25 +141,9 @@ XAMP_BASE_API_ONLY_EXPORT AlignPtr<BaseType> MakeAlign(Args&& ... args) {
     }
 }
 
-template <typename Type, size_t AlignSize, typename... Args>
+template <typename Type, typename... Args, size_t AlignSize = kMallocAlignSize>
 XAMP_BASE_API_ONLY_EXPORT AlignPtr<Type> MakeAlign(Args&& ... args) {
     auto* ptr = AlignedMallocOf<Type>(AlignSize);
-    if (!ptr) {
-        throw std::bad_alloc();
-    }
-
-    try {
-        return AlignPtr<Type>(::new(ptr) Type(std::forward<Args>(args)...));
-    }
-    catch (...) {
-        AlignedFree(ptr);
-        throw;
-    }
-}
-
-template <typename Type, typename... Args>
-XAMP_BASE_API_ONLY_EXPORT AlignPtr<Type> MakeAlign(Args&& ... args) {
-    auto* ptr = AlignedMallocOf<Type>(kMallocAlignSize);
     if (!ptr) {
         throw std::bad_alloc();
     }

@@ -13,8 +13,8 @@ public:
         logger_ = Logger::GetInstance().GetLogger(kVolumeLoggerName);
     }
 
-    void Start(uint32_t sample_rate) {
-        stream_.reset(BASS.BASS_StreamCreate(sample_rate,
+    void Start(uint32_t output_sample_rate) {
+        stream_.reset(BASS.BASS_StreamCreate(output_sample_rate,
                                              kMaxChannel,
                                              BASS_SAMPLE_FLOAT | BASS_STREAM_DECODE,
                                              STREAMPROC_DUMMY,
@@ -62,8 +62,8 @@ BassVolume::BassVolume()
     : impl_(MakeAlign<BassVolumeImpl>()) {
 }
 
-void BassVolume::Start(uint32_t sample_rate) {
-    impl_->Start(sample_rate);
+void BassVolume::Start(uint32_t output_sample_rate) {
+    impl_->Start(output_sample_rate);
 }
 
 XAMP_PIMPL_IMPL(BassVolume)
@@ -83,6 +83,10 @@ Uuid BassVolume::GetTypeId() const {
 std::string_view BassVolume::GetDescription() const noexcept {
     return "Volume";
 }
+
+void BassVolume::Flush() {
+}
+
 
 }
 

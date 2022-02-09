@@ -23,6 +23,8 @@ public:
     [[nodiscard]] virtual Uuid GetTypeId() const = 0;
 
     [[nodiscard]] virtual std::string_view GetDescription() const noexcept = 0;
+
+    virtual void Flush() = 0;
 protected:
 	IAudioProcessor() = default;
 };

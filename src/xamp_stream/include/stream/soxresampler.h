@@ -8,9 +8,8 @@
 #include <base/enum.h>
 #include <base/align_ptr.h>
 #include <base/audiobuffer.h>
-#include <stream/isamplerateconverter.h>
-
-#include "iaudioprocessor.h"
+#include <base/samplewriter.h>
+#include <stream/iaudioprocessor.h>
 
 namespace xamp::stream {
 
@@ -59,7 +58,7 @@ public:
 
     [[nodiscard]] std::string_view GetDescription() const noexcept override;
 
-    void Flush();
+    void Flush() override;
 
 private:
     class SoxrSampleRateConverterImpl;

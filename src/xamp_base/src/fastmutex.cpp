@@ -2,9 +2,7 @@
 
 #ifdef XAMP_OS_WIN
 #pragma comment(lib, "Synchronization.lib")
-#elif defined(XAMP_OS_LINUX)
-#include <sys/syscall.h>
-#else
+#elif defined(XAMP_OS_MAC)
 extern "C" int __ulock_wait(uint32_t operation, void *addr, uint64_t value,
                             uint32_t timeout); /* timeout is specified in microseconds */
 extern "C" int __ulock_wake(uint32_t operation, void *addr, uint64_t wake_value);
@@ -15,26 +13,26 @@ extern "C" int __ulock_wake(uint32_t operation, void *addr, uint64_t wake_value)
 
 namespace xamp::base {
 
-#if defined(XAMP_OS_WIN) || defined(XAMP_OS_MAC)
-
 #if defined(XAMP_OS_MAC)
 template <typename T>
 static int MacOSFutexWake(std::atomic<T>& to_wake, bool notify_one) {
-    return ::__ulock_wake(UL_COMPARE_AND_WAIT | (notify_one ? 0 : ULF_WAKE_ALL), &to_wake, 0);
+	return ::__ulock_wake(UL_COMPARE_AND_WAIT | (notify_one ? 0 : ULF_WAKE_ALL), &to_wake, 0);
 }
 #endif
 
+#if defined(XAMP_OS_WIN) || defined(XAMP_OS_MAC)
+
 template <typename T>
-XAMP_ALWAYS_INLINE bool OSFutexWait(std::atomic<T>& to_wait_on, uint32_t &expected, uint32_t millseconds) {
+XAMP_ALWAYS_INLINE bool PlatformFutexWait(std::atomic<T>& to_wait_on, uint32_t &expected, uint32_t milliseconds) {
 #ifdef XAMP_OS_WIN
-    return ::WaitOnAddress(&to_wait_on, &expected, sizeof(expected), millseconds);
+    return ::WaitOnAddress(&to_wait_on, &expected, sizeof(expected), milliseconds);
 #elif defined(XAMP_OS_MAC)
-    return ::__ulock_wait(UL_COMPARE_AND_WAIT, &to_wait_on, expected, millseconds) >= 0;
+    return ::__ulock_wait(UL_COMPARE_AND_WAIT, &to_wait_on, expected, milliseconds) >= 0;
 #endif
 }
 
 template <typename T>
-XAMP_ALWAYS_INLINE void OSFutexWakeSingle(std::atomic<T>& to_wake) {
+XAMP_ALWAYS_INLINE void PlatformFutexWakeSingle(std::atomic<T>& to_wake) {
 #ifdef XAMP_OS_WIN
 	::WakeByAddressSingle(&to_wake);
 #elif defined (XAMP_OS_MAC)
@@ -43,7 +41,7 @@ XAMP_ALWAYS_INLINE void OSFutexWakeSingle(std::atomic<T>& to_wake) {
 }
 
 template <typename T>
-XAMP_ALWAYS_INLINE void OSFutexWakeAll(std::atomic<T>& to_wake) {
+XAMP_ALWAYS_INLINE void PlatformFutexWakeAll(std::atomic<T>& to_wake) {
 #ifdef XAMP_OS_WIN
 	::WakeByAddressAll(&to_wake);
 #elif defined (XAMP_OS_MAC)
@@ -54,7 +52,7 @@ XAMP_ALWAYS_INLINE void OSFutexWakeAll(std::atomic<T>& to_wake) {
 int FastConditionVariable::Wait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, const struct timespec* to) noexcept {
 #if defined(XAMP_OS_WIN) || defined(XAMP_OS_MAC)
 	if (to == nullptr) {
-        OSFutexWait(to_wait_on, expected, INFINITE);
+		PlatformFutexWait(to_wait_on, expected, INFINITE);
 		return 0;
 	}
 
@@ -64,13 +62,13 @@ int FastConditionVariable::Wait(std::atomic<uint32_t>& to_wait_on, uint32_t expe
 	}
 
 	if (to->tv_sec >= 2147) {
-		OSFutexWait(to_wait_on, expected, 2147000000);
+		PlatformFutexWait(to_wait_on, expected, 2147000000);
 		return 0; /* time-out out of range, claim spurious wake-up */
 	}
 
     const uint32_t ms = (to->tv_sec * 1000000) + ((to->tv_nsec + 999) / 1000);
 
-	if (!OSFutexWait(to_wait_on, expected, ms)) {
+	if (!PlatformFutexWait(to_wait_on, expected, ms)) {
 		errno = ETIMEDOUT;
 		return -1;
 	}
@@ -85,18 +83,18 @@ int FastConditionVariable::Wait(std::atomic<uint32_t>& to_wait_on, uint32_t expe
 void FastConditionVariable::wait(std::unique_lock<FastMutex>& lock) {
 	auto old_state = state_.load(std::memory_order_relaxed);
 	lock.unlock();
-	OSFutexWait(state_, old_state, INFINITE);
+	PlatformFutexWait(state_, old_state, INFINITE);
 	lock.lock();
 }
 
 void FastConditionVariable::notify_one() noexcept {
 	state_.fetch_add(kLocked, std::memory_order_relaxed);
-	OSFutexWakeSingle(state_);
+	PlatformFutexWakeSingle(state_);
 }
 
 void FastConditionVariable::notify_all() noexcept {
 	state_.fetch_add(kLocked, std::memory_order_relaxed);
-    OSFutexWakeAll(state_);
+	PlatformFutexWakeAll(state_);
 }
 
 #ifdef XAMP_OS_WIN

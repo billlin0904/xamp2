@@ -20,19 +20,17 @@ using UuidBuffer = std::array<uint8_t, kIdSize>;
 
 class XAMP_BASE_API Uuid final {
 public:
-    static Uuid const kInvalidUUID;
+    static Uuid const kNullUuid;
 
     static Uuid FromString(std::string const & str);
 
     template <typename ForwardIterator>
     explicit Uuid(ForwardIterator first, ForwardIterator last) {
-        if (std::distance(first, last) == kIdSize) {
-            std::copy(first, last, std::begin(bytes_));
-        }
-    }
-
-    explicit Uuid(uint8_t(&arr)[16]) noexcept {
-        std::copy(std::cbegin(arr), std::cend(arr), std::begin(bytes_));
+	    if (std::distance(first, last) == kIdSize) {
+		    std::copy(first, last, std::begin(bytes_));
+	    } else {
+            throw std::invalid_argument("Invalid Uuid.");
+	    }
     }
 
     Uuid() noexcept;
@@ -40,6 +38,8 @@ public:
     explicit Uuid(UuidBuffer const &bytes) noexcept;
 
     Uuid(std::string_view const &from_string);
+
+    explicit Uuid(const uint8_t(&arr)[kIdSize]) noexcept;
 
 	[[nodiscard]] bool IsValid() const noexcept;
 
@@ -51,7 +51,7 @@ public:
     
     Uuid& operator=(Uuid &&other) noexcept;
 
-	[[nodiscard]] size_t GetHash() const;
+	[[nodiscard]] size_t GetHash() const noexcept;
 
 	operator std::string() const;
 
@@ -64,14 +64,11 @@ private:
 
     XAMP_BASE_API friend bool operator!=(Uuid const & other1, Uuid const & other2) noexcept;
 
-    [[nodiscard]] size_t CalcHash() const noexcept;
-
-    size_t hash_;
     UuidBuffer bytes_{0};
 };
 
 XAMP_ALWAYS_INLINE bool Uuid::IsValid() const noexcept {
-    return *this == Uuid::kInvalidUUID;
+    return *this == Uuid::kNullUuid;
 }
 
 XAMP_ALWAYS_INLINE bool operator!=(Uuid const & other1, Uuid const & other2) noexcept {
@@ -86,8 +83,9 @@ XAMP_ALWAYS_INLINE bool operator==(std::string const &str, Uuid const &id) {
 	return Uuid(str) == id;
 }
 
-XAMP_ALWAYS_INLINE size_t Uuid::GetHash() const {
-	return hash_;
+XAMP_ALWAYS_INLINE size_t Uuid::GetHash() const noexcept {
+    const std::string s = *this;
+    return std::hash<std::string>{}(s);
 }
 
 }

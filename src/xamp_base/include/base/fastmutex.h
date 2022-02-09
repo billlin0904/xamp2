@@ -47,6 +47,7 @@ using FastMutex = std::mutex;
 // 在MSVC STL C++20實現了std::atomic_wait是以WaitOnAddress實現, 
 // 但是在std::condition_variable是以SleepConditionVariableSRW實現.
 // FastConditionVariable適用於併發數小的場景上.
+// https://www.remlab.net/op/futex-condvar.shtml
 class XAMP_BASE_API FastConditionVariable final {
 public:
 	FastConditionVariable() noexcept = default;

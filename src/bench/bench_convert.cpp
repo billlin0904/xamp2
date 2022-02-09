@@ -4,17 +4,17 @@
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
-#include <queue>
 
 #include <base/scopeguard.h>
 #include <base/audiobuffer.h>
 #include <base/threadpool.h>
 #include <base/memory.h>
 #include <base/rng.h>
-#include <base/fastmutex.h>
 #include <base/dataconverter.h>
 #include <base/lrucache.h>
 #include <base/stl.h>
+#include <base/platform.h>
+#include <base/uuid.h>
 
 #include <player/fft.h>
 
@@ -372,6 +372,16 @@ static void BM_FFT(benchmark::State& state) {
     }
 }
 
+static void BM_UuidParse(benchmark::State& state) {
+    const auto uuid_str = MakeUuidString();
+
+    for (auto _ : state) {
+        auto result = Uuid::FromString(uuid_str);
+        benchmark::DoNotOptimize(result);
+    }
+}
+
+BENCHMARK(BM_UuidParse);
 BENCHMARK(BM_Xoshiro256StarStarRandom);
 BENCHMARK(BM_Xoshiro256PlusRandom);
 BENCHMARK(BM_Xoshiro256PlusPlusRandom);

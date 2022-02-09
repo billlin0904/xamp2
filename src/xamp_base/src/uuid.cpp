@@ -7,17 +7,14 @@
 namespace xamp::base {
 
 static uint8_t MakeHex(char a, char b) {
-    const char buffer[3] = { a, b, '\0' };
-    const char* start = &buffer[0];
-    char* endptr = nullptr;
-    const auto result = std::strtol(start, &endptr, 16);
-    if (endptr > start) {
-        return static_cast<uint8_t>(result);        
+    if (!std::isxdigit(a) || !std::isxdigit(b)) {
+        throw std::invalid_argument("Invalid digital.");
     }
-    throw std::invalid_argument("Invalid digital.");
+    const char buffer[3] = { a, b, '\0' };
+    return static_cast<uint8_t>(std::strtoul(&buffer[0], nullptr, 16));
 }
 
-static UuidBuffer ParseString(std::string_view const & from_string) {
+static UuidBuffer ParseUuid(std::string_view const & from_string) {
     if (from_string.length() != kMaxIdStrLen) {
         throw std::invalid_argument("Invalid Uuid.");
     }
@@ -65,12 +62,9 @@ std::ostream &operator<<(std::ostream &s, Uuid const &id) {
     << std::setw(2) << static_cast<int32_t>(id.bytes_[15]);
 }
 
-Uuid const Uuid::kInvalidUUID;
+Uuid const Uuid::kNullUuid;
 
-Uuid::Uuid() noexcept {
-    hash_ = 0;
-	bytes_.fill(0);
-}
+Uuid::Uuid() noexcept = default;
 
 Uuid::Uuid(Uuid const& other) noexcept
 	: Uuid() {
@@ -80,7 +74,6 @@ Uuid::Uuid(Uuid const& other) noexcept
 Uuid& Uuid::operator=(Uuid const& other) noexcept {
     if (this != &other) {
         bytes_ = other.bytes_;
-        hash_ = other.hash_;
     }
     return *this;
 }
@@ -92,32 +85,24 @@ Uuid::Uuid(Uuid&& other) noexcept
 
 Uuid& Uuid::operator=(Uuid&& other) noexcept {
     if (this != &other) {
-        hash_ = other.hash_;
         bytes_ = other.bytes_;
-        other.hash_ = 0;
         other.bytes_.fill(0);
     }
     return *this;
 }
 
-Uuid::Uuid(UuidBuffer const& bytes) noexcept
-    : hash_(0)
-    , bytes_(bytes) {
-    hash_ = CalcHash();
+Uuid::Uuid(const uint8_t(&arr)[kIdSize]) noexcept {
+    std::copy(std::cbegin(arr),
+        std::cend(arr),
+        std::begin(bytes_));
 }
 
-size_t Uuid::CalcHash() const noexcept {
-    std::string s = *this;
-    return std::hash<std::string>{}(s);
+Uuid::Uuid(UuidBuffer const& bytes) noexcept
+    : bytes_(bytes) {
 }
 
 Uuid::Uuid(std::string_view const &str) {
-    hash_ = 0;
-	bytes_.fill(0);
-	if (!str.empty()) {
-		bytes_ = ParseString(str);
-        hash_ = CalcHash();
-	}
+    bytes_ = ParseUuid(str);
 }
 
 Uuid::operator std::string() const {
@@ -127,7 +112,7 @@ Uuid::operator std::string() const {
 }
 
 Uuid Uuid::FromString(std::string const & str) {
-	return Uuid(str);
+    return { str };
 }
 	
 }

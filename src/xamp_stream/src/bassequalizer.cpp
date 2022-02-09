@@ -147,4 +147,9 @@ std::string_view BassEqualizer::GetDescription() const noexcept {
     return "Equalizer";
 }
 
+void BassEqualizer::Flush() {
+	
+}
+
+
 }

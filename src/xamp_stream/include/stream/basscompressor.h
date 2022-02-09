@@ -22,7 +22,7 @@ public:
 
     XAMP_PIMPL(BassCompressor)
 
-    void Start(uint32_t sample_rate) override;
+    void Start(uint32_t output_sample_rate) override;
 
     void Init(CompressorParameters const &parameters = CompressorParameters());
 
@@ -31,6 +31,8 @@ public:
     [[nodiscard]] Uuid GetTypeId() const override;
 
     [[nodiscard]] std::string_view GetDescription() const noexcept override;
+
+    void Flush() override;
 private:
     class BassCompressorImpl;
     AlignPtr<BassCompressorImpl> impl_;
