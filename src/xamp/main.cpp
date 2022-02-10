@@ -67,7 +67,7 @@ static void loadSettings() {
     AppSettings::setDefaultValue(kLyricsFontSize, 12);
     AppSettings::setDefaultValue(kAppSettingMinimizeToTrayAsk, true);
     AppSettings::setDefaultValue(kAppSettingMinimizeToTray, false);
-    AppSettings::setDefaultValue(kAppSettingDiscordNotify, true);
+    AppSettings::setDefaultValue(kAppSettingDiscordNotify, false);
     AppSettings::setDefaultValue(kFlacEncodingLevel, 8);
     AppSettings::setDefaultValue(kAppSettingAlbumImageCacheSize, 32);
     AppSettings::setDefaultValue(kAppSettingShowLeftList, true);

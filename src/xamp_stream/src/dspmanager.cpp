@@ -10,7 +10,7 @@
 
 namespace xamp::stream {
 
-void AddOrReplace(AlignPtr<IAudioProcessor> processor, std::vector<AlignPtr<IAudioProcessor>>& dsp_chain) {
+static void AddOrReplace(AlignPtr<IAudioProcessor> processor, std::vector<AlignPtr<IAudioProcessor>>& dsp_chain) {
     auto id = processor->GetTypeId();
     const auto itr = std::find_if(dsp_chain.begin(),
         dsp_chain.end(),
@@ -23,6 +23,17 @@ void AddOrReplace(AlignPtr<IAudioProcessor> processor, std::vector<AlignPtr<IAud
     }
     else {
         dsp_chain.push_back(std::move(processor));
+    }
+}
+
+static void Remove(Uuid const& id, std::vector<AlignPtr<IAudioProcessor>>& dsp_chain) {
+    auto itr = std::remove_if(dsp_chain.begin(),
+        dsp_chain.end(),
+        [id](auto const& processor) {
+            return processor->GetTypeId() == id;
+        });
+    if (itr != dsp_chain.end()) {
+        XAMP_LOG_DEBUG("Remove post dsp:{} success.", (*itr)->GetDescription());
     }
 }
 
@@ -49,28 +60,14 @@ void DSPManager::EnableDSP(bool enable) {
 }
 
 void DSPManager::RemovePostDSP(Uuid const& id) {
-    auto itr = std::remove_if(post_dsp_.begin(),
-        post_dsp_.end(),
-        [id](auto const& processor) {
-            return processor->GetTypeId() == id;
-        });
-    if (itr != post_dsp_.end()) {
-        XAMP_LOG_DEBUG("Remove post dsp:{} success.", (*itr)->GetDescription());
-    }
+    Remove(id, post_dsp_);
     if (post_dsp_.empty()) {
         EnableDSP(false);
     }
 }
 
 void DSPManager::RemovePreDSP(Uuid const& id) {
-    auto itr = std::remove_if(pre_dsp_.begin(),
-        pre_dsp_.end(),
-        [id](auto const& processor) {
-            return processor->GetTypeId() == id;
-        });
-    if (itr != pre_dsp_.end()) {
-        XAMP_LOG_DEBUG("Remove pre dsp:{} success.", (*itr)->GetDescription());
-    }
+    Remove(id, pre_dsp_);
     if (pre_dsp_.empty()) {
         EnableDSP(false);
     }

@@ -247,15 +247,16 @@ void Xamp::closeEvent(QCloseEvent* event) {
     AppSettings::setValue(kAppSettingHeight, size().height());
     AppSettings::setValue(kAppSettingVolume, ui_.volumeSlider->value());
 
-    if (player_ != nullptr) {
-        player_->Destroy();
-        player_.reset();
-    }
     cleanup();
     window()->close();
 }
 
 void Xamp::cleanup() {
+    if (player_ != nullptr) {
+        player_->Destroy();
+        player_.reset();
+    }
+
     replay_gain_worker_.stopThreadPool();
     replay_gain_thread_.quit();
     replay_gain_thread_.wait();
@@ -1022,11 +1023,14 @@ void Xamp::playMusic(const AlbumEntity& item) {
 
         if (target_sample_rate != 0) {
             player_->GetDSPManager()->AddPreDSP(makeSampleRateConverter(soxr_settings));
+        } else {
+            player_->GetDSPManager()->RemovePreDSP(SoxrSampleRateConverter::Id);
         }
 
         if (AppSettings::getValueAsBool(kAppSettingEnableReplayGain)) {
-            player_->GetDSPManager()->AddPreDSP(MakeVolume());
-            auto mode = AppSettings::getAsEnum<ReplayGainMode>(kAppSettingReplayGainMode);
+            player_->GetDSPManager()->AddPostDSP(MakeVolume());
+            XAMP_LOG_DEBUG("Add replay gain dsp.");
+            const auto mode = AppSettings::getAsEnum<ReplayGainMode>(kAppSettingReplayGainMode);
             if (mode == ReplayGainMode::RG_ALBUM_MODE) {
                 player_->GetDSPManager()->SetReplayGain(item.album_replay_gain);
             } else if (mode == ReplayGainMode::RG_TRACK_MODE) {
@@ -1035,17 +1039,19 @@ void Xamp::playMusic(const AlbumEntity& item) {
                 player_->GetDSPManager()->SetReplayGain(0.0);
             }
         } else {
+            player_->GetDSPManager()->AddPostDSP(MakeVolume());
             player_->GetDSPManager()->SetReplayGain(0.0);
         }
 
         if (AppSettings::getValueAsBool(kAppSettingEnableEQ)) {
-            player_->GetDSPManager()->AddPreDSP(MakeEqualizer());
+            XAMP_LOG_DEBUG("Add EQ dsp.");
+            player_->GetDSPManager()->AddPostDSP(MakeEqualizer());
             if (AppSettings::contains(kAppSettingEQName)) {
-                const auto eq_setting = AppSettings::getValue(kAppSettingEQName).value<AppEQSettings>();
-                player_->GetDSPManager()->SetEq(eq_setting.settings);
+                const auto [name, settings] = AppSettings::getValue(kAppSettingEQName).value<AppEQSettings>();
+                player_->GetDSPManager()->SetEq(settings);
             }
         } else {
-            player_->GetDSPManager()->RemovePreDSP(IEqualizer::Id);
+            player_->GetDSPManager()->RemovePostDSP(IEqualizer::Id);
         }
 
         player_->PrepareToPlay();        
@@ -1097,13 +1103,13 @@ void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_form
         emit nowPlaying(item.artist, item.title);
     }
 
+    auto found_cover = true;
+
     if (current_entity_.cover_id != item.cover_id) {
-        if (item.cover_id == Singleton<PixmapCache>::GetInstance().getUnknownCoverId()) {
-            setCover(nullptr);
-            lrc_page_->setBackgroundColor(ThemeManager::instance().getBackgroundColor());
-        }
-        else {
-            if (const auto * cover = Singleton<PixmapCache>::GetInstance().find(item.cover_id)) {
+        if (item.cover_id != Singleton<PixmapCache>::GetInstance().getUnknownCoverId()) {
+            const auto* cover = Singleton<PixmapCache>::GetInstance().find(item.cover_id);
+            found_cover = cover != nullptr;
+            if (cover != nullptr) {
                 setCover(cover);
                 const auto palette = GetPalette(cover->toImage(), 10, 1);
                 for (const auto& color : palette) {
@@ -1111,11 +1117,12 @@ void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_form
                 }
                 lrc_page_->setBackgroundColor(palette[0]);
             }
-            else {
-                setCover(nullptr);
-                lrc_page_->setBackgroundColor(ThemeManager::instance().getBackgroundColor());
-            }
-        }        
+        }
+    }
+
+    if (!found_cover) {
+        setCover(nullptr);
+        lrc_page_->setBackgroundColor(ThemeManager::instance().getBackgroundColor());
     }
 
     ui_.titleLabel->setText(item.title);

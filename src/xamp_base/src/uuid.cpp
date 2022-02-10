@@ -1,17 +1,18 @@
 #include <iomanip>
 #include <sstream>
-
-#include <base/exception.h>
+#include <charconv>
 #include <base/uuid.h>
 
 namespace xamp::base {
 
-static uint8_t MakeHex(char a, char b) {
-    if (!std::isxdigit(a) || !std::isxdigit(b)) {
+static uint8_t MakeHex(const char a, const char b) {
+    const char buffer[] = { a, b, '\0' };
+    uint32_t result = 0;
+    auto [_, ec] = std::from_chars(std::cbegin(buffer), std::cend(buffer), result, 16);
+    if (ec != std::errc{}) {
         throw std::invalid_argument("Invalid digital.");
     }
-    const char buffer[3] = { a, b, '\0' };
-    return static_cast<uint8_t>(std::strtoul(&buffer[0], nullptr, 16));
+    return static_cast<uint8_t>(result);
 }
 
 static UuidBuffer ParseUuid(std::string_view const & from_string) {
@@ -29,11 +30,17 @@ static UuidBuffer ParseUuid(std::string_view const & from_string) {
     UuidBuffer uuid{};
 
     for (size_t i = 0, j = 0; i < from_string.length(); ++i) {
-		if (from_string[i] == '-')
-			continue;
-		uuid[j] = MakeHex(from_string[i], from_string[i + 1]);
-		++j;
-		++i;
+        switch (i) {
+        case 8:
+        case 13:
+        case 18:
+        case 23:
+            continue;
+        default: 
+            uuid[j] = MakeHex(from_string[i], from_string[i + 1]);
+            ++j;
+            ++i;
+        }		
 	}
     return uuid;
 }

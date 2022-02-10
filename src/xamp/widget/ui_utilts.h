@@ -23,9 +23,7 @@ struct PlaybackFormat {
     AudioFormat output_format;
 };
 
-QString dsdSampleRate2String(uint32_t dsd_speed);
-
-QString samplerate2String(const AudioFormat& format);
+QString sampleRate2String(const AudioFormat& format);
 
 QString format2String(const PlaybackFormat& playback_format, const QString& file_ext);
 

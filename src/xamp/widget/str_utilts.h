@@ -19,8 +19,6 @@ namespace Qt {
 
 inline constexpr ConstLatin1String kAppTitle{ "XAMP" };
 
-QString samplerate2String(uint32_t samplerate);
-
 constexpr ConstLatin1String Q_UTF8(const char str[]) noexcept {
     return ConstLatin1String{ str };
 }
@@ -32,3 +30,9 @@ constexpr ConstLatin1String fromStdStringView(std::string_view const& s) noexcep
 inline QString Q_STR(char const* const str) noexcept {
     return {QLatin1String{ str }};
 }
+
+QString samplerate2String(uint32_t samplerate);
+
+QString bitRate2String(uint32_t bitRate);
+
+QString dsdSampleRate2String(uint32_t dsd_speed);

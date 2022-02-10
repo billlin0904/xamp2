@@ -14,34 +14,63 @@ using Color = std::tuple<uint8_t, uint8_t, uint8_t>;
 static constexpr double kFractByPopulations = 0.75;
 static constexpr int32_t kMaxIteration = 1000;
 
+static constexpr int32_t kSigbits = 5;
+static constexpr int32_t kRshift = 8 - kSigbits;
+
 class ColorStatis final {
 public:
-	static constexpr int32_t SIGBITS = 5;
-	static constexpr int32_t RSHIFT = 8 - SIGBITS;
-
-	ColorStatis(int32_t red_min, int32_t rmax, int32_t gmin, int32_t gmax, int32_t bmin, int32_t bmax,
+	ColorStatis(
+		int32_t red_min,   int32_t red_max,
+		int32_t green_min, int32_t green_max,
+		int32_t blue_min,  int32_t blue_max,
 		const std::vector<int32_t>& histo)
 		: red_min(red_min)
-		, red_max(rmax)
-		, green_min(gmin)
-		, green_max(gmax)
-		, blue_min(bmin)
-		, blue_max(bmax)
+		, red_max(red_max)
+		, green_min(green_min)
+		, green_max(green_max)
+		, blue_min(blue_min)
+		, blue_max(blue_max)
 		, count_(0)
 		, histo_(histo) {
 		CountColor();
 		AvgColor();
+		CalcColorVolume();
 	}
 
 	bool Contains(const Color& pixel) const noexcept {
-		const auto rval = std::get<0>(pixel) >> RSHIFT;
-		const auto gval = std::get<1>(pixel) >> RSHIFT;
-		const auto bval = std::get<2>(pixel) >> RSHIFT;
+		const auto rval = std::get<0>(pixel) >> kRshift;
+		const auto gval = std::get<1>(pixel) >> kRshift;
+		const auto bval = std::get<2>(pixel) >> kRshift;
 		return rval >= red_min && rval <= red_max &&
 			gval >= green_min && gval <= green_max &&
 			bval >= blue_min && bval <= blue_max;
 	}
 
+	static constexpr int32_t GetColorIndex(int32_t r, int32_t g, int32_t b) noexcept {
+		return (r << (2 * kSigbits)) + (g << kSigbits) + b;
+	}
+
+	int32_t GetVolume() const noexcept {
+		return volume_;
+	}
+
+	int32_t GetCount() const noexcept {
+		return count_;
+	}
+
+	std::tuple<int32_t, int32_t, int32_t> GetAvg() const noexcept {
+		return avg_;
+	}
+
+	int32_t red_min;
+	int32_t red_max;
+	int32_t green_min;
+	int32_t green_max;
+	int32_t blue_min;
+	int32_t blue_max;
+	int32_t volume_;
+
+private:
 	void CountColor() noexcept {
 		auto npix = 0;
 		for (auto i = red_min; i < red_max + 1; i++) {
@@ -57,7 +86,7 @@ public:
 
 	void AvgColor() noexcept {
 		auto ntot = 0;
-		auto mult = 1 << (8 - SIGBITS);
+		auto mult = 1 << (8 - kSigbits);
 		auto r_sum = 0.0;
 		auto g_sum = 0.0;
 		auto b_sum = 0.0;
@@ -92,32 +121,13 @@ public:
 		avg_ = std::make_tuple(r_avg, g_avg, b_avg);
 	}
 
-	static constexpr int32_t GetColorIndex(int32_t r, int32_t g, int32_t b) noexcept {
-		return (r << (2 * SIGBITS)) + (g << SIGBITS) + b;
-	}
-
-	int32_t GetVolume() const noexcept {
+	void CalcColorVolume() {
 		const auto sub_r = red_max - red_min;
 		const auto sub_g = green_max - green_min;
 		const auto sub_b = blue_max - blue_min;
-		return (sub_r + 1) * (sub_g + 1) * (sub_b + 1);
+		volume_ = (sub_r + 1) * (sub_g + 1) * (sub_b + 1);
 	}
 
-	int32_t GetCount() const noexcept {
-		return count_;
-	}
-
-	std::tuple<int32_t, int32_t, int32_t> GetAvg() const noexcept {
-		return avg_;
-	}
-
-	int32_t red_min;
-	int32_t red_max;
-	int32_t green_min;
-	int32_t green_max;
-	int32_t blue_min;
-	int32_t blue_max;
-private:
 	int32_t count_;
 	std::tuple<uint8_t, uint8_t, uint8_t> avg_;
 	std::vector<int32_t> histo_;
@@ -215,7 +225,7 @@ private:
 	SortedQueue<std::tuple<ColorStatis, Color>, ColorStatisQueueCompare> queue_;
 };
 
-static ColorStatis FromPixels(const std::vector<Color>& pixels, std::vector<int32_t>& histo) {
+static ColorStatis FromPixels(const std::vector<Color>& pixels, const std::vector<int32_t>& histo) {
 	auto rmin = 1000000;
 	auto rmax = 0;
 	auto gmin = 1000000;
@@ -224,9 +234,9 @@ static ColorStatis FromPixels(const std::vector<Color>& pixels, std::vector<int3
 	auto bmax = 0;
 
 	for (const Color& pixel : pixels) {
-		const auto red = std::get<0>(pixel) >> ColorStatis::RSHIFT;
-		const auto green = std::get<1>(pixel) >> ColorStatis::RSHIFT;
-		const auto blue = std::get<2>(pixel) >> ColorStatis::RSHIFT;
+		const auto red = std::get<0>(pixel) >> kRshift;
+		const auto green = std::get<1>(pixel) >> kRshift;
+		const auto blue = std::get<2>(pixel) >> kRshift;
 		rmin = (std::min)(red, rmin);
 		rmax = (std::max)(red, rmax);
 		gmin = (std::min)(green, gmin);
@@ -238,12 +248,12 @@ static ColorStatis FromPixels(const std::vector<Color>& pixels, std::vector<int3
 }
 
 static std::vector<int32_t> GetHisto(const std::vector<Color>& pixels) {
-	std::vector<int32_t> histo(std::pow(2, 3 * ColorStatis::SIGBITS), 0);
+	std::vector<int32_t> histo(std::pow(2, 3 * kSigbits), 0);
 
 	for (const Color& pixel : pixels) {
-		const auto red = std::get<0>(pixel) >> ColorStatis::RSHIFT;
-		const auto green = std::get<1>(pixel) >> ColorStatis::RSHIFT;
-		const auto blue = std::get<2>(pixel) >> ColorStatis::RSHIFT;
+		const auto red = std::get<0>(pixel) >> kRshift;
+		const auto green = std::get<1>(pixel) >> kRshift;
+		const auto blue = std::get<2>(pixel) >> kRshift;
 		const auto index = ColorStatis::GetColorIndex(red, green, blue);
 		histo[index] += 1;
 	}
@@ -398,9 +408,9 @@ static void MakeColorMedian(SortedQueue<ColorStatis, Compare>& CQ, double target
 	}
 }
 
-static ColorStatisQueue Quantize(std::vector<Color>& pixels, int32_t max_color) {
-	auto histo = GetHisto(pixels);
-	auto statis = FromPixels(pixels, histo);
+static ColorStatisQueue Quantize(const std::vector<Color>& pixels, int32_t max_color) {
+	const auto histo = GetHisto(pixels);
+	const auto statis = FromPixels(pixels, histo);
 
 	SortedQueue<ColorStatis, ColorStatisCountCompare> count_queue;
 	count_queue.Push(statis);

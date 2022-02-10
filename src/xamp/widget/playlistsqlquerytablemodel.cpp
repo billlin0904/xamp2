@@ -2,6 +2,7 @@
 #include <widget/playlisttablemodel.h>
 #include <widget/albumentity.h>
 #include <widget/str_utilts.h>
+#include <widget/ui_utilts.h>
 #include <widget/time_utilts.h>
 #include <widget/playlistsqlquerytablemodel.h>
 
@@ -25,6 +26,7 @@ QVariant PlayListSqlQueryTableModel::data(const QModelIndex& index, int32_t role
     switch (role) {
     case Qt::FontRole:
         if (index.column() == PLAYLIST_DURATION
+            || index.column() == PLAYLIST_TRACK
             || index.column() == PLAYLIST_BITRATE
             || index.column() == PLAYLIST_SAMPLE_RATE
             || index.column() == PLAYLIST_ALBUM_PK
@@ -46,11 +48,13 @@ QVariant PlayListSqlQueryTableModel::data(const QModelIndex& index, int32_t role
 		    }
 		    value = QSqlQueryModel::data(index, Qt::DisplayRole);
 		    switch (index.column()) {
+		    case PLAYLIST_ALBUM_PK:
+		    case PLAYLIST_ALBUM_RG:
+            case PLAYLIST_TRACK_PK:
+            case PLAYLIST_TRACK_RG:
+                return QString::number(value.toFloat(), 'f', 2);
 		    case PLAYLIST_BITRATE:
-			    if (value.toInt() > 10000) {
-				    return QString(Q_UTF8("%0 Mbps")).arg(value.toInt() / 1000.0);
-			    }
-			    return QString(Q_UTF8("%0 Kbps")).arg(value.toInt());
+                return bitRate2String(value.toInt());
 		    case PLAYLIST_SAMPLE_RATE:
 			    return samplerate2String(value.toInt());
 		    case PLAYLIST_DURATION:

@@ -1,5 +1,12 @@
 #include <widget/str_utilts.h>
 
+QString bitRate2String(uint32_t bitRate) {
+    if (bitRate > 10000) {
+        return QString(Q_UTF8("%0 Mbps")).arg(QString::number(bitRate / 1000.0, 'f', 2));
+    }
+    return QString(Q_UTF8("%0 Kbps")).arg(bitRate);
+}
+
 QString samplerate2String(uint32_t samplerate) {
     auto precision = 1;
     auto is_mhz_samplerate = false;
@@ -10,6 +17,11 @@ QString samplerate2String(uint32_t samplerate) {
         precision = samplerate % 1000 == 0 ? 0 : 1;
     }
 
-    return (is_mhz_samplerate ? QString::number(samplerate / 1000000.0, 'f', 2) + Q_UTF8("MHz")
+    return (is_mhz_samplerate ? QString::number(samplerate / 1000000.0, 'f', 2) + Q_UTF8(" MHz")
         : QString::number(samplerate / 1000.0, 'f', precision) + Q_UTF8("kHz"));
+}
+
+QString dsdSampleRate2String(uint32_t dsd_speed) {
+    const auto sample_rate = (dsd_speed / 64) * 2.82;
+    return QString::number(sample_rate, 'f', 2) + Q_UTF8("kHz");
 }

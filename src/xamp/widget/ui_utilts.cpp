@@ -7,11 +7,7 @@
 #include <widget/str_utilts.h>
 #include <widget/ui_utilts.h>
 
-QString dsdSampleRate2String(uint32_t dsd_speed) {
-    return Q_STR("%1 MHz").arg((dsd_speed / 64) * 2.8);
-}
-
-QString samplerate2String(const AudioFormat& format) {
+QString sampleRate2String(const AudioFormat& format) {
     return samplerate2String(format.GetSampleRate());
 }
 
@@ -50,9 +46,9 @@ QString format2String(const PlaybackFormat& playback_format, const QString& file
     case DsdModes::DSD_MODE_PCM:
     case DsdModes::DSD_MODE_DSD2PCM:
         dsd_mode = Q_UTF8("PCM");
-        output_format_str = samplerate2String(playback_format.file_format);
+        output_format_str = sampleRate2String(playback_format.file_format);
         if (playback_format.file_format.GetSampleRate() != playback_format.output_format.GetSampleRate()) {
-            output_format_str += Q_UTF8("/") + samplerate2String(playback_format.output_format);
+            output_format_str += Q_UTF8("/") + sampleRate2String(playback_format.output_format);
         }
         break;
     case DsdModes::DSD_MODE_NATIVE:

@@ -11,6 +11,7 @@
 #include <array>
 
 #include <base/base.h>
+#include <base/exception.h>
 
 namespace xamp::base {
 	

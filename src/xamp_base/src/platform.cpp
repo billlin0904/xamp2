@@ -5,6 +5,7 @@
 #include <base/logger.h>
 #include <base/rng.h>
 #include <base/platform.h>
+#include <base/assert.h>
 
 #ifdef XAMP_OS_WIN
 #pragma comment(lib, "rpcrt4.lib")
@@ -146,14 +147,14 @@ void SetThreadAffinity(std::thread& thread, int32_t core) noexcept {
 
 std::string MakeUuidString() {
 #ifdef XAMP_OS_WIN
-    std::string result;
-    UUID uuid;
-    if (::UuidCreate(&uuid) == RPC_S_OK) {
-        char* str = nullptr;
-        ::UuidToStringA(&uuid, reinterpret_cast<RPC_CSTR*>(&str));
-        result = str;
-        ::RpcStringFreeA(reinterpret_cast<RPC_CSTR*>(&str));
-    }
+	UUID uuid;
+    auto status = ::UuidCreate(&uuid);
+    XAMP_ASSERT(status == RPC_S_OK);
+    char* str = nullptr;
+    status = ::UuidToStringA(&uuid, reinterpret_cast<RPC_CSTR*>(&str));
+    XAMP_ASSERT(status == RPC_S_OK);
+    std::string result = str;
+    ::RpcStringFreeA(reinterpret_cast<RPC_CSTR*>(&str));
     return result;
 #else
     uuid_t uuid;

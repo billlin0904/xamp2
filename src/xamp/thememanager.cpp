@@ -111,6 +111,7 @@ void ThemeManager::setThemeColor(ThemeColor theme_color) {
     theme_color_ = theme_color;
     setPalette();
     AppSettings::setValue(kAppSettingTheme, static_cast<int32_t>(theme_color_));
+    play_arrow_ = QIcon(Q_STR(":/xamp/Resource/%1/play_arrow.png").arg(themeColorPath()));
 }
 
 QLatin1String ThemeManager::themeColorPath() const {
@@ -313,7 +314,7 @@ void ThemeManager::setBackgroundColor(Ui::XampWindow& ui, QColor color) {
 }
 
 QIcon ThemeManager::playArrow() const noexcept {
-    return QIcon(Q_STR(":/xamp/Resource/%1/play_arrow.png").arg(themeColorPath()));
+    return play_arrow_;
 }
 
 void ThemeManager::setShufflePlayorder(Ui::XampWindow& ui) const {

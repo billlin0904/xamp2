@@ -171,6 +171,7 @@
     <ClCompile Include="singleinstanceapplication.cpp" />
     <ClCompile Include="thememanager.cpp" />
     <ClCompile Include="widget\albumartistpage.cpp" />
+    <ClCompile Include="widget\albumentity.cpp" />
     <ClCompile Include="widget\albumview.cpp" />
     <ClCompile Include="widget\appsettings.cpp" />
     <ClCompile Include="widget\artistinfopage.cpp" />
@@ -181,7 +182,6 @@
     <ClCompile Include="widget\discordnotify.cpp" />
     <ClCompile Include="widget\doubleslider.cpp" />
     <ClCompile Include="widget\equalizerdialog.cpp" />
-    <ClCompile Include="widget\musicentity.cpp" />
     <ClCompile Include="widget\podcast_uiltis.cpp" />
     <ClCompile Include="widget\qetag.cpp" />
     <ClCompile Include="widget\xwindow.cpp" />
@@ -209,7 +209,6 @@
     <ClCompile Include="widget\replaygainworker.cpp" />
     <ClCompile Include="widget\scrolllabel.cpp" />
     <ClCompile Include="widget\seekslider.cpp" />
-    <ClCompile Include="widget\selectcolorwidget.cpp" />
     <ClCompile Include="widget\settingnames.cpp" />
     <ClCompile Include="widget\stardelegate.cpp" />
     <ClCompile Include="widget\stareditor.cpp" />
@@ -243,6 +242,7 @@
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="widget\xframe.h" />
+    <ClInclude Include="widget\albumentity.h" />
     <ClInclude Include="widget\colorthief.h" />
     <ClInclude Include="widget\xmessagebox.h" />
     <ClInclude Include="xampplayer.h" />
@@ -293,13 +293,10 @@
     <ClInclude Include="widget\jsonsettings.h" />
     <ClInclude Include="widget\localelanguage.h" />
     <ClInclude Include="widget\lrcparser.h" />
-    <ClInclude Include="widget\musicentity.h" />
     <ClInclude Include="widget\pixmapcache.h" />
     <QtMoc Include="widget\playlistpage.h">
     </QtMoc>
     <QtMoc Include="widget\seekslider.h">
-    </QtMoc>
-    <QtMoc Include="widget\selectcolorwidget.h">
     </QtMoc>
     <QtMoc Include="widget\stardelegate.h">
     </QtMoc>

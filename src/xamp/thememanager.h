@@ -160,5 +160,6 @@ private:
     QColor background_color_;
     QPalette palette_;
     QFont ui_font_;
+    QIcon play_arrow_;
 };
 
