@@ -136,7 +136,7 @@ void XWindow::setContentWidget(IXampPlayer *content_widget) {
     // todo: 使用border-radius: 5px;將無法縮放視窗
     // todo: Qt::WA_TranslucentBackground + paintEvent 將無法縮放視窗
 #if defined(Q_OS_WIN)
-    if (!ThemeManager::instance().useNativeWindow()) {
+    if (!Singleton<ThemeManager>::GetInstance().useNativeWindow()) {
         setWindowFlags(Qt::WindowSystemMenuHint | Qt::WindowMinimizeButtonHint | Qt::WindowMaximizeButtonHint | Qt::FramelessWindowHint);
     }
 #else
@@ -153,7 +153,7 @@ void XWindow::setContentWidget(IXampPlayer *content_widget) {
     setMouseTracking(true);
     installEventFilter(this);
 #if defined(Q_OS_WIN)
-    if (!ThemeManager::instance().useNativeWindow()) {
+    if (!Singleton<ThemeManager>::GetInstance().useNativeWindow()) {
         win32::drawDwmShadow(this);
         win32::setFramelessWindowStyle(this);
         setWindowTitle(kAppTitle);

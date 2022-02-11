@@ -48,7 +48,7 @@ void XDialog::setContentWidget(QWidget* content) {
 
 #if defined(Q_OS_WIN)
 void XDialog::mousePressEvent(QMouseEvent* event) {
-    if (ThemeManager::instance().useNativeWindow()) {
+    if (Singleton<ThemeManager>::GetInstance().useNativeWindow()) {
         QWidget::mousePressEvent(event);
         return;
     }
@@ -63,7 +63,7 @@ void XDialog::mousePressEvent(QMouseEvent* event) {
 }
 
 void XDialog::mouseReleaseEvent(QMouseEvent* event) {
-    if (ThemeManager::instance().useNativeWindow()) {
+    if (Singleton<ThemeManager>::GetInstance().useNativeWindow()) {
         QWidget::mouseReleaseEvent(event);
         return;
     }
@@ -76,7 +76,7 @@ void XDialog::mouseReleaseEvent(QMouseEvent* event) {
 
 void XDialog::mouseMoveEvent(QMouseEvent* event) {
 #if defined(Q_OS_WIN)
-    if (ThemeManager::instance().useNativeWindow()) {
+    if (Singleton<ThemeManager>::GetInstance().useNativeWindow()) {
         QWidget::mouseMoveEvent(event);
         return;
     }
