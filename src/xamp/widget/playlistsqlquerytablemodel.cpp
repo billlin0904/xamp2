@@ -68,7 +68,7 @@ QVariant PlayListSqlQueryTableModel::data(const QModelIndex& index, int32_t role
         if (index.column() == PLAYLIST_PLAYING) {
             auto value = QSqlQueryModel::data(index, Qt::DisplayRole);
             if (value.toBool()) {
-                return ThemeManager::instance().playArrow();
+                return Singleton<ThemeManager>::GetInstance().playArrow();
             }
             return {};
         }

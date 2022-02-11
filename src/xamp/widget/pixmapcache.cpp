@@ -27,7 +27,7 @@ PixmapCache::PixmapCache()
 	cache_ext_ << Q_UTF8("*.cache");
 	const QDir dir;
 	(void)dir.mkdir(cache_path_);
-	unknown_cover_id_ = addOrUpdate(ThemeManager::instance().pixmap().unknownCover());
+    unknown_cover_id_ = addOrUpdate(Singleton<ThemeManager>::GetInstance().pixmap().unknownCover());
 	loadCache();
 }
 
@@ -83,7 +83,7 @@ QString PixmapCache::savePixamp(const QPixmap &cover) const {
     QByteArray array;
     QBuffer buffer(&array);
 
-    const auto cover_size = ThemeManager::instance().getCacheCoverSize();
+    const auto cover_size = Singleton<ThemeManager>::GetInstance().getCacheCoverSize();
     const auto cache_cover = Pixmap::resizeImage(cover, cover_size, true);
 
     QString tag_name;

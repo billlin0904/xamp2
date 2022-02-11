@@ -28,19 +28,19 @@ namespace std {
 
 class PixmapCache final {
 public:
-	friend class Singleton<PixmapCache>;
+    friend class Singleton<PixmapCache>;
 
 	static QPixmap findFileDirCover(const QString& file_path);
 
 	static QPixmap findFileDirCover(const PlayListEntity& item);
 
-	const QPixmap* find(const QString& tag_id) const;
+    const QPixmap* find(const QString& tag_id) const;
 
-	QPixmap fromFileCache(const QString& tag_id) const;
+    QPixmap fromFileCache(const QString& tag_id) const;
 
-	QString addOrUpdate(const QByteArray& data) const;
+    QString addOrUpdate(const QByteArray& data) const;
 
-	QString addOrUpdate(const QPixmap& cover) const;
+    QString addOrUpdate(const QPixmap& cover) const;
 
 	void erase(const QString& tag_id);
 

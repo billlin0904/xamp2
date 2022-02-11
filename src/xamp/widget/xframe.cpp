@@ -81,7 +81,7 @@ void XFrame::setContentWidget(QWidget* content) {
                                          image: url(:/xamp/Resource/%1/close.png);
                                          background-color: transparent;
                                          }
-                                         )").arg(ThemeManager::instance().themeColorPath()));
+                                         )").arg(Singleton<ThemeManager>::GetInstance().themeColorPath()));
 
     min_win_button->setStyleSheet(Q_STR(R"(
                                           QToolButton#minWinButton {
@@ -89,7 +89,7 @@ void XFrame::setContentWidget(QWidget* content) {
                                           image: url(:/xamp/Resource/%1/minimize.png);
                                           background-color: transparent;
                                           }
-                                          )").arg(ThemeManager::instance().themeColorPath()));
+                                          )").arg(Singleton<ThemeManager>::GetInstance().themeColorPath()));
 
     max_win_button->setStyleSheet(Q_STR(R"(
                                           QToolButton#maxWinButton {
@@ -97,7 +97,7 @@ void XFrame::setContentWidget(QWidget* content) {
                                           image: url(:/xamp/Resource/%1/maximize.png);
                                           background-color: transparent;
                                           }
-                                          )").arg(ThemeManager::instance().themeColorPath()));
+                                          )").arg(Singleton<ThemeManager>::GetInstance().themeColorPath()));
 
     max_win_button->setDisabled(true);
     min_win_button->setDisabled(true);

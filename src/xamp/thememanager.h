@@ -9,6 +9,7 @@
 #include <QIcon>
 #include <QMenu>
 
+#include <widget/widget_shared.h>
 #include <widget/str_utilts.h>
 
 namespace Ui {
@@ -49,10 +50,9 @@ enum class ThemeColor {
     LIGHT_THEME,
 };
 
-class ThemeManager : public QObject {
-    Q_OBJECT
-public:    
-    static ThemeManager& instance();
+class ThemeManager {
+public:
+    friend class Singleton<ThemeManager>;
 
     bool useNativeWindow() const;
 

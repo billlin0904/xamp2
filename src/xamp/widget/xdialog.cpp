@@ -183,7 +183,7 @@ bool XDialog::hitTest(MSG const* msg, long* result) const {
 #endif
 
 bool XDialog::nativeEvent(const QByteArray& event_type, void* message, long* result) {
-    if (ThemeManager::instance().useNativeWindow()) {
+    if (Singleton<ThemeManager>::GetInstance().useNativeWindow()) {
         return QWidget::nativeEvent(event_type, message, result);
     }
 

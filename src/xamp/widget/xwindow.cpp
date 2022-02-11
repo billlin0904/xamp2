@@ -160,11 +160,11 @@ void XWindow::setContentWidget(IXampPlayer *content_widget) {
     }
     taskbar_.reset(new WinTaskbar(this, content_widget));
 #else
-    if (!ThemeManager::instance().useNativeWindow() && content_widget_ != nullptr) {
+    if (!Singleton<ThemeManager>::GetInstance().useNativeWindow() && content_widget_ != nullptr) {
         osx::hideTitleBar(content_widget_);
         setWindowTitle(kAppTitle);
         if (AppSettings::getValueAsBool(kAppSettingEnableBlur)) {
-            ThemeManager::instance().enableBlur(this, true);
+            Singleton<ThemeManager>::GetInstance().enableBlur(this, true);
         }
     }
 #endif
@@ -323,7 +323,7 @@ bool XWindow::hitTest(MSG const* msg, long* result) const {
 #endif
 
 bool XWindow::nativeEvent(const QByteArray& event_type, void * message, long * result) {
-    if (ThemeManager::instance().useNativeWindow()) {
+    if (Singleton<ThemeManager>::GetInstance().useNativeWindow()) {
         return QWidget::nativeEvent(event_type, message, result);
     }
 
@@ -370,7 +370,7 @@ bool XWindow::nativeEvent(const QByteArray& event_type, void * message, long * r
 
 void XWindow::changeEvent(QEvent* event) {
 #if defined(Q_OS_MAC)
-    if (!ThemeManager::instance().useNativeWindow() && content_widget_ != nullptr) {
+    if (!Singleton<ThemeManager>::GetInstance().useNativeWindow() && content_widget_ != nullptr) {
         osx::hideTitleBar(content_widget_);
 	}
 #endif
@@ -385,7 +385,7 @@ void XWindow::closeEvent(QCloseEvent* event) {
 }
 
 void XWindow::mousePressEvent(QMouseEvent* event) {
-	if (ThemeManager::instance().useNativeWindow()) {
+    if (Singleton<ThemeManager>::GetInstance().useNativeWindow()) {
         QWidget::mousePressEvent(event);
         return;
 	}
@@ -403,7 +403,7 @@ void XWindow::mousePressEvent(QMouseEvent* event) {
 }
 
 void XWindow::mouseReleaseEvent(QMouseEvent* event) {
-    if (ThemeManager::instance().useNativeWindow()) {
+    if (Singleton<ThemeManager>::GetInstance().useNativeWindow()) {
         QWidget::mouseReleaseEvent(event);
         return;
 	}
@@ -423,7 +423,7 @@ void XWindow::mouseDoubleClickEvent(QMouseEvent*) {
 }
 
 void XWindow::mouseMoveEvent(QMouseEvent* event) {
-    if (ThemeManager::instance().useNativeWindow()) {
+    if (Singleton<ThemeManager>::GetInstance().useNativeWindow()) {
         QWidget::mouseMoveEvent(event);
         return;
     }

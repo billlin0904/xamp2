@@ -28,11 +28,6 @@ QString backgroundColorToString(QColor color) noexcept {
     return Q_UTF8("background-color: ") + colorToString(color) + Q_UTF8(";");
 }
 
-ThemeManager& ThemeManager::instance() {
-    static ThemeManager manager;
-    return manager;
-}
-
 bool ThemeManager::useNativeWindow() const {
     return use_native_window_;
 }
@@ -136,7 +131,7 @@ void ThemeManager::setMenuStyle(QMenu* menu) {
 
 DefaultStylePixmapManager::DefaultStylePixmapManager()
     : unknown_cover_(Q_UTF8(":/xamp/Resource/White/unknown_album.png"))
-    , default_size_unknown_cover_(Pixmap::resizeImage(unknown_cover_, ThemeManager::instance().getDefaultCoverSize())) {
+    , default_size_unknown_cover_(Pixmap::resizeImage(unknown_cover_, Singleton<ThemeManager>::GetInstance().getDefaultCoverSize())) {
 }
 
 const QPixmap& DefaultStylePixmapManager::defaultSizeUnknownCover() const noexcept {
@@ -290,7 +285,7 @@ QColor ThemeManager::getBackgroundColor() const noexcept {
 }
 
 void ThemeManager::setBackgroundColor(QWidget* widget) {
-    auto color = ThemeManager::instance().palette().color(QPalette::WindowText);
+    auto color = Singleton<ThemeManager>::GetInstance().palette().color(QPalette::WindowText);
     widget->setStyleSheet(backgroundColorToString(color));
 }
 

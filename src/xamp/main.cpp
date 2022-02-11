@@ -198,7 +198,7 @@ static int excute(int argc, char* argv[]) {
         XAMP_LOG_DEBUG("Library path : {}.", path.toStdString());
     }
 
-    QApplication::setFont(ThemeManager::instance().defaultFont());
+    QApplication::setFont(Singleton<ThemeManager>::GetInstance().defaultFont());
 
     XWindow top_win;
     Xamp win;
@@ -227,6 +227,7 @@ int main(int argc, char *argv[]) {
         Logger::GetInstance().Shutdown();
         JsonSettings::save();
         AppSettings::save();
+        Singleton<PixmapCache>::GetInstance().clearCache();
     );
 
     if (excute(argc, argv) == -2) {

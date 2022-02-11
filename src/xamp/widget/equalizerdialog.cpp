@@ -12,7 +12,7 @@ EqualizerDialog::EqualizerDialog(QWidget *parent)
     : QFrame(parent) {
     ui_.setupUi(this);
 
-    ThemeManager::instance().setBackgroundColor(this);
+    Singleton<ThemeManager>::GetInstance().setBackgroundColor(this);
 
     band_sliders_ = std::vector<DoubleSlider*>{
             ui_.band1Slider,

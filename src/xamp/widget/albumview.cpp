@@ -51,7 +51,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     auto cover_id = index.model()->data(index.model()->index(index.row(), 1)).toString();
     auto artist = index.model()->data(index.model()->index(index.row(), 2)).toString();
 
-    const auto default_cover_size = ThemeManager::instance().getDefaultCoverSize();
+    const auto default_cover_size = Singleton<ThemeManager>::GetInstance().getDefaultCoverSize();
     const QRect cover_rect(option.rect.left() + 10, option.rect.top() + 10,
         default_cover_size.width(), default_cover_size.height());
 
@@ -78,7 +78,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     painter->setFont(f);
     painter->drawText(artist_text_rect, Qt::AlignVCenter, artist);
 
-    auto album_cover = &ThemeManager::instance().pixmap().defaultSizeUnknownCover();
+    auto album_cover = &Singleton<ThemeManager>::GetInstance().pixmap().defaultSizeUnknownCover();
 
     if (const auto * cache_small_cover = Singleton<PixmapCache>::GetInstance().find(cover_id)) {
         album_cover = cache_small_cover;        
@@ -91,7 +91,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
 
 QSize AlbumViewStyledDelegate::sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const {
     auto result = QStyledItemDelegate::sizeHint(option, index);
-    const auto default_cover = ThemeManager::instance().getDefaultCoverSize();
+    const auto default_cover = Singleton<ThemeManager>::GetInstance().getDefaultCoverSize();
     result.setWidth(default_cover.width() + 30);
     result.setHeight(default_cover.height() + 80);
     return result;
@@ -143,7 +143,7 @@ void AlbumPlayListTableView::resizeColumn() {
             break;
         case AlbumPlayListTableView::PLAYLIST_TITLE:
             header->setSectionResizeMode(column, QHeaderView::Fixed);
-            header->resizeSection(column, size().width() - ThemeManager::instance().getAlbumCoverSize().width() - 100);
+            header->resizeSection(column, size().width() - Singleton<ThemeManager>::GetInstance().getAlbumCoverSize().width() - 100);
             break;
         case AlbumPlayListTableView::PLAYLIST_DURATION:
             header->setSectionResizeMode(column, QHeaderView::ResizeToContents);
@@ -288,7 +288,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
         emit playMusic(getAlbumEntity(index));
         });
 
-    ThemeManager::instance().setBackgroundColor(this);
+    Singleton<ThemeManager>::GetInstance().setBackgroundColor(this);
 }
 
 void AlbumViewPage::setAlbum(const QString& album) {
@@ -322,12 +322,12 @@ void AlbumViewPage::setTotalDuration(double durations) {
 void AlbumViewPage::setCover(const QString& cover_id) {
     if (auto const * cache_small_cover = Singleton<PixmapCache>::GetInstance().find(cover_id)) {
         auto image = Pixmap::roundImage(Pixmap::resizeImage(cache_small_cover->copy(),
-            ThemeManager::instance().getAlbumCoverSize()));
+            Singleton<ThemeManager>::GetInstance().getAlbumCoverSize()));
         cover_->setPixmap(image);
     }
     else {
-	    const auto image = Pixmap::roundImage(Pixmap::resizeImage(ThemeManager::instance().pixmap().defaultSizeUnknownCover(),
-	                                                              ThemeManager::instance().getAlbumCoverSize()));
+        const auto image = Pixmap::roundImage(Pixmap::resizeImage(Singleton<ThemeManager>::GetInstance().pixmap().defaultSizeUnknownCover(),
+                                                                  Singleton<ThemeManager>::GetInstance().getAlbumCoverSize()));
         cover_->setPixmap(image);
     }
 }
@@ -390,7 +390,7 @@ AlbumView::AlbumView(QWidget* parent)
         }
 
         page_->move(QPoint(list_view_rect.x(), 0));
-        ThemeManager::instance().setBackgroundColor(page_);
+        Singleton<ThemeManager>::GetInstance().setBackgroundColor(page_);
     	
         page_->show();
         });

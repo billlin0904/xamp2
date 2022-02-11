@@ -76,7 +76,7 @@ private:
 		for (auto i = red_min; i < red_max + 1; i++) {
 			for (auto j = green_min; j < green_max + 1; j++) {
 				for (auto k = blue_min; k < blue_max + 1; k++) {
-					const auto index = GetColorIndex(i, j, k);
+                    const auto index = GetColorIndex(i, j, k);
 					npix += histo_[index];
 				}
 			}
