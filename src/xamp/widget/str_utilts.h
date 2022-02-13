@@ -6,6 +6,7 @@
 #pragma once
 
 #include <QString>
+#include <QColor>
 
 struct ConstLatin1String final : public QLatin1String {
     constexpr ConstLatin1String(char const* const s) noexcept
@@ -36,3 +37,7 @@ QString samplerate2String(uint32_t samplerate);
 QString bitRate2String(uint32_t bitRate);
 
 QString dsdSampleRate2String(uint32_t dsd_speed);
+
+QString colorToString(QColor color);
+
+QString backgroundColorToString(QColor color);

@@ -13,20 +13,9 @@
 #include <widget/osx/osx.h>
 #endif
 
+#include <widget/str_utilts.h>
 #include <widget/appsettings.h>
 #include "thememanager.h"
-
-QString colorToString(QColor color) noexcept {
-    return QString(Q_UTF8("rgba(%1,%2,%3,%4)"))
-        .arg(color.red())
-        .arg(color.green())
-        .arg(color.blue())
-        .arg(color.alpha());
-}
-
-QString backgroundColorToString(QColor color) noexcept {
-    return Q_UTF8("background-color: ") + colorToString(color) + Q_UTF8(";");
-}
 
 bool ThemeManager::useNativeWindow() const {
     return use_native_window_;
@@ -285,7 +274,7 @@ QColor ThemeManager::getBackgroundColor() const noexcept {
 }
 
 void ThemeManager::setBackgroundColor(QWidget* widget) {
-    auto color = Singleton<ThemeManager>::GetInstance().palette().color(QPalette::WindowText);
+    auto color = palette().color(QPalette::WindowText);
     widget->setStyleSheet(backgroundColorToString(color));
 }
 

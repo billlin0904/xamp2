@@ -1,5 +1,17 @@
 #include <widget/str_utilts.h>
 
+QString colorToString(QColor color) {
+    return QString(Q_UTF8("rgba(%1,%2,%3,%4)"))
+        .arg(color.red())
+        .arg(color.green())
+        .arg(color.blue())
+        .arg(color.alpha());
+}
+
+QString backgroundColorToString(QColor color) {
+    return Q_UTF8("background-color: ") + colorToString(color) + Q_UTF8(";");
+}
+
 QString bitRate2String(uint32_t bitRate) {
     if (bitRate > 10000) {
         return QString(Q_UTF8("%0 Mbps")).arg(QString::number(bitRate / 1000.0, 'f', 2));

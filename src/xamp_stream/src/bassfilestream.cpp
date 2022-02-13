@@ -124,41 +124,20 @@ public:
 
         XAMP_LOG_TRACE("Use DsdModes: {}", mode_);
 
-        int32_t retry_count = 0;
-FlushFileCache:
-        file_.Close();
+        auto is_file_path = IsFilePath(file_path);
         file_cache_.reset();
 
-        std::tuple<
-        std::string,// Catch ID
-    	Path,       // Cache File Path
-    	bool        // Is download completed?
-    	> cache_info;
-        auto is_file_path = IsFilePath(file_path);
-    	if (!is_file_path) {
-            cache_info = GetFileCache(file_path, is_file_path);
-    	}
-
-        if (!std::get<2>(cache_info)) {
-            LoadFileOrURL(file_path, is_file_path, mode_, flags);
+        if (!is_file_path) {
+            file_cache_ = GetPodcastFileCache(file_path);
+        }
+        if (file_cache_ != nullptr && file_cache_->IsCompleted()) {
+            LoadFileOrURL(file_cache_->GetFilePath().wstring(), is_file_path, mode_, flags);
         } else {
-            LoadFileOrURL(std::get<1>(cache_info).wstring(), is_file_path, mode_, flags);
+            LoadFileOrURL(file_path, is_file_path, mode_, flags);
         }
 
         info_ = BASS_CHANNELINFO{};
         BassIfFailedThrow(BASS.BASS_ChannelGetInfo(stream_.get(), &info_));
-
-        if (is_file_path) {
-	        const auto file_duration = GetDuration();
-            if (file_duration < 1.0) {
-                PodcastCache.Remove(std::get<0>(cache_info));
-                file_cache_.reset();
-                ++retry_count;
-                if (retry_count < 3) {
-                    goto FlushFileCache;
-                }
-            }
-        }
 
         if (GetFormat().GetChannels() == kMaxChannel) {
             return;
@@ -319,20 +298,6 @@ FlushFileCache:
         return BASS.BASS_ChannelIsActive(GetHStream()) == BASS_ACTIVE_PLAYING;
     }
 private:
-    std::tuple<std::string, Path, bool> GetFileCache(std::wstring const& file_path, bool& use_filemap) {
-        auto cache_id = ToCacheID(file_path);
-        auto file_cache = PodcastCache.GetOrAdd(cache_id);
-        auto is_completed = false;
-        if (file_cache->IsCompleted()) {
-            use_filemap = true;
-            is_completed = true;
-        }
-        else {
-            file_cache_ = file_cache;
-        }
-        return std::make_tuple(cache_id, file_cache->GetFilePath(), is_completed);
-    }
-
     XAMP_ALWAYS_INLINE uint32_t InternalGetSamples(void* buffer, uint32_t length) const noexcept {
         const auto bytes_read = BASS.BASS_ChannelGetData(GetHStream(), buffer, length);
         if (bytes_read == kBassError) {

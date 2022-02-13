@@ -1,4 +1,5 @@
 #include <base/platform.h>
+#include <base/str_utilts.h>
 #include <stream/podcastcache.h>
 
 namespace xamp::stream {
@@ -58,20 +59,22 @@ PodcastFileCacheManager::PodcastFileCacheManager()
 std::shared_ptr<PodcastFileCache> PodcastFileCacheManager::GetOrAdd(std::string const& cache_id) {
     auto cache = cache_.Find(cache_id);
     bool found = false;
-    if (!cache) {
+
+    auto make_cache = [cache_id, this]() {
         auto file = std::make_shared<PodcastFileCache>(cache_id);
         file->SetTempPath(".m4a", path_);
         cache_.AddOrUpdate(cache_id, file);
-        cache = cache_.Find(cache_id);
+        return cache_.Find(cache_id);
+    };
+
+    if (!cache) {
+        cache = make_cache();
     } else {
         found = true;
     }
     if (found && !(*cache)->IsCompleted()) {
         cache_.Erase(cache_id);
-        auto file = std::make_shared<PodcastFileCache>(cache_id);
-        file->SetTempPath(".m4a", path_);
-        cache_.AddOrUpdate(cache_id, file);
-        cache = cache_.Find(cache_id);
+        cache = make_cache();
     }
     return (*cache)->shared_from_this();
 }
@@ -94,6 +97,11 @@ void PodcastFileCacheManager::Remove(std::string const& cache_id) {
 
 void PodcastFileCacheManager::Remove(std::shared_ptr<PodcastFileCache> const & file_cache) {
     Remove(file_cache->GetCacheID());
+}
+
+std::shared_ptr<PodcastFileCache> GetPodcastFileCache(std::wstring const & file_path) {
+    auto cache_id = ToCacheID(file_path);
+    return PodcastCache.GetOrAdd(cache_id);
 }
 
 }

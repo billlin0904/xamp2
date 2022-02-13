@@ -16,10 +16,6 @@ namespace Ui {
 class XampWindow;
 }
 
-QString colorToString(QColor color) noexcept;
-
-QString backgroundColorToString(QColor color) noexcept;
-
 inline constexpr int32_t kUIRadius = 9;
 
 class StylePixmapManager {

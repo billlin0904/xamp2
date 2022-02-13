@@ -104,7 +104,6 @@ HEADERS += \
     widget/database.h \
     widget/qetag.h \
     widget/albumartistpage.h \
-    widget/framelesswindow.h \
     widget/image_utiltis.h \
     widget/lrcpage.h \
     widget/lrcparser.h \

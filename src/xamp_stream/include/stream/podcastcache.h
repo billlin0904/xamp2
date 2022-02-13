@@ -67,6 +67,8 @@ private:
 	LruCache<std::string, std::shared_ptr<PodcastFileCache>> cache_;
 };
 
+std::shared_ptr<PodcastFileCache> GetPodcastFileCache(std::wstring const & file_path);
+
 }
 
 
