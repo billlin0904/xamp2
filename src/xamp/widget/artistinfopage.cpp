@@ -5,7 +5,6 @@
 #include <widget/database.h>
 #include "thememanager.h"
 
-#include <widget/time_utilts.h>
 #include <widget/albumview.h>
 #include <widget/actionmap.h>
 #include <widget/image_utiltis.h>
@@ -156,5 +155,5 @@ void ArtistInfoPage::setTracks(int32_t tracks) {
 }
 
 void ArtistInfoPage::setTotalDuration(double durations) {
-	durtions_->setText(Time::msToString(durations));
+	durtions_->setText(msToString(durations));
 }

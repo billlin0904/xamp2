@@ -133,4 +133,35 @@ XAMP_BASE_API IThreadPool& PlaybackThreadPool();
 
 XAMP_BASE_API IThreadPool& WASAPIThreadPool();
 
+
+template <typename Func>
+void ParallelFor(size_t begin, size_t end, Func &&f, IThreadPool& tp, size_t thread_branch = 4) {
+    std::vector<std::shared_future<void>> futures(thread_branch);
+    const auto block_iters = 
+        std::ceil(static_cast<float>(end - begin)
+            / static_cast<float>(thread_branch));
+
+    auto block_begin = begin - block_iters;
+    auto block_end = begin;
+    auto step = [&]() -> void
+    {
+        block_begin += block_iters;
+        block_end += block_iters;
+        block_end = (block_end > end) ? end : block_end;
+    };
+
+    step();
+
+    for (auto& ff : futures) {
+        ff = tp.Spawn([=, &f](size_t) -> void {
+                f(block_begin, block_end);
+            });
+        step();
+    }
+
+    for (auto& ff : futures) {
+        ff.wait();
+    }
+}
+
 }

@@ -41,3 +41,5 @@ QString dsdSampleRate2String(uint32_t dsd_speed);
 QString colorToString(QColor color);
 
 QString backgroundColorToString(QColor color);
+
+QString msToString(const double stream_time);

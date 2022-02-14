@@ -23,7 +23,6 @@
 
 #include "thememanager.h"
 #include <widget/str_utilts.h>
-#include <widget/time_utilts.h>
 #include <widget/image_utiltis.h>
 #include <widget/pixmapcache.h>
 #include <widget/albumview.h>
@@ -316,7 +315,7 @@ void AlbumViewPage::setTracks(int32_t tracks) {
 }
 
 void AlbumViewPage::setTotalDuration(double durations) {
-    durtions_->setText(Time::msToString(durations));
+    durtions_->setText(msToString(durations));
 }
 
 void AlbumViewPage::setCover(const QString& cover_id) {

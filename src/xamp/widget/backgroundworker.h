@@ -6,7 +6,7 @@
 #pragma once
 
 #include <QObject>
-
+#include <vector>
 #include <base/ithreadpool.h>
 #include <widget/playlistentity.h>
 
@@ -22,14 +22,14 @@ struct ReplayGainResult final {
     std::vector<double> track_replay_gain;
 };
 
-class ReplayGainWorker : public QObject {
+class BackgroundWorker : public QObject {
     Q_OBJECT
 public:
-    ReplayGainWorker();
+    BackgroundWorker();
 
     void stopThreadPool();
 
-    virtual ~ReplayGainWorker();
+    virtual ~BackgroundWorker();
 
 signals:
     void updateReplayGain(int music_id,
@@ -38,8 +38,12 @@ signals:
                     double track_rg_gain,
                     double track_peak);
 
+    void updateBlurImage(const QImage& image);
+
 public Q_SLOT:
-    void addEntities(bool force, const std::vector<PlayListEntity>& items);
+    void readReplayGain(bool force, const std::vector<PlayListEntity>& items);
+
+    void blurImage(const QImage& image);
 
 private:
     bool is_stop_{false};

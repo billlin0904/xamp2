@@ -141,6 +141,8 @@ static void setLogLevel(spdlog::level::level_enum level = spdlog::level::debug) 
     Logger::GetInstance().GetLogger(kCompressorLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kCoreAudioLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger("PixmapCache")->set_level(level);
+    Logger::GetInstance().GetLogger(kDspManagerLoggerName)->set_level(level);
+    Logger::GetInstance().GetLogger(kAudioPlayerLoggerName)->set_level(level);
 }
 
 static int excute(int argc, char* argv[]) {
@@ -191,8 +193,8 @@ static int excute(int argc, char* argv[]) {
 
     XAMP_LOG_DEBUG("Database init success.");
     setLogLevel(spdlog::level::info);
-    Logger::GetInstance().GetLogger(kAudioPlayerLoggerName)->set_level(spdlog::level::debug);
-    Logger::GetInstance().GetLogger(kExclusiveWasapiDeviceLoggerName)->set_level(spdlog::level::debug);
+    /*Logger::GetInstance().GetLogger(kAudioPlayerLoggerName)->set_level(spdlog::level::debug);
+    Logger::GetInstance().GetLogger(kExclusiveWasapiDeviceLoggerName)->set_level(spdlog::level::debug);*/
 
     foreach(const QString & path, app.libraryPaths()) {
         XAMP_LOG_DEBUG("Library path : {}.", path.toStdString());

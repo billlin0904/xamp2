@@ -41,7 +41,7 @@ DSPManager::DSPManager()
 	: enable_processor_(false)
 	, replay_gain_(0.0)
 	, dsd_modes_(DsdModes::DSD_MODE_PCM) {
-    logger_ = Logger::GetInstance().GetLogger("DSPManager");
+    logger_ = Logger::GetInstance().GetLogger(kDspManagerLoggerName);
 }
 
 void DSPManager::AddPostDSP(AlignPtr<IAudioProcessor> processor) {

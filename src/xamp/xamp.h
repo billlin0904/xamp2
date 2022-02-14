@@ -13,7 +13,7 @@
 #include <widget/uiplayerstateadapter.h>
 #include <widget/playlistentity.h>
 #include <widget/playerorder.h>
-#include <widget/replaygainworker.h>
+#include <widget/backgroundworker.h>
 #include <widget/albumentity.h>
 #include <widget/discordnotify.h>
 
@@ -49,6 +49,8 @@ signals:
     void themeChanged(QColor backgroundColor, QColor color);
 
 	void nowPlaying(QString const& artist, QString const& title);
+
+	void addBlurImage(const QImage& image);
 
 public slots:
     void playMusic(const AlbumEntity& item);
@@ -173,8 +175,8 @@ private:
     QMenu* tray_icon_menu_;
     QSystemTrayIcon* tray_icon_;
 	QStack<int32_t> stack_page_id_;	    	
-    ReplayGainWorker replay_gain_worker_;
-    QThread replay_gain_thread_;
+    BackgroundWorker background_worker_;
+    QThread background_thread_;
 	std::shared_ptr<UIPlayerStateAdapter> state_adapter_;
 	std::shared_ptr<IAudioPlayer> player_;
     DicordNotify discord_notify_;

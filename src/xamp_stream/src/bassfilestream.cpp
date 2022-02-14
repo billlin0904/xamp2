@@ -1,6 +1,7 @@
 #include <stream/basslib.h>
 #include <base/str_utilts.h>
 #include <base/singleton.h>
+#include <base/stopwatch.h>
 #include <stream/podcastcache.h>
 #include <stream/bassexception.h>
 #include <stream/bassfilestream.h>
@@ -124,18 +125,24 @@ public:
 
         XAMP_LOG_TRACE("Use DsdModes: {}", mode_);
 
-        auto is_file_path = IsFilePath(file_path);
+        const auto is_file_path = IsFilePath(file_path);
         file_cache_.reset();
 
         if (!is_file_path) {
             file_cache_ = GetPodcastFileCache(file_path);
         }
+
+        XAMP_LOG_DEBUG("Start open file");
+
+        Stopwatch sw;
+        sw.Reset();
         if (file_cache_ != nullptr && file_cache_->IsCompleted()) {
-            LoadFileOrURL(file_cache_->GetFilePath().wstring(), is_file_path, mode_, flags);
-        } else {
+            LoadFileOrURL(file_cache_->GetFilePath().wstring(), true, mode_, flags);
+        } else {            
             LoadFileOrURL(file_path, is_file_path, mode_, flags);
         }
 
+        XAMP_LOG_DEBUG("End open file :{} secs", sw.ElapsedSeconds());
         info_ = BASS_CHANNELINFO{};
         BassIfFailedThrow(BASS.BASS_ChannelGetInfo(stream_.get(), &info_));
 
@@ -183,17 +190,17 @@ public:
 	static void DownloadProc(const void* buffer, DWORD length, void* user) {
         auto* impl = static_cast<BassFileStreamImpl*>(user);
     	if (!buffer) {
-            XAMP_LOG_TRACE("Downloading 100% completed!");
+            XAMP_LOG_DEBUG("Downloading 100% completed!");
             impl->file_cache_->Close();
             return;
     	}
         if (length == 0) {
             auto *ptr = static_cast<char const*>(buffer);
             std::string http_status(ptr);
-            XAMP_LOG_TRACE("{}", http_status);
+            XAMP_LOG_DEBUG("{}", http_status);
     	} else {                      
             impl->download_size_ += length;
-            XAMP_LOG_TRACE("Downloading {}% {}", impl->GetReadProgress(),
+            XAMP_LOG_TRACE("Downloading {:.2f}% {}", impl->GetReadProgress(),
                            String::FormatBytes(impl->download_size_));
             impl->file_cache_->Write(buffer, length);
         }

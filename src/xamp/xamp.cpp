@@ -41,7 +41,6 @@
 #include <widget/jsonsettings.h>
 #include <widget/ui_utilts.h>
 #include <widget/read_utiltis.h>
-#include <widget/time_utilts.h>
 #include <widget/equalizerdialog.h>
 #include <widget/playlisttablemodel.h>
 #include <widget/colorthief.h>
@@ -144,8 +143,8 @@ Xamp::Xamp()
 void Xamp::setXWindow(IXWindow* top_window) {
     top_window_ = top_window;
     player_->Startup();
-    replay_gain_worker_.moveToThread(&replay_gain_thread_);
-    replay_gain_thread_.start();
+    background_worker_.moveToThread(&background_thread_);
+    background_thread_.start();
     PodcastCache.SetTempPath(AppSettings::getValueAsString(kAppSettingPodcastCachePath).toStdWString());
     initialUI();
     initialController();
@@ -257,9 +256,9 @@ void Xamp::cleanup() {
         player_.reset();
     }
 
-    replay_gain_worker_.stopThreadPool();
-    replay_gain_thread_.quit();
-    replay_gain_thread_.wait();
+    background_worker_.stopThreadPool();
+    background_thread_.quit();
+    background_thread_.wait();
 }
 
 void Xamp::changeTheme() {
@@ -499,7 +498,7 @@ void Xamp::initialController() {
     });
 
     (void)QObject::connect(ui_.seekSlider, &SeekSlider::sliderMoved, [this](auto value) {
-        QToolTip::showText(QCursor::pos(), Time::msToString(static_cast<double>(ui_.seekSlider->value()) / 1000.0));
+        QToolTip::showText(QCursor::pos(), msToString(static_cast<double>(ui_.seekSlider->value()) / 1000.0));
         if (!is_seeking_) {
             return;
         }
@@ -508,7 +507,7 @@ void Xamp::initialController() {
 
     (void)QObject::connect(ui_.seekSlider, &SeekSlider::sliderReleased, [this]() {
         XAMP_LOG_DEBUG("SeekSlider release!");
-        QToolTip::showText(QCursor::pos(), Time::msToString(static_cast<double>(ui_.seekSlider->value()) / 1000.0));
+        QToolTip::showText(QCursor::pos(), msToString(static_cast<double>(ui_.seekSlider->value()) / 1000.0));
         if (!is_seeking_) {
             return;
         }
@@ -524,7 +523,7 @@ void Xamp::initialController() {
     });
 
     (void)QObject::connect(ui_.seekSlider, &SeekSlider::sliderPressed, [this]() {
-        QToolTip::showText(QCursor::pos(), Time::msToString(static_cast<double>(ui_.seekSlider->value()) / 1000.0));
+        QToolTip::showText(QCursor::pos(), msToString(static_cast<double>(ui_.seekSlider->value()) / 1000.0));
         if (is_seeking_) {
             return;
         }
@@ -780,8 +779,8 @@ void Xamp::initialController() {
         });
 
     ui_.seekSlider->setEnabled(false);
-    ui_.startPosLabel->setText(Time::msToString(0));
-    ui_.endPosLabel->setText(Time::msToString(0));
+    ui_.startPosLabel->setText(msToString(0));
+    ui_.endPosLabel->setText(msToString(0));
     ui_.searchLineEdit->setPlaceholderText(tr("Search anything"));    
 }
 
@@ -940,10 +939,10 @@ void Xamp::onSampleTimeChanged(double stream_time) {
 }
 
 void Xamp::setSeekPosValue(double stream_time) {
-    ui_.endPosLabel->setText(Time::msToString(player_->GetDuration() - stream_time));
+    ui_.endPosLabel->setText(msToString(player_->GetDuration() - stream_time));
     const auto stream_time_as_ms = static_cast<int32_t>(stream_time * 1000.0);
     ui_.seekSlider->setValue(stream_time_as_ms);
-    ui_.startPosLabel->setText(Time::msToString(stream_time));
+    ui_.startPosLabel->setText(msToString(stream_time));
     top_window_->setTaskbarProgress(static_cast<int32_t>(100.0 * ui_.seekSlider->value() / ui_.seekSlider->maximum()));
     lrc_page_->lyricsWidget()->setLrcTime(stream_time_as_ms);
 }
@@ -986,7 +985,7 @@ void Xamp::play() {
 
 void Xamp::resetSeekPosValue() {
     ui_.seekSlider->setValue(0);
-    ui_.startPosLabel->setText(Time::msToString(0));
+    ui_.startPosLabel->setText(msToString(0));
 }
 
 void Xamp::processMeatadata(const std::vector<Metadata>& medata) const {    
@@ -1092,7 +1091,7 @@ void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_form
         }
 
         ui_.seekSlider->setRange(0, static_cast<int32_t>(player_->GetDuration() * 1000));
-        ui_.endPosLabel->setText(Time::msToString(player_->GetDuration()));
+        ui_.endPosLabel->setText(msToString(player_->GetDuration()));
         cur_page->format()->setText(format2String(playback_format, item.file_ext));
 
         artist_info_page_->setArtistId(item.artist,
@@ -1111,10 +1110,8 @@ void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_form
             found_cover = cover != nullptr;
             if (cover != nullptr) {
                 setCover(cover);
+                emit addBlurImage(cover->toImage());
                 const auto palette = GetPalette(cover->toImage(), 10, 1);
-                for (const auto& color : palette) {
-                    XAMP_LOG_DEBUG("Color: {}", color.name().toStdString());
-                }
                 lrc_page_->setBackgroundColor(palette[0]);
             }
         }
@@ -1251,7 +1248,7 @@ void Xamp::onPlayerStateChanged(xamp::player::PlayerState play_state) {
     if (play_state == PlayerState::PLAYER_STATE_STOPPED) {
         top_window_->resetTaskbarProgress();
         ui_.seekSlider->setValue(0);
-        ui_.startPosLabel->setText(Time::msToString(0));
+        ui_.startPosLabel->setText(msToString(0));
         playNextItem(1);
         payNextMusic();
     }
@@ -1383,6 +1380,11 @@ void Xamp::initialPlaylist() {
                             &Xamp::themeChanged,
                             lrc_page_,
                             &LrcPage::onThemeChanged);
+
+    (void)QObject::connect(&background_worker_,
+        &BackgroundWorker::updateBlurImage,
+        lrc_page_,
+        &LrcPage::setBackground);
 
     (void)QObject::connect(album_artist_page_->album(),
                             &AlbumView::addPlaylist,
@@ -1517,9 +1519,12 @@ PlaylistPage* Xamp::newPlaylistPage(int32_t playlist_id) {
                             this, &Xamp::encodeFlacFile);
 
     (void)QObject::connect(playlist_page->playlist(), &PlayListTableView::addPlaylistReplayGain,
-                            &replay_gain_worker_, &ReplayGainWorker::addEntities);
+                            &background_worker_, &BackgroundWorker::readReplayGain);
 
-    (void)QObject::connect(&replay_gain_worker_, &ReplayGainWorker::updateReplayGain,
+    (void)QObject::connect(this, &Xamp::addBlurImage,
+        &background_worker_, &BackgroundWorker::blurImage);
+
+    (void)QObject::connect(&background_worker_, &BackgroundWorker::updateReplayGain,
         playlist_page->playlist(), &PlayListTableView::updateReplayGain);
 
     (void)QObject::connect(this, &Xamp::themeChanged,

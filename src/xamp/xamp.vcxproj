@@ -184,6 +184,7 @@
     <ClCompile Include="widget\equalizerdialog.cpp" />
     <ClCompile Include="widget\podcast_uiltis.cpp" />
     <ClCompile Include="widget\qetag.cpp" />
+    <ClCompile Include="widget\stackblur.cpp" />
     <ClCompile Include="widget\xwindow.cpp" />
     <ClCompile Include="widget\http.cpp" />
     <ClCompile Include="widget\image_utiltis.cpp" />
@@ -206,7 +207,7 @@
     <ClCompile Include="widget\playlisttableproxymodel.cpp" />
     <ClCompile Include="widget\playlisttableview.cpp" />
     <ClCompile Include="widget\read_utiltis.cpp" />
-    <ClCompile Include="widget\replaygainworker.cpp" />
+    <ClCompile Include="widget\backgroundworker.cpp" />
     <ClCompile Include="widget\scrolllabel.cpp" />
     <ClCompile Include="widget\seekslider.cpp" />
     <ClCompile Include="widget\settingnames.cpp" />
@@ -244,6 +245,7 @@
     <QtMoc Include="widget\xframe.h" />
     <ClInclude Include="widget\albumentity.h" />
     <ClInclude Include="widget\colorthief.h" />
+    <ClInclude Include="widget\stackblur.h" />
     <ClInclude Include="widget\xmessagebox.h" />
     <ClInclude Include="xampplayer.h" />
     <QtMoc Include="widget\lyricsshowwidget.h" />
@@ -258,7 +260,7 @@
     <ClInclude Include="widget\podcast_uiltis.h" />
     <ClInclude Include="widget\read_utiltis.h" />
     <QtMoc Include="widget\switchbutton.h" />
-    <QtMoc Include="widget\replaygainworker.h" />
+    <QtMoc Include="widget\backgroundworker.h" />
     <ClInclude Include="widget\ui_utilts.h" />
     <ClInclude Include="widget\widget_shared.h" />
     <QtMoc Include="widget\xdialog.h">
@@ -307,7 +309,6 @@
     <ClInclude Include="widget\str_utilts.h" />
     <QtMoc Include="widget\tablistview.h">
     </QtMoc>
-    <ClInclude Include="widget\time_utilts.h" />
     <QtMoc Include="widget\playlisttableproxymodel.h">
     </QtMoc>
     <QtMoc Include="widget\metadataextractadapter.h">

@@ -90,7 +90,6 @@ void PlaylistPage::initial() {
 
 	playlist_ = new PlayListTableView(this);
 	playlist_->setObjectName(QString::fromUtf8("tableView"));
-    playlist_->setPodcastMode(false);
 
 	horizontalLayout_8->addWidget(playlist_);
 

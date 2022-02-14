@@ -3,10 +3,10 @@
 #include <QSqlError>
 #include <QSqlRecord>
 #include <QDebug>
+#include <QDateTime>
 
 #include <base/logger.h>
 #include <widget/str_utilts.h>
-#include <widget/time_utilts.h>
 #include <widget/database.h>
 
 #define IfFailureThrow(query, sql) \
@@ -598,7 +598,7 @@ int32_t Database::addOrUpdateMusic(const Metadata& metadata, int32_t playlist_id
 	query.bindValue(Q_UTF8(":fileName"), QString::fromStdWString(metadata.file_name));
 	query.bindValue(Q_UTF8(":parentPath"), QString::fromStdWString(metadata.parent_path));
 	query.bindValue(Q_UTF8(":duration"), metadata.duration);
-	query.bindValue(Q_UTF8(":durationStr"), Time::msToString(metadata.duration));
+	query.bindValue(Q_UTF8(":durationStr"), msToString(metadata.duration));
 	query.bindValue(Q_UTF8(":bitrate"), metadata.bitrate);
 	query.bindValue(Q_UTF8(":samplerate"), metadata.samplerate);
 	query.bindValue(Q_UTF8(":offset"), metadata.offset);

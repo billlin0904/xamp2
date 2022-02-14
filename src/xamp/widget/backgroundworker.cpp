@@ -1,5 +1,3 @@
-#include <vector>
-
 #include <player/loudness_scanner.h>
 
 #include <base/logger.h>
@@ -8,24 +6,32 @@
 #include <metadata/imetadatawriter.h>
 
 #include <widget/str_utilts.h>
+#include <widget/stackblur.h>
 #include <widget/ui_utilts.h>
 #include <widget/read_utiltis.h>
 #include <widget/appsettings.h>
-#include <widget/replaygainworker.h>
+#include <widget/backgroundworker.h>
 
-ReplayGainWorker::ReplayGainWorker() {
+BackgroundWorker::BackgroundWorker() {
     pool_ = MakeThreadPool(kReplayGainThreadPoolLoggerName);
 }
 
-ReplayGainWorker::~ReplayGainWorker() {    
+BackgroundWorker::~BackgroundWorker() = default;
+
+void BackgroundWorker::stopThreadPool() {
+    is_stop_ = true;
     pool_->Stop();
 }
 
-void ReplayGainWorker::stopThreadPool() {
-    is_stop_ = true;
+void BackgroundWorker::blurImage(const QImage& image) {
+    auto temp = image.copy();
+    XAMP_LOG_DEBUG("Blur image start");
+    Stackblur blur(*pool_, temp, 50);
+    emit updateBlurImage(temp);
+    XAMP_LOG_DEBUG("Blur image end");
 }
 
-void ReplayGainWorker::addEntities(bool force, const std::vector<PlayListEntity>& items) {
+void BackgroundWorker::readReplayGain(bool force, const std::vector<PlayListEntity>& items) {
     std::vector<std::shared_future<PlayListEntity>> replay_gain_tasks;
 
     const auto target_gain = AppSettings::getValue(kAppSettingReplayGainTargetGain).toDouble();

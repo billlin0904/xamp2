@@ -34,7 +34,6 @@
 #include <widget/str_utilts.h>
 #include <widget/actionmap.h>
 #include <widget/stareditor.h>
-#include <widget/time_utilts.h>
 #include <widget/albumentity.h>
 #include <widget/podcast_uiltis.h>
 #include <widget/playlisttableview.h>
@@ -266,42 +265,6 @@ void PlayListTableView::initial() {
         refresh();
     });
 
-    horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
-    (void)QObject::connect(horizontalHeader(), &QHeaderView::customContextMenuRequested, [this](auto pt) {
-        auto* menu = new QMenu(this);
-        menu->setWindowFlags(Qt::Popup | Qt::FramelessWindowHint);
-        menu->setAttribute(Qt::WA_TranslucentBackground);
-
-        auto* header_view = horizontalHeader();
-
-        auto last_referred_logical_column = header_view->logicalIndexAt(pt);
-
-        auto* hide_column_action = new QAction(tr("Hide this column"), this);
-        (void) QObject::connect(hide_column_action, &QAction::triggered, [last_referred_logical_column, this]() {
-			setColumnHidden(last_referred_logical_column, true);
-            AppSettings::removeList(kAppSettingColumnName, QString::number(last_referred_logical_column));
-        });
-
-        auto* show_hide_columns_action = new QAction(tr("Select columns to show..."), this);
-        (void) QObject::connect(show_hide_columns_action, &QAction::triggered, [pt, header_view, this]() {
-            ActionMap<PlayListTableView, std::function<void()>> action_map(this);
-            for (auto column = 0; column < header_view->count(); ++column) {
-                auto header_name = model()->headerData(column, Qt::Horizontal).toString();
-                action_map.addAction(header_name, [this, column]() {
-                    setColumnHidden(column, false);
-                    AppSettings::addList(kAppSettingColumnName, QString::number(column));
-                    }, false, !isColumnHidden(column));
-            }
-            action_map.exec(pt);
-        });
-    	
-        if (header_view->hiddenSectionCount() < header_view->count() - 1) {
-            menu->addAction(hide_column_action);
-        }
-        menu->addAction(show_hide_columns_action);
-        menu->popup(header_view->viewport()->mapToGlobal(pt));
-        });
-
     setContextMenuPolicy(Qt::CustomContextMenu);
     (void)QObject::connect(this, &QTableView::customContextMenuRequested, [this](auto pt) {
         auto index = indexAt(pt);
@@ -521,6 +484,42 @@ void PlayListTableView::setPodcastMode(bool enable) {
         hideColumn(PLAYLIST_DURATION);
         hideColumn(PLAYLIST_SAMPLE_RATE);
         setColumnHidden(PLAYLIST_TIMESTAMP, false);
+    } else {
+        horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
+        (void)QObject::connect(horizontalHeader(), &QHeaderView::customContextMenuRequested, [this](auto pt) {
+            auto* menu = new QMenu(this);
+            menu->setWindowFlags(Qt::Popup | Qt::FramelessWindowHint);
+            menu->setAttribute(Qt::WA_TranslucentBackground);
+
+            auto* header_view = horizontalHeader();
+
+            auto last_referred_logical_column = header_view->logicalIndexAt(pt);
+
+            auto* hide_column_action = new QAction(tr("Hide this column"), this);
+            (void)QObject::connect(hide_column_action, &QAction::triggered, [last_referred_logical_column, this]() {
+                setColumnHidden(last_referred_logical_column, true);
+                AppSettings::removeList(kAppSettingColumnName, QString::number(last_referred_logical_column));
+                });
+
+            auto* show_hide_columns_action = new QAction(tr("Select columns to show..."), this);
+            (void)QObject::connect(show_hide_columns_action, &QAction::triggered, [pt, header_view, this]() {
+                ActionMap<PlayListTableView, std::function<void()>> action_map(this);
+                for (auto column = 0; column < header_view->count(); ++column) {
+                    auto header_name = model()->headerData(column, Qt::Horizontal).toString();
+                    action_map.addAction(header_name, [this, column]() {
+                        setColumnHidden(column, false);
+                        AppSettings::addList(kAppSettingColumnName, QString::number(column));
+                        }, false, !isColumnHidden(column));
+                }
+                action_map.exec(pt);
+                });
+
+            if (header_view->hiddenSectionCount() < header_view->count() - 1) {
+                menu->addAction(hide_column_action);
+            }
+            menu->addAction(show_hide_columns_action);
+            menu->popup(header_view->viewport()->mapToGlobal(pt));
+            });
     }
 }
 

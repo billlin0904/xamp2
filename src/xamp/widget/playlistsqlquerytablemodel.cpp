@@ -1,9 +1,9 @@
 #include <thememanager.h>
+#include <QDateTime>
 #include <widget/playlisttablemodel.h>
 #include <widget/albumentity.h>
 #include <widget/str_utilts.h>
 #include <widget/ui_utilts.h>
-#include <widget/time_utilts.h>
 #include <widget/playlistsqlquerytablemodel.h>
 
 PlayListSqlQueryTableModel::PlayListSqlQueryTableModel(QObject *parent)
@@ -58,7 +58,7 @@ QVariant PlayListSqlQueryTableModel::data(const QModelIndex& index, int32_t role
 		    case PLAYLIST_SAMPLE_RATE:
 			    return samplerate2String(value.toInt());
 		    case PLAYLIST_DURATION:
-			    return Time::msToString(value.toDouble());
+			    return msToString(value.toDouble());
 		    case PLAYLIST_TIMESTAMP:
 			    return QDateTime::fromSecsSinceEpoch(value.toULongLong()).toString(Q_UTF8("yyyy-MM-dd HH:mm:ss"));
 		    }

@@ -45,6 +45,21 @@ ScrollLabel* LrcPage::title() {
 	return title_;
 }
 
+void LrcPage::setBackground(const QImage& cover) {
+	if (cover.isNull()) {
+		background_image_ = QImage();
+	}
+	else {
+		background_image_ = cover;
+	}
+	update();
+}
+
+void LrcPage::paintEvent(QPaintEvent*) {
+	QPainter painter(this);
+	painter.drawImage(rect(), background_image_);
+}
+
 void LrcPage::setBackgroundColor(QColor backgroundColor) {
 	lyrics_widget_->setBackgroundColor(backgroundColor);
 	setStyleSheet(backgroundColorToString(backgroundColor));
@@ -76,6 +91,7 @@ void LrcPage::initial() {
     cover_label_->setMinimumSize(QSize(300, 300));
     cover_label_->setMaximumSize(QSize(300, 300));
 #endif
+	cover_label_->setStyleSheet(Q_UTF8("background-color: transparent"));
 	cover_label_->setAttribute(Qt::WA_StaticContents);
 
     verticalLayout_3->addWidget(cover_label_);

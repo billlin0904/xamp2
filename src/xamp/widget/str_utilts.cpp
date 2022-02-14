@@ -1,3 +1,4 @@
+#include <QTime>
 #include <widget/str_utilts.h>
 
 QString colorToString(QColor color) {
@@ -36,4 +37,17 @@ QString samplerate2String(uint32_t samplerate) {
 QString dsdSampleRate2String(uint32_t dsd_speed) {
     const auto sample_rate = (dsd_speed / 64) * 2.82;
     return QString::number(sample_rate, 'f', 2) + Q_UTF8("kHz");
+}
+
+QString msToString(const double stream_time) {
+    const auto ms = static_cast<int32_t>(stream_time * 1000.0) % 1000;
+    const auto secs = static_cast<int32_t>(stream_time);
+    const auto h = secs / 3600;
+    const auto m = (secs % 3600) / 60;
+    const auto s = (secs % 3600) % 60;
+    QTime t(h, m, s, ms);
+    if (h > 0) {
+        return t.toString(Q_UTF8("hh:mm:ss"));
+    }
+    return t.toString(Q_UTF8("mm:ss"));
 }

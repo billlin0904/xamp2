@@ -32,6 +32,7 @@ extern "C" XAMP_BASE_API const char kResamplerLoggerName[];
 extern "C" XAMP_BASE_API const char kCompressorLoggerName[];
 extern "C" XAMP_BASE_API const char kVolumeLoggerName[];
 extern "C" XAMP_BASE_API const char kCoreAudioLoggerName[];
+extern "C" XAMP_BASE_API const char kDspManagerLoggerName[];
 
 class XAMP_BASE_API Logger final {
 public:

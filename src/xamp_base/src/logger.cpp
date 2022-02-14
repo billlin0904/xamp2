@@ -25,6 +25,7 @@ const char kResamplerLoggerName[] = "Resampler";
 const char kCompressorLoggerName[] = "Compressor";
 const char kVolumeLoggerName[] = "Volume";
 const char kCoreAudioLoggerName[] = "CoreAudio";
+const char kDspManagerLoggerName[] = "DspManager";
 
 #ifdef XAMP_OS_WIN
 class DebugOutputSink : public spdlog::sinks::base_sink<FastMutex> {

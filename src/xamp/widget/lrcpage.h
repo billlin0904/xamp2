@@ -38,7 +38,11 @@ public:
 public slots:
     void onThemeChanged(QColor backgroundColor, QColor color);
 
+	void setBackground(const QImage& cover);
+
 private:
+	void paintEvent(QPaintEvent*) override;
+
 	void initial();
 
 	LyricsShowWidget* lyrics_widget_;
@@ -46,5 +50,5 @@ private:
 	ScrollLabel* album_;
 	ScrollLabel* artist_;
     ScrollLabel* title_;
-	QPixmap background_image_;
+	QImage background_image_;
 };
