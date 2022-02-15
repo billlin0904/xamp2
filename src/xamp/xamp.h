@@ -50,7 +50,7 @@ signals:
 
 	void nowPlaying(QString const& artist, QString const& title);
 
-	void addBlurImage(const QImage& image);
+	void addBlurImage(const QString& cover_id, const QImage& image);
 
 public slots:
     void playMusic(const AlbumEntity& item);

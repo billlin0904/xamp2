@@ -202,7 +202,7 @@ void PlayListTableView::initial() {
 
     auto f = font();
 #ifdef Q_OS_WIN
-    f.setPointSize(11);
+    f.setPointSize(10);
 #else
     f.setPointSize(14);
 #endif
@@ -474,6 +474,10 @@ void PlayListTableView::initial() {
     });
 
     installEventFilter(this);
+}
+
+bool PlayListTableView::isPodcastMode() const {
+    return podcast_mode_;
 }
 
 void PlayListTableView::setPodcastMode(bool enable) {

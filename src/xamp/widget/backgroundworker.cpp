@@ -13,7 +13,7 @@
 #include <widget/backgroundworker.h>
 
 BackgroundWorker::BackgroundWorker() {
-    pool_ = MakeThreadPool(kReplayGainThreadPoolLoggerName);
+    pool_ = MakeThreadPool(kBackgroundThreadPoolLoggerName);
 }
 
 BackgroundWorker::~BackgroundWorker() = default;
@@ -23,12 +23,20 @@ void BackgroundWorker::stopThreadPool() {
     pool_->Stop();
 }
 
-void BackgroundWorker::blurImage(const QImage& image) {
-    auto temp = image.copy();
-    XAMP_LOG_DEBUG("Blur image start");
-    Stackblur blur(*pool_, temp, 50);
-    emit updateBlurImage(temp);
-    XAMP_LOG_DEBUG("Blur image end");
+void BackgroundWorker::blurImage(const QString& cover_id, const QImage& image) {
+    if (auto *cache_image = blur_img_cache_.Find(cover_id)) {
+        XAMP_LOG_DEBUG("Found blur image in cache!");
+        emit updateBlurImage(cache_image->copy());
+    } else {
+        auto temp = image.copy();
+        XAMP_LOG_DEBUG("Blur image start");
+        Stopwatch sw;
+        sw.Reset();
+        Stackblur blur(*pool_, temp, 50);
+        XAMP_LOG_DEBUG("Blur image end :{} secs", sw.ElapsedSeconds());
+        blur_img_cache_.AddOrUpdate(cover_id, temp);
+        emit updateBlurImage(temp);
+    }
 }
 
 void BackgroundWorker::readReplayGain(bool force, const std::vector<PlayListEntity>& items) {
@@ -46,24 +54,27 @@ void BackgroundWorker::readReplayGain(bool force, const std::vector<PlayListEnti
 
     for (const auto &item : items) {
         replay_gain_tasks.emplace_back(pool_->Spawn([&scanners, scan_mode, item, &mutex, this](auto ) {
-	        try {
-		        AlignPtr<LoudnessScanner> scanner;
-		        read_utiltis::readAll(item.file_path.toStdWString(),
-		                              [scan_mode](auto progress) {
-                                          if (scan_mode == ReplayGainScanMode::RG_SCAN_MODE_FAST && progress > 50) {
-                                              return false;
-                                          }
-			                              return true;
-		                              },
-		                              [&scanner](AudioFormat const& input_format) mutable {
-			                              scanner = MakeAlign<LoudnessScanner>(input_format.GetSampleRate());
-		                              }, [&scanner, this](auto const* samples, auto sample_size) {
-			                              if (is_stop_) {
-				                              return;
-			                              }
-			                              scanner->Process(samples, sample_size);
-		                              });
+            auto progress = [scan_mode](auto p) {
+                if (scan_mode == ReplayGainScanMode::RG_SCAN_MODE_FAST && p > 50) {
+                    return false;
+                }
+                return true;
+            };
 
+            AlignPtr<LoudnessScanner> scanner;
+            auto prepare = [&scanner](AudioFormat const& input_format) mutable {
+                scanner = MakeAlign<LoudnessScanner>(input_format.GetSampleRate());
+            };
+
+            auto dps_process = [&scanner, this](auto const* samples, auto sample_size) {
+                if (is_stop_) {
+                    return;
+                }
+                scanner->Process(samples, sample_size);
+            };
+
+	        try {	        
+		        read_utiltis::readAll(item.file_path.toStdWString(), progress, prepare, dps_process);
                 std::lock_guard<FastMutex> guard{ mutex };
                 scanners.push_back(std::move(scanner));
             }

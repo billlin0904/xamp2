@@ -1110,9 +1110,11 @@ void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_form
             found_cover = cover != nullptr;
             if (cover != nullptr) {
                 setCover(cover);
-                emit addBlurImage(cover->toImage());
-                const auto palette = GetPalette(cover->toImage(), 10, 1);
-                lrc_page_->setBackgroundColor(palette[0]);
+                emit addBlurImage(item.cover_id, cover->toImage());
+                //const auto palette = GetPalette(cover->toImage(), 10, 1);
+                //lrc_page_->setBackgroundColor(palette[0]);
+            } else {
+                lrc_page_->clearBackground();
             }
         }
     }
@@ -1335,6 +1337,12 @@ void Xamp::initialPlaylist() {
     //music_page_->playlist()->setPodcastMode(true);
     current_playlist_page_ = playlist_page_;
 
+    (void)QObject::connect(this, &Xamp::addBlurImage,
+        &background_worker_, &BackgroundWorker::blurImage);
+
+    (void)QObject::connect(&background_worker_, &BackgroundWorker::updateReplayGain,
+        playlist_page_->playlist(), &PlayListTableView::updateReplayGain);
+
     lrc_page_ = new LrcPage(this);
     album_artist_page_ = new AlbumArtistPage(this);
 
@@ -1520,12 +1528,6 @@ PlaylistPage* Xamp::newPlaylistPage(int32_t playlist_id) {
 
     (void)QObject::connect(playlist_page->playlist(), &PlayListTableView::addPlaylistReplayGain,
                             &background_worker_, &BackgroundWorker::readReplayGain);
-
-    (void)QObject::connect(this, &Xamp::addBlurImage,
-        &background_worker_, &BackgroundWorker::blurImage);
-
-    (void)QObject::connect(&background_worker_, &BackgroundWorker::updateReplayGain,
-        playlist_page->playlist(), &PlayListTableView::updateReplayGain);
 
     (void)QObject::connect(this, &Xamp::themeChanged,
                             playlist_page->playlist(),

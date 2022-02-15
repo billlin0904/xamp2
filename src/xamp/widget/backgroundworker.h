@@ -8,10 +8,12 @@
 #include <QObject>
 #include <vector>
 #include <base/ithreadpool.h>
+#include <base/lrucache.h>
 #include <widget/playlistentity.h>
 
 using xamp::base::AlignPtr;
 using xamp::base::IThreadPool;
+using xamp::base::LruCache;
 
 struct ReplayGainResult final {
     double album_peak{0};
@@ -43,9 +45,10 @@ signals:
 public Q_SLOT:
     void readReplayGain(bool force, const std::vector<PlayListEntity>& items);
 
-    void blurImage(const QImage& image);
+    void blurImage(const QString &cover_id, const QImage& image);
 
 private:
     bool is_stop_{false};
+    mutable LruCache<QString, QImage> blur_img_cache_;
     AlignPtr<IThreadPool> pool_;
 };

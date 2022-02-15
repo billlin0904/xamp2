@@ -31,6 +31,8 @@ public:
 
 	void setPodcastMode(bool enable = true);
 
+	bool isPodcastMode() const;
+
 	int32_t playlistId() const;
 
 	void removePlaying();

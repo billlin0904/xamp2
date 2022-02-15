@@ -437,17 +437,6 @@ std::vector<QColor> GetPalette(const QImage& image, int32_t color_count, int32_t
 	std::vector<Color> pixels;
 	pixels.reserve(img.sizeInBytes() / 4);
 
-	/*const auto* rgb = reinterpret_cast<const QRgb*>(img.constBits());
-	const auto* const last = rgb + img.sizeInBytes() / 4;
-
-	for (; rgb != last; ++rgb) {
-		if (qAlpha(*rgb) >= 125) {
-			if (qRed(*rgb) < 250 || qGreen(*rgb) < 250 || qBlue(*rgb) < 250) {
-				pixels.emplace_back(qRed(*rgb), qGreen(*rgb), qBlue(*rgb));
-			}
-		}
-	}*/
-
 	for (auto x = 0; x < img.width(); ++x) {
 		for (auto y = 0; y < img.height(); ++y) {
 			QColor rgba(img.pixel(x, y));

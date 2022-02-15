@@ -4,6 +4,8 @@
 #include <base/ithreadpool.h>
 #include <widget/stackblur.h>
 
+using namespace xamp::base;
+
 static constexpr std::array<uint16_t, 255> kStackblurMul{
 	512, 512, 456, 512, 328, 456, 335, 512, 405, 328, 271, 456, 388, 335, 292, 512,
 	454, 405, 364, 328, 298, 271, 496, 456, 420, 388, 360, 335, 312, 292, 273, 512,
@@ -315,7 +317,7 @@ void Stackblur::blur(IThreadPool& tp,
 	}
 
 	auto div = (radius * 2) + 1;
-	auto stack = xamp::base::MakeBuffer<uint8_t>(div * 4 * thread_branch);
+	auto stack = MakeBuffer<uint8_t>(div * 4 * thread_branch);
 
 	if (thread_branch == 1) {
 		StackblurJob(src, width, height, radius, 1, 0, 1, stack.get());
@@ -324,7 +326,7 @@ void Stackblur::blur(IThreadPool& tp,
 	else {
 		auto blur_job = [div, &stack, src, width, height, radius, thread_branch, &tp](int step) {
 			ParallelFor(0, thread_branch, [div, &stack, src, width, height, radius, thread_branch, step](size_t block_begin, size_t) {
-				auto buffer = stack.get() + div * 4 * block_begin;
+				auto* buffer = stack.get() + div * 4 * block_begin;
 				StackblurJob(src, width, height, radius, thread_branch, block_begin, step, buffer);
 				}, tp, thread_branch);
 		};

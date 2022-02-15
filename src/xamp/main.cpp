@@ -229,7 +229,6 @@ int main(int argc, char *argv[]) {
         Logger::GetInstance().Shutdown();
         JsonSettings::save();
         AppSettings::save();
-        Singleton<PixmapCache>::GetInstance().clearCache();
     );
 
     if (excute(argc, argv) == -2) {

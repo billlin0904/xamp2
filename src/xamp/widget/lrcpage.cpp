@@ -45,6 +45,11 @@ ScrollLabel* LrcPage::title() {
 	return title_;
 }
 
+void LrcPage::clearBackground() {
+	background_image_ = QImage();
+	update();
+}
+
 void LrcPage::setBackground(const QImage& cover) {
 	if (cover.isNull()) {
 		background_image_ = QImage();
@@ -93,6 +98,12 @@ void LrcPage::initial() {
 #endif
 	cover_label_->setStyleSheet(Q_UTF8("background-color: transparent"));
 	cover_label_->setAttribute(Qt::WA_StaticContents);
+
+	auto* effect = new QGraphicsDropShadowEffect(this);
+	effect->setOffset(0, 0);
+	effect->setColor(Qt::black);
+	effect->setBlurRadius(25);
+	cover_label_->setGraphicsEffect(effect);
 
     verticalLayout_3->addWidget(cover_label_);
 	verticalLayout_3->setContentsMargins(0, 20, 0, 0);
@@ -195,4 +206,10 @@ void LrcPage::initial() {
 
 	horizontalLayout_10->addLayout(verticalLayout_2);
 	horizontalLayout_10->setStretch(1, 1);
+
+	label_3->hide();
+	label_7->hide();
+	title_->hide();
+	album_->hide();
+	artist_->hide();
 }

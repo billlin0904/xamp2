@@ -20,8 +20,6 @@ QPixmap roundImage(const QPixmap& src, QSize size, int32_t radius = kImageRadius
 
 QPixmap resizeImage(const QPixmap& source, const QSize& size, bool is_aspect_ratio = false);
 
-QPixmap blurImage(const QPixmap& source, uint32_t radius);
-
 std::vector<uint8_t> getImageDate(const QPixmap& source);
 
 }

@@ -40,6 +40,8 @@ public slots:
 
 	void setBackground(const QImage& cover);
 
+	void clearBackground();
+
 private:
 	void paintEvent(QPaintEvent*) override;
 
