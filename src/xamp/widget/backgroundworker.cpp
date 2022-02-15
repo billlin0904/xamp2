@@ -33,9 +33,9 @@ void BackgroundWorker::blurImage(const QString& cover_id, const QImage& image) {
         Stopwatch sw;
         sw.Reset();
         Stackblur blur(*pool_, temp, 50);
+        emit updateBlurImage(temp.copy());
+        blur_img_cache_.AddOrUpdate(cover_id, std::move(temp));
         XAMP_LOG_DEBUG("Blur image end :{} secs", sw.ElapsedSeconds());
-        blur_img_cache_.AddOrUpdate(cover_id, temp);
-        emit updateBlurImage(temp);
     }
 }
 
