@@ -16,10 +16,10 @@ namespace xamp::output_device {
 MAKE_XAMP_ENUM(DeviceConnectType, UKNOWN, USB, BUILT_IN)
 
 struct XAMP_OUTPUT_DEVICE_API DeviceInfo final {
-	bool is_default_device{false};
-	bool is_support_dsd{false};
+	bool is_default_device{ false };
+	bool is_support_dsd{ false };
 	float min_volume{ 0 };
-	float max_volume{0};
+	float max_volume{ 0 };
 	float volume_increment{ 1.0 };
 	DeviceConnectType connect_type{ DeviceConnectType::UKNOWN };
 	std::wstring name;    

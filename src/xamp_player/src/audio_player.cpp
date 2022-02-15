@@ -448,7 +448,7 @@ void AudioPlayer::AllocateReadBuffer(uint32_t allocate_size) {
 }
 
 void AudioPlayer::AllocateFifo() {
-    if (fifo_.GetSize() == 0 || fifo_.GetSize() != fifo_size_) {
+    if (fifo_.GetSize() == 0 || fifo_.GetSize() < fifo_size_) {
         XAMP_LOG_D(logger_, "Allocate internal buffer : {}.", String::FormatBytes(fifo_size_));
         fifo_.Resize(fifo_size_);
     }

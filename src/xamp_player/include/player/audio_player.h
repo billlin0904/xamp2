@@ -182,7 +182,7 @@ private:
     FastConditionVariable pause_cond_;
     FastConditionVariable read_finish_and_wait_seek_signal_cond_;
     AudioFormat input_format_;
-    AudioFormat output_format_;    
+    AudioFormat output_format_;
     Timer timer_;
     AlignPtr<IAudioDeviceManager> device_manager_;
     AlignPtr<FileStream> stream_;

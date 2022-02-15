@@ -15,7 +15,7 @@ namespace xamp::base {
 const char kDefaultLoggerName[] = "xamp";
 const char kWASAPIThreadPoolLoggerName[] = "WASAPIThreadPool";
 const char kPlaybackThreadPoolLoggerName[] = "PlaybackThreadPool";
-const char kReplayGainThreadPoolLoggerName[] = "ReplayGainThreadPool";
+const char kBackgroundThreadPoolLoggerName[] = "BackgroundThreadPool";
 const char kExclusiveWasapiDeviceLoggerName[] = "ExclusiveWasapiDevice";
 const char kSharedWasapiDeviceLoggerName[] = "SharedWasapiDevice";
 const char kAsioDeviceLoggerName[] = "AsioDevice";
