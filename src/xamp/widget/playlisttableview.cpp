@@ -483,6 +483,8 @@ bool PlayListTableView::isPodcastMode() const {
 void PlayListTableView::setPodcastMode(bool enable) {
     podcast_mode_ = enable;
 	if (podcast_mode_) {
+        hideColumn(PLAYLIST_TRACK_RG);
+        hideColumn(PLAYLIST_TRACK_PK);
         hideColumn(PLAYLIST_ALBUM_RG);
         hideColumn(PLAYLIST_ALBUM_PK);
         hideColumn(PLAYLIST_DURATION);

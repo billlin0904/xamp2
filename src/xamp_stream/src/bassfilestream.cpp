@@ -146,6 +146,11 @@ public:
         info_ = BASS_CHANNELINFO{};
         BassIfFailedThrow(BASS.BASS_ChannelGetInfo(stream_.get(), &info_));
 
+        auto duration = GetDuration();
+        if (duration < 1.0) {
+            throw Exception(Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR, "Duration too small!");
+        }
+
         if (GetFormat().GetChannels() == kMaxChannel) {
             return;
         }
@@ -225,8 +230,8 @@ public:
     }
 
     [[nodiscard]] double GetDuration() const {
-        const auto len = BASS.BASS_ChannelGetLength(stream_.get(), BASS_POS_BYTE);
-        return BASS.BASS_ChannelBytes2Seconds(stream_.get(), len);
+        const auto len = BASS.BASS_ChannelGetLength(GetHStream(), BASS_POS_BYTE);
+        return BASS.BASS_ChannelBytes2Seconds(GetHStream(), len);
     }
 
     [[nodiscard]] AudioFormat GetFormat() const noexcept {

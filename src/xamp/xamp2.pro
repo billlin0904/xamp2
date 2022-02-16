@@ -41,7 +41,7 @@ SOURCES += \
     widget/artistview.cpp \
     widget/http.cpp \
     widget/playlistsqlquerytablemodel.cpp \
-    widget/replaygainworker.cpp \
+    widget/backgroundworker.cpp \
     widget/seekslider.cpp \
     widget/albumartistpage.cpp \
     widget/albumview.cpp \
@@ -78,6 +78,7 @@ SOURCES += \
     widget/ui_utilts.cpp \
     widget/podcast_uiltis.cpp \
     widget/colorthief.cpp \
+    widget/stackblur.cpp \
     singleinstanceapplication.cpp \
     thememanager.cpp \
     aboutpage.cpp \
@@ -131,9 +132,9 @@ HEADERS += \
     widget/xdialog.h \
     widget/xframe.h \
     widget/read_utiltis.h \
-    widget/time_utilts.h \
-    widget/replaygainworker.h \
+    widget/backgroundworker.h \
     widget/colorthief.h \
+    widget/stackblur.h \
     singleinstanceapplication.h \
     thememanager.h \
     aboutpage.h \
