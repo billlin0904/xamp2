@@ -29,7 +29,7 @@ inline constexpr int32_t kTotalBufferStreamCount = 5;
 inline constexpr uint32_t kPreallocateBufferSize = 4 * 1024 * 1024;
 inline constexpr uint32_t kMaxPreallocateBufferSize = 16 * 1024 * 1024;
 	
-inline constexpr uint32_t kMaxWriteRatio = 80;
+inline constexpr uint32_t kMaxWriteRatio = 50;
 inline constexpr uint32_t kMaxReadRatio = 2;
 inline constexpr uint32_t kActionQueueSize = 30;
 

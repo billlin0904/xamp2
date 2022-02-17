@@ -1,5 +1,6 @@
 #include <QFile>
 
+#include <base/simd.h>
 #include <widget/str_utilts.h>
 #include "thememanager.h"
 #include "aboutpage.h"
@@ -10,12 +11,13 @@ AboutPage::AboutPage(QWidget* parent)
     setStyleSheet(Q_UTF8("background-color: transparent"));
 
 #ifdef Q_OS_WIN32
-    ui.lblVersion->setText(Q_STR("Build Visual Studio 20%1.%2.%3 (%4 %5)")
+    ui.lblVersion->setText(Q_STR("Build Visual Studio 20%1.%2.%3 (%4 %5) %6 AVX2")
         .arg(_MSC_VER / 100)
 		.arg((_MSC_FULL_VER / 100000) % 100)
 		.arg(_MSC_FULL_VER % 100000)
         .arg(Q_UTF8(__DATE__))
-		.arg(Q_UTF8(__TIME__)));
+		.arg(Q_UTF8(__TIME__))
+        .arg(SIMD::IsCPUSupportAVX2() ? Q_UTF8("Support") : Q_UTF8("Unsupport")));
 #else
     ui.lblVersion->setText(Q_STR("Build Clang %1.%2.%3")
                             .arg(__clang_major__)

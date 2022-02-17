@@ -151,6 +151,10 @@ void DSPManager::Init(AudioFormat input_format, AudioFormat output_format, DsdMo
         return;
     }
 
+    if (!CanProcessFile()) {
+        return;
+    }
+
     for (const auto& dsp : pre_dsp_) {
         dsp->Start(output_format.GetSampleRate());
         XAMP_LOG_D(logger_, "Init {} .", dsp->GetDescription());
