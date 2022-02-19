@@ -483,7 +483,7 @@ void AudioPlayer::CreateBuffer() {
 
     XAMP_LOG_D(logger_, "Output device format: {} num_read_sample: {} fifo buffer: {}.",
         output_format_,
-        num_read_sample_,
+        String::FormatBytes(num_read_sample_),
         String::FormatBytes(fifo_.GetSize()));
 }
 

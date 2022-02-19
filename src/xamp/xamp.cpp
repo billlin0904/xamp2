@@ -498,11 +498,11 @@ void Xamp::initialController() {
     });
 
     (void)QObject::connect(ui_.seekSlider, &SeekSlider::sliderMoved, [this](auto value) {        
-        QTimer::singleShot(300, [this, value]() {
+        is_seeking_ = true;
+
+        QTimer::singleShot(500, [this, value]() {
             XAMP_LOG_DEBUG("sliderMoved move: {}!", value);
             QToolTip::showText(QCursor::pos(), msToString(static_cast<double>(ui_.seekSlider->value()) / 1000.0));
-
-            is_seeking_ = true;
 
             try {
                 player_->Seek(static_cast<double>(value / 1000.0));
@@ -513,6 +513,7 @@ void Xamp::initialController() {
                 player_->Stop(false);
                 Toast::showTip(Q_UTF8(e.GetErrorMessage()), this);
             }
+            is_seeking_ = false;
         });
     });
 
