@@ -13,6 +13,7 @@
 #include <stream/ifileencoder.h>
 #include <stream/filestream.h>
 #include <stream/iequalizer.h>
+#include <stream/idspmanager.h>
 
 namespace xamp::stream {
 
@@ -31,6 +32,8 @@ XAMP_STREAM_API AlignPtr<IAudioProcessor> MakeEqualizer();
 XAMP_STREAM_API AlignPtr<IAudioProcessor> MakeCompressor();
 
 XAMP_STREAM_API AlignPtr<IAudioProcessor> MakeVolume();
+
+XAMP_STREAM_API AlignPtr<IDSPManager> MakeDSPManager();
 
 #ifdef XAMP_OS_WIN
 XAMP_STREAM_API AlignPtr<IFileEncoder> MakeWavEncoder();

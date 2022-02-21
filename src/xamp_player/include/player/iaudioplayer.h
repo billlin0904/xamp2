@@ -77,7 +77,7 @@ public:
 
     virtual const AlignPtr<IAudioDeviceManager>& GetAudioDeviceManager() = 0;
 
-    virtual AlignPtr<DSPManager>& GetDSPManager() = 0;
+    virtual AlignPtr<IDSPManager>& GetDSPManager() = 0;
 
 protected:
 	IAudioPlayer() = default;

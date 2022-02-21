@@ -105,7 +105,7 @@ public:
 
     const AlignPtr<IAudioDeviceManager>& GetAudioDeviceManager() override;
 
-    AlignPtr<DSPManager>& GetDSPManager() override;
+    AlignPtr<IDSPManager>& GetDSPManager() override;
 
     bool CanConverter() const noexcept;
 private:    	
@@ -196,7 +196,7 @@ private:
     DeviceInfo device_info_;    
     std::shared_future<void> stream_task_;
     SpscQueue<PlayerAction> action_queue_;
-    AlignPtr<DSPManager> dsp_manager_;
+    AlignPtr<IDSPManager> dsp_manager_;
     std::shared_ptr<spdlog::logger> logger_;
 };
 

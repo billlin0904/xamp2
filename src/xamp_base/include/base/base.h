@@ -131,11 +131,18 @@ static_assert(std::is_trivially_move_assignable_v<t>);\
 static_assert(std::is_trivially_move_constructible_v<t>);\
 static_assert(std::is_trivially_destructible_v<t>);\
 
-#define XAMP_TRIVIAL_STRUCT(Name, ...)\
-struct Name __VA_ARGS__;\
-XAMP_ENFORCE_TRIVIAL(Name);
+template <typename T, size_t N>
+constexpr size_t CountOf(T const (&)[N]) noexcept {
+	return N;
+}
 
 namespace xamp::base {
+
+namespace Fs = std::filesystem;
+using RecursiveDirectoryIterator = Fs::recursive_directory_iterator;
+using DirectoryIterator = Fs::directory_iterator;
+using Path = Fs::path;
+
 // <summary>
 // Avoid cache-pollution padding size.
 // </summary>
@@ -152,16 +159,11 @@ inline constexpr size_t kMallocAlignSize{ 32 };
 /// </summary>
 inline constexpr int32_t kDefaultAffinityCpuCore{ -1 };
 
-namespace Fs = std::filesystem;
-using RecursiveDirectoryIterator = Fs::recursive_directory_iterator;
-using DirectoryIterator = Fs::directory_iterator;
-using Path = Fs::path;
-
-inline constexpr auto kIteratorOptions = (
+inline constexpr auto kIteratorOptions{
 	std::filesystem::directory_options::follow_directory_symlink |
 	std::filesystem::directory_options::skip_permission_denied
-	);
+};
 
-constexpr double XAMP_PI = 3.14159265358979323846;
+inline constexpr double XAMP_PI{ 3.14159265358979323846 };
 
 }

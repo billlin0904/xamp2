@@ -13,6 +13,7 @@
 #include <stream/basscompressor.h>
 #include <stream/bassequalizer.h>
 #include <stream/bassvolume.h>
+#include <stream/dspmanager.h>
 #include <stream/api.h>
 
 namespace xamp::stream {
@@ -82,6 +83,10 @@ AlignPtr<IAudioProcessor> MakeCompressor() {
 
 AlignPtr<IAudioProcessor> MakeVolume() {
     return MakeAlign<IAudioProcessor, BassVolume>();
+}
+
+AlignPtr<IDSPManager> MakeDSPManager() {
+    return MakeAlign<IDSPManager, DSPManager>();
 }
 
 void LoadBassLib() {

@@ -89,12 +89,10 @@ public:
         ::SymCleanup(process_.get());
 	}
 
-    void SetContext(CONTEXT const* context) {
-        MemoryCopy(&context_, context, sizeof(CONTEXT));
-    }
+    size_t WalkStack(CONTEXT const* context, CaptureStackAddress& addrlist) noexcept {
+        SetContext(context);
 
-    size_t WalkStack(CaptureStackAddress& addrlist) noexcept {
-        addrlist.fill(0);
+        addrlist.fill(nullptr);
 
         CONTEXT integer_control_context = context_;
         integer_control_context.ContextFlags = CONTEXT_INTEGER | CONTEXT_CONTROL;
@@ -155,6 +153,10 @@ public:
                 &displacement,
                 symbol_info);
 
+            ostr << std::setw(2) << i << ":"
+                << "0x" << std::hex << std::uppercase << std::setfill('0') << std::setw(8)
+                << reinterpret_cast<DWORD64>(frame) << " ";
+
             if (has_symbol) {
                 DWORD line_displacement = 0;
 
@@ -166,25 +168,25 @@ public:
                     &line_displacement,
                     &line);
 
+                ostr << symbol_info->Name << " ";
                 if (has_line) {
-                    ostr << std::setw(2) << i << ":" << std::setw(8) << "0x" << std::hex << reinterpret_cast<DWORD64>(frame) << " "
-                        << symbol_info->Name
-                        << " "
-                        << GetFileName(line.FileName) << ":" << std::dec << line.LineNumber << "\r\n";
+                    ostr << GetFileName(line.FileName) << ":" << std::dec << line.LineNumber << "\r\n";
                 }
                 else {
-                    ostr << std::setw(2) << i << ":" << std::setw(8) << "0x" << std::hex << reinterpret_cast<DWORD64>(frame) << " "
-                        << symbol_info->Name
-                        << " offset " << std::dec << displacement << "\r\n";
+                    ostr << " offset " << std::dec << displacement << "\r\n";
                 }
             }
             else {
-                ostr << std::setw(2) << i << ":" << std::setw(8) << "0x" << reinterpret_cast<DWORD64>(frame) << " <unknown>" << "\r\n";
+                ostr << "<unknown>" << "\r\n";
             }
         }
     }
 
 private:
+    void SetContext(CONTEXT const* context) {
+        MemoryCopy(&context_, context, sizeof(CONTEXT));
+    }
+
     bool init_state_;
 	WinHandle process_;
     WinHandle thread_;
@@ -208,9 +210,9 @@ bool StackTrace::LoadSymbol() {
 std::string StackTrace::CaptureStack() {
     CaptureStackAddress addrlist;
 #ifdef XAMP_OS_WIN
-    addrlist.fill(0);
+    addrlist.fill(nullptr);
     std::ostringstream ostr;
-    auto frame_count = ::CaptureStackBackTrace(0, kMaxStackFrameSize, addrlist.data(), nullptr);
+    const auto frame_count = ::CaptureStackBackTrace(0, kMaxStackFrameSize, addrlist.data(), nullptr);
     SYMBOL_LOADER.WriteLog(ostr, frame_count - 1, addrlist);
     return ostr.str();
 #else

@@ -136,12 +136,15 @@ void SharedWasapiDevice::StopStream(bool wait_for_stop_stream) {
 void SharedWasapiDevice::CloseStream() {
 	XAMP_LOG_D(log_, "CloseStream is_running_: {}", is_running_);
 
+	UnRegisterDeviceVolumeChange();
+	endpoint_volume_.Release();
+	device_volume_notification_.Release();
+
 	// We don't close sample ready event immediately,
 	// WASAPI can be in same samplerate payback to reset and reuse sample ready event.
 	//sample_ready_.close();
 	render_client_.Release();
 	clock_.Release();
-	device_volume_notification_.Release();
 	rt_work_queue_.Release();
 }
 
@@ -218,8 +221,9 @@ void SharedWasapiDevice::OpenStream(AudioFormat const & output_format) {
 		}
 
 		InitialRawMode(output_format);
-		RegisterDeviceVolumeChange();
 	}
+
+	RegisterDeviceVolumeChange();
 
 	LogHrFailled(client_->Reset());
 

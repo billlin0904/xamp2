@@ -49,7 +49,7 @@ XAMP_ALWAYS_INLINE void PlatformFutexWakeAll(std::atomic<T>& to_wake) {
 #endif
 }
 
-int FastConditionVariable::Wait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, const struct timespec* to) noexcept {
+int FastConditionVariable::FastWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, const struct timespec* to) noexcept {
 #if defined(XAMP_OS_WIN) || defined(XAMP_OS_MAC)
 	if (to == nullptr) {
 		PlatformFutexWait(to_wait_on, expected, INFINITE);

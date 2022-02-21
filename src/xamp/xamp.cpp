@@ -63,6 +63,11 @@ enum TabIndex {
     TAB_YT_MUSIC,
 };
 
+static PlayerOrder GetNextOrder(PlayerOrder cur) noexcept {
+    return static_cast<PlayerOrder>((static_cast<int32_t>(cur) + 1)
+        % static_cast<int32_t>(PlayerOrder::PLAYER_ORDER_MAX));
+}
+
 static AlignPtr<IAudioProcessor> makeSampleRateConverter(const QVariantMap &settings) {
     const auto quality = static_cast<SoxrQuality>(settings[kSoxrQuality].toInt());
     const auto stop_band = settings[kSoxrStopBand].toInt();
@@ -889,40 +894,34 @@ void Xamp::deleteKeyPress() {
 }
 
 void Xamp::setPlayerOrder() {
-    auto order = AppSettings::getAsEnum<PlayerOrder>(kAppSettingOrder);
+	const auto order = AppSettings::getAsEnum<PlayerOrder>(kAppSettingOrder);
 
     switch (order_) {
     case PlayerOrder::PLAYER_ORDER_REPEAT_ONCE:
         if (order_ != order) {
             Toast::showTip(tr("Repeat once"), this);
         }
-        
         Singleton<ThemeManager>::GetInstance().setRepeatOncePlayOrder(ui_);
-        AppSettings::setValue(kAppSettingOrder,
-                              static_cast<int>(PlayerOrder::PLAYER_ORDER_REPEAT_ONCE));
+        AppSettings::setEnumValue(kAppSettingOrder, PlayerOrder::PLAYER_ORDER_REPEAT_ONCE);
         break;
     case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:
         if (order_ != order) {
             Toast::showTip(tr("Repeat one"), this);
         }
-
         Singleton<ThemeManager>::GetInstance().setRepeatOnePlayOrder(ui_);
-        AppSettings::setValue(kAppSettingOrder,
-                              static_cast<int>(PlayerOrder::PLAYER_ORDER_REPEAT_ONE));
+        AppSettings::setEnumValue(kAppSettingOrder, PlayerOrder::PLAYER_ORDER_REPEAT_ONE);
         break;
     case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL:
         if (order_ != order) {
             Toast::showTip(tr("Shuffle all"), this);
         }
-
         Singleton<ThemeManager>::GetInstance().setShufflePlayorder(ui_);
-        AppSettings::setValue(kAppSettingOrder,
-                              static_cast<int>(PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL));
+        AppSettings::setEnumValue(kAppSettingOrder, PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL);
         break;
-    case PlayerOrder::PLAYER_ORDER_MAX:
     default:
         break;
     }
+    order_ = order;
 }
 
 void Xamp::onSampleTimeChanged(double stream_time) {

@@ -146,8 +146,6 @@ static void setLogLevel(spdlog::level::level_enum level = spdlog::level::debug) 
 }
 
 static int excute(int argc, char* argv[]) {
-    QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
-
     XAMP_SET_LOG_LEVEL(spdlog::level::debug);
     XAMP_LOG_DEBUG("Logger init success.");
 
@@ -167,6 +165,7 @@ static int excute(int argc, char* argv[]) {
         return -1;
     }   
 
+    QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
     SingleInstanceApplication single_app;
     QApplication::setApplicationName(Q_UTF8("XAMP2"));
     QApplication::setApplicationVersion(Q_UTF8("0.0.1"));

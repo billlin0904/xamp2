@@ -15,48 +15,49 @@
 #include <base/dsdsampleformat.h>
 
 #include <stream/stream.h>
+#include <stream/idspmanager.h>
 #include <stream/eqsettings.h>
 
 namespace xamp::stream {
 
-class XAMP_STREAM_API DSPManager {
+class DSPManager : public IDSPManager {
 public:
     DSPManager();
 
     XAMP_DISABLE_COPY(DSPManager)
 
-    void Init(AudioFormat input_format, AudioFormat output_format, DsdModes dsd_mode, uint32_t sample_size);
+    void Init(AudioFormat input_format, AudioFormat output_format, DsdModes dsd_mode, uint32_t sample_size) override;
 
     /*
      * return true (fetch more data).
      */
-    bool ProcessDSP(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo);
+    bool ProcessDSP(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo) override;
 
-    void AddPreDSP(AlignPtr<IAudioProcessor> processor);
+    void AddPreDSP(AlignPtr<IAudioProcessor> processor) override;
 
-    void AddPostDSP(AlignPtr<IAudioProcessor> processor);
+    void AddPostDSP(AlignPtr<IAudioProcessor> processor) override;
 
-    void EnableDSP(bool enable = true);
+    void EnableDSP(bool enable = true) override;
 
-    void RemovePreDSP(Uuid const& id);
+    void RemovePreDSP(Uuid const& id) override;
 
-    void RemovePostDSP(Uuid const& id);
+    void RemovePostDSP(Uuid const& id) override;
 
-    void SetEq(uint32_t band, float gain, float Q);
+    void SetEq(uint32_t band, float gain, float Q) override;
 
-    void SetEq(EQSettings const& settings);
+    void SetEq(EQSettings const& settings) override;
 
-    void SetPreamp(float preamp);
+    void SetPreamp(float preamp) override;
 
-    void SetReplayGain(double volume);
+    void SetReplayGain(double volume) override;
 
-    bool IsEnableDSP() const noexcept;
+    bool IsEnableDSP() const noexcept override;
 
-    bool IsEnableSampleRateConverter() const;
+    bool IsEnableSampleRateConverter() const override;
 
-    bool CanProcessFile() const noexcept;
+    bool CanProcessFile() const noexcept override;
 
-    void Flush();
+    void Flush() override;
 
 private:
     bool ApplyDSP(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo);

@@ -200,13 +200,13 @@ PreferencePage::PreferencePage(QWidget *parent)
 	(void)QObject::connect(ui_.replayGainModeCombo, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), [this](auto index) {
 		switch (index) {
 		case 0:
-			AppSettings::setValue(kAppSettingReplayGainMode, static_cast<int32_t>(ReplayGainMode::RG_ALBUM_MODE));
+			AppSettings::setEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_ALBUM_MODE);
 			break;
 		case 1:
-			AppSettings::setValue(kAppSettingReplayGainMode, static_cast<int32_t>(ReplayGainMode::RG_TRACK_MODE));
+			AppSettings::setEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_TRACK_MODE);
 			break;
 		case 2:
-			AppSettings::setValue(kAppSettingReplayGainMode, static_cast<int32_t>(ReplayGainMode::RG_NONE_MODE));
+			AppSettings::setEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_NONE_MODE);
 			break;
 		}
 		});

@@ -93,7 +93,7 @@ AudioPlayer::AudioPlayer(const std::weak_ptr<IPlaybackStateAdapter> &adapter)
     , state_adapter_(adapter)
     , fifo_(GetPageAlignSize(kPreallocateBufferSize))
     , action_queue_(kActionQueueSize)
-    , dsp_manager_(MakeAlign<DSPManager>()) {
+    , dsp_manager_(MakeDSPManager()) {
     logger_ = Logger::GetInstance().GetLogger(kAudioPlayerLoggerName);
 }
 
@@ -710,7 +710,7 @@ const AlignPtr<IAudioDeviceManager>& AudioPlayer::GetAudioDeviceManager() {
     return device_manager_;
 }
 
-AlignPtr<DSPManager>& AudioPlayer::GetDSPManager() {
+AlignPtr<IDSPManager>& AudioPlayer::GetDSPManager() {
     return dsp_manager_;
 }
 

@@ -27,7 +27,6 @@ class TimePeriod {
 public:
 	TimePeriod() noexcept
 		: sleep_is_granular_(::timeBeginPeriod(kDesiredSchedulerMS) == TIMERR_NOERROR) {
-		XAMP_LOG_DEBUG("Use sleep timer : {}", sleep_is_granular_);
 	}
 
 	~TimePeriod() noexcept {
@@ -109,6 +108,9 @@ public:
 #else
 		: impl_(MakeAlign<IWaitableTimer, StdWaitableTimerImpl>()) {
 #endif
+#ifdef XAMP_OS_WIN
+		XAMP_LOG_DEBUG("Use sleep timer : {}", time_period_.IsSleepSranular());
+#endif
 	}
 
 	void SetTimeout(std::chrono::milliseconds timeout) noexcept {
@@ -119,10 +121,12 @@ public:
 		impl_->Wait();
 	}
 #ifdef XAMP_OS_WIN
-	TimePeriod time_period_;
+	static TimePeriod time_period_;
 #endif
 	AlignPtr<IWaitableTimer> impl_;
 };
+
+TimePeriod WaitableTimer::WaitableTimerImpl::time_period_;
 
 WaitableTimer::WaitableTimer() noexcept
 	: impl_(MakeAlign<WaitableTimerImpl>()){

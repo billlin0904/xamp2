@@ -26,7 +26,7 @@ QLabel* LrcPage::cover() {
 }
 
 void LrcPage::setCover(const QPixmap& src) {
-	cover_label_->setPixmap(Pixmap::roundImage(src, QSize(250, 250), 5));
+	cover_label_->setPixmap(Pixmap::roundImage(src, QSize(350, 350), 5));
 }
 
 QSize LrcPage::coverSize() const {
@@ -89,13 +89,8 @@ void LrcPage::initial() {
 
     cover_label_ = new QLabel(this);
     cover_label_->setObjectName(QString::fromUtf8("lrcCoverLabel"));
-#ifdef Q_OS_MAC
-    cover_label_->setMinimumSize(QSize(350, 350));
-    cover_label_->setMaximumSize(QSize(350, 350));
-#else
-    cover_label_->setMinimumSize(QSize(300, 300));
-    cover_label_->setMaximumSize(QSize(300, 300));
-#endif
+	cover_label_->setMinimumSize(QSize(350, 350));
+	cover_label_->setMaximumSize(QSize(350, 350));
 	cover_label_->setStyleSheet(Q_UTF8("background-color: transparent"));
 	cover_label_->setAttribute(Qt::WA_StaticContents);
 

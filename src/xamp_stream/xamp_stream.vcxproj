@@ -165,6 +165,7 @@
     <ClInclude Include="include\stream\icddevice.h" />
     <ClInclude Include="include\stream\idsdstream.h" />
     <ClInclude Include="include\stream\iaudioprocessor.h" />
+    <ClInclude Include="include\stream\idspmanager.h" />
     <ClInclude Include="include\stream\ifileencoder.h" />
     <ClInclude Include="include\stream\filestream.h" />
     <ClInclude Include="include\stream\podcastcache.h" />
