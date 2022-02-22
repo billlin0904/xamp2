@@ -98,8 +98,9 @@ void CrashHandler::Dump(void* info) {
         }
     }
 
-    //WinHandle process(::GetCurrentProcess());
-    //::TerminateProcess(process.get(), 1);
+    Logger::GetInstance().Shutdown();
+    WinHandle process(::GetCurrentProcess());
+    ::TerminateProcess(process.get(), 1);
 }
 
 LONG CrashHandler::SehHandler(PEXCEPTION_POINTERS exception_pointers) {
@@ -189,6 +190,7 @@ void CrashHandler::GetExceptionPointers(DWORD exception_code, EXCEPTION_POINTERS
 
 void CrashHandler::SetProcessExceptionHandlers() {
 #ifdef XAMP_OS_WIN
+#if 0
     // Vectored Exception Handling (VEH) is an extension to structured exception handling.
     ::AddVectoredExceptionHandler(0, VectoredHandler);
 
@@ -210,6 +212,7 @@ void CrashHandler::SetProcessExceptionHandlers() {
 
     // Set up C++ signal handlers
     ::_set_abort_behavior(_CALL_REPORTFAULT, _CALL_REPORTFAULT);
+#endif
 #else
     InstallSignalHandler();
 #endif
@@ -217,6 +220,7 @@ void CrashHandler::SetProcessExceptionHandlers() {
 
 void CrashHandler::SetThreadExceptionHandlers() {
 #ifdef XAMP_OS_WIN
+#if 0
     // Catch terminate() calls. 
     // In a multithreaded environment, terminate functions are maintained 
     // separately for each thread. Each new thread needs to install its own 
@@ -230,6 +234,7 @@ void CrashHandler::SetThreadExceptionHandlers() {
     // unexpected function. Thus, each thread is in charge of its own unexpected handling.
     // http://msdn.microsoft.com/en-us/library/h46t5b69.aspx  
     ::set_unexpected(UnexpectedHandler);
+#endif
 #else
     InstallSignalHandler();
 #endif
