@@ -12,7 +12,7 @@
 
 namespace xamp::player::audio_util {
 
-DsdModes SetStreamDsdMode(AlignPtr<FileStream>& stream, bool is_dsd_file, const DeviceInfo& device_info, bool enable_sample_converter) {
+static DsdModes SetStreamDsdMode(FileStream *stream, bool is_dsd_file, const DeviceInfo& device_info, bool enable_sample_converter) {
     auto dsd_mode = DsdModes::DSD_MODE_PCM;
 
     if (is_dsd_file) {
@@ -39,14 +39,15 @@ DsdModes SetStreamDsdMode(AlignPtr<FileStream>& stream, bool is_dsd_file, const 
     return dsd_mode;
 }
 
-std::pair<DsdModes, AlignPtr<FileStream>> MakeFileStream(Path const& path,
+std::pair<DsdModes, AlignPtr<IAudioStream>> MakeFileStream(Path const& path,
     DeviceInfo const& device_info,
     bool enable_sample_converter) {
     auto const file_path = path.wstring();
 	const auto is_dsd_file = TestDsdFileFormatStd(file_path);
-    auto test_dsd_mode_stream = MakeStream();
-    auto dsd_mode = SetStreamDsdMode(test_dsd_mode_stream, is_dsd_file, device_info, enable_sample_converter);
-    test_dsd_mode_stream->OpenFile(file_path);
+    auto test_dsd_mode_stream = MakeAudioStream();
+    auto* fs = dynamic_cast<FileStream*>(test_dsd_mode_stream.get());
+    auto dsd_mode = SetStreamDsdMode(fs, is_dsd_file, device_info, enable_sample_converter);
+    fs->OpenFile(file_path);
     return std::make_pair(dsd_mode, std::move(test_dsd_mode_stream));
 }
 

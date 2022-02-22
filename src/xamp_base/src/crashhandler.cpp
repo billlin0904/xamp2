@@ -4,6 +4,8 @@
 #include <base/logger.h>
 #include <base/stacktrace.h>
 
+#include <base/stl.h>
+
 #ifdef XAMP_OS_WIN
 #include <new.h>
 #include <base/windows_handle.h>
@@ -20,6 +22,38 @@ CrashHandler::CrashHandler() = default;
 CrashHandler::~CrashHandler() = default;
 
 #ifdef XAMP_OS_WIN
+#define DECLARE_EXCEPTION_CODE(Code) { Code, #Code },
+
+static const HashMap<DWORD, std::string_view> kWellKnownExceptionCode = {
+        DECLARE_EXCEPTION_CODE(EXCEPTION_ACCESS_VIOLATION)
+        DECLARE_EXCEPTION_CODE(EXCEPTION_BREAKPOINT)
+        DECLARE_EXCEPTION_CODE(EXCEPTION_SINGLE_STEP)
+        DECLARE_EXCEPTION_CODE(EXCEPTION_ARRAY_BOUNDS_EXCEEDED)
+        DECLARE_EXCEPTION_CODE(EXCEPTION_FLT_DENORMAL_OPERAND)
+        DECLARE_EXCEPTION_CODE(EXCEPTION_FLT_DIVIDE_BY_ZERO)
+        DECLARE_EXCEPTION_CODE(EXCEPTION_FLT_INEXACT_RESULT)
+        DECLARE_EXCEPTION_CODE(EXCEPTION_FLT_INVALID_OPERATION)
+        DECLARE_EXCEPTION_CODE(EXCEPTION_FLT_OVERFLOW)
+        DECLARE_EXCEPTION_CODE(EXCEPTION_FLT_STACK_CHECK)
+        DECLARE_EXCEPTION_CODE(EXCEPTION_FLT_UNDERFLOW)
+        DECLARE_EXCEPTION_CODE(EXCEPTION_INT_DIVIDE_BY_ZERO)
+        DECLARE_EXCEPTION_CODE(EXCEPTION_INT_OVERFLOW)
+        DECLARE_EXCEPTION_CODE(EXCEPTION_PRIV_INSTRUCTION)
+        DECLARE_EXCEPTION_CODE(EXCEPTION_IN_PAGE_ERROR)
+        DECLARE_EXCEPTION_CODE(EXCEPTION_ILLEGAL_INSTRUCTION)
+        DECLARE_EXCEPTION_CODE(EXCEPTION_NONCONTINUABLE_EXCEPTION)
+        DECLARE_EXCEPTION_CODE(EXCEPTION_STACK_OVERFLOW)
+        DECLARE_EXCEPTION_CODE(EXCEPTION_INVALID_DISPOSITION)
+        DECLARE_EXCEPTION_CODE(EXCEPTION_GUARD_PAGE)
+        DECLARE_EXCEPTION_CODE(EXCEPTION_INVALID_HANDLE)
+};
+
+static void DeleteExceptionPointers(EXCEPTION_POINTERS* exception_pointers) {
+    delete exception_pointers->ContextRecord;
+    delete exception_pointers->ExceptionRecord;
+    delete exception_pointers;
+}
+
 void CrashHandler::CreateMiniDump(EXCEPTION_POINTERS* exception_pointers) {
     FileHandle crashdump_file(::CreateFileW(
         L"crashdump.dmp",
@@ -51,40 +85,52 @@ void CrashHandler::CreateMiniDump(EXCEPTION_POINTERS* exception_pointers) {
         &mci);
 }
 
-LONG CrashHandler::SehHandler(PEXCEPTION_POINTERS exception_pointers) {
+void CrashHandler::Dump(void* info) {
+    auto* exception_pointers = static_cast<PEXCEPTION_POINTERS>(info);
     CreateMiniDump(exception_pointers);
-    ::TerminateProcess(GetCurrentProcess(), 1);
+
+    if (exception_pointers->ExceptionRecord->ExceptionCode != EXCEPTION_STACK_OVERFLOW) {
+        auto itr = kWellKnownExceptionCode.find(exception_pointers->ExceptionRecord->ExceptionCode);
+        if (itr != kWellKnownExceptionCode.end()) {
+            XAMP_LOG_DEBUG("Uncaught exception: {}{}\r\n", (*itr).second, StackTrace{}.CaptureStack());
+        } else {
+            XAMP_LOG_DEBUG("Uncaught exception: Unknown{}\r\n", StackTrace{}.CaptureStack());
+        }
+    }
+
+    //WinHandle process(::GetCurrentProcess());
+    //::TerminateProcess(process.get(), 1);
+}
+
+LONG CrashHandler::SehHandler(PEXCEPTION_POINTERS exception_pointers) {
+    Dump(exception_pointers);
     return EXCEPTION_EXECUTE_HANDLER;
 }
 
 LONG CrashHandler::VectoredHandler(PEXCEPTION_POINTERS exception_pointers) {
-    CreateMiniDump(exception_pointers);
-    ::TerminateProcess(GetCurrentProcess(), 1);
+    Dump(exception_pointers);
     return EXCEPTION_EXECUTE_HANDLER;
 }
 
 void CrashHandler::TerminateHandler() {
     EXCEPTION_POINTERS* exception_pointers = nullptr;
     GetExceptionPointers(0, &exception_pointers);
-    CreateMiniDump(exception_pointers);
-    WinHandle process(::GetCurrentProcess());
-    ::TerminateProcess(process.get(), 1);
+    Dump(exception_pointers);
+    DeleteExceptionPointers(exception_pointers);
 }
 
 void CrashHandler::UnexpectedHandler() {
     EXCEPTION_POINTERS* exception_pointers = nullptr;
     GetExceptionPointers(0, &exception_pointers);
-    CreateMiniDump(exception_pointers);
-    WinHandle process(::GetCurrentProcess());
-    ::TerminateProcess(process.get(), 1);
+    Dump(exception_pointers);
+    DeleteExceptionPointers(exception_pointers);
 }
 
 void CrashHandler::PureCallHandler() {
     EXCEPTION_POINTERS* exception_pointers = nullptr;
     GetExceptionPointers(0, &exception_pointers);
-    CreateMiniDump(exception_pointers);
-    WinHandle process(::GetCurrentProcess());
-    ::TerminateProcess(process.get(), 1);
+    Dump(exception_pointers);
+    DeleteExceptionPointers(exception_pointers);
 }
 
 void CrashHandler::InvalidParameterHandler(const wchar_t* expression,
@@ -92,36 +138,52 @@ void CrashHandler::InvalidParameterHandler(const wchar_t* expression,
                                            unsigned int line, uintptr_t reserved) {
     EXCEPTION_POINTERS* exception_pointers = nullptr;
     GetExceptionPointers(0, &exception_pointers);
-    CreateMiniDump(exception_pointers);
-    WinHandle process(::GetCurrentProcess());
-    ::TerminateProcess(process.get(), 1);
+    Dump(exception_pointers);
+    DeleteExceptionPointers(exception_pointers);
 }
 
 int CrashHandler::NewHandler(size_t) {
     EXCEPTION_POINTERS* exception_pointers = nullptr;
     GetExceptionPointers(0, &exception_pointers);
-    CreateMiniDump(exception_pointers);
-    WinHandle process(::GetCurrentProcess());
-    ::TerminateProcess(process.get(), 1);
+    Dump(exception_pointers);
+    DeleteExceptionPointers(exception_pointers);
     return 0;
 }
 
 void CrashHandler::GetExceptionPointers(DWORD exception_code, EXCEPTION_POINTERS** exception_pointers) {
-    EXCEPTION_RECORD temp{ 0 };
-    CONTEXT stack_context_record{ 0 };
+    CONTEXT context_record{ 0 };
+    EXCEPTION_RECORD exception_record{0};
 
-    ::RtlCaptureContext(&stack_context_record);
-    temp.ExceptionCode = exception_code;
-    temp.ExceptionAddress = ::_ReturnAddress();
+    ULONG64           control_pc = 0;
+    ULONG64           establisher_frame = 0;
+    ULONG64           image_base = 0;
+    PRUNTIME_FUNCTION function_entry = nullptr;
+    PVOID             handler_data = nullptr;
 
-    auto* exception_record = new EXCEPTION_RECORD();
-    MemoryCopy(exception_record, &temp, sizeof(EXCEPTION_RECORD));
-    auto* context_record = new CONTEXT();
-    MemoryCopy(context_record, &stack_context_record, sizeof(CONTEXT));
+    RtlCaptureContext(&context_record);
+
+    control_pc = context_record.Rip;
+    function_entry = RtlLookupFunctionEntry(control_pc, &image_base, nullptr);
+
+    if (function_entry != nullptr) {
+        RtlVirtualUnwind(UNW_FLAG_NHANDLER, image_base, control_pc, function_entry, &context_record, &handler_data, &establisher_frame, nullptr);
+    }
+
+    context_record.Rip = reinterpret_cast<ULONGLONG>(_ReturnAddress());
+    context_record.Rsp = reinterpret_cast<ULONGLONG>(_AddressOfReturnAddress()) + 8;
+
+    exception_record.ExceptionCode = exception_code;
+    exception_record.ExceptionAddress = _ReturnAddress();
+
+    auto* p_context_record = new CONTEXT();
+    memcpy(p_context_record, &context_record, sizeof(CONTEXT));
+
+    auto* p_exception_record = new EXCEPTION_RECORD();
+    memcpy(p_exception_record, &exception_record, sizeof(EXCEPTION_RECORD));
 
     *exception_pointers = new EXCEPTION_POINTERS();
-    (*exception_pointers)->ExceptionRecord = exception_record;
-    (*exception_pointers)->ContextRecord = context_record;
+    (*exception_pointers)->ContextRecord = p_context_record;
+    (*exception_pointers)->ExceptionRecord = p_exception_record;
 }
 #endif
 
@@ -131,7 +193,7 @@ void CrashHandler::SetProcessExceptionHandlers() {
     ::AddVectoredExceptionHandler(0, VectoredHandler);
 
     // Install top-level SEH handler
-	//::SetUnhandledExceptionFilter(SehHandler);
+	::SetUnhandledExceptionFilter(SehHandler);
 
     // Catch pure virtual function calls.
     // Because there is one _purecall_handler for the whole process, 

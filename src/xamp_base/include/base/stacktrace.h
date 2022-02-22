@@ -19,6 +19,8 @@ public:
     static bool LoadSymbol();
 
     std::string CaptureStack();
+
+    std::string CaptureStack(const void* context);
 };
 
 }

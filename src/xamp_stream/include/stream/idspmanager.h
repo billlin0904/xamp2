@@ -15,7 +15,7 @@
 
 namespace xamp::stream {
 
-class XAMP_STREAM_API IDSPManager {
+class XAMP_STREAM_API XAMP_NO_VTABLE IDSPManager {
 public:
     XAMP_BASE_CLASS(IDSPManager)
 

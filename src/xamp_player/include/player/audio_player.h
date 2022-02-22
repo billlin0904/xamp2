@@ -137,7 +137,7 @@ private:
 
     void ReadSampleLoop(int8_t* sample_buffer, uint32_t max_buffer_sample, std::unique_lock<FastMutex> &stopped_lock);
 
-    void BufferSamples(const AlignPtr<FileStream>& stream, int32_t buffer_count = 1);
+    void BufferSamples(const AlignPtr<IAudioStream>& stream, int32_t buffer_count = 1);
 
     void UpdateSlice(int32_t sample_size = 0, double stream_time = 0.0) noexcept;
 
@@ -149,7 +149,7 @@ private:
 
     void ProcessPlayerAction();
 
-    void SetDSDStreamMode(DsdModes dsd_mode, AlignPtr<FileStream>& stream);
+    void SetDSDStreamMode(DsdModes dsd_mode, AlignPtr<IAudioStream>& stream);
 
     struct XAMP_CACHE_ALIGNED(kMallocAlignSize) AudioSlice {
 	    explicit AudioSlice(int32_t sample_size = 0,
@@ -185,7 +185,7 @@ private:
     AudioFormat output_format_;
     Timer timer_;
     AlignPtr<IAudioDeviceManager> device_manager_;
-    AlignPtr<FileStream> stream_;
+    AlignPtr<IAudioStream> stream_;
     AlignPtr<IDeviceType> device_type_;
     AlignPtr<IOutputDevice> device_;
     std::weak_ptr<IPlaybackStateAdapter> state_adapter_;

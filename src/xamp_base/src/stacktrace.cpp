@@ -23,32 +23,6 @@ namespace xamp::base {
 
 #ifdef XAMP_OS_WIN
 
-#define DECLARE_EXCEPTION_CODE(Code) { Code, #Code },
-
-static const HashMap<DWORD, std::string_view> kWellKnownExceptionCode = {
-        DECLARE_EXCEPTION_CODE(EXCEPTION_ACCESS_VIOLATION)
-        DECLARE_EXCEPTION_CODE(EXCEPTION_BREAKPOINT)
-        DECLARE_EXCEPTION_CODE(EXCEPTION_SINGLE_STEP)
-        DECLARE_EXCEPTION_CODE(EXCEPTION_ARRAY_BOUNDS_EXCEEDED)
-        DECLARE_EXCEPTION_CODE(EXCEPTION_FLT_DENORMAL_OPERAND)
-        DECLARE_EXCEPTION_CODE(EXCEPTION_FLT_DIVIDE_BY_ZERO)
-        DECLARE_EXCEPTION_CODE(EXCEPTION_FLT_INEXACT_RESULT)
-        DECLARE_EXCEPTION_CODE(EXCEPTION_FLT_INVALID_OPERATION)
-        DECLARE_EXCEPTION_CODE(EXCEPTION_FLT_OVERFLOW)
-        DECLARE_EXCEPTION_CODE(EXCEPTION_FLT_STACK_CHECK)
-        DECLARE_EXCEPTION_CODE(EXCEPTION_FLT_UNDERFLOW)
-        DECLARE_EXCEPTION_CODE(EXCEPTION_INT_DIVIDE_BY_ZERO)
-        DECLARE_EXCEPTION_CODE(EXCEPTION_INT_OVERFLOW)
-        DECLARE_EXCEPTION_CODE(EXCEPTION_PRIV_INSTRUCTION)
-        DECLARE_EXCEPTION_CODE(EXCEPTION_IN_PAGE_ERROR)
-        DECLARE_EXCEPTION_CODE(EXCEPTION_ILLEGAL_INSTRUCTION)
-        DECLARE_EXCEPTION_CODE(EXCEPTION_NONCONTINUABLE_EXCEPTION)
-        DECLARE_EXCEPTION_CODE(EXCEPTION_STACK_OVERFLOW)
-        DECLARE_EXCEPTION_CODE(EXCEPTION_INVALID_DISPOSITION)
-        DECLARE_EXCEPTION_CODE(EXCEPTION_GUARD_PAGE)
-        DECLARE_EXCEPTION_CODE(EXCEPTION_INVALID_HANDLE)
-    };
-
 static std::string GetFileName(std::filesystem::path const& path) {
     return String::ToUtf8String(path.filename());
 }
@@ -90,21 +64,15 @@ public:
 	}
 
     size_t WalkStack(CONTEXT const* context, CaptureStackAddress& addrlist) noexcept {
-        SetContext(context);
-
         addrlist.fill(nullptr);
-
-        CONTEXT integer_control_context = context_;
-        integer_control_context.ContextFlags = CONTEXT_INTEGER | CONTEXT_CONTROL;
 
         STACKFRAME64 stack_frame{};
 
-        stack_frame.AddrPC.Offset = context_.Rip;
+        stack_frame.AddrPC.Offset = context->Rip;
         stack_frame.AddrPC.Mode = AddrModeFlat;
-        stack_frame.AddrStack.Offset = context_.Rsp;
+        stack_frame.AddrStack.Offset = context->Rsp;
         stack_frame.AddrStack.Mode = AddrModeFlat;
-
-        stack_frame.AddrFrame.Offset = context_.Rbp;
+        stack_frame.AddrFrame.Offset = context->Rbp;
         stack_frame.AddrFrame.Mode = AddrModeFlat;
 
         size_t frame_count = 0;
@@ -114,7 +82,7 @@ public:
                 process_.get(),
                 thread_.get(),
                 &stack_frame,
-                &integer_control_context,
+                &context,
                 nullptr,
                 ::SymFunctionTableAccess64,
                 ::SymGetModuleBase64,
@@ -152,10 +120,10 @@ public:
                 reinterpret_cast<DWORD64>(frame),
                 &displacement,
                 symbol_info);
-
-            ostr << std::setw(2) << i << ":"
-                << "0x" << std::hex << std::uppercase << std::setfill('0') << std::setw(8)
-                << reinterpret_cast<DWORD64>(frame) << " ";
+            
+            ostr << "at\t"
+                 << "0x" << std::hex << std::uppercase << std::setfill('0') << std::setw(8)
+                 << reinterpret_cast<DWORD64>(frame) << " ";
 
             if (has_symbol) {
                 DWORD line_displacement = 0;
@@ -168,12 +136,12 @@ public:
                     &line_displacement,
                     &line);
 
-                ostr << symbol_info->Name << " ";
+                ostr << symbol_info->Name;
                 if (has_line) {
-                    ostr << GetFileName(line.FileName) << ":" << std::dec << line.LineNumber << "\r\n";
+                    ostr << " " << GetFileName(line.FileName) << ":" << std::dec << line.LineNumber << "\r\n";
                 }
                 else {
-                    ostr << " offset " << std::dec << displacement << "\r\n";
+                    ostr << " + " << std::dec << displacement << "\r\n";
                 }
             }
             else {
@@ -183,14 +151,9 @@ public:
     }
 
 private:
-    void SetContext(CONTEXT const* context) {
-        MemoryCopy(&context_, context, sizeof(CONTEXT));
-    }
-
     bool init_state_;
 	WinHandle process_;
     WinHandle thread_;
-    CONTEXT context_;
     std::vector<uint8_t> symbol_;
 };
 
@@ -205,6 +168,18 @@ bool StackTrace::LoadSymbol() {
 #else
     return true;
 #endif
+}
+
+std::string StackTrace::CaptureStack(const void* context) {
+    CaptureStackAddress addrlist;
+#ifdef XAMP_OS_WIN
+    addrlist.fill(nullptr);
+    std::ostringstream ostr;
+    const auto frame_count = SYMBOL_LOADER.WalkStack(static_cast<const CONTEXT*>(context), addrlist);
+    SYMBOL_LOADER.WriteLog(ostr, frame_count - 1, addrlist);
+    return ostr.str();
+#endif
+    return "";
 }
 
 std::string StackTrace::CaptureStack() {

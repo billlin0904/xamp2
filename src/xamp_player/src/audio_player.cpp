@@ -185,14 +185,14 @@ bool AudioPlayer::IsDSDFile() const {
     return is_dsd_file_;
 }
 
-void AudioPlayer::SetDSDStreamMode(DsdModes dsd_mode, AlignPtr<FileStream>& stream) {
+void AudioPlayer::SetDSDStreamMode(DsdModes dsd_mode, AlignPtr<IAudioStream>& stream) {
     if (dsd_mode == DsdModes::DSD_MODE_PCM) {
         stream_ = std::move(stream);
         dsd_mode_ = dsd_mode;
         return;
     }
 
-    if (auto* dsd_stream = AsDsdStream(stream)) {
+    if (const auto* dsd_stream = AsDsdStream(stream)) {
         switch (dsd_mode) {
         case DsdModes::DSD_MODE_DOP:
             if (!dsd_stream->SupportDOP()) {
@@ -390,7 +390,8 @@ PlayerState AudioPlayer::GetState() const noexcept {
 
 AudioFormat AudioPlayer::GetInputFormat() const noexcept {
     auto file_format = input_format_;
-    file_format.SetBitPerSample(stream_->GetBitDepth());
+    auto* fs = AsFileStream(stream_);
+    file_format.SetBitPerSample(fs->GetBitDepth());
     return file_format;
 }
 
@@ -662,7 +663,7 @@ bool AudioPlayer::CanConverter() const noexcept {
     return (dsd_mode_ == DsdModes::DSD_MODE_PCM || dsd_mode_ == DsdModes::DSD_MODE_DSD2PCM);
 }
 
-void AudioPlayer::BufferSamples(const AlignPtr<FileStream>& stream, int32_t buffer_count) {
+void AudioPlayer::BufferSamples(const AlignPtr<IAudioStream>& stream, int32_t buffer_count) {
     auto* const sample_buffer = read_buffer_.Get();
 
     for (auto i = 0; i < buffer_count && stream_->IsActive(); ++i) {

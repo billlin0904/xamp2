@@ -19,11 +19,15 @@ namespace xamp::stream {
 
 XAMP_STREAM_API bool TestDsdFileFormatStd(std::wstring const& file_path);
 
+XAMP_STREAM_API IDsdStream* AsDsdStream(IAudioStream* stream) noexcept;
+
 XAMP_STREAM_API HashSet<std::string> const& GetSupportFileExtensions();
 
-XAMP_STREAM_API IDsdStream* AsDsdStream(AlignPtr<FileStream> const & stream) noexcept;
+XAMP_STREAM_API IDsdStream* AsDsdStream(AlignPtr<IAudioStream> const & stream) noexcept;
+
+XAMP_STREAM_API FileStream* AsFileStream(AlignPtr<IAudioStream> const& stream) noexcept;
 	
-XAMP_STREAM_API AlignPtr<FileStream> MakeStream();
+XAMP_STREAM_API AlignPtr<IAudioStream> MakeAudioStream();
 
 XAMP_STREAM_API AlignPtr<IFileEncoder> MakeFlacEncoder();
 

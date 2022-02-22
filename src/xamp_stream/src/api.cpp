@@ -47,8 +47,8 @@ bool TestDsdFileFormatStd(std::wstring const& file_path) {
     return TestDsdFileFormat(file_chunks);
 }
 
-AlignPtr<FileStream> MakeStream() {
-    return MakeAlign<FileStream, BassFileStream>();
+AlignPtr<IAudioStream> MakeAudioStream() {
+    return MakeAlign<IAudioStream, BassFileStream>();
 }
 
 AlignPtr<IFileEncoder> MakeFlacEncoder() {
@@ -64,10 +64,18 @@ AlignPtr<ICDDevice> MakeCDDevice(int32_t driver_letter) {
     return MakeAlign<ICDDevice, BassCDDevice>(static_cast<char>(driver_letter));
 }
 #endif
-IDsdStream* AsDsdStream(AlignPtr<FileStream> const& stream) noexcept {
+IDsdStream* AsDsdStream(AlignPtr<IAudioStream> const& stream) noexcept {
     return dynamic_cast<IDsdStream*>(stream.get());
 }
-	
+
+FileStream* AsFileStream(AlignPtr<IAudioStream> const& stream) noexcept {
+    return dynamic_cast<FileStream*>(stream.get());
+}
+
+IDsdStream* AsDsdStream(IAudioStream* stream) noexcept {
+    return dynamic_cast<IDsdStream*>(stream);
+}
+
 HashSet<std::string> const& GetSupportFileExtensions() {
     static const auto bass_file_ext = BassFileStream::GetSupportFileExtensions();
     return bass_file_ext;

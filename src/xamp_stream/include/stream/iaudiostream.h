@@ -29,6 +29,8 @@ public:
     [[nodiscard]] virtual std::string_view GetDescription() const noexcept = 0;
 	
     [[nodiscard]] virtual uint8_t GetSampleSize() const noexcept = 0;
+
+    [[nodiscard]] virtual bool IsActive() const noexcept = 0;
 protected:
     IAudioStream() = default;
 };

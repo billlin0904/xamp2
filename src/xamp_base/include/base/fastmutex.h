@@ -36,7 +36,8 @@ public:
 		return &lock_;
 	}
 private:
-	SRWLOCK lock_;
+	XAMP_CACHE_ALIGNED(kCacheAlignSize) SRWLOCK lock_;
+	uint8_t padding_[kCacheAlignSize - sizeof(lock_)]{ 0 };
 };
 using FastMutex = SRWMutex;
 #else
@@ -67,8 +68,7 @@ public:
 	std::cv_status wait_for(std::unique_lock<FastMutex>& lock, const std::chrono::duration<Rep, Period>& rel_time) {
 		auto old_state = state_.load(std::memory_order_relaxed);
 		lock.unlock();
-		auto ret = FastWait(state_, old_state, rel_time) == -1
-			? std::cv_status::timeout : std::cv_status::no_timeout;
+		auto ret = FastWait(state_, old_state, rel_time);
 		lock.lock();
 		return ret;
 	}
@@ -80,12 +80,13 @@ private:
     static int FastWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, const struct timespec* to) noexcept;
 
 	template <typename Rep, typename Period>
-	int FastWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, std::chrono::duration<Rep, Period> const& duration) {
+	std::cv_status FastWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, std::chrono::duration<Rep, Period> const& duration) {
 		using namespace std::chrono;
 		timespec ts;
 		ts.tv_sec = duration_cast<seconds>(duration).count();
 		ts.tv_nsec = duration_cast<nanoseconds>(duration).count() % 1000000000;
-        return FastWait(to_wait_on, expected, &ts);
+        return FastWait(to_wait_on, expected, &ts) == -1
+			? std::cv_status::timeout : std::cv_status::no_timeout;
 	}
 
 	XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<uint32_t> state_{ kUnlocked };
