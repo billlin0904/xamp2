@@ -125,9 +125,9 @@ public:
 #endif
 	AlignPtr<IWaitableTimer> impl_;
 };
-
+#ifdef XAMP_OS_WIN
 TimePeriod WaitableTimer::WaitableTimerImpl::time_period_;
-
+#endif
 WaitableTimer::WaitableTimer() noexcept
 	: impl_(MakeAlign<WaitableTimerImpl>()){
 }

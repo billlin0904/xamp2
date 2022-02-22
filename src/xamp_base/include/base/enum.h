@@ -42,25 +42,16 @@
 
 inline constexpr auto kMaxEnumSize = 20;
 
-template <typename TEnum>
-struct XEnum;
-
 // Dll export must be in namespace scope. so we put this in global.
 #define MAKE_XAMP_ENUM(EnumName, ...) enum class EnumName { __VA_ARGS__ }; \
 static constexpr const std::array<std::string_view, kMaxEnumSize> EnumName##_enum_names = {\
     ALL_ARGUMENTS_TO_STRING(__VA_ARGS__)\
 };\
-template <>\
-struct XEnum<EnumName> {\
-    static constexpr std::string_view ToString(EnumName value) noexcept {\
-		return EnumName##_enum_names[static_cast<size_t>(value)];\
-	}\
-};\
 inline constexpr std::string_view EnumToString(EnumName value) noexcept {\
-	return XEnum<EnumName>::ToString(value);\
+    return EnumName##_enum_names[static_cast<size_t>(value)];\
 }\
 inline std::ostream &operator<<(std::ostream &os, EnumName value) {\
-    os << XEnum<EnumName>::ToString(value);\
+    os << EnumToString(value);\
     return os;\
 }\
 
