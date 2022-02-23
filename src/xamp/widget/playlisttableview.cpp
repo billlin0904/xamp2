@@ -261,7 +261,7 @@ void PlayListTableView::initial() {
         const auto current_index = proxy_model_.mapToSource(index);
         setNowPlaying(current_index);
         const auto play_item = getEntity(current_index);
-        emit playMusic(current_index, play_item);
+        emit playMusic(play_item);
         refresh();
     });
 
@@ -769,8 +769,9 @@ void PlayListTableView::setCurrentPlayIndex(const QModelIndex& index) {
 
 void PlayListTableView::play(const QModelIndex& index) {
     play_index_ = index;
+    setNowPlaying(play_index_, true);
     const auto play_item = nomapItem(play_index_);
-    emit playMusic(play_index_, play_item);
+    emit playMusic(play_item);
 }
 
 void PlayListTableView::removePlaying() {

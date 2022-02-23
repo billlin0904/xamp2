@@ -944,7 +944,7 @@ void Xamp::setSeekPosValue(double stream_time) {
 
 void Xamp::playLocalFile(const PlayListEntity& item) {
     top_window_->setTaskbarPlayerPlaying();
-    play(item);
+    playPlayListEntity(item);
 }
 
 void Xamp::play() {
@@ -989,7 +989,7 @@ void Xamp::processMeatadata(const std::vector<Metadata>& medata) const {
     album_artist_page_->artist()->refreshOnece();
 }
 
-void Xamp::playMusic(const AlbumEntity& item) {
+void Xamp::playAlbumEntity(const AlbumEntity& item) {
     auto open_done = false;
 
     ui_.seekSlider->setEnabled(true);
@@ -1151,14 +1151,21 @@ PlaylistPage* Xamp::currentPlyalistPage() {
     return current_playlist_page_;
 }
 
-void Xamp::play(const PlayListEntity& item) {
-    playMusic(toAlbumEntity(item));
+void Xamp::playPlayListEntity(const PlayListEntity& item) {
+    currentPlyalistPage();
+    top_window_->setTaskbarPlayerPlaying();
+    setupPlayNextMusicSignals(false);
+    playAlbumEntity(toAlbumEntity(item));
     current_entity_ = item;
     update();
 }
 
 void Xamp::playNextItem(int32_t forward) {
-    auto* playlist_view = currentPlyalistPage()->playlist();
+    if (!current_playlist_page_) {
+        currentPlyalistPage();
+    }
+
+    auto* playlist_view = current_playlist_page_->playlist();
     const auto count = playlist_view->model()->rowCount();
     if (count == 0) {
         stopPlayedClicked();
@@ -1191,16 +1198,8 @@ void Xamp::playNextItem(int32_t forward) {
         play_index_ = playlist_view->model()->index(0, 0);
     }
 
-    playlist_view->setNowPlaying(play_index_, true);
     playlist_view->play(play_index_);
     playlist_view->refresh();
-}
-
-void Xamp::play(const QModelIndex&, const PlayListEntity& item) {
-    playLocalFile(item);
-    if (!player_->IsPlaying()) {
-        playlist_page_->format()->setText(Q_UTF8(""));
-    }
 }
 
 void Xamp::onArtistIdChanged(const QString& artist, const QString& /*cover_id*/, int32_t artist_id) {
@@ -1502,11 +1501,10 @@ PlaylistPage* Xamp::newPlaylistPage(int32_t playlist_id) {
 
     ui_.currentView->addWidget(playlist_page);
 
-    (void)QObject::connect(playlist_page->playlist(), &PlayListTableView::playMusic,
-                            [this](auto index, const auto& item) {
-                                setupPlayNextMusicSignals(false);
-                                play(index, item);
-                            });
+    (void)QObject::connect(playlist_page->playlist(), 
+        &PlayListTableView::playMusic,
+        this, 
+        &Xamp::playPlayListEntity);
 
     (void)QObject::connect(this,
         &Xamp::themeChanged,

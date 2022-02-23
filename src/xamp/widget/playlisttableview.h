@@ -68,7 +68,7 @@ public:
 signals:
 	void removeItems(int32_t playlist_id, const QVector<int>& select_music_ids);
 
-	void playMusic(const QModelIndex& index, const PlayListEntity& item);
+	void playMusic(const PlayListEntity& item);
 
     void encodeFlacFile(const PlayListEntity& item);
 

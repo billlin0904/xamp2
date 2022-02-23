@@ -53,9 +53,9 @@ signals:
 	void addBlurImage(const QString& cover_id, const QImage& image);
 
 public slots:
-    void playMusic(const AlbumEntity& item);
+    void playAlbumEntity(const AlbumEntity& item);
 
-	void play(const QModelIndex& index, const PlayListEntity& item);
+	void playPlayListEntity(const PlayListEntity& item);
 
     void addPlaylistItem(const std::vector<int32_t>& music_ids, const std::vector<PlayListEntity>& entities);
 
@@ -93,8 +93,6 @@ private:
 	void onSampleTimeChanged(double stream_time);
 
 	void playLocalFile(const PlayListEntity& item);
-
-	void play(const PlayListEntity& item);
 
 	void onPlayerStateChanged(PlayerState play_state);
 

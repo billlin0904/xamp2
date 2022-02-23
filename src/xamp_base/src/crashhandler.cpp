@@ -93,14 +93,14 @@ void CrashHandler::Dump(void* info) {
         auto itr = kWellKnownExceptionCode.find(exception_pointers->ExceptionRecord->ExceptionCode);
         if (itr != kWellKnownExceptionCode.end()) {
             XAMP_LOG_DEBUG("Uncaught exception: {}{}\r\n", (*itr).second, StackTrace{}.CaptureStack());
+
+            Logger::GetInstance().Shutdown();
+            WinHandle process(::GetCurrentProcess());
+            ::TerminateProcess(process.get(), 1);
         } else {
             XAMP_LOG_DEBUG("Uncaught exception: Unknown{}\r\n", StackTrace{}.CaptureStack());
         }
     }
-
-    Logger::GetInstance().Shutdown();
-    WinHandle process(::GetCurrentProcess());
-    ::TerminateProcess(process.get(), 1);
 }
 
 LONG CrashHandler::SehHandler(PEXCEPTION_POINTERS exception_pointers) {
@@ -190,6 +190,8 @@ void CrashHandler::GetExceptionPointers(DWORD exception_code, EXCEPTION_POINTERS
 
 void CrashHandler::SetProcessExceptionHandlers() {
 #ifdef XAMP_OS_WIN
+    // Vectored Exception Handling (VEH) is an extension to structured exception handling.
+    ::AddVectoredExceptionHandler(0, VectoredHandler);
 #if 0
     // Vectored Exception Handling (VEH) is an extension to structured exception handling.
     ::AddVectoredExceptionHandler(0, VectoredHandler);

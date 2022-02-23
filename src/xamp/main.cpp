@@ -5,7 +5,7 @@
 #include <base/dll.h>
 #include <base/platform.h>
 #include <base/str_utilts.h>
-#include <base/simd.h>
+#include <base/crashhandler.h>
 
 #include <player/api.h>
 #include <stream/soxresampler.h>
@@ -223,6 +223,10 @@ int main(int argc, char *argv[]) {
 #endif
         .AddFileLogger("xamp.log")
         .GetLogger(kDefaultLoggerName);
+
+    CrashHandler crash_handler;
+    crash_handler.SetProcessExceptionHandlers();
+    crash_handler.SetThreadExceptionHandlers();
 
     XAMP_ON_SCOPE_EXIT(
         Logger::GetInstance().Shutdown();

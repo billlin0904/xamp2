@@ -68,3 +68,4 @@ CMakeLists.txt.user
 /src/bench/bench.vcxproj.user
 /src/sanitize/sanitize.vcxproj.user
 /src/sanitize/x64
+/src/xamp/.vs
