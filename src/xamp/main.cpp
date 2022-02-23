@@ -226,7 +226,7 @@ int main(int argc, char *argv[]) {
 
     CrashHandler crash_handler;
     crash_handler.SetProcessExceptionHandlers();
-    crash_handler.SetThreadExceptionHandlers();
+    //crash_handler.SetThreadExceptionHandlers();
 
     XAMP_ON_SCOPE_EXIT(
         Logger::GetInstance().Shutdown();

@@ -6,6 +6,7 @@
 #include <spdlog/sinks/rotating_file_sink.h>
 #include <spdlog/sinks/msvc_sink.h>
 
+#include <base/platform.h>
 #include <base/fastmutex.h>
 #include <base/str_utilts.h>
 #include <base/logger.h>
@@ -97,7 +98,12 @@ Logger& Logger::AddConsoleLogger() {
 
 Logger& Logger::AddDebugOutputLogger() {
 #ifdef XAMP_OS_WIN
-	sinks_.push_back(std::make_shared<DebugOutputSink>());
+	// OutputDebugString 會產生例外導致AddVectoredExceptionHandler註冊的
+	// Handler會遞迴的呼叫下去, 所以只有在除錯模式下才使用.
+	// https://stackoverflow.com/questions/25634376/why-does-addvectoredexceptionhandler-crash-my-dll
+	if (IsDebuging()) {
+		sinks_.push_back(std::make_shared<DebugOutputSink>());
+	}
 #endif
 	return *this;
 }

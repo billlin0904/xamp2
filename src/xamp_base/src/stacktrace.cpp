@@ -101,28 +101,45 @@ public:
     }
 
     void WriteLog(std::ostringstream &ostr, size_t frame_count, CaptureStackAddress& addrlist) {
+        constexpr auto kMaxModuleNameSize = 64;
+
         ostr << "\r\nstack backtrace:\r\n";
 
         frame_count = (std::min)(addrlist.size(), frame_count);
 
         for (size_t i = 0; i < frame_count; ++i) {
-            MemorySet(symbol_.data(), 0, symbol_.size());
             auto* frame = addrlist[i];
+
+            IMAGEHLP_MODULE64 module{};
+            module.SizeOfStruct = sizeof(module);
+            char module_name[kMaxModuleNameSize]{0};
+
+            const auto has_module = ::SymGetModuleInfo64(process_.get(),
+                reinterpret_cast<DWORD64>(frame), 
+                &module);
+            if (has_module) {
+                strncpy(module_name, module.ModuleName, kMaxModuleNameSize - 1);
+            } else {
+                strncpy(module_name, "Unknown", kMaxModuleNameSize - 1);
+            }
+
+            ostr << std::setfill(' ') << std::setw(16) << module_name << ".dll ";
+
+            MemorySet(symbol_.data(), 0, symbol_.size());
             auto* const symbol_info = reinterpret_cast<SYMBOL_INFO*>(symbol_.data());
 
             symbol_info->SizeOfStruct = sizeof(SYMBOL_INFO);
-            symbol_info->MaxNameLen = 256;
-            symbol_info->SizeOfStruct = sizeof(SYMBOL_INFO);
-            symbol_info->MaxNameLen = 256;
+            symbol_info->MaxNameLen = 255;
 
             DWORD64 displacement = 0;
             const auto has_symbol = ::SymFromAddr(process_.get(),
                 reinterpret_cast<DWORD64>(frame),
                 &displacement,
                 symbol_info);
-            
+            //const auto has_symbol = false;
+
             ostr << "at\t"
-                 << "0x" << std::hex << std::uppercase << std::setfill('0') << std::setw(8)
+                 << "0X" << std::hex << std::uppercase << std::setfill('0') << std::setw(8)
                  << reinterpret_cast<DWORD64>(frame) << " ";
 
             if (has_symbol) {

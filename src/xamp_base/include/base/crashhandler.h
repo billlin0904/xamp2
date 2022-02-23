@@ -6,6 +6,7 @@
 #pragma once
 
 #include <base/base.h>
+#include <base/fastmutex.h>
 
 #ifdef XAMP_OS_WIN
 #include <base/windows_handle.h>
@@ -52,6 +53,7 @@ private:
 	void InstallSignalHandler();
 	static void CrashSignalHandler(int signal_number, siginfo_t* info, void*);
 #endif
+	static FastMutex mutex_;
 };
 
 }

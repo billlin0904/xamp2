@@ -4,9 +4,9 @@
 
 namespace xamp::base {
 
-inline constexpr auto kMaxPlaybackThreadPoolSize{ 4 };
+inline constexpr auto kMaxPlaybackThreadPoolSize{ 2 };
 inline constexpr auto kMaxWASAPIThreadPoolSize{ 2 };
-inline constexpr auto kMaxFileThreadPoolSize{ 8 };
+inline constexpr auto kMaxFileThreadPoolSize{ 2 };
 
 AlignPtr<IThreadPool> MakeThreadPool(const std::string_view& pool_name) {
     return MakeAlign<IThreadPool, ThreadPool>(pool_name);

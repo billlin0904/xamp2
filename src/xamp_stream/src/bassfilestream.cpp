@@ -142,7 +142,7 @@ public:
             LoadFileOrURL(file_path, is_file_path, mode_, flags);
         }
 
-        XAMP_LOG_DEBUG("End open file :{} secs", sw.ElapsedSeconds());
+        XAMP_LOG_DEBUG("End open file :{:.2f} secs", sw.ElapsedSeconds());
         info_ = BASS_CHANNELINFO{};
         BassIfFailedThrow(BASS.BASS_ChannelGetInfo(stream_.get(), &info_));
 

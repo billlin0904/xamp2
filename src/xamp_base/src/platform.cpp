@@ -180,6 +180,13 @@ std::string MakeTempFileName() {
     return filename;
 }
 
+bool IsDebuging() {
+#ifdef XAMP_OS_WIN
+    return ::IsDebuggerPresent();
+#endif
+    return false;
+}
+
 #ifdef XAMP_OS_WIN
 bool ExtendProcessWorkingSetSize(size_t size) noexcept {
     SIZE_T minimum = 0;

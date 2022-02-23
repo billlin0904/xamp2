@@ -127,7 +127,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/taglib2/taglib;../thirdparty/taglib2/taglib/ape;../thirdparty/taglib2/taglib/mpeg;../thirdparty/taglib2/taglib/toolkit;../thirdparty/taglib2/taglib/mp4;../thirdparty/taglib2/taglib/flac;../thirdparty/taglib2/taglib/mpeg/id3v2;../thirdparty/robin_hood/;../thirdparty/spdlog/include/</AdditionalIncludeDirectories>
-      <OmitFramePointers>false</OmitFramePointers>
+      <OmitFramePointers>true</OmitFramePointers>
       <PreprocessorDefinitions>METADATA_API_EXPORTS;TAGLIB_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <DebugInformationFormat>None</DebugInformationFormat>
@@ -150,6 +150,9 @@
     <Bscmake>
       <PreserveSbr>true</PreserveSbr>
     </Bscmake>
+    <ProjectReference>
+      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
+    </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="include\metadata\metadata.h" />

@@ -21,31 +21,45 @@ namespace xamp::base {
 CrashHandler::CrashHandler() = default;
 CrashHandler::~CrashHandler() = default;
 
+FastMutex CrashHandler::mutex_;
+
 #ifdef XAMP_OS_WIN
 #define DECLARE_EXCEPTION_CODE(Code) { Code, #Code },
 
+// What is a First Chance Exception?  
+// https://docs.microsoft.com/en-us/archive/blogs/davidklinems/what-is-a-first-chance-exception
+#define EXCEPTION_FIRST_CHANCE                  0X000004242420
+#define EXCEPTION_RPC_SERVER_NOT_UNAVAILABLE    0X0000000006BA
+
+static const HashMap<DWORD, std::string_view> kIgnoreExceptionCode = {
+    DECLARE_EXCEPTION_CODE(EXCEPTION_RPC_SERVER_NOT_UNAVAILABLE)
+    DECLARE_EXCEPTION_CODE(EXCEPTION_FIRST_CHANCE)
+    DECLARE_EXCEPTION_CODE(DBG_PRINTEXCEPTION_C)
+    DECLARE_EXCEPTION_CODE(DBG_PRINTEXCEPTION_WIDE_C)
+};
+
 static const HashMap<DWORD, std::string_view> kWellKnownExceptionCode = {
-        DECLARE_EXCEPTION_CODE(EXCEPTION_ACCESS_VIOLATION)
-        DECLARE_EXCEPTION_CODE(EXCEPTION_BREAKPOINT)
-        DECLARE_EXCEPTION_CODE(EXCEPTION_SINGLE_STEP)
-        DECLARE_EXCEPTION_CODE(EXCEPTION_ARRAY_BOUNDS_EXCEEDED)
-        DECLARE_EXCEPTION_CODE(EXCEPTION_FLT_DENORMAL_OPERAND)
-        DECLARE_EXCEPTION_CODE(EXCEPTION_FLT_DIVIDE_BY_ZERO)
-        DECLARE_EXCEPTION_CODE(EXCEPTION_FLT_INEXACT_RESULT)
-        DECLARE_EXCEPTION_CODE(EXCEPTION_FLT_INVALID_OPERATION)
-        DECLARE_EXCEPTION_CODE(EXCEPTION_FLT_OVERFLOW)
-        DECLARE_EXCEPTION_CODE(EXCEPTION_FLT_STACK_CHECK)
-        DECLARE_EXCEPTION_CODE(EXCEPTION_FLT_UNDERFLOW)
-        DECLARE_EXCEPTION_CODE(EXCEPTION_INT_DIVIDE_BY_ZERO)
-        DECLARE_EXCEPTION_CODE(EXCEPTION_INT_OVERFLOW)
-        DECLARE_EXCEPTION_CODE(EXCEPTION_PRIV_INSTRUCTION)
-        DECLARE_EXCEPTION_CODE(EXCEPTION_IN_PAGE_ERROR)
-        DECLARE_EXCEPTION_CODE(EXCEPTION_ILLEGAL_INSTRUCTION)
-        DECLARE_EXCEPTION_CODE(EXCEPTION_NONCONTINUABLE_EXCEPTION)
-        DECLARE_EXCEPTION_CODE(EXCEPTION_STACK_OVERFLOW)
-        DECLARE_EXCEPTION_CODE(EXCEPTION_INVALID_DISPOSITION)
-        DECLARE_EXCEPTION_CODE(EXCEPTION_GUARD_PAGE)
-        DECLARE_EXCEPTION_CODE(EXCEPTION_INVALID_HANDLE)
+    DECLARE_EXCEPTION_CODE(EXCEPTION_ACCESS_VIOLATION)
+    DECLARE_EXCEPTION_CODE(EXCEPTION_BREAKPOINT)
+    DECLARE_EXCEPTION_CODE(EXCEPTION_SINGLE_STEP)
+    DECLARE_EXCEPTION_CODE(EXCEPTION_ARRAY_BOUNDS_EXCEEDED)
+    DECLARE_EXCEPTION_CODE(EXCEPTION_FLT_DENORMAL_OPERAND)
+    DECLARE_EXCEPTION_CODE(EXCEPTION_FLT_DIVIDE_BY_ZERO)
+    DECLARE_EXCEPTION_CODE(EXCEPTION_FLT_INEXACT_RESULT)
+    DECLARE_EXCEPTION_CODE(EXCEPTION_FLT_INVALID_OPERATION)
+    DECLARE_EXCEPTION_CODE(EXCEPTION_FLT_OVERFLOW)
+    DECLARE_EXCEPTION_CODE(EXCEPTION_FLT_STACK_CHECK)
+    DECLARE_EXCEPTION_CODE(EXCEPTION_FLT_UNDERFLOW)
+    DECLARE_EXCEPTION_CODE(EXCEPTION_INT_DIVIDE_BY_ZERO)
+    DECLARE_EXCEPTION_CODE(EXCEPTION_INT_OVERFLOW)
+    DECLARE_EXCEPTION_CODE(EXCEPTION_PRIV_INSTRUCTION)
+    DECLARE_EXCEPTION_CODE(EXCEPTION_IN_PAGE_ERROR)
+    DECLARE_EXCEPTION_CODE(EXCEPTION_ILLEGAL_INSTRUCTION)
+    DECLARE_EXCEPTION_CODE(EXCEPTION_NONCONTINUABLE_EXCEPTION)
+    DECLARE_EXCEPTION_CODE(EXCEPTION_STACK_OVERFLOW)
+    DECLARE_EXCEPTION_CODE(EXCEPTION_INVALID_DISPOSITION)
+    DECLARE_EXCEPTION_CODE(EXCEPTION_GUARD_PAGE)
+    DECLARE_EXCEPTION_CODE(EXCEPTION_INVALID_HANDLE)
 };
 
 static void DeleteExceptionPointers(EXCEPTION_POINTERS* exception_pointers) {
@@ -86,21 +100,34 @@ void CrashHandler::CreateMiniDump(EXCEPTION_POINTERS* exception_pointers) {
 }
 
 void CrashHandler::Dump(void* info) {
+    std::lock_guard<FastMutex> guard{ mutex_ };
+
     auto* exception_pointers = static_cast<PEXCEPTION_POINTERS>(info);
-    CreateMiniDump(exception_pointers);
 
-    if (exception_pointers->ExceptionRecord->ExceptionCode != EXCEPTION_STACK_OVERFLOW) {
-        auto itr = kWellKnownExceptionCode.find(exception_pointers->ExceptionRecord->ExceptionCode);
-        if (itr != kWellKnownExceptionCode.end()) {
-            XAMP_LOG_DEBUG("Uncaught exception: {}{}\r\n", (*itr).second, StackTrace{}.CaptureStack());
-
-            Logger::GetInstance().Shutdown();
-            WinHandle process(::GetCurrentProcess());
-            ::TerminateProcess(process.get(), 1);
-        } else {
-            XAMP_LOG_DEBUG("Uncaught exception: Unknown{}\r\n", StackTrace{}.CaptureStack());
-        }
+    auto itr = kIgnoreExceptionCode.find(exception_pointers->ExceptionRecord->ExceptionCode);
+    if (itr != kIgnoreExceptionCode.end()) {
+        XAMP_LOG_DEBUG("Ignore exception code: {}", (*itr).second);
+        return;
     }
+    
+    //CreateMiniDump(exception_pointers);
+
+    const auto code = exception_pointers->ExceptionRecord->ExceptionCode;
+    if (code == EXCEPTION_STACK_OVERFLOW) {
+        return;
+    }
+
+    auto itr2 = kWellKnownExceptionCode.find(code);
+    if (itr2 != kWellKnownExceptionCode.end()) {
+        XAMP_LOG_DEBUG("Uncaught exception: {}{}\r\n", (*itr2).second, StackTrace{}.CaptureStack());
+    }
+    else {
+        XAMP_LOG_DEBUG("Uncaught exception: {:#014X}{}\r\n", code, StackTrace{}.CaptureStack());
+    }
+
+    //Logger::GetInstance().Shutdown();
+    //WinHandle process(::GetCurrentProcess());
+    //::TerminateProcess(process.get(), 1);
 }
 
 LONG CrashHandler::SehHandler(PEXCEPTION_POINTERS exception_pointers) {
