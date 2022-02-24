@@ -769,14 +769,12 @@ void Xamp::initialController() {
     (void)QObject::connect(dark_mode_action_, &QAction::triggered, [=]() {
         AppSettings::setEnumValue(kAppSettingTheme, ThemeColor::DARK_THEME);
         cleanup();
-        XMessageBox::about(tr("Program will be restart to apply these changes!"), this);
-        qApp->exit(-2);
+        qApp->exit(kRestartPlayerCode);
         });
     (void)QObject::connect(light_mode_action_, &QAction::triggered, [=]() {
         AppSettings::setEnumValue(kAppSettingTheme, ThemeColor::LIGHT_THEME);
         cleanup();
-        XMessageBox::about(tr("Program will be restart to apply these changes!"), this);
-        qApp->exit(-2);
+        qApp->exit(kRestartPlayerCode);
         });
 
     ui_.seekSlider->setEnabled(false);

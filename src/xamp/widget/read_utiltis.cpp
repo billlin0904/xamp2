@@ -83,7 +83,7 @@ double readAll(std::wstring const& file_path,
 
 	prepare(input_format);
 
-	if (max_duration == std::numeric_limits<uint64_t>::max()) {
+	if (max_duration == (std::numeric_limits<uint64_t>::max)()) {
 		max_duration = static_cast<uint64_t>(file_stream->GetDuration());
 	}
 

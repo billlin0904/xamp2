@@ -46,6 +46,7 @@ BassDSDLib::BassDSDLib() try
     : module_(LoadModule("libbassdsd.dylib"))
 #endif
     , XAMP_LOAD_DLL_API(BASS_DSD_StreamCreateFile) {
+    PrefetchModule(module_);
 }
 catch (const Exception& e) {
     XAMP_LOG_ERROR("{}", e.GetErrorMessage());
@@ -60,6 +61,7 @@ BassMixLib::BassMixLib() try
     , XAMP_LOAD_DLL_API(BASS_Mixer_StreamCreate)
     , XAMP_LOAD_DLL_API(BASS_Mixer_StreamAddChannel)
     , XAMP_LOAD_DLL_API(BASS_Mixer_GetVersion) {
+    PrefetchModule(module_);
 }
 catch (const Exception& e) {
     XAMP_LOG_ERROR("{}", e.GetErrorMessage());
@@ -74,6 +76,7 @@ BassFxLib::BassFxLib() try
     , XAMP_LOAD_DLL_API(BASS_FX_TempoGetSource)
     , XAMP_LOAD_DLL_API(BASS_FX_TempoCreate)
     , XAMP_LOAD_DLL_API(BASS_FX_GetVersion) {
+    PrefetchModule(module_);
 }
 catch (const Exception& e) {
     XAMP_LOG_ERROR("{}", e.GetErrorMessage());
@@ -161,6 +164,7 @@ BassLib::BassLib() try
     , XAMP_LOAD_DLL_API(BASS_StreamCreateURL)
     , XAMP_LOAD_DLL_API(BASS_StreamGetFilePosition)
     , XAMP_LOAD_DLL_API(BASS_ChannelIsActive) {
+    PrefetchModule(module_);
 }
 catch (const Exception& e) {
     XAMP_LOG_ERROR("{}", e.GetErrorMessage());

@@ -331,6 +331,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="ja_JP.ts" />
+    <None Include="Resource\Theme\dark\style.qss" />
+    <None Include="Resource\Theme\light\style.qss" />
     <None Include="zh_TW.ts" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

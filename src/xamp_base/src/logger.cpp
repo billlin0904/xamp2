@@ -60,7 +60,7 @@ Logger & Logger::GetInstance() noexcept {
 
 void Logger::Shutdown() {
 	if (default_logger_ != nullptr) {
-		XAMP_LOG_INFO("Logger shutdwon ....");
+		XAMP_LOG_INFO("=:==:==:==:==:= Logger shutdwon =:==:==:==:==:=");
 	}
     spdlog::shutdown();
 }

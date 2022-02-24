@@ -11,6 +11,12 @@ ModuleHandle LoadModule(const std::string_view& file_name) {
 	return ModuleHandle(module);
 }
 
+Path GetModulePath(const ModuleHandle& module) {
+    char path[MAX_PATH]{ 0 };
+    ::GetModuleFileName(module.get(), path, sizeof(path));
+    return path;
+}
+
 void* LoadModuleSymbol(const ModuleHandle& dll, const std::string_view& name) {
     auto func = ::GetProcAddress(dll.get(), name.data());
     if (!func) {
@@ -19,6 +25,10 @@ void* LoadModuleSymbol(const ModuleHandle& dll, const std::string_view& name) {
     return func;
 }
 #else
+Path GetModulePath(const ModuleHandle& module) {
+    return "";
+}
+
 ModuleHandle LoadModule(const std::string_view& name) {
     auto module = ::dlopen(name.data(), RTLD_NOW);
     if (!module) {

@@ -20,11 +20,11 @@ namespace xamp::base {
 
 class MemoryMappedFile::MemoryMappedFileImpl {
 public:
-    void Open(std::wstring const & file_path) {
+    void Open(std::wstring const & file_path, bool is_module) {
         static constexpr DWORD kAccessMode = GENERIC_READ;
         static constexpr DWORD kCreateType = OPEN_EXISTING;
-        static constexpr DWORD kProtect = PAGE_READONLY;
         static constexpr DWORD kAccess = FILE_MAP_READ;
+        static constexpr DWORD kProtect = PAGE_READONLY;
 
         file_.reset(::CreateFileW(file_path.c_str(),
                                   kAccessMode,
@@ -35,7 +35,7 @@ public:
                                   nullptr));
 
         if (file_) {
-            OpenMappingFile(kProtect, kAccess);
+            OpenMappingFile(is_module ? (kProtect | SEC_IMAGE_NO_EXECUTE) : kProtect, kAccess);
             return;
         }
 
@@ -137,8 +137,8 @@ MemoryMappedFile::MemoryMappedFile()
 
 XAMP_PIMPL_IMPL(MemoryMappedFile)
 
-void MemoryMappedFile::Open(std::wstring const &file_path) {
-    impl_->Open(file_path);
+void MemoryMappedFile::Open(std::wstring const &file_path, bool is_module) {
+    impl_->Open(file_path, is_module);
 }
 
 void const * MemoryMappedFile::GetData() const {

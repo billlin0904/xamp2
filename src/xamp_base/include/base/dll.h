@@ -22,6 +22,8 @@ namespace xamp::base {
 
 XAMP_BASE_API ModuleHandle LoadModule(const std::string_view& file_name);
 
+XAMP_BASE_API Path GetModulePath(const ModuleHandle &module);
+
 XAMP_BASE_API void* LoadModuleSymbol(const ModuleHandle& dll, const std::string_view & name);
 
 template <typename T, typename U = std::enable_if_t<std::is_function_v<T>>>

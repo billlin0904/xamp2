@@ -31,6 +31,7 @@ private:
         , soxr_io_spec(module_, "soxr_io_spec")
         , soxr_runtime_spec(module_, "soxr_runtime_spec")
         , soxr_clear(module_, "soxr_clear") {
+		PrefetchModule(module_);
     }
     catch (const Exception& e) {
         XAMP_LOG_ERROR("{}", e.GetErrorMessage());

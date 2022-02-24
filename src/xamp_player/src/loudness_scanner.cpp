@@ -1,6 +1,7 @@
 #include <memory>
 #include <sstream>
 #include <iomanip>
+#include <utility>
 
 #include "libebur128/ebur128.h"
 #include <base/exception.h>
@@ -50,7 +51,7 @@ public:
 		double right_sample_peek = 0;
 		IfFailThrow(::ebur128_sample_peak(state_.get(), 0, &left_sample_peek));
 		IfFailThrow(::ebur128_sample_peak(state_.get(), 1, &right_sample_peek));
-        return Round(std::max(left_sample_peek, right_sample_peek));
+        return Round((std::max)(left_sample_peek, right_sample_peek));
 	}
 
 	[[nodiscard]] double GetLoudness() const {

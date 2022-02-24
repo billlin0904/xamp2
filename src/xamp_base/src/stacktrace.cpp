@@ -29,6 +29,9 @@ static std::string GetFileName(std::filesystem::path const& path) {
 
 class SymLoader {
 public:
+    static constexpr auto kMaxModuleNameSize = 64;
+    static constexpr auto kMaxSymbolNameSize = 255;
+
 	[[nodiscard]] const WinHandle & GetProcess() const noexcept {
 		return process_;
 	}
@@ -101,8 +104,6 @@ public:
     }
 
     void WriteLog(std::ostringstream &ostr, size_t frame_count, CaptureStackAddress& addrlist) {
-        constexpr auto kMaxModuleNameSize = 64;
-
         ostr << "\r\nstack backtrace:\r\n";
 
         frame_count = (std::min)(addrlist.size(), frame_count);
@@ -112,24 +113,27 @@ public:
 
             IMAGEHLP_MODULE64 module{};
             module.SizeOfStruct = sizeof(module);
-            char module_name[kMaxModuleNameSize]{0};
+            std::string module_name;
 
             const auto has_module = ::SymGetModuleInfo64(process_.get(),
                 reinterpret_cast<DWORD64>(frame), 
                 &module);
             if (has_module) {
-                strncpy(module_name, module.ModuleName, kMaxModuleNameSize - 1);
+                module_name = GetFileName(module.LoadedImageName);
+                if (module_name.empty()) {
+                    module_name = GetFileName(module.ImageName);
+                }
             } else {
-                strncpy(module_name, "Unknown", kMaxModuleNameSize - 1);
+                module_name = "Unknown";
             }
 
-            ostr << std::setfill(' ') << std::setw(16) << module_name << ".dll ";
+            ostr << std::setfill(' ') << std::setw(24) << module_name << " ";
 
             MemorySet(symbol_.data(), 0, symbol_.size());
             auto* const symbol_info = reinterpret_cast<SYMBOL_INFO*>(symbol_.data());
 
             symbol_info->SizeOfStruct = sizeof(SYMBOL_INFO);
-            symbol_info->MaxNameLen = 255;
+            symbol_info->MaxNameLen = kMaxSymbolNameSize;
 
             DWORD64 displacement = 0;
             const auto has_symbol = ::SymFromAddr(process_.get(),

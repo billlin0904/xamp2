@@ -30,12 +30,14 @@ FastMutex CrashHandler::mutex_;
 // https://docs.microsoft.com/en-us/archive/blogs/davidklinems/what-is-a-first-chance-exception
 #define EXCEPTION_FIRST_CHANCE                  0X000004242420
 #define EXCEPTION_RPC_SERVER_NOT_UNAVAILABLE    0X0000000006BA
+#define EXCEPTION_MSVC_CPP                      0X0000E06D7363
 
 static const HashMap<DWORD, std::string_view> kIgnoreExceptionCode = {
     DECLARE_EXCEPTION_CODE(EXCEPTION_RPC_SERVER_NOT_UNAVAILABLE)
     DECLARE_EXCEPTION_CODE(EXCEPTION_FIRST_CHANCE)
     DECLARE_EXCEPTION_CODE(DBG_PRINTEXCEPTION_C)
     DECLARE_EXCEPTION_CODE(DBG_PRINTEXCEPTION_WIDE_C)
+    DECLARE_EXCEPTION_CODE(EXCEPTION_MSVC_CPP)
 };
 
 static const HashMap<DWORD, std::string_view> kWellKnownExceptionCode = {
@@ -102,7 +104,7 @@ void CrashHandler::CreateMiniDump(EXCEPTION_POINTERS* exception_pointers) {
 void CrashHandler::Dump(void* info) {
     std::lock_guard<FastMutex> guard{ mutex_ };
 
-    auto* exception_pointers = static_cast<PEXCEPTION_POINTERS>(info);
+    const auto* exception_pointers = static_cast<PEXCEPTION_POINTERS>(info);
 
     auto itr = kIgnoreExceptionCode.find(exception_pointers->ExceptionRecord->ExceptionCode);
     if (itr != kIgnoreExceptionCode.end()) {

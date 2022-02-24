@@ -99,31 +99,40 @@ static void loadSettings() {
 
 static std::vector<ModuleHandle> preloadDll() {
 #ifdef XAMP_OS_WIN
-    std::vector<std::string_view> preload_dll_file_name{
+    const std::vector<std::string_view> preload_dll_file_name{
         "mimalloc-override.dll",
-        "AudioSes.dll",
-        "psapi.dll",
-        "AUDIOKSE.dll",
-        "comctl32.dll",
+        "ResourcePolicyClient.dll", // WASAPI
+        "AudioSes.dll", // WASAPI
+        "AUDIOKSE.dll",// WASAPI
+        "Qt5Gui.dll", // Qt
+        "Qt5Core.dll", // Qt
+        "Qt5Widgets.dll", // Qt
+        "psapi.dll", // Qt
+        "d3d9.dll", // Qt
+        "libGLESv2d.dll", // Qt
+        "opengl32sw.dll", // Qt
+        "opengl32.dll", // Qt
+        "glu32.dll", // Qt
+        "DWrite.dll", // Qt
+        "wininet.dll", // Qt
+    	"comctl32.dll",
         "WindowsCodecs.dll",
         "thumbcache.dll",
         "setupapi.dll",
-        "d3d9.dll",
-        "opengl32.dll",
-        "glu32.dll",
-        "DWrite.dll",
-        "wininet.dll",
     };
     std::vector<ModuleHandle> preload_module;
     for (const auto file_name : preload_dll_file_name) {
         try {
-            preload_module.push_back(LoadModule(file_name));
+            auto module = LoadModule(file_name);
+            if (PrefetchModule(module)) {
+                preload_module.push_back(std::move(module));
+                XAMP_LOG_DEBUG("Preload {} success.", file_name);
+            }
         }
         catch (std::exception const& e) {
             XAMP_LOG_DEBUG("Preload {} failure! {}.", file_name, e.what());
         }
     }
-    XAMP_LOG_DEBUG("Preload dll success.");
     return preload_module;
 #else
 	return std::vector<ModuleHandle>();
@@ -143,11 +152,13 @@ static void setLogLevel(spdlog::level::level_enum level = spdlog::level::debug) 
     Logger::GetInstance().GetLogger("PixmapCache")->set_level(level);
     Logger::GetInstance().GetLogger(kDspManagerLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kAudioPlayerLoggerName)->set_level(level);
+    Logger::GetInstance().GetLogger(kBackgroundThreadPoolLoggerName)->set_level(level);
+    Logger::GetInstance().GetLogger(kVolumeLoggerName)->set_level(level);
 }
 
 static int excute(int argc, char* argv[]) {
     XAMP_SET_LOG_LEVEL(spdlog::level::debug);
-    XAMP_LOG_DEBUG("Logger init success.");
+    XAMP_LOG_DEBUG("=:==:==:==:==:= Logger init success. =:==:==:==:==:= ");
 
     const auto preload_module = preloadDll();
 
@@ -192,7 +203,7 @@ static int excute(int argc, char* argv[]) {
 
     XAMP_LOG_DEBUG("Database init success.");
     setLogLevel(spdlog::level::info);
-    Logger::GetInstance().GetLogger(kAudioPlayerLoggerName)->set_level(spdlog::level::debug);
+    //Logger::GetInstance().GetLogger(kAudioPlayerLoggerName)->set_level(spdlog::level::debug);
     //Logger::GetInstance().GetLogger(kExclusiveWasapiDeviceLoggerName)->set_level(spdlog::level::debug);
 
     foreach(const QString & path, app.libraryPaths()) {
@@ -216,9 +227,8 @@ static int excute(int argc, char* argv[]) {
 
 int main(int argc, char *argv[]) {
     Logger::GetInstance()
-#ifdef Q_OS_WIN
         .AddDebugOutputLogger()
-#else
+#ifdef Q_OS_MAC
         .AddSink(std::make_shared<QDebugSink>())
 #endif
         .AddFileLogger("xamp.log")
@@ -226,7 +236,6 @@ int main(int argc, char *argv[]) {
 
     CrashHandler crash_handler;
     crash_handler.SetProcessExceptionHandlers();
-    //crash_handler.SetThreadExceptionHandlers();
 
     XAMP_ON_SCOPE_EXIT(
         Logger::GetInstance().Shutdown();
@@ -234,7 +243,7 @@ int main(int argc, char *argv[]) {
         AppSettings::save();
     );
 
-    if (excute(argc, argv) == -2) {
+    if (excute(argc, argv) == kRestartPlayerCode) {
         QProcess::startDetached(Q_STR(argv[0]), qApp->arguments());
     }
     return 0;

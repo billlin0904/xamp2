@@ -46,6 +46,13 @@ bool PrefetchFile(MemoryMappedFile &file) {
     return PrefetchMemory(const_cast<void*>(file.GetData()), preread_file_size);
 }
 
+bool PrefetchModule(ModuleHandle const& module) {
+	auto path = GetModulePath(module);
+	MemoryMappedFile file;
+	file.Open(path.wstring(), true);
+	return PrefetchMemory(const_cast<void*>(file.GetData()), file.GetLength());
+}
+
 bool PrefetchFile(std::wstring const & file_name) {
 	MemoryMappedFile file;
 	file.Open(file_name);

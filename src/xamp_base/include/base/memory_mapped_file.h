@@ -19,7 +19,7 @@ public:
 
     XAMP_PIMPL(MemoryMappedFile)
 
-    void Open(std::wstring const &file_path);
+    void Open(std::wstring const &file_path, bool is_module = false);
 
     void const * GetData() const;
 

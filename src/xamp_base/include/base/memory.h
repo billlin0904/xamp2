@@ -7,6 +7,7 @@
 
 #include <string>
 #include <base/base.h>
+#include <base/dll.h>
 
 namespace xamp::base {
 
@@ -17,6 +18,8 @@ XAMP_BASE_API size_t GetPageSize() noexcept;
 XAMP_BASE_API size_t GetPageAlignSize(size_t value) noexcept;
 
 XAMP_BASE_API bool PrefetchFile(std::wstring const &file_name);
+
+XAMP_BASE_API bool PrefetchModule(ModuleHandle const &module);
 
 XAMP_BASE_API bool PrefetchFile(MemoryMappedFile &file);
 

@@ -6,6 +6,8 @@
 
 #include <QWidget>
 
+inline constexpr auto kRestartPlayerCode = -2;
+
 class IXWindow : public QWidget {
 public:
     virtual ~IXWindow() override = default;
