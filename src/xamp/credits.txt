@@ -1,6 +1,8 @@
 Main developer
 https://github.com/billlin0904
 
+3rd library
+
 BASS audio library
 http://www.un4seen.com/
 
@@ -9,3 +11,6 @@ https://www.qt.io/
 
 Google material icons
 https://fonts.google.com/icons
+
+QDarkStyleSheet
+https://github.com/ColinDuquesnoy/QDarkStyleSheet

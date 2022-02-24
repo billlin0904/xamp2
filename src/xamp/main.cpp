@@ -75,7 +75,7 @@ static void loadSettings() {
     AppSettings::setDefaultEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_TRACK_MODE);
     AppSettings::setDefaultEnumValue(kAppSettingReplayGainScanMode, ReplayGainScanMode::RG_SCAN_MODE_FAST);
     AppSettings::setDefaultValue(kAppSettingEnableReplayGain, true);
-    AppSettings::setDefaultEnumValue(kAppSettingTheme, ThemeColor::LIGHT_THEME);
+    AppSettings::setDefaultEnumValue(kAppSettingTheme, ThemeColor::DARK_THEME);
     JsonSettings::loadJsonFile(Q_UTF8("soxr.json"));
 	
     loadOrDefaultSoxrSetting();
