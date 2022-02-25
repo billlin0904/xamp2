@@ -164,6 +164,7 @@ void Xamp::setXWindow(IXWindow* top_window) {
         discord_notify_.discordInit();        
         });
     avoidRedrawOnResize();
+    Singleton<ThemeManager>::GetInstance().setPlayOrPauseButton(ui_, false);
 }
 
 void Xamp::avoidRedrawOnResize() {

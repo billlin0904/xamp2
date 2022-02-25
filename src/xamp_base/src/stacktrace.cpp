@@ -127,7 +127,7 @@ public:
                 module_name = "Unknown";
             }
 
-            ostr << std::setfill(' ') << std::setw(24) << module_name << " ";
+            ostr << std::left << std::setfill(' ') << std::setw(24) << module_name << " ";
 
             MemorySet(symbol_.data(), 0, symbol_.size());
             auto* const symbol_info = reinterpret_cast<SYMBOL_INFO*>(symbol_.data());

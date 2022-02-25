@@ -4,7 +4,7 @@
 
 namespace xamp::base {
 
-inline constexpr auto kMaxPlaybackThreadPoolSize{ 2 };
+inline constexpr auto kMaxPlaybackThreadPoolSize{ 8 };
 inline constexpr auto kMaxWASAPIThreadPoolSize{ 2 };
 inline constexpr auto kMaxFileThreadPoolSize{ 2 };
 

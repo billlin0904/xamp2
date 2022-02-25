@@ -356,8 +356,12 @@ bool XWindow::nativeEvent(const QByteArray& event_type, void * message, long * r
         if (msg->wParam == FALSE) {
             *result = 0;
             return true;
+        } else {
+            auto* nccalcsize_params = reinterpret_cast<LPNCCALCSIZE_PARAMS>(msg->lParam);
+            nccalcsize_params->rgrc[2] = nccalcsize_params->rgrc[1];
+            nccalcsize_params->rgrc[1] = nccalcsize_params->rgrc[0];
+            *result = WVR_REDRAW;
         }
-        *result = WVR_REDRAW;
         return true;
     default:
         break;

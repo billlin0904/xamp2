@@ -108,7 +108,7 @@ void CrashHandler::Dump(void* info) {
 
     auto itr = kIgnoreExceptionCode.find(exception_pointers->ExceptionRecord->ExceptionCode);
     if (itr != kIgnoreExceptionCode.end()) {
-        XAMP_LOG_DEBUG("Ignore exception code: {}", (*itr).second);
+        XAMP_LOG_DEBUG("Ignore exception code: {}({:#014X})", (*itr).second, (*itr).first);
         return;
     }
     

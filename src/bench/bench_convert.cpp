@@ -1,8 +1,10 @@
 #include <benchmark/benchmark.h>
 
 #include <iostream>
+#include <numeric>
 #include <vector>
 #include <unordered_map>
+#include <execution>
 #include <unordered_set>
 
 #include <base/scopeguard.h>
@@ -34,84 +36,47 @@ win32::ThreadPool& GetWin32ThreadPool() {
 
 static void BM_Win32ThreadPool(benchmark::State& state) {
     Logger::GetInstance().GetLogger("win32bench")->set_level(spdlog::level::info);
-
-    std::vector<std::shared_future<void>> tasks;
+    auto length = state.range(0);
+    auto& thread_pool = GetWin32ThreadPool();
+    std::vector<int> n(length);
+    std::iota(n.begin(), n.end(), 1);
+    std::atomic<int> total;
     for (auto _ : state) {
-        for (auto i = 0; i < 8; ++i) {
-            tasks.push_back(GetWin32ThreadPool().Spawn([](size_t thread_index) {}));
-            if (i % 8 == 0) {
-                for (auto& t : tasks) {
-                    if (t.valid()) {
-                        try {
-                            t.get();
-                        }
-                        catch (std::exception const& e) {
-                            std::cout << e.what() << std::endl;
-                        }
-                    }
-                }
-                tasks.clear();
+        ParallelFor(n, [&total, &n](auto item) {
+            total += item;
             }
-        }
-        for (auto& t : tasks) {
-            if (t.valid()) {
-                try {
-                    t.get();
-                }
-                catch (std::exception const &e) {
-                    std::cout << e.what() << std::endl;
-                }
-            }
-        }
-        tasks.clear();
+        , thread_pool);
     }
 }
 #endif
 
 static void BM_ThreadPool(benchmark::State& state) {
     auto& thread_pool = PlaybackThreadPool();
-    std::vector<std::shared_future<void>> tasks;
+    auto length = state.range(0);
+    std::vector<int> n(length);
+    std::iota(n.begin(), n.end(), 1);
+    std::atomic<int> total;
     for (auto _ : state) {
-        for (auto i =0 ; i < 8; ++i) {
-            tasks.push_back(thread_pool.Spawn([](size_t thread_index) {}));
-            if (i % 8 == 0) {
-	            for (auto &t: tasks) {
-                    if (t.valid()) {
-                        t.get();
-                    }
-	            }
-                tasks.clear();
-            }
+        ParallelFor(n, [&total, &n](auto item) {
+            total += item;
         }
-        for (auto& t : tasks) {
-            if (t.valid()) {
-                t.get();
-            }
-        }
-        tasks.clear();
+        , thread_pool);
     }
 }
 
-static void BM_async(benchmark::State& state) {
-    std::vector<std::future<void>> tasks;
-    for (auto _ : state) {        
-        for (auto i = 0; i < 8; ++i) {
-            tasks.push_back(std::async(std::launch::async, []() {}));
-            if (i % 8 == 0) {
-                for (auto& t : tasks) {
-                    if (t.valid()) {
-                        t.get();
-                    }
-                }
-                tasks.clear();
-            }
-        }
-        for (auto& t : tasks) {
-            if (t.valid()) {
-                t.get();
-            }
-        }
-        tasks.clear();
+static void BM_async_pool(benchmark::State& state) {
+    auto length = state.range(0);
+    std::vector<int> n(length);
+    std::iota(n.begin(), n.end(), 1);
+    std::atomic<int> total;
+    for (auto _ : state) {
+        std::for_each(std::execution::par_unseq,
+            n.begin(),
+            n.end(),
+            [&total](auto&& item)
+            {
+                total += item;
+            });
     }
 }
 
@@ -401,12 +366,12 @@ BENCHMARK(BM_ConvertToInt2432Avx)->RangeMultiplier(2)->Range(4096, 8 << 10);
 BENCHMARK(BM_ConvertToInt2432)->RangeMultiplier(2)->Range(4096, 8 << 10);
 BENCHMARK(BM_InterleavedToPlanarConvertToInt32_AVX)->RangeMultiplier(2)->Range(4096, 8 << 10);
 BENCHMARK(BM_InterleavedToPlanarConvertToInt32)->RangeMultiplier(2)->Range(4096, 8 << 10);
-
 BENCHMARK(BM_FFT)->RangeMultiplier(2)->Range(4096, 8 << 12);
-BENCHMARK(BM_ThreadPool);
-BENCHMARK(BM_async);
+
+BENCHMARK(BM_ThreadPool)->RangeMultiplier(2)->Range(128, 8 << 16);
+BENCHMARK(BM_async_pool)->RangeMultiplier(2)->Range(128, 8 << 16);
 #ifdef XAMP_OS_WIN
-BENCHMARK(BM_Win32ThreadPool);
+BENCHMARK(BM_Win32ThreadPool)->RangeMultiplier(2)->Range(128, 8 << 16);
 #endif
 
 

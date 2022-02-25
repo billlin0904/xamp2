@@ -211,7 +211,7 @@ void setBlurMaterial(const QMenu* menu, bool enable, int animation_id) {
 }
 
 void drawDwmShadow(const QWidget* widget) {
-	MARGINS borderless = { -1, -1, -1, -1 };
+	MARGINS borderless = { 1, 1, 1, 1 };
 	auto hwnd = reinterpret_cast<HWND>(widget->winId());
 	DWMDLL.DwmExtendFrameIntoClientArea(hwnd, &borderless);
 }
@@ -220,6 +220,7 @@ void setFramelessWindowStyle(const QWidget* widget) {
 	auto hwnd = reinterpret_cast<HWND>(widget->winId());
 	DWORD style = ::GetWindowLong(hwnd, GWL_STYLE);
 	::SetWindowLong(hwnd, GWL_STYLE, style | WS_MAXIMIZEBOX | WS_THICKFRAME | WS_CAPTION | CS_DBLCLKS);
+	::SetWindowPos(hwnd, Q_NULLPTR, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);
 }
 
 bool isWindowMaximized(const QWidget* widget) {

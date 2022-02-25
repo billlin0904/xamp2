@@ -2,7 +2,6 @@
 #include <filesystem>
 
 #ifdef XAMP_OS_WIN
-#include <io.h>
 #include <base/windows_handle.h>
 #else
 #include <base/posix_handle.h>
@@ -11,7 +10,6 @@
 
 #include <base/exception.h>
 #include <base/unique_handle.h>
-#include <base/memory.h>
 #include <base/memory_mapped_file.h>
 
 namespace xamp::base {
@@ -91,7 +89,7 @@ public:
         : mem_(nullptr) {
     }
 
-    void Open(std::wstring const& file_path) {
+    void Open(std::wstring const& file_path, bool is_module) {
         file_.reset(::open(String::ToUtf8String(file_path).c_str(), O_RDONLY));
         if (!file_) {
             throw FileNotFoundException();

@@ -108,13 +108,7 @@ static std::vector<ModuleHandle> preloadDll() {
         "Qt5Core.dll", // Qt
         "Qt5Widgets.dll", // Qt
         "psapi.dll", // Qt
-        "d3d9.dll", // Qt
-        "libGLESv2d.dll", // Qt
-        "opengl32sw.dll", // Qt
-        "opengl32.dll", // Qt
-        "glu32.dll", // Qt
-        "DWrite.dll", // Qt
-        "wininet.dll", // Qt
+        "GdiPlus.dll",
     	"comctl32.dll",
         "WindowsCodecs.dll",
         "thumbcache.dll",
@@ -220,7 +214,7 @@ static int excute(int argc, char* argv[]) {
 
     top_win.show();
     top_win.activateWindow();
-    top_win.resize(1250, 960);
+    top_win.resize(1250, 560);
     centerDesktop(&top_win);
     return app.exec();
 }
