@@ -165,8 +165,9 @@ static int excute(int argc, char* argv[]) {
     }
     catch (const Exception& e) {
         QMessageBox::critical(nullptr,
-                              Q_UTF8("Load dll failure."),
+                              Q_UTF8("XStartup failure."),
                               QString::fromStdString(e.GetErrorMessage()));
+        XAMP_LOG_DEBUG("{}", e.GetStackTrace());
         return -1;
     }   
 

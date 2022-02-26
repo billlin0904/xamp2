@@ -116,6 +116,15 @@ struct XAMP_BASE_API_ONLY_EXPORT StackBufferDeleter {
 };
 
 template <typename Type>
+struct XAMP_BASE_API_ONLY_EXPORT FreeDeleter {
+    void operator()(Type* p) const noexcept {
+        free(p);
+    }
+};
+
+using CharPtr = std::unique_ptr<char, FreeDeleter<char>>;
+
+template <typename Type>
 using StackBufferPtr = std::unique_ptr<Type[], StackBufferDeleter<Type>>;
 
 template <typename Type>

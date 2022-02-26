@@ -16,6 +16,7 @@
 #include <base/windows_handle.h>
 #include <dbghelp.h>
 #else
+#include <cxxabi.h>
 #include <execinfo.h>
 #endif
 
@@ -212,15 +213,45 @@ std::string StackTrace::CaptureStack() {
     SYMBOL_LOADER.WriteLog(ostr, frame_count - 1, addrlist);
     return ostr.str();
 #else
+    auto ParseSymbol = [](const std::string &symbol) -> std::vector<std::string> {
+        std::istringstream iss(symbol);
+        // 0: Index
+        // 1: Module
+        // 2: Address
+        // 3: Function
+        // 4: +
+        // 5: Offset
+        return std::vector<std::string>{
+            std::istream_iterator<std::string>{iss},
+            std::istream_iterator<std::string>{}
+        };
+    };
     auto addrlen = ::backtrace(addrlist.data(), static_cast<int32_t>(addrlist.size()));
     if (addrlen == 0) {
         return "";
     }
 
     std::ostringstream ostr;
+    ostr << "\r\nstack backtrace:\r\n";
+
     auto symbollist = ::backtrace_symbols(addrlist.data(), addrlen);
     for (auto i = 0; i < addrlen; i++) {
-        ostr << symbollist[i] << "\r\n";
+        const auto strs = ParseSymbol(symbollist[i]);
+        if (strs.size() != 6) {
+            continue;
+        }
+        int status = 0;
+        const CharPtr demangled(__cxxabiv1::__cxa_demangle(strs[3].c_str(), nullptr, nullptr, &status));
+        std::string symbol;
+        if (!demangled) {
+            symbol = "<unknown>";
+        } else {
+            symbol = demangled.get();
+        }
+        ostr << std::left << std::setfill(' ') << std::setw(30) << strs[1] << " ";
+        ostr << "at\t"
+             << strs[2] << " ";
+        ostr << " " << symbol << "\r\n";
     }
     return ostr.str();
 #endif

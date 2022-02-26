@@ -47,10 +47,14 @@ bool PrefetchFile(MemoryMappedFile &file) {
 }
 
 bool PrefetchModule(ModuleHandle const& module) {
+#ifdef XAMP_OS_WIN
 	auto path = GetModulePath(module);
 	MemoryMappedFile file;
 	file.Open(path.wstring(), true);
 	return PrefetchMemory(const_cast<void*>(file.GetData()), file.GetLength());
+#else
+    return true;
+#endif
 }
 
 bool PrefetchFile(std::wstring const & file_name) {
