@@ -138,47 +138,34 @@ void ParallelFor(C& items, Func&& f, IThreadPool& tp, size_t batches = 4) {
     auto begin = std::begin(items);
     auto size = std::distance(begin, std::end(items));
 
-    std::vector<std::shared_future<void>> futures(batches);
-    size_t i = 0;
-    for (auto& ff : futures) {
-        ff = tp.Spawn([f, begin, i](size_t) -> void {
-            f(*(begin + i));
+    for (size_t i = 0; i < size; ++i) {
+        std::vector<std::shared_future<void>> futures(batches);
+        for (auto& ff : futures) {
+            ff = tp.Spawn([f, begin, i](size_t) -> void {
+                f(*(begin + i));
             });
-        ++i;
-    }
-
-    for (auto& ff : futures) {
-        ff.wait();
+            ++i;
+        }
+        for (auto& ff : futures) {
+            ff.wait();
+        }
     }
 }
 
 template <typename Func>
 void ParallelFor(size_t begin, size_t end, Func &&f, IThreadPool& tp, size_t batches = 4) {
-    std::vector<std::shared_future<void>> futures(batches);
-    const auto block_iters = 
-        std::ceil(static_cast<float>(end - begin)
-            / static_cast<float>(batches));
-
-    auto block_begin = begin - block_iters;
-    auto block_end = begin;
-    auto step = [&]() -> void
-    {
-        block_begin += block_iters;
-        block_end += block_iters;
-        block_end = (block_end > end) ? end : block_end;
-    };
-
-    step();
-
-    for (auto& ff : futures) {
-        ff = tp.Spawn([=, &f](size_t) -> void {
-                f(block_begin, block_end);
+    auto size = end - begin;
+    for (size_t i = 0; i < size; ++i) {
+        std::vector<std::shared_future<void>> futures(batches);
+        for (auto& ff : futures) {
+            ff = tp.Spawn([f, i](size_t) -> void {
+                f(i);
             });
-        step();
-    }
-
-    for (auto& ff : futures) {
-        ff.wait();
+            ++i;
+        }
+        for (auto& ff : futures) {
+            ff.wait();
+        }
     }
 }
 

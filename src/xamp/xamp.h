@@ -30,6 +30,7 @@ class AlbumArtistPage;
 class ArtistInfoPage;
 class PlaybackHistoryPage;
 class QWidgetAction;
+class QFileSystemWatcher;
 struct PlaybackFormat;
 
 class Xamp final : public IXampPlayer {
@@ -172,7 +173,8 @@ private:
 	AboutPage* about_page_;
     QMenu* tray_icon_menu_;
     QSystemTrayIcon* tray_icon_;
-	QStack<int32_t> stack_page_id_;	    	
+    QFileSystemWatcher* fsw_;
+    QStack<int32_t> stack_page_id_;
     BackgroundWorker background_worker_;
     QThread background_thread_;
 	std::shared_ptr<UIPlayerStateAdapter> state_adapter_;

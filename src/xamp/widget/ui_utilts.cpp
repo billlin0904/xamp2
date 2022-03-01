@@ -93,7 +93,7 @@ std::unique_ptr<XDialog> makeProgressDialog(QString const& title, QString const&
     auto* progress_bar = new QProgressBar();
     progress_bar->setFont(QFont(Q_UTF8("FormatFont")));
     dialog->setBar(progress_bar);
-    xdialog->show();
+    //xdialog->show();
     return xdialog;
 }
 

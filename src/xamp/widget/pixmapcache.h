@@ -70,8 +70,8 @@ private:
 
 	QString unknown_cover_id_;
 	QString cache_path_;
-	QStringList cover_ext_;
-	QStringList cache_ext_;
+    static QStringList cover_ext_;
+    static QStringList cache_ext_;
 	mutable LruCache<QString, QPixmap> cache_;
 	std::shared_ptr<spdlog::logger> logger_;
 };

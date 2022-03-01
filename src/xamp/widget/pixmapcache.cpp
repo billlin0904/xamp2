@@ -19,12 +19,16 @@ inline constexpr size_t kDefaultCacheSize = 32;
 inline constexpr qint64 kMaxCacheImageSize = 8 * 1024 * 1024;
 inline constexpr auto kPixmapCacheFileExt = Q_UTF8(".jpg");
 
+QStringList PixmapCache::cover_ext_ =
+    QStringList() << Q_UTF8("*.jpeg") << Q_UTF8("*.jpg") << Q_UTF8("*.png") << Q_UTF8("*.bmp");
+
+QStringList PixmapCache::cache_ext_ =
+    QStringList() << kPixmapCacheFileExt;
+
 PixmapCache::PixmapCache()
 	: cache_(kDefaultCacheSize)
 	, logger_(Logger::GetInstance().GetLogger("PixmapCache")) {
 	cache_path_ = QDir::currentPath() + Q_UTF8("/caches/");
-	cover_ext_ << Q_UTF8("*.jpeg") << Q_UTF8("*.jpg") << Q_UTF8("*.png") << Q_UTF8("*.bmp");
-	cache_ext_ << Q_UTF8("*.cache");
 	const QDir dir;
 	(void)dir.mkdir(cache_path_);
     unknown_cover_id_ = addOrUpdate(Singleton<ThemeManager>::GetInstance().pixmap().unknownCover());
@@ -34,8 +38,7 @@ PixmapCache::PixmapCache()
 QPixmap PixmapCache::findFileDirCover(const QString& file_path) {
 	const auto dir = QFileInfo(file_path).path();
 
-	for (QDirIterator itr(dir, Singleton<PixmapCache>::GetInstance().cover_ext_,
-		QDir::Files | QDir::NoDotAndDotDot);
+    for (QDirIterator itr(dir, cover_ext_, QDir::Files | QDir::NoDotAndDotDot);
 		itr.hasNext();) {
 		const auto image_file_path = itr.next();
 		QFileInfo file_info(image_file_path);

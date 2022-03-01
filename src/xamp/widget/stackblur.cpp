@@ -49,7 +49,7 @@ static void StackblurJob(uint8_t* src,
 	uint32_t h,
 	uint32_t radius,
 	uint32_t total_threads,
-	int32_t thread_index,
+    size_t thread_index,
 	int32_t step,
 	uint8_t* stack) noexcept {
 	uint32_t x, y, xp, yp, i;
@@ -325,9 +325,9 @@ void Stackblur::blur(IThreadPool& tp,
 	}
 	else {
 		auto blur_job = [div, &stack, src, width, height, radius, thread_branch, &tp](int step) {
-			ParallelFor(0, thread_branch, [div, &stack, src, width, height, radius, thread_branch, step](size_t block_begin, size_t) {
-				auto* buffer = stack.get() + div * 4 * block_begin;
-				StackblurJob(src, width, height, radius, thread_branch, block_begin, step, buffer);
+            ParallelFor(0, thread_branch, [div, &stack, src, width, height, radius, thread_branch, step](size_t i) {
+                auto* buffer = stack.get() + div * 4 * i;
+                StackblurJob(src, width, height, radius, thread_branch, i, step, buffer);
 				}, tp, thread_branch);
 		};
 		blur_job(1);

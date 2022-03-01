@@ -7,6 +7,7 @@
 #include <QFileDialog>
 #include <QProcess>
 #include <QProgressDialog>
+#include <QFileSystemWatcher>
 
 #include <base/scopeguard.h>
 #include <base/str_utilts.h>
@@ -49,8 +50,6 @@
 #include "preferencepage.h"
 #include "thememanager.h"
 #include "xamp.h"
-
-#include <QProgressDialog>
 
 enum TabIndex {
     TAB_ALBUM = 0,
@@ -139,6 +138,7 @@ Xamp::Xamp()
     , artist_info_page_(nullptr)
 	, tray_icon_menu_(nullptr)
 	, tray_icon_(nullptr)
+    , fsw_(nullptr)
     , state_adapter_(std::make_shared<UIPlayerStateAdapter>())
     , player_(MakeAudioPlayer(state_adapter_))
     , discord_notify_(this) {
@@ -503,9 +503,9 @@ void Xamp::initialController() {
         }
     });
 
-    (void)QObject::connect(ui_.seekSlider, &SeekSlider::sliderMoved, [this](auto value) {        
+    #ifdef XAMP_OS_WIN
+    (void)QObject::connect(ui_.seekSlider, &SeekSlider::sliderMoved, [this](auto value) {
         is_seeking_ = true;
-
         QTimer::singleShot(500, [this, value]() {
             XAMP_LOG_DEBUG("sliderMoved move: {}!", value);
             QToolTip::showText(QCursor::pos(), msToString(static_cast<double>(ui_.seekSlider->value()) / 1000.0));
@@ -522,6 +522,7 @@ void Xamp::initialController() {
             is_seeking_ = false;
         });
     });
+    #endif
 
     (void)QObject::connect(ui_.seekSlider, &SeekSlider::sliderReleased, [this]() {
         XAMP_LOG_DEBUG("SeekSlider release!");
@@ -781,7 +782,13 @@ void Xamp::initialController() {
     ui_.seekSlider->setEnabled(false);
     ui_.startPosLabel->setText(msToString(0));
     ui_.endPosLabel->setText(msToString(0));
-    ui_.searchLineEdit->setPlaceholderText(tr("Search anything"));    
+    ui_.searchLineEdit->setPlaceholderText(tr("Search anything"));
+
+    fsw_ = new QFileSystemWatcher(this);
+    fsw_->addPath(AppSettings::getMyMusicFolderPath());
+    (void) QObject::connect(fsw_, &QFileSystemWatcher::directoryChanged, [this](auto file_path) {
+        XAMP_LOG_DEBUG("Directory changed: {}", file_path.toStdString());
+    });
 }
 
 void Xamp::updateButtonState() {
@@ -1540,5 +1547,5 @@ void Xamp::extractFile(const QString& file_path) {
         &MetadataExtractAdapter::readCompleted,
         this,
         &Xamp::processMeatadata);
-    MetadataExtractAdapter::readFileMetadata(adapter, file_path);
+    MetadataExtractAdapter::readFileMetadata(adapter, file_path, false);
 }
