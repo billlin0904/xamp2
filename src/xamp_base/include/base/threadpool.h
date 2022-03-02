@@ -38,8 +38,6 @@ public:
 
 private:
     static void SetWorkerThreadName(size_t i);
-	
-    std::optional<Task> TryPopPoolQueue();
 
     std::optional<Task> TryPopLocalQueue(size_t index);
 

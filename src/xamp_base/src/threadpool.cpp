@@ -82,15 +82,6 @@ void TaskScheduler::Destroy() noexcept {
 	threads_.clear();
 }
 
-std::optional<Task> TaskScheduler::TryPopPoolQueue() {	
-	Task task;
-	if (pool_queue_.Dequeue(task, kPopWaitTimeout)) {
-		XAMP_LOG_D(logger_, "Pop pool thread queue.");
-		return std::move(task);
-	}
-	return std::nullopt;
-}
-
 std::optional<Task> TaskScheduler::TryPopLocalQueue(size_t index) {
 	Task task;
     if (shared_queues_.at(index)->Dequeue(task)) {

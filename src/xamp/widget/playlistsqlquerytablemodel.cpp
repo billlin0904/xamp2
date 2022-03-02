@@ -82,9 +82,9 @@ QVariant PlayListSqlQueryTableModel::data(const QModelIndex& index, int32_t role
         case PLAYLIST_ARTIST:
         case PLAYLIST_DURATION:        
         case PLAYLIST_TIMESTAMP:
-            return {Qt::AlignVCenter | Qt::AlignRight};
+            return static_cast<int>(Qt::AlignVCenter | Qt::AlignRight);
         case PLAYLIST_SAMPLE_RATE:
-            return {Qt::AlignVCenter | Qt::AlignHCenter};
+            return static_cast<int>(Qt::AlignVCenter | Qt::AlignHCenter);
         }
     default:
         break;

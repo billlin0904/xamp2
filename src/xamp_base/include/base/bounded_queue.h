@@ -111,9 +111,14 @@ public:
         notify_.notify_all();
     }
 
-    bool IsEmpty() const {
+    bool IsEmpty() const noexcept {
         std::lock_guard guard{ mutex_ };
         return queue_.empty();
+    }
+
+    bool IsFull() const noexcept {
+        std::lock_guard guard{ mutex_ };
+        return queue_.full();
     }
 
 private:

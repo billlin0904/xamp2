@@ -40,10 +40,12 @@ static void BM_Win32ThreadPool(benchmark::State& state) {
     auto& thread_pool = GetWin32ThreadPool();
     std::vector<int> n(length);
     std::iota(n.begin(), n.end(), 1);
-    std::atomic<int> total;
+    std::atomic<int64_t> total;
     for (auto _ : state) {
         ParallelFor(n, [&total, &n](auto item) {
-            total += item;
+            for (auto i = 0; i < 100; ++i) {
+                total += item;
+            }
             }
         , thread_pool);
     }
@@ -55,12 +57,33 @@ static void BM_ThreadPool(benchmark::State& state) {
     auto length = state.range(0);
     std::vector<int> n(length);
     std::iota(n.begin(), n.end(), 1);
-    std::atomic<int> total;
+    std::atomic<int64_t> total;
     for (auto _ : state) {
         ParallelFor(n, [&total, &n](auto item) {
-            total += item;
+            for (auto i = 0; i < 100; ++i) {
+                total += item;
+            }
         }
         , thread_pool);
+    }
+}
+
+template <typename C, typename Func>
+void StdAsyncParallelFor(C& items, Func&& f, size_t batches = 4) {
+    auto begin = std::begin(items);
+    auto size = std::distance(begin, std::end(items));
+
+    for (size_t i = 0; i < size; ++i) {
+        std::vector<std::shared_future<void>> futures((std::min)(size - i, batches));
+        for (auto& ff : futures) {
+            ff = std::async(std::launch::async, [f, begin, i]() -> void {
+                f(*(begin + i));
+                });
+            ++i;
+        }
+        for (auto& ff : futures) {
+            ff.wait();
+        }
     }
 }
 
@@ -68,14 +91,30 @@ static void BM_async_pool(benchmark::State& state) {
     auto length = state.range(0);
     std::vector<int> n(length);
     std::iota(n.begin(), n.end(), 1);
-    std::atomic<int> total;
+    std::atomic<int64_t> total;
+    for (auto _ : state) {
+        StdAsyncParallelFor(n, [&total, &n](auto item) {
+            for (auto i = 0; i < 100; ++i) {
+                total += item;
+            }
+            });
+    }
+}
+
+static void BM_std_for_each_par(benchmark::State& state) {
+    auto length = state.range(0);
+    std::vector<int> n(length);
+    std::iota(n.begin(), n.end(), 1);
+    std::atomic<int64_t> total;
     for (auto _ : state) {
         std::for_each(std::execution::par_unseq,
             n.begin(),
             n.end(),
             [&total](auto&& item)
             {
-                total += item;
+                for (auto i = 0; i < 100; ++i) {
+                    total += item;
+                }
             });
     }
 }
@@ -346,32 +385,33 @@ static void BM_UuidParse(benchmark::State& state) {
     }
 }
 
-BENCHMARK(BM_UuidParse);
-BENCHMARK(BM_Xoshiro256StarStarRandom);
-BENCHMARK(BM_Xoshiro256PlusRandom);
-BENCHMARK(BM_Xoshiro256PlusPlusRandom);
-BENCHMARK(BM_default_random_engine);
-BENCHMARK(BM_PRNG);
-BENCHMARK(BM_PRNG_GetInstance);
+//BENCHMARK(BM_UuidParse);
+//BENCHMARK(BM_Xoshiro256StarStarRandom);
+//BENCHMARK(BM_Xoshiro256PlusRandom);
+//BENCHMARK(BM_Xoshiro256PlusPlusRandom);
+//BENCHMARK(BM_default_random_engine);
+//BENCHMARK(BM_PRNG);
+//BENCHMARK(BM_PRNG_GetInstance);
+//
+//BENCHMARK(BM_unordered_set);
+//BENCHMARK(BM_FindRobinHoodHashSet);
+//BENCHMARK(BM_unordered_map);
+//BENCHMARK(BM_FindRobinHoodHashMap);
+//BENCHMARK(BM_FastMemset)->RangeMultiplier(2)->Range(4096, 8 << 10);
+//BENCHMARK(BM_StdtMemset)->RangeMultiplier(2)->Range(4096, 8 << 10);
+//BENCHMARK(BM_FastMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 10);
+//BENCHMARK(BM_StdtMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 10);
+//BENCHMARK(BM_ConvertToInt2432Avx)->RangeMultiplier(2)->Range(4096, 8 << 10);
+//BENCHMARK(BM_ConvertToInt2432)->RangeMultiplier(2)->Range(4096, 8 << 10);
+//BENCHMARK(BM_InterleavedToPlanarConvertToInt32_AVX)->RangeMultiplier(2)->Range(4096, 8 << 10);
+//BENCHMARK(BM_InterleavedToPlanarConvertToInt32)->RangeMultiplier(2)->Range(4096, 8 << 10);
+//BENCHMARK(BM_FFT)->RangeMultiplier(2)->Range(4096, 8 << 12);
 
-BENCHMARK(BM_unordered_set);
-BENCHMARK(BM_FindRobinHoodHashSet);
-BENCHMARK(BM_unordered_map);
-BENCHMARK(BM_FindRobinHoodHashMap);
-BENCHMARK(BM_FastMemset)->RangeMultiplier(2)->Range(4096, 8 << 10);
-BENCHMARK(BM_StdtMemset)->RangeMultiplier(2)->Range(4096, 8 << 10);
-BENCHMARK(BM_FastMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 10);
-BENCHMARK(BM_StdtMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 10);
-BENCHMARK(BM_ConvertToInt2432Avx)->RangeMultiplier(2)->Range(4096, 8 << 10);
-BENCHMARK(BM_ConvertToInt2432)->RangeMultiplier(2)->Range(4096, 8 << 10);
-BENCHMARK(BM_InterleavedToPlanarConvertToInt32_AVX)->RangeMultiplier(2)->Range(4096, 8 << 10);
-BENCHMARK(BM_InterleavedToPlanarConvertToInt32)->RangeMultiplier(2)->Range(4096, 8 << 10);
-BENCHMARK(BM_FFT)->RangeMultiplier(2)->Range(4096, 8 << 12);
-
-BENCHMARK(BM_ThreadPool)->RangeMultiplier(2)->Range(128, 8 << 16);
-BENCHMARK(BM_async_pool)->RangeMultiplier(2)->Range(128, 8 << 16);
+BENCHMARK(BM_ThreadPool)->RangeMultiplier(2)->Range(8, 8 << 16);
+BENCHMARK(BM_async_pool)->RangeMultiplier(2)->Range(8, 8 << 16);
+BENCHMARK(BM_std_for_each_par)->RangeMultiplier(2)->Range(8, 8 << 16);
 #ifdef XAMP_OS_WIN
-BENCHMARK(BM_Win32ThreadPool)->RangeMultiplier(2)->Range(128, 8 << 16);
+BENCHMARK(BM_Win32ThreadPool)->RangeMultiplier(2)->Range(8, 8 << 16);
 #endif
 
 

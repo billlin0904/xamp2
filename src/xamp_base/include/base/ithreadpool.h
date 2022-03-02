@@ -112,16 +112,21 @@ decltype(auto) IThreadPool::Spawn(F&& f, Args&&... args) {
     // https://github.com/microsoft/STL/issues/321
     using PackagedTaskType = std::packaged_task<ReturnType(size_t)>;
 
+#ifdef XAMP_OS_MAC
 #if __cplusplus >= XAMP_CPP20_LANG_VER
     using std::bind_front;
 #endif
-    auto task = MakeAlignedShared<PackagedTaskType>(bind_front(std::forward<F>(f),
+#else
+    using std::bind_front;
+#endif
+
+    auto task = MakeAlign<PackagedTaskType>(bind_front(std::forward<F>(f),
         std::forward<Args>(args)...));
 
     auto future = task->get_future();
 
-    scheduler_->SubmitJob([task](size_t thread_index) {
-        (*task)(thread_index);
+    scheduler_->SubmitJob([t = std::move(task)](size_t thread_index) {
+        (*t)(thread_index);
         });
 
     return future.share();
@@ -139,7 +144,7 @@ void ParallelFor(C& items, Func&& f, IThreadPool& tp, size_t batches = 4) {
     auto size = std::distance(begin, std::end(items));
 
     for (size_t i = 0; i < size; ++i) {
-        std::vector<std::shared_future<void>> futures(batches);
+        std::vector<std::shared_future<void>> futures((std::min)(size - i,batches));
         for (auto& ff : futures) {
             ff = tp.Spawn([f, begin, i](size_t) -> void {
                 f(*(begin + i));
@@ -156,7 +161,7 @@ template <typename Func>
 void ParallelFor(size_t begin, size_t end, Func &&f, IThreadPool& tp, size_t batches = 4) {
     auto size = end - begin;
     for (size_t i = 0; i < size; ++i) {
-        std::vector<std::shared_future<void>> futures(batches);
+        std::vector<std::shared_future<void>> futures((std::min)(size - i, batches));
         for (auto& ff : futures) {
             ff = tp.Spawn([f, i](size_t) -> void {
                 f(i);

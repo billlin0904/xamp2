@@ -160,7 +160,6 @@
     <ClInclude Include="include\base\bounded_queue.h" />
     <ClInclude Include="include\base\buffer.h" />
     <ClInclude Include="include\base\crashhandler.h" />
-    <ClInclude Include="include\base\directorywatcher.h" />
     <ClInclude Include="include\base\enum.h" />
     <ClInclude Include="include\base\fastmutex.h" />
     <ClInclude Include="include\base\ithreadpool.h" />
@@ -206,7 +205,6 @@
     <ClCompile Include="src\audioformat.cpp" />
     <ClCompile Include="src\crashhandler.cpp" />
     <ClCompile Include="src\dataconverter.cpp" />
-    <ClCompile Include="src\directorywatcher.cpp" />
     <ClCompile Include="src\dll.cpp" />
     <ClCompile Include="src\exception.cpp" />
     <ClCompile Include="src\fastmutex.cpp" />

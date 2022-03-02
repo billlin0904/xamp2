@@ -139,7 +139,7 @@ void MemoryMappedFile::Open(std::wstring const &file_path, bool is_module) {
     impl_->Open(file_path, is_module);
 }
 
-void const * MemoryMappedFile::GetData() const {
+void const * MemoryMappedFile::GetData() const noexcept {
     return impl_->GetData();
 }
 

@@ -15,6 +15,7 @@
 
 namespace xamp::base {
 
+#ifdef XAMP_OS_MAC
 #if __cplusplus < XAMP_CPP20_LANG_VER
 template <typename T, typename ...Args>
 auto tuple_append(T&& t, Args&&...args) {
@@ -36,6 +37,7 @@ decltype(auto) bind_front(F&& f, FrontArgs&&...front_args) {
 				std::forward<decltype(back_args)>(back_args)...));
 	};
 }
+#endif
 #endif
 
 template <typename T, typename C>

@@ -198,7 +198,7 @@ static int excute(int argc, char* argv[]) {
 
     XAMP_LOG_DEBUG("Database init success.");
     setLogLevel(spdlog::level::info);
-    //Logger::GetInstance().GetLogger(kAudioPlayerLoggerName)->set_level(spdlog::level::debug);
+    Logger::GetInstance().GetLogger(kAudioPlayerLoggerName)->set_level(spdlog::level::debug);
     //Logger::GetInstance().GetLogger(kExclusiveWasapiDeviceLoggerName)->set_level(spdlog::level::debug);
 
     foreach(const QString & path, app.libraryPaths()) {
