@@ -145,6 +145,40 @@ void SetThreadAffinity(std::thread& thread, int32_t core) noexcept {
 #endif
 }
 
+void SetThreadPriority(std::thread& thread, ThreadPriority priority) noexcept {
+#ifdef XAMP_OS_WIN
+    auto thread_priority = THREAD_PRIORITY_NORMAL;
+    switch (priority) {
+    case ThreadPriority::THREAD_PRIORITY_BACKGROUND:
+        thread_priority = THREAD_MODE_BACKGROUND_END;
+        break;
+    case ThreadPriority::THREAD_PRIORITY_BASE:
+        thread_priority = THREAD_PRIORITY_NORMAL;
+        break;
+    case ThreadPriority::THREAD_PRIORITY_HIGH:
+        thread_priority = THREAD_PRIORITY_HIGHEST;
+        break;
+    }
+    ::SetThreadPriority(thread.native_handle(), thread_priority);
+#else
+    auto thread_priority = PTHREAD_MIN_PRIORITY;
+    switch (priority) {
+    case ThreadPriority::THREAD_PRIORITY_BACKGROUND:
+        thread_priority = PTHREAD_MIN_PRIORITY;
+        break;
+    case ThreadPriority::THREAD_PRIORITY_BASE:
+        thread_priority = PTHREAD_MAX_PRIORITY / 2;
+        break;
+    case ThreadPriority::THREAD_PRIORITY_HIGH:
+        thread_priority = PTHREAD_MAX_PRIORITY;
+        break;
+    }
+    struct sched_param thread_param;
+    thread_param.sched_priority = thread_priority;
+    ::pthread_setschedparam(thread.native_handle(), SCHED_RR, &thread_param);
+#endif
+}
+
 std::string MakeUuidString() {
 #ifdef XAMP_OS_WIN
 	UUID uuid;

@@ -21,13 +21,13 @@ class XAMP_BASE_API ThreadPool : public IThreadPool {
 public:
 	friend class TaskScheduler;
 
-	explicit ThreadPool(const std::string_view& pool_name, uint32_t max_thread = std::thread::hardware_concurrency(), int32_t affinity = kDefaultAffinityCpuCore);
+	explicit ThreadPool(const std::string_view& pool_name, 
+		uint32_t max_thread = std::thread::hardware_concurrency(),
+		int32_t affinity = kDefaultAffinityCpuCore);
 
 	XAMP_DISABLE_COPY(ThreadPool)
 
 	virtual ~ThreadPool();
-
-	void SetAffinityMask(int32_t core) override;
 
 	void Stop() override;
 private:	
@@ -45,8 +45,6 @@ public:
 	virtual ~TaskScheduler();
 
 	void SubmitJob(Task&& task) override;
-
-	void SetAffinityMask(int32_t core) override;
 
 	void Destroy() noexcept override;
 

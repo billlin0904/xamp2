@@ -59,9 +59,6 @@ void TaskScheduler::SubmitJob(Task&& task) {
 	XAMP_LOG_D(logger_, "En-queue {}", c);
 }
 
-void TaskScheduler::SetAffinityMask(int32_t core) {
-}
-
 ThreadPool::ThreadPool(const std::string_view& pool_name, uint32_t max_thread, int32_t affinity)
 	: IThreadPool(MakeAlign<ITaskScheduler, TaskScheduler>(pool_name, (std::min)(max_thread, kMaxThread), affinity))
 	, pool_(::CreateThreadpool(nullptr)) {
@@ -71,9 +68,6 @@ ThreadPool::ThreadPool(const std::string_view& pool_name, uint32_t max_thread, i
 
 ThreadPool::~ThreadPool() {
 	Stop();
-}
-
-void ThreadPool::SetAffinityMask(int32_t core) {
 }
 
 void ThreadPool::Stop() {

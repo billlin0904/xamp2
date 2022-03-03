@@ -16,6 +16,7 @@
 #include <base/stopwatch.h>
 #include <base/align_ptr.h>
 #include <base/stl.h>
+#include <base/platform.h>
 #include <base/bounded_queue.h>
 
 #include <base/logger.h>
@@ -77,8 +78,6 @@ public:
 
 	virtual void SubmitJob(Task&& task) = 0;
 
-    virtual void SetAffinityMask(int32_t core) = 0;
-
     virtual void Destroy() noexcept = 0;
 protected:
     ITaskScheduler() = default;
@@ -90,8 +89,6 @@ public:
     XAMP_BASE_DISABLE_COPY_AND_MOVE(IThreadPool)
 
     virtual void Stop() = 0;
-
-    virtual void SetAffinityMask(int32_t core) = 0;
 
     template <typename F, typename... Args>
     decltype(auto) Spawn(F&& f, Args&&... args);
@@ -132,7 +129,7 @@ decltype(auto) IThreadPool::Spawn(F&& f, Args&&... args) {
     return future.share();
 }
 
-XAMP_BASE_API AlignPtr<IThreadPool> MakeThreadPool(const std::string_view& pool_name);
+XAMP_BASE_API AlignPtr<IThreadPool> MakeThreadPool(const std::string_view& pool_name, int32_t affinity, ThreadPriority priority);
 
 XAMP_BASE_API IThreadPool& PlaybackThreadPool();
 

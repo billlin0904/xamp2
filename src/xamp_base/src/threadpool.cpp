@@ -7,10 +7,9 @@ namespace xamp::base {
 
 inline constexpr auto kPopWaitTimeout = std::chrono::milliseconds(5);
 
-TaskScheduler::TaskScheduler(const std::string_view& pool_name, size_t max_thread, int32_t affinity)
+TaskScheduler::TaskScheduler(const std::string_view& pool_name, size_t max_thread, int32_t affinity, ThreadPriority priority)
 	: is_stopped_(false)
 	, running_thread_(0)
-	, affinity_(affinity)
 	, index_(0)
 	, max_thread_(max_thread)
 	, pool_queue_(max_thread * 16) {
@@ -20,7 +19,7 @@ TaskScheduler::TaskScheduler(const std::string_view& pool_name, size_t max_threa
 			shared_queues_.push_back(MakeAlign<TaskQueue>(max_thread));
 		}
 		for (size_t i = 0; i < max_thread_; ++i) {
-            AddThread(i);
+            AddThread(i, affinity, priority);
 		}
 	}
 	catch (...) {
@@ -49,13 +48,6 @@ void TaskScheduler::SubmitJob(Task&& task) {
 		throw LibrarySpecException("Thread pool was fulled.");
 	}
 	XAMP_LOG_D(logger_, "Enqueue pool queue.");
-}
-
-void TaskScheduler::SetAffinityMask(int32_t core) {
-	for (size_t i = 0; i < max_thread_; ++i) {
-		SetThreadAffinity(threads_.at(i), core);
-	}
-	affinity_ = core;
 }
 
 void TaskScheduler::Destroy() noexcept {
@@ -117,7 +109,7 @@ void TaskScheduler::SetWorkerThreadName(size_t i) {
 	SetThreadName(stream.str());
 }
 
-void TaskScheduler::AddThread(size_t i) {
+void TaskScheduler::AddThread(size_t i, int32_t affinity, ThreadPriority priority) {
 	threads_.emplace_back([i, this]() mutable {
 		// Avoid 64K Aliasing in L1 Cache (Intel hyper-threading)
 		const auto allocate_stack_size = (std::min)(kInitL1CacheLineSize * i,
@@ -151,13 +143,14 @@ void TaskScheduler::AddThread(size_t i) {
 		}
 		});
 
-	if (affinity_ != -1) {
-		SetThreadAffinity(threads_.at(i), affinity_);
+	if (affinity != -1) {
+		SetThreadAffinity(threads_.at(i), affinity);
 	}
+	SetThreadPriority(threads_.at(i), priority);
 }
 
-ThreadPool::ThreadPool(const std::string_view& pool_name, uint32_t max_thread, int32_t affinity)
-	: IThreadPool(MakeAlign<ITaskScheduler, TaskScheduler>(pool_name, (std::min)(max_thread, kMaxThread), affinity)) {
+ThreadPool::ThreadPool(const std::string_view& pool_name, uint32_t max_thread, int32_t affinity, ThreadPriority priority)
+	: IThreadPool(MakeAlign<ITaskScheduler, TaskScheduler>(pool_name, (std::min)(max_thread, kMaxThread), affinity, priority)) {
 }
 
 ThreadPool::~ThreadPool() {
@@ -166,10 +159,6 @@ ThreadPool::~ThreadPool() {
 
 void ThreadPool::Stop() {
 	scheduler_->Destroy();
-}
-
-void ThreadPool::SetAffinityMask(int32_t core) {
-	scheduler_->SetAffinityMask(core);
 }
 
 }

@@ -324,7 +324,7 @@ void Stackblur::blur(IThreadPool& tp,
 		StackblurJob(src, width, height, radius, 1, 0, 2, stack.get());
 	}
 	else {
-		auto blur_job = [div, &stack, src, width, height, radius, thread_branch, &tp](int step) {
+		const auto blur_job = [div, &stack, src, width, height, radius, thread_branch, &tp](int step) {
             ParallelFor(0, thread_branch, [div, &stack, src, width, height, radius, thread_branch, step](size_t i) {
                 auto* buffer = stack.get() + div * 4 * i;
                 StackblurJob(src, width, height, radius, thread_branch, i, step, buffer);

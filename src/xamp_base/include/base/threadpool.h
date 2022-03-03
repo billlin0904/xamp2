@@ -17,6 +17,7 @@
 #include <base/align_ptr.h>
 #include <base/bounded_queue.h>
 #include <base/ithreadpool.h>
+#include <base/platform.h>
 
 #include <base/logger.h>
 
@@ -24,15 +25,13 @@ namespace xamp::base {
 	
 class TaskScheduler final : public ITaskScheduler {
 public:
-    TaskScheduler(const std::string_view & pool_name, size_t max_thread, int32_t affinity);
+    TaskScheduler(const std::string_view & pool_name, size_t max_thread, int32_t affinity, ThreadPriority priority);
 	
     XAMP_DISABLE_COPY(TaskScheduler)
 
     virtual ~TaskScheduler() noexcept;
 
     void SubmitJob(Task&& task) override;
-
-    void SetAffinityMask(int32_t core) override;
 
     void Destroy() noexcept override;
 
@@ -43,7 +42,7 @@ private:
 
     std::optional<Task> TrySteal(size_t i);
 
-    void AddThread(size_t i);
+    void AddThread(size_t i, int32_t affinity, ThreadPriority priority);
 
     using TaskQueue = BoundedQueue<Task, FastMutex, FastConditionVariable>;
     using SharedTaskQueuePtr = AlignPtr<TaskQueue>;
@@ -54,7 +53,6 @@ private:
 
 	std::atomic<bool> is_stopped_;
     std::atomic<size_t> running_thread_;
-    int32_t affinity_;
 	size_t index_;
     size_t max_thread_;
     TaskQueue pool_queue_;
@@ -65,7 +63,10 @@ private:
 
 class ThreadPool final : public IThreadPool {
 public:
-    ThreadPool(const std::string_view& pool_name, uint32_t max_thread = std::thread::hardware_concurrency(), int32_t affinity = kDefaultAffinityCpuCore);
+    ThreadPool(const std::string_view& pool_name, 
+        uint32_t max_thread = std::thread::hardware_concurrency(), 
+        int32_t affinity = kDefaultAffinityCpuCore,
+        ThreadPriority priority = ThreadPriority::THREAD_PRIORITY_BASE);
 
     virtual ~ThreadPool();
     
@@ -75,8 +76,6 @@ public:
     decltype(auto) Spawn(F&& f, Args&&... args);
 
     void Stop() override;
-
-    void SetAffinityMask(int32_t core) override;
 };
 
 }

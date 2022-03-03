@@ -8,9 +8,18 @@
 #include <string>
 #include <thread>
 
+#include <base/enum.h>
 #include <base/base.h>
 
 namespace xamp::base {
+
+MAKE_XAMP_ENUM(
+    ThreadPriority,
+    THREAD_PRIORITY_BACKGROUND,
+    THREAD_PRIORITY_BASE,
+    THREAD_PRIORITY_HIGH)
+
+XAMP_BASE_API void SetThreadPriority(std::thread& thread, ThreadPriority priority) noexcept;
 
 XAMP_BASE_API void SetThreadName(std::string const & name) noexcept;
 

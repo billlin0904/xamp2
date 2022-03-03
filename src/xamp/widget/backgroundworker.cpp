@@ -13,7 +13,9 @@
 #include <widget/backgroundworker.h>
 
 BackgroundWorker::BackgroundWorker() {
-    pool_ = MakeThreadPool(kBackgroundThreadPoolLoggerName);
+    pool_ = MakeThreadPool(kBackgroundThreadPoolLoggerName,
+        kDefaultAffinityCpuCore, 
+        ThreadPriority::THREAD_PRIORITY_BACKGROUND);
 }
 
 BackgroundWorker::~BackgroundWorker() = default;
