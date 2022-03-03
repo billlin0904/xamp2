@@ -43,9 +43,9 @@ public:
             compressord.fRelease);
     }
 
-    bool Process(float const * samples, uint32_t num_samples, Buffer<float>& out) {
+    bool Process(float const * samples, uint32_t num_samples, BufferRef<float>& out) {
         if (out.size() != num_samples) {
-            out.resize(num_samples);
+            out.set_size(num_samples);
     	}        
         MemoryCopy(out.data(), samples, num_samples * sizeof(float));
 
@@ -60,7 +60,7 @@ public:
             return false;
         }
         const auto frames = bytes_read / sizeof(float);
-        out.resize(frames);
+        out.set_size(frames);
         return true;
     }
 
@@ -84,7 +84,7 @@ void BassCompressor::Init(CompressorParameters const &parameters) {
     impl_->Init(parameters);
 }
 
-bool BassCompressor::Process(float const * samples, uint32_t num_samples, Buffer<float>& out) {
+bool BassCompressor::Process(float const * samples, uint32_t num_samples, BufferRef<float>& out) {
     return impl_->Process(samples, num_samples, out);
 }
 

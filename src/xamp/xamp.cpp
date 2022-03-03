@@ -761,9 +761,16 @@ void Xamp::initialController() {
     settings_menu->addSeparator();
     ui_.settingsButton->setMenu(settings_menu);
 
-    theme_menu_ = settings_menu->addMenu(tr("Theme"));
+    theme_menu_ = new QMenu(this);
     Singleton<ThemeManager>::GetInstance().setMenuStyle(theme_menu_);
-    theme_menu_->setIcon(Singleton<ThemeManager>::GetInstance().themeIcon());
+    switch (Singleton<ThemeManager>::GetInstance().themeColor()) {
+    case ThemeColor::DARK_THEME:
+        ui_.themeButton->setIcon(Singleton<ThemeManager>::GetInstance().darkModeIcon());
+        break;
+    case ThemeColor::LIGHT_THEME:
+        ui_.themeButton->setIcon(Singleton<ThemeManager>::GetInstance().lightModeIcon());
+        break;
+    }
     dark_mode_action_ = theme_menu_->addAction(tr("Dark"));
     dark_mode_action_->setIcon(Singleton<ThemeManager>::GetInstance().darkModeIcon());
     light_mode_action_ = theme_menu_->addAction(tr("Light"));
@@ -778,6 +785,7 @@ void Xamp::initialController() {
         cleanup();
         qApp->exit(kRestartPlayerCode);
         });
+    ui_.themeButton->setMenu(theme_menu_);
 
     ui_.seekSlider->setEnabled(false);
     ui_.startPosLabel->setText(msToString(0));
@@ -1217,7 +1225,7 @@ void Xamp::addPlaylistItem(const std::vector<int32_t>& music_ids, const std::vec
     auto playlist_view = playlist_page_->playlist();
     Singleton<Database>::GetInstance().addMusicToPlaylist(music_ids, playlist_view->playlistId());
     emit playlist_view->addPlaylistReplayGain(false, entities);
-    playlist_view->refresh();
+    playlist_view->update();
 }
 
 void Xamp::setCover(const QPixmap* cover, PlaylistPage* page) {

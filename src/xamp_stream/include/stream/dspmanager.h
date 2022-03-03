@@ -94,8 +94,8 @@ private:
     EQSettings eq_settings_;
     std::vector<AlignPtr<IAudioProcessor>> pre_dsp_;
     std::vector<AlignPtr<IAudioProcessor>> post_dsp_;
-    AlignPtr<ISampleRateConverter> converter_;
-    Buffer<float> temp_;
+    AlignPtr<ISampleRateConverter> fifo_writer_;
+    Buffer<float> pre_dsp_buffer_;
     Buffer<float> dsp_buffer_;
     std::shared_ptr<spdlog::logger> logger_;
 };

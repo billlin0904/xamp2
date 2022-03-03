@@ -10,6 +10,8 @@
 
 namespace xamp::stream {
 
+static constexpr int32_t kDefaultBufSize = 1024 * 1024;
+
 static void AddOrReplace(AlignPtr<IAudioProcessor> processor, std::vector<AlignPtr<IAudioProcessor>>& dsp_chain) {
     auto id = processor->GetTypeId();
     const auto itr = std::find_if(dsp_chain.begin(),
@@ -42,6 +44,8 @@ DSPManager::DSPManager()
 	, replay_gain_(0.0)
 	, dsd_modes_(DsdModes::DSD_MODE_PCM) {
     logger_ = Logger::GetInstance().GetLogger(kDspManagerLoggerName);
+    pre_dsp_buffer_.resize(kDefaultBufSize);
+    dsp_buffer_.resize(kDefaultBufSize);
 }
 
 void DSPManager::AddPostDSP(AlignPtr<IAudioProcessor> processor) {
@@ -116,35 +120,35 @@ bool DSPManager::ProcessDSP(const float* samples, uint32_t num_samples, AudioBuf
     if (CanProcessFile()) {
         return ApplyDSP(samples, num_samples, fifo);
     }
-    BufferOverFlowThrow(converter_->Process(samples, num_samples, fifo));
+    BufferOverFlowThrow(fifo_writer_->Process(samples, num_samples, fifo));
     return false;
 }
 
 bool DSPManager::ApplyDSP(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo) {
-    if (!pre_dsp_.empty()) {
-        temp_.resize(num_samples);
+    BufferRef<float> pre_dsp_bufref(pre_dsp_buffer_);
+    BufferRef<float> dsp_bufref(dsp_buffer_);
 
+    if (!pre_dsp_.empty()) {        
         for (const auto& pre_dsp : pre_dsp_) {
-            if (!pre_dsp->Process(samples, num_samples, temp_)) {
+            if (!pre_dsp->Process(samples, num_samples, pre_dsp_bufref)) {
                 return true;
             }
         }
-
         for (const auto& post_dsp : post_dsp_) {
-            post_dsp->Process(temp_.data(), temp_.size(), dsp_buffer_);
+            post_dsp->Process(pre_dsp_bufref.data(), pre_dsp_bufref.size(), dsp_bufref);
         }
     } else {
         for (const auto& post_dsp : post_dsp_) {
-            post_dsp->Process(samples, num_samples, dsp_buffer_);
+            post_dsp->Process(samples, num_samples, dsp_bufref);
         }
     }
 
-    BufferOverFlowThrow(converter_->Process(dsp_buffer_, fifo));
+    BufferOverFlowThrow(fifo_writer_->Process(dsp_bufref, fifo));
     return false; 
 }
 
 void DSPManager::Init(AudioFormat input_format, AudioFormat output_format, DsdModes dsd_mode, uint32_t sample_size) {
-    converter_ = MakeAlign<ISampleRateConverter, PassThroughSampleRateConverter>(dsd_mode, sample_size);
+    fifo_writer_ = MakeAlign<ISampleRateConverter, PassThroughSampleRateConverter>(dsd_mode, sample_size);
     dsd_modes_ = dsd_mode;
 
     if (!enable_processor_) {

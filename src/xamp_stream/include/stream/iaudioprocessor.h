@@ -18,7 +18,7 @@ public:
 
     virtual void Start(uint32_t output_sample_rate) = 0;
 
-    virtual bool Process(float const* samples, uint32_t num_samples, Buffer<float>& output) = 0;
+    virtual bool Process(float const* samples, uint32_t num_samples, BufferRef<float>& output) = 0;
 
     [[nodiscard]] virtual Uuid GetTypeId() const = 0;
 

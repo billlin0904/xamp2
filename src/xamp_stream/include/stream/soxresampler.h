@@ -8,7 +8,6 @@
 #include <base/enum.h>
 #include <base/align_ptr.h>
 #include <base/audiobuffer.h>
-#include <base/samplewriter.h>
 #include <stream/iaudioprocessor.h>
 
 namespace xamp::stream {
@@ -50,9 +49,7 @@ public:
 
     void Start(uint32_t output_sample_rate) override;
 
-    bool Process(float const* samples, size_t num_sample, SampleWriter& writer);
-
-    bool Process(float const* samples, uint32_t num_samples, Buffer<float>& output) override;
+    bool Process(float const* samples, uint32_t num_samples, BufferRef<float>& output) override;
 
     [[nodiscard]] Uuid GetTypeId() const override;
 

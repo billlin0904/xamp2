@@ -103,6 +103,39 @@ private:
     VmMemLock lock_;
 };
 
+template <typename T, typename U = std::enable_if_t<std::is_trivially_copyable_v<T>>>
+struct BufferRef {
+    explicit BufferRef(Buffer<T>& buf)
+        : buffer_(buf.get())
+        , size_(buf.size())
+		, ref_(buf) {
+    }
+
+    void set_size(size_t size) noexcept {
+        if (size > ref_.size()) {
+            ref_.resize(size);
+        }
+        size_ = size;
+    }
+
+    T* data() noexcept {
+        return buffer_;
+    }
+
+    const T* data() const noexcept {
+        return buffer_;
+    }
+
+    [[nodiscard]] size_t size() const noexcept {
+        return size_;
+    }
+
+private:
+    T* buffer_;
+    size_t size_;
+    Buffer<T>& ref_;
+};
+
 template <typename T>
 XAMP_BASE_API_ONLY_EXPORT Buffer<T> MakeBuffer(size_t size) {
     return Buffer<T>(size);

@@ -27,6 +27,8 @@ public:
 
 	virtual void refresh();
 
+	void update();
+
 	void setPlaylistId(int32_t playlist_id);
 
 	void setPodcastMode(bool enable = true);

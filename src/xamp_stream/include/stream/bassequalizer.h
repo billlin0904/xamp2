@@ -25,7 +25,7 @@ public:
 
     void SetEQ(EQSettings const &settingss) override;
 
-    bool Process(float const* samples, uint32_t num_samples, Buffer<float>& out) override;
+    bool Process(float const* samples, uint32_t num_samples, BufferRef<float>& out) override;
 
     Uuid GetTypeId() const override;
 

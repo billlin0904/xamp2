@@ -112,7 +112,7 @@ void ThemeManager::setMenuStyle(QMenu* menu) {
     /*auto* shadow = new QGraphicsDropShadowEffect(menu);
     shadow->setOffset(0, 0);
     shadow->setColor(Qt::black);
-    shadow->setBlurRadius(10);
+    shadow->setBlurRadius(20);
     menu->setGraphicsEffect(shadow);*/
     //win32::drawDwmShadow(menu);
     //win32::setBlurMaterial(menu, true);
@@ -385,6 +385,16 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
                                             image: none;
                                             }
                                             )").arg(themeColorPath()));
+
+    ui.themeButton->setStyleSheet(Q_STR(R"(
+                                            QToolButton#themeButton {
+                                            border: none;
+                                            background-color: transparent;
+                                            }
+                                            QToolButton#themeButton::menu-indicator {
+                                            image: none;
+                                            }
+                                            )"));
 
 
     ui.stopButton->setStyleSheet(Q_STR(R"(

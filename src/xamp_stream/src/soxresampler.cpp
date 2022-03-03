@@ -53,7 +53,6 @@ public:
 
 class SoxrSampleRateConverter::SoxrSampleRateConverterImpl final {
 public:
-	static constexpr size_t kInitBufferSize = 1 * 1024 * 1204;
 	static constexpr double kDefaultPassBand = 0.96;
 	static constexpr double kDefaultStopBand = 1.0;
 	static constexpr int32_t kDefaultPhase = 46;
@@ -154,8 +153,6 @@ public:
 			pass_band_,
 			stop_band_,
 			EnumToString(roll_off_));
-
-		ResizeBuffer(kInitBufferSize);
 	}
 
 	void Start(uint32_t output_sample_rate) {
@@ -168,7 +165,6 @@ public:
 
 	void Close() noexcept {
 		handle_.reset();
-		buffer_.reset();
 	}
 
 	void SetSteepFilter(bool enable) {
@@ -198,50 +194,19 @@ public:
 		SoxrDLL.soxr_clear(handle_.get());
 	}
 
-	bool Process(float const* samples, size_t num_sample, SampleWriter& writer) {
-		XAMP_ASSERT(num_channels_ != 0);
-
-		auto required_size = static_cast<size_t>(num_sample * ratio_) + 256;
-		if (required_size > buffer_.size()) {
-			ResizeBuffer(required_size);
-		}
-
-		size_t samples_done = 0;
-		SoxrDLL.soxr_process(handle_.get(),
-			samples,
-			num_sample / num_channels_,
-			nullptr,
-			buffer_.data(),
-			required_size / num_channels_,
-			&samples_done);
-
-		if (!samples_done) {
-			return false;
-		}
-
-		BufferOverFlowThrow(writer.TryWrite(buffer_.data(), samples_done * num_channels_));
-		required_size = samples_done * num_channels_;
-		if (required_size > buffer_.size()) {
-			ResizeBuffer(required_size);
-		}
-		return true;
-	}
-
-	bool Process(float const* samples, uint32_t num_samples, Buffer<float>& output) {
+	bool Process(float const* samples, uint32_t num_samples, BufferRef<float>& output) {
 		XAMP_ASSERT(num_channels_ != 0);
 
 		auto required_size = static_cast<size_t>(num_samples * ratio_) + 256;
-		if (required_size != buffer_.size()) {
-			ResizeBuffer(required_size);
-		}
+		MaybeResizeBuffer(output, required_size);
 
 		size_t samples_done = 0;
 		SoxrDLL.soxr_process(handle_.get(),
 			samples,
 			num_samples / num_channels_,
 			nullptr,
-			buffer_.data(),
-			buffer_.size() / num_channels_,
+			output.data(),
+			output.size() / num_channels_,
 			&samples_done);
 
 		if (!samples_done) {
@@ -249,19 +214,20 @@ public:
 		}
 
 		if (samples_done * num_channels_ != output.size()) {
-			output.resize(samples_done * num_channels_);
+			output.set_size(samples_done * num_channels_);
 		}
 
-		MemoryCopy(output.data(), buffer_.data(), samples_done * num_channels_ * sizeof(float));
+		MemoryCopy(output.data(), output.data(), samples_done * num_channels_ * sizeof(float));
 		required_size = samples_done * num_channels_;
-		if (required_size != buffer_.size()) {
-			ResizeBuffer(required_size);
-		}
+		MaybeResizeBuffer(output, required_size);
 		return true;
 	}
 
-	void ResizeBuffer(size_t required_size) {
-		buffer_.resize(required_size);
+	void MaybeResizeBuffer(BufferRef<float>& output, size_t required_size) {
+		if (required_size > output.size()) {
+			XAMP_LOG_D(logger_, "Resize size: {} => {}", output.size(), required_size);
+		}
+		output.set_size(required_size);
 	}
 
 	struct SoxrHandleTraits final {
@@ -287,7 +253,6 @@ public:
 	double pass_band_;
 	double stop_band_;
 	SoxrHandle handle_;
-	Buffer<float> buffer_;
 	std::shared_ptr<spdlog::logger> logger_;
 };
 
@@ -331,11 +296,7 @@ void SoxrSampleRateConverter::SetRollOff(SoxrRollOff level) {
     impl_->SetRollOff(level);
 }
 
-bool SoxrSampleRateConverter::Process(float const* samples, size_t num_sample, SampleWriter& writer) {
-    return impl_->Process(samples, num_sample, writer);
-}
-
-bool SoxrSampleRateConverter::Process(float const* samples, uint32_t num_samples, Buffer<float>& output) {
+bool SoxrSampleRateConverter::Process(float const* samples, uint32_t num_samples, BufferRef<float>& output) {
 	return impl_->Process(samples, num_samples, output);
 }
 

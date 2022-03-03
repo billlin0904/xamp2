@@ -197,11 +197,11 @@ void setResizeable(void* message) {
 }
 
 void drawDwmShadow(const QMenu* menu) {
-	auto policy = DWMNCRENDERINGPOLICY::DWMNCRP_ENABLED;
 	auto hwnd = reinterpret_cast<HWND>(menu->winId());
+	auto policy = DWMNCRENDERINGPOLICY::DWMNCRP_ENABLED;	
 	DWMDLL.DwmSetWindowAttribute(hwnd, DWMWINDOWATTRIBUTE::DWMWA_NCRENDERING_POLICY, &policy, sizeof(policy));
 
-	MARGINS borderless = { -1, -1, -1, -1 };
+	MARGINS borderless = { 1, 1, 1, 1 };
 	DWMDLL.DwmExtendFrameIntoClientArea(hwnd, &borderless);
 }
 
