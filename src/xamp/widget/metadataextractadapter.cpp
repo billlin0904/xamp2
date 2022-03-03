@@ -238,7 +238,7 @@ void ::MetadataExtractAdapter::processMetadata(const std::vector<Metadata>& resu
     }
 
     if (playlist != nullptr) {
-        playlist->refresh();
+        playlist->update();
     }
 }
 

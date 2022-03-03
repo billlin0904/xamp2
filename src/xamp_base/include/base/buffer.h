@@ -114,6 +114,7 @@ struct BufferRef {
     void set_size(size_t size) noexcept {
         if (size > ref_.size()) {
             ref_.resize(size);
+            buffer_ = ref_.get();
         }
         size_ = size;
     }
