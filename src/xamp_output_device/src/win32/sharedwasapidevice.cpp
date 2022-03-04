@@ -358,7 +358,7 @@ HRESULT SharedWasapiDevice::OnInvoke(IMFAsyncResult *) {
 	if (is_running_) {
 		try {
 			GetSampleRequested(false);
-			rt_work_queue_->Queue(sample_ready_.get());
+			rt_work_queue_->WaitAsync(sample_ready_.get());
 		} catch (Exception const &e) {
 			XAMP_LOG_D(log_, e.what());
 			StopStream();
@@ -377,7 +377,7 @@ void SharedWasapiDevice::StartStream() {
 	// Note: 必要! 某些音效卡會爆音!
 	GetSampleRequested(true);
 	rt_work_queue_->Initial();
-	rt_work_queue_->Queue(sample_ready_.get());
+	rt_work_queue_->WaitAsync(sample_ready_.get());
 	is_running_ = true;
 	HrIfFailledThrow(client_->Start());
 }

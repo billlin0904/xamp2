@@ -13,7 +13,7 @@ ModuleHandle LoadModule(const std::string_view& file_name) {
 
 Path GetModulePath(const ModuleHandle& module) {
     char path[MAX_PATH]{ 0 };
-    ::GetModuleFileName(module.get(), path, sizeof(path));
+    ::GetModuleFileNameA(module.get(), path, MAX_PATH - 1);
     return path;
 }
 

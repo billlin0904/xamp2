@@ -26,7 +26,8 @@ TaskScheduler::TaskScheduler(const std::string_view& pool_name, size_t max_threa
 		is_stopped_ = true;
 		throw;
 	}	
-	XAMP_LOG_D(logger_, "TaskScheduler initial max thread:{} affinity:{}", max_thread, affinity);
+	XAMP_LOG_D(logger_, "TaskScheduler initial max thread:{} affinity:{} priority:{}",
+		max_thread, affinity, priority);
 }
 
 TaskScheduler::~TaskScheduler() noexcept {
@@ -110,7 +111,9 @@ void TaskScheduler::SetWorkerThreadName(size_t i) {
 }
 
 void TaskScheduler::AddThread(size_t i, int32_t affinity, ThreadPriority priority) {
-	threads_.emplace_back([i, this]() mutable {
+	threads_.emplace_back([i, this, priority]() mutable {
+		SetThreadPriority(priority);
+
 		// Avoid 64K Aliasing in L1 Cache (Intel hyper-threading)
 		const auto allocate_stack_size = (std::min)(kInitL1CacheLineSize * i,
 			kMaxL1CacheLineSize);
@@ -146,7 +149,6 @@ void TaskScheduler::AddThread(size_t i, int32_t affinity, ThreadPriority priorit
 	if (affinity != -1) {
 		SetThreadAffinity(threads_.at(i), affinity);
 	}
-	SetThreadPriority(threads_.at(i), priority);
 }
 
 ThreadPool::ThreadPool(const std::string_view& pool_name, uint32_t max_thread, int32_t affinity, ThreadPriority priority)

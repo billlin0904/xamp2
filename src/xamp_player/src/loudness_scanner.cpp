@@ -1,29 +1,30 @@
 #include <memory>
 #include <sstream>
-#include <iomanip>
 #include <utility>
 
 #include "libebur128/ebur128.h"
 #include <base/exception.h>
+#include <base/math.h>
 #include <base/audioformat.h>
-#include <base/dataconverter.h>
 #include <base/metadata.h>
 #include <player/loudness_scanner.h>
 
 namespace xamp::player {
-
-static double Round(double d, int32_t index = 2) {
-	std::stringstream ss;
-	ss << std::fixed << std::setprecision(index) << d;
-	return std::stod(ss.str());
-}
 
 #define IfFailThrow(expr) \
 	do { \
 		if ((expr) != EBUR128_SUCCESS) { \
 			throw LibrarySpecException(#expr); \
 		} \
-	} while (false) 
+	} while (false)
+
+static double Power2loudness(double power) {
+	return 10 * log10(power) - 0.691;
+}
+
+static double Loudness2power(double loudness) {
+	return pow(10, (loudness + 0.691) / 10.);
+}
 
 class LoudnessScanner::LoudnessScannerImpl {
 public:
@@ -43,7 +44,7 @@ public:
         double right_true_peek = 0;		
 		IfFailThrow(::ebur128_true_peak(state_.get(), 0, &left_true_peek));
 		IfFailThrow(::ebur128_true_peak(state_.get(), 1, &right_true_peek));
-		return Round((left_true_peek + right_true_peek) / 2.0);
+		return Round((left_true_peek + right_true_peek) / 2.0, 2);
 	}
 
     [[nodiscard]] double GetSamplePeak() const {
@@ -51,16 +52,16 @@ public:
 		double right_sample_peek = 0;
 		IfFailThrow(::ebur128_sample_peak(state_.get(), 0, &left_sample_peek));
 		IfFailThrow(::ebur128_sample_peak(state_.get(), 1, &right_sample_peek));
-        return Round((std::max)(left_sample_peek, right_sample_peek));
+        return Round((std::max)(left_sample_peek, right_sample_peek), 2);
 	}
 
 	[[nodiscard]] double GetLoudness() const {
         double loudness = 0;
 		IfFailThrow(::ebur128_loudness_global(state_.get(), &loudness));
-        return Round(loudness);
+        return Round(loudness, 2);
 	}
 
-    void* GetHandle() const {
+    void* GetNativeHandle() const {
         return state_.get();
     }
 
@@ -72,22 +73,21 @@ public:
         }
         double loudness = 0;
         IfFailThrow(::ebur128_loudness_global_multiple(handles.data(), handles.size(), &loudness));
-        return Round(loudness);
+        return Round(loudness, 2);
     }
 
 private:
 	struct Ebur128Deleter final {
-		void operator()(ebur128_state* state) const noexcept {
-			::ebur128_destroy(&state);
+		static ebur128_state* invalid() noexcept {
+			return nullptr;
+		}
+		static void close(ebur128_state* value) {
+			::ebur128_destroy(&value);
 		}
 	};
 
-	using Ebur128StatePtr = std::unique_ptr<ebur128_state, Ebur128Deleter>;
-
-	Ebur128StatePtr state_;	
+	UniqueHandle<ebur128_state*, Ebur128Deleter> state_;
 };
-
-
 
 LoudnessScanner::LoudnessScanner(uint32_t sample_rate)
     : impl_(MakeAlign<LoudnessScannerImpl>(sample_rate)) {
@@ -112,7 +112,7 @@ double LoudnessScanner::GetTruePeek() const {
 }
 
 void* LoudnessScanner::GetNativeHandle() const {
-    return impl_->GetHandle();
+    return impl_->GetNativeHandle();
 }
 
 double LoudnessScanner::GetMultipleEbur128Gain(std::vector<AlignPtr<LoudnessScanner>> &scanners) {

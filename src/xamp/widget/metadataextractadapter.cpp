@@ -1,5 +1,6 @@
 #include <atomic>
 #include <utility>
+#include <execution>
 
 #include <QMap>
 #include <QDirIterator>
@@ -113,6 +114,9 @@ public:
     }
 
     [[nodiscard]] bool IsAccept(Path const& path) const noexcept override {
+        if (!path.has_extension()) {
+            return false;
+        }
         using namespace xamp::player::audio_util;
         const auto file_ext = String::ToLower(path.extension().string());
         auto const& support_file_set = GetSupportFileExtensions();
@@ -134,11 +138,19 @@ public:
         if (metadatas_.empty()) {
             return;
         }
-        std::stable_sort(
-            metadatas_.begin(), metadatas_.end(), [](const auto& first, const auto& last) {
+#if __cplusplus >= XAMP_CPP20_LANG_VER
+        std::stable_sort(std::execution::par,
+            metadatas_.begin(), metadatas_.end(),
+            [](const auto& first, const auto& last) {
                 return first.track < last.track;
             });
-        adapter_->readCompleted(metadatas_);
+#else
+        std::stable_sort(metadatas_.begin(), metadatas_.end(),
+            [](const auto& first, const auto& last) {
+                return first.track < last.track;
+            });
+#endif
+        emit adapter_->readCompleted(metadatas_);
         metadatas_.clear();
         qApp->processEvents();
     }
@@ -190,7 +202,7 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
         
         try {            
             const Path path(file_dir_or_path.toStdWString());
-            WalkPath(path, &proxy, reader.get());            
+            ScanFolder(path, &proxy, reader.get());            
         }
         catch (const std::exception& e) {
             XAMP_LOG_DEBUG("WalkPath has exception: {}", e.what());

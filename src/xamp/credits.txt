@@ -14,3 +14,12 @@ https://fonts.google.com/icons
 
 QDarkStyleSheet
 https://github.com/ColinDuquesnoy/QDarkStyleSheet
+
+libebur128
+https://github.com/jiixyj/libebur128
+
+AutoEq
+https://github.com/jaakkopasanen/AutoEq
+
+FFTW
+https://www.fftw.org/

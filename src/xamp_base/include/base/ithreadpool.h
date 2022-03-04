@@ -129,7 +129,7 @@ decltype(auto) IThreadPool::Spawn(F&& f, Args&&... args) {
     return future.share();
 }
 
-XAMP_BASE_API AlignPtr<IThreadPool> MakeThreadPool(const std::string_view& pool_name, int32_t affinity, ThreadPriority priority);
+XAMP_BASE_API AlignPtr<IThreadPool> MakeThreadPool(const std::string_view& pool_name, int32_t max_thread, int32_t affinity, ThreadPriority priority);
 
 XAMP_BASE_API IThreadPool& PlaybackThreadPool();
 

@@ -47,13 +47,13 @@ struct AppEQSettings {
 };
 Q_DECLARE_METATYPE(AppEQSettings);
 
-enum ReplayGainMode {
+enum class ReplayGainMode {
 	RG_ALBUM_MODE,
     RG_TRACK_MODE,
     RG_NONE_MODE,
 };
 
-enum ReplayGainScanMode {
+enum class ReplayGainScanMode {
     RG_SCAN_MODE_FAST,
     RG_SCAN_MODE_FULL,
 };

@@ -17,7 +17,7 @@ AlignPtr<IMetadataWriter> MakeMetadataWriter() {
 	return MakeAlign<IMetadataWriter, TaglibMetadataWriter>();
 }
 
-void WalkPath(Path const& path, IMetadataExtractAdapter* adapter, IMetadataReader* reader) {
+void ScanFolder(Path const& path, IMetadataExtractAdapter* adapter, IMetadataReader* reader) {
     adapter->OnWalkFirst();
 
     if (Fs::is_directory(path)) {

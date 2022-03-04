@@ -76,7 +76,7 @@ public:
 		return (parent_->*callback_)(async_result);
 	}
 
-	void Queue(HANDLE event) {
+	void WaitAsync(HANDLE event) {
 		workitem_key_ = 0;
 		HrIfFailledThrow(::MFPutWaitingWorkItem(event, 1, async_result_, &workitem_key_));
 	}

@@ -8,7 +8,6 @@
 AboutPage::AboutPage(QWidget* parent)
     : QFrame(parent) {
     ui.setupUi(this);
-    setStyleSheet(Q_UTF8("background-color: transparent"));
 
 #ifdef Q_OS_WIN32
     ui.lblVersion->setText(Q_STR("Build Visual Studio 20%1.%2.%3 (%4 %5) %6 AVX2")

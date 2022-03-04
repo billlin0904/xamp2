@@ -35,6 +35,7 @@ void XDialog::setContentWidget(QWidget* content) {
     auto* shadow = new QGraphicsDropShadowEffect(frame_);
     shadow->setOffset(0, 0);
     shadow->setBlurRadius(50);
+    shadow->setColor(Qt::black);
     frame_->setGraphicsEffect(shadow);
 
 	default_layout->addWidget(frame_, 2, 2, 1, 2);
@@ -242,17 +243,17 @@ void XDialog::showEvent(QShowEvent* event) {
 }
 
 void XDialog::closeEvent(QCloseEvent* event) {
-    auto* opacityEffect = new QGraphicsOpacityEffect(this);
-    setGraphicsEffect(opacityEffect);
-    auto* opacityAnimation = new QPropertyAnimation(opacityEffect, "opacity", this);
-    opacityAnimation->setStartValue(1);
-    opacityAnimation->setEndValue(0);
-    opacityAnimation->setDuration(100);
-    opacityAnimation->setEasingCurve(QEasingCurve::OutCubic);
-    (void)QObject::connect(opacityAnimation,
+    auto* opacity_effect = new QGraphicsOpacityEffect(this);
+    setGraphicsEffect(opacity_effect);
+    auto* opacity_animation = new QPropertyAnimation(opacity_effect, "opacity", this);
+    opacity_animation->setStartValue(1);
+    opacity_animation->setEndValue(0);
+    opacity_animation->setDuration(100);
+    opacity_animation->setEasingCurve(QEasingCurve::OutCubic);
+    (void)QObject::connect(opacity_animation,
         &QPropertyAnimation::finished,
         this,
         &XDialog::deleteLater);
-    opacityAnimation->start();    
+    opacity_animation->start();    
     event->ignore();
 }

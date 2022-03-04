@@ -101,13 +101,17 @@ static std::vector<ModuleHandle> preloadDll() {
 #ifdef XAMP_OS_WIN
     const std::vector<std::string_view> preload_dll_file_name{
         "mimalloc-override.dll",
-        "ResourcePolicyClient.dll", // WASAPI
-        "AudioSes.dll", // WASAPI
-        "AUDIOKSE.dll",// WASAPI
         "Qt5Gui.dll", // Qt
         "Qt5Core.dll", // Qt
         "Qt5Widgets.dll", // Qt
+        "Qt5WinExtras.dll", // Qt
+        "Qt5Sql.dll", // Qt
+        "Qt5Network.dll", // Qt
         "psapi.dll", // Qt
+        "qjpeg.dll", // Qt
+        "ResourcePolicyClient.dll", // WASAPI
+        "AudioSes.dll", // WASAPI
+        "AUDIOKSE.dll",// WASAPI
         "GdiPlus.dll",
     	"comctl32.dll",
         "WindowsCodecs.dll",
@@ -115,7 +119,7 @@ static std::vector<ModuleHandle> preloadDll() {
         "setupapi.dll",
     };
     std::vector<ModuleHandle> preload_module;
-    for (const auto file_name : preload_dll_file_name) {
+    for (const auto& file_name : preload_dll_file_name) {
         try {
             auto module = LoadModule(file_name);
             if (PrefetchModule(module)) {
@@ -151,11 +155,6 @@ static void setLogLevel(spdlog::level::level_enum level = spdlog::level::debug) 
 }
 
 static int excute(int argc, char* argv[]) {
-    const auto preload_module = preloadDll();
-
-	XAMP_SET_LOG_LEVEL(spdlog::level::debug);
-    XAMP_LOG_DEBUG("=:==:==:==:==:= Logger init success. =:==:==:==:==:= ");
-
     QApplication app(argc, argv);
 
     Xamp::registerMetaType();
@@ -227,10 +226,16 @@ int main(int argc, char *argv[]) {
         .AddFileLogger("xamp.log")
         .GetLogger(kDefaultLoggerName);
 
+    XAMP_SET_LOG_LEVEL(spdlog::level::debug);
+    XAMP_LOG_DEBUG("=:==:==:==:==:= Logger init success. =:==:==:==:==:= ");
+
     CrashHandler crash_handler;
     crash_handler.SetProcessExceptionHandlers();
 
+    const auto preload_module = preloadDll();
+
     XAMP_ON_SCOPE_EXIT(
+        XAMP_LOG_INFO("=:==:==:==:==:= Logger shutdwon =:==:==:==:==:=");
         Logger::GetInstance().Shutdown();
         JsonSettings::save();
         AppSettings::save();

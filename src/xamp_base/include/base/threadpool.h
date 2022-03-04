@@ -66,7 +66,7 @@ public:
     ThreadPool(const std::string_view& pool_name, 
         uint32_t max_thread = std::thread::hardware_concurrency(), 
         int32_t affinity = kDefaultAffinityCpuCore,
-        ThreadPriority priority = ThreadPriority::THREAD_PRIORITY_BASE);
+        ThreadPriority priority = ThreadPriority::NORMAL);
 
     virtual ~ThreadPool();
     

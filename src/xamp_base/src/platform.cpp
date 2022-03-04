@@ -119,7 +119,7 @@ void SetThreadAffinity(std::thread& thread, int32_t core) noexcept {
     group_affinity.Reserved[1] = 0;
     group_affinity.Reserved[2] = 0;
     if (!::SetThreadGroupAffinity(thread.native_handle(), &group_affinity, nullptr)) {
-        XAMP_LOG_DEBUG("cannot set thread group affinity");
+        XAMP_LOG_DEBUG("Can't set thread group affinity");
     }
 
     PROCESSOR_NUMBER processor_number;
@@ -127,7 +127,7 @@ void SetThreadAffinity(std::thread& thread, int32_t core) noexcept {
     processor_number.Number = number;
     processor_number.Reserved = 0;
     if (!::SetThreadIdealProcessorEx(thread.native_handle(), &processor_number, nullptr)) {
-        XAMP_LOG_DEBUG("cannot set threadeal processor");
+        XAMP_LOG_DEBUG("Can't set threadeal processor");
     }
 #else
     auto mask = (static_cast<DWORD_PTR>(1) << core);
@@ -145,21 +145,41 @@ void SetThreadAffinity(std::thread& thread, int32_t core) noexcept {
 #endif
 }
 
-void SetThreadPriority(std::thread& thread, ThreadPriority priority) noexcept {
+void SetThreadPriority(ThreadPriority priority) noexcept {
 #ifdef XAMP_OS_WIN
     auto thread_priority = THREAD_PRIORITY_NORMAL;
     switch (priority) {
-    case ThreadPriority::THREAD_PRIORITY_BACKGROUND:
-        thread_priority = THREAD_MODE_BACKGROUND_END;
+    case ThreadPriority::BACKGROUND:
+        // reduce CPU, page and IO priority for the current thread
+        if (!::SetThreadPriority(::GetCurrentThread(), THREAD_MODE_BACKGROUND_BEGIN)) {
+            if (ERROR_THREAD_MODE_ALREADY_BACKGROUND == ::GetLastError()) {
+                XAMP_LOG_DEBUG("Already in background mode");
+                return;
+            }
+            XAMP_LOG_DEBUG("Failed to enter background mode! error: {}.", GetLastErrorMessage());
+            return;
+        }        
+        if (!::SetThreadPriority(::GetCurrentThread(), THREAD_MODE_BACKGROUND_END)) {
+            XAMP_LOG_DEBUG("Failed to enter background mode! error: {}.", GetLastErrorMessage());
+        }
         break;
-    case ThreadPriority::THREAD_PRIORITY_BASE:
+    case ThreadPriority::NORMAL:
         thread_priority = THREAD_PRIORITY_NORMAL;
         break;
-    case ThreadPriority::THREAD_PRIORITY_HIGH:
+    case ThreadPriority::HIGHEST:
         thread_priority = THREAD_PRIORITY_HIGHEST;
         break;
     }
-    ::SetThreadPriority(thread.native_handle(), thread_priority);
+
+    if (priority != ThreadPriority::BACKGROUND) {
+        if (!::SetThreadPriority(::GetCurrentThread(), thread_priority)) {
+            XAMP_LOG_DEBUG("Failed to enter background mode! error:{}.", GetLastErrorMessage());
+        }
+        return;
+    }
+
+    auto current_priority = ::GetThreadPriority(::GetCurrentThread());
+    XAMP_LOG_DEBUG("Current thread priority is {}.", current_priority);
 #else
     auto thread_priority = PTHREAD_MIN_PRIORITY;
     switch (priority) {
@@ -175,7 +195,7 @@ void SetThreadPriority(std::thread& thread, ThreadPriority priority) noexcept {
     }
     struct sched_param thread_param;
     thread_param.sched_priority = thread_priority;
-    ::pthread_setschedparam(thread.native_handle(), SCHED_RR, &thread_param);
+    ::pthread_setschedparam(::pthread_self(), SCHED_RR, &thread_param);
 #endif
 }
 

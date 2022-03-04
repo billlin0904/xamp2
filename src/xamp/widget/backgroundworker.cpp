@@ -14,8 +14,9 @@
 
 BackgroundWorker::BackgroundWorker() {
     pool_ = MakeThreadPool(kBackgroundThreadPoolLoggerName,
+        std::thread::hardware_concurrency(),
         kDefaultAffinityCpuCore, 
-        ThreadPriority::THREAD_PRIORITY_BACKGROUND);
+        ThreadPriority::BACKGROUND);
 }
 
 BackgroundWorker::~BackgroundWorker() = default;
@@ -42,6 +43,8 @@ void BackgroundWorker::blurImage(const QString& cover_id, const QImage& image) {
 }
 
 void BackgroundWorker::readReplayGain(bool force, const std::vector<PlayListEntity>& items) {
+    XAMP_LOG_DEBUG("Start read replay gain count:{}", items.size());
+
     std::vector<std::shared_future<PlayListEntity>> replay_gain_tasks;
 
     const auto target_gain = AppSettings::getValue(kAppSettingReplayGainTargetGain).toDouble();
@@ -51,7 +54,6 @@ void BackgroundWorker::readReplayGain(bool force, const std::vector<PlayListEnti
     FastMutex mutex;
 
     scanners.reserve(items.size());
-
     replay_gain_tasks.reserve(items.size());
 
     for (const auto &item : items) {
@@ -122,7 +124,7 @@ void BackgroundWorker::readReplayGain(bool force, const std::vector<PlayListEnti
     }
 
     using namespace xamp::metadata;
-    auto writer = MakeMetadataWriter();
+    const auto writer = MakeMetadataWriter();
 
     for (auto i = 0; i < replay_gain_tasks.size(); ++i) {
 	    ReplayGain rg;
