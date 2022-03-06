@@ -11,8 +11,7 @@ TaskScheduler::TaskScheduler(const std::string_view& pool_name, size_t max_threa
 	: is_stopped_(false)
 	, running_thread_(0)
 	, index_(0)
-	, max_thread_(max_thread)
-	, pool_queue_(max_thread * 16) {
+	, max_thread_(max_thread) {
 	logger_ = Logger::GetInstance().GetLogger(pool_name.data());
 	try {
 		for (size_t i = 0; i < max_thread_; ++i) {
@@ -45,10 +44,7 @@ void TaskScheduler::SubmitJob(Task&& task) {
 		}
 	}
 
-	if (!pool_queue_.TryEnqueue(task)) {
-		throw LibrarySpecException("Thread pool was fulled.");
-	}
-	XAMP_LOG_D(logger_, "Enqueue pool queue.");
+	throw LibrarySpecException("Thread pool was fulled.");
 }
 
 void TaskScheduler::Destroy() noexcept {
@@ -123,6 +119,7 @@ void TaskScheduler::AddThread(size_t i, int32_t affinity, ThreadPriority priorit
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) start.", thread_id, i);
 		while (!is_stopped_) {
 			auto task = TrySteal(i + 1);
+
 			if (!task) {
 				task = TryPopLocalQueue(i);
 

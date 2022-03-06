@@ -43,9 +43,7 @@ static void BM_Win32ThreadPool(benchmark::State& state) {
     std::atomic<int64_t> total;
     for (auto _ : state) {
         ParallelFor(n, [&total, &n](auto item) {
-            for (auto i = 0; i < 100; ++i) {
-                total += item;
-            }
+            total += item;
             }
         , thread_pool);
     }
@@ -53,18 +51,19 @@ static void BM_Win32ThreadPool(benchmark::State& state) {
 #endif
 
 static void BM_ThreadPool(benchmark::State& state) {
-    auto& thread_pool = PlaybackThreadPool();
+    static auto thread_pool = MakeThreadPool(kPlaybackThreadPoolLoggerName,
+        std::thread::hardware_concurrency(),
+        -1,
+        ThreadPriority::NORMAL);
     auto length = state.range(0);
     std::vector<int> n(length);
     std::iota(n.begin(), n.end(), 1);
     std::atomic<int64_t> total;
     for (auto _ : state) {
         ParallelFor(n, [&total, &n](auto item) {
-            for (auto i = 0; i < 100; ++i) {
-                total += item;
-            }
+            total += item;
         }
-        , thread_pool);
+        , *thread_pool);
     }
 }
 
@@ -408,10 +407,10 @@ static void BM_UuidParse(benchmark::State& state) {
 //BENCHMARK(BM_FFT)->RangeMultiplier(2)->Range(4096, 8 << 12);
 
 BENCHMARK(BM_ThreadPool)->RangeMultiplier(2)->Range(8, 8 << 16);
-BENCHMARK(BM_async_pool)->RangeMultiplier(2)->Range(8, 8 << 16);
-BENCHMARK(BM_std_for_each_par)->RangeMultiplier(2)->Range(8, 8 << 16);
+//BENCHMARK(BM_async_pool)->RangeMultiplier(2)->Range(8, 8 << 16);
+//BENCHMARK(BM_std_for_each_par)->RangeMultiplier(2)->Range(8, 8 << 16);
 #ifdef XAMP_OS_WIN
-BENCHMARK(BM_Win32ThreadPool)->RangeMultiplier(2)->Range(8, 8 << 16);
+//BENCHMARK(BM_Win32ThreadPool)->RangeMultiplier(2)->Range(8, 8 << 16);
 #endif
 
 

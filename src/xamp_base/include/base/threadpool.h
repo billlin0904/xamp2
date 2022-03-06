@@ -55,7 +55,6 @@ private:
     std::atomic<size_t> running_thread_;
 	size_t index_;
     size_t max_thread_;
-    TaskQueue pool_queue_;
     std::vector<std::thread> threads_;
     std::vector<SharedTaskQueuePtr> shared_queues_;
     std::shared_ptr<spdlog::logger> logger_;
@@ -71,9 +70,6 @@ public:
     virtual ~ThreadPool();
     
 	XAMP_DISABLE_COPY(ThreadPool)
-
-    template <typename F, typename... Args>
-    decltype(auto) Spawn(F&& f, Args&&... args);
 
     void Stop() override;
 };
