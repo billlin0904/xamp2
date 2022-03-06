@@ -123,8 +123,8 @@ decltype(auto) IThreadPool::Spawn(F&& f, Args&&... args) {
     auto future = task->get_future();
 
     // note: unique_ptr會在SubmitJob離開lambda解構, 但是shared_ptr會確保lambda在解構的時候task才會解構.
-    scheduler_->SubmitJob([task](size_t thread_index) {
-        task(thread_index);
+    scheduler_->SubmitJob([t = std::move(task)](size_t thread_index) {
+        (*t)(thread_index);
         });
 
     return future.share();
