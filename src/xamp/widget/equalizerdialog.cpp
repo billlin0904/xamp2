@@ -74,7 +74,7 @@ EqualizerDialog::EqualizerDialog(QWidget *parent)
         ui_.eqPresetComboBox->addItem(name);
     }
 
-    (void)QObject::connect(ui_.eqPresetComboBox, static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::activated), [this](auto index) {
+    (void)QObject::connect(ui_.eqPresetComboBox, static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::textActivated), [this](auto index) {
         AppEQSettings settings;
         settings.name = index;
         settings.settings = AppSettings::getEQPreset()[index];
@@ -106,7 +106,7 @@ void EqualizerDialog::applySetting(QString const& name, EQSettings const& settin
         return;
     }
 
-    for (auto i = 0; i < settings.bands.size(); ++i) {
+    for (size_t i = 0; i < settings.bands.size(); ++i) {
         band_sliders_[i]->setValue(settings.bands[i].gain * 10);
         band_label_[i]->setText(QString(Q_UTF8("%1")).arg(settings.bands[i].gain));
     }

@@ -188,7 +188,7 @@ bool LrcParser::ParseStream(std::wistream &istr) {
 		lyrics_.insert(lyrics_.begin(), LyricEntry());
 	}
 
-	for (auto i = 0; i < lyrics_.size(); ++i) {
+    for (size_t i = 0; i < lyrics_.size(); ++i) {
 		lyrics_[i].index = i;
 	}	
 

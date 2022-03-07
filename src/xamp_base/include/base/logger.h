@@ -28,7 +28,7 @@ extern "C" XAMP_BASE_API const char kSharedWasapiDeviceLoggerName[];
 extern "C" XAMP_BASE_API const char kAsioDeviceLoggerName[];
 extern "C" XAMP_BASE_API const char kAudioPlayerLoggerName[];
 extern "C" XAMP_BASE_API const char kVirtualMemoryLoggerName[];
-extern "C" XAMP_BASE_API const char kResamplerLoggerName[];
+extern "C" XAMP_BASE_API const char kSoxrLoggerName[];
 extern "C" XAMP_BASE_API const char kCompressorLoggerName[];
 extern "C" XAMP_BASE_API const char kVolumeLoggerName[];
 extern "C" XAMP_BASE_API const char kCoreAudioLoggerName[];

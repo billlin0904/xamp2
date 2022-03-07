@@ -63,8 +63,9 @@ enum TabIndex {
 };
 
 static PlayerOrder GetNextOrder(PlayerOrder cur) noexcept {
-    return static_cast<PlayerOrder>((static_cast<int32_t>(cur) + 1)
-        % static_cast<int32_t>(PlayerOrder::PLAYER_ORDER_MAX));
+    auto next = static_cast<int32_t>(cur) + 1;
+    auto max = static_cast<int32_t>(PlayerOrder::PLAYER_ORDER_MAX);
+    return static_cast<PlayerOrder>(next % max);
 }
 
 static AlignPtr<IAudioProcessor> makeSampleRateConverter(const QVariantMap &settings) {
@@ -158,12 +159,13 @@ void Xamp::setXWindow(IXWindow* top_window) {
     createTrayIcon();
     setCover(nullptr, playlist_page_);
     setCover(nullptr, podcast_page_);
-    changeTheme();
     QTimer::singleShot(300, [this]() {
         initialDeviceList();
         discord_notify_.discordInit();        
         });
     avoidRedrawOnResize();
+    applyTheme(Singleton<ThemeManager>::GetInstance().palette().color(QPalette::WindowText),
+               Singleton<ThemeManager>::GetInstance().themeTextColor());
     Singleton<ThemeManager>::GetInstance().setPlayOrPauseButton(ui_, false);
 }
 
@@ -265,27 +267,6 @@ void Xamp::cleanup() {
     background_worker_.stopThreadPool();
     background_thread_.quit();
     background_thread_.wait();
-}
-
-void Xamp::changeTheme() {
-    QString filename;
-    QColor color;
-    if (Singleton<ThemeManager>::GetInstance().themeColor() == ThemeColor::LIGHT_THEME) {
-        filename = Q_UTF8(":/xamp/Resource/Theme/light/style.qss");
-        color = Qt::black;
-    } else {
-        filename = Q_UTF8(":/xamp/Resource/Theme/dark/style.qss");
-        color = Qt::white;
-    }
-    
-    QFile f(filename);
-    f.open(QFile::ReadOnly | QFile::Text);
-    QTextStream ts(&f);
-    qApp->setStyleSheet(ts.readAll());
-    f.close();
-    auto bk_color = Singleton<ThemeManager>::GetInstance().palette().color(QPalette::WindowText);
-    //XAMP_LOG_DEBUG("changeTheme {}", colorToString(bk_color).toStdString());
-    applyTheme(bk_color, color);
 }
 
 void Xamp::registerMetaType() {
@@ -763,14 +744,7 @@ void Xamp::initialController() {
 
     theme_menu_ = new QMenu(this);
     Singleton<ThemeManager>::GetInstance().setMenuStyle(theme_menu_);
-    switch (Singleton<ThemeManager>::GetInstance().themeColor()) {
-    case ThemeColor::DARK_THEME:
-        ui_.themeButton->setIcon(Singleton<ThemeManager>::GetInstance().darkModeIcon());
-        break;
-    case ThemeColor::LIGHT_THEME:
-        ui_.themeButton->setIcon(Singleton<ThemeManager>::GetInstance().lightModeIcon());
-        break;
-    }
+    Singleton<ThemeManager>::GetInstance().setThemeButtonIcon(ui_);
     dark_mode_action_ = theme_menu_->addAction(tr("Dark"));
     dark_mode_action_->setIcon(Singleton<ThemeManager>::GetInstance().darkModeIcon());
     light_mode_action_ = theme_menu_->addAction(tr("Light"));
@@ -794,7 +768,7 @@ void Xamp::initialController() {
 
     fsw_ = new QFileSystemWatcher(this);
     fsw_->addPath(AppSettings::getMyMusicFolderPath());
-    (void) QObject::connect(fsw_, &QFileSystemWatcher::directoryChanged, [this](auto file_path) {
+    (void) QObject::connect(fsw_, &QFileSystemWatcher::directoryChanged, [](auto file_path) {
         XAMP_LOG_DEBUG("Directory changed: {}", file_path.toStdString());
     });
 }
@@ -916,26 +890,23 @@ void Xamp::setPlayerOrder() {
             Toast::showTip(tr("Repeat once"), this);
         }
         Singleton<ThemeManager>::GetInstance().setRepeatOncePlayOrder(ui_);
-        AppSettings::setEnumValue(kAppSettingOrder, PlayerOrder::PLAYER_ORDER_REPEAT_ONCE);
         break;
     case PlayerOrder::PLAYER_ORDER_REPEAT_ONE:
         if (order_ != order) {
             Toast::showTip(tr("Repeat one"), this);
         }
         Singleton<ThemeManager>::GetInstance().setRepeatOnePlayOrder(ui_);
-        AppSettings::setEnumValue(kAppSettingOrder, PlayerOrder::PLAYER_ORDER_REPEAT_ONE);
         break;
     case PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL:
         if (order_ != order) {
             Toast::showTip(tr("Shuffle all"), this);
         }
         Singleton<ThemeManager>::GetInstance().setShufflePlayorder(ui_);
-        AppSettings::setEnumValue(kAppSettingOrder, PlayerOrder::PLAYER_ORDER_SHUFFLE_ALL);
         break;
     default:
         break;
     }
-    order_ = order;
+    AppSettings::setEnumValue(kAppSettingOrder, order_);
 }
 
 void Xamp::onSampleTimeChanged(double stream_time) {
@@ -1021,15 +992,16 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
 
     try {
 	    uint32_t target_sample_rate = 0;
-        auto soxr_settings = JsonSettings::getValue(AppSettings::getValueAsString(kAppSettingSoxrSettingName)).toMap();
+        QMap<QString, QVariant> soxr_settings;
 
 	    if (AppSettings::getValueAsBool(kAppSettingResamplerEnable)) {
+            soxr_settings = JsonSettings::getValue(AppSettings::getValueAsString(kAppSettingSoxrSettingName)).toMap();
             target_sample_rate = soxr_settings[kSoxrResampleSampleRate].toUInt();
         }
 
         player_->Open(item.file_path.toStdWString(), device_info_, target_sample_rate);
 
-        if (target_sample_rate != 0) {
+        if (target_sample_rate != 0 && player_->GetInputFormat().GetSampleRate() != target_sample_rate) {
             player_->GetDSPManager()->AddPreDSP(makeSampleRateConverter(soxr_settings));
         } else {
             player_->GetDSPManager()->RemovePreDSP(SoxrSampleRateConverter::Id);

@@ -6,6 +6,7 @@
 #include <QResource>
 #include <QApplication>
 #include <QFontDatabase>
+#include <QTextStream>
 
 #if defined(Q_OS_WIN)
 #include <widget/win32/win32.h>
@@ -103,6 +104,30 @@ QLatin1String ThemeManager::themeColorPath() const {
         return Q_UTF8("Black");
     }
     return Q_UTF8("White");
+}
+
+void ThemeManager::setThemeButtonIcon(Ui::XampWindow &ui) {
+    switch (themeColor()) {
+    case ThemeColor::DARK_THEME:
+        ui.themeButton->setIcon(Singleton<ThemeManager>::GetInstance().darkModeIcon());
+        break;
+    case ThemeColor::LIGHT_THEME:
+        ui.themeButton->setIcon(Singleton<ThemeManager>::GetInstance().lightModeIcon());
+        break;
+    }
+}
+
+QColor ThemeManager::themeTextColor() const {
+    auto color = Qt::black;
+    switch (themeColor()) {
+    case ThemeColor::DARK_THEME:
+        color = Qt::white;
+        break;
+    case ThemeColor::LIGHT_THEME:
+        color = Qt::black;
+        break;
+    }
+    return color;
 }
 
 void ThemeManager::setMenuStyle(QMenu* menu) {
@@ -290,6 +315,24 @@ void ThemeManager::enableBlur(QWidget* widget, bool enable) const {
 
 QIcon ThemeManager::appIcon() const {
     return QIcon(Q_UTF8(":/xamp/xamp.ico"));
+}
+
+void ThemeManager::applyTheme() {
+    qApp->setFont(defaultFont());
+
+    QString filename;
+
+    if (themeColor() == ThemeColor::LIGHT_THEME) {
+        filename = Q_UTF8(":/xamp/Resource/Theme/light/style.qss");
+    } else {
+        filename = Q_UTF8(":/xamp/Resource/Theme/dark/style.qss");
+    }
+
+    QFile f(filename);
+    f.open(QFile::ReadOnly | QFile::Text);
+    QTextStream ts(&f);
+    qApp->setStyleSheet(ts.readAll());
+    f.close();
 }
 
 void ThemeManager::setBackgroundColor(Ui::XampWindow& ui, QColor color) {

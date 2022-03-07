@@ -181,15 +181,22 @@ void SetThreadPriority(ThreadPriority priority) noexcept {
     auto current_priority = ::GetThreadPriority(::GetCurrentThread());
     XAMP_LOG_DEBUG("Current thread priority is {}.", current_priority);
 #else
+#if !defined(PTHREAD_MIN_PRIORITY)
+#define PTHREAD_MIN_PRIORITY  0
+#endif
+#if !defined(PTHREAD_MAX_PRIORITY)
+#define PTHREAD_MAX_PRIORITY 31
+#endif
+
     auto thread_priority = PTHREAD_MIN_PRIORITY;
     switch (priority) {
-    case ThreadPriority::THREAD_PRIORITY_BACKGROUND:
+    case ThreadPriority::BACKGROUND:
         thread_priority = PTHREAD_MIN_PRIORITY;
         break;
-    case ThreadPriority::THREAD_PRIORITY_BASE:
+    case ThreadPriority::NORMAL:
         thread_priority = PTHREAD_MAX_PRIORITY / 2;
         break;
-    case ThreadPriority::THREAD_PRIORITY_HIGH:
+    case ThreadPriority::HIGHEST:
         thread_priority = PTHREAD_MAX_PRIORITY;
         break;
     }

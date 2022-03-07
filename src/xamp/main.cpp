@@ -144,7 +144,7 @@ static void setLogLevel(spdlog::level::level_enum level = spdlog::level::debug) 
     Logger::GetInstance().GetLogger(kSharedWasapiDeviceLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kAsioDeviceLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kVirtualMemoryLoggerName)->set_level(level);
-    Logger::GetInstance().GetLogger(kResamplerLoggerName)->set_level(level);
+    Logger::GetInstance().GetLogger(kSoxrLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kCompressorLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kCoreAudioLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger("PixmapCache")->set_level(level);
@@ -200,12 +200,13 @@ static int excute(int argc, char* argv[]) {
 
     Logger::GetInstance().GetLogger(kAudioPlayerLoggerName)->set_level(spdlog::level::debug);
     //Logger::GetInstance().GetLogger(kExclusiveWasapiDeviceLoggerName)->set_level(spdlog::level::debug);
-    Logger::GetInstance().GetLogger(kResamplerLoggerName)->set_level(spdlog::level::debug);
+    Logger::GetInstance().GetLogger(kSoxrLoggerName)->set_level(spdlog::level::debug);
 
-    QApplication::setFont(Singleton<ThemeManager>::GetInstance().defaultFont());
+    Singleton<ThemeManager>::GetInstance().applyTheme();
 
     XWindow top_win;
     Xamp win;
+
     win.setXWindow(&top_win);
     top_win.setContentWidget(&win);
     //top_win.setContentWidget(nullptr);

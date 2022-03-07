@@ -128,11 +128,11 @@ public:
 
     void setThemeColor(ThemeColor theme_color);
 
-    ThemeColor themeColor() const {
-        return theme_color_;
-    }
-
     void setBackgroundColor(Ui::XampWindow& ui, QColor color);
+
+    void setThemeButtonIcon(Ui::XampWindow& ui);
+
+    void applyTheme();
 
     void setBackgroundColor(QWidget* widget);
 
@@ -140,12 +140,18 @@ public:
 
     void setMenuStyle(QMenu* menu);
 
+    QColor themeTextColor() const;
+
 private:
     QFont loadFonts();
 
     void setPalette();
 
     QIcon makeIcon(const QString& path) const;
+
+    ThemeColor themeColor() const {
+        return theme_color_;
+    }
 
     ThemeManager();
     
@@ -158,4 +164,5 @@ private:
     QFont ui_font_;
     QIcon play_arrow_;
 };
+
 

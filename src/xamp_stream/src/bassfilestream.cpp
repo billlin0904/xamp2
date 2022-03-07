@@ -59,7 +59,7 @@ public:
             }            
 
             file_.Open(file_path);
-            if (!PrefetchFile(file_)) {
+            if (!PrefetchFile(file_, file_.GetLength())) {
                 XAMP_LOG_DEBUG("PrefetchFile return failure!");
             }
             if (mode == DsdModes::DSD_MODE_PCM) {

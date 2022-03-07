@@ -68,7 +68,7 @@ public:
         , ratio_(0)
 		, pass_band_(kDefaultPassBand)
         , stop_band_(kDefaultStopBand) {
-		logger_ = Logger::GetInstance().GetLogger(kResamplerLoggerName);
+		logger_ = Logger::GetInstance().GetLogger(kSoxrLoggerName);
 	}
 
 	~SoxrSampleRateConverterImpl() noexcept {

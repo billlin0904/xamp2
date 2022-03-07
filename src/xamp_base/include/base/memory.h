@@ -13,6 +13,8 @@ namespace xamp::base {
 
 class MemoryMappedFile;
 
+inline constexpr size_t kMaxPreReadFileSize = 8 * 1024 * 1024;
+
 XAMP_BASE_API size_t GetPageSize() noexcept;
 
 XAMP_BASE_API size_t GetPageAlignSize(size_t value) noexcept;
@@ -21,7 +23,7 @@ XAMP_BASE_API bool PrefetchFile(std::wstring const &file_name);
 
 XAMP_BASE_API bool PrefetchModule(ModuleHandle const &module);
 
-XAMP_BASE_API bool PrefetchFile(MemoryMappedFile &file);
+XAMP_BASE_API bool PrefetchFile(MemoryMappedFile &file, size_t prefech_size = kMaxPreReadFileSize);
 
 XAMP_BASE_API bool PrefetchMemory(void* adddr, size_t length) noexcept;
 

@@ -94,6 +94,7 @@ void PreferencePage::initSoxResampler() {
         }
         saveSoxrResampler(setting_name);
 		saveAll();
+        ui_.soxrSettingCombo->addItem(setting_name);
 		});
 
 	(void)QObject::connect(ui_.deleteSoxrSettingBtn, &QPushButton::pressed, [this]() {
@@ -106,15 +107,15 @@ void PreferencePage::initSoxResampler() {
 		saveAll();
 		});
 
-	(void)QObject::connect(ui_.soxrTargetSampleRateComboBox, static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::activated), [this](auto index) {
+    (void)QObject::connect(ui_.soxrTargetSampleRateComboBox, static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::textActivated), [this](auto) {
 		saveAll();
 		});
 
-    (void)QObject::connect(ui_.rollOffLevelComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), [this](auto index) {
-		saveSoxrResampler(ui_.selectResamplerComboBox->currentText());
+    (void)QObject::connect(ui_.rollOffLevelComboBox, static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::textActivated), [this](auto index) {
+        saveSoxrResampler(index);
     });
 
-	(void)QObject::connect(ui_.soxrSettingCombo, static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::activated), [this](auto index) {
+    (void)QObject::connect(ui_.soxrSettingCombo, static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::textActivated), [this](auto index) {
 		auto soxr_settings = QVariant::fromValue(JsonSettings::getValue(index)).toMap();
 		loadSoxrResampler(soxr_settings);
 		});
@@ -197,7 +198,7 @@ PreferencePage::PreferencePage(QWidget *parent)
 
 	ui_.selectResamplerComboBox->removeItem(2);
 
-	(void)QObject::connect(ui_.replayGainModeCombo, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), [this](auto index) {
+    (void)QObject::connect(ui_.replayGainModeCombo, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), [](auto index) {
 		switch (index) {
 		case 0:
 			AppSettings::setEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_ALBUM_MODE);
@@ -219,13 +220,13 @@ PreferencePage::PreferencePage(QWidget *parent)
         saveAll();
 		});
 
-    (void)QObject::connect(ui_.soxrPassbandSlider, &QSlider::valueChanged, [this](auto value) {
+    (void)QObject::connect(ui_.soxrPassbandSlider, &QSlider::valueChanged, [this](auto) {
         ui_.soxrPassbandValue->setText(QString(Q_UTF8("%0%")).arg(ui_.soxrPassbandSlider->value()));
 		saveSoxrResampler(ui_.selectResamplerComboBox->currentText());
         saveAll();
     });
 
-    (void)QObject::connect(ui_.soxrPhaseSlider, &QSlider::valueChanged, [this](auto value) {
+    (void)QObject::connect(ui_.soxrPhaseSlider, &QSlider::valueChanged, [this](auto) {
 		setPhasePercentText(ui_.soxrPhaseSlider->value());
 		saveSoxrResampler(ui_.selectResamplerComboBox->currentText());
         saveAll();
