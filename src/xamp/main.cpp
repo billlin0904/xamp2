@@ -248,7 +248,7 @@ int main(int argc, char *argv[]) {
     crash_handler.SetProcessExceptionHandlers();
 
     XAMP_ON_SCOPE_EXIT(
-        XAMP_LOG_INFO("=:==:==:==:==:= Logger shutdwon =:==:==:==:==:=");
+        XAMP_LOG_DEBUG("=:==:==:==:==:= Logger shutdwon =:==:==:==:==:=");
         Logger::GetInstance().Shutdown();
         JsonSettings::save();
         AppSettings::save();
