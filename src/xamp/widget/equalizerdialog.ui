@@ -189,6 +189,12 @@
          </item>
          <item>
           <widget class="QLabel" name="label">
+           <property name="font">
+            <font>
+             <family>Work Sans</family>
+             <pointsize>8</pointsize>
+            </font>
+           </property>
            <property name="text">
             <string>31.1Hz</string>
            </property>
@@ -229,6 +235,12 @@
          </item>
          <item>
           <widget class="QLabel" name="label_2">
+           <property name="font">
+            <font>
+             <family>Work Sans</family>
+             <pointsize>8</pointsize>
+            </font>
+           </property>
            <property name="text">
             <string>62Hz</string>
            </property>
@@ -269,6 +281,12 @@
          </item>
          <item>
           <widget class="QLabel" name="label_3">
+           <property name="font">
+            <font>
+             <family>Work Sans</family>
+             <pointsize>8</pointsize>
+            </font>
+           </property>
            <property name="text">
             <string>125Hz</string>
            </property>
@@ -309,6 +327,12 @@
          </item>
          <item>
           <widget class="QLabel" name="label_4">
+           <property name="font">
+            <font>
+             <family>Work Sans</family>
+             <pointsize>8</pointsize>
+            </font>
+           </property>
            <property name="text">
             <string>125Hz</string>
            </property>
@@ -349,6 +373,12 @@
          </item>
          <item>
           <widget class="QLabel" name="label_5">
+           <property name="font">
+            <font>
+             <family>Work Sans</family>
+             <pointsize>8</pointsize>
+            </font>
+           </property>
            <property name="text">
             <string>250Hz</string>
            </property>
@@ -389,6 +419,12 @@
          </item>
          <item>
           <widget class="QLabel" name="label_6">
+           <property name="font">
+            <font>
+             <family>Work Sans</family>
+             <pointsize>8</pointsize>
+            </font>
+           </property>
            <property name="text">
             <string>500Hz</string>
            </property>
@@ -429,6 +465,12 @@
          </item>
          <item>
           <widget class="QLabel" name="label_13">
+           <property name="font">
+            <font>
+             <family>Work Sans</family>
+             <pointsize>8</pointsize>
+            </font>
+           </property>
            <property name="text">
             <string>1KHz</string>
            </property>
@@ -469,6 +511,12 @@
          </item>
          <item>
           <widget class="QLabel" name="label_15">
+           <property name="font">
+            <font>
+             <family>Work Sans</family>
+             <pointsize>8</pointsize>
+            </font>
+           </property>
            <property name="text">
             <string>2KHz</string>
            </property>
@@ -509,6 +557,12 @@
          </item>
          <item>
           <widget class="QLabel" name="label_17">
+           <property name="font">
+            <font>
+             <family>Work Sans</family>
+             <pointsize>8</pointsize>
+            </font>
+           </property>
            <property name="text">
             <string>4KHz</string>
            </property>
@@ -549,6 +603,12 @@
          </item>
          <item>
           <widget class="QLabel" name="label_19">
+           <property name="font">
+            <font>
+             <family>Work Sans</family>
+             <pointsize>8</pointsize>
+            </font>
+           </property>
            <property name="text">
             <string>8KHz</string>
            </property>

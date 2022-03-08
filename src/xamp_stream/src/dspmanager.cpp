@@ -1,7 +1,7 @@
 #include <base/assert.h>
 #include <base/audioformat.h>
 #include <base/exception.h>
-
+#include <stream/api.h>
 #include <stream/iequalizer.h>
 #include <stream/soxresampler.h>
 #include <stream/bassvolume.h>
@@ -79,11 +79,7 @@ void DSPManager::RemovePreDSP(Uuid const& id) {
 
 void DSPManager::SetEq(EQSettings const& settings) {
     eq_settings_ = settings;
-}
-
-void DSPManager::SetEq(uint32_t band, float gain, float Q) {
-    eq_settings_.bands[band].gain = gain;
-    eq_settings_.bands[band].Q = Q;
+    AddPostDSP(MakeEqualizer());
 }
 
 void DSPManager::SetPreamp(float preamp) {
@@ -92,6 +88,16 @@ void DSPManager::SetPreamp(float preamp) {
 
 void DSPManager::SetReplayGain(double volume) {
     replay_gain_ = volume;
+    AddPostDSP(MakeVolume());
+}
+
+void DSPManager::RemoveEq() {
+    RemovePostDSP(IEqualizer::Id);
+}
+
+void DSPManager::RemoveReplayGain() {
+    RemovePostDSP(BassVolume::Id);
+    replay_gain_ = 0.0;
 }
 
 bool DSPManager::IsEnableDSP() const noexcept {

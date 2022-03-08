@@ -17,8 +17,7 @@ AlignPtr<IThreadPool> MakeThreadPool(const std::string_view& pool_name, int32_t 
 IThreadPool& PlaybackThreadPool() {
     static ThreadPool threadpool(kPlaybackThreadPoolLoggerName,
         kMaxPlaybackThreadPoolSize,
-        kDefaultAffinityCpuCore, 
-        ThreadPriority::BACKGROUND);
+        kDefaultAffinityCpuCore);
 	return threadpool;
 }
 

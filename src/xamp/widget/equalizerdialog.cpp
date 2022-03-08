@@ -39,7 +39,7 @@ EqualizerDialog::EqualizerDialog(QWidget *parent)
             };
 
     QFont f(Q_UTF8("MonoFont"));
-    f.setPointSize(12);
+    f.setPointSize(8);
     for (auto& l : band_label_) {
         l->setFont(f);
     }

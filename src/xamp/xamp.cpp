@@ -14,7 +14,7 @@
 
 #include <stream/podcastcache.h>
 #include <stream/soxresampler.h>
-#include <stream/dspmanager.h>
+#include <stream/idspmanager.h>
 #include <stream/api.h>
 
 #include <output_device/api.h>
@@ -44,7 +44,6 @@
 #include <widget/read_utiltis.h>
 #include <widget/equalizerdialog.h>
 #include <widget/playlisttablemodel.h>
-#include <widget/colorthief.h>
 
 #include "aboutpage.h"
 #include "preferencepage.h"
@@ -294,7 +293,7 @@ void Xamp::initialUI() {
         ui_.minWinButton->hide();
     } else {
         f.setBold(true);
-        f.setPointSize(12);
+        f.setPointSize(11);
         ui_.titleFrameLabel->setFont(f);
         ui_.titleFrameLabel->setText(Q_UTF8("XAMP2"));
         ui_.titleFrameLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
@@ -506,12 +505,14 @@ void Xamp::initialController() {
     #endif
 
     (void)QObject::connect(ui_.seekSlider, &SeekSlider::sliderReleased, [this]() {
-        XAMP_LOG_DEBUG("SeekSlider release!");
+        is_seeking_ = false;
+        XAMP_LOG_DEBUG("SeekSlider released!");
         QToolTip::showText(QCursor::pos(), msToString(static_cast<double>(ui_.seekSlider->value()) / 1000.0));
     });
 
     (void)QObject::connect(ui_.seekSlider, &SeekSlider::sliderPressed, [this]() {
-        XAMP_LOG_DEBUG("sliderPressed pause!");
+        is_seeking_ = false;
+        XAMP_LOG_DEBUG("sliderPressed pressed!");
         QToolTip::showText(QCursor::pos(), msToString(static_cast<double>(ui_.seekSlider->value()) / 1000.0));
     });
 
@@ -1008,8 +1009,6 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
         }
 
         if (AppSettings::getValueAsBool(kAppSettingEnableReplayGain)) {
-            player_->GetDSPManager()->AddPostDSP(MakeVolume());
-            XAMP_LOG_DEBUG("Add replay gain dsp.");
             const auto mode = AppSettings::getAsEnum<ReplayGainMode>(kAppSettingReplayGainMode);
             if (mode == ReplayGainMode::RG_ALBUM_MODE) {
                 player_->GetDSPManager()->SetReplayGain(item.album_replay_gain);
@@ -1019,19 +1018,16 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
                 player_->GetDSPManager()->SetReplayGain(0.0);
             }
         } else {
-            player_->GetDSPManager()->AddPostDSP(MakeVolume());
-            player_->GetDSPManager()->SetReplayGain(0.0);
+            player_->GetDSPManager()->RemoveReplayGain();
         }
 
         if (AppSettings::getValueAsBool(kAppSettingEnableEQ)) {
-            XAMP_LOG_DEBUG("Add EQ dsp.");
-            player_->GetDSPManager()->AddPostDSP(MakeEqualizer());
             if (AppSettings::contains(kAppSettingEQName)) {
                 const auto [name, settings] = AppSettings::getValue(kAppSettingEQName).value<AppEQSettings>();
                 player_->GetDSPManager()->SetEq(settings);
             }
         } else {
-            player_->GetDSPManager()->RemovePostDSP(IEqualizer::Id);
+            player_->GetDSPManager()->RemoveEq();
         }
 
         player_->PrepareToPlay();        

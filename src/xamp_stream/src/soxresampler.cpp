@@ -104,7 +104,7 @@ public:
 			| SOXR_DOUBLE_PRECISION
 			| SOXR_NO_DITHER);
 		if (enable_steep_filter_) {
-			flags |= SOXR_STEEP_FILTER;
+			quality_spec |= SOXR_STEEP_FILTER;
 		}
 
 		auto phase = SOXR_LINEAR_PHASE;

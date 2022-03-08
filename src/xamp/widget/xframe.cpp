@@ -102,6 +102,9 @@ void XFrame::setContentWidget(QWidget* content) {
     max_win_button->setDisabled(true);
     min_win_button->setDisabled(true);
 
+    max_win_button->hide();
+    min_win_button->hide();
+
     (void)QObject::connect(close_button, &QToolButton::pressed, [this]() {
         QWidget::close();
         emit closeFrame();

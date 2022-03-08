@@ -100,7 +100,6 @@ static void loadSettings() {
 static std::vector<ModuleHandle> preloadDll() {
 #ifdef XAMP_OS_WIN
     const std::vector<std::string_view> preload_dll_file_name{
-        "mimalloc-override.dll",
         "Qt5Gui.dll", // Qt
         "Qt5Core.dll", // Qt
         "Qt5Widgets.dll", // Qt
@@ -157,31 +156,31 @@ static void setLogLevel(spdlog::level::level_enum level = spdlog::level::debug) 
 static int excute(int argc, char* argv[]) {
     QApplication app(argc, argv);
 
-    Xamp::registerMetaType();
-
-    try {
-	    XStartup();
-    }
-    catch (const Exception& e) {
-        QMessageBox::critical(nullptr,
-                              Q_UTF8("XStartup failure."),
-                              QString::fromStdString(e.GetErrorMessage()));
-        XAMP_LOG_DEBUG("{}", e.GetStackTrace());
-        return -1;
-    }   
-
-    QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
     SingleInstanceApplication single_app;
-    QApplication::setApplicationName(Q_UTF8("XAMP2"));
-    QApplication::setApplicationVersion(Q_UTF8("0.0.1"));
-    QApplication::setOrganizationName(Q_UTF8("XAMP2 Project"));
-    QApplication::setOrganizationDomain(Q_UTF8("XAMP2 Project"));
-
 #ifndef _DEBUG
     if (!single_app.attach(QCoreApplication::arguments())) {
         return -1;
     }
 #endif
+
+    try {
+        XStartup();
+    }
+    catch (const Exception& e) {
+        QMessageBox::critical(nullptr,
+            Q_UTF8("XStartup failure."),
+            QString::fromStdString(e.GetErrorMessage()));
+        XAMP_LOG_DEBUG("{}", e.GetStackTrace());
+        return -1;
+    }
+
+    QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+    QApplication::setApplicationName(Q_UTF8("XAMP2"));
+    QApplication::setApplicationVersion(Q_UTF8("0.0.1"));
+    QApplication::setOrganizationName(Q_UTF8("XAMP2 Project"));
+    QApplication::setOrganizationDomain(Q_UTF8("XAMP2 Project"));
+
+    Xamp::registerMetaType();
 
     XAMP_LOG_DEBUG("attach app success.");
 
@@ -215,10 +214,25 @@ static int excute(int argc, char* argv[]) {
     top_win.activateWindow();
     top_win.resize(1250, 560);
     centerDesktop(&top_win);
+
+    const auto preload_module = preloadDll();
     return app.exec();
 }
 
 int main(int argc, char *argv[]) {
+#ifdef XAMP_OS_WIN
+    ModuleHandle mimalloc_module;
+    try {
+        mimalloc_module = LoadModule("mimalloc-override.dll");
+    } catch (std::exception const &e) {
+        ::MessageBoxA(nullptr, 
+            e.what(), 
+            "Load mimalloc-override.dll failure.",
+            MB_ICONSTOP | MB_OK);
+        return -1;
+    }
+#endif
+
     Logger::GetInstance()
         .AddDebugOutputLogger()
 #ifdef Q_OS_MAC
@@ -232,8 +246,6 @@ int main(int argc, char *argv[]) {
 
     CrashHandler crash_handler;
     crash_handler.SetProcessExceptionHandlers();
-
-    const auto preload_module = preloadDll();
 
     XAMP_ON_SCOPE_EXIT(
         XAMP_LOG_INFO("=:==:==:==:==:= Logger shutdwon =:==:==:==:==:=");

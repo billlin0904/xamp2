@@ -43,13 +43,15 @@ public:
 
     void RemovePostDSP(Uuid const& id) override;
 
-    void SetEq(uint32_t band, float gain, float Q) override;
-
     void SetEq(EQSettings const& settings) override;
+
+    void RemoveEq() override;
 
     void SetPreamp(float preamp) override;
 
     void SetReplayGain(double volume) override;
+
+    void RemoveReplayGain() override;
 
     bool IsEnableDSP() const noexcept override;
 

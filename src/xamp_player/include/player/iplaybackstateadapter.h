@@ -15,8 +15,6 @@ namespace xamp::player {
 
 class XAMP_PLAYER_API XAMP_NO_VTABLE IPlaybackStateAdapter {
 public:
-    friend class AudioPlayer;
-
 	XAMP_BASE_CLASS(IPlaybackStateAdapter)
 
 	virtual void OnError(Exception const & ex) = 0;

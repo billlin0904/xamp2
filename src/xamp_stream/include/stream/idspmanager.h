@@ -36,13 +36,15 @@ public:
 
     virtual void RemovePostDSP(Uuid const& id) = 0;
 
-    virtual void SetEq(uint32_t band, float gain, float Q) = 0;
-
     virtual void SetEq(EQSettings const& settings) = 0;
+
+    virtual void RemoveEq() = 0;
 
     virtual void SetPreamp(float preamp) = 0;
 
     virtual void SetReplayGain(double volume) = 0;
+
+    virtual void RemoveReplayGain() = 0;
 
     virtual bool IsEnableDSP() const noexcept = 0;
 
