@@ -10,7 +10,6 @@
 
 #include <base/base.h>
 #include <base/assert.h>
-#include <base/vmmemlock.h>
 
 namespace xamp::base {
 

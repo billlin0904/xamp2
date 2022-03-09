@@ -146,7 +146,8 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>../xamp/x64/Release/</AdditionalLibraryDirectories>
       <AdditionalDependencies>xamp_output_device.lib;xamp_stream.lib;xamp_base.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
     <Bscmake>
       <PreserveSbr>true</PreserveSbr>

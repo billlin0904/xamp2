@@ -76,7 +76,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <BrowseInformation>true</BrowseInformation>
       <BasicRuntimeChecks>StackFrameRuntimeCheck</BasicRuntimeChecks>
       <IntelJCCErratum>true</IntelJCCErratum>
@@ -140,6 +140,7 @@
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <AdditionalDependencies>xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;discord-rpc.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
     <QtMoc>
       <ExecutionDescription>Moc'ing %(Identity)...</ExecutionDescription>

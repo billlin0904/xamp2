@@ -318,4 +318,28 @@ bool InitWorkingSetSize(size_t working_set_size) noexcept {
 }
 #endif
 
+bool VirtualMemoryLock(void* address, size_t size) {
+#ifdef XAMP_OS_WIN
+    if (!::VirtualLock(address, size)) { // try lock memory!
+        if (!ExtendProcessWorkingSetSize(size)) {
+            throw PlatformSpecException("ExtendProcessWorkingSetSize return failure!");
+        }
+        if (!::VirtualLock(address, size)) {
+            return false;
+        }
+    }
+    return true;
+#else
+    return ::mlock(address, size) != -1;
+#endif
+}
+
+bool VirtualMemoryUnLock(void* address, size_t size) {
+#ifdef XAMP_OS_WIN
+    return ::VirtualUnlock(address, size);
+#else
+    return ::munlock(address, size_) != -1;
+#endif
+}
+
 }

@@ -6,20 +6,14 @@
 #pragma once
 
 #include <future>
-#include <atomic>
 #include <vector>
-#include <optional>
 #include <type_traits>
 #include <memory>
 
 #include <base/base.h>
-#include <base/stopwatch.h>
 #include <base/align_ptr.h>
 #include <base/stl.h>
 #include <base/platform.h>
-#include <base/bounded_queue.h>
-
-#include <base/logger.h>
 
 namespace xamp::base {
 

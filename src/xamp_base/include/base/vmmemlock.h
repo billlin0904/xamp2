@@ -6,7 +6,6 @@
 #pragma once
 
 #include <base/base.h>
-#include <base/align_ptr.h>
 #include <base/logger.h>
 
 namespace xamp::base {
@@ -26,7 +25,8 @@ public:
 	VmMemLock& operator=(VmMemLock&& other) noexcept;
 private:
 	void* address_{ nullptr };
-	size_t size_{ 0 };	
+	size_t size_{ 0 };
+	std::shared_ptr<spdlog::logger> logger_;
 };
 
 }

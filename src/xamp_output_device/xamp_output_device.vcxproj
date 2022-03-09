@@ -145,7 +145,8 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>../xamp/x64/Release/</AdditionalLibraryDirectories>
       <AdditionalDependencies>xamp_base.lib;avrt.lib;Mfplat.lib;Propsys.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
     <Bscmake>
       <PreserveSbr>true</PreserveSbr>

@@ -79,6 +79,11 @@ struct XAMP_BASE_API CleanupThreadGroupDeleter final {
 	static void close(PTP_CLEANUP_GROUP value) { ::CloseThreadpoolCleanupGroup(value); }
 };
 
+struct XAMP_BASE_API TimerQueueDeleter final {
+	static HANDLE invalid() noexcept { return nullptr; }
+	static void close(HANDLE value) { ::DeleteTimerQueueEx(value, INVALID_HANDLE_VALUE); }
+};
+
 using WorkHandle = UniqueHandle<PTP_WORK, WorkDeleter>;
 using CleanupThreadGroupHandle = UniqueHandle<PTP_CLEANUP_GROUP, CleanupThreadGroupDeleter>;
 using ThreadPoolHandle = UniqueHandle<PTP_POOL, ThreadPoolDeleter>;
@@ -88,6 +93,7 @@ using ModuleHandle = UniqueHandle<HMODULE, ModuleHandleTraits>;
 using FileHandle = UniqueHandle<HANDLE, FileHandleTraits>;
 using MappingFileHandle = UniqueHandle<HANDLE, MappingFileHandleTraits>;
 using MappingAddressHandle = UniqueHandle<void*, MappingMemoryAddressTraits>;
+using TimerQueueHandle = UniqueHandle<HANDLE, TimerQueueDeleter>;
 
 }
 #endif

@@ -33,6 +33,10 @@ XAMP_BASE_API std::string MakeUuidString();
 
 XAMP_BASE_API bool IsDebuging();
 
+XAMP_BASE_API bool VirtualMemoryLock(void* address, size_t size);
+
+XAMP_BASE_API bool VirtualMemoryUnLock(void* address, size_t size);
+
 #ifdef XAMP_OS_WIN
 XAMP_BASE_API bool ExtendProcessWorkingSetSize(size_t size) noexcept;
 XAMP_BASE_API bool InitWorkingSetSize(size_t working_set_size) noexcept;

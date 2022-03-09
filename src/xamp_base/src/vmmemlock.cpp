@@ -12,29 +12,27 @@
 
 namespace xamp::base {
 
-VmMemLock::VmMemLock() noexcept = default;
+VmMemLock::VmMemLock() noexcept {
+	logger_ = Logger::GetInstance().GetLogger(kVirtualMemoryLoggerName);
+}
 
 VmMemLock::~VmMemLock() noexcept {
 	UnLock();
 }
-	
-#ifdef XAMP_OS_WIN
+
 void VmMemLock::Lock(void* address, size_t size) {
 	UnLock();	
 
-	if (!::VirtualLock(address, size)) { // try lock memory!
-		if (!ExtendProcessWorkingSetSize(size)) {
-			throw PlatformSpecException("ExtendProcessWorkingSetSize return failure!");
-		}
-		if (!::VirtualLock(address, size)) {
-			throw PlatformSpecException("VirtualLock return failure!");
-		}		
+	if (!VirtualMemoryLock(address, size)) { // try lock memory!
+		throw PlatformSpecException("VirtualLock return failure!");
 	}
 
+	// note: 強制配置實體記憶體page, 可以優化後面的相關操作. 等同於mmap API的MAP_POPULATE旗標.
+	MemorySet(address, 0, size);
 	address_ = address;
 	size_ = size;
 
-	XAMP_LOG_D(Logger::GetInstance().GetLogger(kVirtualMemoryLoggerName),
+	XAMP_LOG_D(logger_,
 		"VmMemLock lock address: 0x{:08x} size: {}.",
 		reinterpret_cast<int64_t>(address_),
 		String::FormatBytes(size_));
@@ -42,39 +40,19 @@ void VmMemLock::Lock(void* address, size_t size) {
 
 void VmMemLock::UnLock() noexcept {
 	if (address_) {
-		if (!::VirtualUnlock(address_, size_)) {
-			XAMP_LOG_D(Logger::GetInstance().GetLogger(kVirtualMemoryLoggerName),
+		if (!VirtualMemoryUnLock(address_, size_)) {
+			XAMP_LOG_D(logger_,
 				"VirtualUnlock return failure! error:{} {}.",
 				GetLastErrorMessage(), StackTrace{}.CaptureStack());
 		}
-		XAMP_LOG_D(Logger::GetInstance().GetLogger(kVirtualMemoryLoggerName), 
+		XAMP_LOG_D(logger_,
 			"VmMemLock unlock address: 0x{:08x} size: {}.",
 			reinterpret_cast<int64_t>(address_), String::FormatBytes(size_));
 	}
 	address_ = nullptr;
 	size_ = 0;
 }
-#else
-void VmMemLock::Lock(void* address, size_t size) {
-	UnLock();
 
-	if (::mlock(address, size)) {
-		throw PlatformSpecException("ExtendProcessWorkingSetSize return failure!");
-	}
-
-	address_ = address;
-	size_ = size;
-}
-void VmMemLock::UnLock() noexcept {
-	if (address_) {
-    if (::munlock(address_, size_)) {
-        XAMP_LOG_DEBUG("munlock return failure! error:{}.", errno);
-        }
-    }
-	address_ = nullptr;
-	size_ = 0;
-}
-#endif
 VmMemLock& VmMemLock::operator=(VmMemLock&& other) noexcept {
 	if (this != &other) {
 		address_ = other.address_;

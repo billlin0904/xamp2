@@ -19,6 +19,7 @@
 #include <base/spsc_queue.h>
 #include <base/buffer.h>
 #include <base/fastmutex.h>
+#include <base/waitabletimer.h>
 
 #include <output_device/iaudiocallback.h>
 #include <output_device/idevicestatelistener.h>
@@ -179,11 +180,11 @@ private:
     mutable FastMutex stopped_mutex_;
     std::string device_id_;
     Uuid device_type_id_;
+    Timer timer_;
     FastConditionVariable pause_cond_;
     FastConditionVariable read_finish_and_wait_seek_signal_cond_;
     AudioFormat input_format_;
     AudioFormat output_format_;
-    Timer timer_;
     AlignPtr<IAudioDeviceManager> device_manager_;
     AlignPtr<IAudioStream> stream_;
     AlignPtr<IDeviceType> device_type_;
@@ -191,8 +192,6 @@ private:
     std::weak_ptr<IPlaybackStateAdapter> state_adapter_;
     AudioBuffer<int8_t> fifo_;
     Buffer<int8_t> read_buffer_;
-    Buffer<float> dsp_buffer_;
-    WaitableTimer wait_timer_;
     DeviceInfo device_info_;    
     std::shared_future<void> stream_task_;
     SpscQueue<PlayerAction> action_queue_;

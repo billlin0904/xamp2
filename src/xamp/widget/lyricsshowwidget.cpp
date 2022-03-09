@@ -3,6 +3,7 @@
 #include <QDropEvent>
 #include <QMimeData>
 #include <QColorDialog>
+#include <QFileInfo>
 
 #include <widget/settingnames.h>
 #include <widget/appsettings.h>
@@ -183,8 +184,15 @@ void LyricsShowWidget::dropEvent(QDropEvent* event) {
 }
 
 bool LyricsShowWidget::loadLrcFile(const QString &file_path) {
+	const QFileInfo file_info(file_path);
+
+	const auto lrc_path = file_info.path()
+		+ Q_UTF8("/")
+		+ file_info.completeBaseName()
+		+ Q_UTF8(".lrc");
+
 	stop();
-	if (!lyric_.ParseFile(file_path.toStdWString())) {
+	if (!lyric_.ParseFile(lrc_path.toStdWString())) {
 		setDefaultLrc();
 		return false;
 	}

@@ -54,6 +54,9 @@ QMap<QString, QVariant> PreferencePage::getSoxrSettings() const {
 void PreferencePage::saveSoxrResampler(const QString &name) {
     JsonSettings::setValue(name, getSoxrSettings());
     AppSettings::setValue(kAppSettingSoxrSettingName, ui_.soxrSettingCombo->currentText());
+	if (!JsonSettings::contains(name)) {
+		ui_.soxrSettingCombo->addItem(name);
+	}
 }
 
 void PreferencePage::initSoxResampler() {
@@ -94,7 +97,6 @@ void PreferencePage::initSoxResampler() {
         }
         saveSoxrResampler(setting_name);
 		saveAll();
-        ui_.soxrSettingCombo->addItem(setting_name);
 		});
 
 	(void)QObject::connect(ui_.deleteSoxrSettingBtn, &QPushButton::pressed, [this]() {

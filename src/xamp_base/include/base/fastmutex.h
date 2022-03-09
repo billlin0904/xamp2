@@ -15,9 +15,9 @@ namespace xamp::base {
 
 #if defined(XAMP_OS_WIN) || defined (XAMP_OS_MAC)
 
-static constexpr uint32_t kUnlocked = 0;
-static constexpr uint32_t kLocked = 1;
-static constexpr uint32_t kSleeper = 2;
+inline constexpr uint32_t kUnlocked = 0;
+inline constexpr uint32_t kLocked = 1;
+inline constexpr uint32_t kSleeper = 2;
 
 #ifdef XAMP_OS_WIN
 class XAMP_BASE_API SRWMutex final {

@@ -129,7 +129,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>../thirdparty/benchmark/include/;../thirdparty/robin_hood/;../xamp_base/include/;../xamp_player/include/;../xamp_stream/include/;../xamp_output_device/include/;../thirdparty/spdlog/include/</AdditionalIncludeDirectories>
       <LanguageStandard_C>Default</LanguageStandard_C>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

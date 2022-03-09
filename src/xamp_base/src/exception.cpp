@@ -1,6 +1,5 @@
 #include <sstream>
 #include <algorithm>
-#include <cmath>
 
 #include <base/base.h>
 

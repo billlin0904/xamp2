@@ -146,6 +146,7 @@
       <AdditionalLibraryDirectories>../xamp/x64/Release/;../thirdparty/taglib2/msvc/taglib/Release</AdditionalLibraryDirectories>
       <AdditionalDependencies>xamp_base.lib;tag.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>false</GenerateDebugInformation>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
     <Bscmake>
       <PreserveSbr>true</PreserveSbr>

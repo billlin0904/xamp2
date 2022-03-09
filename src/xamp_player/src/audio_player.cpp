@@ -482,6 +482,8 @@ void AudioPlayer::CreateBuffer() {
     AllocateReadBuffer(allocate_read_size);
     AllocateFifo();
 
+    XAMP_LOG_D(logger_, "Read memory page count: {} page.", num_read_sample_ / GetPageSize());
+
     XAMP_LOG_D(logger_, "Output device format: {} num_read_sample: {} fifo buffer: {}.",
         output_format_,
         String::FormatBytes(num_read_sample_),
@@ -582,8 +584,7 @@ void AudioPlayer::Startup() {
     }
 
     device_manager_->RegisterDeviceListener(shared_from_this());
-    wait_timer_.SetTimeout(kReadSampleWaitTime);
-
+    
     std::weak_ptr<AudioPlayer> player = shared_from_this();
     timer_.Start(kUpdateSampleInterval, [player]() {
         auto p = player.lock();
@@ -752,6 +753,9 @@ void AudioPlayer::Play() {
             String::FormatBytes(max_buffer_sample),
             String::FormatBytes(num_sample_write));
 
+        WaitableTimer wait_timer;
+        wait_timer.SetTimeout(kReadSampleWaitTime);
+
         try {
             while (p->is_playing_) {
                 while (p->is_paused_) {
@@ -762,7 +766,7 @@ void AudioPlayer::Play() {
                 p->ProcessPlayerAction();
 
                 if (p->fifo_.GetAvailableWrite() < num_sample_write) {
-                    p->wait_timer_.Wait();
+                    wait_timer.Wait();
                     continue;
                 }
 

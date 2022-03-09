@@ -30,6 +30,10 @@ public:
         settings_->setValue(key, value);
     }
 
+    static bool contains(QString const& key) {
+        return settings_->contains(key);
+    }
+
     static QStringList keys();
 
     static void save();

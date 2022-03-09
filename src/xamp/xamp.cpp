@@ -1077,6 +1077,8 @@ void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_form
 
         updateButtonState();
         emit nowPlaying(item.artist, item.title);
+    } else {
+        cur_page->playlist()->update();
     }
 
     auto found_cover = true;
@@ -1088,8 +1090,6 @@ void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_form
             if (cover != nullptr) {
                 setCover(cover);
                 emit addBlurImage(item.cover_id, cover->toImage());
-                //const auto palette = GetPalette(cover->toImage(), 10, 1);
-                //lrc_page_->setBackgroundColor(palette[0]);
             } else {
                 lrc_page_->clearBackground();
             }
@@ -1104,14 +1104,8 @@ void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_form
     ui_.titleLabel->setText(item.title);
     ui_.artistLabel->setText(item.artist);
 
-    cur_page->title()->setText(item.title);
-
-    const QFileInfo file_info(item.file_path);
-    const auto lrc_path = file_info.path()
-                          + Q_UTF8("/")
-                          + file_info.completeBaseName()
-                          + Q_UTF8(".lrc");
-    lrc_page_->lyricsWidget()->loadLrcFile(lrc_path);
+    cur_page->title()->setText(item.title);    
+    lrc_page_->lyricsWidget()->loadLrcFile(item.file_path);
 	
     lrc_page_->title()->setText(item.title);
     lrc_page_->album()->setText(item.album);
