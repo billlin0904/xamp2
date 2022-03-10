@@ -10,6 +10,10 @@ class Timer::TimerImpl {
 public:
 	TimerImpl() = default;
 
+	~TimerImpl() {
+		Stop();
+	}
+
 	void Start(std::chrono::milliseconds interval, std::function<void()> callback) {
 		if (!is_stop_) {
 			return;
@@ -63,7 +67,46 @@ private:
 	HANDLE timer_;
 	std::function<void()> callback_;
 };
+#else
+class Timer::TimerImpl {
+public:;
+	TimerImpl() = default;
 
+	~TimerImpl() {
+		Stop();
+	}
+
+	void Start(std::chrono::milliseconds interval, std::function<void()> callback) {
+		if (!is_stop_) {
+			return;
+		}
+
+		is_stop_ = false;
+		thread_ = std::thread([this, timeout, callback]() {
+			SetThreadName("Timer");
+			WaitableTimer timer;
+			while (!is_stop_) {
+				callback();
+				timer.SetTimeout(timeout);
+				timer.Wait();
+			}
+		});
+	}
+
+	bool IsStarted() const {
+		return !is_stop_;
+	}
+
+	void Stop() {
+		is_stop_ = true;
+		if (thread_.joinable()) {
+			thread_.join();
+		}
+	}
+private:
+	std::atomic<bool> is_stop_{ true };
+	std::thread thread_;
+};
 #endif
 
 XAMP_PIMPL_IMPL(Timer)
