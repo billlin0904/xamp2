@@ -28,8 +28,6 @@ public:
 	std::array<uint8_t, 3> data;
 };
 
-XAMP_ENFORCE_TRIVIAL(Int24)
-
 XAMP_ALWAYS_INLINE Int24::Int24(float f) noexcept {
 	*this = f;
 }

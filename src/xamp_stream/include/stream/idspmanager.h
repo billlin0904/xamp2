@@ -30,8 +30,6 @@ public:
 
     virtual void AddPostDSP(AlignPtr<IAudioProcessor> processor) = 0;
 
-    virtual void EnableDSP(bool enable = true) = 0;
-
     virtual void RemovePreDSP(Uuid const& id) = 0;
 
     virtual void RemovePostDSP(Uuid const& id) = 0;
@@ -45,8 +43,6 @@ public:
     virtual void SetReplayGain(double volume) = 0;
 
     virtual void RemoveReplayGain() = 0;
-
-    virtual bool IsEnableDSP() const noexcept = 0;
 
     virtual bool IsEnableSampleRateConverter() const = 0;
 

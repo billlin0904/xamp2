@@ -119,8 +119,8 @@ void AudioPlayer::Destroy() {
 }
 
 void AudioPlayer::UpdateSlice(int32_t sample_size, double stream_time) noexcept {
-    std::atomic_exchange_explicit(&slice_,
-        AudioSlice{ sample_size, stream_time },
+    std::atomic_exchange_explicit(&playback_event_,
+        PlaybackEvent{ sample_size, stream_time },
         std::memory_order_relaxed);
 }
 
@@ -253,20 +253,23 @@ void AudioPlayer::SetState(const PlayerState play_state) {
 
 void AudioPlayer::ProcessPlayerAction() {
     while (!action_queue_.empty()) {
-        if (auto* msg = action_queue_.Front()) {
-            XAMP_ON_SCOPE_EXIT({
+        if (const auto* msg = action_queue_.Front()) {
+            try {
+                XAMP_ON_SCOPE_EXIT({
                 action_queue_.Pop();
-                });
-            switch (msg->id) {
-            case PlayerActionId::PLAYER_SEEK:
-            {
-                auto stream_time = std::any_cast<double>(msg->content);
-                XAMP_LOG_D(logger_, "Receive seek {:.2f} message.", stream_time);
-                DoSeek(stream_time);
-            }
+                    });
+                switch (msg->id) {
+                case PlayerActionId::PLAYER_SEEK:
+                {
+                    auto stream_time = std::any_cast<double>(msg->content);
+                    XAMP_LOG_D(logger_, "Receive seek {:.2f} message.", stream_time);
+                    DoSeek(stream_time);
+                }
                 break;
+                }
+            } catch (std::exception const &e) {
+                XAMP_LOG_D(logger_, "Receive {} {}.", EnumToString(msg->id), e.what());
             }
-
         }
 	}    
 }
@@ -604,11 +607,11 @@ void AudioPlayer::Startup() {
             return;
         }
 
-        const auto slice = p->slice_.load();
-        if (slice.sample_size > 0) {
-            adapter->OnSampleTime(slice.stream_time);            
+        const auto playback_event = p->playback_event_.load();
+        if (playback_event.sample_size > 0) {
+            adapter->OnSampleTime(playback_event.stream_time);            
         }
-        else if (p->is_playing_ && slice.sample_size == -1) {
+        else if (p->is_playing_ && playback_event.sample_size == -1) {
             p->SetState(PlayerState::PLAYER_STATE_STOPPED);
             p->is_playing_ = false;
         }
@@ -655,7 +658,7 @@ void AudioPlayer::DoSeek(double stream_time) {
     Resume();
 }
 
-AudioPlayer::AudioSlice::AudioSlice(int32_t const sample_size, double const stream_time) noexcept
+AudioPlayer::PlaybackEvent::PlaybackEvent(int32_t const sample_size, double const stream_time) noexcept
 	: sample_size(sample_size)
 	, stream_time(stream_time) {
 }

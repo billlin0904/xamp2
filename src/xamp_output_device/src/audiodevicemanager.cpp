@@ -62,7 +62,7 @@ AudioDeviceManager::AudioDeviceManager() {
 #ifdef XAMP_OS_WIN
     using namespace win32;
     constexpr size_t kWorkingSetSize = 2048ul * 1024ul * 1024ul;
-    SetWorkingSetSize(kWorkingSetSize);
+    SetProcessWorkingSetSize(kWorkingSetSize);
     Mmcss::LoadAvrtLib();
     XAMP_LOG_DEBUG("Sleep is granular: {}", sleep_is_granular_);
     HrIfFailledThrow(::MFStartup(MF_VERSION, MFSTARTUP_LITE));
@@ -79,12 +79,6 @@ AudioDeviceManager::AudioDeviceManager() {
     XAMP_REGISTER_DEVICE_TYPE(HogCoreAudioDeviceType);
 #endif
 }
-
-#ifdef XAMP_OS_WIN
-void AudioDeviceManager::SetWorkingSetSize(size_t workingset_size) {
-    InitWorkingSetSize(workingset_size);
-}
-#endif
 
 AudioDeviceManager::~AudioDeviceManager() {
 #ifdef XAMP_OS_WIN	

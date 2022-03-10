@@ -31,9 +31,8 @@
 
 namespace xamp::player {
 
-enum class PlayerActionId {
-    PLAYER_SEEK
-};
+MAKE_XAMP_ENUM(PlayerActionId,
+    PLAYER_SEEK);
 
 struct PlayerAction {
     PlayerActionId id;
@@ -152,14 +151,12 @@ private:
 
     void SetDSDStreamMode(DsdModes dsd_mode, AlignPtr<IAudioStream>& stream);
 
-    struct XAMP_CACHE_ALIGNED(kMallocAlignSize) AudioSlice {
-	    explicit AudioSlice(int32_t sample_size = 0,
+    struct XAMP_CACHE_ALIGNED(kMallocAlignSize) PlaybackEvent {
+	    explicit PlaybackEvent(int32_t sample_size = 0,
 	        double stream_time = 0.0) noexcept;        
         int32_t sample_size;
         double stream_time;
-    };    
-
-    XAMP_ENFORCE_TRIVIAL(AudioSlice)
+    };
 
     bool is_muted_;
     bool is_dsd_file_;
@@ -175,7 +172,7 @@ private:
     std::atomic<bool> is_paused_;
     std::atomic<double> sample_end_time_;
     std::atomic<double> stream_duration_;
-    std::atomic<AudioSlice> slice_;
+    std::atomic<PlaybackEvent> playback_event_;
     mutable FastMutex pause_mutex_;
     mutable FastMutex stopped_mutex_;
     std::string device_id_;

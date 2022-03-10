@@ -19,8 +19,6 @@ public:
 			return;
 		}
 
-		is_stop_ = false;
-
 		constexpr bool immediately = false;
 		constexpr bool once = false;
 
@@ -33,11 +31,12 @@ public:
 			this,
 			immediately ? 0 : interval.count(),
 			once ? 0 : interval.count(),
-			WT_EXECUTEINTIMERTHREAD)) {
+			WT_EXECUTEINTIMERTHREAD | WT_EXECUTELONGFUNCTION)) {
 			throw PlatformSpecException();
 		}
 		timer_ = timer;
 		callback_ = std::move(callback);
+		is_stop_ = false;
 	}
 
 	void Stop() {
@@ -45,7 +44,9 @@ public:
 			return;
 		}
 		is_stop_ = true;
-		::DeleteTimerQueueTimer(timer_queue_.get(), timer_, INVALID_HANDLE_VALUE);
+		::DeleteTimerQueueTimer(timer_queue_.get(),
+			timer_, 
+			INVALID_HANDLE_VALUE);
 		timer_queue_.reset();
 		callback_ = nullptr;
 	}

@@ -37,8 +37,6 @@ public:
 
     void AddPostDSP(AlignPtr<IAudioProcessor> processor) override;
 
-    void EnableDSP(bool enable = true) override;
-
     void RemovePreDSP(Uuid const& id) override;
 
     void RemovePostDSP(Uuid const& id) override;
@@ -52,8 +50,6 @@ public:
     void SetReplayGain(double volume) override;
 
     void RemoveReplayGain() override;
-
-    bool IsEnableDSP() const noexcept override;
 
     bool IsEnableSampleRateConverter() const override;
 
@@ -98,7 +94,7 @@ private:
     std::vector<AlignPtr<IAudioProcessor>> post_dsp_;
     AlignPtr<ISampleRateConverter> fifo_writer_;
     Buffer<float> pre_dsp_buffer_;
-    Buffer<float> dsp_buffer_;
+    Buffer<float> post_dsp_buffer_;
     std::shared_ptr<spdlog::logger> logger_;
 };
 

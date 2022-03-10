@@ -146,11 +146,11 @@ static void setLogLevel(spdlog::level::level_enum level = spdlog::level::debug) 
     Logger::GetInstance().GetLogger(kSoxrLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kCompressorLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kCoreAudioLoggerName)->set_level(level);
-    Logger::GetInstance().GetLogger("PixmapCache")->set_level(level);
     Logger::GetInstance().GetLogger(kDspManagerLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kAudioPlayerLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kBackgroundThreadPoolLoggerName)->set_level(level);
     Logger::GetInstance().GetLogger(kVolumeLoggerName)->set_level(level);
+    Logger::GetInstance().GetLogger("PixmapCache")->set_level(level);
 }
 
 static int excute(int argc, char* argv[]) {
@@ -198,8 +198,7 @@ static int excute(int argc, char* argv[]) {
     setLogLevel(spdlog::level::info);
 
     Logger::GetInstance().GetLogger(kAudioPlayerLoggerName)->set_level(spdlog::level::debug);
-    //Logger::GetInstance().GetLogger(kExclusiveWasapiDeviceLoggerName)->set_level(spdlog::level::debug);
-    Logger::GetInstance().GetLogger(kSoxrLoggerName)->set_level(spdlog::level::debug);
+    Logger::GetInstance().GetLogger(kVirtualMemoryLoggerName)->set_level(spdlog::level::debug);
 
     Singleton<ThemeManager>::GetInstance().applyTheme();
 

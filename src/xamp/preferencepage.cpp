@@ -204,12 +204,15 @@ PreferencePage::PreferencePage(QWidget *parent)
 		switch (index) {
 		case 0:
 			AppSettings::setEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_ALBUM_MODE);
+			AppSettings::setValue(kAppSettingEnableReplayGain, true);
 			break;
 		case 1:
 			AppSettings::setEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_TRACK_MODE);
+			AppSettings::setValue(kAppSettingEnableReplayGain, true);
 			break;
 		case 2:
 			AppSettings::setEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_NONE_MODE);
+			AppSettings::setValue(kAppSettingEnableReplayGain, false);			
 			break;
 		}
 		});

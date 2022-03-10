@@ -122,15 +122,6 @@
 #define XAMP_CACHE_ALIGNED(CacheLineSize) __attribute__((aligned(CacheLineSize)))
 #endif
 
-#define XAMP_ENFORCE_TRIVIAL(t) \
-static_assert(std::is_standard_layout_v<t>);\
-static_assert(std::is_trivially_copyable_v<t>);\
-static_assert(std::is_trivially_copy_assignable_v<t>);\
-static_assert(std::is_trivially_copy_constructible_v<t>);\
-static_assert(std::is_trivially_move_assignable_v<t>);\
-static_assert(std::is_trivially_move_constructible_v<t>);\
-static_assert(std::is_trivially_destructible_v<t>);\
-
 template <typename T, size_t N>
 constexpr size_t CountOf(T const (&)[N]) noexcept {
 	return N;

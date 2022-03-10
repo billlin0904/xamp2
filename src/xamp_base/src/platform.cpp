@@ -244,8 +244,9 @@ std::string MakeTempFileName() {
 bool IsDebuging() {
 #ifdef XAMP_OS_WIN
     return ::IsDebuggerPresent();
-#endif
+#else
     return false;
+#endif
 }
 
 #ifdef XAMP_OS_WIN
@@ -305,7 +306,7 @@ static bool EnablePrivilege(std::string_view privilege, bool enable) noexcept {
     return true;
 }
 
-bool InitWorkingSetSize(size_t working_set_size) noexcept {
+bool SetProcessWorkingSetSize(size_t working_set_size) noexcept {
     if (!EnablePrivilege("SeLockMemoryPrivilege", true)) {
         return false;
     }

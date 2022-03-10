@@ -103,8 +103,6 @@ private:
     uint32_t bits_per_sample_;
 };
 
-XAMP_ENFORCE_TRIVIAL(AudioFormat);
-
 XAMP_ALWAYS_INLINE AudioFormat::AudioFormat(DataFormat format,
     uint16_t number_of_channels,
     ByteFormat byte_format,

@@ -40,41 +40,27 @@ static void Remove(Uuid const& id, std::vector<AlignPtr<IAudioProcessor>>& dsp_c
 }
 
 DSPManager::DSPManager()
-	: enable_processor_(false)
-	, replay_gain_(0.0)
+	: replay_gain_(0.0)
 	, dsd_modes_(DsdModes::DSD_MODE_PCM) {
     logger_ = Logger::GetInstance().GetLogger(kDspManagerLoggerName);
     pre_dsp_buffer_.resize(kDefaultBufSize);
-    dsp_buffer_.resize(kDefaultBufSize);
+    post_dsp_buffer_.resize(kDefaultBufSize);
 }
 
 void DSPManager::AddPostDSP(AlignPtr<IAudioProcessor> processor) {
     AddOrReplace(std::move(processor), post_dsp_);
-    EnableDSP();
 }
 
 void DSPManager::AddPreDSP(AlignPtr<IAudioProcessor> processor) {
     AddOrReplace(std::move(processor), pre_dsp_);
-    EnableDSP();
-}
-
-void DSPManager::EnableDSP(bool enable) {
-    enable_processor_ = enable;
-    XAMP_LOG_D(logger_, "Enable processor {}", enable);
 }
 
 void DSPManager::RemovePostDSP(Uuid const& id) {
     Remove(id, post_dsp_);
-    if (post_dsp_.empty()) {
-        EnableDSP(false);
-    }
 }
 
 void DSPManager::RemovePreDSP(Uuid const& id) {
     Remove(id, pre_dsp_);
-    if (pre_dsp_.empty()) {
-        EnableDSP(false);
-    }
 }
 
 void DSPManager::SetEq(EQSettings const& settings) {
@@ -100,12 +86,8 @@ void DSPManager::RemoveReplayGain() {
     replay_gain_ = 0.0;
 }
 
-bool DSPManager::IsEnableDSP() const noexcept {
-    return enable_processor_;
-}
-
 bool DSPManager::CanProcessFile() const noexcept {
-    return (dsd_modes_ == DsdModes::DSD_MODE_PCM || dsd_modes_ == DsdModes::DSD_MODE_DSD2PCM) && !pre_dsp_.empty() && IsEnableDSP();
+    return (dsd_modes_ == DsdModes::DSD_MODE_PCM || dsd_modes_ == DsdModes::DSD_MODE_DSD2PCM) && !pre_dsp_.empty() && !post_dsp_.empty();
 }
 
 bool DSPManager::IsEnableSampleRateConverter() const {
@@ -132,7 +114,7 @@ bool DSPManager::ProcessDSP(const float* samples, uint32_t num_samples, AudioBuf
 
 bool DSPManager::ApplyDSP(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo) {
     BufferRef<float> pre_dsp_bufref(pre_dsp_buffer_);
-    BufferRef<float> dsp_bufref(dsp_buffer_);
+    BufferRef<float> post_dsp_bufref(post_dsp_buffer_);
 
     if (!pre_dsp_.empty()) {        
         for (const auto& pre_dsp : pre_dsp_) {
@@ -141,25 +123,23 @@ bool DSPManager::ApplyDSP(const float* samples, uint32_t num_samples, AudioBuffe
             }
         }
         for (const auto& post_dsp : post_dsp_) {
-            post_dsp->Process(pre_dsp_bufref.data(), pre_dsp_bufref.size(), dsp_bufref);
+            post_dsp->Process(pre_dsp_bufref.data(),
+                pre_dsp_bufref.size(), 
+                post_dsp_bufref);
         }
     } else {
         for (const auto& post_dsp : post_dsp_) {
-            post_dsp->Process(samples, num_samples, dsp_bufref);
+            post_dsp->Process(samples, num_samples, post_dsp_bufref);
         }
     }
 
-    BufferOverFlowThrow(fifo_writer_->Process(dsp_bufref, fifo));
+    BufferOverFlowThrow(fifo_writer_->Process(post_dsp_bufref, fifo));
     return false; 
 }
 
 void DSPManager::Init(AudioFormat input_format, AudioFormat output_format, DsdModes dsd_mode, uint32_t sample_size) {
     fifo_writer_ = MakeAlign<ISampleRateConverter, PassThroughSampleRateConverter>(dsd_mode, sample_size);
     dsd_modes_ = dsd_mode;
-
-    if (!enable_processor_) {
-        return;
-    }
 
     if (!CanProcessFile()) {
         return;
