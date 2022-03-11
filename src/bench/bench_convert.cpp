@@ -100,6 +100,7 @@ static void BM_async_pool(benchmark::State& state) {
     }
 }
 
+#ifdef XAMP_OS_WIN
 static void BM_std_for_each_par(benchmark::State& state) {
     auto length = state.range(0);
     std::vector<int> n(length);
@@ -117,6 +118,7 @@ static void BM_std_for_each_par(benchmark::State& state) {
             });
     }
 }
+#endif
 
 static void BM_Xoshiro256StarStarRandom(benchmark::State& state) {
     Xoshiro256StarStarEngine engine;
@@ -406,10 +408,14 @@ static void BM_UuidParse(benchmark::State& state) {
 //BENCHMARK(BM_InterleavedToPlanarConvertToInt32)->RangeMultiplier(2)->Range(4096, 8 << 10);
 //BENCHMARK(BM_FFT)->RangeMultiplier(2)->Range(4096, 8 << 12);
 
-BENCHMARK(BM_ThreadPool)->RangeMultiplier(2)->Range(8, 8 << 16);
-BENCHMARK(BM_async_pool)->RangeMultiplier(2)->Range(8, 8 << 16);
-BENCHMARK(BM_std_for_each_par)->RangeMultiplier(2)->Range(8, 8 << 16);
+//BENCHMARK(BM_ThreadPool)->RangeMultiplier(2)->Range(8, 8 << 16);
+//BENCHMARK(BM_async_pool)->RangeMultiplier(2)->Range(8, 8 << 16);
+
+BENCHMARK(BM_ThreadPool)->RangeMultiplier(2)->Range(8, 8 << 2);
+BENCHMARK(BM_async_pool)->RangeMultiplier(2)->Range(8, 8 << 2);
+
 #ifdef XAMP_OS_WIN
+BENCHMARK(BM_std_for_each_par)->RangeMultiplier(2)->Range(8, 8 << 16);
 //BENCHMARK(BM_Win32ThreadPool)->RangeMultiplier(2)->Range(8, 8 << 16);
 #endif
 
