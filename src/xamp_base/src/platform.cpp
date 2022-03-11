@@ -339,7 +339,7 @@ bool VirtualMemoryUnLock(void* address, size_t size) {
 #ifdef XAMP_OS_WIN
     return ::VirtualUnlock(address, size);
 #else
-    return ::munlock(address, size_) != -1;
+    return ::munlock(address, size) != -1;
 #endif
 }
 

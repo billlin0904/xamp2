@@ -1,5 +1,8 @@
+#include <thread>
 #include <base/windows_handle.h>
 #include <base/exception.h>
+#include <base/platform.h>
+#include <base/waitabletimer.h>
 #include <base/timer.h>
 
 namespace xamp::base {
@@ -83,12 +86,12 @@ public:
 		}
 
 		is_stop_ = false;
-		thread_ = std::thread([this, timeout, callback]() {
+        thread_ = std::thread([this, interval, callback]() {
 			SetThreadName("Timer");
 			WaitableTimer timer;
 			while (!is_stop_) {
 				callback();
-				timer.SetTimeout(timeout);
+                timer.SetTimeout(interval);
 				timer.Wait();
 			}
 		});
