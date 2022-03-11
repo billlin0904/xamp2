@@ -60,7 +60,7 @@ void BackgroundWorker::readReplayGain(bool force, const std::vector<PlayListEnti
     replay_gain_tasks.reserve(items.size());
 
     for (const auto &item : items) {
-        replay_gain_tasks.emplace_back(pool_->Spawn([&scanners, scan_mode, item, &mutex, this](auto ) {
+        replay_gain_tasks.push_back(pool_->Spawn([&scanners, scan_mode, item, &mutex, this](auto ) {
             auto progress = [scan_mode](auto p) {
                 if (scan_mode == ReplayGainScanMode::RG_SCAN_MODE_FAST && p > 50) {
                     return false;
@@ -83,6 +83,7 @@ void BackgroundWorker::readReplayGain(bool force, const std::vector<PlayListEnti
 	        try {	        
 		        read_utiltis::readAll(item.file_path.toStdWString(), progress, prepare, dps_process);
                 std::lock_guard<FastMutex> guard{ mutex };
+                XAMP_ASSERT(scanner != nullptr);
                 scanners.push_back(std::move(scanner));
             }
             catch (std::exception const& e) {
@@ -94,13 +95,13 @@ void BackgroundWorker::readReplayGain(bool force, const std::vector<PlayListEnti
 
     ReplayGainResult replay_gain;
 
-    try {
-        for (auto const& task : replay_gain_tasks) {
+    for (auto const& task : replay_gain_tasks) {
+        try {
             replay_gain.music_id.push_back(task.get());
         }
-    }
-    catch (...) {
-        return;
+        catch (std::exception const& e) {
+            XAMP_LOG_DEBUG("ReplayGain got exception! {}", e.what());
+        }
     }
 
     if (scanners.empty()) {

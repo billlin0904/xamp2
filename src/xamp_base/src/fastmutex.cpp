@@ -66,7 +66,7 @@ int FastConditionVariable::FastWait(std::atomic<uint32_t>& to_wait_on, uint32_t 
 		return 0; /* time-out out of range, claim spurious wake-up */
 	}
 
-    const uint32_t ms = (to->tv_sec * 1000000) + ((to->tv_nsec + 999) / 1000);
+    const uint32_t ms = to->tv_sec * 1000 + to->tv_nsec / 1000000;
 
 	if (!PlatformFutexWait(to_wait_on, expected, ms)) {
 		errno = ETIMEDOUT;

@@ -396,19 +396,19 @@ static void BM_UuidParse(benchmark::State& state) {
 //BENCHMARK(BM_FindRobinHoodHashSet);
 //BENCHMARK(BM_unordered_map);
 //BENCHMARK(BM_FindRobinHoodHashMap);
-BENCHMARK(BM_FastMemset)->RangeMultiplier(2)->Range(4096, 8 << 10);
-BENCHMARK(BM_StdtMemset)->RangeMultiplier(2)->Range(4096, 8 << 10);
+//BENCHMARK(BM_FastMemset)->RangeMultiplier(2)->Range(4096, 8 << 10);
+//BENCHMARK(BM_StdtMemset)->RangeMultiplier(2)->Range(4096, 8 << 10);
 //BENCHMARK(BM_FastMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 10);
 //BENCHMARK(BM_StdtMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 10);
-BENCHMARK(BM_ConvertToInt2432Avx)->RangeMultiplier(2)->Range(4096, 8 << 10);
-BENCHMARK(BM_ConvertToInt2432)->RangeMultiplier(2)->Range(4096, 8 << 10);
+//BENCHMARK(BM_ConvertToInt2432Avx)->RangeMultiplier(2)->Range(4096, 8 << 10);
+//BENCHMARK(BM_ConvertToInt2432)->RangeMultiplier(2)->Range(4096, 8 << 10);
 //BENCHMARK(BM_InterleavedToPlanarConvertToInt32_AVX)->RangeMultiplier(2)->Range(4096, 8 << 10);
 //BENCHMARK(BM_InterleavedToPlanarConvertToInt32)->RangeMultiplier(2)->Range(4096, 8 << 10);
 //BENCHMARK(BM_FFT)->RangeMultiplier(2)->Range(4096, 8 << 12);
 
 BENCHMARK(BM_ThreadPool)->RangeMultiplier(2)->Range(8, 8 << 16);
-//BENCHMARK(BM_async_pool)->RangeMultiplier(2)->Range(8, 8 << 16);
-//BENCHMARK(BM_std_for_each_par)->RangeMultiplier(2)->Range(8, 8 << 16);
+BENCHMARK(BM_async_pool)->RangeMultiplier(2)->Range(8, 8 << 16);
+BENCHMARK(BM_std_for_each_par)->RangeMultiplier(2)->Range(8, 8 << 16);
 #ifdef XAMP_OS_WIN
 //BENCHMARK(BM_Win32ThreadPool)->RangeMultiplier(2)->Range(8, 8 << 16);
 #endif

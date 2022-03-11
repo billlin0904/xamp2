@@ -7,7 +7,7 @@
 
 #include <atomic>
 #include <base/logger.h>
-#include <base/bounded_queue.h>
+#include <base/blocking_queue.h>
 #include <base/ithreadpool.h>
 #include <base/windows_handle.h>
 
@@ -58,7 +58,7 @@ private:
 	TP_CALLBACK_ENVIRON environ_;	
 	CleanupThreadGroupHandle cleanup_group_;
 	std::shared_ptr<spdlog::logger> logger_;
-	BoundedQueue<Task, FastMutex, FastConditionVariable> queue_;
+	BlockingQueue<Task, FastMutex, FastConditionVariable> queue_;
 };
 
 }

@@ -5,7 +5,8 @@
 
 namespace xamp::base {
 
-inline constexpr auto kPopWaitTimeout = std::chrono::milliseconds(5);
+inline constexpr auto kDefaultTimeout = std::chrono::milliseconds(100);
+inline constexpr auto kSharedTaskQueueSize = 1024;
 
 TaskScheduler::TaskScheduler(const std::string_view& pool_name, size_t max_thread, int32_t affinity, ThreadPriority priority)
 	: is_stopped_(false)
@@ -14,8 +15,10 @@ TaskScheduler::TaskScheduler(const std::string_view& pool_name, size_t max_threa
 	, max_thread_(max_thread) {
 	logger_ = Logger::GetInstance().GetLogger(pool_name.data());
 	try {
+		shared_queues_ = MakeAlign<SharedTaskQueue>(kSharedTaskQueueSize);
+
 		for (size_t i = 0; i < max_thread_; ++i) {
-			shared_queues_.push_back(MakeAlign<TaskQueue>(max_thread));
+			workstealing_queue_list_.push_back(MakeAlign<WorkStealingTaskQueue>(max_thread_ * 32));
 		}
 		for (size_t i = 0; i < max_thread_; ++i) {
             AddThread(i, affinity, priority);
@@ -29,7 +32,7 @@ TaskScheduler::TaskScheduler(const std::string_view& pool_name, size_t max_threa
 		max_thread, affinity, priority);
 }
 
-TaskScheduler::~TaskScheduler() noexcept {
+TaskScheduler::~TaskScheduler() {
 	Destroy();
 }
 
@@ -38,26 +41,27 @@ void TaskScheduler::SubmitJob(Task&& task) {
 
 	for (size_t n = 0; n < max_thread_ * K; ++n) {
 		const auto index = (i + n) % max_thread_;
-		XAMP_LIKELY(shared_queues_.at(index)->TryEnqueue(task)) {
-			XAMP_LOG_D(logger_, "Enqueue thread {} queue.", index);
+		auto& queue = workstealing_queue_list_.at(index);
+		if (queue->TryEnqueue(task)) {
+			XAMP_LOG_D(logger_, "Enqueue thread {} local queue ({}).", index, queue->size());
 			return;
 		}
 	}
 
-	throw LibrarySpecException("Thread pool was fulled.");
+	XAMP_LOG_D(logger_, "Enqueue shared queue.");
+	shared_queues_->Enqueue(task);
 }
 
 void TaskScheduler::Destroy() noexcept {
-	if (shared_queues_.empty() || threads_.empty()) {
+	if (!shared_queues_ || threads_.empty()) {
 		return;
 	}
 
 	is_stopped_ = true;
+	shared_queues_->WakeupForShutdown();
 
 	for (size_t i = 0; i < max_thread_; ++i) {
 		try {
-			shared_queues_.at(i)->WakeupForShutdown();
-
 			if (threads_.at(i).joinable()) {
 				threads_.at(i).join();
 			}
@@ -67,14 +71,33 @@ void TaskScheduler::Destroy() noexcept {
 	}
 
 	XAMP_LOG_D(logger_, "Thread pool was destory.");
-	shared_queues_.clear();
+	shared_queues_.reset();
 	threads_.clear();
+	workstealing_queue_list_.clear();
 }
 
-std::optional<Task> TaskScheduler::TryPopLocalQueue(size_t index) {
+std::optional<Task> TaskScheduler::TryDequeueSharedQueue(std::chrono::milliseconds timeout) {
 	Task task;
-    if (shared_queues_.at(index)->Dequeue(task)) {
-		XAMP_LOG_D(logger_, "Pop local thread queue.");
+	if (shared_queues_->Dequeue(task, timeout)) {
+		XAMP_LOG_D(logger_, "Pop shared queue.");
+		return std::move(task);
+	}
+	return std::nullopt;
+}
+
+std::optional<Task> TaskScheduler::TryDequeueSharedQueue() {
+	Task task;
+    if (shared_queues_->TryDequeue(task)) {
+		XAMP_LOG_D(logger_, "Pop shared queue.");
+		return std::move(task);
+	}
+	return std::nullopt;
+}
+
+std::optional<Task> TaskScheduler::TryLocalPop() const {
+	Task task;
+	if (local_queue_->TryDequeue(task)) {
+		XAMP_LOG_D(logger_, "Pop local queue ({}).", local_queue_->size());
 		return std::move(task);
 	}
 	return std::nullopt;
@@ -82,13 +105,13 @@ std::optional<Task> TaskScheduler::TryPopLocalQueue(size_t index) {
 
 std::optional<Task> TaskScheduler::TrySteal(size_t i) {
 	Task task;
-	for (size_t n = 0; n != max_thread_ * K; ++n) {
+	for (size_t n = 0; n != max_thread_; ++n) {
 		if (is_stopped_) {
 			return std::nullopt;
 		}
-
+	
 		const auto index = (i + n) % max_thread_;
-		XAMP_LIKELY(shared_queues_.at(index)->TryDequeue(task)) {
+		if (workstealing_queue_list_.at(index)->TryDequeue(task)) {
 			XAMP_LOG_D(logger_, "Steal other thread {} queue.", index);
 			return std::move(task);
 		}
@@ -108,27 +131,35 @@ void TaskScheduler::SetWorkerThreadName(size_t i) {
 
 void TaskScheduler::AddThread(size_t i, int32_t affinity, ThreadPriority priority) {
 	threads_.emplace_back([i, this, priority]() mutable {
-		SetThreadPriority(priority);
-
 		// Avoid 64K Aliasing in L1 Cache (Intel hyper-threading)
-		const auto allocate_stack_size = (std::min)(kInitL1CacheLineSize * i,
-			kMaxL1CacheLineSize);
-		const auto L1_padding_buffer = MakeStackBuffer<uint8_t>(allocate_stack_size);
+		const auto L1_padding_buffer =
+			MakeStackBuffer<uint8_t>((std::min)(kInitL1CacheLineSize * i,
+			kMaxL1CacheLineSize));
 		auto thread_id = GetCurrentThreadId();
+
+		local_queue_ = workstealing_queue_list_[i].get();
+
+		SetThreadPriority(priority);
 		SetWorkerThreadName(i);
+
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) start.", thread_id, i);
+
 		while (!is_stopped_) {
-			auto task = TrySteal(i + 1);
+			auto task = TryLocalPop();
 
 			if (!task) {
-				task = TryPopLocalQueue(i);
-
+				task = TryDequeueSharedQueue();
 				if (!task) {
-					// 如果連TryPopLocalQueue都會資料代表有經過等待. 就不切出CPU給其他的Thread.
-					std::this_thread::yield();
-					continue;
+					task = TrySteal(prng_.NextSize(max_thread_));
+					if (!task) {
+						task = TryDequeueSharedQueue(kDefaultTimeout);
+						if (!task) {
+							continue;
+						}
+					}
 				}
 			}
+
 			auto running_thread = ++running_thread_;
 			XAMP_LOG_D(logger_, "Worker Thread {} ({}) weakup, running:{}", i, thread_id, running_thread);
 			try {

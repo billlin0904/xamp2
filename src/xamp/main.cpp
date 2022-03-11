@@ -198,7 +198,8 @@ static int excute(int argc, char* argv[]) {
     setLogLevel(spdlog::level::info);
 
     Logger::GetInstance().GetLogger(kAudioPlayerLoggerName)->set_level(spdlog::level::debug);
-    Logger::GetInstance().GetLogger(kVirtualMemoryLoggerName)->set_level(spdlog::level::debug);
+    Logger::GetInstance().GetLogger(kPlaybackThreadPoolLoggerName)->set_level(spdlog::level::debug);
+    Logger::GetInstance().GetLogger(kBackgroundThreadPoolLoggerName)->set_level(spdlog::level::debug);
 
     Singleton<ThemeManager>::GetInstance().applyTheme();
 

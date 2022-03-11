@@ -158,7 +158,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="include\base\assert.h" />
-    <ClInclude Include="include\base\bounded_queue.h" />
+    <ClInclude Include="include\base\blocking_queue.h" />
     <ClInclude Include="include\base\buffer.h" />
     <ClInclude Include="include\base\crashhandler.h" />
     <ClInclude Include="include\base\enum.h" />

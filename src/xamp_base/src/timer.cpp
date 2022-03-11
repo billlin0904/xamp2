@@ -70,7 +70,7 @@ private:
 };
 #else
 class Timer::TimerImpl {
-public:;
+public:
 	TimerImpl() = default;
 
 	~TimerImpl() {

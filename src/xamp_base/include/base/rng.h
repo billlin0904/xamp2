@@ -34,6 +34,10 @@ public:
         return std::uniform_int_distribution<T>(min, max)(engine_);
     }
 
+    size_t NextSize(const size_t max = (std::numeric_limits<size_t>::max)()) noexcept {
+        return (*this)(size_t{ 0 }, max);
+    }
+
     int64_t NextInt64(
         const int64_t min = (std::numeric_limits<int64_t>::min)(),
         const int64_t max = (std::numeric_limits<int64_t>::max)()) noexcept {

@@ -28,14 +28,14 @@ template
 		std::is_nothrow_move_assignable_v<T>
 	>
 >
-class XAMP_BASE_API_ONLY_EXPORT BoundedQueue final {
+class XAMP_BASE_API_ONLY_EXPORT BlockingQueue final {
 public:
-	explicit BoundedQueue(size_t size)
+	explicit BlockingQueue(size_t size)
 		: done_(false)
         , queue_(size) {
 	}
 
-    XAMP_DISABLE_COPY(BoundedQueue)   
+    XAMP_DISABLE_COPY(BlockingQueue)   
 
     template <typename U>
     bool TryEnqueue(U &&task) noexcept {
@@ -119,6 +119,11 @@ public:
     bool IsFull() const noexcept {
         std::lock_guard guard{ mutex_ };
         return queue_.full();
+    }
+
+    [[nodiscard]] size_t size() const noexcept {
+        std::lock_guard guard{ mutex_ };
+        return queue_.size();
     }
 
 private:
