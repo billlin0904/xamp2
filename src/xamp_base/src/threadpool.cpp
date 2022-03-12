@@ -143,16 +143,22 @@ void TaskScheduler::AddThread(size_t i, int32_t affinity, ThreadPriority priorit
 		SetWorkerThreadName(i);
 
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) start.", thread_id, i);
+        std::chrono::milliseconds timeout = kDefaultTimeout;
 
 		while (!is_stopped_) {
-			auto task = TryLocalPop();
+			auto task = TryLocalPop();           
 
 			if (!task) {
 				task = TryDequeueSharedQueue();
 				if (!task) {
 					task = TrySteal(prng_.NextSize(max_thread_));
-					if (!task) {
-						task = TryDequeueSharedQueue(kDefaultTimeout);
+                    if (!task) {
+                        if (local_queue_->size() > max_thread_) {
+                            timeout = std::chrono::milliseconds(0);
+                        } else {
+                            timeout = kDefaultTimeout;
+                        }
+                        task = TryDequeueSharedQueue(timeout);
 						if (!task) {
 							continue;
 						}

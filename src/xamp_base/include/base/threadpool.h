@@ -26,7 +26,9 @@ namespace xamp::base {
 using SharedTaskQueue = BlockingQueue<Task, FastMutex, FastConditionVariable>;
 using SharedTaskQueuePtr = AlignPtr<SharedTaskQueue>;
 
-using WorkStealingTaskQueue = BlockingQueue<Task, FastMutex, FastConditionVariable, LIFOQueue<Task>>;
+//using WorkStealingTaskQueue = BlockingQueue<Task, FastMutex, FastConditionVariable, LIFOQueue<Task>>;
+//using WorkStealingTaskQueue = BlockingQueue<Task, FastMutex, FastConditionVariable>;
+using WorkStealingTaskQueue = WorkStealingQueue<Task>;
 using WorkStealingTaskQueuePtr = AlignPtr<WorkStealingTaskQueue>;
 
 class TaskScheduler final : public ITaskScheduler {
