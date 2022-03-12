@@ -158,11 +158,11 @@ void TaskScheduler::AddThread(size_t i, int32_t affinity, ThreadPriority priorit
 					} while (steal_index != i);
 					task = TrySteal(steal_index);
                     if (!task) {
-                        /*if (local_queue_->size() > max_thread_) {
+                        if (local_queue_->size() > max_thread_) {
 							timeout = std::chrono::milliseconds(0);
                         } else {
                             timeout = kDefaultTimeout;
-                        }*/
+                        }
                         task = TryDequeueSharedQueue(timeout);
 						if (!task) {
 							continue;
