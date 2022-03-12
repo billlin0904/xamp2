@@ -387,7 +387,7 @@ static void BM_UuidParse(benchmark::State& state) {
 }
 
 static void BM_WorkStealingQueue(benchmark::State& state) {
-    static WorkStealingQueue<int32_t> ws_queue(64);
+    static LockFreeStack<int32_t> ws_queue(64);
 
     for (auto _ : state) {
         for (auto i = 0; i < 8; ++i) {
@@ -446,12 +446,9 @@ static void BM_RingQueue(benchmark::State& state) {
 //BENCHMARK(BM_InterleavedToPlanarConvertToInt32)->RangeMultiplier(2)->Range(4096, 8 << 10);
 //BENCHMARK(BM_FFT)->RangeMultiplier(2)->Range(4096, 8 << 12);
 
-BENCHMARK(BM_WorkStealingQueue)->ThreadRange(1, 128);
-BENCHMARK(BM_LIFOQueue)->ThreadRange(1, 128);
-BENCHMARK(BM_RingQueue)->ThreadRange(1, 128);
-
-//BENCHMARK(BM_ThreadPool)->RangeMultiplier(2)->Range(8, 8 << 16);
-//BENCHMARK(BM_async_pool)->RangeMultiplier(2)->Range(8, 8 << 16);
+//BENCHMARK(BM_WorkStealingQueue)->ThreadRange(1, 128);
+//BENCHMARK(BM_LIFOQueue)->ThreadRange(1, 128);
+//BENCHMARK(BM_RingQueue)->ThreadRange(1, 128);
 
 BENCHMARK(BM_async_pool)->RangeMultiplier(2)->Range(8, 8 << 2);
 #ifdef XAMP_OS_WIN

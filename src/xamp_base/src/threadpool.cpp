@@ -109,7 +109,7 @@ std::optional<Task> TaskScheduler::TrySteal(size_t i) {
 		if (is_stopped_) {
 			return std::nullopt;
 		}
-	
+
 		const auto index = (i + n) % max_thread_;
 		if (workstealing_queue_list_.at(index)->TryDequeue(task)) {
 			XAMP_LOG_D(logger_, "Steal other thread {} queue.", index);
@@ -135,6 +135,7 @@ void TaskScheduler::AddThread(size_t i, int32_t affinity, ThreadPriority priorit
 		const auto L1_padding_buffer =
 			MakeStackBuffer<uint8_t>((std::min)(kInitL1CacheLineSize * i,
 			kMaxL1CacheLineSize));
+		static thread_local PRNG prng;
 		auto thread_id = GetCurrentThreadId();
 
 		local_queue_ = workstealing_queue_list_[i].get();
@@ -151,13 +152,17 @@ void TaskScheduler::AddThread(size_t i, int32_t affinity, ThreadPriority priorit
 			if (!task) {
 				task = TryDequeueSharedQueue();
 				if (!task) {
-					task = TrySteal(prng_.NextSize(max_thread_));
+					auto steal_index = 0;
+					do {
+						steal_index = prng.NextSize(max_thread_ - 1);
+					} while (steal_index != i);
+					task = TrySteal(steal_index);
                     if (!task) {
-                        if (local_queue_->size() > max_thread_) {
+                        /*if (local_queue_->size() > max_thread_) {
 							timeout = std::chrono::milliseconds(0);
                         } else {
                             timeout = kDefaultTimeout;
-                        }
+                        }*/
                         task = TryDequeueSharedQueue(timeout);
 						if (!task) {
 							continue;

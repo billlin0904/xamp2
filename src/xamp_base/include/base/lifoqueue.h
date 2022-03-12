@@ -53,7 +53,7 @@ template
     std::is_nothrow_move_assignable_v<T>
     >
 >
-class WorkStealingQueue {
+class LockFreeStack {
 public:
     struct Node {
         Node *next;
@@ -75,7 +75,7 @@ public:
         }
     };
 
-    explicit WorkStealingQueue(size_t size)
+    explicit LockFreeStack(size_t size)
         : size_{size} {
         head.store(Head(), std::memory_order_relaxed);
         buffer_.resize(size);

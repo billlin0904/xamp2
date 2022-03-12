@@ -26,9 +26,9 @@ namespace xamp::base {
 using SharedTaskQueue = BlockingQueue<Task, FastMutex, FastConditionVariable>;
 using SharedTaskQueuePtr = AlignPtr<SharedTaskQueue>;
 
-using WorkStealingTaskQueue = BlockingQueue<Task, FastMutex, FastConditionVariable, LIFOQueue<Task>>;
+//using WorkStealingTaskQueue = BlockingQueue<Task, FastMutex, FastConditionVariable, LIFOQueue<Task>>;
 //using WorkStealingTaskQueue = BlockingQueue<Task, FastMutex, FastConditionVariable>;
-//using WorkStealingTaskQueue = WorkStealingQueue<Task>;
+using WorkStealingTaskQueue = LockFreeStack<Task>;
 using WorkStealingTaskQueuePtr = AlignPtr<WorkStealingTaskQueue>;
 
 class TaskScheduler final : public ITaskScheduler {
@@ -61,8 +61,7 @@ private:
     static constexpr size_t kMaxL1CacheLineSize = 256 * 1024;
 
     inline static thread_local WorkStealingTaskQueue* local_queue_;
-    inline static thread_local PRNG prng_;
-
+    
 	std::atomic<bool> is_stopped_;
     std::atomic<size_t> running_thread_;
 	size_t index_;
