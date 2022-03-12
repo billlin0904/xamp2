@@ -121,7 +121,7 @@ public:
         }
     }
 
-    T& pop() {
+    T& top() {
         if (empty()) {
             throw std::runtime_error("empty buffer");
         }
@@ -129,6 +129,9 @@ public:
         auto pos = first_pos();
         size_--;
         return data_[pos];
+    }
+
+    void pop() {
     }
 
     [[nodiscard]] const_iterator begin() const {

@@ -18,7 +18,7 @@
 #include <base/blocking_queue.h>
 #include <base/ithreadpool.h>
 #include <base/platform.h>
-
+#include <base/lifoqueue.h>
 #include <base/logger.h>
 
 namespace xamp::base {
@@ -26,7 +26,7 @@ namespace xamp::base {
 using SharedTaskQueue = BlockingQueue<Task, FastMutex, FastConditionVariable>;
 using SharedTaskQueuePtr = AlignPtr<SharedTaskQueue>;
 
-using WorkStealingTaskQueue = BlockingQueue<Task, FastMutex, FastConditionVariable>;
+using WorkStealingTaskQueue = BlockingQueue<Task, FastMutex, FastConditionVariable, LIFOQueue<Task>>;
 using WorkStealingTaskQueuePtr = AlignPtr<WorkStealingTaskQueue>;
 
 class TaskScheduler final : public ITaskScheduler {

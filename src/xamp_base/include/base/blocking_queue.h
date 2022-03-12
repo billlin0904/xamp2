@@ -66,7 +66,8 @@ public:
 			return false;
 		}
 
-		task = std::move(queue_.pop());
+        task = std::move(queue_.top());
+        queue_.pop();
 		return true;
 	}
 
@@ -81,7 +82,8 @@ public:
 			return false;
 		}
 
-		task = std::move(queue_.pop());
+        task = std::move(queue_.top());
+        queue_.pop();
 		return true;
 	}
 
@@ -99,7 +101,8 @@ public:
             return false;
         }
 
-        task = std::move(queue_.pop());
+        task = std::move(queue_.top());
+        queue_.pop();
         return true;
     }
 
