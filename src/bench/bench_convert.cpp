@@ -386,6 +386,44 @@ static void BM_UuidParse(benchmark::State& state) {
     }
 }
 
+static void BM_WorkStealingQueue(benchmark::State& state) {
+    static WorkStealingQueue<int32_t> ws_queue(64);
+
+    for (auto _ : state) {
+        for (auto i = 0; i < 8; ++i) {
+            ws_queue.TryEnqueue(1);
+            int32_t result;
+            ws_queue.TryDequeue(result);
+        }
+    }
+}
+
+static void BM_LIFOQueue(benchmark::State& state) {
+    using Queue = BlockingQueue<int32_t, FastMutex, FastConditionVariable, LIFOQueue<int32_t>>;
+    static Queue lifo_quque(64);
+
+    for (auto _ : state) {
+        for (auto i = 0; i < 8; ++i) {
+            lifo_quque.TryEnqueue(1);
+            int32_t result;
+            lifo_quque.TryDequeue(result);
+        }        
+    }
+}
+
+static void BM_RingQueue(benchmark::State& state) {
+    using Queue = BlockingQueue<int32_t, FastMutex, FastConditionVariable>;
+    static Queue ring_quque(64);
+
+    for (auto _ : state) {
+        for (auto i = 0; i < 8; ++i) {
+            ring_quque.TryEnqueue(1);
+            int32_t result;
+            ring_quque.TryDequeue(result);
+        }
+    }
+}
+
 //BENCHMARK(BM_UuidParse);
 //BENCHMARK(BM_Xoshiro256StarStarRandom);
 //BENCHMARK(BM_Xoshiro256PlusRandom);
@@ -408,17 +446,18 @@ static void BM_UuidParse(benchmark::State& state) {
 //BENCHMARK(BM_InterleavedToPlanarConvertToInt32)->RangeMultiplier(2)->Range(4096, 8 << 10);
 //BENCHMARK(BM_FFT)->RangeMultiplier(2)->Range(4096, 8 << 12);
 
+BENCHMARK(BM_WorkStealingQueue)->ThreadRange(1, 128);
+BENCHMARK(BM_LIFOQueue)->ThreadRange(1, 128);
+BENCHMARK(BM_RingQueue)->ThreadRange(1, 128);
+
 //BENCHMARK(BM_ThreadPool)->RangeMultiplier(2)->Range(8, 8 << 16);
 //BENCHMARK(BM_async_pool)->RangeMultiplier(2)->Range(8, 8 << 16);
 
-BENCHMARK(BM_ThreadPool)->RangeMultiplier(2)->Range(8, 8 << 2);
 BENCHMARK(BM_async_pool)->RangeMultiplier(2)->Range(8, 8 << 2);
-
 #ifdef XAMP_OS_WIN
-BENCHMARK(BM_std_for_each_par)->RangeMultiplier(2)->Range(8, 8 << 16);
-//BENCHMARK(BM_Win32ThreadPool)->RangeMultiplier(2)->Range(8, 8 << 16);
+BENCHMARK(BM_std_for_each_par)->RangeMultiplier(2)->Range(8, 8 << 2);
 #endif
-
+BENCHMARK(BM_ThreadPool)->RangeMultiplier(2)->Range(8, 8 << 2);
 
 int main(int argc, char** argv) {
     //std::cin.get();
