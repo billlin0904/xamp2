@@ -451,9 +451,9 @@ static void BM_RingQueue(benchmark::State& state) {
 //BENCHMARK(BM_RingQueue)->ThreadRange(1, 128);
 
 BENCHMARK(BM_async_pool)->RangeMultiplier(2)->Range(8, 8 << 2);
-#ifdef XAMP_OS_WIN
-BENCHMARK(BM_std_for_each_par)->RangeMultiplier(2)->Range(8, 8 << 2);
-#endif
+//#ifdef XAMP_OS_WIN
+//BENCHMARK(BM_std_for_each_par)->RangeMultiplier(2)->Range(8, 8 << 2);
+//#endif
 BENCHMARK(BM_ThreadPool)->RangeMultiplier(2)->Range(8, 8 << 2);
 
 int main(int argc, char** argv) {
@@ -473,7 +473,8 @@ int main(int argc, char** argv) {
 
     FFT::LoadFFTLib();
 
-    Logger::GetInstance().GetLogger(kPlaybackThreadPoolLoggerName)->set_level(spdlog::level::info);
+    Logger::GetInstance().GetLogger(kPlaybackThreadPoolLoggerName)
+        ->set_level(spdlog::level::info);
 
     ::benchmark::Initialize(&argc, argv);
     if (::benchmark::ReportUnrecognizedArguments(argc, argv)) {

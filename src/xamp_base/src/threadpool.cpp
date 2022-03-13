@@ -7,6 +7,7 @@ namespace xamp::base {
 
 inline constexpr auto kDefaultTimeout = std::chrono::milliseconds(100);
 inline constexpr auto kSharedTaskQueueSize = 1024;
+inline constexpr auto kWorkStealingTaskQueueSize = 4096;
 
 TaskScheduler::TaskScheduler(const std::string_view& pool_name, size_t max_thread, int32_t affinity, ThreadPriority priority)
 	: is_stopped_(false)
@@ -18,7 +19,7 @@ TaskScheduler::TaskScheduler(const std::string_view& pool_name, size_t max_threa
 		shared_queues_ = MakeAlign<SharedTaskQueue>(kSharedTaskQueueSize);
 
 		for (size_t i = 0; i < max_thread_; ++i) {
-			workstealing_queue_list_.push_back(MakeAlign<WorkStealingTaskQueue>(max_thread_ * 32));
+			workstealing_queue_list_.push_back(MakeAlign<WorkStealingTaskQueue>(4096));
 		}
 		for (size_t i = 0; i < max_thread_; ++i) {
             AddThread(i, affinity, priority);
@@ -94,10 +95,10 @@ std::optional<Task> TaskScheduler::TryDequeueSharedQueue() {
 	return std::nullopt;
 }
 
-std::optional<Task> TaskScheduler::TryLocalPop() const {
+std::optional<Task> TaskScheduler::TryLocalPop(WorkStealingTaskQueue* local_queue) const {
 	Task task;
-	if (local_queue_->TryDequeue(task)) {
-		XAMP_LOG_D(logger_, "Pop local queue ({}).", local_queue_->size());
+	if (local_queue->TryDequeue(task)) {
+		XAMP_LOG_D(logger_, "Pop local queue ({}).", local_queue->size());
 		return std::move(task);
 	}
 	return std::nullopt;
@@ -138,37 +139,37 @@ void TaskScheduler::AddThread(size_t i, int32_t affinity, ThreadPriority priorit
 		static thread_local PRNG prng;
 		auto thread_id = GetCurrentThreadId();
 
-		local_queue_ = workstealing_queue_list_[i].get();
+		auto local_queue = workstealing_queue_list_[i].get();
 
 		SetThreadPriority(priority);
 		SetWorkerThreadName(i);
 
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) start.", thread_id, i);
-		std::chrono::milliseconds timeout(0);
+		auto empty_count = 0;
 
 		while (!is_stopped_) {
-			auto task = TryLocalPop();           
+			auto task = TryLocalPop(local_queue);
 
 			if (!task) {
-				task = TryDequeueSharedQueue();
+				auto steal_index = 0;
+				do {
+					steal_index = prng.NextSize(max_thread_ - 1);
+				} while (steal_index != i);
+
+				task = TrySteal(steal_index);
+
 				if (!task) {
-					auto steal_index = 0;
-					do {
-						steal_index = prng.NextSize(max_thread_ - 1);
-					} while (steal_index != i);
-					task = TrySteal(steal_index);
-                    if (!task) {
-                        if (local_queue_->size() > max_thread_) {
-							timeout = std::chrono::milliseconds(0);
-                        } else {
-                            timeout = kDefaultTimeout;
-                        }
-                        task = TryDequeueSharedQueue(timeout);
-						if (!task) {
-							continue;
-						}
+					++empty_count;
+					if (empty_count >= 100) {
+						task = TryDequeueSharedQueue(kDefaultTimeout);
 					}
 				}
+			}
+
+			if (!task) {
+				continue;
+			} else {
+				empty_count = 0;
 			}
 
 			auto running_thread = ++running_thread_;

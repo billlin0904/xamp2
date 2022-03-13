@@ -27,8 +27,8 @@ using SharedTaskQueue = BlockingQueue<Task, FastMutex, FastConditionVariable>;
 using SharedTaskQueuePtr = AlignPtr<SharedTaskQueue>;
 
 //using WorkStealingTaskQueue = BlockingQueue<Task, FastMutex, FastConditionVariable, LIFOQueue<Task>>;
-//using WorkStealingTaskQueue = BlockingQueue<Task, FastMutex, FastConditionVariable>;
-using WorkStealingTaskQueue = LockFreeStack<Task>;
+using WorkStealingTaskQueue = BlockingQueue<Task, FastMutex, FastConditionVariable>;
+//using WorkStealingTaskQueue = LockFreeStack<Task>;
 using WorkStealingTaskQueuePtr = AlignPtr<WorkStealingTaskQueue>;
 
 class TaskScheduler final : public ITaskScheduler {
@@ -50,7 +50,7 @@ private:
 
     std::optional<Task> TrySteal(size_t i);
 
-    std::optional<Task> TryLocalPop() const;
+    std::optional<Task> TryLocalPop(WorkStealingTaskQueue * local_queue) const;
 
     std::optional<Task> TryDequeueSharedQueue(std::chrono::milliseconds timeout);
 
@@ -60,8 +60,6 @@ private:
     static constexpr size_t kInitL1CacheLineSize = 64 * 1024;
     static constexpr size_t kMaxL1CacheLineSize = 256 * 1024;
 
-    inline static thread_local WorkStealingTaskQueue* local_queue_;
-    
 	std::atomic<bool> is_stopped_;
     std::atomic<size_t> running_thread_;
 	size_t index_;
