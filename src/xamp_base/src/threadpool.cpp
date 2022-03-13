@@ -151,7 +151,7 @@ void TaskScheduler::AddThread(size_t i, int32_t affinity, ThreadPriority priorit
 			auto task = TryLocalPop(local_queue);
 
 			if (!task) {
-				auto steal_index = 0;
+                size_t steal_index = 0;
 				do {
 					steal_index = prng.NextSize(max_thread_ - 1);
 				} while (steal_index != i);
