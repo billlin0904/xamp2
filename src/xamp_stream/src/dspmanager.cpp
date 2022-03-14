@@ -12,33 +12,6 @@ namespace xamp::stream {
 
 static constexpr int32_t kDefaultBufSize = 1024 * 1024;
 
-static void AddOrReplace(AlignPtr<IAudioProcessor> processor, std::vector<AlignPtr<IAudioProcessor>>& dsp_chain) {
-    auto id = processor->GetTypeId();
-    const auto itr = std::find_if(dsp_chain.begin(),
-        dsp_chain.end(),
-        [id](auto const& processor) {
-            return processor->GetTypeId() == id;
-        });
-    XAMP_LOG_DEBUG("Add dsp:{} success.", processor->GetDescription());
-    if (itr != dsp_chain.end()) {
-        *itr = std::move(processor);
-    }
-    else {
-        dsp_chain.push_back(std::move(processor));
-    }
-}
-
-static void Remove(Uuid const& id, std::vector<AlignPtr<IAudioProcessor>>& dsp_chain) {
-    auto itr = std::remove_if(dsp_chain.begin(),
-        dsp_chain.end(),
-        [id](auto const& processor) {
-            return processor->GetTypeId() == id;
-        });
-    if (itr != dsp_chain.end()) {
-        XAMP_LOG_DEBUG("Remove post dsp:{} success.", (*itr)->GetDescription());
-    }
-}
-
 DSPManager::DSPManager()
 	: replay_gain_(0.0)
 	, dsd_modes_(DsdModes::DSD_MODE_PCM) {
@@ -88,6 +61,33 @@ void DSPManager::RemoveReplayGain() {
 
 bool DSPManager::CanProcessFile() const noexcept {
     return (dsd_modes_ == DsdModes::DSD_MODE_PCM || dsd_modes_ == DsdModes::DSD_MODE_DSD2PCM) && !pre_dsp_.empty() && !post_dsp_.empty();
+}
+
+void DSPManager::AddOrReplace(AlignPtr<IAudioProcessor> processor, std::vector<AlignPtr<IAudioProcessor>>& dsp_chain) {
+    auto id = processor->GetTypeId();
+    const auto itr = std::find_if(dsp_chain.begin(),
+        dsp_chain.end(),
+        [id](auto const& processor) {
+            return processor->GetTypeId() == id;
+        });
+    XAMP_LOG_D(logger_, "Add dsp:{} success.", processor->GetDescription());
+    if (itr != dsp_chain.end()) {
+        *itr = std::move(processor);
+    }
+    else {
+        dsp_chain.push_back(std::move(processor));
+    }
+}
+
+void DSPManager::Remove(Uuid const& id, std::vector<AlignPtr<IAudioProcessor>>& dsp_chain) {
+    auto itr = std::remove_if(dsp_chain.begin(),
+        dsp_chain.end(),
+        [id](auto const& processor) {
+            return processor->GetTypeId() == id;
+        });
+    if (itr != dsp_chain.end()) {
+        XAMP_LOG_D(logger_, "Remove post dsp:{} success.", (*itr)->GetDescription());
+    }
 }
 
 bool DSPManager::IsEnableSampleRateConverter() const {
@@ -152,7 +152,7 @@ void DSPManager::Init(AudioFormat input_format, AudioFormat output_format, DsdMo
 
     for (const auto& dsp : post_dsp_) {
         dsp->Start(output_format.GetSampleRate());
-        XAMP_LOG_D(logger_, "Init {} .", dsp->GetDescription());
+        XAMP_LOG_D(logger_, "Start {} .", dsp->GetDescription());
     }
 
     if (const auto converter = GetPreDSP<SoxrSampleRateConverter>()) {

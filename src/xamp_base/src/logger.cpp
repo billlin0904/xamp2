@@ -115,7 +115,7 @@ Logger& Logger::AddFileLogger(const std::string &file_name) {
 
 	std::ostringstream ostr;
 	ostr << "logs/" << file_name;
-	sinks_.push_back(std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
+	sinks_.push_back(std::make_shared<spdlog::sinks::rotating_file_sink<FastMutex>>(
 		ostr.str(), kMaxLogFileSize, 0));
 	return *this;
 }

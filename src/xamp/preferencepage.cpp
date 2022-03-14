@@ -60,11 +60,13 @@ void PreferencePage::saveSoxrResampler(const QString &name) {
 }
 
 void PreferencePage::initSoxResampler() {
-    Q_FOREACH (const auto &soxr_setting_name, JsonSettings::keys()) {
+	auto soxr_map = JsonSettings::getValueAsMap(kSoxr);
+
+    Q_FOREACH (const auto &soxr_setting_name, soxr_map.keys()) {
 		ui_.soxrSettingCombo->addItem(soxr_setting_name);
 	}
 
-	auto enable_resampler = AppSettings::getValueAsBool(kAppSettingResamplerEnable);
+    const auto enable_resampler = AppSettings::getValueAsBool(kAppSettingResamplerEnable);
 	if (!enable_resampler) {
 		ui_.resamplerStackedWidget->setCurrentIndex(0);
 		ui_.selectResamplerComboBox->setCurrentIndex(0);
@@ -73,10 +75,8 @@ void PreferencePage::initSoxResampler() {
 		ui_.resamplerStackedWidget->setCurrentIndex(1);
 		ui_.selectResamplerComboBox->setCurrentIndex(1);
 	}
-
-	auto soxr_settings = QVariant::fromValue(
-		JsonSettings::getValue(AppSettings::getValueAsString(kAppSettingSoxrSettingName))
-	).toMap();
+	
+    const auto soxr_settings = soxr_map[AppSettings::getValueAsString(kAppSettingSoxrSettingName)].toMap();
 
 	loadSoxrResampler(soxr_settings);
 
@@ -88,10 +88,10 @@ void PreferencePage::initSoxResampler() {
     });
 
     (void)QObject::connect(ui_.saveSoxrSettingBtn, &QPushButton::pressed, [this]() {
-        auto setting_name = QInputDialog::getText(this, tr("Save soxr setting"), 
-			tr("Setting name:"),
-			QLineEdit::Normal,
-			ui_.soxrSettingCombo->currentText());
+	    const auto setting_name = QInputDialog::getText(this, tr("Save soxr setting"), 
+	                                                    tr("Setting name:"),
+	                                                    QLineEdit::Normal,
+	                                                    ui_.soxrSettingCombo->currentText());
         if (setting_name.isEmpty()) {
             return;
         }
@@ -118,8 +118,9 @@ void PreferencePage::initSoxResampler() {
     });
 
     (void)QObject::connect(ui_.soxrSettingCombo, static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::textActivated), [this](auto index) {
-		auto soxr_settings = QVariant::fromValue(JsonSettings::getValue(index)).toMap();
-		loadSoxrResampler(soxr_settings);
+		const auto soxr_settings = JsonSettings::getValueAsMap(kSoxr);
+		const auto settings = soxr_settings[index].toMap();
+		loadSoxrResampler(settings);
 		});
 }
 
@@ -285,7 +286,9 @@ void PreferencePage::update() {
 }
 
 void PreferencePage::saveAll() {
-	JsonSettings::setValue(ui_.soxrSettingCombo->currentText(), getSoxrSettings());
+	QMap<QString, QVariant> soxr_settings;
+	soxr_settings[ui_.soxrSettingCombo->currentText()] = getSoxrSettings();
+	JsonSettings::setValue(kSoxr, soxr_settings);
 	AppSettings::setValue(kAppSettingSoxrSettingName, ui_.soxrSettingCombo->currentText());
 	AppSettings::setDefaultValue(kAppSettingSoxrSettingName, ui_.soxrSettingCombo->currentText());
 	AppSettings::setValue(kFlacEncodingLevel, ui_.flacCompressionLevelSlider->value());

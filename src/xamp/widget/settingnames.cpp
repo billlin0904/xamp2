@@ -29,16 +29,6 @@ const ConstLatin1String kAppSettingReplayGainScanMode{ "AppSettings/replayGainSc
 
 const ConstLatin1String kAppSettingResamplerEnable{ "AppSettings/soxr/enable" };
 const ConstLatin1String kAppSettingSoxrSettingName{ "AppSettings/soxr/userSettingName" };
-const ConstLatin1String kAppSettingSoxrSettingRollOff{ "AppSettings/soxr/rollOff" };
-
-const ConstLatin1String kSoxrResampleSampleRate{ "resampleSampleRate" };
-const ConstLatin1String kSoxrEnableSteepFilter{ "enableSteepFilter" };
-const ConstLatin1String kSoxrQuality{ "quality" };
-const ConstLatin1String kSoxrStopBand{ "stopBand" };
-const ConstLatin1String kSoxrPassBand{ "passBand" };
-const ConstLatin1String kSoxrPhase{ "phase" };
-const ConstLatin1String kSoxrRollOffLevel{ "rolloffLevel" };
-const ConstLatin1String kSoxrDefaultSettingName{ "default" };
 
 const ConstLatin1String kAppSettingEnableEQ{ "AppSettings/enableEQ" };
 const ConstLatin1String kAppSettingEQName{ "AppSettings/EQName" };
@@ -48,3 +38,18 @@ const ConstLatin1String kLyricsTextColor{ "AppSettings/lyrics/textColor" };
 const ConstLatin1String kLyricsHighLightTextColor{ "AppSettings/lyrics/highLightTextColor" };
 
 const ConstLatin1String kFlacEncodingLevel{ "AppSettings/flacEncodingLevel" };
+
+const ConstLatin1String kSoxr{ "Soxr" };
+const ConstLatin1String kSoxrResampleSampleRate{ "resampleSampleRate" };
+const ConstLatin1String kSoxrEnableSteepFilter{ "enableSteepFilter" };
+const ConstLatin1String kSoxrQuality{ "quality" };
+const ConstLatin1String kSoxrStopBand{ "stopBand" };
+const ConstLatin1String kSoxrPassBand{ "passBand" };
+const ConstLatin1String kSoxrPhase{ "phase" };
+const ConstLatin1String kSoxrRollOffLevel{ "rolloffLevel" };
+const ConstLatin1String kSoxrDefaultSettingName{ "default" };
+
+const ConstLatin1String kLog{ "Log" };
+const ConstLatin1String kLogMinimumLevel{ "MinimumLevel" };
+const ConstLatin1String kLogDefault{ "Default" };
+const ConstLatin1String kLogOverride{ "Override" };

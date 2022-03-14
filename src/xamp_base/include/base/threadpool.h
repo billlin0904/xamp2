@@ -23,12 +23,12 @@
 
 namespace xamp::base {
 
-using SharedTaskQueue = BlockingQueue<Task, FastMutex, FastConditionVariable>;
+using SharedTaskQueue = BlockingQueue<Task>;
 using SharedTaskQueuePtr = AlignPtr<SharedTaskQueue>;
 
-//using WorkStealingTaskQueue = BlockingQueue<Task, FastMutex, FastConditionVariable, LIFOQueue<Task>>;
-using WorkStealingTaskQueue = BlockingQueue<Task, FastMutex, FastConditionVariable>;
-//using WorkStealingTaskQueue = LockFreeStack<Task>;
+using WorkStealingTaskQueue = BlockingQueue<Task>;
+
+using SharedTaskQueuePtr = AlignPtr<SharedTaskQueue>;
 using WorkStealingTaskQueuePtr = AlignPtr<WorkStealingTaskQueue>;
 
 class TaskScheduler final : public ITaskScheduler {
@@ -57,16 +57,14 @@ private:
     void AddThread(size_t i, int32_t affinity, ThreadPriority priority);
 
     static constexpr size_t K = 4;
-    static constexpr size_t kInitL1CacheLineSize = 64 * 1024;
-    static constexpr size_t kMaxL1CacheLineSize = 256 * 1024;
 
 	std::atomic<bool> is_stopped_;
     std::atomic<size_t> running_thread_;
 	size_t index_;
     size_t max_thread_;
     std::vector<std::thread> threads_;
-    SharedTaskQueuePtr shared_queues_;
-    std::vector<WorkStealingTaskQueuePtr> workstealing_queue_list_;
+    SharedTaskQueuePtr task_pool_;
+    std::vector<WorkStealingTaskQueuePtr> thread_task_queues_;
     std::shared_ptr<spdlog::logger> logger_;
 };
 

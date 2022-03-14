@@ -58,6 +58,10 @@ public:
     void Flush() override;
 
 private:
+    void AddOrReplace(AlignPtr<IAudioProcessor> processor, std::vector<AlignPtr<IAudioProcessor>>& dsp_chain);
+
+    void Remove(Uuid const& id, std::vector<AlignPtr<IAudioProcessor>>& dsp_chain);
+
     bool ApplyDSP(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo);
 
     using DspIterator = std::vector<AlignPtr<IAudioProcessor>>::const_iterator;

@@ -13,14 +13,22 @@
 
 namespace xamp::base {
 
-template <typename T>
+template
+<
+    typename T,
+    typename V =
+    std::enable_if_t
+    <
+    std::is_nothrow_move_assignable_v<T>
+    >
+>
 class LIFOQueue {
 public:
     explicit LIFOQueue(size_t size)
         : size_{size} {
     }
 
-    void emplace(T&& item) {
+    void emplace(T&& item) noexcept {
         queue_.emplace(std::move(item));
     }
 
@@ -36,7 +44,7 @@ public:
         return queue_.empty();
     }
 
-    size_t size() const {
+    size_t size() const noexcept {
         return queue_.size();
     }
 private:
@@ -53,7 +61,7 @@ template
     std::is_nothrow_move_assignable_v<T>
     >
 >
-class LockFreeStack {
+class SpinLockFreeStack {
 public:
     struct Node {
         Node *next;
@@ -75,41 +83,41 @@ public:
         }
     };
 
-    explicit LockFreeStack(size_t size)
+    explicit SpinLockFreeStack(size_t size)
         : size_{size} {
-        head.store(Head(), std::memory_order_relaxed);
+        head_.store(Head(), std::memory_order_relaxed);
         buffer_.resize(size);
         for (size_t i = 0; i < size - 1; ++i) {
             buffer_[i].next = &buffer_[i + 1];
         }
         buffer_[size-1].next = nullptr;
-        free_nodes.store(Head(buffer_.data()),std::memory_order_relaxed);
+        free_nodes_.store(Head(buffer_.data()),std::memory_order_relaxed);
     }
 
-    bool TryDequeue(T& task) {
-        auto *node = Pop(head);
+    bool TryDequeue(T& task) noexcept {
+        auto *node = Pop(head_);
         if (!node) {
             return false;
         }
 
         task = std::move(node->value);
-        Push(free_nodes, node);
+        Push(free_nodes_, node);
         return true;
     }
 
     template <typename U>
-    bool TryEnqueue(U &&task) {
-        auto *node = Pop(free_nodes);
+    bool TryEnqueue(U &&task) noexcept {
+        auto *node = Pop(free_nodes_);
         if (!node) {
             return false;
         }
 
         node->value = std::move(task);
-        Push(head, node);
+        Push(head_, node);
         return true;
     }
 
-    size_t size() const {
+    size_t size() const noexcept {
         return 0;
     }
 
@@ -142,9 +150,9 @@ private:
 
     size_t size_;
     std::vector<Node> buffer_;
-    XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<Head> head;
-    XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<Head> free_nodes;
-    uint8_t padding_[kCacheAlignSize - sizeof(free_nodes)]{ 0 };
+    XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<Head> head_;
+    XAMP_CACHE_ALIGNED(kCacheAlignSize) std::atomic<Head> free_nodes_;
+    uint8_t padding_[kCacheAlignSize - sizeof(free_nodes_)]{ 0 };
 };
 
 }

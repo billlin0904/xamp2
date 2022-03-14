@@ -47,6 +47,10 @@ int32_t JsonSettings::getAsInt(const QString& key) {
 	return getValue(key).toInt();
 }
 
+QMap<QString, QVariant> JsonSettings::getValueAsMap(QString const& key) {
+	return QVariant::fromValue(getValue(key)).toMap();
+}
+
 QVariant JsonSettings::getValue(const QString& key) {
 	if (key.isEmpty()) {
 		return{};

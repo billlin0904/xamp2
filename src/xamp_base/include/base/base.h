@@ -134,10 +134,16 @@ using RecursiveDirectoryIterator = Fs::recursive_directory_iterator;
 using DirectoryIterator = Fs::directory_iterator;
 using Path = Fs::path;
 
-// <summary>
-// Avoid cache-pollution padding size.
-// </summary>
+/// <summary>
+/// Avoid cache-pollution padding size.
+/// </summary>
 inline constexpr size_t kCacheAlignSize{ 64 };
+
+/// <summary>
+/// Avoid 64k Alias conflicts.
+/// </summary>
+static constexpr size_t kInitL1CacheLineSize{ 64 * 1024 };
+static constexpr size_t kMaxL1CacheLineSize{ 256 * 1024 };
 
 /// <summary>
 /// Memory allocate aligned size

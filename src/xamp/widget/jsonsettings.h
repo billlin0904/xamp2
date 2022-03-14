@@ -15,6 +15,8 @@ class JsonSettings {
 public:
     static void loadJsonFile(QString const& file_name);
 
+    static QMap<QString, QVariant> getValueAsMap(QString const& key);
+
     static QVariant getValue(QString const& key);
 
     static int32_t getAsInt(QString const& key);

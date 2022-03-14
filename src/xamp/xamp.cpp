@@ -996,7 +996,8 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
         QMap<QString, QVariant> soxr_settings;
 
 	    if (AppSettings::getValueAsBool(kAppSettingResamplerEnable)) {
-            soxr_settings = JsonSettings::getValue(AppSettings::getValueAsString(kAppSettingSoxrSettingName)).toMap();
+		    const auto setting_name = AppSettings::getValueAsString(kAppSettingSoxrSettingName);
+            soxr_settings = JsonSettings::getValue(kSoxr).toMap()[setting_name].toMap();
             target_sample_rate = soxr_settings[kSoxrResampleSampleRate].toUInt();
         }
 

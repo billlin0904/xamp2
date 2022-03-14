@@ -35,8 +35,8 @@ extern const ConstLatin1String kAppSettingReplayGainScanMode;
 
 extern const ConstLatin1String kAppSettingResamplerEnable;
 extern const ConstLatin1String kAppSettingSoxrSettingName;
-extern const ConstLatin1String kAppSettingSoxrSettingRollOff;
 
+extern const ConstLatin1String kSoxr;
 extern const ConstLatin1String kSoxrResampleSampleRate;
 extern const ConstLatin1String kSoxrEnableSteepFilter;
 extern const ConstLatin1String kSoxrQuality;
@@ -54,4 +54,9 @@ extern const ConstLatin1String kLyricsTextColor;
 extern const ConstLatin1String kLyricsHighLightTextColor;
 
 extern const ConstLatin1String kFlacEncodingLevel;
+
+extern const ConstLatin1String kLog;
+extern const ConstLatin1String kLogMinimumLevel;
+extern const ConstLatin1String kLogDefault;
+extern const ConstLatin1String kLogOverride;
 

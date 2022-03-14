@@ -26,32 +26,106 @@
 #include <widget/win32/win32.h>
 #endif
 
+#include <widget/appsettings.h>
 #include "thememanager.h"
 #include "singleinstanceapplication.h"
 #include "xamp.h"
 
-static void loadOrDefaultSoxrSetting() {
-    const auto keys = JsonSettings::keys();
-    if (keys.count() > 0) {
-        return;
+static void loadSoxrSetting() {
+    if (JsonSettings::getValueAsMap(kSoxr).isEmpty()) {
+        QMap<QString, QVariant> default_setting;
+
+        default_setting[kSoxrResampleSampleRate] = 96000;
+        default_setting[kSoxrEnableSteepFilter] = false;
+        default_setting[kSoxrQuality] = static_cast<int32_t>(SoxrQuality::VHQ);
+        default_setting[kSoxrPhase] = 46;
+        default_setting[kSoxrStopBand] = 100;
+        default_setting[kSoxrPassBand] = 96;
+        default_setting[kSoxrRollOffLevel] = static_cast<int32_t>(SoxrRollOff::ROLLOFF_NONE);
+
+        QMap<QString, QVariant> soxr_setting;
+        soxr_setting[kSoxrDefaultSettingName] = default_setting;
+
+        JsonSettings::setValue(kSoxr, QVariant::fromValue(soxr_setting));
+        AppSettings::setValue(kAppSettingSoxrSettingName, kSoxrDefaultSettingName);
+        AppSettings::setDefaultValue(kAppSettingSoxrSettingName, kSoxrDefaultSettingName);
     }
+}
 
-    QMap<QString, QVariant> default_setting;
+static spdlog::level::level_enum ParseLogLevel(const QString &str) {
+    const static QMap<QString, spdlog::level::level_enum> logs{
+    	{ Q_UTF8("info"), spdlog::level::info},
+        { Q_UTF8("debug"), spdlog::level::debug},
+        { Q_UTF8("trace"), spdlog::level::trace},
+        { Q_UTF8("warn"), spdlog::level::warn},
+        { Q_UTF8("err"), spdlog::level::err},
+        { Q_UTF8("critical"), spdlog::level::critical},
+    };
+    if (!logs.contains(str)) {
+        return spdlog::level::info;
+    }
+    return logs[str];
+}
 
-    default_setting[kSoxrResampleSampleRate] = 96000;
-    default_setting[kSoxrEnableSteepFilter] = false;
-    default_setting[kSoxrQuality] = static_cast<int32_t>(SoxrQuality::VHQ);
-    default_setting[kSoxrPhase] = 46;
-    default_setting[kSoxrStopBand] = 100;
-    default_setting[kSoxrPassBand] = 96;
-    default_setting[kAppSettingSoxrSettingRollOff] = static_cast<int32_t>(SoxrRollOff::ROLLOFF_NONE);
+static void loadLogConfig() {
+    QMap<QString, QVariant> log;
+    QMap<QString, QVariant> min_level;
+    QMap<QString, QVariant> override_map;
 
-    JsonSettings::setValue(kSoxrDefaultSettingName, QVariant::fromValue(default_setting));
-    AppSettings::setValue(kAppSettingSoxrSettingName, kSoxrDefaultSettingName);
-    AppSettings::setDefaultValue(kAppSettingSoxrSettingName, kSoxrDefaultSettingName);
+    const QMap<QString, QVariant> well_known_log_name{
+        { fromStdStringView(kWASAPIThreadPoolLoggerName), Q_UTF8("info") },
+        { fromStdStringView(kPlaybackThreadPoolLoggerName), Q_UTF8("info") },
+        { fromStdStringView(kBackgroundThreadPoolLoggerName), Q_UTF8("info") },
+        { fromStdStringView(kExclusiveWasapiDeviceLoggerName), Q_UTF8("info") },
+        { fromStdStringView(kSharedWasapiDeviceLoggerName), Q_UTF8("info") },
+        { fromStdStringView(kAsioDeviceLoggerName), Q_UTF8("info") },
+        { fromStdStringView(kAudioPlayerLoggerName), Q_UTF8("info") },
+        { fromStdStringView(kVirtualMemoryLoggerName), Q_UTF8("info") },
+        { fromStdStringView(kSoxrLoggerName), Q_UTF8("info") },
+        { fromStdStringView(kCompressorLoggerName), Q_UTF8("info") },
+        { fromStdStringView(kVolumeLoggerName), Q_UTF8("info") },
+        { fromStdStringView(kCoreAudioLoggerName), Q_UTF8("info") },
+        { fromStdStringView(kDspManagerLoggerName), Q_UTF8("info") },
+    };
 
-    JsonSettings::save();
-    AppSettings::save();
+    if (JsonSettings::getValueAsMap(kLog).isEmpty()) {
+        min_level[kLogDefault] = Q_UTF8("debug");
+
+        XAMP_SET_LOG_LEVEL(ParseLogLevel(min_level[kLogDefault].toString()));
+
+    	for (auto itr = well_known_log_name.begin()
+            ; itr != well_known_log_name.end(); ++itr) {
+            override_map[itr.key()] = itr.value();
+            Logger::GetInstance().GetLogger(itr.key().toStdString())
+                ->set_level(ParseLogLevel(itr.value().toString()));
+        }
+
+        min_level[kLogOverride] = override_map;
+        log[kLogMinimumLevel] = min_level;
+        JsonSettings::setValue(kLog, QVariant::fromValue(log));
+        JsonSettings::setDefaultValue(kLog, QVariant::fromValue(log));
+    } else {
+        log = JsonSettings::getValueAsMap(kLog);
+        min_level = log[kLogMinimumLevel].toMap();
+
+        const auto default_level = min_level[kLogDefault].toString();
+        XAMP_SET_LOG_LEVEL(ParseLogLevel(default_level));
+
+        override_map = min_level[kLogOverride].toMap();
+
+        for (auto itr = well_known_log_name.begin()
+            ; itr != well_known_log_name.end(); ++itr) {
+            override_map[itr.key()] = itr.value();
+        }
+
+        for (auto itr = override_map.begin()
+            ; itr != override_map.end(); ++itr) {
+	        const auto& log_name = itr.key();
+            auto log_level = itr.value().toString();
+            Logger::GetInstance().GetLogger(log_name.toStdString())
+        	->set_level(ParseLogLevel(log_level));
+        }       
+    }
 }
 
 static void loadSettings() {
@@ -76,14 +150,9 @@ static void loadSettings() {
     AppSettings::setDefaultEnumValue(kAppSettingReplayGainScanMode, ReplayGainScanMode::RG_SCAN_MODE_FAST);
     AppSettings::setDefaultValue(kAppSettingEnableReplayGain, true);
     AppSettings::setDefaultEnumValue(kAppSettingTheme, ThemeColor::DARK_THEME);
-    JsonSettings::loadJsonFile(Q_UTF8("soxr.json"));
-	
-    loadOrDefaultSoxrSetting();
-
-    XAMP_LOG_DEBUG("setOrDefaultConfig success.");
 
     if (AppSettings::getValueAsString(kAppSettingLang).isEmpty()) {
-	    const LocaleLanguage lang;
+        const LocaleLanguage lang;
         XAMP_LOG_DEBUG("Load locale lang file: {}.", lang.getIsoCode().toStdString());
         AppSettings::loadLanguage(lang.getIsoCode());
         AppSettings::setValue(kAppSettingLang, lang.getIsoCode());
@@ -95,11 +164,20 @@ static void loadSettings() {
     }
 
     AppSettings::save();
+    XAMP_LOG_DEBUG("loadSettings success.");
 }
 
-static std::vector<ModuleHandle> preloadDll() {
+static void loadLogAndSoxrConfig() {
+    JsonSettings::loadJsonFile(Q_UTF8("config.json"));
+    loadLogConfig();
+    loadSoxrSetting();
+    JsonSettings::save();
+    XAMP_LOG_DEBUG("loadLogAndSoxrConfig success.");
+}
+
 #ifdef XAMP_OS_WIN
-    const std::vector<std::string_view> preload_dll_file_name{
+static std::vector<ModuleHandle> prefetchWin32DLL() {
+    const std::vector<std::string_view> dll_file_names{
         "Qt5Gui.dll", // Qt
         "Qt5Core.dll", // Qt
         "Qt5Widgets.dll", // Qt
@@ -111,6 +189,8 @@ static std::vector<ModuleHandle> preloadDll() {
         "ResourcePolicyClient.dll", // WASAPI
         "AudioSes.dll", // WASAPI
         "AUDIOKSE.dll",// WASAPI
+        "DWrite.dll",
+        "d3d9.dll",
         "GdiPlus.dll",
     	"comctl32.dll",
         "WindowsCodecs.dll",
@@ -118,7 +198,7 @@ static std::vector<ModuleHandle> preloadDll() {
         "setupapi.dll",
     };
     std::vector<ModuleHandle> preload_module;
-    for (const auto& file_name : preload_dll_file_name) {
+    for (const auto& file_name : dll_file_names) {
         try {
             auto module = LoadModule(file_name);
             if (PrefetchModule(module)) {
@@ -131,27 +211,8 @@ static std::vector<ModuleHandle> preloadDll() {
         }
     }
     return preload_module;
-#else
-	return std::vector<ModuleHandle>();
+}
 #endif 
-}
-
-static void setLogLevel(spdlog::level::level_enum level = spdlog::level::debug) {
-    Logger::GetInstance().GetLogger(kWASAPIThreadPoolLoggerName)->set_level(level);
-    Logger::GetInstance().GetLogger(kPlaybackThreadPoolLoggerName)->set_level(level);
-    Logger::GetInstance().GetLogger(kExclusiveWasapiDeviceLoggerName)->set_level(level);
-    Logger::GetInstance().GetLogger(kSharedWasapiDeviceLoggerName)->set_level(level);
-    Logger::GetInstance().GetLogger(kAsioDeviceLoggerName)->set_level(level);
-    Logger::GetInstance().GetLogger(kVirtualMemoryLoggerName)->set_level(level);
-    Logger::GetInstance().GetLogger(kSoxrLoggerName)->set_level(level);
-    Logger::GetInstance().GetLogger(kCompressorLoggerName)->set_level(level);
-    Logger::GetInstance().GetLogger(kCoreAudioLoggerName)->set_level(level);
-    Logger::GetInstance().GetLogger(kDspManagerLoggerName)->set_level(level);
-    Logger::GetInstance().GetLogger(kAudioPlayerLoggerName)->set_level(level);
-    Logger::GetInstance().GetLogger(kBackgroundThreadPoolLoggerName)->set_level(level);
-    Logger::GetInstance().GetLogger(kVolumeLoggerName)->set_level(level);
-    Logger::GetInstance().GetLogger("PixmapCache")->set_level(level);
-}
 
 static int excute(int argc, char* argv[]) {
     QApplication app(argc, argv);
@@ -184,8 +245,6 @@ static int excute(int argc, char* argv[]) {
 
     XAMP_LOG_DEBUG("attach app success.");
 
-    loadSettings();
-
     try {
         Singleton<Database>::GetInstance().open(Q_UTF8("xamp.db"));
     }
@@ -195,11 +254,6 @@ static int excute(int argc, char* argv[]) {
     }
 
     XAMP_LOG_DEBUG("Database init success.");
-    setLogLevel(spdlog::level::info);
-
-    Logger::GetInstance().GetLogger(kAudioPlayerLoggerName)->set_level(spdlog::level::debug);
-    Logger::GetInstance().GetLogger(kPlaybackThreadPoolLoggerName)->set_level(spdlog::level::debug);
-    Logger::GetInstance().GetLogger(kBackgroundThreadPoolLoggerName)->set_level(spdlog::level::debug);
 
     Singleton<ThemeManager>::GetInstance().applyTheme();
 
@@ -214,8 +268,6 @@ static int excute(int argc, char* argv[]) {
     top_win.activateWindow();
     top_win.resize(1250, 560);
     centerDesktop(&top_win);
-
-    const auto preload_module = preloadDll();
     return app.exec();
 }
 
@@ -241,17 +293,23 @@ int main(int argc, char *argv[]) {
         .AddFileLogger("xamp.log")
         .GetLogger(kDefaultLoggerName);
 
-    XAMP_SET_LOG_LEVEL(spdlog::level::debug);
-    XAMP_LOG_DEBUG("=:==:==:==:==:= Logger init success. =:==:==:==:==:= ");
+    loadSettings();
+    loadLogAndSoxrConfig();
+
+#ifdef XAMP_OS_WIN
+    const auto preload_module = prefetchWin32DLL();
+#endif
+
+    XAMP_LOG_DEBUG("=:==:==:==:==:= Logger init success. =:==:==:==:==:=");
 
     CrashHandler crash_handler;
     crash_handler.SetProcessExceptionHandlers();
 
     XAMP_ON_SCOPE_EXIT(
-        XAMP_LOG_DEBUG("=:==:==:==:==:= Logger shutdwon =:==:==:==:==:=");
-        Logger::GetInstance().Shutdown();
         JsonSettings::save();
         AppSettings::save();
+        XAMP_LOG_DEBUG("=:==:==:==:==:= Logger shutdwon =:==:==:==:==:=");
+        Logger::GetInstance().Shutdown();
     );
 
     if (excute(argc, argv) == kRestartPlayerCode) {

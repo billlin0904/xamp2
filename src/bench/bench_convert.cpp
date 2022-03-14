@@ -51,10 +51,9 @@ static void BM_Win32ThreadPool(benchmark::State& state) {
 #endif
 
 static void BM_ThreadPool(benchmark::State& state) {
-    static auto thread_pool = MakeThreadPool(kPlaybackThreadPoolLoggerName,
-        std::thread::hardware_concurrency(),
-        -1,
-        ThreadPriority::NORMAL);
+    static auto thread_pool = MakeThreadPool(
+        kPlaybackThreadPoolLoggerName,
+        std::thread::hardware_concurrency());
     auto length = state.range(0);
     std::vector<int> n(length);
     std::iota(n.begin(), n.end(), 1);
@@ -386,8 +385,8 @@ static void BM_UuidParse(benchmark::State& state) {
     }
 }
 
-static void BM_WorkStealingQueue(benchmark::State& state) {
-    static LockFreeStack<int32_t> ws_queue(64);
+static void BM_SpinLockFreeStack(benchmark::State& state) {
+    static SpinLockFreeStack<int32_t> ws_queue(64);
 
     for (auto _ : state) {
         for (auto i = 0; i < 8; ++i) {
@@ -400,26 +399,26 @@ static void BM_WorkStealingQueue(benchmark::State& state) {
 
 static void BM_LIFOQueue(benchmark::State& state) {
     using Queue = BlockingQueue<int32_t, FastMutex, FastConditionVariable, LIFOQueue<int32_t>>;
-    static Queue lifo_quque(64);
+    static Queue lifo_queue(64);
 
     for (auto _ : state) {
         for (auto i = 0; i < 8; ++i) {
-            lifo_quque.TryEnqueue(1);
+            lifo_queue.TryEnqueue(1);
             int32_t result;
-            lifo_quque.TryDequeue(result);
+            lifo_queue.TryDequeue(result);
         }        
     }
 }
 
-static void BM_RingQueue(benchmark::State& state) {
-    using Queue = BlockingQueue<int32_t, FastMutex, FastConditionVariable>;
-    static Queue ring_quque(64);
+static void BM_CircularBuffer(benchmark::State& state) {
+    using Queue = BlockingQueue<int32_t>;
+    static Queue blocking_queue(64);
 
     for (auto _ : state) {
         for (auto i = 0; i < 8; ++i) {
-            ring_quque.TryEnqueue(1);
+            blocking_queue.TryEnqueue(1);
             int32_t result;
-            ring_quque.TryDequeue(result);
+            blocking_queue.TryDequeue(result);
         }
     }
 }
@@ -446,14 +445,14 @@ static void BM_RingQueue(benchmark::State& state) {
 //BENCHMARK(BM_InterleavedToPlanarConvertToInt32)->RangeMultiplier(2)->Range(4096, 8 << 10);
 //BENCHMARK(BM_FFT)->RangeMultiplier(2)->Range(4096, 8 << 12);
 
-//BENCHMARK(BM_WorkStealingQueue)->ThreadRange(1, 128);
-//BENCHMARK(BM_LIFOQueue)->ThreadRange(1, 128);
-//BENCHMARK(BM_RingQueue)->ThreadRange(1, 128);
+BENCHMARK(BM_SpinLockFreeStack)->ThreadRange(1, 128);
+BENCHMARK(BM_LIFOQueue)->ThreadRange(1, 128);
+BENCHMARK(BM_CircularBuffer)->ThreadRange(1, 128);
 
 BENCHMARK(BM_async_pool)->RangeMultiplier(2)->Range(8, 8 << 2);
-//#ifdef XAMP_OS_WIN
-//BENCHMARK(BM_std_for_each_par)->RangeMultiplier(2)->Range(8, 8 << 2);
-//#endif
+#ifdef XAMP_OS_WIN
+BENCHMARK(BM_std_for_each_par)->RangeMultiplier(2)->Range(8, 8 << 2);
+#endif
 BENCHMARK(BM_ThreadPool)->RangeMultiplier(2)->Range(8, 8 << 2);
 
 int main(int argc, char** argv) {

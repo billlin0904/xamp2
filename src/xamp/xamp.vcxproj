@@ -331,6 +331,7 @@
     <Image Include="xamp.ico" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="config.json" />
     <None Include="ja_JP.ts" />
     <None Include="Resource\Theme\dark\style.qss" />
     <None Include="Resource\Theme\light\style.qss" />

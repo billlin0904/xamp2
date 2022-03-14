@@ -2,9 +2,9 @@
 
 #include <base/logger.h>
 #include <base/ithreadpool.h>
+#include <base/math.h>
 #include <metadata/api.h>
 #include <metadata/imetadatawriter.h>
-
 #include <widget/str_utilts.h>
 #include <widget/stackblur.h>
 #include <widget/ui_utilts.h>
@@ -41,7 +41,7 @@ void BackgroundWorker::blurImage(const QString& cover_id, const QImage& image) {
         Stackblur blur(*pool_, temp, 50);
         emit updateBlurImage(temp.copy());
         blur_img_cache_.AddOrUpdate(cover_id, std::move(temp));
-        XAMP_LOG_DEBUG("Blur image end :{} secs", sw.ElapsedSeconds());
+        XAMP_LOG_DEBUG("Blur image end :{} secs", Round(sw.ElapsedSeconds()), 2);
     }
 }
 
