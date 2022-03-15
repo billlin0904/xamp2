@@ -42,7 +42,7 @@ public:
 
     bool Process(float const* samples, uint32_t num_samples, BufferRef<float>& out) {
         if (out.size() != num_samples) {
-            out.set_size(num_samples);
+            out.maybe_resize(num_samples);
         }
         MemoryCopy(out.data(), samples, num_samples * sizeof(float));
 
@@ -57,7 +57,7 @@ public:
             return false;
         }
         const auto frames = bytes_read / sizeof(float);
-        out.set_size(frames);
+        out.maybe_resize(frames);
         return true;
     }
 

@@ -150,7 +150,19 @@ static void loadSettings() {
     AppSettings::setDefaultEnumValue(kAppSettingReplayGainScanMode, ReplayGainScanMode::RG_SCAN_MODE_FAST);
     AppSettings::setDefaultValue(kAppSettingEnableReplayGain, true);
     AppSettings::setDefaultEnumValue(kAppSettingTheme, ThemeColor::DARK_THEME);
+    AppSettings::save();
+    XAMP_LOG_DEBUG("loadSettings success.");
+}
 
+static void loadLogAndSoxrConfig() {
+    JsonSettings::loadJsonFile(Q_UTF8("config.json"));
+    loadLogConfig();
+    loadSoxrSetting();
+    JsonSettings::save();
+    XAMP_LOG_DEBUG("loadLogAndSoxrConfig success.");
+}
+
+static void loadLang() {
     if (AppSettings::getValueAsString(kAppSettingLang).isEmpty()) {
         const LocaleLanguage lang;
         XAMP_LOG_DEBUG("Load locale lang file: {}.", lang.getIsoCode().toStdString());
@@ -162,17 +174,6 @@ static void loadSettings() {
         XAMP_LOG_DEBUG("Load locale lang file: {}.",
             AppSettings::getValueAsString(kAppSettingLang).toStdString());
     }
-
-    AppSettings::save();
-    XAMP_LOG_DEBUG("loadSettings success.");
-}
-
-static void loadLogAndSoxrConfig() {
-    JsonSettings::loadJsonFile(Q_UTF8("config.json"));
-    loadLogConfig();
-    loadSoxrSetting();
-    JsonSettings::save();
-    XAMP_LOG_DEBUG("loadLogAndSoxrConfig success.");
 }
 
 #ifdef XAMP_OS_WIN
@@ -224,6 +225,8 @@ static int excute(int argc, char* argv[]) {
     }
 #endif
 
+    loadLang();
+
     try {
         XStartup();
     }
@@ -256,9 +259,15 @@ static int excute(int argc, char* argv[]) {
     XAMP_LOG_DEBUG("Database init success.");
 
     Singleton<ThemeManager>::GetInstance().applyTheme();
+    XAMP_LOG_DEBUG("ThemeManager applyTheme success.");
 
     XWindow top_win;
     Xamp win;
+
+#ifdef XAMP_OS_WIN
+    const auto prefetch_module = prefetchWin32DLL();
+    XAMP_LOG_DEBUG("prefetch dll success.");
+#endif
 
     win.setXWindow(&top_win);
     top_win.setContentWidget(&win);
@@ -296,14 +305,11 @@ int main(int argc, char *argv[]) {
     loadSettings();
     loadLogAndSoxrConfig();
 
-#ifdef XAMP_OS_WIN
-    const auto preload_module = prefetchWin32DLL();
-#endif
-
     XAMP_LOG_DEBUG("=:==:==:==:==:= Logger init success. =:==:==:==:==:=");
 
     CrashHandler crash_handler;
     crash_handler.SetProcessExceptionHandlers();
+    XAMP_LOG_DEBUG("CrashHandler SetProcessExceptionHandlers success.");
 
     XAMP_ON_SCOPE_EXIT(
         JsonSettings::save();

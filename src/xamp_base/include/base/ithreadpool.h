@@ -27,7 +27,7 @@ public:
     }
 
     XAMP_ALWAYS_INLINE void operator()(const size_t thread_index) const {
-	    impl_->Call(thread_index);
+	    impl_->Invoke(thread_index);
     }
 
     TaskWrapper() = default;
@@ -46,7 +46,7 @@ public:
 private:
     struct XAMP_NO_VTABLE ImplBase {
         virtual ~ImplBase() = default;
-        virtual void Call(size_t thread_index) = 0;
+        virtual void Invoke(size_t thread_index) = 0;
     };
 
     AlignPtr<ImplBase> impl_;
@@ -57,7 +57,7 @@ private:
             : f_(std::forward<Func>(f)) {
         }
 
-        XAMP_ALWAYS_INLINE void Call(size_t thread_index) override {
+        XAMP_ALWAYS_INLINE void Invoke(size_t thread_index) override {
             f_(thread_index);
         }
         Func f_;

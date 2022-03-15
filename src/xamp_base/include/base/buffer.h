@@ -104,14 +104,14 @@ private:
 };
 
 template <typename T, typename U = std::enable_if_t<std::is_trivially_copyable_v<T>>>
-struct BufferRef {
+struct XAMP_BASE_API_ONLY_EXPORT BufferRef {
     explicit BufferRef(Buffer<T>& buf)
         : buffer_(buf.get())
         , size_(buf.size())
 		, ref_(buf) {
     }
 
-    void set_size(size_t size) noexcept {
+    void maybe_resize(size_t size) noexcept {
         if (size > ref_.size()) {
             ref_.resize(size);
             buffer_ = ref_.get();

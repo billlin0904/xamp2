@@ -214,7 +214,7 @@ public:
 		}
 
 		if (samples_done * num_channels_ != output.size()) {
-			output.set_size(samples_done * num_channels_);
+			output.maybe_resize(samples_done * num_channels_);
 		}
 
 		MemoryCopy(output.data(), output.data(), samples_done * num_channels_ * sizeof(float));
@@ -227,7 +227,7 @@ public:
 		if (required_size > output.size()) {
 			XAMP_LOG_D(logger_, "Resize size: {} => {}", output.size(), required_size);
 		}
-		output.set_size(required_size);
+		output.maybe_resize(required_size);
 	}
 
 	struct SoxrHandleTraits final {
