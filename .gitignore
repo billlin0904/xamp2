@@ -69,3 +69,16 @@ CMakeLists.txt.user
 /src/sanitize/sanitize.vcxproj.user
 /src/sanitize/x64
 /src/xamp/.vs
+src/build-bench-Desktop_Qt_5_15_2_clang_64bit-Debug
+src/build-xamp_output_device-Desktop_Qt_5_15_2_clang_64bit-Debug
+src/build-bench-Desktop_Qt_5_15_2_clang_64bit-Release
+src/build-xamp_base-Desktop_Qt_5_15_2_clang_64bit-Debug
+src/build-xamp_output_device-Desktop_Qt_5_15_2_clang_64bit-Release
+src/build-xamp_base-Desktop_Qt_5_15_2_clang_64bit-Release
+src/build-xamp_player-Desktop_Qt_5_15_2_clang_64bit-Release
+src/build-xamp_player-Desktop_Qt_5_15_2_clang_64bit-Debug
+src/build-xamp2-Desktop_Qt_5_15_2_clang_64bit-Release
+src/build-xamp_stream-Desktop_Qt_5_15_2_clang_64bit-Debug
+src/build-xamp_metadata-Desktop_Qt_5_15_2_clang_64bit-Release
+src/build-xamp_stream-Desktop_Qt_5_15_2_clang_64bit-Release
+src/build-xamp_metadata-Desktop_Qt_5_15_2_clang_64bit-Debug
