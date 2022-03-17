@@ -28,6 +28,8 @@ public:
 
     void RegisterDeviceListener(std::weak_ptr<IDeviceStateListener> const & callback) override;
 
+    void RegisterDevice(Uuid const& id, std::function<AlignPtr<IDeviceType>()> func) override;
+
     void Clear() override;
 
     [[nodiscard]] AlignPtr<IDeviceType> CreateDefaultDeviceType() const override;
@@ -45,11 +47,6 @@ public:
     [[nodiscard]] bool IsDeviceTypeExist(Uuid const& id) const noexcept;    
 private:
     class DeviceStateNotificationImpl;
-    template <typename Func>
-    void RegisterCreator(Uuid const &id, Func&& func) {
-        factory_[id] = std::forward<Func>(func);
-    }
-
     AlignPtr<DeviceStateNotificationImpl> impl_;    
     DeviceTypeFactoryMap factory_;
 };

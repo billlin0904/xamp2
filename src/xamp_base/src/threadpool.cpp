@@ -8,7 +8,7 @@ namespace xamp::base {
 inline constexpr auto kDefaultTimeout = std::chrono::milliseconds(100);
 inline constexpr auto kSharedTaskQueueSize = 4096;
 inline constexpr auto kWorkStealingTaskQueueSize = 4096;
-inline constexpr auto kMaxPopFailureSize = 100;
+inline constexpr auto kMaxPopFailureSize = 500;
 
 TaskScheduler::TaskScheduler(const std::string_view& pool_name, size_t max_thread, int32_t affinity, ThreadPriority priority)
 	: is_stopped_(false)

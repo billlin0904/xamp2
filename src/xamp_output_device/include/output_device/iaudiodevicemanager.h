@@ -20,6 +20,8 @@ public:
 
 	virtual void RegisterDeviceListener(std::weak_ptr<IDeviceStateListener> const& callback) = 0;
 
+	virtual void RegisterDevice(Uuid const& id, std::function<AlignPtr<IDeviceType>()> func) = 0;
+
 	[[nodiscard]] virtual AlignPtr<IDeviceType> CreateDefaultDeviceType() const = 0;
 
 	[[nodiscard]] virtual AlignPtr<IDeviceType> Create(Uuid const& id) const = 0;

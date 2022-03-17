@@ -55,7 +55,7 @@ private:
 
 #define XAMP_REGISTER_DEVICE_TYPE(DeviceTypeClass) \
 	XAMP_LOG_DEBUG("Register {} success", #DeviceTypeClass); \
-    factory_.emplace(DeviceTypeClass::Id, []() {\
+    RegisterDevice(DeviceTypeClass::Id, []() {\
 		return MakeAlign<IDeviceType, DeviceTypeClass>();\
 	})
 AudioDeviceManager::AudioDeviceManager() {
@@ -138,6 +138,10 @@ bool AudioDeviceManager::IsDeviceTypeExist(Uuid const& id) const noexcept {
 void AudioDeviceManager::RegisterDeviceListener(std::weak_ptr<IDeviceStateListener> const& callback) {
     impl_ = MakeAlign<DeviceStateNotificationImpl>(callback);
     impl_->Run();
+}
+
+void AudioDeviceManager::RegisterDevice(Uuid const& id, std::function<AlignPtr<IDeviceType>()> func) {
+    factory_.emplace(std::make_pair(id, std::move(func)));
 }
 
 }

@@ -136,7 +136,7 @@ XAMP_BASE_API IThreadPool& PlaybackThreadPool();
 XAMP_BASE_API IThreadPool& WASAPIThreadPool();
 
 template <typename C, typename Func>
-void ParallelFor(C& items, Func&& f, IThreadPool& tp, size_t batches = 4) {
+void ParallelFor(C& items, Func&& f, IThreadPool& tp, size_t batches = 8) {
     auto begin = std::begin(items);
     auto size = std::distance(begin, std::end(items));
 
