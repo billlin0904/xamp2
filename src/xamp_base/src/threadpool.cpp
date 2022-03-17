@@ -144,7 +144,7 @@ void TaskScheduler::AddThread(size_t i, int32_t affinity, ThreadPriority priorit
 
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) start.", thread_id, i);
 		auto pop_failure_count = 0;
-		PRNG prng;
+		static thread_local PRNG prng; // todo: ®Ä¯àÃöÁä?
 		while (!is_stopped_) {
 			auto task = TryLocalPop(local_queue);
 
