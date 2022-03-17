@@ -6,6 +6,7 @@
 #include <base/rng.h>
 #include <base/platform.h>
 #include <base/assert.h>
+#include <base/waitabletimer.h>
 
 #ifdef XAMP_OS_WIN
 #pragma comment(lib, "rpcrt4.lib")
@@ -341,6 +342,16 @@ bool VirtualMemoryUnLock(void* address, size_t size) {
 #else
     return ::munlock(address, size) != -1;
 #endif
+}
+
+void MSleep(std::chrono::milliseconds timeout) {
+    WaitableTimer timer;
+    timer.SetTimeout(timeout);
+    timer.Wait();
+}
+
+void MSleep(int64_t timeout) {
+    MSleep(std::chrono::milliseconds(timeout));
 }
 
 }

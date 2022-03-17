@@ -39,11 +39,7 @@ private:
     QPoint last_pos_{0, 0};
     QScreen* current_screen_{ nullptr };
 #endif
-
     void showEvent(QShowEvent* event) override;
-
-    void closeEvent(QCloseEvent* event) override;
-
     XFrame* frame_{ nullptr };
 };
 

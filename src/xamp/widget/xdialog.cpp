@@ -241,19 +241,3 @@ void XDialog::showEvent(QShowEvent* event) {
     opacityAnimation->start();
     QDialog::showEvent(event);
 }
-
-void XDialog::closeEvent(QCloseEvent* event) {
-    auto* opacity_effect = new QGraphicsOpacityEffect(this);
-    setGraphicsEffect(opacity_effect);
-    auto* opacity_animation = new QPropertyAnimation(opacity_effect, "opacity", this);
-    opacity_animation->setStartValue(1);
-    opacity_animation->setEndValue(0);
-    opacity_animation->setDuration(100);
-    opacity_animation->setEasingCurve(QEasingCurve::OutCubic);
-    (void)QObject::connect(opacity_animation,
-        &QPropertyAnimation::finished,
-        this,
-        &XDialog::deleteLater);
-    opacity_animation->start();    
-    event->ignore();
-}

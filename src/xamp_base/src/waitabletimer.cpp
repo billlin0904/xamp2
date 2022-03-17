@@ -142,14 +142,4 @@ void WaitableTimer::Wait() {
 	impl_->Wait();
 }
 
-void MSleep(std::chrono::milliseconds timeout) {
-	WaitableTimer timer;
-	timer.SetTimeout(timeout);
-	timer.Wait();
-}
-
-void MSleep(int64_t timeout) {
-	MSleep(std::chrono::milliseconds(timeout));
-}
-
 }
