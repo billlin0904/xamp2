@@ -115,7 +115,9 @@ static void loadLogConfig() {
 
         for (auto itr = well_known_log_name.begin()
             ; itr != well_known_log_name.end(); ++itr) {
-            override_map[itr.key()] = itr.value();
+            if (!override_map.contains(itr.key())) {
+                override_map[itr.key()] = itr.value();
+            }
         }
 
         for (auto itr = override_map.begin()
@@ -227,17 +229,6 @@ static int excute(int argc, char* argv[]) {
 
     loadLang();
 
-    try {
-        XStartup();
-    }
-    catch (const Exception& e) {
-        QMessageBox::critical(nullptr,
-            Q_UTF8("XStartup failure."),
-            QString::fromStdString(e.GetErrorMessage()));
-        XAMP_LOG_DEBUG("{}", e.GetStackTrace());
-        return -1;
-    }
-
     QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
     QApplication::setApplicationName(Q_UTF8("XAMP2"));
     QApplication::setApplicationVersion(Q_UTF8("0.0.1"));
@@ -269,6 +260,17 @@ static int excute(int argc, char* argv[]) {
     XAMP_LOG_DEBUG("prefetch dll success.");
 #endif
 
+    try {
+        XStartup();
+    }
+    catch (const Exception& e) {
+        QMessageBox::critical(nullptr,
+            Q_UTF8("XStartup failure."),
+            QString::fromStdString(e.GetErrorMessage()));
+        XAMP_LOG_DEBUG("{}", e.GetStackTrace());
+        return -1;
+    }
+
     win.setXWindow(&top_win);
     top_win.setContentWidget(&win);
     //top_win.setContentWidget(nullptr);
@@ -281,7 +283,7 @@ static int excute(int argc, char* argv[]) {
 }
 
 int main(int argc, char *argv[]) {
-#ifdef XAMP_OS_WIN
+#ifdef Q_OS_WIN
     ModuleHandle mimalloc_module;
     try {
         mimalloc_module = LoadModule("mimalloc-override.dll");
@@ -294,27 +296,32 @@ int main(int argc, char *argv[]) {
     }
 #endif
 
+    auto logger_init_done = false;
+
     Logger::GetInstance()
         .AddDebugOutputLogger()
 #ifdef Q_OS_MAC
         .AddSink(std::make_shared<QDebugSink>())
 #endif
         .AddFileLogger("xamp.log")
+        .Startup()
         .GetLogger(kDefaultLoggerName);
+
+    logger_init_done = true;
 
     loadSettings();
     loadLogAndSoxrConfig();
 
-    XAMP_LOG_DEBUG("=:==:==:==:==:= Logger init success. =:==:==:==:==:=");
-
     CrashHandler crash_handler;
     crash_handler.SetProcessExceptionHandlers();
-    XAMP_LOG_DEBUG("CrashHandler SetProcessExceptionHandlers success.");
+    XAMP_LOG_DEBUG("SetProcessExceptionHandlers success.");
 
     XAMP_ON_SCOPE_EXIT(
+        if (!logger_init_done) {
+            return;
+        }
         JsonSettings::save();
         AppSettings::save();
-        XAMP_LOG_DEBUG("=:==:==:==:==:= Logger shutdwon =:==:==:==:==:=");
         Logger::GetInstance().Shutdown();
     );
 

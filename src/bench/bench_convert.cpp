@@ -30,7 +30,7 @@ using namespace xamp::player;
 #ifdef XAMP_OS_WIN
 
 win32::ThreadPool& GetWin32ThreadPool() {
-    static win32::ThreadPool win32_thread_pool("win32bench", 32, -1);
+    static win32::ThreadPool win32_thread_pool("win32bench");
     return win32_thread_pool;
 }
 
@@ -398,7 +398,7 @@ static void BM_SpinLockFreeStack(benchmark::State& state) {
 }
 
 static void BM_LIFOQueue(benchmark::State& state) {
-    using Queue = BlockingQueue<int32_t, FastMutex, FastConditionVariable, LIFOQueue<int32_t>>;
+    using Queue = BlockingQueue<int32_t, LIFOQueue<int32_t>>;
     static Queue lifo_queue(64);
 
     for (auto _ : state) {
@@ -445,15 +445,16 @@ static void BM_CircularBuffer(benchmark::State& state) {
 //BENCHMARK(BM_InterleavedToPlanarConvertToInt32)->RangeMultiplier(2)->Range(4096, 8 << 10);
 //BENCHMARK(BM_FFT)->RangeMultiplier(2)->Range(4096, 8 << 12);
 
-BENCHMARK(BM_SpinLockFreeStack)->ThreadRange(1, 128);
-BENCHMARK(BM_LIFOQueue)->ThreadRange(1, 128);
-BENCHMARK(BM_CircularBuffer)->ThreadRange(1, 128);
+//BENCHMARK(BM_SpinLockFreeStack)->ThreadRange(1, 128);
+//BENCHMARK(BM_LIFOQueue)->ThreadRange(1, 128);
+//BENCHMARK(BM_CircularBuffer)->ThreadRange(1, 128);
 
 BENCHMARK(BM_async_pool)->RangeMultiplier(2)->Range(8, 8 << 2);
 #ifdef XAMP_OS_WIN
 BENCHMARK(BM_std_for_each_par)->RangeMultiplier(2)->Range(8, 8 << 2);
 #endif
 BENCHMARK(BM_ThreadPool)->RangeMultiplier(2)->Range(8, 8 << 2);
+BENCHMARK(BM_Win32ThreadPool)->RangeMultiplier(2)->Range(8, 8 << 2);
 
 int main(int argc, char** argv) {
     //std::cin.get();

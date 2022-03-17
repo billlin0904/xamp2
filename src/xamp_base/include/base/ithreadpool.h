@@ -111,8 +111,10 @@ decltype(auto) IThreadPool::Spawn(F&& f, Args&&... args) {
     using std::bind_front;
 #endif
 
-    auto task = MakeAlignedShared<PackagedTaskType>(bind_front(std::forward<F>(f),
-        std::forward<Args>(args)...));
+    auto task = MakeAlignedShared<PackagedTaskType>(bind_front(
+        std::forward<F>(f),
+        std::forward<Args>(args)...)
+        );
 
     auto future = task->get_future();
 

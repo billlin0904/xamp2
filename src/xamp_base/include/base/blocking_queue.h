@@ -19,9 +19,9 @@ namespace xamp::base {
 template
 <
     typename T,
+    typename Queue = CircularBuffer<T>,
     typename Mutex = FastMutex,
     typename ConditionVariable = FastConditionVariable,
-    typename Queue = CircularBuffer<T>,
     typename V = 
     std::enable_if_t
 	<

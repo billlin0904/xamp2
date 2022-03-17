@@ -4,6 +4,7 @@
 
 #include <spdlog/async.h>
 #include <spdlog/sinks/rotating_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/msvc_sink.h>
 
 #include <base/platform.h>
@@ -28,7 +29,7 @@ const char kVolumeLoggerName[] = "Volume";
 const char kCoreAudioLoggerName[] = "CoreAudio";
 const char kDspManagerLoggerName[] = "DspManager";
 
-#ifdef XAMP_OS_WIN
+#if 0
 class DebugOutputSink : public spdlog::sinks::base_sink<FastMutex> {
 public:
 	DebugOutputSink() {
@@ -58,7 +59,17 @@ Logger & Logger::GetInstance() noexcept {
     return Singleton<Logger>::GetInstance();
 }
 
+Logger& Logger::Startup() {
+	if (default_logger_ != nullptr) {
+		default_logger_->debug("=:==:==:==:==:= Logger init success. =:==:==:==:==:=");
+	}
+	return *this;
+}
+
 void Logger::Shutdown() {
+	if (default_logger_ != nullptr) {
+		default_logger_->debug("=:==:==:==:==:= Logger shutdwon =:==:==:==:==:=");
+	}
     spdlog::shutdown();
 }
 
@@ -87,7 +98,7 @@ std::shared_ptr<spdlog::logger> Logger::GetLogger(const std::string &name) {
 
 Logger& Logger::AddConsoleLogger() {
 #ifdef XAMP_OS_WIN
-	sinks_.push_back(std::make_shared<spdlog::sinks::wincolor_stdout_sink_mt>());
+	sinks_.push_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
 #else
 #endif
 	return *this;
@@ -99,7 +110,7 @@ Logger& Logger::AddDebugOutputLogger() {
 	// Handler會遞迴的呼叫下去, 所以只有在除錯模式下才使用.
 	// https://stackoverflow.com/questions/25634376/why-does-addvectoredexceptionhandler-crash-my-dll
 	if (IsDebuging()) {
-		sinks_.push_back(std::make_shared<DebugOutputSink>());
+		sinks_.push_back(std::make_shared<spdlog::sinks::msvc_sink<FastMutex>>());
 	}
 #endif
 	return *this;

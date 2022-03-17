@@ -49,7 +49,7 @@ public:
     }
 private:
     size_t size_;
-    std::stack<T> queue_;
+    std::stack<T, std::vector<T>> queue_;
 };
 
 template 

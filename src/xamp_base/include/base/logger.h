@@ -44,6 +44,8 @@ public:
 
 	XAMP_DISABLE_COPY(Logger)
 
+	Logger& Startup();
+
     void Shutdown();
 
 	Logger& AddDebugOutputLogger();

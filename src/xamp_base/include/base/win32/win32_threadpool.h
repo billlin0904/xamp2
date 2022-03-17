@@ -22,12 +22,11 @@ public:
 	friend class TaskScheduler;
 
 	explicit ThreadPool(const std::string_view& pool_name, 
-		uint32_t max_thread = std::thread::hardware_concurrency(),
-		int32_t affinity = kDefaultAffinityCpuCore);
+		uint32_t max_thread = std::thread::hardware_concurrency());
 
 	XAMP_DISABLE_COPY(ThreadPool)
 
-	virtual ~ThreadPool();
+	~ThreadPool() override;
 
 	void Stop() override;
 private:	
@@ -36,13 +35,13 @@ private:
 
 class XAMP_BASE_API TaskScheduler : public ITaskScheduler {
 public:
-	TaskScheduler(const std::string_view& pool_name, uint32_t max_thread, int32_t affinity);
+	explicit TaskScheduler(const std::string_view& pool_name);
 
 	XAMP_DISABLE_COPY(TaskScheduler)
 
 	void InitializeEnvironment(ThreadPool& threadpool);
 
-	virtual ~TaskScheduler();
+	~TaskScheduler() override;
 
 	void SubmitJob(Task&& task) override;
 
@@ -53,12 +52,11 @@ private:
 		void* context,
 		PTP_WORK work);
 
-	std::atomic<size_t> count_{ 0 };
 	WorkHandle work_;
 	TP_CALLBACK_ENVIRON environ_;	
 	CleanupThreadGroupHandle cleanup_group_;
+	BlockingQueue<Task> queue_;
 	std::shared_ptr<spdlog::logger> logger_;
-	BlockingQueue<Task, FastMutex, FastConditionVariable> queue_;
 };
 
 }

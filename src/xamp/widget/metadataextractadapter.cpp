@@ -37,9 +37,9 @@ public:
         : cover_reader_(MakeMetadataReader()) {
     }
 
-    std::tuple<int32_t, int32_t, QString> AddOrGetAlbumAndArtistId(const QString& album, const QString& artist, bool is_podcast) const;
+    std::tuple<int32_t, int32_t, QString> addOrGetAlbumAndArtistId(const QString& album, const QString& artist, bool is_podcast) const;
 
-    QString AddCoverCache(int32_t album_id, const QString& album, const Metadata& metadata, bool is_unknown_album) const;
+    QString addCoverCache(int32_t album_id, const QString& album, const Metadata& metadata, bool is_unknown_album) const;
 private:	
     mutable LruCache<int32_t, QString> cover_id_cache_;
     // Key: Album + Artist
@@ -48,7 +48,7 @@ private:
     AlignPtr<IMetadataReader> cover_reader_;
 };
 
-QString DatabaseIdCache::AddCoverCache(int32_t album_id, const QString& album, const Metadata& metadata, bool is_unknown_album) const {
+QString DatabaseIdCache::addCoverCache(int32_t album_id, const QString& album, const Metadata& metadata, bool is_unknown_album) const {
     auto cover_id = Singleton<Database>::GetInstance().getAlbumCoverId(album_id);
     if (!cover_id.isEmpty()) {
     	return cover_id;
@@ -76,7 +76,7 @@ QString DatabaseIdCache::AddCoverCache(int32_t album_id, const QString& album, c
     return cover_id;
 }
 
-std::tuple<int32_t, int32_t, QString> DatabaseIdCache::AddOrGetAlbumAndArtistId(const QString &album, const QString &artist, bool is_podcast) const {
+std::tuple<int32_t, int32_t, QString> DatabaseIdCache::addOrGetAlbumAndArtistId(const QString &album, const QString &artist, bool is_podcast) const {
     int32_t artist_id = 0;
     if (auto const * artist_id_op = this->artist_id_cache_.Find(artist)) {
         artist_id = *artist_id_op;
@@ -234,7 +234,7 @@ void ::MetadataExtractAdapter::processMetadata(const std::vector<Metadata>& resu
 
         const auto music_id = Singleton<Database>::GetInstance().addOrUpdateMusic(metadata, playlist_id);
 
-        auto [album_id, artist_id, cover_id] = cache.AddOrGetAlbumAndArtistId(album, artist, is_podcast);
+        auto [album_id, artist_id, cover_id] = cache.addOrGetAlbumAndArtistId(album, artist, is_podcast);
 
         // Find cover id from database.
         if (cover_id.isEmpty()) {
@@ -243,7 +243,7 @@ void ::MetadataExtractAdapter::processMetadata(const std::vector<Metadata>& resu
 
         // Database not exist find others.
         if (cover_id.isEmpty()) {
-            cover_id = cache.AddCoverCache(album_id, album, metadata, is_unknown_album);
+            cover_id = cache.addCoverCache(album_id, album, metadata, is_unknown_album);
         }
 
         IgnoreSqlError(Singleton<Database>::GetInstance().addOrUpdateAlbumMusic(album_id, artist_id, music_id))

@@ -8,6 +8,7 @@ namespace xamp::base {
 inline constexpr auto kDefaultTimeout = std::chrono::milliseconds(100);
 inline constexpr auto kSharedTaskQueueSize = 4096;
 inline constexpr auto kWorkStealingTaskQueueSize = 4096;
+inline constexpr auto kMaxPopFailureSize = 100;
 
 TaskScheduler::TaskScheduler(const std::string_view& pool_name, size_t max_thread, int32_t affinity, ThreadPriority priority)
 	: is_stopped_(false)
@@ -136,17 +137,14 @@ void TaskScheduler::AddThread(size_t i, int32_t affinity, ThreadPriority priorit
 		const auto L1_padding_buffer =
 			MakeStackBuffer<uint8_t>((std::min)(kInitL1CacheLineSize * i,
 			kMaxL1CacheLineSize));
-		static thread_local PRNG prng;
 		auto thread_id = GetCurrentThreadId();
-
-		auto local_queue = thread_task_queues_[i].get();
-
+		auto* local_queue = thread_task_queues_[i].get();
 		SetThreadPriority(priority);
 		SetWorkerThreadName(i);
 
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) start.", thread_id, i);
-		auto empty_count = 0;
-
+		auto pop_failure_count = 0;
+		PRNG prng;
 		while (!is_stopped_) {
 			auto task = TryLocalPop(local_queue);
 
@@ -159,8 +157,8 @@ void TaskScheduler::AddThread(size_t i, int32_t affinity, ThreadPriority priorit
 				task = TrySteal(steal_index);
 
 				if (!task) {
-					++empty_count;
-					if (empty_count >= 100) {
+					++pop_failure_count;
+					if (pop_failure_count >= kMaxPopFailureSize) {
 						task = TryDequeueSharedQueue(kDefaultTimeout);
 					}
 				}
@@ -169,7 +167,7 @@ void TaskScheduler::AddThread(size_t i, int32_t affinity, ThreadPriority priorit
 			if (!task) {
 				continue;
 			} else {
-				empty_count = 0;
+				pop_failure_count = 0;
 			}
 
 			auto running_thread = ++running_thread_;

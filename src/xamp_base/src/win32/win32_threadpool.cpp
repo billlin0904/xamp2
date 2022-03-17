@@ -3,15 +3,14 @@
 #ifdef XAMP_OS_WIN
 namespace xamp::base::win32 {
 
-TaskScheduler::TaskScheduler(const std::string_view& pool_name, uint32_t max_thread, int32_t affinity)
-	: queue_(max_thread * 16) {
+TaskScheduler::TaskScheduler(const std::string_view& pool_name)
+	: queue_(4096) {
 	logger_ = Logger::GetInstance().GetLogger(pool_name.data());
 }
 
 void TaskScheduler::InitializeEnvironment(ThreadPool& threadpool) {
 	::InitializeThreadpoolEnvironment(&environ_);
 	::SetThreadpoolCallbackPool(&environ_, threadpool.pool_.get());
-	::SetThreadpoolCallbackRunsLong(&environ_);
 	cleanup_group_.reset(::CreateThreadpoolCleanupGroup());
 	::SetThreadpoolCallbackCleanupGroup(&environ_, cleanup_group_.get(), nullptr);
 	work_.reset(::CreateThreadpoolWork(
@@ -43,27 +42,22 @@ void CALLBACK TaskScheduler::WorkCallback(PTP_CALLBACK_INSTANCE instance,
 	auto* scheduler = static_cast<TaskScheduler*>(context);
 	Task task;
 	if (scheduler->queue_.Dequeue(task)) {
-		auto c = --scheduler->count_;
-		XAMP_LOG_D(scheduler->logger_, "De-queue {}", c);
 		const auto thread_id = ::GetCurrentThreadId();
 		task(thread_id);
-	} else {
-		XAMP_LOG_D(scheduler->logger_, "Queue is empty!");
 	}
 }
 
 void TaskScheduler::SubmitJob(Task&& task) {
 	queue_.Enqueue(task);
 	::SubmitThreadpoolWork(work_.get());
-	auto c = ++count_;
-	XAMP_LOG_D(logger_, "En-queue {}", c);
 }
 
-ThreadPool::ThreadPool(const std::string_view& pool_name, uint32_t max_thread, int32_t affinity)
-	: IThreadPool(MakeAlign<ITaskScheduler, TaskScheduler>(pool_name, (std::min)(max_thread, kMaxThread), affinity))
+ThreadPool::ThreadPool(const std::string_view& pool_name, uint32_t max_thread)
+	: IThreadPool(MakeAlign<ITaskScheduler, TaskScheduler>(pool_name))
 	, pool_(::CreateThreadpool(nullptr)) {
 	dynamic_cast<TaskScheduler*>(scheduler_.get())->InitializeEnvironment(*this);
-	::SetThreadpoolThreadMaximum(pool_.get(), max_thread);		
+	::SetThreadpoolThreadMinimum(pool_.get(), 1);
+	::SetThreadpoolThreadMaximum(pool_.get(), max_thread);
 }
 
 ThreadPool::~ThreadPool() {

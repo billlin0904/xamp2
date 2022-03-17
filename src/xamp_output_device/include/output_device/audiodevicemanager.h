@@ -50,7 +50,6 @@ private:
         factory_[id] = std::forward<Func>(func);
     }
 
-    bool sleep_is_granular_{ false };
     AlignPtr<DeviceStateNotificationImpl> impl_;    
     DeviceTypeFactoryMap factory_;
 };
