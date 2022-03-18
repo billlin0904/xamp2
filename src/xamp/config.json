@@ -21,7 +21,7 @@
                 "ExclusiveWasapiDevice": "debug",
                 "PixmapCache": "info",
                 "PlaybackThreadPool": "info",
-                "SharedWasapiDevice": "info",
+                "SharedWasapiDevice": "debug",
                 "Soxr": "info",
                 "VirtualMemory": "info",
                 "Volume": "info",

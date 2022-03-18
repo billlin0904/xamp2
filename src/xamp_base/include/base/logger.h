@@ -29,56 +29,36 @@ struct XAMP_BASE_API AutoRegisterLoggerName {
         return GetLoggerName().data();
     }
 
-    operator const char *() const {
-        return GetLoggerName().data();
-    }
-
-    bool operator==(const std::string &name) const {
-        return std::string(*this) == name;
-    }
-
     friend bool operator==(const AutoRegisterLoggerName &a, const std::string &b) {
-        return std::string(a) == b;
+        const std::string s = a;
+        return s == b;
+    }
+
+    friend bool operator!=(const AutoRegisterLoggerName& a, const std::string& b) {
+        const std::string s = a;
+        return s != b;
     }
 
     std::string_view GetLoggerName() const;
     size_t index;
 };
 
-#define DECLARE_LOG_NAME(LogName) XAMP_BASE_API inline const AutoRegisterLoggerName LogName(#LogName)
+#define DECLARE_LOG_NAME(LogName) inline const AutoRegisterLoggerName k##LogName##LoggerName(#LogName)
 
-#if 0
-// Logger name.
-extern "C" XAMP_BASE_API const char kDefaultLoggerName[];
-extern "C" XAMP_BASE_API const char kWASAPIThreadPoolLoggerName[];
-extern "C" XAMP_BASE_API const char kPlaybackThreadPoolLoggerName[];
-extern "C" XAMP_BASE_API const char kBackgroundThreadPoolLoggerName[];
-extern "C" XAMP_BASE_API const char kExclusiveWasapiDeviceLoggerName[];
-extern "C" XAMP_BASE_API const char kSharedWasapiDeviceLoggerName[];
-extern "C" XAMP_BASE_API const char kAsioDeviceLoggerName[];
-extern "C" XAMP_BASE_API const char kAudioPlayerLoggerName[];
-extern "C" XAMP_BASE_API const char kVirtualMemoryLoggerName[];
-extern "C" XAMP_BASE_API const char kSoxrLoggerName[];
-extern "C" XAMP_BASE_API const char kCompressorLoggerName[];
-extern "C" XAMP_BASE_API const char kVolumeLoggerName[];
-extern "C" XAMP_BASE_API const char kCoreAudioLoggerName[];
-extern "C" XAMP_BASE_API const char kDspManagerLoggerName[];
-#endif
-
-DECLARE_LOG_NAME(kDefaultLoggerName);
-DECLARE_LOG_NAME(kWASAPIThreadPoolLoggerName);
-DECLARE_LOG_NAME(kPlaybackThreadPoolLoggerName);
-DECLARE_LOG_NAME(kBackgroundThreadPoolLoggerName);
-DECLARE_LOG_NAME(kExclusiveWasapiDeviceLoggerName);
-DECLARE_LOG_NAME(kSharedWasapiDeviceLoggerName);
-DECLARE_LOG_NAME(kAsioDeviceLoggerName);
-DECLARE_LOG_NAME(kAudioPlayerLoggerName);
-DECLARE_LOG_NAME(kVirtualMemoryLoggerName);
-DECLARE_LOG_NAME(kSoxrLoggerName);
-DECLARE_LOG_NAME(kCompressorLoggerName);
-DECLARE_LOG_NAME(kVolumeLoggerName);
-DECLARE_LOG_NAME(kCoreAudioLoggerName);
-DECLARE_LOG_NAME(kDspManagerLoggerName);
+DECLARE_LOG_NAME(Xamp);
+DECLARE_LOG_NAME(WASAPIThreadPool);
+DECLARE_LOG_NAME(PlaybackThreadPool);
+DECLARE_LOG_NAME(BackgroundThreadPool);
+DECLARE_LOG_NAME(ExclusiveWasapiDevice);
+DECLARE_LOG_NAME(SharedWasapiDevice);
+DECLARE_LOG_NAME(AsioDevice);
+DECLARE_LOG_NAME(AudioPlayer);
+DECLARE_LOG_NAME(VirtualMemory);
+DECLARE_LOG_NAME(Soxr);
+DECLARE_LOG_NAME(Compressor);
+DECLARE_LOG_NAME(Volume);
+DECLARE_LOG_NAME(CoreAudio);
+DECLARE_LOG_NAME(DspManager);
 
 class XAMP_BASE_API Logger final {
 public:

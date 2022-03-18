@@ -72,21 +72,13 @@ static void loadLogConfig() {
     QMap<QString, QVariant> min_level;
     QMap<QString, QVariant> override_map;
 
-    const QMap<QString, QVariant> well_known_log_name{
-        { fromStdStringView(kWASAPIThreadPoolLoggerName), Q_UTF8("info") },
-        { fromStdStringView(kPlaybackThreadPoolLoggerName), Q_UTF8("info") },
-        { fromStdStringView(kBackgroundThreadPoolLoggerName), Q_UTF8("info") },
-        { fromStdStringView(kExclusiveWasapiDeviceLoggerName), Q_UTF8("info") },
-        { fromStdStringView(kSharedWasapiDeviceLoggerName), Q_UTF8("info") },
-        { fromStdStringView(kAsioDeviceLoggerName), Q_UTF8("info") },
-        { fromStdStringView(kAudioPlayerLoggerName), Q_UTF8("info") },
-        { fromStdStringView(kVirtualMemoryLoggerName), Q_UTF8("info") },
-        { fromStdStringView(kSoxrLoggerName), Q_UTF8("info") },
-        { fromStdStringView(kCompressorLoggerName), Q_UTF8("info") },
-        { fromStdStringView(kVolumeLoggerName), Q_UTF8("info") },
-        { fromStdStringView(kCoreAudioLoggerName), Q_UTF8("info") },
-        { fromStdStringView(kDspManagerLoggerName), Q_UTF8("info") },
-    };
+    QMap<QString, QVariant> well_known_log_name;
+
+    for (const auto& logger_name : Logger::GetInstance().GetDefaultLoggerName()) {
+        if (logger_name != kXampLoggerName) {
+            well_known_log_name[fromStdStringView(logger_name)] = Q_UTF8("info");
+        }
+    }
 
     if (JsonSettings::getValueAsMap(kLog).isEmpty()) {
         min_level[kLogDefault] = Q_UTF8("debug");
