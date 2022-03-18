@@ -48,7 +48,7 @@ static void CreateLogsDir() {
 	}
 }
 
-const std::vector<std::string_view> & GetDefaultLoggerName() {
+const std::vector<std::string_view> & Logger::GetDefaultLoggerName() {
     return Singleton<std::vector<std::string_view>>::GetInstance();
 }
 
@@ -57,7 +57,7 @@ Logger & Logger::GetInstance() noexcept {
 }
 
 Logger& Logger::Startup() {
-    GetLogger(kDefaultLoggerName);
+    GetLogger(kXampLoggerName);
 
 	if (default_logger_ != nullptr) {
 		default_logger_->debug("=:==:==:==:==:= Logger init success. =:==:==:==:==:=");
@@ -88,7 +88,7 @@ std::shared_ptr<spdlog::logger> Logger::GetLogger(const std::string &name) {
 
 	spdlog::register_logger(logger);
 
-	if (name == kDefaultLoggerName) {
+    if (kXampLoggerName == name) {
 		default_logger_ = logger;
 	}
 
