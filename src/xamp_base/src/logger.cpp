@@ -14,26 +14,9 @@
 
 namespace xamp::base {
 
-#if 0
-const char kDefaultLoggerName[] = "xamp";
-const char kWASAPIThreadPoolLoggerName[] = "WASAPIThreadPool";
-const char kPlaybackThreadPoolLoggerName[] = "PlaybackThreadPool";
-const char kBackgroundThreadPoolLoggerName[] = "BackgroundThreadPool";
-const char kExclusiveWasapiDeviceLoggerName[] = "ExclusiveWasapiDevice";
-const char kSharedWasapiDeviceLoggerName[] = "SharedWasapiDevice";
-const char kAsioDeviceLoggerName[] = "AsioDevice";
-const char kAudioPlayerLoggerName[] = "AudioPlayer";
-const char kVirtualMemoryLoggerName[] = "VirtualMemory";
-const char kSoxrLoggerName[] = "Soxr";
-const char kCompressorLoggerName[] = "Compressor";
-const char kVolumeLoggerName[] = "Volume";
-const char kCoreAudioLoggerName[] = "CoreAudio";
-const char kDspManagerLoggerName[] = "DspManager";
-#endif
-
-AutoRegisterLoggerName::AutoRegisterLoggerName(std::string_view s) {
-    index = Singleton<std::vector<std::string_view>>::GetInstance().size();
-    Singleton<std::vector<std::string_view>>::GetInstance().push_back(s);
+AutoRegisterLoggerName::AutoRegisterLoggerName(std::string_view s)
+	: index(Singleton<std::vector<std::string_view>>::GetInstance().size()) {
+	Singleton<std::vector<std::string_view>>::GetInstance().push_back(s);
 }
 
 std::string_view AutoRegisterLoggerName::GetLoggerName() const {

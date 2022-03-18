@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
 		.AddDebugOutputLogger()
 		.AddConsoleLogger()
 		.AddFileLogger("xamp.log")
-		.GetLogger(kDefaultLoggerName);
+		.Startup();
 
 	XAMP_SET_LOG_LEVEL(spdlog::level::trace);
 

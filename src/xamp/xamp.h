@@ -41,8 +41,6 @@ public:
 
     virtual ~Xamp() override = default;
 
-    static void registerMetaType();
-
     void setXWindow(IXWindow* top_window);
 
     void applyTheme(QColor backgroundColor, QColor color);

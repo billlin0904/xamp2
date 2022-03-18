@@ -268,19 +268,6 @@ void Xamp::cleanup() {
     background_thread_.wait();
 }
 
-void Xamp::registerMetaType() {
-    qRegisterMetaTypeStreamOperators<AppEQSettings>("AppEQSettings");
-    qRegisterMetaType<std::vector<Metadata>>("std::vector<Metadata>");
-    qRegisterMetaType<DeviceState>("DeviceState");
-    qRegisterMetaType<PlayerState>("PlayerState");
-    qRegisterMetaType<PlayListEntity>("PlayListEntity");
-    qRegisterMetaType<Errors>("Errors");
-    qRegisterMetaType<std::vector<float>>("std::vector<float>");
-    qRegisterMetaType<std::vector<PlayListEntity>>("std::vector<PlayListEntity>");
-    qRegisterMetaType<size_t>("size_t");
-    qRegisterMetaType<int32_t>("int32_t");
-}
-
 void Xamp::initialUI() {
     auto f = font();
     f.setPointSize(10);

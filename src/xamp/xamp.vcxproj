@@ -335,6 +335,7 @@
     <None Include="ja_JP.ts" />
     <None Include="Resource\Theme\dark\style.qss" />
     <None Include="Resource\Theme\light\style.qss" />
+    <None Include="xamp.ini" />
     <None Include="zh_TW.ts" />
   </ItemGroup>
   <ItemGroup>

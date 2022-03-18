@@ -209,7 +209,22 @@ static std::vector<ModuleHandle> prefetchWin32DLL() {
 }
 #endif 
 
+static void registerMetaType() {
+    qRegisterMetaTypeStreamOperators<AppEQSettings>("AppEQSettings");
+    qRegisterMetaType<std::vector<Metadata>>("std::vector<Metadata>");
+    qRegisterMetaType<DeviceState>("DeviceState");
+    qRegisterMetaType<PlayerState>("PlayerState");
+    qRegisterMetaType<PlayListEntity>("PlayListEntity");
+    qRegisterMetaType<Errors>("Errors");
+    qRegisterMetaType<std::vector<float>>("std::vector<float>");
+    qRegisterMetaType<std::vector<PlayListEntity>>("std::vector<PlayListEntity>");
+    qRegisterMetaType<size_t>("size_t");
+    qRegisterMetaType<int32_t>("int32_t");
+}
+
 static int excute(int argc, char* argv[]) {
+    registerMetaType();
+
     QApplication app(argc, argv);
 
     SingleInstanceApplication single_app;
@@ -226,8 +241,6 @@ static int excute(int argc, char* argv[]) {
     QApplication::setApplicationVersion(Q_UTF8("0.0.1"));
     QApplication::setOrganizationName(Q_UTF8("XAMP2 Project"));
     QApplication::setOrganizationDomain(Q_UTF8("XAMP2 Project"));
-
-    Xamp::registerMetaType();
 
     XAMP_LOG_DEBUG("attach app success.");
 

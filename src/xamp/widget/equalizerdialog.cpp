@@ -74,7 +74,7 @@ EqualizerDialog::EqualizerDialog(QWidget *parent)
         ui_.eqPresetComboBox->addItem(name);
     }
 
-    (void)QObject::connect(ui_.eqPresetComboBox, static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::textActivated), [this](auto index) {
+    (void)QObject::connect(ui_.eqPresetComboBox, &QComboBox::textActivated, [this](auto index) {
         AppEQSettings settings;
         settings.name = index;
         settings.settings = AppSettings::getEQPreset()[index];
