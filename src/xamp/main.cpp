@@ -304,8 +304,7 @@ int main(int argc, char *argv[]) {
         .AddSink(std::make_shared<QDebugSink>())
 #endif
         .AddFileLogger("xamp.log")
-        .Startup()
-        .GetLogger(kDefaultLoggerName);
+        .Startup();
 
     logger_init_done = true;
 

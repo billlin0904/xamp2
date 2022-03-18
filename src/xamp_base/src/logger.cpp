@@ -14,6 +14,7 @@
 
 namespace xamp::base {
 
+#if 0
 const char kDefaultLoggerName[] = "xamp";
 const char kWASAPIThreadPoolLoggerName[] = "WASAPIThreadPool";
 const char kPlaybackThreadPoolLoggerName[] = "PlaybackThreadPool";
@@ -28,24 +29,16 @@ const char kCompressorLoggerName[] = "Compressor";
 const char kVolumeLoggerName[] = "Volume";
 const char kCoreAudioLoggerName[] = "CoreAudio";
 const char kDspManagerLoggerName[] = "DspManager";
-
-#if 0
-class DebugOutputSink : public spdlog::sinks::base_sink<FastMutex> {
-public:
-	DebugOutputSink() {
-	}
-
-private:
-	void sink_it_(const spdlog::details::log_msg& msg) override {
-		spdlog::memory_buf_t formatted;
-		formatter_->format(msg, formatted);
-		::OutputDebugStringW(String::ToStdWString(fmt::to_string(formatted)).c_str());
-	}
-
-	void flush_() override {
-	}
-};
 #endif
+
+AutoRegisterLoggerName::AutoRegisterLoggerName(std::string_view s) {
+    index = Singleton<std::vector<std::string_view>>::GetInstance().size();
+    Singleton<std::vector<std::string_view>>::GetInstance().push_back(s);
+}
+
+std::string_view AutoRegisterLoggerName::GetLoggerName() const {
+    return Singleton<std::vector<std::string_view>>::GetInstance()[index];
+}
 
 static void CreateLogsDir() {
 	const Path log_path("logs");
@@ -55,11 +48,17 @@ static void CreateLogsDir() {
 	}
 }
 
+const std::vector<std::string_view> & GetDefaultLoggerName() {
+    return Singleton<std::vector<std::string_view>>::GetInstance();
+}
+
 Logger & Logger::GetInstance() noexcept {    
     return Singleton<Logger>::GetInstance();
 }
 
 Logger& Logger::Startup() {
+    GetLogger(kDefaultLoggerName);
+
 	if (default_logger_ != nullptr) {
 		default_logger_->debug("=:==:==:==:==:= Logger init success. =:==:==:==:==:=");
 	}

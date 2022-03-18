@@ -452,9 +452,9 @@ static void BM_CircularBuffer(benchmark::State& state) {
 BENCHMARK(BM_async_pool)->RangeMultiplier(2)->Range(8, 8 << 2);
 #ifdef XAMP_OS_WIN
 BENCHMARK(BM_std_for_each_par)->RangeMultiplier(2)->Range(8, 8 << 2);
+BENCHMARK(BM_Win32ThreadPool)->RangeMultiplier(2)->Range(8, 8 << 2);
 #endif
 BENCHMARK(BM_ThreadPool)->RangeMultiplier(2)->Range(8, 8 << 2);
-BENCHMARK(BM_Win32ThreadPool)->RangeMultiplier(2)->Range(8, 8 << 2);
 
 int main(int argc, char** argv) {
     //std::cin.get();
