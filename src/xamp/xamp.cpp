@@ -713,7 +713,7 @@ void Xamp::initialController() {
         });
     settings_menu->addAction(hide_left_list_action);
 
-    auto* enable_blur_material_mode_action = new QAction(tr("Enable blur"), this);
+    /*auto* enable_blur_material_mode_action = new QAction(tr("Enable blur"), this);
     enable_blur_material_mode_action->setCheckable(true);
     if (AppSettings::getValue(kAppSettingEnableBlur).toBool()) {
         enable_blur_material_mode_action->setChecked(true);
@@ -725,7 +725,7 @@ void Xamp::initialController() {
         enable_blur_material_mode_action->setChecked(enable);
         Singleton<ThemeManager>::GetInstance().enableBlur(ui_.sliderFrame, enable);
         });
-    settings_menu->addAction(enable_blur_material_mode_action);
+    settings_menu->addAction(enable_blur_material_mode_action);*/
 
     settings_menu->addSeparator();
     ui_.settingsButton->setMenu(settings_menu);
@@ -1429,12 +1429,10 @@ void Xamp::encodeFlacFile(const PlayListEntity& item) {
         return;
     }
 
-    auto xdialog = makeProgressDialog(
+    auto dialog = makeProgressDialog(
         tr("Export progress dialog"),
          tr("Export '") + item.title + tr("' to flac file"),
          tr("Cancel"));
- 
-    auto* dialog = dynamic_cast<QProgressDialog*>(xdialog->contentWidget());
 
     Metadata metadata;
     metadata.album = item.album.toStdWString();

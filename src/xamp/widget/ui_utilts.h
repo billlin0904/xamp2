@@ -8,11 +8,12 @@
 #include <base/audioformat.h>
 #include <player/audio_player.h>
 #include <widget/widget_shared.h>
-#include <widget/xdialog.h>
 #include <thememanager.h>
 
 #include <QMessageBox>
 #include <QApplication>
+
+class QProgressDialog;
 
 struct PlaybackFormat {
     bool is_dsd_file{ false };
@@ -27,7 +28,7 @@ QString sampleRate2String(const AudioFormat& format);
 
 QString format2String(const PlaybackFormat& playback_format, const QString& file_ext);
 
-std::unique_ptr<XDialog> makeProgressDialog(QString const& title, QString const& text, QString const& cancel);
+QSharedPointer<QProgressDialog> makeProgressDialog(QString const& title, QString const& text, QString const& cancel);
 
 QMessageBox::StandardButton showAskDialog(const char text[]);
 

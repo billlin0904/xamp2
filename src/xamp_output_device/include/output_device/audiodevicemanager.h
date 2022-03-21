@@ -21,8 +21,8 @@ namespace xamp::output_device {
 class AudioDeviceManager final : public IAudioDeviceManager {
 public:
     AudioDeviceManager();
-	
-    virtual ~AudioDeviceManager();
+
+    ~AudioDeviceManager() override;
 
     XAMP_DISABLE_COPY(AudioDeviceManager)
 

@@ -73,18 +73,8 @@ QString format2String(const PlaybackFormat& playback_format, const QString& file
         + Q_UTF8(" | ") + dsd_mode;
 }
 
-void centerParent(QWidget *dialog) {
-    if (dialog->parent() && dialog->parent()->isWidgetType()) {
-        dialog->move((dialog->parentWidget()->width() - dialog->width()) / 2,
-            (dialog->parentWidget()->height() - dialog->height()) / 2);
-    }
-}
-
-std::unique_ptr<XDialog> makeProgressDialog(QString const& title, QString const& text, QString const& cancel) {
-    auto xdialog = std::make_unique<XDialog>();
+QSharedPointer<QProgressDialog> makeProgressDialog(QString const& title, QString const& text, QString const& cancel) {
     auto* dialog = new QProgressDialog(text, cancel, 0, 100);
-    xdialog->setContentWidget(dialog);
-    dialog->setWindowFlags(Qt::FramelessWindowHint);
     dialog->setFont(qApp->font());
     dialog->setWindowTitle(title);
     dialog->setWindowModality(Qt::WindowModal);
@@ -93,8 +83,7 @@ std::unique_ptr<XDialog> makeProgressDialog(QString const& title, QString const&
     auto* progress_bar = new QProgressBar();
     progress_bar->setFont(QFont(Q_UTF8("FormatFont")));
     dialog->setBar(progress_bar);
-    //xdialog->show();
-    return xdialog;
+    return QSharedPointer<QProgressDialog>(dialog);
 }
 
 QMessageBox::StandardButton showAskDialog(const char text[]) {
@@ -131,6 +120,13 @@ std::tuple<bool, QMessageBox::StandardButton> showDontShowAgainDialog(bool show_
         return { is_show_agin, static_cast<QMessageBox::StandardButton>(msgbox.exec()) };
     }
     return { is_show_agin, QMessageBox::Yes };
+}
+
+void centerParent(QWidget* dialog) {
+    if (dialog->parent() && dialog->parent()->isWidgetType()) {
+        dialog->move((dialog->parentWidget()->width() - dialog->width()) / 2,
+            (dialog->parentWidget()->height() - dialog->height()) / 2);
+    }
 }
 
 void centerDesktop(QWidget* widget) {

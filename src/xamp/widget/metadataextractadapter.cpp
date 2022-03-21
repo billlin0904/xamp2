@@ -165,14 +165,13 @@ private:
 }
 
 void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter, QString const & file_path, bool show_progress_dialog) {
-	const auto xdialog = makeProgressDialog(tr("Read file metadata"), 
+	auto dialog = makeProgressDialog(tr("Read file metadata"),
 	                                        tr("Read progress dialog"), 
 	                                        tr("Cancel"));
     if (show_progress_dialog) {
-        xdialog->show();
+        dialog->show();
     }
 
-    auto* dialog = dynamic_cast<QProgressDialog*>(xdialog->contentWidget());
     dialog->setMinimumDuration(1000);
 
     QList<QString> dirs;

@@ -116,6 +116,8 @@ public:
             module.SizeOfStruct = sizeof(module);
             std::string module_name;
 
+            ostr << "#" << std::left << std::setfill(' ') << std::setw(2) << std::dec << i << " ";
+
             const auto has_module = ::SymGetModuleInfo64(process_.get(),
                 reinterpret_cast<DWORD64>(frame), 
                 &module);
@@ -143,7 +145,7 @@ public:
                 symbol_info);
             //const auto has_symbol = false;
 
-            ostr << "at\t"
+            ostr << " \t"
                  << "0X" << std::hex << std::uppercase << std::setfill('0') << std::setw(8)
                  << reinterpret_cast<DWORD64>(frame) << " ";
 
@@ -160,7 +162,7 @@ public:
 
                 ostr << symbol_info->Name;
                 if (has_line) {
-                    ostr << " " << GetFileName(line.FileName) << ":" << std::dec << line.LineNumber << "\r\n";
+                    ostr << " in " << GetFileName(line.FileName) << ":" << std::dec << line.LineNumber << "\r\n";
                 }
                 else {
                     ostr << " + " << std::dec << displacement << "\r\n";

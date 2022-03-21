@@ -435,10 +435,10 @@ static void BM_CircularBuffer(benchmark::State& state) {
 //BENCHMARK(BM_FindRobinHoodHashSet);
 //BENCHMARK(BM_unordered_map);
 //BENCHMARK(BM_FindRobinHoodHashMap);
-//BENCHMARK(BM_FastMemset)->RangeMultiplier(2)->Range(4096, 8 << 10);
-//BENCHMARK(BM_StdtMemset)->RangeMultiplier(2)->Range(4096, 8 << 10);
-//BENCHMARK(BM_FastMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 10);
-//BENCHMARK(BM_StdtMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 10);
+BENCHMARK(BM_FastMemset)->RangeMultiplier(2)->Range(4096, 8 << 10);
+BENCHMARK(BM_StdtMemset)->RangeMultiplier(2)->Range(4096, 8 << 10);
+BENCHMARK(BM_FastMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 10);
+BENCHMARK(BM_StdtMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 10);
 //BENCHMARK(BM_ConvertToInt2432Avx)->RangeMultiplier(2)->Range(4096, 8 << 10);
 //BENCHMARK(BM_ConvertToInt2432)->RangeMultiplier(2)->Range(4096, 8 << 10);
 //BENCHMARK(BM_InterleavedToPlanarConvertToInt32_AVX)->RangeMultiplier(2)->Range(4096, 8 << 10);
@@ -462,7 +462,7 @@ int main(int argc, char** argv) {
     Logger::GetInstance()
         .AddDebugOutputLogger()
         .AddFileLogger("xamp.log")
-        .GetLogger("xamp");
+        .Startup();
 
     XAMP_ON_SCOPE_EXIT(
         Logger::GetInstance().Shutdown();
