@@ -18,7 +18,7 @@
                 "Compressor": "info",
                 "CoreAudio": "info",
                 "DspManager": "info",
-                "ExclusiveWasapiDevice": "info",
+                "ExclusiveWasapiDevice": "debug",
                 "PixmapCache": "info",
                 "PlaybackThreadPool": "info",
                 "SharedWasapiDevice": "info",

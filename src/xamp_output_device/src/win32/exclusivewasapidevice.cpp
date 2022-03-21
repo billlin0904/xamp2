@@ -377,6 +377,8 @@ void ExclusiveWasapiDevice::StartStream() {
 			std::chrono::milliseconds(static_cast<uint64_t>(Nano100ToMillis(aligned_period_)))
 			+ std::chrono::milliseconds(20);
 
+		XAMP_LOG_D(log_, "WASAPI wait timeout {}msec.", wait_timeout.count());
+
 		DWORD current_timeout = INFINITE;
 
 		auto thread_exit = false;
