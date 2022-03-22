@@ -14,6 +14,7 @@
 
 #include <stream/podcastcache.h>
 #include <stream/soxresampler.h>
+#include <stream/pcm2dsdconverter.h>
 #include <stream/idspmanager.h>
 #include <stream/api.h>
 

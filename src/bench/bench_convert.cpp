@@ -18,14 +18,14 @@
 #include <base/platform.h>
 #include <base/uuid.h>
 
-#include <player/fft.h>
+#include <stream/fftwlib.h>
 
 #ifdef XAMP_OS_WIN
 #include <base/win32/win32_threadpool.h>
 #endif
 
 using namespace xamp::base;
-using namespace xamp::player;
+using namespace xamp::stream;
 
 #ifdef XAMP_OS_WIN
 
@@ -471,7 +471,7 @@ int main(int argc, char** argv) {
     // For debug use!
     XAMP_LOG_DEBUG("Logger init success.");
 
-    FFT::LoadFFTLib();
+    LoadFFTLib();
 
     Logger::GetInstance().GetLogger(kPlaybackThreadPoolLoggerName)
         ->set_level(spdlog::level::info);

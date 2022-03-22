@@ -14,6 +14,7 @@
 #include <stream/bassequalizer.h>
 #include <stream/bassvolume.h>
 #include <stream/dspmanager.h>
+#include <stream/fftwlib.h>
 #include <stream/api.h>
 
 namespace xamp::stream {
@@ -119,6 +120,11 @@ void LoadBassLib() {
 
 void FreeBassLib() {
     BASS.Free();
+}
+
+void LoadFFTLib() {
+    Singleton<FFTWLib>::GetInstance();
+    Singleton<FFTWFLib>::GetInstance();
 }
 
 }

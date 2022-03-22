@@ -1,70 +1,32 @@
 #include <base/enum.h>
 #include <base/buffer.h>
 
-#include <player/fft.h>
+#include <stream/fft.h>
 
 #ifdef XAMP_OS_WIN
 #include <base/dll.h>
-#include <fftw3.h>
+#include <stream/fftwlib.h>
 #else
 #include <base/unique_handle.h>
 #include <Accelerate/Accelerate.h>
 #endif
 
-namespace xamp::player {
+namespace xamp::stream {
 
 static size_t ComplexSize(size_t size) {
 	return (size / 2) + 1;
 }
 
 #ifdef XAMP_OS_WIN
-class FFTWLib {
-public:
-	FFTWLib()
-		: module_(LoadModule("libfftw3f-3.dll"))
-		, XAMP_LOAD_DLL_API(fftwf_destroy_plan)
-		, XAMP_LOAD_DLL_API(fftwf_malloc)
-		, XAMP_LOAD_DLL_API(fftwf_free)
-		, XAMP_LOAD_DLL_API(fftwf_plan_guru_split_dft_c2r)
-		, XAMP_LOAD_DLL_API(fftwf_plan_guru_split_dft_r2c)
-		, XAMP_LOAD_DLL_API(fftwf_execute_split_dft_r2c)
-		, XAMP_LOAD_DLL_API(fftwf_execute_split_dft_c2r) {
-	}
 
-private:
-	ModuleHandle module_;
-
-public:
-	XAMP_DECLARE_DLL(fftwf_destroy_plan) fftwf_destroy_plan;
-	XAMP_DECLARE_DLL(fftwf_malloc) fftwf_malloc;
-	XAMP_DECLARE_DLL(fftwf_free) fftwf_free;
-	XAMP_DECLARE_DLL(fftwf_plan_guru_split_dft_c2r) fftwf_plan_guru_split_dft_c2r;
-	XAMP_DECLARE_DLL(fftwf_plan_guru_split_dft_r2c) fftwf_plan_guru_split_dft_r2c;
-	XAMP_DECLARE_DLL(fftwf_execute_split_dft_r2c) fftwf_execute_split_dft_r2c;
-	XAMP_DECLARE_DLL(fftwf_execute_split_dft_c2r) fftwf_execute_split_dft_c2r;
-};
-
-#define FFTW Singleton<FFTWLib>::GetInstance()
-
-struct FFTWFloatPtrTraits final {
-	template <typename T>
-	void operator()(T value) const {
-		FFTW.fftwf_free(value);
-	}
-};
-
-using FFTWPtr = std::unique_ptr<float, FFTWFloatPtrTraits>;
-
-static FFTWPtr MakeFFTWBuffer(size_t size) {
-	return FFTWPtr(static_cast<float*>(FFTW.fftwf_malloc(sizeof(float) * size)));
-}
+using FFTWPtr = std::unique_ptr<float[], FFTWPtrTraits<float>>;
 
 class Window::WindowImpl {
 public:
 	WindowImpl() = default;
 
 	void Init(size_t size, WindowType type = WindowType::HAMMING) {
-		window_ = MakeFFTWBuffer(size);
+		window_ = MakeFFTWBuffer<float>(size);
 		for (auto i = 0; i < size; ++i) {
 			window_.get()[i] = operator()(i, size);
 		}
@@ -90,16 +52,16 @@ public:
 	void Init(size_t size) {
 		window_.Init(size);
 		complex_size_ = ComplexSize(size);
-		data_ = MakeFFTWBuffer(size);
-		re_ = MakeFFTWBuffer(complex_size_);
-		im_ = MakeFFTWBuffer(complex_size_);
+		data_ = MakeFFTWBuffer<float>(size);
+		re_ = MakeFFTWBuffer<float>(complex_size_);
+		im_ = MakeFFTWBuffer<float>(complex_size_);
 		output_ = ComplexValarray(Complex(), complex_size_);
 
 		fftw_iodim dim;
 		dim.n = static_cast<int>(size);
 		dim.is = 1;
 		dim.os = 1;
-		forward_.reset(FFTW.fftwf_plan_guru_split_dft_r2c(1,
+		forward_.reset(FFTWF.fftwf_plan_guru_split_dft_r2c(1,
 			&dim,
 			0,
 			nullptr,
@@ -108,7 +70,7 @@ public:
 			im_.get(),
 			FFTW_ESTIMATE));
 
-		backward_.reset(FFTW.fftwf_plan_guru_split_dft_c2r(1,
+		backward_.reset(FFTWF.fftwf_plan_guru_split_dft_c2r(1,
 			&dim,
 			0,
 			nullptr,
@@ -121,7 +83,7 @@ public:
 	const ComplexValarray& Forward(float const* signals, size_t size) {
 		MemoryCopy(data_.get(), signals, sizeof(float) * size);
 
-		FFTW.fftwf_execute_split_dft_r2c(forward_.get(),
+		FFTWF.fftwf_execute_split_dft_r2c(forward_.get(),
 			data_.get(),
 			re_.get(),
 			im_.get());
@@ -136,26 +98,14 @@ public:
 		return output_;
 	}
 
-	struct FFTWPlanTraits final {
-		static fftwf_plan invalid() {
-			return nullptr;
-		}
-
-		static void close(fftwf_plan value) {
-			FFTW.fftwf_destroy_plan(value);
-		}
-	};
-
-	using FFTWPlan = UniqueHandle<fftwf_plan, FFTWPlanTraits>;
-
 	size_t complex_size_{ 0 };
 	FFTWPtr data_;
 	FFTWPtr re_;
 	FFTWPtr im_;
 	Window window_;
 	ComplexValarray output_;
-	FFTWPlan forward_;
-	FFTWPlan backward_;
+	FFTWFPlan forward_;
+	FFTWFPlan backward_;
 };
 
 #else
@@ -274,12 +224,6 @@ void FFT::Init(size_t size) {
 
 const ComplexValarray& FFT::Forward(float const* data, size_t size) {
 	return impl_->Forward(data, size);
-}
-
-void FFT::LoadFFTLib() {
-#ifdef XAMP_OS_WIN
-	Singleton<FFTWLib>::GetInstance();
-#endif
 }
 
 }

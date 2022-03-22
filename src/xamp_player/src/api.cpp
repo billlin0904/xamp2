@@ -5,7 +5,7 @@
 #include <output_device/api.h>
 
 #include <stream/icddevice.h>
-#include <player/fft.h>
+#include <stream/fftwlib.h>
 #include <player/audio_player.h>
 #include <stream/soxresampler.h>
 #include <player/audio_util.h>
@@ -31,10 +31,10 @@ void XStartup() {
     LoadSoxrLib();
     XAMP_LOG_DEBUG("Load Soxr dll success.");
 
-    FFT::LoadFFTLib();
-    XAMP_LOG_DEBUG("Load FFT dll success.");
-
     PreventSleep(true);
+
+    LoadFFTLib();
+    XAMP_LOG_DEBUG("Load FFT dll success.");
 
 #ifdef XAMP_OS_WIN
     WASAPIThreadPool();

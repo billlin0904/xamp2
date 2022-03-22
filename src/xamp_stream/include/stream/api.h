@@ -49,4 +49,6 @@ XAMP_STREAM_API void LoadBassLib();
 
 XAMP_STREAM_API void FreeBassLib();
 
+XAMP_STREAM_API void LoadFFTLib();
+
 }

@@ -10,9 +10,9 @@
 
 #include <base/align_ptr.h>
 #include <base/enum.h>
-#include <player/player.h>
+#include <stream/stream.h>
 
-namespace xamp::player {
+namespace xamp::stream {
 
 using Complex = std::complex<float>;
 using ComplexValarray = std::valarray<Complex>;
@@ -21,7 +21,7 @@ MAKE_XAMP_ENUM(WindowType,
     HANN,
     HAMMING)
 
-class XAMP_PLAYER_API Window final {
+class XAMP_STREAM_API Window final {
 public:
     Window();
 
@@ -37,13 +37,11 @@ private:
     AlignPtr<WindowImpl> impl_;
 };
 
-class XAMP_PLAYER_API FFT final {
+class XAMP_STREAM_API FFT final {
 public:
     FFT();
 
     XAMP_PIMPL(FFT)
-
-    static void LoadFFTLib();
 
 	void Init(size_t size);
 

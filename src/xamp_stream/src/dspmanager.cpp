@@ -6,6 +6,7 @@
 #include <stream/soxresampler.h>
 #include <stream/bassvolume.h>
 #include <stream/passthroughsamplerateconverter.h>
+#include <stream/pcm2dsdconverter.h>
 #include <stream/dspmanager.h>
 
 namespace xamp::stream {
@@ -13,8 +14,9 @@ namespace xamp::stream {
 static constexpr int32_t kDefaultBufSize = 1024 * 1024;
 
 DSPManager::DSPManager()
-	: replay_gain_(0.0)
-	, dsd_modes_(DsdModes::DSD_MODE_PCM) {
+	: dsd_times_{0}
+	, replay_gain_{0.0}
+	, dsd_modes_{DsdModes::DSD_MODE_PCM} {
     logger_ = Logger::GetInstance().GetLogger(kDspManagerLoggerName);
     pre_dsp_buffer_.resize(kDefaultBufSize);
     post_dsp_buffer_.resize(kDefaultBufSize);
@@ -50,6 +52,10 @@ void DSPManager::SetReplayGain(double volume) {
     AddPostDSP(MakeVolume());
 }
 
+void DSPManager::SetPcm2DsdConvertSampleRate(uint32_t dsd_times) {
+    dsd_times_ = dsd_times;
+}
+
 void DSPManager::RemoveEq() {
     RemovePostDSP(IEqualizer::Id);
 }
@@ -60,7 +66,8 @@ void DSPManager::RemoveReplayGain() {
 }
 
 bool DSPManager::CanProcessFile() const noexcept {
-    return (dsd_modes_ == DsdModes::DSD_MODE_PCM || dsd_modes_ == DsdModes::DSD_MODE_DSD2PCM) && !pre_dsp_.empty() && !post_dsp_.empty();
+    return (dsd_modes_ == DsdModes::DSD_MODE_PCM || dsd_modes_ == DsdModes::DSD_MODE_DSD2PCM)
+	&& !pre_dsp_.empty() && !post_dsp_.empty();
 }
 
 void DSPManager::AddOrReplace(AlignPtr<IAudioProcessor> processor, std::vector<AlignPtr<IAudioProcessor>>& dsp_chain) {
@@ -133,7 +140,11 @@ bool DSPManager::ApplyDSP(const float* samples, uint32_t num_samples, AudioBuffe
         }
     }
 
-    BufferOverFlowThrow(fifo_writer_->Process(post_dsp_bufref, fifo));
+    if (!pcm2dsd_converter_) {
+        BufferOverFlowThrow(fifo_writer_->Process(post_dsp_bufref, fifo));
+    } else {
+        BufferOverFlowThrow(pcm2dsd_converter_->Process(post_dsp_bufref, fifo));
+    }    
     return false; 
 }
 
@@ -145,18 +156,23 @@ void DSPManager::Init(AudioFormat input_format, AudioFormat output_format, DsdMo
         return;
     }
 
+    if (dsd_times_ > 0) {
+        pcm2dsd_converter_ = MakeAlign<ISampleRateConverter, Pcm2DsdConverter>(output_format.GetSampleRate(), dsd_times_);
+    }
+
     for (const auto& dsp : pre_dsp_) {
         dsp->Start(output_format.GetSampleRate());
-        XAMP_LOG_D(logger_, "Init {} .", dsp->GetDescription());
+        XAMP_LOG_D(logger_, "Start pre-dsp {}.", dsp->GetDescription());
     }
 
     for (const auto& dsp : post_dsp_) {
         dsp->Start(output_format.GetSampleRate());
-        XAMP_LOG_D(logger_, "Start {} .", dsp->GetDescription());
+        XAMP_LOG_D(logger_, "Start post-dsp {}.", dsp->GetDescription());
     }
 
     if (const auto converter = GetPreDSP<SoxrSampleRateConverter>()) {
         converter.value()->Init(input_format.GetSampleRate());
+        XAMP_LOG_D(logger_, "Init Soxr format: {}.", input_format);
     }
 
     if (const auto volume = GetPostDSP<BassVolume>()) {

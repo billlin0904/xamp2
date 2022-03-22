@@ -25,7 +25,6 @@
 #include <output_device/idevicestatelistener.h>
 #include <output_device/deviceinfo.h>
 
-#include <player/fft.h>
 #include <player/playstate.h>
 #include <player/iaudioplayer.h>
 
