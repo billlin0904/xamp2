@@ -43,12 +43,12 @@ XAMP_STREAM_API AlignPtr<IDSPManager> MakeDSPManager();
 XAMP_STREAM_API AlignPtr<IFileEncoder> MakeWavEncoder();
 
 XAMP_STREAM_API AlignPtr<ICDDevice> MakeCDDevice(int32_t driver_letter);
+
+XAMP_STREAM_API void LoadFFTLib();
 #endif
 
 XAMP_STREAM_API void LoadBassLib();
 
 XAMP_STREAM_API void FreeBassLib();
-
-XAMP_STREAM_API void LoadFFTLib();
 
 }

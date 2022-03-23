@@ -122,9 +122,11 @@ void FreeBassLib() {
     BASS.Free();
 }
 
+#ifdef XAMP_OS_WIN
 void LoadFFTLib() {
     Singleton<FFTWLib>::GetInstance();
     Singleton<FFTWFLib>::GetInstance();
 }
+#endif
 
 }

@@ -44,4 +44,6 @@ find_library (
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
-target_link_libraries(xamp_stream ${LIB_XAMP_BASE})
+find_library(ACCELERATE_LIB Accelerate)
+
+target_link_libraries(xamp_stream ${LIB_XAMP_BASE} ${ACCELERATE_LIB})

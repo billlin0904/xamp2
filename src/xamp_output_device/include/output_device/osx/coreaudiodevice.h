@@ -15,6 +15,7 @@
 
 #include <base/logger.h>
 #include <base/fastmutex.h>
+#include <base/fastconditionvariable.h>
 #include <base/audioformat.h>
 #include <base/align_ptr.h>
 #include <base/dataconverter.h>

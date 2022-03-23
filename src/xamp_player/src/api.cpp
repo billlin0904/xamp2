@@ -33,10 +33,10 @@ void XStartup() {
 
     PreventSleep(true);
 
+#ifdef XAMP_OS_WIN
     LoadFFTLib();
     XAMP_LOG_DEBUG("Load FFT dll success.");
 
-#ifdef XAMP_OS_WIN
     WASAPIThreadPool();
     XAMP_LOG_DEBUG("Start WASAPI thread pool success.");
 #endif
