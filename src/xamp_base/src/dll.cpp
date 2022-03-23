@@ -20,7 +20,7 @@ Path GetModulePath(const ModuleHandle& module) {
 void* LoadModuleSymbol(const ModuleHandle& dll, const std::string_view& name) {
     auto func = ::GetProcAddress(dll.get(), name.data());
     if (!func) {
-        throw NotFoundDllExportFuncException();
+        throw NotFoundDllExportFuncException(name);
     }
     return func;
 }
@@ -40,7 +40,7 @@ ModuleHandle LoadModule(const std::string_view& name) {
 void* LoadModuleSymbol(const ModuleHandle& dll, const std::string_view& name) {
      auto func = ::dlsym(dll.get(), name.data());
      if (!func) {
-         throw NotFoundDllExportFuncException();
+         throw NotFoundDllExportFuncException(name);
      }
      return func;
 }

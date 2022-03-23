@@ -20,6 +20,12 @@ ExceptionClassName::ExceptionClassName()\
 }
 
 #ifdef XAMP_OS_WIN
+#define GET_ERROR_MESSAGE() GetPlatformErrorMessage(::GetLastError())
+#else
+#define GET_ERROR_MESSAGE() GetPlatformErrorMessage(errno)
+#endif
+
+#ifdef XAMP_OS_WIN
 static std::string LocaleStringToUTF8(const std::string &str) {
     std::vector<wchar_t> buf(str.length() + 1);
     ::MultiByteToWideChar(CP_ACP,
@@ -129,20 +135,20 @@ LoadDllFailureException::LoadDllFailureException(std::string_view dll_name)
 	message_ = ostr.str();
 }
 
-PlatformSpecException::PlatformSpecException() 
-#ifdef XAMP_OS_WIN
-    : Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, GetPlatformErrorMessage(::GetLastError())) {
-#else
-    : Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, GetPlatformErrorMessage(errno)) {
-#endif
+NotFoundDllExportFuncException::NotFoundDllExportFuncException(std::string_view func_name)
+    : Exception(Errors::XAMP_ERROR_NOT_FOUND_DLL_EXPORT_FUNC)
+    , func_name_(func_name) {
+    std::ostringstream ostr;
+    ostr << "Load dll function " << func_name << " failure.";
+    message_ = ostr.str();
+}
+
+PlatformSpecException::PlatformSpecException()
+    : Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, GET_ERROR_MESSAGE()) {
 }
 
 PlatformSpecException::PlatformSpecException(std::string_view what)
-#ifdef XAMP_OS_WIN
-    : Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, GetPlatformErrorMessage(::GetLastError()), what) {
-#else
-    : Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, GetPlatformErrorMessage(errno), what) {
-#endif
+    : Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, GET_ERROR_MESSAGE(), what) {
 }
 
 PlatformSpecException::PlatformSpecException(int32_t err)
@@ -161,7 +167,6 @@ IMP_EXCEPTION_CLASS(NotSupportSampleRateException, Errors::XAMP_ERROR_NOT_SUPPOR
 IMP_EXCEPTION_CLASS(NotSupportFormatException, Errors::XAMP_ERROR_NOT_SUPPORT_FORMAT)
 IMP_EXCEPTION_CLASS(StopStreamTimeoutException, Errors::XAMP_ERROR_STOP_STREAM_TIMEOUT)
 IMP_EXCEPTION_CLASS(SampleRateChangedException, Errors::XAMP_ERROR_SAMPLERATE_CHANGED);
-IMP_EXCEPTION_CLASS(NotFoundDllExportFuncException, Errors::XAMP_ERROR_NOT_FOUND_DLL_EXPORT_FUNC);
 IMP_EXCEPTION_CLASS(NotSupportResampleSampleRateException, Errors::XAMP_ERROR_NOT_SUPPORT_RESAMPLE_SAMPLERATE);
 IMP_EXCEPTION_CLASS(NotSupportExclusiveModeException, Errors::XAMP_ERROR_NOT_SUPPORT_EXCLUSIVE_MODE)
     	
