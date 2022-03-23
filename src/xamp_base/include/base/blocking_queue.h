@@ -12,6 +12,7 @@
 
 #include <base/base.h>
 #include <base/circularbuffer.h>
+#include <base/fastconditionvariable.h>
 #include <base/fastmutex.h>
 
 namespace xamp::base {

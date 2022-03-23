@@ -15,7 +15,7 @@
 #include <base/dsdsampleformat.h>
 #include <base/buffer.h>
 #include <base/fastmutex.h>
-
+#include <base/fastconditionvariable.h>
 #include <output_device/ioutputdevice.h>
 #include <output_device/idsddevice.h>
 #include <output_device/win32/mmcss.h>

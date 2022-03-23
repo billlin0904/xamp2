@@ -162,6 +162,7 @@
     <ClInclude Include="include\base\buffer.h" />
     <ClInclude Include="include\base\crashhandler.h" />
     <ClInclude Include="include\base\enum.h" />
+    <ClInclude Include="include\base\fastconditionvariable.h" />
     <ClInclude Include="include\base\fastmutex.h" />
     <ClInclude Include="include\base\ithreadpool.h" />
     <ClInclude Include="include\base\lifoqueue.h" />
@@ -209,6 +210,7 @@
     <ClCompile Include="src\dataconverter.cpp" />
     <ClCompile Include="src\dll.cpp" />
     <ClCompile Include="src\exception.cpp" />
+    <ClCompile Include="src\fastconditionvariable.cpp" />
     <ClCompile Include="src\fastmutex.cpp" />
     <ClCompile Include="src\ithreadpool.cpp" />
     <ClCompile Include="src\memory_mapped_file.cpp" />

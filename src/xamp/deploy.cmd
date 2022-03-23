@@ -2,6 +2,7 @@ copy x64\Release\xamp.exe deploy\
 copy x64\Release\opengl32sw.dll deploy\
 copy x64\Release\libcrypto-1_1-x64.dll deploy\
 copy x64\Release\libfftw3f-3.dll deploy\
+copy x64\Release\libfftw3-3.dll deploy\
 copy x64\Release\taglib.dll deploy\
 copy x64\Release\libssl-1_1-x64.dll deploy\
 copy x64\Release\libsoxr.dll deploy\

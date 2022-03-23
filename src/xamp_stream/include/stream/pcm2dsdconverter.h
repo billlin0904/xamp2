@@ -22,10 +22,7 @@ public:
 
 private:
 	std::vector<uint8_t> ProcessChannel(std::vector<double>& buffer, uint32_t sample_size, uint32_t sample_rate);
-	uint32_t times_;
-	uint32_t dsd_sampling_rate_;
-	std::vector<std::vector<double>> noise_shaping_;
-	std::vector<std::vector<double>> split_channel_;
+
 };
 	
 }

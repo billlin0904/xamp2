@@ -173,26 +173,30 @@ static void loadLang() {
 #ifdef XAMP_OS_WIN
 static std::vector<ModuleHandle> prefetchWin32DLL() {
     const std::vector<std::string_view> dll_file_names{
-#ifndef _DEBUG
-        "Qt5Gui.dll", // Qt
-        "Qt5Core.dll", // Qt
-        "Qt5Widgets.dll", // Qt
-        "Qt5WinExtras.dll", // Qt
-        "Qt5Sql.dll", // Qt
-        "Qt5Network.dll", // Qt
-        "psapi.dll", // Qt
-        "qjpeg.dll", // Qt
-#endif
         "ResourcePolicyClient.dll", // WASAPI
         "AudioSes.dll", // WASAPI
         "AUDIOKSE.dll",// WASAPI
+        "Mmdevapi.dll", // WASAPI
         "DWrite.dll",
+        "gdi32.dll",
         "d3d9.dll",
         "GdiPlus.dll",
+        "psapi.dll",
     	"comctl32.dll",
         "WindowsCodecs.dll",
         "thumbcache.dll",
         "setupapi.dll",
+    #ifndef _DEBUG
+        "Qt5Gui.dll",
+        "Qt5Core.dll",
+        "Qt5Widgets.dll",
+        "Qt5Sql.dll",
+        "Qt5Network.dll",
+        "Qt5WinExtras.dll",
+        "qwindows.dll",
+        "qsqlite.dll"
+        "qjpeg.dll",
+	#endif
     };
     std::vector<ModuleHandle> preload_module;
     for (const auto& file_name : dll_file_names) {
