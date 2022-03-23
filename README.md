@@ -15,7 +15,7 @@
 
 # 展示區
 ![image](https://github.com/billlin0904/xamp2/blob/master/github/demo.JPG)
-![image](https://github.com/billlin0904/xamp2/blob/master/github/MAC.JPG)
+![image](https://github.com/billlin0904/xamp2/blob/master/github/MAC.PNG)
 ![image](https://github.com/billlin0904/xamp2/blob/master/github/LRC.JPG)
 ![image](https://github.com/billlin0904/xamp2/blob/master/github/ALBUM.JPG)
 ![image](https://github.com/billlin0904/xamp2/blob/master/github/EQ.JPG)
