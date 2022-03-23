@@ -11,10 +11,11 @@
 | Windows | DSD to PCM | WSAPI (Exculisive Mode / Shared Mode) |
 | MAC OSX | DOP | CoreAudio |
 | Windows | DOP | WSAPI Exculisive Mode |
-| 
+
 
 # 展示區
 ![image](https://github.com/billlin0904/xamp2/blob/master/github/demo.JPG)
+![image](https://github.com/billlin0904/xamp2/blob/master/github/MAC.JPG)
 ![image](https://github.com/billlin0904/xamp2/blob/master/github/LRC.JPG)
 ![image](https://github.com/billlin0904/xamp2/blob/master/github/ALBUM.JPG)
 ![image](https://github.com/billlin0904/xamp2/blob/master/github/EQ.JPG)
