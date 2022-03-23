@@ -438,7 +438,6 @@ void AsioDevice::OnBufferSwitch(long index, double sample_time) noexcept {
 	played_bytes_ = cache_played_bytes;	
 
 	auto got_samples = false;
-
 	size_t num_filled_frame = 0;
 
 	if (io_format_ == DsdIoFormat::IO_FORMAT_PCM) {
@@ -453,11 +452,11 @@ void AsioDevice::OnBufferSwitch(long index, double sample_time) noexcept {
 		buffer_.Fill(0);
 
 		XAMP_LIKELY(callback_->OnGetSamples(buffer_.Get(), buffer_size_, num_filled_frame, stream_time, sample_time) == DataCallbackResult::CONTINUE) {
-			auto in = reinterpret_cast<const float*>(buffer_.Get());
+			const auto in = reinterpret_cast<const float*>(buffer_.Get());
 			InterleaveToPlanar<float, int32_t>::Convert(
 				in, 				
-				reinterpret_cast<int32_t*>(ASIODriver.buffer_infos[0].buffers[index]),
-				reinterpret_cast<int32_t*>(ASIODriver.buffer_infos[1].buffers[index]),
+				static_cast<int32_t*>(ASIODriver.buffer_infos[0].buffers[index]),
+				static_cast<int32_t*>(ASIODriver.buffer_infos[1].buffers[index]),
 				buffer_size_ * format_.GetChannels(),
 				ASIODriver.data_context.volume_factor);			
 			got_samples = true;
