@@ -110,6 +110,16 @@ private:
     std::string_view dll_name_;
 };
 
+class XAMP_BASE_API NotFoundDllExportFuncException final : public Exception {
+public:
+    explicit NotFoundDllExportFuncException(std::string_view func_name);
+
+    virtual ~NotFoundDllExportFuncException() override = default;
+
+private:
+    std::string_view func_name_;
+};
+
 XAMP_DECLARE_EXCEPTION_CLASS(DeviceNotInititalzedException)
 XAMP_DECLARE_EXCEPTION_CLASS(DeviceInUseException)
 XAMP_DECLARE_EXCEPTION_CLASS(DeviceNotFoundException)
@@ -118,7 +128,6 @@ XAMP_DECLARE_EXCEPTION_CLASS(NotSupportSampleRateException)
 XAMP_DECLARE_EXCEPTION_CLASS(NotSupportFormatException)
 XAMP_DECLARE_EXCEPTION_CLASS(StopStreamTimeoutException)
 XAMP_DECLARE_EXCEPTION_CLASS(SampleRateChangedException)
-XAMP_DECLARE_EXCEPTION_CLASS(NotFoundDllExportFuncException)
 XAMP_DECLARE_EXCEPTION_CLASS(NotSupportResampleSampleRateException)
 XAMP_DECLARE_EXCEPTION_CLASS(NotSupportExclusiveModeException)
 
