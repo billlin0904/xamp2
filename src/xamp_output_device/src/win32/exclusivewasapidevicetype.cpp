@@ -9,6 +9,7 @@
 namespace xamp::output_device::win32 {
 
 ExclusiveWasapiDeviceType::ExclusiveWasapiDeviceType() noexcept {
+	log_ = Logger::GetInstance().GetLogger(kExclusiveWasapiDeviceTypeLoggerName);
 	ScanNewDevice();
 }
 
@@ -83,6 +84,8 @@ std::vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfoList() const {
 		default_device_name = default_device_info.value().name;
 	}
 
+	XAMP_LOG_D(log_, "Load all devices");
+
 	for (UINT i = 0; i < count; ++i) {
 		CComPtr<IMMDevice> device;
 
@@ -99,6 +102,7 @@ std::vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfoList() const {
 			NULL,
 			reinterpret_cast<void**>(&endpoint_volume)
 		));
+
 		float min_volume = 0;
 		float max_volume = 0;
 		float volume_increment = 0;
@@ -106,6 +110,13 @@ std::vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfoList() const {
 		info.min_volume = min_volume;
 		info.max_volume = max_volume;
 		info.volume_increment = volume_increment;
+
+		XAMP_LOG_D(log_, "{} min_volume: {:.2f} dBFS, max_volume:{:.2f} dBFS, volume_increnment:{:.2f} dBFS, volume leve:{:.2f}.",
+			info.device_id,
+			info.min_volume,
+			info.max_volume,
+			info.volume_increment,
+			(info.max_volume - info.min_volume) / info.volume_increment);
 
 		// TODO: 一些DAC有支援WASAPI DOP模式.
 		info.is_support_dsd = true;

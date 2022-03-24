@@ -183,7 +183,6 @@ static std::vector<ModuleHandle> prefetchWin32DLL() {
         "GdiPlus.dll",
         "psapi.dll",
     	"comctl32.dll",
-        "WindowsCodecs.dll",
         "thumbcache.dll",
         "setupapi.dll",
     #ifndef _DEBUG
@@ -194,7 +193,7 @@ static std::vector<ModuleHandle> prefetchWin32DLL() {
         "Qt5Network.dll",
         "Qt5WinExtras.dll",
         "qwindows.dll",
-        "qsqlite.dll"
+        "qsqlite.dll",
         "qjpeg.dll",
 	#endif
     };

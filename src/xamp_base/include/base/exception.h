@@ -31,7 +31,8 @@ MAKE_XAMP_ENUM(Errors,
           XAMP_ERROR_SAMPLERATE_CHANGED,
           XAMP_ERROR_NOT_SUPPORT_RESAMPLE_SAMPLERATE,
           XAMP_ERROR_NOT_FOUND_DLL_EXPORT_FUNC,
-          XAMP_ERROR_NOT_SUPPORT_EXCLUSIVE_MODE)
+          XAMP_ERROR_NOT_SUPPORT_EXCLUSIVE_MODE,
+          XAMP_ERROR_NOT_BUFFER_OVERFLOW)
 
 XAMP_BASE_API std::string GetPlatformErrorMessage(int32_t err);
 
@@ -43,7 +44,7 @@ public:
                        std::string const & message = "",
                        std::string_view what = "");
     
-    virtual ~Exception() noexcept override = default;
+    ~Exception() noexcept override = default;
 
     [[nodiscard]] char const * what() const noexcept override;
 
@@ -67,7 +68,7 @@ protected:
 
 class XAMP_BASE_API LibrarySpecException : public Exception {
 public:
-    LibrarySpecException(std::string const& message, std::string_view what = "");
+	explicit LibrarySpecException(std::string const& message, std::string_view what = "");
 };
 
 class XAMP_BASE_API PlatformSpecException : public Exception {
@@ -80,21 +81,21 @@ public:
 
     PlatformSpecException(std::string_view what, int32_t err);
 
-    virtual ~PlatformSpecException() override = default;
+    ~PlatformSpecException() override = default;
 };
 
 #define XAMP_DECLARE_EXCEPTION_CLASS(ExceptionClassName) \
 class XAMP_BASE_API ExceptionClassName final : public Exception {\
 public:\
     ExceptionClassName();\
-    virtual ~ExceptionClassName() = default;\
+    ~ExceptionClassName() override = default;\
 };
 
 class XAMP_BASE_API DeviceUnSupportedFormatException final : public Exception {
 public:
     explicit DeviceUnSupportedFormatException(AudioFormat const & format);
 
-    virtual ~DeviceUnSupportedFormatException() override = default;
+    ~DeviceUnSupportedFormatException() override = default;
 
 private:
     AudioFormat format_;
@@ -104,7 +105,7 @@ class XAMP_BASE_API LoadDllFailureException final : public Exception {
 public:
     explicit LoadDllFailureException(std::string_view dll_name);
 
-    virtual ~LoadDllFailureException() override = default;
+    ~LoadDllFailureException() override = default;
 
 private:
     std::string_view dll_name_;
@@ -114,7 +115,7 @@ class XAMP_BASE_API NotFoundDllExportFuncException final : public Exception {
 public:
     explicit NotFoundDllExportFuncException(std::string_view func_name);
 
-    virtual ~NotFoundDllExportFuncException() override = default;
+    ~NotFoundDllExportFuncException() override = default;
 
 private:
     std::string_view func_name_;
@@ -130,12 +131,12 @@ XAMP_DECLARE_EXCEPTION_CLASS(StopStreamTimeoutException)
 XAMP_DECLARE_EXCEPTION_CLASS(SampleRateChangedException)
 XAMP_DECLARE_EXCEPTION_CLASS(NotSupportResampleSampleRateException)
 XAMP_DECLARE_EXCEPTION_CLASS(NotSupportExclusiveModeException)
-
+XAMP_DECLARE_EXCEPTION_CLASS(BufferOverflowException)
 
 #define BufferOverFlowThrow(expr) \
     do {\
         if (!(expr)) {\
-        throw LibrarySpecException("Buffer overflow.", "Buffer overflow.");\
+        throw BufferOverflowException();\
         }\
     } while(false)
 

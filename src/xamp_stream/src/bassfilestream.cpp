@@ -2,6 +2,7 @@
 #include <base/str_utilts.h>
 #include <base/singleton.h>
 #include <base/stopwatch.h>
+#include <base/logger.h>
 #include <stream/podcastcache.h>
 #include <stream/bassexception.h>
 #include <stream/bassfilestream.h>
@@ -41,6 +42,7 @@ public:
     BassFileStreamImpl() noexcept
         : mode_(DsdModes::DSD_MODE_PCM)
 		, download_size_(0) {
+        logger_ = Logger::GetInstance().GetLogger(kFileStreamLoggerName);
         Close();
     }
 
@@ -60,7 +62,7 @@ public:
 
             file_.Open(file_path);
             if (!PrefetchFile(file_, file_.GetLength())) {
-                XAMP_LOG_DEBUG("PrefetchFile return failure!");
+                XAMP_LOG_D(logger_, "PrefetchFile return failure!");
             }
             if (mode == DsdModes::DSD_MODE_PCM) {
                 stream_.reset(BASS.BASS_StreamCreateFile(TRUE,
@@ -123,7 +125,7 @@ public:
             XAMP_NO_DEFAULT;
         }
 
-        XAMP_LOG_TRACE("Use DsdModes: {}", mode_);
+        XAMP_LOG_D(logger_, "Use DsdModes: {}", mode_);
 
         const auto is_file_path = IsFilePath(file_path);
         file_cache_.reset();
@@ -132,7 +134,7 @@ public:
             file_cache_ = GetPodcastFileCache(file_path);
         }
 
-        XAMP_LOG_DEBUG("Start open file");
+        XAMP_LOG_D(logger_, "Start open file");
 
         Stopwatch sw;
         sw.Reset();
@@ -142,7 +144,7 @@ public:
             LoadFileOrURL(file_path, is_file_path, mode_, flags);
         }
 
-        XAMP_LOG_DEBUG("End open file :{:.2f} secs", sw.ElapsedSeconds());
+        XAMP_LOG_D(logger_, "End open file :{:.2f} secs", sw.ElapsedSeconds());
         info_ = BASS_CHANNELINFO{};
         BassIfFailedThrow(BASS.BASS_ChannelGetInfo(stream_.get(), &info_));
 
@@ -165,7 +167,7 @@ public:
             BassIfFailedThrow(BASS.MixLib->BASS_Mixer_StreamAddChannel(mix_stream_.get(),
                 stream_.get(),
                 BASS_MIXER_BUFFER));
-            XAMP_LOG_DEBUG("Mix stream {} channel to 2 channel", info_.chans);
+            XAMP_LOG_D(logger_, "Mix stream {} channel to 2 channel", info_.chans);
             info_.chans = kMaxChannel;
         }
         else {
@@ -195,17 +197,17 @@ public:
 	static void DownloadProc(const void* buffer, DWORD length, void* user) {
         auto* impl = static_cast<BassFileStreamImpl*>(user);
     	if (!buffer) {
-            XAMP_LOG_DEBUG("Downloading 100% completed!");
+            XAMP_LOG_D(impl->logger_, "Downloading 100% completed!");
             impl->file_cache_->Close();
             return;
     	}
         if (length == 0) {
             auto *ptr = static_cast<char const*>(buffer);
             std::string http_status(ptr);
-            XAMP_LOG_DEBUG("{}", http_status);
+            XAMP_LOG_D(impl->logger_, "{}", http_status);
     	} else {                      
             impl->download_size_ += length;
-            XAMP_LOG_TRACE("Downloading {:.2f}% {}", impl->GetReadProgress(),
+            XAMP_LOG_D(impl->logger_, "Downloading {:.2f}% {}", impl->GetReadProgress(),
                            String::FormatBytes(impl->download_size_));
             impl->file_cache_->Write(buffer, length);
         }
@@ -325,6 +327,7 @@ private:
     BASS_CHANNELINFO info_;
     MemoryMappedFile file_;
     std::shared_ptr<PodcastFileCache> file_cache_;
+    std::shared_ptr<spdlog::logger> logger_;
 };
 
 BassFileStream::BassFileStream()

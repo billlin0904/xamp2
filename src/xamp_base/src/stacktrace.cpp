@@ -28,19 +28,30 @@ static std::string GetFileName(std::filesystem::path const& path) {
     return String::ToUtf8String(path.filename());
 }
 
-class SymLoader {
+struct StackTraceEntry {
+    bool has_module{false};
+    bool has_symbol{false};
+    bool has_line{false};
+    uint32_t index{0};    
+    uint32_t source_line{0};
+    uint64_t address{0};
+    uint64_t displacement{0};
+    std::string symbol_name;
+    std::string module_name;
+    std::string source_file_name;
+};
+
+class SymLoader final {
 public:
     static constexpr auto kMaxModuleNameSize = 64;
     static constexpr auto kMaxSymbolNameSize = 255;
 
-	[[nodiscard]] const WinHandle & GetProcess() const noexcept {
-		return process_;
-	}
+    XAMP_DISABLE_COPY(SymLoader)
 
     SymLoader() {
         symbol_.resize(sizeof(SYMBOL_INFO) + sizeof(wchar_t) * MAX_SYM_NAME);
         process_.reset(::GetCurrentProcess());
-        thread_.reset(::GetCurrentThread());
+        stack_trace_entries_.reserve(kMaxStackFrameSize);
 
         ::SymSetOptions(SYMOPT_DEFERRED_LOADS |
             SYMOPT_UNDNAME |
@@ -79,12 +90,13 @@ public:
         stack_frame.AddrFrame.Offset = context->Rbp;
         stack_frame.AddrFrame.Mode = AddrModeFlat;
 
+        WinHandle thread(::GetCurrentThread());
         size_t frame_count = 0;
 
         for (auto& address : addrlist) {
             const auto result = ::StackWalk64(IMAGE_FILE_MACHINE_IA64,
                 process_.get(),
-                thread_.get(),
+                thread.get(),
                 &stack_frame,
                 &context,
                 nullptr,
@@ -109,63 +121,83 @@ public:
 
         frame_count = (std::min)(addrlist.size(), frame_count);
 
-        for (size_t i = 0; i < frame_count; ++i) {
-            auto* frame = addrlist[i];
+        stack_trace_entries_.clear();       
+        size_t max_width = 0;
+
+        for (uint32_t i = 0; i < frame_count; ++i) {
+            StackTraceEntry entry;
+            entry.index = i;
+            entry.address = reinterpret_cast<uint64_t>(addrlist[i]);
 
             IMAGEHLP_MODULE64 module{};
             module.SizeOfStruct = sizeof(module);
-            std::string module_name;
-
-            ostr << "#" << std::left << std::setfill(' ') << std::setw(2) << std::dec << i << " ";
-
-            const auto has_module = ::SymGetModuleInfo64(process_.get(),
-                reinterpret_cast<DWORD64>(frame), 
+            entry.has_module = ::SymGetModuleInfo64(process_.get(),
+                entry.address,
                 &module);
-            if (has_module) {
-                module_name = GetFileName(module.LoadedImageName);
-                if (module_name.empty()) {
-                    module_name = GetFileName(module.ImageName);
+            if (entry.has_module) {
+                entry.module_name = GetFileName(module.LoadedImageName);
+                if (entry.module_name.empty()) {
+                    entry.module_name = GetFileName(module.ImageName);
                 }
-            } else {
-                module_name = "Unknown";
+            }
+            else {
+                entry.module_name = "Unknown";
             }
 
-            ostr << std::left << std::setfill(' ') << std::setw(24) << module_name << " ";
+            max_width = (std::max)(max_width, entry.module_name.length());
 
             MemorySet(symbol_.data(), 0, symbol_.size());
             auto* const symbol_info = reinterpret_cast<SYMBOL_INFO*>(symbol_.data());
-
             symbol_info->SizeOfStruct = sizeof(SYMBOL_INFO);
             symbol_info->MaxNameLen = kMaxSymbolNameSize;
 
             DWORD64 displacement = 0;
-            const auto has_symbol = ::SymFromAddr(process_.get(),
-                reinterpret_cast<DWORD64>(frame),
+            entry.has_symbol = ::SymFromAddr(process_.get(),
+                entry.address,
                 &displacement,
                 symbol_info);
-            //const auto has_symbol = false;
 
-            ostr << " \t"
-                 << "0X" << std::hex << std::uppercase << std::setfill('0') << std::setw(8)
-                 << reinterpret_cast<DWORD64>(frame) << " ";
-
-            if (has_symbol) {
-                DWORD line_displacement = 0;
-
+            if (entry.has_symbol) {
                 IMAGEHLP_LINE64 line{};
                 line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
 
-                const auto has_line = ::SymGetLineFromAddr64(process_.get(),
-                    reinterpret_cast<DWORD64>(frame),
+                DWORD line_displacement = 0;
+                entry.has_line = ::SymGetLineFromAddr64(process_.get(),
+                    entry.address,
                     &line_displacement,
                     &line);
 
-                ostr << symbol_info->Name;
-                if (has_line) {
-                    ostr << " in " << GetFileName(line.FileName) << ":" << std::dec << line.LineNumber << "\r\n";
+            	entry.symbol_name = symbol_info->Name;
+
+                if (entry.has_line) {
+                    entry.source_file_name = GetFileName(line.FileName);
+                    entry.source_line = line.LineNumber;
                 }
                 else {
-                    ostr << " + " << std::dec << displacement << "\r\n";
+                    entry.displacement = displacement;
+                }
+            }
+            else {
+                entry.source_file_name = "<unknown>";
+            }
+
+            stack_trace_entries_.push_back(entry);
+        }
+
+        for (const auto & entry : stack_trace_entries_) {
+            ostr << "\t#" << std::left << std::setfill(' ') << std::setw(2) << std::dec << entry.index << " "
+				 << std::left << std::setfill(' ') << std::setw(max_width) << entry.module_name << " "
+                 << " "
+        	     << std::left << "0X" << std::hex << std::uppercase << std::setfill('0') << std::setw(8) << entry.address << " ";
+
+            if (entry.has_symbol) {
+                ostr << entry.symbol_name;
+
+                if (entry.has_line) {
+                    ostr << " in " << entry.source_file_name << ":" << std::dec << entry.source_line << "\r\n";
+                }
+                else {
+                    ostr << " + " << std::dec << entry.displacement << "\r\n";
                 }
             }
             else {
@@ -177,7 +209,7 @@ public:
 private:
     bool init_state_;
 	WinHandle process_;
-    WinHandle thread_;
+    std::vector<StackTraceEntry> stack_trace_entries_;
     std::vector<uint8_t> symbol_;
 };
 
@@ -192,18 +224,6 @@ bool StackTrace::LoadSymbol() {
 #else
     return true;
 #endif
-}
-
-std::string StackTrace::CaptureStack(const void* context) {
-    CaptureStackAddress addrlist;
-#ifdef XAMP_OS_WIN
-    addrlist.fill(nullptr);
-    std::ostringstream ostr;
-    const auto frame_count = SYMBOL_LOADER.WalkStack(static_cast<const CONTEXT*>(context), addrlist);
-    SYMBOL_LOADER.WriteLog(ostr, frame_count - 1, addrlist);
-    return ostr.str();
-#endif
-    return "";
 }
 
 std::string StackTrace::CaptureStack() {
