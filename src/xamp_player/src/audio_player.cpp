@@ -15,6 +15,9 @@
 #include <output_device/iaudiodevicemanager.h>
 
 #include <stream/dspmanager.h>
+#include <stream/iaudiostream.h>
+#include <stream/idsdstream.h>
+#include <stream/filestream.h>
 #include <stream/isamplerateconverter.h>
 
 #include <player/iplaybackstateadapter.h>
@@ -93,7 +96,7 @@ AudioPlayer::AudioPlayer(const std::weak_ptr<IPlaybackStateAdapter> &adapter)
     , state_adapter_(adapter)
     , fifo_(GetPageAlignSize(kPreallocateBufferSize))
     , action_queue_(kActionQueueSize)
-    , dsp_manager_(MakeDSPManager()) {
+    , dsp_manager_(MediaStreamFactory::MakeDSPManager()) {
     logger_ = Logger::GetInstance().GetLogger(kAudioPlayerLoggerName);
 }
 

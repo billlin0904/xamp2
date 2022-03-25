@@ -44,7 +44,7 @@ std::pair<DsdModes, AlignPtr<IAudioStream>> MakeFileStream(Path const& path,
     bool enable_sample_converter) {
     auto const file_path = path.wstring();
 	const auto is_dsd_file = TestDsdFileFormatStd(file_path);
-    auto test_dsd_mode_stream = MakeAudioStream();
+    auto test_dsd_mode_stream = MediaStreamFactory::MakeAudioStream();
     auto* fs = dynamic_cast<FileStream*>(test_dsd_mode_stream.get());
     auto dsd_mode = SetStreamDsdMode(fs, is_dsd_file, device_info, enable_sample_converter);
     fs->OpenFile(file_path);

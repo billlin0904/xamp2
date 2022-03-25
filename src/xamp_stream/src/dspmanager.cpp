@@ -40,7 +40,7 @@ void DSPManager::RemovePreDSP(Uuid const& id) {
 
 void DSPManager::SetEq(EQSettings const& settings) {
     eq_settings_ = settings;
-    AddPostDSP(MakeEqualizer());
+    AddPostDSP(MediaStreamFactory::MakeEqualizer());
 }
 
 void DSPManager::SetPreamp(float preamp) {
@@ -49,7 +49,7 @@ void DSPManager::SetPreamp(float preamp) {
 
 void DSPManager::SetReplayGain(double volume) {
     replay_gain_ = volume;
-    AddPostDSP(MakeVolume());
+    AddPostDSP(MediaStreamFactory::MakeVolume());
 }
 
 void DSPManager::SetPcm2DsdConvertSampleRate(uint32_t dsd_times) {

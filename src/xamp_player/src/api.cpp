@@ -16,7 +16,7 @@ namespace xamp::player {
 
 #ifdef XAMP_OS_WIN
 AlignPtr<ICDDevice> OpenCD(int32_t driver_letter) {
-    return MakeCDDevice(driver_letter);
+    return MediaStreamFactory::MakeCDDevice(driver_letter);
 }
 #endif
 

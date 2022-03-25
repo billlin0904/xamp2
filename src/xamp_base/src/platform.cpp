@@ -243,10 +243,10 @@ std::string MakeTempFileName() {
 }
 
 bool IsDebuging() {
-#ifdef XAMP_OS_WIN
-    return ::IsDebuggerPresent();
+#ifdef _DEBUG
+    return true;
 #else
-    return false;
+    return ::IsDebuggerPresent();
 #endif
 }
 
@@ -348,10 +348,6 @@ void MSleep(std::chrono::milliseconds timeout) {
     WaitableTimer timer;
     timer.SetTimeout(timeout);
     timer.Wait();
-}
-
-void MSleep(int64_t timeout) {
-    MSleep(std::chrono::milliseconds(timeout));
 }
 
 }

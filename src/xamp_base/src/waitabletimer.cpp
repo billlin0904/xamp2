@@ -108,9 +108,6 @@ public:
 #else
 		: impl_(MakeAlign<IWaitableTimer, StdWaitableTimerImpl>()) {
 #endif
-#ifdef XAMP_OS_WIN
-		XAMP_LOG_DEBUG("Use sleep timer : {}", time_period_.IsSleepSranular());
-#endif
 	}
 
 	void SetTimeout(std::chrono::milliseconds timeout) noexcept {

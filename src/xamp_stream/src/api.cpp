@@ -48,23 +48,40 @@ bool TestDsdFileFormatStd(std::wstring const& file_path) {
     return TestDsdFileFormat(file_chunks);
 }
 
-AlignPtr<IAudioStream> MakeAudioStream() {
+AlignPtr<IAudioStream> MediaStreamFactory::MakeAudioStream() {
     return MakeAlign<IAudioStream, BassFileStream>();
 }
 
-AlignPtr<IFileEncoder> MakeFlacEncoder() {
+AlignPtr<IFileEncoder> MediaStreamFactory::MakeFlacEncoder() {
     return MakeAlign<IFileEncoder, BassFlacFileEncoder>();
 }
 
-#ifdef XAMP_OS_WIN
-AlignPtr<IFileEncoder> MakeWavEncoder() {
+AlignPtr<IFileEncoder> MediaStreamFactory::MakeWaveEncoder() {
     return MakeAlign<IFileEncoder, BassWavFileEncoder>();
 }
 
-AlignPtr<ICDDevice> MakeCDDevice(int32_t driver_letter) {
+AlignPtr<IAudioProcessor> MediaStreamFactory::MakeEqualizer() {
+    return MakeAlign<IAudioProcessor, BassEqualizer>();
+}
+
+AlignPtr<IAudioProcessor> MediaStreamFactory::MakeCompressor() {
+    return MakeAlign<IAudioProcessor, BassCompressor>();
+}
+
+AlignPtr<IAudioProcessor> MediaStreamFactory::MakeVolume() {
+    return MakeAlign<IAudioProcessor, BassVolume>();
+}
+
+AlignPtr<IDSPManager> MediaStreamFactory::MakeDSPManager() {
+    return MakeAlign<IDSPManager, DSPManager>();
+}
+
+#ifdef XAMP_OS_WIN
+AlignPtr<ICDDevice> MediaStreamFactory::MakeCDDevice(int32_t driver_letter) {
     return MakeAlign<ICDDevice, BassCDDevice>(static_cast<char>(driver_letter));
 }
 #endif
+
 IDsdStream* AsDsdStream(AlignPtr<IAudioStream> const& stream) noexcept {
     return dynamic_cast<IDsdStream*>(stream.get());
 }
@@ -82,25 +99,9 @@ HashSet<std::string> const& GetSupportFileExtensions() {
     return bass_file_ext;
 }
 
-AlignPtr<IAudioProcessor> MakeEqualizer() {
-    return MakeAlign<IAudioProcessor, BassEqualizer>();
-}
-
-AlignPtr<IAudioProcessor> MakeCompressor() {
-    return MakeAlign<IAudioProcessor, BassCompressor>();
-}
-
-AlignPtr<IAudioProcessor> MakeVolume() {
-    return MakeAlign<IAudioProcessor, BassVolume>();
-}
-
-AlignPtr<IDSPManager> MakeDSPManager() {
-    return MakeAlign<IDSPManager, DSPManager>();
-}
-
 void LoadBassLib() {
     if (!BASS.IsLoaded()) {
-        (void)Singleton<BassLib>::GetInstance().Load();
+        Singleton<BassLib>::GetInstance().Load();
     }
     BASS.MixLib = MakeAlign<BassMixLib>();
     XAMP_LOG_DEBUG("Load BassMixLib {} successfully.", GetBassVersion(BASS.MixLib->BASS_Mixer_GetVersion()));

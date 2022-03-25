@@ -6,7 +6,6 @@
     <ClCompile Include="src\loudness_scanner.cpp" />
     <ClCompile Include="src\libebur128\ebur128.c" />
     <ClCompile Include="src\api.cpp" />
-    <ClCompile Include="src\fft.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\player\audio_player.h" />
@@ -18,6 +17,5 @@
     <ClInclude Include="src\libebur128\sys_queue.h" />
     <ClInclude Include="include\player\iaudioplayer.h" />
     <ClInclude Include="include\player\api.h" />
-    <ClInclude Include="include\player\fft.h" />
   </ItemGroup>
 </Project>

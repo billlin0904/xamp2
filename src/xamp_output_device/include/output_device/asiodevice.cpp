@@ -591,7 +591,7 @@ void AsioDevice::StopStream(bool wait_for_stop_stream) {
 
 	// todo: Workaround!
 	// 等待10ms這段期間OnBufferSwitch會填充靜音的資料.	
-	MSleep(10);
+	MSleep(std::chrono::milliseconds(10));
 	AsioIfFailedThrow(::ASIOStop());
 }
 
