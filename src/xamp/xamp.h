@@ -151,6 +151,8 @@ private:
 
 	void cleanup();
 
+    void setupDSP(uint32_t target_sample_rate, const QMap<QString, QVariant> &soxr_settings, const AlbumEntity& item);
+
 	void avoidRedrawOnResize();
 
 	bool is_seeking_;

@@ -963,6 +963,36 @@ void Xamp::processMeatadata(const std::vector<Metadata>& medata) const {
     album_artist_page_->artist()->refreshOnece();
 }
 
+void Xamp::setupDSP(uint32_t target_sample_rate, const QMap<QString, QVariant> &soxr_settings, const AlbumEntity& item) {
+    if (target_sample_rate != 0 && player_->GetInputFormat().GetSampleRate() != target_sample_rate) {
+        player_->GetDSPManager()->AddPreDSP(makeSampleRateConverter(soxr_settings));
+    } else {
+        player_->GetDSPManager()->RemovePreDSP(SoxrSampleRateConverter::Id);
+    }
+
+    if (AppSettings::getValueAsBool(kAppSettingEnableReplayGain)) {
+        const auto mode = AppSettings::getAsEnum<ReplayGainMode>(kAppSettingReplayGainMode);
+        if (mode == ReplayGainMode::RG_ALBUM_MODE) {
+            player_->GetDSPManager()->SetReplayGain(item.album_replay_gain);
+        } else if (mode == ReplayGainMode::RG_TRACK_MODE) {
+            player_->GetDSPManager()->SetReplayGain(item.track_replay_gain);
+        } else {
+            player_->GetDSPManager()->SetReplayGain(0.0);
+        }
+    } else {
+        player_->GetDSPManager()->RemoveReplayGain();
+    }
+
+    if (AppSettings::getValueAsBool(kAppSettingEnableEQ)) {
+        if (AppSettings::contains(kAppSettingEQName)) {
+            const auto [name, settings] = AppSettings::getValue(kAppSettingEQName).value<AppEQSettings>();
+            player_->GetDSPManager()->SetEq(settings);
+        }
+    } else {
+        player_->GetDSPManager()->RemoveEq();
+    }
+}
+
 void Xamp::playAlbumEntity(const AlbumEntity& item) {
     auto open_done = false;
 
@@ -990,34 +1020,7 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
         }
 
         player_->Open(item.file_path.toStdWString(), device_info_, target_sample_rate);
-
-        if (target_sample_rate != 0 && player_->GetInputFormat().GetSampleRate() != target_sample_rate) {
-            player_->GetDSPManager()->AddPreDSP(makeSampleRateConverter(soxr_settings));
-        } else {
-            player_->GetDSPManager()->RemovePreDSP(SoxrSampleRateConverter::Id);
-        }
-
-        if (AppSettings::getValueAsBool(kAppSettingEnableReplayGain)) {
-            const auto mode = AppSettings::getAsEnum<ReplayGainMode>(kAppSettingReplayGainMode);
-            if (mode == ReplayGainMode::RG_ALBUM_MODE) {
-                player_->GetDSPManager()->SetReplayGain(item.album_replay_gain);
-            } else if (mode == ReplayGainMode::RG_TRACK_MODE) {
-                player_->GetDSPManager()->SetReplayGain(item.track_replay_gain);
-            } else {
-                player_->GetDSPManager()->SetReplayGain(0.0);
-            }
-        } else {
-            player_->GetDSPManager()->RemoveReplayGain();
-        }
-
-        if (AppSettings::getValueAsBool(kAppSettingEnableEQ)) {
-            if (AppSettings::contains(kAppSettingEQName)) {
-                const auto [name, settings] = AppSettings::getValue(kAppSettingEQName).value<AppEQSettings>();
-                player_->GetDSPManager()->SetEq(settings);
-            }
-        } else {
-            player_->GetDSPManager()->RemoveEq();
-        }
+        setupDSP(target_sample_rate, soxr_settings, item);
 
         player_->PrepareToPlay();        
         playback_format = getPlaybackFormat(player_.get());
