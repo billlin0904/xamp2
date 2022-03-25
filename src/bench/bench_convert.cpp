@@ -18,7 +18,8 @@
 #include <base/platform.h>
 #include <base/uuid.h>
 
-#include <stream/fftwlib.h>
+#include <stream/api.h>
+#include <stream/fft.h>
 
 #ifdef XAMP_OS_WIN
 #include <base/win32/win32_threadpool.h>
@@ -423,31 +424,31 @@ static void BM_CircularBuffer(benchmark::State& state) {
     }
 }
 
-//BENCHMARK(BM_UuidParse);
-//BENCHMARK(BM_Xoshiro256StarStarRandom);
-//BENCHMARK(BM_Xoshiro256PlusRandom);
-//BENCHMARK(BM_Xoshiro256PlusPlusRandom);
-//BENCHMARK(BM_default_random_engine);
-//BENCHMARK(BM_PRNG);
-//BENCHMARK(BM_PRNG_GetInstance);
-//
-//BENCHMARK(BM_unordered_set);
-//BENCHMARK(BM_FindRobinHoodHashSet);
-//BENCHMARK(BM_unordered_map);
-//BENCHMARK(BM_FindRobinHoodHashMap);
+BENCHMARK(BM_UuidParse);
+BENCHMARK(BM_Xoshiro256StarStarRandom);
+BENCHMARK(BM_Xoshiro256PlusRandom);
+BENCHMARK(BM_Xoshiro256PlusPlusRandom);
+BENCHMARK(BM_default_random_engine);
+BENCHMARK(BM_PRNG);
+BENCHMARK(BM_PRNG_GetInstance);
+
+BENCHMARK(BM_unordered_set);
+BENCHMARK(BM_FindRobinHoodHashSet);
+BENCHMARK(BM_unordered_map);
+BENCHMARK(BM_FindRobinHoodHashMap);
 BENCHMARK(BM_FastMemset)->RangeMultiplier(2)->Range(4096, 8 << 10);
 BENCHMARK(BM_StdtMemset)->RangeMultiplier(2)->Range(4096, 8 << 10);
 BENCHMARK(BM_FastMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 10);
 BENCHMARK(BM_StdtMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 10);
-//BENCHMARK(BM_ConvertToInt2432Avx)->RangeMultiplier(2)->Range(4096, 8 << 10);
-//BENCHMARK(BM_ConvertToInt2432)->RangeMultiplier(2)->Range(4096, 8 << 10);
-//BENCHMARK(BM_InterleavedToPlanarConvertToInt32_AVX)->RangeMultiplier(2)->Range(4096, 8 << 10);
-//BENCHMARK(BM_InterleavedToPlanarConvertToInt32)->RangeMultiplier(2)->Range(4096, 8 << 10);
-//BENCHMARK(BM_FFT)->RangeMultiplier(2)->Range(4096, 8 << 12);
+BENCHMARK(BM_ConvertToInt2432Avx)->RangeMultiplier(2)->Range(4096, 8 << 10);
+BENCHMARK(BM_ConvertToInt2432)->RangeMultiplier(2)->Range(4096, 8 << 10);
+BENCHMARK(BM_InterleavedToPlanarConvertToInt32_AVX)->RangeMultiplier(2)->Range(4096, 8 << 10);
+BENCHMARK(BM_InterleavedToPlanarConvertToInt32)->RangeMultiplier(2)->Range(4096, 8 << 10);
+BENCHMARK(BM_FFT)->RangeMultiplier(2)->Range(4096, 8 << 12);
 
-//BENCHMARK(BM_SpinLockFreeStack)->ThreadRange(1, 128);
-//BENCHMARK(BM_LIFOQueue)->ThreadRange(1, 128);
-//BENCHMARK(BM_CircularBuffer)->ThreadRange(1, 128);
+BENCHMARK(BM_SpinLockFreeStack)->ThreadRange(1, 128);
+BENCHMARK(BM_LIFOQueue)->ThreadRange(1, 128);
+BENCHMARK(BM_CircularBuffer)->ThreadRange(1, 128);
 
 BENCHMARK(BM_async_pool)->RangeMultiplier(2)->Range(8, 8 << 2);
 #ifdef XAMP_OS_WIN
