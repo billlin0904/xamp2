@@ -112,9 +112,12 @@ void LoadBassLib() {
 #ifdef XAMP_OS_WIN
     BASS.CDLib = MakeAlign<BassCDLib>();
     XAMP_LOG_DEBUG("Load BassCDLib successfully.");
-    BASS.EncLib = MakeAlign<BassEncLib>();
-    XAMP_LOG_DEBUG("Load BassEncLib successfully.");
 #endif
+    try {
+        BASS.EncLib = MakeAlign<BassEncLib>();
+        XAMP_LOG_DEBUG("Load BassEncLib successfully.");
+    }  catch (const Exception &) {
+    }
     BASS.FlacEncLib = MakeAlign<BassFlacEncLib>();
     XAMP_LOG_DEBUG("Load BassFlacEncLib successfully.");
 }

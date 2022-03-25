@@ -32,7 +32,7 @@ protected:
 	bool hold_;
 };
 
-#ifdef _DEBUG
+#if defined(_DEBUG) || !defined(NDEBUG)
 #define XAMP_ASSERT(expr) \
 	if (!(expr)) {\
 		using xamp::base::Asserter;\

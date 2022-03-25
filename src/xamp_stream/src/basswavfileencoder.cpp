@@ -7,8 +7,6 @@
 #include <stream/api.h>
 #include <stream/basswavfileencoder.h>
 
-#ifdef XAMP_OS_WIN
-
 namespace xamp::stream {
 
 class BassWavFileEncoder::BassWavFileEncoderImpl {
@@ -81,5 +79,3 @@ void BassWavFileEncoder::Encode(std::function<bool(uint32_t)> const& progress) {
 }
 
 }
-
-#endif

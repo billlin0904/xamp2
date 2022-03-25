@@ -6,6 +6,7 @@
 
 #include "thememanager.h"
 
+#include <widget/colorthief.h>
 #include <widget/image_utiltis.h>
 #include <widget/scrolllabel.h>
 #include <widget/lyricsshowwidget.h>
@@ -56,7 +57,7 @@ void LrcPage::setBackground(const QImage& cover) {
 		background_image_ = QImage();
 	}
 	else {
-		background_image_ = cover;
+        background_image_ = cover;
 	}
 	update();
 }
@@ -67,13 +68,15 @@ void LrcPage::paintEvent(QPaintEvent*) {
 }
 
 void LrcPage::setBackgroundColor(QColor backgroundColor) {
-	lyrics_widget_->setBackgroundColor(backgroundColor);
+    lyrics_widget_->setBackgroundColor(backgroundColor);
 	setStyleSheet(backgroundColorToString(backgroundColor));
 }
 
 void LrcPage::onThemeChanged(QColor backgroundColor, QColor color) {
-	lyrics_widget_->setLrcColor(color);
-	lyrics_widget_->setLrcHightLight(color);
+    //lyrics_widget_->setLrcColor(color);
+    //lyrics_widget_->setLrcHightLight(color);
+    lyrics_widget_->setLrcColor(Qt::white);
+    lyrics_widget_->setLrcHightLight(Qt::white);
 }
 
 void LrcPage::initial() {

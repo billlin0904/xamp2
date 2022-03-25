@@ -143,7 +143,6 @@ public:
 #endif
 };
 
-#ifdef XAMP_OS_WIN
 class BassEncLib final {
 public:
     BassEncLib();
@@ -154,9 +153,8 @@ private:
     ModuleHandle module_;
 
 public:
-    DllFunction<HENCODE(DWORD, void*, DWORD, const WCHAR*)> BASS_Encode_StartACMFile;
+    DllFunction<HENCODE(DWORD, void*, DWORD, const wchar_t*)> BASS_Encode_StartACMFile;
 };
-#endif
 
 class BassLib final {
 public:
@@ -177,9 +175,7 @@ public:
     AlignPtr<BassDSDLib> DSDLib;
     AlignPtr<BassMixLib> MixLib;
     AlignPtr<BassFxLib> FxLib;
-#ifdef XAMP_OS_WIN
     AlignPtr<BassEncLib> EncLib;
-#endif
     AlignPtr<BassFlacEncLib> FlacEncLib;
 
 #ifdef XAMP_OS_WIN

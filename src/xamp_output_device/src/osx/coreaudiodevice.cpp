@@ -316,7 +316,7 @@ void CoreAudioDevice::StopStream(bool /*wait_for_stop_stream*/) {
         std::unique_lock<FastMutex> lock{mutex_};
         stop_event_.wait(lock);
     }
-    MSleep(10);
+    MSleep(std::chrono::milliseconds(10));
     CoreAudioThrowIfError(::AudioDeviceStop(device_id_, ioproc_id_));
     is_running_ = false;
 }

@@ -246,7 +246,11 @@ bool IsDebuging() {
 #ifdef _DEBUG
     return true;
 #else
+#ifdef XAMP_OS_WIN
     return ::IsDebuggerPresent();
+#else
+    return true;
+#endif
 #endif
 }
 

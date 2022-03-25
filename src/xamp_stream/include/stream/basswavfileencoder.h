@@ -8,8 +8,6 @@
 #include <base/align_ptr.h>
 #include <stream/ifileencoder.h>
 
-#ifdef XAMP_OS_WIN
-
 namespace xamp::stream {
 
 class BassWavFileEncoder final
@@ -29,5 +27,3 @@ private:
 };
 
 }
-
-#endif
