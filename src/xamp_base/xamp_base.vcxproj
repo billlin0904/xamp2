@@ -204,7 +204,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\align_ptr.cpp" />
-    <ClCompile Include="src\assert.cpp" />
     <ClCompile Include="src\audioformat.cpp" />
     <ClCompile Include="src\crashhandler.cpp" />
     <ClCompile Include="src\dataconverter.cpp" />

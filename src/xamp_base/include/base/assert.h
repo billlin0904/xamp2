@@ -5,45 +5,12 @@
 
 #pragma once
 
+#include <cassert>
 #include <base/base.h>
 
-namespace xamp::base {
-
-enum class AssertHandleTypes {
-	ASSERT_DEBUG,
-	ASSERT_GIVE_UP,
-	ASSERT_IGNORE,
-};
-
-class XAMP_BASE_API Asserter {
-public:
-	virtual ~Asserter() = default;
-
-	virtual bool Handle(const char* file, int line, const char* expr) const;
-
-	virtual AssertHandleTypes AskUser(const char* file, int line, const char* expr) const;
-
-	static Asserter MakeAsserter(bool flag);
-
-	static void DebugTrap();
-
-protected:
-	Asserter(bool hold);
-	bool hold_;
-};
-
 #if defined(_DEBUG) || !defined(NDEBUG)
-#define XAMP_ASSERT(expr) \
-	if (!(expr)) {\
-		using xamp::base::Asserter;\
-		if (Asserter::MakeAsserter(false).Handle(__FILE__, __LINE__, #expr)) {\
-			Asserter::DebugTrap(); \
-		}\
-	} else {\
-		((void)0);\
-	}
+#define XAMP_ASSERT(expr) assert(expr)
 #else
 #define XAMP_ASSERT(expr) ((void)0)
 #endif
-}
 
