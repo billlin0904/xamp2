@@ -267,19 +267,6 @@ static void BM_InterleavedToPlanarConvertToInt32(benchmark::State& state) {
     state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * length * sizeof(float));
 }
 
-static void BM_MemoryCopyUnroll(benchmark::State& state) {
-    auto length = state.range(0);
-
-    auto src = MakeAlignedArray<int8_t>(length);
-    auto dest = MakeAlignedArray<int8_t>(length);
-
-    for (auto _ : state) {
-        SIMD::MemoryCopyUnroll(dest.get(), src.get(), length);
-    }
-
-    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * length);
-}
-
 static void BM_FastMemcpy(benchmark::State& state) {
     auto length = state.range(0);
 
@@ -454,7 +441,6 @@ static void BM_CircularBuffer(benchmark::State& state) {
 //BENCHMARK(BM_FastMemset)->RangeMultiplier(2)->Range(4096, 8 << 10);
 //BENCHMARK(BM_StdtMemset)->RangeMultiplier(2)->Range(4096, 8 << 10);
 BENCHMARK(BM_FastMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
-BENCHMARK(BM_MemoryCopyUnroll)->RangeMultiplier(2)->Range(4096, 8 << 16);
 BENCHMARK(BM_StdtMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
 
 //BENCHMARK(BM_ConvertToInt2432Avx)->RangeMultiplier(2)->Range(4096, 8 << 10);
