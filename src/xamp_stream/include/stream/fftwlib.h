@@ -49,8 +49,8 @@ public:
 	XAMP_DECLARE_DLL(fftwf_execute_split_dft_c2r) fftwf_execute_split_dft_c2r;
 };
 
-#define FFTW Singleton<FFTWLib>::GetInstance()
-#define FFTWF Singleton<FFTWFLib>::GetInstance()
+#define FFTW_LIB Singleton<FFTWLib>::GetInstance()
+#define FFTWF_LIB Singleton<FFTWFLib>::GetInstance()
 
 template <typename T>
 struct FFTWPtrTraits {
@@ -59,35 +59,35 @@ struct FFTWPtrTraits {
 template <>
 struct FFTWPtrTraits<double> final {
 	void operator()(double* value) const {
-		FFTW.fftw_free(value);
+		FFTW_LIB.fftw_free(value);
 	}
 };
 
 template <>
 struct FFTWPtrTraits<fftw_complex> final {
 	void operator()(fftw_complex* value) const {
-		FFTW.fftw_free(value);
+		FFTW_LIB.fftw_free(value);
 	}
 };
 
 template <>
 struct FFTWPtrTraits<float> final {
 	void operator()(float* value) const {
-		FFTWF.fftwf_free(value);
+		FFTWF_LIB.fftwf_free(value);
 	}
 };
 
 template <>
 struct FFTWPtrTraits<fftw_plan> final {
 	void operator()(fftw_plan* value) const {
-		FFTW.fftw_destroy_plan(*value);
+		FFTW_LIB.fftw_destroy_plan(*value);
 	}
 };
 
 template <>
 struct FFTWPtrTraits<fftwf_plan> final {
 	void operator()(fftwf_plan value) const {
-		FFTWF.fftwf_destroy_plan(value);
+		FFTWF_LIB.fftwf_destroy_plan(value);
 	}
 };
 
@@ -97,7 +97,7 @@ struct FFTWFPlanTraits final {
 	}
 
 	static void close(fftwf_plan value) {
-		FFTWF.fftwf_destroy_plan(value);
+		FFTWF_LIB.fftwf_destroy_plan(value);
 	}
 };
 
@@ -107,7 +107,7 @@ struct FFTWPlanTraits final {
 	}
 
 	static void close(fftw_plan value) {
-		FFTW.fftw_destroy_plan(value);
+		FFTW_LIB.fftw_destroy_plan(value);
 	}
 };
 
@@ -122,7 +122,7 @@ std::unique_ptr<T[], FFTWPtrTraits<T>> MakeFFTWBuffer(size_t size) {
 	return std::unique_ptr<
 		T[],
 		FFTWPtrTraits<T>
-	>(static_cast<T*>(FFTW.fftw_malloc(sizeof(T) * size)));
+	>(static_cast<T*>(FFTW_LIB.fftw_malloc(sizeof(T) * size)));
 }
 
 }

@@ -78,7 +78,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../xamp_output_device/include/;../xamp_metadata/include/;../xamp_stream/include/;../thirdparty/spdlog/include/;../thirdparty/chromaprint/src/;../thirdparty/robin_hood/;../thirdparty/fftw/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../xamp_output_device/include/;../xamp_metadata/include/;../xamp_stream/include/;../thirdparty/spdlog/include/;../thirdparty/chromaprint/src/;../thirdparty/robin_hood/;../thirdparty/fftw/;../thirdparty/libebur128/</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>XAMP_PALYER_API_EXPORTS;ENABLE_ASIO;USE_KISS_FFT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BrowseInformation>true</BrowseInformation>
       <DisableSpecificWarnings>4996;4819</DisableSpecificWarnings>
@@ -127,7 +127,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../xamp_output_device/include/;../xamp_stream/include/;../thirdparty/spdlog/include/;../thirdparty/chromaprint/src/;../thirdparty/robin_hood/;../thirdparty/fftw/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../xamp_output_device/include/;../xamp_stream/include/;../thirdparty/spdlog/include/;../thirdparty/chromaprint/src/;../thirdparty/robin_hood/;../thirdparty/fftw/;../thirdparty/libebur128/</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <OmitFramePointers>true</OmitFramePointers>
       <PreprocessorDefinitions>XAMP_PALYER_API_EXPORTS;ENABLE_ASIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -160,19 +160,17 @@
     <ClInclude Include="include\player\api.h" />
     <ClInclude Include="include\player\audio_player.h" />
     <ClInclude Include="include\player\iaudioplayer.h" />
-    <ClInclude Include="include\player\loudness_scanner.h" />
+    <ClInclude Include="include\player\ebur128replaygain_scanner.h" />
     <ClInclude Include="include\player\iplaybackstateadapter.h" />
     <ClInclude Include="include\player\player.h" />
     <ClInclude Include="include\player\playstate.h" />
-    <ClInclude Include="src\libebur128\ebur128.h" />
     <ClInclude Include="src\libebur128\sys_queue.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\api.cpp" />
     <ClCompile Include="src\audio_player.cpp" />
     <ClCompile Include="src\audio_util.cpp" />
-    <ClCompile Include="src\loudness_scanner.cpp" />
-    <ClCompile Include="src\libebur128\ebur128.c" />
+    <ClCompile Include="src\ebur128replaygain_scanner.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

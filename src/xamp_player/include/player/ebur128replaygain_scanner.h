@@ -11,11 +11,11 @@
 
 namespace xamp::player {
 
-class XAMP_PLAYER_API LoudnessScanner final {
+class XAMP_PLAYER_API Ebur128ReplayGainScanner final {
 public:
-	explicit LoudnessScanner(uint32_t sample_rate);
+	explicit Ebur128ReplayGainScanner(uint32_t sample_rate);
 
-	XAMP_PIMPL(LoudnessScanner)
+	XAMP_PIMPL(Ebur128ReplayGainScanner)
 
 	void Process(float const * samples, size_t num_sample);
 
@@ -29,10 +29,12 @@ public:
 
 	static double GetEbur128Gain(double loudness, double targetdb);
 
-    static double GetMultipleEbur128Gain(std::vector<AlignPtr<LoudnessScanner>> &scanners);
+    static double GetMultipleLoudness(std::vector<AlignPtr<Ebur128ReplayGainScanner>> &scanners);
+
+	static void LoadEbur128Lib();
 private:
-	class LoudnessScannerImpl;
-	AlignPtr<LoudnessScannerImpl> impl_;
+	class Ebur128ReplayGainScannerImpl;
+	AlignPtr<Ebur128ReplayGainScannerImpl> impl_;
 };
 
 }

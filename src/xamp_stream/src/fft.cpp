@@ -61,7 +61,7 @@ public:
 		dim.n = static_cast<int>(size);
 		dim.is = 1;
 		dim.os = 1;
-		forward_.reset(FFTWF.fftwf_plan_guru_split_dft_r2c(1,
+		forward_.reset(FFTWF_LIB.fftwf_plan_guru_split_dft_r2c(1,
 			&dim,
 			0,
 			nullptr,
@@ -70,7 +70,7 @@ public:
 			im_.get(),
 			FFTW_ESTIMATE));
 
-		backward_.reset(FFTWF.fftwf_plan_guru_split_dft_c2r(1,
+		backward_.reset(FFTWF_LIB.fftwf_plan_guru_split_dft_c2r(1,
 			&dim,
 			0,
 			nullptr,
@@ -83,7 +83,7 @@ public:
 	const ComplexValarray& Forward(float const* signals, size_t size) {
 		MemoryCopy(data_.get(), signals, sizeof(float) * size);
 
-		FFTWF.fftwf_execute_split_dft_r2c(forward_.get(),
+		FFTWF_LIB.fftwf_execute_split_dft_r2c(forward_.get(),
 			data_.get(),
 			re_.get(),
 			im_.get());

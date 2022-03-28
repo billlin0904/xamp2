@@ -7,6 +7,7 @@ copy x64\Release\taglib.dll deploy\
 copy x64\Release\libssl-1_1-x64.dll deploy\
 copy x64\Release\libsoxr.dll deploy\
 copy x64\Release\bassmix.dll deploy\
+copy x64\Release\ebur128.dll deploy\
 copy x64\Release\mimalloc-override.dll deploy\
 copy x64\Release\mimalloc-redirect.dll deploy\
 

@@ -5,9 +5,10 @@
 #include <output_device/api.h>
 
 #include <stream/icddevice.h>
+#include <stream/soxresampler.h>
 #include <stream/fftwlib.h>
 #include <player/audio_player.h>
-#include <stream/soxresampler.h>
+#include <player/ebur128replaygain_scanner.h>
 #include <player/audio_util.h>
 
 #include <player/api.h>
@@ -26,16 +27,14 @@ std::shared_ptr<IAudioPlayer> MakeAudioPlayer(const std::weak_ptr<IPlaybackState
 
 void XStartup() {
     LoadBassLib();
-    XAMP_LOG_DEBUG("Load BASS dll success.");
+    XAMP_LOG_DEBUG("Load BASS lib success.");
 
     LoadSoxrLib();
-    XAMP_LOG_DEBUG("Load Soxr dll success.");
-
-    PreventSleep(true);
+    XAMP_LOG_DEBUG("Load Soxr lib success.");
 
 #ifdef XAMP_OS_WIN
     LoadFFTLib();
-    XAMP_LOG_DEBUG("Load FFT dll success.");
+    XAMP_LOG_DEBUG("Load FFT lib success.");
 
     WASAPIThreadPool();
     XAMP_LOG_DEBUG("Start WASAPI thread pool success.");
@@ -43,6 +42,11 @@ void XStartup() {
 
     PlaybackThreadPool();
     XAMP_LOG_DEBUG("Start Playback thread pool success.");
+
+    Ebur128ReplayGainScanner::LoadEbur128Lib();
+    XAMP_LOG_DEBUG("Load Ebur128Lib lib success.");
+
+    PreventSleep(true);
 }
 
 

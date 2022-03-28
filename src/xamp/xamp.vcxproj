@@ -244,10 +244,12 @@
     <QtRcc Include="xamp.qrc" />
   </ItemGroup>
   <ItemGroup>
+    <ResourceCompile Include="Resource.rc" />
     <ResourceCompile Include="xamp.rc" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="widget\xframe.h" />
+    <ClInclude Include="resource1.h" />
     <ClInclude Include="widget\albumentity.h" />
     <ClInclude Include="widget\colorthief.h" />
     <ClInclude Include="widget\stackblur.h" />

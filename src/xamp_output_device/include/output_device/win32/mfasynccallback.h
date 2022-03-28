@@ -9,7 +9,6 @@
 
 #ifdef XAMP_OS_WIN
 
-#include <cassert>
 #include <windows.h>
 #include <mfidl.h>
 

@@ -1,4 +1,4 @@
-#include <player/loudness_scanner.h>
+#include <player/ebur128replaygain_scanner.h>
 
 #include <base/logger.h>
 #include <base/ithreadpool.h>
@@ -53,7 +53,7 @@ void BackgroundWorker::readReplayGain(bool force, const std::vector<PlayListEnti
     const auto target_gain = AppSettings::getValue(kAppSettingReplayGainTargetGain).toDouble();
     const auto scan_mode = AppSettings::getAsEnum<ReplayGainScanMode>(kAppSettingReplayGainScanMode);
 
-    std::vector<AlignPtr<LoudnessScanner>> scanners;
+    std::vector<AlignPtr<Ebur128ReplayGainScanner>> scanners;
     FastMutex mutex;
 
     scanners.reserve(items.size());
@@ -68,9 +68,9 @@ void BackgroundWorker::readReplayGain(bool force, const std::vector<PlayListEnti
                 return true;
             };
 
-            AlignPtr<LoudnessScanner> scanner;
-            auto prepare = [&scanner](AudioFormat const& input_format) mutable {
-                scanner = MakeAlign<LoudnessScanner>(input_format.GetSampleRate());
+            AlignPtr<Ebur128ReplayGainScanner> scanner;
+            auto prepare = [&scanner](auto const& input_format) mutable {
+                scanner = MakeAlign<Ebur128ReplayGainScanner>(input_format.GetSampleRate());
             };
 
             auto dps_process = [&scanner, this](auto const* samples, auto sample_size) {
@@ -113,8 +113,8 @@ void BackgroundWorker::readReplayGain(bool force, const std::vector<PlayListEnti
     replay_gain.lufs.reserve(items.size());
     replay_gain.track_replay_gain.reserve(items.size());
 
-    replay_gain.album_replay_gain = LoudnessScanner::GetEbur128Gain(
-        LoudnessScanner::GetMultipleEbur128Gain(scanners),
+    replay_gain.album_replay_gain = Ebur128ReplayGainScanner::GetEbur128Gain(
+        Ebur128ReplayGainScanner::GetMultipleLoudness(scanners),
         target_gain);
 
     replay_gain.album_peak = 100.0;
@@ -124,13 +124,13 @@ void BackgroundWorker::readReplayGain(bool force, const std::vector<PlayListEnti
         replay_gain.track_peak.push_back(track_peak);
         const auto track_lufs = scanner->GetLoudness();
         replay_gain.lufs.push_back(track_lufs);
-        replay_gain.track_replay_gain.push_back(LoudnessScanner::GetEbur128Gain(track_lufs, target_gain));
+        replay_gain.track_replay_gain.push_back(Ebur128ReplayGainScanner::GetEbur128Gain(track_lufs, target_gain));
     }
 
     using namespace xamp::metadata;
     const auto writer = MakeMetadataWriter();
 
-    for (auto i = 0; i < replay_gain_tasks.size(); ++i) {
+    for (size_t i = 0; i < replay_gain_tasks.size(); ++i) {
 	    ReplayGain rg;
         rg.album_gain = replay_gain.album_replay_gain;
         rg.track_gain = replay_gain.track_replay_gain[i];

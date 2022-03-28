@@ -9,9 +9,7 @@
 #include <stdlib.h>
 
 /* This can be replaced by any BSD-like queue implementation. */
-#include "sys_queue.h"
-
-#define M_PI 3.14159265358979323846
+#include <sys/queue.h>
 
 #define CHECK_ERROR(condition, errorcode, goto_point)                          \
   if ((condition)) {                                                           \
@@ -19,6 +17,18 @@
     goto goto_point;                                                           \
   }
 #define EBUR128_MAX(a, b) (((a) > (b)) ? (a) : (b))
+
+static int safe_size_mul(size_t nmemb, size_t size, size_t* result) {
+  /* Adapted from OpenBSD reallocarray. */
+#define MUL_NO_OVERFLOW (((size_t) 1) << (sizeof(size_t) * 4))
+  if ((nmemb >= MUL_NO_OVERFLOW || size >= MUL_NO_OVERFLOW) && /**/
+      nmemb > 0 && ((size_t) (-1)) / nmemb < size) {
+    return 1;
+  }
+#undef MUL_NO_OVERFLOW
+  *result = nmemb * size;
+  return 0;
+}
 
 STAILQ_HEAD(ebur128_double_queue, ebur128_dq_entry);
 struct ebur128_dq_entry {
@@ -387,9 +397,6 @@ void ebur128_get_version(int* major, int* minor, int* patch) {
 
 #define VALIDATE_MAX_CHANNELS (64)
 #define VALIDATE_MAX_SAMPLERATE (2822400)
-#define VALIDATE_MAX_WINDOW                                                    \
-  ((3ul << 30) / VALIDATE_MAX_SAMPLERATE / VALIDATE_MAX_CHANNELS /             \
-   sizeof(double))
 
 #define VALIDATE_CHANNELS_AND_SAMPLERATE(err)                                  \
   do {                                                                         \
@@ -899,23 +906,30 @@ int ebur128_set_max_window(ebur128_state* st, unsigned long window) {
     return EBUR128_ERROR_NO_CHANGE;
   }
 
-  if (window >= VALIDATE_MAX_WINDOW) {
+  size_t new_audio_data_frames;
+  if (safe_size_mul(st->samplerate, window, &new_audio_data_frames) != 0 ||
+      new_audio_data_frames > ((size_t) -1) - st->d->samples_in_100ms) {
+    return EBUR128_ERROR_NOMEM;
+  }
+  if (new_audio_data_frames % st->d->samples_in_100ms) {
+    /* round up to multiple of samples_in_100ms */
+    new_audio_data_frames = (new_audio_data_frames + st->d->samples_in_100ms) -
+                            (new_audio_data_frames % st->d->samples_in_100ms);
+  }
+
+  size_t new_audio_data_size;
+  if (safe_size_mul(new_audio_data_frames, st->channels * sizeof(double),
+                    &new_audio_data_size) != 0) {
     return EBUR128_ERROR_NOMEM;
   }
 
+  double* new_audio_data = (double*) malloc(new_audio_data_size);
+  CHECK_ERROR(!new_audio_data, EBUR128_ERROR_NOMEM, exit)
+
   st->d->window = window;
   free(st->d->audio_data);
-  st->d->audio_data = NULL;
-  st->d->audio_data_frames = st->samplerate * st->d->window / 1000;
-  if (st->d->audio_data_frames % st->d->samples_in_100ms) {
-    /* round up to multiple of samples_in_100ms */
-    st->d->audio_data_frames =
-        (st->d->audio_data_frames + st->d->samples_in_100ms) -
-        (st->d->audio_data_frames % st->d->samples_in_100ms);
-  }
-  st->d->audio_data = (double*) malloc(st->d->audio_data_frames * st->channels *
-                                       sizeof(double));
-  CHECK_ERROR(!st->d->audio_data, EBUR128_ERROR_NOMEM, exit)
+  st->d->audio_data = new_audio_data;
+  st->d->audio_data_frames = new_audio_data_frames;
   for (j = 0; j < st->d->audio_data_frames * st->channels; ++j) {
     st->d->audio_data[j] = 0.0;
   }
@@ -1224,7 +1238,7 @@ int ebur128_loudness_window(ebur128_state* st,
   size_t interval_frames;
   int error;
 
-  if (window >= VALIDATE_MAX_WINDOW) {
+  if (window > st->d->window) {
     return EBUR128_ERROR_INVALID_MODE;
   }
 
@@ -1320,8 +1334,8 @@ int ebur128_loudness_range_multiple(ebur128_state** sts,
       return EBUR128_SUCCESS;
     }
 
-    percentile_low = (size_t)((stl_size - 1) * 0.1 + 0.5);
-    percentile_high = (size_t)((stl_size - 1) * 0.95 + 0.5);
+    percentile_low = (size_t) ((stl_size - 1) * 0.1 + 0.5);
+    percentile_high = (size_t) ((stl_size - 1) * 0.95 + 0.5);
 
     stl_size = 0;
     j = index;
@@ -1382,8 +1396,8 @@ int ebur128_loudness_range_multiple(ebur128_state** sts,
   }
 
   if (stl_relgated_size) {
-    h_en = stl_relgated[(size_t)((stl_relgated_size - 1) * 0.95 + 0.5)];
-    l_en = stl_relgated[(size_t)((stl_relgated_size - 1) * 0.1 + 0.5)];
+    h_en = stl_relgated[(size_t) ((stl_relgated_size - 1) * 0.95 + 0.5)];
+    l_en = stl_relgated[(size_t) ((stl_relgated_size - 1) * 0.1 + 0.5)];
     free(stl_vector);
     *out = ebur128_energy_to_loudness(h_en) - ebur128_energy_to_loudness(l_en);
   } else {

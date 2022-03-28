@@ -3,8 +3,7 @@
   <ItemGroup>
     <ClCompile Include="src\audio_player.cpp" />
     <ClCompile Include="src\audio_util.cpp" />
-    <ClCompile Include="src\loudness_scanner.cpp" />
-    <ClCompile Include="src\libebur128\ebur128.c" />
+    <ClCompile Include="src\ebur128replaygain_scanner.cpp" />
     <ClCompile Include="src\api.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -12,8 +11,7 @@
     <ClInclude Include="include\player\iplaybackstateadapter.h" />
     <ClInclude Include="include\player\player.h" />
     <ClInclude Include="include\player\playstate.h" />
-    <ClInclude Include="include\player\loudness_scanner.h" />
-    <ClInclude Include="src\libebur128\ebur128.h" />
+    <ClInclude Include="include\player\ebur128replaygain_scanner.h" />
     <ClInclude Include="src\libebur128\sys_queue.h" />
     <ClInclude Include="include\player\iaudioplayer.h" />
     <ClInclude Include="include\player\api.h" />

@@ -16,7 +16,7 @@
 #include <metadata/api.h>
 #include <metadata/imetadatawriter.h>
 
-#include <player/loudness_scanner.h>
+#include <player/ebur128replaygain_scanner.h>
 #include <stream/isamplerateconverter.h>
 
 #include <widget/read_utiltis.h>
@@ -108,12 +108,12 @@ double readAll(std::wstring const& file_path,
 std::tuple<double, double> readFileLUFS(std::wstring const& file_path,
     std::function<bool(uint32_t)> const& progress,
     uint64_t max_duration) {
-	std::optional<LoudnessScanner> scanner;
+	std::optional<Ebur128ReplayGainScanner> scanner;
 
     readAll(file_path, progress,
 		[&scanner](AudioFormat const& input_format)
 		{
-			scanner = LoudnessScanner(input_format.GetSampleRate());
+			scanner = Ebur128ReplayGainScanner(input_format.GetSampleRate());
 		}, [&scanner](auto const* samples, auto sample_size)
 		{
 			scanner.value().Process(samples, sample_size);

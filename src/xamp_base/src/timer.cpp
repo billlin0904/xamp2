@@ -9,6 +9,40 @@ namespace xamp::base {
 
 #if defined(XAMP_OS_WIN)
 
+class TimerQueueTimer {
+public:
+	TimerQueueTimer()
+		: timer_queue_(nullptr)
+		, timer_(nullptr) {		
+	}
+
+	void Reset(HANDLE timer_queue, HANDLE timer) {
+		Close();
+		timer_queue_ = timer_queue;
+		timer_ = timer;
+	}
+
+	void Close() {
+		if (!timer_queue_ || !timer_) {
+			return;
+		}
+		::DeleteTimerQueueTimer(timer_queue_,
+			timer_,
+			INVALID_HANDLE_VALUE);
+		timer_queue_ = nullptr;
+		timer_ = nullptr;
+	}
+
+	~TimerQueueTimer() {
+		Close();
+	}
+
+	XAMP_DISABLE_COPY(TimerQueueTimer)
+private:
+	HANDLE timer_queue_;
+	HANDLE timer_;
+};
+
 class Timer::TimerImpl {
 public:
 	TimerImpl() = default;
@@ -37,7 +71,7 @@ public:
 			WT_EXECUTEINTIMERTHREAD | WT_EXECUTELONGFUNCTION)) {
 			throw PlatformSpecException();
 		}
-		timer_ = timer;
+		timer_.Reset(timer_queue_.get(), timer);
 		callback_ = std::move(callback);
 		is_stop_ = false;
 	}
@@ -47,9 +81,7 @@ public:
 			return;
 		}
 		is_stop_ = true;
-		::DeleteTimerQueueTimer(timer_queue_.get(),
-			timer_, 
-			INVALID_HANDLE_VALUE);
+		timer_.Close();
 		timer_queue_.reset();
 		callback_ = nullptr;
 	}
@@ -68,7 +100,7 @@ private:
 
 	std::atomic<bool> is_stop_{true};
 	TimerQueueHandle timer_queue_;
-	HANDLE timer_;
+	TimerQueueTimer timer_;
 	std::function<void()> callback_;
 };
 #else

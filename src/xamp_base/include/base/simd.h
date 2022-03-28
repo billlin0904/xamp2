@@ -33,11 +33,26 @@ inline constexpr float kMinFloatSample = -1.0F;
 
 inline constexpr int32_t kFloatAlignedSize = kSimdLanes / sizeof(float);
 
-class SIMD {
+class XAMP_BASE_API SIMD {
 public:
     SIMD() = delete;
 
     XAMP_DISABLE_COPY(SIMD)
+
+	static void MemoryCopyUnroll(void* d, const void* s, size_t n) {
+        XAMP_ASSERT(n % 128 == 0);
+
+        auto* dest_vec = static_cast<__m256i*>(d);
+        const auto* src_vec = static_cast<const __m256i*>(s);
+        size_t num_vec = n / sizeof(__m256i);
+
+        for (; num_vec > 0; num_vec -= 4, src_vec += 4, dest_vec += 4) {
+            _mm256_store_si256(dest_vec, _mm256_load_si256(src_vec));
+            _mm256_store_si256(dest_vec + 1, _mm256_load_si256(src_vec + 1));
+            _mm256_store_si256(dest_vec + 2, _mm256_load_si256(src_vec + 2));
+            _mm256_store_si256(dest_vec + 3, _mm256_load_si256(src_vec + 3));
+        }
+    }
 
     static XAMP_ALWAYS_INLINE bool IsCPUSupportAVX2() {
         int32_t reg[4]{ 0 };
