@@ -36,8 +36,9 @@ include_directories("../thirdparty/spdlog/include/")
 include_directories("../thirdparty/soxr/src/")
 include_directories("../thirdparty/robin_hood/")
 include_directories("../thirdparty/chromaprint/src")
+include_directories("../thirdparty/libebur128/")
 
-file(GLOB_RECURSE SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/*.cpp" "${CMAKE_CURRENT_LIST_DIR}/src/libebur128/*.c")
+file(GLOB_RECURSE SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/*.cpp")
 
 find_library (
     LIB_XAMP_BASE

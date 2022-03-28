@@ -13,6 +13,15 @@
 #include <widget/colorthief.h>
 #include <widget/backgroundworker.h>
 
+struct PlayListRGResult {
+    PlayListRGResult(PlayListEntity item, AlignPtr<Ebur128ReplayGainScanner> scanner)
+        : item(std::move(item))
+        , scanner(std::move(scanner)) {
+    }
+    PlayListEntity item;
+    AlignPtr<Ebur128ReplayGainScanner> scanner;
+};
+
 BackgroundWorker::BackgroundWorker() {
     pool_ = MakeThreadPool(kBackgroundThreadPoolLoggerName,
         std::thread::hardware_concurrency(),
@@ -33,34 +42,31 @@ void BackgroundWorker::blurImage(const QString& cover_id, const QImage& image) {
     if (auto *cache_image = blur_img_cache_.Find(cover_id)) {
         XAMP_LOG_DEBUG("Found blur image in cache!");
         emit updateBlurImage(cache_image->copy());
-    } else {
-        auto temp = image.copy();
-        XAMP_LOG_DEBUG("Blur image start");
-        Stopwatch sw;
-        sw.Reset();
-        Stackblur blur(*pool_, temp, 50);
-        emit updateBlurImage(temp.copy());
-        blur_img_cache_.AddOrUpdate(cover_id, std::move(temp));
-        XAMP_LOG_DEBUG("Blur image end :{} secs", Round(sw.ElapsedSeconds()), 2);
+        return;
     }
+
+    auto temp = image.copy();
+    XAMP_LOG_DEBUG("Blur image start");
+    Stopwatch sw;
+    sw.Reset();
+    Stackblur blur(*pool_, temp, 50);
+    emit updateBlurImage(temp.copy());
+    blur_img_cache_.AddOrUpdate(cover_id, std::move(temp));
+    XAMP_LOG_DEBUG("Blur image end :{} secs", Round(sw.ElapsedSeconds()), 2);
 }
 
-void BackgroundWorker::readReplayGain(bool force, const std::vector<PlayListEntity>& items) {
+void BackgroundWorker::readReplayGain(bool, const std::vector<PlayListEntity>& items) {
     XAMP_LOG_DEBUG("Start read replay gain count:{}", items.size());
 
-    std::vector<std::shared_future<PlayListEntity>> replay_gain_tasks;
+    std::vector<std::shared_future<AlignPtr<PlayListRGResult>>> replay_gain_tasks;
 
     const auto target_gain = AppSettings::getValue(kAppSettingReplayGainTargetGain).toDouble();
     const auto scan_mode = AppSettings::getAsEnum<ReplayGainScanMode>(kAppSettingReplayGainScanMode);
 
-    std::vector<AlignPtr<Ebur128ReplayGainScanner>> scanners;
-    FastMutex mutex;
-
-    scanners.reserve(items.size());
     replay_gain_tasks.reserve(items.size());
 
     for (const auto &item : items) {
-        replay_gain_tasks.push_back(pool_->Spawn([&scanners, scan_mode, item, &mutex, this](auto ) {
+        replay_gain_tasks.push_back(pool_->Spawn([scan_mode, item, this](auto ) {
             auto progress = [scan_mode](auto p) {
                 if (scan_mode == ReplayGainScanMode::RG_SCAN_MODE_FAST && p > 50) {
                     return false;
@@ -81,23 +87,25 @@ void BackgroundWorker::readReplayGain(bool force, const std::vector<PlayListEnti
             };
 
 	        try {	        
-		        read_utiltis::readAll(item.file_path.toStdWString(), progress, prepare, dps_process);
-                std::lock_guard<FastMutex> guard{ mutex };
-                XAMP_ASSERT(scanner != nullptr);
-                scanners.push_back(std::move(scanner));
+		        read_utiltis::readAll(item.file_path.toStdWString(), progress, prepare, dps_process);                               
             }
             catch (std::exception const& e) {
                 XAMP_LOG_DEBUG("{}", e.what());
             }
-            return item;
+            return MakeAlign<PlayListRGResult>(std::move(item), std::move(scanner));
         }));
     }
 
+    std::vector<AlignPtr<Ebur128ReplayGainScanner>> scanners;
     ReplayGainResult replay_gain;
 
-    for (auto const& task : replay_gain_tasks) {
+    for (auto & task : replay_gain_tasks) {
         try {
-            replay_gain.music_id.push_back(task.get());
+            auto& result = task.get();
+            replay_gain.music_id.push_back(result->item);
+            if (result->scanner != nullptr) {
+                scanners.push_back(std::move(result->scanner));
+            }
         }
         catch (std::exception const& e) {
             XAMP_LOG_DEBUG("ReplayGain got exception! {}", e.what());
