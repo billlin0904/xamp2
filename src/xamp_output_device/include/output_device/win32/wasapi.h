@@ -8,10 +8,6 @@
 #include <base/base.h>
 
 #ifdef XAMP_OS_WIN
-#pragma comment(lib, "avrt.lib")
-#pragma comment(lib, "Mfplat.lib")
-#pragma comment(lib, "Propsys.lib")
-
 #include <chrono>
 
 #include <atlcomcli.h>

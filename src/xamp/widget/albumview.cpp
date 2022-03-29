@@ -580,6 +580,8 @@ LEFT
 	JOIN artists ON artists.artistId = albums.artistId
 WHERE 
 	albums.isPodcast = 0
+ORDER BY
+	albums.dateTime DESC
 LIMIT 200
     )"));
 }
@@ -615,8 +617,8 @@ void AlbumView::append(const QString& file_name) {
     MetadataExtractAdapter::readFileMetadata(adapter, file_name);
 }
 
-void AlbumView::processMeatadata(const std::vector<Metadata> &medata) {    
-    MetadataExtractAdapter::processMetadata(medata);
+void AlbumView::processMeatadata(int64_t dir_last_write_time, const std::vector<Metadata> &medata) {
+    MetadataExtractAdapter::processMetadata(dir_last_write_time, medata);
     emit loadCompleted();
 }
 

@@ -18,7 +18,7 @@ AlignPtr<IMetadataWriter> MakeMetadataWriter() {
 }
 
 void ScanFolder(Path const& path, IMetadataExtractAdapter* adapter, IMetadataReader* reader) {
-    adapter->OnWalkFirst();
+    adapter->OnWalkNew();
 
     if (Fs::is_directory(path)) {
         Path root_path;
@@ -32,8 +32,8 @@ void ScanFolder(Path const& path, IMetadataExtractAdapter* adapter, IMetadataRea
             auto parent_path = root_path.parent_path();
             auto cur_path = current_path.parent_path();
             if (parent_path != cur_path) {
-                adapter->OnWalkNext();
-                adapter->OnWalkFirst();
+                adapter->OnWalkEnd(DirectoryEntry(parent_path));
+                adapter->OnWalkNew();
                 root_path = current_path;
             }
 
@@ -44,12 +44,12 @@ void ScanFolder(Path const& path, IMetadataExtractAdapter* adapter, IMetadataRea
             }
         }
 
-        adapter->OnWalkNext();
+        adapter->OnWalkEnd(DirectoryEntry(path));
     }
     else {
         if (adapter->IsAccept(path)) {
             adapter->OnWalk(path, reader->Extract(path));
-            adapter->OnWalkNext();
+            adapter->OnWalkEnd(DirectoryEntry(path));
         }
     }
 }

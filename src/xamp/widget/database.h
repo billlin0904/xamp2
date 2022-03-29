@@ -89,7 +89,7 @@ public:
                     double track_rg_gain,
                     double track_peak);
 
-    int32_t addOrUpdateAlbum(const QString& album, int32_t artist_id, bool is_podcast);
+    int32_t addOrUpdateAlbum(const QString& album, int32_t artist_id, int64_t album_time, bool is_podcast);
 
     void addOrUpdateAlbumArtist(int32_t album_id, int32_t artist_id) const;
 

@@ -22,9 +22,9 @@ public:
     static void readFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter, QString const& file_path, bool show_progress_dialog = true);	
 
 signals:
-	void readCompleted(const std::vector<Metadata> &entity);
+	void readCompleted(int64_t dir_last_write_time, const std::vector<Metadata> &entity);
 
 public:
-    static void processMetadata(const std::vector<Metadata>& result, PlayListTableView *playlist = nullptr, bool is_podcast = false);
+    static void processMetadata(int64_t dir_last_write_time, const std::vector<Metadata>& result, PlayListTableView *playlist = nullptr, bool is_podcast = false);
 };
 

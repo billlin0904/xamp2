@@ -54,8 +54,7 @@ static void BM_Win32ThreadPool(benchmark::State& state) {
 
 static void BM_ThreadPool(benchmark::State& state) {
     static auto thread_pool = MakeThreadPool(
-        kPlaybackThreadPoolLoggerName,
-        std::thread::hardware_concurrency());
+        kPlaybackThreadPoolLoggerName);
     auto length = state.range(0);
     std::vector<int> n(length);
     std::iota(n.begin(), n.end(), 1);

@@ -104,11 +104,11 @@ public:
         return state_.get();
     }
 
-    static double GetMultipleLoudness(std::vector<AlignPtr<Ebur128ReplayGainScanner>> &scanners) {
+    static double GetMultipleLoudness(std::vector<Ebur128ReplayGainScanner> &scanners) {
         std::vector<ebur128_state*> handles;
         handles.reserve(scanners.size());
         for (auto const &scanner : scanners) {
-            handles.push_back(static_cast<ebur128_state*>(scanner->GetNativeHandle()));
+            handles.push_back(static_cast<ebur128_state*>(scanner.GetNativeHandle()));
         }
         double loudness = 0;
         IfFailThrow(EBUR128_LIB.ebur128_loudness_global_multiple(handles.data(), handles.size(), &loudness));
@@ -154,7 +154,7 @@ void* Ebur128ReplayGainScanner::GetNativeHandle() const {
     return impl_->GetNativeHandle();
 }
 
-double Ebur128ReplayGainScanner::GetMultipleLoudness(std::vector<AlignPtr<Ebur128ReplayGainScanner>> &scanners) {
+double Ebur128ReplayGainScanner::GetMultipleLoudness(std::vector<Ebur128ReplayGainScanner> &scanners) {
     return Ebur128ReplayGainScannerImpl::GetMultipleLoudness(scanners);
 }
 

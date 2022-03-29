@@ -337,7 +337,7 @@ void PlayListTableView::initial() {
                                 metadata.samplerate = 44100;
                                 metadatas.push_back(metadata);
                             }
-                            processMeatadata(metadatas);
+                            processMeatadata(QDateTime::currentSecsSinceEpoch(), metadatas);
                         });
                     }
                 }
@@ -596,8 +596,8 @@ void PlayListTableView::append(const QString& file_name, bool show_progress_dial
    ::MetadataExtractAdapter::readFileMetadata(adapter, file_name, show_progress_dialog);
 }
 
-void PlayListTableView::processMeatadata(const std::vector<Metadata>& medata) {    
-    ::MetadataExtractAdapter::processMetadata(medata, this, podcast_mode_);
+void PlayListTableView::processMeatadata(int64_t dir_last_write_time, const std::vector<Metadata>& medata) {
+    ::MetadataExtractAdapter::processMetadata(dir_last_write_time, medata, this, podcast_mode_);
     resizeColumn();
     update();
 }
@@ -631,7 +631,7 @@ void PlayListTableView::importPodcast() {
     http::HttpClient(/*url_edit->text()*/Q_UTF8("https://suisei.moe/podcast.xml"))
 	.success([this](const QString& json) {
         auto const podcast_info = parsePodcastXML(json);
-        ::MetadataExtractAdapter::processMetadata(podcast_info.second, this, podcast_mode_);
+        ::MetadataExtractAdapter::processMetadata(QDateTime::currentSecsSinceEpoch(), podcast_info.second, this, podcast_mode_);
         http::HttpClient(QString::fromStdString(podcast_info.first))
     	.download([=](auto data) {
             auto cover_id = Singleton<PixmapCache>::GetInstance().addOrUpdate(data);

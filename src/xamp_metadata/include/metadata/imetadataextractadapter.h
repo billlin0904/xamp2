@@ -16,9 +16,9 @@ public:
 
     virtual void OnWalk(Path const &path, Metadata metadata) = 0;
 
-    virtual void OnWalkNext() = 0;
+    virtual void OnWalkEnd(DirectoryEntry const& dir_entry) = 0;
 
-	virtual void OnWalkFirst() = 0;
+	virtual void OnWalkNew() = 0;
 
     virtual bool IsAccept(Path const& path) const noexcept = 0;
 protected:

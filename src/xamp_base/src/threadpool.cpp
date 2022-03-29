@@ -10,11 +10,11 @@ inline constexpr auto kSharedTaskQueueSize = 4096;
 inline constexpr auto kWorkStealingTaskQueueSize = 4096;
 inline constexpr auto kMaxPopFailureSize = 500;
 
-TaskScheduler::TaskScheduler(const std::string_view& pool_name, size_t max_thread, int32_t affinity, ThreadPriority priority)
+TaskScheduler::TaskScheduler(const std::string_view& pool_name, uint32_t max_thread, int32_t affinity, ThreadPriority priority)
 	: is_stopped_(false)
 	, running_thread_(0)
-	, index_(0)
-	, max_thread_(max_thread) {
+	, max_thread_(max_thread)
+	, index_(0) {
 	logger_ = Logger::GetInstance().GetLogger(pool_name.data());
 	try {
 		task_pool_ = MakeAlign<SharedTaskQueue>(kSharedTaskQueueSize);
@@ -36,6 +36,10 @@ TaskScheduler::TaskScheduler(const std::string_view& pool_name, size_t max_threa
 
 TaskScheduler::~TaskScheduler() {
 	Destroy();
+}
+
+uint32_t TaskScheduler::GetThreadSize() const {
+	return max_thread_;
 }
 
 void TaskScheduler::SubmitJob(Task&& task) {
@@ -195,6 +199,10 @@ ThreadPool::ThreadPool(const std::string_view& pool_name, uint32_t max_thread, i
 
 ThreadPool::~ThreadPool() {
 	Stop();
+}
+
+uint32_t ThreadPool::GetThreadSize() const {
+	return scheduler_->GetThreadSize();
 }
 
 void ThreadPool::Stop() {

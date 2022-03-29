@@ -29,6 +29,8 @@ public:
 	~ThreadPool() override;
 
 	void Stop() override;
+
+	uint32_t GetThreadSize() const override;
 private:	
 	ThreadPoolHandle pool_;	
 };
@@ -46,6 +48,8 @@ public:
 	void SubmitJob(Task&& task) override;
 
 	void Destroy() noexcept override;
+
+	uint32_t GetThreadSize() const override;
 
 private:
 	static void CALLBACK WorkCallback(PTP_CALLBACK_INSTANCE instance,

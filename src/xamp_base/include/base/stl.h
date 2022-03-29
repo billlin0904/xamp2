@@ -39,6 +39,14 @@ decltype(auto) bind_front(F&& f, FrontArgs&&...front_args) {
 #endif
 #endif
 
+template <typename TP>
+std::time_t toTime_t(TP tp) {
+	using namespace std::chrono;
+	auto sctp = time_point_cast<system_clock::duration>(tp - TP::clock::now()
+		+ system_clock::now());
+	return system_clock::to_time_t(sctp);
+}
+
 template <typename T, typename C>
 std::vector<T> Union(C const &a, C const &b) {
 	std::vector<T> result;

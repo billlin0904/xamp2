@@ -7,10 +7,17 @@ namespace xamp::base {
 inline constexpr auto kMaxPlaybackThreadPoolSize{ 2 };
 inline constexpr auto kMaxWASAPIThreadPoolSize{ 2 };
 
+uint32_t GetIdealThreadPoolSize(double cpu_utilization, 
+    std::chrono::milliseconds wait_time,
+    std::chrono::milliseconds service_time) {
+	const auto ratio = static_cast<double>(wait_time.count()) / static_cast<double>(service_time.count());
+    return static_cast<uint32_t>(std::thread::hardware_concurrency() * cpu_utilization * (1.0 + ratio));
+}
+
 AlignPtr<IThreadPool> MakeThreadPool(const std::string_view& pool_name,
-    int32_t max_thread,
-    int32_t affinity,
-    ThreadPriority priority) {
+    ThreadPriority priority,
+    uint32_t max_thread,
+    int32_t affinity) {
     return MakeAlign<IThreadPool, ThreadPool>(pool_name, 
         max_thread,
         affinity,

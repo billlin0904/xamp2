@@ -64,10 +64,10 @@ AudioDeviceManager::AudioDeviceManager() {
     constexpr size_t kWorkingSetSize = 2048ul * 1024ul * 1024ul;
     SetProcessWorkingSetSize(kWorkingSetSize);
     Mmcss::LoadAvrtLib();
+    XAMP_LOG_DEBUG("LoadAvrtLib success");
     HrIfFailledThrow(::MFStartup(MF_VERSION, MFSTARTUP_LITE));
     XAMP_LOG_DEBUG("MFStartup startup success");
 #if ENABLE_ASIO
-    XAMP_LOG_DEBUG("LoadAvrtLib success");
     XAMP_REGISTER_DEVICE_TYPE(ASIODeviceType);    
 #endif
     XAMP_REGISTER_DEVICE_TYPE(SharedWasapiDeviceType);

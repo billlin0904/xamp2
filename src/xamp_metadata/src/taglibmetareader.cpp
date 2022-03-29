@@ -116,6 +116,26 @@ static bool GetMp3Cover(File* file, std::vector<uint8_t>& buffer) {
     return found;
 }
 
+static bool GetDSFCover(File* file, std::vector<uint8_t>& buffer) {
+    auto found = false;
+    if (const auto* dsd_file = dynamic_cast<TagLib::DSF::File*>(file)) {
+        if (dsd_file->tag()) {
+            found = GetID3V2TagCover(dsd_file->tag(), buffer);
+        }
+    }
+    return found;
+}
+
+static bool GetDSDIFFCover(File* file, std::vector<uint8_t>& buffer) {
+    auto found = false;
+    if (const auto* dsd_file = dynamic_cast<TagLib::DSDIFF::File*>(file)) {
+        if (dsd_file->ID3v2Tag()) {
+            found = GetID3V2TagCover(dsd_file->ID3v2Tag(), buffer);
+        }
+    }
+    return found;
+}
+
 static std::optional<ReplayGain> GetMp4ReplayGain(File* file) {
     ReplayGain replay_gain;
     auto found = false;
@@ -373,13 +393,13 @@ public:
 private:
     static std::optional<ReplayGain> GetReplayGain(std::string const& ext, File* file) {
         static const HashMap<std::string_view, std::function<std::optional<ReplayGain>(File*)>>
-            parse_cover_table{
+            parse_replay_gain_table{
             { ".flac", GetFlacReplayGain },
             { ".mp3", GetMp3ReplayGain },
-            { ".m4a", GetMp4ReplayGain }
+            { ".m4a", GetMp4ReplayGain },
         };
-        auto itr = parse_cover_table.find(ext);
-        if (itr != parse_cover_table.end()) {
+        auto itr = parse_replay_gain_table.find(ext);
+        if (itr != parse_replay_gain_table.end()) {
             return (*itr).second(file);
         }
         return std::nullopt;
@@ -391,6 +411,8 @@ private:
             { ".flac", GetFlacCover },
             { ".mp3",  GetMp3Cover },
             { ".m4a",  GetMp4Cover },
+		    { ".dff", GetDSDIFFCover },
+            { ".dsf", GetDSFCover }
         };
         auto itr = parse_cover_table.find(ext);
         if (itr != parse_cover_table.end()) {

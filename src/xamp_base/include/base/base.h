@@ -132,6 +132,7 @@ namespace xamp::base {
 namespace Fs = std::filesystem;
 using RecursiveDirectoryIterator = Fs::recursive_directory_iterator;
 using DirectoryIterator = Fs::directory_iterator;
+using DirectoryEntry = Fs::directory_entry;
 using Path = Fs::path;
 
 /// <summary>

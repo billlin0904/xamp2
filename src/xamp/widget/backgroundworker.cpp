@@ -14,18 +14,16 @@
 #include <widget/backgroundworker.h>
 
 struct PlayListRGResult {
-    PlayListRGResult(PlayListEntity item, AlignPtr<Ebur128ReplayGainScanner> scanner)
-        : item(std::move(item))
+    PlayListRGResult(const PlayListEntity &item, std::optional<Ebur128ReplayGainScanner> scanner)
+        : item(item)
         , scanner(std::move(scanner)) {
     }
     PlayListEntity item;
-    AlignPtr<Ebur128ReplayGainScanner> scanner;
+    std::optional<Ebur128ReplayGainScanner> scanner;
 };
 
 BackgroundWorker::BackgroundWorker() {
     pool_ = MakeThreadPool(kBackgroundThreadPoolLoggerName,
-        std::thread::hardware_concurrency(),
-        kDefaultAffinityCpuCore, 
         ThreadPriority::BACKGROUND);
 }
 
@@ -65,8 +63,11 @@ void BackgroundWorker::readReplayGain(bool, const std::vector<PlayListEntity>& i
 
     replay_gain_tasks.reserve(items.size());
 
+    Stopwatch wait_time_sw;
+
     for (const auto &item : items) {
         replay_gain_tasks.push_back(pool_->Spawn([scan_mode, item, this](auto ) {
+            Stopwatch sw;
             auto progress = [scan_mode](auto p) {
                 if (scan_mode == ReplayGainScanMode::RG_SCAN_MODE_FAST && p > 50) {
                     return false;
@@ -74,16 +75,16 @@ void BackgroundWorker::readReplayGain(bool, const std::vector<PlayListEntity>& i
                 return true;
             };
 
-            AlignPtr<Ebur128ReplayGainScanner> scanner;
+            std::optional<Ebur128ReplayGainScanner> scanner;
             auto prepare = [&scanner](auto const& input_format) mutable {
-                scanner = MakeAlign<Ebur128ReplayGainScanner>(input_format.GetSampleRate());
+                scanner = Ebur128ReplayGainScanner(input_format.GetSampleRate());
             };
 
             auto dps_process = [&scanner, this](auto const* samples, auto sample_size) {
                 if (is_stop_) {
                     return;
                 }
-                scanner->Process(samples, sample_size);
+                scanner.value().Process(samples, sample_size);
             };
 
 	        try {	        
@@ -92,19 +93,23 @@ void BackgroundWorker::readReplayGain(bool, const std::vector<PlayListEntity>& i
             catch (std::exception const& e) {
                 XAMP_LOG_DEBUG("{}", e.what());
             }
-            return MakeAlign<PlayListRGResult>(std::move(item), std::move(scanner));
+
+            XAMP_LOG_DEBUG("Process replaygain service time :{:.2f} secs", sw.ElapsedSeconds());
+            return MakeAlign<PlayListRGResult>(item, std::move(scanner));
         }));
     }
 
-    std::vector<AlignPtr<Ebur128ReplayGainScanner>> scanners;
+    std::vector<Ebur128ReplayGainScanner> scanners;
     ReplayGainResult replay_gain;
 
     for (auto & task : replay_gain_tasks) {
         try {
             auto& result = task.get();
+            XAMP_LOG_DEBUG("Process replaygain wait time :{:.2f} secs", wait_time_sw.ElapsedSeconds());
+            wait_time_sw.Reset();
             replay_gain.music_id.push_back(result->item);
-            if (result->scanner != nullptr) {
-                scanners.push_back(std::move(result->scanner));
+            if (result->scanner.has_value()) {
+                scanners.push_back(std::move(result->scanner.value()));
             }
         }
         catch (std::exception const& e) {
@@ -124,13 +129,13 @@ void BackgroundWorker::readReplayGain(bool, const std::vector<PlayListEntity>& i
     replay_gain.album_replay_gain = Ebur128ReplayGainScanner::GetEbur128Gain(
         Ebur128ReplayGainScanner::GetMultipleLoudness(scanners),
         target_gain);
-
+    
     replay_gain.album_peak = 100.0;
     for (auto const &scanner : scanners) {
-        const auto track_peak = scanner->GetSamplePeak();
+        const auto track_peak = scanner.GetSamplePeak();
         replay_gain.album_peak = (std::min)(track_peak, replay_gain.album_peak);
         replay_gain.track_peak.push_back(track_peak);
-        const auto track_lufs = scanner->GetLoudness();
+        const auto track_lufs = scanner.GetLoudness();
         replay_gain.lufs.push_back(track_lufs);
         replay_gain.track_replay_gain.push_back(Ebur128ReplayGainScanner::GetEbur128Gain(track_lufs, target_gain));
     }

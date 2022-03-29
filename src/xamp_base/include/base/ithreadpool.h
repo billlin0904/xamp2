@@ -73,6 +73,8 @@ public:
 	virtual void SubmitJob(Task&& task) = 0;
 
     virtual void Destroy() noexcept = 0;
+
+    virtual uint32_t GetThreadSize() const = 0;
 protected:
     ITaskScheduler() = default;
 };
@@ -81,6 +83,8 @@ protected:
 class XAMP_BASE_API XAMP_NO_VTABLE IThreadPool {
 public:
     XAMP_BASE_DISABLE_COPY_AND_MOVE(IThreadPool)
+
+    virtual uint32_t GetThreadSize() const = 0;
 
     virtual void Stop() = 0;
 
@@ -127,13 +131,18 @@ decltype(auto) IThreadPool::Spawn(F&& f, Args&&... args) {
 }
 
 XAMP_BASE_API AlignPtr<IThreadPool> MakeThreadPool(const std::string_view& pool_name,
-    int32_t max_thread, 
-    int32_t affinity = kDefaultAffinityCpuCore, 
-    ThreadPriority priority = ThreadPriority::NORMAL);
+    ThreadPriority priority = ThreadPriority::NORMAL,
+    uint32_t max_thread = std::thread::hardware_concurrency(),
+    int32_t affinity = kDefaultAffinityCpuCore);
 
 XAMP_BASE_API IThreadPool& PlaybackThreadPool();
 
 XAMP_BASE_API IThreadPool& WASAPIThreadPool();
+
+XAMP_BASE_API uint32_t GetIdealThreadPoolSize(
+    double cpu_utilization,
+    std::chrono::milliseconds wait_time,
+    std::chrono::milliseconds service_time);
 
 template <typename C, typename Func>
 void ParallelFor(C& items, Func&& f, IThreadPool& tp, size_t batches = 8) {

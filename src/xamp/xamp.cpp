@@ -459,7 +459,6 @@ void Xamp::initialController() {
         });
 
     (void)QObject::connect(ui_.seekSlider, &SeekSlider::leftButtonValueChanged, [this](auto value) {
-        XAMP_LOG_DEBUG("leftButtonValueChanged!");
         try {
             player_->Seek(static_cast<double>(value / 1000.0));
             Singleton<ThemeManager>::GetInstance().setPlayOrPauseButton(ui_, true);
@@ -957,8 +956,8 @@ void Xamp::resetSeekPosValue() {
     ui_.startPosLabel->setText(msToString(0));
 }
 
-void Xamp::processMeatadata(const std::vector<Metadata>& medata) const {    
-    MetadataExtractAdapter::processMetadata(medata);
+void Xamp::processMeatadata(int64_t dir_last_write_time, const std::vector<Metadata>& medata) const {
+    MetadataExtractAdapter::processMetadata(dir_last_write_time, medata);
     album_artist_page_->album()->refreshOnece();
     album_artist_page_->artist()->refreshOnece();
 }
@@ -1233,7 +1232,7 @@ void Xamp::addTable() {
 void Xamp::initialPlaylist() {
     ui_.sliderBar->addTab(tr("Playlists"), TAB_PLAYLIST, Singleton<ThemeManager>::GetInstance().playlistIcon());
     ui_.sliderBar->addTab(tr("Podcast"), TAB_PODCAST, Singleton<ThemeManager>::GetInstance().podcastIcon());
-    ui_.sliderBar->addTab(tr("Youtube Music"), TAB_YT_MUSIC, Singleton<ThemeManager>::GetInstance().ytMusicIcon());
+    //ui_.sliderBar->addTab(tr("Youtube Music"), TAB_YT_MUSIC, Singleton<ThemeManager>::GetInstance().ytMusicIcon());
     ui_.sliderBar->addSeparator();
     ui_.sliderBar->addTab(tr("Albums"), TAB_ALBUM, Singleton<ThemeManager>::GetInstance().albumsIcon());
     ui_.sliderBar->addTab(tr("Artists"), TAB_ARTIST, Singleton<ThemeManager>::GetInstance().artistsIcon());

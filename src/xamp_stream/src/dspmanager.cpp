@@ -94,6 +94,7 @@ void DSPManager::Remove(Uuid const& id, std::vector<AlignPtr<IAudioProcessor>>& 
         });
     if (itr != dsp_chain.end()) {
         XAMP_LOG_D(logger_, "Remove post dsp:{} success.", (*itr)->GetDescription());
+        dsp_chain.erase(itr);
     }
 }
 
@@ -162,12 +163,12 @@ void DSPManager::Init(AudioFormat input_format, AudioFormat output_format, DsdMo
 
     for (const auto& dsp : pre_dsp_) {
         dsp->Start(output_format.GetSampleRate());
-        XAMP_LOG_D(logger_, "Start pre-dsp {}.", dsp->GetDescription());
+        XAMP_LOG_D(logger_, "Start pre-dsp {} output: {}.", dsp->GetDescription(), output_format);
     }
 
     for (const auto& dsp : post_dsp_) {
         dsp->Start(output_format.GetSampleRate());
-        XAMP_LOG_D(logger_, "Start post-dsp {}.", dsp->GetDescription());
+        XAMP_LOG_D(logger_, "Start post-dsp {} output: {}.", dsp->GetDescription(), output_format);
     }
 
     if (const auto converter = GetPreDSP<SoxrSampleRateConverter>()) {

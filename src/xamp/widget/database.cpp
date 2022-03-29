@@ -767,12 +767,12 @@ int32_t Database::addOrUpdateArtist(const QString& artist) {
 	return artist_id;
 }
 
-int32_t Database::addOrUpdateAlbum(const QString& album, int32_t artist_id, bool is_podcast) {
+int32_t Database::addOrUpdateAlbum(const QString& album, int32_t artist_id, int64_t album_time, bool is_podcast) {
 	QSqlQuery query;
 
 	query.prepare(Q_UTF8(R"(
-    INSERT OR REPLACE INTO albums (albumId, album, artistId, firstChar, coverId, isPodcast)
-    VALUES ((SELECT albumId FROM albums WHERE album = :album), :album, :artistId, :firstChar, :coverId, :isPodcast)
+    INSERT OR REPLACE INTO albums (albumId, album, artistId, firstChar, coverId, isPodcast, dateTime)
+    VALUES ((SELECT albumId FROM albums WHERE album = :album), :album, :artistId, :firstChar, :coverId, :isPodcast, :dateTime)
     )"));
 
 	const auto first_char = album.left(1);
@@ -782,6 +782,7 @@ int32_t Database::addOrUpdateAlbum(const QString& album, int32_t artist_id, bool
 	query.bindValue(Q_UTF8(":firstChar"), first_char.toUpper());
 	query.bindValue(Q_UTF8(":coverId"), getAlbumCoverId(album));
 	query.bindValue(Q_UTF8(":isPodcast"), is_podcast ? 1 : 0);
+	query.bindValue(Q_UTF8(":dateTime"), album_time);
 
 	IfFailureThrow1(query);
 

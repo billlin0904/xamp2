@@ -23,6 +23,10 @@ TaskScheduler::~TaskScheduler() {
 	Destroy();	
 }
 
+uint32_t TaskScheduler::GetThreadSize() const {
+	return 0;
+}
+
 void TaskScheduler::Destroy() noexcept {
 	if (!work_.is_valid()) {
 		return;
@@ -67,6 +71,10 @@ ThreadPool::~ThreadPool() {
 void ThreadPool::Stop() {
 	scheduler_->Destroy();
 	pool_.reset();
+}
+
+uint32_t ThreadPool::GetThreadSize() const {
+	return 0;
 }
 
 }

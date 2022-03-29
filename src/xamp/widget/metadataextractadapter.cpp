@@ -37,7 +37,7 @@ public:
         : cover_reader_(MakeMetadataReader()) {
     }
 
-    std::tuple<int32_t, int32_t, QString> addOrGetAlbumAndArtistId(const QString& album, const QString& artist, bool is_podcast) const;
+    std::tuple<int32_t, int32_t, QString> addOrGetAlbumAndArtistId(int64_t dir_last_write_time, const QString& album, const QString& artist, bool is_podcast) const;
 
     QString addCoverCache(int32_t album_id, const QString& album, const Metadata& metadata, bool is_unknown_album) const;
 private:	
@@ -76,7 +76,7 @@ QString DatabaseIdCache::addCoverCache(int32_t album_id, const QString& album, c
     return cover_id;
 }
 
-std::tuple<int32_t, int32_t, QString> DatabaseIdCache::addOrGetAlbumAndArtistId(const QString &album, const QString &artist, bool is_podcast) const {
+std::tuple<int32_t, int32_t, QString> DatabaseIdCache::addOrGetAlbumAndArtistId(int64_t dir_last_write_time, const QString &album, const QString &artist, bool is_podcast) const {
     int32_t artist_id = 0;
     if (auto const * artist_id_op = this->artist_id_cache_.Find(artist)) {
         artist_id = *artist_id_op;
@@ -91,7 +91,7 @@ std::tuple<int32_t, int32_t, QString> DatabaseIdCache::addOrGetAlbumAndArtistId(
         album_id = *album_id_op;
     }
     else {
-        album_id = Singleton<Database>::GetInstance().addOrUpdateAlbum(album, artist_id, is_podcast);
+        album_id = Singleton<Database>::GetInstance().addOrUpdateAlbum(album, artist_id, dir_last_write_time, is_podcast);
         this->album_id_cache_.AddOrUpdate(album, album_id);
     }
 
@@ -117,7 +117,7 @@ public:
         if (!path.has_extension()) {
             return false;
         }
-        using namespace xamp::player::audio_util;
+        using namespace audio_util;
         const auto file_ext = String::ToLower(path.extension().string());
         auto const& support_file_set = GetSupportFileExtensions();
         return support_file_set.find(file_ext) != support_file_set.end();
@@ -125,7 +125,7 @@ public:
 
     XAMP_DISABLE_COPY(ExtractAdapterProxy)
 
-    void OnWalkFirst() override {
+    void OnWalkNew() override {
         qApp->processEvents();
     }
 
@@ -134,7 +134,7 @@ public:
         qApp->processEvents();
     }
 
-    void OnWalkNext() override {
+    void OnWalkEnd(DirectoryEntry const& dir_entry) override {
         if (metadatas_.empty()) {
             return;
         }
@@ -150,7 +150,7 @@ public:
                 return first.track < last.track;
             });
 #endif
-        emit adapter_->readCompleted(metadatas_);
+        emit adapter_->readCompleted(toTime_t(dir_entry.last_write_time()), metadatas_);
         metadatas_.clear();
         qApp->processEvents();
     }
@@ -210,7 +210,7 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
     }
 }
 
-void ::MetadataExtractAdapter::processMetadata(const std::vector<Metadata>& result, PlayListTableView* playlist, bool is_podcast) {
+void ::MetadataExtractAdapter::processMetadata(int64_t dir_last_write_time, const std::vector<Metadata>& result, PlayListTableView* playlist, bool is_podcast) {
 	auto playlist_id = -1;
     if (playlist != nullptr) {
         playlist_id = playlist->playlistId();
@@ -223,7 +223,9 @@ void ::MetadataExtractAdapter::processMetadata(const std::vector<Metadata>& resu
 
         auto is_unknown_album = false;
         if (album.isEmpty()) {
-            album = QString::fromStdWString(metadata.file_name_no_ext);
+            // todo: Use 'Unknown album' ?
+            //album = QString::fromStdWString(metadata.file_name_no_ext);
+            album = tr("Unknown album");
             is_unknown_album = true;
         }
 
@@ -233,7 +235,7 @@ void ::MetadataExtractAdapter::processMetadata(const std::vector<Metadata>& resu
 
         const auto music_id = Singleton<Database>::GetInstance().addOrUpdateMusic(metadata, playlist_id);
 
-        auto [album_id, artist_id, cover_id] = cache.addOrGetAlbumAndArtistId(album, artist, is_podcast);
+        auto [album_id, artist_id, cover_id] = cache.addOrGetAlbumAndArtistId(dir_last_write_time, album, artist, is_podcast);
 
         // Find cover id from database.
         if (cover_id.isEmpty()) {

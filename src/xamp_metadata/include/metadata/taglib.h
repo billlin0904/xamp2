@@ -15,6 +15,9 @@
 #include <flac/flacproperties.h>
 #include <ogg/xiphcomment.h>
 
+#include <dsdiff/dsdifffile.h>
+#include <dsf/dsffile.h>
+
 #include <mp4file.h>
 
 #include <ape/apetag.h>

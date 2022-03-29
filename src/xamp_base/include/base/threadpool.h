@@ -33,11 +33,13 @@ using WorkStealingTaskQueuePtr = AlignPtr<WorkStealingTaskQueue>;
 
 class TaskScheduler final : public ITaskScheduler {
 public:
-    TaskScheduler(const std::string_view & pool_name, size_t max_thread, int32_t affinity, ThreadPriority priority);
+    TaskScheduler(const std::string_view & pool_name, uint32_t max_thread, int32_t affinity, ThreadPriority priority);
 	
     XAMP_DISABLE_COPY(TaskScheduler)
 
     ~TaskScheduler() override;
+
+    uint32_t GetThreadSize() const override;
 
     void SubmitJob(Task&& task) override;
 
@@ -60,8 +62,8 @@ private:
 
 	std::atomic<bool> is_stopped_;
     std::atomic<size_t> running_thread_;
-	size_t index_;
-    size_t max_thread_;
+    uint32_t max_thread_;
+	size_t index_;    
     std::vector<std::thread> threads_;
     SharedTaskQueuePtr task_pool_;
     std::vector<WorkStealingTaskQueuePtr> thread_task_queues_;
@@ -80,6 +82,8 @@ public:
 	XAMP_DISABLE_COPY(ThreadPool)
 
     void Stop() override;
+
+    uint32_t GetThreadSize() const override;
 };
 
 }
