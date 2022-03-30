@@ -59,6 +59,7 @@ public:
 
 	SoxrSampleRateConverterImpl() noexcept
 		: enable_steep_filter_(false)
+		, enable_dither_(true)
 		, quality_(SoxrQuality::VHQ)
 		, input_sample_rate_(0)
 		, output_sample_rate_(0)
@@ -78,7 +79,7 @@ public:
 	void Init(uint32_t input_sample_rate) {
 		Close();
 
-		unsigned long quality_spec = 0;
+		unsigned long quality_spec = SOXR_VHQ;
 
 		switch (quality_) {
 		case SoxrQuality::UHQ:
@@ -98,16 +99,22 @@ public:
 			break;
 		}
 
-		auto flags = (static_cast<int32_t>(roll_off_)
+		unsigned long flags = (static_cast<int32_t>(roll_off_)
 			| SOXR_HI_PREC_CLOCK
-			| SOXR_VR
-			| SOXR_DOUBLE_PRECISION
-			| SOXR_NO_DITHER);
-		if (enable_steep_filter_) {
-			quality_spec |= SOXR_STEEP_FILTER;
+			| SOXR_DOUBLE_PRECISION);
+
+		// 因為昇頻可以降低系統量化雜訊的level，dithering可以降低系統的非線性因素，近而增加SNR。
+		if (!enable_dither_) {
+			flags |= SOXR_NO_DITHER;
+			XAMP_LOG_D(logger_, "Soxr disable dither.");
 		}
 
-		auto phase = SOXR_LINEAR_PHASE;
+		if (enable_steep_filter_) {
+			quality_spec |= SOXR_STEEP_FILTER;
+			XAMP_LOG_D(logger_, "Soxr enable steep filter.");
+		}
+
+		unsigned long phase = SOXR_LINEAR_PHASE;
 		if (phase_ >= 50) {
 			phase = SOXR_LINEAR_PHASE;
 		}
@@ -136,7 +143,7 @@ public:
 			&soxr_quality,
 			&runtimespec));
 		if (!handle_) {
-			XAMP_LOG_D(logger_, "soxr error: {}", !error ? "" : error);
+			XAMP_LOG_D(logger_, "Soxr error: {}", !error ? "" : error);
 			throw LibrarySpecException("sox_create return failure!");
 		}
 
@@ -145,14 +152,15 @@ public:
 
 		ratio_ = static_cast<double>(output_sample_rate_) / static_cast<double>(input_sample_rate_);
 
-		XAMP_LOG_D(logger_, "Soxr resampler setting=> input:{} output:{} quality:{} phase:{} passband:{} stopband:{} rolloff:{}",
+		XAMP_LOG_D(logger_, "Soxr resampler setting=> input:{} output:{} quality:{} phase:{} passband:{} stopband:{} rolloff:{} dither:{}.",
 			input_sample_rate_,
 			output_sample_rate_,
 			EnumToString(quality_),
 			phase,
 			pass_band_,
 			stop_band_,
-			EnumToString(roll_off_));
+			EnumToString(roll_off_),
+			enable_dither_ ? "enable" : "disable");
 	}
 
 	void Start(uint32_t output_sample_rate) {
@@ -185,6 +193,10 @@ public:
 
 	void SetPhase(int32_t phase) {
 		phase_ = phase;
+	}
+
+	void SetDither(bool enable) {
+		enable_dither_ = enable;
 	}
 
 	void Flush() {
@@ -242,7 +254,8 @@ public:
 
 	using SoxrHandle = UniqueHandle<soxr_t, SoxrHandleTraits>;
 
-	bool enable_steep_filter_;	
+	bool enable_steep_filter_;
+	bool enable_dither_;
 	SoxrQuality quality_;
 	uint32_t input_sample_rate_;
 	uint32_t output_sample_rate_;
@@ -294,6 +307,10 @@ void SoxrSampleRateConverter::SetPhase(int32_t phase) {
 
 void SoxrSampleRateConverter::SetRollOff(SoxrRollOff level) {
     impl_->SetRollOff(level);
+}
+
+void SoxrSampleRateConverter::SetDither(bool enable) {
+	impl_->SetDither(enable);
 }
 
 bool SoxrSampleRateConverter::Process(float const* samples, uint32_t num_samples, BufferRef<float>& output) {

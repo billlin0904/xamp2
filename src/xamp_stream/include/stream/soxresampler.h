@@ -45,6 +45,8 @@ public:
 
     void SetRollOff(SoxrRollOff level);
 
+    void SetDither(bool enable);
+
     void Init(uint32_t input_sample_rate);
 
     void Start(uint32_t output_sample_rate) override;

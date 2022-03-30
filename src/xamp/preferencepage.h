@@ -14,10 +14,11 @@ public:
     explicit PreferencePage(QWidget *parent = nullptr);
 
     void update();
-private:
-    void loadSoxrResampler(const QVariantMap & soxr_settings);
 
-    void saveSoxrResampler(const QString &name);
+private:
+    void updateSoxrConfigUI(const QVariantMap& soxr_settings);
+
+    void saveSoxrResampler(const QString &name) const;
 
 	void initSoxResampler();
 
@@ -25,7 +26,7 @@ private:
 
     void saveAll();
 
-    QMap<QString, QVariant> getSoxrSettings() const;
+    QMap<QString, QVariant> currentSoxrSettings() const;
 
     void setPhasePercentText(int32_t value);
     Ui::PreferenceDialog ui_;

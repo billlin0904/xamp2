@@ -121,7 +121,7 @@ void AudioPlayer::Destroy() {
     FreeBassLib();
 }
 
-void AudioPlayer::UpdateSlice(int32_t sample_size, double stream_time) noexcept {
+void AudioPlayer::UpdateProgress(int32_t sample_size, double stream_time) noexcept {
     std::atomic_exchange_explicit(&playback_event_,
         PlaybackEvent{ sample_size, stream_time },
         std::memory_order_relaxed);
@@ -317,7 +317,7 @@ void AudioPlayer::Stop(bool signal_to_stop, bool shutdown_device, bool wait_for_
     if (device_->IsStreamOpen()) {
         XAMP_LOG_D(logger_, "Close device.");
         CloseDevice(wait_for_stop_stream);
-        UpdateSlice();
+        UpdateProgress();
         if (signal_to_stop) {
             SetState(PlayerState::PLAYER_STATE_STOPPED);                        
         }
@@ -462,7 +462,7 @@ void AudioPlayer::AllocateFifo() {
 }
 
 void AudioPlayer::CreateBuffer() {
-    UpdateSlice();
+    UpdateProgress();
 
     uint32_t require_read_sample = 0;
 
@@ -655,7 +655,7 @@ void AudioPlayer::DoSeek(double stream_time) {
         stream_->GetDuration(),
         stream_time,
         sample_end_time_);
-    UpdateSlice(0, stream_time);
+    UpdateProgress(0, stream_time);
     fifo_.Clear();
     BufferStream(stream_time);
     Resume();
@@ -799,7 +799,7 @@ DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_fr
     XAMP_LIKELY(fifo_.TryRead(static_cast<int8_t*>(samples), sample_size, num_filled_bytes)) {
         num_filled_frames = num_filled_bytes / sample_size_ / output_format_.GetChannels();
         num_filled_frames = num_buffer_frames;
-        UpdateSlice(static_cast<int32_t>(num_samples), stream_time);
+        UpdateProgress(static_cast<int32_t>(num_samples), stream_time);
         return DataCallbackResult::CONTINUE;
     }
 
@@ -812,12 +812,12 @@ DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_fr
     // <------------------------------->
     //
     if (stream_time >= stream_duration_) {
-        UpdateSlice(-1, stream_time);
+        UpdateProgress(-1, stream_time);
         return DataCallbackResult::STOP;
     }
 
     num_filled_frames = num_buffer_frames;
-    UpdateSlice(static_cast<int32_t>(num_samples), stream_time);
+    UpdateProgress(static_cast<int32_t>(num_samples), stream_time);
     return DataCallbackResult::CONTINUE;
 }
 

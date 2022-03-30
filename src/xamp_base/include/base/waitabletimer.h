@@ -7,7 +7,6 @@
 
 #include <chrono>
 #include <base/base.h>
-#include <base/memory.h>
 #include <base/align_ptr.h>
 
 namespace xamp::base {

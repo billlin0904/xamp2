@@ -21,9 +21,7 @@ public:
 
     virtual void Init(AudioFormat input_format, AudioFormat output_format, DsdModes dsd_mode, uint32_t sample_size) = 0;
 
-    /*
-     * return true (fetch more data).
-     */
+    // note: return true (fetch more data).
     virtual bool ProcessDSP(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo) = 0;
 
     virtual void AddPreDSP(AlignPtr<IAudioProcessor> processor) = 0;

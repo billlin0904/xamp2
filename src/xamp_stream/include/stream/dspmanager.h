@@ -28,9 +28,6 @@ public:
 
     void Init(AudioFormat input_format, AudioFormat output_format, DsdModes dsd_mode, uint32_t sample_size) override;
 
-    /*
-     * return true (fetch more data).
-     */
     bool ProcessDSP(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo) override;
 
     void AddPreDSP(AlignPtr<IAudioProcessor> processor) override;
@@ -99,7 +96,6 @@ private:
     std::vector<AlignPtr<IAudioProcessor>> pre_dsp_;
     std::vector<AlignPtr<IAudioProcessor>> post_dsp_;
     AlignPtr<ISampleRateConverter> fifo_writer_;
-    AlignPtr<ISampleRateConverter> pcm2dsd_converter_;
     Buffer<float> pre_dsp_buffer_;
     Buffer<float> post_dsp_buffer_;
     std::shared_ptr<spdlog::logger> logger_;

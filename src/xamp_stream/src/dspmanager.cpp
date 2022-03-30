@@ -66,8 +66,12 @@ void DSPManager::RemoveReplayGain() {
 }
 
 bool DSPManager::CanProcessFile() const noexcept {
-    return (dsd_modes_ == DsdModes::DSD_MODE_PCM || dsd_modes_ == DsdModes::DSD_MODE_DSD2PCM)
-	&& !pre_dsp_.empty() && !post_dsp_.empty();
+    if (dsd_modes_ == DsdModes::DSD_MODE_PCM || dsd_modes_ == DsdModes::DSD_MODE_DSD2PCM) {
+	    if (!pre_dsp_.empty() || !post_dsp_.empty()) {
+            return true;
+	    }
+    }
+    return false;
 }
 
 void DSPManager::AddOrReplace(AlignPtr<IAudioProcessor> processor, std::vector<AlignPtr<IAudioProcessor>>& dsp_chain) {
@@ -121,31 +125,31 @@ bool DSPManager::ProcessDSP(const float* samples, uint32_t num_samples, AudioBuf
 }
 
 bool DSPManager::ApplyDSP(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo) {
-    BufferRef<float> pre_dsp_bufref(pre_dsp_buffer_);
-    BufferRef<float> post_dsp_bufref(post_dsp_buffer_);
+    BufferRef<float> pre_dsp_buffer(pre_dsp_buffer_);
+    BufferRef<float> post_dsp_buffer(post_dsp_buffer_);
 
     if (!pre_dsp_.empty()) {        
         for (const auto& pre_dsp : pre_dsp_) {
-            if (!pre_dsp->Process(samples, num_samples, pre_dsp_bufref)) {
+            if (!pre_dsp->Process(samples, num_samples, pre_dsp_buffer)) {
                 return true;
             }
         }
         for (const auto& post_dsp : post_dsp_) {
-            post_dsp->Process(pre_dsp_bufref.data(),
-                pre_dsp_bufref.size(), 
-                post_dsp_bufref);
+            post_dsp->Process(pre_dsp_buffer.data(),
+                pre_dsp_buffer.size(), 
+                post_dsp_buffer);
         }
     } else {
         for (const auto& post_dsp : post_dsp_) {
-            post_dsp->Process(samples, num_samples, post_dsp_bufref);
+            post_dsp->Process(samples, num_samples, post_dsp_buffer);
         }
     }
 
-    if (!pcm2dsd_converter_) {
-        BufferOverFlowThrow(fifo_writer_->Process(post_dsp_bufref, fifo));
+    if (post_dsp_.empty()) {
+        BufferOverFlowThrow(fifo_writer_->Process(pre_dsp_buffer, fifo));
     } else {
-        BufferOverFlowThrow(pcm2dsd_converter_->Process(post_dsp_bufref, fifo));
-    }    
+        BufferOverFlowThrow(fifo_writer_->Process(post_dsp_buffer, fifo));
+    }
     return false; 
 }
 
@@ -155,10 +159,6 @@ void DSPManager::Init(AudioFormat input_format, AudioFormat output_format, DsdMo
 
     if (!CanProcessFile()) {
         return;
-    }
-
-    if (dsd_times_ > 0) {
-        pcm2dsd_converter_ = MakeAlign<ISampleRateConverter, Pcm2DsdConverter>(output_format.GetSampleRate(), dsd_times_);
     }
 
     for (const auto& dsp : pre_dsp_) {

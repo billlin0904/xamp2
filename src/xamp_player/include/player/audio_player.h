@@ -138,7 +138,7 @@ private:
 
     void BufferSamples(const AlignPtr<IAudioStream>& stream, int32_t buffer_count = 1);
 
-    void UpdateSlice(int32_t sample_size = 0, double stream_time = 0.0) noexcept;
+    void UpdateProgress(int32_t sample_size = 0, double stream_time = 0.0) noexcept;
 
     void AllocateReadBuffer(uint32_t allocate_size);
 
@@ -150,7 +150,7 @@ private:
 
     void SetDSDStreamMode(DsdModes dsd_mode, AlignPtr<IAudioStream>& stream);
 
-    struct XAMP_CACHE_ALIGNED(kMallocAlignSize) PlaybackEvent {
+    struct XAMP_CACHE_ALIGNED(kCacheAlignSize) PlaybackEvent {
 	    explicit PlaybackEvent(int32_t sample_size = 0,
 	        double stream_time = 0.0) noexcept;        
         int32_t sample_size;

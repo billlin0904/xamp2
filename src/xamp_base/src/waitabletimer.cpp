@@ -25,8 +25,14 @@ protected:
 #ifdef XAMP_OS_WIN
 class TimePeriod {
 public:
-	TimePeriod() noexcept
-		: sleep_is_granular_(::timeBeginPeriod(kDesiredSchedulerMS) == TIMERR_NOERROR) {
+	TimePeriod() noexcept {
+		TIMECAPS tc{ 0 };
+		if (::timeGetDevCaps(&tc, sizeof(TIMECAPS)) == TIMERR_NOERROR) {
+			const auto timer_res = (std::min)((std::max)(tc.wPeriodMin, kDesiredSchedulerMS), tc.wPeriodMax);
+			sleep_is_granular_ = (::timeBeginPeriod(timer_res) == TIMERR_NOERROR);
+		} else {
+			sleep_is_granular_ = false;
+		}
 	}
 
 	~TimePeriod() noexcept {
