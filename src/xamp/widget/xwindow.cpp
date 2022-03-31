@@ -121,10 +121,56 @@ private:
 #endif
 };
 
+#if defined(Q_OS_WIN)
+static XAMP_ALWAYS_INLINE LRESULT hitTest(HWND hwnd, MSG const* msg) noexcept {
+    const POINT border{
+        ::GetSystemMetrics(SM_CXFRAME) + ::GetSystemMetrics(SM_CXPADDEDBORDER),
+        ::GetSystemMetrics(SM_CYFRAME) + ::GetSystemMetrics(SM_CXPADDEDBORDER)
+    };
+    const POINT cursor{ GET_X_LPARAM(msg->lParam), GET_Y_LPARAM(msg->lParam) };
+
+    RECT window;
+    if (!::GetWindowRect(hwnd, &window)) {
+        return HTNOWHERE;
+    }
+
+    constexpr auto borderless_drag = true;
+    constexpr auto borderless_resize = true;
+
+    const auto drag = borderless_drag ? HTCAPTION : HTCLIENT;
+
+    enum RegionMask {
+        CLIENT_MASK = 0b0000,
+        LEFT_MASK = 0b0001,
+        RIGHT_MASK = 0b0010,
+        TOP_MASK = 0b0100,
+        BOTTOM_MASK = 0b1000,
+    };
+
+    const auto result =
+        LEFT_MASK * (cursor.x < (window.left + border.x)) |
+        RIGHT_MASK * (cursor.x >= (window.right - border.x)) |
+        TOP_MASK * (cursor.y < (window.top + border.y)) |
+        BOTTOM_MASK * (cursor.y >= (window.bottom - border.y));
+
+    switch (result) {
+    case LEFT_MASK: return borderless_resize ? HTLEFT : drag;
+    case RIGHT_MASK: return borderless_resize ? HTRIGHT : drag;
+    case TOP_MASK: return borderless_resize ? HTTOP : drag;
+    case BOTTOM_MASK: return borderless_resize ? HTBOTTOM : drag;
+    case TOP_MASK | LEFT_MASK: return borderless_resize ? HTTOPLEFT : drag;
+    case TOP_MASK | RIGHT_MASK: return borderless_resize ? HTTOPRIGHT : drag;
+    case BOTTOM_MASK | LEFT_MASK: return borderless_resize ? HTBOTTOMLEFT : drag;
+    case BOTTOM_MASK | RIGHT_MASK: return borderless_resize ? HTBOTTOMRIGHT : drag;
+    case CLIENT_MASK: return drag;
+    default: return HTNOWHERE;
+    }
+}
+#endif
+
 XWindow::XWindow()
     : IXWindow()
 #if defined(Q_OS_WIN)
-    , border_width_(5)
     , current_screen_(nullptr)
 #endif
 	, content_widget_(nullptr) {
@@ -135,13 +181,6 @@ void XWindow::setContentWidget(IXampPlayer *content_widget) {
     // todo: DropShadow效果會讓CPU使用率偏高.
     // todo: 使用border-radius: 5px;將無法縮放視窗
     // todo: Qt::WA_TranslucentBackground + paintEvent 將無法縮放視窗
-#if defined(Q_OS_WIN)
-    if (!Singleton<ThemeManager>::GetInstance().useNativeWindow()) {
-        setWindowFlags(Qt::WindowSystemMenuHint | Qt::WindowMinimizeButtonHint | Qt::WindowMaximizeButtonHint | Qt::FramelessWindowHint);
-    }
-#else
-
-#endif
     content_widget_ = content_widget;    
     if (content_widget_ != nullptr) {        
         auto* default_layout = new QGridLayout();
@@ -149,9 +188,7 @@ void XWindow::setContentWidget(IXampPlayer *content_widget) {
         default_layout->setContentsMargins(0, 0, 0, 0);
         setLayout(default_layout);
     }
-    setAcceptDrops(true);
-    setMouseTracking(true);
-    installEventFilter(this);
+
 #if defined(Q_OS_WIN)
     if (!Singleton<ThemeManager>::GetInstance().useNativeWindow()) {
         win32::drawDwmShadow(this);
@@ -168,6 +205,10 @@ void XWindow::setContentWidget(IXampPlayer *content_widget) {
         }
     }
 #endif
+
+    setAcceptDrops(true);
+    setMouseTracking(true);
+    installEventFilter(this);
 }
 // QScopedPointer require default destructor.
 XWindow::~XWindow() = default;
@@ -243,85 +284,6 @@ void XWindow::dropEvent(QDropEvent* event) {
     }
 }
 
-#if defined(Q_OS_WIN)
-bool XWindow::hitTest(MSG const* msg, long* result) const {
-    RECT winrect{};
-    GetWindowRect(reinterpret_cast<HWND>(winId()), &winrect);
-
-    const auto x = GET_X_LPARAM(msg->lParam);
-    const auto y = GET_Y_LPARAM(msg->lParam);
-
-    const auto left_range = winrect.left + border_width_;
-    const auto right_range = winrect.right - border_width_;
-    const auto top_range = winrect.top + border_width_;
-    const auto bottom_range = winrect.bottom - border_width_;
-
-    const auto fixed_width = minimumWidth() == maximumWidth();
-    const auto fixed_height = minimumHeight() == maximumHeight();
-
-    if (!fixed_width && !fixed_height) {
-        // Bottom left corner
-        if (x >= winrect.left && x < left_range &&
-            y < winrect.bottom && y >= bottom_range) {
-            *result = HTBOTTOMLEFT;
-            return true;
-        }
-
-        // Bottom right corner
-        if (x < winrect.right && x >= right_range &&
-            y < winrect.bottom && y >= bottom_range) {
-            *result = HTBOTTOMRIGHT;
-            return true;
-        }
-
-        // Top left corner
-        if (x >= winrect.left && x < left_range &&
-            y >= winrect.top && y < top_range) {
-            *result = HTTOPLEFT;
-            return true;
-        }
-
-        // Top right corner
-        if (x < winrect.right && x >= right_range &&
-            y >= winrect.top && y < top_range) {
-            *result = HTTOPRIGHT;
-            return true;
-        }
-    }
-
-    if (!fixed_width) {
-        // Left border
-        if (x >= winrect.left && x < left_range) {
-            *result = HTLEFT;
-            return true;
-        }
-        // Right border
-        if (x < winrect.right && x >= right_range) {
-            *result = HTRIGHT;
-            return true;
-        }
-    }
-
-    if (!fixed_height) {
-        // Bottom border
-        if (y < winrect.bottom && y >= bottom_range) {
-            *result = HTBOTTOM;
-            return true;
-        }
-        // Top border
-        if (y >= winrect.top && y < top_range) {
-            *result = HTTOP;
-            return true;
-        }
-    }
-	
-	if (*result == HTCAPTION) {
-		return false;
-	}
-    return true;
-}
-#endif
-
 bool XWindow::nativeEvent(const QByteArray& event_type, void * message, long * result) {
     if (Singleton<ThemeManager>::GetInstance().useNativeWindow()) {
         return QWidget::nativeEvent(event_type, message, result);
@@ -332,8 +294,11 @@ bool XWindow::nativeEvent(const QByteArray& event_type, void * message, long * r
     switch (msg->message) {
     case WM_NCHITTEST:
         if (!isMaximized()) {
-            *result = HTCAPTION;
-            return hitTest(msg, result);
+            *result = hitTest(reinterpret_cast<HWND>(winId()), msg);
+            if (*result == HTCAPTION) {
+                return false;
+            }
+            return true;
         }
         break;
     case WM_GETMINMAXINFO:

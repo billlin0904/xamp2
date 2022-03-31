@@ -23,23 +23,16 @@
 
 #ifdef XAMP_OS_WIN
 #include <base/simd.h>
-#include <base/win32/win32_threadpool.h>
 #endif
 
 using namespace xamp::base;
 using namespace xamp::stream;
 
-#ifdef XAMP_OS_WIN
-
-win32::ThreadPool& GetWin32ThreadPool() {
-    static win32::ThreadPool win32_thread_pool("win32bench");
-    return win32_thread_pool;
-}
-
-static void BM_Win32ThreadPool(benchmark::State& state) {
-    Logger::GetInstance().GetLogger("win32bench")->set_level(spdlog::level::info);
+static void BM_LeastLoadThreadPool(benchmark::State& state) {
+    static auto thread_pool = MakeThreadPool(
+        kPlaybackThreadPoolLoggerName,
+        TaskSchedulerPolicy::LEAST_LOAD_POLICY);
     auto length = state.range(0);
-    auto& thread_pool = GetWin32ThreadPool();
     std::vector<int> n(length);
     std::iota(n.begin(), n.end(), 1);
     std::atomic<int64_t> total;
@@ -47,14 +40,30 @@ static void BM_Win32ThreadPool(benchmark::State& state) {
         ParallelFor(n, [&total, &n](auto item) {
             total += item;
             }
-        , thread_pool);
+        , *thread_pool);
     }
 }
-#endif
 
-static void BM_ThreadPool(benchmark::State& state) {
+static void BM_RoundRubinThreadPool(benchmark::State& state) {
     static auto thread_pool = MakeThreadPool(
-        kPlaybackThreadPoolLoggerName);
+        kPlaybackThreadPoolLoggerName,
+        TaskSchedulerPolicy::ROUND_ROBIN_POLICY);
+    auto length = state.range(0);
+    std::vector<int> n(length);
+    std::iota(n.begin(), n.end(), 1);
+    std::atomic<int64_t> total;
+    for (auto _ : state) {
+        ParallelFor(n, [&total, &n](auto item) {
+            total += item;
+            }
+        , *thread_pool);
+    }
+}
+
+static void BM_RandomThreadPool(benchmark::State& state) {
+    static auto thread_pool = MakeThreadPool(
+        kPlaybackThreadPoolLoggerName,
+        TaskSchedulerPolicy::RANDOM_POLICY);
     auto length = state.range(0);
     std::vector<int> n(length);
     std::iota(n.begin(), n.end(), 1);
@@ -439,8 +448,8 @@ static void BM_CircularBuffer(benchmark::State& state) {
 
 //BENCHMARK(BM_FastMemset)->RangeMultiplier(2)->Range(4096, 8 << 10);
 //BENCHMARK(BM_StdtMemset)->RangeMultiplier(2)->Range(4096, 8 << 10);
-BENCHMARK(BM_FastMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
-BENCHMARK(BM_StdtMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
+//BENCHMARK(BM_FastMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
+//BENCHMARK(BM_StdtMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
 
 //BENCHMARK(BM_ConvertToInt2432Avx)->RangeMultiplier(2)->Range(4096, 8 << 10);
 //BENCHMARK(BM_ConvertToInt2432)->RangeMultiplier(2)->Range(4096, 8 << 10);
@@ -452,12 +461,14 @@ BENCHMARK(BM_StdtMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
 //BENCHMARK(BM_LIFOQueue)->ThreadRange(1, 128);
 //BENCHMARK(BM_CircularBuffer)->ThreadRange(1, 128);
 
-//BENCHMARK(BM_async_pool)->RangeMultiplier(2)->Range(8, 8 << 2);
+//BENCHMARK(BM_async_pool)->RangeMultiplier(2)->Range(8, 8 << 8);
 //#ifdef XAMP_OS_WIN
-//BENCHMARK(BM_std_for_each_par)->RangeMultiplier(2)->Range(8, 8 << 2);
+BENCHMARK(BM_std_for_each_par)->RangeMultiplier(2)->Range(8, 8 << 8);
 //BENCHMARK(BM_Win32ThreadPool)->RangeMultiplier(2)->Range(8, 8 << 2);
 //#endif
-//BENCHMARK(BM_ThreadPool)->RangeMultiplier(2)->Range(8, 8 << 2);
+//BENCHMARK(BM_LeastLoadThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+//BENCHMARK(BM_RoundRubinThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+BENCHMARK(BM_RandomThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
 
 int main(int argc, char** argv) {
     //std::cin.get();

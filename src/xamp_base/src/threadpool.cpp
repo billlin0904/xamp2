@@ -9,18 +9,24 @@ inline constexpr auto kDefaultTimeout = std::chrono::milliseconds(100);
 inline constexpr auto kSharedTaskQueueSize = 4096;
 inline constexpr auto kWorkStealingTaskQueueSize = 4096;
 inline constexpr auto kMaxPopFailureSize = 500;
+inline constexpr auto kMaxWorkQueueSize = 65536;
 
 TaskScheduler::TaskScheduler(const std::string_view& pool_name, uint32_t max_thread, int32_t affinity, ThreadPriority priority)
+	: TaskScheduler(TaskSchedulerPolicy::RANDOM_POLICY, pool_name, max_thread, affinity, priority)  {
+}
+
+TaskScheduler::TaskScheduler(TaskSchedulerPolicy policy, const std::string_view& pool_name, uint32_t max_thread, int32_t affinity, ThreadPriority priority)
 	: is_stopped_(false)
 	, running_thread_(0)
 	, max_thread_(max_thread)
-	, index_(0) {
+	, index_(0)
+	, task_scheduler_policy_(MakeTaskSchedulerPolicy(policy)) {
 	logger_ = Logger::GetInstance().GetLogger(pool_name.data());
 	try {
 		task_pool_ = MakeAlign<SharedTaskQueue>(kSharedTaskQueueSize);
 
 		for (size_t i = 0; i < max_thread_; ++i) {
-			thread_task_queues_.push_back(MakeAlign<WorkStealingTaskQueue>(4096));
+			task_work_queues_.push_back(MakeAlign<WorkStealingTaskQueue>(kMaxWorkQueueSize));
 		}
 		for (size_t i = 0; i < max_thread_; ++i) {
             AddThread(i, affinity, priority);
@@ -47,7 +53,7 @@ void TaskScheduler::SubmitJob(Task&& task) {
 
 	for (size_t n = 0; n < max_thread_ * K; ++n) {
 		const auto index = (i + n) % max_thread_;
-		auto& queue = thread_task_queues_.at(index);
+		auto& queue = task_work_queues_.at(index);
 		if (queue->TryEnqueue(task)) {
 			XAMP_LOG_D(logger_, "Enqueue thread {} local queue ({}).", index, queue->size());
 			return;
@@ -79,7 +85,7 @@ void TaskScheduler::Destroy() noexcept {
 	XAMP_LOG_D(logger_, "Thread pool was destory.");
 	task_pool_.reset();
 	threads_.clear();
-	thread_task_queues_.clear();
+	task_work_queues_.clear();
 }
 
 std::optional<Task> TaskScheduler::TryDequeueSharedQueue(std::chrono::milliseconds timeout) {
@@ -117,7 +123,7 @@ std::optional<Task> TaskScheduler::TrySteal(size_t i) {
 		}
 
 		const auto index = (i + n) % max_thread_;
-		if (thread_task_queues_.at(index)->TryDequeue(task)) {
+		if (task_work_queues_.at(index)->TryDequeue(task)) {
 			XAMP_LOG_D(logger_, "Steal other thread {} queue.", index);
 			return std::move(task);
 		}
@@ -142,21 +148,18 @@ void TaskScheduler::AddThread(size_t i, int32_t affinity, ThreadPriority priorit
 			MakeStackBuffer<uint8_t>((std::min)(kInitL1CacheLineSize * i,
 			kMaxL1CacheLineSize));
 		auto thread_id = GetCurrentThreadId();
-		auto* local_queue = thread_task_queues_[i].get();
+		auto* local_queue = task_work_queues_[i].get();
 		SetThreadPriority(priority);
 		SetWorkerThreadName(i);
 
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) start.", thread_id, i);
 		auto pop_failure_count = 0;
-		static thread_local PRNG prng; // todo: ®Ä¯àÃöÁä?
+
 		while (!is_stopped_) {
 			auto task = TryLocalPop(local_queue);
 
 			if (!task) {
-				size_t steal_index = 0;
-				do {
-					steal_index = prng.NextSize(max_thread_ - 1);
-				} while (steal_index != i);
+				const auto steal_index = task_scheduler_policy_->ScheduleNext(i, max_thread_, task_work_queues_);
 
 				task = TrySteal(steal_index);
 
@@ -191,6 +194,10 @@ void TaskScheduler::AddThread(size_t i, int32_t affinity, ThreadPriority priorit
 	if (affinity != -1) {
 		SetThreadAffinity(threads_.at(i), affinity);
 	}
+}
+
+ThreadPool::ThreadPool(const std::string_view& pool_name, TaskSchedulerPolicy policy, uint32_t max_thread, int32_t affinity, ThreadPriority priority)
+	: IThreadPool(MakeAlign<ITaskScheduler, TaskScheduler>(policy, pool_name, (std::min)(max_thread, kMaxThread), affinity, priority)) {
 }
 
 ThreadPool::ThreadPool(const std::string_view& pool_name, uint32_t max_thread, int32_t affinity, ThreadPriority priority)

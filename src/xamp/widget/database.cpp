@@ -614,11 +614,11 @@ int32_t Database::addOrUpdateMusic(const Metadata& metadata, int32_t playlist_id
 		query.bindValue(Q_UTF8(":album_peak"), 0);
 		query.bindValue(Q_UTF8(":track_peak"), 0);
 	}
-	if (metadata.timestamp == 0) {
+	if (metadata.last_write_time == 0) {
 		query.bindValue(Q_UTF8(":dateTime"), QDateTime::currentSecsSinceEpoch());
 	}
 	else {
-		query.bindValue(Q_UTF8(":dateTime"), metadata.timestamp);
+		query.bindValue(Q_UTF8(":dateTime"), metadata.last_write_time);
 	}
 
 	db_.transaction();

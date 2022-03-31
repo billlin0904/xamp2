@@ -105,6 +105,8 @@ class AlbumView final : public QListView {
 public:
 	explicit AlbumView(QWidget* parent = nullptr);
 
+	void update();
+
 signals:
     void playMusic(const AlbumEntity& entity);
 

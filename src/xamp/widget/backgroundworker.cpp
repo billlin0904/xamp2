@@ -24,6 +24,7 @@ struct PlayListRGResult {
 
 BackgroundWorker::BackgroundWorker() {
     pool_ = MakeThreadPool(kBackgroundThreadPoolLoggerName,
+        TaskSchedulerPolicy::LEAST_LOAD_POLICY,
         ThreadPriority::BACKGROUND);
 }
 

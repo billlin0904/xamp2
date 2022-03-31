@@ -1,5 +1,6 @@
 #include <base/logger.h>
 #include <base/threadpool.h>
+#include <base/itaskschedulerpolicy.h>
 #include <base/ithreadpool.h>
 
 namespace xamp::base {
@@ -15,10 +16,12 @@ uint32_t GetIdealThreadPoolSize(double cpu_utilization,
 }
 
 AlignPtr<IThreadPool> MakeThreadPool(const std::string_view& pool_name,
+    TaskSchedulerPolicy policy,
     ThreadPriority priority,
     uint32_t max_thread,
     int32_t affinity) {
-    return MakeAlign<IThreadPool, ThreadPool>(pool_name, 
+    return MakeAlign<IThreadPool, ThreadPool>(pool_name,
+        policy,
         max_thread,
         affinity,
         priority);

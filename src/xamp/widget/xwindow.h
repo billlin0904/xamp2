@@ -58,8 +58,7 @@ private:
     struct WinTaskbar;
 #if defined(Q_OS_WIN)
     void showEvent(QShowEvent* event) override;
-    bool hitTest(MSG const* msg, long* result) const;
-    int border_width_;
+
 	QPoint last_pos_;
     QScreen* current_screen_;
     QScopedPointer<WinTaskbar> taskbar_;

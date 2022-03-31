@@ -198,9 +198,6 @@ void setResizeable(void* message) {
 
 void drawDwmShadow(const QMenu* menu) {
 	auto hwnd = reinterpret_cast<HWND>(menu->winId());
-	auto policy = DWMNCRENDERINGPOLICY::DWMNCRP_ENABLED;	
-	DWMDLL.DwmSetWindowAttribute(hwnd, DWMWINDOWATTRIBUTE::DWMWA_NCRENDERING_POLICY, &policy, sizeof(policy));
-
 	MARGINS borderless = { 1, 1, 1, 1 };
 	DWMDLL.DwmExtendFrameIntoClientArea(hwnd, &borderless);
 }
@@ -216,11 +213,34 @@ void drawDwmShadow(const QWidget* widget) {
 	DWMDLL.DwmExtendFrameIntoClientArea(hwnd, &borderless);
 }
 
+enum BorderlessWindowStyle : DWORD {
+	WINDOWED_STYLE        = WS_OVERLAPPEDWINDOW | WS_THICKFRAME | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX,
+	AERO_BORDERLESS_STYLE = WS_POPUP			| WS_THICKFRAME | WS_CAPTION | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX,
+	BORDERLESS_STYLE      = WS_POPUP            | WS_THICKFRAME              | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX,
+};
+
+static bool compositionEnabled() {
+	BOOL composition_enabled = FALSE;
+	auto success = DWMDLL.DwmIsCompositionEnabled(&composition_enabled) == S_OK;
+	return composition_enabled && success;
+}
+
 void setFramelessWindowStyle(const QWidget* widget) {
 	auto hwnd = reinterpret_cast<HWND>(widget->winId());
-	DWORD style = ::GetWindowLong(hwnd, GWL_STYLE);
-	::SetWindowLong(hwnd, GWL_STYLE, style | WS_MAXIMIZEBOX | WS_THICKFRAME | WS_CAPTION | CS_DBLCLKS);
-	::SetWindowPos(hwnd, Q_NULLPTR, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);
+
+	BorderlessWindowStyle new_style = BorderlessWindowStyle::WINDOWED_STYLE;
+	if (compositionEnabled()) {
+		new_style = BorderlessWindowStyle::AERO_BORDERLESS_STYLE;
+	} else {
+		new_style = BorderlessWindowStyle::BORDERLESS_STYLE;
+	}
+
+	auto old_style = static_cast<BorderlessWindowStyle>(::GetWindowLongPtrW(hwnd, GWL_STYLE));
+	if (new_style != old_style) {
+		::SetWindowLongPtrW(hwnd, GWL_STYLE, static_cast<LONG>(new_style));
+		::SetWindowPos(hwnd, nullptr, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);
+		::ShowWindow(hwnd, SW_SHOW);
+	}
 }
 
 bool isWindowMaximized(const QWidget* widget) {

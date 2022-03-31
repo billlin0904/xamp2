@@ -86,18 +86,6 @@ QSharedPointer<QProgressDialog> makeProgressDialog(QString const& title, QString
     return QSharedPointer<QProgressDialog>(dialog);
 }
 
-QMessageBox::StandardButton showAskDialog(const char text[]) {
-    auto xdialog = std::make_unique<XDialog>();
-    QMessageBox msgbox;
-    msgbox.setWindowTitle(kAppTitle);
-    msgbox.setText(qApp->tr(text));
-    msgbox.setIcon(QMessageBox::Icon::Question);
-    msgbox.addButton(QMessageBox::Yes);
-    msgbox.addButton(QMessageBox::No);
-    msgbox.setDefaultButton(QMessageBox::No);
-    return static_cast<QMessageBox::StandardButton>(msgbox.exec());
-}
-
 std::tuple<bool, QMessageBox::StandardButton> showDontShowAgainDialog(bool show_agin) {
     bool is_show_agin = true;
 

@@ -354,6 +354,7 @@ public:
 
         const auto ext = String::ToLower(path.extension().string());
         metadata.replay_gain = GetReplayGain(ext, fileref.file());
+        metadata.last_write_time = toTime_t(Fs::last_write_time(path));
         return metadata;
     }
 

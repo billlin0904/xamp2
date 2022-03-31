@@ -8,6 +8,8 @@
 #include <QClipboard>
 #include <QStandardPaths>
 #include <QFileDialog>
+#include <QSqlQuery>
+#include <QTimer>
 
 #include <stream/api.h>
 
@@ -409,7 +411,7 @@ AlbumView::AlbumView(QWidget* parent)
                 Singleton<Database>::GetInstance().removeAlbum(album_id);
             }
             Singleton<Database>::GetInstance().removeAllArtist();
-            refreshOnece();
+            update();
             emit removeAll();
             Singleton<PixmapCache>::GetInstance().clear();
         };
@@ -497,6 +499,8 @@ AlbumView::AlbumView(QWidget* parent)
     });
 
     setStyleSheet(Q_UTF8("background-color: transparent"));
+
+    update();
 }
 
 void AlbumView::payNextMusic() {
@@ -565,7 +569,7 @@ WHERE
     model_.setQuery(s.arg(first_char));
 }
 
-void AlbumView::refreshOnece() {
+void AlbumView::update() {
     model_.setQuery(Q_UTF8(R"(
 SELECT
     albums.album,
@@ -584,6 +588,12 @@ ORDER BY
 	albums.dateTime DESC
 LIMIT 200
     )"));
+}
+
+void AlbumView::refreshOnece() {
+    QTimer::singleShot(1500, [this]() {
+        update();
+        });
 }
 
 void AlbumView::onSearchTextChanged(const QString& text) {

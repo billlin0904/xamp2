@@ -30,8 +30,6 @@ QString format2String(const PlaybackFormat& playback_format, const QString& file
 
 QSharedPointer<QProgressDialog> makeProgressDialog(QString const& title, QString const& text, QString const& cancel);
 
-QMessageBox::StandardButton showAskDialog(const char text[]);
-
 std::tuple<bool, QMessageBox::StandardButton> showDontShowAgainDialog(bool show_agin);
 
 void centerDesktop(QWidget* widget);

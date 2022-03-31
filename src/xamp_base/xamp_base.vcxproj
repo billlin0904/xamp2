@@ -164,6 +164,7 @@
     <ClInclude Include="include\base\enum.h" />
     <ClInclude Include="include\base\fastconditionvariable.h" />
     <ClInclude Include="include\base\fastmutex.h" />
+    <ClInclude Include="include\base\itaskschedulerpolicy.h" />
     <ClInclude Include="include\base\ithreadpool.h" />
     <ClInclude Include="include\base\lifoqueue.h" />
     <ClInclude Include="include\base\math.h" />
@@ -198,7 +199,6 @@
     <ClInclude Include="include\base\unique_handle.h" />
     <ClInclude Include="include\base\volume.h" />
     <ClInclude Include="include\base\waitabletimer.h" />
-    <ClInclude Include="include\base\win32\win32_threadpool.h" />
     <ClInclude Include="include\base\windows_handle.h" />
     <ClInclude Include="include\base\xoshiro.h" />
   </ItemGroup>
@@ -211,6 +211,7 @@
     <ClCompile Include="src\exception.cpp" />
     <ClCompile Include="src\fastconditionvariable.cpp" />
     <ClCompile Include="src\fastmutex.cpp" />
+    <ClCompile Include="src\itaskschedulerpolicy.cpp" />
     <ClCompile Include="src\ithreadpool.cpp" />
     <ClCompile Include="src\memory_mapped_file.cpp" />
     <ClCompile Include="src\stl.cpp" />
@@ -228,7 +229,6 @@
     <ClCompile Include="src\vmmemlock.cpp" />
     <ClCompile Include="src\volume.cpp" />
     <ClCompile Include="src\waitabletimer.cpp" />
-    <ClCompile Include="src\win32\win32_threadpool.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

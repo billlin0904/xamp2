@@ -19,6 +19,12 @@ MAKE_XAMP_ENUM(
     NORMAL,
     HIGHEST)
 
+MAKE_XAMP_ENUM(
+    TaskSchedulerPolicy,
+    ROUND_ROBIN_POLICY,
+    RANDOM_POLICY,
+    LEAST_LOAD_POLICY)
+
 XAMP_BASE_API void SetThreadPriority(ThreadPriority priority) noexcept;
 
 XAMP_BASE_API void SetThreadName(std::string const & name) noexcept;

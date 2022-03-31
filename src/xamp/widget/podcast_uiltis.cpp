@@ -87,7 +87,7 @@ std::pair<std::string, std::vector<Metadata>> parsePodcastXML(QString const& src
             }
             else if (name == "pubDate") {
                 auto datetime = QDateTime::fromString(QString::fromStdString(value), Qt::RFC2822Date);
-                metadata.timestamp = datetime.toTime_t();
+                metadata.last_write_time = datetime.toTime_t();
             }
         }
 

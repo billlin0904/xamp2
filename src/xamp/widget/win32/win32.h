@@ -15,6 +15,7 @@ namespace win32 {
 	void drawDwmShadow(const QWidget* widget);
 	void drawDwmShadow(const QMenu* menu);
 	void removeStandardFrame(void* message);
+	bool compositionEnabled();
 	void setResizeable(void* message);
 	bool isWindowMaximized(const QWidget* widget);
 }

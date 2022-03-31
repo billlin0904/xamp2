@@ -15,6 +15,7 @@
 #include <base/rng.h>
 #include <base/base.h>
 #include <base/align_ptr.h>
+#include <base/itaskschedulerpolicy.h>
 #include <base/blocking_queue.h>
 #include <base/ithreadpool.h>
 #include <base/platform.h>
@@ -23,17 +24,18 @@
 
 namespace xamp::base {
 
-using SharedTaskQueue = BlockingQueue<Task>;
-using SharedTaskQueuePtr = AlignPtr<SharedTaskQueue>;
-
-using WorkStealingTaskQueue = BlockingQueue<Task>;
-
-using SharedTaskQueuePtr = AlignPtr<SharedTaskQueue>;
-using WorkStealingTaskQueuePtr = AlignPtr<WorkStealingTaskQueue>;
-
 class TaskScheduler final : public ITaskScheduler {
 public:
-    TaskScheduler(const std::string_view & pool_name, uint32_t max_thread, int32_t affinity, ThreadPriority priority);
+    TaskScheduler(const std::string_view & pool_name,
+        uint32_t max_thread, 
+        int32_t affinity,
+        ThreadPriority priority);
+
+    TaskScheduler(TaskSchedulerPolicy policy,
+        const std::string_view& pool_name,
+        uint32_t max_thread, 
+        int32_t affinity, 
+        ThreadPriority priority);
 	
     XAMP_DISABLE_COPY(TaskScheduler)
 
@@ -66,16 +68,23 @@ private:
 	size_t index_;    
     std::vector<std::thread> threads_;
     SharedTaskQueuePtr task_pool_;
-    std::vector<WorkStealingTaskQueuePtr> thread_task_queues_;
+    AlignPtr<ITaskSchedulerPolicy> task_scheduler_policy_;
+    std::vector<WorkStealingTaskQueuePtr> task_work_queues_;
     std::shared_ptr<spdlog::logger> logger_;
 };
 
 class ThreadPool final : public IThreadPool {
 public:
-	explicit ThreadPool(const std::string_view& pool_name, 
-	                    uint32_t max_thread = std::thread::hardware_concurrency(), 
-	                    int32_t affinity = kDefaultAffinityCpuCore,
-	                    ThreadPriority priority = ThreadPriority::NORMAL);
+	ThreadPool(const std::string_view& pool_name,
+        TaskSchedulerPolicy policy,
+	    uint32_t max_thread = std::thread::hardware_concurrency(), 
+	    int32_t affinity = kDefaultAffinityCpuCore,
+	    ThreadPriority priority = ThreadPriority::NORMAL);
+
+    explicit ThreadPool(const std::string_view& pool_name,
+        uint32_t max_thread = std::thread::hardware_concurrency(),
+        int32_t affinity = kDefaultAffinityCpuCore,
+        ThreadPriority priority = ThreadPriority::NORMAL);
 
 	~ThreadPool() override;
     
