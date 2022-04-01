@@ -46,6 +46,7 @@ XAMP_BASE_API bool VirtualMemoryUnLock(void* address, size_t size);
 XAMP_BASE_API void MSleep(std::chrono::milliseconds timeout);
 
 #ifdef XAMP_OS_WIN
+XAMP_BASE_API void RedirectStdOut();
 XAMP_BASE_API bool ExtendProcessWorkingSetSize(size_t size) noexcept;
 XAMP_BASE_API bool SetProcessWorkingSetSize(size_t working_set_size) noexcept;
 #endif

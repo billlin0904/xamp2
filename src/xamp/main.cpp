@@ -294,18 +294,8 @@ static int excute(int argc, char* argv[]) {
 
 int main(int argc, char *argv[]) {
 #ifdef Q_OS_WIN
-    ModuleHandle mimalloc_module;
-    try {
-        mimalloc_module = LoadModule("mimalloc-override.dll");
-    } catch (std::exception const &e) {
-        ::MessageBoxA(nullptr, 
-            e.what(), 
-            "Load mimalloc-override.dll failure.",
-            MB_ICONSTOP | MB_OK);
-        return -1;
-    }
+    //RedirectStdOut();
 #endif
-
     auto logger_init_done = false;
 
     Logger::GetInstance()

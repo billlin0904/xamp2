@@ -255,6 +255,25 @@ bool IsDebuging() {
 }
 
 #ifdef XAMP_OS_WIN
+void RedirectStdOut() {
+    CONSOLE_SCREEN_BUFFER_INFO csbi{};
+    if (!::AllocConsole()) {
+        XAMP_LOG_DEBUG("AllocConsole return failure! error:{}.", GetLastErrorMessage());
+        return;
+    }
+
+    auto stdout_handle = ::GetStdHandle(STD_OUTPUT_HANDLE);
+    if (::GetConsoleScreenBufferInfo(stdout_handle, &csbi)) {
+        csbi.dwSize.Y = 1000;
+        ::SetConsoleScreenBufferSize(stdout_handle, csbi.dwSize);
+    }
+
+    fclose(stdout);
+    setbuf(stdout, nullptr);
+    *stdout = *::_fdopen(
+        ::_open_osfhandle(reinterpret_cast<long>(stdout_handle), 0), "w");
+}
+
 bool ExtendProcessWorkingSetSize(size_t size) noexcept {
     SIZE_T minimum = 0;
     SIZE_T maximum = 0;
