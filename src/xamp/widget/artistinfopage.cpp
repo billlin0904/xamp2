@@ -32,7 +32,7 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 		if (artist_id_ == -1) {
 			return;
 		}
-		ActionMap<ArtistInfoPage, std::function<void()>> action_map(this);
+        ActionMap<ArtistInfoPage> action_map(this);
 		action_map.addAction(tr("Change artist image"), [=]() {
 			const auto file_name = QFileDialog::getOpenFileName(this,
 			                                                    tr("Open file"),

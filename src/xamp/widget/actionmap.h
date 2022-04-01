@@ -10,7 +10,7 @@
 #include <QScopedPointer>
 #include <QMenu>
 
-template <typename Type, typename F>
+template <typename Type, typename F = std::function<void()>>
 class ActionMap {
 public:
 	using MapType = std::map<QAction*, F>;

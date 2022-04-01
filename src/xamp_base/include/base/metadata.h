@@ -26,7 +26,7 @@ struct XAMP_BASE_API Metadata final {
     uint32_t track;
     uint32_t bitrate;
     uint32_t samplerate;
-    time_t last_write_time;
+    int64_t last_write_time;
 	double offset;
     double duration;
     std::wstring file_path;

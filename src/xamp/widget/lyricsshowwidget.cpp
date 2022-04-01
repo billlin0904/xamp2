@@ -30,7 +30,7 @@ void LyricsShowWidget::initial() {
 
 	setContextMenuPolicy(Qt::CustomContextMenu);
 	(void)QObject::connect(this, &LyricsShowWidget::customContextMenuRequested, [this](auto pt) {
-		ActionMap<LyricsShowWidget, std::function<void()>> action_map(this);
+        ActionMap<LyricsShowWidget> action_map(this);
 		(void)action_map.addAction(tr("Set font size(small)"), [this]() {
 			AppSettings::setValue(kLyricsFontSize, 12);
 			lrc_font_.setPointSize(12);

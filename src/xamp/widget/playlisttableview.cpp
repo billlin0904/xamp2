@@ -139,24 +139,24 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
 
     update();
 
-    model_.setHeaderData(PLAYLIST_MUSIC_ID, Qt::Horizontal, tr("Music Id"));
+    model_.setHeaderData(PLAYLIST_MUSIC_ID, Qt::Horizontal, tr("ID"));
     model_.setHeaderData(PLAYLIST_PLAYING, Qt::Horizontal, tr(" "));
-    model_.setHeaderData(PLAYLIST_TRACK, Qt::Horizontal, tr("#"));
-    model_.setHeaderData(PLAYLIST_FILEPATH, Qt::Horizontal, tr("File path"));
-    model_.setHeaderData(PLAYLIST_TITLE, Qt::Horizontal, tr("Title"));
-    model_.setHeaderData(PLAYLIST_FILE_NAME, Qt::Horizontal, tr("File name"));
-    model_.setHeaderData(PLAYLIST_ALBUM, Qt::Horizontal, tr("Album"));
-    model_.setHeaderData(PLAYLIST_ARTIST, Qt::Horizontal, tr("Artist"));
-    model_.setHeaderData(PLAYLIST_DURATION, Qt::Horizontal, tr("Duration"));
-    model_.setHeaderData(PLAYLIST_BITRATE, Qt::Horizontal, tr("Bit rate"));
-    model_.setHeaderData(PLAYLIST_SAMPLE_RATE, Qt::Horizontal, tr("SampleRate"));
-    model_.setHeaderData(PLAYLIST_RATING, Qt::Horizontal, tr("Rating"));
-    model_.setHeaderData(PLAYLIST_ALBUM_RG, Qt::Horizontal, tr("Album RG"));
-    model_.setHeaderData(PLAYLIST_ALBUM_PK, Qt::Horizontal, tr("Album Pk"));
-    model_.setHeaderData(PLAYLIST_TIMESTAMP, Qt::Horizontal, tr("Date"));
-    model_.setHeaderData(PLAYLIST_FINGER_PRINT, Qt::Horizontal, tr("Fingerprint"));
-    model_.setHeaderData(PLAYLIST_TRACK_RG, Qt::Horizontal, tr("Track RG"));
-    model_.setHeaderData(PLAYLIST_TRACK_PK, Qt::Horizontal, tr("Track Peak"));
+    model_.setHeaderData(PLAYLIST_TRACK, Qt::Horizontal, tr("TRACK#"));
+    model_.setHeaderData(PLAYLIST_FILEPATH, Qt::Horizontal, tr("FILE PATH"));
+    model_.setHeaderData(PLAYLIST_TITLE, Qt::Horizontal, tr("TITLE"));
+    model_.setHeaderData(PLAYLIST_FILE_NAME, Qt::Horizontal, tr("FILE NAME"));
+    model_.setHeaderData(PLAYLIST_ALBUM, Qt::Horizontal, tr("ALBUM"));
+    model_.setHeaderData(PLAYLIST_ARTIST, Qt::Horizontal, tr("ARTIST"));
+    model_.setHeaderData(PLAYLIST_DURATION, Qt::Horizontal, tr("DURATION"));
+    model_.setHeaderData(PLAYLIST_BITRATE, Qt::Horizontal, tr("BIT.RATE"));
+    model_.setHeaderData(PLAYLIST_SAMPLE_RATE, Qt::Horizontal, tr("SAMPLE.RATE"));
+    model_.setHeaderData(PLAYLIST_RATING, Qt::Horizontal, tr("RATING"));
+    model_.setHeaderData(PLAYLIST_ALBUM_RG, Qt::Horizontal, tr("ALBUM.RG"));
+    model_.setHeaderData(PLAYLIST_ALBUM_PK, Qt::Horizontal, tr("ALBUM.PK"));
+    model_.setHeaderData(PLAYLIST_TIMESTAMP, Qt::Horizontal, tr("TIMESTAMP"));
+    model_.setHeaderData(PLAYLIST_FINGER_PRINT, Qt::Horizontal, tr("FINGER.PRINT"));
+    model_.setHeaderData(PLAYLIST_TRACK_RG, Qt::Horizontal, tr("TRACK.RG"));
+    model_.setHeaderData(PLAYLIST_TRACK_PK, Qt::Horizontal, tr("TRACK.PK"));
 
     hideColumn(PLAYLIST_MUSIC_ID);
     hideColumn(PLAYLIST_FILEPATH);
@@ -273,7 +273,7 @@ void PlayListTableView::initial() {
     (void)QObject::connect(this, &QTableView::customContextMenuRequested, [this](auto pt) {
         auto index = indexAt(pt);
 
-        using PlaylistActionMap = ActionMap<PlayListTableView, std::function<void()>>;
+        using PlaylistActionMap = ActionMap<PlayListTableView>;
         PlaylistActionMap action_map(this);
 
         (void)action_map.addAction(tr("Refresh"), [index, this]() {
@@ -513,7 +513,7 @@ void PlayListTableView::setPodcastMode(bool enable) {
 
             auto* show_hide_columns_action = new QAction(tr("Select columns to show..."), this);
             (void)QObject::connect(show_hide_columns_action, &QAction::triggered, [pt, header_view, this]() {
-                ActionMap<PlayListTableView, std::function<void()>> action_map(this);
+                ActionMap<PlayListTableView> action_map(this);
                 for (auto column = 0; column < header_view->count(); ++column) {
                     auto header_name = model()->headerData(column, Qt::Horizontal).toString();
                     action_map.addAction(header_name, [this, column]() {

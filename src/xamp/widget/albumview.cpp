@@ -404,7 +404,7 @@ AlbumView::AlbumView(QWidget* parent)
     (void)QObject::connect(this, &QTableView::customContextMenuRequested, [this](auto pt) {
         auto index = indexAt(pt);
 
-        ActionMap<AlbumView, std::function<void()>> action_map(this);
+        ActionMap<AlbumView> action_map(this);
 
         auto removeAlbum = [=]() {
             for (const auto album_id : Singleton<Database>::GetInstance().getAlbumId()) {
