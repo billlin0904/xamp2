@@ -198,6 +198,13 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
 }
 
 void PlayListTableView::initial() {
+    notshow_column_names_.insert(Q_UTF8("albumId"));
+    notshow_column_names_.insert(Q_UTF8("artistId"));
+    notshow_column_names_.insert(Q_UTF8("coverId"));
+    notshow_column_names_.insert(Q_UTF8("fileExt"));
+    notshow_column_names_.insert(Q_UTF8("parentPath"));
+    notshow_column_names_.insert(Q_UTF8("playlistMusicsId"));
+
     proxy_model_.setSourceModel(&model_);
     proxy_model_.setFilterByColumn(PLAYLIST_RATING);
     proxy_model_.setFilterByColumn(PLAYLIST_TITLE);
@@ -516,6 +523,9 @@ void PlayListTableView::setPodcastMode(bool enable) {
                 ActionMap<PlayListTableView> action_map(this);
                 for (auto column = 0; column < header_view->count(); ++column) {
                     auto header_name = model()->headerData(column, Qt::Horizontal).toString();
+                    if (notshow_column_names_.contains(header_name)) {
+                        continue;
+                    }
                     action_map.addAction(header_name, [this, column]() {
                         setColumnHidden(column, false);
                         AppSettings::addList(kAppSettingColumnName, QString::number(column));

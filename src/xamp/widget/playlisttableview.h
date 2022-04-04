@@ -108,6 +108,7 @@ protected:
 	QModelIndex play_index_;
     PlayListSqlQueryTableModel model_;
 	PlayListTableFilterProxyModel proxy_model_;
+    QSet<QString> notshow_column_names_;
 	PRNG rng_;
 };
 

@@ -5,6 +5,10 @@
 #include <base/waitabletimer.h>
 #include <base/timer.h>
 
+#if defined(XAMP_OS_MAC)
+#include <dispatch/dispatch.h>
+#endif
+
 namespace xamp::base {
 
 #if defined(XAMP_OS_WIN)
@@ -113,20 +117,23 @@ public:
 	}
 
 	void Start(std::chrono::milliseconds interval, std::function<void()> callback) {
-		if (!is_stop_) {
-			return;
-		}
+        if (!is_stop_) {
+            return;
+        }
 
-		is_stop_ = false;
-        thread_ = std::thread([this, interval, callback]() {
-			SetThreadName("Timer");
-			WaitableTimer timer;
-			while (!is_stop_) {
-				callback();
-                timer.SetTimeout(interval);
-				timer.Wait();
-			}
-		});
+        is_stop_ = false;
+        callback_ = callback;
+
+        timer_queue_ = ::dispatch_queue_create("org.xamp2.timerqueue", nullptr);
+        timer_ = ::dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, timer_queue_);
+
+        using namespace std::chrono;
+        auto ineterval_nano_sec = duration_cast<nanoseconds>(interval);
+
+        ::dispatch_source_set_timer(timer_, dispatch_walltime(nullptr, 0), ineterval_nano_sec.count(), 0);
+        ::dispatch_set_context(timer_, this);
+        ::dispatch_source_set_event_handler_f(timer_, TimerCallback);
+        ::dispatch_resume(timer_);
 	}
 
 	bool IsStarted() const {
@@ -134,14 +141,28 @@ public:
 	}
 
 	void Stop() {
+        if (is_stop_) {
+            return;
+        }
 		is_stop_ = true;
-		if (thread_.joinable()) {
-			thread_.join();
-		}
+        ::dispatch_source_cancel(timer_);
+        ::dispatch_release(timer_);
+        ::dispatch_release(timer_queue_);
+        timer_ = nullptr;
 	}
 private:
-	std::atomic<bool> is_stop_{ true };
-	std::thread thread_;
+    static void TimerCallback(void *arg) {
+        const auto* timer = static_cast<TimerImpl*>(arg);
+        try {
+            timer->callback_();
+        } catch (...) {
+        }
+    }
+
+    std::atomic<bool> is_stop_{true};
+    dispatch_queue_t timer_queue_{nullptr};
+    dispatch_source_t timer_{nullptr};
+    std::function<void()> callback_;
 };
 #endif
 
