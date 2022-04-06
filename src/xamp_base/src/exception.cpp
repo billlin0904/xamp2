@@ -98,7 +98,7 @@ std::string_view Exception::ErrorToString(Errors error) {
         { Errors::XAMP_ERROR_SUCCESS, "Success." },
         { Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, "Platform spec error." },
         { Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR, "Library spec error." },
-        { Errors::XAMP_ERROR_DEVICE_NOT_INITIALIZED, "Device not initialized." },
+        { Errors::XAMP_ERROR_DEVICE_CREATE_FAILURE, "Failed to create the audio endpoint." },
         { Errors::XAMP_ERROR_DEVICE_UNSUPPORTED_FORMAT, "Device unsupported format." },
         { Errors::XAMP_ERROR_DEVICE_IN_USE, "Device in use." },
         { Errors::XAMP_ERROR_DEVICE_NOT_FOUND, "Device not found." },
@@ -159,7 +159,7 @@ PlatformSpecException::PlatformSpecException(std::string_view what, int32_t err)
     : Exception(Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, GetPlatformErrorMessage(err), what) {
 }
 
-IMP_EXCEPTION_CLASS(DeviceNotInititalzedException, Errors::XAMP_ERROR_DEVICE_NOT_INITIALIZED)
+IMP_EXCEPTION_CLASS(DeviceCreateFailureException, Errors::XAMP_ERROR_DEVICE_CREATE_FAILURE)
 IMP_EXCEPTION_CLASS(DeviceInUseException, Errors::XAMP_ERROR_DEVICE_IN_USE)
 IMP_EXCEPTION_CLASS(DeviceNotFoundException, Errors::XAMP_ERROR_DEVICE_NOT_FOUND)
 IMP_EXCEPTION_CLASS(FileNotFoundException, Errors::XAMP_ERROR_FILE_NOT_FOUND)

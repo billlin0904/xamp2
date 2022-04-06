@@ -53,18 +53,21 @@ QMap<QString, QVariant> PreferencePage::currentSoxrSettings() const {
 void PreferencePage::saveSoxrResampler(const QString &name) const {
 	QMap<QString, QVariant> soxr_settings;
 	soxr_settings[name] = currentSoxrSettings();
-	JsonSettings::setValue(kSoxr, soxr_settings);
 
+	auto soxr_config= JsonSettings::getValueAsMap(kSoxr);
+
+	JsonSettings::setValue(kSoxr, soxr_settings);
     AppSettings::setValue(kAppSettingSoxrSettingName, name);
-	if (!JsonSettings::contains(name)) {
+
+	if (!soxr_config.contains(name)) {
 		ui_.soxrSettingCombo->addItem(name);
 	}
 }
 
 void PreferencePage::initSoxResampler() {
-	auto soxr_map = JsonSettings::getValueAsMap(kSoxr);
+	auto soxr_config = JsonSettings::getValueAsMap(kSoxr);
 
-    Q_FOREACH (const auto &soxr_setting_name, soxr_map.keys()) {
+    Q_FOREACH (const auto &soxr_setting_name, soxr_config.keys()) {
 		ui_.soxrSettingCombo->addItem(soxr_setting_name);
 	}
 
@@ -78,7 +81,7 @@ void PreferencePage::initSoxResampler() {
 		ui_.selectResamplerComboBox->setCurrentIndex(1);
 	}
 	
-    const auto soxr_settings = soxr_map[AppSettings::getValueAsString(kAppSettingSoxrSettingName)].toMap();
+    const auto soxr_settings = soxr_config[AppSettings::getValueAsString(kAppSettingSoxrSettingName)].toMap();
 	updateSoxrConfigUI(soxr_settings);
 
     ui_.enableFramelessWindowPushButton->setSwitchOn(AppSettings::getValueAsBool(kAppSettingUseFramelessWindow));
@@ -221,19 +224,19 @@ PreferencePage::PreferencePage(QWidget *parent)
 
 	(void)QObject::connect(ui_.selectResamplerComboBox, static_cast<void (QComboBox::*)(int32_t)>(&QComboBox::activated), [this](auto const& index) {
 		ui_.resamplerStackedWidget->setCurrentIndex(index);
-		saveSoxrResampler(ui_.selectResamplerComboBox->currentText());
+		saveSoxrResampler(ui_.soxrSettingCombo->currentText());
         saveAll();
 		});
 
     (void)QObject::connect(ui_.soxrPassbandSlider, &QSlider::valueChanged, [this](auto) {
         ui_.soxrPassbandValue->setText(QString(Q_UTF8("%0%")).arg(ui_.soxrPassbandSlider->value()));
-		saveSoxrResampler(ui_.selectResamplerComboBox->currentText());
+		saveSoxrResampler(ui_.soxrSettingCombo->currentText());
         saveAll();
     });
 
     (void)QObject::connect(ui_.soxrPhaseSlider, &QSlider::valueChanged, [this](auto) {
 		setPhasePercentText(ui_.soxrPhaseSlider->value());
-		saveSoxrResampler(ui_.selectResamplerComboBox->currentText());
+		saveSoxrResampler(ui_.soxrSettingCombo->currentText());
         saveAll();
     });
 
@@ -285,12 +288,6 @@ void PreferencePage::update() {
 }
 
 void PreferencePage::saveAll() {
-	/*QMap<QString, QVariant> soxr_settings;
-	soxr_settings[ui_.soxrSettingCombo->currentText()] = currentSoxrSettings();
-	JsonSettings::setValue(kSoxr, soxr_settings);
-	AppSettings::setValue(kAppSettingSoxrSettingName, ui_.soxrSettingCombo->currentText());
-	AppSettings::setDefaultValue(kAppSettingSoxrSettingName, ui_.soxrSettingCombo->currentText());*/
-
 	saveSoxrResampler(ui_.soxrSettingCombo->currentText());
 	AppSettings::setValue(kFlacEncodingLevel, ui_.flacCompressionLevelSlider->value());
 

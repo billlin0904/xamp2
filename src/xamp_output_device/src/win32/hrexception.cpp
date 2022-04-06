@@ -50,28 +50,30 @@ std::string_view HRException::ErrorToString(HRESULT hr) noexcept {
     }
 }
 
-void HRException::ThrowFromHResult(HRESULT hresult, std::string_view expr) {
+void HRException::ThrowFromHResult(HRESULT hresult, std::string_view expr, const Path& file_path, int32_t line_number) {
 	switch (hresult) {
 	case AUDCLNT_E_DEVICE_IN_USE:
 	case AUDCLNT_E_ENGINE_PERIODICITY_LOCKED:
 	case AUDCLNT_E_ENGINE_FORMAT_LOCKED:
 		throw DeviceInUseException();
+	case AUDCLNT_E_ENDPOINT_CREATE_FAILED:
+        throw DeviceCreateFailureException();
 	default:
-		throw HRException(hresult, expr);
+		throw HRException(hresult, expr, file_path, line_number);
 	}
 }
 
-std::string HRException::ErrorToStringHelper(HRESULT hr) {
+std::string HRException::ErrorToStringHelper(HRESULT hr, const Path& file_path, int32_t line_number) {
     std::ostringstream ostr;
-    ostr << "Hr code: 0x" << std::hex << hr << "(" << ErrorToString(hr) << ")";
+    ostr << "Hr code: 0x" << std::hex << hr << "(" << ErrorToString(hr) << ")" << " " << file_path.filename() << ":" << std::dec << line_number;
     return ostr.str();
 }
 
-HRException::HRException(HRESULT hresult, std::string_view expr)
+HRException::HRException(HRESULT hresult, std::string_view expr, const Path& file_path, int32_t line_number)
 	: PlatformSpecException(hresult)
 	, hr_(hresult)
 	, expr_(expr) {	
-	message_ = ErrorToStringHelper(hresult);
+	message_ = ErrorToStringHelper(hresult, file_path, line_number);
     what_ = message_;
 }
 

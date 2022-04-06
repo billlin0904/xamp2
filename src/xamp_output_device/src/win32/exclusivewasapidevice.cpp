@@ -136,7 +136,7 @@ void ExclusiveWasapiDevice::InitialDeviceFormat(const AudioFormat & output_forma
 		if (hr == AUDCLNT_E_UNSUPPORTED_FORMAT) {
 			throw DeviceUnSupportedFormatException(output_format);
 		}
-		HRException::ThrowFromHResult(hr);
+		HrIfFailledThrow(hr);
 	}
 	
 	CComPtr<IAudioEndpointVolume> endpoint_volume;

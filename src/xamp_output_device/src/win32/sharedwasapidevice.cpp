@@ -225,7 +225,7 @@ void SharedWasapiDevice::OpenStream(AudioFormat const & output_format) {
 
 	RegisterDeviceVolumeChange();
 
-	LogHrFailled(client_->Reset());
+	HrIfFailledThrow(client_->Reset());
 
 	HrIfFailledThrow(client_->GetBufferSize(&buffer_frames_));
 	HrIfFailledThrow(client_->GetService(kAudioRenderClientID, 

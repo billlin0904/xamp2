@@ -7,9 +7,9 @@ namespace xamp::stream {
 
 class BassEqualizer::BassEqualizerImpl {
 public:
-    BassEqualizerImpl() {
+    BassEqualizerImpl()
+		: preamp_(0) {
         fx_handles_.fill(0);
-        preamp_ = 0;
     }
 
     void Start(uint32_t sample_rate) {
@@ -63,8 +63,8 @@ public:
 
     void SetEQ(EQSettings const &settings) {
         uint32_t i = 0;
-        for (auto settings : settings.bands) {
-            SetEQ(i++, settings.gain, settings.Q);
+        for (const auto &band_setting : settings.bands) {
+            SetEQ(i++, band_setting.gain, band_setting.Q);
         }
         SetPreamp(settings.preamp);
     }

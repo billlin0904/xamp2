@@ -185,6 +185,7 @@ static std::vector<ModuleHandle> prefetchWin32DLL() {
     	"comctl32.dll",
         "thumbcache.dll",
         "setupapi.dll",
+        "mimalloc-override.dll",
     #ifndef _DEBUG
         "Qt5Gui.dll",
         "Qt5Core.dll",
@@ -294,10 +295,11 @@ static int excute(int argc, char* argv[]) {
 
 int main(int argc, char *argv[]) {
 #ifdef Q_OS_WIN
-    //RedirectStdOut();
+    if (qgetenv("MIMALLOC_VERBOSE") == "1") {
+        RedirectStdOut();
+    }
+    std::cout << "test";
 #endif
-    auto logger_init_done = false;
-
     Logger::GetInstance()
         .AddDebugOutputLogger()
 #ifdef Q_OS_MAC
@@ -305,8 +307,6 @@ int main(int argc, char *argv[]) {
 #endif
         .AddFileLogger("xamp.log")
         .Startup();
-
-    logger_init_done = true;
 
     loadSettings();
     loadLogAndSoxrConfig();
@@ -316,9 +316,6 @@ int main(int argc, char *argv[]) {
     XAMP_LOG_DEBUG("SetProcessExceptionHandlers success.");
 
     XAMP_ON_SCOPE_EXIT(
-        if (!logger_init_done) {
-            return;
-        }
         JsonSettings::save();
         AppSettings::save();
         Logger::GetInstance().Shutdown();

@@ -107,7 +107,7 @@ QString Xamp::translasteError(Errors error) {
         { Errors::XAMP_ERROR_SUCCESS, tr("Success.") },
         { Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, tr("Platform spec error.") },
         { Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR, tr("Library spec error.") },
-        { Errors::XAMP_ERROR_DEVICE_NOT_INITIALIZED, tr("Device not initialized.") },
+        { Errors::XAMP_ERROR_DEVICE_CREATE_FAILURE, tr("Failed to create the audio endpoint.") },
         { Errors::XAMP_ERROR_DEVICE_UNSUPPORTED_FORMAT, tr("Device unsupported format.") },
         { Errors::XAMP_ERROR_DEVICE_IN_USE, tr("Device in use.") },
         { Errors::XAMP_ERROR_DEVICE_NOT_FOUND, tr("Device not found.") },

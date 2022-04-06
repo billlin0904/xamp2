@@ -47,6 +47,12 @@ std::time_t toTime_t(TP tp) {
 	return system_clock::to_time_t(sctp);
 }
 
+template <typename Resolution = std::chrono::microseconds>
+uint64_t GetUnixTime() {
+	return std::chrono::duration_cast<Resolution>(
+		std::chrono::system_clock::now().time_since_epoch()).count();
+}
+
 template <typename T, typename C>
 std::vector<T> Union(C const &a, C const &b) {
 	std::vector<T> result;

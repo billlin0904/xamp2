@@ -17,13 +17,13 @@ namespace xamp::output_device::win32 {
 
 class XAMP_OUTPUT_DEVICE_API HRException final : public PlatformSpecException {
 public:
-	static void ThrowFromHResult(HRESULT hresult, std::string_view expr = "");
+	static void ThrowFromHResult(HRESULT hresult, std::string_view expr = "", const Path& file_path = "", int32_t line_number = 0);
 
 	static std::string_view ErrorToString(HRESULT hr) noexcept;
 
-	static std::string ErrorToStringHelper(HRESULT hr);
+	static std::string ErrorToStringHelper(HRESULT hr, const Path& file_path = "", int32_t line_number = 0);
 
-	explicit HRException(HRESULT hresult, std::string_view expr = "");
+	explicit HRException(HRESULT hresult, std::string_view expr = "", const Path& file_path = "", int32_t line_number = 0);
 
 	HRESULT GetHResult() const;
 
@@ -36,25 +36,17 @@ private:
 
 }
 
-#define LogHrFailled(expr) \
-	do {\
-		auto hr = expr;\
-		if (FAILED(hr)) {\
-			XAMP_LOG_DEBUG("{} {}", #expr, HRException::ErrorToStringHelper(hr));\
-		}\
-	} while(false)
-
 #define HrIfFailledThrow2(hresult, otherHr) \
 	do { \
 		if (FAILED((hresult)) && ((otherHr) != (hresult))) { \
-			HRException::ThrowFromHResult(hresult, #hresult); \
+			HRException::ThrowFromHResult(hresult, #hresult, __FILE__, __LINE__); \
 		} \
 	} while (false)
 
 #define HrIfFailledThrow(hresult) \
 	do { \
 		if (FAILED((hresult))) { \
-			HRException::ThrowFromHResult(hresult, #hresult); \
+			HRException::ThrowFromHResult(hresult, #hresult, __FILE__, __LINE__); \
 		} \
 	} while (false)
 

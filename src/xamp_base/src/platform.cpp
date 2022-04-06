@@ -256,22 +256,32 @@ bool IsDebuging() {
 
 #ifdef XAMP_OS_WIN
 void RedirectStdOut() {
-    CONSOLE_SCREEN_BUFFER_INFO csbi{};
     if (!::AllocConsole()) {
-        XAMP_LOG_DEBUG("AllocConsole return failure! error:{}.", GetLastErrorMessage());
         return;
     }
 
     auto stdout_handle = ::GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_SCREEN_BUFFER_INFO csbi{};
     if (::GetConsoleScreenBufferInfo(stdout_handle, &csbi)) {
-        csbi.dwSize.Y = 1000;
+        csbi.dwSize.Y = 480;
+        csbi.dwSize.X = 640;
         ::SetConsoleScreenBufferSize(stdout_handle, csbi.dwSize);
     }
 
-    fclose(stdout);
+    // Redirect "stdin" to the console window.
+    if (!freopen("CONIN$", "w", stdin)) 
+        return;
+
+    // Redirect "stderr" to the console window.
+    if (!freopen("CONOUT$", "w", stderr)) 
+        return;
+
+    // Redirect "stdout" to the console window.
+    if (!freopen("CONOUT$", "w", stdout))
+        return;
+
+    // Turn off buffering for "stdout" ("stderr" is unbuffered by default).
     setbuf(stdout, nullptr);
-    *stdout = *::_fdopen(
-        ::_open_osfhandle(reinterpret_cast<long>(stdout_handle), 0), "w");
 }
 
 bool ExtendProcessWorkingSetSize(size_t size) noexcept {
