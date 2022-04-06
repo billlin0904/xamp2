@@ -22,7 +22,8 @@ struct PlayListRGResult {
     std::optional<Ebur128ReplayGainScanner> scanner;
 };
 
-BackgroundWorker::BackgroundWorker() {
+BackgroundWorker::BackgroundWorker()
+	: blur_img_cache_(8) {
     pool_ = MakeThreadPool(kBackgroundThreadPoolLoggerName,
         TaskSchedulerPolicy::LEAST_LOAD_POLICY,
         ThreadPriority::BACKGROUND);
@@ -45,13 +46,9 @@ void BackgroundWorker::blurImage(const QString& cover_id, const QImage& image) {
     }
 
     auto temp = image.copy();
-    XAMP_LOG_DEBUG("Blur image start");
-    Stopwatch sw;
-    sw.Reset();
     Stackblur blur(*pool_, temp, 50);
     emit updateBlurImage(temp.copy());
     blur_img_cache_.AddOrUpdate(cover_id, std::move(temp));
-    XAMP_LOG_DEBUG("Blur image end :{} secs", Round(sw.ElapsedSeconds()), 2);
 }
 
 void BackgroundWorker::readReplayGain(bool, const std::vector<PlayListEntity>& items) {

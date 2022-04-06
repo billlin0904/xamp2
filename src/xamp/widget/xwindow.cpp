@@ -8,6 +8,8 @@
 #include <QMimeData>
 #include <QIcon>
 
+#include "thememanager.h"
+
 #if defined(Q_OS_WIN)
 #include <Windows.h>
 #include <windowsx.h>
@@ -25,10 +27,8 @@
 #include <widget/str_utilts.h>
 #include <widget/xwindow.h>
 
-#include "thememanager.h"
-
-struct XWindow::WinTaskbar {
 #if defined(Q_OS_WIN)
+struct XWindow::WinTaskbar {
     WinTaskbar(XWindow *window, IXampPlayer* content_widget) {
         window_ = window;
         // TODO: not use standard icon?
@@ -118,10 +118,8 @@ private:
     QScopedPointer<QWinTaskbarButton> taskbar_button_;
     QWinTaskbarProgress* taskbar_progress_;
     XWindow* window_;
-#endif
 };
 
-#if defined(Q_OS_WIN)
 static XAMP_ALWAYS_INLINE LRESULT hitTest(HWND hwnd, MSG const* msg) noexcept {
     const POINT border{
         ::GetSystemMetrics(SM_CXFRAME) + ::GetSystemMetrics(SM_CXPADDEDBORDER),
@@ -210,6 +208,7 @@ void XWindow::setContentWidget(IXampPlayer *content_widget) {
     setMouseTracking(true);
     installEventFilter(this);
 }
+
 // QScopedPointer require default destructor.
 XWindow::~XWindow() = default;
 

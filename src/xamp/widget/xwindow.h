@@ -55,10 +55,9 @@ protected:
 private:
     bool nativeEvent(const QByteArray& event_type, void* message, long* result) override;
 
-    struct WinTaskbar;
 #if defined(Q_OS_WIN)
     void showEvent(QShowEvent* event) override;
-
+    struct WinTaskbar;
 	QPoint last_pos_;
     QScreen* current_screen_;
     QScopedPointer<WinTaskbar> taskbar_;
