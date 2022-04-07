@@ -8,6 +8,7 @@
 #include <base/buffer.h>
 #include <base/timer.h>
 #include <base/scopeguard.h>
+#include <base/waitabletimer.h>
 
 #include <output_device/api.h>
 #include <output_device/asiodevicetype.h>
@@ -396,7 +397,7 @@ PlayerState AudioPlayer::GetState() const noexcept {
 
 AudioFormat AudioPlayer::GetInputFormat() const noexcept {
     auto file_format = input_format_;
-    auto* fs = AsFileStream(stream_);
+    const auto* fs = AsFileStream(stream_);
     file_format.SetBitPerSample(fs->GetBitDepth());
     return file_format;
 }
@@ -467,22 +468,22 @@ void AudioPlayer::CreateBuffer() {
     uint32_t require_read_sample = 0;
 
     if (dsd_mode_ != DsdModes::DSD_MODE_NATIVE) {
-	    require_read_sample = device_->GetBufferSize() * output_format_.GetChannels() * kMaxReadRatio;
+	    require_read_sample = static_cast<uint32_t>(GetPageAlignSize(device_->GetBufferSize() * output_format_.GetChannels() * kMaxReadRatio));
     } else {
-        require_read_sample = output_format_.GetSampleRate() / 8;
+        require_read_sample = static_cast<uint32_t>(GetPageAlignSize(output_format_.GetSampleRate() / 8));
     }
-
-    require_read_sample = GetPageAlignSize(require_read_sample);
 
     uint32_t allocate_read_size = 0;
     if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE) {
         allocate_read_size = kMaxPreallocateBufferSize;
-    }
-    else {
+    } else {
         allocate_read_size = (std::min)(kMaxPreallocateBufferSize,
-            require_read_sample * stream_->GetSampleSize() * kBufferStreamCount);
+            require_read_sample *
+            stream_->GetSampleSize() * 
+            kBufferStreamCount);
         allocate_read_size = AlignUp(allocate_read_size);
     }
+
     fifo_size_ = allocate_read_size * kTotalBufferStreamCount;
     num_read_sample_ = require_read_sample;
     AllocateReadBuffer(allocate_read_size);

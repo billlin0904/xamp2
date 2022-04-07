@@ -189,8 +189,8 @@ void XWindow::setContentWidget(IXampPlayer *content_widget) {
 
 #if defined(Q_OS_WIN)
     if (!Singleton<ThemeManager>::GetInstance().useNativeWindow()) {
-        win32::drawDwmShadow(this);
         win32::setFramelessWindowStyle(this);
+        win32::addDwmShadow(this);
         setWindowTitle(kAppTitle);
     }
     taskbar_.reset(new WinTaskbar(this, content_widget));

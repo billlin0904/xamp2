@@ -126,13 +126,22 @@ void PreferencePage::initSoxResampler() {
 		});
 }
 
+void PreferencePage::setLang(int index) {
+	auto lang = LocaleLanguageManager::languageNames()[index];
+	ui_.langCombo->setCurrentIndex(index);
+	AppSettings::loadLanguage(lang.getIsoCode());
+	AppSettings::setValue(kAppSettingLang, lang.getIsoCode());
+	ui_.retranslateUi(this);
+}
+
 void PreferencePage::initLang() {
 	const LocaleLanguage current_lang(AppSettings::getValueAsString(kAppSettingLang));
 
 	auto current_index = 0;
 	auto index = 0;
     Q_FOREACH (auto lang, LocaleLanguageManager::languageNames()) {
-        QIcon ico(Q_STR(":/xamp/Resource/Flags/%1.png").arg(lang.countryIsoCode()));
+		auto file_name = Q_STR(":/xamp/Resource/Flags/%1.png").arg(lang.countryIsoCode().toUpper());
+        QIcon ico(file_name);
 		ui_.langCombo->addItem(ico, lang.nativeNameLang());
 		if (current_lang.getIsoCode() == lang.getIsoCode()) {
 			current_index = index;
@@ -140,13 +149,9 @@ void PreferencePage::initLang() {
 		index++;
 	}
 
-	ui_.langCombo->setCurrentIndex(current_index);
-
-	(void)QObject::connect(ui_.langCombo, static_cast<void (QComboBox::*)(int32_t)>(&QComboBox::activated), [this](auto const& index) {		
-		AppSettings::loadLanguage(ui_.langCombo->itemText(index));
-		AppSettings::setValue(kAppSettingLang, ui_.langCombo->itemText(index));
-		ui_.retranslateUi(this);
-		saveAll();
+	(void)QObject::connect(ui_.langCombo, static_cast<void (QComboBox::*)(int32_t)>(&QComboBox::activated), 
+		[this](auto const& index) {
+		setLang(index);
 		});
 }
 
@@ -168,6 +173,15 @@ PreferencePage::PreferencePage(QWidget *parent)
     : QFrame(parent) {
     ui_.setupUi(this);
     setStyleSheet(Q_UTF8("#PreferenceDialog { background-color: transparent }"));
+
+	Singleton<ThemeManager>::GetInstance().setMenuStyle(ui_.langCombo->view()->window());
+	Singleton<ThemeManager>::GetInstance().setMenuStyle(ui_.replayGainModeCombo->view()->window());
+
+	Singleton<ThemeManager>::GetInstance().setMenuStyle(ui_.selectResamplerComboBox->view()->window());
+	Singleton<ThemeManager>::GetInstance().setMenuStyle(ui_.soxrSettingCombo->view()->window());
+	Singleton<ThemeManager>::GetInstance().setMenuStyle(ui_.soxrTargetSampleRateComboBox->view()->window());
+	Singleton<ThemeManager>::GetInstance().setMenuStyle(ui_.soxrResampleQualityComboBox->view()->window());
+	Singleton<ThemeManager>::GetInstance().setMenuStyle(ui_.rollOffLevelComboBox->view()->window());
 
     ui_.preferenceTreeWidget->header()->hide();
     ui_.preferenceTreeWidget->setStyleSheet(Q_UTF8("QTreeView { background: transparent; }"));

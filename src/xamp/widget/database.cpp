@@ -322,7 +322,6 @@ ORDER BY musics.path;)"));
 		entity.bitrate = query.value(Q_UTF8("bitrate")).toUInt();
 		entity.samplerate = query.value(Q_UTF8("samplerate")).toUInt();
 		entity.cover_id = query.value(Q_UTF8("coverId")).toString();
-		entity.fingerprint = query.value(Q_UTF8("fingerprint")).toString();
 		entity.rating = query.value(Q_UTF8("rating")).toUInt();
 		entity.album_replay_gain = query.value(Q_UTF8("album_replay_gain")).toDouble();
 		entity.album_peak = query.value(Q_UTF8("album_peak")).toDouble();

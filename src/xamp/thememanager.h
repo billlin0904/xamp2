@@ -100,7 +100,7 @@ public:
 
     void setWidgetStyle(Ui::XampWindow &ui);    
 
-    void enableBlur(QWidget* widget, bool enable) const;
+    void enableBlur(QWidget* widget, bool enable = true) const;
 
     QSize getDefaultCoverSize() const noexcept;
 
@@ -115,8 +115,6 @@ public:
     QIcon speaker() const;
 
     QIcon usb() const;
-
-    QIcon ytMusicIcon() const;
 
     void setThemeIcon(Ui::XampWindow& ui) const;
 
@@ -138,7 +136,7 @@ public:
 
     QLatin1String themeColorPath() const;
 
-    void setMenuStyle(QMenu* menu);
+    void setMenuStyle(QWidget* menu);
 
     QColor themeTextColor() const;
 

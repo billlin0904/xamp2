@@ -179,7 +179,7 @@ void setAccentPolicy(HWND hwnd, bool enable, int animation_id) {
 	User32DLL.SetWindowCompositionAttribute(hwnd, &data);
 }
 
-void setBlurMaterial(const QWidget* widget, bool enable, int animation_id) {
+void setAccentPolicy(const QWidget* widget, bool enable, int animation_id) {
 	auto hwnd = reinterpret_cast<HWND>(widget->winId());
 	setAccentPolicy(hwnd, enable, animation_id);
 }
@@ -196,20 +196,34 @@ void setResizeable(void* message) {
 	SetWindowLong(msg->hwnd, DWL_MSGRESULT, HTCAPTION);
 }
 
-void drawDwmShadow(const QMenu* menu) {
+void addDwmShadow(const QMenu* menu) {
 	auto hwnd = reinterpret_cast<HWND>(menu->winId());
-	MARGINS borderless = { 1, 1, 1, 1 };
+
+	DWMNCRENDERINGPOLICY ncrp = DWMNCRP_ENABLED;
+	DWMDLL.DwmSetWindowAttribute(hwnd,
+		DWMWA_NCRENDERING_POLICY,
+		&ncrp,
+		sizeof(ncrp));
+	
+	MARGINS borderless = { -1, -1, -1, -1 };
 	DWMDLL.DwmExtendFrameIntoClientArea(hwnd, &borderless);
 }
 
-void setBlurMaterial(const QMenu* menu, bool enable, int animation_id) {
+void setAccentPolicy(const QMenu* menu, bool enable, int animation_id) {
 	auto hwnd = reinterpret_cast<HWND>(menu->winId());
 	setAccentPolicy(hwnd, enable, animation_id);
 }
 
-void drawDwmShadow(const QWidget* widget) {
-	MARGINS borderless = { 1, 1, 1, 1 };
+void addDwmShadow(const QWidget* widget) {
 	auto hwnd = reinterpret_cast<HWND>(widget->winId());
+
+	DWMNCRENDERINGPOLICY ncrp = DWMNCRP_ENABLED;
+	DWMDLL.DwmSetWindowAttribute(hwnd,
+		DWMWA_NCRENDERING_POLICY,
+		&ncrp,
+		sizeof(ncrp));
+
+	MARGINS borderless = { -1, -1, -1, -1 };
 	DWMDLL.DwmExtendFrameIntoClientArea(hwnd, &borderless);
 }
 

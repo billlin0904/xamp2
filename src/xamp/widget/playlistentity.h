@@ -37,7 +37,6 @@ struct PlayListEntity final {
     QString file_ext;
     QString cover_id;
     QString file_name;
-    QString fingerprint;
 };
 
 // for QVariantÂà´«¨Ï¥Î

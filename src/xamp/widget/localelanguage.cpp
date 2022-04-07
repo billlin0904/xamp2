@@ -9,28 +9,28 @@ LocaleLanguage::LocaleLanguage() {
 }
 
 LocaleLanguage::LocaleLanguage(const QString& name) {
-	QLocale l;
-	l = name;
-	setLanguageByLocale(l);
+	QLocale locale;
+	locale = name;
+	setLanguageByLocale(locale);
 }
 
 void LocaleLanguage::setDefaultLanguage() {
-	QLocale l = QLocale::system();
-	setLanguageByLocale(l);
+	auto locale = QLocale::system();
+	setLanguageByLocale(locale);
 }
 
 void LocaleLanguage::setLanguage(QLocale::Language lang, QLocale::Country country) {
-	const QLocale l(lang, country);
-	setLanguageByLocale(l);
+	const QLocale locale(lang, country);
+	setLanguageByLocale(locale);
 }
 
-void LocaleLanguage::setLanguageByLocale(const QLocale& l) {
-	lang_ = l.language();
-	country_ = l.country();
-	native_name_lang_ = l.nativeLanguageName();
-	eng_name_ = QLocale::languageToString(l.language());
-	lang_iso_code_ = l.name().left(2);
-	country_iso_code_ = l.name().mid(3);
+void LocaleLanguage::setLanguageByLocale(const QLocale& locale) {
+	lang_ = locale.language();
+	country_ = locale.country();
+	native_name_lang_ = locale.nativeLanguageName();
+	eng_name_ = QLocale::languageToString(locale.language());
+	lang_iso_code_ = locale.name().left(2);
+	country_iso_code_ = locale.name().mid(3);
 }
 
 static void switchTranslator(QTranslator& translator, const QString& filename) {
@@ -44,8 +44,7 @@ static void switchTranslator(QTranslator& translator, const QString& filename) {
 	}
 }
 
-LocaleLanguageManager::LocaleLanguageManager() {
-}
+LocaleLanguageManager::LocaleLanguageManager() = default;
 
 QList<LocaleLanguage> LocaleLanguageManager::languageNames() {
 	QList<LocaleLanguage> languages_list;
@@ -54,9 +53,9 @@ QList<LocaleLanguage> LocaleLanguageManager::languageNames() {
 	path.append(Q_UTF8("/langs"));
 	QDir dir(path);
 
-	auto fileNames = dir.entryList(QStringList(Q_UTF8("*.qm")));
-	for (auto i = 0; i < fileNames.size(); ++i) {
-		auto locale = fileNames[i];
+	auto file_names = dir.entryList(QStringList(Q_UTF8("*.qm")));
+	for (auto i = 0; i < file_names.size(); ++i) {
+		auto locale = file_names[i];
 		locale.truncate(locale.lastIndexOf(Q_UTF8(".")));
 		languages_list.append(LocaleLanguage(locale));
 	}

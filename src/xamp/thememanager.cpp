@@ -130,17 +130,10 @@ QColor ThemeManager::themeTextColor() const {
     return color;
 }
 
-void ThemeManager::setMenuStyle(QMenu* menu) {
+void ThemeManager::setMenuStyle(QWidget* menu) {
 	menu->setWindowFlags(Qt::Popup | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
     menu->setAttribute(Qt::WA_TranslucentBackground);
     menu->setAttribute(Qt::WA_StyledBackground);
-    /*auto* shadow = new QGraphicsDropShadowEffect(menu);
-    shadow->setOffset(0, 0);
-    shadow->setColor(Qt::black);
-    shadow->setBlurRadius(20);
-    menu->setGraphicsEffect(shadow);*/
-    //win32::drawDwmShadow(menu);
-    //win32::setBlurMaterial(menu, true);
 }
 
 DefaultStylePixmapManager::DefaultStylePixmapManager()
@@ -214,10 +207,6 @@ QIcon ThemeManager::preferenceIcon() const  {
 
 QIcon ThemeManager::aboutIcon() const {
     return makeIcon(Q_STR(":/xamp/Resource/%1/help.png"));
-}
-
-QIcon ThemeManager::ytMusicIcon() const {
-    return makeIcon(Q_STR(":/xamp/Resource/%1/tab_yt_music.png"));
 }
 
 QIcon ThemeManager::darkModeIcon() const {
@@ -305,7 +294,7 @@ void ThemeManager::setBackgroundColor(QWidget* widget) {
 
 void ThemeManager::enableBlur(QWidget* widget, bool enable) const {
 #if defined(Q_OS_WIN)
-    win32::setBlurMaterial(widget, enable);
+    win32::setAccentPolicy(widget, enable);
 #else
     osx::setBlurMaterial(widget, enable);
 #endif

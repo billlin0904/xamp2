@@ -9,11 +9,11 @@
 #include <QMenu>
 
 namespace win32 {
-	void setBlurMaterial(const QWidget* widget, bool enable, int animation_id = 0);
-	void setBlurMaterial(const QMenu* menu, bool enable, int animation_id = 0);
+	void setAccentPolicy(const QWidget* widget, bool enable = true, int animation_id = 0);
+	void setAccentPolicy(const QMenu* menu, bool enable = true, int animation_id = 0);
 	void setFramelessWindowStyle(const QWidget* widget);
-	void drawDwmShadow(const QWidget* widget);
-	void drawDwmShadow(const QMenu* menu);
+	void addDwmShadow(const QWidget* widget);
+	void addDwmShadow(const QMenu* menu);
 	void removeStandardFrame(void* message);
 	bool compositionEnabled();
 	void setResizeable(void* message);

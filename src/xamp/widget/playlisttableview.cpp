@@ -57,7 +57,6 @@ static PlayListEntity getEntity(const QModelIndex& index) {
     entity.album_id = getIndexValue(index, PLAYLIST_ALBUM_ID).toInt();
     entity.artist_id = getIndexValue(index, PLAYLIST_ARTIST_ID).toInt();
     entity.cover_id = getIndexValue(index, PLAYLIST_COVER_ID).toString();
-    entity.fingerprint = getIndexValue(index, PLAYLIST_FINGER_PRINT).toString();
     entity.file_ext = getIndexValue(index, PLAYLIST_FILE_EXT).toString();
     entity.parent_path = getIndexValue(index, PLAYLIST_FILE_PARENT_PATH).toString();
     entity.timestamp = getIndexValue(index, PLAYLIST_TIMESTAMP).toULongLong();
@@ -103,7 +102,6 @@ void PlayListTableView::update() {
     albumMusic.albumId,
     albumMusic.artistId,
     albums.coverId,
-    musics.fingerprint,
 	musics.fileExt,
     musics.parentPath,
     musics.dateTime,
@@ -154,7 +152,6 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
     model_.setHeaderData(PLAYLIST_ALBUM_RG, Qt::Horizontal, tr("ALBUM.RG"));
     model_.setHeaderData(PLAYLIST_ALBUM_PK, Qt::Horizontal, tr("ALBUM.PK"));
     model_.setHeaderData(PLAYLIST_TIMESTAMP, Qt::Horizontal, tr("TIMESTAMP"));
-    model_.setHeaderData(PLAYLIST_FINGER_PRINT, Qt::Horizontal, tr("FINGER.PRINT"));
     model_.setHeaderData(PLAYLIST_TRACK_RG, Qt::Horizontal, tr("TRACK.RG"));
     model_.setHeaderData(PLAYLIST_TRACK_PK, Qt::Horizontal, tr("TRACK.PK"));
 
@@ -164,7 +161,6 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
     hideColumn(PLAYLIST_ALBUM_ID);
     hideColumn(PLAYLIST_ARTIST_ID);
     hideColumn(PLAYLIST_COVER_ID);
-    hideColumn(PLAYLIST_FINGER_PRINT);
     hideColumn(PLAYLIST_FILE_EXT);
     hideColumn(PLAYLIST_FILE_PARENT_PATH);
     hideColumn(PLAYLIST_BITRATE);
@@ -280,8 +276,7 @@ void PlayListTableView::initial() {
     (void)QObject::connect(this, &QTableView::customContextMenuRequested, [this](auto pt) {
         auto index = indexAt(pt);
 
-        using PlaylistActionMap = ActionMap<PlayListTableView>;
-        PlaylistActionMap action_map(this);
+        ActionMap<PlayListTableView> action_map(this);
 
         (void)action_map.addAction(tr("Refresh"), [index, this]() {
             refresh();

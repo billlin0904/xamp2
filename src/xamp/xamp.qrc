@@ -79,9 +79,10 @@
         <file>Resource/White/podcast.png</file>
         <file>Resource/White/preference.png</file>
         <file>Resource/White/usb.png</file>
-		<file>Resource/Black/disable_converter.png</file>
-		<file>Resource/Black/enable_converter.png</file>
-		<file>Resource/White/disable_converter.png</file>
-		<file>Resource/White/enable_converter.png</file>
+        <file>Resource/Black/disable_converter.png</file>
+        <file>Resource/Black/enable_converter.png</file>
+        <file>Resource/White/disable_converter.png</file>
+        <file>Resource/White/enable_converter.png</file>
+        <file>Resource/Flags/US.png</file>
     </qresource>
 </RCC>

@@ -22,6 +22,8 @@ private:
 
 	void initSoxResampler();
 
+    void setLang(int index);
+
     void initLang();
 
     void saveAll();

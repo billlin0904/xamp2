@@ -41,7 +41,7 @@ public:
 		return native_name_lang_;
 	}
 private:
-	void setLanguageByLocale(const QLocale& l);
+	void setLanguageByLocale(const QLocale& locale);
 	QString lang_;
 	QString country_;
 	QString native_name_lang_;

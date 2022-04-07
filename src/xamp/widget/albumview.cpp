@@ -374,8 +374,7 @@ AlbumView::AlbumView(QWidget* parent)
         auto artist_id = getIndexValue(index, 4).toInt();
         auto artist_cover_id = getIndexValue(index, 5).toString();
 
-        auto list_view_rect = this->rect();
-        auto height = list_view_rect.height();        
+        const auto list_view_rect = this->rect();
 
         page_->setAlbum(album);
         page_->setArtist(artist);
@@ -383,14 +382,14 @@ AlbumView::AlbumView(QWidget* parent)
         page_->setCover(cover_id);
         page_->setArtistCover(artist_cover_id);
         page_->setPlaylistMusic(album_id);
-        page_->setFixedSize(QSize(list_view_rect.size().width() - 10, height));
+        page_->setFixedSize(QSize(list_view_rect.size().width() - 10, list_view_rect.height() - 8));
 
         if (auto album_stats = Singleton<Database>::GetInstance().getAlbumStats(album_id)) {
             page_->setTracks(album_stats.value().tracks);
             page_->setTotalDuration(album_stats.value().durations);
         }
 
-        page_->move(QPoint(list_view_rect.x(), 0));
+        page_->move(QPoint(list_view_rect.x() + 5, 3));
         Singleton<ThemeManager>::GetInstance().setBackgroundColor(page_);
     	
         page_->show();
@@ -541,7 +540,7 @@ void AlbumView::setFilterByArtistId(int32_t artist_id) {
     LEFT JOIN
         artists ON artists.artistId = albumArtist.artistId
     WHERE
-        ( artists.artistId = '%1' ) AND (albums.isPodcast = 0)
+        (artists.artistId = '%1') AND (albums.isPodcast = 0)
     )").arg(artist_id));
 }
 
@@ -562,7 +561,7 @@ LEFT JOIN
 LEFT JOIN
     artists ON artists.artistId = albumArtist.artistId
 WHERE
-    ( artists.firstChar = '%1' ) AND (albums.isPodcast = 0)
+    (artists.firstChar = '%1') AND (albums.isPodcast = 0)
 )")
     );
 

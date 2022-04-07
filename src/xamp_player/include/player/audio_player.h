@@ -19,7 +19,6 @@
 #include <base/spsc_queue.h>
 #include <base/buffer.h>
 #include <base/fastmutex.h>
-#include <base/waitabletimer.h>
 #include <base/fastconditionvariable.h>
 #include <output_device/iaudiocallback.h>
 #include <output_device/idevicestatelistener.h>

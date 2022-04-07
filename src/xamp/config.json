@@ -8,14 +8,14 @@
                 "BackgroundThreadPool": "info",
                 "Compressor": "info",
                 "CoreAudio": "info",
-                "DspManager": "debug",
+                "DspManager": "info",
                 "ExclusiveWasapiDevice": "info",
                 "ExclusiveWasapiDeviceType": "info",
                 "FileStream": "info",
                 "PixmapCache": "info",
                 "PlaybackThreadPool": "info",
                 "SharedWasapiDevice": "info",
-                "Soxr": "debug",
+                "Soxr": "info",
                 "VirtualMemory": "info",
                 "Volume": "info",
                 "WASAPIThreadPool": "info"
@@ -25,10 +25,10 @@
     "Soxr": {
         "default": {
             "enableSteepFilter": false,
-            "passBand": 96,
-            "phase": 45,
-            "quality": 3,
-            "resampleSampleRate": 192000,
+            "passBand": 99,
+            "phase": 50,
+            "quality": 4,
+            "resampleSampleRate": 384000,
             "rolloffLevel": 0,
             "stopBand": 100
         }

@@ -984,7 +984,8 @@ void Xamp::setupDSP(uint32_t target_sample_rate, const QMap<QString, QVariant> &
 
     if (AppSettings::getValueAsBool(kAppSettingEnableEQ)) {
         if (AppSettings::contains(kAppSettingEQName)) {
-            const auto [name, settings] = AppSettings::getValue(kAppSettingEQName).value<AppEQSettings>();
+            const auto [name, settings] = 
+                AppSettings::getValue(kAppSettingEQName).value<AppEQSettings>();
             player_->GetDSPManager()->SetEq(settings);
         }
     } else {

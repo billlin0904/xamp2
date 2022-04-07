@@ -109,6 +109,9 @@
     <Bscmake>
       <PreserveSbr>true</PreserveSbr>
     </Bscmake>
+    <PostBuildEvent>
+      <Command>copylangs.cmd</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -280,8 +283,7 @@
     </QtMoc>
     <ClInclude Include="preferencepage.h" />
     <ClInclude Include="resource.h" />
-    <QtMoc Include="thememanager.h">
-    </QtMoc>
+    <ClInclude Include="thememanager.h" />
     <ClInclude Include="widget\actionmap.h" />
     <QtMoc Include="xamp.h">
     </QtMoc>
@@ -344,6 +346,9 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="credits.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtTranslation Include="en_US.ts" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

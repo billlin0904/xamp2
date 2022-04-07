@@ -14,8 +14,8 @@
 #include <widget/backgroundworker.h>
 
 struct PlayListRGResult {
-    PlayListRGResult(const PlayListEntity &item, std::optional<Ebur128ReplayGainScanner> scanner)
-        : item(item)
+    PlayListRGResult(PlayListEntity item, std::optional<Ebur128ReplayGainScanner> scanner)
+        : item(std::move(item))
         , scanner(std::move(scanner)) {
     }
     PlayListEntity item;
@@ -93,7 +93,7 @@ void BackgroundWorker::readReplayGain(bool, const std::vector<PlayListEntity>& i
             }
 
             XAMP_LOG_DEBUG("Process replaygain service time :{:.2f} secs", sw.ElapsedSeconds());
-            return MakeAlign<PlayListRGResult>(item, std::move(scanner));
+            return MakeAlign<PlayListRGResult>(std::move(item), std::move(scanner));
         }));
     }
 

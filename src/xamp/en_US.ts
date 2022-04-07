@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1" language="ja_JP">
+<TS version="2.1" language="en_US">
 <context>
     <name>AboutDialog</name>
     <message>
@@ -19,6 +19,11 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="aboutdialog.ui" line="80"/>
+        <source>copying</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="aboutdialog.ui" line="110"/>
         <source>version</source>
         <translation type="unfinished"></translation>
@@ -31,11 +36,6 @@
     <message>
         <location filename="aboutdialog.ui" line="124"/>
         <source>domain</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="aboutdialog.ui" line="80"/>
-        <source>copying</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -68,18 +68,6 @@
 <context>
     <name>AlbumView</name>
     <message>
-        <location filename="widget/albumview.cpp" line="447"/>
-        <location filename="widget/albumview.cpp" line="457"/>
-        <source>Remove select album</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="widget/albumview.cpp" line="452"/>
-        <location filename="widget/albumview.cpp" line="458"/>
-        <source>Remove all album</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="widget/albumview.cpp" line="425"/>
         <location filename="widget/albumview.cpp" line="462"/>
         <source>Add album to playlist</source>
@@ -95,6 +83,18 @@
         <location filename="widget/albumview.cpp" line="441"/>
         <location filename="widget/albumview.cpp" line="464"/>
         <source>Copy artist</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widget/albumview.cpp" line="447"/>
+        <location filename="widget/albumview.cpp" line="457"/>
+        <source>Remove select album</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widget/albumview.cpp" line="452"/>
+        <location filename="widget/albumview.cpp" line="458"/>
+        <source>Remove all album</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -317,68 +317,13 @@
 <context>
     <name>PlayListTableView</name>
     <message>
-        <location filename="widget/playlisttableview.cpp" line="141"/>
-        <source> </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="widget/playlisttableview.cpp" line="510"/>
-        <source>Hide this column</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="widget/playlisttableview.cpp" line="516"/>
-        <source>Select columns to show...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="widget/playlisttableview.cpp" line="286"/>
-        <source>Load local file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="widget/playlisttableview.cpp" line="295"/>
-        <source>Open file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="widget/playlisttableview.cpp" line="297"/>
-        <source>Music Files </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="widget/playlisttableview.cpp" line="305"/>
-        <source>Load file directory</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="widget/playlisttableview.cpp" line="307"/>
-        <source>Select a Directory</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="widget/playlisttableview.cpp" line="315"/>
-        <source>Open CD device</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="widget/playlisttableview.cpp" line="352"/>
-        <source>Import podcast</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="widget/playlisttableview.cpp" line="358"/>
-        <source>Remove all</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="widget/playlisttableview.cpp" line="359"/>
-        <source>Open local file path</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="widget/playlisttableview.cpp" line="140"/>
         <source>ID</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widget/playlisttableview.cpp" line="141"/>
+        <source> </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -462,6 +407,51 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="widget/playlisttableview.cpp" line="286"/>
+        <source>Load local file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widget/playlisttableview.cpp" line="295"/>
+        <source>Open file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widget/playlisttableview.cpp" line="297"/>
+        <source>Music Files </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widget/playlisttableview.cpp" line="305"/>
+        <source>Load file directory</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widget/playlisttableview.cpp" line="307"/>
+        <source>Select a Directory</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widget/playlisttableview.cpp" line="315"/>
+        <source>Open CD device</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widget/playlisttableview.cpp" line="352"/>
+        <source>Import podcast</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widget/playlisttableview.cpp" line="358"/>
+        <source>Remove all</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widget/playlisttableview.cpp" line="359"/>
+        <source>Open local file path</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="widget/playlisttableview.cpp" line="360"/>
         <source>Read replay gain</source>
         <translation type="unfinished"></translation>
@@ -526,6 +516,16 @@
         <source>Can&apos;t read image file.</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="widget/playlisttableview.cpp" line="510"/>
+        <source>Hide this column</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widget/playlisttableview.cpp" line="516"/>
+        <source>Select columns to show...</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>PreferenceDialog</name>
@@ -540,28 +540,18 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="preferencedialog.ui" line="676"/>
-        <source>Resampler:</source>
+        <location filename="preferencedialog.ui" line="120"/>
+        <source>Use Frameless Window(Experimental):</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="preferencedialog.ui" line="690"/>
-        <source>Disable</source>
+        <location filename="preferencedialog.ui" line="147"/>
+        <source>Set Podcast Cache Path</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="preferencedialog.ui" line="695"/>
-        <source>Soxr</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="preferencedialog.ui" line="700"/>
-        <source>r8brain (Only support multiple resample)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="preferencedialog.ui" line="266"/>
-        <source>Settings:</source>
+        <location filename="preferencedialog.ui" line="160"/>
+        <source>Album Image Cache Size:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -583,6 +573,11 @@
     <message>
         <location filename="preferencedialog.ui" line="221"/>
         <source>ReplayGain Mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="preferencedialog.ui" line="266"/>
+        <source>Settings:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -706,28 +701,13 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="preferencedialog.ui" line="593"/>
-        <source>Phase:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="preferencedialog.ui" line="574"/>
         <source>90%</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="preferencedialog.ui" line="147"/>
-        <source>Set Podcast Cache Path</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="preferencedialog.ui" line="120"/>
-        <source>Use Frameless Window(Experimental):</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="preferencedialog.ui" line="160"/>
-        <source>Album Image Cache Size:</source>
+        <location filename="preferencedialog.ui" line="593"/>
+        <source>Phase:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -738,6 +718,26 @@
     <message>
         <location filename="preferencedialog.ui" line="637"/>
         <source>Enable Steep Filter</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="preferencedialog.ui" line="676"/>
+        <source>Resampler:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="preferencedialog.ui" line="690"/>
+        <source>Disable</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="preferencedialog.ui" line="695"/>
+        <source>Soxr</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="preferencedialog.ui" line="700"/>
+        <source>r8brain (Only support multiple resample)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -774,8 +774,18 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="preferencepage.cpp" line="162"/>
+        <source> (minimum)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="preferencepage.cpp" line="165"/>
         <source> (intermediate)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="preferencepage.cpp" line="168"/>
+        <source> (linear)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -794,16 +804,6 @@
         <location filename="preferencepage.cpp" line="196"/>
         <location filename="preferencepage.cpp" line="206"/>
         <source>Flac Encoding</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="preferencepage.cpp" line="162"/>
-        <source> (minimum)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="preferencepage.cpp" line="168"/>
-        <source> (linear)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -841,63 +841,6 @@
 <context>
     <name>Xamp</name>
     <message>
-        <location filename="xamp.cpp" line="518"/>
-        <location filename="xamp.cpp" line="523"/>
-        <location filename="xamp.cpp" line="528"/>
-        <source>Volume : </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="xamp.cpp" line="1242"/>
-        <source>Settings</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="xamp.cpp" line="195"/>
-        <source>Mi&amp;nimize</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="xamp.cpp" line="198"/>
-        <source>Ma&amp;ximize</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="xamp.cpp" line="201"/>
-        <source>&amp;Restore</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="xamp.cpp" line="204"/>
-        <source>&amp;Quit</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="xamp.cpp" line="1243"/>
-        <source>About</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="xamp.cpp" line="755"/>
-        <source>Search anything</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="xamp.cpp" line="1039"/>
-        <source>unknown error</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="xamp.cpp" line="1162"/>
-        <source>Not found any playlist item.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="xamp.cpp" line="946"/>
-        <source>Not found any playing item.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="xamp.cpp" line="107"/>
         <source>Success.</source>
         <translation type="unfinished"></translation>
@@ -910,6 +853,11 @@
     <message>
         <location filename="xamp.cpp" line="109"/>
         <source>Library spec error.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="xamp.cpp" line="110"/>
+        <source>Failed to create the audio endpoint.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -968,6 +916,58 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="xamp.cpp" line="122"/>
+        <source>Not support exclusive mode.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="xamp.cpp" line="195"/>
+        <source>Mi&amp;nimize</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="xamp.cpp" line="198"/>
+        <source>Ma&amp;ximize</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="xamp.cpp" line="201"/>
+        <source>&amp;Restore</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="xamp.cpp" line="204"/>
+        <source>&amp;Quit</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="xamp.cpp" line="518"/>
+        <location filename="xamp.cpp" line="523"/>
+        <location filename="xamp.cpp" line="528"/>
+        <source>Volume : </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="xamp.cpp" line="687"/>
+        <source>Show Left List</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="xamp.cpp" line="736"/>
+        <source>Dark</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="xamp.cpp" line="738"/>
+        <source>Light</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="xamp.cpp" line="755"/>
+        <source>Search anything</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="xamp.cpp" line="878"/>
         <source>Repeat once</source>
         <translation type="unfinished"></translation>
@@ -980,6 +980,21 @@
     <message>
         <location filename="xamp.cpp" line="890"/>
         <source>Shuffle all</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="xamp.cpp" line="946"/>
+        <source>Not found any playing item.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="xamp.cpp" line="1039"/>
+        <source>unknown error</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="xamp.cpp" line="1162"/>
+        <source>Not found any playlist item.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1023,6 +1038,16 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="xamp.cpp" line="1242"/>
+        <source>Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="xamp.cpp" line="1243"/>
+        <source>About</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="xamp.cpp" line="1428"/>
         <source>Save Flac file</source>
         <translation type="unfinished"></translation>
@@ -1033,36 +1058,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="xamp.cpp" line="1438"/>
-        <source>&apos; to flac file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="xamp.cpp" line="110"/>
-        <source>Failed to create the audio endpoint.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="xamp.cpp" line="122"/>
-        <source>Not support exclusive mode.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="xamp.cpp" line="687"/>
-        <source>Show Left List</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="xamp.cpp" line="736"/>
-        <source>Dark</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="xamp.cpp" line="738"/>
-        <source>Light</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="xamp.cpp" line="1437"/>
         <source>Export progress dialog</source>
         <translation type="unfinished"></translation>
@@ -1070,6 +1065,11 @@
     <message>
         <location filename="xamp.cpp" line="1438"/>
         <source>Export &apos;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="xamp.cpp" line="1438"/>
+        <source>&apos; to flac file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

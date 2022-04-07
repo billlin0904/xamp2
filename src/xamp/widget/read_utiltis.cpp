@@ -28,12 +28,11 @@ using namespace xamp::metadata;
 
 namespace read_utiltis {
 
-inline constexpr uint64_t kReadFingerprintDuration = 120;
 inline constexpr uint32_t kReadSampleSize = 8192 * 4;
 
 class ExceptedFile final {
 public:
-    explicit  ExceptedFile(std::filesystem::path const& dest_file_path) {
+    explicit ExceptedFile(std::filesystem::path const& dest_file_path) {
         dest_file_path_ = dest_file_path;
         temp_file_path_ = Fs::temp_directory_path()
                           / Fs::path(MakeTempFileName());
@@ -63,7 +62,7 @@ double readAll(std::wstring const& file_path,
 	std::function<void(float const*, uint32_t)> const& dsp_process,
     uint64_t max_duration) {
 	const auto is_dsd_file = TestDsdFileFormatStd(file_path);
-    auto file_stream = MediaStreamFactory::MakeAudioStream();
+	const auto file_stream = MediaStreamFactory::MakeAudioStream();
 
 	if (auto* stream = AsDsdStream(file_stream)) {
 		if (is_dsd_file) {

@@ -116,7 +116,8 @@ void LoadBassLib() {
     try {
         BASS.EncLib = MakeAlign<BassEncLib>();
         XAMP_LOG_DEBUG("Load BassEncLib successfully.");
-    }  catch (const Exception &) {
+    }  catch (const Exception &e) {
+        XAMP_LOG_DEBUG("Load BassEncLib error: {}", e.what());
     }
     BASS.FlacEncLib = MakeAlign<BassFlacEncLib>();
     XAMP_LOG_DEBUG("Load BassFlacEncLib successfully.");
