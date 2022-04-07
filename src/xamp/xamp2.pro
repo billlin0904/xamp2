@@ -161,6 +161,7 @@ RESOURCES += \
 TRANSLATIONS += \
     zh_TW.ts \
     ja_JP.ts \
+    en_US.ts \
 
 # Additionally include Cocoa for OS X code
 

@@ -73,57 +73,57 @@
 <context>
     <name>AlbumView</name>
     <message>
-        <location filename="widget/albumview.cpp" line="447"/>
-        <location filename="widget/albumview.cpp" line="457"/>
+        <location filename="widget/albumview.cpp" line="446"/>
+        <location filename="widget/albumview.cpp" line="456"/>
         <source>Remove select album</source>
         <translation type="unfinished">移除選擇的專輯</translation>
     </message>
     <message>
-        <location filename="widget/albumview.cpp" line="452"/>
-        <location filename="widget/albumview.cpp" line="458"/>
+        <location filename="widget/albumview.cpp" line="451"/>
+        <location filename="widget/albumview.cpp" line="457"/>
         <source>Remove all album</source>
         <translation type="unfinished">移除全部專輯</translation>
     </message>
     <message>
-        <location filename="widget/albumview.cpp" line="425"/>
-        <location filename="widget/albumview.cpp" line="462"/>
+        <location filename="widget/albumview.cpp" line="424"/>
+        <location filename="widget/albumview.cpp" line="461"/>
         <source>Add album to playlist</source>
         <translation type="unfinished">加入專輯至撥放清單</translation>
     </message>
     <message>
-        <location filename="widget/albumview.cpp" line="437"/>
-        <location filename="widget/albumview.cpp" line="463"/>
+        <location filename="widget/albumview.cpp" line="436"/>
+        <location filename="widget/albumview.cpp" line="462"/>
         <source>Copy album</source>
         <translation>拷貝專輯名稱至剪貼簿</translation>
     </message>
     <message>
-        <location filename="widget/albumview.cpp" line="441"/>
-        <location filename="widget/albumview.cpp" line="464"/>
+        <location filename="widget/albumview.cpp" line="440"/>
+        <location filename="widget/albumview.cpp" line="463"/>
         <source>Copy artist</source>
         <translation type="unfinished">拷貝演出者至剪貼簿</translation>
     </message>
     <message>
-        <location filename="widget/albumview.cpp" line="469"/>
+        <location filename="widget/albumview.cpp" line="468"/>
         <source>Load local file</source>
         <translation type="unfinished">載入檔案</translation>
     </message>
     <message>
-        <location filename="widget/albumview.cpp" line="477"/>
+        <location filename="widget/albumview.cpp" line="476"/>
         <source>Open file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="widget/albumview.cpp" line="479"/>
+        <location filename="widget/albumview.cpp" line="478"/>
         <source>Music Files </source>
         <translation type="unfinished">音樂檔案</translation>
     </message>
     <message>
-        <location filename="widget/albumview.cpp" line="487"/>
+        <location filename="widget/albumview.cpp" line="486"/>
         <source>Load file directory</source>
         <translation type="unfinished">載入資料夾</translation>
     </message>
     <message>
-        <location filename="widget/albumview.cpp" line="489"/>
+        <location filename="widget/albumview.cpp" line="488"/>
         <source>Select a directory</source>
         <translation type="unfinished">選擇資料夾</translation>
     </message>
@@ -949,40 +949,40 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="preferencepage.cpp" line="165"/>
+        <location filename="preferencepage.cpp" line="164"/>
         <source> (intermediate)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="preferencepage.cpp" line="190"/>
-        <location filename="preferencepage.cpp" line="204"/>
+        <location filename="preferencepage.cpp" line="189"/>
+        <location filename="preferencepage.cpp" line="203"/>
         <source>Playback</source>
         <translation type="unfinished">回放</translation>
     </message>
     <message>
-        <location filename="preferencepage.cpp" line="193"/>
-        <location filename="preferencepage.cpp" line="205"/>
+        <location filename="preferencepage.cpp" line="192"/>
+        <location filename="preferencepage.cpp" line="204"/>
         <source>Resampler</source>
         <translation type="unfinished">重採樣器</translation>
     </message>
     <message>
-        <location filename="preferencepage.cpp" line="196"/>
-        <location filename="preferencepage.cpp" line="206"/>
+        <location filename="preferencepage.cpp" line="195"/>
+        <location filename="preferencepage.cpp" line="205"/>
         <source>Flac Encoding</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="preferencepage.cpp" line="162"/>
+        <location filename="preferencepage.cpp" line="161"/>
         <source> (minimum)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="preferencepage.cpp" line="168"/>
+        <location filename="preferencepage.cpp" line="167"/>
         <source> (linear)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="preferencepage.cpp" line="266"/>
+        <location filename="preferencepage.cpp" line="265"/>
         <source>Select a directory</source>
         <translation type="unfinished">選擇資料夾</translation>
     </message>

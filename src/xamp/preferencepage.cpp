@@ -149,6 +149,8 @@ void PreferencePage::initLang() {
 		index++;
 	}
 
+    ui_.langCombo->setCurrentIndex(current_index);
+
 	(void)QObject::connect(ui_.langCombo, static_cast<void (QComboBox::*)(int32_t)>(&QComboBox::activated), 
 		[this](auto const& index) {
 		setLang(index);

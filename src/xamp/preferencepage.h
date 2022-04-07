@@ -10,6 +10,7 @@
 #include "ui_preferencedialog.h"
 
 class PreferencePage final : public QFrame {
+    Q_OBJECT
 public:
     explicit PreferencePage(QWidget *parent = nullptr);
 

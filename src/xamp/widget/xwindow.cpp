@@ -195,7 +195,7 @@ void XWindow::setContentWidget(IXampPlayer *content_widget) {
     }
     taskbar_.reset(new WinTaskbar(this, content_widget));
 #else
-    if (!Singleton<ThemeManager>::GetInstance().useNativeWindow() && content_widget_ != nullptr) {
+    if (!Singleton<ThemeManager>::GetInstance().useNativeWindow() && content_widget_ != nullptr) {        
         osx::hideTitleBar(content_widget_);
         setWindowTitle(kAppTitle);
         if (AppSettings::getValueAsBool(kAppSettingEnableBlur)) {

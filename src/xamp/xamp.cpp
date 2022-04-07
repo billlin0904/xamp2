@@ -161,7 +161,7 @@ void Xamp::setXWindow(IXWindow* top_window) {
     setCover(nullptr, podcast_page_);
     QTimer::singleShot(300, [this]() {
         initialDeviceList();
-        discord_notify_.discordInit();        
+        discord_notify_.discordInit();
         });
     avoidRedrawOnResize();
     applyTheme(Singleton<ThemeManager>::GetInstance().palette().color(QPalette::WindowText),
