@@ -10,6 +10,7 @@
 
 #ifdef XAMP_OS_WIN
 #pragma comment(lib, "rpcrt4.lib")
+#pragma comment(lib, "Synchronization.lib")
 #include <rpcnterr.h>
 #include <rpc.h>
 #include <base/windows_handle.h>
@@ -20,7 +21,87 @@
 #include <mach/thread_policy.h>
 #endif
 
+#ifdef XAMP_OS_MAC
+extern "C" int __ulock_wait(uint32_t operation, void* addr, uint64_t value,
+                            uint32_t timeout); /* timeout is specified in microseconds */
+extern "C" int __ulock_wake(uint32_t operation, void* addr, uint64_t wake_value);
+
+#define UL_COMPARE_AND_WAIT	1
+#define ULF_WAKE_ALL 0x00000100
+
+template <typename T>
+static int MacOSFutexWake(std::atomic<T>& to_wake, bool notify_one) noexcept {
+    return ::__ulock_wake(UL_COMPARE_AND_WAIT | (notify_one ? 0 : ULF_WAKE_ALL), &to_wake, 0);
+}
+#endif
+
+static XAMP_ALWAYS_INLINE uint32_t ToMilliseconds(const timespec* ts) noexcept {
+    return ts->tv_sec * 1000 + ts->tv_nsec / 1000000;
+}
+
 namespace xamp::base {
+
+template <typename T>
+static XAMP_ALWAYS_INLINE bool PlatformFutexWait(std::atomic<T>& to_wait_on, uint32_t &expected, uint32_t milliseconds) noexcept {
+#ifdef XAMP_OS_WIN
+    return ::WaitOnAddress(&to_wait_on, &expected, sizeof(expected), milliseconds);
+#elif defined(XAMP_OS_MAC)
+    return ::__ulock_wait(UL_COMPARE_AND_WAIT, &to_wait_on, expected, milliseconds * 1000) >= 0;
+#endif
+}
+
+template <typename T>
+static XAMP_ALWAYS_INLINE void PlatformFutexWakeSingle(std::atomic<T>& to_wake) noexcept {
+#ifdef XAMP_OS_WIN
+    ::WakeByAddressSingle(&to_wake);
+#elif defined (XAMP_OS_MAC)
+    MacOSFutexWake(to_wake, true);
+#endif
+}
+
+template <typename T>
+static XAMP_ALWAYS_INLINE void PlatformFutexWakeAll(std::atomic<T>& to_wake) noexcept {
+#ifdef XAMP_OS_WIN
+    ::WakeByAddressAll(&to_wake);
+#elif defined (XAMP_OS_MAC)
+    MacOSFutexWake(to_wake, false);
+#endif
+}
+
+void AtomicWakeSingle(std::atomic<uint32_t>& to_wake) noexcept {
+    PlatformFutexWakeSingle(to_wake);
+}
+
+void AtomicWakeAll(std::atomic<uint32_t>& to_wake) noexcept {
+    PlatformFutexWakeAll(to_wake);
+}
+
+bool AtomicWait(std::atomic<uint32_t>& to_wait_on, uint32_t &expected, uint32_t milliseconds) noexcept {
+    return PlatformFutexWait(to_wait_on, expected, milliseconds);
+}
+
+int32_t AtomicWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, const timespec* to) noexcept {
+    if (to == nullptr) {
+        AtomicWait(to_wait_on, expected, kInefinity);
+        return 0;
+    }
+
+    if (to->tv_nsec >= 1000000000) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    if (to->tv_sec >= 2147) {
+        PlatformFutexWait(to_wait_on, expected, 2147000000);
+        return 0; /* time-out out of range, claim spurious wake-up */
+    }
+
+    if (!PlatformFutexWait(to_wait_on, expected, ToMilliseconds(to))) {
+        errno = ETIMEDOUT;
+        return -1;
+    }
+    return 0;
+}
 
 #ifndef XAMP_OS_WIN
 void SetThreadAffinity(pthread_t thread, int32_t core) {

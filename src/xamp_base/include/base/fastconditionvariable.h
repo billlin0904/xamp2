@@ -7,6 +7,7 @@
 
 #include <mutex>
 #include <base/base.h>
+#include <base/platform.h>
 #include <base/fastmutex.h>
 
 namespace xamp::base {
@@ -50,15 +51,13 @@ public:
 
 	void notify_all() noexcept;
 private:
-    static int FastWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, const struct timespec* to) noexcept;
-
 	template <typename Rep, typename Period>
 	std::cv_status FastWait(std::atomic<uint32_t>& to_wait_on, uint32_t expected, std::chrono::duration<Rep, Period> const& duration) {
 		using namespace std::chrono;
 		timespec ts{};
 		ts.tv_sec = duration_cast<seconds>(duration).count();
 		ts.tv_nsec = duration_cast<nanoseconds>(duration).count() % 1000000000;
-        return FastWait(to_wait_on, expected, &ts) == -1
+        return AtomicWait(to_wait_on, expected, &ts) == -1
 			? std::cv_status::timeout : std::cv_status::no_timeout;
 	}
 
