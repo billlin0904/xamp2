@@ -907,6 +907,7 @@ void Xamp::onSampleTimeChanged(double stream_time) {
 }
 
 void Xamp::setSeekPosValue(double stream_time) {
+    stream_time = player_->GetStreamTime();
     ui_.endPosLabel->setText(msToString(player_->GetDuration() - stream_time));
     const auto stream_time_as_ms = static_cast<int32_t>(stream_time * 1000.0);
     ui_.seekSlider->setValue(stream_time_as_ms);

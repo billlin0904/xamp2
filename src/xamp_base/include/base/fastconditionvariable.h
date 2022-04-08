@@ -57,7 +57,7 @@ private:
 		timespec ts{};
 		ts.tv_sec = duration_cast<seconds>(duration).count();
 		ts.tv_nsec = duration_cast<nanoseconds>(duration).count() % 1000000000;
-        return AtomicWait(to_wait_on, expected, &ts) == -1
+        return AtomicWait(to_wait_on, expected, &ts) == -1 // ABI
 			? std::cv_status::timeout : std::cv_status::no_timeout;
 	}
 

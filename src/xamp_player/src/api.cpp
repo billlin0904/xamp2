@@ -36,11 +36,11 @@ void XStartup() {
     LoadFFTLib();
     XAMP_LOG_DEBUG("Load FFT lib success.");
 
-    WASAPIThreadPool();
+    GetWASAPIThreadPool();
     XAMP_LOG_DEBUG("Start WASAPI thread pool success.");
 #endif
 
-    PlaybackThreadPool();
+    GetPlaybackThreadPool();
     XAMP_LOG_DEBUG("Start Playback thread pool success.");
 
     Ebur128ReplayGainScanner::LoadEbur128Lib();

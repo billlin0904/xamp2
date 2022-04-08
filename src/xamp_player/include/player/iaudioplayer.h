@@ -65,6 +65,8 @@ public:
 
     [[nodiscard]] virtual double GetDuration() const = 0;
 
+    [[nodiscard]] virtual double GetStreamTime() const = 0;
+
     [[nodiscard]] virtual PlayerState GetState() const noexcept = 0;
 
     [[nodiscard]] virtual AudioFormat GetInputFormat() const noexcept = 0;

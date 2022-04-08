@@ -137,9 +137,9 @@ XAMP_BASE_API AlignPtr<IThreadPool> MakeThreadPool(
     uint32_t max_thread = std::thread::hardware_concurrency(),
     int32_t affinity = kDefaultAffinityCpuCore);
 
-XAMP_BASE_API IThreadPool& PlaybackThreadPool();
+XAMP_BASE_API IThreadPool& GetPlaybackThreadPool();
 
-XAMP_BASE_API IThreadPool& WASAPIThreadPool();
+XAMP_BASE_API IThreadPool& GetWASAPIThreadPool();
 
 XAMP_BASE_API uint32_t GetIdealThreadPoolSize(
     double cpu_utilization,

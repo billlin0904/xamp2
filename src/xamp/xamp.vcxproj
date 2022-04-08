@@ -254,6 +254,7 @@
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="widget\xframe.h" />
+    <QtMoc Include="preferencepage.h" />
     <ClInclude Include="resource1.h" />
     <ClInclude Include="widget\albumentity.h" />
     <ClInclude Include="widget\colorthief.h" />
@@ -281,7 +282,6 @@
     </QtMoc>
     <QtMoc Include="aboutpage.h">
     </QtMoc>
-    <ClInclude Include="preferencepage.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="thememanager.h" />
     <ClInclude Include="widget\actionmap.h" />

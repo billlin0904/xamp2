@@ -62,7 +62,7 @@
     <message>
         <location filename="widget/albumartistpage.cpp" line="26"/>
         <source>Albums</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">アルバム</translation>
     </message>
 </context>
 <context>
@@ -71,56 +71,56 @@
         <location filename="widget/albumview.cpp" line="446"/>
         <location filename="widget/albumview.cpp" line="456"/>
         <source>Remove select album</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">選択したアルバムを削除する</translation>
     </message>
     <message>
         <location filename="widget/albumview.cpp" line="451"/>
         <location filename="widget/albumview.cpp" line="457"/>
         <source>Remove all album</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">すべてのアルバムを削除する</translation>
     </message>
     <message>
         <location filename="widget/albumview.cpp" line="424"/>
         <location filename="widget/albumview.cpp" line="461"/>
         <source>Add album to playlist</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">プレイリストにアルバムを追加</translation>
     </message>
     <message>
         <location filename="widget/albumview.cpp" line="436"/>
         <location filename="widget/albumview.cpp" line="462"/>
         <source>Copy album</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">アルバムをコピーする</translation>
     </message>
     <message>
         <location filename="widget/albumview.cpp" line="440"/>
         <location filename="widget/albumview.cpp" line="463"/>
         <source>Copy artist</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">コピーアーティスト</translation>
     </message>
     <message>
         <location filename="widget/albumview.cpp" line="468"/>
         <source>Load local file</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">ローカルファイルをロードする</translation>
     </message>
     <message>
         <location filename="widget/albumview.cpp" line="476"/>
         <source>Open file</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">ファイルを開く</translation>
     </message>
     <message>
         <location filename="widget/albumview.cpp" line="478"/>
         <source>Music Files </source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">音楽ファイル </translation>
     </message>
     <message>
         <location filename="widget/albumview.cpp" line="486"/>
         <source>Load file directory</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">ファイルディレクトリをロード</translation>
     </message>
     <message>
         <location filename="widget/albumview.cpp" line="488"/>
         <source>Select a directory</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">ディレクトリを選択します</translation>
     </message>
 </context>
 <context>
@@ -141,32 +141,32 @@
     <message>
         <location filename="widget/artistinfopage.cpp" line="36"/>
         <source>Change artist image</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">アーティストの画像を変更する</translation>
     </message>
     <message>
         <location filename="widget/artistinfopage.cpp" line="38"/>
         <source>Open file</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">ファイルを開く</translation>
     </message>
     <message>
         <location filename="widget/artistinfopage.cpp" line="40"/>
         <source>Music Files *.jpg *.jpeg *.png</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">音楽ファイル *.jpg *.jpeg *.png</translation>
     </message>
     <message>
         <location filename="widget/artistinfopage.cpp" line="59"/>
         <source>Artists</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">アーティスト</translation>
     </message>
     <message>
         <location filename="widget/artistinfopage.cpp" line="150"/>
         <source>%1 Albums</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">%1 アルバム</translation>
     </message>
     <message>
         <location filename="widget/artistinfopage.cpp" line="154"/>
         <source>%1 Songs</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">%1 曲</translation>
     </message>
 </context>
 <context>
@@ -324,42 +324,42 @@
     <message>
         <location filename="widget/playlisttableview.cpp" line="510"/>
         <source>Hide this column</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">この列を非表示にする</translation>
     </message>
     <message>
         <location filename="widget/playlisttableview.cpp" line="516"/>
         <source>Select columns to show...</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">表示する列を選択してください...</translation>
     </message>
     <message>
         <location filename="widget/playlisttableview.cpp" line="286"/>
         <source>Load local file</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">ローカルファイルをロードする</translation>
     </message>
     <message>
         <location filename="widget/playlisttableview.cpp" line="295"/>
         <source>Open file</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">ファイルを開く</translation>
     </message>
     <message>
         <location filename="widget/playlisttableview.cpp" line="297"/>
         <source>Music Files </source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">音楽ファイル </translation>
     </message>
     <message>
         <location filename="widget/playlisttableview.cpp" line="305"/>
         <source>Load file directory</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">ファイルディレクトリをロード</translation>
     </message>
     <message>
         <location filename="widget/playlisttableview.cpp" line="307"/>
         <source>Select a Directory</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">ディレクトリを選択する</translation>
     </message>
     <message>
         <location filename="widget/playlisttableview.cpp" line="315"/>
         <source>Open CD device</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">CDデバイスを開く</translation>
     </message>
     <message>
         <location filename="widget/playlisttableview.cpp" line="352"/>
@@ -369,12 +369,12 @@
     <message>
         <location filename="widget/playlisttableview.cpp" line="358"/>
         <source>Remove all</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">すべて削除する</translation>
     </message>
     <message>
         <location filename="widget/playlisttableview.cpp" line="359"/>
         <source>Open local file path</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">ローカルファイルパスを開く</translation>
     </message>
     <message>
         <location filename="widget/playlisttableview.cpp" line="140"/>
@@ -389,32 +389,32 @@
     <message>
         <location filename="widget/playlisttableview.cpp" line="143"/>
         <source>FILE PATH</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">ファイルパス</translation>
     </message>
     <message>
         <location filename="widget/playlisttableview.cpp" line="144"/>
         <source>TITLE</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">タイトル</translation>
     </message>
     <message>
         <location filename="widget/playlisttableview.cpp" line="145"/>
         <source>FILE NAME</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">ファイル名</translation>
     </message>
     <message>
         <location filename="widget/playlisttableview.cpp" line="146"/>
         <source>ALBUM</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">アルバム</translation>
     </message>
     <message>
         <location filename="widget/playlisttableview.cpp" line="147"/>
         <source>ARTIST</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">アーティスト</translation>
     </message>
     <message>
         <location filename="widget/playlisttableview.cpp" line="148"/>
         <source>DURATION</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">曲の長さ</translation>
     </message>
     <message>
         <location filename="widget/playlisttableview.cpp" line="149"/>
@@ -845,12 +845,12 @@
         <location filename="xamp.cpp" line="523"/>
         <location filename="xamp.cpp" line="528"/>
         <source>Volume : </source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">音量 : </translation>
     </message>
     <message>
         <location filename="xamp.cpp" line="1242"/>
         <source>Settings</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">設定</translation>
     </message>
     <message>
         <location filename="xamp.cpp" line="195"/>
@@ -880,7 +880,7 @@
     <message>
         <location filename="xamp.cpp" line="755"/>
         <source>Search anything</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">何でも検索</translation>
     </message>
     <message>
         <location filename="xamp.cpp" line="1039"/>
@@ -1000,7 +1000,7 @@
     <message>
         <location filename="xamp.cpp" line="1234"/>
         <source>Playlists</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">プレイリスト</translation>
     </message>
     <message>
         <location filename="xamp.cpp" line="1235"/>
@@ -1010,17 +1010,17 @@
     <message>
         <location filename="xamp.cpp" line="1238"/>
         <source>Albums</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">アルバム</translation>
     </message>
     <message>
         <location filename="xamp.cpp" line="1239"/>
         <source>Artists</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">アーティスト</translation>
     </message>
     <message>
         <location filename="xamp.cpp" line="1240"/>
         <source>Lyrics</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">歌詞</translation>
     </message>
     <message>
         <location filename="xamp.cpp" line="1428"/>
@@ -1055,12 +1055,12 @@
     <message>
         <location filename="xamp.cpp" line="736"/>
         <source>Dark</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">暗いテーマ</translation>
     </message>
     <message>
         <location filename="xamp.cpp" line="738"/>
         <source>Light</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">軽いテーマ</translation>
     </message>
     <message>
         <location filename="xamp.cpp" line="1437"/>

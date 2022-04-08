@@ -91,6 +91,8 @@ public:
 
     double GetDuration() const override;
 
+    double GetStreamTime() const override;
+
     PlayerState GetState() const noexcept override;
 
     AudioFormat GetInputFormat() const noexcept override;
@@ -137,7 +139,7 @@ private:
 
     void BufferSamples(const AlignPtr<IAudioStream>& stream, int32_t buffer_count = 1);
 
-    void UpdateProgress(int32_t sample_size = 0, double stream_time = 0.0) noexcept;
+    void UpdateProgress(int32_t sample_size = 0) noexcept;
 
     void AllocateReadBuffer(uint32_t allocate_size);
 
@@ -148,13 +150,6 @@ private:
     void ProcessPlayerAction();
 
     void SetDSDStreamMode(DsdModes dsd_mode, AlignPtr<IAudioStream>& stream);
-
-    struct XAMP_CACHE_ALIGNED(kCacheAlignSize) PlaybackEvent {
-	    explicit PlaybackEvent(int32_t sample_size = 0,
-	        double stream_time = 0.0) noexcept;        
-        int32_t sample_size;
-        double stream_time;
-    };
 
     bool is_muted_;
     bool is_dsd_file_;
@@ -168,9 +163,9 @@ private:
     std::optional<uint32_t> dsd_speed_;
     std::atomic<bool> is_playing_;
     std::atomic<bool> is_paused_;
+    std::atomic<int32_t> playback_event_;
     std::atomic<double> sample_end_time_;
     std::atomic<double> stream_duration_;
-    std::atomic<PlaybackEvent> playback_event_;
     mutable FastMutex pause_mutex_;
     mutable FastMutex stopped_mutex_;
     std::string device_id_;

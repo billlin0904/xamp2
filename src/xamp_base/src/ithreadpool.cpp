@@ -27,18 +27,18 @@ AlignPtr<IThreadPool> MakeThreadPool(const std::string_view& pool_name,
         priority);
 }
 
-IThreadPool& PlaybackThreadPool() {
+IThreadPool& GetPlaybackThreadPool() {
     static ThreadPool threadpool(kPlaybackThreadPoolLoggerName,
         kMaxPlaybackThreadPoolSize,
         kDefaultAffinityCpuCore);
 	return threadpool;
 }
 
-IThreadPool& WASAPIThreadPool() {
-    static ThreadPool wasapi_threadpool(kWASAPIThreadPoolLoggerName,
+IThreadPool& GetWASAPIThreadPool() {
+    static ThreadPool threadpool(kWASAPIThreadPoolLoggerName,
         kMaxWASAPIThreadPoolSize,
         0);
-	return wasapi_threadpool;
+	return threadpool;
 }
 
 }

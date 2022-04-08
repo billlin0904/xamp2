@@ -91,6 +91,7 @@ AudioPlayer::AudioPlayer(const std::weak_ptr<IPlaybackStateAdapter> &adapter)
     , volume_(0)
     , is_playing_(false)
     , is_paused_(false)
+    , playback_event_{-1}
     , sample_end_time_(0)
     , stream_duration_(0)
     , device_manager_(MakeAudioDeviceManager())
@@ -120,12 +121,6 @@ void AudioPlayer::Destroy() {
     ResetASIODriver();
 #endif
     FreeBassLib();
-}
-
-void AudioPlayer::UpdateProgress(int32_t sample_size, double stream_time) noexcept {
-    std::atomic_exchange_explicit(&playback_event_,
-        PlaybackEvent{ sample_size, stream_time },
-        std::memory_order_relaxed);
 }
 
 void AudioPlayer::Open(Path const& file_path, const Uuid& device_id) {
@@ -384,6 +379,13 @@ std::optional<uint32_t> AudioPlayer::GetDSDSpeed() const {
     return dsd_speed_;	
 }
 
+double AudioPlayer::GetStreamTime() const {
+    if (!device_) {
+        return 0.0;
+    }
+    return device_->GetStreamTime();
+}
+
 double AudioPlayer::GetDuration() const {
     if (!stream_) {
         return 0.0;
@@ -585,6 +587,10 @@ void AudioPlayer::BufferStream(double stream_time) {
     BufferSamples(stream_, kBufferStreamCount);
 }
 
+void AudioPlayer::UpdateProgress(int32_t sample_size) noexcept {
+    playback_event_.exchange(sample_size);
+}
+
 void AudioPlayer::Startup() {
     if (timer_.IsStarted()) {
         return;
@@ -612,10 +618,10 @@ void AudioPlayer::Startup() {
         }
 
         const auto playback_event = p->playback_event_.load();
-        if (playback_event.sample_size > 0) {
-            adapter->OnSampleTime(playback_event.stream_time);            
+        if (playback_event > 0) {
+            adapter->OnSampleTime(playback_event);
         }
-        else if (p->is_playing_ && playback_event.sample_size == -1) {
+        else if (p->is_playing_ && playback_event == -1) {
             p->SetState(PlayerState::PLAYER_STATE_STOPPED);
             p->is_playing_ = false;
         }
@@ -656,15 +662,10 @@ void AudioPlayer::DoSeek(double stream_time) {
         stream_->GetDuration(),
         stream_time,
         sample_end_time_);
-    UpdateProgress(0, stream_time);
+    UpdateProgress();
     fifo_.Clear();
     BufferStream(stream_time);
     Resume();
-}
-
-AudioPlayer::PlaybackEvent::PlaybackEvent(int32_t const sample_size, double const stream_time) noexcept
-	: sample_size(sample_size)
-	, stream_time(stream_time) {
 }
 
 bool AudioPlayer::CanConverter() const noexcept {
@@ -746,7 +747,7 @@ void AudioPlayer::Play() {
         return;
     }
 
-    stream_task_ = PlaybackThreadPool().Spawn([player = shared_from_this()](auto /*thread_index*/) noexcept {
+    stream_task_ = GetPlaybackThreadPool().Spawn([player = shared_from_this()](auto /*thread_index*/) noexcept {
         auto* p = player.get();
 
         std::unique_lock<FastMutex> pause_lock{ p->pause_mutex_ };
@@ -800,7 +801,7 @@ DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_fr
     XAMP_LIKELY(fifo_.TryRead(static_cast<int8_t*>(samples), sample_size, num_filled_bytes)) {
         num_filled_frames = num_filled_bytes / sample_size_ / output_format_.GetChannels();
         num_filled_frames = num_buffer_frames;
-        UpdateProgress(static_cast<int32_t>(num_samples), stream_time);
+        UpdateProgress(static_cast<int32_t>(num_samples));
         return DataCallbackResult::CONTINUE;
     }
 
@@ -813,12 +814,12 @@ DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_fr
     // <------------------------------->
     //
     if (stream_time >= stream_duration_) {
-        UpdateProgress(-1, stream_time);
+        UpdateProgress(-1);
         return DataCallbackResult::STOP;
     }
 
     num_filled_frames = num_buffer_frames;
-    UpdateProgress(static_cast<int32_t>(num_samples), stream_time);
+    UpdateProgress(static_cast<int32_t>(num_samples));
     return DataCallbackResult::CONTINUE;
 }
 
