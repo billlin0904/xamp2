@@ -619,7 +619,7 @@ void AudioPlayer::Startup() {
 
         const auto playback_event = p->playback_event_.load();
         if (playback_event > 0) {
-            adapter->OnSampleTime(playback_event);
+            adapter->OnSampleTime(p->device_->GetStreamTime());
         }
         else if (p->is_playing_ && playback_event == -1) {
             p->SetState(PlayerState::PLAYER_STATE_STOPPED);
