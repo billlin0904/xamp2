@@ -9,6 +9,7 @@
 
 #include <player/api.h>
 #include <stream/soxresampler.h>
+#include <stream/podcastcache.h>
 
 #include <widget/qdebugsink.h>
 #include <widget/appsettings.h>
@@ -18,6 +19,7 @@
 #include <widget/jsonsettings.h>
 #include <widget/ui_utilts.h>
 #include <widget/xwindow.h>
+#include <widget/appsettings.h>
 
 #include <QMessageBox>
 #include <QProcess>
@@ -26,7 +28,6 @@
 #include <widget/win32/win32.h>
 #endif
 
-#include <widget/appsettings.h>
 #include "thememanager.h"
 #include "singleinstanceapplication.h"
 #include "xamp.h"
@@ -268,7 +269,7 @@ static int excute(int argc, char* argv[]) {
 
 #ifdef XAMP_OS_WIN
     const auto prefetch_module = prefetchWin32DLL();
-    XAMP_LOG_DEBUG("prefetch dll success.");
+    XAMP_LOG_DEBUG("Prefetch dll success.");
 #endif
 
     try {
@@ -298,7 +299,6 @@ int main(int argc, char *argv[]) {
     if (qgetenv("MIMALLOC_VERBOSE") == "1") {
         RedirectStdOut();
     }
-    std::cout << "test";
 #endif
     Logger::GetInstance()
         .AddDebugOutputLogger()
@@ -310,6 +310,8 @@ int main(int argc, char *argv[]) {
 
     loadSettings();
     loadLogAndSoxrConfig();
+
+    PodcastCache.SetTempPath(AppSettings::getValueAsString(kAppSettingPodcastCachePath).toStdWString());
 
     CrashHandler crash_handler;
     crash_handler.SetProcessExceptionHandlers();

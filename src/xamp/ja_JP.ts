@@ -459,47 +459,47 @@
     <message>
         <location filename="widget/playlisttableview.cpp" line="281"/>
         <source>Refresh</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">リフレッシュ</translation>
     </message>
     <message>
         <location filename="widget/playlisttableview.cpp" line="360"/>
         <source>Read replay gain</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">リプレイゲインを読む</translation>
     </message>
     <message>
         <location filename="widget/playlisttableview.cpp" line="362"/>
         <source>Export flac file</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">flacファイルをエクスポートする</translation>
     </message>
     <message>
         <location filename="widget/playlisttableview.cpp" line="364"/>
         <source>Copy album</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">アルバム名をコピーする</translation>
     </message>
     <message>
         <location filename="widget/playlisttableview.cpp" line="365"/>
         <source>Copy artist</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">アーティスト名をコピーする</translation>
     </message>
     <message>
         <location filename="widget/playlisttableview.cpp" line="366"/>
         <source>Copy title</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">タイトルをコピー</translation>
     </message>
     <message>
         <location filename="widget/playlisttableview.cpp" line="368"/>
         <source>Set cover art</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">セットカバーアート</translation>
     </message>
     <message>
         <location filename="widget/playlisttableview.cpp" line="369"/>
         <source>Export music cover</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">アルバムカバーをエクスポート</translation>
     </message>
     <message>
         <location filename="widget/playlisttableview.cpp" line="428"/>
         <source>Save cover image</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">表紙画像を保存</translation>
     </message>
     <message>
         <location filename="widget/playlisttableview.cpp" line="430"/>
@@ -1050,7 +1050,7 @@
     <message>
         <location filename="xamp.cpp" line="687"/>
         <source>Show Left List</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">左のリストを表示</translation>
     </message>
     <message>
         <location filename="xamp.cpp" line="736"/>

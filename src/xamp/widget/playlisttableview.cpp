@@ -491,6 +491,7 @@ void PlayListTableView::setPodcastMode(bool enable) {
 	if (podcast_mode_) {
         hideColumn(PLAYLIST_TRACK_RG);
         hideColumn(PLAYLIST_TRACK_PK);
+        hideColumn(PLAYLIST_ARTIST);
         hideColumn(PLAYLIST_ALBUM_RG);
         hideColumn(PLAYLIST_ALBUM_PK);
         hideColumn(PLAYLIST_DURATION);
@@ -499,22 +500,17 @@ void PlayListTableView::setPodcastMode(bool enable) {
     } else {
         horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
         (void)QObject::connect(horizontalHeader(), &QHeaderView::customContextMenuRequested, [this](auto pt) {
-            auto* menu = new QMenu(this);
-            menu->setWindowFlags(Qt::Popup | Qt::FramelessWindowHint);
-            menu->setAttribute(Qt::WA_TranslucentBackground);
+            ActionMap<PlayListTableView> action_map(this);
 
             auto* header_view = horizontalHeader();
 
             auto last_referred_logical_column = header_view->logicalIndexAt(pt);
-
-            auto* hide_column_action = new QAction(tr("Hide this column"), this);
-            (void)QObject::connect(hide_column_action, &QAction::triggered, [last_referred_logical_column, this]() {
+            action_map.addAction(tr("Hide this column"), [last_referred_logical_column, this]() {
                 setColumnHidden(last_referred_logical_column, true);
                 AppSettings::removeList(kAppSettingColumnName, QString::number(last_referred_logical_column));
                 });
-
-            auto* show_hide_columns_action = new QAction(tr("Select columns to show..."), this);
-            (void)QObject::connect(show_hide_columns_action, &QAction::triggered, [pt, header_view, this]() {
+            
+            action_map.addAction(tr("Select columns to show..."), [pt, header_view, this]() {
                 ActionMap<PlayListTableView> action_map(this);
                 for (auto column = 0; column < header_view->count(); ++column) {
                     auto header_name = model()->headerData(column, Qt::Horizontal).toString();
@@ -528,12 +524,7 @@ void PlayListTableView::setPodcastMode(bool enable) {
                 }
                 action_map.exec(pt);
                 });
-
-            if (header_view->hiddenSectionCount() < header_view->count() - 1) {
-                menu->addAction(hide_column_action);
-            }
-            menu->addAction(show_hide_columns_action);
-            menu->popup(header_view->viewport()->mapToGlobal(pt));
+            action_map.exec(pt);
             });
     }
 }

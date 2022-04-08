@@ -95,8 +95,6 @@ private:
 
 	void addItem(const QString& file_name);
 
-    void addTable();
-
 	void setVolume(int32_t volume);
 
 	void initialUI();
@@ -146,8 +144,6 @@ private:
 	void extractFile(const QString &file_path);
 
 	PlaylistPage* currentPlyalistPage();
-
-	QString translasteError(Errors error);
 
 	void cleanup();
 

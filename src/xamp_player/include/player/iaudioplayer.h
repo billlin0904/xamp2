@@ -25,8 +25,6 @@ class XAMP_PLAYER_API XAMP_NO_VTABLE IAudioPlayer {
 public:
     XAMP_BASE_CLASS(IAudioPlayer)
 
-	virtual void Startup() = 0;
-
 	virtual void Open(Path const& file_path, const Uuid& device_id = Uuid::kNullUuid) = 0;
 
     virtual void Open(Path const& file_path, const DeviceInfo& device_info, uint32_t target_sample_rate = 0) = 0;

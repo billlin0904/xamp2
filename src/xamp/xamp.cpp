@@ -102,31 +102,6 @@ static PlaybackFormat getPlaybackFormat(IAudioPlayer* player) {
     return format;
 }
 
-QString Xamp::translasteError(Errors error) {
-    static const QMap<Errors, QString> error_str_lut = {
-        { Errors::XAMP_ERROR_SUCCESS, tr("Success.") },
-        { Errors::XAMP_ERROR_PLATFORM_SPEC_ERROR, tr("Platform spec error.") },
-        { Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR, tr("Library spec error.") },
-        { Errors::XAMP_ERROR_DEVICE_CREATE_FAILURE, tr("Failed to create the audio endpoint.") },
-        { Errors::XAMP_ERROR_DEVICE_UNSUPPORTED_FORMAT, tr("Device unsupported format.") },
-        { Errors::XAMP_ERROR_DEVICE_IN_USE, tr("Device in use.") },
-        { Errors::XAMP_ERROR_DEVICE_NOT_FOUND, tr("Device not found.") },
-        { Errors::XAMP_ERROR_FILE_NOT_FOUND, tr("File not found.") },
-        { Errors::XAMP_ERROR_NOT_SUPPORT_SAMPLERATE, tr("Not support samplerate.") },
-        { Errors::XAMP_ERROR_NOT_SUPPORT_FORMAT, tr("Not support format.") },
-        { Errors::XAMP_ERROR_LOAD_DLL_FAILURE, tr("Load dll failure.") },
-        { Errors::XAMP_ERROR_STOP_STREAM_TIMEOUT, tr("Stop stream thread timeout.") },
-        { Errors::XAMP_ERROR_NOT_SUPPORT_RESAMPLE_SAMPLERATE, tr("Resampler not support variable resample.") },
-        { Errors::XAMP_ERROR_SAMPLERATE_CHANGED, tr("Samplerate was changed.") },
-        { Errors::XAMP_ERROR_NOT_FOUND_DLL_EXPORT_FUNC, tr("Not found dll export function.") },
-        { Errors::XAMP_ERROR_NOT_SUPPORT_EXCLUSIVE_MODE, tr("Not support exclusive mode.") },
-    };
-    if (error_str_lut.contains(error)) {
-        return error_str_lut.value(error);
-    }
-    return Qt::EmptyString;
-}
-
 Xamp::Xamp()
     : is_seeking_(false)
     , order_(PlayerOrder::PLAYER_ORDER_REPEAT_ONCE)
@@ -148,10 +123,8 @@ Xamp::Xamp()
 
 void Xamp::setXWindow(IXWindow* top_window) {
     top_window_ = top_window;
-    player_->Startup();
     background_worker_.moveToThread(&background_thread_);
     background_thread_.start();
-    PodcastCache.SetTempPath(AppSettings::getValueAsString(kAppSettingPodcastCachePath).toStdWString());
     initialUI();
     initialController();
     initialPlaylist();
@@ -1031,7 +1004,7 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
     }
     catch (const Exception & e) {
         XAMP_LOG_DEBUG("Exception: {} {} {}", e.GetErrorMessage(), e.GetExpression(), e.GetStackTrace());
-        Toast::showTip(translasteError(e.GetError()), this);
+        Toast::showTip(Q_UTF8(e.what()), this);
     }
     catch (const std::exception & e) {
         Toast::showTip(Q_UTF8(e.what()), this);
@@ -1219,22 +1192,9 @@ void Xamp::onPlayerStateChanged(xamp::player::PlayerState play_state) {
     }
 }
 
-void Xamp::addTable() {
-	auto is_ok = false;
-    const auto table_name = QInputDialog::getText(nullptr, tr("Input Table Name"),
-                                                  tr("Please input your name"),
-                                                  QLineEdit::Normal,
-                                                  tr("My favorite"),
-                                                  &is_ok);
-    if (!is_ok) {
-        return;
-    }
-}
-
 void Xamp::initialPlaylist() {
     ui_.sliderBar->addTab(tr("Playlists"), TAB_PLAYLIST, Singleton<ThemeManager>::GetInstance().playlistIcon());
     ui_.sliderBar->addTab(tr("Podcast"), TAB_PODCAST, Singleton<ThemeManager>::GetInstance().podcastIcon());
-    //ui_.sliderBar->addTab(tr("Youtube Music"), TAB_YT_MUSIC, Singleton<ThemeManager>::GetInstance().ytMusicIcon());
     ui_.sliderBar->addSeparator();
     ui_.sliderBar->addTab(tr("Albums"), TAB_ALBUM, Singleton<ThemeManager>::GetInstance().albumsIcon());
     ui_.sliderBar->addTab(tr("Artists"), TAB_ARTIST, Singleton<ThemeManager>::GetInstance().artistsIcon());
@@ -1283,28 +1243,19 @@ void Xamp::initialPlaylist() {
         podcast_page_->playlist()->setPlaylistId(playlist_id);
     }
 
-    /*if (!music_page_) {
-        auto playlist_id = kDefaultMusicPlaylistId;
-        if (!Singleton<Database>::GetInstance().isPlaylistExist(playlist_id)) {
-            playlist_id = Singleton<Database>::GetInstance().addPlaylist(Qt::EmptyString, 2);
-        }
-        music_page_ = newPlaylistPage(playlist_id);
-        music_page_->playlist()->setPlaylistId(playlist_id);
-        music_page_->cover()->hide();
-        music_page_->title()->hide();
-        music_page_->format()->hide();
-    }*/
-
     playlist_page_->playlist()->setPodcastMode(false);
     podcast_page_->playlist()->setPodcastMode(true);
-    //music_page_->playlist()->setPodcastMode(true);
     current_playlist_page_ = playlist_page_;
 
-    (void)QObject::connect(this, &Xamp::addBlurImage,
-        &background_worker_, &BackgroundWorker::blurImage);
+    (void)QObject::connect(this, 
+        &Xamp::addBlurImage,
+        &background_worker_,
+        &BackgroundWorker::blurImage);
 
-    (void)QObject::connect(&background_worker_, &BackgroundWorker::updateReplayGain,
-        playlist_page_->playlist(), &PlayListTableView::updateReplayGain);
+    (void)QObject::connect(&background_worker_,
+        &BackgroundWorker::updateReplayGain,
+        playlist_page_->playlist(),
+        &PlayListTableView::updateReplayGain);
 
     lrc_page_ = new LrcPage(this);
     album_artist_page_ = new AlbumArtistPage(this);
@@ -1318,7 +1269,6 @@ void Xamp::initialPlaylist() {
     preference_page_ = new PreferencePage(this);
     about_page_ = new AboutPage(this);
 
-    //pushWidget(music_page_);
     pushWidget(lrc_page_);    
     pushWidget(playlist_page_);
     pushWidget(album_artist_page_);
@@ -1381,7 +1331,8 @@ void Xamp::setupPlayNextMusicSignals(bool add_or_remove) {
 }
 
 void Xamp::addItem(const QString& file_name) {
-	const auto add_playlist = dynamic_cast<PlaylistPage*>(ui_.currentView->currentWidget()) != nullptr;
+	const auto add_playlist = dynamic_cast<PlaylistPage*>(
+        ui_.currentView->currentWidget()) != nullptr;
 
     if (add_playlist) {
         try {
@@ -1398,7 +1349,7 @@ void Xamp::addItem(const QString& file_name) {
 }
 
 void Xamp::pushWidget(QWidget* widget) {
-    auto id = ui_.currentView->addWidget(widget);
+	const auto id = ui_.currentView->addWidget(widget);
     stack_page_id_.push(id);
     ui_.currentView->setCurrentIndex(id);
 }
@@ -1412,7 +1363,7 @@ QWidget* Xamp::topWidget() {
 
 QWidget* Xamp::popWidget() {
     if (!stack_page_id_.isEmpty()) {
-        auto id = stack_page_id_.pop();
+	    const auto id = stack_page_id_.pop();
         auto* widget = ui_.currentView->widget(id);
         ui_.currentView->removeWidget(widget);
         if (!stack_page_id_.isEmpty()) {
@@ -1434,7 +1385,7 @@ void Xamp::encodeFlacFile(const PlayListEntity& item) {
         return;
     }
 
-    auto dialog = makeProgressDialog(
+    const auto dialog = makeProgressDialog(
         tr("Export progress dialog"),
          tr("Export '") + item.title + tr("' to flac file"),
          tr("Cancel"));
@@ -1478,20 +1429,26 @@ PlaylistPage* Xamp::newPlaylistPage(int32_t playlist_id) {
         playlist_page,
         &PlaylistPage::OnThemeColorChanged);
 
-    (void)QObject::connect(playlist_page->playlist(), &PlayListTableView::removeItems,
+    (void)QObject::connect(playlist_page->playlist(), 
+        &PlayListTableView::removeItems,
                             [](auto playlist_id, const auto& select_music_ids) {
                                 IgnoreSqlError(Singleton<Database>::GetInstance().removePlaylistMusic(playlist_id, select_music_ids))
                             });
 
-    (void)QObject::connect(playlist_page->playlist(), &PlayListTableView::encodeFlacFile,
-                            this, &Xamp::encodeFlacFile);
+    (void)QObject::connect(playlist_page->playlist(), 
+        &PlayListTableView::encodeFlacFile,
+         this, 
+        &Xamp::encodeFlacFile);
 
-    (void)QObject::connect(playlist_page->playlist(), &PlayListTableView::addPlaylistReplayGain,
-                            &background_worker_, &BackgroundWorker::readReplayGain);
+    (void)QObject::connect(playlist_page->playlist(),
+        &PlayListTableView::addPlaylistReplayGain,
+        &background_worker_, 
+        &BackgroundWorker::readReplayGain);
 
-    (void)QObject::connect(this, &Xamp::themeChanged,
-                            playlist_page->playlist(),
-                            &PlayListTableView::onThemeColorChanged);
+    (void)QObject::connect(this,
+        &Xamp::themeChanged,
+        playlist_page->playlist(),
+        &PlayListTableView::onThemeColorChanged);
 
     playlist_page->playlist()->setPlaylistId(playlist_id);    
 
