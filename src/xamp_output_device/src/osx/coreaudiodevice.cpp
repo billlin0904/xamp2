@@ -341,7 +341,7 @@ void CoreAudioDevice::SetStreamTime(double stream_time) noexcept {
 }
 
 double CoreAudioDevice::GetStreamTime() const noexcept {
-    return stream_time_;
+    return stream_time_ / static_cast<double>(format_.GetAvgFramesPerSec());
 }
 
 uint32_t CoreAudioDevice::GetVolume() const {
