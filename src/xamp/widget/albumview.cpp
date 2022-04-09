@@ -382,7 +382,7 @@ AlbumView::AlbumView(QWidget* parent)
         page_->setCover(cover_id);
         page_->setArtistCover(artist_cover_id);
         page_->setPlaylistMusic(album_id);
-        page_->setFixedSize(QSize(list_view_rect.size().width() - 10, list_view_rect.height() - 8));
+        page_->setFixedSize(QSize(list_view_rect.size().width() - 10, list_view_rect.height() - 6));
 
         if (auto album_stats = Singleton<Database>::GetInstance().getAlbumStats(album_id)) {
             page_->setTracks(album_stats.value().tracks);
