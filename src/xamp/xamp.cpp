@@ -1043,7 +1043,7 @@ void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_form
         updateButtonState();
         emit nowPlaying(item.artist, item.title);
     } else {
-        cur_page->playlist()->update();
+        cur_page->playlist()->updateData();
     }
 
     auto found_cover = true;
@@ -1152,7 +1152,7 @@ void Xamp::addPlaylistItem(const std::vector<int32_t>& music_ids, const std::vec
     auto playlist_view = playlist_page_->playlist();
     Singleton<Database>::GetInstance().addMusicToPlaylist(music_ids, playlist_view->playlistId());
     emit playlist_view->addPlaylistReplayGain(false, entities);
-    playlist_view->update();
+    playlist_view->updateData();
 }
 
 void Xamp::setCover(const QPixmap* cover, PlaylistPage* page) {
@@ -1427,12 +1427,6 @@ PlaylistPage* Xamp::newPlaylistPage(int32_t playlist_id) {
         &Xamp::themeChanged,
         playlist_page,
         &PlaylistPage::OnThemeColorChanged);
-
-    (void)QObject::connect(playlist_page->playlist(), 
-        &PlayListTableView::removeItems,
-                            [](auto playlist_id, const auto& select_music_ids) {
-                                IgnoreSqlError(Singleton<Database>::GetInstance().removePlaylistMusic(playlist_id, select_music_ids))
-                            });
 
     (void)QObject::connect(playlist_page->playlist(), 
         &PlayListTableView::encodeFlacFile,

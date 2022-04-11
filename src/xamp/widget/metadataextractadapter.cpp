@@ -251,7 +251,7 @@ void ::MetadataExtractAdapter::processMetadata(int64_t dir_last_write_time, cons
     }
 
     if (playlist != nullptr) {
-        playlist->update();
+        playlist->updateData();
     }
 }
 

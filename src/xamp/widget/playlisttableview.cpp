@@ -84,7 +84,7 @@ void PlayListTableView::refresh() {
     model_.query().exec();
 }
 
-void PlayListTableView::update() {
+void PlayListTableView::updateData() {
     const QString s = Q_UTF8(R"(
     SELECT
     musics.musicId,
@@ -135,7 +135,7 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
 
     Singleton<Database>::GetInstance().clearNowPlaying(playlist_id_);
 
-    update();
+    updateData();
 
     model_.setHeaderData(PLAYLIST_MUSIC_ID, Qt::Horizontal, tr("ID"));
     model_.setHeaderData(PLAYLIST_PLAYING, Qt::Horizontal, tr(" "));
@@ -382,7 +382,7 @@ void PlayListTableView::initial() {
 
         action_map.setCallback(remove_all_act, [this, item]() {
             Singleton<Database>::GetInstance().removePlaylistAllMusic(playlistId());
-            update();
+            updateData();
             removePlaying();
             });
 
@@ -595,7 +595,7 @@ void PlayListTableView::append(const QString& file_name, bool show_progress_dial
 void PlayListTableView::processMeatadata(int64_t dir_last_write_time, const std::vector<Metadata>& medata) {
     ::MetadataExtractAdapter::processMetadata(dir_last_write_time, medata, this, podcast_mode_);
     resizeColumn();
-    update();
+    updateData();
 }
 
 void PlayListTableView::resizeEvent(QResizeEvent* event) {
@@ -776,7 +776,7 @@ void PlayListTableView::play(const QModelIndex& index) {
 
 void PlayListTableView::removePlaying() {
     Singleton<Database>::GetInstance().clearNowPlaying(playlist_id_);
-    update();
+    updateData();
 }
 
 void PlayListTableView::removeItem(const QModelIndex& index) {
@@ -800,5 +800,5 @@ void PlayListTableView::removeSelectItems() {
 	}
 
     Singleton<Database>::GetInstance().removePlaylistMusic(playlist_id_, remove_music_ids);
-    update();
+    updateData();
 }

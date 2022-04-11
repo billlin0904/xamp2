@@ -27,7 +27,7 @@ public:
 
 	virtual void refresh();
 
-	void update();
+	void updateData();
 
 	void setPlaylistId(int32_t playlist_id);
 
@@ -68,8 +68,6 @@ public:
     PlayListEntity nomapItem(const QModelIndex& index);
 
 signals:
-	void removeItems(int32_t playlist_id, const QVector<int>& select_music_ids);
-
 	void playMusic(const PlayListEntity& item);
 
     void encodeFlacFile(const PlayListEntity& item);
