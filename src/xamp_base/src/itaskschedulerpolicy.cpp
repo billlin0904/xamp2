@@ -32,9 +32,9 @@ size_t RandomSchedulerPolicy::ScheduleNext(size_t cur_index, size_t max_thread, 
 }
 
 size_t LeastLoadSchedulerPolicy::ScheduleNext(size_t /*cur_index*/, size_t max_thread, const std::vector<WorkStealingTaskQueuePtr>& work_queues) const {
-	auto min_wq_size_index = 0;
-	auto min_wq_size = 0;
-	auto i = 0;
+	size_t min_wq_size_index = 0;
+	size_t min_wq_size = 0;
+	size_t i = 0;
 	for (const auto &wq : work_queues) {
 		const auto queue_size = wq->size();
 		if (queue_size < min_wq_size) {

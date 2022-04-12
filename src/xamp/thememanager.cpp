@@ -298,7 +298,6 @@ void ThemeManager::enableBlur(QWidget* widget, bool enable) const {
 #else
     osx::setBlurMaterial(widget, enable);
 #endif
-    //widget->setStyleSheet(Q_UTF8("background-color: transparent"));
     AppSettings::setValue(kAppSettingEnableBlur, enable);
 }
 

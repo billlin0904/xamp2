@@ -26,9 +26,11 @@ struct XAMP_BASE_API Metadata final {
     uint32_t track;
     uint32_t bitrate;
     uint32_t samplerate;
+    uint32_t year;
     int64_t last_write_time;
 	double offset;
     double duration;
+    std::string cover_id;
     std::wstring file_path;
     std::wstring file_name;
     std::wstring file_name_no_ext;
@@ -37,7 +39,8 @@ struct XAMP_BASE_API Metadata final {
     std::wstring artist;
     std::wstring album;
     std::wstring parent_path;
-	std::string cover_id;
+    std::wstring genre;
+    std::wstring comment;
     std::optional<ReplayGain> replay_gain;
 };
 

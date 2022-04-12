@@ -60,12 +60,15 @@ void Database::createTableIfNotExist() {
 				       fingerprint TEXT,
                        bitrate integer,
                        samplerate integer,
-					   rating integer,
+					   rating integer,					   
                        dateTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                        album_replay_gain DOUBLE,
                        album_peak DOUBLE,
                        track_replay_gain DOUBLE,
-                       track_peak DOUBLE
+                       track_peak DOUBLE,
+					   genre TEXT,
+					   comment TEXT,
+					   year integer
                        )
                        )"));
 
@@ -342,6 +345,10 @@ ORDER BY musics.path;)"));
 		entity.album_peak = query.value(Q_UTF8("album_peak")).toDouble();
 		entity.track_replay_gain = query.value(Q_UTF8("track_replay_gain")).toDouble();
 		entity.track_peak = query.value(Q_UTF8("track_peak")).toDouble();
+
+		entity.genre = query.value(Q_UTF8("genre")).toString();
+		entity.comment = query.value(Q_UTF8("comment")).toString();
+		entity.year = query.value(Q_UTF8("year")).toUInt();
 		fun(entity);
 	}
 }
@@ -601,8 +608,8 @@ int32_t Database::addOrUpdateMusic(const Metadata& metadata, int32_t playlist_id
 
 	query.prepare(Q_UTF8(R"(
     INSERT OR REPLACE INTO musics
-    (musicId, title, track, path, fileExt, fileName, duration, durationStr, parentPath, bitrate, samplerate, offset, dateTime, album_replay_gain, track_replay_gain, album_peak, track_peak)
-    VALUES ((SELECT musicId FROM musics WHERE path = :path and offset = :offset), :title, :track, :path, :fileExt, :fileName, :duration, :durationStr, :parentPath, :bitrate, :samplerate, :offset, :dateTime, :album_replay_gain, :track_replay_gain, :album_peak, :track_peak)
+    (musicId, title, track, path, fileExt, fileName, duration, durationStr, parentPath, bitrate, samplerate, offset, dateTime, album_replay_gain, track_replay_gain, album_peak, track_peak, genre, comment, year)
+    VALUES ((SELECT musicId FROM musics WHERE path = :path and offset = :offset), :title, :track, :path, :fileExt, :fileName, :duration, :durationStr, :parentPath, :bitrate, :samplerate, :offset, :dateTime, :album_replay_gain, :track_replay_gain, :album_peak, :track_peak, :genre, :comment, :year)
     )")
 	);
 
@@ -617,6 +624,7 @@ int32_t Database::addOrUpdateMusic(const Metadata& metadata, int32_t playlist_id
 	query.bindValue(Q_UTF8(":bitrate"), metadata.bitrate);
 	query.bindValue(Q_UTF8(":samplerate"), metadata.samplerate);
 	query.bindValue(Q_UTF8(":offset"), metadata.offset);
+
 	if (metadata.replay_gain) {
 		query.bindValue(Q_UTF8(":album_replay_gain"), metadata.replay_gain.value().album_gain);
 		query.bindValue(Q_UTF8(":track_replay_gain"), metadata.replay_gain.value().track_gain);
@@ -629,12 +637,17 @@ int32_t Database::addOrUpdateMusic(const Metadata& metadata, int32_t playlist_id
 		query.bindValue(Q_UTF8(":album_peak"), 0);
 		query.bindValue(Q_UTF8(":track_peak"), 0);
 	}
+
 	if (metadata.last_write_time == 0) {
 		query.bindValue(Q_UTF8(":dateTime"), QDateTime::currentSecsSinceEpoch());
 	}
 	else {
 		query.bindValue(Q_UTF8(":dateTime"), metadata.last_write_time);
 	}
+
+	query.bindValue(Q_UTF8(":genre"), QString::fromStdWString(metadata.genre));
+	query.bindValue(Q_UTF8(":comment"), QString::fromStdWString(metadata.comment));
+	query.bindValue(Q_UTF8(":year"), metadata.year);
 
 	db_.transaction();
 
@@ -643,7 +656,7 @@ int32_t Database::addOrUpdateMusic(const Metadata& metadata, int32_t playlist_id
 		return kInvalidId;
 	}
 
-	auto music_id = query.lastInsertId().toInt();
+	const auto music_id = query.lastInsertId().toInt();
 
 	if (playlist_id != -1) {
 		addMusicToPlaylist(music_id, playlist_id);

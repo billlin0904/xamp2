@@ -12,7 +12,7 @@
 
 namespace xamp::player {
 
-XAMP_PLAYER_API void XStartup();
+XAMP_PLAYER_API void XampStartup();
 
 XAMP_PLAYER_API std::shared_ptr<IAudioPlayer> MakeAudioPlayer(const std::weak_ptr<IPlaybackStateAdapter>& adapter);
 

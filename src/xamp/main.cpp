@@ -172,7 +172,7 @@ static void loadLang() {
 }
 
 #ifdef XAMP_OS_WIN
-static std::vector<ModuleHandle> prefetchWin32DLL() {
+static std::vector<ModuleHandle> prefetchDLL() {
     const std::vector<std::string_view> dll_file_names{
         "ResourcePolicyClient.dll", // WASAPI
         "AudioSes.dll", // WASAPI
@@ -268,12 +268,12 @@ static int excute(int argc, char* argv[]) {
     Xamp win;
 
 #ifdef XAMP_OS_WIN
-    const auto prefetch_module = prefetchWin32DLL();
+    const auto prefetch_dll = prefetchDLL();
     XAMP_LOG_DEBUG("Prefetch dll success.");
 #endif
 
     try {
-        XStartup();
+        XampStartup();
     }
     catch (const Exception& e) {
         QMessageBox::critical(nullptr,

@@ -269,7 +269,6 @@ void PlayListTableView::initial() {
         setNowPlaying(current_index);
         const auto play_item = getEntity(current_index);
         emit playMusic(play_item);
-        refresh();
     });
 
     setContextMenuPolicy(Qt::CustomContextMenu);
@@ -277,10 +276,6 @@ void PlayListTableView::initial() {
         auto index = indexAt(pt);
 
         ActionMap<PlayListTableView> action_map(this);
-
-        (void)action_map.addAction(tr("Refresh"), [index, this]() {
-            refresh();
-        });
 
     	if (!podcast_mode_) {
             (void)action_map.addAction(tr("Load local file"), [this]() {
@@ -731,6 +726,7 @@ void PlayListTableView::setNowPlaying(const QModelIndex& index, bool is_scroll_t
     const auto entity = getEntity(play_index_);
     Singleton<Database>::GetInstance().setNowPlaying(playlist_id_, entity.playlist_music_id);
     refresh();
+    update();
 }
 
 void PlayListTableView::scrollToIndex(const QModelIndex& index) {

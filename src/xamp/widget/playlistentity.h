@@ -23,6 +23,7 @@ struct PlayListEntity final {
     uint32_t bitrate{0};
     uint32_t samplerate{0};
     uint32_t rating{0};
+    uint32_t year{0};
     double duration{0};
     double album_replay_gain{0};
     double album_peak{0};
@@ -37,6 +38,8 @@ struct PlayListEntity final {
     QString file_ext;
     QString cover_id;
     QString file_name;
+    QString genre;
+    QString comment;
 };
 
 // for QVariantÂà´«¨Ï¥Î

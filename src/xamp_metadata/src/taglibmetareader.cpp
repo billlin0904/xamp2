@@ -288,6 +288,9 @@ static void ExtractTag(Path const & path, Tag const * tag, AudioProperties*audio
             metadata.title = tag->title().toWString();
             metadata.album = tag->album().toWString();
             metadata.track = tag->track();
+            metadata.year = tag->year();
+            metadata.genre = tag->genre().toWString();
+            metadata.comment = tag->comment().toWString();
         }
     }
     catch (const std::exception& e) {
@@ -327,15 +330,14 @@ public:
 
     static FileRef GetFileRef(const Path& path) {
 #ifdef XAMP_OS_WIN
-        return FileRef(path.wstring().c_str(), true, TagLib::AudioProperties::Accurate);
+        return FileRef(path.wstring().c_str(), true, TagLib::AudioProperties::Fast);
 #else
-        return FileRef(path.string().c_str(), true, TagLib::AudioProperties::Accurate);
+        return FileRef(path.string().c_str(), true, TagLib::AudioProperties::Fast);
 #endif
     }
 
     [[nodiscard]] Metadata Extract(const Path& path) const {
-        auto fileref = GetFileRef(path);
-
+	    const auto fileref = GetFileRef(path);
         const auto* tag = fileref.tag();
 
         Metadata metadata;

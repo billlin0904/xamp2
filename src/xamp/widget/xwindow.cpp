@@ -181,7 +181,7 @@ void XWindow::setContentWidget(IXampPlayer *content_widget) {
     // todo: Qt::WA_TranslucentBackground + paintEvent 將無法縮放視窗
     content_widget_ = content_widget;    
     if (content_widget_ != nullptr) {        
-        auto* default_layout = new QGridLayout();
+        auto* default_layout = new QGridLayout(this);
         default_layout->addWidget(content_widget_, 0, 0);
         default_layout->setContentsMargins(0, 0, 0, 0);
         setLayout(default_layout);
@@ -195,14 +195,19 @@ void XWindow::setContentWidget(IXampPlayer *content_widget) {
     }
     taskbar_.reset(new WinTaskbar(this, content_widget));
 #else
-    if (!Singleton<ThemeManager>::GetInstance().useNativeWindow() && content_widget_ != nullptr) {        
-        osx::hideTitleBar(content_widget_);
-        setWindowTitle(kAppTitle);
-        if (AppSettings::getValueAsBool(kAppSettingEnableBlur)) {
-            Singleton<ThemeManager>::GetInstance().enableBlur(this, true);
+    if (!Singleton<ThemeManager>::GetInstance().useNativeWindow()) {
+        if (content_widget_ != nullptr) {
+            osx::hideTitleBar(content_widget_);
         }
+        setWindowTitle(kAppTitle);
     }
 #endif
+
+    /*setStyleSheet(Q_UTF8("background-color: transparent"));
+
+    if (AppSettings::getValueAsBool(kAppSettingEnableBlur)) {
+        Singleton<ThemeManager>::GetInstance().enableBlur(this, true);
+	}*/
 
     setAcceptDrops(true);
     setMouseTracking(true);
@@ -289,6 +294,13 @@ bool XWindow::nativeEvent(const QByteArray& event_type, void * message, long * r
     }
 
 #if defined(Q_OS_WIN)
+#ifndef WM_NCUAHDRAWCAPTION
+#define WM_NCUAHDRAWCAPTION (0x00AE)
+#endif
+#ifndef WM_NCUAHDRAWFRAME
+#define WM_NCUAHDRAWFRAME (0x00AF)
+#endif
+
     const auto *msg = static_cast<MSG const*>(message);
     switch (msg->message) {
     case WM_NCHITTEST:
@@ -318,14 +330,23 @@ bool XWindow::nativeEvent(const QByteArray& event_type, void * message, long * r
     case WM_NCCALCSIZE:
         // this kills the window frame and title bar we added with WS_THICKFRAME and WS_CAPTION
         if (msg->wParam == FALSE) {
+            // 如果 wParam 為 FALSE，則 lParam 指向一個 RECT 結構。輸入時，該結構包含建議的視窗矩形視窗。退出時，該結構應包含相應視窗客戶區的螢屏坐標。
             *result = 0;
             return true;
         } else {
+            // 如果 wParam 為 TRUE，lParam 指向一個 NCCALCSIZE_PARAMS 結構，該結構包含應用程式可以用來計算客戶矩形的新大小和位置的資訊。
             auto* nccalcsize_params = reinterpret_cast<LPNCCALCSIZE_PARAMS>(msg->lParam);
             nccalcsize_params->rgrc[2] = nccalcsize_params->rgrc[1];
             nccalcsize_params->rgrc[1] = nccalcsize_params->rgrc[0];
             *result = WVR_REDRAW;
         }
+        return true;
+    case WM_NCUAHDRAWCAPTION:
+    case WM_NCUAHDRAWFRAME:
+        // These undocumented messages are sent to draw themed window
+        // borders. Block them to prevent drawing borders over the client
+        // area.
+        *result = 0;
         return true;
     default:
         break;

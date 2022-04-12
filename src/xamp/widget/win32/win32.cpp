@@ -142,11 +142,11 @@ public:
 #define DWMDLL Singleton<DwmapiLib>::GetInstance()
 #define User32DLL Singleton<User32Lib>::GetInstance()	
 
-static uint32_t toABGR(QColor const & color) {
+static uint32_t toARGB(QColor const & color) {
 	return color.alpha() << 24
-		| color.blue() << 16
+		| color.red() << 16
 		| color.green() << 8
-		| color.red();
+		| color.blue();
 }
 
 static QColor blendColor(const QColor& i_color1, const QColor& i_color2, double alpha) {
@@ -159,19 +159,20 @@ static QColor blendColor(const QColor& i_color1, const QColor& i_color2, double 
 }
 
 void setAccentPolicy(HWND hwnd, bool enable, int animation_id) {
-	auto is_rs4_or_greater = true;
+	auto is_rs4_or_greater = false;
 
 	ACCENT_STATE flags = (is_rs4_or_greater ? ACCENT_ENABLE_ACRYLICBLURBEHIND : ACCENT_ENABLE_BLURBEHIND);
 
 	QColor background_color(AppSettings::getValueAsString(kAppSettingBackgroundColor));
-
 	background_color.setAlpha(50);
+
 	ACCENT_POLICY policy = {
 		enable ? flags : ACCENT_DISABLED,
 		ACCENT_FLAGS::DrawAllBorders,
-		toABGR(background_color),
+		toARGB(background_color),
 		animation_id
 	};
+
 	WINDOWCOMPOSITIONATTRIBDATA data;
 	data.Attrib = WCA_ACCENT_POLICY;
 	data.pvData = &policy;
