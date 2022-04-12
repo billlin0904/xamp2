@@ -91,7 +91,7 @@ void DSPManager::AddOrReplace(AlignPtr<IAudioProcessor> processor, std::vector<A
 }
 
 void DSPManager::Remove(Uuid const& id, std::vector<AlignPtr<IAudioProcessor>>& dsp_chain) {
-    auto itr = std::remove_if(dsp_chain.begin(),
+    auto itr = std::find_if(dsp_chain.begin(),
         dsp_chain.end(),
         [id](auto const& processor) {
             return processor->GetTypeId() == id;

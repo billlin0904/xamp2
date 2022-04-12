@@ -1429,12 +1429,6 @@ PlaylistPage* Xamp::newPlaylistPage(int32_t playlist_id) {
         &PlaylistPage::OnThemeColorChanged);
 
     (void)QObject::connect(playlist_page->playlist(), 
-        &PlayListTableView::removeItems,
-                            [](auto playlist_id, const auto& select_music_ids) {
-                                IgnoreSqlError(Singleton<Database>::GetInstance().removePlaylistMusic(playlist_id, select_music_ids))
-                            });
-
-    (void)QObject::connect(playlist_page->playlist(), 
         &PlayListTableView::encodeFlacFile,
          this, 
         &Xamp::encodeFlacFile);
