@@ -266,6 +266,21 @@ void Database::removeAlbumArtist(int32_t album_id) {
 	IfFailureThrow1(query);
 }
 
+void Database::forEachPlaylist(std::function<void(int32_t, int32_t, QString)>&& fun) {
+    QSqlTableModel model(nullptr, db_);
+
+    model.setTable(Q_UTF8("playlist"));
+    model.setSort(1, Qt::AscendingOrder);
+    model.select();
+
+    for (auto i = 0; i < model.rowCount(); ++i) {
+        auto record = model.record(i);
+        fun(record.value(Q_UTF8("playlistId")).toInt(),
+            record.value(Q_UTF8("playlistIndex")).toInt(),
+            record.value(Q_UTF8("name")).toString());
+    }
+}
+
 void Database::forEachTable(std::function<void(int32_t, int32_t, int32_t, QString)>&& fun) {
 	QSqlTableModel model(nullptr, db_);
 
@@ -358,8 +373,9 @@ std::vector<int32_t> Database::getAlbumId() const {
 
 void Database::removeAlbum(int32_t album_id) {
 	forEachAlbumMusic(album_id, [this](auto const& entity) {
-		removePlaylistMusic(1, QVector<int32_t>{ entity.music_id });
-		removePlaylistMusic(2, QVector<int32_t>{ entity.music_id });
+        forEachPlaylist([&entity, this](auto playlistId, auto , auto) {
+            removePlaylistMusic(playlistId, QVector<int32_t>{ entity.music_id });
+        });
 		removeAlbumMusicId(entity.music_id);
 		removeMusic(entity.music_id);
 		});
