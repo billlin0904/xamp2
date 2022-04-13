@@ -2,7 +2,6 @@
 
 #include <base/logger.h>
 #include <base/ithreadpool.h>
-#include <base/math.h>
 #include <metadata/api.h>
 #include <metadata/imetadatawriter.h>
 #include <widget/str_utilts.h>
@@ -62,10 +61,10 @@ void BackgroundWorker::readReplayGain(bool, const std::vector<PlayListEntity>& i
     replay_gain_tasks.reserve(items.size());
 
     Stopwatch wait_time_sw;
+    double process_time = 0;
 
     for (const auto &item : items) {
-        replay_gain_tasks.push_back(pool_->Spawn([scan_mode, item, this](auto ) {
-            Stopwatch sw;
+        replay_gain_tasks.push_back(pool_->Spawn([scan_mode, item, &process_time, this](auto ) ->AlignPtr<PlayListRGResult> {
             auto progress = [scan_mode](auto p) {
                 if (scan_mode == ReplayGainScanMode::RG_SCAN_MODE_FAST && p > 50) {
                     return false;
@@ -85,15 +84,16 @@ void BackgroundWorker::readReplayGain(bool, const std::vector<PlayListEntity>& i
                 scanner.value().Process(samples, sample_size);
             };
 
+            Stopwatch sw;
 	        try {	        
 		        read_utiltis::readAll(item.file_path.toStdWString(), progress, prepare, dps_process);                               
             }
             catch (std::exception const& e) {
                 XAMP_LOG_DEBUG("{}", e.what());
+                return nullptr;
             }
-
-            XAMP_LOG_DEBUG("Process replaygain service time :{:.2f} secs", sw.ElapsedSeconds());
-            return MakeAlign<PlayListRGResult>(std::move(item), std::move(scanner));
+            process_time = sw.ElapsedSeconds();
+            return MakeAlign<PlayListRGResult>(item, std::move(scanner));
         }));
     }
 
@@ -103,7 +103,12 @@ void BackgroundWorker::readReplayGain(bool, const std::vector<PlayListEntity>& i
     for (auto & task : replay_gain_tasks) {
         try {
             auto& result = task.get();
-            XAMP_LOG_DEBUG("Process replaygain wait time :{:.2f} secs", wait_time_sw.ElapsedSeconds());
+            if (!result) {
+                continue;
+            }
+            XAMP_LOG_DEBUG("Process replaygain process:{:.2f} secs wait :{:.2f} secs",
+                process_time,
+                wait_time_sw.ElapsedSeconds());
             wait_time_sw.Reset();
             replay_gain.music_id.push_back(result->item);
             if (result->scanner.has_value()) {

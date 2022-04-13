@@ -24,6 +24,7 @@
 #include <rapidxml.hpp>
 
 #include <thememanager.h>
+#include <widget/playlisttablemodel.h>
 #include <widget/http.h>
 #include <widget/toast.h>
 #include <widget/image_utiltis.h>
@@ -59,7 +60,7 @@ static PlayListEntity getEntity(const QModelIndex& index) {
     entity.cover_id = getIndexValue(index, PLAYLIST_COVER_ID).toString();
     entity.file_ext = getIndexValue(index, PLAYLIST_FILE_EXT).toString();
     entity.parent_path = getIndexValue(index, PLAYLIST_FILE_PARENT_PATH).toString();
-    entity.timestamp = getIndexValue(index, PLAYLIST_TIMESTAMP).toULongLong();
+    entity.timestamp = getIndexValue(index, PLAYLIST_LAST_UPDATE_TIME).toULongLong();
     entity.playlist_music_id = getIndexValue(index, PLAYLIST_PLAYLIST_MUSIC_ID).toInt();
     entity.album_replay_gain = getIndexValue(index, PLAYLIST_ALBUM_RG).toDouble();
     entity.album_peak = getIndexValue(index, PLAYLIST_ALBUM_PK).toDouble();
@@ -109,7 +110,9 @@ void PlayListTableView::updateData() {
     musics.album_replay_gain,
     musics.album_peak,	
     musics.track_replay_gain,
-	musics.track_peak
+	musics.track_peak,
+	musics.genre,
+	musics.year
     FROM
     playlistMusics
     JOIN playlist ON playlist.playlistId = playlistMusics.playlistId
@@ -151,9 +154,11 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
     model_.setHeaderData(PLAYLIST_RATING, Qt::Horizontal, tr("RATING"));
     model_.setHeaderData(PLAYLIST_ALBUM_RG, Qt::Horizontal, tr("ALBUM.RG"));
     model_.setHeaderData(PLAYLIST_ALBUM_PK, Qt::Horizontal, tr("ALBUM.PK"));
-    model_.setHeaderData(PLAYLIST_TIMESTAMP, Qt::Horizontal, tr("TIMESTAMP"));
+    model_.setHeaderData(PLAYLIST_LAST_UPDATE_TIME, Qt::Horizontal, tr("LAST UPDATE TIME"));
     model_.setHeaderData(PLAYLIST_TRACK_RG, Qt::Horizontal, tr("TRACK.RG"));
     model_.setHeaderData(PLAYLIST_TRACK_PK, Qt::Horizontal, tr("TRACK.PK"));
+    model_.setHeaderData(PLAYLIST_GENRE, Qt::Horizontal, tr("GENRE"));
+    model_.setHeaderData(PLAYLIST_YEAR, Qt::Horizontal, tr("YEAR"));
 
     hideColumn(PLAYLIST_MUSIC_ID);
     hideColumn(PLAYLIST_FILEPATH);
@@ -165,13 +170,15 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
     hideColumn(PLAYLIST_FILE_PARENT_PATH);
     hideColumn(PLAYLIST_BITRATE);
     hideColumn(PLAYLIST_ALBUM);
-    hideColumn(PLAYLIST_TIMESTAMP);
+    hideColumn(PLAYLIST_LAST_UPDATE_TIME);
     hideColumn(PLAYLIST_RATING);
     hideColumn(PLAYLIST_PLAYLIST_MUSIC_ID);
     hideColumn(PLAYLIST_ALBUM_RG);
     hideColumn(PLAYLIST_ALBUM_PK);
     hideColumn(PLAYLIST_TRACK_RG);
     hideColumn(PLAYLIST_TRACK_PK);
+    hideColumn(PLAYLIST_GENRE);
+    hideColumn(PLAYLIST_YEAR);
 
     auto column_list = AppSettings::getList(kAppSettingColumnName);
 
@@ -491,7 +498,9 @@ void PlayListTableView::setPodcastMode(bool enable) {
         hideColumn(PLAYLIST_ALBUM_PK);
         hideColumn(PLAYLIST_DURATION);
         hideColumn(PLAYLIST_SAMPLE_RATE);
-        setColumnHidden(PLAYLIST_TIMESTAMP, false);
+        hideColumn(PLAYLIST_GENRE);
+        hideColumn(PLAYLIST_YEAR);
+        setColumnHidden(PLAYLIST_LAST_UPDATE_TIME, false);
     } else {
         horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
         (void)QObject::connect(horizontalHeader(), &QHeaderView::customContextMenuRequested, [this](auto pt) {

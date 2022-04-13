@@ -273,7 +273,7 @@ static int excute(int argc, char* argv[]) {
 #endif
 
     try {
-        XampStartup();
+        XampInitialize();
     }
     catch (const Exception& e) {
         QMessageBox::critical(nullptr,

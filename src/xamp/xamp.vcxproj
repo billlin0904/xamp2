@@ -175,7 +175,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="aboutpage.cpp" />
-    <ClCompile Include="crashhandler.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="preferencepage.cpp" />
     <ClCompile Include="singleinstanceapplication.cpp" />
@@ -255,7 +254,6 @@
   <ItemGroup>
     <QtMoc Include="widget\xframe.h" />
     <QtMoc Include="preferencepage.h" />
-    <ClInclude Include="resource1.h" />
     <ClInclude Include="widget\albumentity.h" />
     <ClInclude Include="widget\colorthief.h" />
     <ClInclude Include="widget\stackblur.h" />
@@ -265,7 +263,6 @@
     <QtMoc Include="widget\discordnotify.h" />
     <QtMoc Include="widget\doubleslider.h" />
     <QtMoc Include="widget\equalizerdialog.h" />
-    <ClInclude Include="crashhandler.h" />
     <ClInclude Include="widget\xwindow.h" />
     <ClInclude Include="widget\playlistsqlquerytablemodel.h" />
     <QtMoc Include="widget\uiplayerstateadapter.h">

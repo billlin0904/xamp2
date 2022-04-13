@@ -33,7 +33,7 @@ QVariant PlayListSqlQueryTableModel::data(const QModelIndex& index, int32_t role
             || index.column() == PLAYLIST_ALBUM_RG
             || index.column() == PLAYLIST_TRACK_PK
             || index.column() == PLAYLIST_TRACK_RG
-            || index.column() == PLAYLIST_TIMESTAMP) {
+            || index.column() == PLAYLIST_LAST_UPDATE_TIME) {
             return QFont(Q_UTF8("MonoFont"));
         }
         break;
@@ -59,7 +59,7 @@ QVariant PlayListSqlQueryTableModel::data(const QModelIndex& index, int32_t role
 			    return samplerate2String(value.toInt());
 		    case PLAYLIST_DURATION:
 			    return msToString(value.toDouble());
-		    case PLAYLIST_TIMESTAMP:
+		    case PLAYLIST_LAST_UPDATE_TIME:
 			    return QDateTime::fromSecsSinceEpoch(value.toULongLong()).toString(Q_UTF8("yyyy-MM-dd HH:mm:ss"));
 		    }
 	    }
@@ -81,7 +81,7 @@ QVariant PlayListSqlQueryTableModel::data(const QModelIndex& index, int32_t role
         case PLAYLIST_TRACK_PK:
         case PLAYLIST_ARTIST:
         case PLAYLIST_DURATION:        
-        case PLAYLIST_TIMESTAMP:
+        case PLAYLIST_LAST_UPDATE_TIME:
             return static_cast<int>(Qt::AlignVCenter | Qt::AlignRight);
         case PLAYLIST_SAMPLE_RATE:
             return static_cast<int>(Qt::AlignVCenter | Qt::AlignHCenter);

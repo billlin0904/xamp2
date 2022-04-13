@@ -1,7 +1,5 @@
-#include <fstream>
 #include <base/buffer.h>
 #include <base/str_utilts.h>
-#include <base/exception.h>
 #include <stream/bassfilestream.h>
 #include <stream/basslib.h>
 #include <stream/api.h>
@@ -11,13 +9,13 @@ namespace xamp::stream {
 
 class BassFlacFileEncoder::BassFlacFileEncoderImpl {
 public:
-    void Start(std::wstring const& input_file_path, std::wstring const& output_file_path, std::wstring const& command) {
+    void Start(Path const& input_file_path, Path const& output_file_path, std::wstring const& command) {
         DWORD flags = BASS_ENCODE_AUTOFREE;
 
-        if (TestDsdFileFormatStd(input_file_path)) {
+        if (TestDsdFileFormatStd(input_file_path.wstring())) {
             stream_.SetDSDMode(DsdModes::DSD_MODE_DSD2PCM);
         }
-        stream_.OpenFile(input_file_path);
+        stream_.OpenFile(input_file_path.wstring());
 
         switch (stream_.GetBitDepth()) {
         case 24:
@@ -30,7 +28,7 @@ public:
 
 #ifdef XAMP_OS_MAC
         auto utf8_command = String::ToString(command);
-        auto utf8_ouput_file_name = String::ToString(output_file_path);
+        auto utf8_ouput_file_name = String::ToString(output_file_path.wstring());
         encoder_.reset(BASS.FlacEncLib->BASS_Encode_FLAC_StartFile(stream_.GetHStream(),
                                                       utf8_command.c_str(),
                                                       flags,
@@ -80,7 +78,7 @@ BassFlacFileEncoder::BassFlacFileEncoder()
 
 XAMP_PIMPL_IMPL(BassFlacFileEncoder)
 
-void BassFlacFileEncoder::Start(std::wstring const& input_file_path, std::wstring const& output_file_path, std::wstring const& command) {
+void BassFlacFileEncoder::Start(Path const& input_file_path, Path const& output_file_path, std::wstring const& command) {
     impl_->Start(input_file_path, output_file_path, command);
 }
 

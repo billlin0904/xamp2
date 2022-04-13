@@ -19,7 +19,6 @@ TaskScheduler::TaskScheduler(TaskSchedulerPolicy policy, const std::string_view&
 	: is_stopped_(false)
 	, running_thread_(0)
 	, max_thread_(max_thread)
-	, index_(0)
 	, task_scheduler_policy_(MakeTaskSchedulerPolicy(policy)) {
 	logger_ = Logger::GetInstance().GetLogger(pool_name.data());
 	try {
@@ -49,10 +48,8 @@ uint32_t TaskScheduler::GetThreadSize() const {
 }
 
 void TaskScheduler::SubmitJob(Task&& task) {
-	const auto i = index_++;
-
 	for (size_t n = 0; n < max_thread_ * K; ++n) {
-		const auto index = (i + n) % max_thread_;
+		auto index = task_scheduler_policy_->ScheduleNext(-1, max_thread_, task_work_queues_);
 		auto& queue = task_work_queues_.at(index);
 		if (queue->TryEnqueue(task)) {
 			XAMP_LOG_D(logger_, "Enqueue thread {} local queue ({}).", index, queue->size());

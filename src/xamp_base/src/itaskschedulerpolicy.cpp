@@ -26,7 +26,7 @@ size_t RandomSchedulerPolicy::ScheduleNext(size_t cur_index, size_t max_thread, 
 	size_t random_index;
 	do {
 		random_index = prng.NextSize(max_thread - 1);
-	} while (random_index != cur_index);
+	} while (random_index == cur_index);
 
 	return random_index;
 }

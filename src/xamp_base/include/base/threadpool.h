@@ -65,7 +65,6 @@ private:
 	std::atomic<bool> is_stopped_;
     std::atomic<size_t> running_thread_;
     uint32_t max_thread_;
-	size_t index_;    
     std::vector<std::thread> threads_;
     SharedTaskQueuePtr task_pool_;
     AlignPtr<ITaskSchedulerPolicy> task_scheduler_policy_;

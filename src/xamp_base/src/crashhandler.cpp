@@ -64,12 +64,6 @@ static const HashMap<DWORD, std::string_view> kWellKnownExceptionCode = {
     DECLARE_EXCEPTION_CODE(EXCEPTION_INVALID_HANDLE)
 };
 
-static void DeleteExceptionPointers(EXCEPTION_POINTERS* exception_pointers) {
-    delete exception_pointers->ContextRecord;
-    delete exception_pointers->ExceptionRecord;
-    delete exception_pointers;
-}
-
 void CrashHandler::CreateMiniDump(EXCEPTION_POINTERS* exception_pointers) {
     FileHandle crashdump_file(::CreateFileW(
         L"crashdump.dmp",
@@ -132,6 +126,12 @@ void CrashHandler::Dump(void* info) {
     //::TerminateProcess(process.get(), 1);
 }
 
+void CrashHandler::StackDump() {
+    EXCEPTION_POINTERS exception_pointers{};
+    GetExceptionPointers(0, &exception_pointers);
+    Dump(&exception_pointers);
+}
+
 LONG CrashHandler::SehHandler(PEXCEPTION_POINTERS exception_pointers) {
     Dump(exception_pointers);
     return EXCEPTION_EXECUTE_HANDLER;
@@ -143,77 +143,37 @@ LONG CrashHandler::VectoredHandler(PEXCEPTION_POINTERS exception_pointers) {
 }
 
 void CrashHandler::TerminateHandler() {
-    EXCEPTION_POINTERS* exception_pointers = nullptr;
-    GetExceptionPointers(0, &exception_pointers);
-    Dump(exception_pointers);
-    DeleteExceptionPointers(exception_pointers);
+    StackDump();
 }
 
 void CrashHandler::UnexpectedHandler() {
-    EXCEPTION_POINTERS* exception_pointers = nullptr;
-    GetExceptionPointers(0, &exception_pointers);
-    Dump(exception_pointers);
-    DeleteExceptionPointers(exception_pointers);
+    StackDump();
 }
 
 void CrashHandler::PureCallHandler() {
-    EXCEPTION_POINTERS* exception_pointers = nullptr;
-    GetExceptionPointers(0, &exception_pointers);
-    Dump(exception_pointers);
-    DeleteExceptionPointers(exception_pointers);
+    StackDump();
 }
 
 void CrashHandler::InvalidParameterHandler(const wchar_t* expression,
                                            const wchar_t* function, const wchar_t* file,
                                            unsigned int line, uintptr_t reserved) {
-    EXCEPTION_POINTERS* exception_pointers = nullptr;
-    GetExceptionPointers(0, &exception_pointers);
-    Dump(exception_pointers);
-    DeleteExceptionPointers(exception_pointers);
+    StackDump();
 }
 
 int CrashHandler::NewHandler(size_t) {
-    EXCEPTION_POINTERS* exception_pointers = nullptr;
-    GetExceptionPointers(0, &exception_pointers);
-    Dump(exception_pointers);
-    DeleteExceptionPointers(exception_pointers);
+    StackDump();
     return 0;
 }
 
-void CrashHandler::GetExceptionPointers(DWORD exception_code, EXCEPTION_POINTERS** exception_pointers) {
-    CONTEXT context_record{ 0 };
-    EXCEPTION_RECORD exception_record{0};
+void CrashHandler::GetExceptionPointers(DWORD exception_code, EXCEPTION_POINTERS* exception_pointers) {
+    CONTEXT context_record{};
+	::RtlCaptureContext(&context_record);
 
-    ULONG64           control_pc = 0;
-    ULONG64           establisher_frame = 0;
-    ULONG64           image_base = 0;
-    PRUNTIME_FUNCTION function_entry = nullptr;
-    PVOID             handler_data = nullptr;
+	MemoryCopy(exception_pointers->ContextRecord, &context_record, sizeof(CONTEXT));
+    MemorySet(exception_pointers->ExceptionRecord, 0, sizeof(EXCEPTION_RECORD));
 
-    RtlCaptureContext(&context_record);
-
-    control_pc = context_record.Rip;
-    function_entry = RtlLookupFunctionEntry(control_pc, &image_base, nullptr);
-
-    if (function_entry != nullptr) {
-        RtlVirtualUnwind(UNW_FLAG_NHANDLER, image_base, control_pc, function_entry, &context_record, &handler_data, &establisher_frame, nullptr);
-    }
-
-    context_record.Rip = reinterpret_cast<ULONGLONG>(_ReturnAddress());
-    context_record.Rsp = reinterpret_cast<ULONGLONG>(_AddressOfReturnAddress()) + 8;
-
-    exception_record.ExceptionCode = exception_code;
-    exception_record.ExceptionAddress = _ReturnAddress();
-
-    auto* p_context_record = new CONTEXT();
-    memcpy(p_context_record, &context_record, sizeof(CONTEXT));
-
-    auto* p_exception_record = new EXCEPTION_RECORD();
-    memcpy(p_exception_record, &exception_record, sizeof(EXCEPTION_RECORD));
-
-    *exception_pointers = new EXCEPTION_POINTERS();
-    (*exception_pointers)->ContextRecord = p_context_record;
-    (*exception_pointers)->ExceptionRecord = p_exception_record;
+    exception_pointers->ExceptionRecord->ExceptionCode = exception_code;
+    exception_pointers->ExceptionRecord->ExceptionAddress = _ReturnAddress();
 }
 #endif
 

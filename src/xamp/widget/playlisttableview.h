@@ -10,7 +10,6 @@
 #include <QTableView>
 #include <base/rng.h>
 
-#include <widget/playlisttablemodel.h>
 #include <widget/playlistentity.h>
 #include <widget/playlisttableproxymodel.h>
 #include <widget/playlistsqlquerytablemodel.h>

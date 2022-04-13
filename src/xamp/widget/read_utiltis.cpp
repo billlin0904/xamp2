@@ -56,12 +56,12 @@ private:
     Fs::path temp_file_path_;
 };
 
-double readAll(std::wstring const& file_path,
+double readAll(Path const& file_path,
 	std::function<bool(uint32_t)> const& progress,
 	std::function<void(AudioFormat const&)> const& prepare,
 	std::function<void(float const*, uint32_t)> const& dsp_process,
     uint64_t max_duration) {
-	const auto is_dsd_file = TestDsdFileFormatStd(file_path);
+	const auto is_dsd_file = TestDsdFileFormatStd(file_path.wstring());
 	const auto file_stream = MediaStreamFactory::MakeAudioStream();
 
 	if (auto* stream = AsDsdStream(file_stream)) {
@@ -71,13 +71,13 @@ double readAll(std::wstring const& file_path,
 	}
 
 	auto* fs = AsFileStream(file_stream);
-	fs->OpenFile(file_path);
+	fs->OpenFile(file_path.wstring());
 
 	const auto source_format = file_stream->GetFormat();
 	const AudioFormat input_format = AudioFormat::ToFloatFormat(source_format);
 
 	const auto buffer_size = GetPageAlignSize(1024 + kReadSampleSize * input_format.GetChannels());
-	auto isamples = MakeBuffer<float>(buffer_size);
+	auto buffer = MakeBuffer<float>(buffer_size);
 	uint32_t num_samples = 0;
 
 	prepare(input_format);
@@ -87,7 +87,7 @@ double readAll(std::wstring const& file_path,
 	}
 
     while (num_samples / input_format.GetSampleRate() < max_duration && file_stream->IsActive()) {
-		const auto read_size = file_stream->GetSamples(isamples.get(),
+		const auto read_size = file_stream->GetSamples(buffer.get(),
 			kReadSampleSize) / input_format.GetChannels();
 
 		num_samples += read_size;
@@ -98,13 +98,13 @@ double readAll(std::wstring const& file_path,
 			}
 		}
 
-		dsp_process(isamples.get(), read_size * input_format.GetChannels());
+		dsp_process(buffer.get(), read_size * input_format.GetChannels());
 	}
 
 	return file_stream->GetDuration();
 }
 
-std::tuple<double, double> readFileLUFS(std::wstring const& file_path,
+std::tuple<double, double> readFileLUFS(Path const& file_path,
     std::function<bool(uint32_t)> const& progress,
     uint64_t max_duration) {
 	std::optional<Ebur128ReplayGainScanner> scanner;
@@ -122,18 +122,18 @@ std::tuple<double, double> readFileLUFS(std::wstring const& file_path,
                            scanner->GetTruePeek());
 }
 
-void encodeFlacFile(std::wstring const& file_path,
-                std::wstring const& output_file_path,
-                std::wstring const& command,
-                std::function<bool(uint32_t)> const& progress,
-                Metadata const& metadata) {
+void encodeFlacFile(Path const& file_path,
+	Path const& output_file_path,
+    std::wstring const& command,
+    std::function<bool(uint32_t)> const& progress,
+    Metadata const& metadata) {
     ExceptedFile excepted(output_file_path);
     if (excepted.Try([&](auto const& dest_file_path) {
-	    auto encoder = MediaStreamFactory::MakeFlacEncoder();
-        encoder->Start(file_path, dest_file_path.wstring(), command);
+	    const auto encoder = MediaStreamFactory::MakeFlacEncoder();
+        encoder->Start(file_path, dest_file_path, command);
         encoder->Encode(progress);
     })) {
-		auto writer = MakeMetadataWriter();
+	    const auto writer = MakeMetadataWriter();
 		writer->Write(output_file_path, metadata);
     }
 }

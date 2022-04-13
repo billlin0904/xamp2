@@ -31,17 +31,17 @@ protected:
 
 XAMP_BASE_API AlignPtr<ITaskSchedulerPolicy> MakeTaskSchedulerPolicy(TaskSchedulerPolicy policy);
 
-class RoundRobinSchedulerPolicy : public ITaskSchedulerPolicy {
+class RoundRobinSchedulerPolicy final : public ITaskSchedulerPolicy {
 public:
     size_t ScheduleNext(size_t cur_index, size_t max_thread, const std::vector<WorkStealingTaskQueuePtr>& work_queues) const override;
 };
 
-class RandomSchedulerPolicy : public ITaskSchedulerPolicy {
+class RandomSchedulerPolicy final : public ITaskSchedulerPolicy {
 public:
     size_t ScheduleNext(size_t cur_index, size_t max_thread, const std::vector<WorkStealingTaskQueuePtr>& work_queues) const override;
 };
 
-class LeastLoadSchedulerPolicy : public ITaskSchedulerPolicy {
+class LeastLoadSchedulerPolicy final : public ITaskSchedulerPolicy {
 public:
     size_t ScheduleNext(size_t cur_index, size_t max_thread, const std::vector<WorkStealingTaskQueuePtr>& work_queues) const override;
 };

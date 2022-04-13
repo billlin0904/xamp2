@@ -6,35 +6,31 @@
 #pragma once
 
 #include <string>
-#include <vector>
 #include <functional>
 #include <tuple>
 #include <utility>
 
-#include <base/align_ptr.h>
 #include <base/metadata.h>
 #include <base/audioformat.h>
 
-#include <stream/iaudioprocessor.h>
-#include <stream/isamplerateconverter.h>
-
-using namespace xamp::base;
-using namespace xamp::stream;
+using xamp::base::Metadata;
+using xamp::base::AudioFormat;
+using xamp::base::Path;
 
 namespace read_utiltis {
 
-double readAll(std::wstring const& file_path,
-               std::function<bool(uint32_t)> const& progress,
-               std::function<void(AudioFormat const&)> const& prepare,
-               std::function<void(float const*, uint32_t)> const& dsp_process = nullptr,
-               uint64_t max_duration = (std::numeric_limits<uint64_t>::max)());
+double readAll(Path const& file_path,
+    std::function<bool(uint32_t)> const& progress,
+    std::function<void(AudioFormat const&)> const& prepare,
+    std::function<void(float const*, uint32_t)> const& dsp_process = nullptr,
+    uint64_t max_duration = (std::numeric_limits<uint64_t>::max)());
 	
-std::tuple<double, double> readFileLUFS(std::wstring const& file_path,
+std::tuple<double, double> readFileLUFS(Path const& file_path,
     std::function<bool(uint32_t)> const& progress,
     uint64_t max_duration = (std::numeric_limits<uint64_t>::max)());
 
-void encodeFlacFile(std::wstring const& file_path,
-    std::wstring const& output_file_path,
+void encodeFlacFile(Path const& file_path,
+    Path const& output_file_path,
     std::wstring const& command,
     std::function<bool(uint32_t)> const& progress,
     Metadata const& metadata);

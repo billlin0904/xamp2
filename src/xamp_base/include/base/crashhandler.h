@@ -30,7 +30,7 @@ private:
 #ifdef XAMP_OS_WIN
 	static int __cdecl NewHandler(size_t);
 
-	static void GetExceptionPointers(DWORD exception_code, EXCEPTION_POINTERS** exception_pointers);
+	static void GetExceptionPointers(DWORD exception_code, EXCEPTION_POINTERS* exception_pointers);
 
 	static void CreateMiniDump(EXCEPTION_POINTERS* exception_pointers);
 
@@ -49,6 +49,8 @@ private:
 		const wchar_t* file,
 		unsigned int line,
 		uintptr_t reserved);
+
+	static void StackDump();
 #else
 	void InstallSignalHandler();
 	static void CrashSignalHandler(int signal_number, siginfo_t* info, void*);

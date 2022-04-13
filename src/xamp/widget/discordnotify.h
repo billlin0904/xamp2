@@ -12,7 +12,6 @@
 #include <base/logger.h>
 #include <player/playstate.h>
 
-using namespace xamp::base;
 using xamp::player::PlayerState;
 
 class DicordNotify : public QObject {

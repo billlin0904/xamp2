@@ -25,7 +25,7 @@ std::shared_ptr<IAudioPlayer> MakeAudioPlayer(const std::weak_ptr<IPlaybackState
     return MakeAlignedShared<AudioPlayer>(adapter);
 }
 
-void XampStartup() {
+void XampInitialize() {
     LoadBassLib();
     XAMP_LOG_DEBUG("Load BASS lib success.");
 
