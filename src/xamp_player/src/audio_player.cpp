@@ -47,27 +47,37 @@ inline constexpr std::chrono::seconds kWaitForSignalWhenReadFinish(3);
 
 //// https://en.wikipedia.org/wiki/Short-time_Fourier_transform
 //// https://stackoverflow.com/questions/6663222/doing-fft-in-realtime
-//static ComplexValarray ShortTimeFFT(std::vector<float>& signal,
-//    FFT& fft, 
-//    const Window& window,
-//    int32_t sample_rate,
-//    float frame_size = 0.025,
-//    float frame_stride = 0.01) {
-//    const auto frame_length = frame_size * sample_rate;
-//    const auto frame_step = frame_stride * sample_rate;
-//    const auto signal_length = signal.size();
-//
-//    const auto num_frames = 1 + static_cast<int>(ceil(abs(signal_length - frame_length) / frame_step));
-//
-//    const auto pad_signal_length = static_cast<size_t>(num_frames * frame_step + frame_length);
-//    std::vector<float> zero(pad_signal_length, 0);
-//    signal.insert(signal.end(), zero.begin(), zero.end());
-//
-//    for (auto i = 0; i < frame_length; ++i) {
-//        signal[i] *= window(i, frame_length);
-//    }
-//    return fft.Forward(signal.data(), signal.size());
-//}
+/*
+1. Take a small portion of the signal (say 1 second)
+2. Window it with a small window (say 5 ms)
+3. Compute the 1D fourier transform of the windowed signal.
+4. Move the window by a small amount (2.5 ms)
+5. Repeat above steps until end of signal.
+6. All of this data is entered into a matrix that
+is then used to create the kind of 3D representation of the signal that shows
+its decomposition along frequency, amplitude and time.
+ */
+static ComplexValarray ShortTimeFFT(std::vector<float>& signal,
+    FFT& fft, 
+    const Window& window,
+    int32_t sample_rate,
+    float frame_size = 0.025,
+    float frame_stride = 0.01) {
+    const auto frame_length = frame_size * sample_rate;
+    const auto frame_step = frame_stride * sample_rate;
+    const auto signal_length = signal.size();
+
+    const auto num_frames = 1 + static_cast<int>(ceil(abs(signal_length - frame_length) / frame_step));
+
+    const auto pad_signal_length = static_cast<size_t>(num_frames * frame_step + frame_length);
+    std::vector<float> zero(pad_signal_length, 0);
+    signal.insert(signal.end(), zero.begin(), zero.end());
+
+    for (auto i = 0; i < frame_length; ++i) {
+        signal[i] *= window(i, frame_length);
+    }
+    return fft.Forward(signal.data(), signal.size());
+}
 
 #ifdef ENABLE_ASIO
 IDsdDevice* AsDsdDevice(AlignPtr<IOutputDevice> const& device) noexcept {
@@ -105,6 +115,25 @@ AudioPlayer::AudioPlayer(const std::weak_ptr<IPlaybackStateAdapter> &adapter)
 AudioPlayer::~AudioPlayer() = default;
 
 void AudioPlayer::InitFFT() {
+    fft_.Init(4096);
+}
+
+void AudioPlayer::ProcessFFT(float frame_size, float frame_stride) {
+    const auto frame_length = frame_size * output_format_.GetSampleRate();
+    const auto frame_step = frame_stride * output_format_.GetSampleRate();
+    const auto signal_length = signal_.size();
+
+    const auto num_frames = 1 + static_cast<int>(
+        std::ceil(std::abs(signal_length - frame_length) / frame_step));
+
+    const auto pad_signal_length = static_cast<size_t>(num_frames * frame_step + frame_length);
+    std::vector<float> zero(pad_signal_length, 0);
+    signal_.insert(signal_.end(), zero.begin(), zero.end());
+
+    for (auto i = 0; i < frame_length; ++i) {
+        signal_[i] *= window_(i, frame_length);
+    }
+    fft_.Forward(signal_.data(), signal_.size());
 }
 
 void AudioPlayer::Destroy() {

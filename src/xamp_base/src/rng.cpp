@@ -1,3 +1,4 @@
+#include <base/platform.h>
 #include <base/rng.h>
 
 namespace xamp::base {
@@ -8,7 +9,7 @@ PRNG& PRNG::GetInstance() noexcept {
 }
 
 PRNG::PRNG() noexcept
-    : engine_(std::random_device{}()) {
+    : engine_(GenRandom()) {
 }
 
 }

@@ -257,6 +257,7 @@ PreferencePage::PreferencePage(QWidget *parent)
     });
 
 	(void)QObject::connect(ui_.resetAllButton, &QPushButton::clicked, [this]() {
+		JsonSettings::remove(kSoxr);
 		initSoxResampler();
         saveAll();
 		});

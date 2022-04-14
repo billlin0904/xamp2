@@ -9,11 +9,10 @@
 #include <base/waitabletimer.h>
 
 #ifdef XAMP_OS_WIN
-#pragma comment(lib, "rpcrt4.lib")
-#pragma comment(lib, "Synchronization.lib")
 #include <rpcnterr.h>
 #include <rpc.h>
 #include <base/windows_handle.h>
+#include <wincrypt.h>
 #else
 #include <uuid/uuid.h>
 #include <mach/mach.h>
@@ -462,6 +461,39 @@ void MSleep(std::chrono::milliseconds timeout) {
     WaitableTimer timer;
     timer.SetTimeout(timeout);
     timer.Wait();
+}
+
+uint64_t GenRandom() noexcept {
+    uint64_t seed = 0;
+#ifdef XAMP_OS_WIN
+    struct BCryptContextTraits final {
+        static BCRYPT_ALG_HANDLE invalid() noexcept {
+            return nullptr;
+        }
+
+        static void close(BCRYPT_ALG_HANDLE value) {
+            ::BCryptCloseAlgorithmProvider(value, 0);
+        }
+    };
+
+    using BCryptContext = UniqueHandle<BCRYPT_ALG_HANDLE, BCryptContextTraits>;
+    BCRYPT_ALG_HANDLE prov = nullptr;
+
+    if (!BCRYPT_SUCCESS(::BCryptOpenAlgorithmProvider(&prov, BCRYPT_RNG_ALGORITHM, nullptr, 0))) {
+        return std::random_device{}();
+    }
+
+    const BCryptContext context(prov);
+    if (!BCRYPT_SUCCESS(::BCryptGenRandom(context.get(),
+        reinterpret_cast<PUCHAR>(&seed),
+        sizeof(seed),
+        0))) {
+        return std::random_device{}();
+    }
+#else
+    seed = std::random_device{}();
+#endif
+    return seed;
 }
 
 }

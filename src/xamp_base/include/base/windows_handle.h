@@ -64,36 +64,56 @@ struct XAMP_BASE_API MappingMemoryAddressTraits final {
 	}
 };
 
-struct XAMP_BASE_API WorkDeleter final {
-	static PTP_WORK invalid() noexcept { return nullptr; }
-	static void close(PTP_WORK value) { ::CloseThreadpoolWork(value); }
+struct XAMP_BASE_API WorkTraits final {
+	static PTP_WORK invalid() noexcept {
+		return nullptr;
+	}
+
+	static void close(PTP_WORK value) {
+		::CloseThreadpoolWork(value);
+	}
 };
 
-struct XAMP_BASE_API ThreadPoolDeleter final {
-	static PTP_POOL invalid() noexcept { return nullptr; }
-	static void close(PTP_POOL value) { ::CloseThreadpool(value); }
+struct XAMP_BASE_API ThreadPoolTraits final {
+	static PTP_POOL invalid() noexcept {
+		return nullptr;
+	}
+
+	static void close(PTP_POOL value) {
+		::CloseThreadpool(value);
+	}
 };
 
-struct XAMP_BASE_API CleanupThreadGroupDeleter final {
-	static PTP_CLEANUP_GROUP invalid() noexcept { return nullptr; }
-	static void close(PTP_CLEANUP_GROUP value) { ::CloseThreadpoolCleanupGroup(value); }
+struct XAMP_BASE_API CleanupThreadGroupTraits final {
+	static PTP_CLEANUP_GROUP invalid() noexcept {
+		return nullptr;
+	}
+
+	static void close(PTP_CLEANUP_GROUP value) {
+		::CloseThreadpoolCleanupGroup(value);
+	}
 };
 
-struct XAMP_BASE_API TimerQueueDeleter final {
-	static HANDLE invalid() noexcept { return nullptr; }
-	static void close(HANDLE value) { ::DeleteTimerQueueEx(value, INVALID_HANDLE_VALUE); }
+struct XAMP_BASE_API TimerQueueTraits final {
+	static HANDLE invalid() noexcept {
+		return nullptr;
+	}
+
+	static void close(HANDLE value) {
+		::DeleteTimerQueueEx(value, INVALID_HANDLE_VALUE);
+	}
 };
 
-using WorkHandle = UniqueHandle<PTP_WORK, WorkDeleter>;
-using CleanupThreadGroupHandle = UniqueHandle<PTP_CLEANUP_GROUP, CleanupThreadGroupDeleter>;
-using ThreadPoolHandle = UniqueHandle<PTP_POOL, ThreadPoolDeleter>;
+using WorkHandle = UniqueHandle<PTP_WORK, WorkTraits>;
+using CleanupThreadGroupHandle = UniqueHandle<PTP_CLEANUP_GROUP, CleanupThreadGroupTraits>;
+using ThreadPoolHandle = UniqueHandle<PTP_POOL, ThreadPoolTraits>;
 
 using WinHandle = UniqueHandle<HANDLE, HandleTraits>;
 using ModuleHandle = UniqueHandle<HMODULE, ModuleHandleTraits>;
 using FileHandle = UniqueHandle<HANDLE, FileHandleTraits>;
 using MappingFileHandle = UniqueHandle<HANDLE, MappingFileHandleTraits>;
 using MappingAddressHandle = UniqueHandle<void*, MappingMemoryAddressTraits>;
-using TimerQueueHandle = UniqueHandle<HANDLE, TimerQueueDeleter>;
+using TimerQueueHandle = UniqueHandle<HANDLE, TimerQueueTraits>;
 
 }
 #endif

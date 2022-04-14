@@ -18,13 +18,8 @@ namespace xamp::base {
 
 inline constexpr uint64_t kXoshiroDefaultSeed = UINT64_C(1234567890);
 
-template <typename T>
-constexpr uint32_t BitCount(T val) noexcept {
-    return sizeof(val) * CHAR_BIT;
-}
-
-constexpr uint64_t Rotl(const uint64_t x, int32_t k) noexcept {
-    return (x << k) | (x >> (64 - k));
+static XAMP_ALWAYS_INLINE uint64_t Rotl(const uint64_t x, int32_t shift) noexcept {
+    return (x << shift) | (x >> (64 - shift));
 }
 
 template <size_t N>
@@ -66,7 +61,7 @@ public:
         state_ = Splitmix64<4>(seed);
     }
 
-    constexpr result_type operator()() noexcept {
+    /*constexpr*/ result_type operator()() noexcept {
         const auto result = Rotl(state_[1] * 5, 7) * 9;
         const auto t = state_[1] << 17;
         state_[2] ^= state_[0];
@@ -154,7 +149,7 @@ public:
         : state_(Splitmix64<4>(seed)) {
     }
 
-    constexpr result_type operator()() noexcept {
+    /*constexpr*/ result_type operator()() noexcept {
         const auto result = state_[0] + state_[3];
         const auto t = state_[1] << 17;
         state_[2] ^= state_[0];
@@ -246,7 +241,7 @@ public:
         : state_(Splitmix64<4>(seed)) {
     }
 
-    constexpr result_type operator()() noexcept {
+    /*constexpr*/ result_type operator()() noexcept {
         const auto result = Rotl(state_[0] + state_[3], 23) + state_[0];
         const auto t = state_[1] << 17;
         state_[2] ^= state_[0];

@@ -433,13 +433,30 @@ static void BM_CircularBuffer(benchmark::State& state) {
     }
 }
 
+static void BM_IntrinsicRotl(benchmark::State& state) {
+    for (auto _ : state) {
+        auto result = _rotl64(0x76e15d3efefdcbbf, 7);
+        benchmark::DoNotOptimize(result);
+    }
+}
+
+static void BM_Rotl(benchmark::State& state) {
+    for (auto _ : state) {
+        auto result = Rotl(0x76e15d3efefdcbbf, 7);
+        benchmark::DoNotOptimize(result);
+    }
+}
+
+BENCHMARK(BM_IntrinsicRotl);
+BENCHMARK(BM_Rotl);
+
 //BENCHMARK(BM_UuidParse);
-//BENCHMARK(BM_Xoshiro256StarStarRandom);
-//BENCHMARK(BM_Xoshiro256PlusRandom);
-//BENCHMARK(BM_Xoshiro256PlusPlusRandom);
-//BENCHMARK(BM_default_random_engine);
-//BENCHMARK(BM_PRNG);
-//BENCHMARK(BM_PRNG_GetInstance);
+BENCHMARK(BM_Xoshiro256StarStarRandom);
+BENCHMARK(BM_Xoshiro256PlusRandom);
+BENCHMARK(BM_Xoshiro256PlusPlusRandom);
+BENCHMARK(BM_default_random_engine);
+BENCHMARK(BM_PRNG);
+BENCHMARK(BM_PRNG_GetInstance);
 
 //BENCHMARK(BM_unordered_set);
 //BENCHMARK(BM_FindRobinHoodHashSet);
@@ -462,10 +479,9 @@ static void BM_CircularBuffer(benchmark::State& state) {
 //BENCHMARK(BM_CircularBuffer)->ThreadRange(1, 128);
 
 //BENCHMARK(BM_async_pool)->RangeMultiplier(2)->Range(8, 8 << 8);
-//#ifdef XAMP_OS_WIN
-//BENCHMARK(BM_std_for_each_par)->RangeMultiplier(2)->Range(8, 8 << 8);
-//BENCHMARK(BM_Win32ThreadPool)->RangeMultiplier(2)->Range(8, 8 << 2);
-//#endif
+#ifdef XAMP_OS_WIN
+BENCHMARK(BM_std_for_each_par)->RangeMultiplier(2)->Range(8, 8 << 8);
+#endif
 
 BENCHMARK(BM_LeastLoadThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
 BENCHMARK(BM_RoundRubinThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);

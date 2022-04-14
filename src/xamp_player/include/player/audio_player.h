@@ -20,10 +20,12 @@
 #include <base/buffer.h>
 #include <base/fastmutex.h>
 #include <base/fastconditionvariable.h>
+
+#include <stream/fft.h>
+
 #include <output_device/iaudiocallback.h>
 #include <output_device/idevicestatelistener.h>
 #include <output_device/deviceinfo.h>
-
 #include <player/playstate.h>
 #include <player/iaudioplayer.h>
 
@@ -137,6 +139,8 @@ private:
 
     void ReadSampleLoop(int8_t* sample_buffer, uint32_t max_buffer_sample, std::unique_lock<FastMutex> &stopped_lock);
 
+    void ProcessFFT(float frame_size = 0.025, float frame_stride = 0.01);
+
     void BufferSamples(const AlignPtr<IAudioStream>& stream, int32_t buffer_count = 1);
 
     void UpdateProgress(int32_t sample_size = 0) noexcept;
@@ -186,6 +190,9 @@ private:
     std::shared_future<void> stream_task_;
     SpscQueue<PlayerAction> action_queue_;
     AlignPtr<IDSPManager> dsp_manager_;
+    FFT fft_;
+    Window window_;
+    std::vector<float> signal_;
     std::shared_ptr<spdlog::logger> logger_;
 };
 

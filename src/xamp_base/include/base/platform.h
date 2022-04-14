@@ -55,6 +55,8 @@ XAMP_BASE_API void AtomicWakeSingle(std::atomic<uint32_t>& to_wake) noexcept;
 
 XAMP_BASE_API void AtomicWakeAll(std::atomic<uint32_t>& to_wake) noexcept;
 
+XAMP_BASE_API uint64_t GenRandom() noexcept;
+
 #ifdef XAMP_OS_WIN
 XAMP_BASE_API void RedirectStdOut();
 XAMP_BASE_API bool ExtendProcessWorkingSetSize(size_t size) noexcept;
