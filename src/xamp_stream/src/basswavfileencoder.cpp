@@ -14,10 +14,10 @@ public:
     void Start(Path const& input_file_path, Path const& output_file_path, std::wstring const& command) {
         DWORD flags = BASS_ENCODE_AUTOFREE;
 
-        if (TestDsdFileFormatStd(input_file_path)) {
+        if (TestDsdFileFormatStd(input_file_path.wstring())) {
             stream_.SetDSDMode(DsdModes::DSD_MODE_DSD2PCM);
         }
-        stream_.OpenFile(input_file_path);
+        stream_.OpenFile(input_file_path.wstring());
 
         switch (stream_.GetBitDepth()) {
         case 24:
@@ -28,19 +28,10 @@ public:
             break;
         }
 
-#ifdef XAMP_OS_MAC
-        auto utf8_command = String::ToString(command);
-        auto utf8_ouput_file_name = String::ToString(output_file_path.wstring());
-        encoder_.reset(BASS.EncLib->BASS_Encode_StartACMFile(stream_.GetHStream(),
-            (void*)utf8_command.c_str(),
-            flags | BASS_UNICODE,
-            utf8_ouput_file_name.c_str()));
-#else
         encoder_.reset(BASS.EncLib->BASS_Encode_StartACMFile(stream_.GetHStream(),
             (void*)command.c_str(),
             flags | BASS_UNICODE,
-            output_file_path.c_str()));
-#endif
+            output_file_path.wstring().c_str()));
 
         if (!encoder_) {
             throw BassException();

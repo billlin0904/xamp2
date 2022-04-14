@@ -2,6 +2,8 @@
 #include <widget/str_utilts.h>
 #include <widget/discordnotify.h>
 
+using namespace xamp::base;
+
 std::array<char, DicordNotify::kMaxDetailsLength> DicordNotify::details_;
 
 DicordNotify::DicordNotify(QObject* parent)
@@ -51,7 +53,7 @@ void DicordNotify::OnNowPlaying(QString const& artist, QString const& title) {
 }
 
 void DicordNotify::discordInit() {
-	xamp::base::MemorySet(&handlers_, 0, sizeof(handlers_));
+    MemorySet(&handlers_, 0, sizeof(handlers_));
 	handlers_.ready = callback_discord_connected;
 	handlers_.disconnected = callback_discord_disconnected;
 	handlers_.errored = callback_discord_errored;
@@ -62,7 +64,7 @@ void DicordNotify::discordInit() {
 }
 
 void DicordNotify::initDiscordPresence() {
-	xamp::base::MemorySet(&discord_presence_, 0, sizeof(discord_presence_));
+    MemorySet(&discord_presence_, 0, sizeof(discord_presence_));
 	discord_presence_.state = "Initialized";
 	discord_presence_.details = "Waiting ...";
 	discord_presence_.largeImageKey = "xamp";

@@ -18,6 +18,11 @@ namespace xamp::base {
 
 inline constexpr uint64_t kXoshiroDefaultSeed = UINT64_C(1234567890);
 
+template <typename T>
+constexpr uint32_t BitCount(T val) noexcept {
+    return sizeof(val) * CHAR_BIT;
+}
+
 constexpr uint64_t Rotl(const uint64_t x, int32_t k) noexcept {
     return (x << k) | (x >> (64 - k));
 }
