@@ -114,10 +114,10 @@ struct XWindow::WinTaskbar {
     QIcon seek_backward_icon;
 
 private:
+    XWindow* window_;
     QScopedPointer<QWinThumbnailToolBar> thumbnail_tool_bar_;
     QScopedPointer<QWinTaskbarButton> taskbar_button_;
     QWinTaskbarProgress* taskbar_progress_;
-    XWindow* window_;
 };
 
 static XAMP_ALWAYS_INLINE LRESULT hitTest(HWND hwnd, MSG const* msg) noexcept {

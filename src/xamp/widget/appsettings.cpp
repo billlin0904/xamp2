@@ -72,7 +72,7 @@ QString AppSettings::getMyMusicFolderPath() {
 	return folder_path[0];
 }
 
-Uuid AppSettings::getID(const QString& key) {
+Uuid AppSettings::getValueAsID(const QString& key) {
 	auto str = getValue(key).toString();
 	if (str.isEmpty()) {
         return Uuid::kNullUuid;

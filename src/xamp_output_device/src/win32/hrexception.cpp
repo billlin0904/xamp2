@@ -2,12 +2,14 @@
 
 #ifdef XAMP_OS_WIN
 
+#include <comutil.h>
+#include <comdef.h>
 #include <output_device/win32/wasapi.h>
 #include <output_device/win32/hrexception.h>
 
 namespace xamp::output_device::win32 {
 
-std::string_view HRException::ErrorToString(HRESULT hr) noexcept {
+static std::string ErrorToString(HRESULT hr) noexcept {
     switch (hr) {
         default: return "Unknown";
         case AUDCLNT_E_NOT_INITIALIZED: return "AUDCLNT_E_NOT_INITIALIZED";
@@ -50,6 +52,11 @@ std::string_view HRException::ErrorToString(HRESULT hr) noexcept {
     }
 }
 
+static std::string GetHRErrorMessage(HRESULT hr) {
+    //return _com_error{ hr }.ErrorMessage();
+    return ErrorToString(hr);
+}
+
 void HRException::ThrowFromHResult(HRESULT hresult, std::string_view expr, const Path& file_path, int32_t line_number) {
 	switch (hresult) {
 	case AUDCLNT_E_DEVICE_IN_USE:
@@ -63,9 +70,15 @@ void HRException::ThrowFromHResult(HRESULT hresult, std::string_view expr, const
 	}
 }
 
-std::string HRException::ErrorToStringHelper(HRESULT hr, const Path& file_path, int32_t line_number) {
+std::string MakeErrorMessage(HRESULT hr) {
     std::ostringstream ostr;
-    ostr << "Hr code: 0x" << std::hex << hr << "(" << ErrorToString(hr) << ")" << " " << file_path.filename() << ":" << std::dec << line_number;
+    ostr << "Hr code: 0x" << std::hex << hr << "(" << GetHRErrorMessage(hr) << ")";
+    return ostr.str();
+}
+
+std::string MakeFileNameAndLine(const Path& file_path, int32_t line_number) {
+    std::ostringstream ostr;
+    ostr << file_path.filename() << ":" << std::dec << line_number;
     return ostr.str();
 }
 
@@ -73,12 +86,17 @@ HRException::HRException(HRESULT hresult, std::string_view expr, const Path& fil
 	: PlatformSpecException(hresult)
 	, hr_(hresult)
 	, expr_(expr) {	
-	message_ = ErrorToStringHelper(hresult, file_path, line_number);
+	message_ = MakeErrorMessage(hresult);
+    file_name_and_line_ = MakeFileNameAndLine(file_path, line_number);
     what_ = message_;
 }
 
 HRESULT HRException::GetHResult() const {
 	return hr_;
+}
+
+std::string HRException::GetFileNameAndLine() const {
+    return file_name_and_line_;
 }
 
 const char* HRException::GetExpression() const noexcept {

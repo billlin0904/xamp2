@@ -113,7 +113,7 @@ public:
         setDefaultValue<int32_t>(key, static_cast<int32_t>(value));
     }
 
-    static Uuid getID(QString const & key);
+    static Uuid getValueAsID(QString const & key);
 
     static QSize getSizeValue(QString const& width_key, QString const& height_key);
 

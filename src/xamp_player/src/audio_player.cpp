@@ -31,13 +31,13 @@ inline constexpr int32_t kBufferStreamCount = 2;
 inline constexpr int32_t kTotalBufferStreamCount = 5;
 
 inline constexpr uint32_t kPreallocateBufferSize = 4 * 1024 * 1024;
-inline constexpr uint32_t kMaxPreallocateBufferSize = 16 * 1024 * 1024;
+inline constexpr uint32_t kMaxPreAllocateBufferSize = 32 * 1024 * 1024;
 	
 inline constexpr uint32_t kMaxWriteRatio = 50;
 inline constexpr uint32_t kMaxReadRatio = 2;
 inline constexpr uint32_t kActionQueueSize = 30;
 
-inline constexpr size_t kFFTSize = 2048;
+inline constexpr size_t kFFTSize = 4096;
 
 inline constexpr std::chrono::milliseconds kUpdateSampleInterval(100);
 inline constexpr std::chrono::milliseconds kReadSampleWaitTime(30);
@@ -115,7 +115,7 @@ AudioPlayer::AudioPlayer(const std::weak_ptr<IPlaybackStateAdapter> &adapter)
 AudioPlayer::~AudioPlayer() = default;
 
 void AudioPlayer::InitFFT() {
-    fft_.Init(4096);
+    fft_.Init(kFFTSize);
 }
 
 void AudioPlayer::ProcessFFT(float frame_size, float frame_stride) {
@@ -506,16 +506,16 @@ void AudioPlayer::CreateBuffer() {
 
     uint32_t allocate_read_size = 0;
     if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE) {
-        allocate_read_size = kMaxPreallocateBufferSize;
+        allocate_read_size = kMaxPreAllocateBufferSize;
     } else {
-        allocate_read_size = (std::min)(kMaxPreallocateBufferSize,
+        allocate_read_size = (std::min)(kMaxPreAllocateBufferSize,
             require_read_sample *
             stream_->GetSampleSize() * 
             kBufferStreamCount);
         allocate_read_size = AlignUp(allocate_read_size);
     }
 
-    fifo_size_ = allocate_read_size * kTotalBufferStreamCount;
+    fifo_size_ = kMaxPreAllocateBufferSize;/*allocate_read_size * kTotalBufferStreamCount;*/
     num_read_sample_ = require_read_sample;
     AllocateReadBuffer(allocate_read_size);
     AllocateFifo();

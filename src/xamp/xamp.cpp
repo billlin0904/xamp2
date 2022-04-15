@@ -319,6 +319,7 @@ void Xamp::initialDeviceList() {
         ui_.selectDeviceButton->setMenu(menu);
     }
 
+    menu->setFont(QFont(Q_UTF8("FormatFont")));
     menu->clear();
 
     DeviceInfo init_device_info;
@@ -329,7 +330,7 @@ void Xamp::initialDeviceList() {
 
     std::map<std::string, QAction*> device_id_action;
 
-    const auto device_type_id = AppSettings::getID(kAppSettingDeviceType);
+    const auto device_type_id = AppSettings::getValueAsID(kAppSettingDeviceType);
     const auto device_id = AppSettings::getValueAsString(kAppSettingDeviceId).toStdString();
     const auto & device_manager = player_->GetAudioDeviceManager();
 

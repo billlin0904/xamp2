@@ -19,19 +19,18 @@ class XAMP_OUTPUT_DEVICE_API HRException final : public PlatformSpecException {
 public:
 	static void ThrowFromHResult(HRESULT hresult, std::string_view expr = "", const Path& file_path = "", int32_t line_number = 0);
 
-	static std::string_view ErrorToString(HRESULT hr) noexcept;
-
-	static std::string ErrorToStringHelper(HRESULT hr, const Path& file_path = "", int32_t line_number = 0);
-
 	explicit HRException(HRESULT hresult, std::string_view expr = "", const Path& file_path = "", int32_t line_number = 0);
 
 	HRESULT GetHResult() const;
 
 	const char* GetExpression() const noexcept override;
 
+	std::string GetFileNameAndLine() const;
+
 private:
 	HRESULT hr_;
 	std::string_view expr_;
+	std::string file_name_and_line_;
 };
 
 }

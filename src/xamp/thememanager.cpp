@@ -27,7 +27,9 @@ bool ThemeManager::enableBlur() const {
 }
 
 QFont ThemeManager::loadFonts() {
-    const auto digital_font_id = QFontDatabase::addApplicationFont(Q_UTF8(":/xamp/fonts/digital.ttf"));
+    /*const auto digital_font_id = QFontDatabase::addApplicationFont(Q_UTF8(":/xamp/fonts/digital.ttf"));
+    const auto digital_font_families = QFontDatabase::applicationFontFamilies(digital_font_id);*/
+    const auto digital_font_id = QFontDatabase::addApplicationFont(Q_UTF8(":/xamp/fonts/Lato-Regular.ttf"));
     const auto digital_font_families = QFontDatabase::applicationFontFamilies(digital_font_id);
 
     const auto title_font_id = QFontDatabase::addApplicationFont(Q_UTF8(":/xamp/fonts/WorkSans-Bold.ttf"));

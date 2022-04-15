@@ -33,20 +33,22 @@
 #include "xamp.h"
 
 static void loadSoxrSetting() {
-    if (JsonSettings::getValueAsMap(kSoxr).isEmpty()) {
-        QMap<QString, QVariant> default_setting;
+    QMap<QString, QVariant> default_setting;
 
-        default_setting[kSoxrResampleSampleRate] = 96000;
-        default_setting[kSoxrEnableSteepFilter] = false;
-        default_setting[kSoxrQuality] = static_cast<int32_t>(SoxrQuality::VHQ);
-        default_setting[kSoxrPhase] = 46;
-        default_setting[kSoxrStopBand] = 100;
-        default_setting[kSoxrPassBand] = 96;
-        default_setting[kSoxrRollOffLevel] = static_cast<int32_t>(SoxrRollOff::ROLLOFF_NONE);
+    default_setting[kSoxrResampleSampleRate] = 96000;
+    default_setting[kSoxrEnableSteepFilter] = false;
+    default_setting[kSoxrQuality] = static_cast<int32_t>(SoxrQuality::VHQ);
+    default_setting[kSoxrPhase] = 46;
+    default_setting[kSoxrStopBand] = 100;
+    default_setting[kSoxrPassBand] = 96;
+    default_setting[kSoxrRollOffLevel] = static_cast<int32_t>(SoxrRollOff::ROLLOFF_NONE);
 
-        QMap<QString, QVariant> soxr_setting;
-        soxr_setting[kSoxrDefaultSettingName] = default_setting;
+    QMap<QString, QVariant> soxr_setting;
+    soxr_setting[kSoxrDefaultSettingName] = default_setting;
 
+    JsonSettings::setDefaultValue(kSoxr, QVariant::fromValue(soxr_setting));
+
+    if (JsonSettings::getValueAsMap(kSoxr).isEmpty()) {     
         JsonSettings::setValue(kSoxr, QVariant::fromValue(soxr_setting));
         AppSettings::setValue(kAppSettingSoxrSettingName, kSoxrDefaultSettingName);
         AppSettings::setDefaultValue(kAppSettingSoxrSettingName, kSoxrDefaultSettingName);
@@ -277,7 +279,7 @@ static int excute(int argc, char* argv[]) {
     }
     catch (const Exception& e) {
         QMessageBox::critical(nullptr,
-            Q_UTF8("XStartup failure."),
+            Q_UTF8("XampInitialize failure."),
             QString::fromStdString(e.GetErrorMessage()));
         XAMP_LOG_DEBUG("{}", e.GetStackTrace());
         return -1;

@@ -21,11 +21,9 @@ size_t RoundRobinSchedulerPolicy::ScheduleNext(size_t /*cur_index*/, size_t max_
 }
 
 size_t RandomSchedulerPolicy::ScheduleNext(size_t cur_index, size_t max_thread, const std::vector<WorkStealingTaskQueuePtr>& work_queues) const {
-	static thread_local PRNG prng;
-
 	size_t random_index;
 	do {
-		random_index = prng.NextSize(max_thread - 1);
+		random_index = PRNG::GetInstance().NextSize(max_thread - 1);
 	} while (random_index == cur_index);
 
 	return random_index;
