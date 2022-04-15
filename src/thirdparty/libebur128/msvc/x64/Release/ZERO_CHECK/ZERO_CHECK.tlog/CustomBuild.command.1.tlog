@@ -1,0 +1,10 @@
+^C:\USERS\RDBILL0452\DOCUMENTS\GITHUB\XAMP2\SRC\THIRDPARTY\LIBEBUR128\MSVC\CMAKEFILES\B56E108168B63E5B8A86FA4D5509B49E\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/rdbill0452/Documents/Github/xamp2/src/thirdparty/libebur128 -BC:/Users/rdbill0452/Documents/Github/xamp2/src/thirdparty/libebur128/msvc --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/rdbill0452/Documents/Github/xamp2/src/thirdparty/libebur128/msvc/libebur128.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

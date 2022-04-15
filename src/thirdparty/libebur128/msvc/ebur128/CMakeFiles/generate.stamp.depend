@@ -1,0 +1,5 @@
+# CMake generation dependency list for this directory.
+C:/Program Files/CMake/share/cmake-3.23/Modules/CMakeDependentOption.cmake
+C:/Users/rdbill0452/Documents/Github/xamp2/src/thirdparty/libebur128/ebur128/CMakeLists.txt
+C:/Users/rdbill0452/Documents/Github/xamp2/src/thirdparty/libebur128/ebur128/libebur128.pc.cmake
+C:/Users/rdbill0452/Documents/Github/xamp2/src/thirdparty/libebur128/msvc/ebur128/queuetest.c

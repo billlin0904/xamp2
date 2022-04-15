@@ -1,0 +1,6 @@
+C:/Users/rdbill0452/Documents/Github/xamp2/src/thirdparty/libebur128/msvc/CMakeFiles/INSTALL.dir
+C:/Users/rdbill0452/Documents/Github/xamp2/src/thirdparty/libebur128/msvc/CMakeFiles/ALL_BUILD.dir
+C:/Users/rdbill0452/Documents/Github/xamp2/src/thirdparty/libebur128/msvc/CMakeFiles/ZERO_CHECK.dir
+C:/Users/rdbill0452/Documents/Github/xamp2/src/thirdparty/libebur128/msvc/ebur128/CMakeFiles/ebur128.dir
+C:/Users/rdbill0452/Documents/Github/xamp2/src/thirdparty/libebur128/msvc/ebur128/CMakeFiles/INSTALL.dir
+C:/Users/rdbill0452/Documents/Github/xamp2/src/thirdparty/libebur128/msvc/test/CMakeFiles/INSTALL.dir

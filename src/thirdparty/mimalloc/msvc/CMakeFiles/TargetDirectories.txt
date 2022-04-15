@@ -1,0 +1,6 @@
+C:/Users/rdbill0452/Documents/Github/xamp2/src/thirdparty/mimalloc/msvc/CMakeFiles/mimalloc.dir
+C:/Users/rdbill0452/Documents/Github/xamp2/src/thirdparty/mimalloc/msvc/CMakeFiles/mimalloc-static.dir
+C:/Users/rdbill0452/Documents/Github/xamp2/src/thirdparty/mimalloc/msvc/CMakeFiles/mimalloc-obj.dir
+C:/Users/rdbill0452/Documents/Github/xamp2/src/thirdparty/mimalloc/msvc/CMakeFiles/INSTALL.dir
+C:/Users/rdbill0452/Documents/Github/xamp2/src/thirdparty/mimalloc/msvc/CMakeFiles/ALL_BUILD.dir
+C:/Users/rdbill0452/Documents/Github/xamp2/src/thirdparty/mimalloc/msvc/CMakeFiles/ZERO_CHECK.dir

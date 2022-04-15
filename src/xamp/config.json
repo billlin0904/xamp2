@@ -25,10 +25,10 @@
     "Soxr": {
         "default": {
             "enableSteepFilter": false,
-            "passBand": 96,
-            "phase": 46,
+            "passBand": 99,
+            "phase": 50,
             "quality": 3,
-            "resampleSampleRate": 96000,
+            "resampleSampleRate": 192000,
             "rolloffLevel": 0,
             "stopBand": 100
         }
