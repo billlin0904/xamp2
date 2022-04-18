@@ -488,7 +488,7 @@ void AudioPlayer::AllocateReadBuffer(uint32_t allocate_size) {
 
 void AudioPlayer::AllocateFifo() {
     if (fifo_.GetSize() == 0 || fifo_.GetSize() < fifo_size_) {
-        XAMP_LOG_D(logger_, "Allocate internal buffer : {}.", String::FormatBytes(fifo_size_));
+        XAMP_LOG_D(logger_, "Allocate fifo buffer : {}.", String::FormatBytes(fifo_size_));
         fifo_.Resize(fifo_size_);
     }
 }
@@ -515,7 +515,7 @@ void AudioPlayer::CreateBuffer() {
         allocate_read_size = AlignUp(allocate_read_size);
     }
 
-    fifo_size_ = kMaxPreAllocateBufferSize;/*allocate_read_size * kTotalBufferStreamCount;*/
+    fifo_size_ = allocate_read_size * kTotalBufferStreamCount;
     num_read_sample_ = require_read_sample;
     AllocateReadBuffer(allocate_read_size);
     AllocateFifo();

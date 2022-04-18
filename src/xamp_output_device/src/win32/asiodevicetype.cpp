@@ -1,12 +1,13 @@
 #if ENABLE_ASIO
 #include <asiodrivers.h>
 
+#include <base/align_ptr.h>
 #include <base/str_utilts.h>
 
-#include <output_device/asiodevice.h>
-#include <output_device/asiodevicetype.h>
+#include <output_device/win32/asiodevice.h>
+#include <output_device/win32/asiodevicetype.h>
 
-namespace xamp::output_device {
+namespace xamp::output_device::win32 {
 
 ASIODeviceType::ASIODeviceType() = default;
 

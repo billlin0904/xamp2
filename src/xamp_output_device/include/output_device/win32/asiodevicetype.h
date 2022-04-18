@@ -11,9 +11,11 @@
 
 #include <base/align_ptr.h>
 #include <base/stl.h>
+
+#include <output_device/output_device.h>
 #include <output_device/idevicetype.h>
 
-namespace xamp::output_device {
+namespace xamp::output_device::win32 {
 
 class ASIODeviceType final : public IDeviceType {
 public:

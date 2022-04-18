@@ -20,8 +20,6 @@ public:
 
 	XAMP_PIMPL(Mmcss)
 
-	static void LoadAvrtLib();	
-
 	void BoostPriority(std::wstring_view task_name = kMmcssProfileProAudio, MmcssThreadPriority priority = MmcssThreadPriority::MMCSS_THREAD_PRIORITY_NORMAL) noexcept;
 
 	void RevertPriority() noexcept;

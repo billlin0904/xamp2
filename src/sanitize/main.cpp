@@ -85,35 +85,39 @@ void TestFloatConverter() {
 	}	
 }
 
-void TestToInt8Planar() {
-	auto input = MakeAlignedArray<int8_t>(64);
-	for (auto i = 0; i < 64; ++i) {
-		input[i] = i % 2 == 0 ? 0 + i : 20 + i;
-	}
-	for (auto i = 0; i < 64; ++i) {
-		std::cout << "0x" << std::setw(2) << std::dec << std::setfill('0') << 
+void PrintArray(AlignArray<int8_t> const &input, size_t size) {
+	for (auto i = 0; i < size; ++i) {
+		/*std::cout << "0x" << std::setw(2) << std::dec << std::setfill('0') <<
+			static_cast<int32_t>(input[i]) << " ";*/
+		std::cout << std::setw(2) << std::dec << std::setfill('0') <<
 			static_cast<int32_t>(input[i]) << " ";
 		if ((i + 1) % 8 == 0) std::cout << std::endl;
 	}
+}
+
+void TestToInt8Planar() {
+	auto input = MakeAlignedArray<int8_t>(64);
+	auto value = 0;
+	for (auto i = 0; i < 64; ++i) {
+		input[i] = i % 2 == 0 ? ++value : 20 + value;
+	}
+
+	PrintArray(input, 64);
 	std::cout << std::endl;
+
 	auto left = MakeAlignedArray<int8_t>(32);
 	auto right = MakeAlignedArray<int8_t>(32);
+
 	InterleaveToPlanar<int8_t, int8_t>::Convert(
 		input.get(),
-		input.get() + 32,
 		left.get(),
-		right.get());
-	for (auto i = 0; i < 32; ++i) {
-		std::cout << "0x" << std::setw(2) << std::dec << std::setfill('0') <<
-			static_cast<int32_t>(left[i]) << " ";
-		if ((i + 1) % 8 == 0) std::cout << std::endl;
-	}
+		right.get(),
+		64);
+
+	PrintArray(left, 32);
 	std::cout << std::endl;
-	for (auto i = 0; i < 32; ++i) {
-		std::cout << "0x" << std::setw(2) << std::dec << std::setfill('0') <<
-			static_cast<int32_t>(right[i]) << " ";
-		if ((i + 1) % 8 == 0) std::cout << std::endl;
-	}
+
+	PrintArray(right, 32);
 }
 
 int main(int argc, char* argv[]) {
@@ -134,6 +138,5 @@ int main(int argc, char* argv[]) {
 		Logger::GetInstance().Shutdown();
 	);
 
-	XStartup();
-	TestPlayDSD(String::ToStdWString(argv[1]));
+	XampInitialize();
 }

@@ -1,7 +1,7 @@
 #if ENABLE_ASIO
-#include <output_device/asioexception.h>
+#include <output_device/win32/asioexception.h>
 
-namespace xamp::output_device {
+namespace xamp::output_device::win32 {
 
 std::string_view ASIOException::ErrorMessage(ASIOError error) noexcept {
 	switch (error) {

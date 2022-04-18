@@ -20,7 +20,7 @@
 #include <output_device/idsddevice.h>
 #include <output_device/win32/mmcss.h>
 
-namespace xamp::output_device {
+namespace xamp::output_device::win32 {
 
 class AsioDevice final
 	: public IOutputDevice
@@ -96,7 +96,13 @@ private:
 
 	bool IsSupportDsdFormat() const;
 
-	void FillSlientData();
+	void FillSlientData() noexcept;
+
+	bool GetPCMSamples(long index, double sample_time, size_t& num_filled_frame) noexcept;
+
+	bool GetDSDSamples(long index, double sample_time, size_t& num_filled_frame) noexcept;
+
+	typedef bool (AsioDevice::* ProcessDispatch)(long index, double sample_time, size_t& num_filled_frame) noexcept;
 
 	bool is_removed_driver_;
 	std::atomic<bool> is_stopped_;
@@ -118,6 +124,7 @@ private:
 	Buffer<int8_t> device_buffer_;	
 	IAudioCallback* callback_;
 	win32::Mmcss mmcss_;
+	ProcessDispatch process_;
 	std::shared_ptr<spdlog::logger> log_;
 };
 

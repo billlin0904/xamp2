@@ -16,7 +16,7 @@
 #include <base/exception.h>
 #include <output_device/output_device.h>
 
-namespace xamp::output_device {
+namespace xamp::output_device::win32 {
 
 class XAMP_OUTPUT_DEVICE_API ASIOException final : public Exception {
 public:

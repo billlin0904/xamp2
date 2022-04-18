@@ -12,7 +12,6 @@
 #include <base/singleton.h>
 #include <base/platform.h>
 #include <base/stopwatch.h>
-#include <base/waitabletimer.h>
 #include <base/simd.h>
 
 #ifdef XAMP_OS_WIN
@@ -20,12 +19,10 @@
 #endif
 
 #include <output_device/iaudiocallback.h>
-#include <output_device/asioexception.h>
-#include <output_device/asiodevice.h>
+#include <output_device/win32/asioexception.h>
+#include <output_device/win32/asiodevice.h>
 
-namespace xamp::output_device {
-
-using namespace win32;
+namespace xamp::output_device::win32 {
 
 struct AsioDriver {
 	bool is_xrun{ false };
@@ -38,7 +35,11 @@ struct AsioDriver {
 	std::array<ASIOBufferInfo, kMaxChannel> buffer_infos{};
 	std::array<ASIOChannelInfo, kMaxChannel> channel_infos{};
 
-	void Post() {
+	void SetPostOutput() {
+		post_output = ::ASIOOutputReady() == ASE_OK;
+	}
+
+	void Post() noexcept {
 		if (post_output) {
 			::ASIOOutputReady();
 		}
@@ -77,6 +78,7 @@ AsioDevice::AsioDevice(std::string const & device_id)
 	, device_id_(device_id)
 	, clock_source_(kClockSourceSize)
 	, callback_(nullptr)
+	, process_(nullptr)
 	, log_(Logger::GetInstance().GetLogger(kAsioDeviceLoggerName)) {
 }
 
@@ -384,7 +386,7 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 	latency_ = GetLatencyMs(output_latency, output_format.GetSampleRate());
 	XAMP_LOG_D(log_, "Buffer size :{} ", String::FormatBytes(buffer_.GetByteSize()));
 	XAMP_LOG_D(log_, "Ouput latency: {}ms.", latency_);
-	ASIODriver.post_output = ::ASIOOutputReady() == ASE_OK;
+	ASIODriver.SetPostOutput();
 	XAMP_LOG_D(log_, "Drvier support post output: {}", ASIODriver.post_output);
 }
 
@@ -403,7 +405,7 @@ void AsioDevice::SetMute(bool mute) const {
 	}
 }
 
-void AsioDevice::FillSlientData() {
+void AsioDevice::FillSlientData() noexcept {
 	for (size_t i = 0, j = 0; i < format_.GetChannels(); ++i) {
 		MemorySet(ASIODriver.buffer_infos[i].buffers[0],
 			0,
@@ -411,6 +413,53 @@ void AsioDevice::FillSlientData() {
 		MemorySet(ASIODriver.buffer_infos[i].buffers[1],
 			0,
 			buffer_bytes_);
+	}
+}
+
+bool AsioDevice::GetPCMSamples(long index, double sample_time, size_t& num_filled_frame) noexcept {
+	const auto vol = volume_.load();
+	if (ASIODriver.data_context.cache_volume != vol) {
+		ASIODriver.data_context.volume_factor = LinearToLog(vol);
+		ASIODriver.data_context.cache_volume = vol;
+	}
+
+	// PCM mode input float to output format.
+	const auto stream_time = static_cast<double>(played_bytes_) / format_.GetAvgBytesPerSec();
+	buffer_.Fill(0);
+
+	XAMP_LIKELY(callback_->OnGetSamples(buffer_.Get(), buffer_size_, num_filled_frame, stream_time, sample_time) == DataCallbackResult::CONTINUE) {
+		const auto in = reinterpret_cast<const float*>(buffer_.Get());
+		InterleaveToPlanar<float, int32_t>::Convert(
+			in,
+			static_cast<int32_t*>(ASIODriver.buffer_infos[0].buffers[index]),
+			static_cast<int32_t*>(ASIODriver.buffer_infos[1].buffers[index]),
+			buffer_size_ * format_.GetChannels(),
+			ASIODriver.data_context.volume_factor);
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool AsioDevice::GetDSDSamples(long index, double sample_time, size_t& num_filled_frame) noexcept {
+	// DSD mode input output same format (int8_t).
+	const auto avg_byte_per_sec = format_.GetAvgBytesPerSec() / 8;
+	const auto stream_time = static_cast<double>(played_bytes_) / avg_byte_per_sec;
+
+	XAMP_LIKELY(callback_->OnGetSamples(buffer_.Get(), buffer_bytes_, num_filled_frame, stream_time, sample_time) == DataCallbackResult::CONTINUE) {
+		DataConverter<PackedFormat::PLANAR,
+			PackedFormat::INTERLEAVED>::Convert(
+				device_buffer_.Get(),
+				buffer_.Get(),
+				ASIODriver.data_context);
+		for (size_t i = 0, j = 0; i < format_.GetChannels(); ++i) {
+			MemoryCopy(ASIODriver.buffer_infos[i].buffers[index],
+				&device_buffer_[j++ * buffer_bytes_],
+				buffer_bytes_);
+		}
+		return true;
+	} else {
+		return false;
 	}
 }
 
@@ -437,57 +486,13 @@ void AsioDevice::OnBufferSwitch(long index, double sample_time) noexcept {
 	cache_played_bytes += buffer_bytes_ * format_.GetChannels();
 	played_bytes_ = cache_played_bytes;	
 
-	auto got_samples = false;
 	size_t num_filled_frame = 0;
-
-	if (io_format_ == DsdIoFormat::IO_FORMAT_PCM) {
-		const auto vol = volume_.load();
-		if (ASIODriver.data_context.cache_volume != vol) {
-			ASIODriver.data_context.volume_factor = LinearToLog(vol);
-			ASIODriver.data_context.cache_volume = vol;
-		}
-
-		// PCM mode input float to output format.
-		const auto stream_time = static_cast<double>(played_bytes_) / format_.GetAvgBytesPerSec();
-		buffer_.Fill(0);
-
-		XAMP_LIKELY(callback_->OnGetSamples(buffer_.Get(), buffer_size_, num_filled_frame, stream_time, sample_time) == DataCallbackResult::CONTINUE) {
-			const auto in = reinterpret_cast<const float*>(buffer_.Get());
-			InterleaveToPlanar<float, int32_t>::Convert(
-				in, 				
-				static_cast<int32_t*>(ASIODriver.buffer_infos[0].buffers[index]),
-				static_cast<int32_t*>(ASIODriver.buffer_infos[1].buffers[index]),
-				buffer_size_ * format_.GetChannels(),
-				ASIODriver.data_context.volume_factor);			
-			got_samples = true;
-		} else {
-			FillSlientData();
-		}
-	}
-	else {
-		// DSD mode input output same format (int8_t).
-		const auto avg_byte_per_sec = format_.GetAvgBytesPerSec() / 8;
-		const auto stream_time = static_cast<double>(played_bytes_) / avg_byte_per_sec;
-		XAMP_LIKELY(callback_->OnGetSamples(buffer_.Get(), buffer_bytes_, num_filled_frame, stream_time, sample_time) == DataCallbackResult::CONTINUE) {
-			DataConverter<PackedFormat::PLANAR,
-				PackedFormat::INTERLEAVED>::Convert(
-					device_buffer_.Get(),
-					buffer_.Get(),
-					ASIODriver.data_context);
-			got_samples = true;
-
-			for (size_t i = 0, j = 0; i < format_.GetChannels(); ++i) {
-				MemoryCopy(ASIODriver.buffer_infos[i].buffers[index],
-					&device_buffer_[j++ * buffer_bytes_],
-					buffer_bytes_);
-			}
-		} else {
-			FillSlientData();
-		}
-	}
-
+	const auto got_samples = (*this.*process_)(index, sample_time, num_filled_frame);
+	
 	if (got_samples) {
 		ASIODriver.Post();
+	} else {
+		FillSlientData();
 	}
 }
 
@@ -540,7 +545,7 @@ void AsioDevice::OpenStream(AudioFormat const & output_format) {
 }
 
 void AsioDevice::SetOutputSampleRate(AudioFormat const & output_format) {
-	auto error = ::ASIOSetSampleRate(static_cast<ASIOSampleRate>(output_format.GetSampleRate()));
+	auto error = ::ASIOSetSampleRate(output_format.GetSampleRate());
 	if (error == ASE_NotPresent) {
 		throw DeviceUnSupportedFormatException(output_format);
 	}
@@ -607,6 +612,13 @@ void AsioDevice::CloseStream() {
 }
 
 void AsioDevice::StartStream() {
+	if (io_format_ == DsdIoFormat::IO_FORMAT_PCM) {
+		process_ = &AsioDevice::GetPCMSamples;
+	}
+	else {
+		process_ = &AsioDevice::GetDSDSamples;
+	}
+
 	mmcss_.RevertPriority();
 	is_streaming_ = true;
 	is_stop_streaming_ = false;

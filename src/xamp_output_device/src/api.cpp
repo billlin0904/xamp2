@@ -1,7 +1,7 @@
 #include <base/uuid.h>
 #include <output_device/win32/exclusivewasapidevicetype.h>
-#include <output_device/asiodevice.h>
-#include <output_device/asiodevicetype.h>
+#include <output_device/win32/asiodevice.h>
+#include <output_device/win32/asiodevicetype.h>
 #include <output_device/audiodevicemanager.h>
 #include <output_device/api.h>
 
@@ -61,7 +61,7 @@ bool IsExclusiveDevice(DeviceInfo const& info) noexcept {
     Uuid const device_type_id(info.device_type_id);
     return device_type_id == win32::ExclusiveWasapiDeviceType::Id
 #if ENABLE_ASIO
-        || device_type_id == ASIODeviceType::Id
+        || device_type_id == win32::ASIODeviceType::Id
 #endif
         ;
 #else
@@ -72,7 +72,7 @@ bool IsExclusiveDevice(DeviceInfo const& info) noexcept {
 
 bool IsASIODevice(Uuid const& id) noexcept {
 #if defined(ENABLE_ASIO) && defined(XAMP_OS_WIN)
-    return id == ASIODeviceType::Id;
+    return id == win32::ASIODeviceType::Id;
 #else
     (void)id;
     return false;
@@ -81,7 +81,7 @@ bool IsASIODevice(Uuid const& id) noexcept {
 
 void ResetASIODriver() {
 #if defined(ENABLE_ASIO) && defined(XAMP_OS_WIN)
-    AsioDevice::ResetDriver();
+    win32::AsioDevice::ResetDriver();
 #endif
 }
 

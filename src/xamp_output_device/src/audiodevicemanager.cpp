@@ -11,8 +11,8 @@
 #include <output_device/win32/win32devicestatenotification.h>
 #if ENABLE_ASIO
 #include <output_device/win32/mmcss.h>
-#include <output_device/asiodevice.h>
-#include <output_device/asiodevicetype.h>
+#include <output_device/win32/asiodevice.h>
+#include <output_device/win32/asiodevicetype.h>
 #endif
 #else
 #include <IOKit/pwr_mgt/IOPMLib.h>
@@ -63,7 +63,6 @@ AudioDeviceManager::AudioDeviceManager() {
     using namespace win32;
     constexpr size_t kWorkingSetSize = 2048ul * 1024ul * 1024ul;
     SetProcessWorkingSetSize(kWorkingSetSize);
-    Mmcss::LoadAvrtLib();
     XAMP_LOG_DEBUG("LoadAvrtLib success");
     HrIfFailledThrow(::MFStartup(MF_VERSION, MFSTARTUP_LITE));
     XAMP_LOG_DEBUG("MFStartup startup success");
@@ -109,7 +108,7 @@ AlignPtr<IDeviceType> AudioDeviceManager::Create(Uuid const& id) const {
 
 bool AudioDeviceManager::IsSupportASIO() const noexcept {
 #if ENABLE_ASIO && defined(XAMP_OS_WIN)
-    return IsDeviceTypeExist(ASIODeviceType::Id);
+    return IsDeviceTypeExist(win32::ASIODeviceType::Id);
 #else
     return false;
 #endif

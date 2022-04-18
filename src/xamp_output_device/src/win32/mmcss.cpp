@@ -3,38 +3,12 @@
 #ifdef XAMP_OS_WIN
 
 #include <base/dll.h>
-#include <base/windows_handle.h>
-#include <base/singleton.h>
 #include <avrt.h>
 
 #include <base/logger.h>
 #include <output_device/win32/mmcss.h>
 
 namespace xamp::output_device::win32 {
-
-class AvrtLib {
-public:
-	friend class Singleton<AvrtLib>;
-
-	XAMP_DISABLE_COPY(AvrtLib)
-
-private:
-	AvrtLib()
-		: module_(LoadModule("Avrt.dll"))
-		, AvRevertMmThreadCharacteristics(module_, "AvRevertMmThreadCharacteristics")
-		, AvSetMmThreadPriority(module_, "AvSetMmThreadPriority")
-		, AvSetMmThreadCharacteristicsW(module_, "AvSetMmThreadCharacteristicsW") {
-	}
-
-	ModuleHandle module_;
-
-public:
-	XAMP_DECLARE_DLL(AvRevertMmThreadCharacteristics) AvRevertMmThreadCharacteristics;
-	XAMP_DECLARE_DLL(AvSetMmThreadPriority) AvSetMmThreadPriority;
-	XAMP_DECLARE_DLL(AvSetMmThreadCharacteristicsW) AvSetMmThreadCharacteristicsW;
-};
-
-#define AVRTLib Singleton<AvrtLib>::GetInstance()
 
 class Mmcss::MmcssImpl {
 public:
@@ -46,9 +20,9 @@ public:
 	void BoostPriority(std::wstring_view task_name, MmcssThreadPriority priority) noexcept {
 		RevertPriority();
 
-		avrt_handle_ = AVRTLib.AvSetMmThreadCharacteristicsW(task_name.data(), &avrt_task_index_);
+		avrt_handle_ = ::AvSetMmThreadCharacteristicsW(task_name.data(), &avrt_task_index_);
 		if (avrt_handle_ != nullptr) {
-			AVRTLib.AvSetMmThreadPriority(avrt_handle_, static_cast<AVRT_PRIORITY>(priority));
+			::AvSetMmThreadPriority(avrt_handle_, static_cast<AVRT_PRIORITY>(priority));
 			return;
 		}
 		
@@ -61,7 +35,7 @@ public:
 			return;
 		}
 		
-		if (!AVRTLib.AvRevertMmThreadCharacteristics(avrt_handle_)) {
+		if (!::AvRevertMmThreadCharacteristics(avrt_handle_)) {
 			XAMP_LOG_ERROR("AvSetMmThreadCharacteristicsW return failure! Error:{}",
 				GetLastErrorMessage());
 		}
@@ -79,10 +53,6 @@ Mmcss::Mmcss()
 }
 
 XAMP_PIMPL_IMPL(Mmcss)
-
-void Mmcss::LoadAvrtLib() {
-	(void)Singleton<AvrtLib>::GetInstance();
-}
 
 void Mmcss::BoostPriority(std::wstring_view task_name, MmcssThreadPriority priority) noexcept {
 	impl_->BoostPriority(task_name, priority);

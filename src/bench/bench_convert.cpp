@@ -275,6 +275,56 @@ static void BM_InterleavedToPlanarConvertToInt32(benchmark::State& state) {
     state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * length * sizeof(float));
 }
 
+static void BM_InterleavedToPlanarConvertToInt8_AVX(benchmark::State& state) {
+    auto length = state.range(0);
+
+    auto input = PRNG::GetInstance().GetRandomBytes(length);
+    auto output = MakeAlignedArray<int8_t>(length * 2);
+
+    AudioFormat input_format;
+    AudioFormat output_format;
+
+    input_format.SetChannel(2);
+    output_format.SetChannel(2);
+
+    for (auto _ : state) {
+        InterleaveToPlanar<int8_t, int8_t>::Convert(input.get(),
+            output.get(),
+            output.get() + (length / 2),
+            length);
+    }
+
+    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * length * sizeof(int8_t));
+}
+
+static void BM_InterleavedToPlanarConvertToInt8(benchmark::State& state) {
+    auto length = state.range(0);
+
+    auto input = PRNG::GetInstance().GetRandomBytes(length);
+    auto output = MakeAlignedArray<int8_t>(length * 2);
+
+    AudioFormat input_format;
+    AudioFormat output_format;
+
+    input_format.SetChannel(2);
+    output_format.SetChannel(2);
+
+    input_format.SetPackedFormat(PackedFormat::PLANAR);
+    output_format.SetPackedFormat(PackedFormat::PLANAR);
+
+    const auto ctx = MakeConvert(input_format, output_format, length / 2);
+
+
+    for (auto _ : state) {
+        DataConverter<PackedFormat::PLANAR, PackedFormat::PLANAR>::Convert(
+            output.get(),
+            input.get(),
+            ctx);
+    }
+
+    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * length * sizeof(int8_t));
+}
+
 static void BM_FastMemcpy(benchmark::State& state) {
     auto length = state.range(0);
 
@@ -446,6 +496,9 @@ static void BM_Rotl(benchmark::State& state) {
         benchmark::DoNotOptimize(result);
     }
 }
+
+BENCHMARK(BM_InterleavedToPlanarConvertToInt8_AVX)->Range(4096, 8 << 10);
+BENCHMARK(BM_InterleavedToPlanarConvertToInt8)->Range(4096, 8 << 10);
 
 BENCHMARK(BM_IntrinsicRotl);
 BENCHMARK(BM_Rotl);
