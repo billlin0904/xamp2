@@ -11,7 +11,7 @@
 #include <base/waitabletimer.h>
 
 #include <output_device/api.h>
-#include <output_device/asiodevicetype.h>
+#include <output_device/win32/asiodevicetype.h>
 #include <output_device/idsddevice.h>
 #include <output_device/iaudiodevicemanager.h>
 
@@ -386,7 +386,7 @@ bool AudioPlayer::IsHardwareControlVolume() const {
 bool AudioPlayer::IsMute() const {
     if (device_ != nullptr && device_->IsStreamOpen()) {
 #ifdef ENABLE_ASIO
-        if (device_type_->GetTypeId() == ASIODeviceType::Id) {
+        if (device_type_->GetTypeId() == win32::ASIODeviceType::Id) {
             return is_muted_;
         }
 #else
