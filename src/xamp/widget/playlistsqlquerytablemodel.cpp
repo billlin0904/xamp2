@@ -33,7 +33,8 @@ QVariant PlayListSqlQueryTableModel::data(const QModelIndex& index, int32_t role
             || index.column() == PLAYLIST_ALBUM_RG
             || index.column() == PLAYLIST_TRACK_PK
             || index.column() == PLAYLIST_TRACK_RG
-            || index.column() == PLAYLIST_LAST_UPDATE_TIME) {
+            || index.column() == PLAYLIST_LAST_UPDATE_TIME
+            || index.column() == PLAYLIST_YEAR) {
             return QFont(Q_UTF8("MonoFont"));
         }
         break;

@@ -16,10 +16,10 @@ namespace xamp::base {
 
 MAKE_XAMP_ENUM(ByteFormat,
           INVALID_FORMAT,
-		  SINT8 = 1,
-          SINT16 = 2,
-          SINT24 = 3,
-          SINT32 = 4,
+		  SINT8,
+          SINT16,
+          SINT24,
+          SINT32,
           FLOAT32,
           FLOAT64)
 
@@ -37,7 +37,7 @@ inline constexpr uint32_t kMaxSamplerate = 384000;
 class XAMP_BASE_API AudioFormat final {
 public:
     static const AudioFormat kUnknowFormat;
-    static const AudioFormat kPCM48Khz;
+    static const AudioFormat kPCM441Khz;
 
     explicit AudioFormat(DataFormat format = DataFormat::FORMAT_PCM,
         uint16_t number_of_channels = 0,

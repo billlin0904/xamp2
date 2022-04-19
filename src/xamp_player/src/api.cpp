@@ -25,7 +25,7 @@ std::shared_ptr<IAudioPlayer> MakeAudioPlayer(const std::weak_ptr<IPlaybackState
     return MakeAlignedShared<AudioPlayer>(adapter);
 }
 
-void XampInitialize() {
+void Initialize() {
     LoadBassLib();
     XAMP_LOG_DEBUG("Load BASS lib success.");
 
@@ -47,6 +47,15 @@ void XampInitialize() {
     XAMP_LOG_DEBUG("Load Ebur128Lib lib success.");
 
     PreventSleep(true);
+}
+
+void Uninitialize() {
+#ifdef XAMP_OS_WIN
+    GetWASAPIThreadPool().Stop();
+#endif
+    GetPlaybackThreadPool().Stop();
+    PreventSleep(false);
+    Logger::GetInstance().Shutdown();
 }
 
 

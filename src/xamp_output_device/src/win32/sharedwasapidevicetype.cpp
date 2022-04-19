@@ -115,6 +115,8 @@ std::vector<DeviceInfo> SharedWasapiDeviceType::GetDeviceInfoList() const {
 		info.max_volume = max_volume;
 		info.volume_increment = volume_increment;
 
+		info.is_hardware_control_volume = true;
+
 		info.is_support_dsd = false;
 		device_list.emplace_back(info);
 	}

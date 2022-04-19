@@ -21,6 +21,8 @@
 #include <stream/api.h>
 #include <stream/fft.h>
 
+#include <player/api.h>
+
 #ifdef XAMP_OS_WIN
 #include <base/simd.h>
 #endif
@@ -504,12 +506,12 @@ BENCHMARK(BM_IntrinsicRotl);
 BENCHMARK(BM_Rotl);
 
 //BENCHMARK(BM_UuidParse);
-BENCHMARK(BM_Xoshiro256StarStarRandom);
-BENCHMARK(BM_Xoshiro256PlusRandom);
-BENCHMARK(BM_Xoshiro256PlusPlusRandom);
-BENCHMARK(BM_default_random_engine);
-BENCHMARK(BM_PRNG);
-BENCHMARK(BM_PRNG_GetInstance);
+//BENCHMARK(BM_Xoshiro256StarStarRandom);
+//BENCHMARK(BM_Xoshiro256PlusRandom);
+//BENCHMARK(BM_Xoshiro256PlusPlusRandom);
+//BENCHMARK(BM_default_random_engine);
+//BENCHMARK(BM_PRNG);
+//BENCHMARK(BM_PRNG_GetInstance);
 
 //BENCHMARK(BM_unordered_set);
 //BENCHMARK(BM_FindRobinHoodHashSet);
@@ -521,8 +523,8 @@ BENCHMARK(BM_PRNG_GetInstance);
 //BENCHMARK(BM_FastMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
 //BENCHMARK(BM_StdtMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
 
-//BENCHMARK(BM_ConvertToInt2432Avx)->RangeMultiplier(2)->Range(4096, 8 << 10);
-//BENCHMARK(BM_ConvertToInt2432)->RangeMultiplier(2)->Range(4096, 8 << 10);
+BENCHMARK(BM_ConvertToInt2432Avx)->RangeMultiplier(2)->Range(4096, 8 << 10);
+BENCHMARK(BM_ConvertToInt2432)->RangeMultiplier(2)->Range(4096, 8 << 10);
 //BENCHMARK(BM_InterleavedToPlanarConvertToInt32_AVX)->RangeMultiplier(2)->Range(4096, 8 << 10);
 //BENCHMARK(BM_InterleavedToPlanarConvertToInt32)->RangeMultiplier(2)->Range(4096, 8 << 10);
 //BENCHMARK(BM_FFT)->RangeMultiplier(2)->Range(4096, 8 << 12);
@@ -548,17 +550,14 @@ int main(int argc, char** argv) {
         .AddFileLogger("xamp.log")
         .Startup();
 
-    XAMP_ON_SCOPE_EXIT(
-        Logger::GetInstance().Shutdown();
-    );
-
     // For debug use!
     XAMP_LOG_DEBUG("Logger init success.");
 
-    LoadFFTLib();
-
     Logger::GetInstance().GetLogger(kPlaybackThreadPoolLoggerName)
         ->set_level(spdlog::level::info);
+
+    xamp::player::XampIniter initer;
+    initer.Init();
 
     ::benchmark::Initialize(&argc, argv);
     if (::benchmark::ReportUnrecognizedArguments(argc, argv)) {

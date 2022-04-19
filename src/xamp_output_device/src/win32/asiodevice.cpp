@@ -544,6 +544,13 @@ void AsioDevice::OpenStream(AudioFormat const & output_format) {
 	ASIODriver.device = this;
 }
 
+bool AsioDevice::IsSupportDSDFormat() const {
+	/*ASIOIoFormat asio_fomrmat{};
+	asio_fomrmat.FormatType = kASIODSDFormat;
+	return ::ASIOFuture(kAsioSetIoFormat, &asio_fomrmat) == ASE_SUCCESS;*/
+	return true;
+}
+
 void AsioDevice::SetOutputSampleRate(AudioFormat const & output_format) {
 	auto error = ::ASIOSetSampleRate(output_format.GetSampleRate());
 	if (error == ASE_NotPresent) {
@@ -641,7 +648,12 @@ void AsioDevice::SetStreamTime(double stream_time) noexcept {
 }
 
 double AsioDevice::GetStreamTime() const noexcept {
-	return static_cast<double>(played_bytes_) / format_.GetAvgBytesPerSec();
+	if (io_format_ == DsdIoFormat::IO_FORMAT_PCM) {
+		return static_cast<double>(played_bytes_) / format_.GetAvgBytesPerSec();
+	} else {
+		const auto avg_byte_per_sec = format_.GetAvgBytesPerSec() / 8;
+		return static_cast<double>(played_bytes_) / avg_byte_per_sec;
+	}
 }
 
 void AsioDevice::DisplayControlPanel() {

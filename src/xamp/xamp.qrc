@@ -85,5 +85,7 @@
         <file>Resource/White/enable_converter.png</file>
         <file>Resource/Flags/US.png</file>
         <file>fonts/Lato-Regular.ttf</file>
+        <file>fonts/IBMPlexSans-Bold.ttf</file>
+        <file>fonts/IBMPlexSans-Regular.ttf</file>
     </qresource>
 </RCC>

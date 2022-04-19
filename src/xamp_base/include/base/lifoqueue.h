@@ -112,7 +112,7 @@ public:
             return false;
         }
 
-        node->value = std::move(task);
+        node->value = std::forward<U>(task);
         Push(head_, node);
         return true;
     }

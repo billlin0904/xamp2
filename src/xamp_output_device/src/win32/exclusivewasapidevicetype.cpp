@@ -118,6 +118,12 @@ std::vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfoList() const {
 			info.volume_increment,
 			(info.max_volume - info.min_volume) / info.volume_increment);
 
+		DWORD volume_support_mask = 0;
+		HrIfFailledThrow(endpoint_volume->QueryHardwareSupport(&volume_support_mask));
+
+		info.is_hardware_control_volume = (volume_support_mask & ENDPOINT_HARDWARE_SUPPORT_VOLUME)
+			&& (volume_support_mask & ENDPOINT_HARDWARE_SUPPORT_MUTE);
+
 		// TODO: 一些DAC有支援WASAPI DOP模式.
 		info.is_support_dsd = true;
 		device_list.emplace_back(info);

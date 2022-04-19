@@ -274,12 +274,14 @@ static int excute(int argc, char* argv[]) {
     XAMP_LOG_DEBUG("Prefetch dll success.");
 #endif
 
+    XampIniter initer;
+
     try {
-        XampInitialize();
+        initer.Init();
     }
     catch (const Exception& e) {
         QMessageBox::critical(nullptr,
-            Q_UTF8("XampInitialize failure."),
+            Q_UTF8("Initialize failure."),
             QString::fromStdString(e.GetErrorMessage()));
         XAMP_LOG_DEBUG("{}", e.GetStackTrace());
         return -1;
@@ -322,7 +324,6 @@ int main(int argc, char *argv[]) {
     XAMP_ON_SCOPE_EXIT(
         JsonSettings::save();
         AppSettings::save();
-        Logger::GetInstance().Shutdown();
     );
 
     if (excute(argc, argv) == kRestartPlayerCode) {

@@ -76,6 +76,8 @@ public:
 
 	void ReOpen();
 
+	bool IsSupportDSDFormat() const;
+
 	static void ResetDriver();
 private:
 	static ASIOTime* OnBufferSwitchTimeInfoCallback(ASIOTime* timeInfo, long index, ASIOBool processNow) noexcept;

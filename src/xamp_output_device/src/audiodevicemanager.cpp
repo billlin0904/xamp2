@@ -66,11 +66,11 @@ AudioDeviceManager::AudioDeviceManager() {
     XAMP_LOG_DEBUG("LoadAvrtLib success");
     HrIfFailledThrow(::MFStartup(MF_VERSION, MFSTARTUP_LITE));
     XAMP_LOG_DEBUG("MFStartup startup success");
-#if ENABLE_ASIO
-    XAMP_REGISTER_DEVICE_TYPE(ASIODeviceType);    
-#endif
     XAMP_REGISTER_DEVICE_TYPE(SharedWasapiDeviceType);
     XAMP_REGISTER_DEVICE_TYPE(ExclusiveWasapiDeviceType);
+#if ENABLE_ASIO
+    XAMP_REGISTER_DEVICE_TYPE(ASIODeviceType);
+#endif
 #else
     using namespace osx;
     XAMP_REGISTER_DEVICE_TYPE(CoreAudioDeviceType);

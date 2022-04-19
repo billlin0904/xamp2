@@ -105,8 +105,8 @@ void TestToInt8Planar() {
 	PrintArray(input, 64);
 	std::cout << std::endl;
 
-	auto left = MakeAlignedArray<int8_t>(32);
-	auto right = MakeAlignedArray<int8_t>(32);
+	auto left = MakeAlignedArray<int8_t>(64);
+	auto right = MakeAlignedArray<int8_t>(64);
 
 	InterleaveToPlanar<int8_t, int8_t>::Convert(
 		input.get(),
@@ -121,7 +121,7 @@ void TestToInt8Planar() {
 }
 
 int main(int argc, char* argv[]) {
-	//TestFloatConverter();
+	//TestToF32ToI32Planar();
 	//TestToInterleave();
 	//TestToF32ToI32Planar();
 	TestToInt8Planar();
@@ -134,9 +134,6 @@ int main(int argc, char* argv[]) {
 
 	XAMP_SET_LOG_LEVEL(spdlog::level::trace);
 
-	XAMP_ON_SCOPE_EXIT(
-		Logger::GetInstance().Shutdown();
-	);
-
-	XampInitialize();
+	XampIniter initer;
+	initer.Init();
 }

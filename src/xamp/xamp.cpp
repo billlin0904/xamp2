@@ -334,6 +334,11 @@ void Xamp::initialDeviceList() {
     const auto device_id = AppSettings::getValueAsString(kAppSettingDeviceId).toStdString();
     const auto & device_manager = player_->GetAudioDeviceManager();
 
+    QFont font(Q_UTF8("FormatFont"));
+    font.setBold(true);
+    ui_.hardwareVolumeControlLabel->setText(tr("Hardware volume control"));
+    ui_.hardwareVolumeControlLabel->setFont(font);
+
     for (auto itr = device_manager->Begin(); itr != device_manager->End(); ++itr) {
         auto device_type = (*itr).second();
         device_type->ScanNewDevice();
@@ -341,20 +346,14 @@ void Xamp::initialDeviceList() {
         const auto device_info_list = device_type->GetDeviceInfo();
         if (device_info_list.empty()) {
             return;
-        }        
+        }
 
+        menu->addSeparator();
         menu->addAction(createTextSeparator(fromStdStringView(device_type->GetDescription())));
 
         for (const auto& device_info : device_info_list) {
             auto* device_action = new QAction(QString::fromStdWString(device_info.name), this);
-            /*switch (device_info.connect_type) {
-            case DeviceConnectType::USB:
-                device_action->setIcon(Singleton<ThemeManager>::GetInstance().usb());
-                break;
-            default:
-                device_action->setIcon(Singleton<ThemeManager>::GetInstance().speaker());
-                break;
-            }*/
+
             device_action_group->addAction(device_action);
             device_action->setCheckable(true);
             device_action->setChecked(false);
@@ -364,6 +363,12 @@ void Xamp::initialDeviceList() {
                 device_info_ = device_info;
                 AppSettings::setValue(kAppSettingDeviceType, device_info_.device_type_id);
                 AppSettings::setValue(kAppSettingDeviceId, device_info_.device_id);
+
+                if (device_info.is_hardware_control_volume) {
+                    ui_.hardwareVolumeControlLabel->setDisabled(true);
+                } else {
+                    ui_.hardwareVolumeControlLabel->setDisabled(false);
+                }
             };
 
             (void)QObject::connect(device_action, &QAction::triggered, trigger_callback);

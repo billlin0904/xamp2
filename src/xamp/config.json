@@ -1,10 +1,10 @@
 {
     "Log": {
         "MinimumLevel": {
-            "Default": "debug",
+            "Default": "trace",
             "Override": {
                 "AsioDevice": "info",
-                "AudioPlayer": "info",
+                "AudioPlayer": "debug",
                 "BackgroundThreadPool": "info",
                 "Compressor": "info",
                 "CoreAudio": "info",

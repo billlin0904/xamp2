@@ -153,20 +153,20 @@ struct UnpackU8<1> {
 
 template <>
 struct Converter<int8_t> {
-    /*static XAMP_ALWAYS_INLINE m256i Shuffle(m256i v, m256i indexies) {
+    static XAMP_ALWAYS_INLINE m256i Shuffle(m256i v, m256i indexies) {
         return _mm256_shuffle_epi8(v, indexies);
-    }*/
+    }
 
-    static XAMP_ALWAYS_INLINE std::pair<m256, m256> ToInterleave(m256 a, m256 b) {
+    /*static XAMP_ALWAYS_INLINE std::pair<m256, m256> ToInterleave(m256 a, m256 b) {
         auto lo = _mm256_unpacklo_epi8(_mm256_castps_si256(a), _mm256_castps_si256(b));
         auto hi = _mm256_unpacklo_epi8(_mm256_castps_si256(a), _mm256_castps_si256(b));
         return std::make_pair(
             _mm256_castsi256_ps(_mm256_permute2f128_si256(lo, hi, _MM_SHUFFLE(0, 2, 0, 0))),
             _mm256_castsi256_ps(_mm256_permute2f128_si256(lo, hi, _MM_SHUFFLE(0, 3, 0, 1)))
         );
-    }
+    }*/
 
-    static XAMP_ALWAYS_INLINE m256i Shuffle(m256i value, m256i shuffle) {
+    /*static XAMP_ALWAYS_INLINE m256i Shuffle(m256i value, m256i shuffle) {
         static const m256i kShuffleEpi8Mask0 = SIMD_MM256_SETR_EPI8(
             0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70,
             0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0);
@@ -177,7 +177,7 @@ struct Converter<int8_t> {
 
         return _mm256_or_si256(_mm256_shuffle_epi8(value, _mm256_add_epi8(shuffle, kShuffleEpi8Mask0)),
             _mm256_shuffle_epi8(_mm256_permute4x64_epi64(value, 0x4E), _mm256_add_epi8(shuffle, kShuffleEpi8Mask1)));
-    }
+    }*/
 
     static XAMP_ALWAYS_INLINE std::pair<m256i, m256i> ToPlanar(m256i a, m256i b) {
         static const m256i kShuffleEpi8Mask1 = _mm256_setr_epi8(

@@ -32,10 +32,16 @@ QFont ThemeManager::loadFonts() {
     const auto digital_font_id = QFontDatabase::addApplicationFont(Q_UTF8(":/xamp/fonts/Lato-Regular.ttf"));
     const auto digital_font_families = QFontDatabase::applicationFontFamilies(digital_font_id);
 
-    const auto title_font_id = QFontDatabase::addApplicationFont(Q_UTF8(":/xamp/fonts/WorkSans-Bold.ttf"));
+    /*auto default_font = Q_UTF8(":/xamp/fonts/WorkSans-Regular.ttf");
+    auto default_bold_font = Q_UTF8(":/xamp/fonts/WorkSans-Bold.ttf");*/
+
+    auto default_font = Q_UTF8(":/xamp/fonts/IBMPlexSans-Regular.ttf");
+    auto default_bold_font = Q_UTF8(":/xamp/fonts/IBMPlexSans-Bold.ttf");
+
+    const auto title_font_id = QFontDatabase::addApplicationFont(default_bold_font);
     auto title_font_families = QFontDatabase::applicationFontFamilies(title_font_id);
 
-    const auto default_font_id = QFontDatabase::addApplicationFont(Q_UTF8(":/xamp/fonts/WorkSans-Regular.ttf"));
+    const auto default_font_id = QFontDatabase::addApplicationFont(default_font);
     auto default_font_families = QFontDatabase::applicationFontFamilies(default_font_id);
 
     QList<QString> ui_fallback_fonts;

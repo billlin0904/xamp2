@@ -9,6 +9,8 @@
 
 namespace xamp::output_device::win32 {
 
+HashMap<std::string, DeviceInfo> ASIODeviceType::device_info_cache_;
+
 ASIODeviceType::ASIODeviceType() = default;
 
 std::string_view ASIODeviceType::GetDescription() const {
@@ -20,11 +22,11 @@ Uuid ASIODeviceType::GetTypeId() const {
 }
 
 size_t ASIODeviceType::GetDeviceCount() const {
-	return device_list_.size();
+	return device_info_cache_.size();
 }
 
 DeviceInfo ASIODeviceType::GetDeviceInfo(uint32_t device) const {
-	auto itr = device_list_.begin();
+	auto itr = device_info_cache_.begin();
 	if (device >= GetDeviceCount()) {
 		throw DeviceNotFoundException();
 	}
@@ -33,7 +35,7 @@ DeviceInfo ASIODeviceType::GetDeviceInfo(uint32_t device) const {
 }
 
 std::optional<DeviceInfo> ASIODeviceType::GetDefaultDeviceInfo() const {
-	if (device_list_.empty()) {
+	if (device_info_cache_.empty()) {
 		return std::nullopt;
 	}
 	return GetDeviceInfo(0);
@@ -41,9 +43,9 @@ std::optional<DeviceInfo> ASIODeviceType::GetDefaultDeviceInfo() const {
 
 std::vector<DeviceInfo> ASIODeviceType::GetDeviceInfo() const {
 	std::vector<DeviceInfo> device_infos;
-	device_infos.reserve(device_list_.size());
+	device_infos.reserve(device_info_cache_.size());
 
-	for (const auto& device_info : device_list_) {
+	for (const auto& device_info : device_info_cache_) {
 		device_infos.push_back(device_info.second);
 	}
 	return device_infos;
@@ -51,8 +53,6 @@ std::vector<DeviceInfo> ASIODeviceType::GetDeviceInfo() const {
 
 void ASIODeviceType::ScanNewDevice() {
     constexpr auto kMaxPathLen = 256;
-
-	device_list_.clear();
 
 	AsioDrivers drivers;
 	const auto num_device = drivers.asioGetNumDev();
@@ -62,10 +62,9 @@ void ASIODeviceType::ScanNewDevice() {
 		if (drivers.asioGetDriverCLSID(i, &clsid) == 0) {
 			char driver_name[kMaxPathLen + 1]{};
 			drivers.asioGetDriverName(i, driver_name, kMaxPathLen);
-			if (device_list_.find(driver_name) != device_list_.end()) {
-				continue;
-			}
-			device_list_[driver_name] = GetDeviceInfo(String::ToStdWString(driver_name), driver_name);
+			if (!device_info_cache_.contains(driver_name)) {
+				device_info_cache_[driver_name] = GetDeviceInfo(String::ToStdWString(driver_name), driver_name);
+			}			
 		}
 	}
 }
@@ -75,8 +74,13 @@ DeviceInfo ASIODeviceType::GetDeviceInfo(std::wstring const& name, std::string c
 	info.name = name;
 	info.device_id = device_id;
 	info.device_type_id = Id;
-	// NOTE: 無法不開啟ASIO狀態下取得是否支援DSD, 目前先假定ASIO是支援DSD的!
+	/*auto device = MakeAlign<IOutputDevice, AsioDevice>(device_id);
+	auto* asio_device = dynamic_cast<AsioDevice*>(device.get());
+	asio_device->OpenStream(AudioFormat::kPCM441Khz);
+	info.is_support_dsd = asio_device->IsSupportDSDFormat();
+	info.is_hardware_control_volume = asio_device->IsHardwareControlVolume();*/
 	info.is_support_dsd = true;
+	info.is_hardware_control_volume = true;
 	return info;
 }
 

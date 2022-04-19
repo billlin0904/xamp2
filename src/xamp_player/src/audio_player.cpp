@@ -198,6 +198,7 @@ void AudioPlayer::CreateDevice(Uuid const & device_type_id, std::string const & 
             // device可能是ASIO解後再移除drvier.
             device_.reset();
             ResetASIODriver();
+            XAMP_LOG_D(logger_, "ResetASIODriver!");
         }    	
         device_type_ = device_manager_->Create(device_type_id);
         device_type_->ScanNewDevice();

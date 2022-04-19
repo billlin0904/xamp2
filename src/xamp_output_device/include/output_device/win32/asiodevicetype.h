@@ -42,7 +42,7 @@ public:
 private:
 	DeviceInfo GetDeviceInfo(std::wstring const& name, std::string const & device_id) const;
 
-	HashMap<std::string, DeviceInfo> device_list_;
+	static HashMap<std::string, DeviceInfo> device_info_cache_;
 };
 
 }
