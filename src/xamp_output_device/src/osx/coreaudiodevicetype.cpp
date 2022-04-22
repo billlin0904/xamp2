@@ -99,6 +99,8 @@ std::vector<DeviceInfo> CoreAudioDeviceType::GetDeviceInfo() const {
         info.device_id = GetDeviceUid(device_id);
         info.device_type_id = GetTypeId();
         info.connect_type = GetDeviceConnectType(device_id);
+        info.is_hardware_control_volume = SystemVolume(kAudioHardwareServiceDeviceProperty_VirtualMainVolume,
+                                                       device_id).CanSetVolume();
 
         // 用SampleRate判斷是否支援DOP有缺陷,
         // 由使用者判斷是否支援DOP.

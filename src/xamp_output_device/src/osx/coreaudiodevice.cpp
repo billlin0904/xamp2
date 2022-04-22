@@ -20,145 +20,6 @@
 
 namespace xamp::output_device::osx {
 
-struct SystemVolume {
-    explicit SystemVolume(AudioObjectPropertySelector selector, AudioDeviceID device_id = kAudioObjectUnknown) noexcept
-        : device_id_ (device_id) {
-        if (device_id != kAudioObjectUnknown) {
-            property_.mElement  = kAudioObjectPropertyElementMaster;
-            property_.mSelector = selector;
-            property_.mScope    = kAudioDevicePropertyScopeOutput;
-            return;
-        }
-        property_.mScope    = kAudioObjectPropertyScopeGlobal;
-        property_.mElement  = kAudioObjectPropertyElementMaster;
-        property_.mSelector = kAudioHardwarePropertyDefaultOutputDevice;
-        if (::AudioObjectHasProperty(kAudioObjectSystemObject, &property_)) {
-            UInt32 deviceIDSize = sizeof (device_id_);
-            OSStatus status = ::AudioObjectGetPropertyData(kAudioObjectSystemObject,
-                                                           &property_,
-                                                           0,
-                                                           nullptr,
-                                                           &deviceIDSize,
-                                                           &device_id_);
-            if (status == noErr) {
-                property_.mElement  = kAudioObjectPropertyElementMaster;
-                property_.mSelector = selector;
-                property_.mScope    = kAudioDevicePropertyScopeOutput;
-                if (!::AudioObjectHasProperty(device_id_, &property_)) {
-                    device_id_ = kAudioObjectUnknown;
-                }
-            }
-        }
-    }
-
-    double GetGain() const {
-        Float32 gain = 0;
-        if (device_id_ != kAudioObjectUnknown) {
-            UInt32 size = sizeof(gain);
-            CoreAudioThrowIfError(::AudioObjectGetPropertyData(device_id_,
-                                                               &property_,
-                                                               0,
-                                                               nullptr,
-                                                               &size,
-                                                               &gain));
-        }
-        return static_cast<double>(gain);
-    }
-
-    void SetGain(float gain) const {
-        if (device_id_ != kAudioObjectUnknown && CanSetVolume()) {
-            Float32 newVolume = gain;
-            UInt32 size = sizeof(newVolume);
-            CoreAudioThrowIfError(::AudioObjectSetPropertyData(device_id_,
-                                                               &property_,
-                                                               0,
-                                                               nullptr,
-                                                               size,
-                                                               &newVolume));
-        }
-    }
-
-    float GetBlance(AudioObjectPropertyScope scope = kAudioDevicePropertyScopeOutput) const {
-        AudioObjectPropertyAddress virtualMasterBalanceAddress {
-            kAudioHardwareServiceDeviceProperty_VirtualMainVolume,
-            scope,
-            kAudioObjectPropertyElementMaster
-        };
-
-        UInt32 virtualMasterVolumePropertySize = sizeof(Float32);
-        Float32 outVirtualMasterBalance = 0;
-        CoreAudioThrowIfError(::AudioObjectGetPropertyData(device_id_,
-               &virtualMasterBalanceAddress,
-               0,
-               nullptr,
-               &virtualMasterVolumePropertySize,
-               &outVirtualMasterBalance));
-        return outVirtualMasterBalance;
-    }
-
-    void SetBlance(float blance, AudioObjectPropertyScope scope = kAudioDevicePropertyScopeOutput) {
-        AudioObjectPropertyAddress virtualMasterBalanceAddress {
-            kAudioHardwareServiceDeviceProperty_VirtualMainBalance,
-            scope,
-            kAudioObjectPropertyElementMaster
-        };
-
-        UInt32 size = sizeof(blance);
-        CoreAudioThrowIfError(::AudioObjectSetPropertyData(device_id_,
-                                                           &virtualMasterBalanceAddress,
-                                                           0,
-                                                           nullptr,
-                                                           size,
-                                                           &blance));
-    }
-
-    bool IsMuted() const {
-        UInt32 muted = 0;
-        if (device_id_ != kAudioObjectUnknown) {
-            UInt32 size = sizeof(muted);
-            CoreAudioThrowIfError(::AudioObjectGetPropertyData(device_id_,
-                                                               &property_,
-                                                               0,
-                                                               nullptr,
-                                                               &size,
-                                                               &muted));
-        }
-        return muted != 0;
-    }
-
-    void SetMuted(bool mute) const {
-        if (device_id_ != kAudioObjectUnknown && CanSetVolume()) {
-            UInt32 newMute = mute ? 1 : 0;
-            UInt32 size = sizeof(newMute);
-            CoreAudioThrowIfError(::AudioObjectSetPropertyData(device_id_,
-                                                               &property_,
-                                                               0,
-                                                               nullptr,
-                                                               size,
-                                                               &newMute));
-        }
-    }
-
-    bool HasProperty() const noexcept {
-        return HasProperty(property_);
-    }
-
-    bool HasProperty(const AudioObjectPropertyAddress &property) const noexcept {
-        return ::AudioObjectHasProperty(device_id_, &property) > 0;
-    }
-
-private:
-    bool CanSetVolume() const noexcept {
-        Boolean is_settable = false;
-        return ::AudioObjectIsPropertySettable(device_id_,
-                                               &property_,
-                                               &is_settable) == noErr && is_settable;
-    }
-
-    AudioDeviceID device_id_;
-    AudioObjectPropertyAddress property_;
-};
-
 CoreAudioDevice::CoreAudioDevice(AudioDeviceID device_id, bool is_hog_mode)
     : is_running_(false)
     , is_hog_mode_(is_hog_mode)
@@ -182,6 +43,19 @@ CoreAudioDevice::~CoreAudioDevice() {
         StopStream();
         CloseStream();
     } catch (...) {
+    }
+}
+
+void CoreAudioDevice::SetBlance() {
+    auto main_volume = SystemVolume(kAudioHardwareServiceDeviceProperty_VirtualMainVolume, device_id_);
+    try {
+        const auto blance = main_volume.GetBlance();
+        if (blance != 0.5f) {
+            XAMP_LOG_D(log_, "Device volume not blance: {}!", blance);
+            main_volume.SetBlance(0.5);
+        }
+    } catch (Exception const &e) {
+        XAMP_LOG_D(log_, "Failure to set volume blance, {}!", e.GetErrorMessage());
     }
 }
 
@@ -280,21 +154,14 @@ void CoreAudioDevice::OpenStream(AudioFormat const &output_format) {
         XAMP_LOG_D(logger_, "Set auto hog mode!");
     }
     */
+
     if (is_hog_mode_) {
         XAMP_LOG_D(log_, "Set hog mode!");
         ReleaseHogMode(device_id_);
         SetHogMode(device_id_);
     }
 
-    auto main_volume = SystemVolume(kAudioHardwareServiceDeviceProperty_VirtualMainVolume, device_id_);
-    try {
-        const auto blance = main_volume.GetBlance();
-        if (blance != 0.5f) {
-            XAMP_LOG_D(log_, "Device volume not blance: {}!", blance);
-            main_volume.SetBlance(0.5);
-        }
-    } catch (...) {
-    }
+    SetBlance();
 }
 
 void CoreAudioDevice::SetAudioCallback(IAudioCallback *callback) noexcept {

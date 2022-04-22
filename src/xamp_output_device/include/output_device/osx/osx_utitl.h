@@ -11,9 +11,37 @@
 #include <string>
 
 #include <output_device/deviceinfo.h>
+#include <output_device/osx/coreaudioexception.h>
+
+#include <AudioToolbox/AudioToolbox.h>
 #include <CoreAudio/CoreAudio.h>
 
 namespace xamp::output_device::osx {
+
+struct SystemVolume {
+    explicit SystemVolume(AudioObjectPropertySelector selector, AudioDeviceID device_id = kAudioObjectUnknown) noexcept;
+
+    double GetGain() const;
+
+    void SetGain(float gain) const;
+
+    float GetBlance(AudioObjectPropertyScope scope = kAudioDevicePropertyScopeOutput) const;
+
+    void SetBlance(float blance, AudioObjectPropertyScope scope = kAudioDevicePropertyScopeOutput);
+
+    bool IsMuted() const;
+
+    void SetMuted(bool mute) const;
+
+    bool HasProperty() const noexcept;
+
+    bool HasProperty(const AudioObjectPropertyAddress &property) const noexcept;
+
+    bool CanSetVolume() const noexcept;
+private:
+    AudioDeviceID device_id_;
+    AudioObjectPropertyAddress property_;
+};
 
 std::vector<uint32_t> GetAvailableSampleRates(AudioDeviceID id);
 

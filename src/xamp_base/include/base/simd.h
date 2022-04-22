@@ -117,11 +117,9 @@ public:
 template <typename T>
 struct Converter;
 
-static const __m256i kZeros = _mm256_setzero_si256();
-
 template <int32_t part>
 struct UnpackU8 {
-    m256i operator()(m256i a, m256i b = kZeros) const;
+    m256i operator()(m256i a, m256i b) const;
 };
 
 template <>

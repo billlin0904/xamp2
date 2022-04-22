@@ -488,7 +488,11 @@ static void BM_CircularBuffer(benchmark::State& state) {
 
 static void BM_IntrinsicRotl(benchmark::State& state) {
     for (auto _ : state) {
+#ifdef XAMP_OS_WIN
         auto result = _rotl64(0x76e15d3efefdcbbf, 7);
+#else
+        auto result = __builtin_rotateleft64(0x76e15d3efefdcbbf, 7);
+#endif
         benchmark::DoNotOptimize(result);
     }
 }
@@ -503,16 +507,16 @@ static void BM_Rotl(benchmark::State& state) {
 //BENCHMARK(BM_InterleavedToPlanarConvertToInt8_AVX)->Range(4096, 8 << 10);
 //BENCHMARK(BM_InterleavedToPlanarConvertToInt8)->Range(4096, 8 << 10);
 
-//BENCHMARK(BM_IntrinsicRotl);
-//BENCHMARK(BM_Rotl);
-//
-//BENCHMARK(BM_UuidParse);
-//BENCHMARK(BM_Xoshiro256StarStarRandom);
-//BENCHMARK(BM_Xoshiro256PlusRandom);
-//BENCHMARK(BM_Xoshiro256PlusPlusRandom);
-//BENCHMARK(BM_default_random_engine);
-//BENCHMARK(BM_PRNG);
-//BENCHMARK(BM_PRNG_GetInstance);
+BENCHMARK(BM_IntrinsicRotl);
+BENCHMARK(BM_Rotl);
+
+BENCHMARK(BM_UuidParse);
+BENCHMARK(BM_Xoshiro256StarStarRandom);
+BENCHMARK(BM_Xoshiro256PlusRandom);
+BENCHMARK(BM_Xoshiro256PlusPlusRandom);
+BENCHMARK(BM_default_random_engine);
+BENCHMARK(BM_PRNG);
+BENCHMARK(BM_PRNG_GetInstance);
 
 //BENCHMARK(BM_unordered_set);
 //BENCHMARK(BM_FindRobinHoodHashSet);

@@ -64,6 +64,8 @@ public:
     bool IsHardwareControlVolume() const override;
 
     void AbortStream() noexcept override;
+    void SetBlance();
+    
 private:
     static OSStatus OnAudioDeviceIOProc(AudioDeviceID,
                                         AudioTimeStamp const*,

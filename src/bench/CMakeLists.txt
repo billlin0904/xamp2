@@ -17,7 +17,7 @@ include_directories("../xamp_stream/include/")
 include_directories("../xamp_player/include/")
 
 set(CLANG_FLAGS_ENABLE_AVX2 "-mavx2")
-add_executable(bench bench_convert.cpp)
+add_executable(bench bench.cpp)
 
 if (${CMAKE_BUILD_TYPE} STREQUAL Debug)
     set(BUILD_PATH debug)
