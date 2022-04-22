@@ -45,8 +45,7 @@ public:
 
     void SubmitJob(Task&& task) override;
 
-    void Destroy() noexcept override;
-
+    void Destroy() noexcept;
 private:
     static void SetWorkerThreadName(size_t i);
 

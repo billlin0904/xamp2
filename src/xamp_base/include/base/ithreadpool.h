@@ -72,8 +72,6 @@ public:
 
 	virtual void SubmitJob(Task&& task) = 0;
 
-    virtual void Destroy() noexcept = 0;
-
     virtual uint32_t GetThreadSize() const = 0;
 protected:
     ITaskScheduler() = default;

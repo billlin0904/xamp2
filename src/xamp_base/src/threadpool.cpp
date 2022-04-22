@@ -23,6 +23,7 @@ TaskScheduler::TaskScheduler(TaskSchedulerPolicy policy, const std::string_view&
 	logger_ = Logger::GetInstance().GetLogger(pool_name.data());
 	try {
 		task_pool_ = MakeAlign<SharedTaskQueue>(kSharedTaskQueueSize);
+		task_scheduler_policy_->SetMaxThread(max_thread_);
 
 		for (size_t i = 0; i < max_thread_; ++i) {
 			task_work_queues_.push_back(MakeAlign<WorkStealingTaskQueue>(kMaxWorkQueueSize));
@@ -49,7 +50,8 @@ uint32_t TaskScheduler::GetThreadSize() const {
 
 void TaskScheduler::SubmitJob(Task&& task) {
 	for (size_t n = 0; n < max_thread_ * K; ++n) {
-		auto index = task_scheduler_policy_->ScheduleNext(-1, max_thread_, task_work_queues_);
+		auto current = n % max_thread_;
+		auto index = task_scheduler_policy_->ScheduleNext(current, task_work_queues_);
 		auto& queue = task_work_queues_.at(index);
 		if (queue->TryEnqueue(task)) {
 			XAMP_LOG_D(logger_, "Enqueue thread {} local queue ({}).", index, queue->size());
@@ -62,6 +64,8 @@ void TaskScheduler::SubmitJob(Task&& task) {
 }
 
 void TaskScheduler::Destroy() noexcept {
+	XAMP_LOG_D(logger_, "Thread pool start destory.");
+
 	if (!task_pool_ || threads_.empty()) {
 		return;
 	}
@@ -77,12 +81,15 @@ void TaskScheduler::Destroy() noexcept {
 		}
 		catch (...) {
 		}
+		XAMP_LOG_D(logger_, "Worker Thread {} joined.", i);
 	}
 
-	XAMP_LOG_D(logger_, "Thread pool was destory.");
 	task_pool_.reset();
 	threads_.clear();
 	task_work_queues_.clear();
+	task_scheduler_policy_.reset();
+
+	XAMP_LOG_D(logger_, "Thread pool was destory.");
 }
 
 std::optional<Task> TaskScheduler::TryDequeueSharedQueue(std::chrono::milliseconds timeout) {
@@ -156,7 +163,7 @@ void TaskScheduler::AddThread(size_t i, int32_t affinity, ThreadPriority priorit
 			auto task = TryLocalPop(local_queue);
 
 			if (!task) {
-				const auto steal_index = task_scheduler_policy_->ScheduleNext(i, max_thread_, task_work_queues_);
+				const auto steal_index = task_scheduler_policy_->ScheduleNext(i, task_work_queues_);
 
 				task = TrySteal(steal_index);
 
@@ -186,6 +193,8 @@ void TaskScheduler::AddThread(size_t i, int32_t affinity, ThreadPriority priorit
 			--running_thread_;
 			XAMP_LOG_D(logger_, "Worker Thread {} ({}) execute finished.", i, thread_id);
 		}
+
+		XAMP_LOG_D(logger_, "Worker Thread {} is existed.", i);
 		});
 
 	if (affinity != -1) {
@@ -210,7 +219,7 @@ uint32_t ThreadPool::GetThreadSize() const {
 }
 
 void ThreadPool::Stop() {
-	scheduler_->Destroy();
+	dynamic_cast<TaskScheduler*>(scheduler_.get())->Destroy();
 }
 
 }

@@ -15,21 +15,34 @@ AlignPtr<ITaskSchedulerPolicy> MakeTaskSchedulerPolicy(TaskSchedulerPolicy polic
 	}
 }
 
-size_t RoundRobinSchedulerPolicy::ScheduleNext(size_t /*cur_index*/, size_t max_thread, const std::vector<WorkStealingTaskQueuePtr>& work_queues) const {
+size_t RoundRobinSchedulerPolicy::ScheduleNext(size_t /*cur_index*/, const std::vector<WorkStealingTaskQueuePtr>& /*work_queues*/) {
 	static std::atomic<int32_t> index{ -1 };
-	return (index.fetch_add(1, std::memory_order_relaxed) + 1) % max_thread;
+	return (index.fetch_add(1, std::memory_order_relaxed) + 1) % max_thread_;
 }
 
-size_t RandomSchedulerPolicy::ScheduleNext(size_t cur_index, size_t max_thread, const std::vector<WorkStealingTaskQueuePtr>& work_queues) const {
+void RoundRobinSchedulerPolicy::SetMaxThread(size_t max_thread) {
+	max_thread_ = max_thread;
+}
+
+void RandomSchedulerPolicy::SetMaxThread(size_t max_thread) {
+	prngs_.resize(max_thread);
+}
+
+size_t RandomSchedulerPolicy::ScheduleNext(size_t cur_index, const std::vector<WorkStealingTaskQueuePtr>& /*work_queues*/) {
 	size_t random_index;
+
+	auto& prng = prngs_[cur_index];
 	do {
-		random_index = PRNG::GetInstance().NextSize(max_thread - 1);
+		random_index = prng.Next(prngs_.size() - 1);
 	} while (random_index == cur_index);
 
 	return random_index;
 }
 
-size_t LeastLoadSchedulerPolicy::ScheduleNext(size_t /*cur_index*/, size_t max_thread, const std::vector<WorkStealingTaskQueuePtr>& work_queues) const {
+void LeastLoadSchedulerPolicy::SetMaxThread(size_t max_thread) {	
+}
+
+size_t LeastLoadSchedulerPolicy::ScheduleNext(size_t /*cur_index*/, const std::vector<WorkStealingTaskQueuePtr>& work_queues) {
 	size_t min_wq_size_index = 0;
 	size_t min_wq_size = 0;
 	size_t i = 0;

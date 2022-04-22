@@ -27,12 +27,13 @@
 #include <base/simd.h>
 #endif
 
+using namespace xamp::player;
 using namespace xamp::base;
 using namespace xamp::stream;
 
 static void BM_LeastLoadThreadPool(benchmark::State& state) {
-    static auto thread_pool = MakeThreadPool(
-        kPlaybackThreadPoolLoggerName,
+    auto thread_pool = MakeThreadPool(
+        "BM_LeastLoadThreadPool",
         TaskSchedulerPolicy::LEAST_LOAD_POLICY);
     auto length = state.range(0);
     std::vector<int> n(length);
@@ -47,8 +48,8 @@ static void BM_LeastLoadThreadPool(benchmark::State& state) {
 }
 
 static void BM_RoundRubinThreadPool(benchmark::State& state) {
-    static auto thread_pool = MakeThreadPool(
-        kPlaybackThreadPoolLoggerName,
+    auto thread_pool = MakeThreadPool(
+        "BM_RoundRubinThreadPool",
         TaskSchedulerPolicy::ROUND_ROBIN_POLICY);
     auto length = state.range(0);
     std::vector<int> n(length);
@@ -63,8 +64,8 @@ static void BM_RoundRubinThreadPool(benchmark::State& state) {
 }
 
 static void BM_RandomThreadPool(benchmark::State& state) {
-    static auto thread_pool = MakeThreadPool(
-        kPlaybackThreadPoolLoggerName,
+    auto thread_pool = MakeThreadPool(
+        "BM_RandomThreadPool",
         TaskSchedulerPolicy::RANDOM_POLICY);
     auto length = state.range(0);
     std::vector<int> n(length);
@@ -137,7 +138,7 @@ static void BM_Xoshiro256StarStarRandom(benchmark::State& state) {
         size_t n = std::uniform_int_distribution<int64_t>(INT64_MIN, INT64_MAX)(engine);
         benchmark::DoNotOptimize(n);
     }
-    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(float));
+    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(int64_t));
 }
 
 static void BM_Xoshiro256PlusRandom(benchmark::State& state) {
@@ -146,7 +147,7 @@ static void BM_Xoshiro256PlusRandom(benchmark::State& state) {
         size_t n = std::uniform_int_distribution<int64_t>(INT64_MIN, INT64_MAX)(engine);
         benchmark::DoNotOptimize(n);
     }
-    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(float));
+    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(int64_t));
 }
 
 static void BM_Xoshiro256PlusPlusRandom(benchmark::State& state) {
@@ -155,7 +156,7 @@ static void BM_Xoshiro256PlusPlusRandom(benchmark::State& state) {
         size_t n = std::uniform_int_distribution<int64_t>(INT64_MIN, INT64_MAX)(engine);
         benchmark::DoNotOptimize(n);
     }
-    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(float));
+    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(int64_t));
 }
 
 static void BM_default_random_engine(benchmark::State& state) {
@@ -165,31 +166,31 @@ static void BM_default_random_engine(benchmark::State& state) {
         size_t n = std::uniform_int_distribution<int64_t>(INT64_MIN, INT64_MAX)(engine);
         benchmark::DoNotOptimize(n);
     }
-    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(float));
+    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(int64_t));
 }
 
 static void BM_PRNG(benchmark::State& state) {
     PRNG prng;
     for (auto _ : state) {
-        size_t n = prng.NextInt64(INT64_MIN, INT64_MAX);
+        size_t n = prng.NextInt64();
         benchmark::DoNotOptimize(n);
     }
-    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(float));
+    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(int64_t));
 }
 
 static void BM_PRNG_GetInstance(benchmark::State& state) {
     for (auto _ : state) {
-        size_t n = PRNG::GetInstance().NextInt64(INT64_MIN, INT64_MAX);
+        size_t n = Singleton<PRNG>::GetInstance().NextInt64();
         benchmark::DoNotOptimize(n);
     }
-    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(float));
+    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(int64_t));
 }
 
 static void BM_ConvertToInt2432Avx(benchmark::State& state) {
     auto length = state.range(0);
 
     auto output = MakeAlignedArray<int>(length);
-    auto input = PRNG::GetInstance().GetRandomFloat(length, -1.0, 1.0);
+    auto input = Singleton<PRNG>::GetInstance().NextBytes<float>(length, -1.0, 1.0);
 
     AudioFormat input_format;
     AudioFormat output_format;
@@ -210,7 +211,7 @@ static void BM_ConvertToInt2432Avx(benchmark::State& state) {
 static void BM_ConvertToInt2432(benchmark::State& state) {
     auto length = state.range(0);
 
-    auto input = PRNG::GetInstance().GetRandomFloat(length, -1.0, 1.0);
+    auto input = Singleton<PRNG>::GetInstance().NextBytes<float>(length, -1.0, 1.0);
     auto output = MakeAlignedArray<int>(length);
 
     AudioFormat input_format;
@@ -232,7 +233,7 @@ static void BM_ConvertToInt2432(benchmark::State& state) {
 static void BM_InterleavedToPlanarConvertToInt32_AVX(benchmark::State& state) {
     auto length = state.range(0);
 
-    auto input = PRNG::GetInstance().GetRandomFloat(length, -1.0, 1.0);
+    auto input = Singleton<PRNG>::GetInstance().NextBytes<float>(length, -1.0, 1.0);
     auto output = MakeAlignedArray<int>(length);
 
     AudioFormat input_format;
@@ -254,7 +255,7 @@ static void BM_InterleavedToPlanarConvertToInt32_AVX(benchmark::State& state) {
 static void BM_InterleavedToPlanarConvertToInt32(benchmark::State& state) {
     auto length = state.range(0);
 
-    auto input = PRNG::GetInstance().GetRandomFloat(length, -1.0, 1.0);
+    auto input = Singleton<PRNG>::GetInstance().NextBytes<float>(length, -1.0, 1.0);
     auto output = MakeAlignedArray<int>(length);
 
     AudioFormat input_format;
@@ -280,7 +281,7 @@ static void BM_InterleavedToPlanarConvertToInt32(benchmark::State& state) {
 static void BM_InterleavedToPlanarConvertToInt8_AVX(benchmark::State& state) {
     auto length = state.range(0);
 
-    auto input = PRNG::GetInstance().GetRandomBytes(length);
+    auto input = Singleton<PRNG>::GetInstance().NextBytes(length);
     auto output = MakeAlignedArray<int8_t>(length * 2);
 
     AudioFormat input_format;
@@ -302,7 +303,7 @@ static void BM_InterleavedToPlanarConvertToInt8_AVX(benchmark::State& state) {
 static void BM_InterleavedToPlanarConvertToInt8(benchmark::State& state) {
     auto length = state.range(0);
 
-    auto input = PRNG::GetInstance().GetRandomBytes(length);
+    auto input = Singleton<PRNG>::GetInstance().NextBytes(length);
     auto output = MakeAlignedArray<int8_t>(length * 2);
 
     AudioFormat input_format;
@@ -382,32 +383,32 @@ static void BM_StdtMemset(benchmark::State& state) {
 static void BM_FindRobinHoodHashMap(benchmark::State& state) {
     HashMap<int64_t, int64_t> map;
     for (auto _ : state) {
-        map.emplace(std::make_pair(PRNG::GetInstance().NextInt64(), PRNG::GetInstance().NextInt64()));
-        (void)map.find(PRNG::GetInstance().NextInt64());
+        map.emplace(std::make_pair(Singleton<PRNG>::GetInstance().NextInt64(), Singleton<PRNG>::GetInstance().NextInt64()));
+        (void)map.find(Singleton<PRNG>::GetInstance().NextInt64());
     }
 }
 
 static void BM_unordered_map(benchmark::State& state) {
     std::unordered_map<int64_t, int64_t> map;
     for (auto _ : state) {
-        map.emplace(std::make_pair(PRNG::GetInstance().NextInt64(), PRNG::GetInstance().NextInt64()));
-        (void)map.find(PRNG::GetInstance().NextInt64());
+        map.emplace(std::make_pair(Singleton<PRNG>::GetInstance().NextInt64(), Singleton<PRNG>::GetInstance().NextInt64()));
+        (void)map.find(Singleton<PRNG>::GetInstance().NextInt64());
     }
 }
 
 static void BM_FindRobinHoodHashSet(benchmark::State& state) {
     HashSet<int64_t> map;
     for (auto _ : state) {
-        map.emplace(PRNG::GetInstance().NextInt64());
-        (void)map.find(PRNG::GetInstance().NextInt64());
+        map.emplace(Singleton<PRNG>::GetInstance().NextInt64());
+        (void)map.find(Singleton<PRNG>::GetInstance().NextInt64());
     }
 }
 
 static void BM_unordered_set(benchmark::State& state) {
     std::unordered_set<int64_t> map;
     for (auto _ : state) {
-        map.emplace(PRNG::GetInstance().NextInt64());
-        (void)map.find(PRNG::GetInstance().NextInt64());
+        map.emplace(Singleton<PRNG>::GetInstance().NextInt64());
+        (void)map.find(Singleton<PRNG>::GetInstance().NextInt64());
     }
 }
 
@@ -417,19 +418,19 @@ static void BM_LruCache(benchmark::State& state) {
     LruCache<int64_t, int64_t> cache;
 
     for (auto i = 0; i < length; ++i) {
-        cache.AddOrUpdate(PRNG::GetInstance().NextInt64(1, 1000),\
-            PRNG::GetInstance().NextInt64(1, 1000));
+        cache.AddOrUpdate(Singleton<PRNG>::GetInstance().NextInt64(1, 1000),\
+            Singleton<PRNG>::GetInstance().NextInt64(1, 1000));
     }
     
     for (auto _ : state) {
-        cache.Find(PRNG::GetInstance().NextInt64(1, 1000));
+        cache.Find(Singleton<PRNG>::GetInstance().NextInt64(1, 1000));
     }
 }
 
 static void BM_FFT(benchmark::State& state) {
     auto length = state.range(0);
 
-    auto input = PRNG::GetInstance().GetRandomFloat(length, -1.0, 1.0);
+    auto input = Singleton<PRNG>::GetInstance().NextBytes<float>(length, -1.0, 1.0);
     FFT fft;
     fft.Init(length);
     for (auto _ : state) {
@@ -499,12 +500,12 @@ static void BM_Rotl(benchmark::State& state) {
     }
 }
 
-BENCHMARK(BM_InterleavedToPlanarConvertToInt8_AVX)->Range(4096, 8 << 10);
-BENCHMARK(BM_InterleavedToPlanarConvertToInt8)->Range(4096, 8 << 10);
+//BENCHMARK(BM_InterleavedToPlanarConvertToInt8_AVX)->Range(4096, 8 << 10);
+//BENCHMARK(BM_InterleavedToPlanarConvertToInt8)->Range(4096, 8 << 10);
 
-BENCHMARK(BM_IntrinsicRotl);
-BENCHMARK(BM_Rotl);
-
+//BENCHMARK(BM_IntrinsicRotl);
+//BENCHMARK(BM_Rotl);
+//
 //BENCHMARK(BM_UuidParse);
 //BENCHMARK(BM_Xoshiro256StarStarRandom);
 //BENCHMARK(BM_Xoshiro256PlusRandom);
@@ -523,8 +524,8 @@ BENCHMARK(BM_Rotl);
 //BENCHMARK(BM_FastMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
 //BENCHMARK(BM_StdtMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
 
-BENCHMARK(BM_ConvertToInt2432Avx)->RangeMultiplier(2)->Range(4096, 8 << 10);
-BENCHMARK(BM_ConvertToInt2432)->RangeMultiplier(2)->Range(4096, 8 << 10);
+//BENCHMARK(BM_ConvertToInt2432Avx)->RangeMultiplier(2)->Range(4096, 8 << 10);
+//BENCHMARK(BM_ConvertToInt2432)->RangeMultiplier(2)->Range(4096, 8 << 10);
 //BENCHMARK(BM_InterleavedToPlanarConvertToInt32_AVX)->RangeMultiplier(2)->Range(4096, 8 << 10);
 //BENCHMARK(BM_InterleavedToPlanarConvertToInt32)->RangeMultiplier(2)->Range(4096, 8 << 10);
 //BENCHMARK(BM_FFT)->RangeMultiplier(2)->Range(4096, 8 << 12);
@@ -535,16 +536,14 @@ BENCHMARK(BM_ConvertToInt2432)->RangeMultiplier(2)->Range(4096, 8 << 10);
 
 //BENCHMARK(BM_async_pool)->RangeMultiplier(2)->Range(8, 8 << 8);
 #ifdef XAMP_OS_WIN
-BENCHMARK(BM_std_for_each_par)->RangeMultiplier(2)->Range(8, 8 << 8);
+//BENCHMARK(BM_std_for_each_par)->RangeMultiplier(2)->Range(8, 8 << 8);
 #endif
 
-BENCHMARK(BM_LeastLoadThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
-BENCHMARK(BM_RoundRubinThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+//BENCHMARK(BM_LeastLoadThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+//BENCHMARK(BM_RoundRubinThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
 BENCHMARK(BM_RandomThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
 
 int main(int argc, char** argv) {
-    //std::cin.get();
-
     Logger::GetInstance()
         .AddDebugOutputLogger()
         .AddFileLogger("xamp.log")
@@ -553,10 +552,19 @@ int main(int argc, char** argv) {
     // For debug use!
     XAMP_LOG_DEBUG("Logger init success.");
 
+    Logger::GetInstance().GetLogger(kWASAPIThreadPoolLoggerName)
+        ->set_level(spdlog::level::debug);
     Logger::GetInstance().GetLogger(kPlaybackThreadPoolLoggerName)
+        ->set_level(spdlog::level::debug);
+
+    Logger::GetInstance().GetLogger("BM_LeastLoadThreadPool")
+        ->set_level(spdlog::level::info);
+    Logger::GetInstance().GetLogger("BM_RoundRubinThreadPool")
+        ->set_level(spdlog::level::info);
+    Logger::GetInstance().GetLogger("BM_RandomThreadPool")
         ->set_level(spdlog::level::info);
 
-    xamp::player::XampIniter initer;
+    XampIniter initer;
     initer.Init();
 
     ::benchmark::Initialize(&argc, argv);
@@ -564,5 +572,4 @@ int main(int argc, char** argv) {
         return -1;
     }
     ::benchmark::RunSpecifiedBenchmarks();
-    //std::cin.get();
 }

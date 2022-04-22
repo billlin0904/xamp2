@@ -317,7 +317,7 @@ std::string MakeTempFileName() {
     std::string filename = "xamp_temp_";
     static constexpr std::string_view kFilenameCharacters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     for (auto i = 0; i < 8; ++i) {
-        filename += kFilenameCharacters[PRNG::GetInstance()(static_cast<size_t>(0), kFilenameCharacters.length() - 1)];
+        filename += kFilenameCharacters[PRNG().Next(kFilenameCharacters.length() - 1)];
     }
     return filename;
 }
