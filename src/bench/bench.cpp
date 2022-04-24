@@ -25,6 +25,8 @@
 
 #ifdef XAMP_OS_WIN
 #include <base/simd.h>
+#else
+#include <uuid/uuid.h>
 #endif
 
 using namespace xamp::player;
@@ -105,9 +107,7 @@ static void BM_async_pool(benchmark::State& state) {
     std::atomic<int64_t> total;
     for (auto _ : state) {
         StdAsyncParallelFor(n, [&total, &n](auto item) {
-            for (auto i = 0; i < 100; ++i) {
-                total += item;
-            }
+            total += item;
             });
     }
 }
@@ -436,6 +436,26 @@ static void BM_FFT(benchmark::State& state) {
     for (auto _ : state) {
         auto& result = fft.Forward(input.get(), length);
         benchmark::DoNotOptimize(result);
+        benchmark::ClobberMemory();
+    }
+}
+
+static void BM_Builtin_UuidParse(benchmark::State& state) {
+    const auto uuid_str = MakeUuidString();
+#ifdef XAMP_OS_WIN
+
+#else
+    uuid_string_t ustr{0};
+    MemoryCopy(ustr, uuid_str.c_str(), sizeof(ustr));
+    uuid_t uuid{0};
+#endif
+    for (auto _ : state) {
+#ifdef XAMP_OS_WIN
+#else
+        auto result = ::uuid_parse(ustr, uuid);
+#endif
+        benchmark::DoNotOptimize(result);
+        benchmark::ClobberMemory();
     }
 }
 
@@ -486,7 +506,7 @@ static void BM_CircularBuffer(benchmark::State& state) {
     }
 }
 
-static void BM_IntrinsicRotl(benchmark::State& state) {
+static void BM_Builtin_Rotl(benchmark::State& state) {
     for (auto _ : state) {
 #ifdef XAMP_OS_WIN
         auto result = _rotl64(0x76e15d3efefdcbbf, 7);
@@ -494,6 +514,7 @@ static void BM_IntrinsicRotl(benchmark::State& state) {
         auto result = __builtin_rotateleft64(0x76e15d3efefdcbbf, 7);
 #endif
         benchmark::DoNotOptimize(result);
+        benchmark::ClobberMemory();
     }
 }
 
@@ -501,15 +522,17 @@ static void BM_Rotl(benchmark::State& state) {
     for (auto _ : state) {
         auto result = Rotl(0x76e15d3efefdcbbf, 7);
         benchmark::DoNotOptimize(result);
+        benchmark::ClobberMemory();
     }
 }
 
 //BENCHMARK(BM_InterleavedToPlanarConvertToInt8_AVX)->Range(4096, 8 << 10);
 //BENCHMARK(BM_InterleavedToPlanarConvertToInt8)->Range(4096, 8 << 10);
 
-BENCHMARK(BM_IntrinsicRotl);
+BENCHMARK(BM_Builtin_Rotl);
 BENCHMARK(BM_Rotl);
 
+BENCHMARK(BM_Builtin_UuidParse);
 BENCHMARK(BM_UuidParse);
 BENCHMARK(BM_Xoshiro256StarStarRandom);
 BENCHMARK(BM_Xoshiro256PlusRandom);
@@ -542,7 +565,6 @@ BENCHMARK(BM_PRNG_GetInstance);
 #ifdef XAMP_OS_WIN
 //BENCHMARK(BM_std_for_each_par)->RangeMultiplier(2)->Range(8, 8 << 8);
 #endif
-
 //BENCHMARK(BM_LeastLoadThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
 //BENCHMARK(BM_RoundRubinThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
 BENCHMARK(BM_RandomThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
