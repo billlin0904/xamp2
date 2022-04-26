@@ -193,6 +193,12 @@ void BassLib::Load() {
         return;
     }
 
+#ifdef XAMP_OS_WIN
+    // Disable 1ms timer resolution
+#define BASS_CONFIG_NOTIMERES 29
+    BASS.BASS_SetConfig(BASS_CONFIG_NOTIMERES, 1);
+#endif
+
     BASS.BASS_Init(0, 44100, 0, nullptr, nullptr);
     XAMP_LOG_DEBUG("Load BASS {} successfully.", GetBassVersion(BASS.BASS_GetVersion()));
 #ifdef XAMP_OS_WIN

@@ -2,7 +2,6 @@
 #include <base/exception.h>
 #include <base/logger.h>
 #ifdef XAMP_OS_WIN
-#pragma comment(lib, "Winmm.lib")
 #include <base/windows_handle.h>
 #include <timeapi.h>
 #endif

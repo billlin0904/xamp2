@@ -147,6 +147,7 @@ static void loadSettings() {
     AppSettings::setDefaultEnumValue(kAppSettingReplayGainScanMode, ReplayGainScanMode::RG_SCAN_MODE_FAST);
     AppSettings::setDefaultValue(kAppSettingEnableReplayGain, true);
     AppSettings::setDefaultEnumValue(kAppSettingTheme, ThemeColor::DARK_THEME);
+    AppSettings::setDefaultValue(kEnableBitPerfect, true);
     AppSettings::save();
     XAMP_LOG_DEBUG("loadSettings success.");
 }
