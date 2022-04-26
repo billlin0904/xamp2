@@ -52,7 +52,7 @@ void Logger::Shutdown() {
 	if (default_logger_ != nullptr) {
 		default_logger_->debug("=:==:==:==:==:= Logger shutdwon =:==:==:==:==:=");
 	}
-    spdlog::shutdown();
+	spdlog::shutdown();
 }
 
 std::shared_ptr<spdlog::logger> Logger::GetLogger(const std::string &name) {

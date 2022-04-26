@@ -152,7 +152,7 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
         //const auto min_val = SIMD::Set1Ps(-kFloat16Scale);
 
 		if (!SIMD::IsAligned(input)) {
-			const auto unaligned_size = (end_input - input) % kFloatAlignedSize;
+			const auto unaligned_size = (end_input - input) % kAlignedSize;
 			for (auto i = 0; i < unaligned_size; ++i) {
 				*output++ = static_cast<int16_t>(*input++);
 			}
@@ -165,8 +165,8 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
             //const auto clamp = SIMD::MinPs(SIMD::MaxPs(mul, min_val), max_val);
             //SIMD::F32ToS16(output, clamp);
             SIMD::F32ToS16(output, mul);
-			input += kFloatAlignedSize;
-			output += kFloatAlignedSize;
+			input += kAlignedSize;
+			output += kAlignedSize;
 		}
 	}
 
@@ -192,7 +192,7 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
         //const auto min_val = SIMD::Set1Ps(-kFloat32Scale);
 
 		if (!SIMD::IsAligned(input)) {
-			const auto unaligned_size = (end_input - input) % kFloatAlignedSize;
+			const auto unaligned_size = (end_input - input) % kAlignedSize;
 			for (auto i = 0; i < unaligned_size; ++i) {
 				*output++ = static_cast<int32_t>(*input++);
 			}
@@ -205,8 +205,8 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
             //const auto clamp = SIMD::MinPs(SIMD::MaxPs(mul, min_val), max_val);
             //SIMD::F32ToS32(output, clamp);
             SIMD::F32ToS32(output, mul);
-			input += kFloatAlignedSize;
-			output += kFloatAlignedSize;
+			input += kAlignedSize;
+			output += kAlignedSize;
 		}
 	}
 
@@ -234,7 +234,7 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
 		const auto scale = SIMD::Set1Ps(kFloat24Scale);
 
 		if (!SIMD::IsAligned(input)) {
-			const auto unaligned_size = (end_input - input) % kFloatAlignedSize;
+			const auto unaligned_size = (end_input - input) % kAlignedSize;
 
 			//const auto max_val = SIMD::Set1Ps(kFloat24Scale - 1);
 			//const auto min_val = SIMD::Set1Ps(-kFloat24Scale);
@@ -251,8 +251,8 @@ struct XAMP_BASE_API_ONLY_EXPORT DataConverter<PackedFormat::INTERLEAVED, Packed
             //const auto clamp = SIMD::MinPs(SIMD::MaxPs(mul, min_val), max_val);
             //SIMD::F32ToS32<1>(output, clamp);
             SIMD::F32ToS32<1>(output, mul);
-			input += kFloatAlignedSize;
-			output += kFloatAlignedSize;
+			input += kAlignedSize;
+			output += kAlignedSize;
 		}
     }
 };

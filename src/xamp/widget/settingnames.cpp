@@ -53,3 +53,5 @@ const ConstLatin1String kLog{ "Log" };
 const ConstLatin1String kLogMinimumLevel{ "MinimumLevel" };
 const ConstLatin1String kLogDefault{ "Default" };
 const ConstLatin1String kLogOverride{ "Override" };
+
+const ConstLatin1String kEnableBitPerfect{ "AppSettings/enableBitPerfect" };

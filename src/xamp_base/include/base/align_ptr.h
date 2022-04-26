@@ -183,7 +183,7 @@ XAMP_BASE_API_ONLY_EXPORT AlignArray<Type> MakeAlignedArray(size_t n) {
     return AlignArray<Type>(static_cast<Type*>(ptr));
 }
 
-template <typename Type>
+template <typename Type = uint8_t>
 XAMP_BASE_API_ONLY_EXPORT StackBufferPtr<Type> MakeStackBuffer(size_t n) {
     auto* ptr = StackAlloc(sizeof(Type) * n);
     if (!ptr) {

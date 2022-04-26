@@ -16,7 +16,6 @@
 #include <immintrin.h>
 #endif
 
-#define kSimdLanes 32
 #define m256  __m256
 #define m256i __m256i
 #define m128 __m128
@@ -31,7 +30,9 @@ inline constexpr float kFloat32Scale = 2147483647.f;
 inline constexpr float kMaxFloatSample = 1.0F;
 inline constexpr float kMinFloatSample = -1.0F;
 
-inline constexpr int32_t kFloatAlignedSize = kSimdLanes / sizeof(float);
+inline constexpr int32_t kSimdLanes = 32;
+// note: int/float = 4 Byte
+inline constexpr int32_t kAlignedSize = kSimdLanes / sizeof(float);
 
 class SIMD {
 public:
@@ -117,7 +118,7 @@ public:
 template <typename T>
 struct Converter;
 
-template <int32_t part>
+template <int32_t LoOrHi>
 struct UnpackU8 {
     m256i operator()(m256i a, m256i b) const;
 };
@@ -162,19 +163,6 @@ struct Converter<int8_t> {
             _mm256_castsi256_ps(_mm256_permute2f128_si256(lo, hi, _MM_SHUFFLE(0, 2, 0, 0))),
             _mm256_castsi256_ps(_mm256_permute2f128_si256(lo, hi, _MM_SHUFFLE(0, 3, 0, 1)))
         );
-    }*/
-
-    /*static XAMP_ALWAYS_INLINE m256i Shuffle(m256i value, m256i shuffle) {
-        static const m256i kShuffleEpi8Mask0 = SIMD_MM256_SETR_EPI8(
-            0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70,
-            0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0);
-
-        static const m256i kShuffleEpi8Mask1 = SIMD_MM256_SETR_EPI8(
-            0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0,
-            0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70);
-
-        return _mm256_or_si256(_mm256_shuffle_epi8(value, _mm256_add_epi8(shuffle, kShuffleEpi8Mask0)),
-            _mm256_shuffle_epi8(_mm256_permute4x64_epi64(value, 0x4E), _mm256_add_epi8(shuffle, kShuffleEpi8Mask1)));
     }*/
 
     static XAMP_ALWAYS_INLINE std::pair<m256i, m256i> ToPlanar(m256i a, m256i b) {
@@ -257,16 +245,16 @@ struct InterleaveToPlanar<int8_t, int8_t> {
         int8_t* XAMP_RESTRICT b,
         size_t len,
         float mul = 1.0) {
-        constexpr auto offset = kFloatAlignedSize * 2;
+        constexpr auto offset = kAlignedSize * 2;
         XAMP_ASSERT(len % offset == 0);
 
         for (size_t i = 0; i < len;) {
             auto hi = in;
-            auto lo = in + kFloatAlignedSize;
+            auto lo = in + kAlignedSize;
             Convert(in, lo, a, b, mul);
             in += offset;
-            a += kFloatAlignedSize;
-            b += kFloatAlignedSize;
+            a += kAlignedSize;
+            b += kAlignedSize;
             i += offset;
         }
     }
@@ -298,16 +286,16 @@ struct InterleaveToPlanar<float, int32_t> {
         int32_t * XAMP_RESTRICT b,
         size_t len,
         float mul = 1.0) {
-        constexpr auto offset = kFloatAlignedSize * 2;
+        constexpr auto offset = kAlignedSize * 2;
         XAMP_ASSERT(len % offset == 0);
 
         for (size_t i = 0; i < len;) {
             auto hi = in;
-            auto lo = in + kFloatAlignedSize;
+            auto lo = in + kAlignedSize;
             Convert(in, lo, a, b, mul);
             in += offset;
-            a += kFloatAlignedSize;
-            b += kFloatAlignedSize;
+            a += kAlignedSize;
+            b += kAlignedSize;
             i += offset;
         }
     }

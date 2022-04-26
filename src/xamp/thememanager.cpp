@@ -233,28 +233,34 @@ QIcon ThemeManager::themeIcon() const {
     return makeIcon(Q_STR(":/xamp/Resource/%1/theme.png"));
 }
 
-void ThemeManager::setSampleConverterButton(Ui::XampWindow& ui, bool enable) {
-    if (enable) {
-        ui.sampleConverterButton->setStyleSheet(Q_STR(
+void ThemeManager::setBitPerfectButton(Ui::XampWindow& ui, bool enable) {
+    ui.bitPerfectButton->setText(Q_STR("Bit-Perfect"));
+
+    if (enable) {        
+        ui.bitPerfectButton->setStyleSheet(Q_STR(
             R"(
-                QToolButton#sampleConverterButton {
-                    image: url(:/xamp/Resource/%1/enable_converter.png);
+                QToolButton#bitPerfectButton {
+					font-family: "FormatFont";
+					font-weight: bold;
+					color: white;
                     border: none;
-                    background-color: transparent;
+                    background-color: rgb(24, 151, 255);
                 }
             )"
-        ).arg(themeColorPath()));
+        ));
     }
-    else {
-        ui.sampleConverterButton->setStyleSheet(Q_STR(
+    else {        
+        ui.bitPerfectButton->setStyleSheet(Q_STR(
             R"(
-                QToolButton#sampleConverterButton {
-                    image: url(:/xamp/Resource/%1/disable_converter.png);
+                QToolButton#bitPerfectButton {
+					font-family: "FormatFont";
+					font-weight: bold;
+					color: white;
                     border: none;
-                    background-color: transparent;
+                    background-color: rgba(24, 151, 255, 60);
                 }
             )"
-        ).arg(themeColorPath()));
+        ));
     }
 }
 
@@ -491,14 +497,6 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
     ui.sliderBar->setStyleSheet(Q_UTF8("QListView#sliderBar { background-color: transparent; border: none; }"));
     
     ui.searchFrame->setStyleSheet(Q_UTF8("QFrame#searchFrame { background-color: transparent; border: none; }"));
-
-    ui.sampleConverterButton->setStyleSheet(Q_UTF8(R"(
-                                         QToolButton#sampleConverterButton {
-										 border: none;
-										 font-weight: bold;
-                                         background-color: transparent;
-                                         }
-                                         )"));
 
     ui.volumeSlider->setStyleSheet(Q_UTF8(R"(
                                           QSlider#volumeSlider {

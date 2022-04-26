@@ -4,7 +4,11 @@
 namespace xamp::base {
 
 PRNG::PRNG() noexcept
-    : engine_(GenRandom()) {
+    : engine_(GenRandomSeed()) {
+}
+
+void PRNG::SetSeed() {
+	engine_.seed(GenRandomSeed());
 }
 
 }

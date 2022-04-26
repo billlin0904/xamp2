@@ -431,10 +431,12 @@ void Xamp::initialController() {
         QWidget::close();
     });
 
-    (void)QObject::connect(ui_.sampleConverterButton, &QToolButton::pressed, [this]() {
-	    const auto enable_or_disable = !AppSettings::getValueAsBool(kAppSettingResamplerEnable);
-        AppSettings::setValue(kAppSettingResamplerEnable, enable_or_disable);
-        updateButtonState();
+    Singleton<ThemeManager>::GetInstance().setBitPerfectButton(ui_, AppSettings::getValueAsBool(kEnableBitPerfect));
+
+    (void)QObject::connect(ui_.bitPerfectButton, &QToolButton::pressed, [this]() {
+	    const auto enable_or_disable = !AppSettings::getValueAsBool(kEnableBitPerfect);
+        AppSettings::setValue(kEnableBitPerfect, enable_or_disable);
+        Singleton<ThemeManager>::GetInstance().setBitPerfectButton(ui_, enable_or_disable);
         });
 
     (void)QObject::connect(ui_.seekSlider, &SeekSlider::leftButtonValueChanged, [this](auto value) {
@@ -742,8 +744,7 @@ void Xamp::initialController() {
     });
 }
 
-void Xamp::updateButtonState() {
-    Singleton<ThemeManager>::GetInstance().setSampleConverterButton(ui_, AppSettings::getValueAsBool(kAppSettingResamplerEnable));
+void Xamp::updateButtonState() {    
     Singleton<ThemeManager>::GetInstance().setPlayOrPauseButton(ui_, player_->GetState() != PlayerState::PLAYER_STATE_PAUSED);
     preference_page_->update();
 }
@@ -994,14 +995,18 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
 	    uint32_t target_sample_rate = 0;
         QMap<QString, QVariant> soxr_settings;
 
-	    if (AppSettings::getValueAsBool(kAppSettingResamplerEnable)) {
-		    const auto setting_name = AppSettings::getValueAsString(kAppSettingSoxrSettingName);
-            soxr_settings = JsonSettings::getValue(kSoxr).toMap()[setting_name].toMap();
-            target_sample_rate = soxr_settings[kSoxrResampleSampleRate].toUInt();
+        if (!AppSettings::getValueAsBool(kEnableBitPerfect)) {
+            if (AppSettings::getValueAsBool(kAppSettingResamplerEnable)) {
+                const auto setting_name = AppSettings::getValueAsString(kAppSettingSoxrSettingName);
+                soxr_settings = JsonSettings::getValue(kSoxr).toMap()[setting_name].toMap();
+                target_sample_rate = soxr_settings[kSoxrResampleSampleRate].toUInt();
+            }
         }
-
+        
         player_->Open(item.file_path.toStdWString(), device_info_, target_sample_rate);
-        setupDSP(target_sample_rate, soxr_settings, item);
+        if (!AppSettings::getValueAsBool(kEnableBitPerfect)) {
+            setupDSP(target_sample_rate, soxr_settings, item);
+        }
 
         player_->PrepareToPlay();        
         playback_format = getPlaybackFormat(player_.get());

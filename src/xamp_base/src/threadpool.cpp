@@ -8,7 +8,7 @@ namespace xamp::base {
 inline constexpr auto kDefaultTimeout = std::chrono::milliseconds(100);
 inline constexpr auto kSharedTaskQueueSize = 4096;
 inline constexpr auto kWorkStealingTaskQueueSize = 4096;
-inline constexpr auto kMaxPopFailureSize = 500;
+inline constexpr auto kMaxStealFailureSize = 500;
 inline constexpr auto kMaxWorkQueueSize = 65536;
 
 TaskScheduler::TaskScheduler(const std::string_view& pool_name, uint32_t max_thread, int32_t affinity, ThreadPriority priority)
@@ -49,9 +49,11 @@ uint32_t TaskScheduler::GetThreadSize() const {
 }
 
 void TaskScheduler::SubmitJob(Task&& task) {
+	auto* policy = task_scheduler_policy_.get();
+
 	for (size_t n = 0; n < max_thread_ * K; ++n) {
 		auto current = n % max_thread_;
-		auto index = task_scheduler_policy_->ScheduleNext(current, task_work_queues_);
+		auto index = policy->ScheduleNext(current, task_work_queues_);
 		auto& queue = task_work_queues_.at(index);
 		if (queue->TryEnqueue(task)) {
 			XAMP_LOG_D(logger_, "Enqueue thread {} local queue ({}).", index, queue->size());
@@ -64,11 +66,11 @@ void TaskScheduler::SubmitJob(Task&& task) {
 }
 
 void TaskScheduler::Destroy() noexcept {
-	XAMP_LOG_D(logger_, "Thread pool start destory.");
-
 	if (!task_pool_ || threads_.empty()) {
 		return;
 	}
+
+	XAMP_LOG_D(logger_, "Thread pool start destory.");
 
 	is_stopped_ = true;
 	task_pool_->WakeupForShutdown();
@@ -149,47 +151,45 @@ void TaskScheduler::AddThread(size_t i, int32_t affinity, ThreadPriority priorit
 	threads_.emplace_back([i, this, priority]() mutable {
 		// Avoid 64K Aliasing in L1 Cache (Intel hyper-threading)
 		const auto L1_padding_buffer =
-			MakeStackBuffer<uint8_t>((std::min)(kInitL1CacheLineSize * i,
+			MakeStackBuffer((std::min)(kInitL1CacheLineSize * i,
 			kMaxL1CacheLineSize));
-		auto thread_id = GetCurrentThreadId();
-		auto* local_queue = task_work_queues_[i].get();
-		SetThreadPriority(priority);
+
 		SetWorkerThreadName(i);
+		SetThreadPriority(priority);
+
+		auto* local_queue = task_work_queues_[i].get();
+		auto* policy = task_scheduler_policy_.get();
+		auto steal_failure_count = 0;
+		auto thread_id = GetCurrentThreadId();
 
 		XAMP_LOG_D(logger_, "Worker Thread {} ({}) start.", thread_id, i);
-		auto pop_failure_count = 0;
 
 		while (!is_stopped_) {
 			auto task = TryLocalPop(local_queue);
 
 			if (!task) {
-				const auto steal_index = task_scheduler_policy_->ScheduleNext(i, task_work_queues_);
+				const auto steal_index = policy->ScheduleNext(i, task_work_queues_);
 
 				task = TrySteal(steal_index);
 
 				if (!task) {
-					++pop_failure_count;
-					if (pop_failure_count >= kMaxPopFailureSize) {
+					++steal_failure_count;
+					if (steal_failure_count >= kMaxStealFailureSize) {
 						task = TryDequeueSharedQueue(kDefaultTimeout);
 					}
 				}
 			}
 
 			if (!task) {
+				CpuRelex();
 				continue;
 			} else {
-				pop_failure_count = 0;
+				steal_failure_count = 0;
 			}
 
 			auto running_thread = ++running_thread_;
 			XAMP_LOG_D(logger_, "Worker Thread {} ({}) weakup, running:{}", i, thread_id, running_thread);
-			try {
-				(*task)(i);
-			} catch (std::exception const& e) {
-				XAMP_LOG_D(logger_, "Worker Thread {} got exception: {}", e.what());
-			} catch (...) {
-				XAMP_LOG_ERROR("unknown exception!");
-			}
+			(*task)(i);
 			--running_thread_;
 			XAMP_LOG_D(logger_, "Worker Thread {} ({}) execute finished.", i, thread_id);
 		}

@@ -46,6 +46,8 @@ extern const ConstLatin1String kSoxrPhase;
 extern const ConstLatin1String kSoxrRollOffLevel;
 extern const ConstLatin1String kSoxrDefaultSettingName;
 
+extern const ConstLatin1String kEnableBitPerfect;
+
 extern const ConstLatin1String kAppSettingEnableEQ;
 extern const ConstLatin1String kAppSettingEQName;
 

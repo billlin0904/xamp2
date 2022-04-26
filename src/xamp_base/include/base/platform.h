@@ -25,6 +25,10 @@ MAKE_XAMP_ENUM(
     RANDOM_POLICY,
     LEAST_LOAD_POLICY)
 
+struct XAMP_BASE_API PlatformUUID {
+    uint8_t id[16];
+};
+
 inline constexpr uint32_t kInefinity = -1;
 
 XAMP_BASE_API void SetThreadPriority(ThreadPriority priority) noexcept;
@@ -38,6 +42,8 @@ XAMP_BASE_API std::string GetCurrentThreadId();
 XAMP_BASE_API std::string MakeTempFileName();
 
 XAMP_BASE_API std::string MakeUuidString();
+
+XAMP_BASE_API PlatformUUID ParseUuidString(const std::string& str);
 
 XAMP_BASE_API bool IsDebuging();
 
@@ -55,7 +61,9 @@ XAMP_BASE_API void AtomicWakeSingle(std::atomic<uint32_t>& to_wake) noexcept;
 
 XAMP_BASE_API void AtomicWakeAll(std::atomic<uint32_t>& to_wake) noexcept;
 
-XAMP_BASE_API uint64_t GenRandom() noexcept;
+XAMP_BASE_API uint64_t GenRandomSeed() noexcept;
+
+XAMP_BASE_API void CpuRelex() noexcept;
 
 #ifdef XAMP_OS_WIN
 XAMP_BASE_API void RedirectStdOut();

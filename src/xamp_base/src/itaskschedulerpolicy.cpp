@@ -29,12 +29,14 @@ void RandomSchedulerPolicy::SetMaxThread(size_t max_thread) {
 }
 
 size_t RandomSchedulerPolicy::ScheduleNext(size_t cur_index, const std::vector<WorkStealingTaskQueuePtr>& /*work_queues*/) {
-	size_t random_index;
+	size_t random_index = cur_index;
 
 	auto& prng = prngs_[cur_index];
-	do {
-		random_index = prng.Next(prngs_.size() - 1);
-	} while (random_index == cur_index);
+	const auto max_size = prngs_.size() - 1;
+
+	while (random_index == cur_index) {
+		random_index = prng.Next(max_size);
+	}
 
 	return random_index;
 }

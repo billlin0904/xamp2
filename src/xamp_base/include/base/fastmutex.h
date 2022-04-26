@@ -25,10 +25,6 @@ public:
 	void unlock() noexcept;
 
 	[[nodiscard]] bool try_lock() noexcept;
-
-	PSRWLOCK native_handle() {
-		return &lock_;
-	}
 private:
 	XAMP_CACHE_ALIGNED(kCacheAlignSize) SRWLOCK lock_;
 	uint8_t padding_[kCacheAlignSize - sizeof(lock_)]{ 0 };

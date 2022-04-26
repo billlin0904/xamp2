@@ -287,6 +287,23 @@ void SetThreadPriority(ThreadPriority priority) noexcept {
 #endif
 }
 
+PlatformUUID ParseUuidString(const std::string &str) {
+#ifdef XAMP_OS_WIN
+    PlatformUUID result{};
+    UUID uuid;
+    auto status = ::UuidFromStringA(RPC_CSTR(str.c_str()), &uuid);
+    XAMP_ASSERT(status == RPC_S_OK);
+    MemoryCopy(&result, &uuid, sizeof(PlatformUUID));
+#else
+    uuid_string_t ustr{ 0 };
+    MemoryCopy(ustr, str.c_str(), sizeof(ustr));
+    uuid_t uuid{ 0 };
+    auto result = ::uuid_parse(ustr, uuid);
+    MemoryCopy(&result, &uuid, sizeof(PlatformUUID));
+#endif
+    return result;
+}
+
 std::string MakeUuidString() {
 #ifdef XAMP_OS_WIN
 	UUID uuid;
@@ -440,6 +457,7 @@ bool VirtualMemoryLock(void* address, size_t size) {
             throw PlatformSpecException("ExtendProcessWorkingSetSize return failure!");
         }
         if (!::VirtualLock(address, size)) {
+            throw PlatformSpecException("VirtualLock return failure!");
             return false;
         }
     }
@@ -463,7 +481,7 @@ void MSleep(std::chrono::milliseconds timeout) {
     timer.Wait();
 }
 
-uint64_t GenRandom() noexcept {
+uint64_t GenRandomSeed() noexcept {
     uint64_t seed = 0;
 #ifdef XAMP_OS_WIN
     struct BCryptContextTraits final {
@@ -494,6 +512,14 @@ uint64_t GenRandom() noexcept {
     seed = std::random_device{}();
 #endif
     return seed;
+}
+
+void CpuRelex() noexcept {
+#ifdef XAMP_OS_WIN
+    YieldProcessor();
+#else
+    __asm__ __volatile__("pause");
+#endif
 }
 
 }

@@ -33,7 +33,7 @@ void TestToInterleave() {
 }
 
 void TestToF32ToI32Planar() {
-	auto input = PRNG::GetInstance().GetRandomFloat(16, -1.0, 1.0);
+	auto input = Singleton<PRNG>::GetInstance().NextBytes<float>(16, -1.0, 1.0);
 	auto left = MakeAlignedArray<int32_t>(8);
 	auto right = MakeAlignedArray<int32_t>(8);
 	InterleaveToPlanar<float, int32_t>::Convert(
@@ -48,7 +48,7 @@ void TestFloatConverter() {
 
 	for (auto x = 0; x < 10000; ++x) {
 		auto output = MakeAlignedArray<int32_t>(kMaxTestSize);
-		auto input = PRNG::GetInstance().GetRandomFloat(kMaxTestSize, -1.0, 1.0);
+		auto input = Singleton<PRNG>::GetInstance().NextBytes<float>(kMaxTestSize, -1.0, 1.0);
 
 		AudioFormat input_format;
 		AudioFormat output_format;
@@ -87,8 +87,6 @@ void TestFloatConverter() {
 
 void PrintArray(AlignArray<int8_t> const &input, size_t size) {
 	for (auto i = 0; i < size; ++i) {
-		/*std::cout << "0x" << std::setw(2) << std::dec << std::setfill('0') <<
-			static_cast<int32_t>(input[i]) << " ";*/
 		std::cout << std::setw(2) << std::dec << std::setfill('0') <<
 			static_cast<int32_t>(input[i]) << " ";
 		if ((i + 1) % 8 == 0) std::cout << std::endl;
@@ -114,10 +112,10 @@ void TestToInt8Planar() {
 		right.get(),
 		64);
 
-	PrintArray(left, 32);
+	PrintArray(left, 64);
 	std::cout << std::endl;
 
-	PrintArray(right, 32);
+	PrintArray(right, 64);
 }
 
 int main(int argc, char* argv[]) {

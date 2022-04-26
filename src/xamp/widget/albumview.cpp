@@ -1,3 +1,5 @@
+#include <vector>
+
 #include <QPainter>
 #include <QScrollBar>
 #include <QApplication>
@@ -400,7 +402,7 @@ AlbumView::AlbumView(QWidget* parent)
         });
 
     setContextMenuPolicy(Qt::CustomContextMenu);
-    (void)QObject::connect(this, &QTableView::customContextMenuRequested, [this](auto pt) {
+    (void)QObject::connect(this, &QTableView::customContextMenuRequested, [this](const QPoint& pt) {
         auto index = indexAt(pt);
 
         ActionMap<AlbumView> action_map(this);
@@ -423,15 +425,16 @@ AlbumView::AlbumView(QWidget* parent)
 
             action_map.addAction(tr("Add album to playlist"), [=]() {
                 std::vector<PlayListEntity> entities;
-                std::vector<int32_t> music_ids;
-                Singleton<Database>::GetInstance().forEachAlbumMusic(album_id, [&entities, &music_ids](const auto& entity) {
-                    if (entity.album_replay_gain == 0) {
-                        entities.push_back(entity);
-                    }
-                    music_ids.push_back(entity.music_id);
+                std::vector<int32_t> add_playlist_music_ids;
+                Singleton<Database>::GetInstance().forEachAlbumMusic(album_id,
+                    [&entities, &add_playlist_music_ids](const PlayListEntity& entity) mutable {
+                        if (entity.album_replay_gain == 0.0) {
+                            entities.push_back(entity);
+                        }
+                        add_playlist_music_ids.push_back(entity.music_id);
+                    });
+                emit addPlaylist(add_playlist_music_ids, entities);
                 });
-                addPlaylist(music_ids, entities);
-            });
 
             action_map.addAction(tr("Copy album"), [album]() {
                 QApplication::clipboard()->setText(album);

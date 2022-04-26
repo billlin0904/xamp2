@@ -104,7 +104,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>../xamp/x64/Release/;../thirdparty/benchmark/msvc/src/Release/</AdditionalLibraryDirectories>
       <AdditionalDependencies>xamp_base.lib;xamp_stream.lib;xamp_player.lib;Shlwapi.lib;benchmark.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <LinkTimeCodeGeneration>PGInstrument</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
     <Bscmake>
       <PreserveSbr>true</PreserveSbr>

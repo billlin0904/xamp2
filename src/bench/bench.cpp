@@ -34,10 +34,10 @@ using namespace xamp::base;
 using namespace xamp::stream;
 
 static void BM_LeastLoadThreadPool(benchmark::State& state) {
-    auto thread_pool = MakeThreadPool(
+    const auto thread_pool = MakeThreadPool(
         "BM_LeastLoadThreadPool",
         TaskSchedulerPolicy::LEAST_LOAD_POLICY);
-    auto length = state.range(0);
+    const auto length = state.range(0);
     std::vector<int> n(length);
     std::iota(n.begin(), n.end(), 1);
     std::atomic<int64_t> total;
@@ -50,10 +50,10 @@ static void BM_LeastLoadThreadPool(benchmark::State& state) {
 }
 
 static void BM_RoundRubinThreadPool(benchmark::State& state) {
-    auto thread_pool = MakeThreadPool(
+	const auto thread_pool = MakeThreadPool(
         "BM_RoundRubinThreadPool",
         TaskSchedulerPolicy::ROUND_ROBIN_POLICY);
-    auto length = state.range(0);
+    const auto length = state.range(0);
     std::vector<int> n(length);
     std::iota(n.begin(), n.end(), 1);
     std::atomic<int64_t> total;
@@ -66,10 +66,10 @@ static void BM_RoundRubinThreadPool(benchmark::State& state) {
 }
 
 static void BM_RandomThreadPool(benchmark::State& state) {
-    auto thread_pool = MakeThreadPool(
+    const auto thread_pool = MakeThreadPool(
         "BM_RandomThreadPool",
         TaskSchedulerPolicy::RANDOM_POLICY);
-    auto length = state.range(0);
+    const auto length = state.range(0);
     std::vector<int> n(length);
     std::iota(n.begin(), n.end(), 1);
     std::atomic<int64_t> total;
@@ -442,18 +442,8 @@ static void BM_FFT(benchmark::State& state) {
 
 static void BM_Builtin_UuidParse(benchmark::State& state) {
     const auto uuid_str = MakeUuidString();
-#ifdef XAMP_OS_WIN
-
-#else
-    uuid_string_t ustr{0};
-    MemoryCopy(ustr, uuid_str.c_str(), sizeof(ustr));
-    uuid_t uuid{0};
-#endif
     for (auto _ : state) {
-#ifdef XAMP_OS_WIN
-#else
-        auto result = ::uuid_parse(ustr, uuid);
-#endif
+        auto result = ParseUuidString(uuid_str);
         benchmark::DoNotOptimize(result);
         benchmark::ClobberMemory();
     }
@@ -529,17 +519,17 @@ static void BM_Rotl(benchmark::State& state) {
 //BENCHMARK(BM_InterleavedToPlanarConvertToInt8_AVX)->Range(4096, 8 << 10);
 //BENCHMARK(BM_InterleavedToPlanarConvertToInt8)->Range(4096, 8 << 10);
 
-BENCHMARK(BM_Builtin_Rotl);
-BENCHMARK(BM_Rotl);
+//BENCHMARK(BM_Builtin_Rotl);
+//BENCHMARK(BM_Rotl);
 
-BENCHMARK(BM_Builtin_UuidParse);
-BENCHMARK(BM_UuidParse);
-BENCHMARK(BM_Xoshiro256StarStarRandom);
-BENCHMARK(BM_Xoshiro256PlusRandom);
-BENCHMARK(BM_Xoshiro256PlusPlusRandom);
-BENCHMARK(BM_default_random_engine);
-BENCHMARK(BM_PRNG);
-BENCHMARK(BM_PRNG_GetInstance);
+//BENCHMARK(BM_Builtin_UuidParse);
+//BENCHMARK(BM_UuidParse);
+//BENCHMARK(BM_Xoshiro256StarStarRandom);
+//BENCHMARK(BM_Xoshiro256PlusRandom);
+//BENCHMARK(BM_Xoshiro256PlusPlusRandom);
+//BENCHMARK(BM_default_random_engine);
+//BENCHMARK(BM_PRNG);
+//BENCHMARK(BM_PRNG_GetInstance);
 
 //BENCHMARK(BM_unordered_set);
 //BENCHMARK(BM_FindRobinHoodHashSet);
@@ -566,7 +556,7 @@ BENCHMARK(BM_PRNG_GetInstance);
 //BENCHMARK(BM_std_for_each_par)->RangeMultiplier(2)->Range(8, 8 << 8);
 #endif
 //BENCHMARK(BM_LeastLoadThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
-//BENCHMARK(BM_RoundRubinThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+BENCHMARK(BM_RoundRubinThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
 BENCHMARK(BM_RandomThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
 
 int main(int argc, char** argv) {

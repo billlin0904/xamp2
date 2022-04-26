@@ -7,6 +7,7 @@
 
 #include <map>
 #include "thememanager.h"
+#include <QPoint>
 #include <QScopedPointer>
 #include <QMenu>
 

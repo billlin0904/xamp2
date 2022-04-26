@@ -96,7 +96,7 @@ public:
 
     void setPlayOrPauseButton(Ui::XampWindow &ui, bool is_playing);
 
-    void setSampleConverterButton(Ui::XampWindow& ui, bool enable);
+    void setBitPerfectButton(Ui::XampWindow& ui, bool enable);
 
     void setWidgetStyle(Ui::XampWindow &ui);    
 

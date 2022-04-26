@@ -66,6 +66,8 @@ public:
 		}
 		return output;
 	}
+
+    void SetSeed();
 private:
     Xoshiro256StarStarEngine engine_;
 };
