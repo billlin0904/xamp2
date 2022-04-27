@@ -58,5 +58,21 @@ void Uninitialize() {
     Logger::GetInstance().Shutdown();
 }
 
+XampIniter::XampIniter() {
+}
+
+void XampIniter::Init() {
+    if (success) {
+        return;
+    }
+    Initialize();
+    success = true;
+}
+
+XampIniter::~XampIniter() {
+    if (success) {
+        Uninitialize();
+    }
+}
 
 }
