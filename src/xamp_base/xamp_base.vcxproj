@@ -200,6 +200,7 @@
     <ClInclude Include="include\base\volume.h" />
     <ClInclude Include="include\base\waitabletimer.h" />
     <ClInclude Include="include\base\windows_handle.h" />
+    <ClInclude Include="include\base\workstealingtaskqueue.h" />
     <ClInclude Include="include\base\xoshiro.h" />
   </ItemGroup>
   <ItemGroup>

@@ -76,9 +76,11 @@ public:
 
 	void ReOpen();
 
-	bool IsSupportDSDFormat() const;
+	bool IsSupportDsdFormat() const;
 
 	static void ResetDriver();
+
+	void RemoveCurrentDriver();
 private:
 	static ASIOTime* OnBufferSwitchTimeInfoCallback(ASIOTime* timeInfo, long index, ASIOBool processNow) noexcept;
 
@@ -95,8 +97,6 @@ private:
 	void OnBufferSwitch(long index, double sample_time) noexcept;
 
 	std::tuple<int32_t, int32_t> GetDeviceBufferSize() const;
-
-	bool IsSupportDsdFormat() const;
 
 	void FillSlientData() noexcept;
 

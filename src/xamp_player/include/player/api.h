@@ -12,24 +12,15 @@
 
 namespace xamp::player {
 
-XAMP_PLAYER_API void Initialize();
+class XAMP_PLAYER_API XampIniter {
+public:
+	XampIniter();
 
-XAMP_PLAYER_API void Uninitialize();
+	void Init();
 
-struct XAMP_PLAYER_API XampIniter {
-	XampIniter() {
-	}
+	~XampIniter();
 
-	void Init() {
-		Initialize();
-		success = true;
-	}
-
-	~XampIniter() {
-		if (success) {
-			Uninitialize();
-		}
-	}
+	XAMP_DISABLE_COPY(XampIniter)
 private:
 	bool success{false};
 };	

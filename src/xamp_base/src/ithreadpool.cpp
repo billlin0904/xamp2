@@ -9,11 +9,13 @@ inline constexpr auto kMaxWASAPIThreadPoolSize{ 2 };
 
 AlignPtr<IThreadPool> MakeThreadPool(const std::string_view& pool_name,
     TaskSchedulerPolicy policy,
+    TaskStealPolicy steal_policy,
     ThreadPriority priority,
     uint32_t max_thread,
     int32_t affinity) {
     return MakeAlign<IThreadPool, ThreadPool>(pool_name,
         policy,
+        steal_policy,
         max_thread,
         affinity,
         priority);

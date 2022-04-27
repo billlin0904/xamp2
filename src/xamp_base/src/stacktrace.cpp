@@ -49,10 +49,8 @@ public:
     XAMP_DISABLE_COPY(SymLoader)
 
     SymLoader() {
-        symbol_.resize(sizeof(SYMBOL_INFO) + sizeof(wchar_t) * MAX_SYM_NAME);
         process_.reset(::GetCurrentProcess());
-        stack_trace_entries_.reserve(kMaxStackFrameSize);
-
+        
         ::SymSetOptions(SYMOPT_DEFERRED_LOADS |
             SYMOPT_UNDNAME |
             SYMOPT_LOAD_LINES /*| SYMOPT_DEBUG*/);
@@ -119,9 +117,13 @@ public:
     void WriteLog(std::ostringstream &ostr, size_t frame_count, CaptureStackAddress& addrlist) {
         ostr << "\r\nstack backtrace:\r\n";
 
-        frame_count = (std::min)(addrlist.size(), frame_count);
+        std::vector<uint8_t> symbol_buffer;
+        symbol_buffer.resize(sizeof(SYMBOL_INFO) + sizeof(wchar_t) * MAX_SYM_NAME);
 
-        stack_trace_entries_.clear();       
+        std::vector<StackTraceEntry> stack_trace_entries;
+        stack_trace_entries.reserve(kMaxStackFrameSize);
+
+        frame_count = (std::min)(addrlist.size(), frame_count);
         size_t max_width = 0;
 
         for (uint32_t i = 0; i < frame_count; ++i) {
@@ -146,8 +148,8 @@ public:
 
             max_width = (std::max)(max_width, entry.module_name.length());
 
-            MemorySet(symbol_.data(), 0, symbol_.size());
-            auto* const symbol_info = reinterpret_cast<SYMBOL_INFO*>(symbol_.data());
+            MemorySet(symbol_buffer.data(), 0, symbol_buffer.size());
+            auto* const symbol_info = reinterpret_cast<SYMBOL_INFO*>(symbol_buffer.data());
             symbol_info->SizeOfStruct = sizeof(SYMBOL_INFO);
             symbol_info->MaxNameLen = kMaxSymbolNameSize;
 
@@ -181,10 +183,10 @@ public:
                 entry.source_file_name = "<unknown>";
             }
 
-            stack_trace_entries_.push_back(entry);
+            stack_trace_entries.push_back(entry);
         }
 
-        for (const auto & entry : stack_trace_entries_) {
+        for (const auto & entry : stack_trace_entries) {
             ostr << "\t#" << std::left << std::setfill(' ') << std::setw(2) << std::dec << entry.index << " "
 				 << std::left << std::setfill(' ') << std::setw(max_width) << entry.module_name << " "
                  << " "
@@ -209,8 +211,6 @@ public:
 private:
     bool init_state_;
 	WinHandle process_;
-    std::vector<StackTraceEntry> stack_trace_entries_;
-    std::vector<uint8_t> symbol_;
 };
 
 #define SYMBOL_LOADER Singleton<SymLoader>::GetInstance()

@@ -12,13 +12,14 @@ inline constexpr auto kMaxStealFailureSize = 500;
 inline constexpr auto kMaxWorkQueueSize = 65536;
 
 TaskScheduler::TaskScheduler(const std::string_view& pool_name, uint32_t max_thread, int32_t affinity, ThreadPriority priority)
-	: TaskScheduler(TaskSchedulerPolicy::RANDOM_POLICY, pool_name, max_thread, affinity, priority)  {
+	: TaskScheduler(TaskSchedulerPolicy::RANDOM_POLICY, TaskStealPolicy::CONTINUATION_STEALING_POLICY, pool_name, max_thread, affinity, priority)  {
 }
 
-TaskScheduler::TaskScheduler(TaskSchedulerPolicy policy, const std::string_view& pool_name, uint32_t max_thread, int32_t affinity, ThreadPriority priority)
+TaskScheduler::TaskScheduler(TaskSchedulerPolicy policy, TaskStealPolicy steal_policy, const std::string_view& pool_name, uint32_t max_thread, int32_t affinity, ThreadPriority priority)
 	: is_stopped_(false)
 	, running_thread_(0)
 	, max_thread_(max_thread)
+	, task_steal_policy_(MakeTaskStealPolicy(steal_policy))
 	, task_scheduler_policy_(MakeTaskSchedulerPolicy(policy)) {
 	logger_ = Logger::GetInstance().GetLogger(pool_name.data());
 	try {
@@ -50,19 +51,11 @@ uint32_t TaskScheduler::GetThreadSize() const {
 
 void TaskScheduler::SubmitJob(Task&& task) {
 	auto* policy = task_scheduler_policy_.get();
-
-	for (size_t n = 0; n < max_thread_ * K; ++n) {
-		auto current = n % max_thread_;
-		auto index = policy->ScheduleNext(current, task_work_queues_);
-		auto& queue = task_work_queues_.at(index);
-		if (queue->TryEnqueue(task)) {
-			XAMP_LOG_D(logger_, "Enqueue thread {} local queue ({}).", index, queue->size());
-			return;
-		}
-	}
-
-	XAMP_LOG_D(logger_, "Enqueue shared queue.");
-	task_pool_->Enqueue(task);
+	task_steal_policy_->SubmitJob(std::move(task),
+		max_thread_,
+		task_pool_.get(),
+		policy, 
+		task_work_queues_);
 }
 
 void TaskScheduler::Destroy() noexcept {
@@ -202,8 +195,8 @@ void TaskScheduler::AddThread(size_t i, int32_t affinity, ThreadPriority priorit
 	}
 }
 
-ThreadPool::ThreadPool(const std::string_view& pool_name, TaskSchedulerPolicy policy, uint32_t max_thread, int32_t affinity, ThreadPriority priority)
-	: IThreadPool(MakeAlign<ITaskScheduler, TaskScheduler>(policy, pool_name, (std::min)(max_thread, kMaxThread), affinity, priority)) {
+ThreadPool::ThreadPool(const std::string_view& pool_name, TaskSchedulerPolicy policy, TaskStealPolicy steal_policy, uint32_t max_thread, int32_t affinity, ThreadPriority priority)
+	: IThreadPool(MakeAlign<ITaskScheduler, TaskScheduler>(policy, steal_policy, pool_name, (std::min)(max_thread, kMaxThread), affinity, priority)) {
 }
 
 ThreadPool::ThreadPool(const std::string_view& pool_name, uint32_t max_thread, int32_t affinity, ThreadPriority priority)

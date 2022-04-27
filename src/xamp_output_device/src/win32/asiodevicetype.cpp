@@ -74,11 +74,11 @@ DeviceInfo ASIODeviceType::GetDeviceInfo(std::wstring const& name, std::string c
 	info.name = name;
 	info.device_id = device_id;
 	info.device_type_id = Id;
-	/*auto device = MakeAlign<IOutputDevice, AsioDevice>(device_id);
+	const auto device = MakeAlign<IOutputDevice, AsioDevice>(device_id);
 	auto* asio_device = dynamic_cast<AsioDevice*>(device.get());
 	asio_device->OpenStream(AudioFormat::kPCM441Khz);
-	info.is_support_dsd = asio_device->IsSupportDSDFormat();
-	info.is_hardware_control_volume = asio_device->IsHardwareControlVolume();*/
+	info.is_support_dsd = asio_device->IsSupportDsdFormat();
+	info.is_hardware_control_volume = asio_device->IsHardwareControlVolume();
 	info.is_support_dsd = true;
 	info.is_hardware_control_volume = true;
 	return info;

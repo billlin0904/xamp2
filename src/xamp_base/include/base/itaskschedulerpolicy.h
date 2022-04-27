@@ -10,17 +10,9 @@
 #include <base/base.h>
 #include <base/align_ptr.h>
 #include <base/ithreadpool.h>
-#include <base/blocking_queue.h>
+#include <base/workstealingtaskqueue.h>
 
 namespace xamp::base {
-
-using SharedTaskQueue = BlockingQueue<Task>;
-using SharedTaskQueuePtr = AlignPtr<SharedTaskQueue>;
-
-using WorkStealingTaskQueue = BlockingQueue<Task>;
-
-using SharedTaskQueuePtr = AlignPtr<SharedTaskQueue>;
-using WorkStealingTaskQueuePtr = AlignPtr<WorkStealingTaskQueue>;
 
 class XAMP_BASE_API ITaskSchedulerPolicy {
 public:
@@ -28,12 +20,45 @@ public:
 
 	virtual void SetMaxThread(size_t max_thread) = 0;
 
-    virtual size_t ScheduleNext(size_t cur_index, const std::vector<WorkStealingTaskQueuePtr> &work_queues) = 0;
+    virtual size_t ScheduleNext(size_t cur_index, const std::vector<WorkStealingTaskQueuePtr>& work_queues) = 0;
 protected:
     ITaskSchedulerPolicy() = default;
 };
 
+class XAMP_BASE_API ITaskStealPolicy {
+public:
+    XAMP_BASE_CLASS(ITaskStealPolicy)
+
+    virtual void SubmitJob(Task&& task,
+        size_t max_thread,
+        SharedTaskQueue* task_pool,
+        ITaskSchedulerPolicy* policy,
+        const std::vector<WorkStealingTaskQueuePtr>& task_work_queues) = 0;
+protected:
+    ITaskStealPolicy() = default;
+};
+
+class ChildStealPolicy final : public ITaskStealPolicy {
+public:
+    void SubmitJob(Task&& task,
+        size_t max_thread,
+        SharedTaskQueue* task_pool,
+        ITaskSchedulerPolicy* policy,
+        const std::vector<WorkStealingTaskQueuePtr>& task_work_queues) override;
+};
+
+class ContinuationStealPolicy final : public ITaskStealPolicy{
+public:
+    void SubmitJob(Task&& task,
+        size_t max_thread,
+        SharedTaskQueue* task_pool,
+        ITaskSchedulerPolicy* policy,
+        const std::vector<WorkStealingTaskQueuePtr>& task_work_queues) override;
+};
+
 XAMP_BASE_API AlignPtr<ITaskSchedulerPolicy> MakeTaskSchedulerPolicy(TaskSchedulerPolicy policy);
+
+XAMP_BASE_API AlignPtr<ITaskStealPolicy> MakeTaskStealPolicy(TaskStealPolicy policy);
 
 class RoundRobinSchedulerPolicy final : public ITaskSchedulerPolicy {
 public:

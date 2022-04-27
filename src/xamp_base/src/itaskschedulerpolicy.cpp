@@ -15,6 +15,45 @@ AlignPtr<ITaskSchedulerPolicy> MakeTaskSchedulerPolicy(TaskSchedulerPolicy polic
 	}
 }
 
+AlignPtr<ITaskStealPolicy> MakeTaskStealPolicy(TaskStealPolicy policy) {
+	switch (policy) {
+	case TaskStealPolicy::CHILD_STEALING_POLICY:
+		return MakeAlign<ITaskStealPolicy, ChildStealPolicy>();
+	case TaskStealPolicy::CONTINUATION_STEALING_POLICY:
+		return MakeAlign<ITaskStealPolicy, ContinuationStealPolicy>();
+	default:
+		return MakeAlign<ITaskStealPolicy, ContinuationStealPolicy>();
+	}
+}
+
+void ChildStealPolicy::SubmitJob(Task&& task,
+	size_t max_thread,
+	SharedTaskQueue* task_pool,
+	ITaskSchedulerPolicy* policy, 
+	const std::vector<WorkStealingTaskQueuePtr>& task_work_queues) {
+	auto index = policy->ScheduleNext(0, task_work_queues);
+	auto& queue = task_work_queues.at(index);
+	queue->Enqueue(task);
+}
+
+void ContinuationStealPolicy::SubmitJob(Task&& task,
+	size_t max_thread,
+	SharedTaskQueue* task_pool,
+	ITaskSchedulerPolicy* policy,
+	const std::vector<WorkStealingTaskQueuePtr>& task_work_queues) {
+	static constexpr size_t K = 4;
+
+	for (size_t n = 0; n < max_thread * K; ++n) {
+		auto current = n % max_thread;
+		auto index = policy->ScheduleNext(current, task_work_queues);
+		auto& queue = task_work_queues.at(index);
+		if (queue->TryEnqueue(task)) {
+			return;
+		}
+	}
+	task_pool->Enqueue(task);
+}
+
 size_t RoundRobinSchedulerPolicy::ScheduleNext(size_t /*cur_index*/, const std::vector<WorkStealingTaskQueuePtr>& /*work_queues*/) {
 	static std::atomic<int32_t> index{ -1 };
 	return (index.fetch_add(1, std::memory_order_relaxed) + 1) % max_thread_;

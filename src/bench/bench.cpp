@@ -8,6 +8,7 @@
 #include <unordered_set>
 
 #include <base/scopeguard.h>
+#include <base/lifoqueue.h>
 #include <base/audiobuffer.h>
 #include <base/threadpool.h>
 #include <base/memory.h>
@@ -65,10 +66,11 @@ static void BM_RoundRubinThreadPool(benchmark::State& state) {
     }
 }
 
-static void BM_RandomThreadPool(benchmark::State& state) {
+static void BM_ChildStealPolicyRandomThreadPool(benchmark::State& state) {
     const auto thread_pool = MakeThreadPool(
-        "BM_RandomThreadPool",
-        TaskSchedulerPolicy::RANDOM_POLICY);
+        "BM_ChildStealPolicyRandomThreadPool",
+        TaskSchedulerPolicy::RANDOM_POLICY,
+        TaskStealPolicy::CHILD_STEALING_POLICY);
     const auto length = state.range(0);
     std::vector<int> n(length);
     std::iota(n.begin(), n.end(), 1);
@@ -77,6 +79,23 @@ static void BM_RandomThreadPool(benchmark::State& state) {
         ParallelFor(n, [&total, &n](auto item) {
             total += item;
         }
+        , *thread_pool);
+    }
+}
+
+static void BM_ContinuationStealPolicyRandomThreadPool(benchmark::State& state) {
+    const auto thread_pool = MakeThreadPool(
+        "BM_ContinuationStealPolicyRandomThreadPool",
+        TaskSchedulerPolicy::ROUND_ROBIN_POLICY,
+        TaskStealPolicy::CONTINUATION_STEALING_POLICY);
+    const auto length = state.range(0);
+    std::vector<int> n(length);
+    std::iota(n.begin(), n.end(), 1);
+    std::atomic<int64_t> total;
+    for (auto _ : state) {
+        ParallelFor(n, [&total, &n](auto item) {
+            total += item;
+            }
         , *thread_pool);
     }
 }
@@ -556,8 +575,9 @@ static void BM_Rotl(benchmark::State& state) {
 //BENCHMARK(BM_std_for_each_par)->RangeMultiplier(2)->Range(8, 8 << 8);
 #endif
 //BENCHMARK(BM_LeastLoadThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
-BENCHMARK(BM_RoundRubinThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
-BENCHMARK(BM_RandomThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+BENCHMARK(BM_ChildStealPolicyRandomThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+BENCHMARK(BM_ContinuationStealPolicyRandomThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+//BENCHMARK(BM_RandomThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
 
 int main(int argc, char** argv) {
     Logger::GetInstance()
@@ -578,6 +598,11 @@ int main(int argc, char** argv) {
     Logger::GetInstance().GetLogger("BM_RoundRubinThreadPool")
         ->set_level(spdlog::level::info);
     Logger::GetInstance().GetLogger("BM_RandomThreadPool")
+        ->set_level(spdlog::level::info);
+
+    Logger::GetInstance().GetLogger("BM_ChildStealPolicyRandomThreadPool")
+        ->set_level(spdlog::level::info);
+    Logger::GetInstance().GetLogger("BM_ContinuationStealPolicyRandomThreadPool")
         ->set_level(spdlog::level::info);
 
     XampIniter initer;

@@ -25,6 +25,7 @@ BackgroundWorker::BackgroundWorker()
 	: blur_img_cache_(8) {
     pool_ = MakeThreadPool(kBackgroundThreadPoolLoggerName,
         TaskSchedulerPolicy::LEAST_LOAD_POLICY,
+        TaskStealPolicy::CONTINUATION_STEALING_POLICY,
         ThreadPriority::BACKGROUND);
 }
 
@@ -85,13 +86,7 @@ void BackgroundWorker::readReplayGain(bool, const std::vector<PlayListEntity>& i
             };
 
             Stopwatch sw;
-	        try {	        
-		        read_utiltis::readAll(item.file_path.toStdWString(), progress, prepare, dps_process);                               
-            }
-            catch (std::exception const& e) {
-                XAMP_LOG_DEBUG("{}", e.what());
-                return nullptr;
-            }
+            read_utiltis::readAll(item.file_path.toStdWString(), progress, prepare, dps_process);
             process_time = sw.ElapsedSeconds();
             return MakeAlign<PlayListRGResult>(item, std::move(scanner));
         }));
@@ -120,7 +115,7 @@ void BackgroundWorker::readReplayGain(bool, const std::vector<PlayListEntity>& i
         }
     }
 
-    if (scanners.empty()) {
+    if (scanners.empty() || replay_gain_tasks.size() != scanners.size()) {
         XAMP_LOG_DEBUG("ReplayGain no more work item!");
         return;
     }
@@ -140,7 +135,8 @@ void BackgroundWorker::readReplayGain(bool, const std::vector<PlayListEntity>& i
         replay_gain.track_peak.push_back(track_peak);
         const auto track_lufs = scanner.GetLoudness();
         replay_gain.lufs.push_back(track_lufs);
-        replay_gain.track_replay_gain.push_back(Ebur128ReplayGainScanner::GetEbur128Gain(track_lufs, target_gain));
+        replay_gain.track_replay_gain.push_back(
+            Ebur128ReplayGainScanner::GetEbur128Gain(track_lufs, target_gain));
     }
 
     using namespace xamp::metadata;

@@ -151,6 +151,13 @@ void AsioDevice::ResetDriver() {
 	XAMP_LOG_DEBUG("Remove ASIO driver");
 }
 
+void AsioDevice::RemoveCurrentDriver() {
+	if (!is_removed_driver_ && ASIODriver.drivers != nullptr) {
+		ASIODriver.drivers->removeCurrentDriver();
+		is_removed_driver_ = true;
+	}
+}
+
 void AsioDevice::ReOpen() {
 	if (ASIODriver.drivers != nullptr) {
 		is_removed_driver_ = false;
@@ -542,13 +549,6 @@ void AsioDevice::OpenStream(AudioFormat const & output_format) {
 	is_stopped_ = false;
 	ASIODriver.data_context.cache_volume = 0;
 	ASIODriver.device = this;
-}
-
-bool AsioDevice::IsSupportDSDFormat() const {
-	/*ASIOIoFormat asio_fomrmat{};
-	asio_fomrmat.FormatType = kASIODSDFormat;
-	return ::ASIOFuture(kAsioSetIoFormat, &asio_fomrmat) == ASE_SUCCESS;*/
-	return true;
 }
 
 void AsioDevice::SetOutputSampleRate(AudioFormat const & output_format) {

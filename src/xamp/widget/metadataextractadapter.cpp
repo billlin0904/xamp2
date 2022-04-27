@@ -150,7 +150,7 @@ public:
                 return first.track < last.track;
             });
 #endif
-        emit adapter_->readCompleted(toTime_t(dir_entry.last_write_time()), metadatas_);
+        emit adapter_->readCompleted(ToTime_t(dir_entry.last_write_time()), metadatas_);
         metadatas_.clear();
         qApp->processEvents();
     }
