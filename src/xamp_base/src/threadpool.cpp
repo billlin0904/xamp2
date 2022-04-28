@@ -83,6 +83,7 @@ void TaskScheduler::Destroy() noexcept {
 	threads_.clear();
 	task_work_queues_.clear();
 	task_scheduler_policy_.reset();
+    task_steal_policy_.reset();
 
 	XAMP_LOG_D(logger_, "Thread pool was destory.");
 }

@@ -13,12 +13,13 @@
 
 namespace xamp::base {
 
-#ifdef XAMP_OS_WIN
 class XAMP_BASE_API SRWMutex final {
 public:
 	SRWMutex() noexcept;
 
 	XAMP_DISABLE_COPY(SRWMutex)
+
+    ~SRWMutex() noexcept;
 
 	void lock() noexcept;
 	
@@ -26,13 +27,15 @@ public:
 
 	[[nodiscard]] bool try_lock() noexcept;
 private:
-	XAMP_CACHE_ALIGNED(kCacheAlignSize) SRWLOCK lock_;
-	uint8_t padding_[kCacheAlignSize - sizeof(lock_)]{ 0 };
-};
-using FastMutex = SRWMutex;
+#ifdef XAMP_OS_WIN
+    uint8_t padding_[kCacheAlignSize - sizeof(lock_)]{ 0 };
+    XAMP_CACHE_ALIGNED(kCacheAlignSize) SRWLOCK lock_;
 #else
-using FastMutex = std::mutex;
+    pthread_rwlock_t lock_ = PTHREAD_RWLOCK_INITIALIZER;
 #endif
+};
+
+using FastMutex = SRWMutex;
 	
 }
 

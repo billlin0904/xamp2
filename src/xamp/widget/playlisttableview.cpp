@@ -357,6 +357,7 @@ void PlayListTableView::initial() {
             });
         }
 
+        auto * reload_metadata_act = action_map.addAction(tr("Reload metadata"));
         auto * remove_all_act = action_map.addAction(tr("Remove all"));
         auto * open_local_file_path_act = action_map.addAction(tr("Open local file path"));
         auto * read_select_item_replaygain_act = action_map.addAction(tr("Read replay gain"));
@@ -369,7 +370,7 @@ void PlayListTableView::initial() {
         action_map.addSeparator();
         auto * set_cover_art_act = action_map.addAction(tr("Set cover art"));
         auto * export_cover_act = action_map.addAction(tr("Export music cover"));
-    	
+
         if (model_.rowCount() == 0 || !index.isValid()) {
             try {
                 action_map.exec(pt);
@@ -382,11 +383,19 @@ void PlayListTableView::initial() {
 
         auto item = getEntity(proxy_model_.mapToSource(index));
 
-        action_map.setCallback(remove_all_act, [this, item]() {
+        action_map.setCallback(reload_metadata_act, [this, item]() {
+            auto reader = MakeMetadataReader();
+            auto metadata = reader->Extract(item.file_path.toStdWString());
+            Singleton<Database>::GetInstance().addOrUpdateMusic(
+                metadata, -1);
+            refresh();
+        });
+
+        action_map.setCallback(remove_all_act, [this]() {
             Singleton<Database>::GetInstance().removePlaylistAllMusic(playlistId());
             updateData();
             removePlaying();
-            });
+        });
 
         action_map.setCallback(open_local_file_path_act, [item]() {
             QDesktopServices::openUrl(QUrl::fromLocalFile(item.parent_path));

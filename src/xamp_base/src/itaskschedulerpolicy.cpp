@@ -27,8 +27,8 @@ AlignPtr<ITaskStealPolicy> MakeTaskStealPolicy(TaskStealPolicy policy) {
 }
 
 void ChildStealPolicy::SubmitJob(Task&& task,
-	size_t max_thread,
-	SharedTaskQueue* task_pool,
+    size_t /*max_thread*/,
+    SharedTaskQueue* /*task_pool*/,
 	ITaskSchedulerPolicy* policy, 
 	const std::vector<WorkStealingTaskQueuePtr>& task_work_queues) {
 	auto index = policy->ScheduleNext(0, task_work_queues);
@@ -80,7 +80,7 @@ size_t RandomSchedulerPolicy::ScheduleNext(size_t cur_index, const std::vector<W
 	return random_index;
 }
 
-void LeastLoadSchedulerPolicy::SetMaxThread(size_t max_thread) {	
+void LeastLoadSchedulerPolicy::SetMaxThread(size_t /*max_thread*/) {
 }
 
 size_t LeastLoadSchedulerPolicy::ScheduleNext(size_t /*cur_index*/, const std::vector<WorkStealingTaskQueuePtr>& work_queues) {

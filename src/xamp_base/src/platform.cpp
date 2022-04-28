@@ -288,8 +288,8 @@ void SetThreadPriority(ThreadPriority priority) noexcept {
 }
 
 PlatformUUID ParseUuidString(const std::string &str) {
-#ifdef XAMP_OS_WIN
     PlatformUUID result{};
+#ifdef XAMP_OS_WIN
     UUID uuid;
     auto status = ::UuidFromStringA(RPC_CSTR(str.c_str()), &uuid);
     XAMP_ASSERT(status == RPC_S_OK);
@@ -298,7 +298,7 @@ PlatformUUID ParseUuidString(const std::string &str) {
     uuid_string_t ustr{ 0 };
     MemoryCopy(ustr, str.c_str(), sizeof(ustr));
     uuid_t uuid{ 0 };
-    auto result = ::uuid_parse(ustr, uuid);
+    ::uuid_parse(ustr, uuid);
     MemoryCopy(&result, &uuid, sizeof(PlatformUUID));
 #endif
     return result;
