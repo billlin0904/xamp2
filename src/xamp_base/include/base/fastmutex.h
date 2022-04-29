@@ -28,8 +28,8 @@ public:
 	[[nodiscard]] bool try_lock() noexcept;
 private:
 #ifdef XAMP_OS_WIN
+	XAMP_CACHE_ALIGNED(kCacheAlignSize) SRWLOCK lock_;
     uint8_t padding_[kCacheAlignSize - sizeof(lock_)]{ 0 };
-    XAMP_CACHE_ALIGNED(kCacheAlignSize) SRWLOCK lock_;
 #else
     pthread_rwlock_t lock_ = PTHREAD_RWLOCK_INITIALIZER;
 #endif

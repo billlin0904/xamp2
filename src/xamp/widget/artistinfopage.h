@@ -17,6 +17,10 @@ class ArtistInfoPage final : public QFrame {
 public:
 	explicit ArtistInfoPage(QWidget* parent = nullptr);
 
+	AlbumView* album() const {
+		return album_view_;
+	}
+
 public slots:
     void onThemeChanged(QColor backgroundColor, QColor color);
 

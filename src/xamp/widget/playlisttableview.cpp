@@ -803,9 +803,9 @@ void PlayListTableView::removeSelectItems() {
     QVector<int> remove_music_ids;
 
     for (auto itr = rows.rbegin(); itr != rows.rend(); ++itr) {
-        auto const music_id = model()->data((*itr).second).toInt();
-        Singleton<Database>::GetInstance().clearNowPlaying(playlist_id_, music_id);
-        remove_music_ids.push_back(music_id);
+        const auto it = item((*itr).second);
+        Singleton<Database>::GetInstance().clearNowPlaying(playlist_id_, it.playlist_music_id);
+        remove_music_ids.push_back(it.playlist_music_id);
     }
 
     const auto count = proxy_model_.rowCount();

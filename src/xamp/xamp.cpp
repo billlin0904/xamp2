@@ -314,7 +314,7 @@ void Xamp::onDeviceStateChanged(DeviceState state) {
 void Xamp::initialDeviceList() {    
     auto* menu = ui_.selectDeviceButton->menu();
     if (!menu) {
-        menu = new QMenu(this);
+        menu = new QMenu();
         Singleton<ThemeManager>::GetInstance().setMenuStyle(menu);
         ui_.selectDeviceButton->setMenu(menu);
     }
@@ -1323,6 +1323,11 @@ void Xamp::initialPlaylist() {
                             &AlbumView::addPlaylist,
                             this,
 							&Xamp::addPlaylistItem);
+
+    (void)QObject::connect(artist_info_page_->album(),
+        &AlbumView::addPlaylist,
+        this,
+        &Xamp::addPlaylistItem);
 
     setupPlayNextMusicSignals(true);
 }

@@ -41,11 +41,11 @@ struct StackTraceEntry {
     std::string source_file_name;
 };
 
+inline constexpr auto kMaxModuleNameSize = 64;
+inline constexpr auto kMaxSymbolNameSize = 255;
+
 class SymLoader final {
 public:
-    static constexpr auto kMaxModuleNameSize = 64;
-    static constexpr auto kMaxSymbolNameSize = 255;
-
     XAMP_DISABLE_COPY(SymLoader)
 
     SymLoader() {
@@ -76,136 +76,8 @@ public:
         ::SymCleanup(process_.get());
 	}
 
-    size_t WalkStack(CONTEXT const* context, CaptureStackAddress& addrlist) noexcept {
-        addrlist.fill(nullptr);
-
-        STACKFRAME64 stack_frame{};
-
-        stack_frame.AddrPC.Offset = context->Rip;
-        stack_frame.AddrPC.Mode = AddrModeFlat;
-        stack_frame.AddrStack.Offset = context->Rsp;
-        stack_frame.AddrStack.Mode = AddrModeFlat;
-        stack_frame.AddrFrame.Offset = context->Rbp;
-        stack_frame.AddrFrame.Mode = AddrModeFlat;
-
-        WinHandle thread(::GetCurrentThread());
-        size_t frame_count = 0;
-
-        for (auto& address : addrlist) {
-            const auto result = ::StackWalk64(IMAGE_FILE_MACHINE_IA64,
-                process_.get(),
-                thread.get(),
-                &stack_frame,
-                &context,
-                nullptr,
-                ::SymFunctionTableAccess64,
-                ::SymGetModuleBase64,
-                nullptr);
-            if (!result) {
-                address = nullptr;
-                break;
-            }
-            if (stack_frame.AddrFrame.Offset == 0) {
-                break;
-            }
-            address = reinterpret_cast<void*>(stack_frame.AddrPC.Offset);
-            ++frame_count;
-        }
-        return frame_count;
-    }
-
-    void WriteLog(std::ostringstream &ostr, size_t frame_count, CaptureStackAddress& addrlist) {
-        ostr << "\r\nstack backtrace:\r\n";
-
-        std::vector<uint8_t> symbol_buffer;
-        symbol_buffer.resize(sizeof(SYMBOL_INFO) + sizeof(wchar_t) * MAX_SYM_NAME);
-
-        std::vector<StackTraceEntry> stack_trace_entries;
-        stack_trace_entries.reserve(kMaxStackFrameSize);
-
-        frame_count = (std::min)(addrlist.size(), frame_count);
-        size_t max_width = 0;
-
-        for (uint32_t i = 0; i < frame_count; ++i) {
-            StackTraceEntry entry;
-            entry.index = i;
-            entry.address = reinterpret_cast<uint64_t>(addrlist[i]);
-
-            IMAGEHLP_MODULE64 module{};
-            module.SizeOfStruct = sizeof(module);
-            entry.has_module = ::SymGetModuleInfo64(process_.get(),
-                entry.address,
-                &module);
-            if (entry.has_module) {
-                entry.module_name = GetFileName(module.LoadedImageName);
-                if (entry.module_name.empty()) {
-                    entry.module_name = GetFileName(module.ImageName);
-                }
-            }
-            else {
-                entry.module_name = "Unknown";
-            }
-
-            max_width = (std::max)(max_width, entry.module_name.length());
-
-            MemorySet(symbol_buffer.data(), 0, symbol_buffer.size());
-            auto* const symbol_info = reinterpret_cast<SYMBOL_INFO*>(symbol_buffer.data());
-            symbol_info->SizeOfStruct = sizeof(SYMBOL_INFO);
-            symbol_info->MaxNameLen = kMaxSymbolNameSize;
-
-            DWORD64 displacement = 0;
-            entry.has_symbol = ::SymFromAddr(process_.get(),
-                entry.address,
-                &displacement,
-                symbol_info);
-
-            if (entry.has_symbol) {
-                IMAGEHLP_LINE64 line{};
-                line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
-
-                DWORD line_displacement = 0;
-                entry.has_line = ::SymGetLineFromAddr64(process_.get(),
-                    entry.address,
-                    &line_displacement,
-                    &line);
-
-            	entry.symbol_name = symbol_info->Name;
-
-                if (entry.has_line) {
-                    entry.source_file_name = GetFileName(line.FileName);
-                    entry.source_line = line.LineNumber;
-                }
-                else {
-                    entry.displacement = displacement;
-                }
-            }
-            else {
-                entry.source_file_name = "<unknown>";
-            }
-
-            stack_trace_entries.push_back(entry);
-        }
-
-        for (const auto & entry : stack_trace_entries) {
-            ostr << "\t#" << std::left << std::setfill(' ') << std::setw(2) << std::dec << entry.index << " "
-				 << std::left << std::setfill(' ') << std::setw(max_width) << entry.module_name << " "
-                 << " "
-        	     << std::left << "0X" << std::hex << std::uppercase << std::setfill('0') << std::setw(8) << entry.address << " ";
-
-            if (entry.has_symbol) {
-                ostr << entry.symbol_name;
-
-                if (entry.has_line) {
-                    ostr << " in " << entry.source_file_name << ":" << std::dec << entry.source_line << "\r\n";
-                }
-                else {
-                    ostr << " + " << std::dec << entry.displacement << "\r\n";
-                }
-            }
-            else {
-                ostr << "<unknown>" << "\r\n";
-            }
-        }
+    HANDLE GetCurrentProcess() const noexcept {
+        return process_.get();
     }
 
 private:
@@ -214,6 +86,138 @@ private:
 };
 
 #define SYMBOL_LOADER Singleton<SymLoader>::GetInstance()
+
+static size_t WalkStack(CONTEXT const* context, CaptureStackAddress& addrlist) noexcept {
+    addrlist.fill(nullptr);
+
+    STACKFRAME64 stack_frame{};
+
+    stack_frame.AddrPC.Offset = context->Rip;
+    stack_frame.AddrPC.Mode = AddrModeFlat;
+    stack_frame.AddrStack.Offset = context->Rsp;
+    stack_frame.AddrStack.Mode = AddrModeFlat;
+    stack_frame.AddrFrame.Offset = context->Rbp;
+    stack_frame.AddrFrame.Mode = AddrModeFlat;
+
+    WinHandle thread(::GetCurrentThread());
+    size_t frame_count = 0;
+
+    for (auto& address : addrlist) {
+        const auto result = ::StackWalk64(IMAGE_FILE_MACHINE_IA64,
+            SYMBOL_LOADER.GetCurrentProcess(),
+            thread.get(),
+            &stack_frame,
+            &context,
+            nullptr,
+            ::SymFunctionTableAccess64,
+            ::SymGetModuleBase64,
+            nullptr);
+        if (!result) {
+            address = nullptr;
+            break;
+        }
+        if (stack_frame.AddrFrame.Offset == 0) {
+            break;
+        }
+        address = reinterpret_cast<void*>(stack_frame.AddrPC.Offset);
+        ++frame_count;
+    }
+    return frame_count;
+}
+
+static void WriteLog(std::ostringstream& ostr, size_t frame_count, CaptureStackAddress& addrlist) {
+    ostr << "\r\nstack backtrace:\r\n";
+
+    std::vector<uint8_t> symbol_buffer;
+    symbol_buffer.resize(sizeof(SYMBOL_INFO) + sizeof(wchar_t) * MAX_SYM_NAME);
+
+    std::vector<StackTraceEntry> stack_trace_entries;
+    stack_trace_entries.reserve(kMaxStackFrameSize);
+
+    frame_count = (std::min)(addrlist.size(), frame_count);
+    size_t max_width = 0;
+
+    for (uint32_t i = 0; i < frame_count; ++i) {
+        StackTraceEntry entry;
+        entry.index = i;
+        entry.address = reinterpret_cast<uint64_t>(addrlist[i]);
+
+        IMAGEHLP_MODULE64 module{};
+        module.SizeOfStruct = sizeof(module);
+        entry.has_module = ::SymGetModuleInfo64(SYMBOL_LOADER.GetCurrentProcess(),
+            entry.address,
+            &module);
+        if (entry.has_module) {
+            entry.module_name = GetFileName(module.LoadedImageName);
+            if (entry.module_name.empty()) {
+                entry.module_name = GetFileName(module.ImageName);
+            }
+        }
+        else {
+            entry.module_name = "Unknown";
+        }
+
+        max_width = (std::max)(max_width, entry.module_name.length());
+
+        MemorySet(symbol_buffer.data(), 0, symbol_buffer.size());
+        auto* const symbol_info = reinterpret_cast<SYMBOL_INFO*>(symbol_buffer.data());
+        symbol_info->SizeOfStruct = sizeof(SYMBOL_INFO);
+        symbol_info->MaxNameLen = kMaxSymbolNameSize;
+
+        DWORD64 displacement = 0;
+        entry.has_symbol = ::SymFromAddr(GetCurrentProcess(),
+            entry.address,
+            &displacement,
+            symbol_info);
+
+        if (entry.has_symbol) {
+            IMAGEHLP_LINE64 line{};
+            line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
+
+            DWORD line_displacement = 0;
+            entry.has_line = ::SymGetLineFromAddr64(SYMBOL_LOADER.GetCurrentProcess(),
+                entry.address,
+                &line_displacement,
+                &line);
+
+            entry.symbol_name = symbol_info->Name;
+
+            if (entry.has_line) {
+                entry.source_file_name = GetFileName(line.FileName);
+                entry.source_line = line.LineNumber;
+            }
+            else {
+                entry.displacement = displacement;
+            }
+        }
+        else {
+            entry.source_file_name = "<unknown>";
+        }
+
+        stack_trace_entries.push_back(entry);
+    }
+
+    for (const auto& entry : stack_trace_entries) {
+        ostr << "\t#" << std::left << std::setfill(' ') << std::setw(2) << std::dec << entry.index << " "
+            << std::left << std::setfill(' ') << std::setw(max_width) << entry.module_name << " "
+            << " "
+            << std::left << "0X" << std::hex << std::uppercase << std::setfill('0') << std::setw(8) << entry.address << " ";
+
+        if (entry.has_symbol) {
+            ostr << entry.symbol_name;
+
+            if (entry.has_line) {
+                ostr << " in " << entry.source_file_name << ":" << std::dec << entry.source_line << "\r\n";
+            }
+            else {
+                ostr << " + " << std::dec << entry.displacement << "\r\n";
+            }
+        }
+        else {
+            ostr << "<unknown>" << "\r\n";
+        }
+    }
+}
 #endif
 
 StackTrace::StackTrace() noexcept = default;
@@ -232,7 +236,7 @@ std::string StackTrace::CaptureStack() {
     addrlist.fill(nullptr);
     std::ostringstream ostr;
     const auto frame_count = ::CaptureStackBackTrace(0, kMaxStackFrameSize, addrlist.data(), nullptr);
-    SYMBOL_LOADER.WriteLog(ostr, frame_count - 1, addrlist);
+    WriteLog(ostr, frame_count - 1, addrlist);
     return ostr.str();
 #else
     auto ParseSymbol = [](const std::string &symbol) -> std::vector<std::string> {

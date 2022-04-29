@@ -555,10 +555,10 @@ static void BM_Rotl(benchmark::State& state) {
 //BENCHMARK(BM_unordered_map);
 //BENCHMARK(BM_FindRobinHoodHashMap);
 
-//BENCHMARK(BM_FastMemset)->RangeMultiplier(2)->Range(4096, 8 << 10);
-//BENCHMARK(BM_StdtMemset)->RangeMultiplier(2)->Range(4096, 8 << 10);
-//BENCHMARK(BM_FastMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
-//BENCHMARK(BM_StdtMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
+BENCHMARK(BM_FastMemset)->RangeMultiplier(2)->Range(4096, 8 << 16);
+BENCHMARK(BM_StdtMemset)->RangeMultiplier(2)->Range(4096, 8 << 16);
+BENCHMARK(BM_FastMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
+BENCHMARK(BM_StdtMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
 
 //BENCHMARK(BM_ConvertToInt2432Avx)->RangeMultiplier(2)->Range(4096, 8 << 10);
 //BENCHMARK(BM_ConvertToInt2432)->RangeMultiplier(2)->Range(4096, 8 << 10);

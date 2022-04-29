@@ -421,12 +421,26 @@ AlbumView::AlbumView(QWidget* parent)
             auto album = getIndexValue(index, 0).toString();
             auto artist = getIndexValue(index, 2).toString();
             auto album_id = getIndexValue(index, 3).toInt();
+            auto artist_id = getIndexValue(index, 4).toInt();
             auto artist_cover_id = getIndexValue(index, 5).toString();
 
             action_map.addAction(tr("Add album to playlist"), [=]() {
                 std::vector<PlayListEntity> entities;
                 std::vector<int32_t> add_playlist_music_ids;
                 Singleton<Database>::GetInstance().forEachAlbumMusic(album_id,
+                    [&entities, &add_playlist_music_ids](const PlayListEntity& entity) mutable {
+                        if (entity.album_replay_gain == 0.0) {
+                            entities.push_back(entity);
+                        }
+                        add_playlist_music_ids.push_back(entity.music_id);
+                    });
+                emit addPlaylist(add_playlist_music_ids, entities);
+                });
+
+            action_map.addAction(tr("Add album (artist) to playlist"), [=]() {
+                std::vector<PlayListEntity> entities;
+                std::vector<int32_t> add_playlist_music_ids;
+                Singleton<Database>::GetInstance().forEachAlbumArtistMusic(album_id, artist_id,
                     [&entities, &add_playlist_music_ids](const PlayListEntity& entity) mutable {
                         if (entity.album_replay_gain == 0.0) {
                             entities.push_back(entity);
@@ -586,8 +600,6 @@ LEFT
 	JOIN artists ON artists.artistId = albums.artistId
 WHERE 
 	albums.isPodcast = 0
-ORDER BY
-	albums.dateTime DESC
 LIMIT 200
     )"));
 }

@@ -290,7 +290,7 @@ static int excute(int argc, char* argv[]) {
 
     win.setXWindow(&top_win);
     top_win.setContentWidget(&win);
-    //top_win.setContentWidget(nullptr);
+	//top_win.setContentWidget(nullptr);
 
     top_win.show();
     top_win.activateWindow();
@@ -319,8 +319,10 @@ int main(int argc, char *argv[]) {
     PodcastCache.SetTempPath(AppSettings::getValueAsString(kAppSettingPodcastCachePath).toStdWString());
 
     CrashHandler crash_handler;
-    crash_handler.SetProcessExceptionHandlers();
+    crash_handler.SetProcessExceptionHandlers();    
     XAMP_LOG_DEBUG("SetProcessExceptionHandlers success.");
+    crash_handler.SetThreadExceptionHandlers();
+    XAMP_LOG_DEBUG("SetThreadExceptionHandlers success.");
 
     XAMP_ON_SCOPE_EXIT(
         JsonSettings::save();

@@ -37,6 +37,8 @@ public:
         : cover_reader_(MakeMetadataReader()) {
     }
 
+    QPixmap getEmbeddedCover(const Metadata& metadata) const;
+
     std::tuple<int32_t, int32_t, QString> addOrGetAlbumAndArtistId(int64_t dir_last_write_time, const QString& album, const QString& artist, bool is_podcast) const;
 
     QString addCoverCache(int32_t album_id, const QString& album, const Metadata& metadata, bool is_unknown_album) const;
@@ -47,6 +49,16 @@ private:
     mutable LruCache<QString, int32_t> artist_id_cache_;
     AlignPtr<IMetadataReader> cover_reader_;
 };
+
+QPixmap DatabaseIdCache::getEmbeddedCover(const Metadata& metadata) const {
+    QPixmap pixmap;
+    const auto& buffer = cover_reader_->GetEmbeddedCover(metadata.file_path);
+    if (!buffer.empty()) {
+        pixmap.loadFromData(buffer.data(),
+            static_cast<uint32_t>(buffer.size()));
+    }
+    return pixmap;
+}
 
 QString DatabaseIdCache::addCoverCache(int32_t album_id, const QString& album, const Metadata& metadata, bool is_unknown_album) const {
     auto cover_id = Singleton<Database>::GetInstance().getAlbumCoverId(album_id);
@@ -71,7 +83,7 @@ QString DatabaseIdCache::addCoverCache(int32_t album_id, const QString& album, c
         XAMP_ASSERT(!cover_id.isEmpty());
         cover_id_cache_.AddOrUpdate(album_id, cover_id);
         Singleton<Database>::GetInstance().setAlbumCover(album_id, album, cover_id);
-        XAMP_LOG_DEBUG("add Album id: {} cover id: {}", album_id, cover_id.toStdString());
+        XAMP_LOG_INFO("add Album id: {} cover id: {}", album_id, cover_id.toStdString());
     }	
     return cover_id;
 }
@@ -220,13 +232,16 @@ void ::MetadataExtractAdapter::processMetadata(int64_t dir_last_write_time, cons
 	    const DatabaseIdCache cache;
 	    auto album = QString::fromWCharArray(metadata.album.c_str());
         auto artist = QString::fromWCharArray(metadata.artist.c_str());
-
+        
         auto is_unknown_album = false;
         if (album.isEmpty()) {
-            // todo: Use 'Unknown album' ?
-            //album = QString::fromStdWString(metadata.file_name_no_ext);
             album = tr("Unknown album");
             is_unknown_album = true;
+            // todo: 如果有內建圖片就把當作一張專輯.
+            auto cover = cache.getEmbeddedCover(metadata);
+            if (!cover.isNull()) {
+                album = QString::fromStdWString(metadata.file_name_no_ext);
+            }
         }
 
     	if (artist.isEmpty()) {

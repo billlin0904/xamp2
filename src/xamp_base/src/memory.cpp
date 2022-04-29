@@ -13,6 +13,11 @@
 
 namespace xamp::base {
 
+template <typename T>
+static bool IsAligned(const T * XAMP_RESTRICT p) noexcept {
+	return (reinterpret_cast<uintptr_t>(p) & ((2 * kMallocAlignSize) - 1)) == 0;
+}
+
 #ifdef XAMP_OS_WIN
 size_t GetPageSize() noexcept {
 	SYSTEM_INFO system_info;
@@ -64,14 +69,21 @@ bool PrefetchFile(std::wstring const & file_name) {
 
 #ifdef XAMP_ENABLE_REP_MOVSB
 void MemorySet(void* dest, int32_t c, size_t size) noexcept {
-	__stosb(static_cast<unsigned char*>(dest), static_cast<unsigned char>(c), size);
+	static constexpr size_t kRepStosbThresShold = 2048;
+
+	if (IsAligned(dest) && size >= kRepStosbThresShold) {
+		std::memset(dest, c, size);
+	} else {
+		__stosb(static_cast<unsigned char*>(dest), static_cast<unsigned char>(c), size);
+	}
 }
 #endif
 
 #ifdef XAMP_ENABLE_REP_MOVSB
 void MemoryCopy(void* dest, const void* src, size_t size) noexcept {
-	static constexpr size_t kUseMovSbSize = 16384;
-	if (size < kUseMovSbSize) {
+	static constexpr size_t kRepMovsbThresShold = 16384;
+
+	if (IsAligned(dest) && size >= kRepMovsbThresShold) {
 		std::memcpy(dest, src, size);
 	}
 	else {

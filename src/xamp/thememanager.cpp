@@ -35,8 +35,11 @@ QFont ThemeManager::loadFonts() {
     /*auto default_font = Q_UTF8(":/xamp/fonts/WorkSans-Regular.ttf");
     auto default_bold_font = Q_UTF8(":/xamp/fonts/WorkSans-Bold.ttf");*/
 
-    auto default_font = Q_UTF8(":/xamp/fonts/IBMPlexSans-Regular.ttf");
-    auto default_bold_font = Q_UTF8(":/xamp/fonts/IBMPlexSans-Bold.ttf");
+    /*auto default_font = Q_UTF8(":/xamp/fonts/IBMPlexSans-Regular.ttf");
+    auto default_bold_font = Q_UTF8(":/xamp/fonts/IBMPlexSans-Bold.ttf");*/
+
+    auto default_font = Q_UTF8(":/xamp/fonts/Inter-Regular.ttf");
+    auto default_bold_font = Q_UTF8(":/xamp/fonts/Inter-Bold.ttf");
 
     const auto title_font_id = QFontDatabase::addApplicationFont(default_bold_font);
     auto title_font_families = QFontDatabase::applicationFontFamilies(title_font_id);

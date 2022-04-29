@@ -211,14 +211,14 @@ void CrashHandler::SetProcessExceptionHandlers() {
 
 void CrashHandler::SetThreadExceptionHandlers() {
 #ifdef XAMP_OS_WIN
-#if 0
+
     // Catch terminate() calls. 
     // In a multithreaded environment, terminate functions are maintained 
     // separately for each thread. Each new thread needs to install its own 
     // terminate function. Thus, each thread is in charge of its own termination handling.
     // http://msdn.microsoft.com/en-us/library/t6fk7h29.aspx
     ::set_terminate(TerminateHandler);
-
+#if 1
     // Catch unexpected() calls.
     // In a multithreaded environment, unexpected functions are maintained 
     // separately for each thread. Each new thread needs to install its own 

@@ -111,6 +111,8 @@ public:
 
     void forEachPlaylist(std::function<void(int32_t, int32_t, QString)>&& fun);
 
+    void forEachAlbumArtistMusic(int32_t album_id, int32_t artist_id, std::function<void(PlayListEntity const&)>&& fun);
+
     void forEachAlbumMusic(int32_t album_id, std::function<void(PlayListEntity const &)> &&fun);
 
     void removeAllArtist();

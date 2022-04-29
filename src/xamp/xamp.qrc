@@ -87,5 +87,7 @@
         <file>fonts/Lato-Regular.ttf</file>
         <file>fonts/IBMPlexSans-Bold.ttf</file>
         <file>fonts/IBMPlexSans-Regular.ttf</file>
+        <file>fonts/Inter-Bold.ttf</file>
+        <file>fonts/Inter-Regular.ttf</file>
     </qresource>
 </RCC>

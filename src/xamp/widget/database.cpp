@@ -300,6 +300,60 @@ void Database::forEachTable(std::function<void(int32_t, int32_t, int32_t, QStrin
 	}
 }
 
+void Database::forEachAlbumArtistMusic(int32_t album_id, int32_t artist_id, std::function<void(PlayListEntity const&)>&& fun) {
+	QSqlQuery query(Q_UTF8(R"(
+SELECT
+    albumMusic.albumId,
+    albumMusic.artistId,
+    albums.album,
+    albums.coverId,
+    artists.artist,
+    musics.*
+FROM
+    albumMusic
+    LEFT JOIN albums ON albums.albumId = albumMusic.albumId
+    LEFT JOIN artists ON artists.artistId = albumMusic.artistId
+    LEFT JOIN musics ON musics.musicId = albumMusic.musicId
+WHERE
+    albums.albumId = ? AND albumMusic.artistId = ?
+ORDER BY musics.path;)"));
+	query.addBindValue(album_id);
+	query.addBindValue(artist_id);
+
+	if (!query.exec()) {
+		XAMP_LOG_DEBUG("{}", query.lastError().text().toStdString());
+	}
+
+	while (query.next()) {
+		PlayListEntity entity;
+		entity.album_id = query.value(Q_UTF8("albumId")).toInt();
+		entity.artist_id = query.value(Q_UTF8("artistId")).toInt();
+		entity.music_id = query.value(Q_UTF8("musicId")).toInt();
+		entity.file_path = query.value(Q_UTF8("path")).toString();
+		entity.track = query.value(Q_UTF8("track")).toUInt();
+		entity.title = query.value(Q_UTF8("title")).toString();
+		entity.file_name = query.value(Q_UTF8("fileName")).toString();
+		entity.album = query.value(Q_UTF8("album")).toString();
+		entity.artist = query.value(Q_UTF8("artist")).toString();
+		entity.file_ext = query.value(Q_UTF8("fileExt")).toString();
+		entity.parent_path = query.value(Q_UTF8("parentPath")).toString();
+		entity.duration = query.value(Q_UTF8("duration")).toDouble();
+		entity.bitrate = query.value(Q_UTF8("bitrate")).toUInt();
+		entity.samplerate = query.value(Q_UTF8("samplerate")).toUInt();
+		entity.cover_id = query.value(Q_UTF8("coverId")).toString();
+		entity.rating = query.value(Q_UTF8("rating")).toUInt();
+		entity.album_replay_gain = query.value(Q_UTF8("album_replay_gain")).toDouble();
+		entity.album_peak = query.value(Q_UTF8("album_peak")).toDouble();
+		entity.track_replay_gain = query.value(Q_UTF8("track_replay_gain")).toDouble();
+		entity.track_peak = query.value(Q_UTF8("track_peak")).toDouble();
+
+		entity.genre = query.value(Q_UTF8("genre")).toString();
+		entity.comment = query.value(Q_UTF8("comment")).toString();
+		entity.year = query.value(Q_UTF8("year")).toUInt();
+		fun(entity);
+	}
+}
+
 void Database::forEachAlbumMusic(int32_t album_id, std::function<void(PlayListEntity const&)>&& fun) {
 	QSqlQuery query(Q_UTF8(R"(
 SELECT
@@ -895,7 +949,7 @@ void Database::removePlaylistAllMusic(int32_t playlist_id) {
 void Database::removePlaylistMusic(int32_t playlist_id, const QVector<int32_t>& select_music_ids) {
 	QSqlQuery query;
 
-	QString str = Q_UTF8("DELETE FROM playlistMusics WHERE playlistId=:playlistId AND musicId in (%0)");
+	QString str = Q_UTF8("DELETE FROM playlistMusics WHERE playlistId=:playlistId AND playlistMusicsId in (%0)");
 
 	QStringList list;
 	for (auto id : select_music_ids) {
