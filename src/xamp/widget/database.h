@@ -155,6 +155,7 @@ private:
 
     void createTableIfNotExist();
 
+    QString dbname_;
     QSqlDatabase db_;
 };
 

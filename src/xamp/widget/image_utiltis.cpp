@@ -41,6 +41,7 @@ QPixmap roundImage(const QPixmap& src, QSize size, int32_t radius) {
 	painter.setRenderHint(QPainter::Antialiasing);
 	painter.setRenderHint(QPainter::SmoothPixmapTransform);
 	painter.setClipPath(painter_path);
+	painter.setBrush(QBrush(QColor(249, 249, 249)));
 	painter.drawPixmap(rect, resizeImage(pixmap, size, false));
 	return result;
 }

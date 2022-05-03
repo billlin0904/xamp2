@@ -8,6 +8,7 @@
 #include <QPixmap>
 #include <QIcon>
 #include <QMenu>
+#include <QFrame>
 
 #include <widget/widget_shared.h>
 #include <widget/str_utilts.h>
@@ -139,6 +140,8 @@ public:
     void setMenuStyle(QWidget* menu);
 
     QColor themeTextColor() const;
+
+    void setBorderRadius(QFrame* content_widget);
 
 private:
     QFont loadFonts();

@@ -121,6 +121,8 @@ Xamp::Xamp()
     ui_.setupUi(this);
 }
 
+Xamp::~Xamp() = default;
+
 void Xamp::setXWindow(IXWindow* top_window) {
     top_window_ = top_window;
     background_worker_.moveToThread(&background_thread_);
@@ -237,9 +239,11 @@ void Xamp::cleanup() {
         player_.reset();
     }
 
-    background_worker_.stopThreadPool();
-    background_thread_.quit();
-    background_thread_.wait();
+    if (!background_thread_.isFinished()) {
+        background_worker_.stopThreadPool();
+        background_thread_.quit();
+        background_thread_.wait();
+    }    
 }
 
 void Xamp::initialUI() {

@@ -8,6 +8,7 @@
 #include <QStack>
 #include <QThread>
 #include <QSystemTrayIcon>
+#include <QMainWindow>
 
 #include <widget/widget_shared.h>
 #include <widget/uiplayerstateadapter.h>
@@ -39,7 +40,7 @@ class Xamp final : public IXampPlayer {
 public:
     Xamp();
 
-    virtual ~Xamp() override = default;
+    virtual ~Xamp() override;
 
     void setXWindow(IXWindow* top_window);
 

@@ -141,6 +141,42 @@ QColor ThemeManager::themeTextColor() const {
     return color;
 }
 
+void ThemeManager::setBorderRadius(QFrame* content_widget) {
+    QString color;
+
+    switch (themeColor()) {
+    case ThemeColor::DARK_THEME:
+        color = Q_UTF8("#19232D");
+        break;
+    case ThemeColor::LIGHT_THEME:
+        color = Q_UTF8("#FAFAFA");
+        break;
+    }
+
+    content_widget->setStyleSheet(Q_STR(R"(
+			QFrame#XampWindow {
+				border-radius: 4px;
+				border: 2px solid %1;
+				background-color: %1;
+            }
+			QFrame#controlFrame {
+				border-radius: 0px;
+			}
+			QFrame#playingFrame {
+				border-radius: 0px;
+			}
+			QFrame#titleFrame {
+				border-radius: 0px;
+			}
+			QFrame#volumeFrame {
+				border-radius: 0px;
+			}
+			QFrame#sliderFrame {
+				border-radius: 0px;
+			}
+            )").arg(color));
+}
+
 void ThemeManager::setMenuStyle(QWidget* menu) {
 	menu->setWindowFlags(Qt::Popup | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
     menu->setAttribute(Qt::WA_TranslucentBackground);

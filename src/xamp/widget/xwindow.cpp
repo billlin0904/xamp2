@@ -23,6 +23,7 @@
 #include <widget/osx/osx.h>
 #endif
 
+#include <widget/image_utiltis.h>
 #include <widget/appsettings.h>
 #include <widget/str_utilts.h>
 #include <widget/xwindow.h>
@@ -179,19 +180,27 @@ void XWindow::setContentWidget(IXampPlayer *content_widget) {
     // todo: DropShadow效果會讓CPU使用率偏高.
     // todo: 使用border-radius: 5px;將無法縮放視窗
     // todo: Qt::WA_TranslucentBackground + paintEvent 將無法縮放視窗
-    content_widget_ = content_widget;    
-    if (content_widget_ != nullptr) {        
+
+    content_widget_ = content_widget;
+    if (content_widget_ != nullptr) {
         auto* default_layout = new QGridLayout(this);
         default_layout->addWidget(content_widget_, 0, 0);
+#if defined(Q_OS_WIN)
+        Singleton<ThemeManager>::GetInstance().setBorderRadius(content_widget_);
+        default_layout->setContentsMargins(4, 4, 4, 4);
+#else
         default_layout->setContentsMargins(0, 0, 0, 0);
+#endif
         setLayout(default_layout);
     }
 
 #if defined(Q_OS_WIN)
     if (!Singleton<ThemeManager>::GetInstance().useNativeWindow()) {
-        win32::setFramelessWindowStyle(this);
-        win32::addDwmShadow(this);
         setWindowTitle(kAppTitle);
+        setAttribute(Qt::WA_TranslucentBackground, true);
+        setWindowFlags(Qt::FramelessWindowHint);
+        /*win32::setFramelessWindowStyle(this);
+        win32::addDwmShadow(this);*/
     }
     taskbar_.reset(new WinTaskbar(this, content_widget));
 #else
@@ -202,12 +211,6 @@ void XWindow::setContentWidget(IXampPlayer *content_widget) {
         setWindowTitle(kAppTitle);
     }
 #endif
-
-    /*setStyleSheet(Q_UTF8("background-color: transparent"));
-
-    if (AppSettings::getValueAsBool(kAppSettingEnableBlur)) {
-        Singleton<ThemeManager>::GetInstance().enableBlur(this, true);
-	}*/
 
     setAcceptDrops(true);
     setMouseTracking(true);

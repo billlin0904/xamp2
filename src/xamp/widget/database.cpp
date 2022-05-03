@@ -41,6 +41,29 @@ Database::~Database() {
 	db_.close();
 }
 
+void Database::flush() {
+	
+}
+
+void Database::open(const QString& file_name) {
+	db_.setDatabaseName(file_name);
+
+	if (!db_.open()) {
+		throw SqlException(db_.lastError());
+	}
+
+	dbname_ = file_name;
+	(void)db_.exec(Q_UTF8("PRAGMA synchronous = OFF"));
+	(void)db_.exec(Q_UTF8("PRAGMA auto_vacuum = OFF"));
+	(void)db_.exec(Q_UTF8("PRAGMA foreign_keys = ON"));
+	(void)db_.exec(Q_UTF8("PRAGMA journal_mode = MEMORY"));
+	(void)db_.exec(Q_UTF8("PRAGMA cache_size = 40960"));
+	(void)db_.exec(Q_UTF8("PRAGMA temp_store = MEMORY"));
+	(void)db_.exec(Q_UTF8("PRAGMA mmap_size = 40960"));
+
+	createTableIfNotExist();
+}
+
 void Database::createTableIfNotExist() {
 	std::vector<QLatin1String> create_table_sql;
 
@@ -168,27 +191,6 @@ void Database::createTableIfNotExist() {
 	for (const auto& sql : create_table_sql) {
 		IfFailureThrow(query, sql);
 	}
-}
-
-void Database::open(const QString& file_name) {
-	db_.setDatabaseName(file_name);
-
-	if (!db_.open()) {
-		throw SqlException(db_.lastError());
-	}
-
-	(void)db_.exec(Q_UTF8("PRAGMA synchronous = OFF"));
-	(void)db_.exec(Q_UTF8("PRAGMA auto_vacuum = OFF"));
-	(void)db_.exec(Q_UTF8("PRAGMA foreign_keys = ON"));
-	(void)db_.exec(Q_UTF8("PRAGMA journal_mode = MEMORY"));
-	(void)db_.exec(Q_UTF8("PRAGMA cache_size = 40960"));
-	(void)db_.exec(Q_UTF8("PRAGMA temp_store = MEMORY"));
-	(void)db_.exec(Q_UTF8("PRAGMA mmap_size = 40960"));
-
-	createTableIfNotExist();
-}
-
-void Database::flush() {
 }
 
 void Database::clearNowPlaying(int32_t playlist_id) {
