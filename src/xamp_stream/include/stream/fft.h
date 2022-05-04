@@ -27,9 +27,7 @@ public:
 
 	XAMP_PIMPL(Window)
 
-    void Init(size_t size, WindowType type = WindowType::HAMMING);
-
-	void operator()(float const* samples, float* buffer, size_t size) const;
+    void Init(WindowType type = WindowType::HAMMING);
 
     float operator()(size_t i, size_t N) const;
 private:

@@ -32,7 +32,8 @@
 namespace xamp::player {
 
 MAKE_XAMP_ENUM(PlayerActionId,
-    PLAYER_SEEK);
+    PLAYER_SEEK,
+    FFT_RESULT);
 
 struct PlayerAction {
     PlayerActionId id;
@@ -139,7 +140,7 @@ private:
 
     void ReadSampleLoop(int8_t* sample_buffer, uint32_t max_buffer_sample, std::unique_lock<FastMutex> &stopped_lock);
 
-    void ProcessFFT(float frame_size = 0.025, float frame_stride = 0.01);
+    void ProcessFFT(void * samples, size_t num_buffer_frames, float frame_size = 0.0195, float frame_stride = 0.008);
 
     void BufferSamples(const AlignPtr<IAudioStream>& stream, int32_t buffer_count = 1);
 

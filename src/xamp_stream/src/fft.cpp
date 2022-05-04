@@ -17,40 +17,27 @@ static size_t ComplexSize(size_t size) {
 	return (size / 2) + 1;
 }
 
-#ifdef XAMP_OS_WIN
-
 using FFTWPtr = std::unique_ptr<float[], FFTWPtrTraits<float>>;
 
 class Window::WindowImpl {
 public:
 	WindowImpl() = default;
 
-	void Init(size_t size, WindowType type = WindowType::HAMMING) {
-		window_ = MakeFFTWBuffer<float>(size);
-		for (auto i = 0; i < size; ++i) {
-			window_.get()[i] = operator()(i, size);
-		}
-	}
-
-	void operator()(float const* samples, float* buffer, size_t size) const {
-		for (size_t i = 0; i < size; ++i) {
-			buffer[i] = samples[i] * window_.get()[i];
-		}
+	void Init(WindowType type = WindowType::HAMMING) {
 	}
 
 	float operator()(size_t i, size_t N) const {
 		return 0.54 - 0.46 * std::cos((2.0 * XAMP_PI * i) / (N - 1));
 	}
-protected:
-	FFTWPtr window_;
 };
+
+#ifdef XAMP_OS_WIN
 
 class FFT::FFTImpl {
 public:
 	FFTImpl() = default;
 
 	void Init(size_t size) {
-		window_.Init(size);
 		complex_size_ = ComplexSize(size);
 		data_ = MakeFFTWBuffer<float>(size);
 		re_ = MakeFFTWBuffer<float>(complex_size_);
@@ -102,34 +89,12 @@ public:
 	FFTWPtr data_;
 	FFTWPtr re_;
 	FFTWPtr im_;
-	Window window_;
 	ComplexValarray output_;
 	FFTWFPlan forward_;
 	FFTWFPlan backward_;
 };
 
 #else
-
-class Window::WindowImpl {
-public:
-	WindowImpl() = default;
-
-	void Init(size_t size, WindowType type = WindowType::HAMMING) {
-		window_ = MakeAlignedArray<float>(size);
-		(void)type;
-		::vDSP_hamm_window(window_.get(), size, vDSP_HANN_DENORM);
-	}
-
-	void operator()(float const* samples, float* buffer, size_t size) const {
-		::vDSP_vmul(samples, 1, window_.get(), 1, buffer, 1, size);
-	}
-
-	float operator()(size_t i, size_t N) const {
-		return 0.54 - 0.46 * std::cos((2.0 * XAMP_PI * i) / (N - 1));
-	}
-protected:
-	AlignArray<float> window_;
-};
 
 class FFT::FFTImpl {
 public:
@@ -200,16 +165,12 @@ Window::Window()
 
 XAMP_PIMPL_IMPL(Window)
 
-void Window::Init(size_t size, WindowType type) {
-	impl_->Init(size, type);
+void Window::Init(WindowType type) {
+	impl_->Init(type);
 }
 
 float Window::operator()(size_t i, size_t N) const {
 	return impl_->operator()(i, N);
-}
-
-void Window::operator()(float const* samples, float* buffer, size_t size) const {
-	return impl_->operator()(samples, buffer, size);
 }
 
 FFT::FFT()

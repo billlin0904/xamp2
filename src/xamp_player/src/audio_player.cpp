@@ -32,52 +32,20 @@ inline constexpr int32_t kTotalBufferStreamCount = 5;
 
 inline constexpr uint32_t kPreallocateBufferSize = 4 * 1024 * 1024;
 inline constexpr uint32_t kMaxPreAllocateBufferSize = 32 * 1024 * 1024;
+
+inline constexpr uint32_t kMaxBufferSecs = 5;
 	
 inline constexpr uint32_t kMaxWriteRatio = 50;
 inline constexpr uint32_t kMaxReadRatio = 2;
 inline constexpr uint32_t kActionQueueSize = 30;
 
-inline constexpr size_t kFFTSize = 4096;
+inline constexpr size_t kFFTSize = 512;
 
 inline constexpr std::chrono::milliseconds kUpdateSampleInterval(100);
 inline constexpr std::chrono::milliseconds kReadSampleWaitTime(30);
 inline constexpr std::chrono::milliseconds kPauseWaitTimeout(30);
 inline constexpr std::chrono::seconds kWaitForStreamStopTime(10);
 inline constexpr std::chrono::seconds kWaitForSignalWhenReadFinish(3);
-
-//// https://en.wikipedia.org/wiki/Short-time_Fourier_transform
-//// https://stackoverflow.com/questions/6663222/doing-fft-in-realtime
-/*
-1. Take a small portion of the signal (say 1 second)
-2. Window it with a small window (say 5 ms)
-3. Compute the 1D fourier transform of the windowed signal.
-4. Move the window by a small amount (2.5 ms)
-5. Repeat above steps until end of signal.
-6. All of this data is entered into a matrix that
-is then used to create the kind of 3D representation of the signal that shows
-its decomposition along frequency, amplitude and time.
- */
-static ComplexValarray ShortTimeFFT(std::vector<float>& signal,
-    FFT& fft, 
-    const Window& window,
-    int32_t sample_rate,
-    float frame_size = 0.025,
-    float frame_stride = 0.01) {
-    const auto frame_length = frame_size * sample_rate;
-    const auto frame_step = frame_stride * sample_rate;
-    const auto signal_length = signal.size();
-
-    const auto num_frames = 1 + static_cast<int>(ceil(abs(signal_length - frame_length) / frame_step));
-
-    const auto pad_signal_length = static_cast<size_t>(num_frames * frame_step + frame_length);
-    std::vector<float> zero(pad_signal_length, 0);
-    signal.insert(signal.end(), zero.begin(), zero.end());
-
-    for (auto i = 0; i < frame_length; ++i) {
-        signal[i] *= window(i, frame_length);
-    }
-    return fft.Forward(signal.data(), signal.size());
-}
 
 #ifdef ENABLE_ASIO
 IDsdDevice* AsDsdDevice(AlignPtr<IOutputDevice> const& device) noexcept {
@@ -118,24 +86,6 @@ void AudioPlayer::InitFFT() {
     fft_.Init(kFFTSize);
 }
 
-void AudioPlayer::ProcessFFT(float frame_size, float frame_stride) {
-    const auto frame_length = frame_size * output_format_.GetSampleRate();
-    const auto frame_step = frame_stride * output_format_.GetSampleRate();
-    const auto signal_length = signal_.size();
-
-    const auto num_frames = 1 + static_cast<int>(
-        std::ceil(std::abs(signal_length - frame_length) / frame_step));
-
-    const auto pad_signal_length = static_cast<size_t>(num_frames * frame_step + frame_length);
-    std::vector<float> zero(pad_signal_length, 0);
-    signal_.insert(signal_.end(), zero.begin(), zero.end());
-
-    for (auto i = 0; i < frame_length; ++i) {
-        signal_[i] *= window_(i, frame_length);
-    }
-    fft_.Forward(signal_.data(), signal_.size());
-}
-
 void AudioPlayer::Destroy() {
     timer_.Stop();
     try {
@@ -174,7 +124,8 @@ void AudioPlayer::Open(Path const& file_path, const DeviceInfo& device_info, uin
     target_sample_rate_ = target_sample_rate;
     OpenStream(file_path, device_info);
     device_info_ = device_info;
-    XAMP_LOG_D(logger_, "Deveice min_volume: {:.2f} dBFS, max_volume:{:.2f} dBFS, volume_increnment:{:.2f} dBFS, volume leve:{:.2f}.",
+    XAMP_LOG_D(logger_,
+        "Deveice min_volume: {:.2f} dBFS, max_volume:{:.2f} dBFS, volume_increnment:{:.2f} dBFS, volume leve:{:.2f}.",
         device_info_.min_volume,
         device_info_.max_volume,
         device_info_.volume_increment,
@@ -499,24 +450,30 @@ void AudioPlayer::CreateBuffer() {
 
     uint32_t require_read_sample = 0;
 
-    if (dsd_mode_ != DsdModes::DSD_MODE_NATIVE) {
-	    require_read_sample = static_cast<uint32_t>(GetPageAlignSize(device_->GetBufferSize() * output_format_.GetChannels() * kMaxReadRatio));
+    if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE) {
+        require_read_sample = static_cast<uint32_t>(
+            GetPageAlignSize(output_format_.GetSampleRate() / 8));
     } else {
-        require_read_sample = static_cast<uint32_t>(GetPageAlignSize(output_format_.GetSampleRate() / 8));
+        require_read_sample = static_cast<uint32_t>(
+            GetPageAlignSize(device_->GetBufferSize() * output_format_.GetChannels() * kMaxReadRatio));
     }
 
     uint32_t allocate_read_size = 0;
     if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE) {
         allocate_read_size = kMaxPreAllocateBufferSize;
     } else {
-        allocate_read_size = (std::min)(kMaxPreAllocateBufferSize,
+        allocate_read_size = (std::min)(
+            kMaxPreAllocateBufferSize,
             require_read_sample *
             stream_->GetSampleSize() * 
             kBufferStreamCount);
         allocate_read_size = AlignUp(allocate_read_size);
     }
 
-    fifo_size_ = allocate_read_size * kTotalBufferStreamCount;
+    fifo_size_ = (std::max)(
+        output_format_.GetAvgBytesPerSec() * kMaxBufferSecs,
+        allocate_read_size * kTotalBufferStreamCount);
+
     num_read_sample_ = require_read_sample;
     AllocateReadBuffer(allocate_read_size);
     AllocateFifo();
@@ -787,9 +744,10 @@ void AudioPlayer::Play() {
         const auto max_buffer_sample = p->num_read_sample_;
         const auto num_sample_write = max_buffer_sample * kMaxWriteRatio;
 
-        XAMP_LOG_D(p->logger_, "max_buffer_sample: {}, num_sample_write: {}.",
+        XAMP_LOG_D(p->logger_, "max_buffer_sample: {}, num_sample_write: {}",
             String::FormatBytes(max_buffer_sample),
-            String::FormatBytes(num_sample_write));
+            String::FormatBytes(num_sample_write)
+        );
 
         WaitableTimer wait_timer;
         wait_timer.SetTimeout(kReadSampleWaitTime);
@@ -808,6 +766,10 @@ void AudioPlayer::Play() {
                     continue;
                 }
 
+                XAMP_LOG_D(p->logger_, "FIFO buffer: {:.2f} secs",
+                    static_cast<double>(p->fifo_.GetAvailableRead())
+                    / p->output_format_.GetAvgBytesPerSec()
+                );
                 p->ReadSampleLoop(sample_buffer, max_buffer_sample, stopped_lock);
             }
         }
@@ -823,6 +785,58 @@ void AudioPlayer::Play() {
     });
 }
 
+void AudioPlayer::ProcessFFT(void* samples, size_t num_buffer_frames, float frame_size, float frame_stride) {
+    // https://en.wikipedia.org/wiki/Short-time_Fourier_transform
+    // https://stackoverflow.com/questions/6663222/doing-fft-in-realtime
+    // https://www.cnblogs.com/klchang/p/9280509.html
+
+	/*
+	frame_size 為將信號分為較短的幀的大小,
+	在語音處理中, 通常幀大小在 20ms 到 40ms 之間.
+	這里設置為 25ms, 即 frame_size = 0.025;
+	frame_stride 為相鄰幀的滑動尺寸或跳躍尺寸,
+	通常幀的滑動尺寸在 10ms 到 20ms 之間,
+	這里設置為 10ms, 即 frame_stride = 0.01.
+	此時, 相鄰幀的交疊大小為 15ms;
+
+	0.0195 => 19.5ms
+	0.008  =>  8ms
+
+    <--- Window length --->
+    +------------+
+	|   frame1   |
+    +------------+
+          +------------+
+	      |   frame2   |
+          +------------+
+    +-----859----+
+	+-352-+
+                 
+
+    859 = 44100 * 19.5ms
+    352 = 44100 * 8ms
+    */
+    const auto frame_length = static_cast<int64_t>(frame_size * output_format_.GetSampleRate());
+    const auto frame_step = static_cast<int64_t>(frame_stride * output_format_.GetSampleRate());
+    /*signal_.resize(frame_length);
+    MemoryCopy(signal_.data(), samples, sizeof(float) * num_buffer_frames);*/
+    //const auto signal_length = static_cast<int64_t>(signal_.size());
+    /*const int64_t signal_length = num_buffer_frames;
+
+    const auto num_frames = 1 + static_cast<int>(
+        std::ceil(std::abs(signal_length - frame_length) / frame_step));
+
+    const auto pad_signal_length = static_cast<size_t>(num_frames * frame_step + frame_length);
+    std::vector<float> zero(pad_signal_length, 0);
+    signal_.insert(signal_.end(), zero.begin(), zero.end());*/
+
+    for (auto i = 0; i < frame_length; ++i) {
+        signal_[i] *= window_(i, frame_length);
+    }
+
+    fft_.Forward(signal_.data(), kFFTSize);
+}
+
 DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_frames, size_t & num_filled_frames, double stream_time, double /*sample_time*/) noexcept {
     const auto num_samples = num_buffer_frames * output_format_.GetChannels();
     const auto sample_size = num_samples * sample_size_;
@@ -832,6 +846,7 @@ DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_fr
         num_filled_frames = num_filled_bytes / sample_size_ / output_format_.GetChannels();
         num_filled_frames = num_buffer_frames;
         UpdateProgress(static_cast<int32_t>(num_samples));
+        //ProcessFFT(samples, num_samples);
         return DataCallbackResult::CONTINUE;
     }
 

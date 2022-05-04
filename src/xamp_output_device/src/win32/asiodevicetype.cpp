@@ -74,7 +74,7 @@ DeviceInfo ASIODeviceType::GetDeviceInfo(std::wstring const& name, std::string c
 	info.name = name;
 	info.device_id = device_id;
 	info.device_type_id = Id;
-	try {
+	/*try {
 		const auto device = MakeAlign<IOutputDevice, AsioDevice>(device_id);
 		auto* asio_device = dynamic_cast<AsioDevice*>(device.get());
 		asio_device->OpenStream(AudioFormat::kPCM441Khz);
@@ -84,7 +84,7 @@ DeviceInfo ASIODeviceType::GetDeviceInfo(std::wstring const& name, std::string c
 		info.is_hardware_control_volume = true;
 	} catch (Exception const &e) {
 		XAMP_LOG_DEBUG(e.what());
-	}
+	}*/
 	return info;
 }
 
