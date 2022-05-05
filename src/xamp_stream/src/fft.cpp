@@ -1,5 +1,6 @@
 #include <base/enum.h>
 #include <base/buffer.h>
+#include <base/assert.h>
 
 #include <stream/fft.h>
 
@@ -23,12 +24,28 @@ class Window::WindowImpl {
 public:
 	WindowImpl() = default;
 
-	void Init(WindowType type = WindowType::HAMMING) {
+	void Init(size_t frame_size, WindowType type = WindowType::HAMMING) {
+		frame_size_ = frame_size;
+		data_ = MakeFFTWBuffer<float>(frame_size);
+		for (size_t i = 0; i < frame_size; i++) {
+			data_[i] = operator()(i, frame_size);
+		}
 	}
 
-	float operator()(size_t i, size_t N) const {
+	void operator()(float* buffer, size_t size) const noexcept {
+		XAMP_ASSERT(frame_size_ == size);
+
+		for (size_t i = 0; i < frame_size_; i++) {
+			buffer[i] *= data_[i];
+		}
+	}
+
+	float operator()(size_t i, size_t N) const noexcept {
 		return 0.54 - 0.46 * std::cos((2.0 * XAMP_PI * i) / (N - 1));
 	}
+private:
+	size_t frame_size_;
+	FFTWPtr data_;
 };
 
 #ifdef XAMP_OS_WIN
@@ -37,15 +54,16 @@ class FFT::FFTImpl {
 public:
 	FFTImpl() = default;
 
-	void Init(size_t size) {
-		complex_size_ = ComplexSize(size);
-		data_ = MakeFFTWBuffer<float>(size);
+	void Init(size_t frame_size) {
+		frame_size_ = frame_size;
+		complex_size_ = ComplexSize(frame_size);
+		data_ = MakeFFTWBuffer<float>(frame_size);
 		re_ = MakeFFTWBuffer<float>(complex_size_);
 		im_ = MakeFFTWBuffer<float>(complex_size_);
 		output_ = ComplexValarray(Complex(), complex_size_);
 
 		fftw_iodim dim;
-		dim.n = static_cast<int>(size);
+		dim.n = static_cast<int>(frame_size);
 		dim.is = 1;
 		dim.os = 1;
 		forward_.reset(FFTWF_LIB.fftwf_plan_guru_split_dft_r2c(1,
@@ -67,8 +85,10 @@ public:
 			FFTW_ESTIMATE));
 	}
 
-	const ComplexValarray& Forward(float const* signals, size_t size) {
-		MemoryCopy(data_.get(), signals, sizeof(float) * size);
+	const ComplexValarray& Forward(float const* signals, size_t frame_size) {
+		XAMP_ASSERT(frame_size_ == frame_size);
+
+		MemoryCopy(data_.get(), signals, sizeof(float) * frame_size);
 
 		FFTWF_LIB.fftwf_execute_split_dft_r2c(forward_.get(),
 			data_.get(),
@@ -85,6 +105,7 @@ public:
 		return output_;
 	}
 
+	size_t frame_size_{ 0 };
 	size_t complex_size_{ 0 };
 	FFTWPtr data_;
 	FFTWPtr re_;
@@ -100,13 +121,13 @@ class FFT::FFTImpl {
 public:
 	FFTImpl() = default;
 
-	void Init(size_t size) {
-		size_ = size;
-        size_over2_ = size_ / 2;
-        log2n_size_ = std::log2(size);
+	void Init(size_t frame_size) {
+		frame_size_ = frame_size;
+        size_over2_ = frame_size_ / 2;
+        log2n_size_ = std::log2(frame_size);
 		complex_size_ = log2n_size_;
 		output_ = ComplexValarray(Complex(), complex_size_);
-		input_ = MakeAlignedArray<float>(size);
+		input_ = MakeAlignedArray<float>(frame_size);
 		fft_setup_.reset(::vDSP_create_fftsetup(log2n_size_, FFT_RADIX2));
 		re_ = MakeAlignedArray<float>(size_over2_);
 		im_ = MakeAlignedArray<float>(size_over2_);
@@ -114,8 +135,8 @@ public:
 		split_complex_.imagp = im_.get();
 	}
 
-	const ComplexValarray& Forward(float const* signals, size_t size) {
-		MemoryCopy(input_.get(), signals, sizeof(float) * size);
+	const ComplexValarray& Forward(float const* signals, size_t frame_size) {
+		MemoryCopy(input_.get(), signals, sizeof(float) * frame_size);
 
 		::vDSP_ctoz(reinterpret_cast<const COMPLEX*>(input_.get()), 2, &split_complex_, 1, size_over2_);
 		::vDSP_fft_zrip(fft_setup_.get(), &split_complex_, 1, log2n_size_, FFT_FORWARD);
@@ -145,7 +166,7 @@ private:
 
 	using FFTSetupHandle = UniqueHandle<FFTSetup, FFTSetupTraits>;
 
-	size_t size_{ 0 };
+	size_t frame_size_{ 0 };
 	size_t log2n_size_{ 0 };
 	size_t size_over2_{ 0 };
     size_t complex_size_{ 0 };
@@ -165,12 +186,12 @@ Window::Window()
 
 XAMP_PIMPL_IMPL(Window)
 
-void Window::Init(WindowType type) {
-	impl_->Init(type);
+void Window::Init(size_t frame_size, WindowType type) {
+	impl_->Init(frame_size, type);
 }
 
-float Window::operator()(size_t i, size_t N) const {
-	return impl_->operator()(i, N);
+void Window::operator()(float* buffer, size_t size) const noexcept {
+	return impl_->operator()(buffer, size);
 }
 
 FFT::FFT()
@@ -179,8 +200,8 @@ FFT::FFT()
 
 XAMP_PIMPL_IMPL(FFT)
 
-void FFT::Init(size_t size) {
-	impl_->Init(size);
+void FFT::Init(size_t frame_size) {
+	impl_->Init(frame_size);
 }
 
 const ComplexValarray& FFT::Forward(float const* data, size_t size) {

@@ -193,6 +193,7 @@
     <ClCompile Include="widget\equalizerdialog.cpp" />
     <ClCompile Include="widget\podcast_uiltis.cpp" />
     <ClCompile Include="widget\qetag.cpp" />
+    <ClCompile Include="widget\spectrumwidget.cpp" />
     <ClCompile Include="widget\stackblur.cpp" />
     <ClCompile Include="widget\xwindow.cpp" />
     <ClCompile Include="widget\http.cpp" />
@@ -256,6 +257,7 @@
     <QtMoc Include="preferencepage.h" />
     <ClInclude Include="widget\albumentity.h" />
     <ClInclude Include="widget\colorthief.h" />
+    <QtMoc Include="widget\spectrumwidget.h" />
     <ClInclude Include="widget\stackblur.h" />
     <ClInclude Include="widget\xmessagebox.h" />
     <ClInclude Include="xampplayer.h" />

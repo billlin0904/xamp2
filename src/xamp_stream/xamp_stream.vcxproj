@@ -176,6 +176,7 @@
     <ClInclude Include="include\stream\filestream.h" />
     <ClInclude Include="include\stream\pcm2dsdconverter.h" />
     <ClInclude Include="include\stream\podcastcache.h" />
+    <ClInclude Include="include\stream\stft.h" />
     <ClInclude Include="include\stream\stream.h" />
     <ClInclude Include="include\stream\api.h" />
     <ClInclude Include="include\stream\wavefilewriter.h" />
@@ -198,6 +199,7 @@
     <ClCompile Include="src\passthroughsamplerateconverter.cpp" />
     <ClCompile Include="src\pcm2dsdconverter.cpp" />
     <ClCompile Include="src\soxresampler.cpp" />
+    <ClCompile Include="src\stft.cpp" />
     <ClCompile Include="src\wavefilewriter.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

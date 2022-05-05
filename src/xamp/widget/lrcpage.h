@@ -12,6 +12,7 @@ class QLabel;
 class VinylWidget;
 class ScrollLabel;
 class LyricsShowWidget;
+class SpectrumWidget;
 class QPaintEvent;
 
 class LrcPage : public QFrame {
@@ -19,7 +20,7 @@ class LrcPage : public QFrame {
 public:
 	explicit LrcPage(QWidget* parent = nullptr);
 
-	LyricsShowWidget* lyricsWidget();
+	LyricsShowWidget* lyrics();
 
 	void setCover(const QPixmap& cover);
 
@@ -32,6 +33,8 @@ public:
 	QLabel* cover();
 
 	QSize coverSize() const;
+
+	SpectrumWidget* spectrum();
 
 	void setBackgroundColor(QColor backgroundColor);
 
@@ -52,5 +55,6 @@ private:
 	ScrollLabel* album_;
 	ScrollLabel* artist_;
     ScrollLabel* title_;
+	SpectrumWidget* spectrum_;
 	QImage background_image_;
 };

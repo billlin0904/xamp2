@@ -25,3 +25,7 @@ void UIPlayerStateAdapter::OnDeviceChanged(DeviceState state) {
 void UIPlayerStateAdapter::OnVolumeChanged(float vol) {
     emit volumeChanged(vol);
 }
+
+void UIPlayerStateAdapter::OnFFTResultChanged(ComplexValarray const& result) {
+    emit fftResultChanged(result);
+}

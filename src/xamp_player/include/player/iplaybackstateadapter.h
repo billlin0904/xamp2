@@ -27,6 +27,8 @@ public:
 
 	virtual void OnVolumeChanged(float vol) = 0;
 
+	virtual void OnFFTResultChanged(ComplexValarray const& result) = 0;
+
 protected:
 	IPlaybackStateAdapter() = default;
 };

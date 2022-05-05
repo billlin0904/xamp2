@@ -15,6 +15,7 @@
 #include <output_device/idsddevice.h>
 #include <output_device/iaudiodevicemanager.h>
 
+#include <stream/stft.h>
 #include <stream/dspmanager.h>
 #include <stream/iaudiostream.h>
 #include <stream/idsdstream.h>
@@ -42,10 +43,23 @@ inline constexpr uint32_t kActionQueueSize = 30;
 inline constexpr size_t kFFTSize = 512;
 
 inline constexpr std::chrono::milliseconds kUpdateSampleInterval(100);
+inline constexpr std::chrono::milliseconds kUpdateFFTInterval(10);
+
 inline constexpr std::chrono::milliseconds kReadSampleWaitTime(30);
 inline constexpr std::chrono::milliseconds kPauseWaitTimeout(30);
 inline constexpr std::chrono::seconds kWaitForStreamStopTime(10);
 inline constexpr std::chrono::seconds kWaitForSignalWhenReadFinish(3);
+
+static int32_t NextPowerOfTwo(int32_t v) noexcept {
+    v--;
+    v |= v >> 1;
+    v |= v >> 2;
+    v |= v >> 4;
+    v |= v >> 8;
+    v |= v >> 16;
+    v++;
+    return v;
+}
 
 #ifdef ENABLE_ASIO
 IDsdDevice* AsDsdDevice(AlignPtr<IOutputDevice> const& device) noexcept {
@@ -76,18 +90,16 @@ AudioPlayer::AudioPlayer(const std::weak_ptr<IPlaybackStateAdapter> &adapter)
     , state_adapter_(adapter)
     , fifo_(GetPageAlignSize(kPreallocateBufferSize))
     , action_queue_(kActionQueueSize)
+    , fft_queue_(kActionQueueSize)
     , dsp_manager_(MediaStreamFactory::MakeDSPManager()) {
     logger_ = Logger::GetInstance().GetLogger(kAudioPlayerLoggerName);
 }
 
 AudioPlayer::~AudioPlayer() = default;
 
-void AudioPlayer::InitFFT() {
-    fft_.Init(kFFTSize);
-}
-
 void AudioPlayer::Destroy() {
     timer_.Stop();
+    fft_timer_.Stop();
     try {
         CloseDevice(true);
     }
@@ -429,6 +441,7 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
     }
     fifo_.Clear();
     action_queue_.clear();
+    fft_queue_.clear();
 }
 
 void AudioPlayer::AllocateReadBuffer(uint32_t allocate_size) {
@@ -613,6 +626,35 @@ void AudioPlayer::Startup() {
             p->is_playing_ = false;
         }
         });
+
+    fft_timer_.Start(kUpdateFFTInterval, [player]() {
+        auto p = player.lock();
+        if (!p) {
+            return;
+        }
+    	const auto adapter = p->state_adapter_.lock();
+        if (!adapter) {
+            return;
+        }
+
+        if (p->fft_queue_.empty()) {
+            return;
+        }
+
+        if (const auto* msg = p->fft_queue_.Front()) {
+            XAMP_ON_SCOPE_EXIT({
+               p->fft_queue_.Pop();
+                });
+            switch (msg->id) {
+            case PlayerActionId::FFT_RESULT:
+            {
+	            const auto fft_result = std::any_cast<ComplexValarray>(msg->content);
+                adapter->OnFFTResultChanged(fft_result);
+            }
+            break;
+            }
+        }
+        });
 }
 
 void AudioPlayer::Seek(double stream_time) {
@@ -766,7 +808,7 @@ void AudioPlayer::Play() {
                     continue;
                 }
 
-                XAMP_LOG_D(p->logger_, "FIFO buffer: {:.2f} secs",
+                XAMP_LOG_T(p->logger_, "FIFO buffer: {:.2f} secs",
                     static_cast<double>(p->fifo_.GetAvailableRead())
                     / p->output_format_.GetAvgBytesPerSec()
                 );
@@ -785,56 +827,26 @@ void AudioPlayer::Play() {
     });
 }
 
-void AudioPlayer::ProcessFFT(void* samples, size_t num_buffer_frames, float frame_size, float frame_stride) {
-    // https://en.wikipedia.org/wiki/Short-time_Fourier_transform
-    // https://stackoverflow.com/questions/6663222/doing-fft-in-realtime
-    // https://www.cnblogs.com/klchang/p/9280509.html
+void AudioPlayer::InitFFT() {
+    size_t channels = output_format_.GetChannels();
+    size_t channel_sample_rate = output_format_.GetSampleRate() / 2;
+    size_t frame_size = channel_sample_rate * 0.018;
+    size_t shift_size = channel_sample_rate * 0.01;
+    frame_size = NextPowerOfTwo(frame_size);
+    stft_ = MakeAlign<STFT>(channels, frame_size, shift_size);
+    XAMP_LOG_D(logger_, "frame_size:{} shift_size:{}", frame_size, shift_size);
+}
 
-	/*
-	frame_size 為將信號分為較短的幀的大小,
-	在語音處理中, 通常幀大小在 20ms 到 40ms 之間.
-	這里設置為 25ms, 即 frame_size = 0.025;
-	frame_stride 為相鄰幀的滑動尺寸或跳躍尺寸,
-	通常幀的滑動尺寸在 10ms 到 20ms 之間,
-	這里設置為 10ms, 即 frame_stride = 0.01.
-	此時, 相鄰幀的交疊大小為 15ms;
-
-	0.0195 => 19.5ms
-	0.008  =>  8ms
-
-    <--- Window length --->
-    +------------+
-	|   frame1   |
-    +------------+
-          +------------+
-	      |   frame2   |
-          +------------+
-    +-----859----+
-	+-352-+
-                 
-
-    859 = 44100 * 19.5ms
-    352 = 44100 * 8ms
-    */
-    const auto frame_length = static_cast<int64_t>(frame_size * output_format_.GetSampleRate());
-    const auto frame_step = static_cast<int64_t>(frame_stride * output_format_.GetSampleRate());
-    /*signal_.resize(frame_length);
-    MemoryCopy(signal_.data(), samples, sizeof(float) * num_buffer_frames);*/
-    //const auto signal_length = static_cast<int64_t>(signal_.size());
-    /*const int64_t signal_length = num_buffer_frames;
-
-    const auto num_frames = 1 + static_cast<int>(
-        std::ceil(std::abs(signal_length - frame_length) / frame_step));
-
-    const auto pad_signal_length = static_cast<size_t>(num_frames * frame_step + frame_length);
-    std::vector<float> zero(pad_signal_length, 0);
-    signal_.insert(signal_.end(), zero.begin(), zero.end());*/
-
-    for (auto i = 0; i < frame_length; ++i) {
-        signal_[i] *= window_(i, frame_length);
+void AudioPlayer::ProcessFFT(void* samples, size_t num_buffer_frames) {
+    if (!CanConverter()) {
+        return;
     }
-
-    fft_.Forward(signal_.data(), kFFTSize);
+    fft_queue_.TryPush(
+        PlayerAction{
+            PlayerActionId::FFT_RESULT,
+            stft_->Process(static_cast<const float*>(samples), num_buffer_frames)
+        }
+    );
 }
 
 DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_frames, size_t & num_filled_frames, double stream_time, double /*sample_time*/) noexcept {
@@ -846,7 +858,7 @@ DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_fr
         num_filled_frames = num_filled_bytes / sample_size_ / output_format_.GetChannels();
         num_filled_frames = num_buffer_frames;
         UpdateProgress(static_cast<int32_t>(num_samples));
-        //ProcessFFT(samples, num_samples);
+        ProcessFFT(samples, num_samples);
         return DataCallbackResult::CONTINUE;
     }
 

@@ -1,12 +1,10 @@
 #include <QLabel>
 #include <QHBoxLayout>
-#include <QPainter>
 #include <QGraphicsDropShadowEffect>
-#include <QBitmap>
 
 #include "thememanager.h"
 
-#include <widget/colorthief.h>
+#include <widget/spectrumwidget.h>
 #include <widget/image_utiltis.h>
 #include <widget/scrolllabel.h>
 #include <widget/lyricsshowwidget.h>
@@ -18,12 +16,16 @@ LrcPage::LrcPage(QWidget* parent)
 	initial();
 }
 
-LyricsShowWidget* LrcPage::lyricsWidget() {
+LyricsShowWidget* LrcPage::lyrics() {
 	return lyrics_widget_;
 }
 
 QLabel* LrcPage::cover() {
     return cover_label_;
+}
+
+SpectrumWidget* LrcPage::spectrum() {
+	return spectrum_;
 }
 
 void LrcPage::setCover(const QPixmap& src) {
@@ -203,8 +205,13 @@ void LrcPage::initial() {
 
 	lyrics_widget_ = new LyricsShowWidget(this);
 	lyrics_widget_->setObjectName(QString::fromUtf8("lyrics"));
-	lyrics_widget_->setMinimumSize(QSize(180, 60));	
+	lyrics_widget_->setMinimumSize(QSize(180, 60));
 	verticalLayout_2->addWidget(lyrics_widget_);
+
+	spectrum_ = new SpectrumWidget(this);
+	spectrum_->setMinimumSize(QSize(180, 60));
+	spectrum_->setStyleSheet(Q_UTF8("background-color: transparent"));
+	verticalLayout_2->addWidget(spectrum_);
 
 	verticalLayout_2->setStretch(2, 1);
 

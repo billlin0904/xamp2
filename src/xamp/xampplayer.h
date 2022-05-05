@@ -5,10 +5,11 @@
 #pragma once
 
 #include <QWidget>
+#include <QFrame>
 
 inline constexpr auto kRestartPlayerCode = -2;
 
-class IXWindow : public QWidget {
+class IXWindow : public QFrame {
 public:
     virtual ~IXWindow() override = default;
 
@@ -27,7 +28,7 @@ protected:
     IXWindow() = default;
 };
 
-class IXampPlayer : public QWidget {
+class IXampPlayer : public QFrame {
 public:
     virtual ~IXampPlayer() override = default;
 

@@ -7,6 +7,9 @@
 
 #include <base/base.h>
 
+#include <complex>
+#include <valarray>
+
 #ifdef XAMP_OS_WIN
 #ifdef STREAM_API_EXPORTS
     #define XAMP_STREAM_API __declspec(dllexport)
@@ -23,6 +26,8 @@ namespace xamp::stream {
 	struct CompressorParameters;
 	struct EQSettings;
 
+	class STFT;
+
     class ISampleRateConverter;
 	class IAudioProcessor;
 	class IAudioStream;
@@ -31,4 +36,7 @@ namespace xamp::stream {
 	class FileStream;
 	class IDsdStream;
 	class IDSPManager;
+
+	using Complex = std::complex<float>;
+	using ComplexValarray = std::valarray<Complex>;
 }

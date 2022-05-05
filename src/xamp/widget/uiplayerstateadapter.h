@@ -25,6 +25,7 @@ using xamp::player::IPlaybackStateAdapter;
 
 using xamp::output_device::DeviceState;
 using xamp::stream::FileStream;
+using xamp::stream::ComplexValarray;
 
 class UIPlayerStateAdapter final
     : public QObject
@@ -43,6 +44,8 @@ public:
 
     void OnVolumeChanged(float vol) override;
 
+    void OnFFTResultChanged(ComplexValarray const& result) override;
+
 signals:
     void sampleTimeChanged(double stream_time);
 
@@ -53,4 +56,6 @@ signals:
     void deviceChanged(DeviceState state);
 
     void volumeChanged(float vol);
+
+    void fftResultChanged(ComplexValarray const& result);
 };

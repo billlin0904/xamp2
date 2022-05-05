@@ -5,17 +5,11 @@
 
 #pragma once
 
-#include <complex>
-#include <valarray>
-
 #include <base/align_ptr.h>
 #include <base/enum.h>
 #include <stream/stream.h>
 
 namespace xamp::stream {
-
-using Complex = std::complex<float>;
-using ComplexValarray = std::valarray<Complex>;
 
 MAKE_XAMP_ENUM(WindowType,
     HANN,
@@ -27,9 +21,9 @@ public:
 
 	XAMP_PIMPL(Window)
 
-    void Init(WindowType type = WindowType::HAMMING);
+    void Init(size_t frame_size, WindowType type = WindowType::HAMMING);
 
-    float operator()(size_t i, size_t N) const;
+    void operator()(float* buffer, size_t size) const noexcept;
 private:
     class WindowImpl;
     AlignPtr<WindowImpl> impl_;
@@ -41,7 +35,7 @@ public:
 
     XAMP_PIMPL(FFT)
 
-	void Init(size_t size);
+	void Init(size_t frame_size);
 
     const ComplexValarray& Forward(float const* data, size_t size);
 

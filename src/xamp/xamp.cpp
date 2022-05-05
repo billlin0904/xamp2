@@ -51,6 +51,8 @@
 #include "thememanager.h"
 #include "xamp.h"
 
+#include "widget/spectrumwidget.h"
+
 enum TabIndex {
     TAB_ALBUM = 0,
     TAB_ARTIST,
@@ -142,6 +144,12 @@ void Xamp::setXWindow(IXWindow* top_window) {
     applyTheme(Singleton<ThemeManager>::GetInstance().palette().color(QPalette::WindowText),
                Singleton<ThemeManager>::GetInstance().themeTextColor());
     Singleton<ThemeManager>::GetInstance().setPlayOrPauseButton(ui_, false);
+
+    (void)QObject::connect(state_adapter_.get(),
+        &UIPlayerStateAdapter::fftResultChanged,
+        lrc_page_->spectrum(),
+        &SpectrumWidget::onFFTResultChanged,
+        Qt::QueuedConnection);
 }
 
 void Xamp::avoidRedrawOnResize() {
@@ -898,7 +906,7 @@ void Xamp::setSeekPosValue(double stream_time) {
     ui_.seekSlider->setValue(stream_time_as_ms);
     ui_.startPosLabel->setText(msToString(stream_time));
     top_window_->setTaskbarProgress(static_cast<int32_t>(100.0 * ui_.seekSlider->value() / ui_.seekSlider->maximum()));
-    lrc_page_->lyricsWidget()->setLrcTime(stream_time_as_ms);
+    lrc_page_->lyrics()->setLrcTime(stream_time_as_ms);
 }
 
 void Xamp::playLocalFile(const PlayListEntity& item) {
@@ -1087,7 +1095,7 @@ void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_form
     ui_.artistLabel->setText(item.artist);
 
     cur_page->title()->setText(item.title);    
-    lrc_page_->lyricsWidget()->loadLrcFile(item.file_path);
+    lrc_page_->lyrics()->loadLrcFile(item.file_path);
 	
     lrc_page_->title()->setText(item.title);
     lrc_page_->album()->setText(item.album);

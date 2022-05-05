@@ -230,6 +230,7 @@ static void registerMetaType() {
     qRegisterMetaType<std::vector<PlayListEntity>>("std::vector<PlayListEntity>");
     qRegisterMetaType<size_t>("size_t");
     qRegisterMetaType<int32_t>("int32_t");
+    qRegisterMetaType<ComplexValarray>("ComplexValarray");
 }
 
 static int excute(int argc, char* argv[]) {
@@ -294,7 +295,7 @@ static int excute(int argc, char* argv[]) {
 
     top_win.show();
     top_win.activateWindow();
-    top_win.resize(1250, 560);
+    //top_win.resize(1260, 580);
     centerDesktop(&top_win);
     return app.exec();
 }
