@@ -18,15 +18,13 @@ static size_t ComplexSize(size_t size) {
 	return (size / 2) + 1;
 }
 
-using FFTWPtr = std::unique_ptr<float[], FFTWPtrTraits<float>>;
-
 class Window::WindowImpl {
 public:
 	WindowImpl() = default;
 
 	void Init(size_t frame_size, WindowType type = WindowType::HAMMING) {
 		frame_size_ = frame_size;
-		data_ = MakeFFTWBuffer<float>(frame_size);
+		data_ = MakeBuffer<float>(frame_size);
 		for (size_t i = 0; i < frame_size; i++) {
 			data_[i] = operator()(i, frame_size);
 		}
@@ -45,10 +43,12 @@ public:
 	}
 private:
 	size_t frame_size_;
-	FFTWPtr data_;
+	Buffer<float> data_;
 };
 
 #ifdef XAMP_OS_WIN
+
+using FFTWPtr = std::unique_ptr<float[], FFTWPtrTraits<float>>;
 
 class FFT::FFTImpl {
 public:
