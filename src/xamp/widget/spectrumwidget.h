@@ -12,14 +12,20 @@
 
 using xamp::stream::ComplexValarray;
 
+enum SpectrumStyles {
+	BAR_STYLE,
+	WAVE_STYLE,
+	WAVE_LINE_STYLE,
+};
+
 class SpectrumWidget : public QFrame {
 	Q_OBJECT
 public:
 	explicit SpectrumWidget(QWidget* parent = nullptr);
 
-	void setParams(const double& low_freq, const double& high_freq);
-
 	void reset();
+
+	void setStyle(SpectrumStyles style);
 
 public slots:
 	void onFFTResultChanged(ComplexValarray const& result);
@@ -28,8 +34,12 @@ protected:
 	void paintEvent(QPaintEvent* event) override;
 
 private:
-	double low_freq_{ 0 };
-	double high_freq_{ 0 };
+	void drawWave(QPainter& painter, size_t num_bars, bool is_line);
+
+	void drawBar(QPainter& painter, size_t num_bars);
+
+	float multiplier_{ 0 };
+	SpectrumStyles style_{ BAR_STYLE };
 	ComplexValarray fft_result_;
 	std::vector<float> freq_data_;
 	std::vector<float> bars_;

@@ -43,23 +43,12 @@ inline constexpr uint32_t kActionQueueSize = 30;
 inline constexpr size_t kFFTSize = 512;
 
 inline constexpr std::chrono::milliseconds kUpdateSampleInterval(100);
-inline constexpr std::chrono::milliseconds kUpdateFFTInterval(10);
+inline constexpr std::chrono::milliseconds kUpdateFFTInterval(5);
 
 inline constexpr std::chrono::milliseconds kReadSampleWaitTime(30);
 inline constexpr std::chrono::milliseconds kPauseWaitTimeout(30);
 inline constexpr std::chrono::seconds kWaitForStreamStopTime(10);
 inline constexpr std::chrono::seconds kWaitForSignalWhenReadFinish(3);
-
-static int32_t NextPowerOfTwo(int32_t v) noexcept {
-    v--;
-    v |= v >> 1;
-    v |= v >> 2;
-    v |= v >> 4;
-    v |= v >> 8;
-    v |= v >> 16;
-    v++;
-    return v;
-}
 
 #ifdef ENABLE_ASIO
 IDsdDevice* AsDsdDevice(AlignPtr<IOutputDevice> const& device) noexcept {
@@ -90,7 +79,6 @@ AudioPlayer::AudioPlayer(const std::weak_ptr<IPlaybackStateAdapter> &adapter)
     , state_adapter_(adapter)
     , fifo_(GetPageAlignSize(kPreallocateBufferSize))
     , action_queue_(kActionQueueSize)
-    , fft_queue_(kActionQueueSize)
     , dsp_manager_(MediaStreamFactory::MakeDSPManager()) {
     logger_ = Logger::GetInstance().GetLogger(kAudioPlayerLoggerName);
 }
@@ -99,7 +87,6 @@ AudioPlayer::~AudioPlayer() = default;
 
 void AudioPlayer::Destroy() {
     timer_.Stop();
-    fft_timer_.Stop();
     try {
         CloseDevice(true);
     }
@@ -441,7 +428,6 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
     }
     fifo_.Clear();
     action_queue_.clear();
-    fft_queue_.clear();
 }
 
 void AudioPlayer::AllocateReadBuffer(uint32_t allocate_size) {
@@ -591,72 +577,6 @@ void AudioPlayer::UpdateProgress(int32_t sample_size) noexcept {
     playback_event_.exchange(sample_size);
 }
 
-void AudioPlayer::Startup() {
-    if (timer_.IsStarted()) {
-        return;
-    }
-
-    device_manager_->RegisterDeviceListener(shared_from_this());
-    
-    std::weak_ptr<AudioPlayer> player = shared_from_this();
-    timer_.Start(kUpdateSampleInterval, [player]() {
-        auto p = player.lock();
-        if (!p) {
-            return;
-        }
-
-        const auto adapter = p->state_adapter_.lock();
-        if (!adapter) {
-            return;
-        }
-
-        if (p->is_paused_) {
-            return;
-        }
-        if (!p->is_playing_) {
-            return;
-        }
-
-        const auto playback_event = p->playback_event_.load();
-        if (playback_event > 0) {
-            adapter->OnSampleTime(p->device_->GetStreamTime());
-        }
-        else if (p->is_playing_ && playback_event == -1) {
-            p->SetState(PlayerState::PLAYER_STATE_STOPPED);
-            p->is_playing_ = false;
-        }
-        });
-
-    fft_timer_.Start(kUpdateFFTInterval, [player]() {
-        auto p = player.lock();
-        if (!p) {
-            return;
-        }
-    	const auto adapter = p->state_adapter_.lock();
-        if (!adapter) {
-            return;
-        }
-
-        if (p->fft_queue_.empty()) {
-            return;
-        }
-
-        if (const auto* msg = p->fft_queue_.Front()) {
-            XAMP_ON_SCOPE_EXIT({
-               p->fft_queue_.Pop();
-                });
-            switch (msg->id) {
-            case PlayerActionId::FFT_RESULT:
-            {
-	            const auto fft_result = std::any_cast<ComplexValarray>(msg->content);
-                adapter->OnFFTResultChanged(fft_result);
-            }
-            break;
-            }
-        }
-        });
-}
-
 void AudioPlayer::Seek(double stream_time) {
     if (!device_) {
         return;
@@ -758,6 +678,8 @@ void AudioPlayer::Play() {
         return;
     }
 
+    state_adapter_.lock()->OnOutputFormatChanged(output_format_);
+
     is_playing_ = true;
     if (device_->IsStreamOpen()) {
         if (!device_->IsStreamRunning()) {
@@ -827,26 +749,53 @@ void AudioPlayer::Play() {
     });
 }
 
-void AudioPlayer::InitFFT() {
-    size_t channels = output_format_.GetChannels();
-    size_t channel_sample_rate = output_format_.GetSampleRate() / 2;
-    size_t frame_size = channel_sample_rate * 0.018;
-    size_t shift_size = channel_sample_rate * 0.01;
-    frame_size = NextPowerOfTwo(frame_size);
-    stft_ = MakeAlign<STFT>(channels, frame_size, shift_size);
-    XAMP_LOG_D(logger_, "frame_size:{} shift_size:{}", frame_size, shift_size);
+void AudioPlayer::Startup() {
+    if (timer_.IsStarted()) {
+        return;
+    }
+
+    device_manager_->RegisterDeviceListener(shared_from_this());
+
+    std::weak_ptr<AudioPlayer> player = shared_from_this();
+    timer_.Start(kUpdateSampleInterval, [player]() {
+        auto p = player.lock();
+        if (!p) {
+            return;
+        }
+
+        const auto adapter = p->state_adapter_.lock();
+        if (!adapter) {
+            return;
+        }
+
+        if (p->is_paused_) {
+            return;
+        }
+        if (!p->is_playing_) {
+            return;
+        }
+
+        const auto playback_event = p->playback_event_.load();
+        if (playback_event > 0) {
+            adapter->OnSampleTime(p->device_->GetStreamTime());
+        }
+        else if (p->is_playing_ && playback_event == -1) {
+            p->SetState(PlayerState::PLAYER_STATE_STOPPED);
+            p->is_playing_ = false;
+        }
+        });
 }
 
-void AudioPlayer::ProcessFFT(void* samples, size_t num_buffer_frames) {
+void AudioPlayer::CopySamples(void* samples, size_t num_buffer_frames) const {
     if (!CanConverter()) {
         return;
     }
-    fft_queue_.TryPush(
-        PlayerAction{
-            PlayerActionId::FFT_RESULT,
-            stft_->Process(static_cast<const float*>(samples), num_buffer_frames)
-        }
-    );
+
+    const auto adapter = state_adapter_.lock();
+    if (!adapter) {
+        return;
+    }
+    adapter->OnSamplesChanged(static_cast<const float*>(samples), num_buffer_frames);
 }
 
 DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_frames, size_t & num_filled_frames, double stream_time, double /*sample_time*/) noexcept {
@@ -858,7 +807,7 @@ DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_fr
         num_filled_frames = num_filled_bytes / sample_size_ / output_format_.GetChannels();
         num_filled_frames = num_buffer_frames;
         UpdateProgress(static_cast<int32_t>(num_samples));
-        ProcessFFT(samples, num_samples);
+        CopySamples(samples, num_samples);
         return DataCallbackResult::CONTINUE;
     }
 
@@ -886,7 +835,6 @@ void AudioPlayer::PrepareToPlay() {
     OpenDevice(0);
     CreateBuffer();
     dsp_manager_->Init(input_format_, output_format_, dsd_mode_, stream_->GetSampleSize());
-    InitFFT();
     BufferStream(0);
 	sample_end_time_ = stream_->GetDuration();
     XAMP_LOG_D(logger_, "Stream end time: {:.2f} sec.", sample_end_time_);

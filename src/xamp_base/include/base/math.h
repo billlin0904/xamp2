@@ -10,6 +10,17 @@
 
 namespace xamp::base {
 
+static XAMP_ALWAYS_INLINE int32_t NextPowerOfTwo(int32_t v) noexcept {
+	v--;
+	v |= v >> 1;
+	v |= v >> 2;
+	v |= v >> 4;
+	v |= v >> 8;
+	v |= v >> 16;
+	v++;
+	return v;
+}
+
 template <typename T>
 T Round(T a) {
     static_assert(std::is_floating_point_v<T>, "Round<T>: T must be floating point");

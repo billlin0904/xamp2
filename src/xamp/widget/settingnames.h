@@ -13,6 +13,7 @@ extern const ConstLatin1String kAppSettingDeviceId;
 extern const ConstLatin1String kAppSettingWidth;
 extern const ConstLatin1String kAppSettingHeight;
 extern const ConstLatin1String kAppSettingVolume;
+extern const ConstLatin1String kAppSettingIsMuted;
 extern const ConstLatin1String kAppSettingOrder;
 extern const ConstLatin1String kAppSettingUseNativeDSDMode;
 extern const ConstLatin1String kAppSettingUseFramelessWindow;

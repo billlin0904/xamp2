@@ -13,9 +13,6 @@
 #include <base/dsdsampleformat.h>
 #include <base/uuid.h>
 
-#include <output_device/output_device.h>
-
-#include <stream/stream.h>
 #include <player/playstate.h>
 #include <player/player.h>
 

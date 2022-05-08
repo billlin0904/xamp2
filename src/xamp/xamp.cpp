@@ -433,11 +433,17 @@ void Xamp::initialController() {
         if (player_->IsMute()) {
             player_->SetMute(false);            
             ui_.mutedButton->setIcon(Singleton<ThemeManager>::GetInstance().volumeUp());
+            AppSettings::setValue(kAppSettingIsMuted, false);
         } else {
             player_->SetMute(true);
             ui_.mutedButton->setIcon(Singleton<ThemeManager>::GetInstance().volumeOff());
+            AppSettings::setValue(kAppSettingIsMuted, true);
         }
     });
+
+    if (AppSettings::getValueAsBool(kAppSettingIsMuted)) {
+        ui_.mutedButton->pressed();
+    }
 
     (void)QObject::connect(ui_.closeButton, &QToolButton::pressed, [this]() {
         QWidget::close();

@@ -390,18 +390,18 @@ void ExclusiveWasapiDevice::StartStream() {
 			auto result = ::WaitForMultipleObjects(objects.size(), objects.data(), FALSE, current_timeout);
 
 			const auto elapsed = watch.Elapsed<std::chrono::milliseconds>();
-			if (elapsed > wait_timeout) {
+			/*if (elapsed > wait_timeout) {
 				XAMP_LOG_D(log_, "WASAPI wait too slow! {}msec.", elapsed.count());
 				thread_exit = true;
 				continue;
-			}
+			}*/
 
 			switch (result) {
 			case WAIT_OBJECT_0 + 0:
 				if (!GetSample(false)) {
 					thread_exit = true;
 				}
-				current_timeout = wait_timeout.count();
+				//current_timeout = wait_timeout.count();
 				break;
 			case WAIT_OBJECT_0 + 1:
 				thread_exit = true;

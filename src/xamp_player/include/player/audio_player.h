@@ -33,7 +33,7 @@ namespace xamp::player {
 
 MAKE_XAMP_ENUM(PlayerActionId,
     PLAYER_SEEK,
-    FFT_RESULT);
+    PLAYER_COPY_SAMPLES);
 
 struct PlayerAction {
     PlayerActionId id;
@@ -140,7 +140,7 @@ private:
 
     void ReadSampleLoop(int8_t* sample_buffer, uint32_t max_buffer_sample, std::unique_lock<FastMutex> &stopped_lock);
 
-    void ProcessFFT(void * samples, size_t num_buffer_frames);
+    void CopySamples(void * samples, size_t num_buffer_frames) const;
 
     void BufferSamples(const AlignPtr<IAudioStream>& stream, int32_t buffer_count = 1);
 
@@ -149,8 +149,6 @@ private:
     void AllocateReadBuffer(uint32_t allocate_size);
 
     void AllocateFifo();
-
-    void InitFFT();
 
     void ProcessPlayerAction();
 
@@ -175,8 +173,7 @@ private:
     mutable FastMutex stopped_mutex_;
     std::string device_id_;
     Uuid device_type_id_;
-    Timer timer_;
-    Timer fft_timer_;
+    Timer timer_;    
     FastConditionVariable pause_cond_;
     FastConditionVariable read_finish_and_wait_seek_signal_cond_;
     AudioFormat input_format_;
@@ -191,10 +188,7 @@ private:
     DeviceInfo device_info_;    
     std::shared_future<void> stream_task_;
     SpscQueue<PlayerAction> action_queue_;
-    SpscQueue<PlayerAction> fft_queue_;
     AlignPtr<IDSPManager> dsp_manager_;
-    AlignPtr<STFT> stft_;
-    std::vector<float> signal_;
     std::shared_ptr<spdlog::logger> logger_;
 };
 

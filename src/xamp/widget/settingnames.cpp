@@ -13,6 +13,7 @@ const ConstLatin1String kAppSettingUseFramelessWindow{ "AppSettings/useFrameless
 const ConstLatin1String kAppSettingShowLeftList{ "AppSettings/showLeftList" };
 const ConstLatin1String kAppSettingDiscordNotify{ "AppSettings/discordNotify" };
 const ConstLatin1String kAppSettingColumnName{ "AppSettings/columnName" };
+const ConstLatin1String kAppSettingIsMuted{"AppSettings/IsMuted"};
 
 const ConstLatin1String kAppSettingTheme{ "AppSettings/theme/themeColor" };
 const ConstLatin1String kAppSettingEnableBlur{ "AppSettings/theme/enableBlur" };

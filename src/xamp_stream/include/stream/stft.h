@@ -24,7 +24,7 @@ private:
 	size_t output_length_;
 	FFT fft_;
 	Window window_;
-	std::vector<std::vector<float>> buf_;
+	std::vector<float> buf_;
 	std::vector<float> in_;
 	std::vector<float> out_;
 };
