@@ -11,9 +11,13 @@ STFT::STFT(size_t channels, size_t frame_size, size_t shift_size)
     window_.Init(frame_size);
     fft_.Init(frame_size);
     output_length_ = frame_size - shift_size;
-    buf_.resize(frame_size);
-    out_.resize(frame_size);
-    in_.resize(frame_size);
+    buf_ = MakeBuffer<float>(frame_size);
+    out_ = MakeBuffer<float>(frame_size);
+    in_ = MakeBuffer<float>(frame_size);
+}
+
+void STFT::setWindowType(WindowType type) {
+    window_.SetWindowType(type);
 }
 
 const ComplexValarray& STFT::Process(const float* in, size_t length) {

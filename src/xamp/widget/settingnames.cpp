@@ -40,6 +40,11 @@ const ConstLatin1String kLyricsHighLightTextColor{ "AppSettings/lyrics/highLight
 
 const ConstLatin1String kFlacEncodingLevel{ "AppSettings/flacEncodingLevel" };
 
+const ConstLatin1String kEnableBitPerfect{ "AppSettings/enableBitPerfect" };
+const ConstLatin1String kEnableBlurCover{ "AppSettings/enableBlurCover" };
+
+const ConstLatin1String kAppSettingSpectrumStyles{ "AppSettings/Spectrum/spectrumStyles" };
+
 const ConstLatin1String kSoxr{ "Soxr" };
 const ConstLatin1String kSoxrDefaultSettingName{ "default" };
 const ConstLatin1String kSoxrResampleSampleRate{ "resampleSampleRate" };
@@ -54,5 +59,3 @@ const ConstLatin1String kLog{ "Log" };
 const ConstLatin1String kLogMinimumLevel{ "MinimumLevel" };
 const ConstLatin1String kLogDefault{ "Default" };
 const ConstLatin1String kLogOverride{ "Override" };
-
-const ConstLatin1String kEnableBitPerfect{ "AppSettings/enableBitPerfect" };

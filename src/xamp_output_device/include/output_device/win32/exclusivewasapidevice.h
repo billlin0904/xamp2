@@ -69,7 +69,8 @@ public:
 	void SetIoFormat(DsdIoFormat format) override;
 
 	DsdIoFormat GetIoFormat() const override;
-private:	
+
+private:
 
 	void InitialDeviceFormat(AudioFormat const & output_format, const uint32_t valid_bits_samples);
 

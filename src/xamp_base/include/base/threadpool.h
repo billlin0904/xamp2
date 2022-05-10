@@ -46,7 +46,7 @@ public:
 
     void Destroy() noexcept;
 private:
-    static void SetWorkerThreadName(size_t i);
+    void SetWorkerThreadName(size_t i);
 
     std::optional<Task> TryDequeueSharedQueue();
 
@@ -61,6 +61,7 @@ private:
 	std::atomic<bool> is_stopped_;
     std::atomic<size_t> running_thread_;
     uint32_t max_thread_;
+    std::string pool_name_;
     std::vector<std::thread> threads_;
     SharedTaskQueuePtr task_pool_;
     AlignPtr<ITaskStealPolicy> task_steal_policy_;

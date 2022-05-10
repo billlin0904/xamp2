@@ -79,7 +79,6 @@ SharedWasapiDevice::SharedWasapiDevice(CComPtr<IMMDevice> const & device)
 	: is_running_(false)
 	, stream_time_(0)
 	, buffer_frames_(0)
-	, buffer_duration_ms_(0)
 	, buffer_time_(0)
 	, mmcss_name_(kMmcssProfileProAudio)
 	, thread_priority_(MmcssThreadPriority::MMCSS_THREAD_PRIORITY_HIGH)
@@ -171,15 +170,18 @@ void SharedWasapiDevice::InitialDeviceFormat(AudioFormat const & output_format) 
 		throw DeviceUnSupportedFormatException(output_format);
 	}
 
-	XAMP_LOG_D(log_, "Initital device format fundamental:{}, current:{}, min:{} max:{}.",
-		fundamental_period_in_frame,
-		default_period_in_frame,
-		min_period_in_frame,
-		max_period_in_frame);
+	auto msec_per_samples = 1000.0 / static_cast<double>(output_format.GetSampleRate());
+
+	XAMP_LOG_D(log_,
+		"Initital device format fundamental:{:.2f} msec, current:{:.2f} msec, min:{:.2f} msec max:{:.2f} msec.",
+		fundamental_period_in_frame * msec_per_samples,
+		default_period_in_frame * msec_per_samples,
+		min_period_in_frame * msec_per_samples,
+		max_period_in_frame * msec_per_samples);
 
 	buffer_time_ = default_period_in_frame;
 
-	XAMP_LOG_D(log_, "Use latency: {}", buffer_time_);
+	XAMP_LOG_D(log_, "Use latency: {:.2f}", buffer_time_ * msec_per_samples);
 }
 
 void SharedWasapiDevice::InitialRawMode(AudioFormat const & output_format) {

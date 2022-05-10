@@ -36,6 +36,9 @@ extern const ConstLatin1String kAppSettingReplayGainScanMode;
 
 extern const ConstLatin1String kAppSettingResamplerEnable;
 extern const ConstLatin1String kAppSettingSoxrSettingName;
+extern const ConstLatin1String kEnableBlurCover;
+
+extern const ConstLatin1String kAppSettingSpectrumStyles;
 
 extern const ConstLatin1String kSoxr;
 extern const ConstLatin1String kSoxrResampleSampleRate;

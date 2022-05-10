@@ -5,8 +5,7 @@
 
 #pragma once
 
-#include <vector>
-
+#include <base/buffer.h>
 #include <stream/stream.h>
 #include <stream/fft.h>
 
@@ -16,6 +15,8 @@ class XAMP_STREAM_API STFT {
 public:
 	STFT(size_t channels, size_t frame_size, size_t shift_size);
 
+	void setWindowType(WindowType type);
+
 	const ComplexValarray& Process(const float* in, size_t length);
 private:
 	size_t channels_;
@@ -24,9 +25,9 @@ private:
 	size_t output_length_;
 	FFT fft_;
 	Window window_;
-	std::vector<float> buf_;
-	std::vector<float> in_;
-	std::vector<float> out_;
+	Buffer<float> buf_;
+	Buffer<float> in_;
+	Buffer<float> out_;
 };
 
 }

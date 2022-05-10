@@ -37,14 +37,15 @@ void BackgroundWorker::stopThreadPool() {
 }
 
 void BackgroundWorker::blurImage(const QString& cover_id, const QImage& image) {
-    auto palettes = GetPalette(image);
-
     if (auto *cache_image = blur_img_cache_.Find(cover_id)) {
         XAMP_LOG_DEBUG("Found blur image in cache!");
         emit updateBlurImage(cache_image->copy());
         return;
     }
 
+    if (!AppSettings::getValueAsBool(kEnableBlurCover)) {
+        return;
+    }
     auto temp = image.copy();
     Stackblur blur(*pool_, temp, 50);
     emit updateBlurImage(temp.copy());

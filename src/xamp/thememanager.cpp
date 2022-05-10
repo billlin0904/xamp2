@@ -155,7 +155,7 @@ void ThemeManager::setBorderRadius(QFrame* content_widget) {
 
     content_widget->setStyleSheet(Q_STR(R"(
 			QFrame#XampWindow {
-				border-radius: 4px;
+				border-radius: 8px;
 				border: 2px solid %1;
 				background-color: %1;
             }

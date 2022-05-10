@@ -12,8 +12,9 @@
 namespace xamp::stream {
 
 MAKE_XAMP_ENUM(WindowType,
-    HANN,
-    HAMMING)
+    NO_WINDOW,
+    HAMMING,
+    BLACKMAN_HARRIS)
 
 class XAMP_STREAM_API Window final {
 public:
@@ -22,6 +23,8 @@ public:
 	XAMP_PIMPL(Window)
 
     void Init(size_t frame_size, WindowType type = WindowType::HAMMING);
+
+    void SetWindowType(WindowType type = WindowType::HAMMING);
 
     void operator()(float* buffer, size_t size) const noexcept;
 private:

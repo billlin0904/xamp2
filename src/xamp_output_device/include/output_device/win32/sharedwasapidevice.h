@@ -9,10 +9,8 @@
 
 #ifdef XAMP_OS_WIN
 
-#include <future>
 #include <atomic>
 
-#include <base/buffer.h>
 #include <base/logger.h>
 #include <output_device/ioutputdevice.h>
 #include <output_device/win32/wasapiworkqueue.h>
@@ -62,6 +60,7 @@ public:
 	bool IsHardwareControlVolume() const override;
 
 	void AbortStream() noexcept override;
+
 private:
 	HRESULT GetSampleRequested(bool is_silence) noexcept;
 
@@ -82,10 +81,8 @@ private:
 	class DeviceEventNotification;
 
 	std::atomic<bool> is_running_;
-	std::atomic<int64_t> stream_time_;
-	
+	std::atomic<int64_t> stream_time_;	
 	uint32_t buffer_frames_;
-	uint32_t buffer_duration_ms_;
 	REFERENCE_TIME buffer_time_;
 	std::wstring mmcss_name_;
 	MmcssThreadPriority thread_priority_;

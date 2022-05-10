@@ -25,6 +25,8 @@ using xamp::base::Errors;
 using xamp::base::AlignPtr;
 using xamp::base::Exception;
 using xamp::base::SpscQueue;
+using xamp::base::AudioFormat;
+using xamp::base::MakeAlign;
 
 using xamp::player::PlayerState;
 using xamp::player::IPlaybackStateAdapter;
@@ -32,10 +34,8 @@ using xamp::player::IPlaybackStateAdapter;
 using xamp::output_device::DeviceState;
 using xamp::stream::FileStream;
 using xamp::stream::ComplexValarray;
-
-using xamp::base::AudioFormat;
-using xamp::base::MakeAlign;
 using xamp::stream::STFT;
+using xamp::stream::WindowType;
 using xamp::stream::ComplexValarray;
 
 class UIPlayerStateAdapter final
@@ -45,7 +45,9 @@ class UIPlayerStateAdapter final
 public:
     explicit UIPlayerStateAdapter(QObject *parent = nullptr);
 
-    void OnOutputFormatChanged(const AudioFormat output_format) override;
+    void setWindowType(WindowType type);
+
+    void OnOutputFormatChanged(const AudioFormat output_format, size_t buffer_size) override;
 
     void OnSampleTime(double stream_time) override;
 

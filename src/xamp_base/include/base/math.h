@@ -6,6 +6,7 @@
 #pragma once
 
 #include <cmath>
+#include <complex>
 #include <base/base.h>
 
 namespace xamp::base {
@@ -19,6 +20,10 @@ static XAMP_ALWAYS_INLINE int32_t NextPowerOfTwo(int32_t v) noexcept {
 	v |= v >> 16;
 	v++;
 	return v;
+}
+
+static XAMP_ALWAYS_INLINE double toMag(const std::complex<float>& r) {
+	return 10.0 * std::log10(std::pow(r.real(), 2) + std::pow(r.imag(), 2));
 }
 
 template <typename T>

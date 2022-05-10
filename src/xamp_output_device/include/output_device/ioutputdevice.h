@@ -49,6 +49,7 @@ public:
 	[[nodiscard]] virtual uint32_t GetBufferSize() const noexcept = 0;
 
 	virtual void AbortStream() noexcept = 0;
+
 protected:
 	IOutputDevice() = default;
 };

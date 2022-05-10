@@ -1,11 +1,14 @@
 #include <QPainter>
 #include <QPainterPath>
 #include <base/base.h>
-#include <widget/actionmap.h>
+#include <base/math.h>
+#include <widget/appsettings.h>
 #include <widget/spectrumwidget.h>
 
 inline constexpr float kDecay = 0.05f;
 inline constexpr auto kMaxBands = 120;
+
+using xamp::base::toMag;
 
 class SmoothCurveGenerator2 {
 public:
@@ -126,47 +129,38 @@ void SmoothCurveGenerator2::calculateControlPoints(const QVector<QPointF>& knots
 
 SpectrumWidget::SpectrumWidget(QWidget* parent)
 	: QFrame(parent) {
-
-	setContextMenuPolicy(Qt::CustomContextMenu);
-	(void)QObject::connect(this, &SpectrumWidget::customContextMenuRequested, [this](auto pt) {
-		ActionMap<SpectrumWidget> action_map(this);
-
-		(void)action_map.addAction(tr("Bar style"), [this]() {
-			setStyle(SpectrumStyles::BAR_STYLE);
-			});
-
-		(void)action_map.addAction(tr("Wave style"), [this]() {
-			setStyle(SpectrumStyles::WAVE_STYLE);
-			});
-
-		(void)action_map.addAction(tr("Wave line style"), [this]() {
-			setStyle(SpectrumStyles::WAVE_LINE_STYLE);
-			});
-
-		action_map.exec(pt);
-	});
+	(void) QObject::connect(&timer_, &QTimer::timeout, [this]() {
+		for (auto &peek : peak_delay_) {
+			peek -= 0.2f;
+		}
+		update();
+		});
+	timer_.start(25);
+	bar_color_ = QColor(5, 184, 204);
 }
 
 void SpectrumWidget::onFFTResultChanged(ComplexValarray const& result) {
 	const auto frame_size = result.size();
-	if (freq_data_.size() != frame_size) {
+
+	if (mag_datas_.size() != frame_size) {
 		multiplier_ = static_cast<float>((frame_size / 2.0) / kMaxBands);
-		freq_data_.resize(frame_size);
-		bars_.resize(kMaxBands);
+		mag_datas_.resize(frame_size);
+		peak_delay_.resize(kMaxBands);
 	}
 
 	for (auto i = 0; i < result.size(); ++i) {
-		freq_data_[i] =
-			std::hypot(result[i].imag(), result[i].real()) * 0.03;
-		freq_data_[i] = (std::max)(freq_data_[i], 0.0f);
-		freq_data_[i] = (std::min)(freq_data_[i], 0.8f);
+		mag_datas_[i] = toMag(result[i]) * 0.035;
+		mag_datas_[i] = (std::max)(mag_datas_[i], 0.01f);
+		mag_datas_[i] = (std::min)(mag_datas_[i], 0.9f);
+		if (i < kMaxBands) {
+			if (peak_delay_[i] <= mag_datas_[i]) {
+				peak_delay_[i] = mag_datas_[i];
+			}
+		}		
 	}
-	update();
 }
 
 void SpectrumWidget::drawBar(QPainter &painter, size_t num_bars) {
-	QColor bar_color(5, 184, 204);
-
 	const auto widget_width = width();
 	const auto bar_plus_gap_width = widget_width / num_bars;
 	const auto bar_width = 0.8f * bar_plus_gap_width;
@@ -176,28 +170,26 @@ void SpectrumWidget::drawBar(QPainter &painter, size_t num_bars) {
 	const auto bar_height = height() - 2 * gap_width;
 
 	for (auto i = 0; i < num_bars; ++i) {
-		const auto value = freq_data_[i];
+		const auto value = peak_delay_[i];
 		QRect bar = rect();
 		bar.setLeft(rect().left() + left_padding_width + (i * (gap_width + bar_width)));
 		bar.setWidth(bar_width);
 		bar.setTop(rect().top() + gap_width + (1.0f - value) * bar_height);
 		bar.setBottom(rect().bottom() - gap_width);
-		painter.fillRect(bar, bar_color);
+		painter.fillRect(bar, bar_color_);
 	}
 }
 
 void SpectrumWidget::drawWave(QPainter& painter, size_t num_bars, bool is_line) {
-	QColor bar_color(5, 184, 204);
-
-	float max = freq_data_.at(0);
-	float min = freq_data_.at(0);
+	float max = peak_delay_.at(0);
+	float min = peak_delay_.at(0);
 	for (size_t i = 1; i < num_bars; i++) {
-		if (max < freq_data_.at(i)) {
-			max = freq_data_.at(i);
+		if (max < peak_delay_.at(i)) {
+			max = peak_delay_.at(i);
 		}
 
-		if (min > freq_data_.at(i)) {
-			min = freq_data_.at(i);
+		if (min > peak_delay_.at(i)) {
+			min = peak_delay_.at(i);
 		}
 	}
 
@@ -205,7 +197,7 @@ void SpectrumWidget::drawWave(QPainter& painter, size_t num_bars, bool is_line) 
 	points.append(QPoint(0, height()));
 	for (auto i = 0; i < num_bars; i++) {
 		double x = i * width() / num_bars;
-		double y = height() - (((freq_data_.at(i) - min) / (max - min)) * height());
+		double y = height() - (((peak_delay_.at(i) - min) / (max - min)) * height());
 		points.append(QPointF(x, y));
 	}
 	points.append(QPoint(width(), height()));
@@ -213,23 +205,21 @@ void SpectrumWidget::drawWave(QPainter& painter, size_t num_bars, bool is_line) 
 	QPainterPath path = SmoothCurveGenerator2::generateSmoothCurve(points);
 	path.closeSubpath();
 	if (is_line) {
-		painter.setPen(bar_color);
+		painter.setPen(bar_color_);
 		painter.drawPath(path);
 	} else {
-		painter.fillPath(path, bar_color);
+		/*QLinearGradient gradient(QPoint(width(), 0), QPoint(width(), height()));
+		gradient.setColorAt(0.0, bar_color);
+		gradient.setColorAt(1.0, QColor(0, 0, 0, 0));*/
+		painter.fillPath(path, bar_color_);
 	}
 }
 
 void SpectrumWidget::paintEvent(QPaintEvent* /*event*/) {
 	QPainter painter(this);
-
 	painter.setRenderHints(QPainter::Antialiasing, true);
 
-	QColor bar_color(5, 184, 204);
-	bar_color = bar_color.lighter();
-	bar_color.setAlphaF(0.75);
-
-	const auto num_bars = bars_.size();
+	const auto num_bars = peak_delay_.size();
 	if (!num_bars) {
 		return;
 	}
@@ -252,5 +242,7 @@ void SpectrumWidget::setStyle(SpectrumStyles style) {
 }
 
 void SpectrumWidget::reset() {
-	
+	mag_datas_.clear();
+	peak_delay_.clear();
+	update();
 }

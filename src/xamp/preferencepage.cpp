@@ -90,6 +90,12 @@ void PreferencePage::initSoxResampler() {
                               !AppSettings::getValueAsBool(kAppSettingUseFramelessWindow));
     });
 
+	ui_.enableBlurCoverImagePushButton->setSwitchOn(AppSettings::getValueAsBool(kEnableBlurCover));
+	(void)QObject::connect(ui_.enableBlurCoverImagePushButton, &SwitchButton::pressed, [this]() {
+		AppSettings::setValue(kEnableBlurCover,
+			!AppSettings::getValueAsBool(kEnableBlurCover));
+		});
+
     (void)QObject::connect(ui_.saveSoxrSettingBtn, &QPushButton::pressed, [this]() {
 	    const auto setting_name = QInputDialog::getText(this, tr("Save soxr setting"), 
 	                                                    tr("Setting name:"),

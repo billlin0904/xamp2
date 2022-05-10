@@ -8,6 +8,7 @@
 #include <vector>
 #include <stream/stream.h>
 
+#include <QTimer>
 #include <QFrame>
 
 using xamp::stream::ComplexValarray;
@@ -40,7 +41,9 @@ private:
 
 	float multiplier_{ 0 };
 	SpectrumStyles style_{ BAR_STYLE };
+	QColor bar_color_;
 	ComplexValarray fft_result_;
-	std::vector<float> freq_data_;
-	std::vector<float> bars_;
+	std::vector<float> mag_datas_;
+	std::vector<float> peak_delay_;
+	QTimer timer_;
 };

@@ -82,9 +82,9 @@ private:
 
     void addDropFileItem(const QUrl& url) override;
 
-	void setCover(const QPixmap* cover, PlaylistPage *page = nullptr);
-
 	void closeEvent(QCloseEvent* event) override;
+
+	void setCover(const QPixmap* cover, PlaylistPage* page = nullptr);
 
 	QWidgetAction* createTextSeparator(const QString& text);
 

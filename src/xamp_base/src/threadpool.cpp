@@ -19,6 +19,7 @@ TaskScheduler::TaskScheduler(TaskSchedulerPolicy policy, TaskStealPolicy steal_p
 	: is_stopped_(false)
 	, running_thread_(0)
 	, max_thread_(max_thread)
+	, pool_name_(pool_name)
 	, task_steal_policy_(MakeTaskStealPolicy(steal_policy))
 	, task_scheduler_policy_(MakeTaskSchedulerPolicy(policy)) {
 	logger_ = Logger::GetInstance().GetLogger(pool_name.data());
@@ -137,7 +138,7 @@ void TaskScheduler::SetWorkerThreadName(size_t i) {
 	std::this_thread::sleep_for(std::chrono::milliseconds(900));
 #endif
 	std::ostringstream stream;
-	stream << "Worker Thread(" << i << ").";
+	stream << "Worker Thread(" << i << ") " << pool_name_;
 	SetThreadName(stream.str());
 }
 

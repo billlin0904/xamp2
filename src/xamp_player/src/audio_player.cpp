@@ -479,7 +479,8 @@ void AudioPlayer::CreateBuffer() {
 
     XAMP_LOG_D(logger_, "Read memory page count: {} page.", num_read_sample_ / GetPageSize());
 
-    XAMP_LOG_D(logger_, "Output device format: {} num_read_sample: {} fifo buffer: {}.",
+    XAMP_LOG_D(logger_, "Output buffer:{} device format: {} num_read_sample: {} fifo buffer: {}.",
+        device_->GetBufferSize(),
         output_format_,
         String::FormatBytes(num_read_sample_),
         String::FormatBytes(fifo_.GetSize()));
@@ -678,7 +679,9 @@ void AudioPlayer::Play() {
         return;
     }
 
-    state_adapter_.lock()->OnOutputFormatChanged(output_format_);
+    if (const auto state = state_adapter_.lock()) {
+        state->OnOutputFormatChanged(output_format_, device_->GetBufferSize());
+    }
 
     is_playing_ = true;
     if (device_->IsStreamOpen()) {

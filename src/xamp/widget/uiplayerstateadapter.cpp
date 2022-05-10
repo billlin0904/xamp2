@@ -2,6 +2,7 @@
 #include <player/audio_player.h>
 #include <widget/uiplayerstateadapter.h>
 
+using xamp::base::kMaxChannel;
 using xamp::base::NextPowerOfTwo;
 
 UIPlayerStateAdapter::UIPlayerStateAdapter(QObject *parent)
@@ -29,12 +30,16 @@ void UIPlayerStateAdapter::OnVolumeChanged(float vol) {
     emit volumeChanged(vol);
 }
 
-void UIPlayerStateAdapter::OnOutputFormatChanged(const AudioFormat output_format) {
+void UIPlayerStateAdapter::setWindowType(WindowType type) {
+	stft_->setWindowType(type);
+}
+
+void UIPlayerStateAdapter::OnOutputFormatChanged(const AudioFormat output_format, size_t buffer_size) {
 	size_t channels = output_format.GetChannels();
 	size_t channel_sample_rate = output_format.GetSampleRate() / 2;
-	size_t frame_size = channel_sample_rate * 0.018;
+	size_t frame_size = buffer_size * kMaxChannel;
 	size_t shift_size = channel_sample_rate * 0.01;
-	frame_size = NextPowerOfTwo(frame_size);
+	frame_size = NextPowerOfTwo(buffer_size);
 	stft_ = MakeAlign<STFT>(channels, frame_size, shift_size);
 }
 

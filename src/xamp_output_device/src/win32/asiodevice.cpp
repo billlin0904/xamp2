@@ -392,7 +392,7 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 	AsioIfFailedThrow(::ASIOGetLatencies(&input_latency, &output_latency));
 	latency_ = GetLatencyMs(output_latency, output_format.GetSampleRate());
 	XAMP_LOG_D(log_, "Buffer size :{} ", String::FormatBytes(buffer_.GetByteSize()));
-	XAMP_LOG_D(log_, "Ouput latency: {}ms.", latency_);
+	XAMP_LOG_D(log_, "Output latency: {} msec.", latency_);
 	ASIODriver.SetPostOutput();
 	XAMP_LOG_D(log_, "Drvier support post output: {}", ASIODriver.post_output);
 }
@@ -629,8 +629,8 @@ void AsioDevice::StartStream() {
 	mmcss_.RevertPriority();
 	is_streaming_ = true;
 	is_stop_streaming_ = false;
-	AsioIfFailedThrow(::ASIOStart());
 	ASIODriver.buffer_switch_stopwatch.Reset();
+	AsioIfFailedThrow(::ASIOStart());
 }
 
 bool AsioDevice::IsStreamRunning() const noexcept {

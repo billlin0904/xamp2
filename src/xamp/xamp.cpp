@@ -6,6 +6,7 @@
 #include <QWidgetAction>
 #include <QFileDialog>
 #include <QProcess>
+#include <QPainterPath>
 #include <QProgressDialog>
 #include <QFileSystemWatcher>
 
@@ -45,6 +46,7 @@
 #include <widget/read_utiltis.h>
 #include <widget/equalizerdialog.h>
 #include <widget/playlisttablemodel.h>
+#include <widget/actionmap.h>
 
 #include "aboutpage.h"
 #include "preferencepage.h"
@@ -150,6 +152,44 @@ void Xamp::setXWindow(IXWindow* top_window) {
         lrc_page_->spectrum(),
         &SpectrumWidget::onFFTResultChanged,
         Qt::QueuedConnection);
+
+    lrc_page_->spectrum()->setStyle(AppSettings::getAsEnum<SpectrumStyles>(kAppSettingSpectrumStyles));
+
+    lrc_page_->spectrum()->setContextMenuPolicy(Qt::CustomContextMenu);
+    (void)QObject::connect(lrc_page_->spectrum(), &SpectrumWidget::customContextMenuRequested, [this](auto pt) {
+        ActionMap<SpectrumWidget> action_map(lrc_page_->spectrum());
+
+        (void)action_map.addAction(tr("Bar style"), [this]() {
+            lrc_page_->spectrum()->setStyle(SpectrumStyles::BAR_STYLE);
+            AppSettings::setEnumValue(kAppSettingSpectrumStyles, SpectrumStyles::BAR_STYLE);
+            });
+
+        (void)action_map.addAction(tr("Wave style"), [this]() {
+            lrc_page_->spectrum()->setStyle(SpectrumStyles::WAVE_STYLE);
+            AppSettings::setEnumValue(kAppSettingSpectrumStyles, SpectrumStyles::WAVE_STYLE);
+            });
+
+        (void)action_map.addAction(tr("Wave line style"), [this]() {
+            lrc_page_->spectrum()->setStyle(SpectrumStyles::WAVE_LINE_STYLE);
+            AppSettings::setEnumValue(kAppSettingSpectrumStyles, SpectrumStyles::WAVE_LINE_STYLE);
+            });
+
+        action_map.addSeparator();
+
+        (void)action_map.addAction(tr("No Window"), [this]() {
+            state_adapter_->setWindowType(WindowType::NO_WINDOW);
+            });
+
+        (void)action_map.addAction(tr("Hamming Window"), [this]() {
+            state_adapter_->setWindowType(WindowType::HAMMING);
+            });
+
+        (void)action_map.addAction(tr("Blackman harris Window"), [this]() {
+            state_adapter_->setWindowType(WindowType::BLACKMAN_HARRIS);
+            });
+
+        action_map.exec(pt);
+        });
 }
 
 void Xamp::avoidRedrawOnResize() {
@@ -507,11 +547,7 @@ void Xamp::initialController() {
 
     ui_.volumeSlider->setRange(0, 100);
     const auto vol = AppSettings::getValue(kAppSettingVolume).toUInt();
-	if (vol <= 0) {
-        setVolume(0);
-	}
-    ui_.volumeSlider->setValue(static_cast<int32_t>(vol));
-    player_->SetMute(vol == 0);
+    setVolume(player_->IsMute() ? 0 : vol);
 
     (void)QObject::connect(ui_.volumeSlider, &QSlider::valueChanged, [this](auto volume) {
         QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + Q_UTF8("%"));
@@ -848,6 +884,7 @@ void Xamp::initialShortcut() {
 void Xamp::stopPlayedClicked() {
     player_->Stop(false, true);
     setSeekPosValue(0);
+    lrc_page_->spectrum()->reset();
     ui_.seekSlider->setEnabled(false);
     playlist_page_->playlist()->removePlaying();
     Singleton<ThemeManager>::GetInstance().setPlayOrPauseButton(ui_, false);

@@ -2,11 +2,13 @@
 #include <QLayout>
 #include <QFontDatabase>
 #include <QPainter>
+#include <QPainterPath>
 #include <QWindow>
 #include <QStyleOption>
 #include <QDragEnterEvent>
 #include <QMimeData>
 #include <QIcon>
+#include <QGraphicsDropShadowEffect>
 
 #include "thememanager.h"
 
@@ -177,10 +179,6 @@ XWindow::XWindow()
 }
 
 void XWindow::setContentWidget(IXampPlayer *content_widget) {
-    // todo: DropShadow效果會讓CPU使用率偏高.
-    // todo: 使用border-radius: 5px;將無法縮放視窗
-    // todo: Qt::WA_TranslucentBackground + paintEvent 將無法縮放視窗
-
     content_widget_ = content_widget;
     if (content_widget_ != nullptr) {
         auto* default_layout = new QGridLayout(this);
@@ -199,8 +197,13 @@ void XWindow::setContentWidget(IXampPlayer *content_widget) {
         setWindowTitle(kAppTitle);
         setAttribute(Qt::WA_TranslucentBackground, true);
         setWindowFlags(Qt::FramelessWindowHint);
-        /*win32::setFramelessWindowStyle(this);
-        win32::addDwmShadow(this);*/
+        //win32::setFramelessWindowStyle(this);
+        //win32::addDwmShadow(this);
+        /*auto* effect = new QGraphicsDropShadowEffect(content_widget_);
+        effect->setOffset(0, 0);
+        effect->setColor(QColor(QStringLiteral("black")));
+        effect->setBlurRadius(4);
+        content_widget_->setGraphicsEffect(effect);*/
     }
     taskbar_.reset(new WinTaskbar(this, content_widget));
 #else
@@ -446,5 +449,9 @@ void XWindow::mouseMoveEvent(QMouseEvent* event) {
 #ifdef Q_OS_WIN32
 void XWindow::showEvent(QShowEvent* event) {
     taskbar_->showEvent();
+}
+
+void XWindow::paintEvent(QPaintEvent* event) {
+    return QWidget::paintEvent(event);
 }
 #endif
