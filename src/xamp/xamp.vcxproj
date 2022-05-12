@@ -258,6 +258,7 @@
     <ClInclude Include="widget\albumentity.h" />
     <ClInclude Include="widget\colorthief.h" />
     <QtMoc Include="widget\spectrumwidget.h" />
+    <ClInclude Include="widget\smoothcurvegenerator2.h" />
     <ClInclude Include="widget\stackblur.h" />
     <ClInclude Include="widget\xmessagebox.h" />
     <ClInclude Include="xampplayer.h" />

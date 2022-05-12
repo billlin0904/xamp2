@@ -7,7 +7,7 @@
 
 #include <vector>
 #include <stream/stream.h>
-
+#include <widget/smoothcurvegenerator2.h>
 #include <QTimer>
 #include <QFrame>
 
@@ -28,6 +28,8 @@ public:
 
 	void setStyle(SpectrumStyles style);
 
+	void setBarColor(QColor color);
+
 public slots:
 	void onFFTResultChanged(ComplexValarray const& result);
 
@@ -39,11 +41,11 @@ private:
 
 	void drawBar(QPainter& painter, size_t num_bars);
 
-	float multiplier_{ 0 };
 	SpectrumStyles style_{ BAR_STYLE };
 	QColor bar_color_;
 	ComplexValarray fft_result_;
 	std::vector<float> mag_datas_;
 	std::vector<float> peak_delay_;
 	QTimer timer_;
+	SmoothCurveGenerator2 generator_;
 };

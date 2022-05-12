@@ -9,11 +9,14 @@
 #include <vector>
 #include <base/ithreadpool.h>
 #include <base/lrucache.h>
+#include <metadata/api.h>
 #include <widget/playlistentity.h>
 
 using xamp::base::AlignPtr;
 using xamp::base::IThreadPool;
 using xamp::base::LruCache;
+
+using xamp::metadata::IMetadataWriter;
 
 struct ReplayGainResult final {
     double album_peak{0};
@@ -51,4 +54,5 @@ private:
     bool is_stop_{false};
     mutable LruCache<QString, QImage> blur_img_cache_;
     AlignPtr<IThreadPool> pool_;
+    AlignPtr<IMetadataWriter> writer_;
 };

@@ -141,6 +141,8 @@ public:
 
     QColor themeTextColor() const;
 
+    QString borderColor();
+
     void setBorderRadius(QFrame* content_widget);
 
 private:

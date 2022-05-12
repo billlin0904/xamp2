@@ -10,13 +10,14 @@ AboutPage::AboutPage(QWidget* parent)
     ui.setupUi(this);
 
 #ifdef Q_OS_WIN32
-    ui.lblVersion->setText(Q_STR("Build Visual Studio 20%1.%2.%3 (%4 %5) %6 AVX2")
+    ui.lblVersion->setText(Q_STR("Build Visual Studio 20%1.%2.%3 (%4 %5), %6 AVX2, Qt %7")
         .arg(_MSC_VER / 100)
 		.arg((_MSC_FULL_VER / 100000) % 100)
 		.arg(_MSC_FULL_VER % 100000)
         .arg(Q_UTF8(__DATE__))
 		.arg(Q_UTF8(__TIME__))
-        .arg(SIMD::IsCPUSupportAVX2() ? Q_UTF8("Support") : Q_UTF8("Unsupport")));
+        .arg(SIMD::IsCPUSupportAVX2() ? Q_UTF8("Support") : Q_UTF8("Unsupport"))
+		.arg(Q_UTF8(QT_VERSION_STR)));
 #else
     ui.lblVersion->setText(Q_STR("Build Clang %1.%2.%3")
                             .arg(__clang_major__)
@@ -46,12 +47,14 @@ AboutPage::AboutPage(QWidget* parent)
     ui.txtBws->setVisible(false);
 
     QFile lincense_file(Q_UTF8("lincense.txt"));
-    lincense_file.open(QIODevice::ReadOnly);
-    lincense_ = QLatin1String(lincense_file.readAll());
+    if (lincense_file.open(QIODevice::ReadOnly)) {
+        lincense_ = QLatin1String(lincense_file.readAll());
+    }
 
     QFile credits_file(Q_UTF8("credits.txt"));
-    credits_file.open(QIODevice::ReadOnly);
-    credits_ = QLatin1String(credits_file.readAll());
+    if (credits_file.open(QIODevice::ReadOnly)) {
+        credits_ = QLatin1String(credits_file.readAll());
+    }
 }
 
 void AboutPage::onCreditsOrLicenceChecked(bool checked) {

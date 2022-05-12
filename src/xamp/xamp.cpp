@@ -1086,6 +1086,7 @@ void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_form
     auto* cur_page = currentPlyalistPage();
 	
     Singleton<ThemeManager>::GetInstance().setPlayOrPauseButton(ui_, open_done);
+    lrc_page_->spectrum()->reset();
 	
     if (open_done) {
         if (player_->IsHardwareControlVolume()) {

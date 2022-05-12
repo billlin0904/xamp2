@@ -21,12 +21,15 @@ struct PlayListRGResult {
     std::optional<Ebur128ReplayGainScanner> scanner;
 };
 
+using xamp::metadata::MakeMetadataWriter;
+
 BackgroundWorker::BackgroundWorker()
 	: blur_img_cache_(8) {
     pool_ = MakeThreadPool(kBackgroundThreadPoolLoggerName,
         TaskSchedulerPolicy::LEAST_LOAD_POLICY,
         TaskStealPolicy::CONTINUATION_STEALING_POLICY,
         ThreadPriority::BACKGROUND);
+    writer_ = MakeMetadataWriter();
 }
 
 BackgroundWorker::~BackgroundWorker() = default;
@@ -44,6 +47,7 @@ void BackgroundWorker::blurImage(const QString& cover_id, const QImage& image) {
     }
 
     if (!AppSettings::getValueAsBool(kEnableBlurCover)) {
+        emit updateBlurImage(QImage());
         return;
     }
     auto temp = image.copy();
@@ -141,7 +145,6 @@ void BackgroundWorker::readReplayGain(bool, const std::vector<PlayListEntity>& i
     }
 
     using namespace xamp::metadata;
-    const auto writer = MakeMetadataWriter();
 
     for (size_t i = 0; i < replay_gain_tasks.size(); ++i) {
 	    ReplayGain rg;
@@ -150,7 +153,7 @@ void BackgroundWorker::readReplayGain(bool, const std::vector<PlayListEntity>& i
         rg.album_peak = replay_gain.album_peak;
         rg.track_peak = replay_gain.track_peak[i];
         rg.ref_loudness = target_gain;
-        writer->WriteReplayGain(replay_gain.music_id[i].file_path.toStdWString(), rg);
+        writer_->WriteReplayGain(replay_gain.music_id[i].file_path.toStdWString(), rg);
         emit updateReplayGain(replay_gain.music_id[i].music_id,
                         replay_gain.album_replay_gain,
                         replay_gain.album_peak,

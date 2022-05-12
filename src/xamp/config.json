@@ -1,20 +1,19 @@
 {
     "Log": {
         "MinimumLevel": {
-            "Default": "trace",
+            "Default": "debug",
             "Override": {
-                "AsioDevice": "info",
-                "AudioPlayer": "debug",
+                "AsioDevice": "debug",
+                "AudioPlayer": "info",
                 "BackgroundThreadPool": "info",
                 "Compressor": "info",
                 "CoreAudio": "info",
                 "DspManager": "info",
-                "ExclusiveWasapiDevice": "info",
+                "ExclusiveWasapiDevice": "debug",
                 "ExclusiveWasapiDeviceType": "info",
                 "FileStream": "info",
-                "PixmapCache": "info",
                 "PlaybackThreadPool": "info",
-                "SharedWasapiDevice": "info",
+                "SharedWasapiDevice": "debug",
                 "Soxr": "info",
                 "VirtualMemory": "info",
                 "Volume": "info",
@@ -28,7 +27,7 @@
             "passBand": 99,
             "phase": 50,
             "quality": 3,
-            "resampleSampleRate": 192000,
+            "resampleSampleRate": 176400,
             "rolloffLevel": 0,
             "stopBand": 100
         }

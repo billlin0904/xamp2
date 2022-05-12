@@ -141,7 +141,7 @@ QColor ThemeManager::themeTextColor() const {
     return color;
 }
 
-void ThemeManager::setBorderRadius(QFrame* content_widget) {
+QString ThemeManager::borderColor() {
     QString color;
 
     switch (themeColor()) {
@@ -152,7 +152,10 @@ void ThemeManager::setBorderRadius(QFrame* content_widget) {
         color = Q_UTF8("#FAFAFA");
         break;
     }
+    return color;
+}
 
+void ThemeManager::setBorderRadius(QFrame* content_widget) {
     content_widget->setStyleSheet(Q_STR(R"(
 			QFrame#XampWindow {
 				border-radius: 8px;
@@ -174,7 +177,7 @@ void ThemeManager::setBorderRadius(QFrame* content_widget) {
 			QFrame#sliderFrame {
 				border-radius: 0px;
 			}
-            )").arg(color));
+            )").arg(borderColor()));
 }
 
 void ThemeManager::setMenuStyle(QWidget* menu) {

@@ -1,6 +1,7 @@
 #include <base/enum.h>
 #include <base/buffer.h>
 #include <base/assert.h>
+#include <base/math.h>
 
 #include <stream/fft.h>
 
@@ -88,6 +89,7 @@ public:
 	FFTImpl() = default;
 
 	void Init(size_t frame_size) {
+		XAMP_ASSERT(IsPowerOfTwo(frame_size));
 		frame_size_ = frame_size;
 		complex_size_ = ComplexSize(frame_size);
 		data_ = MakeFFTWBuffer<float>(frame_size);
@@ -155,6 +157,7 @@ public:
 	FFTImpl() = default;
 
 	void Init(size_t frame_size) {
+		XAMP_ASSERT(IsPowerOfTwo(frame_size));
 		frame_size_ = frame_size;
         size_over2_ = frame_size_ / 2;
         log2n_size_ = std::log2(frame_size);

@@ -9,6 +9,14 @@
 
 XFrame::XFrame(QWidget* parent)
     : QFrame(parent) {
+    setObjectName(Q_UTF8("XFrame"));
+    setStyleSheet(Q_STR(R"(
+			QFrame#XFrame {
+				border-radius: 8px;
+				border: 2px solid %1;
+				background-color: %1;
+            }
+            )").arg(Singleton<ThemeManager>::GetInstance().borderColor()));
 }
 
 void XFrame::setTitle(const QString& title) const {
