@@ -153,6 +153,8 @@ public:
 
     static const QMap<QString, EQSettings>& getEQPreset();
 
+    static AppEQSettings getEQSettings();
+
 protected:
     AppSettings() = default;
 

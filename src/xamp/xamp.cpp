@@ -9,6 +9,7 @@
 #include <QPainterPath>
 #include <QProgressDialog>
 #include <QFileSystemWatcher>
+#include <QtMath>
 
 #include <base/scopeguard.h>
 #include <base/str_utilts.h>
@@ -47,13 +48,12 @@
 #include <widget/equalizerdialog.h>
 #include <widget/playlisttablemodel.h>
 #include <widget/actionmap.h>
+#include <widget/spectrumwidget.h>
 
 #include "aboutpage.h"
 #include "preferencepage.h"
 #include "thememanager.h"
 #include "xamp.h"
-
-#include "widget/spectrumwidget.h"
 
 enum TabIndex {
     TAB_ALBUM = 0,

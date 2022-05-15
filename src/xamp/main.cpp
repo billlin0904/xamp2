@@ -221,6 +221,7 @@ static std::vector<ModuleHandle> prefetchDLL() {
 
 static void registerMetaType() {
     qRegisterMetaTypeStreamOperators<AppEQSettings>("AppEQSettings");
+    qRegisterMetaType<AppEQSettings>("AppEQSettings");
     qRegisterMetaType<std::vector<Metadata>>("std::vector<Metadata>");
     qRegisterMetaType<DeviceState>("DeviceState");
     qRegisterMetaType<PlayerState>("PlayerState");
@@ -234,8 +235,6 @@ static void registerMetaType() {
 }
 
 static int excute(int argc, char* argv[]) {
-    registerMetaType();
-
     QApplication app(argc, argv);
 
     SingleInstanceApplication single_app;
@@ -314,6 +313,7 @@ int main(int argc, char *argv[]) {
         .AddFileLogger("xamp.log")
         .Startup();
 
+    registerMetaType();
     loadSettings();
     loadLogAndSoxrConfig();
 

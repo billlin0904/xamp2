@@ -25,6 +25,7 @@
 #include <widget/osx/osx.h>
 #endif
 
+#include <qmath.h>
 #include <widget/image_utiltis.h>
 #include <widget/appsettings.h>
 #include <widget/str_utilts.h>
@@ -190,6 +191,11 @@ void XWindow::setContentWidget(IXampPlayer *content_widget) {
         shadow->setColor(Qt::black);
         frame->setGraphicsEffect(shadow);
         */
+       /* auto* shadow = new QGraphicsDropShadowEffect();
+        shadow->setOffset(0, 0);
+        shadow->setBlurRadius(10);
+        shadow->setColor(Qt::black);
+        content_widget->setGraphicsEffect(shadow);*/
         auto* default_layout = new QGridLayout(this);
         //default_layout->addWidget(frame, 0, 0);
         default_layout->addWidget(content_widget_, 0, 0);
@@ -463,6 +469,24 @@ void XWindow::showEvent(QShowEvent* event) {
 }
 
 void XWindow::paintEvent(QPaintEvent* event) {
+    /*QPainterPath path;
+    path.setFillRule(Qt::WindingFill);
+    QRectF rect(10, 10, this->width() - 20, this->height() - 20);
+    path.addRoundRect(rect, 8, 8);
+
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    painter.fillPath(path, QBrush(Qt::white));
+
+    QColor color(0, 0, 0, 50);
+    for (int i = 0; i < 10; i++) {
+        QPainterPath path;
+        path.setFillRule(Qt::WindingFill);
+        path.addRect(10 - i, 10 - i, this->width() - (10 - i) * 2, this->height() - (10 - i) * 2);
+        color.setAlpha(150 - qSqrt(i) * 50);
+        painter.setPen(color);
+        painter.drawPath(path);
+    }*/
     return QWidget::paintEvent(event);
 }
 #endif

@@ -21,6 +21,10 @@ const QMap<QString, EQSettings>& AppSettings::getEQPreset() {
     return eq_settings_;
 }
 
+AppEQSettings AppSettings::getEQSettings() {
+    return QVariant::fromValue(getValue(kAppSettingEQName)).value<AppEQSettings>();
+}
+
 void AppSettings::loadEQPreset() {
     auto path = QDir::currentPath() + Q_UTF8("/eqpresets/");
     auto file_ext = QStringList() << Q_UTF8("*.*");

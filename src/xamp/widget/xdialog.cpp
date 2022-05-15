@@ -30,12 +30,12 @@ void XDialog::setContentWidget(QWidget* content) {
     auto* default_layout = new QGridLayout(this);
     default_layout->setSpacing(0);
     default_layout->setObjectName(QString::fromUtf8("default_layout"));
-    default_layout->setContentsMargins(50, 50, 50, 50);
+    default_layout->setContentsMargins(20, 20, 20, 20);
     setLayout(default_layout);
 
     auto* shadow = new QGraphicsDropShadowEffect(frame_);
     shadow->setOffset(0, 0);
-    shadow->setBlurRadius(50);
+    shadow->setBlurRadius(20);
     shadow->setColor(Qt::black);
     frame_->setGraphicsEffect(shadow);
 

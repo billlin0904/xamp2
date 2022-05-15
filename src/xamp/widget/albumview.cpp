@@ -202,14 +202,15 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
     default_layout->setSpacing(0);
     default_layout->setContentsMargins(10, 10, 10, 0);
 
-    auto close_button = new QPushButton(tr("X"), this);
+    auto close_button = new QPushButton(this);
     close_button->setObjectName(Q_UTF8("albumViewPageCloseButton"));
     close_button->setStyleSheet(Q_UTF8(R"(
                                          QPushButton#albumViewPageCloseButton {
-                                         border: 2px solid gray;
-                                         border-radius: 12px;
+                                         border: none;
+                                         image: url(:/xamp/Resource/%1/close.png);
+                                         background-color: transparent;
                                          }
-                                         )"));
+                                         )").arg(Singleton<ThemeManager>::GetInstance().themeColorPath()));
     close_button->setFixedSize(QSize(24, 24));
 
     auto hbox_layout = new QHBoxLayout();

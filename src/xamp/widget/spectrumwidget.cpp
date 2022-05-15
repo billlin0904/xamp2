@@ -23,22 +23,20 @@ SpectrumWidget::SpectrumWidget(QWidget* parent)
 }
 
 void SpectrumWidget::onFFTResultChanged(ComplexValarray const& result) {
-	const auto frame_size = result.size();
+	auto max_bands = (std::min)(static_cast<size_t>(kMaxBands), result.size());
 
-	if (mag_datas_.size() != frame_size) {
-		mag_datas_.resize(frame_size);
-		peak_delay_.resize(kMaxBands);
+	if (mag_datas_.size() != max_bands) {
+		mag_datas_.resize(max_bands);
+		peak_delay_.resize(max_bands);
 	}
 
-	for (auto i = 0; i < result.size(); ++i) {
+	for (auto i = 0; i < max_bands; ++i) {
 		mag_datas_[i] = toMag(result[i]) * 0.025;
 		mag_datas_[i] = (std::max)(mag_datas_[i], 0.01f);
 		mag_datas_[i] = (std::min)(mag_datas_[i], 0.9f);
-		if (i < kMaxBands) {
-			if (peak_delay_[i] <= mag_datas_[i]) {
-				peak_delay_[i] = mag_datas_[i];
-			}
-		}		
+		if (peak_delay_[i] <= mag_datas_[i]) {
+			peak_delay_[i] = mag_datas_[i];
+		}
 	}
 }
 

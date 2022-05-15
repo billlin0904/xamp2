@@ -358,28 +358,27 @@ void ExclusiveWasapiDevice::StartStream() {
 	XAMP_ASSERT(thread_exit_);
 	XAMP_ASSERT(close_request_);
 
+	const auto wait_timeout =
+		std::chrono::milliseconds(static_cast<uint64_t>(Nano100ToMillis(aligned_period_)))
+		+ std::chrono::milliseconds(20);
+	XAMP_LOG_D(log_, "WASAPI wait timeout {}msec.", wait_timeout.count());
+
 	// Note: 必要! 某些音效卡會爆音!
 	GetSample(true);
 
-	render_task_ = GetWASAPIThreadPool().Spawn([this](auto idx) noexcept {
+	render_task_ = GetWASAPIThreadPool().Spawn([this, wait_timeout](auto idx) noexcept {
 		XAMP_LOG_D(log_, "Start exclusive mode stream task! thread: {}", GetCurrentThreadId());
-
+		DWORD current_timeout = INFINITE;
 		Stopwatch watch;
-
 		Mmcss mmcss;
-		mmcss.BoostPriority(mmcss_name_, thread_priority_);
 
 		is_running_ = true;
 
-		const std::array<HANDLE, 2> objects{ sample_ready_.get(), close_request_.get() };
-
-		const auto wait_timeout =
-			std::chrono::milliseconds(static_cast<uint64_t>(Nano100ToMillis(aligned_period_)))
-			+ std::chrono::milliseconds(20);
-
-		XAMP_LOG_D(log_, "WASAPI wait timeout {}msec.", wait_timeout.count());
-
-		DWORD current_timeout = INFINITE;
+		mmcss.BoostPriority(mmcss_name_, thread_priority_);
+		const std::array<HANDLE, 2> objects{
+			sample_ready_.get(),
+			close_request_.get()
+		};		
 
 		auto thread_exit = false;
 		::SetEvent(thread_start_.get());
@@ -390,18 +389,18 @@ void ExclusiveWasapiDevice::StartStream() {
 			auto result = ::WaitForMultipleObjects(objects.size(), objects.data(), FALSE, current_timeout);
 
 			const auto elapsed = watch.Elapsed<std::chrono::milliseconds>();
-			/*if (elapsed > wait_timeout) {
+			if (elapsed > wait_timeout) {
 				XAMP_LOG_D(log_, "WASAPI wait too slow! {}msec.", elapsed.count());
 				thread_exit = true;
 				continue;
-			}*/
+			}
 
 			switch (result) {
 			case WAIT_OBJECT_0 + 0:
 				if (!GetSample(false)) {
 					thread_exit = true;
 				}
-				//current_timeout = wait_timeout.count();
+				current_timeout = wait_timeout.count();
 				break;
 			case WAIT_OBJECT_0 + 1:
 				thread_exit = true;

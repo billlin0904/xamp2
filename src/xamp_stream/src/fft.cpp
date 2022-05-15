@@ -23,7 +23,7 @@ class Window::WindowImpl {
 public:
 	WindowImpl() = default;
 
-	void Init(size_t frame_size, WindowType type = WindowType::HAMMING) {
+	void Init(size_t frame_size, WindowType type = WindowType::BLACKMAN_HARRIS) {
 		frame_size_ = frame_size;
 		data_ = MakeBuffer<float>(frame_size);
 		SetWindowType(type);

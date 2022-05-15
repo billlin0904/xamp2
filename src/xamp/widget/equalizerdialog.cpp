@@ -84,7 +84,7 @@ EqualizerDialog::EqualizerDialog(QWidget *parent)
     });
 
     if (AppSettings::contains(kAppSettingEQName)) {
-        auto [name, settings] = AppSettings::getValue(kAppSettingEQName).value<AppEQSettings>();
+        auto [name, settings] = AppSettings::getEQSettings();
         ui_.eqPresetComboBox->setCurrentText(name);
         applySetting(name, settings);
     }
