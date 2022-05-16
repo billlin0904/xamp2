@@ -32,6 +32,7 @@ void SpectrumWidget::onFFTResultChanged(ComplexValarray const& result) {
 
 	for (auto i = 0; i < max_bands; ++i) {
 		mag_datas_[i] = toMag(result[i]) * 0.025;
+		//mag_datas_[i] = toMag(result[i]) / max_bands;
 		mag_datas_[i] = (std::max)(mag_datas_[i], 0.01f);
 		mag_datas_[i] = (std::min)(mag_datas_[i], 0.9f);
 		if (peak_delay_[i] <= mag_datas_[i]) {

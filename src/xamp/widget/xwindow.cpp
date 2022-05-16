@@ -183,14 +183,6 @@ XWindow::XWindow()
 void XWindow::setContentWidget(IXampPlayer *content_widget) {
     content_widget_ = content_widget;
     if (content_widget_ != nullptr) {
-        /*auto* frame = new XFrame(this);
-        frame->setContentWidget(content_widget);
-        auto* shadow = new QGraphicsDropShadowEffect(frame);
-        shadow->setOffset(0, 0);
-        shadow->setBlurRadius(10);
-        shadow->setColor(Qt::black);
-        frame->setGraphicsEffect(shadow);
-        */
        /* auto* shadow = new QGraphicsDropShadowEffect();
         shadow->setOffset(0, 0);
         shadow->setBlurRadius(10);
@@ -216,7 +208,7 @@ void XWindow::setContentWidget(IXampPlayer *content_widget) {
         setWindowFlags(Qt::FramelessWindowHint);
         //win32::setFramelessWindowStyle(this);
         //win32::addDwmShadow(this);
-        /*auto* effect = new QGraphicsDropShadowEffect(content_widget_);
+    	/*auto* effect = new QGraphicsDropShadowEffect(content_widget_);
         effect->setOffset(0, 0);
         effect->setColor(QColor(QStringLiteral("black")));
         effect->setBlurRadius(4);

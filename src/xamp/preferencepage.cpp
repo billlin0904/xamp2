@@ -191,6 +191,9 @@ PreferencePage::PreferencePage(QWidget *parent)
 	Singleton<ThemeManager>::GetInstance().setMenuStyle(ui_.soxrResampleQualityComboBox->view()->window());
 	Singleton<ThemeManager>::GetInstance().setMenuStyle(ui_.rollOffLevelComboBox->view()->window());
 
+	initSoxResampler();
+	initLang();
+
     ui_.preferenceTreeWidget->header()->hide();
     ui_.preferenceTreeWidget->setStyleSheet(Q_UTF8("QTreeView { background: transparent; }"));
 
@@ -287,9 +290,6 @@ PreferencePage::PreferencePage(QWidget *parent)
         Singleton<PixmapCache>::GetInstance().setMaxSize(value);
         AppSettings::setValue(kAppSettingAlbumImageCacheSize, value);
     });
-
-	initSoxResampler();
-	initLang();
 
 	ui_.flacCompressionLevelSlider->setValue(AppSettings::getValue(kFlacEncodingLevel).toInt());
 	(void)QObject::connect(ui_.flacCompressionLevelSlider, &QSlider::valueChanged, [this](auto value) {

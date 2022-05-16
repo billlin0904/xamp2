@@ -481,10 +481,6 @@ void Xamp::initialController() {
         }
     });
 
-    if (AppSettings::getValueAsBool(kAppSettingIsMuted)) {
-        ui_.mutedButton->pressed();
-    }
-
     (void)QObject::connect(ui_.closeButton, &QToolButton::pressed, [this]() {
         QWidget::close();
     });
@@ -546,8 +542,14 @@ void Xamp::initialController() {
     setPlayerOrder();
 
     ui_.volumeSlider->setRange(0, 100);
-    const auto vol = AppSettings::getValue(kAppSettingVolume).toUInt();
-    setVolume(player_->IsMute() ? 0 : vol);
+
+    if (AppSettings::getValueAsBool(kAppSettingIsMuted)) {
+        setVolume(0);
+    } else {
+        const auto vol = AppSettings::getValue(kAppSettingVolume).toUInt();
+        setVolume(vol);
+        ui_.volumeSlider->setValue(vol);
+    }    
 
     (void)QObject::connect(ui_.volumeSlider, &QSlider::valueChanged, [this](auto volume) {
         QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + Q_UTF8("%"));
@@ -854,10 +856,12 @@ void Xamp::setVolume(int32_t volume) {
     if (volume > 0) {
         player_->SetMute(false);
         ui_.mutedButton->setIcon(Singleton<ThemeManager>::GetInstance().volumeUp());
+        AppSettings::setValue(kAppSettingIsMuted, false);
     }
     else {
         player_->SetMute(true);
         ui_.mutedButton->setIcon(Singleton<ThemeManager>::GetInstance().volumeOff());
+        AppSettings::setValue(kAppSettingIsMuted, true);
     }
 
     try {
