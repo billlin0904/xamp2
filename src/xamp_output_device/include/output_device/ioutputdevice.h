@@ -42,8 +42,6 @@ public:
 
 	[[nodiscard]] virtual bool IsHardwareControlVolume() const = 0;
 
-	virtual void DisplayControlPanel() = 0;
-
 	[[nodiscard]] virtual PackedFormat GetPackedFormat() const noexcept = 0;
 
 	[[nodiscard]] virtual uint32_t GetBufferSize() const noexcept = 0;

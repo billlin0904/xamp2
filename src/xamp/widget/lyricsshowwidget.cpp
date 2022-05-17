@@ -23,10 +23,13 @@ LyricsShowWidget::LyricsShowWidget(QWidget* parent)
 
 void LyricsShowWidget::initial() {
     lrc_font_ = font();
-
 	lrc_font_.setPointSize(AppSettings::getAsInt(kLyricsFontSize));
 
 	setDefaultLrc();
+
+	auto text_color = AppSettings::getValueAsColor(kLyricsTextColor);
+	setLrcColor(text_color);
+	setLrcHightLight(text_color);
 
 	setContextMenuPolicy(Qt::CustomContextMenu);
 	(void)QObject::connect(this, &LyricsShowWidget::customContextMenuRequested, [this](auto pt) {
@@ -47,7 +50,8 @@ void LyricsShowWidget::initial() {
 			});
 
 		(void)action_map.addAction(tr("Change text color"), [this]() {
-			auto color = QColorDialog::getColor(Qt::white, this);
+			auto text_color = AppSettings::getValueAsColor(kLyricsTextColor);
+			auto color = QColorDialog::getColor(text_color, this);
 			setLrcColor(color);
 			setLrcHightLight(color);
 			AppSettings::setValue(kLyricsTextColor, color);

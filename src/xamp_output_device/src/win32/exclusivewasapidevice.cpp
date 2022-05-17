@@ -362,6 +362,7 @@ void ExclusiveWasapiDevice::StartStream() {
 		std::chrono::milliseconds(static_cast<uint64_t>(Nano100ToMillis(aligned_period_)))
 		+ std::chrono::milliseconds(20);
 	XAMP_LOG_D(log_, "WASAPI wait timeout {}msec.", wait_timeout.count());
+	::ResetEvent(close_request_.get());
 
 	// Note: 必要! 某些音效卡會爆音!
 	GetSample(true);
@@ -391,8 +392,8 @@ void ExclusiveWasapiDevice::StartStream() {
 			const auto elapsed = watch.Elapsed<std::chrono::milliseconds>();
 			if (elapsed > wait_timeout) {
 				XAMP_LOG_D(log_, "WASAPI wait too slow! {}msec.", elapsed.count());
-				thread_exit = true;
-				continue;
+				//thread_exit = true;
+				//continue;
 			}
 
 			switch (result) {
@@ -471,9 +472,6 @@ bool ExclusiveWasapiDevice::IsMuted() const {
 
 void ExclusiveWasapiDevice::SetMute(const bool mute) const {
 	HrIfFailledThrow(endpoint_volume_->SetMute(mute, nullptr));
-}
-
-void ExclusiveWasapiDevice::DisplayControlPanel() {
 }
 
 PackedFormat ExclusiveWasapiDevice::GetPackedFormat() const noexcept {

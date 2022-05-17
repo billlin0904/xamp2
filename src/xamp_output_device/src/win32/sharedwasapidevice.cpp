@@ -272,9 +272,6 @@ void SharedWasapiDevice::SetMute(bool mute) const {
 	HrIfFailledThrow(simple_audio_volume->SetMute(mute, nullptr));
 }
 
-void SharedWasapiDevice::DisplayControlPanel() {
-}
-
 PackedFormat SharedWasapiDevice::GetPackedFormat() const noexcept {
 	return PackedFormat::INTERLEAVED;
 }

@@ -204,15 +204,19 @@ void XWindow::setContentWidget(IXampPlayer *content_widget) {
 #if defined(Q_OS_WIN)
     if (!Singleton<ThemeManager>::GetInstance().useNativeWindow()) {
         setWindowTitle(kAppTitle);
-        setAttribute(Qt::WA_TranslucentBackground, true);
-        setWindowFlags(Qt::FramelessWindowHint);
-        //win32::setFramelessWindowStyle(this);
-        //win32::addDwmShadow(this);
+        //setAttribute(Qt::WA_TranslucentBackground, true);
+        //setWindowFlags(Qt::FramelessWindowHint);
+        setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
+        win32::setFramelessWindowStyle(this);
+        win32::addDwmShadow(this);
     	/*auto* effect = new QGraphicsDropShadowEffect(content_widget_);
         effect->setOffset(0, 0);
         effect->setColor(QColor(QStringLiteral("black")));
         effect->setBlurRadius(4);
         content_widget_->setGraphicsEffect(effect);*/
+    } else {
+        win32::setWindowedWindowStyle(this);
+        win32::addDwmShadow(this);
     }
     taskbar_.reset(new WinTaskbar(this, content_widget));
 #else
@@ -304,6 +308,8 @@ void XWindow::dropEvent(QDropEvent* event) {
 }
 
 bool XWindow::nativeEvent(const QByteArray& event_type, void * message, long * result) {
+    const auto* msg = static_cast<MSG const*>(message);
+
     if (Singleton<ThemeManager>::GetInstance().useNativeWindow()) {
         return QWidget::nativeEvent(event_type, message, result);
     }
@@ -315,8 +321,6 @@ bool XWindow::nativeEvent(const QByteArray& event_type, void * message, long * r
 #ifndef WM_NCUAHDRAWFRAME
 #define WM_NCUAHDRAWFRAME (0x00AF)
 #endif
-
-    const auto *msg = static_cast<MSG const*>(message);
     switch (msg->message) {
     case WM_NCHITTEST:
         if (!isMaximized()) {

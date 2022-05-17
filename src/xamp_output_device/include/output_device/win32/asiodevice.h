@@ -54,8 +54,6 @@ public:
 
 	void SetMute(bool mute) const override;
 
-	void DisplayControlPanel() override;
-
 	PackedFormat GetPackedFormat() const noexcept override;
 
 	void SetIoFormat(DsdIoFormat format) override;

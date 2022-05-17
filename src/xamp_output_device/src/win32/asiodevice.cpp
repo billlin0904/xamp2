@@ -656,10 +656,6 @@ double AsioDevice::GetStreamTime() const noexcept {
 	}
 }
 
-void AsioDevice::DisplayControlPanel() {
-	AsioIfFailedThrow(::ASIOControlPanel());
-}
-
 PackedFormat AsioDevice::GetPackedFormat() const noexcept {
 	return PackedFormat::PLANAR;
 }

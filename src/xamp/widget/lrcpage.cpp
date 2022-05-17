@@ -77,8 +77,8 @@ void LrcPage::setBackgroundColor(QColor backgroundColor) {
 void LrcPage::onThemeChanged(QColor backgroundColor, QColor color) {
     //lyrics_widget_->setLrcColor(color);
     //lyrics_widget_->setLrcHightLight(color);
-    lyrics_widget_->setLrcColor(Qt::white);
-    lyrics_widget_->setLrcHightLight(Qt::white);
+    //lyrics_widget_->setLrcColor(Qt::white);
+    //lyrics_widget_->setLrcHightLight(Qt::white);
 }
 
 void LrcPage::initial() {

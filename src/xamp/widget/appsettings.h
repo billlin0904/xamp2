@@ -113,6 +113,13 @@ public:
         setDefaultValue<int32_t>(key, static_cast<int32_t>(value));
     }
 
+    static QColor getValueAsColor(QString const& key, QColor default_color = Qt::white) {
+        if (!contains(key)) {
+            return default_color;
+        }
+        return QColor(getValueAsString(key));
+    }
+
     static Uuid getValueAsID(QString const & key);
 
     static QSize getSizeValue(QString const& width_key, QString const& height_key);

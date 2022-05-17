@@ -218,13 +218,13 @@ void setAccentPolicy(const QMenu* menu, bool enable, int animation_id) {
 void addDwmShadow(const QWidget* widget) {
 	auto hwnd = reinterpret_cast<HWND>(widget->winId());
 
-	DWMNCRENDERINGPOLICY ncrp = DWMNCRP_ENABLED;
+	/*DWMNCRENDERINGPOLICY ncrp = DWMNCRP_ENABLED;
 	DWMDLL.DwmSetWindowAttribute(hwnd,
 		DWMWA_NCRENDERING_POLICY,
 		&ncrp,
-		sizeof(ncrp));
+		sizeof(ncrp));*/
 
-	MARGINS borderless = { -1, -1, -1, -1 };
+	MARGINS borderless = { 1, 1, 1, 1 };
 	DWMDLL.DwmExtendFrameIntoClientArea(hwnd, &borderless);
 }
 
@@ -240,15 +240,8 @@ static bool compositionEnabled() {
 	return composition_enabled && success;
 }
 
-void setFramelessWindowStyle(const QWidget* widget) {
+static void setBorderlessWindowStyle(const QWidget* widget, BorderlessWindowStyle new_style) {
 	auto hwnd = reinterpret_cast<HWND>(widget->winId());
-
-	BorderlessWindowStyle new_style = BorderlessWindowStyle::WINDOWED_STYLE;
-	if (compositionEnabled()) {
-		new_style = BorderlessWindowStyle::AERO_BORDERLESS_STYLE;
-	} else {
-		new_style = BorderlessWindowStyle::BORDERLESS_STYLE;
-	}
 
 	auto old_style = static_cast<BorderlessWindowStyle>(::GetWindowLongPtrW(hwnd, GWL_STYLE));
 	if (new_style != old_style) {
@@ -256,6 +249,20 @@ void setFramelessWindowStyle(const QWidget* widget) {
 		::SetWindowPos(hwnd, nullptr, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);
 		::ShowWindow(hwnd, SW_SHOW);
 	}
+}
+
+void setWindowedWindowStyle(const QWidget* widget) {
+	setBorderlessWindowStyle(widget, BorderlessWindowStyle::WINDOWED_STYLE);
+}
+
+void setFramelessWindowStyle(const QWidget* widget) {
+	BorderlessWindowStyle new_style = BorderlessWindowStyle::WINDOWED_STYLE;
+	if (compositionEnabled()) {
+		new_style = BorderlessWindowStyle::AERO_BORDERLESS_STYLE;
+	} else {
+		new_style = BorderlessWindowStyle::BORDERLESS_STYLE;
+	}
+	setBorderlessWindowStyle(widget, new_style);
 }
 
 bool isWindowMaximized(const QWidget* widget) {

@@ -6,7 +6,7 @@
 #include <widget/appsettings.h>
 #include <widget/spectrumwidget.h>
 
-inline constexpr auto kMaxBands = 120;
+inline constexpr auto kMaxBands = 256;
 
 using xamp::base::toMag;
 

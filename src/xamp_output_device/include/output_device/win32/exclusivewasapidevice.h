@@ -52,8 +52,6 @@ public:
 
 	void SetMute(bool mute) const override;
 
-	void DisplayControlPanel() override;
-
 	bool IsMuted() const override;
 
 	PackedFormat GetPackedFormat() const noexcept override;
