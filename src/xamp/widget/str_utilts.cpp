@@ -39,15 +39,22 @@ QString dsdSampleRate2String(uint32_t dsd_speed) {
     return QString::number(sample_rate, 'f', 2) + Q_UTF8("kHz");
 }
 
-QString msToString(const double stream_time) {
+QString msToString(const double stream_time, bool full_text) {
     const auto ms = static_cast<int32_t>(stream_time * 1000.0) % 1000;
     const auto secs = static_cast<int32_t>(stream_time);
     const auto h = secs / 3600;
     const auto m = (secs % 3600) / 60;
     const auto s = (secs % 3600) % 60;
     QTime t(h, m, s, ms);
-    if (h > 0) {
+    if (h > 0 || full_text) {
         return t.toString(Q_UTF8("hh:mm:ss"));
     }
     return t.toString(Q_UTF8("mm:ss"));
+}
+
+bool isMoreThan1Hours(const double stream_time) {
+    const auto ms = static_cast<int32_t>(stream_time * 1000.0) % 1000;
+    const auto secs = static_cast<int32_t>(stream_time);
+    const auto h = secs / 3600;
+    return h > 0;
 }

@@ -34,7 +34,7 @@ QFont ThemeManager::loadFonts() {
     QString default_bold_font;
 
     auto font_name = AppSettings::getValueAsString(kAppSettingDefaultFontName);
-    if (!font_name.isEmpty()) {
+    if (font_name.isEmpty()) {
         font_name = Q_UTF8("WorkSans");
     }
 

@@ -15,10 +15,16 @@ class SeekSlider : public QSlider {
 public:
     explicit SeekSlider(QWidget* parent = nullptr);
 
+	void setRange(int64_t min, int64_t max);
+
 signals:
-	void leftButtonValueChanged(int value);
+	void leftButtonValueChanged(int64_t value);
 
 protected:
 	void mousePressEvent(QMouseEvent* event) override;
+
+private:
+	int64_t min_ = 0;
+	int64_t max_ = 0;
 };
 

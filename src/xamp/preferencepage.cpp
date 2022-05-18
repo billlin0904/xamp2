@@ -197,6 +197,7 @@ PreferencePage::PreferencePage(QWidget *parent)
 	ui_.defaultUICombo->setCurrentText(AppSettings::getValueAsString(kAppSettingDefaultFontName));
 	(void)QObject::connect(ui_.defaultUICombo, &QComboBox::textActivated, [this](auto font_name) {
 		AppSettings::setValue(kAppSettingDefaultFontName, font_name);
+		AppSettings::save();
 		});
 
     ui_.preferenceTreeWidget->header()->hide();

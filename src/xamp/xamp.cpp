@@ -927,10 +927,11 @@ void Xamp::onSampleTimeChanged(double stream_time) {
 }
 
 void Xamp::setSeekPosValue(double stream_time) {
-    ui_.endPosLabel->setText(msToString(player_->GetDuration() - stream_time));
+    const auto full_text = isMoreThan1Hours(player_->GetDuration());
+    ui_.endPosLabel->setText(msToString(player_->GetDuration() - stream_time, full_text));
     const auto stream_time_as_ms = static_cast<int32_t>(stream_time * 1000.0);
     ui_.seekSlider->setValue(stream_time_as_ms);
-    ui_.startPosLabel->setText(msToString(stream_time));
+    ui_.startPosLabel->setText(msToString(stream_time, full_text));
     top_window_->setTaskbarProgress(static_cast<int32_t>(100.0 * ui_.seekSlider->value() / ui_.seekSlider->maximum()));
     lrc_page_->lyrics()->setLrcTime(stream_time_as_ms);
 }
@@ -1084,7 +1085,7 @@ void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_form
             ui_.volumeSlider->setDisabled(true);
         }
 
-        ui_.seekSlider->setRange(0.0, player_->GetDuration() * 1000);
+        ui_.seekSlider->setRange(0, static_cast<int64_t>(player_->GetDuration() * 1000));
         ui_.endPosLabel->setText(msToString(player_->GetDuration()));
         cur_page->format()->setText(format2String(playback_format, item.file_ext));
 
