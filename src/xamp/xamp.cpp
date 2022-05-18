@@ -505,27 +505,6 @@ void Xamp::initialController() {
         }
     });
 
-    #ifdef XAMP_OS_WIN
-    (void)QObject::connect(ui_.seekSlider, &SeekSlider::sliderMoved, [this](auto value) {
-        is_seeking_ = true;
-        QTimer::singleShot(500, [this, value]() {
-            XAMP_LOG_DEBUG("sliderMoved move: {}!", value);
-            QToolTip::showText(QCursor::pos(), msToString(static_cast<double>(ui_.seekSlider->value()) / 1000.0));
-
-            try {
-                player_->Seek(static_cast<double>(value / 1000.0));
-                Singleton<ThemeManager>::GetInstance().setPlayOrPauseButton(ui_, true);
-                top_window_->setTaskbarPlayingResume();
-            }
-            catch (const Exception & e) {
-                player_->Stop(false);
-                Toast::showTip(Q_UTF8(e.GetErrorMessage()), this);
-            }
-            is_seeking_ = false;
-        });
-    });
-    #endif
-
     (void)QObject::connect(ui_.seekSlider, &SeekSlider::sliderReleased, [this]() {
         is_seeking_ = false;
         XAMP_LOG_DEBUG("SeekSlider released!");
@@ -1105,7 +1084,7 @@ void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_form
             ui_.volumeSlider->setDisabled(true);
         }
 
-        ui_.seekSlider->setRange(0, static_cast<int32_t>(player_->GetDuration() * 1000));
+        ui_.seekSlider->setRange(0.0, player_->GetDuration() * 1000);
         ui_.endPosLabel->setText(msToString(player_->GetDuration()));
         cur_page->format()->setText(format2String(playback_format, item.file_ext));
 

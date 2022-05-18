@@ -27,19 +27,19 @@ bool ThemeManager::enableBlur() const {
 }
 
 QFont ThemeManager::loadFonts() {
-    /*const auto digital_font_id = QFontDatabase::addApplicationFont(Q_UTF8(":/xamp/fonts/digital.ttf"));
-    const auto digital_font_families = QFontDatabase::applicationFontFamilies(digital_font_id);*/
     const auto digital_font_id = QFontDatabase::addApplicationFont(Q_UTF8(":/xamp/fonts/Lato-Regular.ttf"));
     const auto digital_font_families = QFontDatabase::applicationFontFamilies(digital_font_id);
 
-    /*auto default_font = Q_UTF8(":/xamp/fonts/WorkSans-Regular.ttf");
-    auto default_bold_font = Q_UTF8(":/xamp/fonts/WorkSans-Bold.ttf");*/
+    QString default_font;
+    QString default_bold_font;
 
-    /*auto default_font = Q_UTF8(":/xamp/fonts/IBMPlexSans-Regular.ttf");
-    auto default_bold_font = Q_UTF8(":/xamp/fonts/IBMPlexSans-Bold.ttf");*/
+    auto font_name = AppSettings::getValueAsString(kAppSettingDefaultFontName);
+    if (!font_name.isEmpty()) {
+        font_name = Q_UTF8("WorkSans");
+    }
 
-    auto default_font = Q_UTF8(":/xamp/fonts/Inter-Regular.ttf");
-    auto default_bold_font = Q_UTF8(":/xamp/fonts/Inter-Bold.ttf");
+    default_font = Q_STR(":/xamp/fonts/%1-Regular.ttf").arg(font_name);
+    default_bold_font = Q_STR(":/xamp/fonts/%1-Bold.ttf").arg(font_name);
 
     const auto title_font_id = QFontDatabase::addApplicationFont(default_bold_font);
     auto title_font_families = QFontDatabase::applicationFontFamilies(title_font_id);

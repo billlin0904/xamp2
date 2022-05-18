@@ -600,8 +600,8 @@ void AudioPlayer::DoSeek(double stream_time) {
     try {
         stream_->Seek(stream_time);
     }
-    catch (std::exception const& e) {
-        XAMP_LOG_D(logger_, e.what());
+    catch (Exception const& e) {
+        XAMP_LOG_D(logger_, e.GetErrorMessage());
         Resume();
         return;
     }

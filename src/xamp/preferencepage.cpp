@@ -194,6 +194,11 @@ PreferencePage::PreferencePage(QWidget *parent)
 	initSoxResampler();
 	initLang();
 
+	ui_.defaultUICombo->setCurrentText(AppSettings::getValueAsString(kAppSettingDefaultFontName));
+	(void)QObject::connect(ui_.defaultUICombo, &QComboBox::textActivated, [this](auto font_name) {
+		AppSettings::setValue(kAppSettingDefaultFontName, font_name);
+		});
+
     ui_.preferenceTreeWidget->header()->hide();
     ui_.preferenceTreeWidget->setStyleSheet(Q_UTF8("QTreeView { background: transparent; }"));
 
