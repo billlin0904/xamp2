@@ -182,14 +182,14 @@ PreferencePage::PreferencePage(QWidget *parent)
     ui_.setupUi(this);
     setStyleSheet(Q_UTF8("#PreferenceDialog { background-color: transparent }"));
 
-	Singleton<ThemeManager>::GetInstance().setMenuStyle(ui_.langCombo->view()->window());
-	Singleton<ThemeManager>::GetInstance().setMenuStyle(ui_.replayGainModeCombo->view()->window());
+	SharedSingleton<ThemeManager>::GetInstance().setMenuStyle(ui_.langCombo->view()->window());
+	SharedSingleton<ThemeManager>::GetInstance().setMenuStyle(ui_.replayGainModeCombo->view()->window());
 
-	Singleton<ThemeManager>::GetInstance().setMenuStyle(ui_.selectResamplerComboBox->view()->window());
-	Singleton<ThemeManager>::GetInstance().setMenuStyle(ui_.soxrSettingCombo->view()->window());
-	Singleton<ThemeManager>::GetInstance().setMenuStyle(ui_.soxrTargetSampleRateComboBox->view()->window());
-	Singleton<ThemeManager>::GetInstance().setMenuStyle(ui_.soxrResampleQualityComboBox->view()->window());
-	Singleton<ThemeManager>::GetInstance().setMenuStyle(ui_.rollOffLevelComboBox->view()->window());
+	SharedSingleton<ThemeManager>::GetInstance().setMenuStyle(ui_.selectResamplerComboBox->view()->window());
+	SharedSingleton<ThemeManager>::GetInstance().setMenuStyle(ui_.soxrSettingCombo->view()->window());
+	SharedSingleton<ThemeManager>::GetInstance().setMenuStyle(ui_.soxrTargetSampleRateComboBox->view()->window());
+	SharedSingleton<ThemeManager>::GetInstance().setMenuStyle(ui_.soxrResampleQualityComboBox->view()->window());
+	SharedSingleton<ThemeManager>::GetInstance().setMenuStyle(ui_.rollOffLevelComboBox->view()->window());
 
 	initSoxResampler();
 	initLang();
@@ -293,7 +293,7 @@ PreferencePage::PreferencePage(QWidget *parent)
 
     ui_.albumImageCacheSizeSpinBox->setValue(AppSettings::getValue(kAppSettingAlbumImageCacheSize).toInt());
     (void)QObject::connect(ui_.albumImageCacheSizeSpinBox, static_cast<void (QSpinBox::*)(int32_t)>(&QSpinBox::valueChanged), [](auto value) {
-        Singleton<PixmapCache>::GetInstance().setMaxSize(value);
+        SharedSingleton<PixmapCache>::GetInstance().setMaxSize(value);
         AppSettings::setValue(kAppSettingAlbumImageCacheSize, value);
     });
 

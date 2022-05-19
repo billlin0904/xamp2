@@ -8,7 +8,7 @@
 #include <base/base.h>
 #include <base/metadata.h>
 #include <base/rng.h>
-#include <base/singleton.h>
+#include <base/shared_singleton.h>
 #include <base/logger.h>
 #include <base/exception.h>
 #include <base/ithreadpool.h>

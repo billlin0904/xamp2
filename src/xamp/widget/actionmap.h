@@ -22,7 +22,7 @@ public:
 			: action_group_(new QActionGroup(submenu_.get()))
 			, action_map_(action_map) {
 			submenu_.reset(menu->addMenu(menu_name));
-            Singleton<ThemeManager>::GetInstance().setMenuStyle(submenu_.get());
+            SharedSingleton<ThemeManager>::GetInstance().setMenuStyle(submenu_.get());
 		}
 
 		template <typename Callable>
@@ -55,7 +55,7 @@ public:
 	explicit ActionMap(Type* object)
 		: object_(object)
 		, menu_(object) {
-        Singleton<ThemeManager>::GetInstance().setMenuStyle(&menu_);
+        SharedSingleton<ThemeManager>::GetInstance().setMenuStyle(&menu_);
 	}
 
 	QAction* addAction(const QString& menu_name) {

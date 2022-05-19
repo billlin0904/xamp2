@@ -50,7 +50,7 @@ void XDialog::setContentWidget(QWidget* content) {
 
 #if defined(Q_OS_WIN)
 void XDialog::mousePressEvent(QMouseEvent* event) {
-    if (Singleton<ThemeManager>::GetInstance().useNativeWindow()) {
+    if (SharedSingleton<ThemeManager>::GetInstance().useNativeWindow()) {
         QWidget::mousePressEvent(event);
         return;
     }
@@ -65,7 +65,7 @@ void XDialog::mousePressEvent(QMouseEvent* event) {
 }
 
 void XDialog::mouseReleaseEvent(QMouseEvent* event) {
-    if (Singleton<ThemeManager>::GetInstance().useNativeWindow()) {
+    if (SharedSingleton<ThemeManager>::GetInstance().useNativeWindow()) {
         QWidget::mouseReleaseEvent(event);
         return;
     }
@@ -78,7 +78,7 @@ void XDialog::mouseReleaseEvent(QMouseEvent* event) {
 
 void XDialog::mouseMoveEvent(QMouseEvent* event) {
 #if defined(Q_OS_WIN)
-    if (Singleton<ThemeManager>::GetInstance().useNativeWindow()) {
+    if (SharedSingleton<ThemeManager>::GetInstance().useNativeWindow()) {
         QWidget::mouseMoveEvent(event);
         return;
     }
@@ -185,7 +185,7 @@ bool XDialog::hitTest(MSG const* msg, long* result) const {
 #endif
 
 bool XDialog::nativeEvent(const QByteArray& event_type, void* message, long* result) {
-    if (Singleton<ThemeManager>::GetInstance().useNativeWindow()) {
+    if (SharedSingleton<ThemeManager>::GetInstance().useNativeWindow()) {
         return QWidget::nativeEvent(event_type, message, result);
     }
 

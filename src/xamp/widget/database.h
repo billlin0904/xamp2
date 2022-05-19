@@ -47,7 +47,7 @@ inline constexpr auto kDefaultMusicPlaylistId = 3;
 
 class Database final {
 public:
-    friend class Singleton<Database>;
+    friend class SharedSingleton<Database>;
 
     ~Database();
 

@@ -28,7 +28,7 @@ namespace std {
 
 class PixmapCache final {
 public:
-    friend class Singleton<PixmapCache>;
+    friend class SharedSingleton<PixmapCache>;
 
 	static QPixmap findFileDirCover(const QString& file_path);
 

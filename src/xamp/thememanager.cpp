@@ -120,10 +120,10 @@ QLatin1String ThemeManager::themeColorPath() const {
 void ThemeManager::setThemeButtonIcon(Ui::XampWindow &ui) {
     switch (themeColor()) {
     case ThemeColor::DARK_THEME:
-        ui.themeButton->setIcon(Singleton<ThemeManager>::GetInstance().darkModeIcon());
+        ui.themeButton->setIcon(SharedSingleton<ThemeManager>::GetInstance().darkModeIcon());
         break;
     case ThemeColor::LIGHT_THEME:
-        ui.themeButton->setIcon(Singleton<ThemeManager>::GetInstance().lightModeIcon());
+        ui.themeButton->setIcon(SharedSingleton<ThemeManager>::GetInstance().lightModeIcon());
         break;
     }
 }
@@ -188,7 +188,7 @@ void ThemeManager::setMenuStyle(QWidget* menu) {
 
 DefaultStylePixmapManager::DefaultStylePixmapManager()
     : unknown_cover_(Q_UTF8(":/xamp/Resource/White/unknown_album.png"))
-    , default_size_unknown_cover_(Pixmap::resizeImage(unknown_cover_, Singleton<ThemeManager>::GetInstance().getDefaultCoverSize())) {
+    , default_size_unknown_cover_(Pixmap::resizeImage(unknown_cover_, SharedSingleton<ThemeManager>::GetInstance().getDefaultCoverSize())) {
 }
 
 const QPixmap& DefaultStylePixmapManager::defaultSizeUnknownCover() const noexcept {

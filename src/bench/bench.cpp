@@ -18,6 +18,7 @@
 #include <base/stl.h>
 #include <base/platform.h>
 #include <base/uuid.h>
+#include <base/shared_singleton.h>
 
 #include <stream/api.h>
 #include <stream/fft.h>
@@ -200,6 +201,14 @@ static void BM_PRNG(benchmark::State& state) {
 static void BM_PRNG_GetInstance(benchmark::State& state) {
     for (auto _ : state) {
         size_t n = Singleton<PRNG>::GetInstance().NextInt64();
+        benchmark::DoNotOptimize(n);
+    }
+    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(int64_t));
+}
+
+static void BM_PRNG_SharedGetInstance(benchmark::State& state) {
+    for (auto _ : state) {
+        size_t n = SharedSingleton<PRNG>::GetInstance().NextInt64();
         benchmark::DoNotOptimize(n);
     }
     state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(int64_t));
@@ -548,17 +557,18 @@ static void BM_Rotl(benchmark::State& state) {
 //BENCHMARK(BM_Xoshiro256PlusPlusRandom);
 //BENCHMARK(BM_default_random_engine);
 //BENCHMARK(BM_PRNG);
-//BENCHMARK(BM_PRNG_GetInstance);
+BENCHMARK(BM_PRNG_GetInstance);
+BENCHMARK(BM_PRNG_SharedGetInstance);
 
 //BENCHMARK(BM_unordered_set);
 //BENCHMARK(BM_FindRobinHoodHashSet);
 //BENCHMARK(BM_unordered_map);
 //BENCHMARK(BM_FindRobinHoodHashMap);
 
-BENCHMARK(BM_FastMemset)->RangeMultiplier(2)->Range(4096, 8 << 16);
-BENCHMARK(BM_StdtMemset)->RangeMultiplier(2)->Range(4096, 8 << 16);
-BENCHMARK(BM_FastMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
-BENCHMARK(BM_StdtMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
+//BENCHMARK(BM_FastMemset)->RangeMultiplier(2)->Range(4096, 8 << 16);
+//BENCHMARK(BM_StdtMemset)->RangeMultiplier(2)->Range(4096, 8 << 16);
+//BENCHMARK(BM_FastMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
+//BENCHMARK(BM_StdtMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
 
 //BENCHMARK(BM_ConvertToInt2432Avx)->RangeMultiplier(2)->Range(4096, 8 << 10);
 //BENCHMARK(BM_ConvertToInt2432)->RangeMultiplier(2)->Range(4096, 8 << 10);
@@ -575,8 +585,8 @@ BENCHMARK(BM_StdtMemcpy)->RangeMultiplier(2)->Range(4096, 8 << 16);
 //BENCHMARK(BM_std_for_each_par)->RangeMultiplier(2)->Range(8, 8 << 8);
 #endif
 //BENCHMARK(BM_LeastLoadThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
-BENCHMARK(BM_ChildStealPolicyRandomThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
-BENCHMARK(BM_ContinuationStealPolicyRandomThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+//BENCHMARK(BM_ChildStealPolicyRandomThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
+//BENCHMARK(BM_ContinuationStealPolicyRandomThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
 //BENCHMARK(BM_RandomThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
 
 int main(int argc, char** argv) {

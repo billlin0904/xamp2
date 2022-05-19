@@ -16,7 +16,7 @@ XFrame::XFrame(QWidget* parent)
 				border: 2px solid %1;
 				background-color: %1;
             }
-            )").arg(Singleton<ThemeManager>::GetInstance().borderColor()));
+            )").arg(SharedSingleton<ThemeManager>::GetInstance().borderColor()));
 }
 
 void XFrame::setTitle(const QString& title) const {
@@ -89,7 +89,7 @@ void XFrame::setContentWidget(QWidget* content) {
                                          image: url(:/xamp/Resource/%1/close.png);
                                          background-color: transparent;
                                          }
-                                         )").arg(Singleton<ThemeManager>::GetInstance().themeColorPath()));
+                                         )").arg(SharedSingleton<ThemeManager>::GetInstance().themeColorPath()));
 
     min_win_button->setStyleSheet(Q_STR(R"(
                                           QToolButton#minWinButton {
@@ -97,7 +97,7 @@ void XFrame::setContentWidget(QWidget* content) {
                                           image: url(:/xamp/Resource/%1/minimize.png);
                                           background-color: transparent;
                                           }
-                                          )").arg(Singleton<ThemeManager>::GetInstance().themeColorPath()));
+                                          )").arg(SharedSingleton<ThemeManager>::GetInstance().themeColorPath()));
 
     max_win_button->setStyleSheet(Q_STR(R"(
                                           QToolButton#maxWinButton {
@@ -105,7 +105,7 @@ void XFrame::setContentWidget(QWidget* content) {
                                           image: url(:/xamp/Resource/%1/maximize.png);
                                           background-color: transparent;
                                           }
-                                          )").arg(Singleton<ThemeManager>::GetInstance().themeColorPath()));
+                                          )").arg(SharedSingleton<ThemeManager>::GetInstance().themeColorPath()));
 
     max_win_button->setDisabled(true);
     min_win_button->setDisabled(true);

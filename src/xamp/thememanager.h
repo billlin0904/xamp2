@@ -49,7 +49,7 @@ enum class ThemeColor {
 
 class ThemeManager {
 public:
-    friend class Singleton<ThemeManager>;
+    friend class SharedSingleton<ThemeManager>;
 
     bool useNativeWindow() const;
 

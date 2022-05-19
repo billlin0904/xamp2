@@ -168,6 +168,7 @@
     <ClInclude Include="include\base\ithreadpool.h" />
     <ClInclude Include="include\base\lifoqueue.h" />
     <ClInclude Include="include\base\math.h" />
+    <ClInclude Include="include\base\shared_singleton.h" />
     <ClInclude Include="include\base\simd.h" />
     <ClInclude Include="include\base\scopeguard.h" />
     <ClInclude Include="include\base\spsc_queue.h" />
@@ -215,6 +216,7 @@
     <ClCompile Include="src\itaskschedulerpolicy.cpp" />
     <ClCompile Include="src\ithreadpool.cpp" />
     <ClCompile Include="src\memory_mapped_file.cpp" />
+    <ClCompile Include="src\shared_singleton.cpp" />
     <ClCompile Include="src\stl.cpp" />
     <ClCompile Include="src\uuid.cpp" />
     <ClCompile Include="src\logger.cpp" />

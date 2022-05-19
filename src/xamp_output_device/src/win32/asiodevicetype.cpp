@@ -85,6 +85,8 @@ DeviceInfo ASIODeviceType::GetDeviceInfo(std::wstring const& name, std::string c
 	} catch (Exception const &e) {
 		XAMP_LOG_DEBUG(e.what());
 	}*/
+	info.is_support_dsd = true;
+	info.is_hardware_control_volume = true;
 	return info;
 }
 
