@@ -55,8 +55,6 @@ public:
 
     bool IsMuted() const override;
 
-    void DisplayControlPanel() override;
-
     PackedFormat GetPackedFormat() const noexcept override;
 
     uint32_t GetBufferSize() const noexcept override;

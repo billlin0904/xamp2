@@ -372,7 +372,7 @@ FROM
     LEFT JOIN musics ON musics.musicId = albumMusic.musicId
 WHERE
     albums.albumId = ?
-ORDER BY musics.path;)"));
+ORDER BY musics.path, musics.fileName;)"));
 	query.addBindValue(album_id);
 
 	if (!query.exec()) {

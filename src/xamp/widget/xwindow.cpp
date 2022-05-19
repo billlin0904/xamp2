@@ -308,8 +308,6 @@ void XWindow::dropEvent(QDropEvent* event) {
 }
 
 bool XWindow::nativeEvent(const QByteArray& event_type, void * message, long * result) {
-    const auto* msg = static_cast<MSG const*>(message);
-
     if (Singleton<ThemeManager>::GetInstance().useNativeWindow()) {
         return QWidget::nativeEvent(event_type, message, result);
     }
@@ -321,6 +319,8 @@ bool XWindow::nativeEvent(const QByteArray& event_type, void * message, long * r
 #ifndef WM_NCUAHDRAWFRAME
 #define WM_NCUAHDRAWFRAME (0x00AF)
 #endif
+    const auto* msg = static_cast<MSG const*>(message);
+
     switch (msg->message) {
     case WM_NCHITTEST:
         if (!isMaximized()) {

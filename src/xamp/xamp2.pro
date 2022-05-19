@@ -79,6 +79,7 @@ SOURCES += \
     widget/podcast_uiltis.cpp \
     widget/colorthief.cpp \
     widget/stackblur.cpp \
+    widget/spectrumwidget.cpp \
     singleinstanceapplication.cpp \
     thememanager.cpp \
     aboutpage.cpp \
@@ -135,6 +136,8 @@ HEADERS += \
     widget/backgroundworker.h \
     widget/colorthief.h \
     widget/stackblur.h \
+    widget/spectrumwidget.h \
+    widget/smoothcurvegenerator2.h \
     singleinstanceapplication.h \
     thememanager.h \
     aboutpage.h \

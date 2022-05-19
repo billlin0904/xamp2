@@ -236,9 +236,6 @@ bool CoreAudioDevice::IsHardwareControlVolume() const {
     return SystemVolume(kAudioDevicePropertyMute, device_id_).HasProperty();
 }
 
-void CoreAudioDevice::DisplayControlPanel() {
-}
-
 PackedFormat CoreAudioDevice::GetPackedFormat() const noexcept {
     return PackedFormat::INTERLEAVED;
 }

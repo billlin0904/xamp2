@@ -161,7 +161,7 @@ public:
 		frame_size_ = frame_size;
         size_over2_ = frame_size_ / 2;
         log2n_size_ = std::log2(frame_size);
-		complex_size_ = log2n_size_;
+        complex_size_ = ComplexSize(frame_size);
 		output_ = ComplexValarray(Complex(), complex_size_);
 		input_ = MakeAlignedArray<float>(frame_size);
 		fft_setup_.reset(::vDSP_create_fftsetup(log2n_size_, FFT_RADIX2));
