@@ -37,10 +37,10 @@ std::vector<Metadata> parseJson(QString const& json) {
     return metadatas;
 }
 
-std::pair<std::string, std::vector<Metadata>> parsePodcastXML(QString const& src) {
+std::pair<std::string, std::forward_list<Metadata>> parsePodcastXML(QString const& src) {
     auto str = src.toStdString();
 
-    std::vector<Metadata> metadatas;
+    std::forward_list<Metadata> metadatas;
     xml_document<> doc;
     doc.parse<0>(str.data());
 
@@ -91,7 +91,7 @@ std::pair<std::string, std::vector<Metadata>> parsePodcastXML(QString const& src
             }
         }
 
-        metadatas.push_back(metadata);
+        metadatas.push_front(metadata);
     }
 
     return std::make_pair(image_url, metadatas);

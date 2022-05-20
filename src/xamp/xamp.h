@@ -63,7 +63,7 @@ public slots:
 
 	void onArtistIdChanged(const QString& artist, const QString& cover_id, int32_t artist_id);
 
-	void processMeatadata(int64_t dir_last_write_time, const std::vector<Metadata>& medata) const;
+	void processMeatadata(int64_t dir_last_write_time, const std::forward_list<Metadata>& medata) const;
 
 	void onActivated(QSystemTrayIcon::ActivationReason reason);
 

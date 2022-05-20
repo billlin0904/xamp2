@@ -236,6 +236,18 @@ static void registerMetaType() {
 }
 
 static int excute(int argc, char* argv[]) {
+    QApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
+    QApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
+
+    QApplication::setDesktopSettingsAware(false);
+    QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+    QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+
+    QApplication::setApplicationName(Q_UTF8("XAMP2"));
+    QApplication::setApplicationVersion(Q_UTF8("0.0.1"));
+    QApplication::setOrganizationName(Q_UTF8("XAMP2 Project"));
+    QApplication::setOrganizationDomain(Q_UTF8("XAMP2 Project"));
+
     QApplication app(argc, argv);
 
     SingleInstanceApplication single_app;
@@ -246,12 +258,6 @@ static int excute(int argc, char* argv[]) {
 #endif
 
     loadLang();
-
-    QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
-    QApplication::setApplicationName(Q_UTF8("XAMP2"));
-    QApplication::setApplicationVersion(Q_UTF8("0.0.1"));
-    QApplication::setOrganizationName(Q_UTF8("XAMP2 Project"));
-    QApplication::setOrganizationDomain(Q_UTF8("XAMP2 Project"));
 
     XAMP_LOG_DEBUG("attach app success.");
 
@@ -302,9 +308,9 @@ static int excute(int argc, char* argv[]) {
 
 int main(int argc, char *argv[]) {
 #ifdef Q_OS_WIN
-    if (qgetenv("MIMALLOC_VERBOSE") == "1") {
+    /*if (qgetenv("MIMALLOC_VERBOSE") == "1") {
         RedirectStdOut();
-    }
+    }*/
 #endif
     Logger::GetInstance()
         .AddDebugOutputLogger()

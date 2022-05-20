@@ -18,6 +18,7 @@ SpectrumWidget::SpectrumWidget(QWidget* parent)
 		}
 		update();
 		});
+	timer_.setTimerType(Qt::PreciseTimer);
 	timer_.start(25);
 	bar_color_ = QColor(5, 184, 204);
 }

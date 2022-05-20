@@ -694,8 +694,8 @@ void Xamp::initialController() {
         }
         else {
             top_window_->resize(QSize(1300, 860));
-            top_window_->setMinimumSize(QSize(16777215, 16777215));
-            top_window_->setMaximumSize(QSize(16777215, 16777215));
+            top_window_->setMinimumSize(QSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX));
+            top_window_->setMaximumSize(QSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX));
         }
     };
 
@@ -977,7 +977,7 @@ void Xamp::resetSeekPosValue() {
     ui_.startPosLabel->setText(msToString(0));
 }
 
-void Xamp::processMeatadata(int64_t dir_last_write_time, const std::vector<Metadata>& medata) const {
+void Xamp::processMeatadata(int64_t dir_last_write_time, const std::forward_list<Metadata>& medata) const {
     MetadataExtractAdapter::processMetadata(dir_last_write_time, medata);
     album_artist_page_->album()->refreshOnece();
     album_artist_page_->artist()->refreshOnece();

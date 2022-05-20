@@ -205,8 +205,8 @@ void XWindow::setContentWidget(IXampPlayer *content_widget) {
     if (!SharedSingleton<ThemeManager>::GetInstance().useNativeWindow()) {
         setWindowTitle(kAppTitle);
         //setAttribute(Qt::WA_TranslucentBackground, true);
-        //setWindowFlags(Qt::FramelessWindowHint);
-        setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
+        //setWindowFlags(Qt::CustomizeWindowHint);
+        //setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
         win32::setFramelessWindowStyle(this);
         win32::addDwmShadow(this);
     	/*auto* effect = new QGraphicsDropShadowEffect(content_widget_);

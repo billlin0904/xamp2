@@ -7,6 +7,7 @@
 
 #include <string>
 #include <vector>
+#include <forward_list>
 #include <base/metadata.h>
 
 using namespace rapidxml;
@@ -14,4 +15,4 @@ using namespace xamp::base;
 
 std::vector<Metadata> parseJson(QString const& json);
 
-std::pair<std::string, std::vector<Metadata>> parsePodcastXML(QString const& src);
+std::pair<std::string, std::forward_list<Metadata>> parsePodcastXML(QString const& src);

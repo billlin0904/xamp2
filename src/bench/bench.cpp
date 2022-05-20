@@ -8,6 +8,7 @@
 #include <unordered_set>
 
 #include <base/scopeguard.h>
+#include <base/metadata.h>
 #include <base/lifoqueue.h>
 #include <base/audiobuffer.h>
 #include <base/threadpool.h>
@@ -411,54 +412,132 @@ static void BM_StdtMemset(benchmark::State& state) {
 static void BM_FindRobinHoodHashMap(benchmark::State& state) {
     HashMap<int64_t, int64_t> map;
     for (auto _ : state) {
-        map.emplace(std::make_pair(Singleton<PRNG>::GetInstance().NextInt64(), Singleton<PRNG>::GetInstance().NextInt64()));
-        (void)map.find(Singleton<PRNG>::GetInstance().NextInt64());
+        map.emplace(std::make_pair(SharedSingleton<PRNG>::GetInstance().NextInt64(), Singleton<PRNG>::GetInstance().NextInt64()));
+        (void)map.find(SharedSingleton<PRNG>::GetInstance().NextInt64());
     }
 }
 
 static void BM_unordered_map(benchmark::State& state) {
     std::unordered_map<int64_t, int64_t> map;
     for (auto _ : state) {
-        map.emplace(std::make_pair(Singleton<PRNG>::GetInstance().NextInt64(), Singleton<PRNG>::GetInstance().NextInt64()));
-        (void)map.find(Singleton<PRNG>::GetInstance().NextInt64());
+        map.emplace(std::make_pair(SharedSingleton<PRNG>::GetInstance().NextInt64(), Singleton<PRNG>::GetInstance().NextInt64()));
+        (void)map.find(SharedSingleton<PRNG>::GetInstance().NextInt64());
     }
 }
 
 static void BM_FindRobinHoodHashSet(benchmark::State& state) {
     HashSet<int64_t> map;
     for (auto _ : state) {
-        map.emplace(Singleton<PRNG>::GetInstance().NextInt64());
-        (void)map.find(Singleton<PRNG>::GetInstance().NextInt64());
+        map.emplace(SharedSingleton<PRNG>::GetInstance().NextInt64());
+        (void)map.find(SharedSingleton<PRNG>::GetInstance().NextInt64());
     }
 }
 
 static void BM_unordered_set(benchmark::State& state) {
     std::unordered_set<int64_t> map;
     for (auto _ : state) {
-        map.emplace(Singleton<PRNG>::GetInstance().NextInt64());
-        (void)map.find(Singleton<PRNG>::GetInstance().NextInt64());
+        map.emplace(SharedSingleton<PRNG>::GetInstance().NextInt64());
+        (void)map.find(SharedSingleton<PRNG>::GetInstance().NextInt64());
     }
 }
 
-static void BM_LruCache(benchmark::State& state) {
+static void BM_FowardListSort(benchmark::State& state) {
+    auto length = state.range(0);
+    std::forward_list<Metadata> list;
+
+    for (auto i = 0; i < length; ++i) {
+        Metadata metadata;
+        metadata.track = SharedSingleton<PRNG>::GetInstance().NextInt64();
+        list.push_front(metadata);
+    }
+
+    for (auto _ : state) {
+        list.sort([](const auto& first, const auto& last) {
+            return first.track < last.track;
+            });
+    }
+}
+
+static void BM_ListSort(benchmark::State& state) {
+    auto length = state.range(0);
+    std::list<Metadata> list;
+
+    for (auto i = 0; i < length; ++i) {
+        Metadata metadata;
+        metadata.track = SharedSingleton<PRNG>::GetInstance().NextInt64();
+        list.push_front(metadata);
+    }
+
+    for (auto _ : state) {
+        std::stable_sort(list.begin(), list.end(),
+            [](const auto& first, const auto& last) {
+                return first.track < last.track;
+            });
+    }
+}
+
+static void BM_VectorSort(benchmark::State& state) {
+    auto length = state.range(0);
+    std::vector<Metadata> list;
+
+    for (auto i = 0; i < length; ++i) {
+        Metadata metadata;
+        metadata.track = SharedSingleton<PRNG>::GetInstance().NextInt64();
+        list.push_back(metadata);
+    }
+
+    for (auto _ : state) {
+        std::stable_sort(list.begin(), list.end(),
+            [](const auto& first, const auto& last) {
+                return first.track < last.track;
+            });
+    }
+}
+
+static void BM_LruCache_Find(benchmark::State& state) {
     auto length = state.range(0);
 
     LruCache<int64_t, int64_t> cache;
 
     for (auto i = 0; i < length; ++i) {
-        cache.AddOrUpdate(Singleton<PRNG>::GetInstance().NextInt64(1, 1000),\
-            Singleton<PRNG>::GetInstance().NextInt64(1, 1000));
+        cache.Add(
+            SharedSingleton<PRNG>::GetInstance().NextInt64(1, 1000),\
+            SharedSingleton<PRNG>::GetInstance().NextInt64(1, 1000));
     }
     
     for (auto _ : state) {
-        cache.Find(Singleton<PRNG>::GetInstance().NextInt64(1, 1000));
+        cache.Find(SharedSingleton<PRNG>::GetInstance().NextInt64(1, 1000));
+    }
+}
+
+static void BM_LruCache_Add(benchmark::State& state) {
+    auto length = state.range(0);
+
+    LruCache<int64_t, int64_t> cache;
+
+    for (auto _ : state) {
+        cache.Add(
+            SharedSingleton<PRNG>::GetInstance().NextInt64(1, 1000), \
+            SharedSingleton<PRNG>::GetInstance().NextInt64(1, 1000));
+    }
+}
+
+static void BM_LruCache_AddOrUpdate(benchmark::State& state) {
+    auto length = state.range(0);
+
+    LruCache<int64_t, int64_t> cache;
+
+    for (auto _ : state) {
+        cache.AddOrUpdate(
+            SharedSingleton<PRNG>::GetInstance().NextInt64(1, 1000), \
+            SharedSingleton<PRNG>::GetInstance().NextInt64(1, 1000));
     }
 }
 
 static void BM_FFT(benchmark::State& state) {
     auto length = state.range(0);
 
-    auto input = Singleton<PRNG>::GetInstance().NextBytes<float>(length, -1.0, 1.0);
+    auto input = SharedSingleton<PRNG>::GetInstance().NextBytes<float>(length, -1.0, 1.0);
     FFT fft;
     fft.Init(length);
     for (auto _ : state) {
@@ -557,13 +636,21 @@ static void BM_Rotl(benchmark::State& state) {
 //BENCHMARK(BM_Xoshiro256PlusPlusRandom);
 //BENCHMARK(BM_default_random_engine);
 //BENCHMARK(BM_PRNG);
-BENCHMARK(BM_PRNG_GetInstance);
-BENCHMARK(BM_PRNG_SharedGetInstance);
+//BENCHMARK(BM_PRNG_GetInstance);
+//BENCHMARK(BM_PRNG_SharedGetInstance);
 
 //BENCHMARK(BM_unordered_set);
 //BENCHMARK(BM_FindRobinHoodHashSet);
 //BENCHMARK(BM_unordered_map);
 //BENCHMARK(BM_FindRobinHoodHashMap);
+
+BENCHMARK(BM_FowardListSort)->RangeMultiplier(2)->Range(4096, 8 << 16);
+BENCHMARK(BM_ListSort)->RangeMultiplier(2)->Range(4096, 8 << 16);
+BENCHMARK(BM_VectorSort)->RangeMultiplier(2)->Range(4096, 8 << 16);
+
+BENCHMARK(BM_LruCache_Find)->RangeMultiplier(2)->Range(4096, 8 << 16);
+BENCHMARK(BM_LruCache_Add);
+BENCHMARK(BM_LruCache_AddOrUpdate);
 
 //BENCHMARK(BM_FastMemset)->RangeMultiplier(2)->Range(4096, 8 << 16);
 //BENCHMARK(BM_StdtMemset)->RangeMultiplier(2)->Range(4096, 8 << 16);

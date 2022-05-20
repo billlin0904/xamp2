@@ -1,6 +1,7 @@
 #include <atomic>
 #include <utility>
 #include <execution>
+#include <forward_list>
 
 #include <QMap>
 #include <QDirIterator>
@@ -122,7 +123,7 @@ class ExtractAdapterProxy final : public IMetadataExtractAdapter {
 public:
     explicit ExtractAdapterProxy(const QSharedPointer<::MetadataExtractAdapter> &adapter)
         : adapter_(adapter) {
-      metadatas_.reserve(kCachePreallocateSize);
+    	//metadatas_.reserve(kCachePreallocateSize);
     }
 
     [[nodiscard]] bool IsAccept(Path const& path) const noexcept override {
@@ -142,7 +143,7 @@ public:
     }
 
     void OnWalk(const Path&, Metadata metadata) override {
-        metadatas_.push_back(std::move(metadata));        
+        metadatas_.push_front(metadata);
         qApp->processEvents();
     }
 
@@ -150,18 +151,9 @@ public:
         if (metadatas_.empty()) {
             return;
         }
-#if __cplusplus >= XAMP_CPP20_LANG_VER
-        std::stable_sort(std::execution::par,
-            metadatas_.begin(), metadatas_.end(),
-            [](const auto& first, const auto& last) {
-                return first.track < last.track;
+        metadatas_.sort([](const auto& first, const auto& last) {
+            return first.track < last.track;;
             });
-#else
-        std::stable_sort(metadatas_.begin(), metadatas_.end(),
-            [](const auto& first, const auto& last) {
-                return first.track < last.track;
-            });
-#endif
         emit adapter_->readCompleted(ToTime_t(dir_entry.last_write_time()), metadatas_);
         metadatas_.clear();
         qApp->processEvents();
@@ -169,7 +161,7 @@ public:
 	
 private:
     QSharedPointer<::MetadataExtractAdapter> adapter_;
-    std::vector<Metadata> metadatas_;
+    std::forward_list<Metadata> metadatas_;
 };
 
 ::MetadataExtractAdapter::MetadataExtractAdapter(QObject* parent)
@@ -222,7 +214,7 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
     }
 }
 
-void ::MetadataExtractAdapter::processMetadata(int64_t dir_last_write_time, const std::vector<Metadata>& result, PlayListTableView* playlist, bool is_podcast) {
+void ::MetadataExtractAdapter::processMetadata(int64_t dir_last_write_time, const std::forward_list<Metadata>& result, PlayListTableView* playlist, bool is_podcast) {
 	auto playlist_id = -1;
     if (playlist != nullptr) {
         playlist_id = playlist->playlistId();

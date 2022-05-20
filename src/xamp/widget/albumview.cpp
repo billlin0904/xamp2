@@ -606,9 +606,7 @@ LIMIT 200
 }
 
 void AlbumView::refreshOnece() {
-    QTimer::singleShot(1500, [this]() {
-        update();
-        });
+    update();
 }
 
 void AlbumView::onSearchTextChanged(const QString& text) {
@@ -642,7 +640,7 @@ void AlbumView::append(const QString& file_name) {
     MetadataExtractAdapter::readFileMetadata(adapter, file_name);
 }
 
-void AlbumView::processMeatadata(int64_t dir_last_write_time, const std::vector<Metadata> &medata) {
+void AlbumView::processMeatadata(int64_t dir_last_write_time, const std::forward_list<Metadata> &medata) {
     MetadataExtractAdapter::processMetadata(dir_last_write_time, medata);
     emit loadCompleted();
 }
