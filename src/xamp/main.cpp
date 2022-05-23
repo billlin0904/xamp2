@@ -262,7 +262,7 @@ static int excute(int argc, char* argv[]) {
     XAMP_LOG_DEBUG("attach app success.");
 
     try {
-        SharedSingleton<Database>::GetInstance().open(Q_UTF8("xamp.db"));
+        qDatabase.open(Q_UTF8("xamp.db"));
     }
     catch (const std::exception& e) {
         XAMP_LOG_INFO("Init database failure. {}", e.what());
@@ -271,7 +271,7 @@ static int excute(int argc, char* argv[]) {
 
     XAMP_LOG_DEBUG("Database init success.");
 
-    SharedSingleton<ThemeManager>::GetInstance().applyTheme();
+    qTheme.applyTheme();
     XAMP_LOG_DEBUG("ThemeManager applyTheme success.");
 
     XWindow top_win;

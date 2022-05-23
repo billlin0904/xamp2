@@ -168,4 +168,5 @@ private:
     QIcon play_arrow_;
 };
 
+#define qTheme SharedSingleton<ThemeManager>::GetInstance()
 

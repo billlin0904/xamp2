@@ -25,7 +25,7 @@ AboutPage::AboutPage(QWidget* parent)
                             .arg(__clang_patchlevel__));
 #endif
 
-    ui.lblLogo->setPixmap(SharedSingleton<ThemeManager>::GetInstance().appIcon().pixmap(128, 128));
+    ui.lblLogo->setPixmap(qTheme.appIcon().pixmap(128, 128));
 
     QFont font(Q_UTF8("UI"));
     font.setBold(true);

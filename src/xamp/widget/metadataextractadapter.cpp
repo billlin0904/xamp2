@@ -62,7 +62,7 @@ QPixmap DatabaseIdCache::getEmbeddedCover(const Metadata& metadata) const {
 }
 
 QString DatabaseIdCache::addCoverCache(int32_t album_id, const QString& album, const Metadata& metadata, bool is_unknown_album) const {
-    auto cover_id = SharedSingleton<Database>::GetInstance().getAlbumCoverId(album_id);
+    auto cover_id = qDatabase.getAlbumCoverId(album_id);
     if (!cover_id.isEmpty()) {
     	return cover_id;
     }
@@ -80,10 +80,10 @@ QString DatabaseIdCache::addCoverCache(int32_t album_id, const QString& album, c
     }
 
     if (!pixmap.isNull()) {
-        cover_id = SharedSingleton<PixmapCache>::GetInstance().addOrUpdate(pixmap);
+        cover_id = qPixmapCache.addOrUpdate(pixmap);
         XAMP_ASSERT(!cover_id.isEmpty());
         cover_id_cache_.AddOrUpdate(album_id, cover_id);
-        SharedSingleton<Database>::GetInstance().setAlbumCover(album_id, album, cover_id);
+        qDatabase.setAlbumCover(album_id, album, cover_id);
         XAMP_LOG_INFO("add Album id: {} cover id: {}", album_id, cover_id.toStdString());
     }	
     return cover_id;
@@ -95,7 +95,7 @@ std::tuple<int32_t, int32_t, QString> DatabaseIdCache::addOrGetAlbumAndArtistId(
         artist_id = *artist_id_op;
     }
     else {
-        artist_id = SharedSingleton<Database>::GetInstance().addOrUpdateArtist(artist);
+        artist_id = qDatabase.addOrUpdateArtist(artist);
         this->artist_id_cache_.AddOrUpdate(artist, artist_id);
     }
 
@@ -104,7 +104,7 @@ std::tuple<int32_t, int32_t, QString> DatabaseIdCache::addOrGetAlbumAndArtistId(
         album_id = *album_id_op;
     }
     else {
-        album_id = SharedSingleton<Database>::GetInstance().addOrUpdateAlbum(album, artist_id, dir_last_write_time, is_podcast);
+        album_id = qDatabase.addOrUpdateAlbum(album, artist_id, dir_last_write_time, is_podcast);
         this->album_id_cache_.AddOrUpdate(album, album_id);
     }
 
@@ -123,7 +123,6 @@ class ExtractAdapterProxy final : public IMetadataExtractAdapter {
 public:
     explicit ExtractAdapterProxy(const QSharedPointer<::MetadataExtractAdapter> &adapter)
         : adapter_(adapter) {
-    	//metadatas_.reserve(kCachePreallocateSize);
     }
 
     [[nodiscard]] bool IsAccept(Path const& path) const noexcept override {
@@ -240,13 +239,13 @@ void ::MetadataExtractAdapter::processMetadata(int64_t dir_last_write_time, cons
             artist = tr("Unknown artist");
     	}
 
-        const auto music_id = SharedSingleton<Database>::GetInstance().addOrUpdateMusic(metadata, playlist_id);
+        const auto music_id = qDatabase.addOrUpdateMusic(metadata, playlist_id);
 
         auto [album_id, artist_id, cover_id] = cache.addOrGetAlbumAndArtistId(dir_last_write_time, album, artist, is_podcast);
 
         // Find cover id from database.
         if (cover_id.isEmpty()) {
-            cover_id = SharedSingleton<Database>::GetInstance().getAlbumCoverId(album_id);
+            cover_id = qDatabase.getAlbumCoverId(album_id);
         }
 
         // Database not exist find others.
@@ -254,7 +253,7 @@ void ::MetadataExtractAdapter::processMetadata(int64_t dir_last_write_time, cons
             cover_id = cache.addCoverCache(album_id, album, metadata, is_unknown_album);
         }
 
-        IgnoreSqlError(SharedSingleton<Database>::GetInstance().addOrUpdateAlbumMusic(album_id, artist_id, music_id))
+        IgnoreSqlError(qDatabase.addOrUpdateAlbumMusic(album_id, artist_id, music_id))
     }
 
     if (playlist != nullptr) {

@@ -39,8 +39,8 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 			                                                    Qt::EmptyString,
 			                                                    tr("Music Files *.jpg *.jpeg *.png"),
                 nullptr);
-			cover_id_ = SharedSingleton<PixmapCache>::GetInstance().addOrUpdate(QPixmap(file_name));
-			SharedSingleton<Database>::GetInstance().updateArtistCoverId(artist_id_, cover_id_);
+			cover_id_ = qPixmapCache.addOrUpdate(QPixmap(file_name));
+			qDatabase.updateArtistCoverId(artist_id_, cover_id_);
 			setArtistId(artist_->text(), cover_id_, artist_id_);
 			});		
 		action_map.exec(pt);
@@ -123,8 +123,8 @@ void ArtistInfoPage::setArtistId(const QString& artist, const QString& cover_id,
 	artist_->setText(artist);
 	album_view_->setFilterByArtistId(artist_id);
 
-    const auto* cover = &SharedSingleton<ThemeManager>::GetInstance().pixmap().defaultSizeUnknownCover();
-	if (auto const * cache_small_cover = SharedSingleton<PixmapCache>::GetInstance().find(cover_id)) {
+    const auto* cover = &qTheme.pixmap().defaultSizeUnknownCover();
+	if (auto const * cache_small_cover = qPixmapCache.find(cover_id)) {
 		cover = cache_small_cover;
 	}
 
@@ -134,7 +134,7 @@ void ArtistInfoPage::setArtistId(const QString& artist, const QString& cover_id,
 	artist_id_ = artist_id;
 	cover_id_ = cover_id;
 
-	if (auto artist_stats = SharedSingleton<Database>::GetInstance().getArtistStats(artist_id)) {
+	if (auto artist_stats = qDatabase.getArtistStats(artist_id)) {
 		setAlbumCount(artist_stats.value().albums);
 		setTracks(artist_stats.value().tracks);
 		setTotalDuration(artist_stats.value().durations);

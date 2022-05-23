@@ -25,7 +25,6 @@
 #include <widget/osx/osx.h>
 #endif
 
-#include <qmath.h>
 #include <widget/image_utiltis.h>
 #include <widget/appsettings.h>
 #include <widget/str_utilts.h>
@@ -192,7 +191,7 @@ void XWindow::setContentWidget(IXampPlayer *content_widget) {
         //default_layout->addWidget(frame, 0, 0);
         default_layout->addWidget(content_widget_, 0, 0);
 #if defined(Q_OS_WIN)
-        SharedSingleton<ThemeManager>::GetInstance().setBorderRadius(content_widget_);
+        qTheme.setBorderRadius(content_widget_);
         default_layout->setContentsMargins(4, 4, 4, 4);
         //default_layout->setContentsMargins(10, 10, 10, 10);
 #else
@@ -202,7 +201,7 @@ void XWindow::setContentWidget(IXampPlayer *content_widget) {
     }
 
 #if defined(Q_OS_WIN)
-    if (!SharedSingleton<ThemeManager>::GetInstance().useNativeWindow()) {
+    if (!qTheme.useNativeWindow()) {
         setWindowTitle(kAppTitle);
         //setAttribute(Qt::WA_TranslucentBackground, true);
         //setWindowFlags(Qt::CustomizeWindowHint);
@@ -220,7 +219,7 @@ void XWindow::setContentWidget(IXampPlayer *content_widget) {
     }
     taskbar_.reset(new WinTaskbar(this, content_widget));
 #else
-    if (!SharedSingleton<ThemeManager>::GetInstance().useNativeWindow()) {
+    if (!qTheme.useNativeWindow()) {
         if (content_widget_ != nullptr) {
             osx::hideTitleBar(content_widget_);
         }
@@ -308,7 +307,7 @@ void XWindow::dropEvent(QDropEvent* event) {
 }
 
 bool XWindow::nativeEvent(const QByteArray& event_type, void * message, long * result) {
-    if (SharedSingleton<ThemeManager>::GetInstance().useNativeWindow()) {
+    if (qTheme.useNativeWindow()) {
         return QWidget::nativeEvent(event_type, message, result);
     }
 
@@ -378,7 +377,7 @@ bool XWindow::nativeEvent(const QByteArray& event_type, void * message, long * r
 
 void XWindow::changeEvent(QEvent* event) {
 #if defined(Q_OS_MAC)
-    if (!SharedSingleton<ThemeManager>::GetInstance().useNativeWindow() && content_widget_ != nullptr) {
+    if (!qTheme.useNativeWindow() && content_widget_ != nullptr) {
         osx::hideTitleBar(content_widget_);
 	}
 #endif
@@ -393,7 +392,7 @@ void XWindow::closeEvent(QCloseEvent* event) {
 }
 
 void XWindow::mousePressEvent(QMouseEvent* event) {
-    if (SharedSingleton<ThemeManager>::GetInstance().useNativeWindow()) {
+    if (qTheme.useNativeWindow()) {
         QWidget::mousePressEvent(event);
         return;
 	}
@@ -411,7 +410,7 @@ void XWindow::mousePressEvent(QMouseEvent* event) {
 }
 
 void XWindow::mouseReleaseEvent(QMouseEvent* event) {
-    if (SharedSingleton<ThemeManager>::GetInstance().useNativeWindow()) {
+    if (qTheme.useNativeWindow()) {
         QWidget::mouseReleaseEvent(event);
         return;
 	}
@@ -431,7 +430,7 @@ void XWindow::mouseDoubleClickEvent(QMouseEvent*) {
 }
 
 void XWindow::mouseMoveEvent(QMouseEvent* event) {
-    if (SharedSingleton<ThemeManager>::GetInstance().useNativeWindow()) {
+    if (qTheme.useNativeWindow()) {
         QWidget::mouseMoveEvent(event);
         return;
     }

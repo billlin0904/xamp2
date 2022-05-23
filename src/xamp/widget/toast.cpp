@@ -13,7 +13,7 @@ Toast::Toast(QWidget* parent)
 	ui.setupUi(this);
 	setWindowFlags(windowFlags() | Qt::FramelessWindowHint | Qt::Tool);
 	setAttribute(Qt::WA_TranslucentBackground, true);
-    SharedSingleton<ThemeManager>::GetInstance().setBackgroundColor(this);
+    qTheme.setBackgroundColor(this);
 }
 
 Toast::~Toast() {

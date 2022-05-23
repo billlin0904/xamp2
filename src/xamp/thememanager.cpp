@@ -54,6 +54,7 @@ QFont ThemeManager::loadFonts() {
     ui_fallback_fonts.push_back(default_font_families[0]);
     ui_fallback_fonts.push_back(title_font_families[0]);
 #if defined(Q_OS_WIN)
+    ui_fallback_fonts.push_back(Q_UTF8("Meiryo UI")); // For japanese font.
     ui_fallback_fonts.push_back(Q_UTF8("Arial"));
     ui_fallback_fonts.push_back(Q_UTF8("Lucida Grande"));
     ui_fallback_fonts.push_back(Q_UTF8("Helvetica Neue"));
@@ -120,10 +121,10 @@ QLatin1String ThemeManager::themeColorPath() const {
 void ThemeManager::setThemeButtonIcon(Ui::XampWindow &ui) {
     switch (themeColor()) {
     case ThemeColor::DARK_THEME:
-        ui.themeButton->setIcon(SharedSingleton<ThemeManager>::GetInstance().darkModeIcon());
+        ui.themeButton->setIcon(qTheme.darkModeIcon());
         break;
     case ThemeColor::LIGHT_THEME:
-        ui.themeButton->setIcon(SharedSingleton<ThemeManager>::GetInstance().lightModeIcon());
+        ui.themeButton->setIcon(qTheme.lightModeIcon());
         break;
     }
 }
@@ -188,7 +189,7 @@ void ThemeManager::setMenuStyle(QWidget* menu) {
 
 DefaultStylePixmapManager::DefaultStylePixmapManager()
     : unknown_cover_(Q_UTF8(":/xamp/Resource/White/unknown_album.png"))
-    , default_size_unknown_cover_(Pixmap::resizeImage(unknown_cover_, SharedSingleton<ThemeManager>::GetInstance().getDefaultCoverSize())) {
+    , default_size_unknown_cover_(Pixmap::resizeImage(unknown_cover_, qTheme.getDefaultCoverSize())) {
 }
 
 const QPixmap& DefaultStylePixmapManager::defaultSizeUnknownCover() const noexcept {
@@ -441,24 +442,34 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
     ui.closeButton->setStyleSheet(Q_STR(R"(
                                          QToolButton#closeButton {
                                          border: none;
-                                         image: url(:/xamp/Resource/%1/close.png);
+                                         image: url(:/xamp/Resource/%1/close_normal.png);
                                          background-color: transparent;
+                                         }
+
+										 QToolButton#closeButton:hover {	
+										 image: url(:/xamp/Resource/%1/close_hover.png);									 
                                          }
                                          )").arg(themeColorPath()));
 
     ui.minWinButton->setStyleSheet(Q_STR(R"(
                                           QToolButton#minWinButton {
                                           border: none;
-                                          image: url(:/xamp/Resource/%1/minimize.png);
+                                          image: url(:/xamp/Resource/%1/minimize_normal.png);
                                           background-color: transparent;
+                                          }
+										  QToolButton#minWinButton:hover {	
+										  image: url(:/xamp/Resource/%1/minimize_hover.png);									 
                                           }
                                           )").arg(themeColorPath()));
 
     ui.maxWinButton->setStyleSheet(Q_STR(R"(
                                           QToolButton#maxWinButton {
                                           border: none;
-                                          image: url(:/xamp/Resource/%1/maximize.png);
+                                          image: url(:/xamp/Resource/%1/maximize_normal.png);
                                           background-color: transparent;
+                                          }
+										  QToolButton#maxWinButton:hover {	
+										  image: url(:/xamp/Resource/%1/maximize_hover.png);									 
                                           }
                                           )").arg(themeColorPath()));
 

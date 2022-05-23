@@ -47,7 +47,7 @@ inline constexpr auto kDefaultMusicPlaylistId = 3;
 
 class Database final {
 public:
-    friend class SharedSingleton<Database>;
+    Database();
 
     ~Database();
 
@@ -141,8 +141,6 @@ public:
 
     void clearNowPlaying(int32_t playlist_id, int32_t music_id);
 private:
-    Database();
-
     void removeAlbumArtist(int32_t album_id);
 
     void removeAlbumMusicId(int32_t music_id);
@@ -159,3 +157,4 @@ private:
     QSqlDatabase db_;
 };
 
+#define qDatabase SharedSingleton<Database>::GetInstance()

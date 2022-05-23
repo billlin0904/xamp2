@@ -13,22 +13,16 @@
         <file>Resource/White/volume_mute.png</file>
         <file>Resource/White/volume_off.png</file>
         <file>Resource/White/volume_up.png</file>
-        <file>Resource/White/close.png</file>
-        <file>Resource/White/minimize.png</file>
-        <file>Resource/White/maximize.png</file>
         <file>Resource/White/play_arrow.png</file>
         <file>Resource/White/speaker.png</file>
         <file>Resource/White/create_new_folder.png</file>
         <file>Resource/White/unknown_album.png</file>
         <file>Resource/White/settings.png</file>
         <file>Resource/White/stop.png</file>
-        <file>Resource/Black/close.png</file>
         <file>Resource/Black/left_black.png</file>
-        <file>Resource/Black/minimize.png</file>
         <file>Resource/Black/pause.png</file>
         <file>Resource/Black/play.png</file>
         <file>Resource/Black/right_black.png</file>
-        <file>Resource/Black/maximize.png</file>
         <file>Resource/Black/settings.png</file>
         <file>Resource/Black/play_arrow.png</file>
         <file>Resource/Black/speaker.png</file>
@@ -89,5 +83,17 @@
         <file>fonts/IBMPlexSans-Regular.ttf</file>
         <file>fonts/Inter-Bold.ttf</file>
         <file>fonts/Inter-Regular.ttf</file>
+        <file>Resource/Black/close_hover.png</file>
+        <file>Resource/Black/close_normal.png</file>
+        <file>Resource/Black/maximize_hover.png</file>
+        <file>Resource/Black/maximize_normal.png</file>
+        <file>Resource/Black/minimize_hover.png</file>
+        <file>Resource/Black/minimize_normal.png</file>
+        <file>Resource/White/close_hover.png</file>
+        <file>Resource/White/close_normal.png</file>
+        <file>Resource/White/maximize_hover.png</file>
+        <file>Resource/White/maximize_normal.png</file>
+        <file>Resource/White/minimize_hover.png</file>
+        <file>Resource/White/minimize_normal.png</file>
     </qresource>
 </RCC>

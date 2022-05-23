@@ -157,7 +157,7 @@
             </size>
            </property>
            <property name="text">
-            <string>Album Image Cache Size:</string>
+            <string>Album Image cache size:</string>
            </property>
           </widget>
          </item>
@@ -183,7 +183,7 @@
             </size>
            </property>
            <property name="text">
-            <string>ReplayGain Mode</string>
+            <string>ReplayGain mode</string>
            </property>
           </widget>
          </item>
@@ -231,7 +231,7 @@
             </sizepolicy>
            </property>
            <property name="text">
-            <string>Use Frameless Window(Experimental):</string>
+            <string>Use frameless window(experimental):</string>
            </property>
           </widget>
          </item>
@@ -257,7 +257,7 @@
             </size>
            </property>
            <property name="text">
-            <string>UI Font</string>
+            <string>UI font</string>
            </property>
           </widget>
          </item>

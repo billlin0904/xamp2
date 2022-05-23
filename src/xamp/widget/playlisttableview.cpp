@@ -136,7 +136,7 @@ void PlayListTableView::updateData() {
 void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
     playlist_id_ = playlist_id;
 
-    SharedSingleton<Database>::GetInstance().clearNowPlaying(playlist_id_);
+    qDatabase.clearNowPlaying(playlist_id_);
 
     updateData();
 
@@ -259,7 +259,7 @@ void PlayListTableView::initial() {
         auto index = model()->index(start_editor->row(), PLAYLIST_RATING);
         auto item = nomapItem(index);        
         item.rating = start_editor->starRating().starCount();
-        SharedSingleton<Database>::GetInstance().updateMusicRating(item.music_id, item.rating);
+        qDatabase.updateMusicRating(item.music_id, item.rating);
         refresh();
     });
 
@@ -386,13 +386,13 @@ void PlayListTableView::initial() {
         action_map.setCallback(reload_metadata_act, [this, item]() {
             auto reader = MakeMetadataReader();
             auto metadata = reader->Extract(item.file_path.toStdWString());
-            SharedSingleton<Database>::GetInstance().addOrUpdateMusic(
+            qDatabase.addOrUpdateMusic(
                 metadata, -1);
             refresh();
         });
 
         action_map.setCallback(remove_all_act, [this]() {
-            SharedSingleton<Database>::GetInstance().removePlaylistAllMusic(playlistId());
+            qDatabase.removePlaylistAllMusic(playlistId());
             updateData();
             removePlaying();
         });
@@ -551,7 +551,7 @@ void PlayListTableView::updateReplayGain(int music_id,
     double album_peak,
     double track_rg_gain,
     double track_peak) {
-    SharedSingleton<Database>::GetInstance().updateReplayGain(
+    qDatabase.updateReplayGain(
         music_id, album_rg_gain, album_peak, track_rg_gain, track_peak);
     XAMP_LOG_DEBUG("Update DB music id : {}, album_rg_gain: {:.2f} album_peak: {:.2f} track_rg_gain: {:.2f} track_peak: {:.2f}",
         music_id, album_rg_gain, album_peak, track_rg_gain, track_peak);
@@ -643,12 +643,12 @@ void PlayListTableView::importPodcast() {
         ::MetadataExtractAdapter::processMetadata(QDateTime::currentSecsSinceEpoch(), podcast_info.second, this, podcast_mode_);
         http::HttpClient(QString::fromStdString(podcast_info.first))
     	.download([=](auto data) {
-            auto cover_id = SharedSingleton<PixmapCache>::GetInstance().addOrUpdate(data);
+            auto cover_id = qPixmapCache.addOrUpdate(data);
     		if (!model()->rowCount()) {
                 return;
     		}
             auto play_item = getEntity(this->model()->index(0, 0));
-            SharedSingleton<Database>::GetInstance().setAlbumCover(play_item.album_id, play_item.album, cover_id);
+            qDatabase.setAlbumCover(play_item.album_id, play_item.album, cover_id);
             });    	
         }).get();
 }
@@ -742,7 +742,7 @@ void PlayListTableView::setNowPlaying(const QModelIndex& index, bool is_scroll_t
         QTableView::scrollTo(play_index_, PositionAtCenter);
     }
     const auto entity = getEntity(play_index_);
-    SharedSingleton<Database>::GetInstance().setNowPlaying(playlist_id_, entity.playlist_music_id);
+    qDatabase.setNowPlaying(playlist_id_, entity.playlist_music_id);
     refresh();
     update();
 }
@@ -789,7 +789,7 @@ void PlayListTableView::play(const QModelIndex& index) {
 }
 
 void PlayListTableView::removePlaying() {
-    SharedSingleton<Database>::GetInstance().clearNowPlaying(playlist_id_);
+    qDatabase.clearNowPlaying(playlist_id_);
     updateData();
 }
 
@@ -804,15 +804,15 @@ void PlayListTableView::removeSelectItems() {
 
     for (auto itr = rows.rbegin(); itr != rows.rend(); ++itr) {
         const auto it = item((*itr).second);
-        SharedSingleton<Database>::GetInstance().clearNowPlaying(playlist_id_, it.playlist_music_id);
+        qDatabase.clearNowPlaying(playlist_id_, it.playlist_music_id);
         remove_music_ids.push_back(it.playlist_music_id);
     }
 
     const auto count = proxy_model_.rowCount();
 	if (!count) {
-        SharedSingleton<Database>::GetInstance().clearNowPlaying(playlist_id_);       
+        qDatabase.clearNowPlaying(playlist_id_);       
 	}
 
-    SharedSingleton<Database>::GetInstance().removePlaylistMusic(playlist_id_, remove_music_ids);
+    qDatabase.removePlaylistMusic(playlist_id_, remove_music_ids);
     updateData();
 }

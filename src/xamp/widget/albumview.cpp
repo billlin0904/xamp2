@@ -54,7 +54,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     auto cover_id = index.model()->data(index.model()->index(index.row(), 1)).toString();
     auto artist = index.model()->data(index.model()->index(index.row(), 2)).toString();
 
-    const auto default_cover_size = SharedSingleton<ThemeManager>::GetInstance().getDefaultCoverSize();
+    const auto default_cover_size = qTheme.getDefaultCoverSize();
     const QRect cover_rect(option.rect.left() + 10, option.rect.top() + 10,
         default_cover_size.width(), default_cover_size.height());
 
@@ -81,9 +81,9 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     painter->setFont(f);
     painter->drawText(artist_text_rect, Qt::AlignVCenter, artist);
 
-    auto album_cover = &SharedSingleton<ThemeManager>::GetInstance().pixmap().defaultSizeUnknownCover();
+    auto album_cover = &qTheme.pixmap().defaultSizeUnknownCover();
 
-    if (const auto * cache_small_cover = SharedSingleton<PixmapCache>::GetInstance().find(cover_id)) {
+    if (const auto * cache_small_cover = qPixmapCache.find(cover_id)) {
         album_cover = cache_small_cover;        
         painter->drawPixmap(cover_rect, Pixmap::roundImage(*album_cover, Pixmap::kSmallImageRadius));
     }
@@ -94,7 +94,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
 
 QSize AlbumViewStyledDelegate::sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const {
     auto result = QStyledItemDelegate::sizeHint(option, index);
-    const auto default_cover = SharedSingleton<ThemeManager>::GetInstance().getDefaultCoverSize();
+    const auto default_cover = qTheme.getDefaultCoverSize();
     result.setWidth(default_cover.width() + 30);
     result.setHeight(default_cover.height() + 80);
     return result;
@@ -146,7 +146,7 @@ void AlbumPlayListTableView::resizeColumn() {
             break;
         case AlbumPlayListTableView::PLAYLIST_TITLE:
             header->setSectionResizeMode(column, QHeaderView::Fixed);
-            header->resizeSection(column, size().width() - SharedSingleton<ThemeManager>::GetInstance().getAlbumCoverSize().width() - 100);
+            header->resizeSection(column, size().width() - qTheme.getAlbumCoverSize().width() - 100);
             break;
         case AlbumPlayListTableView::PLAYLIST_DURATION:
             header->setSectionResizeMode(column, QHeaderView::ResizeToContents);
@@ -210,7 +210,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
                                          image: url(:/xamp/Resource/%1/close.png);
                                          background-color: transparent;
                                          }
-                                         )").arg(SharedSingleton<ThemeManager>::GetInstance().themeColorPath()));
+                                         )").arg(qTheme.themeColorPath()));
     close_button->setFixedSize(QSize(24, 24));
 
     auto hbox_layout = new QHBoxLayout();
@@ -292,7 +292,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
         emit playMusic(getAlbumEntity(index));
         });
 
-    SharedSingleton<ThemeManager>::GetInstance().setBackgroundColor(this);
+    qTheme.setBackgroundColor(this);
 }
 
 void AlbumViewPage::setAlbum(const QString& album) {
@@ -324,14 +324,14 @@ void AlbumViewPage::setTotalDuration(double durations) {
 }
 
 void AlbumViewPage::setCover(const QString& cover_id) {
-    if (auto const * cache_small_cover = SharedSingleton<PixmapCache>::GetInstance().find(cover_id)) {
+    if (auto const * cache_small_cover = qPixmapCache.find(cover_id)) {
         auto image = Pixmap::roundImage(Pixmap::resizeImage(cache_small_cover->copy(),
-            SharedSingleton<ThemeManager>::GetInstance().getAlbumCoverSize()));
+            qTheme.getAlbumCoverSize()));
         cover_->setPixmap(image);
     }
     else {
-        const auto image = Pixmap::roundImage(Pixmap::resizeImage(SharedSingleton<ThemeManager>::GetInstance().pixmap().defaultSizeUnknownCover(),
-                                                                  SharedSingleton<ThemeManager>::GetInstance().getAlbumCoverSize()));
+        const auto image = Pixmap::roundImage(Pixmap::resizeImage(qTheme.pixmap().defaultSizeUnknownCover(),
+                                                                  qTheme.getAlbumCoverSize()));
         cover_->setPixmap(image);
     }
 }
@@ -387,13 +387,13 @@ AlbumView::AlbumView(QWidget* parent)
         page_->setPlaylistMusic(album_id);
         page_->setFixedSize(QSize(list_view_rect.size().width() - 10, list_view_rect.height() - 6));
 
-        if (auto album_stats = SharedSingleton<Database>::GetInstance().getAlbumStats(album_id)) {
+        if (auto album_stats = qDatabase.getAlbumStats(album_id)) {
             page_->setTracks(album_stats.value().tracks);
             page_->setTotalDuration(album_stats.value().durations);
         }
 
         page_->move(QPoint(list_view_rect.x() + 5, 3));
-        SharedSingleton<ThemeManager>::GetInstance().setBackgroundColor(page_);
+        qTheme.setBackgroundColor(page_);
     	
         page_->show();
         });
@@ -409,13 +409,13 @@ AlbumView::AlbumView(QWidget* parent)
         ActionMap<AlbumView> action_map(this);
 
         auto removeAlbum = [=]() {
-            for (const auto album_id : SharedSingleton<Database>::GetInstance().getAlbumId()) {
-                SharedSingleton<Database>::GetInstance().removeAlbum(album_id);
+            for (const auto album_id : qDatabase.getAlbumId()) {
+                qDatabase.removeAlbum(album_id);
             }
-            SharedSingleton<Database>::GetInstance().removeAllArtist();
+            qDatabase.removeAllArtist();
             update();
             emit removeAll();
-            SharedSingleton<PixmapCache>::GetInstance().clear();
+            qPixmapCache.clear();
         };
 
         if (index.isValid()) {
@@ -428,7 +428,7 @@ AlbumView::AlbumView(QWidget* parent)
             action_map.addAction(tr("Add album to playlist"), [=]() {
                 std::vector<PlayListEntity> entities;
                 std::vector<int32_t> add_playlist_music_ids;
-                SharedSingleton<Database>::GetInstance().forEachAlbumMusic(album_id,
+                qDatabase.forEachAlbumMusic(album_id,
                     [&entities, &add_playlist_music_ids](const PlayListEntity& entity) mutable {
                         if (entity.album_replay_gain == 0.0) {
                             entities.push_back(entity);
@@ -441,7 +441,7 @@ AlbumView::AlbumView(QWidget* parent)
             action_map.addAction(tr("Add album (artist) to playlist"), [=]() {
                 std::vector<PlayListEntity> entities;
                 std::vector<int32_t> add_playlist_music_ids;
-                SharedSingleton<Database>::GetInstance().forEachAlbumArtistMusic(album_id, artist_id,
+                qDatabase.forEachAlbumArtistMusic(album_id, artist_id,
                     [&entities, &add_playlist_music_ids](const PlayListEntity& entity) mutable {
                         if (entity.album_replay_gain == 0.0) {
                             entities.push_back(entity);
@@ -462,7 +462,7 @@ AlbumView::AlbumView(QWidget* parent)
             action_map.addSeparator();
 
             action_map.addAction(tr("Remove select album"), [=]() {
-                SharedSingleton<Database>::GetInstance().removeAlbum(album_id);
+                qDatabase.removeAlbum(album_id);
                 refreshOnece();
                 });
 

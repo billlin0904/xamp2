@@ -75,3 +75,5 @@ private:
 	mutable LruCache<QString, QPixmap> cache_;
 	std::shared_ptr<spdlog::logger> logger_;
 };
+
+#define qPixmapCache SharedSingleton<PixmapCache>::GetInstance()
