@@ -182,7 +182,7 @@ XWindow::XWindow()
 void XWindow::setContentWidget(IXampPlayer *content_widget) {
     content_widget_ = content_widget;
     if (content_widget_ != nullptr) {
-       /* auto* shadow = new QGraphicsDropShadowEffect();
+        /*auto* shadow = new QGraphicsDropShadowEffect();
         shadow->setOffset(0, 0);
         shadow->setBlurRadius(10);
         shadow->setColor(Qt::black);
@@ -204,15 +204,9 @@ void XWindow::setContentWidget(IXampPlayer *content_widget) {
     if (!qTheme.useNativeWindow()) {
         setWindowTitle(kAppTitle);
         //setAttribute(Qt::WA_TranslucentBackground, true);
-        //setWindowFlags(Qt::CustomizeWindowHint);
-        //setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
+        setWindowFlags(windowFlags() | Qt::WindowMaximizeButtonHint);
         win32::setFramelessWindowStyle(this);
         win32::addDwmShadow(this);
-    	/*auto* effect = new QGraphicsDropShadowEffect(content_widget_);
-        effect->setOffset(0, 0);
-        effect->setColor(QColor(QStringLiteral("black")));
-        effect->setBlurRadius(4);
-        content_widget_->setGraphicsEffect(effect);*/
     } else {
         win32::setWindowedWindowStyle(this);
         win32::addDwmShadow(this);

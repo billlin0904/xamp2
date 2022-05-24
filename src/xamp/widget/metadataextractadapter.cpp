@@ -151,7 +151,7 @@ public:
             return;
         }
         metadatas_.sort([](const auto& first, const auto& last) {
-            return first.track < last.track;;
+            return first.track < last.track;
             });
         emit adapter_->readCompleted(ToTime_t(dir_entry.last_write_time()), metadatas_);
         metadatas_.clear();

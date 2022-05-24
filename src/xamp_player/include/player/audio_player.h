@@ -32,8 +32,7 @@
 namespace xamp::player {
 
 MAKE_XAMP_ENUM(PlayerActionId,
-    PLAYER_SEEK,
-    PLAYER_COPY_SAMPLES);
+    PLAYER_SEEK);
 
 struct PlayerAction {
     PlayerActionId id;

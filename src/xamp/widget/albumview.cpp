@@ -207,8 +207,11 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
     close_button->setStyleSheet(Q_UTF8(R"(
                                          QPushButton#albumViewPageCloseButton {
                                          border: none;
-                                         image: url(:/xamp/Resource/%1/close.png);
+                                         image: url(:/xamp/Resource/%1/close_normal.png);
                                          background-color: transparent;
+                                         }
+										 QPushButton#albumViewPageCloseButton:hover {	
+										 image: url(:/xamp/Resource/%1/close_hover.png);									 
                                          }
                                          )").arg(qTheme.themeColorPath()));
     close_button->setFixedSize(QSize(24, 24));

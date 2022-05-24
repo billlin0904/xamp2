@@ -49,16 +49,29 @@ QFont ThemeManager::loadFonts() {
 
     QList<QString> ui_fallback_fonts;
 
-    // note: If we are support Source HanSans font sets must be enable Direct2D function,
-    // But Qt framework not work fine with that!
     ui_fallback_fonts.push_back(default_font_families[0]);
     ui_fallback_fonts.push_back(title_font_families[0]);
 #if defined(Q_OS_WIN)
+    // note: If we are support Source HanSans font sets must be enable Direct2D function,
+    // But Qt framework not work fine with that!
+
+    /*auto source_han_sans_font_path = Q_STR("%1/fonts/SourceHanSans.ttc")
+		.arg(QCoreApplication::applicationDirPath());
+    const auto loaded_font_id = QFontDatabase::addApplicationFont(source_han_sans_font_path);
+    if (loaded_font_id != -1) {
+        auto loaded_font_families = QFontDatabase::applicationFontFamilies(loaded_font_id);
+        Q_FOREACH(auto font_name, loaded_font_families) {
+            ui_fallback_fonts.push_back(font_name);
+        }
+    }*/
+
     ui_fallback_fonts.push_back(Q_UTF8("Meiryo UI")); // For japanese font.
+    ui_fallback_fonts.push_back(Q_UTF8("Microsoft YaHei"));
+    ui_fallback_fonts.push_back(Q_UTF8("Microsoft JhengHei UI"));
+
     ui_fallback_fonts.push_back(Q_UTF8("Arial"));
     ui_fallback_fonts.push_back(Q_UTF8("Lucida Grande"));
     ui_fallback_fonts.push_back(Q_UTF8("Helvetica Neue"));
-    ui_fallback_fonts.push_back(Q_UTF8("Microsoft JhengHei UI"));
     QFont::insertSubstitutions(Q_UTF8("MonoFont"), QList<QString>() << Q_UTF8("Consolas"));
 #else
     QList<QString> mono_fonts;
