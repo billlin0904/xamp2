@@ -51,10 +51,10 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 	f.setBold(true);
 	artist_ = new QLabel(this);
 	artist_->setFont(f);
-	artist_->setStyleSheet(Q_UTF8("background-color: transparent"));
+	artist_->setStyleSheet(Q_TEXT("background-color: transparent"));
 
 	auto* title = new QLabel();
-	title->setStyleSheet(Q_UTF8("background-color: transparent"));
+	title->setStyleSheet(Q_TEXT("background-color: transparent"));
 	title->setObjectName(QString::fromUtf8("label_2"));
 	title->setText(tr("Artists"));
 	f.setPointSize(35);
@@ -68,19 +68,19 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 	albums_->setFixedSize(QSize(16777215, 64));
 	albums_->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
 	albums_->setFont(f);
-	albums_->setStyleSheet(Q_UTF8("background-color: transparent;"));
+	albums_->setStyleSheet(Q_TEXT("background-color: transparent;"));
 
 	tracks_ = new QLabel(this);
 	tracks_->setFixedSize(QSize(16777215, 64));
 	tracks_->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
 	tracks_->setFont(f);
-	tracks_->setStyleSheet(Q_UTF8("background-color: transparent;"));
+	tracks_->setStyleSheet(Q_TEXT("background-color: transparent;"));
 
 	durtions_ = new QLabel(this);
 	durtions_->setFixedSize(QSize(16777215, 64));
 	durtions_->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
 	durtions_->setFont(f);
-	durtions_->setStyleSheet(Q_UTF8("background-color: transparent;"));
+	durtions_->setStyleSheet(Q_TEXT("background-color: transparent;"));
 
 	auto* artist_layout = new QHBoxLayout();
 	artist_layout->setSpacing(0);
@@ -108,7 +108,7 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 	album_view_->hideWidget();
 	setArtistId(Qt::EmptyString, Qt::EmptyString, -1);
 
-	setStyleSheet(Q_UTF8("background-color: transparent"));
+	setStyleSheet(Q_TEXT("background-color: transparent"));
 
 	setAlbumCount(0);
 	setTracks(0);
@@ -142,7 +142,7 @@ void ArtistInfoPage::setArtistId(const QString& artist, const QString& cover_id,
 }
 
 void ArtistInfoPage::onThemeChanged(QColor backgroundColor, QColor color) {
-    artist_->setStyleSheet(Q_UTF8("QLabel { color: ") + colorToString(color) + Q_UTF8(";}"));
+    artist_->setStyleSheet(Q_TEXT("QLabel { color: ") + colorToString(color) + Q_TEXT(";}"));
 	album_view_->onThemeChanged(backgroundColor, color);
 }
 

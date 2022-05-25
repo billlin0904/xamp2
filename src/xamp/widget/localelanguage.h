@@ -34,7 +34,7 @@ public:
 	}
 
 	QString getIsoCode() const {
-		return langIsoCode() + Q_UTF8("_") + countryIsoCode();
+		return langIsoCode() + Q_TEXT("_") + countryIsoCode();
 	}
 
 	QString nativeNameLang() const {

@@ -102,7 +102,7 @@ void LrcPage::initial() {
     cover_label_->setMinimumSize(QSize(500, 500));
     cover_label_->setMaximumSize(QSize(500, 500));
 #endif
-	cover_label_->setStyleSheet(Q_UTF8("background-color: transparent"));
+	cover_label_->setStyleSheet(Q_TEXT("background-color: transparent"));
 	cover_label_->setAttribute(Qt::WA_StaticContents);
 
 	auto* effect = new QGraphicsDropShadowEffect(this);
@@ -134,7 +134,7 @@ void LrcPage::initial() {
 	f.setBold(true);
 
     title_ = new ScrollLabel(this);
-	title_->setStyleSheet(Q_UTF8("background-color: transparent"));
+	title_->setStyleSheet(Q_TEXT("background-color: transparent"));
 	title_->setObjectName(QString::fromUtf8("label_2"));
 	title_->setText(tr("Title:"));	
 	title_->setFont(f);
@@ -163,12 +163,12 @@ void LrcPage::initial() {
 	label_3->setFont(f);
 	label_3->setMinimumHeight(40);
 	label_3->setMinimumWidth(60);
-    label_3->setStyleSheet(Q_UTF8("background-color: transparent; color: gray;"));
+    label_3->setStyleSheet(Q_TEXT("background-color: transparent; color: gray;"));
 	horizontalLayout_8->addWidget(label_3);
 
 	artist_ = new ScrollLabel(this);
 	artist_->setObjectName(QString::fromUtf8("label_5"));
-    artist_->setStyleSheet(Q_UTF8("background-color: transparent"));
+    artist_->setStyleSheet(Q_TEXT("background-color: transparent"));
 	artist_->setFont(f);
 
 	horizontalLayout_8->addWidget(artist_);
@@ -186,12 +186,12 @@ void LrcPage::initial() {
 
 	label_7->setMinimumWidth(50);
 	label_7->setFont(f);
-    label_7->setStyleSheet(Q_UTF8("background-color: transparent; color: gray;"));
+    label_7->setStyleSheet(Q_TEXT("background-color: transparent; color: gray;"));
 	horizontalLayout_7->addWidget(label_7);
 
 	album_ = new ScrollLabel(this);
 	album_->setObjectName(QString::fromUtf8("label_6"));
-    album_->setStyleSheet(Q_UTF8("background-color: transparent"));
+    album_->setStyleSheet(Q_TEXT("background-color: transparent"));
 	album_->setFont(f);
 
 	horizontalLayout_7->addWidget(album_);
@@ -210,7 +210,7 @@ void LrcPage::initial() {
 
 	spectrum_ = new SpectrumWidget(this);
 	spectrum_->setMinimumSize(QSize(180, 60));
-	spectrum_->setStyleSheet(Q_UTF8("background-color: transparent"));
+	spectrum_->setStyleSheet(Q_TEXT("background-color: transparent"));
 	verticalLayout_2->addWidget(spectrum_);
 
 	verticalLayout_2->setStretch(2, 1);
@@ -223,4 +223,6 @@ void LrcPage::initial() {
 	title_->hide();
 	album_->hide();
 	artist_->hide();
+
+	setStyleSheet(Q_TEXT("background-color: transparent"));
 }

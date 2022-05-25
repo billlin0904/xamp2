@@ -19,7 +19,7 @@ static QString GetServerName() {
     QString serverNameSource;
     serverNameSource += QDir::home().dirName();
     serverNameSource += QSysInfo::machineHostName();
-    return QString(Q_UTF8(QCryptographicHash::hash(serverNameSource.toUtf8(), QCryptographicHash::Sha256)
+    return QString(Q_TEXT(QCryptographicHash::hash(serverNameSource.toUtf8(), QCryptographicHash::Sha256)
         .toBase64(QByteArray::Base64UrlEncoding | QByteArray::OmitTrailingEquals)));
 }
 
@@ -42,7 +42,7 @@ bool SingleInstanceApplication::attach(const QStringList &args) {
     if (socket.waitForConnected())  {
         QByteArray buffer;
         foreach(QString item, args) {
-            buffer.append(item + Q_UTF8("\n"));
+            buffer.append(item + Q_TEXT("\n"));
         }
         socket.write(buffer);
         socket.waitForBytesWritten();

@@ -17,10 +17,10 @@
 
 inline constexpr size_t kDefaultCacheSize = 32;
 inline constexpr qint64 kMaxCacheImageSize = 8 * 1024 * 1024;
-inline constexpr auto kPixmapCacheFileExt = Q_UTF8(".jpg");
+inline constexpr auto kPixmapCacheFileExt = Q_TEXT(".jpg");
 
 QStringList PixmapCache::cover_ext_ =
-    QStringList() << Q_UTF8("*.jpeg") << Q_UTF8("*.jpg") << Q_UTF8("*.png") << Q_UTF8("*.bmp");
+    QStringList() << Q_TEXT("*.jpeg") << Q_TEXT("*.jpg") << Q_TEXT("*.png") << Q_TEXT("*.bmp");
 
 QStringList PixmapCache::cache_ext_ =
     QStringList() << kPixmapCacheFileExt;
@@ -28,7 +28,7 @@ QStringList PixmapCache::cache_ext_ =
 PixmapCache::PixmapCache()
 	: cache_(kDefaultCacheSize)
 	, logger_(Logger::GetInstance().GetLogger("PixmapCache")) {
-	cache_path_ = QDir::currentPath() + Q_UTF8("/caches/");
+	cache_path_ = QDir::currentPath() + Q_TEXT("/caches/");
 	const QDir dir;
 	(void)dir.mkdir(cache_path_);
     unknown_cover_id_ = addOrUpdate(qTheme.pixmap().unknownCover());

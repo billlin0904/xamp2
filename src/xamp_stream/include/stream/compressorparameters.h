@@ -14,7 +14,7 @@ struct XAMP_STREAM_API CompressorParameters final {
         : gain(-1)
         , threshold(-1)
         , ratio(100)
-        , attack(0.1f)
+        , attack(0.01f)
         , release(50) {
     }
 

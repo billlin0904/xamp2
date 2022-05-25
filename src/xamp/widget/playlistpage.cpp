@@ -103,12 +103,12 @@ void PlaylistPage::initial() {
 
 	default_layout->setStretch(2, 1);
 
-	setStyleSheet(Q_UTF8("background-color: transparent"));
+	setStyleSheet(Q_TEXT("background-color: transparent"));
 }
 
 void PlaylistPage::OnThemeColorChanged(QColor theme_color, QColor color) {
-	title_->setStyleSheet(Q_UTF8("QLabel { color: ") + colorToString(color) + Q_UTF8("; background-color: transparent; }"));
-	format_->setStyleSheet(Q_UTF8("QLabel { font-family: FormatFont; font-size: 16px; color: ") + colorToString(color) + Q_UTF8("; background-color: transparent; }"));
+	title_->setStyleSheet(Q_TEXT("QLabel { color: ") + colorToString(color) + Q_TEXT("; background-color: transparent; }"));
+	format_->setStyleSheet(Q_TEXT("QLabel { font-family: FormatFont; font-size: 16px; color: ") + colorToString(color) + Q_TEXT("; background-color: transparent; }"));
 	//setStyleSheet(backgroundColorToString(theme_color));
 }
 

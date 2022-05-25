@@ -24,16 +24,12 @@ public:
     }
 
 private:
-    bool nativeEvent(const QByteArray& event_type, void* message, long* result) override;
-
 #if defined(Q_OS_WIN)
     void mousePressEvent(QMouseEvent* event) override;
 
     void mouseReleaseEvent(QMouseEvent* event) override;
 
     void mouseMoveEvent(QMouseEvent* event) override;
-
-    bool hitTest(MSG const* msg, long* result) const;
 
     const int32_t border_width_{ 5 };
     QPoint last_pos_{0, 0};

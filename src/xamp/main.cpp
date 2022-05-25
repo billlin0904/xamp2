@@ -57,12 +57,12 @@ static void loadSoxrSetting() {
 
 static spdlog::level::level_enum ParseLogLevel(const QString &str) {
     const static QMap<QString, spdlog::level::level_enum> logs{
-    	{ Q_UTF8("info"), spdlog::level::info},
-        { Q_UTF8("debug"), spdlog::level::debug},
-        { Q_UTF8("trace"), spdlog::level::trace},
-        { Q_UTF8("warn"), spdlog::level::warn},
-        { Q_UTF8("err"), spdlog::level::err},
-        { Q_UTF8("critical"), spdlog::level::critical},
+    	{ Q_TEXT("info"), spdlog::level::info},
+        { Q_TEXT("debug"), spdlog::level::debug},
+        { Q_TEXT("trace"), spdlog::level::trace},
+        { Q_TEXT("warn"), spdlog::level::warn},
+        { Q_TEXT("err"), spdlog::level::err},
+        { Q_TEXT("critical"), spdlog::level::critical},
     };
     if (!logs.contains(str)) {
         return spdlog::level::info;
@@ -79,12 +79,12 @@ static void loadLogConfig() {
 
     for (const auto& logger_name : Logger::GetInstance().GetDefaultLoggerName()) {
         if (logger_name != kXampLoggerName) {
-            well_known_log_name[fromStdStringView(logger_name)] = Q_UTF8("info");
+            well_known_log_name[fromStdStringView(logger_name)] = Q_TEXT("info");
         }
     }
 
     if (JsonSettings::getValueAsMap(kLog).isEmpty()) {
-        min_level[kLogDefault] = Q_UTF8("debug");
+        min_level[kLogDefault] = Q_TEXT("debug");
 
         XAMP_SET_LOG_LEVEL(ParseLogLevel(min_level[kLogDefault].toString()));
 
@@ -126,7 +126,7 @@ static void loadLogConfig() {
 }
 
 static void loadSettings() {
-    AppSettings::loadIniFile(Q_UTF8("xamp.ini"));
+    AppSettings::loadIniFile(Q_TEXT("xamp.ini"));
     AppSettings::setDefaultValue(kAppSettingDeviceType, Qt::EmptyString);
     AppSettings::setDefaultValue(kAppSettingDeviceId, Qt::EmptyString);
     AppSettings::setDefaultValue(kAppSettingWidth, 600);
@@ -148,13 +148,13 @@ static void loadSettings() {
     AppSettings::setDefaultValue(kAppSettingEnableReplayGain, true);
     AppSettings::setDefaultEnumValue(kAppSettingTheme, ThemeColor::DARK_THEME);
     AppSettings::setDefaultValue(kEnableBitPerfect, true);
-    AppSettings::setDefaultValue(kAppSettingDefaultFontName, Q_UTF8("WorkSans"));
+    AppSettings::setDefaultValue(kAppSettingDefaultFontName, Q_TEXT("WorkSans"));
     AppSettings::save();
     XAMP_LOG_DEBUG("loadSettings success.");
 }
 
 static void loadLogAndSoxrConfig() {
-    JsonSettings::loadJsonFile(Q_UTF8("config.json"));
+    JsonSettings::loadJsonFile(Q_TEXT("config.json"));
     loadLogConfig();
     loadSoxrSetting();
     JsonSettings::save();
@@ -243,10 +243,10 @@ static int excute(int argc, char* argv[]) {
     QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 
-    QApplication::setApplicationName(Q_UTF8("XAMP2"));
-    QApplication::setApplicationVersion(Q_UTF8("0.0.1"));
-    QApplication::setOrganizationName(Q_UTF8("XAMP2 Project"));
-    QApplication::setOrganizationDomain(Q_UTF8("XAMP2 Project"));
+    QApplication::setApplicationName(Q_TEXT("XAMP2"));
+    QApplication::setApplicationVersion(Q_TEXT("0.0.1"));
+    QApplication::setOrganizationName(Q_TEXT("XAMP2 Project"));
+    QApplication::setOrganizationDomain(Q_TEXT("XAMP2 Project"));
 
     QApplication app(argc, argv);
 
@@ -262,7 +262,7 @@ static int excute(int argc, char* argv[]) {
     XAMP_LOG_DEBUG("attach app success.");
 
     try {
-        qDatabase.open(Q_UTF8("xamp.db"));
+        qDatabase.open(Q_TEXT("xamp.db"));
     }
     catch (const std::exception& e) {
         XAMP_LOG_INFO("Init database failure. {}", e.what());
@@ -289,7 +289,7 @@ static int excute(int argc, char* argv[]) {
     }
     catch (const Exception& e) {
         QMessageBox::critical(nullptr,
-            Q_UTF8("Initialize failure."),
+            Q_TEXT("Initialize failure."),
             QString::fromStdString(e.GetErrorMessage()));
         XAMP_LOG_DEBUG("{}", e.GetStackTrace());
         return -1;

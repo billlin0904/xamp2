@@ -20,7 +20,7 @@ namespace Qt {
 
 inline constexpr ConstLatin1String kAppTitle{ "XAMP" };
 
-constexpr ConstLatin1String Q_UTF8(const char str[]) noexcept {
+constexpr ConstLatin1String Q_TEXT(const char str[]) noexcept {
     return ConstLatin1String{ str };
 }
 

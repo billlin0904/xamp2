@@ -26,8 +26,8 @@ AppEQSettings AppSettings::getEQSettings() {
 }
 
 void AppSettings::loadEQPreset() {
-    auto path = QDir::currentPath() + Q_UTF8("/eqpresets/");
-    auto file_ext = QStringList() << Q_UTF8("*.*");
+    auto path = QDir::currentPath() + Q_TEXT("/eqpresets/");
+    auto file_ext = QStringList() << Q_TEXT("*.*");
 
     for (QDirIterator itr(path, file_ext, QDir::Files | QDir::NoDotAndDotDot);
         itr.hasNext();) {
@@ -40,13 +40,13 @@ void AppSettings::loadEQPreset() {
             int i = 0;
             while (!in.atEnd()) {
                 auto line = in.readLine();
-                auto result = line.split(Q_UTF8(":"));
+                auto result = line.split(Q_TEXT(":"));
                 auto str = result[1].toStdWString();
-                if (result[0] == Q_UTF8("Preamp")) {
+                if (result[0] == Q_TEXT("Preamp")) {
                     swscanf(str.c_str(), L"%f dB",
                         &settings.preamp);
                 }
-                else if (result[0].indexOf(Q_UTF8("Filter") != -1)) {
+                else if (result[0].indexOf(Q_TEXT("Filter") != -1)) {
                     auto pos = str.find(L"Gain");
                     if (pos == std::wstring::npos) {
                         continue;
@@ -86,7 +86,7 @@ Uuid AppSettings::getValueAsID(const QString& key) {
 
 QList<QString> AppSettings::getList(QString const& key) {
 #if QT_VERSION > QT_VERSION_CHECK(5, 14, 1)
-    return AppSettings::getValueAsString(key).split(Q_UTF8(","), Qt::SkipEmptyParts);
+    return AppSettings::getValueAsString(key).split(Q_TEXT(","), Qt::SkipEmptyParts);
 #else
     return AppSettings::getValueAsString(key).split(Q_UTF8(","), QString::SkipEmptyParts);
 #endif
@@ -104,7 +104,7 @@ void AppSettings::removeList(QString const& key, QString const & value) {
     Q_FOREACH(auto id, values) {
         all << id;
     }
-    AppSettings::setValue(key, all.join(Q_UTF8(",")));
+    AppSettings::setValue(key, all.join(Q_TEXT(",")));
 }
 
 void AppSettings::addList(QString const& key, QString const & value) {
@@ -120,7 +120,7 @@ void AppSettings::addList(QString const& key, QString const & value) {
     Q_FOREACH(auto id, values) {
         all << id;
     }
-    AppSettings::setValue(key, all.join(Q_UTF8(",")));
+    AppSettings::setValue(key, all.join(Q_TEXT(",")));
 }
 
 QSize AppSettings::getSizeValue(const QString& width_key,

@@ -63,7 +63,6 @@ enum TabIndex {
     TAB_LYRICS,
     TAB_SETTINGS,
     TAB_ABOUT,
-    TAB_YT_MUSIC,
 };
 
 static PlayerOrder GetNextOrder(PlayerOrder cur) noexcept {
@@ -216,16 +215,16 @@ void Xamp::onActivated(QSystemTrayIcon::ActivationReason reason) {
 
 void Xamp::createTrayIcon() {
     auto* minimize_action = new QAction(tr("Mi&nimize"), this);
-    QObject::connect(minimize_action, &QAction::triggered, this, &QWidget::hide);
+    (void)QObject::connect(minimize_action, &QAction::triggered, this, &QWidget::hide);
 
     auto* maximize_action = new QAction(tr("Ma&ximize"), this);
-    QObject::connect(maximize_action, &QAction::triggered, this, &QWidget::showMaximized);
+    (void)QObject::connect(maximize_action, &QAction::triggered, this, &QWidget::showMaximized);
 
     auto* restore_action = new QAction(tr("&Restore"), this);
-    QObject::connect(restore_action, &QAction::triggered, this, &QWidget::showNormal);
+    (void)QObject::connect(restore_action, &QAction::triggered, this, &QWidget::showNormal);
 
     auto* quit_action = new QAction(tr("&Quit"), this);
-    QObject::connect(quit_action, &QAction::triggered, this, &QWidget::close);
+    (void)QObject::connect(quit_action, &QAction::triggered, this, &QWidget::close);
 
     tray_icon_menu_ = new QMenu(this);
     qTheme.setMenuStyle(tray_icon_menu_);
@@ -241,7 +240,7 @@ void Xamp::createTrayIcon() {
     tray_icon_->setToolTip(kAppTitle);
     tray_icon_->show();
 
-    QObject::connect(tray_icon_,
+    (void)QObject::connect(tray_icon_,
         SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
         this,
         SLOT(onActivated(QSystemTrayIcon::ActivationReason)));
@@ -308,7 +307,7 @@ void Xamp::initialUI() {
         f.setBold(true);
         f.setPointSize(11);
         ui_.titleFrameLabel->setFont(f);
-        ui_.titleFrameLabel->setText(Q_UTF8("XAMP2"));
+        ui_.titleFrameLabel->setText(Q_TEXT("XAMP2"));
         ui_.titleFrameLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
     }
 #ifdef Q_OS_WIN
@@ -332,7 +331,7 @@ void Xamp::initialUI() {
 
 QWidgetAction* Xamp::createTextSeparator(const QString& text) {
 	auto* label = new QLabel(text);
-    label->setObjectName(Q_UTF8("textSeparator"));
+    label->setObjectName(Q_TEXT("textSeparator"));
     auto f = font();
     f.setBold(true);
     label->setFont(f);
@@ -371,7 +370,7 @@ void Xamp::initialDeviceList() {
         ui_.selectDeviceButton->setMenu(menu);
     }
 
-    menu->setFont(QFont(Q_UTF8("FormatFont")));
+    menu->setFont(QFont(Q_TEXT("FormatFont")));
     menu->clear();
 
     DeviceInfo init_device_info;
@@ -386,10 +385,11 @@ void Xamp::initialDeviceList() {
     const auto device_id = AppSettings::getValueAsString(kAppSettingDeviceId).toStdString();
     const auto & device_manager = player_->GetAudioDeviceManager();
 
-    QFont font(Q_UTF8("FormatFont"));
+    QFont font(Q_TEXT("FormatFont"));
     font.setBold(true);
     ui_.hardwareVolumeControlLabel->setText(tr("Hardware volume control"));
     ui_.hardwareVolumeControlLabel->setFont(font);
+    ui_.hardwareVolumeControlLabel->setStyleSheet(Q_TEXT("background-color: transparent"));
 
     for (auto itr = device_manager->Begin(); itr != device_manager->End(); ++itr) {
         auto device_type = (*itr).second();
@@ -501,7 +501,7 @@ void Xamp::initialController() {
         }
         catch (const Exception & e) {
             player_->Stop(false);
-            Toast::showTip(Q_UTF8(e.GetErrorMessage()), this);
+            Toast::showTip(Q_TEXT(e.GetErrorMessage()), this);
         }
     });
 
@@ -531,17 +531,17 @@ void Xamp::initialController() {
     }    
 
     (void)QObject::connect(ui_.volumeSlider, &QSlider::valueChanged, [this](auto volume) {
-        QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + Q_UTF8("%"));
+        QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + Q_TEXT("%"));
         setVolume(volume);
     });
 
     (void)QObject::connect(ui_.volumeSlider, &SeekSlider::leftButtonValueChanged, [this](auto volume) {
-        QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + Q_UTF8("%"));
+        QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + Q_TEXT("%"));
         setVolume(volume);
     });
 
     (void)QObject::connect(ui_.volumeSlider, &QSlider::sliderMoved, [](auto volume) {
-        QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + Q_UTF8("%"));
+        QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + Q_TEXT("%"));
     });
 
     (void)QObject::connect(state_adapter_.get(),
@@ -658,10 +658,6 @@ void Xamp::initialController() {
             break;
         case TAB_ABOUT:
             ui_.currentView->setCurrentWidget(about_page_);
-            break;
-        case TAB_YT_MUSIC:
-            /*ui_.currentView->setCurrentWidget(music_page_);
-            current_playlist_page_ = music_page_;*/
             break;
     	}        
     });
@@ -848,7 +844,7 @@ void Xamp::setVolume(int32_t volume) {
     }
     catch (const Exception& e) {
         player_->Stop(false);
-        Toast::showTip(Q_UTF8(e.GetErrorMessage()), this);
+        Toast::showTip(Q_TEXT(e.GetErrorMessage()), this);
     }
 }
 
@@ -1012,6 +1008,8 @@ void Xamp::setupDSP(uint32_t target_sample_rate, const QMap<QString, QVariant> &
     } else {
         player_->GetDSPManager()->RemoveEq();
     }
+
+    player_->GetDSPManager()->EnableVolumeLimiter(true);
 }
 
 void Xamp::playAlbumEntity(const AlbumEntity& item) {
@@ -1045,6 +1043,11 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
         player_->Open(item.file_path.toStdWString(), device_info_, target_sample_rate);
         if (!AppSettings::getValueAsBool(kEnableBitPerfect)) {
             setupDSP(target_sample_rate, soxr_settings, item);
+        } else {
+            player_->GetDSPManager()->RemovePreDSP(SoxrSampleRateConverter::Id);
+            player_->GetDSPManager()->EnableVolumeLimiter(false);
+            player_->GetDSPManager()->RemoveReplayGain();
+            player_->GetDSPManager()->RemoveEq();
         }
 
         player_->PrepareToPlay();        
@@ -1055,10 +1058,10 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
     }
     catch (const Exception & e) {
         XAMP_LOG_DEBUG("Exception: {} {} {}", e.GetErrorMessage(), e.GetExpression(), e.GetStackTrace());
-        Toast::showTip(Q_UTF8(e.what()), this);
+        Toast::showTip(Q_TEXT(e.what()), this);
     }
     catch (const std::exception & e) {
-        Toast::showTip(Q_UTF8(e.what()), this);
+        Toast::showTip(Q_TEXT(e.what()), this);
     }
     catch (...) {
         Toast::showTip(tr("unknown error"), this);
@@ -1397,7 +1400,7 @@ void Xamp::addItem(const QString& file_name) {
             album_artist_page_->refreshOnece();
         }
         catch (const Exception & e) {
-            Toast::showTip(Q_UTF8(e.GetErrorMessage()), this);
+            Toast::showTip(Q_TEXT(e.GetErrorMessage()), this);
         }
     }
     else {
@@ -1432,7 +1435,7 @@ QWidget* Xamp::popWidget() {
 }
 
 void Xamp::encodeFlacFile(const PlayListEntity& item) {
-    const auto save_file_name = item.album + Q_UTF8("-") + item.title;
+    const auto save_file_name = item.album + Q_TEXT("-") + item.title;
     const auto file_name = QFileDialog::getSaveFileName(this,
         tr("Save Flac file"),
         save_file_name,
@@ -1467,7 +1470,7 @@ void Xamp::encodeFlacFile(const PlayListEntity& item) {
             }, metadata);
     }
     catch (Exception const& e) {
-        Toast::showTip(Q_UTF8(e.what()), this);
+        Toast::showTip(Q_TEXT(e.what()), this);
     }
 }
 

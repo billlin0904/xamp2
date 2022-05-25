@@ -34,6 +34,8 @@ public:
 
     virtual void SetEq(EQSettings const& settings) = 0;
 
+    virtual void EnableVolumeLimiter(bool enable) = 0;
+
     virtual void RemoveEq() = 0;
 
     virtual void SetPreamp(float preamp) = 0;

@@ -7,7 +7,7 @@
 
 SwitchButton::SwitchButton(QWidget *parent)
     : QPushButton(parent) {
-    setStyleSheet(Q_UTF8(R"(
+    setStyleSheet(Q_TEXT(R"(
     SwitchButton {
         background: #CCCCCC;
         border: none;

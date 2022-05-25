@@ -176,7 +176,7 @@ XWindow::XWindow()
     , current_screen_(nullptr)
 #endif
 	, content_widget_(nullptr) {
-    setObjectName(Q_UTF8("framelessWindow"));
+    setObjectName(Q_TEXT("framelessWindow"));
 }
 
 void XWindow::setContentWidget(IXampPlayer *content_widget) {
@@ -203,10 +203,14 @@ void XWindow::setContentWidget(IXampPlayer *content_widget) {
 #if defined(Q_OS_WIN)
     if (!qTheme.useNativeWindow()) {
         setWindowTitle(kAppTitle);
-        //setAttribute(Qt::WA_TranslucentBackground, true);
+        setAttribute(Qt::WA_TranslucentBackground, true);
         setWindowFlags(windowFlags() | Qt::WindowMaximizeButtonHint);
         win32::setFramelessWindowStyle(this);
         win32::addDwmShadow(this);
+        if (AppSettings::getValueAsBool(kAppSettingEnableBlur)) {
+            content_widget->setAttribute(Qt::WA_TranslucentBackground, true);
+            qTheme.enableBlur(this);
+        }
     } else {
         win32::setWindowedWindowStyle(this);
         win32::addDwmShadow(this);

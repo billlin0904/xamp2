@@ -16,7 +16,7 @@ void PreferencePage::updateSoxrConfigUI(const QVariantMap& soxr_settings) {
 	ui_.soxrTargetSampleRateComboBox->setCurrentText(QString::number(soxr_settings[kSoxrResampleSampleRate].toInt()));
 	ui_.soxrResampleQualityComboBox->setCurrentIndex(soxr_settings[kSoxrQuality].toInt());
 	ui_.soxrPassbandSlider->setValue(soxr_settings[kSoxrPassBand].toInt());
-	ui_.soxrPassbandValue->setText(QString(Q_UTF8("%0%")).arg(ui_.soxrPassbandSlider->value()));
+	ui_.soxrPassbandValue->setText(QString(Q_TEXT("%0%")).arg(ui_.soxrPassbandSlider->value()));
     ui_.soxrPhaseSlider->setValue(soxr_settings[kSoxrPhase].toInt());
 	setPhasePercentText(ui_.soxrPhaseSlider->value());
     ui_.rollOffLevelComboBox->setCurrentIndex(soxr_settings[kSoxrRollOffLevel].toInt());
@@ -164,7 +164,7 @@ void PreferencePage::initLang() {
 }
 
 void PreferencePage::setPhasePercentText(int32_t value) {
-	auto str = QString(Q_UTF8("%0%")).arg(value);
+	auto str = QString(Q_TEXT("%0%")).arg(value);
 	if (value == 0) {
 		str += tr(" (minimum)");
 	}
@@ -180,7 +180,7 @@ void PreferencePage::setPhasePercentText(int32_t value) {
 PreferencePage::PreferencePage(QWidget *parent)
     : QFrame(parent) {
     ui_.setupUi(this);
-    setStyleSheet(Q_UTF8("#PreferenceDialog { background-color: transparent }"));
+    setStyleSheet(Q_TEXT("#PreferenceDialog { background-color: transparent }"));
 
 	qTheme.setMenuStyle(ui_.langCombo->view()->window());
 	qTheme.setMenuStyle(ui_.replayGainModeCombo->view()->window());
@@ -201,7 +201,7 @@ PreferencePage::PreferencePage(QWidget *parent)
 		});
 
     ui_.preferenceTreeWidget->header()->hide();
-    ui_.preferenceTreeWidget->setStyleSheet(Q_UTF8("QTreeView { background: transparent; }"));
+    ui_.preferenceTreeWidget->setStyleSheet(Q_TEXT("QTreeView { background: transparent; }"));
 
     auto* playback_item = new QTreeWidgetItem(QStringList() << tr("Playback"));
     playback_item->setChildIndicatorPolicy(QTreeWidgetItem::ShowIndicator);
@@ -260,7 +260,7 @@ PreferencePage::PreferencePage(QWidget *parent)
 		});
 
     (void)QObject::connect(ui_.soxrPassbandSlider, &QSlider::valueChanged, [this](auto) {
-        ui_.soxrPassbandValue->setText(QString(Q_UTF8("%0%")).arg(ui_.soxrPassbandSlider->value()));
+        ui_.soxrPassbandValue->setText(QString(Q_TEXT("%0%")).arg(ui_.soxrPassbandSlider->value()));
 		saveSoxrResampler(ui_.soxrSettingCombo->currentText());
         saveAll();
     });
@@ -302,6 +302,8 @@ PreferencePage::PreferencePage(QWidget *parent)
 		AppSettings::setValue(kFlacEncodingLevel, value);
 		saveAll();
 		});
+
+	setStyleSheet(Q_TEXT("background-color: transparent"));
 }
 
 void PreferencePage::update() {

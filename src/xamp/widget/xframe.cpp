@@ -9,7 +9,7 @@
 
 XFrame::XFrame(QWidget* parent)
     : QFrame(parent) {
-    setObjectName(Q_UTF8("XFrame"));
+    setObjectName(Q_TEXT("XFrame"));
     setStyleSheet(Q_STR(R"(
 			QFrame#XFrame {
 				border-radius: 8px;
@@ -37,7 +37,7 @@ void XFrame::setContentWidget(QWidget* content) {
     title_frame->setMinimumSize(QSize(0, 24));
     title_frame->setFrameShape(QFrame::NoFrame);
     title_frame->setFrameShadow(QFrame::Plain);
-    title_frame->setStyleSheet(Q_UTF8("QFrame#titleFrame { border: none; }"));
+    title_frame->setStyleSheet(Q_TEXT("QFrame#titleFrame { border: none; }"));
 
     title_frame_label = new QLabel(title_frame);
     title_frame_label->setObjectName(QString::fromUtf8("titleFrameLabel"));
@@ -86,24 +86,34 @@ void XFrame::setContentWidget(QWidget* content) {
     close_button->setStyleSheet(Q_STR(R"(
                                          QToolButton#closeButton {
                                          border: none;
-                                         image: url(:/xamp/Resource/%1/close.png);
+                                         image: url(:/xamp/Resource/%1/close_normal.png);
                                          background-color: transparent;
+                                         }
+
+										 QToolButton#closeButton:hover {	
+										 image: url(:/xamp/Resource/%1/close_hover.png);									 
                                          }
                                          )").arg(qTheme.themeColorPath()));
 
     min_win_button->setStyleSheet(Q_STR(R"(
                                           QToolButton#minWinButton {
                                           border: none;
-                                          image: url(:/xamp/Resource/%1/minimize.png);
+                                          image: url(:/xamp/Resource/%1/minimize_normal.png);
                                           background-color: transparent;
+                                          }
+										  QToolButton#minWinButton:hover {	
+										  image: url(:/xamp/Resource/%1/minimize_hover.png);									 
                                           }
                                           )").arg(qTheme.themeColorPath()));
 
     max_win_button->setStyleSheet(Q_STR(R"(
                                           QToolButton#maxWinButton {
                                           border: none;
-                                          image: url(:/xamp/Resource/%1/maximize.png);
+                                          image: url(:/xamp/Resource/%1/maximize_normal.png);
                                           background-color: transparent;
+                                          }
+										  QToolButton#maxWinButton:hover {	
+										  image: url(:/xamp/Resource/%1/maximize_hover.png);									 
                                           }
                                           )").arg(qTheme.themeColorPath()));
 

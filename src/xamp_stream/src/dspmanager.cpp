@@ -5,6 +5,7 @@
 #include <stream/iequalizer.h>
 #include <stream/soxresampler.h>
 #include <stream/bassvolume.h>
+#include <stream/basscompressor.h>
 #include <stream/passthroughsamplerateconverter.h>
 #include <stream/pcm2dsdconverter.h>
 #include <stream/dspmanager.h>
@@ -41,6 +42,14 @@ void DSPManager::RemovePreDSP(Uuid const& id) {
 void DSPManager::SetEq(EQSettings const& settings) {
     eq_settings_ = settings;
     AddPostDSP(MediaStreamFactory::MakeEqualizer());
+}
+
+void DSPManager::EnableVolumeLimiter(bool enable) {
+    if (enable) {
+        AddPostDSP(MediaStreamFactory::MakeCompressor());
+    } else {
+        RemovePostDSP(BassCompressor::Id);
+    }
 }
 
 void DSPManager::SetPreamp(float preamp) {
@@ -179,6 +188,11 @@ void DSPManager::Init(AudioFormat input_format, AudioFormat output_format, DsdMo
     if (const auto volume = GetPostDSP<BassVolume>()) {
         volume.value()->Init(replay_gain_);
         XAMP_LOG_D(logger_, "Set replay gain: {} db.", replay_gain_);
+    }
+
+    if (const auto compressor = GetPostDSP<BassCompressor>()) {
+        compressor.value()->Init();
+        XAMP_LOG_D(logger_, "Enable compressor.");
     }
 
     if (const auto eq = GetPostDSP<IEqualizer>()) {

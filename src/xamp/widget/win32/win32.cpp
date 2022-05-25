@@ -86,16 +86,12 @@ GetWindowCompositionAttribute(
 	_In_ HWND hWnd,
 	_Inout_ WINDOWCOMPOSITIONATTRIBDATA* pAttrData);
 
-typedef BOOL(WINAPI* pfnGetWindowCompositionAttribute)(HWND, WINDOWCOMPOSITIONATTRIBDATA*);
-
 WINUSERAPI
 BOOL
 WINAPI
 SetWindowCompositionAttribute(
 	_In_ HWND hWnd,
 	_Inout_ WINDOWCOMPOSITIONATTRIBDATA* pAttrData);
-
-typedef BOOL(WINAPI* pfnSetWindowCompositionAttribute)(HWND, WINDOWCOMPOSITIONATTRIBDATA*);
 
 namespace win32 {
 
@@ -142,20 +138,15 @@ public:
 #define DWMDLL Singleton<DwmapiLib>::GetInstance()
 #define User32DLL Singleton<User32Lib>::GetInstance()	
 
-static uint32_t toARGB(QColor const & color) {
-	return color.alpha() << 24
+static uint32_t gradientColor(QColor const & color) {
+	/*return color.alpha() << 24
 		| color.red() << 16
 		| color.green() << 8
-		| color.blue();
-}
-
-static QColor blendColor(const QColor& i_color1, const QColor& i_color2, double alpha) {
-	return QColor(
-		qRound(static_cast<qreal>(i_color1.red()) * (1.0 - alpha) + static_cast<qreal>(i_color2.red()) * alpha),
-		qRound(static_cast<qreal>(i_color1.green()) * (1.0 - alpha) + static_cast<qreal>(i_color2.green()) * alpha),
-		qRound(static_cast<qreal>(i_color1.blue()) * (1.0 - alpha) + static_cast<qreal>(i_color2.blue()) * alpha),
-		qRound(static_cast<qreal>(i_color1.alpha()) * (1.0 - alpha) + static_cast<qreal>(i_color2.alpha()) * alpha)
-	);
+		| color.blue();*/
+	return color.red() << 0
+		| color.green() << 8
+		| color.blue() << 16
+		| color.alpha() << 24;
 }
 
 void setAccentPolicy(HWND hwnd, bool enable, int animation_id) {
@@ -169,7 +160,7 @@ void setAccentPolicy(HWND hwnd, bool enable, int animation_id) {
 	ACCENT_POLICY policy = {
 		enable ? flags : ACCENT_DISABLED,
 		ACCENT_FLAGS::DrawAllBorders,
-		toARGB(background_color),
+		gradientColor(background_color),
 		animation_id
 	};
 

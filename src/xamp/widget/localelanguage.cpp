@@ -37,7 +37,7 @@ static void switchTranslator(QTranslator& translator, const QString& filename) {
 	QApplication::removeTranslator(&translator);
 
 	auto path = QApplication::applicationDirPath();
-	path.append(Q_UTF8("/langs/"));
+	path.append(Q_TEXT("/langs/"));
 
 	if (translator.load(path + filename)) {
 		QApplication::installTranslator(&translator);
@@ -50,13 +50,13 @@ QList<LocaleLanguage> LocaleLanguageManager::languageNames() {
 	QList<LocaleLanguage> languages_list;
 
 	auto path = QApplication::applicationDirPath();
-	path.append(Q_UTF8("/langs"));
+	path.append(Q_TEXT("/langs"));
 	QDir dir(path);
 
-	auto file_names = dir.entryList(QStringList(Q_UTF8("*.qm")));
+	auto file_names = dir.entryList(QStringList(Q_TEXT("*.qm")));
 	for (auto i = 0; i < file_names.size(); ++i) {
 		auto locale = file_names[i];
-		locale.truncate(locale.lastIndexOf(Q_UTF8(".")));
+		locale.truncate(locale.lastIndexOf(Q_TEXT(".")));
 		languages_list.append(LocaleLanguage(locale));
 	}
 
@@ -68,6 +68,6 @@ void LocaleLanguageManager::loadLanguage(const QString& lang) {
 		current_lang_ = lang;
 		const auto locale = QLocale(lang);
 		QLocale::setDefault(locale);
-		switchTranslator(translator_, QString(Q_UTF8("%1.qm")).arg(lang));
+		switchTranslator(translator_, QString(Q_TEXT("%1.qm")).arg(lang));
 	}
 }

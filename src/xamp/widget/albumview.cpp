@@ -132,7 +132,7 @@ AlbumPlayListTableView::AlbumPlayListTableView(QWidget* parent)
     horizontalHeader()->hide();
     horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
-    setStyleSheet(Q_UTF8("background-color: transparent"));
+    setStyleSheet(Q_TEXT("background-color: transparent"));
 }
 
 void AlbumPlayListTableView::resizeColumn() {
@@ -160,7 +160,7 @@ void AlbumPlayListTableView::resizeColumn() {
 }
 
 void AlbumPlayListTableView::setPlaylistMusic(int32_t album_id) {
-    QString query = Q_UTF8(R"(
+    QString query = Q_TEXT(R"(
 SELECT
     musics.track,
     musics.title,
@@ -203,8 +203,8 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
     default_layout->setContentsMargins(10, 10, 10, 0);
 
     auto close_button = new QPushButton(this);
-    close_button->setObjectName(Q_UTF8("albumViewPageCloseButton"));
-    close_button->setStyleSheet(Q_UTF8(R"(
+    close_button->setObjectName(Q_TEXT("albumViewPageCloseButton"));
+    close_button->setStyleSheet(Q_TEXT(R"(
                                          QPushButton#albumViewPageCloseButton {
                                          border: none;
                                          image: url(:/xamp/Resource/%1/close_normal.png);
@@ -222,12 +222,12 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 
     auto f = font();
 
-    f.setPointSize(25);
+    f.setPointSize(20);
     f.setBold(true);
     album_ = new QLabel(this);
-    album_->setMaximumSize(QSize(16777215, 32));
+    album_->setMaximumSize(QSize(QWIDGETSIZE_MAX, 40));
     album_->setFont(f);
-    album_->setStyleSheet(Q_UTF8("background-color: transparent;"));
+    album_->setStyleSheet(Q_TEXT("background-color: transparent;"));
 
     auto artist_layout = new QHBoxLayout();
     artist_layout->setSpacing(0);
@@ -239,19 +239,19 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
     artist_->setMaximumSize(QSize(400, 32));
     artist_->setFont(f);
     artist_->setAlignment(Qt::AlignLeft);
-    artist_->setStyleSheet(Q_UTF8("background-color: transparent;"));
+    artist_->setStyleSheet(Q_TEXT("background-color: transparent;"));
 
     tracks_ = new QLabel(this);
-    tracks_->setFixedSize(QSize(16777215, 64));
+    tracks_->setFixedSize(QSize(QWIDGETSIZE_MAX, 64));
     tracks_->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
     tracks_->setFont(f);
-    tracks_->setStyleSheet(Q_UTF8("background-color: transparent;"));
+    tracks_->setStyleSheet(Q_TEXT("background-color: transparent;"));
 
     durtions_ = new QLabel(this);
-    durtions_->setFixedSize(QSize(16777215, 64));
+    durtions_->setFixedSize(QSize(QWIDGETSIZE_MAX, 64));
     durtions_->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
     durtions_->setFont(f);
-    durtions_->setStyleSheet(Q_UTF8("background-color: transparent;"));
+    durtions_->setStyleSheet(Q_TEXT("background-color: transparent;"));
 
     artist_layout->addWidget(artist_);
     artist_layout->addWidget(tracks_);
@@ -271,7 +271,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
     cover_ = new QLabel(this);
     cover_->setMinimumSize(QSize(325, 325));
     cover_->setMaximumSize(QSize(325, 325));
-    cover_->setStyleSheet(Q_UTF8("background-color: transparent;"));
+    cover_->setStyleSheet(Q_TEXT("background-color: transparent;"));
 
     auto* playlist_layout = new QHBoxLayout();
     playlist_ = new AlbumPlayListTableView(this);
@@ -487,12 +487,12 @@ AlbumView::AlbumView(QWidget* parent)
         action_map.addSeparator();
 
         (void)action_map.addAction(tr("Load local file"), [this]() {
-            QString exts(Q_UTF8("("));
+            QString exts(Q_TEXT("("));
             for (const auto & file_ext : GetSupportFileExtensions()) {
-                exts += Q_UTF8("*") + QString::fromStdString(file_ext);
-                exts += Q_UTF8(" ");
+                exts += Q_TEXT("*") + QString::fromStdString(file_ext);
+                exts += Q_TEXT(" ");
             }
-            exts += Q_UTF8(")");
+            exts += Q_TEXT(")");
             const auto file_name = QFileDialog::getOpenFileName(this,
                 tr("Open file"),
                 AppSettings::getMyMusicFolderPath(),
@@ -518,7 +518,7 @@ AlbumView::AlbumView(QWidget* parent)
         action_map.exec(pt);
     });
 
-    setStyleSheet(Q_UTF8("background-color: transparent"));
+    setStyleSheet(Q_TEXT("background-color: transparent"));
 
     update();
 }
@@ -567,7 +567,7 @@ void AlbumView::setFilterByArtistId(int32_t artist_id) {
 
 void AlbumView::setFilterByArtistFirstChar(const QString &first_char) {
     QString s(
-    Q_UTF8(R"(
+    Q_TEXT(R"(
 SELECT
     album,
     albums.coverId,
@@ -590,7 +590,7 @@ WHERE
 }
 
 void AlbumView::update() {
-    model_.setQuery(Q_UTF8(R"(
+    model_.setQuery(Q_TEXT(R"(
 SELECT
     albums.album,
     albums.coverId,
@@ -613,7 +613,7 @@ void AlbumView::refreshOnece() {
 }
 
 void AlbumView::onSearchTextChanged(const QString& text) {
-    QString query(Q_UTF8(R"(
+    QString query(Q_TEXT(R"(
 SELECT
     albums.album,
     albums.coverId,

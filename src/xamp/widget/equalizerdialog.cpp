@@ -1,8 +1,4 @@
-#include <QDir>
 #include <QTextStream>
-#include <QDirIterator>
-
-#include <thememanager.h>
 
 #include <widget/appsettings.h>
 #include <widget/str_utilts.h>
@@ -38,7 +34,7 @@ EqualizerDialog::EqualizerDialog(QWidget *parent)
             ui_.band10DbLabel,
             };
 
-    QFont f(Q_UTF8("MonoFont"));
+    QFont f(Q_TEXT("MonoFont"));
     f.setPointSize(8);
     for (auto& l : band_label_) {
         l->setFont(f);
@@ -49,7 +45,7 @@ EqualizerDialog::EqualizerDialog(QWidget *parent)
     for (auto& slider : band_sliders_) {
         (void)QObject::connect(slider, &DoubleSlider::doubleValueChanged, [band, this](auto value) {
             bandValueChange(band, value, 1.41);
-            band_label_[band]->setText(QString(Q_UTF8("%1")).arg(value));
+            band_label_[band]->setText(QString(Q_TEXT("%1")).arg(value));
 
             auto settings = AppSettings::getValue(kAppSettingEQName).value<AppEQSettings>();
             settings.settings.bands[band].gain = value;
@@ -61,7 +57,7 @@ EqualizerDialog::EqualizerDialog(QWidget *parent)
 
     (void)QObject::connect(ui_.preampSlider, &DoubleSlider::doubleValueChanged, [this](auto value) {
         preampValueChange(value);
-        ui_.preampLabel->setText(QString(Q_UTF8("%1")).arg(value));
+        ui_.preampLabel->setText(QString(Q_TEXT("%1")).arg(value));
     });
 
     (void)QObject::connect(ui_.enableEqCheckBox, &QCheckBox::stateChanged, [this](auto value) {
@@ -108,8 +104,8 @@ void EqualizerDialog::applySetting(QString const& name, EQSettings const& settin
 
     for (size_t i = 0; i < settings.bands.size(); ++i) {
         band_sliders_[i]->setValue(settings.bands[i].gain * 10);
-        band_label_[i]->setText(QString(Q_UTF8("%1")).arg(settings.bands[i].gain));
+        band_label_[i]->setText(QString(Q_TEXT("%1")).arg(settings.bands[i].gain));
     }
     ui_.preampSlider->setValue(settings.preamp * 10);
-    ui_.preampLabel->setText(QString(Q_UTF8("%1")).arg(settings.preamp));
+    ui_.preampLabel->setText(QString(Q_TEXT("%1")).arg(settings.preamp));
 }

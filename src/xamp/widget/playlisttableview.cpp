@@ -86,7 +86,7 @@ void PlayListTableView::refresh() {
 }
 
 void PlayListTableView::updateData() {
-    const QString s = Q_UTF8(R"(
+    const QString s = Q_TEXT(R"(
     SELECT
     musics.musicId,
     playlistMusics.playing,
@@ -201,12 +201,12 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
 }
 
 void PlayListTableView::initial() {
-    notshow_column_names_.insert(Q_UTF8("albumId"));
-    notshow_column_names_.insert(Q_UTF8("artistId"));
-    notshow_column_names_.insert(Q_UTF8("coverId"));
-    notshow_column_names_.insert(Q_UTF8("fileExt"));
-    notshow_column_names_.insert(Q_UTF8("parentPath"));
-    notshow_column_names_.insert(Q_UTF8("playlistMusicsId"));
+    notshow_column_names_.insert(Q_TEXT("albumId"));
+    notshow_column_names_.insert(Q_TEXT("artistId"));
+    notshow_column_names_.insert(Q_TEXT("coverId"));
+    notshow_column_names_.insert(Q_TEXT("fileExt"));
+    notshow_column_names_.insert(Q_TEXT("parentPath"));
+    notshow_column_names_.insert(Q_TEXT("playlistMusicsId"));
 
     proxy_model_.setSourceModel(&model_);
     proxy_model_.setFilterByColumn(PLAYLIST_RATING);
@@ -287,12 +287,12 @@ void PlayListTableView::initial() {
     	if (!podcast_mode_) {
             (void)action_map.addAction(tr("Load local file"), [this]() {
                 auto reader = MakeMetadataReader();
-                QString exts(Q_UTF8("("));
+                QString exts(Q_TEXT("("));
                 for (const auto& file_ext : reader->GetSupportFileExtensions()) {
-                    exts += Q_UTF8("*") + QString::fromStdString(file_ext);
-                    exts += Q_UTF8(" ");
+                    exts += Q_TEXT("*") + QString::fromStdString(file_ext);
+                    exts += Q_TEXT(" ");
                 }
-                exts += Q_UTF8(")");
+                exts += Q_TEXT(")");
                 const auto file_name = QFileDialog::getOpenFileName(this,
                     tr("Open file"),
                     AppSettings::getMyMusicFolderPath(),
@@ -323,7 +323,7 @@ void PlayListTableView::initial() {
             };
             foreach(auto& storage, QStorageInfo::mountedVolumes()) {
                 if (storage.isValid() && storage.isReady()) {
-                    auto display_name = storage.displayName() + Q_UTF8("(") + storage.rootPath() + Q_UTF8(")");
+                    auto display_name = storage.displayName() + Q_TEXT("(") + storage.rootPath() + Q_TEXT(")");
                     auto driver_letter = storage.rootPath().left(1).toStdString()[0];
 
                     if (kCDFileSystemType.contains(storage.fileSystemType().toUpper().toStdString())) {                       
@@ -637,7 +637,7 @@ void PlayListTableView::importPodcast() {
         return;
     }*/
 
-    http::HttpClient(/*url_edit->text()*/Q_UTF8("https://suisei.moe/podcast.xml"))
+    http::HttpClient(/*url_edit->text()*/Q_TEXT("https://suisei.moe/podcast.xml"))
 	.success([this](const QString& json) {
         auto const podcast_info = parsePodcastXML(json);
         ::MetadataExtractAdapter::processMetadata(QDateTime::currentSecsSinceEpoch(), podcast_info.second, this, podcast_mode_);

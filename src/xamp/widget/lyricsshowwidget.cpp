@@ -191,9 +191,9 @@ bool LyricsShowWidget::loadLrcFile(const QString &file_path) {
 	const QFileInfo file_info(file_path);
 
 	const auto lrc_path = file_info.path()
-		+ Q_UTF8("/")
+		+ Q_TEXT("/")
 		+ file_info.completeBaseName()
-		+ Q_UTF8(".lrc");
+		+ Q_TEXT(".lrc");
 
 	stop();
 	if (!lyric_.ParseFile(lrc_path.toStdWString())) {
@@ -206,7 +206,7 @@ bool LyricsShowWidget::loadLrcFile(const QString &file_path) {
 
 void LyricsShowWidget::addFullLrc(const QString& lrc, std::chrono::milliseconds duration) {
     auto i = 0;
-	const auto lyrics = lrc.split(Q_UTF8("\n"));
+	const auto lyrics = lrc.split(Q_TEXT("\n"));
 	const auto min_duration = duration / lyrics.count();
 
 	for (const auto &ly : lyrics) {

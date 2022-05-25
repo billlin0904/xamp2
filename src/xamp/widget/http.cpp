@@ -55,7 +55,7 @@ HttpClient::HttpClientImpl::HttpClientImpl(const QString &url, QNetworkAccessMan
     : use_json_(false)
     , use_internal_(manager == nullptr)
     , url_(url)
-    , charset_(Q_UTF8("UTF-8"))
+    , charset_(Q_TEXT("UTF-8"))
     , manager_(manager == nullptr ? new QNetworkAccessManager() : manager) {
 }
 
@@ -161,17 +161,17 @@ QNetworkRequest HttpClient::HttpClientImpl::createRequest(HttpClientImpl *d, Htt
     auto with_json = !get &&  d->use_json_;
 
     if (get && !d->params.isEmpty()) {
-        d->url_ += Q_UTF8("?") + d->params.toString(QUrl::FullyEncoded);
+        d->url_ += Q_TEXT("?") + d->params.toString(QUrl::FullyEncoded);
     }
 
     if (with_form) {
-        d->headers_[Q_UTF8("Content-Type")] = Q_UTF8("application/x-www-form-urlencoded");
+        d->headers_[Q_TEXT("Content-Type")] = Q_TEXT("application/x-www-form-urlencoded");
     } else if (with_json) {
-        d->headers_[Q_UTF8("Content-Type")] = Q_UTF8("application/json; charset=utf-8");
+        d->headers_[Q_TEXT("Content-Type")] = Q_TEXT("application/json; charset=utf-8");
     }
 
     if (d->user_agent_.isEmpty()) {
-        d->headers_[Q_UTF8("User-Agent")] = Q_UTF8("xamp-player/1.0.0");
+        d->headers_[Q_TEXT("User-Agent")] = Q_TEXT("xamp-player/1.0.0");
     }
 
     XAMP_LOG_DEBUG("Request url: {}", QUrl(d->url_).toEncoded().toStdString());

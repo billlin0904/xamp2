@@ -15,7 +15,7 @@ QString format2String(const PlaybackFormat& playback_format, const QString& file
     auto format = playback_format.file_format;
 
     auto ext = file_ext;
-    ext = ext.remove(Q_UTF8(".")).toUpper();
+    ext = ext.remove(Q_TEXT(".")).toUpper();
 
     auto precision = 1;
     auto is_mhz_sample_rate = false;
@@ -31,12 +31,12 @@ QString format2String(const PlaybackFormat& playback_format, const QString& file
     QString dsd_speed_format;
     if (playback_format.is_dsd_file
         && (playback_format.dsd_mode == DsdModes::DSD_MODE_NATIVE || playback_format.dsd_mode == DsdModes::DSD_MODE_DOP)) {
-        dsd_speed_format = Q_UTF8("DSD") + QString::number(playback_format.dsd_speed);
-        dsd_speed_format = Q_UTF8("(") + dsd_speed_format + Q_UTF8(") | ");
+        dsd_speed_format = Q_TEXT("DSD") + QString::number(playback_format.dsd_speed);
+        dsd_speed_format = Q_TEXT("(") + dsd_speed_format + Q_TEXT(") | ");
         bits = 1;
     }
     else {
-        dsd_speed_format = Q_UTF8(" ");
+        dsd_speed_format = Q_TEXT(" ");
     }
 
     QString output_format_str;
@@ -45,32 +45,32 @@ QString format2String(const PlaybackFormat& playback_format, const QString& file
     switch (playback_format.dsd_mode) {
     case DsdModes::DSD_MODE_PCM:
     case DsdModes::DSD_MODE_DSD2PCM:
-        dsd_mode = Q_UTF8("PCM");
+        dsd_mode = Q_TEXT("PCM");
         output_format_str = sampleRate2String(playback_format.file_format);
         if (playback_format.file_format.GetSampleRate() != playback_format.output_format.GetSampleRate()) {
-            output_format_str += Q_UTF8("/") + sampleRate2String(playback_format.output_format);
+            output_format_str += Q_TEXT("/") + sampleRate2String(playback_format.output_format);
         }
         break;
     case DsdModes::DSD_MODE_NATIVE:
-        dsd_mode = Q_UTF8("Native DSD");
+        dsd_mode = Q_TEXT("Native DSD");
         output_format_str = dsdSampleRate2String(playback_format.dsd_speed);
         break;
     case DsdModes::DSD_MODE_DOP:
-        dsd_mode = Q_UTF8("DOP");
+        dsd_mode = Q_TEXT("DOP");
         output_format_str = dsdSampleRate2String(playback_format.dsd_speed);
         break;
     default: 
         break;
     }
 
-    const auto bit_format = QString::number(bits) + Q_UTF8("bit");
+    const auto bit_format = QString::number(bits) + Q_TEXT("bit");
 
     return ext
         + dsd_speed_format
         + bit_format
-        + Q_UTF8("/")
+        + Q_TEXT("/")
         + output_format_str
-        + Q_UTF8(" | ") + dsd_mode;
+        + Q_TEXT(" | ") + dsd_mode;
 }
 
 QSharedPointer<QProgressDialog> makeProgressDialog(QString const& title, QString const& text, QString const& cancel) {
@@ -81,7 +81,7 @@ QSharedPointer<QProgressDialog> makeProgressDialog(QString const& title, QString
     dialog->setMinimumSize(QSize(1000, 100));
     dialog->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed));
     auto* progress_bar = new QProgressBar();
-    progress_bar->setFont(QFont(Q_UTF8("FormatFont")));
+    progress_bar->setFont(QFont(Q_TEXT("FormatFont")));
     dialog->setBar(progress_bar);
     return QSharedPointer<QProgressDialog>(dialog);
 }

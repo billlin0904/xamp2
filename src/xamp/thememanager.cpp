@@ -27,7 +27,7 @@ bool ThemeManager::enableBlur() const {
 }
 
 QFont ThemeManager::loadFonts() {
-    const auto digital_font_id = QFontDatabase::addApplicationFont(Q_UTF8(":/xamp/fonts/Lato-Regular.ttf"));
+    const auto digital_font_id = QFontDatabase::addApplicationFont(Q_TEXT(":/xamp/fonts/Lato-Regular.ttf"));
     const auto digital_font_families = QFontDatabase::applicationFontFamilies(digital_font_id);
 
     QString default_font;
@@ -35,7 +35,7 @@ QFont ThemeManager::loadFonts() {
 
     auto font_name = AppSettings::getValueAsString(kAppSettingDefaultFontName);
     if (font_name.isEmpty()) {
-        font_name = Q_UTF8("WorkSans");
+        font_name = Q_TEXT("WorkSans");
     }
 
     default_font = Q_STR(":/xamp/fonts/%1-Regular.ttf").arg(font_name);
@@ -54,38 +54,45 @@ QFont ThemeManager::loadFonts() {
 #if defined(Q_OS_WIN)
     // note: If we are support Source HanSans font sets must be enable Direct2D function,
     // But Qt framework not work fine with that!
-
-    /*auto source_han_sans_font_path = Q_STR("%1/fonts/SourceHanSans.ttc")
+    // -platform direct2d
+    /*const auto source_han_sans_font_path =
+        Q_STR("%1/fonts/SourceHanSans.ttc")
 		.arg(QCoreApplication::applicationDirPath());
     const auto loaded_font_id = QFontDatabase::addApplicationFont(source_han_sans_font_path);
     if (loaded_font_id != -1) {
         auto loaded_font_families = QFontDatabase::applicationFontFamilies(loaded_font_id);
-        Q_FOREACH(auto font_name, loaded_font_families) {
+        Q_FOREACH(const auto font_name, loaded_font_families) {
+            if (font_name.contains(Q_TEXT("HW")) 
+                || font_name.contains(Q_TEXT("Light"))
+                || font_name.contains(Q_TEXT("Medium"))
+                || font_name.contains(Q_TEXT("Heavy"))) {
+                continue;
+            }
             ui_fallback_fonts.push_back(font_name);
         }
     }*/
 
-    ui_fallback_fonts.push_back(Q_UTF8("Meiryo UI")); // For japanese font.
-    ui_fallback_fonts.push_back(Q_UTF8("Microsoft YaHei"));
-    ui_fallback_fonts.push_back(Q_UTF8("Microsoft JhengHei UI"));
+    ui_fallback_fonts.push_back(Q_TEXT("Meiryo UI")); // For japanese font.
+    ui_fallback_fonts.push_back(Q_TEXT("Microsoft YaHei"));
+    ui_fallback_fonts.push_back(Q_TEXT("Microsoft JhengHei UI"));
 
-    ui_fallback_fonts.push_back(Q_UTF8("Arial"));
-    ui_fallback_fonts.push_back(Q_UTF8("Lucida Grande"));
-    ui_fallback_fonts.push_back(Q_UTF8("Helvetica Neue"));
-    QFont::insertSubstitutions(Q_UTF8("MonoFont"), QList<QString>() << Q_UTF8("Consolas"));
+    ui_fallback_fonts.push_back(Q_TEXT("Arial"));
+    ui_fallback_fonts.push_back(Q_TEXT("Lucida Grande"));
+    ui_fallback_fonts.push_back(Q_TEXT("Helvetica Neue"));
+    QFont::insertSubstitutions(Q_TEXT("MonoFont"), QList<QString>() << Q_TEXT("Consolas"));
 #else
     QList<QString> mono_fonts;
     auto family = QFontDatabase::systemFont(QFontDatabase::FixedFont).family();
     XAMP_LOG_DEBUG("MonoFont Family : {}", family.toStdString());
     mono_fonts.push_back(family);
-    QFont::insertSubstitutions(Q_UTF8("MonoFont"), mono_fonts);
-    ui_fallback_fonts.push_back(Q_UTF8("PingFang TC"));
-    ui_fallback_fonts.push_back(Q_UTF8("Heiti TC"));
+    QFont::insertSubstitutions(Q_TEXT("MonoFont"), mono_fonts);
+    ui_fallback_fonts.push_back(Q_TEXT("PingFang TC"));
+    ui_fallback_fonts.push_back(Q_TEXT("Heiti TC"));
 #endif
-    QFont::insertSubstitutions(Q_UTF8("UI"), ui_fallback_fonts);
-    QFont::insertSubstitutions(Q_UTF8("FormatFont"), digital_font_families);
+    QFont::insertSubstitutions(Q_TEXT("UI"), ui_fallback_fonts);
+    QFont::insertSubstitutions(Q_TEXT("FormatFont"), digital_font_families);
 
-    QFont ui_font(Q_UTF8("UI"));
+    QFont ui_font(Q_TEXT("UI"));
     ui_font.setStyleStrategy(QFont::PreferAntialias);
     return ui_font;
 }
@@ -126,9 +133,9 @@ void ThemeManager::setThemeColor(ThemeColor theme_color) {
 
 QLatin1String ThemeManager::themeColorPath() const {
     if (theme_color_ == ThemeColor::DARK_THEME) {
-        return Q_UTF8("Black");
+        return Q_TEXT("Black");
     }
-    return Q_UTF8("White");
+    return Q_TEXT("White");
 }
 
 void ThemeManager::setThemeButtonIcon(Ui::XampWindow &ui) {
@@ -160,38 +167,57 @@ QString ThemeManager::borderColor() {
 
     switch (themeColor()) {
     case ThemeColor::DARK_THEME:
-        color = Q_UTF8("#19232D");
+        color = Q_TEXT("#19232D");
         break;
     case ThemeColor::LIGHT_THEME:
-        color = Q_UTF8("#FAFAFA");
+        color = Q_TEXT("#FAFAFA");
         break;
     }
     return color;
 }
 
 void ThemeManager::setBorderRadius(QFrame* content_widget) {
+    auto color = QColor(borderColor());
+    color.setAlpha(200);
+
+    auto transparent_color = QColor(borderColor());
+    transparent_color.setAlpha(0);
+
+    // border-radius: 8px;
+	// border: 2px solid % 1;
     content_widget->setStyleSheet(Q_STR(R"(
 			QFrame#XampWindow {
-				border-radius: 8px;
-				border: 2px solid %1;
 				background-color: %1;
             }
+			QStackedWidget#currentView {
+				border: none;
+				background-color: %1;
+			}
 			QFrame#controlFrame {
 				border-radius: 0px;
+				background-color: %1;
 			}
 			QFrame#playingFrame {
 				border-radius: 0px;
+				background-color: %1;
 			}
 			QFrame#titleFrame {
 				border-radius: 0px;
+				background-color: %1;
 			}
 			QFrame#volumeFrame {
 				border-radius: 0px;
+				background-color: %1;
 			}
 			QFrame#sliderFrame {
 				border-radius: 0px;
+				background-color: %1;
 			}
-            )").arg(borderColor()));
+			TabListView#sliderBar {
+				border-radius: 0px;	
+				background-color: %2;			
+			}
+            )").arg(colorToString(color)).arg(colorToString(transparent_color)));
 }
 
 void ThemeManager::setMenuStyle(QWidget* menu) {
@@ -201,7 +227,7 @@ void ThemeManager::setMenuStyle(QWidget* menu) {
 }
 
 DefaultStylePixmapManager::DefaultStylePixmapManager()
-    : unknown_cover_(Q_UTF8(":/xamp/Resource/White/unknown_album.png"))
+    : unknown_cover_(Q_TEXT(":/xamp/Resource/White/unknown_album.png"))
     , default_size_unknown_cover_(Pixmap::resizeImage(unknown_cover_, qTheme.getDefaultCoverSize())) {
 }
 
@@ -372,7 +398,7 @@ void ThemeManager::enableBlur(QWidget* widget, bool enable) const {
 }
 
 QIcon ThemeManager::appIcon() const {
-    return QIcon(Q_UTF8(":/xamp/xamp.ico"));
+    return QIcon(Q_TEXT(":/xamp/xamp.ico"));
 }
 
 void ThemeManager::applyTheme() {
@@ -381,9 +407,9 @@ void ThemeManager::applyTheme() {
     QString filename;
 
     if (themeColor() == ThemeColor::LIGHT_THEME) {
-        filename = Q_UTF8(":/xamp/Resource/Theme/light/style.qss");
+        filename = Q_TEXT(":/xamp/Resource/Theme/light/style.qss");
     } else {
-        filename = Q_UTF8(":/xamp/Resource/Theme/dark/style.qss");
+        filename = Q_TEXT(":/xamp/Resource/Theme/dark/style.qss");
     }
 
     QFile f(filename);
@@ -559,45 +585,45 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
 }
 
 void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
-    ui.searchLineEdit->setStyleSheet(Q_UTF8(""));
-    ui.sliderBar->setStyleSheet(Q_UTF8("QListView#sliderBar { background-color: transparent; border: none; }"));
+    ui.searchLineEdit->setStyleSheet(Q_TEXT(""));
+    ui.sliderBar->setStyleSheet(Q_TEXT("QListView#sliderBar { background-color: transparent; border: none; }"));
     
-    ui.searchFrame->setStyleSheet(Q_UTF8("QFrame#searchFrame { background-color: transparent; border: none; }"));
+    ui.searchFrame->setStyleSheet(Q_TEXT("QFrame#searchFrame { background-color: transparent; border: none; }"));
 
-    ui.volumeSlider->setStyleSheet(Q_UTF8(R"(
+    ui.volumeSlider->setStyleSheet(Q_TEXT(R"(
                                           QSlider#volumeSlider {
                                           border: none;
                                           background-color: transparent;
                                           }
                                           )"));
 
-    ui.startPosLabel->setStyleSheet(Q_UTF8(R"(
+    ui.startPosLabel->setStyleSheet(Q_TEXT(R"(
                                            QLabel#startPosLabel {
                                            color: gray;
                                            background-color: transparent;
                                            }
                                            )"));
 
-    ui.endPosLabel->setStyleSheet(Q_UTF8(R"(
+    ui.endPosLabel->setStyleSheet(Q_TEXT(R"(
                                          QLabel#endPosLabel {
                                          color: gray;
                                          background-color: transparent;
                                          }
                                          )"));
 
-    ui.seekSlider->setStyleSheet(Q_UTF8(R"(
+    ui.seekSlider->setStyleSheet(Q_TEXT(R"(
                                         QSlider#seekSlider {
                                         border: none;
                                         background-color: transparent;
                                         }
                                         )"));
 
-    ui.sliderBar->setStyleSheet(Q_UTF8(R"(
+    ui.sliderBar->setStyleSheet(Q_TEXT(R"(
 	QListView#sliderBar::item {
 		border: 0px;
 		padding-left: 15px;
 	}
-	QListVieww#sliderBar::text {
+	QListView#sliderBar::text {
 		left: 15px;
 	}
 	)"));
@@ -612,7 +638,7 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
 
     ui.searchLineEdit->setClearButtonEnabled(true);
     if (theme_color_ == ThemeColor::DARK_THEME) {
-        ui.titleLabel->setStyleSheet(Q_UTF8(R"(
+        ui.titleLabel->setStyleSheet(Q_TEXT(R"(
                                          QLabel#titleLabel {
                                          color: white;
                                          background-color: transparent;
@@ -629,7 +655,7 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
                                             )").arg(colorToString(Qt::black)));
     }
     else {
-        ui.titleLabel->setStyleSheet(Q_UTF8(R"(
+        ui.titleLabel->setStyleSheet(Q_TEXT(R"(
                                          QLabel#titleLabel {
                                          color: black;
                                          background-color: transparent;
@@ -646,7 +672,7 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
                                             )").arg(colorToString(Qt::white)));
     }
 
-    ui.artistLabel->setStyleSheet(Q_UTF8(R"(
+    ui.artistLabel->setStyleSheet(Q_TEXT(R"(
                                          QLabel#artistLabel {
                                          color: red;
                                          background-color: transparent;

@@ -35,7 +35,7 @@ QVariant PlayListSqlQueryTableModel::data(const QModelIndex& index, int32_t role
             || index.column() == PLAYLIST_TRACK_RG
             || index.column() == PLAYLIST_LAST_UPDATE_TIME
             || index.column() == PLAYLIST_YEAR) {
-            return QFont(Q_UTF8("MonoFont"));
+            return QFont(Q_TEXT("MonoFont"));
         }
         break;
     case Qt::DisplayRole:
@@ -61,7 +61,7 @@ QVariant PlayListSqlQueryTableModel::data(const QModelIndex& index, int32_t role
 		    case PLAYLIST_DURATION:
 			    return msToString(value.toDouble());
 		    case PLAYLIST_LAST_UPDATE_TIME:
-			    return QDateTime::fromSecsSinceEpoch(value.toULongLong()).toString(Q_UTF8("yyyy-MM-dd HH:mm:ss"));
+			    return QDateTime::fromSecsSinceEpoch(value.toULongLong()).toString(Q_TEXT("yyyy-MM-dd HH:mm:ss"));
 		    }
 	    }
         break;

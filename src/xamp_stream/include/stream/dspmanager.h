@@ -40,6 +40,8 @@ public:
 
     void SetEq(EQSettings const& settings) override;
 
+    void EnableVolumeLimiter(bool enable) override;
+
     void RemoveEq() override;
 
     void SetPreamp(float preamp) override;

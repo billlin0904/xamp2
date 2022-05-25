@@ -66,11 +66,11 @@ ArtistView::ArtistView(QWidget *parent)
     setSelectionRectVisible(false);
     // ¤£¥i½s¿è
     setEditTriggers(QAbstractItemView::NoEditTriggers);
-    setStyleSheet(Q_UTF8("background-color: transparent"));
+    setStyleSheet(Q_TEXT("background-color: transparent"));
     setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
     setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     setItemDelegate(new ArtistViewStyledDelegate());
-    verticalScrollBar()->setStyleSheet(Q_UTF8("QScrollBar {width:0px;}"));
+    verticalScrollBar()->setStyleSheet(Q_TEXT("QScrollBar {width:0px;}"));
 
     (void) QObject::connect(this, &QListView::clicked, [this](auto index) {
         /*
@@ -85,7 +85,7 @@ ArtistView::ArtistView(QWidget *parent)
 }
 
 void ArtistView::refreshOnece() {
-    QString query = Q_UTF8(R"(
+    QString query = Q_TEXT(R"(
 SELECT
 	artists.artistId,
 	artists.artist,

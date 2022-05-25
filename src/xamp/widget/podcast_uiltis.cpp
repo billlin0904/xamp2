@@ -24,9 +24,9 @@ std::vector<Metadata> parseJson(QString const& json) {
         metadatas.reserve(result.size());
         for (const auto entry : result) {
             auto object = entry.toVariant().toMap();
-            auto url = object.value(Q_UTF8("url")).toString();
-            auto title = object.value(Q_UTF8("title")).toString();
-            auto performer = object.value(Q_UTF8("performer")).toString();
+            auto url = object.value(Q_TEXT("url")).toString();
+            auto title = object.value(Q_TEXT("title")).toString();
+            auto performer = object.value(Q_TEXT("performer")).toString();
             Metadata metadata;
             metadata.file_path = url.toStdWString();
             metadata.title = title.toStdWString();
