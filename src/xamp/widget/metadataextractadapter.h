@@ -20,7 +20,7 @@ class MetadataExtractAdapter final
 public:
     explicit MetadataExtractAdapter(QObject* parent = nullptr);
 
-    static void readFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter, QString const& file_path, bool show_progress_dialog = true);	
+    static void readFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter, QString const& file_path, bool show_progress_dialog = true, bool is_recursive = true);
 
 signals:
 	void readCompleted(int64_t dir_last_write_time, const std::forward_list<Metadata> &entity);

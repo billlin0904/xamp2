@@ -9,6 +9,7 @@
 #include <QString>
 
 #include <widget/scrolllabel.h>
+#include <widget/playlistentity.h>
 
 class PlayListTableView;
 
@@ -24,6 +25,9 @@ public:
     ScrollLabel* title();
 
 	QLabel* format();
+
+signals:
+	void playMusic(const PlayListEntity& item);
 
 public slots:
     void OnThemeColorChanged(QColor theme_color, QColor color);

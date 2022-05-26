@@ -259,11 +259,15 @@ QIcon ThemeManager::makeIcon(const QString &path) const {
     return icon;
 }
 
-QIcon ThemeManager::speaker() const {
+QIcon ThemeManager::folderIcon() const {
+    return QIcon(Q_STR(":/xamp/Resource/%1/folder.png").arg(themeColorPath()));
+}
+
+QIcon ThemeManager::speakerIcon() const {
     return QIcon(Q_STR(":/xamp/Resource/%1/speaker.png").arg(themeColorPath()));
 }
 
-QIcon ThemeManager::usb() const {
+QIcon ThemeManager::usbIcon() const {
     return QIcon(Q_STR(":/xamp/Resource/%1/usb.png").arg(themeColorPath()));
 }
 
@@ -313,6 +317,10 @@ QIcon ThemeManager::seachIcon() const {
 
 QIcon ThemeManager::themeIcon() const {
     return makeIcon(Q_STR(":/xamp/Resource/%1/theme.png"));
+}
+
+QIcon ThemeManager::desktopIcon() const {
+    return makeIcon(Q_STR(":/xamp/Resource/%1/desktop.png"));
 }
 
 void ThemeManager::setBitPerfectButton(Ui::XampWindow& ui, bool enable) {

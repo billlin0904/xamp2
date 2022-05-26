@@ -38,6 +38,8 @@ public:
 
 	void removePlaying();
 
+	void removeAll();
+
 	void removeItem(const QModelIndex& index);
 
 	void removeSelectItems();
@@ -62,7 +64,7 @@ public:
 
 	std::map<int32_t, QModelIndex> selectItemIndex() const;
 
-	void append(const QString& file_name, bool show_progress_dialog = true);
+	void append(const QString& file_name, bool show_progress_dialog = true, bool is_recursive = true);
 
     PlayListEntity nomapItem(const QModelIndex& index);
 

@@ -43,7 +43,7 @@ inline constexpr int32_t kInvalidId = -1;
 
 inline constexpr auto kDefaultPlaylistId = 1;
 inline constexpr auto kDefaultPodcastPlaylistId = 2;
-inline constexpr auto kDefaultMusicPlaylistId = 3;
+inline constexpr auto kDefaultFileExplorerPlaylistId = 3;
 
 class Database final {
 public:

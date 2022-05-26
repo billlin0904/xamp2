@@ -95,5 +95,9 @@
         <file>Resource/White/maximize_normal.png</file>
         <file>Resource/White/minimize_hover.png</file>
         <file>Resource/White/minimize_normal.png</file>
+        <file>Resource/Black/folder.png</file>
+        <file>Resource/White/folder.png</file>
+        <file>Resource/Black/desktop.png</file>
+        <file>Resource/White/desktop.png</file>
     </qresource>
 </RCC>

@@ -167,7 +167,7 @@ private:
     : QObject(parent) {    
 }
 
-void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter, QString const & file_path, bool show_progress_dialog) {
+void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter, QString const & file_path, bool show_progress_dialog, bool is_recursive) {
 	auto dialog = makeProgressDialog(tr("Read file metadata"),
 	                                        tr("Read progress dialog"), 
 	                                        tr("Cancel"));
@@ -178,7 +178,8 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
     dialog->setMinimumDuration(1000);
 
     QList<QString> dirs;
-    QDirIterator itr(file_path, QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);
+
+    QDirIterator itr(file_path, is_recursive ? (QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot) : (QDir::Files));
     while (itr.hasNext()) {
         dirs.append(itr.next());
         qApp->processEvents();
@@ -204,7 +205,12 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
         
         try {            
             const Path path(file_dir_or_path.toStdWString());
-            ScanFolder(path, &proxy, reader.get());            
+            if (!is_recursive) {
+                ScanFolder(path, &proxy, reader.get());
+            }
+            else {
+                RecursiveScanFolder(path, &proxy, reader.get());
+            }            
         }
         catch (const std::exception& e) {
             XAMP_LOG_DEBUG("WalkPath has exception: {}", e.what());

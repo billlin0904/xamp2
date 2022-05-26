@@ -32,6 +32,7 @@ class ArtistInfoPage;
 class PlaybackHistoryPage;
 class QWidgetAction;
 class QFileSystemWatcher;
+class FileSystemViewPage;
 struct PlaybackFormat;
 
 class Xamp final : public IXampPlayer {
@@ -130,7 +131,7 @@ private:
 
 	void resetSeekPosValue();
 
-	void setupPlayNextMusicSignals(bool add_or_remove);
+	void connectPlayNextMusicSignals(bool add_or_remove);
 
     void onDeviceStateChanged(DeviceState state);
 
@@ -152,6 +153,8 @@ private:
 
 	void avoidRedrawOnResize();
 
+	void connectSignal(PlaylistPage* playlist_page);
+
 	bool is_seeking_;
 	PlayerOrder order_;
 	QModelIndex play_index_;
@@ -165,6 +168,7 @@ private:
 	AlbumArtistPage* album_artist_page_;
     ArtistInfoPage* artist_info_page_;
 	PreferencePage* preference_page_;
+	FileSystemViewPage* file_system_view_page_;
 	AboutPage* about_page_;
     QMenu* tray_icon_menu_;
     QSystemTrayIcon* tray_icon_;

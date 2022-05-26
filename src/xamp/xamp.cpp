@@ -49,6 +49,7 @@
 #include <widget/playlisttablemodel.h>
 #include <widget/actionmap.h>
 #include <widget/spectrumwidget.h>
+#include <widget/filesystemviewpage.h>
 
 #include "aboutpage.h"
 #include "preferencepage.h"
@@ -60,6 +61,7 @@ enum TabIndex {
     TAB_ARTIST,
     TAB_PLAYLIST,
     TAB_PODCAST,
+    TAB_FILE_EXPLORER,
     TAB_LYRICS,
     TAB_SETTINGS,
     TAB_ABOUT,
@@ -118,6 +120,7 @@ Xamp::Xamp()
 	, tray_icon_menu_(nullptr)
 	, tray_icon_(nullptr)
     , fsw_(nullptr)
+    , file_system_view_page_(nullptr)
     , state_adapter_(std::make_shared<UIPlayerStateAdapter>())
     , player_(MakeAudioPlayer(state_adapter_))
     , discord_notify_(this) {
@@ -642,6 +645,10 @@ void Xamp::initialController() {
         case TAB_ARTIST:
             ui_.currentView->setCurrentWidget(artist_info_page_);
             break;
+        case TAB_FILE_EXPLORER:
+            ui_.currentView->setCurrentWidget(file_system_view_page_);
+            current_playlist_page_ = file_system_view_page_->playlistPage();
+            break;
         case TAB_PODCAST:
             ui_.currentView->setCurrentWidget(podcast_page_);
             current_playlist_page_ = podcast_page_;
@@ -1070,7 +1077,7 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
 }
 
 void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_format, bool open_done) {
-    auto* cur_page = currentPlyalistPage();
+    auto* cur_page = current_playlist_page_;
 	
     qTheme.setPlayOrPauseButton(ui_, open_done);
     lrc_page_->spectrum()->reset();
@@ -1149,9 +1156,9 @@ PlaylistPage* Xamp::currentPlyalistPage() {
 }
 
 void Xamp::playPlayListEntity(const PlayListEntity& item) {
-    currentPlyalistPage();
+    current_playlist_page_ = qobject_cast<PlaylistPage*>(sender());
     top_window_->setTaskbarPlayerPlaying();
-    setupPlayNextMusicSignals(false);
+    connectPlayNextMusicSignals(false);
     playAlbumEntity(toAlbumEntity(item));
     current_entity_ = item;
     update();
@@ -1250,6 +1257,7 @@ void Xamp::onPlayerStateChanged(xamp::player::PlayerState play_state) {
 void Xamp::initialPlaylist() {
     ui_.sliderBar->addTab(tr("Playlists"), TAB_PLAYLIST, qTheme.playlistIcon());
     ui_.sliderBar->addTab(tr("Podcast"), TAB_PODCAST, qTheme.podcastIcon());
+    ui_.sliderBar->addTab(tr("File Explorer"), TAB_FILE_EXPLORER, qTheme.desktopIcon());
     ui_.sliderBar->addSeparator();
     ui_.sliderBar->addTab(tr("Albums"), TAB_ALBUM, qTheme.albumsIcon());
     ui_.sliderBar->addTab(tr("Artists"), TAB_ARTIST, qTheme.artistsIcon());
@@ -1298,6 +1306,15 @@ void Xamp::initialPlaylist() {
         podcast_page_->playlist()->setPlaylistId(playlist_id);
     }
 
+    if (!file_system_view_page_) {
+        file_system_view_page_ = new FileSystemViewPage(this);
+        auto playlist_id = kDefaultFileExplorerPlaylistId;
+        if (!qDatabase.isPlaylistExist(playlist_id)) {
+            playlist_id = qDatabase.addPlaylist(Qt::EmptyString, 1);
+        }
+        connectSignal(file_system_view_page_->playlistPage());
+    }
+
     playlist_page_->playlist()->setPodcastMode(false);
     podcast_page_->playlist()->setPodcastMode(true);
     current_playlist_page_ = playlist_page_;
@@ -1322,15 +1339,17 @@ void Xamp::initialPlaylist() {
 
     artist_info_page_ = new ArtistInfoPage(this);
     preference_page_ = new PreferencePage(this);
-    about_page_ = new AboutPage(this);
+    about_page_ = new AboutPage(this);    
 
     pushWidget(lrc_page_);    
     pushWidget(playlist_page_);
     pushWidget(album_artist_page_);
     pushWidget(artist_info_page_);
     pushWidget(podcast_page_);
+    pushWidget(file_system_view_page_);
     pushWidget(preference_page_);
     pushWidget(about_page_);
+    goBackPage();
     goBackPage();
     goBackPage();
     goBackPage();
@@ -1372,10 +1391,10 @@ void Xamp::initialPlaylist() {
         this,
         &Xamp::addPlaylistItem);
 
-    setupPlayNextMusicSignals(true);
+    connectPlayNextMusicSignals(true);
 }
 
-void Xamp::setupPlayNextMusicSignals(bool add_or_remove) {
+void Xamp::connectPlayNextMusicSignals(bool add_or_remove) {
     if (add_or_remove) {
         (void)QObject::connect(this,
                                 &Xamp::payNextMusic,
@@ -1474,29 +1493,25 @@ void Xamp::encodeFlacFile(const PlayListEntity& item) {
     }
 }
 
-PlaylistPage* Xamp::newPlaylistPage(int32_t playlist_id) {
-	auto* playlist_page = new PlaylistPage(this);
-
-    ui_.currentView->addWidget(playlist_page);
-
-    (void)QObject::connect(playlist_page->playlist(), 
+void Xamp::connectSignal(PlaylistPage* playlist_page) {    
+    (void)QObject::connect(playlist_page->playlist(),
         &PlayListTableView::playMusic,
-        this, 
+        playlist_page,
+        &PlaylistPage::playMusic);
+
+    (void)QObject::connect(playlist_page,
+        &PlaylistPage::playMusic,
+        this,
         &Xamp::playPlayListEntity);
 
-    (void)QObject::connect(this,
-        &Xamp::themeChanged,
-        playlist_page,
-        &PlaylistPage::OnThemeColorChanged);
-
-    (void)QObject::connect(playlist_page->playlist(), 
+    (void)QObject::connect(playlist_page->playlist(),
         &PlayListTableView::encodeFlacFile,
-         this, 
+        this,
         &Xamp::encodeFlacFile);
 
     (void)QObject::connect(playlist_page->playlist(),
         &PlayListTableView::addPlaylistReplayGain,
-        &background_worker_, 
+        &background_worker_,
         &BackgroundWorker::readReplayGain);
 
     (void)QObject::connect(this,
@@ -1504,6 +1519,18 @@ PlaylistPage* Xamp::newPlaylistPage(int32_t playlist_id) {
         playlist_page->playlist(),
         &PlayListTableView::onThemeColorChanged);
 
+    (void)QObject::connect(this,
+        &Xamp::themeChanged,
+        playlist_page,
+        &PlaylistPage::OnThemeColorChanged);
+}
+
+PlaylistPage* Xamp::newPlaylistPage(int32_t playlist_id) {
+	auto* playlist_page = new PlaylistPage(this);
+
+    ui_.currentView->addWidget(playlist_page);    
+
+    connectSignal(playlist_page);
     playlist_page->playlist()->setPlaylistId(playlist_id);    
 
     return playlist_page;

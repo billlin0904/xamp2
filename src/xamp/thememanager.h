@@ -63,6 +63,10 @@ public:
         return ui_font_;
     }
 
+    QIcon desktopIcon() const;
+
+    QIcon folderIcon() const;
+
     QIcon appIcon() const;
 
     QIcon volumeUp() const;
@@ -113,9 +117,9 @@ public:
 
     QIcon playArrow() const noexcept;
 
-    QIcon speaker() const;
+    QIcon speakerIcon() const;
 
-    QIcon usb() const;
+    QIcon usbIcon() const;
 
     void setThemeIcon(Ui::XampWindow& ui) const;
 

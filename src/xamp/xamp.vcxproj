@@ -192,6 +192,8 @@
     <ClCompile Include="widget\discordnotify.cpp" />
     <ClCompile Include="widget\doubleslider.cpp" />
     <ClCompile Include="widget\equalizerdialog.cpp" />
+    <ClCompile Include="widget\filesystemmodel.cpp" />
+    <ClCompile Include="widget\filesystemviewpage.cpp" />
     <ClCompile Include="widget\podcast_uiltis.cpp" />
     <ClCompile Include="widget\qetag.cpp" />
     <ClCompile Include="widget\spectrumwidget.cpp" />
@@ -239,6 +241,7 @@
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="aboutdialog.ui" />
+    <QtUic Include="filesystemviewpage.ui" />
     <QtUic Include="preferencedialog.ui" />
     <QtUic Include="widget\equalizerdialog.ui" />
     <QtUic Include="widget\toast.ui" />
@@ -259,6 +262,8 @@
     <ClInclude Include="widget\albumentity.h" />
     <ClInclude Include="widget\colorthief.h" />
     <QtMoc Include="widget\spectrumwidget.h" />
+    <QtMoc Include="widget\filesystemviewpage.h" />
+    <ClInclude Include="widget\filesystemmodel.h" />
     <ClInclude Include="widget\smoothcurvegenerator2.h" />
     <ClInclude Include="widget\stackblur.h" />
     <ClInclude Include="widget\xmessagebox.h" />

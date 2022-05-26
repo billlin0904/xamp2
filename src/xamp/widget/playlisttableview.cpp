@@ -594,7 +594,7 @@ bool PlayListTableView::eventFilter(QObject* obj, QEvent* ev) {
     return QAbstractItemView::eventFilter(obj, ev);
 }
 
-void PlayListTableView::append(const QString& file_name, bool show_progress_dialog) {
+void PlayListTableView::append(const QString& file_name, bool show_progress_dialog, bool is_recursive) {
 	const auto adapter = QSharedPointer<::MetadataExtractAdapter>(new ::MetadataExtractAdapter());
 
     (void) QObject::connect(adapter.get(),
@@ -602,7 +602,7 @@ void PlayListTableView::append(const QString& file_name, bool show_progress_dial
                             this,
                             &PlayListTableView::processMeatadata);
 
-   ::MetadataExtractAdapter::readFileMetadata(adapter, file_name, show_progress_dialog);
+   ::MetadataExtractAdapter::readFileMetadata(adapter, file_name, show_progress_dialog, is_recursive);
 }
 
 void PlayListTableView::processMeatadata(int64_t dir_last_write_time, const std::forward_list<Metadata>& medata) {
@@ -791,6 +791,11 @@ void PlayListTableView::play(const QModelIndex& index) {
 void PlayListTableView::removePlaying() {
     qDatabase.clearNowPlaying(playlist_id_);
     updateData();
+}
+
+void PlayListTableView::removeAll() {
+    qDatabase.removePlaylistAllMusic(playlistId());
+    update();
 }
 
 void PlayListTableView::removeItem(const QModelIndex& index) {
