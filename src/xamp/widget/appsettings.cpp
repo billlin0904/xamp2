@@ -69,11 +69,14 @@ void AppSettings::save() {
 }
 
 QString AppSettings::getMyMusicFolderPath() {
-	auto folder_path = QStandardPaths::standardLocations(QStandardPaths::MusicLocation);
-	if (folder_path.isEmpty()) {
-		return Qt::EmptyString;
-	}
-	return folder_path[0];
+    if (!contains(kAppSettingMyMusicFolderPath)) {
+        auto folder_path = QStandardPaths::standardLocations(QStandardPaths::MusicLocation);
+        if (folder_path.isEmpty()) {
+            return Qt::EmptyString;
+        }
+        return folder_path[0];
+    }
+    return getValueAsString(kAppSettingMyMusicFolderPath);
 }
 
 Uuid AppSettings::getValueAsID(const QString& key) {

@@ -21,6 +21,7 @@ extern const ConstLatin1String kAppSettingShowLeftList;
 extern const ConstLatin1String kAppSettingDiscordNotify;
 extern const ConstLatin1String kAppSettingColumnName;
 extern const ConstLatin1String kAppSettingDefaultFontName;
+extern const ConstLatin1String kAppSettingMyMusicFolderPath;
 
 extern const ConstLatin1String kAppSettingTheme;
 extern const ConstLatin1String kAppSettingEnableBlur;

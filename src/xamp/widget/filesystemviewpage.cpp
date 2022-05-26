@@ -1,5 +1,7 @@
+#include <QFileDialog>
 #include <widget/appsettings.h>
 #include <widget/database.h>
+#include <widget/actionmap.h>
 #include <widget/playlisttableview.h>
 #include <widget/filesystemmodel.h>
 #include <widget/filesystemviewpage.h>
@@ -18,6 +20,23 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
     ui.dirTree->hideColumn(1);
     ui.dirTree->hideColumn(2);
     ui.dirTree->hideColumn(3);
+
+    ui.dirTree->setContextMenuPolicy(Qt::CustomContextMenu);
+    (void)QObject::connect(ui.dirTree, &QTreeView::customContextMenuRequested, [this](auto pt) {
+        ActionMap<QTreeView> action_map(ui.dirTree);
+        (void)action_map.addAction(tr("Load file directory"), [this]() {
+            const auto dir_name = QFileDialog::getExistingDirectory(this,
+                tr("Select a Directory"),
+                AppSettings::getMyMusicFolderPath(), QFileDialog::ShowDirsOnly);
+            if (dir_name.isEmpty()) {
+                return;
+            }
+            AppSettings::setValue(kAppSettingMyMusicFolderPath, dir_name);
+            ui.dirTree->setRootIndex(dir_model_->index(AppSettings::getMyMusicFolderPath()));
+            });
+
+        action_map.exec(pt);
+        });
 
     (void) QObject::connect(ui.dirTree, &QTreeView::clicked, [this](const auto &index) {
         auto path = dir_model_->fileInfo(index).filePath();
