@@ -16,7 +16,7 @@ XFrame::XFrame(QWidget* parent)
 				border: 2px solid %1;
 				background-color: %1;
             }
-            )").arg(qTheme.borderColor()));
+            )").arg(qTheme.backgroundColor()));
 }
 
 void XFrame::setTitle(const QString& title) const {

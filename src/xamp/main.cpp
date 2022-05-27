@@ -129,8 +129,6 @@ static void loadSettings() {
     AppSettings::loadIniFile(Q_TEXT("xamp.ini"));
     AppSettings::setDefaultValue(kAppSettingDeviceType, Qt::EmptyString);
     AppSettings::setDefaultValue(kAppSettingDeviceId, Qt::EmptyString);
-    AppSettings::setDefaultValue(kAppSettingWidth, 600);
-    AppSettings::setDefaultValue(kAppSettingHeight, 500);
     AppSettings::setDefaultValue(kAppSettingVolume, 50);
     AppSettings::setDefaultEnumValue(kAppSettingOrder, PlayerOrder::PLAYER_ORDER_REPEAT_ONCE);
     AppSettings::setDefaultValue(kAppSettingEnableBlur, false);
@@ -301,8 +299,12 @@ static int excute(int argc, char* argv[]) {
 
     top_win.show();
     top_win.activateWindow();
-    top_win.resize(1260, 580);
-    centerDesktop(&top_win);
+    if (AppSettings::contains(kAppSettingGeometry)) {
+        top_win.restoreGeometry(AppSettings::getValue(kAppSettingGeometry).toByteArray());
+    }
+    else {
+        centerDesktop(&top_win);
+    }
     return app.exec();
 }
 

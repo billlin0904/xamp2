@@ -188,15 +188,9 @@ void XWindow::setContentWidget(IXampPlayer *content_widget) {
         shadow->setColor(Qt::black);
         content_widget->setGraphicsEffect(shadow);*/
         auto* default_layout = new QGridLayout(this);
-        //default_layout->addWidget(frame, 0, 0);
         default_layout->addWidget(content_widget_, 0, 0);
-#if defined(Q_OS_WIN)
         qTheme.setBorderRadius(content_widget_);
-        default_layout->setContentsMargins(4, 4, 4, 4);
-        //default_layout->setContentsMargins(10, 10, 10, 10);
-#else
         default_layout->setContentsMargins(0, 0, 0, 0);
-#endif
         setLayout(default_layout);
     }
 

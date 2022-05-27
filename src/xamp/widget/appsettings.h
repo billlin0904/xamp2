@@ -78,8 +78,12 @@ public:
         setValue<int32_t>(key, static_cast<int32_t>(value));
     }
 
-    static void setValue(QString const & key, QColor value) {
+    static void setValue(QString const& key, QColor value) {
         settings_->setValue(key, value.name(QColor::HexArgb));
+    }
+
+    static void setValue(QString const & key, QByteArray value) {
+        settings_->setValue(key, value);
     }
 
     static void setValue(QString const & key, QVariant value) {

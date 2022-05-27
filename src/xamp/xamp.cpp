@@ -275,8 +275,7 @@ void Xamp::closeEvent(QCloseEvent* event) {
     } catch (...) {
     }
 
-    AppSettings::setValue(kAppSettingWidth, size().width());
-    AppSettings::setValue(kAppSettingHeight, size().height());
+    AppSettings::setValue(kAppSettingGeometry, saveGeometry());
     AppSettings::setValue(kAppSettingVolume, ui_.volumeSlider->value());
 
     cleanup();

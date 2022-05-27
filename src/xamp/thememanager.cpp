@@ -113,7 +113,7 @@ ThemeManager::ThemeManager() {
     album_cover_size_ = QSize(250, 250);
     //setThemeColor(ThemeColor::DARK_THEME);
     //setThemeColor(ThemeColor::LIGHT_THEME);
-    const auto theme = static_cast<ThemeColor>(AppSettings::getValue(kAppSettingTheme).toInt());
+    const auto theme = AppSettings::getAsEnum<ThemeColor>(kAppSettingTheme);
     setThemeColor(theme);
     ui_font_ = loadFonts();
     use_native_window_ = !AppSettings::getValueAsBool(kAppSettingUseFramelessWindow);
@@ -127,7 +127,7 @@ ThemeManager::ThemeManager() {
 void ThemeManager::setThemeColor(ThemeColor theme_color) {
     theme_color_ = theme_color;
     setPalette();
-    AppSettings::setValue(kAppSettingTheme, static_cast<int32_t>(theme_color_));
+    AppSettings::setEnumValue(kAppSettingTheme, theme_color_);
     play_arrow_ = QIcon(Q_STR(":/xamp/Resource/%1/play_arrow.png").arg(themeColorPath()));
 }
 
@@ -162,7 +162,7 @@ QColor ThemeManager::themeTextColor() const {
     return color;
 }
 
-QString ThemeManager::borderColor() {
+QString ThemeManager::backgroundColor() {
     QString color;
 
     switch (themeColor()) {
@@ -177,11 +177,13 @@ QString ThemeManager::borderColor() {
 }
 
 void ThemeManager::setBorderRadius(QFrame* content_widget) {
-    auto color = QColor(borderColor());
-    color.setAlpha(200);
+    auto color = QColor(backgroundColor());
+    auto transparent_color = QColor(backgroundColor());
 
-    auto transparent_color = QColor(borderColor());
-    transparent_color.setAlpha(0);
+    if (AppSettings::getValueAsBool(kAppSettingEnableBlur)) {
+        color.setAlpha(220);
+        transparent_color.setAlpha(0);
+    }    
 
     // border-radius: 8px;
 	// border: 2px solid % 1;
