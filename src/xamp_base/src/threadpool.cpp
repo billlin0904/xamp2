@@ -176,7 +176,7 @@ void TaskScheduler::AddThread(size_t i, int32_t affinity, ThreadPriority priorit
 			}
 
 			if (!task) {
-				CpuRelex();
+				CpuRelax();
 				continue;
 			} else {
 				steal_failure_count = 0;

@@ -117,10 +117,9 @@ Xamp::Xamp()
 	, current_playlist_page_(nullptr)
     , album_artist_page_(nullptr)
     , artist_info_page_(nullptr)
+	, file_system_view_page_(nullptr)
 	, tray_icon_menu_(nullptr)
-	, tray_icon_(nullptr)
-    , fsw_(nullptr)
-    , file_system_view_page_(nullptr)
+    , tray_icon_(nullptr)
     , state_adapter_(std::make_shared<UIPlayerStateAdapter>())
     , player_(MakeAudioPlayer(state_adapter_))
     , discord_notify_(this) {
@@ -773,12 +772,6 @@ void Xamp::initialController() {
     ui_.startPosLabel->setText(msToString(0));
     ui_.endPosLabel->setText(msToString(0));
     ui_.searchLineEdit->setPlaceholderText(tr("Search anything"));
-
-    fsw_ = new QFileSystemWatcher(this);
-    fsw_->addPath(AppSettings::getMyMusicFolderPath());
-    (void) QObject::connect(fsw_, &QFileSystemWatcher::directoryChanged, [](auto file_path) {
-        XAMP_LOG_DEBUG("Directory changed: {}", file_path.toStdString());
-    });
 }
 
 void Xamp::updateButtonState() {    
@@ -855,12 +848,12 @@ void Xamp::setVolume(int32_t volume) {
 }
 
 void Xamp::initialShortcut() {
-    auto* space_key = new QShortcut(QKeySequence(Qt::Key_Space), this);
+    const auto* space_key = new QShortcut(QKeySequence(Qt::Key_Space), this);
     (void)QObject::connect(space_key, &QShortcut::activated, [this]() {
         play();
     });
 
-    auto* play_key = new QShortcut(QKeySequence(Qt::Key_F4), this);
+    const auto* play_key = new QShortcut(QKeySequence(Qt::Key_F4), this);
     (void)QObject::connect(play_key, &QShortcut::activated, [this]() {
         playNextItem(1);
         });
@@ -979,7 +972,7 @@ void Xamp::resetSeekPosValue() {
     ui_.startPosLabel->setText(msToString(0));
 }
 
-void Xamp::processMeatadata(int64_t dir_last_write_time, const std::forward_list<Metadata>& medata) const {
+void Xamp::processMeatadata(int64_t dir_last_write_time, const ForwardList<Metadata>& medata) const {
     MetadataExtractAdapter::processMetadata(dir_last_write_time, medata);
     album_artist_page_->album()->refreshOnece();
     album_artist_page_->artist()->refreshOnece();

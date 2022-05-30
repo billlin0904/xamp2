@@ -9,6 +9,7 @@
 
 #include <base/base.h>
 #include <base/align_ptr.h>
+#include <base/rng.h>
 #include <base/ithreadpool.h>
 #include <base/workstealingtaskqueue.h>
 
@@ -75,7 +76,7 @@ public:
 
     size_t ScheduleNext(size_t cur_index, const std::vector<WorkStealingTaskQueuePtr>& work_queues) override;
 private:
-    AlignVector<PRNG> prngs_;
+    Vector<PRNG> prngs_;
 };
 
 class LeastLoadSchedulerPolicy final : public ITaskSchedulerPolicy {

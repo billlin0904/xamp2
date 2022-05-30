@@ -10,7 +10,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
     : QWidget(parent) {
     ui.setupUi(this);
     dir_model_ = new FileSystemModel(this);
-    dir_model_->setFilter(QDir::NoDotAndDotDot | QDir::AllDirs);    
+    dir_model_->setFilter(QDir::NoDotDot | QDir::AllDirs);
     dir_model_->setRootPath(AppSettings::getMyMusicFolderPath());
     ui.dirTree->setModel(dir_model_);
     ui.dirTree->setRootIndex(dir_model_->index(AppSettings::getMyMusicFolderPath()));

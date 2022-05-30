@@ -76,7 +76,7 @@ signals:
     void addPlaylistReplayGain(bool force, const std::vector<PlayListEntity> &entities);
 
 public slots:
-	void processMeatadata(int64_t dir_last_write_time, const std::forward_list<Metadata> &medata);
+	void processMeatadata(int64_t dir_last_write_time, const ForwardList<Metadata> &medata);
 
 	void search(const QString& sort_str, Qt::CaseSensitivity case_sensitivity, QRegExp::PatternSyntax pattern_syntax);
 

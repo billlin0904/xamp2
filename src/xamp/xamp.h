@@ -64,7 +64,7 @@ public slots:
 
 	void onArtistIdChanged(const QString& artist, const QString& cover_id, int32_t artist_id);
 
-	void processMeatadata(int64_t dir_last_write_time, const std::forward_list<Metadata>& medata) const;
+	void processMeatadata(int64_t dir_last_write_time, const ForwardList<Metadata>& medata) const;
 
 	void onActivated(QSystemTrayIcon::ActivationReason reason);
 
@@ -172,7 +172,6 @@ private:
 	AboutPage* about_page_;
     QMenu* tray_icon_menu_;
     QSystemTrayIcon* tray_icon_;
-    QFileSystemWatcher* fsw_;
     QStack<int32_t> stack_page_id_;
     BackgroundWorker background_worker_;
     QThread background_thread_;

@@ -46,10 +46,10 @@ public:
         return (*this)(min, max);
     }
 
-    AlignArray<int8_t> NextBytes(size_t size,
+    Vector<int8_t> NextBytes(size_t size,
         const int32_t min = (std::numeric_limits<int8_t>::min)(),
         const int32_t max = (std::numeric_limits<int8_t>::max)()) {
-        auto output = MakeAlignedArray<int8_t>(size);
+        Vector<int8_t> output(size);
         for (size_t i = 0; i < size; ++i) {
             output[i] = static_cast<int8_t>((*this)(min, max));
         }
@@ -57,10 +57,10 @@ public:
     }
 
     template <typename T>
-	AlignArray<T> NextBytes(size_t size,
+	Vector<T> NextBytes(size_t size,
 		const T min = (std::numeric_limits<T>::min)(),
 		const T max = (std::numeric_limits<T>::max)()) {
-		auto output = MakeAlignedArray<T>(size);
+        Vector<T> output(size);
         for (size_t i = 0; i < size; ++i) {
 			output[i] = static_cast<T>((*this)(min, max));
 		}

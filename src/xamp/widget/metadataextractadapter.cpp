@@ -28,9 +28,11 @@
 #include <widget/image_utiltis.h>
 #include <widget/metadataextractadapter.h>
 
-inline constexpr size_t kCachePreallocateSize = 500;
-
-using namespace xamp::metadata;
+using xamp::metadata::IMetadataExtractAdapter;
+using xamp::metadata::MakeMetadataReader;
+using xamp::metadata::IMetadataReader;
+using xamp::metadata::Metadata;
+using xamp::metadata::Path;
 
 class DatabaseIdCache final {
 public:
@@ -70,8 +72,7 @@ QString DatabaseIdCache::addCoverCache(int32_t album_id, const QString& album, c
     QPixmap pixmap;
     const auto& buffer = cover_reader_->GetEmbeddedCover(metadata.file_path);
     if (!buffer.empty()) {
-        pixmap.loadFromData(buffer.data(),
-            static_cast<uint32_t>(buffer.size()));
+        pixmap.loadFromData(buffer.data(), static_cast<uint32_t>(buffer.size()));
     }
     else {
     	if (!is_unknown_album) {
@@ -116,9 +117,6 @@ std::tuple<int32_t, int32_t, QString> DatabaseIdCache::addOrGetAlbumAndArtistId(
     return std::make_tuple(album_id, artist_id, cover_id);
 }
 
-using xamp::metadata::Metadata;
-using xamp::metadata::Path;
-
 class ExtractAdapterProxy final : public IMetadataExtractAdapter {
 public:
     explicit ExtractAdapterProxy(const QSharedPointer<::MetadataExtractAdapter> &adapter)
@@ -160,7 +158,7 @@ public:
 	
 private:
     QSharedPointer<::MetadataExtractAdapter> adapter_;
-    std::forward_list<Metadata> metadatas_;
+    ForwardList<Metadata> metadatas_;
 };
 
 ::MetadataExtractAdapter::MetadataExtractAdapter(QObject* parent)
@@ -219,7 +217,7 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
     }
 }
 
-void ::MetadataExtractAdapter::processMetadata(int64_t dir_last_write_time, const std::forward_list<Metadata>& result, PlayListTableView* playlist, bool is_podcast) {
+void ::MetadataExtractAdapter::processMetadata(int64_t dir_last_write_time, const ForwardList<Metadata>& result, PlayListTableView* playlist, bool is_podcast) {
 	auto playlist_id = -1;
     if (playlist != nullptr) {
         playlist_id = playlist->playlistId();

@@ -514,7 +514,7 @@ uint64_t GenRandomSeed() noexcept {
     return seed;
 }
 
-void CpuRelex() noexcept {
+void CpuRelax() noexcept {
 #ifdef XAMP_OS_WIN
     YieldProcessor();
 #else

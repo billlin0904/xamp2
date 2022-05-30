@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <vector>
+#include <base/align_ptr.h>
 #include <base/assert.h>
 
 namespace xamp::base {
@@ -145,7 +145,7 @@ public:
 private:
     size_t head_ = -1;
     size_t size_ = 0;
-    std::vector<T> data_;
+    Vector<T> data_;
 
     [[nodiscard]] size_t next_pos() const noexcept {
         return size_ == 0 ? 0 : (head_ + 1) % data_.size();

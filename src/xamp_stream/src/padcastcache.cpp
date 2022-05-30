@@ -61,7 +61,7 @@ std::shared_ptr<PodcastFileCache> PodcastFileCacheManager::GetOrAdd(std::string 
     bool found = false;
 
     auto make_cache = [cache_id, this]() {
-        auto file = std::make_shared<PodcastFileCache>(cache_id);
+	    const auto file = std::make_shared<PodcastFileCache>(cache_id);
         file->SetTempPath(".m4a", path_);
         cache_.AddOrUpdate(cache_id, file);
         return cache_.Find(cache_id);
@@ -100,7 +100,7 @@ void PodcastFileCacheManager::Remove(std::shared_ptr<PodcastFileCache> const & f
 }
 
 std::shared_ptr<PodcastFileCache> GetPodcastFileCache(std::wstring const & file_path) {
-    auto cache_id = ToCacheID(file_path);
+	const auto cache_id = ToCacheID(file_path);
     return PodcastCache.GetOrAdd(cache_id);
 }
 

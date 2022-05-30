@@ -334,7 +334,7 @@ void PlayListTableView::initial() {
                             auto cd = OpenCD(driver_letter);
                             cd->SetMaxSpeed();
                             auto track_id = 0;
-                            std::forward_list<Metadata> metadatas;
+                            ForwardList<Metadata> metadatas;
                             for (auto const & track : cd->GetTotalTracks()) {
                                 auto metadata = ::getMetadata(QString::fromStdWString(track));
                                 metadata.duration = cd->GetDuration(track_id++);
@@ -605,7 +605,7 @@ void PlayListTableView::append(const QString& file_name, bool show_progress_dial
    ::MetadataExtractAdapter::readFileMetadata(adapter, file_name, show_progress_dialog, is_recursive);
 }
 
-void PlayListTableView::processMeatadata(int64_t dir_last_write_time, const std::forward_list<Metadata>& medata) {
+void PlayListTableView::processMeatadata(int64_t dir_last_write_time, const ForwardList<Metadata>& medata) {
     ::MetadataExtractAdapter::processMetadata(dir_last_write_time, medata, this, podcast_mode_);
     resizeColumn();
     updateData();

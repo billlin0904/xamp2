@@ -125,7 +125,10 @@ struct XAMP_BASE_API_ONLY_EXPORT FreeDeleter {
 using CharPtr = std::unique_ptr<char, FreeDeleter<char>>;
 
 template <typename Type>
-using AlignVector = std::vector<Type, AlignedAllocator<Type>>;
+using Vector = std::vector<Type, AlignedAllocator<Type>>;
+
+template <typename Type>
+using ForwardList = std::forward_list<Type, AlignedAllocator<Type>>;
 
 template <typename Type>
 using StackBufferPtr = std::unique_ptr<Type[], StackBufferDeleter<Type>>;

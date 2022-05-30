@@ -218,7 +218,7 @@ static void BM_PRNG_SharedGetInstance(benchmark::State& state) {
 static void BM_ConvertToInt2432Avx(benchmark::State& state) {
     auto length = state.range(0);
 
-    auto output = MakeAlignedArray<int>(length);
+    auto output = Vector<int>(length);
     auto input = Singleton<PRNG>::GetInstance().NextBytes<float>(length, -1.0, 1.0);
 
     AudioFormat input_format;
@@ -231,7 +231,7 @@ static void BM_ConvertToInt2432Avx(benchmark::State& state) {
 
     for (auto _ : state) {
         DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::
-            ConvertToInt2432(output.get(), input.get(), ctx);
+            ConvertToInt2432(output.data(), input.data(), ctx);
     }
 
     state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * length * sizeof(float));
@@ -241,7 +241,7 @@ static void BM_ConvertToInt2432(benchmark::State& state) {
     auto length = state.range(0);
 
     auto input = Singleton<PRNG>::GetInstance().NextBytes<float>(length, -1.0, 1.0);
-    auto output = MakeAlignedArray<int>(length);
+    auto output = Vector<int>(length);
 
     AudioFormat input_format;
     AudioFormat output_format;
@@ -253,7 +253,7 @@ static void BM_ConvertToInt2432(benchmark::State& state) {
 
     for (auto _ : state) {
         DataConverter<PackedFormat::INTERLEAVED, PackedFormat::INTERLEAVED>::
-            ConvertToInt2432Bench(output.get(), input.get(), ctx);
+            ConvertToInt2432Bench(output.data(), input.data(), ctx);
     }
 
     state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * length * sizeof(float));
@@ -263,7 +263,7 @@ static void BM_InterleavedToPlanarConvertToInt32_AVX(benchmark::State& state) {
     auto length = state.range(0);
 
     auto input = Singleton<PRNG>::GetInstance().NextBytes<float>(length, -1.0, 1.0);
-    auto output = MakeAlignedArray<int>(length);
+    auto output = Vector<int>(length);
 
     AudioFormat input_format;
     AudioFormat output_format;
@@ -272,9 +272,9 @@ static void BM_InterleavedToPlanarConvertToInt32_AVX(benchmark::State& state) {
     output_format.SetChannel(2);
 
     for (auto _ : state) {
-        InterleaveToPlanar<float, int32_t>::Convert(input.get(),
-            output.get(),
-            output.get() + (length / 2),
+        InterleaveToPlanar<float, int32_t>::Convert(input.data(),
+            output.data(),
+            output.data() + (length / 2),
             length);
     }
 
@@ -285,7 +285,7 @@ static void BM_InterleavedToPlanarConvertToInt32(benchmark::State& state) {
     auto length = state.range(0);
 
     auto input = Singleton<PRNG>::GetInstance().NextBytes<float>(length, -1.0, 1.0);
-    auto output = MakeAlignedArray<int>(length);
+    auto output = Vector<int>(length);
 
     AudioFormat input_format;
     AudioFormat output_format;
@@ -299,8 +299,8 @@ static void BM_InterleavedToPlanarConvertToInt32(benchmark::State& state) {
     for (auto _ : state) {
         DataConverter<PackedFormat::PLANAR,
             PackedFormat::INTERLEAVED>::Convert(
-                output.get(),
-                input.get(),
+                output.data(),
+                input.data(),
                 ctx);
     }
 
@@ -311,7 +311,7 @@ static void BM_InterleavedToPlanarConvertToInt8_AVX(benchmark::State& state) {
     auto length = state.range(0);
 
     auto input = Singleton<PRNG>::GetInstance().NextBytes(length);
-    auto output = MakeAlignedArray<int8_t>(length * 2);
+    auto output = Vector<int8_t>(length * 2);
 
     AudioFormat input_format;
     AudioFormat output_format;
@@ -320,9 +320,9 @@ static void BM_InterleavedToPlanarConvertToInt8_AVX(benchmark::State& state) {
     output_format.SetChannel(2);
 
     for (auto _ : state) {
-        InterleaveToPlanar<int8_t, int8_t>::Convert(input.get(),
-            output.get(),
-            output.get() + (length / 2),
+        InterleaveToPlanar<int8_t, int8_t>::Convert(input.data(),
+            output.data(),
+            output.data() + (length / 2),
             length);
     }
 
@@ -333,7 +333,7 @@ static void BM_InterleavedToPlanarConvertToInt8(benchmark::State& state) {
     auto length = state.range(0);
 
     auto input = Singleton<PRNG>::GetInstance().NextBytes(length);
-    auto output = MakeAlignedArray<int8_t>(length * 2);
+    auto output = Vector<int8_t>(length * 2);
 
     AudioFormat input_format;
     AudioFormat output_format;
@@ -349,8 +349,8 @@ static void BM_InterleavedToPlanarConvertToInt8(benchmark::State& state) {
 
     for (auto _ : state) {
         DataConverter<PackedFormat::PLANAR, PackedFormat::PLANAR>::Convert(
-            output.get(),
-            input.get(),
+            output.data(),
+            input.data(),
             ctx);
     }
 
@@ -443,7 +443,7 @@ static void BM_unordered_set(benchmark::State& state) {
 
 static void BM_FowardListSort(benchmark::State& state) {
     auto length = state.range(0);
-    std::forward_list<Metadata> list;
+    ForwardList<Metadata> list;
 
     for (auto i = 0; i < length; ++i) {
         Metadata metadata;
@@ -541,7 +541,7 @@ static void BM_FFT(benchmark::State& state) {
     FFT fft;
     fft.Init(length);
     for (auto _ : state) {
-        auto& result = fft.Forward(input.get(), length);
+        auto& result = fft.Forward(input.data(), length);
         benchmark::DoNotOptimize(result);
         benchmark::ClobberMemory();
     }
@@ -626,8 +626,8 @@ static void BM_Rotl(benchmark::State& state) {
 //BENCHMARK(BM_InterleavedToPlanarConvertToInt8_AVX)->Range(4096, 8 << 10);
 //BENCHMARK(BM_InterleavedToPlanarConvertToInt8)->Range(4096, 8 << 10);
 
-//BENCHMARK(BM_Builtin_Rotl);
-//BENCHMARK(BM_Rotl);
+BENCHMARK(BM_Builtin_Rotl);
+BENCHMARK(BM_Rotl);
 
 //BENCHMARK(BM_Builtin_UuidParse);
 //BENCHMARK(BM_UuidParse);
@@ -644,13 +644,13 @@ static void BM_Rotl(benchmark::State& state) {
 //BENCHMARK(BM_unordered_map);
 //BENCHMARK(BM_FindRobinHoodHashMap);
 
-BENCHMARK(BM_FowardListSort)->RangeMultiplier(2)->Range(4096, 8 << 16);
-BENCHMARK(BM_ListSort)->RangeMultiplier(2)->Range(4096, 8 << 16);
-BENCHMARK(BM_VectorSort)->RangeMultiplier(2)->Range(4096, 8 << 16);
+BENCHMARK(BM_FowardListSort)->RangeMultiplier(2)->Range(4096, 8 << 10);
+BENCHMARK(BM_ListSort)->RangeMultiplier(2)->Range(4096, 8 << 10);
+BENCHMARK(BM_VectorSort)->RangeMultiplier(2)->Range(4096, 8 << 10);
 
-BENCHMARK(BM_LruCache_Find)->RangeMultiplier(2)->Range(4096, 8 << 16);
-BENCHMARK(BM_LruCache_Add);
-BENCHMARK(BM_LruCache_AddOrUpdate);
+BENCHMARK(BM_LruCache_Find)->RangeMultiplier(2)->Range(4096, 8 << 10);
+BENCHMARK(BM_LruCache_Add)->RangeMultiplier(2)->Range(4096, 8 << 10);
+BENCHMARK(BM_LruCache_AddOrUpdate)->RangeMultiplier(2)->Range(4096, 8 << 10);
 
 //BENCHMARK(BM_FastMemset)->RangeMultiplier(2)->Range(4096, 8 << 16);
 //BENCHMARK(BM_StdtMemset)->RangeMultiplier(2)->Range(4096, 8 << 16);

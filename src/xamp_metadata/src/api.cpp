@@ -17,11 +17,14 @@ AlignPtr<IMetadataWriter> MakeMetadataWriter() {
 	return MakeAlign<IMetadataWriter, TaglibMetadataWriter>();
 }
 
-void ScanFolder(Path const& path, IMetadataExtractAdapter* adapter, IMetadataReader* reader) {
+template <typename TDirectoryIterator>
+void ScanFolderImpl(Path const& path, IMetadataExtractAdapter* adapter, IMetadataReader* reader) {
+    adapter->OnWalkNew();
+
     if (Fs::is_directory(path)) {
         Path root_path;
 
-        for (auto const& file_or_dir : DirectoryIterator(Fs::absolute(path), kIteratorOptions)) {
+        for (auto const& file_or_dir : TDirectoryIterator(Fs::absolute(path), kIteratorOptions)) {
             auto const& current_path = file_or_dir.path();
             if (root_path.empty()) {
                 root_path = current_path;
@@ -52,41 +55,12 @@ void ScanFolder(Path const& path, IMetadataExtractAdapter* adapter, IMetadataRea
     }
 }
 
+void ScanFolder(Path const& path, IMetadataExtractAdapter* adapter, IMetadataReader* reader) {
+    ScanFolderImpl<DirectoryIterator>(path, adapter, reader);
+}
+
 void RecursiveScanFolder(Path const& path, IMetadataExtractAdapter* adapter, IMetadataReader* reader) {
-    adapter->OnWalkNew();
-
-    if (Fs::is_directory(path)) {
-        Path root_path;
-
-        for (auto const& file_or_dir : RecursiveDirectoryIterator(Fs::absolute(path), kIteratorOptions)) {
-            auto const& current_path = file_or_dir.path();
-            if (root_path.empty()) {
-                root_path = current_path;
-            }
-
-            auto parent_path = root_path.parent_path();
-            auto cur_path = current_path.parent_path();
-            if (parent_path != cur_path) {
-                adapter->OnWalkEnd(DirectoryEntry(parent_path));
-                adapter->OnWalkNew();
-                root_path = current_path;
-            }
-
-            if (!Fs::is_directory(current_path)) {
-                if (adapter->IsAccept(current_path)) {
-                    adapter->OnWalk(path, reader->Extract(current_path));
-                }
-            }
-        }
-
-        adapter->OnWalkEnd(DirectoryEntry(path));
-    }
-    else {
-        if (adapter->IsAccept(path)) {
-            adapter->OnWalk(path, reader->Extract(path));
-            adapter->OnWalkEnd(DirectoryEntry(path));
-        }
-    }
+    ScanFolderImpl<RecursiveDirectoryIterator>(path, adapter, reader);
 }
 
 }

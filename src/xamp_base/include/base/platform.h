@@ -68,7 +68,7 @@ XAMP_BASE_API void AtomicWakeAll(std::atomic<uint32_t>& to_wake) noexcept;
 
 XAMP_BASE_API uint64_t GenRandomSeed() noexcept;
 
-XAMP_BASE_API void CpuRelex() noexcept;
+XAMP_BASE_API void CpuRelax() noexcept;
 
 #ifdef XAMP_OS_WIN
 XAMP_BASE_API void RedirectStdOut();
