@@ -180,10 +180,15 @@ void ThemeManager::setBorderRadius(QFrame* content_widget) {
     auto color = QColor(backgroundColor());
     auto transparent_color = QColor(backgroundColor());
 
+#if XAMP_OS_WIN
     if (AppSettings::getValueAsBool(kAppSettingEnableBlur)) {
         color.setAlpha(220);
         transparent_color.setAlpha(0);
-    }    
+    }
+#else
+    color.setAlpha(0);
+    transparent_color.setAlpha(0);
+#endif
 
     // border-radius: 8px;
 	// border: 2px solid % 1;

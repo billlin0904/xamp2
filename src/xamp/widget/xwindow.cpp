@@ -215,6 +215,10 @@ void XWindow::setContentWidget(IXampPlayer *content_widget) {
         if (content_widget_ != nullptr) {
             osx::hideTitleBar(content_widget_);
         }
+        if (AppSettings::getValueAsBool(kAppSettingEnableBlur)) {
+            setAttribute(Qt::WA_TranslucentBackground, true);
+            qTheme.enableBlur(this);
+        }
         setWindowTitle(kAppTitle);
     }
 #endif

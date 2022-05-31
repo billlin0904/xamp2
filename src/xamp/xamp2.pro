@@ -80,6 +80,8 @@ SOURCES += \
     widget/colorthief.cpp \
     widget/stackblur.cpp \
     widget/spectrumwidget.cpp \
+    widget/filesystemviewpage.cpp \
+    widget/filesystemmodel.cpp \
     singleinstanceapplication.cpp \
     thememanager.cpp \
     aboutpage.cpp \
@@ -138,6 +140,8 @@ HEADERS += \
     widget/stackblur.h \
     widget/spectrumwidget.h \
     widget/smoothcurvegenerator2.h \
+    widget/filesystemviewpage.h \
+    widget/filesystemmodel.h \
     singleinstanceapplication.h \
     thememanager.h \
     aboutpage.h \
@@ -150,6 +154,7 @@ ICON = xamp2.icns \
 FORMS += \
     widget/equalizerdialog.ui \
     widget/toast.ui \
+    filesystemviewpage.ui \
     aboutdialog.ui \
     preferencedialog.ui \
     xamp.ui \

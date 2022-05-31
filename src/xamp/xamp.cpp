@@ -740,7 +740,7 @@ void Xamp::initialController() {
         auto enable = AppSettings::getValueAsBool(kAppSettingEnableBlur);
         enable = !enable;
         enable_blur_material_mode_action->setChecked(enable);
-        qTheme.enableBlur(ui_.sliderFrame, enable);
+        AppSettings::setValue(kAppSettingEnableBlur, enable);
         cleanup();
         qApp->exit(kRestartPlayerCode);
         });

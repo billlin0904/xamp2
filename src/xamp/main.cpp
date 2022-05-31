@@ -295,7 +295,7 @@ static int excute(int argc, char* argv[]) {
 
     win.setXWindow(&top_win);
     top_win.setContentWidget(&win);
-	//top_win.setContentWidget(nullptr);
+    //top_win.setContentWidget(nullptr);
 
     top_win.show();
     top_win.activateWindow();

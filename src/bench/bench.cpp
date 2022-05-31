@@ -458,6 +458,7 @@ static void BM_FowardListSort(benchmark::State& state) {
     }
 }
 
+#if 0
 static void BM_ListSort(benchmark::State& state) {
     auto length = state.range(0);
     std::list<Metadata> list;
@@ -475,6 +476,7 @@ static void BM_ListSort(benchmark::State& state) {
             });
     }
 }
+#endif
 
 static void BM_VectorSort(benchmark::State& state) {
     auto length = state.range(0);
@@ -645,7 +647,7 @@ BENCHMARK(BM_Rotl);
 //BENCHMARK(BM_FindRobinHoodHashMap);
 
 BENCHMARK(BM_FowardListSort)->RangeMultiplier(2)->Range(4096, 8 << 10);
-BENCHMARK(BM_ListSort)->RangeMultiplier(2)->Range(4096, 8 << 10);
+//BENCHMARK(BM_ListSort)->RangeMultiplier(2)->Range(4096, 8 << 10);
 BENCHMARK(BM_VectorSort)->RangeMultiplier(2)->Range(4096, 8 << 10);
 
 BENCHMARK(BM_LruCache_Find)->RangeMultiplier(2)->Range(4096, 8 << 10);
