@@ -70,8 +70,8 @@ void LrcPage::paintEvent(QPaintEvent*) {
 }
 
 void LrcPage::setBackgroundColor(QColor backgroundColor) {
-    lyrics_widget_->setBackgroundColor(backgroundColor);
-	setStyleSheet(backgroundColorToString(backgroundColor));
+    //lyrics_widget_->setBackgroundColor(backgroundColor);
+	//setStyleSheet(backgroundColorToString(backgroundColor));
 }
 
 void LrcPage::onThemeChanged(QColor backgroundColor, QColor color) {

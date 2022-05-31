@@ -749,6 +749,7 @@ void Xamp::initialController() {
     settings_menu->addSeparator();
     ui_.settingsButton->setMenu(settings_menu);
 
+#ifdef Q_OS_WIN
     theme_menu_ = new QMenu(this);
     qTheme.setMenuStyle(theme_menu_);
     qTheme.setThemeButtonIcon(ui_);
@@ -767,6 +768,7 @@ void Xamp::initialController() {
         qApp->exit(kRestartPlayerCode);
         });
     ui_.themeButton->setMenu(theme_menu_);
+#endif
 
     ui_.seekSlider->setEnabled(false);
     ui_.startPosLabel->setText(msToString(0));

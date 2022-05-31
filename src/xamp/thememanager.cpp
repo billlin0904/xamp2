@@ -689,7 +689,7 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
 
     ui.artistLabel->setStyleSheet(Q_TEXT(R"(
                                          QLabel#artistLabel {
-                                         color: red;
+                                         color: rgb(250, 88, 106);
                                          background-color: transparent;
                                          }
                                          )"));

@@ -6,7 +6,8 @@
 #pragma once
 
 #include <QObject>
-#include <vector>
+
+#include <base/align_ptr.h>
 #include <base/ithreadpool.h>
 #include <base/lrucache.h>
 #include <metadata/api.h>
@@ -15,16 +16,16 @@
 using xamp::base::AlignPtr;
 using xamp::base::IThreadPool;
 using xamp::base::LruCache;
-
+using xamp::base::Vector;
 using xamp::metadata::IMetadataWriter;
 
 struct ReplayGainResult final {
     double album_peak{0};
     double album_replay_gain{0};
-    std::vector<PlayListEntity> music_id;
-    std::vector<double> lufs;
-    std::vector<double> track_peak;
-    std::vector<double> track_replay_gain;
+    Vector<PlayListEntity> music_id;
+    Vector<double> lufs;
+    Vector<double> track_peak;
+    Vector<double> track_replay_gain;
 };
 
 class BackgroundWorker : public QObject {

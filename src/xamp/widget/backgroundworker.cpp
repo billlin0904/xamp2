@@ -59,7 +59,7 @@ void BackgroundWorker::blurImage(const QString& cover_id, const QImage& image) {
 void BackgroundWorker::readReplayGain(bool, const std::vector<PlayListEntity>& items) {
     XAMP_LOG_DEBUG("Start read replay gain count:{}", items.size());
 
-    std::vector<std::shared_future<AlignPtr<PlayListRGResult>>> replay_gain_tasks;
+    Vector<std::shared_future<AlignPtr<PlayListRGResult>>> replay_gain_tasks;
 
     const auto target_gain = AppSettings::getValue(kAppSettingReplayGainTargetGain).toDouble();
     const auto scan_mode = AppSettings::getAsEnum<ReplayGainScanMode>(kAppSettingReplayGainScanMode);
@@ -97,7 +97,7 @@ void BackgroundWorker::readReplayGain(bool, const std::vector<PlayListEntity>& i
         }));
     }
 
-    std::vector<Ebur128ReplayGainScanner> scanners;
+    Vector<Ebur128ReplayGainScanner> scanners;
     ReplayGainResult replay_gain;
 
     for (auto & task : replay_gain_tasks) {
@@ -143,8 +143,6 @@ void BackgroundWorker::readReplayGain(bool, const std::vector<PlayListEntity>& i
         replay_gain.track_replay_gain.push_back(
             Ebur128ReplayGainScanner::GetEbur128Gain(track_lufs, target_gain));
     }
-
-    using namespace xamp::metadata;
 
     for (size_t i = 0; i < replay_gain_tasks.size(); ++i) {
 	    ReplayGain rg;
