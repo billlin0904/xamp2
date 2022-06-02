@@ -437,7 +437,7 @@ std::vector<int32_t> Database::getAlbumId() const {
 void Database::removeAlbum(int32_t album_id) {
 	forEachAlbumMusic(album_id, [this](auto const& entity) {
         forEachPlaylist([&entity, this](auto playlistId, auto , auto) {
-            removePlaylistMusic(playlistId, QVector<int32_t>{ entity.music_id });
+			removeMusic(playlistId, QVector<int32_t>{ entity.music_id });
         });
 		removeAlbumMusicId(entity.music_id);
 		removeMusic(entity.music_id);
@@ -944,6 +944,23 @@ void Database::addAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_
 void Database::removePlaylistAllMusic(int32_t playlist_id) {
 	QSqlQuery query;
 	query.prepare(Q_TEXT("DELETE FROM playlistMusics WHERE playlistId=:playlistId"));
+	query.bindValue(Q_TEXT(":playlistId"), playlist_id);
+	IfFailureThrow1(query);
+}
+
+void Database::removeMusic(int32_t playlist_id, const QVector<int32_t>& select_music_ids) {
+	QSqlQuery query;
+
+	QString str = Q_TEXT("DELETE FROM playlistMusics WHERE playlistId=:playlistId AND musicId in (%0)");
+
+	QStringList list;
+	for (auto id : select_music_ids) {
+		list << QString::number(id);
+	}
+
+	auto q = str.arg(list.join(Q_TEXT(",")));
+	query.prepare(q);
+
 	query.bindValue(Q_TEXT(":playlistId"), playlist_id);
 	IfFailureThrow1(query);
 }

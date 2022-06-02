@@ -124,6 +124,8 @@ public:
     void removeMusic(QString const& file_path);
 
     void removePlaylistAllMusic(int32_t playlist_id);
+
+    void removeMusic(int32_t playlist_id, const QVector<int32_t>& select_music_ids);
 	
     void removePlaylistMusic(int32_t playlist_id, const QVector<int>& select_music_ids);
 
