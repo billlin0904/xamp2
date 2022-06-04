@@ -235,7 +235,7 @@ void ThemeManager::setMenuStyle(QWidget* menu) {
 
 DefaultStylePixmapManager::DefaultStylePixmapManager()
     : unknown_cover_(Q_TEXT(":/xamp/Resource/White/unknown_album.png"))
-    , default_size_unknown_cover_(Pixmap::resizeImage(unknown_cover_, qTheme.getDefaultCoverSize())) {
+    , default_size_unknown_cover_(Pixmap::scaledImage(unknown_cover_, qTheme.getDefaultCoverSize())) {
 }
 
 const QPixmap& DefaultStylePixmapManager::defaultSizeUnknownCover() const noexcept {

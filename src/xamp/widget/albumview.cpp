@@ -328,12 +328,12 @@ void AlbumViewPage::setTotalDuration(double durations) {
 
 void AlbumViewPage::setCover(const QString& cover_id) {
     if (auto const * cache_small_cover = qPixmapCache.find(cover_id)) {
-        auto image = Pixmap::roundImage(Pixmap::resizeImage(cache_small_cover->copy(),
+        auto image = Pixmap::roundImage(Pixmap::scaledImage(cache_small_cover->copy(),
             qTheme.getAlbumCoverSize()));
         cover_->setPixmap(image);
     }
     else {
-        const auto image = Pixmap::roundImage(Pixmap::resizeImage(qTheme.pixmap().defaultSizeUnknownCover(),
+        const auto image = Pixmap::roundImage(Pixmap::scaledImage(qTheme.pixmap().defaultSizeUnknownCover(),
                                                                   qTheme.getAlbumCoverSize()));
         cover_->setPixmap(image);
     }

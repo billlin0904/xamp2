@@ -116,7 +116,7 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 }
 
 QPixmap ArtistInfoPage::getArtistImage(QPixmap const* cover) const {
-	return  Pixmap::roundImage(Pixmap::resizeImage(*cover, cover_->size()), Pixmap::kPlaylistImageRadius);
+	return  Pixmap::roundImage(Pixmap::scaledImage(*cover, cover_->size()), Pixmap::kPlaylistImageRadius);
 }
 
 void ArtistInfoPage::setArtistId(const QString& artist, const QString& cover_id, int32_t artist_id) {

@@ -1222,16 +1222,16 @@ void Xamp::setCover(const QPixmap* cover, PlaylistPage* page) {
 	}
 
     const auto ui_cover = Pixmap::roundImage(
-        Pixmap::resizeImage(*cover, ui_.coverLabel->size(), false),
+        Pixmap::scaledImage(*cover, ui_.coverLabel->size(), false),
            Pixmap::kPlaylistImageRadius);
     ui_.coverLabel->setPixmap(ui_cover);
 
     const auto playlist_cover = Pixmap::roundImage(
-        Pixmap::resizeImage(*cover, QSize(130, 130), false),
+        Pixmap::scaledImage(*cover, QSize(130, 130), false),
         Pixmap::kPlaylistImageRadius);
     page->cover()->setPixmap(playlist_cover);
     if (lrc_page_ != nullptr) {
-        lrc_page_->setCover(Pixmap::resizeImage(*cover, lrc_page_->cover()->size(), true));
+        lrc_page_->setCover(Pixmap::scaledImage(*cover, lrc_page_->cover()->size(), true));
     }   
 }
 

@@ -467,14 +467,18 @@ void PlayListTableView::initial() {
             }
 
             const QSize kMaxCoverArtSize(500, 500);
-            const auto resize_cover = Pixmap::resizeImage(image, kMaxCoverArtSize, true);
+            const auto resize_cover = Pixmap::scaledImage(image, kMaxCoverArtSize, true);
 
-            const auto image_data = Pixmap::getImageDate(resize_cover);
+            const auto image_data = Pixmap::getImageByteArray(resize_cover);
+            const auto data = std::vector<uint8_t>{ image_data.constData(), image_data.constData() + image_data.size() };
+            const auto tag_id = qPixmapCache.addOrUpdate(image_data);
             const auto rows = selectItemIndex();
+            const auto writer = MakeMetadataWriter();
+
             for (const auto& select_item : rows) {
                 auto entity = this->item(select_item.second);
-                auto writer = MakeMetadataWriter();
-                writer->WriteEmbeddedCover(entity.file_path.toStdWString(), image_data);
+                writer->WriteEmbeddedCover(entity.file_path.toStdWString(), data);
+                qDatabase.setAlbumCover(entity.album_id, entity.album, tag_id);
             }
         });
 
