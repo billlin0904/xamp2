@@ -422,16 +422,14 @@ void Database::removeArtistId(int32_t artist_id) {
 	IfFailureThrow1(query);
 }
 
-std::vector<int32_t> Database::getAlbumId() const {
+void Database::forEachAlbum(std::function<void(int32_t)>&& fun) {
 	QSqlQuery query;
 
 	query.prepare(Q_TEXT("SELECT albumId FROM albums"));
-	std::vector<int32_t> album_ids;
 	IfFailureThrow1(query);
 	while (query.next()) {
-		album_ids.push_back(query.value(Q_TEXT("albumId")).toInt());
+		fun(query.value(Q_TEXT("albumId")).toInt());
 	}
-	return album_ids;
 }
 
 void Database::removeAlbum(int32_t album_id) {

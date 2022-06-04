@@ -81,7 +81,7 @@ QString DatabaseIdCache::addCoverCache(int32_t album_id, const QString& album, c
     }
 
     if (!pixmap.isNull()) {
-        cover_id = qPixmapCache.addOrUpdate(pixmap);
+        cover_id = qPixmapCache.savePixamp(pixmap);
         XAMP_ASSERT(!cover_id.isEmpty());
         cover_id_cache_.AddOrUpdate(album_id, cover_id);
         qDatabase.setAlbumCover(album_id, album, cover_id);

@@ -31,7 +31,7 @@ PixmapCache::PixmapCache()
 	cache_path_ = QDir::currentPath() + Q_TEXT("/caches/");
 	const QDir dir;
 	(void)dir.mkdir(cache_path_);
-    unknown_cover_id_ = addOrUpdate(qTheme.pixmap().unknownCover());
+    unknown_cover_id_ = savePixamp(qTheme.pixmap().unknownCover());
 	loadCache();
 }
 
@@ -58,12 +58,11 @@ void PixmapCache::clearCache() {
 }
 
 void PixmapCache::clear() {
-	for (QDirIterator itr(cache_path_, cache_ext_, QDir::Files | QDir::NoDotAndDotDot);
+	for (QDirIterator itr(cache_path_, QDir::Files);
 		itr.hasNext();) {
 		const auto path = itr.next();
 		QFile file(path);
 		file.remove();
-		file.close();
 	}
 	cache_.Clear();
 }
@@ -124,7 +123,7 @@ void PixmapCache::loadCache() const {
 	XAMP_LOG_D(logger_, "PixmapCache cache count: {}", i);
 }
 
-size_t PixmapCache::GetMissRate() const {
+size_t PixmapCache::missRate() const {
 	if (cache_.GetHitCount() == 0) {
 		return 0;
 	}
@@ -139,7 +138,7 @@ const QPixmap* PixmapCache::find(const QString& tag_id) const {
                 return nullptr;
             }
             XAMP_LOG_D(logger_, "PixmapCache load file name:{} from disk, miss: {}",
-                       tag_id.toStdString(), GetMissRate());
+                       tag_id.toStdString(), missRate());
 			auto read_cover = fromFileCache(tag_id);
 			if (read_cover.isNull()) {
 				return nullptr;
@@ -161,18 +160,11 @@ void PixmapCache::setMaxSize(size_t max_size) {
     cache_.SetMaxSize(max_size);
 }
 
-QString PixmapCache::addOrUpdate(const QPixmap& cover) const {
-	QByteArray array;
-	QBuffer buffer(&array);
-	buffer.open(QIODevice::WriteOnly);
-    return savePixamp(cover);
-}
-
 bool PixmapCache::isExist(const QString& tag_id) const {
 	return cache_.Find(tag_id) != nullptr;
 }
 
-size_t PixmapCache::getImageSize() const {
+size_t PixmapCache::totalCacheSize() const {
 	size_t size = 0;
 	for (auto const & [fst, snd] : cache_) {
 		size += snd.size().width()

@@ -103,8 +103,6 @@ public:
 
     void setTableName(int32_t table_id, const QString &name);
 
-    std::vector<int32_t> getAlbumId() const;
-
     void removeAlbum(int32_t album_id);
 
     void forEachTable(std::function<void(int32_t, int32_t, int32_t, QString)>&& fun);
@@ -114,6 +112,8 @@ public:
     void forEachAlbumArtistMusic(int32_t album_id, int32_t artist_id, std::function<void(PlayListEntity const&)>&& fun);
 
     void forEachAlbumMusic(int32_t album_id, std::function<void(PlayListEntity const &)> &&fun);
+
+    void forEachAlbum(std::function<void(int32_t)>&& fun);
 
     void removeAllArtist();
 

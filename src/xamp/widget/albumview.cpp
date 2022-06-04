@@ -412,9 +412,9 @@ AlbumView::AlbumView(QWidget* parent)
         ActionMap<AlbumView> action_map(this);
 
         auto removeAlbum = [=]() {
-            for (const auto album_id : qDatabase.getAlbumId()) {
+            qDatabase.forEachAlbum([](auto album_id) {
                 qDatabase.removeAlbum(album_id);
-            }
+            });
             qDatabase.removeAllArtist();
             update();
             emit removeAll();

@@ -40,13 +40,11 @@ public:
 
     QString addOrUpdate(const QByteArray& data) const;
 
-    QString addOrUpdate(const QPixmap& cover) const;
-
 	void erase(const QString& tag_id);
 
 	bool isExist(const QString& tag_id) const;
 
-	size_t getImageSize() const;
+	size_t totalCacheSize() const;
 
     void setMaxSize(size_t max_size);
 
@@ -58,15 +56,15 @@ public:
 
 	void clearCache();
 
-    size_t GetMissRate() const;
+    size_t missRate() const;
+
+	QString savePixamp(const QPixmap& cover) const;
 
 protected:
 	PixmapCache();
 
 private:
 	void loadCache() const;
-
-    QString savePixamp(const QPixmap &cover) const;
 
 	QString unknown_cover_id_;
 	QString cache_path_;

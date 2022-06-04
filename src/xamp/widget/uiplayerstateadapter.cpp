@@ -35,12 +35,11 @@ void UIPlayerStateAdapter::setWindowType(WindowType type) {
 }
 
 void UIPlayerStateAdapter::OnOutputFormatChanged(const AudioFormat output_format, size_t buffer_size) {
-	size_t channels = output_format.GetChannels();
-	size_t channel_sample_rate = output_format.GetSampleRate() / 2;
+	size_t channel_sample_rate = output_format.GetSampleRate() / kMaxChannel;
 	size_t frame_size = buffer_size * kMaxChannel;
 	size_t shift_size = channel_sample_rate * 0.01;
 	frame_size = NextPowerOfTwo(buffer_size);
-	stft_ = MakeAlign<STFT>(channels, frame_size, shift_size);
+	stft_ = MakeAlign<STFT>(frame_size, shift_size);
 }
 
 void UIPlayerStateAdapter::OnSamplesChanged(const float* samples, size_t num_buffer_frames) {

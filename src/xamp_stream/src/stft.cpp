@@ -4,9 +4,8 @@
 
 namespace xamp::stream {
 
-STFT::STFT(size_t channels, size_t frame_size, size_t shift_size)
-	: channels_(channels)
-	, frame_size_(frame_size)
+STFT::STFT(size_t frame_size, size_t shift_size)
+	: frame_size_(frame_size)
 	, shift_size_(shift_size) {
     window_.Init(frame_size);
     fft_.Init(frame_size);
@@ -21,10 +20,10 @@ void STFT::setWindowType(WindowType type) {
 }
 
 const ComplexValarray& STFT::Process(const float* in, size_t length) {
-    XAMP_ASSERT(frame_size_ % 2 == 0);
-	XAMP_ASSERT(frame_size_ >= length / 2);
+    XAMP_ASSERT(frame_size_ % kMaxChannel == 0);
+	XAMP_ASSERT(frame_size_ >= length / kMaxChannel);
     
-    for (size_t i = 0; i < length / 2; ++i) {
+    for (size_t i = 0; i < length / kMaxChannel; ++i) {
         in_[i] = in[i * 2];
     }
 

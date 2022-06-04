@@ -13,13 +13,14 @@ namespace xamp::stream {
 
 class XAMP_STREAM_API STFT {
 public:
-	STFT(size_t channels, size_t frame_size, size_t shift_size);
+	STFT(size_t frame_size, size_t shift_size);
+
+	XAMP_DISABLE_COPY(STFT)
 
 	void setWindowType(WindowType type);
 
 	const ComplexValarray& Process(const float* in, size_t length);
 private:
-	size_t channels_;
 	size_t frame_size_;
 	size_t shift_size_;
 	size_t output_length_;

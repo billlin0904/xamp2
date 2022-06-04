@@ -39,7 +39,7 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 			                                                    Qt::EmptyString,
 			                                                    tr("Music Files *.jpg *.jpeg *.png"),
                 nullptr);
-			cover_id_ = qPixmapCache.addOrUpdate(QPixmap(file_name));
+			cover_id_ = qPixmapCache.savePixamp(QPixmap(file_name));
 			qDatabase.updateArtistCoverId(artist_id_, cover_id_);
 			setArtistId(artist_->text(), cover_id_, artist_id_);
 			});		
