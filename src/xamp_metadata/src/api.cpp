@@ -18,7 +18,7 @@ AlignPtr<IMetadataWriter> MakeMetadataWriter() {
 }
 
 template <typename TDirectoryIterator>
-void ScanFolderImpl(Path const& path, IMetadataExtractAdapter* adapter, IMetadataReader* reader) {
+static void ScanFolderImpl(Path const& path, IMetadataExtractAdapter* adapter, IMetadataReader* reader) {
     adapter->OnWalkNew();
 
     if (Fs::is_directory(path)) {

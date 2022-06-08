@@ -1,4 +1,5 @@
 #include <QFileDialog>
+#include <QTooltip>
 #include <widget/appsettings.h>
 #include <widget/database.h>
 #include <widget/actionmap.h>
@@ -16,7 +17,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
     ui.dirTree->setRootIndex(dir_model_->index(AppSettings::getMyMusicFolderPath()));
     ui.dirTree->setStyleSheet(Q_TEXT("background-color: transparent"));
     ui.playlistPage->playlist()->setPlaylistId(kDefaultFileExplorerPlaylistId);
-    
+
     ui.dirTree->hideColumn(1);
     ui.dirTree->hideColumn(2);
     ui.dirTree->hideColumn(3);

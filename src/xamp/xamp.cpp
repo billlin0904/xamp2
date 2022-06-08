@@ -178,15 +178,15 @@ void Xamp::setXWindow(IXWindow* top_window) {
         action_map.addSeparator();
 
         (void)action_map.addAction(tr("No Window"), [this]() {
-            state_adapter_->setWindowType(WindowType::NO_WINDOW);
+            AppSettings::setEnumValue(kAppSettingWindowType, WindowType::NO_WINDOW);
             });
 
         (void)action_map.addAction(tr("Hamming Window"), [this]() {
-            state_adapter_->setWindowType(WindowType::HAMMING);
+            AppSettings::setEnumValue(kAppSettingWindowType, WindowType::HAMMING);
             });
 
         (void)action_map.addAction(tr("Blackman harris Window"), [this]() {
-            state_adapter_->setWindowType(WindowType::BLACKMAN_HARRIS);
+            AppSettings::setEnumValue(kAppSettingWindowType, WindowType::BLACKMAN_HARRIS);
             });
 
         action_map.exec(pt);

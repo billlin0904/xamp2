@@ -222,9 +222,8 @@ void ::MetadataExtractAdapter::processMetadata(int64_t dir_last_write_time, cons
     if (playlist != nullptr) {
         playlist_id = playlist->playlistId();
     }
-
-    for (const auto& metadata : result) {
-	    const DatabaseIdCache cache;
+    const DatabaseIdCache cache;
+    for (const auto& metadata : result) {	    
 	    auto album = QString::fromWCharArray(metadata.album.c_str());
         auto artist = QString::fromWCharArray(metadata.artist.c_str());
         

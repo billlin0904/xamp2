@@ -28,21 +28,21 @@ public:
 		data_ = MakeBuffer<float>(frame_size);
 		SetWindowType(type);
 		for (size_t i = 0; i < frame_size; i++) {
-			data_[i] = (*this.*dispatch_)(i, frame_size);
+			data_[i] = dispatch_(i, frame_size);
 		}
 	}
 
 	void SetWindowType(WindowType type) {
 		switch (type) {
 		case WindowType::NO_WINDOW:
-			dispatch_ = &WindowImpl::NoWindow;
+			dispatch_ = std::bind(&WindowImpl::NoWindow, this, std::placeholders::_1, std::placeholders::_2);
 			break;
 		case WindowType::HAMMING:
-			dispatch_ = &WindowImpl::HammingWindow;
+			dispatch_ = std::bind(&WindowImpl::HammingWindow, this, std::placeholders::_1, std::placeholders::_2);
 			break;
 		case WindowType::BLACKMAN_HARRIS:
 		default:
-			dispatch_ = &WindowImpl::BlackmanHarrisWindow;
+			dispatch_ = std::bind(&WindowImpl::BlackmanHarrisWindow, this, std::placeholders::_1, std::placeholders::_2);
 			break;
 		}
 	}
@@ -69,14 +69,13 @@ private:
 		constexpr float a2 = 0.14128f;
 		constexpr float a3 = 0.01168f;
 
-		return a0 - (a1 * cosf((2.0f * XAMP_PI * i) / (N - 1)))
-			+ (a2 * cosf((4.0f * XAMP_PI * i) / (N - 1)))
-			- (a3 * cosf((6.0f * XAMP_PI * i) / (N - 1)));
+		return a0 - (a1 * std::cos((2.0f * XAMP_PI * i) / (N - 1)))
+			+ (a2 * std::cos((4.0f * XAMP_PI * i) / (N - 1)))
+			- (a3 * std::cos((6.0f * XAMP_PI * i) / (N - 1)));
 	}
 
-	typedef float (WindowImpl::* WindowDispatch)(size_t i, size_t N);
+	std::function<float(size_t, size_t)> dispatch_;
 	size_t frame_size_{0};
-	WindowDispatch dispatch_{nullptr};
 	Buffer<float> data_;
 };
 

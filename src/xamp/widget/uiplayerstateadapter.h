@@ -45,8 +45,6 @@ class UIPlayerStateAdapter final
 public:
     explicit UIPlayerStateAdapter(QObject *parent = nullptr);
 
-    void setWindowType(WindowType type);
-
     void OnOutputFormatChanged(const AudioFormat output_format, size_t buffer_size) override;
 
     void OnSampleTime(double stream_time) override;

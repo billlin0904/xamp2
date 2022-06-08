@@ -45,6 +45,8 @@ const ConstLatin1String kEnableBitPerfect{ "AppSettings/enableBitPerfect" };
 const ConstLatin1String kEnableBlurCover{ "AppSettings/enableBlurCover" };
 
 const ConstLatin1String kAppSettingSpectrumStyles{ "AppSettings/Spectrum/spectrumStyles" };
+const ConstLatin1String kAppSettingWindowType{ "AppSettings/Spectrum/windowType" };
+
 
 const ConstLatin1String kSoxr{ "Soxr" };
 const ConstLatin1String kSoxrDefaultSettingName{ "default" };

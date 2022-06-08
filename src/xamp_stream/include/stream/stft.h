@@ -23,7 +23,7 @@ public:
 private:
 	size_t frame_size_;
 	size_t shift_size_;
-	size_t output_length_;
+	size_t output_size_;
 	FFT fft_;
 	Window window_;
 	Buffer<float> buf_;

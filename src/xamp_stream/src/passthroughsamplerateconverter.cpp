@@ -7,17 +7,23 @@ namespace xamp::stream {
 PassThroughSampleRateConverter::PassThroughSampleRateConverter(DsdModes dsd_mode, uint8_t sample_size)
     : dsd_mode_(dsd_mode)
     , sample_size_(sample_size)
-    , process_(nullptr) {
+    , dispatch_(nullptr) {
     if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE) {
-        process_ = &PassThroughSampleRateConverter::ProcessNativeDsd;
+        dispatch_ = std::bind(&PassThroughSampleRateConverter::ProcessNativeDsd, this,
+            std::placeholders::_1,
+            std::placeholders::_2,
+            std::placeholders::_3);
     }
     else {
-        process_ = &PassThroughSampleRateConverter::ProcessPcm;
+        dispatch_ = std::bind(&PassThroughSampleRateConverter::ProcessPcm, this,
+            std::placeholders::_1,
+            std::placeholders::_2,
+            std::placeholders::_3);
     }
 }
 
 bool PassThroughSampleRateConverter::Process(float const * sample_buffer, size_t num_samples, AudioBuffer<int8_t>& buffer) {
-    return (*this.*process_)(reinterpret_cast<int8_t const*>(sample_buffer), num_samples, buffer);
+    return dispatch_(reinterpret_cast<int8_t const*>(sample_buffer), num_samples, buffer);
 }
 
 bool PassThroughSampleRateConverter::Process(BufferRef<float> const& input, AudioBuffer<int8_t>& buffer) {

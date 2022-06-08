@@ -1,5 +1,5 @@
 //=====================================================================================================================
-// Copyright (c) 2018-2021 xamp project. All rights reserved.
+// Copyright (c) 2018-2022 xamp project. All rights reserved.
 // More license information, please see LICENSE file in module root folder.
 //=====================================================================================================================
 
@@ -25,11 +25,10 @@ private:
 
     bool ProcessPcm(int8_t const * sample_buffer, size_t num_samples, AudioBuffer<int8_t>& buffer);
 
-    typedef bool (PassThroughSampleRateConverter::*ProcessDispatch)(int8_t const *, size_t, AudioBuffer<int8_t>&);
 	DsdModes dsd_mode_;
     uint8_t sample_size_;
     uint32_t output_sample_rate_;
-	ProcessDispatch process_;
+    std::function<bool(int8_t const* , size_t , AudioBuffer<int8_t>& )> dispatch_;
 };
 
 }

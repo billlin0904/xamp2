@@ -40,6 +40,7 @@ extern const ConstLatin1String kAppSettingSoxrSettingName;
 extern const ConstLatin1String kEnableBlurCover;
 
 extern const ConstLatin1String kAppSettingSpectrumStyles;
+extern const ConstLatin1String kAppSettingWindowType;
 
 extern const ConstLatin1String kSoxr;
 extern const ConstLatin1String kSoxrResampleSampleRate;
