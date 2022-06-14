@@ -80,7 +80,6 @@ void Database::createTableIfNotExist() {
                        durationStr TEXT,
                        fileName TEXT,
                        fileExt TEXT,
-				       fingerprint TEXT,
                        bitrate integer,
                        samplerate integer,
 					   rating integer,					   
@@ -144,8 +143,6 @@ void Database::createTableIfNotExist() {
                        artistId integer primary key autoincrement,
                        artist TEXT NOT NULL DEFAULT '',
                        coverId TEXT,
-                       discogsArtistId TEXT,
-                       mbid TEXT,
 					   firstChar TEXT,
                        dateTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                        )
@@ -720,17 +717,6 @@ int32_t Database::addOrUpdateMusic(const Metadata& metadata, int32_t playlist_id
 	return music_id;
 }
 
-void Database::updateMusicFingerprint(int32_t music_id, const QString& fingerprint) {
-	QSqlQuery query;
-
-	query.prepare(Q_TEXT("UPDATE musics SET fingerprint = :fingerprint WHERE (musicId = :musicId)"));
-
-	query.bindValue(Q_TEXT(":musicId"), music_id);
-	query.bindValue(Q_TEXT(":fingerprint"), fingerprint);
-
-	query.exec();
-}
-
 void Database::updateMusicFilePath(int32_t music_id, const QString& file_path) {
 	QSqlQuery query;
 
@@ -795,28 +781,6 @@ void Database::addMusicToPlaylist(const std::vector<int32_t>& music_id, int32_t 
 
 	const auto querystr = Q_TEXT("INSERT INTO playlistMusics (playlistMusicsId, playlistId, musicId) VALUES ") + strings.join(Q_TEXT(","));
 	query.prepare(querystr);
-	IfFailureThrow1(query);
-}
-
-void Database::updateDiscogsArtistId(int32_t artist_id, const QString& discogs_artist_id) {
-	QSqlQuery query;
-
-	query.prepare(Q_TEXT("UPDATE artists SET discogsArtistId = :discogsArtistId WHERE (artistId = :artistId)"));
-
-	query.bindValue(Q_TEXT(":artistId"), artist_id);
-	query.bindValue(Q_TEXT(":discogsArtistId"), discogs_artist_id);
-
-	IfFailureThrow1(query);
-}
-
-void Database::updateArtistMbid(int32_t artist_id, const QString& mbid) {
-	QSqlQuery query;
-
-	query.prepare(Q_TEXT("UPDATE artists SET mbid = :mbid WHERE (artistId = :artistId)"));
-
-	query.bindValue(Q_TEXT(":artistId"), artist_id);
-	query.bindValue(Q_TEXT(":mbid"), mbid);
-
 	IfFailureThrow1(query);
 }
 
