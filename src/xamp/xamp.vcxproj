@@ -71,7 +71,7 @@
     <ClCompile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessorDefinitions>UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;QT_NO_CAST_FROM_ASCII;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;.;../xamp_base/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_player/include/;../xamp_metadata/include/;../thirdparty/spdlog/include/;%(AdditionalIncludeDirectories);../thirdparty/rapidjson/include/;../thirdparty/rapidxml/;../thirdparty/robin_hood/;../thirdparty/discord-rpc/include/;../thirdparty/google-breakpad-qt/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;.;../xamp_base/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_player/include/;../xamp_metadata/include/;../thirdparty/spdlog/include/;%(AdditionalIncludeDirectories);../thirdparty/rapidjson/include/;../thirdparty/rapidxml/;../thirdparty/robin_hood/;../thirdparty/discord-rpc/include/;../thirdparty/QSimpleUpdater/include/</AdditionalIncludeDirectories>
       <Optimization>Disabled</Optimization>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -86,9 +86,9 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
-      <AdditionalLibraryDirectories>./x64/Debug/;../thirdparty/mimalloc/out/msvc-x64/Release/;../thirdparty/discord-rpc/lib/debug/;../thirdparty/google-breakpad-qt/lib/windows-x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>./x64/Debug/;../thirdparty/mimalloc/out/msvc-x64/Release/;../thirdparty/discord-rpc/lib/debug/;../thirdparty/QSimpleUpdater/debug/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;discord-rpc.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;discord-rpc.lib;QSimpleUpdater.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/INCLUDE:mi_version %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <QtMoc>
@@ -259,6 +259,7 @@
   <ItemGroup>
     <QtMoc Include="widget\xframe.h" />
     <QtMoc Include="preferencepage.h" />
+    <QtMoc Include="..\thirdparty\QSimpleUpdater\include\QSimpleUpdater.h" />
     <ClInclude Include="widget\albumentity.h" />
     <ClInclude Include="widget\colorthief.h" />
     <QtMoc Include="widget\spectrumwidget.h" />
@@ -343,6 +344,7 @@
     <Image Include="xamp.ico" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\versions\updates.json" />
     <None Include="config.json" />
     <None Include="ja_JP.ts" />
     <None Include="Resource\Theme\dark\style.qss" />

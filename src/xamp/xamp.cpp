@@ -10,6 +10,7 @@
 #include <QProgressDialog>
 #include <QFileSystemWatcher>
 #include <QtMath>
+#include <QSimpleUpdater.h>
 
 #include <base/scopeguard.h>
 #include <base/str_utilts.h>
@@ -745,6 +746,29 @@ void Xamp::initialController() {
         qApp->exit(kRestartPlayerCode);
         });
     settings_menu->addAction(enable_blur_material_mode_action);
+
+    auto* check_for_update = new QAction(tr("Check For Updates"), this);
+    (void)QObject::connect(check_for_update, &QAction::triggered, [=]() {
+        auto* updater = QSimpleUpdater::getInstance();
+        QObject::connect(updater, &QSimpleUpdater::checkingFinished, [updater](auto str) {
+            });
+        QObject::connect(updater, &QSimpleUpdater::appcastDownloaded, [updater](auto str) {
+            });
+
+        static const QString DEFS_URL =
+            Q_TEXT("https://raw.githubusercontent.com/"
+                "alex-spataru/QSimpleUpdater/master/tutorial/"
+                "definitions/updates.json");
+
+        updater->setModuleVersion(DEFS_URL, Q_TEXT("0.0.1"));
+        updater->setNotifyOnFinish(DEFS_URL, true);
+        updater->setNotifyOnUpdate(DEFS_URL, true);
+        updater->setUseCustomAppcast(DEFS_URL, true);
+        updater->setDownloaderEnabled(DEFS_URL, true);
+        updater->setMandatoryUpdate(DEFS_URL, true);
+        updater->checkForUpdates(DEFS_URL);
+        });
+    settings_menu->addAction(check_for_update);
 
     settings_menu->addSeparator();
     ui_.settingsButton->setMenu(settings_menu);

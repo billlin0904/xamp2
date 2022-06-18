@@ -55,22 +55,6 @@ QFont ThemeManager::loadFonts() {
     // note: If we are support Source HanSans font sets must be enable Direct2D function,
     // But Qt framework not work fine with that!
     // -platform direct2d
-    /*const auto source_han_sans_font_path =
-        Q_STR("%1/fonts/SourceHanSans.ttc")
-		.arg(QCoreApplication::applicationDirPath());
-    const auto loaded_font_id = QFontDatabase::addApplicationFont(source_han_sans_font_path);
-    if (loaded_font_id != -1) {
-        auto loaded_font_families = QFontDatabase::applicationFontFamilies(loaded_font_id);
-        Q_FOREACH(const auto font_name, loaded_font_families) {
-            if (font_name.contains(Q_TEXT("HW")) 
-                || font_name.contains(Q_TEXT("Light"))
-                || font_name.contains(Q_TEXT("Medium"))
-                || font_name.contains(Q_TEXT("Heavy"))) {
-                continue;
-            }
-            ui_fallback_fonts.push_back(font_name);
-        }
-    }*/
 
     ui_fallback_fonts.push_back(Q_TEXT("Meiryo UI")); // For japanese font.
     ui_fallback_fonts.push_back(Q_TEXT("Microsoft YaHei"));
