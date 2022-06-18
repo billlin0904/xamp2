@@ -180,6 +180,7 @@
     <ClCompile Include="preferencepage.cpp" />
     <ClCompile Include="singleinstanceapplication.cpp" />
     <ClCompile Include="thememanager.cpp" />
+    <ClCompile Include="version.cpp" />
     <ClCompile Include="widget\albumartistpage.cpp" />
     <ClCompile Include="widget\albumentity.cpp" />
     <ClCompile Include="widget\albumview.cpp" />
@@ -260,6 +261,7 @@
     <QtMoc Include="widget\xframe.h" />
     <QtMoc Include="preferencepage.h" />
     <QtMoc Include="..\thirdparty\QSimpleUpdater\include\QSimpleUpdater.h" />
+    <ClInclude Include="version.h" />
     <ClInclude Include="widget\albumentity.h" />
     <ClInclude Include="widget\colorthief.h" />
     <QtMoc Include="widget\spectrumwidget.h" />

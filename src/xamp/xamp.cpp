@@ -55,6 +55,7 @@
 #include "aboutpage.h"
 #include "preferencepage.h"
 #include "thememanager.h"
+#include "version.h"
 #include "xamp.h"
 
 enum TabIndex {
@@ -756,11 +757,9 @@ void Xamp::initialController() {
             });
 
         static const QString DEFS_URL =
-            Q_TEXT("https://raw.githubusercontent.com/"
-                "alex-spataru/QSimpleUpdater/master/tutorial/"
-                "definitions/updates.json");
+            Q_TEXT("https://raw.githubusercontent.com/billlin0904/xamp2/master/src/versions/updates.json");
 
-        updater->setModuleVersion(DEFS_URL, Q_TEXT("0.0.1"));
+        updater->setModuleVersion(DEFS_URL, kXAMPVersion);
         updater->setNotifyOnFinish(DEFS_URL, true);
         updater->setNotifyOnUpdate(DEFS_URL, true);
         updater->setUseCustomAppcast(DEFS_URL, true);

@@ -30,6 +30,7 @@
 
 #include "thememanager.h"
 #include "singleinstanceapplication.h"
+#include "version.h"
 #include "xamp.h"
 
 static void loadSoxrSetting() {
@@ -242,7 +243,7 @@ static int excute(int argc, char* argv[]) {
     QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 
     QApplication::setApplicationName(Q_TEXT("XAMP2"));
-    QApplication::setApplicationVersion(Q_TEXT("0.0.1"));
+    QApplication::setApplicationVersion(kXAMPVersion);
     QApplication::setOrganizationName(Q_TEXT("XAMP2 Project"));
     QApplication::setOrganizationDomain(Q_TEXT("XAMP2 Project"));
 
