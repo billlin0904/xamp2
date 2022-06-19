@@ -749,22 +749,28 @@ void Xamp::initialController() {
     settings_menu->addAction(enable_blur_material_mode_action);
 
     auto* check_for_update = new QAction(tr("Check For Updates"), this);
+
+    auto* updater = QSimpleUpdater::getInstance();
+    QObject::connect(updater, &QSimpleUpdater::checkingFinished, [updater](auto url) {
+        auto change_log = updater->getChangelog(url);
+        XAMP_LOG_DEBUG(change_log.toStdString());
+        });
+    QObject::connect(updater, &QSimpleUpdater::appcastDownloaded, [updater](auto url, auto reply) {
+        XAMP_LOG_DEBUG(QString::fromUtf8(reply).toStdString());
+        });
+
+    static const QString DEFS_URL =
+        Q_TEXT("https://raw.githubusercontent.com/billlin0904/xamp2/master/src/versions/updates.json");
+
+    updater->setPlatformKey(DEFS_URL, Q_TEXT("windows"));
+    updater->setModuleVersion(DEFS_URL, kXAMPVersion);
+    updater->setNotifyOnFinish(DEFS_URL, true);
+    updater->setNotifyOnUpdate(DEFS_URL, true);
+    updater->setUseCustomAppcast(DEFS_URL, false);
+    updater->setDownloaderEnabled(DEFS_URL, true);
+    updater->setMandatoryUpdate(DEFS_URL, true);
+
     (void)QObject::connect(check_for_update, &QAction::triggered, [=]() {
-        auto* updater = QSimpleUpdater::getInstance();
-        QObject::connect(updater, &QSimpleUpdater::checkingFinished, [updater](auto str) {
-            });
-        QObject::connect(updater, &QSimpleUpdater::appcastDownloaded, [updater](auto str) {
-            });
-
-        static const QString DEFS_URL =
-            Q_TEXT("https://raw.githubusercontent.com/billlin0904/xamp2/master/src/versions/updates.json");
-
-        updater->setModuleVersion(DEFS_URL, kXAMPVersion);
-        updater->setNotifyOnFinish(DEFS_URL, true);
-        updater->setNotifyOnUpdate(DEFS_URL, true);
-        updater->setUseCustomAppcast(DEFS_URL, true);
-        updater->setDownloaderEnabled(DEFS_URL, true);
-        updater->setMandatoryUpdate(DEFS_URL, true);
         updater->checkForUpdates(DEFS_URL);
         });
     settings_menu->addAction(check_for_update);
