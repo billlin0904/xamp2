@@ -753,8 +753,11 @@ void Xamp::initialController() {
     auto* check_for_update = new QAction(tr("Check For Updates"), this);
 
     auto* updater = QSimpleUpdater::getInstance();
-    QObject::connect(updater, &QSimpleUpdater::checkingFinished, [updater](auto url) {
+    QObject::connect(updater, &QSimpleUpdater::checkingFinished, [updater, this](auto url) {
         auto change_log = updater->getChangelog(url);
+        QMessageBox::about(this,
+            Q_TEXT("Change log"),
+            change_log);
         XAMP_LOG_DEBUG(change_log.toStdString());
         });
     QObject::connect(updater, &QSimpleUpdater::appcastDownloaded, [updater](auto url, auto reply) {
@@ -766,11 +769,11 @@ void Xamp::initialController() {
 
     updater->setPlatformKey(DEFS_URL, Q_TEXT("windows"));
     updater->setModuleVersion(DEFS_URL, kXAMPVersion);
-    updater->setNotifyOnFinish(DEFS_URL, true);
-    updater->setNotifyOnUpdate(DEFS_URL, true);
+    updater->setNotifyOnFinish(DEFS_URL, false);
+    updater->setNotifyOnUpdate(DEFS_URL, false);
     updater->setUseCustomAppcast(DEFS_URL, false);
-    updater->setDownloaderEnabled(DEFS_URL, true);
-    updater->setMandatoryUpdate(DEFS_URL, true);
+    updater->setDownloaderEnabled(DEFS_URL, false);
+    updater->setMandatoryUpdate(DEFS_URL, false);
 
     (void)QObject::connect(check_for_update, &QAction::triggered, [=]() {
         updater->checkForUpdates(DEFS_URL);
