@@ -128,7 +128,9 @@ Xamp::Xamp()
     ui_.setupUi(this);
 }
 
-Xamp::~Xamp() = default;
+Xamp::~Xamp() {
+    cleanup();
+}
 
 void Xamp::setXWindow(IXWindow* top_window) {
     top_window_ = top_window;
