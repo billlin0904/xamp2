@@ -42,6 +42,7 @@ copy credits.txt deploy\
 xcopy /Y /S /I /E eqpresets deploy\eqpresets
 xcopy /Y /S /I /E Resource deploy\Resource
 xcopy /Y /S /I /E x64\Release\langs deploy\langs
+xcopy /Y /S /I /E x64\Release\fonts deploy\fonts
 
 lrelease en_US.ts -qm en_US.qm
 lrelease ja_JP.ts -qm ja_JP.qm

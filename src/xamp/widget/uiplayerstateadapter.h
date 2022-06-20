@@ -74,4 +74,5 @@ signals:
 
 private:
     AlignPtr<STFT> stft_;
+    bool enable_spectrum_;
 };

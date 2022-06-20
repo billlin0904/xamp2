@@ -39,6 +39,7 @@ extern const ConstLatin1String kAppSettingResamplerEnable;
 extern const ConstLatin1String kAppSettingSoxrSettingName;
 extern const ConstLatin1String kEnableBlurCover;
 
+extern const ConstLatin1String kAppSettingEnableSpectrum;
 extern const ConstLatin1String kAppSettingSpectrumStyles;
 extern const ConstLatin1String kAppSettingWindowType;
 

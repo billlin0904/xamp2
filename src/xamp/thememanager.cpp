@@ -7,6 +7,7 @@
 #include <QApplication>
 #include <QFontDatabase>
 #include <QTextStream>
+#include <QFileInfo>
 
 #if defined(Q_OS_WIN)
 #include <widget/win32/win32.h>
@@ -24,6 +25,20 @@ bool ThemeManager::useNativeWindow() const {
 
 bool ThemeManager::enableBlur() const {
     return AppSettings::getValueAsBool(kAppSettingEnableBlur);
+}
+
+void ThemeManager::installFont(const QString& file_name, QList<QString> &ui_fallback_fonts) {
+    const auto font_path =
+        Q_STR("%1/fonts/%2")
+        .arg(QCoreApplication::applicationDirPath())
+        .arg(file_name);
+    QFileInfo info(font_path);
+    if (!info.exists()) {
+        return;
+    }
+    const auto loaded_font_id = QFontDatabase::addApplicationFont(font_path);
+    const auto font_families = QFontDatabase::applicationFontFamilies(loaded_font_id);
+    ui_fallback_fonts.push_back(font_families[0]);
 }
 
 QFont ThemeManager::loadFonts() {
@@ -56,9 +71,21 @@ QFont ThemeManager::loadFonts() {
     // But Qt framework not work fine with that!
     // -platform direct2d
 
-    ui_fallback_fonts.push_back(Q_TEXT("Meiryo UI")); // For japanese font.
-    ui_fallback_fonts.push_back(Q_TEXT("Microsoft YaHei"));
-    ui_fallback_fonts.push_back(Q_TEXT("Microsoft JhengHei UI"));
+    installFont(Q_TEXT("HarmonyOS_Sans_TC_Regular.ttf"), ui_fallback_fonts);
+    installFont(Q_TEXT("HarmonyOS_Sans_TC_Bold.ttf"), ui_fallback_fonts);
+    installFont(Q_TEXT("HarmonyOS_Sans_SC_Regular.ttf"), ui_fallback_fonts);
+    installFont(Q_TEXT("HarmonyOS_Sans_SC_Bold.ttf"), ui_fallback_fonts);
+
+    installFont(Q_TEXT("MiSans-Regular.ttf"), ui_fallback_fonts);
+    installFont(Q_TEXT("MiSans-Bold.ttf"), ui_fallback_fonts);
+
+    installFont(Q_TEXT("OPPOSans-B.ttf"), ui_fallback_fonts);
+    installFont(Q_TEXT("OPPOSans-R.ttf"), ui_fallback_fonts);    
+    
+    //ui_fallback_fonts.push_back(Q_TEXT("Microsoft YaHei"));
+    //ui_fallback_fonts.push_back(Q_TEXT("Microsoft JhengHei UI"));
+
+    ui_fallback_fonts.push_back(Q_TEXT("Meiryo UI")); // For japanese font.    
 
     ui_fallback_fonts.push_back(Q_TEXT("Arial"));
     ui_fallback_fonts.push_back(Q_TEXT("Lucida Grande"));

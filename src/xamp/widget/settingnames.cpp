@@ -44,6 +44,7 @@ const ConstLatin1String kFlacEncodingLevel{ "AppSettings/flacEncodingLevel" };
 const ConstLatin1String kEnableBitPerfect{ "AppSettings/enableBitPerfect" };
 const ConstLatin1String kEnableBlurCover{ "AppSettings/enableBlurCover" };
 
+const ConstLatin1String kAppSettingEnableSpectrum{ "AppSettings/Spectrum/enable" };;
 const ConstLatin1String kAppSettingSpectrumStyles{ "AppSettings/Spectrum/spectrumStyles" };
 const ConstLatin1String kAppSettingWindowType{ "AppSettings/Spectrum/windowType" };
 

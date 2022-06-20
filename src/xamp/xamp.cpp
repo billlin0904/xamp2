@@ -782,10 +782,10 @@ void Xamp::initialController() {
 
     updater->setPlatformKey(kSoftwareUpdateUrl, Q_TEXT("windows"));
     updater->setModuleVersion(kSoftwareUpdateUrl, kXAMPVersion);
-    updater->setNotifyOnFinish(kSoftwareUpdateUrl, true);
-    updater->setNotifyOnUpdate(kSoftwareUpdateUrl, true);
+    updater->setNotifyOnFinish(kSoftwareUpdateUrl, false);
+    updater->setNotifyOnUpdate(kSoftwareUpdateUrl, false);
     updater->setUseCustomAppcast(kSoftwareUpdateUrl, false);
-    updater->setDownloaderEnabled(kSoftwareUpdateUrl, true);
+    updater->setDownloaderEnabled(kSoftwareUpdateUrl, false);
     updater->setMandatoryUpdate(kSoftwareUpdateUrl, false);
 
     (void)QObject::connect(check_for_update, &QAction::triggered, [=]() {
