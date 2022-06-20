@@ -3,36 +3,15 @@
     "windows": {
       "open-url": "",
       "latest-version": "1.0",
-      "download-url": "https://raw.githubusercontent.com/alex-spataru/QSimpleUpdater/master/tutorial/download/YesItWorks.jpg",
+      "download-url": "https://github.com/billlin0904/xamp2/archive/refs/tags/2022/06/04.zip",
       "changelog": "<br>Ver 1.0.0 </br> <p> <ul> <li> Add auto update function.</li> </ul> </p>",
       "mandatory": true
     },
     "osx": {
       "open-url": "",
       "latest-version": "1.0",
-      "download-url": "https://raw.githubusercontent.com/alex-spataru/QSimpleUpdater/master/tutorial/download/YesItWorks.jpg",
-      "changelog": "This is an example changelog for Mac OS X. Go on...",
-      "mandatory": true
-    },
-    "linux": {
-      "open-url": "",
-      "latest-version": "1.0",
-      "download-url": "https://raw.githubusercontent.com/alex-spataru/QSimpleUpdater/master/tutorial/download/YesItWorks.jpg",
-      "changelog": "This is an example changelog for Linux. Go on...",
-      "mandatory": true
-    },
-    "ios": {
-      "open-url": "",
-      "latest-version": "1.0",
-      "download-url": "https://raw.githubusercontent.com/alex-spataru/QSimpleUpdater/master/tutorial/download/YesItWorks.jpg",
-      "changelog": "This is an example changelog for iOS. Go on...",
-      "mandatory": true
-    },
-    "android": {
-      "open-url": "",
-      "latest-version": "1.0",
-      "download-url": "https://raw.githubusercontent.com/alex-spataru/QSimpleUpdater/master/tutorial/download/YesItWorks.jpg",
-      "changelog": "This is an example changelog for Android. Go on...",
+      "download-url": "https://github.com/billlin0904/xamp2/archive/refs/tags/2022/06/04.zip",
+      "changelog": "<br>Ver 1.0.0 </br> <p> <ul> <li> Add auto update function.</li> </ul> </p>",
       "mandatory": true
     }
   }
