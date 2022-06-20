@@ -10,8 +10,8 @@
 #include <widget/xdialog.h>
 
 struct XMessageBox {
-	static void about(const QString &msg, QWidget *parent, const QString& title= kAppTitle) {
-        auto *text = new QLabel(parent);
+	static void about(QWidget* parent, const QString &msg, const QString& title= kAppTitle) {
+        auto *text = new QLabel();
         text->setText(msg);
         auto* dialog = new XDialog(parent);
         dialog->setContentWidget(text);

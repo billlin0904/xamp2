@@ -51,6 +51,7 @@
 #include <widget/actionmap.h>
 #include <widget/spectrumwidget.h>
 #include <widget/filesystemviewpage.h>
+#include <widget/xmessagebox.h>
 
 #include "aboutpage.h"
 #include "preferencepage.h"
@@ -746,49 +747,51 @@ void Xamp::initialController() {
         enable_blur_material_mode_action->setChecked(enable);
         AppSettings::setValue(kAppSettingEnableBlur, enable);
         cleanup();
-        qApp->exit(kRestartPlayerCode);
+        qApp->exit(kRestartExistCode);
         });
     settings_menu->addAction(enable_blur_material_mode_action);
 
     auto* check_for_update = new QAction(tr("Check For Updates"), this);
 
     auto* updater = QSimpleUpdater::getInstance();
-    QObject::connect(updater, &QSimpleUpdater::checkingFinished, [updater, this](auto url) {
+    (void)QObject::connect(updater, &QSimpleUpdater::checkingFinished, [updater, this](auto url) {
         auto change_log = updater->getChangelog(url);
 
         auto html = Q_TEXT(R"(
             <h3>Find New Version:</h3> 			
-			<p>
 			<br>
             %1
 			</br>
-			</p>
            )").arg(change_log);
 
         QMessageBox::about(this,
             Q_TEXT("Check For Updates"),
             html);
-        XAMP_LOG_DEBUG(change_log.toStdString());
         });
-    QObject::connect(updater, &QSimpleUpdater::appcastDownloaded, [updater](auto url, auto reply) {
+
+    (void)QObject::connect(updater, &QSimpleUpdater::downloadFinished, [updater, this](auto url, auto filepath) {
+        XAMP_LOG_DEBUG("Donwload path: {}", filepath.toStdString());
+        });
+
+    (void)QObject::connect(updater, &QSimpleUpdater::appcastDownloaded, [updater](auto url, auto reply) {
         XAMP_LOG_DEBUG(QString::fromUtf8(reply).toStdString());
         });
 
-    static const QString DEFS_URL =
+    static const QString kSoftwareUpdateUrl =
         Q_TEXT("https://raw.githubusercontent.com/billlin0904/xamp2/master/src/versions/updates.json");
 
-    updater->setPlatformKey(DEFS_URL, Q_TEXT("windows"));
-    updater->setModuleVersion(DEFS_URL, kXAMPVersion);
-    updater->setNotifyOnFinish(DEFS_URL, false);
-    updater->setNotifyOnUpdate(DEFS_URL, false);
-    updater->setUseCustomAppcast(DEFS_URL, false);
-    updater->setDownloaderEnabled(DEFS_URL, false);
-    updater->setMandatoryUpdate(DEFS_URL, false);
+    updater->setPlatformKey(kSoftwareUpdateUrl, Q_TEXT("windows"));
+    updater->setModuleVersion(kSoftwareUpdateUrl, kXAMPVersion);
+    updater->setNotifyOnFinish(kSoftwareUpdateUrl, true);
+    updater->setNotifyOnUpdate(kSoftwareUpdateUrl, true);
+    updater->setUseCustomAppcast(kSoftwareUpdateUrl, false);
+    updater->setDownloaderEnabled(kSoftwareUpdateUrl, true);
+    updater->setMandatoryUpdate(kSoftwareUpdateUrl, false);
 
     (void)QObject::connect(check_for_update, &QAction::triggered, [=]() {
-        updater->checkForUpdates(DEFS_URL);
+        updater->checkForUpdates(kSoftwareUpdateUrl);
         });
-    updater->checkForUpdates(DEFS_URL);
+    updater->checkForUpdates(kSoftwareUpdateUrl);
     settings_menu->addAction(check_for_update);
 
     settings_menu->addSeparator();
@@ -805,12 +808,12 @@ void Xamp::initialController() {
     (void)QObject::connect(dark_mode_action_, &QAction::triggered, [=]() {
         AppSettings::setEnumValue(kAppSettingTheme, ThemeColor::DARK_THEME);
         cleanup();
-        qApp->exit(kRestartPlayerCode);
+        qApp->exit(kRestartExistCode);
         });
     (void)QObject::connect(light_mode_action_, &QAction::triggered, [=]() {
         AppSettings::setEnumValue(kAppSettingTheme, ThemeColor::LIGHT_THEME);
         cleanup();
-        qApp->exit(kRestartPlayerCode);
+        qApp->exit(kRestartExistCode);
         });
     ui_.themeButton->setMenu(theme_menu_);
 #endif

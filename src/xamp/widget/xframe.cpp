@@ -79,7 +79,7 @@ void XFrame::setContentWidget(QWidget* content) {
     horizontal_layout->setObjectName(QString::fromUtf8("horizontalLayout"));
     horizontal_layout->setContentsMargins(0, 0, 0, 0);
 
-    default_layout->addWidget(title_frame, 0);
+    default_layout->addWidget(title_frame, 1);
 
     default_layout->addWidget(content_, 1);
 

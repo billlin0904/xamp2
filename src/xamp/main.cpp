@@ -340,7 +340,7 @@ int main(int argc, char *argv[]) {
         AppSettings::save();
     );
 
-    if (excute(argc, argv) == kRestartPlayerCode) {
+    if (excute(argc, argv) == kRestartExistCode) {
         QProcess::startDetached(Q_STR(argv[0]), qApp->arguments());
     }
     return 0;

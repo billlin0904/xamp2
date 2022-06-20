@@ -7,7 +7,7 @@
 #include <QWidget>
 #include <QFrame>
 
-inline constexpr auto kRestartPlayerCode = -2;
+inline constexpr auto kRestartExistCode = -2;
 
 class IXWindow : public QFrame {
 public:

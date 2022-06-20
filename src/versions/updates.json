@@ -5,14 +5,14 @@
       "latest-version": "1.0",
       "download-url": "https://github.com/billlin0904/xamp2/archive/refs/tags/2022/06/04.zip",
       "changelog": "<br>Ver 1.0.0 </br> <p> <ul> <li> Add auto update function.</li> </ul> </p>",
-      "mandatory": true
+      "mandatory-update": true
     },
     "osx": {
       "open-url": "",
       "latest-version": "1.0",
       "download-url": "https://github.com/billlin0904/xamp2/archive/refs/tags/2022/06/04.zip",
       "changelog": "<br>Ver 1.0.0 </br> <p> <ul> <li> Add auto update function.</li> </ul> </p>",
-      "mandatory": true
+      "mandatory-update": true
     }
   }
 }
