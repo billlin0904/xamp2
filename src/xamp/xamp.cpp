@@ -755,9 +755,19 @@ void Xamp::initialController() {
     auto* updater = QSimpleUpdater::getInstance();
     QObject::connect(updater, &QSimpleUpdater::checkingFinished, [updater, this](auto url) {
         auto change_log = updater->getChangelog(url);
+
+        auto html = Q_TEXT(R"(
+            <h3>Find New Version:</h3> 			
+			<p>
+			<br>
+            %1
+			</br>
+			</p>
+           )").arg(change_log);
+
         QMessageBox::about(this,
-            Q_TEXT("Change log"),
-            change_log);
+            Q_TEXT("Check For Updates"),
+            html);
         XAMP_LOG_DEBUG(change_log.toStdString());
         });
     QObject::connect(updater, &QSimpleUpdater::appcastDownloaded, [updater](auto url, auto reply) {
@@ -778,6 +788,7 @@ void Xamp::initialController() {
     (void)QObject::connect(check_for_update, &QAction::triggered, [=]() {
         updater->checkForUpdates(DEFS_URL);
         });
+    updater->checkForUpdates(DEFS_URL);
     settings_menu->addAction(check_for_update);
 
     settings_menu->addSeparator();
