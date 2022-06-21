@@ -311,7 +311,7 @@
     <message>
         <location filename="widget/lyricsshowwidget.cpp" line="69"/>
         <source>Not found lyrics</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">歌詞が見つかりません</translation>
     </message>
 </context>
 <context>
@@ -890,12 +890,12 @@
     <message>
         <location filename="xamp.cpp" line="1162"/>
         <source>Not found any playlist item.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">プレイリストアイテムが見つかりません。</translation>
     </message>
     <message>
         <location filename="xamp.cpp" line="946"/>
         <source>Not found any playing item.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">プレイアイテムが見つかりませんでした。</translation>
     </message>
     <message>
         <location filename="xamp.cpp" line="107"/>
@@ -915,57 +915,60 @@
     <message>
         <location filename="xamp.cpp" line="111"/>
         <source>Device unsupported format.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Device unsupported format.
+26 / 5,000
+デバイスでサポートされていない形式。</translation>
     </message>
     <message>
         <location filename="xamp.cpp" line="112"/>
         <source>Device in use.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">14 / 5,000
+使用中のデバイス。</translation>
     </message>
     <message>
         <location filename="xamp.cpp" line="113"/>
         <source>Device not found.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">デバイスが見つかりません。</translation>
     </message>
     <message>
         <location filename="xamp.cpp" line="114"/>
         <source>File not found.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">ファイルが見つかりません。</translation>
     </message>
     <message>
         <location filename="xamp.cpp" line="115"/>
         <source>Not support samplerate.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">サンプルレートをサポートしていません。</translation>
     </message>
     <message>
         <location filename="xamp.cpp" line="116"/>
         <source>Not support format.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">フォーマットをサポートしていません。</translation>
     </message>
     <message>
         <location filename="xamp.cpp" line="117"/>
         <source>Load dll failure.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">dllの読み込みに失敗しました。</translation>
     </message>
     <message>
         <location filename="xamp.cpp" line="118"/>
         <source>Stop stream thread timeout.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">ストリームスレッドのタイムアウトを停止します。</translation>
     </message>
     <message>
         <location filename="xamp.cpp" line="119"/>
         <source>Resampler not support variable resample.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">リサンプラーは変数リサンプルをサポートしていません。</translation>
     </message>
     <message>
         <location filename="xamp.cpp" line="120"/>
         <source>Samplerate was changed.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">サンプルレートが変更されました。</translation>
     </message>
     <message>
         <location filename="xamp.cpp" line="121"/>
         <source>Not found dll export function.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">dllエクスポート機能が見つかりません。</translation>
     </message>
     <message>
         <location filename="xamp.cpp" line="878"/>
@@ -995,7 +998,7 @@
     <message>
         <location filename="xamp.cpp" line="1226"/>
         <source>My favorite</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">お気に入り</translation>
     </message>
     <message>
         <location filename="xamp.cpp" line="1234"/>
@@ -1025,7 +1028,7 @@
     <message>
         <location filename="xamp.cpp" line="1428"/>
         <source>Save Flac file</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Flacファイルを保存する</translation>
     </message>
     <message>
         <location filename="xamp.cpp" line="1430"/>
@@ -1040,12 +1043,12 @@
     <message>
         <location filename="xamp.cpp" line="110"/>
         <source>Failed to create the audio endpoint.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">オーディオエンドポイントの作成に失敗しました。</translation>
     </message>
     <message>
         <location filename="xamp.cpp" line="122"/>
         <source>Not support exclusive mode.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">排他モードはサポートしていません。</translation>
     </message>
     <message>
         <location filename="xamp.cpp" line="687"/>
@@ -1065,7 +1068,7 @@
     <message>
         <location filename="xamp.cpp" line="1437"/>
         <source>Export progress dialog</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">進行状況のエクスポートダイアログ</translation>
     </message>
     <message>
         <location filename="xamp.cpp" line="1438"/>
