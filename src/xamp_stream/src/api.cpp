@@ -15,6 +15,8 @@
 #include <stream/bassvolume.h>
 #include <stream/dspmanager.h>
 #include <stream/fftwlib.h>
+#include <stream/r8brainlib.h>
+#include <stream/soxrlib.h>
 #include <stream/api.h>
 
 namespace xamp::stream {
@@ -104,23 +106,25 @@ void LoadBassLib() {
         Singleton<BassLib>::GetInstance().Load();
     }
     BASS.MixLib = MakeAlign<BassMixLib>();
-    XAMP_LOG_DEBUG("Load BassMixLib {} successfully.", GetBassVersion(BASS.MixLib->BASS_Mixer_GetVersion()));
     BASS.DSDLib = MakeAlign<BassDSDLib>();
-    XAMP_LOG_DEBUG("Load BassDSDLib successfully.");
     BASS.FxLib = MakeAlign<BassFxLib>();
-    XAMP_LOG_DEBUG("Load BassFxLib successfully.", GetBassVersion(BASS.FxLib->BASS_FX_GetVersion()));
 #ifdef XAMP_OS_WIN
     BASS.CDLib = MakeAlign<BassCDLib>();
-    XAMP_LOG_DEBUG("Load BassCDLib successfully.");
 #endif
     try {
         BASS.EncLib = MakeAlign<BassEncLib>();
-        XAMP_LOG_DEBUG("Load BassEncLib successfully.");
     }  catch (const Exception &e) {
-        XAMP_LOG_DEBUG("Load BassEncLib error: {}", e.what());
+        XAMP_LOG_DEBUG("Load {} error: {}", BASS.EncLib->GetName(), e.what());
     }
     BASS.FlacEncLib = MakeAlign<BassFlacEncLib>();
-    XAMP_LOG_DEBUG("Load BassFlacEncLib successfully.");
+    BASS.LoadVersionInfo();
+    for (const auto& info : BASS.GetVersions()) {
+        XAMP_LOG_DEBUG("DLL {} ver: {}", info.first, info.second);
+    }
+}
+
+std::map<std::string, std::string> GetBassDLLVersion() {
+    return BASS.GetVersions();
 }
 
 void FreeBassLib() {
@@ -132,6 +136,13 @@ void LoadFFTLib() {
     Singleton<FFTWLib>::GetInstance();
     Singleton<FFTWFLib>::GetInstance();
 }
+void LoadR8brainLib() {
+    Singleton<R8brainLib>::GetInstance();
+}
 #endif
+
+void LoadSoxrLib() {
+    Singleton<SoxrLib>::GetInstance();
+}
 
 }

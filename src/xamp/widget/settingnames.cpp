@@ -29,7 +29,10 @@ const ConstLatin1String kAppSettingReplayGainMode{ "AppSettings/replayGainMode" 
 const ConstLatin1String kAppSettingReplayGainTargetGain{ "AppSettings/replayGainTargetGain" };
 const ConstLatin1String kAppSettingReplayGainScanMode{ "AppSettings/replayGainScanMode" };
 
-const ConstLatin1String kAppSettingResamplerEnable{ "AppSettings/soxr/enable" };
+const ConstLatin1String kAppSettingResamplerEnable{ "AppSettings/enable" };
+const ConstLatin1String kAppSettingResamplerType{ "AppSettings/resamplerType" };
+const ConstLatin1String kResampleSampleRate{ "resampleSampleRate" };
+
 const ConstLatin1String kAppSettingSoxrSettingName{ "AppSettings/soxr/userSettingName" };
 
 const ConstLatin1String kAppSettingEnableEQ{ "AppSettings/enableEQ" };
@@ -51,13 +54,14 @@ const ConstLatin1String kAppSettingWindowType{ "AppSettings/Spectrum/windowType"
 
 const ConstLatin1String kSoxr{ "Soxr" };
 const ConstLatin1String kSoxrDefaultSettingName{ "default" };
-const ConstLatin1String kSoxrResampleSampleRate{ "resampleSampleRate" };
 const ConstLatin1String kSoxrEnableSteepFilter{ "enableSteepFilter" };
 const ConstLatin1String kSoxrQuality{ "quality" };
 const ConstLatin1String kSoxrStopBand{ "stopBand" };
 const ConstLatin1String kSoxrPassBand{ "passBand" };
 const ConstLatin1String kSoxrPhase{ "phase" };
 const ConstLatin1String kSoxrRollOffLevel{ "rolloffLevel" };
+
+const ConstLatin1String kR8Brain{ "R8Brain" };
 
 const ConstLatin1String kLog{ "Log" };
 const ConstLatin1String kLogMinimumLevel{ "MinimumLevel" };

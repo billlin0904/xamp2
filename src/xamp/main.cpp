@@ -36,7 +36,7 @@
 static void loadSoxrSetting() {
     QMap<QString, QVariant> default_setting;
 
-    default_setting[kSoxrResampleSampleRate] = 96000;
+    default_setting[kResampleSampleRate] = 96000;
     default_setting[kSoxrEnableSteepFilter] = false;
     default_setting[kSoxrQuality] = static_cast<int32_t>(SoxrQuality::VHQ);
     default_setting[kSoxrPhase] = 46;
@@ -53,6 +53,19 @@ static void loadSoxrSetting() {
         JsonSettings::setValue(kSoxr, QVariant::fromValue(soxr_setting));
         AppSettings::setValue(kAppSettingSoxrSettingName, kSoxrDefaultSettingName);
         AppSettings::setDefaultValue(kAppSettingSoxrSettingName, kSoxrDefaultSettingName);
+    }
+}
+
+static void loadR8BrainSetting() {
+    QMap<QString, QVariant> default_setting;
+
+    default_setting[kResampleSampleRate] = 96000;
+    JsonSettings::setDefaultValue(kR8Brain, QVariant::fromValue(default_setting));
+    if (JsonSettings::getValueAsMap(kR8Brain).isEmpty()) {
+        JsonSettings::setValue(kR8Brain, QVariant::fromValue(default_setting));
+    }
+    if (!AppSettings::contains(kAppSettingResamplerType)) {
+        AppSettings::setValue(kAppSettingResamplerType, kR8Brain);
     }
 }
 
@@ -152,10 +165,11 @@ static void loadSettings() {
     XAMP_LOG_DEBUG("loadSettings success.");
 }
 
-static void loadLogAndSoxrConfig() {
+static void loadLogAndResamplerConfig() {
     JsonSettings::loadJsonFile(Q_TEXT("config.json"));
     loadLogConfig();
     loadSoxrSetting();
+    loadR8BrainSetting();
     JsonSettings::save();
     XAMP_LOG_DEBUG("loadLogAndSoxrConfig success.");
 }
@@ -325,7 +339,7 @@ int main(int argc, char *argv[]) {
 
     registerMetaType();
     loadSettings();
-    loadLogAndSoxrConfig();
+    loadLogAndResamplerConfig();
 
     PodcastCache.SetTempPath(AppSettings::getValueAsString(kAppSettingPodcastCachePath).toStdWString());
 

@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <map>
 #include <base/stl.h>
 #include <base/align_ptr.h>
 
@@ -41,13 +42,18 @@ XAMP_STREAM_API IDsdStream* AsDsdStream(IAudioStream* stream) noexcept;
 
 XAMP_STREAM_API HashSet<std::string> const& GetSupportFileExtensions();
 
+XAMP_STREAM_API std::map<std::string, std::string> GetBassDLLVersion();
+
 XAMP_STREAM_API IDsdStream* AsDsdStream(AlignPtr<IAudioStream> const & stream) noexcept;
 
 XAMP_STREAM_API FileStream* AsFileStream(AlignPtr<IAudioStream> const& stream) noexcept;
 
 #ifdef XAMP_OS_WIN
 XAMP_STREAM_API void LoadFFTLib();
+XAMP_STREAM_API void LoadR8brainLib();
 #endif
+
+XAMP_STREAM_API void LoadSoxrLib();
 
 XAMP_STREAM_API void LoadBassLib();
 

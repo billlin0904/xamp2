@@ -21,6 +21,10 @@ private:
 
     void saveSoxrResampler(const QString &name) const;
 
+    void saveR8BrainResampler();
+
+    void initR8BrainResampler();
+
 	void initSoxResampler();
 
     void setLang(int index);

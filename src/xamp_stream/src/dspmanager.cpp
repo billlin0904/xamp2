@@ -4,6 +4,7 @@
 #include <stream/api.h>
 #include <stream/iequalizer.h>
 #include <stream/soxresampler.h>
+#include <stream/r8brainresampler.h>
 #include <stream/bassvolume.h>
 #include <stream/basscompressor.h>
 #include <stream/passthroughsamplerateconverter.h>
@@ -183,6 +184,11 @@ void DSPManager::Init(AudioFormat input_format, AudioFormat output_format, DsdMo
     if (const auto converter = GetPreDSP<SoxrSampleRateConverter>()) {
         converter.value()->Init(input_format.GetSampleRate());
         XAMP_LOG_D(logger_, "Init Soxr format: {}.", input_format);
+    }
+
+    if (const auto converter = GetPreDSP<R8brainSampleRateConverter>()) {
+        converter.value()->Init(input_format.GetSampleRate());
+        XAMP_LOG_D(logger_, "Init R8brain format: {}.", input_format);
     }
 
     if (const auto volume = GetPostDSP<BassVolume>()) {

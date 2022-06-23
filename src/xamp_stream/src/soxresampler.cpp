@@ -1,5 +1,3 @@
-#include <cassert>
-
 #include <soxr.h>
 
 #include <base/assert.h>
@@ -7,47 +5,10 @@
 #include <base/dll.h>
 #include <base/logger.h>
 #include <base/buffer.h>
+#include <stream/soxrlib.h>
 #include <stream/soxresampler.h>
 
 namespace xamp::stream {
-
-class SoxrLib final {
-public:
-    friend class Singleton<SoxrLib>;
-
-    XAMP_DISABLE_COPY(SoxrLib)
-
-private:
-    SoxrLib() try
-#ifdef XAMP_OS_WIN
-        : module_(LoadModule("libsoxr.dll"))
-#else
-        : module_(LoadModule("libsoxr.dylib"))
-#endif
-        , soxr_quality_spec(module_, "soxr_quality_spec")
-        , soxr_create(module_, "soxr_create")
-        , soxr_process(module_, "soxr_process")
-        , soxr_delete(module_, "soxr_delete")
-        , soxr_io_spec(module_, "soxr_io_spec")
-        , soxr_runtime_spec(module_, "soxr_runtime_spec")
-        , soxr_clear(module_, "soxr_clear") {
-		PrefetchModule(module_);
-    }
-    catch (const Exception& e) {
-        XAMP_LOG_ERROR("{}", e.GetErrorMessage());
-    }
-
-    ModuleHandle module_;
-
-public:
-    XAMP_DECLARE_DLL(soxr_quality_spec) soxr_quality_spec;
-    XAMP_DECLARE_DLL(soxr_create) soxr_create;
-    XAMP_DECLARE_DLL(soxr_process) soxr_process;
-    XAMP_DECLARE_DLL(soxr_delete) soxr_delete;
-    XAMP_DECLARE_DLL(soxr_io_spec) soxr_io_spec;
-    XAMP_DECLARE_DLL(soxr_runtime_spec) soxr_runtime_spec;
-    XAMP_DECLARE_DLL(soxr_clear) soxr_clear;
-};
 
 #define SoxrDLL Singleton<SoxrLib>::GetInstance()
 
@@ -327,10 +288,6 @@ void SoxrSampleRateConverter::Flush() {
 
 std::string_view SoxrSampleRateConverter::GetDescription() const noexcept {
 	return VERSION;
-}
-
-void LoadSoxrLib() {
-	(void)Singleton<SoxrLib>::GetInstance();
 }
 	
 }

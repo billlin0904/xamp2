@@ -67,6 +67,14 @@ catch (const Exception& e) {
     XAMP_LOG_ERROR("{}", e.GetErrorMessage());
 }
 
+std::string BassMixLib::GetName() const {
+#ifdef XAMP_OS_WIN
+    return "bassmix.dll";
+#else
+    return "libbassmix.dylib";
+#endif
+}
+
 BassFxLib::BassFxLib() try
 #ifdef XAMP_OS_WIN
     : module_(LoadModule("bass_fx.dll"))
@@ -80,6 +88,14 @@ BassFxLib::BassFxLib() try
 }
 catch (const Exception& e) {
     XAMP_LOG_ERROR("{}", e.GetErrorMessage());
+}
+
+std::string BassFxLib::GetName() const {
+#ifdef XAMP_OS_WIN
+    return "bass_fx.dll";
+#else
+    return "libbass_fx.dylib";
+#endif
 }
 
 #ifdef XAMP_OS_WIN
@@ -108,16 +124,33 @@ catch (const Exception& e) {
 }
 #endif
 
+std::string BassCDLib::GetName() const {
+#ifdef XAMP_OS_WIN
+    return "basscd.dll";
+#else
+    return "libbasscd.dylib";
+#endif
+}
+
 BassEncLib::BassEncLib()  try
 #ifdef XAMP_OS_WIN
     : module_(LoadModule("bassenc.dll"))
 #else
     : module_(LoadModule("libbassenc.dylib"))
 #endif
-    , XAMP_LOAD_DLL_API(BASS_Encode_StartACMFile) {
+    , XAMP_LOAD_DLL_API(BASS_Encode_StartACMFile)
+	, XAMP_LOAD_DLL_API(BASS_Encode_GetVersion) {
 }
 catch (const Exception& e) {
     XAMP_LOG_ERROR("{}", e.GetErrorMessage());
+}
+
+std::string BassEncLib::GetName() const {
+#ifdef XAMP_OS_WIN
+    return "bassenc.dll";
+#else
+    return "libbassenc.dylib";
+#endif
 }
 
 BassFlacEncLib::BassFlacEncLib() try
@@ -126,10 +159,19 @@ BassFlacEncLib::BassFlacEncLib() try
 #else
     : module_(LoadModule("libbassenc_flac.dylib"))
 #endif
-    , XAMP_LOAD_DLL_API(BASS_Encode_FLAC_StartFile) {
+    , XAMP_LOAD_DLL_API(BASS_Encode_FLAC_StartFile)
+	, XAMP_LOAD_DLL_API(BASS_Encode_FLAC_GetVersion) {
 }
 catch (const Exception& e) {
     XAMP_LOG_ERROR("{}", e.GetErrorMessage());
+}
+
+std::string BassFlacEncLib::GetName() const {
+#ifdef XAMP_OS_WIN
+    return "bassenc_flac.dll";
+#else
+    return "libbassenc_flac.dylib";
+#endif
 }
 
 BassLib::BassLib() try
@@ -170,6 +212,14 @@ BassLib::BassLib() try
 }
 catch (const Exception& e) {
     XAMP_LOG_ERROR("{}", e.GetErrorMessage());
+}
+
+std::string BassLib::GetName() const {
+#ifdef XAMP_OS_WIN
+    return "bass.dll";
+#else
+    return "libbass.dylib";
+#endif
 }
 
 HPLUGIN BassPluginLoadDeleter::invalid() noexcept {
@@ -254,14 +304,27 @@ void BassLib::LoadPlugin(std::string const & file_name) {
     plugins_[file_name] = std::move(plugin);
 }
 
-HashMap<std::string, std::string> BassLib::GetLibVersion() const {
-    HashMap<std::string, std::string> vers;
+std::map<std::string, std::string> BassLib::GetPluginVersion() const {
+    std::map<std::string, std::string> vers;
 
     for (const auto& [key, value] : plugins_) {
         const auto* info = BASS.BASS_PluginGetInfo(value.get());
         vers[key] = GetBassVersion(info->version);
     }
     return vers;
+}
+
+void BassLib::LoadVersionInfo() {
+    dll_versions_ = GetPluginVersion();
+    dll_versions_[BASS.GetName()] = GetBassVersion(BASS.BASS_GetVersion());
+    dll_versions_[BASS.MixLib->GetName()] = GetBassVersion(BASS.MixLib->BASS_Mixer_GetVersion());
+    dll_versions_[BASS.FxLib->GetName()] = GetBassVersion(BASS.FxLib->BASS_FX_GetVersion());
+    dll_versions_[BASS.EncLib->GetName()] = GetBassVersion(BASS.EncLib->BASS_Encode_GetVersion());
+    dll_versions_[BASS.FlacEncLib->GetName()] = GetBassVersion(BASS.FlacEncLib->BASS_Encode_FLAC_GetVersion());
+}
+
+std::map<std::string, std::string> BassLib::GetVersions() const {
+    return dll_versions_;
 }
 
 HashSet<std::string> BassLib::GetSupportFileExtensions() const {

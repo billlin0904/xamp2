@@ -78,7 +78,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/bass/include/;../thirdparty/spdlog/include/;../thirdparty/robin_hood/;../thirdparty/soxr/src/;../thirdparty/fftw/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/bass/include/;../thirdparty/spdlog/include/;../thirdparty/robin_hood/;../thirdparty/soxr/src/;../thirdparty/fftw/;../thirdparty/r8brain-free-src/DLL/</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STREAM_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4996;4819;4200;</DisableSpecificWarnings>
       <BrowseInformation>true</BrowseInformation>
@@ -126,7 +126,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/bass/include/;../thirdparty/spdlog/include/;../thirdparty/robin_hood/;../thirdparty/soxr/src/;../thirdparty/fftw/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/bass/include/;../thirdparty/spdlog/include/;../thirdparty/robin_hood/;../thirdparty/soxr/src/;../thirdparty/fftw/;../thirdparty/r8brain-free-src/DLL/</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STREAM_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <DisableSpecificWarnings>4996;4819;4200;</DisableSpecificWarnings>
@@ -176,6 +176,9 @@
     <ClInclude Include="include\stream\filestream.h" />
     <ClInclude Include="include\stream\pcm2dsdconverter.h" />
     <ClInclude Include="include\stream\podcastcache.h" />
+    <ClInclude Include="include\stream\r8brainlib.h" />
+    <ClInclude Include="include\stream\r8brainresampler.h" />
+    <ClInclude Include="include\stream\soxrlib.h" />
     <ClInclude Include="include\stream\stft.h" />
     <ClInclude Include="include\stream\stream.h" />
     <ClInclude Include="include\stream\api.h" />
@@ -198,7 +201,10 @@
     <ClCompile Include="src\api.cpp" />
     <ClCompile Include="src\passthroughsamplerateconverter.cpp" />
     <ClCompile Include="src\pcm2dsdconverter.cpp" />
+    <ClCompile Include="src\r8brainlib.cpp" />
+    <ClCompile Include="src\r8brainresampler.cpp" />
     <ClCompile Include="src\soxresampler.cpp" />
+    <ClCompile Include="src\soxrlib.cpp" />
     <ClCompile Include="src\stft.cpp" />
     <ClCompile Include="src\wavefilewriter.cpp" />
   </ItemGroup>

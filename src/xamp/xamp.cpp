@@ -17,6 +17,7 @@
 
 #include <stream/podcastcache.h>
 #include <stream/soxresampler.h>
+#include <stream/r8brainresampler.h>
 #include <stream/pcm2dsdconverter.h>
 #include <stream/idspmanager.h>
 #include <stream/api.h>
@@ -77,22 +78,32 @@ static PlayerOrder GetNextOrder(PlayerOrder cur) noexcept {
 }
 
 static AlignPtr<IAudioProcessor> makeSampleRateConverter(const QVariantMap &settings) {
-    const auto quality = static_cast<SoxrQuality>(settings[kSoxrQuality].toInt());
-    const auto stop_band = settings[kSoxrStopBand].toInt();
-    const auto pass_band = settings[kSoxrPassBand].toInt();
-    const auto phase = settings[kSoxrPhase].toInt();
-    const auto enable_steep_filter = settings[kSoxrEnableSteepFilter].toBool();
-    const auto roll_off_level = static_cast<SoxrRollOff>(settings[kSoxrRollOffLevel].toInt());
+    auto resampler_type = AppSettings::getValueAsString(kAppSettingResamplerType);
+    if (resampler_type == kSoxr || resampler_type.isEmpty()) {
+        const auto quality = static_cast<SoxrQuality>(settings[kSoxrQuality].toInt());
+        const auto stop_band = settings[kSoxrStopBand].toInt();
+        const auto pass_band = settings[kSoxrPassBand].toInt();
+        const auto phase = settings[kSoxrPhase].toInt();
+        const auto enable_steep_filter = settings[kSoxrEnableSteepFilter].toBool();
+        const auto roll_off_level = static_cast<SoxrRollOff>(settings[kSoxrRollOffLevel].toInt());
 
-    auto converter = MakeAlign<IAudioProcessor, SoxrSampleRateConverter>();
-    auto *soxr_sample_rate_converter = dynamic_cast<SoxrSampleRateConverter*>(converter.get());
-    soxr_sample_rate_converter->SetQuality(quality);
-    soxr_sample_rate_converter->SetStopBand(stop_band);
-    soxr_sample_rate_converter->SetPassBand(pass_band);
-    soxr_sample_rate_converter->SetPhase(phase);
-    soxr_sample_rate_converter->SetRollOff(roll_off_level);
-    soxr_sample_rate_converter->SetSteepFilter(enable_steep_filter);
-    return converter;
+        auto converter = MakeAlign<IAudioProcessor, SoxrSampleRateConverter>();
+        auto* soxr_sample_rate_converter = dynamic_cast<SoxrSampleRateConverter*>(converter.get());
+        soxr_sample_rate_converter->SetQuality(quality);
+        soxr_sample_rate_converter->SetStopBand(stop_band);
+        soxr_sample_rate_converter->SetPassBand(pass_band);
+        soxr_sample_rate_converter->SetPhase(phase);
+        soxr_sample_rate_converter->SetRollOff(roll_off_level);
+        soxr_sample_rate_converter->SetSteepFilter(enable_steep_filter);
+        return converter;
+    }
+    else if (resampler_type == kR8Brain) {
+        auto converter = MakeAlign<IAudioProcessor, R8brainSampleRateConverter>();
+        return converter;
+    } else {
+        auto converter = MakeAlign<IAudioProcessor, R8brainSampleRateConverter>();
+        return converter;
+    }
 }
 
 static PlaybackFormat getPlaybackFormat(IAudioPlayer* player) {
@@ -1031,7 +1042,16 @@ void Xamp::processMeatadata(int64_t dir_last_write_time, const ForwardList<Metad
 void Xamp::setupDSP(uint32_t target_sample_rate, const QMap<QString, QVariant> &soxr_settings, const AlbumEntity& item) {
     if (target_sample_rate != 0 && player_->GetInputFormat().GetSampleRate() != target_sample_rate) {
         player_->GetDSPManager()->AddPreDSP(makeSampleRateConverter(soxr_settings));
+
+        auto resampler_type = AppSettings::getValueAsString(kAppSettingResamplerType);
+        if (resampler_type == kSoxr || resampler_type.isEmpty()) {
+            player_->GetDSPManager()->RemovePreDSP(R8brainSampleRateConverter::Id);
+        }
+        else if (resampler_type == kR8Brain) {
+            player_->GetDSPManager()->RemovePreDSP(SoxrSampleRateConverter::Id);
+        }
     } else {
+        player_->GetDSPManager()->RemovePreDSP(R8brainSampleRateConverter::Id);
         player_->GetDSPManager()->RemovePreDSP(SoxrSampleRateConverter::Id);
     }
 
@@ -1083,9 +1103,16 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
 
         if (!AppSettings::getValueAsBool(kEnableBitPerfect)) {
             if (AppSettings::getValueAsBool(kAppSettingResamplerEnable)) {
-                const auto setting_name = AppSettings::getValueAsString(kAppSettingSoxrSettingName);
-                soxr_settings = JsonSettings::getValue(kSoxr).toMap()[setting_name].toMap();
-                target_sample_rate = soxr_settings[kSoxrResampleSampleRate].toUInt();
+                auto resampler_type = AppSettings::getValueAsString(kAppSettingResamplerType);
+                if (resampler_type == kSoxr || resampler_type.isEmpty()) {
+                    const auto setting_name = AppSettings::getValueAsString(kAppSettingSoxrSettingName);
+                    soxr_settings = JsonSettings::getValue(kSoxr).toMap()[setting_name].toMap();
+                    target_sample_rate = soxr_settings[kResampleSampleRate].toUInt();
+                }
+                else if (resampler_type == kR8Brain) {
+                    auto config = JsonSettings::getValueAsMap(kR8Brain);
+                    target_sample_rate = config[kResampleSampleRate].toUInt();
+                }                
             }
         }
         

@@ -7,6 +7,7 @@
 
 #include <cstdint>
 #include <set>
+#include <map>
 
 #include <bass/bass.h>
 #include <bass/bassdsd.h>
@@ -73,6 +74,7 @@ public:
 
     XAMP_DISABLE_COPY(BassMixLib)
 
+	std::string GetName() const;
 private:
     ModuleHandle module_;
 
@@ -85,6 +87,8 @@ public:
 class BassFxLib final {
 public:
     BassFxLib();
+
+    std::string GetName() const;
 
     XAMP_DISABLE_COPY(BassFxLib)
 
@@ -101,6 +105,8 @@ public:
 class BassCDLib final {
 public:
     BassCDLib();
+
+    std::string GetName() const;
 
     XAMP_DISABLE_COPY(BassCDLib)
 
@@ -130,6 +136,8 @@ class BassFlacEncLib final{
 public:
     BassFlacEncLib();
 
+    std::string GetName() const;
+
     XAMP_DISABLE_COPY(BassFlacEncLib)
 
 private:
@@ -141,11 +149,14 @@ public:
 #else
     XAMP_DECLARE_DLL(BASS_Encode_FLAC_StartFile) BASS_Encode_FLAC_StartFile;
 #endif
+    XAMP_DECLARE_DLL(BASS_Encode_FLAC_GetVersion) BASS_Encode_FLAC_GetVersion;
 };
 
 class BassEncLib final {
 public:
     BassEncLib();
+
+    std::string GetName() const;
 
     XAMP_DISABLE_COPY(BassEncLib)
 
@@ -154,6 +165,7 @@ private:
 
 public:
     DllFunction<HENCODE(DWORD, void*, DWORD, const wchar_t*)> BASS_Encode_StartACMFile;
+    XAMP_DECLARE_DLL(BASS_Encode_GetVersion) BASS_Encode_GetVersion;
 };
 
 class BassLib final {
@@ -168,6 +180,8 @@ public:
         return !plugins_.empty();
     }
 
+    std::string GetName() const;
+
     HashSet<std::string> GetSupportFileExtensions() const;
 
     XAMP_DISABLE_COPY(BassLib)
@@ -181,12 +195,15 @@ public:
 #ifdef XAMP_OS_WIN
     AlignPtr<BassCDLib> CDLib;
 #endif
-    HashMap<std::string, std::string> GetLibVersion() const;
+    void LoadVersionInfo();
+    std::map<std::string, std::string> GetPluginVersion() const;
+    std::map<std::string, std::string> GetVersions() const;
 
 private:
     BassLib();
     
     HashMap<std::string, BassPluginHandle> plugins_;
+    std::map<std::string, std::string> dll_versions_;
     ModuleHandle module_;
 
 public:

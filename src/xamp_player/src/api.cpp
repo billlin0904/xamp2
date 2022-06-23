@@ -36,6 +36,9 @@ void Initialize() {
     LoadFFTLib();
     XAMP_LOG_DEBUG("Load FFT lib success.");
 
+    LoadR8brainLib();
+    XAMP_LOG_DEBUG("Load r8brain lib success.");
+
     GetWASAPIThreadPool();
     XAMP_LOG_DEBUG("Start WASAPI thread pool success.");
 #endif
@@ -44,7 +47,7 @@ void Initialize() {
     XAMP_LOG_DEBUG("Start Playback thread pool success.");
 
     Ebur128ReplayGainScanner::LoadEbur128Lib();
-    XAMP_LOG_DEBUG("Load Ebur128Lib lib success.");
+    XAMP_LOG_DEBUG("Load ebur128 lib success.");
 
     PreventSleep(true);
 }

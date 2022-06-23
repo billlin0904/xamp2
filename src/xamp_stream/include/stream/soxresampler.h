@@ -64,7 +64,5 @@ private:
     AlignPtr<SoxrSampleRateConverterImpl> impl_;
 };
 
-XAMP_STREAM_API void LoadSoxrLib();
-
 }
 

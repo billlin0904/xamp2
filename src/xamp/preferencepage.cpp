@@ -13,7 +13,7 @@
 #include <preferencepage.h>
 
 void PreferencePage::updateSoxrConfigUI(const QVariantMap& soxr_settings) {
-	ui_.soxrTargetSampleRateComboBox->setCurrentText(QString::number(soxr_settings[kSoxrResampleSampleRate].toInt()));
+	ui_.soxrTargetSampleRateComboBox->setCurrentText(QString::number(soxr_settings[kResampleSampleRate].toInt()));
 	ui_.soxrResampleQualityComboBox->setCurrentIndex(soxr_settings[kSoxrQuality].toInt());
 	ui_.soxrPassbandSlider->setValue(soxr_settings[kSoxrPassBand].toInt());
 	ui_.soxrPassbandValue->setText(QString(Q_TEXT("%0%")).arg(ui_.soxrPassbandSlider->value()));
@@ -38,7 +38,7 @@ QMap<QString, QVariant> PreferencePage::currentSoxrSettings() const {
 	const auto soxr_enable_steep_filter = ui_.enableSteepFilterBox->checkState() == Qt::Checked;
 
 	QMap<QString, QVariant> settings;
-	settings[kSoxrResampleSampleRate] = soxr_sample_rate;
+	settings[kResampleSampleRate] = soxr_sample_rate;
 	settings[kSoxrEnableSteepFilter] = soxr_enable_steep_filter;
     settings[kSoxrRollOffLevel] = soxr_rolloff;
     settings[kSoxrQuality] = soxr_quility;
@@ -64,21 +64,27 @@ void PreferencePage::saveSoxrResampler(const QString &name) const {
 	}
 }
 
+void PreferencePage::saveR8BrainResampler() {
+	QMap<QString, QVariant> settings;
+	settings[kResampleSampleRate] = ui_.r8brainTargetSampleRateComboBox->currentText().toInt();
+	JsonSettings::setValue(kR8Brain, settings);
+	AppSettings::setValue(kAppSettingResamplerType, kR8Brain);
+}
+
+void PreferencePage::initR8BrainResampler() {
+	auto config = JsonSettings::getValueAsMap(kR8Brain);
+	ui_.r8brainTargetSampleRateComboBox->setCurrentText(QString::number(config[kResampleSampleRate].toInt()));
+
+	(void)QObject::connect(ui_.r8brainTargetSampleRateComboBox, &QComboBox::textActivated, [this](auto) {
+		saveR8BrainResampler();
+		});	
+}
+
 void PreferencePage::initSoxResampler() {
 	auto soxr_config = JsonSettings::getValueAsMap(kSoxr);
 
     Q_FOREACH (const auto &soxr_setting_name, soxr_config.keys()) {
 		ui_.soxrSettingCombo->addItem(soxr_setting_name);
-	}
-
-    const auto enable_resampler = AppSettings::getValueAsBool(kAppSettingResamplerEnable);
-	if (!enable_resampler) {
-		ui_.resamplerStackedWidget->setCurrentIndex(0);
-		ui_.selectResamplerComboBox->setCurrentIndex(0);
-	}
-	else {
-		ui_.resamplerStackedWidget->setCurrentIndex(1);
-		ui_.selectResamplerComboBox->setCurrentIndex(1);
 	}
 	
     const auto soxr_settings = soxr_config[AppSettings::getValueAsString(kAppSettingSoxrSettingName)].toMap();
@@ -191,7 +197,10 @@ PreferencePage::PreferencePage(QWidget *parent)
 	qTheme.setMenuStyle(ui_.soxrResampleQualityComboBox->view()->window());
 	qTheme.setMenuStyle(ui_.rollOffLevelComboBox->view()->window());
 
+	update();
+
 	initSoxResampler();
+	initR8BrainResampler();
 	initLang();
 
 	ui_.defaultUICombo->setCurrentText(AppSettings::getValueAsString(kAppSettingDefaultFontName));
@@ -232,8 +241,6 @@ PreferencePage::PreferencePage(QWidget *parent)
         }
     });
 
-	ui_.selectResamplerComboBox->removeItem(2);
-
     (void)QObject::connect(ui_.replayGainModeCombo, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), [](auto index) {
 		switch (index) {
 		case 0:
@@ -255,7 +262,16 @@ PreferencePage::PreferencePage(QWidget *parent)
 
 	(void)QObject::connect(ui_.selectResamplerComboBox, static_cast<void (QComboBox::*)(int32_t)>(&QComboBox::activated), [this](auto const& index) {
 		ui_.resamplerStackedWidget->setCurrentIndex(index);
-		saveSoxrResampler(ui_.soxrSettingCombo->currentText());
+		switch (index) {
+		case 1:
+			saveSoxrResampler(ui_.soxrSettingCombo->currentText());
+			AppSettings::setValue(kAppSettingResamplerType, kSoxr);
+			break;
+		case 2:
+			saveR8BrainResampler();
+			AppSettings::setValue(kAppSettingResamplerType, kR8Brain);
+			break;
+		}		
         saveAll();
 		});
 
@@ -307,19 +323,28 @@ PreferencePage::PreferencePage(QWidget *parent)
 }
 
 void PreferencePage::update() {
-	auto enable_resampler = AppSettings::getValueAsBool(kAppSettingResamplerEnable);
+	const auto enable_resampler = AppSettings::getValueAsBool(kAppSettingResamplerEnable);
 	if (!enable_resampler) {
 		ui_.resamplerStackedWidget->setCurrentIndex(0);
 		ui_.selectResamplerComboBox->setCurrentIndex(0);
 	}
 	else {
-		ui_.resamplerStackedWidget->setCurrentIndex(1);
-		ui_.selectResamplerComboBox->setCurrentIndex(1);
+		auto resampler_type = AppSettings::getValueAsString(kAppSettingResamplerType);
+		if (resampler_type == kSoxr || resampler_type.isEmpty()) {
+			ui_.resamplerStackedWidget->setCurrentIndex(1);
+			ui_.selectResamplerComboBox->setCurrentIndex(1);
+		}
+		else if (resampler_type == kR8Brain) {
+			ui_.resamplerStackedWidget->setCurrentIndex(2);
+			ui_.selectResamplerComboBox->setCurrentIndex(2);
+		}
 	}
 }
 
 void PreferencePage::saveAll() {
 	saveSoxrResampler(ui_.soxrSettingCombo->currentText());
+	saveR8BrainResampler();
+
 	AppSettings::setValue(kFlacEncodingLevel, ui_.flacCompressionLevelSlider->value());
 
 	auto index = ui_.resamplerStackedWidget->currentIndex();

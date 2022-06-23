@@ -36,15 +36,17 @@ extern const ConstLatin1String kAppSettingReplayGainTargetGain;
 extern const ConstLatin1String kAppSettingReplayGainScanMode;
 
 extern const ConstLatin1String kAppSettingResamplerEnable;
+extern const ConstLatin1String kAppSettingResamplerType;
+
 extern const ConstLatin1String kAppSettingSoxrSettingName;
 extern const ConstLatin1String kEnableBlurCover;
 
 extern const ConstLatin1String kAppSettingEnableSpectrum;
 extern const ConstLatin1String kAppSettingSpectrumStyles;
 extern const ConstLatin1String kAppSettingWindowType;
+extern const ConstLatin1String kResampleSampleRate;
 
 extern const ConstLatin1String kSoxr;
-extern const ConstLatin1String kSoxrResampleSampleRate;
 extern const ConstLatin1String kSoxrEnableSteepFilter;
 extern const ConstLatin1String kSoxrQuality;
 extern const ConstLatin1String kSoxrStopBand;
@@ -52,6 +54,8 @@ extern const ConstLatin1String kSoxrPassBand;
 extern const ConstLatin1String kSoxrPhase;
 extern const ConstLatin1String kSoxrRollOffLevel;
 extern const ConstLatin1String kSoxrDefaultSettingName;
+
+extern const ConstLatin1String kR8Brain;
 
 extern const ConstLatin1String kEnableBitPerfect;
 

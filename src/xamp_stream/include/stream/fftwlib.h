@@ -16,9 +16,11 @@
 
 namespace xamp::stream {
 
-class FFTWLib {
+class FFTWLib final {
 public:
 	FFTWLib();
+
+	XAMP_DISABLE_COPY(FFTWLib)
 
 private:
 	ModuleHandle module_;
@@ -32,9 +34,11 @@ public:
 	XAMP_DECLARE_DLL(fftw_plan_dft_c2r_1d) fftw_plan_dft_c2r_1d;
 };
 
-class FFTWFLib {
+class FFTWFLib final {
 public:
 	FFTWFLib();
+
+	XAMP_DISABLE_COPY(FFTWFLib)
 
 private:
 	ModuleHandle module_;
