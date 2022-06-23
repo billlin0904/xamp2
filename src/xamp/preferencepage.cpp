@@ -68,7 +68,6 @@ void PreferencePage::saveR8BrainResampler() {
 	QMap<QString, QVariant> settings;
 	settings[kResampleSampleRate] = ui_.r8brainTargetSampleRateComboBox->currentText().toInt();
 	JsonSettings::setValue(kR8Brain, settings);
-	AppSettings::setValue(kAppSettingResamplerType, kR8Brain);
 }
 
 void PreferencePage::initR8BrainResampler() {
