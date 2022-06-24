@@ -1029,23 +1029,7 @@ void Xamp::processMeatadata(int64_t dir_last_write_time, const ForwardList<Metad
     album_artist_page_->artist()->refreshOnece();
 }
 
-void Xamp::setupDSP(uint32_t target_sample_rate, const QMap<QString, QVariant> &soxr_settings, const AlbumEntity& item) {
-    if (target_sample_rate != 0 && player_->GetInputFormat().GetSampleRate() != target_sample_rate) {
-
-        auto resampler_type = AppSettings::getValueAsString(kAppSettingResamplerType);
-        if (resampler_type == kSoxr || resampler_type.isEmpty()) {
-            player_->GetDSPManager()->AddPreDSP(makeSampleRateConverter(soxr_settings));
-            player_->GetDSPManager()->RemovePreDSP(R8brainSampleRateConverter::Id);
-        }
-        else if (resampler_type == kR8Brain) {
-            player_->GetDSPManager()->AddPreDSP(MakeAlign<IAudioProcessor, R8brainSampleRateConverter>());
-            player_->GetDSPManager()->RemovePreDSP(SoxrSampleRateConverter::Id);
-        }
-    } else {
-        player_->GetDSPManager()->RemovePreDSP(R8brainSampleRateConverter::Id);
-        player_->GetDSPManager()->RemovePreDSP(SoxrSampleRateConverter::Id);
-    }
-
+void Xamp::setupDSP(const AlbumEntity& item) {
     if (AppSettings::getValueAsBool(kAppSettingEnableReplayGain)) {
         const auto mode = AppSettings::getAsEnum<ReplayGainMode>(kAppSettingReplayGainMode);
         if (mode == ReplayGainMode::RG_ALBUM_MODE) {
@@ -1091,27 +1075,48 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
     try {
 	    uint32_t target_sample_rate = 0;
         QMap<QString, QVariant> soxr_settings;
+        auto resampler_type = AppSettings::getValueAsString(kAppSettingResamplerType);
+
+        std::function<void()> initial_resampler;
 
         if (!AppSettings::getValueAsBool(kEnableBitPerfect)) {
-            if (AppSettings::getValueAsBool(kAppSettingResamplerEnable)) {
-                auto resampler_type = AppSettings::getValueAsString(kAppSettingResamplerType);
-                if (resampler_type == kSoxr || resampler_type.isEmpty()) {
-                    const auto setting_name = AppSettings::getValueAsString(kAppSettingSoxrSettingName);
-                    soxr_settings = JsonSettings::getValue(kSoxr).toMap()[setting_name].toMap();
-                    target_sample_rate = soxr_settings[kResampleSampleRate].toUInt();
-                }
-                else if (resampler_type == kR8Brain) {
-                    auto config = JsonSettings::getValueAsMap(kR8Brain);
-                    target_sample_rate = config[kResampleSampleRate].toUInt();
-                }                
+            if (resampler_type == kSoxr || resampler_type.isEmpty()) {
+                const auto setting_name = AppSettings::getValueAsString(kAppSettingSoxrSettingName);
+                soxr_settings = JsonSettings::getValue(kSoxr).toMap()[setting_name].toMap();
+                target_sample_rate = soxr_settings[kResampleSampleRate].toUInt();
+
+                initial_resampler = [=]() {
+                    player_->GetDSPManager()->AddPreDSP(makeSampleRateConverter(soxr_settings));
+                    player_->GetDSPManager()->RemovePreDSP(R8brainSampleRateConverter::Id);
+                };
+            }
+            else if (resampler_type == kR8Brain) {
+                auto config = JsonSettings::getValueAsMap(kR8Brain);
+                target_sample_rate = config[kResampleSampleRate].toUInt();
+
+                initial_resampler = [=]() {
+                    player_->GetDSPManager()->AddPreDSP(MakeAlign<IAudioProcessor, R8brainSampleRateConverter>());
+                    player_->GetDSPManager()->RemovePreDSP(SoxrSampleRateConverter::Id);
+                };
             }
         }
         
         player_->Open(item.file_path.toStdWString(), device_info_, target_sample_rate);
+
         if (!AppSettings::getValueAsBool(kEnableBitPerfect)) {
-            setupDSP(target_sample_rate, soxr_settings, item);
+            if (AppSettings::getValueAsBool(kAppSettingResamplerEnable)) {
+                if (initial_resampler == nullptr || player_->GetInputFormat().GetSampleRate() == target_sample_rate) {
+                    player_->GetDSPManager()->RemovePreDSP(R8brainSampleRateConverter::Id);
+                    player_->GetDSPManager()->RemovePreDSP(SoxrSampleRateConverter::Id);
+                }
+                else {
+                    initial_resampler();
+                }
+            }
+            setupDSP(item);
         } else {
             player_->GetDSPManager()->RemovePreDSP(SoxrSampleRateConverter::Id);
+            player_->GetDSPManager()->RemovePreDSP(R8brainSampleRateConverter::Id);
             player_->GetDSPManager()->EnableVolumeLimiter(false);
             player_->GetDSPManager()->RemoveReplayGain();
             player_->GetDSPManager()->RemoveEq();
