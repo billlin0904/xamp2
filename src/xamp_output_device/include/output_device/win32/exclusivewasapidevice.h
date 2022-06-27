@@ -7,12 +7,12 @@
 
 #ifdef XAMP_OS_WIN
 
-#include <future>
 #include <atomic>
 
 #include <base/logger.h>
 #include <base/dataconverter.h>
 #include <base/buffer.h>
+#include <base/ithreadpool.h>
 
 #include <output_device/win32/wasapi.h>
 #include <output_device/idsddevice.h>
@@ -102,7 +102,7 @@ private:
 	Buffer<float> buffer_;
 	IAudioCallback* callback_;
 	std::shared_ptr<spdlog::logger> log_;
-	std::shared_future<void> render_task_;
+	SharedFuture<void> render_task_;
 };
 
 }

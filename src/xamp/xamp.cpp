@@ -911,7 +911,7 @@ void Xamp::initialShortcut() {
 }
 
 void Xamp::stopPlayedClicked() {
-    player_->Stop(false, true);
+    player_->Stop(true, true);
     setSeekPosValue(0);
     lrc_page_->spectrum()->reset();
     ui_.seekSlider->setEnabled(false);
@@ -1000,10 +1000,11 @@ void Xamp::play() {
         player_->Resume();
         top_window_->setTaskbarPlayingResume();
     }
-    else if (player_->GetState() == PlayerState::PLAYER_STATE_STOPPED) {
+    else if (player_->GetState() == PlayerState::PLAYER_STATE_STOPPED || player_->GetState() == PlayerState::PLAYER_STATE_USER_STOPPED) {
         if (!ui_.currentView->count()) {
             return;
         }
+        playlist_page_ = current_playlist_page_;
         if (const auto select_item = playlist_page_->playlist()->selectItem()) {
             play_index_ = select_item.value();
         }

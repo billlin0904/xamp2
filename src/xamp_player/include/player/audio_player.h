@@ -20,6 +20,7 @@
 #include <base/buffer.h>
 #include <base/fastmutex.h>
 #include <base/fastconditionvariable.h>
+#include <base/ithreadpool.h>
 
 #include <stream/stream.h>
 
@@ -185,7 +186,7 @@ private:
     AudioBuffer<int8_t> fifo_;
     Buffer<int8_t> read_buffer_;
     DeviceInfo device_info_;    
-    std::shared_future<void> stream_task_;
+    SharedFuture<void> stream_task_;
     SpscQueue<PlayerAction> action_queue_;
     AlignPtr<IDSPManager> dsp_manager_;
     std::shared_ptr<spdlog::logger> logger_;

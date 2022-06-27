@@ -59,7 +59,7 @@ void BackgroundWorker::blurImage(const QString& cover_id, const QImage& image) {
 void BackgroundWorker::readReplayGain(bool, const std::vector<PlayListEntity>& items) {
     XAMP_LOG_DEBUG("Start read replay gain count:{}", items.size());
 
-    Vector<std::shared_future<AlignPtr<PlayListRGResult>>> replay_gain_tasks;
+    Vector<SharedFuture<AlignPtr<PlayListRGResult>>> replay_gain_tasks;
 
     const auto target_gain = AppSettings::getValue(kAppSettingReplayGainTargetGain).toDouble();
     const auto scan_mode = AppSettings::getAsEnum<ReplayGainScanMode>(kAppSettingReplayGainScanMode);

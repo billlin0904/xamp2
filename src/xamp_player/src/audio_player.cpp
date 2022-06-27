@@ -295,7 +295,7 @@ void AudioPlayer::Stop(bool signal_to_stop, bool shutdown_device, bool wait_for_
         CloseDevice(wait_for_stop_stream);
         UpdateProgress();
         if (signal_to_stop) {
-            SetState(PlayerState::PLAYER_STATE_STOPPED);                        
+            SetState(PlayerState::PLAYER_STATE_USER_STOPPED);                        
         }
     }
 
