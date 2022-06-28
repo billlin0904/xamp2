@@ -113,6 +113,8 @@ public:
 
     QSize getAlbumCoverSize() const noexcept;
 
+    QSize getSaveCoverArtSize() const noexcept;
+
     QColor getBackgroundColor() const noexcept;    
 
     QIcon playArrow() const noexcept;
@@ -168,6 +170,7 @@ private:
     ThemeColor theme_color_;
     QSize album_cover_size_;
     QSize cover_size_;
+    QSize save_cover_art_size_;
     QColor background_color_;
     QPalette palette_;
     QFont ui_font_;

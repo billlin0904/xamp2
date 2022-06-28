@@ -218,11 +218,27 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
 }
 
 void ::MetadataExtractAdapter::processMetadata(int64_t dir_last_write_time, const ForwardList<Metadata>& result, PlayListTableView* playlist, bool is_podcast) {
+    QSharedPointer<QProgressDialog> dialog;
+    if (is_podcast) {
+        dialog = makeProgressDialog(tr("Read file metadata"),
+            tr("Read progress dialog"),
+            tr("Cancel"));
+    }    
+
 	auto playlist_id = -1;
     if (playlist != nullptr) {
         playlist_id = playlist->playlistId();
     }
-    const DatabaseIdCache cache;
+
+	const DatabaseIdCache cache;
+    auto progress = 0;
+    if (is_podcast) {
+        auto size = std::distance(result.begin(), result.end());
+        dialog->setMinimumDuration(1000);
+        dialog->setMaximum(size);
+        dialog->show();
+    }
+
     for (const auto& metadata : result) {	    
 	    auto album = QString::fromWCharArray(metadata.album.c_str());
         auto artist = QString::fromWCharArray(metadata.artist.c_str());
@@ -257,6 +273,11 @@ void ::MetadataExtractAdapter::processMetadata(int64_t dir_last_write_time, cons
         }
 
         IgnoreSqlError(qDatabase.addOrUpdateAlbumMusic(album_id, artist_id, music_id))
+    	if (is_podcast) {
+            dialog->setLabelText(QString::fromWCharArray(metadata.title.c_str()));
+            dialog->setValue(progress++);
+            qApp->processEvents();
+        }
     }
 
     if (playlist != nullptr) {

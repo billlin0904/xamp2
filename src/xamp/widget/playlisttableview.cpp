@@ -466,8 +466,7 @@ void PlayListTableView::initial() {
                 return;
             }
 
-            const QSize kMaxCoverArtSize(500, 500);
-            const auto resize_cover = Pixmap::scaledImage(image, kMaxCoverArtSize, true);
+            const auto resize_cover = Pixmap::scaledImage(image, qTheme.getSaveCoverArtSize(), true);
 
             const auto image_data = Pixmap::getImageByteArray(resize_cover);
             const auto data = std::vector<uint8_t>{ image_data.constData(), image_data.constData() + image_data.size() };
@@ -641,12 +640,16 @@ void PlayListTableView::importPodcast() {
         return;
     }*/
 
+    XAMP_LOG_DEBUG("Start download podcast.xml");
     http::HttpClient(/*url_edit->text()*/Q_TEXT("https://suisei.moe/podcast.xml"))
 	.success([this](const QString& json) {
+        XAMP_LOG_DEBUG("download podcast.xml success!");
         auto const podcast_info = parsePodcastXML(json);
         ::MetadataExtractAdapter::processMetadata(QDateTime::currentSecsSinceEpoch(), podcast_info.second, this, podcast_mode_);
+        XAMP_LOG_DEBUG("Start download podcast image file");
         http::HttpClient(QString::fromStdString(podcast_info.first))
     	.download([=](auto data) {
+            XAMP_LOG_DEBUG("download podcast image file success!");
             auto cover_id = qPixmapCache.addOrUpdate(data);
     		if (!model()->rowCount()) {
                 return;

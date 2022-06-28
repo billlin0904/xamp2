@@ -55,13 +55,18 @@ std::pair<std::string, ForwardList<Metadata>> parsePodcastXML(QString const& src
     }
 
     std::string image_url;
-    auto* image = channel->first_node("image");
+    auto* image = channel->first_node("itunes:image");
     if (image != nullptr) {
-        auto* url = image->first_node("url");
+        /*auto* url = image->first_node("url");
         if (url != nullptr) {
             std::string url_value(url->value(), url->value_size());
             image_url = url_value;
-        }
+        }*/
+        auto href = image->first_attribute("href");
+        if (href != nullptr) {
+            std::string url_value(href->value(), href->value_size());
+            image_url = url_value;
+        }        
     }
     size_t i = 1;
     for (auto* item = channel->first_node("item"); item; item = item->next_sibling("item")) {

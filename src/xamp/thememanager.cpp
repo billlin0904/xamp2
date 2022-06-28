@@ -122,6 +122,7 @@ void ThemeManager::setPalette() {
 ThemeManager::ThemeManager() {
     cover_size_ = QSize(210, 210);
     album_cover_size_ = QSize(250, 250);
+    save_cover_art_size_ = QSize(500, 500);
     //setThemeColor(ThemeColor::DARK_THEME);
     //setThemeColor(ThemeColor::LIGHT_THEME);
     const auto theme = AppSettings::getAsEnum<ThemeColor>(kAppSettingTheme);
@@ -407,6 +408,10 @@ QSize ThemeManager::getAlbumCoverSize() const noexcept {
 
 QColor ThemeManager::getBackgroundColor() const noexcept {
     return background_color_;
+}
+
+QSize ThemeManager::getSaveCoverArtSize() const noexcept {
+    return save_cover_art_size_;
 }
 
 void ThemeManager::setBackgroundColor(QWidget* widget) {
