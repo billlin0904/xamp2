@@ -38,6 +38,7 @@
 #include <widget/albumentity.h>
 #include <widget/podcast_uiltis.h>
 #include <widget/playlisttableview.h>
+#include <widget/processindicator.h>
 
 using namespace xamp::metadata;
 
@@ -640,9 +641,11 @@ void PlayListTableView::importPodcast() {
         return;
     }*/
 
+    auto* indicator = new ProcessIndicator(this);
     XAMP_LOG_DEBUG("Start download podcast.xml");
+    indicator->startAnimation();
     http::HttpClient(/*url_edit->text()*/Q_TEXT("https://suisei.moe/podcast.xml"))
-	.success([this](const QString& json) {
+	.success([this, indicator](const QString& json) {
         XAMP_LOG_DEBUG("download podcast.xml success!");
         auto const podcast_info = parsePodcastXML(json);
         ::MetadataExtractAdapter::processMetadata(QDateTime::currentSecsSinceEpoch(), podcast_info.second, this, podcast_mode_);
@@ -656,6 +659,7 @@ void PlayListTableView::importPodcast() {
     		}
             auto play_item = getEntity(this->model()->index(0, 0));
             qDatabase.setAlbumCover(play_item.album_id, play_item.album, cover_id);
+            indicator->deleteLater();
             });    	
         }).get();
 }

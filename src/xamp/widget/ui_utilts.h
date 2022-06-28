@@ -33,3 +33,5 @@ QSharedPointer<QProgressDialog> makeProgressDialog(QString const& title, QString
 std::tuple<bool, QMessageBox::StandardButton> showDontShowAgainDialog(bool show_agin);
 
 void centerDesktop(QWidget* widget);
+
+void centerParent(QWidget* dialog);
