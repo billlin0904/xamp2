@@ -424,9 +424,9 @@ AlbumView::AlbumView(QWidget* parent)
                 update();
                 emit removeAll();
                 qPixmapCache.clear();
-            } catch (...) {
-                indicator->deleteLater();
+            } catch (...) {                
             }
+            indicator->deleteLater();
         };
 
         if (index.isValid()) {

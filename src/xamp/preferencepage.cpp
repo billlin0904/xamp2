@@ -202,12 +202,6 @@ PreferencePage::PreferencePage(QWidget *parent)
 	initR8BrainResampler();
 	initLang();
 
-	ui_.defaultUICombo->setCurrentText(AppSettings::getValueAsString(kAppSettingDefaultFontName));
-	(void)QObject::connect(ui_.defaultUICombo, &QComboBox::textActivated, [this](auto font_name) {
-		AppSettings::setValue(kAppSettingDefaultFontName, font_name);
-		AppSettings::save();
-		});
-
     ui_.preferenceTreeWidget->header()->hide();
     ui_.preferenceTreeWidget->setStyleSheet(Q_TEXT("QTreeView { background: transparent; }"));
 
@@ -290,20 +284,6 @@ PreferencePage::PreferencePage(QWidget *parent)
 		JsonSettings::remove(kSoxr);
 		initSoxResampler();
         saveAll();
-		});
-
-	ui_.podcastCachePathLineEdit->setText(AppSettings::getValue(kAppSettingPodcastCachePath).toString());
-	(void)QObject::connect(ui_.setPodcastCacheButton, &QPushButton::clicked, [this]() {
-		const auto dir_name = QFileDialog::getExistingDirectory(this,
-			tr("Select a directory"),
-			AppSettings::getMyMusicFolderPath(),
-            QFileDialog::ShowDirsOnly);
-		if (dir_name.isEmpty()) {
-			return;
-		}
-		PodcastCache.SetTempPath(dir_name.toStdWString());
-		AppSettings::setValue(kAppSettingPodcastCachePath, dir_name);
-		ui_.podcastCachePathLineEdit->setText(dir_name);
 		});
 
     ui_.albumImageCacheSizeSpinBox->setValue(AppSettings::getValue(kAppSettingAlbumImageCacheSize).toInt());

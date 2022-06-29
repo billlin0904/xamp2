@@ -13,7 +13,6 @@ const ConstLatin1String kAppSettingShowLeftList{ "AppSettings/showLeftList" };
 const ConstLatin1String kAppSettingDiscordNotify{ "AppSettings/discordNotify" };
 const ConstLatin1String kAppSettingColumnName{ "AppSettings/columnName" };
 const ConstLatin1String kAppSettingIsMuted{"AppSettings/isMuted"};
-const ConstLatin1String kAppSettingDefaultFontName{ "AppSettings/defaultFontName" };
 const ConstLatin1String kAppSettingMyMusicFolderPath{ "AppSettings/myMusicFolderPath" };
 
 const ConstLatin1String kAppSettingTheme{ "AppSettings/theme/themeColor" };

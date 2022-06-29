@@ -8,6 +8,7 @@
 #include <QLabel>
 #include <widget/str_utilts.h>
 #include <widget/xdialog.h>
+#include <version.h>
 
 struct XMessageBox {
 	static void about(QWidget* parent, const QString &msg, const QString& title= kAppTitle) {

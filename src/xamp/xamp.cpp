@@ -282,7 +282,7 @@ void Xamp::closeEvent(QCloseEvent* event) {
 
     AppSettings::setValue(kAppSettingGeometry, saveGeometry());
     AppSettings::setValue(kAppSettingVolume, ui_.volumeSlider->value());
-
+    
     cleanup();
     window()->close();
 }
@@ -755,7 +755,7 @@ void Xamp::initialController() {
     auto* check_for_update = new QAction(tr("Check For Updates"), this);
 
     auto* updater = QSimpleUpdater::getInstance();
-    (void)QObject::connect(updater, &QSimpleUpdater::checkingFinished, [updater, this](auto url) {
+    /*(void)QObject::connect(updater, &QSimpleUpdater::checkingFinished, [updater, this](auto url) {
         auto change_log = updater->getChangelog(url);
 
         auto html = Q_TEXT(R"(
@@ -768,7 +768,7 @@ void Xamp::initialController() {
         QMessageBox::about(this,
             Q_TEXT("Check For Updates"),
             html);
-        });
+        });*/
 
     (void)QObject::connect(updater, &QSimpleUpdater::downloadFinished, [updater, this](auto url, auto filepath) {
         XAMP_LOG_DEBUG("Donwload path: {}", filepath.toStdString());
@@ -784,7 +784,7 @@ void Xamp::initialController() {
     updater->setPlatformKey(kSoftwareUpdateUrl, Q_TEXT("windows"));
     updater->setModuleVersion(kSoftwareUpdateUrl, kXAMPVersion);
     updater->setNotifyOnFinish(kSoftwareUpdateUrl, false);
-    updater->setNotifyOnUpdate(kSoftwareUpdateUrl, false);
+    updater->setNotifyOnUpdate(kSoftwareUpdateUrl, true);
     updater->setUseCustomAppcast(kSoftwareUpdateUrl, false);
     updater->setDownloaderEnabled(kSoftwareUpdateUrl, false);
     updater->setMandatoryUpdate(kSoftwareUpdateUrl, false);

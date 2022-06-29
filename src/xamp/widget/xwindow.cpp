@@ -25,6 +25,7 @@
 #include <widget/osx/osx.h>
 #endif
 
+#include <version.h>
 #include <widget/image_utiltis.h>
 #include <widget/appsettings.h>
 #include <widget/str_utilts.h>

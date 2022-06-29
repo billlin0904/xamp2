@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Installer>
+    <Name>XAMP2</Name>
+    <Version>1.0.0</Version>
+    <Title>XAMP2 Installer</Title>
+    <Publisher>XAMP2 Project</Publisher>
+    <StartMenuDir>Super App</StartMenuDir>
+	<WizardStyle>Modern</WizardStyle>
+    <TargetDir>@HomeDir@/InstallationDirectory</TargetDir>
+	<StyleSheet>style.qss</StyleSheet>
+</Installer>

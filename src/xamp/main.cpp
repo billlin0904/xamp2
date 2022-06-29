@@ -160,7 +160,7 @@ static void loadSettings() {
     AppSettings::setDefaultValue(kAppSettingEnableReplayGain, true);
     AppSettings::setDefaultEnumValue(kAppSettingTheme, ThemeColor::DARK_THEME);
     AppSettings::setDefaultValue(kEnableBitPerfect, true);
-    AppSettings::setDefaultValue(kAppSettingDefaultFontName, Q_TEXT("WorkSans"));
+    //AppSettings::setDefaultValue(kAppSettingDefaultFontName, Q_TEXT("WorkSans"));
     AppSettings::save();
     XAMP_LOG_DEBUG("loadSettings success.");
 }

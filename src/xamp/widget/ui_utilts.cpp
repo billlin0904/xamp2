@@ -6,6 +6,7 @@
 #include <widget/xdialog.h>
 #include <widget/str_utilts.h>
 #include <widget/ui_utilts.h>
+#include <version.h>
 
 QString sampleRate2String(const AudioFormat& format) {
     return samplerate2String(format.GetSampleRate());

@@ -45,27 +45,8 @@ QFont ThemeManager::loadFonts() {
     const auto digital_font_id = QFontDatabase::addApplicationFont(Q_TEXT(":/xamp/fonts/Lato-Regular.ttf"));
     const auto digital_font_families = QFontDatabase::applicationFontFamilies(digital_font_id);
 
-    QString default_font;
-    QString default_bold_font;
-
-    auto font_name = AppSettings::getValueAsString(kAppSettingDefaultFontName);
-    if (font_name.isEmpty()) {
-        font_name = Q_TEXT("WorkSans");
-    }
-
-    default_font = Q_STR(":/xamp/fonts/%1-Regular.ttf").arg(font_name);
-    default_bold_font = Q_STR(":/xamp/fonts/%1-Bold.ttf").arg(font_name);
-
-    const auto title_font_id = QFontDatabase::addApplicationFont(default_bold_font);
-    auto title_font_families = QFontDatabase::applicationFontFamilies(title_font_id);
-
-    const auto default_font_id = QFontDatabase::addApplicationFont(default_font);
-    auto default_font_families = QFontDatabase::applicationFontFamilies(default_font_id);
-
     QList<QString> ui_fallback_fonts;
 
-    ui_fallback_fonts.push_back(default_font_families[0]);
-    ui_fallback_fonts.push_back(title_font_families[0]);
 #if defined(Q_OS_WIN)
     // note: If we are support Source HanSans font sets must be enable Direct2D function,
     // But Qt framework not work fine with that!
@@ -76,14 +57,8 @@ QFont ThemeManager::loadFonts() {
     installFont(Q_TEXT("HarmonyOS_Sans_SC_Regular.ttf"), ui_fallback_fonts);
     installFont(Q_TEXT("HarmonyOS_Sans_SC_Bold.ttf"), ui_fallback_fonts);
 
-    installFont(Q_TEXT("MiSans-Regular.ttf"), ui_fallback_fonts);
-    installFont(Q_TEXT("MiSans-Bold.ttf"), ui_fallback_fonts);
-
-    installFont(Q_TEXT("OPPOSans-B.ttf"), ui_fallback_fonts);
-    installFont(Q_TEXT("OPPOSans-R.ttf"), ui_fallback_fonts);    
-    
-    //ui_fallback_fonts.push_back(Q_TEXT("Microsoft YaHei"));
-    //ui_fallback_fonts.push_back(Q_TEXT("Microsoft JhengHei UI"));
+    ui_fallback_fonts.push_back(Q_TEXT("Microsoft YaHei"));
+    ui_fallback_fonts.push_back(Q_TEXT("Microsoft JhengHei UI"));
 
     ui_fallback_fonts.push_back(Q_TEXT("Meiryo UI")); // For japanese font.    
 
