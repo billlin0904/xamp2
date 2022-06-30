@@ -58,6 +58,8 @@ public:
 
     void Flush() override;
 
+    void EnableFadeOut(bool enable) override;
+
 private:
     void AddOrReplace(AlignPtr<IAudioProcessor> processor, std::vector<AlignPtr<IAudioProcessor>>& dsp_chain);
 

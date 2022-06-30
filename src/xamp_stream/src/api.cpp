@@ -9,6 +9,7 @@
 #include <stream/ifileencoder.h>
 #include <stream/basswavfileencoder.h>
 #include <stream/bassflacfileencoder.h>
+#include <stream/bassfader.h>
 #include <stream/basscddevice.h>
 #include <stream/basscompressor.h>
 #include <stream/bassequalizer.h>
@@ -68,6 +69,10 @@ AlignPtr<IAudioProcessor> MediaStreamFactory::MakeEqualizer() {
 
 AlignPtr<IAudioProcessor> MediaStreamFactory::MakeCompressor() {
     return MakeAlign<IAudioProcessor, BassCompressor>();
+}
+
+AlignPtr<IAudioProcessor> MediaStreamFactory::MakeFader() {
+    return MakeAlign<IAudioProcessor, BassFader>();
 }
 
 AlignPtr<IAudioProcessor> MediaStreamFactory::MakeVolume() {

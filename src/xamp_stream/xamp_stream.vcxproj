@@ -157,6 +157,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="include\stream\basscompressor.h" />
+    <ClInclude Include="include\stream\bassfader.h" />
     <ClInclude Include="include\stream\bassvolume.h" />
     <ClInclude Include="include\stream\basswavfileencoder.h" />
     <ClInclude Include="include\stream\compressorparameters.h" />
@@ -189,6 +190,7 @@
     <ClCompile Include="src\basscompressor.cpp" />
     <ClCompile Include="src\bassequalizer.cpp" />
     <ClCompile Include="src\bassexception.cpp" />
+    <ClCompile Include="src\bassfader.cpp" />
     <ClCompile Include="src\bassflacfileencoder.cpp" />
     <ClCompile Include="src\bassfilestream.cpp" />
     <ClCompile Include="src\bassvolume.cpp" />

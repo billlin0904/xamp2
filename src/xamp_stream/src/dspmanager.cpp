@@ -7,6 +7,7 @@
 #include <stream/r8brainresampler.h>
 #include <stream/bassvolume.h>
 #include <stream/basscompressor.h>
+#include <stream/bassfader.h>
 #include <stream/passthroughsamplerateconverter.h>
 #include <stream/pcm2dsdconverter.h>
 #include <stream/dspmanager.h>
@@ -50,6 +51,15 @@ void DSPManager::EnableVolumeLimiter(bool enable) {
         AddPostDSP(MediaStreamFactory::MakeCompressor());
     } else {
         RemovePostDSP(BassCompressor::Id);
+    }
+}
+
+void DSPManager::EnableFadeOut(bool enable) {
+    if (enable) {
+        AddPreDSP(MediaStreamFactory::MakeFader());
+    }
+    else {
+        RemovePreDSP(BassFader::Id);
     }
 }
 
@@ -199,6 +209,11 @@ void DSPManager::Init(AudioFormat input_format, AudioFormat output_format, DsdMo
     if (const auto compressor = GetPostDSP<BassCompressor>()) {
         compressor.value()->Init();
         XAMP_LOG_D(logger_, "Enable compressor.");
+    }
+
+    if (const auto fader = GetPreDSP<BassFader>()) {
+        fader.value()->Init();
+        XAMP_LOG_D(logger_, "Enable fader.");
     }
 
     if (const auto eq = GetPostDSP<IEqualizer>()) {

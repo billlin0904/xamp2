@@ -2,24 +2,24 @@
     "Log": {
         "MinimumLevel": {
             "Default": "debug",
-          "Override": {
-            "AsioDevice": "debug",
-            "AudioPlayer": "debug",
-            "BackgroundThreadPool": "info",
-            "Compressor": "info",
-            "CoreAudio": "info",
-            "DspManager": "debug",
-            "ExclusiveWasapiDevice": "debug",
-            "ExclusiveWasapiDeviceType": "info",
-            "FileStream": "info",
-            "PixmapCache": "info",
-            "PlaybackThreadPool": "info",
-            "SharedWasapiDevice": "info",
-            "Soxr": "info",
-            "VirtualMemory": "info",
-            "Volume": "info",
-            "WASAPIThreadPool": "info"
-          }
+            "Override": {
+                "AsioDevice": "debug",
+                "AudioPlayer": "debug",
+                "BackgroundThreadPool": "info",
+                "Compressor": "info",
+                "CoreAudio": "info",
+                "DspManager": "debug",
+                "ExclusiveWasapiDevice": "debug",
+                "ExclusiveWasapiDeviceType": "info",
+                "FileStream": "info",
+                "PixmapCache": "info",
+                "PlaybackThreadPool": "info",
+                "SharedWasapiDevice": "info",
+                "Soxr": "info",
+                "VirtualMemory": "info",
+                "Volume": "info",
+                "WASAPIThreadPool": "info"
+            }
         }
     },
     "R8Brain": {
@@ -31,7 +31,7 @@
             "passBand": 97,
             "phase": 47,
             "quality": 4,
-            "resampleSampleRate": 192000,
+            "resampleSampleRate": 352800,
             "rolloffLevel": 2,
             "stopBand": 100
         }

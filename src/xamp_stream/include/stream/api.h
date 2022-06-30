@@ -31,6 +31,8 @@ public:
 
 	static AlignPtr<IDSPManager> MakeDSPManager();
 
+	static AlignPtr<IAudioProcessor> MakeFader();
+
 #ifdef XAMP_OS_WIN
 	static AlignPtr<ICDDevice> MakeCDDevice(int32_t driver_letter);
 #endif

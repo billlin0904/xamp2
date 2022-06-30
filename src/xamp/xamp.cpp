@@ -1055,6 +1055,7 @@ void Xamp::setupDSP(const AlbumEntity& item) {
     }
 
     player_->GetDSPManager()->EnableVolumeLimiter(true);
+    //player_->GetDSPManager()->EnableFadeOut(true);
 }
 
 void Xamp::playAlbumEntity(const AlbumEntity& item) {
@@ -1081,24 +1082,26 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
         std::function<void()> initial_resampler;
 
         if (!AppSettings::getValueAsBool(kEnableBitPerfect)) {
-            if (resampler_type == kSoxr || resampler_type.isEmpty()) {
-                const auto setting_name = AppSettings::getValueAsString(kAppSettingSoxrSettingName);
-                soxr_settings = JsonSettings::getValue(kSoxr).toMap()[setting_name].toMap();
-                target_sample_rate = soxr_settings[kResampleSampleRate].toUInt();
+            if (AppSettings::getValueAsBool(kAppSettingResamplerEnable)) {
+                if (resampler_type == kSoxr || resampler_type.isEmpty()) {
+                    const auto setting_name = AppSettings::getValueAsString(kAppSettingSoxrSettingName);
+                    soxr_settings = JsonSettings::getValue(kSoxr).toMap()[setting_name].toMap();
+                    target_sample_rate = soxr_settings[kResampleSampleRate].toUInt();
 
-                initial_resampler = [=]() {
-                    player_->GetDSPManager()->AddPreDSP(makeSampleRateConverter(soxr_settings));
-                    player_->GetDSPManager()->RemovePreDSP(R8brainSampleRateConverter::Id);
-                };
-            }
-            else if (resampler_type == kR8Brain) {
-                auto config = JsonSettings::getValueAsMap(kR8Brain);
-                target_sample_rate = config[kResampleSampleRate].toUInt();
+                    initial_resampler = [=]() {
+                        player_->GetDSPManager()->AddPreDSP(makeSampleRateConverter(soxr_settings));
+                        player_->GetDSPManager()->RemovePreDSP(R8brainSampleRateConverter::Id);
+                    };
+                }
+                else if (resampler_type == kR8Brain) {
+                    auto config = JsonSettings::getValueAsMap(kR8Brain);
+                    target_sample_rate = config[kResampleSampleRate].toUInt();
 
-                initial_resampler = [=]() {
-                    player_->GetDSPManager()->AddPreDSP(MakeAlign<IAudioProcessor, R8brainSampleRateConverter>());
-                    player_->GetDSPManager()->RemovePreDSP(SoxrSampleRateConverter::Id);
-                };
+                    initial_resampler = [=]() {
+                        player_->GetDSPManager()->AddPreDSP(MakeAlign<IAudioProcessor, R8brainSampleRateConverter>());
+                        player_->GetDSPManager()->RemovePreDSP(SoxrSampleRateConverter::Id);
+                    };
+                }
             }
         }
         
@@ -1175,7 +1178,7 @@ void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_form
         cur_page->playlist()->updateData();
     }
 
-    auto found_cover = true;
+    auto found_cover = !current_entity_.cover_id.isEmpty();
 
     if (current_entity_.cover_id != item.cover_id) {
         if (item.cover_id != qPixmapCache.getUnknownCoverId()) {
@@ -1184,7 +1187,8 @@ void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_form
             if (cover != nullptr) {
                 setCover(cover);
                 emit addBlurImage(item.cover_id, cover->toImage());
-            } else {
+            }
+            else {
                 lrc_page_->clearBackground();
             }
         }
