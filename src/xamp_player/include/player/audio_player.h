@@ -109,6 +109,7 @@ public:
     AlignPtr<IDSPManager>& GetDSPManager() override;
 
     bool CanConverter() const noexcept;
+
 private:
     void Startup();
 
@@ -154,6 +155,10 @@ private:
 
     void SetDSDStreamMode(DsdModes dsd_mode, AlignPtr<IAudioStream>& stream);
 
+    void ProcessFadeOut();
+
+    void FadeOut();
+
     bool is_muted_;
     bool is_dsd_file_;
     DsdModes dsd_mode_;
@@ -164,6 +169,7 @@ private:
     uint32_t num_read_sample_;
     uint32_t volume_;
     std::optional<uint32_t> dsd_speed_;
+    std::atomic<bool> is_fade_out_;
     std::atomic<bool> is_playing_;
     std::atomic<bool> is_paused_;
     std::atomic<int32_t> playback_event_;

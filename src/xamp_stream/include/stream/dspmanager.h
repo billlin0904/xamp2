@@ -58,16 +58,14 @@ public:
 
     void Flush() override;
 
-    void EnableFadeOut(bool enable) override;
-
 private:
-    void AddOrReplace(AlignPtr<IAudioProcessor> processor, std::vector<AlignPtr<IAudioProcessor>>& dsp_chain);
+    void AddOrReplace(AlignPtr<IAudioProcessor> processor, Vector<AlignPtr<IAudioProcessor>>& dsp_chain);
 
-    void Remove(Uuid const& id, std::vector<AlignPtr<IAudioProcessor>>& dsp_chain);
+    void Remove(Uuid const& id, Vector<AlignPtr<IAudioProcessor>>& dsp_chain);
 
     bool ApplyDSP(const float* samples, uint32_t num_samples, AudioBuffer<int8_t>& fifo);
 
-    using DspIterator = std::vector<AlignPtr<IAudioProcessor>>::const_iterator;
+    using DspIterator = Vector<AlignPtr<IAudioProcessor>>::const_iterator;
 
     template <typename TDSP>
     std::optional<TDSP*> GetDSP(
@@ -97,8 +95,8 @@ private:
     double replay_gain_;
     DsdModes dsd_modes_;
     EQSettings eq_settings_;
-    std::vector<AlignPtr<IAudioProcessor>> pre_dsp_;
-    std::vector<AlignPtr<IAudioProcessor>> post_dsp_;
+    Vector<AlignPtr<IAudioProcessor>> pre_dsp_;
+    Vector<AlignPtr<IAudioProcessor>> post_dsp_;
     AlignPtr<ISampleRateConverter> fifo_writer_;
     Buffer<float> pre_dsp_buffer_;
     Buffer<float> post_dsp_buffer_;

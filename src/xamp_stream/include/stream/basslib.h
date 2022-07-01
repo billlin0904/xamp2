@@ -223,6 +223,7 @@ public:
     XAMP_DECLARE_DLL(BASS_ChannelBytes2Seconds) BASS_ChannelBytes2Seconds;
     XAMP_DECLARE_DLL(BASS_ChannelSeconds2Bytes) BASS_ChannelSeconds2Bytes;
     XAMP_DECLARE_DLL(BASS_ChannelSetPosition) BASS_ChannelSetPosition;
+    XAMP_DECLARE_DLL(BASS_ChannelGetPosition) BASS_ChannelGetPosition;
     XAMP_DECLARE_DLL(BASS_ErrorGetCode) BASS_ErrorGetCode;
     XAMP_DECLARE_DLL(BASS_ChannelGetAttribute) BASS_ChannelGetAttribute;
     XAMP_DECLARE_DLL(BASS_ChannelSetAttribute) BASS_ChannelSetAttribute;

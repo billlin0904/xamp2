@@ -36,6 +36,8 @@ public:
 
 	void Seek(double stream_time) const override;
 
+	double GetPosition() const override;
+
 	std::string_view GetDescription() const noexcept override;
 
 	uint8_t GetSampleSize() const noexcept override;

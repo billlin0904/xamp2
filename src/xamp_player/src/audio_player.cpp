@@ -15,12 +15,13 @@
 #include <output_device/idsddevice.h>
 #include <output_device/iaudiodevicemanager.h>
 
-#include <stream/stft.h>
 #include <stream/dspmanager.h>
 #include <stream/iaudiostream.h>
 #include <stream/idsdstream.h>
 #include <stream/filestream.h>
 #include <stream/isamplerateconverter.h>
+#include <stream/bassfader.h>
+#include <stream/iaudioprocessor.h>
 
 #include <player/iplaybackstateadapter.h>
 #include <player/audio_util.h>
@@ -70,6 +71,7 @@ AudioPlayer::AudioPlayer(const std::weak_ptr<IPlaybackStateAdapter> &adapter)
     , fifo_size_(0)
     , num_read_sample_(0)
     , volume_(0)
+    , is_fade_out_(false)
     , is_playing_(false)
     , is_paused_(false)
     , playback_event_{-1}
@@ -79,7 +81,7 @@ AudioPlayer::AudioPlayer(const std::weak_ptr<IPlaybackStateAdapter> &adapter)
     , state_adapter_(adapter)
     , fifo_(GetPageAlignSize(kPreallocateBufferSize))
     , action_queue_(kActionQueueSize)
-    , dsp_manager_(MediaStreamFactory::MakeDSPManager()) {
+    , dsp_manager_(DspComponentFactory::MakeDSPManager()) {
     logger_ = Logger::GetInstance().GetLogger(kAudioPlayerLoggerName);
 }
 
@@ -284,6 +286,37 @@ void AudioPlayer::Resume() {
     }
 }
 
+void AudioPlayer::FadeOut() {
+    float fdade_time = 1.0;
+    const auto sample_count = output_format_.GetSecondsSize(fdade_time) / sizeof(float);
+
+    Buffer<float> buffer(sample_count);
+    size_t num_filled_count = 0;
+
+    auto fader = DspComponentFactory::MakeFader();
+    fader->Start(output_format_.GetSampleRate());
+    dynamic_cast<BassFader*>(fader.get())->Init(1, 0, fdade_time);
+
+    if (!fifo_.TryRead(reinterpret_cast<int8_t*>(buffer.data()), buffer.GetByteSize(), num_filled_count)) {
+        return;
+    }
+
+    Buffer<float> fade_buf(sample_count);
+    BufferRef<float> buf_ref(fade_buf);
+    fader->Process(buffer.data(), buffer.size(), buf_ref);
+
+    fifo_.Clear();
+    fifo_.TryWrite(reinterpret_cast<int8_t*>(buf_ref.data()), buf_ref.GetByteSize());
+}
+
+void AudioPlayer::ProcessFadeOut() {
+    if (!device_) {
+        return;
+    }
+    is_fade_out_ = true;
+    MSleep(std::chrono::milliseconds(1000));
+}
+
 void AudioPlayer::Stop(bool signal_to_stop, bool shutdown_device, bool wait_for_stop_stream) {
     if (!device_) {
         return;
@@ -401,17 +434,6 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
     is_paused_ = false;
     pause_cond_.notify_all();
     read_finish_and_wait_seek_signal_cond_.notify_all();
-    if (device_ != nullptr) {
-        if (device_->IsStreamOpen()) {
-            XAMP_LOG_D(logger_, "Stop output device");
-            try {
-                device_->StopStream(wait_for_stop_stream);
-                device_->CloseStream();
-            } catch (const Exception &e) {
-                XAMP_LOG_D(logger_, "Close device failure. {}", e.what());
-            }
-        }
-    }
 
     if (stream_task_.valid()) {
         XAMP_LOG_D(logger_, "Try to stop stream thread.");
@@ -426,6 +448,22 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
         stream_task_ = std::shared_future<void>();
         XAMP_LOG_D(logger_, "Stream thread was finished.");
     }
+
+    ProcessFadeOut();
+
+    if (device_ != nullptr) {
+        if (device_->IsStreamOpen()) {
+            XAMP_LOG_D(logger_, "Stop output device");
+            try {
+                device_->StopStream(wait_for_stop_stream);
+                device_->CloseStream();
+			}
+			catch (const Exception& e) {
+				XAMP_LOG_D(logger_, "Close device failure. {}", e.what());
+			}
+		}
+	}
+
     fifo_.Clear();
     action_queue_.clear();
 }
@@ -804,6 +842,11 @@ void AudioPlayer::CopySamples(void* samples, size_t num_buffer_frames) const {
 DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_frames, size_t & num_filled_frames, double stream_time, double /*sample_time*/) noexcept {
     const auto num_samples = num_buffer_frames * output_format_.GetChannels();
     const auto sample_size = num_samples * sample_size_;
+
+    if (is_fade_out_) {
+        FadeOut();
+        is_fade_out_ = false;
+    }
 
     size_t num_filled_bytes = 0;
     XAMP_LIKELY(fifo_.TryRead(static_cast<int8_t*>(samples), sample_size, num_filled_bytes)) {

@@ -51,8 +51,6 @@ public:
     virtual bool CanProcessFile() const noexcept = 0;
 
     virtual void Flush() = 0;
-
-    virtual void EnableFadeOut(bool enable) = 0;
 protected:
     IDSPManager() = default;
 };

@@ -62,7 +62,7 @@ double readAll(Path const& file_path,
 	std::function<void(float const*, uint32_t)> const& dsp_process,
     uint64_t max_duration) {
 	const auto is_dsd_file = TestDsdFileFormatStd(file_path.wstring());
-	const auto file_stream = MediaStreamFactory::MakeAudioStream();
+	const auto file_stream = DspComponentFactory::MakeAudioStream();
 
 	if (auto* stream = AsDsdStream(file_stream)) {
 		if (is_dsd_file) {
@@ -129,7 +129,7 @@ void encodeFlacFile(Path const& file_path,
     Metadata const& metadata) {
     ExceptedFile excepted(output_file_path);
     if (excepted.Try([&](auto const& dest_file_path) {
-	    const auto encoder = MediaStreamFactory::MakeFlacEncoder();
+	    const auto encoder = DspComponentFactory::MakeFlacEncoder();
         encoder->Start(file_path, dest_file_path, command);
         encoder->Encode(progress);
     })) {

@@ -131,6 +131,10 @@ struct XAMP_BASE_API_ONLY_EXPORT BufferRef {
         return size_;
     }
 
+    [[nodiscard]] size_t GetByteSize() const noexcept {
+        return size_ * sizeof(T);
+    }
+
 private:
     T* buffer_;
     size_t size_;

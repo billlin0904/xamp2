@@ -196,6 +196,7 @@ BassLib::BassLib() try
     , XAMP_LOAD_DLL_API(BASS_ChannelBytes2Seconds)
     , XAMP_LOAD_DLL_API(BASS_ChannelSeconds2Bytes)
     , XAMP_LOAD_DLL_API(BASS_ChannelSetPosition)
+    , XAMP_LOAD_DLL_API(BASS_ChannelGetPosition)
     , XAMP_LOAD_DLL_API(BASS_ErrorGetCode)
     , XAMP_LOAD_DLL_API(BASS_ChannelGetAttribute)
     , XAMP_LOAD_DLL_API(BASS_ChannelSetAttribute)

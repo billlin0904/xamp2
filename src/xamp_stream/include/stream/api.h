@@ -13,9 +13,9 @@
 
 namespace xamp::stream {
 
-class XAMP_STREAM_API MediaStreamFactory {
+class XAMP_STREAM_API DspComponentFactory {
 public:
-	MediaStreamFactory() = delete;
+	DspComponentFactory() = delete;
 
 	static AlignPtr<IAudioStream> MakeAudioStream();
 

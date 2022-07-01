@@ -259,6 +259,10 @@ public:
         BassIfFailedThrow(BASS.BASS_ChannelSetPosition(GetHStream(), pos_bytes, BASS_POS_BYTE));
     }
 
+    double GetPosition() const {
+        return BASS.BASS_ChannelBytes2Seconds(GetHStream(), BASS.BASS_ChannelGetPosition(GetHStream(), BASS_POS_BYTE));
+    }
+
     [[nodiscard]] uint32_t GetDsdSampleRate() const {
         float rate = 0;
         BassIfFailedThrow(BASS.BASS_ChannelGetAttribute(GetHStream(), BASS_ATTRIB_DSD_RATE, &rate));
@@ -354,6 +358,10 @@ AudioFormat BassFileStream::GetFormat() const noexcept {
 
 void BassFileStream::Seek(double stream_time) const {
     stream_->Seek(stream_time);
+}
+
+double BassFileStream::GetPosition() const {
+    return stream_->GetPosition();
 }
 
 uint32_t BassFileStream::GetSamples(void *buffer, uint32_t length) const noexcept {

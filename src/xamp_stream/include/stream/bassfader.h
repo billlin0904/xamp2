@@ -21,7 +21,7 @@ public:
 
     void Start(uint32_t output_sample_rate) override;
 
-    void Init(float current = 1.0f, float target = 0.0f, float time = 3);
+    void Init(float current, float target, float fdade_time);
 
     bool Process(float const * samples, uint32_t num_samples, BufferRef<float>& out) override;
 

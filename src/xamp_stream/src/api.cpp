@@ -51,40 +51,40 @@ bool TestDsdFileFormatStd(std::wstring const& file_path) {
     return TestDsdFileFormat(file_chunks);
 }
 
-AlignPtr<IAudioStream> MediaStreamFactory::MakeAudioStream() {
+AlignPtr<IAudioStream> DspComponentFactory::MakeAudioStream() {
     return MakeAlign<IAudioStream, BassFileStream>();
 }
 
-AlignPtr<IFileEncoder> MediaStreamFactory::MakeFlacEncoder() {
+AlignPtr<IFileEncoder> DspComponentFactory::MakeFlacEncoder() {
     return MakeAlign<IFileEncoder, BassFlacFileEncoder>();
 }
 
-AlignPtr<IFileEncoder> MediaStreamFactory::MakeWaveEncoder() {
+AlignPtr<IFileEncoder> DspComponentFactory::MakeWaveEncoder() {
     return MakeAlign<IFileEncoder, BassWavFileEncoder>();
 }
 
-AlignPtr<IAudioProcessor> MediaStreamFactory::MakeEqualizer() {
+AlignPtr<IAudioProcessor> DspComponentFactory::MakeEqualizer() {
     return MakeAlign<IAudioProcessor, BassEqualizer>();
 }
 
-AlignPtr<IAudioProcessor> MediaStreamFactory::MakeCompressor() {
+AlignPtr<IAudioProcessor> DspComponentFactory::MakeCompressor() {
     return MakeAlign<IAudioProcessor, BassCompressor>();
 }
 
-AlignPtr<IAudioProcessor> MediaStreamFactory::MakeFader() {
+AlignPtr<IAudioProcessor> DspComponentFactory::MakeFader() {
     return MakeAlign<IAudioProcessor, BassFader>();
 }
 
-AlignPtr<IAudioProcessor> MediaStreamFactory::MakeVolume() {
+AlignPtr<IAudioProcessor> DspComponentFactory::MakeVolume() {
     return MakeAlign<IAudioProcessor, BassVolume>();
 }
 
-AlignPtr<IDSPManager> MediaStreamFactory::MakeDSPManager() {
+AlignPtr<IDSPManager> DspComponentFactory::MakeDSPManager() {
     return MakeAlign<IDSPManager, DSPManager>();
 }
 
 #ifdef XAMP_OS_WIN
-AlignPtr<ICDDevice> MediaStreamFactory::MakeCDDevice(int32_t driver_letter) {
+AlignPtr<ICDDevice> DspComponentFactory::MakeCDDevice(int32_t driver_letter) {
     return MakeAlign<ICDDevice, BassCDDevice>(static_cast<char>(driver_letter));
 }
 #endif

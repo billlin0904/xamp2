@@ -1055,7 +1055,6 @@ void Xamp::setupDSP(const AlbumEntity& item) {
     }
 
     player_->GetDSPManager()->EnableVolumeLimiter(true);
-    //player_->GetDSPManager()->EnableFadeOut(true);
 }
 
 void Xamp::playAlbumEntity(const AlbumEntity& item) {

@@ -43,23 +43,14 @@ void DSPManager::RemovePreDSP(Uuid const& id) {
 
 void DSPManager::SetEq(EQSettings const& settings) {
     eq_settings_ = settings;
-    AddPostDSP(MediaStreamFactory::MakeEqualizer());
+    AddPostDSP(DspComponentFactory::MakeEqualizer());
 }
 
 void DSPManager::EnableVolumeLimiter(bool enable) {
     if (enable) {
-        AddPostDSP(MediaStreamFactory::MakeCompressor());
+        AddPostDSP(DspComponentFactory::MakeCompressor());
     } else {
         RemovePostDSP(BassCompressor::Id);
-    }
-}
-
-void DSPManager::EnableFadeOut(bool enable) {
-    if (enable) {
-        AddPreDSP(MediaStreamFactory::MakeFader());
-    }
-    else {
-        RemovePreDSP(BassFader::Id);
     }
 }
 
@@ -69,7 +60,7 @@ void DSPManager::SetPreamp(float preamp) {
 
 void DSPManager::SetReplayGain(double volume) {
     replay_gain_ = volume;
-    AddPostDSP(MediaStreamFactory::MakeVolume());
+    AddPostDSP(DspComponentFactory::MakeVolume());
 }
 
 void DSPManager::SetPcm2DsdConvertSampleRate(uint32_t dsd_times) {
@@ -94,7 +85,7 @@ bool DSPManager::CanProcessFile() const noexcept {
     return false;
 }
 
-void DSPManager::AddOrReplace(AlignPtr<IAudioProcessor> processor, std::vector<AlignPtr<IAudioProcessor>>& dsp_chain) {
+void DSPManager::AddOrReplace(AlignPtr<IAudioProcessor> processor, Vector<AlignPtr<IAudioProcessor>>& dsp_chain) {
     auto id = processor->GetTypeId();
     const auto itr = std::find_if(dsp_chain.begin(),
         dsp_chain.end(),
@@ -110,7 +101,7 @@ void DSPManager::AddOrReplace(AlignPtr<IAudioProcessor> processor, std::vector<A
     }
 }
 
-void DSPManager::Remove(Uuid const& id, std::vector<AlignPtr<IAudioProcessor>>& dsp_chain) {
+void DSPManager::Remove(Uuid const& id, Vector<AlignPtr<IAudioProcessor>>& dsp_chain) {
     auto itr = std::find_if(dsp_chain.begin(),
         dsp_chain.end(),
         [id](auto const& processor) {
@@ -211,10 +202,10 @@ void DSPManager::Init(AudioFormat input_format, AudioFormat output_format, DsdMo
         XAMP_LOG_D(logger_, "Enable compressor.");
     }
 
-    if (const auto fader = GetPreDSP<BassFader>()) {
+    /*if (const auto fader = GetPreDSP<BassFader>()) {
         fader.value()->Init();
         XAMP_LOG_D(logger_, "Enable fader.");
-    }
+    }*/
 
     if (const auto eq = GetPostDSP<IEqualizer>()) {
         eq.value()->SetEQ(eq_settings_);
