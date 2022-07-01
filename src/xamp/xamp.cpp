@@ -1384,6 +1384,10 @@ void Xamp::initialPlaylist() {
         connectSignal(file_system_view_page_->playlistPage());
     }
 
+    if (!qDatabase.isPlaylistExist(kDefaultAlbumPlaylistId)) {
+        qDatabase.addPlaylist(Qt::EmptyString, 1);
+    }
+
     playlist_page_->playlist()->setPodcastMode(false);
     podcast_page_->playlist()->setPodcastMode(true);
     current_playlist_page_ = playlist_page_;

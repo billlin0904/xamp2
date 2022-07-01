@@ -20,6 +20,7 @@
 #include <widget/playlisttableview.h>
 #include <widget/actionmap.h>
 #include <widget/clickablelabel.h>
+#include <widget/playlistpage.h>
 
 #if defined(Q_OS_WIN)
 #include <widget/win32/win32.h>
@@ -222,123 +223,58 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
     hbox_layout->setSpacing(0);
     hbox_layout->setContentsMargins(0, 0, 0, 0);
 
-    auto f = font();
-
-    f.setPointSize(20);
-    f.setBold(true);
-    album_ = new QLabel(this);
-    album_->setMaximumSize(QSize(QWIDGETSIZE_MAX, 40));
-    album_->setFont(f);
-    album_->setStyleSheet(Q_TEXT("background-color: transparent;"));
-
-    auto artist_layout = new QHBoxLayout();
-    artist_layout->setSpacing(0);
-    artist_layout->setContentsMargins(0, 0, 0, 0);
-
-    f.setPointSize(14);
-    f.setBold(false);
-    artist_ = new ClickableLabel(this);
-    artist_->setMaximumSize(QSize(400, 32));
-    artist_->setFont(f);
-    artist_->setAlignment(Qt::AlignLeft);
-    artist_->setStyleSheet(Q_TEXT("background-color: transparent;"));
-
-    tracks_ = new QLabel(this);
-    tracks_->setFixedSize(QSize(QWIDGETSIZE_MAX, 64));
-    tracks_->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
-    tracks_->setFont(f);
-    tracks_->setStyleSheet(Q_TEXT("background-color: transparent;"));
-
-    durtions_ = new QLabel(this);
-    durtions_->setFixedSize(QSize(QWIDGETSIZE_MAX, 64));
-    durtions_->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
-    durtions_->setFont(f);
-    durtions_->setStyleSheet(Q_TEXT("background-color: transparent;"));
-
-    artist_layout->addWidget(artist_);
-    artist_layout->addWidget(tracks_);
-    artist_layout->addWidget(durtions_);
-    artist_layout->setStretch(0, 0);
-    artist_layout->setStretch(1, 2);
-    artist_layout->setStretch(2, 2);
-
     auto button_spacer = new QSpacerItem(20, 10, QSizePolicy::Expanding, QSizePolicy::Expanding);
     hbox_layout->addWidget(close_button);
     hbox_layout->addSpacerItem(button_spacer);
 
+    page_ = new PlaylistPage(this);
+    page_->playlist()->setPlaylistId(kDefaultAlbumPlaylistId);
+
     default_layout->addLayout(hbox_layout);
-    default_layout->addWidget(album_);
-    default_layout->addLayout(artist_layout);
-
-    cover_ = new QLabel(this);
-    cover_->setMinimumSize(QSize(325, 325));
-    cover_->setMaximumSize(QSize(325, 325));
-    cover_->setStyleSheet(Q_TEXT("background-color: transparent;"));
-
-    auto* playlist_layout = new QHBoxLayout();
-    playlist_ = new AlbumPlayListTableView(this);
-    playlist_layout->addWidget(playlist_);
-    playlist_layout->addWidget(cover_);
-    default_layout->setStretch(2, 1);
-
-    default_layout->addLayout(playlist_layout);
-    default_layout->setStretch(1, 0);
-    default_layout->setStretch(3, 2);
+    default_layout->addWidget(page_);
+    default_layout->setStretch(0, 0);
+    default_layout->setStretch(1, 1);
 
     (void)QObject::connect(close_button, &QPushButton::clicked, [this]() {
         hide();
         });
-
-    (void)QObject::connect(artist_, &ClickableLabel::clicked, [this]() {
-        emit clickedArtist(artist_->text(), artist_cover_id_, artist_id_);
-        });
-
-    (void)QObject::connect(playlist_, &QTableView::doubleClicked, [this](const QModelIndex& index) {
-        emit playMusic(getAlbumEntity(index));
-        });
-
     qTheme.setBackgroundColor(this);
 }
 
 void AlbumViewPage::setAlbum(const QString& album) {
-    album_->setText(album);
 }
 
 void AlbumViewPage::setArtistId(int32_t artist_id) {
-    artist_id_ = artist_id;
 }
 
-void AlbumViewPage::setArtist(const QString& artist) {
-    artist_->setText(artist);
+void AlbumViewPage::setArtist(const QString& artist) {    
 }
 
 void AlbumViewPage::setPlaylistMusic(int32_t album_id) {
-    playlist_->setPlaylistMusic(album_id);
+    page_->playlist()->removeAll();
+    std::vector<PlayListEntity> entities;
+    std::vector<int32_t> add_playlist_music_ids;
+    qDatabase.forEachAlbumMusic(album_id,
+        [&entities, &add_playlist_music_ids](const PlayListEntity& entity) mutable {
+            if (entity.album_replay_gain == 0.0) {
+                entities.push_back(entity);
+            }
+            add_playlist_music_ids.push_back(entity.music_id);
+        });
+    qDatabase.addMusicToPlaylist(add_playlist_music_ids, page_->playlist()->playlistId());
+    page_->playlist()->updateData();
 }
 
 void AlbumViewPage::setArtistCover(const QString& cover_id) {
-    artist_cover_id_ = cover_id;
 }
 
 void AlbumViewPage::setTracks(int32_t tracks) {
-    tracks_->setText(tr("%1 Songs").arg(tracks));
 }
 
 void AlbumViewPage::setTotalDuration(double durations) {
-    durtions_->setText(msToString(durations));
 }
 
 void AlbumViewPage::setCover(const QString& cover_id) {
-    if (auto const * cache_small_cover = qPixmapCache.find(cover_id)) {
-        auto image = Pixmap::roundImage(Pixmap::scaledImage(cache_small_cover->copy(),
-            qTheme.getAlbumCoverSize()));
-        cover_->setPixmap(image);
-    }
-    else {
-        const auto image = Pixmap::roundImage(Pixmap::scaledImage(qTheme.pixmap().defaultSizeUnknownCover(),
-                                                                  qTheme.getAlbumCoverSize()));
-        cover_->setPixmap(image);
-    }
 }
 
 AlbumView::AlbumView(QWidget* parent)

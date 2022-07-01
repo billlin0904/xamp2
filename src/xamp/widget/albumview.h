@@ -20,6 +20,7 @@ class QLabel;
 class ClickableLabel;
 class AlbumViewPage;
 class AlbumPlayListTableView;
+class PlaylistPage;
 
 class AlbumViewStyledDelegate final : public QStyledItemDelegate {
 	Q_OBJECT
@@ -78,6 +79,7 @@ private:
 	QLabel* cover_;
 	QLabel* tracks_;
 	QLabel* durtions_;
+	PlaylistPage* page_;
 	AlbumPlayListTableView* playlist_;
 };
 
