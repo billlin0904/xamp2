@@ -66,6 +66,10 @@ public:
 		return playlist_;
 	}
 
+	PlaylistPage* playlistPage() {
+		return page_;
+	}
+
 signals:
     void playMusic(const AlbumEntity& entity);
 
@@ -108,6 +112,10 @@ public:
 	explicit AlbumView(QWidget* parent = nullptr);
 
 	void update();
+
+	AlbumViewPage* albumViewPage() {
+		return page_;
+	}
 
 signals:
     void playMusic(const AlbumEntity& entity);

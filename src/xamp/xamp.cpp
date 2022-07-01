@@ -1384,10 +1384,6 @@ void Xamp::initialPlaylist() {
         connectSignal(file_system_view_page_->playlistPage());
     }
 
-    if (!qDatabase.isPlaylistExist(kDefaultAlbumPlaylistId)) {
-        qDatabase.addPlaylist(Qt::EmptyString, 1);
-    }
-
     playlist_page_->playlist()->setPodcastMode(false);
     podcast_page_->playlist()->setPodcastMode(true);
     current_playlist_page_ = playlist_page_;
@@ -1412,7 +1408,12 @@ void Xamp::initialPlaylist() {
 
     artist_info_page_ = new ArtistInfoPage(this);
     preference_page_ = new PreferencePage(this);
-    about_page_ = new AboutPage(this);    
+    about_page_ = new AboutPage(this);
+
+    if (!qDatabase.isPlaylistExist(kDefaultAlbumPlaylistId)) {
+        qDatabase.addPlaylist(Qt::EmptyString, 1);
+    }
+    connectSignal(album_artist_page_->album()->albumViewPage()->playlistPage());
 
     pushWidget(lrc_page_);    
     pushWidget(playlist_page_);
