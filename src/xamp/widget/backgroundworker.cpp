@@ -56,8 +56,8 @@ void BackgroundWorker::blurImage(const QString& cover_id, const QImage& image) {
     blur_img_cache_.AddOrUpdate(cover_id, std::move(temp));
 }
 
-void BackgroundWorker::readReplayGain(bool, const std::vector<PlayListEntity>& items) {
-    XAMP_LOG_DEBUG("Start read replay gain count:{}", items.size());
+void BackgroundWorker::readReplayGain(bool, const Vector<PlayListEntity>& items) {
+    XAMP_LOG_DEBUG("Start read replay gain count:{Vector}", items.size());
 
     Vector<SharedFuture<AlignPtr<PlayListRGResult>>> replay_gain_tasks;
 

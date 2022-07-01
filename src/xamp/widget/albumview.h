@@ -42,21 +42,7 @@ class AlbumViewPage final : public QFrame {
 public:
 	explicit AlbumViewPage(QWidget* parent = nullptr);
 
-	void setAlbum(const QString &album);
-
-	void setArtist(const QString& artist);
-
-	void setArtistId(int32_t artist_id);
-
-	void setPlaylistMusic(int32_t album_id);
-
-	void setCover(const QString &cover_id);
-
-	void setTracks(int32_t tracks);
-
-	void setTotalDuration(double durations);
-
-	void setArtistCover(const QString& cover_id);
+	void setPlaylistMusic(const QString &album, int32_t album_id);
 
 	ClickableLabel* artist() {
 		return artist_;
@@ -120,7 +106,7 @@ public:
 signals:
     void playMusic(const AlbumEntity& entity);
 
-    void addPlaylist(const std::vector<int32_t> &music_ids, const std::vector<PlayListEntity> &entities);
+    void addPlaylist(const Vector<int32_t> &music_ids, const Vector<PlayListEntity> &entities);
 
 	void clickedArtist(const QString& artist, const QString& cover_id, int32_t artist_id);
 

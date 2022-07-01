@@ -769,17 +769,18 @@ void Database::addMusicToPlaylist(int32_t music_id, int32_t playlist_id) const {
 }
 
 
-void Database::addMusicToPlaylist(const std::vector<int32_t>& music_id, int32_t playlist_id) const {
+void Database::addMusicToPlaylist(const Vector<int32_t>& music_id, int32_t playlist_id) const {
 	QSqlQuery query;
 
 	QStringList strings;
 	strings.reserve(music_id.size());
 
-	Q_FOREACH(const auto id, music_id) {
+	for (const auto id : music_id) {
 		strings << Q_TEXT("(") + Q_TEXT("NULL, ") + QString::number(playlist_id) + Q_TEXT(", ") + QString::number(id) + Q_TEXT(")");
 	}
 
-	const auto querystr = Q_TEXT("INSERT INTO playlistMusics (playlistMusicsId, playlistId, musicId) VALUES ") + strings.join(Q_TEXT(","));
+	const auto querystr = Q_TEXT("INSERT INTO playlistMusics (playlistMusicsId, playlistId, musicId) VALUES ")
+	+ strings.join(Q_TEXT(","));
 	query.prepare(querystr);
 	IfFailureThrow1(query);
 }

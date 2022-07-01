@@ -47,7 +47,7 @@ signals:
     void updateBlurImage(const QImage& image);
 
 public Q_SLOT:
-    void readReplayGain(bool force, const std::vector<PlayListEntity>& items);
+    void readReplayGain(bool force, const Vector<PlayListEntity>& items);
 
     void blurImage(const QString &cover_id, const QImage& image);
 

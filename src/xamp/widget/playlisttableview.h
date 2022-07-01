@@ -73,7 +73,7 @@ signals:
 
     void encodeFlacFile(const PlayListEntity& item);
 
-    void addPlaylistReplayGain(bool force, const std::vector<PlayListEntity> &entities);
+    void addPlaylistReplayGain(bool force, const Vector<PlayListEntity> &entities);
 
 public slots:
 	void processMeatadata(int64_t dir_last_write_time, const ForwardList<Metadata> &medata);

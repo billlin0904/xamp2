@@ -60,7 +60,7 @@ public slots:
 
 	void playPlayListEntity(const PlayListEntity& item);
 
-    void addPlaylistItem(const std::vector<int32_t>& music_ids, const std::vector<PlayListEntity>& entities);
+    void addPlaylistItem(const Vector<int32_t>& music_ids, const Vector<PlayListEntity>& entities);
 
 	void onArtistIdChanged(const QString& artist, const QString& cover_id, int32_t artist_id);
 
@@ -69,6 +69,8 @@ public slots:
 	void onActivated(QSystemTrayIcon::ActivationReason reason);
 
 	void onVolumeChanged(float volume);
+
+	void setCover(const QString& cover_id, PlaylistPage* page);
 
 private:
     void stopPlayedClicked() override;
@@ -85,7 +87,7 @@ private:
 
 	void closeEvent(QCloseEvent* event) override;
 
-	void setCover(const QPixmap* cover, PlaylistPage* page = nullptr);
+	void setPlaylistPageCover(const QPixmap* cover, PlaylistPage* page = nullptr);
 
 	QWidgetAction* createTextSeparator(const QString& text);
 

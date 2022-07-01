@@ -130,7 +130,7 @@ public:
 
     void addMusicToPlaylist(int32_t music_id, int32_t playlist_id) const;
 
-    void addMusicToPlaylist(const std::vector<int32_t> & music_id, int32_t playlist_id) const;
+    void addMusicToPlaylist(const Vector<int32_t> & music_id, int32_t playlist_id) const;
 
     void setNowPlaying(int32_t playlist_id, int32_t music_id);
 

@@ -201,11 +201,11 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
     : QFrame(parent) {
     setFrameStyle(QFrame::NoFrame);
 
-    auto default_layout = new QVBoxLayout(this);
+    auto* default_layout = new QVBoxLayout(this);
     default_layout->setSpacing(0);
-    default_layout->setContentsMargins(10, 10, 10, 0);
+    default_layout->setContentsMargins(0, 5, 0, 0);
 
-    auto close_button = new QPushButton(this);
+    auto* close_button = new QPushButton(this);
     close_button->setObjectName(Q_TEXT("albumViewPageCloseButton"));
     close_button->setStyleSheet(Q_TEXT(R"(
                                          QPushButton#albumViewPageCloseButton {
@@ -219,11 +219,11 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
                                          )").arg(qTheme.themeColorPath()));
     close_button->setFixedSize(QSize(24, 24));
 
-    auto hbox_layout = new QHBoxLayout();
+    auto* hbox_layout = new QHBoxLayout();
     hbox_layout->setSpacing(0);
     hbox_layout->setContentsMargins(0, 0, 0, 0);
 
-    auto button_spacer = new QSpacerItem(20, 10, QSizePolicy::Expanding, QSizePolicy::Expanding);
+    auto* button_spacer = new QSpacerItem(20, 10, QSizePolicy::Expanding, QSizePolicy::Expanding);
     hbox_layout->addWidget(close_button);
     hbox_layout->addSpacerItem(button_spacer);
 
@@ -241,19 +241,11 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
     qTheme.setBackgroundColor(this);
 }
 
-void AlbumViewPage::setAlbum(const QString& album) {
-}
-
-void AlbumViewPage::setArtistId(int32_t artist_id) {
-}
-
-void AlbumViewPage::setArtist(const QString& artist) {    
-}
-
-void AlbumViewPage::setPlaylistMusic(int32_t album_id) {
+void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id) {
     page_->playlist()->removeAll();
-    std::vector<PlayListEntity> entities;
-    std::vector<int32_t> add_playlist_music_ids;
+    Vector<PlayListEntity> entities;
+    Vector<int32_t> add_playlist_music_ids;
+    add_playlist_music_ids.reserve(20);
     qDatabase.forEachAlbumMusic(album_id,
         [&entities, &add_playlist_music_ids](const PlayListEntity& entity) mutable {
             if (entity.album_replay_gain == 0.0) {
@@ -263,18 +255,10 @@ void AlbumViewPage::setPlaylistMusic(int32_t album_id) {
         });
     qDatabase.addMusicToPlaylist(add_playlist_music_ids, page_->playlist()->playlistId());
     page_->playlist()->updateData();
-}
-
-void AlbumViewPage::setArtistCover(const QString& cover_id) {
-}
-
-void AlbumViewPage::setTracks(int32_t tracks) {
-}
-
-void AlbumViewPage::setTotalDuration(double durations) {
-}
-
-void AlbumViewPage::setCover(const QString& cover_id) {
+    page_->title()->setText(album);
+    page_->format()->setText(Qt::EmptyString);
+    auto cover_id = qDatabase.getAlbumCoverId(album_id);
+    emit page_->setCover(cover_id, page_);
 }
 
 AlbumView::AlbumView(QWidget* parent)
@@ -319,20 +303,8 @@ AlbumView::AlbumView(QWidget* parent)
         auto artist_cover_id = getIndexValue(index, 5).toString();
 
         const auto list_view_rect = this->rect();
-
-        page_->setAlbum(album);
-        page_->setArtist(artist);
-        page_->setArtistId(artist_id);
-        page_->setCover(cover_id);
-        page_->setArtistCover(artist_cover_id);
-        page_->setPlaylistMusic(album_id);
+        page_->setPlaylistMusic(album, album_id);
         page_->setFixedSize(QSize(list_view_rect.size().width() - 10, list_view_rect.height() - 6));
-
-        if (auto album_stats = qDatabase.getAlbumStats(album_id)) {
-            page_->setTracks(album_stats.value().tracks);
-            page_->setTotalDuration(album_stats.value().durations);
-        }
-
         page_->move(QPoint(list_view_rect.x() + 5, 3));
         qTheme.setBackgroundColor(page_);
     	
@@ -373,8 +345,8 @@ AlbumView::AlbumView(QWidget* parent)
             auto artist_cover_id = getIndexValue(index, 5).toString();
 
             action_map.addAction(tr("Add album to playlist"), [=]() {
-                std::vector<PlayListEntity> entities;
-                std::vector<int32_t> add_playlist_music_ids;
+                Vector<PlayListEntity> entities;
+                Vector<int32_t> add_playlist_music_ids;
                 qDatabase.forEachAlbumMusic(album_id,
                     [&entities, &add_playlist_music_ids](const PlayListEntity& entity) mutable {
                         if (entity.album_replay_gain == 0.0) {
@@ -386,8 +358,8 @@ AlbumView::AlbumView(QWidget* parent)
                 });
 
             action_map.addAction(tr("Add album (artist) to playlist"), [=]() {
-                std::vector<PlayListEntity> entities;
-                std::vector<int32_t> add_playlist_music_ids;
+                Vector<PlayListEntity> entities;
+                Vector<int32_t> add_playlist_music_ids;
                 qDatabase.forEachAlbumArtistMusic(album_id, artist_id,
                     [&entities, &add_playlist_music_ids](const PlayListEntity& entity) mutable {
                         if (entity.album_replay_gain == 0.0) {

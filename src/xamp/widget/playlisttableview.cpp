@@ -415,7 +415,7 @@ void PlayListTableView::initial() {
 
         action_map.setCallback(read_select_item_replaygain_act, [this]() {
             const auto rows = selectItemIndex();
-            std::vector<PlayListEntity> items;
+            Vector<PlayListEntity> items;
             for (const auto& row : rows) {
                 items.push_back(this->item(row.second));
             }

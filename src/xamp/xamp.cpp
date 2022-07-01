@@ -143,8 +143,8 @@ void Xamp::setXWindow(IXWindow* top_window) {
     initialPlaylist();
     initialShortcut();
     createTrayIcon();
-    setCover(nullptr, playlist_page_);
-    setCover(nullptr, podcast_page_);
+    setPlaylistPageCover(nullptr, playlist_page_);
+    setPlaylistPageCover(nullptr, podcast_page_);
     QTimer::singleShot(300, [this]() {
         initialDeviceList();
         discord_notify_.discordInit();
@@ -1177,26 +1177,7 @@ void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_form
         cur_page->playlist()->updateData();
     }
 
-    auto found_cover = !current_entity_.cover_id.isEmpty();
-
-    if (current_entity_.cover_id != item.cover_id) {
-        if (item.cover_id != qPixmapCache.getUnknownCoverId()) {
-            const auto* cover = qPixmapCache.find(item.cover_id);
-            found_cover = cover != nullptr;
-            if (cover != nullptr) {
-                setCover(cover);
-                emit addBlurImage(item.cover_id, cover->toImage());
-            }
-            else {
-                lrc_page_->clearBackground();
-            }
-        }
-    }
-
-    if (!found_cover) {
-        setCover(nullptr);
-        lrc_page_->setBackgroundColor(qTheme.getBackgroundColor());
-    }
+    setCover(item.cover_id, cur_page);
 
     ui_.titleLabel->setText(item.title);
     ui_.artistLabel->setText(item.artist);
@@ -1213,6 +1194,29 @@ void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_form
             item.title, 
             qTheme.appIcon(),
             1000);
+    }
+}
+
+void Xamp::setCover(const QString& cover_id, PlaylistPage* page) {
+    auto found_cover = !current_entity_.cover_id.isEmpty();
+
+    if (current_entity_.cover_id != cover_id) {
+        if (cover_id != qPixmapCache.getUnknownCoverId()) {
+            const auto* cover = qPixmapCache.find(cover_id);
+            found_cover = cover != nullptr;
+            if (cover != nullptr) {
+                setPlaylistPageCover(cover, page);
+                emit addBlurImage(cover_id, cover->toImage());
+            }
+            else {
+                lrc_page_->clearBackground();
+            }
+        }
+    }
+
+    if (!found_cover) {
+        setPlaylistPageCover(nullptr, page);
+        lrc_page_->setBackgroundColor(qTheme.getBackgroundColor());
     }
 }
 
@@ -1280,14 +1284,14 @@ void Xamp::onArtistIdChanged(const QString& artist, const QString& /*cover_id*/,
     ui_.currentView->setCurrentWidget(artist_info_page_);
 }
 
-void Xamp::addPlaylistItem(const std::vector<int32_t>& music_ids, const std::vector<PlayListEntity> & entities) {
+void Xamp::addPlaylistItem(const Vector<int32_t>& music_ids, const Vector<PlayListEntity> & entities) {
     auto playlist_view = playlist_page_->playlist();
     qDatabase.addMusicToPlaylist(music_ids, playlist_view->playlistId());
     emit playlist_view->addPlaylistReplayGain(false, entities);
     playlist_view->updateData();
 }
 
-void Xamp::setCover(const QPixmap* cover, PlaylistPage* page) {
+void Xamp::setPlaylistPageCover(const QPixmap* cover, PlaylistPage* page) {
     if (!cover) {
         cover = &qTheme.pixmap().unknownCover();
     }
@@ -1572,6 +1576,11 @@ void Xamp::connectSignal(PlaylistPage* playlist_page) {
         &PlayListTableView::playMusic,
         playlist_page,
         &PlaylistPage::playMusic);
+
+    (void)QObject::connect(playlist_page,
+        &PlaylistPage::setCover,
+        this,
+        &Xamp::setCover);
 
     (void)QObject::connect(playlist_page,
         &PlaylistPage::playMusic,
