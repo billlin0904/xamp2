@@ -255,8 +255,14 @@ void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id) {
         });
     qDatabase.addMusicToPlaylist(add_playlist_music_ids, page_->playlist()->playlistId());
     page_->playlist()->updateData();
-    page_->title()->setText(album);
-    page_->format()->setText(Qt::EmptyString);
+    page_->title()->setText(album);    
+    if (auto album_stats = qDatabase.getAlbumStats(album_id)) {
+        auto text = tr("%1 Tracks, %2, %3")
+            .arg(QString::number(album_stats.value().tracks))
+            .arg(msToString(album_stats.value().durations))
+            .arg(QString::number(album_stats.value().year));
+        page_->format()->setText(text);
+    }
     auto cover_id = qDatabase.getAlbumCoverId(album_id);
     emit page_->setCover(cover_id, page_);
 }

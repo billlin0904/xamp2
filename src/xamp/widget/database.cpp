@@ -551,6 +551,7 @@ std::optional<AlbumStats> Database::getAlbumStats(int32_t album_id) const {
 	query.prepare(Q_TEXT(R"(
     SELECT
         SUM(musics.duration) AS durations,
+		MAX(year) AS year,
         (SELECT COUNT( * ) AS tracks FROM albumMusic WHERE albumMusic.albumId = :albumId) AS tracks
     FROM
 	    albumMusic
@@ -566,6 +567,7 @@ std::optional<AlbumStats> Database::getAlbumStats(int32_t album_id) const {
 	while (query.next()) {
 		AlbumStats stats;
 		stats.tracks = query.value(Q_TEXT("tracks")).toInt();
+		stats.year = query.value(Q_TEXT("year")).toInt();
 		stats.durations = query.value(Q_TEXT("durations")).toDouble();
 		return stats;
 	}
