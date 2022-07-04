@@ -119,6 +119,8 @@ public:
 
     QIcon playArrow() const noexcept;
 
+    QIcon playIcon() const noexcept;
+
     QIcon speakerIcon() const;
 
     QIcon usbIcon() const;

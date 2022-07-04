@@ -99,5 +99,6 @@
         <file>Resource/White/folder.png</file>
         <file>Resource/Black/desktop.png</file>
         <file>Resource/White/desktop.png</file>
+        <file>Resource/Black/play_circle.png</file>
     </qresource>
 </RCC>

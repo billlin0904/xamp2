@@ -21,6 +21,7 @@ class ClickableLabel;
 class AlbumViewPage;
 class AlbumPlayListTableView;
 class PlaylistPage;
+class QPushButton;
 
 class AlbumViewStyledDelegate final : public QStyledItemDelegate {
 	Q_OBJECT
@@ -29,12 +30,18 @@ public:
 
 	void setTextColor(QColor color);
 
+signals:
+	void enterAlbumView(const QModelIndex& index) const;
+
 protected:
+	bool editorEvent(QEvent* event, QAbstractItemModel* model, const QStyleOptionViewItem& option, const QModelIndex& index) override;
 	void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override;
 
 	QSize sizeHint(const QStyleOptionViewItem& o, const QModelIndex& idx) const override;
 private:
 	QColor text_color_;
+	QPoint mouse_point_;
+	QScopedPointer<QPushButton> play_button_;
 };
 
 class AlbumViewPage final : public QFrame {
@@ -48,48 +55,17 @@ public:
 		return artist_;
 	}
 
-	AlbumPlayListTableView* playlist() {
-		return playlist_;
-	}
-
 	PlaylistPage* playlistPage() {
 		return page_;
 	}
 
 signals:
-    void playMusic(const AlbumEntity& entity);
-
 	void clickedArtist(const QString& artist, const QString& cover_id, int32_t artist_id);
 
 private:
-	int32_t artist_id_;
-	QString artist_cover_id_;
-	QLabel* album_;
+	int32_t last_album_id_{ -1 };
 	ClickableLabel* artist_;
-	QLabel* cover_;
-	QLabel* tracks_;
-	QLabel* durtions_;
 	PlaylistPage* page_;
-	AlbumPlayListTableView* playlist_;
-};
-
-class AlbumPlayListTableView final : public QTableView {
-	Q_OBJECT
-public:
-	enum {
-		PLAYLIST_TRACK,
-		PLAYLIST_TITLE,
-		PLAYLIST_DURATION,
-	};
-
-	explicit AlbumPlayListTableView(QWidget* parent = nullptr);
-
-	void setPlaylistMusic(int32_t album_id);
-
-private:
-	void resizeColumn();
-
-	QSqlQueryModel model_;
 };
 
 class AlbumView final : public QListView {
@@ -104,8 +80,6 @@ public:
 	}
 
 signals:
-    void playMusic(const AlbumEntity& entity);
-
     void addPlaylist(const Vector<int32_t> &music_ids, const Vector<PlayListEntity> &entities);
 
 	void clickedArtist(const QString& artist, const QString& cover_id, int32_t artist_id);
@@ -124,8 +98,6 @@ public slots:
 
 	void onSearchTextChanged(const QString& text);
 
-	void payNextMusic();
-
     void onThemeChanged(QColor backgroundColor, QColor color);
 
     void append(const QString& file_name);
@@ -133,6 +105,7 @@ public slots:
     void processMeatadata(int64_t dir_last_write_time, const ForwardList<Metadata> &medata);
 private:
 	AlbumViewPage* page_;
+	AlbumViewStyledDelegate* styled_delegate_;
 	QSqlQueryModel model_;
 };
 

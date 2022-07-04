@@ -407,6 +407,10 @@ QIcon ThemeManager::appIcon() const {
     return QIcon(Q_TEXT(":/xamp/xamp.ico"));
 }
 
+QIcon ThemeManager::playIcon() const noexcept {
+    return QIcon(Q_TEXT(":/xamp/Resource/Black/play_circle.png"));
+}
+
 void ThemeManager::applyTheme() {
     qApp->setFont(defaultFont());
 

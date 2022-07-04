@@ -133,8 +133,6 @@ private:
 
 	void resetSeekPosValue();
 
-	void connectPlayNextMusicSignals(bool add_or_remove);
-
     void onDeviceStateChanged(DeviceState state);
 
     void encodeFlacFile(const PlayListEntity& item);

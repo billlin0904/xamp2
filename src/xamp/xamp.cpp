@@ -1231,7 +1231,6 @@ PlaylistPage* Xamp::currentPlyalistPage() {
 void Xamp::playPlayListEntity(const PlayListEntity& item) {
     current_playlist_page_ = qobject_cast<PlaylistPage*>(sender());
     top_window_->setTaskbarPlayerPlaying();
-    connectPlayNextMusicSignals(false);
     playAlbumEntity(toAlbumEntity(item));
     current_entity_ = item;
     update();
@@ -1339,27 +1338,27 @@ void Xamp::initialPlaylist() {
     ui_.sliderBar->addTab(tr("Settings"), TAB_SETTINGS, qTheme.preferenceIcon());
     ui_.sliderBar->addTab(tr("About"), TAB_ABOUT, qTheme.aboutIcon());
     ui_.sliderBar->setCurrentIndex(ui_.sliderBar->model()->index(0, 0));
-	
+
     qDatabase.forEachTable([this](auto table_id,
-                                             auto /*table_index*/,
-                                             auto playlist_id,
-                                             const auto &name) {
-        if (name.isEmpty()) {
-            return;
-        }
+        auto /*table_index*/,
+        auto playlist_id,
+        const auto& name) {
+            if (name.isEmpty()) {
+                return;
+            }
 
-        ui_.sliderBar->addTab(name, table_id, qTheme.playlistIcon());
+            ui_.sliderBar->addTab(name, table_id, qTheme.playlistIcon());
 
-        if (!playlist_page_) {
-            playlist_page_ = newPlaylistPage(playlist_id);
-            playlist_page_->playlist()->setPlaylistId(playlist_id);
-        }
+            if (!playlist_page_) {
+                playlist_page_ = newPlaylistPage(playlist_id);
+                playlist_page_->playlist()->setPlaylistId(playlist_id);
+            }
 
-        if (playlist_page_->playlist()->playlistId() != playlist_id) {
-            playlist_page_ = newPlaylistPage(playlist_id);
-            playlist_page_->playlist()->setPlaylistId(playlist_id);
-        }
-    });
+            if (playlist_page_->playlist()->playlistId() != playlist_id) {
+                playlist_page_ = newPlaylistPage(playlist_id);
+                playlist_page_->playlist()->setPlaylistId(playlist_id);
+            }
+        });
 
     if (!playlist_page_) {
         auto playlist_id = kDefaultPlaylistId;
@@ -1392,7 +1391,7 @@ void Xamp::initialPlaylist() {
     podcast_page_->playlist()->setPodcastMode(true);
     current_playlist_page_ = playlist_page_;
 
-    (void)QObject::connect(this, 
+    (void)QObject::connect(this,
         &Xamp::addBlurImage,
         &background_worker_,
         &BackgroundWorker::blurImage);
@@ -1419,7 +1418,7 @@ void Xamp::initialPlaylist() {
     }
     connectSignal(album_artist_page_->album()->albumViewPage()->playlistPage());
 
-    pushWidget(lrc_page_);    
+    pushWidget(lrc_page_);
     pushWidget(playlist_page_);
     pushWidget(album_artist_page_);
     pushWidget(artist_info_page_);
@@ -1435,24 +1434,24 @@ void Xamp::initialPlaylist() {
     goBackPage();
 
     (void)QObject::connect(album_artist_page_->album(),
-                            &AlbumView::clickedArtist,
-                            this,
-                            &Xamp::onArtistIdChanged);
+        &AlbumView::clickedArtist,
+        this,
+        &Xamp::onArtistIdChanged);
 
     (void)QObject::connect(this,
-                            &Xamp::themeChanged,
-                            album_artist_page_->album(),
-                            &AlbumView::onThemeChanged);
+        &Xamp::themeChanged,
+        album_artist_page_->album(),
+        &AlbumView::onThemeChanged);
 
     (void)QObject::connect(this,
-                            &Xamp::themeChanged,
-                            artist_info_page_,
-                            &ArtistInfoPage::onThemeChanged);
+        &Xamp::themeChanged,
+        artist_info_page_,
+        &ArtistInfoPage::onThemeChanged);
 
     (void)QObject::connect(this,
-                            &Xamp::themeChanged,
-                            lrc_page_,
-                            &LrcPage::onThemeChanged);
+        &Xamp::themeChanged,
+        lrc_page_,
+        &LrcPage::onThemeChanged);
 
     (void)QObject::connect(&background_worker_,
         &BackgroundWorker::updateBlurImage,
@@ -1460,31 +1459,14 @@ void Xamp::initialPlaylist() {
         &LrcPage::setBackground);
 
     (void)QObject::connect(album_artist_page_->album(),
-                            &AlbumView::addPlaylist,
-                            this,
-							&Xamp::addPlaylistItem);
+        &AlbumView::addPlaylist,
+        this,
+        &Xamp::addPlaylistItem);
 
     (void)QObject::connect(artist_info_page_->album(),
         &AlbumView::addPlaylist,
         this,
         &Xamp::addPlaylistItem);
-
-    connectPlayNextMusicSignals(true);
-}
-
-void Xamp::connectPlayNextMusicSignals(bool add_or_remove) {
-    if (add_or_remove) {
-        (void)QObject::connect(this,
-                                &Xamp::payNextMusic,
-                                album_artist_page_->album(),
-                                &AlbumView::payNextMusic);
-    }
-    else {
-        (void)QObject::disconnect(this,
-                                   &Xamp::payNextMusic,
-                                   album_artist_page_->album(),
-                                   &AlbumView::payNextMusic);
-    }    
 }
 
 void Xamp::addItem(const QString& file_name) {

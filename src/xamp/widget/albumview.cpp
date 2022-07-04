@@ -27,7 +27,7 @@
 #endif
 
 #include "thememanager.h"
-
+#include <widget/toast.h>
 #include <widget/processindicator.h>
 #include <widget/str_utilts.h>
 #include <widget/image_utiltis.h>
@@ -38,11 +38,31 @@ using namespace xamp::stream;
 
 AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
     : QStyledItemDelegate(parent)
-    , text_color_(Qt::black) {
+    , text_color_(Qt::black)
+	, play_button_(new QPushButton()) {
+    play_button_->setStyleSheet(Q_TEXT("background-color: transparent"));
 }
 
 void AlbumViewStyledDelegate::setTextColor(QColor color) {
     text_color_ = color;
+}
+
+bool AlbumViewStyledDelegate::editorEvent(QEvent* event, QAbstractItemModel* model, const QStyleOptionViewItem& option, const QModelIndex& index) {
+    auto* ev = static_cast<QMouseEvent*> (event);
+    mouse_point_ = ev->pos();
+    auto current_cursor = QApplication::overrideCursor();
+    switch (ev->type()) {
+    case QEvent::MouseButtonPress:
+        if (current_cursor != nullptr) {
+            if (current_cursor->shape() == Qt::PointingHandCursor) {
+                emit enterAlbumView(index);
+            }
+        }        
+        break;
+    default:
+        break;
+    }
+    return true;
 }
 
 void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const {
@@ -84,15 +104,37 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     painter->setFont(f);
     painter->drawText(artist_text_rect, Qt::AlignVCenter, artist);
 
-    auto album_cover = &qTheme.pixmap().defaultSizeUnknownCover();
+    auto* album_cover = &qTheme.pixmap().defaultSizeUnknownCover();
 
     if (const auto * cache_small_cover = qPixmapCache.find(cover_id)) {
-        album_cover = cache_small_cover;        
-        painter->drawPixmap(cover_rect, Pixmap::roundImage(*album_cover, Pixmap::kSmallImageRadius));
+        album_cover = cache_small_cover;
     }
-    else {
-        painter->drawPixmap(cover_rect, Pixmap::roundImage(*album_cover, Pixmap::kSmallImageRadius));
+    painter->drawPixmap(cover_rect, Pixmap::roundImage(*album_cover, Pixmap::kSmallImageRadius));
+
+    if (option.state & QStyle::State_MouseOver) {
+        QColor color = Qt::black;
+        color.setAlpha(95);
+        painter->fillRect(cover_rect, QBrush(color));
+
+        const QRect button_rect(
+            option.rect.left() + default_cover_size.width() / 2 - 14,
+            option.rect.top() + default_cover_size.height() / 2 - 14,
+            48, 48);
+
+        QStyleOptionButton button;
+        button.rect = button_rect;
+        button.icon = qTheme.playIcon();
+        button.state |= QStyle::State_Enabled;
+        button.iconSize = QSize(48, 48);
+        QApplication::style()->drawControl(QStyle::CE_PushButton, &button, painter, play_button_.get());
+
+        if (button_rect.contains(mouse_point_)) {
+            QApplication::setOverrideCursor(Qt::PointingHandCursor);
+            return;
+        }
     }
+
+    QApplication::restoreOverrideCursor();
 }
 
 QSize AlbumViewStyledDelegate::sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const {
@@ -101,100 +143,6 @@ QSize AlbumViewStyledDelegate::sizeHint(const QStyleOptionViewItem& option, cons
     result.setWidth(default_cover.width() + 30);
     result.setHeight(default_cover.height() + 80);
     return result;
-}
-
-AlbumPlayListTableView::AlbumPlayListTableView(QWidget* parent)
-    : QTableView(parent) {
-    setModel(&model_);
-
-    auto f = font();
-#ifdef Q_OS_WIN
-    f.setPointSize(9);
-#else
-    f.setPointSize(12);
-#endif
-    setFont(f);
-
-    setUpdatesEnabled(true);
-    setAcceptDrops(true);
-    setDragEnabled(true);
-    setShowGrid(false);
-
-    setDragDropMode(InternalMove);
-    setFrameShape(NoFrame);
-    setFocusPolicy(Qt::NoFocus);
-
-    setHorizontalScrollMode(ScrollPerPixel);
-    setVerticalScrollMode(ScrollPerPixel);
-    setSelectionMode(ExtendedSelection);
-    setSelectionBehavior(SelectRows);
-
-    verticalHeader()->setVisible(false);
-
-    setColumnWidth(0, 5);
-    horizontalHeader()->hide();
-    horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-
-    setStyleSheet(Q_TEXT("background-color: transparent"));
-}
-
-void AlbumPlayListTableView::resizeColumn() {
-    auto header = horizontalHeader();
-
-    for (auto column = 0; column < header->count(); ++column) {
-        switch (column) {
-        case AlbumPlayListTableView::PLAYLIST_TRACK:
-            header->setSectionResizeMode(column, QHeaderView::ResizeToContents);
-            header->resizeSection(column, 12);
-            break;
-        case AlbumPlayListTableView::PLAYLIST_TITLE:
-            header->setSectionResizeMode(column, QHeaderView::Fixed);
-            header->resizeSection(column, size().width() - qTheme.getAlbumCoverSize().width() - 100);
-            break;
-        case AlbumPlayListTableView::PLAYLIST_DURATION:
-            header->setSectionResizeMode(column, QHeaderView::ResizeToContents);
-            header->resizeSection(column, 60);
-            break;
-        default:
-            header->setSectionResizeMode(column, QHeaderView::Stretch);
-            break;
-        }
-    }
-}
-
-void AlbumPlayListTableView::setPlaylistMusic(int32_t album_id) {
-    QString query = Q_TEXT(R"(
-SELECT
-    musics.track,
-    musics.title,
-    musics.durationStr,
-    musics.musicId,
-    artists.artist,
-    musics.fileExt,
-    musics.path,
-    albums.coverId,
-    albums.album,
-    artists.artistId,
-    albums.albumId
-FROM
-    albumMusic
-    LEFT JOIN albums ON albums.albumId = albumMusic.albumId
-    LEFT JOIN artists ON artists.artistId = albumMusic.artistId
-    LEFT JOIN musics ON musics.musicId = albumMusic.musicId
-WHERE
-    albums.albumId = %1
-ORDER BY musics.path
-;)");
-    model_.setQuery(query.arg(album_id));
-    setColumnHidden(3, true);
-    setColumnHidden(4, true);
-    setColumnHidden(5, true);
-    setColumnHidden(6, true);
-    setColumnHidden(7, true);
-    setColumnHidden(8, true);
-    setColumnHidden(9, true);
-    setColumnHidden(10, true);
-    resizeColumn();
 }
 
 AlbumViewPage::AlbumViewPage(QWidget* parent)
@@ -242,6 +190,10 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 }
 
 void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id) {
+    if (last_album_id_ == album_id) {
+        return;
+    }
+    last_album_id_ = album_id;
     page_->playlist()->removeAll();
     Vector<PlayListEntity> entities;
     Vector<int32_t> add_playlist_music_ids;
@@ -270,6 +222,7 @@ void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id) {
 AlbumView::AlbumView(QWidget* parent)
     : QListView(parent)
     , page_(new AlbumViewPage(this))
+	, styled_delegate_(new AlbumViewStyledDelegate(this))
 	, model_(this) {
     setModel(&model_);
     refreshOnece();
@@ -284,23 +237,35 @@ AlbumView::AlbumView(QWidget* parent)
     setFrameStyle(QFrame::NoFrame);
     setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
     setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
-    setItemDelegate(new AlbumViewStyledDelegate(this));
+    setItemDelegate(styled_delegate_);
     setAutoScroll(false);
     viewport()->setAttribute(Qt::WA_StaticContents);
-
+    setMouseTracking(true);
     page_->hide();
-
-    (void)QObject::connect(page_,
-                            &AlbumViewPage::playMusic,
-                            this,
-                            &AlbumView::playMusic);
 
     (void)QObject::connect(page_,
                             &AlbumViewPage::clickedArtist,
                             this,
                             &AlbumView::clickedArtist);
 
-    (void)QObject::connect(this, &QListView::clicked, [this](auto index) {
+    (void)QObject::connect(styled_delegate_, &AlbumViewStyledDelegate::enterAlbumView, [this](auto index) {
+        auto album = getIndexValue(index, 0).toString();
+        auto cover_id = getIndexValue(index, 1).toString();
+        auto artist = getIndexValue(index, 2).toString();
+        auto album_id = getIndexValue(index, 3).toInt();
+        auto artist_id = getIndexValue(index, 4).toInt();
+        auto artist_cover_id = getIndexValue(index, 5).toString();
+
+        const auto list_view_rect = this->rect();
+        page_->setPlaylistMusic(album, album_id);
+        page_->setFixedSize(QSize(list_view_rect.size().width() - 10, list_view_rect.height() - 6));
+        page_->move(QPoint(list_view_rect.x() + 5, 3));
+        qTheme.setBackgroundColor(page_);
+
+        page_->show();
+        });
+
+    /*(void)QObject::connect(this, &QListView::clicked, [this](auto index) {
         auto album = getIndexValue(index, 0).toString();
         auto cover_id = getIndexValue(index, 1).toString();
         auto artist = getIndexValue(index, 2).toString();
@@ -315,7 +280,7 @@ AlbumView::AlbumView(QWidget* parent)
         qTheme.setBackgroundColor(page_);
     	
         page_->show();
-        });
+        });*/
 
     (void)QObject::connect(verticalScrollBar(), &QScrollBar::valueChanged, [this](auto) {
         hideWidget();
@@ -443,23 +408,6 @@ AlbumView::AlbumView(QWidget* parent)
     setStyleSheet(Q_TEXT("background-color: transparent"));
 
     update();
-}
-
-void AlbumView::payNextMusic() {
-    QModelIndex next_index;
-    auto index = page_->playlist()->currentIndex();
-    auto row_count = page_->playlist()->model()->rowCount();
-    if (row_count == 0) {
-        return;
-    }
-    if (index.row() + 1 >= row_count) {
-        next_index = page_->playlist()->model()->index(0, 0);
-    }
-    else {
-        next_index = page_->playlist()->model()->index(index.row() + 1, 0);
-    }
-    emit playMusic(getAlbumEntity(next_index));
-    page_->playlist()->setCurrentIndex(next_index);
 }
 
 void AlbumView::onThemeChanged(QColor backgroundColor, QColor color) {
