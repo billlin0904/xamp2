@@ -1382,9 +1382,11 @@ void Xamp::initialPlaylist() {
         file_system_view_page_ = new FileSystemViewPage(this);
         auto playlist_id = kDefaultFileExplorerPlaylistId;
         if (!qDatabase.isPlaylistExist(playlist_id)) {
-            playlist_id = qDatabase.addPlaylist(Qt::EmptyString, 1);
+            playlist_id = qDatabase.addPlaylist(Qt::EmptyString, 2);
         }
         connectSignal(file_system_view_page_->playlistPage());
+        file_system_view_page_->playlistPage()->playlist()->setPlaylistId(playlist_id);
+        setCover(Qt::EmptyString, file_system_view_page_->playlistPage());
     }
 
     playlist_page_->playlist()->setPodcastMode(false);

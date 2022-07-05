@@ -78,15 +78,19 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     auto artist = index.model()->data(index.model()->index(index.row(), 2)).toString();
 
     const auto default_cover_size = qTheme.getDefaultCoverSize();
-    const QRect cover_rect(option.rect.left() + 10, option.rect.top() + 10,
-        default_cover_size.width(), default_cover_size.height());
+    const QRect cover_rect(option.rect.left() + 10,
+        option.rect.top() + 10,
+        default_cover_size.width(), 
+        default_cover_size.height());
 
     QRect album_text_rect(option.rect.left() + 10,
         option.rect.top() + default_cover_size.height() + 15,
-        option.rect.width() - 30, 15);
+        option.rect.width() - 30, 
+        15);
     QRect artist_text_rect(option.rect.left() + 10,
         option.rect.top() + default_cover_size.height() + 35,
-        option.rect.width() - 30, 15);
+        option.rect.width() - 30, 
+        15);
 
     painter->setPen(QPen(text_color_));
 
@@ -116,16 +120,19 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
         color.setAlpha(95);
         painter->fillRect(cover_rect, QBrush(color));
 
+        constexpr auto icon_size = 48;
+        constexpr auto offset = (icon_size / 2) - 10;
+
         const QRect button_rect(
-            option.rect.left() + default_cover_size.width() / 2 - 14,
-            option.rect.top() + default_cover_size.height() / 2 - 14,
-            48, 48);
+            option.rect.left() + default_cover_size.width() / 2 - offset,
+            option.rect.top() + default_cover_size.height() / 2 - offset,
+            icon_size, icon_size);
 
         QStyleOptionButton button;
         button.rect = button_rect;
         button.icon = qTheme.playIcon();
         button.state |= QStyle::State_Enabled;
-        button.iconSize = QSize(48, 48);
+        button.iconSize = QSize(icon_size, icon_size);
         QApplication::style()->drawControl(QStyle::CE_PushButton, &button, painter, play_button_.get());
 
         if (button_rect.contains(mouse_point_)) {
@@ -193,11 +200,15 @@ void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id) {
     if (last_album_id_ == album_id) {
         return;
     }
+
     last_album_id_ = album_id;
+
     page_->playlist()->removeAll();
     Vector<PlayListEntity> entities;
     Vector<int32_t> add_playlist_music_ids;
+
     add_playlist_music_ids.reserve(20);
+
     qDatabase.forEachAlbumMusic(album_id,
         [&entities, &add_playlist_music_ids](const PlayListEntity& entity) mutable {
             if (entity.album_replay_gain == 0.0) {
@@ -205,17 +216,20 @@ void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id) {
             }
             add_playlist_music_ids.push_back(entity.music_id);
         });
+
     qDatabase.addMusicToPlaylist(add_playlist_music_ids, page_->playlist()->playlistId());
+
     page_->playlist()->updateData();
-    page_->title()->setText(album);    
-    if (auto album_stats = qDatabase.getAlbumStats(album_id)) {
-        auto text = tr("%1 Tracks, %2, %3")
+    page_->title()->setText(album);
+
+    if (const auto album_stats = qDatabase.getAlbumStats(album_id)) {
+        page_->format()->setText(tr("%1 Tracks, %2, %3")
             .arg(QString::number(album_stats.value().tracks))
             .arg(msToString(album_stats.value().durations))
-            .arg(QString::number(album_stats.value().year));
-        page_->format()->setText(text);
+            .arg(QString::number(album_stats.value().year)));
     }
-    auto cover_id = qDatabase.getAlbumCoverId(album_id);
+
+    const auto cover_id = qDatabase.getAlbumCoverId(album_id);
     emit page_->setCover(cover_id, page_);
 }
 
@@ -264,23 +278,6 @@ AlbumView::AlbumView(QWidget* parent)
 
         page_->show();
         });
-
-    /*(void)QObject::connect(this, &QListView::clicked, [this](auto index) {
-        auto album = getIndexValue(index, 0).toString();
-        auto cover_id = getIndexValue(index, 1).toString();
-        auto artist = getIndexValue(index, 2).toString();
-        auto album_id = getIndexValue(index, 3).toInt();
-        auto artist_id = getIndexValue(index, 4).toInt();
-        auto artist_cover_id = getIndexValue(index, 5).toString();
-
-        const auto list_view_rect = this->rect();
-        page_->setPlaylistMusic(album, album_id);
-        page_->setFixedSize(QSize(list_view_rect.size().width() - 10, list_view_rect.height() - 6));
-        page_->move(QPoint(list_view_rect.x() + 5, 3));
-        qTheme.setBackgroundColor(page_);
-    	
-        page_->show();
-        });*/
 
     (void)QObject::connect(verticalScrollBar(), &QScrollBar::valueChanged, [this](auto) {
         hideWidget();
