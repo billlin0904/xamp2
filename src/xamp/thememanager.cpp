@@ -629,6 +629,9 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
                                         )"));
 
     ui.sliderBar->setStyleSheet(Q_TEXT(R"(
+	QListView#sliderBar { 
+		border: none; 
+	}
 	QListView#sliderBar::item {
 		border: 0px;
 		padding-left: 15px;

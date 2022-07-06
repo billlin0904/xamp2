@@ -167,6 +167,7 @@ private:
 	PlaylistPage* playlist_page_;
 	PlaylistPage* podcast_page_;
 	PlaylistPage* music_page_;
+	PlaylistPage* cd_page_;
 	PlaylistPage* current_playlist_page_;
 	AlbumArtistPage* album_artist_page_;
     ArtistInfoPage* artist_info_page_;

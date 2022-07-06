@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1132</width>
-    <height>505</height>
+    <height>511</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -628,7 +628,7 @@
      <property name="frameShadow">
       <enum>QFrame::Raised</enum>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1,0,0">
+     <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1,0,0,0">
       <property name="spacing">
        <number>0</number>
       </property>
@@ -710,6 +710,16 @@
        <widget class="Line" name="line">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="tableLabel">
+        <property name="text">
+         <string>My Music Library</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
         </property>
        </widget>
       </item>

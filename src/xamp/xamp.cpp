@@ -67,6 +67,7 @@ enum TabIndex {
     TAB_PLAYLIST,
     TAB_PODCAST,
     TAB_FILE_EXPLORER,
+    TAB_CD,
     TAB_LYRICS,
     TAB_SETTINGS,
     TAB_ABOUT,
@@ -119,6 +120,7 @@ Xamp::Xamp()
     , playlist_page_(nullptr)
 	, podcast_page_(nullptr)
 	, music_page_(nullptr)
+	, cd_page_(nullptr)
 	, current_playlist_page_(nullptr)
     , album_artist_page_(nullptr)
     , artist_info_page_(nullptr)
@@ -667,6 +669,9 @@ void Xamp::initialController() {
             break;
         case TAB_SETTINGS:
             ui_.currentView->setCurrentWidget(preference_page_);
+            break;
+        case TAB_CD:
+            ui_.currentView->setCurrentWidget(cd_page_);
             break;
         case TAB_ABOUT:
             ui_.currentView->setCurrentWidget(about_page_);
@@ -1340,12 +1345,11 @@ void Xamp::initialPlaylist() {
     ui_.sliderBar->addTab(tr("Playlists"), TAB_PLAYLIST, qTheme.playlistIcon());
     ui_.sliderBar->addTab(tr("Podcast"), TAB_PODCAST, qTheme.podcastIcon());
     ui_.sliderBar->addTab(tr("File Explorer"), TAB_FILE_EXPLORER, qTheme.desktopIcon());
-    ui_.sliderBar->addSeparator();
     ui_.sliderBar->addTab(tr("Albums"), TAB_ALBUM, qTheme.albumsIcon());
     ui_.sliderBar->addTab(tr("Artists"), TAB_ARTIST, qTheme.artistsIcon());
     ui_.sliderBar->addTab(tr("Lyrics"), TAB_LYRICS, qTheme.subtitleIcon());
-    ui_.sliderBar->addSeparator();
     ui_.sliderBar->addTab(tr("Settings"), TAB_SETTINGS, qTheme.preferenceIcon());
+    ui_.sliderBar->addTab(tr("CD"), TAB_CD, qTheme.albumsIcon());
     ui_.sliderBar->addTab(tr("About"), TAB_ABOUT, qTheme.aboutIcon());
     ui_.sliderBar->setCurrentIndex(ui_.sliderBar->model()->index(0, 0));
 
@@ -1399,8 +1403,19 @@ void Xamp::initialPlaylist() {
         setCover(Qt::EmptyString, file_system_view_page_->playlistPage());
     }
 
+    if (!cd_page_) {
+        auto playlist_id = kDefaultCdPlaylistId;
+        if (!qDatabase.isPlaylistExist(playlist_id)) {
+            playlist_id = qDatabase.addPlaylist(Qt::EmptyString, 1);
+        }
+        cd_page_ = newPlaylistPage(playlist_id);
+        cd_page_->playlist()->setPlaylistId(playlist_id);
+        setCover(Qt::EmptyString, cd_page_);
+    }
+
     playlist_page_->playlist()->setPodcastMode(false);
     podcast_page_->playlist()->setPodcastMode(true);
+    cd_page_->playlist()->setPodcastMode(false);
     current_playlist_page_ = playlist_page_;
 
     (void)QObject::connect(this,
@@ -1437,7 +1452,9 @@ void Xamp::initialPlaylist() {
     pushWidget(podcast_page_);
     pushWidget(file_system_view_page_);
     pushWidget(preference_page_);
+    pushWidget(cd_page_);
     pushWidget(about_page_);
+    goBackPage();
     goBackPage();
     goBackPage();
     goBackPage();

@@ -46,6 +46,7 @@ inline constexpr auto kDefaultPlaylistId = 1;
 inline constexpr auto kDefaultPodcastPlaylistId = 2;
 inline constexpr auto kDefaultFileExplorerPlaylistId = 3;
 inline constexpr auto kDefaultAlbumPlaylistId = 4;
+inline constexpr auto kDefaultCdPlaylistId = 5;
 
 class Database final {
 public:
