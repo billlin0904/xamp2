@@ -9,6 +9,7 @@
 #include <base/scopeguard.h>
 
 #include "thememanager.h"
+#include "appsettings.h"
 
 #include <widget/image_utiltis.h>
 #include <widget/str_utilts.h>
@@ -28,9 +29,11 @@ QStringList PixmapCache::cache_ext_ =
 PixmapCache::PixmapCache()
 	: cache_(kDefaultCacheSize)
 	, logger_(Logger::GetInstance().GetLogger("PixmapCache")) {
-	cache_path_ = QDir::currentPath() + Q_TEXT("/caches/");
+	cache_path_ = AppSettings::getCachePath() + Q_TEXT("/caches/");
 	const QDir dir;
-	(void)dir.mkdir(cache_path_);
+	if (!dir.mkdir(cache_path_)) {
+		XAMP_LOG_E(logger_, "Create cache dir faulure!");
+	}
     unknown_cover_id_ = savePixamp(qTheme.pixmap().unknownCover());
 	loadCache();
 }

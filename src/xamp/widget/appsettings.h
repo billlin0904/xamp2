@@ -160,6 +160,8 @@ public:
 
     static QString getMyMusicFolderPath();
 
+    static QString getCachePath();
+
     static void save();
 
     static const QMap<QString, EQSettings>& getEQPreset();

@@ -5,14 +5,19 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
-#include <base/align_ptr.h>
-#include <base/metadata.h>
+#include <QWidget>
+#include <QObject>
+#include <QTimer>
 
-using namespace rapidxml;
-using namespace xamp::base;
+class ToolTipsFilter : public QObject {
+	Q_OBJECT
+public:
+	explicit ToolTipsFilter(QObject* parent = nullptr);
 
-Vector<Metadata> parseJson(QString const& json);
-
-std::pair<std::string, ForwardList<Metadata>> parsePodcastXML(QString const& src);
+	bool eventFilter(QObject* obj, QEvent* event) override;
+private:
+	void showTooltip(QWidget* tooltip);
+	QTimer timer_;
+	QWidget* parent_;
+	QWidget* tooltip_;
+};

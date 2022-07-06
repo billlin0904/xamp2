@@ -68,6 +68,11 @@ void AppSettings::save() {
     settings_->sync();
 }
 
+QString AppSettings::getCachePath() {
+    auto folder_path = QStandardPaths::standardLocations(QStandardPaths::CacheLocation);
+    return folder_path[0];
+}
+
 QString AppSettings::getMyMusicFolderPath() {
     if (!contains(kAppSettingMyMusicFolderPath)) {
         auto folder_path = QStandardPaths::standardLocations(QStandardPaths::MusicLocation);

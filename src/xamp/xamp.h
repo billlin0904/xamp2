@@ -34,6 +34,7 @@ class QWidgetAction;
 class QFileSystemWatcher;
 class FileSystemViewPage;
 struct PlaybackFormat;
+class ToolTipsFilter;
 
 class Xamp final : public IXampPlayer {
 	Q_OBJECT
@@ -155,6 +156,8 @@ private:
 
 	void connectSignal(PlaylistPage* playlist_page);
 
+	void setTipHint(QWidget* widget, const QString& hint_text);
+
 	bool is_seeking_;
 	PlayerOrder order_;
 	QModelIndex play_index_;
@@ -183,5 +186,6 @@ private:
 	QAction* light_mode_action_;
 	QMenu* theme_menu_;
     IXWindow *top_window_;
+	ToolTipsFilter* tool_tips_filter_;
     Ui::XampWindow ui_;
 };

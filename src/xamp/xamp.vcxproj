@@ -200,6 +200,8 @@
     <ClCompile Include="widget\qetag.cpp" />
     <ClCompile Include="widget\spectrumwidget.cpp" />
     <ClCompile Include="widget\stackblur.cpp" />
+    <ClCompile Include="widget\tooltips.cpp" />
+    <ClCompile Include="widget\tooltipsfilter.cpp" />
     <ClCompile Include="widget\xwindow.cpp" />
     <ClCompile Include="widget\http.cpp" />
     <ClCompile Include="widget\image_utiltis.cpp" />
@@ -271,6 +273,8 @@
     <QtMoc Include="widget\processindicator.h" />
     <ClInclude Include="widget\smoothcurvegenerator2.h" />
     <ClInclude Include="widget\stackblur.h" />
+    <QtMoc Include="widget\tooltips.h" />
+    <QtMoc Include="widget\tooltipsfilter.h" />
     <ClInclude Include="widget\xmessagebox.h" />
     <ClInclude Include="xampplayer.h" />
     <QtMoc Include="widget\lyricsshowwidget.h" />

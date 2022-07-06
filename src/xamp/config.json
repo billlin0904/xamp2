@@ -23,7 +23,7 @@
         }
     },
     "R8Brain": {
-        "resampleSampleRate": 192000
+        "resampleSampleRate": 352800
     },
     "Soxr": {
         "default": {

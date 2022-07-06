@@ -236,13 +236,13 @@ static std::vector<ModuleHandle> prefetchDLL() {
 static void registerMetaType() {
     qRegisterMetaTypeStreamOperators<AppEQSettings>("AppEQSettings");
     qRegisterMetaType<AppEQSettings>("AppEQSettings");
-    qRegisterMetaType<std::vector<Metadata>>("std::vector<Metadata>");
+    qRegisterMetaType<Vector<Metadata>>("Vector<Metadata>");
     qRegisterMetaType<DeviceState>("DeviceState");
     qRegisterMetaType<PlayerState>("PlayerState");
     qRegisterMetaType<PlayListEntity>("PlayListEntity");
     qRegisterMetaType<Errors>("Errors");
-    qRegisterMetaType<Vector<float>>("std::vector<float>");
-    qRegisterMetaType<Vector<PlayListEntity>>("std::vector<PlayListEntity>");
+    qRegisterMetaType<Vector<float>>("Vector<float>");
+    qRegisterMetaType<Vector<PlayListEntity>>("Vector<PlayListEntity>");
     qRegisterMetaType<size_t>("size_t");
     qRegisterMetaType<int32_t>("int32_t");
     qRegisterMetaType<ComplexValarray>("ComplexValarray");

@@ -5,14 +5,26 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
-#include <base/align_ptr.h>
-#include <base/metadata.h>
+#include <QFrame>
+#include <QPen>
+#include <QBrush>
 
-using namespace rapidxml;
-using namespace xamp::base;
+class QLabel;
 
-Vector<Metadata> parseJson(QString const& json);
+class ToolTips : public QFrame {
+	Q_OBJECT
+public:
+	explicit ToolTips(const QString& text, QWidget* parent = nullptr);
 
-std::pair<std::string, ForwardList<Metadata>> parsePodcastXML(QString const& src);
+public slots:
+	void setText(const QString& text);
+
+protected:
+	void paintEvent(QPaintEvent*) override;
+
+	void enterEvent(QEvent*) override;
+private:
+	QPen pen_;
+	QBrush brush_;
+	QLabel* text_label_;
+};

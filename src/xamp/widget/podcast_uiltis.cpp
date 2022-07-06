@@ -14,9 +14,9 @@ std::wstring parseCDATA(rapidxml::xml_node<Ch>* node) {
     return String::ToString(cddata);
 }
 
-std::vector<Metadata> parseJson(QString const& json) {
+Vector<Metadata> parseJson(QString const& json) {
     QJsonParseError error;
-    std::vector<Metadata> metadatas;
+    Vector<Metadata> metadatas;
 
     const auto doc = QJsonDocument::fromJson(json.toUtf8(), &error);
     if (error.error == QJsonParseError::NoError) {

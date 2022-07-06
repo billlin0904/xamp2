@@ -52,7 +52,8 @@
 #include <widget/actionmap.h>
 #include <widget/spectrumwidget.h>
 #include <widget/filesystemviewpage.h>
-#include <widget/xmessagebox.h>
+#include <widget/tooltips.h>
+#include <widget/tooltipsfilter.h>
 
 #include "aboutpage.h"
 #include "preferencepage.h"
@@ -676,6 +677,15 @@ void Xamp::initialController() {
     (void)QObject::connect(ui_.sliderBar, &TabListView::tableNameChanged, [](auto table_id, const auto &name) {
         qDatabase.setTableName(table_id, name);
     });
+
+    tool_tips_filter_ = new ToolTipsFilter(this);
+    setTipHint(ui_.playButton, tr("Play/Pause"));
+    setTipHint(ui_.stopButton, tr("Stop"));
+    setTipHint(ui_.prevButton, tr("Previous"));
+    setTipHint(ui_.nextButton, tr("Next"));
+    setTipHint(ui_.coverLabel, tr("Cover"));
+    setTipHint(ui_.selectDeviceButton, tr("Device list"));
+    setTipHint(ui_.eqButton, tr("Equalizer"));
 
     if (AppSettings::getValueAsBool(kAppSettingDiscordNotify)) {
         (void)QObject::connect(this,
@@ -1614,4 +1624,14 @@ void Xamp::extractFile(const QString& file_path) {
         this,
         &Xamp::processMeatadata);
     MetadataExtractAdapter::readFileMetadata(adapter, file_path, false);
+}
+
+void Xamp::setTipHint(QWidget* widget, const QString& hint_text) {
+    auto *tooltip = new ToolTips(Qt::EmptyString, parentWidget());
+    tooltip->hide();
+    tooltip->setText(hint_text);
+    tooltip->setFixedHeight(32);
+
+    widget->setProperty("ToolTip", QVariant::fromValue<QWidget*>(tooltip));
+    widget->installEventFilter(tool_tips_filter_);
 }
