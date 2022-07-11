@@ -37,8 +37,8 @@
 #include <widget/stareditor.h>
 #include <widget/albumentity.h>
 #include <widget/podcast_uiltis.h>
-#include <widget/playlisttableview.h>
 #include <widget/processindicator.h>
+#include <widget/playlisttableview.h>
 
 using namespace xamp::metadata;
 
@@ -314,40 +314,6 @@ void PlayListTableView::initial() {
                 }
                 append(dir_name);
                 });
-#ifdef XAMP_OS_WIN
-            auto *open_cd_submenu = action_map.addSubMenu(tr("Open CD device"));
-            const QList<std::string> kCDFileSystemType = {
-            	"CDFS",
-                "UDF",
-                "ISO-9660",
-            	"ISO9660"
-            };
-            foreach(auto& storage, QStorageInfo::mountedVolumes()) {
-                if (storage.isValid() && storage.isReady()) {
-                    auto display_name = storage.displayName() + Q_TEXT("(") + storage.rootPath() + Q_TEXT(")");
-                    auto driver_letter = storage.rootPath().left(1).toStdString()[0];
-
-                    if (kCDFileSystemType.contains(storage.fileSystemType().toUpper().toStdString())) {                       
-                        auto device = OpenCD(driver_letter);
-                        auto device_info = device->GetCDDeviceInfo();
-                        display_name += QString::fromStdWString(L" " + device_info.product);
-                        open_cd_submenu->addAction(display_name, [driver_letter, this]() {
-                            auto cd = OpenCD(driver_letter);
-                            cd->SetMaxSpeed();
-                            auto track_id = 0;
-                            ForwardList<Metadata> metadatas;
-                            for (auto const & track : cd->GetTotalTracks()) {
-                                auto metadata = ::getMetadata(QString::fromStdWString(track));
-                                metadata.duration = cd->GetDuration(track_id++);
-                                metadata.samplerate = 44100;
-                                metadatas.push_front(metadata);
-                            }
-                            processMeatadata(QDateTime::currentSecsSinceEpoch(), metadatas);
-                        });
-                    }
-                }
-            }
-#endif
             action_map.addSeparator();
     	}
 

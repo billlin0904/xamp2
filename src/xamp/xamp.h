@@ -17,6 +17,7 @@
 #include <widget/backgroundworker.h>
 #include <widget/albumentity.h>
 #include <widget/discordnotify.h>
+#include <widget/driveinfo.h>
 
 #include "xampplayer.h"
 #include "ui_xamp.h"
@@ -35,6 +36,8 @@ class QFileSystemWatcher;
 class FileSystemViewPage;
 struct PlaybackFormat;
 class ToolTipsFilter;
+class DriveWatcher;
+class QRadioButton;
 
 class Xamp final : public IXampPlayer {
 	Q_OBJECT
@@ -73,6 +76,8 @@ public slots:
 
 	void setCover(const QString& cover_id, PlaylistPage* page);
 
+	void drivesChanges(const QList<DriveInfo>& drive_infos);
+
 private:
     void stopPlayedClicked() override;
 
@@ -90,7 +95,7 @@ private:
 
 	void setPlaylistPageCover(const QPixmap* cover, PlaylistPage* page = nullptr);
 
-	QWidgetAction* createTextSeparator(const QString& text);
+	QWidgetAction* createTextSeparator(const QString& desc);
 
 	void onSampleTimeChanged(double stream_time);
 
@@ -187,6 +192,7 @@ private:
 	QAction* light_mode_action_;
 	QMenu* theme_menu_;
     IXWindow *top_window_;
+	DriveWatcher* drive_watcher_;
 	ToolTipsFilter* tool_tips_filter_;
     Ui::XampWindow ui_;
 };

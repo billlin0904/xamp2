@@ -21,7 +21,7 @@ public:
 
 	virtual void SetMaxThread(size_t max_thread) = 0;
 
-    virtual size_t ScheduleNext(size_t cur_index, const std::vector<WorkStealingTaskQueuePtr>& work_queues) = 0;
+    virtual size_t ScheduleNext(size_t cur_index, const Vector<WorkStealingTaskQueuePtr>& work_queues) = 0;
 protected:
     ITaskSchedulerPolicy() = default;
 };
@@ -34,7 +34,7 @@ public:
         size_t max_thread,
         SharedTaskQueue* task_pool,
         ITaskSchedulerPolicy* policy,
-        const std::vector<WorkStealingTaskQueuePtr>& task_work_queues) = 0;
+        const Vector<WorkStealingTaskQueuePtr>& task_work_queues) = 0;
 protected:
     ITaskStealPolicy() = default;
 };
@@ -45,7 +45,7 @@ public:
         size_t max_thread,
         SharedTaskQueue* task_pool,
         ITaskSchedulerPolicy* policy,
-        const std::vector<WorkStealingTaskQueuePtr>& task_work_queues) override;
+        const Vector<WorkStealingTaskQueuePtr>& task_work_queues) override;
 };
 
 class ContinuationStealPolicy final : public ITaskStealPolicy{
@@ -54,7 +54,7 @@ public:
         size_t max_thread,
         SharedTaskQueue* task_pool,
         ITaskSchedulerPolicy* policy,
-        const std::vector<WorkStealingTaskQueuePtr>& task_work_queues) override;
+        const Vector<WorkStealingTaskQueuePtr>& task_work_queues) override;
 };
 
 XAMP_BASE_API AlignPtr<ITaskSchedulerPolicy> MakeTaskSchedulerPolicy(TaskSchedulerPolicy policy);
@@ -65,7 +65,7 @@ class RoundRobinSchedulerPolicy final : public ITaskSchedulerPolicy {
 public:
     void SetMaxThread(size_t max_thread) override;
 
-    size_t ScheduleNext(size_t cur_index, const std::vector<WorkStealingTaskQueuePtr>& work_queues) override;
+    size_t ScheduleNext(size_t cur_index, const Vector<WorkStealingTaskQueuePtr>& work_queues) override;
 private:
     size_t max_thread_{ 0 };
 };
@@ -74,7 +74,7 @@ class RandomSchedulerPolicy final : public ITaskSchedulerPolicy {
 public:
     void SetMaxThread(size_t max_thread) override;
 
-    size_t ScheduleNext(size_t cur_index, const std::vector<WorkStealingTaskQueuePtr>& work_queues) override;
+    size_t ScheduleNext(size_t cur_index, const Vector<WorkStealingTaskQueuePtr>& work_queues) override;
 private:
     Vector<PRNG> prngs_;
 };
@@ -83,7 +83,7 @@ class LeastLoadSchedulerPolicy final : public ITaskSchedulerPolicy {
 public:
     void SetMaxThread(size_t max_thread) override;
 
-    size_t ScheduleNext(size_t cur_index, const std::vector<WorkStealingTaskQueuePtr>& work_queues) override;
+    size_t ScheduleNext(size_t cur_index, const Vector<WorkStealingTaskQueuePtr>& work_queues) override;
 };
 
 }

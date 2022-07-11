@@ -13,6 +13,7 @@
 #include <spdlog/fmt/ostr.h>
 
 #include <base/singleton.h>
+#include <base/align_ptr.h>
 #include <base/base.h>
 #include <base/memory.h>
 
@@ -90,7 +91,7 @@ public:
 
     std::shared_ptr<spdlog::logger> GetLogger(const std::string& name);
 
-    const std::vector<std::string_view>& GetDefaultLoggerName();
+    const Vector<std::string_view>& GetDefaultLoggerName();
 
     template <typename... Args>
     void Log(const spdlog::source_loc& loc, spdlog::level::level_enum lvl, const char* fmt, const Args &... args) {
@@ -99,7 +100,7 @@ public:
 private:
     Logger() = default;
 
-	std::vector<spdlog::sink_ptr> sinks_;
+	Vector<spdlog::sink_ptr> sinks_;
 	std::shared_ptr<spdlog::logger> default_logger_;
 };
 

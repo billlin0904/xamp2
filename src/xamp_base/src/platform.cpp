@@ -458,7 +458,6 @@ bool VirtualMemoryLock(void* address, size_t size) {
         }
         if (!::VirtualLock(address, size)) {
             throw PlatformSpecException("VirtualLock return failure!");
-            return false;
         }
     }
     return true;

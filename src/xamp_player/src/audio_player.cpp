@@ -721,6 +721,7 @@ void AudioPlayer::Play() {
         state->OnOutputFormatChanged(output_format_, device_->GetBufferSize());
     }
 
+    is_fade_out_ = false;
     is_playing_ = true;
     if (device_->IsStreamOpen()) {
         if (!device_->IsStreamRunning()) {

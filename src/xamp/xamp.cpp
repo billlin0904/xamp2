@@ -6,11 +6,11 @@
 #include <QWidgetAction>
 #include <QFileDialog>
 #include <QProcess>
-#include <QPainterPath>
 #include <QProgressDialog>
 #include <QFileSystemWatcher>
 #include <QtMath>
 #include <QSimpleUpdater.h>
+#include <QRadioButton>
 
 #include <base/scopeguard.h>
 #include <base/str_utilts.h>
@@ -54,12 +54,15 @@
 #include <widget/filesystemviewpage.h>
 #include <widget/tooltips.h>
 #include <widget/tooltipsfilter.h>
+#include <widget/drivewatcher.h>
 
 #include "aboutpage.h"
 #include "preferencepage.h"
 #include "thememanager.h"
 #include "version.h"
 #include "xamp.h"
+
+#include <QDateTime>
 
 enum TabIndex {
     TAB_ALBUM = 0,
@@ -129,7 +132,8 @@ Xamp::Xamp()
     , tray_icon_(nullptr)
     , state_adapter_(std::make_shared<UIPlayerStateAdapter>())
     , player_(MakeAudioPlayer(state_adapter_))
-    , discord_notify_(this) {
+    , discord_notify_(this)
+	, drive_watcher_(new DriveWatcher(this)) {
     ui_.setupUi(this);
 }
 
@@ -145,7 +149,7 @@ void Xamp::setXWindow(IXWindow* top_window) {
     initialController();
     initialPlaylist();
     initialShortcut();
-    createTrayIcon();
+    //createTrayIcon();
     setPlaylistPageCover(nullptr, playlist_page_);
     setPlaylistPageCover(nullptr, podcast_page_);
     QTimer::singleShot(300, [this]() {
@@ -257,26 +261,28 @@ void Xamp::createTrayIcon() {
         SLOT(onActivated(QSystemTrayIcon::ActivationReason)));
 }
 
-void Xamp::closeEvent(QCloseEvent* event) {    
-    if (tray_icon_->isVisible() && !isHidden()) {
-	    const auto minimize_to_tray_ask = AppSettings::getValueAsBool(kAppSettingMinimizeToTrayAsk);
-        QMessageBox::StandardButton reply = QMessageBox::No;
+void Xamp::closeEvent(QCloseEvent* event) {
+    if (tray_icon_ != nullptr) {
+        if (tray_icon_->isVisible() && !isHidden()) {
+            const auto minimize_to_tray_ask = AppSettings::getValueAsBool(kAppSettingMinimizeToTrayAsk);
+            QMessageBox::StandardButton reply = QMessageBox::No;
 
-	    const auto is_min_system_tray = AppSettings::getValueAsBool(kAppSettingMinimizeToTray);
+            const auto is_min_system_tray = AppSettings::getValueAsBool(kAppSettingMinimizeToTray);
 
-        if (!is_min_system_tray && minimize_to_tray_ask) {
-            auto [show_again_res, reply_res] = showDontShowAgainDialog(minimize_to_tray_ask);
-            AppSettings::setValue(kAppSettingMinimizeToTrayAsk, show_again_res);
-            AppSettings::setValue(kAppSettingMinimizeToTray, reply == QMessageBox::Ok);
-            reply = reply_res;
+            if (!is_min_system_tray && minimize_to_tray_ask) {
+                auto [show_again_res, reply_res] = showDontShowAgainDialog(minimize_to_tray_ask);
+                AppSettings::setValue(kAppSettingMinimizeToTrayAsk, show_again_res);
+                AppSettings::setValue(kAppSettingMinimizeToTray, reply == QMessageBox::Ok);
+                reply = reply_res;
+            }
+
+            if (reply == QMessageBox::Ok) {
+                hide();
+                event->ignore();
+                return;
+            }
         }
-
-        if (reply == QMessageBox::Ok) {
-            hide();
-            event->ignore();
-            return;
-        }        
-    }
+    }    
 
     try {
         AppSettings::setValue(kAppSettingVolume, player_->GetVolume());
@@ -339,17 +345,6 @@ void Xamp::initialUI() {
                                                    QLineEdit::LeadingPosition);
 }
 
-QWidgetAction* Xamp::createTextSeparator(const QString& text) {
-	auto* label = new QLabel(text);
-    label->setObjectName(Q_TEXT("textSeparator"));
-    auto f = font();
-    f.setBold(true);
-    label->setFont(f);
-    auto* separator = new QWidgetAction(this);
-    separator->setDefaultWidget(label);
-    return separator;
-}
-
 void Xamp::onVolumeChanged(float volume) {
     if (volume > 0) {
         player_->SetMute(false);
@@ -370,6 +365,29 @@ void Xamp::onDeviceStateChanged(DeviceState state) {
         return;
     }
     initialDeviceList();
+}
+
+QWidgetAction* Xamp::createTextSeparator(const QString& desc) {
+    QWidget* desc_label = new QLabel(desc);
+
+    desc_label->setObjectName(Q_TEXT("textSeparator"));
+
+    auto f = font();
+    f.setPointSize(12);
+    f.setBold(true);
+    desc_label->setFont(f);
+
+    auto* frame = new QFrame();
+    auto* default_layout = new QVBoxLayout(frame);
+    default_layout->setSpacing(0);
+    default_layout->setContentsMargins(0, 0, 0, 0);
+
+    default_layout->addWidget(desc_label);
+    frame->setLayout(default_layout);
+
+    auto* separator = new QWidgetAction(this);
+    separator->setDefaultWidget(frame);
+    return separator;
 }
 
 void Xamp::initialDeviceList() {    
@@ -395,12 +413,6 @@ void Xamp::initialDeviceList() {
     const auto device_id = AppSettings::getValueAsString(kAppSettingDeviceId).toStdString();
     const auto & device_manager = player_->GetAudioDeviceManager();
 
-    QFont font(Q_TEXT("FormatFont"));
-    font.setBold(true);
-    ui_.hardwareVolumeControlLabel->setText(tr("Hardware volume control"));
-    ui_.hardwareVolumeControlLabel->setFont(font);
-    ui_.hardwareVolumeControlLabel->setStyleSheet(Q_TEXT("background-color: transparent"));
-
     for (auto itr = device_manager->Begin(); itr != device_manager->End(); ++itr) {
         auto device_type = (*itr).second();
         device_type->ScanNewDevice();
@@ -416,6 +428,13 @@ void Xamp::initialDeviceList() {
         for (const auto& device_info : device_info_list) {
             auto* device_action = new QAction(QString::fromStdWString(device_info.name), this);
 
+            /*QString sub_desc = Q_TEXT("Hardware volume control");
+            auto* checkbox = new QRadioButton(QString::fromStdWString(device_info.name), this);
+            auto* device_action = createTextSeparator(sub_desc, checkbox);
+            (void)QObject::connect(device_action_group, &QActionGroup::triggered, [checkbox](auto action) {
+                emit checkbox->clicked(action->isChecked());
+            });*/
+
             device_action_group->addAction(device_action);
             device_action->setCheckable(true);
             device_action->setChecked(false);
@@ -425,12 +444,6 @@ void Xamp::initialDeviceList() {
                 device_info_ = device_info;
                 AppSettings::setValue(kAppSettingDeviceType, device_info_.device_type_id);
                 AppSettings::setValue(kAppSettingDeviceId, device_info_.device_id);
-
-                if (device_info.is_hardware_control_volume) {
-                    ui_.hardwareVolumeControlLabel->setDisabled(true);
-                } else {
-                    ui_.hardwareVolumeControlLabel->setDisabled(false);
-                }
             };
 
             (void)QObject::connect(device_action, &QAction::triggered, trigger_callback);
@@ -1210,6 +1223,22 @@ void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_form
             qTheme.appIcon(),
             1000);
     }
+}
+
+void Xamp::drivesChanges(const QList<DriveInfo>& drive_infos) {
+	/*Q_FOREACH(auto driver, drive_infos) {
+        auto cd = OpenCD(driver.driver_letter);
+        cd->SetMaxSpeed();
+        auto track_id = 0;
+        ForwardList<Metadata> metadatas;
+        for (auto const& track : cd->GetTotalTracks()) {
+            auto metadata = ::getMetadata(QString::fromStdWString(track));
+            metadata.duration = cd->GetDuration(track_id++);
+            metadata.samplerate = 44100;
+            metadatas.push_front(metadata);
+        }
+        processMeatadata(QDateTime::currentSecsSinceEpoch(), metadatas);
+	}*/
 }
 
 void Xamp::setCover(const QString& cover_id, PlaylistPage* page) {

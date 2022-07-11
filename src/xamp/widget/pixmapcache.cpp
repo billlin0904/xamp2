@@ -31,8 +31,10 @@ PixmapCache::PixmapCache()
 	, logger_(Logger::GetInstance().GetLogger("PixmapCache")) {
 	cache_path_ = AppSettings::getCachePath() + Q_TEXT("/caches/");
 	const QDir dir;
-	if (!dir.mkdir(cache_path_)) {
-		XAMP_LOG_E(logger_, "Create cache dir faulure!");
+	if (!dir.exists()) {
+		if (!dir.mkdir(cache_path_)) {
+			XAMP_LOG_E(logger_, "Create cache dir faulure!");
+		}
 	}
     unknown_cover_id_ = savePixamp(qTheme.pixmap().unknownCover());
 	loadCache();

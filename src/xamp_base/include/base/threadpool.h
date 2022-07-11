@@ -62,11 +62,11 @@ private:
     std::atomic<size_t> running_thread_;
     uint32_t max_thread_;
     std::string pool_name_;
-    std::vector<std::thread> threads_;
+    Vector<std::thread> threads_;
     SharedTaskQueuePtr task_pool_;
     AlignPtr<ITaskStealPolicy> task_steal_policy_;
     AlignPtr<ITaskSchedulerPolicy> task_scheduler_policy_;
-    std::vector<WorkStealingTaskQueuePtr> task_work_queues_;
+    Vector<WorkStealingTaskQueuePtr> task_work_queues_;
     std::shared_ptr<spdlog::logger> logger_;
 };
 

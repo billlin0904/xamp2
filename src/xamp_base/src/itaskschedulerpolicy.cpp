@@ -30,7 +30,7 @@ void ChildStealPolicy::SubmitJob(Task&& task,
     size_t /*max_thread*/,
     SharedTaskQueue* /*task_pool*/,
 	ITaskSchedulerPolicy* policy, 
-	const std::vector<WorkStealingTaskQueuePtr>& task_work_queues) {
+	const Vector<WorkStealingTaskQueuePtr>& task_work_queues) {
 	auto index = policy->ScheduleNext(0, task_work_queues);
 	auto& queue = task_work_queues.at(index);
 	queue->Enqueue(task);
@@ -40,7 +40,7 @@ void ContinuationStealPolicy::SubmitJob(Task&& task,
 	size_t max_thread,
 	SharedTaskQueue* task_pool,
 	ITaskSchedulerPolicy* policy,
-	const std::vector<WorkStealingTaskQueuePtr>& task_work_queues) {
+	const Vector<WorkStealingTaskQueuePtr>& task_work_queues) {
 	static constexpr size_t K = 4;
 
 	for (size_t n = 0; n < max_thread * K; ++n) {
@@ -54,7 +54,7 @@ void ContinuationStealPolicy::SubmitJob(Task&& task,
 	task_pool->Enqueue(task);
 }
 
-size_t RoundRobinSchedulerPolicy::ScheduleNext(size_t /*cur_index*/, const std::vector<WorkStealingTaskQueuePtr>& /*work_queues*/) {
+size_t RoundRobinSchedulerPolicy::ScheduleNext(size_t /*cur_index*/, const Vector<WorkStealingTaskQueuePtr>& /*work_queues*/) {
 	static std::atomic<int32_t> index{ -1 };
 	return (index.fetch_add(1, std::memory_order_relaxed) + 1) % max_thread_;
 }
@@ -67,7 +67,7 @@ void RandomSchedulerPolicy::SetMaxThread(size_t max_thread) {
 	prngs_.resize(max_thread);
 }
 
-size_t RandomSchedulerPolicy::ScheduleNext(size_t cur_index, const std::vector<WorkStealingTaskQueuePtr>& /*work_queues*/) {
+size_t RandomSchedulerPolicy::ScheduleNext(size_t cur_index, const Vector<WorkStealingTaskQueuePtr>& /*work_queues*/) {
 	size_t random_index = cur_index;
 
 	auto& prng = prngs_[cur_index];
@@ -83,7 +83,7 @@ size_t RandomSchedulerPolicy::ScheduleNext(size_t cur_index, const std::vector<W
 void LeastLoadSchedulerPolicy::SetMaxThread(size_t /*max_thread*/) {
 }
 
-size_t LeastLoadSchedulerPolicy::ScheduleNext(size_t /*cur_index*/, const std::vector<WorkStealingTaskQueuePtr>& work_queues) {
+size_t LeastLoadSchedulerPolicy::ScheduleNext(size_t /*cur_index*/, const Vector<WorkStealingTaskQueuePtr>& work_queues) {
 	size_t min_wq_size_index = 0;
 	size_t min_wq_size = 0;
 	size_t i = 0;

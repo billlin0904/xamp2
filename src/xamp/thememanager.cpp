@@ -649,6 +649,14 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
     }
     )"));
 
+    ui.tableLabel->setStyleSheet(Q_STR(R"(
+    QLabel#tableLabel {
+    border: none;
+    background: transparent;
+	color: gray;
+    }
+    )"));
+
     ui.searchLineEdit->setClearButtonEnabled(true);
     if (theme_color_ == ThemeColor::DARK_THEME) {
         ui.titleLabel->setStyleSheet(Q_TEXT(R"(

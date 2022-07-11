@@ -18,10 +18,11 @@
 #include <base/dsdsampleformat.h>
 #include <base/vmmemlock.h>
 
-#include <stream/filestream.h>
+#include <stream/api.h>
 
 #include <output_device/deviceinfo.h>
 
+#include <player/api.h>
 #include <player/playstate.h>
 
 using namespace xamp::base;

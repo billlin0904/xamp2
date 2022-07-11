@@ -192,6 +192,7 @@
     <ClCompile Include="widget\database.cpp" />
     <ClCompile Include="widget\discordnotify.cpp" />
     <ClCompile Include="widget\doubleslider.cpp" />
+    <ClCompile Include="widget\drivewatcher.cpp" />
     <ClCompile Include="widget\equalizerdialog.cpp" />
     <ClCompile Include="widget\filesystemmodel.cpp" />
     <ClCompile Include="widget\filesystemviewpage.cpp" />
@@ -269,8 +270,11 @@
     <ClInclude Include="widget\colorthief.h" />
     <QtMoc Include="widget\spectrumwidget.h" />
     <QtMoc Include="widget\filesystemviewpage.h" />
+    <QtMoc Include="widget\drivewatcher.h" />
+    <ClInclude Include="widget\driveinfo.h" />
     <ClInclude Include="widget\filesystemmodel.h" />
     <QtMoc Include="widget\processindicator.h" />
+    <ClInclude Include="widget\settingnames.h" />
     <ClInclude Include="widget\smoothcurvegenerator2.h" />
     <ClInclude Include="widget\stackblur.h" />
     <QtMoc Include="widget\tooltips.h" />

@@ -15,12 +15,12 @@
 namespace xamp::base {
 
 AutoRegisterLoggerName::AutoRegisterLoggerName(std::string_view s)
-	: index(Singleton<std::vector<std::string_view>>::GetInstance().size()) {
-	Singleton<std::vector<std::string_view>>::GetInstance().push_back(s);
+	: index(Singleton<Vector<std::string_view>>::GetInstance().size()) {
+	Singleton<Vector<std::string_view>>::GetInstance().push_back(s);
 }
 
 std::string_view AutoRegisterLoggerName::GetLoggerName() const {
-    return Singleton<std::vector<std::string_view>>::GetInstance()[index];
+    return Singleton<Vector<std::string_view>>::GetInstance()[index];
 }
 
 static void CreateLogsDir() {
@@ -31,8 +31,8 @@ static void CreateLogsDir() {
 	}
 }
 
-const std::vector<std::string_view> & Logger::GetDefaultLoggerName() {
-    return Singleton<std::vector<std::string_view>>::GetInstance();
+const Vector<std::string_view> & Logger::GetDefaultLoggerName() {
+    return Singleton<Vector<std::string_view>>::GetInstance();
 }
 
 Logger & Logger::GetInstance() noexcept {    
