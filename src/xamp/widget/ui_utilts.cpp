@@ -111,10 +111,10 @@ std::tuple<bool, QMessageBox::StandardButton> showDontShowAgainDialog(bool show_
     return { is_show_agin, QMessageBox::Yes };
 }
 
-void centerParent(QWidget* dialog) {
-    if (dialog->parent() && dialog->parent()->isWidgetType()) {
-        dialog->move((dialog->parentWidget()->width() - dialog->width()) / 2,
-            (dialog->parentWidget()->height() - dialog->height()) / 2);
+void centerParent(QWidget* widget) {
+    if (widget->parent() && widget->parent()->isWidgetType()) {
+        widget->move((widget->parentWidget()->width() - widget->width()) / 2,
+            (widget->parentWidget()->height() - widget->height()) / 2);
     }
 }
 
@@ -125,3 +125,12 @@ void centerDesktop(QWidget* widget) {
     widget->move(rect.center() - widget->rect().center());
 }
 
+QString getFileExtensions() {
+    QString exts(Q_TEXT("("));
+    for (const auto& file_ext : GetSupportFileExtensions()) {
+        exts += Q_TEXT("*") + QString::fromStdString(file_ext);
+        exts += Q_TEXT(" ");
+    }
+    exts += Q_TEXT(")");
+    return exts;
+}

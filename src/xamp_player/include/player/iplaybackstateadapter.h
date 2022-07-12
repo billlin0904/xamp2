@@ -19,7 +19,7 @@ public:
 
 	virtual void OnError(Exception const & ex) = 0;
 
-	virtual void OnOutputFormatChanged(const AudioFormat output_format, size_t buffer_size) = 0;
+	virtual void OutputFormatChanged(const AudioFormat output_format, size_t buffer_size) = 0;
 
 	virtual void OnStateChanged(PlayerState play_state) = 0;
 

@@ -34,4 +34,6 @@ std::tuple<bool, QMessageBox::StandardButton> showDontShowAgainDialog(bool show_
 
 void centerDesktop(QWidget* widget);
 
-void centerParent(QWidget* dialog);
+void centerParent(QWidget* widget);
+
+QString getFileExtensions();

@@ -195,6 +195,7 @@ private:
     SharedFuture<void> stream_task_;
     SpscQueue<PlayerAction> action_queue_;
     AlignPtr<IDSPManager> dsp_manager_;
+    AlignPtr<IAudioProcessor> fader_;
     std::shared_ptr<spdlog::logger> logger_;
 };
 

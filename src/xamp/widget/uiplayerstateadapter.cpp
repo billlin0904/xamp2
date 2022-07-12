@@ -32,7 +32,7 @@ void UIPlayerStateAdapter::OnVolumeChanged(float vol) {
     emit volumeChanged(vol);
 }
 
-void UIPlayerStateAdapter::OnOutputFormatChanged(const AudioFormat output_format, size_t buffer_size) {
+void UIPlayerStateAdapter::OutputFormatChanged(const AudioFormat output_format, size_t buffer_size) {
 	size_t channel_sample_rate = output_format.GetSampleRate() / kMaxChannel;
 	size_t frame_size = buffer_size * kMaxChannel;
 	size_t shift_size = buffer_size * 0.75; //channel_sample_rate * 0.01;

@@ -292,10 +292,7 @@ void AudioPlayer::FadeOut() {
 
     Buffer<float> buffer(sample_count);
     size_t num_filled_count = 0;
-
-    auto fader = DspComponentFactory::MakeFader();
-    fader->Start(output_format_.GetSampleRate());
-    dynamic_cast<BassFader*>(fader.get())->Init(1, 0, fdade_time);
+    dynamic_cast<BassFader*>(fader_.get())->Init(1, 0, fdade_time);
 
     if (!fifo_.TryRead(reinterpret_cast<int8_t*>(buffer.data()), buffer.GetByteSize(), num_filled_count)) {
         return;
@@ -303,7 +300,7 @@ void AudioPlayer::FadeOut() {
 
     Buffer<float> fade_buf(sample_count);
     BufferRef<float> buf_ref(fade_buf);
-    fader->Process(buffer.data(), buffer.size(), buf_ref);
+    fader_->Process(buffer.data(), buffer.size(), buf_ref);
 
     fifo_.Clear();
     fifo_.TryWrite(reinterpret_cast<int8_t*>(buf_ref.data()), buf_ref.GetByteSize());
@@ -718,7 +715,7 @@ void AudioPlayer::Play() {
     }
 
     if (const auto state = state_adapter_.lock()) {
-        state->OnOutputFormatChanged(output_format_, device_->GetBufferSize());
+        state->OutputFormatChanged(output_format_, device_->GetBufferSize());
     }
 
     is_fade_out_ = false;
@@ -885,6 +882,8 @@ void AudioPlayer::PrepareToPlay() {
     BufferStream(0);
 	sample_end_time_ = stream_->GetDuration();
     XAMP_LOG_D(logger_, "Stream end time: {:.2f} sec.", sample_end_time_);
+    fader_ = DspComponentFactory::MakeFader();
+    fader_->Start(output_format_.GetSampleRate());
 }
 
 }

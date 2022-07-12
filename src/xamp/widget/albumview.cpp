@@ -32,6 +32,7 @@
 #include <widget/str_utilts.h>
 #include <widget/image_utiltis.h>
 #include <widget/pixmapcache.h>
+#include <widget/ui_utilts.h>
 #include <widget/albumview.h>
 
 using namespace xamp::stream;
@@ -371,16 +372,10 @@ AlbumView::AlbumView(QWidget* parent)
         action_map.addSeparator();
 
         (void)action_map.addAction(tr("Load local file"), [this]() {
-            QString exts(Q_TEXT("("));
-            for (const auto & file_ext : GetSupportFileExtensions()) {
-                exts += Q_TEXT("*") + QString::fromStdString(file_ext);
-                exts += Q_TEXT(" ");
-            }
-            exts += Q_TEXT(")");
             const auto file_name = QFileDialog::getOpenFileName(this,
                 tr("Open file"),
                 AppSettings::getMyMusicFolderPath(),
-                tr("Music Files ") + exts,
+                tr("Music Files ") + getFileExtensions(),
                 nullptr);
             if (file_name.isEmpty()) {
                 return;
