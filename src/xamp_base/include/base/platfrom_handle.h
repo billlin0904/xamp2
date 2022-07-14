@@ -6,28 +6,10 @@
 #pragma once
 
 #include <base/base.h>
-#include <base/logger.h>
+#include <base/str_utilts.h>
 
-namespace xamp::base {
-
-class XAMP_BASE_API VmMemLock final {
-public:
-	VmMemLock() noexcept;
-
-	~VmMemLock() noexcept;
-
-	XAMP_DISABLE_COPY(VmMemLock)
-
-	void Lock(void* address, size_t size);
-
-	void UnLock() noexcept;
-	
-	VmMemLock& operator=(VmMemLock&& other) noexcept;
-private:
-	void* address_{ nullptr };
-	size_t size_{ 0 };
-	std::shared_ptr<LoggerWriter> logger_;
-};
-
-}
-
+#ifdef XAMP_OS_WIN
+#include <base/windows_handle.h>
+#else
+#include <base/posix_handle.h>
+#endif

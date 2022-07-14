@@ -7,17 +7,20 @@
 #include <base/platform.h>
 #include <base/assert.h>
 #include <base/waitabletimer.h>
+#include <base/exception.h>
+
+#include <base/platfrom_handle.h>
 
 #ifdef XAMP_OS_WIN
 #include <rpcnterr.h>
 #include <rpc.h>
-#include <base/windows_handle.h>
 #include <wincrypt.h>
 #else
 #include <uuid/uuid.h>
 #include <mach/mach.h>
 #include <mach/mach_time.h>
 #include <mach/thread_policy.h>
+#include <sys/mman.h>
 #endif
 
 #ifdef XAMP_OS_MAC

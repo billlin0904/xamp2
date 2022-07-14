@@ -78,6 +78,8 @@ public slots:
 
 	void drivesChanges(const QList<DriveInfo>& drive_infos);
 
+	void onClickedAlbum(const QString& album, int32_t album_id);
+
 private:
     void stopPlayedClicked() override;
 
@@ -165,9 +167,6 @@ private:
 
 	bool is_seeking_;
 	PlayerOrder order_;
-	QModelIndex play_index_;
-	DeviceInfo device_info_;
-    PlayListEntity current_entity_;
 	LrcPage* lrc_page_;
 	PlaylistPage* playlist_page_;
 	PlaylistPage* podcast_page_;
@@ -181,18 +180,21 @@ private:
 	AboutPage* about_page_;
     QMenu* tray_icon_menu_;
     QSystemTrayIcon* tray_icon_;
+	QAction* search_action_;
+	QAction* dark_mode_action_;
+	QAction* light_mode_action_;
+	QMenu* theme_menu_;
+	IXWindow* top_window_;
+	DriveWatcher* drive_watcher_;
+	ToolTipsFilter* tool_tips_filter_;
+	QModelIndex play_index_;
+	DeviceInfo device_info_;
+	PlayListEntity current_entity_;
     QStack<int32_t> stack_page_id_;
     BackgroundWorker background_worker_;
     QThread background_thread_;
 	std::shared_ptr<UIPlayerStateAdapter> state_adapter_;
 	std::shared_ptr<IAudioPlayer> player_;
     DicordNotify discord_notify_;
-	QAction* search_action_;
-	QAction* dark_mode_action_;
-	QAction* light_mode_action_;
-	QMenu* theme_menu_;
-    IXWindow *top_window_;
-	DriveWatcher* drive_watcher_;
-	ToolTipsFilter* tool_tips_filter_;
     Ui::XampWindow ui_;
 };

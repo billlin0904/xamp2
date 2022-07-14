@@ -8,6 +8,8 @@
 #include <base/math.h>
 #include <base/audioformat.h>
 #include <base/metadata.h>
+#include <base/dll.h>
+#include <base/platfrom_handle.h>
 #include <player/ebur128replaygain_scanner.h>
 
 namespace xamp::player {

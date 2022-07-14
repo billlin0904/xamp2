@@ -164,6 +164,8 @@
     <ClInclude Include="include\base\enum.h" />
     <ClInclude Include="include\base\fastconditionvariable.h" />
     <ClInclude Include="include\base\fastmutex.h" />
+    <ClInclude Include="include\base\logger_impl.h" />
+    <ClInclude Include="include\base\platfrom_handle.h" />
     <ClInclude Include="include\base\itaskschedulerpolicy.h" />
     <ClInclude Include="include\base\ithreadpool.h" />
     <ClInclude Include="include\base\lifoqueue.h" />
@@ -219,7 +221,7 @@
     <ClCompile Include="src\shared_singleton.cpp" />
     <ClCompile Include="src\stl.cpp" />
     <ClCompile Include="src\uuid.cpp" />
-    <ClCompile Include="src\logger.cpp" />
+    <ClCompile Include="src\logger_impl.cpp" />
     <ClCompile Include="src\memory.cpp" />
     <ClCompile Include="src\metadata.cpp" />
     <ClCompile Include="src\platform.cpp" />

@@ -1,5 +1,4 @@
-#include <base/threadpool.h>
-
+#include <QPainter>
 #include <QBuffer>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsBlurEffect>

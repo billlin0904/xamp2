@@ -1,6 +1,7 @@
 #include <stream/basslib.h>
 #include <base/memory.h>
 #include <base/buffer.h>
+#include <base/logger_impl.h>
 #include <stream/bassfader.h>
 
 namespace xamp::stream {
@@ -63,7 +64,7 @@ public:
 private:
     BassStreamHandle stream_;
     ::BASS_FX_VOLUME_PARAM volume_param_{0};
-    std::shared_ptr<spdlog::logger> logger_;
+    std::shared_ptr<LoggerWriter> logger_;
 };
 
 BassFader::BassFader()

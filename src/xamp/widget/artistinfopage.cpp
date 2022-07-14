@@ -76,11 +76,11 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 	tracks_->setFont(f);
 	tracks_->setStyleSheet(Q_TEXT("background-color: transparent;"));
 
-	durtions_ = new QLabel(this);
-	durtions_->setFixedSize(QSize(16777215, 64));
-	durtions_->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
-	durtions_->setFont(f);
-	durtions_->setStyleSheet(Q_TEXT("background-color: transparent;"));
+	durations_ = new QLabel(this);
+	durations_->setFixedSize(QSize(16777215, 64));
+	durations_->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
+	durations_->setFont(f);
+	durations_->setStyleSheet(Q_TEXT("background-color: transparent;"));
 
 	auto* artist_layout = new QHBoxLayout();
 	artist_layout->setSpacing(0);
@@ -88,7 +88,7 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 
 	artist_layout->addWidget(albums_);
 	artist_layout->addWidget(tracks_);
-	artist_layout->addWidget(durtions_);
+	artist_layout->addWidget(durations_);
 	artist_layout->setStretch(0, 0);
 	artist_layout->setStretch(1, 2);
 	artist_layout->setStretch(2, 2);	
@@ -100,7 +100,8 @@ ArtistInfoPage::ArtistInfoPage(QWidget* parent)
 	child_layout->addWidget(artist_);
 
 	album_view_ = new AlbumView(this);
-
+	album_view_->enablePage(false);
+	
 	default_layout->addLayout(child_layout);
 	default_layout->addLayout(artist_layout);
 	default_layout->addWidget(album_view_);	
@@ -155,5 +156,5 @@ void ArtistInfoPage::setTracks(int32_t tracks) {
 }
 
 void ArtistInfoPage::setTotalDuration(double durations) {
-	durtions_->setText(msToString(durations));
+	durations_->setText(msToString(durations));
 }

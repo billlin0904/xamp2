@@ -5,7 +5,6 @@
 
 #pragma once
 
-#include <vector>
 #include <base/align_ptr.h>
 #include <player/player.h>
 

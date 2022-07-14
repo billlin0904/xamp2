@@ -7,7 +7,7 @@
 
 #include <base/logger.h>
 #include <base/scopeguard.h>
-
+#include <base/logger_impl.h>
 #include "thememanager.h"
 #include "appsettings.h"
 

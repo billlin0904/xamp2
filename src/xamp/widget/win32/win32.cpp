@@ -1,8 +1,8 @@
 #include <QObject>
+#include <base/singleton.h>
+#include <base/platfrom_handle.h>
 
 #if defined(Q_OS_WIN)
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
 #include <dwmapi.h>
 #include <unknwn.h>
 #endif

@@ -1,5 +1,5 @@
 #include <thread>
-#include <base/windows_handle.h>
+#include <base/platfrom_handle.h>
 #include <base/exception.h>
 #include <base/platform.h>
 #include <base/waitabletimer.h>

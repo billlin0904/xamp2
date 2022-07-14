@@ -1,7 +1,7 @@
 #include <QLabel>
 #include <QHBoxLayout>
 #include <QGraphicsDropShadowEffect>
-
+#include <QPainter>
 #include "thememanager.h"
 
 #include <widget/spectrumwidget.h>

@@ -5,7 +5,6 @@
 
 #pragma once
 
-#include <QPainter>
 #include <QPixmap>
 
 namespace Pixmap {

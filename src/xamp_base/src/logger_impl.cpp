@@ -2,6 +2,9 @@
 #include <filesystem>
 #include <vector>
 
+#include <spdlog/spdlog.h>
+#include <spdlog/fmt/ostr.h>
+
 #include <spdlog/async.h>
 #include <spdlog/sinks/rotating_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
@@ -10,7 +13,7 @@
 #include <base/platform.h>
 #include <base/fastmutex.h>
 #include <base/str_utilts.h>
-#include <base/logger.h>
+#include <base/logger_impl.h>
 
 namespace xamp::base {
 
@@ -35,6 +38,10 @@ const Vector<std::string_view> & Logger::GetDefaultLoggerName() {
     return Singleton<Vector<std::string_view>>::GetInstance();
 }
 
+void Logger::SetLevel(LogLevel level) {
+	spdlog::get(kXampLoggerName)->set_level(static_cast<spdlog::level::level_enum>(level));
+}
+
 Logger & Logger::GetInstance() noexcept {    
     return Singleton<Logger>::GetInstance();
 }
@@ -43,22 +50,37 @@ Logger& Logger::Startup() {
     GetLogger(kXampLoggerName);
 
 	if (default_logger_ != nullptr) {
-		default_logger_->debug("=:==:==:==:==:= Logger init success. =:==:==:==:==:=");
+		default_logger_->LogDebug("{}", "=:==:==:==:==:= Logger init success. =:==:==:==:==:=");
 	}
 	return *this;
 }
 
 void Logger::Shutdown() {
 	if (default_logger_ != nullptr) {
-		default_logger_->debug("=:==:==:==:==:= Logger shutdwon =:==:==:==:==:=");
+		default_logger_->LogDebug("=:==:==:==:==:= Logger shutdown =:==:==:==:==:=");
 	}
 	spdlog::shutdown();
 }
 
-std::shared_ptr<spdlog::logger> Logger::GetLogger(const std::string &name) {
+LoggerWriter::LoggerWriter(const std::shared_ptr<spdlog::logger>& logger)
+	: logger_(logger) {
+}
+
+void LoggerWriter::LogMsg(LogLevel level, const char* filename, int32_t line, const char* func, const std::string& msg) const {
+	logger_->log(
+		spdlog::source_loc{ filename, line, func },
+		static_cast<spdlog::level::level_enum>(level),
+		msg);
+}
+
+void LoggerWriter::SetLevel(LogLevel level) {
+	logger_->set_level(static_cast<spdlog::level::level_enum>(level));
+}
+
+std::shared_ptr<LoggerWriter> Logger::GetLogger(const std::string &name) {
 	auto logger = spdlog::get(name);
 	if (logger != nullptr) {
-		return logger;
+		return std::make_shared<LoggerWriter>(logger);
 	}
 
 	logger = std::make_shared<spdlog::logger>(name,
@@ -72,10 +94,10 @@ std::shared_ptr<spdlog::logger> Logger::GetLogger(const std::string &name) {
 	spdlog::register_logger(logger);
 
     if (kXampLoggerName == name) {
-		default_logger_ = logger;
+		default_logger_ = std::make_shared<LoggerWriter>(logger);
 	}
 
-	return logger;
+	return std::make_shared<LoggerWriter>(logger);
 }
 
 Logger& Logger::AddConsoleLogger() {

@@ -1,13 +1,7 @@
 #include <base/base.h>
 #include <filesystem>
 
-#ifdef XAMP_OS_WIN
-#include <base/windows_handle.h>
-#else
-#include <base/posix_handle.h>
-#include <base/str_utilts.h>
-#endif
-
+#include <base/platfrom_handle.h>
 #include <base/exception.h>
 #include <base/unique_handle.h>
 #include <base/memory_mapped_file.h>

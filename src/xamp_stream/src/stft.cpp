@@ -1,5 +1,6 @@
 #include <base/memory.h>
 #include <base/assert.h>
+#include <base/audioformat.h>
 #include <stream/stft.h>
 
 namespace xamp::stream {

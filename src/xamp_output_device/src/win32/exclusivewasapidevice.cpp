@@ -6,6 +6,7 @@
 #include <base/str_utilts.h>
 #include <base/waitabletimer.h>
 #include <base/stopwatch.h>
+#include <base/logger_impl.h>
 
 #include <output_device/iaudiocallback.h>
 #include <output_device/win32/mmcss.h>

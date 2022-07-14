@@ -227,7 +227,7 @@ public:
 	double pass_band_;
 	double stop_band_;
 	SoxrHandle handle_;
-	std::shared_ptr<spdlog::logger> logger_;
+	std::shared_ptr<LoggerWriter> logger_;
 };
 
 const std::string_view SoxrSampleRateConverter::VERSION = "Soxr " SOXR_THIS_VERSION_STR;

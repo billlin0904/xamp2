@@ -5,18 +5,11 @@
 
 #pragma once
 
-#include <cassert>
 #include <type_traits>
 #include <string_view>
 
 #include <base/base.h>
-#include <base/exception.h>
-
-#ifdef XAMP_OS_WIN
-#include <base/windows_handle.h>
-#else
-#include <base/posix_handle.h>
-#endif
+#include <base/platfrom_handle.h>
 
 namespace xamp::base {
 
@@ -25,6 +18,8 @@ XAMP_BASE_API ModuleHandle LoadModule(const std::string_view& file_name);
 XAMP_BASE_API Path GetModulePath(const ModuleHandle &module);
 
 XAMP_BASE_API void* LoadModuleSymbol(const ModuleHandle& dll, const std::string_view & name);
+
+XAMP_BASE_API bool PrefetchModule(ModuleHandle const& module);
 
 template <typename T, typename U = std::enable_if_t<std::is_function_v<T>>>
 class XAMP_BASE_API_ONLY_EXPORT DllFunction final {

@@ -67,7 +67,7 @@ public:
 private:
     BassStreamHandle stream_;
     ::BASS_BFX_COMPRESSOR2 compressord_{0};
-    std::shared_ptr<spdlog::logger> logger_;
+    std::shared_ptr<LoggerWriter> logger_;
 };
 
 BassCompressor::BassCompressor()

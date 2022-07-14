@@ -1,4 +1,5 @@
 #include <base/logger.h>
+#include <base/exception.h>
 #include <stream/fftwlib.h>
 
 namespace xamp::stream {

@@ -1,9 +1,4 @@
 #include <base/logger.h>
-#ifdef XAMP_OS_WIN
-#include <base/windows_handle.h>
-#else
-#include <sys/mman.h>
-#endif
 #include <base/str_utilts.h>
 #include <base/stacktrace.h>
 #include <base/exception.h>

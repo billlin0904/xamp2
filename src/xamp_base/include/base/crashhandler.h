@@ -8,9 +8,7 @@
 #include <base/base.h>
 #include <base/fastmutex.h>
 
-#ifdef XAMP_OS_WIN
-#include <base/windows_handle.h>
-#endif
+#include <base/platfrom_handle.h>
 
 namespace xamp::base {
 

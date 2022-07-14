@@ -10,7 +10,7 @@
 #ifdef XAMP_OS_WIN
 
 #include <base/exception.h>
-#include <base/windows_handle.h>
+#include <base/platfrom_handle.h>
 #include <output_device/output_device.h>
 
 namespace xamp::output_device::win32 {

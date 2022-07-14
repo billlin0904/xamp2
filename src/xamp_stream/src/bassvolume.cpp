@@ -55,7 +55,7 @@ private:
     BassStreamHandle stream_;
     HFX volume_handle_;
     ::BASS_BFX_VOLUME volume_{0};
-    std::shared_ptr<spdlog::logger> logger_;
+    std::shared_ptr<LoggerWriter> logger_;
 };
 
 BassVolume::BassVolume()

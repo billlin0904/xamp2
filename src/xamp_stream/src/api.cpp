@@ -18,6 +18,7 @@
 #include <stream/fftwlib.h>
 #include <stream/r8brainlib.h>
 #include <stream/soxrlib.h>
+#include <base/logger_impl.h>
 #include <stream/api.h>
 
 namespace xamp::stream {

@@ -2,16 +2,13 @@
 
 #include <QPainter>
 #include <QScrollBar>
-#include <QApplication>
 #include <QVBoxLayout>
 #include <QPushButton>
 #include <QSpacerItem>
-#include <QHeaderView>
 #include <QClipboard>
 #include <QStandardPaths>
 #include <QFileDialog>
 #include <QSqlQuery>
-#include <QTimer>
 
 #include <stream/api.h>
 
@@ -19,7 +16,6 @@
 #include <widget/database.h>
 #include <widget/playlisttableview.h>
 #include <widget/actionmap.h>
-#include <widget/clickablelabel.h>
 #include <widget/playlistpage.h>
 
 #if defined(Q_OS_WIN)
@@ -33,9 +29,17 @@
 #include <widget/image_utiltis.h>
 #include <widget/pixmapcache.h>
 #include <widget/ui_utilts.h>
+#include <widget/widget_shared.h>
 #include <widget/albumview.h>
 
-using namespace xamp::stream;
+enum {
+    INDEX_ALBUM = 0,
+    INDEX_COVER,
+    INDEX_ARTIST,
+    INDEX_ALBUM_ID,
+    INDEX_ARTIST_ID,
+    INDEX_ARTIST_COVER_ID
+};
 
 AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
     : QStyledItemDelegate(parent)
@@ -118,7 +122,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
 
     if (option.state & QStyle::State_MouseOver) {
         QColor color = Qt::black;
-        color.setAlpha(95);
+        color.setAlpha(98);
         painter->fillRect(cover_rect, QBrush(color));
 
         constexpr auto icon_size = 48;
@@ -198,11 +202,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 }
 
 void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id) {
-    if (last_album_id_ == album_id) {
-        return;
-    }
-
-    last_album_id_ = album_id;
+    page_->show();
 
     page_->playlist()->removeAll();
     Vector<PlayListEntity> entities;
@@ -256,6 +256,7 @@ AlbumView::AlbumView(QWidget* parent)
     setAutoScroll(false);
     viewport()->setAttribute(Qt::WA_StaticContents);
     setMouseTracking(true);
+    
     page_->hide();
 
     (void)QObject::connect(page_,
@@ -264,12 +265,12 @@ AlbumView::AlbumView(QWidget* parent)
                             &AlbumView::clickedArtist);
 
     (void)QObject::connect(styled_delegate_, &AlbumViewStyledDelegate::enterAlbumView, [this](auto index) {
-        auto album = getIndexValue(index, 0).toString();
-        auto cover_id = getIndexValue(index, 1).toString();
-        auto artist = getIndexValue(index, 2).toString();
-        auto album_id = getIndexValue(index, 3).toInt();
-        auto artist_id = getIndexValue(index, 4).toInt();
-        auto artist_cover_id = getIndexValue(index, 5).toString();
+        auto album = getIndexValue(index, INDEX_ALBUM).toString();
+        auto cover_id = getIndexValue(index, INDEX_COVER).toString();
+        auto artist = getIndexValue(index, INDEX_ARTIST).toString();
+        auto album_id = getIndexValue(index, INDEX_ALBUM_ID).toInt();
+        auto artist_id = getIndexValue(index, INDEX_ARTIST_ID).toInt();
+        auto artist_cover_id = getIndexValue(index, INDEX_ARTIST_COVER_ID).toString();
 
         const auto list_view_rect = this->rect();
         page_->setPlaylistMusic(album, album_id);
@@ -277,7 +278,10 @@ AlbumView::AlbumView(QWidget* parent)
         page_->move(QPoint(list_view_rect.x() + 5, 3));
         qTheme.setBackgroundColor(page_);
 
-        page_->show();
+        if (enable_page_) {
+            page_->show();
+        }
+        emit clickedAlbum(album, album_id);
         });
 
     (void)QObject::connect(verticalScrollBar(), &QScrollBar::valueChanged, [this](auto) {
@@ -307,11 +311,11 @@ AlbumView::AlbumView(QWidget* parent)
         };
 
         if (index.isValid()) {
-            auto album = getIndexValue(index, 0).toString();
-            auto artist = getIndexValue(index, 2).toString();
-            auto album_id = getIndexValue(index, 3).toInt();
-            auto artist_id = getIndexValue(index, 4).toInt();
-            auto artist_cover_id = getIndexValue(index, 5).toString();
+            auto album = getIndexValue(index, INDEX_ALBUM).toString();
+            auto artist = getIndexValue(index, INDEX_ARTIST).toString();
+            auto album_id = getIndexValue(index, INDEX_ALBUM_ID).toInt();
+            auto artist_id = getIndexValue(index, INDEX_ARTIST_ID).toInt();
+            auto artist_cover_id = getIndexValue(index, INDEX_ARTIST_COVER_ID).toString();
 
             action_map.addAction(tr("Add album to playlist"), [=]() {
                 Vector<PlayListEntity> entities;
@@ -400,6 +404,10 @@ AlbumView::AlbumView(QWidget* parent)
     setStyleSheet(Q_TEXT("background-color: transparent"));
 
     update();
+}
+
+void AlbumView::enablePage(bool enable) {
+    enable_page_ = enable;
 }
 
 void AlbumView::onThemeChanged(QColor backgroundColor, QColor color) {

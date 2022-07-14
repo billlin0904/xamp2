@@ -3,10 +3,7 @@
 
 #include <base/base.h>
 
-#ifdef XAMP_OS_WIN
-#include <base/windows_handle.h>
-#include <base/str_utilts.h>
-#endif
+#include <base/platfrom_handle.h>
 
 #include <base/stacktrace.h>
 #include <base/stl.h>

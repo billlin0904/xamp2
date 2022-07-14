@@ -10,15 +10,14 @@
 #include <QFileSystemWatcher>
 #include <QtMath>
 #include <QSimpleUpdater.h>
-#include <QRadioButton>
 
 #include <base/scopeguard.h>
 #include <base/str_utilts.h>
+#include <base/logger_impl.h>
 
 #include <stream/podcastcache.h>
 #include <stream/soxresampler.h>
 #include <stream/r8brainresampler.h>
-#include <stream/pcm2dsdconverter.h>
 #include <stream/idspmanager.h>
 #include <stream/api.h>
 
@@ -61,8 +60,6 @@
 #include "thememanager.h"
 #include "version.h"
 #include "xamp.h"
-
-#include <QDateTime>
 
 enum TabIndex {
     TAB_ALBUM = 0,
@@ -130,10 +127,10 @@ Xamp::Xamp()
 	, file_system_view_page_(nullptr)
 	, tray_icon_menu_(nullptr)
     , tray_icon_(nullptr)
+    , drive_watcher_(new DriveWatcher(this))
     , state_adapter_(std::make_shared<UIPlayerStateAdapter>())
     , player_(MakeAudioPlayer(state_adapter_))
-    , discord_notify_(this)
-	, drive_watcher_(new DriveWatcher(this)) {
+	, discord_notify_(this) {
     ui_.setupUi(this);
 }
 
@@ -1334,6 +1331,11 @@ void Xamp::addPlaylistItem(const Vector<int32_t>& music_ids, const Vector<PlayLi
     playlist_view->updateData();
 }
 
+void Xamp::onClickedAlbum(const QString& album, int32_t album_id) {
+    ui_.currentView->setCurrentWidget(album_artist_page_);
+    album_artist_page_->album()->albumViewPage()->setPlaylistMusic(album, album_id);
+}
+
 void Xamp::setPlaylistPageCover(const QPixmap* cover, PlaylistPage* page) {
     if (!cover) {
         cover = &qTheme.pixmap().unknownCover();
@@ -1495,6 +1497,11 @@ void Xamp::initialPlaylist() {
         &AlbumView::clickedArtist,
         this,
         &Xamp::onArtistIdChanged);
+
+    (void)QObject::connect(artist_info_page_->album(),
+        &AlbumView::clickedAlbum,
+        this,
+        &Xamp::onClickedAlbum);
 
     (void)QObject::connect(this,
         &Xamp::themeChanged,

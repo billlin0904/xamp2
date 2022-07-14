@@ -1,3 +1,5 @@
+#include <base/exception.h>
+#include <base/memory_mapped_file.h>
 #include <base/dll.h>
 
 namespace xamp::base {
@@ -24,6 +26,13 @@ void* LoadModuleSymbol(const ModuleHandle& dll, const std::string_view& name) {
     }
     return func;
 }
+
+bool PrefetchModule(ModuleHandle const& module) {
+    const auto path = GetModulePath(module);
+    MemoryMappedFile file;
+    file.Open(path.wstring(), true);
+    return PrefetchMemory(const_cast<void*>(file.GetData()), file.GetLength());
+}
 #else
 Path GetModulePath(const ModuleHandle& module) {
     return "";
@@ -43,6 +52,10 @@ void* LoadModuleSymbol(const ModuleHandle& dll, const std::string_view& name) {
          throw NotFoundDllExportFuncException(name);
      }
      return func;
+}
+
+bool PrefetchModule(ModuleHandle const& module) {
+    return true;
 }
 #endif
 

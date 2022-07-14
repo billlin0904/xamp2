@@ -1287,18 +1287,22 @@ QComboBox::indicator:alternate {
   background: #FAFAFA;
 }
 
+QComboBox::item {
+  /* Remove to fix #282, #285 and MR #288*/
+  /*&:checked {
+            font-weight: bold;
+        }
+
+        &:selected {
+            border: 0px solid transparent;
+        }
+        */
+}
+
 QComboBox::item:alternate {
   background: #FAFAFA;
 }
-/*
-QComboBox::item:checked {
-  font-weight: bold;
-}
 
-QComboBox::item:selected {
-  border: 0px solid transparent;
-}
-*/
 QComboBox::drop-down {
   subcontrol-origin: padding;
   subcontrol-position: top right;
@@ -1321,7 +1325,6 @@ QComboBox::down-arrow:on, QComboBox::down-arrow:hover, QComboBox::down-arrow:foc
 https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qslider
 
 --------------------------------------------------------------------------- */
-
 QSlider:disabled {
   background: #FAFAFA;
 }
@@ -1896,14 +1899,14 @@ QColumnView:selected {
   background-color: #9FCBFF;
   color: #C9CDD0;
 }
-/*
+
 QTreeView:focus,
 QListView:focus,
 QTableView:focus,
 QColumnView:focus {
   border: 1px solid #73C7FF;
 }
-*/
+
 QTreeView::item:pressed,
 QListView::item:pressed,
 QTableView::item:pressed,

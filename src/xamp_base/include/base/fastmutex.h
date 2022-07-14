@@ -8,7 +8,7 @@
 #include <ctime>
 
 #include <mutex>
-#include <base/windows_handle.h>
+#include <base/platfrom_handle.h>
 #include <base/exception.h>
 
 namespace xamp::base {

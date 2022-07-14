@@ -7,9 +7,7 @@
 
 #include <QListView>
 #include <QSqlQueryModel>
-#include <QSqlRelationalTableModel>
 #include <QStyledItemDelegate>
-#include <QTableView>
 
 #include <widget/widget_shared.h>
 
@@ -63,7 +61,6 @@ signals:
 	void clickedArtist(const QString& artist, const QString& cover_id, int32_t artist_id);
 
 private:
-	int32_t last_album_id_{ -1 };
 	ClickableLabel* artist_;
 	PlaylistPage* page_;
 };
@@ -79,14 +76,19 @@ public:
 		return page_;
 	}
 
+	void enablePage(bool enable);
+
 signals:
     void addPlaylist(const Vector<int32_t> &music_ids, const Vector<PlayListEntity> &entities);
 
 	void clickedArtist(const QString& artist, const QString& cover_id, int32_t artist_id);
 
+	void clickedAlbum(const QString& album, int32_t album_id);
+
 	void removeAll();
 
 	void loadCompleted();
+
 public slots:
 	void refreshOnece();
 
@@ -104,6 +106,7 @@ public slots:
 
     void processMeatadata(int64_t dir_last_write_time, const ForwardList<Metadata> &medata);
 private:
+	bool enable_page_{true};
 	AlbumViewPage* page_;
 	AlbumViewStyledDelegate* styled_delegate_;
 	QSqlQueryModel model_;

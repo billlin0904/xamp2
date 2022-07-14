@@ -1,4 +1,5 @@
 #include <base/logger.h>
+#include <base/exception.h>
 #include <stream/r8brainlib.h>
 
 #ifdef XAMP_OS_WIN

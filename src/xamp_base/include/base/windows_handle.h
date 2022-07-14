@@ -8,6 +8,8 @@
 #include <base/base.h>
 
 #ifdef XAMP_OS_WIN
+
+#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
 #include <base/unique_handle.h>

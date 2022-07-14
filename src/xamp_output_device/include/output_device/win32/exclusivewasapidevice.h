@@ -101,7 +101,7 @@ private:
 	CComHeapPtr<WAVEFORMATEX> mix_format_;
 	Buffer<float> buffer_;
 	IAudioCallback* callback_;
-	std::shared_ptr<spdlog::logger> log_;
+	std::shared_ptr<LoggerWriter> log_;
 	SharedFuture<void> render_task_;
 };
 

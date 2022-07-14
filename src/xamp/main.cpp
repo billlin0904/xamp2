@@ -5,6 +5,7 @@
 #include <base/dll.h>
 #include <base/platform.h>
 #include <base/str_utilts.h>
+#include <base/logger_impl.h>
 #include <base/crashhandler.h>
 
 #include <player/api.h>
@@ -69,17 +70,17 @@ static void loadR8BrainSetting() {
     }
 }
 
-static spdlog::level::level_enum ParseLogLevel(const QString &str) {
-    const static QMap<QString, spdlog::level::level_enum> logs{
-    	{ Q_TEXT("info"), spdlog::level::info},
-        { Q_TEXT("debug"), spdlog::level::debug},
-        { Q_TEXT("trace"), spdlog::level::trace},
-        { Q_TEXT("warn"), spdlog::level::warn},
-        { Q_TEXT("err"), spdlog::level::err},
-        { Q_TEXT("critical"), spdlog::level::critical},
+static LogLevel ParseLogLevel(const QString &str) {
+    const static QMap<QString, LogLevel> logs{
+    	{ Q_TEXT("info"), LogLevel::LOG_LEVEL_INFO},
+        { Q_TEXT("debug"), LogLevel::LOG_LEVEL_DEBUG},
+        { Q_TEXT("trace"), LogLevel::LOG_LEVEL_TRACE},
+        { Q_TEXT("warn"), LogLevel::LOG_LEVEL_WARN},
+        { Q_TEXT("err"), LogLevel::LOG_LEVEL_ERROR},
+        { Q_TEXT("critical"), LogLevel::LOG_LEVEL_CRITICAL},
     };
     if (!logs.contains(str)) {
-        return spdlog::level::info;
+        return LogLevel::LOG_LEVEL_INFO;
     }
     return logs[str];
 }
@@ -106,7 +107,7 @@ static void loadLogConfig() {
             ; itr != well_known_log_name.end(); ++itr) {
             override_map[itr.key()] = itr.value();
             Logger::GetInstance().GetLogger(itr.key().toStdString())
-                ->set_level(ParseLogLevel(itr.value().toString()));
+                ->SetLevel(ParseLogLevel(itr.value().toString()));
         }
 
         min_level[kLogOverride] = override_map;
@@ -134,7 +135,7 @@ static void loadLogConfig() {
 	        const auto& log_name = itr.key();
             auto log_level = itr.value().toString();
             Logger::GetInstance().GetLogger(log_name.toStdString())
-        	->set_level(ParseLogLevel(log_level));
+        	->SetLevel(ParseLogLevel(log_level));
         }       
     }
 }
@@ -160,7 +161,6 @@ static void loadSettings() {
     AppSettings::setDefaultValue(kAppSettingEnableReplayGain, true);
     AppSettings::setDefaultEnumValue(kAppSettingTheme, ThemeColor::DARK_THEME);
     AppSettings::setDefaultValue(kEnableBitPerfect, true);
-    //AppSettings::setDefaultValue(kAppSettingDefaultFontName, Q_TEXT("WorkSans"));
     AppSettings::save();
     XAMP_LOG_DEBUG("loadSettings success.");
 }

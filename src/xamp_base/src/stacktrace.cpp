@@ -13,7 +13,7 @@
 #include <base/align_ptr.h>
 
 #ifdef XAMP_OS_WIN
-#include <base/windows_handle.h>
+#include <base/platfrom_handle.h>
 #include <dbghelp.h>
 #else
 #include <cxxabi.h>

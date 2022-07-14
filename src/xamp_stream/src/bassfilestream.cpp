@@ -3,8 +3,10 @@
 #include <base/singleton.h>
 #include <base/stopwatch.h>
 #include <base/logger.h>
+#include <base/logger_impl.h>
 #include <stream/podcastcache.h>
 #include <stream/bassexception.h>
+#include <base/logger_impl.h>
 #include <stream/bassfilestream.h>
 
 namespace xamp::stream {
@@ -331,7 +333,7 @@ private:
     BASS_CHANNELINFO info_;
     MemoryMappedFile file_;
     std::shared_ptr<PodcastFileCache> file_cache_;
-    std::shared_ptr<spdlog::logger> logger_;
+    std::shared_ptr<LoggerWriter> logger_;
 };
 
 BassFileStream::BassFileStream()

@@ -6,6 +6,7 @@
 #include <avrt.h>
 
 #include <base/logger.h>
+#include <base/exception.h>
 #include <output_device/win32/mmcss.h>
 
 namespace xamp::output_device::win32 {

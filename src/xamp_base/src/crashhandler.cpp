@@ -1,14 +1,15 @@
 #include <base/crashhandler.h>
 #include <base/dll.h>
 #include <base/memory.h>
-#include <base/logger.h>
+#include <base/logger_impl.h>
 #include <base/stacktrace.h>
 
 #include <base/stl.h>
 
+#include <base/platfrom_handle.h>
+
 #ifdef XAMP_OS_WIN
 #include <new.h>
-#include <base/windows_handle.h>
 #include <dbghelp.h>
 #include <minidumpapiset.h>
 #else

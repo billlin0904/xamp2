@@ -1,13 +1,8 @@
 #include <algorithm>
 #include <base/base.h>
-
 #include <base/align_ptr.h>
 
-#ifdef XAMP_OS_WIN
-#include <base/windows_handle.h>
-#else
-#include <base/posix_handle.h>
-#endif
+#include <base/platfrom_handle.h>
 #include <base/memory_mapped_file.h>
 #include <base/memory.h>
 
@@ -48,17 +43,6 @@ size_t GetPageAlignSize(size_t value) noexcept {
 bool PrefetchFile(MemoryMappedFile &file, size_t prefech_size) {
     const auto preread_file_size = (std::min)(prefech_size, file.GetLength());
     return PrefetchMemory(const_cast<void*>(file.GetData()), preread_file_size);
-}
-
-bool PrefetchModule(ModuleHandle const& module) {
-#ifdef XAMP_OS_WIN
-	auto path = GetModulePath(module);
-	MemoryMappedFile file;
-	file.Open(path.wstring(), true);
-	return PrefetchMemory(const_cast<void*>(file.GetData()), file.GetLength());
-#else
-    return true;
-#endif
 }
 
 bool PrefetchFile(std::wstring const & file_name) {

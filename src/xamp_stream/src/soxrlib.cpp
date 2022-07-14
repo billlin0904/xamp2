@@ -1,5 +1,5 @@
 #include <base/logger.h>
-#include <base/memory.h>
+#include <base/exception.h>
 #include <stream/soxrlib.h>
 
 namespace xamp::stream {

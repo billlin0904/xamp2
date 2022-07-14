@@ -3,7 +3,7 @@
 #include <base/bom.h>
 #include <base/stl.h>
 #include <base/str_utilts.h>
-
+#include <base/logger_impl.h>
 #include "lrcparser.h"
 
 using namespace xamp::base;

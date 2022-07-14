@@ -23,7 +23,7 @@
 #include <functiondiscoverykeys_devpkey.h>
 
 #include <base/stl.h>
-#include <base/windows_handle.h>
+#include <base/platfrom_handle.h>
 #include <base/uuid.h>
 
 #include <avrt.h>

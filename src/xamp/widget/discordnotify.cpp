@@ -1,4 +1,5 @@
 #include <base/memory.h>
+#include <base/logger_impl.h>
 #include <widget/str_utilts.h>
 #include <widget/discordnotify.h>
 

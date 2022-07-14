@@ -2,6 +2,7 @@
 
 #include <base/logger.h>
 #include <base/ithreadpool.h>
+#include <base/logger_impl.h>
 #include <metadata/api.h>
 #include <metadata/imetadatawriter.h>
 #include <widget/str_utilts.h>

@@ -1,6 +1,7 @@
 #include <functional>
 #include <base/logger.h>
-#include <base/windows_handle.h>
+#include <base/logger_impl.h>
+#include <base/platfrom_handle.h>
 #include <base/str_utilts.h>
 #include <metadata/taglib.h>
 #include <metadata/taglibmetawriter.h>
