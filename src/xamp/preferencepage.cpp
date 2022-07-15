@@ -299,7 +299,7 @@ PreferencePage::PreferencePage(QWidget *parent)
 		saveAll();
 		});
 
-	setStyleSheet(Q_TEXT("background-color: transparent"));
+	setStyleSheet(Q_TEXT("QFrame#PreferenceDialog { background-color: transparent }"));
 }
 
 void PreferencePage::update() {

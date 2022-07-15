@@ -56,7 +56,7 @@ AboutPage::AboutPage(QWidget* parent)
         credits_ = QLatin1String(credits_file.readAll());
     }
 
-    setStyleSheet(Q_TEXT("background-color: transparent"));
+    setStyleSheet(Q_TEXT("QFrame#AboutDialog { background-color: transparent }"));
 }
 
 void AboutPage::onCreditsOrLicenceChecked(bool checked) {

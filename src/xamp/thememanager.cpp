@@ -472,21 +472,13 @@ void ThemeManager::setRepeatOncePlayOrder(Ui::XampWindow& ui) const {
 }
 
 void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
-    ui.nextPageButton->setStyleSheet(Q_STR(R"(
-                                            QToolButton#nextPageButton {
-                                            border: none;
-                                            image: url(:/xamp/Resource/%1/right_black.png);
-                                            background-color: transparent;
-                                            }
-                                            )").arg(themeColorPath()));
-
-    ui.backPageButton->setStyleSheet(Q_STR(R"(
-                                            QToolButton#backPageButton {
-                                            border: none;
-                                            image: url(:/xamp/Resource/%1/left_black.png);
-                                            background-color: transparent;
-                                            }
-                                            )").arg(themeColorPath()));
+    ui.logoButton->setStyleSheet(Q_STR(R"(
+                                         QToolButton#logoButton {
+                                         border: none;
+                                         image: url(":/xamp/xamp.ico");
+                                         background-color: transparent;
+                                         }
+										)"));
 
     ui.closeButton->setStyleSheet(Q_STR(R"(
                                          QToolButton#closeButton {

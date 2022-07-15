@@ -72,7 +72,6 @@ enum TabIndex {
     TAB_CD,
     TAB_LYRICS,
     TAB_SETTINGS,
-    TAB_ABOUT,
 };
 
 static PlayerOrder GetNextOrder(PlayerOrder cur) noexcept {
@@ -610,8 +609,8 @@ void Xamp::initialController() {
     (void)QObject::connect(ui_.eqButton, &QToolButton::pressed, [this]() {
         auto* dialog = new XDialog(this);
         auto* eq = new EqualizerDialog(dialog);
-
         dialog->setContentWidget(eq);
+        dialog->setTitle(tr("Equalizer"));
 
         (void)QObject::connect(eq, &EqualizerDialog::bandValueChange, [](auto, auto, auto) {
             AppSettings::save();
@@ -635,17 +634,6 @@ void Xamp::initialController() {
 
     (void)QObject::connect(ui_.stopButton, &QToolButton::pressed, [this]() {
         stopPlayedClicked();
-    });
-
-    (void)QObject::connect(ui_.backPageButton, &QToolButton::pressed, [this]() {
-        goBackPage();
-        album_artist_page_->refreshOnece();
-    });
-
-    (void)QObject::connect(ui_.nextPageButton, &QToolButton::pressed, [this]() {
-        getNextPage();
-        album_artist_page_->refreshOnece();
-        emit album_artist_page_->album()->onSearchTextChanged(ui_.searchLineEdit->text());
     });
 
     (void)QObject::connect(ui_.artistLabel, &ClickableLabel::clicked, [this]() {
@@ -685,9 +673,6 @@ void Xamp::initialController() {
             break;
         case TAB_CD:
             ui_.currentView->setCurrentWidget(cd_page_);
-            break;
-        case TAB_ABOUT:
-            ui_.currentView->setCurrentWidget(about_page_);
             break;
     	}        
     });
@@ -822,6 +807,16 @@ void Xamp::initialController() {
         });
     updater->checkForUpdates(kSoftwareUpdateUrl);
     settings_menu->addAction(check_for_update);
+
+    auto* about_action = new QAction(tr("About"), this);
+    (void)QObject::connect(about_action, &QAction::triggered, [=]() {
+        auto* about_dialog = new XDialog(this);
+        auto* about_page = new AboutPage(about_dialog);
+        about_dialog->setContentWidget(about_page);
+        about_dialog->setTitle(tr("About"));
+        about_dialog->exec();
+        });
+    settings_menu->addAction(about_action);
 
     settings_menu->addSeparator();
     ui_.settingsButton->setMenu(settings_menu);
@@ -1384,7 +1379,6 @@ void Xamp::initialPlaylist() {
     ui_.sliderBar->addTab(tr("Lyrics"), TAB_LYRICS, qTheme.subtitleIcon());
     ui_.sliderBar->addTab(tr("Settings"), TAB_SETTINGS, qTheme.preferenceIcon());
     ui_.sliderBar->addTab(tr("CD"), TAB_CD, qTheme.albumsIcon());
-    ui_.sliderBar->addTab(tr("About"), TAB_ABOUT, qTheme.aboutIcon());
     ui_.sliderBar->setCurrentIndex(ui_.sliderBar->model()->index(0, 0));
 
     qDatabase.forEachTable([this](auto table_id,
@@ -1472,7 +1466,6 @@ void Xamp::initialPlaylist() {
 
     artist_info_page_ = new ArtistInfoPage(this);
     preference_page_ = new PreferencePage(this);
-    about_page_ = new AboutPage(this);
 
     if (!qDatabase.isPlaylistExist(kDefaultAlbumPlaylistId)) {
         qDatabase.addPlaylist(Qt::EmptyString, 1);
@@ -1487,8 +1480,6 @@ void Xamp::initialPlaylist() {
     pushWidget(file_system_view_page_);
     pushWidget(preference_page_);
     pushWidget(cd_page_);
-    pushWidget(about_page_);
-    goBackPage();
     goBackPage();
     goBackPage();
     goBackPage();

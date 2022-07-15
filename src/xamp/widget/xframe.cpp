@@ -39,13 +39,18 @@ void XFrame::setContentWidget(QWidget* content) {
     title_frame->setFrameShadow(QFrame::Plain);
     title_frame->setStyleSheet(Q_TEXT("QFrame#titleFrame { border: none; }"));
 
+    auto f = font();
+    f.setBold(true);
+    f.setPointSize(14);
     title_frame_label = new QLabel(title_frame);
     title_frame_label->setObjectName(QString::fromUtf8("titleFrameLabel"));
-    QSizePolicy sizePolicy3(QSizePolicy::Preferred, QSizePolicy::Preferred);
-    sizePolicy3.setHorizontalStretch(1);
-    sizePolicy3.setVerticalStretch(0);
-    sizePolicy3.setHeightForWidth(title_frame_label->sizePolicy().hasHeightForWidth());
-    title_frame_label->setSizePolicy(sizePolicy3);
+    QSizePolicy size_policy3(QSizePolicy::Preferred, QSizePolicy::Preferred);
+    size_policy3.setHorizontalStretch(1);
+    size_policy3.setVerticalStretch(0);
+    size_policy3.setHeightForWidth(title_frame_label->sizePolicy().hasHeightForWidth());
+    title_frame_label->setFont(f);
+    title_frame_label->setSizePolicy(size_policy3);
+    title_frame_label->setAlignment(Qt::AlignCenter);
 
     auto* close_button = new QToolButton(title_frame);
     close_button->setObjectName(QString::fromUtf8("closeButton"));
@@ -81,7 +86,7 @@ void XFrame::setContentWidget(QWidget* content) {
 
     default_layout->addWidget(title_frame, 1);
 
-    default_layout->addWidget(content_, 1);
+    default_layout->addWidget(content_, 0);
 
     close_button->setStyleSheet(Q_STR(R"(
                                          QToolButton#closeButton {

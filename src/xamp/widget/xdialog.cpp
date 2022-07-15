@@ -12,7 +12,6 @@
 #include <QGraphicsDropShadowEffect>
 #include <QPropertyAnimation>
 
-#include <base/logger.h>
 #include "thememanager.h"
 #include <widget/xdialog.h>
 
