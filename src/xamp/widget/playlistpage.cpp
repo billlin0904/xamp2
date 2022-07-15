@@ -1,11 +1,11 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QSpacerItem>
-#include <QLabel>
 
 #include "thememanager.h"
 #include <widget/database.h>
 #include <widget/str_utilts.h>
+#include <widget/scrolllabel.h>
 #include <widget/playlisttableview.h>
 #include <widget/playlistpage.h>
 

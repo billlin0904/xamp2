@@ -17,15 +17,23 @@
 #include <base/stl.h>
 #include <base/dsdsampleformat.h>
 #include <base/vmmemlock.h>
+#include <base/str_utilts.h>
+
+#include <metadata/api.h>
+#include <metadata/imetadatawriter.h>
+#include <metadata/imetadatareader.h>
 
 #include <stream/api.h>
+#include <stream/iequalizer.h>
 
 #include <output_device/deviceinfo.h>
+#include <output_device/api.h>
 
 #include <player/api.h>
 #include <player/playstate.h>
 
 using namespace xamp::base;
+using namespace xamp::metadata;
 using namespace xamp::stream;
 using namespace xamp::player;
 using namespace xamp::output_device;

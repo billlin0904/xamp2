@@ -9,7 +9,7 @@
 #include <QScopedPointer>
 
 #include <widget/str_utilts.h>
-#include <widget/settingnames.h>
+#include <widget/appsettingnames.h>
 
 class JsonSettings {
 public:

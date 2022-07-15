@@ -3,6 +3,7 @@
 
 #ifdef XAMP_OS_WIN
 #include <base/logger.h>
+#include <base/logger_impl.h>
 #include <base/waitabletimer.h>
 #include <base/ithreadpool.h>
 #include <base/dataconverter.h>

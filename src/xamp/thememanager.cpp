@@ -14,7 +14,7 @@
 #else
 #include <widget/osx/osx.h>
 #endif
-
+#include <widget/appsettingnames.h>
 #include <widget/str_utilts.h>
 #include <widget/appsettings.h>
 #include "thememanager.h"

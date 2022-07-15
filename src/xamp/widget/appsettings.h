@@ -15,8 +15,6 @@
 #include <stream/eqsettings.h>
 #include <widget/widget_shared.h>
 #include <widget/localelanguage.h>
-#include <widget/str_utilts.h>
-#include <widget/settingnames.h>
 
 struct AppEQSettings {
     QString name;

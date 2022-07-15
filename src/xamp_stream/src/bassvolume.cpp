@@ -1,4 +1,6 @@
 #include <stream/basslib.h>
+
+#include <base/logger_impl.h>
 #include <base/memory.h>
 #include <base/buffer.h>
 #include <base/volume.h>

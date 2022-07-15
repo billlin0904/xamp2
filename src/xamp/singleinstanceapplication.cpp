@@ -1,8 +1,6 @@
-#include <QCoreApplication>
-#include <QDir>
 #include <QCryptographicHash>
-#include <QString>
-#include <QLocalSocket>
+#include <QSharedMemory>
+#include <QDir>
 
 #include <base/logger.h>
 #include <base/logger_impl.h>
@@ -14,7 +12,7 @@
 #include <Windows.h>
 #endif
 
-static QString GetServerName() {
+static QString getServerName() {
     //TODO: use applicationFilePath?
     //QString serverNameSource = QCoreApplication::applicationFilePath();
     QString serverNameSource;
@@ -25,59 +23,23 @@ static QString GetServerName() {
 }
 
 SingleInstanceApplication::SingleInstanceApplication()
-    : socket_(nullptr) {
-    (void)QObject::connect(&server_, SIGNAL(newConnection()), this, SLOT(onNewConnection()));
+    : singular_(new QSharedMemory()) {
+    singular_->setKey(getServerName());
 }
 
-bool SingleInstanceApplication::listen(const QString& serverName) {
-    server_.removeServer(serverName);
-    return server_.listen(serverName);
+SingleInstanceApplication::~SingleInstanceApplication() {
+    delete singular_;
 }
 
-bool SingleInstanceApplication::attach(const QStringList &args) {
-    const auto serverName = GetServerName();
-
-    QLocalSocket socket;
-    socket.connectToServer(serverName, QLocalSocket::ReadWrite);
-
-    if (socket.waitForConnected())  {
-        QByteArray buffer;
-        foreach(QString item, args) {
-            buffer.append(item + Q_TEXT("\n"));
-        }
-        socket.write(buffer);
-        socket.waitForBytesWritten();
-        XAMP_LOG_DEBUG("Another instance is already running.");
+bool SingleInstanceApplication::attach(const QStringList &args) const {
+    if (singular_->attach(QSharedMemory::ReadOnly)) {
+        singular_->detach();
         return false;
     }
 
-    if (!listen(serverName)) {
-        return false;
-    }
-#if defined(Q_OS_WIN)
-    const auto server_name = serverName.toStdWString();
-    mutex_.reset(::CreateMutexW(nullptr, true, server_name.c_str()));
-    if (!mutex_) {
-        XAMP_LOG_DEBUG("CreateMutexW return failure! {}",
-            xamp::base::GetPlatformErrorMessage(::GetLastError()));
-        return false;
-    }
-    if (::GetLastError() == ERROR_ALREADY_EXISTS) {
-        return false;
-    }
-#endif
-    return true;
+    if (singular_->create(1))
+        return true;
+
+    return false;
 }
 
-void SingleInstanceApplication::readyRead() {
-    qDebug() << "Args: " << socket_->readAll();
-    socket_->close();
-    socket_->deleteLater();
-}
-
-void SingleInstanceApplication::onNewConnection() {
-    socket_ = server_.nextPendingConnection();
-    (void)QObject::connect(socket_, SIGNAL(readyRead()), this, SLOT(readyRead()));
-    XAMP_LOG_DEBUG("New instance detected");
-    emit newInstanceDetected();
-}

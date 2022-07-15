@@ -1,8 +1,9 @@
+#include <functional>
+
 #include <base/enum.h>
 #include <base/buffer.h>
 #include <base/assert.h>
 #include <base/math.h>
-
 #include <stream/fft.h>
 
 #ifdef XAMP_OS_WIN

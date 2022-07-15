@@ -6,6 +6,7 @@
 #include <base/str_utilts.h>
 #include <base/memory.h>
 #include <base/logger.h>
+#include <base/logger_impl.h>
 #include <base/singleton.h>
 
 #include <metadata/taglib.h>

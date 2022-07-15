@@ -89,17 +89,17 @@ void DicordNotify::updateDiscordPresence() {
         discord_presence_.smallImageKey);
 }
 
-void DicordNotify::callback_discord_joingame(const char* joinSecret) {
-	XAMP_LOG_DEBUG("{} is join game.", joinSecret);
+void DicordNotify::callback_discord_joingame(const char* join_secret) {
+	XAMP_LOG_DEBUG("{} is join game.", join_secret);
 }
 
 void DicordNotify::callback_discord_connected(const DiscordUser* request) {
 	XAMP_LOG_DEBUG("Connected to {}.", request->username);
 }
-void DicordNotify::callback_discord_disconnected(int errorCode, const char* message) {
-	XAMP_LOG_DEBUG("Disconnected ({}): {}.", errorCode, message);
+void DicordNotify::callback_discord_disconnected(int error_code, const char* message) {
+	XAMP_LOG_DEBUG("Disconnected ({}): {}.", error_code, message);
 }
 
-void DicordNotify::callback_discord_errored(int errorCode, const char* message) {
-	XAMP_LOG_DEBUG("*** Error {}: {}.", errorCode, message);
+void DicordNotify::callback_discord_errored(int error_code, const char* message) {
+	XAMP_LOG_DEBUG("*** Error {}: {}.", error_code, message);
 }

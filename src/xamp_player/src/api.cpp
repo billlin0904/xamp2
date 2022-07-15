@@ -1,5 +1,6 @@
 #include <base/str_utilts.h>
 #include <base/logger.h>
+#include <base/logger_impl.h>
 #include <base/ithreadpool.h>
 
 #include <output_device/api.h>

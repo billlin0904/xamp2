@@ -68,13 +68,13 @@ public:
 
     std::optional<ArtistStats> getArtistStats(int32_t artist_id) const;
 
-    void addTablePlaylist(int32_t tableId, int32_t playlist_id);
+    void addTablePlaylist(int32_t table_id, int32_t playlist_id);
 
     int32_t addOrUpdateMusic(const Metadata& medata, int32_t playlist_id);
 
     int32_t addOrUpdateArtist(const QString& artist);
 
-    void updateArtistCoverId(int32_t artist_id, const QString& coverId);
+    void updateArtistCoverId(int32_t artist_id, const QString& cover_id);
 
     void updateMusicFilePath(int32_t music_id, const QString& file_path);
 

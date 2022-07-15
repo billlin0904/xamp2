@@ -60,7 +60,7 @@ private:
     void paintEvent(QPaintEvent* event) override;
 
     struct WinTaskbar;
-    class ShadowImageCreator;
+
 	QPoint last_pos_;
     QScreen* current_screen_;
     QScopedPointer<WinTaskbar> taskbar_;

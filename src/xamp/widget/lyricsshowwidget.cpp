@@ -5,7 +5,7 @@
 #include <QColorDialog>
 #include <QFileInfo>
 
-#include <widget/settingnames.h>
+#include <widget/appsettingnames.h>
 #include <widget/appsettings.h>
 #include <widget/actionmap.h>
 #include <widget/str_utilts.h>

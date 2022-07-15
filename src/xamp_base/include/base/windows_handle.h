@@ -17,93 +17,57 @@
 namespace xamp::base {
 
 struct XAMP_BASE_API HandleTraits final {
-	static HANDLE invalid() noexcept {
-		return nullptr;
-	}
+	static HANDLE invalid() noexcept;
 
-	static void close(HANDLE value) noexcept {
-		::CloseHandle(value);
-	}
+	static void close(HANDLE value) noexcept;
 };
 
 struct XAMP_BASE_API FileHandleTraits final {
-	static HANDLE invalid() noexcept {
-		return INVALID_HANDLE_VALUE;
-	}
+	static HANDLE invalid() noexcept;
 
-	static void close(HANDLE value) noexcept {
-		::CloseHandle(value);
-	}
+	static void close(HANDLE value) noexcept;
 };
 
 struct XAMP_BASE_API ModuleHandleTraits final {
-    static HMODULE invalid() noexcept {
-        return nullptr;
-    }
+	static HMODULE invalid() noexcept;
 
-    static void close(HMODULE value) noexcept {
-        ::FreeLibrary(value);
-    }
+	static void close(HMODULE value) noexcept;
 };
 
 struct XAMP_BASE_API MappingFileHandleTraits final {
-	static HANDLE invalid() noexcept {
-		return nullptr;
-	}
+	static HANDLE invalid() noexcept;
 
-	static void close(HANDLE value) noexcept {
-		::CloseHandle(value);
-	}
+	static void close(HANDLE value) noexcept;
 };
 
 struct XAMP_BASE_API MappingMemoryAddressTraits final {
-	static void* invalid() noexcept {
-		return nullptr;
-	}
+	static void* invalid() noexcept;
 
-	static void close(void* value) noexcept {
-		::UnmapViewOfFile(value);
-	}
+	static void close(void* value) noexcept;
 };
 
 struct XAMP_BASE_API WorkTraits final {
-	static PTP_WORK invalid() noexcept {
-		return nullptr;
-	}
+	static PTP_WORK invalid() noexcept;
 
-	static void close(PTP_WORK value) {
-		::CloseThreadpoolWork(value);
-	}
+	static void close(PTP_WORK value);
 };
 
 struct XAMP_BASE_API ThreadPoolTraits final {
-	static PTP_POOL invalid() noexcept {
-		return nullptr;
-	}
+	static PTP_POOL invalid() noexcept;
 
-	static void close(PTP_POOL value) {
-		::CloseThreadpool(value);
-	}
+	static void close(PTP_POOL value);
 };
 
 struct XAMP_BASE_API CleanupThreadGroupTraits final {
-	static PTP_CLEANUP_GROUP invalid() noexcept {
-		return nullptr;
-	}
+	static PTP_CLEANUP_GROUP invalid() noexcept;
 
-	static void close(PTP_CLEANUP_GROUP value) {
-		::CloseThreadpoolCleanupGroup(value);
-	}
+	static void close(PTP_CLEANUP_GROUP value);
 };
 
 struct XAMP_BASE_API TimerQueueTraits final {
-	static HANDLE invalid() noexcept {
-		return nullptr;
-	}
+	static HANDLE invalid() noexcept;
 
-	static void close(HANDLE value) {
-		::DeleteTimerQueueEx(value, INVALID_HANDLE_VALUE);
-	}
+	static void close(HANDLE value);
 };
 
 using WorkHandle = UniqueHandle<PTP_WORK, WorkTraits>;

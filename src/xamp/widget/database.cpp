@@ -599,7 +599,7 @@ int32_t Database::findTablePlaylistId(int32_t table_id) const {
 	return kInvalidId;
 }
 
-void Database::addTablePlaylist(int32_t tableId, int32_t playlist_id) {
+void Database::addTablePlaylist(int32_t table_id, int32_t playlist_id) {
 	QSqlQuery query;
 
 	query.prepare(Q_TEXT(R"(
@@ -607,7 +607,7 @@ void Database::addTablePlaylist(int32_t tableId, int32_t playlist_id) {
     )"));
 
 	query.bindValue(Q_TEXT(":playlistId"), playlist_id);
-	query.bindValue(Q_TEXT(":tableId"), tableId);
+	query.bindValue(Q_TEXT(":tableId"), table_id);
 
 	IfFailureThrow1(query);
 }
@@ -788,13 +788,13 @@ void Database::addMusicToPlaylist(const Vector<int32_t>& music_id, int32_t playl
 	IfFailureThrow1(query);
 }
 
-void Database::updateArtistCoverId(int32_t artist_id, const QString& coverId) {
+void Database::updateArtistCoverId(int32_t artist_id, const QString& cover_id) {
 	QSqlQuery query;
 
 	query.prepare(Q_TEXT("UPDATE artists SET coverId = :coverId WHERE (artistId = :artistId)"));
 
 	query.bindValue(Q_TEXT(":artistId"), artist_id);
-	query.bindValue(Q_TEXT(":coverId"), coverId);
+	query.bindValue(Q_TEXT(":coverId"), cover_id);
 
 	IfFailureThrow1(query);
 }

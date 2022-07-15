@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <functional>
 #include <base/dsdsampleformat.h>
 #include <stream/isamplerateconverter.h>
 

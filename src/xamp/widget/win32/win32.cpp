@@ -1,4 +1,7 @@
 #include <QObject>
+#include <QWidget>
+#include <QMenu>
+
 #include <base/singleton.h>
 #include <base/platfrom_handle.h>
 
@@ -8,6 +11,7 @@
 #endif
 
 #include <widget/widget_shared.h>
+#include <widget/appsettingnames.h>
 #include <widget/appsettings.h>
 #include <widget/win32/win32.h>
 

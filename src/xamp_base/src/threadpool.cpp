@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <base/logger.h>
+#include <base/logger_impl.h>
 #include <base/platform.h>
 #include <base/threadpool.h>
 

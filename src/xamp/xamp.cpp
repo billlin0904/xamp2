@@ -53,6 +53,8 @@
 #include <widget/filesystemviewpage.h>
 #include <widget/tooltips.h>
 #include <widget/tooltipsfilter.h>
+#include <widget/discordnotify.h>
+#include <widget/backgroundworker.h>
 #include <widget/drivewatcher.h>
 
 #include "aboutpage.h"
@@ -130,7 +132,7 @@ Xamp::Xamp()
     , drive_watcher_(new DriveWatcher(this))
     , state_adapter_(std::make_shared<UIPlayerStateAdapter>())
     , player_(MakeAudioPlayer(state_adapter_))
-	, discord_notify_(this) {
+	, discord_notify_(new DicordNotify(this)) {
     ui_.setupUi(this);
 }
 
@@ -140,7 +142,8 @@ Xamp::~Xamp() {
 
 void Xamp::setXWindow(IXWindow* top_window) {
     top_window_ = top_window;
-    background_worker_.moveToThread(&background_thread_);
+    background_worker_ = new BackgroundWorker();
+    background_worker_->moveToThread(&background_thread_);
     background_thread_.start();
     initialUI();
     initialController();
@@ -151,7 +154,7 @@ void Xamp::setXWindow(IXWindow* top_window) {
     setPlaylistPageCover(nullptr, podcast_page_);
     QTimer::singleShot(300, [this]() {
         initialDeviceList();
-        discord_notify_.discordInit();
+        discord_notify_->discordInit();
         });
     avoidRedrawOnResize();
     applyTheme(qTheme.palette().color(QPalette::WindowText),
@@ -300,7 +303,7 @@ void Xamp::cleanup() {
     }
 
     if (!background_thread_.isFinished()) {
-        background_worker_.stopThreadPool();
+        background_worker_->stopThreadPool();
         background_thread_.quit();
         background_thread_.wait();
     }    
@@ -705,12 +708,12 @@ void Xamp::initialController() {
     if (AppSettings::getValueAsBool(kAppSettingDiscordNotify)) {
         (void)QObject::connect(this,
             &Xamp::nowPlaying,
-            &discord_notify_,
+            discord_notify_,
             &DicordNotify::OnNowPlaying);
 
         (void)QObject::connect(state_adapter_.get(),
             &UIPlayerStateAdapter::stateChanged,
-            &discord_notify_,
+            discord_notify_,
             &DicordNotify::OnStateChanged,
             Qt::QueuedConnection);
     }
@@ -1451,10 +1454,10 @@ void Xamp::initialPlaylist() {
 
     (void)QObject::connect(this,
         &Xamp::addBlurImage,
-        &background_worker_,
+        background_worker_,
         &BackgroundWorker::blurImage);
 
-    (void)QObject::connect(&background_worker_,
+    (void)QObject::connect(background_worker_,
         &BackgroundWorker::updateReplayGain,
         playlist_page_->playlist(),
         &PlayListTableView::updateReplayGain);
@@ -1518,7 +1521,7 @@ void Xamp::initialPlaylist() {
         lrc_page_,
         &LrcPage::onThemeChanged);
 
-    (void)QObject::connect(&background_worker_,
+    (void)QObject::connect(background_worker_,
         &BackgroundWorker::updateBlurImage,
         lrc_page_,
         &LrcPage::setBackground);
@@ -1641,7 +1644,7 @@ void Xamp::connectSignal(PlaylistPage* playlist_page) {
 
     (void)QObject::connect(playlist_page->playlist(),
         &PlayListTableView::addPlaylistReplayGain,
-        &background_worker_,
+        background_worker_,
         &BackgroundWorker::readReplayGain);
 
     (void)QObject::connect(this,

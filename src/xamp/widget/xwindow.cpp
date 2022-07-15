@@ -27,6 +27,7 @@
 
 #include <version.h>
 #include <widget/image_utiltis.h>
+#include <widget/appsettingnames.h>
 #include <widget/appsettings.h>
 #include <widget/str_utilts.h>
 #include <widget/xframe.h>
@@ -183,11 +184,6 @@ XWindow::XWindow()
 void XWindow::setContentWidget(IXampPlayer *content_widget) {
     content_widget_ = content_widget;
     if (content_widget_ != nullptr) {
-        /*auto* shadow = new QGraphicsDropShadowEffect();
-        shadow->setOffset(0, 0);
-        shadow->setBlurRadius(10);
-        shadow->setColor(Qt::black);
-        content_widget->setGraphicsEffect(shadow);*/
         auto* default_layout = new QGridLayout(this);
         default_layout->addWidget(content_widget_, 0, 0);
         qTheme.setBorderRadius(content_widget_);

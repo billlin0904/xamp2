@@ -8,15 +8,12 @@
 #include <QStack>
 #include <QThread>
 #include <QSystemTrayIcon>
-#include <QMainWindow>
 
 #include <widget/widget_shared.h>
 #include <widget/uiplayerstateadapter.h>
 #include <widget/playlistentity.h>
 #include <widget/playerorder.h>
-#include <widget/backgroundworker.h>
 #include <widget/albumentity.h>
-#include <widget/discordnotify.h>
 #include <widget/driveinfo.h>
 
 #include "xampplayer.h"
@@ -38,6 +35,8 @@ struct PlaybackFormat;
 class ToolTipsFilter;
 class DriveWatcher;
 class QRadioButton;
+class BackgroundWorker;
+class DicordNotify;
 
 class Xamp final : public IXampPlayer {
 	Q_OBJECT
@@ -187,14 +186,14 @@ private:
 	IXWindow* top_window_;
 	DriveWatcher* drive_watcher_;
 	ToolTipsFilter* tool_tips_filter_;
+	BackgroundWorker* background_worker_;
+	DicordNotify* discord_notify_;
 	QModelIndex play_index_;
 	DeviceInfo device_info_;
 	PlayListEntity current_entity_;
     QStack<int32_t> stack_page_id_;
-    BackgroundWorker background_worker_;
     QThread background_thread_;
 	std::shared_ptr<UIPlayerStateAdapter> state_adapter_;
 	std::shared_ptr<IAudioPlayer> player_;
-    DicordNotify discord_notify_;
     Ui::XampWindow ui_;
 };

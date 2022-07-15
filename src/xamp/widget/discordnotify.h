@@ -7,12 +7,7 @@
 
 #include <QObject>
 #include <discord_rpc.h>
-
-#include <base/memory.h>
-#include <base/logger.h>
-#include <player/playstate.h>
-
-using xamp::player::PlayerState;
+#include <widget/widget_shared.h>
 
 class DicordNotify : public QObject {
 	Q_OBJECT
@@ -36,13 +31,13 @@ private:
 
 	void updateDiscordPresence();
 
-	static void callback_discord_joingame(const char* joinSecret);
+	static void callback_discord_joingame(const char* join_secret);
 
 	static void callback_discord_connected(const DiscordUser* request);
 
-	static void callback_discord_disconnected(int errorCode, const char* message);
+	static void callback_discord_disconnected(int error_code, const char* message);
 
-	static void callback_discord_errored(int errorCode, const char* message);
+	static void callback_discord_errored(int error_code, const char* message);
 
 	DiscordEventHandlers handlers_;
 	DiscordRichPresence discord_presence_;

@@ -1,4 +1,5 @@
 #include <base/assert.h>
+#include <base/logger_impl.h>
 #include <stream/r8brainlib.h>
 #include <stream/r8brainresampler.h>
 

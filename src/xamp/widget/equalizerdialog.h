@@ -5,11 +5,9 @@
 
 #pragma once
 
-#include <stream/iequalizer.h>
+#include <widget/widget_shared.h>
 
 #include "ui_equalizerdialog.h"
-
-using xamp::stream::EQSettings;
 
 class EqualizerDialog : public QFrame {
     Q_OBJECT

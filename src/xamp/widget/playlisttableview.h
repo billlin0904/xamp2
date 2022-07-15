@@ -11,11 +11,11 @@
 #include <base/rng.h>
 
 #include <widget/playlistentity.h>
-#include <widget/playlisttableproxymodel.h>
-#include <widget/playlistsqlquerytablemodel.h>
 #include <widget/metadataextractadapter.h>
 
 class StarDelegate;
+class PlayListSqlQueryTableModel;
+class PlayListTableFilterProxyModel;
 
 class PlayListTableView : public QTableView {
 	Q_OBJECT
@@ -103,10 +103,10 @@ private:
 protected:
 	bool podcast_mode_;
 	int32_t playlist_id_;
-	StarDelegate* start_delegate_;	
 	QModelIndex play_index_;
-    PlayListSqlQueryTableModel model_;
-	PlayListTableFilterProxyModel proxy_model_;
+	StarDelegate* start_delegate_;	
+    PlayListSqlQueryTableModel* model_;
+	PlayListTableFilterProxyModel* proxy_model_;
     QSet<QString> notshow_column_names_;
 	PRNG rng_;
 };

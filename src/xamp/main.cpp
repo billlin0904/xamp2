@@ -3,8 +3,6 @@
 #include <base/logger.h>
 #include <base/scopeguard.h>
 #include <base/dll.h>
-#include <base/platform.h>
-#include <base/str_utilts.h>
 #include <base/logger_impl.h>
 #include <base/crashhandler.h>
 
@@ -20,7 +18,6 @@
 #include <widget/jsonsettings.h>
 #include <widget/ui_utilts.h>
 #include <widget/xwindow.h>
-#include <widget/appsettings.h>
 
 #include <QMessageBox>
 #include <QProcess>
@@ -70,7 +67,7 @@ static void loadR8BrainSetting() {
     }
 }
 
-static LogLevel ParseLogLevel(const QString &str) {
+static LogLevel parseLogLevel(const QString &str) {
     const static QMap<QString, LogLevel> logs{
     	{ Q_TEXT("info"), LogLevel::LOG_LEVEL_INFO},
         { Q_TEXT("debug"), LogLevel::LOG_LEVEL_DEBUG},
@@ -101,13 +98,13 @@ static void loadLogConfig() {
     if (JsonSettings::getValueAsMap(kLog).isEmpty()) {
         min_level[kLogDefault] = Q_TEXT("debug");
 
-        XAMP_SET_LOG_LEVEL(ParseLogLevel(min_level[kLogDefault].toString()));
+        XAMP_SET_LOG_LEVEL(parseLogLevel(min_level[kLogDefault].toString()));
 
     	for (auto itr = well_known_log_name.begin()
             ; itr != well_known_log_name.end(); ++itr) {
             override_map[itr.key()] = itr.value();
             Logger::GetInstance().GetLogger(itr.key().toStdString())
-                ->SetLevel(ParseLogLevel(itr.value().toString()));
+                ->SetLevel(parseLogLevel(itr.value().toString()));
         }
 
         min_level[kLogOverride] = override_map;
@@ -119,7 +116,7 @@ static void loadLogConfig() {
         min_level = log[kLogMinimumLevel].toMap();
 
         const auto default_level = min_level[kLogDefault].toString();
-        XAMP_SET_LOG_LEVEL(ParseLogLevel(default_level));
+        XAMP_SET_LOG_LEVEL(parseLogLevel(default_level));
 
         override_map = min_level[kLogOverride].toMap();
 
@@ -135,7 +132,7 @@ static void loadLogConfig() {
 	        const auto& log_name = itr.key();
             auto log_level = itr.value().toString();
             Logger::GetInstance().GetLogger(log_name.toStdString())
-        	->SetLevel(ParseLogLevel(log_level));
+        	->SetLevel(parseLogLevel(log_level));
         }       
     }
 }

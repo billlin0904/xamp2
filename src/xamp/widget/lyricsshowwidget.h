@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include "lrcparser.h"
-#include "wheelablewidget.h"
+#include <widget/lrcparser.h>
+#include <widget/wheelablewidget.h>
 
 class QDropEvent;
 

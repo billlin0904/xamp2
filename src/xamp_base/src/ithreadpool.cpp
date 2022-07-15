@@ -1,5 +1,6 @@
 #include <base/logger.h>
 #include <base/threadpool.h>
+#include <base/logger_impl.h>
 #include <base/ithreadpool.h>
 
 namespace xamp::base {

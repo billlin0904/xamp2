@@ -5,35 +5,16 @@
 
 #pragma once
 
-#include <QObject>
-#include <QLocalSocket>
-#include <QLocalServer>
+class QSharedMemory;
 
-#ifdef Q_OS_WIN
-#include <base/windows_handle.h>
-#endif
-
-class SingleInstanceApplication : public QObject {
-	Q_OBJECT
+class SingleInstanceApplication {
 public:
     SingleInstanceApplication();
 
-	bool attach(const QStringList& args);
-	
-signals:
-	void newInstanceDetected();
+	~SingleInstanceApplication();
 
-public slots:
-	void onNewConnection();
-
-	void readyRead();
+	bool attach(const QStringList& args) const;
 
 private:
-	bool listen(const QString &serverName);
-
-	QLocalSocket* socket_;
-	QLocalServer server_;
-#ifdef Q_OS_WIN
-	xamp::base::WinHandle mutex_;
-#endif
+	QSharedMemory* singular_;
 };

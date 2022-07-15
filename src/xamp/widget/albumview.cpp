@@ -9,9 +9,10 @@
 #include <QStandardPaths>
 #include <QFileDialog>
 #include <QSqlQuery>
+#include <QMouseEvent>
 
-#include <stream/api.h>
-
+#include <widget/widget_shared.h>
+#include <widget/scrolllabel.h>
 #include <widget/appsettings.h>
 #include <widget/database.h>
 #include <widget/playlisttableview.h>

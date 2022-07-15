@@ -8,6 +8,7 @@
 #include <stream/bassvolume.h>
 #include <stream/basscompressor.h>
 #include <stream/bassfader.h>
+#include <base/logger_impl.h>
 #include <stream/passthroughsamplerateconverter.h>
 #include <stream/pcm2dsdconverter.h>
 #include <stream/dspmanager.h>

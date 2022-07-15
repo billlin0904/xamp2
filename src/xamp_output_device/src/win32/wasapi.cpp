@@ -11,6 +11,7 @@
 #include <base/scopeguard.h>
 #include <base/str_utilts.h>
 #include <base/logger.h>
+#include <base/logger_impl.h>
 #include <output_device/idevicetype.h>
 #include <output_device/win32/hrexception.h>
 #include <output_device/win32/wasapi.h>

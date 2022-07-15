@@ -2,7 +2,7 @@
 #include <QDirIterator>
 #include <QTextStream>
 #include <QSize>
-
+#include <widget/appsettingnames.h>
 #include <widget/xwindow.h>
 #include <widget/playerorder.h>
 #include <widget/appsettings.h>

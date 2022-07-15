@@ -1,3 +1,4 @@
+#include <QMouseEvent>
 #include <widget/clickablelabel.h>
 
 ClickableLabel::ClickableLabel(QWidget* parent)

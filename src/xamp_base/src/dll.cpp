@@ -1,3 +1,6 @@
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+
 #include <base/exception.h>
 #include <base/memory_mapped_file.h>
 #include <base/dll.h>

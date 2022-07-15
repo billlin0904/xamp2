@@ -1,4 +1,4 @@
-﻿#include <widget/settingnames.h>
+﻿#include <widget/appsettingnames.h>
 
 const ConstLatin1String kAppSettingLang{ "AppSettings/lang" };
 

@@ -234,6 +234,7 @@
     <ClCompile Include="src\vmmemlock.cpp" />
     <ClCompile Include="src\volume.cpp" />
     <ClCompile Include="src\waitabletimer.cpp" />
+    <ClCompile Include="src\windows_handle.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

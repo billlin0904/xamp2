@@ -5,8 +5,6 @@
 
 #pragma once
 
-#include <base/stl.h>
-
 #include <widget/widget_shared.h>
 #include <QSortFilterProxyModel>
 

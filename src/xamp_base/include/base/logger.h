@@ -5,9 +5,57 @@
 
 #pragma once
 
+#include <string_view>
+#include <string>
+#include <base/base.h>
+
 namespace xamp::base {
 
 class LoggerWriter;
+
+struct XAMP_BASE_API AutoRegisterLoggerName {
+    AutoRegisterLoggerName(std::string_view s);
+
+    operator std::string_view() const {
+        return GetLoggerName();
+    }
+
+    operator std::string() const {
+        return GetLoggerName().data();
+    }
+
+    friend bool operator==(const AutoRegisterLoggerName& a, const std::string& b) {
+        const std::string s = a;
+        return s == b;
+    }
+
+    friend bool operator!=(const AutoRegisterLoggerName& a, const std::string& b) {
+        const std::string s = a;
+        return s != b;
+    }
+
+    std::string_view GetLoggerName() const;
+    size_t index;
+};
+
+#define DECLARE_LOG_NAME(LogName) inline const AutoRegisterLoggerName k##LogName##LoggerName(#LogName)
+
+DECLARE_LOG_NAME(Xamp);
+DECLARE_LOG_NAME(WASAPIThreadPool);
+DECLARE_LOG_NAME(PlaybackThreadPool);
+DECLARE_LOG_NAME(BackgroundThreadPool);
+DECLARE_LOG_NAME(ExclusiveWasapiDevice);
+DECLARE_LOG_NAME(ExclusiveWasapiDeviceType);
+DECLARE_LOG_NAME(SharedWasapiDevice);
+DECLARE_LOG_NAME(AsioDevice);
+DECLARE_LOG_NAME(AudioPlayer);
+DECLARE_LOG_NAME(VirtualMemory);
+DECLARE_LOG_NAME(Soxr);
+DECLARE_LOG_NAME(Compressor);
+DECLARE_LOG_NAME(Volume);
+DECLARE_LOG_NAME(CoreAudio);
+DECLARE_LOG_NAME(DspManager);
+DECLARE_LOG_NAME(FileStream);
 	
 }
 

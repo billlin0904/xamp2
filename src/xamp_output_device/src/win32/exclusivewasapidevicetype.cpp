@@ -2,6 +2,7 @@
 
 #ifdef XAMP_OS_WIN
 #include <base/str_utilts.h>
+#include <base/logger_impl.h>
 #include <output_device/win32/hrexception.h>
 #include <output_device/win32/exclusivewasapidevice.h>
 #include <output_device/win32/exclusivewasapidevicetype.h>

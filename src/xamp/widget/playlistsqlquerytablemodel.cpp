@@ -1,5 +1,6 @@
 #include <thememanager.h>
 #include <QDateTime>
+#include <widget/starrating.h>
 #include <widget/playlisttablemodel.h>
 #include <widget/albumentity.h>
 #include <widget/str_utilts.h>

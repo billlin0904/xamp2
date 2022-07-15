@@ -6,7 +6,8 @@
 #pragma once
 
 #include <QLabel>
-#include <QMouseEvent>
+
+class QMouseEvent;
 
 class ClickableLabel final : public QLabel {
 	Q_OBJECT

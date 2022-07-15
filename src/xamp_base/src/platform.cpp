@@ -3,6 +3,7 @@
 #include <base/dll.h>
 #include <base/str_utilts.h>
 #include <base/logger.h>
+#include <base/logger_impl.h>
 #include <base/rng.h>
 #include <base/platform.h>
 #include <base/assert.h>

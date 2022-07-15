@@ -8,9 +8,10 @@
 #include <QFrame>
 #include <QString>
 
-#include <widget/scrolllabel.h>
 #include <widget/playlistentity.h>
 
+class QLabel;
+class ScrollLabel;
 class PlayListTableView;
 
 class PlaylistPage : public QFrame {

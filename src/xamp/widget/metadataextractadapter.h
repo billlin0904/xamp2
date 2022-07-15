@@ -6,7 +6,6 @@
 #pragma once
 
 #include <QObject>
-#include <forward_list>
 #include <metadata/imetadataextractadapter.h>
 #include <widget/pixmapcache.h>
 

@@ -1,5 +1,5 @@
 #include <QTextStream>
-
+#include <widget/appsettingnames.h>
 #include <widget/appsettings.h>
 #include <widget/str_utilts.h>
 #include <widget/equalizerdialog.h>

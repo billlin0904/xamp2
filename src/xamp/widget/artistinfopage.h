@@ -7,8 +7,6 @@
 
 #include <QFrame>
 
-#include <widget/widget_shared.h>
-
 class AlbumView;
 class QLabel;
 

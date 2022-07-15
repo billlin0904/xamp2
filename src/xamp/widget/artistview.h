@@ -6,7 +6,6 @@
 #pragma once
 
 #include <QListView>
-#include <QSqlTableModel>
 #include <QSqlRelationalTableModel>
 #include <QStyledItemDelegate>
 
@@ -19,8 +18,6 @@ protected:
     void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override;
 
     QSize sizeHint(const QStyleOptionViewItem& o, const QModelIndex& idx) const override;
-
-private:
 };
 
 class ArtistView : public QListView {

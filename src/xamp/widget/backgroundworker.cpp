@@ -1,16 +1,14 @@
 #include <player/ebur128replaygain_scanner.h>
 
-#include <base/logger.h>
-#include <base/ithreadpool.h>
+#include <widget/widget_shared.h>
 #include <base/logger_impl.h>
-#include <metadata/api.h>
-#include <metadata/imetadatawriter.h>
+
 #include <widget/str_utilts.h>
+#include <widget/appsettingnames.h>
 #include <widget/stackblur.h>
 #include <widget/ui_utilts.h>
 #include <widget/read_utiltis.h>
 #include <widget/appsettings.h>
-#include <widget/colorthief.h>
 #include <widget/backgroundworker.h>
 
 struct PlayListRGResult {
@@ -58,7 +56,7 @@ void BackgroundWorker::blurImage(const QString& cover_id, const QImage& image) {
 }
 
 void BackgroundWorker::readReplayGain(bool, const Vector<PlayListEntity>& items) {
-    XAMP_LOG_DEBUG("Start read replay gain count:{Vector}", items.size());
+    XAMP_LOG_DEBUG("Start read replay gain count:{}", items.size());
 
     Vector<SharedFuture<AlignPtr<PlayListRGResult>>> replay_gain_tasks;
 

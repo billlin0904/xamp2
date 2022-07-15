@@ -11,9 +11,7 @@
 #include <regex>
 #include <vector>
 
-#include <QApplication>
 #include <base/base.h>
-#include <base/logger.h>
 
 struct LyricEntry {	
     int32_t index{0};

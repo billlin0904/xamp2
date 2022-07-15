@@ -1,4 +1,5 @@
 #include <base/singleton.h>
+#include <base/logger_impl.h>
 #include <base/str_utilts.h>
 #include <stream/basslib.h>
 

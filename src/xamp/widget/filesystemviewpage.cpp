@@ -2,6 +2,7 @@
 #include <QToolTip>
 #include <widget/appsettings.h>
 #include <widget/database.h>
+#include <widget/appsettingnames.h>
 #include <widget/actionmap.h>
 #include <widget/playlisttableview.h>
 #include <widget/filesystemmodel.h>

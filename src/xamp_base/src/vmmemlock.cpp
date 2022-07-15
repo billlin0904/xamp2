@@ -2,6 +2,7 @@
 #include <base/str_utilts.h>
 #include <base/stacktrace.h>
 #include <base/exception.h>
+#include <base/logger_impl.h>
 #include <base/platform.h>
 #include <base/vmmemlock.h>
 

@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include <QWidget>
-#include <QMenu>
+class QWidget;
+class QMenu;
 
 namespace win32 {
 	void setAccentPolicy(const QWidget* widget, bool enable = true, int animation_id = 0);

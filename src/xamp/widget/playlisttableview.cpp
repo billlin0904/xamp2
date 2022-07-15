@@ -12,14 +12,11 @@
 #include <QXmlStreamReader>
 #include <QStorageInfo>
 
-#include <base/rng.h>
-#include <base/str_utilts.h>
-#include <stream/icddevice.h>
-#include <player/api.h>
-
-#include <metadata/api.h>
-#include <metadata/imetadatareader.h>
-#include <metadata/imetadatawriter.h>
+#include <widget/playlisttableproxymodel.h>
+#include <widget/playlistsqlquerytablemodel.h>
+#include <widget/appsettingnames.h>
+#include <widget/widget_shared.h>
+#include <base/logger_impl.h>
 
 #include <rapidxml.hpp>
 
@@ -39,8 +36,6 @@
 #include <widget/podcast_uiltis.h>
 #include <widget/processindicator.h>
 #include <widget/playlisttableview.h>
-
-using namespace xamp::metadata;
 
 static PlayListEntity getEntity(const QModelIndex& index) {
     PlayListEntity entity;
@@ -75,15 +70,15 @@ PlayListTableView::PlayListTableView(QWidget* parent, int32_t playlist_id)
     , podcast_mode_(false)
     , playlist_id_(playlist_id)
     , start_delegate_(nullptr)
-    , model_(this)
-    , proxy_model_(this) {
+    , model_(new PlayListSqlQueryTableModel(this))
+    , proxy_model_(new PlayListTableFilterProxyModel(this)) {
     initial();
 }
 
 PlayListTableView::~PlayListTableView() = default;
 
 void PlayListTableView::refresh() {
-    model_.query().exec();
+    model_->query().exec();
 }
 
 void PlayListTableView::updateData() {
@@ -127,11 +122,11 @@ void PlayListTableView::updateData() {
 	playlistMusics.playlistMusicsId, musics.path;
     )");
     QSqlQuery query(s.arg(playlist_id_));
-    model_.setQuery(query);
-    while (model_.canFetchMore()) {
-        model_.fetchMore();
+    model_->setQuery(query);
+    while (model_->canFetchMore()) {
+        model_->fetchMore();
     }
-    proxy_model_.dataChanged(QModelIndex(), QModelIndex());
+    proxy_model_->dataChanged(QModelIndex(), QModelIndex());
 }
 
 void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
@@ -141,25 +136,25 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
 
     updateData();
 
-    model_.setHeaderData(PLAYLIST_MUSIC_ID, Qt::Horizontal, tr("ID"));
-    model_.setHeaderData(PLAYLIST_PLAYING, Qt::Horizontal, tr(" "));
-    model_.setHeaderData(PLAYLIST_TRACK, Qt::Horizontal, tr("TRACK#"));
-    model_.setHeaderData(PLAYLIST_FILEPATH, Qt::Horizontal, tr("FILE PATH"));
-    model_.setHeaderData(PLAYLIST_TITLE, Qt::Horizontal, tr("TITLE"));
-    model_.setHeaderData(PLAYLIST_FILE_NAME, Qt::Horizontal, tr("FILE NAME"));
-    model_.setHeaderData(PLAYLIST_ALBUM, Qt::Horizontal, tr("ALBUM"));
-    model_.setHeaderData(PLAYLIST_ARTIST, Qt::Horizontal, tr("ARTIST"));
-    model_.setHeaderData(PLAYLIST_DURATION, Qt::Horizontal, tr("DURATION"));
-    model_.setHeaderData(PLAYLIST_BITRATE, Qt::Horizontal, tr("BIT.RATE"));
-    model_.setHeaderData(PLAYLIST_SAMPLE_RATE, Qt::Horizontal, tr("SAMPLE.RATE"));
-    model_.setHeaderData(PLAYLIST_RATING, Qt::Horizontal, tr("RATING"));
-    model_.setHeaderData(PLAYLIST_ALBUM_RG, Qt::Horizontal, tr("ALBUM.RG"));
-    model_.setHeaderData(PLAYLIST_ALBUM_PK, Qt::Horizontal, tr("ALBUM.PK"));
-    model_.setHeaderData(PLAYLIST_LAST_UPDATE_TIME, Qt::Horizontal, tr("LAST UPDATE TIME"));
-    model_.setHeaderData(PLAYLIST_TRACK_RG, Qt::Horizontal, tr("TRACK.RG"));
-    model_.setHeaderData(PLAYLIST_TRACK_PK, Qt::Horizontal, tr("TRACK.PK"));
-    model_.setHeaderData(PLAYLIST_GENRE, Qt::Horizontal, tr("GENRE"));
-    model_.setHeaderData(PLAYLIST_YEAR, Qt::Horizontal, tr("YEAR"));
+    model_->setHeaderData(PLAYLIST_MUSIC_ID, Qt::Horizontal, tr("ID"));
+    model_->setHeaderData(PLAYLIST_PLAYING, Qt::Horizontal, tr(" "));
+    model_->setHeaderData(PLAYLIST_TRACK, Qt::Horizontal, tr("TRACK#"));
+    model_->setHeaderData(PLAYLIST_FILEPATH, Qt::Horizontal, tr("FILE PATH"));
+    model_->setHeaderData(PLAYLIST_TITLE, Qt::Horizontal, tr("TITLE"));
+    model_->setHeaderData(PLAYLIST_FILE_NAME, Qt::Horizontal, tr("FILE NAME"));
+    model_->setHeaderData(PLAYLIST_ALBUM, Qt::Horizontal, tr("ALBUM"));
+    model_->setHeaderData(PLAYLIST_ARTIST, Qt::Horizontal, tr("ARTIST"));
+    model_->setHeaderData(PLAYLIST_DURATION, Qt::Horizontal, tr("DURATION"));
+    model_->setHeaderData(PLAYLIST_BITRATE, Qt::Horizontal, tr("BIT.RATE"));
+    model_->setHeaderData(PLAYLIST_SAMPLE_RATE, Qt::Horizontal, tr("SAMPLE.RATE"));
+    model_->setHeaderData(PLAYLIST_RATING, Qt::Horizontal, tr("RATING"));
+    model_->setHeaderData(PLAYLIST_ALBUM_RG, Qt::Horizontal, tr("ALBUM.RG"));
+    model_->setHeaderData(PLAYLIST_ALBUM_PK, Qt::Horizontal, tr("ALBUM.PK"));
+    model_->setHeaderData(PLAYLIST_LAST_UPDATE_TIME, Qt::Horizontal, tr("LAST UPDATE TIME"));
+    model_->setHeaderData(PLAYLIST_TRACK_RG, Qt::Horizontal, tr("TRACK.RG"));
+    model_->setHeaderData(PLAYLIST_TRACK_PK, Qt::Horizontal, tr("TRACK.PK"));
+    model_->setHeaderData(PLAYLIST_GENRE, Qt::Horizontal, tr("GENRE"));
+    model_->setHeaderData(PLAYLIST_YEAR, Qt::Horizontal, tr("YEAR"));
 
     hideColumn(PLAYLIST_MUSIC_ID);
     hideColumn(PLAYLIST_FILEPATH);
@@ -209,11 +204,11 @@ void PlayListTableView::initial() {
     notshow_column_names_.insert(Q_TEXT("parentPath"));
     notshow_column_names_.insert(Q_TEXT("playlistMusicsId"));
 
-    proxy_model_.setSourceModel(&model_);
-    proxy_model_.setFilterByColumn(PLAYLIST_RATING);
-    proxy_model_.setFilterByColumn(PLAYLIST_TITLE);
-    proxy_model_.setDynamicSortFilter(true);
-    setModel(&proxy_model_);
+    proxy_model_->setSourceModel(model_);
+    proxy_model_->setFilterByColumn(PLAYLIST_RATING);
+    proxy_model_->setFilterByColumn(PLAYLIST_TITLE);
+    proxy_model_->setDynamicSortFilter(true);
+    setModel(proxy_model_);
 
     auto f = font();
 #ifdef Q_OS_WIN
@@ -273,7 +268,7 @@ void PlayListTableView::initial() {
     });
 
     (void)QObject::connect(this, &QTableView::doubleClicked, [this](const QModelIndex& index) {
-        const auto current_index = proxy_model_.mapToSource(index);
+        const auto current_index = proxy_model_->mapToSource(index);
         setNowPlaying(current_index);
         const auto play_item = getEntity(current_index);
         emit playMusic(play_item);
@@ -338,7 +333,7 @@ void PlayListTableView::initial() {
         auto * set_cover_art_act = action_map.addAction(tr("Set cover art"));
         auto * export_cover_act = action_map.addAction(tr("Export music cover"));
 
-        if (model_.rowCount() == 0 || !index.isValid()) {
+        if (model_->rowCount() == 0 || !index.isValid()) {
             try {
                 action_map.exec(pt);
             }
@@ -348,7 +343,7 @@ void PlayListTableView::initial() {
             return;
         }
 
-        auto item = getEntity(proxy_model_.mapToSource(index));
+        auto item = getEntity(proxy_model_->mapToSource(index));
 
         action_map.setCallback(reload_metadata_act, [this, item]() {
             auto reader = MakeMetadataReader();
@@ -686,8 +681,8 @@ void PlayListTableView::resizeColumn() {
 void PlayListTableView::search(const QString& sort_str, Qt::CaseSensitivity case_sensitivity, QRegExp::PatternSyntax pattern_syntax) {
     const QRegExp reg_exp(sort_str, case_sensitivity, pattern_syntax);
 
-    proxy_model_.setFilterRegExp(reg_exp);
-    proxy_model_.invalidate();
+    proxy_model_->setFilterRegExp(reg_exp);
+    proxy_model_->invalidate();
 }
 
 int32_t PlayListTableView::playlistId() const {
@@ -699,20 +694,20 @@ QModelIndex PlayListTableView::currentIndex() const {
 }
 
 QModelIndex PlayListTableView::nextIndex(int forward) const {
-    const auto count = proxy_model_.rowCount();
+    const auto count = proxy_model_->rowCount();
     const auto play_index = currentIndex();
     const auto next_index = (play_index.row() + forward) % count;
     return model()->index(next_index, PLAYLIST_PLAYING);
 }
 
 QModelIndex PlayListTableView::shuffeIndex() {    
-    const auto count = proxy_model_.rowCount();
+    const auto count = proxy_model_->rowCount();
     const auto selected = rng_.NextInt64(0) % count;
     return model()->index(selected, PLAYLIST_PLAYING);
 }
 
 void PlayListTableView::setNowPlaying(const QModelIndex& index, bool is_scroll_to) {
-    auto count = proxy_model_.rowCount();
+    auto count = proxy_model_->rowCount();
     play_index_ = index;
     setCurrentIndex(play_index_);
     if (is_scroll_to) {
@@ -751,7 +746,7 @@ PlayListEntity PlayListTableView::nomapItem(const QModelIndex& index) {
 }
 
 PlayListEntity PlayListTableView::item(const QModelIndex& index) {
-     return getEntity(proxy_model_.mapToSource(index));
+     return getEntity(proxy_model_->mapToSource(index));
 }
 
 void PlayListTableView::setCurrentPlayIndex(const QModelIndex& index) {
@@ -776,7 +771,7 @@ void PlayListTableView::removeAll() {
 }
 
 void PlayListTableView::removeItem(const QModelIndex& index) {
-    proxy_model_.removeRows(index.row(), 1, index);
+    proxy_model_->removeRows(index.row(), 1, index);
 }
 
 void PlayListTableView::removeSelectItems() {
@@ -790,7 +785,7 @@ void PlayListTableView::removeSelectItems() {
         remove_music_ids.push_back(it.playlist_music_id);
     }
 
-    const auto count = proxy_model_.rowCount();
+    const auto count = proxy_model_->rowCount();
 	if (!count) {
         qDatabase.clearNowPlaying(playlist_id_);       
 	}

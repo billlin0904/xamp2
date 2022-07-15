@@ -5,13 +5,8 @@
 
 #pragma once
 
-#include <base/base.h>
-
+#include <cstdint>
 #include <QString>
-#include <QIcon>
-#include <QUrl>
-
-#include <widget/starrating.h>
 
 struct PlayListEntity final {
     bool playing{false};

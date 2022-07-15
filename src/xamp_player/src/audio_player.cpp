@@ -1,6 +1,7 @@
 #include <base/str_utilts.h>
 #include <base/platform.h>
 #include <base/logger.h>
+#include <base/logger_impl.h>
 #include <base/stl.h>
 #include <base/threadpool.h>
 #include <base/dsdsampleformat.h>

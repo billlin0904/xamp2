@@ -10,14 +10,8 @@
 #include <base/align_ptr.h>
 #include <base/ithreadpool.h>
 #include <base/lrucache.h>
-#include <metadata/api.h>
+#include <widget/widget_shared.h>
 #include <widget/playlistentity.h>
-
-using xamp::base::AlignPtr;
-using xamp::base::IThreadPool;
-using xamp::base::LruCache;
-using xamp::base::Vector;
-using xamp::metadata::IMetadataWriter;
 
 struct ReplayGainResult final {
     double album_peak{0};
