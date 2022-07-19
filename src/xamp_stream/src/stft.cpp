@@ -22,10 +22,10 @@ void STFT::setWindowType(WindowType type) {
 }
 
 const ComplexValarray& STFT::Process(const float* in, size_t length) {
-    XAMP_ASSERT(frame_size_ % kMaxChannel == 0);
-	XAMP_ASSERT(frame_size_ >= length / kMaxChannel);
+    XAMP_ASSERT(frame_size_ % AudioFormat::kMaxChannel == 0);
+	XAMP_ASSERT(frame_size_ >= length / AudioFormat::kMaxChannel);
     
-    for (size_t i = 0; i < length / kMaxChannel; ++i) {
+    for (size_t i = 0; i < length / AudioFormat::kMaxChannel; ++i) {
         in_[i] = in[i * 2];
     }
 

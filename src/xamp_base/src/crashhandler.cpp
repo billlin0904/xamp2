@@ -1,9 +1,10 @@
+#include <mutex>
+
 #include <base/crashhandler.h>
 #include <base/dll.h>
 #include <base/memory.h>
 #include <base/logger_impl.h>
 #include <base/stacktrace.h>
-
 #include <base/stl.h>
 
 #include <base/platfrom_handle.h>

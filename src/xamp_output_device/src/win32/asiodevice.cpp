@@ -33,8 +33,8 @@ struct AsioDriver {
 	AudioConvertContext data_context{};
 	ASIOCallbacks asio_callbacks{};
 	Stopwatch buffer_switch_stopwatch;
-	std::array<ASIOBufferInfo, kMaxChannel> buffer_infos{};
-	std::array<ASIOChannelInfo, kMaxChannel> channel_infos{};
+	std::array<ASIOBufferInfo, AudioFormat::kMaxChannel> buffer_infos{};
+	std::array<ASIOChannelInfo, AudioFormat::kMaxChannel> channel_infos{};
 
 	void SetPostOutput() {
 		post_output = ::ASIOOutputReady() == ASE_OK;

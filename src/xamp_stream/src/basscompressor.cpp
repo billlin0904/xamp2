@@ -14,7 +14,7 @@ public:
 
     void Start(uint32_t output_sample_rate) {
         stream_.reset(BASS.BASS_StreamCreate(output_sample_rate,
-                                             kMaxChannel,
+                                             AudioFormat::kMaxChannel,
                                              BASS_SAMPLE_FLOAT | BASS_STREAM_DECODE,
                                              STREAMPROC_DUMMY,
                                              nullptr));

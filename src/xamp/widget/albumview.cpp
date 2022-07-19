@@ -9,7 +9,6 @@
 #include <QStandardPaths>
 #include <QFileDialog>
 #include <QSqlQuery>
-#include <QMouseEvent>
 
 #include <widget/widget_shared.h>
 #include <widget/scrolllabel.h>
@@ -19,10 +18,6 @@
 #include <widget/actionmap.h>
 #include <widget/playlistpage.h>
 
-#if defined(Q_OS_WIN)
-#include <widget/win32/win32.h>
-#endif
-
 #include "thememanager.h"
 #include <widget/toast.h>
 #include <widget/processindicator.h>
@@ -30,7 +25,6 @@
 #include <widget/image_utiltis.h>
 #include <widget/pixmapcache.h>
 #include <widget/ui_utilts.h>
-#include <widget/widget_shared.h>
 #include <widget/albumview.h>
 
 enum {
@@ -206,16 +200,12 @@ void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id) {
     page_->show();
 
     page_->playlist()->removeAll();
-    Vector<PlayListEntity> entities;
     Vector<int32_t> add_playlist_music_ids;
 
     add_playlist_music_ids.reserve(20);
 
     qDatabase.forEachAlbumMusic(album_id,
-        [&entities, &add_playlist_music_ids](const PlayListEntity& entity) mutable {
-            if (entity.album_replay_gain == 0.0) {
-                entities.push_back(entity);
-            }
+        [&add_playlist_music_ids](const PlayListEntity& entity) mutable {
             add_playlist_music_ids.push_back(entity.music_id);
         });
 

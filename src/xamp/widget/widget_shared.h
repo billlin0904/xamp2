@@ -18,6 +18,9 @@
 #include <base/dsdsampleformat.h>
 #include <base/vmmemlock.h>
 #include <base/str_utilts.h>
+#include <base/align_ptr.h>
+#include <base/ithreadpool.h>
+#include <base/lrucache.h>
 
 #include <metadata/api.h>
 #include <metadata/imetadatawriter.h>

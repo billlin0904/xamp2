@@ -41,7 +41,7 @@ void XFrame::setContentWidget(QWidget* content) {
 
     auto f = font();
     f.setBold(true);
-    f.setPointSize(14);
+    f.setPointSize(12);
     title_frame_label = new QLabel(title_frame);
     title_frame_label->setObjectName(QString::fromUtf8("titleFrameLabel"));
     QSizePolicy size_policy3(QSizePolicy::Preferred, QSizePolicy::Preferred);

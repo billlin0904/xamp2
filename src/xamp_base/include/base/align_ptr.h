@@ -22,62 +22,6 @@ XAMP_BASE_API void* StackAlloc(size_t size);
 
 XAMP_BASE_API void StackFree(void* p);
 
-template <typename T, size_t AlignmentBytes = kMallocAlignSize>
-class XAMP_BASE_API_ONLY_EXPORT AlignedAllocator : public std::allocator<T> {
-public:
-    typedef std::size_t size_type;
-    typedef std::ptrdiff_t difference_type;
-    typedef T* pointer;
-    typedef const T* const_pointer;
-    typedef T& reference;
-    typedef const T& const_reference;
-    typedef T value_type;
-
-    template <typename U>
-    struct rebind {
-        typedef AlignedAllocator<U> other;
-    };
-
-    AlignedAllocator()
-        : std::allocator<T>() {
-    }
-
-    AlignedAllocator(const AlignedAllocator& other)
-        : std::allocator<T>(other) {
-    }
-
-    template <typename U>
-    explicit AlignedAllocator(const AlignedAllocator<U>& other)
-        : std::allocator<T>(other) {
-    }
-
-    ~AlignedAllocator() {
-    }
-
-    template <typename C, typename... Args>
-    void construct(C* c, Args&&... args) {
-        new (reinterpret_cast<void*>(c)) C(std::forward<Args>(args)...);
-    }
-
-    template <typename U, typename V>
-    void construct(U* ptr, V&& value) {
-        ::new(reinterpret_cast<void*>(ptr)) U(std::forward<V>(value));
-    }
-
-    template <typename U>
-    void construct(U* ptr) {
-        ::new(reinterpret_cast<void*>(ptr)) U();
-    }
-
-    pointer allocate(size_type num, const void* /*hint*/ = nullptr) {
-        return static_cast<pointer>(AlignedMalloc(num * sizeof(T), AlignmentBytes));
-    }
-
-    void deallocate(pointer p, size_type /*num*/) {
-        AlignedFree(p);
-    }
-};
-
 template <typename T>
 constexpr T AlignUp(T value, size_t aligned_size = kMallocAlignSize) {
     return T((value + (T(aligned_size) - 1)) & ~T(aligned_size - 1));
@@ -125,12 +69,6 @@ struct XAMP_BASE_API_ONLY_EXPORT FreeDeleter {
 using CharPtr = std::unique_ptr<char, FreeDeleter<char>>;
 
 template <typename Type>
-using Vector = std::vector<Type, AlignedAllocator<Type>>;
-
-template <typename Type>
-using ForwardList = std::forward_list<Type, AlignedAllocator<Type>>;
-
-template <typename Type>
 using StackBufferPtr = std::unique_ptr<Type[], StackBufferDeleter<Type>>;
 
 template <typename Type>
@@ -170,11 +108,6 @@ XAMP_BASE_API_ONLY_EXPORT AlignPtr<Type> MakeAlign(Args&& ... args) {
         AlignedFree(ptr);
         throw;
     }
-}
-
-template <typename T, typename... Args>
-XAMP_BASE_API_ONLY_EXPORT std::shared_ptr<T> MakeAlignedShared(Args&&... args) {
-    return std::allocate_shared<T>(AlignedAllocator<std::remove_const_t<T>>(), std::forward<Args>(args)...);
 }
 
 template <typename Type>

@@ -7,6 +7,8 @@
 
 #include <widget/podcast_uiltis.h>
 
+using namespace rapidxml;
+
 template <typename Ch>
 std::wstring parseCDATA(rapidxml::xml_node<Ch>* node) {
     auto nest_node = node->first_node();

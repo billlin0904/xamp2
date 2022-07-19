@@ -99,7 +99,7 @@ public:
 		soxr_error_t error = nullptr;
 		handle_.reset(SoxrDLL.soxr_create(input_sample_rate,
 			output_sample_rate_,
-			kMaxChannel,
+			AudioFormat::kMaxChannel,
 			&error,
 			&iospec,
 			&soxr_quality,
@@ -110,7 +110,7 @@ public:
 		}
 
 		input_sample_rate_ = input_sample_rate;
-		num_channels_ = kMaxChannel;
+		num_channels_ = AudioFormat::kMaxChannel;
 
 		ratio_ = static_cast<double>(output_sample_rate_) / static_cast<double>(input_sample_rate_);
 

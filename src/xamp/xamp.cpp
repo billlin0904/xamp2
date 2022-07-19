@@ -35,7 +35,6 @@
 #include <widget/playlisttableview.h>
 #include <widget/albumartistpage.h>
 #include <widget/lrcpage.h>
-#include <widget/artistview.h>
 #include <widget/str_utilts.h>
 #include <widget/playlistpage.h>
 #include <widget/toast.h>
@@ -1050,7 +1049,6 @@ void Xamp::resetSeekPosValue() {
 void Xamp::processMeatadata(int64_t dir_last_write_time, const ForwardList<Metadata>& medata) const {
     MetadataExtractAdapter::processMetadata(dir_last_write_time, medata);
     album_artist_page_->album()->refreshOnece();
-    album_artist_page_->artist()->refreshOnece();
 }
 
 void Xamp::setupDSP(const AlbumEntity& item) {
@@ -1330,8 +1328,8 @@ void Xamp::addPlaylistItem(const Vector<int32_t>& music_ids, const Vector<PlayLi
 }
 
 void Xamp::onClickedAlbum(const QString& album, int32_t album_id) {
-    ui_.currentView->setCurrentWidget(album_artist_page_);
     album_artist_page_->album()->albumViewPage()->setPlaylistMusic(album, album_id);
+    ui_.currentView->setCurrentWidget(album_artist_page_);
 }
 
 void Xamp::setPlaylistPageCover(const QPixmap* cover, PlaylistPage* page) {

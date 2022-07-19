@@ -155,13 +155,13 @@ public:
             throw Exception(Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR, "Duration too small!");
         }
 
-        if (GetFormat().GetChannels() == kMaxChannel) {
+        if (GetFormat().GetChannels() == AudioFormat::kMaxChannel) {
             return;
         }
 
         if (mode_ == DsdModes::DSD_MODE_PCM) {
             mix_stream_.reset(BASS.MixLib->BASS_Mixer_StreamCreate(GetFormat().GetSampleRate(),
-                kMaxChannel,
+                AudioFormat::kMaxChannel,
                 BASS_SAMPLE_FLOAT | BASS_STREAM_DECODE | BASS_MIXER_END));
             if (!mix_stream_) {
                 throw BassException();
@@ -170,7 +170,7 @@ public:
                 stream_.get(),
                 BASS_MIXER_BUFFER));
             XAMP_LOG_D(logger_, "Mix stream {} channel to 2 channel", info_.chans);
-            info_.chans = kMaxChannel;
+            info_.chans = AudioFormat::kMaxChannel;
         }
         else {
             throw NotSupportFormatException();
@@ -241,19 +241,19 @@ public:
     [[nodiscard]] AudioFormat GetFormat() const noexcept {
         if (mode_ == DsdModes::DSD_MODE_NATIVE) {
             return AudioFormat(DataFormat::FORMAT_DSD,
-                               static_cast<uint16_t>(info_.chans),
-                               ByteFormat::SINT8,
-                               GetDsdSampleRate());
+                static_cast<uint16_t>(info_.chans),
+                ByteFormat::SINT8,
+                GetDsdSampleRate());
         } else if (mode_ == DsdModes::DSD_MODE_DOP) {
             return AudioFormat(DataFormat::FORMAT_PCM,
-                               static_cast<uint16_t>(info_.chans),
-                               ByteFormat::FLOAT32,
-                               GetDOPSampleRate(GetDsdSpeed()));
+                static_cast<uint16_t>(info_.chans),
+                ByteFormat::FLOAT32,
+                GetDOPSampleRate(GetDsdSpeed()));
         }
         return AudioFormat(DataFormat::FORMAT_PCM,
-                           static_cast<uint16_t>(info_.chans),
-                           ByteFormat::FLOAT32,
-                           info_.freq);
+				static_cast<uint16_t>(info_.chans),
+				ByteFormat::FLOAT32,
+				info_.freq);
     }
 
     void Seek(double stream_time) const {

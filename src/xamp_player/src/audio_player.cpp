@@ -602,6 +602,8 @@ void AudioPlayer::OpenDevice(double stream_time) {
 }
 
 void AudioPlayer::BufferStream(double stream_time) {
+    XAMP_LOG_D(logger_, "Buffing samples : {:.2f}msec", stream_time);
+
     fifo_.Clear();
 
     stream_->Seek(stream_time);

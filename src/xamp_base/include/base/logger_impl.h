@@ -9,7 +9,7 @@
 #include <string>
 
 #include <base/singleton.h>
-#include <base/align_ptr.h>
+#include <base/stl.h>
 #include <base/base.h>
 #include <base/logger.h>
 
@@ -37,6 +37,10 @@ enum LogLevel {
 };
 
 #define DECLARE_LOG_ARG_API(Name, Level) \
+    template <typename Args>\
+    void Log##Name(Args &&args) {\
+		Log(Level, nullptr, 0, nullptr, "{}", std::forward<Args>(args));\
+	}\
     template <typename... Args>\
 	void Log##Name(std::string_view s, Args &&...args) {\
 		Log(Level, nullptr, 0, nullptr, s, std::forward<Args>(args)...);\

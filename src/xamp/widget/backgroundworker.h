@@ -6,10 +6,6 @@
 #pragma once
 
 #include <QObject>
-
-#include <base/align_ptr.h>
-#include <base/ithreadpool.h>
-#include <base/lrucache.h>
 #include <widget/widget_shared.h>
 #include <widget/playlistentity.h>
 

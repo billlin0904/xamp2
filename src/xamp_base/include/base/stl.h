@@ -10,6 +10,7 @@
 #include <functional>
 
 #include <base/base.h>
+#include <base/align_ptr.h>
 #include <robin_hood.h>
 
 namespace xamp::base {
@@ -39,6 +40,73 @@ decltype(auto) bind_front(F&& f, FrontArgs&&...front_args) {
 #endif
 #endif
 
+template <typename T, size_t AlignmentBytes = kMallocAlignSize>
+class XAMP_BASE_API_ONLY_EXPORT AlignedAllocator : public std::allocator<T> {
+public:
+	typedef std::size_t size_type;
+	typedef std::ptrdiff_t difference_type;
+	typedef T* pointer;
+	typedef const T* const_pointer;
+	typedef T& reference;
+	typedef const T& const_reference;
+	typedef T value_type;
+
+	template <typename U>
+	struct rebind {
+		typedef AlignedAllocator<U> other;
+	};
+
+	AlignedAllocator()
+		: std::allocator<T>() {
+	}
+
+	AlignedAllocator(const AlignedAllocator& other)
+		: std::allocator<T>(other) {
+	}
+
+	template <typename U>
+	explicit AlignedAllocator(const AlignedAllocator<U>& other)
+		: std::allocator<T>(other) {
+	}
+
+	~AlignedAllocator() {
+	}
+
+	template <typename C, typename... Args>
+	void construct(C* c, Args&&... args) {
+		new (reinterpret_cast<void*>(c)) C(std::forward<Args>(args)...);
+	}
+
+	template <typename U, typename V>
+	void construct(U* ptr, V&& value) {
+		::new(reinterpret_cast<void*>(ptr)) U(std::forward<V>(value));
+	}
+
+	template <typename U>
+	void construct(U* ptr) {
+		::new(reinterpret_cast<void*>(ptr)) U();
+	}
+
+	pointer allocate(size_type num, const void* /*hint*/ = nullptr) {
+		return static_cast<pointer>(AlignedMalloc(num * sizeof(T), AlignmentBytes));
+	}
+
+	void deallocate(pointer p, size_type /*num*/) {
+		AlignedFree(p);
+	}
+};
+
+template <typename Type>
+using Vector = std::vector<Type, AlignedAllocator<Type>>;
+
+template <typename Type>
+using ForwardList = std::forward_list<Type, AlignedAllocator<Type>>;
+
+template <typename T, typename... Args>
+XAMP_BASE_API_ONLY_EXPORT std::shared_ptr<T> MakeAlignedShared(Args&&... args) {
+	return std::allocate_shared<T>(AlignedAllocator<std::remove_const_t<T>>(), std::forward<Args>(args)...);
+}
+
 template <typename TP>
 std::time_t ToTime_t(TP tp) {
 	using namespace std::chrono;
@@ -54,8 +122,8 @@ uint64_t GetUnixTime() {
 }
 
 template <typename T, typename C>
-std::vector<T> Union(C const &a, C const &b) {
-	std::vector<T> result;
+Vector<T> Union(C const &a, C const &b) {
+	Vector<T> result;
 	result.reserve(a.size() + b.size());
 	std::set_union(a.begin(), a.end(),
 		b.begin(), b.end(),

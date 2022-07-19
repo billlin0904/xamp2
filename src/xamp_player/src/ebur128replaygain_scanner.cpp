@@ -9,7 +9,6 @@
 #include <base/audioformat.h>
 #include <base/metadata.h>
 #include <base/dll.h>
-#include <base/platfrom_handle.h>
 #include <player/ebur128replaygain_scanner.h>
 
 namespace xamp::player {
@@ -69,15 +68,15 @@ Ebur128Lib::Ebur128Lib()
 class Ebur128ReplayGainScanner::Ebur128ReplayGainScannerImpl {
 public:
 	explicit Ebur128ReplayGainScannerImpl(uint32_t sample_rate) {
-		state_.reset(EBUR128_LIB.ebur128_init(kMaxChannel, sample_rate,
-			EBUR128_MODE_I | EBUR128_MODE_TRUE_PEAK | EBUR128_MODE_SAMPLE_PEAK));
+		state_.reset(EBUR128_LIB.ebur128_init(AudioFormat::kMaxChannel, sample_rate,
+		                                      EBUR128_MODE_I | EBUR128_MODE_TRUE_PEAK | EBUR128_MODE_SAMPLE_PEAK));
 		IfFailThrow(EBUR128_LIB.ebur128_set_channel(state_.get(), 0, EBUR128_LEFT));
 		IfFailThrow(EBUR128_LIB.ebur128_set_channel(state_.get(), 1, EBUR128_RIGHT));
 	}
 
 	void Process(float const* samples, size_t num_sample) {
 		IfFailThrow(EBUR128_LIB.ebur128_add_frames_float(state_.get(), 
-			samples, num_sample / kMaxChannel));
+			samples, num_sample / AudioFormat::kMaxChannel));
 	}
 
 	[[nodiscard]] double GetTruePeek() const {

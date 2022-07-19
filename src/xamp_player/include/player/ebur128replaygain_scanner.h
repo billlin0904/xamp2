@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <base/align_ptr.h>
+#include <base/stl.h>
 #include <player/player.h>
 
 namespace xamp::player {

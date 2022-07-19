@@ -176,7 +176,6 @@ private:
     ArtistInfoPage* artist_info_page_;
 	PreferencePage* preference_page_;
 	FileSystemViewPage* file_system_view_page_;
-	/*AboutPage* about_page_;*/
     QMenu* tray_icon_menu_;
     QSystemTrayIcon* tray_icon_;
 	QAction* search_action_;

@@ -49,14 +49,14 @@ public:
     void Encode(std::function<bool(uint32_t) > const& progress) {
         constexpr uint32_t kReadSampleSize = 8192 * 4;
 
-        auto buffer = MakeBuffer<float>(kReadSampleSize * kMaxChannel);
+        auto buffer = MakeBuffer<float>(kReadSampleSize * AudioFormat::kMaxChannel);
 
         uint32_t num_samples = 0;
         const auto max_duration = static_cast<uint64_t>(stream_.GetDuration());
 
         while (stream_.IsActive()) {
             const auto read_size = stream_.GetSamples(buffer.data(), kReadSampleSize)
-                / kMaxChannel;
+                / AudioFormat::kMaxChannel;
             if (read_size == kBassError || read_size == 0) {
                 break;
             }

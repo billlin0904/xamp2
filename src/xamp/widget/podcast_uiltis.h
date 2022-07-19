@@ -7,10 +7,9 @@
 
 #include <string>
 #include <vector>
-#include <base/align_ptr.h>
+#include <base/stl.h>
 #include <base/metadata.h>
 
-using namespace rapidxml;
 using namespace xamp::base;
 
 Vector<Metadata> parseJson(QString const& json);

@@ -5,11 +5,8 @@
 
 #pragma once
 
-#include <ctime>
-
-#include <mutex>
-#include <base/platfrom_handle.h>
-#include <base/exception.h>
+#include <base/base.h>
+#include <base/align_ptr.h>
 
 namespace xamp::base {
 
@@ -17,9 +14,7 @@ class XAMP_BASE_API SRWMutex final {
 public:
 	SRWMutex() noexcept;
 
-	XAMP_DISABLE_COPY(SRWMutex)
-
-    ~SRWMutex() noexcept;
+	XAMP_PIMPL(SRWMutex)
 
 	void lock() noexcept;
 	
@@ -27,12 +22,8 @@ public:
 
 	[[nodiscard]] bool try_lock() noexcept;
 private:
-#ifdef XAMP_OS_WIN
-	XAMP_CACHE_ALIGNED(kCacheAlignSize) SRWLOCK lock_;
-    uint8_t padding_[kCacheAlignSize - sizeof(lock_)]{ 0 };
-#else
-    pthread_rwlock_t lock_ = PTHREAD_RWLOCK_INITIALIZER;
-#endif
+	class SRWMutexImpl;
+	AlignPtr<SRWMutexImpl> impl_;
 };
 
 using FastMutex = SRWMutex;

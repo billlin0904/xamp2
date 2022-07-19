@@ -301,7 +301,7 @@ static int excute(int argc, char* argv[]) {
         QMessageBox::critical(nullptr,
             Q_TEXT("Initialize failure."),
             QString::fromStdString(e.GetErrorMessage()));
-        XAMP_LOG_DEBUG("{}", e.GetStackTrace());
+        XAMP_LOG_DEBUG(e.GetStackTrace());
         return -1;
     }
 

@@ -6,8 +6,6 @@
 #include <widget/appsettings.h>
 #include <widget/uiplayerstateadapter.h>
 
-using xamp::base::kMaxChannel;
-
 UIPlayerStateAdapter::UIPlayerStateAdapter(QObject *parent)
     : QObject(parent)
 	, enable_spectrum_(false) {
@@ -35,8 +33,8 @@ void UIPlayerStateAdapter::OnVolumeChanged(float vol) {
 }
 
 void UIPlayerStateAdapter::OutputFormatChanged(const AudioFormat output_format, size_t buffer_size) {
-	size_t channel_sample_rate = output_format.GetSampleRate() / kMaxChannel;
-	size_t frame_size = buffer_size * kMaxChannel;
+	size_t channel_sample_rate = output_format.GetSampleRate() / AudioFormat::kMaxChannel;
+	size_t frame_size = buffer_size * AudioFormat::kMaxChannel;
 	size_t shift_size = buffer_size * 0.75; //channel_sample_rate * 0.01;
 	frame_size = 8192;
 	XAMP_LOG_DEBUG("fft size:{} shift size:{} buffer size:{}", frame_size, shift_size, buffer_size);

@@ -1,3 +1,4 @@
+#include <mutex>
 #include <base/fastmutex.h>
 #include <base/stl.h>
 #include <base/shared_singleton.h>

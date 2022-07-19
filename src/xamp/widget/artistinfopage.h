@@ -33,7 +33,7 @@ public slots:
 private:
 	QPixmap getArtistImage(QPixmap const* cover) const;
 
-	int32_t artist_id_;
+	int32_t artist_id_{-1};
 	QLabel* cover_;
 	QLabel* artist_;
 	QLabel* tracks_;

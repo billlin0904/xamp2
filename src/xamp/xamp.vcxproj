@@ -186,7 +186,6 @@
     <ClCompile Include="widget\albumview.cpp" />
     <ClCompile Include="widget\appsettings.cpp" />
     <ClCompile Include="widget\artistinfopage.cpp" />
-    <ClCompile Include="widget\artistview.cpp" />
     <ClCompile Include="widget\clickablelabel.cpp" />
     <ClCompile Include="widget\database.cpp" />
     <ClCompile Include="widget\discordnotify.cpp" />
@@ -308,8 +307,6 @@
     <QtMoc Include="widget\albumartistpage.h">
     </QtMoc>
     <ClInclude Include="widget\appsettings.h" />
-    <QtMoc Include="widget\artistview.h">
-    </QtMoc>
     <QtMoc Include="widget\artistinfopage.h">
     </QtMoc>
     <ClInclude Include="widget\database.h" />

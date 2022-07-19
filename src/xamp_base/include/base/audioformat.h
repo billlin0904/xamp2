@@ -6,7 +6,7 @@
 #pragma once
 
 #include <ostream>
-#include <sstream>
+#include <functional>
 #include <iomanip>
 
 #include <base/base.h>
@@ -31,13 +31,23 @@ MAKE_XAMP_ENUM(DataFormat,
           FORMAT_DSD,
           FORMAT_PCM)
 
-inline constexpr uint32_t kMaxChannel = 2;
-inline constexpr uint32_t kMaxSamplerate = 384000;
+#define DECLARE_AUDIO_FORMAT(Name) \
+    static const AudioFormat k##Name;\
+	static const AudioFormat kFloat##Name
 
 class XAMP_BASE_API AudioFormat final {
 public:
-    static const AudioFormat kUnknowFormat;
-    static const AudioFormat kPCM441Khz;
+    static const AudioFormat kUnknownFormat;
+    static const uint32_t kMaxChannel = 2;
+
+    DECLARE_AUDIO_FORMAT(PCM441Khz);
+    DECLARE_AUDIO_FORMAT(PCM48Khz);
+    DECLARE_AUDIO_FORMAT(PCM96Khz);
+    DECLARE_AUDIO_FORMAT(PCM882Khz);
+    DECLARE_AUDIO_FORMAT(PCM1764Khz);
+    DECLARE_AUDIO_FORMAT(PCM192Khz);
+    DECLARE_AUDIO_FORMAT(PCM3528Khz);
+    DECLARE_AUDIO_FORMAT(PCM384Khz);
 
     explicit AudioFormat(DataFormat format = DataFormat::FORMAT_PCM,
         uint16_t number_of_channels = 0,
@@ -87,6 +97,10 @@ public:
     void Reset() noexcept;
 
     static AudioFormat ToFloatFormat(AudioFormat const& source_format) noexcept;
+
+    std::string ToString() const;
+
+    size_t GetHash() const;
 
 private:
     XAMP_BASE_API friend bool operator==(const AudioFormat& format, const AudioFormat& other) noexcept;
@@ -253,25 +267,22 @@ XAMP_ALWAYS_INLINE std::ostream& operator<<(std::ostream& ostr, AudioFormat cons
 }
 
 XAMP_ALWAYS_INLINE bool operator!=(AudioFormat const & format, AudioFormat const & other) noexcept {
-    return format.format_ != other.format_
-           || format.num_channels_ != other.num_channels_
-           || format.sample_rate_ != other.sample_rate_
-           || format.bits_per_sample_ != other.bits_per_sample_
-           || format.byte_format_ != other.byte_format_
-           || format.packed_format_ != other.packed_format_;
+    return format.GetHash() != other.GetHash();
 }
 
 XAMP_ALWAYS_INLINE bool operator==(AudioFormat const & format, AudioFormat const & other) noexcept {
-    return format.format_ == other.format_
-           && format.num_channels_ == other.num_channels_
-           && format.sample_rate_ == other.sample_rate_
-           && format.bits_per_sample_ == other.bits_per_sample_
-           && format.byte_format_ == other.byte_format_
-           && format.packed_format_ == other.packed_format_;
+    return format.GetHash() == other.GetHash();
 }
 
 XAMP_ALWAYS_INLINE void AudioFormat::Reset() noexcept {
-    *this = kUnknowFormat;
+    *this = kUnknownFormat;
 }
 
 }
+
+template <>
+struct std::hash<xamp::base::AudioFormat> {
+    std::size_t operator()(xamp::base::AudioFormat const& f) const noexcept {
+        return f.GetHash();
+    }
+};
