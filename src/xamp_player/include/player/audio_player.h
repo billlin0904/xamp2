@@ -162,7 +162,6 @@ private:
     bool is_muted_;
     bool is_dsd_file_;
     DsdModes dsd_mode_;
-    std::atomic<PlayerState> state_;
     uint8_t sample_size_;
     uint32_t target_sample_rate_;
     uint32_t fifo_size_;
@@ -173,6 +172,7 @@ private:
     std::atomic<bool> is_playing_;
     std::atomic<bool> is_paused_;
     std::atomic<int32_t> playback_event_;
+    std::atomic<PlayerState> state_;
     std::atomic<double> sample_end_time_;
     std::atomic<double> stream_duration_;
     mutable FastMutex pause_mutex_;

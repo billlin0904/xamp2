@@ -1,3 +1,4 @@
+#include <QDir>
 #include <QTime>
 #include <widget/str_utilts.h>
 
@@ -57,4 +58,8 @@ bool isMoreThan1Hours(const double stream_time) {
     const auto secs = static_cast<int32_t>(stream_time);
     const auto h = secs / 3600;
     return h > 0;
+}
+
+QString fromQStringPath(const QString& path) {
+    return QDir::toNativeSeparators(path);
 }

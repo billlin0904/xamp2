@@ -172,7 +172,7 @@ private:
 	PlaylistPage* music_page_;
 	PlaylistPage* cd_page_;
 	PlaylistPage* current_playlist_page_;
-	AlbumArtistPage* album_artist_page_;
+	AlbumArtistPage* album_page_;
     ArtistInfoPage* artist_info_page_;
 	PreferencePage* preference_page_;
 	FileSystemViewPage* file_system_view_page_;

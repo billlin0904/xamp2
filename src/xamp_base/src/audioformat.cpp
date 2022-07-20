@@ -5,9 +5,13 @@
 namespace xamp::base {
 
 #define DECLARE_AUDIO_FORMAT_IMPL(Name, SampleRate) \
-	const AudioFormat AudioFormat::k##Name(DataFormat::FORMAT_PCM,\
+	const AudioFormat AudioFormat::k16Bit##Name(DataFormat::FORMAT_PCM,\
 		2,\
 		ByteFormat::SINT16,\
+		SampleRate);\
+	const AudioFormat AudioFormat::k24Bit##Name(DataFormat::FORMAT_PCM,\
+		2, \
+		ByteFormat::SINT24,\
 		SampleRate);\
 	const AudioFormat AudioFormat::kFloat##Name(DataFormat::FORMAT_PCM,\
 		2, \
@@ -15,13 +19,14 @@ namespace xamp::base {
 		SampleRate)
 
 DECLARE_AUDIO_FORMAT_IMPL(PCM441Khz, 44100);
-DECLARE_AUDIO_FORMAT_IMPL(PCM48Khz, 48000);
-DECLARE_AUDIO_FORMAT_IMPL(PCM96Khz, 96000);
+DECLARE_AUDIO_FORMAT_IMPL(PCM48Khz,  48000);
+DECLARE_AUDIO_FORMAT_IMPL(PCM96Khz,  96000);
 DECLARE_AUDIO_FORMAT_IMPL(PCM882Khz, 88200);
-DECLARE_AUDIO_FORMAT_IMPL(PCM1764Khz, 176400);
+DECLARE_AUDIO_FORMAT_IMPL(PCM1764Khz,176400);
 DECLARE_AUDIO_FORMAT_IMPL(PCM192Khz, 192000);
-DECLARE_AUDIO_FORMAT_IMPL(PCM3528Khz, 352800);
+DECLARE_AUDIO_FORMAT_IMPL(PCM3528Khz,352800);
 DECLARE_AUDIO_FORMAT_IMPL(PCM384Khz, 384000);
+DECLARE_AUDIO_FORMAT_IMPL(PCM768Khz, 768000);
 
 const AudioFormat AudioFormat::kUnknownFormat;
 

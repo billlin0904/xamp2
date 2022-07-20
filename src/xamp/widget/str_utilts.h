@@ -8,6 +8,8 @@
 #include <QString>
 #include <QColor>
 
+#include <widget/widget_shared.h>
+
 struct ConstLatin1String final : public QLatin1String {
     constexpr ConstLatin1String(char const* const s) noexcept
         : QLatin1String(s, static_cast<int>(std::char_traits<char>::length(s))) {
@@ -43,3 +45,5 @@ QString backgroundColorToString(QColor color);
 QString msToString(const double stream_time, bool full_text = false);
 
 bool isMoreThan1Hours(const double stream_time);
+
+QString fromQStringPath(const QString &path);

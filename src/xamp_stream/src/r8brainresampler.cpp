@@ -16,7 +16,7 @@ public:
 	R8brainSampleRateConverterImpl()
 		: input_sample_rate_(0)
 		, output_sample_rate_(0) {
-		input_data_.resize(kMaxChannel);
+		input_data_.resize(AudioFormat::kMaxChannel);
 	}
 
 	void Start(uint32_t output_sample_rate) {

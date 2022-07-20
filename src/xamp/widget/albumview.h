@@ -92,8 +92,6 @@ signals:
 public slots:
 	void refreshOnece();
 
-	void setFilterByArtistFirstChar(const QString& first_char);
-
 	void setFilterByArtistId(int32_t artist_id);
 
 	void hideWidget();

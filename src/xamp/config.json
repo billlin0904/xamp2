@@ -2,24 +2,25 @@
     "Log": {
         "MinimumLevel": {
             "Default": "debug",
-            "Override": {
-                "AsioDevice": "debug",
-                "AudioPlayer": "debug",
-                "BackgroundThreadPool": "info",
-                "Compressor": "info",
-                "CoreAudio": "info",
-                "DspManager": "debug",
-                "ExclusiveWasapiDevice": "debug",
-                "ExclusiveWasapiDeviceType": "info",
-                "FileStream": "info",
-                "PixmapCache": "info",
-                "PlaybackThreadPool": "info",
-                "SharedWasapiDevice": "info",
-                "Soxr": "info",
-                "VirtualMemory": "info",
-                "Volume": "info",
-                "WASAPIThreadPool": "info"
-            }
+          "Override": {
+            "Database": "info",
+            "AsioDevice": "debug",
+            "AudioPlayer": "debug",
+            "BackgroundThreadPool": "info",
+            "Compressor": "info",
+            "CoreAudio": "info",
+            "DspManager": "debug",
+            "ExclusiveWasapiDevice": "debug",
+            "ExclusiveWasapiDeviceType": "info",
+            "FileStream": "info",
+            "PixmapCache": "info",
+            "PlaybackThreadPool": "info",
+            "SharedWasapiDevice": "info",
+            "Soxr": "info",
+            "VirtualMemory": "info",
+            "Volume": "info",
+            "WASAPIThreadPool": "info"
+          }
         }
     },
     "R8Brain": {
@@ -28,11 +29,11 @@
     "Soxr": {
         "default": {
             "enableSteepFilter": false,
-            "passBand": 1,
-            "phase": 0,
-            "quality": 0,
-            "resampleSampleRate": 44100,
-            "rolloffLevel": 0,
+            "passBand": 97,
+            "phase": 47,
+            "quality": 4,
+            "resampleSampleRate": 384000,
+            "rolloffLevel": 2,
             "stopBand": 100
         }
     }

@@ -17,10 +17,10 @@ public:
 
     void Start(uint32_t output_sample_rate) {
         stream_.reset(BASS.BASS_StreamCreate(output_sample_rate,
-                                             kMaxChannel,
-                                             BASS_SAMPLE_FLOAT | BASS_STREAM_DECODE,
-                                             STREAMPROC_DUMMY,
-                                             nullptr));
+            AudioFormat::kMaxChannel,
+            BASS_SAMPLE_FLOAT | BASS_STREAM_DECODE,
+            STREAMPROC_DUMMY,
+            nullptr));
         MemorySet(&volume_, 0, sizeof(volume_));
         volume_handle_ = BASS.BASS_ChannelSetFX(stream_.get(), BASS_FX_BFX_VOLUME, 0);
     }

@@ -154,6 +154,7 @@ private:
 
     QString dbname_;
     QSqlDatabase db_;
+    std::shared_ptr<LoggerWriter> logger_;
 };
 
 #define qDatabase SharedSingleton<Database>::GetInstance()

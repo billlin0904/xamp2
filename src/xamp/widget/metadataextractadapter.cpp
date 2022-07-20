@@ -11,14 +11,15 @@
 #include <base/str_utilts.h>
 #include <base/threadpool.h>
 #include <base/logger_impl.h>
+
 #include <metadata/api.h>
 #include <metadata/imetadatareader.h>
+#include <metadata/imetadataextractadapter.h>
 
 #include <player/audio_util.h>
 
 #include "thememanager.h"
 
-#include <widget/widget_shared.h>
 #include <widget/ui_utilts.h>
 #include <widget/read_utiltis.h>
 #include <widget/http.h>
@@ -26,14 +27,8 @@
 #include <widget/database.h>
 #include <widget/appsettings.h>
 #include <widget/playlisttableview.h>
-#include <widget/image_utiltis.h>
+#include <widget/pixmapcache.h>
 #include <widget/metadataextractadapter.h>
-
-using xamp::metadata::IMetadataExtractAdapter;
-using xamp::metadata::MakeMetadataReader;
-using xamp::metadata::IMetadataReader;
-using xamp::metadata::Metadata;
-using xamp::metadata::Path;
 
 class DatabaseIdCache final {
 public:
@@ -86,7 +81,6 @@ QString DatabaseIdCache::addCoverCache(int32_t album_id, const QString& album, c
         XAMP_ASSERT(!cover_id.isEmpty());
         cover_id_cache_.AddOrUpdate(album_id, cover_id);
         qDatabase.setAlbumCover(album_id, album, cover_id);
-        XAMP_LOG_INFO("add Album id: {} cover id: {}", album_id, cover_id.toStdString());
     }	
     return cover_id;
 }
@@ -167,9 +161,11 @@ private:
 }
 
 void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter, QString const & file_path, bool show_progress_dialog, bool is_recursive) {
-	auto dialog = makeProgressDialog(tr("Read file metadata"),
-	                                        tr("Read progress dialog"), 
-	                                        tr("Cancel"));
+	auto dialog = 
+        makeProgressDialog(tr("Read file metadata"),
+	    tr("Read progress dialog"), 
+	    tr("Cancel"));
+
     if (show_progress_dialog) {
         dialog->show();
     }
@@ -203,7 +199,8 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
         dialog->setLabelText(file_dir_or_path);
         
         try {            
-            const Path path(file_dir_or_path.toStdWString());
+            const Path path = fromQStringPath(file_dir_or_path).toStdWString();
+            
             if (!is_recursive) {
                 ScanFolder(path, &proxy, reader.get());
             }
@@ -219,26 +216,12 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
 }
 
 void ::MetadataExtractAdapter::processMetadata(int64_t dir_last_write_time, const ForwardList<Metadata>& result, PlayListTableView* playlist, bool is_podcast) {
-    /*QSharedPointer<QProgressDialog> dialog;
-    if (is_podcast) {
-        dialog = makeProgressDialog(tr("Read file metadata"),
-            tr("Read progress dialog"),
-            tr("Cancel"));
-    }    */
-
 	auto playlist_id = -1;
     if (playlist != nullptr) {
         playlist_id = playlist->playlistId();
     }
 
 	const DatabaseIdCache cache;
-    /*auto progress = 0;
-    if (is_podcast) {
-        auto size = std::distance(result.begin(), result.end());
-        dialog->setMinimumDuration(1000);
-        dialog->setMaximum(size);
-        dialog->show();
-    }*/
 
     for (const auto& metadata : result) {	    
 	    auto album = QString::fromWCharArray(metadata.album.c_str());
@@ -274,11 +257,6 @@ void ::MetadataExtractAdapter::processMetadata(int64_t dir_last_write_time, cons
         }
 
         IgnoreSqlError(qDatabase.addOrUpdateAlbumMusic(album_id, artist_id, music_id))
-    	/*if (is_podcast) {
-            dialog->setLabelText(QString::fromWCharArray(metadata.title.c_str()));
-            dialog->setValue(progress++);
-            qApp->processEvents();
-        }*/
     }
 
     if (playlist != nullptr) {

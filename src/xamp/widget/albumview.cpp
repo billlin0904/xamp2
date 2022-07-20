@@ -265,7 +265,7 @@ AlbumView::AlbumView(QWidget* parent)
 
         const auto list_view_rect = this->rect();
         page_->setPlaylistMusic(album, album_id);
-        page_->setFixedSize(QSize(list_view_rect.size().width() - 10, list_view_rect.height() - 6));
+        page_->setFixedSize(QSize(list_view_rect.size().width() - 15, list_view_rect.height() - 6));
         page_->move(QPoint(list_view_rect.x() + 5, 3));
         qTheme.setBackgroundColor(page_);
 
@@ -424,30 +424,6 @@ void AlbumView::setFilterByArtistId(int32_t artist_id) {
     WHERE
         (artists.artistId = '%1') AND (albums.isPodcast = 0)
     )").arg(artist_id));
-}
-
-void AlbumView::setFilterByArtistFirstChar(const QString &first_char) {
-    QString s(
-    Q_TEXT(R"(
-SELECT
-    album,
-    albums.coverId,
-    artist,
-    albums.albumId,
-    artists.artistId,
-    artists.coverId
-FROM
-    albumArtist
-LEFT JOIN
-    albums ON albums.albumId = albumArtist.albumId
-LEFT JOIN
-    artists ON artists.artistId = albumArtist.artistId
-WHERE
-    (artists.firstChar = '%1') AND (albums.isPodcast = 0)
-)")
-    );
-
-    model_.setQuery(s.arg(first_char));
 }
 
 void AlbumView::update() {

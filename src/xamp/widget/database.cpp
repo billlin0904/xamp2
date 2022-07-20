@@ -35,6 +35,7 @@ const char* SqlException::what() const noexcept {
 }
 
 Database::Database() {
+	logger_ = Logger::GetInstance().GetLogger("Database");
 	db_ = QSqlDatabase::addDatabase(Q_TEXT("QSQLITE"));
 }
 
@@ -97,6 +98,11 @@ void Database::createTableIfNotExist() {
 
 	create_table_sql.push_back(
 		Q_TEXT(R"(
+                      CREATE UNIQUE INDEX IF NOT EXISTS path_index ON musics (path, offset);
+                       )"));
+
+	create_table_sql.push_back(
+		Q_TEXT(R"(
                        CREATE TABLE IF NOT EXISTS playlist (
                        playlistId integer PRIMARY KEY AUTOINCREMENT,
                        playlistIndex integer,
@@ -136,6 +142,11 @@ void Database::createTableIfNotExist() {
 					   isPodcast integer,
                        FOREIGN KEY(artistId) REFERENCES artists(artistId)
                        )
+                       )"));
+
+	create_table_sql.push_back(
+		Q_TEXT(R"(
+                      CREATE UNIQUE INDEX IF NOT EXISTS album_index ON albums (album);
                        )"));
 
 	create_table_sql.push_back(
@@ -374,7 +385,7 @@ ORDER BY musics.path, musics.fileName;)"));
 	query.addBindValue(album_id);
 
 	if (!query.exec()) {
-		XAMP_LOG_DEBUG("{}", query.lastError().text().toStdString());
+		XAMP_LOG_D(logger_, "{}", query.lastError().text().toStdString());
 	}
 
 	while (query.next()) {
@@ -514,6 +525,7 @@ void Database::setAlbumCover(int32_t album_id, const QString& album, const QStri
 	query.bindValue(Q_TEXT(":coverId"), cover_id);
 
 	IfFailureThrow1(query);
+	XAMP_LOG_D(logger_, "setAlbumCover albumId: {} coverId: {}", album_id, cover_id.toStdString());
 }
 
 std::optional<ArtistStats> Database::getArtistStats(int32_t artist_id) const {
@@ -706,11 +718,13 @@ int32_t Database::addOrUpdateMusic(const Metadata& metadata, int32_t playlist_id
 	db_.transaction();
 
 	if (!query.exec()) {
-		qDebug() << query.lastError().text();
+		XAMP_LOG_D(logger_, "{}", query.lastError().text().toStdString());
 		return kInvalidId;
 	}
 
 	const auto music_id = query.lastInsertId().toInt();
+
+	XAMP_LOG_D(logger_, "addOrUpdateMusic musicId:{}", music_id);
 
 	if (playlist_id != -1) {
 		addMusicToPlaylist(music_id, playlist_id);
@@ -837,6 +851,9 @@ int32_t Database::addOrUpdateAlbum(const QString& album, int32_t artist_id, int6
 	IfFailureThrow1(query);
 
 	const auto album_id = query.lastInsertId().toInt();
+
+	XAMP_LOG_D(logger_, "addOrUpdateAlbum albumId:{}", album_id);
+
 	return album_id;
 }
 
@@ -873,6 +890,7 @@ void Database::addOrUpdateAlbumMusic(int32_t album_id, int32_t artist_id, int32_
 	if (!query.next()) {
 		addAlbumMusic(album_id, artist_id, music_id);
 		db_.commit();
+		XAMP_LOG_D(logger_, "addOrUpdateAlbumMusic albumId:{} artistId:{} musicId:{}", album_id, artist_id, music_id);
 	}
 }
 
@@ -888,6 +906,8 @@ void Database::addOrUpdateAlbumArtist(int32_t album_id, int32_t artist_id) const
 	query.bindValue(Q_TEXT(":artistId"), artist_id);
 
 	IfFailureThrow1(query);
+
+	XAMP_LOG_D(logger_, "addOrUpdateAlbumArtist albumId:{} artistId:{}", album_id, artist_id);
 }
 
 void Database::addAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id) const {
@@ -912,6 +932,7 @@ void Database::removePlaylistAllMusic(int32_t playlist_id) {
 	query.prepare(Q_TEXT("DELETE FROM playlistMusics WHERE playlistId=:playlistId"));
 	query.bindValue(Q_TEXT(":playlistId"), playlist_id);
 	IfFailureThrow1(query);
+	XAMP_LOG_D(logger_, "removePlaylistAllMusic playlist_id:{}", playlist_id);
 }
 
 void Database::removeMusic(int32_t playlist_id, const QVector<int32_t>& select_music_ids) {

@@ -32,7 +32,8 @@ MAKE_XAMP_ENUM(DataFormat,
           FORMAT_PCM)
 
 #define DECLARE_AUDIO_FORMAT(Name) \
-    static const AudioFormat k##Name;\
+    static const AudioFormat k16Bit##Name;\
+    static const AudioFormat k24Bit##Name;\
 	static const AudioFormat kFloat##Name
 
 class XAMP_BASE_API AudioFormat final {
@@ -48,6 +49,7 @@ public:
     DECLARE_AUDIO_FORMAT(PCM192Khz);
     DECLARE_AUDIO_FORMAT(PCM3528Khz);
     DECLARE_AUDIO_FORMAT(PCM384Khz);
+    DECLARE_AUDIO_FORMAT(PCM768Khz);
 
     explicit AudioFormat(DataFormat format = DataFormat::FORMAT_PCM,
         uint16_t number_of_channels = 0,

@@ -122,7 +122,7 @@ Xamp::Xamp()
 	, music_page_(nullptr)
 	, cd_page_(nullptr)
 	, current_playlist_page_(nullptr)
-    , album_artist_page_(nullptr)
+    , album_page_(nullptr)
     , artist_info_page_(nullptr)
 	, file_system_view_page_(nullptr)
 	, tray_icon_menu_(nullptr)
@@ -593,7 +593,7 @@ void Xamp::initialController() {
         if (ui_.currentView->count() > 0) {
             auto* playlist_view = currentPlyalistPage()->playlist();
             emit playlist_view->search(text, Qt::CaseSensitivity::CaseInsensitive, QRegExp::PatternSyntax());
-            emit album_artist_page_->album()->onSearchTextChanged(text);
+            emit album_page_->album()->onSearchTextChanged(text);
         }
     });
 
@@ -646,8 +646,8 @@ void Xamp::initialController() {
     (void)QObject::connect(ui_.sliderBar, &TabListView::clickedTable, [this](auto table_id) {
     	switch (table_id) {
         case TAB_ALBUM:
-            album_artist_page_->refreshOnece();
-            ui_.currentView->setCurrentWidget(album_artist_page_);
+            album_page_->refreshOnece();
+            ui_.currentView->setCurrentWidget(album_page_);
             break;
         case TAB_ARTIST:
             ui_.currentView->setCurrentWidget(artist_info_page_);
@@ -1048,7 +1048,7 @@ void Xamp::resetSeekPosValue() {
 
 void Xamp::processMeatadata(int64_t dir_last_write_time, const ForwardList<Metadata>& medata) const {
     MetadataExtractAdapter::processMetadata(dir_last_write_time, medata);
-    album_artist_page_->album()->refreshOnece();
+    album_page_->album()->refreshOnece();
 }
 
 void Xamp::setupDSP(const AlbumEntity& item) {
@@ -1237,23 +1237,23 @@ void Xamp::drivesChanges(const QList<DriveInfo>& drive_infos) {
 void Xamp::setCover(const QString& cover_id, PlaylistPage* page) {
     auto found_cover = !current_entity_.cover_id.isEmpty();
 
-    if (current_entity_.cover_id != cover_id) {
-        if (cover_id != qPixmapCache.getUnknownCoverId()) {
-            const auto* cover = qPixmapCache.find(cover_id);
-            found_cover = cover != nullptr;
-            if (cover != nullptr) {
-                setPlaylistPageCover(cover, page);
-                emit addBlurImage(cover_id, cover->toImage());
-            }
-            else {
-                lrc_page_->clearBackground();
-            }
+    if (cover_id != qPixmapCache.getUnknownCoverId()) {
+        const auto* cover = qPixmapCache.find(cover_id);
+        found_cover = cover != nullptr;
+        if (cover != nullptr) {
+            setPlaylistPageCover(cover, page);
+            emit addBlurImage(cover_id, cover->toImage());
+        }
+        else if (lrc_page_ != nullptr) {
+            lrc_page_->clearBackground();
         }
     }
 
     if (!found_cover) {
         setPlaylistPageCover(nullptr, page);
-        lrc_page_->setBackgroundColor(qTheme.getBackgroundColor());
+        if (lrc_page_ != nullptr) {
+            lrc_page_->setBackgroundColor(qTheme.getBackgroundColor());
+        }
     }
 }
 
@@ -1328,8 +1328,9 @@ void Xamp::addPlaylistItem(const Vector<int32_t>& music_ids, const Vector<PlayLi
 }
 
 void Xamp::onClickedAlbum(const QString& album, int32_t album_id) {
-    album_artist_page_->album()->albumViewPage()->setPlaylistMusic(album, album_id);
-    ui_.currentView->setCurrentWidget(album_artist_page_);
+    album_page_->album()->hideWidget();
+    album_page_->album()->albumViewPage()->setPlaylistMusic(album, album_id);
+    ui_.currentView->setCurrentWidget(album_page_);
 }
 
 void Xamp::setPlaylistPageCover(const QPixmap* cover, PlaylistPage* page) {
@@ -1455,11 +1456,11 @@ void Xamp::initialPlaylist() {
         &PlayListTableView::updateReplayGain);
 
     lrc_page_ = new LrcPage(this);
-    album_artist_page_ = new AlbumArtistPage(this);
+    album_page_ = new AlbumArtistPage(this);
 
     (void)QObject::connect(this,
         &Xamp::themeChanged,
-        album_artist_page_,
+        album_page_,
         &AlbumArtistPage::onThemeChanged);
 
     artist_info_page_ = new ArtistInfoPage(this);
@@ -1468,11 +1469,11 @@ void Xamp::initialPlaylist() {
     if (!qDatabase.isPlaylistExist(kDefaultAlbumPlaylistId)) {
         qDatabase.addPlaylist(Qt::EmptyString, 1);
     }
-    connectSignal(album_artist_page_->album()->albumViewPage()->playlistPage());
+    connectSignal(album_page_->album()->albumViewPage()->playlistPage());
 
     pushWidget(lrc_page_);
     pushWidget(playlist_page_);
-    pushWidget(album_artist_page_);
+    pushWidget(album_page_);
     pushWidget(artist_info_page_);
     pushWidget(podcast_page_);
     pushWidget(file_system_view_page_);
@@ -1485,7 +1486,7 @@ void Xamp::initialPlaylist() {
     goBackPage();
     goBackPage();
 
-    (void)QObject::connect(album_artist_page_->album(),
+    (void)QObject::connect(album_page_->album(),
         &AlbumView::clickedArtist,
         this,
         &Xamp::onArtistIdChanged);
@@ -1497,7 +1498,7 @@ void Xamp::initialPlaylist() {
 
     (void)QObject::connect(this,
         &Xamp::themeChanged,
-        album_artist_page_->album(),
+        album_page_->album(),
         &AlbumView::onThemeChanged);
 
     (void)QObject::connect(this,
@@ -1515,7 +1516,7 @@ void Xamp::initialPlaylist() {
         lrc_page_,
         &LrcPage::setBackground);
 
-    (void)QObject::connect(album_artist_page_->album(),
+    (void)QObject::connect(album_page_->album(),
         &AlbumView::addPlaylist,
         this,
         &Xamp::addPlaylistItem);
@@ -1533,7 +1534,7 @@ void Xamp::addItem(const QString& file_name) {
     if (add_playlist) {
         try {
             playlist_page_->playlist()->append(file_name);
-            album_artist_page_->refreshOnece();
+            album_page_->refreshOnece();
         }
         catch (const Exception & e) {
             Toast::showTip(Q_TEXT(e.GetErrorMessage()), this);
