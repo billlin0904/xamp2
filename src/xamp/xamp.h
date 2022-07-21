@@ -77,7 +77,7 @@ public slots:
 
 	void drivesChanges(const QList<DriveInfo>& drive_infos);
 
-	void onClickedAlbum(const QString& album, int32_t album_id);
+	void onClickedAlbum(const QString& album, int32_t album_id, const QString& cover_id);
 
 private:
     void stopPlayedClicked() override;

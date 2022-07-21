@@ -47,7 +47,7 @@ class AlbumViewPage final : public QFrame {
 public:
 	explicit AlbumViewPage(QWidget* parent = nullptr);
 
-	void setPlaylistMusic(const QString &album, int32_t album_id);
+	void setPlaylistMusic(const QString &album, int32_t album_id, const QString& cover_id);
 
 	ClickableLabel* artist() {
 		return artist_;
@@ -83,7 +83,7 @@ signals:
 
 	void clickedArtist(const QString& artist, const QString& cover_id, int32_t artist_id);
 
-	void clickedAlbum(const QString& album, int32_t album_id);
+	void clickedAlbum(const QString& album, int32_t album_id, const QString& cover_id);
 
 	void removeAll();
 

@@ -147,7 +147,7 @@ void Xamp::setXWindow(IXWindow* top_window) {
     initialController();
     initialPlaylist();
     initialShortcut();
-    //createTrayIcon();
+    createTrayIcon();
     setPlaylistPageCover(nullptr, playlist_page_);
     setPlaylistPageCover(nullptr, podcast_page_);
     QTimer::singleShot(300, [this]() {
@@ -227,6 +227,10 @@ void Xamp::onActivated(QSystemTrayIcon::ActivationReason reason) {
 }
 
 void Xamp::createTrayIcon() {
+    if (!AppSettings::getValueAsBool(kAppSettingMinimizeToTray)) {
+        return;
+    }
+
     auto* minimize_action = new QAction(tr("Mi&nimize"), this);
     (void)QObject::connect(minimize_action, &QAction::triggered, this, &QWidget::hide);
 
@@ -1327,9 +1331,9 @@ void Xamp::addPlaylistItem(const Vector<int32_t>& music_ids, const Vector<PlayLi
     playlist_view->updateData();
 }
 
-void Xamp::onClickedAlbum(const QString& album, int32_t album_id) {
+void Xamp::onClickedAlbum(const QString& album, int32_t album_id, const QString& cover_id) {
     album_page_->album()->hideWidget();
-    album_page_->album()->albumViewPage()->setPlaylistMusic(album, album_id);
+    album_page_->album()->albumViewPage()->setPlaylistMusic(album, album_id, cover_id);
     ui_.currentView->setCurrentWidget(album_page_);
 }
 

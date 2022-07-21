@@ -29,7 +29,7 @@ void XFrame::setContentWidget(QWidget* content) {
     auto* default_layout = new QVBoxLayout(this);
     default_layout->setSpacing(0);
     default_layout->setObjectName(QString::fromUtf8("default_layout"));
-    default_layout->setContentsMargins(0, 0, 0, 20);
+    default_layout->setContentsMargins(8, 8, 8, 8);
     setLayout(default_layout);
 
     auto* title_frame = new QFrame(this);

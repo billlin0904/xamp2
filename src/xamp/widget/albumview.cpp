@@ -196,7 +196,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
     qTheme.setBackgroundColor(this);
 }
 
-void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id) {
+void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id, const QString &cover_id) {
     page_->show();
 
     page_->playlist()->removeAll();
@@ -220,8 +220,6 @@ void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id) {
             .arg(msToString(album_stats.value().durations))
             .arg(QString::number(album_stats.value().year)));
     }
-
-    const auto cover_id = qDatabase.getAlbumCoverId(album_id);
     emit page_->setCover(cover_id, page_);
 }
 
@@ -247,7 +245,8 @@ AlbumView::AlbumView(QWidget* parent)
     setAutoScroll(false);
     viewport()->setAttribute(Qt::WA_StaticContents);
     setMouseTracking(true);
-    
+
+    qTheme.setBackgroundColor(page_);
     page_->hide();
 
     (void)QObject::connect(page_,
@@ -264,15 +263,14 @@ AlbumView::AlbumView(QWidget* parent)
         auto artist_cover_id = getIndexValue(index, INDEX_ARTIST_COVER_ID).toString();
 
         const auto list_view_rect = this->rect();
-        page_->setPlaylistMusic(album, album_id);
+        page_->setPlaylistMusic(album, album_id, cover_id);
         page_->setFixedSize(QSize(list_view_rect.size().width() - 15, list_view_rect.height() - 6));
         page_->move(QPoint(list_view_rect.x() + 5, 3));
-        qTheme.setBackgroundColor(page_);
 
         if (enable_page_) {
             page_->show();
         }
-        emit clickedAlbum(album, album_id);
+        emit clickedAlbum(album, album_id, cover_id);
         });
 
     (void)QObject::connect(verticalScrollBar(), &QScrollBar::valueChanged, [this](auto) {

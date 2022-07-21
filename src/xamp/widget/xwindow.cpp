@@ -184,9 +184,8 @@ XWindow::XWindow()
 void XWindow::setContentWidget(IXampPlayer *content_widget) {
     content_widget_ = content_widget;
     if (content_widget_ != nullptr) {
-        auto* default_layout = new QGridLayout(this);
-        default_layout->addWidget(content_widget_, 0, 0);
-        qTheme.setBorderRadius(content_widget_);
+        auto* default_layout = new QVBoxLayout(this);
+        default_layout->addWidget(content_widget_);
         default_layout->setContentsMargins(0, 0, 0, 0);
         setLayout(default_layout);
     }
