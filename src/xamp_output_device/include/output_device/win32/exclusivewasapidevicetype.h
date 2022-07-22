@@ -48,7 +48,7 @@ private:
 
 	CComPtr<IMMDeviceEnumerator> enumerator_;
 	std::vector<DeviceInfo> device_list_;
-	std::shared_ptr<LoggerWriter> log_;
+	std::shared_ptr<Logger> log_;
 };
 
 }

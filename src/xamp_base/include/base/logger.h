@@ -11,7 +11,7 @@
 
 namespace xamp::base {
 
-class LoggerWriter;
+class Logger;
 
 struct XAMP_BASE_API AutoRegisterLoggerName {
     AutoRegisterLoggerName(std::string_view s);
@@ -59,12 +59,12 @@ DECLARE_LOG_NAME(FileStream);
 	
 }
 
-#define XAMP_SET_LOG_LEVEL(level) xamp::base::Logger::GetInstance().SetLevel(level)
+#define XAMP_SET_LOG_LEVEL(level) xamp::base::LoggerManager::GetInstance().SetLevel(level)
 
-#define XAMP_LOG_DEBUG(...) xamp::base::Logger::GetInstance().GetDefaultLogger()->LogDebug(__VA_ARGS__)
-#define XAMP_LOG_INFO(...) xamp::base::Logger::GetInstance().GetDefaultLogger()->LogInfo(__VA_ARGS__)
-#define XAMP_LOG_ERROR(...) xamp::base::Logger::GetInstance().GetDefaultLogger()->LogError(__VA_ARGS__)
-#define XAMP_LOG_TRACE(...) xamp::base::Logger::GetInstance().GetDefaultLogger()->LogTrace(__VA_ARGS__)
+#define XAMP_LOG_DEBUG(...) xamp::base::LoggerManager::GetInstance().GetDefaultLogger()->LogDebug(__VA_ARGS__)
+#define XAMP_LOG_INFO(...) xamp::base::LoggerManager::GetInstance().GetDefaultLogger()->LogInfo(__VA_ARGS__)
+#define XAMP_LOG_ERROR(...) xamp::base::LoggerManager::GetInstance().GetDefaultLogger()->LogError(__VA_ARGS__)
+#define XAMP_LOG_TRACE(...) xamp::base::LoggerManager::GetInstance().GetDefaultLogger()->LogTrace(__VA_ARGS__)
 
 #define XAMP_LOG_D(logger, ...) logger->LogDebug(__VA_ARGS__)
 #define XAMP_LOG_I(logger, ...) logger->LogInfo(__VA_ARGS__)

@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <base/fs.h>
 #include <base/metadata.h>
 #include <metadata/metadata.h>
 

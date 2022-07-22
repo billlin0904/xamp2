@@ -12,7 +12,7 @@ namespace xamp::stream {
 class BassVolume::BassVolumeImpl {
 public:
     BassVolumeImpl() {
-        logger_ = Logger::GetInstance().GetLogger(kVolumeLoggerName);
+        logger_ = LoggerManager::GetInstance().GetLogger(kVolumeLoggerName);
     }
 
     void Start(uint32_t output_sample_rate) {
@@ -57,7 +57,7 @@ private:
     BassStreamHandle stream_;
     HFX volume_handle_;
     ::BASS_BFX_VOLUME volume_{0};
-    std::shared_ptr<LoggerWriter> logger_;
+    std::shared_ptr<Logger> logger_;
 };
 
 BassVolume::BassVolume()

@@ -8,6 +8,7 @@
 #include <optional>
 
 #include <base/base.h>
+#include <base/fs.h>
 #include <base/align_ptr.h>
 #include <base/audioformat.h>
 #include <base/dsdsampleformat.h>

@@ -94,7 +94,7 @@ private:
 	CComPtr<IAudioEndpointVolume> endpoint_volume_;
 	IAudioCallback* callback_;
 	CComPtr<WASAPIWorkQueue<SharedWasapiDevice>> rt_work_queue_;
-	std::shared_ptr<LoggerWriter> log_;
+	std::shared_ptr<Logger> log_;
 };
 
 }

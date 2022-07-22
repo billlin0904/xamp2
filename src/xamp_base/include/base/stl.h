@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <chrono>
 #include <vector>
 #include <iterator>
 #include <functional>
@@ -39,6 +40,11 @@ decltype(auto) bind_front(F&& f, FrontArgs&&...front_args) {
 }
 #endif
 #endif
+
+template <typename T, size_t N>
+constexpr size_t CountOf(T const (&)[N]) noexcept {
+	return N;
+}
 
 template <typename T, size_t AlignmentBytes = kMallocAlignSize>
 class XAMP_BASE_API_ONLY_EXPORT AlignedAllocator : public std::allocator<T> {

@@ -89,7 +89,7 @@ static void loadLogConfig() {
 
     QMap<QString, QVariant> well_known_log_name;
 
-    for (const auto& logger_name : Logger::GetInstance().GetDefaultLoggerName()) {
+    for (const auto& logger_name : LoggerManager::GetInstance().GetDefaultLoggerName()) {
         if (logger_name != kXampLoggerName) {
             well_known_log_name[fromStdStringView(logger_name)] = Q_TEXT("info");
         }
@@ -103,7 +103,7 @@ static void loadLogConfig() {
     	for (auto itr = well_known_log_name.begin()
             ; itr != well_known_log_name.end(); ++itr) {
             override_map[itr.key()] = itr.value();
-            Logger::GetInstance().GetLogger(itr.key().toStdString())
+            LoggerManager::GetInstance().GetLogger(itr.key().toStdString())
                 ->SetLevel(parseLogLevel(itr.value().toString()));
         }
 
@@ -131,7 +131,7 @@ static void loadLogConfig() {
             ; itr != override_map.end(); ++itr) {
 	        const auto& log_name = itr.key();
             auto log_level = itr.value().toString();
-            Logger::GetInstance().GetLogger(log_name.toStdString())
+            LoggerManager::GetInstance().GetLogger(log_name.toStdString())
         	->SetLevel(parseLogLevel(log_level));
         }       
     }
@@ -326,7 +326,7 @@ int main(int argc, char *argv[]) {
         RedirectStdOut();
     }*/
 #endif
-    Logger::GetInstance()
+    LoggerManager::GetInstance()
         .AddDebugOutputLogger()
 #ifdef Q_OS_MAC
         .AddSink(std::make_shared<QDebugSink>())

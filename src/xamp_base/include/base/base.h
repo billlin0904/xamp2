@@ -8,7 +8,6 @@
 #include <cassert>
 #include <cstdint>
 #include <cstddef>
-#include <filesystem>
 
 #define XAMP_CPP20_LANG_VER 202002L
 
@@ -122,18 +121,7 @@
 #define XAMP_CACHE_ALIGNED(CacheLineSize) __attribute__((aligned(CacheLineSize)))
 #endif
 
-template <typename T, size_t N>
-constexpr size_t CountOf(T const (&)[N]) noexcept {
-	return N;
-}
-
 namespace xamp::base {
-
-namespace Fs = std::filesystem;
-using RecursiveDirectoryIterator = Fs::recursive_directory_iterator;
-using DirectoryIterator = Fs::directory_iterator;
-using DirectoryEntry = Fs::directory_entry;
-using Path = Fs::path;
 
 /// <summary>
 /// Avoid cache-pollution padding size.
@@ -156,11 +144,6 @@ inline constexpr size_t kMallocAlignSize{ 32 };
 /// Default thread pool affinity core.
 /// </summary>
 inline constexpr int32_t kDefaultAffinityCpuCore{ -1 };
-
-inline constexpr auto kIteratorOptions{
-	std::filesystem::directory_options::follow_directory_symlink |
-	std::filesystem::directory_options::skip_permission_denied
-};
 
 inline constexpr double XAMP_PI{ 3.14159265358979323846 };
 

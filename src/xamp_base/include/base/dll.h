@@ -7,8 +7,8 @@
 
 #include <type_traits>
 #include <string_view>
-
 #include <base/base.h>
+#include <base/fs.h>
 #include <base/platfrom_handle.h>
 
 namespace xamp::base {

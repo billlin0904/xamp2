@@ -5,14 +5,12 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
-#include <filesystem>
-
+#include <base/fs.h>
 #include <base/align_ptr.h>
 #include <base/stl.h>
 #include <base/dsdsampleformat.h>
-#include <output_device/idsddevice.h>
+
+#include <output_device/api.h>
 #include <stream/api.h>
 #include <player/player.h>
 

@@ -196,7 +196,7 @@ private:
     SpscQueue<PlayerAction> action_queue_;
     AlignPtr<IDSPManager> dsp_manager_;
     AlignPtr<IAudioProcessor> fader_;
-    std::shared_ptr<LoggerWriter> logger_;
+    std::shared_ptr<Logger> logger_;
 };
 
 }

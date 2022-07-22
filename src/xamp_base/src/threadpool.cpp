@@ -23,7 +23,7 @@ TaskScheduler::TaskScheduler(TaskSchedulerPolicy policy, TaskStealPolicy steal_p
 	, pool_name_(pool_name)
 	, task_steal_policy_(MakeTaskStealPolicy(steal_policy))
 	, task_scheduler_policy_(MakeTaskSchedulerPolicy(policy)) {
-	logger_ = Logger::GetInstance().GetLogger(pool_name.data());
+	logger_ = LoggerManager::GetInstance().GetLogger(pool_name.data());
 	try {
 		task_pool_ = MakeAlign<SharedTaskQueue>(kSharedTaskQueueSize);
 		task_scheduler_policy_->SetMaxThread(max_thread_);

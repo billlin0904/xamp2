@@ -5,7 +5,7 @@
 #include <sstream>
 #include <filesystem>
 
-#include <base/logger.h>
+#include <base/fs.h>
 #include <base/stl.h>
 #include <base/singleton.h>
 #include <base/stacktrace.h>

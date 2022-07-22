@@ -71,7 +71,7 @@ private:
     static QStringList cover_ext_;
     static QStringList cache_ext_;
 	mutable LruCache<QString, QPixmap> cache_;
-	std::shared_ptr<LoggerWriter> logger_;
+	std::shared_ptr<Logger> logger_;
 };
 
 #define qPixmapCache SharedSingleton<PixmapCache>::GetInstance()

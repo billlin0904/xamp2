@@ -80,7 +80,7 @@ AsioDevice::AsioDevice(std::string const & device_id)
 	, clock_source_(kClockSourceSize)
 	, callback_(nullptr)
 	, process_(nullptr)
-	, log_(Logger::GetInstance().GetLogger(kAsioDeviceLoggerName)) {
+	, log_(LoggerManager::GetInstance().GetLogger(kAsioDeviceLoggerName)) {
 }
 
 AsioDevice::~AsioDevice() {

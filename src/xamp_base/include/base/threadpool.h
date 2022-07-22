@@ -67,7 +67,7 @@ private:
     AlignPtr<ITaskStealPolicy> task_steal_policy_;
     AlignPtr<ITaskSchedulerPolicy> task_scheduler_policy_;
     Vector<WorkStealingTaskQueuePtr> task_work_queues_;
-    std::shared_ptr<LoggerWriter> logger_;
+    std::shared_ptr<Logger> logger_;
 };
 
 class ThreadPool final : public IThreadPool {

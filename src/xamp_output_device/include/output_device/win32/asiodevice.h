@@ -125,7 +125,7 @@ private:
 	IAudioCallback* callback_;
 	win32::Mmcss mmcss_;
 	ProcessDispatch process_;
-	std::shared_ptr<LoggerWriter> log_;
+	std::shared_ptr<Logger> log_;
 };
 
 }

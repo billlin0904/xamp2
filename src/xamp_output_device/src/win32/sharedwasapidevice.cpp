@@ -86,7 +86,7 @@ SharedWasapiDevice::SharedWasapiDevice(CComPtr<IMMDevice> const & device)
 	, sample_ready_(nullptr)
 	, device_(device)
 	, callback_(nullptr)
-	, log_(Logger::GetInstance().GetLogger(kSharedWasapiDeviceLoggerName)) {
+	, log_(LoggerManager::GetInstance().GetLogger(kSharedWasapiDeviceLoggerName)) {
 }
 
 SharedWasapiDevice::~SharedWasapiDevice() {

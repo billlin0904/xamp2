@@ -5,23 +5,19 @@
 
 #pragma once
 
-#include <base/base.h>
-#include <base/align_ptr.h>
+#include <filesystem>
 
 namespace xamp::base {
 
-class XAMP_BASE_API CrashHandler {
-public:
-	CrashHandler();
+namespace Fs = std::filesystem;
+using RecursiveDirectoryIterator = Fs::recursive_directory_iterator;
+using DirectoryIterator = Fs::directory_iterator;
+using DirectoryEntry = Fs::directory_entry;
+using Path = Fs::path;
 
-	XAMP_PIMPL(CrashHandler)
-
-	void SetProcessExceptionHandlers();
-
-	void SetThreadExceptionHandlers();
-private:
-	class CrashHandlerImpl;
-	AlignPtr<CrashHandlerImpl> impl_;
+inline constexpr auto kIteratorOptions{
+	std::filesystem::directory_options::follow_directory_symlink |
+	std::filesystem::directory_options::skip_permission_denied
 };
 
 }

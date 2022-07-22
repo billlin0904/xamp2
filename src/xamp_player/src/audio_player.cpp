@@ -83,7 +83,7 @@ AudioPlayer::AudioPlayer(const std::weak_ptr<IPlaybackStateAdapter> &adapter)
     , fifo_(GetPageAlignSize(kPreallocateBufferSize))
     , action_queue_(kActionQueueSize)
     , dsp_manager_(DspComponentFactory::MakeDSPManager()) {
-    logger_ = Logger::GetInstance().GetLogger(kAudioPlayerLoggerName);
+    logger_ = LoggerManager::GetInstance().GetLogger(kAudioPlayerLoggerName);
 }
 
 AudioPlayer::~AudioPlayer() = default;

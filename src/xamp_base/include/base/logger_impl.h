@@ -50,9 +50,9 @@ enum LogLevel {
 		Log(Level, filename, line, func, s, std::forward<Args>(args)...);\
 	}
 
-class XAMP_BASE_API LoggerWriter {
+class XAMP_BASE_API Logger {
 public:
-    explicit LoggerWriter(const std::shared_ptr<spdlog::logger>& logger);
+    explicit Logger(const std::shared_ptr<spdlog::logger>& logger);
 
     DECLARE_LOG_ARG_API(Trace, LOG_LEVEL_TRACE)
     DECLARE_LOG_ARG_API(Error, LOG_LEVEL_ERROR)
@@ -73,43 +73,43 @@ private:
     std::shared_ptr<spdlog::logger> logger_;
 };
 
-class XAMP_BASE_API Logger final {
+class XAMP_BASE_API LoggerManager final {
 public:
     static constexpr int kMaxLogFileSize = 1024 * 1024;
 
-    friend class Singleton<Logger>;
+    friend class Singleton<LoggerManager>;
 
-    static Logger& GetInstance() noexcept;
+    static LoggerManager& GetInstance() noexcept;
 
-    XAMP_DISABLE_COPY(Logger)
+    XAMP_DISABLE_COPY(LoggerManager)
 
-	Logger& Startup();
+	LoggerManager& Startup();
 
     void Shutdown();
 
-    Logger& AddDebugOutputLogger();
+    LoggerManager& AddDebugOutputLogger();
 
-    Logger& AddFileLogger(const std::string& file_name);
+    LoggerManager& AddFileLogger(const std::string& file_name);
 
-    Logger& AddSink(spdlog::sink_ptr sink);
+    LoggerManager& AddSink(spdlog::sink_ptr sink);
 
-    Logger& AddConsoleLogger();
+    LoggerManager& AddConsoleLogger();
 
-    LoggerWriter* GetDefaultLogger() noexcept {
+    Logger* GetDefaultLogger() noexcept {
         return default_logger_.get();
     }
 
-    std::shared_ptr<LoggerWriter> GetLogger(const std::string& name);
+    std::shared_ptr<Logger> GetLogger(const std::string& name);
 
     const Vector<std::string_view>& GetDefaultLoggerName();
 
     void SetLevel(LogLevel level);
 
 private:
-    Logger() = default;
+    LoggerManager() = default;
 
     Vector<spdlog::sink_ptr> sinks_;
-    std::shared_ptr<LoggerWriter> default_logger_;
+    std::shared_ptr<Logger> default_logger_;
 };
 
 }

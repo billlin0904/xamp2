@@ -9,7 +9,7 @@ namespace xamp::stream {
 class BassCompressor::BassCompressorImpl {
 public:
     BassCompressorImpl() {
-        logger_ = Logger::GetInstance().GetLogger(kCompressorLoggerName);
+        logger_ = LoggerManager::GetInstance().GetLogger(kCompressorLoggerName);
     }
 
     void Start(uint32_t output_sample_rate) {
@@ -68,7 +68,7 @@ public:
 private:
     BassStreamHandle stream_;
     ::BASS_BFX_COMPRESSOR2 compressord_{0};
-    std::shared_ptr<LoggerWriter> logger_;
+    std::shared_ptr<Logger> logger_;
 };
 
 BassCompressor::BassCompressor()

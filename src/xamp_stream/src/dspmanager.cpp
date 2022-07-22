@@ -21,7 +21,7 @@ DSPManager::DSPManager()
 	: dsd_times_{0}
 	, replay_gain_{0.0}
 	, dsd_modes_{DsdModes::DSD_MODE_PCM} {
-    logger_ = Logger::GetInstance().GetLogger(kDspManagerLoggerName);
+    logger_ = LoggerManager::GetInstance().GetLogger(kDspManagerLoggerName);
     pre_dsp_buffer_.resize(kDefaultBufSize);
     post_dsp_buffer_.resize(kDefaultBufSize);
 }

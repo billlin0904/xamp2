@@ -9,7 +9,7 @@
 namespace xamp::base {
 
 VmMemLock::VmMemLock() noexcept {
-	logger_ = Logger::GetInstance().GetLogger(kVirtualMemoryLoggerName);
+	logger_ = LoggerManager::GetInstance().GetLogger(kVirtualMemoryLoggerName);
 }
 
 VmMemLock::~VmMemLock() noexcept {

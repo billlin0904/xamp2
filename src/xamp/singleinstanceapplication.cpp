@@ -2,15 +2,9 @@
 #include <QSharedMemory>
 #include <QDir>
 
-#include <base/logger.h>
 #include <base/logger_impl.h>
-#include <base/exception.h>
 #include <widget/str_utilts.h>
 #include <singleinstanceapplication.h>
-
-#if defined(Q_OS_WIN)
-#include <Windows.h>
-#endif
 
 static QString getServerName() {
     //TODO: use applicationFilePath?

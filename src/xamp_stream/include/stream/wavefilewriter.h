@@ -6,8 +6,7 @@
 #pragma once
 
 #include <fstream>
-#include <filesystem>
-#include <map>
+#include <base/fs.h>
 
 #include <base/audioformat.h>
 #include <stream/stream.h>

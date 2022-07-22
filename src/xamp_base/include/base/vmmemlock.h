@@ -26,7 +26,7 @@ public:
 private:
 	void* address_{ nullptr };
 	size_t size_{ 0 };
-	std::shared_ptr<LoggerWriter> logger_;
+	std::shared_ptr<Logger> logger_;
 };
 
 }

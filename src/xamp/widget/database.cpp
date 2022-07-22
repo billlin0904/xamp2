@@ -35,7 +35,7 @@ const char* SqlException::what() const noexcept {
 }
 
 Database::Database() {
-	logger_ = Logger::GetInstance().GetLogger("Database");
+	logger_ = LoggerManager::GetInstance().GetLogger("Database");
 	db_ = QSqlDatabase::addDatabase(Q_TEXT("QSQLITE"));
 }
 

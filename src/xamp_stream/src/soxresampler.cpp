@@ -31,7 +31,7 @@ public:
         , ratio_(0)
 		, pass_band_(kDefaultPassBand)
         , stop_band_(kDefaultStopBand) {
-		logger_ = Logger::GetInstance().GetLogger(kSoxrLoggerName);
+		logger_ = LoggerManager::GetInstance().GetLogger(kSoxrLoggerName);
 	}
 
 	~SoxrSampleRateConverterImpl() noexcept {
@@ -228,7 +228,7 @@ public:
 	double pass_band_;
 	double stop_band_;
 	SoxrHandle handle_;
-	std::shared_ptr<LoggerWriter> logger_;
+	std::shared_ptr<Logger> logger_;
 };
 
 const std::string_view SoxrSampleRateConverter::VERSION = "Soxr " SOXR_THIS_VERSION_STR;

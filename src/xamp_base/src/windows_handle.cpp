@@ -42,30 +42,6 @@ void MappingMemoryAddressTraits::close(void* value) noexcept {
 	::UnmapViewOfFile(value);
 }
 
-PTP_WORK WorkTraits::invalid() noexcept {
-	return nullptr;
-}
-
-void WorkTraits::close(PTP_WORK value) {
-	::CloseThreadpoolWork(value);
-}
-
-PTP_POOL ThreadPoolTraits::invalid() noexcept {
-	return nullptr;
-}
-
-void ThreadPoolTraits::close(PTP_POOL value) {
-	::CloseThreadpool(value);
-}
-
-PTP_CLEANUP_GROUP CleanupThreadGroupTraits::invalid() noexcept {
-	return nullptr;
-}
-
-void CleanupThreadGroupTraits::close(PTP_CLEANUP_GROUP value) {
-	::CloseThreadpoolCleanupGroup(value);
-}
-
 HANDLE TimerQueueTraits::invalid() noexcept {
 	return nullptr;
 }

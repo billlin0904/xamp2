@@ -7,6 +7,7 @@
 
 #include <vector>
 
+#include <base/fs.h>
 #include <base/stl.h>
 #include <base/metadata.h>
 

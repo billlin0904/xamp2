@@ -6,6 +6,7 @@
 #pragma once
 
 #include <base/align_ptr.h>
+#include <base/fs.h>
 #include <metadata/metadata.h>
 
 namespace xamp::metadata {

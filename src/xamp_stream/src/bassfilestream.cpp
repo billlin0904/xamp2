@@ -44,7 +44,7 @@ public:
     BassFileStreamImpl() noexcept
         : mode_(DsdModes::DSD_MODE_PCM)
 		, download_size_(0) {
-        logger_ = Logger::GetInstance().GetLogger(kFileStreamLoggerName);
+        logger_ = LoggerManager::GetInstance().GetLogger(kFileStreamLoggerName);
         Close();
     }
 
@@ -333,7 +333,7 @@ private:
     BASS_CHANNELINFO info_;
     MemoryMappedFile file_;
     std::shared_ptr<PodcastFileCache> file_cache_;
-    std::shared_ptr<LoggerWriter> logger_;
+    std::shared_ptr<Logger> logger_;
 };
 
 BassFileStream::BassFileStream()

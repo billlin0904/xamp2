@@ -28,7 +28,7 @@ QStringList PixmapCache::cache_ext_ =
 
 PixmapCache::PixmapCache()
 	: cache_(kDefaultCacheSize)
-	, logger_(Logger::GetInstance().GetLogger("PixmapCache")) {
+	, logger_(LoggerManager::GetInstance().GetLogger("PixmapCache")) {
 	cache_path_ = AppSettings::getCachePath() + Q_TEXT("/caches/");
 	const QDir dir;
 	if (!dir.exists()) {

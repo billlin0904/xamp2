@@ -100,7 +100,7 @@ private:
     AlignPtr<ISampleRateConverter> fifo_writer_;
     Buffer<float> pre_dsp_buffer_;
     Buffer<float> post_dsp_buffer_;
-    std::shared_ptr<LoggerWriter> logger_;
+    std::shared_ptr<Logger> logger_;
 };
 
 }
