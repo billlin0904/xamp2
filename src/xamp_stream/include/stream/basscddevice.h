@@ -36,7 +36,7 @@ public:
 
 	double GetDuration(uint32_t track) const override;
 
-	std::vector<std::wstring> GetTotalTracks() const override;
+	Vector<std::wstring> GetTotalTracks() const override;
 
 	std::string GetISRC(uint32_t track) const override;
 private:

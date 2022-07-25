@@ -35,7 +35,7 @@ std::optional<DeviceInfo> ExclusiveWasapiDeviceType::GetDefaultDeviceInfo() cons
 	return helper::GetDeviceInfo(default_output_device, Id);
 }
 
-std::vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfo() const {
+Vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfo() const {
 	return device_list_;
 }
 
@@ -70,14 +70,14 @@ DeviceInfo ExclusiveWasapiDeviceType::GetDeviceInfo(uint32_t device) const {
 	return (*itr);
 }
 
-std::vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfoList() const {
+Vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfoList() const {
 	CComPtr<IMMDeviceCollection> devices;
 	HrIfFailledThrow(enumerator_->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, &devices));
 
 	UINT count = 0;
 	HrIfFailledThrow(devices->GetCount(&count));
 
-	std::vector<DeviceInfo> device_list;
+	Vector<DeviceInfo> device_list;
 	device_list.reserve(count);
 
 	std::wstring default_device_name;

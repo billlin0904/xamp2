@@ -123,8 +123,8 @@ DeviceTypeFactoryMap::iterator AudioDeviceManager::End() {
     return factory_.end();
 }
 
-std::vector<Uuid> AudioDeviceManager::GetAvailableDeviceType() const {
-    std::vector<Uuid> device_types;
+Vector<Uuid> AudioDeviceManager::GetAvailableDeviceType() const {
+    Vector<Uuid> device_types;
 	for (auto [uuid, device_type] : factory_) {
         device_types.push_back(uuid);
 	}

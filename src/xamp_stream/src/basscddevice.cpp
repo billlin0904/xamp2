@@ -72,8 +72,8 @@ public:
 		return cd_text;
 	}
 
-	[[nodiscard]] std::vector<std::wstring> GetTotalTracks() const {
-		std::vector<std::wstring> tracks;
+	[[nodiscard]] Vector<std::wstring> GetTotalTracks() const {
+		Vector<std::wstring> tracks;
 		const auto num_track = BASS.CDLib->BASS_CD_GetTracks(driver_);
 		if (num_track == kBassError) {
 			return tracks;
@@ -155,7 +155,7 @@ CDText BassCDDevice::GetCDText() const {
 	return impl_->GetCDText();
 }
 
-std::vector<std::wstring> BassCDDevice::GetTotalTracks() const {
+Vector<std::wstring> BassCDDevice::GetTotalTracks() const {
 	return impl_->GetTotalTracks();
 }
 

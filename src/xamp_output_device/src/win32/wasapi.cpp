@@ -161,7 +161,7 @@ HashMap<std::string, std::wstring> GetDeviceProperty(CComPtr<IMMDevice>& device)
 
 	HashMap<std::string, std::wstring> result;
 	
-	auto const device_property = std::vector<DeviceProperty>{
+	auto const device_property = Vector<DeviceProperty>{
 		{PKEY_AudioEndpoint_FormFactor , VT_UI4, "PKEY_AudioEndpoint_FormFactor"},
 		{PKEY_AudioEndpoint_GUID,  VT_LPWSTR, "PKEY_AudioEndpoint_GUID"},
 		{PKEY_AudioEngine_DeviceFormat,  VT_BLOB, "PKEY_AudioEngine_DeviceFormat"},

@@ -29,7 +29,7 @@ void XFrame::setContentWidget(QWidget* content) {
     auto* default_layout = new QVBoxLayout(this);
     default_layout->setSpacing(0);
     default_layout->setObjectName(QString::fromUtf8("default_layout"));
-    default_layout->setContentsMargins(8, 8, 8, 8);
+    default_layout->setContentsMargins(5, 5, 5, 5);
     setLayout(default_layout);
 
     auto* title_frame = new QFrame(this);
@@ -51,6 +51,13 @@ void XFrame::setContentWidget(QWidget* content) {
     title_frame_label->setFont(f);
     title_frame_label->setSizePolicy(size_policy3);
     title_frame_label->setAlignment(Qt::AlignCenter);
+    title_frame_label->setStyleSheet(Q_STR(R"(
+    QLabel#titleFrameLabel {
+    border: none;
+    background: transparent;
+	color: gray;
+    }
+    )"));
 
     auto* close_button = new QToolButton(title_frame);
     close_button->setObjectName(QString::fromUtf8("closeButton"));

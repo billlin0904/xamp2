@@ -89,7 +89,7 @@ static void loadLogConfig() {
 
     QMap<QString, QVariant> well_known_log_name;
 
-    for (const auto& logger_name : LoggerManager::GetInstance().GetDefaultLoggerName()) {
+    for (const auto& logger_name : LoggerManager::GetInstance().GetWellKnownName()) {
         if (logger_name != kXampLoggerName) {
             well_known_log_name[fromStdStringView(logger_name)] = Q_TEXT("info");
         }
@@ -327,11 +327,11 @@ int main(int argc, char *argv[]) {
     }*/
 #endif
     LoggerManager::GetInstance()
-        .AddDebugOutputLogger()
+        .AddDebugOutput()
 #ifdef Q_OS_MAC
         .AddSink(std::make_shared<QDebugSink>())
 #endif
-        .AddFileLogger("xamp.log")
+        .AddLogFile("xamp.log")
         .Startup();
 
     registerMetaType();

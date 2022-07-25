@@ -10,7 +10,7 @@
 #include <base/singleton.h>
 #include <base/stacktrace.h>
 #include <base/str_utilts.h>
-#include <base/align_ptr.h>
+#include <base/memory.h>
 
 #ifdef XAMP_OS_WIN
 #include <base/platfrom_handle.h>

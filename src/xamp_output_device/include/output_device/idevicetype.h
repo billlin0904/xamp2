@@ -35,7 +35,7 @@ public:
 
 	[[nodiscard]] virtual DeviceInfo GetDeviceInfo(uint32_t device) const = 0;
 
-	[[nodiscard]] virtual std::vector<DeviceInfo> GetDeviceInfo() const = 0;
+	[[nodiscard]] virtual Vector<DeviceInfo> GetDeviceInfo() const = 0;
 
 	[[nodiscard]] virtual std::optional<DeviceInfo> GetDefaultDeviceInfo() const = 0;	
 

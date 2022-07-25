@@ -35,7 +35,7 @@ public:
 
 	[[nodiscard]] std::optional<DeviceInfo> GetDefaultDeviceInfo() const override;
 
-	[[nodiscard]] std::vector<DeviceInfo> GetDeviceInfo() const override;
+	[[nodiscard]] Vector<DeviceInfo> GetDeviceInfo() const override;
 
 	AlignPtr<IOutputDevice> MakeDevice(std::string const & device_id) override;
 
@@ -44,10 +44,10 @@ private:
 
 	[[nodiscard]] CComPtr<IMMDevice> GetDeviceById(std::wstring const & device_id) const;
 
-	[[nodiscard]] std::vector<DeviceInfo> GetDeviceInfoList() const;
+	[[nodiscard]] Vector<DeviceInfo> GetDeviceInfoList() const;
 
 	CComPtr<IMMDeviceEnumerator> enumerator_;
-	std::vector<DeviceInfo> device_list_;
+	Vector<DeviceInfo> device_list_;
 	std::shared_ptr<Logger> log_;
 };
 

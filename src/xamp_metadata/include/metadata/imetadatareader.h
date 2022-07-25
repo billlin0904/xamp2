@@ -23,7 +23,7 @@ public:
 
     virtual std::optional<ReplayGain> GetReplayGain(const Path& path) = 0;
  
-    virtual const std::vector<uint8_t>& GetEmbeddedCover(Path const &path) = 0;
+    virtual const Vector<uint8_t>& GetEmbeddedCover(Path const &path) = 0;
 
     [[nodiscard]] virtual HashSet<std::string> const & GetSupportFileExtensions() const = 0;
 

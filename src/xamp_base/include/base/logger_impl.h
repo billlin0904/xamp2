@@ -61,6 +61,8 @@ public:
 
     void SetLevel(LogLevel level);
 
+    const std::string & GetName() const;
+
 private:
     template <typename... Args>
     void Log(LogLevel level, const char *filename, int32_t line, const char* func, std::string_view s, const Args&... args) {
@@ -87,13 +89,13 @@ public:
 
     void Shutdown();
 
-    LoggerManager& AddDebugOutputLogger();
+    LoggerManager& AddDebugOutput();
 
-    LoggerManager& AddFileLogger(const std::string& file_name);
+    LoggerManager& AddLogFile(const std::string& file_name);
 
     LoggerManager& AddSink(spdlog::sink_ptr sink);
 
-    LoggerManager& AddConsoleLogger();
+    LoggerManager& AddConsole();
 
     Logger* GetDefaultLogger() noexcept {
         return default_logger_.get();
@@ -101,12 +103,12 @@ public:
 
     std::shared_ptr<Logger> GetLogger(const std::string& name);
 
-    const Vector<std::string_view>& GetDefaultLoggerName();
+    const Vector<std::string_view>& GetWellKnownName();
 
     void SetLevel(LogLevel level);
 
 private:
-    LoggerManager() = default;
+    LoggerManager() noexcept;
 
     Vector<spdlog::sink_ptr> sinks_;
     std::shared_ptr<Logger> default_logger_;

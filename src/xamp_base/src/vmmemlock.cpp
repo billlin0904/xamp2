@@ -3,6 +3,7 @@
 #include <base/stacktrace.h>
 #include <base/exception.h>
 #include <base/logger_impl.h>
+#include <base/memory.h>
 #include <base/platform.h>
 #include <base/vmmemlock.h>
 

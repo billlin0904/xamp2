@@ -34,18 +34,18 @@ public:
 
 	[[nodiscard]] std::optional<DeviceInfo> GetDefaultDeviceInfo() const override;
 
-	[[nodiscard]] std::vector<DeviceInfo> GetDeviceInfo() const override;
+	[[nodiscard]] Vector<DeviceInfo> GetDeviceInfo() const override;
 
 	AlignPtr<IOutputDevice> MakeDevice(const std::string& device_id) override;
 	
 private:
 	void Initial();
 
-	[[nodiscard]] std::vector<DeviceInfo> GetDeviceInfoList() const;
+	[[nodiscard]] Vector<DeviceInfo> GetDeviceInfoList() const;
 
 	[[nodiscard]] CComPtr<IMMDevice> GetDeviceById(const std::wstring& device_id) const;
 
-	std::vector<DeviceInfo> device_list_;
+	Vector<DeviceInfo> device_list_;
 	CComPtr<IMMDeviceEnumerator> enumerator_;
 };
 

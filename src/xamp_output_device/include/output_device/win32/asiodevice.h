@@ -7,11 +7,10 @@
 
 #if ENABLE_ASIO
 #include <atomic>
-#include <vector>
-
 #include <asio.h>
 
 #include <base/logger.h>
+#include <base/stl.h>
 #include <base/dsdsampleformat.h>
 #include <base/buffer.h>
 #include <base/fastmutex.h>
@@ -119,7 +118,7 @@ private:
 	mutable FastMutex mutex_;
 	FastConditionVariable condition_;
 	AudioFormat format_;
-	std::vector<ASIOClockSource> clock_source_;	
+	Vector<ASIOClockSource> clock_source_;
 	Buffer<int8_t> buffer_;
 	Buffer<int8_t> device_buffer_;	
 	IAudioCallback* callback_;

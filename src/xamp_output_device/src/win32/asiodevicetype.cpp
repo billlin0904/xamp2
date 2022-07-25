@@ -41,8 +41,8 @@ std::optional<DeviceInfo> ASIODeviceType::GetDefaultDeviceInfo() const {
 	return GetDeviceInfo(0);
 }
 
-std::vector<DeviceInfo> ASIODeviceType::GetDeviceInfo() const {
-	std::vector<DeviceInfo> device_infos;
+Vector<DeviceInfo> ASIODeviceType::GetDeviceInfo() const {
+	Vector<DeviceInfo> device_infos;
 	device_infos.reserve(device_info_cache_.size());
 
 	for (const auto& device_info : device_info_cache_) {

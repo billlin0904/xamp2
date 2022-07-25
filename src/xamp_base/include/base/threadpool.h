@@ -9,16 +9,15 @@
 #include <atomic>
 #include <vector>
 #include <optional>
-#include <type_traits>
 #include <memory>
 
 #include <base/rng.h>
 #include <base/base.h>
+#include <base/logger.h>
 #include <base/align_ptr.h>
 #include <base/itaskschedulerpolicy.h>
 #include <base/ithreadpool.h>
 #include <base/platform.h>
-#include <base/logger.h>
 
 namespace xamp::base {
 

@@ -35,12 +35,16 @@ static void CreateLogsDir() {
 	}
 }
 
-const Vector<std::string_view> & LoggerManager::GetDefaultLoggerName() {
+LoggerManager::LoggerManager() noexcept {
+	default_logger_ = GetLogger(kXampLoggerName);
+}
+
+const Vector<std::string_view> & LoggerManager::GetWellKnownName() {
     return Singleton<Vector<std::string_view>>::GetInstance();
 }
 
 void LoggerManager::SetLevel(LogLevel level) {
-	spdlog::get(kXampLoggerName)->set_level(static_cast<spdlog::level::level_enum>(level));
+	default_logger_->SetLevel(level);
 }
 
 LoggerManager & LoggerManager::GetInstance() noexcept {    
@@ -48,18 +52,12 @@ LoggerManager & LoggerManager::GetInstance() noexcept {
 }
 
 LoggerManager& LoggerManager::Startup() {
-    GetLogger(kXampLoggerName);
-
-	if (default_logger_ != nullptr) {
-		default_logger_->LogDebug("{}", "=:==:==:==:==:= LoggerManager init success. =:==:==:==:==:=");
-	}
+	default_logger_->LogDebug("{}", "=:==:==:==:==:= LoggerManager init success. =:==:==:==:==:=");
 	return *this;
 }
 
 void LoggerManager::Shutdown() {
-	if (default_logger_ != nullptr) {
-		default_logger_->LogDebug("=:==:==:==:==:= LoggerManager shutdown =:==:==:==:==:=");
-	}
+	default_logger_->LogDebug("=:==:==:==:==:= LoggerManager shutdown =:==:==:==:==:=");
 	spdlog::shutdown();
 }
 
@@ -78,7 +76,17 @@ void Logger::SetLevel(LogLevel level) {
 	logger_->set_level(static_cast<spdlog::level::level_enum>(level));
 }
 
+const std::string& Logger::GetName() const {
+	return logger_->name();
+}
+
 std::shared_ptr<Logger> LoggerManager::GetLogger(const std::string &name) {
+	if (default_logger_ != nullptr) {
+		if (name == default_logger_->GetName()) {
+			return default_logger_;
+		}
+	}	
+
 	auto logger = spdlog::get(name);
 	if (logger != nullptr) {
 		return std::make_shared<Logger>(logger);
@@ -93,15 +101,10 @@ std::shared_ptr<Logger> LoggerManager::GetLogger(const std::string &name) {
 	logger->flush_on(spdlog::level::debug);
 
 	spdlog::register_logger(logger);
-
-    if (kXampLoggerName == name) {
-		default_logger_ = std::make_shared<Logger>(logger);
-	}
-
 	return std::make_shared<Logger>(logger);
 }
 
-LoggerManager& LoggerManager::AddConsoleLogger() {
+LoggerManager& LoggerManager::AddConsole() {
 #ifdef XAMP_OS_WIN
 	sinks_.push_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
 #else
@@ -109,7 +112,7 @@ LoggerManager& LoggerManager::AddConsoleLogger() {
 	return *this;
 }
 
-LoggerManager& LoggerManager::AddDebugOutputLogger() {
+LoggerManager& LoggerManager::AddDebugOutput() {
 #ifdef XAMP_OS_WIN
 	// OutputDebugString 會產生例外導致AddVectoredExceptionHandler註冊的
 	// Handler會遞迴的呼叫下去, 所以只有在除錯模式下才使用.
@@ -126,7 +129,7 @@ LoggerManager& LoggerManager::AddSink(spdlog::sink_ptr sink) {
     return *this;
 }
 
-LoggerManager& LoggerManager::AddFileLogger(const std::string &file_name) {
+LoggerManager& LoggerManager::AddLogFile(const std::string &file_name) {
 	CreateLogsDir();
 
 	std::ostringstream ostr;

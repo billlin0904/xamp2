@@ -26,7 +26,7 @@ public:
 
 	[[nodiscard]] virtual AlignPtr<IDeviceType> Create(Uuid const& id) const = 0;
 
-	[[nodiscard]] virtual std::vector<Uuid> GetAvailableDeviceType() const = 0;
+	[[nodiscard]] virtual Vector<Uuid> GetAvailableDeviceType() const = 0;
 
 	virtual void Clear() = 0;
 

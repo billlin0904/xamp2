@@ -60,7 +60,7 @@ public:
 
 	[[nodiscard]] virtual CDText GetCDText() const = 0;
 
-	[[nodiscard]] virtual std::vector<std::wstring> GetTotalTracks() const = 0;
+	[[nodiscard]] virtual Vector<std::wstring> GetTotalTracks() const = 0;
 
 	virtual void Release() = 0;
 

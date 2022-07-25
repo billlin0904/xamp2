@@ -9,6 +9,7 @@
 #include <base/assert.h>
 #include <base/waitabletimer.h>
 #include <base/exception.h>
+#include <base/memory.h>
 
 #include <base/platfrom_handle.h>
 

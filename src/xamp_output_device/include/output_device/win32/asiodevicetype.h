@@ -34,7 +34,7 @@ public:
 
 	std::optional<DeviceInfo> GetDefaultDeviceInfo() const override;
 
-	std::vector<DeviceInfo> GetDeviceInfo() const override;
+	Vector<DeviceInfo> GetDeviceInfo() const override;
 
     void ScanNewDevice() override;
 

@@ -21,7 +21,7 @@ public:
     
     Metadata Extract(Path const &path) override;
 
-    const std::vector<uint8_t>& GetEmbeddedCover(Path const &path) override;
+    const Vector<uint8_t>& GetEmbeddedCover(Path const &path) override;
 
     [[nodiscard]] HashSet<std::string> const & GetSupportFileExtensions() const override;
 

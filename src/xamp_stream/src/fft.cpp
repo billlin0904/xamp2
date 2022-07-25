@@ -1,6 +1,6 @@
 #include <functional>
 
-#include <base/enum.h>
+#include <base/memory.h>
 #include <base/buffer.h>
 #include <base/assert.h>
 #include <base/math.h>

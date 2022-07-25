@@ -57,7 +57,7 @@ size_t SharedWasapiDeviceType::GetDeviceCount() const {
 	return device_list_.size();
 }
 
-std::vector<DeviceInfo> SharedWasapiDeviceType::GetDeviceInfo() const {
+Vector<DeviceInfo> SharedWasapiDeviceType::GetDeviceInfo() const {
 	return device_list_;
 }
 
@@ -71,14 +71,14 @@ std::optional<DeviceInfo> SharedWasapiDeviceType::GetDefaultDeviceInfo() const {
 	return helper::GetDeviceInfo(default_output_device, Id);
 }
 
-std::vector<DeviceInfo> SharedWasapiDeviceType::GetDeviceInfoList() const {
+Vector<DeviceInfo> SharedWasapiDeviceType::GetDeviceInfoList() const {
 	CComPtr<IMMDeviceCollection> devices;
 	HrIfFailledThrow(enumerator_->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, &devices));
 
 	UINT count = 0;
 	HrIfFailledThrow(devices->GetCount(&count));
 
-	std::vector<DeviceInfo> device_list;
+	Vector<DeviceInfo> device_list;
 	device_list.reserve(count);
 
 	std::wstring default_device_name;

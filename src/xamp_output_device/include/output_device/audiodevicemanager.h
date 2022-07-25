@@ -37,7 +37,7 @@ public:
 
     DeviceTypeFactoryMap::iterator End() override;
 
-    [[nodiscard]] std::vector<Uuid> GetAvailableDeviceType() const override;
+    [[nodiscard]] Vector<Uuid> GetAvailableDeviceType() const override;
 
     [[nodiscard]] bool IsSupportASIO() const noexcept;
 
