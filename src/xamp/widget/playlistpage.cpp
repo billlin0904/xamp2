@@ -18,7 +18,7 @@ void PlaylistPage::initial() {
 	auto* default_layout = new QVBoxLayout(this);
 	default_layout->setSpacing(0);
 	default_layout->setObjectName(QString::fromUtf8("default_layout"));
-	default_layout->setContentsMargins(0, 20, 0, 0);
+	default_layout->setContentsMargins(0, 0, 0, 0);
 
 	auto* child_layout = new QHBoxLayout();
 	child_layout->setSpacing(0);

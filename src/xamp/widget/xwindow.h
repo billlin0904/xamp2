@@ -9,6 +9,9 @@
 
 #if defined(Q_OS_WIN)
 class QScreen;
+namespace win32 {
+    class WinTaskbar;
+}
 #endif
 
 class XWindow final : public IXWindow {
@@ -57,13 +60,13 @@ private:
 
 #if defined(Q_OS_WIN)
     void showEvent(QShowEvent* event) override;
-    void paintEvent(QPaintEvent* event) override;
 
-    struct WinTaskbar;
+    void resizeEvent(QResizeEvent* event) override;
 
+    QSize last_size_;
 	QPoint last_pos_;
     QScreen* current_screen_;
-    QScopedPointer<WinTaskbar> taskbar_;
+    QScopedPointer<win32::WinTaskbar> taskbar_;
 #endif
     IXampPlayer *content_widget_;
 };

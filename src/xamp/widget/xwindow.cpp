@@ -13,17 +13,13 @@
 #include "thememanager.h"
 
 #if defined(Q_OS_WIN)
-#include <Windows.h>
 #include <windowsx.h>
-#include <QtWin>
-#include <QtWinExtras/QWinTaskbarButton>
-#include <QtWinExtras/QWinTaskbarProgress>
-#include <QtWinExtras/QWinThumbnailToolBar>
-#include <QtWinExtras/QWinThumbnailToolButton>
 #include <widget/win32/win32.h>
 #else
 #include <widget/osx/osx.h>
 #endif
+
+#include <base/logger_impl.h>
 
 #include <version.h>
 #include <widget/image_utiltis.h>
@@ -34,98 +30,6 @@
 #include <widget/xwindow.h>
 
 #if defined(Q_OS_WIN)
-struct XWindow::WinTaskbar {
-    WinTaskbar(XWindow *window, IXampPlayer* content_widget) {
-        window_ = window;
-        // TODO: not use standard icon?
-        play_icon = window->style()->standardIcon(QStyle::SP_MediaPlay);
-        pause_icon = window->style()->standardIcon(QStyle::SP_MediaPause);
-        stop_play_icon = window->style()->standardIcon(QStyle::SP_MediaStop);
-        seek_forward_icon = window->style()->standardIcon(QStyle::SP_MediaSeekForward);
-        seek_backward_icon = window->style()->standardIcon(QStyle::SP_MediaSeekBackward);
-
-        thumbnail_tool_bar_.reset(new QWinThumbnailToolBar(window));
-        thumbnail_tool_bar_->setWindow(window->windowHandle());
-
-        taskbar_button_.reset(new QWinTaskbarButton(window));
-        taskbar_button_->setWindow(window->windowHandle());
-        taskbar_progress_ = taskbar_button_->progress();
-        taskbar_progress_->setVisible(true);
-
-        auto* play_tool_button = new QWinThumbnailToolButton(thumbnail_tool_bar_.get());
-        play_tool_button->setIcon(play_icon);
-        (void)QObject::connect(play_tool_button,
-            &QWinThumbnailToolButton::clicked,
-            content_widget,
-            &IXampPlayer::play);
-
-        auto* forward_tool_button = new QWinThumbnailToolButton(thumbnail_tool_bar_.get());
-        forward_tool_button->setIcon(seek_forward_icon);
-        (void)QObject::connect(forward_tool_button,
-            &QWinThumbnailToolButton::clicked,
-            content_widget,
-            &IXampPlayer::playNextClicked);
-
-        auto* backward_tool_button = new QWinThumbnailToolButton(thumbnail_tool_bar_.get());
-        backward_tool_button->setIcon(seek_backward_icon);
-        (void)QObject::connect(backward_tool_button,
-            &QWinThumbnailToolButton::clicked,
-            content_widget,
-            &IXampPlayer::playPreviousClicked);
-
-        thumbnail_tool_bar_->addButton(backward_tool_button);
-        thumbnail_tool_bar_->addButton(play_tool_button);
-        thumbnail_tool_bar_->addButton(forward_tool_button);
-    }
-
-    void setTaskbarProgress(const int32_t percent) {
-        taskbar_progress_->setValue(percent);
-    }
-
-    void resetTaskbarProgress() {
-        taskbar_progress_->reset();
-        taskbar_progress_->setValue(0);
-        taskbar_progress_->setRange(0, 100);
-        taskbar_button_->setOverlayIcon(play_icon);
-        taskbar_progress_->show();
-    }
-
-    void setTaskbarPlayingResume() {
-        taskbar_button_->setOverlayIcon(play_icon);
-        taskbar_progress_->resume();
-    }
-
-    void setTaskbarPlayerPaused() {
-        taskbar_button_->setOverlayIcon(pause_icon);
-        taskbar_progress_->pause();
-    }
-
-    void setTaskbarPlayerPlaying() {
-        resetTaskbarProgress();
-    }
-
-    void setTaskbarPlayerStop() {
-        taskbar_button_->setOverlayIcon(stop_play_icon);
-        taskbar_progress_->hide();
-    }
-
-    void showEvent() {
-        taskbar_button_->setWindow(window_->windowHandle());
-    }
-
-    QIcon play_icon;
-    QIcon pause_icon;
-    QIcon stop_play_icon;
-    QIcon seek_forward_icon;
-    QIcon seek_backward_icon;
-
-private:
-    XWindow* window_;
-    QScopedPointer<QWinThumbnailToolBar> thumbnail_tool_bar_;
-    QScopedPointer<QWinTaskbarButton> taskbar_button_;
-    QWinTaskbarProgress* taskbar_progress_;
-};
-
 static XAMP_ALWAYS_INLINE LRESULT hitTest(HWND hwnd, MSG const* msg) noexcept {
     const POINT border{
         ::GetSystemMetrics(SM_CXFRAME) + ::GetSystemMetrics(SM_CXPADDEDBORDER),
@@ -195,17 +99,17 @@ void XWindow::setContentWidget(IXampPlayer *content_widget) {
         setWindowTitle(kAppTitle);
         setAttribute(Qt::WA_TranslucentBackground, true);
         setWindowFlags(windowFlags() | Qt::WindowMaximizeButtonHint);
-        win32::setFramelessWindowStyle(this);
-        win32::addDwmShadow(this);
+        win32::setFramelessWindowStyle(winId());
+        win32::addDwmShadow(winId());
         if (AppSettings::getValueAsBool(kAppSettingEnableBlur)) {
             content_widget->setAttribute(Qt::WA_TranslucentBackground, true);
             qTheme.enableBlur(this);
         }
     } else {
-        win32::setWindowedWindowStyle(this);
-        win32::addDwmShadow(this);
+        win32::setWindowedWindowStyle(winId());
+        win32::addDwmShadow(winId());
     }
-    taskbar_.reset(new WinTaskbar(this, content_widget));
+    taskbar_.reset(new win32::WinTaskbar(this, content_widget));
 #else
     if (!qTheme.useNativeWindow()) {
         if (content_widget_ != nullptr) {
@@ -324,7 +228,7 @@ bool XWindow::nativeEvent(const QByteArray& event_type, void * message, long * r
         break;
     case WM_GETMINMAXINFO:
         if (layout() != nullptr) {
-            if (win32::isWindowMaximized(this)) {
+            if (isMaximized()) {
                 RECT frame = { 0, 0, 0, 0 };
                 ::AdjustWindowRectEx(&frame, WS_OVERLAPPEDWINDOW, FALSE, 0);
                 frame.left = abs(frame.left);
@@ -342,7 +246,6 @@ bool XWindow::nativeEvent(const QByteArray& event_type, void * message, long * r
         if (msg->wParam == FALSE) {
             // 如果 wParam 為 FALSE，則 lParam 指向一個 RECT 結構。輸入時，該結構包含建議的視窗矩形視窗。退出時，該結構應包含相應視窗客戶區的螢屏坐標。
             *result = 0;
-            return true;
         } else {
             // 如果 wParam 為 TRUE，lParam 指向一個 NCCALCSIZE_PARAMS 結構，該結構包含應用程式可以用來計算客戶矩形的新大小和位置的資訊。
             auto* nccalcsize_params = reinterpret_cast<LPNCCALCSIZE_PARAMS>(msg->lParam);
@@ -356,8 +259,26 @@ bool XWindow::nativeEvent(const QByteArray& event_type, void * message, long * r
         // These undocumented messages are sent to draw themed window
         // borders. Block them to prevent drawing borders over the client
         // area.
-        *result = 0;
+        *result = WM_NCPAINT;
         return true;
+    case WM_NCACTIVATE:
+        if (win32::compositionEnabled()) {
+            *result = DefWindowProc(msg->hwnd, WM_NCACTIVATE, msg->wParam, -1);
+        } else {
+            if (msg->wParam == FALSE) {
+                *result = TRUE;
+            }
+            else {
+                *result = FALSE;
+            }
+        }
+        return true;
+    case WM_WINDOWPOSCHANGING:
+	    {
+        const auto window_pos = reinterpret_cast<LPWINDOWPOS>(msg->lParam);
+        window_pos->flags |= SWP_NOCOPYBITS;
+	    }
+        break;
     default:
         break;
     }
@@ -388,12 +309,18 @@ void XWindow::mousePressEvent(QMouseEvent* event) {
         QWidget::mousePressEvent(event);
         return;
 	}
+
+    // todo: When maximize window must can be drag window.
     if (isMaximized()) {
+        if (event->button() == Qt::LeftButton) {
+            return;
+        }
+    }
+
+    if (!content_widget_->hitTitleBar(event->pos())) {
         return;
     }
-    if (event->button() != Qt::LeftButton) {
-        return;
-    }
+    
 #if defined(Q_OS_WIN)    
     last_pos_ = event->globalPos() - pos();
 #else
@@ -413,7 +340,16 @@ void XWindow::mouseReleaseEvent(QMouseEvent* event) {
 #endif
 }
 
-void XWindow::mouseDoubleClickEvent(QMouseEvent*) {
+void XWindow::mouseDoubleClickEvent(QMouseEvent* event) {
+    if (qTheme.useNativeWindow()) {
+        QWidget::mouseDoubleClickEvent(event);
+        return;
+    }
+
+    if (!content_widget_->hitTitleBar(event->pos())) {
+        return;
+    }
+
     if (isMaximized()) {
         showNormal();
     } else {
@@ -455,25 +391,8 @@ void XWindow::showEvent(QShowEvent* event) {
     taskbar_->showEvent();
 }
 
-void XWindow::paintEvent(QPaintEvent* event) {
-    /*QPainterPath path;
-    path.setFillRule(Qt::WindingFill);
-    QRectF rect(10, 10, this->width() - 20, this->height() - 20);
-    path.addRoundRect(rect, 8, 8);
-
-    QPainter painter(this);
-    painter.setRenderHint(QPainter::Antialiasing, true);
-    painter.fillPath(path, QBrush(Qt::white));
-
-    QColor color(0, 0, 0, 50);
-    for (int i = 0; i < 10; i++) {
-        QPainterPath path;
-        path.setFillRule(Qt::WindingFill);
-        path.addRect(10 - i, 10 - i, this->width() - (10 - i) * 2, this->height() - (10 - i) * 2);
-        color.setAlpha(150 - qSqrt(i) * 50);
-        painter.setPen(color);
-        painter.drawPath(path);
-    }*/
-    return QWidget::paintEvent(event);
+void XWindow::resizeEvent(QResizeEvent* event) {
+    last_size_ = frameGeometry().size();
+    XAMP_LOG_DEBUG("Resize event!");
 }
 #endif

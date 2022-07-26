@@ -317,6 +317,7 @@ static int excute(int argc, char* argv[]) {
     else {
         centerDesktop(&top_win);
     }
+    
     return app.exec();
 }
 

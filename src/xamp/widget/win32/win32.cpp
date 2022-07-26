@@ -1,6 +1,7 @@
 #include <QObject>
 #include <QWidget>
 #include <QMenu>
+#include <QStyle>
 
 #include <base/singleton.h>
 #include <base/platfrom_handle.h>
@@ -10,12 +11,23 @@
 #include <unknwn.h>
 #endif
 
+#include "xampplayer.h"
+#include <widget/xwindow.h>
 #include <widget/widget_shared.h>
 #include <widget/appsettingnames.h>
 #include <widget/appsettings.h>
 #include <widget/win32/win32.h>
 
 #if defined(Q_OS_WIN)
+
+#include <Windows.h>
+#include <windowsx.h>
+#include <QtWin>
+#include <QtWinExtras/QWinTaskbarButton>
+#include <QtWinExtras/QWinTaskbarProgress>
+#include <QtWinExtras/QWinThumbnailToolBar>
+#include <QtWinExtras/QWinThumbnailToolButton>
+
 #include <WinUser.h>
 #include <wingdi.h>
 
@@ -153,6 +165,86 @@ static uint32_t gradientColor(QColor const & color) {
 		| color.alpha() << 24;
 }
 
+WinTaskbar::WinTaskbar(XWindow* window, IXampPlayer* content_widget) {
+	window_ = window;
+	// TODO: not use standard icon?
+	play_icon = window->style()->standardIcon(QStyle::SP_MediaPlay);
+	pause_icon = window->style()->standardIcon(QStyle::SP_MediaPause);
+	stop_play_icon = window->style()->standardIcon(QStyle::SP_MediaStop);
+	seek_forward_icon = window->style()->standardIcon(QStyle::SP_MediaSeekForward);
+	seek_backward_icon = window->style()->standardIcon(QStyle::SP_MediaSeekBackward);
+
+	thumbnail_tool_bar_.reset(new QWinThumbnailToolBar(window));
+	thumbnail_tool_bar_->setWindow(window->windowHandle());
+
+	taskbar_button_.reset(new QWinTaskbarButton(window));
+	taskbar_button_->setWindow(window->windowHandle());
+	taskbar_progress_ = taskbar_button_->progress();
+	taskbar_progress_->setVisible(true);
+
+	auto* play_tool_button = new QWinThumbnailToolButton(thumbnail_tool_bar_.get());
+	play_tool_button->setIcon(play_icon);
+	(void)QObject::connect(play_tool_button,
+		&QWinThumbnailToolButton::clicked,
+		content_widget,
+		&IXampPlayer::play);
+
+	auto* forward_tool_button = new QWinThumbnailToolButton(thumbnail_tool_bar_.get());
+	forward_tool_button->setIcon(seek_forward_icon);
+	(void)QObject::connect(forward_tool_button,
+		&QWinThumbnailToolButton::clicked,
+		content_widget,
+		&IXampPlayer::playNextClicked);
+
+	auto* backward_tool_button = new QWinThumbnailToolButton(thumbnail_tool_bar_.get());
+	backward_tool_button->setIcon(seek_backward_icon);
+	(void)QObject::connect(backward_tool_button,
+		&QWinThumbnailToolButton::clicked,
+		content_widget,
+		&IXampPlayer::playPreviousClicked);
+
+	thumbnail_tool_bar_->addButton(backward_tool_button);
+	thumbnail_tool_bar_->addButton(play_tool_button);
+	thumbnail_tool_bar_->addButton(forward_tool_button);
+}
+
+WinTaskbar::~WinTaskbar() = default;
+
+void WinTaskbar::setTaskbarProgress(const int32_t percent) {
+	taskbar_progress_->setValue(percent);
+}
+
+void WinTaskbar::resetTaskbarProgress() {
+	taskbar_progress_->reset();
+	taskbar_progress_->setValue(0);
+	taskbar_progress_->setRange(0, 100);
+	taskbar_button_->setOverlayIcon(play_icon);
+	taskbar_progress_->show();
+}
+
+void WinTaskbar::setTaskbarPlayingResume() {
+	taskbar_button_->setOverlayIcon(play_icon);
+	taskbar_progress_->resume();
+}
+
+void WinTaskbar::setTaskbarPlayerPaused() {
+	taskbar_button_->setOverlayIcon(pause_icon);
+	taskbar_progress_->pause();
+}
+
+void WinTaskbar::setTaskbarPlayerPlaying() {
+	resetTaskbarProgress();
+}
+
+void WinTaskbar::setTaskbarPlayerStop() {
+	taskbar_button_->setOverlayIcon(stop_play_icon);
+	taskbar_progress_->hide();
+}
+
+void WinTaskbar::showEvent() {
+	taskbar_button_->setWindow(window_->windowHandle());
+}
+
 void setAccentPolicy(HWND hwnd, bool enable, int animation_id) {
 	auto is_rs4_or_greater = false;
 
@@ -175,8 +267,8 @@ void setAccentPolicy(HWND hwnd, bool enable, int animation_id) {
 	User32DLL.SetWindowCompositionAttribute(hwnd, &data);
 }
 
-void setAccentPolicy(const QWidget* widget, bool enable, int animation_id) {
-	auto hwnd = reinterpret_cast<HWND>(widget->winId());
+void setAccentPolicy(const WId window_id, bool enable, int animation_id) {
+	auto hwnd = reinterpret_cast<HWND>(window_id);
 	setAccentPolicy(hwnd, enable, animation_id);
 }
 
@@ -192,33 +284,8 @@ void setResizeable(void* message) {
 	SetWindowLong(msg->hwnd, DWL_MSGRESULT, HTCAPTION);
 }
 
-void addDwmShadow(const QMenu* menu) {
-	auto hwnd = reinterpret_cast<HWND>(menu->winId());
-
-	DWMNCRENDERINGPOLICY ncrp = DWMNCRP_ENABLED;
-	DWMDLL.DwmSetWindowAttribute(hwnd,
-		DWMWA_NCRENDERING_POLICY,
-		&ncrp,
-		sizeof(ncrp));
-	
-	MARGINS borderless = { -1, -1, -1, -1 };
-	DWMDLL.DwmExtendFrameIntoClientArea(hwnd, &borderless);
-}
-
-void setAccentPolicy(const QMenu* menu, bool enable, int animation_id) {
-	auto hwnd = reinterpret_cast<HWND>(menu->winId());
-	setAccentPolicy(hwnd, enable, animation_id);
-}
-
-void addDwmShadow(const QWidget* widget) {
-	auto hwnd = reinterpret_cast<HWND>(widget->winId());
-
-	/*DWMNCRENDERINGPOLICY ncrp = DWMNCRP_ENABLED;
-	DWMDLL.DwmSetWindowAttribute(hwnd,
-		DWMWA_NCRENDERING_POLICY,
-		&ncrp,
-		sizeof(ncrp));*/
-
+void addDwmShadow(const WId window_id) {
+	auto hwnd = reinterpret_cast<HWND>(window_id);
 	MARGINS borderless = { 1, 1, 1, 1 };
 	DWMDLL.DwmExtendFrameIntoClientArea(hwnd, &borderless);
 }
@@ -229,14 +296,22 @@ enum BorderlessWindowStyle : DWORD {
 	BORDERLESS_STYLE      = WS_POPUP            | WS_THICKFRAME              | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX,
 };
 
-static bool compositionEnabled() {
+bool compositionEnabled() {
 	BOOL composition_enabled = FALSE;
 	auto success = DWMDLL.DwmIsCompositionEnabled(&composition_enabled) == S_OK;
 	return composition_enabled && success;
 }
 
-static void setBorderlessWindowStyle(const QWidget* widget, BorderlessWindowStyle new_style) {
-	auto hwnd = reinterpret_cast<HWND>(widget->winId());
+void frameChange(const WId window_id) {
+	auto hwnd = reinterpret_cast<HWND>(window_id);
+
+	static constexpr UINT flags = 
+		(SWP_FRAMECHANGED | SWP_NOACTIVATE | SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER | SWP_NOOWNERZORDER);
+	::SetWindowPos(hwnd, nullptr, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);
+}
+
+static void setBorderlessWindowStyle(const WId window_id, BorderlessWindowStyle new_style) {
+	auto hwnd = reinterpret_cast<HWND>(window_id);
 
 	auto old_style = static_cast<BorderlessWindowStyle>(::GetWindowLongPtrW(hwnd, GWL_STYLE));
 	if (new_style != old_style) {
@@ -246,31 +321,23 @@ static void setBorderlessWindowStyle(const QWidget* widget, BorderlessWindowStyl
 	}
 }
 
-void setWindowedWindowStyle(const QWidget* widget) {
-	setBorderlessWindowStyle(widget, BorderlessWindowStyle::WINDOWED_STYLE);
+void setWindowedWindowStyle(const WId window_id) {
+	setBorderlessWindowStyle(window_id, BorderlessWindowStyle::WINDOWED_STYLE);
 }
 
-void setFramelessWindowStyle(const QWidget* widget) {
-	BorderlessWindowStyle new_style = BorderlessWindowStyle::WINDOWED_STYLE;
+void setFramelessWindowStyle(const WId window_id) {
+	auto new_style = BorderlessWindowStyle::WINDOWED_STYLE;
 	if (compositionEnabled()) {
 		new_style = BorderlessWindowStyle::AERO_BORDERLESS_STYLE;
 	} else {
 		new_style = BorderlessWindowStyle::BORDERLESS_STYLE;
 	}
-	setBorderlessWindowStyle(widget, new_style);
+	setBorderlessWindowStyle(window_id, new_style);
 }
 
-bool isWindowMaximized(const QWidget* widget) {
-	auto hwnd = reinterpret_cast<HWND>(widget->winId());
-#if 0
-	WINDOWPLACEMENT pl{};
-	if (!::GetWindowPlacement(hwnd, &pl)) {
-		return false;
-	}
-	return pl.showCmd == SW_MAXIMIZE;
-#else
+bool isWindowMaximized(const WId window_id) {
+	auto hwnd = reinterpret_cast<HWND>(window_id);
 	return ::GetWindowLong(hwnd, GWL_STYLE) & WS_MINIMIZE;
-#endif
 }
 
 }

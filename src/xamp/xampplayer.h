@@ -43,6 +43,8 @@ public:
     virtual void stopPlayedClicked() = 0;
 
     virtual void play() = 0;
+
+    virtual bool hitTitleBar(const QPoint &ps) const = 0;
 protected:
     IXampPlayer() = default;
 };

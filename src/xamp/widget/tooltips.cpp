@@ -17,8 +17,10 @@ ToolTips::ToolTips(const QString& text, QWidget* parent)
 	setAttribute(Qt::WA_DeleteOnClose);
     setWindowFlags(windowFlags() | Qt::FramelessWindowHint | Qt::Tool);
     setAttribute(Qt::WA_TranslucentBackground, true);
-
+    
     setObjectName(Q_TEXT("ToolTips"));
+    setStyleSheet(Q_TEXT("QFrame#ToolTips { background-color: transparent }"));
+
 
     setContentsMargins(0, 0, 0, 0);
 

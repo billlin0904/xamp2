@@ -693,6 +693,10 @@ void Xamp::initialController() {
     setTipHint(ui_.selectDeviceButton, tr("Device list"));
     setTipHint(ui_.eqButton, tr("Equalizer"));
 
+    setTipHint(ui_.closeButton, tr("Close window"));
+    setTipHint(ui_.maxWinButton, tr("Maximum window"));
+    setTipHint(ui_.minWinButton, tr("Minimum window"));
+
     if (AppSettings::getValueAsBool(kAppSettingDiscordNotify)) {
         (void)QObject::connect(this,
             &Xamp::nowPlaying,
@@ -934,6 +938,10 @@ void Xamp::initialShortcut() {
     (void)QObject::connect(play_key, &QShortcut::activated, [this]() {
         playNextItem(1);
         });
+}
+
+bool Xamp::hitTitleBar(const QPoint& ps) const {
+    return ui_.titleFrame->rect().contains(ps);
 }
 
 void Xamp::stopPlayedClicked() {
@@ -1339,7 +1347,7 @@ void Xamp::onClickedAlbum(const QString& album, int32_t album_id, const QString&
 
 void Xamp::setPlaylistPageCover(const QPixmap* cover, PlaylistPage* page) {
     if (!cover) {
-        cover = &qTheme.pixmap().unknownCover();
+        cover = &qTheme.unknownCover();
     }
 
 	if (!page) {
@@ -1348,13 +1356,13 @@ void Xamp::setPlaylistPageCover(const QPixmap* cover, PlaylistPage* page) {
 
     const auto ui_cover = Pixmap::roundImage(
         Pixmap::scaledImage(*cover, ui_.coverLabel->size(), false),
-           Pixmap::kPlaylistImageRadius);
+        Pixmap::kPlaylistImageRadius);
     ui_.coverLabel->setPixmap(ui_cover);
 
     const auto playlist_cover = Pixmap::roundImage(
         Pixmap::scaledImage(*cover, QSize(130, 130), false),
         Pixmap::kPlaylistImageRadius);
-    page->cover()->setPixmap(playlist_cover);
+	page->cover()->setPixmap(playlist_cover);
     if (lrc_page_ != nullptr) {
         lrc_page_->setCover(Pixmap::scaledImage(*cover, lrc_page_->cover()->size(), true));
     }   

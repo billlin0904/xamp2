@@ -125,7 +125,7 @@ void ArtistInfoPage::setArtistId(const QString& artist, const QString& cover_id,
 	artist_->setText(artist);
 	album_view_->setFilterByArtistId(artist_id);
 
-    const auto* cover = &qTheme.pixmap().defaultSizeUnknownCover();
+    const auto* cover = &qTheme.defaultSizeUnknownCover();
 	if (auto const * cache_small_cover = qPixmapCache.find(cover_id)) {
 		cover = cache_small_cover;
 	}

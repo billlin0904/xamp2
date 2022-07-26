@@ -19,28 +19,28 @@ class XampWindow;
 
 inline constexpr int32_t kUIRadius = 9;
 
-class StylePixmapManager {
-public:
-    virtual ~StylePixmapManager() = default;
-    virtual const QPixmap& unknownCover() const noexcept = 0;
-    virtual const QPixmap& defaultSizeUnknownCover() const noexcept = 0;
-protected:
-    StylePixmapManager() = default;
-};
-
-class DefaultStylePixmapManager : public StylePixmapManager {
-public:
-    DefaultStylePixmapManager();
-
-    ~DefaultStylePixmapManager() override = default;
-
-    const QPixmap& unknownCover() const noexcept override;
-
-    const QPixmap& defaultSizeUnknownCover() const noexcept override;
-private:
-    QPixmap unknown_cover_;
-    QPixmap default_size_unknown_cover_;
-};
+//class StylePixmapManager {
+//public:
+//    virtual ~StylePixmapManager() = default;
+//    virtual const QPixmap& unknownCover() const noexcept = 0;
+//    virtual const QPixmap& defaultSizeUnknownCover() const noexcept = 0;
+//protected:
+//    StylePixmapManager() = default;
+//};
+//
+//class DefaultStylePixmapManager : public StylePixmapManager {
+//public:
+//    DefaultStylePixmapManager();
+//
+//    ~DefaultStylePixmapManager() override = default;
+//
+//    const QPixmap& unknownCover() const noexcept override;
+//
+//    const QPixmap& defaultSizeUnknownCover() const noexcept override;
+//private:
+//    QPixmap unknown_cover_;
+//    QPixmap default_size_unknown_cover_;
+//};
 
 enum class ThemeColor {
     DARK_THEME,
@@ -62,6 +62,10 @@ public:
     const QFont& defaultFont() const {
         return ui_font_;
     }
+
+    const QPixmap& unknownCover() const noexcept;
+
+	const QPixmap& defaultSizeUnknownCover() const noexcept;
 
     QIcon desktopIcon() const;
 
@@ -97,8 +101,6 @@ public:
 
     QIcon themeIcon() const;
 
-    const StylePixmapManager& pixmap() noexcept;
-
     void setPlayOrPauseButton(Ui::XampWindow &ui, bool is_playing);
 
     void setBitPerfectButton(Ui::XampWindow& ui, bool enable);
@@ -107,7 +109,7 @@ public:
 
     void enableBlur(QWidget* widget, bool enable = true) const;
 
-    QSize getDefaultCoverSize() const noexcept;
+    const QSize& getDefaultCoverSize() const noexcept;
 
     QSize getCacheCoverSize() const noexcept;
 
@@ -151,8 +153,6 @@ public:
 
     QString backgroundColor();
 
-    void setBorderRadius(QFrame* content_widget);
-
 private:
     QFont loadFonts();
 
@@ -177,6 +177,8 @@ private:
     QPalette palette_;
     QFont ui_font_;
     QIcon play_arrow_;
+    QPixmap unknown_cover_;
+    QPixmap default_size_unknown_cover_;
 };
 
 #define qTheme SharedSingleton<ThemeManager>::GetInstance()

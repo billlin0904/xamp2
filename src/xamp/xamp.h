@@ -80,6 +80,8 @@ public slots:
 	void onClickedAlbum(const QString& album, int32_t album_id, const QString& cover_id);
 
 private:
+	bool hitTitleBar(const QPoint& ps) const override;
+
     void stopPlayedClicked() override;
 
     void playNextClicked() override;

@@ -29,15 +29,24 @@ void XFrame::setContentWidget(QWidget* content) {
     auto* default_layout = new QVBoxLayout(this);
     default_layout->setSpacing(0);
     default_layout->setObjectName(QString::fromUtf8("default_layout"));
-    default_layout->setContentsMargins(5, 5, 5, 5);
+    default_layout->setContentsMargins(5, 0, 5, 5);
     setLayout(default_layout);
 
     auto* title_frame = new QFrame(this);
     title_frame->setObjectName(QString::fromUtf8("titleFrame"));
-    title_frame->setMinimumSize(QSize(0, 24));
+    title_frame->setMinimumSize(QSize(0, 32));
     title_frame->setFrameShape(QFrame::NoFrame);
     title_frame->setFrameShadow(QFrame::Plain);
-    title_frame->setStyleSheet(Q_TEXT("QFrame#titleFrame { border: none; }"));
+
+    /*auto color = QColor(qTheme.backgroundColor());
+    auto darker_color = color.darker(50);
+    title_frame->setStyleSheet(Q_STR(R"(
+			QFrame#titleFrame {
+				background-color: %1;
+				border: none;
+				border-radius: 20px;
+            }			
+            )").arg(colorToString(darker_color)));*/
 
     auto f = font();
     f.setBold(true);
@@ -61,20 +70,20 @@ void XFrame::setContentWidget(QWidget* content) {
 
     auto* close_button = new QToolButton(title_frame);
     close_button->setObjectName(QString::fromUtf8("closeButton"));
-    close_button->setMinimumSize(QSize(24, 24));
-    close_button->setMaximumSize(QSize(24, 24));
+    close_button->setMinimumSize(QSize(32, 32));
+    close_button->setMaximumSize(QSize(32, 32));
     close_button->setFocusPolicy(Qt::NoFocus);
 
     auto* max_win_button = new QToolButton(title_frame);
     max_win_button->setObjectName(QString::fromUtf8("maxWinButton"));
-    max_win_button->setMinimumSize(QSize(24, 24));
-    max_win_button->setMaximumSize(QSize(24, 24));
+    max_win_button->setMinimumSize(QSize(32, 32));
+    max_win_button->setMaximumSize(QSize(32, 32));
     max_win_button->setFocusPolicy(Qt::NoFocus);
 
     auto* min_win_button = new QToolButton(title_frame);
     min_win_button->setObjectName(QString::fromUtf8("minWinButton"));
-    min_win_button->setMinimumSize(QSize(24, 24));
-    min_win_button->setMaximumSize(QSize(24, 24));
+    min_win_button->setMinimumSize(QSize(32, 32));
+    min_win_button->setMaximumSize(QSize(32, 32));
     min_win_button->setFocusPolicy(Qt::NoFocus);
     min_win_button->setPopupMode(QToolButton::InstantPopup);
 
@@ -92,8 +101,8 @@ void XFrame::setContentWidget(QWidget* content) {
     horizontal_layout->setContentsMargins(0, 0, 0, 0);
 
     default_layout->addWidget(title_frame, 1);
-
     default_layout->addWidget(content_, 0);
+    default_layout->setContentsMargins(0, 0, 0, 0);
 
     close_button->setStyleSheet(Q_STR(R"(
                                          QToolButton#closeButton {

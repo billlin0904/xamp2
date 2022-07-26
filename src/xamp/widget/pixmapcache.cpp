@@ -36,7 +36,7 @@ PixmapCache::PixmapCache()
 			XAMP_LOG_E(logger_, "Create cache dir faulure!");
 		}
 	}
-    unknown_cover_id_ = savePixamp(qTheme.pixmap().unknownCover());
+    unknown_cover_id_ = savePixamp(qTheme.unknownCover());
 	loadCache();
 }
 

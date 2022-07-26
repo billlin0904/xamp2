@@ -108,7 +108,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     painter->setFont(f);
     painter->drawText(artist_text_rect, Qt::AlignVCenter, artist);
 
-    auto* album_cover = &qTheme.pixmap().defaultSizeUnknownCover();
+    auto* album_cover = &qTheme.defaultSizeUnknownCover();
 
     if (const auto * cache_small_cover = qPixmapCache.find(cover_id)) {
         album_cover = cache_small_cover;

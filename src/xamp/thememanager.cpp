@@ -109,6 +109,8 @@ ThemeManager::ThemeManager() {
 #else
     ui_font_.setPointSize(12);
 #endif
+    unknown_cover_ = QPixmap(Q_TEXT(":/xamp/Resource/White/unknown_album.png"));
+	default_size_unknown_cover_ = QPixmap(Pixmap::scaledImage(unknown_cover_, cover_size_));
 }
 
 void ThemeManager::setThemeColor(ThemeColor theme_color) {
@@ -163,79 +165,10 @@ QString ThemeManager::backgroundColor() {
     return color;
 }
 
-void ThemeManager::setBorderRadius(QFrame* content_widget) {
-    auto color = QColor(backgroundColor());
-    auto transparent_color = QColor(backgroundColor());
-
-#if XAMP_OS_WIN
-    if (AppSettings::getValueAsBool(kAppSettingEnableBlur)) {
-        color.setAlpha(220);
-        transparent_color.setAlpha(0);
-    }
-#else
-    color.setAlpha(0);
-    transparent_color.setAlpha(0);
-#endif
-
-    // border-radius: 8px;
-	// border: 2px solid % 1;
-    content_widget->setStyleSheet(Q_STR(R"(
-			QFrame#XampWindow {
-				background-color: %1;
-            }
-			QStackedWidget#currentView {
-				border: none;
-				background-color: %1;
-			}
-			QFrame#controlFrame {
-				border-radius: 0px;
-				background-color: %1;
-			}
-			QFrame#playingFrame {
-				border-radius: 0px;
-				background-color: %1;
-			}
-			QFrame#titleFrame {
-				border-radius: 0px;
-				background-color: %1;
-			}
-			QFrame#volumeFrame {
-				border-radius: 0px;
-				background-color: %1;
-			}
-			QFrame#sliderFrame {
-				border-radius: 0px;
-				background-color: %1;
-			}
-			TabListView#sliderBar {
-				border-radius: 0px;	
-				background-color: %2;			
-			}
-            )").arg(colorToString(color)).arg(colorToString(transparent_color)));
-}
-
 void ThemeManager::setMenuStyle(QWidget* menu) {
 	menu->setWindowFlags(Qt::Popup | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
     menu->setAttribute(Qt::WA_TranslucentBackground);
     menu->setAttribute(Qt::WA_StyledBackground);
-}
-
-DefaultStylePixmapManager::DefaultStylePixmapManager()
-    : unknown_cover_(Q_TEXT(":/xamp/Resource/White/unknown_album.png"))
-    , default_size_unknown_cover_(Pixmap::scaledImage(unknown_cover_, qTheme.getDefaultCoverSize())) {
-}
-
-const QPixmap& DefaultStylePixmapManager::defaultSizeUnknownCover() const noexcept {
-    return default_size_unknown_cover_;
-}
-
-const QPixmap& DefaultStylePixmapManager::unknownCover() const noexcept {
-    return unknown_cover_;
-}
-
-const StylePixmapManager& ThemeManager::pixmap() noexcept {
-    static const DefaultStylePixmapManager manager;
-    return manager;
 }
 
 QIcon ThemeManager::volumeUp() const {
@@ -317,6 +250,14 @@ QIcon ThemeManager::desktopIcon() const {
     return makeIcon(Q_STR(":/xamp/Resource/%1/desktop.png"));
 }
 
+const QPixmap& ThemeManager::unknownCover() const noexcept {
+    return unknown_cover_;
+}
+
+const QPixmap& ThemeManager::defaultSizeUnknownCover() const noexcept {
+    return default_size_unknown_cover_;
+}
+
 void ThemeManager::setBitPerfectButton(Ui::XampWindow& ui, bool enable) {
     ui.bitPerfectButton->setText(Q_STR("Bit-Perfect"));
 
@@ -369,7 +310,7 @@ void ThemeManager::setPlayOrPauseButton(Ui::XampWindow& ui, bool is_playing) {
     }
 }
 
-QSize ThemeManager::getDefaultCoverSize() const noexcept {
+const QSize& ThemeManager::getDefaultCoverSize() const noexcept {
     return cover_size_;
 }
 
@@ -396,7 +337,7 @@ void ThemeManager::setBackgroundColor(QWidget* widget) {
 
 void ThemeManager::enableBlur(QWidget* widget, bool enable) const {
 #if defined(Q_OS_WIN)
-    win32::setAccentPolicy(widget, enable);
+    win32::setAccentPolicy(widget->winId(), enable);
 #else
     osx::setBlurMaterial(widget, enable);
 #endif
@@ -587,6 +528,17 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
 }
 
 void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
+    auto color = QColor(backgroundColor());
+    auto darker_color = color.darker(50);
+
+    ui.titleFrame->setStyleSheet(Q_STR(R"(
+			QFrame#titleFrame {
+				background-color: %1;
+				border: none;
+				border-radius: 0px;
+            }			
+            )").arg(colorToString(darker_color)));
+
     ui.searchLineEdit->setStyleSheet(Q_TEXT(""));
     ui.sliderBar->setStyleSheet(Q_TEXT("QListView#sliderBar { background-color: transparent; border: none; }"));
     
