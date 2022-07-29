@@ -25,6 +25,7 @@
 #include <output_device/iaudiodevicemanager.h>
 
 #include <player/api.h>
+#include <player/mbdiscid.h>
 
 #include <widget/xdialog.h>
 #include <widget/xmessagebox.h>
@@ -54,13 +55,16 @@
 #include <widget/tooltipsfilter.h>
 #include <widget/discordnotify.h>
 #include <widget/backgroundworker.h>
-#include <widget/drivewatcher.h>
+#include <widget/podcast_uiltis.h>
 
 #include "aboutpage.h"
 #include "preferencepage.h"
 #include "thememanager.h"
 #include "version.h"
 #include "xamp.h"
+
+#include <QDateTime>
+#include <widget/http.h>
 
 enum TabIndex {
     TAB_ALBUM = 0,
@@ -127,7 +131,6 @@ Xamp::Xamp()
 	, file_system_view_page_(nullptr)
 	, tray_icon_menu_(nullptr)
     , tray_icon_(nullptr)
-    , drive_watcher_(new DriveWatcher(this))
     , state_adapter_(std::make_shared<UIPlayerStateAdapter>())
     , player_(MakeAudioPlayer(state_adapter_))
 	, discord_notify_(new DicordNotify(this)) {
@@ -323,7 +326,7 @@ void Xamp::initialUI() {
         ui_.minWinButton->hide();
     } else {
         f.setBold(true);
-        f.setPointSize(11);
+        f.setPointSize(9);
         ui_.titleFrameLabel->setFont(f);
         ui_.titleFrameLabel->setText(Q_TEXT("XAMP2"));
         ui_.titleFrameLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
@@ -1230,20 +1233,22 @@ void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_form
     }
 }
 
+void Xamp::onUpdateCdMetadata(const QString& cover_id, const ForwardList<Metadata>& metadatas) {
+    cd_page_->playlist()->removeAll();
+    cd_page_->playlist()->processMeatadata(QDateTime::currentSecsSinceEpoch(), metadatas);
+}
+
 void Xamp::drivesChanges(const QList<DriveInfo>& drive_infos) {
-	/*Q_FOREACH(auto driver, drive_infos) {
-        auto cd = OpenCD(driver.driver_letter);
-        cd->SetMaxSpeed();
-        auto track_id = 0;
-        ForwardList<Metadata> metadatas;
-        for (auto const& track : cd->GetTotalTracks()) {
-            auto metadata = ::getMetadata(QString::fromStdWString(track));
-            metadata.duration = cd->GetDuration(track_id++);
-            metadata.samplerate = 44100;
-            metadatas.push_front(metadata);
-        }
-        processMeatadata(QDateTime::currentSecsSinceEpoch(), metadatas);
-	}*/
+	Q_FOREACH(auto driver, drive_infos) {
+        std::stringstream ostr;
+        ostr << driver.driver_letter << ":\\";
+		emit background_worker_->fetchCdInfo(driver, QString::fromStdString(ostr.str()));
+	}
+}
+
+void Xamp::drivesRemoved(const DriveInfo& drive_info) {
+    cd_page_->playlist()->removeAll();
+    cd_page_->playlist()->updateData();
 }
 
 void Xamp::setCover(const QString& cover_id, PlaylistPage* page) {
@@ -1359,10 +1364,8 @@ void Xamp::setPlaylistPageCover(const QPixmap* cover, PlaylistPage* page) {
         Pixmap::kPlaylistImageRadius);
     ui_.coverLabel->setPixmap(ui_cover);
 
-    const auto playlist_cover = Pixmap::roundImage(
-        Pixmap::scaledImage(*cover, QSize(130, 130), false),
-        Pixmap::kPlaylistImageRadius);
-	page->cover()->setPixmap(playlist_cover);
+    page->setCover(cover);
+
     if (lrc_page_ != nullptr) {
         lrc_page_->setCover(Pixmap::scaledImage(*cover, lrc_page_->cover()->size(), true));
     }   
@@ -1461,6 +1464,11 @@ void Xamp::initialPlaylist() {
         &Xamp::addBlurImage,
         background_worker_,
         &BackgroundWorker::blurImage);
+
+    (void)QObject::connect(background_worker_,
+        &BackgroundWorker::updateCdMetadata,
+        this,
+        &Xamp::onUpdateCdMetadata);
 
     (void)QObject::connect(background_worker_,
         &BackgroundWorker::updateReplayGain,
@@ -1628,11 +1636,6 @@ void Xamp::connectSignal(PlaylistPage* playlist_page) {
         &PlayListTableView::playMusic,
         playlist_page,
         &PlaylistPage::playMusic);
-
-    (void)QObject::connect(playlist_page,
-        &PlaylistPage::setCover,
-        this,
-        &Xamp::setCover);
 
     (void)QObject::connect(playlist_page,
         &PlaylistPage::playMusic,

@@ -16,6 +16,7 @@
 #include <widget/albumentity.h>
 #include <widget/driveinfo.h>
 
+
 #include "xampplayer.h"
 #include "ui_xamp.h"
 
@@ -33,7 +34,6 @@ class QFileSystemWatcher;
 class FileSystemViewPage;
 struct PlaybackFormat;
 class ToolTipsFilter;
-class DriveWatcher;
 class QRadioButton;
 class BackgroundWorker;
 class DicordNotify;
@@ -75,11 +75,15 @@ public slots:
 
 	void setCover(const QString& cover_id, PlaylistPage* page);
 
-	void drivesChanges(const QList<DriveInfo>& drive_infos);
-
 	void onClickedAlbum(const QString& album, int32_t album_id, const QString& cover_id);
 
+	void onUpdateCdMetadata(const QString& cover_id, const ForwardList<Metadata>& metadatas);
+
 private:
+	void drivesChanges(const QList<DriveInfo>& drive_infos) override;
+
+	void drivesRemoved(const DriveInfo& drive_info) override;
+
 	bool hitTitleBar(const QPoint& ps) const override;
 
     void stopPlayedClicked() override;
@@ -185,7 +189,6 @@ private:
 	QAction* light_mode_action_;
 	QMenu* theme_menu_;
 	IXWindow* top_window_;
-	DriveWatcher* drive_watcher_;
 	ToolTipsFilter* tool_tips_filter_;
 	BackgroundWorker* background_worker_;
 	DicordNotify* discord_notify_;

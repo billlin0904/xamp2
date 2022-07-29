@@ -6,6 +6,8 @@
 #pragma once
 
 #include "xampplayer.h"
+#include <QSet>
+#include <widget/driveinfo.h>
 
 #if defined(Q_OS_WIN)
 class QScreen;
@@ -63,10 +65,13 @@ private:
 
     void resizeEvent(QResizeEvent* event) override;
 
+    void readDriveInfo();
+
     QSize last_size_;
 	QPoint last_pos_;
     QScreen* current_screen_;
     QScopedPointer<win32::WinTaskbar> taskbar_;
+    QList<DriveInfo> exist_drives_;
 #endif
     IXampPlayer *content_widget_;
 };

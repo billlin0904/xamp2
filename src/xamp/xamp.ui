@@ -662,6 +662,18 @@
    </item>
    <item row="0" column="0" colspan="4">
     <widget class="QFrame" name="titleFrame">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>30</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>30</height>
+      </size>
+     </property>
      <property name="frameShape">
       <enum>QFrame::NoFrame</enum>
      </property>
@@ -707,14 +719,14 @@
        <widget class="QToolButton" name="logoButton">
         <property name="minimumSize">
          <size>
-          <width>32</width>
-          <height>32</height>
+          <width>24</width>
+          <height>24</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>32</width>
-          <height>32</height>
+          <width>24</width>
+          <height>24</height>
          </size>
         </property>
         <property name="text">
@@ -742,14 +754,14 @@
        <widget class="QToolButton" name="settingsButton">
         <property name="minimumSize">
          <size>
-          <width>32</width>
-          <height>32</height>
+          <width>30</width>
+          <height>30</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>32</width>
-          <height>32</height>
+          <width>30</width>
+          <height>30</height>
          </size>
         </property>
         <property name="focusPolicy">
@@ -780,14 +792,14 @@
        <widget class="QToolButton" name="themeButton">
         <property name="minimumSize">
          <size>
-          <width>32</width>
-          <height>32</height>
+          <width>30</width>
+          <height>30</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>32</width>
-          <height>32</height>
+          <width>30</width>
+          <height>30</height>
          </size>
         </property>
         <property name="focusPolicy">
@@ -821,14 +833,14 @@
        <widget class="QToolButton" name="minWinButton">
         <property name="minimumSize">
          <size>
-          <width>32</width>
-          <height>32</height>
+          <width>30</width>
+          <height>30</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>32</width>
-          <height>32</height>
+          <width>30</width>
+          <height>30</height>
          </size>
         </property>
         <property name="focusPolicy">
@@ -862,14 +874,14 @@
        <widget class="QToolButton" name="maxWinButton">
         <property name="minimumSize">
          <size>
-          <width>32</width>
-          <height>32</height>
+          <width>30</width>
+          <height>30</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>32</width>
-          <height>32</height>
+          <width>30</width>
+          <height>30</height>
          </size>
         </property>
         <property name="focusPolicy">
@@ -900,14 +912,14 @@
        <widget class="QToolButton" name="closeButton">
         <property name="minimumSize">
          <size>
-          <width>32</width>
-          <height>32</height>
+          <width>30</width>
+          <height>30</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>32</width>
-          <height>32</height>
+          <width>30</width>
+          <height>30</height>
          </size>
         </property>
         <property name="focusPolicy">
@@ -917,22 +929,6 @@
          <string/>
         </property>
        </widget>
-      </item>
-      <item>
-       <spacer name="horizontalSpacer_10">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeType">
-         <enum>QSizePolicy::Fixed</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>10</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
       </item>
      </layout>
     </widget>

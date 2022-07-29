@@ -59,11 +59,6 @@ std::pair<std::string, ForwardList<Metadata>> parsePodcastXML(QString const& src
     std::string image_url;
     auto* image = channel->first_node("itunes:image");
     if (image != nullptr) {
-        /*auto* url = image->first_node("url");
-        if (url != nullptr) {
-            std::string url_value(url->value(), url->value_size());
-            image_url = url_value;
-        }*/
         auto href = image->first_attribute("href");
         if (href != nullptr) {
             std::string url_value(href->value(), href->value_size());
@@ -104,3 +99,114 @@ std::pair<std::string, ForwardList<Metadata>> parsePodcastXML(QString const& src
     return std::make_pair(image_url, metadatas);
 }
 
+std::pair<std::string, ForwardList<Metadata>> parseMbDiscIdXML(QString const& src) {
+    auto str = src.toStdString();
+
+    ForwardList<Metadata> metadatas;
+    xml_document<> doc;
+    doc.parse<0>(str.data());
+
+    auto* metadata = doc.first_node("metadata");
+    if (!metadata) {
+        return std::make_pair("", metadatas);
+    }
+    auto* disc = metadata->first_node("disc");
+    if (!disc) {
+        return std::make_pair("", metadatas);
+    }
+    auto* release_list = disc->first_node("release-list");
+    if (!release_list) {
+        return std::make_pair("", metadatas);
+    }
+    auto* release = release_list->first_node("release");
+    if (!release) {
+        return std::make_pair("", metadatas);
+    }
+
+    auto realease_id_attr  = release->first_attribute("id");
+    std::string realease_id(realease_id_attr->value(), realease_id_attr->value_size());
+    std::string image_url = "http://coverartarchive.org/release/" + realease_id;
+    
+    std::wstring album;
+    std::wstring artist;
+    for (auto* node = release->first_node(); node; node = node->next_sibling()) {
+        std::string release_name(node->name(), node->name_size());
+        std::string release_value(node->value(), node->value_size());
+        if (release_name == "title") {
+            album = String::ToStdWString(release_value);
+        }
+        else if (release_name == "artist-credit") {
+            auto* name_credit = node->first_node("name-credit");
+            if (!name_credit) {
+                return std::make_pair("", metadatas);
+            }
+            auto* artist_node = name_credit->first_node("artist");
+            if (!artist_node) {
+                return std::make_pair("", metadatas);
+            }
+            for (auto* node = artist_node->first_node(); node; node = node->next_sibling()) {
+                std::string artist_name(node->name(), node->name_size());
+                std::string artist_value(node->value(), node->value_size());
+                if (artist_name == "name") {
+                    artist = String::ToStdWString(artist_value);
+                    break;
+                }
+            }
+        }
+        else if (release_name == "medium-list") {
+            auto* medium = node->first_node("medium");
+            if (!medium) {
+                return std::make_pair("", metadatas);
+            }
+            auto* track_list = medium->first_node("track-list");
+            if (!track_list) {
+                return std::make_pair("", metadatas);
+            }
+
+            Metadata metadata;
+            metadata.album = album;
+            metadata.artist = artist;
+
+            for (auto* item = track_list->first_node("track"); item; item = item->next_sibling("track")) {
+                for (auto* track = item->first_node(); track; track = track->next_sibling()) {
+                    std::string track_name(track->name(), track->name_size());
+                    std::string track_value(track->value(), track->value_size());
+                    if (track_name == "number") {
+                        metadata.track = strtoul(track_value.c_str(), nullptr, 10);
+                    }
+                }
+
+                auto* recording = item->first_node("recording");
+                if (!recording) {
+                    return std::make_pair("", metadatas);
+                }
+                
+                for (auto* node = recording->first_node(); node; node = node->next_sibling()) {
+                    std::string recording_name(node->name(), node->name_size());
+                    std::string recording_value(node->value(), node->value_size());
+                    if (recording_name == "title") {
+                        metadata.title = String::ToStdWString(recording_value);
+                        metadatas.push_front(metadata);
+                    }
+                }
+            }
+        }
+    }    
+    return std::make_pair(image_url, metadatas);
+}
+
+QString parseCoverUrl(QString const& json) {
+    QJsonParseError error;
+    const auto doc = QJsonDocument::fromJson(json.toUtf8(), &error);
+    if (error.error == QJsonParseError::NoError) {
+        auto result = doc[Q_TEXT("images")].toArray();
+        for (const auto entry : result) {
+            auto object = entry.toVariant().toMap();
+            auto front = object.value(Q_TEXT("front")).toBool();
+            if (front) {
+                return object.value(Q_TEXT("image")).toString();
+            }
+        }
+    }
+    return Qt::EmptyString;
+}

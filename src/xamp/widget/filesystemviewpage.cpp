@@ -43,7 +43,6 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
         auto path = fromQStringPath(dir_model_->fileInfo(index).filePath());
         ui.playlistPage->playlist()->removeAll();
         ui.playlistPage->playlist()->append(path, false, false);
-        emit ui.playlistPage->setCover(Qt::EmptyString, ui.playlistPage);
         });
 }
 

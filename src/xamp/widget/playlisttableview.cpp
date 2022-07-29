@@ -176,6 +176,10 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
     hideColumn(PLAYLIST_GENRE);
     hideColumn(PLAYLIST_YEAR);
 
+    if (isPodcastMode()) {
+        return;
+    }
+
     auto column_list = AppSettings::getList(kAppSettingColumnName);
 
     if (column_list.empty()) {

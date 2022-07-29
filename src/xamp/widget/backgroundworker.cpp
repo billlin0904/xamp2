@@ -1,8 +1,12 @@
 #include <player/ebur128replaygain_scanner.h>
 
 #include <widget/widget_shared.h>
+#include <widget/pixmapcache.h>
 #include <base/logger_impl.h>
+#include <player/mbdiscid.h>
 
+#include <widget/podcast_uiltis.h>
+#include <widget/http.h>
 #include <widget/str_utilts.h>
 #include <widget/appsettingnames.h>
 #include <widget/stackblur.h>
@@ -36,6 +40,45 @@ BackgroundWorker::~BackgroundWorker() = default;
 void BackgroundWorker::stopThreadPool() {
     is_stop_ = true;
     pool_->Stop();
+}
+
+void BackgroundWorker::fetchCdInfo(const DriveInfo& driver, const QString& drive) {
+    MBDiscId mbdisc_id;
+
+    auto url = mbdisc_id.GetDiscIdLookupUrl(drive.toStdString());
+
+    http::HttpClient(QString::fromStdString(url))
+        .success([driver, this](const QString& content) {
+        auto [image_url, metadatas] = parseMbDiscIdXML(content);
+
+        auto cd = OpenCD(driver.driver_letter);
+        cd->SetMaxSpeed();
+
+        metadatas.sort([](const auto& first, const auto& last) {
+            return first.track < last.track;
+            });
+
+        const auto tracks = cd->GetTotalTracks();
+
+        auto track_id = 0;
+        for (auto& metadata : metadatas) {
+            metadata.file_path = tracks[track_id];
+            metadata.duration = cd->GetDuration(track_id++);
+            metadata.samplerate = 44100;
+        }
+
+        http::HttpClient(QString::fromStdString(image_url))
+            .success([this, metadatas](const QString& content) {
+	            const auto cover_url = parseCoverUrl(content);
+                http::HttpClient(cover_url).download([this, metadatas](const auto& content) mutable {
+                    auto cover_id = qPixmapCache.addOrUpdate(content);
+                    for (auto& metadata : metadatas) {
+                        metadata.cover_id = cover_id.toStdString();
+                    }
+                    emit updateCdMetadata(cover_id, metadatas);
+                    });				
+                }).get();
+            }).get();
 }
 
 void BackgroundWorker::blurImage(const QString& cover_id, const QImage& image) {

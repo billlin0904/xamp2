@@ -67,22 +67,11 @@ void ToolTips::paintEvent(QPaintEvent*) {
     QRect rect = this->rect();
     rect.setWidth(rect.width());
     rect.setHeight(rect.height());
-
-    auto triangle_rect = this->rect();
-    triangle_rect.setY(height() + 20);
-    triangle_rect.setWidth(100);
-    triangle_rect.setHeight(100);
-
-    /*QPainterPath triangle_path;
-    auto x = triangle_path.currentPosition().x() + 60;
-    auto y = triangle_path.currentPosition().y() + 60;
-    triangle_path.moveTo(x + 120 / 2, y);
-	triangle_path.lineTo(0, 100);
-    triangle_path.lineTo(120, 100);
-    triangle_path.lineTo(x + 120 / 2, y);
-    painter.drawPath(triangle_path);*/
-
     painter.fillRect(rect, qTheme.backgroundColor());
+
+    /*QPolygon triangle;
+    triangle << QPoint(0, -40) << QPoint(25, 40) << QPoint(-25, 40);
+    painter.drawPolygon(triangle);*/
 
     QPainterPath painter_path;
     painter_path.addRoundedRect(rect, Pixmap::kImageRadius, Pixmap::kImageRadius);

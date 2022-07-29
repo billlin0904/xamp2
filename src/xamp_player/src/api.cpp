@@ -10,6 +10,7 @@
 #include <stream/fftwlib.h>
 #include <player/audio_player.h>
 #include <player/ebur128replaygain_scanner.h>
+#include <player/mbdiscid.h>
 #include <player/audio_util.h>
 
 #include <player/api.h>
@@ -49,6 +50,9 @@ void Initialize() {
 
     Ebur128ReplayGainScanner::LoadEbur128Lib();
     XAMP_LOG_DEBUG("Load ebur128 lib success.");
+
+    MBDiscId::LoadMBDiscIdLib();
+    XAMP_LOG_DEBUG("Load mbdiscid lib success.");
 
     PreventSleep(true);
 }

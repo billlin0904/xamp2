@@ -8,6 +8,7 @@
 #include <QObject>
 #include <widget/widget_shared.h>
 #include <widget/playlistentity.h>
+#include <widget/driveinfo.h>
 
 struct ReplayGainResult final {
     double album_peak{0};
@@ -36,10 +37,14 @@ signals:
 
     void updateBlurImage(const QImage& image);
 
+    void updateCdMetadata(const QString& cover_id, const ForwardList<Metadata> &metadatas);
+
 public Q_SLOT:
     void readReplayGain(bool force, const Vector<PlayListEntity>& items);
 
     void blurImage(const QString &cover_id, const QImage& image);
+
+    void fetchCdInfo(const DriveInfo &driver, const QString& drive);
 
 private:
     bool is_stop_{false};

@@ -34,19 +34,9 @@ void XFrame::setContentWidget(QWidget* content) {
 
     auto* title_frame = new QFrame(this);
     title_frame->setObjectName(QString::fromUtf8("titleFrame"));
-    title_frame->setMinimumSize(QSize(0, 32));
+    title_frame->setMinimumSize(QSize(0, 30));
     title_frame->setFrameShape(QFrame::NoFrame);
     title_frame->setFrameShadow(QFrame::Plain);
-
-    /*auto color = QColor(qTheme.backgroundColor());
-    auto darker_color = color.darker(50);
-    title_frame->setStyleSheet(Q_STR(R"(
-			QFrame#titleFrame {
-				background-color: %1;
-				border: none;
-				border-radius: 20px;
-            }			
-            )").arg(colorToString(darker_color)));*/
 
     auto f = font();
     f.setBold(true);

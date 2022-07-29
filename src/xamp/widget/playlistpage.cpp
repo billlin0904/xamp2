@@ -3,6 +3,8 @@
 #include <QSpacerItem>
 
 #include "thememanager.h"
+#include <widget/image_utiltis.h>
+#include <widget/pixmapcache.h>
 #include <widget/database.h>
 #include <widget/str_utilts.h>
 #include <widget/scrolllabel.h>
@@ -122,6 +124,20 @@ ScrollLabel* PlaylistPage::title() {
 
 QLabel* PlaylistPage::cover() {
 	return cover_;
+}
+
+void PlaylistPage::setCover(const QPixmap * cover) {
+	const auto playlist_cover = Pixmap::roundImage(
+		Pixmap::scaledImage(*cover, QSize(130, 130), false),
+		Pixmap::kPlaylistImageRadius);
+	cover_->setPixmap(playlist_cover);
+}
+
+void PlaylistPage::setCover(const QString& cover_id) {
+	const auto* cover = qPixmapCache.find(cover_id);
+	if (cover != nullptr) {
+		setCover(cover);
+	}
 }
 
 PlayListTableView* PlaylistPage::playlist() {

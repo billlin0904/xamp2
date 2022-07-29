@@ -27,9 +27,11 @@ public:
 
 	QLabel* format();
 
-signals:
-	void setCover(const QString & cover_id, PlaylistPage *page);
+	void setCover(const QPixmap* cover);
 
+	void setCover(const QString& cover_id);
+
+signals:
 	void playMusic(const PlayListEntity& item);
 
 public slots:

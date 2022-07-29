@@ -246,15 +246,19 @@ void ::MetadataExtractAdapter::processMetadata(int64_t dir_last_write_time, cons
 
         auto [album_id, artist_id, cover_id] = cache.addOrGetAlbumAndArtistId(dir_last_write_time, album, artist, is_podcast);
 
-        // Find cover id from database.
-        if (cover_id.isEmpty()) {
-            cover_id = qDatabase.getAlbumCoverId(album_id);
-        }
+        if (metadata.cover_id.empty()) {
+            // Find cover id from database.
+            if (cover_id.isEmpty()) {
+                cover_id = qDatabase.getAlbumCoverId(album_id);
+            }
 
-        // Database not exist find others.
-        if (cover_id.isEmpty()) {
-            cover_id = cache.addCoverCache(album_id, album, metadata, is_unknown_album);
-        }
+            // Database not exist find others.
+            if (cover_id.isEmpty()) {
+                cover_id = cache.addCoverCache(album_id, album, metadata, is_unknown_album);
+            }
+        } else {
+            qDatabase.setAlbumCover(album_id, album, QString::fromStdString(metadata.cover_id));
+        }       
 
         IgnoreSqlError(qDatabase.addOrUpdateAlbumMusic(album_id, artist_id, music_id))
     }

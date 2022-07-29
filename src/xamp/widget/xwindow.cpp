@@ -15,10 +15,13 @@
 #if defined(Q_OS_WIN)
 #include <windowsx.h>
 #include <widget/win32/win32.h>
+#include <base/platfrom_handle.h>
+#include <Dbt.h>
 #else
 #include <widget/osx/osx.h>
 #endif
 
+#include <QStorageInfo>
 #include <base/logger_impl.h>
 
 #include <version.h>
@@ -126,6 +129,7 @@ void XWindow::setContentWidget(IXampPlayer *content_widget) {
     setAcceptDrops(true);
     setMouseTracking(true);
     installEventFilter(this);
+    readDriveInfo();
 }
 
 // QScopedPointer require default destructor.
@@ -202,6 +206,43 @@ void XWindow::dropEvent(QDropEvent* event) {
     }
 }
 
+void XWindow::readDriveInfo() {
+    static const QList<std::string> kCDFileSystemType = {
+        "CDFS",
+        "UDF",
+        "ISO-9660",
+        "ISO9660"
+    };
+
+    QList<DriveInfo> drives;
+    Q_FOREACH(auto & storage, QStorageInfo::mountedVolumes()) {
+        if (storage.isValid() && storage.isReady()) {
+            auto display_name = storage.displayName() + Q_TEXT("(") + storage.rootPath() + Q_TEXT(")");
+            const auto driver_letter = storage.rootPath().left(1).toStdString()[0];
+            const auto file_system_type = storage.fileSystemType();
+            if (kCDFileSystemType.contains(file_system_type.toUpper().toStdString())) {
+                auto device = OpenCD(driver_letter);
+                auto device_info = device->GetCDDeviceInfo();
+                display_name += QString::fromStdWString(L" " + device_info.product);
+
+                auto itr = std::find_if(exist_drives_.begin(), exist_drives_.end(), [display_name](auto drive) {
+                    return drive.display_name == display_name;
+                    });
+                if (itr == exist_drives_.end()) {
+                    exist_drives_.push_back(DriveInfo{ driver_letter , display_name });
+                    drives.push_back(DriveInfo{ driver_letter , display_name });
+                }
+            }
+        }
+    }
+    if (drives.empty()) {
+        return;
+    }
+    if (content_widget_ != nullptr) {
+        content_widget_->drivesChanges(drives);
+    }
+}
+
 bool XWindow::nativeEvent(const QByteArray& event_type, void * message, long * result) {
     if (qTheme.useNativeWindow()) {
         return QWidget::nativeEvent(event_type, message, result);
@@ -217,6 +258,49 @@ bool XWindow::nativeEvent(const QByteArray& event_type, void * message, long * r
     const auto* msg = static_cast<MSG const*>(message);
 
     switch (msg->message) {
+    case WM_DEVICECHANGE:
+        switch (msg->wParam) {
+        case DBT_DEVICEARRIVAL:
+        {
+            auto lpdb = reinterpret_cast<PDEV_BROADCAST_HDR>(msg->lParam);
+            if (lpdb->dbch_devicetype == DBT_DEVTYP_VOLUME) {
+                auto lpdbv = reinterpret_cast<PDEV_BROADCAST_VOLUME>(lpdb);
+                if (lpdbv->dbcv_flags & DBTF_MEDIA) {
+                    readDriveInfo();
+                }
+            }
+        }
+        break;
+        case DBT_DEVICEREMOVECOMPLETE:
+        {
+            constexpr auto firstDriveFromMask = [](ULONG unitmask) -> char {
+                char i = 0;
+                for (i = 0; i < 26; ++i) {
+                    if (unitmask & 0x1)
+                        break;
+                    unitmask = unitmask >> 1;
+                }
+                return (i + 'A');
+            };
+
+            auto lpdb = reinterpret_cast<PDEV_BROADCAST_HDR>(msg->lParam);
+            if (lpdb->dbch_devicetype == DBT_DEVTYP_VOLUME) {
+                auto lpdbv = reinterpret_cast<PDEV_BROADCAST_VOLUME>(lpdb);
+                if (lpdbv->dbcv_flags & DBTF_MEDIA) {
+                    auto driver_letter = firstDriveFromMask(lpdbv->dbcv_unitmask);
+                    auto itr = std::find_if(exist_drives_.begin(), exist_drives_.end(), [driver_letter](auto drive) {
+                        return drive.driver_letter == driver_letter;
+                        });
+                    if (itr != exist_drives_.end()) {
+                        content_widget_->drivesRemoved(*itr);
+                        exist_drives_.erase(itr);
+                    }
+                }
+            }
+        }
+        break;
+        }
+        break;
     case WM_NCHITTEST:
         if (!isMaximized()) {
             *result = hitTest(reinterpret_cast<HWND>(winId()), msg);

@@ -7,6 +7,8 @@
 #include <QWidget>
 #include <QFrame>
 
+#include <widget/driveinfo.h>
+
 inline constexpr auto kRestartExistCode = -2;
 
 class IXWindow : public QFrame {
@@ -45,6 +47,10 @@ public:
     virtual void play() = 0;
 
     virtual bool hitTitleBar(const QPoint &ps) const = 0;
+
+    virtual void drivesChanges(const QList<DriveInfo>& drive_infos) = 0;
+
+    virtual void drivesRemoved(const DriveInfo& drive_info) = 0;
 protected:
     IXampPlayer() = default;
 };

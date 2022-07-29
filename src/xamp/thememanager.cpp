@@ -151,7 +151,7 @@ QColor ThemeManager::themeTextColor() const {
     return color;
 }
 
-QString ThemeManager::backgroundColor() {
+QString ThemeManager::backgroundColor() const {
     QString color;
 
     switch (themeColor()) {
@@ -412,7 +412,32 @@ void ThemeManager::setRepeatOncePlayOrder(Ui::XampWindow& ui) const {
     ui.repeatButton->setStyleSheet(style_sheet);
 }
 
+QColor ThemeManager::titleBarColor() const {
+    auto color = QColor(backgroundColor());
+    auto darker_color = color.darker(50);
+
+    switch (themeColor()) {
+    case ThemeColor::DARK_THEME:
+        return QColor(18, 18, 18, 200);
+    case ThemeColor::LIGHT_THEME:
+    default:
+        return darker_color;
+    }
+}
+
+QColor ThemeManager::hoverColor() const {
+    switch (themeColor()) {
+    case ThemeColor::DARK_THEME:
+        return QColor(Q_TEXT("#455364"));
+    case ThemeColor::LIGHT_THEME:
+    default:
+        return QColor(Q_TEXT("#C9CDD0"));
+    }
+}
+
 void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
+    const QColor hover_color = hoverColor();
+
     ui.logoButton->setStyleSheet(Q_STR(R"(
                                          QToolButton#logoButton {
                                          border: none;
@@ -426,55 +451,73 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
                                          border: none;
                                          image: url(:/xamp/Resource/%1/close_normal.png);
                                          background-color: transparent;
+										 border-radius: 0px;
                                          }
 
 										 QToolButton#closeButton:hover {	
-										 image: url(:/xamp/Resource/%1/close_hover.png);									 
+										 image: url(:/xamp/Resource/%1/close_hover.png);
+										 background-color: %2;
+										 border-radius: 0px;
                                          }
-                                         )").arg(themeColorPath()));
+                                         )").arg(themeColorPath()).arg(colorToString(hover_color)));
 
     ui.minWinButton->setStyleSheet(Q_STR(R"(
                                           QToolButton#minWinButton {
                                           border: none;
                                           image: url(:/xamp/Resource/%1/minimize_normal.png);
                                           background-color: transparent;
+										  border-radius: 0px;
                                           }
 										  QToolButton#minWinButton:hover {	
-										  image: url(:/xamp/Resource/%1/minimize_hover.png);									 
+										  image: url(:/xamp/Resource/%1/minimize_hover.png);	
+										  background-color: %2;
+										  border-radius: 0px;				 
                                           }
-                                          )").arg(themeColorPath()));
+                                          )").arg(themeColorPath()).arg(colorToString(hover_color)));
 
     ui.maxWinButton->setStyleSheet(Q_STR(R"(
                                           QToolButton#maxWinButton {
                                           border: none;
                                           image: url(:/xamp/Resource/%1/maximize_normal.png);
                                           background-color: transparent;
+										  border-radius: 0px;
                                           }
 										  QToolButton#maxWinButton:hover {	
-										  image: url(:/xamp/Resource/%1/maximize_hover.png);									 
+										  image: url(:/xamp/Resource/%1/maximize_hover.png);	
+										  background-color: %2;
+										  border-radius: 0px;								 
                                           }
-                                          )").arg(themeColorPath()));
+                                          )").arg(themeColorPath()).arg(colorToString(hover_color)));
 
     ui.settingsButton->setStyleSheet(Q_STR(R"(
                                             QToolButton#settingsButton {
                                             border: none;
                                             image: url(:/xamp/Resource/%1/settings.png);
                                             background-color: transparent;
+											border-radius: 0px;
                                             }
+											QToolButton#settingsButton:hover {												
+											background-color: %2;
+											border-radius: 0px;								 
+											}
                                             QToolButton#settingsButton::menu-indicator {
                                             image: none;
                                             }
-                                            )").arg(themeColorPath()));
+                                            )").arg(themeColorPath()).arg(colorToString(hover_color)));
 
     ui.themeButton->setStyleSheet(Q_STR(R"(
                                             QToolButton#themeButton {
                                             border: none;
                                             background-color: transparent;
                                             }
+											QToolButton#themeButton:hover {												
+											background-color: %1;
+											border-radius: 0px;								 
+											}
                                             QToolButton#themeButton::menu-indicator {
                                             image: none;
                                             }
-                                            )"));
+                                            )").arg(colorToString(hover_color)));
 
 
     ui.stopButton->setStyleSheet(Q_STR(R"(
@@ -528,16 +571,25 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
 }
 
 void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
-    auto color = QColor(backgroundColor());
-    auto darker_color = color.darker(50);
+    const QColor title_bar_color = titleBarColor();
+    const auto enable_title_bar_color = true;
 
-    ui.titleFrame->setStyleSheet(Q_STR(R"(
+    if (enable_title_bar_color) {
+        ui.titleFrame->setStyleSheet(Q_STR(R"(
 			QFrame#titleFrame {
 				background-color: %1;
 				border: none;
 				border-radius: 0px;
             }			
-            )").arg(colorToString(darker_color)));
+            )").arg(colorToString(title_bar_color)));
+    } else {
+        ui.titleFrame->setStyleSheet(Q_STR(R"(
+			QFrame#titleFrame {
+				border: none;
+				border-radius: 0px;
+            }			
+            )"));
+    }
 
     ui.searchLineEdit->setStyleSheet(Q_TEXT(""));
     ui.sliderBar->setStyleSheet(Q_TEXT("QListView#sliderBar { background-color: transparent; border: none; }"));

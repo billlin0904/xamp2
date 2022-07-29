@@ -19,29 +19,6 @@ class XampWindow;
 
 inline constexpr int32_t kUIRadius = 9;
 
-//class StylePixmapManager {
-//public:
-//    virtual ~StylePixmapManager() = default;
-//    virtual const QPixmap& unknownCover() const noexcept = 0;
-//    virtual const QPixmap& defaultSizeUnknownCover() const noexcept = 0;
-//protected:
-//    StylePixmapManager() = default;
-//};
-//
-//class DefaultStylePixmapManager : public StylePixmapManager {
-//public:
-//    DefaultStylePixmapManager();
-//
-//    ~DefaultStylePixmapManager() override = default;
-//
-//    const QPixmap& unknownCover() const noexcept override;
-//
-//    const QPixmap& defaultSizeUnknownCover() const noexcept override;
-//private:
-//    QPixmap unknown_cover_;
-//    QPixmap default_size_unknown_cover_;
-//};
-
 enum class ThemeColor {
     DARK_THEME,
     LIGHT_THEME,
@@ -151,7 +128,11 @@ public:
 
     QColor themeTextColor() const;
 
-    QString backgroundColor();
+    QString backgroundColor() const;
+
+    QColor hoverColor() const;
+
+    QColor titleBarColor() const;
 
 private:
     QFont loadFonts();
