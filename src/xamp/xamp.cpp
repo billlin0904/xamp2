@@ -1486,7 +1486,7 @@ void Xamp::initialPlaylist() {
         if (!qDatabase.isPlaylistExist(playlist_id)) {
             playlist_id = qDatabase.addPlaylist(Qt::EmptyString, 4);
         }
-        cd_page_ = new CdPage();
+        cd_page_ = new CdPage(this);
         connectSignal(cd_page_->playlistPage());
         cd_page_->playlistPage()->playlist()->setPlaylistId(playlist_id);
         setCover(Qt::EmptyString, cd_page_->playlistPage());
