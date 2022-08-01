@@ -243,6 +243,8 @@ static void registerMetaType() {
     qRegisterMetaType<size_t>("size_t");
     qRegisterMetaType<int32_t>("int32_t");
     qRegisterMetaType<ComplexValarray>("ComplexValarray");
+    qRegisterMetaType<ForwardList<Metadata>>("ForwardList<Metadata>");
+    qRegisterMetaType<DriveInfo>("DriveInfo");
 }
 
 static int excute(int argc, char* argv[]) {

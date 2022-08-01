@@ -176,6 +176,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="aboutpage.cpp" />
+    <ClCompile Include="cdpage.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="preferencepage.cpp" />
     <ClCompile Include="singleinstanceapplication.cpp" />
@@ -243,6 +244,7 @@
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="aboutdialog.ui" />
+    <QtUic Include="cdpage.ui" />
     <QtUic Include="filesystemviewpage.ui" />
     <QtUic Include="preferencedialog.ui" />
     <QtUic Include="widget\equalizerdialog.ui" />
@@ -262,6 +264,7 @@
     <QtMoc Include="widget\xframe.h" />
     <QtMoc Include="preferencepage.h" />
     <QtMoc Include="..\thirdparty\QSimpleUpdater\include\QSimpleUpdater.h" />
+    <QtMoc Include="cdpage.h" />
     <ClInclude Include="version.h" />
     <ClInclude Include="widget\albumentity.h" />
     <QtMoc Include="widget\spectrumwidget.h" />

@@ -15,7 +15,7 @@
 #include <widget/playerorder.h>
 #include <widget/albumentity.h>
 #include <widget/driveinfo.h>
-
+#include <widget/podcast_uiltis.h>
 
 #include "xampplayer.h"
 #include "ui_xamp.h"
@@ -37,6 +37,7 @@ class ToolTipsFilter;
 class QRadioButton;
 class BackgroundWorker;
 class DicordNotify;
+class CdPage;
 
 class Xamp final : public IXampPlayer {
 	Q_OBJECT
@@ -58,6 +59,8 @@ signals:
 
 	void addBlurImage(const QString& cover_id, const QImage& image);
 
+	void fetchCdInfo(const DriveInfo& driver, const QString& drive);
+
 public slots:
     void playAlbumEntity(const AlbumEntity& item);
 
@@ -77,7 +80,11 @@ public slots:
 
 	void onClickedAlbum(const QString& album, int32_t album_id, const QString& cover_id);
 
-	void onUpdateCdMetadata(const QString& cover_id, const ForwardList<Metadata>& metadatas);
+	void onUpdateCdMetadata(const QString& disc_id, const ForwardList<Metadata>& metadatas);
+
+	void onUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info);
+
+	void onUpdateDiscCover(const QString& disc_id, const QString& cover_id);
 
 private:
 	void drivesChanges(const QList<DriveInfo>& drive_infos) override;
@@ -176,7 +183,7 @@ private:
 	PlaylistPage* playlist_page_;
 	PlaylistPage* podcast_page_;
 	PlaylistPage* music_page_;
-	PlaylistPage* cd_page_;
+	CdPage* cd_page_;
 	PlaylistPage* current_playlist_page_;
 	AlbumArtistPage* album_page_;
     ArtistInfoPage* artist_info_page_;

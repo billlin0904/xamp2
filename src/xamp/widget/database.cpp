@@ -81,7 +81,7 @@ void Database::createTableIfNotExist() {
                        duration DOUBLE,
                        durationStr TEXT,
                        fileName TEXT,
-                       fileExt TEXT,
+                       fileExt TEXT,					   
                        bitrate integer,
                        samplerate integer,
 					   rating integer,					   
@@ -92,8 +92,9 @@ void Database::createTableIfNotExist() {
                        track_peak DOUBLE,
 					   genre TEXT,
 					   comment TEXT,
-					   year integer
-                       )
+					   year integer,
+                       UNIQUE(path, offset)
+					   )
                        )"));
 
 	create_table_sql.push_back(
@@ -137,16 +138,12 @@ void Database::createTableIfNotExist() {
                        artistId integer,
                        album TEXT NOT NULL DEFAULT '',
                        coverId TEXT,
+					   discId TEXT,
 					   firstChar TEXT,
                        dateTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 					   isPodcast integer,
                        FOREIGN KEY(artistId) REFERENCES artists(artistId)
                        )
-                       )"));
-
-	create_table_sql.push_back(
-		Q_TEXT(R"(
-                      CREATE UNIQUE INDEX IF NOT EXISTS album_index ON albums (album);
                        )"));
 
 	create_table_sql.push_back(
@@ -190,9 +187,11 @@ void Database::createTableIfNotExist() {
 					   playlistMusicsId integer primary key autoincrement,
                        playlistId integer,
                        musicId integer,
+					   albumId integer,
                        playing integer,
                        FOREIGN KEY(playlistId) REFERENCES playlist(playlistId),
-                       FOREIGN KEY(musicId) REFERENCES musics(musicId)
+                       FOREIGN KEY(musicId) REFERENCES musics(musicId),
+					   FOREIGN KEY(albumId) REFERENCES albums(albumId)
                        )
                        )"));
 
@@ -373,7 +372,8 @@ SELECT
     albums.album,
     albums.coverId,
     artists.artist,
-    musics.*
+    musics.*,
+	albums.discId
 FROM
     albumMusic
     LEFT JOIN albums ON albums.albumId = albumMusic.albumId
@@ -410,7 +410,7 @@ ORDER BY musics.path, musics.fileName;)"));
 		entity.album_peak = query.value(Q_TEXT("album_peak")).toDouble();
 		entity.track_replay_gain = query.value(Q_TEXT("track_replay_gain")).toDouble();
 		entity.track_peak = query.value(Q_TEXT("track_peak")).toDouble();
-
+		entity.disc_id = query.value(Q_TEXT("discId")).toString();
 		entity.genre = query.value(Q_TEXT("genre")).toString();
 		entity.comment = query.value(Q_TEXT("comment")).toString();
 		entity.year = query.value(Q_TEXT("year")).toUInt();
@@ -513,6 +513,18 @@ void Database::setTableName(int32_t table_id, const QString& name) {
 	query.bindValue(Q_TEXT(":tableId"), table_id);
 	query.bindValue(Q_TEXT(":name"), name);
 	IfFailureThrow1(query);
+}
+
+void Database::setAlbumCover(int32_t album_id, const QString& cover_id) {
+	QSqlQuery query;
+
+	query.prepare(Q_TEXT("UPDATE albums SET coverId = :coverId WHERE (albumId = :albumId)"));
+
+	query.bindValue(Q_TEXT(":albumId"), album_id);
+	query.bindValue(Q_TEXT(":coverId"), cover_id);
+
+	IfFailureThrow1(query);
+	XAMP_LOG_D(logger_, "setAlbumCover albumId: {} coverId: {}", album_id, cover_id.toStdString());
 }
 
 void Database::setAlbumCover(int32_t album_id, const QString& album, const QString& cover_id) {
@@ -669,7 +681,7 @@ QString Database::getAlbumCoverId(const QString& album) const {
 	return Qt::EmptyString;
 }
 
-int32_t Database::addOrUpdateMusic(const Metadata& metadata, int32_t playlist_id) {
+int32_t Database::addOrUpdateMusic(const Metadata& metadata) {
 	QSqlQuery query;
 
 	query.prepare(Q_TEXT(R"(
@@ -726,10 +738,6 @@ int32_t Database::addOrUpdateMusic(const Metadata& metadata, int32_t playlist_id
 
 	XAMP_LOG_D(logger_, "addOrUpdateMusic musicId:{}", music_id);
 
-	if (playlist_id != -1) {
-		addMusicToPlaylist(music_id, playlist_id);
-	}
-
 	db_.commit();
 	return music_id;
 }
@@ -756,7 +764,18 @@ void Database::updateMusicRating(int32_t music_id, int32_t rating) {
 	IfFailureThrow1(query);
 }
 
-void Database::updateReplayGain(int music_id,
+void Database::updateMusicTitle(int32_t music_id, const QString& title) {
+	QSqlQuery query;
+
+	query.prepare(Q_TEXT("UPDATE musics SET title = :title WHERE (musicId = :musicId)"));
+
+	query.bindValue(Q_TEXT(":musicId"), music_id);
+	query.bindValue(Q_TEXT(":title"), title);
+
+	IfFailureThrow1(query);
+}
+
+void Database::updateReplayGain(int32_t music_id,
 	double album_rg_gain,
 	double album_peak,
 	double track_rg_gain,
@@ -774,12 +793,13 @@ void Database::updateReplayGain(int music_id,
 	IfFailureThrow1(query);
 }
 
-void Database::addMusicToPlaylist(int32_t music_id, int32_t playlist_id) const {
+void Database::addMusicToPlaylist(int32_t music_id, int32_t playlist_id, int32_t album_id) const {
 	QSqlQuery query;
 
-	const auto querystr = Q_STR("INSERT INTO playlistMusics (playlistMusicsId, playlistId, musicId) VALUES (NULL, %1, %2)")
+	const auto querystr = Q_STR("INSERT INTO playlistMusics (playlistMusicsId, playlistId, musicId, albumId) VALUES (NULL, %1, %2, %3)")
 		.arg(playlist_id)
-		.arg(music_id);
+		.arg(music_id)
+		.arg(album_id);
 
 	query.prepare(querystr);
 	IfFailureThrow1(query);
@@ -831,12 +851,63 @@ int32_t Database::addOrUpdateArtist(const QString& artist) {
 	return artist_id;
 }
 
-int32_t Database::addOrUpdateAlbum(const QString& album, int32_t artist_id, int64_t album_time, bool is_podcast) {
+void Database::updateArtistByDiscId(const QString& disc_id, const QString& artist) {
+	QSqlQuery query;
+	
+	query.prepare(Q_TEXT(R"(
+    SELECT
+		albumMusic.artistId
+	FROM
+		albumMusic
+	JOIN albums ON albums.albumId = albumMusic.albumId 
+	WHERE
+		albums.discId = :discId
+	LIMIT 1	
+    )"));
+
+	query.bindValue(Q_TEXT(":discId"), disc_id);
+	IfFailureThrow1(query);
+
+	const auto index = query.record().indexOf(Q_TEXT("artistId"));
+	if (query.next()) {
+		auto artist_id = query.value(index).toInt();
+		query.prepare(Q_TEXT("UPDATE artists SET artist = :artist WHERE (artistId = :artistId)"));
+		query.bindValue(Q_TEXT(":artistId"), artist_id);
+		query.bindValue(Q_TEXT(":artist"), artist);
+		IfFailureThrow1(query);
+	}
+}
+
+int32_t Database::getAlbumIdByDiscId(const QString& disc_id) const {
+	QSqlQuery query;
+	query.prepare(Q_TEXT("SELECT albumId FROM albums WHERE discId = (:discId)"));
+	query.bindValue(Q_TEXT(":discId"), disc_id);
+	IfFailureThrow1(query);
+
+	const auto index = query.record().indexOf(Q_TEXT("albumId"));
+	if (query.next()) {
+		return query.value(index).toInt();
+	}
+	return kInvalidId;
+}
+
+void Database::updateAlbumByDiscId(const QString& disc_id, const QString& album) {
+	QSqlQuery query;
+
+	query.prepare(Q_TEXT("UPDATE albums SET album = :album WHERE (discId = :discId)"));
+
+	query.bindValue(Q_TEXT(":album"), album);
+	query.bindValue(Q_TEXT(":discId"), disc_id);
+
+	IfFailureThrow1(query);
+}
+
+int32_t Database::addOrUpdateAlbum(const QString& album, int32_t artist_id, int64_t album_time, bool is_podcast, const QString& disc_id) {
 	QSqlQuery query;
 
 	query.prepare(Q_TEXT(R"(
-    INSERT OR REPLACE INTO albums (albumId, album, artistId, firstChar, coverId, isPodcast, dateTime)
-    VALUES ((SELECT albumId FROM albums WHERE album = :album), :album, :artistId, :firstChar, :coverId, :isPodcast, :dateTime)
+    INSERT OR REPLACE INTO albums (albumId, album, artistId, firstChar, coverId, isPodcast, dateTime, discId)
+    VALUES ((SELECT albumId FROM albums WHERE album = :album), :album, :artistId, :firstChar, :coverId, :isPodcast, :dateTime, :discId)
     )"));
 
 	const auto first_char = album.left(1);
@@ -847,6 +918,7 @@ int32_t Database::addOrUpdateAlbum(const QString& album, int32_t artist_id, int6
 	query.bindValue(Q_TEXT(":coverId"), getAlbumCoverId(album));
 	query.bindValue(Q_TEXT(":isPodcast"), is_podcast ? 1 : 0);
 	query.bindValue(Q_TEXT(":dateTime"), album_time);
+	query.bindValue(Q_TEXT(":discId"), disc_id);
 
 	IfFailureThrow1(query);
 

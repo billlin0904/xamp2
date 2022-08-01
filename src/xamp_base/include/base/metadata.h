@@ -31,6 +31,7 @@ struct XAMP_BASE_API Metadata final {
 	double offset;
     double duration;
     std::string cover_id;
+    std::string disc_id;
     std::wstring file_path;
     std::wstring file_name;
     std::wstring file_name_no_ext;

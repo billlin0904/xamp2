@@ -15,6 +15,8 @@
 #include <widget/appsettings.h>
 #include <widget/backgroundworker.h>
 
+#include "metadataextractadapter.h"
+
 struct PlayListRGResult {
     PlayListRGResult(PlayListEntity item, std::optional<Ebur128ReplayGainScanner> scanner)
         : item(std::move(item))
@@ -42,46 +44,62 @@ void BackgroundWorker::stopThreadPool() {
     pool_->Stop();
 }
 
-void BackgroundWorker::fetchCdInfo(const DriveInfo& driver, const QString& drive) {
+void BackgroundWorker::onFetchCdInfo(const DriveInfo& driver, const QString& drive) {
     MBDiscId mbdisc_id;
+    const auto disc_id = mbdisc_id.GetDiscId(drive.toStdString());
+    const auto url = mbdisc_id.GetDiscIdLookupUrl(drive.toStdString());
 
-    auto url = mbdisc_id.GetDiscIdLookupUrl(drive.toStdString());
+    ForwardList<Metadata> metadatas;
+
+    auto cd = OpenCD(driver.driver_letter);
+    cd->SetMaxSpeed();
+    const auto tracks = cd->GetTotalTracks();
+
+    auto track_id = 0;
+    for (const auto& track : tracks) {
+        auto metadata = getMetadata(QString::fromStdWString(track));
+        metadata.file_path = tracks[track_id];
+        metadata.duration = cd->GetDuration(track_id++);
+        metadata.samplerate = 44100;
+        metadata.disc_id = disc_id;
+        metadatas.push_front(metadata);
+    }
+
+    metadatas.sort([](const auto& first, const auto& last) {
+        return first.track < last.track;
+        });
+
+    emit updateCdMetadata(QString::fromStdString(disc_id), metadatas);
+
+    XAMP_LOG_DEBUG("Start fetch cd information form musicbrainz.");
 
     http::HttpClient(QString::fromStdString(url))
-        .success([driver, this](const QString& content) {
-        auto [image_url, metadatas] = parseMbDiscIdXML(content);
+        .success([this, disc_id](const QString& content) {
+        auto [image_url, mb_disc_id_info] = parseMbDiscIdXML(content);
 
-        auto cd = OpenCD(driver.driver_letter);
-        cd->SetMaxSpeed();
-
-        metadatas.sort([](const auto& first, const auto& last) {
+        mb_disc_id_info.disc_id = disc_id;
+        std::sort(mb_disc_id_info.tracks.begin(), mb_disc_id_info.tracks.end(),
+            [](const auto& first, const auto& last) {
             return first.track < last.track;
             });
 
-        const auto tracks = cd->GetTotalTracks();
+        emit updateMbDiscInfo(mb_disc_id_info);
 
-        auto track_id = 0;
-        for (auto& metadata : metadatas) {
-            metadata.file_path = tracks[track_id];
-            metadata.duration = cd->GetDuration(track_id++);
-            metadata.samplerate = 44100;
-        }
+        XAMP_LOG_DEBUG("Start fetch cd cover image.");
 
         http::HttpClient(QString::fromStdString(image_url))
-            .success([this, metadatas](const QString& content) {
+            .success([this, disc_id](const QString& content) {
 	            const auto cover_url = parseCoverUrl(content);
-                http::HttpClient(cover_url).download([this, metadatas](const auto& content) mutable {
+                http::HttpClient(cover_url).download([this, disc_id](const auto& content) mutable {
                     auto cover_id = qPixmapCache.addOrUpdate(content);
-                    for (auto& metadata : metadatas) {
-                        metadata.cover_id = cover_id.toStdString();
-                    }
-                    emit updateCdMetadata(cover_id, metadatas);
+                    XAMP_LOG_DEBUG("Download cover image completed.");
+                    emit updateDiscCover(QString::fromStdString(disc_id), cover_id);
                     });				
                 }).get();
             }).get();
 }
 
-void BackgroundWorker::blurImage(const QString& cover_id, const QImage& image) {
+void BackgroundWorker::onBlurImage(const QString& cover_id, const QImage& image) {
     if (auto *cache_image = blur_img_cache_.Find(cover_id)) {
         XAMP_LOG_DEBUG("Found blur image in cache!");
         emit updateBlurImage(cache_image->copy());
@@ -98,7 +116,7 @@ void BackgroundWorker::blurImage(const QString& cover_id, const QImage& image) {
     blur_img_cache_.AddOrUpdate(cover_id, std::move(temp));
 }
 
-void BackgroundWorker::readReplayGain(bool, const Vector<PlayListEntity>& items) {
+void BackgroundWorker::onReadReplayGain(bool, const Vector<PlayListEntity>& items) {
     XAMP_LOG_DEBUG("Start read replay gain count:{}", items.size());
 
     Vector<SharedFuture<AlignPtr<PlayListRGResult>>> replay_gain_tasks;

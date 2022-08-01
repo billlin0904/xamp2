@@ -15,7 +15,6 @@
 #include <base/str_utilts.h>
 #include <base/logger_impl.h>
 
-#include <stream/podcastcache.h>
 #include <stream/soxresampler.h>
 #include <stream/r8brainresampler.h>
 #include <stream/idspmanager.h>
@@ -25,7 +24,6 @@
 #include <output_device/iaudiodevicemanager.h>
 
 #include <player/api.h>
-#include <player/mbdiscid.h>
 
 #include <widget/xdialog.h>
 #include <widget/xmessagebox.h>
@@ -56,15 +54,14 @@
 #include <widget/discordnotify.h>
 #include <widget/backgroundworker.h>
 #include <widget/podcast_uiltis.h>
+#include <widget/http.h>
 
+#include "cdpage.h"
 #include "aboutpage.h"
 #include "preferencepage.h"
 #include "thememanager.h"
 #include "version.h"
 #include "xamp.h"
-
-#include <QDateTime>
-#include <widget/http.h>
 
 enum TabIndex {
     TAB_ALBUM = 0,
@@ -131,9 +128,9 @@ Xamp::Xamp()
 	, file_system_view_page_(nullptr)
 	, tray_icon_menu_(nullptr)
     , tray_icon_(nullptr)
+    , discord_notify_(new DicordNotify(this))
     , state_adapter_(std::make_shared<UIPlayerStateAdapter>())
-    , player_(MakeAudioPlayer(state_adapter_))
-	, discord_notify_(new DicordNotify(this)) {
+	, player_(MakeAudioPlayer(state_adapter_)) {
     ui_.setupUi(this);
 }
 
@@ -1233,22 +1230,61 @@ void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_form
     }
 }
 
-void Xamp::onUpdateCdMetadata(const QString& cover_id, const ForwardList<Metadata>& metadatas) {
-    cd_page_->playlist()->removeAll();
-    cd_page_->playlist()->processMeatadata(QDateTime::currentSecsSinceEpoch(), metadatas);
+void Xamp::onUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info) {
+    const auto disc_id = QString::fromStdString(mb_disc_id_info.disc_id);
+    const auto album = QString::fromStdWString(mb_disc_id_info.album);
+    const auto artist = QString::fromStdWString(mb_disc_id_info.artist);
+
+    qDatabase.updateAlbumByDiscId(disc_id, album);
+    qDatabase.updateArtistByDiscId(disc_id, artist);
+
+	const auto album_id = qDatabase.getAlbumIdByDiscId(disc_id);
+
+    qDatabase.forEachAlbumMusic(album_id, [&mb_disc_id_info](const auto& entity) {
+        qDatabase.updateMusicTitle(entity.music_id, QString::fromStdWString(mb_disc_id_info.tracks[entity.track - 1].title));
+        });
+
+    cd_page_->playlistPage()->title()->setText(album);
+    cd_page_->playlistPage()->playlist()->updateData();
+
+    if (const auto album_stats = qDatabase.getAlbumStats(album_id)) {
+        cd_page_->playlistPage()->format()->setText(tr("%1 Tracks, %2, %3")
+            .arg(QString::number(album_stats.value().tracks))
+            .arg(msToString(album_stats.value().durations))
+            .arg(QString::number(album_stats.value().year)));
+    }
+}
+
+void Xamp::onUpdateDiscCover(const QString& disc_id, const QString& cover_id) {
+	const auto album_id = qDatabase.getAlbumIdByDiscId(disc_id);
+    qDatabase.setAlbumCover(album_id, cover_id);
+    setCover(cover_id, cd_page_->playlistPage());
+}
+
+void Xamp::onUpdateCdMetadata(const QString& disc_id, const ForwardList<Metadata>& metadatas) {
+    const auto album_id = qDatabase.getAlbumIdByDiscId(disc_id);
+    qDatabase.removeAlbum(album_id);
+
+    cd_page_->playlistPage()->playlist()->removeAll();
+    cd_page_->playlistPage()->playlist()->processMeatadata(QDateTime::currentSecsSinceEpoch(), metadatas);
+    cd_page_->showPlaylistPage(true);
 }
 
 void Xamp::drivesChanges(const QList<DriveInfo>& drive_infos) {
+    cd_page_->playlistPage()->playlist()->removeAll();
+    cd_page_->playlistPage()->playlist()->updateData();
+
 	Q_FOREACH(auto driver, drive_infos) {
         std::stringstream ostr;
         ostr << driver.driver_letter << ":\\";
-		emit background_worker_->fetchCdInfo(driver, QString::fromStdString(ostr.str()));
+		emit fetchCdInfo(driver, QString::fromStdString(ostr.str()));
 	}
 }
 
 void Xamp::drivesRemoved(const DriveInfo& drive_info) {
-    cd_page_->playlist()->removeAll();
-    cd_page_->playlist()->updateData();
+    cd_page_->playlistPage()->playlist()->removeAll();
+    cd_page_->playlistPage()->playlist()->updateData();
+    cd_page_->showPlaylistPage(false);
 }
 
 void Xamp::setCover(const QString& cover_id, PlaylistPage* page) {
@@ -1448,32 +1484,52 @@ void Xamp::initialPlaylist() {
     if (!cd_page_) {
         auto playlist_id = kDefaultCdPlaylistId;
         if (!qDatabase.isPlaylistExist(playlist_id)) {
-            playlist_id = qDatabase.addPlaylist(Qt::EmptyString, 1);
+            playlist_id = qDatabase.addPlaylist(Qt::EmptyString, 4);
         }
-        cd_page_ = newPlaylistPage(playlist_id);
-        cd_page_->playlist()->setPlaylistId(playlist_id);
-        setCover(Qt::EmptyString, cd_page_);
+        cd_page_ = new CdPage();
+        connectSignal(cd_page_->playlistPage());
+        cd_page_->playlistPage()->playlist()->setPlaylistId(playlist_id);
+        setCover(Qt::EmptyString, cd_page_->playlistPage());
     }
 
     playlist_page_->playlist()->setPodcastMode(false);
     podcast_page_->playlist()->setPodcastMode(true);
-    cd_page_->playlist()->setPodcastMode(false);
+    cd_page_->playlistPage()->playlist()->setPodcastMode(false);
     current_playlist_page_ = playlist_page_;
 
     (void)QObject::connect(this,
         &Xamp::addBlurImage,
         background_worker_,
-        &BackgroundWorker::blurImage);
+        &BackgroundWorker::onBlurImage);
+
+    (void)QObject::connect(this,
+        &Xamp::fetchCdInfo,
+        background_worker_,
+        &BackgroundWorker::onFetchCdInfo);
 
     (void)QObject::connect(background_worker_,
         &BackgroundWorker::updateCdMetadata,
         this,
-        &Xamp::onUpdateCdMetadata);
+        &Xamp::onUpdateCdMetadata,
+        Qt::QueuedConnection);
+
+    (void)QObject::connect(background_worker_,
+        &BackgroundWorker::updateMbDiscInfo,
+        this,
+        &Xamp::onUpdateMbDiscInfo,
+        Qt::QueuedConnection);
+
+    (void)QObject::connect(background_worker_,
+		&BackgroundWorker::updateDiscCover,
+        this,
+        &Xamp::onUpdateDiscCover,
+        Qt::QueuedConnection);
 
     (void)QObject::connect(background_worker_,
         &BackgroundWorker::updateReplayGain,
         playlist_page_->playlist(),
-        &PlayListTableView::updateReplayGain);
+        &PlayListTableView::updateReplayGain,
+        Qt::QueuedConnection);
 
     lrc_page_ = new LrcPage(this);
     album_page_ = new AlbumArtistPage(this);
@@ -1650,7 +1706,7 @@ void Xamp::connectSignal(PlaylistPage* playlist_page) {
     (void)QObject::connect(playlist_page->playlist(),
         &PlayListTableView::addPlaylistReplayGain,
         background_worker_,
-        &BackgroundWorker::readReplayGain);
+        &BackgroundWorker::onReadReplayGain);
 
     (void)QObject::connect(this,
         &Xamp::themeChanged,

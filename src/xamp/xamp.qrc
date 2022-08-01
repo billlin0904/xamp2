@@ -100,5 +100,11 @@
         <file>Resource/Black/desktop.png</file>
         <file>Resource/White/desktop.png</file>
         <file>Resource/Black/play_circle.png</file>
+        <file>Resource/Black/backspace.png</file>
+        <file>Resource/Black/cd.png</file>
+        <file>Resource/Black/computer.png</file>
+        <file>Resource/White/backspace.png</file>
+        <file>Resource/White/cd.png</file>
+        <file>Resource/White/computer.png</file>
     </qresource>
 </RCC>

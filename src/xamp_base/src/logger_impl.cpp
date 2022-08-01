@@ -36,7 +36,6 @@ static void CreateLogsDir() {
 }
 
 LoggerManager::LoggerManager() noexcept {
-	default_logger_ = GetLogger(kXampLoggerName);
 }
 
 const Vector<std::string_view> & LoggerManager::GetWellKnownName() {
@@ -52,11 +51,13 @@ LoggerManager & LoggerManager::GetInstance() noexcept {
 }
 
 LoggerManager& LoggerManager::Startup() {
+	GetLogger(kXampLoggerName);
 	default_logger_->LogDebug("{}", "=:==:==:==:==:= LoggerManager init success. =:==:==:==:==:=");
 	return *this;
 }
 
 void LoggerManager::Shutdown() {
+	GetLogger(kXampLoggerName);
 	default_logger_->LogDebug("=:==:==:==:==:= LoggerManager shutdown =:==:==:==:==:=");
 	spdlog::shutdown();
 }
@@ -81,12 +82,6 @@ const std::string& Logger::GetName() const {
 }
 
 std::shared_ptr<Logger> LoggerManager::GetLogger(const std::string &name) {
-	if (default_logger_ != nullptr) {
-		if (name == default_logger_->GetName()) {
-			return default_logger_;
-		}
-	}	
-
 	auto logger = spdlog::get(name);
 	if (logger != nullptr) {
 		return std::make_shared<Logger>(logger);
@@ -99,6 +94,10 @@ std::shared_ptr<Logger> LoggerManager::GetLogger(const std::string &name) {
     logger->set_level(spdlog::level::debug);
 	logger->set_pattern("[%H:%M:%S.%e][%l][%n][%t] %^%v%$");
 	logger->flush_on(spdlog::level::debug);
+
+	if (name == kXampLoggerName) {
+		default_logger_ = std::make_shared<Logger>(logger);
+	}
 
 	spdlog::register_logger(logger);
 	return std::make_shared<Logger>(logger);

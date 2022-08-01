@@ -477,6 +477,5 @@ void XWindow::showEvent(QShowEvent* event) {
 
 void XWindow::resizeEvent(QResizeEvent* event) {
     last_size_ = frameGeometry().size();
-    XAMP_LOG_DEBUG("Resize event!");
 }
 #endif

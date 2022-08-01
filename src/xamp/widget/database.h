@@ -11,6 +11,7 @@
 #include <QSqlDatabase>
 
 #include <widget/widget_shared.h>
+#include <widget/str_utilts.h>
 #include <widget/playlistentity.h>
 
 class SqlException final : public Exception {
@@ -60,7 +61,9 @@ public:
 
     int32_t addTable(const QString& name, int32_t table_index, int32_t playlist_id);
 
-    int32_t addPlaylist(const QString& name, int32_t playlistIndex);
+    int32_t addPlaylist(const QString& name, int32_t playlist_index);
+
+    void setAlbumCover(int32_t album_id, const QString& cover_id);
 
     void setAlbumCover(int32_t album_id, const QString& album, const QString& cover_id);
 
@@ -70,7 +73,7 @@ public:
 
     void addTablePlaylist(int32_t table_id, int32_t playlist_id);
 
-    int32_t addOrUpdateMusic(const Metadata& medata, int32_t playlist_id);
+    int32_t addOrUpdateMusic(const Metadata& medata);
 
     int32_t addOrUpdateArtist(const QString& artist);
 
@@ -80,17 +83,25 @@ public:
 
     void updateMusicRating(int32_t music_id, int32_t rating);
 
-    void updateReplayGain(int music_id,
+    void updateMusicTitle(int32_t music_id, const QString& title);
+
+    void updateReplayGain(int32_t music_id,
                     double album_rg_gain,
                     double album_peak,
                     double track_rg_gain,
                     double track_peak);
 
-    int32_t addOrUpdateAlbum(const QString& album, int32_t artist_id, int64_t album_time, bool is_podcast);
+    int32_t addOrUpdateAlbum(const QString& album, int32_t artist_id, int64_t album_time, bool is_podcast, const QString& disc_id = Qt::EmptyString);
 
     void addOrUpdateAlbumArtist(int32_t album_id, int32_t artist_id) const;
 
     void addOrUpdateAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id);
+
+    int32_t getAlbumIdByDiscId(const QString& disc_id) const;
+
+    void updateAlbumByDiscId(const QString& disc_id, const QString& album);
+
+    void updateArtistByDiscId(const QString& disc_id, const QString& artist);
 
     QString getAlbumCoverId(int32_t album_id) const;
 
@@ -130,7 +141,7 @@ public:
 
     bool isPlaylistExist(int32_t playlist_id) const;
 
-    void addMusicToPlaylist(int32_t music_id, int32_t playlist_id) const;
+    void addMusicToPlaylist(int32_t music_id, int32_t playlist_id, int32_t album_id) const;
 
     void addMusicToPlaylist(const Vector<int32_t> & music_id, int32_t playlist_id) const;
 

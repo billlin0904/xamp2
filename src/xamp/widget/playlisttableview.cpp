@@ -352,8 +352,7 @@ void PlayListTableView::initial() {
         action_map.setCallback(reload_metadata_act, [this, item]() {
             auto reader = MakeMetadataReader();
             auto metadata = reader->Extract(item.file_path.toStdWString());
-            qDatabase.addOrUpdateMusic(
-                metadata, -1);
+            qDatabase.addOrUpdateMusic(metadata);
             refresh();
         });
 

@@ -25,6 +25,7 @@ struct PlayListEntity final {
     double track_replay_gain{0};
     double track_peak{ 0 };
     uint64_t timestamp{0};
+    QString disc_id;
     QString file_path;
     QString parent_path;
     QString title;

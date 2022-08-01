@@ -38,7 +38,11 @@ public:
 
     QPixmap getEmbeddedCover(const Metadata& metadata) const;
 
-    std::tuple<int32_t, int32_t, QString> addOrGetAlbumAndArtistId(int64_t dir_last_write_time, const QString& album, const QString& artist, bool is_podcast) const;
+    std::tuple<int32_t, int32_t, QString> addOrGetAlbumAndArtistId(int64_t dir_last_write_time,
+        const QString& album,
+        const QString& artist,
+        bool is_podcast,
+        const QString& disc_id) const;
 
     QString addCoverCache(int32_t album_id, const QString& album, const Metadata& metadata, bool is_unknown_album) const;
 private:	
@@ -85,7 +89,11 @@ QString DatabaseIdCache::addCoverCache(int32_t album_id, const QString& album, c
     return cover_id;
 }
 
-std::tuple<int32_t, int32_t, QString> DatabaseIdCache::addOrGetAlbumAndArtistId(int64_t dir_last_write_time, const QString &album, const QString &artist, bool is_podcast) const {
+std::tuple<int32_t, int32_t, QString> DatabaseIdCache::addOrGetAlbumAndArtistId(int64_t dir_last_write_time,
+    const QString &album,
+    const QString &artist, 
+    bool is_podcast,
+    const QString& disc_id) const {
     int32_t artist_id = 0;
     if (auto const * artist_id_op = this->artist_id_cache_.Find(artist)) {
         artist_id = *artist_id_op;
@@ -100,7 +108,7 @@ std::tuple<int32_t, int32_t, QString> DatabaseIdCache::addOrGetAlbumAndArtistId(
         album_id = *album_id_op;
     }
     else {
-        album_id = qDatabase.addOrUpdateAlbum(album, artist_id, dir_last_write_time, is_podcast);
+        album_id = qDatabase.addOrUpdateAlbum(album, artist_id, dir_last_write_time, is_podcast, disc_id);
         this->album_id_cache_.AddOrUpdate(album, album_id);
     }
 
@@ -226,7 +234,8 @@ void ::MetadataExtractAdapter::processMetadata(int64_t dir_last_write_time, cons
     for (const auto& metadata : result) {	    
 	    auto album = QString::fromWCharArray(metadata.album.c_str());
         auto artist = QString::fromWCharArray(metadata.artist.c_str());
-        
+        auto disc_id = QString::fromStdString(metadata.disc_id);
+     
         auto is_unknown_album = false;
         if (album.isEmpty()) {
             album = tr("Unknown album");
@@ -242,9 +251,17 @@ void ::MetadataExtractAdapter::processMetadata(int64_t dir_last_write_time, cons
             artist = tr("Unknown artist");
     	}
 
-        const auto music_id = qDatabase.addOrUpdateMusic(metadata, playlist_id);
+        const auto music_id = qDatabase.addOrUpdateMusic(metadata);
 
-        auto [album_id, artist_id, cover_id] = cache.addOrGetAlbumAndArtistId(dir_last_write_time, album, artist, is_podcast);
+        auto [album_id, artist_id, cover_id] = cache.addOrGetAlbumAndArtistId(dir_last_write_time,
+            album, 
+            artist,
+            is_podcast, 
+            disc_id);
+
+        if (playlist_id != -1) {
+            qDatabase.addMusicToPlaylist(music_id, playlist_id, album_id);
+        }
 
         if (metadata.cover_id.empty()) {
             // Find cover id from database.
@@ -260,7 +277,9 @@ void ::MetadataExtractAdapter::processMetadata(int64_t dir_last_write_time, cons
             qDatabase.setAlbumCover(album_id, album, QString::fromStdString(metadata.cover_id));
         }       
 
-        IgnoreSqlError(qDatabase.addOrUpdateAlbumMusic(album_id, artist_id, music_id))
+        IgnoreSqlError(qDatabase.addOrUpdateAlbumMusic(album_id,
+            artist_id,
+            music_id))
     }
 
     if (playlist != nullptr) {
