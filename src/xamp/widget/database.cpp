@@ -7,6 +7,7 @@
 
 #include <base/logger.h>
 #include <base/logger_impl.h>
+#include <base/assert.h>
 #include <widget/str_utilts.h>
 #include <widget/database.h>
 
@@ -834,6 +835,8 @@ void Database::updateArtistCoverId(int32_t artist_id, const QString& cover_id) {
 }
 
 int32_t Database::addOrUpdateArtist(const QString& artist) {
+	XAMP_ASSERT(!artist.isEmpty());
+
 	QSqlQuery query;
 
 	query.prepare(Q_TEXT(R"(
@@ -852,6 +855,8 @@ int32_t Database::addOrUpdateArtist(const QString& artist) {
 }
 
 void Database::updateArtistByDiscId(const QString& disc_id, const QString& artist) {
+	XAMP_ASSERT(!artist.isEmpty());
+
 	QSqlQuery query;
 	
 	query.prepare(Q_TEXT(R"(

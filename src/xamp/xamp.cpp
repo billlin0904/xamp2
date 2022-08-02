@@ -1235,17 +1235,25 @@ void Xamp::onUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info) {
     const auto album = QString::fromStdWString(mb_disc_id_info.album);
     const auto artist = QString::fromStdWString(mb_disc_id_info.artist);
 
-    qDatabase.updateAlbumByDiscId(disc_id, album);
-    qDatabase.updateArtistByDiscId(disc_id, artist);
+    if (!album.isEmpty()) {
+        qDatabase.updateAlbumByDiscId(disc_id, album);
+    }
+    if (!artist.isEmpty()) {
+        qDatabase.updateArtistByDiscId(disc_id, artist);
+    }
 
 	const auto album_id = qDatabase.getAlbumIdByDiscId(disc_id);
 
-    qDatabase.forEachAlbumMusic(album_id, [&mb_disc_id_info](const auto& entity) {
-        qDatabase.updateMusicTitle(entity.music_id, QString::fromStdWString(mb_disc_id_info.tracks[entity.track - 1].title));
-        });
+    if (!mb_disc_id_info.tracks.empty()) {
+        qDatabase.forEachAlbumMusic(album_id, [&mb_disc_id_info](const auto& entity) {
+            qDatabase.updateMusicTitle(entity.music_id, QString::fromStdWString(mb_disc_id_info.tracks[entity.track - 1].title));
+            });
+    }    
 
-    cd_page_->playlistPage()->title()->setText(album);
-    cd_page_->playlistPage()->playlist()->updateData();
+    if (!album.isEmpty()) {
+        cd_page_->playlistPage()->title()->setText(album);
+        cd_page_->playlistPage()->playlist()->updateData();
+    }
 
     if (const auto album_stats = qDatabase.getAlbumStats(album_id)) {
         cd_page_->playlistPage()->format()->setText(tr("%1 Tracks, %2, %3")
