@@ -5,6 +5,7 @@ const ConstLatin1String kAppSettingLang{ "AppSettings/lang" };
 const ConstLatin1String kAppSettingDeviceType{ "AppSettings/deviceType" };
 const ConstLatin1String kAppSettingDeviceId{ "AppSettings/deviceId" };
 const ConstLatin1String kAppSettingGeometry{ "AppSettings/geometry" };
+const ConstLatin1String kAppSettingWindowState{ "AppSettings/windowState" };
 const ConstLatin1String kAppSettingVolume{ "AppSettings/volume" };
 const ConstLatin1String kAppSettingOrder{ "AppSettings/order" };
 const ConstLatin1String kAppSettingUseNativeDSDMode{ "AppSettings/useNativeDSDMode" };

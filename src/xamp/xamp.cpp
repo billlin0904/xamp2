@@ -56,6 +56,10 @@
 #include <widget/podcast_uiltis.h>
 #include <widget/http.h>
 
+#if defined(Q_OS_WIN)
+#include <widget/win32/win32.h>
+#endif
+
 #include "cdpage.h"
 #include "aboutpage.h"
 #include "preferencepage.h"
@@ -291,7 +295,6 @@ void Xamp::closeEvent(QCloseEvent* event) {
     } catch (...) {
     }
 
-    AppSettings::setValue(kAppSettingGeometry, saveGeometry());
     AppSettings::setValue(kAppSettingVolume, ui_.volumeSlider->value());
     
     cleanup();
@@ -308,7 +311,11 @@ void Xamp::cleanup() {
         background_worker_->stopThreadPool();
         background_thread_.quit();
         background_thread_.wait();
-    }    
+    }
+
+#if defined(Q_OS_WIN) 
+    AppSettings::setValue(kAppSettingGeometry, win32::getWindowRect(winId()));
+#endif
 }
 
 void Xamp::initialUI() {
@@ -345,6 +352,33 @@ void Xamp::initialUI() {
 
     search_action_ = ui_.searchLineEdit->addAction(qTheme.seachIcon(),
                                                    QLineEdit::LeadingPosition);
+#ifdef Q_OS_WIN
+    ui_.titleFrame->setContextMenuPolicy(Qt::CustomContextMenu);
+    (void)QObject::connect(ui_.titleFrame, &QTableView::customContextMenuRequested, [this](auto pt) {
+        ActionMap<QFrame> action_map(ui_.titleFrame);
+        auto* restore_act = action_map.addAction(tr("Restore(R)"));
+        restore_act->setEnabled(false);
+
+        auto* move_act = action_map.addAction(tr("Move(M)"));
+        move_act->setEnabled(true);
+
+        auto* size_act = action_map.addAction(tr("Size(S)"));
+        size_act->setEnabled(true);
+
+        auto* mini_act = action_map.addAction(tr("Minimize(N)"));
+        mini_act->setEnabled(true);
+
+        auto* max_act = action_map.addAction(tr("Maximum(M)"));
+        max_act->setEnabled(true);
+        action_map.addSeparator();
+
+        auto* close_act = action_map.addAction(tr("Close(X)"));
+        action_map.setCallback(close_act, [this]() {
+            close();
+            });
+        action_map.exec(pt);
+        });
+#endif
 }
 
 void Xamp::onVolumeChanged(float volume) {

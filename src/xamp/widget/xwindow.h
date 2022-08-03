@@ -35,6 +35,8 @@ public:
     void setTaskbarPlayerPlaying() override;
 
     void setTaskbarPlayerStop() override;
+
+    void restoreGeometry();
 protected:
     bool eventFilter(QObject* object, QEvent* event) override;
 

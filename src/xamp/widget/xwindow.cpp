@@ -4,11 +4,8 @@
 #include <QPainter>
 #include <QPainterPath>
 #include <QWindow>
-#include <QStyleOption>
 #include <QDragEnterEvent>
 #include <QMimeData>
-#include <QIcon>
-#include <QGraphicsDropShadowEffect>
 
 #include "thememanager.h"
 
@@ -25,11 +22,10 @@
 #include <base/logger_impl.h>
 
 #include <version.h>
-#include <widget/image_utiltis.h>
+#include <widget/ui_utilts.h>
 #include <widget/appsettingnames.h>
 #include <widget/appsettings.h>
 #include <widget/str_utilts.h>
-#include <widget/xframe.h>
 #include <widget/xwindow.h>
 
 #if defined(Q_OS_WIN)
@@ -170,6 +166,18 @@ void XWindow::setTaskbarPlayerPlaying() {
 void XWindow::setTaskbarPlayerStop() {
 #if defined(Q_OS_WIN)
     taskbar_->setTaskbarPlayerStop();
+#endif
+}
+
+void XWindow::restoreGeometry() {
+#if defined(Q_OS_WIN)
+    if (AppSettings::contains(kAppSettingGeometry)) {
+        const auto rect = AppSettings::getValue(kAppSettingGeometry).toRect();
+        setGeometry(rect);
+    }
+    else {
+        centerDesktop(this);
+    }
 #endif
 }
 

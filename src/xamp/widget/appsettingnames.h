@@ -11,6 +11,7 @@ extern const ConstLatin1String kAppSettingLang;
 extern const ConstLatin1String kAppSettingDeviceType;
 extern const ConstLatin1String kAppSettingDeviceId;
 extern const ConstLatin1String kAppSettingGeometry;
+extern const ConstLatin1String kAppSettingWindowState;
 extern const ConstLatin1String kAppSettingVolume;
 extern const ConstLatin1String kAppSettingIsMuted;
 extern const ConstLatin1String kAppSettingOrder;

@@ -313,12 +313,7 @@ static int excute(int argc, char* argv[]) {
 
     top_win.show();
     top_win.activateWindow();
-    if (AppSettings::contains(kAppSettingGeometry)) {
-        top_win.restoreGeometry(AppSettings::getValue(kAppSettingGeometry).toByteArray());
-    }
-    else {
-        centerDesktop(&top_win);
-    }
+    top_win.restoreGeometry();
     
     return app.exec();
 }

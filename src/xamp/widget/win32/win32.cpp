@@ -296,6 +296,16 @@ enum BorderlessWindowStyle : DWORD {
 	BORDERLESS_STYLE      = WS_POPUP            | WS_THICKFRAME              | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX,
 };
 
+QRect getWindowRect(const WId window_id) {
+	auto hwnd = reinterpret_cast<HWND>(window_id);
+	RECT rect{ 0 };
+	if (::GetWindowRect(hwnd, &rect)) {
+		int width = rect.right - rect.left;
+		int height = rect.bottom - rect.top;
+		return QRect(rect.left, rect.top, width, height);
+	}
+}
+
 bool compositionEnabled() {
 	BOOL composition_enabled = FALSE;
 	auto success = DWMDLL.DwmIsCompositionEnabled(&composition_enabled) == S_OK;

@@ -54,9 +54,9 @@ namespace win32 {
 	void frameChange(const WId window_id);
 	void addDwmShadow(const WId window_id);
 	void removeStandardFrame(void* message);
-	bool compositionEnabled();
 	void setResizeable(void* message);
 	bool isWindowMaximized(const WId window_id);
 	bool compositionEnabled();
+    QRect getWindowRect(const WId window_id);
 }
 
