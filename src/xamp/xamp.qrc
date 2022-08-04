@@ -106,5 +106,7 @@
         <file>Resource/White/backspace.png</file>
         <file>Resource/White/cd.png</file>
         <file>Resource/White/computer.png</file>
+        <file>Resource/Black/restore.png</file>
+        <file>Resource/White/restore.png</file>
     </qresource>
 </RCC>

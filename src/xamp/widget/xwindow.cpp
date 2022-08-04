@@ -26,6 +26,7 @@
 #include <widget/appsettingnames.h>
 #include <widget/appsettings.h>
 #include <widget/str_utilts.h>
+#include <widget/actionmap.h>
 #include <widget/xwindow.h>
 
 #if defined(Q_OS_WIN)
@@ -171,13 +172,20 @@ void XWindow::setTaskbarPlayerStop() {
 
 void XWindow::restoreGeometry() {
 #if defined(Q_OS_WIN)
+    if (AppSettings::contains(kAppSettingWindowState)) {
+        if (AppSettings::getValue(kAppSettingWindowState).toBool()) {
+            showMaximized();
+            return;
+        }        
+    }
+
     if (AppSettings::contains(kAppSettingGeometry)) {
         const auto rect = AppSettings::getValue(kAppSettingGeometry).toRect();
         setGeometry(rect);
     }
     else {
         centerDesktop(this);
-    }
+    }    
 #endif
 }
 
@@ -432,6 +440,21 @@ void XWindow::mouseReleaseEvent(QMouseEvent* event) {
 #endif
 }
 
+void XWindow::initMaximumState() {
+    content_widget_->updateMaximumState(isMaximized());
+}
+
+void XWindow::updateMaximumState() {
+    if (isMaximized()) {
+        showNormal();
+        content_widget_->updateMaximumState(false);
+    }
+    else {
+        showMaximized();
+        content_widget_->updateMaximumState(true);
+    }
+}
+
 void XWindow::mouseDoubleClickEvent(QMouseEvent* event) {
     if (qTheme.useNativeWindow()) {
         QWidget::mouseDoubleClickEvent(event);
@@ -442,11 +465,51 @@ void XWindow::mouseDoubleClickEvent(QMouseEvent* event) {
         return;
     }
 
-    if (isMaximized()) {
-        showNormal();
-    } else {
-        showMaximized();
-    }
+    updateMaximumState();
+}
+
+void XWindow::setTitleBarAction(QFrame* title_bar) {
+#ifdef Q_OS_WIN
+    title_bar->setContextMenuPolicy(Qt::CustomContextMenu);
+    (void)QObject::connect(title_bar, &QFrame::customContextMenuRequested, [this, title_bar](auto pt) {
+        ActionMap<QFrame> action_map(title_bar);
+        auto* restore_act = action_map.addAction(tr("Restore(R)"));
+        action_map.setCallback(restore_act, [this]() {
+            showNormal();
+            });
+        restore_act->setIcon(qTheme.restoreWindowIcon());
+        restore_act->setEnabled(isMaximized());
+
+        auto* move_act = action_map.addAction(tr("Move(M)"));
+        move_act->setEnabled(true);
+
+        auto* size_act = action_map.addAction(tr("Size(S)"));
+        size_act->setEnabled(true);
+
+        auto* mini_act = action_map.addAction(tr("Minimize(N)"));
+        action_map.setCallback(mini_act, [this]() {
+            showMinimized();
+            });
+        mini_act->setIcon(qTheme.minimizeWindowIcon());
+        mini_act->setEnabled(true);
+
+        auto* max_act = action_map.addAction(tr("Maximum(M)"));
+        action_map.setCallback(max_act, [this]() {
+            showMaximized();
+            });
+        max_act->setEnabled(!isMaximized());
+        max_act->setIcon(qTheme.maximumWindowIcon());
+        action_map.addSeparator();
+
+        auto* close_act = action_map.addAction(tr("Close(X)"));
+        action_map.setCallback(close_act, [this]() {
+            close();
+            });
+        close_act->setIcon(qTheme.closeWindowIcon());
+
+        action_map.exec(pt);
+        });
+#endif
 }
 
 void XWindow::mouseMoveEvent(QMouseEvent* event) {
@@ -481,9 +544,5 @@ void XWindow::mouseMoveEvent(QMouseEvent* event) {
 #ifdef Q_OS_WIN32
 void XWindow::showEvent(QShowEvent* event) {
     taskbar_->showEvent();
-}
-
-void XWindow::resizeEvent(QResizeEvent* event) {
-    last_size_ = frameGeometry().size();
 }
 #endif

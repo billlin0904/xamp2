@@ -267,6 +267,10 @@ void Xamp::createTrayIcon() {
         SLOT(onActivated(QSystemTrayIcon::ActivationReason)));
 }
 
+void Xamp::updateMaximumState(bool is_maximum) {
+    qTheme.updateMaximumIcon(ui_, is_maximum);
+}
+
 void Xamp::closeEvent(QCloseEvent* event) {
     if (tray_icon_ != nullptr) {
         if (tray_icon_->isVisible() && !isHidden()) {
@@ -315,6 +319,7 @@ void Xamp::cleanup() {
 
 #if defined(Q_OS_WIN) 
     AppSettings::setValue(kAppSettingGeometry, win32::getWindowRect(winId()));
+    AppSettings::setValue(kAppSettingWindowState, top_window_->isMaximized());
 #endif
 }
 
@@ -352,33 +357,7 @@ void Xamp::initialUI() {
 
     search_action_ = ui_.searchLineEdit->addAction(qTheme.seachIcon(),
                                                    QLineEdit::LeadingPosition);
-#ifdef Q_OS_WIN
-    ui_.titleFrame->setContextMenuPolicy(Qt::CustomContextMenu);
-    (void)QObject::connect(ui_.titleFrame, &QTableView::customContextMenuRequested, [this](auto pt) {
-        ActionMap<QFrame> action_map(ui_.titleFrame);
-        auto* restore_act = action_map.addAction(tr("Restore(R)"));
-        restore_act->setEnabled(false);
-
-        auto* move_act = action_map.addAction(tr("Move(M)"));
-        move_act->setEnabled(true);
-
-        auto* size_act = action_map.addAction(tr("Size(S)"));
-        size_act->setEnabled(true);
-
-        auto* mini_act = action_map.addAction(tr("Minimize(N)"));
-        mini_act->setEnabled(true);
-
-        auto* max_act = action_map.addAction(tr("Maximum(M)"));
-        max_act->setEnabled(true);
-        action_map.addSeparator();
-
-        auto* close_act = action_map.addAction(tr("Close(X)"));
-        action_map.setCallback(close_act, [this]() {
-            close();
-            });
-        action_map.exec(pt);
-        });
-#endif
+    top_window_->setTitleBarAction(ui_.titleFrame);
 }
 
 void Xamp::onVolumeChanged(float volume) {
@@ -517,12 +496,7 @@ void Xamp::initialController() {
     });
 
     (void)QObject::connect(ui_.maxWinButton, &QToolButton::pressed, [this]() {
-        if (top_window_->isMaximized()) {
-            top_window_->showNormal();
-        }
-        else {
-            top_window_->showMaximized();
-        }
+        top_window_->updateMaximumState();
     });
 
     (void)QObject::connect(ui_.mutedButton, &QToolButton::pressed, [this]() {

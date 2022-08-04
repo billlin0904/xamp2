@@ -250,12 +250,63 @@ QIcon ThemeManager::desktopIcon() const {
     return makeIcon(Q_STR(":/xamp/Resource/%1/desktop.png"));
 }
 
+QIcon ThemeManager::minimizeWindowIcon() const {
+    return makeIcon(Q_STR(":/xamp/Resource/%1/minimize_normal.png"));
+}
+
+QIcon ThemeManager::maximumWindowIcon() const {
+    return makeIcon(Q_STR(":/xamp/Resource/%1/maximize_normal.png"));
+}
+
+QIcon ThemeManager::closeWindowIcon() const {
+    return makeIcon(Q_STR(":/xamp/Resource/%1/close_normal.png"));
+}
+
+QIcon ThemeManager::restoreWindowIcon() const {
+    return makeIcon(Q_STR(":/xamp/Resource/%1/restore.png"));
+}
+
 const QPixmap& ThemeManager::unknownCover() const noexcept {
     return unknown_cover_;
 }
 
 const QPixmap& ThemeManager::defaultSizeUnknownCover() const noexcept {
     return default_size_unknown_cover_;
+}
+
+void ThemeManager::updateMaximumIcon(Ui::XampWindow& ui, bool is_maximum) const {
+    const QColor hover_color = hoverColor();
+
+    if (is_maximum) {
+        ui.maxWinButton->setStyleSheet(Q_STR(R"(
+                                          QToolButton#maxWinButton {
+                                          border: none;
+                                          image: url(:/xamp/Resource/%1/maximize_normal.png);
+                                          background-color: transparent;
+										  border-radius: 0px;
+                                          }
+										  QToolButton#maxWinButton:hover {	
+										  image: url(:/xamp/Resource/%1/maximize_hover.png);	
+										  background-color: %2;
+										  border-radius: 0px;								 
+                                          }
+                                          )").arg(themeColorPath()).arg(colorToString(hover_color)));
+    }
+    else {
+        ui.maxWinButton->setStyleSheet(Q_STR(R"(
+                                          QToolButton#maxWinButton {
+                                          border: none;
+                                          image: url(:/xamp/Resource/%1/maximize_normal.png);
+                                          background-color: transparent;
+										  border-radius: 0px;
+                                          }
+										  QToolButton#maxWinButton:hover {	
+										  image: url(:/xamp/Resource/%1/maximize_normal.png);	
+										  background-color: %2;
+										  border-radius: 0px;								 
+                                          }
+                                          )").arg(themeColorPath()).arg(colorToString(hover_color)));
+    }
 }
 
 void ThemeManager::setBitPerfectButton(Ui::XampWindow& ui, bool enable) {

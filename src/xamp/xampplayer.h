@@ -26,6 +26,12 @@ public:
     virtual void setTaskbarPlayerPlaying() = 0;
 
     virtual void setTaskbarPlayerStop() = 0;
+
+    virtual void setTitleBarAction(QFrame *title_bar) = 0;
+
+    virtual void initMaximumState() = 0;
+
+    virtual void updateMaximumState() = 0;
 protected:
     IXWindow() = default;
 };
@@ -51,6 +57,8 @@ public:
     virtual void drivesChanges(const QList<DriveInfo>& drive_infos) = 0;
 
     virtual void drivesRemoved(const DriveInfo& drive_info) = 0;
+
+    virtual void updateMaximumState(bool is_maximum) = 0;
 protected:
     IXampPlayer() = default;
 };

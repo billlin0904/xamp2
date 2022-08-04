@@ -104,6 +104,16 @@ public:
 
     QIcon usbIcon() const;
 
+    QIcon minimizeWindowIcon() const;
+
+    QIcon maximumWindowIcon() const;
+
+    QIcon closeWindowIcon() const;
+
+    QIcon restoreWindowIcon() const;
+
+    void updateMaximumIcon(Ui::XampWindow& ui, bool is_maximum) const;
+
     void setThemeIcon(Ui::XampWindow& ui) const;
 
     void setShufflePlayorder(Ui::XampWindow& ui) const;

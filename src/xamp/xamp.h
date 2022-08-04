@@ -107,6 +107,8 @@ private:
 
 	void closeEvent(QCloseEvent* event) override;
 
+	void updateMaximumState(bool is_maximum) override;
+
 	void setPlaylistPageCover(const QPixmap* cover, PlaylistPage* page = nullptr);
 
 	QWidgetAction* createTextSeparator(const QString& desc);

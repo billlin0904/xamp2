@@ -36,7 +36,13 @@ public:
 
     void setTaskbarPlayerStop() override;
 
+    void setTitleBarAction(QFrame* title_bar) override;
+
     void restoreGeometry();
+
+    void initMaximumState() override;
+
+    void updateMaximumState() override;
 protected:
     bool eventFilter(QObject* object, QEvent* event) override;
 
@@ -65,11 +71,8 @@ private:
 #if defined(Q_OS_WIN)
     void showEvent(QShowEvent* event) override;
 
-    void resizeEvent(QResizeEvent* event) override;
-
     void readDriveInfo();
 
-    QSize last_size_;
 	QPoint last_pos_;
     QScreen* current_screen_;
     QScopedPointer<win32::WinTaskbar> taskbar_;

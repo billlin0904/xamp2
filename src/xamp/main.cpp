@@ -158,6 +158,7 @@ static void loadSettings() {
     AppSettings::setDefaultValue(kAppSettingEnableReplayGain, true);
     AppSettings::setDefaultEnumValue(kAppSettingTheme, ThemeColor::DARK_THEME);
     AppSettings::setDefaultValue(kEnableBitPerfect, true);
+    AppSettings::setDefaultValue(kAppSettingWindowState, false);
     AppSettings::save();
     XAMP_LOG_DEBUG("loadSettings success.");
 }
@@ -314,6 +315,7 @@ static int excute(int argc, char* argv[]) {
     top_win.show();
     top_win.activateWindow();
     top_win.restoreGeometry();
+    top_win.initMaximumState();
     
     return app.exec();
 }
