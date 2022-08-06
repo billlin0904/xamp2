@@ -139,10 +139,15 @@ static void loadLogConfig() {
 
 static void loadSettings() {
     AppSettings::loadIniFile(Q_TEXT("xamp.ini"));
+
+	AppSettings::setDefaultEnumValue(kAppSettingOrder, PlayerOrder::PLAYER_ORDER_REPEAT_ONCE);
+    AppSettings::setDefaultEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_TRACK_MODE);
+    AppSettings::setDefaultEnumValue(kAppSettingReplayGainScanMode, ReplayGainScanMode::RG_SCAN_MODE_FAST);
+    AppSettings::setDefaultEnumValue(kAppSettingTheme, ThemeColor::DARK_THEME);
+
     AppSettings::setDefaultValue(kAppSettingDeviceType, Qt::EmptyString);
     AppSettings::setDefaultValue(kAppSettingDeviceId, Qt::EmptyString);
-    AppSettings::setDefaultValue(kAppSettingVolume, 50);
-    AppSettings::setDefaultEnumValue(kAppSettingOrder, PlayerOrder::PLAYER_ORDER_REPEAT_ONCE);
+    AppSettings::setDefaultValue(kAppSettingVolume, 50);    
     AppSettings::setDefaultValue(kAppSettingEnableBlur, false);
     AppSettings::setDefaultValue(kAppSettingUseFramelessWindow, true);
     AppSettings::setDefaultValue(kLyricsFontSize, 12);
@@ -153,12 +158,10 @@ static void loadSettings() {
     AppSettings::setDefaultValue(kAppSettingAlbumImageCacheSize, 32);
     AppSettings::setDefaultValue(kAppSettingShowLeftList, true);
     AppSettings::setDefaultValue(kAppSettingReplayGainTargetGain, kReferenceLoudness);
-    AppSettings::setDefaultEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_TRACK_MODE);
-    AppSettings::setDefaultEnumValue(kAppSettingReplayGainScanMode, ReplayGainScanMode::RG_SCAN_MODE_FAST);
     AppSettings::setDefaultValue(kAppSettingEnableReplayGain, true);
-    AppSettings::setDefaultEnumValue(kAppSettingTheme, ThemeColor::DARK_THEME);
     AppSettings::setDefaultValue(kEnableBitPerfect, true);
     AppSettings::setDefaultValue(kAppSettingWindowState, false);
+
     AppSettings::save();
     XAMP_LOG_DEBUG("loadSettings success.");
 }

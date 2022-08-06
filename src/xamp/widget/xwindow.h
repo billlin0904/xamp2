@@ -22,7 +22,7 @@ public:
 
 	virtual ~XWindow() override;
 
-    void setContentWidget(IXampPlayer *content_widget);
+    void setContentWidget(IXPlayerFrame *content_widget);
 
     void setTaskbarProgress(int32_t percent) override;
 
@@ -71,12 +71,19 @@ private:
 #if defined(Q_OS_WIN)
     void showEvent(QShowEvent* event) override;
 
+    void addSystemMenu(QWidget *widget);
+
+    void focusInEvent(QFocusEvent* event);
+
+	void focusOutEvent(QFocusEvent* event);
+
     void readDriveInfo();
 
 	QPoint last_pos_;
+    QRect last_rect_;
     QScreen* current_screen_;
     QScopedPointer<win32::WinTaskbar> taskbar_;
     QList<DriveInfo> exist_drives_;
 #endif
-    IXampPlayer *content_widget_;
+    IXPlayerFrame *player_frame_;
 };

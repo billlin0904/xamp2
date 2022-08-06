@@ -81,15 +81,15 @@ XWindow::XWindow()
 #if defined(Q_OS_WIN)
     , current_screen_(nullptr)
 #endif
-	, content_widget_(nullptr) {
+	, player_frame_(nullptr) {
     setObjectName(Q_TEXT("framelessWindow"));
 }
 
-void XWindow::setContentWidget(IXampPlayer *content_widget) {
-    content_widget_ = content_widget;
-    if (content_widget_ != nullptr) {
+void XWindow::setContentWidget(IXPlayerFrame *content_widget) {
+    player_frame_ = content_widget;
+    if (player_frame_ != nullptr) {
         auto* default_layout = new QVBoxLayout(this);
-        default_layout->addWidget(content_widget_);
+        default_layout->addWidget(player_frame_);
         default_layout->setContentsMargins(0, 0, 0, 0);
         setLayout(default_layout);
     }
@@ -102,18 +102,18 @@ void XWindow::setContentWidget(IXampPlayer *content_widget) {
         win32::setFramelessWindowStyle(winId());
         win32::addDwmShadow(winId());
         if (AppSettings::getValueAsBool(kAppSettingEnableBlur)) {
-            content_widget->setAttribute(Qt::WA_TranslucentBackground, true);
+            player_frame_->setAttribute(Qt::WA_TranslucentBackground, true);
             qTheme.enableBlur(this);
         }
     } else {
         win32::setWindowedWindowStyle(winId());
         win32::addDwmShadow(winId());
     }
-    taskbar_.reset(new win32::WinTaskbar(this, content_widget));
+    taskbar_.reset(new win32::WinTaskbar(this, player_frame_));
 #else
     if (!qTheme.useNativeWindow()) {
-        if (content_widget_ != nullptr) {
-            osx::hideTitleBar(content_widget_);
+        if (player_frame_ != nullptr) {
+            osx::hideTitleBar(player_frame_);
         }
         if (AppSettings::getValueAsBool(kAppSettingEnableBlur)) {
             setAttribute(Qt::WA_TranslucentBackground, true);
@@ -193,10 +193,30 @@ bool XWindow::eventFilter(QObject * object, QEvent * event) {
     if (event->type() == QEvent::KeyPress) {
         const auto* key_event = dynamic_cast<QKeyEvent*>(event);
         if (key_event->key() == Qt::Key_Delete) {
-            content_widget_->deleteKeyPress();
+            player_frame_->deleteKeyPress();
+        }
+    } else {
+        if (event->type() == QEvent::FocusIn) {
+            focusInEvent(static_cast<QFocusEvent*>(event));
+        } else if (event->type() == QEvent::FocusOut) {
+            focusOutEvent(static_cast<QFocusEvent*>(event));
         }
     }
     return QWidget::eventFilter(object, event);
+}
+
+void XWindow::focusInEvent(QFocusEvent* event) {
+    if (!player_frame_) {
+        return;
+    }
+    player_frame_->focusInEvent();
+}
+
+void XWindow::focusOutEvent(QFocusEvent* event) {
+    if (!player_frame_) {
+        return;
+    }
+    player_frame_->focusOutEvent();
 }
 
 void XWindow::dragEnterEvent(QDragEnterEvent* event) {
@@ -216,7 +236,7 @@ void XWindow::dropEvent(QDropEvent* event) {
 
     if (mime_data->hasUrls()) {
         for (auto const& url : mime_data->urls()) {
-            content_widget_->addDropFileItem(url);
+            player_frame_->addDropFileItem(url);
         }
         event->acceptProposedAction();
     }
@@ -254,8 +274,8 @@ void XWindow::readDriveInfo() {
     if (drives.empty()) {
         return;
     }
-    if (content_widget_ != nullptr) {
-        content_widget_->drivesChanges(drives);
+    if (player_frame_ != nullptr) {
+        player_frame_->drivesChanges(drives);
     }
 }
 
@@ -274,6 +294,25 @@ bool XWindow::nativeEvent(const QByteArray& event_type, void * message, long * r
     const auto* msg = static_cast<MSG const*>(message);
 
     switch (msg->message) {
+    case WM_SETFOCUS:
+    case WM_KILLFOCUS:
+	    {
+        Qt::FocusReason reason;
+        if (::GetKeyState(VK_LBUTTON) < 0 || ::GetKeyState(VK_RBUTTON) < 0)
+            reason = Qt::MouseFocusReason;
+        else if (::GetKeyState(VK_SHIFT) < 0)
+            reason = Qt::BacktabFocusReason;
+        else
+            reason = Qt::TabFocusReason;
+        if (msg->message == WM_SETFOCUS) {
+            QFocusEvent e(QEvent::FocusIn, reason);
+            QApplication::sendEvent(this, &e);
+        } else {
+            QFocusEvent e(QEvent::FocusOut, reason);
+            QApplication::sendEvent(this, &e);
+        }
+	    }
+        break;
     case WM_DEVICECHANGE:
         switch (msg->wParam) {
         case DBT_DEVICEARRIVAL:
@@ -308,7 +347,7 @@ bool XWindow::nativeEvent(const QByteArray& event_type, void * message, long * r
                         return drive.driver_letter == driver_letter;
                         });
                     if (itr != exist_drives_.end()) {
-                        content_widget_->drivesRemoved(*itr);
+                        player_frame_->drivesRemoved(*itr);
                         exist_drives_.erase(itr);
                     }
                 }
@@ -390,16 +429,16 @@ bool XWindow::nativeEvent(const QByteArray& event_type, void * message, long * r
 
 void XWindow::changeEvent(QEvent* event) {
 #if defined(Q_OS_MAC)
-    if (!qTheme.useNativeWindow() && content_widget_ != nullptr) {
-        osx::hideTitleBar(content_widget_);
+    if (!qTheme.useNativeWindow() && player_frame_ != nullptr) {
+        osx::hideTitleBar(player_frame_);
 	}
 #endif
     QWidget::changeEvent(event);
 }
 
 void XWindow::closeEvent(QCloseEvent* event) {
-    if (content_widget_ != nullptr) {
-        content_widget_->close();
+    if (player_frame_ != nullptr) {
+        player_frame_->close();
     }
     QWidget::closeEvent(event);
 }
@@ -410,15 +449,21 @@ void XWindow::mousePressEvent(QMouseEvent* event) {
         return;
 	}
 
+    if (!player_frame_->hitTitleBar(event->pos())) {
+        return;
+    }
+
     // todo: When maximize window must can be drag window.
     if (isMaximized()) {
         if (event->button() == Qt::LeftButton) {
+            setWindowState(windowState() & ~(Qt::WindowMinimized
+                | Qt::WindowMaximized
+                | Qt::WindowFullScreen));
+            resize(last_rect_.size());
+            last_pos_ = event->globalPos() - pos();
+            move(last_pos_);
             return;
         }
-    }
-
-    if (!content_widget_->hitTitleBar(event->pos())) {
-        return;
     }
     
 #if defined(Q_OS_WIN)    
@@ -441,17 +486,17 @@ void XWindow::mouseReleaseEvent(QMouseEvent* event) {
 }
 
 void XWindow::initMaximumState() {
-    content_widget_->updateMaximumState(isMaximized());
+    player_frame_->updateMaximumState(isMaximized());
 }
 
 void XWindow::updateMaximumState() {
     if (isMaximized()) {
         showNormal();
-        content_widget_->updateMaximumState(false);
+        player_frame_->updateMaximumState(false);
     }
     else {
         showMaximized();
-        content_widget_->updateMaximumState(true);
+        player_frame_->updateMaximumState(true);
     }
 }
 
@@ -461,18 +506,18 @@ void XWindow::mouseDoubleClickEvent(QMouseEvent* event) {
         return;
     }
 
-    if (!content_widget_->hitTitleBar(event->pos())) {
+    if (!player_frame_->hitTitleBar(event->pos())) {
         return;
     }
 
     updateMaximumState();
 }
 
-void XWindow::setTitleBarAction(QFrame* title_bar) {
 #ifdef Q_OS_WIN
-    title_bar->setContextMenuPolicy(Qt::CustomContextMenu);
-    (void)QObject::connect(title_bar, &QFrame::customContextMenuRequested, [this, title_bar](auto pt) {
-        ActionMap<QFrame> action_map(title_bar);
+void XWindow::addSystemMenu(QWidget* widget) {
+    widget->setContextMenuPolicy(Qt::CustomContextMenu);
+    (void)QObject::connect(widget, &QFrame::customContextMenuRequested, [this, widget](auto pt) {
+        ActionMap<QWidget> action_map(widget);
         auto* restore_act = action_map.addAction(tr("Restore(R)"));
         action_map.setCallback(restore_act, [this]() {
             showNormal();
@@ -509,6 +554,12 @@ void XWindow::setTitleBarAction(QFrame* title_bar) {
 
         action_map.exec(pt);
         });
+}
+#endif
+
+void XWindow::setTitleBarAction(QFrame* title_bar) {
+#ifdef Q_OS_WIN
+    addSystemMenu(title_bar);
 #endif
 }
 
@@ -523,15 +574,17 @@ void XWindow::mouseMoveEvent(QMouseEvent* event) {
         move(event->globalPos() - last_pos_);
     }
 
-    if (!content_widget_) {
+    last_rect_ = win32::getWindowRect(winId());
+
+    if (!player_frame_) {
         return;
     }
 
     if (current_screen_ == nullptr) {
-        current_screen_ = content_widget_->window()->windowHandle()->screen();
+        current_screen_ = player_frame_->window()->windowHandle()->screen();
     }
-    else if (current_screen_ != content_widget_->window()->windowHandle()->screen()) {
-        current_screen_ = content_widget_->window()->windowHandle()->screen();
+    else if (current_screen_ != player_frame_->window()->windowHandle()->screen()) {
+        current_screen_ = player_frame_->window()->windowHandle()->screen();
 
         ::SetWindowPos(reinterpret_cast<HWND>(winId()), nullptr, 0, 0, 0, 0,
             SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |

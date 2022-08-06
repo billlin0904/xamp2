@@ -165,7 +165,7 @@ static uint32_t gradientColor(QColor const & color) {
 		| color.alpha() << 24;
 }
 
-WinTaskbar::WinTaskbar(XWindow* window, IXampPlayer* content_widget) {
+WinTaskbar::WinTaskbar(XWindow* window, IXPlayerFrame* player_frame) {
 	window_ = window;
 	// TODO: not use standard icon?
 	play_icon = window->style()->standardIcon(QStyle::SP_MediaPlay);
@@ -186,22 +186,22 @@ WinTaskbar::WinTaskbar(XWindow* window, IXampPlayer* content_widget) {
 	play_tool_button->setIcon(play_icon);
 	(void)QObject::connect(play_tool_button,
 		&QWinThumbnailToolButton::clicked,
-		content_widget,
-		&IXampPlayer::play);
+		player_frame,
+		&IXPlayerFrame::play);
 
 	auto* forward_tool_button = new QWinThumbnailToolButton(thumbnail_tool_bar_.get());
 	forward_tool_button->setIcon(seek_forward_icon);
 	(void)QObject::connect(forward_tool_button,
 		&QWinThumbnailToolButton::clicked,
-		content_widget,
-		&IXampPlayer::playNextClicked);
+		player_frame,
+		&IXPlayerFrame::playNextClicked);
 
 	auto* backward_tool_button = new QWinThumbnailToolButton(thumbnail_tool_bar_.get());
 	backward_tool_button->setIcon(seek_backward_icon);
 	(void)QObject::connect(backward_tool_button,
 		&QWinThumbnailToolButton::clicked,
-		content_widget,
-		&IXampPlayer::playPreviousClicked);
+		player_frame,
+		&IXPlayerFrame::playPreviousClicked);
 
 	thumbnail_tool_bar_->addButton(backward_tool_button);
 	thumbnail_tool_bar_->addButton(play_tool_button);
@@ -304,6 +304,7 @@ QRect getWindowRect(const WId window_id) {
 		int height = rect.bottom - rect.top;
 		return QRect(rect.left, rect.top, width, height);
 	}
+	return QRect();
 }
 
 bool compositionEnabled() {

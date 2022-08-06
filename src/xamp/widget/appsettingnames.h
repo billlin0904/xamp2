@@ -7,69 +7,60 @@
 
 #include <widget/str_utilts.h>
 
-extern const ConstLatin1String kAppSettingLang;
-extern const ConstLatin1String kAppSettingDeviceType;
-extern const ConstLatin1String kAppSettingDeviceId;
-extern const ConstLatin1String kAppSettingGeometry;
-extern const ConstLatin1String kAppSettingWindowState;
-extern const ConstLatin1String kAppSettingVolume;
-extern const ConstLatin1String kAppSettingIsMuted;
-extern const ConstLatin1String kAppSettingOrder;
-extern const ConstLatin1String kAppSettingUseNativeDSDMode;
-extern const ConstLatin1String kAppSettingUseFramelessWindow;
-extern const ConstLatin1String kAppSettingShowLeftList;
-extern const ConstLatin1String kAppSettingDiscordNotify;
-extern const ConstLatin1String kAppSettingColumnName;
-extern const ConstLatin1String kAppSettingMyMusicFolderPath;
+#define DECLARE_APP_SETTING_NAME(Name) \
+	extern const ConstLatin1String k##Name
 
-extern const ConstLatin1String kAppSettingTheme;
-extern const ConstLatin1String kAppSettingEnableBlur;
-extern const ConstLatin1String kAppSettingMinimizeToTrayAsk;
-extern const ConstLatin1String kAppSettingMinimizeToTray;
-extern const ConstLatin1String kAppSettingBackgroundColor;
-
-extern const ConstLatin1String kAppSettingPodcastCachePath;
-extern const ConstLatin1String kAppSettingAlbumImageCacheSize;
-extern const ConstLatin1String kAppSettingEnableReplayGain;
-extern const ConstLatin1String kAppSettingReplayGainMode;
-extern const ConstLatin1String kAppSettingReplayGainTargetGain;
-extern const ConstLatin1String kAppSettingReplayGainScanMode;
-
-extern const ConstLatin1String kAppSettingResamplerEnable;
-extern const ConstLatin1String kAppSettingResamplerType;
-
-extern const ConstLatin1String kAppSettingSoxrSettingName;
-extern const ConstLatin1String kEnableBlurCover;
-
-extern const ConstLatin1String kAppSettingEnableSpectrum;
-extern const ConstLatin1String kAppSettingSpectrumStyles;
-extern const ConstLatin1String kAppSettingWindowType;
-extern const ConstLatin1String kResampleSampleRate;
-
-extern const ConstLatin1String kSoxr;
-extern const ConstLatin1String kSoxrEnableSteepFilter;
-extern const ConstLatin1String kSoxrQuality;
-extern const ConstLatin1String kSoxrStopBand;
-extern const ConstLatin1String kSoxrPassBand;
-extern const ConstLatin1String kSoxrPhase;
-extern const ConstLatin1String kSoxrRollOffLevel;
-extern const ConstLatin1String kSoxrDefaultSettingName;
-
-extern const ConstLatin1String kR8Brain;
-
-extern const ConstLatin1String kEnableBitPerfect;
-
-extern const ConstLatin1String kAppSettingEnableEQ;
-extern const ConstLatin1String kAppSettingEQName;
-
-extern const ConstLatin1String kLyricsFontSize;
-extern const ConstLatin1String kLyricsTextColor;
-extern const ConstLatin1String kLyricsHighLightTextColor;
-
-extern const ConstLatin1String kFlacEncodingLevel;
-
-extern const ConstLatin1String kLog;
-extern const ConstLatin1String kLogMinimumLevel;
-extern const ConstLatin1String kLogDefault;
-extern const ConstLatin1String kLogOverride;
+DECLARE_APP_SETTING_NAME(AppSettingLang);
+DECLARE_APP_SETTING_NAME(AppSettingDeviceType);
+DECLARE_APP_SETTING_NAME(AppSettingDeviceId);
+DECLARE_APP_SETTING_NAME(AppSettingGeometry);
+DECLARE_APP_SETTING_NAME(AppSettingWindowState);
+DECLARE_APP_SETTING_NAME(AppSettingVolume);
+DECLARE_APP_SETTING_NAME(AppSettingIsMuted);
+DECLARE_APP_SETTING_NAME(AppSettingOrder);
+DECLARE_APP_SETTING_NAME(AppSettingUseNativeDSDMode);
+DECLARE_APP_SETTING_NAME(AppSettingUseFramelessWindow);
+DECLARE_APP_SETTING_NAME(AppSettingShowLeftList);
+DECLARE_APP_SETTING_NAME(AppSettingDiscordNotify);
+DECLARE_APP_SETTING_NAME(AppSettingColumnName);
+DECLARE_APP_SETTING_NAME(AppSettingMyMusicFolderPath);
+DECLARE_APP_SETTING_NAME(AppSettingTheme);
+DECLARE_APP_SETTING_NAME(AppSettingEnableBlur);
+DECLARE_APP_SETTING_NAME(AppSettingMinimizeToTrayAsk);
+DECLARE_APP_SETTING_NAME(AppSettingMinimizeToTray);
+DECLARE_APP_SETTING_NAME(AppSettingBackgroundColor);
+DECLARE_APP_SETTING_NAME(AppSettingPodcastCachePath);
+DECLARE_APP_SETTING_NAME(AppSettingAlbumImageCacheSize);
+DECLARE_APP_SETTING_NAME(AppSettingEnableReplayGain);
+DECLARE_APP_SETTING_NAME(AppSettingReplayGainMode);
+DECLARE_APP_SETTING_NAME(AppSettingReplayGainTargetGain);
+DECLARE_APP_SETTING_NAME(AppSettingReplayGainScanMode);
+DECLARE_APP_SETTING_NAME(AppSettingResamplerEnable);
+DECLARE_APP_SETTING_NAME(AppSettingResamplerType);
+DECLARE_APP_SETTING_NAME(AppSettingSoxrSettingName);
+DECLARE_APP_SETTING_NAME(EnableBlurCover);
+DECLARE_APP_SETTING_NAME(AppSettingEnableSpectrum);
+DECLARE_APP_SETTING_NAME(AppSettingSpectrumStyles);
+DECLARE_APP_SETTING_NAME(AppSettingWindowType);
+DECLARE_APP_SETTING_NAME(ResampleSampleRate);
+DECLARE_APP_SETTING_NAME(Soxr);
+DECLARE_APP_SETTING_NAME(SoxrEnableSteepFilter);
+DECLARE_APP_SETTING_NAME(SoxrQuality);
+DECLARE_APP_SETTING_NAME(SoxrStopBand);
+DECLARE_APP_SETTING_NAME(SoxrPassBand);
+DECLARE_APP_SETTING_NAME(SoxrPhase);
+DECLARE_APP_SETTING_NAME(SoxrRollOffLevel);
+DECLARE_APP_SETTING_NAME(SoxrDefaultSettingName);
+DECLARE_APP_SETTING_NAME(R8Brain);
+DECLARE_APP_SETTING_NAME(EnableBitPerfect);
+DECLARE_APP_SETTING_NAME(AppSettingEnableEQ);
+DECLARE_APP_SETTING_NAME(AppSettingEQName);
+DECLARE_APP_SETTING_NAME(LyricsFontSize);
+DECLARE_APP_SETTING_NAME(LyricsTextColor);
+DECLARE_APP_SETTING_NAME(LyricsHighLightTextColor);
+DECLARE_APP_SETTING_NAME(FlacEncodingLevel);
+DECLARE_APP_SETTING_NAME(Log);
+DECLARE_APP_SETTING_NAME(LogMinimumLevel);
+DECLARE_APP_SETTING_NAME(LogDefault);
+DECLARE_APP_SETTING_NAME(LogOverride);
 

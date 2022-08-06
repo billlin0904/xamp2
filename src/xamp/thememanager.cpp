@@ -464,15 +464,29 @@ void ThemeManager::setRepeatOncePlayOrder(Ui::XampWindow& ui) const {
 }
 
 QColor ThemeManager::titleBarColor() const {
-    auto color = QColor(backgroundColor());
-    auto darker_color = color.darker(50);
+    return QColor(backgroundColor());
+}
 
-    switch (themeColor()) {
-    case ThemeColor::DARK_THEME:
-        return QColor(18, 18, 18, 200);
-    case ThemeColor::LIGHT_THEME:
-    default:
-        return darker_color;
+void ThemeManager::updateTitlebarState(QFrame *title_bar, bool is_focus) {
+    if (!is_focus) {
+        QColor title_bar_color = titleBarColor();
+        title_bar_color = title_bar_color.light();
+
+        title_bar->setStyleSheet(Q_STR(R"(
+			QFrame#titleFrame {
+				background-color: %1;
+				border: none;
+				border-radius: 0px;
+            }			
+            )").arg(colorToString(title_bar_color)));
+    }
+    else {
+        title_bar->setStyleSheet(Q_STR(R"(
+			QFrame#titleFrame {
+				border: none;
+				border-radius: 0px;
+            }			
+            )"));
     }
 }
 
@@ -622,26 +636,6 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
 }
 
 void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
-    const QColor title_bar_color = titleBarColor();
-    const auto enable_title_bar_color = true;
-
-    if (enable_title_bar_color) {
-        ui.titleFrame->setStyleSheet(Q_STR(R"(
-			QFrame#titleFrame {
-				background-color: %1;
-				border: none;
-				border-radius: 0px;
-            }			
-            )").arg(colorToString(title_bar_color)));
-    } else {
-        ui.titleFrame->setStyleSheet(Q_STR(R"(
-			QFrame#titleFrame {
-				border: none;
-				border-radius: 0px;
-            }			
-            )"));
-    }
-
     ui.searchLineEdit->setStyleSheet(Q_TEXT(""));
     ui.sliderBar->setStyleSheet(Q_TEXT("QListView#sliderBar { background-color: transparent; border: none; }"));
     

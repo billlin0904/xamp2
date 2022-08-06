@@ -39,7 +39,7 @@ class BackgroundWorker;
 class DicordNotify;
 class CdPage;
 
-class Xamp final : public IXampPlayer {
+class Xamp final : public IXPlayerFrame {
 	Q_OBJECT
 
 public:
@@ -108,6 +108,10 @@ private:
 	void closeEvent(QCloseEvent* event) override;
 
 	void updateMaximumState(bool is_maximum) override;
+
+	void focusInEvent() override;
+
+	void focusOutEvent() override;
 
 	void setPlaylistPageCover(const QPixmap* cover, PlaylistPage* page = nullptr);
 

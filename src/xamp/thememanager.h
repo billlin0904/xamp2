@@ -114,6 +114,8 @@ public:
 
     void updateMaximumIcon(Ui::XampWindow& ui, bool is_maximum) const;
 
+    void updateTitlebarState(QFrame* title_bar, bool is_focus);
+
     void setThemeIcon(Ui::XampWindow& ui) const;
 
     void setShufflePlayorder(Ui::XampWindow& ui) const;

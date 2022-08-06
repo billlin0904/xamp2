@@ -78,7 +78,7 @@ enum TabIndex {
     TAB_SETTINGS,
 };
 
-static PlayerOrder GetNextOrder(PlayerOrder cur) noexcept {
+static PlayerOrder getNextOrder(PlayerOrder cur) noexcept {
     auto next = static_cast<int32_t>(cur) + 1;
     auto max = static_cast<int32_t>(PlayerOrder::PLAYER_ORDER_MAX);
     return static_cast<PlayerOrder>(next % max);
@@ -269,6 +269,14 @@ void Xamp::createTrayIcon() {
 
 void Xamp::updateMaximumState(bool is_maximum) {
     qTheme.updateMaximumIcon(ui_, is_maximum);
+}
+
+void Xamp::focusInEvent() {
+    qTheme.updateTitlebarState(ui_.titleFrame, true);
+}
+
+void Xamp::focusOutEvent() {
+    qTheme.updateTitlebarState(ui_.titleFrame, false);
 }
 
 void Xamp::closeEvent(QCloseEvent* event) {
@@ -635,7 +643,7 @@ void Xamp::initialController() {
     });
 
     (void)QObject::connect(ui_.repeatButton, &QToolButton::pressed, [this]() {
-        order_ = GetNextOrder(order_);
+        order_ = getNextOrder(order_);
         setPlayerOrder();
     });
 

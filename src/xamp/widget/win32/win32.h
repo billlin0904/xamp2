@@ -8,7 +8,7 @@
 #include <QWidget>
 #include <QIcon>
 
-class IXampPlayer;
+class IXPlayerFrame;
 class XWindow;
 class QWinThumbnailToolBar;
 class QWinTaskbarButton;
@@ -17,7 +17,7 @@ class QWinTaskbarProgress;
 namespace win32 {
     class WinTaskbar {
     public:
-        WinTaskbar(XWindow* window, IXampPlayer* content_widget);
+        WinTaskbar(XWindow* window, IXPlayerFrame* player_frame);
 
         ~WinTaskbar();
 

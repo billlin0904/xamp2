@@ -36,9 +36,9 @@ protected:
     IXWindow() = default;
 };
 
-class IXampPlayer : public QFrame {
+class IXPlayerFrame : public QFrame {
 public:
-    virtual ~IXampPlayer() override = default;
+    virtual ~IXPlayerFrame() override = default;
 
     virtual void addDropFileItem(const QUrl& url) = 0;
 
@@ -59,7 +59,11 @@ public:
     virtual void drivesRemoved(const DriveInfo& drive_info) = 0;
 
     virtual void updateMaximumState(bool is_maximum) = 0;
+
+    virtual void focusInEvent() = 0;
+
+    virtual void focusOutEvent() = 0;
 protected:
-    IXampPlayer() = default;
+    IXPlayerFrame() = default;
 };
 
