@@ -609,16 +609,23 @@ void PlayListTableView::importPodcast() {
     XAMP_LOG_DEBUG("Start download podcast.xml");
     indicator->startAnimation();
     http::HttpClient(/*url_edit->text()*/Q_TEXT("https://suisei.moe/podcast.xml"))
+	.error([this, indicator](const QString& msg) {
+        indicator->deleteLater();
+	})
 	.success([this, indicator](const QString& json) {
         XAMP_LOG_DEBUG("download podcast.xml success!");
         auto const podcast_info = parsePodcastXML(json);
         ::MetadataExtractAdapter::processMetadata(QDateTime::currentSecsSinceEpoch(), podcast_info.second, this, podcast_mode_);
         XAMP_LOG_DEBUG("Start download podcast image file");
         http::HttpClient(QString::fromStdString(podcast_info.first))
+		.error([this, indicator](const QString& msg) {
+            indicator->deleteLater();
+        })
     	.download([=](auto data) {
             XAMP_LOG_DEBUG("download podcast image file success!");
             auto cover_id = qPixmapCache.addOrUpdate(data);
     		if (!model()->rowCount()) {
+                indicator->deleteLater();
                 return;
     		}
             auto play_item = getEntity(this->model()->index(0, 0));

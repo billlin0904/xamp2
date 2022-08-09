@@ -200,15 +200,15 @@ std::pair<std::string, MbDiscIdInfo> parseMbDiscIdXML(QString const& src) {
 QString parseCoverUrl(QString const& json) {
     QJsonParseError error;
     const auto doc = QJsonDocument::fromJson(json.toUtf8(), &error);
-    if (error.error == QJsonParseError::NoError) {
-        auto result = doc[Q_TEXT("images")].toArray();
-        for (const auto entry : result) {
-            auto object = entry.toVariant().toMap();
-            auto front = object.value(Q_TEXT("front")).toBool();
-            if (front) {
-                return object.value(Q_TEXT("image")).toString();
-            }
+    if (error.error != QJsonParseError::NoError) {
+        return Qt::EmptyString;
+    }
+    auto result = doc[Q_TEXT("images")].toArray();
+    for (const auto entry : result) {
+        auto object = entry.toVariant().toMap();
+        const auto front = object.value(Q_TEXT("front")).toBool();
+        if (front) {
+            return object.value(Q_TEXT("image")).toString();
         }
     }
-    return Qt::EmptyString;
 }

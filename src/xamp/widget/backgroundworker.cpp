@@ -46,8 +46,15 @@ void BackgroundWorker::stopThreadPool() {
 
 void BackgroundWorker::onFetchCdInfo(const DriveInfo& driver, const QString& drive) {
     MBDiscId mbdisc_id;
-    const auto disc_id = mbdisc_id.GetDiscId(drive.toStdString());
-    const auto url = mbdisc_id.GetDiscIdLookupUrl(drive.toStdString());
+    std::string disc_id;
+    std::string url;
+
+    try {
+        disc_id = mbdisc_id.GetDiscId(drive.toStdString());
+        url = mbdisc_id.GetDiscIdLookupUrl(drive.toStdString());
+    } catch (Exception const &e) {
+        XAMP_LOG_DEBUG(e.GetErrorMessage());
+    }
 
     ForwardList<Metadata> metadatas;
 
@@ -70,6 +77,10 @@ void BackgroundWorker::onFetchCdInfo(const DriveInfo& driver, const QString& dri
         });
 
     emit updateCdMetadata(QString::fromStdString(disc_id), metadatas);
+
+    if (disc_id.empty()) {
+        return;
+    }
 
     XAMP_LOG_DEBUG("Start fetch cd information form musicbrainz.");
 

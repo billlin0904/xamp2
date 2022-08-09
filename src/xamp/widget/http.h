@@ -26,6 +26,8 @@ public:
 
     ~HttpClient();
 
+    void setTimeout(int timeout);
+
     HttpClient& param(const QString &name, const QVariant &value);
 
     HttpClient& params(const QMap<QString, QVariant> &ps);
@@ -54,6 +56,5 @@ private:
     class HttpClientImpl;
     QScopedPointer<HttpClientImpl> impl_;
 };
-
 
 }

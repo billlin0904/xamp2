@@ -1,19 +1,121 @@
-﻿#include <QNetworkRequest>
-#include <QNetworkReply>
+﻿#include <QNetworkReply>
 #include <QNetworkAccessManager>
 #include <QUrlQuery>
 #include <QUrl>
 #include <QTemporaryFile>
 #include <QNetworkProxy>
+#include <QUuid>
+#include <QMetaEnum>
 
 #include <memory>
 #include <base/logger.h>
 #include <base/logger_impl.h>
+#include <base/str_utilts.h>
 #include <version.h>
 #include <widget/str_utilts.h>
 #include <widget/http.h>
 
 namespace http {
+
+static ConstLatin1String toString(QNetworkReply::NetworkError code) {
+    const auto* mo = &QNetworkReply::staticMetaObject;
+    const int index = mo->indexOfEnumerator("NetworkError");
+    if (index == -1)
+        return Qt::EmptyString;
+    const auto qme = mo->enumerator(index);
+    return { qme.valueToKey(code) };
+}
+
+static QByteArray generateRequestId() {
+    return QUuid::createUuid().toByteArray(QUuid::WithoutBraces);
+}
+
+static void logRequest(const ConstLatin1String& verb,
+    const QString& url,
+    const QByteArray& id, 
+    const QString& content_type,
+    const QList<QNetworkReply::RawHeaderPair>& header,
+    const QNetworkReply *reply) {
+	auto content_length = reply ? reply->size() : 0;
+    if (content_length == 0 && reply != nullptr) {
+        content_length = reply->header(QNetworkRequest::ContentLengthHeader).toUInt();
+    }
+
+    QString msg;
+    QTextStream stream(&msg);
+
+    stream << id << ": ";
+
+    if (!reply) {
+        stream << "Request: ";
+    }
+    else {
+        stream << "Response: ";
+    }
+
+    stream << verb;
+    if (reply) {
+        stream << " " << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    }
+
+    stream << " " << url << " Header: { ";
+
+    for (const auto& it : header) {
+        stream << it.first << ": ";
+        if (it.first == "Authorization") {
+            stream << (it.second.startsWith("Bearer ") ? "Bearer" : "Basic");
+            stream << " [redacted]";
+        }
+        else {
+            stream << it.second;
+        }
+        stream << ", ";
+    }
+
+    stream << "} Data: [";
+    if (content_length > 0) {
+        stream << QString::fromStdString(String::FormatBytes(content_length)) << " of " << content_type << " data";
+    }
+    stream << "]";
+    XAMP_LOG_DEBUG(msg.toStdString());
+}
+
+ConstLatin1String requestVerb(QNetworkAccessManager::Operation operation, const QNetworkRequest& request) {
+    switch (operation) {
+    case QNetworkAccessManager::HeadOperation:
+        return Q_TEXT("HEAD");
+    case QNetworkAccessManager::GetOperation:
+        return Q_TEXT("GET");
+    case QNetworkAccessManager::PutOperation:
+        return Q_TEXT("PUT");
+    case QNetworkAccessManager::PostOperation:
+        return Q_TEXT("POST");
+    case QNetworkAccessManager::DeleteOperation:
+        return Q_TEXT("DELETE");
+    case QNetworkAccessManager::CustomOperation:
+        return Q_TEXT(request.attribute(QNetworkRequest::CustomVerbAttribute).toByteArray());
+    case QNetworkAccessManager::UnknownOperation:
+        break;
+    }
+    Q_UNREACHABLE();
+}
+
+static void logHttpRequest(const ConstLatin1String& verb, const QNetworkRequest& request, const QNetworkReply* reply = nullptr) {
+    const auto keys = request.rawHeaderList();
+    QList<QNetworkReply::RawHeaderPair> header;
+    header.reserve(keys.size());
+
+    for (const auto& key : keys) {
+        header << qMakePair(key, request.rawHeader(key));
+    }
+
+    logRequest(verb,
+        request.url().toString(),
+        request.rawHeader(QByteArray("X-Request-ID")),
+        request.header(QNetworkRequest::ContentTypeHeader).toString(),
+        header,
+        reply);
+}
 
 struct HttpContext {
     bool use_internal{false};
@@ -26,9 +128,13 @@ struct HttpContext {
 
 class HttpClient::HttpClientImpl {
 public:
+    static constexpr int32_t kDefaultTimeout = 3000;
+
     HttpClientImpl(const QString &url, QNetworkAccessManager* manager);
 
     HttpContext createContext() const;
+
+    void setTimeout(int timeout);
 
     static QNetworkRequest createRequest(HttpClientImpl *d, HttpMethod method);
 
@@ -42,6 +148,7 @@ public:
 
     bool use_json_;
     bool use_internal_;
+    int32_t timeout_;
     QString url_;
     QString json_;
     QUrlQuery params;
@@ -57,6 +164,7 @@ public:
 HttpClient::HttpClientImpl::HttpClientImpl(const QString &url, QNetworkAccessManager* manager)
     : use_json_(false)
     , use_internal_(manager == nullptr)
+    , timeout_(kDefaultTimeout)
     , url_(url)
     , charset_(kDefaultCharset)
     , manager_(manager == nullptr ? new QNetworkAccessManager() : manager) {
@@ -73,6 +181,10 @@ HttpContext HttpClient::HttpClientImpl::createContext() const {
     return context;
 }
 
+void HttpClient::HttpClientImpl::setTimeout(int timeout) {
+    timeout_ = timeout;
+}
+
 void HttpClient::HttpClientImpl::executeQuery(HttpClientImpl *d, HttpMethod method) {
 	auto context = d->createContext();
 
@@ -81,28 +193,37 @@ void HttpClient::HttpClientImpl::executeQuery(HttpClientImpl *d, HttpMethod meth
     const auto request = createRequest(d, method);
     QNetworkReply *reply = nullptr;
 
+    auto operation = QNetworkAccessManager::UnknownOperation;
+
     switch (method) {
     case HttpMethod::HTTP_GET:
         reply = context.manager->get(request);
+        operation = QNetworkAccessManager::GetOperation;
         break;
     case HttpMethod::HTTP_POST:
         reply = context.manager->post(request,
                                       d->use_json_
                                       ? d->json_.toUtf8()
                                       : d->params.toString(QUrl::FullyEncoded).toUtf8());
+        operation = QNetworkAccessManager::PostOperation;
         break;
     case HttpMethod::HTTP_PUT:
         reply = context.manager->put(request,
                                      d->use_json_
                                      ? d->json_.toUtf8()
                                      : d->params.toString(QUrl::FullyEncoded).toUtf8());
+        operation = QNetworkAccessManager::PutOperation;
         break;
     case HttpMethod::HTTP_DELETE:
         reply = context.manager->deleteResource(request);
+        operation = QNetworkAccessManager::DeleteOperation;
         break;
     }
 
+    logHttpRequest(requestVerb(operation, request), request);
+
     (void) QObject::connect(reply, &QNetworkReply::finished, [=] {
+        logHttpRequest(requestVerb(operation, request), request, reply);
 	    const auto success_message = readReply(reply, context.charset);
 	    handleFinish(context, reply, success_message);
     });
@@ -119,20 +240,23 @@ void HttpClient::HttpClientImpl::download(HttpClientImpl *d, std::function<void 
     });
 
     (void) QObject::connect(reply, &QNetworkReply::finished, [=] {
+        logHttpRequest(requestVerb(QNetworkAccessManager::GetOperation, request), request, reply);
         handleFinish(context, reply, QString());
     });
 }
 
 void HttpClient::HttpClientImpl::handleFinish(const HttpContext &context, QNetworkReply *reply, const QString &success_message) {
-    if (reply->error() == QNetworkReply::NoError) {
+    const auto error = reply->error();
+    if (error == QNetworkReply::NoError) {
         if (context.success_handler != nullptr) {
             context.success_handler(success_message);
         }
     } else {
+        XAMP_LOG_DEBUG("{}", toString(error).data());
+
         if (context.error_handler != nullptr) {
-            context.error_handler(success_message);
+            context.error_handler(toString(error));
         }
-        XAMP_LOG_DEBUG("{}", success_message.toStdString());
     }
 
     if (reply != nullptr) {
@@ -186,8 +310,16 @@ QNetworkRequest HttpClient::HttpClientImpl::createRequest(HttpClientImpl *d, Htt
         request.setRawHeader(i.key().toUtf8(), i.value().toUtf8());
     }
 
-    request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
+    if (request.url().scheme() == Q_TEXT("https")) {
+        static const bool http2_enabled_env = qEnvironmentVariableIntValue("OWNCLOUD_HTTP2_ENABLED") == 1;
+        request.setAttribute(QNetworkRequest::Http2AllowedAttribute, http2_enabled_env);
+    }
 
+    const auto request_id = generateRequestId();
+
+    request.setRawHeader("X-Request-ID", request_id);
+    request.setTransferTimeout(d->timeout_);
+    request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
     return request;
 }
 
@@ -200,6 +332,10 @@ HttpClient::HttpClient(const QString &url, QNetworkAccessManager* manager)
 }
 
 HttpClient::~HttpClient() = default;
+
+void HttpClient::setTimeout(int timeout) {
+    impl_->setTimeout(timeout);
+}
 
 HttpClient& HttpClient::param(const QString &name, const QVariant &value) {
     impl_->params.addQueryItem(name, value.toString());
