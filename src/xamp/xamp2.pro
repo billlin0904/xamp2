@@ -33,12 +33,14 @@ OBJECTIVE_SOURCES += \
     widget/osx/osx.mm
 
 SOURCES += \
+    widget/tooltips.cpp \
+    widget/tooltipsfilter.cpp \
+    widget/processindicator.cpp \
     widget/albumentity.cpp \
     widget/discordnotify.cpp \
     widget/doubleslider.cpp \
     widget/equalizerdialog.cpp \
     widget/lyricsshowwidget.cpp \
-    widget/artistview.cpp \
     widget/http.cpp \
     widget/playlistsqlquerytablemodel.cpp \
     widget/backgroundworker.cpp \
@@ -55,6 +57,7 @@ SOURCES += \
     widget/metadataextractadapter.cpp \
     widget/pixmapcache.cpp \
     widget/playlistpage.cpp \
+    widget/settingnames.cpp \
     widget/playlisttableproxymodel.cpp \
     widget/playlisttableview.cpp \
     widget/switchbutton.cpp \
@@ -73,16 +76,16 @@ SOURCES += \
     widget/xframe.cpp \
     widget/image_utiltis.cpp \
     widget/read_utiltis.cpp \
-    widget/settingnames.cpp \
     widget/str_utilts.cpp \
     widget/ui_utilts.cpp \
     widget/podcast_uiltis.cpp \
-    widget/colorthief.cpp \
     widget/stackblur.cpp \
     widget/spectrumwidget.cpp \
     widget/filesystemviewpage.cpp \
     widget/filesystemmodel.cpp \
     singleinstanceapplication.cpp \
+    version.cpp \
+    cdpage.cpp \
     thememanager.cpp \
     aboutpage.cpp \
     preferencepage.cpp \
@@ -90,13 +93,15 @@ SOURCES += \
     xamp.cpp
 
 HEADERS += \
+    widget/tooltips.h \
+    widget/tooltipsfilter.h \
+    widget/processindicator.h \
     widget/albumentity.h \
     widget/discordnotify.h \
     widget/doubleslider.h \
     widget/equalizerdialog.h \
     widget/lyricsshowwidget.h \
     widget/osx/osx.h \
-    widget/artistview.h \
     widget/http.h \
     widget/playerorder.h \
     widget/playlistsqlquerytablemodel.h \
@@ -104,6 +109,7 @@ HEADERS += \
     widget/actionmap.h \
     widget/albumview.h \
     widget/appsettings.h \
+    widget/appsettingnames.h \
     widget/clickablelabel.h \
     widget/database.h \
     widget/qetag.h \
@@ -118,7 +124,6 @@ HEADERS += \
     widget/playlisttableproxymodel.h \
     widget/playlisttableview.h \
     widget/qdebugsink.h \
-    widget/settingnames.h \
     widget/switchbutton.h \
     widget/tablistview.h \
     widget/toast.h \
@@ -136,13 +141,14 @@ HEADERS += \
     widget/xframe.h \
     widget/read_utiltis.h \
     widget/backgroundworker.h \
-    widget/colorthief.h \
     widget/stackblur.h \
     widget/spectrumwidget.h \
     widget/smoothcurvegenerator2.h \
     widget/filesystemviewpage.h \
     widget/filesystemmodel.h \
+    version.h \
     singleinstanceapplication.h \
+    cdpage.h \
     thememanager.h \
     aboutpage.h \
     preferencepage.h \
@@ -157,6 +163,7 @@ FORMS += \
     filesystemviewpage.ui \
     aboutdialog.ui \
     preferencedialog.ui \
+    cdpage.ui \
     xamp.ui \
 
 RESOURCES += \
@@ -176,6 +183,7 @@ TRANSLATIONS += \
 LIBS += -framework Foundation -framework Cocoa
 INCLUDEPATH += /System/Library/Frameworks/Foundation.framework/Versions/C/Headers
 INCLUDEPATH += "../thirdparty/discord-rpc/include"
+INCLUDEPATH += "../thirdparty/QSimpleUpdater/include"
 
 CONFIG(debug, debug|release) {
 QMAKE_CXXFLAGS += -mavx2

@@ -8,6 +8,7 @@
 #include <QListView>
 #include <QSqlQueryModel>
 #include <QStyledItemDelegate>
+#include <QPushButton>
 
 #include <widget/widget_shared.h>
 
@@ -19,7 +20,6 @@ class ClickableLabel;
 class AlbumViewPage;
 class AlbumPlayListTableView;
 class PlaylistPage;
-class QPushButton;
 
 class AlbumViewStyledDelegate final : public QStyledItemDelegate {
 	Q_OBJECT

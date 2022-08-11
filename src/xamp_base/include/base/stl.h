@@ -8,6 +8,7 @@
 #include <chrono>
 #include <vector>
 #include <iterator>
+#include <forward_list>
 #include <functional>
 
 #include <base/base.h>

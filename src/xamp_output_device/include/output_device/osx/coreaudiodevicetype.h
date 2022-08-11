@@ -36,12 +36,12 @@ public:
 
     DeviceInfo GetDeviceInfo(uint32_t device) const override;
 
-    std::vector<DeviceInfo> GetDeviceInfo() const override;
+    Vector<DeviceInfo> GetDeviceInfo() const override;
 
     std::optional<DeviceInfo> GetDefaultDeviceInfo() const override;
 
 private:
-    std::vector<DeviceInfo> device_list_;
+    Vector<DeviceInfo> device_list_;
 };
 
 }

@@ -125,6 +125,7 @@ catch (const Exception& e) {
 }
 #endif
 
+#ifdef XAMP_OS_WIN
 std::string BassCDLib::GetName() const {
 #ifdef XAMP_OS_WIN
     return "basscd.dll";
@@ -132,6 +133,7 @@ std::string BassCDLib::GetName() const {
     return "libbasscd.dylib";
 #endif
 }
+#endif
 
 BassEncLib::BassEncLib()  try
 #ifdef XAMP_OS_WIN
@@ -321,7 +323,9 @@ void BassLib::LoadVersionInfo() {
     dll_versions_[BASS.GetName()] = GetBassVersion(BASS.BASS_GetVersion());
     dll_versions_[BASS.MixLib->GetName()] = GetBassVersion(BASS.MixLib->BASS_Mixer_GetVersion());
     dll_versions_[BASS.FxLib->GetName()] = GetBassVersion(BASS.FxLib->BASS_FX_GetVersion());
-    dll_versions_[BASS.EncLib->GetName()] = GetBassVersion(BASS.EncLib->BASS_Encode_GetVersion());
+    if (BASS.EncLib != nullptr) {
+        dll_versions_[BASS.EncLib->GetName()] = GetBassVersion(BASS.EncLib->BASS_Encode_GetVersion());
+    }
     dll_versions_[BASS.FlacEncLib->GetName()] = GetBassVersion(BASS.FlacEncLib->BASS_Encode_FLAC_GetVersion());
 }
 

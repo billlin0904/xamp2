@@ -8,7 +8,7 @@ Pcm2DsdConverter::Pcm2DsdConverter(uint32_t output_sample_rate, uint32_t dsd_tim
 }
 
 std::vector<uint8_t> Pcm2DsdConverter::ProcessChannel(std::vector<double> &buffer, uint32_t sample_size, uint32_t sample_rate) {
-	return {};
+    return std::vector<uint8_t>();
 }
 
 [[nodiscard]] std::string_view Pcm2DsdConverter::GetDescription() const noexcept {

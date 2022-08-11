@@ -187,7 +187,7 @@
   <customwidget>
    <class>PlaylistPage</class>
    <extends>QFrame</extends>
-   <header>../widget/playlistpage.h</header>
+   <header>widget/playlistpage.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

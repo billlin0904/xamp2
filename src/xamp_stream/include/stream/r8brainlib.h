@@ -7,7 +7,6 @@
 
 #include <base/base.h>
 
-#ifdef XAMP_OS_WIN
 
 #include <stream/stream.h>
 #include <r8bsrc.h>
@@ -32,5 +31,3 @@ public:
 };
 
 }
-
-#endif

@@ -95,7 +95,7 @@ std::shared_ptr<Logger> LoggerManager::GetLogger(const std::string &name) {
 	logger->set_pattern("[%H:%M:%S.%e][%l][%n][%t] %^%v%$");
 	logger->flush_on(spdlog::level::debug);
 
-	if (name == kXampLoggerName) {
+    if (kXampLoggerName == name) {
 		default_logger_ = std::make_shared<Logger>(logger);
 	}
 

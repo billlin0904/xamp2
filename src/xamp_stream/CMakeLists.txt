@@ -32,6 +32,7 @@ include_directories("../thirdparty/bass/include/")
 include_directories("../thirdparty/soxr/src/")
 include_directories("../thirdparty/spdlog/include/")
 include_directories("../thirdparty/robin_hood/")
+include_directories("../thirdparty/r8brain-free-src/DLL/")
 
 file(GLOB_RECURSE SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/*.cpp")
 

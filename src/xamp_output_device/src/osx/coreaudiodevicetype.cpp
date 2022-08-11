@@ -60,8 +60,8 @@ Uuid CoreAudioDeviceType::GetTypeId() const {
     return Id;
 }
 
-std::vector<DeviceInfo> CoreAudioDeviceType::GetDeviceInfo() const {
-    std::vector<DeviceInfo> device_infos;
+Vector<DeviceInfo> CoreAudioDeviceType::GetDeviceInfo() const {
+    Vector<DeviceInfo> device_infos;
 
     AudioObjectPropertyAddress constexpr property = {
         kAudioHardwarePropertyDevices,

@@ -28,9 +28,10 @@ QStringList PixmapCache::cache_ext_ =
 
 PixmapCache::PixmapCache()
 	: cache_(kDefaultCacheSize)
-	, logger_(LoggerManager::GetInstance().GetLogger("PixmapCache")) {
-	cache_path_ = AppSettings::getCachePath() + Q_TEXT("/caches/");
-	const QDir dir;
+    , logger_(LoggerManager::GetInstance().GetLogger("PixmapCache")) {
+    cache_path_ = AppSettings::getCachePath() + Q_TEXT("/caches/");
+
+    const QDir dir(cache_path_);
 	if (!dir.exists()) {
 		if (!dir.mkdir(cache_path_)) {
 			XAMP_LOG_E(logger_, "Create cache dir faulure!");

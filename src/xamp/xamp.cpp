@@ -791,6 +791,7 @@ void Xamp::initialController() {
 
     auto* check_for_update = new QAction(tr("Check For Updates"), this);
 
+#ifdef Q_OS_WIN
     auto* updater = QSimpleUpdater::getInstance();
     /*(void)QObject::connect(updater, &QSimpleUpdater::checkingFinished, [updater, this](auto url) {
         auto change_log = updater->getChangelog(url);
@@ -831,7 +832,7 @@ void Xamp::initialController() {
         });
     updater->checkForUpdates(kSoftwareUpdateUrl);
     settings_menu->addAction(check_for_update);
-
+#endif
     auto* about_action = new QAction(tr("About"), this);
     (void)QObject::connect(about_action, &QAction::triggered, [=]() {
         auto* about_dialog = new XDialog(this);
@@ -845,7 +846,6 @@ void Xamp::initialController() {
     settings_menu->addSeparator();
     ui_.settingsButton->setMenu(settings_menu);
 
-#ifdef Q_OS_WIN
     theme_menu_ = new QMenu(this);
     qTheme.setMenuStyle(theme_menu_);
     qTheme.setThemeButtonIcon(ui_);
@@ -864,7 +864,7 @@ void Xamp::initialController() {
         qApp->exit(kRestartExistCode);
         });
     ui_.themeButton->setMenu(theme_menu_);
-#endif
+
 
     ui_.seekSlider->setEnabled(false);
     ui_.startPosLabel->setText(msToString(0));

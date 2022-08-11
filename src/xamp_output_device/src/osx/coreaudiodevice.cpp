@@ -7,7 +7,7 @@
 #include <AudioToolbox/AudioToolbox.h>
 
 #include <base/stl.h>
-#include <base/logger.h>
+#include <base/logger_impl.h>
 #include <base/singleton.h>
 #include <base/memory.h>
 #include <base/timer.h>
@@ -31,7 +31,7 @@ CoreAudioDevice::CoreAudioDevice(AudioDeviceID device_id, bool is_hog_mode)
     , stream_time_(0) {
     audio_property_.mScope = kAudioDevicePropertyScopeOutput;
     audio_property_.mElement = kAudioObjectPropertyElementMaster;
-    log_ = Logger::GetInstance().GetLogger(kCoreAudioLoggerName);
+    log_ = LoggerManager::GetInstance().GetLogger(kCoreAudioLoggerName);
 }
 
 CoreAudioDevice::~CoreAudioDevice() {

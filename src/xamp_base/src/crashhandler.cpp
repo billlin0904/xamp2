@@ -230,7 +230,7 @@ public:
 #endif
     }
 #else
-    bool HaveSiginfo(int signum) {
+    static bool HaveSiginfo(int signum) {
         struct sigaction old_action, new_action;
         MemorySet(&new_action, 0, sizeof(new_action));
 
@@ -250,7 +250,7 @@ public:
         return result;
     }
 
-    void LogCrashSignal(int signum, const siginfo_t* info) {
+    static void LogCrashSignal(int signum, const siginfo_t* info) {
         const char* signal_name = "???";
         bool has_address = false;
 
@@ -285,7 +285,7 @@ public:
         XAMP_LOG_ERROR(trace.CaptureStack());
     }
 
-    void CrashSignalHandler(int signal_number, siginfo_t* info, void*) {
+    static void CrashSignalHandler(int signal_number, siginfo_t* info, void*) {
         if (!HaveSiginfo(signal_number)) {
             info = nullptr;
         }
@@ -328,11 +328,17 @@ CrashHandler::CrashHandler()
 XAMP_PIMPL_IMPL(CrashHandler)
 
 void CrashHandler::SetProcessExceptionHandlers() {
+#ifdef XAMP_OS_WIN
     impl_->SetProcessExceptionHandlers();
+#else
+    impl_->InstallSignalHandler();
+#endif
 }
 
 void CrashHandler::SetThreadExceptionHandlers() {
+#ifdef XAMP_OS_WIN
     impl_->SetThreadExceptionHandlers();
+#endif
 }
 
 }

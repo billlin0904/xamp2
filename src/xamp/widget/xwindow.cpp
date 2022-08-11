@@ -126,7 +126,9 @@ void XWindow::setContentWidget(IXPlayerFrame *content_widget) {
     setAcceptDrops(true);
     setMouseTracking(true);
     installEventFilter(this);
+#if defined(Q_OS_WIN)
     readDriveInfo();
+#endif
 }
 
 // QScopedPointer require default destructor.
@@ -243,6 +245,7 @@ void XWindow::dropEvent(QDropEvent* event) {
 }
 
 void XWindow::readDriveInfo() {
+#if defined(Q_OS_WIN)
     static const QSet<QByteArray> kCDFileSystemType = {
         "CDFS",
         "UDF",
@@ -282,6 +285,7 @@ void XWindow::readDriveInfo() {
     if (player_frame_ != nullptr) {
         player_frame_->drivesChanges(drives);
     }
+#endif
 }
 
 bool XWindow::nativeEvent(const QByteArray& event_type, void * message, long * result) {

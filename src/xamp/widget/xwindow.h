@@ -68,19 +68,19 @@ protected:
 private:
     bool nativeEvent(const QByteArray& event_type, void* message, long* result) override;
 
-#if defined(Q_OS_WIN)
-    void showEvent(QShowEvent* event) override;
-
     void addSystemMenu(QWidget *widget);
 
     void focusInEvent(QFocusEvent* event);
 
-	void focusOutEvent(QFocusEvent* event);
+    void focusOutEvent(QFocusEvent* event);
 
     void readDriveInfo();
 
-	QPoint last_pos_;
+    QPoint last_pos_;
     QRect last_rect_;
+
+#if defined(Q_OS_WIN)
+    void showEvent(QShowEvent* event) override;   
     QScreen* current_screen_;
     QScopedPointer<win32::WinTaskbar> taskbar_;
     QMap<QString, DriveInfo> exist_drives_;

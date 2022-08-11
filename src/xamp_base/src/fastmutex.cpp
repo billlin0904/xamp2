@@ -4,14 +4,13 @@
 
 namespace xamp::base {
 
-#ifdef XAMP_OS_WIN
 class SRWMutex::SRWMutexImpl {
 public:
+#ifdef XAMP_OS_WIN
     SRWMutexImpl() {
         ::InitializeSRWLock(&lock_);
     }
 
-#ifdef XAMP_OS_WIN
     void lock() noexcept {
         ::AcquireSRWLockExclusive(&lock_);
     }
@@ -77,7 +76,5 @@ void SRWMutex::unlock() noexcept {
 bool SRWMutex::try_lock() noexcept {
     return impl_->try_lock();
 }
-
-#endif
 
 }

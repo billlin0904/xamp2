@@ -3,7 +3,6 @@
 #include <QPainter>
 #include <QScrollBar>
 #include <QVBoxLayout>
-#include <QPushButton>
 #include <QSpacerItem>
 #include <QClipboard>
 #include <QStandardPaths>

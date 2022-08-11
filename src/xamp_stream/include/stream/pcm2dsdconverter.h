@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <vector>
 #include <stream/stream.h>
 #include <stream/isamplerateconverter.h>
 

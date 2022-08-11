@@ -5,6 +5,7 @@
 #include <base/singleton.h>
 #include <base/memory.h>
 #include <base/logger.h>
+#include <base/logger_impl.h>
 #include <base/base.h>
 #include <base/exception.h>
 #include <base/dll.h>

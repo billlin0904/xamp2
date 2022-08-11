@@ -3,11 +3,14 @@
 #include <base/exception.h>
 #include <stream/r8brainlib.h>
 
-#ifdef XAMP_OS_WIN
 namespace xamp::stream {
 
 R8brainLib::R8brainLib() try
-	: module_(LoadModule("r8bsrc.dll"))
+#ifdef XAMP_OS_WIN
+    : module_(LoadModule("r8bsrc.dll"))
+#else
+    : module_(LoadModule("libr8bsrc.dylib"))
+#endif
 	, XAMP_LOAD_DLL_API(r8b_create)
 	, XAMP_LOAD_DLL_API(r8b_delete)
 	, XAMP_LOAD_DLL_API(r8b_clear)
@@ -19,4 +22,3 @@ catch (const Exception& e) {
 }
 
 }
-#endif

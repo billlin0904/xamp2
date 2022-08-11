@@ -283,7 +283,7 @@ static int excute(int argc, char* argv[]) {
 
     QApplication app(argc, argv);
 
-    qInstallMessageHandler(logMessageHandler);
+    //qInstallMessageHandler(logMessageHandler);
 
     SingleInstanceApplication single_app;
 #ifndef _DEBUG

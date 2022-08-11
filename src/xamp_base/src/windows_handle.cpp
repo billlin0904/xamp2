@@ -2,6 +2,8 @@
 
 namespace xamp::base {
 
+#ifdef XAMP_OS_WIN
+
 HANDLE HandleTraits::invalid() noexcept {
 	return nullptr;
 }
@@ -49,5 +51,7 @@ HANDLE TimerQueueTraits::invalid() noexcept {
 void TimerQueueTraits::close(HANDLE value) {
 	::DeleteTimerQueueEx(value, INVALID_HANDLE_VALUE);
 }
+
+#endif
 
 }

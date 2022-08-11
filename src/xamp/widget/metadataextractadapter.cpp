@@ -227,6 +227,7 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
     }
 }
 
+#if 0
 #define MEASURE_EXECUTE_TIME_STATIS() \
     Vector<ConstLatin1String> index_execute;\
     HashMap<ConstLatin1String, double> execute_time_map
@@ -247,6 +248,12 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
 		XAMP_LOG_DEBUG("+ {:<30} {:.2f} sec", (*itr).first.data(), (*itr).second);\
 	}\
 	XAMP_LOG_DEBUG(":=:=:= Execute time :=:=:= ");
+#else
+#define MEASURE_EXECUTE_TIME_STATIS()
+#define MEASURE_EXECUTE_TIME_START(Name)
+#define MEASURE_EXECUTE_TIME_END(Name)
+#define MEASURE_EXECUTE_TIME_SHOW()
+#endif
 
 void ::MetadataExtractAdapter::processMetadata(int64_t dir_last_write_time, const ForwardList<Metadata>& result, PlayListTableView* playlist, bool is_podcast) {
 	auto playlist_id = -1;

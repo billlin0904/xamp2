@@ -1,10 +1,13 @@
-#include <discid/discid.h>
 #include <base/platfrom_handle.h>
 #include <base/dll.h>
 #include <base/exception.h>
 #include <base/logger.h>
 #include <base/logger_impl.h>
 #include <base/singleton.h>
+
+#ifdef XAMP_OS_WIN
+
+#include <discid/discid.h>
 #include <player/mbdiscid.h>
 
 namespace xamp::player {
@@ -134,3 +137,5 @@ void MBDiscId::LoadMBDiscIdLib() {
 }
 
 }
+
+#endif
