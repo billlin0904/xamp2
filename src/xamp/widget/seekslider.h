@@ -23,8 +23,11 @@ signals:
 protected:
 	void mousePressEvent(QMouseEvent* event) override;
 
+	void enterEvent(QEvent* event) override;
+
 private:
 	int64_t min_ = 0;
 	int64_t max_ = 0;
+
 };
 

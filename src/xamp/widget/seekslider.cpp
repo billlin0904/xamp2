@@ -1,3 +1,8 @@
+#include <QToolTip>
+
+#include "str_utilts.h"
+#include <widget/tooltips.h>
+#include <widget/tooltipsfilter.h>
 #include <widget/seekslider.h>
 
 SeekSlider::SeekSlider(QWidget* parent)
@@ -18,4 +23,10 @@ void SeekSlider::mousePressEvent(QMouseEvent* event) {
 		emit leftButtonValueChanged(value);
 	}
 	return QSlider::mousePressEvent(event);
+}
+
+void SeekSlider::enterEvent(QEvent* event) {
+	auto x = mapFromGlobal(QCursor::pos()).x();
+	auto value = (max_ - min_) * x / width() + min_;
+	QToolTip::showText(QCursor::pos(), msToString(static_cast<double>(value) / 1000.0));
 }

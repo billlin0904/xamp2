@@ -3,8 +3,12 @@
 #include <widget/widget_shared.h>
 #include <widget/pixmapcache.h>
 #include <base/logger_impl.h>
-#include <player/mbdiscid.h>
 
+#if defined(Q_OS_WIN)
+#include <player/mbdiscid.h>
+#endif
+
+#include <widget/metadataextractadapter.h>
 #include <widget/podcast_uiltis.h>
 #include <widget/http.h>
 #include <widget/str_utilts.h>
@@ -14,8 +18,6 @@
 #include <widget/read_utiltis.h>
 #include <widget/appsettings.h>
 #include <widget/backgroundworker.h>
-
-#include "metadataextractadapter.h"
 
 struct PlayListRGResult {
     PlayListRGResult(PlayListEntity item, std::optional<Ebur128ReplayGainScanner> scanner)
@@ -45,6 +47,7 @@ void BackgroundWorker::stopThreadPool() {
 }
 
 void BackgroundWorker::onFetchCdInfo(const DriveInfo& drive) {
+#if defined(Q_OS_WIN)
     MBDiscId mbdisc_id;
     std::string disc_id;
     std::string url;
@@ -111,6 +114,7 @@ void BackgroundWorker::onFetchCdInfo(const DriveInfo& drive) {
                     });				
                 }).get();
             }).get();
+#endif
 }
 
 void BackgroundWorker::onBlurImage(const QString& cover_id, const QImage& image) {

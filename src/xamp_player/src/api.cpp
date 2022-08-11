@@ -41,6 +41,9 @@ void Initialize() {
     LoadR8brainLib();
     XAMP_LOG_DEBUG("Load r8brain lib success.");
 
+    MBDiscId::LoadMBDiscIdLib();
+    XAMP_LOG_DEBUG("Load mbdiscid lib success.");
+
     GetWASAPIThreadPool();
     XAMP_LOG_DEBUG("Start WASAPI thread pool success.");
 #endif
@@ -50,9 +53,6 @@ void Initialize() {
 
     Ebur128ReplayGainScanner::LoadEbur128Lib();
     XAMP_LOG_DEBUG("Load ebur128 lib success.");
-
-    MBDiscId::LoadMBDiscIdLib();
-    XAMP_LOG_DEBUG("Load mbdiscid lib success.");
 
     PreventSleep(true);
 }

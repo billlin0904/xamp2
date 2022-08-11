@@ -14,7 +14,7 @@ class QLabel;
 class ToolTips : public QFrame {
 	Q_OBJECT
 public:
-	explicit ToolTips(const QString& text, QWidget* parent = nullptr);
+	explicit ToolTips(const QString& text = QString(), QWidget* parent = nullptr);
 
 public slots:
 	void setText(const QString& text);
