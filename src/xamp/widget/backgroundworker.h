@@ -49,7 +49,7 @@ public Q_SLOT:
 
     void onBlurImage(const QString &cover_id, const QImage& image);
 
-    void onFetchCdInfo(const DriveInfo &driver, const QString& drive);
+    void onFetchCdInfo(const DriveInfo &drive);
 
 private:
     bool is_stop_{false};

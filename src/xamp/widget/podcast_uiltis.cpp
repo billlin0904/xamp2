@@ -211,4 +211,5 @@ QString parseCoverUrl(QString const& json) {
             return object.value(Q_TEXT("image")).toString();
         }
     }
+    return Qt::EmptyString;
 }

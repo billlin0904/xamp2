@@ -32,19 +32,12 @@ static QByteArray generateRequestId() {
 
 static void logRequest(const ConstLatin1String& verb,
     const QString& url,
-    const QByteArray& id, 
-    const QString& content_type,
-    const QList<QNetworkReply::RawHeaderPair>& header,
+    const QNetworkRequest& request,
     const QNetworkReply *reply) {
-	auto content_length = reply ? reply->size() : 0;
-    if (content_length == 0 && reply != nullptr) {
-        content_length = reply->header(QNetworkRequest::ContentLengthHeader).toUInt();
-    }
+    auto content_length = 0;
 
     QString msg;
     QTextStream stream(&msg);
-
-    stream << id << ": ";
 
     if (!reply) {
         stream << "Request: ";
@@ -60,18 +53,26 @@ static void logRequest(const ConstLatin1String& verb,
 
     stream << " " << url << " Header: { ";
 
-    for (const auto& it : header) {
-        stream << it.first << ": ";
-        if (it.first == "Authorization") {
-            stream << (it.second.startsWith("Bearer ") ? "Bearer" : "Basic");
-            stream << " [redacted]";
+    QString content_type;
+    if (!reply) {
+        const auto header_list = request.rawHeaderList();
+        Q_FOREACH(const auto& head , header_list) {
+            stream << head << ": ";
+            stream << request.rawHeader(head);
+            stream << ", ";
         }
-        else {
-            stream << it.second;
+        content_length = request.header(QNetworkRequest::ContentLengthHeader).toUInt();
+        content_type = request.header(QNetworkRequest::ContentTypeHeader).toString();
+    } else {
+    	auto header_list = reply->rawHeaderList();
+        Q_FOREACH(const auto & head, header_list) {
+            stream << head << ": ";
+            stream << reply->rawHeader(head);
+            stream << ", ";
         }
-        stream << ", ";
+        content_length = reply->header(QNetworkRequest::ContentLengthHeader).toUInt();
+        content_type = reply->header(QNetworkRequest::ContentTypeHeader).toString();
     }
-
     stream << "} Data: [";
     if (content_length > 0) {
         stream << QString::fromStdString(String::FormatBytes(content_length)) << " of " << content_type << " data";
@@ -101,20 +102,7 @@ ConstLatin1String requestVerb(QNetworkAccessManager::Operation operation, const 
 }
 
 static void logHttpRequest(const ConstLatin1String& verb, const QNetworkRequest& request, const QNetworkReply* reply = nullptr) {
-    const auto keys = request.rawHeaderList();
-    QList<QNetworkReply::RawHeaderPair> header;
-    header.reserve(keys.size());
-
-    for (const auto& key : keys) {
-        header << qMakePair(key, request.rawHeader(key));
-    }
-
-    logRequest(verb,
-        request.url().toString(),
-        request.rawHeader(QByteArray("X-Request-ID")),
-        request.header(QNetworkRequest::ContentTypeHeader).toString(),
-        header,
-        reply);
+    logRequest(verb, request.url().toString(), request, reply);
 }
 
 struct HttpContext {

@@ -11,9 +11,16 @@ ProcessIndicator::ProcessIndicator(QWidget* parent)
 	, color_(Qt::black) {
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     setFocusPolicy(Qt::NoFocus);
-    setColor(Qt::white);
-    show();
     centerParent(this);
+    switch (qTheme.themeColor()) {
+    case ThemeColor::DARK_THEME:
+        setColor(Qt::white);
+        break;
+    case ThemeColor::LIGHT_THEME:
+        setColor(Qt::black);
+        break;
+    }
+    show();
 }
 
 bool ProcessIndicator::isAnimated() const {

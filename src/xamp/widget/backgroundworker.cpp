@@ -44,41 +44,44 @@ void BackgroundWorker::stopThreadPool() {
     pool_->Stop();
 }
 
-void BackgroundWorker::onFetchCdInfo(const DriveInfo& driver, const QString& drive) {
+void BackgroundWorker::onFetchCdInfo(const DriveInfo& drive) {
     MBDiscId mbdisc_id;
     std::string disc_id;
     std::string url;
 
     try {
-        disc_id = mbdisc_id.GetDiscId(drive.toStdString());
-        url = mbdisc_id.GetDiscIdLookupUrl(drive.toStdString());
+        disc_id = mbdisc_id.GetDiscId(drive.drive_path.toStdString());
+        url = mbdisc_id.GetDiscIdLookupUrl(drive.drive_path.toStdString());
     } catch (Exception const &e) {
         XAMP_LOG_DEBUG(e.GetErrorMessage());
+        return;
     }
 
     ForwardList<Metadata> metadatas;
 
-    auto cd = OpenCD(driver.driver_letter);
-    cd->SetMaxSpeed();
-    const auto tracks = cd->GetTotalTracks();
+    try {
+        auto cd = OpenCD(drive.driver_letter);
+        cd->SetMaxSpeed();
+        const auto tracks = cd->GetTotalTracks();
 
-    auto track_id = 0;
-    for (const auto& track : tracks) {
-        auto metadata = getMetadata(QString::fromStdWString(track));
-        metadata.file_path = tracks[track_id];
-        metadata.duration = cd->GetDuration(track_id++);
-        metadata.samplerate = 44100;
-        metadata.disc_id = disc_id;
-        metadatas.push_front(metadata);
+        auto track_id = 0;
+        for (const auto& track : tracks) {
+            auto metadata = getMetadata(QString::fromStdWString(track));
+            metadata.file_path = tracks[track_id];
+            metadata.duration = cd->GetDuration(track_id++);
+            metadata.samplerate = 44100;
+            metadata.disc_id = disc_id;
+            metadatas.push_front(metadata);
+        }
+
+        metadatas.sort([](const auto& first, const auto& last) {
+            return first.track < last.track;
+            });
+
+        emit updateCdMetadata(QString::fromStdString(disc_id), metadatas);
     }
-
-    metadatas.sort([](const auto& first, const auto& last) {
-        return first.track < last.track;
-        });
-
-    emit updateCdMetadata(QString::fromStdString(disc_id), metadatas);
-
-    if (disc_id.empty()) {
+    catch (Exception const& e) {
+        XAMP_LOG_DEBUG(e.GetErrorMessage());
         return;
     }
 

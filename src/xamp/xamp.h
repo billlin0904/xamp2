@@ -59,7 +59,7 @@ signals:
 
 	void addBlurImage(const QString& cover_id, const QImage& image);
 
-	void fetchCdInfo(const DriveInfo& driver, const QString& drive);
+	void fetchCdInfo(const DriveInfo& drive);
 
 public slots:
     void playAlbumEntity(const AlbumEntity& item);

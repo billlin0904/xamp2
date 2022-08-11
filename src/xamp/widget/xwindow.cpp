@@ -243,7 +243,7 @@ void XWindow::dropEvent(QDropEvent* event) {
 }
 
 void XWindow::readDriveInfo() {
-    static const QList<std::string> kCDFileSystemType = {
+    static const QSet<QByteArray> kCDFileSystemType = {
         "CDFS",
         "UDF",
         "ISO-9660",
@@ -252,22 +252,27 @@ void XWindow::readDriveInfo() {
 
     QList<DriveInfo> drives;
     Q_FOREACH(auto & storage, QStorageInfo::mountedVolumes()) {
-        if (storage.isValid() && storage.isReady()) {
-            auto display_name = storage.displayName() + Q_TEXT("(") + storage.rootPath() + Q_TEXT(")");
-            const auto driver_letter = storage.rootPath().left(1).toStdString()[0];
-            const auto file_system_type = storage.fileSystemType();
-            if (kCDFileSystemType.contains(file_system_type.toUpper().toStdString())) {
-                auto device = OpenCD(driver_letter);
-                auto device_info = device->GetCDDeviceInfo();
-                display_name += QString::fromStdWString(L" " + device_info.product);
+        if (!storage.isValid() || !storage.isReady()) {
+            return;
+        }
 
-                auto itr = std::find_if(exist_drives_.begin(), exist_drives_.end(), [display_name](auto drive) {
-                    return drive.display_name == display_name;
-                    });
-                if (itr == exist_drives_.end()) {
-                    exist_drives_.push_back(DriveInfo{ driver_letter , display_name });
-                    drives.push_back(DriveInfo{ driver_letter , display_name });
-                }
+        auto display_name = storage.displayName() + Q_TEXT("(") + storage.rootPath() + Q_TEXT(")");
+        const auto driver_letter = storage.rootPath().left(1).toStdString()[0];
+        const auto file_system_type = storage.fileSystemType();
+        if (kCDFileSystemType.contains(file_system_type.toUpper())) {
+            const auto device = OpenCD(driver_letter);
+            const auto device_info = device->GetCDDeviceInfo();
+            display_name += QString::fromStdWString(L" " + device_info.product);
+            auto itr = exist_drives_.find(display_name);
+            if (itr == exist_drives_.end()) {
+                XAMP_LOG_DEBUG("Add new drive : {}", display_name.toStdString());
+                DriveInfo info{
+                   driver_letter ,
+                   display_name,
+                    QString(Q_TEXT("%1:\\")).arg(driver_letter)
+                };
+                exist_drives_[display_name] = info;
+                drives.push_back(info);
             }
         }
     }

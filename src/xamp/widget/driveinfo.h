@@ -11,6 +11,7 @@
 struct DriveInfo {
 	char driver_letter;
 	QString display_name;
+	QString drive_path;
 };
 Q_DECLARE_METATYPE(DriveInfo)
 

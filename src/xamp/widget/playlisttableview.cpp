@@ -585,49 +585,39 @@ void PlayListTableView::resizeEvent(QResizeEvent* event) {
 }
 
 void PlayListTableView::importPodcast() {
-    /*QDialog dialog(this);
-    dialog.setWindowTitle(tr("Import file from meta.json"));
-    dialog.setWindowFlags(dialog.windowFlags() & ~Qt::WindowContextHelpButtonHint);
-    dialog.resize(600, 20);
-
-    QFormLayout form(&dialog);
-    auto* url_edit = new QLineEdit(&dialog);
-    url_edit->setText(Q_UTF8("https://suisei.moe/podcast.xml"));
-    form.addRow(tr("URL:"), url_edit);
-
-    QDialogButtonBox buttonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
-        Qt::Horizontal, &dialog);
-    form.addRow(&buttonBox);
-    (void)QObject::connect(&buttonBox, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
-    (void)QObject::connect(&buttonBox, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
-
-    if (dialog.exec() != QDialog::Accepted) {
-        return;
-    }*/
-
     auto* indicator = new ProcessIndicator(this);
     XAMP_LOG_DEBUG("Start download podcast.xml");
+
     indicator->startAnimation();
-    http::HttpClient(/*url_edit->text()*/Q_TEXT("https://suisei.moe/podcast.xml"))
+
+    http::HttpClient(Q_TEXT("https://suisei.moe/podcast.xml"))
 	.error([this, indicator](const QString& msg) {
         indicator->deleteLater();
 	})
 	.success([this, indicator](const QString& json) {
-        XAMP_LOG_DEBUG("download podcast.xml success!");
+        XAMP_LOG_DEBUG("Download podcast.xml success!");
+
+		Stopwatch sw;
         auto const podcast_info = parsePodcastXML(json);
-        ::MetadataExtractAdapter::processMetadata(QDateTime::currentSecsSinceEpoch(), podcast_info.second, this, podcast_mode_);
+        XAMP_LOG_DEBUG("Parse podcast.xml success! {}sec", sw.ElapsedSeconds());
+
+		::MetadataExtractAdapter::processMetadata(QDateTime::currentSecsSinceEpoch(),
+            podcast_info.second, 
+            this,
+            podcast_mode_);
         XAMP_LOG_DEBUG("Start download podcast image file");
+        
         http::HttpClient(QString::fromStdString(podcast_info.first))
 		.error([this, indicator](const QString& msg) {
             indicator->deleteLater();
         })
     	.download([=](auto data) {
-            XAMP_LOG_DEBUG("download podcast image file success!");
-            auto cover_id = qPixmapCache.addOrUpdate(data);
-    		if (!model()->rowCount()) {
+            if (!model()->rowCount()) {
                 indicator->deleteLater();
                 return;
-    		}
+            }
+            XAMP_LOG_DEBUG("Download podcast image file success!");
+            auto cover_id = qPixmapCache.addOrUpdate(data);
             auto play_item = getEntity(this->model()->index(0, 0));
             qDatabase.setAlbumCover(play_item.album_id, play_item.album, cover_id);
             indicator->deleteLater();

@@ -83,7 +83,7 @@ private:
     QRect last_rect_;
     QScreen* current_screen_;
     QScopedPointer<win32::WinTaskbar> taskbar_;
-    QList<DriveInfo> exist_drives_;
+    QMap<QString, DriveInfo> exist_drives_;
 #endif
     IXPlayerFrame *player_frame_;
 };

@@ -117,6 +117,10 @@ std::tuple<int32_t, int32_t, QString> DatabaseIdCache::addOrGetAlbumAndArtistId(
         cover_id = *cover_id_op;
     }
 
+    /*auto artist_id = qDatabase.addOrUpdateArtist(artist);
+    auto album_id = qDatabase.addOrUpdateAlbum(album, artist_id, dir_last_write_time, is_podcast, disc_id);
+    QString cover_id;*/
+
     return std::make_tuple(album_id, artist_id, cover_id);
 }
 
@@ -223,6 +227,27 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
     }
 }
 
+#define MEASURE_EXECUTE_TIME_STATIS() \
+    Vector<ConstLatin1String> index_execute;\
+    HashMap<ConstLatin1String, double> execute_time_map
+
+#define MEASURE_EXECUTE_TIME_START(Name) \
+    Stopwatch Name
+
+#define MEASURE_EXECUTE_TIME_END(Name) \
+    if (!execute_time_map.contains(#Name)) {\
+		index_execute.push_back(#Name);\
+    }\
+    execute_time_map[#Name] += Name.ElapsedSeconds()
+
+#define MEASURE_EXECUTE_TIME_SHOW() \
+    XAMP_LOG_DEBUG(":=:=:= Execute time :=:=:= "); \
+	for (const auto &name : index_execute) {\
+		auto itr = execute_time_map.find(name);\
+		XAMP_LOG_DEBUG("+ {:<30} {:.2f} sec", (*itr).first.data(), (*itr).second);\
+	}\
+	XAMP_LOG_DEBUG(":=:=:= Execute time :=:=:= ");
+
 void ::MetadataExtractAdapter::processMetadata(int64_t dir_last_write_time, const ForwardList<Metadata>& result, PlayListTableView* playlist, bool is_podcast) {
 	auto playlist_id = -1;
     if (playlist != nullptr) {
@@ -231,7 +256,13 @@ void ::MetadataExtractAdapter::processMetadata(int64_t dir_last_write_time, cons
 
 	const DatabaseIdCache cache;
 
-    for (const auto& metadata : result) {	    
+    MEASURE_EXECUTE_TIME_STATIS();
+    MEASURE_EXECUTE_TIME_START(processMetadata);
+
+    for (const auto& metadata : result) {
+        qApp->processEvents();
+
+        MEASURE_EXECUTE_TIME_START(fromWCharArray);
 	    auto album = QString::fromWCharArray(metadata.album.c_str());
         auto artist = QString::fromWCharArray(metadata.artist.c_str());
         auto disc_id = QString::fromStdString(metadata.disc_id);
@@ -246,23 +277,30 @@ void ::MetadataExtractAdapter::processMetadata(int64_t dir_last_write_time, cons
                 album = QString::fromStdWString(metadata.file_name_no_ext);
             }
         }
-
-    	if (artist.isEmpty()) {
+        if (artist.isEmpty()) {
             artist = tr("Unknown artist");
-    	}
+        }
+        MEASURE_EXECUTE_TIME_END(fromWCharArray);
 
+        MEASURE_EXECUTE_TIME_START(addOrUpdateMusic);
         const auto music_id = qDatabase.addOrUpdateMusic(metadata);
+        MEASURE_EXECUTE_TIME_END(addOrUpdateMusic);
 
+        MEASURE_EXECUTE_TIME_START(addOrGetAlbumAndArtistId);
         auto [album_id, artist_id, cover_id] = cache.addOrGetAlbumAndArtistId(dir_last_write_time,
             album, 
             artist,
             is_podcast, 
             disc_id);
+        MEASURE_EXECUTE_TIME_END(addOrGetAlbumAndArtistId);
 
-        if (playlist_id != -1) {
+        MEASURE_EXECUTE_TIME_START(addMusicToPlaylist);
+        if (playlist_id != -1) {            
             qDatabase.addMusicToPlaylist(music_id, playlist_id, album_id);
         }
+        MEASURE_EXECUTE_TIME_END(addMusicToPlaylist);
 
+        MEASURE_EXECUTE_TIME_START(addCoverCache);
         if (metadata.cover_id.empty()) {
             // Find cover id from database.
             if (cover_id.isEmpty()) {
@@ -275,12 +313,18 @@ void ::MetadataExtractAdapter::processMetadata(int64_t dir_last_write_time, cons
             }
         } else {
             qDatabase.setAlbumCover(album_id, album, QString::fromStdString(metadata.cover_id));
-        }       
+        }
+        MEASURE_EXECUTE_TIME_END(addCoverCache);
 
+        MEASURE_EXECUTE_TIME_START(addOrUpdateAlbumMusic);
         IgnoreSqlError(qDatabase.addOrUpdateAlbumMusic(album_id,
             artist_id,
             music_id))
+    	MEASURE_EXECUTE_TIME_END(addOrUpdateAlbumMusic);
     }
+
+    MEASURE_EXECUTE_TIME_END(processMetadata);
+    MEASURE_EXECUTE_TIME_SHOW();
 
     if (playlist != nullptr) {
         playlist->updateData();

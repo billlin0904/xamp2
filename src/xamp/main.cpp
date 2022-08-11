@@ -251,6 +251,23 @@ static void registerMetaType() {
     qRegisterMetaType<DriveInfo>("DriveInfo");
 }
 
+static void logMessageHandler(QtMsgType type, const QMessageLogContext& context, const QString& msg) {
+    switch (type) {
+    case QtDebugMsg:
+        XAMP_LOG_DEBUG(msg.toStdString());
+        break;
+    case QtWarningMsg:
+        XAMP_LOG_WARN(msg.toStdString());
+        break;
+    case QtCriticalMsg:
+        XAMP_LOG_CRITICAL(msg.toStdString());
+        break;
+    case QtFatalMsg:
+        XAMP_LOG_CRITICAL(msg.toStdString());
+        break;
+    }
+}
+
 static int excute(int argc, char* argv[]) {
     QApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
     QApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
@@ -265,6 +282,8 @@ static int excute(int argc, char* argv[]) {
     QApplication::setOrganizationDomain(Q_TEXT("XAMP2 Project"));
 
     QApplication app(argc, argv);
+
+    qInstallMessageHandler(logMessageHandler);
 
     SingleInstanceApplication single_app;
 #ifndef _DEBUG

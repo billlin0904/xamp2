@@ -16,6 +16,18 @@ struct ConstLatin1String final : public QLatin1String {
     }
 };
 
+namespace std {
+	template <>
+	struct hash<ConstLatin1String> {
+		typedef size_t result_type;
+		typedef ConstLatin1String argument_type;
+
+		result_type operator()(const argument_type& s) const {
+			return qHash(s);
+		}
+	};
+}
+
 namespace Qt {
     inline constexpr ConstLatin1String EmptyString{ "" };
 }

@@ -54,6 +54,8 @@ public:
 
     XAMP_DISABLE_COPY(AudioPlayer)
 
+	void Startup() override;
+
     void Open(Path const& file_path, const Uuid& device_id = Uuid::kNullUuid) override;
 
     void Open(Path const& file_path, const DeviceInfo& device_info, uint32_t target_sample_rate = 0) override;
@@ -111,8 +113,6 @@ public:
     bool CanConverter() const noexcept;
 
 private:
-    void Startup();
-
     void DoSeek(double stream_time);        
     	
     void OpenStream(Path const& file_path, DeviceInfo const& device_info);

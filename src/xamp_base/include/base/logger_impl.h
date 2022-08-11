@@ -55,9 +55,11 @@ public:
     explicit Logger(const std::shared_ptr<spdlog::logger>& logger);
 
     DECLARE_LOG_ARG_API(Trace, LOG_LEVEL_TRACE)
-    DECLARE_LOG_ARG_API(Error, LOG_LEVEL_ERROR)
 	DECLARE_LOG_ARG_API(Debug, LOG_LEVEL_DEBUG)
-    DECLARE_LOG_ARG_API(Info, LOG_LEVEL_INFO)
+	DECLARE_LOG_ARG_API(Info, LOG_LEVEL_INFO)
+	DECLARE_LOG_ARG_API(Warn, LOG_LEVEL_WARN)
+    DECLARE_LOG_ARG_API(Error, LOG_LEVEL_ERROR)
+    DECLARE_LOG_ARG_API(Critical, LOG_LEVEL_CRITICAL)
 
     void SetLevel(LogLevel level);
 

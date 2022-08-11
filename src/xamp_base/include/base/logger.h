@@ -65,8 +65,12 @@ DECLARE_LOG_NAME(FileStream);
 #define XAMP_LOG_INFO(...) xamp::base::LoggerManager::GetInstance().GetDefaultLogger()->LogInfo(__VA_ARGS__)
 #define XAMP_LOG_ERROR(...) xamp::base::LoggerManager::GetInstance().GetDefaultLogger()->LogError(__VA_ARGS__)
 #define XAMP_LOG_TRACE(...) xamp::base::LoggerManager::GetInstance().GetDefaultLogger()->LogTrace(__VA_ARGS__)
+#define XAMP_LOG_WARN(...) xamp::base::LoggerManager::GetInstance().GetDefaultLogger()->LogWarn(__VA_ARGS__)
+#define XAMP_LOG_CRITICAL(...) xamp::base::LoggerManager::GetInstance().GetDefaultLogger()->LogCritical(__VA_ARGS__)
 
 #define XAMP_LOG_D(logger, ...) logger->LogDebug(__VA_ARGS__)
 #define XAMP_LOG_I(logger, ...) logger->LogInfo(__VA_ARGS__)
 #define XAMP_LOG_E(logger, ...) logger->LogError(__VA_ARGS__)
 #define XAMP_LOG_T(logger, ...) logger->LogTrace(__VA_ARGS__)
+#define XAMP_LOG_W(logger, ...) logger->LogWarn(__VA_ARGS__)
+#define XAMP_LOG_C(logger, ...) logger->LogCritical(__VA_ARGS__)

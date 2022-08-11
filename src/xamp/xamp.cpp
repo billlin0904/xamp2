@@ -147,6 +147,7 @@ void Xamp::setXWindow(IXWindow* top_window) {
     background_worker_ = new BackgroundWorker();
     background_worker_->moveToThread(&background_thread_);
     background_thread_.start();
+    player_->Startup();
     initialUI();
     initialController();
     initialPlaylist();
@@ -1297,12 +1298,7 @@ void Xamp::onUpdateCdMetadata(const QString& disc_id, const ForwardList<Metadata
 void Xamp::drivesChanges(const QList<DriveInfo>& drive_infos) {
     cd_page_->playlistPage()->playlist()->removeAll();
     cd_page_->playlistPage()->playlist()->updateData();
-
-	Q_FOREACH(auto driver, drive_infos) {
-        std::stringstream ostr;
-        ostr << driver.driver_letter << ":\\";
-		emit fetchCdInfo(driver, QString::fromStdString(ostr.str()));
-	}
+    emit fetchCdInfo(drive_infos.first());
 }
 
 void Xamp::drivesRemoved(const DriveInfo& drive_info) {

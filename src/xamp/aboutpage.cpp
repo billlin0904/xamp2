@@ -5,18 +5,27 @@
 #include "thememanager.h"
 #include "aboutpage.h"
 
+#ifdef Q_OS_WIN32
+static ConstLatin1String visualStudioVersion() {
+	if constexpr (_MSC_VER >= 1930) {
+        return "2022";
+	}
+    return "2019";
+}
+#endif
+
 AboutPage::AboutPage(QWidget* parent)
     : QFrame(parent) {
     ui.setupUi(this);
 
 #ifdef Q_OS_WIN32
-    ui.lblVersion->setText(Q_STR("Build Visual Studio 20%1.%2.%3 (%4 %5), %6 AVX2, Qt %7")
-        .arg(_MSC_VER / 100)
+    ui.lblVersion->setText(Q_STR("Build Visual Studio %1.%2.%3 (%4 %5), %6 AVX2, Qt %7")
+        .arg(visualStudioVersion())
 		.arg((_MSC_FULL_VER / 100000) % 100)
 		.arg(_MSC_FULL_VER % 100000)
         .arg(Q_TEXT(__DATE__))
 		.arg(Q_TEXT(__TIME__))
-        .arg(SIMD::IsCPUSupportAVX2() ? Q_TEXT("Support") : Q_TEXT("Unsupport"))
+        .arg(SIMD::IsCPUSupportAVX2() ? Q_TEXT("Supported") : Q_TEXT("Unsupported"))
 		.arg(Q_TEXT(QT_VERSION_STR)));
 #else
     ui.lblVersion->setText(Q_STR("Build Clang %1.%2.%3")

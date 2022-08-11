@@ -146,6 +146,10 @@ public:
 
     QColor titleBarColor() const;
 
+    ThemeColor themeColor() const {
+        return theme_color_;
+    }
+
 private:
     QFont loadFonts();
 
@@ -154,10 +158,6 @@ private:
     void setPalette();
 
     QIcon makeIcon(const QString& path) const;
-
-    ThemeColor themeColor() const {
-        return theme_color_;
-    }
 
     ThemeManager();
     
