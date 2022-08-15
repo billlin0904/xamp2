@@ -58,8 +58,6 @@ public:
 
 	uint32_t GetBitDepth() const override;
 
-	static HashSet<std::string> GetSupportFileExtensions();
-
 	uint32_t GetHStream() const noexcept;
 
     bool IsActive() const noexcept override;

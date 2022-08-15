@@ -42,7 +42,7 @@ XAMP_STREAM_API bool TestDsdFileFormatStd(std::wstring const& file_path);
 
 XAMP_STREAM_API IDsdStream* AsDsdStream(IAudioStream* stream) noexcept;
 
-XAMP_STREAM_API HashSet<std::string> const& GetSupportFileExtensions();
+XAMP_STREAM_API HashSet<std::string> GetSupportFileExtensions();
 
 XAMP_STREAM_API std::map<std::string, std::string> GetBassDLLVersion();
 

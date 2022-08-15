@@ -414,10 +414,6 @@ uint32_t BassFileStream::GetHStream() const noexcept {
     return stream_->GetHStream();
 }
 
-HashSet<std::string> BassFileStream::GetSupportFileExtensions() {
-    return BASS.GetSupportFileExtensions();
-}
-
 bool BassFileStream::IsActive() const noexcept {
     return stream_->IsActive();
 }

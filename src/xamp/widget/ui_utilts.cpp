@@ -3,10 +3,10 @@
 #include <QCheckBox>
 #include <QProgressDialog>
 
+#include <version.h>
 #include <widget/xdialog.h>
 #include <widget/str_utilts.h>
 #include <widget/ui_utilts.h>
-#include <version.h>
 
 QString sampleRate2String(const AudioFormat& format) {
     return samplerate2String(format.GetSampleRate());
@@ -74,17 +74,17 @@ QString format2String(const PlaybackFormat& playback_format, const QString& file
         + Q_TEXT(" | ") + dsd_mode;
 }
 
-QSharedPointer<QProgressDialog> makeProgressDialog(QString const& title, QString const& text, QString const& cancel) {
+QScopedPointer<QProgressDialog> makeProgressDialog(QString const& title, QString const& text, QString const& cancel) {
     auto* dialog = new QProgressDialog(text, cancel, 0, 100);
     dialog->setFont(qApp->font());
     dialog->setWindowTitle(title);
     dialog->setWindowModality(Qt::WindowModal);
     dialog->setMinimumSize(QSize(1000, 100));
     dialog->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed));
-    auto* progress_bar = new QProgressBar();
+    auto* progress_bar = new QProgressBar(dialog);
     progress_bar->setFont(QFont(Q_TEXT("FormatFont")));
     dialog->setBar(progress_bar);
-    return QSharedPointer<QProgressDialog>(dialog);
+    return QScopedPointer<QProgressDialog>(dialog);
 }
 
 std::tuple<bool, QMessageBox::StandardButton> showDontShowAgainDialog(bool show_agin) {

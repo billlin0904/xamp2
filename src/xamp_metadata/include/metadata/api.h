@@ -15,9 +15,7 @@ XAMP_METADATA_API AlignPtr<IMetadataReader> MakeMetadataReader();
 
 XAMP_METADATA_API AlignPtr<IMetadataWriter> MakeMetadataWriter();
 
-XAMP_METADATA_API void ScanFolder(Path const& path, IMetadataExtractAdapter* adapter, IMetadataReader* reader);
-
-XAMP_METADATA_API void RecursiveScanFolder(Path const& path, IMetadataExtractAdapter* adapter, IMetadataReader* reader);
+XAMP_METADATA_API void ScanFolder(Path const& path, IMetadataExtractAdapter* adapter, IMetadataReader* reader, bool is_recursive = true);
 
 }
 

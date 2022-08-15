@@ -136,8 +136,9 @@ public:
         }
         using namespace audio_util;
         const auto file_ext = String::ToLower(path.extension().string());
-        auto const& support_file_set = GetSupportFileExtensions();
+        const auto support_file_set = GetSupportFileExtensions();
         return support_file_set.find(file_ext) != support_file_set.end();
+        return false;
     }
 
     XAMP_DISABLE_COPY(ExtractAdapterProxy)
@@ -212,13 +213,7 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
         
         try {            
             const Path path = fromQStringPath(file_dir_or_path).toStdWString();
-            
-            if (!is_recursive) {
-                ScanFolder(path, &proxy, reader.get());
-            }
-            else {
-                RecursiveScanFolder(path, &proxy, reader.get());
-            }            
+            ScanFolder(path, &proxy, reader.get(), is_recursive);
         }
         catch (const std::exception& e) {
             XAMP_LOG_DEBUG("WalkPath has exception: {}", e.what());

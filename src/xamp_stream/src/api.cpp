@@ -102,9 +102,8 @@ IDsdStream* AsDsdStream(IAudioStream* stream) noexcept {
     return dynamic_cast<IDsdStream*>(stream);
 }
 
-HashSet<std::string> const& GetSupportFileExtensions() {
-    static const auto bass_file_ext = BassFileStream::GetSupportFileExtensions();
-    return bass_file_ext;
+HashSet<std::string> GetSupportFileExtensions() {
+    return BASS.GetSupportFileExtensions();
 }
 
 void LoadBassLib() {
@@ -120,7 +119,7 @@ void LoadBassLib() {
     try {
         BASS.EncLib = MakeAlign<BassEncLib>();
     }  catch (const Exception &e) {
-        XAMP_LOG_DEBUG("Load {} error: {}", BASS.EncLib->GetName(), e.what());
+        XAMP_LOG_DEBUG("Load EncLib error: {}", e.what());
     }
     BASS.FlacEncLib = MakeAlign<BassFlacEncLib>();
     BASS.LoadVersionInfo();

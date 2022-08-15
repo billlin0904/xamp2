@@ -28,7 +28,7 @@ QString sampleRate2String(const AudioFormat& format);
 
 QString format2String(const PlaybackFormat& playback_format, const QString& file_ext);
 
-QSharedPointer<QProgressDialog> makeProgressDialog(QString const& title, QString const& text, QString const& cancel);
+QScopedPointer<QProgressDialog> makeProgressDialog(QString const& title, QString const& text, QString const& cancel);
 
 std::tuple<bool, QMessageBox::StandardButton> showDontShowAgainDialog(bool show_agin);
 

@@ -55,12 +55,12 @@ static void ScanFolderImpl(Path const& path, IMetadataExtractAdapter* adapter, I
     }
 }
 
-void ScanFolder(Path const& path, IMetadataExtractAdapter* adapter, IMetadataReader* reader) {
-    ScanFolderImpl<DirectoryIterator>(path, adapter, reader);
-}
-
-void RecursiveScanFolder(Path const& path, IMetadataExtractAdapter* adapter, IMetadataReader* reader) {
-    ScanFolderImpl<RecursiveDirectoryIterator>(path, adapter, reader);
+void ScanFolder(Path const& path, IMetadataExtractAdapter* adapter, IMetadataReader* reader, bool is_recursive) {
+    if (!is_recursive) {
+        ScanFolderImpl<DirectoryIterator>(path, adapter, reader);
+    } else {
+        ScanFolderImpl<RecursiveDirectoryIterator>(path, adapter, reader);
+    }
 }
 
 }

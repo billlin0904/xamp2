@@ -357,10 +357,11 @@ public:
 
         const auto ext = String::ToLower(path.extension().string());
         metadata.replay_gain = GetReplayGain(ext, fileref.file());
-        try {
+        // todo: MSVC bug memory leak!
+        /*try {
             metadata.last_write_time = ToTime_t(Fs::last_write_time(path));
         } catch (...) {	        
-        }       
+        }*/
         return metadata;
     }
 
