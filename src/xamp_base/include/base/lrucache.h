@@ -6,9 +6,6 @@
 #pragma once
 
 #include <list>
-#include <forward_list>
-#include <optional>
-
 #include <base/base.h>
 #include <base/stl.h>
 
@@ -20,12 +17,12 @@ template
 <
     typename Key,
 	typename Value,
-	typename KeyList = std::list<std::pair<Key, Value>>
+	typename KeyList = List<std::pair<Key, Value>>
 >
 class XAMP_BASE_API_ONLY_EXPORT LruCache {
 public:
     using KeyIterator = typename KeyList::iterator;
-    using CacheMap = HashMap<Key, KeyIterator>;
+    using CacheMap = std::unordered_map<Key, KeyIterator>;
 
     explicit LruCache(size_t max_size = kLruCacheSize) noexcept;
 

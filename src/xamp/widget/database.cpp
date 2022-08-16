@@ -44,10 +44,6 @@ Database::~Database() {
 	db_.close();
 }
 
-void Database::flush() {
-	
-}
-
 void Database::open(const QString& file_name) {
 	db_.setDatabaseName(file_name);
 
@@ -65,6 +61,14 @@ void Database::open(const QString& file_name) {
 	(void)db_.exec(Q_TEXT("PRAGMA mmap_size = 40960"));
 
 	createTableIfNotExist();
+}
+
+void Database::transaction() {
+	db_.transaction();
+}
+
+void Database::commit() {
+	db_.commit();
 }
 
 void Database::createTableIfNotExist() {
@@ -143,7 +147,8 @@ void Database::createTableIfNotExist() {
 					   firstChar TEXT,
                        dateTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 					   isPodcast integer,
-                       FOREIGN KEY(artistId) REFERENCES artists(artistId)
+                       FOREIGN KEY(artistId) REFERENCES artists(artistId),
+					   UNIQUE(albumId, artistId)
                        )
                        )"));
 
@@ -934,43 +939,6 @@ int32_t Database::addOrUpdateAlbum(const QString& album, int32_t artist_id, int6
 	return album_id;
 }
 
-void Database::addOrUpdateAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id) {
-	QSqlQuery query;
-
-	query.prepare(Q_TEXT(R"(
-    SELECT
-    albumMusicId
-    FROM
-    albumMusic
-    JOIN
-    albums ON albums.albumId = albumMusic.albumId
-    JOIN
-    artists ON artists.artistId = albumMusic.artistId
-    JOIN
-    musics ON musics.musicId = albumMusic.musicId
-    WHERE
-    albums.albumId = :albumId
-    AND
-    artists.artistId = :artistId
-    AND
-    musics.musicId = :musicId;
-    )"));
-
-	query.bindValue(Q_TEXT(":album"), album_id);
-	query.bindValue(Q_TEXT(":artist"), artist_id);
-	query.bindValue(Q_TEXT(":musicId"), music_id);
-
-	db_.transaction();
-
-	IfFailureThrow1(query);
-
-	if (!query.next()) {
-		addAlbumMusic(album_id, artist_id, music_id);
-		db_.commit();
-		XAMP_LOG_D(logger_, "addOrUpdateAlbumMusic albumId:{} artistId:{} musicId:{}", album_id, artist_id, music_id);
-	}
-}
-
 void Database::addOrUpdateAlbumArtist(int32_t album_id, int32_t artist_id) const {
 	QSqlQuery query;
 
@@ -987,7 +955,7 @@ void Database::addOrUpdateAlbumArtist(int32_t album_id, int32_t artist_id) const
 	XAMP_LOG_D(logger_, "addOrUpdateAlbumArtist albumId:{} artistId:{}", album_id, artist_id);
 }
 
-void Database::addAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id) const {
+void Database::addOrUpdateAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id) const {
 	QSqlQuery query;
 
 	query.prepare(Q_TEXT(R"(

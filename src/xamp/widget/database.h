@@ -57,7 +57,9 @@ public:
 
     void open(const QString& file_name);
 
-    void flush();
+    void transaction();
+
+    void commit();
 
     int32_t addTable(const QString& name, int32_t table_index, int32_t playlist_id);
 
@@ -95,7 +97,7 @@ public:
 
     void addOrUpdateAlbumArtist(int32_t album_id, int32_t artist_id) const;
 
-    void addOrUpdateAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id);
+    void addOrUpdateAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id) const;
 
     int32_t getAlbumIdByDiscId(const QString& disc_id) const;
 
@@ -158,8 +160,6 @@ private:
     void removePlaylistMusics(int32_t music_id);
 
     void removeAlbumArtistId(int32_t artist_id);
-
-    void addAlbumMusic(int32_t album_id, int32_t artist_id, int32_t music_id) const;
 
     void createTableIfNotExist();
 

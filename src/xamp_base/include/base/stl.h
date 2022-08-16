@@ -7,6 +7,7 @@
 
 #include <chrono>
 #include <vector>
+#include <list>
 #include <iterator>
 #include <forward_list>
 #include <functional>
@@ -109,13 +110,16 @@ using Vector = std::vector<Type, AlignedAllocator<Type>>;
 template <typename Type>
 using ForwardList = std::forward_list<Type, AlignedAllocator<Type>>;
 
+template <typename Type>
+using List = std::list<Type, AlignedAllocator<Type>>;
+
 template <typename T, typename... Args>
 XAMP_BASE_API_ONLY_EXPORT std::shared_ptr<T> MakeAlignedShared(Args&&... args) {
 	return std::allocate_shared<T>(AlignedAllocator<std::remove_const_t<T>>(), std::forward<Args>(args)...);
 }
 
 template <typename TP>
-std::time_t ToTime_t(TP tp) {
+time_t ToTime_t(TP tp) {
 	using namespace std::chrono;
 	auto sctp = time_point_cast<system_clock::duration>(tp - TP::clock::now()
 		+ system_clock::now());
@@ -123,7 +127,7 @@ std::time_t ToTime_t(TP tp) {
 }
 
 template <typename Resolution = std::chrono::microseconds>
-uint64_t GetUnixTime() {
+time_t GetTime_t() {
 	return std::chrono::duration_cast<Resolution>(
 		std::chrono::system_clock::now().time_since_epoch()).count();
 }

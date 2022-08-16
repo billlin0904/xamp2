@@ -340,7 +340,7 @@ HashSet<std::string> BassLib::GetSupportFileExtensions() const {
         const auto* info = BASS.BASS_PluginGetInfo(value.get());
 		
         for (DWORD i = 0; i < info->formatc; ++i) {
-            XAMP_LOG_DEBUG("Load BASS {} {}", info->formats[i].name, info->formats[i].exts);
+            XAMP_LOG_TRACE("Load BASS {} {}", info->formats[i].name, info->formats[i].exts);
         	for (auto file_ext : String::Split(info->formats[i].exts, ";")) {
                 std::string ext(file_ext);
                 auto pos = ext.find('*');

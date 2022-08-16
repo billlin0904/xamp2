@@ -45,7 +45,8 @@ public:
         const QString& disc_id) const;
 
     QString addCoverCache(int32_t album_id, const QString& album, const Metadata& metadata, bool is_unknown_album) const;
-private:	
+
+private:
     mutable LruCache<int32_t, QString> cover_id_cache_;
     // Key: Album + Artist
     mutable LruCache<QString, int32_t> album_id_cache_;
@@ -94,6 +95,7 @@ std::tuple<int32_t, int32_t, QString> DatabaseIdCache::addOrGetAlbumAndArtistId(
     const QString &artist, 
     bool is_podcast,
     const QString& disc_id) const {
+#if 1
     int32_t artist_id = 0;
     if (auto const * artist_id_op = this->artist_id_cache_.Find(artist)) {
         artist_id = *artist_id_op;
@@ -109,18 +111,18 @@ std::tuple<int32_t, int32_t, QString> DatabaseIdCache::addOrGetAlbumAndArtistId(
     }
     else {
         album_id = qDatabase.addOrUpdateAlbum(album, artist_id, dir_last_write_time, is_podcast, disc_id);
-        this->album_id_cache_.AddOrUpdate(album, album_id);
+        this->album_id_cache_.AddOrUpdate(album + artist, album_id);
     }
 
     QString cover_id;
     if (auto const* cover_id_op = this->cover_id_cache_.Find(album_id)) {
         cover_id = *cover_id_op;
     }
-
-    /*auto artist_id = qDatabase.addOrUpdateArtist(artist);
+#else
+    auto artist_id = qDatabase.addOrUpdateArtist(artist);
     auto album_id = qDatabase.addOrUpdateAlbum(album, artist_id, dir_last_write_time, is_podcast, disc_id);
-    QString cover_id;*/
-
+    QString cover_id;
+#endif
     return std::make_tuple(album_id, artist_id, cover_id);
 }
 
@@ -138,7 +140,6 @@ public:
         const auto file_ext = String::ToLower(path.extension().string());
         const auto support_file_set = GetSupportFileExtensions();
         return support_file_set.find(file_ext) != support_file_set.end();
-        return false;
     }
 
     XAMP_DISABLE_COPY(ExtractAdapterProxy)
@@ -174,7 +175,7 @@ private:
 }
 
 void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter, QString const & file_path, bool show_progress_dialog, bool is_recursive) {
-	auto dialog = 
+	const auto dialog = 
         makeProgressDialog(tr("Read file metadata"),
 	    tr("Read progress dialog"), 
 	    tr("Cancel"));

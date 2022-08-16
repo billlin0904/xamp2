@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <base/base.h>
 #include <filesystem>
 
 namespace xamp::base {
@@ -19,5 +20,7 @@ inline constexpr auto kIteratorOptions{
 	std::filesystem::directory_options::follow_directory_symlink |
 	std::filesystem::directory_options::skip_permission_denied
 };
+
+XAMP_BASE_API int64_t GetLastWriteTime(const Path &path);
 
 }

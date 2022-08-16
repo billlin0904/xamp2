@@ -216,6 +216,7 @@
     <ClCompile Include="src\exception.cpp" />
     <ClCompile Include="src\fastconditionvariable.cpp" />
     <ClCompile Include="src\fastmutex.cpp" />
+    <ClCompile Include="src\fs.cpp" />
     <ClCompile Include="src\itaskschedulerpolicy.cpp" />
     <ClCompile Include="src\ithreadpool.cpp" />
     <ClCompile Include="src\memory_mapped_file.cpp" />

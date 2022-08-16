@@ -338,10 +338,21 @@ public:
     }
 
     [[nodiscard]] Metadata Extract(const Path& path) const {
+        Metadata metadata;
+
+        try {
+            // note: taglib會獨佔file, 所以要讀取LastWriteTime必須要在之前.
+            metadata.last_write_time = GetLastWriteTime(path);
+            // todo: MSVC STL bug memory leak!
+            // https://developercommunity.visualstudio.com/t/reported-memory-leak-when-converting-file-time-typ/1467739
+            //metadata.last_write_time = ToTime_t(Fs::last_write_time(path));
+        }
+        catch (std::exception const &e) {
+            XAMP_LOG_ERROR(e.what());
+        }
+
 	    const auto fileref = GetFileRef(path);
         const auto* tag = fileref.tag();
-
-        Metadata metadata;
 
         if (tag != nullptr) {
             ExtractTag(path, tag, fileref.audioProperties(), metadata);
@@ -357,11 +368,6 @@ public:
 
         const auto ext = String::ToLower(path.extension().string());
         metadata.replay_gain = GetReplayGain(ext, fileref.file());
-        // todo: MSVC bug memory leak!
-        /*try {
-            metadata.last_write_time = ToTime_t(Fs::last_write_time(path));
-        } catch (...) {	        
-        }*/
         return metadata;
     }
 
