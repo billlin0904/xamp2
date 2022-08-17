@@ -6,6 +6,7 @@
 #pragma once
 
 #include <QString>
+#include <QUuid>
 #include <QColor>
 
 #include <widget/widget_shared.h>
@@ -59,3 +60,7 @@ QString msToString(const double stream_time, bool full_text = false);
 bool isMoreThan1Hours(const double stream_time);
 
 QString fromQStringPath(const QString &path);
+
+inline QByteArray generateUUID() {
+	return QUuid::createUuid().toByteArray(QUuid::WithoutBraces);
+}

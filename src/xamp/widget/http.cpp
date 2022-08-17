@@ -4,7 +4,6 @@
 #include <QUrl>
 #include <QTemporaryFile>
 #include <QNetworkProxy>
-#include <QUuid>
 #include <QMetaEnum>
 
 #include <memory>
@@ -24,10 +23,6 @@ static ConstLatin1String toString(QNetworkReply::NetworkError code) {
         return Qt::EmptyString;
     const auto qme = mo->enumerator(index);
     return { qme.valueToKey(code) };
-}
-
-static QByteArray generateRequestId() {
-    return QUuid::createUuid().toByteArray(QUuid::WithoutBraces);
 }
 
 static void logRequest(const ConstLatin1String& verb,
@@ -303,7 +298,7 @@ QNetworkRequest HttpClient::HttpClientImpl::createRequest(HttpClientImpl *d, Htt
         request.setAttribute(QNetworkRequest::Http2AllowedAttribute, http2_enabled_env);
     }
 
-    const auto request_id = generateRequestId();
+    const auto request_id = generateUUID();
 
     request.setRawHeader("X-Request-ID", request_id);
     request.setTransferTimeout(d->timeout_);

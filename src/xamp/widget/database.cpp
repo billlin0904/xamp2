@@ -60,6 +60,8 @@ void Database::open(const QString& file_name) {
 	(void)db_.exec(Q_TEXT("PRAGMA temp_store = MEMORY"));
 	(void)db_.exec(Q_TEXT("PRAGMA mmap_size = 40960"));
 
+	XAMP_LOG_I(logger_, "SQlite version: {}", getVersion().toStdString());
+
 	createTableIfNotExist();
 }
 
@@ -69,6 +71,15 @@ void Database::transaction() {
 
 void Database::commit() {
 	db_.commit();
+}
+
+QString Database::getVersion() const {
+	QSqlQuery query;
+	query.exec(Q_TEXT("SELECT sqlite_version() AS version;"));
+	if (query.next()) {
+		return query.value(Q_TEXT("version")).toString();
+	}
+	return Qt::EmptyString;
 }
 
 void Database::createTableIfNotExist() {
@@ -733,8 +744,6 @@ int32_t Database::addOrUpdateMusic(const Metadata& metadata) {
 	query.bindValue(Q_TEXT(":comment"), QString::fromStdWString(metadata.comment));
 	query.bindValue(Q_TEXT(":year"), metadata.year);
 
-	db_.transaction();
-
 	if (!query.exec()) {
 		XAMP_LOG_D(logger_, "{}", query.lastError().text().toStdString());
 		return kInvalidId;
@@ -744,7 +753,6 @@ int32_t Database::addOrUpdateMusic(const Metadata& metadata) {
 
 	XAMP_LOG_D(logger_, "addOrUpdateMusic musicId:{}", music_id);
 
-	db_.commit();
 	return music_id;
 }
 

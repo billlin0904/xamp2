@@ -163,6 +163,8 @@ private:
 
     void createTableIfNotExist();
 
+    QString getVersion() const;
+
     QString dbname_;
     QSqlDatabase db_;
     std::shared_ptr<Logger> logger_;
