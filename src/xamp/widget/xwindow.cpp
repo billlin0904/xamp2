@@ -196,9 +196,13 @@ void XWindow::restoreGeometry() {
     if (AppSettings::contains(kAppSettingGeometry)) {
         const auto rect = AppSettings::getValue(kAppSettingGeometry).toRect();
         const auto screen_number = AppSettings::getValue(kAppSettingScreenNumber).toUInt();
-        const auto screenres = qApp->desktop()->screenGeometry(screen_number);
-        move(QPoint(screenres.x(), screenres.y()));
-        setGeometry(rect);
+        if (screen_number != 1) {
+            const auto screenres = qApp->desktop()->screenGeometry(screen_number);
+            move(QPoint(screenres.x(), screenres.y()));
+            resize(rect.width(), rect.height());
+        } else {
+            setGeometry(rect);
+        }
         XAMP_LOG_DEBUG("Screen number: {}", screen_number);
     }
     else {
