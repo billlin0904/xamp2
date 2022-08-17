@@ -223,114 +223,79 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
     }
 }
 
-#if 0
-#define MEASURE_EXECUTE_TIME_STATIS() \
-    Vector<ConstLatin1String> index_execute;\
-    HashMap<ConstLatin1String, double> execute_time_map
-
-#define MEASURE_EXECUTE_TIME_START(Name) \
-    Stopwatch Name
-
-#define MEASURE_EXECUTE_TIME_END(Name) \
-    if (!execute_time_map.contains(#Name)) {\
-		index_execute.push_back(#Name);\
-    }\
-    execute_time_map[#Name] += Name.ElapsedSeconds()
-
-#define MEASURE_EXECUTE_TIME_SHOW() \
-    XAMP_LOG_DEBUG(":=:=:= Execute time :=:=:= "); \
-	for (const auto &name : index_execute) {\
-		auto itr = execute_time_map.find(name);\
-		XAMP_LOG_DEBUG("+ {:<30} {:.2f} sec", (*itr).first.data(), (*itr).second);\
-	}\
-	XAMP_LOG_DEBUG(":=:=:= Execute time :=:=:= ");
-#else
-#define MEASURE_EXECUTE_TIME_STATIS()
-#define MEASURE_EXECUTE_TIME_START(Name)
-#define MEASURE_EXECUTE_TIME_END(Name)
-#define MEASURE_EXECUTE_TIME_SHOW()
-#endif
-
-void ::MetadataExtractAdapter::processMetadata(int64_t dir_last_write_time, const ForwardList<Metadata>& result, PlayListTableView* playlist, bool is_podcast) {
+void ::MetadataExtractAdapter::addMetadata(int64_t dir_last_write_time, const ForwardList<Metadata>& result, PlayListTableView* playlist, bool is_podcast) {
 	auto playlist_id = -1;
-    if (playlist != nullptr) {
-        playlist_id = playlist->playlistId();
-    }
+	if (playlist != nullptr) {
+		playlist_id = playlist->playlistId();
+	}
 
 	const DatabaseIdCache cache;
 
-    MEASURE_EXECUTE_TIME_STATIS();
-    MEASURE_EXECUTE_TIME_START(processMetadata);
+	for (const auto& metadata : result) {
+		qApp->processEvents();
 
-    for (const auto& metadata : result) {
-        qApp->processEvents();
-
-        MEASURE_EXECUTE_TIME_START(fromWCharArray);
-	    auto album = QString::fromWCharArray(metadata.album.c_str());
-        auto artist = QString::fromWCharArray(metadata.artist.c_str());
-        auto disc_id = QString::fromStdString(metadata.disc_id);
+		auto album = QString::fromWCharArray(metadata.album.c_str());
+		auto artist = QString::fromWCharArray(metadata.artist.c_str());
+		auto disc_id = QString::fromStdString(metadata.disc_id);
      
-        auto is_unknown_album = false;
-        if (album.isEmpty()) {
-            album = tr("Unknown album");
-            is_unknown_album = true;
-            // todo: 如果有內建圖片就把當作一張專輯.
-            auto cover = cache.getEmbeddedCover(metadata);
-            if (!cover.isNull()) {
-                album = QString::fromStdWString(metadata.file_name_no_ext);
-            }
-        }
-        if (artist.isEmpty()) {
-            artist = tr("Unknown artist");
-        }
-        MEASURE_EXECUTE_TIME_END(fromWCharArray);
+		auto is_unknown_album = false;
+		if (album.isEmpty()) {
+			album = tr("Unknown album");
+			is_unknown_album = true;
+			// todo: 如果有內建圖片就把當作一張專輯.
+			auto cover = cache.getEmbeddedCover(metadata);
+			if (!cover.isNull()) {
+				album = QString::fromStdWString(metadata.file_name_no_ext);
+			}
+		}
+		if (artist.isEmpty()) {
+			artist = tr("Unknown artist");
+		}
 
-        MEASURE_EXECUTE_TIME_START(addOrUpdateMusic);
-        const auto music_id = qDatabase.addOrUpdateMusic(metadata);
-        MEASURE_EXECUTE_TIME_END(addOrUpdateMusic);
+		const auto music_id = qDatabase.addOrUpdateMusic(metadata);
 
-        MEASURE_EXECUTE_TIME_START(addOrGetAlbumAndArtistId);
-        auto [album_id, artist_id, cover_id] = cache.addOrGetAlbumAndArtistId(dir_last_write_time,
-            album, 
-            artist,
-            is_podcast, 
-            disc_id);
-        MEASURE_EXECUTE_TIME_END(addOrGetAlbumAndArtistId);
+		auto [album_id, artist_id, cover_id] = cache.addOrGetAlbumAndArtistId(dir_last_write_time,
+		                                                                      album, 
+		                                                                      artist,
+		                                                                      is_podcast, 
+		                                                                      disc_id);
 
-        MEASURE_EXECUTE_TIME_START(addMusicToPlaylist);
-        if (playlist_id != -1) {            
-            qDatabase.addMusicToPlaylist(music_id, playlist_id, album_id);
-        }
-        MEASURE_EXECUTE_TIME_END(addMusicToPlaylist);
+		if (playlist_id != -1) {            
+			qDatabase.addMusicToPlaylist(music_id, playlist_id, album_id);
+		}
 
-        MEASURE_EXECUTE_TIME_START(addCoverCache);
-        if (metadata.cover_id.empty()) {
-            // Find cover id from database.
-            if (cover_id.isEmpty()) {
-                cover_id = qDatabase.getAlbumCoverId(album_id);
-            }
+		if (metadata.cover_id.empty()) {
+			// Find cover id from database.
+			if (cover_id.isEmpty()) {
+				cover_id = qDatabase.getAlbumCoverId(album_id);
+			}
 
-            // Database not exist find others.
-            if (cover_id.isEmpty()) {
-                cover_id = cache.addCoverCache(album_id, album, metadata, is_unknown_album);
-            }
-        } else {
-            qDatabase.setAlbumCover(album_id, album, QString::fromStdString(metadata.cover_id));
-        }
-        MEASURE_EXECUTE_TIME_END(addCoverCache);
+			// Database not exist find others.
+			if (cover_id.isEmpty()) {
+				cover_id = cache.addCoverCache(album_id, album, metadata, is_unknown_album);
+			}
+		} else {
+			qDatabase.setAlbumCover(album_id, album, QString::fromStdString(metadata.cover_id));
+		}
 
-        MEASURE_EXECUTE_TIME_START(addOrUpdateAlbumMusic);
-        IgnoreSqlError(qDatabase.addOrUpdateAlbumMusic(album_id,
-            artist_id,
-            music_id))
-    	MEASURE_EXECUTE_TIME_END(addOrUpdateAlbumMusic);
-    }
+		qDatabase.addOrUpdateAlbumMusic(album_id,
+		                                artist_id,
+		                                music_id);
+	}
 
-    MEASURE_EXECUTE_TIME_END(processMetadata);
-    MEASURE_EXECUTE_TIME_SHOW();
+	if (playlist != nullptr) {
+		playlist->updateData();
+	}
+}
 
-    if (playlist != nullptr) {
-        playlist->updateData();
+void ::MetadataExtractAdapter::processMetadata(int64_t dir_last_write_time, const ForwardList<Metadata>& result, PlayListTableView* playlist, bool is_podcast) {
+    try {
+        qDatabase.transaction();
+        addMetadata(dir_last_write_time, result, playlist, is_podcast);
+        qDatabase.commit();
+    } catch (std::exception const &e) {
+        qDatabase.rollback();
+        XAMP_LOG_DEBUG("processMetadata throw exception! {}", e.what());
     }
 }
 

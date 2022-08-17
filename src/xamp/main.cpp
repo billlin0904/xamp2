@@ -161,6 +161,7 @@ static void loadSettings() {
     AppSettings::setDefaultValue(kAppSettingEnableReplayGain, true);
     AppSettings::setDefaultValue(kEnableBitPerfect, true);
     AppSettings::setDefaultValue(kAppSettingWindowState, false);
+    AppSettings::setDefaultValue(kAppSettingScreenNumber, 1);
 
     AppSettings::save();
     XAMP_LOG_DEBUG("loadSettings success.");

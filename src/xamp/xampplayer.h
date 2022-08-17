@@ -32,6 +32,8 @@ public:
     virtual void initMaximumState() = 0;
 
     virtual void updateMaximumState() = 0;
+
+    virtual void saveGeometry() = 0;
 protected:
     IXWindow() = default;
 };

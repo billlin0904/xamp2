@@ -65,6 +65,8 @@ protected:
     void changeEvent(QEvent * event) override;
 
     void closeEvent(QCloseEvent* event) override;
+
+    void saveGeometry() override;
 private:
     bool nativeEvent(const QByteArray& event_type, void* message, long* result) override;
 
@@ -80,7 +82,9 @@ private:
     QRect last_rect_;
 
 #if defined(Q_OS_WIN)
-    void showEvent(QShowEvent* event) override;   
+    void showEvent(QShowEvent* event) override;
+
+    int32_t screen_number_;
     QScreen* current_screen_;
     QScopedPointer<win32::WinTaskbar> taskbar_;
     QMap<QString, DriveInfo> exist_drives_;

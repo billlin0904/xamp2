@@ -326,10 +326,7 @@ void Xamp::cleanup() {
         background_thread_.wait();
     }
 
-#if defined(Q_OS_WIN) 
-    AppSettings::setValue(kAppSettingGeometry, win32::getWindowRect(winId()));
-    AppSettings::setValue(kAppSettingWindowState, top_window_->isMaximized());
-#endif
+    top_window_->saveGeometry();
 }
 
 void Xamp::initialUI() {

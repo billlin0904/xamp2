@@ -25,5 +25,7 @@ signals:
 
 public:
     static void processMetadata(int64_t dir_last_write_time, const ForwardList<Metadata>& result, PlayListTableView *playlist = nullptr, bool is_podcast = false);
+
+	static void addMetadata(int64_t dir_last_write_time, const ForwardList<Metadata>& result, PlayListTableView* playlist, bool is_podcast);
 };
 

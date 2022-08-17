@@ -73,13 +73,17 @@ void Database::commit() {
 	db_.commit();
 }
 
+void Database::rollback() {
+	db_.rollback();
+}
+
 QString Database::getVersion() const {
 	QSqlQuery query;
 	query.exec(Q_TEXT("SELECT sqlite_version() AS version;"));
 	if (query.next()) {
 		return query.value(Q_TEXT("version")).toString();
 	}
-	return Qt::EmptyString;
+	throw SqlException(query.lastError());
 }
 
 void Database::createTableIfNotExist() {

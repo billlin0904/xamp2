@@ -226,7 +226,7 @@
     <ClCompile Include="widget\backgroundworker.cpp" />
     <ClCompile Include="widget\scrolllabel.cpp" />
     <ClCompile Include="widget\seekslider.cpp" />
-    <ClCompile Include="widget\settingnames.cpp" />
+    <ClCompile Include="widget\appsettingnames.cpp" />
     <ClCompile Include="widget\stardelegate.cpp" />
     <ClCompile Include="widget\stareditor.cpp" />
     <ClCompile Include="widget\starrating.cpp" />

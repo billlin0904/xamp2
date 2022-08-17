@@ -6,6 +6,8 @@
 #include <QWindow>
 #include <QDragEnterEvent>
 #include <QMimeData>
+#include <QScreen>
+#include <QDesktopWidget>
 
 #include "thememanager.h"
 
@@ -18,6 +20,7 @@
 #include <widget/osx/osx.h>
 #endif
 
+#include <QDesktopWidget>
 #include <QStorageInfo>
 #include <base/logger_impl.h>
 
@@ -79,6 +82,7 @@ static XAMP_ALWAYS_INLINE LRESULT hitTest(HWND hwnd, MSG const* msg) noexcept {
 XWindow::XWindow()
     : IXWindow()
 #if defined(Q_OS_WIN)
+	, screen_number_(1)
     , current_screen_(nullptr)
 #endif
 	, player_frame_(nullptr) {
@@ -134,6 +138,14 @@ void XWindow::setContentWidget(IXPlayerFrame *content_widget) {
 // QScopedPointer require default destructor.
 XWindow::~XWindow() = default;
 
+void XWindow::saveGeometry() {
+#if defined(Q_OS_WIN) 
+    AppSettings::setValue(kAppSettingGeometry, win32::getWindowRect(winId()));
+    AppSettings::setValue(kAppSettingWindowState, isMaximized());
+    AppSettings::setValue(kAppSettingScreenNumber, screen_number_);
+#endif
+}
+
 void XWindow::setTaskbarProgress(const int32_t percent) {
 #if defined(Q_OS_WIN)
     taskbar_->setTaskbarProgress(percent);
@@ -183,7 +195,11 @@ void XWindow::restoreGeometry() {
 
     if (AppSettings::contains(kAppSettingGeometry)) {
         const auto rect = AppSettings::getValue(kAppSettingGeometry).toRect();
+        const auto screen_number = AppSettings::getValue(kAppSettingScreenNumber).toUInt();
+        const auto screenres = qApp->desktop()->screenGeometry(screen_number);
+        move(QPoint(screenres.x(), screenres.y()));
         setGeometry(rect);
+        XAMP_LOG_DEBUG("Screen number: {}", screen_number);
     }
     else {
         centerDesktop(this);
@@ -583,7 +599,8 @@ void XWindow::mouseMoveEvent(QMouseEvent* event) {
         move(event->globalPos() - last_pos_);
     }
 
-    last_rect_ = win32::getWindowRect(winId());
+    last_rect_ = screen()->geometry();
+    screen_number_ = qApp->desktop()->numScreens();
 
     if (!player_frame_) {
         return;

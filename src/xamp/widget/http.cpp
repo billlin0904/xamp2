@@ -16,7 +16,7 @@
 
 namespace http {
 
-static ConstLatin1String toString(QNetworkReply::NetworkError code) {
+static ConstLatin1String networkErrorToString(QNetworkReply::NetworkError code) {
     const auto* mo = &QNetworkReply::staticMetaObject;
     const int index = mo->indexOfEnumerator("NetworkError");
     if (index == -1)
@@ -235,10 +235,10 @@ void HttpClient::HttpClientImpl::handleFinish(const HttpContext &context, QNetwo
             context.success_handler(success_message);
         }
     } else {
-        XAMP_LOG_DEBUG("{}", toString(error).data());
+        XAMP_LOG_DEBUG("{}", networkErrorToString(error).data());
 
         if (context.error_handler != nullptr) {
-            context.error_handler(toString(error));
+            context.error_handler(networkErrorToString(error));
         }
     }
 
