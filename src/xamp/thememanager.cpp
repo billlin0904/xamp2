@@ -4,6 +4,7 @@
 #include <QGraphicsDropShadowEffect>
 #include <QScreen>
 #include <QResource>
+#include <QPushButton>
 #include <QApplication>
 #include <QFontDatabase>
 #include <QTextStream>

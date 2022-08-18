@@ -38,9 +38,9 @@ enum {
 AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
     : QStyledItemDelegate(parent)
     , text_color_(Qt::black)
-	, more_button_(new QPushButton())
+	, more_album_opt_button_(new QPushButton())
 	, play_button_(new QPushButton()) {
-    more_button_->setStyleSheet(Q_TEXT("background-color: transparent"));
+    more_album_opt_button_->setStyleSheet(Q_TEXT("background-color: transparent"));
     play_button_->setStyleSheet(Q_TEXT("background-color: transparent"));
 }
 
@@ -158,23 +158,24 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     constexpr auto icon_size = 24;
     const QRect more_button_rect(
         option.rect.left() + default_cover_size.width() - 10,
-        option.rect.top() + default_cover_size.height() + 28,
+        option.rect.top() + default_cover_size.height() + 30,
         icon_size, icon_size);
     
     QStyleOptionButton button;
-    button.initFrom(more_button_.get());
+    button.initFrom(more_album_opt_button_.get());
     button.rect = more_button_rect;
     button.icon = qTheme.moreIcon();
     button.state |= QStyle::State_Enabled;
     if (more_button_rect.contains(mouse_point_)) {
         button.state |= QStyle::State_Sunken;
+        painter->setBrush(QBrush(qTheme.hoverColor()));
+        painter->drawEllipse(more_button_rect);
     }
-    if (more_button_->isDefault()) {
+    if (more_album_opt_button_->isDefault()) {
         button.features = QStyleOptionButton::DefaultButton;
     }
     button.iconSize = QSize(icon_size, icon_size);
-    QApplication::style()->drawControl(QStyle::CE_PushButton, &button, painter, more_button_.get());
-    
+    QApplication::style()->drawControl(QStyle::CE_PushButton, &button, painter, more_album_opt_button_.get());
 
     QApplication::restoreOverrideCursor();
 }

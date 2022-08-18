@@ -13,6 +13,8 @@
 #include <widget/widget_shared.h>
 #include <widget/str_utilts.h>
 
+class QPushButton;
+
 namespace Ui {
 class XampWindow;
 }

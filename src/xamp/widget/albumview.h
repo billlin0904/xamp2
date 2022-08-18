@@ -41,7 +41,7 @@ protected:
 private:
 	QColor text_color_;
 	QPoint mouse_point_;
-	QScopedPointer<QPushButton> more_button_;
+	QScopedPointer<QPushButton> more_album_opt_button_;
 	QScopedPointer<QPushButton> play_button_;
 };
 
