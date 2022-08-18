@@ -108,5 +108,7 @@
         <file>Resource/White/computer.png</file>
         <file>Resource/Black/restore.png</file>
         <file>Resource/White/restore.png</file>
+        <file>Resource/White/more.png</file>
+        <file>Resource/Black/more.png</file>
     </qresource>
 </RCC>

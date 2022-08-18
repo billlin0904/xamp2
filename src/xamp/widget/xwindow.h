@@ -84,7 +84,7 @@ private:
 #if defined(Q_OS_WIN)
     void showEvent(QShowEvent* event) override;
 
-    int32_t screen_number_;
+    uint32_t screen_number_;
     QScreen* current_screen_;
     QScopedPointer<win32::WinTaskbar> taskbar_;
     QMap<QString, DriveInfo> exist_drives_;

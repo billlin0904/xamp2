@@ -24,8 +24,8 @@ signals:
 	void readCompleted(int64_t dir_last_write_time, const ForwardList<Metadata> &entity);
 
 public:
-    static void processMetadata(int64_t dir_last_write_time, const ForwardList<Metadata>& result, PlayListTableView *playlist = nullptr, bool is_podcast = false);
+    static void processMetadata(const ForwardList<Metadata>& result, PlayListTableView *playlist = nullptr, int64_t dir_last_write_time = -1, bool is_podcast = false);
 
-	static void addMetadata(int64_t dir_last_write_time, const ForwardList<Metadata>& result, PlayListTableView* playlist, bool is_podcast);
+	static void addMetadata(const ForwardList<Metadata>& result, PlayListTableView* playlist, int64_t dir_last_write_time, bool is_podcast);
 };
 

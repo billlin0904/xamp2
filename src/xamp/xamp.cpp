@@ -1073,7 +1073,7 @@ void Xamp::resetSeekPosValue() {
 }
 
 void Xamp::processMeatadata(int64_t dir_last_write_time, const ForwardList<Metadata>& medata) const {
-    MetadataExtractAdapter::processMetadata(dir_last_write_time, medata);
+    MetadataExtractAdapter::processMetadata(medata, nullptr, dir_last_write_time);
     album_page_->album()->refreshOnece();
 }
 

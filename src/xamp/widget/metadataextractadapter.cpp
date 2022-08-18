@@ -223,7 +223,7 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
     }
 }
 
-void ::MetadataExtractAdapter::addMetadata(int64_t dir_last_write_time, const ForwardList<Metadata>& result, PlayListTableView* playlist, bool is_podcast) {
+void ::MetadataExtractAdapter::addMetadata(const ForwardList<Metadata>& result, PlayListTableView* playlist, int64_t dir_last_write_time, bool is_podcast) {
 	auto playlist_id = -1;
 	if (playlist != nullptr) {
 		playlist_id = playlist->playlistId();
@@ -288,10 +288,14 @@ void ::MetadataExtractAdapter::addMetadata(int64_t dir_last_write_time, const Fo
 	}
 }
 
-void ::MetadataExtractAdapter::processMetadata(int64_t dir_last_write_time, const ForwardList<Metadata>& result, PlayListTableView* playlist, bool is_podcast) {
+void ::MetadataExtractAdapter::processMetadata(const ForwardList<Metadata>& result, PlayListTableView* playlist, int64_t dir_last_write_time, bool is_podcast) {
+    if (dir_last_write_time == -1) {
+        dir_last_write_time = QDateTime::currentSecsSinceEpoch();
+    }
+
     try {
         qDatabase.transaction();
-        addMetadata(dir_last_write_time, result, playlist, is_podcast);
+        addMetadata(result, playlist, dir_last_write_time, is_podcast);
         qDatabase.commit();
     } catch (std::exception const &e) {
         qDatabase.rollback();

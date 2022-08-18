@@ -31,6 +31,8 @@ public:
 signals:
 	void enterAlbumView(const QModelIndex& index) const;
 
+	void showAlbumOpertationMenu(const QModelIndex& index, const QPoint &pt) const;
+
 protected:
 	bool editorEvent(QEvent* event, QAbstractItemModel* model, const QStyleOptionViewItem& option, const QModelIndex& index) override;
 	void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override;
@@ -39,6 +41,7 @@ protected:
 private:
 	QColor text_color_;
 	QPoint mouse_point_;
+	QScopedPointer<QPushButton> more_button_;
 	QScopedPointer<QPushButton> play_button_;
 };
 
@@ -103,6 +106,10 @@ public slots:
     void append(const QString& file_name);
 
     void processMeatadata(int64_t dir_last_write_time, const ForwardList<Metadata> &medata);
+
+	void showOperationMenu(const QPoint& pt);
+
+	void showAlbumViewMenu(const QPoint& pt);
 private:
 	bool enable_page_{true};
 	AlbumViewPage* page_;

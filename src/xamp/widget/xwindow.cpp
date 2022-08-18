@@ -114,6 +114,7 @@ void XWindow::setContentWidget(IXPlayerFrame *content_widget) {
         win32::addDwmShadow(winId());
     }
     taskbar_.reset(new win32::WinTaskbar(this, player_frame_));
+    last_rect_ = win32::getWindowRect(winId());
 #else
     if (!qTheme.useNativeWindow()) {
         if (player_frame_ != nullptr) {
@@ -143,6 +144,8 @@ void XWindow::saveGeometry() {
     AppSettings::setValue(kAppSettingGeometry, win32::getWindowRect(winId()));
     AppSettings::setValue(kAppSettingWindowState, isMaximized());
     AppSettings::setValue(kAppSettingScreenNumber, screen_number_);
+    XAMP_LOG_DEBUG("restoreGeometry: ({}, {}, {}, {})", last_rect_.x(), last_rect_.y(), last_rect_.width(), last_rect_.height());
+    XAMP_LOG_DEBUG("Screen number: {}", screen_number_);
 #endif
 }
 
@@ -190,20 +193,25 @@ void XWindow::restoreGeometry() {
         if (AppSettings::getValue(kAppSettingWindowState).toBool()) {
             showMaximized();
             return;
-        }        
+        }
     }
 
     if (AppSettings::contains(kAppSettingGeometry)) {
-        const auto rect = AppSettings::getValue(kAppSettingGeometry).toRect();
-        const auto screen_number = AppSettings::getValue(kAppSettingScreenNumber).toUInt();
-        if (screen_number != 1) {
-            const auto screenres = qApp->desktop()->screenGeometry(screen_number);
-            move(QPoint(screenres.x(), screenres.y()));
-            resize(rect.width(), rect.height());
+        last_rect_ = AppSettings::getValue(kAppSettingGeometry).toRect();
+        screen_number_ = AppSettings::getValue(kAppSettingScreenNumber).toUInt();
+        if (screen_number_ != 1) {
+            if (QGuiApplication::screens().size() <= screen_number_) {
+                auto screen_index = screen_number_ - 1;
+                auto screenres = QGuiApplication::screens().at(screen_index)->availableGeometry();
+                move(QPoint(screenres.x(), screenres.y()));
+                resize(last_rect_.width(), last_rect_.height());
+            }
         } else {
-            setGeometry(rect);
+            setGeometry(last_rect_);
         }
-        XAMP_LOG_DEBUG("Screen number: {}", screen_number);
+        XAMP_LOG_DEBUG("restoreGeometry: ({}, {}, {}, {})",
+            last_rect_.x(), last_rect_.y(), last_rect_.width(), last_rect_.height());
+        XAMP_LOG_DEBUG("Screen number: {}", screen_number_);
     }
     else {
         centerDesktop(this);
@@ -462,7 +470,7 @@ void XWindow::changeEvent(QEvent* event) {
         osx::hideTitleBar(player_frame_);
 	}
 #endif
-    QWidget::changeEvent(event);
+	QFrame::changeEvent(event);
 }
 
 void XWindow::closeEvent(QCloseEvent* event) {
@@ -603,8 +611,7 @@ void XWindow::mouseMoveEvent(QMouseEvent* event) {
         move(event->globalPos() - last_pos_);
     }
 
-    last_rect_ = screen()->geometry();
-    screen_number_ = qApp->desktop()->numScreens();
+    last_rect_ = win32::getWindowRect(winId());
 
     if (!player_frame_) {
         return;
@@ -620,6 +627,17 @@ void XWindow::mouseMoveEvent(QMouseEvent* event) {
             SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
             SWP_NOOWNERZORDER | SWP_FRAMECHANGED | SWP_NOACTIVATE);
     }
+
+    auto i = 1;
+    Q_FOREACH(auto screen, QGuiApplication::screens()) {
+	    if (screen == current_screen_) {
+            screen_number_ = i;
+	    }
+        ++i;
+    }
+
+    XAMP_LOG_TRACE("screen_number_: {}", screen_number_);
+
 #else
     QWidget::mouseMoveEvent(event);
 #endif   

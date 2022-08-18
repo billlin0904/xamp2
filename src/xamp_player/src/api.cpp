@@ -63,7 +63,6 @@ void Uninitialize() {
 #endif
     GetPlaybackThreadPool().Stop();
     PreventSleep(false);
-    LoggerManager::GetInstance().Shutdown();
 }
 
 XampIniter::XampIniter() {

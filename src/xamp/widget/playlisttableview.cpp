@@ -574,7 +574,7 @@ void PlayListTableView::append(const QString& file_name, bool show_progress_dial
 }
 
 void PlayListTableView::processMeatadata(int64_t dir_last_write_time, const ForwardList<Metadata>& medata) {
-    ::MetadataExtractAdapter::processMetadata(dir_last_write_time, medata, this, podcast_mode_);
+    ::MetadataExtractAdapter::processMetadata(medata, this, podcast_mode_, dir_last_write_time);
     resizeColumn();
     updateData();
 }
@@ -591,27 +591,29 @@ void PlayListTableView::importPodcast() {
     indicator->startAnimation();
 
     http::HttpClient(Q_TEXT("https://suisei.moe/podcast.xml"))
-	.error([this, indicator](const QString& msg) {
+	.error([=](const QString& msg) {
         indicator->deleteLater();
 	})
-	.success([this, indicator](const QString& json) {
+	.success([=](const QString& json) {
         XAMP_LOG_DEBUG("Download podcast.xml success!");
 
 		Stopwatch sw;
         auto const podcast_info = parsePodcastXML(json);
         XAMP_LOG_DEBUG("Parse podcast.xml success! {}sec", sw.ElapsedSeconds());
 
-		::MetadataExtractAdapter::processMetadata(QDateTime::currentSecsSinceEpoch(),
-            podcast_info.second, 
+        sw.Reset();
+        ::MetadataExtractAdapter::processMetadata(
+            podcast_info.second,
             this,
             podcast_mode_);
-        XAMP_LOG_DEBUG("Start download podcast image file");
-        
+        XAMP_LOG_DEBUG("Insert database! {}sec", sw.ElapsedSeconds());
+
+        XAMP_LOG_DEBUG("Start download podcast image file");        
         http::HttpClient(QString::fromStdString(podcast_info.first))
-		.error([this, indicator](const QString& msg) {
+		.error([=](const QString& msg) {
             indicator->deleteLater();
         })
-    	.download([=](auto data) {
+    	.download([=](const QByteArray& data) {
             if (!model()->rowCount()) {
                 indicator->deleteLater();
                 return;
@@ -621,7 +623,7 @@ void PlayListTableView::importPodcast() {
             auto play_item = getEntity(this->model()->index(0, 0));
             qDatabase.setAlbumCover(play_item.album_id, play_item.album, cover_id);
             indicator->deleteLater();
-            });    	
+            });
         }).get();
 }
 

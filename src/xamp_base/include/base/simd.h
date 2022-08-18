@@ -107,12 +107,6 @@ public:
     static XAMP_ALWAYS_INLINE m256 MaxPs(m256 f1, m256 f2) {
         return _mm256_max_ps(f1, f2);
     }
-
-    static XAMP_ALWAYS_INLINE uint64_t GetSeed() {
-        uint64_t seed = 0;
-        _rdseed64_step(&seed);
-        return seed;
-    }
 };
 
 template <typename T>

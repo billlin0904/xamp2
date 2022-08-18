@@ -38,7 +38,9 @@ enum {
 AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
     : QStyledItemDelegate(parent)
     , text_color_(Qt::black)
+	, more_button_(new QPushButton())
 	, play_button_(new QPushButton()) {
+    more_button_->setStyleSheet(Q_TEXT("background-color: transparent"));
     play_button_->setStyleSheet(Q_TEXT("background-color: transparent"));
 }
 
@@ -50,11 +52,24 @@ bool AlbumViewStyledDelegate::editorEvent(QEvent* event, QAbstractItemModel* mod
     auto* ev = static_cast<QMouseEvent*> (event);
     mouse_point_ = ev->pos();
     auto current_cursor = QApplication::overrideCursor();
+
+    const auto default_cover_size = qTheme.getDefaultCoverSize();
+    constexpr auto icon_size = 24;
+    const QRect more_button_rect(
+        option.rect.left() + default_cover_size.width() - 10,
+        option.rect.top() + default_cover_size.height() + 28,
+        icon_size, icon_size);
+
     switch (ev->type()) {
     case QEvent::MouseButtonPress:
-        if (current_cursor != nullptr) {
-            if (current_cursor->shape() == Qt::PointingHandCursor) {
-                emit enterAlbumView(index);
+        if (ev->button() == Qt::LeftButton) {
+            if (current_cursor != nullptr) {
+                if (current_cursor->shape() == Qt::PointingHandCursor) {
+                    emit enterAlbumView(index);
+                }
+            }
+            if (more_button_rect.contains(mouse_point_)) {
+                emit showAlbumOpertationMenu(index, mouse_point_);
             }
         }        
         break;
@@ -114,7 +129,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     }
     painter->drawPixmap(cover_rect, Pixmap::roundImage(*album_cover, Pixmap::kSmallImageRadius));
 
-    if (option.state & QStyle::State_MouseOver) {
+    if (option.state & QStyle::State_MouseOver && cover_rect.contains(mouse_point_)) {
         QColor color = Qt::black;
         color.setAlpha(98);
         painter->fillRect(cover_rect, QBrush(color));
@@ -139,6 +154,27 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
             return;
         }
     }
+
+    constexpr auto icon_size = 24;
+    const QRect more_button_rect(
+        option.rect.left() + default_cover_size.width() - 10,
+        option.rect.top() + default_cover_size.height() + 28,
+        icon_size, icon_size);
+    
+    QStyleOptionButton button;
+    button.initFrom(more_button_.get());
+    button.rect = more_button_rect;
+    button.icon = qTheme.moreIcon();
+    button.state |= QStyle::State_Enabled;
+    if (more_button_rect.contains(mouse_point_)) {
+        button.state |= QStyle::State_Sunken;
+    }
+    if (more_button_->isDefault()) {
+        button.features = QStyleOptionButton::DefaultButton;
+    }
+    button.iconSize = QSize(icon_size, icon_size);
+    QApplication::style()->drawControl(QStyle::CE_PushButton, &button, painter, more_button_.get());
+    
 
     QApplication::restoreOverrideCursor();
 }
@@ -253,6 +289,10 @@ AlbumView::AlbumView(QWidget* parent)
                             this,
                             &AlbumView::clickedArtist);
 
+    (void)QObject::connect(styled_delegate_, &AlbumViewStyledDelegate::showAlbumOpertationMenu, [this](auto index, auto pt) {
+        showOperationMenu(pt);
+        });
+
     (void)QObject::connect(styled_delegate_, &AlbumViewStyledDelegate::enterAlbumView, [this](auto index) {
         auto album = getIndexValue(index, INDEX_ALBUM).toString();
         auto cover_id = getIndexValue(index, INDEX_COVER).toString();
@@ -277,121 +317,119 @@ AlbumView::AlbumView(QWidget* parent)
         });
 
     setContextMenuPolicy(Qt::CustomContextMenu);
-    (void)QObject::connect(this, &QTableView::customContextMenuRequested, [this](const QPoint& pt) {
-        auto index = indexAt(pt);
-
-        ActionMap<AlbumView> action_map(this);
-
-        auto removeAlbum = [=]() {
-            auto* indicator = new ProcessIndicator(this);
-            indicator->startAnimation();
-            try {
-                qDatabase.forEachAlbum([](auto album_id) {
-                    qDatabase.removeAlbum(album_id);
-                    });
-                qDatabase.removeAllArtist();
-                update();
-                emit removeAll();
-                qPixmapCache.clear();
-            } catch (...) {                
-            }
-            indicator->deleteLater();
-        };
-
-        if (index.isValid()) {
-            auto album = getIndexValue(index, INDEX_ALBUM).toString();
-            auto artist = getIndexValue(index, INDEX_ARTIST).toString();
-            auto album_id = getIndexValue(index, INDEX_ALBUM_ID).toInt();
-            auto artist_id = getIndexValue(index, INDEX_ARTIST_ID).toInt();
-            auto artist_cover_id = getIndexValue(index, INDEX_ARTIST_COVER_ID).toString();
-
-            action_map.addAction(tr("Add album to playlist"), [=]() {
-                Vector<PlayListEntity> entities;
-                Vector<int32_t> add_playlist_music_ids;
-                qDatabase.forEachAlbumMusic(album_id,
-                    [&entities, &add_playlist_music_ids](const PlayListEntity& entity) mutable {
-                        if (entity.album_replay_gain == 0.0) {
-                            entities.push_back(entity);
-                        }
-                        add_playlist_music_ids.push_back(entity.music_id);
-                    });
-                emit addPlaylist(add_playlist_music_ids, entities);
-                });
-
-            action_map.addAction(tr("Add album (artist) to playlist"), [=]() {
-                Vector<PlayListEntity> entities;
-                Vector<int32_t> add_playlist_music_ids;
-                qDatabase.forEachAlbumArtistMusic(album_id, artist_id,
-                    [&entities, &add_playlist_music_ids](const PlayListEntity& entity) mutable {
-                        if (entity.album_replay_gain == 0.0) {
-                            entities.push_back(entity);
-                        }
-                        add_playlist_music_ids.push_back(entity.music_id);
-                    });
-                emit addPlaylist(add_playlist_music_ids, entities);
-                });
-
-            action_map.addAction(tr("Copy album"), [album]() {
-                QApplication::clipboard()->setText(album);
-            });
-
-            action_map.addAction(tr("Copy artist"), [artist]() {
-                QApplication::clipboard()->setText(artist);
-            });
-
-            action_map.addSeparator();
-
-            action_map.addAction(tr("Remove select album"), [=]() {
-                qDatabase.removeAlbum(album_id);
-                refreshOnece();
-                });
-
-            action_map.addAction(tr("Remove all album"), [=]() {
-                removeAlbum();
-                });
-        } else {
-            action_map.addSeparator();
-            action_map.addAction(tr("Remove select album"));
-            action_map.addAction(tr("Remove all album"), [=]() {
-                removeAlbum();
-            });
-            action_map.addSeparator();
-            action_map.addAction(tr("Add album to playlist"));
-            action_map.addAction(tr("Copy album"));
-            action_map.addAction(tr("Copy artist"));
-        }
-
-        action_map.addSeparator();
-
-        (void)action_map.addAction(tr("Load local file"), [this]() {
-            const auto file_name = QFileDialog::getOpenFileName(this,
-                tr("Open file"),
-                AppSettings::getMyMusicFolderPath(),
-                tr("Music Files ") + getFileExtensions(),
-                nullptr);
-            if (file_name.isEmpty()) {
-                return;
-            }
-            append(file_name);
-            });
-
-        (void)action_map.addAction(tr("Load file directory"), [this]() {
-	        const auto dir_name = QFileDialog::getExistingDirectory(this,
-	                                                                tr("Select a directory"),
-	                                                                AppSettings::getMyMusicFolderPath(),
-                QFileDialog::ShowDirsOnly);
-            if (dir_name.isEmpty()) {
-                return;
-            }
-            append(dir_name);
-            });
-
-        action_map.exec(pt);
+    (void)QObject::connect(this, &QTableView::customContextMenuRequested, [this](auto pt) {
+        showAlbumViewMenu(pt);
     });
 
     setStyleSheet(Q_TEXT("background-color: transparent"));
 
     update();
+}
+
+void AlbumView::showAlbumViewMenu(const QPoint& pt) {
+    auto index = indexAt(pt);
+
+    ActionMap<AlbumView> action_map(this);
+
+    auto removeAlbum = [=]() {
+        auto* indicator = new ProcessIndicator(this);
+        indicator->startAnimation();
+        try {
+            qDatabase.forEachAlbum([](auto album_id) {
+                qDatabase.removeAlbum(album_id);
+                });
+            qDatabase.removeAllArtist();
+            update();
+            emit removeAll();
+            qPixmapCache.clear();
+        }
+        catch (...) {
+        }
+        indicator->deleteLater();
+    };
+
+    action_map.addAction(tr("Remove all album"), [=]() {
+        removeAlbum();
+        });
+
+    (void)action_map.addAction(tr("Load local file"), [this]() {
+        const auto file_name = QFileDialog::getOpenFileName(this,
+            tr("Open file"),
+            AppSettings::getMyMusicFolderPath(),
+            tr("Music Files ") + getFileExtensions(),
+            nullptr);
+        if (file_name.isEmpty()) {
+            return;
+        }
+        append(file_name);
+        });
+
+    (void)action_map.addAction(tr("Load file directory"), [this]() {
+        const auto dir_name = QFileDialog::getExistingDirectory(this,
+            tr("Select a directory"),
+            AppSettings::getMyMusicFolderPath(),
+            QFileDialog::ShowDirsOnly);
+        if (dir_name.isEmpty()) {
+            return;
+        }
+        append(dir_name);
+        });
+
+    action_map.exec(pt);
+}
+
+void AlbumView::showOperationMenu(const QPoint &pt) {
+    auto index = indexAt(pt);
+
+    ActionMap<AlbumView> action_map(this);
+
+    auto album = getIndexValue(index, INDEX_ALBUM).toString();
+    auto artist = getIndexValue(index, INDEX_ARTIST).toString();
+    auto album_id = getIndexValue(index, INDEX_ALBUM_ID).toInt();
+    auto artist_id = getIndexValue(index, INDEX_ARTIST_ID).toInt();
+    auto artist_cover_id = getIndexValue(index, INDEX_ARTIST_COVER_ID).toString();
+
+    action_map.addAction(tr("Add album to playlist"), [=]() {
+        Vector<PlayListEntity> entities;
+        Vector<int32_t> add_playlist_music_ids;
+        qDatabase.forEachAlbumMusic(album_id,
+            [&entities, &add_playlist_music_ids](const PlayListEntity& entity) mutable {
+                if (entity.album_replay_gain == 0.0) {
+                    entities.push_back(entity);
+                }
+                add_playlist_music_ids.push_back(entity.music_id);
+            });
+        emit addPlaylist(add_playlist_music_ids, entities);
+        });
+
+    action_map.addAction(tr("Add album (artist) to playlist"), [=]() {
+        Vector<PlayListEntity> entities;
+        Vector<int32_t> add_playlist_music_ids;
+        qDatabase.forEachAlbumArtistMusic(album_id, artist_id,
+            [&entities, &add_playlist_music_ids](const PlayListEntity& entity) mutable {
+                if (entity.album_replay_gain == 0.0) {
+                    entities.push_back(entity);
+                }
+                add_playlist_music_ids.push_back(entity.music_id);
+            });
+        emit addPlaylist(add_playlist_music_ids, entities);
+        });
+
+    action_map.addAction(tr("Copy album"), [album]() {
+        QApplication::clipboard()->setText(album);
+        });
+
+    action_map.addAction(tr("Copy artist"), [artist]() {
+        QApplication::clipboard()->setText(artist);
+        });
+
+    action_map.addSeparator();
+
+    action_map.addAction(tr("Remove select album"), [=]() {
+        qDatabase.removeAlbum(album_id);
+        refreshOnece();
+        });
+    action_map.exec(pt);
 }
 
 void AlbumView::enablePage(bool enable) {
@@ -478,7 +516,7 @@ void AlbumView::append(const QString& file_name) {
 }
 
 void AlbumView::processMeatadata(int64_t dir_last_write_time, const ForwardList<Metadata> &medata) {
-    MetadataExtractAdapter::processMetadata(dir_last_write_time, medata);
+    MetadataExtractAdapter::processMetadata(medata, nullptr, dir_last_write_time);
     emit loadCompleted();
 }
 

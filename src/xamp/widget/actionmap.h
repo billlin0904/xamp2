@@ -55,7 +55,7 @@ public:
 	explicit ActionMap(Type* object)
 		: object_(object)
 		, menu_(object) {
-        qTheme.setMenuStyle(&menu_);
+		qTheme.setMenuStyle(&menu_);
 	}
 
 	QAction* addAction(const QString& menu_name) {

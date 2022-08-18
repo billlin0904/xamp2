@@ -35,7 +35,14 @@ void XDialog::setContentWidget(QWidget* content) {
     auto* shadow = new QGraphicsDropShadowEffect(frame_);
     shadow->setOffset(0, 0);
     shadow->setBlurRadius(20);
-    shadow->setColor(Qt::black);
+    switch (qTheme.themeColor()) {
+    case ThemeColor::DARK_THEME:
+        shadow->setColor(Qt::black);
+        break;
+    case ThemeColor::LIGHT_THEME:
+        shadow->setColor(Qt::gray);
+        break;
+    }
     frame_->setGraphicsEffect(shadow);
 
 	default_layout->addWidget(frame_, 2, 2, 1, 2);
@@ -107,17 +114,17 @@ void XDialog::mouseMoveEvent(QMouseEvent* event) {
 #endif
 
 void XDialog::showEvent(QShowEvent* event) {
-    auto *opacityEffect = new QGraphicsOpacityEffect(this);
-    setGraphicsEffect(opacityEffect);
-    auto* opacityAnimation = new QPropertyAnimation(opacityEffect, "opacity", this);
-    opacityAnimation->setStartValue(0);
-    opacityAnimation->setEndValue(1);
-    opacityAnimation->setDuration(200);
-    opacityAnimation->setEasingCurve(QEasingCurve::InSine);
-    (void)QObject::connect(opacityAnimation,
+    auto *opacity_effect = new QGraphicsOpacityEffect(this);
+    setGraphicsEffect(opacity_effect);
+    auto* opacity_animation = new QPropertyAnimation(opacity_effect, "opacity", this);
+    opacity_animation->setStartValue(0);
+    opacity_animation->setEndValue(1);
+    opacity_animation->setDuration(200);
+    opacity_animation->setEasingCurve(QEasingCurve::InSine);
+    (void)QObject::connect(opacity_animation,
         &QPropertyAnimation::finished, 
-        opacityEffect, 
+        opacity_effect, 
         &QGraphicsOpacityEffect::deleteLater);
-    opacityAnimation->start();
+    opacity_animation->start();
     QDialog::showEvent(event);
 }

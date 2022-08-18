@@ -78,6 +78,8 @@ public:
 
     QIcon themeIcon() const;
 
+    QIcon moreIcon() const noexcept;
+
     void setPlayOrPauseButton(Ui::XampWindow &ui, bool is_playing);
 
     void setBitPerfectButton(Ui::XampWindow& ui, bool enable);

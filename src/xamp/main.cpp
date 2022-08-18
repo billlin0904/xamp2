@@ -372,6 +372,7 @@ int main(int argc, char *argv[]) {
     XAMP_ON_SCOPE_EXIT(
         JsonSettings::save();
         AppSettings::save();
+        LoggerManager::GetInstance().Shutdown();
     );
 
     if (excute(argc, argv) == kRestartExistCode) {
