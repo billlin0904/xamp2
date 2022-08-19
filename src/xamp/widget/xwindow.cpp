@@ -628,20 +628,27 @@ void XWindow::mouseMoveEvent(QMouseEvent* event) {
             SWP_NOOWNERZORDER | SWP_FRAMECHANGED | SWP_NOACTIVATE);
     }
 
-    auto i = 1;
-    Q_FOREACH(auto screen, QGuiApplication::screens()) {
-	    if (screen == current_screen_) {
-            screen_number_ = i;
-	    }
-        ++i;
-    }
-
-    XAMP_LOG_TRACE("screen_number_: {}", screen_number_);
+    updateScreenNumber();
 
 #else
     QWidget::mouseMoveEvent(event);
 #endif   
 }
+
+void XWindow::updateScreenNumber() {
+#ifdef Q_OS_WIN32
+    auto i = 1;
+    Q_FOREACH(auto screen, QGuiApplication::screens()) {
+        if (screen == current_screen_) {
+            screen_number_ = i;
+        }
+        ++i;
+    }
+#else
+#endif
+    XAMP_LOG_TRACE("screen_number_: {}", screen_number_);
+}
+
 #ifdef Q_OS_WIN32
 void XWindow::showEvent(QShowEvent* event) {
     taskbar_->showEvent();

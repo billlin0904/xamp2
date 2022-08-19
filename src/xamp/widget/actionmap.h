@@ -6,10 +6,34 @@
 #pragma once
 
 #include <map>
-#include "thememanager.h"
 #include <QPoint>
 #include <QScopedPointer>
+#include <QPropertyAnimation>
 #include <QMenu>
+#include <QEvent>
+
+#if defined(Q_OS_WIN)
+#include <widget/win32/win32.h>
+#endif
+
+#include "thememanager.h"
+
+class XMenu : public QMenu {
+public:
+	explicit XMenu(QWidget* object = nullptr)
+		: QMenu(object) {
+	}
+
+#if defined(Q_OS_WIN)
+	bool event(QEvent* evt) override {
+		if (evt->type() == QEvent::WinIdChange) {
+			win32::setAccentPolicy(winId());
+			win32::addDwmMenuShadow(winId());
+		}
+		return QMenu::event(evt);
+	}
+#endif
+};
 
 template <typename Type, typename F = std::function<void()>>
 class ActionMap {
@@ -18,7 +42,7 @@ public:
 
 	class SubMenu {
 	public:
-		SubMenu(const QString& menu_name, QMenu* menu, MapType& action_map)
+		SubMenu(const QString& menu_name, XMenu* menu, MapType& action_map)
 			: action_group_(new QActionGroup(submenu_.get()))
 			, action_map_(action_map) {
 			submenu_.reset(menu->addMenu(menu_name));
@@ -112,8 +136,8 @@ public:
 		}
 	}
 
-private:
+private:	
 	Type* object_;
-	QMenu menu_;
+	XMenu menu_;
 	MapType map_;
 };

@@ -168,9 +168,11 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     button.state |= QStyle::State_Enabled;
     if (more_button_rect.contains(mouse_point_)) {
         button.state |= QStyle::State_Sunken;
+        painter->setPen(qTheme.hoverColor());
         painter->setBrush(QBrush(qTheme.hoverColor()));
         painter->drawEllipse(more_button_rect);
     }
+
     if (more_album_opt_button_->isDefault()) {
         button.features = QStyleOptionButton::DefaultButton;
     }

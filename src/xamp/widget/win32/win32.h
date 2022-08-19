@@ -53,6 +53,7 @@ namespace win32 {
 	void setWindowedWindowStyle(const WId window_id);
 	void frameChange(const WId window_id);
 	void addDwmShadow(const WId window_id);
+    void addDwmMenuShadow(const WId window_id);
 	void removeStandardFrame(void* message);
 	void setResizeable(void* message);
 	bool isWindowMaximized(const WId window_id);

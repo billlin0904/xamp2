@@ -38,6 +38,7 @@ class QRadioButton;
 class BackgroundWorker;
 class DicordNotify;
 class CdPage;
+class XMenu;
 
 class Xamp final : public IXPlayerFrame {
 	Q_OBJECT
@@ -195,12 +196,12 @@ private:
     ArtistInfoPage* artist_info_page_;
 	PreferencePage* preference_page_;
 	FileSystemViewPage* file_system_view_page_;
-    QMenu* tray_icon_menu_;
+	XMenu* tray_icon_menu_;
     QSystemTrayIcon* tray_icon_;
 	QAction* search_action_;
 	QAction* dark_mode_action_;
 	QAction* light_mode_action_;
-	QMenu* theme_menu_;
+	XMenu* theme_menu_;
 	IXWindow* top_window_;
 	ToolTipsFilter* tool_tips_filter_;
 	BackgroundWorker* background_worker_;

@@ -248,7 +248,7 @@ void Xamp::createTrayIcon() {
     auto* quit_action = new QAction(tr("&Quit"), this);
     (void)QObject::connect(quit_action, &QAction::triggered, this, &QWidget::close);
 
-    tray_icon_menu_ = new QMenu(this);
+    tray_icon_menu_ = new XMenu(this);
     qTheme.setMenuStyle(tray_icon_menu_);
 
     tray_icon_menu_->addAction(minimize_action);
@@ -414,7 +414,7 @@ QWidgetAction* Xamp::createTextSeparator(const QString& desc) {
 void Xamp::initialDeviceList() {    
     auto* menu = ui_.selectDeviceButton->menu();
     if (!menu) {
-        menu = new QMenu();
+        menu = new XMenu();
         qTheme.setMenuStyle(menu);
         ui_.selectDeviceButton->setMenu(menu);
     }
@@ -724,7 +724,7 @@ void Xamp::initialController() {
             Qt::QueuedConnection);
     }
 
-    auto* settings_menu = new QMenu(this);
+    auto* settings_menu = new XMenu(this);
     qTheme.setMenuStyle(settings_menu);
 
     auto hide_widget = [this](bool enable) {
@@ -843,7 +843,7 @@ void Xamp::initialController() {
     settings_menu->addSeparator();
     ui_.settingsButton->setMenu(settings_menu);
 
-    theme_menu_ = new QMenu(this);
+    theme_menu_ = new XMenu(this);
     qTheme.setMenuStyle(theme_menu_);
     qTheme.setThemeButtonIcon(ui_);
     dark_mode_action_ = theme_menu_->addAction(tr("Dark"));

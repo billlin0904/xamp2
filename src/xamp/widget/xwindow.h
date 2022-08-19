@@ -6,7 +6,6 @@
 #pragma once
 
 #include "xampplayer.h"
-#include <QSet>
 #include <widget/driveinfo.h>
 
 #if defined(Q_OS_WIN)
@@ -78,11 +77,13 @@ private:
 
     void readDriveInfo();
 
+    void updateScreenNumber();
+
     QPoint last_pos_;
     QRect last_rect_;
 
 #if defined(Q_OS_WIN)
-    void showEvent(QShowEvent* event) override;
+	void showEvent(QShowEvent* event) override;
 
     uint32_t screen_number_;
     QScreen* current_screen_;

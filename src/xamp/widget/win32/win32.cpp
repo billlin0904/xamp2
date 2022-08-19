@@ -245,6 +245,14 @@ void WinTaskbar::showEvent() {
 	taskbar_button_->setWindow(window_->windowHandle());
 }
 
+void addDwmMenuShadow(const WId window_id) {
+	auto hwnd = reinterpret_cast<HWND>(window_id);
+	int value = DWMNCRENDERINGPOLICY::DWMNCRP_ENABLED;
+	DWMDLL.DwmSetWindowAttribute(hwnd, DWMWINDOWATTRIBUTE::DWMWA_NCRENDERING_POLICY, &value, 4);
+	MARGINS borderless = { -1, -1, -1, -1 };
+	DWMDLL.DwmExtendFrameIntoClientArea(hwnd, &borderless);
+}
+
 void setAccentPolicy(HWND hwnd, bool enable, int animation_id) {
 	auto is_rs4_or_greater = false;
 
@@ -286,7 +294,7 @@ void setResizeable(void* message) {
 
 void addDwmShadow(const WId window_id) {
 	auto hwnd = reinterpret_cast<HWND>(window_id);
-	MARGINS borderless = { 1, 1, 1, 1 };
+	MARGINS borderless = { -1, -1, -1, -1 };
 	DWMDLL.DwmExtendFrameIntoClientArea(hwnd, &borderless);
 }
 
