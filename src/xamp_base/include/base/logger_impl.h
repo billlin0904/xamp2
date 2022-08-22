@@ -13,8 +13,8 @@
 #include <base/base.h>
 #include <base/logger.h>
 
-#include <spdlog/fmt/ostr.h>
 #include <spdlog/sinks/sink.h>
+#include <spdlog/fmt/ostr.h>
 
 namespace spdlog {
     class logger;

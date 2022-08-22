@@ -67,17 +67,6 @@
 #include "version.h"
 #include "xamp.h"
 
-enum TabIndex {
-    TAB_ALBUM = 0,
-    TAB_ARTIST,
-    TAB_PLAYLIST,
-    TAB_PODCAST,
-    TAB_FILE_EXPLORER,
-    TAB_CD,
-    TAB_LYRICS,
-    TAB_SETTINGS,
-};
-
 static PlayerOrder getNextOrder(PlayerOrder cur) noexcept {
     auto next = static_cast<int32_t>(cur) + 1;
     auto max = static_cast<int32_t>(PlayerOrder::PLAYER_ORDER_MAX);

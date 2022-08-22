@@ -57,7 +57,7 @@ SOURCES += \
     widget/metadataextractadapter.cpp \
     widget/pixmapcache.cpp \
     widget/playlistpage.cpp \
-    widget/settingnames.cpp \
+    widget/appsettingnames.cpp \
     widget/playlisttableproxymodel.cpp \
     widget/playlisttableview.cpp \
     widget/switchbutton.cpp \

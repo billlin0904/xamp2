@@ -9,6 +9,17 @@
 #include <QListView>
 #include <QStandardItemModel>
 
+enum TabIndex {
+    TAB_PLAYLIST = 0,
+    TAB_PODCAST,
+    TAB_FILE_EXPLORER,
+    TAB_ALBUM,
+    TAB_ARTIST,
+    TAB_LYRICS,
+    TAB_SETTINGS,
+    TAB_CD
+};
+
 class TabListView : public QListView {
     Q_OBJECT
 public:

@@ -28,7 +28,7 @@ QString TabListView::getTabName(int table_id) const {
 }
 
 int32_t TabListView::getTabId(const QString& name) const {
-    if (!names_.values().contains(name)) {
+    if (!ids_.contains(name)) {
         return -1;
     }
     return ids_[name];
@@ -40,7 +40,11 @@ void TabListView::addTab(const QString& name, int table_id, const QIcon& icon) {
     item->setIcon(icon);
     item->setSizeHint(QSize(80, 30));
     auto f = item->font();
+#ifdef XAMP_OS_MAC
+    f.setPointSize(15);
+#else
     f.setPointSize(10);
+#endif
     item->setFont(f);
     model_.appendRow(item);
     names_[table_id] = name;

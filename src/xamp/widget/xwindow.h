@@ -81,11 +81,11 @@ private:
 
     QPoint last_pos_;
     QRect last_rect_;
+    uint32_t screen_number_;
 
 #if defined(Q_OS_WIN)
 	void showEvent(QShowEvent* event) override;
 
-    uint32_t screen_number_;
     QScreen* current_screen_;
     QScopedPointer<win32::WinTaskbar> taskbar_;
     QMap<QString, DriveInfo> exist_drives_;

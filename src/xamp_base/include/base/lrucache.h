@@ -6,6 +6,8 @@
 #pragma once
 
 #include <list>
+#include <unordered_map>
+
 #include <base/base.h>
 #include <base/stl.h>
 
