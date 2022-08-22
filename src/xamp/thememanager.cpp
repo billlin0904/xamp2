@@ -506,18 +506,10 @@ QColor ThemeManager::hoverColor() const {
     }
 }
 
-void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
+void ThemeManager::setStandardButtonStyle(QWidget* close_button, QWidget* min_win_button, QWidget* max_win_button) const {
     const QColor hover_color = hoverColor();
 
-    ui.logoButton->setStyleSheet(Q_STR(R"(
-                                         QToolButton#logoButton {
-                                         border: none;
-                                         image: url(":/xamp/xamp.ico");
-                                         background-color: transparent;
-                                         }
-										)"));
-
-    ui.closeButton->setStyleSheet(Q_STR(R"(
+    close_button->setStyleSheet(Q_STR(R"(
                                          QToolButton#closeButton {
                                          border: none;
                                          image: url(:/xamp/Resource/%1/close_normal.png);
@@ -532,7 +524,7 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
                                          }
                                          )").arg(themeColorPath()).arg(colorToString(hover_color)));
 
-    ui.minWinButton->setStyleSheet(Q_STR(R"(
+    min_win_button->setStyleSheet(Q_STR(R"(
                                           QToolButton#minWinButton {
                                           border: none;
                                           image: url(:/xamp/Resource/%1/minimize_normal.png);
@@ -546,7 +538,7 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
                                           }
                                           )").arg(themeColorPath()).arg(colorToString(hover_color)));
 
-    ui.maxWinButton->setStyleSheet(Q_STR(R"(
+    max_win_button->setStyleSheet(Q_STR(R"(
                                           QToolButton#maxWinButton {
                                           border: none;
                                           image: url(:/xamp/Resource/%1/maximize_normal.png);
@@ -559,6 +551,22 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
 										  border-radius: 0px;								 
                                           }
                                           )").arg(themeColorPath()).arg(colorToString(hover_color)));
+}
+
+void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
+    setStandardButtonStyle(ui.closeButton, ui.minWinButton, ui.maxWinButton);
+
+    const QColor hover_color = hoverColor();
+    
+    ui.logoButton->setStyleSheet(Q_STR(R"(
+                                         QToolButton#logoButton {
+                                         border: none;
+                                         image: url(":/xamp/xamp.ico");
+                                         background-color: transparent;
+                                         }
+										)"));
+
+    
 
     ui.settingsButton->setStyleSheet(Q_STR(R"(
                                             QToolButton#settingsButton {

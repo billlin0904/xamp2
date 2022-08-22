@@ -16,8 +16,11 @@ public:
 	explicit FileSystemViewPage(QWidget* parent = nullptr);
 
 	PlaylistPage* playlistPage();
+
+signals:
+	void addDirToPlyalist(const QString& url);
+
 private:
 	Ui::FileSystemViewPage ui;
 	FileSystemModel* dir_model_;
 };
-

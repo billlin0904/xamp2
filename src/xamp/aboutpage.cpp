@@ -2,6 +2,7 @@
 
 #include <base/simd.h>
 #include <widget/str_utilts.h>
+#include "version.h"
 #include "thememanager.h"
 #include "aboutpage.h"
 
@@ -19,14 +20,14 @@ AboutPage::AboutPage(QWidget* parent)
     ui.setupUi(this);
 
 #ifdef Q_OS_WIN32
-    ui.lblVersion->setText(Q_STR("Build Visual Studio %1.%2.%3 (%4 %5), %6 AVX2, Qt %7")
+    ui.lblVersion->setText(Q_STR("Version: %1 Build Visual Studio %2.%3.%4 (%5 %6)")
+        .arg(kXAMPVersion)
         .arg(visualStudioVersion())
 		.arg((_MSC_FULL_VER / 100000) % 100)
 		.arg(_MSC_FULL_VER % 100000)
         .arg(Q_TEXT(__DATE__))
 		.arg(Q_TEXT(__TIME__))
-        .arg(SIMD::IsCPUSupportAVX2() ? Q_TEXT("Supported") : Q_TEXT("Unsupported"))
-		.arg(Q_TEXT(QT_VERSION_STR)));
+        );
 #else
     ui.lblVersion->setText(Q_STR("Build Clang %1.%2.%3")
                             .arg(__clang_major__)

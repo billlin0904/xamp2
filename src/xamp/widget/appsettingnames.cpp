@@ -1,5 +1,6 @@
 ﻿#include <widget/appsettingnames.h>
 
+const ConstLatin1String kAppSettingLastTabName{ "AppSettings/lastTabName" };
 const ConstLatin1String kAppSettingLang{ "AppSettings/lang" };
 
 const ConstLatin1String kAppSettingDeviceType{ "AppSettings/deviceType" };

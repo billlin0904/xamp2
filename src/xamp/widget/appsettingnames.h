@@ -10,6 +10,7 @@
 #define DECLARE_APP_SETTING_NAME(Name) \
 	extern const ConstLatin1String k##Name
 
+DECLARE_APP_SETTING_NAME(AppSettingLastTabName);
 DECLARE_APP_SETTING_NAME(AppSettingLang);
 DECLARE_APP_SETTING_NAME(AppSettingDeviceType);
 DECLARE_APP_SETTING_NAME(AppSettingDeviceId);

@@ -203,7 +203,7 @@ void XWindow::restoreGeometry() {
             if (QGuiApplication::screens().size() <= screen_number_) {
                 auto screen_index = screen_number_ - 1;
                 auto screenres = QGuiApplication::screens().at(screen_index)->availableGeometry();
-                move(QPoint(screenres.x(), screenres.y()));
+                move(QPoint(screenres.x() + 100, screenres.y() + 100));
                 resize(last_rect_.width(), last_rect_.height());
             }
         } else {

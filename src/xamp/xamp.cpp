@@ -691,7 +691,8 @@ void Xamp::initialController() {
         case TAB_CD:
             ui_.currentView->setCurrentWidget(cd_page_);
             break;
-    	}        
+    	}
+        AppSettings::setValue(kAppSettingLastTabName, ui_.sliderBar->getTabName(table_id));
     });
 
     (void)QObject::connect(ui_.sliderBar, &TabListView::tableNameChanged, [](auto table_id, const auto &name) {
@@ -1448,6 +1449,12 @@ void Xamp::initialPlaylist() {
     ui_.sliderBar->addTab(tr("CD"), TAB_CD, qTheme.albumsIcon());
     ui_.sliderBar->setCurrentIndex(ui_.sliderBar->model()->index(0, 0));
 
+    auto tab_name = AppSettings::getValueAsString(kAppSettingLastTabName);
+    auto tab_id = ui_.sliderBar->getTabId(tab_name);
+    if (tab_id != -1) {
+        ui_.sliderBar->setCurrentIndex(ui_.sliderBar->model()->index(tab_id, 0));
+    }
+
     qDatabase.forEachTable([this](auto table_id,
         auto /*table_index*/,
         auto playlist_id,
@@ -1548,6 +1555,11 @@ void Xamp::initialPlaylist() {
         &PlayListTableView::updateReplayGain,
         Qt::QueuedConnection);
 
+    (void)QObject::connect(file_system_view_page_,
+        &FileSystemViewPage::addDirToPlyalist,
+        this,
+        &Xamp::appendToPlaylist);
+
     lrc_page_ = new LrcPage(this);
     album_page_ = new AlbumArtistPage(this);
 
@@ -1620,18 +1632,22 @@ void Xamp::initialPlaylist() {
         &Xamp::addPlaylistItem);
 }
 
+void Xamp::appendToPlaylist(const QString& file_name) {
+    try {
+        playlist_page_->playlist()->append(file_name, false, false);
+        album_page_->refreshOnece();
+    }
+    catch (const Exception& e) {
+        Toast::showTip(Q_TEXT(e.GetErrorMessage()), this);
+    }
+}
+
 void Xamp::addItem(const QString& file_name) {
 	const auto add_playlist = dynamic_cast<PlaylistPage*>(
         ui_.currentView->currentWidget()) != nullptr;
 
     if (add_playlist) {
-        try {
-            playlist_page_->playlist()->append(file_name);
-            album_page_->refreshOnece();
-        }
-        catch (const Exception & e) {
-            Toast::showTip(Q_TEXT(e.GetErrorMessage()), this);
-        }
+        appendToPlaylist(file_name);
     }
     else {
         extractFile(file_name);

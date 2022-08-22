@@ -35,6 +35,7 @@ void XDialog::setContentWidget(QWidget* content) {
     auto* shadow = new QGraphicsDropShadowEffect(frame_);
     shadow->setOffset(0, 0);
     shadow->setBlurRadius(20);
+
     switch (qTheme.themeColor()) {
     case ThemeColor::DARK_THEME:
         shadow->setColor(Qt::black);

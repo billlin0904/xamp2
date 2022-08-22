@@ -94,39 +94,7 @@ void XFrame::setContentWidget(QWidget* content) {
     default_layout->addWidget(content_, 0);
     default_layout->setContentsMargins(0, 0, 0, 0);
 
-    close_button->setStyleSheet(Q_STR(R"(
-                                         QToolButton#closeButton {
-                                         border: none;
-                                         image: url(:/xamp/Resource/%1/close_normal.png);
-                                         background-color: transparent;
-                                         }
-
-										 QToolButton#closeButton:hover {	
-										 image: url(:/xamp/Resource/%1/close_hover.png);									 
-                                         }
-                                         )").arg(qTheme.themeColorPath()));
-
-    min_win_button->setStyleSheet(Q_STR(R"(
-                                          QToolButton#minWinButton {
-                                          border: none;
-                                          image: url(:/xamp/Resource/%1/minimize_normal.png);
-                                          background-color: transparent;
-                                          }
-										  QToolButton#minWinButton:hover {	
-										  image: url(:/xamp/Resource/%1/minimize_hover.png);									 
-                                          }
-                                          )").arg(qTheme.themeColorPath()));
-
-    max_win_button->setStyleSheet(Q_STR(R"(
-                                          QToolButton#maxWinButton {
-                                          border: none;
-                                          image: url(:/xamp/Resource/%1/maximize_normal.png);
-                                          background-color: transparent;
-                                          }
-										  QToolButton#maxWinButton:hover {	
-										  image: url(:/xamp/Resource/%1/maximize_hover.png);									 
-                                          }
-                                          )").arg(qTheme.themeColorPath()));
+    qTheme.setStandardButtonStyle(close_button, min_win_button, max_win_button);
 
     max_win_button->setDisabled(true);
     min_win_button->setDisabled(true);

@@ -154,6 +154,8 @@ public:
         return theme_color_;
     }
 
+    void setStandardButtonStyle(QWidget* close_button, QWidget* min_win_button, QWidget* max_win_button) const;
+
 private:
     QFont loadFonts();
 

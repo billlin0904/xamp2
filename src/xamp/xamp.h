@@ -184,6 +184,8 @@ private:
 
 	void setTipHint(QWidget* widget, const QString& hint_text);
 
+	void appendToPlaylist(const QString& file_name);
+
 	bool is_seeking_;
 	PlayerOrder order_;
 	LrcPage* lrc_page_;

@@ -20,6 +20,20 @@ TabListView::TabListView(QWidget *parent)
     });
 }
 
+QString TabListView::getTabName(int table_id) const {
+	if (!names_.contains(table_id)) {
+        return Qt::EmptyString;
+	}
+    return names_[table_id];
+}
+
+int32_t TabListView::getTabId(const QString& name) const {
+    if (!names_.values().contains(name)) {
+        return -1;
+    }
+    return ids_[name];
+}
+
 void TabListView::addTab(const QString& name, int table_id, const QIcon& icon) {
     auto *item = new QStandardItem(name);
     item->setData(table_id);
@@ -29,6 +43,8 @@ void TabListView::addTab(const QString& name, int table_id, const QIcon& icon) {
     f.setPointSize(10);
     item->setFont(f);
     model_.appendRow(item);
+    names_[table_id] = name;
+    ids_[name] = table_id;
 }
 
 void TabListView::addSeparator() {

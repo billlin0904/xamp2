@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <QMap>
 #include <QListView>
 #include <QStandardItemModel>
 
@@ -17,6 +18,10 @@ public:
 
     void addSeparator();
 
+    QString getTabName(int table_id) const;
+
+    int32_t getTabId(const QString &name) const;
+
 signals:
     void clickedTable(int table_id);
 
@@ -24,5 +29,7 @@ signals:
 
 private:
     QStandardItemModel model_;
+    QMap<int, QString> names_;
+    QMap<QString, int> ids_;
 };
 
