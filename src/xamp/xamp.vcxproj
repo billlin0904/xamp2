@@ -278,6 +278,7 @@
     <QtMoc Include="widget\tooltips.h" />
     <QtMoc Include="widget\tooltipsfilter.h" />
     <ClInclude Include="widget\xmessagebox.h" />
+    <ClInclude Include="widget\xsliderproxystyle.h" />
     <ClInclude Include="xampplayer.h" />
     <QtMoc Include="widget\lyricsshowwidget.h" />
     <QtMoc Include="widget\discordnotify.h" />
