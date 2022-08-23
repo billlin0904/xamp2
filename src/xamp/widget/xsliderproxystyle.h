@@ -61,50 +61,49 @@ public:
 			return QProxyStyle::drawComplexControl(control, option, painter, widget);
 		}
 
-		auto grooveRect = subControlRect(control, option, SC_SliderGroove, widget);
-		auto handleRect = subControlRect(control, option, SC_SliderHandle, widget);
+		auto groove_rect = subControlRect(control, option, SC_SliderGroove, widget);
+		auto handle_rect = subControlRect(control, option, SC_SliderHandle, widget);
 		painter->setRenderHints(QPainter::Antialiasing);
 		painter->setPen(Qt::NoPen);
 		painter->save();
-		painter->translate(grooveRect.topLeft());
+		painter->translate(groove_rect.topLeft());
 
-		auto w = handleRect.x() - grooveRect.x();
+		auto w = handle_rect.x() - groove_rect.x();
 		auto h = config_[Q_TEXT("groove.height")].toInt();
-		//painter->setBrush(config_[Q_TEXT("sub-page.color")].toColor());
+		painter->setBrush(config_[Q_TEXT("sub-page.color")].value<QColor>());
 		painter->drawRect(0, 0, w, h);
 
 		auto x = w + config_[Q_TEXT("handle.size")].toSize().width();
-		//painter->setBrush(config_[Q_TEXT("add-page.color")].toColor());
-		painter->drawRect(x, 0, grooveRect.width() - w, h);
+		painter->setBrush(config_[Q_TEXT("add-page.color")].value<QColor>());
+		painter->drawRect(x, 0, groove_rect.width() - w, h);
 		painter->restore();
 
-		auto ringWidth = config_[Q_TEXT("handle.ring-width")].toInt();
-		auto hollowRadius = config_[Q_TEXT("handle.hollow-radius")].toInt();
-		auto radius = ringWidth + hollowRadius;
+		auto ring_width = config_[Q_TEXT("handle.ring-width")].toInt();
+		auto hollow_radius = config_[Q_TEXT("handle.hollow-radius")].toInt();
+		auto radius = ring_width + hollow_radius;
 
 		QPainterPath path;
 		path.moveTo(0, 0);
-		auto center = handleRect.center() + QPoint(1, 1);
+		auto center = handle_rect.center() + QPoint(1, 1);
 		path.addEllipse(center, radius, radius);
-		path.addEllipse(center, hollowRadius, hollowRadius);
+		path.addEllipse(center, hollow_radius, hollow_radius);
 
-		QColor handleColor;
+		QColor handle_color = config_[Q_TEXT("handle.color")].value<QColor>();
 
 		if (slider_opt->activeSubControls != SC_SliderHandle) {
-			handleColor.setAlpha(153);
+			handle_color.setAlpha(153);
 		} else {
-			handleColor.setAlpha(255);
+			handle_color.setAlpha(255);
 		}
-		painter->setBrush(handleColor);
+		painter->setBrush(handle_color);
 		painter->drawPath(path);
 
 		auto* ww = dynamic_cast<const QAbstractSlider*>(widget);
 		if (ww->isSliderDown()) {
-			handleColor.setAlpha(255);
-			painter->setBrush(handleColor);
-			painter->drawEllipse(handleRect);
+			handle_color.setAlpha(255);
+			painter->setBrush(handle_color);
+			painter->drawEllipse(handle_rect);
 		}
-		return QProxyStyle::drawComplexControl(control, option, painter, widget);
 	}
 private:
 	QMap<QString, QVariant> config_;

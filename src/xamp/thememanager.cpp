@@ -19,6 +19,7 @@
 #include <widget/widget_shared.h>
 #include <widget/str_utilts.h>
 #include <widget/appsettings.h>
+#include <widget/xsliderproxystyle.h>
 #include "thememanager.h"
 
 bool ThemeManager::useNativeWindow() const {
@@ -659,6 +660,7 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
 void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
     ui.searchLineEdit->setStyleSheet(Q_TEXT(""));
     ui.sliderBar->setStyleSheet(Q_TEXT("QListView#sliderBar { background-color: transparent; border: none; }"));
+    ui.seekSlider->setStyle(new XSliderProxyStyle());
     
     ui.searchFrame->setStyleSheet(Q_TEXT("QFrame#searchFrame { background-color: transparent; border: none; }"));
 
