@@ -28,6 +28,7 @@ public:
 
 	void setTextColor(QColor color);
 
+	void clearImageCache();
 signals:
 	void enterAlbumView(const QModelIndex& index) const;
 
@@ -41,8 +42,10 @@ protected:
 private:
 	QColor text_color_;
 	QPoint mouse_point_;
+	QPixmap mask_image_;
 	QScopedPointer<QPushButton> more_album_opt_button_;
 	QScopedPointer<QPushButton> play_button_;
+	mutable LruCache<QString, QPixmap> image_cache_;
 };
 
 class AlbumViewPage final : public QFrame {

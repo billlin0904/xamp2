@@ -8,6 +8,7 @@
 #include <QStandardPaths>
 #include <QFileDialog>
 #include <QSqlQuery>
+#include <QPainterPath>
 
 #include <widget/widget_shared.h>
 #include <widget/scrolllabel.h>
@@ -42,10 +43,15 @@ AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
 	, play_button_(new QPushButton()) {
     more_album_opt_button_->setStyleSheet(Q_TEXT("background-color: transparent"));
     play_button_->setStyleSheet(Q_TEXT("background-color: transparent"));
+    mask_image_ = Pixmap::roundDarkImage(qTheme.getAlbumCoverSize());
 }
 
 void AlbumViewStyledDelegate::setTextColor(QColor color) {
     text_color_ = color;
+}
+
+void AlbumViewStyledDelegate::clearImageCache() {
+    image_cache_.Clear();
 }
 
 bool AlbumViewStyledDelegate::editorEvent(QEvent* event, QAbstractItemModel* model, const QStyleOptionViewItem& option, const QModelIndex& index) {
@@ -124,15 +130,20 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
 
     auto* album_cover = &qTheme.defaultSizeUnknownCover();
 
-    if (const auto * cache_small_cover = qPixmapCache.find(cover_id)) {
-        album_cover = cache_small_cover;
+    if (const auto* round_image = image_cache_.Find(cover_id)) {
+        painter->drawPixmap(cover_rect, *round_image);
+        XAMP_LOG_DEBUG("Cache image id : {}", cover_id.toStdString());
+    } else {
+        if (const auto* cache_small_cover = qPixmapCache.find(cover_id)) {
+            album_cover = cache_small_cover;
+        }
+        auto album_image = Pixmap::roundImage(*album_cover, Pixmap::kSmallImageRadius);
+        image_cache_.Add(cover_id, album_image);
+        painter->drawPixmap(cover_rect, album_image);
     }
-    painter->drawPixmap(cover_rect, Pixmap::roundImage(*album_cover, Pixmap::kSmallImageRadius));
 
     if (option.state & QStyle::State_MouseOver && cover_rect.contains(mouse_point_)) {
-        QColor color = Qt::black;
-        color.setAlpha(98);
-        painter->fillRect(cover_rect, QBrush(color));
+        painter->drawPixmap(cover_rect, mask_image_);
 
         constexpr auto icon_size = 48;
         constexpr auto offset = (icon_size / 2) - 10;
@@ -353,6 +364,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
 
     action_map.addAction(tr("Remove all album"), [=]() {
         removeAlbum();
+        styled_delegate_->clearImageCache();
         });
 
     (void)action_map.addAction(tr("Load local file"), [this]() {

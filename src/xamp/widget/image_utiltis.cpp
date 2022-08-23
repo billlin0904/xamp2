@@ -34,6 +34,22 @@ QPixmap roundImage(const QPixmap& src, int32_t radius) {
 	return roundImage(src, src.size(), radius);
 }
 
+QPixmap roundDarkImage(QSize size, int32_t alpha, int32_t radius) {
+	QColor color = Qt::black;
+	color.setAlpha(alpha);
+	const QRect darker_rect(0, 0, size.width(), size.height());
+
+	QPixmap result(size);
+	result.fill(Qt::transparent);
+
+	QPainter painter(&result);
+	QPainterPath painter_path;
+	painter_path.addRoundedRect(darker_rect, Pixmap::kImageRadius, Pixmap::kImageRadius);
+	painter.setClipPath(painter_path);
+	painter.fillPath(painter_path, QBrush(color));
+	return result;
+}
+
 QPixmap roundImage(const QPixmap& src, QSize size, int32_t radius) {
 	QPixmap result(size);
 	const QPixmap pixmap(src);

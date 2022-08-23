@@ -49,6 +49,14 @@ QFont ThemeManager::loadFonts() {
 
     QList<QString> ui_fallback_fonts;
 
+    const auto en_font_id = QFontDatabase::addApplicationFont(Q_TEXT(":/xamp/fonts/Lato-Regular.ttf"));
+    const auto en_font_families = QFontDatabase::applicationFontFamilies(en_font_id);
+
+    const auto en_bold_font_id = QFontDatabase::addApplicationFont(Q_TEXT(":/xamp/fonts/Inter-Bold.ttf.ttf"));
+    const auto en_bold_font_families = QFontDatabase::applicationFontFamilies(en_bold_font_id);
+
+    ui_fallback_fonts << en_font_families << en_bold_font_families;
+
 #if defined(Q_OS_WIN)
     // note: If we are support Source HanSans font sets must be enable Direct2D function,
     // But Qt framework not work fine with that!
@@ -59,14 +67,13 @@ QFont ThemeManager::loadFonts() {
     installFont(Q_TEXT("HarmonyOS_Sans_SC_Regular.ttf"), ui_fallback_fonts);
     installFont(Q_TEXT("HarmonyOS_Sans_SC_Bold.ttf"), ui_fallback_fonts);
 
-    ui_fallback_fonts.push_back(Q_TEXT("Microsoft YaHei"));
-    ui_fallback_fonts.push_back(Q_TEXT("Microsoft JhengHei UI"));
+    //ui_fallback_fonts.push_back(Q_TEXT("Meiryo UI")); // For japanese font.
+    //ui_fallback_fonts.push_back(Q_TEXT("Microsoft YaHei"));
+    //ui_fallback_fonts.push_back(Q_TEXT("Microsoft JhengHei UI"));
+    //ui_fallback_fonts.push_back(Q_TEXT("Arial"));
+    //ui_fallback_fonts.push_back(Q_TEXT("Lucida Grande"));
 
-    ui_fallback_fonts.push_back(Q_TEXT("Meiryo UI")); // For japanese font.    
-
-    ui_fallback_fonts.push_back(Q_TEXT("Arial"));
-    ui_fallback_fonts.push_back(Q_TEXT("Lucida Grande"));
-    ui_fallback_fonts.push_back(Q_TEXT("Helvetica Neue"));
+    //ui_fallback_fonts.push_back(Q_TEXT("Helvetica Neue"));
     QFont::insertSubstitutions(Q_TEXT("MonoFont"), QList<QString>() << Q_TEXT("Consolas"));
 #else
     QList<QString> mono_fonts;
@@ -346,7 +353,7 @@ void ThemeManager::setPlayOrPauseButton(Ui::XampWindow& ui, bool is_playing) {
     if (is_playing) {
         ui.playButton->setStyleSheet(Q_STR(R"(
                                             QToolButton#playButton {
-                                            image: url(:/xamp/Resource/%1/pause.png);
+                                            image: url(:/xamp/Resource/%1/pause_circle.png);
                                             border: none;
                                             background-color: transparent;
                                             }
@@ -355,7 +362,7 @@ void ThemeManager::setPlayOrPauseButton(Ui::XampWindow& ui, bool is_playing) {
     else {
         ui.playButton->setStyleSheet(Q_STR(R"(
                                             QToolButton#playButton {
-                                            image: url(:/xamp/Resource/%1/play.png);
+                                            image: url(:/xamp/Resource/%1/play_circle.png);
                                             border: none;
                                             background-color: transparent;
                                             }

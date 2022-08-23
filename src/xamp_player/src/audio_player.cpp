@@ -91,7 +91,7 @@ AudioPlayer::~AudioPlayer() = default;
 void AudioPlayer::Destroy() {
     timer_.Stop();
     try {
-        CloseDevice(true);
+        CloseDevice(true, true);
     }
     catch (...) {
     }
@@ -426,7 +426,7 @@ DsdModes AudioPlayer::GetDsdModes() const noexcept {
     return dsd_mode_;
 }
 
-void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
+void AudioPlayer::CloseDevice(bool wait_for_stop_stream, bool quit) {
     is_playing_ = false;
     is_paused_ = false;
     pause_cond_.notify_all();
@@ -446,7 +446,9 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream) {
         XAMP_LOG_D(logger_, "Stream thread was finished.");
     }
 
-    ProcessFadeOut();
+    if (!quit) {
+        ProcessFadeOut();
+    }
 
     if (device_ != nullptr) {
         if (device_->IsStreamOpen()) {

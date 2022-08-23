@@ -353,6 +353,7 @@ void Xamp::initialUI() {
     search_action_ = ui_.searchLineEdit->addAction(qTheme.seachIcon(),
                                                    QLineEdit::LeadingPosition);
     top_window_->setTitleBarAction(ui_.titleFrame);
+    ui_.stopButton->hide();
 }
 
 void Xamp::onVolumeChanged(float volume) {

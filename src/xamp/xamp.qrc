@@ -51,8 +51,6 @@
         <file>fonts/digital.ttf</file>
         <file>Resource/Black/preference.png</file>
         <file>Resource/Black/help.png</file>
-        <file>fonts/WorkSans-Bold.ttf</file>
-        <file>fonts/WorkSans-Regular.ttf</file>
         <file>Resource/Black/usb.png</file>
         <file>Resource/Black/search.png</file>
         <file>Resource/Black/tab_yt_music.png</file>
@@ -79,8 +77,6 @@
         <file>Resource/White/enable_converter.png</file>
         <file>Resource/Flags/US.png</file>
         <file>fonts/Lato-Regular.ttf</file>
-        <file>fonts/IBMPlexSans-Bold.ttf</file>
-        <file>fonts/IBMPlexSans-Regular.ttf</file>
         <file>fonts/Inter-Bold.ttf</file>
         <file>fonts/Inter-Regular.ttf</file>
         <file>Resource/Black/close_hover.png</file>
@@ -110,5 +106,10 @@
         <file>Resource/White/restore.png</file>
         <file>Resource/White/more.png</file>
         <file>Resource/Black/more.png</file>
+        <file>Resource/White/pause_circle.png</file>
+        <file>Resource/White/play_circle.png</file>
+        <file>Resource/White/stop_circle.png</file>
+        <file>Resource/Black/pause_circle.png</file>
+        <file>Resource/Black/stop_circle.png</file>
     </qresource>
 </RCC>

@@ -2,25 +2,25 @@
     "Log": {
         "MinimumLevel": {
             "Default": "debug",
-          "Override": {
-            "Database": "info",
-            "AsioDevice": "debug",
-            "AudioPlayer": "debug",
-            "BackgroundThreadPool": "info",
-            "Compressor": "info",
-            "CoreAudio": "info",
-            "DspManager": "debug",
-            "ExclusiveWasapiDevice": "debug",
-            "ExclusiveWasapiDeviceType": "info",
-            "FileStream": "info",
-            "PixmapCache": "info",
-            "PlaybackThreadPool": "info",
-            "SharedWasapiDevice": "info",
-            "Soxr": "info",
-            "VirtualMemory": "info",
-            "Volume": "info",
-            "WASAPIThreadPool": "info"
-          }
+            "Override": {
+                "AsioDevice": "debug",
+                "AudioPlayer": "debug",
+                "BackgroundThreadPool": "info",
+                "Compressor": "info",
+                "CoreAudio": "info",
+                "Database": "info",
+                "DspManager": "debug",
+                "ExclusiveWasapiDevice": "debug",
+                "ExclusiveWasapiDeviceType": "info",
+                "FileStream": "info",
+                "PixmapCache": "info",
+                "PlaybackThreadPool": "info",
+                "SharedWasapiDevice": "info",
+                "Soxr": "info",
+                "VirtualMemory": "info",
+                "Volume": "info",
+                "WASAPIThreadPool": "info"
+            }
         }
     },
     "R8Brain": {

@@ -119,7 +119,7 @@ private:
 
     void CreateDevice(Uuid const& device_type_id, std::string const & device_id, bool open_always);
 
-    void CloseDevice(bool wait_for_stop_stream);
+    void CloseDevice(bool wait_for_stop_stream, bool quit = false);
 
     void CreateBuffer();
 
