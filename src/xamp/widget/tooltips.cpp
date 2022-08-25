@@ -20,8 +20,9 @@ ToolTips::ToolTips(const QString& text, QWidget* parent)
     
     setObjectName(Q_TEXT("ToolTips"));
     setStyleSheet(Q_TEXT("QFrame#ToolTips { background-color: transparent }"));
+#ifdef XAMP_OS_WIN
     win32::addDwmMenuShadow(winId());
-
+#endif
     setContentsMargins(0, 0, 0, 0);
 
     auto* layout = new QHBoxLayout(this);

@@ -6,6 +6,8 @@
 
 namespace xamp::stream {
 
+#ifdef XAMP_OS_WIN
+
 static const std::vector<double> & FIRFilter() {
 	static constexpr auto readFIRFilter = []() {
 		static std::vector<double> data;
@@ -349,5 +351,35 @@ void Pcm2DsdConverter::Init(uint32_t output_sample_rate, uint32_t dsd_times) {
 bool Pcm2DsdConverter::Process(float const* samples, size_t num_samples, AudioBuffer<int8_t>& buffer) {
 	return impl_->Process(samples, num_samples, buffer);
 }
+
+#else
+
+class Pcm2DsdConverter::Pcm2DsdConverterImpl {
+public:
+    Pcm2DsdConverterImpl() {
+    }
+};
+
+XAMP_PIMPL_IMPL(Pcm2DsdConverter)
+
+Pcm2DsdConverter::Pcm2DsdConverter() {
+}
+
+void Pcm2DsdConverter::Init(uint32_t output_sample_rate, uint32_t dsd_times) {
+}
+
+[[nodiscard]] std::string_view Pcm2DsdConverter::GetDescription() const noexcept {
+    return "";
+}
+
+[[nodiscard]] bool Pcm2DsdConverter::Process(BufferRef<float> const& input, AudioBuffer<int8_t>& buffer) {
+    return Process(input.data(), input.size(), buffer);
+}
+
+bool Pcm2DsdConverter::Process(float const* samples, size_t num_samples, AudioBuffer<int8_t>& buffer) {
+    return false;
+}
+
+#endif
 
 }
