@@ -50,6 +50,15 @@ enum LogLevel {
 		Log(Level, filename, line, func, s, std::forward<Args>(args)...);\
 	}
 
+class XAMP_BASE_API LoggerFormat {
+    LoggerFormat() = default;
+public:
+    template <typename... Args>
+	static std::string Format(std::string_view s, Args &&...args) {
+		return fmt::format(s, args...);
+	}
+};
+
 class XAMP_BASE_API Logger {
 public:
     explicit Logger(const std::shared_ptr<spdlog::logger>& logger);

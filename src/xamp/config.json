@@ -24,12 +24,12 @@
         }
     },
     "R8Brain": {
-        "resampleSampleRate": 352800
+        "resampleSampleRate": 384000
     },
     "Soxr": {
         "default": {
             "enableSteepFilter": false,
-            "passBand": 97,
+            "passBand": 96,
             "phase": 47,
             "quality": 4,
             "resampleSampleRate": 384000,

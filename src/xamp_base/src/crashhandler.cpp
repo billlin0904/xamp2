@@ -130,7 +130,10 @@ public:
     static void StackDump() {
         EXCEPTION_POINTERS exception_pointers{};
         GetExceptionPointers(0, &exception_pointers);
-        Dump(&exception_pointers);
+
+        if (exception_pointers.ContextRecord != nullptr && exception_pointers.ExceptionRecord != nullptr) {
+            Dump(&exception_pointers);
+        }        
     }
 
     static LONG SehHandler(PEXCEPTION_POINTERS exception_pointers) {

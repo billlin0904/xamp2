@@ -30,7 +30,7 @@ public:
 
 	double GetDuration() const override;
 
-	AudioFormat GetFormat() const noexcept override;
+	AudioFormat GetFormat() const override;
 
     uint32_t GetSamples(void* buffer, uint32_t length) const noexcept override;
 

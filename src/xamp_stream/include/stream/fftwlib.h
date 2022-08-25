@@ -118,8 +118,8 @@ struct FFTWPlanTraits final {
 using FFTWFPlan = UniqueHandle<fftwf_plan, FFTWFPlanTraits>;
 using FFTWPlan = UniqueHandle<fftw_plan, FFTWPlanTraits>;
 
-using FFTWComplexArrayPtr = std::unique_ptr<fftw_complex[], FFTWPtrTraits<fftw_complex>>;
-using FFTWDoubleArrayPtr = std::unique_ptr<double[], FFTWPtrTraits<double>>;
+using FFTWComplexPtr = std::unique_ptr<fftw_complex[], FFTWPtrTraits<fftw_complex>>;
+using FFTWDoublePtr = std::unique_ptr<double[], FFTWPtrTraits<double>>;
 
 template <typename T>
 std::unique_ptr<T[], FFTWPtrTraits<T>> MakeFFTWBuffer(size_t size) {

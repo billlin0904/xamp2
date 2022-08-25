@@ -44,7 +44,7 @@ public:
 
     virtual void RemoveReplayGain() = 0;
 
-    virtual void SetPcm2DsdConvertSampleRate(uint32_t dsd_sample_rate) = 0;
+    virtual void EnablePcm2DsdConvert(uint32_t dsd_sample_rate) = 0;
 
     virtual bool IsEnableSampleRateConverter() const = 0;
 

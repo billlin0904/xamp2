@@ -1,16 +1,16 @@
 #include <base/assert.h>
 #include <base/audioformat.h>
 #include <base/exception.h>
+#include <base/logger_impl.h>
+
 #include <stream/api.h>
+#include <stream/pcm2dsdconverter.h>
 #include <stream/iequalizer.h>
 #include <stream/soxresampler.h>
 #include <stream/r8brainresampler.h>
 #include <stream/bassvolume.h>
 #include <stream/basscompressor.h>
-#include <stream/bassfader.h>
-#include <base/logger_impl.h>
 #include <stream/passthroughsamplerateconverter.h>
-#include <stream/pcm2dsdconverter.h>
 #include <stream/dspmanager.h>
 
 namespace xamp::stream {
@@ -64,8 +64,9 @@ void DSPManager::SetReplayGain(double volume) {
     AddPostDSP(DspComponentFactory::MakeVolume());
 }
 
-void DSPManager::SetPcm2DsdConvertSampleRate(uint32_t dsd_times) {
+void DSPManager::EnablePcm2DsdConvert(uint32_t dsd_times) {
     dsd_times_ = dsd_times;
+    pcm2dsd_ = MakeAlign<ISampleRateConverter, Pcm2DsdConverter>();
 }
 
 void DSPManager::RemoveEq() {
@@ -157,6 +158,11 @@ bool DSPManager::ApplyDSP(const float* samples, uint32_t num_samples, AudioBuffe
         }
     }
 
+    if (pcm2dsd_ != nullptr) {
+        BufferOverFlowThrow(pcm2dsd_->Process(pre_dsp_buffer, fifo));
+        return false;
+    }
+
     if (post_dsp_.empty()) {
         BufferOverFlowThrow(fifo_writer_->Process(pre_dsp_buffer, fifo));
     } else {
@@ -167,6 +173,12 @@ bool DSPManager::ApplyDSP(const float* samples, uint32_t num_samples, AudioBuffe
 
 void DSPManager::Init(AudioFormat input_format, AudioFormat output_format, DsdModes dsd_mode, uint32_t sample_size) {
     fifo_writer_ = MakeAlign<ISampleRateConverter, PassThroughSampleRateConverter>(dsd_mode, sample_size);
+
+    if (pcm2dsd_ != nullptr) {
+        auto* converter = dynamic_cast<Pcm2DsdConverter*>(pcm2dsd_.get());
+        converter->Init(input_format.GetSampleRate(), dsd_times_);
+    }
+
     dsd_modes_ = dsd_mode;
 
     if (!CanProcessFile()) {
@@ -202,11 +214,6 @@ void DSPManager::Init(AudioFormat input_format, AudioFormat output_format, DsdMo
         compressor.value()->Init();
         XAMP_LOG_D(logger_, "Enable compressor.");
     }
-
-    /*if (const auto fader = GetPreDSP<BassFader>()) {
-        fader.value()->Init();
-        XAMP_LOG_D(logger_, "Enable fader.");
-    }*/
 
     if (const auto eq = GetPostDSP<IEqualizer>()) {
         eq.value()->SetEQ(eq_settings_);

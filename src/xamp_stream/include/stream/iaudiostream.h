@@ -22,7 +22,7 @@ public:
 
     virtual uint32_t GetSamples(void *buffer, uint32_t length) const noexcept = 0;
 
-    [[nodiscard]] virtual AudioFormat GetFormat() const noexcept = 0;
+    [[nodiscard]] virtual AudioFormat GetFormat() const = 0;
 
     virtual void Seek(double stream_time) const = 0;
 

@@ -48,6 +48,72 @@ public:
         Close();
     }
 
+    void LoadFile(std::wstring const& file_path, DsdModes mode, DWORD flags) {
+        if (mode == DsdModes::DSD_MODE_PCM) {
+#ifdef XAMP_OS_MAC
+            auto utf8 = String::ToString(file_path);
+            stream_.reset(BASS.BASS_StreamCreateFile(FALSE,
+                utf8.c_str(),
+                0,
+                0,
+                flags | BASS_STREAM_DECODE));
+#else
+            stream_.reset(BASS.BASS_StreamCreateFile(FALSE,
+                file_path.c_str(),
+                0,
+                0,
+                flags | BASS_STREAM_DECODE | BASS_UNICODE));
+#endif
+        }
+        else {
+#ifdef XAMP_OS_MAC
+            auto utf8 = String::ToString(file_path);
+            stream_.reset(BASS.DSDLib->BASS_DSD_StreamCreateFile(FALSE,
+                utf8.c_str(),
+                0,
+                0,
+                flags | BASS_STREAM_DECODE,
+                0));
+#else
+            stream_.reset(BASS.DSDLib->BASS_DSD_StreamCreateFile(FALSE,
+                file_path.c_str(),
+                0,
+                0,
+                flags | BASS_STREAM_DECODE | BASS_UNICODE,
+                0));            
+#endif
+            // BassLib DSD module default use 6dB gain.
+            // 不設定的話會爆音!
+            BASS.BASS_ChannelSetAttribute(stream_.get(), BASS_ATTRIB_DSD_GAIN, 0.0);
+        }
+    }
+
+    void LoadMemoryMappedFile(std::wstring const& file_path, DsdModes mode, DWORD flags) {
+        file_.Open(file_path);
+        if (!PrefetchFile(file_, file_.GetLength())) {
+            XAMP_LOG_D(logger_, "PrefetchFile return failure!");
+        }
+
+        if (mode == DsdModes::DSD_MODE_PCM) {
+            stream_.reset(BASS.BASS_StreamCreateFile(TRUE,
+                file_.GetData(),
+                0,
+                file_.GetLength(),
+                flags | BASS_STREAM_DECODE));
+        }
+        else {
+            stream_.reset(BASS.DSDLib->BASS_DSD_StreamCreateFile(TRUE,
+                file_.GetData(),
+                0,
+                file_.GetLength(),
+                flags | BASS_STREAM_DECODE,
+                0));
+            // BassLib DSD module default use 6dB gain.
+            // 不設定的話會爆音!
+            BASS.BASS_ChannelSetAttribute(stream_.get(), BASS_ATTRIB_DSD_GAIN, 0.0);
+        }
+    }
+
     void LoadFileOrURL(std::wstring const& file_path, bool is_file_path, DsdModes mode, DWORD flags) {
         if (is_file_path) {
 	        const auto is_cda_file = IsCDAFile(file_path);
@@ -62,27 +128,7 @@ public:
                 return;
             }            
 
-            file_.Open(file_path);
-            if (!PrefetchFile(file_, file_.GetLength())) {
-                XAMP_LOG_D(logger_, "PrefetchFile return failure!");
-            }
-            if (mode == DsdModes::DSD_MODE_PCM) {
-                stream_.reset(BASS.BASS_StreamCreateFile(TRUE,
-                    file_.GetData(),
-                    0,
-                    file_.GetLength(),
-                    flags | BASS_STREAM_DECODE));
-            } else {
-                stream_.reset(BASS.DSDLib->BASS_DSD_StreamCreateFile(TRUE,
-                    file_.GetData(),
-                    0,
-                    file_.GetLength(),
-                    flags | BASS_STREAM_DECODE,
-                    0));
-                // BassLib DSD module default use 6dB gain.
-				// 不設定的話會爆音!
-                BASS.BASS_ChannelSetAttribute(stream_.get(), BASS_ATTRIB_DSD_GAIN, 0.0);
-            }
+            LoadFile(file_path, mode, flags);
         } else {
 #ifdef XAMP_OS_MAC
             auto utf8 = String::ToString(file_path);
@@ -150,9 +196,9 @@ public:
         info_ = BASS_CHANNELINFO{};
         BassIfFailedThrow(BASS.BASS_ChannelGetInfo(stream_.get(), &info_));
 
-        auto duration = GetDuration();
+        const auto duration = GetDuration();
         if (duration < 1.0) {
-            throw Exception(Errors::XAMP_ERROR_LIBRARY_SPEC_ERROR, "Duration too small!");
+            throw LibrarySpecException(LoggerFormat::Format("Duration too small! {:.2f} secs", duration));
         }
 
         if (GetFormat().GetChannels() == AudioFormat::kMaxChannel) {
@@ -166,6 +212,7 @@ public:
             if (!mix_stream_) {
                 throw BassException();
             }
+
             BassIfFailedThrow(BASS.MixLib->BASS_Mixer_StreamAddChannel(mix_stream_.get(),
                 stream_.get(),
                 BASS_MIXER_BUFFER));
@@ -238,7 +285,7 @@ public:
         return BASS.BASS_ChannelBytes2Seconds(GetHStream(), len);
     }
 
-    [[nodiscard]] AudioFormat GetFormat() const noexcept {
+    [[nodiscard]] AudioFormat GetFormat() const {
         if (mode_ == DsdModes::DSD_MODE_NATIVE) {
             return AudioFormat(DataFormat::FORMAT_DSD,
                 static_cast<uint16_t>(info_.chans),
@@ -354,7 +401,7 @@ double BassFileStream::GetDuration() const {
     return stream_->GetDuration();
 }
 
-AudioFormat BassFileStream::GetFormat() const noexcept {
+AudioFormat BassFileStream::GetFormat() const {
     return stream_->GetFormat();
 }
 

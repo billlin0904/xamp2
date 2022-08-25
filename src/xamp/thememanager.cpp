@@ -19,7 +19,6 @@
 #include <widget/widget_shared.h>
 #include <widget/str_utilts.h>
 #include <widget/appsettings.h>
-#include <widget/xsliderproxystyle.h>
 #include "thememanager.h"
 
 bool ThemeManager::useNativeWindow() const {
@@ -50,13 +49,13 @@ QFont ThemeManager::loadFonts() {
 
     QList<QString> ui_fallback_fonts;
 
-    const auto en_font_id = QFontDatabase::addApplicationFont(Q_TEXT(":/xamp/fonts/Lato-Regular.ttf"));
+    /*const auto en_font_id = QFontDatabase::addApplicationFont(Q_TEXT(":/xamp/fonts/Lato-Regular.ttf"));
     const auto en_font_families = QFontDatabase::applicationFontFamilies(en_font_id);
 
     const auto en_bold_font_id = QFontDatabase::addApplicationFont(Q_TEXT(":/xamp/fonts/Inter-Bold.ttf.ttf"));
     const auto en_bold_font_families = QFontDatabase::applicationFontFamilies(en_bold_font_id);
 
-    ui_fallback_fonts << en_font_families << en_bold_font_families;
+    ui_fallback_fonts << en_font_families << en_bold_font_families;*/
 
 #if defined(Q_OS_WIN)
     // note: If we are support Source HanSans font sets must be enable Direct2D function,
@@ -660,7 +659,6 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
 void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
     ui.searchLineEdit->setStyleSheet(Q_TEXT(""));
     ui.sliderBar->setStyleSheet(Q_TEXT("QListView#sliderBar { background-color: transparent; border: none; }"));
-    ui.seekSlider->setStyle(new XSliderProxyStyle());
     
     ui.searchFrame->setStyleSheet(Q_TEXT("QFrame#searchFrame { background-color: transparent; border: none; }"));
 
@@ -685,7 +683,7 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
                                          }
                                          )"));
 
-    ui.seekSlider->setStyleSheet(Q_TEXT(R"(
+   ui.seekSlider->setStyleSheet(Q_TEXT(R"(
                                         QSlider#seekSlider {
                                         border: none;
                                         background-color: transparent;

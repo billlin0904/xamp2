@@ -48,7 +48,7 @@ public:
 
     void SetReplayGain(double volume) override;
 
-    void SetPcm2DsdConvertSampleRate(uint32_t dsd_times) override;
+    void EnablePcm2DsdConvert(uint32_t dsd_times) override;
 
     void RemoveReplayGain() override;
 
@@ -97,6 +97,7 @@ private:
     EQSettings eq_settings_;
     Vector<AlignPtr<IAudioProcessor>> pre_dsp_;
     Vector<AlignPtr<IAudioProcessor>> post_dsp_;
+    AlignPtr<ISampleRateConverter> pcm2dsd_;
     AlignPtr<ISampleRateConverter> fifo_writer_;
     Buffer<float> pre_dsp_buffer_;
     Buffer<float> post_dsp_buffer_;
