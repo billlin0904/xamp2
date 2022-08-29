@@ -31,7 +31,6 @@
 namespace xamp::stream {
 
 inline constexpr DWORD kBassError{ 0xFFFFFFFF };
-inline constexpr int32_t kPcmSampleRate441 { 44100 };
 
 #define BassIfFailedThrow(result) \
     do {\

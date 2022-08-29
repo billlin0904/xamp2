@@ -12,7 +12,6 @@
 #include <stream/filestream.h>
 #include <output_device/idevicestatelistener.h>
 #include <player/iplaybackstateadapter.h>
-#include <stream/isamplerateconverter.h>
 
 #include <base/align_ptr.h>
 #include <base/audioformat.h>

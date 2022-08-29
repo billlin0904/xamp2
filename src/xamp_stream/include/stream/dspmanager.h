@@ -48,7 +48,7 @@ public:
 
     void SetReplayGain(double volume) override;
 
-    void EnablePcm2DsdConvert(uint32_t dsd_times) override;
+    void SetSampleWriter(AlignPtr<ISampleWriter> writer) override;
 
     void RemoveReplayGain() override;
 
@@ -91,14 +91,13 @@ private:
         return GetDSP<TDSP>(post_dsp_.begin(), post_dsp_.end());
     }
 
-    uint32_t dsd_times_;
     double replay_gain_;
     DsdModes dsd_modes_;
     EQSettings eq_settings_;
     Vector<AlignPtr<IAudioProcessor>> pre_dsp_;
     Vector<AlignPtr<IAudioProcessor>> post_dsp_;
-    AlignPtr<ISampleRateConverter> pcm2dsd_;
-    AlignPtr<ISampleRateConverter> fifo_writer_;
+    AlignPtr<ISampleWriter> pcm2dsd_;
+    AlignPtr<ISampleWriter> fifo_writer_;
     Buffer<float> pre_dsp_buffer_;
     Buffer<float> post_dsp_buffer_;
     std::shared_ptr<Logger> logger_;

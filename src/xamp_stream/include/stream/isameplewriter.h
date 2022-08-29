@@ -15,9 +15,9 @@ namespace xamp::stream {
 
 using namespace xamp::base;
 
-class XAMP_STREAM_API XAMP_NO_VTABLE ISampleRateConverter {
+class XAMP_STREAM_API XAMP_NO_VTABLE ISampleWriter {
 public:
-    XAMP_BASE_CLASS(ISampleRateConverter)
+    XAMP_BASE_CLASS(ISampleWriter)
 
     [[nodiscard]] virtual std::string_view GetDescription() const noexcept = 0;
 
@@ -26,7 +26,7 @@ public:
     virtual bool Process(float const * samples, size_t num_sample, AudioBuffer<int8_t>& buffer) = 0;
 
 protected:
-    ISampleRateConverter() = default;
+    ISampleWriter() = default;
 };
 
 }

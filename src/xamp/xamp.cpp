@@ -18,6 +18,8 @@
 #include <stream/soxresampler.h>
 #include <stream/r8brainresampler.h>
 #include <stream/idspmanager.h>
+#include <stream/pcm2dsdsamplewriter.h>
+#include <stream/dsd_utils.h>
 #include <stream/api.h>
 
 #include <output_device/api.h>
@@ -1163,7 +1165,26 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
             player_->GetDSPManager()->RemoveEq();
         }
 
-        player_->PrepareToPlay();        
+        uint32_t device_sample_rate = 0;
+        bool enable_pcm2dsd = false;
+
+        if (enable_pcm2dsd) {
+            auto pcm2dsd_writer = MakeAlign<ISampleWriter, Pcm2DsdSampleWriter>(DsdTimes::DSD_TIME_6X);
+            auto* writer = dynamic_cast<Pcm2DsdSampleWriter*>(pcm2dsd_writer.get());
+            auto input_sample_rate = player_->GetInputFormat().GetSampleRate();
+            writer->Init(input_sample_rate);
+
+            if (!AppSettings::getValueAsBool(kEnableBitPerfect)) {
+                device_sample_rate = GetDOPSampleRate(writer->GetDsdSpeed());
+            }
+            else {
+                device_sample_rate = writer->GetDsdSampleRate();
+            }
+            player_->GetDSPManager()->SetSampleWriter(std::move(pcm2dsd_writer));
+        }
+
+    	player_->PrepareToPlay(device_sample_rate);
+
         playback_format = getPlaybackFormat(player_.get());
         player_->Play();
 

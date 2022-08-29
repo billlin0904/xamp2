@@ -7,13 +7,13 @@
 
 #include <functional>
 #include <base/dsdsampleformat.h>
-#include <stream/isamplerateconverter.h>
+#include <stream/isameplewriter.h>
 
 namespace xamp::stream {
 
-class XAMP_STREAM_API PassThroughSampleRateConverter final : public ISampleRateConverter {
+class XAMP_STREAM_API SampleWriter final : public ISampleWriter {
 public:
-    explicit PassThroughSampleRateConverter(DsdModes dsd_mode, uint8_t sample_size);
+    explicit SampleWriter(DsdModes dsd_mode, uint8_t sample_size);
 
     bool Process(float const * sample_buffer, size_t num_samples, AudioBuffer<int8_t>& buffer) override;
 

@@ -20,7 +20,6 @@
 #include <stream/iaudiostream.h>
 #include <stream/idsdstream.h>
 #include <stream/filestream.h>
-#include <stream/isamplerateconverter.h>
 #include <stream/bassfader.h>
 #include <stream/iaudioprocessor.h>
 
@@ -39,7 +38,7 @@ inline constexpr uint32_t kMaxPreAllocateBufferSize = 32 * 1024 * 1024;
 inline constexpr uint32_t kMaxBufferSecs = 5;
 	
 inline constexpr uint32_t kMaxWriteRatio = 50;
-inline constexpr uint32_t kMaxReadRatio = 2;
+inline constexpr uint32_t kMaxReadRatio = 15;
 inline constexpr uint32_t kActionQueueSize = 30;
 
 inline constexpr size_t kFFTSize = 512;
@@ -877,7 +876,10 @@ DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_fr
     return DataCallbackResult::CONTINUE;
 }
 
-void AudioPlayer::PrepareToPlay() {
+void AudioPlayer::PrepareToPlay(uint32_t device_sample_rate) {
+    if (device_sample_rate != 0) {
+        target_sample_rate_ = device_sample_rate;
+    }
     SetDeviceFormat();
     CreateDevice(device_info_.device_type_id, device_info_.device_id, false);
     OpenDevice(0);

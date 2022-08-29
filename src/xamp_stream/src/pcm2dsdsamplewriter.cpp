@@ -1,8 +1,15 @@
 #include <fstream>
+#include <vector>
+
 #include <base/exception.h>
 #include <base/memory.h>
+#include <base/logger_impl.h>
+#include <base/int24.h>
+#include <base/audioformat.h>
+
 #include <stream/fftwlib.h>
-#include <stream/pcm2dsdconverter.h>
+#include <stream/dsd_utils.h>
+#include <stream/pcm2dsdsamplewriter.h>
 
 namespace xamp::stream {
 
@@ -92,37 +99,51 @@ static FFTWPlan MakeIFFTW(uint32_t fftsize, uint32_t times, fftw_complex* ifftin
 	return FFTWPlan(FFTW_LIB.fftw_plan_dft_c2r_1d(fftsize / times, ifftin, ifftout, FFTW_ESTIMATE));
 }
 
-class Pcm2DsdConverter::Pcm2DsdConverterImpl {
+class Pcm2DsdSampleWriter::Pcm2DsdSampleWriterImpl {
 public:
-	Pcm2DsdConverterImpl() {		
+	explicit Pcm2DsdSampleWriterImpl(DsdTimes dsd_times) {
+		dsd_times_ = static_cast<uint32_t>(dsd_times);
+		logger_ = LoggerManager::GetInstance().GetLogger("Pcm2DsdConverter");
 	}
 
-	void Init(uint32_t output_sample_rate, uint32_t dsd_times) {
+	void Init(uint32_t input_sample_rate) {
 		uint32_t times = 0;
-		uint32_t dsd_sampling_rate = 0;
+	
+		auto dsd_times = pow(2, dsd_times_);
 
-		if (output_sample_rate % 44100 == 0) {
-			times = dsd_times / (output_sample_rate / 44100);
-			dsd_sampling_rate = output_sample_rate * times;
+		if (input_sample_rate % 44100 == 0) {
+			times = dsd_times / (input_sample_rate / 44100);
+			dsd_sampling_rate_ = input_sample_rate * times;
 		}
 		else {
-			times = dsd_times / (output_sample_rate / 48000);
-			dsd_sampling_rate = output_sample_rate * times;
+			times = dsd_times / (input_sample_rate / 48000);
+			dsd_sampling_rate_ = input_sample_rate * times;
 		}
 
-		Init(times);
+		XAMP_LOG_D(logger_, "DSD Times: {} Times: {} DsdSampleRate: {}", dsd_times, times, dsd_sampling_rate_);
+		InitFFT(times);
+	}
+
+	uint32_t GetDsdSampleRate() const {
+		return dsd_sampling_rate_;
+	}
+
+	uint32_t GetDsdSpeed() const {
+		return dsd_sampling_rate_ / kPcmSampleRate441;
 	}
 
 	void SplitChannel(float const* samples, size_t num_samples) {
-		if (lch_src_.size() != num_samples / 2) {
-			lch_src_.resize(num_samples / 2);
+		if (lch_src_.size() != num_samples / AudioFormat::kMaxChannel) {
+			lch_src_.resize(num_samples / AudioFormat::kMaxChannel);
 		}
-		if (rch_src_.size() != num_samples / 2) {
-			rch_src_.resize(num_samples / 2);
+
+		if (rch_src_.size() != num_samples / AudioFormat::kMaxChannel) {
+			rch_src_.resize(num_samples / AudioFormat::kMaxChannel);
 		}
-		for (auto i = 0; i < num_samples / 2; ++i) {
-			lch_src_[i] = samples[i];
-			rch_src_[i] = samples[i + 1];
+
+		for (auto i = 0; i < num_samples / AudioFormat::kMaxChannel; ++i) {
+			lch_src_[i] = samples[i * 2 + 0];
+			rch_src_[i] = samples[i * 2 + 1];
 		}
 	}
 
@@ -131,44 +152,52 @@ public:
 		auto split_num = (channel.size() / datasize) * dsd_times_;
 		auto data = reinterpret_cast<const uint8_t*>(channel.data());
 
+		double gain = 1;
 		double deltagain = 0.5;
-		auto order = NoiseShapingCoeff().size();
+		deltagain = gain * deltagain;
+		auto order = NoiseShapingCoeff()[0].size();
+		auto p = 0;
+		auto t = 0;			
+		auto q = 0;
+
+		XAMP_LOG_D(logger_, "Split count: {}, data size: {}", split_num, datasize);
 
 		for (auto i = 0; i < split_num; ++i) {
 			MemoryCopy(buffer_.data(), data, 8 * (datasize / dsd_times_));
-			for (auto t = 0; t < logtimes_; t++) {
-				auto q = 0;
-				for (auto p = 0; p < zerosize_[t]; p++) {
+			for (t = 0; t < logtimes_; t++) {
+				q = 0;
+				for (p = 0; p < zero_size_[t]; p++) {
 					fftin_[t][q] = buffer_[p];
 					q++;
 					fftin_[t][q] = 0;
 					q++;
 				}
-				MemorySet(fftin_[t].get() + q, 0, 8 * (nowfftsize_[t] - q));
+				MemorySet(fftin_[t].get() + q, 0, 8 * (nowfft_size_[t] - q));
 				FFTW_LIB.fftw_execute(fft_[t].get());
-				for (auto p = 0; p < realfftsize_[t]; p++) {
+				for (p = 0; p < realfft_size_[t]; p++) {
 					ifftin_[t][p][0] = fftout_[t][p][0] * firfilter_fft_[t][p][0] - fftout_[t][p][1] * firfilter_fft_[t][p][1];
 					ifftin_[t][p][1] = fftout_[t][p][0] * firfilter_fft_[t][p][1] + firfilter_fft_[t][p][0] * fftout_[t][p][1];
 				}
 				FFTW_LIB.fftw_execute(ifft_[t].get());
-				for (auto p = 0; p < puddingsize_[t]; p++) {
+				for (p = 0; p < pudding_size_[t]; p++) {
 					buffer_[p] = prebuffer_[t][p] + ifftout_[t][p];
 				}
 				q = 0;
-				for (auto p = puddingsize_[t]; p < nowfftsize_[t]; p++) {
+				for (p = pudding_size_[t]; p < nowfft_size_[t]; p++) {
 					buffer_[p] = prebuffer_[t][q] = ifftout_[t][p];
 					q++;
 				}
 			}
 
-			for (auto q = 0; q < datasize; q++) {
-				double x_in = buffer_[q] * deltagain;
+			double error_y = 0;
+			double x_in = 0;
 
-				for (auto t = 0; t < order; t++) {
+			for (q = 0; q < datasize; q++) {
+				x_in = buffer_[q] * deltagain;
+
+				for (t = 0; t < order; t++) {
 					x_in += NoiseShapingCoeff()[0][t] * deltabuffer_[t];
 				}
-
-				double error_y = 0;
 
 				if (x_in >= 0.0) {
 					out[q] = 1;
@@ -178,13 +207,13 @@ public:
 					out[q] = 0;
 					error_y = 1.0;
 				}
-				for (auto t = order; t > 0; t--) {
+				for (t = order; t > 0; t--) {
 					deltabuffer_[t] = deltabuffer_[t - 1];
 				}
 
 				deltabuffer_[0] = x_in + error_y;
 
-				for (auto t = 0; t < order; t++) {
+				for (t = 0; t < order; t++) {
 					deltabuffer_[0] += NoiseShapingCoeff()[1][t] * deltabuffer_[t + 1];
 				}
 			}
@@ -193,19 +222,34 @@ public:
 		}
 	}
 
-	bool Process(float const* samples, size_t num_samples, AudioBuffer<int8_t>& buffer) {
-		SplitChannel(samples, num_samples);
-		ProcessChannel(lch_src_, lch_out_);
-		ProcessChannel(rch_src_, rch_out_);
-		for (auto i = 0; i < out_.size() / 2; ++i) {
-			out_[i + 0] = lch_out_[i];
-			out_[i + 1] = rch_out_[i];
+	static int32_t GetDopData(int8_t marker, int8_t bitdata) noexcept {
+		Int24 v(0);
+		v.data[2] = marker;
+		v.data[0] = bitdata;
+		return v.To2432Int();
+	}
+
+	bool MargeChannel(AudioBuffer<int8_t>& buffer) {
+		for (auto i = 0; i < out_.size() / AudioFormat::kMaxChannel; ++i) {
+			/*int8_t marker = 0x05;
+			if (i % 2 == 1) {
+				marker = static_cast<uint8_t>(0xFA);
+			}*/
+			out_[i * 2 + 0] = GetDopData(0x05, lch_out_[i]);
+			out_[i * 2 + 1] = GetDopData(static_cast<uint8_t>(0xFA), rch_out_[i]);
 		}
-		BufferOverFlowThrow(buffer.TryWrite(out_.data(), out_.size()));
+		BufferOverFlowThrow(buffer.TryWrite(reinterpret_cast<const int8_t*>(out_.data()), out_.size() * sizeof(int32_t)));
 		return true;
 	}
 
-	void Init(uint32_t times) {
+	bool Process(float const* samples, size_t num_samples, AudioBuffer<int8_t>& buffer) {
+		SplitChannel(samples, num_samples);
+		ProcessChannel(lch_src_, lch_out_);
+		ProcessChannel(rch_src_, rch_out_);		
+		return MargeChannel(buffer);
+	}
+
+	void InitFFT(uint32_t times) {
 		FIRFilter();
 		NoiseShapingCoeff();
 
@@ -218,10 +262,10 @@ public:
 		fftsize_ = fftsize;
 		dsd_times_ = times;
 
-		nowfftsize_.resize(logtimes);
-		zerosize_.resize(logtimes);
-		puddingsize_.resize(logtimes);
-		realfftsize_.resize(logtimes);
+		nowfft_size_.resize(logtimes);
+		zero_size_.resize(logtimes);
+		pudding_size_.resize(logtimes);
+		realfft_size_.resize(logtimes);
 		addsize_.resize(logtimes);
 		prebuffer_.resize(logtimes);
 
@@ -235,21 +279,22 @@ public:
 		ifft_.resize(logtimes);
 
 		buffer_.resize(fftsize);
-		deltabuffer_.resize(NoiseShapingCoeff().size() + 1);
+		deltabuffer_.resize(NoiseShapingCoeff()[0].size() + 1);
 		lch_out_.resize(datasize);
 		rch_out_.resize(datasize);
 		out_.resize(datasize * 2);
 
 		double gain = 1;
-		uint32_t p = 0;
-
-		for (auto i = 1; i < times; i = i * 2) {
-			nowfftsize_[p] = fftsize / (times / (i * 2));
-			realfftsize_[p] = nowfftsize_[p] / 2 + 1;
-			zerosize_[p] = nowfftsize_[p] / 4;
-			puddingsize_[p] = nowfftsize_[p] - zerosize_[p] * 2;
-			gain = gain * (2.0 / nowfftsize_[p]);
-			addsize_[p] = zerosize_[p] * 2;
+		auto i = 0;
+		auto p = 0;
+		auto k = 0;
+		for (i = 1; i < times; i = i * 2) {
+			nowfft_size_[p] = fftsize / (times / (i * 2));
+			realfft_size_[p] = nowfft_size_[p] / 2 + 1;
+			zero_size_[p] = nowfft_size_[p] / 4;
+			pudding_size_[p] = nowfft_size_[p] - zero_size_[p] * 2;
+			gain = gain * (2.0 / nowfft_size_[p]);
+			addsize_[p] = zero_size_[p] * 2;
 
 			prebuffer_[p] = MakeFFTWDoubleArray(fftsize);
 			firfilter_fft_[logtimes - p - 1] = MakeFFTWComplexArray(fftsize / i);
@@ -258,7 +303,7 @@ public:
 			ifftin_[logtimes - p - 1] = MakeFFTWComplexArray((fftsize / i + 1) / 2 + 1);
 			ifftout_[logtimes - p - 1] = MakeFFTWDoubleArray(fftsize / i);
 
-			for (auto k = 0; k < fftsize / i; k++) {
+			for (k = 0; k < fftsize / i; k++) {
 				fftin_[logtimes - p - 1][k] = 0;
 				ifftout_[logtimes - p - 1][k] = 0;
 				fftout_[logtimes - p - 1][k][0] = 0;
@@ -266,20 +311,20 @@ public:
 				ifftin_[logtimes - p - 1][k / 2][0] = 0;
 				ifftin_[logtimes - p - 1][k / 2][1] = 0;
 			}
-			for (auto k = 0; k < fftsize; k++) {
+			for (k = 0; k < fftsize; k++) {
 				prebuffer_[p][k] = 0;
 			}
 			++p;
 		}
 
 		p = 0;
-		for (auto i = 1; i < times; i = i * 2) {
+		for (i = 1; i < times; i = i * 2) {
 			fft_[logtimes - p - 1] = MakeFFTW(fftsize, i, fftin_[logtimes - p - 1].get(), fftout_[logtimes - p - 1].get());
 			ifft_[logtimes - p - 1] = MakeIFFTW(fftsize, i, ifftin_[logtimes - p - 1].get(), ifftout_[logtimes - p - 1].get());
 			++p;
 		}
 
-		for (auto k = 0; k < logtimes; k++) {
+		for (k = 0; k < logtimes; k++) {
 			for (auto i = 0; i < section_1; i++) {
 				fftin_[k][i] = FIRFilter()[i];
 			}
@@ -288,7 +333,7 @@ public:
 			}
 		}
 
-		for (auto i = 0; i < logtimes; i++) {
+		for (i = 0; i < logtimes; i++) {
 			FFTW_LIB.fftw_execute(fft_[logtimes - i - 1].get());
 			for (p = 0; p < fftsize / pow(2, i + 1) + 1; p++) {
 				firfilter_fft_[logtimes - i - 1][p][0] = fftout_[logtimes - i - 1][p][0];
@@ -296,7 +341,7 @@ public:
 			}
 		}
 
-		for (auto i = 0; i < logtimes; i++) {
+		for (i = 0; i < logtimes; i++) {
 			FFTW_LIB.fftw_execute(fft_[logtimes - i - 1].get());
 			for (p = 0; p < fftsize / pow(2, i + 1) + 1; p++) {
 				firfilter_fft_[logtimes - i - 1][p][0] = fftout_[logtimes - i - 1][p][0];
@@ -305,14 +350,18 @@ public:
 		}
 	}
 
+	uint32_t dsd_sampling_rate_{ 0 };
+	uint32_t dsd_times_{ 0 };
 	uint32_t logtimes_{ 0 };
 	uint32_t fftsize_{ 0 };
-	uint32_t dsd_times_{ 0 };
 	std::vector<int8_t> lch_out_;
 	std::vector<int8_t> rch_out_;
-	std::vector<int8_t> out_;
-	std::vector<double> buffer_;
-	std::vector<double> deltabuffer_;
+	std::vector<int32_t> out_;
+	std::vector<uint32_t> nowfft_size_;
+	std::vector<uint32_t> zero_size_;
+	std::vector<uint32_t> pudding_size_;
+	std::vector<uint32_t> realfft_size_;
+	std::vector<uint32_t> addsize_;
 	std::vector<FFTWPlan> fft_;
 	std::vector<FFTWPlan> ifft_;
 	std::vector<FFTWDoublePtr> fftin_;
@@ -321,62 +370,68 @@ public:
 	std::vector<FFTWComplexPtr> ifftin_;
 	std::vector<FFTWDoublePtr> prebuffer_;
 	std::vector<FFTWComplexPtr> firfilter_fft_;
-	std::vector<uint32_t> nowfftsize_;
-	std::vector<uint32_t> zerosize_;
-	std::vector<uint32_t> puddingsize_;
-	std::vector<uint32_t> realfftsize_;
-	std::vector<uint32_t> addsize_;
+	std::vector<double> buffer_;
+	std::vector<double> deltabuffer_;
 	std::vector<double> lch_src_;
 	std::vector<double> rch_src_;
+	std::shared_ptr<Logger> logger_;
 };
 
-XAMP_PIMPL_IMPL(Pcm2DsdConverter)
+XAMP_PIMPL_IMPL(Pcm2DsdSampleWriter)
 
-Pcm2DsdConverter::Pcm2DsdConverter()
-	: impl_(MakeAlign<Pcm2DsdConverterImpl>()) {
+Pcm2DsdSampleWriter::Pcm2DsdSampleWriter(DsdTimes dsd_times)
+	: impl_(MakeAlign<Pcm2DsdSampleWriterImpl>(dsd_times)) {
 }
 
-void Pcm2DsdConverter::Init(uint32_t output_sample_rate, uint32_t dsd_times) {
-	impl_->Init(output_sample_rate, dsd_times);
+void Pcm2DsdSampleWriter::Init(uint32_t output_sample_rate) {
+	impl_->Init(output_sample_rate);
 }
 
-[[nodiscard]] std::string_view Pcm2DsdConverter::GetDescription() const noexcept {
+uint32_t Pcm2DsdSampleWriter::GetDsdSampleRate() const {
+	return impl_->GetDsdSampleRate();
+}
+
+uint32_t Pcm2DsdSampleWriter::GetDsdSpeed() const {
+	return impl_->GetDsdSpeed();
+}
+
+[[nodiscard]] std::string_view Pcm2DsdSampleWriter::GetDescription() const noexcept {
 	return "";
 }
 
-[[nodiscard]] bool Pcm2DsdConverter::Process(BufferRef<float> const& input, AudioBuffer<int8_t>& buffer) {
+[[nodiscard]] bool Pcm2DsdSampleWriter::Process(BufferRef<float> const& input, AudioBuffer<int8_t>& buffer) {
 	return Process(input.data(), input.size(), buffer);
 }
 
-bool Pcm2DsdConverter::Process(float const* samples, size_t num_samples, AudioBuffer<int8_t>& buffer) {
+bool Pcm2DsdSampleWriter::Process(float const* samples, size_t num_samples, AudioBuffer<int8_t>& buffer) {
 	return impl_->Process(samples, num_samples, buffer);
 }
 
 #else
 
-class Pcm2DsdConverter::Pcm2DsdConverterImpl {
+class Pcm2DsdConverter::Pcm2DsdSampleWriterImpl {
 public:
-    Pcm2DsdConverterImpl() {
+	Pcm2DsdSampleWriterImpl(DsdTimes dsd_times) {
     }
 };
 
-XAMP_PIMPL_IMPL(Pcm2DsdConverter)
+XAMP_PIMPL_IMPL(Pcm2DsdSampleWriter)
 
-Pcm2DsdConverter::Pcm2DsdConverter() {
+Pcm2DsdSampleWriter::Pcm2DsdSampleWriter(DsdTimes dsd_times) {
 }
 
-void Pcm2DsdConverter::Init(uint32_t output_sample_rate, uint32_t dsd_times) {
+void Pcm2DsdSampleWriter::Init(uint32_t output_sample_rate, uint32_t dsd_times) {
 }
 
-[[nodiscard]] std::string_view Pcm2DsdConverter::GetDescription() const noexcept {
+[[nodiscard]] std::string_view Pcm2DsdSampleWriter::GetDescription() const noexcept {
     return "";
 }
 
-[[nodiscard]] bool Pcm2DsdConverter::Process(BufferRef<float> const& input, AudioBuffer<int8_t>& buffer) {
+[[nodiscard]] bool Pcm2DsdSampleWriter::Process(BufferRef<float> const& input, AudioBuffer<int8_t>& buffer) {
     return Process(input.data(), input.size(), buffer);
 }
 
-bool Pcm2DsdConverter::Process(float const* samples, size_t num_samples, AudioBuffer<int8_t>& buffer) {
+bool Pcm2DsdSampleWriter::Process(float const* samples, size_t num_samples, AudioBuffer<int8_t>& buffer) {
     return false;
 }
 

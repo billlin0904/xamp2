@@ -4,13 +4,13 @@
 #include <base/logger_impl.h>
 
 #include <stream/api.h>
-#include <stream/pcm2dsdconverter.h>
+#include <stream/pcm2dsdsamplewriter.h>
 #include <stream/iequalizer.h>
 #include <stream/soxresampler.h>
 #include <stream/r8brainresampler.h>
 #include <stream/bassvolume.h>
 #include <stream/basscompressor.h>
-#include <stream/passthroughsamplerateconverter.h>
+#include <stream/samplewriter.h>
 #include <stream/dspmanager.h>
 
 namespace xamp::stream {
@@ -18,8 +18,7 @@ namespace xamp::stream {
 static constexpr int32_t kDefaultBufSize = 1024 * 1024;
 
 DSPManager::DSPManager()
-	: dsd_times_{0}
-	, replay_gain_{0.0}
+	: replay_gain_{0.0}
 	, dsd_modes_{DsdModes::DSD_MODE_PCM} {
     logger_ = LoggerManager::GetInstance().GetLogger(kDspManagerLoggerName);
     pre_dsp_buffer_.resize(kDefaultBufSize);
@@ -64,9 +63,8 @@ void DSPManager::SetReplayGain(double volume) {
     AddPostDSP(DspComponentFactory::MakeVolume());
 }
 
-void DSPManager::EnablePcm2DsdConvert(uint32_t dsd_times) {
-    dsd_times_ = dsd_times;
-    pcm2dsd_ = MakeAlign<ISampleRateConverter, Pcm2DsdConverter>();
+void DSPManager::SetSampleWriter(AlignPtr<ISampleWriter> writer) {
+    pcm2dsd_ = std::move(writer);
 }
 
 void DSPManager::RemoveEq() {
@@ -159,7 +157,12 @@ bool DSPManager::ApplyDSP(const float* samples, uint32_t num_samples, AudioBuffe
     }
 
     if (pcm2dsd_ != nullptr) {
-        BufferOverFlowThrow(pcm2dsd_->Process(pre_dsp_buffer, fifo));
+        if (post_dsp_.empty()) {
+            BufferOverFlowThrow(pcm2dsd_->Process(pre_dsp_buffer, fifo));
+        }
+        else {
+            BufferOverFlowThrow(pcm2dsd_->Process(post_dsp_buffer, fifo));
+        }
         return false;
     }
 
@@ -172,11 +175,8 @@ bool DSPManager::ApplyDSP(const float* samples, uint32_t num_samples, AudioBuffe
 }
 
 void DSPManager::Init(AudioFormat input_format, AudioFormat output_format, DsdModes dsd_mode, uint32_t sample_size) {
-    fifo_writer_ = MakeAlign<ISampleRateConverter, PassThroughSampleRateConverter>(dsd_mode, sample_size);
-
-    if (pcm2dsd_ != nullptr) {
-        auto* converter = dynamic_cast<Pcm2DsdConverter*>(pcm2dsd_.get());
-        converter->Init(input_format.GetSampleRate(), dsd_times_);
+    if (!pcm2dsd_) {
+        fifo_writer_ = MakeAlign<ISampleWriter, SampleWriter>(dsd_mode, sample_size);
     }
 
     dsd_modes_ = dsd_mode;

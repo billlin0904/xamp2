@@ -4,8 +4,10 @@
 #include <tuple>
 
 #include <base/align_ptr.h>
+#include <base/buffer.h>
 #include <base/str_utilts.h>
 #include <base/platform.h>
+#include <base/memory.h>
 
 #include <stream/wavefilewriter.h>
 #include <stream/idsdstream.h>
@@ -17,8 +19,6 @@
 #include <metadata/imetadatawriter.h>
 
 #include <player/ebur128replaygain_scanner.h>
-#include <stream/isamplerateconverter.h>
-
 #include <widget/read_utiltis.h>
 
 using namespace xamp::base;

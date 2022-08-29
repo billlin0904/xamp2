@@ -4,30 +4,12 @@
 #include <base/stopwatch.h>
 #include <base/logger.h>
 #include <base/logger_impl.h>
+#include <stream/dsd_utils.h>
 #include <stream/podcastcache.h>
 #include <stream/bassexception.h>
-#include <base/logger_impl.h>
 #include <stream/bassfilestream.h>
 
 namespace xamp::stream {
-
-using namespace xamp::base;
-
-static uint32_t GetDOPSampleRate(uint32_t dsd_speed) {
-    switch (dsd_speed) {
-        // 64x CD
-    case 64:
-        return 176400;
-        // 128x CD
-    case 128:
-        return 352800;
-        // 256x CD
-    case 256:
-        return 705600;
-    default:
-        throw NotSupportFormatException();
-    }
-}
 
 static bool IsFilePath(std::wstring const& file_path) noexcept {
     auto lowcase_file_path = String::ToLower(file_path);

@@ -158,9 +158,11 @@
   <ItemGroup>
     <ClInclude Include="include\stream\basscompressor.h" />
     <ClInclude Include="include\stream\bassfader.h" />
+    <ClInclude Include="include\stream\basslib.h" />
     <ClInclude Include="include\stream\bassvolume.h" />
     <ClInclude Include="include\stream\basswavfileencoder.h" />
     <ClInclude Include="include\stream\compressorparameters.h" />
+    <ClInclude Include="include\stream\dsd_utils.h" />
     <ClInclude Include="include\stream\dspmanager.h" />
     <ClInclude Include="include\stream\eqsettings.h" />
     <ClInclude Include="include\stream\fft.h" />
@@ -175,10 +177,12 @@
     <ClInclude Include="include\stream\idspmanager.h" />
     <ClInclude Include="include\stream\ifileencoder.h" />
     <ClInclude Include="include\stream\filestream.h" />
-    <ClInclude Include="include\stream\pcm2dsdconverter.h" />
+    <ClInclude Include="include\stream\isameplewriter.h" />
+    <ClInclude Include="include\stream\pcm2dsdsamplewriter.h" />
     <ClInclude Include="include\stream\podcastcache.h" />
     <ClInclude Include="include\stream\r8brainlib.h" />
     <ClInclude Include="include\stream\r8brainresampler.h" />
+    <ClInclude Include="include\stream\samplewriter.h" />
     <ClInclude Include="include\stream\soxrlib.h" />
     <ClInclude Include="include\stream\stft.h" />
     <ClInclude Include="include\stream\stream.h" />
@@ -196,13 +200,14 @@
     <ClCompile Include="src\bassvolume.cpp" />
     <ClCompile Include="src\basswavfileencoder.cpp" />
     <ClCompile Include="src\basslib.cpp" />
+    <ClCompile Include="src\dsd_utils.cpp" />
     <ClCompile Include="src\dspmanager.cpp" />
     <ClCompile Include="src\fft.cpp" />
     <ClCompile Include="src\fftwlib.cpp" />
     <ClCompile Include="src\padcastcache.cpp" />
     <ClCompile Include="src\api.cpp" />
-    <ClCompile Include="src\passthroughsamplerateconverter.cpp" />
-    <ClCompile Include="src\pcm2dsdconverter.cpp" />
+    <ClCompile Include="src\samplewriter.cpp" />
+    <ClCompile Include="src\pcm2dsdsamplewriter.cpp" />
     <ClCompile Include="src\r8brainlib.cpp" />
     <ClCompile Include="src\r8brainresampler.cpp" />
     <ClCompile Include="src\soxresampler.cpp" />

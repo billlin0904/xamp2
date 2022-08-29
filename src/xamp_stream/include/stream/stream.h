@@ -28,7 +28,7 @@ namespace xamp::stream {
 
 	class STFT;
 
-    class ISampleRateConverter;
+    class ISampleWriter;
 	class IAudioProcessor;
 	class IAudioStream;
 	class ICDDevice;
@@ -36,6 +36,7 @@ namespace xamp::stream {
 	class FileStream;
 	class IDsdStream;
 	class IDSPManager;
+	class Pcm2DsdSampleWriter;
 
 	using Complex = std::complex<float>;
 	using ComplexValarray = std::valarray<Complex>;
