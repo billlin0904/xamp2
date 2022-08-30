@@ -33,8 +33,6 @@ public:
 
 	XAMP_PIMPL(Pcm2DsdSampleWriter)
 
-	[[nodiscard]] std::string_view GetDescription() const noexcept override;
-
 	[[nodiscard]] bool Process(BufferRef<float> const& input, AudioBuffer<int8_t>& buffer) override;
 
 	bool Process(float const* samples, size_t num_samples, AudioBuffer<int8_t>& buffer) override;

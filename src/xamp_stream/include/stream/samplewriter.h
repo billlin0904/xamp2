@@ -19,8 +19,6 @@ public:
 
     bool Process(BufferRef<float> const& input, AudioBuffer<int8_t>& buffer) override;
 
-    [[nodiscard]] std::string_view GetDescription() const noexcept override;
-
 private:
     bool ProcessNativeDsd(int8_t const * sample_buffer, size_t num_samples, AudioBuffer<int8_t>& buffer);
 
@@ -28,7 +26,6 @@ private:
 
 	DsdModes dsd_mode_;
     uint8_t sample_size_;
-    uint32_t output_sample_rate_;
     std::function<bool(int8_t const* , size_t , AudioBuffer<int8_t>& )> dispatch_;
 };
 

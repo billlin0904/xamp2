@@ -679,7 +679,7 @@ void AsioDevice::OnBufferSwitchCallback(long index, ASIOBool processNow) {
 	}
 
 	auto elapsed = ASIODriver.buffer_switch_stopwatch.Elapsed<std::chrono::milliseconds>().count();
-	if (elapsed > ASIODriver.device->latency_) {
+	if (elapsed > ASIODriver.device->latency_ + 1) {
 		XAMP_LOG_D(ASIODriver.device->log_, "Wait event timeout! {}ms", elapsed);
 	}
 

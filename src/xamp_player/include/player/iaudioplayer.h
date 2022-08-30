@@ -29,7 +29,7 @@ public:
 
     virtual void Open(Path const& file_path, const DeviceInfo& device_info, uint32_t target_sample_rate = 0) = 0;
 
-    virtual void PrepareToPlay(uint32_t device_sample_rate = 0) = 0;
+    virtual void PrepareToPlay(uint32_t device_sample_rate = 0, DsdModes output_mode = DsdModes::DSD_MODE_AUTO) = 0;
 
     virtual void Play() = 0;
 

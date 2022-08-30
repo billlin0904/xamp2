@@ -16,7 +16,7 @@ STFT::STFT(size_t frame_size, size_t shift_size)
     in_ = MakeBuffer<float>(frame_size);
 }
 
-void STFT::setWindowType(WindowType type) {
+void STFT::SetWindowType(WindowType type) {
     window_.SetWindowType(type);
     window_.Init(frame_size_);
 }

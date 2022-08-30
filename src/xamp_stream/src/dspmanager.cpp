@@ -131,7 +131,12 @@ bool DSPManager::ProcessDSP(const float* samples, uint32_t num_samples, AudioBuf
     if (CanProcessFile()) {
         return ApplyDSP(samples, num_samples, fifo);
     }
-    BufferOverFlowThrow(fifo_writer_->Process(samples, num_samples, fifo));
+
+    if (!fifo_writer_) {
+        BufferOverFlowThrow(pcm2dsd_->Process(samples, num_samples, fifo));
+    } else {
+        BufferOverFlowThrow(fifo_writer_->Process(samples, num_samples, fifo));
+    }    
     return false;
 }
 

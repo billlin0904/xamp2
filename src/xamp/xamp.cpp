@@ -782,47 +782,49 @@ void Xamp::initialController() {
     auto* check_for_update = new QAction(tr("Check For Updates"), this);
 
 #ifdef Q_OS_WIN
+    static const QString kSoftwareUpdateUrl =
+        Q_TEXT("https://raw.githubusercontent.com/billlin0904/xamp2/master/src/versions/updates.json");
     auto* updater = QSimpleUpdater::getInstance();
-    /*(void)QObject::connect(updater, &QSimpleUpdater::checkingFinished, [updater, this](auto url) {
-        auto change_log = updater->getChangelog(url);
 
-        auto html = Q_TEXT(R"(
+    if (AppSettings::getValueAsBool(kAppSettingAutoCheckForUpdate)) {
+        (void)QObject::connect(updater, &QSimpleUpdater::checkingFinished, [updater, this](auto url) {
+            auto change_log = updater->getChangelog(url);
+
+            auto html = Q_TEXT(R"(
             <h3>Find New Version:</h3> 			
 			<br>
             %1
 			</br>
            )").arg(change_log);
 
-        QMessageBox::about(this,
-            Q_TEXT("Check For Updates"),
-            html);
-        });*/
+            QMessageBox::about(this,
+                Q_TEXT("Check For Updates"),
+                html);
+            });
 
-    (void)QObject::connect(updater, &QSimpleUpdater::downloadFinished, [updater, this](auto url, auto filepath) {
-        XAMP_LOG_DEBUG("Donwload path: {}", filepath.toStdString());
-        });
+        (void)QObject::connect(updater, &QSimpleUpdater::downloadFinished, [updater, this](auto url, auto filepath) {
+            XAMP_LOG_DEBUG("Donwload path: {}", filepath.toStdString());
+            });
 
-    (void)QObject::connect(updater, &QSimpleUpdater::appcastDownloaded, [updater](auto url, auto reply) {
-        XAMP_LOG_DEBUG(QString::fromUtf8(reply).toStdString());
-        });
+        (void)QObject::connect(updater, &QSimpleUpdater::appcastDownloaded, [updater](auto url, auto reply) {
+            XAMP_LOG_DEBUG(QString::fromUtf8(reply).toStdString());
+            });
 
-    static const QString kSoftwareUpdateUrl =
-        Q_TEXT("https://raw.githubusercontent.com/billlin0904/xamp2/master/src/versions/updates.json");
-
-    updater->setPlatformKey(kSoftwareUpdateUrl, Q_TEXT("windows"));
-    updater->setModuleVersion(kSoftwareUpdateUrl, kXAMPVersion);
-    updater->setNotifyOnFinish(kSoftwareUpdateUrl, false);
-    updater->setNotifyOnUpdate(kSoftwareUpdateUrl, true);
-    updater->setUseCustomAppcast(kSoftwareUpdateUrl, false);
-    updater->setDownloaderEnabled(kSoftwareUpdateUrl, false);
-    updater->setMandatoryUpdate(kSoftwareUpdateUrl, false);
-
+        updater->setPlatformKey(kSoftwareUpdateUrl, Q_TEXT("windows"));
+        updater->setModuleVersion(kSoftwareUpdateUrl, kXAMPVersion);
+        updater->setNotifyOnFinish(kSoftwareUpdateUrl, false);
+        updater->setNotifyOnUpdate(kSoftwareUpdateUrl, true);
+        updater->setUseCustomAppcast(kSoftwareUpdateUrl, false);
+        updater->setDownloaderEnabled(kSoftwareUpdateUrl, false);
+        updater->setMandatoryUpdate(kSoftwareUpdateUrl, false);
+        updater->checkForUpdates(kSoftwareUpdateUrl);
+    }
     (void)QObject::connect(check_for_update, &QAction::triggered, [=]() {
         updater->checkForUpdates(kSoftwareUpdateUrl);
         });
-    updater->checkForUpdates(kSoftwareUpdateUrl);
-    settings_menu->addAction(check_for_update);
 #endif
+    settings_menu->addAction(check_for_update);
+
     auto* about_action = new QAction(tr("About"), this);
     (void)QObject::connect(about_action, &QAction::triggered, [=]() {
         auto* about_dialog = new XDialog(this);
@@ -1165,11 +1167,15 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
             player_->GetDSPManager()->RemoveEq();
         }
 
+        auto dsd_modes = DsdModes::DSD_MODE_AUTO;
         uint32_t device_sample_rate = 0;
-        bool enable_pcm2dsd = false;
+ 
+        if (AppSettings::getValueAsBool(kEnablePcm2Dsd)) {
+            auto config = JsonSettings::getValueAsMap(kPCM2DSD);
+            config[kPCM2DSDDsdTimes] = static_cast<uint32_t>(DsdTimes::DSD_TIME_6X);
 
-        if (enable_pcm2dsd) {
-            auto pcm2dsd_writer = MakeAlign<ISampleWriter, Pcm2DsdSampleWriter>(DsdTimes::DSD_TIME_6X);
+            auto dsd_times = static_cast<DsdTimes>(config[kPCM2DSDDsdTimes].toInt());
+            auto pcm2dsd_writer = MakeAlign<ISampleWriter, Pcm2DsdSampleWriter>(dsd_times);
             auto* writer = dynamic_cast<Pcm2DsdSampleWriter*>(pcm2dsd_writer.get());
             auto input_sample_rate = player_->GetInputFormat().GetSampleRate();
             writer->Init(input_sample_rate);
@@ -1178,12 +1184,13 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
                 device_sample_rate = GetDOPSampleRate(writer->GetDsdSpeed());
             }
             else {
+                dsd_modes = DsdModes::DSD_MODE_NATIVE;
                 device_sample_rate = writer->GetDsdSampleRate();
             }
             player_->GetDSPManager()->SetSampleWriter(std::move(pcm2dsd_writer));
         }
 
-    	player_->PrepareToPlay(device_sample_rate);
+    	player_->PrepareToPlay(device_sample_rate, dsd_modes);
 
         playback_format = getPlaybackFormat(player_.get());
         player_->Play();

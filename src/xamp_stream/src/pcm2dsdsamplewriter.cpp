@@ -6,6 +6,7 @@
 #include <base/logger_impl.h>
 #include <base/int24.h>
 #include <base/audioformat.h>
+#include <base/platform.h>
 
 #include <stream/fftwlib.h>
 #include <stream/dsd_utils.h>
@@ -121,6 +122,7 @@ public:
 		}
 
 		XAMP_LOG_D(logger_, "DSD Times: {} Times: {} DsdSampleRate: {}", dsd_times, times, dsd_sampling_rate_);
+
 		InitFFT(times);
 	}
 
@@ -147,10 +149,11 @@ public:
 		}
 	}
 
-	void ProcessChannel(const std::vector<double> &channel, std::vector<int8_t>& out) {
-		const auto datasize = fftsize_ / 2;
+	void ProcessChannel(const std::vector<double> &channel, std::fstream &output_file) {
+		const auto datasize = fft_size_ / 2;
 		auto split_num = (channel.size() / datasize) * dsd_times_;
 		auto data = reinterpret_cast<const uint8_t*>(channel.data());
+		auto updata_size = datasize * dsd_times_;
 
 		double gain = 1;
 		double deltagain = 0.5;
@@ -164,7 +167,8 @@ public:
 
 		for (auto i = 0; i < split_num; ++i) {
 			MemoryCopy(buffer_.data(), data, 8 * (datasize / dsd_times_));
-			for (t = 0; t < logtimes_; t++) {
+
+			for (t = 0; t < log_times_; t++) {
 				q = 0;
 				for (p = 0; p < zero_size_[t]; p++) {
 					fftin_[t][q] = buffer_[p];
@@ -172,16 +176,20 @@ public:
 					fftin_[t][q] = 0;
 					q++;
 				}
+
 				MemorySet(fftin_[t].get() + q, 0, 8 * (nowfft_size_[t] - q));
+
 				FFTW_LIB.fftw_execute(fft_[t].get());
 				for (p = 0; p < realfft_size_[t]; p++) {
 					ifftin_[t][p][0] = fftout_[t][p][0] * firfilter_fft_[t][p][0] - fftout_[t][p][1] * firfilter_fft_[t][p][1];
 					ifftin_[t][p][1] = fftout_[t][p][0] * firfilter_fft_[t][p][1] + firfilter_fft_[t][p][0] * fftout_[t][p][1];
 				}
+
 				FFTW_LIB.fftw_execute(ifft_[t].get());
 				for (p = 0; p < pudding_size_[t]; p++) {
 					buffer_[p] = prebuffer_[t][p] + ifftout_[t][p];
 				}
+
 				q = 0;
 				for (p = pudding_size_[t]; p < nowfft_size_[t]; p++) {
 					buffer_[p] = prebuffer_[t][q] = ifftout_[t][p];
@@ -196,56 +204,92 @@ public:
 				x_in = buffer_[q] * deltagain;
 
 				for (t = 0; t < order; t++) {
-					x_in += NoiseShapingCoeff()[0][t] * deltabuffer_[t];
+					x_in += NoiseShapingCoeff()[0][t] * delta_buffer_[t];
 				}
 
 				if (x_in >= 0.0) {
-					out[q] = 1;
+					temp_out_[q] = 1;
 					error_y = -1.0;
 				}
 				else {
-					out[q] = 0;
+					temp_out_[q] = 0;
 					error_y = 1.0;
 				}
 				for (t = order; t > 0; t--) {
-					deltabuffer_[t] = deltabuffer_[t - 1];
+					delta_buffer_[t] = delta_buffer_[t - 1];
 				}
 
-				deltabuffer_[0] = x_in + error_y;
+				delta_buffer_[0] = x_in + error_y;
 
 				for (t = 0; t < order; t++) {
-					deltabuffer_[0] += NoiseShapingCoeff()[1][t] * deltabuffer_[t + 1];
+					delta_buffer_[0] += NoiseShapingCoeff()[1][t] * delta_buffer_[t + 1];
 				}
 			}
 
+			output_file.write(reinterpret_cast<const char*>(temp_out_.data()), datasize);
 			data += 8 * (datasize / dsd_times_);
 		}
 	}
 
-	static int32_t GetDopData(int8_t marker, int8_t bitdata) noexcept {
-		Int24 v(0);
-		v.data[2] = marker;
-		v.data[0] = bitdata;
-		return v.To2432Int();
+	void CreateTempFile() {
+		auto temp_path = Fs::temp_directory_path();
+		lch_out_path_ = temp_path / MakeTempFileName();
+		lch_out_.open(lch_out_path_, std::ios::binary);
+		rch_out_path_ = temp_path / MakeTempFileName();
+		rch_out_.open(rch_out_path_, std::ios::binary);
+	}
+
+	void RemoveTempFile() {
+		Fs::remove(lch_out_path_);
+		Fs::remove(rch_out_path_);
 	}
 
 	bool MargeChannel(AudioBuffer<int8_t>& buffer) {
-		for (auto i = 0; i < out_.size() / AudioFormat::kMaxChannel; ++i) {
-			/*int8_t marker = 0x05;
-			if (i % 2 == 1) {
-				marker = static_cast<uint8_t>(0xFA);
-			}*/
-			out_[i * 2 + 0] = GetDopData(0x05, lch_out_[i]);
-			out_[i * 2 + 1] = GetDopData(static_cast<uint8_t>(0xFA), rch_out_[i]);
+		constexpr auto buffersize = 16384 * 2 * 8;
+
+		auto p = 0;
+		auto i = 0;
+
+		std::vector<uint8_t> onebit(buffersize / 4);
+		std::vector<uint8_t> tmpdataL(buffersize);
+		std::vector<uint8_t> tmpdataR(buffersize);
+		
+		for (; i < dsd_sampling_rate_ / buffersize; i++) {
+			p = 0;
+			lch_out_.read(reinterpret_cast<char*>(tmpdataL.data()), tmpdataL.size());
+			rch_out_.read(reinterpret_cast<char*>(tmpdataR.data()), tmpdataR.size());
+			for (auto k = 0; k < buffersize / 4; k++) {
+				onebit[k] = tmpdataL[p] << 7;
+				onebit[k] += tmpdataL[p + 1] << 6;
+				onebit[k] += tmpdataL[p + 2] << 5;
+				onebit[k] += tmpdataL[p + 3] << 4;
+				onebit[k] += tmpdataL[p + 4] << 3;
+				onebit[k] += tmpdataL[p + 5] << 2;
+				onebit[k] += tmpdataL[p + 6] << 1;
+				onebit[k] += tmpdataL[p + 7] << 0;
+				k++;
+				onebit[k] = tmpdataR[p] << 7;
+				onebit[k] += tmpdataR[p + 1] << 6;
+				onebit[k] += tmpdataR[p + 2] << 5;
+				onebit[k] += tmpdataR[p + 3] << 4;
+				onebit[k] += tmpdataR[p + 4] << 3;
+				onebit[k] += tmpdataR[p + 5] << 2;
+				onebit[k] += tmpdataR[p + 6] << 1;
+				onebit[k] += tmpdataR[p + 7] << 0;
+				p += 8;
+			}
+			buffer.TryWrite(reinterpret_cast<int8_t*>(onebit.data()), buffersize / 4);
 		}
-		BufferOverFlowThrow(buffer.TryWrite(reinterpret_cast<const int8_t*>(out_.data()), out_.size() * sizeof(int32_t)));
+
+		RemoveTempFile();
 		return true;
 	}
 
 	bool Process(float const* samples, size_t num_samples, AudioBuffer<int8_t>& buffer) {
-		SplitChannel(samples, num_samples);
+		CreateTempFile();
+		SplitChannel(samples, num_samples);		
 		ProcessChannel(lch_src_, lch_out_);
-		ProcessChannel(rch_src_, rch_out_);		
+		ProcessChannel(rch_src_, rch_out_);
 		return MargeChannel(buffer);
 	}
 
@@ -257,16 +301,16 @@ public:
 		const auto logtimes = static_cast<uint32_t>(log(times) / log(2));
 		const auto fftsize = (section_1 + 1) * times;
 		const auto datasize = fftsize / 2;
-
-		logtimes_ = logtimes;
-		fftsize_ = fftsize;
+		
+		log_times_ = logtimes;
+		fft_size_ = fftsize;
 		dsd_times_ = times;
 
 		nowfft_size_.resize(logtimes);
 		zero_size_.resize(logtimes);
 		pudding_size_.resize(logtimes);
 		realfft_size_.resize(logtimes);
-		addsize_.resize(logtimes);
+		add_size_.resize(logtimes);
 		prebuffer_.resize(logtimes);
 
 		fftin_.resize(logtimes);
@@ -278,11 +322,10 @@ public:
 		fft_.resize(logtimes);
 		ifft_.resize(logtimes);
 
+		temp_out_.resize(datasize);
+
 		buffer_.resize(fftsize);
-		deltabuffer_.resize(NoiseShapingCoeff()[0].size() + 1);
-		lch_out_.resize(datasize);
-		rch_out_.resize(datasize);
-		out_.resize(datasize * 2);
+		delta_buffer_.resize(NoiseShapingCoeff()[0].size() + 1);
 
 		double gain = 1;
 		auto i = 0;
@@ -294,7 +337,7 @@ public:
 			zero_size_[p] = nowfft_size_[p] / 4;
 			pudding_size_[p] = nowfft_size_[p] - zero_size_[p] * 2;
 			gain = gain * (2.0 / nowfft_size_[p]);
-			addsize_[p] = zero_size_[p] * 2;
+			add_size_[p] = zero_size_[p] * 2;
 
 			prebuffer_[p] = MakeFFTWDoubleArray(fftsize);
 			firfilter_fft_[logtimes - p - 1] = MakeFFTWComplexArray(fftsize / i);
@@ -352,16 +395,18 @@ public:
 
 	uint32_t dsd_sampling_rate_{ 0 };
 	uint32_t dsd_times_{ 0 };
-	uint32_t logtimes_{ 0 };
-	uint32_t fftsize_{ 0 };
-	std::vector<int8_t> lch_out_;
-	std::vector<int8_t> rch_out_;
-	std::vector<int32_t> out_;
+	uint32_t log_times_{ 0 };
+	uint32_t fft_size_{ 0 };
+	std::vector<int8_t> temp_out_;
+	Path lch_out_path_;
+	Path rch_out_path_;
+	std::fstream lch_out_;
+	std::fstream rch_out_;
 	std::vector<uint32_t> nowfft_size_;
 	std::vector<uint32_t> zero_size_;
 	std::vector<uint32_t> pudding_size_;
 	std::vector<uint32_t> realfft_size_;
-	std::vector<uint32_t> addsize_;
+	std::vector<uint32_t> add_size_;
 	std::vector<FFTWPlan> fft_;
 	std::vector<FFTWPlan> ifft_;
 	std::vector<FFTWDoublePtr> fftin_;
@@ -371,7 +416,7 @@ public:
 	std::vector<FFTWDoublePtr> prebuffer_;
 	std::vector<FFTWComplexPtr> firfilter_fft_;
 	std::vector<double> buffer_;
-	std::vector<double> deltabuffer_;
+	std::vector<double> delta_buffer_;
 	std::vector<double> lch_src_;
 	std::vector<double> rch_src_;
 	std::shared_ptr<Logger> logger_;
@@ -393,10 +438,6 @@ uint32_t Pcm2DsdSampleWriter::GetDsdSampleRate() const {
 
 uint32_t Pcm2DsdSampleWriter::GetDsdSpeed() const {
 	return impl_->GetDsdSpeed();
-}
-
-[[nodiscard]] std::string_view Pcm2DsdSampleWriter::GetDescription() const noexcept {
-	return "";
 }
 
 [[nodiscard]] bool Pcm2DsdSampleWriter::Process(BufferRef<float> const& input, AudioBuffer<int8_t>& buffer) {
@@ -421,10 +462,6 @@ Pcm2DsdSampleWriter::Pcm2DsdSampleWriter(DsdTimes dsd_times) {
 }
 
 void Pcm2DsdSampleWriter::Init(uint32_t output_sample_rate, uint32_t dsd_times) {
-}
-
-[[nodiscard]] std::string_view Pcm2DsdSampleWriter::GetDescription() const noexcept {
-    return "";
 }
 
 [[nodiscard]] bool Pcm2DsdSampleWriter::Process(BufferRef<float> const& input, AudioBuffer<int8_t>& buffer) {

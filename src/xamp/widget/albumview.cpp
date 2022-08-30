@@ -132,13 +132,15 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
 
     if (const auto* round_image = image_cache_.Find(cover_id)) {
         painter->drawPixmap(cover_rect, *round_image);
-        XAMP_LOG_DEBUG("Cache image id : {}", cover_id.toStdString());
+        //XAMP_LOG_DEBUG("Cache image id : {}", cover_id.toStdString());
     } else {
         if (const auto* cache_small_cover = qPixmapCache.find(cover_id)) {
             album_cover = cache_small_cover;
         }
         auto album_image = Pixmap::roundImage(*album_cover, Pixmap::kSmallImageRadius);
-        image_cache_.Add(cover_id, album_image);
+        if (!cover_id.isEmpty()) {
+            image_cache_.Add(cover_id, album_image);
+        }
         painter->drawPixmap(cover_rect, album_image);
     }
 

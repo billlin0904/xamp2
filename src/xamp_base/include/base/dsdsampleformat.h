@@ -15,6 +15,7 @@ MAKE_XAMP_ENUM(DsdFormat,
           DSD_INT8NER8)
 
 MAKE_XAMP_ENUM(DsdModes,
+          DSD_MODE_AUTO,
           DSD_MODE_PCM,
           DSD_MODE_NATIVE,
           DSD_MODE_DOP,

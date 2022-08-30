@@ -1,7 +1,11 @@
 ﻿#include <widget/appsettingnames.h>
 
-const ConstLatin1String kAppSettingLastTabName{ "AppSettings/lastTabName" };
-const ConstLatin1String kAppSettingLang{ "AppSettings/lang" };
+#define IMPL_APP_SETTING_NAME(Name, Path) \
+	const ConstLatin1String k##Name { Path }
+
+IMPL_APP_SETTING_NAME(AppSettingAutoCheckForUpdate, "AppSettings/autoCheckForUpdate" );
+IMPL_APP_SETTING_NAME(AppSettingLastTabName, "AppSettings/lastTabName");
+IMPL_APP_SETTING_NAME(AppSettingLang, "AppSettings/lang");
 
 const ConstLatin1String kAppSettingDeviceType{ "AppSettings/deviceType" };
 const ConstLatin1String kAppSettingDeviceId{ "AppSettings/deviceId" };
@@ -64,6 +68,10 @@ const ConstLatin1String kSoxrPhase{ "phase" };
 const ConstLatin1String kSoxrRollOffLevel{ "rolloffLevel" };
 
 const ConstLatin1String kR8Brain{ "R8Brain" };
+
+IMPL_APP_SETTING_NAME(PCM2DSD, "Pcm2Dsd");
+IMPL_APP_SETTING_NAME(PCM2DSDDsdTimes, "Pcm2DsdTimes");
+IMPL_APP_SETTING_NAME(EnablePcm2Dsd, "AppSettings/enablePcm2Dsd");
 
 const ConstLatin1String kLog{ "Log" };
 const ConstLatin1String kLogMinimumLevel{ "MinimumLevel" };

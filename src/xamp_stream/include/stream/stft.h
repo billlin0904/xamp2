@@ -17,7 +17,7 @@ public:
 
 	XAMP_DISABLE_COPY(STFT)
 
-	void setWindowType(WindowType type);
+	void SetWindowType(WindowType type);
 
 	const ComplexValarray& Process(const float* in, size_t length);
 private:

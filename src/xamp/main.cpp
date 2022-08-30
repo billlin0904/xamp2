@@ -9,6 +9,7 @@
 #include <player/api.h>
 #include <stream/soxresampler.h>
 #include <stream/podcastcache.h>
+#include <stream/pcm2dsdsamplewriter.h>
 
 #include <widget/qdebugsink.h>
 #include <widget/appsettings.h>
@@ -65,6 +66,14 @@ static void loadR8BrainSetting() {
     if (!AppSettings::contains(kAppSettingResamplerType)) {
         AppSettings::setValue(kAppSettingResamplerType, kR8Brain);
     }
+}
+
+static void loadPcm2DsdSetting() {
+    QMap<QString, QVariant> default_setting;
+
+    default_setting[kPCM2DSDDsdTimes] = static_cast<uint32_t>(DsdTimes::DSD_TIME_6X);
+    JsonSettings::setDefaultValue(kPCM2DSD, QVariant::fromValue(default_setting));
+    AppSettings::setValue(kEnablePcm2Dsd, false);
 }
 
 static LogLevel parseLogLevel(const QString &str) {
@@ -172,6 +181,7 @@ static void loadLogAndResamplerConfig() {
     loadLogConfig();
     loadSoxrSetting();
     loadR8BrainSetting();
+    loadPcm2DsdSetting();
     JsonSettings::save();
     XAMP_LOG_DEBUG("loadLogAndSoxrConfig success.");
 }

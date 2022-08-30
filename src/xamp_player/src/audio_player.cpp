@@ -309,8 +309,10 @@ void AudioPlayer::ProcessFadeOut() {
     if (!device_) {
         return;
     }
-    is_fade_out_ = true;
-    MSleep(std::chrono::milliseconds(1000));
+    if (dsd_mode_ == DsdModes::DSD_MODE_PCM || dsd_mode_ == DsdModes::DSD_MODE_DSD2PCM) {
+        is_fade_out_ = true;
+        MSleep(std::chrono::milliseconds(1000));
+    }
 }
 
 void AudioPlayer::Stop(bool signal_to_stop, bool shutdown_device, bool wait_for_stop_stream) {
@@ -580,18 +582,23 @@ void AudioPlayer::OnDeviceStateChange(DeviceState state, std::string const & dev
     }
 }
 
-void AudioPlayer::OpenDevice(double stream_time) {
+void AudioPlayer::OpenDevice(double stream_time, DsdModes output_mode) {
 #ifdef ENABLE_ASIO
     if (auto* dsd_output = AsDsdDevice(device_)) {
-        if (const auto* const dsd_stream = AsDsdStream(stream_)) {
-            if (dsd_stream->GetDsdMode() == DsdModes::DSD_MODE_NATIVE || dsd_stream->GetDsdMode() == DsdModes::DSD_MODE_DOP) {
-                dsd_output->SetIoFormat(DsdIoFormat::IO_FORMAT_DSD);
-                dsd_mode_ = dsd_stream->GetDsdMode();
-            }
-            else {
-                dsd_output->SetIoFormat(DsdIoFormat::IO_FORMAT_PCM);
-                dsd_mode_ = DsdModes::DSD_MODE_PCM;
-            }
+        if (output_mode == DsdModes::DSD_MODE_AUTO) {
+            if (const auto* const dsd_stream = AsDsdStream(stream_)) {
+                if (dsd_stream->GetDsdMode() == DsdModes::DSD_MODE_NATIVE || dsd_stream->GetDsdMode() == DsdModes::DSD_MODE_DOP) {
+                    dsd_output->SetIoFormat(DsdIoFormat::IO_FORMAT_DSD);
+                    dsd_mode_ = dsd_stream->GetDsdMode();
+                }
+                else {
+                    dsd_output->SetIoFormat(DsdIoFormat::IO_FORMAT_PCM);
+                    dsd_mode_ = DsdModes::DSD_MODE_PCM;
+                }
+            }            
+        } else {
+            dsd_output->SetIoFormat(DsdIoFormat::IO_FORMAT_DSD);
+            dsd_mode_ = output_mode;
         }
     } else {
         dsd_mode_ = DsdModes::DSD_MODE_PCM;
@@ -876,13 +883,13 @@ DataCallbackResult AudioPlayer::OnGetSamples(void* samples, size_t num_buffer_fr
     return DataCallbackResult::CONTINUE;
 }
 
-void AudioPlayer::PrepareToPlay(uint32_t device_sample_rate) {
+void AudioPlayer::PrepareToPlay(uint32_t device_sample_rate, DsdModes output_mode) {
     if (device_sample_rate != 0) {
         target_sample_rate_ = device_sample_rate;
     }
     SetDeviceFormat();
     CreateDevice(device_info_.device_type_id, device_info_.device_id, false);
-    OpenDevice(0);
+    OpenDevice(0, output_mode);
     CreateBuffer();
     dsp_manager_->Init(input_format_, output_format_, dsd_mode_, stream_->GetSampleSize());
     BufferStream(0);

@@ -19,8 +19,6 @@ class XAMP_STREAM_API XAMP_NO_VTABLE ISampleWriter {
 public:
     XAMP_BASE_CLASS(ISampleWriter)
 
-    [[nodiscard]] virtual std::string_view GetDescription() const noexcept = 0;
-
     [[nodiscard]] virtual bool Process(BufferRef<float> const &input, AudioBuffer<int8_t>& buffer) = 0;
 	
     virtual bool Process(float const * samples, size_t num_sample, AudioBuffer<int8_t>& buffer) = 0;
