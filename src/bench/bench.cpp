@@ -20,6 +20,8 @@
 #include <base/platform.h>
 #include <base/uuid.h>
 #include <base/shared_singleton.h>
+#include <base/singleton.h>
+#include <base/logger_impl.h>
 
 #include <stream/api.h>
 #include <stream/fft.h>
@@ -458,26 +460,6 @@ static void BM_FowardListSort(benchmark::State& state) {
     }
 }
 
-#if 0
-static void BM_ListSort(benchmark::State& state) {
-    auto length = state.range(0);
-    std::list<Metadata> list;
-
-    for (auto i = 0; i < length; ++i) {
-        Metadata metadata;
-        metadata.track = SharedSingleton<PRNG>::GetInstance().NextInt64();
-        list.push_front(metadata);
-    }
-
-    for (auto _ : state) {
-        std::stable_sort(list.begin(), list.end(),
-            [](const auto& first, const auto& last) {
-                return first.track < last.track;
-            });
-    }
-}
-#endif
-
 static void BM_VectorSort(benchmark::State& state) {
     auto length = state.range(0);
     std::vector<Metadata> list;
@@ -628,8 +610,8 @@ static void BM_Rotl(benchmark::State& state) {
 //BENCHMARK(BM_InterleavedToPlanarConvertToInt8_AVX)->Range(4096, 8 << 10);
 //BENCHMARK(BM_InterleavedToPlanarConvertToInt8)->Range(4096, 8 << 10);
 
-BENCHMARK(BM_Builtin_Rotl);
-BENCHMARK(BM_Rotl);
+//BENCHMARK(BM_Builtin_Rotl);
+//BENCHMARK(BM_Rotl);
 
 //BENCHMARK(BM_Builtin_UuidParse);
 //BENCHMARK(BM_UuidParse);
@@ -647,12 +629,11 @@ BENCHMARK(BM_Rotl);
 //BENCHMARK(BM_FindRobinHoodHashMap);
 
 BENCHMARK(BM_FowardListSort)->RangeMultiplier(2)->Range(4096, 8 << 10);
-//BENCHMARK(BM_ListSort)->RangeMultiplier(2)->Range(4096, 8 << 10);
 BENCHMARK(BM_VectorSort)->RangeMultiplier(2)->Range(4096, 8 << 10);
 
-BENCHMARK(BM_LruCache_Find)->RangeMultiplier(2)->Range(4096, 8 << 10);
-BENCHMARK(BM_LruCache_Add)->RangeMultiplier(2)->Range(4096, 8 << 10);
-BENCHMARK(BM_LruCache_AddOrUpdate)->RangeMultiplier(2)->Range(4096, 8 << 10);
+//BENCHMARK(BM_LruCache_Find)->RangeMultiplier(2)->Range(4096, 8 << 10);
+//BENCHMARK(BM_LruCache_Add)->RangeMultiplier(2)->Range(4096, 8 << 10);
+//BENCHMARK(BM_LruCache_AddOrUpdate)->RangeMultiplier(2)->Range(4096, 8 << 10);
 
 //BENCHMARK(BM_FastMemset)->RangeMultiplier(2)->Range(4096, 8 << 16);
 //BENCHMARK(BM_StdtMemset)->RangeMultiplier(2)->Range(4096, 8 << 16);
@@ -676,33 +657,32 @@ BENCHMARK(BM_LruCache_AddOrUpdate)->RangeMultiplier(2)->Range(4096, 8 << 10);
 //BENCHMARK(BM_LeastLoadThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
 //BENCHMARK(BM_ChildStealPolicyRandomThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
 //BENCHMARK(BM_ContinuationStealPolicyRandomThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
-//BENCHMARK(BM_RandomThreadPool)->RangeMultiplier(2)->Range(8, 8 << 8);
 
 int main(int argc, char** argv) {
-    Logger::GetInstance()
-        .AddDebugOutputLogger()
-        .AddFileLogger("xamp.log")
+    LoggerManager::GetInstance()
+        .AddDebugOutput()
+        .AddLogFile("xamp.log")
         .Startup();
 
     // For debug use!
     XAMP_LOG_DEBUG("Logger init success.");
 
-    Logger::GetInstance().GetLogger(kWASAPIThreadPoolLoggerName)
-        ->set_level(spdlog::level::debug);
-    Logger::GetInstance().GetLogger(kPlaybackThreadPoolLoggerName)
-        ->set_level(spdlog::level::debug);
+    LoggerManager::GetInstance().GetLogger(kWASAPIThreadPoolLoggerName)
+        ->SetLevel(LOG_LEVEL_DEBUG);
+    LoggerManager::GetInstance().GetLogger(kPlaybackThreadPoolLoggerName)
+        ->SetLevel(LOG_LEVEL_DEBUG);
 
-    Logger::GetInstance().GetLogger("BM_LeastLoadThreadPool")
-        ->set_level(spdlog::level::info);
-    Logger::GetInstance().GetLogger("BM_RoundRubinThreadPool")
-        ->set_level(spdlog::level::info);
-    Logger::GetInstance().GetLogger("BM_RandomThreadPool")
-        ->set_level(spdlog::level::info);
+    LoggerManager::GetInstance().GetLogger("BM_LeastLoadThreadPool")
+        ->SetLevel(LOG_LEVEL_DEBUG);
+    LoggerManager::GetInstance().GetLogger("BM_RoundRubinThreadPool")
+        ->SetLevel(LOG_LEVEL_DEBUG);
+    LoggerManager::GetInstance().GetLogger("BM_RandomThreadPool")
+        ->SetLevel(LOG_LEVEL_DEBUG);
 
-    Logger::GetInstance().GetLogger("BM_ChildStealPolicyRandomThreadPool")
-        ->set_level(spdlog::level::info);
-    Logger::GetInstance().GetLogger("BM_ContinuationStealPolicyRandomThreadPool")
-        ->set_level(spdlog::level::info);
+    LoggerManager::GetInstance().GetLogger("BM_ChildStealPolicyRandomThreadPool")
+        ->SetLevel(LOG_LEVEL_DEBUG);
+    LoggerManager::GetInstance().GetLogger("BM_ContinuationStealPolicyRandomThreadPool")
+        ->SetLevel(LOG_LEVEL_DEBUG);
 
     XampIniter initer;
     initer.Init();
