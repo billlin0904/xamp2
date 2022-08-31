@@ -5,7 +5,6 @@
 #include <base/stl.h>
 #include <base/threadpool.h>
 #include <base/dsdsampleformat.h>
-#include <base/dataconverter.h>
 #include <base/buffer.h>
 #include <base/timer.h>
 #include <base/scopeguard.h>
@@ -30,15 +29,15 @@
 namespace xamp::player {
 
 inline constexpr int32_t kBufferStreamCount = 2;
-inline constexpr int32_t kTotalBufferStreamCount = 5;
+inline constexpr int32_t kTotalBufferStreamCount = 15;
 
 inline constexpr uint32_t kPreallocateBufferSize = 4 * 1024 * 1024;
 inline constexpr uint32_t kMaxPreAllocateBufferSize = 32 * 1024 * 1024;
 
 inline constexpr uint32_t kMaxBufferSecs = 5;
 	
-inline constexpr uint32_t kMaxWriteRatio = 50;
-inline constexpr uint32_t kMaxReadRatio = 15;
+inline constexpr uint32_t kMaxWriteRatio = 100;
+inline constexpr uint32_t kMaxReadRatio = 10;
 inline constexpr uint32_t kActionQueueSize = 30;
 
 inline constexpr size_t kFFTSize = 512;
@@ -490,8 +489,12 @@ void AudioPlayer::CreateBuffer() {
     if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE) {
         require_read_sample = static_cast<uint32_t>(
             GetPageAlignSize(output_format_.GetSampleRate() / 8));
+        num_read_sample_ = require_read_sample;
     } else {
+        auto ratio = (std::max)(kMaxReadRatio, kMaxWriteRatio);
         require_read_sample = static_cast<uint32_t>(
+            GetPageAlignSize(device_->GetBufferSize() * output_format_.GetChannels() * ratio));
+        num_read_sample_ = static_cast<uint32_t>(
             GetPageAlignSize(device_->GetBufferSize() * output_format_.GetChannels() * kMaxReadRatio));
     }
 
@@ -511,7 +514,7 @@ void AudioPlayer::CreateBuffer() {
         output_format_.GetAvgBytesPerSec() * kMaxBufferSecs,
         allocate_read_size * kTotalBufferStreamCount);
 
-    num_read_sample_ = require_read_sample;
+
     AllocateReadBuffer(allocate_read_size);
     AllocateFifo();
 

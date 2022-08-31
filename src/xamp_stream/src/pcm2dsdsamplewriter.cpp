@@ -153,7 +153,6 @@ public:
 		const auto datasize = fft_size_ / 2;
 		auto split_num = (channel.size() / datasize) * dsd_times_;
 		auto data = reinterpret_cast<const uint8_t*>(channel.data());
-		auto updata_size = datasize * dsd_times_;
 
 		double gain = 1;
 		double deltagain = 0.5;
@@ -227,60 +226,84 @@ public:
 			}
 
 			output_file.write(reinterpret_cast<const char*>(temp_out_.data()), datasize);
+			if (!output_file) {
+				throw PlatformSpecException();
+			}
 			data += 8 * (datasize / dsd_times_);
 		}
 	}
 
 	void CreateTempFile() {
 		auto temp_path = Fs::temp_directory_path();
-		lch_out_path_ = temp_path / MakeTempFileName();
-		lch_out_.open(lch_out_path_, std::ios::binary);
-		rch_out_path_ = temp_path / MakeTempFileName();
-		rch_out_.open(rch_out_path_, std::ios::binary);
+		lch_out_path_ = temp_path / Fs::path(MakeTempFileName() + ".tmp");
+		lch_out_.open(lch_out_path_.native(), std::ios::in | std::ios::out | std::ios::trunc | std::ios::binary);
+		if (!lch_out_.is_open()) {
+			throw PlatformSpecException();
+		}
+		rch_out_path_ = temp_path / Fs::path(MakeTempFileName() + ".tmp");
+		rch_out_.open(rch_out_path_.native(), std::ios::in | std::ios::out | std::ios::trunc | std::ios::binary);
+		if (!rch_out_.is_open()) {
+			throw PlatformSpecException();
+		}
 	}
 
 	void RemoveTempFile() {
+		lch_out_.close();
+		rch_out_.close();
 		Fs::remove(lch_out_path_);
 		Fs::remove(rch_out_path_);
 	}
 
 	bool MargeChannel(AudioBuffer<int8_t>& buffer) {
-		constexpr auto buffersize = 16384 * 2 * 8;
+		XAMP_LOG_D(logger_, "MargeChannel");
 
-		auto p = 0;
-		auto i = 0;
+		constexpr uint8_t kDoPMarker[2] = { 0x05, 0xFA };
+		constexpr auto kBufferSize = 16384 * 2 * 8;
 
-		std::vector<uint8_t> onebit(buffersize / 4);
-		std::vector<uint8_t> tmpdataL(buffersize);
-		std::vector<uint8_t> tmpdataR(buffersize);
-		
-		for (; i < dsd_sampling_rate_ / buffersize; i++) {
-			p = 0;
-			lch_out_.read(reinterpret_cast<char*>(tmpdataL.data()), tmpdataL.size());
-			rch_out_.read(reinterpret_cast<char*>(tmpdataR.data()), tmpdataR.size());
-			for (auto k = 0; k < buffersize / 4; k++) {
-				onebit[k] = tmpdataL[p] << 7;
-				onebit[k] += tmpdataL[p + 1] << 6;
-				onebit[k] += tmpdataL[p + 2] << 5;
-				onebit[k] += tmpdataL[p + 3] << 4;
-				onebit[k] += tmpdataL[p + 4] << 3;
-				onebit[k] += tmpdataL[p + 5] << 2;
-				onebit[k] += tmpdataL[p + 6] << 1;
-				onebit[k] += tmpdataL[p + 7] << 0;
-				k++;
-				onebit[k] = tmpdataR[p] << 7;
-				onebit[k] += tmpdataR[p + 1] << 6;
-				onebit[k] += tmpdataR[p + 2] << 5;
-				onebit[k] += tmpdataR[p + 3] << 4;
-				onebit[k] += tmpdataR[p + 4] << 3;
-				onebit[k] += tmpdataR[p + 5] << 2;
-				onebit[k] += tmpdataR[p + 6] << 1;
-				onebit[k] += tmpdataR[p + 7] << 0;
-				p += 8;
-			}
-			buffer.TryWrite(reinterpret_cast<int8_t*>(onebit.data()), buffersize / 4);
+		lch_out_.flush();
+		rch_out_.flush();
+
+		lch_out_.close();
+		rch_out_.close();
+
+		lch_out_.open(lch_out_path_.native(), std::ios::in | std::ios::binary);
+		if (!lch_out_.is_open()) {
+			throw PlatformSpecException();
 		}
 
+		rch_out_.open(rch_out_path_.native(), std::ios::in | std::ios::binary);
+		if (!rch_out_.is_open()) {
+			throw PlatformSpecException();
+		}
+
+		const auto datasize = fft_size_ / 2;
+
+		std::vector<uint8_t> tmpdataL(kBufferSize);
+		std::vector<uint8_t> tmpdataR(kBufferSize);
+
+		for (auto i = 0u; i < dsd_sampling_rate_ / kBufferSize; i++) {
+		 	lch_out_.read(reinterpret_cast<char*>(tmpdataL.data()), tmpdataL.size());
+			if (!lch_out_) {
+				throw PlatformSpecException();
+			}
+			rch_out_.read(reinterpret_cast<char*>(tmpdataR.data()), tmpdataR.size());
+			if (!rch_out_) {
+				throw PlatformSpecException();
+			}
+			std::vector<Int24> dop_data(datasize * 2);
+			auto o = 0u;
+			for (auto sample = 0u; sample < datasize / 2; sample += 2) {
+				dop_data[o].data[0] = kDoPMarker[0]; 
+				dop_data[o].data[1] = tmpdataL[sample + 0];
+				dop_data[o].data[2] = tmpdataR[sample + 0];
+				++o;
+				dop_data[o].data[0] = kDoPMarker[0];
+				dop_data[o].data[1] = tmpdataL[sample + 1];
+				dop_data[o].data[2] = tmpdataR[sample + 1];
+				++o;
+			}
+			buffer.TryWrite(reinterpret_cast<int8_t*>(dop_data.data()), dop_data.size() * 3);
+		}
 		RemoveTempFile();
 		return true;
 	}
@@ -301,6 +324,8 @@ public:
 		const auto logtimes = static_cast<uint32_t>(log(times) / log(2));
 		const auto fftsize = (section_1 + 1) * times;
 		const auto datasize = fftsize / 2;
+
+		XAMP_LOG_D(logger_, "section_1: {} logtimes: {} fftsize: {}", section_1, logtimes, fftsize);
 		
 		log_times_ = logtimes;
 		fft_size_ = fftsize;

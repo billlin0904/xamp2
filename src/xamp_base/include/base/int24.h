@@ -13,6 +13,8 @@ namespace xamp::base {
 
 class XAMP_BASE_API Int24 final {
 public:
+	Int24() noexcept;
+
 	Int24(float f) noexcept;
 
 	Int24& operator=(int32_t i) noexcept;
@@ -23,6 +25,10 @@ public:
 
 	std::array<uint8_t, 3> data;
 };
+
+XAMP_ALWAYS_INLINE Int24::Int24() noexcept {
+	data.fill(0);
+}
 
 XAMP_ALWAYS_INLINE Int24::Int24(float f) noexcept {
 	*this = f;

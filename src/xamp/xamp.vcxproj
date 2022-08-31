@@ -353,7 +353,9 @@
   <ItemGroup>
     <None Include="..\versions\updates.json" />
     <None Include="config.json" />
+    <None Include="FIRFilter.dat" />
     <None Include="ja_JP.ts" />
+    <None Include="NoiseShapingCoeff.dat" />
     <None Include="Resource\Theme\dark\style.qss" />
     <None Include="Resource\Theme\light\style.qss" />
     <None Include="xamp.ini" />
