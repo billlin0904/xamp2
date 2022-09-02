@@ -564,16 +564,18 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
     setStandardButtonStyle(ui.closeButton, ui.minWinButton, ui.maxWinButton);
 
     const QColor hover_color = hoverColor();
-    
-    ui.logoButton->setStyleSheet(Q_STR(R"(
+
+    if (useNativeWindow()) {
+        ui.logoButton->hide();
+    } else {
+        ui.logoButton->setStyleSheet(Q_STR(R"(
                                          QToolButton#logoButton {
                                          border: none;
                                          image: url(":/xamp/xamp.ico");
                                          background-color: transparent;
                                          }
 										)"));
-
-    
+    }
 
     ui.settingsButton->setStyleSheet(Q_STR(R"(
                                             QToolButton#settingsButton {
