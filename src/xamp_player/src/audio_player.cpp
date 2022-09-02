@@ -446,9 +446,9 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream, bool quit) {
         XAMP_LOG_D(logger_, "Stream thread was finished.");
     }
 
-    /*if (!quit) {
+    if (!quit) {
         ProcessFadeOut();
-    }*/
+    }
 
     if (device_ != nullptr) {
         if (device_->IsStreamOpen()) {
