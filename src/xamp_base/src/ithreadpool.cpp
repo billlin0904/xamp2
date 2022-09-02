@@ -7,6 +7,7 @@ namespace xamp::base {
 
 inline constexpr auto kMaxPlaybackThreadPoolSize{ 4 };
 inline constexpr auto kMaxWASAPIThreadPoolSize{ 2 };
+inline constexpr auto kMaxDSPThreadPoolSize{ 4 };
 
 AlignPtr<IThreadPool> MakeThreadPool(const std::string_view& pool_name,
     TaskSchedulerPolicy policy,
@@ -34,6 +35,13 @@ IThreadPool& GetWASAPIThreadPool() {
         kMaxWASAPIThreadPoolSize,
         0);
 	return threadpool;
+}
+
+IThreadPool& GetDSPThreadPool() {
+    static ThreadPool threadpool(kDSPThreadPoolLoggerName,
+        kMaxDSPThreadPoolSize,
+        kDefaultAffinityCpuCore);
+    return threadpool;
 }
 
 }

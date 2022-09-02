@@ -43,6 +43,7 @@ struct XAMP_BASE_API AutoRegisterLoggerName {
 DECLARE_LOG_NAME(Xamp);
 DECLARE_LOG_NAME(WASAPIThreadPool);
 DECLARE_LOG_NAME(PlaybackThreadPool);
+DECLARE_LOG_NAME(DSPThreadPool);
 DECLARE_LOG_NAME(BackgroundThreadPool);
 DECLARE_LOG_NAME(ExclusiveWasapiDevice);
 DECLARE_LOG_NAME(ExclusiveWasapiDeviceType);

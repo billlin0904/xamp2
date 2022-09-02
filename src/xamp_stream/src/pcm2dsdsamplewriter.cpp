@@ -7,6 +7,9 @@
 #include <base/int24.h>
 #include <base/audioformat.h>
 #include <base/platform.h>
+#include <base/assert.h>
+#include <base/fastmutex.h>
+#include <base/ithreadpool.h>
 
 #include <stream/fftwlib.h>
 #include <stream/dsd_utils.h>
@@ -15,6 +18,44 @@
 namespace xamp::stream {
 
 #ifdef XAMP_OS_WIN
+
+class Double2DArray {
+public:
+	Double2DArray() noexcept
+		: length_(0)
+		, width_(0) {
+	}
+
+	Double2DArray(size_t length, size_t width) {
+		Resize(length, width);
+	}
+
+	size_t GetLength() const noexcept {
+		return length_;
+	}
+
+	void Resize(size_t length, size_t width) {
+		length_ = length;
+		width_ = width;
+		data_.resize(length * width);
+	}
+
+	void Set(uint32_t x, uint32_t y, double val) {
+		Get(x, y) = val;
+	}
+
+	double & Get(uint32_t x, uint32_t y) {
+		return data_[x + y * width_];
+	}
+
+	const double& Get(uint32_t x, uint32_t y) const {
+		return data_[x + y * width_];
+	}
+private:
+	size_t length_;
+	size_t width_;
+	std::vector<double> data_;
+};
 
 static const std::vector<double> & FIRFilter() {
 	static constexpr auto readFIRFilter = []() {
@@ -40,9 +81,9 @@ static const std::vector<double> & FIRFilter() {
 	return lut;
 }
 
-static const std::vector<std::vector<double>>& NoiseShapingCoeff() {	
+static const Double2DArray& NoiseShapingCoeff() {
 	static constexpr auto readNoiseShapingCoeff = []() {
-		static std::vector<std::vector<double>> data;
+		static Double2DArray data;
 
 		std::ifstream file(".\\NoiseShapingCoeff.dat");
 		if (file.fail()) {
@@ -54,16 +95,14 @@ static const std::vector<std::vector<double>>& NoiseShapingCoeff() {
 		std::getline(file, str);
 
 		auto order = atoi(str.c_str());
-		data.resize(2);
-		data[0].resize(order);
-		data[1].resize(order);
+		data.Resize(order, 2);
 
 		while (std::getline(file, str)) {
 			if (str != "0") {
 				if (i == 0)
-					data[i][s] = atof(str.c_str());
+					data.Set(i, s, atof(str.c_str()));
 				else {
-					data[i][order - s - 1] = atof(str.c_str());
+					data.Set(i, order - s - 1, atof(str.c_str()));
 				}
 				s++;
 			}
@@ -74,8 +113,8 @@ static const std::vector<std::vector<double>>& NoiseShapingCoeff() {
 		}
 
 		for (i = 0; i < order; i++) {
-			data[1][i] = data[1][i];
-			data[0][i] = data[0][i] - data[1][i];
+			data.Set(1, i, data.Get(1, i));
+			data.Set(0, i, data.Get(0, i) - data.Get(1, i));
 		}
 		return data;
 	};
@@ -84,46 +123,163 @@ static const std::vector<std::vector<double>>& NoiseShapingCoeff() {
 	return lut;
 }
 
-static FFTWComplexPtr MakeFFTWComplexArray(size_t size) {
-	return FFTWComplexPtr(static_cast<fftw_complex*>(FFTW_LIB.fftw_malloc(sizeof(fftw_complex) * size)));
-}
+struct FFTWContext {
+	void Init(uint32_t log_times, 
+		uint32_t times,
+		uint32_t fft_size,
+		uint32_t section_1,
+		std::shared_ptr<Logger> logger) {
+		nowfft_size.resize(log_times);
+		zero_size.resize(log_times);
+		pudding_size.resize(log_times);
+		realfft_size.resize(log_times);
+		add_size.resize(log_times);
+		prebuffer.resize(log_times);
+		fftin.resize(log_times);
+		fftout.resize(log_times);
+		ifftout.resize(log_times);
+		ifftin.resize(log_times);
+		firfilter_fft.resize(log_times);
+		fft.resize(log_times);
+		ifft.resize(log_times);
 
-static FFTWDoublePtr MakeFFTWDoubleArray(size_t size) {
-	return FFTWDoublePtr(static_cast<double*>(FFTW_LIB.fftw_malloc(sizeof(double) * size)));
-}
+		XAMP_LOG_D(logger, "Process FFT/IFFT");
 
-static FFTWPlan MakeFFTW(uint32_t fftsize, uint32_t times, double* fftin, fftw_complex* fftout) {
-	return FFTWPlan(FFTW_LIB.fftw_plan_dft_r2c_1d(fftsize / times, fftin, fftout, FFTW_ESTIMATE));
-}
+		const auto& firfilter_table = FIRFilter();
+		auto i = 0u;
+		auto p = 0u;
+		auto k = 0u;
 
-static FFTWPlan MakeIFFTW(uint32_t fftsize, uint32_t times, fftw_complex* ifftin, double* ifftout) {
-	return FFTWPlan(FFTW_LIB.fftw_plan_dft_c2r_1d(fftsize / times, ifftin, ifftout, FFTW_ESTIMATE));
-}
+		for (i = 1u; i < times; i = i * 2) {
+			nowfft_size[p] = fft_size / (times / (i * 2));
+			realfft_size[p] = nowfft_size[p] / 2 + 1;
+			zero_size[p] = nowfft_size[p] / 4;
+			pudding_size[p] = nowfft_size[p] - zero_size[p] * 2;
+			gain = gain * (2.0 / nowfft_size[p]);
+			add_size[p] = zero_size[p] * 2;
+
+			XAMP_LOG_D(logger,
+				"Make FFT/IFFT I/O {} (log_times: {} p : {} i : {}) Buffer",
+				log_times - p - 1, log_times, p, i);
+
+			prebuffer[p] = MakeFFTWDoubleArray(fft_size);
+			firfilter_fft[log_times - p - 1] = MakeFFTWComplexArray(fft_size / i);
+			fftin[log_times - p - 1] = MakeFFTWDoubleArray(fft_size / i);
+			fftout[log_times - p - 1] = MakeFFTWComplexArray(fft_size / i);
+			ifftin[log_times - p - 1] = MakeFFTWComplexArray((fft_size / i + 1) / 2 + 1);
+			ifftout[log_times - p - 1] = MakeFFTWDoubleArray(fft_size / i);
+
+			for (k = 0u; k < fft_size / i; k++) {
+				fftin[log_times - p - 1][k] = 0;
+				ifftout[log_times - p - 1][k] = 0;
+				fftout[log_times - p - 1][k][0] = 0;
+				fftout[log_times - p - 1][k][1] = 0;
+				ifftin[log_times - p - 1][k / 2][0] = 0;
+				ifftin[log_times - p - 1][k / 2][1] = 0;
+			}
+			for (k = 0u; k < fft_size; k++) {
+				prebuffer[p][k] = 0;
+			}
+			++p;
+		}
+
+		XAMP_LOG_D(logger, "Make FFT/IFFT Buffer");
+
+		p = 0;
+		for (i = 1u; i < times; i = i * 2) {
+			fft[log_times - p - 1] = MakeFFTW(fft_size, i, fftin[log_times - p - 1], fftout[log_times - p - 1]);
+			ifft[log_times - p - 1] = MakeIFFTW(fft_size, i, ifftin[log_times - p - 1], ifftout[log_times - p - 1]);
+			XAMP_ASSERT(fft[log_times - p - 1]);
+			XAMP_ASSERT(ifft[log_times - p - 1]);
+			++p;
+		}
+
+		for (k = 0u; k < log_times; k++) {
+			for (i = 0u; i < section_1; i++) {
+				fftin[k][i] = firfilter_table[i];
+			}
+			for (i = section_1; i < fft_size / pow(2, k); i++) {
+				fftin[log_times - k - 1][i] = 0;
+			}
+		}
+
+		for (i = 0u; i < log_times; i++) {
+			FFTW_LIB.fftw_execute(fft[log_times - i - 1].get());
+			for (p = 0; p < fft_size / pow(2, i + 1) + 1; p++) {
+				firfilter_fft[log_times - i - 1][p][0] = fftout[log_times - i - 1][p][0];
+				firfilter_fft[log_times - i - 1][p][1] = fftout[log_times - i - 1][p][1];
+			}
+		}
+
+		for (i = 0u; i < log_times; i++) {
+			FFTW_LIB.fftw_execute(fft[log_times - i - 1].get());
+			for (p = 0; p < fft_size / pow(2, i + 1) + 1; p++) {
+				firfilter_fft[log_times - i - 1][p][0] = fftout[log_times - i - 1][p][0];
+				firfilter_fft[log_times - i - 1][p][1] = fftout[log_times - i - 1][p][1];
+			}
+		}
+	}
+
+	double gain = 1;
+	std::vector<uint32_t> nowfft_size;
+	std::vector<uint32_t> zero_size;
+	std::vector<uint32_t> pudding_size;
+	std::vector<uint32_t> realfft_size;
+	std::vector<uint32_t> add_size;
+	std::vector<FFTWPlan> fft;
+	std::vector<FFTWPlan> ifft;
+	std::vector<FFTWDoubleArray> fftin;
+	std::vector<FFTWComplexArray> fftout;
+	std::vector<FFTWDoubleArray> ifftout;
+	std::vector<FFTWComplexArray> ifftin;
+	std::vector<FFTWDoubleArray> prebuffer;
+	std::vector<FFTWComplexArray> firfilter_fft;
+
+};
 
 class Pcm2DsdSampleWriter::Pcm2DsdSampleWriterImpl {
 public:
 	explicit Pcm2DsdSampleWriterImpl(DsdTimes dsd_times) {
 		dsd_times_ = static_cast<uint32_t>(dsd_times);
 		logger_ = LoggerManager::GetInstance().GetLogger("Pcm2DsdConverter");
+		FIRFilter();
+		NoiseShapingCoeff();
+		FFTW_LIB.fftw_make_planner_thread_safe();
 	}
 
 	void Init(uint32_t input_sample_rate) {
-		uint32_t times = 0;
-	
 		auto dsd_times = pow(2, dsd_times_);
 
 		if (input_sample_rate % 44100 == 0) {
-			times = dsd_times / (input_sample_rate / 44100);
-			dsd_sampling_rate_ = input_sample_rate * times;
+			times_ = dsd_times / (input_sample_rate / 44100);
+			dsd_sampling_rate_ = input_sample_rate * times_;
 		}
 		else {
-			times = dsd_times / (input_sample_rate / 48000);
-			dsd_sampling_rate_ = input_sample_rate * times;
+			times_ = dsd_times / (input_sample_rate / 48000);
+			dsd_sampling_rate_ = input_sample_rate * times_;
 		}
 
-		XAMP_LOG_D(logger_, "DSD Times: {} Times: {} DsdSampleRate: {}", dsd_times, times, dsd_sampling_rate_);
+		section_1_ = FIRFilter().size();
+		order_ = NoiseShapingCoeff().GetLength();
+		log_times_ = static_cast<uint32_t>(log(times_) / log(2));
+		fft_size_ = (section_1_ + 1) * times_;
+		data_size_ = fft_size_ / 2;
+		dsd_times_ = times_;
 
-		InitFFT(times);
+		XAMP_LOG_D(logger_, "DSD Times: {} Times: {} DsdSampleRate: {} section_1: {} logtimes: {} fftsize: {}", 
+			dsd_times,
+			times_, 
+			dsd_sampling_rate_,
+			section_1_,
+			log_times_, 
+			fft_size_);
+
+		lch_ctx_.Init(log_times_, times_, fft_size_, section_1_, logger_);
+		rch_ctx_.Init(log_times_, times_, fft_size_, section_1_, logger_);		
+	}
+
+	uint32_t GetDataSize() const {
+		return data_size_;
 	}
 
 	uint32_t GetDsdSampleRate() const {
@@ -142,106 +298,115 @@ public:
 		if (rch_src_.size() != num_samples / AudioFormat::kMaxChannel) {
 			rch_src_.resize(num_samples / AudioFormat::kMaxChannel);
 		}
-
+		XAMP_ASSERT(num_samples % 2 == 0);
 		for (auto i = 0; i < num_samples / AudioFormat::kMaxChannel; ++i) {
 			lch_src_[i] = samples[i * 2 + 0];
 			rch_src_[i] = samples[i * 2 + 1];
 		}
 	}
 
-	void ProcessChannel(const std::vector<double> &channel, std::fstream &output_file) {
-		const auto datasize = fft_size_ / 2;
-		auto split_num = (channel.size() / datasize) * dsd_times_;
+	void ProcessChannel(const std::vector<double> &channel, FFTWContext & ctx, std::fstream &output_file) {
+		std::vector<double> delta_buffer;
+		std::vector<double> buffer;
+		std::vector<int8_t> out;
+
+		delta_buffer.resize(order_ + 1);
+		buffer.resize(fft_size_);
+		out.resize(data_size_);
+
+		split_num_ = (channel.size() / data_size_) * dsd_times_;
 		auto data = reinterpret_cast<const uint8_t*>(channel.data());
 
-		double gain = 1;
+		XAMP_ASSERT(channel.size() % data_size_ == 0);
+
+		const auto& NS = NoiseShapingCoeff();
 		double deltagain = 0.5;
-		deltagain = gain * deltagain;
-		auto order = NoiseShapingCoeff()[0].size();
-		auto p = 0;
-		auto t = 0;			
-		auto q = 0;
+		deltagain = ctx.gain * deltagain;
+		double error_y = 0;
+		double x_in = 0;
+		auto i = 0u;
+		auto t = 0u;
+		auto q = 0u;
+		auto p = 0u;
 
-		XAMP_LOG_D(logger_, "Split count: {}, data size: {}", split_num, datasize);
+		XAMP_LOG_D(logger_, "Split count: {}, data size: {}", split_num_, data_size_);
 
-		for (auto i = 0; i < split_num; ++i) {
-			MemoryCopy(buffer_.data(), data, 8 * (datasize / dsd_times_));
+		for (i = 0u; i < split_num_; ++i) {
+			MemoryCopy(buffer.data(), data, 8 * (data_size_ / dsd_times_));
 
 			for (t = 0; t < log_times_; t++) {
 				q = 0;
-				for (p = 0; p < zero_size_[t]; p++) {
-					fftin_[t][q] = buffer_[p];
+				for (p = 0; p < ctx.zero_size[t]; p++) {
+					ctx.fftin[t][q] = buffer[p];
 					q++;
-					fftin_[t][q] = 0;
+					ctx.fftin[t][q] = 0;
 					q++;
 				}
 
-				MemorySet(fftin_[t].get() + q, 0, 8 * (nowfft_size_[t] - q));
+				MemorySet(ctx.fftin[t].get() + q, 0, 8 * (ctx.nowfft_size[t] - q));
+				FFTW_LIB.fftw_execute(ctx.fft[t].get());
 
-				FFTW_LIB.fftw_execute(fft_[t].get());
-				for (p = 0; p < realfft_size_[t]; p++) {
-					ifftin_[t][p][0] = fftout_[t][p][0] * firfilter_fft_[t][p][0] - fftout_[t][p][1] * firfilter_fft_[t][p][1];
-					ifftin_[t][p][1] = fftout_[t][p][0] * firfilter_fft_[t][p][1] + firfilter_fft_[t][p][0] * fftout_[t][p][1];
+				for (p = 0; p < ctx.realfft_size[t]; p++) {
+					ctx.ifftin[t][p][0] = ctx.fftout[t][p][0] * ctx.firfilter_fft[t][p][0] - ctx.fftout[t][p][1] * ctx.firfilter_fft[t][p][1];
+					ctx.ifftin[t][p][1] = ctx.fftout[t][p][0] * ctx.firfilter_fft[t][p][1] + ctx.firfilter_fft[t][p][0] * ctx.fftout[t][p][1];
 				}
+				FFTW_LIB.fftw_execute(ctx.ifft[t].get());
 
-				FFTW_LIB.fftw_execute(ifft_[t].get());
-				for (p = 0; p < pudding_size_[t]; p++) {
-					buffer_[p] = prebuffer_[t][p] + ifftout_[t][p];
+				for (p = 0; p < ctx.pudding_size[t]; p++) {
+					buffer[p] = ctx.prebuffer[t][p] + ctx.ifftout[t][p];
 				}
 
 				q = 0;
-				for (p = pudding_size_[t]; p < nowfft_size_[t]; p++) {
-					buffer_[p] = prebuffer_[t][q] = ifftout_[t][p];
+				for (p = ctx.pudding_size[t]; p < ctx.nowfft_size[t]; p++) {
+					buffer[p] = ctx.prebuffer[t][q] = ctx.ifftout[t][p];
 					q++;
 				}
 			}
 
-			double error_y = 0;
-			double x_in = 0;
+			for (q = 0u; q < data_size_; q++) {
+				x_in = buffer[q] * deltagain;
 
-			for (q = 0; q < datasize; q++) {
-				x_in = buffer_[q] * deltagain;
-
-				for (t = 0; t < order; t++) {
-					x_in += NoiseShapingCoeff()[0][t] * delta_buffer_[t];
+				for (t = 0u; t < order_; t++) {
+					x_in += NS.Get(0, t) * delta_buffer[t];
 				}
 
 				if (x_in >= 0.0) {
-					temp_out_[q] = 1;
+					out[q] = 1;
 					error_y = -1.0;
 				}
 				else {
-					temp_out_[q] = 0;
+					out[q] = 0;
 					error_y = 1.0;
 				}
-				for (t = order; t > 0; t--) {
-					delta_buffer_[t] = delta_buffer_[t - 1];
+				for (t = order_; t > 0; t--) {
+					delta_buffer[t] = delta_buffer[t - 1];
 				}
 
-				delta_buffer_[0] = x_in + error_y;
+				delta_buffer[0] = x_in + error_y;
 
-				for (t = 0; t < order; t++) {
-					delta_buffer_[0] += NoiseShapingCoeff()[1][t] * delta_buffer_[t + 1];
+				for (t = 0u; t < order_; t++) {
+					delta_buffer[0] += NS.Get(1, t) * delta_buffer[t + 1];
 				}
 			}
 
-			output_file.write(reinterpret_cast<const char*>(temp_out_.data()), datasize);
+			output_file.write(reinterpret_cast<const char*>(out.data()), data_size_);
 			if (!output_file) {
 				throw PlatformSpecException();
 			}
-			data += 8 * (datasize / dsd_times_);
+			data += 8 * (data_size_ / dsd_times_);
 		}
 	}
 
 	void CreateTempFile() {
-		auto temp_path = Fs::temp_directory_path();
+		const auto temp_path = Fs::temp_directory_path();
 		lch_out_path_ = temp_path / Fs::path(MakeTempFileName() + ".tmp");
-		lch_out_.open(lch_out_path_.native(), std::ios::in | std::ios::out | std::ios::trunc | std::ios::binary);
+		lch_out_.open(lch_out_path_.native(), std::ios::out | std::ios::trunc | std::ios::binary);
 		if (!lch_out_.is_open()) {
 			throw PlatformSpecException();
 		}
+
 		rch_out_path_ = temp_path / Fs::path(MakeTempFileName() + ".tmp");
-		rch_out_.open(rch_out_path_.native(), std::ios::in | std::ios::out | std::ios::trunc | std::ios::binary);
+		rch_out_.open(rch_out_path_.native(), std::ios::out | std::ios::trunc | std::ios::binary);
 		if (!rch_out_.is_open()) {
 			throw PlatformSpecException();
 		}
@@ -255,13 +420,9 @@ public:
 	}
 
 	bool MargeChannel(AudioBuffer<int8_t>& buffer) {
-		XAMP_LOG_D(logger_, "MargeChannel");
+		XAMP_LOG_D(logger_, "Marge L/R Channel");
 
-		constexpr uint8_t kDoPMarker[2] = { 0x05, 0xFA };
-		constexpr auto kBufferSize = 16384 * 2 * 8;
-
-		lch_out_.flush();
-		rch_out_.flush();
+		constexpr std::array<uint8_t, 2> kDoPMarker { 0x05, 0xFA };
 
 		lch_out_.close();
 		rch_out_.close();
@@ -276,172 +437,119 @@ public:
 			throw PlatformSpecException();
 		}
 
-		const auto datasize = fft_size_ / 2;
-
-		std::vector<uint8_t> tmpdataL(kBufferSize);
-		std::vector<uint8_t> tmpdataR(kBufferSize);
-
-		for (auto i = 0u; i < dsd_sampling_rate_ / kBufferSize; i++) {
+		std::vector<uint8_t> tmpdataL(data_size_);
+		std::vector<uint8_t> tmpdataR(data_size_);
+		std::vector<float> dop_data(data_size_ * 2);
+		
+		for (auto i = 0u; i < split_num_; i++) {
 		 	lch_out_.read(reinterpret_cast<char*>(tmpdataL.data()), tmpdataL.size());
 			if (!lch_out_) {
 				throw PlatformSpecException();
 			}
+
 			rch_out_.read(reinterpret_cast<char*>(tmpdataR.data()), tmpdataR.size());
 			if (!rch_out_) {
 				throw PlatformSpecException();
 			}
-			std::vector<Int24> dop_data(datasize * 2);
+
+			auto p = 0u;
+			auto c = 0u;
 			auto o = 0u;
-			for (auto sample = 0u; sample < datasize / 2; sample += 2) {
-				dop_data[o].data[0] = kDoPMarker[0]; 
-				dop_data[o].data[1] = tmpdataL[sample + 0];
-				dop_data[o].data[2] = tmpdataR[sample + 0];
-				++o;
-				dop_data[o].data[0] = kDoPMarker[0];
-				dop_data[o].data[1] = tmpdataL[sample + 1];
-				dop_data[o].data[2] = tmpdataR[sample + 1];
-				++o;
+			auto k = 0u;
+
+			std::vector<uint8_t> onebit(data_size_ / 4);
+
+			for (k = 0u; k < data_size_ / 4; k++) {
+				onebit[k] = tmpdataL[p] << 7;
+				onebit[k] += tmpdataL[p + 1] << 6;
+				onebit[k] += tmpdataL[p + 2] << 5;
+				onebit[k] += tmpdataL[p + 3] << 4;
+				onebit[k] += tmpdataL[p + 4] << 3;
+				onebit[k] += tmpdataL[p + 5] << 2;
+				onebit[k] += tmpdataL[p + 6] << 1;
+				onebit[k] += tmpdataL[p + 7] << 0;
+				k++;
+				onebit[k] = tmpdataR[p] << 7;
+				onebit[k] += tmpdataR[p + 1] << 6;
+				onebit[k] += tmpdataR[p + 2] << 5;
+				onebit[k] += tmpdataR[p + 3] << 4;
+				onebit[k] += tmpdataR[p + 4] << 3;
+				onebit[k] += tmpdataR[p + 5] << 2;
+				onebit[k] += tmpdataR[p + 6] << 1;
+				onebit[k] += tmpdataR[p + 7] << 0;
+				p += 8;
 			}
-			buffer.TryWrite(reinterpret_cast<int8_t*>(dop_data.data()), dop_data.size() * 3);
+
+			// DOP format:
+			// 0x05 L1 0x05 R1, 0xFA L2 0xFA R2, 0x05 L3 0x05 R3
+
+			for (auto sample = 0u; sample < onebit.size() / 2; sample++) {
+				Int24 val;
+				val.data[0] = onebit[sample * 2 + 0];
+				val.data[1] = onebit[sample * 2 + 1];
+				val.data[2] = kDoPMarker[c];
+				auto v = val.To32Int();
+				XAMP_ASSERT(v != 0);
+				dop_data[o] = static_cast<float>(v) / kFloat24Scale;
+				XAMP_ASSERT(dop_data[o] != 0);
+				++o;
+				if (o % 2 == 0) {
+					c = (c + 1) % kDoPMarker.size();
+				}
+			}
+			BufferOverFlowThrow(buffer.TryWrite(reinterpret_cast<int8_t*>(dop_data.data()), dop_data.size() * 4));
 		}
 		RemoveTempFile();
 		return true;
 	}
 
 	bool Process(float const* samples, size_t num_samples, AudioBuffer<int8_t>& buffer) {
-		CreateTempFile();
-		SplitChannel(samples, num_samples);		
-		ProcessChannel(lch_src_, lch_out_);
-		ProcessChannel(rch_src_, rch_out_);
-		return MargeChannel(buffer);
-	}
-
-	void InitFFT(uint32_t times) {
-		FIRFilter();
-		NoiseShapingCoeff();
-
-		const auto section_1 = FIRFilter().size();
-		const auto logtimes = static_cast<uint32_t>(log(times) / log(2));
-		const auto fftsize = (section_1 + 1) * times;
-		const auto datasize = fftsize / 2;
-
-		XAMP_LOG_D(logger_, "section_1: {} logtimes: {} fftsize: {}", section_1, logtimes, fftsize);
-		
-		log_times_ = logtimes;
-		fft_size_ = fftsize;
-		dsd_times_ = times;
-
-		nowfft_size_.resize(logtimes);
-		zero_size_.resize(logtimes);
-		pudding_size_.resize(logtimes);
-		realfft_size_.resize(logtimes);
-		add_size_.resize(logtimes);
-		prebuffer_.resize(logtimes);
-
-		fftin_.resize(logtimes);
-		fftout_.resize(logtimes);
-		ifftout_.resize(logtimes);
-		ifftin_.resize(logtimes);
-		firfilter_fft_.resize(logtimes);
-
-		fft_.resize(logtimes);
-		ifft_.resize(logtimes);
-
-		temp_out_.resize(datasize);
-
-		buffer_.resize(fftsize);
-		delta_buffer_.resize(NoiseShapingCoeff()[0].size() + 1);
-
-		double gain = 1;
-		auto i = 0;
-		auto p = 0;
-		auto k = 0;
-		for (i = 1; i < times; i = i * 2) {
-			nowfft_size_[p] = fftsize / (times / (i * 2));
-			realfft_size_[p] = nowfft_size_[p] / 2 + 1;
-			zero_size_[p] = nowfft_size_[p] / 4;
-			pudding_size_[p] = nowfft_size_[p] - zero_size_[p] * 2;
-			gain = gain * (2.0 / nowfft_size_[p]);
-			add_size_[p] = zero_size_[p] * 2;
-
-			prebuffer_[p] = MakeFFTWDoubleArray(fftsize);
-			firfilter_fft_[logtimes - p - 1] = MakeFFTWComplexArray(fftsize / i);
-			fftin_[logtimes - p - 1] = MakeFFTWDoubleArray(fftsize / i);
-			fftout_[logtimes - p - 1] = MakeFFTWComplexArray(fftsize / i);
-			ifftin_[logtimes - p - 1] = MakeFFTWComplexArray((fftsize / i + 1) / 2 + 1);
-			ifftout_[logtimes - p - 1] = MakeFFTWDoubleArray(fftsize / i);
-
-			for (k = 0; k < fftsize / i; k++) {
-				fftin_[logtimes - p - 1][k] = 0;
-				ifftout_[logtimes - p - 1][k] = 0;
-				fftout_[logtimes - p - 1][k][0] = 0;
-				fftout_[logtimes - p - 1][k][1] = 0;
-				ifftin_[logtimes - p - 1][k / 2][0] = 0;
-				ifftin_[logtimes - p - 1][k / 2][1] = 0;
-			}
-			for (k = 0; k < fftsize; k++) {
-				prebuffer_[p][k] = 0;
-			}
-			++p;
+		try {
+			CreateTempFile();
+		}
+		catch (std::exception const& e) {
+			XAMP_LOG_D(logger_, e.what());
+			RemoveTempFile();
+			return true;
 		}
 
-		p = 0;
-		for (i = 1; i < times; i = i * 2) {
-			fft_[logtimes - p - 1] = MakeFFTW(fftsize, i, fftin_[logtimes - p - 1].get(), fftout_[logtimes - p - 1].get());
-			ifft_[logtimes - p - 1] = MakeIFFTW(fftsize, i, ifftin_[logtimes - p - 1].get(), ifftout_[logtimes - p - 1].get());
-			++p;
-		}
+		SplitChannel(samples, num_samples);
 
-		for (k = 0; k < logtimes; k++) {
-			for (auto i = 0; i < section_1; i++) {
-				fftin_[k][i] = FIRFilter()[i];
-			}
-			for (auto i = section_1; i < fftsize / pow(2, k); i++) {
-				fftin_[logtimes - k - 1][i] = 0;
-			}
-		}
+		const auto lch_task= GetDSPThreadPool().Spawn([this](auto index) {
+			ProcessChannel(lch_src_, lch_ctx_, lch_out_);
+			});
+		const auto rch_task = GetDSPThreadPool().Spawn([this](auto index) {
+			ProcessChannel(rch_src_, rch_ctx_, rch_out_);
+			});
 
-		for (i = 0; i < logtimes; i++) {
-			FFTW_LIB.fftw_execute(fft_[logtimes - i - 1].get());
-			for (p = 0; p < fftsize / pow(2, i + 1) + 1; p++) {
-				firfilter_fft_[logtimes - i - 1][p][0] = fftout_[logtimes - i - 1][p][0];
-				firfilter_fft_[logtimes - i - 1][p][1] = fftout_[logtimes - i - 1][p][1];
-			}
+		try {
+			lch_task.wait();
+			rch_task.wait();
+			return MargeChannel(buffer);
 		}
-
-		for (i = 0; i < logtimes; i++) {
-			FFTW_LIB.fftw_execute(fft_[logtimes - i - 1].get());
-			for (p = 0; p < fftsize / pow(2, i + 1) + 1; p++) {
-				firfilter_fft_[logtimes - i - 1][p][0] = fftout_[logtimes - i - 1][p][0];
-				firfilter_fft_[logtimes - i - 1][p][1] = fftout_[logtimes - i - 1][p][1];
-			}
+		catch (std::exception const &e) {
+			XAMP_LOG_D(logger_, e.what());
+			RemoveTempFile();
+			return true;
 		}
 	}
 
+	uint32_t order_;
 	uint32_t dsd_sampling_rate_{ 0 };
+	uint32_t section_1_{ 0 };
+	uint32_t data_size_{ 0 };
+	uint32_t times_{ 0 };
 	uint32_t dsd_times_{ 0 };
 	uint32_t log_times_{ 0 };
 	uint32_t fft_size_{ 0 };
-	std::vector<int8_t> temp_out_;
+	uint32_t split_num_{ 0 };
+	FastMutex mutex_;
 	Path lch_out_path_;
 	Path rch_out_path_;
+	FFTWContext lch_ctx_;
+	FFTWContext rch_ctx_;
 	std::fstream lch_out_;
 	std::fstream rch_out_;
-	std::vector<uint32_t> nowfft_size_;
-	std::vector<uint32_t> zero_size_;
-	std::vector<uint32_t> pudding_size_;
-	std::vector<uint32_t> realfft_size_;
-	std::vector<uint32_t> add_size_;
-	std::vector<FFTWPlan> fft_;
-	std::vector<FFTWPlan> ifft_;
-	std::vector<FFTWDoublePtr> fftin_;
-	std::vector<FFTWComplexPtr> fftout_;
-	std::vector<FFTWDoublePtr> ifftout_;
-	std::vector<FFTWComplexPtr> ifftin_;
-	std::vector<FFTWDoublePtr> prebuffer_;
-	std::vector<FFTWComplexPtr> firfilter_fft_;
-	std::vector<double> buffer_;
-	std::vector<double> delta_buffer_;
 	std::vector<double> lch_src_;
 	std::vector<double> rch_src_;
 	std::shared_ptr<Logger> logger_;
@@ -455,6 +563,10 @@ Pcm2DsdSampleWriter::Pcm2DsdSampleWriter(DsdTimes dsd_times)
 
 void Pcm2DsdSampleWriter::Init(uint32_t output_sample_rate) {
 	impl_->Init(output_sample_rate);
+}
+
+uint32_t Pcm2DsdSampleWriter::GetDataSize() const {
+	return impl_->GetDataSize();
 }
 
 uint32_t Pcm2DsdSampleWriter::GetDsdSampleRate() const {

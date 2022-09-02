@@ -23,6 +23,8 @@ public:
 
 	[[nodiscard]] int32_t To2432Int() const noexcept;
 
+	[[nodiscard]] int32_t To32Int() const noexcept;
+
 	std::array<uint8_t, 3> data;
 };
 
@@ -53,6 +55,15 @@ XAMP_ALWAYS_INLINE int32_t Int24::To2432Int() const noexcept {
 	reinterpret_cast<uint8_t*>(&v)[1] = data[1];
 	reinterpret_cast<uint8_t*>(&v)[2] = data[2];
 	return v << 8;
+}
+
+XAMP_ALWAYS_INLINE int32_t Int24::To32Int() const noexcept {
+	int32_t v{ 0 };
+	reinterpret_cast<uint8_t*>(&v)[0] = 0;
+	reinterpret_cast<uint8_t*>(&v)[0] = data[0];
+	reinterpret_cast<uint8_t*>(&v)[1] = data[1];
+	reinterpret_cast<uint8_t*>(&v)[2] = data[2];
+	return v;
 }
 
 }

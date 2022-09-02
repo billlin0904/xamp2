@@ -36,7 +36,7 @@ inline constexpr uint32_t kMaxPreAllocateBufferSize = 32 * 1024 * 1024;
 
 inline constexpr uint32_t kMaxBufferSecs = 5;
 	
-inline constexpr uint32_t kMaxWriteRatio = 100;
+inline constexpr uint32_t kMaxWriteRatio = 50;
 inline constexpr uint32_t kMaxReadRatio = 10;
 inline constexpr uint32_t kActionQueueSize = 30;
 
@@ -261,7 +261,7 @@ void AudioPlayer::Pause() {
     XAMP_LOG_D(logger_, "Player pasue.");
     if (!is_paused_) {        
         if (device_->IsStreamOpen()) {
-            is_paused_ = true;            
+            is_paused_ = true;
             device_->StopStream(false);
             SetState(PlayerState::PLAYER_STATE_PAUSED);            
         }
@@ -446,9 +446,9 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream, bool quit) {
         XAMP_LOG_D(logger_, "Stream thread was finished.");
     }
 
-    if (!quit) {
+    /*if (!quit) {
         ProcessFadeOut();
-    }
+    }*/
 
     if (device_ != nullptr) {
         if (device_->IsStreamOpen()) {
@@ -491,7 +491,7 @@ void AudioPlayer::CreateBuffer() {
             GetPageAlignSize(output_format_.GetSampleRate() / 8));
         num_read_sample_ = require_read_sample;
     } else {
-        auto ratio = (std::max)(kMaxReadRatio, kMaxWriteRatio);
+	    const auto ratio = (std::max)(kMaxReadRatio, kMaxWriteRatio);
         require_read_sample = static_cast<uint32_t>(
             GetPageAlignSize(device_->GetBufferSize() * output_format_.GetChannels() * ratio));
         num_read_sample_ = static_cast<uint32_t>(
@@ -722,6 +722,10 @@ AlignPtr<IDSPManager>& AudioPlayer::GetDSPManager() {
     return dsp_manager_;
 }
 
+void AudioPlayer::SetReadSampleSize(uint32_t num_samples) {
+    num_read_sample_ = num_samples;
+}
+
 void AudioPlayer::Play() {
     if (!device_) {
         return;
@@ -895,7 +899,7 @@ void AudioPlayer::PrepareToPlay(uint32_t device_sample_rate, DsdModes output_mod
     OpenDevice(0, output_mode);
     CreateBuffer();
     dsp_manager_->Init(input_format_, output_format_, dsd_mode_, stream_->GetSampleSize());
-    BufferStream(0);
+    //BufferStream(0);
 	sample_end_time_ = stream_->GetDuration();
     XAMP_LOG_D(logger_, "Stream end time: {:.2f} sec.", sample_end_time_);
     fader_ = DspComponentFactory::MakeFader();

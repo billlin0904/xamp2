@@ -31,6 +31,10 @@ public:
 
     virtual void PrepareToPlay(uint32_t device_sample_rate = 0, DsdModes output_mode = DsdModes::DSD_MODE_AUTO) = 0;
 
+    virtual void SetReadSampleSize(uint32_t num_samples) = 0;
+
+    virtual void BufferStream(double stream_time = 0.0) = 0;
+
     virtual void Play() = 0;
 
     virtual void Pause() = 0;

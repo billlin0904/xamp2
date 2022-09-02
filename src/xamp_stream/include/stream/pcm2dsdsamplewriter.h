@@ -31,6 +31,8 @@ public:
 
 	uint32_t GetDsdSpeed() const;
 
+	uint32_t GetDataSize() const;
+
 	XAMP_PIMPL(Pcm2DsdSampleWriter)
 
 	[[nodiscard]] bool Process(BufferRef<float> const& input, AudioBuffer<int8_t>& buffer) override;

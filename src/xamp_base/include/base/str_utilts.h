@@ -108,4 +108,9 @@ XAMP_ALWAYS_INLINE std::vector<std::basic_string_view<T>> Split(const T* s,
     return Split(std::basic_string_view<T>(s), std::basic_string_view<T>(delims));
 }
 
+template <typename... Args>
+XAMP_ALWAYS_INLINE std::string Format(std::string_view s, Args &&...args) {
+    return fmt::format(s, args...);
+}
+
 }

@@ -32,6 +32,7 @@ public:
 	XAMP_DECLARE_DLL(fftw_execute) fftw_execute;
 	XAMP_DECLARE_DLL(fftw_plan_dft_r2c_1d) fftw_plan_dft_r2c_1d;
 	XAMP_DECLARE_DLL(fftw_plan_dft_c2r_1d) fftw_plan_dft_c2r_1d;
+	XAMP_DECLARE_DLL(fftw_make_planner_thread_safe) fftw_make_planner_thread_safe;
 };
 
 class FFTWFLib final {
@@ -118,8 +119,8 @@ struct FFTWPlanTraits final {
 using FFTWFPlan = UniqueHandle<fftwf_plan, FFTWFPlanTraits>;
 using FFTWPlan = UniqueHandle<fftw_plan, FFTWPlanTraits>;
 
-using FFTWComplexPtr = std::unique_ptr<fftw_complex[], FFTWPtrTraits<fftw_complex>>;
-using FFTWDoublePtr = std::unique_ptr<double[], FFTWPtrTraits<double>>;
+using FFTWComplexArray = std::unique_ptr<fftw_complex[], FFTWPtrTraits<fftw_complex>>;
+using FFTWDoubleArray = std::unique_ptr<double[], FFTWPtrTraits<double>>;
 
 template <typename T>
 std::unique_ptr<T[], FFTWPtrTraits<T>> MakeFFTWBuffer(size_t size) {
@@ -128,6 +129,14 @@ std::unique_ptr<T[], FFTWPtrTraits<T>> MakeFFTWBuffer(size_t size) {
 		FFTWPtrTraits<T>
 	>(static_cast<T*>(FFTW_LIB.fftw_malloc(sizeof(T) * size)));
 }
+
+FFTWComplexArray MakeFFTWComplexArray(size_t size);
+
+FFTWDoubleArray MakeFFTWDoubleArray(size_t size);
+
+FFTWPlan MakeFFTW(uint32_t fftsize, uint32_t times, FFTWDoubleArray& fftin, FFTWComplexArray& fftout);
+
+FFTWPlan MakeIFFTW(uint32_t fftsize, uint32_t times, FFTWComplexArray& ifftin, FFTWDoubleArray& ifftout);
 
 }
 

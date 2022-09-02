@@ -143,6 +143,8 @@ XAMP_BASE_API IThreadPool& GetPlaybackThreadPool();
 
 XAMP_BASE_API IThreadPool& GetWASAPIThreadPool();
 
+XAMP_BASE_API IThreadPool& GetDSPThreadPool();
+
 template <typename C, typename Func>
 void ParallelFor(C& items, Func&& f, IThreadPool& tp, size_t batches = 8) {
     auto begin = std::begin(items);

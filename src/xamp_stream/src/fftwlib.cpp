@@ -14,7 +14,8 @@ FFTWLib::FFTWLib() try
 	, XAMP_LOAD_DLL_API(fftw_free)
 	, XAMP_LOAD_DLL_API(fftw_execute)
 	, XAMP_LOAD_DLL_API(fftw_plan_dft_r2c_1d)
-	, XAMP_LOAD_DLL_API(fftw_plan_dft_c2r_1d) {
+	, XAMP_LOAD_DLL_API(fftw_plan_dft_c2r_1d)
+	, XAMP_LOAD_DLL_API(fftw_make_planner_thread_safe) {
 	PrefetchModule(module_);
 }
 catch (const Exception& e) {
@@ -34,6 +35,22 @@ FFTWFLib::FFTWFLib() try
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
+}
+
+FFTWComplexArray MakeFFTWComplexArray(size_t size) {
+	return FFTWComplexArray(static_cast<fftw_complex*>(FFTW_LIB.fftw_malloc(sizeof(fftw_complex) * size)));
+}
+
+FFTWDoubleArray MakeFFTWDoubleArray(size_t size) {
+	return FFTWDoubleArray(static_cast<double*>(FFTW_LIB.fftw_malloc(sizeof(double) * size)));
+}
+
+FFTWPlan MakeFFTW(uint32_t fftsize, uint32_t times, FFTWDoubleArray& fftin, FFTWComplexArray& fftout) {
+	return FFTWPlan(FFTW_LIB.fftw_plan_dft_r2c_1d(fftsize / times, fftin.get(), fftout.get(), FFTW_ESTIMATE));
+}
+
+FFTWPlan MakeIFFTW(uint32_t fftsize, uint32_t times, FFTWComplexArray& ifftin, FFTWDoubleArray& ifftout) {
+	return FFTWPlan(FFTW_LIB.fftw_plan_dft_c2r_1d(fftsize / times, ifftin.get(), ifftout.get(), FFTW_ESTIMATE));
 }
 
 #endif

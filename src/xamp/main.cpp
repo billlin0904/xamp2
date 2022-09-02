@@ -5,6 +5,7 @@
 #include <base/dll.h>
 #include <base/logger_impl.h>
 #include <base/crashhandler.h>
+#include <base/int24.h>
 
 #include <player/api.h>
 #include <stream/soxresampler.h>
@@ -20,6 +21,8 @@
 #include <widget/ui_utilts.h>
 #include <widget/xwindow.h>
 
+#include <QOperatingSystemVersion>
+#include <QLoggingCategory>
 #include <QMessageBox>
 #include <QProcess>
 
@@ -33,6 +36,8 @@
 #include "xamp.h"
 
 static void loadSoxrSetting() {
+    XAMP_LOG_DEBUG("loadSoxrSetting.");
+
     QMap<QString, QVariant> default_setting;
 
     default_setting[kResampleSampleRate] = 96000;
@@ -56,6 +61,8 @@ static void loadSoxrSetting() {
 }
 
 static void loadR8BrainSetting() {
+    XAMP_LOG_DEBUG("loadR8BrainSetting.");
+
     QMap<QString, QVariant> default_setting;
 
     default_setting[kResampleSampleRate] = 96000;
@@ -69,9 +76,12 @@ static void loadR8BrainSetting() {
 }
 
 static void loadPcm2DsdSetting() {
+    XAMP_LOG_DEBUG("loadPcm2DsdSetting.");
+
     QMap<QString, QVariant> default_setting;
 
-    default_setting[kPCM2DSDDsdTimes] = static_cast<uint32_t>(DsdTimes::DSD_TIME_6X);
+    //default_setting[kPCM2DSDDsdTimes] = static_cast<uint32_t>(DsdTimes::DSD_TIME_6X);
+    default_setting[kPCM2DSDDsdTimes] = static_cast<uint32_t>(DsdTimes::DSD_TIME_5X);
     JsonSettings::setDefaultValue(kPCM2DSD, QVariant::fromValue(default_setting));
     AppSettings::setValue(kEnablePcm2Dsd, false);
 }
@@ -92,6 +102,8 @@ static LogLevel parseLogLevel(const QString &str) {
 }
 
 static void loadLogConfig() {
+    XAMP_LOG_DEBUG("loadLogConfig.");
+
     QMap<QString, QVariant> log;
     QMap<QString, QVariant> min_level;
     QMap<QString, QVariant> override_map;
@@ -147,6 +159,8 @@ static void loadLogConfig() {
 }
 
 static void loadSettings() {
+    XAMP_LOG_DEBUG("loadSettings.");
+
     AppSettings::loadIniFile(Q_TEXT("xamp.ini"));
 
 	AppSettings::setDefaultEnumValue(kAppSettingOrder, PlayerOrder::PLAYER_ORDER_REPEAT_ONCE);
@@ -177,6 +191,8 @@ static void loadSettings() {
 }
 
 static void loadLogAndResamplerConfig() {
+    XAMP_LOG_DEBUG("loadLogAndResamplerConfig.");
+
     JsonSettings::loadJsonFile(Q_TEXT("config.json"));
     loadLogConfig();
     loadSoxrSetting();
@@ -187,6 +203,8 @@ static void loadLogAndResamplerConfig() {
 }
 
 static void loadLang() {
+    XAMP_LOG_DEBUG("loadLang.");
+
     if (AppSettings::getValueAsString(kAppSettingLang).isEmpty()) {
         const LocaleLanguage lang;
         XAMP_LOG_DEBUG("Load locale lang file: {}.", lang.getIsoCode().toStdString());
@@ -246,6 +264,8 @@ static std::vector<ModuleHandle> prefetchDLL() {
 #endif 
 
 static void registerMetaType() {
+    XAMP_LOG_DEBUG("registerMetaType.");
+
     qRegisterMetaTypeStreamOperators<AppEQSettings>("AppEQSettings");
     qRegisterMetaType<AppEQSettings>("AppEQSettings");
     qRegisterMetaType<Vector<Metadata>>("Vector<Metadata>");
@@ -263,18 +283,29 @@ static void registerMetaType() {
 }
 
 static void logMessageHandler(QtMsgType type, const QMessageLogContext& context, const QString& msg) {
+    QString str;
+    QTextStream stream(&str);
+    stream.setCodec("UTF-8");
+
+    stream << context.file << ":" << context.line << ":"
+        << context.function << ": " << msg;
+
+    auto logger = LoggerManager::GetInstance().GetLogger("Qt");
+
     switch (type) {
     case QtDebugMsg:
-        XAMP_LOG_DEBUG(msg.toStdString());
+        XAMP_LOG_D(logger, str.toStdString());
         break;
     case QtWarningMsg:
-        XAMP_LOG_WARN(msg.toStdString());
+        XAMP_LOG_W(logger, str.toStdString());
         break;
     case QtCriticalMsg:
-        XAMP_LOG_CRITICAL(msg.toStdString());
+        XAMP_LOG_C(logger, str.toStdString());
         break;
     case QtFatalMsg:
-        XAMP_LOG_CRITICAL(msg.toStdString());
+        XAMP_LOG_C(logger, str.toStdString());
+        break;
+    default: 
         break;
     }
 }
@@ -294,18 +325,18 @@ static int excute(int argc, char* argv[]) {
 
     QApplication app(argc, argv);
 
-    //qInstallMessageHandler(logMessageHandler);
-
     SingleInstanceApplication single_app;
 #ifndef _DEBUG
     if (!single_app.attach(QCoreApplication::arguments())) {
         return -1;
     }
+#else
+    qInstallMessageHandler(logMessageHandler);
+    QLoggingCategory::setFilterRules(Q_TEXT("*.info=false"));
 #endif
+    XAMP_LOG_DEBUG("attach app success.");
 
     loadLang();
-
-    XAMP_LOG_DEBUG("attach app success.");
 
     try {
         qDatabase.open(Q_TEXT("xamp.db"));
@@ -354,11 +385,6 @@ static int excute(int argc, char* argv[]) {
 }
 
 int main(int argc, char *argv[]) {
-#ifdef Q_OS_WIN
-    /*if (qgetenv("MIMALLOC_VERBOSE") == "1") {
-        RedirectStdOut();
-    }*/
-#endif
     LoggerManager::GetInstance()
         .AddDebugOutput()
 #ifdef Q_OS_MAC
@@ -366,6 +392,19 @@ int main(int argc, char *argv[]) {
 #endif
         .AddLogFile("xamp.log")
         .Startup();
+
+    const auto os_ver = QOperatingSystemVersion::current();
+    if (os_ver < QOperatingSystemVersion::Windows10) {
+        QMessageBox::information(nullptr,
+            Q_TEXT("Warning"),
+            QString(Q_TEXT("You are running an unsupported version of Windows: %1.")).arg(os_ver.name()));
+    }
+
+    XAMP_LOG_DEBUG("Running {} {}.{}.{}",
+        os_ver.name().toStdString(),
+        os_ver.majorVersion(),
+        os_ver.minorVersion(),
+        os_ver.microVersion());
 
     registerMetaType();
     loadSettings();

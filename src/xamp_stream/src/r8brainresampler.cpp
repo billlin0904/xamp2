@@ -11,8 +11,6 @@ const std::string_view R8brainSampleRateConverter::VERSION = "R8brain 5.6";
 
 class R8brainSampleRateConverter::R8brainSampleRateConverterImpl {
 public:
-	static constexpr int32_t kBufferSize = 64 * 1024;
-
 	R8brainSampleRateConverterImpl()
 		: input_sample_rate_(0)
 		, output_sample_rate_(0) {
@@ -26,12 +24,13 @@ public:
 	void Init(uint32_t input_sample_rate) {
 		handle_.reset(R8brainDLL.r8b_create(input_sample_rate,
 			output_sample_rate_,
-			kBufferSize,
+			kR8brainBufferSize,
 			2.5,
 			ER8BResamplerRes::r8brr24));
 	}
 
 	bool Process(float const* samples, uint32_t num_samples, BufferRef<float>& output) {
+		XAMP_ASSERT(num_samples <= kR8brainBufferSize);
 		input_data_.resize(num_samples);
 
 		for (auto i = 0; i < num_samples; ++i) {

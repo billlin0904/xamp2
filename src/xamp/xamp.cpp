@@ -1169,7 +1169,7 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
 
         auto dsd_modes = DsdModes::DSD_MODE_AUTO;
         uint32_t device_sample_rate = 0;
- 
+
         if (AppSettings::getValueAsBool(kEnablePcm2Dsd)) {
             auto config = JsonSettings::getValueAsMap(kPCM2DSD);
             config[kPCM2DSDDsdTimes] = static_cast<uint32_t>(DsdTimes::DSD_TIME_6X);
@@ -1180,18 +1180,20 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
             auto input_sample_rate = player_->GetInputFormat().GetSampleRate();
             writer->Init(input_sample_rate);
 
-            if (!AppSettings::getValueAsBool(kEnableBitPerfect)) {
-                device_sample_rate = GetDOPSampleRate(writer->GetDsdSpeed());
-            }
-            else {
-                dsd_modes = DsdModes::DSD_MODE_NATIVE;
-                device_sample_rate = writer->GetDsdSampleRate();
-            }
+            device_sample_rate = GetDOPSampleRate(writer->GetDsdSpeed());
             player_->GetDSPManager()->SetSampleWriter(std::move(pcm2dsd_writer));
+
+            player_->PrepareToPlay(device_sample_rate, dsd_modes);
+            player_->SetReadSampleSize(writer->GetDataSize() * 2);
+        } else {
+            player_->PrepareToPlay(device_sample_rate, dsd_modes);            
         }
 
-    	player_->PrepareToPlay(device_sample_rate, dsd_modes);
+        if (resampler_type == kR8Brain) {
+            player_->SetReadSampleSize(kR8brainBufferSize);
+        }
 
+        player_->BufferStream();
         playback_format = getPlaybackFormat(player_.get());
         player_->Play();
 

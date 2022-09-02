@@ -112,6 +112,10 @@ public:
 
     bool CanConverter() const noexcept;
 
+    void SetReadSampleSize(uint32_t num_samples) override;
+
+    void BufferStream(double stream_time = 0.0) override;
+
 private:
     void DoSeek(double stream_time);        
     	
@@ -124,8 +128,6 @@ private:
     void CreateBuffer();
 
     void SetDeviceFormat();
-
-    void BufferStream(double stream_time = 0.0);
 
     DataCallbackResult OnGetSamples(void* samples, size_t num_buffer_frames, size_t& num_filled_frames, double stream_time, double sample_time) noexcept override;
 
