@@ -212,6 +212,9 @@ PreferencePage::PreferencePage(QWidget *parent)
     auto* dsp_manager_item = new QTreeWidgetItem(QStringList() << tr("Resampler"));
     playback_item->addChild(dsp_manager_item);
 
+	auto* pcm2dsd_item = new QTreeWidgetItem(QStringList() << tr("PCM-DSD Covert"));
+	playback_item->addChild(pcm2dsd_item);
+
 	auto* flac_encoding_item = new QTreeWidgetItem(QStringList() << tr("Flac Encoding"));
 	playback_item->addChild(flac_encoding_item);
 
@@ -222,7 +225,8 @@ PreferencePage::PreferencePage(QWidget *parent)
         const std::map<QString, int32_t> stack_page_map{
             { tr("Playback"), 0 },
             { tr("Resampler"), 1 },
-			{ tr("Flac Encoding"), 2 },
+			{ tr("PCM-DSD Covert"), 2 },
+			{ tr("Flac Encoding"), 3 },
         };
 
 	    const auto select_type = item->text(column);

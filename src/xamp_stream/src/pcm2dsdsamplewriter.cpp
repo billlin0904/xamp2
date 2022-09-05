@@ -244,7 +244,6 @@ public:
 		logger_ = LoggerManager::GetInstance().GetLogger("Pcm2DsdConverter");
 		FIRFilter();
 		NoiseShapingCoeff();
-		FFTW_LIB.fftw_make_planner_thread_safe();
 	}
 
 	~Pcm2DsdSampleWriterImpl() {
@@ -309,7 +308,7 @@ public:
 		}
 	}
 
-	void ProcessChannel(const std::vector<double> &channel, FFTWContext & ctx, std::fstream &output_file) {
+	void ProcessChannel(const std::vector<double> &channel, FFTWContext & ctx, std::fstream & output_file) {
 		std::vector<double> delta_buffer;
 		std::vector<double> buffer;
 		std::vector<int8_t> out;
@@ -318,7 +317,6 @@ public:
 		buffer.resize(fft_size_);
 		out.resize(data_size_);
 
-		split_num_ = (channel.size() / data_size_) * dsd_times_;
 		auto data = reinterpret_cast<const uint8_t*>(channel.data());
 
 		XAMP_ASSERT(channel.size() % data_size_ == 0);
@@ -397,6 +395,7 @@ public:
 			if (!output_file) {
 				throw PlatformSpecException();
 			}
+
 			data += 8 * (data_size_ / dsd_times_);
 		}
 	}
@@ -463,6 +462,8 @@ public:
 
 		std::vector<uint8_t> tmpdataL(data_size_);
 		std::vector<uint8_t> tmpdataR(data_size_);
+		std::vector<uint8_t> onebit(data_size_ / 4);
+		std::vector<float> dop_data(onebit.size() / 2);
 		
 		for (auto i = 0u; i < split_num_; i++) {
 		 	lch_out_.read(reinterpret_cast<char*>(tmpdataL.data()), tmpdataL.size());
@@ -479,9 +480,6 @@ public:
 			auto c = 0u;
 			auto o = 0u;
 			auto k = 0u;
-
-			std::vector<uint8_t> onebit(data_size_ / 4);
-			std::vector<float> dop_data(onebit.size() / 2);
 
 			for (k = 0u; k < data_size_ / 4; k++) {
 				onebit[k] = tmpdataL[p] << 7;
@@ -539,6 +537,9 @@ public:
 
 		SplitChannel(samples, num_samples);
 
+		auto channel_size = num_samples / AudioFormat::kMaxChannel;
+		split_num_ = (channel_size / data_size_) * dsd_times_;
+
 		const auto lch_task= GetDSPThreadPool().Spawn([this](auto index) {
 			ProcessChannel(lch_src_, lch_ctx_, lch_out_);
 			});
@@ -567,7 +568,6 @@ public:
 	uint32_t log_times_{ 0 };
 	uint32_t fft_size_{ 0 };
 	uint32_t split_num_{ 0 };
-	FastMutex mutex_;
 	Path lch_out_path_;
 	Path rch_out_path_;
 	FFTWContext lch_ctx_;

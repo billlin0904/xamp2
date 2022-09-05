@@ -88,7 +88,7 @@
         </sizepolicy>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>2</number>
        </property>
        <widget class="QWidget" name="playbackPage">
         <layout class="QGridLayout" name="gridLayout">
@@ -824,6 +824,71 @@
             <item>
              <property name="text">
               <string>R8brain</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </widget>
+       <widget class="QWidget" name="pcm2dsdPage">
+        <widget class="QWidget" name="">
+         <property name="geometry">
+          <rect>
+           <x>30</x>
+           <y>20</y>
+           <width>231</width>
+           <height>31</height>
+          </rect>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_14">
+          <item>
+           <widget class="QLabel" name="label_14">
+            <property name="text">
+             <string>DSD Times:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="dsdTimeComboBox">
+            <item>
+             <property name="text">
+              <string>DSD 4X</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>DSD 5X</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>DSD 6X</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>DSD 7X</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>DSD 8X</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>DSD 9X</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>DSD 10X</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>DSD 11X</string>
              </property>
             </item>
            </widget>
