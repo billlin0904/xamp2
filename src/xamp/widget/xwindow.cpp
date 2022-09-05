@@ -33,6 +33,7 @@
 #include <widget/xwindow.h>
 
 #if defined(Q_OS_WIN)
+// Ref : https://github.com/melak47/BorderlessWindow
 static XAMP_ALWAYS_INLINE LRESULT hitTest(HWND hwnd, MSG const* msg) noexcept {
     const POINT border{
         ::GetSystemMetrics(SM_CXFRAME) + ::GetSystemMetrics(SM_CXPADDEDBORDER),
@@ -111,6 +112,9 @@ void XWindow::setContentWidget(IXPlayerFrame *content_widget) {
         }
     } else {
         win32::setWindowedWindowStyle(winId());
+        if (qTheme.themeColor() == ThemeColor::DARK_THEME) {
+            win32::setTitleBarColor(winId(), qTheme.backgroundColor());
+        }
         win32::addDwmShadow(winId());
     }
     taskbar_.reset(new win32::WinTaskbar(this, player_frame_));

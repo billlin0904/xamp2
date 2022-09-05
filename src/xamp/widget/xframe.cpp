@@ -10,13 +10,6 @@
 XFrame::XFrame(QWidget* parent)
     : QFrame(parent) {
     setObjectName(Q_TEXT("XFrame"));
-    /*setStyleSheet(Q_STR(R"(
-			QFrame#XFrame {
-				border-radius: 8px;
-				border: 2px solid %1;
-				background-color: %1;
-            }
-            )").arg(qTheme.backgroundColor()));*/
 }
 
 void XFrame::setTitle(const QString& title) const {
@@ -32,7 +25,13 @@ void XFrame::setContentWidget(QWidget* content) {
     default_layout->setContentsMargins(5, 0, 5, 5);
     setLayout(default_layout);
 
-    auto* title_frame = new QFrame(this);
+    QFrame* title_frame = nullptr;
+    if (!qTheme.useNativeWindow()) {
+        title_frame = new QFrame(this);
+    } else {
+        title_frame = new QFrame();
+    }
+
     title_frame->setObjectName(QString::fromUtf8("titleFrame"));
     title_frame->setMinimumSize(QSize(0, 24));
     title_frame->setFrameShape(QFrame::NoFrame);
@@ -90,7 +89,10 @@ void XFrame::setContentWidget(QWidget* content) {
     horizontal_layout->setObjectName(QString::fromUtf8("horizontalLayout"));
     horizontal_layout->setContentsMargins(0, 0, 0, 0);
 
-    default_layout->addWidget(title_frame, 1);
+    if (!qTheme.useNativeWindow()) {
+        default_layout->addWidget(title_frame, 1);
+    }
+
     default_layout->addWidget(content_, 0);
     default_layout->setContentsMargins(0, 0, 0, 0);
 

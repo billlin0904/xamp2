@@ -298,6 +298,7 @@ void addDwmShadow(const WId window_id) {
 	DWMDLL.DwmExtendFrameIntoClientArea(hwnd, &borderless);
 }
 
+// Ref : https://github.com/melak47/BorderlessWindow
 enum BorderlessWindowStyle : DWORD {
 	WINDOWED_STYLE        = WS_OVERLAPPEDWINDOW | WS_THICKFRAME | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX,
 	AERO_BORDERLESS_STYLE = WS_POPUP			| WS_THICKFRAME | WS_CAPTION | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX,
@@ -312,6 +313,7 @@ QRect getWindowRect(const WId window_id) {
 		int height = rect.bottom - rect.top;
 		return QRect(rect.left, rect.top, width, height);
 	}
+	// todo: throw an system exception?
 	return QRect();
 }
 
@@ -352,6 +354,20 @@ void setFramelessWindowStyle(const WId window_id) {
 		new_style = BorderlessWindowStyle::BORDERLESS_STYLE;
 	}
 	setBorderlessWindowStyle(window_id, new_style);
+}
+
+void setTitleBarColor(const WId window_id, QColor color) {
+	// Undocumented in Windows 10 SDK
+	// (can be used by setting value as dwAttribute as 20),
+	// value was 19 pre Windows 10 20H1 Update).
+
+	constexpr DWORD DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
+	auto hwnd = reinterpret_cast<HWND>(window_id);
+	BOOL value = TRUE;
+	DWMDLL.DwmSetWindowAttribute(hwnd,
+		DWMWA_USE_IMMERSIVE_DARK_MODE,
+		&value,
+		sizeof(BOOL));
 }
 
 bool isWindowMaximized(const WId window_id) {

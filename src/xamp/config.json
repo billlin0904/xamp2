@@ -24,7 +24,7 @@
         }
     },
     "R8Brain": {
-        "resampleSampleRate": 384000
+        "resampleSampleRate": 176400
     },
     "Soxr": {
         "default": {
@@ -32,7 +32,7 @@
             "passBand": 96,
             "phase": 47,
             "quality": 4,
-            "resampleSampleRate": 88200,
+            "resampleSampleRate": 176400,
             "rolloffLevel": 2,
             "stopBand": 100
         }

@@ -1172,8 +1172,6 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
 
         if (AppSettings::getValueAsBool(kEnablePcm2Dsd)) {
             auto config = JsonSettings::getValueAsMap(kPCM2DSD);
-            config[kPCM2DSDDsdTimes] = static_cast<uint32_t>(DsdTimes::DSD_TIME_6X);
-
             auto dsd_times = static_cast<DsdTimes>(config[kPCM2DSDDsdTimes].toInt());
             auto pcm2dsd_writer = MakeAlign<ISampleWriter, Pcm2DsdSampleWriter>(dsd_times);
             auto* writer = dynamic_cast<Pcm2DsdSampleWriter*>(pcm2dsd_writer.get());

@@ -247,6 +247,10 @@ public:
 		FFTW_LIB.fftw_make_planner_thread_safe();
 	}
 
+	~Pcm2DsdSampleWriterImpl() {
+		RemoveTempFile();
+	}
+
 	void Init(uint32_t input_sample_rate) {
 		auto dsd_times = pow(2, dsd_times_);
 
@@ -400,23 +404,41 @@ public:
 	void CreateTempFile() {
 		const auto temp_path = Fs::temp_directory_path();
 		lch_out_path_ = temp_path / Fs::path(MakeTempFileName() + ".tmp");
+		lch_out_.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 		lch_out_.open(lch_out_path_.native(), std::ios::out | std::ios::trunc | std::ios::binary);
 		if (!lch_out_.is_open()) {
 			throw PlatformSpecException();
 		}
 
 		rch_out_path_ = temp_path / Fs::path(MakeTempFileName() + ".tmp");
+		rch_out_.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 		rch_out_.open(rch_out_path_.native(), std::ios::out | std::ios::trunc | std::ios::binary);
 		if (!rch_out_.is_open()) {
 			throw PlatformSpecException();
 		}
 	}
 
+	void CloseAndRemoveFile(std::fstream& file, const Path &path) const {
+		try {
+			file.close();
+			XAMP_LOG_D(logger_, String::Format("Close {} file successfully!", path.filename()));
+		}
+		catch (std::exception const& e) {
+			XAMP_LOG_D(logger_, String::Format("Close {} file failure! error: {}", path.filename(), e.what()));
+		}
+
+		try {
+			Fs::remove(path);
+			XAMP_LOG_D(logger_, String::Format("Remove {} file successfully!", path.filename()));
+		}
+		catch (std::exception const& e) {
+			XAMP_LOG_D(logger_, String::Format("Remove {} file failure! error: {}", path.filename(), e.what()));
+		}
+	}
+
 	void RemoveTempFile() {
-		lch_out_.close();
-		rch_out_.close();
-		Fs::remove(lch_out_path_);
-		Fs::remove(rch_out_path_);
+		CloseAndRemoveFile(lch_out_, lch_out_path_);
+		CloseAndRemoveFile(rch_out_, rch_out_path_);
 	}
 
 	bool MargeChannel(AudioBuffer<int8_t>& buffer) {
@@ -428,18 +450,19 @@ public:
 		rch_out_.close();
 
 		lch_out_.open(lch_out_path_.native(), std::ios::in | std::ios::binary);
+		lch_out_.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 		if (!lch_out_.is_open()) {
 			throw PlatformSpecException();
 		}
 
 		rch_out_.open(rch_out_path_.native(), std::ios::in | std::ios::binary);
+		rch_out_.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 		if (!rch_out_.is_open()) {
 			throw PlatformSpecException();
 		}
 
 		std::vector<uint8_t> tmpdataL(data_size_);
 		std::vector<uint8_t> tmpdataR(data_size_);
-		std::vector<float> dop_data(data_size_ * 2);
 		
 		for (auto i = 0u; i < split_num_; i++) {
 		 	lch_out_.read(reinterpret_cast<char*>(tmpdataL.data()), tmpdataL.size());
@@ -458,6 +481,7 @@ public:
 			auto k = 0u;
 
 			std::vector<uint8_t> onebit(data_size_ / 4);
+			std::vector<float> dop_data(onebit.size() / 2);
 
 			for (k = 0u; k < data_size_ / 4; k++) {
 				onebit[k] = tmpdataL[p] << 7;

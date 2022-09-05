@@ -36,7 +36,8 @@ inline constexpr uint32_t kMaxPreAllocateBufferSize = 32 * 1024 * 1024;
 
 inline constexpr uint32_t kMaxBufferSecs = 5;
 	
-inline constexpr uint32_t kMaxWriteRatio = 50;
+//inline constexpr uint32_t kMaxWriteRatio = 50;
+inline constexpr uint32_t kMaxWriteRatio = 150;
 inline constexpr uint32_t kMaxReadRatio = 10;
 inline constexpr uint32_t kActionQueueSize = 30;
 
@@ -309,6 +310,7 @@ void AudioPlayer::ProcessFadeOut() {
         return;
     }
     if (dsd_mode_ == DsdModes::DSD_MODE_PCM || dsd_mode_ == DsdModes::DSD_MODE_DSD2PCM) {
+        XAMP_LOG_D(logger_, "Process fadeout.");
         is_fade_out_ = true;
         MSleep(std::chrono::milliseconds(1000));
     }

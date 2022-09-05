@@ -1,6 +1,7 @@
 #include <array>
 #include <thread>
 #include <base/buffer.h>
+#include <base/ppl.h>
 #include <base/ithreadpool.h>
 #include <widget/stackblur.h>
 

@@ -7,6 +7,7 @@
 #if defined(Q_OS_WIN)
 #include <windowsx.h>
 #include <Windows.h>
+#include <widget/win32/win32.h>
 #endif
 
 #include <QGraphicsDropShadowEffect>
@@ -23,8 +24,16 @@ void XDialog::setContentWidget(QWidget* content) {
     frame_ = new XFrame(this);
     frame_->setContentWidget(content);
 
-    setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint);
-    setAttribute(Qt::WA_TranslucentBackground, true);
+    if (!qTheme.useNativeWindow()) {
+        setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint);
+        setAttribute(Qt::WA_TranslucentBackground, true);
+    } else {
+        setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint | Qt::WindowCloseButtonHint);
+        if (qTheme.themeColor() == ThemeColor::DARK_THEME) {
+            win32::setTitleBarColor(winId(), qTheme.backgroundColor());
+        }
+        win32::addDwmShadow(winId());
+    }
 
     auto* default_layout = new QGridLayout(this);
     default_layout->setSpacing(0);
@@ -32,19 +41,21 @@ void XDialog::setContentWidget(QWidget* content) {
     default_layout->setContentsMargins(20, 20, 20, 20);
     setLayout(default_layout);
 
-    auto* shadow = new QGraphicsDropShadowEffect(frame_);
-    shadow->setOffset(0, 0);
-    shadow->setBlurRadius(20);
+    if (!qTheme.useNativeWindow()) {
+        auto* shadow = new QGraphicsDropShadowEffect(frame_);
+        shadow->setOffset(0, 0);
+        shadow->setBlurRadius(20);
 
-    switch (qTheme.themeColor()) {
-    case ThemeColor::DARK_THEME:
-        shadow->setColor(Qt::black);
-        break;
-    case ThemeColor::LIGHT_THEME:
-        shadow->setColor(Qt::gray);
-        break;
-    }
-    frame_->setGraphicsEffect(shadow);
+        switch (qTheme.themeColor()) {
+        case ThemeColor::DARK_THEME:
+            shadow->setColor(Qt::black);
+            break;
+        case ThemeColor::LIGHT_THEME:
+            shadow->setColor(Qt::gray);
+            break;
+        }
+        frame_->setGraphicsEffect(shadow);
+    }    
 
 	default_layout->addWidget(frame_, 2, 2, 1, 2);
 
@@ -115,17 +126,20 @@ void XDialog::mouseMoveEvent(QMouseEvent* event) {
 #endif
 
 void XDialog::showEvent(QShowEvent* event) {
-    auto *opacity_effect = new QGraphicsOpacityEffect(this);
-    setGraphicsEffect(opacity_effect);
-    auto* opacity_animation = new QPropertyAnimation(opacity_effect, "opacity", this);
-    opacity_animation->setStartValue(0);
-    opacity_animation->setEndValue(1);
-    opacity_animation->setDuration(200);
-    opacity_animation->setEasingCurve(QEasingCurve::InSine);
-    (void)QObject::connect(opacity_animation,
-        &QPropertyAnimation::finished, 
-        opacity_effect, 
-        &QGraphicsOpacityEffect::deleteLater);
-    opacity_animation->start();
+    if (!qTheme.useNativeWindow()) {
+        auto* opacity_effect = new QGraphicsOpacityEffect(this);
+        setGraphicsEffect(opacity_effect);
+        auto* opacity_animation = new QPropertyAnimation(opacity_effect, "opacity", this);
+        opacity_animation->setStartValue(0);
+        opacity_animation->setEndValue(1);
+        opacity_animation->setDuration(200);
+        opacity_animation->setEasingCurve(QEasingCurve::InSine);
+        (void)QObject::connect(opacity_animation,
+            &QPropertyAnimation::finished,
+            opacity_effect,
+            &QGraphicsOpacityEffect::deleteLater);
+        opacity_animation->start();
+    }
+    
     QDialog::showEvent(event);
 }

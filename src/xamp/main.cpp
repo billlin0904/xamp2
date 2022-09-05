@@ -80,10 +80,10 @@ static void loadPcm2DsdSetting() {
 
     QMap<QString, QVariant> default_setting;
 
-    //default_setting[kPCM2DSDDsdTimes] = static_cast<uint32_t>(DsdTimes::DSD_TIME_6X);
-    default_setting[kPCM2DSDDsdTimes] = static_cast<uint32_t>(DsdTimes::DSD_TIME_5X);
+    default_setting[kPCM2DSDDsdTimes] = static_cast<uint32_t>(DsdTimes::DSD_TIME_6X);
+    //default_setting[kPCM2DSDDsdTimes] = static_cast<uint32_t>(DsdTimes::DSD_TIME_5X);
     JsonSettings::setDefaultValue(kPCM2DSD, QVariant::fromValue(default_setting));
-    AppSettings::setValue(kEnablePcm2Dsd, false);
+    AppSettings::setValue(kEnablePcm2Dsd, true);
 }
 
 static LogLevel parseLogLevel(const QString &str) {

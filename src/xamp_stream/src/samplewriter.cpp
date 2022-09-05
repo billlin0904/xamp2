@@ -10,10 +10,10 @@ SampleWriter::SampleWriter(DsdModes dsd_mode, uint8_t sample_size)
     , sample_size_(sample_size)
     , dispatch_(nullptr) {
     if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE) {
-        dispatch_ = std::bind_front(&SampleWriter::ProcessNativeDsd, this);
+        dispatch_ = bind_front(&SampleWriter::ProcessNativeDsd, this);
     }
     else {
-        dispatch_ = std::bind_front(&SampleWriter::ProcessPcm, this);
+        dispatch_ = bind_front(&SampleWriter::ProcessPcm, this);
     }
 }
 

@@ -43,6 +43,14 @@ decltype(auto) bind_front(F&& f, FrontArgs&&...front_args) {
 #endif
 #endif
 
+#ifdef XAMP_OS_MAC
+#if __cplusplus >= XAMP_CPP20_LANG_VER
+using std::bind_front;
+#endif
+#else
+using std::bind_front;
+#endif
+
 template <typename T, size_t N>
 constexpr size_t CountOf(T const (&)[N]) noexcept {
 	return N;

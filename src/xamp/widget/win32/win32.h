@@ -15,49 +15,52 @@ class QWinTaskbarButton;
 class QWinTaskbarProgress;
 
 namespace win32 {
-    class WinTaskbar {
-    public:
-        WinTaskbar(XWindow* window, IXPlayerFrame* player_frame);
 
-        ~WinTaskbar();
+class WinTaskbar {
+public:
+    WinTaskbar(XWindow* window, IXPlayerFrame* player_frame);
 
-        void setTaskbarProgress(const int32_t percent);
+    ~WinTaskbar();
 
-        void resetTaskbarProgress();
+    void setTaskbarProgress(const int32_t percent);
 
-        void setTaskbarPlayingResume();
+    void resetTaskbarProgress();
 
-        void setTaskbarPlayerPaused();
+    void setTaskbarPlayingResume();
 
-        void setTaskbarPlayerPlaying();
+    void setTaskbarPlayerPaused();
 
-        void setTaskbarPlayerStop();
+    void setTaskbarPlayerPlaying();
 
-        void showEvent();
+    void setTaskbarPlayerStop();
 
-        QIcon play_icon;
-        QIcon pause_icon;
-        QIcon stop_play_icon;
-        QIcon seek_forward_icon;
-        QIcon seek_backward_icon;
+    void showEvent();
 
-    private:
-        XWindow* window_;
-        QScopedPointer<QWinThumbnailToolBar> thumbnail_tool_bar_;
-        QScopedPointer<QWinTaskbarButton> taskbar_button_;
-        QWinTaskbarProgress* taskbar_progress_;
-    };
+    QIcon play_icon;
+    QIcon pause_icon;
+    QIcon stop_play_icon;
+    QIcon seek_forward_icon;
+    QIcon seek_backward_icon;
 
-	void setAccentPolicy(const WId window_id, bool enable = true, int animation_id = 0);
-	void setFramelessWindowStyle(const WId window_id);
-	void setWindowedWindowStyle(const WId window_id);
-	void frameChange(const WId window_id);
-	void addDwmShadow(const WId window_id);
-    void addDwmMenuShadow(const WId window_id);
-	void removeStandardFrame(void* message);
-	void setResizeable(void* message);
-	bool isWindowMaximized(const WId window_id);
-	bool compositionEnabled();
-    QRect getWindowRect(const WId window_id);
+private:
+    XWindow* window_;
+    QScopedPointer<QWinThumbnailToolBar> thumbnail_tool_bar_;
+    QScopedPointer<QWinTaskbarButton> taskbar_button_;
+    QWinTaskbarProgress* taskbar_progress_;
+};
+
+void setAccentPolicy(const WId window_id, bool enable = true, int animation_id = 0);
+void setFramelessWindowStyle(const WId window_id);
+void setWindowedWindowStyle(const WId window_id);
+void setTitleBarColor(const WId window_id, QColor color);
+void frameChange(const WId window_id);
+void addDwmShadow(const WId window_id);
+void addDwmMenuShadow(const WId window_id);
+void removeStandardFrame(void* message);
+void setResizeable(void* message);
+bool isWindowMaximized(const WId window_id);
+bool compositionEnabled();
+QRect getWindowRect(const WId window_id);
+
 }
 

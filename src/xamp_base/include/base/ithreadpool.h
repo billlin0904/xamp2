@@ -11,6 +11,7 @@
 #include <memory>
 
 #include <base/base.h>
+#include <base/task.h>
 #include <base/align_ptr.h>
 #include <base/stl.h>
 #include <base/platform.h>
@@ -18,53 +19,6 @@
 namespace xamp::base {
 
 inline constexpr uint32_t kMaxThread = 32;
-
-class TaskWrapper final {
-public:
-    template <typename Func>
-    TaskWrapper(Func&& f)
-        : impl_(MakeAlign<ImplBase, ImplType<Func>>(std::forward<Func>(f))) {
-    }
-
-    XAMP_ALWAYS_INLINE void operator()(const size_t thread_index) const {
-	    impl_->Invoke(thread_index);
-    }
-
-    TaskWrapper() = default;
-	
-    TaskWrapper(TaskWrapper&& other) noexcept
-		: impl_(std::move(other.impl_)) {	    
-    }
-	
-    TaskWrapper& operator=(TaskWrapper&& other) noexcept {
-        impl_ = std::move(other.impl_);
-        return *this;
-    }
-	
-    XAMP_DISABLE_COPY(TaskWrapper)
-	
-private:
-    struct XAMP_NO_VTABLE ImplBase {
-        virtual ~ImplBase() = default;
-        virtual void Invoke(size_t thread_index) = 0;
-    };
-
-    AlignPtr<ImplBase> impl_;
-
-    template <typename Func>
-    struct ImplType final : ImplBase {
-	    ImplType(Func&& f)
-            : f_(std::forward<Func>(f)) {
-        }
-
-        XAMP_ALWAYS_INLINE void Invoke(size_t thread_index) override {
-            f_(thread_index);
-        }
-        Func f_;
-    };
-};
-
-using Task = TaskWrapper;
 
 template <typename T>
 using SharedFuture = std::shared_future<T>;
@@ -108,14 +62,6 @@ decltype(auto) IThreadPool::Spawn(F&& f, Args&&... args) {
     // https://github.com/microsoft/STL/issues/321
     using PackagedTaskType = std::packaged_task<ReturnType(size_t)>;
 
-#ifdef XAMP_OS_MAC
-#if __cplusplus >= XAMP_CPP20_LANG_VER
-    using std::bind_front;
-#endif
-#else
-    using std::bind_front;
-#endif
-
     auto task = MakeAlignedShared<PackagedTaskType>(bind_front(
         std::forward<F>(f),
         std::forward<Args>(args)...)
@@ -144,41 +90,5 @@ XAMP_BASE_API IThreadPool& GetPlaybackThreadPool();
 XAMP_BASE_API IThreadPool& GetWASAPIThreadPool();
 
 XAMP_BASE_API IThreadPool& GetDSPThreadPool();
-
-template <typename C, typename Func>
-void ParallelFor(C& items, Func&& f, IThreadPool& tp, size_t batches = 8) {
-    auto begin = std::begin(items);
-    auto size = std::distance(begin, std::end(items));
-
-    for (size_t i = 0; i < size; ++i) {
-        Vector<SharedFuture<void>> futures((std::min)(size - i,batches));
-        for (auto& ff : futures) {
-            ff = tp.Spawn([f, begin, i](size_t) -> void {
-                f(*(begin + i));
-            });
-            ++i;
-        }
-        for (auto& ff : futures) {
-            ff.wait();
-        }
-    }
-}
-
-template <typename Func>
-void ParallelFor(size_t begin, size_t end, Func &&f, IThreadPool& tp, size_t batches = 4) {
-    auto size = end - begin;
-    for (size_t i = 0; i < size; ++i) {
-        Vector<SharedFuture<void>> futures((std::min)(size - i, batches));
-        for (auto& ff : futures) {
-            ff = tp.Spawn([f, i](size_t) -> void {
-                f(i);
-            });
-            ++i;
-        }
-        for (auto& ff : futures) {
-            ff.wait();
-        }
-    }
-}
 
 }
