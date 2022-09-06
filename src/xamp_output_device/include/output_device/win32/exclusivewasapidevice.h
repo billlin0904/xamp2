@@ -103,6 +103,7 @@ private:
 	IAudioCallback* callback_;
 	std::shared_ptr<Logger> log_;
 	SharedFuture<void> render_task_;
+	AlignPtr<IThreadPool> tp_;
 };
 
 }

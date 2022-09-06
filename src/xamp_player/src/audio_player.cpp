@@ -28,7 +28,12 @@
 
 namespace xamp::player {
 
+#ifdef _DEBUG
+inline constexpr int32_t kBufferStreamCount = 10;
+#else
 inline constexpr int32_t kBufferStreamCount = 2;
+#endif
+
 inline constexpr int32_t kTotalBufferStreamCount = 15;
 
 inline constexpr uint32_t kPreallocateBufferSize = 4 * 1024 * 1024;
@@ -676,6 +681,8 @@ void AudioPlayer::BufferSamples(const AlignPtr<IAudioStream>& stream, int32_t bu
     auto* const sample_buffer = read_buffer_.Get();
 
     for (auto i = 0; i < buffer_count && stream_->IsActive(); ++i) {
+        XAMP_LOG_D(logger_, "Buffering {} ...", i);
+
         while (true) {
             const auto num_samples = stream->GetSamples(sample_buffer, num_read_sample_);
             if (num_samples == 0) {

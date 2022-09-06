@@ -183,9 +183,27 @@ void SetThreadName(std::string const& name) noexcept {
 #endif
 }
 
+void SetThreadAffinity(std::thread& thread, std::array<int32_t, 32> cpus) {
+#ifdef XAMP_OS_WIN
+    int32_t cpu_mask = 0;
+    for (auto cpu : cpus) {
+        cpu_mask |= 1L << cpu;
+    }
+
+    GROUP_AFFINITY group_affinity;
+    group_affinity.Group = static_cast<WORD>(0);
+    group_affinity.Mask = cpu_mask;
+    group_affinity.Reserved[0] = 0;
+    group_affinity.Reserved[1] = 0;
+    group_affinity.Reserved[2] = 0;
+    if (!::SetThreadGroupAffinity(thread.native_handle(), &group_affinity, nullptr)) {
+        XAMP_LOG_DEBUG("Can't set thread group affinity");
+    }
+#endif
+}
+
 void SetThreadAffinity(std::thread& thread, int32_t core) noexcept {
 #ifdef XAMP_OS_WIN
-#if (_WIN32_WINNT >= 0x0601)
     const auto groups = ::GetActiveProcessorGroupCount();
     auto total_processors = 0, group = 0, number = 0;
     for (DWORD i = 0; i < groups; i++) {
@@ -208,6 +226,8 @@ void SetThreadAffinity(std::thread& thread, int32_t core) noexcept {
         XAMP_LOG_DEBUG("Can't set thread group affinity");
     }
 
+    XAMP_LOG_DEBUG("Thread affinity mask: {:#04x}", group_affinity.Mask);
+
     PROCESSOR_NUMBER processor_number;
     processor_number.Group = group;
     processor_number.Number = number;
@@ -215,10 +235,6 @@ void SetThreadAffinity(std::thread& thread, int32_t core) noexcept {
     if (!::SetThreadIdealProcessorEx(thread.native_handle(), &processor_number, nullptr)) {
         XAMP_LOG_DEBUG("Can't set threadeal processor");
     }
-#else
-    auto mask = (static_cast<DWORD_PTR>(1) << core);
-    ::SetThreadAffinityMask(thread.native_handle(), mask);
-#endif
 #else
     thread_affinity_policy_data_t policy = { core };
     auto thread_id = thread.get_id();

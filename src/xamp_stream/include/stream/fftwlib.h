@@ -33,6 +33,7 @@ public:
 	XAMP_DECLARE_DLL(fftw_plan_dft_r2c_1d) fftw_plan_dft_r2c_1d;
 	XAMP_DECLARE_DLL(fftw_plan_dft_c2r_1d) fftw_plan_dft_c2r_1d;
 	XAMP_DECLARE_DLL(fftw_make_planner_thread_safe) fftw_make_planner_thread_safe;
+	XAMP_DECLARE_DLL(fftw_plan_with_nthreads) fftw_plan_with_nthreads;
 };
 
 class FFTWFLib final {
@@ -134,9 +135,9 @@ FFTWComplexArray MakeFFTWComplexArray(size_t size);
 
 FFTWDoubleArray MakeFFTWDoubleArray(size_t size);
 
-FFTWPlan MakeFFTW(uint32_t fftsize, uint32_t times, FFTWDoubleArray& fftin, FFTWComplexArray& fftout);
+FFTWPlan MakeFFTW(uint32_t fft_size, uint32_t times, FFTWDoubleArray& fft_in, FFTWComplexArray& fft_out);
 
-FFTWPlan MakeIFFTW(uint32_t fftsize, uint32_t times, FFTWComplexArray& ifftin, FFTWDoubleArray& ifftout);
+FFTWPlan MakeIFFTW(uint32_t fft_size, uint32_t times, FFTWComplexArray& ifft_in, FFTWDoubleArray& ifft_out);
 
 }
 

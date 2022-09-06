@@ -162,6 +162,7 @@
     <ClInclude Include="include\stream\bassvolume.h" />
     <ClInclude Include="include\stream\basswavfileencoder.h" />
     <ClInclude Include="include\stream\compressorparameters.h" />
+    <ClInclude Include="include\stream\dsd_times.h" />
     <ClInclude Include="include\stream\dsd_utils.h" />
     <ClInclude Include="include\stream\dspmanager.h" />
     <ClInclude Include="include\stream\eqsettings.h" />

@@ -43,9 +43,6 @@ void Initialize() {
 
     MBDiscId::LoadMBDiscIdLib();
     XAMP_LOG_DEBUG("Load mbdiscid lib success.");
-
-    GetWASAPIThreadPool();
-    XAMP_LOG_DEBUG("Start WASAPI thread pool success.");
 #endif
 
     GetPlaybackThreadPool();
@@ -58,9 +55,6 @@ void Initialize() {
 }
 
 void Uninitialize() {
-#ifdef XAMP_OS_WIN
-    GetWASAPIThreadPool().Stop();
-#endif
     GetPlaybackThreadPool().Stop();
     PreventSleep(false);
 }

@@ -225,6 +225,10 @@ public:
         return 100.0 * static_cast<double>(buffer) / static_cast<double>(file_len);
     }
 
+    [[nodiscard]] int32_t GetBufferingProgress() const {
+        return 100 - BASS.BASS_StreamGetFilePosition(GetHStream(), BASS_FILEPOS_BUFFERING);
+    }
+
 	static void DownloadProc(const void* buffer, DWORD length, void* user) {
         auto* impl = static_cast<BassFileStreamImpl*>(user);
     	if (!buffer) {

@@ -194,7 +194,7 @@ void TaskScheduler::AddThread(size_t i, int32_t affinity, ThreadPriority priorit
 		XAMP_LOG_D(logger_, "Worker Thread {} is existed.", i);
 		});
 
-	if (affinity != -1) {
+	if (affinity != kDefaultAffinityCpuCore) {
 		SetThreadAffinity(threads_.at(i), affinity);
 	}
 }

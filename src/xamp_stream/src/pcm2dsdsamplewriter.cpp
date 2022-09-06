@@ -234,7 +234,6 @@ struct FFTWContext {
 	std::vector<FFTWComplexArray> ifftin;
 	std::vector<FFTWDoubleArray> prebuffer;
 	std::vector<FFTWComplexArray> firfilter_fft;
-
 };
 
 class Pcm2DsdSampleWriter::Pcm2DsdSampleWriterImpl {
@@ -244,6 +243,18 @@ public:
 		logger_ = LoggerManager::GetInstance().GetLogger("Pcm2DsdConverter");
 		FIRFilter();
 		NoiseShapingCoeff();
+		constexpr auto kMaxPcm2DsdThread = 4;
+		constexpr auto kPcm2DsdAffinityCpuCore = 4;
+		tp_ = MakeThreadPool(kDSPThreadPoolLoggerName, 
+			ThreadPriority::NORMAL, 
+			kMaxPcm2DsdThread,
+			kPcm2DsdAffinityCpuCore);
+
+		lch_out_path_ = R"(C:\Users\rdbill0452\Documents\Github\xamp2\test_dsd\Catch You Catch Me_tmpLDSD)";
+		rch_out_path_ = R"(C:\Users\rdbill0452\Documents\Github\xamp2\test_dsd\Catch You Catch Me_tmpRDSD)";
+
+		lch_out_.open(lch_out_path_.native(), std::ios::in | std::ios::binary);
+		rch_out_.open(rch_out_path_.native(), std::ios::in | std::ios::binary);
 	}
 
 	~Pcm2DsdSampleWriterImpl() {
@@ -278,7 +289,7 @@ public:
 			fft_size_);
 
 		lch_ctx_.Init(log_times_, times_, fft_size_, section_1_, logger_);
-		rch_ctx_.Init(log_times_, times_, fft_size_, section_1_, logger_);		
+		rch_ctx_.Init(log_times_, times_, fft_size_, section_1_, logger_);
 	}
 
 	uint32_t GetDataSize() const {
@@ -294,17 +305,24 @@ public:
 	}
 
 	void SplitChannel(float const* samples, size_t num_samples) {
-		if (lch_src_.size() != num_samples / AudioFormat::kMaxChannel) {
-			lch_src_.resize(num_samples / AudioFormat::kMaxChannel);
+		XAMP_ASSERT(num_samples % 2 == 0);
+		auto channel_size = num_samples / AudioFormat::kMaxChannel;
+
+		if (lch_src_.size() != data_size_) {
+			lch_src_.resize(data_size_);
+		}
+		if (rch_src_.size() != data_size_) {
+			rch_src_.resize(data_size_);
 		}
 
-		if (rch_src_.size() != num_samples / AudioFormat::kMaxChannel) {
-			rch_src_.resize(num_samples / AudioFormat::kMaxChannel);
-		}
-		XAMP_ASSERT(num_samples % 2 == 0);
-		for (auto i = 0; i < num_samples / AudioFormat::kMaxChannel; ++i) {
-			lch_src_[i] = samples[i * 2 + 0];
-			rch_src_[i] = samples[i * 2 + 1];
+		for (auto i = 0; i < data_size_; ++i) {
+			if (i > channel_size) {
+				lch_src_[i] = 0;
+				rch_src_[i] = 0;
+			} else {
+				lch_src_[i] = samples[i * 2 + 0];
+				rch_src_[i] = samples[i * 2 + 1];
+			}
 		}
 	}
 
@@ -420,7 +438,7 @@ public:
 	void CloseAndRemoveFile(std::fstream& file, const Path &path) const {
 		try {
 			file.close();
-			XAMP_LOG_D(logger_, String::Format("Close {} file successfully!", path.filename()));
+			XAMP_LOG_D(logger_, String::Format("Close {} file.", path.filename()));
 		}
 		catch (std::exception const& e) {
 			XAMP_LOG_D(logger_, String::Format("Close {} file failure! error: {}", path.filename(), e.what()));
@@ -428,7 +446,7 @@ public:
 
 		try {
 			Fs::remove(path);
-			XAMP_LOG_D(logger_, String::Format("Remove {} file successfully!", path.filename()));
+			XAMP_LOG_D(logger_, String::Format("Remove {} file.", path.filename()));
 		}
 		catch (std::exception const& e) {
 			XAMP_LOG_D(logger_, String::Format("Remove {} file failure! error: {}", path.filename(), e.what()));
@@ -436,8 +454,8 @@ public:
 	}
 
 	void RemoveTempFile() {
-		CloseAndRemoveFile(lch_out_, lch_out_path_);
-		CloseAndRemoveFile(rch_out_, rch_out_path_);
+		/*CloseAndRemoveFile(lch_out_, lch_out_path_);
+		CloseAndRemoveFile(rch_out_, rch_out_path_);*/
 	}
 
 	bool MargeChannel(AudioBuffer<int8_t>& buffer) {
@@ -445,7 +463,7 @@ public:
 
 		constexpr std::array<uint8_t, 2> kDoPMarker { 0x05, 0xFA };
 
-		lch_out_.close();
+		/*lch_out_.close();
 		rch_out_.close();
 
 		lch_out_.open(lch_out_path_.native(), std::ios::in | std::ios::binary);
@@ -458,7 +476,7 @@ public:
 		rch_out_.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 		if (!rch_out_.is_open()) {
 			throw PlatformSpecException();
-		}
+		}*/
 
 		std::vector<uint8_t> tmpdataL(data_size_);
 		std::vector<uint8_t> tmpdataR(data_size_);
@@ -526,7 +544,7 @@ public:
 	}
 
 	bool Process(float const* samples, size_t num_samples, AudioBuffer<int8_t>& buffer) {
-		try {
+		/*try {
 			CreateTempFile();
 		}
 		catch (std::exception const& e) {
@@ -538,12 +556,16 @@ public:
 		SplitChannel(samples, num_samples);
 
 		auto channel_size = num_samples / AudioFormat::kMaxChannel;
-		split_num_ = (channel_size / data_size_) * dsd_times_;
+		split_num_ = (channel_size / data_size_) * dsd_times_;*/
 
-		const auto lch_task= GetDSPThreadPool().Spawn([this](auto index) {
+		/*ProcessChannel(lch_src_, lch_ctx_, lch_out_);
+		ProcessChannel(rch_src_, rch_ctx_, rch_out_);
+		return MargeChannel(buffer);*/
+
+		/*const auto lch_task= tp_->Spawn([this](auto index) {
 			ProcessChannel(lch_src_, lch_ctx_, lch_out_);
 			});
-		const auto rch_task = GetDSPThreadPool().Spawn([this](auto index) {
+		const auto rch_task = tp_->Spawn([this](auto index) {
 			ProcessChannel(rch_src_, rch_ctx_, rch_out_);
 			});
 
@@ -555,11 +577,15 @@ public:
 		catch (std::exception const &e) {
 			XAMP_LOG_D(logger_, e.what());
 			RemoveTempFile();
-			return true;
-		}
+		}*/
+
+		auto channel_size = num_samples / AudioFormat::kMaxChannel;
+		split_num_ = (channel_size / data_size_) * dsd_times_;
+
+		return MargeChannel(buffer);
 	}
 
-	uint32_t order_;
+	uint32_t order_{ 0 };
 	uint32_t dsd_sampling_rate_{ 0 };
 	uint32_t section_1_{ 0 };
 	uint32_t data_size_{ 0 };
@@ -577,6 +603,7 @@ public:
 	std::vector<double> lch_src_;
 	std::vector<double> rch_src_;
 	std::shared_ptr<Logger> logger_;
+	AlignPtr<IThreadPool> tp_;
 };
 
 XAMP_PIMPL_IMPL(Pcm2DsdSampleWriter)

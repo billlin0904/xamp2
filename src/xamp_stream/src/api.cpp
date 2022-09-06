@@ -140,6 +140,7 @@ void FreeBassLib() {
 void LoadFFTLib() {
     Singleton<FFTWLib>::GetInstance();
     Singleton<FFTWFLib>::GetInstance();
+    FFTW_LIB.fftw_plan_with_nthreads(4);
 }
 void LoadR8brainLib() {
     Singleton<R8brainLib>::GetInstance();

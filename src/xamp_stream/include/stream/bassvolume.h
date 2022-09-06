@@ -11,7 +11,7 @@
 
 namespace xamp::stream {
 
-class XAMP_STREAM_API BassVolume final : public IAudioProcessor {
+class BassVolume final : public IAudioProcessor {
 public:
     constexpr static auto Id = std::string_view("83d25234-5484-45a3-bda8-baf35541f9d2");    
 	

@@ -5,22 +5,19 @@
 
 #pragma once
 
-#include <functional>
-#include <base/fs.h>
-#include <stream/stream.h>
+#include <base/enum.h>
 
 namespace xamp::stream {
 
-class XAMP_STREAM_API XAMP_NO_VTABLE IFileEncoder {
-public:
-	XAMP_BASE_CLASS(IFileEncoder)
-
-	virtual void Start(Path const& input_file_path, Path const& output_file_path, std::wstring const& command) = 0;
-
-	virtual void Encode(std::function<bool(uint32_t)> const& progress) = 0;
-
-protected:
-	IFileEncoder() = default;
-};
+MAKE_XAMP_ENUM(DsdTimes,
+	DSD_TIME_4X = 4, // DSD16
+	DSD_TIME_5X,     // DSD32
+	DSD_TIME_6X,	 // DSD64
+	DSD_TIME_7X,	 // DSD128
+	DSD_TIME_8X,
+	DSD_TIME_9X,
+	DSD_TIME_10X,
+	DSD_TIME_11X)
 
 }
+

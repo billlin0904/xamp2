@@ -89,6 +89,7 @@
       <Filter>lib</Filter>
     </ClInclude>
     <ClInclude Include="include\stream\dsd_utils.h" />
+    <ClInclude Include="include\stream\dsd_times.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="interface">

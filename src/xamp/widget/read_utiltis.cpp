@@ -9,7 +9,6 @@
 #include <base/platform.h>
 #include <base/memory.h>
 
-#include <stream/wavefilewriter.h>
 #include <stream/idsdstream.h>
 #include <stream/api.h>
 #include <stream/filestream.h>

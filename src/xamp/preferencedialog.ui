@@ -837,11 +837,18 @@
           <rect>
            <x>30</x>
            <y>20</y>
-           <width>231</width>
+           <width>281</width>
            <height>31</height>
           </rect>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_14">
+          <item>
+           <widget class="QCheckBox" name="enablePcm2DsdCheckBox">
+            <property name="text">
+             <string>Enable</string>
+            </property>
+           </widget>
+          </item>
           <item>
            <widget class="QLabel" name="label_14">
             <property name="text">

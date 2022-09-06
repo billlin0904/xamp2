@@ -2,8 +2,7 @@
 #include <QDir>
 #include <QInputDialog>
 
-#include <stream/podcastcache.h>
-
+#include <stream/dsd_times.h>
 #include <widget/str_utilts.h>
 #include <widget/ui_utilts.h>
 #include <widget/appsettings.h>
@@ -66,8 +65,32 @@ void PreferencePage::saveSoxrResampler(const QString &name) const {
 
 void PreferencePage::saveR8BrainResampler() {
 	QMap<QString, QVariant> settings;
-	settings[kResampleSampleRate] = ui_.r8brainTargetSampleRateComboBox->currentText().toInt();
+	settings[kPCM2DSDDsdTimes] = ui_.r8brainTargetSampleRateComboBox->currentText().toInt();
 	JsonSettings::setValue(kR8Brain, settings);
+}
+
+void PreferencePage::savePcm2Dsd() {
+	QMap<QString, QVariant> settings;
+	settings[kPCM2DSDDsdTimes] = ui_.dsdTimeComboBox->currentIndex() + 4;
+	JsonSettings::setValue(kPCM2DSD, settings);
+
+	AppSettings::setValue(kEnablePcm2Dsd, ui_.enablePcm2DsdCheckBox->checkState() == Qt::Checked);
+}
+
+void PreferencePage::initPcm2Dsd() {
+	ui_.enablePcm2DsdCheckBox->setCheckState(AppSettings::getValueAsBool(kEnablePcm2Dsd) ? Qt::Checked : Qt::Unchecked);
+
+	auto config = JsonSettings::getValueAsMap(kPCM2DSD);
+	auto dsd_times = static_cast<DsdTimes>(config[kPCM2DSDDsdTimes].toInt());
+	ui_.dsdTimeComboBox->setCurrentIndex(config[kPCM2DSDDsdTimes].toInt() - 4);
+
+	(void)QObject::connect(ui_.dsdTimeComboBox, &QComboBox::textActivated, [this](auto) {
+		savePcm2Dsd();
+		});
+
+	(void)QObject::connect(ui_.enablePcm2DsdCheckBox, &QCheckBox::stateChanged, [this](auto) {
+		savePcm2Dsd();
+		});
 }
 
 void PreferencePage::initR8BrainResampler() {
@@ -201,6 +224,7 @@ PreferencePage::PreferencePage(QWidget *parent)
 
 	initSoxResampler();
 	initR8BrainResampler();
+	initPcm2Dsd();
 	initLang();
 
     ui_.preferenceTreeWidget->header()->hide();
@@ -221,7 +245,7 @@ PreferencePage::PreferencePage(QWidget *parent)
     ui_.preferenceTreeWidget->addTopLevelItem(playback_item);
     ui_.preferenceTreeWidget->expandAll();
 
-    (void) QObject::connect(ui_.preferenceTreeWidget, &QTreeWidget::itemClicked, [this](auto item, auto column) {
+    (void)QObject::connect(ui_.preferenceTreeWidget, &QTreeWidget::itemClicked, [this](auto item, auto column) {
         const std::map<QString, int32_t> stack_page_map{
             { tr("Playback"), 0 },
             { tr("Resampler"), 1 },

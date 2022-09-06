@@ -13,7 +13,7 @@
 
 namespace xamp::stream {
 
-class XAMP_STREAM_API WaveFileWriter final {
+class WaveFileWriter final {
 public:
 	WaveFileWriter() = default;
 	

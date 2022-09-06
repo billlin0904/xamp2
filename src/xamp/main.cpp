@@ -78,11 +78,10 @@ static void loadR8BrainSetting() {
 static void loadPcm2DsdSetting() {
     XAMP_LOG_DEBUG("loadPcm2DsdSetting.");
 
-    QMap<QString, QVariant> default_setting;
-
+    /*QMap<QString, QVariant> default_setting;
     default_setting[kPCM2DSDDsdTimes] = static_cast<uint32_t>(DsdTimes::DSD_TIME_6X);
     JsonSettings::setDefaultValue(kPCM2DSD, QVariant::fromValue(default_setting));
-    AppSettings::setValue(kEnablePcm2Dsd, false);
+    AppSettings::setValue(kEnablePcm2Dsd, false);*/
 }
 
 static LogLevel parseLogLevel(const QString &str) {

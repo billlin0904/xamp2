@@ -69,6 +69,8 @@ static int32_t MakeAlignedPeriod(const AudioFormat &format, int32_t frames_per_l
     return CalcAlignedFramePerBuffer(frames_per_latency, format.GetBlockAlign(), f);
 }
 
+inline constexpr auto kMaxWASAPIThreadPoolSize{ 2 };
+
 static constexpr IID kAudioRenderClientID = __uuidof(IAudioRenderClient);
 static constexpr IID kAudioEndpointVolumeID = __uuidof(IAudioEndpointVolume);
 static constexpr IID kAudioClient2ID = __uuidof(IAudioClient2);
@@ -89,6 +91,8 @@ ExclusiveWasapiDevice::ExclusiveWasapiDevice(CComPtr<IMMDevice> const & device)
 	, device_(device)
 	, callback_(nullptr)
 	, log_(LoggerManager::GetInstance().GetLogger(kExclusiveWasapiDeviceLoggerName)) {
+	constexpr auto kWASAPIAffinityCpuCore = 1;
+	tp_ = MakeThreadPool(kWASAPIThreadPoolLoggerName, ThreadPriority::HIGHEST, kMaxWASAPIThreadPoolSize, kWASAPIAffinityCpuCore);
 }
 
 ExclusiveWasapiDevice::~ExclusiveWasapiDevice() {
@@ -368,7 +372,7 @@ void ExclusiveWasapiDevice::StartStream() {
 	// Note: 必要! 某些音效卡會爆音!
 	GetSample(true);
 
-	render_task_ = GetWASAPIThreadPool().Spawn([this, wait_timeout](auto idx) noexcept {
+	render_task_ = tp_->Spawn([this, wait_timeout](auto idx) noexcept {
 		XAMP_LOG_D(log_, "Start exclusive mode stream task! thread: {}", GetCurrentThreadId());
 		DWORD current_timeout = INFINITE;
 		Stopwatch watch;

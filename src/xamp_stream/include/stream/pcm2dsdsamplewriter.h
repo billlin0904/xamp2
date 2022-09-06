@@ -6,20 +6,10 @@
 #pragma once
 
 #include <stream/stream.h>
+#include <stream/dsd_times.h>
 #include <stream/isameplewriter.h>
 
 namespace xamp::stream {
-
-MAKE_XAMP_ENUM(DsdTimes,
-	DSD_TIME_4X = 4, // DSD16
-	DSD_TIME_5X,     // DSD32
-	DSD_TIME_6X,	 // DSD64
-	DSD_TIME_7X,	 // DSD128
-	DSD_TIME_8X,
-	DSD_TIME_9X,
-	DSD_TIME_10X,
-	DSD_TIME_11X,
-	)
 
 class XAMP_STREAM_API Pcm2DsdSampleWriter final : public ISampleWriter {
 public:
