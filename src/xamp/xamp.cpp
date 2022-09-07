@@ -198,6 +198,13 @@ void Xamp::setXWindow(IXWindow* top_window) {
 
         action_map.exec(pt);
         });
+
+    auto tab_name = AppSettings::getValueAsString(kAppSettingLastTabName);
+    auto tab_id = ui_.sliderBar->getTabId(tab_name);
+    if (tab_id != -1) {
+        ui_.sliderBar->setCurrentIndex(ui_.sliderBar->model()->index(tab_id, 0));
+        setCurrentTab(tab_id);
+    }
 }
 
 void Xamp::avoidRedrawOnResize() {
@@ -654,36 +661,7 @@ void Xamp::initialController() {
     });
 
     (void)QObject::connect(ui_.sliderBar, &TabListView::clickedTable, [this](auto table_id) {
-    	switch (table_id) {
-        case TAB_ALBUM:
-            album_page_->refreshOnece();
-            ui_.currentView->setCurrentWidget(album_page_);
-            break;
-        case TAB_ARTIST:
-            ui_.currentView->setCurrentWidget(artist_info_page_);
-            break;
-        case TAB_FILE_EXPLORER:
-            ui_.currentView->setCurrentWidget(file_system_view_page_);
-            current_playlist_page_ = file_system_view_page_->playlistPage();
-            break;
-        case TAB_PODCAST:
-            ui_.currentView->setCurrentWidget(podcast_page_);
-            current_playlist_page_ = podcast_page_;
-            break;
-        case TAB_PLAYLIST:
-            ui_.currentView->setCurrentWidget(playlist_page_);
-            current_playlist_page_ = playlist_page_;
-            break;
-        case TAB_LYRICS:
-            ui_.currentView->setCurrentWidget(lrc_page_);
-            break;
-        case TAB_SETTINGS:
-            ui_.currentView->setCurrentWidget(preference_page_);
-            break;
-        case TAB_CD:
-            ui_.currentView->setCurrentWidget(cd_page_);
-            break;
-    	}
+        setCurrentTab(table_id);
         AppSettings::setValue(kAppSettingLastTabName, ui_.sliderBar->getTabName(table_id));
     });
 
@@ -862,6 +840,39 @@ void Xamp::initialController() {
     ui_.startPosLabel->setText(msToString(0));
     ui_.endPosLabel->setText(msToString(0));
     ui_.searchLineEdit->setPlaceholderText(tr("Search anything"));
+}
+
+void Xamp::setCurrentTab(int32_t table_id) {
+    switch (table_id) {
+    case TAB_ALBUM:
+        album_page_->refreshOnece();
+        ui_.currentView->setCurrentWidget(album_page_);
+        break;
+    case TAB_ARTIST:
+        ui_.currentView->setCurrentWidget(artist_info_page_);
+        break;
+    case TAB_FILE_EXPLORER:
+        ui_.currentView->setCurrentWidget(file_system_view_page_);
+        current_playlist_page_ = file_system_view_page_->playlistPage();
+        break;
+    case TAB_PODCAST:
+        ui_.currentView->setCurrentWidget(podcast_page_);
+        current_playlist_page_ = podcast_page_;
+        break;
+    case TAB_PLAYLIST:
+        ui_.currentView->setCurrentWidget(playlist_page_);
+        current_playlist_page_ = playlist_page_;
+        break;
+    case TAB_LYRICS:
+        ui_.currentView->setCurrentWidget(lrc_page_);
+        break;
+    case TAB_SETTINGS:
+        ui_.currentView->setCurrentWidget(preference_page_);
+        break;
+    case TAB_CD:
+        ui_.currentView->setCurrentWidget(cd_page_);
+        break;
+    }
 }
 
 void Xamp::updateButtonState() {    
@@ -1167,15 +1178,17 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
             player_->GetDSPManager()->RemoveEq();
         }
 
+        auto input_sample_rate = player_->GetInputFormat().GetSampleRate();
         auto dsd_modes = DsdModes::DSD_MODE_AUTO;
         uint32_t device_sample_rate = 0;
 
-        if (AppSettings::getValueAsBool(kEnablePcm2Dsd)) {
+        if (!player_->IsDSDFile()
+            && input_sample_rate == kPcmSampleRate441
+            && AppSettings::getValueAsBool(kEnablePcm2Dsd)) {
             auto config = JsonSettings::getValueAsMap(kPCM2DSD);
             auto dsd_times = static_cast<DsdTimes>(config[kPCM2DSDDsdTimes].toInt());
             auto pcm2dsd_writer = MakeAlign<ISampleWriter, Pcm2DsdSampleWriter>(dsd_times);
             auto* writer = dynamic_cast<Pcm2DsdSampleWriter*>(pcm2dsd_writer.get());
-            auto input_sample_rate = player_->GetInputFormat().GetSampleRate();
             writer->Init(input_sample_rate);
 
             device_sample_rate = GetDOPSampleRate(writer->GetDsdSpeed());
@@ -1183,8 +1196,16 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
 
             player_->PrepareToPlay(device_sample_rate, dsd_modes);
             player_->SetReadSampleSize(writer->GetDataSize() * 2);
+            resampler_type = Qt::EmptyString;
+            playback_format = getPlaybackFormat(player_.get());
+            playback_format.is_dsd_file = true;
+            playback_format.dsd_mode = DsdModes::DSD_MODE_DOP;
+            playback_format.dsd_speed = writer->GetDsdSpeed();
+            playback_format.output_format.SetSampleRate(device_sample_rate);
         } else {
-            player_->PrepareToPlay(device_sample_rate, dsd_modes);            
+            player_->GetDSPManager()->SetSampleWriter();
+            player_->PrepareToPlay(device_sample_rate, dsd_modes);
+            playback_format = getPlaybackFormat(player_.get());
         }
 
         if (resampler_type == kR8Brain) {
@@ -1192,7 +1213,6 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
         }
 
         player_->BufferStream();
-        playback_format = getPlaybackFormat(player_.get());
         player_->Play();
 
         open_done = true;
@@ -1466,12 +1486,6 @@ void Xamp::initialPlaylist() {
     ui_.sliderBar->addTab(tr("Settings"), TAB_SETTINGS, qTheme.preferenceIcon());
     ui_.sliderBar->addTab(tr("CD"), TAB_CD, qTheme.albumsIcon());
     ui_.sliderBar->setCurrentIndex(ui_.sliderBar->model()->index(0, 0));
-
-    auto tab_name = AppSettings::getValueAsString(kAppSettingLastTabName);
-    auto tab_id = ui_.sliderBar->getTabId(tab_name);
-    if (tab_id != -1) {
-        ui_.sliderBar->setCurrentIndex(ui_.sliderBar->model()->index(tab_id, 0));
-    }
 
     qDatabase.forEachTable([this](auto table_id,
         auto /*table_index*/,

@@ -12,6 +12,9 @@
 namespace xamp::base {
 
 #define IMP_EXCEPTION_CLASS(ExceptionClassName, error) \
+ExceptionClassName::ExceptionClassName(std::string const& message)\
+	: Exception(error, message) {\
+}\
 ExceptionClassName::ExceptionClassName()\
     : Exception(error) {\
 }
@@ -34,7 +37,7 @@ static std::string LocaleStringToUTF8(const std::string &str) {
     return String::ToUtf8String(buf.data());
 }
 
-static std::string GetPlatformErrorMessage(int32_t err) {
+std::string GetPlatformErrorMessage(int32_t err) {
     return LocaleStringToUTF8(std::system_category().message(err));
 }
 std::string GetLastErrorMessage() {

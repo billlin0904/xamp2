@@ -128,6 +128,8 @@ private:
 
 	void setVolume(int32_t volume);
 
+	void setCurrentTab(int32_t table_id);
+
 	void initialUI();
 
 	void initialPlaylist();

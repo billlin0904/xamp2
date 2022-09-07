@@ -29,7 +29,7 @@
 namespace xamp::player {
 
 #ifdef _DEBUG
-inline constexpr int32_t kBufferStreamCount = 10;
+inline constexpr int32_t kBufferStreamCount = 3;
 #else
 inline constexpr int32_t kBufferStreamCount = 2;
 #endif
@@ -314,10 +314,13 @@ void AudioPlayer::ProcessFadeOut() {
     if (!device_) {
         return;
     }
-    if (dsd_mode_ == DsdModes::DSD_MODE_PCM || dsd_mode_ == DsdModes::DSD_MODE_DSD2PCM) {
-        XAMP_LOG_D(logger_, "Process fadeout.");
-        is_fade_out_ = true;
-        MSleep(std::chrono::milliseconds(1000));
+    if (!GetDSPManager()->IsEnablePcm2DsdConverter()) {
+        if (dsd_mode_ == DsdModes::DSD_MODE_PCM
+            || dsd_mode_ == DsdModes::DSD_MODE_DSD2PCM) {
+            XAMP_LOG_D(logger_, "Process fadeout.");
+            is_fade_out_ = true;
+            MSleep(std::chrono::milliseconds(1000));
+        }
     }
 }
 

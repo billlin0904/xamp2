@@ -161,8 +161,7 @@ public:
             return first.track < last.track;
             });
         emit adapter_->readCompleted(ToTime_t(dir_entry.last_write_time()), metadatas_);
-        metadatas_.clear();
-        qApp->processEvents();
+        metadatas_.clear();        
     }
 	
 private:
@@ -191,7 +190,6 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
     QDirIterator itr(file_path, is_recursive ? (QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot) : (QDir::Files));
     while (itr.hasNext()) {
         dirs.append(itr.next());
-        qApp->processEvents();
     }
 
 	if (dirs.isEmpty()) {
@@ -254,11 +252,12 @@ void ::MetadataExtractAdapter::addMetadata(const ForwardList<Metadata>& result, 
 
 		const auto music_id = qDatabase.addOrUpdateMusic(metadata);
 
-		auto [album_id, artist_id, cover_id] = cache.addOrGetAlbumAndArtistId(dir_last_write_time,
-		                                                                      album, 
-		                                                                      artist,
-		                                                                      is_podcast, 
-		                                                                      disc_id);
+		auto [album_id, artist_id, cover_id] = 
+            cache.addOrGetAlbumAndArtistId(dir_last_write_time,
+		             album, 
+		             artist,
+		             is_podcast, 
+		             disc_id);
 
 		if (playlist_id != -1) {            
 			qDatabase.addMusicToPlaylist(music_id, playlist_id, album_id);

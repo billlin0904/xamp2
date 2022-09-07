@@ -88,7 +88,7 @@
         </sizepolicy>
        </property>
        <property name="currentIndex">
-        <number>2</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="playbackPage">
         <layout class="QGridLayout" name="gridLayout">
@@ -832,7 +832,7 @@
         </widget>
        </widget>
        <widget class="QWidget" name="pcm2dsdPage">
-        <widget class="QWidget" name="">
+        <widget class="QWidget" name="layoutWidget2">
          <property name="geometry">
           <rect>
            <x>30</x>
@@ -858,6 +858,11 @@
           </item>
           <item>
            <widget class="QComboBox" name="dsdTimeComboBox">
+            <item>
+             <property name="text">
+              <string>DSD 3X</string>
+             </property>
+            </item>
             <item>
              <property name="text">
               <string>DSD 4X</string>

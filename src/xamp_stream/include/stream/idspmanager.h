@@ -44,9 +44,11 @@ public:
 
     virtual void RemoveReplayGain() = 0;
 
-    virtual void SetSampleWriter(AlignPtr<ISampleWriter> writer) = 0;
+    virtual void SetSampleWriter(AlignPtr<ISampleWriter> writer = nullptr) = 0;
 
     virtual bool IsEnableSampleRateConverter() const = 0;
+
+    virtual bool IsEnablePcm2DsdConverter() const = 0;
 
     virtual bool CanProcessFile() const noexcept = 0;
 

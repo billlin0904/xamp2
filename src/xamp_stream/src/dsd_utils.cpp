@@ -1,3 +1,4 @@
+#include <base/str_utilts.h>
 #include <stream/bassexception.h>
 #include <stream/dsd_utils.h>
 
@@ -18,7 +19,7 @@ uint32_t GetDOPSampleRate(uint32_t dsd_speed) {
     case 256:
         return 705600;
     default:
-        throw NotSupportFormatException();
+        throw NotSupportFormatException(String::Format("Not support DSD speed: {}.", dsd_speed));
     }
 }
 

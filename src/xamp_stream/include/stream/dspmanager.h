@@ -48,11 +48,13 @@ public:
 
     void SetReplayGain(double volume) override;
 
-    void SetSampleWriter(AlignPtr<ISampleWriter> writer) override;
+    void SetSampleWriter(AlignPtr<ISampleWriter> writer = nullptr) override;
 
     void RemoveReplayGain() override;
 
     bool IsEnableSampleRateConverter() const override;
+
+    bool IsEnablePcm2DsdConverter() const override;
 
     bool CanProcessFile() const noexcept override;
 
@@ -96,7 +98,6 @@ private:
     EQSettings eq_settings_;
     Vector<AlignPtr<IAudioProcessor>> pre_dsp_;
     Vector<AlignPtr<IAudioProcessor>> post_dsp_;
-    AlignPtr<ISampleWriter> pcm2dsd_;
     AlignPtr<ISampleWriter> fifo_writer_;
     Buffer<float> pre_dsp_buffer_;
     Buffer<float> post_dsp_buffer_;

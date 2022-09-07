@@ -71,9 +71,8 @@ void PreferencePage::saveR8BrainResampler() {
 
 void PreferencePage::savePcm2Dsd() {
 	QMap<QString, QVariant> settings;
-	settings[kPCM2DSDDsdTimes] = ui_.dsdTimeComboBox->currentIndex() + 4;
+	settings[kPCM2DSDDsdTimes] = ui_.dsdTimeComboBox->currentIndex() + 3;
 	JsonSettings::setValue(kPCM2DSD, settings);
-
 	AppSettings::setValue(kEnablePcm2Dsd, ui_.enablePcm2DsdCheckBox->checkState() == Qt::Checked);
 }
 
@@ -82,7 +81,7 @@ void PreferencePage::initPcm2Dsd() {
 
 	auto config = JsonSettings::getValueAsMap(kPCM2DSD);
 	auto dsd_times = static_cast<DsdTimes>(config[kPCM2DSDDsdTimes].toInt());
-	ui_.dsdTimeComboBox->setCurrentIndex(config[kPCM2DSDDsdTimes].toInt() - 4);
+	ui_.dsdTimeComboBox->setCurrentIndex(config[kPCM2DSDDsdTimes].toInt() - 3);
 
 	(void)QObject::connect(ui_.dsdTimeComboBox, &QComboBox::textActivated, [this](auto) {
 		savePcm2Dsd();

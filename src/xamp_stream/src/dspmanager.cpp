@@ -64,7 +64,11 @@ void DSPManager::SetReplayGain(double volume) {
 }
 
 void DSPManager::SetSampleWriter(AlignPtr<ISampleWriter> writer) {
-    pcm2dsd_ = std::move(writer);
+    if (!writer) {
+        fifo_writer_.reset();
+        return;
+    }
+    fifo_writer_ = std::move(writer);
 }
 
 void DSPManager::RemoveEq() {
@@ -118,6 +122,17 @@ bool DSPManager::IsEnableSampleRateConverter() const {
         || GetPostDSP<SoxrSampleRateConverter>() != std::nullopt;
 }
 
+bool DSPManager::IsEnablePcm2DsdConverter() const {
+    if (!fifo_writer_) {
+        return false;
+    }
+
+	if (auto* converter = dynamic_cast<Pcm2DsdSampleWriter*>(fifo_writer_.get())) {
+        return true;
+	}
+    return false;
+}
+
 void DSPManager::Flush() {
     for (const auto& pre_dsp : pre_dsp_) {
         pre_dsp->Flush();
@@ -132,11 +147,7 @@ bool DSPManager::ProcessDSP(const float* samples, uint32_t num_samples, AudioBuf
         return ApplyDSP(samples, num_samples, fifo);
     }
 
-    if (!fifo_writer_) {
-        BufferOverFlowThrow(pcm2dsd_->Process(samples, num_samples, fifo));
-    } else {
-        BufferOverFlowThrow(fifo_writer_->Process(samples, num_samples, fifo));
-    }    
+    BufferOverFlowThrow(fifo_writer_->Process(samples, num_samples, fifo));
     return false;
 }
 
@@ -161,16 +172,6 @@ bool DSPManager::ApplyDSP(const float* samples, uint32_t num_samples, AudioBuffe
         }
     }
 
-    if (pcm2dsd_ != nullptr) {
-        if (post_dsp_.empty()) {
-            BufferOverFlowThrow(pcm2dsd_->Process(pre_dsp_buffer, fifo));
-        }
-        else {
-            BufferOverFlowThrow(pcm2dsd_->Process(post_dsp_buffer, fifo));
-        }
-        return false;
-    }
-
     if (post_dsp_.empty()) {
         BufferOverFlowThrow(fifo_writer_->Process(pre_dsp_buffer, fifo));
     } else {
@@ -180,7 +181,7 @@ bool DSPManager::ApplyDSP(const float* samples, uint32_t num_samples, AudioBuffe
 }
 
 void DSPManager::Init(AudioFormat input_format, AudioFormat output_format, DsdModes dsd_mode, uint32_t sample_size) {
-    if (!pcm2dsd_) {
+    if (!fifo_writer_) {
         fifo_writer_ = MakeAlign<ISampleWriter, SampleWriter>(dsd_mode, sample_size);
     }
 

@@ -10,6 +10,7 @@
 namespace xamp::stream {
 
 inline constexpr int32_t kPcmSampleRate441{ 44100 };
+inline constexpr int32_t kPcmSampleRate48{  48000 };
 
 XAMP_STREAM_API uint32_t GetDOPSampleRate(uint32_t dsd_speed);
 

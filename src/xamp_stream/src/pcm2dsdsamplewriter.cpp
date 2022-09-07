@@ -63,7 +63,7 @@ static const std::vector<double> & FIRFilter() {
 
 		std::ifstream file(".\\FIRFilter.dat");
 		if (file.fail()) {
-			throw Exception();
+			throw FileNotFoundException("Not found file 'FIRFilter.dat'");
 		}
 
 		std::string str;
@@ -87,7 +87,7 @@ static const Double2DArray& NoiseShapingCoeff() {
 
 		std::ifstream file(".\\NoiseShapingCoeff.dat");
 		if (file.fail()) {
-			throw Exception();
+			throw FileNotFoundException("Not found file 'NoiseShapingCoeff.dat'");
 		}
 
 		std::string str;
@@ -241,35 +241,32 @@ public:
 	explicit Pcm2DsdSampleWriterImpl(DsdTimes dsd_times) {
 		dsd_times_ = static_cast<uint32_t>(dsd_times);
 		logger_ = LoggerManager::GetInstance().GetLogger("Pcm2DsdConverter");
-		FIRFilter();
-		NoiseShapingCoeff();
+		logger_->SetLevel(LOG_LEVEL_ERROR);
 		constexpr auto kMaxPcm2DsdThread = 4;
 		constexpr auto kPcm2DsdAffinityCpuCore = 4;
 		tp_ = MakeThreadPool(kDSPThreadPoolLoggerName, 
 			ThreadPriority::NORMAL, 
 			kMaxPcm2DsdThread,
 			kPcm2DsdAffinityCpuCore);
-
-		lch_out_path_ = R"(C:\Users\rdbill0452\Documents\Github\xamp2\test_dsd\Catch You Catch Me_tmpLDSD)";
-		rch_out_path_ = R"(C:\Users\rdbill0452\Documents\Github\xamp2\test_dsd\Catch You Catch Me_tmpRDSD)";
-
-		lch_out_.open(lch_out_path_.native(), std::ios::in | std::ios::binary);
-		rch_out_.open(rch_out_path_.native(), std::ios::in | std::ios::binary);
 	}
 
 	~Pcm2DsdSampleWriterImpl() {
 		RemoveTempFile();
+		tp_->Stop();
 	}
 
 	void Init(uint32_t input_sample_rate) {
+		FIRFilter();
+		NoiseShapingCoeff();
+
 		auto dsd_times = pow(2, dsd_times_);
 
-		if (input_sample_rate % 44100 == 0) {
-			times_ = dsd_times / (input_sample_rate / 44100);
+		if (input_sample_rate % kPcmSampleRate441 == 0) {
+			times_ = dsd_times / (input_sample_rate / kPcmSampleRate441);
 			dsd_sampling_rate_ = input_sample_rate * times_;
 		}
 		else {
-			times_ = dsd_times / (input_sample_rate / 48000);
+			times_ = dsd_times / (input_sample_rate / kPcmSampleRate48);
 			dsd_sampling_rate_ = input_sample_rate * times_;
 		}
 
@@ -301,7 +298,10 @@ public:
 	}
 
 	uint32_t GetDsdSpeed() const {
-		return dsd_sampling_rate_ / kPcmSampleRate441;
+		if (dsd_sampling_rate_ % kPcmSampleRate441 == 0) {
+			return dsd_sampling_rate_ / kPcmSampleRate441;
+		}
+		return dsd_sampling_rate_ / kPcmSampleRate48;
 	}
 
 	void SplitChannel(float const* samples, size_t num_samples) {
@@ -316,7 +316,7 @@ public:
 		}
 
 		for (auto i = 0; i < data_size_; ++i) {
-			if (i > channel_size) {
+			if (i >= channel_size) {
 				lch_src_[i] = 0;
 				rch_src_[i] = 0;
 			} else {
@@ -441,7 +441,7 @@ public:
 			XAMP_LOG_D(logger_, String::Format("Close {} file.", path.filename()));
 		}
 		catch (std::exception const& e) {
-			XAMP_LOG_D(logger_, String::Format("Close {} file failure! error: {}", path.filename(), e.what()));
+			XAMP_LOG_E(logger_, String::Format("Close {} file failure! error: {}", path.filename(), e.what()));
 		}
 
 		try {
@@ -449,13 +449,13 @@ public:
 			XAMP_LOG_D(logger_, String::Format("Remove {} file.", path.filename()));
 		}
 		catch (std::exception const& e) {
-			XAMP_LOG_D(logger_, String::Format("Remove {} file failure! error: {}", path.filename(), e.what()));
+			XAMP_LOG_E(logger_, String::Format("Remove {} file failure! error: {}", path.filename(), e.what()));
 		}
 	}
 
 	void RemoveTempFile() {
-		/*CloseAndRemoveFile(lch_out_, lch_out_path_);
-		CloseAndRemoveFile(rch_out_, rch_out_path_);*/
+		CloseAndRemoveFile(lch_out_, lch_out_path_);
+		CloseAndRemoveFile(rch_out_, rch_out_path_);
 	}
 
 	bool MargeChannel(AudioBuffer<int8_t>& buffer) {
@@ -463,7 +463,7 @@ public:
 
 		constexpr std::array<uint8_t, 2> kDoPMarker { 0x05, 0xFA };
 
-		/*lch_out_.close();
+		lch_out_.close();
 		rch_out_.close();
 
 		lch_out_.open(lch_out_path_.native(), std::ios::in | std::ios::binary);
@@ -476,11 +476,12 @@ public:
 		rch_out_.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 		if (!rch_out_.is_open()) {
 			throw PlatformSpecException();
-		}*/
+		}
 
 		std::vector<uint8_t> tmpdataL(data_size_);
 		std::vector<uint8_t> tmpdataR(data_size_);
 		std::vector<uint8_t> onebit(data_size_ / 4);
+		std::vector<int32_t> debug_dop_data(onebit.size() / 2);
 		std::vector<float> dop_data(onebit.size() / 2);
 		
 		for (auto i = 0u; i < split_num_; i++) {
@@ -493,6 +494,9 @@ public:
 			if (!rch_out_) {
 				throw PlatformSpecException();
 			}
+
+			/*fread(tmpdataL.data(), 1, tmpdataL.size(), lch_file_);
+			fread(tmpdataR.data(), 1, tmpdataR.size(), rch_file_);*/
 
 			auto p = 0u;
 			auto c = 0u;
@@ -521,21 +525,42 @@ public:
 			}
 
 			// DOP format:
-			// 0x05 L1 0x05 R1, 0xFA L2 0xFA R2, 0x05 L3 0x05 R3
+			// 0x05 L1 0x05 R1, 0xFA L2 0xFA R2, 0x05 L3 0x05 R3 ...
 
-			for (auto sample = 0u; sample < onebit.size() / 2; sample++) {
-				Int24 val;
-				val.data[0] = onebit[sample * 2 + 0];
-				val.data[1] = onebit[sample * 2 + 1];
-				val.data[2] = kDoPMarker[c];
-				auto v = val.To32Int();
+			auto m = 0;
+
+			for (auto sample = 0u; sample < onebit.size() / 2; sample += 2) {
+				Int24 left;
+				left.data[0] = onebit[sample * 2 + 2];
+				left.data[1] = onebit[sample * 2 + 0];
+				left.data[2] = kDoPMarker[c];
+				auto v = left.To32Int();
+				if (kDoPMarker[c] == 0xFA) {
+					v |= 0xFF000000u;
+				}
 				XAMP_ASSERT(v != 0);
-				dop_data[o] = static_cast<float>(v) / kFloat24Scale;
-				XAMP_ASSERT(dop_data[o] != 0);
+				debug_dop_data[o] = v;
+				dop_data[o] = static_cast<float>(v) / 8388608;
 				++o;
-				if (o % 2 == 0) {
+
+				Int24 right;
+				right.data[0] = onebit[sample * 2 + 3];
+				right.data[1] = onebit[sample * 2 + 1];
+				right.data[2] = kDoPMarker[c];
+				v = right.To32Int();
+				if (kDoPMarker[c] == 0xFA) {
+					v |= 0xFF000000u;
+				}
+				XAMP_ASSERT(v != 0);
+				debug_dop_data[o] = v;
+				dop_data[o] = static_cast<float>(v) / 8388608;
+				++o;
+
+				if (m % 2 == 0) {
 					c = (c + 1) % kDoPMarker.size();
 				}
+
+				m += 2;
 			}
 			BufferOverFlowThrow(buffer.TryWrite(reinterpret_cast<int8_t*>(dop_data.data()), dop_data.size() * 4));
 		}
@@ -544,7 +569,7 @@ public:
 	}
 
 	bool Process(float const* samples, size_t num_samples, AudioBuffer<int8_t>& buffer) {
-		/*try {
+		try {
 			CreateTempFile();
 		}
 		catch (std::exception const& e) {
@@ -556,13 +581,13 @@ public:
 		SplitChannel(samples, num_samples);
 
 		auto channel_size = num_samples / AudioFormat::kMaxChannel;
-		split_num_ = (channel_size / data_size_) * dsd_times_;*/
+		split_num_ = (channel_size / data_size_) * dsd_times_;
 
 		/*ProcessChannel(lch_src_, lch_ctx_, lch_out_);
 		ProcessChannel(rch_src_, rch_ctx_, rch_out_);
 		return MargeChannel(buffer);*/
 
-		/*const auto lch_task= tp_->Spawn([this](auto index) {
+		const auto lch_task= tp_->Spawn([this](auto index) {
 			ProcessChannel(lch_src_, lch_ctx_, lch_out_);
 			});
 		const auto rch_task = tp_->Spawn([this](auto index) {
@@ -577,12 +602,11 @@ public:
 		catch (std::exception const &e) {
 			XAMP_LOG_D(logger_, e.what());
 			RemoveTempFile();
-		}*/
+		}
 
-		auto channel_size = num_samples / AudioFormat::kMaxChannel;
+		/*auto channel_size = num_samples / AudioFormat::kMaxChannel;
 		split_num_ = (channel_size / data_size_) * dsd_times_;
-
-		return MargeChannel(buffer);
+		return MargeChannel(buffer);*/
 	}
 
 	uint32_t order_{ 0 };

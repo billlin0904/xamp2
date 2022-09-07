@@ -87,7 +87,8 @@ public:
 #define XAMP_DECLARE_EXCEPTION_CLASS(ExceptionClassName) \
 class XAMP_BASE_API ExceptionClassName final : public Exception {\
 public:\
-    ExceptionClassName();\
+	ExceptionClassName();\
+	explicit ExceptionClassName(std::string const& message);\
     ~ExceptionClassName() override = default;\
 };
 
