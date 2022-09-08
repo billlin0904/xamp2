@@ -81,7 +81,7 @@ XAMP_BASE_API AlignPtr<IThreadPool> MakeThreadPool(
     const std::string_view& pool_name,
     ThreadPriority priority = ThreadPriority::NORMAL,
     uint32_t max_thread = std::thread::hardware_concurrency(),
-    int32_t affinity = kDefaultAffinityCpuCore,
+    CpuAffinity affinity = kDefaultAffinityCpuCore,
     TaskSchedulerPolicy policy = TaskSchedulerPolicy::RANDOM_POLICY,
     TaskStealPolicy steal_policy = TaskStealPolicy::CONTINUATION_STEALING_POLICY);
 

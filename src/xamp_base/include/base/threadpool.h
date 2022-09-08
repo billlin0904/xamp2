@@ -25,14 +25,14 @@ class TaskScheduler final : public ITaskScheduler {
 public:
     TaskScheduler(const std::string_view & pool_name,
         uint32_t max_thread, 
-        int32_t affinity,
+        CpuAffinity affinity,
         ThreadPriority priority);
 
     TaskScheduler(TaskSchedulerPolicy policy,
         TaskStealPolicy steal_policy,
         const std::string_view& pool_name,
         uint32_t max_thread, 
-        int32_t affinity, 
+        CpuAffinity affinity,
         ThreadPriority priority);
 	
     XAMP_DISABLE_COPY(TaskScheduler)
@@ -55,7 +55,7 @@ private:
 
     std::optional<Task> TryDequeueSharedQueue(std::chrono::milliseconds timeout);
 
-    void AddThread(size_t i, int32_t affinity, ThreadPriority priority);
+    void AddThread(size_t i, CpuAffinity affinity, ThreadPriority priority);
 
 	std::atomic<bool> is_stopped_;
     std::atomic<size_t> running_thread_;
@@ -75,12 +75,12 @@ public:
         TaskSchedulerPolicy policy,
         TaskStealPolicy steal_policy,
 	    uint32_t max_thread = std::thread::hardware_concurrency(), 
-	    int32_t affinity = kDefaultAffinityCpuCore,
+        CpuAffinity affinity = kDefaultAffinityCpuCore,
 	    ThreadPriority priority = ThreadPriority::NORMAL);
 
     explicit ThreadPool(const std::string_view& pool_name,
         uint32_t max_thread = std::thread::hardware_concurrency(),
-        int32_t affinity = kDefaultAffinityCpuCore,
+        CpuAffinity affinity = kDefaultAffinityCpuCore,
         ThreadPriority priority = ThreadPriority::NORMAL);
 
 	~ThreadPool() override;

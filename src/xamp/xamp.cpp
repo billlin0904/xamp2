@@ -1183,7 +1183,7 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
         uint32_t device_sample_rate = 0;
 
         if (!player_->IsDSDFile()
-            && input_sample_rate == kPcmSampleRate441
+            && input_sample_rate % kPcmSampleRate441 == 0
             && AppSettings::getValueAsBool(kEnablePcm2Dsd)) {
             auto config = JsonSettings::getValueAsMap(kPCM2DSD);
             auto dsd_times = static_cast<DsdTimes>(config[kPCM2DSDDsdTimes].toInt());

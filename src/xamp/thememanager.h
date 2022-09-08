@@ -159,7 +159,7 @@ public:
 private:
     QFont loadFonts();
 
-    void installFont(const QString& file_name, QList<QString>& ui_fallback_fonts);
+    void installFileFont(const QString& file_name, QList<QString>& ui_fallback_fonts);
 
     void setPalette();
 

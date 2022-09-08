@@ -13,13 +13,14 @@
                 "ExclusiveWasapiDevice": "debug",
                 "ExclusiveWasapiDeviceType": "info",
                 "FileStream": "debug",
+                "Pcm2DsdConverter": "info",
                 "PixmapCache": "info",
                 "PlaybackThreadPool": "info",
                 "SharedWasapiDevice": "info",
                 "Soxr": "info",
                 "VirtualMemory": "info",
                 "Volume": "info",
-                "WASAPIThreadPool": "info"
+                "WASAPIThreadPool": "debug"
             }
         }
     },

@@ -91,7 +91,8 @@ ExclusiveWasapiDevice::ExclusiveWasapiDevice(CComPtr<IMMDevice> const & device)
 	, device_(device)
 	, callback_(nullptr)
 	, log_(LoggerManager::GetInstance().GetLogger(kExclusiveWasapiDeviceLoggerName)) {
-	constexpr auto kWASAPIAffinityCpuCore = 1;
+	CpuAffinity kWASAPIAffinityCpuCore;
+	kWASAPIAffinityCpuCore.Set(0);
 	tp_ = MakeThreadPool(kWASAPIThreadPoolLoggerName, ThreadPriority::HIGHEST, kMaxWASAPIThreadPoolSize, kWASAPIAffinityCpuCore);
 }
 

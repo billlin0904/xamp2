@@ -13,11 +13,11 @@ inline constexpr auto kWorkStealingTaskQueueSize = 4096;
 inline constexpr auto kMaxStealFailureSize = 500;
 inline constexpr auto kMaxWorkQueueSize = 65536;
 
-TaskScheduler::TaskScheduler(const std::string_view& pool_name, uint32_t max_thread, int32_t affinity, ThreadPriority priority)
+TaskScheduler::TaskScheduler(const std::string_view& pool_name, uint32_t max_thread, CpuAffinity affinity, ThreadPriority priority)
 	: TaskScheduler(TaskSchedulerPolicy::RANDOM_POLICY, TaskStealPolicy::CONTINUATION_STEALING_POLICY, pool_name, max_thread, affinity, priority)  {
 }
 
-TaskScheduler::TaskScheduler(TaskSchedulerPolicy policy, TaskStealPolicy steal_policy, const std::string_view& pool_name, uint32_t max_thread, int32_t affinity, ThreadPriority priority)
+TaskScheduler::TaskScheduler(TaskSchedulerPolicy policy, TaskStealPolicy steal_policy, const std::string_view& pool_name, uint32_t max_thread, CpuAffinity affinity, ThreadPriority priority)
 	: is_stopped_(false)
 	, running_thread_(0)
 	, max_thread_(max_thread)
@@ -144,7 +144,7 @@ void TaskScheduler::SetWorkerThreadName(size_t i) {
 	SetThreadName(stream.str());
 }
 
-void TaskScheduler::AddThread(size_t i, int32_t affinity, ThreadPriority priority) {
+void TaskScheduler::AddThread(size_t i, CpuAffinity affinity, ThreadPriority priority) {
 	threads_.emplace_back([i, this, priority]() mutable {
 		// Avoid 64K Aliasing in L1 Cache (Intel hyper-threading)
 		const auto L1_padding_buffer =
@@ -196,14 +196,15 @@ void TaskScheduler::AddThread(size_t i, int32_t affinity, ThreadPriority priorit
 
 	if (affinity != kDefaultAffinityCpuCore) {
 		SetThreadAffinity(threads_.at(i), affinity);
+		XAMP_LOG_D(logger_, "Worker Thread {} affinity:{}.", i, affinity);
 	}
 }
 
-ThreadPool::ThreadPool(const std::string_view& pool_name, TaskSchedulerPolicy policy, TaskStealPolicy steal_policy, uint32_t max_thread, int32_t affinity, ThreadPriority priority)
+ThreadPool::ThreadPool(const std::string_view& pool_name, TaskSchedulerPolicy policy, TaskStealPolicy steal_policy, uint32_t max_thread, CpuAffinity affinity, ThreadPriority priority)
 	: IThreadPool(MakeAlign<ITaskScheduler, TaskScheduler>(policy, steal_policy, pool_name, (std::min)(max_thread, kMaxThread), affinity, priority)) {
 }
 
-ThreadPool::ThreadPool(const std::string_view& pool_name, uint32_t max_thread, int32_t affinity, ThreadPriority priority)
+ThreadPool::ThreadPool(const std::string_view& pool_name, uint32_t max_thread, CpuAffinity affinity, ThreadPriority priority)
 	: IThreadPool(MakeAlign<ITaskScheduler, TaskScheduler>(pool_name, (std::min)(max_thread, kMaxThread), affinity, priority)) {
 }
 

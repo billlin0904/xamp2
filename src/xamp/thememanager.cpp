@@ -29,7 +29,7 @@ bool ThemeManager::enableBlur() const {
     return AppSettings::getValueAsBool(kAppSettingEnableBlur);
 }
 
-void ThemeManager::installFont(const QString& file_name, QList<QString> &ui_fallback_fonts) {
+void ThemeManager::installFileFont(const QString& file_name, QList<QString> &ui_fallback_fonts) {
     const auto font_path =
         Q_STR("%1/fonts/%2")
         .arg(QCoreApplication::applicationDirPath())
@@ -44,36 +44,21 @@ void ThemeManager::installFont(const QString& file_name, QList<QString> &ui_fall
 }
 
 QFont ThemeManager::loadFonts() {
-    const auto digital_font_id = QFontDatabase::addApplicationFont(Q_TEXT(":/xamp/fonts/Lato-Regular.ttf"));
+    const auto digital_font_id = QFontDatabase::addApplicationFont(Q_TEXT(":/xamp/fonts/Electrolize.ttf"));
     const auto digital_font_families = QFontDatabase::applicationFontFamilies(digital_font_id);
 
     QList<QString> ui_fallback_fonts;
-
-    /*const auto en_font_id = QFontDatabase::addApplicationFont(Q_TEXT(":/xamp/fonts/Lato-Regular.ttf"));
-    const auto en_font_families = QFontDatabase::applicationFontFamilies(en_font_id);
-
-    const auto en_bold_font_id = QFontDatabase::addApplicationFont(Q_TEXT(":/xamp/fonts/Inter-Bold.ttf.ttf"));
-    const auto en_bold_font_families = QFontDatabase::applicationFontFamilies(en_bold_font_id);
-
-    ui_fallback_fonts << en_font_families << en_bold_font_families;*/
 
 #if defined(Q_OS_WIN)
     // note: If we are support Source HanSans font sets must be enable Direct2D function,
     // But Qt framework not work fine with that!
     // -platform direct2d
 
-    installFont(Q_TEXT("HarmonyOS_Sans_TC_Regular.ttf"), ui_fallback_fonts);
-    installFont(Q_TEXT("HarmonyOS_Sans_TC_Bold.ttf"), ui_fallback_fonts);
-    installFont(Q_TEXT("HarmonyOS_Sans_SC_Regular.ttf"), ui_fallback_fonts);
-    installFont(Q_TEXT("HarmonyOS_Sans_SC_Bold.ttf"), ui_fallback_fonts);
+    installFileFont(Q_TEXT("HarmonyOS_Sans_TC_Regular.ttf"), ui_fallback_fonts);
+    installFileFont(Q_TEXT("HarmonyOS_Sans_TC_Bold.ttf"), ui_fallback_fonts);
+    installFileFont(Q_TEXT("HarmonyOS_Sans_SC_Regular.ttf"), ui_fallback_fonts);
+    installFileFont(Q_TEXT("HarmonyOS_Sans_SC_Bold.ttf"), ui_fallback_fonts);
 
-    //ui_fallback_fonts.push_back(Q_TEXT("Meiryo UI")); // For japanese font.
-    //ui_fallback_fonts.push_back(Q_TEXT("Microsoft YaHei"));
-    //ui_fallback_fonts.push_back(Q_TEXT("Microsoft JhengHei UI"));
-    //ui_fallback_fonts.push_back(Q_TEXT("Arial"));
-    //ui_fallback_fonts.push_back(Q_TEXT("Lucida Grande"));
-
-    //ui_fallback_fonts.push_back(Q_TEXT("Helvetica Neue"));
     QFont::insertSubstitutions(Q_TEXT("MonoFont"), QList<QString>() << Q_TEXT("Consolas"));
 #else
     QList<QString> mono_fonts;

@@ -183,42 +183,65 @@ void SetThreadName(std::string const& name) noexcept {
 #endif
 }
 
-void SetThreadAffinity(std::thread& thread, std::array<int32_t, 32> cpus) {
-#ifdef XAMP_OS_WIN
-    int32_t cpu_mask = 0;
-    for (auto cpu : cpus) {
-        cpu_mask |= 1L << cpu;
+static int32_t FFSLL(uint64_t mask) {
+    auto bit = 0;
+
+    if (mask == 0) {
+        return 0;
     }
 
-    GROUP_AFFINITY group_affinity;
-    group_affinity.Group = static_cast<WORD>(0);
-    group_affinity.Mask = cpu_mask;
-    group_affinity.Reserved[0] = 0;
-    group_affinity.Reserved[1] = 0;
-    group_affinity.Reserved[2] = 0;
-    if (!::SetThreadGroupAffinity(thread.native_handle(), &group_affinity, nullptr)) {
-        XAMP_LOG_DEBUG("Can't set thread group affinity");
+    for (bit = 1; !(mask & 1); bit++) {
+        mask = mask >> 1;
     }
-#endif
+    return bit;
 }
 
-void SetThreadAffinity(std::thread& thread, int32_t core) noexcept {
+int32_t CpuAffinity::FirstSetCpu() const {
+    auto row_first_cpu = 0;
+    auto cpus_offset = 0;
+    auto mask_first_cpu = -1;
+    auto row = 0u;
+
+    while (mask_first_cpu < 0 && row < XAMP_CPU_MASK_ROWS) {
+        row_first_cpu = FFSLL(mask[row]) - 1;
+        if (row_first_cpu > -1) {
+            mask_first_cpu = cpus_offset + row_first_cpu;
+        } else {
+            cpus_offset += XAMP_MASK_STRIDE;
+            row++;
+        }
+    }
+    return mask_first_cpu;
+}
+
+void SetThreadAffinity(std::thread& thread, CpuAffinity affinity) noexcept {
 #ifdef XAMP_OS_WIN
-    const auto groups = ::GetActiveProcessorGroupCount();
-    auto total_processors = 0, group = 0, number = 0;
+    auto cpu = affinity.FirstSetCpu();
+    auto group_size = 0;
+
+	const auto groups = ::GetActiveProcessorGroupCount();
+    auto cpus_offset = 0, group = -1, number = 0;
+
     for (DWORD i = 0; i < groups; i++) {
-	    const auto processors = ::GetActiveProcessorCount(i);
-        if (total_processors + processors > core) {
+	    group_size = ::GetActiveProcessorCount(i);
+        if (cpus_offset + group_size > cpu) {
             group = i;
-            number = core - total_processors;
+            number = cpu - cpus_offset;
             break;
         }
-        total_processors += processors;
+        cpus_offset += group_size;
 	}
+
+    if (group == -1) {
+        XAMP_LOG_DEBUG("Not found any group affinity:{}", affinity);
+        return;
+    }
+
+    auto group_cpumask = affinity.mask[0];
 
     GROUP_AFFINITY group_affinity;
     group_affinity.Group = static_cast<WORD>(group);
-    group_affinity.Mask = static_cast<uint64_t>(1) << number;
+    group_affinity.Mask = group_cpumask;
     group_affinity.Reserved[0] = 0;
     group_affinity.Reserved[1] = 0;
     group_affinity.Reserved[2] = 0;
@@ -230,20 +253,12 @@ void SetThreadAffinity(std::thread& thread, int32_t core) noexcept {
 
     PROCESSOR_NUMBER processor_number;
     processor_number.Group = group;
-    processor_number.Number = number;
+    processor_number.Number = cpu;
     processor_number.Reserved = 0;
     if (!::SetThreadIdealProcessorEx(thread.native_handle(), &processor_number, nullptr)) {
         XAMP_LOG_DEBUG("Can't set threadeal processor");
     }
 #else
-    thread_affinity_policy_data_t policy = { core };
-    auto thread_id = thread.get_id();
-    auto native_handle = *reinterpret_cast<std::thread::native_handle_type*>(&thread_id);
-    ::thread_policy_set(
-        ::pthread_mach_thread_np(native_handle),
-        THREAD_AFFINITY_POLICY,
-        reinterpret_cast<thread_policy_t>(&policy),
-        1);
 #endif
 }
 
@@ -349,6 +364,11 @@ std::string GetCurrentThreadId() {
     std::ostringstream ostr;
     ostr << std::this_thread::get_id();
     return ostr.str();
+}
+
+ Path GetTempFilePath() {
+	const auto temp_path = Fs::temp_directory_path();
+	return temp_path / Fs::path(MakeTempFileName() + ".tmp");
 }
 
 std::string MakeTempFileName() {

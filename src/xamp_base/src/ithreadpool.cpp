@@ -10,7 +10,7 @@ inline constexpr auto kMaxPlaybackThreadPoolSize{ 4 };
 AlignPtr<IThreadPool> MakeThreadPool(const std::string_view& pool_name,
     ThreadPriority priority,
     uint32_t max_thread,
-    int32_t affinity,    
+    CpuAffinity affinity,
     TaskSchedulerPolicy policy,
     TaskStealPolicy steal_policy) {
     return MakeAlign<IThreadPool, ThreadPool>(pool_name,

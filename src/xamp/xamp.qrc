@@ -48,7 +48,6 @@
         <file>Resource/Black/tab_playlists.png</file>
         <file>Resource/Black/tab_subtitles.png</file>
         <file>Resource/Black/podcast.png</file>
-        <file>fonts/digital.ttf</file>
         <file>Resource/Black/preference.png</file>
         <file>Resource/Black/help.png</file>
         <file>Resource/Black/usb.png</file>
@@ -76,9 +75,6 @@
         <file>Resource/White/disable_converter.png</file>
         <file>Resource/White/enable_converter.png</file>
         <file>Resource/Flags/US.png</file>
-        <file>fonts/Lato-Regular.ttf</file>
-        <file>fonts/Inter-Bold.ttf</file>
-        <file>fonts/Inter-Regular.ttf</file>
         <file>Resource/Black/close_hover.png</file>
         <file>Resource/Black/close_normal.png</file>
         <file>Resource/Black/maximize_hover.png</file>
@@ -111,5 +107,7 @@
         <file>Resource/White/stop_circle.png</file>
         <file>Resource/Black/pause_circle.png</file>
         <file>Resource/Black/stop_circle.png</file>
+        <file>fonts/titillium-regular.ttf</file>
+        <file>fonts/Electrolize.ttf</file>
     </qresource>
 </RCC>

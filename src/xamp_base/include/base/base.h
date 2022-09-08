@@ -140,11 +140,6 @@ static constexpr size_t kMaxL1CacheLineSize{ 256 * 1024 };
 /// </summary>
 inline constexpr size_t kMallocAlignSize{ 32 };
 
-/// <summary>
-/// Default thread pool affinity core.
-/// </summary>
-inline constexpr int32_t kDefaultAffinityCpuCore{ -1 };
-
 inline constexpr double XAMP_PI{ 3.14159265358979323846 };
 
 }

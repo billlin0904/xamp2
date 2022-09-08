@@ -10,6 +10,7 @@
 #include <base/assert.h>
 #include <base/fastmutex.h>
 #include <base/ithreadpool.h>
+#include <base/stopwatch.h>
 
 #include <stream/fftwlib.h>
 #include <stream/dsd_utils.h>
@@ -159,7 +160,7 @@ struct FFTWContext {
 			add_size[p] = zero_size[p] * 2;
 
 			XAMP_LOG_D(logger,
-				"Make FFT/IFFT I/O {} (log_times: {} p : {} i : {}) Buffer",
+				"Make FFT/IFFT I/O {} (log_times:{} p:{} i:{}) Buffer",
 				log_times - p - 1, log_times, p, i);
 
 			prebuffer[p] = MakeFFTWDoubleArray(fft_size);
@@ -240,10 +241,13 @@ class Pcm2DsdSampleWriter::Pcm2DsdSampleWriterImpl {
 public:
 	explicit Pcm2DsdSampleWriterImpl(DsdTimes dsd_times) {
 		dsd_times_ = static_cast<uint32_t>(dsd_times);
-		logger_ = LoggerManager::GetInstance().GetLogger("Pcm2DsdConverter");
-		logger_->SetLevel(LOG_LEVEL_ERROR);
+		logger_ = LoggerManager::GetInstance().GetLogger("Pcm2DsdConverter");		
 		constexpr auto kMaxPcm2DsdThread = 4;
-		constexpr auto kPcm2DsdAffinityCpuCore = 4;
+		CpuAffinity kPcm2DsdAffinityCpuCore;
+		kPcm2DsdAffinityCpuCore.Set(2);
+		kPcm2DsdAffinityCpuCore.Set(3);
+		kPcm2DsdAffinityCpuCore.Set(4);
+		kPcm2DsdAffinityCpuCore.Set(5);
 		tp_ = MakeThreadPool(kDSPThreadPoolLoggerName, 
 			ThreadPriority::NORMAL, 
 			kMaxPcm2DsdThread,
@@ -349,12 +353,15 @@ public:
 		auto q = 0u;
 		auto p = 0u;
 
-		XAMP_LOG_D(logger_, "Split count: {}, data size: {}", split_num_, data_size_);
+		XAMP_LOG_D(logger_, "Split count:{}, data size:{}", split_num_, data_size_);
 
 		for (i = 0u; i < split_num_; ++i) {
 			MemoryCopy(buffer.data(), data, 8 * (data_size_ / dsd_times_));
 
-			for (t = 0; t < log_times_; t++) {
+			Stopwatch sw;
+			XAMP_LOG_D(logger_, "Process split FFT:{} start...", i);
+
+			for (t = 0u; t < log_times_; t++) {
 				q = 0;
 				for (p = 0; p < ctx.zero_size[t]; p++) {
 					ctx.fftin[t][q] = buffer[p];
@@ -383,6 +390,8 @@ public:
 				}
 			}
 
+			XAMP_LOG_D(logger_, "Process split FFT end {:.2f}sec", sw.ElapsedSeconds());
+
 			for (q = 0u; q < data_size_; q++) {
 				x_in = buffer[q] * deltagain;
 
@@ -410,24 +419,19 @@ public:
 			}
 
 			output_file.write(reinterpret_cast<const char*>(out.data()), data_size_);
-			if (!output_file) {
-				throw PlatformSpecException();
-			}
-
 			data += 8 * (data_size_ / dsd_times_);
 		}
 	}
 
 	void CreateTempFile() {
-		const auto temp_path = Fs::temp_directory_path();
-		lch_out_path_ = temp_path / Fs::path(MakeTempFileName() + ".tmp");
+		lch_out_path_ = GetTempFilePath();
 		lch_out_.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 		lch_out_.open(lch_out_path_.native(), std::ios::out | std::ios::trunc | std::ios::binary);
 		if (!lch_out_.is_open()) {
 			throw PlatformSpecException();
 		}
 
-		rch_out_path_ = temp_path / Fs::path(MakeTempFileName() + ".tmp");
+		rch_out_path_ = GetTempFilePath();
 		rch_out_.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 		rch_out_.open(rch_out_path_.native(), std::ios::out | std::ios::trunc | std::ios::binary);
 		if (!rch_out_.is_open()) {
@@ -468,15 +472,9 @@ public:
 
 		lch_out_.open(lch_out_path_.native(), std::ios::in | std::ios::binary);
 		lch_out_.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-		if (!lch_out_.is_open()) {
-			throw PlatformSpecException();
-		}
 
 		rch_out_.open(rch_out_path_.native(), std::ios::in | std::ios::binary);
 		rch_out_.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-		if (!rch_out_.is_open()) {
-			throw PlatformSpecException();
-		}
 
 		std::vector<uint8_t> tmpdataL(data_size_);
 		std::vector<uint8_t> tmpdataR(data_size_);
@@ -486,17 +484,7 @@ public:
 		
 		for (auto i = 0u; i < split_num_; i++) {
 		 	lch_out_.read(reinterpret_cast<char*>(tmpdataL.data()), tmpdataL.size());
-			if (!lch_out_) {
-				throw PlatformSpecException();
-			}
-
 			rch_out_.read(reinterpret_cast<char*>(tmpdataR.data()), tmpdataR.size());
-			if (!rch_out_) {
-				throw PlatformSpecException();
-			}
-
-			/*fread(tmpdataL.data(), 1, tmpdataL.size(), lch_file_);
-			fread(tmpdataR.data(), 1, tmpdataR.size(), rch_file_);*/
 
 			auto p = 0u;
 			auto c = 0u;
@@ -601,8 +589,8 @@ public:
 		}
 		catch (std::exception const &e) {
 			XAMP_LOG_D(logger_, e.what());
-			RemoveTempFile();
 		}
+		RemoveTempFile();
 
 		/*auto channel_size = num_samples / AudioFormat::kMaxChannel;
 		split_num_ = (channel_size / data_size_) * dsd_times_;
@@ -662,7 +650,7 @@ bool Pcm2DsdSampleWriter::Process(float const* samples, size_t num_samples, Audi
 
 #else
 
-class Pcm2DsdConverter::Pcm2DsdSampleWriterImpl {
+class Pcm2DsdSampleWriter::Pcm2DsdSampleWriterImpl {
 public:
 	Pcm2DsdSampleWriterImpl(DsdTimes dsd_times) {
     }
@@ -671,6 +659,18 @@ public:
 XAMP_PIMPL_IMPL(Pcm2DsdSampleWriter)
 
 Pcm2DsdSampleWriter::Pcm2DsdSampleWriter(DsdTimes dsd_times) {
+}
+
+uint32_t Pcm2DsdSampleWriter::GetDataSize() const {
+	return 0;
+}
+
+uint32_t Pcm2DsdSampleWriter::GetDsdSampleRate() const {
+	return 0;
+}
+
+uint32_t Pcm2DsdSampleWriter::GetDsdSpeed() const {
+	return 0;
 }
 
 void Pcm2DsdSampleWriter::Init(uint32_t output_sample_rate, uint32_t dsd_times) {

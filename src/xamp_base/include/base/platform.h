@@ -10,6 +10,7 @@
 
 #include <base/enum.h>
 #include <base/base.h>
+#include <base/fs.h>
 
 namespace xamp::base {
 
@@ -34,17 +35,70 @@ struct XAMP_BASE_API PlatformUUID {
     uint8_t id[16];
 };
 
+inline constexpr auto XAMP_MAX_CPU = 256u;
+inline constexpr auto XAMP_MASK_STRIDE = 64u;
+inline constexpr auto XAMP_CPU_MASK_ROWS = (XAMP_MAX_CPU / XAMP_MASK_STRIDE);
+
+struct XAMP_BASE_API CpuAffinity {
+    void Clear(int32_t cpu) {
+        auto [row, offset] = GetCPURowOffset(cpu);
+        mask[row] &= ~(1ULL << offset);
+    }
+
+    void Set(int32_t cpu) {
+        auto [row, offset] = GetCPURowOffset(cpu);
+        mask[row] |= (1ULL << offset);
+    }
+
+    bool IsSet(int32_t cpu) const {
+        auto [row, offset] = GetCPURowOffset(cpu);
+        return (mask[row] & (1ULL << offset)) != 0;
+    }
+
+    int32_t FirstSetCpu() const;
+
+    static std::tuple<uint32_t, uint32_t> GetCPURowOffset(int32_t cpu) {
+        auto row = cpu / XAMP_MASK_STRIDE;
+        return { row, cpu << XAMP_MASK_STRIDE * row };
+    }
+
+    friend bool operator != (const CpuAffinity& a, const CpuAffinity& b) {
+        for (auto i = 0u; i < XAMP_CPU_MASK_ROWS; i++) {
+            if (a.mask[i] != b.mask[i]) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    friend std::ostream& operator << (std::ostream &ostr, const CpuAffinity &aff) {
+        for (auto i = 0u; i < XAMP_CPU_MASK_ROWS; i++) {
+            ostr << "cpu mask[" << i << "]=" << aff.mask[i] << " ";
+        }
+        return ostr;
+    }
+
+    uint64_t mask[XAMP_CPU_MASK_ROWS]{0};
+};
+
+/// <summary>
+/// Default thread pool affinity core.
+/// </summary>
+inline constexpr CpuAffinity kDefaultAffinityCpuCore{ 1 };
+
 inline constexpr uint32_t kInefinity = -1;
 
 XAMP_BASE_API void SetThreadPriority(ThreadPriority priority) noexcept;
 
 XAMP_BASE_API void SetThreadName(std::string const & name) noexcept;
 
-XAMP_BASE_API void SetThreadAffinity(std::thread& thread, int32_t core = kDefaultAffinityCpuCore) noexcept;
+XAMP_BASE_API void SetThreadAffinity(std::thread& thread, CpuAffinity affinity = kDefaultAffinityCpuCore) noexcept;
 
 XAMP_BASE_API std::string GetCurrentThreadId();
 
 XAMP_BASE_API std::string MakeTempFileName();
+
+XAMP_BASE_API Path GetTempFilePath();
 
 XAMP_BASE_API std::string MakeUuidString();
 
