@@ -1182,7 +1182,12 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
         auto dsd_modes = DsdModes::DSD_MODE_AUTO;
         uint32_t device_sample_rate = 0;
 
+        // note: PCM2DSD function have some issue.
+        // 1. Only convert 44.1Khz 88.2Khz 176.4Khz ...
+        // 2. Fixed sample size input (can't use resampler).
+
         if (!player_->IsDSDFile()
+            && !player_->GetDSPManager()->IsEnableSampleRateConverter()
             && input_sample_rate % kPcmSampleRate441 == 0
             && AppSettings::getValueAsBool(kEnablePcm2Dsd)) {
             auto config = JsonSettings::getValueAsMap(kPCM2DSD);
@@ -1196,6 +1201,7 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
 
             player_->PrepareToPlay(device_sample_rate, dsd_modes);
             player_->SetReadSampleSize(writer->GetDataSize() * 2);
+
             resampler_type = Qt::EmptyString;
             playback_format = getPlaybackFormat(player_.get());
             playback_format.is_dsd_file = true;

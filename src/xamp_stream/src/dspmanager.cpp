@@ -65,10 +65,10 @@ void DSPManager::SetReplayGain(double volume) {
 
 void DSPManager::SetSampleWriter(AlignPtr<ISampleWriter> writer) {
     if (!writer) {
-        fifo_writer_.reset();
+        sample_writer_.reset();
         return;
     }
-    fifo_writer_ = std::move(writer);
+    sample_writer_ = std::move(writer);
 }
 
 void DSPManager::RemoveEq() {
@@ -123,11 +123,11 @@ bool DSPManager::IsEnableSampleRateConverter() const {
 }
 
 bool DSPManager::IsEnablePcm2DsdConverter() const {
-    if (!fifo_writer_) {
+    if (!sample_writer_) {
         return false;
     }
 
-	if (auto* converter = dynamic_cast<Pcm2DsdSampleWriter*>(fifo_writer_.get())) {
+	if (auto* converter = dynamic_cast<Pcm2DsdSampleWriter*>(sample_writer_.get())) {
         return true;
 	}
     return false;
@@ -147,7 +147,7 @@ bool DSPManager::ProcessDSP(const float* samples, uint32_t num_samples, AudioBuf
         return ApplyDSP(samples, num_samples, fifo);
     }
 
-    BufferOverFlowThrow(fifo_writer_->Process(samples, num_samples, fifo));
+    BufferOverFlowThrow(sample_writer_->Process(samples, num_samples, fifo));
     return false;
 }
 
@@ -173,16 +173,16 @@ bool DSPManager::ApplyDSP(const float* samples, uint32_t num_samples, AudioBuffe
     }
 
     if (post_dsp_.empty()) {
-        BufferOverFlowThrow(fifo_writer_->Process(pre_dsp_buffer, fifo));
+        BufferOverFlowThrow(sample_writer_->Process(pre_dsp_buffer, fifo));
     } else {
-        BufferOverFlowThrow(fifo_writer_->Process(post_dsp_buffer, fifo));
+        BufferOverFlowThrow(sample_writer_->Process(post_dsp_buffer, fifo));
     }
     return false; 
 }
 
 void DSPManager::Init(AudioFormat input_format, AudioFormat output_format, DsdModes dsd_mode, uint32_t sample_size) {
-    if (!fifo_writer_) {
-        fifo_writer_ = MakeAlign<ISampleWriter, SampleWriter>(dsd_mode, sample_size);
+    if (!sample_writer_) {
+        sample_writer_ = MakeAlign<ISampleWriter, SampleWriter>(dsd_mode, sample_size);
     }
 
     dsd_modes_ = dsd_mode;
