@@ -327,6 +327,9 @@ public:
 				lch_src_[i] = samples[i * 2 + 0];
 				rch_src_[i] = samples[i * 2 + 1];
 			}
+			// todo: Silent signal test.
+			//lch_src_[i] = 0;
+			//rch_src_[i] = 0;
 		}
 	}
 
@@ -582,15 +585,9 @@ public:
 			ProcessChannel(rch_src_, rch_ctx_, rch_out_);
 			});
 
-		try {
-			lch_task.wait();
-			rch_task.wait();
-			return MargeChannel(buffer);
-		}
-		catch (std::exception const &e) {
-			XAMP_LOG_D(logger_, e.what());
-		}
-		RemoveTempFile();
+		lch_task.wait();
+		rch_task.wait();
+		return MargeChannel(buffer);
 
 		/*auto channel_size = num_samples / AudioFormat::kMaxChannel;
 		split_num_ = (channel_size / data_size_) * dsd_times_;
