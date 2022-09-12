@@ -96,10 +96,6 @@ XAMP_BASE_API void SetThreadAffinity(std::thread& thread, CpuAffinity affinity =
 
 XAMP_BASE_API std::string GetCurrentThreadId();
 
-XAMP_BASE_API std::string MakeTempFileName();
-
-XAMP_BASE_API Path GetTempFilePath();
-
 XAMP_BASE_API std::string MakeUuidString();
 
 XAMP_BASE_API PlatformUUID ParseUuidString(const std::string& str);

@@ -78,10 +78,12 @@ static void loadR8BrainSetting() {
 static void loadPcm2DsdSetting() {
     XAMP_LOG_DEBUG("loadPcm2DsdSetting.");
 
-    /*QMap<QString, QVariant> default_setting;
-    default_setting[kPCM2DSDDsdTimes] = static_cast<uint32_t>(DsdTimes::DSD_TIME_6X);
-    JsonSettings::setDefaultValue(kPCM2DSD, QVariant::fromValue(default_setting));
-    AppSettings::setValue(kEnablePcm2Dsd, false);*/
+    if (JsonSettings::getValueAsMap(kR8Brain).isEmpty()) {
+        QMap<QString, QVariant> default_setting;
+        default_setting[kPCM2DSDDsdTimes] = static_cast<uint32_t>(DsdTimes::DSD_TIME_6X);
+        JsonSettings::setDefaultValue(kPCM2DSD, QVariant::fromValue(default_setting));
+        AppSettings::setValue(kEnablePcm2Dsd, false);
+    }
 }
 
 static LogLevel parseLogLevel(const QString &str) {
@@ -108,7 +110,7 @@ static void loadLogConfig() {
 
     QMap<QString, QVariant> well_known_log_name;
 
-    for (const auto& logger_name : LoggerManager::GetInstance().GetWellKnownName()) {
+    for (const auto& logger_name : XAMP_DEFAULT_LOG().GetWellKnownName()) {
         if (logger_name != kXampLoggerName) {
             well_known_log_name[fromStdStringView(logger_name)] = Q_TEXT("info");
         }
@@ -117,12 +119,12 @@ static void loadLogConfig() {
     if (JsonSettings::getValueAsMap(kLog).isEmpty()) {
         min_level[kLogDefault] = Q_TEXT("debug");
 
-        XAMP_SET_LOG_LEVEL(parseLogLevel(min_level[kLogDefault].toString()));
+        XAMP_DEFAULT_LOG().SetLevel(parseLogLevel(min_level[kLogDefault].toString()));
 
     	for (auto itr = well_known_log_name.begin()
             ; itr != well_known_log_name.end(); ++itr) {
             override_map[itr.key()] = itr.value();
-            LoggerManager::GetInstance().GetLogger(itr.key().toStdString())
+            XAMP_DEFAULT_LOG().GetLogger(itr.key().toStdString())
                 ->SetLevel(parseLogLevel(itr.value().toString()));
         }
 
@@ -135,7 +137,7 @@ static void loadLogConfig() {
         min_level = log[kLogMinimumLevel].toMap();
 
         const auto default_level = min_level[kLogDefault].toString();
-        XAMP_SET_LOG_LEVEL(parseLogLevel(default_level));
+        XAMP_DEFAULT_LOG().SetLevel(parseLogLevel(default_level));
 
         override_map = min_level[kLogOverride].toMap();
 
@@ -150,7 +152,7 @@ static void loadLogConfig() {
             ; itr != override_map.end(); ++itr) {
 	        const auto& log_name = itr.key();
             auto log_level = itr.value().toString();
-            LoggerManager::GetInstance().GetLogger(log_name.toStdString())
+            XAMP_DEFAULT_LOG().GetLogger(log_name.toStdString())
         	->SetLevel(parseLogLevel(log_level));
         }       
     }

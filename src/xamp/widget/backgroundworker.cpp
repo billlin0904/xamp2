@@ -40,7 +40,9 @@ BackgroundWorker::~BackgroundWorker() = default;
 
 void BackgroundWorker::stopThreadPool() {
     is_stop_ = true;
-    pool_->Stop();
+    if (pool_ != nullptr) {
+        pool_->Stop();
+    }
 }
 
 void BackgroundWorker::onFetchCdInfo(const DriveInfo& drive) {

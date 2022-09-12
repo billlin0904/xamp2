@@ -49,7 +49,6 @@ inline constexpr uint32_t kActionQueueSize = 30;
 inline constexpr size_t kFFTSize = 512;
 
 inline constexpr std::chrono::milliseconds kUpdateSampleInterval(100);
-inline constexpr std::chrono::milliseconds kUpdateFFTInterval(5);
 
 inline constexpr std::chrono::milliseconds kReadSampleWaitTime(30);
 inline constexpr std::chrono::milliseconds kPauseWaitTimeout(30);

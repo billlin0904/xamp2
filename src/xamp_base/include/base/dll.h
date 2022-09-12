@@ -32,9 +32,13 @@ public:
         return func_;
     }
 
+    XAMP_ALWAYS_INLINE bool IsValid() const noexcept {
+        return func_ != nullptr;
+    }
+
     XAMP_DISABLE_COPY(DllFunction)
 private:
-    T *func_;
+    T *func_{nullptr};
 };
 
 #define XAMP_DECLARE_DLL(Export_C_Func) DllFunction<decltype(Export_C_Func)>

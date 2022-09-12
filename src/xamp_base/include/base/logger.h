@@ -44,6 +44,7 @@ DECLARE_LOG_NAME(Xamp);
 DECLARE_LOG_NAME(WASAPIThreadPool);
 DECLARE_LOG_NAME(PlaybackThreadPool);
 DECLARE_LOG_NAME(DSPThreadPool);
+DECLARE_LOG_NAME(Pcm2DsdConverter);
 DECLARE_LOG_NAME(BackgroundThreadPool);
 DECLARE_LOG_NAME(ExclusiveWasapiDevice);
 DECLARE_LOG_NAME(ExclusiveWasapiDeviceType);
@@ -60,7 +61,7 @@ DECLARE_LOG_NAME(FileStream);
 	
 }
 
-#define XAMP_SET_LOG_LEVEL(level) xamp::base::LoggerManager::GetInstance().SetLevel(level)
+#define XAMP_DEFAULT_LOG() xamp::base::LoggerManager::GetInstance()
 
 #define XAMP_LOG_DEBUG(...) xamp::base::LoggerManager::GetInstance().GetDefaultLogger()->LogDebug(__VA_ARGS__)
 #define XAMP_LOG_INFO(...) xamp::base::LoggerManager::GetInstance().GetDefaultLogger()->LogInfo(__VA_ARGS__)

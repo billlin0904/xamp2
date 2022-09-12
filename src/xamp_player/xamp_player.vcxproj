@@ -127,7 +127,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../xamp_output_device/include/;../xamp_stream/include/;../thirdparty/spdlog/include/;../thirdparty/chromaprint/src/;../thirdparty/robin_hood/;../thirdparty/fftw/;../thirdparty/libebur128/;../thirdparty/libdiscid/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../xamp_output_device/include/;../xamp_stream/include/;../thirdparty/spdlog/include/;../thirdparty/chromaprint/src/;../thirdparty/robin_hood/;../thirdparty/fftw/;../thirdparty/libebur128/;../thirdparty/libdiscid/include/;../thirdparty/intel_mkl/include/</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <OmitFramePointers>true</OmitFramePointers>
       <PreprocessorDefinitions>XAMP_PALYER_API_EXPORTS;ENABLE_ASIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>

@@ -366,20 +366,6 @@ std::string GetCurrentThreadId() {
     return ostr.str();
 }
 
- Path GetTempFilePath() {
-	const auto temp_path = Fs::temp_directory_path();
-	return temp_path / Fs::path(MakeTempFileName() + ".tmp");
-}
-
-std::string MakeTempFileName() {
-    std::string filename = "xamp_temp_";
-    static constexpr std::string_view kFilenameCharacters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    for (auto i = 0; i < 8; ++i) {
-        filename += kFilenameCharacters[PRNG().Next(kFilenameCharacters.length() - 1)];
-    }
-    return filename;
-}
-
 bool IsDebuging() {
 #ifdef _DEBUG
     return true;

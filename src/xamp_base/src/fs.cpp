@@ -1,4 +1,8 @@
+#include <fstream>
 #include <base/fs.h>
+#include <base/rng.h>
+#include <base/exception.h>
+#include <base/platform.h>
 #include <base/exception.h>
 #include <base/stl.h>
 
@@ -8,11 +12,30 @@
 
 namespace xamp::base {
 
+ Path GetTempFilePath() {
+ 	constexpr auto kMaxRetryCreateTempFile = 100;
+	const auto temp_path = Fs::temp_directory_path();
+	
+	for (auto i = 0; i < kMaxRetryCreateTempFile; ++i) {
+		auto path = temp_path / Fs::path(MakeTempFileName() + ".tmp");
+		std::ofstream file(path.native());
+		if (file.is_open()) {
+			file.close();
+			return path;
+		}
+	}
+	throw PlatformSpecException("Can't create temp file.");
+}
+
+std::string MakeTempFileName() {
+	return MakeUuidString();
+}
+
 int64_t GetLastWriteTime(const Path& path) {
 #ifdef XAMP_OS_WIN
 	const auto file_path = path.wstring();
 
-	FileHandle file(CreateFileW(file_path.c_str(),
+	FileHandle file(::CreateFileW(file_path.c_str(),
 		GENERIC_READ,
 		FILE_SHARE_READ, 
 		nullptr,

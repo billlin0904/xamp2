@@ -78,14 +78,14 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/bass/include/;../thirdparty/spdlog/include/;../thirdparty/robin_hood/;../thirdparty/soxr/src/;../thirdparty/fftw/;../thirdparty/r8brain-free-src/DLL/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/bass/include/;../thirdparty/spdlog/include/;../thirdparty/robin_hood/;../thirdparty/soxr/src/;../thirdparty/fftw/;../thirdparty/r8brain-free-src/DLL/;../thirdparty/intel_mkl/include/</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STREAM_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4996;4819;4200;</DisableSpecificWarnings>
       <BrowseInformation>true</BrowseInformation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalLibraryDirectories>../xamp/x64/Debug/;../thirdparty/ffmpeg/lib/x64/</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../xamp/x64/Debug/</AdditionalLibraryDirectories>
       <AdditionalDependencies>xamp_base.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Bscmake>
@@ -126,7 +126,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/bass/include/;../thirdparty/spdlog/include/;../thirdparty/robin_hood/;../thirdparty/soxr/src/;../thirdparty/fftw/;../thirdparty/r8brain-free-src/DLL/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./include/;../xamp_base/include/;../thirdparty/bass/include/;../thirdparty/spdlog/include/;../thirdparty/robin_hood/;../thirdparty/soxr/src/;../thirdparty/fftw/;../thirdparty/r8brain-free-src/DLL/;../thirdparty/intel_mkl/include/</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STREAM_API_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <DisableSpecificWarnings>4996;4819;4200;</DisableSpecificWarnings>
@@ -217,6 +217,5 @@
     <ClCompile Include="src\wavefilewriter.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-  </ImportGroup>
+  <ImportGroup Label="ExtensionTargets" />
 </Project>

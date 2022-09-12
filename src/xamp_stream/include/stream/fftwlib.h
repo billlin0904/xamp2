@@ -12,10 +12,71 @@
 #include <stream/stream.h>
 #include <base/singleton.h>
 #include <base/dll.h>
+
+#if (USE_INTEL_MKL_LIB)
+#include <fftw/fftw3.h>
+#include <fftw/fftw3_mkl.h>
+#include <mkl_service.h>
+#else
 #include <fftw3.h>
+#endif
 
 namespace xamp::stream {
 
+#if (USE_INTEL_MKL_LIB)
+
+class FFTWLib final {
+public:
+	FFTWLib();
+
+	XAMP_DISABLE_COPY(FFTWLib)
+
+private:
+	ModuleHandle module_;
+
+public:
+	static void delete_plan(fftw_mkl_plan p);
+	static fftw_mkl_plan new_plan(void);
+
+	XAMP_DECLARE_DLL(DftiErrorClass) DftiErrorClass;
+	XAMP_DECLARE_DLL(DftiFreeDescriptor) DftiFreeDescriptor;
+	XAMP_DECLARE_DLL(DftiCreateDescriptor_s_1d) DftiCreateDescriptor_s_1d;
+	XAMP_DECLARE_DLL(DftiCreateDescriptor_s_md) DftiCreateDescriptor_s_md;
+	XAMP_DECLARE_DLL(DftiCreateDescriptor_d_1d) DftiCreateDescriptor_d_1d;
+	XAMP_DECLARE_DLL(DftiCreateDescriptor_d_md) DftiCreateDescriptor_d_md;
+	XAMP_DECLARE_DLL(DftiComputeForward) DftiComputeForward;
+	XAMP_DECLARE_DLL(DftiCreateDescriptor) DftiCreateDescriptor_;
+	XAMP_DECLARE_DLL(DftiSetValue) DftiSetValue;
+	XAMP_DECLARE_DLL(DftiCommitDescriptor) DftiCommitDescriptor;
+	XAMP_DECLARE_DLL(DftiComputeBackward) DftiComputeBackward;
+
+	fftw_plan fftw_plan_guru64_dft_r2c(int rank,
+		const fftw_iodim64* dims,
+		int howmany_rank,
+		const fftw_iodim64* howmany_dims,
+		double* in,
+		fftw_complex* out,
+		unsigned flags);
+
+	fftw_plan fftw_plan_guru64_dft_c2r(int rank,
+		const fftw_iodim64* dims,
+		int howmany_rank,
+		const fftw_iodim64* howmany_dims,
+		fftw_complex* in,
+		double* out,
+		unsigned flags);
+
+	fftw_plan fftw_plan_dft_c2r(int rank, const int* n, fftw_complex* in, double* out, unsigned flags);
+	fftw_plan fftw_plan_dft_r2c(int rank, const int* n, double* in, fftw_complex* out, unsigned flags);
+
+	void fftw_destroy_plan(fftw_plan plan);
+	void* fftw_malloc(size_t n);
+	void fftw_free(void* p);
+	void fftw_execute(const fftw_plan plan);
+	fftw_plan fftw_plan_dft_r2c_1d(int n, double* in, fftw_complex* out, unsigned flags);
+	fftw_plan fftw_plan_dft_c2r_1d(int n, fftw_complex* in, double* out, unsigned flags);
+};
+#else
 class FFTWLib final {
 public:
 	FFTWLib();
@@ -32,9 +93,8 @@ public:
 	XAMP_DECLARE_DLL(fftw_execute) fftw_execute;
 	XAMP_DECLARE_DLL(fftw_plan_dft_r2c_1d) fftw_plan_dft_r2c_1d;
 	XAMP_DECLARE_DLL(fftw_plan_dft_c2r_1d) fftw_plan_dft_c2r_1d;
-	XAMP_DECLARE_DLL(fftw_make_planner_thread_safe) fftw_make_planner_thread_safe;
-	XAMP_DECLARE_DLL(fftw_plan_with_nthreads) fftw_plan_with_nthreads;
 };
+#endif
 
 class FFTWFLib final {
 public:

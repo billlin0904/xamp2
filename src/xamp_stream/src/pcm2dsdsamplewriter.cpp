@@ -55,12 +55,12 @@ public:
 private:
 	size_t length_;
 	size_t width_;
-	std::vector<double> data_;
+	Vector<double> data_;
 };
 
-static const std::vector<double> & FIRFilter() {
-	static constexpr auto readFIRFilter = []() {
-		static std::vector<double> data;
+static const Vector<double> & FIRFilter() {
+	static constexpr auto read_fir_filter = []() {
+		Vector<double> data;
 
 		std::ifstream file(".\\FIRFilter.dat");
 		if (file.fail()) {
@@ -78,13 +78,13 @@ static const std::vector<double> & FIRFilter() {
 		return data;
 	};
 
-	static const auto lut = readFIRFilter();
+	static const auto lut = read_fir_filter();
 	return lut;
 }
 
 static const Double2DArray& NoiseShapingCoeff() {
-	static constexpr auto readNoiseShapingCoeff = []() {
-		static Double2DArray data;
+	static constexpr auto read_noise_shaping_coeff = []() {
+		Double2DArray data;
 
 		std::ifstream file(".\\NoiseShapingCoeff.dat");
 		if (file.fail()) {
@@ -120,7 +120,7 @@ static const Double2DArray& NoiseShapingCoeff() {
 		return data;
 	};
 
-	static const auto lut = readNoiseShapingCoeff();
+	static const auto lut = read_noise_shaping_coeff();
 	return lut;
 }
 
@@ -222,26 +222,26 @@ struct FFTWContext {
 	}
 
 	double gain = 1;
-	std::vector<uint32_t> nowfft_size;
-	std::vector<uint32_t> zero_size;
-	std::vector<uint32_t> pudding_size;
-	std::vector<uint32_t> realfft_size;
-	std::vector<uint32_t> add_size;
-	std::vector<FFTWPlan> fft;
-	std::vector<FFTWPlan> ifft;
-	std::vector<FFTWDoubleArray> fftin;
-	std::vector<FFTWComplexArray> fftout;
-	std::vector<FFTWDoubleArray> ifftout;
-	std::vector<FFTWComplexArray> ifftin;
-	std::vector<FFTWDoubleArray> prebuffer;
-	std::vector<FFTWComplexArray> firfilter_fft;
+	Vector<uint32_t> nowfft_size;
+	Vector<uint32_t> zero_size;
+	Vector<uint32_t> pudding_size;
+	Vector<uint32_t> realfft_size;
+	Vector<uint32_t> add_size;
+	Vector<FFTWPlan> fft;
+	Vector<FFTWPlan> ifft;
+	Vector<FFTWDoubleArray> fftin;
+	Vector<FFTWComplexArray> fftout;
+	Vector<FFTWDoubleArray> ifftout;
+	Vector<FFTWComplexArray> ifftin;
+	Vector<FFTWDoubleArray> prebuffer;
+	Vector<FFTWComplexArray> firfilter_fft;
 };
 
 class Pcm2DsdSampleWriter::Pcm2DsdSampleWriterImpl {
 public:
 	explicit Pcm2DsdSampleWriterImpl(DsdTimes dsd_times) {
 		dsd_times_ = static_cast<uint32_t>(dsd_times);
-		logger_ = LoggerManager::GetInstance().GetLogger("Pcm2DsdConverter");		
+		logger_ = LoggerManager::GetInstance().GetLogger(kPcm2DsdConverterLoggerName);
 		constexpr auto kMaxPcm2DsdThread = 4;
 		CpuAffinity kPcm2DsdAffinityCpuCore;
 		kPcm2DsdAffinityCpuCore.Set(2);
@@ -333,10 +333,10 @@ public:
 		}
 	}
 
-	void ProcessChannel(const std::vector<double> &channel, FFTWContext & ctx, std::fstream & output_file) {
-		std::vector<double> delta_buffer;
-		std::vector<double> buffer;
-		std::vector<int8_t> out;
+	void ProcessChannel(const Vector<double> &channel, FFTWContext & ctx, std::fstream & output_file) {
+		Vector<double> delta_buffer;
+		Vector<double> buffer;
+		Vector<int8_t> out;
 
 		delta_buffer.resize(order_ + 1);
 		buffer.resize(fft_size_);
@@ -360,9 +360,6 @@ public:
 
 		for (i = 0u; i < split_num_; ++i) {
 			MemoryCopy(buffer.data(), data, 8 * (data_size_ / dsd_times_));
-
-			Stopwatch sw;
-			XAMP_LOG_D(logger_, "Process split FFT:{} start...", i);
 
 			for (t = 0u; t < log_times_; t++) {
 				q = 0;
@@ -392,8 +389,6 @@ public:
 					q++;
 				}
 			}
-
-			XAMP_LOG_D(logger_, "Process split FFT end {:.2f}sec", sw.ElapsedSeconds());
 
 			for (q = 0u; q < data_size_; q++) {
 				x_in = buffer[q] * deltagain;
@@ -445,7 +440,7 @@ public:
 	void CloseAndRemoveFile(std::fstream& file, const Path &path) const {
 		try {
 			file.close();
-			XAMP_LOG_D(logger_, String::Format("Close {} file.", path.filename()));
+			//XAMP_LOG_D(logger_, String::Format("Close {} file.", path.filename()));
 		}
 		catch (std::exception const& e) {
 			XAMP_LOG_E(logger_, String::Format("Close {} file failure! error: {}", path.filename(), e.what()));
@@ -453,7 +448,7 @@ public:
 
 		try {
 			Fs::remove(path);
-			XAMP_LOG_D(logger_, String::Format("Remove {} file.", path.filename()));
+			//XAMP_LOG_D(logger_, String::Format("Remove {} file.", path.filename()));
 		}
 		catch (std::exception const& e) {
 			XAMP_LOG_E(logger_, String::Format("Remove {} file failure! error: {}", path.filename(), e.what()));
@@ -479,11 +474,11 @@ public:
 		rch_out_.open(rch_out_path_.native(), std::ios::in | std::ios::binary);
 		rch_out_.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 
-		std::vector<uint8_t> tmpdataL(data_size_);
-		std::vector<uint8_t> tmpdataR(data_size_);
-		std::vector<uint8_t> onebit(data_size_ / 4);
-		std::vector<int32_t> debug_dop_data(onebit.size() / 2);
-		std::vector<float> dop_data(onebit.size() / 2);
+		Vector<uint8_t> tmpdataL(data_size_);
+		Vector<uint8_t> tmpdataR(data_size_);
+		Vector<uint8_t> onebit(data_size_ / 4);
+		Vector<int32_t> debug_dop_data(onebit.size() / 2);
+		Vector<float> dop_data(onebit.size() / 2);
 		
 		for (auto i = 0u; i < split_num_; i++) {
 		 	lch_out_.read(reinterpret_cast<char*>(tmpdataL.data()), tmpdataL.size());
@@ -609,8 +604,8 @@ public:
 	FFTWContext rch_ctx_;
 	std::fstream lch_out_;
 	std::fstream rch_out_;
-	std::vector<double> lch_src_;
-	std::vector<double> rch_src_;
+	Vector<double> lch_src_;
+	Vector<double> rch_src_;
 	std::shared_ptr<Logger> logger_;
 	AlignPtr<IThreadPool> tp_;
 };
