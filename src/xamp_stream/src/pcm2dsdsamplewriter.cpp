@@ -242,26 +242,24 @@ public:
 	explicit Pcm2DsdSampleWriterImpl(DsdTimes dsd_times) {
 		dsd_times_ = static_cast<uint32_t>(dsd_times);
 		logger_ = LoggerManager::GetInstance().GetLogger(kPcm2DsdConverterLoggerName);
-		constexpr auto kMaxPcm2DsdThread = 4;
-		CpuAffinity kPcm2DsdAffinityCpuCore;
-		kPcm2DsdAffinityCpuCore.Set(2);
-		kPcm2DsdAffinityCpuCore.Set(3);
-		kPcm2DsdAffinityCpuCore.Set(4);
-		kPcm2DsdAffinityCpuCore.Set(5);
-		tp_ = MakeThreadPool(kDSPThreadPoolLoggerName, 
-			ThreadPriority::NORMAL, 
-			kMaxPcm2DsdThread,
-			kPcm2DsdAffinityCpuCore);
 	}
 
 	~Pcm2DsdSampleWriterImpl() {
 		RemoveTempFile();
-		tp_->Stop();
+		if (tp_ != nullptr) {
+			tp_->Stop();
+		}
 	}
 
-	void Init(uint32_t input_sample_rate) {
+	void Init(uint32_t input_sample_rate, CpuAffinity affinity) {
 		FIRFilter();
 		NoiseShapingCoeff();
+
+		constexpr auto kMaxPcm2DsdThread = 4;
+		tp_ = MakeThreadPool(kDSPThreadPoolLoggerName,
+			ThreadPriority::NORMAL,
+			kMaxPcm2DsdThread,
+			affinity);
 
 		auto dsd_times = pow(2, dsd_times_);
 
@@ -616,8 +614,8 @@ Pcm2DsdSampleWriter::Pcm2DsdSampleWriter(DsdTimes dsd_times)
 	: impl_(MakeAlign<Pcm2DsdSampleWriterImpl>(dsd_times)) {
 }
 
-void Pcm2DsdSampleWriter::Init(uint32_t output_sample_rate) {
-	impl_->Init(output_sample_rate);
+void Pcm2DsdSampleWriter::Init(uint32_t output_sample_rate, CpuAffinity affinity) {
+	impl_->Init(output_sample_rate, affinity);
 }
 
 uint32_t Pcm2DsdSampleWriter::GetDataSize() const {

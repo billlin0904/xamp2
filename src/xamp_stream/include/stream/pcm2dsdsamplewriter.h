@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <base/platform.h>
 #include <stream/stream.h>
 #include <stream/dsd_times.h>
 #include <stream/isameplewriter.h>
@@ -15,7 +16,7 @@ class XAMP_STREAM_API Pcm2DsdSampleWriter final : public ISampleWriter {
 public:
 	explicit Pcm2DsdSampleWriter(DsdTimes dsd_times);
 
-	void Init(uint32_t input_sample_rate);
+	void Init(uint32_t input_sample_rate, CpuAffinity affinity);
 
 	uint32_t GetDsdSampleRate() const;
 

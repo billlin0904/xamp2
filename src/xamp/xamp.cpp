@@ -1194,7 +1194,12 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
             auto dsd_times = static_cast<DsdTimes>(config[kPCM2DSDDsdTimes].toInt());
             auto pcm2dsd_writer = MakeAlign<ISampleWriter, Pcm2DsdSampleWriter>(dsd_times);
             auto* writer = dynamic_cast<Pcm2DsdSampleWriter*>(pcm2dsd_writer.get());
-            writer->Init(input_sample_rate);
+            CpuAffinity affinity;
+			affinity.Set(2);
+			affinity.Set(3);
+			//affinity.Set(4);
+			//affinity.Set(5);
+            writer->Init(input_sample_rate, affinity);
 
             device_sample_rate = GetDOPSampleRate(writer->GetDsdSpeed());
             player_->GetDSPManager()->SetSampleWriter(std::move(pcm2dsd_writer));
