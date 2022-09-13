@@ -1180,6 +1180,7 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
 
         auto input_sample_rate = player_->GetInputFormat().GetSampleRate();
         auto dsd_modes = DsdModes::DSD_MODE_AUTO;
+        auto convert_mode = Pcm2DsdConvertModes::PCM2DSD_DSD_DOP;
         uint32_t device_sample_rate = 0;
 
         // note: PCM2DSD function have some issue.
@@ -1194,14 +1195,22 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
             auto dsd_times = static_cast<DsdTimes>(config[kPCM2DSDDsdTimes].toInt());
             auto pcm2dsd_writer = MakeAlign<ISampleWriter, Pcm2DsdSampleWriter>(dsd_times);
             auto* writer = dynamic_cast<Pcm2DsdSampleWriter*>(pcm2dsd_writer.get());
+
             CpuAffinity affinity;
 			affinity.Set(2);
 			affinity.Set(3);
 			//affinity.Set(4);
 			//affinity.Set(5);
-            writer->Init(input_sample_rate, affinity);
+            writer->Init(input_sample_rate, affinity, convert_mode);
 
-            device_sample_rate = GetDOPSampleRate(writer->GetDsdSpeed());
+            if (convert_mode == Pcm2DsdConvertModes::PCM2DSD_DSD_DOP) {
+                device_sample_rate = GetDOPSampleRate(writer->GetDsdSpeed());
+                dsd_modes = DsdModes::DSD_MODE_DOP;
+            } else {
+                device_sample_rate = writer->GetDsdSampleRate();
+                dsd_modes = DsdModes::DSD_MODE_NATIVE;
+            }
+
             player_->GetDSPManager()->SetSampleWriter(std::move(pcm2dsd_writer));
 
             player_->PrepareToPlay(device_sample_rate, dsd_modes);
@@ -1210,7 +1219,7 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
             resampler_type = Qt::EmptyString;
             playback_format = getPlaybackFormat(player_.get());
             playback_format.is_dsd_file = true;
-            playback_format.dsd_mode = DsdModes::DSD_MODE_DOP;
+            playback_format.dsd_mode = dsd_modes;
             playback_format.dsd_speed = writer->GetDsdSpeed();
             playback_format.output_format.SetSampleRate(device_sample_rate);
         } else {

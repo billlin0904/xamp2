@@ -392,6 +392,7 @@ void AsioDevice::CreateBuffers(AudioFormat const & output_format) {
 	long output_latency = 0;
 	AsioIfFailedThrow(::ASIOGetLatencies(&input_latency, &output_latency));
 	latency_ = GetLatencyMs(output_latency, output_format.GetSampleRate());
+	XAMP_LOG_D(log_, "IO format :{} ", io_format_);
 	XAMP_LOG_D(log_, "Buffer size :{} ", String::FormatBytes(buffer_.GetByteSize()));
 	XAMP_LOG_D(log_, "Output latency: {} msec.", latency_);
 	ASIODriver.SetPostOutput();

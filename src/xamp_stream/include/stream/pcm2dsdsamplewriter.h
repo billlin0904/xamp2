@@ -6,17 +6,22 @@
 #pragma once
 
 #include <base/platform.h>
+#include <base/dsdsampleformat.h>
 #include <stream/stream.h>
 #include <stream/dsd_times.h>
 #include <stream/isameplewriter.h>
 
 namespace xamp::stream {
 
+MAKE_XAMP_ENUM(Pcm2DsdConvertModes, 
+	PCM2DSD_DSD_DOP,
+	PCM2DSD_DSD_NATIVE)
+
 class XAMP_STREAM_API Pcm2DsdSampleWriter final : public ISampleWriter {
 public:
 	explicit Pcm2DsdSampleWriter(DsdTimes dsd_times);
 
-	void Init(uint32_t input_sample_rate, CpuAffinity affinity);
+	void Init(uint32_t input_sample_rate, CpuAffinity affinity, Pcm2DsdConvertModes convert_mode);
 
 	uint32_t GetDsdSampleRate() const;
 

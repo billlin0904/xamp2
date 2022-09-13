@@ -523,7 +523,6 @@ void AudioPlayer::CreateBuffer() {
         output_format_.GetAvgBytesPerSec() * kMaxBufferSecs,
         allocate_read_size * kTotalBufferStreamCount);
 
-
     AllocateReadBuffer(allocate_read_size);
     AllocateFifo();
 
@@ -607,8 +606,10 @@ void AudioPlayer::OpenDevice(double stream_time, DsdModes output_mode) {
                     dsd_output->SetIoFormat(DsdIoFormat::IO_FORMAT_PCM);
                     dsd_mode_ = DsdModes::DSD_MODE_PCM;
                 }
-            }            
+            }
         } else {
+            output_format_.SetFormat(DataFormat::FORMAT_DSD);
+            output_format_.SetByteFormat(ByteFormat::SINT8);
             dsd_output->SetIoFormat(DsdIoFormat::IO_FORMAT_DSD);
             dsd_mode_ = output_mode;
         }
@@ -910,7 +911,6 @@ void AudioPlayer::PrepareToPlay(uint32_t device_sample_rate, DsdModes output_mod
     OpenDevice(0, output_mode);
     CreateBuffer();
     dsp_manager_->Init(input_format_, output_format_, dsd_mode_, stream_->GetSampleSize());
-    //BufferStream(0);
 	sample_end_time_ = stream_->GetDuration();
     XAMP_LOG_D(logger_, "Stream end time: {:.2f} sec.", sample_end_time_);
     fader_ = DspComponentFactory::MakeFader();

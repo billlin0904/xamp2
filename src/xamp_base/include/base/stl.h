@@ -193,6 +193,5 @@ ForwardIt BinarySearch(ForwardIt first, ForwardIt last, const T& value, Compare 
 	return first != last && !comp(*first, value) ? first : last;
 }
 
-
 }
 

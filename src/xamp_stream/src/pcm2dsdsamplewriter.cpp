@@ -10,6 +10,7 @@
 #include <base/assert.h>
 #include <base/fastmutex.h>
 #include <base/ithreadpool.h>
+#include <base/stl.h>
 #include <base/stopwatch.h>
 
 #include <stream/fftwlib.h>
@@ -19,6 +20,17 @@
 namespace xamp::stream {
 
 #ifdef XAMP_OS_WIN
+
+static uint8_t ReverseBits(uint8_t num) {
+	auto NO_OF_BITS = sizeof(num) * 8;
+	auto reverse_num = 0;
+
+	for (auto i = 0; i < NO_OF_BITS; i++) {
+		if ((num & (1 << i)))
+			reverse_num |= 1 << ((NO_OF_BITS - 1) - i);
+	}
+	return reverse_num;
+}
 
 class Double2DArray {
 public:
@@ -237,6 +249,8 @@ struct FFTWContext {
 	Vector<FFTWComplexArray> firfilter_fft;
 };
 
+#define NO_TEST_DSD_FILE 1
+
 class Pcm2DsdSampleWriter::Pcm2DsdSampleWriterImpl {
 public:
 	explicit Pcm2DsdSampleWriterImpl(DsdTimes dsd_times) {
@@ -245,15 +259,17 @@ public:
 	}
 
 	~Pcm2DsdSampleWriterImpl() {
-		RemoveTempFile();
+		//RemoveTempFile();
 		if (tp_ != nullptr) {
 			tp_->Stop();
 		}
 	}
 
-	void Init(uint32_t input_sample_rate, CpuAffinity affinity) {
+	void Init(uint32_t input_sample_rate, CpuAffinity affinity, Pcm2DsdConvertModes convert_mode) {
 		FIRFilter();
 		NoiseShapingCoeff();
+
+		convert_mode_ = convert_mode;
 
 		constexpr auto kMaxPcm2DsdThread = 4;
 		tp_ = MakeThreadPool(kDSPThreadPoolLoggerName,
@@ -279,7 +295,8 @@ public:
 		data_size_ = fft_size_ / 2;
 		dsd_times_ = times_;
 
-		XAMP_LOG_D(logger_, "DSD Times: {} Times: {} DsdSampleRate: {} section_1: {} logtimes: {} fftsize: {}", 
+		XAMP_LOG_D(logger_, "Type: {} DSD Times: {} Times: {} DsdSampleRate: {} section_1: {} logtimes: {} fftsize: {}",
+			convert_mode_,
 			dsd_times,
 			times_, 
 			dsd_sampling_rate_,
@@ -289,6 +306,16 @@ public:
 
 		lch_ctx_.Init(log_times_, times_, fft_size_, section_1_, logger_);
 		rch_ctx_.Init(log_times_, times_, fft_size_, section_1_, logger_);
+
+#ifndef NO_TEST_DSD_FILE
+		lch_out_.open(R"(C:\Users\rdbill0452\Documents\Github\xamp2\src\xamp\test_dsd\Catch You Catch Me_tmpLDSD)", std::ios::in | std::ios::binary);
+		lch_out_.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+		lch_out_.seekg(12873984);
+
+		rch_out_.open(R"(C:\Users\rdbill0452\Documents\Github\xamp2\src\xamp\test_dsd\Catch You Catch Me_tmpRDSD)", std::ios::in | std::ios::binary);
+		rch_out_.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+		rch_out_.seekg(12873984);
+#endif
 	}
 
 	uint32_t GetDataSize() const {
@@ -463,6 +490,7 @@ public:
 
 		constexpr std::array<uint8_t, 2> kDoPMarker { 0x05, 0xFA };
 
+#ifdef NO_TEST_DSD_FILE
 		lch_out_.close();
 		rch_out_.close();
 
@@ -471,7 +499,8 @@ public:
 
 		rch_out_.open(rch_out_path_.native(), std::ios::in | std::ios::binary);
 		rch_out_.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-
+#endif
+		
 		Vector<uint8_t> tmpdataL(data_size_);
 		Vector<uint8_t> tmpdataR(data_size_);
 		Vector<uint8_t> onebit(data_size_ / 4);
@@ -508,51 +537,60 @@ public:
 				p += 8;
 			}
 
-			// DOP format:
-			// 0x05 L1 0x05 R1, 0xFA L2 0xFA R2, 0x05 L3 0x05 R3 ...
+			if (convert_mode_ == Pcm2DsdConvertModes::PCM2DSD_DSD_DOP) {
+				// DOP format:
+				// 0x05 L1 0x05 R1, 0xFA L2 0xFA R2, 0x05 L3 0x05 R3 ...
 
-			auto m = 0;
+				auto m = 0;
 
-			for (auto sample = 0u; sample < onebit.size() / 2; sample += 2) {
-				Int24 left;
-				left.data[0] = onebit[sample * 2 + 2];
-				left.data[1] = onebit[sample * 2 + 0];
-				left.data[2] = kDoPMarker[c];
-				auto v = left.To32Int();
-				if (kDoPMarker[c] == 0xFA) {
-					v |= 0xFF000000u;
+				for (auto sample = 0u; sample < onebit.size() / 2; sample += 2) {
+					Int24 left;
+					left.data[0] = onebit[sample * 2 + 2];
+					left.data[1] = onebit[sample * 2 + 0];
+					left.data[2] = kDoPMarker[c];
+					auto v = left.To32Int();
+
+					debug_dop_data[o] = v;
+					if (kDoPMarker[c] == 0xFA) {
+						v |= 0xFF000000u;
+					}
+					XAMP_ASSERT(v != 0);
+					dop_data[o] = static_cast<float>(v) / 8388608;
+					++o;
+
+					Int24 right;
+					right.data[0] = onebit[sample * 2 + 3];
+					right.data[1] = onebit[sample * 2 + 1];
+					right.data[2] = kDoPMarker[c];
+					v = right.To32Int();
+
+					debug_dop_data[o] = v;
+					if (kDoPMarker[c] == 0xFA) {
+						v |= 0xFF000000u;
+					}
+					XAMP_ASSERT(v != 0);
+					dop_data[o] = static_cast<float>(v) / 8388608;
+					++o;
+
+					if (m % 2 == 0) {
+						c = (c + 1) % kDoPMarker.size();
+					}
+
+					m += 2;
 				}
-				XAMP_ASSERT(v != 0);
-				debug_dop_data[o] = v;
-				dop_data[o] = static_cast<float>(v) / 8388608;
-				++o;
-
-				Int24 right;
-				right.data[0] = onebit[sample * 2 + 3];
-				right.data[1] = onebit[sample * 2 + 1];
-				right.data[2] = kDoPMarker[c];
-				v = right.To32Int();
-				if (kDoPMarker[c] == 0xFA) {
-					v |= 0xFF000000u;
-				}
-				XAMP_ASSERT(v != 0);
-				debug_dop_data[o] = v;
-				dop_data[o] = static_cast<float>(v) / 8388608;
-				++o;
-
-				if (m % 2 == 0) {
-					c = (c + 1) % kDoPMarker.size();
-				}
-
-				m += 2;
+				BufferOverFlowThrow(buffer.TryWrite(reinterpret_cast<int8_t*>(dop_data.data()), dop_data.size() * 4));
+			} else {
+				BufferOverFlowThrow(buffer.TryWrite(reinterpret_cast<int8_t*>(onebit.data()), onebit.size()));
 			}
-			BufferOverFlowThrow(buffer.TryWrite(reinterpret_cast<int8_t*>(dop_data.data()), dop_data.size() * 4));
 		}
+#ifdef NO_TEST_DSD_FILE
 		RemoveTempFile();
+#endif
 		return true;
 	}
 
 	bool Process(float const* samples, size_t num_samples, AudioBuffer<int8_t>& buffer) {
+#ifdef NO_TEST_DSD_FILE
 		try {
 			CreateTempFile();
 		}
@@ -563,6 +601,7 @@ public:
 		}
 
 		SplitChannel(samples, num_samples);
+#endif
 
 		auto channel_size = num_samples / AudioFormat::kMaxChannel;
 		split_num_ = (channel_size / data_size_) * dsd_times_;
@@ -571,6 +610,7 @@ public:
 		ProcessChannel(rch_src_, rch_ctx_, rch_out_);
 		return MargeChannel(buffer);*/
 
+#ifdef NO_TEST_DSD_FILE
 		const auto lch_task= tp_->Spawn([this](auto index) {
 			ProcessChannel(lch_src_, lch_ctx_, lch_out_);
 			});
@@ -580,6 +620,7 @@ public:
 
 		lch_task.wait();
 		rch_task.wait();
+#endif
 		return MargeChannel(buffer);
 
 		/*auto channel_size = num_samples / AudioFormat::kMaxChannel;
@@ -596,6 +637,7 @@ public:
 	uint32_t log_times_{ 0 };
 	uint32_t fft_size_{ 0 };
 	uint32_t split_num_{ 0 };
+	Pcm2DsdConvertModes convert_mode_{ Pcm2DsdConvertModes::PCM2DSD_DSD_DOP };
 	Path lch_out_path_;
 	Path rch_out_path_;
 	FFTWContext lch_ctx_;
@@ -614,8 +656,8 @@ Pcm2DsdSampleWriter::Pcm2DsdSampleWriter(DsdTimes dsd_times)
 	: impl_(MakeAlign<Pcm2DsdSampleWriterImpl>(dsd_times)) {
 }
 
-void Pcm2DsdSampleWriter::Init(uint32_t output_sample_rate, CpuAffinity affinity) {
-	impl_->Init(output_sample_rate, affinity);
+void Pcm2DsdSampleWriter::Init(uint32_t output_sample_rate, CpuAffinity affinity, Pcm2DsdConvertModes convert_mode) {
+	impl_->Init(output_sample_rate, affinity, convert_mode);
 }
 
 uint32_t Pcm2DsdSampleWriter::GetDataSize() const {
