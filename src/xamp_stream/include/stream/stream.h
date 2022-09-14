@@ -20,8 +20,6 @@
 #define XAMP_STREAM_API __attribute__((visibility("default")))
 #endif
 
-#define USE_INTEL_MKL_LIB 1
-
 namespace xamp::stream {
 	using namespace base;
 

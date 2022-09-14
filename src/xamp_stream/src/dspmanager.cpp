@@ -26,10 +26,12 @@ DSPManager::DSPManager()
 }
 
 void DSPManager::AddPostDSP(AlignPtr<IAudioProcessor> processor) {
+    XAMP_LOG_D(logger_, "Add post dsp:{} success.", processor->GetDescription());
     AddOrReplace(std::move(processor), post_dsp_);
 }
 
 void DSPManager::AddPreDSP(AlignPtr<IAudioProcessor> processor) {
+    XAMP_LOG_D(logger_, "Add pre dsp:{} success.", processor->GetDescription());
     AddOrReplace(std::move(processor), pre_dsp_);
 }
 
@@ -96,7 +98,6 @@ void DSPManager::AddOrReplace(AlignPtr<IAudioProcessor> processor, Vector<AlignP
         [id](auto const& processor) {
             return processor->GetTypeId() == id;
         });
-    XAMP_LOG_D(logger_, "Add dsp:{} success.", processor->GetDescription());
     if (itr != dsp_chain.end()) {
         *itr = std::move(processor);
     }
@@ -118,8 +119,9 @@ void DSPManager::Remove(Uuid const& id, Vector<AlignPtr<IAudioProcessor>>& dsp_c
 }
 
 bool DSPManager::IsEnableSampleRateConverter() const {
-    return GetPreDSP<SoxrSampleRateConverter>() != std::nullopt
-        || GetPostDSP<SoxrSampleRateConverter>() != std::nullopt;
+    return
+	(GetPreDSP<SoxrSampleRateConverter>() != std::nullopt || GetPostDSP<SoxrSampleRateConverter>() != std::nullopt)
+	|| (GetPreDSP<R8brainSampleRateConverter>() != std::nullopt || GetPostDSP<R8brainSampleRateConverter>() != std::nullopt);
 }
 
 bool DSPManager::IsEnablePcm2DsdConverter() const {

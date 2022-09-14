@@ -1,4 +1,5 @@
 #include <thread>
+#include <set>
 
 #include <base/dll.h>
 #include <base/str_utilts.h>
@@ -183,6 +184,45 @@ void SetThreadName(std::string const& name) noexcept {
 #endif
 }
 
+ProcessorInformation GetProcessorInformation() {
+    const WinHandle current_process(::GetCurrentProcess());
+
+    ULONG retsize = 0u;
+    ::GetSystemCpuSetInformation(nullptr, 0, 
+        &retsize,
+        current_process.get(),
+        0);
+
+    const auto data = std::make_unique<uint8_t[]>(retsize);
+    if (!::GetSystemCpuSetInformation(reinterpret_cast<PSYSTEM_CPU_SET_INFORMATION>(data.get()),
+        retsize,
+        &retsize, 
+        current_process.get(),
+        0)) {
+        XAMP_LOG_DEBUG("GetSystemCpuSetInformation return failure!");
+    }
+
+    ProcessorInformation process_info;
+    std::set<DWORD> cores;
+    std::vector<DWORD> processors;
+
+    uint8_t const* ptr = data.get();
+    for (DWORD size = 0; size < retsize; ) {
+	    const auto *info = reinterpret_cast<const SYSTEM_CPU_SET_INFORMATION*>(ptr);
+        if (info->Type == CpuSetInformation) {
+            ProcessorInformation::Processor processor{ info->CpuSet.Id,info->CpuSet.CoreIndex };
+            process_info.processors.push_back(processor);
+            processors.push_back(info->CpuSet.Id);
+            cores.insert(info->CpuSet.CoreIndex);
+        }
+        ptr += info->Size;
+        size += info->Size;
+    }
+
+    process_info.is_hyper_threaded = processors.size() != cores.size();
+    return process_info;
+}
+
 static int32_t FFSLL(uint64_t mask) {
     auto bit = 0;
 
@@ -220,16 +260,15 @@ void SetThreadAffinity(std::thread& thread, CpuAffinity affinity) noexcept {
     auto group_size = 0;
 
 	const auto groups = ::GetActiveProcessorGroupCount();
-    auto cpus_offset = 0, group = -1, number = 0;
+    auto cpu_offset = 0, group = -1;
 
-    for (DWORD i = 0; i < groups; i++) {
+    for (WORD i = 0; i < groups; i++) {
 	    group_size = ::GetActiveProcessorCount(i);
-        if (cpus_offset + group_size > cpu) {
-            group = i;
-            number = cpu - cpus_offset;
+        if (cpu_offset + group_size > cpu) {
+            group = i;            
             break;
         }
-        cpus_offset += group_size;
+        cpu_offset += group_size;
 	}
 
     if (group == -1) {
@@ -237,11 +276,11 @@ void SetThreadAffinity(std::thread& thread, CpuAffinity affinity) noexcept {
         return;
     }
 
-    auto group_cpumask = affinity.mask[0];
+    const auto group_cpu_mask = affinity.mask[0];
 
     GROUP_AFFINITY group_affinity;
     group_affinity.Group = static_cast<WORD>(group);
-    group_affinity.Mask = group_cpumask;
+    group_affinity.Mask = group_cpu_mask;
     group_affinity.Reserved[0] = 0;
     group_affinity.Reserved[1] = 0;
     group_affinity.Reserved[2] = 0;

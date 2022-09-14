@@ -78,14 +78,14 @@ static const Vector<double> & FIRFilter() {
 		if (file.fail()) {
 			throw FileNotFoundException("Not found file 'FIRFilter.dat'");
 		}
-
+		char* end;
 		std::string str;
 		std::getline(file, str);
-		auto filter_size = atoi(str.c_str());
+		auto filter_size = std::strtod(str.c_str(), &end);
 		data.reserve(filter_size);
 
 		while (std::getline(file, str)) {
-			data.push_back(atof(str.c_str()));
+			data.push_back(std::strtod(str.c_str(), &end));
 		}
 		return data;
 	};
@@ -105,17 +105,19 @@ static const Double2DArray& NoiseShapingCoeff() {
 
 		std::string str;
 		auto i = 0; int s = 0;
+		char* end;
+
 		std::getline(file, str);
 
-		auto order = atoi(str.c_str());
+		auto order = std::strtod(str.c_str(), &end);
 		data.Resize(order, 2);
 
 		while (std::getline(file, str)) {
 			if (str != "0") {
 				if (i == 0)
-					data.Set(i, s, atof(str.c_str()));
+					data.Set(i, s, std::strtod(str.c_str(), &end));
 				else {
-					data.Set(i, order - s - 1, atof(str.c_str()));
+					data.Set(i, order - s - 1, std::strtod(str.c_str(), &end));
 				}
 				s++;
 			}
@@ -259,7 +261,7 @@ public:
 	}
 
 	~Pcm2DsdSampleWriterImpl() {
-		//RemoveTempFile();
+		RemoveTempFile();
 		if (tp_ != nullptr) {
 			tp_->Stop();
 		}
@@ -465,7 +467,7 @@ public:
 	void CloseAndRemoveFile(std::fstream& file, const Path &path) const {
 		try {
 			file.close();
-			//XAMP_LOG_D(logger_, String::Format("Close {} file.", path.filename()));
+			XAMP_LOG_D(logger_, String::Format("Close {} file.", path.filename()));
 		}
 		catch (std::exception const& e) {
 			XAMP_LOG_E(logger_, String::Format("Close {} file failure! error: {}", path.filename(), e.what()));
@@ -473,7 +475,7 @@ public:
 
 		try {
 			Fs::remove(path);
-			//XAMP_LOG_D(logger_, String::Format("Remove {} file.", path.filename()));
+			XAMP_LOG_D(logger_, String::Format("Remove {} file.", path.filename()));
 		}
 		catch (std::exception const& e) {
 			XAMP_LOG_E(logger_, String::Format("Remove {} file failure! error: {}", path.filename(), e.what()));

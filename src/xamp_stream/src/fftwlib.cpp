@@ -3,6 +3,7 @@
 #include <base/exception.h>
 #include <stream/fftwlib.h>
 
+#if (USE_INTEL_MKL_LIB)
 #ifndef MKL_FFTW_MALLOC_ALIGNMENT
 #define MKL_FFTW_MALLOC_ALIGNMENT (64)
 #endif
@@ -15,6 +16,7 @@ fftw3_mkl_s fftw3_mkl = {
 	xamp::stream::FFTWLib::new_plan,
 	MKL_FFTW_MALLOC_ALIGNMENT /* default_alignment */
 };
+#endif
 
 namespace xamp::stream {
 

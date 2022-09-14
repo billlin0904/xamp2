@@ -13,6 +13,8 @@
 #include <base/singleton.h>
 #include <base/dll.h>
 
+#define USE_INTEL_MKL_LIB 0
+
 #if (USE_INTEL_MKL_LIB)
 #include <fftw/fftw3.h>
 #include <fftw/fftw3_mkl.h>

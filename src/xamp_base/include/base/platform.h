@@ -81,6 +81,25 @@ struct XAMP_BASE_API CpuAffinity {
     uint64_t mask[XAMP_CPU_MASK_ROWS]{0};
 };
 
+struct XAMP_BASE_API ProcessorInformation {
+    bool is_hyper_threaded{ false };
+
+    struct XAMP_BASE_API Processor {
+        uint32_t cpu_id{ 0 };
+        uint32_t core_index{ 0 };
+    };
+
+    std::vector<Processor> processors;
+
+    friend std::ostream& operator << (std::ostream& ostr, const ProcessorInformation& info) {
+        ostr << "is_hyper_threaded:" << info.is_hyper_threaded;
+        for (const auto processor : info.processors) {
+            ostr << "cpu id[" << processor.cpu_id << "]=" << processor.core_index << " ";
+        }
+        return ostr;
+    }
+};
+
 /// <summary>
 /// Default thread pool affinity core.
 /// </summary>
