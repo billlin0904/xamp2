@@ -38,7 +38,7 @@ void TabListView::addTab(const QString& name, int table_id, const QIcon& icon) {
     auto *item = new QStandardItem(name);
     item->setData(table_id);
     item->setIcon(icon);
-    item->setSizeHint(QSize(80, 30));
+    item->setSizeHint(QSize(50, 30));
     auto f = item->font();
 #ifdef XAMP_OS_MAC
     f.setPointSize(15);

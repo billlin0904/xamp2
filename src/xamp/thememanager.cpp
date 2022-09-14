@@ -49,16 +49,15 @@ QFont ThemeManager::loadFonts() {
 
     QList<QString> ui_fallback_fonts;
 
-#if defined(Q_OS_WIN)
     // note: If we are support Source HanSans font sets must be enable Direct2D function,
     // But Qt framework not work fine with that!
     // -platform direct2d
-
     installFileFont(Q_TEXT("HarmonyOS_Sans_TC_Regular.ttf"), ui_fallback_fonts);
     installFileFont(Q_TEXT("HarmonyOS_Sans_TC_Bold.ttf"), ui_fallback_fonts);
     installFileFont(Q_TEXT("HarmonyOS_Sans_SC_Regular.ttf"), ui_fallback_fonts);
     installFileFont(Q_TEXT("HarmonyOS_Sans_SC_Bold.ttf"), ui_fallback_fonts);
 
+#if defined(Q_OS_WIN)
     QFont::insertSubstitutions(Q_TEXT("MonoFont"), QList<QString>() << Q_TEXT("Consolas"));
 #else
     QList<QString> mono_fonts;
@@ -66,8 +65,6 @@ QFont ThemeManager::loadFonts() {
     XAMP_LOG_DEBUG("MonoFont Family : {}", family.toStdString());
     mono_fonts.push_back(family);
     QFont::insertSubstitutions(Q_TEXT("MonoFont"), mono_fonts);
-    ui_fallback_fonts.push_back(Q_TEXT("PingFang TC"));
-    ui_fallback_fonts.push_back(Q_TEXT("Heiti TC"));
 #endif
     QFont::insertSubstitutions(Q_TEXT("UI"), ui_fallback_fonts);
     QFont::insertSubstitutions(Q_TEXT("FormatFont"), digital_font_families);

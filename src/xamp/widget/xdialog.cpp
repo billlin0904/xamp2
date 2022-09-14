@@ -29,10 +29,12 @@ void XDialog::setContentWidget(QWidget* content) {
         setAttribute(Qt::WA_TranslucentBackground, true);
     } else {
         setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint | Qt::WindowCloseButtonHint);
+#ifdef Q_OS_WIN
         if (qTheme.themeColor() == ThemeColor::DARK_THEME) {
             win32::setTitleBarColor(winId(), qTheme.backgroundColor());
         }
         win32::addDwmShadow(winId());
+#endif
     }
 
     auto* default_layout = new QGridLayout(this);

@@ -81,6 +81,7 @@ struct XAMP_BASE_API CpuAffinity {
     uint64_t mask[XAMP_CPU_MASK_ROWS]{0};
 };
 
+#ifdef XAMP_OS_WIN
 struct XAMP_BASE_API ProcessorInformation {
     bool is_hyper_threaded{ false };
 
@@ -99,6 +100,7 @@ struct XAMP_BASE_API ProcessorInformation {
         return ostr;
     }
 };
+#endif
 
 /// <summary>
 /// Default thread pool affinity core.

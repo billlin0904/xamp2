@@ -707,7 +707,7 @@ uint32_t Pcm2DsdSampleWriter::GetDsdSpeed() const {
 	return 0;
 }
 
-void Pcm2DsdSampleWriter::Init(uint32_t output_sample_rate, uint32_t dsd_times) {
+void Pcm2DsdSampleWriter::Init(uint32_t input_sample_rate, CpuAffinity affinity, Pcm2DsdConvertModes convert_mode) {
 }
 
 [[nodiscard]] bool Pcm2DsdSampleWriter::Process(BufferRef<float> const& input, AudioBuffer<int8_t>& buffer) {

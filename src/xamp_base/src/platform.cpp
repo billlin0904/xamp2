@@ -184,6 +184,7 @@ void SetThreadName(std::string const& name) noexcept {
 #endif
 }
 
+#ifdef XAMP_OS_WIN
 ProcessorInformation GetProcessorInformation() {
     const WinHandle current_process(::GetCurrentProcess());
 
@@ -222,6 +223,7 @@ ProcessorInformation GetProcessorInformation() {
     process_info.is_hyper_threaded = processors.size() != cores.size();
     return process_info;
 }
+#endif
 
 static int32_t FFSLL(uint64_t mask) {
     auto bit = 0;

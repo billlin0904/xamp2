@@ -711,10 +711,11 @@ void Xamp::initialController() {
         }
     };
 
+
     // Hide left list
     auto* hide_left_list_action = new QAction(tr("Show Left List"), this);
     hide_left_list_action->setCheckable(true);
-	if (AppSettings::getValue(kAppSettingShowLeftList).toBool()) {
+    /*if (AppSettings::getValue(kAppSettingShowLeftList).toBool()) {
         hide_left_list_action->setChecked(true);
         hide_widget(true);
         ui_.sliderFrame->setVisible(true);
@@ -728,16 +729,44 @@ void Xamp::initialController() {
         ui_.volumeFrame->setVisible(false);
         ui_.controlFrame->setVisible(false);
 	}
+    */
 
     (void)QObject::connect(hide_left_list_action, &QAction::triggered, [=]() {
         auto enable = !AppSettings::getValueAsBool(kAppSettingShowLeftList);
         hide_left_list_action->setChecked(enable);
         AppSettings::setValue(kAppSettingShowLeftList, enable);
+        /*
         hide_widget(enable);
         ui_.sliderFrame->setVisible(enable);
         ui_.currentView->setVisible(enable);
         ui_.volumeFrame->setVisible(enable);
         ui_.controlFrame->setVisible(enable);
+        */
+        auto *animation = new QPropertyAnimation(ui_.sliderFrame, "geometry");
+        auto slider_geometry = ui_.sliderFrame->geometry();
+        QSize size;
+        if (!enable) {
+            ui_.searchFrame->hide();
+            ui_.tableLabel->hide();
+            animation->setEasingCurve(QEasingCurve::InCubic);
+            animation->setStartValue(QRect(slider_geometry.x(), slider_geometry.y(), 200, slider_geometry.height()));
+            animation->setEndValue(QRect(slider_geometry.x(), slider_geometry.y(), 50, slider_geometry.height()));
+            size = QSize(50, slider_geometry.height());
+        } else {
+            animation->setEasingCurve(QEasingCurve::OutCubic);
+            animation->setStartValue(QRect(slider_geometry.x(), slider_geometry.y(), 50, slider_geometry.height()));
+            animation->setEndValue(QRect(slider_geometry.x(), slider_geometry.y(), 200, slider_geometry.height()));
+            size = QSize(200, slider_geometry.height());
+        }
+
+        (void)QObject::connect(animation, &QPropertyAnimation::finished, [=]() {
+            if (enable) {
+                ui_.searchFrame->show();
+                ui_.tableLabel->show();
+            }
+            ui_.sliderFrame->setMaximumSize(size);
+        });
+        animation->start(QAbstractAnimation::DeleteWhenStopped);
         });
     settings_menu->addAction(hide_left_list_action);
 
