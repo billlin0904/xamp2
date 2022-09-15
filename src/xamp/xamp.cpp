@@ -698,65 +698,29 @@ void Xamp::initialController() {
     auto* settings_menu = new XMenu(this);
     qTheme.setMenuStyle(settings_menu);
 
-    auto hide_widget = [this](bool enable) {
-        if (!enable) {
-            top_window_->resize(QSize(400, 90));
-            top_window_->setMinimumSize(QSize(400, 90));
-            top_window_->setMaximumSize(QSize(400, 90));
-        }
-        else {
-            top_window_->resize(QSize(1300, 860));
-            top_window_->setMinimumSize(QSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX));
-            top_window_->setMaximumSize(QSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX));
-        }
-    };
-
-
     // Hide left list
     auto* hide_left_list_action = new QAction(tr("Show Left List"), this);
     hide_left_list_action->setCheckable(true);
-    /*if (AppSettings::getValue(kAppSettingShowLeftList).toBool()) {
-        hide_left_list_action->setChecked(true);
-        hide_widget(true);
-        ui_.sliderFrame->setVisible(true);
-        ui_.currentView->setVisible(true);
-        ui_.volumeFrame->setVisible(true);
-        ui_.controlFrame->setVisible(true);
-	} else {
-        hide_widget(false);
-        ui_.sliderFrame->setVisible(false);
-        ui_.currentView->setVisible(false);
-        ui_.volumeFrame->setVisible(false);
-        ui_.controlFrame->setVisible(false);
-	}
-    */
 
-    (void)QObject::connect(hide_left_list_action, &QAction::triggered, [=]() {
-        auto enable = !AppSettings::getValueAsBool(kAppSettingShowLeftList);
-        hide_left_list_action->setChecked(enable);
-        AppSettings::setValue(kAppSettingShowLeftList, enable);
-        /*
-        hide_widget(enable);
-        ui_.sliderFrame->setVisible(enable);
-        ui_.currentView->setVisible(enable);
-        ui_.volumeFrame->setVisible(enable);
-        ui_.controlFrame->setVisible(enable);
-        */
-        auto *animation = new QPropertyAnimation(ui_.sliderFrame, "geometry");
-        auto slider_geometry = ui_.sliderFrame->geometry();
+    auto sliderAnimation = [this](bool enable) {
+        auto* animation = new QPropertyAnimation(ui_.sliderFrame, "geometry");
+        const auto slider_geometry = ui_.sliderFrame->geometry();
+        constexpr auto max_width = 200;
+        constexpr auto min_width = 48;
         QSize size;
         if (!enable) {
             ui_.searchFrame->hide();
             ui_.tableLabel->hide();
             animation->setEasingCurve(QEasingCurve::InCubic);
-            animation->setStartValue(QRect(slider_geometry.x(), slider_geometry.y(), 200, slider_geometry.height()));
-            animation->setEndValue(QRect(slider_geometry.x(), slider_geometry.y(), 50, slider_geometry.height()));
-            size = QSize(50, slider_geometry.height());
-        } else {
-            animation->setEasingCurve(QEasingCurve::OutCubic);
-            animation->setStartValue(QRect(slider_geometry.x(), slider_geometry.y(), 50, slider_geometry.height()));
-            animation->setEndValue(QRect(slider_geometry.x(), slider_geometry.y(), 200, slider_geometry.height()));
-            size = QSize(200, slider_geometry.height());
+            animation->setStartValue(QRect(slider_geometry.x(), slider_geometry.y(), max_width, slider_geometry.height()));
+            animation->setEndValue(QRect(slider_geometry.x(), slider_geometry.y(), min_width, slider_geometry.height()));
+            size = QSize(min_width, slider_geometry.height());
+        }
+        else {
+            animation->setEasingCurve(QEasingCurve::InExpo);
+            animation->setStartValue(QRect(slider_geometry.x(), slider_geometry.y(), min_width, slider_geometry.height()));
+            animation->setEndValue(QRect(slider_geometry.x(), slider_geometry.y(), max_width, slider_geometry.height()));
+            size = QSize(max_width, slider_geometry.height());
         }
 
         (void)QObject::connect(animation, &QPropertyAnimation::finished, [=]() {
@@ -765,8 +729,19 @@ void Xamp::initialController() {
                 ui_.tableLabel->show();
             }
             ui_.sliderFrame->setMaximumSize(size);
-        });
+            });
         animation->start(QAbstractAnimation::DeleteWhenStopped);
+    };
+
+    QTimer::singleShot(500, [=]() {
+        sliderAnimation(AppSettings::getValueAsBool(kAppSettingShowLeftList));
+        });
+
+    (void)QObject::connect(hide_left_list_action, &QAction::triggered, [=]() {
+        auto enable = !AppSettings::getValueAsBool(kAppSettingShowLeftList);
+        hide_left_list_action->setChecked(enable);
+        AppSettings::setValue(kAppSettingShowLeftList, enable);
+        sliderAnimation(enable);
         });
     settings_menu->addAction(hide_left_list_action);
 

@@ -354,6 +354,8 @@ public:
 				lch_src_[i] = samples[i * 2 + 0];
 				rch_src_[i] = samples[i * 2 + 1];
 			}
+			XAMP_ASSERT(lch_src_[i] >= -1.0 && lch_src_[i] <= 1.0);
+			XAMP_ASSERT(rch_src_[i] >= -1.0 && rch_src_[i] <= 1.0);
 			// todo: Silent signal test.
 			//lch_src_[i] = 0;
 			//rch_src_[i] = 0;

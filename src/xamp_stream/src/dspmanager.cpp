@@ -83,7 +83,9 @@ void DSPManager::RemoveReplayGain() {
 }
 
 bool DSPManager::CanProcessFile() const noexcept {
-    if (dsd_modes_ == DsdModes::DSD_MODE_PCM || dsd_modes_ == DsdModes::DSD_MODE_DSD2PCM) {
+    if (dsd_modes_ == DsdModes::DSD_MODE_PCM 
+        || dsd_modes_ == DsdModes::DSD_MODE_DSD2PCM
+        || IsEnablePcm2DsdConverter()) {
 	    if (!pre_dsp_.empty() || !post_dsp_.empty()) {
             return true;
 	    }
@@ -190,6 +192,7 @@ void DSPManager::Init(AudioFormat input_format, AudioFormat output_format, DsdMo
     dsd_modes_ = dsd_mode;
 
     if (!CanProcessFile()) {
+        XAMP_LOG_D(logger_, "Can't not process file.");
         return;
     }
 
@@ -205,22 +208,22 @@ void DSPManager::Init(AudioFormat input_format, AudioFormat output_format, DsdMo
 
     if (const auto converter = GetPreDSP<SoxrSampleRateConverter>()) {
         converter.value()->Init(input_format.GetSampleRate());
-        XAMP_LOG_D(logger_, "Init Soxr format: {}.", input_format);
+        XAMP_LOG_D(logger_, "Init Soxr resampler format: {}.", input_format);
     }
 
     if (const auto converter = GetPreDSP<R8brainSampleRateConverter>()) {
         converter.value()->Init(input_format.GetSampleRate());
-        XAMP_LOG_D(logger_, "Init R8brain format: {}.", input_format);
+        XAMP_LOG_D(logger_, "Init R8brain resampler format: {}.", input_format);
     }
 
     if (const auto volume = GetPostDSP<BassVolume>()) {
         volume.value()->Init(replay_gain_);
-        XAMP_LOG_D(logger_, "Set replay gain: {} db.", replay_gain_);
+        XAMP_LOG_D(logger_, "Init volume gain: {} db.", replay_gain_);
     }
 
     if (const auto compressor = GetPostDSP<BassCompressor>()) {
         compressor.value()->Init();
-        XAMP_LOG_D(logger_, "Enable compressor.");
+        XAMP_LOG_D(logger_, "Init compressor.");
     }
 
     if (const auto eq = GetPostDSP<IEqualizer>()) {

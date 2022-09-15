@@ -13,9 +13,10 @@
 #include <base/singleton.h>
 #include <base/dll.h>
 
-#define USE_INTEL_MKL_LIB 0
+#define USE_INTEL_MKL_LIB 1
 
 #if (USE_INTEL_MKL_LIB)
+#define MKL_DIRECT_CALL
 #include <fftw/fftw3.h>
 #include <fftw/fftw3_mkl.h>
 #include <mkl_service.h>

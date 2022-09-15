@@ -57,15 +57,9 @@ QFont ThemeManager::loadFonts() {
     installFileFont(Q_TEXT("HarmonyOS_Sans_SC_Regular.ttf"), ui_fallback_fonts);
     installFileFont(Q_TEXT("HarmonyOS_Sans_SC_Bold.ttf"), ui_fallback_fonts);
 
-#if defined(Q_OS_WIN)
-    QFont::insertSubstitutions(Q_TEXT("MonoFont"), QList<QString>() << Q_TEXT("Consolas"));
-#else
     QList<QString> mono_fonts;
-    auto family = QFontDatabase::systemFont(QFontDatabase::FixedFont).family();
-    XAMP_LOG_DEBUG("MonoFont Family : {}", family.toStdString());
-    mono_fonts.push_back(family);
+    installFileFont(Q_TEXT("SpaceMono-Regular.ttf"), mono_fonts);
     QFont::insertSubstitutions(Q_TEXT("MonoFont"), mono_fonts);
-#endif
     QFont::insertSubstitutions(Q_TEXT("UI"), ui_fallback_fonts);
     QFont::insertSubstitutions(Q_TEXT("FormatFont"), digital_font_families);
 
@@ -673,19 +667,33 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
                                         background-color: transparent;
                                         }
                                         )"));
+	QString slider_bar_left_color;
+	switch (themeColor()) {
+	case ThemeColor::DARK_THEME:
+        slider_bar_left_color = Q_TEXT("250, 250, 250");
+		break;
+	case ThemeColor::LIGHT_THEME:
+        slider_bar_left_color = Q_TEXT("25, 35, 45");
+        break;
+	}
 
-    ui.sliderBar->setStyleSheet(Q_TEXT(R"(
+    ui.sliderBar->setStyleSheet(Q_STR(R"(
 	QListView#sliderBar { 
 		border: none; 
 	}
 	QListView#sliderBar::item {
 		border: 0px;
-		padding-left: 15px;
+		padding-left: 6px;
 	}
-	QListView#sliderBar::text {
-		left: 15px;
+	QListView#sliderBar::item:hover {
 	}
-	)"));
+	QListView#sliderBar::item:selected {
+		padding-left: 4px;
+		border-left-width: 2px;
+		border-left-style: solid;
+		border-left-color: rgb(%1);
+	}	
+	)").arg(slider_bar_left_color));
 
     ui.titleFrameLabel->setStyleSheet(Q_STR(R"(
     QLabel#titleFrameLabel {

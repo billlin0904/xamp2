@@ -7,6 +7,7 @@ TabListView::TabListView(QWidget *parent)
     setModel(&model_);
     setFrameStyle(QFrame::NoFrame);
     setEditTriggers(QAbstractItemView::NoEditTriggers);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     
     (void)QObject::connect(this, &QListView::clicked, [this](auto index) {
         auto table_id = index.data(Qt::UserRole + 1).toInt();

@@ -107,7 +107,6 @@
         <file>Resource/White/stop_circle.png</file>
         <file>Resource/Black/pause_circle.png</file>
         <file>Resource/Black/stop_circle.png</file>
-        <file>fonts/titillium-regular.ttf</file>
         <file>fonts/Electrolize.ttf</file>
     </qresource>
 </RCC>
