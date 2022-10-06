@@ -1,0 +1,384 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{B12702AD-ABFB-343A-A199-8E24837244A3}</ProjectGuid>
+    <Keyword>QtVS_v304</Keyword>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <QtMsBuild Condition="'$(QtMsBuild)'=='' or !Exists('$(QtMsBuild)\qt.targets')">$(MSBuildProjectDirectory)\QtMsBuild</QtMsBuild>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <EnableASAN>false</EnableASAN>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <EnableASAN>false</EnableASAN>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+    <VCToolsVersion>
+    </VCToolsVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') or !Exists('$(QtMsBuild)\qt.props')">
+    <Message Importance="High" Text="QtMsBuild: could not locate qt.targets, qt.props; project may not build correctly." />
+  </Target>
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Label="Shared" />
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ImportGroup Condition="Exists('$(QtMsBuild)\qt_defaults.props')">
+    <Import Project="$(QtMsBuild)\qt_defaults.props" />
+  </ImportGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <LinkIncremental>false</LinkIncremental>
+    <EnableMicrosoftCodeAnalysis>false</EnableMicrosoftCodeAnalysis>
+    <EnableClangTidyCodeAnalysis>false</EnableClangTidyCodeAnalysis>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <QtInstall>5.15.2_msvc2019_64</QtInstall>
+    <QtModules>core;sql;network;gui;widgets;winextras;</QtModules>
+  </PropertyGroup>
+  <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <QtInstall>5.15.2_msvc2019_64</QtInstall>
+    <QtModules>core;sql;network;gui;widgets;winextras;concurrent;webenginewidgets;</QtModules>
+  </PropertyGroup>
+  <ImportGroup Condition="Exists('$(QtMsBuild)\qt.props')">
+    <Import Project="$(QtMsBuild)\qt.props" />
+  </ImportGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <PreprocessorDefinitions>UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;QT_NO_CAST_FROM_ASCII;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;.;../xamp_base/include/;../xamp_stream/include/;../xamp_output_device/include/;../xamp_player/include/;../xamp_metadata/include/;../thirdparty/spdlog/include/;%(AdditionalIncludeDirectories);../thirdparty/rapidjson/include/;../thirdparty/rapidxml/;../thirdparty/robin_hood/;../thirdparty/discord-rpc/include/;../thirdparty/QSimpleUpdater/include/</AdditionalIncludeDirectories>
+      <Optimization>Disabled</Optimization>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <BrowseInformation>true</BrowseInformation>
+      <BasicRuntimeChecks>StackFrameRuntimeCheck</BasicRuntimeChecks>
+      <IntelJCCErratum>true</IntelJCCErratum>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <DisableSpecificWarnings>4819</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
+      <AdditionalLibraryDirectories>./x64/Debug/;../thirdparty/mimalloc/out/msvc-x64/Release/;../thirdparty/discord-rpc/lib/debug/;../thirdparty/QSimpleUpdater/debug/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;discord-rpc.lib;QSimpleUpdater.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>/INCLUDE:mi_version %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+    <QtMoc>
+      <ExecutionDescription>Moc'ing %(Identity)...</ExecutionDescription>
+      <QtMocDir>.\GeneratedFiles\$(ConfigurationName)</QtMocDir>
+      <QtMocFileName>moc_%(Filename).cpp</QtMocFileName>
+    </QtMoc>
+    <QtUic>
+      <ExecutionDescription>Uic'ing %(Identity)...</ExecutionDescription>
+      <QtUicDir>.\GeneratedFiles</QtUicDir>
+      <QtUicFileName>ui_%(Filename).h</QtUicFileName>
+    </QtUic>
+    <QtRcc>
+      <ExecutionDescription>Rcc'ing %(Identity)...</ExecutionDescription>
+      <QtRccDir>.\GeneratedFiles</QtRccDir>
+      <QtRccFileName>qrc_%(Filename).cpp</QtRccFileName>
+    </QtRcc>
+    <Bscmake>
+      <PreserveSbr>true</PreserveSbr>
+    </Bscmake>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <PreprocessorDefinitions>UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;QT_NO_DEBUG;NDEBUG;QT_NO_CAST_FROM_ASCII;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;.;../xamp_base/include/;../xamp_stream/include/;../xamp_player/include/;../xamp_output_device/include/;../xamp_metadata/include/;../thirdparty/spdlog/include/;%(AdditionalIncludeDirectories);../thirdparty/rapidjson/include/;../thirdparty/rapidxml/;../thirdparty/robin_hood/;../thirdparty/discord-rpc/include/;../thirdparty/QSimpleUpdater/include/</AdditionalIncludeDirectories>
+      <DebugInformationFormat>None</DebugInformationFormat>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <Optimization>Full</Optimization>
+      <OmitFramePointers>true</OmitFramePointers>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <ConformanceMode>true</ConformanceMode>
+      <BrowseInformation>false</BrowseInformation>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <IntelJCCErratum>false</IntelJCCErratum>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <DisableSpecificWarnings>4819;</DisableSpecificWarnings>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
+      <AdditionalLibraryDirectories>./x64/Release/;../thirdparty/mimalloc/out/msvc-x64/Release/;../thirdparty/discord-rpc/lib/release/;../thirdparty/QSimpleUpdater/release/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;discord-rpc.lib;QSimpleUpdater.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <AdditionalOptions>/INCLUDE:mi_version %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+    <QtMoc>
+      <ExecutionDescription>Moc'ing %(Identity)...</ExecutionDescription>
+      <QtMocDir>.\GeneratedFiles\$(ConfigurationName)</QtMocDir>
+      <QtMocFileName>moc_%(Filename).cpp</QtMocFileName>
+    </QtMoc>
+    <QtUic>
+      <ExecutionDescription>Uic'ing %(Identity)...</ExecutionDescription>
+      <QtUicDir>.\GeneratedFiles</QtUicDir>
+      <QtUicFileName>ui_%(Filename).h</QtUicFileName>
+    </QtUic>
+    <QtRcc>
+      <ExecutionDescription>Rcc'ing %(Identity)...</ExecutionDescription>
+      <QtRccDir>.\GeneratedFiles</QtRccDir>
+      <QtRccFileName>qrc_%(Filename).cpp</QtRccFileName>
+    </QtRcc>
+    <Bscmake>
+      <PreserveSbr>true</PreserveSbr>
+    </Bscmake>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+    <ProjectReference>
+      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="aboutpage.cpp" />
+    <ClCompile Include="cdpage.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="preferencepage.cpp" />
+    <ClCompile Include="singleinstanceapplication.cpp" />
+    <ClCompile Include="thememanager.cpp" />
+    <ClCompile Include="version.cpp" />
+    <ClCompile Include="widget\albumartistpage.cpp" />
+    <ClCompile Include="widget\albumentity.cpp" />
+    <ClCompile Include="widget\albumview.cpp" />
+    <ClCompile Include="widget\appsettings.cpp" />
+    <ClCompile Include="widget\artistinfopage.cpp" />
+    <ClCompile Include="widget\clickablelabel.cpp" />
+    <ClCompile Include="widget\database.cpp" />
+    <ClCompile Include="widget\discordnotify.cpp" />
+    <ClCompile Include="widget\doubleslider.cpp" />
+    <ClCompile Include="widget\equalizerdialog.cpp" />
+    <ClCompile Include="widget\filesystemmodel.cpp" />
+    <ClCompile Include="widget\filesystemviewpage.cpp" />
+    <ClCompile Include="widget\fonticon.cpp" />
+    <ClCompile Include="widget\podcast_uiltis.cpp" />
+    <ClCompile Include="widget\processindicator.cpp" />
+    <ClCompile Include="widget\qetag.cpp" />
+    <ClCompile Include="widget\spectrumwidget.cpp" />
+    <ClCompile Include="widget\stackblur.cpp" />
+    <ClCompile Include="widget\tooltips.cpp" />
+    <ClCompile Include="widget\tooltipsfilter.cpp" />
+    <ClCompile Include="widget\xwindow.cpp" />
+    <ClCompile Include="widget\http.cpp" />
+    <ClCompile Include="widget\image_utiltis.cpp" />
+    <ClCompile Include="widget\jsonsettings.cpp" />
+    <ClCompile Include="widget\localelanguage.cpp" />
+    <ClCompile Include="widget\lrcpage.cpp" />
+    <ClCompile Include="widget\lrcparser.cpp" />
+    <ClCompile Include="widget\lyricsshowwidget.cpp" />
+    <ClCompile Include="widget\pixmapcache.cpp" />
+    <ClCompile Include="widget\metadataextractadapter.cpp">
+      <OutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles\$(ConfigurationName)\%(Filename).moc</OutputFile>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">input</DynamicSource>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtWinExtras;.\..\xamp_base\include;.\..\xamp_stream\include;.\..\xamp_output_device\include;.\..\xamp_player\include;.\..\xamp_metadata\include;.\..\thirdparty\spdlog\include;$(QTDIR)\include\QtNetwork;$(INHERIT);.\..\thirdparty\rapidjson\include;$(QTDIR)\include\QtConcurrent;.\..\thirdparty\rapidxml;.\..\thirdparty\robin_hood;$(QTDIR)\include\QtCharts</IncludePath>
+      <OutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles\$(ConfigurationName)\%(Filename).moc</OutputFile>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">input</DynamicSource>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtSql;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtWinExtras;.\..\xamp_base\include;.\..\xamp_stream\include;.\..\xamp_player\include;.\..\xamp_output_device\include;.\..\xamp_metadata\include;.\..\thirdparty\spdlog\include;$(QTDIR)\include\QtNetwork;$(INHERIT);.\..\thirdparty\rapidjson\include;.\..\thirdparty\rapidxml;.\..\thirdparty\robin_hood</IncludePath>
+    </ClCompile>
+    <ClCompile Include="widget\playlistpage.cpp" />
+    <ClCompile Include="widget\playlistsqlquerytablemodel.cpp" />
+    <ClCompile Include="widget\playlisttableproxymodel.cpp" />
+    <ClCompile Include="widget\playlisttableview.cpp" />
+    <ClCompile Include="widget\read_utiltis.cpp" />
+    <ClCompile Include="widget\backgroundworker.cpp" />
+    <ClCompile Include="widget\scrolllabel.cpp" />
+    <ClCompile Include="widget\seekslider.cpp" />
+    <ClCompile Include="widget\appsettingnames.cpp" />
+    <ClCompile Include="widget\stardelegate.cpp" />
+    <ClCompile Include="widget\stareditor.cpp" />
+    <ClCompile Include="widget\starrating.cpp" />
+    <ClCompile Include="widget\str_utilts.cpp" />
+    <ClCompile Include="widget\switchbutton.cpp" />
+    <ClCompile Include="widget\tablistview.cpp" />
+    <ClCompile Include="widget\toast.cpp" />
+    <ClCompile Include="widget\uiplayerstateadapter.cpp" />
+    <ClCompile Include="widget\ui_utilts.cpp" />
+    <ClCompile Include="widget\wheelablewidget.cpp" />
+    <ClCompile Include="widget\win32\win32.cpp" />
+    <ClCompile Include="widget\xdialog.cpp" />
+    <ClCompile Include="widget\xframe.cpp" />
+    <ClCompile Include="xamp.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="aboutdialog.ui" />
+    <QtUic Include="cdpage.ui" />
+    <QtUic Include="filesystemviewpage.ui" />
+    <QtUic Include="preferencedialog.ui" />
+    <QtUic Include="widget\equalizerdialog.ui" />
+    <QtUic Include="widget\toast.ui" />
+    <QtUic Include="xamp.ui" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtRcc Include="Resource\Theme\dark\darkstyle.qrc" />
+    <QtRcc Include="Resource\Theme\light\lightstyle.qrc" />
+    <QtRcc Include="xamp.qrc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Resource.rc" />
+    <ResourceCompile Include="xamp.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="widget\xframe.h" />
+    <QtMoc Include="preferencepage.h" />
+    <QtMoc Include="..\thirdparty\QSimpleUpdater\include\QSimpleUpdater.h" />
+    <QtMoc Include="cdpage.h" />
+    <ClInclude Include="version.h" />
+    <ClInclude Include="widget\albumentity.h" />
+    <QtMoc Include="widget\spectrumwidget.h" />
+    <QtMoc Include="widget\filesystemviewpage.h" />
+    <ClInclude Include="widget\driveinfo.h" />
+    <ClInclude Include="widget\filesystemmodel.h" />
+    <QtMoc Include="widget\processindicator.h" />
+    <ClInclude Include="widget\appsettingnames.h" />
+    <ClInclude Include="widget\fonticon.h" />
+    <QtMoc Include="widget\iconsizestyle.h" />
+    <ClInclude Include="widget\smoothcurvegenerator2.h" />
+    <ClInclude Include="widget\stackblur.h" />
+    <QtMoc Include="widget\tooltips.h" />
+    <QtMoc Include="widget\tooltipsfilter.h" />
+    <ClInclude Include="widget\xmessagebox.h" />
+    <ClInclude Include="xampplayer.h" />
+    <QtMoc Include="widget\lyricsshowwidget.h" />
+    <QtMoc Include="widget\discordnotify.h" />
+    <QtMoc Include="widget\doubleslider.h" />
+    <QtMoc Include="widget\equalizerdialog.h" />
+    <ClInclude Include="widget\xwindow.h" />
+    <ClInclude Include="widget\playlistsqlquerytablemodel.h" />
+    <QtMoc Include="widget\uiplayerstateadapter.h">
+    </QtMoc>
+    <ClInclude Include="widget\podcast_uiltis.h" />
+    <ClInclude Include="widget\read_utiltis.h" />
+    <QtMoc Include="widget\switchbutton.h" />
+    <QtMoc Include="widget\backgroundworker.h" />
+    <ClInclude Include="widget\ui_utilts.h" />
+    <ClInclude Include="widget\widget_shared.h" />
+    <QtMoc Include="widget\xdialog.h">
+    </QtMoc>
+    <ClInclude Include="singleinstanceapplication.h" />
+    <QtMoc Include="aboutpage.h">
+    </QtMoc>
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="thememanager.h" />
+    <ClInclude Include="widget\actionmap.h" />
+    <QtMoc Include="xamp.h">
+    </QtMoc>
+    <QtMoc Include="widget\clickablelabel.h">
+    </QtMoc>
+    <QtMoc Include="widget\albumartistpage.h">
+    </QtMoc>
+    <ClInclude Include="widget\appsettings.h" />
+    <QtMoc Include="widget\artistinfopage.h">
+    </QtMoc>
+    <ClInclude Include="widget\database.h" />
+    <QtMoc Include="widget\albumview.h">
+    </QtMoc>
+    <ClInclude Include="widget\qetag.h" />
+    <ClInclude Include="widget\image_utiltis.h" />
+    <QtMoc Include="widget\lrcpage.h">
+    </QtMoc>
+    <ClInclude Include="widget\jsonsettings.h" />
+    <ClInclude Include="widget\localelanguage.h" />
+    <ClInclude Include="widget\lrcparser.h" />
+    <ClInclude Include="widget\pixmapcache.h" />
+    <QtMoc Include="widget\playlistpage.h">
+    </QtMoc>
+    <QtMoc Include="widget\seekslider.h">
+    </QtMoc>
+    <QtMoc Include="widget\stardelegate.h">
+    </QtMoc>
+    <QtMoc Include="widget\stareditor.h">
+    </QtMoc>
+    <ClInclude Include="widget\scrolllabel.h" />
+    <ClInclude Include="widget\starrating.h" />
+    <ClInclude Include="widget\str_utilts.h" />
+    <QtMoc Include="widget\tablistview.h">
+    </QtMoc>
+    <QtMoc Include="widget\playlisttableproxymodel.h">
+    </QtMoc>
+    <QtMoc Include="widget\metadataextractadapter.h">
+    </QtMoc>
+    <ClInclude Include="widget\playlistentity.h" />
+    <ClInclude Include="widget\playlisttablemodel.h" />
+    <QtMoc Include="widget\playlisttableview.h">
+    </QtMoc>
+    <QtMoc Include="widget\toast.h">
+    </QtMoc>
+    <QtMoc Include="widget\wheelablewidget.h">
+    </QtMoc>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="xamp.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\versions\updates.json" />
+    <None Include="config.json" />
+    <None Include="FIRFilter.dat" />
+    <None Include="ja_JP.ts" />
+    <None Include="NoiseShapingCoeff.dat" />
+    <None Include="Resource\Theme\dark\style.qss" />
+    <None Include="Resource\Theme\light\style.qss" />
+    <None Include="xamp.ini" />
+    <None Include="zh_TW.ts" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="credits.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtTranslation Include="en_US.ts" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">
+    <Import Project="$(QtMsBuild)\qt.targets" />
+  </ImportGroup>
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties />
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>

@@ -1,0 +1,25 @@
+icon
+https://www.flaticon.com/free-icon/play_7781770
+
+3rd library
+
+BASS audio library
+http://www.un4seen.com/
+
+Qt framework
+https://www.qt.io/
+
+Google material icons
+https://fonts.google.com/icons
+
+QDarkStyleSheet
+https://github.com/ColinDuquesnoy/QDarkStyleSheet
+
+libebur128
+https://github.com/jiixyj/libebur128
+
+AutoEq
+https://github.com/jaakkopasanen/AutoEq
+
+FFTW
+https://www.fftw.org/

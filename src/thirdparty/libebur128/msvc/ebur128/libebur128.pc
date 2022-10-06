@@ -1,0 +1,11 @@
+prefix=C:/Program Files (x86)/libebur128
+includedir=${prefix}/include
+libdir=${prefix}/lib
+
+Name: libebur128
+Description: EBU R 128 standard for loudness normalisation
+Version: 1.2.6
+URL: https://github.com/jiixyj/libebur128
+Libs: -L${libdir} -lebur128
+Libs.private: -lm
+Cflags: -I${includedir}

@@ -1,0 +1,174 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="src\dspmanager.cpp" />
+    <ClCompile Include="src\fft.cpp" />
+    <ClCompile Include="src\padcastcache.cpp" />
+    <ClCompile Include="src\api.cpp" />
+    <ClCompile Include="src\pcm2dsdsamplewriter.cpp" />
+    <ClCompile Include="src\stft.cpp" />
+    <ClCompile Include="src\wavefilewriter.cpp" />
+    <ClCompile Include="src\basslib.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fftwlib.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="src\r8brainlib.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="src\soxrlib.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dsd_utils.cpp" />
+    <ClCompile Include="src\soxresampler.cpp">
+      <Filter>resampler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\samplewriter.cpp">
+      <Filter>resampler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\r8brainresampler.cpp">
+      <Filter>resampler</Filter>
+    </ClCompile>
+    <ClCompile Include="src\foobardspadapter.cpp">
+      <Filter>foobar</Filter>
+    </ClCompile>
+    <ClCompile Include="src\basscddevice.cpp">
+      <Filter>bass</Filter>
+    </ClCompile>
+    <ClCompile Include="src\basscompressor.cpp">
+      <Filter>bass</Filter>
+    </ClCompile>
+    <ClCompile Include="src\bassequalizer.cpp">
+      <Filter>bass</Filter>
+    </ClCompile>
+    <ClCompile Include="src\bassexception.cpp">
+      <Filter>bass</Filter>
+    </ClCompile>
+    <ClCompile Include="src\bassfader.cpp">
+      <Filter>bass</Filter>
+    </ClCompile>
+    <ClCompile Include="src\bassfilestream.cpp">
+      <Filter>bass</Filter>
+    </ClCompile>
+    <ClCompile Include="src\bassflacfileencoder.cpp">
+      <Filter>bass</Filter>
+    </ClCompile>
+    <ClCompile Include="src\bassvolume.cpp">
+      <Filter>bass</Filter>
+    </ClCompile>
+    <ClCompile Include="src\basswavfileencoder.cpp">
+      <Filter>bass</Filter>
+    </ClCompile>
+    <ClCompile Include="src\bass_utiltis.cpp">
+      <Filter>bass</Filter>
+    </ClCompile>
+    <ClCompile Include="src\bassaacfileencoder.cpp">
+      <Filter>bass</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\stream\compressorparameters.h" />
+    <ClInclude Include="include\stream\dspmanager.h" />
+    <ClInclude Include="include\stream\eqsettings.h" />
+    <ClInclude Include="include\stream\fft.h" />
+    <ClInclude Include="include\stream\filestream.h" />
+    <ClInclude Include="include\stream\pcm2dsdsamplewriter.h" />
+    <ClInclude Include="include\stream\podcastcache.h" />
+    <ClInclude Include="include\stream\stft.h" />
+    <ClInclude Include="include\stream\stream.h" />
+    <ClInclude Include="include\stream\api.h" />
+    <ClInclude Include="include\stream\wavefilewriter.h" />
+    <ClInclude Include="include\stream\idspmanager.h">
+      <Filter>interface</Filter>
+    </ClInclude>
+    <ClInclude Include="include\stream\isameplewriter.h">
+      <Filter>interface</Filter>
+    </ClInclude>
+    <ClInclude Include="include\stream\iaudioprocessor.h">
+      <Filter>interface</Filter>
+    </ClInclude>
+    <ClInclude Include="include\stream\iaudiostream.h">
+      <Filter>interface</Filter>
+    </ClInclude>
+    <ClInclude Include="include\stream\icddevice.h">
+      <Filter>interface</Filter>
+    </ClInclude>
+    <ClInclude Include="include\stream\idsdstream.h">
+      <Filter>interface</Filter>
+    </ClInclude>
+    <ClInclude Include="include\stream\ifileencoder.h">
+      <Filter>interface</Filter>
+    </ClInclude>
+    <ClInclude Include="include\stream\fftwlib.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="include\stream\r8brainlib.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="include\stream\soxrlib.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="include\stream\basslib.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="include\stream\dsd_utils.h" />
+    <ClInclude Include="include\stream\dsd_times.h" />
+    <ClInclude Include="include\stream\samplewriter.h">
+      <Filter>resampler</Filter>
+    </ClInclude>
+    <ClInclude Include="include\stream\r8brainresampler.h">
+      <Filter>resampler</Filter>
+    </ClInclude>
+    <ClInclude Include="include\stream\soxresampler.h">
+      <Filter>resampler</Filter>
+    </ClInclude>
+    <ClInclude Include="include\stream\foobardspadapter.h">
+      <Filter>foobar</Filter>
+    </ClInclude>
+    <ClInclude Include="include\stream\basscddevice.h">
+      <Filter>bass</Filter>
+    </ClInclude>
+    <ClInclude Include="include\stream\basscompressor.h">
+      <Filter>bass</Filter>
+    </ClInclude>
+    <ClInclude Include="include\stream\bassfader.h">
+      <Filter>bass</Filter>
+    </ClInclude>
+    <ClInclude Include="include\stream\bassfilestream.h">
+      <Filter>bass</Filter>
+    </ClInclude>
+    <ClInclude Include="include\stream\bassflacfileencoder.h">
+      <Filter>bass</Filter>
+    </ClInclude>
+    <ClInclude Include="include\stream\bassvolume.h">
+      <Filter>bass</Filter>
+    </ClInclude>
+    <ClInclude Include="include\stream\basswavfileencoder.h">
+      <Filter>bass</Filter>
+    </ClInclude>
+    <ClInclude Include="include\stream\bass_utiltis.h">
+      <Filter>bass</Filter>
+    </ClInclude>
+    <ClInclude Include="include\stream\bassaacfileencoder.h">
+      <Filter>bass</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="interface">
+      <UniqueIdentifier>{20be621f-8bd4-44c8-aa7f-01809474996c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{baf9ca11-6e70-4d42-9182-e76d65ddc190}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="resampler">
+      <UniqueIdentifier>{a5a85287-05b2-4448-aa1b-5ad0562c4e20}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="foobar">
+      <UniqueIdentifier>{9ddef9c9-f2d8-45ac-887f-486f0916c8fb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="bass">
+      <UniqueIdentifier>{3b06c6de-e4f2-4a52-bf6c-fe0a97db2590}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

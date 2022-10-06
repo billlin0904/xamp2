@@ -1,0 +1,40 @@
+#===============================================================================
+# Copyright 2006-2019 Intel Corporation.
+#
+# This software and the related documents are Intel copyrighted  materials,  and
+# your use of  them is  governed by the  express license  under which  they were
+# provided to you (License).  Unless the License provides otherwise, you may not
+# use, modify, copy, publish, distribute,  disclose or transmit this software or
+# the related documents without Intel's prior written permission.
+#
+# This software and the related documents  are provided as  is,  with no express
+# or implied  warranties,  other  than those  that are  expressly stated  in the
+# License.
+#===============================================================================
+
+wrap = \
+fftw_alignment_of fftw_alloc_complex fftw_alloc_real fftw_cleanup \
+fftw_cleanup_threads fftw_cost fftw_destroy_plan fftw_estimate_cost \
+fftw_execute fftw_execute_dft fftw_execute_dft_c2r fftw_execute_dft_r2c \
+fftw_execute_r2r fftw_execute_split_dft fftw_execute_split_dft_c2r \
+fftw_execute_split_dft_r2c fftw_export_wisdom fftw_export_wisdom_to_file \
+fftw_export_wisdom_to_filename fftw_export_wisdom_to_string fftw_flops \
+fftw_forget_wisdom fftw_fprint_plan fftw_free fftw_import_system_wisdom \
+fftw_import_wisdom fftw_import_wisdom_from_file \
+fftw_import_wisdom_from_filename fftw_import_wisdom_from_string \
+fftw_init_threads fftw_malloc fftw_plan_dft fftw_plan_dft_1d \
+fftw_plan_dft_2d fftw_plan_dft_3d fftw_plan_dft_c2r fftw_plan_dft_c2r_1d \
+fftw_plan_dft_c2r_2d fftw_plan_dft_c2r_3d fftw_plan_dft_r2c \
+fftw_plan_dft_r2c_1d fftw_plan_dft_r2c_2d fftw_plan_dft_r2c_3d \
+fftw_plan_guru_dft fftw_plan_guru_dft_c2r fftw_plan_guru_dft_r2c \
+fftw_plan_guru_r2r fftw_plan_guru_split_dft fftw_plan_guru_split_dft_c2r \
+fftw_plan_guru_split_dft_r2c fftw_plan_guru64_dft fftw_plan_guru64_dft_c2r \
+fftw_plan_guru64_dft_r2c fftw_plan_guru64_r2r fftw_plan_guru64_split_dft \
+fftw_plan_guru64_split_dft_c2r fftw_plan_guru64_split_dft_r2c \
+fftw_plan_many_dft fftw_plan_many_dft_c2r fftw_plan_many_dft_r2c \
+fftw_plan_many_r2r fftw_plan_r2r fftw_plan_r2r_1d fftw_plan_r2r_2d \
+fftw_plan_r2r_3d fftw_plan_with_nthreads fftw_print_plan fftw_set_timelimit \
+fftw_sprint_plan fftw_version
+
+wrapf = $(wrap:fftw_%=fftwf_%)
+WRAP = $(wrap) $(wrapf)

@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/Toast"/>
+    <qresource prefix="/">
+        <file>toast.qrc</file>
+    </qresource>
+</RCC>

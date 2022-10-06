@@ -1,0 +1,46 @@
+{
+    "Log": {
+        "MinimumLevel": {
+            "Default": "debug",
+            "Override": {
+                "AsioDevice": "debug",
+                "AudioPlayer": "info",
+                "BackgroundThreadPool": "debug",
+                "Compressor": "debug",
+                "CoreAudio": "info",
+                "DSPThreadPool": "info",
+                "Database": "info",
+                "DspManager": "debug",
+                "ExclusiveWasapiDevice": "debug",
+                "ExclusiveWasapiDeviceType": "info",
+                "FileStream": "debug",
+                "FoobarDSPAdapter": "debug",
+                "Pcm2DsdConverter": "info",
+                "PixmapCache": "info",
+                "PlaybackThreadPool": "info",
+                "SharedWasapiDevice": "info",
+                "Soxr": "info",
+                "VirtualMemory": "info",
+                "Volume": "debug",
+                "WASAPIThreadPool": "debug"
+            }
+        }
+    },
+    "Pcm2Dsd": {
+        "Pcm2DsdTimes": 6
+    },
+    "R8Brain": {
+        "resampleSampleRate": 44100
+    },
+    "Soxr": {
+        "default": {
+            "enableSteepFilter": false,
+            "passBand": 96,
+            "phase": 46,
+            "quality": 4,
+            "resampleSampleRate": 48000,
+            "rolloffLevel": 2,
+            "stopBand": 100
+        }
+    }
+}

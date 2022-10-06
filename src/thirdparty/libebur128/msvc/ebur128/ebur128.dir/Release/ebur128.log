@@ -1,0 +1,6 @@
+﻿  Building Custom Rule C:/Users/rdbill0452/Documents/Github/xamp2/src/thirdparty/libebur128/ebur128/CMakeLists.txt
+  ebur128.c
+     Creating library C:/Users/rdbill0452/Documents/Github/xamp2/src/thirdparty/libebur128/msvc/Release/ebur128.lib and object C:/Users/rdbill0452/Documents/Github/xamp2/src/thirdparty/libebur128/msvc/Release/ebur128.exp
+  Generating code
+  Finished generating code
+  ebur128.vcxproj -> C:\Users\rdbill0452\Documents\Github\xamp2\src\thirdparty\libebur128\msvc\Release\ebur128.dll
