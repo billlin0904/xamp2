@@ -6,6 +6,33 @@
 #include <metadata/taglib.h>
 #include <metadata/taglibmetawriter.h>
 
+class DefaultListener : public TagLib::DebugListener {
+public:
+	void printMessage(const TagLib::String& msg) override {
+		using namespace xamp::base;
+		std::string temp(msg.toCString());
+		String::Remove(temp, "\n");
+		XAMP_LOG_DEBUG("{}", temp);
+	}
+};
+
+DefaultListener defaultListener;
+
+namespace TagLib {
+	DebugListener* debugListener = &defaultListener;
+
+	DebugListener::DebugListener() = default;
+
+	DebugListener::~DebugListener() = default;
+
+	void setDebugListener(DebugListener* listener) {
+		if (listener)
+			debugListener = listener;
+		else
+			debugListener = &defaultListener;
+	}
+}
+
 namespace xamp::metadata {
 
 static bool ClearTxxTag(ID3v2::Tag* tag, 
@@ -189,6 +216,10 @@ private:
 #else
         FileRef fileref(path.string().c_str());
 #endif
+		if (fileref.isNull()) {
+			XAMP_LOG_DEBUG("file was NULL!");
+			return;
+		}
 		if (!fileref.tag()) {
 			XAMP_LOG_DEBUG("tag is NULL!");
 			return;

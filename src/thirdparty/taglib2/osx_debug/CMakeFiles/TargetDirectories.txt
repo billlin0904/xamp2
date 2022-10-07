@@ -1,7 +1,0 @@
-/Users/bill/Documents/xamp2/src/thirdparty/taglib2/osx/CMakeFiles/install/local.dir
-/Users/bill/Documents/xamp2/src/thirdparty/taglib2/osx/CMakeFiles/rebuild_cache.dir
-/Users/bill/Documents/xamp2/src/thirdparty/taglib2/osx/CMakeFiles/edit_cache.dir
-/Users/bill/Documents/xamp2/src/thirdparty/taglib2/osx/CMakeFiles/install/strip.dir
-/Users/bill/Documents/xamp2/src/thirdparty/taglib2/osx/CMakeFiles/install.dir
-/Users/bill/Documents/xamp2/src/thirdparty/taglib2/osx/CMakeFiles/list_install_components.dir
-/Users/bill/Documents/xamp2/src/thirdparty/taglib2/osx/CMakeFiles/tag.dir

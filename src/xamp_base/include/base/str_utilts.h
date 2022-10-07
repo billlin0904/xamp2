@@ -61,6 +61,22 @@ void RTrim(std::basic_string<CharType> &s) {
             }).base(), s.end());
 }
 
+template <typename CharType>
+void Remove(std::basic_string<CharType>& s, const std::basic_string<CharType>& p) {
+    auto n = p.length();
+
+    for (auto i = s.find(p);
+        i != std::basic_string<CharType>::npos;
+        i = s.find(p))
+        s.erase(i, n);
+}
+
+template <typename CharType>
+void Remove(std::basic_string<CharType>& s, const CharType* target) {
+    std::basic_string<CharType> p(target);
+    Remove(s, p);
+}
+
 XAMP_BASE_API std::string FormatBytes(size_t bytes) noexcept;
 
 template <typename T>

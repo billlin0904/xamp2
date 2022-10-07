@@ -19,6 +19,7 @@
 #include <stream/r8brainresampler.h>
 #include <stream/idspmanager.h>
 #include <stream/pcm2dsdsamplewriter.h>
+#include <stream/bassaacfileencoder.h>
 #include <stream/dsd_utils.h>
 #include <stream/api.h>
 
@@ -1833,7 +1834,9 @@ void Xamp::encodeAACFile(const PlayListEntity& item) {
 
     // http://www.un4seen.com/forum/?topic=18609.0
     const auto command
-        = Q_STR("--object-type %1 --vbr %2 --bitrate %3").arg(29).arg(0).arg(320000).toStdWString();
+        = Q_STR("--object-type %1 --vbr 0 --bitrate 512000 --title \"1234\"")
+		.arg(EncodingAudioObjectType::ENCODING_AAC_LC)
+		.toStdWString();
 
     try {
         auto encoder = DspComponentFactory::MakeAACEncoder();

@@ -9,6 +9,7 @@
 #include <tfilestream.h>
 #include <fileref.h>
 #include <tag.h>
+#include <tdebuglistener.h>
 
 #include <flac/flacfile.h>
 #include <flac/flacpicture.h>

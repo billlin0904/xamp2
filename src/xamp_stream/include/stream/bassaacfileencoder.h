@@ -10,6 +10,19 @@
 
 namespace xamp::stream {
 
+ enum EncodingAudioObjectType {
+     // "AAC Profile" MPEG-2 Low-complexity (LC) combined with MPEG-4 Perceptual Noise Substitution (PNS)
+     ENCODING_AAC_LC = 2,
+     // AAC LC + SBR (Spectral Band Replication)
+     ENCODING_HE_AAC = 5,
+     // "Low Delay Profile" used for real-time communication
+     ENCODING_AAC_LD = 23,
+     // AAC LC + SBR + PS (Parametric Stereo)
+     ENCODING_HE_AAC_V2 = 29,
+     // Enhanced Low Delay
+     ENCODING_AAC_ELD = 39,
+ };
+
 class BassAACFileEncoder final
 	: public IFileEncoder {
 public:
