@@ -16,7 +16,10 @@
 #include <bass/basscd.h>
 #include <bass/bassenc.h>
 #include <bass/bassenc_flac.h>
+
+#ifdef XAMP_OS_WIN
 #include <bass/bassenc_aac.h>
+#endif
 
 #include <base/singleton.h>
 #include <base/dll.h>

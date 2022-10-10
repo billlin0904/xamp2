@@ -320,12 +320,16 @@ void Xamp::cleanup() {
     }
 
     if (!background_thread_.isFinished()) {
-        background_worker_->stopThreadPool();
+        if (background_worker_ != nullptr) {
+            background_worker_->stopThreadPool();
+        }
         background_thread_.quit();
         background_thread_.wait();
     }
 
-    top_window_->saveGeometry();
+    if (top_window_ != nullptr) {
+        top_window_->saveGeometry();
+    }
 }
 
 void Xamp::initialUI() {
