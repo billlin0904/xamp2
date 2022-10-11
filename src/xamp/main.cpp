@@ -334,8 +334,10 @@ static int excute(int argc, char* argv[]) {
         return -1;
     }
 #else
+#ifdef XAMP_OS_WIN
     qInstallMessageHandler(logMessageHandler);
     QLoggingCategory::setFilterRules(Q_TEXT("*.info=false"));
+#endif
 #endif
     XAMP_LOG_DEBUG("attach app success.");
 
