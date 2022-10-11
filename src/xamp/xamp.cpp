@@ -124,6 +124,8 @@ Xamp::Xamp()
 	, file_system_view_page_(nullptr)
 	, tray_icon_menu_(nullptr)
     , tray_icon_(nullptr)
+	, top_window_(nullptr)
+	, background_worker_(nullptr)
     , discord_notify_(new DicordNotify(this))
     , state_adapter_(std::make_shared<UIPlayerStateAdapter>())
 	, player_(MakeAudioPlayer(state_adapter_)) {
@@ -320,12 +322,15 @@ void Xamp::cleanup() {
     }
 
     if (!background_thread_.isFinished()) {
-        background_worker_->stopThreadPool();
+        if (background_worker_ != nullptr) {
+            background_worker_->stopThreadPool();
+        }       
         background_thread_.quit();
         background_thread_.wait();
     }
-
-    top_window_->saveGeometry();
+    if (top_window_ != nullptr) {
+        top_window_->saveGeometry();
+    }
 }
 
 void Xamp::initialUI() {
@@ -1811,7 +1816,9 @@ QWidget* Xamp::popWidget() {
 }
 
 void Xamp::encodeAACFile(const PlayListEntity& item) {
-    const auto save_file_name = item.album + Q_TEXT("-") + item.title;
+    auto last_dir = AppSettings::getValueAsString(kDefaultDir);
+
+    const auto save_file_name = last_dir + Q_TEXT("/") + item.album + Q_TEXT("-") + item.title;
     const auto file_name = QFileDialog::getSaveFileName(this,
         tr("Save AAC file"),
         save_file_name,
@@ -1820,6 +1827,9 @@ void Xamp::encodeAACFile(const PlayListEntity& item) {
     if (file_name.isNull()) {
         return;
     }
+
+    QDir current_dir;
+    AppSettings::setValue(kDefaultDir, current_dir.absoluteFilePath(file_name));
 
     const auto dialog = makeProgressDialog(
         tr("Export progress dialog"),
@@ -1834,7 +1844,7 @@ void Xamp::encodeAACFile(const PlayListEntity& item) {
 
     // http://www.un4seen.com/forum/?topic=18609.0
     const auto command
-        = Q_STR("--object-type %1 --vbr 0 --bitrate 512000 --title \"1234\"")
+        = Q_STR("--object-type %1 --vbr 0 --ignorelength --bitrate 512000")
 		.arg(EncodingAudioObjectType::ENCODING_AAC_LC)
 		.toStdWString();
 
@@ -1856,7 +1866,9 @@ void Xamp::encodeAACFile(const PlayListEntity& item) {
 }
 
 void Xamp::encodeFlacFile(const PlayListEntity& item) {
-    const auto save_file_name = item.album + Q_TEXT("-") + item.title;
+    auto last_dir = AppSettings::getValueAsString(kDefaultDir);
+
+    const auto save_file_name = last_dir + Q_TEXT("/") + item.album + Q_TEXT("-") + item.title;
     const auto file_name = QFileDialog::getSaveFileName(this,
         tr("Save Flac file"),
         save_file_name,
@@ -1865,6 +1877,9 @@ void Xamp::encodeFlacFile(const PlayListEntity& item) {
     if (file_name.isNull()) {
         return;
     }
+
+    QDir current_dir;
+    AppSettings::setValue(kDefaultDir, current_dir.absoluteFilePath(file_name));
 
     const auto dialog = makeProgressDialog(
         tr("Export progress dialog"),

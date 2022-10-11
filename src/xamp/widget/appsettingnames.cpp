@@ -6,6 +6,7 @@
 IMPL_APP_SETTING_NAME(AppSettingAutoCheckForUpdate, "AppSettings/autoCheckForUpdate" );
 IMPL_APP_SETTING_NAME(AppSettingLastTabName, "AppSettings/lastTabName");
 IMPL_APP_SETTING_NAME(AppSettingLang, "AppSettings/lang");
+IMPL_APP_SETTING_NAME(DefaultDir, "AppSettings/defaultDir");
 
 const ConstLatin1String kAppSettingDeviceType{ "AppSettings/deviceType" };
 const ConstLatin1String kAppSettingDeviceId{ "AppSettings/deviceId" };

@@ -89,8 +89,6 @@ public:
 
 	LoggerManager& Startup();
 
-    void Shutdown();
-
     LoggerManager& AddDebugOutput();
 
     LoggerManager& AddLogFile(const std::string& file_name);
@@ -109,8 +107,11 @@ public:
 
     void SetLevel(LogLevel level);
 
+    void Shutdown();
 private:
     LoggerManager() noexcept;
+
+    ~LoggerManager();
 
     Vector<spdlog::sink_ptr> sinks_;
     std::shared_ptr<Logger> default_logger_;

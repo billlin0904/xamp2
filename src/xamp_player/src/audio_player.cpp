@@ -103,7 +103,6 @@ void AudioPlayer::Destroy() {
 #ifdef ENABLE_ASIO
     ResetASIODriver();
 #endif
-    FreeBassLib();
 }
 
 void AudioPlayer::Open(Path const& file_path, const Uuid& device_id) {

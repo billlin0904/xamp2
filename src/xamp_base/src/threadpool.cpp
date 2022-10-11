@@ -162,7 +162,7 @@ std::optional<Task> TaskScheduler::TrySteal(StopToken const& stop_token, size_t 
 
 void TaskScheduler::SetWorkerThreadName(size_t i) {
 	std::wostringstream stream;
-	stream << L"Worker Thread(" << i << ") " << String::ToStdWString(pool_name_);
+	stream << String::ToStdWString(pool_name_) << L" Worker Thread(" << i << ")";
 	SetThreadName(stream.str());
 }
 

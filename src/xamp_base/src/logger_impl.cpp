@@ -36,7 +36,10 @@ static void CreateLogsDir() {
 	}
 }
 
-LoggerManager::LoggerManager() noexcept {
+LoggerManager::LoggerManager() noexcept = default;
+
+LoggerManager::~LoggerManager() {
+	spdlog::shutdown();
 }
 
 const Vector<std::string_view> & LoggerManager::GetWellKnownName() {
@@ -60,7 +63,6 @@ LoggerManager& LoggerManager::Startup() {
 void LoggerManager::Shutdown() {
 	GetLogger(kXampLoggerName);
 	default_logger_->LogDebug("=:==:==:==:==:= LoggerManager shutdown =:==:==:==:==:=");
-	spdlog::shutdown();
 }
 
 Logger::Logger(const std::shared_ptr<spdlog::logger>& logger)

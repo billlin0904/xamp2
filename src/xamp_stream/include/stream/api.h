@@ -43,7 +43,7 @@ XAMP_STREAM_API bool TestDsdFileFormatStd(std::wstring const& file_path);
 
 XAMP_STREAM_API IDsdStream* AsDsdStream(IAudioStream* stream) noexcept;
 
-XAMP_STREAM_API HashSet<std::string> GetSupportFileExtensions();
+XAMP_STREAM_API const HashSet<std::string>& GetSupportFileExtensions();
 
 XAMP_STREAM_API std::map<std::string, std::string> GetBassDLLVersion();
 
@@ -60,7 +60,5 @@ XAMP_STREAM_API void LoadR8brainLib();
 XAMP_STREAM_API void LoadSoxrLib();
 
 XAMP_STREAM_API void LoadBassLib();
-
-XAMP_STREAM_API void FreeBassLib();
 
 }

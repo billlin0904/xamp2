@@ -138,7 +138,7 @@ public:
         }
         using namespace audio_util;
         const auto file_ext = String::ToLower(path.extension().string());
-        const auto support_file_set = GetSupportFileExtensions();
+        const auto & support_file_set = GetSupportFileExtensions();
         return support_file_set.find(file_ext) != support_file_set.end();
     }
 
@@ -187,15 +187,12 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
 
     QList<QString> dirs;
 
-    QDirIterator itr(file_path, is_recursive ? (QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot) : (QDir::Files));
+    QDirIterator itr(file_path, QDir::Dirs | QDir::NoDotAndDotDot);
     while (itr.hasNext()) {
         dirs.append(itr.next());
     }
+    dirs.push_back(file_path);
 
-	if (dirs.isEmpty()) {
-        dirs.push_back(file_path);
-	}
-    
     auto progress = 0;
     dialog->setMaximum(dirs.count());
 

@@ -107,8 +107,9 @@ IDsdStream* AsDsdStream(IAudioStream* stream) noexcept {
     return dynamic_cast<IDsdStream*>(stream);
 }
 
-HashSet<std::string> GetSupportFileExtensions() {
-    return BASS.GetSupportFileExtensions();
+const HashSet<std::string> & GetSupportFileExtensions() {
+    static const auto file_ext_lut = BASS.GetSupportFileExtensions();
+    return file_ext_lut;
 }
 
 void LoadBassLib() {
@@ -136,10 +137,6 @@ void LoadBassLib() {
 
 std::map<std::string, std::string> GetBassDLLVersion() {
     return BASS.GetVersions();
-}
-
-void FreeBassLib() {
-    BASS.Free();
 }
 
 void LoadFFTLib() {

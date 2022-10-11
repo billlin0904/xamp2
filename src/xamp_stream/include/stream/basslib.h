@@ -169,6 +169,7 @@ public:
 #else
     XAMP_DECLARE_DLL(BASS_Encode_FLAC_StartFile) BASS_Encode_AAC_StartFile;
 #endif
+    XAMP_DECLARE_DLL(BASS_Encode_AAC_GetVersion) BASS_Encode_AAC_GetVersion;
 };
 
 class BassEncLib final {
@@ -221,6 +222,8 @@ public:
 
 private:
     BassLib();
+
+    ~BassLib();
     
     HashMap<std::string, BassPluginHandle> plugins_;
     std::map<std::string, std::string> dll_versions_;
