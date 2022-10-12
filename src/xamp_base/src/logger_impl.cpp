@@ -12,7 +12,6 @@
 
 #include <base/platform.h>
 #include <base/fs.h>
-#include <base/fastmutex.h>
 #include <base/str_utilts.h>
 #include <base/logger.h>
 #include <base/logger_impl.h>
@@ -110,21 +109,13 @@ std::shared_ptr<Logger> LoggerManager::GetLogger(const std::string &name) {
 	return std::make_shared<Logger>(logger);
 }
 
-LoggerManager& LoggerManager::AddConsole() {
-#ifdef XAMP_OS_WIN
-	sinks_.push_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
-#else
-#endif
-	return *this;
-}
-
 LoggerManager& LoggerManager::AddDebugOutput() {
 #ifdef XAMP_OS_WIN
 	// OutputDebugString 會產生例外導致AddVectoredExceptionHandler註冊的
 	// Handler會遞迴的呼叫下去, 所以只有在除錯模式下才使用.
 	// https://stackoverflow.com/questions/25634376/why-does-addvectoredexceptionhandler-crash-my-dll
 	if (IsDebuging()) {
-		sinks_.push_back(std::make_shared<spdlog::sinks::msvc_sink<FastMutex>>());
+		sinks_.push_back(std::make_shared<spdlog::sinks::msvc_sink<LoggerMutex>>());
 	}
 #endif
 	return *this;
@@ -140,7 +131,7 @@ LoggerManager& LoggerManager::AddLogFile(const std::string &file_name) {
 
 	std::ostringstream ostr;
 	ostr << "logs/" << file_name;
-	sinks_.push_back(std::make_shared<spdlog::sinks::rotating_file_sink<FastMutex>>(
+	sinks_.push_back(std::make_shared<spdlog::sinks::rotating_file_sink<LoggerMutex>>(
 		ostr.str(), kMaxLogFileSize, 0));
 	return *this;
 }

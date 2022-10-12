@@ -433,6 +433,6 @@ int main(int argc, char *argv[]) {
     if (exist_code == kRestartExistCode) {
         QProcess::startDetached(Q_STR(argv[0]), qApp->arguments());
     }
-    return 0;
+    return exist_code;
 }
 

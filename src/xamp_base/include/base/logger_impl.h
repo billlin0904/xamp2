@@ -95,8 +95,6 @@ public:
 
     LoggerManager& AddSink(spdlog::sink_ptr sink);
 
-    LoggerManager& AddConsole();
-
     Logger* GetDefaultLogger() noexcept {
         return default_logger_.get();
     }
@@ -109,6 +107,8 @@ public:
 
     void Shutdown();
 private:
+    using LoggerMutex = std::recursive_mutex;
+
     LoggerManager() noexcept;
 
     ~LoggerManager();

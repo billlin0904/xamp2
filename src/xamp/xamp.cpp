@@ -70,6 +70,32 @@
 #include "version.h"
 #include "xamp.h"
 
+class MaskWidget : public QWidget {
+public:
+    explicit MaskWidget(QWidget* parent)
+        : QWidget(parent) {
+        setWindowFlag(Qt::FramelessWindowHint);
+        setAttribute(Qt::WA_StyledBackground);
+        // 255 * 0.4 = 102
+        setStyleSheet(Q_TEXT("background-color: rgba(0, 0, 0, 102);"));
+        auto *animation = new QPropertyAnimation(this, "windowOpacity");
+        animation->setDuration(2000);
+        animation->setEasingCurve(QEasingCurve::OutBack);
+        animation->setStartValue(0.0);
+        animation->setEndValue(1.0);
+        animation->start(QAbstractAnimation::DeleteWhenStopped);
+        show();
+    }
+
+    void showEvent(QShowEvent* event) override {
+        if (!parent()) {
+            return;
+        }
+        const auto parent_rect = static_cast<QWidget*>(parent())->geometry();
+        setGeometry(0, 0, parent_rect.width(), parent_rect.height());
+    }
+};
+
 static PlayerOrder getNextOrder(PlayerOrder cur) noexcept {
     auto next = static_cast<int32_t>(cur) + 1;
     auto max = static_cast<int32_t>(PlayerOrder::PLAYER_ORDER_MAX);
@@ -290,6 +316,7 @@ void Xamp::closeEvent(QCloseEvent* event) {
             const auto is_min_system_tray = AppSettings::getValueAsBool(kAppSettingMinimizeToTray);
 
             if (!is_min_system_tray && minimize_to_tray_ask) {
+                QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
                 auto [show_again_res, reply_res] = showDontShowAgainDialog(minimize_to_tray_ask);
                 AppSettings::setValue(kAppSettingMinimizeToTrayAsk, show_again_res);
                 AppSettings::setValue(kAppSettingMinimizeToTray, reply == QMessageBox::Ok);
@@ -674,6 +701,7 @@ void Xamp::initialController() {
             AppSettings::save();
         });
 
+        QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
         dialog->exec();
     });
 
@@ -853,6 +881,7 @@ void Xamp::initialController() {
         auto* about_page = new AboutPage(about_dialog);
         about_dialog->setContentWidget(about_page);
         about_dialog->setTitle(tr("About"));
+        QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
         about_dialog->exec();
         });
     settings_menu->addAction(about_action);
@@ -991,18 +1020,18 @@ void Xamp::goBackPage() {
 }
 
 void Xamp::setVolume(uint32_t volume) {
-    if (volume > 0) {
-        player_->SetMute(false);
-        ui_.mutedButton->setIcon(qTheme.volumeUp());
-        AppSettings::setValue(kAppSettingIsMuted, false);
-    }
-    else {
-        player_->SetMute(true);
-        ui_.mutedButton->setIcon(qTheme.volumeOff());
-        AppSettings::setValue(kAppSettingIsMuted, true);
-    }
-
     try {
+        if (volume > 0) {
+            player_->SetMute(false);
+            ui_.mutedButton->setIcon(qTheme.volumeUp());
+            AppSettings::setValue(kAppSettingIsMuted, false);
+        }
+        else {
+            player_->SetMute(true);
+            ui_.mutedButton->setIcon(qTheme.volumeOff());
+            AppSettings::setValue(kAppSettingIsMuted, true);
+        }
+
         player_->SetVolume(volume);
     }
     catch (const Exception& e) {
@@ -1836,6 +1865,8 @@ void Xamp::encodeAACFile(const PlayListEntity& item) {
         tr("Export '") + item.title + tr("' to aac file"),
         tr("Cancel"));
 
+    QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
+
     Metadata metadata;
     metadata.album = item.album.toStdWString();
     metadata.artist = item.artist.toStdWString();
@@ -1873,6 +1904,8 @@ void Xamp::encodeFlacFile(const PlayListEntity& item) {
         tr("Save Flac file"),
         save_file_name,
         tr("FLAC Files (*.flac)"));
+
+    QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
 
     if (file_name.isNull()) {
         return;

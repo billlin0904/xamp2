@@ -41,7 +41,7 @@ public:
 	}
 
 	[[nodiscard]] uint32_t GetSpeed() const {
-		return BASS.CDLib->BASS_CD_GetSpeed(driver_) / kCDSpeedMultiplier;
+		return static_cast<uint32_t>((BASS.CDLib->BASS_CD_GetSpeed(driver_) / kCDSpeedMultiplier));
 	}
 
 	[[nodiscard]] bool DoorIsOpen() const {

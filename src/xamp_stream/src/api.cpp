@@ -10,6 +10,7 @@
 #include <stream/basswavfileencoder.h>
 #include <stream/bassflacfileencoder.h>
 #include <stream/bassaacfileencoder.h>
+#include <stream/mfaacencoder.h>
 #include <stream/bassfader.h>
 #include <stream/basscddevice.h>
 #include <stream/basscompressor.h>
@@ -62,7 +63,7 @@ AlignPtr<IFileEncoder> DspComponentFactory::MakeFlacEncoder() {
 }
 
 AlignPtr<IFileEncoder> DspComponentFactory::MakeAACEncoder() {
-    return MakeAlign<IFileEncoder, BassAACFileEncoder>();
+    return MakeAlign<IFileEncoder, MFAACFileEncoder>();
 }
 
 AlignPtr<IFileEncoder> DspComponentFactory::MakeWaveEncoder() {

@@ -59,6 +59,8 @@ QFont ThemeManager::loadFonts() {
 
     installFileFont(Q_TEXT("Electrolize.ttf"), digital_font_families);
     installFileFont(Q_TEXT("RobotoMono-Regular.ttf"), mono_fonts);
+    //installFileFont(Q_TEXT("Manrope-Regular.ttf"), digital_font_families);
+    //installFileFont(Q_TEXT("Manrope-Regular.ttf"), mono_fonts);
 
     installFileFont(Q_TEXT("HarmonyOS_Sans_TC_Regular.ttf"), ui_fallback_fonts);
     installFileFont(Q_TEXT("HarmonyOS_Sans_TC_Bold.ttf"), ui_fallback_fonts);

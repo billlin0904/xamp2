@@ -170,9 +170,9 @@ public:
 #ifdef XAMP_OS_WIN
     DllFunction<HENCODE(DWORD, const WCHAR*, DWORD, const WCHAR*)> BASS_Encode_AAC_StartFile;
 #else
-    XAMP_DECLARE_DLL(BASS_Encode_FLAC_StartFile) BASS_Encode_AAC_StartFile;
+    XAMP_DECLARE_DLL(BASS_Encode_AAC_StartFile) BASS_Encode_AAC_StartFile;
 #endif
-    XAMP_DECLARE_DLL(BASS_Encode_AAC_GetVersion) BASS_Encode_AAC_GetVersion;
+    DllFunction<DWORD()> BASS_Encode_AAC_GetVersion;
 };
 
 class BassEncLib final {

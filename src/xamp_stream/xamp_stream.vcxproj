@@ -86,7 +86,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <AdditionalLibraryDirectories>../xamp/x64/Debug/</AdditionalLibraryDirectories>
-      <AdditionalDependencies>xamp_base.lib;shared-x64.lib;foobar2000_SDK.lib;pfc.lib;libPPUI.lib;foobar2000_component_client.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>xamp_base.lib;Mfplat.lib;Mf.lib;shared-x64.lib;foobar2000_SDK.lib;pfc.lib;libPPUI.lib;foobar2000_component_client.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Bscmake>
       <PreserveSbr>true</PreserveSbr>
@@ -182,6 +182,7 @@
     <ClInclude Include="include\stream\ifileencoder.h" />
     <ClInclude Include="include\stream\filestream.h" />
     <ClInclude Include="include\stream\isameplewriter.h" />
+    <ClInclude Include="include\stream\mfaacencoder.h" />
     <ClInclude Include="include\stream\pcm2dsdsamplewriter.h" />
     <ClInclude Include="include\stream\podcastcache.h" />
     <ClInclude Include="include\stream\r8brainlib.h" />
@@ -212,6 +213,7 @@
     <ClCompile Include="src\fft.cpp" />
     <ClCompile Include="src\fftwlib.cpp" />
     <ClCompile Include="src\foobardspadapter.cpp" />
+    <ClCompile Include="src\mfaacencoder.cpp" />
     <ClCompile Include="src\padcastcache.cpp" />
     <ClCompile Include="src\api.cpp" />
     <ClCompile Include="src\samplewriter.cpp" />
