@@ -2,6 +2,7 @@
 #include <base/buffer.h>
 #include <base/str_utilts.h>
 #include <base/exception.h>
+#include <base/logger_impl.h>
 #include <stream/bassfilestream.h>
 #include <stream/basslib.h>
 #include <stream/api.h>
@@ -12,7 +13,7 @@ namespace xamp::stream {
 
 class BassWavFileEncoder::BassWavFileEncoderImpl {
 public:
-    void Start(Path const& input_file_path, Path const& output_file_path, std::wstring const& command) {
+    void Start(Path const& input_file_path, Path const& output_file_path, std::wstring const&) {
         DWORD flags = BASS_ENCODE_AUTOFREE;
 
         if (TestDsdFileFormatStd(input_file_path.wstring())) {
@@ -29,8 +30,26 @@ public:
             break;
         }
 
+        /*const auto acm_form_len = BASS.EncLib->BASS_Encode_GetACMFormat(0, nullptr, 0, nullptr, 0);
+        std::vector<uint8_t> buffer(acm_form_len);
+        BASS.EncLib->BASS_Encode_GetACMFormat(stream_.GetHStream(), buffer.data(), acm_form_len, nullptr, BASS_ACM_DEFAULT);
+
+        std::ostringstream ostr;
+        for (auto ch : buffer) {
+            ostr << "0x" << std::setw(2) << std::setfill('0') << std::hex << static_cast<uint32_t>(ch) << ",";
+        }
+
+        XAMP_LOG_DEBUG("Format: {}", ostr.str());*/
+
+        // 2ch,44100Khz,PCM format.
+        constexpr std::array<uint8_t, 50> buffer{
+            0x01,0x00,0x02,0x00,0x44,0xac,0x00,0x00,0x10,0xb1,0x02,0x00,0x04,0x00,0x10,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+            0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+            0x00,0x00
+        };
+
         encoder_.reset(BASS.EncLib->BASS_Encode_StartACMFile(stream_.GetHStream(),
-            (void*)command.c_str(),
+            (void*)buffer.data(),
             flags | BASS_UNICODE,
             output_file_path.wstring().c_str()));
 

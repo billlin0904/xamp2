@@ -189,6 +189,7 @@ private:
 public:
     DllFunction<HENCODE(DWORD, void*, DWORD, const wchar_t*)> BASS_Encode_StartACMFile;
     XAMP_DECLARE_DLL(BASS_Encode_GetVersion) BASS_Encode_GetVersion;
+	DllFunction<DWORD (DWORD, void*, DWORD, const char*, DWORD)> BASS_Encode_GetACMFormat;
 };
 
 class BassLib final {

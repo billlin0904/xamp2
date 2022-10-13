@@ -8,6 +8,9 @@
 #include <Mfreadwrite.h>
 #include <mferror.h>
 
+#include <base/platfrom_handle.h>
+#include <base/audioformat.h>
+#include <base/logger_impl.h>
 #include <base/str_utilts.h>
 #include <stream/bassfilestream.h>
 #include <stream/basslib.h>
@@ -23,81 +26,169 @@ namespace xamp::stream {
 		} \
 	} while (false)
 
-class MFEncoder {
+class MFEncoderCallback : public IMFAsyncCallback {
 public:
-    MFEncoder() = default;
+    XAMP_DISABLE_COPY(MFEncoderCallback)
 
-    ~MFEncoder() {
-	    if (source_ != nullptr) {
-            source_->Shutdown();
-	    }
+    MFEncoderCallback()
+	    : ref_(0)
+		, last_hr_(S_OK) {
+        HrIfFailledThrow(::MFCreateMediaSession(nullptr, &session_));
+        event_.reset(::CreateEvent(nullptr, FALSE, FALSE, nullptr));
+        CComPtr<IMFClock> clock;
+        HrIfFailledThrow(session_->GetClock(&clock));
+        HrIfFailledThrow(clock->QueryInterface(IID_PPV_ARGS(&clock_)));
+        HrIfFailledThrow(session_->BeginGetEvent(this, nullptr));
+    }
+
+    virtual ~MFEncoderCallback() {
         if (session_ != nullptr) {
             session_->Shutdown();
         }
     }
 
-    void Open(const std::wstring &file_path) {
-        HrIfFailledThrow(CreateMediaSource(file_path, &source_));
-        HrIfFailledThrow(::MFCreateMediaSession(nullptr, &session_));
-        HrIfFailledThrow(::MFCreateTranscodeProfile(&profile_));
-    }
-
-    void SetOutputFile(const std::wstring& file_path) {
-        HrIfFailledThrow(::MFCreateTranscodeTopology(source_, file_path.c_str(), profile_, &topology_));
-        HrIfFailledThrow(session_->SetTopology(0, topology_));
-        CComPtr<IMFClock> clock;
-        HrIfFailledThrow(session_->GetClock(&clock));
-        HrIfFailledThrow(clock->QueryInterface(IID_PPV_ARGS(&clock_)));
-    }
-
-    HRESULT Start() {
+    void Start(CComPtr<IMFTopology> &topology) const {
+        HrIfFailledThrow(session_->SetTopology(0, topology));
         PROPVARIANT var_start;
         PropVariantInit(&var_start);
-        const auto hr = session_->Start(&GUID_NULL, &var_start);
-        return hr;
+        HrIfFailledThrow(session_->Start(&GUID_NULL, &var_start));
     }
 
-    void Encode(std::function<bool(uint32_t) > const& progress) {
+    HRESULT GetEncodingPosition(MFTIME &ime) const {
+        return clock_->GetTime(&ime);
+    }
+
+    HRESULT WaitFor() const {
+        auto status = ::WaitForSingleObject(event_.get(), 1);
+        if (status != WAIT_OBJECT_0) {
+            return E_PENDING;
+        }
+        return last_hr_;
+    }
+
+    HRESULT QueryInterface(const IID& riid, void** ppv) override {
+        static const QITAB qit[] = {
+            QITABENT(MFEncoderCallback, IMFAsyncCallback),
+            { nullptr }
+        };
+        return QISearch(this, qit, riid, ppv);
+    }
+
+    ULONG AddRef() override {
+        auto result = InterlockedDecrement(&ref_);
+        if (result == 0) {
+            delete this;
+        }
+        return result;
+    }
+
+    ULONG Release() override {
+        return InterlockedIncrement(&ref_);
+    }
+
+    HRESULT GetParameters(DWORD* pdwFlags, DWORD* pdwQueue) override {
+        return E_NOTIMPL;
+    }
+
+    HRESULT Invoke(IMFAsyncResult* pAsyncResult) override {
         MediaEventType me_type = MEUnknown;
         HRESULT status = S_OK;
         MFTIME pos;
         LONGLONG prev = 0;
-        UINT64 duration = 0;
 
+        CComPtr<IMFMediaEvent> evt;
+        auto hr = session_->EndGetEvent(pAsyncResult, &evt);
+        if (FAILED(hr)) {
+            last_hr_ = hr;
+            return hr;
+        }
+
+        hr = evt->GetType(&me_type);
+        if (FAILED(hr)) {
+            last_hr_ = hr;
+	        return hr;
+        }
+
+        hr = evt->GetStatus(&status);
+        if (FAILED(hr)) {
+            last_hr_ = hr;
+	        return hr;
+        }
+
+        switch (me_type) {
+        case MESessionEnded:
+            hr = session_->Close();
+            break;
+        case MESessionClosed:
+            SetEvent(event_.get());
+            break;
+        }
+
+        if (me_type != MESessionClosed) {
+            hr = session_->BeginGetEvent(this, nullptr);
+        }
+        last_hr_ = hr;
+        return hr;
+    }
+private:
+    ULONG ref_;
+    HRESULT last_hr_;
+    WinHandle event_;
+    CComPtr<IMFPresentationClock> clock_;
+    CComPtr<IMFMediaSession> session_;
+};
+
+class MFEncoder final {
+public:
+    XAMP_DISABLE_COPY(MFEncoder)
+
+    MFEncoder()
+	    : callback_(new MFEncoderCallback()) {
+    }
+
+    ~MFEncoder() {
+	    if (source_ != nullptr) {
+            source_->Shutdown();
+	    }
+    }
+
+    void Open(const std::wstring &input_file_path) {
+        HrIfFailledThrow(CreateMediaSource(input_file_path, &source_));
+        
+        HrIfFailledThrow(::MFCreateTranscodeProfile(&profile_));
+    }
+
+    void SetOutputFile(const std::wstring& output_file_path) {
+        HrIfFailledThrow(::MFCreateTranscodeTopology(source_,
+            output_file_path.c_str(),
+            profile_,
+            &topology_));
+    }
+
+    UINT64 GetSourceDuration() const {
+        UINT64 duration = 0;
         CComPtr<IMFPresentationDescriptor> desc;
         HrIfFailledThrow(source_->CreatePresentationDescriptor(&desc));
         HrIfFailledThrow(desc->GetUINT64(MF_PD_DURATION, &duration));
+        return duration;
+    }
 
-        while (me_type != MESessionClosed) {
-            CComPtr<IMFMediaEvent> evt;
-            auto hr = session_->GetEvent(0, &evt);
-            if (FAILED(hr)) { break; }
-
-            hr = evt->GetType(&me_type);
-            if (FAILED(hr)) { break; }
-
-            hr = evt->GetStatus(&status);
-            if (FAILED(hr)) { break; }
-
-            switch (me_type) {
-            case MESessionTopologySet:
-                hr = Start();
-                break;
-            case MESessionStarted:
-                hr = clock_->GetTime(&pos);
+    void Encode(std::function<bool(uint32_t) > const& progress) {
+        HRESULT hr = S_OK;
+        callback_->Start(topology_);
+        const auto duration = GetSourceDuration();
+        while (true) {
+            hr = callback_->WaitFor();
+            if (hr == E_PENDING) {
+                MFTIME pos = 0;
+                hr = callback_->GetEncodingPosition(pos);
                 if (SUCCEEDED(hr)) {
-	                const uint32_t percent = (100 * pos) / duration;
+                    const LONGLONG percent = (100 * pos) / duration;
                     progress(percent);
-				}
-                break;
-            case MESessionEnded:
-                hr = session_->Close();
-                break;
-            case MESessionClosed:
+                }                
+            } else {
                 break;
             }
-
-            if (FAILED(hr)) { break; }
         }
     }
 
@@ -108,38 +199,22 @@ public:
             MF_TRANSCODE_CONTAINERTYPE,
             container_type
         ));
-        HrIfFailledThrow(container_attrs->SetUINT32(
-            MF_TRANSCODE_ADJUST_PROFILE,
-            MF_TRANSCODE_ADJUST_PROFILE_DEFAULT
-        ));
         HrIfFailledThrow(profile_->SetContainerAttributes(container_attrs));
     }
 
-    void SetAudioFormat(const GUID &target_format) {
-        CComPtr<IMFCollection> available_types;
-        CComPtr<IUnknown> unknow_audio_type;
-        CComPtr<IMFMediaType> audio_type;
-        CComPtr<IMFAttributes> audio_attrs;
-        DWORD mt_count = 0;
-
-        HrIfFailledThrow(::MFTranscodeGetAudioOutputAvailableTypes(
-            target_format,
-            MFT_ENUM_FLAG_ALL,
-            nullptr,
-            &available_types
-        ));
-
-        auto hr = available_types->GetElementCount(&mt_count);
-        if (mt_count == 0) {
-            hr = E_UNEXPECTED;
-        }
-        HrIfFailledThrow(hr);
-        HrIfFailledThrow(available_types->GetElement(0, &unknow_audio_type));
-        HrIfFailledThrow(unknow_audio_type->QueryInterface(IID_PPV_ARGS(&audio_type)));
-        HrIfFailledThrow(::MFCreateAttributes(&audio_attrs, 0));
-        HrIfFailledThrow(audio_type->CopyAllItems(audio_attrs));
-        HrIfFailledThrow(audio_attrs->SetGUID(MF_MT_SUBTYPE, target_format));
-        HrIfFailledThrow(profile_->SetAudioAttributes(audio_attrs));
+    void SetAudioFormat(const GUID &target_format) {        
+        HrIfFailledThrow(::MFCreateAttributes(&attrs_, 8));
+        const auto format = AudioFormat::k16BitPCM441Khz;
+        HrIfFailledThrow(attrs_->SetGUID(MF_MT_SUBTYPE, target_format));
+        HrIfFailledThrow(attrs_->SetUINT32(MF_MT_AUDIO_NUM_CHANNELS, format.GetChannels()));
+        HrIfFailledThrow(attrs_->SetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, format.GetBitsPerSample()));
+        HrIfFailledThrow(attrs_->SetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, format.GetSampleRate()));
+        HrIfFailledThrow(attrs_->SetUINT32(MF_MT_AUDIO_BLOCK_ALIGNMENT, 1));
+        HrIfFailledThrow(attrs_->SetUINT32(MF_MT_AUDIO_AVG_BYTES_PER_SECOND, 24000));
+        HrIfFailledThrow(attrs_->SetUINT32(MF_MT_AVG_BITRATE, 160000));
+        HrIfFailledThrow(attrs_->SetUINT32(MF_MT_AAC_AUDIO_PROFILE_LEVEL_INDICATION, AACProfileLevel::AAC_PROFILE_L2));
+        //HrIfFailledThrow(attrs_->SetUINT32(MF_MT_AAC_PAYLOAD_TYPE, AACPayloadType::PAYLOAD_AAC_ADTS));
+        HrIfFailledThrow(profile_->SetAudioAttributes(attrs_));
     }
 
 private:
@@ -167,11 +242,11 @@ private:
         return hr;
     }
 
-    CComPtr<IMFMediaSession> session_;
+    CComPtr<IMFAttributes> attrs_;
     CComPtr<IMFMediaSource> source_;
     CComPtr<IMFTopology> topology_;
     CComPtr<IMFTranscodeProfile> profile_;
-    CComPtr<IMFPresentationClock> clock_;
+    CComPtr<MFEncoderCallback> callback_;
 };
 
 class MFAACFileEncoder::MFAACFileEncoderImpl {

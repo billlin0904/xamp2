@@ -170,6 +170,8 @@ private:
 
 	void encodeAACFile(const PlayListEntity& item);
 
+	void encodeWavFile(const PlayListEntity& item);
+
 	void createTrayIcon();
 
     void updateUI(const AlbumEntity& item, const PlaybackFormat& playback_format, bool open_done);

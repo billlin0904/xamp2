@@ -348,6 +348,7 @@ void PlayListTableView::initial() {
         export_flac_file_act->setIcon(Q_FONT_ICON_CODE(0xe0c3));
 
         auto* export_aac_file_act = action_map.addAction(tr("Export AAC file"));
+        auto* export_wav_file_act = action_map.addAction(tr("Export WAV file"));
 
         action_map.addSeparator();
         auto * copy_album_act = action_map.addAction(tr("Copy album"));
@@ -418,6 +419,14 @@ void PlayListTableView::initial() {
             for (const auto& row : rows) {
                 auto entity = this->item(row.second);
                 emit encodeAACFile(entity);
+            }
+            });
+
+        action_map.setCallback(export_wav_file_act, [this]() {
+            const auto rows = selectItemIndex();
+            for (const auto& row : rows) {
+                auto entity = this->item(row.second);
+                emit encodeWavFile(entity);
             }
             });
 

@@ -142,7 +142,8 @@ BassEncLib::BassEncLib()  try
     : module_(LoadModule("libbassenc.dylib"))
 #endif
     , XAMP_LOAD_DLL_API(BASS_Encode_StartACMFile)
-	, XAMP_LOAD_DLL_API(BASS_Encode_GetVersion) {
+	, XAMP_LOAD_DLL_API(BASS_Encode_GetVersion)
+	, XAMP_LOAD_DLL_API(BASS_Encode_GetACMFormat) {
 }
 catch (const Exception& e) {
     XAMP_LOG_ERROR("{}", e.GetErrorMessage());

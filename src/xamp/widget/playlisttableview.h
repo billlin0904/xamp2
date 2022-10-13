@@ -75,6 +75,8 @@ signals:
 
 	void encodeAACFile(const PlayListEntity& item);
 
+	void encodeWavFile(const PlayListEntity& item);
+
     void addPlaylistReplayGain(bool force, const Vector<PlayListEntity> &entities);
 
 public slots:

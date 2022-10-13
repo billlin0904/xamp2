@@ -1896,6 +1896,54 @@ void Xamp::encodeAACFile(const PlayListEntity& item) {
     }
 }
 
+void Xamp::encodeWavFile(const PlayListEntity& item) {
+    auto last_dir = AppSettings::getValueAsString(kDefaultDir);
+
+    const auto save_file_name = last_dir + Q_TEXT("/") + item.album + Q_TEXT("-") + item.title;
+    const auto file_name = QFileDialog::getSaveFileName(this,
+        tr("Save Wav file"),
+        save_file_name,
+        tr("Wav Files (*.wav)"));
+
+    QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
+
+    if (file_name.isNull()) {
+        return;
+    }
+
+    QDir current_dir;
+    AppSettings::setValue(kDefaultDir, current_dir.absoluteFilePath(file_name));
+
+    const auto dialog = makeProgressDialog(
+        tr("Export progress dialog"),
+        tr("Export '") + item.title + tr("' to wav file"),
+        tr("Cancel"));
+
+    Metadata metadata;
+    metadata.album = item.album.toStdWString();
+    metadata.artist = item.artist.toStdWString();
+    metadata.title = item.title.toStdWString();
+    metadata.track = item.track;
+
+    std::wstring command;
+
+    try {
+        auto encoder = DspComponentFactory::MakeWaveEncoder();
+        read_utiltis::encodeFile(item.file_path.toStdWString(),
+            file_name.toStdWString(),
+            encoder,
+            command,
+            [&](auto progress) -> bool {
+                dialog->setValue(progress);
+                qApp->processEvents();
+                return dialog->wasCanceled() != true;
+            }, metadata);
+    }
+    catch (Exception const& e) {
+        Toast::showTip(Q_TEXT(e.what()), this);
+    }
+}
+
 void Xamp::encodeFlacFile(const PlayListEntity& item) {
     auto last_dir = AppSettings::getValueAsString(kDefaultDir);
 
@@ -1965,6 +2013,11 @@ void Xamp::connectSignal(PlaylistPage* playlist_page) {
         &PlayListTableView::encodeAACFile,
         this,
         &Xamp::encodeAACFile);
+
+    (void)QObject::connect(playlist_page->playlist(),
+        &PlayListTableView::encodeWavFile,
+        this,
+        &Xamp::encodeWavFile);
 
     (void)QObject::connect(playlist_page->playlist(),
         &PlayListTableView::addPlaylistReplayGain,
