@@ -205,6 +205,8 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
 }
 
 void PlayListTableView::initial() {
+    setStyleSheet(Q_TEXT("border : none;"));
+
     notshow_column_names_.insert(Q_TEXT("albumId"));
     notshow_column_names_.insert(Q_TEXT("artistId"));
     notshow_column_names_.insert(Q_TEXT("coverId"));
@@ -247,6 +249,7 @@ void PlayListTableView::initial() {
     verticalHeader()->setDefaultSectionSize(40);
 
     horizontalScrollBar()->setDisabled(true);
+
     horizontalHeader()->setVisible(true);
     horizontalHeader()->setHighlightSections(false);
     horizontalHeader()->setStretchLastSection(true);
@@ -452,6 +455,7 @@ bool PlayListTableView::isPodcastMode() const {
 
 void PlayListTableView::setPodcastMode(bool enable) {
     podcast_mode_ = enable;
+
 	if (podcast_mode_) {
         hideColumn(PLAYLIST_FILE_SIZE);
         hideColumn(PLAYLIST_TRACK_RG);
@@ -478,7 +482,7 @@ void PlayListTableView::setPodcastMode(bool enable) {
                 AppSettings::removeList(kAppSettingColumnName, QString::number(last_referred_logical_column));
                 });
             hide_this_column_act->setIcon(Q_FONT_ICON_CODE(0xe8f5));
-            
+
             auto select_column_show_act = action_map.addAction(tr("Select columns to show..."), [pt, header_view, this]() {
                 ActionMap<PlayListTableView> action_map(this);
                 for (auto column = 0; column < header_view->count(); ++column) {

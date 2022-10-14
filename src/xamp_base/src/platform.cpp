@@ -260,7 +260,7 @@ int32_t CpuAffinity::FirstSetCpu() const {
 void SetThreadAffinity(JThread& thread, CpuAffinity affinity) noexcept {
 #ifdef XAMP_OS_WIN
     auto cpu = affinity.FirstSetCpu();
-    auto group_size = 0;
+    uint32_t group_size = 0;
 
 	const auto groups = ::GetActiveProcessorGroupCount();
     auto cpu_offset = 0, group = -1;

@@ -30,10 +30,10 @@ IThreadPool& GetPlaybackThreadPool() {
 }
 
 IThreadPool& GetWASAPIThreadPool() {
-    static const CpuAffinity wasapiCpuAff{ 0 };
+    static const CpuAffinity wasapi_cpu_aff{ 0 };
     static ThreadPool threadpool(kWASAPIThreadPoolLoggerName,
         kMaxWASAPIThreadPoolSize,
-        wasapiCpuAff,
+        wasapi_cpu_aff,
         ThreadPriority::HIGHEST);
     return threadpool;
 }

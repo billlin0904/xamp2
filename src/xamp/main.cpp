@@ -221,19 +221,19 @@ static void loadLang() {
 #ifdef XAMP_OS_WIN
 static std::vector<ModuleHandle> prefetchDLL() {
     const std::vector<std::string_view> dll_file_names{
-        "ResourcePolicyClient.dll", // WASAPI
-        "AudioSes.dll", // WASAPI
-        "AUDIOKSE.dll",// WASAPI
-        "Mmdevapi.dll", // WASAPI
         "DWrite.dll",
-        "gdi32.dll",
-        "d3d9.dll",
-        "GdiPlus.dll",
         "psapi.dll",
-    	"comctl32.dll",
-        "thumbcache.dll",
-        "setupapi.dll",
-        "mimalloc-override.dll",
+        //"mimalloc-override.dll",
+        //"gdi32.dll",
+        //"d3d9.dll",
+        //"GdiPlus.dll",
+        //"comctl32.dll",
+        //"thumbcache.dll",
+        //"setupapi.dll",
+        //"ResourcePolicyClient.dll", // WASAPI
+        //"AudioSes.dll", // WASAPI
+        //"AUDIOKSE.dll",// WASAPI
+        //"Mmdevapi.dll", // WASAPI
     #ifndef _DEBUG
         "Qt5Gui.dll",
         "Qt5Core.dll",

@@ -82,16 +82,16 @@ void LrcPage::onThemeChanged(QColor backgroundColor, QColor color) {
 }
 
 void LrcPage::initial() {
-	auto horizontalLayout_10 = new QHBoxLayout(this);
+	auto horizontal_layout_10 = new QHBoxLayout(this);
 	
-	horizontalLayout_10->setSpacing(0);
-	horizontalLayout_10->setObjectName(QString::fromUtf8("horizontalLayout_10"));
-	horizontalLayout_10->setContentsMargins(80, 80, 80, 80);
-	horizontalLayout_10->setStretch(1, 1);
+	horizontal_layout_10->setSpacing(0);
+	horizontal_layout_10->setObjectName(QString::fromUtf8("horizontalLayout_10"));
+	horizontal_layout_10->setContentsMargins(80, 80, 80, 80);
+	horizontal_layout_10->setStretch(1, 1);
 
-	auto verticalLayout_3 = new QVBoxLayout();
-	verticalLayout_3->setSpacing(0);
-	verticalLayout_3->setObjectName(QString::fromUtf8("verticalLayout_3"));	
+	auto vertical_layout_3 = new QVBoxLayout();
+	vertical_layout_3->setSpacing(0);
+	vertical_layout_3->setObjectName(QString::fromUtf8("verticalLayout_3"));	
 
     cover_label_ = new QLabel(this);
     cover_label_->setObjectName(QString::fromUtf8("lrcCoverLabel"));
@@ -106,28 +106,28 @@ void LrcPage::initial() {
 	cover_label_->setAttribute(Qt::WA_StaticContents);
 
 	auto* effect = new QGraphicsDropShadowEffect(this);
-	effect->setOffset(0, 0);
-	effect->setColor(Qt::black);
-	effect->setBlurRadius(25);
+	effect->setOffset(10, 10);
+	effect->setColor(QColor(Q_TEXT("#DCDCDC")));
+	effect->setBlurRadius(50);
 	cover_label_->setGraphicsEffect(effect);
 
-    verticalLayout_3->addWidget(cover_label_);
-	verticalLayout_3->setContentsMargins(0, 20, 0, 0);
+    vertical_layout_3->addWidget(cover_label_);
+	vertical_layout_3->setContentsMargins(0, 20, 0, 0);
 
-	auto verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
+	auto vertical_spacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
 
-	verticalLayout_3->addItem(verticalSpacer);
+	vertical_layout_3->addItem(vertical_spacer);
 
-	horizontalLayout_10->addLayout(verticalLayout_3);
+	horizontal_layout_10->addLayout(vertical_layout_3);
 
-	auto horizontalSpacer_4 = new QSpacerItem(50, 20, QSizePolicy::Fixed, QSizePolicy::Minimum);
+	auto horizontal_spacer_4 = new QSpacerItem(50, 20, QSizePolicy::Fixed, QSizePolicy::Minimum);
 
-	horizontalLayout_10->addItem(horizontalSpacer_4);
+	horizontal_layout_10->addItem(horizontal_spacer_4);
 
-	auto verticalLayout_2 = new QVBoxLayout();
+	auto vertical_layout_2 = new QVBoxLayout();
 
-	verticalLayout_2->setSpacing(0);
-	verticalLayout_2->setObjectName(QString::fromUtf8("verticalLayout_2"));
+	vertical_layout_2->setSpacing(0);
+	vertical_layout_2->setObjectName(QString::fromUtf8("verticalLayout_2"));
 
 	auto f = font();
     f.setPointSize(12);
@@ -148,11 +148,11 @@ void LrcPage::initial() {
     f.setBold(false);
     title_->setFont(f);
 
-	verticalLayout_2->addWidget(title_);
+	vertical_layout_2->addWidget(title_);
 	
-	auto horizontalLayout_9 = new QHBoxLayout();
-	horizontalLayout_9->setSpacing(6);
-	horizontalLayout_9->setObjectName(QString::fromUtf8("horizontalLayout_9"));
+	auto horizontal_layout_9 = new QHBoxLayout();
+	horizontal_layout_9->setSpacing(6);
+	horizontal_layout_9->setObjectName(QString::fromUtf8("horizontalLayout_9"));
 	auto horizontalLayout_8 = new QHBoxLayout();
 	horizontalLayout_8->setSpacing(0);
 	horizontalLayout_8->setObjectName(QString::fromUtf8("horizontalLayout_8"));
@@ -175,11 +175,11 @@ void LrcPage::initial() {
 
 	horizontalLayout_8->setStretch(1, 0);
 
-	horizontalLayout_9->addLayout(horizontalLayout_8);
+	horizontal_layout_9->addLayout(horizontalLayout_8);
 
-	auto horizontalLayout_7 = new QHBoxLayout();
-	horizontalLayout_7->setSpacing(0);
-	horizontalLayout_7->setObjectName(QString::fromUtf8("horizontalLayout_7"));
+	auto horizontal_layout_7 = new QHBoxLayout();
+	horizontal_layout_7->setSpacing(0);
+	horizontal_layout_7->setObjectName(QString::fromUtf8("horizontalLayout_7"));
 	auto label_7 = new QLabel(this);	
 	label_7->setObjectName(QString::fromUtf8("label_4"));
 	label_7->setText(tr("Album:"));
@@ -187,36 +187,36 @@ void LrcPage::initial() {
 	label_7->setMinimumWidth(50);
 	label_7->setFont(f);
     label_7->setStyleSheet(Q_TEXT("background-color: transparent; color: gray;"));
-	horizontalLayout_7->addWidget(label_7);
+	horizontal_layout_7->addWidget(label_7);
 
 	album_ = new ScrollLabel(this);
 	album_->setObjectName(QString::fromUtf8("label_6"));
     album_->setStyleSheet(Q_TEXT("background-color: transparent"));
 	album_->setFont(f);
 
-	horizontalLayout_7->addWidget(album_);
+	horizontal_layout_7->addWidget(album_);
 
-	horizontalLayout_7->setStretch(1, 0);
+	horizontal_layout_7->setStretch(1, 0);
 
-	horizontalLayout_9->addLayout(horizontalLayout_7);
+	horizontal_layout_9->addLayout(horizontal_layout_7);
 	
 
-	verticalLayout_2->addLayout(horizontalLayout_9);
+	vertical_layout_2->addLayout(horizontal_layout_9);
 
 	lyrics_widget_ = new LyricsShowWidget(this);
 	lyrics_widget_->setObjectName(QString::fromUtf8("lyrics"));
 	lyrics_widget_->setMinimumSize(QSize(180, 60));
-	verticalLayout_2->addWidget(lyrics_widget_);
+	vertical_layout_2->addWidget(lyrics_widget_);
 
 	spectrum_ = new SpectrumWidget(this);
 	spectrum_->setMinimumSize(QSize(180, 60));
 	spectrum_->setStyleSheet(Q_TEXT("background-color: transparent"));
-	verticalLayout_2->addWidget(spectrum_);
+	vertical_layout_2->addWidget(spectrum_);
 
-	verticalLayout_2->setStretch(2, 1);
+	vertical_layout_2->setStretch(2, 1);
 
-	horizontalLayout_10->addLayout(verticalLayout_2);
-	horizontalLayout_10->setStretch(1, 1);
+	horizontal_layout_10->addLayout(vertical_layout_2);
+	horizontal_layout_10->setStretch(1, 1);
 
 	label_3->hide();
 	label_7->hide();

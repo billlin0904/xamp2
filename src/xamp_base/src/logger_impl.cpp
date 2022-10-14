@@ -27,12 +27,12 @@ std::string_view AutoRegisterLoggerName::GetLoggerName() const {
     return Singleton<Vector<std::string_view>>::GetInstance()[index];
 }
 
-static void CreateLogsDir() {
-	const Path log_path("logs");
-	
+static bool CreateLogsDir() {
+	const Path log_path("logs");	
 	if (!Fs::exists(log_path)) {
-        Fs::create_directory(log_path);
+        return Fs::create_directory(log_path);
 	}
+	return false;
 }
 
 LoggerManager::LoggerManager() noexcept = default;

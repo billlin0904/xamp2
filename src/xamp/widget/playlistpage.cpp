@@ -50,7 +50,7 @@ void PlaylistPage::initial() {
 	auto* album_title_layout = new QVBoxLayout();
 	album_title_layout->setSpacing(0);
 	album_title_layout->setObjectName(QString::fromUtf8("verticalLayout_2"));
-	album_title_layout->setContentsMargins(-1, 5, -1, -1);
+	album_title_layout->setContentsMargins(0, 5, -1, -1);
     title_ = new ScrollLabel(this);
 	auto f = font();
 	f.setBold(true);

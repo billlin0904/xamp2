@@ -50,24 +50,25 @@ void ThemeManager::installFileFont(const QString& file_name, QList<QString> &ui_
 }
 
 QFont ThemeManager::loadFonts() {
-    QList<QString> digital_font_families;
+    QList<QString> format_font_families;
     QList<QString> mono_fonts;
     QList<QString> ui_fallback_fonts;
 
     qFontIcon.addFont(getFontNamePath(Q_TEXT("MaterialIcons-Regular.ttf")));
     mdl2_font_icon_.addFont(getFontNamePath(Q_TEXT("SegoeFluentIcons.ttf")));
 
-    installFileFont(Q_TEXT("Electrolize.ttf"), digital_font_families);
+    //installFileFont(Q_TEXT("Electrolize.ttf"), digital_font_families);
     installFileFont(Q_TEXT("RobotoMono-Regular.ttf"), mono_fonts);
-    //installFileFont(Q_TEXT("Manrope-Regular.ttf"), digital_font_families);
-    //installFileFont(Q_TEXT("Manrope-Regular.ttf"), mono_fonts);
+    installFileFont(Q_TEXT("Karla-Regular.ttf"), format_font_families);
+    //installFileFont(Q_TEXT("Karla-Regular.ttf"), mono_fonts);
 
+    installFileFont(Q_TEXT("Karla_Regular.ttf"), ui_fallback_fonts);
     installFileFont(Q_TEXT("HarmonyOS_Sans_TC_Regular.ttf"), ui_fallback_fonts);
     installFileFont(Q_TEXT("HarmonyOS_Sans_TC_Bold.ttf"), ui_fallback_fonts);
     installFileFont(Q_TEXT("HarmonyOS_Sans_SC_Regular.ttf"), ui_fallback_fonts);
     installFileFont(Q_TEXT("HarmonyOS_Sans_SC_Bold.ttf"), ui_fallback_fonts);
 
-    QFont::insertSubstitutions(Q_TEXT("FormatFont"), digital_font_families);
+    QFont::insertSubstitutions(Q_TEXT("FormatFont"), format_font_families);
     QFont::insertSubstitutions(Q_TEXT("MonoFont"), mono_fonts);
     QFont::insertSubstitutions(Q_TEXT("UI"), ui_fallback_fonts);
 
@@ -665,9 +666,23 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
 	switch (themeColor()) {
 	case ThemeColor::DARK_THEME:
         slider_bar_left_color = Q_TEXT("42, 130, 218");
+        ui.controlFrame->setStyleSheet(
+            Q_TEXT(R"(
+            QFrame#controlFrame{
+                border-top: 1px solid rgb(22, 22, 22);
+				border-radius: 0px;
+            }
+            )"));
 		break;
 	case ThemeColor::LIGHT_THEME:
         slider_bar_left_color = Q_TEXT("42, 130, 218");
+        ui.controlFrame->setStyleSheet(
+            Q_TEXT(R"(
+            QFrame#controlFrame{
+                border-top: 1px solid lightgray;
+				border-radius: 0px;
+            }
+            )"));
         break;
 	}
 
@@ -755,6 +770,6 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
     }
     )"
     ));
-
+   
     setThemeIcon(ui);
 }

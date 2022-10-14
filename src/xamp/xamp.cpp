@@ -427,7 +427,8 @@ QWidgetAction* Xamp::createTextSeparator(const QString& desc) {
 
     desc_label->setObjectName(Q_TEXT("textSeparator"));
 
-    auto f = font();
+    //auto f = font();
+    QFont f(Q_TEXT("FormatFont"));
     f.setPointSize(10);
     f.setBold(true);
     desc_label->setFont(f);
