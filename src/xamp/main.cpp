@@ -223,17 +223,7 @@ static std::vector<ModuleHandle> prefetchDLL() {
     const std::vector<std::string_view> dll_file_names{
         "DWrite.dll",
         "psapi.dll",
-        //"mimalloc-override.dll",
-        //"gdi32.dll",
-        //"d3d9.dll",
-        //"GdiPlus.dll",
-        //"comctl32.dll",
-        //"thumbcache.dll",
-        //"setupapi.dll",
-        //"ResourcePolicyClient.dll", // WASAPI
-        //"AudioSes.dll", // WASAPI
-        //"AUDIOKSE.dll",// WASAPI
-        //"Mmdevapi.dll", // WASAPI
+        "mimalloc-override.dll",
     #ifndef _DEBUG
         "Qt5Gui.dll",
         "Qt5Core.dll",
