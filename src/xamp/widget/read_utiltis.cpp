@@ -8,6 +8,8 @@
 #include <base/str_utilts.h>
 #include <base/platform.h>
 #include <base/memory.h>
+#include <base/logger_impl.h>
+#include <base/exception.h>
 
 #include <stream/idsdstream.h>
 #include <stream/api.h>
@@ -44,9 +46,12 @@ public:
             Fs::rename(temp_file_path_, dest_file_path_);
 			return true;
         }
-        catch (...) {
-			std::filesystem::remove(temp_file_path_);
+        catch (Exception const &e) {
+            XAMP_LOG_DEBUG("{}", e.GetErrorMessage());
         }
+        catch (...) {
+        }
+        std::filesystem::remove(temp_file_path_);
 		return false;
     }
 

@@ -806,6 +806,7 @@ void Xamp::initialController() {
         sliderAnimation(AppSettings::getValueAsBool(kAppSettingShowLeftList));
         });
 
+    ui_.sliderBarButton->setIconSize(qTheme.tabIconSize());
    (void)QObject::connect(ui_.sliderBarButton, &QToolButton::clicked, [=]() {
         auto enable = !AppSettings::getValueAsBool(kAppSettingShowLeftList);
         AppSettings::setValue(kAppSettingShowLeftList, enable);

@@ -1,4 +1,5 @@
 #include <widget/str_utilts.h>
+#include "thememanager.h"
 #include "tablistview.h"
 
 TabListView::TabListView(QWidget *parent)
@@ -9,8 +10,8 @@ TabListView::TabListView(QWidget *parent)
     setEditTriggers(QAbstractItemView::NoEditTriggers);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
-    setIconSize(QSize(18, 18));
-    
+    setIconSize(qTheme.tabIconSize());
+
     (void)QObject::connect(this, &QListView::clicked, [this](auto index) {
         auto table_id = index.data(Qt::UserRole + 1).toInt();
         emit clickedTable(table_id);

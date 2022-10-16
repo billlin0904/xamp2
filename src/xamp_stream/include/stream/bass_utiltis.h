@@ -4,7 +4,10 @@
 //=====================================================================================================================
 
 #pragma once
+
 #include <functional>
+#include <base/buffer.h>
+#include <stream/basslib.h>
 
 namespace xamp {
 namespace stream {
@@ -14,6 +17,7 @@ namespace stream {
 
 namespace xamp::stream::BassUtiltis {
 
+bool Process(BassStreamHandle& stream, float const * samples, uint32_t num_samples, BufferRef<float>& out);
 void Encode(BassFileStream &stream, std::function<bool(uint32_t) > const& progress);
 
 }

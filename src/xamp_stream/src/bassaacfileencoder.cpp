@@ -54,12 +54,6 @@ public:
     BassStreamHandle encoder_;
 };
 #else
-
-static DWORD MakeDWORD(std::string_view const &s) {
-    XAMP_ASSERT(s.length() == 4);
-    return *reinterpret_cast<DWORD const *>(s.data());
-}
-
 class BassAACFileEncoder::BassAACFileEncoderImpl {
 public:
     void Start(Path const& input_file_path, Path const& output_file_path, std::wstring const& command) {
@@ -78,9 +72,6 @@ public:
             flags |= BASS_ENCODE_FP_16BIT;
             break;
         }
-
-//#define kAudioFileM4AType MakeDWORD("m4af")
-//#define kAudioFormatAppleLossless MakeDWORD("alac")
 
         auto utf8_ouput_file_name = String::ToString(output_file_path.wstring());
         encoder_.reset(BASS.CAEncLib->BASS_Encode_StartCAFile(stream_.GetHStream(),

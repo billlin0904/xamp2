@@ -426,6 +426,14 @@ QColor ThemeManager::titleBarColor() const {
     return QColor(backgroundColor());
 }
 
+QSize ThemeManager::tabIconSize() const {
+#ifdef Q_OS_WIN
+    return QSize(18, 18);
+#else
+    return QSize(24, 24);
+#endif
+}
+
 void ThemeManager::updateTitlebarState(QFrame *title_bar, bool is_focus) {
     if (!is_focus) {
         QColor title_bar_color = titleBarColor();

@@ -162,6 +162,8 @@ public:
         return theme_color_;
     }
 
+    QSize tabIconSize() const;
+
     void setStandardButtonStyle(QToolButton* close_button, QToolButton* min_win_button, QToolButton* max_win_button) const;
 
 private:

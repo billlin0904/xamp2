@@ -6,6 +6,27 @@
 
 namespace xamp::stream::BassUtiltis {
 
+bool Process(BassStreamHandle& stream, float const * samples, uint32_t num_samples, BufferRef<float>& out) {
+    if (out.size() != num_samples) {
+        out.maybe_resize(num_samples);
+    }
+    MemoryCopy(out.data(), samples, num_samples * sizeof(float));
+
+    const auto bytes_read =
+            BASS.BASS_ChannelGetData(stream.get(),
+                                 out.data(),
+                                 num_samples * sizeof(float));
+    if (bytes_read == kBassError) {
+        return false;
+    }
+    if (bytes_read == 0) {
+        return false;
+    }
+    const auto frames = bytes_read / sizeof(float);
+    out.maybe_resize(frames);
+    return true;
+}
+
 void Encode(BassFileStream& stream, std::function<bool(uint32_t) > const& progress) {
     constexpr uint32_t kReadSampleSize = 8192 * 4;
 
