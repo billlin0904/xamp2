@@ -63,8 +63,13 @@ AlignPtr<IFileEncoder> DspComponentFactory::MakeFlacEncoder() {
 }
 
 AlignPtr<IFileEncoder> DspComponentFactory::MakeAACEncoder() {
+#ifdef XAMP_OS_WIN
     return MakeAlign<IFileEncoder, MFAACFileEncoder>();
+#else
+    return MakeAlign<IFileEncoder, BassAACFileEncoder>();
+#endif
 }
+
 
 AlignPtr<IFileEncoder> DspComponentFactory::MakeWaveEncoder() {
     return MakeAlign<IFileEncoder, BassWavFileEncoder>();
@@ -123,6 +128,8 @@ void LoadBassLib() {
 #ifdef XAMP_OS_WIN
     BASS.CDLib = MakeAlign<BassCDLib>();
     BASS.AACEncLib = MakeAlign<BassAACEncLib>();
+#else
+    BASS.CAEncLib = MakeAlign<BassCAEncLib>();
 #endif
     try {
         BASS.EncLib = MakeAlign<BassEncLib>();

@@ -8,6 +8,7 @@
 #include <base/align_ptr.h>
 #include <stream/ifileencoder.h>
 
+#ifdef XAMP_OS_WIN
 namespace xamp::stream {
 
 enum AACProfileLevel {
@@ -45,3 +46,4 @@ private:
 };
 
 }
+#endif

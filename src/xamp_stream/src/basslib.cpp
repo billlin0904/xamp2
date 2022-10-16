@@ -25,7 +25,7 @@ constexpr uint16_t LoWord(T val) noexcept {
     return static_cast<uint16_t>(static_cast<uint32_t>(val) & 0xFFFF);
 }
 
-static std::string GetBassVersion(uint32_t version) {
+std::string GetBassVersion(uint32_t version) {
     const uint32_t major_version(HiByte(HiWord(version)));
     const uint32_t minor_version(LowByte(HiWord(version)));
     const uint32_t micro_version(HiByte(LoWord(version)));
@@ -157,12 +157,9 @@ std::string BassEncLib::GetName() const {
 #endif
 }
 
-BassAACEncLib::BassAACEncLib() try
 #ifdef XAMP_OS_WIN
+BassAACEncLib::BassAACEncLib() try
     : module_(LoadModule("bassenc_aac.dll"))
-#else
-    : module_(LoadModule("libbassenc_aac.dylib"))
-#endif
     , XAMP_LOAD_DLL_API(BASS_Encode_AAC_StartFile)
     , XAMP_LOAD_DLL_API(BASS_Encode_AAC_GetVersion) {
 }
@@ -171,12 +168,21 @@ catch (const Exception& e) {
 }
 
 std::string BassAACEncLib::GetName() const {
-#ifdef XAMP_OS_WIN
     return "bass_aac.dll";
-#else
-    return "libbass_aac.dylib";
-#endif
 }
+#else
+BassCAEncLib::BassCAEncLib() try
+    : module_(LoadModule("libbassenc.dylib"))
+    , XAMP_LOAD_DLL_API(BASS_Encode_StartCAFile) {
+}
+catch (const Exception& e) {
+    XAMP_LOG_ERROR("{}", e.GetErrorMessage());
+}
+
+std::string BassCAEncLib::GetName() const {
+    return "bass_aac.dll";
+}
+#endif
 
 BassFLACEncLib::BassFLACEncLib() try
 #ifdef XAMP_OS_WIN
@@ -356,7 +362,9 @@ void BassLib::LoadVersionInfo() {
         dll_versions_[BASS.EncLib->GetName()] = GetBassVersion(BASS.EncLib->BASS_Encode_GetVersion());
     }
     dll_versions_[BASS.FLACEncLib->GetName()] = GetBassVersion(BASS.FLACEncLib->BASS_Encode_FLAC_GetVersion());
+#ifdef XAMP_OS_WIN
     dll_versions_[BASS.AACEncLib->GetName()] = GetBassVersion(BASS.AACEncLib->BASS_Encode_AAC_GetVersion());
+#endif
 }
 
 std::map<std::string, std::string> BassLib::GetVersions() const {

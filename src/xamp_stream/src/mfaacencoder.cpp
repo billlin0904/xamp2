@@ -1,3 +1,6 @@
+#include <base/base.h>
+
+#ifdef XAMP_OS_WIN
 #include <atlbase.h>
 
 #include <initguid.h>
@@ -280,3 +283,4 @@ void MFAACFileEncoder::Encode(std::function<bool(uint32_t)> const& progress) {
 }
 
 }
+#endif

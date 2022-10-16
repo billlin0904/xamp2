@@ -155,6 +155,7 @@ public:
     XAMP_DECLARE_DLL(BASS_Encode_FLAC_GetVersion) BASS_Encode_FLAC_GetVersion;
 };
 
+#ifdef XAMP_OS_WIN
 class BassAACEncLib final {
 public:
     BassAACEncLib();
@@ -167,13 +168,25 @@ private:
     ModuleHandle module_;
 
 public:
-#ifdef XAMP_OS_WIN
     DllFunction<HENCODE(DWORD, const WCHAR*, DWORD, const WCHAR*)> BASS_Encode_AAC_StartFile;
-#else
-    XAMP_DECLARE_DLL(BASS_Encode_AAC_StartFile) BASS_Encode_AAC_StartFile;
-#endif
     DllFunction<DWORD()> BASS_Encode_AAC_GetVersion;
 };
+#else
+class BassCAEncLib final {
+public:
+    BassCAEncLib();
+
+    std::string GetName() const;
+
+    XAMP_DISABLE_COPY(BassCAEncLib)
+
+private:
+    ModuleHandle module_;
+
+public:
+    XAMP_DECLARE_DLL(BASS_Encode_StartCAFile) BASS_Encode_StartCAFile;
+};
+#endif
 
 class BassEncLib final {
 public:
@@ -215,7 +228,12 @@ public:
     AlignPtr<BassFxLib> FxLib;
     AlignPtr<BassEncLib> EncLib;
     AlignPtr<BassFLACEncLib> FLACEncLib;
+
+#ifdef XAMP_OS_WIN
     AlignPtr<BassAACEncLib> AACEncLib;
+#else
+     AlignPtr<BassCAEncLib> CAEncLib;
+#endif
 
 #ifdef XAMP_OS_WIN
     AlignPtr<BassCDLib> CDLib;

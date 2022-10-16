@@ -1875,17 +1875,17 @@ void Xamp::encodeAACFile(const PlayListEntity& item) {
     metadata.track = item.track;
 
     // http://www.un4seen.com/forum/?topic=18609.0
-    const auto command
+    /*const auto command
         = Q_STR("--object-type %1 --vbr 0 --ignorelength --bitrate 512000")
 		.arg(EncodingAudioObjectType::ENCODING_AAC_LC)
-		.toStdWString();
+        .toStdWString();*/
 
     try {
         auto encoder = DspComponentFactory::MakeAACEncoder();
         read_utiltis::encodeFile(item.file_path.toStdWString(),
             file_name.toStdWString(),
             encoder,
-            command,
+            L"",
             [&](auto progress) -> bool {
                 dialog->setValue(progress);
                 qApp->processEvents();
