@@ -21,7 +21,7 @@ inline constexpr std::wstring_view kMmcssProfilePlayback(L"Playback");
 inline constexpr std::wstring_view kMmcssProfileProAudio(L"Pro Audio");
 inline constexpr std::wstring_view kMmcssProfileWindowsManager(L"Window Manager");
 
-MAKE_XAMP_ENUM(MmcssThreadPriority,
+XAMP_MAKE_ENUM(MmcssThreadPriority,
 	MMCSS_THREAD_PRIORITY_VERYLOW = -2,
 	MMCSS_THREAD_PRIORITY_LOW,
 	MMCSS_THREAD_PRIORITY_NORMAL,

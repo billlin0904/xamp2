@@ -11,7 +11,7 @@
 
 namespace xamp::output_device {
 
-MAKE_XAMP_ENUM(DsdIoFormat,
+XAMP_MAKE_ENUM(DsdIoFormat,
     IO_FORMAT_PCM,
     IO_FORMAT_DSD)
 

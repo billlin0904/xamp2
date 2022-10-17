@@ -51,6 +51,10 @@ QVariant PlayListSqlQueryTableModel::data(const QModelIndex& index, int32_t role
 		    }
 		    value = QSqlQueryModel::data(index, Qt::DisplayRole);
 		    switch (index.column()) {
+            case PLAYLIST_TRACK:
+                return QString::number(value.toInt()).rightJustified(3);
+            case PLAYLIST_YEAR:
+                return QString::number(value.toInt()).rightJustified(8);
 		    case PLAYLIST_FILE_SIZE:
                 return QString::fromStdString(String::FormatBytes(value.toULongLong()));
 		    case PLAYLIST_ALBUM_PK:

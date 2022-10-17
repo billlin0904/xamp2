@@ -107,7 +107,7 @@ void LrcPage::initial() {
 
 	auto* effect = new QGraphicsDropShadowEffect(this);
 	effect->setOffset(10, 10);
-	effect->setColor(QColor(Q_TEXT("#DCDCDC")));
+	effect->setColor(qTheme.coverShadownColor());
 	effect->setBlurRadius(50);
 	cover_label_->setGraphicsEffect(effect);
 

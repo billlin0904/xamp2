@@ -426,6 +426,16 @@ QColor ThemeManager::titleBarColor() const {
     return QColor(backgroundColor());
 }
 
+QColor ThemeManager::coverShadownColor() const {
+    switch (themeColor()) {
+    case ThemeColor::DARK_THEME:
+        return Qt::black;
+    case ThemeColor::LIGHT_THEME:
+    default:
+        return QColor(Q_TEXT("#DCDCDC"));
+    }
+}
+
 QSize ThemeManager::tabIconSize() const {
 #ifdef Q_OS_WIN
     return QSize(18, 18);

@@ -9,6 +9,7 @@
 
 #include <QTableView>
 #include <base/rng.h>
+#include <base/encodingprofile.h>
 
 #include <widget/playlistentity.h>
 #include <widget/metadataextractadapter.h>
@@ -73,7 +74,7 @@ signals:
 
     void encodeFlacFile(const PlayListEntity& item);
 
-	void encodeAACFile(const PlayListEntity& item);
+	void encodeAACFile(const PlayListEntity& item, const EncodingProfile& profile);
 
 	void encodeWavFile(const PlayListEntity& item);
 

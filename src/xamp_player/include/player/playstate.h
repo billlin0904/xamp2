@@ -9,7 +9,7 @@
 
 namespace xamp::player {
 
-MAKE_XAMP_ENUM(PlayerState,
+XAMP_MAKE_ENUM(PlayerState,
 		  PLAYER_STATE_INIT,
 	      PLAYER_STATE_RUNNING,
 	      PLAYER_STATE_PAUSED,

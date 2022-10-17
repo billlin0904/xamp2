@@ -18,13 +18,16 @@
 #include <widget/widget_shared.h>
 #include <base/logger_impl.h>
 
+#ifdef Q_OS_WIN
+#include <stream/mfaacencoder.h>
+#endif
+
 #include <rapidxml.hpp>
 
 #include <thememanager.h>
 #include <widget/playlisttablemodel.h>
 #include <widget/http.h>
 #include <widget/toast.h>
-#include <widget/image_utiltis.h>
 #include <widget/appsettings.h>
 #include <widget/pixmapcache.h>
 #include <widget/stardelegate.h>
@@ -291,7 +294,7 @@ void PlayListTableView::initial() {
 
         ActionMap<PlayListTableView> action_map(this);
 
-    	if (!podcast_mode_) {
+        if (!podcast_mode_) {
             auto* load_file_act = action_map.addAction(tr("Load local file"), [this]() {
                 auto reader = MakeMetadataReader();
                 QString exts(Q_TEXT("("));
@@ -324,33 +327,51 @@ void PlayListTableView::initial() {
             load_dir_act->setIcon(Q_FONT_ICON_CODE(0xe2cc));
 
             action_map.addSeparator();
-    	}
+        }
 
         if (podcast_mode_) {
             auto* import_podcast_act = action_map.addAction(tr("Download latest podcast"));
             import_podcast_act->setIcon(Q_FONT_ICON_CODE(0xe2c4));
             action_map.setCallback(import_podcast_act, [this]() {
                 importPodcast();
-            });
+                });
         }
 
-        auto * reload_metadata_act = action_map.addAction(tr("Reload metadata"));
+        auto* reload_metadata_act = action_map.addAction(tr("Reload metadata"));
         reload_metadata_act->setIcon(Q_FONT_ICON_CODE(0xe5d5));
 
-        auto * remove_all_act = action_map.addAction(tr("Remove all"));
+        auto* remove_all_act = action_map.addAction(tr("Remove all"));
         remove_all_act->setIcon(Q_FONT_ICON_CODE(0xeb80));
 
-        auto * open_local_file_path_act = action_map.addAction(tr("Open local file path"));
+        auto* open_local_file_path_act = action_map.addAction(tr("Open local file path"));
         open_local_file_path_act->setIcon(Q_FONT_ICON_CODE(0xe880));
 
-        auto * read_select_item_replaygain_act = action_map.addAction(tr("Read replay gain"));
+        auto* read_select_item_replaygain_act = action_map.addAction(tr("Read replay gain"));
         read_select_item_replaygain_act->setIcon(Q_FONT_ICON_CODE(0xe023));
 
         action_map.addSeparator();
-        auto * export_flac_file_act = action_map.addAction(tr("Export FLAC file"));
+        auto* export_flac_file_act = action_map.addAction(tr("Export FLAC file"));
         export_flac_file_act->setIcon(Q_FONT_ICON_CODE(0xe0c3));
 
-        auto* export_aac_file_act = action_map.addAction(tr("Export AAC file"));
+        auto* export_aac_file_submenu = action_map.addSubMenu(tr("Export AAC file"));
+#ifdef Q_OS_WIN
+        for (const auto & profile : MFAACFileEncoder::GetAvailableEncodingProfile()) {
+            auto profile_desc = Q_STR("%0 bit, %1, %2")
+                .arg(profile.bit_per_sample).rightJustified(2)
+                .arg(samplerate2String(profile.sample_rate))
+                .arg(bitRate2String(profile.bitrate));
+			export_aac_file_submenu->addAction(profile_desc, [profile, this]() {
+                const auto rows = selectItemIndex();
+                for (const auto& row : rows) {
+                    auto entity = this->item(row.second);
+                    if (entity.samplerate > AudioFormat::k16BitPCM441Khz.GetSampleRate()) {
+	                    continue;
+                    }
+                    emit encodeAACFile(entity, profile);
+                }
+            });
+        }
+#endif
         auto* export_wav_file_act = action_map.addAction(tr("Export WAV file"));
 
         action_map.addSeparator();
@@ -414,14 +435,6 @@ void PlayListTableView::initial() {
             for (const auto& row : rows) {
                 auto entity = this->item(row.second);
                 emit encodeFlacFile(entity);
-            }
-            });
-
-        action_map.setCallback(export_aac_file_act, [this]() {
-            const auto rows = selectItemIndex();
-            for (const auto& row : rows) {
-                auto entity = this->item(row.second);
-                emit encodeAACFile(entity);
             }
             });
 

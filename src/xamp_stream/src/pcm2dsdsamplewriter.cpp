@@ -611,10 +611,6 @@ public:
 		auto channel_size = num_samples / AudioFormat::kMaxChannel;
 		split_num_ = (channel_size / data_size_) * dsd_times_;
 
-		/*ProcessChannel(lch_src_, lch_ctx_, lch_out_);
-		ProcessChannel(rch_src_, rch_ctx_, rch_out_);
-		return MargeChannel(buffer);*/
-
 #ifdef NO_TEST_DSD_FILE
 		const auto lch_task= tp_->Spawn([this](auto index) {
 			ProcessChannel(lch_src_, lch_ctx_, lch_out_);
@@ -627,10 +623,6 @@ public:
 		rch_task.wait();
 #endif
 		return MargeChannel(buffer);
-
-		/*auto channel_size = num_samples / AudioFormat::kMaxChannel;
-		split_num_ = (channel_size / data_size_) * dsd_times_;
-		return MargeChannel(buffer);*/
 	}
 
 	uint32_t order_{ 0 };

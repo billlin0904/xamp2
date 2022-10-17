@@ -5,7 +5,6 @@
     <ClCompile Include="src\fft.cpp" />
     <ClCompile Include="src\padcastcache.cpp" />
     <ClCompile Include="src\api.cpp" />
-    <ClCompile Include="src\pcm2dsdsamplewriter.cpp" />
     <ClCompile Include="src\stft.cpp" />
     <ClCompile Include="src\wavefilewriter.cpp" />
     <ClCompile Include="src\basslib.cpp">
@@ -22,9 +21,6 @@
     </ClCompile>
     <ClCompile Include="src\dsd_utils.cpp" />
     <ClCompile Include="src\soxresampler.cpp">
-      <Filter>resampler</Filter>
-    </ClCompile>
-    <ClCompile Include="src\samplewriter.cpp">
       <Filter>resampler</Filter>
     </ClCompile>
     <ClCompile Include="src\r8brainresampler.cpp">
@@ -51,20 +47,29 @@
     <ClCompile Include="src\bassfilestream.cpp">
       <Filter>bass</Filter>
     </ClCompile>
-    <ClCompile Include="src\bassflacfileencoder.cpp">
-      <Filter>bass</Filter>
-    </ClCompile>
     <ClCompile Include="src\bassvolume.cpp">
-      <Filter>bass</Filter>
-    </ClCompile>
-    <ClCompile Include="src\basswavfileencoder.cpp">
       <Filter>bass</Filter>
     </ClCompile>
     <ClCompile Include="src\bass_utiltis.cpp">
       <Filter>bass</Filter>
     </ClCompile>
+    <ClCompile Include="src\pcm2dsdsamplewriter.cpp">
+      <Filter>samplewriter</Filter>
+    </ClCompile>
+    <ClCompile Include="src\samplewriter.cpp">
+      <Filter>samplewriter</Filter>
+    </ClCompile>
+    <ClCompile Include="src\basswavfileencoder.cpp">
+      <Filter>encoder</Filter>
+    </ClCompile>
+    <ClCompile Include="src\bassflacfileencoder.cpp">
+      <Filter>encoder</Filter>
+    </ClCompile>
     <ClCompile Include="src\bassaacfileencoder.cpp">
-      <Filter>bass</Filter>
+      <Filter>encoder</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mfaacencoder.cpp">
+      <Filter>encoder</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -73,7 +78,6 @@
     <ClInclude Include="include\stream\eqsettings.h" />
     <ClInclude Include="include\stream\fft.h" />
     <ClInclude Include="include\stream\filestream.h" />
-    <ClInclude Include="include\stream\pcm2dsdsamplewriter.h" />
     <ClInclude Include="include\stream\podcastcache.h" />
     <ClInclude Include="include\stream\stft.h" />
     <ClInclude Include="include\stream\stream.h" />
@@ -114,9 +118,6 @@
     </ClInclude>
     <ClInclude Include="include\stream\dsd_utils.h" />
     <ClInclude Include="include\stream\dsd_times.h" />
-    <ClInclude Include="include\stream\samplewriter.h">
-      <Filter>resampler</Filter>
-    </ClInclude>
     <ClInclude Include="include\stream\r8brainresampler.h">
       <Filter>resampler</Filter>
     </ClInclude>
@@ -138,20 +139,29 @@
     <ClInclude Include="include\stream\bassfilestream.h">
       <Filter>bass</Filter>
     </ClInclude>
-    <ClInclude Include="include\stream\bassflacfileencoder.h">
-      <Filter>bass</Filter>
-    </ClInclude>
     <ClInclude Include="include\stream\bassvolume.h">
-      <Filter>bass</Filter>
-    </ClInclude>
-    <ClInclude Include="include\stream\basswavfileencoder.h">
       <Filter>bass</Filter>
     </ClInclude>
     <ClInclude Include="include\stream\bass_utiltis.h">
       <Filter>bass</Filter>
     </ClInclude>
+    <ClInclude Include="include\stream\pcm2dsdsamplewriter.h">
+      <Filter>samplewriter</Filter>
+    </ClInclude>
+    <ClInclude Include="include\stream\samplewriter.h">
+      <Filter>samplewriter</Filter>
+    </ClInclude>
+    <ClInclude Include="include\stream\basswavfileencoder.h">
+      <Filter>encoder</Filter>
+    </ClInclude>
+    <ClInclude Include="include\stream\bassflacfileencoder.h">
+      <Filter>encoder</Filter>
+    </ClInclude>
     <ClInclude Include="include\stream\bassaacfileencoder.h">
-      <Filter>bass</Filter>
+      <Filter>encoder</Filter>
+    </ClInclude>
+    <ClInclude Include="include\stream\mfaacencoder.h">
+      <Filter>encoder</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -169,6 +179,12 @@
     </Filter>
     <Filter Include="bass">
       <UniqueIdentifier>{3b06c6de-e4f2-4a52-bf6c-fe0a97db2590}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="samplewriter">
+      <UniqueIdentifier>{27b02b98-0f6a-4e5f-ba3f-3ca75882c9eb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="encoder">
+      <UniqueIdentifier>{797b102a-ee07-4449-8394-42af4dfcd2ef}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

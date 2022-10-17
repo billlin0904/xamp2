@@ -43,7 +43,7 @@
 inline constexpr auto kMaxEnumSize = 20;
 
 // Dll export must be in namespace scope. so we put this in global.
-#define MAKE_XAMP_ENUM(EnumName, ...) enum class EnumName { __VA_ARGS__ }; \
+#define XAMP_MAKE_ENUM(EnumName, ...) enum class EnumName { __VA_ARGS__ }; \
 static constexpr const std::array<std::string_view, kMaxEnumSize> EnumName##_enum_names = {\
     ALL_ARGUMENTS_TO_STRING(__VA_ARGS__)\
 };\

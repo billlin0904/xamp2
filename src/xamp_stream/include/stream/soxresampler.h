@@ -12,14 +12,14 @@
 
 namespace xamp::stream {
 
-MAKE_XAMP_ENUM(SoxrQuality,
+XAMP_MAKE_ENUM(SoxrQuality,
           LOW,
           MQ,
           HQ,
           VHQ,
           UHQ)
 
-MAKE_XAMP_ENUM(SoxrRollOff,
+XAMP_MAKE_ENUM(SoxrRollOff,
           ROLLOFF_SMALL,
           ROLLOFF_MEDIUM,
           ROLLOFF_NONE)

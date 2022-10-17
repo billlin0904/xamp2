@@ -11,7 +11,7 @@
 
 namespace xamp::stream {
 
-MAKE_XAMP_ENUM(WindowType,
+XAMP_MAKE_ENUM(WindowType,
     NO_WINDOW,
     HAMMING,
     BLACKMAN_HARRIS)

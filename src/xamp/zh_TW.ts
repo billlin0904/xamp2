@@ -475,7 +475,7 @@
         <location filename="widget/playlisttableview.cpp" line="153"/>
         <source>BIT.RATE</source>
         <oldsource>Bit rate</oldsource>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">位元速率</translation>
     </message>
     <message>
         <location filename="widget/playlisttableview.cpp" line="158"/>

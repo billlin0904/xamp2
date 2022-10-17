@@ -14,7 +14,7 @@
 
 namespace xamp::base {
 
-MAKE_XAMP_ENUM(ByteFormat,
+XAMP_MAKE_ENUM(ByteFormat,
           INVALID_FORMAT,
 		  SINT8,
           SINT16,
@@ -23,11 +23,11 @@ MAKE_XAMP_ENUM(ByteFormat,
           FLOAT32,
           FLOAT64)
 
-MAKE_XAMP_ENUM(PackedFormat,
+XAMP_MAKE_ENUM(PackedFormat,
           INTERLEAVED,
           PLANAR)
 
-MAKE_XAMP_ENUM(DataFormat,
+XAMP_MAKE_ENUM(DataFormat,
           FORMAT_DSD,
           FORMAT_PCM)
 

@@ -10,6 +10,7 @@
 #include <QSystemTrayIcon>
 
 #include <widget/widget_shared.h>
+#include <base/encodingprofile.h>
 #include <widget/uiplayerstateadapter.h>
 #include <widget/playlistentity.h>
 #include <widget/playerorder.h>
@@ -168,7 +169,7 @@ private:
 
     void encodeFlacFile(const PlayListEntity& item);
 
-	void encodeAACFile(const PlayListEntity& item);
+	void encodeAACFile(const PlayListEntity& item, const EncodingProfile & profile);
 
 	void encodeWavFile(const PlayListEntity& item);
 

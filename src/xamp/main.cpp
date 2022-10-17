@@ -6,6 +6,7 @@
 #include <base/logger_impl.h>
 #include <base/crashhandler.h>
 #include <base/int24.h>
+#include <base/encodingprofile.h>
 
 #include <player/api.h>
 #include <stream/soxresampler.h>
@@ -270,6 +271,7 @@ static void registerMetaType() {
     qRegisterMetaType<ComplexValarray>("ComplexValarray");
     qRegisterMetaType<ForwardList<Metadata>>("ForwardList<Metadata>");
     qRegisterMetaType<DriveInfo>("DriveInfo");
+    qRegisterMetaType<EncodingProfile>("EncodingProfile");
 }
 
 #ifdef _DEBUG

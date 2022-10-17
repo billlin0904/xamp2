@@ -7,7 +7,7 @@
 
 #include <base/enum.h>
 
-MAKE_XAMP_ENUM(PlayerOrder,
+XAMP_MAKE_ENUM(PlayerOrder,
     PLAYER_ORDER_REPEAT_ONCE = 0,
 	PLAYER_ORDER_REPEAT_ONE,
 	PLAYER_ORDER_SHUFFLE_ALL,

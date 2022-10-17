@@ -5,13 +5,18 @@
 
 #pragma once
 
-#include <base/enum.h>
+#include <base/base.h>
 
-namespace xamp::output_device {
+namespace xamp::base {
 
-XAMP_MAKE_ENUM(DeviceState,
-          DEVICE_STATE_ADDED,
-          DEVICE_STATE_REMOVED,
-          DEVICE_STATE_DEFAULT_DEVICE_CHANGE)
+struct XAMP_BASE_API EncodingProfile {
+	EncodingProfile();
+
+	uint32_t bitrate = 0;
+	uint32_t num_channels = 0;
+	uint32_t bit_per_sample = 0;
+	uint32_t sample_rate = 0;
+	uint32_t bytes_per_second = 0;
+};
 
 }

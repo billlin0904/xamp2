@@ -15,6 +15,10 @@
 #include <base/str_utilts.h>
 #include <base/logger_impl.h>
 
+#ifdef XAMP_OS_WIN
+#include <stream/mfaacencoder.h>
+#endif
+
 #include <stream/soxresampler.h>
 #include <stream/r8brainresampler.h>
 #include <stream/idspmanager.h>
@@ -1846,7 +1850,7 @@ QWidget* Xamp::popWidget() {
     return nullptr;
 }
 
-void Xamp::encodeAACFile(const PlayListEntity& item) {
+void Xamp::encodeAACFile(const PlayListEntity& item, const EncodingProfile& profile) {
     auto last_dir = AppSettings::getValueAsString(kDefaultDir);
 
     const auto save_file_name = last_dir + Q_TEXT("/") + item.album + Q_TEXT("-") + item.title;
@@ -1875,14 +1879,12 @@ void Xamp::encodeAACFile(const PlayListEntity& item) {
     metadata.title = item.title.toStdWString();
     metadata.track = item.track;
 
-    // http://www.un4seen.com/forum/?topic=18609.0
-    /*const auto command
-        = Q_STR("--object-type %1 --vbr 0 --ignorelength --bitrate 512000")
-		.arg(EncodingAudioObjectType::ENCODING_AAC_LC)
-        .toStdWString();*/
-
     try {
         auto encoder = DspComponentFactory::MakeAACEncoder();
+#ifdef XAMP_OS_WIN
+        auto *mf_aac_encode = dynamic_cast<MFAACFileEncoder*>(encoder.get());
+        mf_aac_encode->SetEncodingProfile(profile);
+#endif
         read_utiltis::encodeFile(item.file_path.toStdWString(),
             file_name.toStdWString(),
             encoder,

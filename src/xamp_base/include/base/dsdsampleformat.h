@@ -9,12 +9,12 @@
 
 namespace xamp::base {
 
-MAKE_XAMP_ENUM(DsdFormat,
+XAMP_MAKE_ENUM(DsdFormat,
           DSD_INT8LSB,
           DSD_INT8MSB,
           DSD_INT8NER8)
 
-MAKE_XAMP_ENUM(DsdModes,
+XAMP_MAKE_ENUM(DsdModes,
           DSD_MODE_AUTO,
           DSD_MODE_PCM,
           DSD_MODE_NATIVE,

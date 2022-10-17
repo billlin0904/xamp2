@@ -158,6 +158,8 @@ public:
 
     QColor titleBarColor() const;
 
+    QColor coverShadownColor() const;
+
     ThemeColor themeColor() const {
         return theme_color_;
     }

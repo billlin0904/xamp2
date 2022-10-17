@@ -9,7 +9,7 @@
 
 namespace xamp::stream {
 
-MAKE_XAMP_ENUM(DsdTimes,
+XAMP_MAKE_ENUM(DsdTimes,
 	DSD_TIME_3X = 3, // DSD8
 	DSD_TIME_4X = 4, // DSD16
 	DSD_TIME_5X,     // DSD32

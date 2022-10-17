@@ -15,19 +15,19 @@
 
 namespace xamp::base {
 
-MAKE_XAMP_ENUM(
+XAMP_MAKE_ENUM(
     ThreadPriority,
     BACKGROUND,
     NORMAL,
     HIGHEST)
 
-MAKE_XAMP_ENUM(
+XAMP_MAKE_ENUM(
     TaskSchedulerPolicy,
     ROUND_ROBIN_POLICY,
     RANDOM_POLICY,
     LEAST_LOAD_POLICY)
 
-MAKE_XAMP_ENUM(
+XAMP_MAKE_ENUM(
     TaskStealPolicy,
     CHILD_STEALING_POLICY,
     CONTINUATION_STEALING_POLICY)
