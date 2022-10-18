@@ -16,9 +16,11 @@ class XAMP_PLAYER_API XampIniter {
 public:
 	XampIniter();
 
+	~XampIniter();
+
 	void Init();
 
-	~XampIniter();
+	static void LoadLib();
 
 	XAMP_DISABLE_COPY(XampIniter)
 private:

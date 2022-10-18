@@ -485,7 +485,6 @@ FFTWLib::FFTWLib() try
 	, XAMP_LOAD_DLL_API(fftw_execute)
 	, XAMP_LOAD_DLL_API(fftw_plan_dft_r2c_1d)
 	, XAMP_LOAD_DLL_API(fftw_plan_dft_c2r_1d) {
-	PrefetchModule(module_);
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());
@@ -501,7 +500,6 @@ FFTWFLib::FFTWFLib() try
 	, XAMP_LOAD_DLL_API(fftwf_plan_guru_split_dft_r2c)
 	, XAMP_LOAD_DLL_API(fftwf_execute_split_dft_r2c)
 	, XAMP_LOAD_DLL_API(fftwf_execute_split_dft_c2r) {
-	PrefetchModule(module_);
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());

@@ -15,7 +15,6 @@ R8brainLib::R8brainLib() try
 	, XAMP_LOAD_DLL_API(r8b_delete)
 	, XAMP_LOAD_DLL_API(r8b_clear)
 	, XAMP_LOAD_DLL_API(r8b_process) {
-	PrefetchModule(module_);
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());

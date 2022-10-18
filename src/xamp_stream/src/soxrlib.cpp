@@ -18,7 +18,6 @@ SoxrLib::SoxrLib() try
     , XAMP_LOAD_DLL_API(soxr_io_spec)
     , XAMP_LOAD_DLL_API(soxr_runtime_spec)
     , XAMP_LOAD_DLL_API(soxr_clear) {
-    PrefetchModule(module_);
 }
 catch (const Exception& e) {
 	XAMP_LOG_ERROR("{}", e.GetErrorMessage());

@@ -109,7 +109,6 @@ void XWindow::setContentWidget(IXPlayerFrame *content_widget) {
         win32::addDwmShadow(winId());
         if (AppSettings::getValueAsBool(kAppSettingEnableBlur)) {
             player_frame_->setAttribute(Qt::WA_TranslucentBackground, true);
-            qTheme.enableBlur(this);
         }
     } else {
         win32::setWindowedWindowStyle(winId());

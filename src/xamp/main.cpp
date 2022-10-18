@@ -166,7 +166,7 @@ static void loadSettings() {
 
 	AppSettings::setDefaultEnumValue(kAppSettingOrder, PlayerOrder::PLAYER_ORDER_REPEAT_ONCE);
     AppSettings::setDefaultEnumValue(kAppSettingReplayGainMode, ReplayGainMode::RG_TRACK_MODE);
-    AppSettings::setDefaultEnumValue(kAppSettingReplayGainScanMode, ReplayGainScanMode::RG_SCAN_MODE_FAST);
+    AppSettings::setDefaultEnumValue(kAppSettingReplayGainScanMode, ReplayGainScanMode::RG_SCAN_MODE_FULL);
     AppSettings::setDefaultEnumValue(kAppSettingTheme, ThemeColor::DARK_THEME);
 
     AppSettings::setDefaultValue(kAppSettingDeviceType, Qt::EmptyString);
@@ -222,19 +222,15 @@ static void loadLang() {
 #ifdef XAMP_OS_WIN
 static std::vector<ModuleHandle> prefetchDLL() {
     const std::vector<std::string_view> dll_file_names{
-        "DWrite.dll",
-        "psapi.dll",
         "mimalloc-override.dll",
+        "psapi.dll",
     #ifndef _DEBUG
         "Qt5Gui.dll",
         "Qt5Core.dll",
         "Qt5Widgets.dll",
         "Qt5Sql.dll",
         "Qt5Network.dll",
-        "Qt5WinExtras.dll",
-        "qwindows.dll",
-        "qsqlite.dll",
-        "qjpeg.dll",
+        "Qt5WinExtras.dll"
 	#endif
     };
     std::vector<ModuleHandle> preload_module;
@@ -243,7 +239,7 @@ static std::vector<ModuleHandle> prefetchDLL() {
             auto module = LoadModule(file_name);
             if (PrefetchModule(module)) {
                 preload_module.push_back(std::move(module));
-                XAMP_LOG_DEBUG("Preload {} success.", file_name);
+                XAMP_LOG_DEBUG("\tPreload => {} success.", file_name);
             }
         }
         catch (std::exception const& e) {
@@ -351,11 +347,6 @@ static int excute(int argc, char* argv[]) {
     XWindow top_win;
     Xamp win;
 
-#ifdef XAMP_OS_WIN
-    const auto prefetch_dll = prefetchDLL();
-    XAMP_LOG_DEBUG("Prefetch dll success.");
-#endif
-
     XampIniter initer;
 
     try {
@@ -389,6 +380,19 @@ int main(int argc, char *argv[]) {
 #endif
         .AddLogFile("xamp.log")
         .Startup();
+
+#ifdef XAMP_OS_WIN
+    const auto prefetch_dll = prefetchDLL();
+    XAMP_LOG_DEBUG("Prefetch dll success.");
+
+    try {
+        XampIniter::LoadLib();
+    }
+    catch (const Exception& e) {
+        XAMP_LOG_DEBUG(e.GetStackTrace());
+        return -1;
+    }   
+#endif
 
     const auto os_ver = QOperatingSystemVersion::current();
     if (os_ver < QOperatingSystemVersion::Windows10) {

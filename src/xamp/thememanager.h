@@ -34,10 +34,6 @@ public:
 
     bool useNativeWindow() const;
 
-    bool enableBlur() const;
-
-    static QString getFontNamePath(const QString& file_name);
-
     const QPalette& palette() const {
         return palette_;
     }
@@ -94,17 +90,13 @@ public:
 
     void setWidgetStyle(Ui::XampWindow &ui);    
 
-    void enableBlur(QWidget* widget, bool enable = true) const;
+    const QSize& defaultCoverSize() const noexcept;
 
-    const QSize& getDefaultCoverSize() const noexcept;
+    QSize cacheCoverSize() const noexcept;
 
-    QSize getCacheCoverSize() const noexcept;
+    QSize albumCoverSize() const noexcept;
 
-    QSize getAlbumCoverSize() const noexcept;
-
-    QSize getSaveCoverArtSize() const noexcept;
-
-    QColor getBackgroundColor() const noexcept;    
+    QSize saveCoverArtSize() const noexcept;
 
     QIcon playArrow() const;
 
@@ -152,7 +144,9 @@ public:
 
     QColor themeTextColor() const;
 
-    QString backgroundColor() const;
+    QString backgroundColorString() const;
+
+    QColor backgroundColor() const noexcept;
 
     QColor hoverColor() const;
 
@@ -169,6 +163,8 @@ public:
     void setStandardButtonStyle(QToolButton* close_button, QToolButton* min_win_button, QToolButton* max_win_button) const;
 
 private:
+    static QString fontNamePath(const QString& file_name);
+
     QFont loadFonts();
 
     void installFileFont(const QString& file_name, QList<QString>& ui_fallback_fonts);

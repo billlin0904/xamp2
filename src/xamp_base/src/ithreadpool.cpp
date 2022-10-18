@@ -22,6 +22,17 @@ AlignPtr<IThreadPool> MakeThreadPool(const std::string_view& pool_name,
         priority);
 }
 
+AlignPtr<IThreadPool> MakeThreadPool(const std::string_view& pool_name,
+    TaskSchedulerPolicy policy,
+    TaskStealPolicy steal_policy) {
+    return MakeThreadPool(pool_name,
+        ThreadPriority::NORMAL,
+        std::thread::hardware_concurrency(),
+        kDefaultAffinityCpuCore,
+        policy,
+        steal_policy);
+}
+
 IThreadPool& GetPlaybackThreadPool() {
     static ThreadPool threadpool(kPlaybackThreadPoolLoggerName,
         kMaxPlaybackThreadPoolSize,

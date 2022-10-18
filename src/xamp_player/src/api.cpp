@@ -27,7 +27,27 @@ std::shared_ptr<IAudioPlayer> MakeAudioPlayer(const std::weak_ptr<IPlaybackState
     return MakeAlignedShared<AudioPlayer>(adapter);
 }
 
-void Initialize() {
+XampIniter::XampIniter() {
+}
+
+void XampIniter::Init() {
+    if (success) {
+        return;
+    }
+
+    GetPlaybackThreadPool();
+    XAMP_LOG_DEBUG("Start Playback thread pool success.");
+
+#ifdef XAMP_OS_WIN
+    GetWASAPIThreadPool();
+    XAMP_LOG_DEBUG("Start WASAPI thread pool success.");
+#endif
+
+    PreventSleep(true);
+    success = true;
+}
+
+void XampIniter::LoadLib() {
     LoadBassLib();
     XAMP_LOG_DEBUG("Load BASS lib success.");
 
@@ -44,35 +64,19 @@ void Initialize() {
     XAMP_LOG_DEBUG("Load mbdiscid lib success.");
 #endif
 
-    GetPlaybackThreadPool();
-    XAMP_LOG_DEBUG("Start Playback thread pool success.");
-
     Ebur128ReplayGainScanner::LoadEbur128Lib();
     XAMP_LOG_DEBUG("Load ebur128 lib success.");
-
-    PreventSleep(true);
-}
-
-void Uninitialize() {
-    GetPlaybackThreadPool().Stop();
-    PreventSleep(false);
-}
-
-XampIniter::XampIniter() {
-}
-
-void XampIniter::Init() {
-    if (success) {
-        return;
-    }
-    Initialize();
-    success = true;
 }
 
 XampIniter::~XampIniter() {
-    if (success) {
-        Uninitialize();
+    if (!success) {
+        return;
     }
+    GetPlaybackThreadPool().Stop();
+#ifdef XAMP_OS_WIN
+    GetWASAPIThreadPool().Stop();
+#endif
+    PreventSleep(false);
 }
 
 }

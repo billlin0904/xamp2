@@ -43,7 +43,7 @@ AlbumViewStyledDelegate::AlbumViewStyledDelegate(QObject* parent)
 	, play_button_(new QPushButton()) {
     more_album_opt_button_->setStyleSheet(Q_TEXT("background-color: transparent"));
     play_button_->setStyleSheet(Q_TEXT("background-color: transparent"));
-    mask_image_ = Pixmap::roundDarkImage(qTheme.getAlbumCoverSize());
+    mask_image_ = Pixmap::roundDarkImage(qTheme.albumCoverSize());
 }
 
 void AlbumViewStyledDelegate::setTextColor(QColor color) {
@@ -59,7 +59,7 @@ bool AlbumViewStyledDelegate::editorEvent(QEvent* event, QAbstractItemModel* mod
     mouse_point_ = ev->pos();
     auto current_cursor = QApplication::overrideCursor();
 
-    const auto default_cover_size = qTheme.getDefaultCoverSize();
+    const auto default_cover_size = qTheme.defaultCoverSize();
     constexpr auto icon_size = 24;
     const QRect more_button_rect(
         option.rect.left() + default_cover_size.width() - 10,
@@ -97,7 +97,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     auto cover_id = index.model()->data(index.model()->index(index.row(), 1)).toString();
     auto artist = index.model()->data(index.model()->index(index.row(), 2)).toString();
 
-    const auto default_cover_size = qTheme.getDefaultCoverSize();
+    const auto default_cover_size = qTheme.defaultCoverSize();
     const QRect cover_rect(option.rect.left() + 10,
         option.rect.top() + 10,
         default_cover_size.width(), 
@@ -196,7 +196,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
 
 QSize AlbumViewStyledDelegate::sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const {
     auto result = QStyledItemDelegate::sizeHint(option, index);
-    const auto default_cover = qTheme.getDefaultCoverSize();
+    const auto default_cover = qTheme.defaultCoverSize();
     result.setWidth(default_cover.width() + 30);
     result.setHeight(default_cover.height() + 80);
     return result;

@@ -26,11 +26,7 @@ bool ThemeManager::useNativeWindow() const {
     return use_native_window_;
 }
 
-bool ThemeManager::enableBlur() const {
-    return AppSettings::getValueAsBool(kAppSettingEnableBlur);
-}
-
-QString ThemeManager::getFontNamePath(const QString& file_name) {
+QString ThemeManager::fontNamePath(const QString& file_name) {
 	return
 		Q_STR("%1/fonts/%2")
 		.arg(QCoreApplication::applicationDirPath())
@@ -38,7 +34,7 @@ QString ThemeManager::getFontNamePath(const QString& file_name) {
 }
 
 void ThemeManager::installFileFont(const QString& file_name, QList<QString> &ui_fallback_fonts) {
-	const auto font_path = getFontNamePath(file_name);
+	const auto font_path = fontNamePath(file_name);
     QFileInfo info(font_path);
     if (!info.exists()) {
         XAMP_LOG_ERROR("Not found font file name: {}", file_name.toStdString());
@@ -54,15 +50,12 @@ QFont ThemeManager::loadFonts() {
     QList<QString> mono_fonts;
     QList<QString> ui_fallback_fonts;
 
-    qFontIcon.addFont(getFontNamePath(Q_TEXT("MaterialIcons-Regular.ttf")));
-    mdl2_font_icon_.addFont(getFontNamePath(Q_TEXT("SegoeFluentIcons.ttf")));
+    qFontIcon.addFont(fontNamePath(Q_TEXT("MaterialIcons-Regular.ttf")));
+    mdl2_font_icon_.addFont(fontNamePath(Q_TEXT("SegoeFluentIcons.ttf")));
 
-    //installFileFont(Q_TEXT("Electrolize.ttf"), digital_font_families);
     installFileFont(Q_TEXT("RobotoMono-Regular.ttf"), mono_fonts);
     installFileFont(Q_TEXT("Karla-Regular.ttf"), format_font_families);
-    //installFileFont(Q_TEXT("Karla-Regular.ttf"), mono_fonts);
 
-    installFileFont(Q_TEXT("Karla_Regular.ttf"), ui_fallback_fonts);
     installFileFont(Q_TEXT("HarmonyOS_Sans_TC_Regular.ttf"), ui_fallback_fonts);
     installFileFont(Q_TEXT("HarmonyOS_Sans_TC_Bold.ttf"), ui_fallback_fonts);
     installFileFont(Q_TEXT("HarmonyOS_Sans_SC_Regular.ttf"), ui_fallback_fonts);
@@ -155,7 +148,11 @@ QColor ThemeManager::themeTextColor() const {
     return color;
 }
 
-QString ThemeManager::backgroundColor() const {
+QColor ThemeManager::backgroundColor() const noexcept {
+    return background_color_;
+}
+
+QString ThemeManager::backgroundColorString() const {
     QString color;
 
     switch (themeColor()) {
@@ -361,38 +358,25 @@ void ThemeManager::setPlayOrPauseButton(Ui::XampWindow& ui, bool is_playing) {
     }
 }
 
-const QSize& ThemeManager::getDefaultCoverSize() const noexcept {
+const QSize& ThemeManager::defaultCoverSize() const noexcept {
     return cover_size_;
 }
 
-QSize ThemeManager::getCacheCoverSize() const noexcept {
-    return getDefaultCoverSize() * 2;
+QSize ThemeManager::cacheCoverSize() const noexcept {
+    return defaultCoverSize() * 2;
 }
 
-QSize ThemeManager::getAlbumCoverSize() const noexcept {
+QSize ThemeManager::albumCoverSize() const noexcept {
     return album_cover_size_;
 }
 
-QColor ThemeManager::getBackgroundColor() const noexcept {
-    return background_color_;
-}
-
-QSize ThemeManager::getSaveCoverArtSize() const noexcept {
+QSize ThemeManager::saveCoverArtSize() const noexcept {
     return save_cover_art_size_;
 }
 
 void ThemeManager::setBackgroundColor(QWidget* widget) {
     auto color = palette().color(QPalette::WindowText);
     widget->setStyleSheet(backgroundColorToString(color));
-}
-
-void ThemeManager::enableBlur(QWidget* widget, bool enable) const {
-#if defined(Q_OS_WIN)
-    win32::setAccentPolicy(widget->winId(), enable);
-#else
-    osx::setBlurMaterial(widget, enable);
-#endif
-    AppSettings::setValue(kAppSettingEnableBlur, enable);
 }
 
 void ThemeManager::applyTheme() {

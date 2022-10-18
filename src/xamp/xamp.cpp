@@ -374,6 +374,7 @@ void Xamp::initialUI() {
         ui_.closeButton->hide();
         ui_.maxWinButton->hide();
         ui_.minWinButton->hide();
+        ui_.horizontalLayout->removeItem(ui_.horizontalSpacer_15);        
     } else {
         f.setBold(true);
         f.setPointSize(9);
@@ -815,23 +816,7 @@ void Xamp::initialController() {
         auto enable = !AppSettings::getValueAsBool(kAppSettingShowLeftList);
         AppSettings::setValue(kAppSettingShowLeftList, enable);
         sliderAnimation(enable);
-        });
-
-    auto* enable_blur_material_mode_action = new QAction(tr("Enable blur"), this);
-    enable_blur_material_mode_action->setCheckable(true);
-    if (AppSettings::getValue(kAppSettingEnableBlur).toBool()) {
-        enable_blur_material_mode_action->setChecked(true);
-    }
-
-    (void)QObject::connect(enable_blur_material_mode_action, &QAction::triggered, [=]() {
-        auto enable = AppSettings::getValueAsBool(kAppSettingEnableBlur);
-        enable = !enable;
-        enable_blur_material_mode_action->setChecked(enable);
-        AppSettings::setValue(kAppSettingEnableBlur, enable);
-        cleanup();
-        qApp->exit(kRestartExistCode);
-        });
-    settings_menu->addAction(enable_blur_material_mode_action);
+        });   
 
     auto* check_for_update = new QAction(tr("Check For Updates"), this);
 
@@ -1499,7 +1484,7 @@ void Xamp::setCover(const QString& cover_id, PlaylistPage* page) {
     if (!found_cover) {
         setPlaylistPageCover(nullptr, page);
         if (lrc_page_ != nullptr) {
-            lrc_page_->setBackgroundColor(qTheme.getBackgroundColor());
+            lrc_page_->setBackgroundColor(qTheme.backgroundColor());
         }
     }
 }
