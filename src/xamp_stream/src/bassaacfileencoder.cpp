@@ -54,9 +54,22 @@ public:
     BassStreamHandle encoder_;
 };
 #else
+
+struct XAMP_STREAM_API AudioConverterDeleter final {
+    static AudioConverterRef invalid() noexcept {
+        return nullptr;
+    }
+
+    static void close(AudioConverterRef value)  {
+        //AudioConverterDispose(value);
+    }
+};
+
+using AudioConverterHandle = UniqueHandle<AudioConverterRef, AudioConverterDeleter>;
+
 class BassAACFileEncoder::BassAACFileEncoderImpl {
 public:
-    void Start(Path const& input_file_path, Path const& output_file_path, std::wstring const& command) {
+    void Start(Path const& input_file_path, Path const& output_file_path, std::wstring const& /*command*/) {
         DWORD flags = BASS_ENCODE_AUTOFREE;
 
         if (TestDsdFileFormatStd(input_file_path.wstring())) {
@@ -89,8 +102,65 @@ public:
         BassUtiltis::Encode(stream_, progress);
     }
 
+private:
+    void CreateAudioConverter(const AudioStreamBasicDescription &iasbd,
+                              const AudioStreamBasicDescription &oasbd) {
+        AudioConverterRef converter;
+        AudioConverterNew(&iasbd, &oasbd, &converter);
+        handle_.reset(converter);
+    }
+
+    template <typename F>
+    bool QueryConverterProperty(AudioConverterRef converter, AudioFormatPropertyID property, F &&func) {
+        UInt32 size = 0;
+        auto code = AudioConverterGetPropertyInfo(converter,
+                                                  property,
+                                                  &size,
+                                                  nullptr);
+        if (code || !size) {
+            return false;
+        }
+        Vector<uint8_t> buffer(size);
+        code = AudioConverterGetProperty(converter, property, &size,
+                                         buffer.data());
+        if (code) {
+            return false;
+        }
+        func(size, static_cast<void *>(buffer.data()));
+        return true;
+    }
+
+    template <typename F>
+    bool GetAvailableEncodeSampleRates(AudioConverterRef converter, F &&func) {
+        auto helper = [&](UInt32 size, void *data) {
+            auto range = static_cast<AudioValueRange *>(data);
+            size_t num_ranges = size / sizeof(AudioValueRange);
+            for (size_t i = 0; i < num_ranges; i++)
+                func(range[i]);
+        };
+
+        return QueryConverterProperty(converter,
+                                      kAudioFormatProperty_AvailableEncodeSampleRates,
+                                      helper);
+    }
+
+    template <typename F>
+    bool GetAvailableEncodeBitRates(AudioConverterRef converter, F &&func) {
+        auto helper = [&](UInt32 size, void *data) {
+            auto range = static_cast<AudioValueRange *>(data);
+            size_t num_ranges = size / sizeof(AudioValueRange);
+            for (size_t i = 0; i < num_ranges; i++)
+                func(static_cast<UInt32>(range[i].mMinimum),
+                     static_cast<UInt32>(range[i].mMaximum));
+        };
+        return QueryConverterProperty(converter,
+                                      kAudioFormatProperty_AvailableEncodeBitRates,
+                                      helper);
+    }
+
     BassFileStream stream_;
     BassStreamHandle encoder_;
+    AudioConverterHandle handle_;
 };
 
 #endif

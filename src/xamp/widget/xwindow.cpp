@@ -126,7 +126,6 @@ void XWindow::setContentWidget(IXPlayerFrame *content_widget) {
         }
         if (AppSettings::getValueAsBool(kAppSettingEnableBlur)) {
             setAttribute(Qt::WA_TranslucentBackground, true);
-            qTheme.enableBlur(this);
         }
         setWindowTitle(kAppTitle);
     }
