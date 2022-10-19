@@ -1,5 +1,6 @@
 #include <fstream>
 #include <base/assert.h>
+#include <base/stl.h>
 #include <base/buffer.h>
 #include <base/str_utilts.h>
 #include <base/exception.h>
@@ -61,7 +62,7 @@ struct XAMP_STREAM_API AudioConverterDeleter final {
     }
 
     static void close(AudioConverterRef value)  {
-        //AudioConverterDispose(value);
+        AudioConverterDispose(value);
     }
 };
 
@@ -69,6 +70,8 @@ using AudioConverterHandle = UniqueHandle<AudioConverterRef, AudioConverterDelet
 
 class BassAACFileEncoder::BassAACFileEncoderImpl {
 public:
+    BassAACFileEncoderImpl() = default;
+
     void Start(Path const& input_file_path, Path const& output_file_path, std::wstring const& /*command*/) {
         DWORD flags = BASS_ENCODE_AUTOFREE;
 
@@ -102,6 +105,34 @@ public:
         BassUtiltis::Encode(stream_, progress);
     }
 
+    void SetEncodingProfile(const EncodingProfile& profile) {
+
+    }
+
+    Vector<EncodingProfile> GetAvailableEncodingProfile() {
+        HashSet<UInt32> birates;
+        GetAvailableEncodeBitRates(handle_.get(), [&](UInt32 min, UInt32 max) {
+            if (!birates.contains(min)) {
+                birates.insert(min);
+            }
+
+            if (!birates.contains(max)) {
+                birates.insert(max);
+            }
+        });
+        HashSet<UInt32> samplerates;
+        GetAvailableEncodeSampleRates(handle_.get(), [&](const AudioValueRange &range) {
+            if (!samplerates.contains((UInt32)range.mMinimum)) {
+                samplerates.insert((UInt32)range.mMinimum);
+            }
+
+            if (!samplerates.contains((UInt32)range.mMaximum)) {
+                samplerates.insert((UInt32)range.mMaximum);
+            }
+        });
+        Vector<EncodingProfile> profiles;
+        return profiles;
+    }
 private:
     void CreateAudioConverter(const AudioStreamBasicDescription &iasbd,
                               const AudioStreamBasicDescription &oasbd) {
@@ -111,7 +142,7 @@ private:
     }
 
     template <typename F>
-    bool QueryConverterProperty(AudioConverterRef converter, AudioFormatPropertyID property, F &&func) {
+    static bool QueryConverterProperty(AudioConverterRef converter, AudioFormatPropertyID property, F &&func) {
         UInt32 size = 0;
         auto code = AudioConverterGetPropertyInfo(converter,
                                                   property,
@@ -131,7 +162,7 @@ private:
     }
 
     template <typename F>
-    bool GetAvailableEncodeSampleRates(AudioConverterRef converter, F &&func) {
+    static bool GetAvailableEncodeSampleRates(AudioConverterRef converter, F &&func) {
         auto helper = [&](UInt32 size, void *data) {
             auto range = static_cast<AudioValueRange *>(data);
             size_t num_ranges = size / sizeof(AudioValueRange);
@@ -145,7 +176,7 @@ private:
     }
 
     template <typename F>
-    bool GetAvailableEncodeBitRates(AudioConverterRef converter, F &&func) {
+    static bool GetAvailableEncodeBitRates(AudioConverterRef converter, F &&func) {
         auto helper = [&](UInt32 size, void *data) {
             auto range = static_cast<AudioValueRange *>(data);
             size_t num_ranges = size / sizeof(AudioValueRange);
@@ -177,6 +208,14 @@ void BassAACFileEncoder::Start(Path const& input_file_path, Path const& output_f
 
 void BassAACFileEncoder::Encode(std::function<bool(uint32_t)> const& progress) {
     impl_->Encode(progress);
+}
+
+void BassAACFileEncoder::SetEncodingProfile(const EncodingProfile& profile) {
+    impl_->SetEncodingProfile(profile);
+}
+
+Vector<EncodingProfile> BassAACFileEncoder::GetAvailableEncodingProfile() {
+    return impl_->GetAvailableEncodingProfile();
 }
 
 }

@@ -47,5 +47,6 @@ find_library (
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
 find_library(ACCELERATE_LIB Accelerate)
+find_library(AUDIOTOOL_BOX_LIB AudioToolbox)
 
-target_link_libraries(xamp_stream ${LIB_XAMP_BASE} ${ACCELERATE_LIB})
+target_link_libraries(xamp_stream ${LIB_XAMP_BASE} ${ACCELERATE_LIB} ${AUDIOTOOL_BOX_LIB})

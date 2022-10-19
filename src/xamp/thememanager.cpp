@@ -421,7 +421,11 @@ QColor ThemeManager::coverShadownColor() const {
 }
 
 QSize ThemeManager::tabIconSize() const {
+#ifdef XAMP_OS_MAC
+    return QSize(20, 20);
+#else
     return QSize(16, 16);
+#endif
 }
 
 void ThemeManager::updateTitlebarState(QFrame *title_bar, bool is_focus) {
