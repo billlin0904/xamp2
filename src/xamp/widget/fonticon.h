@@ -63,4 +63,4 @@ protected:
 
 #define qFontIcon SharedSingleton<FontIcon>::GetInstance()
 #define Q_FONT_ICON_CODE_COLOR(code, color) qFontIcon.icon(code, color)
-#define Q_FONT_ICON_CODE(code) qFontIcon.icon(code)
+#define Q_FONT_ICON(code) qFontIcon.icon(code)

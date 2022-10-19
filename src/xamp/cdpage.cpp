@@ -15,7 +15,7 @@ CdPage::CdPage(QWidget* parent)
                                         background-color: transparent;
                                         }
                                         )"));
-    ui.pcButton->setIcon(Q_FONT_ICON_CODE(0xe30a));
+    ui.pcButton->setIcon(qTheme.iconFromFont(0xe30a));
     ui.pcButton->setIconSize(QSize(64, 64));
 
     ui.cdButton->setStyleSheet(Q_TEXT(R"(
@@ -24,7 +24,7 @@ CdPage::CdPage(QWidget* parent)
                                         background-color: transparent;
                                         }
                                         )"));
-    ui.cdButton->setIcon(Q_FONT_ICON_CODE(0xe019));
+    ui.cdButton->setIcon(qTheme.iconFromFont(0xe019));
     ui.cdButton->setIconSize(QSize(64, 64));
 
     ui.arrowButton->setStyleSheet(Q_TEXT(R"(
@@ -33,7 +33,7 @@ CdPage::CdPage(QWidget* parent)
                                         background-color: transparent;
                                         }
                                         )"));
-    ui.arrowButton->setIcon(Q_FONT_ICON_CODE(0xe317));
+    ui.arrowButton->setIcon(qTheme.iconFromFont(0xe317));
     ui.arrowButton->setIconSize(QSize(64, 64));
 
     ui.playlistPage->playlist()->setPodcastMode(false);

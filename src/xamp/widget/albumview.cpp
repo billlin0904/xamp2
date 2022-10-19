@@ -367,7 +367,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         removeAlbum();
         styled_delegate_->clearImageCache();
         });
-    remove_all_album_act->setIcon(Q_FONT_ICON_CODE(0xe92b));
+    remove_all_album_act->setIcon(qTheme.iconFromFont(0xe92b));
 
     auto* load_file_act = action_map.addAction(tr("Load local file"), [this]() {
         const auto file_name = QFileDialog::getOpenFileName(this,
@@ -380,7 +380,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         }
         append(file_name);
         });
-    load_file_act->setIcon(Q_FONT_ICON_CODE(0xe89c));
+    load_file_act->setIcon(qTheme.iconFromFont(0xe89c));
 
     auto* load_dir_act = action_map.addAction(tr("Load file directory"), [this]() {
         const auto dir_name = QFileDialog::getExistingDirectory(this,
@@ -392,7 +392,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         }
         append(dir_name);
         });
-    load_dir_act->setIcon(Q_FONT_ICON_CODE(0xe2cc));
+    load_dir_act->setIcon(qTheme.iconFromFont(0xe2cc));
 
     action_map.exec(pt);
 }
@@ -420,12 +420,12 @@ void AlbumView::showOperationMenu(const QPoint &pt) {
             });
         emit addPlaylist(add_playlist_music_ids, entities);
         });
-    add_album_to_playlist_act->setIcon(Q_FONT_ICON_CODE(0xe03b));
+    add_album_to_playlist_act->setIcon(qTheme.iconFromFont(0xe03b));
 
     auto* copy_album_act = action_map.addAction(tr("Copy album"), [album]() {
         QApplication::clipboard()->setText(album);
         });
-    copy_album_act->setIcon(Q_FONT_ICON_CODE(0xe14d));
+    copy_album_act->setIcon(qTheme.iconFromFont(0xe14d));
 
     action_map.addAction(tr("Copy artist"), [artist]() {
         QApplication::clipboard()->setText(artist);
@@ -437,7 +437,7 @@ void AlbumView::showOperationMenu(const QPoint &pt) {
         qDatabase.removeAlbum(album_id);
         refreshOnece();
         });
-    remove_select_album_act->setIcon(Q_FONT_ICON_CODE(0xe92b));
+    remove_select_album_act->setIcon(qTheme.iconFromFont(0xe92b));
 
     action_map.exec(pt);
 }

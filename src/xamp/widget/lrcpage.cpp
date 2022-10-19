@@ -106,7 +106,7 @@ void LrcPage::initial() {
 	cover_label_->setAttribute(Qt::WA_StaticContents);
 
 	auto* effect = new QGraphicsDropShadowEffect(this);
-	effect->setOffset(10, 10);
+	effect->setOffset(15, 15);
 	effect->setColor(qTheme.coverShadownColor());
 	effect->setBlurRadius(50);
 	cover_label_->setGraphicsEffect(effect);

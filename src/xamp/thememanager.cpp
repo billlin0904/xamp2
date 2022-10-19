@@ -50,11 +50,13 @@ QFont ThemeManager::loadFonts() {
     QList<QString> mono_fonts;
     QList<QString> ui_fallback_fonts;
 
-    qFontIcon.addFont(fontNamePath(Q_TEXT("MaterialIcons-Regular.ttf")));
-    mdl2_font_icon_.addFont(fontNamePath(Q_TEXT("SegoeFluentIcons.ttf")));
+    qFontIcon.addFont(fontNamePath(Q_TEXT("SegoeFluentIcons.ttf")));
 
     installFileFont(Q_TEXT("RobotoMono-Regular.ttf"), mono_fonts);
     installFileFont(Q_TEXT("Karla-Regular.ttf"), format_font_families);
+
+    installFileFont(Q_TEXT("WorkSans-Regular.ttf"), ui_fallback_fonts);
+    installFileFont(Q_TEXT("WorkSans-Bold.ttf"), ui_fallback_fonts);
 
     installFileFont(Q_TEXT("HarmonyOS_Sans_TC_Regular.ttf"), ui_fallback_fonts);
     installFileFont(Q_TEXT("HarmonyOS_Sans_TC_Bold.ttf"), ui_fallback_fonts);
@@ -107,11 +109,9 @@ void ThemeManager::setThemeColor(ThemeColor theme_color) {
     switch (themeColor()) {
     case ThemeColor::DARK_THEME:
         qFontIcon.setBaseColor(Qt::white);
-        mdl2_font_icon_.setBaseColor(Qt::white);
         break;
     case ThemeColor::LIGHT_THEME:
         qFontIcon.setBaseColor(Qt::black);
-        mdl2_font_icon_.setBaseColor(Qt::black);
         break;
     }
     play_arrow_ = QIcon(Q_STR(":/xamp/Resource/%1/play_arrow.png").arg(themeColorPath()));
@@ -174,11 +174,15 @@ void ThemeManager::setMenuStyle(QWidget* menu) {
 }
 
 QIcon ThemeManager::volumeUp() const {
-    return Q_FONT_ICON_CODE(0xe050);
+    return iconFromFont(IconCode::ICON_VolumeUp);
 }
 
 QIcon ThemeManager::volumeOff() const {
-    return Q_FONT_ICON_CODE(0xe04f);
+    return iconFromFont(IconCode::ICON_VolumeOff);
+}
+
+QIcon ThemeManager::iconFromFont(const QChar& code) const {
+    return qFontIcon.icon(code);
 }
 
 QIcon ThemeManager::makeIcon(const QString &path) const {
@@ -189,71 +193,67 @@ QIcon ThemeManager::makeIcon(const QString &path) const {
 }
 
 QIcon ThemeManager::folderIcon() const {
-    return Q_FONT_ICON_CODE(0xe2c7);
+    return iconFromFont(IconCode::ICON_Folder);
 }
 
 QIcon ThemeManager::speakerIcon() const {
-    return Q_FONT_ICON_CODE(0xe32d);
-}
-
-QIcon ThemeManager::usbIcon() const {
-    return Q_FONT_ICON_CODE(0xe1e0);
+    return iconFromFont(IconCode::ICON_Speaker);
 }
 
 QIcon ThemeManager::playlistIcon() const {
-    return Q_FONT_ICON_CODE(0xe03d);
+    return iconFromFont(IconCode::ICON_Playlist);
 }
 
 QIcon ThemeManager::equalizerIcon() const {
-    return Q_FONT_ICON_CODE(0xe01d);
+    return iconFromFont(IconCode::ICON_Equalizer);
 }
 
 QIcon ThemeManager::podcastIcon() const {
-    return Q_FONT_ICON_CODE(0xf048);
+    return iconFromFont(IconCode::ICON_Podcast);
 }
 
 QIcon ThemeManager::albumsIcon() const {
-    return Q_FONT_ICON_CODE(0xe030);
+    return iconFromFont(IconCode::ICON_Album);
 }
 
 QIcon ThemeManager::cdIcon() const {
-    return Q_FONT_ICON_CODE(0xe019);
+    return iconFromFont(IconCode::ICON_CD);
 }
 
 QIcon ThemeManager::artistsIcon() const {
-    return Q_FONT_ICON_CODE(0xe7ef);
+    return iconFromFont(IconCode::ICON_Artist);
 }
 
 QIcon ThemeManager::subtitleIcon() const {
-    return Q_FONT_ICON_CODE(0xec0b);
+    return iconFromFont(IconCode::ICON_Subtitle);
 }
 
 QIcon ThemeManager::preferenceIcon() const  {
-    return Q_FONT_ICON_CODE(0xe8b8);
+    return iconFromFont(IconCode::ICON_Preference);
 }
 
 QIcon ThemeManager::aboutIcon() const {
-    return Q_FONT_ICON_CODE(0xe887);
+    return iconFromFont(IconCode::ICON_About);
 }
 
 QIcon ThemeManager::darkModeIcon() const {
-    return Q_FONT_ICON_CODE(0xe51c);
+    return iconFromFont(IconCode::ICON_DarkMode);
 }
 
 QIcon ThemeManager::lightModeIcon() const {
-    return Q_FONT_ICON_CODE(0xe518);
+    return iconFromFont(IconCode::ICON_LightMode);
 }
 
 QIcon ThemeManager::seachIcon() const {
-    return Q_FONT_ICON_CODE(0xe8b6);
+    return iconFromFont(IconCode::ICON_Search);
 }
 
 QIcon ThemeManager::themeIcon() const {
-    return Q_FONT_ICON_CODE(0xe40a);
+    return iconFromFont(IconCode::ICON_Theme);
 }
 
 QIcon ThemeManager::desktopIcon() const {
-    return Q_FONT_ICON_CODE(0xe30a);
+    return iconFromFont(IconCode::ICON_Desktop);
 }
 
 QIcon ThemeManager::appIcon() const {
@@ -267,39 +267,39 @@ QIcon ThemeManager::playCircleIcon() const {
 }
 
 QIcon ThemeManager::moreIcon() const {
-    return Q_FONT_ICON_CODE(0xe5d4);
+    return iconFromFont(IconCode::ICON_More);
 }
 
 void ThemeManager::setShufflePlayorder(Ui::XampWindow& ui) const {
-    ui.repeatButton->setIcon(Q_FONT_ICON_CODE(0xe043));
+    ui.repeatButton->setIcon(iconFromFont(IconCode::ICON_ShufflePlayOrder));
 }
 
 void ThemeManager::setRepeatOnePlayOrder(Ui::XampWindow& ui) const {
-    ui.repeatButton->setIcon(Q_FONT_ICON_CODE(0xe040));
+    ui.repeatButton->setIcon(iconFromFont(IconCode::ICON_RepeatOnePlayOrder));
 }
 
 void ThemeManager::setRepeatOncePlayOrder(Ui::XampWindow& ui) const {
-    ui.repeatButton->setIcon(Q_FONT_ICON_CODE(0xe041));
+    ui.repeatButton->setIcon(iconFromFont(IconCode::ICON_RepeatOncePlayOrder));
 }
 
 QIcon ThemeManager::minimizeWindowIcon() const {
-    return mdl2_font_icon_.icon(0xE921);
+    return iconFromFont(IconCode::ICON_MinimizeWindow);
 }
 
 QIcon ThemeManager::maximumWindowIcon() const {
-    return mdl2_font_icon_.icon(0xE922);
+    return iconFromFont(IconCode::ICON_MaximumWindow);
 }
 
 QIcon ThemeManager::closeWindowIcon() const {
-    return mdl2_font_icon_.icon(0xE8BB);
+    return iconFromFont(IconCode::ICON_CloseWindow);
 }
 
 QIcon ThemeManager::restoreWindowIcon() const {
-    return mdl2_font_icon_.icon(0xE923);
+    return iconFromFont(IconCode::ICON_RestoreWindow);
 }
 
 QIcon ThemeManager::sliderBarIcon() const {
-    return Q_FONT_ICON_CODE(0xe5d2);
+    return iconFromFont(IconCode::ICON_SliderBar);
 }
 
 const QPixmap& ThemeManager::unknownCover() const noexcept {
@@ -351,10 +351,10 @@ void ThemeManager::setBitPerfectButton(Ui::XampWindow& ui, bool enable) {
 
 void ThemeManager::setPlayOrPauseButton(Ui::XampWindow& ui, bool is_playing) {
     if (is_playing) {
-        ui.playButton->setIcon(Q_FONT_ICON_CODE(0xe1a2));
+        ui.playButton->setIcon(iconFromFont(IconCode::ICON_Play));
     }
     else {
-        ui.playButton->setIcon(Q_FONT_ICON_CODE(0xe1c4));
+        ui.playButton->setIcon(iconFromFont(IconCode::ICON_Pause));
     }
 }
 
@@ -421,11 +421,7 @@ QColor ThemeManager::coverShadownColor() const {
 }
 
 QSize ThemeManager::tabIconSize() const {
-#ifdef Q_OS_WIN
-    return QSize(18, 18);
-#else
-    return QSize(24, 24);
-#endif
+    return QSize(16, 16);
 }
 
 void ThemeManager::updateTitlebarState(QFrame *title_bar, bool is_focus) {
@@ -579,7 +575,7 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
                                          background-color: transparent;
                                          }
                                          )"));
-    ui.stopButton->setIcon(Q_FONT_ICON_CODE(0xe047));
+    ui.stopButton->setIcon(iconFromFont(ICON_Stop));
 
     ui.nextButton->setStyleSheet(Q_TEXT(R"(
                                         QToolButton#nextButton {
@@ -587,7 +583,7 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
                                         background-color: transparent;
                                         }
                                         )"));
-    ui.nextButton->setIcon(Q_FONT_ICON_CODE(0xe044));
+    ui.nextButton->setIcon(iconFromFont(IconCode::ICON_PlayNext));
 
     ui.prevButton->setStyleSheet(Q_TEXT(R"(
                                         QToolButton#prevButton {
@@ -595,7 +591,7 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
                                         background-color: transparent;
                                         }
                                         )"));
-    ui.prevButton->setIcon(Q_FONT_ICON_CODE(0xe045));
+    ui.prevButton->setIcon(iconFromFont(IconCode::ICON_PlayPrev));
 
     ui.selectDeviceButton->setStyleSheet(Q_TEXT(R"(
                                                 QToolButton#selectDeviceButton {                                                

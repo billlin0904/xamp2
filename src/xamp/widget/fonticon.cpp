@@ -10,8 +10,8 @@ void FontIconEngine::paint(QPainter* painter, const QRect& rect, QIcon::Mode mod
     Q_UNUSED(state)
 
     QFont font(font_family_);
-	int draw_size = qRound(rect.height() * 0.875);
-    font.setPointSize(draw_size);
+	int draw_size = qRound(rect.height() * 0.9);
+    font.setPixelSize(draw_size);
     font.setStyleStrategy(QFont::PreferAntialias);
 
     painter->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);

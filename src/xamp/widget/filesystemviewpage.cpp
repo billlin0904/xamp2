@@ -35,7 +35,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
             auto path = fromQStringPath(dir_model_->fileInfo(index).filePath());
             addDirToPlyalist(path);
             });
-        add_file_to_playlist_act->setIcon(Q_FONT_ICON_CODE(0xe03b));
+        add_file_to_playlist_act->setIcon(qTheme.iconFromFont(0xe03b));
 
         auto load_dir_act = action_map.addAction(tr("Load file directory"), [this](auto pt) {
             const auto dir_name = QFileDialog::getExistingDirectory(this,
@@ -47,7 +47,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
             AppSettings::setValue(kAppSettingMyMusicFolderPath, dir_name);
             ui.dirTree->setRootIndex(dir_model_->index(AppSettings::getMyMusicFolderPath()));
             });
-        load_dir_act->setIcon(Q_FONT_ICON_CODE(0xe2cc));
+        load_dir_act->setIcon(qTheme.iconFromFont(0xe2cc));
 
         action_map.exec(pt, pt);
         });

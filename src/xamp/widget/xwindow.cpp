@@ -104,6 +104,7 @@ void XWindow::setContentWidget(IXPlayerFrame *content_widget) {
     if (!qTheme.useNativeWindow()) {
         setWindowTitle(kAppTitle);
         setAttribute(Qt::WA_TranslucentBackground, true);
+        setAttribute(Qt::WA_StyledBackground, true);
         setWindowFlags(windowFlags() | Qt::WindowMaximizeButtonHint);
         win32::setFramelessWindowStyle(winId());
         win32::addDwmShadow(winId());

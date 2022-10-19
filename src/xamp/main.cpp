@@ -36,6 +36,15 @@
 #include "version.h"
 #include "xamp.h"
 
+#ifdef Q_OS_WIN32
+static ConstLatin1String visualStudioVersion() {
+    if constexpr (_MSC_VER >= 1930) {
+        return "2022";
+    }
+    return "2019";
+}
+#endif
+
 static void loadSoxrSetting() {
     XAMP_LOG_DEBUG("loadSoxrSetting.");
 
@@ -380,6 +389,21 @@ int main(int argc, char *argv[]) {
 #endif
         .AddLogFile("xamp.log")
         .Startup();
+
+#ifdef Q_OS_WIN32
+    XAMP_LOG_DEBUG(Q_STR("Version: %1 Build Visual Studio %2.%3.%4 (%5 %6)")
+        .arg(kXAMPVersion)
+        .arg(visualStudioVersion())
+        .arg((_MSC_FULL_VER / 100000) % 100)
+        .arg(_MSC_FULL_VER % 100000)
+        .arg(Q_TEXT(__DATE__))
+        .arg(Q_TEXT(__TIME__)).toStdString());
+#else
+    XAMP_LOG_DEBUG(Q_STR("Build Clang %1.%2.%3")
+        .arg(__clang_major__)
+        .arg(__clang_minor__)
+        .arg(__clang_patchlevel__).toStdString());
+#endif
 
 #ifdef XAMP_OS_WIN
     const auto prefetch_dll = prefetchDLL();

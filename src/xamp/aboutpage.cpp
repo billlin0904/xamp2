@@ -6,34 +6,9 @@
 #include "thememanager.h"
 #include "aboutpage.h"
 
-#ifdef Q_OS_WIN32
-static ConstLatin1String visualStudioVersion() {
-	if constexpr (_MSC_VER >= 1930) {
-        return "2022";
-	}
-    return "2019";
-}
-#endif
-
 AboutPage::AboutPage(QWidget* parent)
     : QFrame(parent) {
     ui.setupUi(this);
-
-#ifdef Q_OS_WIN32
-    ui.lblVersion->setText(Q_STR("Version: %1 Build Visual Studio %2.%3.%4 (%5 %6)")
-        .arg(kXAMPVersion)
-        .arg(visualStudioVersion())
-		.arg((_MSC_FULL_VER / 100000) % 100)
-		.arg(_MSC_FULL_VER % 100000)
-        .arg(Q_TEXT(__DATE__))
-		.arg(Q_TEXT(__TIME__))
-        );
-#else
-    ui.lblVersion->setText(Q_STR("Build Clang %1.%2.%3")
-                            .arg(__clang_major__)
-                            .arg(__clang_minor__)
-                            .arg(__clang_patchlevel__));
-#endif
 
     ui.lblLogo->setPixmap(qTheme.appIcon().pixmap(128, 128));
 

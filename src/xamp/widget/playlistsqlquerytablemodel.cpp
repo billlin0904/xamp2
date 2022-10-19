@@ -52,7 +52,14 @@ QVariant PlayListSqlQueryTableModel::data(const QModelIndex& index, int32_t role
 		    value = QSqlQueryModel::data(index, Qt::DisplayRole);
 		    switch (index.column()) {
             case PLAYLIST_TRACK:
-                return QString::number(value.toInt()).rightJustified(3);
+	            {
+                auto playing_index = QSqlQueryModel::index(index.row(), PLAYLIST_PLAYING);
+                auto playing_index_value = QSqlQueryModel::data(playing_index, Qt::DisplayRole);
+                if (!playing_index_value.toBool()) {
+                    return QString::number(value.toInt());
+                }
+                return {};
+	            }
             case PLAYLIST_YEAR:
                 return QString::number(value.toInt()).rightJustified(8);
 		    case PLAYLIST_FILE_SIZE:
@@ -74,8 +81,16 @@ QVariant PlayListSqlQueryTableModel::data(const QModelIndex& index, int32_t role
 	    }
         break;
     case Qt::DecorationRole:
-        if (index.column() == PLAYLIST_PLAYING) {
+        /*if (index.column() == PLAYLIST_PLAYING) {
             auto value = QSqlQueryModel::data(index, Qt::DisplayRole);
+            if (value.toBool()) {
+                return qTheme.playArrow();
+            }
+            return {};
+        }*/
+        if (index.column() == PLAYLIST_TRACK) {
+            auto playing_index = QSqlQueryModel::index(index.row(), PLAYLIST_PLAYING);
+            auto value = QSqlQueryModel::data(playing_index, Qt::DisplayRole);
             if (value.toBool()) {
                 return qTheme.playArrow();
             }

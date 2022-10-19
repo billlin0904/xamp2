@@ -105,13 +105,6 @@
          <number>10</number>
         </property>
         <item alignment="Qt::AlignHCenter">
-         <widget class="QLabel" name="lblVersion">
-          <property name="text">
-           <string>version</string>
-          </property>
-         </widget>
-        </item>
-        <item alignment="Qt::AlignHCenter">
          <widget class="QLabel" name="lblDescription">
           <property name="text">
            <string>description</string>
