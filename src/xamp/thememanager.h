@@ -47,6 +47,7 @@ enum IconCode {
     ICON_Podcast = 0xEFA9,
     ICON_Album = 0xE93C,
     ICON_CD = 0xE958,
+    ICON_LeftArrow = 0xEC52,
     ICON_Artist = 0xE716,
     ICON_Subtitle = 0xED1E,
     ICON_Preference = 0xF8A6,
@@ -201,6 +202,8 @@ public:
     QIcon restoreWindowIcon() const;
 
     QIcon sliderBarIcon() const;
+
+    QPixmap githubIcon() const;
 
     void updateMaximumIcon(Ui::XampWindow& ui, bool is_maximum) const;
 

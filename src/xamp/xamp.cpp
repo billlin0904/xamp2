@@ -380,7 +380,7 @@ void Xamp::initialUI() {
         f.setPointSize(9);
         ui_.titleFrameLabel->setFont(f);
         ui_.titleFrameLabel->setText(Q_TEXT("XAMP2"));
-        ui_.titleFrameLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+        ui_.titleFrameLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     }
 #ifdef Q_OS_WIN
     f.setPointSize(8);
@@ -432,7 +432,6 @@ QWidgetAction* Xamp::createTextSeparator(const QString& desc) {
 
     desc_label->setObjectName(Q_TEXT("textSeparator"));
 
-    //auto f = font();
     QFont f(Q_TEXT("FormatFont"));
     f.setPointSize(10);
     f.setBold(true);
@@ -487,13 +486,6 @@ void Xamp::initialDeviceList() {
 
         for (const auto& device_info : device_info_list) {
             auto* device_action = new QAction(QString::fromStdWString(device_info.name), this);
-
-            /*QString sub_desc = Q_TEXT("Hardware volume control");
-            auto* checkbox = new QRadioButton(QString::fromStdWString(device_info.name), this);
-            auto* device_action = createTextSeparator(sub_desc, checkbox);
-            (void)QObject::connect(device_action_group, &QActionGroup::triggered, [checkbox](auto action) {
-                emit checkbox->clicked(action->isChecked());
-            });*/
 
             device_action_group->addAction(device_action);
             device_action->setCheckable(true);
@@ -770,43 +762,6 @@ void Xamp::initialController() {
     auto* settings_menu = new XMenu(this);
     qTheme.setMenuStyle(settings_menu);
 
-#if 0
-    // Hide left list
-    auto* hide_left_list_action = new QAction(tr("Show Left List"), this);
-    hide_left_list_action->setCheckable(true);
-
-    auto sliderAnimation = [this](bool enable) {
-        auto* animation = new QPropertyAnimation(ui_.sliderFrame, "geometry");
-        const auto slider_geometry = ui_.sliderFrame->geometry();
-        constexpr auto max_width = 200;
-        constexpr auto min_width = 48;
-        QSize size;
-        if (!enable) {
-            ui_.searchFrame->hide();
-            ui_.tableLabel->hide();
-            animation->setEasingCurve(QEasingCurve::InCubic);
-            animation->setStartValue(QRect(slider_geometry.x(), slider_geometry.y(), max_width, slider_geometry.height()));
-            animation->setEndValue(QRect(slider_geometry.x(), slider_geometry.y(), min_width, slider_geometry.height()));
-            size = QSize(min_width, slider_geometry.height());
-        }
-        else {
-            animation->setEasingCurve(QEasingCurve::InExpo);
-            animation->setStartValue(QRect(slider_geometry.x(), slider_geometry.y(), min_width, slider_geometry.height()));
-            animation->setEndValue(QRect(slider_geometry.x(), slider_geometry.y(), max_width, slider_geometry.height()));
-            size = QSize(max_width, slider_geometry.height());
-        }
-
-        (void)QObject::connect(animation, &QPropertyAnimation::finished, [=]() {
-            if (enable) {
-                ui_.searchFrame->show();
-                ui_.tableLabel->show();
-            }
-            ui_.sliderFrame->setMaximumSize(size);
-            });
-        animation->start(QAbstractAnimation::DeleteWhenStopped);
-    };
-#endif
-
     QTimer::singleShot(500, [=]() {
         sliderAnimation(AppSettings::getValueAsBool(kAppSettingShowLeftList));
         });
@@ -917,15 +872,12 @@ void Xamp::setCurrentTab(int32_t table_id) {
         break;
     case TAB_FILE_EXPLORER:
         ui_.currentView->setCurrentWidget(file_system_view_page_);
-        current_playlist_page_ = file_system_view_page_->playlistPage();
         break;
     case TAB_PODCAST:
         ui_.currentView->setCurrentWidget(podcast_page_);
-        current_playlist_page_ = podcast_page_;
         break;
     case TAB_PLAYLIST:
         ui_.currentView->setCurrentWidget(playlist_page_);
-        current_playlist_page_ = playlist_page_;
         break;
     case TAB_LYRICS:
         ui_.currentView->setCurrentWidget(lrc_page_);

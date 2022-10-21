@@ -24,6 +24,7 @@ AboutPage::AboutPage(QWidget* parent)
 
     QString domain_txt(Q_TEXT("<html><head/><body><a href=\"http://%1\">Github</a></body></html>"));
     ui.lblDomain->setText(domain_txt.arg(Q_TEXT("github.com/billlin0904/xamp2")));
+    ui.lbIGithubIcon->setPixmap(qTheme.githubIcon());
     ui.lblCopying->setText(QString::fromStdWString(L"Copyright \u00A9 2018-2022 XAMP2 Project."));
 
     font.setBold(false);
@@ -42,6 +43,11 @@ AboutPage::AboutPage(QWidget* parent)
     }
 
     setStyleSheet(Q_TEXT("QFrame#AboutDialog { background-color: transparent }"));
+    ui.lblLogo->setStyleSheet(Q_TEXT("background-color: transparent"));
+    ui.lblProjectTitle->setStyleSheet(Q_TEXT("background-color: transparent"));
+    ui.lblCopying->setStyleSheet(Q_TEXT("background-color: transparent"));
+    ui.lblDescription->setStyleSheet(Q_TEXT("background-color: transparent"));
+    ui.lblDomain->setStyleSheet(Q_TEXT("background-color: transparent"));
 }
 
 void AboutPage::onCreditsOrLicenceChecked(bool checked) {

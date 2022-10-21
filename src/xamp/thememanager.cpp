@@ -170,7 +170,7 @@ void ThemeManager::setMenuStyle(QWidget* menu) {
 	menu->setWindowFlags(Qt::Popup | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
     menu->setAttribute(Qt::WA_TranslucentBackground);
     menu->setAttribute(Qt::WA_StyledBackground);
-    menu->setStyle(new IconSizeStyle(14));
+    menu->setStyle(new IconSizeStyle(10));
 }
 
 QIcon ThemeManager::volumeUp() const {
@@ -302,6 +302,14 @@ QIcon ThemeManager::sliderBarIcon() const {
     return iconFromFont(IconCode::ICON_SliderBar);
 }
 
+QPixmap ThemeManager::githubIcon() const {
+	if (themeColor() == ThemeColor::DARK_THEME) {
+        return QPixmap(Q_TEXT(":/xamp/Resource/Black/GitHub-Mark.png"));
+	} else {
+        return QPixmap(Q_TEXT(":/xamp/Resource/White/GitHub-Mark.png"));
+	}
+}
+
 const QPixmap& ThemeManager::unknownCover() const noexcept {
     return unknown_cover_;
 }
@@ -351,10 +359,10 @@ void ThemeManager::setBitPerfectButton(Ui::XampWindow& ui, bool enable) {
 
 void ThemeManager::setPlayOrPauseButton(Ui::XampWindow& ui, bool is_playing) {
     if (is_playing) {
-        ui.playButton->setIcon(iconFromFont(IconCode::ICON_Play));
+        ui.playButton->setIcon(iconFromFont(IconCode::ICON_Pause));
     }
     else {
-        ui.playButton->setIcon(iconFromFont(IconCode::ICON_Pause));
+        ui.playButton->setIcon(iconFromFont(IconCode::ICON_Play));
     }
 }
 
@@ -424,12 +432,12 @@ QSize ThemeManager::tabIconSize() const {
 #ifdef XAMP_OS_MAC
     return QSize(20, 20);
 #else
-    return QSize(16, 16);
+    return QSize(18, 18);
 #endif
 }
 
 void ThemeManager::updateTitlebarState(QFrame *title_bar, bool is_focus) {
-    if (!is_focus) {
+    /*if (!is_focus) {
         QColor title_bar_color = titleBarColor();
         title_bar_color = title_bar_color.light();
 
@@ -448,7 +456,7 @@ void ThemeManager::updateTitlebarState(QFrame *title_bar, bool is_focus) {
 				border-radius: 0px;
             }			
             )"));
-    }
+    }*/
 }
 
 QColor ThemeManager::hoverColor() const {
@@ -463,7 +471,7 @@ QColor ThemeManager::hoverColor() const {
 
 void ThemeManager::setStandardButtonStyle(QToolButton* close_button, QToolButton* min_win_button, QToolButton* max_win_button) const {
     const QColor hover_color = hoverColor();
-    auto font_size = 13;
+    auto font_size = 10;
 
     close_button->setStyleSheet(Q_STR(R"(
                                          QToolButton#closeButton {
@@ -624,7 +632,20 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
 }
 
 void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
-    ui.playButton->setIconSize(QSize(64, 64));
+    QString slider_bar_left_color;
+    switch (themeColor()) {
+    case ThemeColor::DARK_THEME:
+        slider_bar_left_color = Q_TEXT("42, 130, 218");
+        break;
+    case ThemeColor::LIGHT_THEME:
+        slider_bar_left_color = Q_TEXT("42, 130, 218");
+        break;
+    }
+
+    ui.playButton->setIconSize(QSize(32, 32));
+    ui.selectDeviceButton->setIconSize(QSize(32, 32));
+    ui.mutedButton->setIconSize(QSize(32, 32));
+
     ui.playButton->setStyleSheet(Q_TEXT(R"(
                                             QToolButton#playButton {
                                             border: none;
@@ -663,30 +684,6 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
                                         background-color: transparent;
                                         }
                                         )"));
-
-	QString slider_bar_left_color;
-	switch (themeColor()) {
-	case ThemeColor::DARK_THEME:
-        slider_bar_left_color = Q_TEXT("42, 130, 218");
-        ui.controlFrame->setStyleSheet(
-            Q_TEXT(R"(
-            QFrame#controlFrame{
-                border-top: 1px solid rgb(22, 22, 22);
-				border-radius: 0px;
-            }
-            )"));
-		break;
-	case ThemeColor::LIGHT_THEME:
-        slider_bar_left_color = Q_TEXT("42, 130, 218");
-        ui.controlFrame->setStyleSheet(
-            Q_TEXT(R"(
-            QFrame#controlFrame{
-                border-top: 1px solid lightgray;
-				border-radius: 0px;
-            }
-            )"));
-        break;
-	}
 
     ui.sliderBar->setStyleSheet(Q_STR(R"(
 	QListView#sliderBar {
@@ -739,6 +736,25 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
                                             border-radius: 10px;
                                             }
                                             )").arg(colorToString(Qt::black)));
+
+        ui.currentView->setStyleSheet(Q_STR(R"(
+			QStackedWidget#currentView {
+				background-color: #121920;
+				border: 1px solid black;
+				border-top-left-radius: 8px;
+            }			
+            )"));
+
+        ui.bottomFrame->setStyleSheet(
+            Q_TEXT(R"(
+            QFrame#bottomFrame{
+                border-top: 1px solid black;
+                border-radius: 0px;
+				border-bottom: none;
+				border-left: none;
+				border-right: none;
+            }
+            )"));
     }
     else {
         ui.titleLabel->setStyleSheet(Q_TEXT(R"(
@@ -756,6 +772,25 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
                                             border-radius: 10px;
                                             }
                                             )").arg(colorToString(Qt::white)));
+
+        ui.currentView->setStyleSheet(Q_STR(R"(
+			QStackedWidget#currentView {
+				background-color: #f9f9f9;
+				border: 1px solid #eaeaea;
+				border-top-left-radius: 8px;
+            }			
+            )"));
+
+        ui.bottomFrame->setStyleSheet(
+            Q_TEXT(R"(
+            QFrame#bottomFrame {
+                border-top: 1px solid #eaeaea;
+                border-radius: 0px;
+				border-bottom: none;
+				border-left: none;
+				border-right: none;
+            }
+            )"));
     }
 
     ui.artistLabel->setStyleSheet(Q_TEXT(R"(
@@ -774,4 +809,7 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
     ));
    
     setThemeIcon(ui);
+
+    ui.sliderFrame->setStyleSheet(Q_TEXT("background: transparent; border: none;"));
+    ui.currentViewFrame->setStyleSheet(Q_TEXT("border: none;"));
 }

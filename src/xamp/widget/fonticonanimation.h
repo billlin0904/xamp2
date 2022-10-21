@@ -5,22 +5,27 @@
 
 #pragma once
 
-#include <ui_filesystemviewpage.h>
+#include <QObject>
 
-class PlaylistPage;
-class FileSystemModel;
+class QWidget;
+class QPainter;
+class QTimer;
 
-class FileSystemViewPage : public QFrame {
+class FontIconAnimation : public QObject {
 	Q_OBJECT
 public:
-	explicit FileSystemViewPage(QWidget* parent = nullptr);
+	explicit FontIconAnimation(QWidget* parent, int interval = 10, int step = 1);
 
-	PlaylistPage* playlistPage();
+	void setup(QPainter& painter, const QRect& rect);
 
-signals:
-	void addDirToPlyalist(const QString& url);
+public slots:
+	void update();
 
 private:
-	Ui::FileSystemViewPage ui;
-	FileSystemModel* dir_model_;
+	QWidget* parent_;
+	QTimer* timer_;
+	int interval_;
+	int step_;
+	float angle_;
 };
+

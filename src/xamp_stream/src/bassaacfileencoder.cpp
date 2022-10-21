@@ -51,6 +51,14 @@ public:
         BassUtiltis::Encode(stream_, progress);
     }
 
+    void SetEncodingProfile(const EncodingProfile& profile) {
+
+    }
+
+    Vector<EncodingProfile> GetAvailableEncodingProfile() {
+        return {};
+    }
+
     BassFileStream stream_;
     BassStreamHandle encoder_;
 };

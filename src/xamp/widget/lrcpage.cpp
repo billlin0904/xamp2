@@ -13,6 +13,7 @@
 
 LrcPage::LrcPage(QWidget* parent)
 	: QFrame(parent) {
+	setObjectName(Q_TEXT("lrcPage"));
 	initial();
 }
 

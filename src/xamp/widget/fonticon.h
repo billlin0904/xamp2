@@ -16,7 +16,7 @@
 
 class FontIconEngine : public QIconEngine {
 public:
-    FontIconEngine();
+    explicit FontIconEngine(QVariantMap opt);
 
     void paint(QPainter* painter, const QRect& rect, QIcon::Mode mode, QIcon::State state) override;
 
@@ -36,6 +36,7 @@ private:
     QString font_family_;
     QChar letter_;
     QColor base_color_;
+    QVariantMap options_;
 };
 
 class FontIcon : public QObject {
@@ -44,7 +45,9 @@ public:
 
     bool addFont(const QString& filename);
 
-    QIcon icon(const QChar& code, const QColor *color = nullptr, const QString& family = QString()) const;
+    QIcon animationIcon(const QChar& code, QWidget *parent, const QColor* color = nullptr, const QString& family = QString()) const;
+
+    QIcon icon(const QChar& code, QVariantMap options = QVariantMap(), const QColor *color = nullptr, const QString& family = QString()) const;
 
     const QStringList& families() const;
 

@@ -260,9 +260,6 @@ PreferencePage::PreferencePage(QWidget *parent)
 	auto* pcm2dsd_item = new QTreeWidgetItem(QStringList() << tr("PCM-DSD Covert"));
 	settings_item->addChild(pcm2dsd_item);
 
-	auto* flac_encoding_item = new QTreeWidgetItem(QStringList() << tr("FLAC Encoding"));
-	settings_item->addChild(flac_encoding_item);
-
 	auto* foobar2000_dsp_item = new QTreeWidgetItem(QStringList() << tr("Foobar2000 DSP"));
 	settings_item->addChild(foobar2000_dsp_item);
 
@@ -300,8 +297,7 @@ PreferencePage::PreferencePage(QWidget *parent)
             { tr("Playback"), 0 },
             { tr("Resampler"), 1 },
 			{ tr("PCM-DSD Covert"), 2 },
-			{ tr("FLAC Encoding"), 3 },
-			{ tr("Foobar2000 DSP"), 4 },
+			{ tr("Foobar2000 DSP"), 3 },
         };
 
 	    const auto select_type = item->text(column);
@@ -372,13 +368,23 @@ PreferencePage::PreferencePage(QWidget *parent)
         AppSettings::setValue(kAppSettingAlbumImageCacheSize, value);
     });
 
-	ui_.flacCompressionLevelSlider->setValue(AppSettings::getValue(kFlacEncodingLevel).toInt());
-	(void)QObject::connect(ui_.flacCompressionLevelSlider, &QSlider::valueChanged, [this](auto value) {
-		AppSettings::setValue(kFlacEncodingLevel, value);
-		saveAll();
-		});
+	setStyleSheet(Q_TEXT(R"(
+			QFrame#PreferenceDialog { 
+				background-color: transparent;
+			}
+            )"));
 
-	setStyleSheet(Q_TEXT("QFrame#PreferenceDialog { background-color: transparent; }"));
+	ui_.stackedWidget->setStyleSheet(Q_TEXT(R"(
+			QStackedWidget#stackedWidget {
+				background-color: transparent;
+            }
+            )"));
+	ui_.playbackPage->setStyleSheet(Q_TEXT("background-color: transparent;"));
+	ui_.noneResamplerPage->setStyleSheet(Q_TEXT("background-color: transparent;"));
+	ui_.soxrResamplerPage->setStyleSheet(Q_TEXT("background-color: transparent;"));
+	ui_.r8brainResamplerPage->setStyleSheet(Q_TEXT("background-color: transparent;"));
+	ui_.pcm2dsdPage->setStyleSheet(Q_TEXT("background-color: transparent;"));
+	ui_.dspManagerPage->setStyleSheet(Q_TEXT("background-color: transparent;"));
 }
 
 void PreferencePage::update() {
@@ -403,8 +409,6 @@ void PreferencePage::update() {
 void PreferencePage::saveAll() {
 	saveSoxrResampler(ui_.soxrSettingCombo->currentText());
 	saveR8BrainResampler();
-
-	AppSettings::setValue(kFlacEncodingLevel, ui_.flacCompressionLevelSlider->value());
 
 	auto index = ui_.resamplerStackedWidget->currentIndex();
 	AppSettings::setValue(kAppSettingResamplerEnable, index > 0);

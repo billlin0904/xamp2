@@ -357,6 +357,7 @@ void setFramelessWindowStyle(const WId window_id) {
 }
 
 void setTitleBarColor(const WId window_id, QColor color) {
+	// https://stackoverflow.com/questions/39261826/change-the-color-of-the-title-bar-caption-of-a-win32-application
 	// Undocumented in Windows 10 SDK
 	// (can be used by setting value as dwAttribute as 20),
 	// value was 19 pre Windows 10 20H1 Update).

@@ -282,76 +282,80 @@ public:
     }
 
     static Vector<EncodingProfile> GetAvailableEncodingProfile() {
-        Vector<EncodingProfile> profiles;
+        constexpr auto get_encoding_profile = []() {
+            Vector<EncodingProfile> profiles;
 
-        CComPtr<IMFCollection> available_types;
-        auto hr = MFTranscodeGetAudioOutputAvailableTypes(MFAudioFormat_AAC,
-            MFT_ENUM_FLAG_ALL,
-            nullptr,
-            &available_types);
-        if (FAILED(hr)) {
+            CComPtr<IMFCollection> available_types;
+            auto hr = MFTranscodeGetAudioOutputAvailableTypes(MFAudioFormat_AAC,
+                MFT_ENUM_FLAG_ALL,
+                nullptr,
+                &available_types);
+            if (FAILED(hr)) {
+                return profiles;
+            }
+
+            DWORD count = 0;
+            hr = available_types->GetElementCount(&count);
+            Vector<CComPtr<IUnknown>> unknown_audio_types;
+            for (DWORD n = 0; n < count; n++) {
+                CComPtr<IUnknown> unknown_audio_type;
+                hr = available_types->GetElement(n, &unknown_audio_type);
+                if (SUCCEEDED(hr)) {
+                    unknown_audio_types.push_back(unknown_audio_type);
+                }
+            }
+
+            Vector<CComPtr<IMFMediaType>> audio_types;
+            for (const auto& unknown_audio_type : unknown_audio_types) {
+                CComPtr<IMFMediaType> audio_type;
+                hr = unknown_audio_type->QueryInterface(IID_PPV_ARGS(&audio_type));
+                if (SUCCEEDED(hr)) {
+                    audio_types.push_back(audio_type);
+                }
+            }
+
+            for (const auto& audio_type : audio_types) {
+                uint32_t sample_rate = 0;
+                audio_type->GetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, &sample_rate);
+                uint32_t num_channels = 0;
+                audio_type->GetUINT32(MF_MT_AUDIO_NUM_CHANNELS, &num_channels);
+                if (num_channels > AudioFormat::kMaxChannel) {
+                    continue;
+                }
+                uint32_t bytes_per_second = 0;
+                audio_type->GetUINT32(MF_MT_AUDIO_AVG_BYTES_PER_SECOND, &bytes_per_second);
+                uint32_t bit_per_sample = 0;
+                audio_type->GetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, &bit_per_sample);
+                auto payload_type = AACPayloadType::PAYLOAD_AAC_RAW;
+                audio_type->GetUINT32(MF_MT_AAC_PAYLOAD_TYPE, reinterpret_cast<uint32_t*>(&payload_type));
+                if (payload_type != AACPayloadType::PAYLOAD_AAC_RAW) {
+                    continue;
+                }
+                uint32_t profile_level = AACProfileLevel::AAC_PROFILE_L2;
+                audio_type->GetUINT32(MF_MT_AAC_AUDIO_PROFILE_LEVEL_INDICATION, &profile_level);
+                if (profile_level != AACProfileLevel::AAC_PROFILE_L2) {
+                    continue;
+                }
+                XAMP_LOG_DEBUG("{}bit, {}ch, {:.2f}kHz, {}kbps, {}kbps {} {}",
+                    bit_per_sample,
+                    num_channels,
+                    sample_rate / 1000.,
+                    (8 * bytes_per_second) / 1000,
+                    bytes_per_second / 100,
+                    payload_type,
+                    profile_level);
+                EncodingProfile profile;
+                profile.bitrate = (8 * bytes_per_second) / 1000;
+                profile.num_channels = num_channels;
+                profile.bit_per_sample = bit_per_sample;
+                profile.sample_rate = sample_rate;
+                profile.bytes_per_second = bytes_per_second;
+                profiles.push_back(profile);
+            }
             return profiles;
-        }
+        };
 
-        DWORD count = 0;
-        hr = available_types->GetElementCount(&count);
-        Vector<CComPtr<IUnknown>> unknown_audio_types;
-        for (DWORD n = 0; n < count; n++) {
-            CComPtr<IUnknown> unknown_audio_type;
-            hr = available_types->GetElement(n, &unknown_audio_type);
-            if (SUCCEEDED(hr)) {
-                unknown_audio_types.push_back(unknown_audio_type);
-            }
-        }
-
-        Vector<CComPtr<IMFMediaType>> audio_types;
-        for (const auto& unknown_audio_type : unknown_audio_types) {
-            CComPtr<IMFMediaType> audio_type;
-            hr = unknown_audio_type->QueryInterface(IID_PPV_ARGS(&audio_type));
-            if (SUCCEEDED(hr)) {
-                audio_types.push_back(audio_type);
-            }
-        }
-
-        for (const auto& audio_type : audio_types) {
-            uint32_t sample_rate = 0;
-            audio_type->GetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, &sample_rate);
-            uint32_t num_channels = 0;
-            audio_type->GetUINT32(MF_MT_AUDIO_NUM_CHANNELS, &num_channels);
-            if (num_channels > AudioFormat::kMaxChannel) {
-                continue;
-            }
-            uint32_t bytes_per_second = 0;
-            audio_type->GetUINT32(MF_MT_AUDIO_AVG_BYTES_PER_SECOND, &bytes_per_second);
-            uint32_t bit_per_sample = 0;
-            audio_type->GetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, &bit_per_sample);
-            auto payload_type = AACPayloadType::PAYLOAD_AAC_RAW;
-            audio_type->GetUINT32(MF_MT_AAC_PAYLOAD_TYPE, reinterpret_cast<uint32_t*>(&payload_type));
-            if (payload_type != AACPayloadType::PAYLOAD_AAC_RAW) {
-                continue;
-            }
-            uint32_t profile_level = AACProfileLevel::AAC_PROFILE_L2;
-            audio_type->GetUINT32(MF_MT_AAC_AUDIO_PROFILE_LEVEL_INDICATION, &profile_level);
-            if (profile_level != AACProfileLevel::AAC_PROFILE_L2) {
-                continue;
-            }
-            XAMP_LOG_DEBUG("{}bit, {}ch, {:.2f}kHz, {}kbps, {}kbps {} {}",
-                bit_per_sample,
-                num_channels,
-                sample_rate / 1000.,
-                (8 * bytes_per_second) / 1000,
-                bytes_per_second / 1000,
-                payload_type,
-                profile_level);
-            EncodingProfile profile;
-            profile.bitrate = (8 * bytes_per_second) / 1000;
-            profile.num_channels = num_channels;
-            profile.bit_per_sample = bit_per_sample;
-            profile.sample_rate = sample_rate;
-            profile.bytes_per_second = bytes_per_second;
-            profiles.push_back(profile);
-        }
-
+        static const auto profiles = get_encoding_profile();
         return profiles;
     }
 private:

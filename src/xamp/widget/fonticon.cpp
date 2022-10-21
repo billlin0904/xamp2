@@ -1,9 +1,12 @@
 #include <QFontDatabase>
+#include <widget/str_utilts.h>
+#include <widget/fonticonanimation.h>
 #include <widget/fonticon.h>
 
-FontIconEngine::FontIconEngine()
+FontIconEngine::FontIconEngine(QVariantMap opt)
     : QIconEngine()
-	, selected_state_(false) {
+	, selected_state_(false)
+	, options_(std::move(opt)){
 }
 
 void FontIconEngine::paint(QPainter* painter, const QRect& rect, QIcon::Mode mode, QIcon::State state) {
@@ -13,6 +16,11 @@ void FontIconEngine::paint(QPainter* painter, const QRect& rect, QIcon::Mode mod
 	int draw_size = qRound(rect.height() * 0.9);
     font.setPixelSize(draw_size);
     font.setStyleStrategy(QFont::PreferAntialias);
+
+    auto var = options_.value(Q_TEXT("animation"));
+    if (auto* animation = var.value<FontIconAnimation*>()) {
+        animation->setup(*painter, rect);
+    }
 
     painter->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
 
@@ -64,7 +72,7 @@ void FontIconEngine::setSelectedState(bool enable) {
 }
 
 QIconEngine* FontIconEngine::clone() const {
-    auto* engine = new FontIconEngine();
+    auto* engine = new FontIconEngine(options_);
     engine->setFontFamily(font_family_);
     engine->setBaseColor(base_color_);
     engine->setSelectedState(selected_state_);
@@ -86,9 +94,15 @@ bool FontIcon::addFont(const QString& filename) {
     return true;
 }
 
-QIcon FontIcon::icon(const QChar& code, const QColor* color, const QString& family) const {
+QIcon FontIcon::animationIcon(const QChar& code, QWidget* parent, const QColor* color, const QString& family) const {
+    QVariantMap options;
+    options.insert(Q_TEXT("animation"), QVariant::fromValue(new FontIconAnimation(parent)));
+    return icon(code, options, color, family);
+}
+
+QIcon FontIcon::icon(const QChar& code, QVariantMap options, const QColor* color, const QString& family) const {
     if (families().isEmpty()) {
-        return QIcon();
+        return {};
     }
 
     QString use_family = family;
@@ -96,7 +110,7 @@ QIcon FontIcon::icon(const QChar& code, const QColor* color, const QString& fami
         use_family = families().first();
     }
 
-    auto* engine = new FontIconEngine();
+    auto* engine = new FontIconEngine(options);
     engine->setFontFamily(use_family);
     engine->setLetter(code);
     if (!color) {

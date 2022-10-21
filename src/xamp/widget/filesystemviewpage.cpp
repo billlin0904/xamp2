@@ -9,7 +9,7 @@
 #include <widget/filesystemviewpage.h>
 
 FileSystemViewPage::FileSystemViewPage(QWidget* parent)
-    : QWidget(parent) {
+    : QFrame(parent) {
     ui.setupUi(this);
     dir_model_ = new FileSystemModel(this);
     dir_model_->setFilter(QDir::NoDotDot | QDir::AllDirs);
@@ -27,7 +27,6 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
         ActionMap<QTreeView, std::function<void(const QPoint&)>> action_map(ui.dirTree);
 
         auto add_file_to_playlist_act = action_map.addAction(tr("Add file directory to playlist"), [this](auto pt) {
-            //auto index = ui.dirTree->indexAt(ui.dirTree->viewport()->mapFromGlobal(QCursor::pos()));
             auto index = ui.dirTree->indexAt(pt);
             if (!index.isValid()) {
                 return;
@@ -35,7 +34,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
             auto path = fromQStringPath(dir_model_->fileInfo(index).filePath());
             addDirToPlyalist(path);
             });
-        add_file_to_playlist_act->setIcon(qTheme.iconFromFont(0xe03b));
+        add_file_to_playlist_act->setIcon(qTheme.iconFromFont(IconCode::ICON_Playlist));
 
         auto load_dir_act = action_map.addAction(tr("Load file directory"), [this](auto pt) {
             const auto dir_name = QFileDialog::getExistingDirectory(this,
@@ -47,7 +46,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
             AppSettings::setValue(kAppSettingMyMusicFolderPath, dir_name);
             ui.dirTree->setRootIndex(dir_model_->index(AppSettings::getMyMusicFolderPath()));
             });
-        load_dir_act->setIcon(qTheme.iconFromFont(0xe2cc));
+        load_dir_act->setIcon(qTheme.iconFromFont(IconCode::ICON_Folder));
 
         action_map.exec(pt, pt);
         });

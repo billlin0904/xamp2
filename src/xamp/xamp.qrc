@@ -20,6 +20,7 @@
         <file>Resource/Black/play_arrow.png</file>
         <file>Resource/White/play_arrow.png</file>
         <file>Resource/Flags/US.png</file>
-        <file>Resource/Black/play_circle.png</file>
+        <file>Resource/White/GitHub-Mark.png</file>
+        <file>Resource/Black/GitHub-Mark.png</file>
     </qresource>
 </RCC>

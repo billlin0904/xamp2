@@ -104,7 +104,7 @@ public:
 
         auto itr = kIgnoreExceptionCode.find(exception_pointers->ExceptionRecord->ExceptionCode);
         if (itr != kIgnoreExceptionCode.end()) {
-            XAMP_LOG_DEBUG("Ignore exception code: {}({:#014X})", (*itr).second, (*itr).first);
+            XAMP_LOG_DEBUG("Ignore exception code: {}({:#014X}){}", (*itr).second, (*itr).first, StackTrace{}.CaptureStack());
             return;
         }
 

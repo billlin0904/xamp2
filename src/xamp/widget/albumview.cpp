@@ -204,6 +204,7 @@ QSize AlbumViewStyledDelegate::sizeHint(const QStyleOptionViewItem& option, cons
 
 AlbumViewPage::AlbumViewPage(QWidget* parent)
     : QFrame(parent) {
+    setObjectName(Q_TEXT("albumViewPage"));
     setFrameStyle(QFrame::NoFrame);
 
     auto* default_layout = new QVBoxLayout(this);
@@ -215,14 +216,16 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
     close_button->setStyleSheet(Q_TEXT(R"(
                                          QPushButton#albumViewPageCloseButton {
                                          border: none;
-                                         image: url(:/xamp/Resource/%1/close_normal.png);
                                          background-color: transparent;
+										 border-radius: 0px;
                                          }
 										 QPushButton#albumViewPageCloseButton:hover {	
-										 image: url(:/xamp/Resource/%1/close_hover.png);									 
+										 border-radius: 0px;
                                          }
-                                         )").arg(qTheme.themeColorPath()));
+                                         )"));
     close_button->setFixedSize(QSize(24, 24));
+    close_button->setIconSize(QSize(13, 13));
+    close_button->setIcon(qTheme.closeWindowIcon());
 
     auto* hbox_layout = new QHBoxLayout();
     hbox_layout->setSpacing(0);
@@ -243,7 +246,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
     (void)QObject::connect(close_button, &QPushButton::clicked, [this]() {
         hide();
         });
-    qTheme.setBackgroundColor(this);
+    setStyleSheet(Q_TEXT("QFrame#albumViewPage { background-color: transparent; }"));
 }
 
 void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id, const QString &cover_id) {
@@ -367,7 +370,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         removeAlbum();
         styled_delegate_->clearImageCache();
         });
-    remove_all_album_act->setIcon(qTheme.iconFromFont(0xe92b));
+    remove_all_album_act->setIcon(qTheme.iconFromFont(IconCode::ICON_RemoveAll));
 
     auto* load_file_act = action_map.addAction(tr("Load local file"), [this]() {
         const auto file_name = QFileDialog::getOpenFileName(this,
@@ -380,7 +383,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         }
         append(file_name);
         });
-    load_file_act->setIcon(qTheme.iconFromFont(0xe89c));
+    load_file_act->setIcon(qTheme.iconFromFont(IconCode::ICON_LoadFile));
 
     auto* load_dir_act = action_map.addAction(tr("Load file directory"), [this]() {
         const auto dir_name = QFileDialog::getExistingDirectory(this,
@@ -392,7 +395,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         }
         append(dir_name);
         });
-    load_dir_act->setIcon(qTheme.iconFromFont(0xe2cc));
+    load_dir_act->setIcon(qTheme.iconFromFont(IconCode::ICON_Folder));
 
     action_map.exec(pt);
 }
@@ -411,7 +414,7 @@ void AlbumView::showOperationMenu(const QPoint &pt) {
     auto* add_album_to_playlist_act = action_map.addAction(tr("Add album to playlist"), [=]() {
         Vector<PlayListEntity> entities;
         Vector<int32_t> add_playlist_music_ids;
-        qDatabase.forEachAlbumArtistMusic(album_id, artist_id,
+        qDatabase.forEachAlbumMusic(album_id,
             [&entities, &add_playlist_music_ids](const PlayListEntity& entity) mutable {
                 if (entity.album_replay_gain == 0.0) {
                     entities.push_back(entity);
@@ -420,12 +423,12 @@ void AlbumView::showOperationMenu(const QPoint &pt) {
             });
         emit addPlaylist(add_playlist_music_ids, entities);
         });
-    add_album_to_playlist_act->setIcon(qTheme.iconFromFont(0xe03b));
+    add_album_to_playlist_act->setIcon(qTheme.iconFromFont(IconCode::ICON_Playlist));
 
     auto* copy_album_act = action_map.addAction(tr("Copy album"), [album]() {
         QApplication::clipboard()->setText(album);
         });
-    copy_album_act->setIcon(qTheme.iconFromFont(0xe14d));
+    copy_album_act->setIcon(qTheme.iconFromFont(IconCode::ICON_Copy));
 
     action_map.addAction(tr("Copy artist"), [artist]() {
         QApplication::clipboard()->setText(artist);
@@ -437,7 +440,7 @@ void AlbumView::showOperationMenu(const QPoint &pt) {
         qDatabase.removeAlbum(album_id);
         refreshOnece();
         });
-    remove_select_album_act->setIcon(qTheme.iconFromFont(0xe92b));
+    remove_select_album_act->setIcon(qTheme.iconFromFont(IconCode::ICON_RemoveAll));
 
     action_map.exec(pt);
 }
