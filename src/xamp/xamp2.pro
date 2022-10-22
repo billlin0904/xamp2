@@ -84,6 +84,7 @@ SOURCES += \
     widget/filesystemviewpage.cpp \
     widget/filesystemmodel.cpp \
     widget/fonticon.cpp \
+    widget/fonticonanimation.cpp \
     singleinstanceapplication.cpp \
     version.cpp \
     cdpage.cpp \
@@ -149,6 +150,7 @@ HEADERS += \
     widget/filesystemmodel.h \
     widget/fonticon.h \
     widget/iconsizestyle.h \
+    widget/fonticonanimation.h \
     version.h \
     singleinstanceapplication.h \
     cdpage.h \

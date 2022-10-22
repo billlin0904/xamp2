@@ -379,6 +379,7 @@ PreferencePage::PreferencePage(QWidget *parent)
 				background-color: transparent;
             }
             )"));
+
 	ui_.playbackPage->setStyleSheet(Q_TEXT("background-color: transparent;"));
 	ui_.noneResamplerPage->setStyleSheet(Q_TEXT("background-color: transparent;"));
 	ui_.soxrResamplerPage->setStyleSheet(Q_TEXT("background-color: transparent;"));

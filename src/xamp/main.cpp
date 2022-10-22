@@ -360,6 +360,7 @@ static int excute(int argc, char* argv[]) {
 
     try {
         initer.Init();
+        initer.LoadLib();
     }
     catch (const Exception& e) {
         QMessageBox::critical(nullptr,

@@ -810,6 +810,7 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
    
     setThemeIcon(ui);
 
+    ui.sliderBarButton->setIconSize(tabIconSize());
     ui.sliderFrame->setStyleSheet(Q_TEXT("background: transparent; border: none;"));
     ui.currentViewFrame->setStyleSheet(Q_TEXT("border: none;"));
 }

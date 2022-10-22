@@ -6,8 +6,11 @@
 
 #if defined(Q_OS_WIN)
 #include <windowsx.h>
-#include <Windows.h>
 #include <widget/win32/win32.h>
+#include <base/platfrom_handle.h>
+#include <Dbt.h>
+#else
+#include <widget/osx/osx.h>
 #endif
 
 #include <QGraphicsDropShadowEffect>
@@ -43,6 +46,7 @@ void XDialog::setContentWidget(QWidget* content) {
     default_layout->setContentsMargins(20, 20, 20, 20);
     setLayout(default_layout);
 
+#ifdef Q_OS_WIN
     if (!qTheme.useNativeWindow()) {
         auto* shadow = new QGraphicsDropShadowEffect(frame_);
         shadow->setOffset(0, 0);
@@ -57,12 +61,10 @@ void XDialog::setContentWidget(QWidget* content) {
             break;
         }
         frame_->setGraphicsEffect(shadow);
-    }    
-
+    }
+#endif
 	default_layout->addWidget(frame_, 2, 2, 1, 2);
-
     setMouseTracking(true);
-
     (void)QObject::connect(frame_, &XFrame::closeFrame, [this]() {
         QDialog::close();
         });

@@ -1821,7 +1821,11 @@ void Xamp::encodeAACFile(const PlayListEntity& item, const EncodingProfile& prof
 #ifdef XAMP_OS_WIN
         auto *mf_aac_encode = dynamic_cast<MFAACFileEncoder*>(encoder.get());
         mf_aac_encode->SetEncodingProfile(profile);
+#else
+        auto *bass_aac_encoder = dynamic_cast<BassAACFileEncoder*>(encoder.get());
+        bass_aac_encoder->SetEncodingProfile(profile);
 #endif
+
         read_utiltis::encodeFile(item.file_path.toStdWString(),
             file_name.toStdWString(),
             encoder,

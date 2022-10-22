@@ -20,6 +20,8 @@
 
 #ifdef Q_OS_WIN
 #include <stream/mfaacencoder.h>
+#else
+#include <stream/bassaacfileencoder.h>
 #endif
 
 #include <rapidxml.hpp>
@@ -355,8 +357,8 @@ void PlayListTableView::initial() {
         export_flac_file_act->setIcon(qTheme.iconFromFont(IconCode::ICON_ExportFile));
 
         auto* export_aac_file_submenu = action_map.addSubMenu(tr("Export AAC file"));
-#ifdef Q_OS_WIN
-        for (const auto & profile : MFAACFileEncoder::GetAvailableEncodingProfile()) {
+
+        for (const auto & profile : BassAACFileEncoder::GetAvailableEncodingProfile()) {
             auto profile_desc = Q_STR("%0 bit, %1, %2")
                 .arg(profile.bit_per_sample).rightJustified(2)
                 .arg(samplerate2String(profile.sample_rate))
@@ -372,7 +374,7 @@ void PlayListTableView::initial() {
                 }
             });
         }
-#endif
+
         auto* export_wav_file_act = action_map.addAction(tr("Export WAV file"));
 
         action_map.addSeparator();
