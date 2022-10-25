@@ -70,7 +70,7 @@ void AppSettings::save() {
     settings_->sync();
 }
 
-QString AppSettings::getCachePath() {
+QString AppSettings::defaultCachePath() {
     auto folder_path = QStandardPaths::standardLocations(QStandardPaths::CacheLocation);
     return folder_path[0];
 }

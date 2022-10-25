@@ -362,7 +362,7 @@ void BassLib::LoadVersionInfo() {
         dll_versions_[BASS.EncLib->GetName()] = GetBassVersion(BASS.EncLib->BASS_Encode_GetVersion());
     }
     dll_versions_[BASS.FLACEncLib->GetName()] = GetBassVersion(BASS.FLACEncLib->BASS_Encode_FLAC_GetVersion());
-#ifdef XAMP_OS_WIN
+#ifdef XAMP_OS_MAC
     dll_versions_[BASS.AACEncLib->GetName()] = GetBassVersion(BASS.AACEncLib->BASS_Encode_AAC_GetVersion());
 #endif
 }

@@ -58,7 +58,6 @@
 #include <widget/filesystemviewpage.h>
 #include <widget/tooltips.h>
 #include <widget/tooltipsfilter.h>
-#include <widget/discordnotify.h>
 #include <widget/backgroundworker.h>
 #include <widget/podcast_uiltis.h>
 #include <widget/http.h>
@@ -156,7 +155,6 @@ Xamp::Xamp()
     , tray_icon_(nullptr)
 	, top_window_(nullptr)
 	, background_worker_(nullptr)
-    , discord_notify_(new DicordNotify(this))
     , state_adapter_(std::make_shared<UIPlayerStateAdapter>())
 	, player_(MakeAudioPlayer(state_adapter_)) {
     ui_.setupUi(this);
@@ -181,7 +179,6 @@ void Xamp::setXWindow(IXWindow* top_window) {
     setPlaylistPageCover(nullptr, podcast_page_);
     QTimer::singleShot(300, [this]() {
         initialDeviceList();
-        discord_notify_->discordInit();
         });
     avoidRedrawOnResize();
     applyTheme(qTheme.palette().color(QPalette::WindowText),
@@ -745,19 +742,6 @@ void Xamp::initialController() {
     setTipHint(ui_.closeButton, tr("Close window"));
     setTipHint(ui_.maxWinButton, tr("Maximum window"));
     setTipHint(ui_.minWinButton, tr("Minimum window"));
-
-    if (AppSettings::getValueAsBool(kAppSettingDiscordNotify)) {
-        (void)QObject::connect(this,
-            &Xamp::nowPlaying,
-            discord_notify_,
-            &DicordNotify::OnNowPlaying);
-
-        (void)QObject::connect(state_adapter_.get(),
-            &UIPlayerStateAdapter::stateChanged,
-            discord_notify_,
-            &DicordNotify::OnStateChanged,
-            Qt::QueuedConnection);
-    }
 
     auto* settings_menu = new XMenu(this);
     qTheme.setMenuStyle(settings_menu);

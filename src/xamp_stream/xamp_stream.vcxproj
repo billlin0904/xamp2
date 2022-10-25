@@ -86,7 +86,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <AdditionalLibraryDirectories>../xamp/x64/Debug/</AdditionalLibraryDirectories>
-      <AdditionalDependencies>xamp_base.lib;Mfplat.lib;Mf.lib;shared-x64.lib;foobar2000_SDK.lib;pfc.lib;libPPUI.lib;foobar2000_component_client.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>xamp_base.lib;Mfplat.lib;Mf.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Bscmake>
       <PreserveSbr>true</PreserveSbr>

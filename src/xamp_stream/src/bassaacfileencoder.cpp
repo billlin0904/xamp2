@@ -56,7 +56,7 @@ public:
 
     }
 
-    Vector<EncodingProfile> GetAvailableEncodingProfile() {
+    static Vector<EncodingProfile> GetAvailableEncodingProfile() {
         return {};
     }
 

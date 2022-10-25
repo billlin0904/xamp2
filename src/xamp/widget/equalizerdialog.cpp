@@ -22,6 +22,7 @@ EqualizerDialog::EqualizerDialog(QWidget *parent)
             };
 
     band_label_ = std::vector<QLabel*>{
+            ui_.preampDbLabel,
             ui_.band1DbLabel,
             ui_.band2DbLabel,
             ui_.band3DbLabel,
@@ -32,14 +33,32 @@ EqualizerDialog::EqualizerDialog(QWidget *parent)
             ui_.band8DbLabel,
             ui_.band9DbLabel,
             ui_.band10DbLabel,
+    };
+
+    band_feq_label_ = std::vector<QLabel*>{
+            ui_.preampLabel,
+            ui_.band1FeqLabel,
+            ui_.band2FeqLabel,
+            ui_.band3FeqLabel,
+            ui_.band4FeqLabel,
+            ui_.band5FeqLabel,
+            ui_.band6FeqLabel,
+            ui_.band7FeqLabel,
+            ui_.band8FeqLabel,
+            ui_.band9FeqLabel,
+            ui_.band10FeqLabel,
             };
 
     QFont f(Q_TEXT("MonoFont"));
     f.setPointSize(8);
     for (auto& l : band_label_) {
         l->setFont(f);
+        l->setStyleSheet(Q_TEXT("background-color: transparent;"));
     }
-    ui_.preampLabel->setFont(f);
+    for (auto& l : band_feq_label_) {
+        l->setFont(f);
+        l->setStyleSheet(Q_TEXT("background-color: transparent;"));
+    }
 
     auto band = 0;
     for (auto& slider : band_sliders_) {
@@ -64,7 +83,8 @@ EqualizerDialog::EqualizerDialog(QWidget *parent)
         AppSettings::setValue(kAppSettingEnableEQ, value == Qt::CheckState::Checked);
     });
 
-    ui_.enableEqCheckBox->setCheckState(AppSettings::getValueAsBool(kAppSettingEnableEQ) ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
+    ui_.enableEqCheckBox->setCheckState(AppSettings::getValueAsBool(kAppSettingEnableEQ) 
+        ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
 
     for (auto &name : AppSettings::getEQPreset().keys()) {
         ui_.eqPresetComboBox->addItem(name);

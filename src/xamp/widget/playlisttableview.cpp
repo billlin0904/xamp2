@@ -356,24 +356,31 @@ void PlayListTableView::initial() {
         auto* export_flac_file_act = action_map.addAction(tr("Export FLAC file"));
         export_flac_file_act->setIcon(qTheme.iconFromFont(IconCode::ICON_ExportFile));
 
-        auto* export_aac_file_submenu = action_map.addSubMenu(tr("Export AAC file"));
+        auto select_row = selectionModel()->selectedRows();
+        if (!select_row.isEmpty()) {
+            auto* export_aac_file_submenu = action_map.addSubMenu(tr("Export AAC file"));
 
-        for (const auto & profile : BassAACFileEncoder::GetAvailableEncodingProfile()) {
-            auto profile_desc = Q_STR("%0 bit, %1, %2")
-                .arg(profile.bit_per_sample).rightJustified(2)
-                .arg(samplerate2String(profile.sample_rate))
-                .arg(bitRate2String(profile.bitrate));
-			export_aac_file_submenu->addAction(profile_desc, [profile, this]() {
-                const auto rows = selectItemIndex();
-                for (const auto& row : rows) {
-                    auto entity = this->item(row.second);
-                    if (entity.samplerate > AudioFormat::k16BitPCM441Khz.GetSampleRate()) {
-	                    continue;
+            for (const auto& profile : DspComponentFactory::GetAvailableEncodingProfile()) {
+                auto profile_desc = Q_STR("%0 bit, %1, %2")
+                    .arg(profile.bit_per_sample).rightJustified(2)
+                    .arg(samplerate2String(profile.sample_rate))
+                    .arg(bitRate2String(profile.bitrate));
+
+                export_aac_file_submenu->addAction(profile_desc, [profile, this]() {
+                    const auto rows = selectItemIndex();
+                    for (const auto& row : rows) {
+                        auto entity = this->item(row.second);
+                        if (entity.samplerate > AudioFormat::k16BitPCM441Khz.GetSampleRate()) {
+                            continue;
+                        }
+                        emit encodeAACFile(entity, profile);
                     }
-                    emit encodeAACFile(entity, profile);
-                }
-            });
+                    });
+            }
         }
+        else {
+            action_map.addAction(tr("Export AAC file"));
+        }       
 
         auto* export_wav_file_act = action_map.addAction(tr("Export WAV file"));
 

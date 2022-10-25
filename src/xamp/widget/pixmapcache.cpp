@@ -10,6 +10,7 @@
 #include <base/logger_impl.h>
 #include "thememanager.h"
 #include "appsettings.h"
+#include "appsettingnames.h"
 
 #include <widget/image_utiltis.h>
 #include <widget/str_utilts.h>
@@ -29,14 +30,26 @@ QStringList PixmapCache::cache_ext_ =
 PixmapCache::PixmapCache()
 	: cache_(kDefaultCacheSize)
     , logger_(LoggerManager::GetInstance().GetLogger("PixmapCache")) {
-    cache_path_ = AppSettings::getCachePath() + Q_TEXT("/caches/");
+	if (!AppSettings::contains(kAppSettingAlbumImageCachePath)) {
+		const List<QString> paths{
+			AppSettings::defaultCachePath() + Q_TEXT("/caches/"),
+			Q_TEXT("/caches/")
+		};
 
-    const QDir dir(cache_path_);
-	if (!dir.exists()) {
-		if (!dir.mkdir(cache_path_)) {
-			XAMP_LOG_E(logger_, "Create cache dir faulure!");
+		Q_FOREACH(auto path, paths) {
+			cache_path_ = path;
+			const QDir dir(cache_path_);
+			if (!dir.exists()) {
+				if (!dir.mkdir(cache_path_)) {
+					XAMP_LOG_E(logger_, "Create cache dir faulure!");
+				}
+				else {					
+					break;
+				}
+			}
 		}
 	}
+	AppSettings::setValue(kAppSettingAlbumImageCachePath, cache_path_);
     unknown_cover_id_ = savePixamp(qTheme.unknownCover());
 	loadCache();
 }

@@ -37,7 +37,6 @@ struct PlaybackFormat;
 class ToolTipsFilter;
 class QRadioButton;
 class BackgroundWorker;
-class DicordNotify;
 class CdPage;
 class XMenu;
 
@@ -220,7 +219,6 @@ private:
 	IXWindow* top_window_;
 	ToolTipsFilter* tool_tips_filter_;
 	BackgroundWorker* background_worker_;
-	DicordNotify* discord_notify_;
 	QModelIndex play_index_;
 	DeviceInfo device_info_;
 	PlayListEntity current_entity_;

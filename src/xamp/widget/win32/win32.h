@@ -61,7 +61,7 @@ void setResizeable(void* message);
 bool isWindowMaximized(const WId window_id);
 bool compositionEnabled();
 QRect getWindowRect(const WId window_id);
-QColor getColorizationColor();
+QColor colorizationColor();
 bool isDarkModeAppEnabled();
 
 }

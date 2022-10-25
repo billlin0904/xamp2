@@ -363,12 +363,37 @@ void setTitleBarColor(const WId window_id, QColor color) {
 	// value was 19 pre Windows 10 20H1 Update).
 
 	constexpr DWORD DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
+	constexpr DWORD DWMWA_BORDER_COLOR = 34;
+	constexpr DWORD DWMWA_CAPTION_COLOR = 19;
+	constexpr DWORD DWMWA_MICA_EFFECT = 1029;
+
 	auto hwnd = reinterpret_cast<HWND>(window_id);
-	BOOL value = TRUE;
-	DWMDLL.DwmSetWindowAttribute(hwnd,
-		DWMWA_USE_IMMERSIVE_DARK_MODE,
-		&value,
-		sizeof(BOOL));
+
+	const auto os_ver = QOperatingSystemVersion::current();
+	if (os_ver.majorVersion() == 10 && os_ver.microVersion() < 2200) {
+		BOOL value = TRUE;
+
+		DWMDLL.DwmSetWindowAttribute(hwnd,
+			DWMWA_USE_IMMERSIVE_DARK_MODE,
+			&value,
+			sizeof(value));
+	}
+	else {
+		int use_mica = 1;
+		DWMDLL.DwmSetWindowAttribute(hwnd,
+			DWMWA_MICA_EFFECT, 
+			&use_mica,
+			sizeof(use_mica));
+
+		int r, g, b;
+		color.getRgb(&r, &g, &b);
+		COLORREF colorref = RGB(r, g, b);
+		DWMDLL.DwmSetWindowAttribute(hwnd,
+			DWMWA_CAPTION_COLOR,
+			&colorref,
+			sizeof(COLORREF));
+	}
+	
 }
 
 bool isWindowMaximized(const WId window_id) {
@@ -376,7 +401,7 @@ bool isWindowMaximized(const WId window_id) {
 	return ::GetWindowLong(hwnd, GWL_STYLE) & WS_MINIMIZE;
 }
 
-QColor getColorizationColor() {
+QColor colorizationColor() {
 	DWORD color = 0;
 	BOOL opaque_blend = 0;
 	DWMDLL.DwmGetColorizationColor(&color, &opaque_blend);

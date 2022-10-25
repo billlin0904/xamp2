@@ -27,4 +27,5 @@ private:
     Ui::EqualizerDialog ui_;
     std::vector<DoubleSlider*> band_sliders_;
     std::vector<QLabel*> band_label_;
+    std::vector<QLabel*> band_feq_label_;
 };

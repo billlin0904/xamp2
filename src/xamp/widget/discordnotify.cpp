@@ -1,3 +1,4 @@
+#if 0
 #include <base/memory.h>
 #include <base/logger_impl.h>
 #include <widget/str_utilts.h>
@@ -103,3 +104,4 @@ void DicordNotify::callback_discord_disconnected(int error_code, const char* mes
 void DicordNotify::callback_discord_errored(int error_code, const char* message) {
 	XAMP_LOG_DEBUG("*** Error {}: {}.", error_code, message);
 }
+#endif

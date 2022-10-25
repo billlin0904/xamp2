@@ -8,6 +8,7 @@
 #include <map>
 #include <base/stl.h>
 #include <base/align_ptr.h>
+#include <base/encodingprofile.h>
 #include <stream/stream.h>
 
 namespace xamp::stream {
@@ -37,6 +38,8 @@ public:
 #ifdef XAMP_OS_WIN
 	static AlignPtr<ICDDevice> MakeCDDevice(int32_t driver_letter);
 #endif
+
+	static Vector<EncodingProfile> GetAvailableEncodingProfile();
 };
 
 XAMP_STREAM_API bool TestDsdFileFormatStd(std::wstring const& file_path);

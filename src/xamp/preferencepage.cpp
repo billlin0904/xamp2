@@ -231,7 +231,7 @@ PreferencePage::PreferencePage(QWidget *parent)
     : QFrame(parent) {
     ui_.setupUi(this);
 
-	qTheme.setMenuStyle(ui_.langCombo->view()->window());
+	/*qTheme.setMenuStyle(ui_.langCombo->view()->window());
 	qTheme.setMenuStyle(ui_.replayGainModeCombo->view()->window());
 
 	qTheme.setMenuStyle(ui_.selectResamplerComboBox->view()->window());
@@ -239,7 +239,7 @@ PreferencePage::PreferencePage(QWidget *parent)
 	qTheme.setMenuStyle(ui_.soxrTargetSampleRateComboBox->view()->window());
 	qTheme.setMenuStyle(ui_.soxrResampleQualityComboBox->view()->window());
 	qTheme.setMenuStyle(ui_.rollOffLevelComboBox->view()->window());
-	qTheme.setMenuStyle(ui_.r8brainTargetSampleRateComboBox->view()->window());
+	qTheme.setMenuStyle(ui_.r8brainTargetSampleRateComboBox->view()->window());*/
 
 	update();
 
@@ -249,8 +249,7 @@ PreferencePage::PreferencePage(QWidget *parent)
 	initLang();
 
     ui_.preferenceTreeWidget->header()->hide();
-    ui_.preferenceTreeWidget->setStyleSheet(Q_TEXT("QTreeView { background: transparent; }"));
-
+    
     auto* settings_item = new QTreeWidgetItem(QStringList() << tr("Settings"));
     settings_item->setChildIndicatorPolicy(QTreeWidgetItem::ShowIndicator);
 
@@ -380,12 +379,14 @@ PreferencePage::PreferencePage(QWidget *parent)
             }
             )"));
 
+	/*
+	ui_.preferenceTreeWidget->setStyleSheet(Q_TEXT("QTreeView { background: transparent; }"));
 	ui_.playbackPage->setStyleSheet(Q_TEXT("background-color: transparent;"));
 	ui_.noneResamplerPage->setStyleSheet(Q_TEXT("background-color: transparent;"));
 	ui_.soxrResamplerPage->setStyleSheet(Q_TEXT("background-color: transparent;"));
 	ui_.r8brainResamplerPage->setStyleSheet(Q_TEXT("background-color: transparent;"));
 	ui_.pcm2dsdPage->setStyleSheet(Q_TEXT("background-color: transparent;"));
-	ui_.dspManagerPage->setStyleSheet(Q_TEXT("background-color: transparent;"));
+	ui_.dspManagerPage->setStyleSheet(Q_TEXT("background-color: transparent;"));*/
 }
 
 void PreferencePage::update() {

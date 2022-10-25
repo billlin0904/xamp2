@@ -5,6 +5,7 @@
 
 #pragma once
 
+#if 0
 #include <QObject>
 #include <discord_rpc.h>
 #include <widget/widget_shared.h>
@@ -43,3 +44,4 @@ private:
 	DiscordRichPresence discord_presence_;
 	static std::array<char, kMaxDetailsLength> details_;
 };
+#endif

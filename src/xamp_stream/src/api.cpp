@@ -101,6 +101,16 @@ AlignPtr<ICDDevice> DspComponentFactory::MakeCDDevice(int32_t driver_letter) {
 }
 #endif
 
+Vector<EncodingProfile> DspComponentFactory::GetAvailableEncodingProfile() {
+#ifdef XAMP_OS_WIN
+    using AACFileEncoder = MFAACFileEncoder;
+#else
+    using AACFileEncoder = MFAACFileEncoder;
+#endif
+
+    return AACFileEncoder::GetAvailableEncodingProfile();
+}
+
 IDsdStream* AsDsdStream(AlignPtr<IAudioStream> const& stream) noexcept {
     return dynamic_cast<IDsdStream*>(stream.get());
 }
@@ -127,8 +137,8 @@ void LoadBassLib() {
     BASS.FxLib = MakeAlign<BassFxLib>();
 #ifdef XAMP_OS_WIN
     BASS.CDLib = MakeAlign<BassCDLib>();
-    BASS.AACEncLib = MakeAlign<BassAACEncLib>();
 #else
+    BASS.AACEncLib = MakeAlign<BassAACEncLib>();
     BASS.CAEncLib = MakeAlign<BassCAEncLib>();
 #endif
     try {
@@ -141,6 +151,8 @@ void LoadBassLib() {
     for (const auto& info : BASS.GetVersions()) {
         XAMP_LOG_DEBUG("DLL {} ver: {}", info.first, info.second);
     }
+
+    DspComponentFactory::GetAvailableEncodingProfile();
 }
 
 std::map<std::string, std::string> GetBassDLLVersion() {

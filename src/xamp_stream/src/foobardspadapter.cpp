@@ -5,7 +5,7 @@
 #include <base/fs.h>
 #include <stream/foobardspadapter.h>
 
-#ifdef XAMP_OS_WIN
+#if 0
 #include <combaseapi.h>
 #include <shellapi.h>
 

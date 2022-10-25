@@ -7,74 +7,74 @@ IMPL_APP_SETTING_NAME(AppSettingAutoCheckForUpdate, "AppSettings/autoCheckForUpd
 IMPL_APP_SETTING_NAME(AppSettingLastTabName, "AppSettings/lastTabName");
 IMPL_APP_SETTING_NAME(AppSettingLang, "AppSettings/lang");
 IMPL_APP_SETTING_NAME(DefaultDir, "AppSettings/defaultDir");
+IMPL_APP_SETTING_NAME(AppSettingDeviceType, "AppSettings/deviceType");
+IMPL_APP_SETTING_NAME(AppSettingDeviceId, "AppSettings/deviceId");
+IMPL_APP_SETTING_NAME(AppSettingGeometry, "AppSettings/geometry");
+IMPL_APP_SETTING_NAME(AppSettingScreenNumber, "AppSettings/screenNumber");
+IMPL_APP_SETTING_NAME(AppSettingWindowState, "AppSettings/windowState");
+IMPL_APP_SETTING_NAME(AppSettingVolume, "AppSettings/volume");
+IMPL_APP_SETTING_NAME(AppSettingOrder, "AppSettings/order");
+IMPL_APP_SETTING_NAME(AppSettingUseNativeDSDMode, "AppSettings/useNativeDSDMode");
+IMPL_APP_SETTING_NAME(AppSettingUseFramelessWindow, "AppSettings/useFramelessWindow");
+IMPL_APP_SETTING_NAME(AppSettingShowLeftList, "AppSettings/showLeftList");
+IMPL_APP_SETTING_NAME(AppSettingDiscordNotify, "AppSettings/discordNotify");
+IMPL_APP_SETTING_NAME(AppSettingColumnName, "AppSettings/columnName");
+IMPL_APP_SETTING_NAME(AppSettingIsMuted,"AppSettings/isMuted");
+IMPL_APP_SETTING_NAME(AppSettingMyMusicFolderPath, "AppSettings/myMusicFolderPath");
 
-const ConstLatin1String kAppSettingDeviceType{ "AppSettings/deviceType" };
-const ConstLatin1String kAppSettingDeviceId{ "AppSettings/deviceId" };
-const ConstLatin1String kAppSettingGeometry{ "AppSettings/geometry" };
-const ConstLatin1String kAppSettingScreenNumber{ "AppSettings/screenNumber" };
-const ConstLatin1String kAppSettingWindowState{ "AppSettings/windowState" };
-const ConstLatin1String kAppSettingVolume{ "AppSettings/volume" };
-const ConstLatin1String kAppSettingOrder{ "AppSettings/order" };
-const ConstLatin1String kAppSettingUseNativeDSDMode{ "AppSettings/useNativeDSDMode" };
-const ConstLatin1String kAppSettingUseFramelessWindow{ "AppSettings/useFramelessWindow" };
-const ConstLatin1String kAppSettingShowLeftList{ "AppSettings/showLeftList" };
-const ConstLatin1String kAppSettingDiscordNotify{ "AppSettings/discordNotify" };
-const ConstLatin1String kAppSettingColumnName{ "AppSettings/columnName" };
-const ConstLatin1String kAppSettingIsMuted{"AppSettings/isMuted"};
-const ConstLatin1String kAppSettingMyMusicFolderPath{ "AppSettings/myMusicFolderPath" };
+IMPL_APP_SETTING_NAME(AppSettingTheme, "AppSettings/theme/themeColor");
+IMPL_APP_SETTING_NAME(AppSettingEnableBlur, "AppSettings/theme/enableBlur");
+IMPL_APP_SETTING_NAME(AppSettingMinimizeToTrayAsk, "AppSettings/minimizeToTrayAsk");
+IMPL_APP_SETTING_NAME(AppSettingMinimizeToTray, "AppSettings/minimizeToTray");
+IMPL_APP_SETTING_NAME(AppSettingBackgroundColor, "AppSettings/theme/backgroundColor");
 
-const ConstLatin1String kAppSettingTheme{ "AppSettings/theme/themeColor" };
-const ConstLatin1String kAppSettingEnableBlur{ "AppSettings/theme/enableBlur" };
-const ConstLatin1String kAppSettingMinimizeToTrayAsk{ "AppSettings/minimizeToTrayAsk" };
-const ConstLatin1String kAppSettingMinimizeToTray{ "AppSettings/minimizeToTray" };
-const ConstLatin1String kAppSettingBackgroundColor{ "AppSettings/theme/backgroundColor" };
+IMPL_APP_SETTING_NAME(AppSettingPodcastCachePath, "AppSettings/podcastCachePath");
+IMPL_APP_SETTING_NAME(AppSettingAlbumImageCachePath, "AppSettings/albumImageCacheSPath");
+IMPL_APP_SETTING_NAME(AppSettingAlbumImageCacheSize, "AppSettings/albumImageCacheSize");
+IMPL_APP_SETTING_NAME(AppSettingEnableReplayGain, "AppSettings/enableReplayGain");
+IMPL_APP_SETTING_NAME(AppSettingReplayGainMode, "AppSettings/replayGainMode");
+IMPL_APP_SETTING_NAME(AppSettingReplayGainTargetGain, "AppSettings/replayGainTargetGain");
+IMPL_APP_SETTING_NAME(AppSettingReplayGainScanMode, "AppSettings/replayGainScanMode");
 
-const ConstLatin1String kAppSettingPodcastCachePath{ "AppSettings/podcastCachePath" };
-const ConstLatin1String kAppSettingAlbumImageCacheSize{ "AppSettings/albumImageCacheSize" };
-const ConstLatin1String kAppSettingEnableReplayGain{ "AppSettings/enableReplayGain" };
-const ConstLatin1String kAppSettingReplayGainMode{ "AppSettings/replayGainMode" };
-const ConstLatin1String kAppSettingReplayGainTargetGain{ "AppSettings/replayGainTargetGain" };
-const ConstLatin1String kAppSettingReplayGainScanMode{ "AppSettings/replayGainScanMode" };
+IMPL_APP_SETTING_NAME(AppSettingResamplerEnable, "AppSettings/enable");
+IMPL_APP_SETTING_NAME(AppSettingResamplerType, "AppSettings/resamplerType");
+IMPL_APP_SETTING_NAME(ResampleSampleRate, "resampleSampleRate");
 
-const ConstLatin1String kAppSettingResamplerEnable{ "AppSettings/enable" };
-const ConstLatin1String kAppSettingResamplerType{ "AppSettings/resamplerType" };
-const ConstLatin1String kResampleSampleRate{ "resampleSampleRate" };
+IMPL_APP_SETTING_NAME(AppSettingSoxrSettingName, "AppSettings/soxr/userSettingName");
 
-const ConstLatin1String kAppSettingSoxrSettingName{ "AppSettings/soxr/userSettingName" };
+IMPL_APP_SETTING_NAME(AppSettingEnableEQ, "AppSettings/enableEQ");
+IMPL_APP_SETTING_NAME(AppSettingEQName, "AppSettings/EQName");
 
-const ConstLatin1String kAppSettingEnableEQ{ "AppSettings/enableEQ" };
-const ConstLatin1String kAppSettingEQName{ "AppSettings/EQName" };
+IMPL_APP_SETTING_NAME(LyricsFontSize, "AppSettings/lyrics/fontSize");
+IMPL_APP_SETTING_NAME(LyricsTextColor, "AppSettings/lyrics/textColor");
+IMPL_APP_SETTING_NAME(LyricsHighLightTextColor, "AppSettings/lyrics/highLightTextColor");
 
-const ConstLatin1String kLyricsFontSize{ "AppSettings/lyrics/fontSize" };
-const ConstLatin1String kLyricsTextColor{ "AppSettings/lyrics/textColor" };
-const ConstLatin1String kLyricsHighLightTextColor{ "AppSettings/lyrics/highLightTextColor" };
+IMPL_APP_SETTING_NAME(FlacEncodingLevel, "AppSettings/flacEncodingLevel");
 
-const ConstLatin1String kFlacEncodingLevel{ "AppSettings/flacEncodingLevel" };
+IMPL_APP_SETTING_NAME(EnableBitPerfect, "AppSettings/enableBitPerfect");
+IMPL_APP_SETTING_NAME(EnableBlurCover, "AppSettings/enableBlurCover");
 
-const ConstLatin1String kEnableBitPerfect{ "AppSettings/enableBitPerfect" };
-const ConstLatin1String kEnableBlurCover{ "AppSettings/enableBlurCover" };
-
-const ConstLatin1String kAppSettingEnableSpectrum{ "AppSettings/Spectrum/enable" };;
-const ConstLatin1String kAppSettingSpectrumStyles{ "AppSettings/Spectrum/spectrumStyles" };
-const ConstLatin1String kAppSettingWindowType{ "AppSettings/Spectrum/windowType" };
+IMPL_APP_SETTING_NAME(AppSettingEnableSpectrum, "AppSettings/Spectrum/enable");;
+IMPL_APP_SETTING_NAME(AppSettingSpectrumStyles, "AppSettings/Spectrum/spectrumStyles");
+IMPL_APP_SETTING_NAME(AppSettingWindowType, "AppSettings/Spectrum/windowType");
 
 
-const ConstLatin1String kSoxr{ "Soxr" };
-const ConstLatin1String kSoxrDefaultSettingName{ "default" };
-const ConstLatin1String kSoxrEnableSteepFilter{ "enableSteepFilter" };
-const ConstLatin1String kSoxrQuality{ "quality" };
-const ConstLatin1String kSoxrStopBand{ "stopBand" };
-const ConstLatin1String kSoxrPassBand{ "passBand" };
-const ConstLatin1String kSoxrPhase{ "phase" };
-const ConstLatin1String kSoxrRollOffLevel{ "rolloffLevel" };
+IMPL_APP_SETTING_NAME(Soxr, "Soxr");
+IMPL_APP_SETTING_NAME(SoxrDefaultSettingName, "default");
+IMPL_APP_SETTING_NAME(SoxrEnableSteepFilter, "enableSteepFilter");
+IMPL_APP_SETTING_NAME(SoxrQuality, "quality");
+IMPL_APP_SETTING_NAME(SoxrStopBand, "stopBand");
+IMPL_APP_SETTING_NAME(SoxrPassBand, "passBand");
+IMPL_APP_SETTING_NAME(SoxrPhase, "phase");
+IMPL_APP_SETTING_NAME(SoxrRollOffLevel, "rolloffLevel");
 
-const ConstLatin1String kR8Brain{ "R8Brain" };
+IMPL_APP_SETTING_NAME(R8Brain, "R8Brain");
 
 IMPL_APP_SETTING_NAME(PCM2DSD, "Pcm2Dsd");
 IMPL_APP_SETTING_NAME(PCM2DSDDsdTimes, "Pcm2DsdTimes");
 IMPL_APP_SETTING_NAME(EnablePcm2Dsd, "AppSettings/enablePcm2Dsd");
 
-const ConstLatin1String kLog{ "Log" };
-const ConstLatin1String kLogMinimumLevel{ "MinimumLevel" };
-const ConstLatin1String kLogDefault{ "Default" };
-const ConstLatin1String kLogOverride{ "Override" };
+IMPL_APP_SETTING_NAME(Log, "Log");
+IMPL_APP_SETTING_NAME(LogMinimumLevel, "MinimumLevel");
+IMPL_APP_SETTING_NAME(LogDefault, "Default");
+IMPL_APP_SETTING_NAME(LogOverride, "Override");

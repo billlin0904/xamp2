@@ -148,8 +148,8 @@ void XWindow::saveGeometry() {
     AppSettings::setValue(kAppSettingGeometry, win32::getWindowRect(winId()));
     AppSettings::setValue(kAppSettingWindowState, isMaximized());
     AppSettings::setValue(kAppSettingScreenNumber, screen_number_);
-    XAMP_LOG_DEBUG("restoreGeometry: ({}, {}, {}, {})", last_rect_.x(), last_rect_.y(), last_rect_.width(), last_rect_.height());
-    XAMP_LOG_DEBUG("Screen number: {}", screen_number_);
+    XAMP_LOG_INFO("restoreGeometry: ({}, {}, {}, {})", last_rect_.x(), last_rect_.y(), last_rect_.width(), last_rect_.height());
+    XAMP_LOG_INFO("Screen number: {}", screen_number_);
 #endif
 }
 

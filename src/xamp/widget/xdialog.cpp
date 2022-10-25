@@ -28,7 +28,7 @@ void XDialog::setContentWidget(QWidget* content) {
     frame_->setContentWidget(content);
 
     if (!qTheme.useNativeWindow()) {
-        setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint);
+        setWindowFlags(windowFlags() | Qt::FramelessWindowHint | Qt::WindowMinimizeButtonHint);
         setAttribute(Qt::WA_TranslucentBackground, true);
     } else {
         setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint | Qt::WindowCloseButtonHint);
@@ -43,7 +43,7 @@ void XDialog::setContentWidget(QWidget* content) {
     auto* default_layout = new QGridLayout(this);
     default_layout->setSpacing(0);
     default_layout->setObjectName(QString::fromUtf8("default_layout"));
-    default_layout->setContentsMargins(20, 20, 20, 20);
+    default_layout->setContentsMargins(0, 0, 0, 0);
     setLayout(default_layout);
 
 #ifdef Q_OS_WIN
