@@ -49,6 +49,9 @@ PixmapCache::PixmapCache()
 			}
 		}
 	}
+	else {
+		cache_path_ = AppSettings::getValueAsString(kAppSettingAlbumImageCachePath);
+	}
 	AppSettings::setValue(kAppSettingAlbumImageCachePath, cache_path_);
     unknown_cover_id_ = savePixamp(qTheme.unknownCover());
 	loadCache();
