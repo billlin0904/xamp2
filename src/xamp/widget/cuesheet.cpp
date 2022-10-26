@@ -1,5 +1,6 @@
 #include <widget/widget_shared.h>
 #include <base/str_utilts.h>
+#include <base/bom.h>
 #include <widget/cuesheet.h>
 
 static uint32_t M2F(uint32_t mm, uint32_t ss, uint32_t ff) noexcept {

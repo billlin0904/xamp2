@@ -2,7 +2,7 @@
 #include <utility>
 #include <execution>
 #include <forward_list>
-
+#include <fstream>
 #include <QMap>
 #include <QDirIterator>
 #include <QProgressDialog>
@@ -10,6 +10,7 @@
 #include <base/base.h>
 #include <base/str_utilts.h>
 #include <base/threadpool.h>
+#include <base/bom.h>
 #include <base/logger_impl.h>
 
 #include <metadata/api.h>
@@ -20,6 +21,7 @@
 
 #include "thememanager.h"
 
+#include <widget/cuesheet.h>
 #include <widget/ui_utilts.h>
 #include <widget/read_utiltis.h>
 #include <widget/http.h>
@@ -128,6 +130,8 @@ std::tuple<int32_t, int32_t, QString> DatabaseIdCache::addOrGetAlbumAndArtistId(
 
 class ExtractAdapterProxy final : public IMetadataExtractAdapter {
 public:
+    static constexpr std::wstring_view kCueFileExt{ L".cue" };
+
     explicit ExtractAdapterProxy(const QSharedPointer<::MetadataExtractAdapter> &adapter)
         : adapter_(adapter) {
     }
@@ -135,6 +139,9 @@ public:
     [[nodiscard]] bool IsAccept(Path const& path) const noexcept override {
         if (!path.has_extension()) {
             return false;
+        }
+        if (path.extension() == kCueFileExt) {
+            return true;
         }
         using namespace audio_util;
         const auto file_ext = String::ToLower(path.extension().string());
@@ -149,6 +156,14 @@ public:
     }
 
     void OnWalk(const Path&, Metadata metadata) override {
+        if (metadata.file_ext == kCueFileExt) {
+            std::wifstream file(metadata.file_path, std::ios::binary);
+            ImbueFileFromBom(file);
+            if (file.is_open()) {
+                auto sheet = std::make_shared<CueSheet>();
+                sheet->Parse(file.rdbuf());
+            }
+        }
         metadatas_.push_front(metadata);
         qApp->processEvents();
     }
