@@ -631,6 +631,17 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
     ui.eqButton->setIcon(equalizerIcon());
 }
 
+void ThemeManager::setTextSeparator(QFrame *frame) {
+    switch (themeColor()) {
+    case ThemeColor::DARK_THEME:
+        frame->setStyleSheet(Q_TEXT("background-color: #37414F;"));
+        break;
+    case ThemeColor::LIGHT_THEME:
+        frame->setStyleSheet(Q_TEXT("background-color: #CED1D4;"));
+        break;
+    }
+}
+
 void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
     QString slider_bar_left_color;
     switch (themeColor()) {
@@ -812,5 +823,6 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
 
     ui.sliderBarButton->setIconSize(tabIconSize());
     ui.sliderFrame->setStyleSheet(Q_TEXT("background: transparent; border: none;"));
+    
     ui.currentViewFrame->setStyleSheet(Q_TEXT("border: none;"));
 }

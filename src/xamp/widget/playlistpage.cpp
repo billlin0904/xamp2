@@ -106,12 +106,16 @@ void PlaylistPage::initial() {
 	default_layout->setStretch(2, 1);
 
 	setStyleSheet(Q_TEXT("background-color: transparent;"));
+
+	(void)QObject::connect(playlist_,
+		&PlayListTableView::updateAlbumCover,
+		this,
+		&PlaylistPage::setCoverById);
 }
 
 void PlaylistPage::OnThemeColorChanged(QColor theme_color, QColor color) {
 	title_->setStyleSheet(Q_TEXT("QLabel { color: ") + colorToString(color) + Q_TEXT("; background-color: transparent; }"));
 	format_->setStyleSheet(Q_TEXT("QLabel { font-family: FormatFont; font-size: 16px; color: ") + colorToString(color) + Q_TEXT("; background-color: transparent; }"));
-	//setStyleSheet(backgroundColorToString(theme_color));
 }
 
 QLabel* PlaylistPage::format() {
@@ -133,7 +137,7 @@ void PlaylistPage::setCover(const QPixmap * cover) {
 	cover_->setPixmap(playlist_cover);
 }
 
-void PlaylistPage::setCover(const QString& cover_id) {
+void PlaylistPage::setCoverById(const QString& cover_id) {
 	const auto* cover = qPixmapCache.find(cover_id);
 	if (cover != nullptr) {
 		setCover(cover);

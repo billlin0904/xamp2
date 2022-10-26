@@ -374,7 +374,7 @@ void Xamp::initialUI() {
         ui_.horizontalLayout->removeItem(ui_.horizontalSpacer_15);        
     } else {
         f.setBold(true);
-        f.setPointSize(9);
+        f.setPointSize(10);
         ui_.titleFrameLabel->setFont(f);
         ui_.titleFrameLabel->setText(Q_TEXT("XAMP2"));
         ui_.titleFrameLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
@@ -435,6 +435,7 @@ QWidgetAction* Xamp::createTextSeparator(const QString& desc) {
     desc_label->setFont(f);
 
     auto* frame = new QFrame();
+    qTheme.setTextSeparator(frame);
     auto* default_layout = new QVBoxLayout(frame);
     default_layout->setSpacing(0);
     default_layout->setContentsMargins(0, 0, 0, 0);
@@ -828,13 +829,13 @@ void Xamp::initialController() {
     light_mode_action_->setIcon(qTheme.lightModeIcon());
     (void)QObject::connect(dark_mode_action_, &QAction::triggered, [=]() {
         AppSettings::setEnumValue(kAppSettingTheme, ThemeColor::DARK_THEME);
-        cleanup();
-        qApp->exit(kRestartExistCode);
+        /*cleanup();
+        qApp->exit(kRestartExistCode);*/
         });
     (void)QObject::connect(light_mode_action_, &QAction::triggered, [=]() {
         AppSettings::setEnumValue(kAppSettingTheme, ThemeColor::LIGHT_THEME);
-        cleanup();
-        qApp->exit(kRestartExistCode);
+        /*cleanup();
+        qApp->exit(kRestartExistCode);*/
         });
     ui_.themeButton->setMenu(theme_menu_);
 

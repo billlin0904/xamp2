@@ -10,6 +10,8 @@
 #include <base/encodingprofile.h>
 #include <stream/ifileencoder.h>
 
+#ifdef XAMP_OS_MAC
+
 namespace xamp::stream {
 
  enum EncodingAudioObjectType {
@@ -46,3 +48,5 @@ private:
 };
 
 }
+
+#endif

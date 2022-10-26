@@ -105,7 +105,7 @@ Vector<EncodingProfile> DspComponentFactory::GetAvailableEncodingProfile() {
 #ifdef XAMP_OS_WIN
     using AACFileEncoder = MFAACFileEncoder;
 #else
-    using AACFileEncoder = MFAACFileEncoder;
+    using AACFileEncoder = BassAACFileEncoder;
 #endif
 
     return AACFileEncoder::GetAvailableEncodingProfile();

@@ -18,6 +18,7 @@ ScrollLabel::ScrollLabel(QWidget* parent)
 
 void ScrollLabel::setText(const QString& text) {
 	text_ = text;
+	scroll_pos_ = 0;
 	updateText();
 	update();
 	updateGeometry();

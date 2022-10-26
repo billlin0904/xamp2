@@ -11,59 +11,12 @@
 #include <stream/bass_utiltis.h>
 
 #ifdef XAMP_OS_MAC
+
 #include <AudioToolbox/AudioToolbox.h>
-#endif
 
 #include <stream/bassaacfileencoder.h>
 
 namespace xamp::stream {
-
-#ifdef XAMP_OS_WIN
-class BassAACFileEncoder::BassAACFileEncoderImpl {
-public:
-    void Start(Path const& input_file_path, Path const& output_file_path, std::wstring const& command) {
-        DWORD flags = BASS_ENCODE_AUTOFREE;
-
-        if (TestDsdFileFormatStd(input_file_path.wstring())) {
-            stream_.SetDSDMode(DsdModes::DSD_MODE_DSD2PCM);
-        }
-        stream_.OpenFile(input_file_path.wstring());
-
-        switch (stream_.GetBitDepth()) {
-        case 24:
-            flags |= BASS_ENCODE_FP_24BIT;
-            break;
-        default:
-            flags |= BASS_ENCODE_FP_16BIT;
-            break;
-        }
-
-        encoder_.reset(BASS.AACEncLib->BASS_Encode_AAC_StartFile(stream_.GetHStream(),
-            command.c_str(),
-            flags | BASS_UNICODE,
-            output_file_path.c_str()));
-
-        if (!encoder_) {
-            throw BassException();
-        }
-    }
-
-    void Encode(std::function<bool(uint32_t) > const& progress) {
-        BassUtiltis::Encode(stream_, progress);
-    }
-
-    void SetEncodingProfile(const EncodingProfile& profile) {
-
-    }
-
-    static Vector<EncodingProfile> GetAvailableEncodingProfile() {
-        return {};
-    }
-
-    BassFileStream stream_;
-    BassStreamHandle encoder_;
-};
-#else
 
 struct XAMP_STREAM_API AudioConverterDeleter final {
     static AudioConverterRef invalid() noexcept {
@@ -257,29 +210,7 @@ private:
 AudioConverterHandle BassAACFileEncoder::BassAACFileEncoderImpl::handle_;
 Vector<EncodingProfile> BassAACFileEncoder::BassAACFileEncoderImpl::profiles_;
 
+}
+
 #endif
-
-BassAACFileEncoder::BassAACFileEncoder()
-	: impl_(MakeAlign<BassAACFileEncoderImpl>()) {
-}
-
-XAMP_PIMPL_IMPL(BassAACFileEncoder)
-
-void BassAACFileEncoder::Start(Path const& input_file_path, Path const& output_file_path, std::wstring const& command) {
-    impl_->Start(input_file_path, output_file_path, command);
-}
-
-void BassAACFileEncoder::Encode(std::function<bool(uint32_t)> const& progress) {
-    impl_->Encode(progress);
-}
-
-void BassAACFileEncoder::SetEncodingProfile(const EncodingProfile& profile) {
-    impl_->SetEncodingProfile(profile);
-}
-
-Vector<EncodingProfile> BassAACFileEncoder::GetAvailableEncodingProfile() {
-    return BassAACFileEncoderImpl::GetAvailableEncodingProfile();
-}
-
-}
 

@@ -21,8 +21,6 @@ namespace Ui {
 class XampWindow;
 }
 
-inline constexpr int32_t kUIRadius = 9;
-
 enum class ThemeColor {
     DARK_THEME,
     LIGHT_THEME,
@@ -38,7 +36,7 @@ enum IconCode {
     ICON_Reload = 0xE895,
     ICON_RemoveAll = 0xE894,
     ICON_OpenFilePath = 0xE8DA,
-    ICON_ReadReplayGain = 0xe023,
+    ICON_ReadReplayGain = 0xF270,
     ICON_ExportFile = 0xE78C,
     ICON_Copy = 0xE8C8,
     ICON_Download = 0xE896,
@@ -70,52 +68,10 @@ enum IconCode {
     ICON_Stop = 0xE978,
     ICON_PlayNext = 0xF8AD,
     ICON_PlayPrev = 0xF8AC,
-    ICON_More = 0xE712
+    ICON_More = 0xE712,
+    ICON_Hide = 0xED1A,
+    ICON_Show = 0xE7B3,
 };
-
-//enum IconCode {
-//    ICON_VolumeUp = 0xe050,
-//    ICON_VolumeOff = 0xe04f,
-//    ICON_Speaker = 0xe32d,
-//    ICON_Folder = 0xe2c7,
-//    ICON_LoadFile = 0xe89c,
-//    ICON_LoadDir = 0xe2cc,
-//    ICON_Reload = 0xe5d5,
-//    ICON_RemoveAll = 0xeb80,
-//    ICON_OpenFilePath = 0xe880,
-//    ICON_ReadReplayGain = 0xe023,
-//    ICON_ExportFile = 0xe0c3,
-//    ICON_Copy = 0xe14d,
-//    ICON_Download = 0xe2c4,
-//    ICON_Playlist = 0xe03d,
-//    ICON_Equalizer = 0xe01d,
-//    ICON_Podcast = 0xf048,
-//    ICON_Album = 0xe030,
-//    ICON_CD = 0xe019,
-//    ICON_Artist = 0xe7ef,
-//    ICON_Subtitle = 0xec0b,
-//    ICON_Preference = 0xe8b8,
-//    ICON_About = 0xe887,
-//    ICON_DarkMode = 0xe51c,
-//    ICON_LightMode = 0xe518,
-//    ICON_Search = 0xe8b6,
-//    ICON_Theme = 0xe40a,
-//    ICON_Desktop = 0xe30a,
-//    ICON_ShufflePlayOrder = 0xe043,
-//    ICON_RepeatOnePlayOrder = 0xe040,
-//    ICON_RepeatOncePlayOrder = 0xe041,
-//    ICON_MinimizeWindow = 0xE921,
-//    ICON_MaximumWindow = 0xE922,
-//    ICON_CloseWindow = 0xE8BB,
-//    ICON_RestoreWindow = 0xE923,
-//    ICON_SliderBar = 0xe5d2,
-//    ICON_Play = 0xe1a2,
-//    ICON_Pause = 0xe1c4,
-//    ICON_PlayNext = 0xe044,
-//    ICON_Stop = 0xe047,
-//    ICON_PlayPrev = 0xe045,
-//    ICON_More = 0xe5d4
-//};
 
 class ThemeManager {
 public:
@@ -252,6 +208,8 @@ public:
     void setStandardButtonStyle(QToolButton* close_button, QToolButton* min_win_button, QToolButton* max_win_button) const;
 
     QIcon iconFromFont(const QChar& code) const;
+
+    void setTextSeparator(QFrame* frame);
 
 private:
     static QString fontNamePath(const QString& file_name);

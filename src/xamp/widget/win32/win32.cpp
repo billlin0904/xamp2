@@ -249,7 +249,7 @@ void addDwmMenuShadow(const WId window_id) {
 	auto hwnd = reinterpret_cast<HWND>(window_id);
 	int value = DWMNCRENDERINGPOLICY::DWMNCRP_ENABLED;
 	DWMDLL.DwmSetWindowAttribute(hwnd, DWMWINDOWATTRIBUTE::DWMWA_NCRENDERING_POLICY, &value, 4);
-	MARGINS borderless = { -1, -1, -1, -1 };
+	MARGINS borderless = { 1, 1, 1, 1 };
 	DWMDLL.DwmExtendFrameIntoClientArea(hwnd, &borderless);
 }
 
@@ -370,7 +370,7 @@ void setTitleBarColor(const WId window_id, QColor color) {
 	auto hwnd = reinterpret_cast<HWND>(window_id);
 
 	const auto os_ver = QOperatingSystemVersion::current();
-	if (os_ver.majorVersion() == 10 && os_ver.microVersion() < 2200) {
+	if (os_ver.majorVersion() == 10 && os_ver.microVersion() < 22000) {
 		BOOL value = TRUE;
 
 		DWMDLL.DwmSetWindowAttribute(hwnd,

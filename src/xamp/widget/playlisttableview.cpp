@@ -18,12 +18,6 @@
 #include <widget/widget_shared.h>
 #include <base/logger_impl.h>
 
-#ifdef Q_OS_WIN
-#include <stream/mfaacencoder.h>
-#else
-#include <stream/bassaacfileencoder.h>
-#endif
-
 #include <rapidxml.hpp>
 
 #include <thememanager.h>
@@ -144,7 +138,7 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
     updateData();
 
     model_->setHeaderData(PLAYLIST_MUSIC_ID, Qt::Horizontal, tr("ID"));
-    model_->setHeaderData(PLAYLIST_PLAYING, Qt::Horizontal, tr(" "));
+    model_->setHeaderData(PLAYLIST_PLAYING, Qt::Horizontal, tr("IS.PLAYING"));
     model_->setHeaderData(PLAYLIST_TRACK, Qt::Horizontal, tr("TRACK#"));
     model_->setHeaderData(PLAYLIST_FILEPATH, Qt::Horizontal, tr("FILE PATH"));
     model_->setHeaderData(PLAYLIST_TITLE, Qt::Horizontal, tr("TITLE"));
@@ -190,12 +184,12 @@ void PlayListTableView::setPlaylistId(const int32_t playlist_id) {
         return;
     }
 
-    auto column_list = AppSettings::getList(kAppSettingColumnName);
+    auto column_list = AppSettings::getList(columnAppSettingName());
 
     if (column_list.empty()) {
         for (auto column = 0; column < horizontalHeader()->count(); ++column) {
             if (!isColumnHidden(column)) {
-                AppSettings::addList(kAppSettingColumnName, QString::number(column));
+                AppSettings::addList(columnAppSettingName(), QString::number(column));
             } else {
                 setColumnHidden(column, true);
             }
@@ -476,6 +470,11 @@ bool PlayListTableView::isPodcastMode() const {
     return podcast_mode_;
 }
 
+ConstLatin1String PlayListTableView::columnAppSettingName() const {
+	const auto setting_name = isPodcastMode() ? kAppSettingPodcastPlaylistColumnName : kAppSettingPlaylistColumnName;
+    return setting_name;
+}
+
 void PlayListTableView::setPodcastMode(bool enable) {
     podcast_mode_ = enable;
 
@@ -492,39 +491,40 @@ void PlayListTableView::setPodcastMode(bool enable) {
         hideColumn(PLAYLIST_YEAR);
         hideColumn(PLAYLIST_BITRATE);
         hideColumn(PLAYLIST_LAST_UPDATE_TIME);
-    } else {
-        horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
-        (void)QObject::connect(horizontalHeader(), &QHeaderView::customContextMenuRequested, [this](auto pt) {
+    }
+
+    horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
+    (void)QObject::connect(horizontalHeader(), &QHeaderView::customContextMenuRequested, [this](auto pt) {
+        
+        ActionMap<PlayListTableView> action_map(this);
+
+        auto* header_view = horizontalHeader();
+
+        auto last_referred_logical_column = header_view->logicalIndexAt(pt);
+        auto hide_this_column_act = action_map.addAction(tr("Hide this column"), [last_referred_logical_column, this]() {
+            setColumnHidden(last_referred_logical_column, true);
+            AppSettings::removeList(columnAppSettingName(), QString::number(last_referred_logical_column));
+            });
+        hide_this_column_act->setIcon(qTheme.iconFromFont(IconCode::ICON_Hide));
+
+        auto select_column_show_act = action_map.addAction(tr("Select columns to show..."), [pt, header_view, this]() {
             ActionMap<PlayListTableView> action_map(this);
-
-            auto* header_view = horizontalHeader();
-
-            auto last_referred_logical_column = header_view->logicalIndexAt(pt);
-            auto hide_this_column_act = action_map.addAction(tr("Hide this column"), [last_referred_logical_column, this]() {
-                setColumnHidden(last_referred_logical_column, true);
-                AppSettings::removeList(kAppSettingColumnName, QString::number(last_referred_logical_column));
-                });
-            hide_this_column_act->setIcon(qTheme.iconFromFont(0xe8f5));
-
-            auto select_column_show_act = action_map.addAction(tr("Select columns to show..."), [pt, header_view, this]() {
-                ActionMap<PlayListTableView> action_map(this);
-                for (auto column = 0; column < header_view->count(); ++column) {
-                    auto header_name = model()->headerData(column, Qt::Horizontal).toString();
-                    if (notshow_column_names_.contains(header_name)) {
-                        continue;
-                    }
-                    action_map.addAction(header_name, [this, column]() {
-                        setColumnHidden(column, false);
-                        AppSettings::addList(kAppSettingColumnName, QString::number(column));
-                        }, false, !isColumnHidden(column));
+            for (auto column = 0; column < header_view->count(); ++column) {
+                auto header_name = model()->headerData(column, Qt::Horizontal).toString();
+                if (notshow_column_names_.contains(header_name)) {
+                    continue;
                 }
-                action_map.exec(pt);
-                });
-            select_column_show_act->setIcon(qTheme.iconFromFont(0xe8ec));
-
+                action_map.addAction(header_name, [this, column]() {
+                    setColumnHidden(column, false);
+                    AppSettings::addList(columnAppSettingName(), QString::number(column));
+                    }, false, !isColumnHidden(column));
+            }
             action_map.exec(pt);
             });
-    }
+        select_column_show_act->setIcon(qTheme.iconFromFont(IconCode::ICON_Show));
+
+        action_map.exec(pt);
+        });
 }
 
 void PlayListTableView::onThemeColorChanged(QColor backgroundColor, QColor color) {
@@ -602,16 +602,16 @@ void PlayListTableView::resizeEvent(QResizeEvent* event) {
 }
 
 void PlayListTableView::importPodcast() {
-    auto* indicator = new ProcessIndicator(this);
+    QSharedPointer<ProcessIndicator> indicator(new ProcessIndicator(this), &QObject::deleteLater);
     XAMP_LOG_DEBUG("Start download podcast.xml");
 
     indicator->startAnimation();
 
     http::HttpClient(Q_TEXT("https://suisei.moe/podcast.xml"))
-	.error([=](const QString& msg) {
-        indicator->deleteLater();
+	.error([indicator](const QString& msg) {
+        XAMP_LOG_DEBUG("Download podcast error! {}", msg.toStdString());
 	})
-	.success([=](const QString& json) {
+	.success([indicator, this](const QString& json) {
         XAMP_LOG_DEBUG("Download podcast.xml success!");
 
 		Stopwatch sw;
@@ -627,19 +627,18 @@ void PlayListTableView::importPodcast() {
 
         XAMP_LOG_DEBUG("Start download podcast image file");        
         http::HttpClient(QString::fromStdString(podcast_info.first))
-		.error([=](const QString& msg) {
-            indicator->deleteLater();
+		.error([indicator](const QString& msg) {
+            XAMP_LOG_DEBUG("Download podcast error! {}", msg.toStdString());
         })
-    	.download([=](const QByteArray& data) {
+    	.download([indicator, this](const QByteArray& data) {
             if (!model()->rowCount()) {
-                indicator->deleteLater();
                 return;
             }
             XAMP_LOG_DEBUG("Download podcast image file success!");
-            auto cover_id = qPixmapCache.addOrUpdate(data);
-            auto play_item = getEntity(this->model()->index(0, 0));
+            const auto cover_id = qPixmapCache.addOrUpdate(data);
+            const auto play_item = getEntity(this->model()->index(0, 0));
             qDatabase.setAlbumCover(play_item.album_id, play_item.album, cover_id);
-            indicator->deleteLater();
+            emit updateAlbumCover(cover_id);
             });
         }).get();
 }

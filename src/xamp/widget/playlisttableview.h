@@ -10,7 +10,7 @@
 #include <QTableView>
 #include <base/rng.h>
 #include <base/encodingprofile.h>
-
+#include <widget/str_utilts.h>
 #include <widget/playlistentity.h>
 #include <widget/metadataextractadapter.h>
 
@@ -80,6 +80,8 @@ signals:
 
     void addPlaylistReplayGain(bool force, const Vector<PlayListEntity> &entities);
 
+	void updateAlbumCover(const QString &cover_id);
+
 public slots:
 	void processMeatadata(int64_t dir_last_write_time, const ForwardList<Metadata> &medata);
 
@@ -106,6 +108,8 @@ private:
 	void initial();
 
 protected:
+	ConstLatin1String columnAppSettingName() const;
+
 	bool podcast_mode_;
 	int32_t playlist_id_;
 	QModelIndex play_index_;

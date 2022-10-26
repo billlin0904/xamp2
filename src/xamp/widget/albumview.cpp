@@ -266,7 +266,7 @@ void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id, con
 
     page_->playlist()->updateData();
     page_->title()->setText(album);
-    page_->setCover(cover_id);
+    page_->setCoverById(cover_id);
 
     if (const auto album_stats = qDatabase.getAlbumStats(album_id)) {
         page_->format()->setText(tr("%1 Tracks, %2, %3")

@@ -18,7 +18,8 @@ IMPL_APP_SETTING_NAME(AppSettingUseNativeDSDMode, "AppSettings/useNativeDSDMode"
 IMPL_APP_SETTING_NAME(AppSettingUseFramelessWindow, "AppSettings/useFramelessWindow");
 IMPL_APP_SETTING_NAME(AppSettingShowLeftList, "AppSettings/showLeftList");
 IMPL_APP_SETTING_NAME(AppSettingDiscordNotify, "AppSettings/discordNotify");
-IMPL_APP_SETTING_NAME(AppSettingColumnName, "AppSettings/columnName");
+IMPL_APP_SETTING_NAME(AppSettingPlaylistColumnName, "AppSettings/columnName");
+IMPL_APP_SETTING_NAME(AppSettingPodcastPlaylistColumnName, "AppSettings/podcastColumnName");
 IMPL_APP_SETTING_NAME(AppSettingIsMuted,"AppSettings/isMuted");
 IMPL_APP_SETTING_NAME(AppSettingMyMusicFolderPath, "AppSettings/myMusicFolderPath");
 
