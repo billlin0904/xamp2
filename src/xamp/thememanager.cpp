@@ -15,6 +15,7 @@
 #else
 #include <widget/osx/osx.h>
 #endif
+
 #include <widget/appsettingnames.h>
 #include <widget/widget_shared.h>
 #include <widget/str_utilts.h>
@@ -122,17 +123,6 @@ QLatin1String ThemeManager::themeColorPath() const {
         return Q_TEXT("Black");
     }
     return Q_TEXT("White");
-}
-
-void ThemeManager::setThemeButtonIcon(Ui::XampWindow &ui) {
-    switch (themeColor()) {
-    case ThemeColor::DARK_THEME:
-        ui.themeButton->setIcon(qTheme.darkModeIcon());
-        break;
-    case ThemeColor::LIGHT_THEME:
-        ui.themeButton->setIcon(qTheme.lightModeIcon());
-        break;
-    }
 }
 
 QColor ThemeManager::themeTextColor() const {
@@ -550,37 +540,6 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
                                             )").arg(colorToString(hover_color)));
     ui.sliderBarButton->setIcon(sliderBarIcon());
 
-    ui.settingsButton->setStyleSheet(Q_STR(R"(
-                                            QToolButton#settingsButton {
-                                            border: none;
-                                            background-color: transparent;
-											border-radius: 0px;
-                                            }
-											QToolButton#settingsButton:hover {												
-											background-color: %1;
-											border-radius: 0px;								 
-											}
-                                            QToolButton#settingsButton::menu-indicator {
-                                            image: none;
-                                            }
-                                            )").arg(colorToString(hover_color)));
-    ui.settingsButton->setIcon(moreIcon());
-
-    ui.themeButton->setStyleSheet(Q_STR(R"(
-                                            QToolButton#themeButton {
-                                            border: none;
-                                            background-color: transparent;
-                                            }
-											QToolButton#themeButton:hover {												
-											background-color: %1;
-											border-radius: 0px;								 
-											}
-                                            QToolButton#themeButton::menu-indicator {
-                                            image: none;
-                                            }
-                                            )").arg(colorToString(hover_color)));
-
-
     ui.stopButton->setStyleSheet(Q_STR(R"(
                                          QToolButton#stopButton {
                                          border: none;
@@ -705,6 +664,7 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
 		padding-left: 6px;
 	}
 	QListView#sliderBar::item:hover {
+		border-radius: 2px;
 	}
 	QListView#sliderBar::item:selected {
 		padding-left: 4px;
@@ -820,9 +780,7 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
     ));
    
     setThemeIcon(ui);
-
     ui.sliderBarButton->setIconSize(tabIconSize());
-    ui.sliderFrame->setStyleSheet(Q_TEXT("background: transparent; border: none;"));
-    
+    ui.sliderFrame->setStyleSheet(Q_TEXT("background: transparent; border: none;"));    
     ui.currentViewFrame->setStyleSheet(Q_TEXT("border: none;"));
 }

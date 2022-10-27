@@ -213,9 +213,6 @@ private:
 	XMenu* tray_icon_menu_;
     QSystemTrayIcon* tray_icon_;
 	QAction* search_action_;
-	QAction* dark_mode_action_;
-	QAction* light_mode_action_;
-	XMenu* theme_menu_;
 	IXWindow* top_window_;
 	ToolTipsFilter* tool_tips_filter_;
 	BackgroundWorker* background_worker_;

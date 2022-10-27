@@ -464,6 +464,9 @@ void PlayListTableView::initial() {
 
     installEventFilter(this);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    verticalScrollBar()->setStyleSheet(Q_TEXT(
+        "QScrollBar:vertical { width: 6px; }"
+    ));
 }
 
 bool PlayListTableView::isPodcastMode() const {

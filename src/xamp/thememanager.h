@@ -177,8 +177,6 @@ public:
 
     void setBackgroundColor(Ui::XampWindow& ui, QColor color);
 
-    void setThemeButtonIcon(Ui::XampWindow& ui);
-
     void applyTheme();
 
     void setBackgroundColor(QWidget* widget);

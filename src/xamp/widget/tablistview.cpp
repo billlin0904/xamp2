@@ -9,7 +9,7 @@ TabListView::TabListView(QWidget *parent)
     setFrameStyle(QFrame::NoFrame);
     setEditTriggers(QAbstractItemView::NoEditTriggers);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-
+    setSpacing(2);
     setIconSize(qTheme.tabIconSize());
 
     (void)QObject::connect(this, &QListView::clicked, [this](auto index) {
@@ -42,7 +42,7 @@ void TabListView::addTab(const QString& name, int table_id, const QIcon& icon) {
     auto *item = new QStandardItem(name);
     item->setData(table_id);
     item->setIcon(icon);
-    item->setSizeHint(QSize(50, 30));
+    item->setSizeHint(QSize(18, 35));
     
     auto f = item->font();
 #ifdef XAMP_OS_MAC

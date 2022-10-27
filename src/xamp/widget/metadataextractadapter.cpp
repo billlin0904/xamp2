@@ -140,9 +140,9 @@ public:
         if (!path.has_extension()) {
             return false;
         }
-        if (path.extension() == kCueFileExt) {
+        /*if (path.extension() == kCueFileExt) {
             return true;
-        }
+        }*/
         using namespace audio_util;
         const auto file_ext = String::ToLower(path.extension().string());
         const auto & support_file_set = GetSupportFileExtensions();
@@ -156,14 +156,14 @@ public:
     }
 
     void OnWalk(const Path&, Metadata metadata) override {
-        if (metadata.file_ext == kCueFileExt) {
+        /*if (metadata.file_ext == kCueFileExt) {
             std::wifstream file(metadata.file_path, std::ios::binary);
             ImbueFileFromBom(file);
             if (file.is_open()) {
                 auto sheet = std::make_shared<CueSheet>();
                 sheet->Parse(file.rdbuf());
             }
-        }
+        }*/
         metadatas_.push_front(metadata);
         qApp->processEvents();
     }

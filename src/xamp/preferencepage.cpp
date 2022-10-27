@@ -248,6 +248,23 @@ PreferencePage::PreferencePage(QWidget *parent)
 	initPcm2Dsd();
 	initLang();
 
+	switch (qTheme.themeColor()) {
+	case ThemeColor::LIGHT_THEME:
+		ui_.lightRadioButton->setChecked(true);
+		break;
+	case ThemeColor::DARK_THEME:
+		ui_.darkRadioButton->setChecked(true);
+		break;
+	}
+
+	(void)QObject::connect(ui_.lightRadioButton, &QRadioButton::clicked, [](auto checked) {
+		qTheme.setThemeColor(ThemeColor::LIGHT_THEME);
+		});
+
+	(void)QObject::connect(ui_.darkRadioButton, &QRadioButton::clicked, [](auto checked) {
+		qTheme.setThemeColor(ThemeColor::DARK_THEME);
+		});
+
     ui_.preferenceTreeWidget->header()->hide();
     
     auto* settings_item = new QTreeWidgetItem(QStringList() << tr("Settings"));

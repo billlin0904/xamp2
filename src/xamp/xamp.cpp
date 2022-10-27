@@ -744,9 +744,6 @@ void Xamp::initialController() {
     setTipHint(ui_.maxWinButton, tr("Maximum window"));
     setTipHint(ui_.minWinButton, tr("Minimum window"));
 
-    auto* settings_menu = new XMenu(this);
-    qTheme.setMenuStyle(settings_menu);
-
     QTimer::singleShot(500, [=]() {
         sliderAnimation(AppSettings::getValueAsBool(kAppSettingShowLeftList));
         });
@@ -801,44 +798,18 @@ void Xamp::initialController() {
         (void)QObject::connect(check_for_update, &QAction::triggered, [=]() {
             updater->checkForUpdates(kSoftwareUpdateUrl);
             });
-
-        settings_menu->addAction(check_for_update);
     }    
 #endif
 
     auto* about_action = new QAction(tr("About"), this);
-    (void)QObject::connect(about_action, &QAction::triggered, [=]() {
+   /* (void)QObject::connect(about_action, &QAction::triggered, [=]() {
         auto* about_dialog = new XDialog(this);
         auto* about_page = new AboutPage(about_dialog);
         about_dialog->setContentWidget(about_page);
         about_dialog->setTitle(tr("About"));
         QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
         about_dialog->exec();
-        });
-    settings_menu->addAction(about_action);
-
-    settings_menu->addSeparator();
-    ui_.settingsButton->setMenu(settings_menu);
-
-    theme_menu_ = new XMenu(this);
-    qTheme.setMenuStyle(theme_menu_);
-    qTheme.setThemeButtonIcon(ui_);
-    dark_mode_action_ = theme_menu_->addAction(tr("Dark"));
-    dark_mode_action_->setIcon(qTheme.darkModeIcon());
-    light_mode_action_ = theme_menu_->addAction(tr("Light"));
-    light_mode_action_->setIcon(qTheme.lightModeIcon());
-    (void)QObject::connect(dark_mode_action_, &QAction::triggered, [=]() {
-        AppSettings::setEnumValue(kAppSettingTheme, ThemeColor::DARK_THEME);
-        /*cleanup();
-        qApp->exit(kRestartExistCode);*/
-        });
-    (void)QObject::connect(light_mode_action_, &QAction::triggered, [=]() {
-        AppSettings::setEnumValue(kAppSettingTheme, ThemeColor::LIGHT_THEME);
-        /*cleanup();
-        qApp->exit(kRestartExistCode);*/
-        });
-    ui_.themeButton->setMenu(theme_menu_);
-
+        });*/
 
     ui_.seekSlider->setEnabled(false);
     ui_.startPosLabel->setText(msToString(0));
@@ -902,9 +873,6 @@ void Xamp::systemThemeChanged(ThemeColor theme_color) {
 
 void Xamp::applyTheme(QColor backgroundColor, QColor color) {
     themeChanged(backgroundColor, color);
-    theme_menu_->setIcon(qTheme.themeIcon());
-    dark_mode_action_->setIcon(qTheme.darkModeIcon());
-    light_mode_action_->setIcon(qTheme.lightModeIcon());
     qTheme.setBackgroundColor(ui_, backgroundColor);
     qTheme.setWidgetStyle(ui_);
     updateButtonState();
