@@ -293,7 +293,7 @@
        <property name="frameShadow">
         <enum>QFrame::Raised</enum>
        </property>
-       <layout class="QVBoxLayout" name="verticalLayout_6">
+       <layout class="QVBoxLayout" name="verticalLayout_6" stretch="0,0,0,0,1">
         <property name="spacing">
          <number>0</number>
         </property>
