@@ -321,8 +321,8 @@ AlbumView::AlbumView(QWidget* parent)
 
         const auto list_view_rect = this->rect();
         page_->setPlaylistMusic(album, album_id, cover_id);
-        page_->setFixedSize(QSize(list_view_rect.size().width() - 15, list_view_rect.height()));
-        page_->move(QPoint(list_view_rect.x() + 5, 3));
+        page_->setFixedSize(QSize(list_view_rect.size().width() - 15, list_view_rect.height() + 15));
+        page_->move(QPoint(list_view_rect.x() + 5, 0));
 
         if (enable_page_) {
             page_->show();
@@ -340,6 +340,9 @@ AlbumView::AlbumView(QWidget* parent)
     });
 
     setStyleSheet(Q_TEXT("background-color: transparent"));
+    verticalScrollBar()->setStyleSheet(Q_TEXT(
+        "QScrollBar:vertical { width: 6px; }"
+    ));
 
     update();
 }
@@ -350,7 +353,7 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
     ActionMap<AlbumView> action_map(this);
 
     auto removeAlbum = [=]() {
-        auto* indicator = new ProcessIndicator(this);
+	    const QScopedPointer<ProcessIndicator> indicator(new ProcessIndicator(this));
         indicator->startAnimation();
         try {
             qDatabase.forEachAlbum([](auto album_id) {
@@ -363,7 +366,6 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         }
         catch (...) {
         }
-        indicator->deleteLater();
     };
 
     auto* remove_all_album_act = action_map.addAction(tr("Remove all album"), [=]() {

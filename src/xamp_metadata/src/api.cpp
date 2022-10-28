@@ -18,9 +18,10 @@ AlignPtr<IMetadataWriter> MakeMetadataWriter() {
 }
 
 template <typename TDirectoryIterator>
-static void ScanFolderImpl(Path const& path, IMetadataExtractAdapter* adapter, IMetadataReader* reader) {
-    adapter->OnWalkNew();
-
+static void ScanFolderImpl(Path const& path,
+    const std::function<bool(const Path&)> &is_accept,
+    const std::function<void(const Path &)> &walk,
+    const std::function<void(const Path&, bool)> &end_walk) {
     if (Fs::is_directory(path)) {
         Path root_path;
 
@@ -33,33 +34,60 @@ static void ScanFolderImpl(Path const& path, IMetadataExtractAdapter* adapter, I
             auto parent_path = root_path.parent_path();
             auto cur_path = current_path.parent_path();
             if (parent_path != cur_path) {
-                adapter->OnWalkEnd(DirectoryEntry(parent_path));
-                adapter->OnWalkNew();
+                end_walk(DirectoryEntry(parent_path), true);
                 root_path = current_path;
             }
 
             if (!Fs::is_directory(current_path)) {
-                if (adapter->IsAccept(current_path)) {
-                    adapter->OnWalk(path, reader->Extract(current_path));
+                if (is_accept(current_path)) {
+                    walk(current_path);
                 }
             }
         }
 
-        adapter->OnWalkEnd(DirectoryEntry(path));
+        end_walk(DirectoryEntry(path), false);
     }
     else {
-        if (adapter->IsAccept(path)) {
-            adapter->OnWalk(path, reader->Extract(path));
-            adapter->OnWalkEnd(DirectoryEntry(path));
+        if (is_accept(path)) {
+            walk(path);
+            end_walk(DirectoryEntry(path), false);
         }
     }
 }
 
 void ScanFolder(Path const& path, IMetadataExtractAdapter* adapter, IMetadataReader* reader, bool is_recursive) {
+    const auto is_accept = [adapter](auto path) {
+        return adapter->IsAccept(path);
+    };
+
+    const auto walk = [adapter, reader](auto path) {
+        adapter->OnWalk(path, reader->Extract(path));
+    };
+
+    const auto walk_end = [adapter](auto path, bool is_new) {
+        adapter->OnWalkEnd(DirectoryEntry(path));
+        if (is_new) {
+            adapter->OnWalkNew();
+        }
+    };
+
     if (!is_recursive) {
-        ScanFolderImpl<DirectoryIterator>(path, adapter, reader);
+        ScanFolderImpl<DirectoryIterator>(path, is_accept, walk, walk_end);
     } else {
-        ScanFolderImpl<RecursiveDirectoryIterator>(path, adapter, reader);
+        ScanFolderImpl<RecursiveDirectoryIterator>(path, is_accept, walk, walk_end);
+    }
+}
+
+void ScanFolder(Path const& path,
+    const std::function<bool(const Path&)>& is_accept,
+    const std::function<void(const Path&)>& walk,
+    const std::function<void(const Path&, bool)>& end_walk,
+    bool is_recursive) {
+    if (!is_recursive) {
+        ScanFolderImpl<DirectoryIterator>(path, is_accept, walk, end_walk);
+    }
+    else {
+        ScanFolderImpl<RecursiveDirectoryIterator>(path, is_accept, walk, end_walk);
     }
 }
 

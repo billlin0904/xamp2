@@ -6,6 +6,7 @@
 #include <QMap>
 #include <QDirIterator>
 #include <QProgressDialog>
+#include <unordered_set>
 
 #include <base/base.h>
 #include <base/str_utilts.h>
@@ -200,31 +201,34 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
 
     dialog->setMinimumDuration(1000);
 
-    QList<QString> dirs;
+    std::unordered_set<Path> dirs;
+    dirs.reserve(100);
 
-    QDirIterator itr(file_path, QDir::Dirs | QDir::NoDotAndDotDot);
-    while (itr.hasNext()) {
-        dirs.append(itr.next());
-    }
-    dirs.push_back(file_path);
-
-    auto progress = 0;
-    dialog->setMaximum(dirs.count());
+    const auto is_accept = [&dirs](auto path) {
+        return Fs::is_directory(path) && !dirs.contains(path);
+    };
+    const auto walk = [&dirs](auto path) {
+        dirs.emplace(path);
+    };
+    const auto walk_end = [&dirs](auto path, bool is_new) {
+        dirs.emplace(path);
+    };
+    ScanFolder(file_path.toStdWString(), is_accept, walk, walk_end, true);
+    dialog->setMaximum(dirs.size());
 
     ExtractAdapterProxy proxy(adapter);
 
     const auto reader = MakeMetadataReader();
-
+    auto progress = 0;
     for (const auto& file_dir_or_path : dirs) {
         if (dialog->wasCanceled()) {
             return;
         }
 
-        dialog->setLabelText(file_dir_or_path);
+        dialog->setLabelText(QString::fromStdWString(file_dir_or_path.wstring()));
         
-        try {            
-            const Path path = fromQStringPath(file_dir_or_path).toStdWString();
-            ScanFolder(path, &proxy, reader.get(), is_recursive);
+        try {
+            ScanFolder(file_dir_or_path, &proxy, reader.get(), is_recursive);
         }
         catch (const std::exception& e) {
             XAMP_LOG_DEBUG("WalkPath has exception: {}", e.what());

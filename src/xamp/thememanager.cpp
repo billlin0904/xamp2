@@ -744,7 +744,7 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
                                             }
                                             )").arg(colorToString(Qt::white)));
 
-        ui.currentView->setStyleSheet(Q_STR(R"(
+        ui.currentView->setStyleSheet(Q_TEXT(R"(
 			QStackedWidget#currentView {
 				background-color: #f9f9f9;
 				border: 1px solid #eaeaea;

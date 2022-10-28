@@ -1,4 +1,5 @@
 #include <widget/str_utilts.h>
+
 #include "thememanager.h"
 #include "tablistview.h"
 
@@ -54,6 +55,7 @@ void TabListView::addTab(const QString& name, int table_id, const QIcon& icon) {
     model_.appendRow(item);
     names_[table_id] = name;
     ids_[name] = table_id;
+    item->setData(name, Qt::ToolTipRole);
 }
 
 void TabListView::addSeparator() {
