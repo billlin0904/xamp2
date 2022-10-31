@@ -66,6 +66,8 @@ public:
 signals:
 	void clickedArtist(const QString& artist, const QString& cover_id, int32_t artist_id);
 
+	void leaveAlbumView() const;
+
 private:
 	ClickableLabel* artist_;
 	PlaylistPage* page_;

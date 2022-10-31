@@ -71,6 +71,9 @@ enum IconCode {
     ICON_More = 0xE712,
     ICON_Hide = 0xED1A,
     ICON_Show = 0xE7B3,
+    ICON_USB = 0xE88E,
+    ICON_BuildInSpeaker = 0xE7F5,
+    ICON_BlueTooth = 0xE702,
 };
 
 class ThemeManager {

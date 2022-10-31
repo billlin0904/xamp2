@@ -23,6 +23,7 @@
 #include <base/singleton.h>
 #include <base/logger_impl.h>
 #include <base/ppl.h>
+#include <base/chachaengine.h>
 
 #include <stream/api.h>
 #include <stream/fft.h>
@@ -171,7 +172,7 @@ static void BM_std_for_each_par(benchmark::State& state) {
 static void BM_Xoshiro256StarStarRandom(benchmark::State& state) {
     Xoshiro256StarStarEngine engine;
     for (auto _ : state) {
-        size_t n = std::uniform_int_distribution<int64_t>(INT64_MIN, INT64_MAX)(engine);
+        size_t n = std::uniform_int_distribution<int64_t>(INT32_MIN, INT32_MAX)(engine);
         benchmark::DoNotOptimize(n);
     }
     state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(int64_t));
@@ -180,7 +181,7 @@ static void BM_Xoshiro256StarStarRandom(benchmark::State& state) {
 static void BM_Xoshiro256PlusRandom(benchmark::State& state) {
     Xoshiro256PlusEngine engine;
     for (auto _ : state) {
-        size_t n = std::uniform_int_distribution<int64_t>(INT64_MIN, INT64_MAX)(engine);
+        size_t n = std::uniform_int_distribution<int32_t>(INT32_MIN, INT32_MAX)(engine);
         benchmark::DoNotOptimize(n);
     }
     state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(int64_t));
@@ -189,7 +190,16 @@ static void BM_Xoshiro256PlusRandom(benchmark::State& state) {
 static void BM_Xoshiro256PlusPlusRandom(benchmark::State& state) {
     Xoshiro256PlusPlusEngine engine;
     for (auto _ : state) {
-        size_t n = std::uniform_int_distribution<int64_t>(INT64_MIN, INT64_MAX)(engine);
+        size_t n = std::uniform_int_distribution<int32_t>(INT32_MIN, INT32_MAX)(engine);
+        benchmark::DoNotOptimize(n);
+    }
+    state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(int64_t));
+}
+
+static void BM_ChaCha20Random(benchmark::State& state) {
+    ChaChaEngine engine;
+    for (auto _ : state) {
+        size_t n = std::uniform_int_distribution<int32_t>(INT32_MIN, INT32_MAX)(engine);
         benchmark::DoNotOptimize(n);
     }
     state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(int64_t));
@@ -199,7 +209,7 @@ static void BM_default_random_engine(benchmark::State& state) {
     std::random_device rd;
     std::default_random_engine engine(rd());
     for (auto _ : state) {
-        size_t n = std::uniform_int_distribution<int64_t>(INT64_MIN, INT64_MAX)(engine);
+        size_t n = std::uniform_int_distribution<int32_t>(INT32_MIN, INT32_MAX)(engine);
         benchmark::DoNotOptimize(n);
     }
     state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) * sizeof(int64_t));
@@ -644,14 +654,15 @@ static void BM_Rotl(benchmark::State& state) {
 //BENCHMARK(BM_Builtin_Rotl);
 //BENCHMARK(BM_Rotl);
 
-BENCHMARK(BM_FastMutex)->ThreadRange(1, 32);
-BENCHMARK(BM_Spinlock)->ThreadRange(1, 32);
+//BENCHMARK(BM_FastMutex)->ThreadRange(1, 32);
+//BENCHMARK(BM_Spinlock)->ThreadRange(1, 32);
 
 //BENCHMARK(BM_Builtin_UuidParse);
 //BENCHMARK(BM_UuidParse);
-//BENCHMARK(BM_Xoshiro256StarStarRandom);
-//BENCHMARK(BM_Xoshiro256PlusRandom);
-//BENCHMARK(BM_Xoshiro256PlusPlusRandom);
+BENCHMARK(BM_Xoshiro256StarStarRandom);
+BENCHMARK(BM_Xoshiro256PlusRandom);
+BENCHMARK(BM_Xoshiro256PlusPlusRandom);
+BENCHMARK(BM_ChaCha20Random);
 //BENCHMARK(BM_default_random_engine);
 //BENCHMARK(BM_PRNG);
 //BENCHMARK(BM_PRNG_GetInstance);

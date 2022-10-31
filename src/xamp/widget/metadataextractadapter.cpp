@@ -135,6 +135,7 @@ public:
 
     explicit ExtractAdapterProxy(const QSharedPointer<::MetadataExtractAdapter> &adapter)
         : adapter_(adapter) {
+        GetSupportFileExtensions();
     }
 
     [[nodiscard]] bool IsAccept(Path const& path) const noexcept override {
@@ -165,7 +166,7 @@ public:
                 sheet->Parse(file.rdbuf());
             }
         }*/
-        metadatas_.push_front(metadata);
+        metadatas_.push_front(std::move(metadata));
         qApp->processEvents();
     }
 

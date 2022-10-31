@@ -81,6 +81,7 @@ QScopedPointer<QProgressDialog> makeProgressDialog(QString const& title, QString
     dialog->setWindowModality(Qt::WindowModal);
     dialog->setMinimumSize(QSize(1000, 100));
     dialog->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed));
+    dialog->setWindowFlags(dialog->windowFlags() & ~Qt::WindowContextHelpButtonHint);
     auto* progress_bar = new QProgressBar(dialog);
     progress_bar->setFont(QFont(Q_TEXT("FormatFont")));
     dialog->setBar(progress_bar);

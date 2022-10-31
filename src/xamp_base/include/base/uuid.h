@@ -56,6 +56,10 @@ public:
 
 	operator std::string() const;
 
+    const UuidBuffer & GetBytes() const noexcept {
+        return bytes_;
+    }
+
 private:
     XAMP_BASE_API friend std::ostream &operator<<(std::ostream &s, Uuid const &id);
 
@@ -101,6 +105,16 @@ struct hash<xamp::base::Uuid> {
 	result_type operator()(argument_type const& uuid) const noexcept {
 		return uuid.GetHash();
 	}
+};
+
+template <>
+struct less<xamp::base::Uuid> {
+    typedef bool result_type;
+    typedef xamp::base::Uuid argument_type;
+
+    result_type operator()(argument_type const& other1, argument_type const& other2) const noexcept {
+        return std::memcmp(other1.GetBytes().data(), other2.GetBytes().data(), other2.GetBytes().size()) < 0;
+    }
 };
 
 }

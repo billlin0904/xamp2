@@ -245,6 +245,7 @@ AlbumViewPage::AlbumViewPage(QWidget* parent)
 
     (void)QObject::connect(close_button, &QPushButton::clicked, [this]() {
         hide();
+        emit leaveAlbumView();
         });
     setStyleSheet(Q_TEXT("QFrame#albumViewPage { background-color: transparent; }"));
 }
@@ -327,7 +328,13 @@ AlbumView::AlbumView(QWidget* parent)
         if (enable_page_) {
             page_->show();
         }
+
+        verticalScrollBar()->hide();
         emit clickedAlbum(album, album_id, cover_id);
+        });
+
+    (void)QObject::connect(page_, &AlbumViewPage::leaveAlbumView, [this]() {
+        verticalScrollBar()->show();
         });
 
     (void)QObject::connect(verticalScrollBar(), &QScrollBar::valueChanged, [this](auto) {

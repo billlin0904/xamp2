@@ -34,6 +34,12 @@ public:
         return (*this)(size_t{0}, max);
     }
 
+    int32_t NextInt32(
+        const int32_t min = (std::numeric_limits<int32_t>::min)(),
+        const int32_t max = (std::numeric_limits<int32_t>::max)())  noexcept {
+        return (*this)(min, max);
+    }
+
     int64_t NextInt64(
         const int64_t min = (std::numeric_limits<int64_t>::min)(),
         const int64_t max = (std::numeric_limits<int64_t>::max)())  noexcept {

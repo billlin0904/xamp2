@@ -8,8 +8,21 @@
 #include <cmath>
 #include <complex>
 #include <base/base.h>
+#include <base/memory.h>
 
 namespace xamp::base {
+
+template <typename T>
+static XAMP_ALWAYS_INLINE T FromUnaligned(const void* address) {
+	static_assert(std::is_trivially_copyable_v<T>);
+	T res{};
+	MemoryCopy(&res, address, sizeof(res));
+	return res;
+}
+
+static XAMP_ALWAYS_INLINE uint64_t Rotl(const uint64_t x, int32_t shift) noexcept {
+    return (x << shift) | (x >> (64 - shift));
+}
 
 static XAMP_ALWAYS_INLINE int32_t NextPowerOfTwo(int32_t v) noexcept {
 	v--;

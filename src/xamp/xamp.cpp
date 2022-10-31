@@ -470,6 +470,21 @@ void Xamp::initialDeviceList() {
     const auto device_id = AppSettings::getValueAsString(kAppSettingDeviceId).toStdString();
     const auto & device_manager = player_->GetAudioDeviceManager();
 
+    auto setDeviceTypeIcon = [this](auto connect_type) {
+        switch (connect_type) {
+        case DeviceConnectType::UKNOWN:
+        case DeviceConnectType::BUILT_IN:
+            ui_.selectDeviceButton->setIcon(qTheme.iconFromFont(IconCode::ICON_BuildInSpeaker));
+            break;
+        case DeviceConnectType::USB:
+            ui_.selectDeviceButton->setIcon(qTheme.iconFromFont(IconCode::ICON_USB));
+            break;
+        case DeviceConnectType::BLUE_TOOTH:
+            ui_.selectDeviceButton->setIcon(qTheme.iconFromFont(IconCode::ICON_BlueTooth));
+            break;
+        }
+    };
+
     for (auto itr = device_manager->Begin(); itr != device_manager->End(); ++itr) {
         auto device_type = (*itr).second();
         device_type->ScanNewDevice();
@@ -488,9 +503,10 @@ void Xamp::initialDeviceList() {
             device_action_group->addAction(device_action);
             device_action->setCheckable(true);
             device_action->setChecked(false);
-            device_id_action[device_info.device_id] = device_action;
+            device_id_action[device_info.device_id] = device_action;            
 
-            auto trigger_callback = [device_info, this]() {
+            auto trigger_callback = [device_info, setDeviceTypeIcon, this]() {
+                setDeviceTypeIcon(device_info.connect_type);
                 device_info_ = device_info;
                 AppSettings::setValue(kAppSettingDeviceType, device_info_.device_type_id);
                 AppSettings::setValue(kAppSettingDeviceId, device_info_.device_id);
@@ -518,6 +534,7 @@ void Xamp::initialDeviceList() {
 
     if (!is_find_setting_device) {
         device_info_ = init_device_info;
+        setDeviceTypeIcon(device_info_.connect_type);
         device_id_action[device_info_.device_id]->setChecked(true);
         AppSettings::setValue(kAppSettingDeviceType, device_info_.device_type_id);
         AppSettings::setValue(kAppSettingDeviceId, device_info_.device_id);

@@ -401,6 +401,10 @@ bool isWindowMaximized(const WId window_id) {
 	return ::GetWindowLong(hwnd, GWL_STYLE) & WS_MINIMIZE;
 }
 
+void enumSystemMutex() {
+	
+}
+
 QColor colorizationColor() {
 	DWORD color = 0;
 	BOOL opaque_blend = 0;

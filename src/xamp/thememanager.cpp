@@ -160,7 +160,7 @@ void ThemeManager::setMenuStyle(QWidget* menu) {
 	menu->setWindowFlags(Qt::Popup | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
     menu->setAttribute(Qt::WA_TranslucentBackground);
     menu->setAttribute(Qt::WA_StyledBackground);
-    menu->setStyle(new IconSizeStyle(10));
+    menu->setStyle(new IconSizeStyle(12));
 }
 
 QIcon ThemeManager::volumeUp() const {
