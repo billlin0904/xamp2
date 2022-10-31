@@ -200,6 +200,7 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
     }
 
     dialog->setMinimumDuration(1000);
+    dialog->setWindowModality(Qt::ApplicationModal);
 
     std::unordered_set<Path> dirs;
     dirs.reserve(100);

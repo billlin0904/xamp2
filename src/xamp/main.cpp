@@ -450,9 +450,18 @@ int main(int argc, char *argv[]) {
         LoggerManager::GetInstance().Shutdown();
     );
 
-    const auto exist_code = excute(argc, argv);
-    if (exist_code == kRestartExistCode) {
-        QProcess::startDetached(Q_STR(argv[0]), qApp->arguments());
+    auto exist_code = 0;
+
+    try {
+        exist_code = excute(argc, argv);
+        if (exist_code == kRestartExistCode) {
+            QProcess::startDetached(Q_STR(argv[0]), qApp->arguments());
+        }
+    }
+    catch (Exception const& e) {
+        exist_code = -1;
+        XAMP_LOG_ERROR("{}", e.what());
+        XAMP_LOG_ERROR("{}", e.GetStackTrace());
     }
     return exist_code;
 }
