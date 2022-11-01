@@ -49,7 +49,6 @@ AboutPage::AboutPage(QWidget* parent)
     ui.lblDescription->setStyleSheet(Q_TEXT("background-color: transparent"));
     ui.lblDomain->setStyleSheet(Q_TEXT("background-color: transparent"));
     ui.wdtContent->setStyleSheet(Q_TEXT("background-color: transparent"));
-    ui.txtBws->setStyleSheet(Q_TEXT("QTextBrowser#txtBws { background: transparent; }"));
 }
 
 void AboutPage::onCreditsOrLicenceChecked(bool checked) {
