@@ -143,6 +143,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
         painter->drawPixmap(cover_rect, album_image);
     }
 
+    bool hit_play_button = false;
     if (option.state & QStyle::State_MouseOver && cover_rect.contains(mouse_point_)) {
         painter->drawPixmap(cover_rect, mask_image_);
 
@@ -163,7 +164,7 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
 
         if (button_rect.contains(mouse_point_)) {
             QApplication::setOverrideCursor(Qt::PointingHandCursor);
-            return;
+            hit_play_button = true;
         }
     }
 
@@ -190,8 +191,9 @@ void AlbumViewStyledDelegate::paint(QPainter* painter, const QStyleOptionViewIte
     }
     button.iconSize = QSize(icon_size, icon_size);
     QApplication::style()->drawControl(QStyle::CE_PushButton, &button, painter, more_album_opt_button_.get());
-
-    QApplication::restoreOverrideCursor();
+    if (!hit_play_button) {
+        QApplication::restoreOverrideCursor();
+    }
 }
 
 QSize AlbumViewStyledDelegate::sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const {

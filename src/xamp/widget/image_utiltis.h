@@ -17,7 +17,7 @@ QPixmap roundImage(const QPixmap& src, int32_t radius = kImageRadius);
 
 QPixmap roundImage(const QPixmap& src, QSize size, int32_t radius = kImageRadius);
 
-QPixmap roundDarkImage(QSize size, int32_t alpha = 98, int32_t radius = kImageRadius);
+QPixmap roundDarkImage(QSize size, int32_t alpha = 80, int32_t radius = kImageRadius);
 
 QPixmap scaledImage(const QPixmap& source, const QSize& size, bool is_aspect_ratio = false);
 

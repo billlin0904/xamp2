@@ -519,6 +519,7 @@ void Xamp::initialDeviceList() {
                 device_info_ = device_info;
                 is_find_setting_device = true;
                 device_action->setChecked(true);
+                setDeviceTypeIcon(device_info.connect_type);
             }
         }
 
