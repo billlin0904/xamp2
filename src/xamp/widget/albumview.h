@@ -115,7 +115,10 @@ public slots:
 	void showOperationMenu(const QPoint& pt);
 
 	void showAlbumViewMenu(const QPoint& pt);
+
 private:
+	void resizeEvent(QResizeEvent* event) override;
+
 	bool enable_page_{true};
 	AlbumViewPage* page_;
 	AlbumViewStyledDelegate* styled_delegate_;

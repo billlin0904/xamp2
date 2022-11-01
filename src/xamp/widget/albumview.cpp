@@ -325,7 +325,7 @@ AlbumView::AlbumView(QWidget* parent)
         const auto list_view_rect = this->rect();
         page_->setPlaylistMusic(album, album_id, cover_id);
         page_->setFixedSize(QSize(list_view_rect.size().width() - 15, list_view_rect.height() + 15));
-        page_->move(QPoint(list_view_rect.x() + 5, 0));
+        page_->move(QPoint(list_view_rect.x() + 3, 0));
 
         if (enable_page_) {
             page_->show();
@@ -549,4 +549,15 @@ void AlbumView::hideWidget() {
         return;
     }
     page_->hide();
+}
+
+void AlbumView::resizeEvent(QResizeEvent* event) {
+    if (page_ != nullptr) {
+        if (!page_->isHidden()) {
+            const auto list_view_rect = this->rect();
+            page_->setFixedSize(QSize(list_view_rect.size().width() - 15, list_view_rect.height() + 15));
+            page_->move(QPoint(list_view_rect.x() + 3, 0));
+        }
+    }    
+    QListView::resizeEvent(event);
 }

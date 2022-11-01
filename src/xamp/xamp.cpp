@@ -862,6 +862,9 @@ void Xamp::setCurrentTab(int32_t table_id) {
     case TAB_CD:
         ui_.currentView->setCurrentWidget(cd_page_);
         break;
+    case TAB_ABOUT:
+        ui_.currentView->setCurrentWidget(about_page_);
+        break;
     }
 }
 
@@ -1531,6 +1534,7 @@ void Xamp::initialPlaylist() {
     ui_.sliderBar->addTab(tr("Lyrics"), TAB_LYRICS, qTheme.subtitleIcon());
     ui_.sliderBar->addTab(tr("Settings"), TAB_SETTINGS, qTheme.preferenceIcon());
     ui_.sliderBar->addTab(tr("CD"), TAB_CD, qTheme.cdIcon());
+    ui_.sliderBar->addTab(tr("Abour"), TAB_ABOUT, qTheme.aboutIcon());
     ui_.sliderBar->setCurrentIndex(ui_.sliderBar->model()->index(0, 0));
 
     qDatabase.forEachTable([this](auto table_id,
@@ -1654,6 +1658,8 @@ void Xamp::initialPlaylist() {
     }
     connectSignal(album_page_->album()->albumViewPage()->playlistPage());
 
+    about_page_ = new AboutPage(this);
+
     pushWidget(lrc_page_);
     pushWidget(playlist_page_);
     pushWidget(album_page_);
@@ -1662,6 +1668,7 @@ void Xamp::initialPlaylist() {
     pushWidget(file_system_view_page_);
     pushWidget(preference_page_);
     pushWidget(cd_page_);
+    pushWidget(about_page_);
     goBackPage();
     goBackPage();
     goBackPage();

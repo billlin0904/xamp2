@@ -17,7 +17,8 @@ enum TabIndex {
     TAB_ARTIST,
     TAB_LYRICS,
     TAB_SETTINGS,
-    TAB_CD
+    TAB_CD,
+    TAB_ABOUT,
 };
 
 class TabListView : public QListView {
