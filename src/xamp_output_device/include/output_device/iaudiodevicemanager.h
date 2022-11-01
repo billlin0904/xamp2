@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <map>
 #include <base/stl.h>
 #include <output_device/output_device.h>
 #include <output_device/idevicetype.h>
@@ -12,7 +13,7 @@
 
 namespace xamp::output_device {
 
-using DeviceTypeFactoryMap = HashMap<Uuid, std::function<AlignPtr<IDeviceType>()>>;
+using DeviceTypeFactoryMap = std::map<Uuid, std::function<AlignPtr<IDeviceType>()>>;
 
 class XAMP_OUTPUT_DEVICE_API XAMP_NO_VTABLE IAudioDeviceManager {
 public:

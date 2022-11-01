@@ -179,6 +179,7 @@
     <ClInclude Include="include\base\shared_singleton.h" />
     <ClInclude Include="include\base\simd.h" />
     <ClInclude Include="include\base\scopeguard.h" />
+    <ClInclude Include="include\base\siphash.h" />
     <ClInclude Include="include\base\spinlock.h" />
     <ClInclude Include="include\base\spsc_queue.h" />
     <ClInclude Include="include\base\stl.h" />
@@ -230,6 +231,7 @@
     <ClCompile Include="src\ithreadpool.cpp" />
     <ClCompile Include="src\memory_mapped_file.cpp" />
     <ClCompile Include="src\shared_singleton.cpp" />
+    <ClCompile Include="src\siphash.cpp" />
     <ClCompile Include="src\stl.cpp" />
     <ClCompile Include="src\uuid.cpp" />
     <ClCompile Include="src\logger_impl.cpp" />

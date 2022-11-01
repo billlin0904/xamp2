@@ -18,20 +18,20 @@ public:
 
     void Update(const char* data, uint64_t size);
 
-    void Finalize();
+    void Finalize() const;
 
-    uint64_t GetHash();
+    uint64_t GetHash() const;
 
 private:
-	uint64_t v0_;
-	uint64_t v1_;
-	uint64_t v2_;
-	uint64_t v3_;
-	uint64_t count_;
+	mutable uint64_t v0_;
+	mutable uint64_t v1_;
+	mutable uint64_t v2_;
+	mutable uint64_t v3_;
+	mutable uint64_t count_;
 
 	union {
-		uint64_t current_word;
-		uint8_t current_bytes[8];
+		mutable uint64_t current_word;
+		mutable uint8_t current_bytes[8];
 	};
 };
 
