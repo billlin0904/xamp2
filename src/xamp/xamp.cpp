@@ -9,7 +9,6 @@
 #include <QProgressDialog>
 #include <QFileSystemWatcher>
 #include <QtMath>
-#include <QSimpleUpdater.h>
 
 #include <base/scopeguard.h>
 #include <base/str_utilts.h>
@@ -124,7 +123,7 @@ static AlignPtr<IAudioProcessor> makeSampleRateConverter(const QVariantMap &sett
     return converter;
 }
 
-static PlaybackFormat getPlaybackFormat(IAudioPlayer* player) {
+static PlaybackFormat playbackFormat(IAudioPlayer* player) {
     PlaybackFormat format;
 
     if (player->IsDSDFile()) {
@@ -373,7 +372,6 @@ void Xamp::initialUI() {
         ui_.minWinButton->hide();
         ui_.horizontalLayout->removeItem(ui_.horizontalSpacer_15);        
     } else {
-        f.setBold(true);
         f.setPointSize(10);
         ui_.titleFrameLabel->setFont(f);
         ui_.titleFrameLabel->setText(Q_TEXT("XAMP2"));
@@ -775,7 +773,7 @@ void Xamp::initialController() {
 
     auto* check_for_update = new QAction(tr("Check For Updates"), this);
 
-#ifdef Q_OS_WIN
+#if 0
     static const QString kSoftwareUpdateUrl =
         Q_TEXT("https://raw.githubusercontent.com/billlin0904/xamp2/master/src/versions/updates.json");
     auto* updater = QSimpleUpdater::getInstance();
@@ -1246,7 +1244,7 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
             player_->SetReadSampleSize(writer->GetDataSize() * 2);
 
             resampler_type = Qt::EmptyString;
-            playback_format = getPlaybackFormat(player_.get());
+            playback_format = playbackFormat(player_.get());
             playback_format.is_dsd_file = true;
             playback_format.dsd_mode = dsd_modes;
             playback_format.dsd_speed = writer->GetDsdSpeed();
@@ -1254,7 +1252,7 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
         } else {
             player_->GetDSPManager()->SetSampleWriter();
             player_->PrepareToPlay(device_sample_rate, dsd_modes);
-            playback_format = getPlaybackFormat(player_.get());
+            playback_format = playbackFormat(player_.get());
         }
 
         if (resampler_type == kR8Brain) {

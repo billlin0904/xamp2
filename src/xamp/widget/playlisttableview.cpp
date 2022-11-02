@@ -37,6 +37,30 @@
 #include <widget/fonticon.h>
 #include <widget/playlisttableview.h>
 
+class StyledItemDelegate : public QStyledItemDelegate {
+public:
+    explicit StyledItemDelegate(QObject* parent = nullptr)
+        : QStyledItemDelegate(parent) {
+    }
+
+    void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const {
+        QStyleOptionViewItem opt(option);
+        opt.state &= ~QStyle::State_HasFocus;
+
+        auto* view = qobject_cast<PlayListTableView*>(opt.styleObject);
+        auto behavior = view->selectionBehavior();
+        auto hoverIndex = view->hoverIndex();
+
+        if (!(option.state & QStyle::State_Selected) && behavior != QTableView::SelectItems) {
+            if (behavior == QTableView::SelectRows && hoverIndex.row() == index.row())
+                opt.state |= QStyle::State_MouseOver;
+            if (behavior == QTableView::SelectColumns && hoverIndex.column() == index.column())
+                opt.state |= QStyle::State_MouseOver;
+        }
+        QStyledItemDelegate::paint(painter, opt, index);
+    }
+};
+
 static PlayListEntity getEntity(const QModelIndex& index) {
     PlayListEntity entity;
     entity.music_id = getIndexValue(index, PLAYLIST_MUSIC_ID).toInt();
@@ -232,6 +256,7 @@ void PlayListTableView::initial() {
     setAcceptDrops(true);
     setDragEnabled(true);
     setShowGrid(false);
+    setMouseTracking(true);
 
     setDragDropMode(InternalMove);
     setFrameShape(NoFrame);
@@ -254,6 +279,7 @@ void PlayListTableView::initial() {
     horizontalHeader()->setHighlightSections(false);
     horizontalHeader()->setStretchLastSection(true);
     horizontalHeader()->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    setItemDelegate(new StyledItemDelegate(this));
 
     start_delegate_ = new StarDelegate(this);
     setItemDelegateForColumn(PLAYLIST_RATING, start_delegate_);
@@ -602,6 +628,28 @@ void PlayListTableView::processMeatadata(int64_t dir_last_write_time, const Forw
 void PlayListTableView::resizeEvent(QResizeEvent* event) {
     QTableView::resizeEvent(event);
     resizeColumn();
+}
+
+void PlayListTableView::mouseMoveEvent(QMouseEvent* event) {
+    QTableView::mouseMoveEvent(event);
+
+    QModelIndex index = indexAt(event->pos());
+    auto oldHoverRow = hover_row_;
+    auto oldHoverColumn = hover_column_;
+    hover_row_ = index.row();
+    hover_column_ = index.column();
+
+    if (selectionBehavior() == SelectRows && oldHoverRow != hover_row_) {
+        for (int i = 0; i < model()->columnCount(); ++i)
+            update(model()->index(hover_row_, i));
+    }
+
+    if (selectionBehavior() == SelectColumns && oldHoverColumn != hover_column_) {
+        for (int i = 0; i < model()->rowCount(); ++i) {
+            update(model()->index(i, hover_column_));
+            update(model()->index(i, oldHoverColumn));
+        }
+    }
 }
 
 void PlayListTableView::importPodcast() {
