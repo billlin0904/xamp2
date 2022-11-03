@@ -143,7 +143,7 @@
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
       <AdditionalLibraryDirectories>./x64/Release/;../thirdparty/mimalloc/out/msvc-x64/Release/;../thirdparty/discord-rpc/lib/release/;../thirdparty/QSimpleUpdater/release/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>false</GenerateDebugInformation>
-      <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;discord-rpc.lib;QSimpleUpdater.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>mimalloc-override.lib;xamp_base.lib;xamp_stream.lib;xamp_output_device.lib;xamp_player.lib;xamp_metadata.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <AdditionalOptions>/INCLUDE:mi_version %(AdditionalOptions)</AdditionalOptions>
@@ -266,7 +266,6 @@
   <ItemGroup>
     <QtMoc Include="widget\xframe.h" />
     <QtMoc Include="preferencepage.h" />
-    <QtMoc Include="..\thirdparty\QSimpleUpdater\include\QSimpleUpdater.h" />
     <QtMoc Include="cdpage.h" />
     <ClInclude Include="version.h" />
     <ClInclude Include="widget\albumentity.h" />

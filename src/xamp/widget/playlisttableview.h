@@ -69,6 +69,9 @@ public:
 
     PlayListEntity nomapItem(const QModelIndex& index);
 
+	QModelIndex hoverIndex() const {
+		return model()->index(hover_row_, hover_column_);
+	}
 signals:
 	void playMusic(const PlayListEntity& item);
 
@@ -103,6 +106,8 @@ private:
 
     void resizeEvent(QResizeEvent* event) override;
 
+	void mouseMoveEvent(QMouseEvent* event) override;
+
 	void importPodcast();
 
 	void initial();
@@ -111,6 +116,8 @@ protected:
 	ConstLatin1String columnAppSettingName() const;
 
 	bool podcast_mode_;
+	int32_t hover_row_{ -1 };
+	int32_t hover_column_{ -1 };
 	int32_t playlist_id_;
 	QModelIndex play_index_;
 	StarDelegate* start_delegate_;	
