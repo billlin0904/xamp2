@@ -49,6 +49,12 @@ inline constexpr auto kDefaultFileExplorerPlaylistId = 3;
 inline constexpr auto kDefaultAlbumPlaylistId = 4;
 inline constexpr auto kDefaultCdPlaylistId = 5;
 
+enum PlayingState {
+	PLAY_CLEAR = 0,
+    PLAY_PLAYING,
+    PLAY_PAUSE,
+};
+
 class Database final {
 public:
     Database();
@@ -154,6 +160,10 @@ public:
     void clearNowPlaying(int32_t playlist_id);
 
     void clearNowPlaying(int32_t playlist_id, int32_t music_id);
+
+    void clearNowPlayingSkipMusicId(int32_t playlist_id, int32_t skip_playlist_music_id);
+
+    void setNowPlayingState(int32_t playlist_id, int32_t playlist_music_id, PlayingState playing);
 private:
     void removeAlbumArtist(int32_t album_id);
 

@@ -3,6 +3,7 @@
 #include <widget/starrating.h>
 #include <widget/playlisttablemodel.h>
 #include <widget/albumentity.h>
+#include <widget/database.h>
 #include <widget/str_utilts.h>
 #include <widget/ui_utilts.h>
 #include <widget/playlistsqlquerytablemodel.h>
@@ -81,18 +82,14 @@ QVariant PlayListSqlQueryTableModel::data(const QModelIndex& index, int32_t role
 	    }
         break;
     case Qt::DecorationRole:
-        /*if (index.column() == PLAYLIST_PLAYING) {
-            auto value = QSqlQueryModel::data(index, Qt::DisplayRole);
-            if (value.toBool()) {
-                return qTheme.playArrow();
-            }
-            return {};
-        }*/
         if (index.column() == PLAYLIST_TRACK) {
             auto playing_index = QSqlQueryModel::index(index.row(), PLAYLIST_PLAYING);
             auto value = QSqlQueryModel::data(playing_index, Qt::DisplayRole);
-            if (value.toBool()) {
+            auto playing_state = value.toInt();
+            if (playing_state == PlayingState::PLAY_PLAYING) {
                 return qTheme.playArrow();
+            } else if (playing_state == PlayingState::PLAY_PAUSE) {
+                return qTheme.iconFromFont(IconCode::ICON_Pause);
             }
             return {};
         }

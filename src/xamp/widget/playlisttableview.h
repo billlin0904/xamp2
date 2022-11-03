@@ -100,6 +100,10 @@ public slots:
 private:
     PlayListEntity item(const QModelIndex& index);
 
+	void playItem(const QModelIndex& index);
+
+	void pauseItem(const QModelIndex& index);
+
 	bool eventFilter(QObject* obj, QEvent* ev) override;
 
     void keyPressEvent(QKeyEvent *pEvent) override;

@@ -37,24 +37,24 @@
 #include <widget/fonticon.h>
 #include <widget/playlisttableview.h>
 
-class StyledItemDelegate : public QStyledItemDelegate {
+class StyledItemDelegate final : public QStyledItemDelegate {
 public:
     explicit StyledItemDelegate(QObject* parent = nullptr)
         : QStyledItemDelegate(parent) {
     }
 
-    void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const {
+    void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override {
         QStyleOptionViewItem opt(option);
         opt.state &= ~QStyle::State_HasFocus;
 
-        auto* view = qobject_cast<PlayListTableView*>(opt.styleObject);
-        auto behavior = view->selectionBehavior();
-        auto hoverIndex = view->hoverIndex();
+        const auto* view = qobject_cast<const PlayListTableView*>(opt.styleObject);
+        const auto behavior = view->selectionBehavior();
+        const auto hover_index = view->hoverIndex();
 
         if (!(option.state & QStyle::State_Selected) && behavior != QTableView::SelectItems) {
-            if (behavior == QTableView::SelectRows && hoverIndex.row() == index.row())
+            if (behavior == QTableView::SelectRows && hover_index.row() == index.row())
                 opt.state |= QStyle::State_MouseOver;
-            if (behavior == QTableView::SelectColumns && hoverIndex.column() == index.column())
+            if (behavior == QTableView::SelectColumns && hover_index.column() == index.column())
                 opt.state |= QStyle::State_MouseOver;
         }
         QStyledItemDelegate::paint(painter, opt, index);
@@ -65,7 +65,7 @@ static PlayListEntity getEntity(const QModelIndex& index) {
     PlayListEntity entity;
     entity.music_id = getIndexValue(index, PLAYLIST_MUSIC_ID).toInt();
     entity.track = getIndexValue(index, PLAYLIST_TRACK).toUInt();
-    entity.playing = getIndexValue(index, PLAYLIST_PLAYING).toBool();
+    entity.playing = getIndexValue(index, PLAYLIST_PLAYING).toInt();
     entity.file_path = getIndexValue(index, PLAYLIST_FILEPATH).toString();
     entity.title = getIndexValue(index, PLAYLIST_TITLE).toString();
     entity.file_name = getIndexValue(index, PLAYLIST_FILE_NAME).toString();
@@ -296,6 +296,32 @@ void PlayListTableView::initial() {
         refresh();
     });
 
+    (void)QObject::connect(this, &QTableView::entered, [this](auto index) {        
+        /*if (play_index_.isValid()) {
+	        const auto playing_entity = getEntity(play_index_);
+            if (play_index_.column() != index.column() && play_index_.row() != index.row()) {
+                const auto entity = getEntity(index);
+                qDatabase.clearNowPlayingSkipMusicId(playlist_id_, playing_entity.playlist_music_id);
+                qDatabase.setNowPlaying(playlist_id_, entity.playlist_music_id);
+                refresh();
+                update();
+            }
+        } else {
+            auto entity = getEntity(index);
+            qDatabase.clearNowPlaying(playlist_id_);
+            qDatabase.setNowPlaying(playlist_id_, entity.playlist_music_id);
+            refresh();
+            update();
+        }*/
+
+        if (index.column() == PLAYLIST_TRACK) {
+            setCursor(Qt::PointingHandCursor);
+        }
+        else {
+            setCursor(Qt::ArrowCursor);
+        }
+        });
+
     setEditTriggers(DoubleClicked | SelectedClicked);
     verticalHeader()->setSectionsMovable(false);
     horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -304,11 +330,27 @@ void PlayListTableView::initial() {
         sortByColumn(logicalIndex, Qt::AscendingOrder);
     });
 
+    (void)QObject::connect(this, &QTableView::clicked, [this](auto index) {
+        /*if (index.column() == PLAYLIST_TRACK) {
+            refresh();
+            const auto current_index = proxy_model_->mapToSource(index);
+            const auto entity = getEntity(current_index);
+            switch (entity.playing) {
+            case PlayingState::PLAY_CLEAR:
+                playItem(index);
+                break;
+            case PlayingState::PLAY_PLAYING:
+                pauseItem(index);
+                break;
+            case PlayingState::PLAY_PAUSE:
+                playItem(index);
+                break;
+            }
+        }*/
+        });
+
     (void)QObject::connect(this, &QTableView::doubleClicked, [this](const QModelIndex& index) {
-        const auto current_index = proxy_model_->mapToSource(index);
-        setNowPlaying(current_index);
-        const auto play_item = getEntity(current_index);
-        emit playMusic(play_item);
+        playItem(index);
     });
 
     setContextMenuPolicy(Qt::CustomContextMenu);
@@ -495,6 +537,21 @@ void PlayListTableView::initial() {
     ));
 }
 
+void PlayListTableView::pauseItem(const QModelIndex& index) {
+    const auto current_index = proxy_model_->mapToSource(index);
+    const auto entity = getEntity(current_index);
+    qDatabase.setNowPlayingState(playlistId(), entity.playlist_music_id, PlayingState::PLAY_PAUSE);
+    refresh();
+    update();
+}
+
+void PlayListTableView::playItem(const QModelIndex& index) {
+    const auto current_index = proxy_model_->mapToSource(index);
+    setNowPlaying(current_index);
+    const auto play_item = getEntity(current_index);
+    emit playMusic(play_item);
+}
+
 bool PlayListTableView::isPodcastMode() const {
     return podcast_mode_;
 }
@@ -633,21 +690,21 @@ void PlayListTableView::resizeEvent(QResizeEvent* event) {
 void PlayListTableView::mouseMoveEvent(QMouseEvent* event) {
     QTableView::mouseMoveEvent(event);
 
-    QModelIndex index = indexAt(event->pos());
-    auto oldHoverRow = hover_row_;
-    auto oldHoverColumn = hover_column_;
+    const auto index = indexAt(event->pos());
+    const auto old_hover_row = hover_row_;
+    const auto old_hover_column = hover_column_;
     hover_row_ = index.row();
     hover_column_ = index.column();
 
-    if (selectionBehavior() == SelectRows && oldHoverRow != hover_row_) {
-        for (int i = 0; i < model()->columnCount(); ++i)
+    if (selectionBehavior() == SelectRows && old_hover_row != hover_row_) {
+        for (auto i = 0; i < model()->columnCount(); ++i)
             update(model()->index(hover_row_, i));
     }
 
-    if (selectionBehavior() == SelectColumns && oldHoverColumn != hover_column_) {
-        for (int i = 0; i < model()->rowCount(); ++i) {
+    if (selectionBehavior() == SelectColumns && old_hover_column != hover_column_) {
+        for (auto i = 0; i < model()->rowCount(); ++i) {
             update(model()->index(i, hover_column_));
-            update(model()->index(i, oldHoverColumn));
+            update(model()->index(i, old_hover_column));
         }
     }
 }
@@ -780,7 +837,8 @@ void PlayListTableView::setNowPlaying(const QModelIndex& index, bool is_scroll_t
         QTableView::scrollTo(play_index_, PositionAtCenter);
     }
     const auto entity = getEntity(play_index_);
-    qDatabase.setNowPlaying(playlist_id_, entity.playlist_music_id);
+    qDatabase.clearNowPlaying(playlist_id_);
+    qDatabase.setNowPlayingState(playlist_id_, entity.playlist_music_id, PlayingState::PLAY_PLAYING);
     refresh();
     update();
 }
@@ -827,8 +885,8 @@ void PlayListTableView::play(const QModelIndex& index) {
 }
 
 void PlayListTableView::removePlaying() {
-    qDatabase.clearNowPlaying(playlist_id_);
-    updateData();
+    /*qDatabase.clearNowPlaying(playlist_id_);
+    updateData();*/
 }
 
 void PlayListTableView::removeAll() {

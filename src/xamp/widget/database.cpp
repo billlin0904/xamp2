@@ -223,29 +223,38 @@ void Database::createTableIfNotExist() {
 	}
 }
 
+void Database::clearNowPlayingSkipMusicId(int32_t playlist_id, int32_t skip_playlist_music_id) {
+	QSqlQuery query;
+	query.prepare(Q_TEXT("UPDATE playlistMusics SET playing = :playing WHERE (playlistMusicsId != :skipPlaylistMusicsId)"));
+	query.bindValue(Q_TEXT(":playing"), PlayingState::PLAY_CLEAR);
+	query.bindValue(Q_TEXT(":playlistId"), playlist_id);
+	query.bindValue(Q_TEXT(":skipPlaylistMusicsId"), skip_playlist_music_id);
+	IfFailureThrow1(query);
+}
+
 void Database::clearNowPlaying(int32_t playlist_id) {
 	QSqlQuery query;
-	query.prepare(Q_TEXT("UPDATE playlistMusics SET playing = 0"));
+	query.prepare(Q_TEXT("UPDATE playlistMusics SET playing = :playing"));
+	query.bindValue(Q_TEXT(":playing"), PlayingState::PLAY_CLEAR);
 	query.bindValue(Q_TEXT(":playlistId"), playlist_id);
+	IfFailureThrow1(query);
+}
+
+void Database::setNowPlayingState(int32_t playlist_id, int32_t playlist_music_id, PlayingState playing) {
+	QSqlQuery query;
+	query.prepare(Q_TEXT("UPDATE playlistMusics SET playing = :playing WHERE (playlistId = :playlistId AND playlistMusicsId = :playlistMusicsId)"));
+	query.bindValue(Q_TEXT(":playing"), playing);
+	query.bindValue(Q_TEXT(":playlistId"), playlist_id);
+	query.bindValue(Q_TEXT(":playlistMusicsId"), playlist_music_id);
 	IfFailureThrow1(query);
 }
 
 void Database::clearNowPlaying(int32_t playlist_id, int32_t playlist_music_id) {
-	QSqlQuery query;
-	query.prepare(Q_TEXT("UPDATE playlistMusics SET playing = 0 WHERE (playlistId = :playlistId AND playlistMusicsId = :playlistMusicsId)"));
-	query.bindValue(Q_TEXT(":playlistId"), playlist_id);
-	query.bindValue(Q_TEXT(":playlistMusicsId"), playlist_music_id);
-	IfFailureThrow1(query);
+	setNowPlayingState(playlist_id, playlist_music_id, PlayingState::PLAY_CLEAR);
 }
 
 void Database::setNowPlaying(int32_t playlist_id, int32_t playlist_music_id) {
-	clearNowPlaying(playlist_id);
-
-	QSqlQuery query;
-	query.prepare(Q_TEXT("UPDATE playlistMusics SET playing = 1 WHERE (playlistId = :playlistId AND playlistMusicsId = :playlistMusicsId)"));
-	query.bindValue(Q_TEXT(":playlistId"), playlist_id);
-	query.bindValue(Q_TEXT(":playlistMusicsId"), playlist_music_id);
-	IfFailureThrow1(query);
+	setNowPlayingState(playlist_id, playlist_music_id, PlayingState::PLAY_PLAYING);
 }
 
 void Database::removePlaylistMusics(int32_t music_id) {
