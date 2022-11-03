@@ -31,7 +31,7 @@ private:
 
 	union {
 		mutable uint64_t current_word;
-		mutable uint8_t current_bytes[8];
+		mutable uint8_t current_bytes[8]{};
 	};
 };
 

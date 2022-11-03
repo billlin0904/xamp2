@@ -373,7 +373,6 @@ void Xamp::initialUI() {
         ui_.minWinButton->hide();
         ui_.horizontalLayout->removeItem(ui_.horizontalSpacer_15);        
     } else {
-        f.setBold(true);
         f.setPointSize(10);
         ui_.titleFrameLabel->setFont(f);
         ui_.titleFrameLabel->setText(Q_TEXT("XAMP2"));

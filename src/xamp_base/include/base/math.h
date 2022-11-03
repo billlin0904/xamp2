@@ -7,10 +7,24 @@
 
 #include <cmath>
 #include <complex>
+#include <algorithm>
+
 #include <base/base.h>
 #include <base/memory.h>
 
 namespace xamp::base {
+
+template <size_t N>
+constexpr std::array<uint64_t, N> Splitmix64(uint64_t state) noexcept {
+	std::array<uint64_t, N> seeds = {};
+	std::generate(seeds.begin(), seeds.end(), [state]() mutable noexcept {
+		uint64_t z = (state += UINT64_C(0x9e3779b97f4a7c15));
+		z = (z ^ (z >> 30)) * UINT64_C(0xbf58476d1ce4e5b9);
+		z = (z ^ (z >> 27)) * UINT64_C(0x94d049bb133111eb);
+		return z ^ (z >> 31);
+		});
+	return seeds;
+}
 
 template <typename T>
 static XAMP_ALWAYS_INLINE T FromUnaligned(const void* address) {
@@ -20,8 +34,12 @@ static XAMP_ALWAYS_INLINE T FromUnaligned(const void* address) {
 	return res;
 }
 
-static XAMP_ALWAYS_INLINE uint64_t Rotl(const uint64_t x, int32_t shift) noexcept {
+static XAMP_ALWAYS_INLINE uint64_t Rotl64(const uint64_t x, uint32_t shift) noexcept {
     return (x << shift) | (x >> (64 - shift));
+}
+
+static XAMP_ALWAYS_INLINE uint32_t Rotl32(const uint32_t x, uint32_t shift) noexcept {
+	return (x << shift) | (x >> (32 - shift));
 }
 
 static XAMP_ALWAYS_INLINE int32_t NextPowerOfTwo(int32_t v) noexcept {

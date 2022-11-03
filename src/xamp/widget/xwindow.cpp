@@ -119,7 +119,7 @@ void XWindow::setContentWidget(IXPlayerFrame *content_widget) {
         win32::addDwmShadow(winId());
     }
     taskbar_.reset(new win32::WinTaskbar(this, player_frame_));
-    last_rect_ = win32::getWindowRect(winId());
+    last_rect_ = win32::windowRect(winId());
 #else
     if (!qTheme.useNativeWindow()) {
         if (player_frame_ != nullptr) {
@@ -145,7 +145,7 @@ XWindow::~XWindow() = default;
 
 void XWindow::saveGeometry() {
 #if defined(Q_OS_WIN) 
-    AppSettings::setValue(kAppSettingGeometry, win32::getWindowRect(winId()));
+    AppSettings::setValue(kAppSettingGeometry, win32::windowRect(winId()));
     AppSettings::setValue(kAppSettingWindowState, isMaximized());
     AppSettings::setValue(kAppSettingScreenNumber, screen_number_);
     XAMP_LOG_INFO("restoreGeometry: ({}, {}, {}, {})", last_rect_.x(), last_rect_.y(), last_rect_.width(), last_rect_.height());
@@ -627,7 +627,7 @@ void XWindow::mouseMoveEvent(QMouseEvent* event) {
         move(event->globalPos() - last_pos_);
     }
 
-    last_rect_ = win32::getWindowRect(winId());
+    last_rect_ = win32::windowRect(winId());
 
     if (!player_frame_) {
         return;

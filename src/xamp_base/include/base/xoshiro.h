@@ -19,18 +19,6 @@ namespace xamp::base {
 
 inline constexpr uint64_t kXoshiroDefaultSeed = UINT64_C(1234567890);
 
-template <size_t N>
-constexpr std::array<uint64_t, N> Splitmix64(uint64_t state) noexcept {
-    std::array<uint64_t, N> seeds = {};
-    std::generate(seeds.begin(), seeds.end(), [state]() mutable noexcept {
-        uint64_t z = (state += UINT64_C(0x9e3779b97f4a7c15));
-        z = (z ^ (z >> 30)) * UINT64_C(0xbf58476d1ce4e5b9);
-        z = (z ^ (z >> 27)) * UINT64_C(0x94d049bb133111eb);
-        return z ^ (z >> 31);
-        });
-    return seeds;
-}
-
 inline constexpr std::array<uint64_t, 4> kJump{
     UINT64_C(0x180ec6d33cfd0aba),
     UINT64_C(0xd5a61266f0c9392c),
@@ -59,14 +47,14 @@ public:
     }
 
     /*constexpr*/ result_type operator()() noexcept {
-        const auto result = Rotl(state_[1] * 5, 7) * 9;
+        const auto result = Rotl64(state_[1] * 5, 7) * 9;
         const auto t = state_[1] << 17;
         state_[2] ^= state_[0];
         state_[3] ^= state_[1];
         state_[1] ^= state_[2];
         state_[0] ^= state_[3];
         state_[2] ^= t;
-        state_[3] = Rotl(state_[3], 45);
+        state_[3] = Rotl64(state_[3], 45);
         return result;
     }
 
@@ -125,15 +113,15 @@ public:
     static constexpr result_type(max)() noexcept {
         return (std::numeric_limits<result_type>::max)();
     }
-
-    friend bool operator ==(const Xoshiro256StarStarEngine& lhs, const Xoshiro256StarStarEngine& rhs) noexcept {
+private:
+    XAMP_BASE_API friend bool operator ==(const Xoshiro256StarStarEngine& lhs, const Xoshiro256StarStarEngine& rhs) noexcept {
         return (lhs.state_ == rhs.state_);
     }
 
-    friend bool operator !=(const Xoshiro256StarStarEngine& lhs, const Xoshiro256StarStarEngine& rhs) noexcept {
+    XAMP_BASE_API friend bool operator !=(const Xoshiro256StarStarEngine& lhs, const Xoshiro256StarStarEngine& rhs) noexcept {
         return (lhs.state_ != rhs.state_);
     }
-private:
+
     state_type state_;
 };
 
@@ -154,7 +142,7 @@ public:
         state_[1] ^= state_[2];
         state_[0] ^= state_[3];
         state_[2] ^= t;
-        state_[3] = Rotl(state_[3], 45);
+        state_[3] = Rotl64(state_[3], 45);
         return result;
     }
 
@@ -218,14 +206,14 @@ public:
         return (std::numeric_limits<result_type>::max)();
     }
 
-    friend bool operator ==(const Xoshiro256PlusEngine& lhs, const Xoshiro256PlusEngine& rhs) noexcept {
+private:
+    XAMP_BASE_API friend bool operator ==(const Xoshiro256PlusEngine& lhs, const Xoshiro256PlusEngine& rhs) noexcept {
         return (lhs.state_ == rhs.state_);
     }
 
-    friend bool operator !=(const Xoshiro256PlusEngine& lhs, const Xoshiro256PlusEngine& rhs) noexcept {
+    XAMP_BASE_API friend bool operator !=(const Xoshiro256PlusEngine& lhs, const Xoshiro256PlusEngine& rhs) noexcept {
         return (lhs.state_ != rhs.state_);
     }
-private:
     state_type state_;
 };
 
@@ -239,14 +227,14 @@ public:
     }
 
     /*constexpr*/ result_type operator()() noexcept {
-        const auto result = Rotl(state_[0] + state_[3], 23) + state_[0];
+        const auto result = Rotl64(state_[0] + state_[3], 23) + state_[0];
         const auto t = state_[1] << 17;
         state_[2] ^= state_[0];
         state_[3] ^= state_[1];
         state_[1] ^= state_[2];
         state_[0] ^= state_[3];
         state_[2] ^= t;
-        state_[3] = Rotl(state_[3], 45);
+        state_[3] = Rotl64(state_[3], 45);
         return result;
     }
 
@@ -310,14 +298,14 @@ public:
         return (std::numeric_limits<result_type>::max)();
     }
 
-    friend bool operator ==(const Xoshiro256PlusPlusEngine& lhs, const Xoshiro256PlusPlusEngine& rhs) noexcept {
+private:
+    XAMP_BASE_API friend bool operator ==(const Xoshiro256PlusPlusEngine& lhs, const Xoshiro256PlusPlusEngine& rhs) noexcept {
         return (lhs.state_ == rhs.state_);
     }
 
-    friend bool operator !=(const Xoshiro256PlusPlusEngine& lhs, const Xoshiro256PlusPlusEngine& rhs) noexcept {
+    XAMP_BASE_API friend bool operator !=(const Xoshiro256PlusPlusEngine& lhs, const Xoshiro256PlusPlusEngine& rhs) noexcept {
         return (lhs.state_ != rhs.state_);
     }
-private:
     state_type state_;
 };
 

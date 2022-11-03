@@ -285,7 +285,7 @@ PreferencePage::PreferencePage(QWidget *parent)
 
 	auto * available_dsp_model = new QStandardItemModel(this);
 	adapter = MakeAlign<FoobarDspAdapter>();
-	for (auto dsp_name : adapter->GetAvailableDSPs()) {
+	for (const auto& dsp_name : adapter->GetAvailableDSPs()) {
 		available_dsp_model->appendRow(new QStandardItem(QString::fromStdString(dsp_name)));
 	}	
 	ui_.availableDSPListView->setModel( available_dsp_model);
@@ -383,7 +383,7 @@ PreferencePage::PreferencePage(QWidget *parent)
         qPixmapCache.setMaxSize(value);
         AppSettings::setValue(kAppSettingAlbumImageCacheSize, value);
     });
-
+		
 	setStyleSheet(Q_TEXT(R"(
 			QFrame#PreferenceDialog { 
 				background-color: transparent;
@@ -395,9 +395,9 @@ PreferencePage::PreferencePage(QWidget *parent)
 				background-color: transparent;
             }
             )"));
+	ui_.preferenceTreeWidget->setStyleSheet(Q_TEXT("QTreeView { background: transparent; }"));
 
 	/*
-	ui_.preferenceTreeWidget->setStyleSheet(Q_TEXT("QTreeView { background: transparent; }"));
 	ui_.playbackPage->setStyleSheet(Q_TEXT("background-color: transparent;"));
 	ui_.noneResamplerPage->setStyleSheet(Q_TEXT("background-color: transparent;"));
 	ui_.soxrResamplerPage->setStyleSheet(Q_TEXT("background-color: transparent;"));

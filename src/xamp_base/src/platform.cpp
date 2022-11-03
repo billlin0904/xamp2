@@ -470,7 +470,7 @@ bool ExtendProcessWorkingSetSize(size_t size) noexcept {
     return ::SetProcessWorkingSetSize(current_process.get(), minimum, maximum);
 }
 
-static bool EnablePrivilege(std::string_view privilege, bool enable) noexcept {
+bool EnablePrivilege(std::string_view privilege, bool enable) noexcept {
     const WinHandle current_process(::GetCurrentProcess());
 
     WinHandle token;

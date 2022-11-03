@@ -642,7 +642,7 @@ static void BM_Builtin_Rotl(benchmark::State& state) {
 
 static void BM_Rotl(benchmark::State& state) {
     for (auto _ : state) {
-        auto result = Rotl(0x76e15d3efefdcbbf, 7);
+        auto result = Rotl64(0x76e15d3efefdcbbf, 7);
         benchmark::DoNotOptimize(result);
         benchmark::ClobberMemory();
     }

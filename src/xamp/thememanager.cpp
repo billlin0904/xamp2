@@ -175,13 +175,6 @@ QIcon ThemeManager::iconFromFont(const QChar& code) const {
     return qFontIcon.icon(code);
 }
 
-QIcon ThemeManager::makeIcon(const QString &path) const {
-    QIcon icon;
-    icon.addPixmap(path.arg(themeColorPath()), QIcon::Normal);
-    icon.addPixmap(path.arg(themeColorPath()), QIcon::Selected);
-    return icon;
-}
-
 QIcon ThemeManager::folderIcon() const {
     return iconFromFont(IconCode::ICON_Folder);
 }
@@ -546,7 +539,7 @@ void ThemeManager::setThemeIcon(Ui::XampWindow& ui) const {
                                          background-color: transparent;
                                          }
                                          )"));
-    ui.stopButton->setIcon(iconFromFont(ICON_Stop));
+    ui.stopButton->setIcon(iconFromFont(ICON_StopPlay));
 
     ui.nextButton->setStyleSheet(Q_TEXT(R"(
                                         QToolButton#nextButton {
@@ -678,7 +671,6 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
     QLabel#titleFrameLabel {
     border: none;
     background: transparent;
-	color: gray;
     }
     )"));
 

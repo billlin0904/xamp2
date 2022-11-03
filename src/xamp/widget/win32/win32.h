@@ -49,20 +49,17 @@ private:
     QWinTaskbarProgress* taskbar_progress_;
 };
 
-void setAccentPolicy(const WId window_id, bool enable = true, int animation_id = 0);
-void setFramelessWindowStyle(const WId window_id);
-void setWindowedWindowStyle(const WId window_id);
-void setTitleBarColor(const WId window_id, QColor color);
-void frameChange(const WId window_id);
-void addDwmShadow(const WId window_id);
-void addDwmMenuShadow(const WId window_id);
-void removeStandardFrame(void* message);
-void setResizeable(void* message);
-bool isWindowMaximized(const WId window_id);
-bool compositionEnabled();
-QRect getWindowRect(const WId window_id);
-QColor colorizationColor();
-bool isDarkModeAppEnabled();
+void setAccentPolicy(const WId window_id, bool enable = true, int animation_id = 0) noexcept;
+void setFramelessWindowStyle(const WId window_id) noexcept;
+void setWindowedWindowStyle(const WId window_id) noexcept;
+void setTitleBarColor(const WId window_id, QColor color) noexcept;
+void addDwmShadow(const WId window_id) noexcept;
+void addDwmMenuShadow(const WId window_id) noexcept;
+bool isWindowMaximized(const WId window_id) noexcept;
+bool compositionEnabled() noexcept;
+QRect windowRect(const WId window_id) noexcept;
+QColor colorizationColor() noexcept;
+bool isDarkModeAppEnabled() noexcept;
 
 }
 

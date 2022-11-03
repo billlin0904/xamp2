@@ -160,6 +160,7 @@
     <ClInclude Include="include\base\assert.h" />
     <ClInclude Include="include\base\blocking_queue.h" />
     <ClInclude Include="include\base\buffer.h" />
+    <ClInclude Include="include\base\chachaengine.h" />
     <ClInclude Include="include\base\crashhandler.h" />
     <ClInclude Include="include\base\encodingprofile.h" />
     <ClInclude Include="include\base\enum.h" />
@@ -179,6 +180,7 @@
     <ClInclude Include="include\base\shared_singleton.h" />
     <ClInclude Include="include\base\simd.h" />
     <ClInclude Include="include\base\scopeguard.h" />
+    <ClInclude Include="include\base\singleton.h" />
     <ClInclude Include="include\base\siphash.h" />
     <ClInclude Include="include\base\spinlock.h" />
     <ClInclude Include="include\base\spsc_queue.h" />
@@ -219,6 +221,7 @@
   <ItemGroup>
     <ClCompile Include="src\align_ptr.cpp" />
     <ClCompile Include="src\audioformat.cpp" />
+    <ClCompile Include="src\chachaengine.cpp" />
     <ClCompile Include="src\crashhandler.cpp" />
     <ClCompile Include="src\dataconverter.cpp" />
     <ClCompile Include="src\dll.cpp" />

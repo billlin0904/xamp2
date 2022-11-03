@@ -6,10 +6,10 @@ namespace xamp::base {
 #define SIPROUND                                                          \
     do                                                                    \
     {                                                                     \
-        v0_ += v1_; v1_ = Rotl(v1_, 13); v1_ ^= v0_; v0_ = Rotl(v0_, 32); \
-        v2_ += v3_; v3_ = Rotl(v3_, 16); v3_ ^= v2_;                      \
-        v0_ += v3_; v3_ = Rotl(v3_, 21); v3_ ^= v0_;                      \
-        v2_ += v1_; v1_ = Rotl(v1_, 17); v1_ ^= v2_; v2_ = Rotl(v2_, 32); \
+        v0_ += v1_; v1_ = Rotl64(v1_, 13); v1_ ^= v0_; v0_ = Rotl64(v0_, 32); \
+        v2_ += v3_; v3_ = Rotl64(v3_, 16); v3_ ^= v2_;                      \
+        v0_ += v3_; v3_ = Rotl64(v3_, 21); v3_ ^= v0_;                      \
+        v2_ += v1_; v1_ = Rotl64(v1_, 17); v1_ ^= v2_; v2_ = Rotl64(v2_, 32); \
     } while(0)
 
 #if 0 // __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__

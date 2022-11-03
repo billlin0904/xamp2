@@ -48,7 +48,7 @@ enum IconCode {
     ICON_LeftArrow = 0xEC52,
     ICON_Artist = 0xE716,
     ICON_Subtitle = 0xED1E,
-    ICON_Preference = 0xF8A6,
+    ICON_Preference = 0xE713,
     ICON_About = 0xF167,
     ICON_DarkMode = 0xEC46,
     ICON_LightMode = 0xF08C,
@@ -65,7 +65,7 @@ enum IconCode {
     ICON_SliderBar = 0xE700,
     ICON_Play = 0xF5B0,
     ICON_Pause = 0xF8AE,
-    ICON_Stop = 0xE978,
+    ICON_StopPlay = 0xE978,
     ICON_PlayNext = 0xF8AD,
     ICON_PlayPrev = 0xF8AC,
     ICON_More = 0xE712,
@@ -220,8 +220,6 @@ private:
     void installFileFont(const QString& file_name, QList<QString>& ui_fallback_fonts);
 
     void setPalette();
-
-    QIcon makeIcon(const QString& path) const;
 
     ThemeManager();
     
