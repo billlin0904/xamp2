@@ -11,6 +11,10 @@
 Toast::Toast(QWidget* parent)
 	: QWidget(parent) {
 	ui.setupUi(this);
+	QFont f(Q_TEXT("DisplayFont"));
+	f.setWeight(QFont::DemiBold);
+	f.setPointSize(10);
+	setFont(f);
 	setWindowFlags(windowFlags() | Qt::FramelessWindowHint | Qt::Tool);
 	setAttribute(Qt::WA_TranslucentBackground, true);
 	setAttribute(Qt::WA_StyledBackground, true);
@@ -61,7 +65,7 @@ void Toast::paintEvent(QPaintEvent* /*event*/) {
 	auto kBackgroundColor = QColor(228, 233, 237);
 
 	QPainter paint(this);	
-	kBackgroundColor.setAlpha(0.0 * 255);
+	kBackgroundColor.setAlpha(0.9 * 255);
 
 	paint.setRenderHint(QPainter::Antialiasing, true);
 	paint.setPen(Qt::NoPen);

@@ -47,28 +47,41 @@ void ThemeManager::installFileFont(const QString& file_name, QList<QString> &ui_
 }
 
 QFont ThemeManager::loadFonts() {
-    QList<QString> format_font_families;
+    QList<QString> format_font;
     QList<QString> mono_fonts;
-    QList<QString> ui_fallback_fonts;
+    QList<QString> display_fonts;
+    QList<QString> ui_fonts;
 
     qFontIcon.addFont(fontNamePath(Q_TEXT("SegoeFluentIcons.ttf")));
 
     installFileFont(Q_TEXT("RobotoMono-Regular.ttf"), mono_fonts);
-    installFileFont(Q_TEXT("Karla-Regular.ttf"), format_font_families);
+    installFileFont(Q_TEXT("Karla-Regular.ttf"), format_font);
 
-    installFileFont(Q_TEXT("WorkSans-Regular.ttf"), ui_fallback_fonts);
-    installFileFont(Q_TEXT("WorkSans-Bold.ttf"), ui_fallback_fonts);
+    //installFileFont(Q_TEXT("WorkSans-Regular.ttf"), ui_fonts);
+    //installFileFont(Q_TEXT("WorkSans-Bold.ttf"), ui_fonts);
 
-    installFileFont(Q_TEXT("HarmonyOS_Sans_TC_Regular.ttf"), ui_fallback_fonts);
-    installFileFont(Q_TEXT("HarmonyOS_Sans_TC_Bold.ttf"), ui_fallback_fonts);
-    installFileFont(Q_TEXT("HarmonyOS_Sans_SC_Regular.ttf"), ui_fallback_fonts);
-    installFileFont(Q_TEXT("HarmonyOS_Sans_SC_Bold.ttf"), ui_fallback_fonts);
+    installFileFont(Q_TEXT("HarmonyOS_Sans_TC_Regular.ttf"), ui_fonts);
+    installFileFont(Q_TEXT("HarmonyOS_Sans_TC_Bold.ttf"), ui_fonts);
+    installFileFont(Q_TEXT("HarmonyOS_Sans_SC_Regular.ttf"), ui_fonts);
+    installFileFont(Q_TEXT("HarmonyOS_Sans_SC_Bold.ttf"), ui_fonts);
 
-    QFont::insertSubstitutions(Q_TEXT("FormatFont"), format_font_families);
+    /*installFileFont(Q_TEXT("MiSans-Bold.ttf"), ui_fonts);
+    installFileFont(Q_TEXT("MiSans-Demibold.ttf"), ui_fonts);
+    installFileFont(Q_TEXT("MiSans-Semibold.ttf"), ui_fonts);
+    installFileFont(Q_TEXT("MiSans-Medium.ttf"), ui_fonts);
+    installFileFont(Q_TEXT("MiSans-Normal.ttf"), ui_fonts);
+    installFileFont(Q_TEXT("MiSans-Regular.ttf"), ui_fonts);*/
+
+    if (display_fonts.isEmpty()) {
+        display_fonts = ui_fonts;
+    }
+
+    QFont::insertSubstitutions(Q_TEXT("DisplayFont"), display_fonts);
+    QFont::insertSubstitutions(Q_TEXT("FormatFont"), format_font);
     QFont::insertSubstitutions(Q_TEXT("MonoFont"), mono_fonts);
-    QFont::insertSubstitutions(Q_TEXT("UI"), ui_fallback_fonts);
+    QFont::insertSubstitutions(Q_TEXT("UIFont"), ui_fonts);
 
-    QFont ui_font(Q_TEXT("UI"));
+    QFont ui_font(Q_TEXT("UIFont"));
     ui_font.setStyleStrategy(QFont::PreferAntialias);
     return ui_font;
 }

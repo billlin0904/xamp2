@@ -213,7 +213,6 @@ private:
 	AboutPage* about_page_;
 	XMenu* tray_icon_menu_;
     QSystemTrayIcon* tray_icon_;
-	QAction* search_action_;
 	IXWindow* top_window_;
 	ToolTipsFilter* tool_tips_filter_;
 	BackgroundWorker* background_worker_;

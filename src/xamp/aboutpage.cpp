@@ -12,12 +12,12 @@ AboutPage::AboutPage(QWidget* parent)
 
     ui.lblLogo->setPixmap(qTheme.appIcon().pixmap(128, 128));
 
-    QFont font(Q_TEXT("UI"));
-    font.setBold(true);
-    font.setPointSizeF(26);
+    QFont dp_font(Q_TEXT("DisplayFont"));
+    dp_font.setBold(true);
+    dp_font.setPointSizeF(26);
 
-    ui.lblProjectTitle->setFont(font);
-    ui.lblProjectTitle->setText(tr("XAMP2"));
+    ui.lblProjectTitle->setFont(dp_font);
+    ui.lblProjectTitle->setText(Q_TEXT("XAMP2"));
     ui.lblProjectTitle->setStyleSheet(Q_TEXT("QLabel#lblProjectTitle { border: none; background: transparent; }"));
 
     ui.lblDescription->setText(Q_TEXT("Cross-platform native DSD and low latency playback music player."));
@@ -27,6 +27,7 @@ AboutPage::AboutPage(QWidget* parent)
     ui.lbIGithubIcon->setPixmap(qTheme.githubIcon());
     ui.lblCopying->setText(QString::fromStdWString(L"Copyright \u00A9 2018-2022 XAMP2 Project."));
 
+    QFont font(Q_TEXT("UIFont"));
     font.setBold(false);
     font.setPointSize(10);
     ui.txtBws->setFont(font);

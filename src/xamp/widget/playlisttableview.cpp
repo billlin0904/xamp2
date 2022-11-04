@@ -825,7 +825,7 @@ QModelIndex PlayListTableView::nextIndex(int forward) const {
 
 QModelIndex PlayListTableView::shuffeIndex() {    
     const auto count = proxy_model_->rowCount();
-    const auto selected = rng_.NextInt64(0) % count;
+    const auto selected = rng_.NextInt32(0) % count;
     return model()->index(selected, PLAYLIST_PLAYING);
 }
 
@@ -885,8 +885,8 @@ void PlayListTableView::play(const QModelIndex& index) {
 }
 
 void PlayListTableView::removePlaying() {
-    /*qDatabase.clearNowPlaying(playlist_id_);
-    updateData();*/
+    qDatabase.clearNowPlaying(playlist_id_);
+    updateData();
 }
 
 void PlayListTableView::removeAll() {

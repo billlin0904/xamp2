@@ -361,39 +361,40 @@ void Xamp::cleanup() {
 }
 
 void Xamp::initialUI() {
-    auto f = font();
+    QFont f(Q_TEXT("DisplayFont"));
+    f.setWeight(QFont::DemiBold);
     f.setPointSize(10);
     ui_.titleLabel->setFont(f);
+    f.setWeight(QFont::Normal);
     f.setPointSize(8);
     ui_.artistLabel->setFont(f);
+
     if (qTheme.useNativeWindow()) {
         ui_.closeButton->hide();
         ui_.maxWinButton->hide();
         ui_.minWinButton->hide();
         ui_.horizontalLayout->removeItem(ui_.horizontalSpacer_15);        
     } else {
+        f.setWeight(QFont::DemiBold);
         f.setPointSize(10);
         ui_.titleFrameLabel->setFont(f);
         ui_.titleFrameLabel->setText(Q_TEXT("XAMP2"));
         ui_.titleFrameLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     }
+
+    QFont mono_font(Q_TEXT("MonoFont"));
 #ifdef Q_OS_WIN
-    f.setPointSize(8);
-    ui_.startPosLabel->setFont(f);
-    ui_.endPosLabel->setFont(f);
+    mono_font.setPointSize(8);
+    ui_.startPosLabel->setFont(mono_font);
+    ui_.endPosLabel->setFont(mono_font);
 #else
     f.setPointSize(9);
-    ui_.startPosLabel->setFont(f);
-    ui_.endPosLabel->setFont(f);
-
-    f.setPointSize(11);
-    ui_.titleLabel->setFont(f);
-    f.setPointSize(10);
-    ui_.artistLabel->setFont(f);
+    ui_.startPosLabel->setFont(mono_font);
+    ui_.endPosLabel->setFont(mono_font);
 #endif
 
-    search_action_ = ui_.searchLineEdit->addAction(qTheme.seachIcon(),
-                                                   QLineEdit::LeadingPosition);
+    ui_.searchLineEdit->addAction(qTheme.seachIcon(), 
+        QLineEdit::LeadingPosition);
     top_window_->setTitleBarAction(ui_.titleFrame);
 }
 
@@ -427,7 +428,7 @@ QWidgetAction* Xamp::createTextSeparator(const QString& desc) {
 
     desc_label->setObjectName(Q_TEXT("textSeparator"));
 
-    QFont f(Q_TEXT("FormatFont"));
+    QFont f(Q_TEXT("DisplayFont"));
     f.setPointSize(10);
     f.setBold(true);
     desc_label->setFont(f);

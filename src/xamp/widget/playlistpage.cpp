@@ -53,7 +53,7 @@ void PlaylistPage::initial() {
 	album_title_layout->setContentsMargins(0, 5, -1, -1);
     title_ = new ScrollLabel(this);
 	auto f = font();
-	f.setBold(true);
+	f.setWeight(QFont::DemiBold);
 	f.setPointSize(22);
 	title_->setFont(f);
 	title_->setObjectName(QString::fromUtf8("label_2"));
@@ -61,6 +61,8 @@ void PlaylistPage::initial() {
 	title_->setMaximumSize(QSize(16777215, 40));
 
 	format_ = new QLabel(this);
+	QFont format_font(Q_TEXT("FormatFont"));
+	format_->setFont(format_font);
 
 	album_title_layout->addWidget(title_);
 
