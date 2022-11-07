@@ -33,7 +33,7 @@ PixmapCache::PixmapCache()
 	if (!AppSettings::contains(kAppSettingAlbumImageCachePath)) {
 		const List<QString> paths{
 			AppSettings::defaultCachePath() + Q_TEXT("/caches/"),
-			Q_TEXT("/caches/")
+            QDir::currentPath() + Q_TEXT("/caches/")
 		};
 
 		Q_FOREACH(auto path, paths) {

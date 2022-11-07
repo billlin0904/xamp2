@@ -207,7 +207,7 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
     dirs.reserve(100);
 
     const auto is_accept = [&dirs](auto path) {
-        return Fs::is_directory(path) && !dirs.contains(path);
+        return Fs::is_directory(path) && dirs.find(path) == dirs.end();
     };
     const auto walk = [&dirs](auto path) {
         dirs.emplace(path);

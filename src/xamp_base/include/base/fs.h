@@ -8,6 +8,17 @@
 #include <base/base.h>
 #include <filesystem>
 
+#ifdef XAMP_OS_MAC
+namespace std {
+template <>
+struct hash<filesystem::path> {
+    size_t operator()(const filesystem::path& p) const noexcept {
+        return filesystem::hash_value(p);
+    }
+};
+}
+#endif
+
 namespace xamp::base {
 
 namespace Fs = std::filesystem;
