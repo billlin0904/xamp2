@@ -37,8 +37,25 @@
 #include <widget/fonticon.h>
 #include <widget/playlisttableview.h>
 
+class AlignCenterStyledItemDelegate : public QStyledItemDelegate {
+public:
+    using QStyledItemDelegate::QStyledItemDelegate;
+
+    explicit AlignCenterStyledItemDelegate(QObject* parent = nullptr)
+        : QStyledItemDelegate(parent) {
+    }
+
+protected:
+    void initStyleOption(QStyleOptionViewItem* option, const QModelIndex& index) const override {
+        QStyledItemDelegate::initStyleOption(option, index);
+        option->decorationAlignment = Qt::AlignCenter;
+    }
+};
+
 class StyledItemDelegate final : public QStyledItemDelegate {
 public:
+    using QStyledItemDelegate::QStyledItemDelegate;
+
     explicit StyledItemDelegate(QObject* parent = nullptr)
         : QStyledItemDelegate(parent) {
     }
@@ -246,10 +263,11 @@ void PlayListTableView::initial() {
 
     auto f = font();
 #ifdef Q_OS_WIN
-    f.setPointSize(10);
+    f.setPointSize(8);
 #else
     f.setPointSize(14);
 #endif
+    f.setWeight(QFont::Weight::Light);
     setFont(f);
 
     setUpdatesEnabled(true);
@@ -283,6 +301,7 @@ void PlayListTableView::initial() {
 
     start_delegate_ = new StarDelegate(this);
     setItemDelegateForColumn(PLAYLIST_RATING, start_delegate_);
+    setItemDelegateForColumn(PLAYLIST_TRACK, new AlignCenterStyledItemDelegate());
 
     (void)QObject::connect(start_delegate_, &StarDelegate::commitData, [this](auto editor) {
         auto start_editor = qobject_cast<StarEditor*>(editor);

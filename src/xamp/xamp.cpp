@@ -376,7 +376,7 @@ void Xamp::initialUI() {
         ui_.horizontalLayout->removeItem(ui_.horizontalSpacer_15);        
     } else {
         f.setWeight(QFont::DemiBold);
-        f.setPointSize(10);
+        f.setPointSize(8);
         ui_.titleFrameLabel->setFont(f);
         ui_.titleFrameLabel->setText(Q_TEXT("XAMP2"));
         ui_.titleFrameLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
@@ -429,7 +429,7 @@ QWidgetAction* Xamp::createTextSeparator(const QString& desc) {
     desc_label->setObjectName(Q_TEXT("textSeparator"));
 
     QFont f(Q_TEXT("DisplayFont"));
-    f.setPointSize(10);
+    f.setPointSize(8);
     f.setBold(true);
     desc_label->setFont(f);
 

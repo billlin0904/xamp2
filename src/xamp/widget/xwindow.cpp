@@ -211,10 +211,13 @@ void XWindow::restoreGeometry() {
         screen_number_ = AppSettings::getValue(kAppSettingScreenNumber).toUInt();
         if (screen_number_ != 1) {
             if (QGuiApplication::screens().size() <= screen_number_) {
-                auto screen_index = screen_number_ - 1;
-                auto screenres = QGuiApplication::screens().at(screen_index)->availableGeometry();
-                move(QPoint(screenres.x() + 100, screenres.y() + 100));
-                resize(last_rect_.width(), last_rect_.height());
+                const auto screen_index = screen_number_ - 1;
+                const auto screens = QGuiApplication::screens();
+                if (screens.size() < screen_index) {
+                    auto screenres = screens.at(screen_index)->availableGeometry();
+                    move(QPoint(screenres.x() + 100, screenres.y() + 100));
+                    resize(last_rect_.width(), last_rect_.height());
+                }                
             }
         } else {
             setGeometry(last_rect_);

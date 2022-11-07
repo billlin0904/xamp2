@@ -60,17 +60,26 @@ QFont ThemeManager::loadFonts() {
     //installFileFont(Q_TEXT("WorkSans-Regular.ttf"), ui_fonts);
     //installFileFont(Q_TEXT("WorkSans-Bold.ttf"), ui_fonts);
 
-    installFileFont(Q_TEXT("HarmonyOS_Sans_TC_Regular.ttf"), ui_fonts);
+    /*installFileFont(Q_TEXT("HarmonyOS_Sans_TC_Black.ttf"), ui_fonts);
     installFileFont(Q_TEXT("HarmonyOS_Sans_TC_Bold.ttf"), ui_fonts);
-    installFileFont(Q_TEXT("HarmonyOS_Sans_SC_Regular.ttf"), ui_fonts);
-    installFileFont(Q_TEXT("HarmonyOS_Sans_SC_Bold.ttf"), ui_fonts);
+    installFileFont(Q_TEXT("HarmonyOS_Sans_TC_Light.ttf"), ui_fonts);
+    installFileFont(Q_TEXT("HarmonyOS_Sans_TC_Medium.ttf"), ui_fonts);
+    installFileFont(Q_TEXT("HarmonyOS_Sans_TC_Regular.ttf"), ui_fonts);
+    installFileFont(Q_TEXT("HarmonyOS_Sans_TC_Thin.ttf"), ui_fonts);
 
-    /*installFileFont(Q_TEXT("MiSans-Bold.ttf"), ui_fonts);
-    installFileFont(Q_TEXT("MiSans-Demibold.ttf"), ui_fonts);
-    installFileFont(Q_TEXT("MiSans-Semibold.ttf"), ui_fonts);
-    installFileFont(Q_TEXT("MiSans-Medium.ttf"), ui_fonts);
-    installFileFont(Q_TEXT("MiSans-Normal.ttf"), ui_fonts);
-    installFileFont(Q_TEXT("MiSans-Regular.ttf"), ui_fonts);*/
+    installFileFont(Q_TEXT("HarmonyOS_Sans_SC_Black.ttf"), ui_fonts);
+    installFileFont(Q_TEXT("HarmonyOS_Sans_SC_Bold.ttf"), ui_fonts);
+    installFileFont(Q_TEXT("HarmonyOS_Sans_SC_Light.ttf"), ui_fonts);
+    installFileFont(Q_TEXT("HarmonyOS_Sans_SC_Medium.ttf"), ui_fonts);
+    installFileFont(Q_TEXT("HarmonyOS_Sans_SC_Regular.ttf"), ui_fonts);
+    installFileFont(Q_TEXT("HarmonyOS_Sans_SC_Thin.ttf"), ui_fonts);*/
+
+    installFileFont(Q_TEXT("MiSans-Bold.ttf"), ui_fonts);
+	installFileFont(Q_TEXT("MiSans-Demibold.ttf"), ui_fonts);
+	installFileFont(Q_TEXT("MiSans-Semibold.ttf"), ui_fonts);
+	installFileFont(Q_TEXT("MiSans-Medium.ttf"), ui_fonts);
+	installFileFont(Q_TEXT("MiSans-Normal.ttf"), ui_fonts);
+	installFileFont(Q_TEXT("MiSans-Regular.ttf"), ui_fonts);
 
     if (display_fonts.isEmpty()) {
         display_fonts = ui_fonts;
@@ -108,7 +117,7 @@ ThemeManager::ThemeManager() {
     ui_font_ = loadFonts();
     use_native_window_ = !AppSettings::getValueAsBool(kAppSettingUseFramelessWindow);
 #if defined(Q_OS_WIN)
-    ui_font_.setPointSize(10);
+    ui_font_.setPointSize(8);
 #else
     ui_font_.setPointSize(12);
 #endif

@@ -49,7 +49,7 @@ void TabListView::addTab(const QString& name, int table_id, const QIcon& icon) {
 #ifdef XAMP_OS_MAC
     f.setPointSize(15);
 #else
-    f.setPointSize(10);
+    f.setPointSize(8);
 #endif
     item->setFont(f);
     model_.appendRow(item);
