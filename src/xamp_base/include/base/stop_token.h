@@ -11,6 +11,14 @@
 
 namespace xamp::base {
 
+#ifdef __cpp_lib_jthread
+
+using StopToken = std::stop_token;
+using StopSource = std::stop_source;
+inline constexpr std::nostopstate_t kNoStopState{};
+
+#else
+
 using SharedStopState = std::shared_ptr<std::atomic<bool>>;
 
 struct NoStopState {
@@ -148,5 +156,6 @@ public:
 private:
 	SharedStopState shared_state_;
 };
+#endif
 
 }

@@ -10,6 +10,12 @@
 
 namespace xamp::base {
 
+#ifdef __cpp_lib_jthread
+
+using JThread = std::jthread;
+
+#else
+
 class JThread {
 public:
 	using id = ::std::thread::id;
@@ -128,6 +134,7 @@ inline void JThread::swap(JThread& t) noexcept {
 	std::swap(stop_source_, t.stop_source_);
 	std::swap(thread_, t.thread_);
 }
+#endif
 
 }
 
