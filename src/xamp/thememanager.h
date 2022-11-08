@@ -146,8 +146,6 @@ public:
 
     QSize saveCoverArtSize() const noexcept;
 
-    QIcon playArrow() const;
-
     QIcon playCircleIcon() const;
 
     QIcon speakerIcon() const;
@@ -231,7 +229,6 @@ private:
     QColor background_color_;
     QPalette palette_;
     QFont ui_font_;
-    QIcon play_arrow_;
     QPixmap unknown_cover_;
     QPixmap default_size_unknown_cover_;
 };

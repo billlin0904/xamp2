@@ -57,7 +57,6 @@ QFont ThemeManager::loadFonts() {
     installFileFont(Q_TEXT("Roboto-Regular.ttf"), mono_fonts);
     installFileFont(Q_TEXT("Karla-Regular.ttf"), format_font);
 
-    installFileFont(Q_TEXT("Roboto-Regular.ttf"), ui_fonts);
     installFileFont(Q_TEXT("MiSans-Bold.ttf"), ui_fonts);
 	installFileFont(Q_TEXT("MiSans-Demibold.ttf"), ui_fonts);
 	installFileFont(Q_TEXT("MiSans-Semibold.ttf"), ui_fonts);
@@ -124,7 +123,6 @@ void ThemeManager::setThemeColor(ThemeColor theme_color) {
         qFontIcon.setBaseColor(Qt::black);
         break;
     }
-    play_arrow_ = QIcon(Q_STR(":/xamp/Resource/%1/play_arrow.png").arg(themeColorPath()));
 }
 
 QLatin1String ThemeManager::themeColorPath() const {
@@ -254,8 +252,6 @@ QIcon ThemeManager::appIcon() const {
 
 QIcon ThemeManager::playCircleIcon() const {
     return QIcon(Q_TEXT(":/xamp/Resource/Black/play_circle.png"));
-    //Color color(Qt::white);
-    //return Q_ICON_FONT_CODE_COLOR(0xe1c4, &color);
 }
 
 QIcon ThemeManager::moreIcon() const {
@@ -400,10 +396,6 @@ void ThemeManager::applyTheme() {
 void ThemeManager::setBackgroundColor(Ui::XampWindow& ui, QColor color) {
     background_color_ = color;
     AppSettings::setValue(kAppSettingBackgroundColor, color);
-}
-
-QIcon ThemeManager::playArrow() const {
-    return play_arrow_;
 }
 
 QColor ThemeManager::titleBarColor() const {
@@ -604,6 +596,14 @@ void ThemeManager::setTextSeparator(QFrame *frame) {
 }
 
 void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
+    ui.playButton->setIconSize(QSize(32, 32));
+    ui.selectDeviceButton->setIconSize(QSize(32, 32));
+    ui.mutedButton->setIconSize(QSize(32, 32));
+
+    ui.nextButton->setIconSize(QSize(24, 24));
+    ui.prevButton->setIconSize(QSize(24, 24));
+    ui.stopButton->setIconSize(QSize(24, 24));
+
     QString slider_bar_left_color;
     switch (themeColor()) {
     case ThemeColor::DARK_THEME:
@@ -613,10 +613,6 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
         slider_bar_left_color = Q_TEXT("42, 130, 218");
         break;
     }
-
-    ui.playButton->setIconSize(QSize(32, 32));
-    ui.selectDeviceButton->setIconSize(QSize(32, 32));
-    ui.mutedButton->setIconSize(QSize(32, 32));
 
     ui.playButton->setStyleSheet(Q_TEXT(R"(
                                             QToolButton#playButton {
@@ -779,7 +775,7 @@ void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
     }
     )"
     ));
-   
+
     setThemeIcon(ui);
     ui.sliderBarButton->setIconSize(tabIconSize());
     ui.sliderFrame->setStyleSheet(Q_TEXT("background: transparent; border: none;"));    

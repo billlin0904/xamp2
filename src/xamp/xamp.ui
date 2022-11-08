@@ -785,6 +785,12 @@
          </item>
          <item>
           <widget class="QToolButton" name="eqButton">
+           <property name="minimumSize">
+            <size>
+             <width>24</width>
+             <height>24</height>
+            </size>
+           </property>
            <property name="maximumSize">
             <size>
              <width>24</width>
@@ -800,14 +806,14 @@
           <widget class="QToolButton" name="prevButton">
            <property name="minimumSize">
             <size>
-             <width>30</width>
-             <height>30</height>
+             <width>24</width>
+             <height>24</height>
             </size>
            </property>
            <property name="maximumSize">
             <size>
-             <width>30</width>
-             <height>30</height>
+             <width>24</width>
+             <height>24</height>
             </size>
            </property>
            <property name="text">
@@ -838,14 +844,14 @@
           <widget class="QToolButton" name="nextButton">
            <property name="minimumSize">
             <size>
-             <width>30</width>
-             <height>30</height>
+             <width>24</width>
+             <height>24</height>
             </size>
            </property>
            <property name="maximumSize">
             <size>
-             <width>30</width>
-             <height>30</height>
+             <width>24</width>
+             <height>24</height>
             </size>
            </property>
            <property name="text">
@@ -857,14 +863,14 @@
           <widget class="QToolButton" name="stopButton">
            <property name="minimumSize">
             <size>
-             <width>30</width>
-             <height>30</height>
+             <width>24</width>
+             <height>24</height>
             </size>
            </property>
            <property name="maximumSize">
             <size>
-             <width>30</width>
-             <height>30</height>
+             <width>24</width>
+             <height>24</height>
             </size>
            </property>
            <property name="text">
