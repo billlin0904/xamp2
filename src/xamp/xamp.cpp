@@ -761,15 +761,15 @@ void Xamp::initialController() {
     setTipHint(ui_.maxWinButton, tr("Maximum window"));
     setTipHint(ui_.minWinButton, tr("Minimum window"));
 
-    QTimer::singleShot(500, [=]() {
+    QTimer::singleShot(500, [this]() {
         sliderAnimation(AppSettings::getValueAsBool(kAppSettingShowLeftList));
         });
 
     ui_.sliderBarButton->setIconSize(qTheme.tabIconSize());
    (void)QObject::connect(ui_.sliderBarButton, &QToolButton::clicked, [=]() {
-        auto enable = !AppSettings::getValueAsBool(kAppSettingShowLeftList);
-        AppSettings::setValue(kAppSettingShowLeftList, enable);
-        sliderAnimation(enable);
+	   const auto enable = !AppSettings::getValueAsBool(kAppSettingShowLeftList);
+       AppSettings::setValue(kAppSettingShowLeftList, enable);
+       sliderAnimation(enable);
         });   
 
     auto* check_for_update = new QAction(tr("Check For Updates"), this);
@@ -819,15 +819,6 @@ void Xamp::initialController() {
 #endif
 
     auto* about_action = new QAction(tr("About"), this);
-   /* (void)QObject::connect(about_action, &QAction::triggered, [=]() {
-        auto* about_dialog = new XDialog(this);
-        auto* about_page = new AboutPage(about_dialog);
-        about_dialog->setContentWidget(about_page);
-        about_dialog->setTitle(tr("About"));
-        QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
-        about_dialog->exec();
-        });*/
-
     ui_.seekSlider->setEnabled(false);
     ui_.startPosLabel->setText(msToString(0));
     ui_.endPosLabel->setText(msToString(0));
@@ -1055,11 +1046,13 @@ void Xamp::play() {
     if (player_->GetState() == PlayerState::PLAYER_STATE_RUNNING) {
         qTheme.setPlayOrPauseButton(ui_, false);
         player_->Pause();
+        current_playlist_page_->playlist()->setNowPlayState(PlayingState::PLAY_PAUSE);
         top_window_->setTaskbarPlayerPaused();
     }
     else if (player_->GetState() == PlayerState::PLAYER_STATE_PAUSED) {
         qTheme.setPlayOrPauseButton(ui_, true);
         player_->Resume();
+        current_playlist_page_->playlist()->setNowPlayState(PlayingState::PLAY_PLAYING);
         top_window_->setTaskbarPlayingResume();
     }
     else if (player_->GetState() == PlayerState::PLAYER_STATE_STOPPED || player_->GetState() == PlayerState::PLAYER_STATE_USER_STOPPED) {
@@ -1076,6 +1069,7 @@ void Xamp::play() {
             Toast::showTip(tr("Not found any playing item."), this);
             return;
         }
+        playlist_page_->playlist()->setNowPlayState(PlayingState::PLAY_CLEAR);
         playlist_page_->playlist()->setNowPlaying(play_index_, true);
         playlist_page_->playlist()->play(play_index_);
     }
@@ -1308,7 +1302,7 @@ void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_form
         updateButtonState();
         emit nowPlaying(item.artist, item.title);
     } else {
-        cur_page->playlist()->updateData();
+        cur_page->playlist()->excuteQuery();
     }
 
     setCover(item.cover_id, cur_page);
@@ -1353,7 +1347,7 @@ void Xamp::onUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info) {
 
     if (!album.isEmpty()) {
         cd_page_->playlistPage()->title()->setText(album);
-        cd_page_->playlistPage()->playlist()->updateData();
+        cd_page_->playlistPage()->playlist()->excuteQuery();
     }
 
     if (const auto album_stats = qDatabase.getAlbumStats(album_id)) {
@@ -1381,13 +1375,13 @@ void Xamp::onUpdateCdMetadata(const QString& disc_id, const ForwardList<Metadata
 
 void Xamp::drivesChanges(const QList<DriveInfo>& drive_infos) {
     cd_page_->playlistPage()->playlist()->removeAll();
-    cd_page_->playlistPage()->playlist()->updateData();
+    cd_page_->playlistPage()->playlist()->excuteQuery();
     emit fetchCdInfo(drive_infos.first());
 }
 
 void Xamp::drivesRemoved(const DriveInfo& /*drive_info*/) {
     cd_page_->playlistPage()->playlist()->removeAll();
-    cd_page_->playlistPage()->playlist()->updateData();
+    cd_page_->playlistPage()->playlist()->excuteQuery();
     cd_page_->showPlaylistPage(false);
 }
 
@@ -1469,7 +1463,7 @@ void Xamp::playNextItem(int32_t forward) {
     }
 
     playlist_view->play(play_index_);
-    playlist_view->refresh();
+    playlist_view->reload();
 }
 
 void Xamp::onArtistIdChanged(const QString& artist, const QString& /*cover_id*/, int32_t artist_id) {
@@ -1481,7 +1475,7 @@ void Xamp::addPlaylistItem(const Vector<int32_t>& music_ids, const Vector<PlayLi
     auto playlist_view = playlist_page_->playlist();
     qDatabase.addMusicToPlaylist(music_ids, playlist_view->playlistId());
     emit playlist_view->addPlaylistReplayGain(false, entities);
-    playlist_view->updateData();
+    playlist_view->excuteQuery();
 }
 
 void Xamp::onClickedAlbum(const QString& album, int32_t album_id, const QString& cover_id) {
@@ -1525,6 +1519,12 @@ void Xamp::onPlayerStateChanged(xamp::player::PlayerState play_state) {
 }
 
 void Xamp::initialPlaylist() {
+    lrc_page_ = new LrcPage(this);
+    album_page_ = new AlbumArtistPage(this);
+    artist_info_page_ = new ArtistInfoPage(this);
+    preference_page_ = new PreferencePage(this);
+    about_page_ = new AboutPage(this);
+
     ui_.sliderBar->addTab(tr("Playlists"), TAB_PLAYLIST, qTheme.playlistIcon());
     ui_.sliderBar->addTab(tr("Podcast"), TAB_PODCAST, qTheme.podcastIcon());
     ui_.sliderBar->addTab(tr("File Explorer"), TAB_FILE_EXPLORER, qTheme.desktopIcon());
@@ -1639,25 +1639,17 @@ void Xamp::initialPlaylist() {
     (void)QObject::connect(file_system_view_page_,
         &FileSystemViewPage::addDirToPlyalist,
         this,
-        &Xamp::appendToPlaylist);
-
-    lrc_page_ = new LrcPage(this);
-    album_page_ = new AlbumArtistPage(this);
+        &Xamp::appendToPlaylist);    
 
     (void)QObject::connect(this,
         &Xamp::themeChanged,
         album_page_,
         &AlbumArtistPage::onThemeChanged);
 
-    artist_info_page_ = new ArtistInfoPage(this);
-    preference_page_ = new PreferencePage(this);
-
     if (!qDatabase.isPlaylistExist(kDefaultAlbumPlaylistId)) {
         qDatabase.addPlaylist(Qt::EmptyString, 1);
     }
     connectSignal(album_page_->album()->albumViewPage()->playlistPage());
-
-    about_page_ = new AboutPage(this);
 
     pushWidget(lrc_page_);
     pushWidget(playlist_page_);
@@ -1915,7 +1907,12 @@ void Xamp::encodeFlacFile(const PlayListEntity& item) {
     }
 }
 
-void Xamp::connectSignal(PlaylistPage* playlist_page) {    
+void Xamp::connectSignal(PlaylistPage* playlist_page) {
+    (void)QObject::connect(playlist_page->playlist(),
+        &PlayListTableView::addPlaylistItemFinished,
+        album_page_,
+        &AlbumArtistPage::refreshOnece);
+
     (void)QObject::connect(playlist_page->playlist(),
         &PlayListTableView::playMusic,
         playlist_page,

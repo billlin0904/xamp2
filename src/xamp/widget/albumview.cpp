@@ -267,7 +267,7 @@ void AlbumViewPage::setPlaylistMusic(const QString& album, int32_t album_id, con
 
     qDatabase.addMusicToPlaylist(add_playlist_music_ids, page_->playlist()->playlistId());
 
-    page_->playlist()->updateData();
+    page_->playlist()->excuteQuery();
     page_->title()->setText(album);
     page_->setCoverById(cover_id);
 
@@ -500,7 +500,6 @@ LEFT
 	JOIN artists ON artists.artistId = albums.artistId
 WHERE 
 	albums.isPodcast = 0
-LIMIT 200
     )"));
 }
 

@@ -57,7 +57,7 @@ QVariant PlayListSqlQueryTableModel::data(const QModelIndex& index, int32_t role
                 auto playing_index = QSqlQueryModel::index(index.row(), PLAYLIST_PLAYING);
                 auto playing_index_value = QSqlQueryModel::data(playing_index, Qt::DisplayRole);
                 if (!playing_index_value.toBool()) {
-                    return QString::number(value.toInt());
+                    return QString::number(value.toInt()).rightJustified(2);
                 }
                 return {};
 	            }
@@ -87,7 +87,7 @@ QVariant PlayListSqlQueryTableModel::data(const QModelIndex& index, int32_t role
             auto value = QSqlQueryModel::data(playing_index, Qt::DisplayRole);
             auto playing_state = value.toInt();
             if (playing_state == PlayingState::PLAY_PLAYING) {
-                return qTheme.playArrow();
+                return qTheme.iconFromFont(IconCode::ICON_Play);
             } else if (playing_state == PlayingState::PLAY_PAUSE) {
                 return qTheme.iconFromFont(IconCode::ICON_Pause);
             }

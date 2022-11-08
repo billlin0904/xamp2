@@ -18,6 +18,7 @@ FileSystemViewPage::FileSystemViewPage(QWidget* parent)
     ui.dirTree->setRootIndex(dir_model_->index(AppSettings::getMyMusicFolderPath()));
     ui.dirTree->setStyleSheet(Q_TEXT("background-color: transparent"));
 
+    ui.dirTree->header()->hide();
     ui.dirTree->hideColumn(1);
     ui.dirTree->hideColumn(2);
     ui.dirTree->hideColumn(3);

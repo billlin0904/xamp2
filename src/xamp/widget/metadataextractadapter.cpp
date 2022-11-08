@@ -203,7 +203,7 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
     dialog->setMinimumDuration(1000);
     dialog->setWindowModality(Qt::ApplicationModal);
 
-    std::unordered_set<Path> dirs;
+    HashSet<Path> dirs;
     dirs.reserve(100);
 
     const auto is_accept = [&dirs](auto path) {
@@ -215,6 +215,7 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
     const auto walk_end = [&dirs](auto path, bool is_new) {
         dirs.emplace(path);
     };
+
     ScanFolder(file_path.toStdWString(), is_accept, walk, walk_end, true);
     dialog->setMaximum(dirs.size());
 
@@ -222,6 +223,11 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
 
     const auto reader = MakeMetadataReader();
     auto progress = 0;
+
+    if (dirs.empty()) {
+        dirs.insert(file_path.toStdWString());
+    }
+
     for (const auto& file_dir_or_path : dirs) {
         if (dialog->wasCanceled()) {
             return;
@@ -301,18 +307,21 @@ void ::MetadataExtractAdapter::addMetadata(const ForwardList<Metadata>& result, 
 	}
 
 	if (playlist != nullptr) {
-		playlist->updateData();
+		playlist->excuteQuery();
 	}
 }
 
-void ::MetadataExtractAdapter::processMetadata(const ForwardList<Metadata>& result, PlayListTableView* playlist, int64_t dir_last_write_time, bool is_podcast) {
+void ::MetadataExtractAdapter::processMetadata(const ForwardList<Metadata>& result, PlayListTableView* playlist, int64_t dir_last_write_time) {
     if (dir_last_write_time == -1) {
         dir_last_write_time = QDateTime::currentSecsSinceEpoch();
     }
-
+    auto is_podcast_mode = false;
+    if (playlist != nullptr) {
+        is_podcast_mode = playlist->isPodcastMode();
+    }
     try {
         qDatabase.transaction();
-        addMetadata(result, playlist, dir_last_write_time, is_podcast);
+        addMetadata(result, playlist, dir_last_write_time, is_podcast_mode);
         qDatabase.commit();
     } catch (std::exception const &e) {
         qDatabase.rollback();

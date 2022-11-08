@@ -12,6 +12,7 @@
 #include <base/encodingprofile.h>
 #include <widget/str_utilts.h>
 #include <widget/playlistentity.h>
+#include <widget/database.h>
 #include <widget/metadataextractadapter.h>
 
 class StarDelegate;
@@ -25,9 +26,9 @@ public:
 
 	virtual ~PlayListTableView() override;
 
-	virtual void refresh();
+	virtual void reload();
 
-	void updateData();
+	void excuteQuery();
 
 	void setPlaylistId(int32_t playlist_id);
 
@@ -59,6 +60,8 @@ public:
 
 	void play(const QModelIndex& index);
 
+	void setNowPlayState(PlayingState playing_state);
+
     void scrollToIndex(const QModelIndex& index);
 
 	void resizeColumn();
@@ -84,6 +87,8 @@ signals:
     void addPlaylistReplayGain(bool force, const Vector<PlayListEntity> &entities);
 
 	void updateAlbumCover(const QString &cover_id);
+
+	void addPlaylistItemFinished();
 
 public slots:
 	void processMeatadata(int64_t dir_last_write_time, const ForwardList<Metadata> &medata);

@@ -54,26 +54,10 @@ QFont ThemeManager::loadFonts() {
 
     qFontIcon.addFont(fontNamePath(Q_TEXT("SegoeFluentIcons.ttf")));
 
-    installFileFont(Q_TEXT("RobotoMono-Regular.ttf"), mono_fonts);
+    installFileFont(Q_TEXT("Roboto-Regular.ttf"), mono_fonts);
     installFileFont(Q_TEXT("Karla-Regular.ttf"), format_font);
 
-    //installFileFont(Q_TEXT("WorkSans-Regular.ttf"), ui_fonts);
-    //installFileFont(Q_TEXT("WorkSans-Bold.ttf"), ui_fonts);
-
-    /*installFileFont(Q_TEXT("HarmonyOS_Sans_TC_Black.ttf"), ui_fonts);
-    installFileFont(Q_TEXT("HarmonyOS_Sans_TC_Bold.ttf"), ui_fonts);
-    installFileFont(Q_TEXT("HarmonyOS_Sans_TC_Light.ttf"), ui_fonts);
-    installFileFont(Q_TEXT("HarmonyOS_Sans_TC_Medium.ttf"), ui_fonts);
-    installFileFont(Q_TEXT("HarmonyOS_Sans_TC_Regular.ttf"), ui_fonts);
-    installFileFont(Q_TEXT("HarmonyOS_Sans_TC_Thin.ttf"), ui_fonts);
-
-    installFileFont(Q_TEXT("HarmonyOS_Sans_SC_Black.ttf"), ui_fonts);
-    installFileFont(Q_TEXT("HarmonyOS_Sans_SC_Bold.ttf"), ui_fonts);
-    installFileFont(Q_TEXT("HarmonyOS_Sans_SC_Light.ttf"), ui_fonts);
-    installFileFont(Q_TEXT("HarmonyOS_Sans_SC_Medium.ttf"), ui_fonts);
-    installFileFont(Q_TEXT("HarmonyOS_Sans_SC_Regular.ttf"), ui_fonts);
-    installFileFont(Q_TEXT("HarmonyOS_Sans_SC_Thin.ttf"), ui_fonts);*/
-
+    installFileFont(Q_TEXT("Roboto-Regular.ttf"), ui_fonts);
     installFileFont(Q_TEXT("MiSans-Bold.ttf"), ui_fonts);
 	installFileFont(Q_TEXT("MiSans-Demibold.ttf"), ui_fonts);
 	installFileFont(Q_TEXT("MiSans-Semibold.ttf"), ui_fonts);
@@ -83,6 +67,9 @@ QFont ThemeManager::loadFonts() {
 
     if (display_fonts.isEmpty()) {
         display_fonts = ui_fonts;
+    }
+    if (mono_fonts.isEmpty()) {
+        mono_fonts = ui_fonts;
     }
 
     QFont::insertSubstitutions(Q_TEXT("DisplayFont"), display_fonts);
