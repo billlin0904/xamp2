@@ -8,10 +8,21 @@
 #include <cstdint>
 #include <atomic>
 #include <mutex>
+
+#ifdef __cpp_lib_latch
+#include <latch>
+#endif
+
 #include <base/fastconditionvariable.h>
 #include <base/fastmutex.h>
 
 namespace xamp::base {
+
+#ifdef __cpp_lib_latch
+
+using Latch = std::latch;
+
+#else
 
 class Latch {
 public:
@@ -54,5 +65,7 @@ private:
     mutable FastConditionVariable cv_;
     mutable FastMutex mut_;
 };
+
+#endif
 
 }
