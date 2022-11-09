@@ -67,6 +67,7 @@ AudioPlayer::AudioPlayer()
 AudioPlayer::AudioPlayer(const std::weak_ptr<IPlaybackStateAdapter> &adapter)
     : is_muted_(false)
 	, is_dsd_file_(false)
+    , enable_fadeout_(true)
     , dsd_mode_(DsdModes::DSD_MODE_PCM)
     , sample_size_(0)
     , target_sample_rate_(0)
@@ -453,7 +454,7 @@ void AudioPlayer::CloseDevice(bool wait_for_stop_stream, bool quit) {
         XAMP_LOG_D(logger_, "Stream thread was finished.");
     }
 
-    if (!quit) {
+    if (!quit && enable_fadeout_) {
         ProcessFadeOut();
     }
 
@@ -628,6 +629,10 @@ void AudioPlayer::BufferStream(double stream_time) {
 
     sample_size_ = stream_->GetSampleSize();    
     BufferSamples(stream_, kBufferStreamCount);
+}
+
+void AudioPlayer::EnableFadeOut(bool enable) {
+    enable_fadeout_ = enable;
 }
 
 void AudioPlayer::UpdateProgress(int32_t sample_size) noexcept {

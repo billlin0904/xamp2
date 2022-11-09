@@ -18,6 +18,7 @@ protected:
 
     void nextCheckState() override;
 private:
+    bool is_darktheme_{false};
     bool checked_{false};
     qreal progress_{0};
 };

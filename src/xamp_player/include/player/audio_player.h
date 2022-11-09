@@ -116,6 +116,8 @@ public:
 
     void BufferStream(double stream_time = 0.0) override;
 
+    void EnableFadeOut(bool enable) override;
+
 private:
     void DoSeek(double stream_time);        
     	
@@ -163,6 +165,7 @@ private:
 
     bool is_muted_;
     bool is_dsd_file_;
+    bool enable_fadeout_;
     DsdModes dsd_mode_;
     uint8_t sample_size_;
     uint32_t target_sample_rate_;

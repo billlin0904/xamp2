@@ -57,6 +57,8 @@ public:
 
     virtual void SetMute(bool mute) = 0;
 
+    virtual void EnableFadeOut(bool enable) = 0;
+
     [[nodiscard]] virtual bool IsPlaying() const noexcept = 0;
 
     [[nodiscard]] virtual DsdModes GetDsdModes() const noexcept = 0;

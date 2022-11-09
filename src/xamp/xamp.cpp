@@ -228,8 +228,8 @@ void Xamp::setXWindow(IXWindow* top_window) {
         action_map.exec(pt);
         });
 
-    auto tab_name = AppSettings::getValueAsString(kAppSettingLastTabName);
-    auto tab_id = ui_.sliderBar->getTabId(tab_name);
+    const auto tab_name = AppSettings::getValueAsString(kAppSettingLastTabName);
+    const auto tab_id = ui_.sliderBar->getTabId(tab_name);
     if (tab_id != -1) {
         ui_.sliderBar->setCurrentIndex(ui_.sliderBar->model()->index(tab_id, 0));
         setCurrentTab(tab_id);
@@ -363,8 +363,9 @@ void Xamp::cleanup() {
 void Xamp::initialUI() {
     QFont f(Q_TEXT("DisplayFont"));
     f.setWeight(QFont::DemiBold);
-    f.setPointSize(10);
+    f.setPointSize(8);
     ui_.titleLabel->setFont(f);
+
     f.setWeight(QFont::Normal);
     f.setPointSize(8);
     ui_.artistLabel->setFont(f);
@@ -469,7 +470,7 @@ void Xamp::initialDeviceList() {
     const auto device_id = AppSettings::getValueAsString(kAppSettingDeviceId).toStdString();
     const auto & device_manager = player_->GetAudioDeviceManager();
 
-    auto setDeviceTypeIcon = [this](auto connect_type) {
+    auto set_device_type_icon = [this](auto connect_type) {
         switch (connect_type) {
         case DeviceConnectType::UKNOWN:
         case DeviceConnectType::BUILT_IN:
@@ -485,7 +486,7 @@ void Xamp::initialDeviceList() {
     };
 
     for (auto itr = device_manager->Begin(); itr != device_manager->End(); ++itr) {
-        auto device_type = (*itr).second();
+	    const auto device_type = (*itr).second();
         device_type->ScanNewDevice();
 
         const auto device_info_list = device_type->GetDeviceInfo();
@@ -504,8 +505,8 @@ void Xamp::initialDeviceList() {
             device_action->setChecked(false);
             device_id_action[device_info.device_id] = device_action;            
 
-            auto trigger_callback = [device_info, setDeviceTypeIcon, this]() {
-                setDeviceTypeIcon(device_info.connect_type);
+            auto trigger_callback = [device_info, set_device_type_icon, this]() {
+                set_device_type_icon(device_info.connect_type);
                 device_info_ = device_info;
                 AppSettings::setValue(kAppSettingDeviceType, device_info_.device_type_id);
                 AppSettings::setValue(kAppSettingDeviceId, device_info_.device_id);
@@ -518,7 +519,7 @@ void Xamp::initialDeviceList() {
                 device_info_ = device_info;
                 is_find_setting_device = true;
                 device_action->setChecked(true);
-                setDeviceTypeIcon(device_info.connect_type);
+                set_device_type_icon(device_info.connect_type);
             }
         }
 
@@ -534,7 +535,7 @@ void Xamp::initialDeviceList() {
 
     if (!is_find_setting_device) {
         device_info_ = init_device_info;
-        setDeviceTypeIcon(device_info_.connect_type);
+        set_device_type_icon(device_info_.connect_type);
         device_id_action[device_info_.device_id]->setChecked(true);
         AppSettings::setValue(kAppSettingDeviceType, device_info_.device_type_id);
         AppSettings::setValue(kAppSettingDeviceId, device_info_.device_id);
@@ -1178,7 +1179,8 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
                 }
             }
         }
-        
+
+        player_->EnableFadeOut(false);
         player_->Open(item.file_path.toStdWString(), device_info_, target_sample_rate);
 
         if (!AppSettings::getValueAsBool(kEnableBitPerfect)) {

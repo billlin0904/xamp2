@@ -10,7 +10,7 @@ ScrollLabel::ScrollLabel(QWidget* parent)
     wait_timer_.setInterval(100);
 	(void)QObject::connect(&wait_timer_, &QTimer::timeout, this, &ScrollLabel::onTimerTimeout);
 	//left_margin_ = height() / 3;
-	left_margin_ = 0;
+	left_margin_ = 2;
 	scroll_pos_ = 0;
 	scroll_enabled_ = false;
 	waiting_ = true;	

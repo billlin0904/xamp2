@@ -15,6 +15,25 @@
 
 #include <preferencepage.h>
 
+class ActiveListWidget : public QWidget {
+public:
+	ActiveListWidget(PreferencePage* page, const QString& name, QStandardItemModel* model, QModelIndex index) {
+		auto* layout = new QHBoxLayout(this);
+		auto* namelbl = new QLabel(name);
+		delete_button = new QPushButton(Q_TEXT("X"));
+		delete_button->setMaximumSize(QSize(16, 16));
+		layout->addWidget(namelbl, Qt::AlignLeft);
+		layout->addWidget(delete_button, Qt::AlignRight);
+		layout->setContentsMargins(0, 0, 0, 0);
+		QObject::connect(delete_button, &QPushButton::clicked, [=] {
+			page->adapter->RemoveDSPChain(name.toStdString());
+			model->removeRow(index.row());
+			});
+	}
+
+	QPushButton* delete_button;
+};
+
 void PreferencePage::updateSoxrConfigUI(const QVariantMap& soxr_settings) {
 	ui_.soxrTargetSampleRateComboBox->setCurrentText(QString::number(soxr_settings[kResampleSampleRate].toInt()));
 	ui_.soxrResampleQualityComboBox->setCurrentIndex(soxr_settings[kSoxrQuality].toInt());
@@ -23,13 +42,6 @@ void PreferencePage::updateSoxrConfigUI(const QVariantMap& soxr_settings) {
     ui_.soxrPhaseSlider->setValue(soxr_settings[kSoxrPhase].toInt());
 	setPhasePercentText(ui_.soxrPhaseSlider->value());
     ui_.rollOffLevelComboBox->setCurrentIndex(soxr_settings[kSoxrRollOffLevel].toInt());
-
-	if (soxr_settings[kSoxrEnableSteepFilter].toBool()) {
-		ui_.enableSteepFilterBox->setChecked(true);
-	}
-	else {
-		ui_.enableSteepFilterBox->setChecked(false);
-	}
 }
 
 QMap<QString, QVariant> PreferencePage::currentSoxrSettings() const {
@@ -38,7 +50,7 @@ QMap<QString, QVariant> PreferencePage::currentSoxrSettings() const {
 	const auto soxr_pass_band = ui_.soxrPassbandSlider->value();
 	const auto soxr_phase = ui_.soxrPhaseSlider->value();
     const auto soxr_rolloff = ui_.rollOffLevelComboBox->currentIndex();
-	const auto soxr_enable_steep_filter = ui_.enableSteepFilterBox->checkState() == Qt::Checked;
+	const auto soxr_enable_steep_filter = false;
 
 	QMap<QString, QVariant> settings;
 	settings[kResampleSampleRate] = soxr_sample_rate;
@@ -164,7 +176,7 @@ void PreferencePage::initSoxResampler() {
 }
 
 void PreferencePage::setLang(int index) {
-	auto lang = LocaleLanguageManager::languageNames()[index];
+	const auto lang = LocaleLanguageManager::languageNames()[index];
 	ui_.langCombo->setCurrentIndex(index);
 	AppSettings::loadLanguage(lang.getIsoCode());
 	AppSettings::setValue(kAppSettingLang, lang.getIsoCode());
@@ -208,38 +220,9 @@ void PreferencePage::setPhasePercentText(int32_t value) {
 	ui_.soxrPhaseValue->setText(str);
 }
 
-class ActiveListWidget : public QWidget {
-public:
-	ActiveListWidget(PreferencePage *page, const QString &name, QStandardItemModel *model, QModelIndex index) {
-		auto* layout = new QHBoxLayout(this);
-		auto* namelbl = new QLabel(name);
-		delete_button = new QPushButton(Q_TEXT("X"));
-		delete_button->setMaximumSize(QSize(16, 16));
-		layout->addWidget(namelbl, Qt::AlignLeft);
-		layout->addWidget(delete_button, Qt::AlignRight);
-		layout->setContentsMargins(0, 0, 0, 0);
-		QObject::connect(delete_button, &QPushButton::clicked, [=] {
-			page->adapter->RemoveDSPChain(name.toStdString());
-			model->removeRow(index.row());
-			});
-	}
-
-	QPushButton* delete_button;
-};
-
 PreferencePage::PreferencePage(QWidget *parent)
     : QFrame(parent) {
     ui_.setupUi(this);
-
-	/*qTheme.setMenuStyle(ui_.langCombo->view()->window());
-	qTheme.setMenuStyle(ui_.replayGainModeCombo->view()->window());
-
-	qTheme.setMenuStyle(ui_.selectResamplerComboBox->view()->window());
-	qTheme.setMenuStyle(ui_.soxrSettingCombo->view()->window());
-	qTheme.setMenuStyle(ui_.soxrTargetSampleRateComboBox->view()->window());
-	qTheme.setMenuStyle(ui_.soxrResampleQualityComboBox->view()->window());
-	qTheme.setMenuStyle(ui_.rollOffLevelComboBox->view()->window());
-	qTheme.setMenuStyle(ui_.r8brainTargetSampleRateComboBox->view()->window());*/
 
 	update();
 
@@ -396,14 +379,65 @@ PreferencePage::PreferencePage(QWidget *parent)
             }
             )"));
 	ui_.preferenceTreeWidget->setStyleSheet(Q_TEXT("QTreeView { background: transparent; }"));
+	ui_.playbackPage->setStyleSheet(Q_TEXT("background: transparent;"));
+	ui_.soxrResamplerPage->setStyleSheet(Q_TEXT("background: transparent;"));
+	ui_.r8brainResamplerPage->setStyleSheet(Q_TEXT("background: transparent;"));
+	ui_.dspManagerPage->setStyleSheet(Q_TEXT("background: transparent;"));
 
-	/*
-	ui_.playbackPage->setStyleSheet(Q_TEXT("background-color: transparent;"));
-	ui_.noneResamplerPage->setStyleSheet(Q_TEXT("background-color: transparent;"));
-	ui_.soxrResamplerPage->setStyleSheet(Q_TEXT("background-color: transparent;"));
-	ui_.r8brainResamplerPage->setStyleSheet(Q_TEXT("background-color: transparent;"));
-	ui_.pcm2dsdPage->setStyleSheet(Q_TEXT("background-color: transparent;"));
-	ui_.dspManagerPage->setStyleSheet(Q_TEXT("background-color: transparent;"));*/
+	const QList<QWidget*> widgets {
+		ui_.darkRadioButton,
+		ui_.lightRadioButton,
+		ui_.lbThemeMode,
+		ui_.lbLang,
+		ui_.lbFramelessWindow,
+		ui_.lbBlurCoverImage,
+		ui_.lbAlbumImageCacheSize,
+		ui_.lbReplayGameMode,
+	};
+
+	const QList<QWidget*> pcm2dsd_widgets{
+		ui_.enablePcm2DsdCheckBox,
+		ui_.lbDsdTimes,
+	};
+
+	const QList<QWidget*> soxr_resampler_widgets{
+		ui_.lbResampler,
+		ui_.lbResamplerSettings,
+		ui_.lbTargetSampleRate,
+		ui_.lbQuality,
+		ui_.soxrPassbandValue,
+		ui_.soxrPhaseValue,
+		ui_.lbHz,
+		ui_.lbRollOffLevel,
+	};
+
+	const QList<QWidget*> r8brain_resampler_widgets{
+		ui_.lbR8BrainTargetSampleRate,
+		ui_.lbR8BrainHz,
+	};
+
+	QFont f(Q_TEXT("DisplayFont"));
+	f.setWeight(QFont::DemiBold);
+	f.setPointSize(14);
+
+	Q_FOREACH(auto *w, widgets) {
+		if (dynamic_cast<QRadioButton*>(w) == nullptr && dynamic_cast<QCheckBox*>(w) == nullptr) {
+			w->setFont(f);
+		}
+		w->setStyleSheet(Q_TEXT("background: transparent;"));
+	}
+
+	Q_FOREACH(auto* w, pcm2dsd_widgets) {
+		w->setStyleSheet(Q_TEXT("background: transparent;"));
+	}
+
+	Q_FOREACH(auto* w, soxr_resampler_widgets) {
+		w->setStyleSheet(Q_TEXT("background: transparent;"));
+	}
+
+	Q_FOREACH(auto* w, r8brain_resampler_widgets) {
+		w->setStyleSheet(Q_TEXT("background: transparent;"));
+	}
 }
 
 void PreferencePage::update() {

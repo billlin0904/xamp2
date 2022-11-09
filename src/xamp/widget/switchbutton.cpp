@@ -2,31 +2,44 @@
 #include <QPainter>
 #include <QVariantAnimation>
 
+#include "thememanager.h"
 #include <widget/str_utilts.h>
 #include <widget/switchbutton.h>
 
 SwitchButton::SwitchButton(QWidget *parent)
     : QPushButton(parent) {
-    setStyleSheet(Q_TEXT(R"(
-    SwitchButton {
+
+    QString handle_color;
+
+    is_darktheme_ = qTheme.themeColor() == ThemeColor::DARK_THEME;
+    if (is_darktheme_) {
+        handle_color = Q_TEXT("black");
+    } else {
+        handle_color = Q_TEXT("white");
+    }
+
+    setStyleSheet(Q_STR(R"(
+    SwitchButton {		
         background: #CCCCCC;
-        border: none;
-        border-radius: 6px;
-        height: 12px;
+        border: 1px solid darkgray;
+        border-radius: 12px;
+        height: 24px;
     }
 
     SwitchButton::handle {
-        background: white;
+        background: %1;
         border: none;
-        min-width: 12px;
-        max-width: 12px;
-        border-radius: 6px;
+		max-height: 20px;
+		min-width: 20px;
+        max-width: 20px;
+        border-radius: 9px;
     }
 
     SwitchButton:on {
         background: rgb(42, 130, 218);
     }
-    )"));
+    )").arg(handle_color));
+
 }
 
 void SwitchButton::setSwitchOn(bool checked) {
@@ -86,11 +99,64 @@ void SwitchButton::paintEvent(QPaintEvent *) {
     f.setBold(true);
     painter.setFont(f);
     if (checked_) {
+        QString handle_color;
+
+        if (is_darktheme_) {
+            handle_color = Q_TEXT("black");
+        }
+        else {
+            handle_color = Q_TEXT("white");
+        }
+
         QRect text_rect(0, 0, width() - text_y, height());
         painter.drawText(text_rect, Qt::AlignCenter, tr("ON"));
+
+        setStyleSheet(Q_STR(R"(
+        SwitchButton {		
+        background: #CCCCCC;
+        border: 1px solid darkgray;
+        border-radius: 12px;
+        height: 24px;
+        }
+
+        SwitchButton::handle {
+            background: %1;
+            border: none;
+		    max-height: 20px;
+		    min-width: 20px;
+            max-width: 20px;
+            border-radius: 9px;
+        }
+
+        SwitchButton:on {
+            background: rgb(42, 130, 218);
+        }
+        )").arg(handle_color));
     } else {
         QRect text_rect(0, 0, width() + text_y, height());
         painter.drawText(text_rect, Qt::AlignCenter, tr("OFF"));
+
+        setStyleSheet(Q_STR(R"(
+        SwitchButton {		
+        background: #CCCCCC;
+        border: 1px solid darkgray;
+        border-radius: 12px;
+        height: 24px;
+        }
+
+        SwitchButton::handle {
+            background: %1;
+            border: none;
+		    max-height: 20px;
+		    min-width: 20px;
+            max-width: 20px;
+            border-radius: 9px;
+        }
+
+        SwitchButton:on {
+            background: rgb(42, 130, 218);
+        }
+        )").arg(Q_TEXT("gray")));
     }
 
     QStyleOptionSlider slider_opt;

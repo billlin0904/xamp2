@@ -421,26 +421,6 @@ QSize ThemeManager::tabIconSize() const {
 }
 
 void ThemeManager::updateTitlebarState(QFrame *title_bar, bool is_focus) {
-    /*if (!is_focus) {
-        QColor title_bar_color = titleBarColor();
-        title_bar_color = title_bar_color.light();
-
-        title_bar->setStyleSheet(Q_STR(R"(
-			QFrame#titleFrame {
-				background-color: %1;
-				border: none;
-				border-radius: 0px;
-            }			
-            )").arg(colorToString(title_bar_color)));
-    }
-    else {
-        title_bar->setStyleSheet(Q_STR(R"(
-			QFrame#titleFrame {
-				border: none;
-				border-radius: 0px;
-            }			
-            )"));
-    }*/
 }
 
 QColor ThemeManager::hoverColor() const {
