@@ -1,4 +1,4 @@
-#include <player/ebur128replaygain_scanner.h>
+#include <player/ebur128reader.h>
 
 #include <widget/widget_shared.h>
 #include <widget/pixmapcache.h>

@@ -229,10 +229,8 @@ public:
     AlignPtr<BassEncLib> EncLib;
     AlignPtr<BassFLACEncLib> FLACEncLib;
 
-#ifdef XAMP_OS_WIN
-    AlignPtr<BassAACEncLib> AACEncLib;
-#else
-     AlignPtr<BassCAEncLib> CAEncLib;
+#ifdef XAMP_OS_MAC
+    AlignPtr<BassCAEncLib> CAEncLib;
 #endif
 
 #ifdef XAMP_OS_WIN

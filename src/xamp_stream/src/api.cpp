@@ -137,7 +137,6 @@ void LoadBassLib() {
     BASS.FxLib = MakeAlign<BassFxLib>();
 #ifdef XAMP_OS_WIN
     BASS.CDLib = MakeAlign<BassCDLib>();
-    BASS.AACEncLib = MakeAlign<BassAACEncLib>();
 #else
     BASS.CAEncLib = MakeAlign<BassCAEncLib>();
 #endif

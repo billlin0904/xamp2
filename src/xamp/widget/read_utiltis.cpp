@@ -19,7 +19,7 @@
 #include <metadata/api.h>
 #include <metadata/imetadatawriter.h>
 
-#include <player/ebur128replaygain_scanner.h>
+#include <player/ebur128reader.h>
 #include <widget/read_utiltis.h>
 
 using namespace xamp::base;

@@ -9,7 +9,7 @@
 #include <stream/soxresampler.h>
 #include <stream/fftwlib.h>
 #include <player/audio_player.h>
-#include <player/ebur128replaygain_scanner.h>
+#include <player/ebur128reader.h>
 #include <player/mbdiscid.h>
 #include <player/audio_util.h>
 

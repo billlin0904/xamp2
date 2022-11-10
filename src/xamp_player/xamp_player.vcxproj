@@ -160,7 +160,7 @@
     <ClInclude Include="include\player\api.h" />
     <ClInclude Include="include\player\audio_player.h" />
     <ClInclude Include="include\player\iaudioplayer.h" />
-    <ClInclude Include="include\player\ebur128replaygain_scanner.h" />
+    <ClInclude Include="include\player\ebur128reader.h" />
     <ClInclude Include="include\player\iplaybackstateadapter.h" />
     <ClInclude Include="include\player\mbdiscid.h" />
     <ClInclude Include="include\player\player.h" />
@@ -171,7 +171,7 @@
     <ClCompile Include="src\api.cpp" />
     <ClCompile Include="src\audio_player.cpp" />
     <ClCompile Include="src\audio_util.cpp" />
-    <ClCompile Include="src\ebur128replaygain_scanner.cpp" />
+    <ClCompile Include="src\ebur128reader.cpp" />
     <ClCompile Include="src\mbdiscid.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
