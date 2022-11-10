@@ -103,7 +103,7 @@ ThemeManager::ThemeManager() {
     ui_font_ = loadFonts();
     use_native_window_ = !AppSettings::getValueAsBool(kAppSettingUseFramelessWindow);
 #if defined(Q_OS_WIN)
-    ui_font_.setPointSize(8);
+    ui_font_.setPointSize(fontSize());
 #else
     ui_font_.setPointSize(12);
 #endif
@@ -573,6 +573,11 @@ void ThemeManager::setTextSeparator(QFrame *frame) {
         frame->setStyleSheet(Q_TEXT("background-color: #CED1D4;"));
         break;
     }
+}
+
+int32_t ThemeManager::fontSize() const {
+    return 10;
+    // return 8;
 }
 
 void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {

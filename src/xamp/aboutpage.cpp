@@ -29,7 +29,7 @@ AboutPage::AboutPage(QWidget* parent)
 
     QFont font(Q_TEXT("UIFont"));
     font.setBold(false);
-    font.setPointSize(8);
+    font.setPointSize(qTheme.fontSize());
     ui.txtBws->setFont(font);
     ui.txtBws->setVisible(false);
 

@@ -210,6 +210,8 @@ public:
 
     void setTextSeparator(QFrame* frame);
 
+    int32_t fontSize() const;
+
 private:
     static QString fontNamePath(const QString& file_name);
 

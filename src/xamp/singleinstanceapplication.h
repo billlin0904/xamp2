@@ -5,7 +5,7 @@
 
 #pragma once
 
-class QSharedMemory;
+#include <base/platfrom_handle.h>
 
 class SingleInstanceApplication {
 public:
@@ -16,5 +16,7 @@ public:
     bool attach() const;
 
 private:
-	QSharedMemory* singular_;
+#ifdef XAMP_OS_WIN
+	mutable WinHandle singular_;
+#endif
 };

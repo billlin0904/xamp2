@@ -18,7 +18,7 @@ namespace xamp::base {
 #define CURRENT_BYTES_IDX(i) (i)
 #endif
 
- SipHash::SipHash(uint64_t k0, uint64_t k1) {
+SipHash::SipHash(uint64_t k0, uint64_t k1) {
      v0_ = 0x736f6d6570736575ULL ^ k0;
      v1_ = 0x646f72616e646f6dULL ^ k1;
      v2_ = 0x6c7967656e657261ULL ^ k0;
@@ -26,6 +26,12 @@ namespace xamp::base {
 
      count_ = 0;
      current_word = 0;
+ }
+
+ uint64_t SipHash::GetHash(uint64_t k0, uint64_t k1, const std::string& x) {
+    SipHash hasher(k0, k1);
+    hasher.Update(x);
+    return hasher.GetHash();
  }
 
  void SipHash::Update(const char* data, uint64_t size) {

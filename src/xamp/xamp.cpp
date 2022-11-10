@@ -363,11 +363,11 @@ void Xamp::cleanup() {
 void Xamp::initialUI() {
     QFont f(Q_TEXT("DisplayFont"));
     f.setWeight(QFont::DemiBold);
-    f.setPointSize(8);
+    f.setPointSize(qTheme.fontSize());
     ui_.titleLabel->setFont(f);
 
     f.setWeight(QFont::Normal);
-    f.setPointSize(8);
+    f.setPointSize(qTheme.fontSize());
     ui_.artistLabel->setFont(f);
 
     if (qTheme.useNativeWindow()) {
@@ -377,7 +377,7 @@ void Xamp::initialUI() {
         ui_.horizontalLayout->removeItem(ui_.horizontalSpacer_15);        
     } else {
         f.setWeight(QFont::DemiBold);
-        f.setPointSize(8);
+        f.setPointSize(qTheme.fontSize());
         ui_.titleFrameLabel->setFont(f);
         ui_.titleFrameLabel->setText(Q_TEXT("XAMP2"));
         ui_.titleFrameLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
@@ -385,7 +385,7 @@ void Xamp::initialUI() {
 
     QFont mono_font(Q_TEXT("MonoFont"));
 #ifdef Q_OS_WIN
-    mono_font.setPointSize(8);
+    mono_font.setPointSize(qTheme.fontSize());
     ui_.startPosLabel->setFont(mono_font);
     ui_.endPosLabel->setFont(mono_font);
 #else
@@ -430,7 +430,7 @@ QWidgetAction* Xamp::createTextSeparator(const QString& desc) {
     desc_label->setObjectName(Q_TEXT("textSeparator"));
 
     QFont f(Q_TEXT("DisplayFont"));
-    f.setPointSize(8);
+    f.setPointSize(qTheme.fontSize());
     f.setBold(true);
     desc_label->setFont(f);
 
@@ -612,7 +612,7 @@ void Xamp::initialController() {
 
     (void)QObject::connect(ui_.seekSlider, &SeekSlider::leftButtonValueChanged, [this](auto value) {
         try {
-            player_->Seek(static_cast<double>(value / 1000.0));
+			player_->Seek(value);
             qTheme.setPlayOrPauseButton(ui_, true);
             top_window_->setTaskbarPlayingResume();
         }
@@ -625,13 +625,11 @@ void Xamp::initialController() {
     (void)QObject::connect(ui_.seekSlider, &SeekSlider::sliderReleased, [this]() {
         is_seeking_ = false;
         XAMP_LOG_DEBUG("SeekSlider released!");
-        QToolTip::showText(QCursor::pos(), msToString(static_cast<double>(ui_.seekSlider->value()) / 1000.0));
     });
 
     (void)QObject::connect(ui_.seekSlider, &SeekSlider::sliderPressed, [this]() {
         is_seeking_ = false;
         XAMP_LOG_DEBUG("sliderPressed pressed!");
-        QToolTip::showText(QCursor::pos(), msToString(static_cast<double>(ui_.seekSlider->value()) / 1000.0));
     });
 
     order_ = AppSettings::getAsEnum<PlayerOrder>(kAppSettingOrder);
@@ -821,8 +819,8 @@ void Xamp::initialController() {
 
     auto* about_action = new QAction(tr("About"), this);
     ui_.seekSlider->setEnabled(false);
-    ui_.startPosLabel->setText(msToString(0));
-    ui_.endPosLabel->setText(msToString(0));
+    ui_.startPosLabel->setText(streamTimeToString(0));
+    ui_.endPosLabel->setText(streamTimeToString(0));
     ui_.searchLineEdit->setPlaceholderText(tr("Search anything"));
 }
 
@@ -1028,10 +1026,10 @@ void Xamp::onSampleTimeChanged(double stream_time) {
 
 void Xamp::setSeekPosValue(double stream_time) {
     const auto full_text = isMoreThan1Hours(player_->GetDuration());
-    ui_.endPosLabel->setText(msToString(player_->GetDuration() - stream_time, full_text));
+    ui_.endPosLabel->setText(streamTimeToString(player_->GetDuration() - stream_time, full_text));
     const auto stream_time_as_ms = static_cast<int32_t>(stream_time * 1000.0);
-    ui_.seekSlider->setValue(stream_time_as_ms);
-    ui_.startPosLabel->setText(msToString(stream_time, full_text));
+    ui_.seekSlider->setValue(stream_time);
+    ui_.startPosLabel->setText(streamTimeToString(stream_time, full_text));
     top_window_->setTaskbarProgress(static_cast<int32_t>(100.0 * ui_.seekSlider->value() / ui_.seekSlider->maximum()));
     lrc_page_->lyrics()->setLrcTime(stream_time_as_ms);
 }
@@ -1078,7 +1076,7 @@ void Xamp::play() {
 
 void Xamp::resetSeekPosValue() {
     ui_.seekSlider->setValue(0);
-    ui_.startPosLabel->setText(msToString(0));
+    ui_.startPosLabel->setText(streamTimeToString(0));
 }
 
 void Xamp::processMeatadata(int64_t dir_last_write_time, const ForwardList<Metadata>& medata) const {
@@ -1293,8 +1291,9 @@ void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_form
             ui_.volumeSlider->setDisabled(true);
         }
 
-        ui_.seekSlider->setRange(0, static_cast<int64_t>(player_->GetDuration() * 1000));
-        ui_.endPosLabel->setText(msToString(player_->GetDuration()));
+        //ui_.seekSlider->setRange(0, static_cast<int64_t>(player_->GetDuration() * 1000));
+        ui_.seekSlider->setRange(0, Round(player_->GetDuration()));
+        ui_.endPosLabel->setText(streamTimeToString(player_->GetDuration()));
         cur_page->format()->setText(format2String(playback_format, item.file_ext));
 
         artist_info_page_->setArtistId(item.artist,
@@ -1355,7 +1354,7 @@ void Xamp::onUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info) {
     if (const auto album_stats = qDatabase.getAlbumStats(album_id)) {
         cd_page_->playlistPage()->format()->setText(tr("%1 Tracks, %2, %3")
             .arg(QString::number(album_stats.value().tracks))
-            .arg(msToString(album_stats.value().durations))
+            .arg(streamTimeToString(album_stats.value().durations))
             .arg(QString::number(album_stats.value().year)));
     }
 }
@@ -1514,7 +1513,7 @@ void Xamp::onPlayerStateChanged(xamp::player::PlayerState play_state) {
     if (play_state == PlayerState::PLAYER_STATE_STOPPED) {
         top_window_->resetTaskbarProgress();
         ui_.seekSlider->setValue(0);
-        ui_.startPosLabel->setText(msToString(0));
+        ui_.startPosLabel->setText(streamTimeToString(0));
         playNextItem(1);
         payNextMusic();
     }

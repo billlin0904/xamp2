@@ -730,7 +730,7 @@ int32_t Database::addOrUpdateMusic(const Metadata& metadata) {
 	query.bindValue(Q_TEXT(":fileName"), QString::fromStdWString(metadata.file_name));
 	query.bindValue(Q_TEXT(":parentPath"), QString::fromStdWString(metadata.parent_path));
 	query.bindValue(Q_TEXT(":duration"), metadata.duration);
-	query.bindValue(Q_TEXT(":durationStr"), msToString(metadata.duration));
+	query.bindValue(Q_TEXT(":durationStr"), streamTimeToString(metadata.duration));
 	query.bindValue(Q_TEXT(":bitrate"), metadata.bitrate);
 	query.bindValue(Q_TEXT(":samplerate"), metadata.samplerate);
 	query.bindValue(Q_TEXT(":offset"), metadata.offset);

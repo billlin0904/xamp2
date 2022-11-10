@@ -44,7 +44,7 @@ QString dsdSampleRate2String(uint32_t dsd_speed) {
     return QString::number(sample_rate, 'f', 2) + Q_TEXT("kHz");
 }
 
-QString msToString(const double stream_time, bool full_text) {
+QString streamTimeToString(const double stream_time, bool full_text) {
     const auto ms = static_cast<int32_t>(stream_time * 1000.0) % 1000;
     const auto secs = static_cast<int32_t>(stream_time);
     const auto h = secs / 3600;

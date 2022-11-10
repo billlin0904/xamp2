@@ -157,5 +157,5 @@ void ArtistInfoPage::setTracks(int32_t tracks) {
 }
 
 void ArtistInfoPage::setTotalDuration(double durations) {
-	durations_->setText(msToString(durations));
+	durations_->setText(streamTimeToString(durations));
 }

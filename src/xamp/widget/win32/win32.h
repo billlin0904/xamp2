@@ -60,6 +60,7 @@ bool compositionEnabled() noexcept;
 QRect windowRect(const WId window_id) noexcept;
 QColor colorizationColor() noexcept;
 bool isDarkModeAppEnabled() noexcept;
+bool isRunning(const std::string& mutex_name);
 
 }
 

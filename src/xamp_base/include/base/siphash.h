@@ -22,6 +22,8 @@ public:
 
     uint64_t GetHash() const;
 
+	static uint64_t GetHash(uint64_t k0, uint64_t k1, const std::string& x);
+
 private:
 	mutable uint64_t v0_;
 	mutable uint64_t v1_;

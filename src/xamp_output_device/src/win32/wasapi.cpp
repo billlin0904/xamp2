@@ -101,11 +101,15 @@ static DeviceConnectType GetDeviceConnectType(CComPtr<IMMDevice>& device) {
 			});
 		name = device_name;
 	}
+	name = String::ToLower(name);
 	if (name.find(L"usb") != std::wstring::npos) {
 		return DeviceConnectType::USB;
 	}
 	if (name.find(L"hdaudio") != std::wstring::npos) {
 		return DeviceConnectType::BUILT_IN;
+	}
+	if (name.find(L"bthenum") != std::wstring::npos) {
+		return DeviceConnectType::BLUE_TOOTH;
 	}
 	XAMP_LOG_TRACE("EnumPartsIncoming: {} {}", id, String::ToString(name));
 	return DeviceConnectType::UKNOWN;

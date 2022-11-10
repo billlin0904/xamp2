@@ -28,5 +28,5 @@ void SeekSlider::mousePressEvent(QMouseEvent* event) {
 void SeekSlider::enterEvent(QEvent* event) {
 	auto x = mapFromGlobal(QCursor::pos()).x();
 	auto value = (max_ - min_) * x / width() + min_;
-	QToolTip::showText(QCursor::pos(), msToString(static_cast<double>(value) / 1000.0));
+	QToolTip::showText(QCursor::pos(), streamTimeToString(value));
 }

@@ -72,6 +72,7 @@ signals:
     void fftResultChanged(ComplexValarray const& result);
 
 private:
-    AlignPtr<STFT> stft_;
     bool enable_spectrum_;
+    double last_stream_time_;
+    AlignPtr<STFT> stft_;
 };

@@ -4,11 +4,18 @@
 #include <QStyle>
 
 #include <base/singleton.h>
+#include <base/platform.h>
 #include <base/platfrom_handle.h>
+#include <base/uuid.h>
+#include <base/siphash.h>
+#include <base/logger_impl.h>
 
 #if defined(Q_OS_WIN)
 #include <dwmapi.h>
 #include <unknwn.h>
+#include <TlHelp32.h>
+#include <objbase.h>
+#include <propvarutil.h>
 #endif
 
 #include "xampplayer.h"
@@ -110,7 +117,168 @@ SetWindowCompositionAttribute(
 	_In_ HWND hWnd,
 	_Inout_ WINDOWCOMPOSITIONATTRIBDATA* pAttrData);
 
+typedef struct _LSA_UNICODE_STRING {
+	USHORT Length;
+	USHORT MaximumLength;
+	PWSTR  Buffer;
+} LSA_UNICODE_STRING, * PLSA_UNICODE_STRING, UNICODE_STRING, * PUNICODE_STRING;
+
+typedef struct _OBJECT_NAME_INFORMATION {
+	UNICODE_STRING Name;
+} OBJECT_NAME_INFORMATION, * POBJECT_NAME_INFORMATION;
+
+typedef enum _POOL_TYPE {
+	NonPagedPool,
+	PagedPool,
+	NonPagedPoolMustSucceed,
+	DontUseThisType,
+	NonPagedPoolCacheAligned,
+	PagedPoolCacheAligned,
+	NonPagedPoolCacheAlignedMustS,
+	MaxPoolType,
+	NonPagedPoolSession = 32,
+	PagedPoolSession,
+	NonPagedPoolMustSucceedSession,
+	DontUseThisTypeSession,
+	NonPagedPoolCacheAlignedSession,
+	PagedPoolCacheAlignedSession,
+	NonPagedPoolCacheAlignedMustSSession
+} POOL_TYPE;
+
+typedef enum _SYSTEM_INFORMATION_CLASS {
+	SystemHandleInformation = 16,
+} SYSTEM_INFORMATION_CLASS;
+
+typedef struct  _SYSTEM_HANDLE {
+	ULONG       ProcessId;
+	UCHAR       ObjectTypeNumber;
+	UCHAR       Flags;
+	USHORT      Handle;
+	PVOID       Object;
+	ACCESS_MASK GrantedAccess;
+} SYSTEM_HANDLE, * PSYSTEM_HANDLE;
+
+typedef struct _SYSTEM_HANDLE_INFORMATION {
+	ULONG HandleCount;
+	SYSTEM_HANDLE Handles[ANYSIZE_ARRAY];
+} SYSTEM_HANDLE_INFORMATION, * PSYSTEM_HANDLE_INFORMATION;
+
+typedef enum _OBJECT_INFORMATION_CLASS {
+	ObjectBasicInformation,
+	ObjectNameInformation,
+	ObjectTypeInformation,
+	ObjectAllTypesInformation,
+	ObjectHandleInformation
+} OBJECT_INFORMATION_CLASS;
+
+typedef struct  _OBJECT_BASIC_INFORMATION {
+	ULONG           Attributes;
+	ACCESS_MASK     GrantedAccess;
+	ULONG           HandleCount;
+	ULONG           PointerCount;
+	ULONG           PagedPoolUsage;
+	ULONG           NonPagedPoolUsage;
+	ULONG           Reserved[3];
+	ULONG           NameInformationLength;
+	ULONG           TypeInformationLength;
+	ULONG           SecurityDescriptorLength;
+	LARGE_INTEGER   CreateTime;
+} OBJECT_BASIC_INFORMATION, * POBJECT_BASIC_INFORMATION;
+
+typedef struct  _OBJECT_TYPE_INFORMATION {
+	UNICODE_STRING  Name;
+	ULONG           ObjectCount;
+	ULONG           HandleCount;
+	ULONG           Reserved1[4];
+	ULONG           PeakObjectCount;
+	ULONG           PeakHandleCount;
+	ULONG           Reserved2[4];
+	ULONG           InvalidAttributes;
+	GENERIC_MAPPING GenericMapping;
+	ULONG           ValidAccess;
+	UCHAR           Unknown;
+	BOOLEAN         MaintainHandleDatabase;
+	POOL_TYPE       PoolType;
+	ULONG           PagedPoolUsage;
+	ULONG           NonPagedPoolUsage;
+} OBJECT_TYPE_INFORMATION, * POBJECT_TYPE_INFORMATION;
+
+NTSTATUS NtQuerySystemInformation (
+	SYSTEM_INFORMATION_CLASS SystemInformationClass,
+	PVOID                    SystemInformation,
+	ULONG                    SystemInformationLength,
+	PULONG                   ReturnLength);
+
+NTSTATUS NtDuplicateObject(
+	HANDLE      SourceProcessHandle,
+	HANDLE      SourceHandle,
+	HANDLE      TargetProcessHandle,
+	PHANDLE     TargetHandle,
+	ACCESS_MASK DesiredAccess,
+	ULONG       HandleAttributes,
+	ULONG       Options);
+
+NTSTATUS NtQueryObject(
+	HANDLE                   Handle,
+	OBJECT_INFORMATION_CLASS ObjectInformationClass,
+	PVOID                    ObjectInformation,
+	ULONG                    ObjectInformationLength,
+	PULONG                   ReturnLength);
+
+NTSTATUS NtClose(HANDLE Handle);
+
+typedef struct _HANDLE_ENTRY_T {
+	DWORD pid;                      // process id
+	WCHAR objName[MAX_PATH];        // name of object
+} HANDLE_ENTRY, * PHANDLE_ENTRY;
+
+struct ProcessHeapDeleter final {
+	static void* invalid() noexcept {
+		return nullptr;
+	}
+
+	static void close(void* value) {
+		::HeapFree(::GetProcessHeap(), 0, value);
+	}
+};
+
+using ProcessHeap = UniqueHandle<PVOID, ProcessHeapDeleter>;
+
+static void FreeProcessHeap(void* value) {
+	::HeapFree(::GetProcessHeap(), 0, value);
+}
+
+static PVOID AllocProcessHeap(SIZE_T size) {
+	return ::HeapAlloc(::GetProcessHeap(), HEAP_ZERO_MEMORY, size);
+}
+
+static ProcessHeap MakeProcessHeap(SIZE_T size) {
+	return ProcessHeap(::HeapAlloc(::GetProcessHeap(), HEAP_ZERO_MEMORY, size));
+}
+
+static LPVOID ReallocProcessHeap(LPVOID mem, SIZE_T size) {
+	return ::HeapReAlloc(::GetProcessHeap(), HEAP_ZERO_MEMORY, mem, size);
+}
+
 namespace win32 {
+
+class NtDllLib {
+public:
+	NtDllLib()
+		: module_(LoadModule("ntdll.dll"))
+		, NtQuerySystemInformation(module_, "NtQuerySystemInformation")
+		, NtQueryObject(module_, "NtQueryObject") {
+	}
+
+	XAMP_DISABLE_COPY(NtDllLib)
+
+private:
+	ModuleHandle module_;
+
+public:
+	XAMP_DECLARE_DLL(NtQuerySystemInformation) NtQuerySystemInformation;
+	XAMP_DECLARE_DLL(NtQueryObject) NtQueryObject;
+};
 
 class User32Lib {
 public:
@@ -154,6 +322,7 @@ public:
 
 #define DWMDLL Singleton<DwmapiLib>::GetInstance()
 #define User32DLL Singleton<User32Lib>::GetInstance()
+#define NTDLL Singleton<NtDllLib>::GetInstance()
 
 // Ref : https://github.com/melak47/BorderlessWindow
 enum class BorderlessWindowStyle : DWORD {
@@ -389,16 +558,16 @@ QColor colorizationColor() noexcept {
 }
 
 bool isDarkModeAppEnabled() noexcept {
-	auto buffer = std::vector<char>(4);
-	auto data = static_cast<DWORD>(buffer.size() * sizeof(char));
-	auto res = RegGetValueW(
+	std::array<char, 4> buffer{ 0 };
+	auto data_size = static_cast<DWORD>(buffer.size());
+	auto res = ::RegGetValueW(
 		HKEY_CURRENT_USER,
 		L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
 		L"AppsUseLightTheme",
 		RRF_RT_REG_DWORD, // expected value type
 		nullptr,
 		buffer.data(),
-		&data);
+		&data_size);
 	if (res != ERROR_SUCCESS) {
 		return false;
 	}
@@ -407,6 +576,137 @@ bool isDarkModeAppEnabled() noexcept {
 		buffer[1] << 8 |
 		buffer[0];
 	return i != 1;
+}
+
+bool isRunning(const std::string& mutex_name) {
+#define STATUS_INFO_LEN_MISMATCH NTSTATUS(0xC0000004)
+#define NT_SUCCESS(Status) ((NTSTATUS)(Status) >= 0)
+#define DUPLICATE_SAME_ATTRIBUTES   0xC0000004
+#define NtCurrentProcess() ( (HANDLE) -1 )
+
+	union w128_t {
+		uint8_t  b[16];
+		uint32_t w[4];
+		uint64_t q[2];
+		double   d[2];
+	};
+
+	EnablePrivilege("SeDebugPrivilege", true);
+	NTSTATUS status = 0;
+	ULONG len = 0, total = 0;
+
+	auto list = AllocProcessHeap(1024 * 1024);
+	do {
+		len += 1024 * 1024;
+		list = ReallocProcessHeap(list, len);
+
+		if (list == nullptr) {
+			break;
+		}
+
+		status = NTDLL.NtQuerySystemInformation(
+			SystemHandleInformation,
+			list, len, &total);
+	} while (status == STATUS_INFO_LEN_MISMATCH);
+
+	if (!NT_SUCCESS(status)) {
+		FreeProcessHeap(list);
+		return FALSE;
+	}
+
+	ProcessHeap process_heap(list);
+
+	const auto h = static_cast<PSYSTEM_HANDLE_INFORMATION>(process_heap.get());
+	auto mutex_len = mutex_name.length();
+
+	for (auto i = 0; i < h->HandleCount; i++) {
+		if (h->Handles[i].ProcessId == 4) {
+			continue;
+		}
+
+		WinHandle process(::OpenProcess(PROCESS_DUP_HANDLE,
+			FALSE,
+			h->Handles[i].ProcessId));
+
+		if (!process) {
+			continue;
+		}
+
+		HANDLE object_handle = nullptr;
+		status = ::DuplicateHandle(process.get(),
+			reinterpret_cast<HANDLE>(h->Handles[i].Handle), 
+			GetCurrentProcess(),
+			&object_handle, 
+			0,
+			FALSE, 
+			DUPLICATE_SAME_ACCESS);
+		if (!status) {
+			continue;
+		}
+
+		OBJECT_BASIC_INFORMATION obi{0};
+		status = NTDLL.NtQueryObject(object_handle,
+			ObjectBasicInformation, 
+			&obi,
+			sizeof(obi),
+			&len);
+		if (!NT_SUCCESS(status)) {
+			continue;
+		}
+
+		if (obi.NameInformationLength != 0) {
+			len = obi.TypeInformationLength + 2;
+
+			{
+				auto obj_type_info = MakeProcessHeap(len);
+				const auto t = static_cast<POBJECT_TYPE_INFORMATION>(obj_type_info.get());
+
+				status = NTDLL.NtQueryObject(object_handle,
+					ObjectTypeInformation,
+					t,
+					len,
+					&len);
+
+				if (NT_SUCCESS(status)) {
+					if (lstrcmpi(t->Name.Buffer, L"Mutant") != 0) {
+						continue;
+					}
+				}
+			}
+
+			len = obi.NameInformationLength + 2;
+			auto obj_name_info = MakeProcessHeap(len);
+			const auto n = static_cast<POBJECT_NAME_INFORMATION>(obj_name_info.get());
+			status = NTDLL.NtQueryObject(object_handle,
+				ObjectNameInformation,
+				n,
+				len,
+				&len);
+			if (!NT_SUCCESS(status)) {
+				continue;
+			}
+
+			auto p = wcsrchr(n->Name.Buffer, L'\\');
+			if (!p) {
+				continue;
+			}
+
+			p += 1;
+			auto str = String::ToLower(String::ToString(p));
+			Uuid parsed_uuid;
+
+			XAMP_LOG_DEBUG("WinObject => {}", str);
+
+			if (Uuid::TryParseString(str, parsed_uuid)) {
+				const auto* r = reinterpret_cast<const w128_t*>(parsed_uuid.GetBytes().data());
+				auto hash = SipHash::GetHash(r->w[0], r->w[1], mutex_name);
+				if (r->q[1] == hash) {
+					return true;
+				}
+			}
+		}
+	}
+	return false;
 }
 
 }

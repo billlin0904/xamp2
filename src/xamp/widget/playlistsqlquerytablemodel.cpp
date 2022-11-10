@@ -75,7 +75,7 @@ QVariant PlayListSqlQueryTableModel::data(const QModelIndex& index, int32_t role
 		    case PLAYLIST_SAMPLE_RATE:
 			    return samplerate2String(value.toInt());
 		    case PLAYLIST_DURATION:
-			    return msToString(value.toDouble());
+			    return streamTimeToString(value.toDouble());
 		    case PLAYLIST_LAST_UPDATE_TIME:
 			    return QDateTime::fromSecsSinceEpoch(value.toULongLong()).toString(Q_TEXT("yyyy-MM-dd HH:mm:ss"));
 		    }

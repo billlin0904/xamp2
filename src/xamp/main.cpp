@@ -325,11 +325,11 @@ static int excute(int argc, char* argv[]) {
     QApplication app(argc, argv);
 
     SingleInstanceApplication single_app;
-#ifndef _DEBUG
     if (!single_app.attach()) {
         XAMP_LOG_DEBUG("Attach app failure!");
         return -1;
     }
+#ifndef _DEBUG    
 #else
 #ifdef XAMP_OS_WIN
     qInstallMessageHandler(logMessageHandler);

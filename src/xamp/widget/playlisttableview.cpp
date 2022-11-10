@@ -7,10 +7,7 @@
 #include <QFormLayout>
 #include <QTimeEdit>
 #include <QLineEdit>
-#include <QJsonDocument>
 #include <QSqlQuery>
-#include <QXmlStreamReader>
-#include <QStorageInfo>
 
 #include <widget/playlisttableproxymodel.h>
 #include <widget/playlistsqlquerytablemodel.h>
@@ -270,7 +267,7 @@ void PlayListTableView::initial() {
 
     auto f = font();
 #ifdef Q_OS_WIN
-    f.setPointSize(8);
+    f.setPointSize(qTheme.fontSize());
 #else
     f.setPointSize(14);
 #endif

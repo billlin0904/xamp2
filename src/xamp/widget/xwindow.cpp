@@ -35,7 +35,9 @@
 
 #if defined(Q_OS_WIN)
 // Ref : https://github.com/melak47/BorderlessWindow
-static XAMP_ALWAYS_INLINE LRESULT hitTest(HWND hwnd, MSG const* msg) noexcept {
+static XAMP_ALWAYS_INLINE LRESULT hitTest(const WId window_id, MSG const* msg) noexcept {
+    auto hwnd = reinterpret_cast<HWND>(window_id);
+
     const POINT border{
         ::GetSystemMetrics(SM_CXFRAME) + ::GetSystemMetrics(SM_CXPADDEDBORDER),
         ::GetSystemMetrics(SM_CYFRAME) + ::GetSystemMetrics(SM_CXPADDEDBORDER)
@@ -385,15 +387,16 @@ bool XWindow::nativeEvent(const QByteArray& event_type, void * message, long * r
                         break;
                     unitmask = unitmask >> 1;
                 }
-                return (i + 'A');
+                return i + 'A';
             };
 
-            auto lpdb = reinterpret_cast<PDEV_BROADCAST_HDR>(msg->lParam);
+            const auto lpdb = reinterpret_cast<PDEV_BROADCAST_HDR>(msg->lParam);
             if (lpdb->dbch_devicetype == DBT_DEVTYP_VOLUME) {
-                auto lpdbv = reinterpret_cast<PDEV_BROADCAST_VOLUME>(lpdb);
+	            const auto lpdbv = reinterpret_cast<PDEV_BROADCAST_VOLUME>(lpdb);
                 if (lpdbv->dbcv_flags & DBTF_MEDIA) {
                     auto driver_letter = firstDriveFromMask(lpdbv->dbcv_unitmask);
-                    auto itr = std::find_if(exist_drives_.begin(), exist_drives_.end(), [driver_letter](auto drive) {
+                    auto itr = std::find_if(exist_drives_.begin(),
+                        exist_drives_.end(), [driver_letter](auto drive) {
                         return drive.driver_letter == driver_letter;
                         });
                     if (itr != exist_drives_.end()) {
@@ -408,7 +411,7 @@ bool XWindow::nativeEvent(const QByteArray& event_type, void * message, long * r
         break;
     case WM_NCHITTEST:
         if (!isMaximized()) {
-            *result = hitTest(reinterpret_cast<HWND>(winId()), msg);
+            *result = hitTest(winId(), msg);
             if (*result == HTCAPTION) {
                 return false;
             }

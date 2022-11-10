@@ -55,7 +55,7 @@ QString colorToString(QColor color);
 
 QString backgroundColorToString(QColor color);
 
-QString msToString(const double stream_time, bool full_text = false);
+QString streamTimeToString(const double stream_time, bool full_text = false);
 
 bool isMoreThan1Hours(const double stream_time);
 

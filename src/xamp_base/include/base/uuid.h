@@ -25,6 +25,8 @@ public:
 
     static Uuid FromString(std::string const & str);
 
+    static bool TryParseString(std::string const& str, Uuid &uuid);
+
     template <typename ForwardIterator>
     explicit Uuid(ForwardIterator first, ForwardIterator last) {
 	    if (std::distance(first, last) == kIdSize) {
