@@ -8,13 +8,13 @@ namespace xamp::base {
 inline constexpr auto kMaxPlaybackThreadPoolSize{ 4 };
 inline constexpr auto kMaxWASAPIThreadPoolSize{ 2 };
 
-AlignPtr<IThreadPool> MakeThreadPool(const std::string_view& pool_name,
+AlignPtr<IThreadPoolExcutor> MakeThreadPoolExcutor(const std::string_view& pool_name,
     ThreadPriority priority,
     uint32_t max_thread,
     CpuAffinity affinity,
     TaskSchedulerPolicy policy,
     TaskStealPolicy steal_policy) {
-    return MakeAlign<IThreadPool, ThreadPool>(pool_name,
+    return MakeAlign<IThreadPoolExcutor, ThreadPoolExcutor>(pool_name,
         policy,
         steal_policy,
         max_thread,
@@ -22,10 +22,10 @@ AlignPtr<IThreadPool> MakeThreadPool(const std::string_view& pool_name,
         priority);
 }
 
-AlignPtr<IThreadPool> MakeThreadPool(const std::string_view& pool_name,
+AlignPtr<IThreadPoolExcutor> MakeThreadPoolExcutor(const std::string_view& pool_name,
     TaskSchedulerPolicy policy,
     TaskStealPolicy steal_policy) {
-    return MakeThreadPool(pool_name,
+    return MakeThreadPoolExcutor(pool_name,
         ThreadPriority::NORMAL,
         std::thread::hardware_concurrency(),
         kDefaultAffinityCpuCore,
@@ -33,16 +33,16 @@ AlignPtr<IThreadPool> MakeThreadPool(const std::string_view& pool_name,
         steal_policy);
 }
 
-IThreadPool& GetPlaybackThreadPool() {
-    static ThreadPool threadpool(kPlaybackThreadPoolLoggerName,
+IThreadPoolExcutor& GetPlaybackThreadPool() {
+    static ThreadPoolExcutor threadpool(kPlaybackThreadPoolLoggerName,
         kMaxPlaybackThreadPoolSize,
         kDefaultAffinityCpuCore);
 	return threadpool;
 }
 
-IThreadPool& GetWASAPIThreadPool() {
+IThreadPoolExcutor& GetWASAPIThreadPool() {
     static const CpuAffinity wasapi_cpu_aff{ 1 };
-    static ThreadPool threadpool(kWASAPIThreadPoolLoggerName,
+    static ThreadPoolExcutor threadpool(kWASAPIThreadPoolLoggerName,
         kMaxWASAPIThreadPoolSize,
         wasapi_cpu_aff,
         ThreadPriority::HIGHEST);

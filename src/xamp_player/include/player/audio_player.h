@@ -197,7 +197,7 @@ private:
     AudioBuffer<int8_t> fifo_;
     Buffer<int8_t> read_buffer_;
     DeviceInfo device_info_;    
-    SharedFuture<void> stream_task_;
+    Task<void> stream_task_;
     SpscQueue<PlayerAction> action_queue_;
     AlignPtr<IDSPManager> dsp_manager_;
     AlignPtr<IAudioProcessor> fader_;

@@ -310,7 +310,7 @@ void ExclusiveWasapiDevice::CloseStream() {
 	thread_start_.close();
 	thread_exit_.close();
 	close_request_.close();
-	render_task_ = SharedFuture<void>();
+	render_task_ = Task<void>();
 	render_client_.Release();
 	clock_.Release();
 }

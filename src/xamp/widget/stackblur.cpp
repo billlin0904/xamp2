@@ -294,7 +294,7 @@ static void StackblurJob(uint8_t* src,
 }
 
 
-Stackblur::Stackblur(IThreadPool& tp, QImage& image, uint32_t radius) {
+Stackblur::Stackblur(IThreadPoolExcutor& tp, QImage& image, uint32_t radius) {
 	blur(tp,
 		image.bits(),
 		image.width(),
@@ -303,7 +303,7 @@ Stackblur::Stackblur(IThreadPool& tp, QImage& image, uint32_t radius) {
 		4);
 }
 
-void Stackblur::blur(IThreadPool& tp,
+void Stackblur::blur(IThreadPoolExcutor& tp,
 	uint8_t* src,
 	uint32_t width,
 	uint32_t height,

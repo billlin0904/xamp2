@@ -274,7 +274,7 @@ public:
 		convert_mode_ = convert_mode;
 
 		constexpr auto kMaxPcm2DsdThread = 4;
-		tp_ = MakeThreadPool(kDSPThreadPoolLoggerName,
+		tp_ = MakeThreadPoolExcutor(kDSPThreadPoolLoggerName,
 			ThreadPriority::NORMAL,
 			kMaxPcm2DsdThread,
 			affinity);
@@ -644,7 +644,7 @@ public:
 	Vector<double> lch_src_;
 	Vector<double> rch_src_;
 	std::shared_ptr<Logger> logger_;
-	AlignPtr<IThreadPool> tp_;
+	AlignPtr<IThreadPoolExcutor> tp_;
 };
 
 XAMP_PIMPL_IMPL(Pcm2DsdSampleWriter)

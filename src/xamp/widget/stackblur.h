@@ -10,12 +10,12 @@
 
 #include <base/threadpool.h>
 
-using xamp::base::IThreadPool;
+using xamp::base::IThreadPoolExcutor;
 
 class Stackblur final {
 public:
-	Stackblur(IThreadPool& tp, QImage& image, uint32_t radius);
+	Stackblur(IThreadPoolExcutor& tp, QImage& image, uint32_t radius);
 
 private:
-	void blur(IThreadPool& tp, uint8_t* src, uint32_t width, uint32_t height, uint32_t radius, uint32_t thread_branch);
+	void blur(IThreadPoolExcutor& tp, uint8_t* src, uint32_t width, uint32_t height, uint32_t radius, uint32_t thread_branch);
 };

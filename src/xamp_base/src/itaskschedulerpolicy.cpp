@@ -26,7 +26,7 @@ AlignPtr<ITaskStealPolicy> MakeTaskStealPolicy(TaskStealPolicy policy) {
 	}
 }
 
-void ChildStealPolicy::SubmitJob(Task&& task,
+void ChildStealPolicy::SubmitJob(MoveableFunction&& task,
     size_t /*max_thread*/,
     SharedTaskQueue* /*task_pool*/,
 	ITaskSchedulerPolicy* policy, 
@@ -36,7 +36,7 @@ void ChildStealPolicy::SubmitJob(Task&& task,
 	queue->Enqueue(task);
 }
 
-void ContinuationStealPolicy::SubmitJob(Task&& task,
+void ContinuationStealPolicy::SubmitJob(MoveableFunction&& task,
 	size_t max_thread,
 	SharedTaskQueue* task_pool,
 	ITaskSchedulerPolicy* policy,

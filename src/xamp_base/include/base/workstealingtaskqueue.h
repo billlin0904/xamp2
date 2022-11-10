@@ -12,10 +12,10 @@
 
 namespace xamp::base {
 
-using SharedTaskQueue = BlockingQueue<Task>;
+using SharedTaskQueue = BlockingQueue<MoveableFunction>;
 using SharedTaskQueuePtr = AlignPtr<SharedTaskQueue>;
 
-using WorkStealingTaskQueue = BlockingQueue<Task>;
+using WorkStealingTaskQueue = BlockingQueue<MoveableFunction>;
 using WorkStealingTaskQueuePtr = AlignPtr<WorkStealingTaskQueue>;
 
 }

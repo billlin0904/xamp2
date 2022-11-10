@@ -57,7 +57,7 @@ private:
     };
 };
 
-using Task = TaskWrapper;
+using MoveableFunction = TaskWrapper;
 
 }
 

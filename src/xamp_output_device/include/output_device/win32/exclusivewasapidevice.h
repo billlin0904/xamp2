@@ -103,7 +103,7 @@ private:
 	Buffer<float> buffer_;
 	IAudioCallback* callback_;
 	std::shared_ptr<Logger> log_;
-	SharedFuture<void> render_task_;
+	Task<void> render_task_;
 };
 
 }

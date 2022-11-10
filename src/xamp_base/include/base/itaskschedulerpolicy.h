@@ -30,7 +30,7 @@ class XAMP_BASE_API ITaskStealPolicy {
 public:
     XAMP_BASE_CLASS(ITaskStealPolicy)
 
-    virtual void SubmitJob(Task&& task,
+    virtual void SubmitJob(MoveableFunction&& task,
         size_t max_thread,
         SharedTaskQueue* task_pool,
         ITaskSchedulerPolicy* policy,
@@ -41,7 +41,7 @@ protected:
 
 class ChildStealPolicy final : public ITaskStealPolicy {
 public:
-    void SubmitJob(Task&& task,
+    void SubmitJob(MoveableFunction&& task,
         size_t max_thread,
         SharedTaskQueue* task_pool,
         ITaskSchedulerPolicy* policy,
@@ -50,7 +50,7 @@ public:
 
 class ContinuationStealPolicy final : public ITaskStealPolicy{
 public:
-    void SubmitJob(Task&& task,
+    void SubmitJob(MoveableFunction&& task,
         size_t max_thread,
         SharedTaskQueue* task_pool,
         ITaskSchedulerPolicy* policy,

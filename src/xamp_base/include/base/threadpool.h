@@ -43,19 +43,19 @@ public:
 
     uint32_t GetThreadSize() const override;
 
-    void SubmitJob(Task&& task) override;
+    void SubmitJob(MoveableFunction&& task) override;
 
     void Destroy() noexcept override;
 private:
     void SetWorkerThreadName(size_t i);
 
-    std::optional<Task> TryDequeueSharedQueue();
+    std::optional<MoveableFunction> TryDequeueSharedQueue();
 
-    std::optional<Task> TrySteal(StopToken const & stop_token, size_t i);
+    std::optional<MoveableFunction> TrySteal(StopToken const & stop_token, size_t i);
 
-    std::optional<Task> TryLocalPop(WorkStealingTaskQueue * local_queue) const;
+    std::optional<MoveableFunction> TryLocalPop(WorkStealingTaskQueue * local_queue) const;
 
-    std::optional<Task> TryDequeueSharedQueue(std::chrono::milliseconds timeout);
+    std::optional<MoveableFunction> TryDequeueSharedQueue(std::chrono::milliseconds timeout);
 
     void AddThread(size_t i, CpuAffinity affinity, ThreadPriority priority);
 
@@ -73,23 +73,23 @@ private:
     std::shared_ptr<Logger> logger_;
 };
 
-class ThreadPool final : public IThreadPool {
+class ThreadPoolExcutor final : public IThreadPoolExcutor {
 public:
-	ThreadPool(const std::string_view& pool_name,
+	ThreadPoolExcutor(const std::string_view& pool_name,
         TaskSchedulerPolicy policy,
         TaskStealPolicy steal_policy,
 	    uint32_t max_thread = std::thread::hardware_concurrency(), 
         CpuAffinity affinity = kDefaultAffinityCpuCore,
 	    ThreadPriority priority = ThreadPriority::NORMAL);
 
-    explicit ThreadPool(const std::string_view& pool_name,
+    explicit ThreadPoolExcutor(const std::string_view& pool_name,
         uint32_t max_thread = std::thread::hardware_concurrency(),
         CpuAffinity affinity = kDefaultAffinityCpuCore,
         ThreadPriority priority = ThreadPriority::NORMAL);
 
-	~ThreadPool() override;
+	~ThreadPoolExcutor() override;
     
-	XAMP_DISABLE_COPY(ThreadPool)
+	XAMP_DISABLE_COPY(ThreadPoolExcutor)
 
     void Stop() override;
 

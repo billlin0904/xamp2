@@ -30,7 +30,7 @@ struct PlayListRGResult {
 
 BackgroundWorker::BackgroundWorker()
 	: blur_img_cache_(8) {
-    pool_ = MakeThreadPool(kBackgroundThreadPoolLoggerName, 
+    pool_ = MakeThreadPoolExcutor(kBackgroundThreadPoolLoggerName, 
         TaskSchedulerPolicy::LEAST_LOAD_POLICY,
         TaskStealPolicy::CONTINUATION_STEALING_POLICY);
     writer_ = MakeMetadataWriter();
@@ -136,7 +136,7 @@ void BackgroundWorker::onBlurImage(const QString& cover_id, const QImage& image)
 void BackgroundWorker::onReadReplayGain(bool, const Vector<PlayListEntity>& items) {
     XAMP_LOG_DEBUG("Start read replay gain count:{}", items.size());
 
-    Vector<SharedFuture<AlignPtr<PlayListRGResult>>> replay_gain_tasks;
+    Vector<Task<AlignPtr<PlayListRGResult>>> replay_gain_tasks;
 
     const auto target_gain = AppSettings::getValue(kAppSettingReplayGainTargetGain).toDouble();
     const auto scan_mode = AppSettings::getAsEnum<ReplayGainScanMode>(kAppSettingReplayGainScanMode);

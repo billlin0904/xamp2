@@ -54,6 +54,6 @@ public Q_SLOT:
 private:
     bool is_stop_{false};
     mutable LruCache<QString, QImage> blur_img_cache_;
-    AlignPtr<IThreadPool> pool_;
+    AlignPtr<IThreadPoolExcutor> pool_;
     AlignPtr<IMetadataWriter> writer_;
 };
