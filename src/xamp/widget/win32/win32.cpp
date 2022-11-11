@@ -267,7 +267,8 @@ public:
 	NtDllLib()
 		: module_(LoadModule("ntdll.dll"))
 		, NtQuerySystemInformation(module_, "NtQuerySystemInformation")
-		, NtQueryObject(module_, "NtQueryObject") {
+		, NtQueryObject(module_, "NtQueryObject")
+		, NtDuplicateObject(module_, "NtDuplicateObject") {
 	}
 
 	XAMP_DISABLE_COPY(NtDllLib)
@@ -278,6 +279,7 @@ private:
 public:
 	XAMP_DECLARE_DLL(NtQuerySystemInformation) NtQuerySystemInformation;
 	XAMP_DECLARE_DLL(NtQueryObject) NtQueryObject;
+	XAMP_DECLARE_DLL(NtDuplicateObject) NtDuplicateObject;
 };
 
 class User32Lib {
@@ -578,55 +580,73 @@ bool isDarkModeAppEnabled() noexcept {
 	return i != 1;
 }
 
+union W128 {
+	uint8_t  b[16];
+	uint32_t w[4];
+	uint64_t q[2];
+	double   d[2];
+};
+
+// https://github.com/odzhan/polymutex
+std::string getRandomMutexName(const std::string& src_name) {
+	W128 s{};
+	PRNG prng;
+	// Golden Ratio constant used for better hash scattering
+	// See https://softwareengineering.stackexchange.com/a/402543
+	static constexpr auto kGoldenRatio = 0x9e3779b9;
+	s.w[0] = prng.NextInt32() * kGoldenRatio;
+	s.w[1] = prng.NextInt32() * kGoldenRatio;
+	s.q[1] = SipHash::GetHash(s.w[0], s.w[1], src_name);
+	return Uuid(s.b, s.b + 16);
+}
+
 bool isRunning(const std::string& mutex_name) {
 #define STATUS_INFO_LEN_MISMATCH NTSTATUS(0xC0000004)
 #define NT_SUCCESS(Status) ((NTSTATUS)(Status) >= 0)
-#define DUPLICATE_SAME_ATTRIBUTES   0xC0000004
-#define NtCurrentProcess() ( (HANDLE) -1 )
-
-	union w128_t {
-		uint8_t  b[16];
-		uint32_t w[4];
-		uint64_t q[2];
-		double   d[2];
-	};
-
 	EnablePrivilege("SeDebugPrivilege", true);
-	NTSTATUS status = 0;
-	ULONG len = 0, total = 0;
 
-	auto list = AllocProcessHeap(1024 * 1024);
+	NTSTATUS status = 0;
+	ULONG len = 0;
+	ULONG total = 0;
+
+	static constexpr size_t kAllocateProcessHeapSize = 1024 * 1024;
+	auto list = AllocProcessHeap(kAllocateProcessHeapSize);
+	if (!list) {
+		return false;
+	}
+
 	do {
-		len += 1024 * 1024;
+		len += kAllocateProcessHeapSize;
 		list = ReallocProcessHeap(list, len);
 
-		if (list == nullptr) {
+		if (!list) {
 			break;
 		}
 
 		status = NTDLL.NtQuerySystemInformation(
 			SystemHandleInformation,
-			list, len, &total);
+			list,
+			len,
+			&total);
 	} while (status == STATUS_INFO_LEN_MISMATCH);
 
 	if (!NT_SUCCESS(status)) {
 		FreeProcessHeap(list);
-		return FALSE;
+		return false;
 	}
 
-	ProcessHeap process_heap(list);
+	const ProcessHeap process_heap(list);
 
-	const auto h = static_cast<PSYSTEM_HANDLE_INFORMATION>(process_heap.get());
-	auto mutex_len = mutex_name.length();
+	const auto handle_info = static_cast<PSYSTEM_HANDLE_INFORMATION>(process_heap.get());
 
-	for (auto i = 0; i < h->HandleCount; i++) {
-		if (h->Handles[i].ProcessId == 4) {
+	for (ULONG i = 0; i < handle_info->HandleCount; i++) {
+		if (handle_info->Handles[i].ProcessId == 4) {
 			continue;
 		}
 
 		WinHandle process(::OpenProcess(PROCESS_DUP_HANDLE,
 			FALSE,
-			h->Handles[i].ProcessId));
+			handle_info->Handles[i].ProcessId));
 
 		if (!process) {
 			continue;
@@ -634,7 +654,7 @@ bool isRunning(const std::string& mutex_name) {
 
 		HANDLE object_handle = nullptr;
 		status = ::DuplicateHandle(process.get(),
-			reinterpret_cast<HANDLE>(h->Handles[i].Handle), 
+			reinterpret_cast<HANDLE>(handle_info->Handles[i].Handle), 
 			GetCurrentProcess(),
 			&object_handle, 
 			0,
@@ -644,8 +664,10 @@ bool isRunning(const std::string& mutex_name) {
 			continue;
 		}
 
+		WinHandle duplicate_handle(object_handle);
+
 		OBJECT_BASIC_INFORMATION obi{0};
-		status = NTDLL.NtQueryObject(object_handle,
+		status = NTDLL.NtQueryObject(duplicate_handle.get(),
 			ObjectBasicInformation, 
 			&obi,
 			sizeof(obi),
@@ -654,55 +676,64 @@ bool isRunning(const std::string& mutex_name) {
 			continue;
 		}
 
-		if (obi.NameInformationLength != 0) {
-			len = obi.TypeInformationLength + 2;
+		if (!obi.NameInformationLength) {
+			continue;
+		}
 
-			{
-				auto obj_type_info = MakeProcessHeap(len);
-				const auto t = static_cast<POBJECT_TYPE_INFORMATION>(obj_type_info.get());
-
-				status = NTDLL.NtQueryObject(object_handle,
-					ObjectTypeInformation,
-					t,
-					len,
-					&len);
-
-				if (NT_SUCCESS(status)) {
-					if (lstrcmpi(t->Name.Buffer, L"Mutant") != 0) {
-						continue;
-					}
-				}
-			}
-
-			len = obi.NameInformationLength + 2;
-			auto obj_name_info = MakeProcessHeap(len);
-			const auto n = static_cast<POBJECT_NAME_INFORMATION>(obj_name_info.get());
-			status = NTDLL.NtQueryObject(object_handle,
-				ObjectNameInformation,
-				n,
-				len,
-				&len);
-			if (!NT_SUCCESS(status)) {
+		len = 4096;
+		auto obj_type_info_heap = MakeProcessHeap(4096);
+		const auto obj_type_info = static_cast<POBJECT_TYPE_INFORMATION>(obj_type_info_heap.get());
+		status = NTDLL.NtQueryObject(object_handle,
+			ObjectTypeInformation,
+			obj_type_info,
+			4096,
+			&len);
+		if (NT_SUCCESS(status)) {
+			if (lstrcmpi(obj_type_info->Name.Buffer, L"Mutant") != 0) {
 				continue;
 			}
+		}
 
-			auto p = wcsrchr(n->Name.Buffer, L'\\');
-			if (!p) {
-				continue;
-			}
+		// Skip some objects to avoid getting stuck
+		// see: https://github.com/adamdriscoll/PoshInternals/issues/7
+		if (handle_info->Handles[i].GrantedAccess    == 0x0012019f
+			&& handle_info->Handles[i].GrantedAccess != 0x00120189
+			&& handle_info->Handles[i].GrantedAccess != 0x120089
+			&& handle_info->Handles[i].GrantedAccess != 0x1A019F) {
+			continue;
+		}
 
-			p += 1;
-			auto str = String::ToLower(String::ToString(p));
-			Uuid parsed_uuid;
+		auto obj_name_info_heap = MakeProcessHeap(4096);
+		const auto name_info = static_cast<POBJECT_NAME_INFORMATION>(obj_name_info_heap.get());
+		status = NTDLL.NtQueryObject(object_handle,
+			ObjectNameInformation,
+			name_info,
+			4096,
+			&len);
+		if (!NT_SUCCESS(status)) {
+			continue;
+		}
 
-			XAMP_LOG_DEBUG("WinObject => {}", str);
+		auto p = wcsrchr(name_info->Name.Buffer, L'\\');
+		if (!p) {
+			continue;
+		}
 
-			if (Uuid::TryParseString(str, parsed_uuid)) {
-				const auto* r = reinterpret_cast<const w128_t*>(parsed_uuid.GetBytes().data());
-				auto hash = SipHash::GetHash(r->w[0], r->w[1], mutex_name);
-				if (r->q[1] == hash) {
-					return true;
-				}
+		p = wcsrchr(p, L'_');
+		if (!p) {
+			continue;
+		}
+
+		p += 1;
+		auto str = String::ToLower(String::ToString(p));
+		
+		Uuid parsed_uuid;
+		if (Uuid::TryParseString(str, parsed_uuid)) {
+			const auto* r = reinterpret_cast<const W128*>(parsed_uuid.GetBytes().data());
+			const auto hash = SipHash::GetHash(r->w[0], r->w[1], mutex_name);
+			XAMP_LOG_DEBUG("Found GUID => {}, k0:{:#04x}, k1:{:#04x}, q:{:#04x}, hash:{:#04x}", str, r->w[0], r->w[1], r->q[1], hash);
+			if (r->q[1] == hash) {
+				return true;
 			}
 		}
 	}

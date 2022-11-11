@@ -12,8 +12,7 @@
 #include <base/logger.h>
 #include <base/dataconverter.h>
 #include <base/buffer.h>
-#include <base/ithreadpool.h>
-
+#include <base/task.h>
 #include <base/platfrom_handle.h>
 #include <output_device/win32/wasapi.h>
 #include <output_device/idsddevice.h>

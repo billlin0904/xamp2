@@ -5,7 +5,7 @@
 #include <base/logger_impl.h>
 #include <base/platform.h>
 #include <base/latch.h>
-#include <base/threadpool.h>
+#include <base/threadpoolexecutor.h>
 
 namespace xamp::base {
 
@@ -118,43 +118,43 @@ void TaskScheduler::Destroy() noexcept {
 }
 
 std::optional<MoveableFunction> TaskScheduler::TryDequeueSharedQueue(std::chrono::milliseconds timeout) {
-	MoveableFunction task;
-	if (task_pool_->Dequeue(task, timeout)) {
+	MoveableFunction func;
+	if (task_pool_->Dequeue(func, timeout)) {
 		XAMP_LOG_D(logger_, "Pop shared queue.");
-		return std::move(task);
+		return std::move(func);
 	}
 	return std::nullopt;
 }
 
 std::optional<MoveableFunction> TaskScheduler::TryDequeueSharedQueue() {
-	MoveableFunction task;
-    if (task_pool_->TryDequeue(task)) {
+	MoveableFunction func;
+    if (task_pool_->TryDequeue(func)) {
 		XAMP_LOG_D(logger_, "Pop shared queue.");
-		return std::move(task);
+		return std::move(func);
 	}
 	return std::nullopt;
 }
 
 std::optional<MoveableFunction> TaskScheduler::TryLocalPop(WorkStealingTaskQueue* local_queue) const {
-	MoveableFunction task;
-	if (local_queue->TryDequeue(task)) {
+	MoveableFunction func;
+	if (local_queue->TryDequeue(func)) {
 		XAMP_LOG_D(logger_, "Pop local queue ({}).", local_queue->size());
-		return std::move(task);
+		return std::move(func);
 	}
 	return std::nullopt;
 }
 
 std::optional<MoveableFunction> TaskScheduler::TrySteal(StopToken const& stop_token, size_t i) {
-	MoveableFunction task;
+	MoveableFunction func;
 	for (size_t n = 0; n != max_thread_; ++n) {
 		if (stop_token.stop_requested()) {
 			return std::nullopt;
 		}
 
 		const auto index = (i + n) % max_thread_;
-		if (task_work_queues_.at(index)->TryDequeue(task)) {
+		if (task_work_queues_.at(index)->TryDequeue(func)) {
 			XAMP_LOG_D(logger_, "Steal other thread {} queue.", index);
-			return std::move(task);
+			return std::move(func);
 		}
 	}
 	return std::nullopt;
@@ -222,23 +222,23 @@ void TaskScheduler::AddThread(size_t i, CpuAffinity affinity, ThreadPriority pri
         });
 }
 
-ThreadPoolExcutor::ThreadPoolExcutor(const std::string_view& pool_name, TaskSchedulerPolicy policy, TaskStealPolicy steal_policy, uint32_t max_thread, CpuAffinity affinity, ThreadPriority priority)
-	: IThreadPoolExcutor(MakeAlign<ITaskScheduler, TaskScheduler>(policy, steal_policy, pool_name, (std::min)(max_thread, kMaxThread), affinity, priority)) {
+ThreadPoolExecutor::ThreadPoolExecutor(const std::string_view& pool_name, TaskSchedulerPolicy policy, TaskStealPolicy steal_policy, uint32_t max_thread, CpuAffinity affinity, ThreadPriority priority)
+	: IThreadPoolExecutor(MakeAlign<ITaskScheduler, TaskScheduler>(policy, steal_policy, pool_name, (std::min)(max_thread, kMaxThread), affinity, priority)) {
 }
 
-ThreadPoolExcutor::ThreadPoolExcutor(const std::string_view& pool_name, uint32_t max_thread, CpuAffinity affinity, ThreadPriority priority)
-	: IThreadPoolExcutor(MakeAlign<ITaskScheduler, TaskScheduler>(pool_name, (std::min)(max_thread, kMaxThread), affinity, priority)) {
+ThreadPoolExecutor::ThreadPoolExecutor(const std::string_view& pool_name, uint32_t max_thread, CpuAffinity affinity, ThreadPriority priority)
+	: IThreadPoolExecutor(MakeAlign<ITaskScheduler, TaskScheduler>(pool_name, (std::min)(max_thread, kMaxThread), affinity, priority)) {
 }
 
-ThreadPoolExcutor::~ThreadPoolExcutor() {
+ThreadPoolExecutor::~ThreadPoolExecutor() {
 	Stop();
 }
 
-uint32_t ThreadPoolExcutor::GetThreadSize() const {
+uint32_t ThreadPoolExecutor::GetThreadSize() const {
 	return scheduler_->GetThreadSize();
 }
 
-void ThreadPoolExcutor::Stop() {
+void ThreadPoolExecutor::Stop() {
 	scheduler_->Destroy();
 }
 

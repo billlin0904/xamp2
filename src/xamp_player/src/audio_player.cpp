@@ -3,12 +3,13 @@
 #include <base/logger.h>
 #include <base/logger_impl.h>
 #include <base/stl.h>
-#include <base/threadpool.h>
+#include <base/threadpoolexecutor.h>
 #include <base/dsdsampleformat.h>
 #include <base/buffer.h>
 #include <base/timer.h>
 #include <base/scopeguard.h>
 #include <base/waitabletimer.h>
+#include <base/ppl.h>
 
 #include <output_device/api.h>
 #include <output_device/win32/asiodevicetype.h>
@@ -774,7 +775,7 @@ void AudioPlayer::Play() {
         return;
     }
 
-    stream_task_ = GetPlaybackThreadPool().Spawn([player = shared_from_this()](auto /*thread_index*/) noexcept {
+    stream_task_ = Executor::Spawn(GetPlaybackThreadPool(), [player = shared_from_this()](auto /*thread_index*/) noexcept {
         auto* p = player.get();
 
         std::unique_lock<FastMutex> pause_lock{ p->pause_mutex_ };

@@ -12,7 +12,7 @@
 #include <base/logger.h>
 #include <base/logger_impl.h>
 #include <base/exception.h>
-#include <base/ithreadpool.h>
+#include <base/ithreadpoolexecutor.h>
 #include <base/stopwatch.h>
 #include <base/lrucache.h>
 #include <base/stl.h>
@@ -20,7 +20,6 @@
 #include <base/vmmemlock.h>
 #include <base/str_utilts.h>
 #include <base/align_ptr.h>
-#include <base/ithreadpool.h>
 #include <base/lrucache.h>
 
 #include <metadata/api.h>

@@ -18,7 +18,7 @@
 #include <base/align_ptr.h>
 #include <base/latch.h>
 #include <base/itaskschedulerpolicy.h>
-#include <base/ithreadpool.h>
+#include <base/ithreadpoolexecutor.h>
 #include <base/platform.h>
 
 namespace xamp::base {
@@ -73,23 +73,23 @@ private:
     std::shared_ptr<Logger> logger_;
 };
 
-class ThreadPoolExcutor final : public IThreadPoolExcutor {
+class ThreadPoolExecutor final : public IThreadPoolExecutor {
 public:
-	ThreadPoolExcutor(const std::string_view& pool_name,
+	ThreadPoolExecutor(const std::string_view& pool_name,
         TaskSchedulerPolicy policy,
         TaskStealPolicy steal_policy,
 	    uint32_t max_thread = std::thread::hardware_concurrency(), 
         CpuAffinity affinity = kDefaultAffinityCpuCore,
 	    ThreadPriority priority = ThreadPriority::NORMAL);
 
-    explicit ThreadPoolExcutor(const std::string_view& pool_name,
+    explicit ThreadPoolExecutor(const std::string_view& pool_name,
         uint32_t max_thread = std::thread::hardware_concurrency(),
         CpuAffinity affinity = kDefaultAffinityCpuCore,
         ThreadPriority priority = ThreadPriority::NORMAL);
 
-	~ThreadPoolExcutor() override;
+	~ThreadPoolExecutor() override;
     
-	XAMP_DISABLE_COPY(ThreadPoolExcutor)
+	XAMP_DISABLE_COPY(ThreadPoolExecutor)
 
     void Stop() override;
 

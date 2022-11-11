@@ -30,7 +30,7 @@ struct PlayListRGResult {
 
 BackgroundWorker::BackgroundWorker()
 	: blur_img_cache_(8) {
-    pool_ = MakeThreadPoolExcutor(kBackgroundThreadPoolLoggerName, 
+    pool_ = MakeThreadPoolExecutor(kBackgroundThreadPoolLoggerName, 
         TaskSchedulerPolicy::LEAST_LOAD_POLICY,
         TaskStealPolicy::CONTINUATION_STEALING_POLICY);
     writer_ = MakeMetadataWriter();

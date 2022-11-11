@@ -2,7 +2,7 @@
 #include <thread>
 #include <base/buffer.h>
 #include <base/ppl.h>
-#include <base/ithreadpool.h>
+#include <base/ithreadpoolexecutor.h>
 #include <widget/stackblur.h>
 
 using namespace xamp::base;
@@ -294,7 +294,7 @@ static void StackblurJob(uint8_t* src,
 }
 
 
-Stackblur::Stackblur(IThreadPoolExcutor& tp, QImage& image, uint32_t radius) {
+Stackblur::Stackblur(IThreadPoolExecutor& tp, QImage& image, uint32_t radius) {
 	blur(tp,
 		image.bits(),
 		image.width(),
@@ -303,7 +303,7 @@ Stackblur::Stackblur(IThreadPoolExcutor& tp, QImage& image, uint32_t radius) {
 		4);
 }
 
-void Stackblur::blur(IThreadPoolExcutor& tp,
+void Stackblur::blur(IThreadPoolExecutor& tp,
 	uint8_t* src,
 	uint32_t width,
 	uint32_t height,
@@ -326,10 +326,12 @@ void Stackblur::blur(IThreadPoolExcutor& tp,
 	}
 	else {
 		const auto blur_job = [div, &stack, src, width, height, radius, thread_branch, &tp](int step) {
-            ParallelFor(0, thread_branch, [div, &stack, src, width, height, radius, thread_branch, step](size_t i) {
-                auto* buffer = stack.get() + div * 4 * i;
-                StackblurJob(src, width, height, radius, thread_branch, i, step, buffer);
-				}, tp, thread_branch);
+            ParallelFor(tp,
+				0, 
+				thread_branch, [div, &stack, src, width, height, radius, thread_branch, step](size_t i) {
+					auto* buffer = stack.get() + div * 4 * i;
+					StackblurJob(src, width, height, radius, thread_branch, i, step, buffer);
+				}, thread_branch);
 		};
 		blur_job(1);
 		blur_job(2);

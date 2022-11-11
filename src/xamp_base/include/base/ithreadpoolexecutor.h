@@ -11,17 +11,15 @@
 #include <memory>
 
 #include <base/base.h>
-#include <base/task.h>
+#include <base/moveablefunction.h>
 #include <base/align_ptr.h>
 #include <base/stl.h>
+#include <base/task.h>
 #include <base/platform.h>
 
 namespace xamp::base {
 
 inline constexpr uint32_t kMaxThread = 32;
-
-template <typename T>
-using Task = std::shared_future<T>;
 
 class XAMP_BASE_API XAMP_NO_VTABLE ITaskScheduler {
 public:
@@ -37,9 +35,9 @@ protected:
 };
 
 // note: 輕量化與並且快速反應的Playback thread.
-class XAMP_BASE_API XAMP_NO_VTABLE IThreadPoolExcutor {
+class XAMP_BASE_API XAMP_NO_VTABLE IThreadPoolExecutor {
 public:
-    XAMP_BASE_DISABLE_COPY_AND_MOVE(IThreadPoolExcutor)
+    XAMP_BASE_DISABLE_COPY_AND_MOVE(IThreadPoolExecutor)
 
     virtual uint32_t GetThreadSize() const = 0;
 
@@ -49,7 +47,7 @@ public:
     decltype(auto) Spawn(F&& f, Args&&... args);
 
 protected:
-    explicit IThreadPoolExcutor(AlignPtr<ITaskScheduler> scheduler)
+    explicit IThreadPoolExecutor(AlignPtr<ITaskScheduler> scheduler)
 	    : scheduler_(std::move(scheduler)) {
     }
 
@@ -57,7 +55,7 @@ protected:
 };
 
 template <typename F, typename ... Args>
-decltype(auto) IThreadPoolExcutor::Spawn(F&& f, Args&&... args) {
+decltype(auto) IThreadPoolExecutor::Spawn(F&& f, Args&&... args) {
     using ReturnType = std::invoke_result_t<F, size_t, Args...>;
 
     // MSVC packaged_task can't be constructed from a move-only lambda
@@ -79,7 +77,7 @@ decltype(auto) IThreadPoolExcutor::Spawn(F&& f, Args&&... args) {
     return future.share();
 }
 
-XAMP_BASE_API AlignPtr<IThreadPoolExcutor> MakeThreadPoolExcutor(
+XAMP_BASE_API AlignPtr<IThreadPoolExecutor> MakeThreadPoolExecutor(
     const std::string_view& pool_name,
     ThreadPriority priority = ThreadPriority::NORMAL,
     uint32_t max_thread = std::thread::hardware_concurrency(),
@@ -87,13 +85,13 @@ XAMP_BASE_API AlignPtr<IThreadPoolExcutor> MakeThreadPoolExcutor(
     TaskSchedulerPolicy policy = TaskSchedulerPolicy::RANDOM_POLICY,
     TaskStealPolicy steal_policy = TaskStealPolicy::CONTINUATION_STEALING_POLICY);
 
-XAMP_BASE_API AlignPtr<IThreadPoolExcutor> MakeThreadPoolExcutor(
+XAMP_BASE_API AlignPtr<IThreadPoolExecutor> MakeThreadPoolExecutor(
     const std::string_view& pool_name,
     TaskSchedulerPolicy policy,
     TaskStealPolicy steal_policy);
 
-XAMP_BASE_API IThreadPoolExcutor& GetPlaybackThreadPool();
+XAMP_BASE_API IThreadPoolExecutor& GetPlaybackThreadPool();
 
-XAMP_BASE_API IThreadPoolExcutor& GetWASAPIThreadPool();
+XAMP_BASE_API IThreadPoolExecutor& GetWASAPIThreadPool();
 
 }

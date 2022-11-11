@@ -5,10 +5,9 @@
 
 #pragma once
 
-#include <base/ithreadpool.h>
 #include <base/align_ptr.h>
+#include <base/moveablefunction.h>
 #include <base/blocking_queue.h>
-#include <base/spinlock.h>
 
 namespace xamp::base {
 

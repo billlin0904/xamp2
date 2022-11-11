@@ -10,7 +10,7 @@
 #include <base/base.h>
 #include <base/align_ptr.h>
 #include <base/rng.h>
-#include <base/ithreadpool.h>
+#include <base/ithreadpoolexecutor.h>
 #include <base/workstealingtaskqueue.h>
 
 namespace xamp::base {

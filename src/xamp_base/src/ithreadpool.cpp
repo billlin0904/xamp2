@@ -1,20 +1,20 @@
 #include <base/logger.h>
-#include <base/threadpool.h>
+#include <base/threadpoolexecutor.h>
 #include <base/logger_impl.h>
-#include <base/ithreadpool.h>
+#include <base/ithreadpoolexecutor.h>
 
 namespace xamp::base {
 
 inline constexpr auto kMaxPlaybackThreadPoolSize{ 4 };
 inline constexpr auto kMaxWASAPIThreadPoolSize{ 2 };
 
-AlignPtr<IThreadPoolExcutor> MakeThreadPoolExcutor(const std::string_view& pool_name,
+AlignPtr<IThreadPoolExecutor> MakeThreadPoolExecutor(const std::string_view& pool_name,
     ThreadPriority priority,
     uint32_t max_thread,
     CpuAffinity affinity,
     TaskSchedulerPolicy policy,
     TaskStealPolicy steal_policy) {
-    return MakeAlign<IThreadPoolExcutor, ThreadPoolExcutor>(pool_name,
+    return MakeAlign<IThreadPoolExecutor, ThreadPoolExecutor>(pool_name,
         policy,
         steal_policy,
         max_thread,
@@ -22,10 +22,10 @@ AlignPtr<IThreadPoolExcutor> MakeThreadPoolExcutor(const std::string_view& pool_
         priority);
 }
 
-AlignPtr<IThreadPoolExcutor> MakeThreadPoolExcutor(const std::string_view& pool_name,
+AlignPtr<IThreadPoolExecutor> MakeThreadPoolExecutor(const std::string_view& pool_name,
     TaskSchedulerPolicy policy,
     TaskStealPolicy steal_policy) {
-    return MakeThreadPoolExcutor(pool_name,
+    return MakeThreadPoolExecutor(pool_name,
         ThreadPriority::NORMAL,
         std::thread::hardware_concurrency(),
         kDefaultAffinityCpuCore,
@@ -33,20 +33,20 @@ AlignPtr<IThreadPoolExcutor> MakeThreadPoolExcutor(const std::string_view& pool_
         steal_policy);
 }
 
-IThreadPoolExcutor& GetPlaybackThreadPool() {
-    static ThreadPoolExcutor threadpool(kPlaybackThreadPoolLoggerName,
+IThreadPoolExecutor& GetPlaybackThreadPool() {
+    static ThreadPoolExecutor executor(kPlaybackThreadPoolLoggerName,
         kMaxPlaybackThreadPoolSize,
         kDefaultAffinityCpuCore);
-	return threadpool;
+	return executor;
 }
 
-IThreadPoolExcutor& GetWASAPIThreadPool() {
+IThreadPoolExecutor& GetWASAPIThreadPool() {
     static const CpuAffinity wasapi_cpu_aff{ 1 };
-    static ThreadPoolExcutor threadpool(kWASAPIThreadPoolLoggerName,
+    static ThreadPoolExecutor executor(kWASAPIThreadPoolLoggerName,
         kMaxWASAPIThreadPoolSize,
         wasapi_cpu_aff,
         ThreadPriority::HIGHEST);
-    return threadpool;
+    return executor;
 }
 
 }

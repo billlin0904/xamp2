@@ -6,19 +6,28 @@
 #pragma once
 
 #include <base/stl.h>
-#include <base/ithreadpool.h>
+#include <base/ithreadpoolexecutor.h>
 
 namespace xamp::base {
 
+namespace Executor {
+
+template <typename F, typename ... Args>
+decltype(auto) Spawn(IThreadPoolExecutor& executor, F&& f, Args&&... args) {
+    return executor.Spawn(f, std::forward<Args>(args) ...);
+}
+	
+}
+
 template <typename C, typename Func>
-void ParallelFor(C& items, Func&& f, IThreadPoolExcutor& tp, size_t batches = 8) {
+void ParallelFor(IThreadPoolExecutor& executor, C& items, Func&& f, size_t batches = 8) {
     auto begin = std::begin(items);
     auto size = std::distance(begin, std::end(items));
 
     for (size_t i = 0; i < size; ++i) {
         Vector<Task<void>> futures((std::min)(size - i,batches));
         for (auto& ff : futures) {
-            ff = tp.Spawn([f, begin, i](size_t) -> void {
+            ff = Executor::Spawn(executor, [f, begin, i](size_t) -> void {
                 f(*(begin + i));
             });
             ++i;
@@ -30,12 +39,12 @@ void ParallelFor(C& items, Func&& f, IThreadPoolExcutor& tp, size_t batches = 8)
 }
 
 template <typename Func>
-void ParallelFor(size_t begin, size_t end, Func &&f, IThreadPoolExcutor& tp, size_t batches = 4) {
+void ParallelFor(IThreadPoolExecutor& executor, size_t begin, size_t end, Func &&f, size_t batches = 4) {
     auto size = end - begin;
     for (size_t i = 0; i < size; ++i) {
         Vector<Task<void>> futures((std::min)(size - i, batches));
         for (auto& ff : futures) {
-            ff = tp.Spawn([f, i](size_t) -> void {
+            ff = Executor::Spawn(executor, [f, i](size_t) -> void {
                 f(i);
             });
             ++i;

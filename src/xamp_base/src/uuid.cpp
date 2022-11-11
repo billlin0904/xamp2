@@ -5,22 +5,23 @@
 
 namespace xamp::base {
 
-static uint8_t MakeHex(const char a, const char b) {
+static bool TryParseHex(const char a, const char b, uint8_t &data) noexcept {
     const char buffer[] = { a, b, '\0' };
     uint32_t result = 0;
     auto [_, ec] = std::from_chars(std::cbegin(buffer), std::cend(buffer), result, 16);
     if (ec != std::errc{}) {
-        throw std::invalid_argument("Invalid digital.");
+        return false;
     }
-    return static_cast<uint8_t>(result);
+    data = static_cast<uint8_t>(result);
+    return true;
 }
 
-static bool TryParseUuid(std::string_view const & from_string, UuidBuffer &result) {
+static bool TryParseUuid(std::string_view const & from_string, UuidBuffer &result) noexcept {
     if (from_string.length() != kMaxIdStrLen) {
         return false;
     }
 
-    if (from_string[8] != '-'
+    if (   from_string[8]  != '-'
         || from_string[13] != '-'
         || from_string[18] != '-'
         || from_string[23] != '-') {
@@ -37,7 +38,9 @@ static bool TryParseUuid(std::string_view const & from_string, UuidBuffer &resul
         case 23:
             continue;
         default: 
-            uuid[j] = MakeHex(from_string[i], from_string[i + 1]);
+            if (!TryParseHex(from_string[i], from_string[i + 1], uuid[j])) {
+                return false;
+			}
             ++j;
             ++i;
         }		
@@ -129,6 +132,9 @@ bool Uuid::TryParseString(std::string const& str, Uuid& uuid) {
         return false;
     }
 	const Uuid result(buffer);
+    if (!result.IsValid()) {
+        return false;
+    }
     uuid = result;
     return true;
 }

@@ -75,7 +75,22 @@ private:
 };
 
 XAMP_ALWAYS_INLINE bool Uuid::IsValid() const noexcept {
-    return *this == Uuid::kNullUuid;
+    return bytes_[0] ||
+        bytes_[1] ||
+        bytes_[2] ||
+        bytes_[3] ||
+        bytes_[4] ||
+        bytes_[5] ||
+        bytes_[6] ||
+        bytes_[7] ||
+        bytes_[8] ||
+        bytes_[9] ||
+        bytes_[10] ||
+        bytes_[11] ||
+        bytes_[12] ||
+        bytes_[13] ||
+        bytes_[14] ||
+        bytes_[15];
 }
 
 XAMP_ALWAYS_INLINE bool operator!=(Uuid const & other1, Uuid const & other2) noexcept {

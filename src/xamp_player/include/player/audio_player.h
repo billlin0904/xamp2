@@ -20,7 +20,7 @@
 #include <base/buffer.h>
 #include <base/fastmutex.h>
 #include <base/fastconditionvariable.h>
-#include <base/ithreadpool.h>
+#include <base/ithreadpoolexecutor.h>
 
 #include <stream/stream.h>
 

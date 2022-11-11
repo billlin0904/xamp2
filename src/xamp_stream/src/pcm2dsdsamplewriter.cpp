@@ -9,7 +9,7 @@
 #include <base/platform.h>
 #include <base/assert.h>
 #include <base/fastmutex.h>
-#include <base/ithreadpool.h>
+#include <base/ithreadpoolexecutor.h>
 #include <base/stl.h>
 #include <base/stopwatch.h>
 
@@ -274,7 +274,7 @@ public:
 		convert_mode_ = convert_mode;
 
 		constexpr auto kMaxPcm2DsdThread = 4;
-		tp_ = MakeThreadPoolExcutor(kDSPThreadPoolLoggerName,
+		tp_ = MakeThreadPoolExecutor(kDSPThreadPoolLoggerName,
 			ThreadPriority::NORMAL,
 			kMaxPcm2DsdThread,
 			affinity);
@@ -644,7 +644,7 @@ public:
 	Vector<double> lch_src_;
 	Vector<double> rch_src_;
 	std::shared_ptr<Logger> logger_;
-	AlignPtr<IThreadPoolExcutor> tp_;
+	AlignPtr<IThreadPoolExecutor> tp_;
 };
 
 XAMP_PIMPL_IMPL(Pcm2DsdSampleWriter)

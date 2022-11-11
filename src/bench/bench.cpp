@@ -11,7 +11,8 @@
 #include <base/metadata.h>
 #include <base/lifoqueue.h>
 #include <base/audiobuffer.h>
-#include <base/threadpool.h>
+#include <base/threadpoolexecutor.h>
+#include <base/spinlock.h>
 #include <base/memory.h>
 #include <base/rng.h>
 #include <base/dataconverter.h>
@@ -41,7 +42,7 @@ using namespace xamp::base;
 using namespace xamp::stream;
 
 static void BM_LeastLoadThreadPool(benchmark::State& state) {
-    const auto thread_pool = MakeThreadPool(
+    const auto thread_pool = MakeThreadPoolExecutor(
         "BM_LeastLoadThreadPool",
         ThreadPriority::NORMAL,
         std::thread::hardware_concurrency(),
@@ -52,15 +53,14 @@ static void BM_LeastLoadThreadPool(benchmark::State& state) {
     std::iota(n.begin(), n.end(), 1);
     std::atomic<int64_t> total;
     for (auto _ : state) {
-        ParallelFor(n, [&total, &n](auto item) {
+        ParallelFor(*thread_pool, n, [&total, &n](auto item) {
             total += item;
-            }
-        , *thread_pool);
+            });
     }
 }
 
 static void BM_RoundRubinThreadPool(benchmark::State& state) {
-	const auto thread_pool = MakeThreadPool(
+	const auto thread_pool = MakeThreadPoolExecutor(
         "BM_RoundRubinThreadPool",
         ThreadPriority::NORMAL,
         std::thread::hardware_concurrency(),
@@ -71,15 +71,14 @@ static void BM_RoundRubinThreadPool(benchmark::State& state) {
     std::iota(n.begin(), n.end(), 1);
     std::atomic<int64_t> total;
     for (auto _ : state) {
-        ParallelFor(n, [&total, &n](auto item) {
+        ParallelFor(*thread_pool, n, [&total, &n](auto item) {
             total += item;
-            }
-        , *thread_pool);
+            });
     }
 }
 
 static void BM_ChildStealPolicyRandomThreadPool(benchmark::State& state) {
-    const auto thread_pool = MakeThreadPool(
+    const auto thread_pool = MakeThreadPoolExecutor(
         "BM_ChildStealPolicyRandomThreadPool",
         ThreadPriority::NORMAL,
         std::thread::hardware_concurrency(),
@@ -91,15 +90,14 @@ static void BM_ChildStealPolicyRandomThreadPool(benchmark::State& state) {
     std::iota(n.begin(), n.end(), 1);
     std::atomic<int64_t> total;
     for (auto _ : state) {
-        ParallelFor(n, [&total, &n](auto item) {
+        ParallelFor(*thread_pool, n, [&total, &n](auto item) {
             total += item;
-        }
-        , *thread_pool);
+        });
     }
 }
 
 static void BM_ContinuationStealPolicyRandomThreadPool(benchmark::State& state) {
-    const auto thread_pool = MakeThreadPool(
+    const auto thread_pool = MakeThreadPoolExecutor(
         "BM_ContinuationStealPolicyRandomThreadPool",
         ThreadPriority::NORMAL,
         std::thread::hardware_concurrency(),
@@ -111,10 +109,9 @@ static void BM_ContinuationStealPolicyRandomThreadPool(benchmark::State& state) 
     std::iota(n.begin(), n.end(), 1);
     std::atomic<int64_t> total;
     for (auto _ : state) {
-        ParallelFor(n, [&total, &n](auto item) {
+        ParallelFor(*thread_pool, n, [&total, &n](auto item) {
             total += item;
-            }
-        , *thread_pool);
+            });
     }
 }
 

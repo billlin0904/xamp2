@@ -8,14 +8,12 @@
 #include <cstdint>
 #include <QImage>
 
-#include <base/threadpool.h>
-
-using xamp::base::IThreadPoolExcutor;
+#include <widget/widget_shared.h>
 
 class Stackblur final {
 public:
-	Stackblur(IThreadPoolExcutor& tp, QImage& image, uint32_t radius);
+	Stackblur(IThreadPoolExecutor& tp, QImage& image, uint32_t radius);
 
 private:
-	void blur(IThreadPoolExcutor& tp, uint8_t* src, uint32_t width, uint32_t height, uint32_t radius, uint32_t thread_branch);
+	void blur(IThreadPoolExecutor& tp, uint8_t* src, uint32_t width, uint32_t height, uint32_t radius, uint32_t thread_branch);
 };
