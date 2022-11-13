@@ -324,7 +324,7 @@ AlbumView::AlbumView(QWidget* parent)
 
         const auto list_view_rect = this->rect();
         page_->setPlaylistMusic(album, album_id, cover_id);
-        page_->setFixedSize(QSize(list_view_rect.size().width() - 15, list_view_rect.height() + 15));
+        page_->setFixedSize(QSize(list_view_rect.size().width() - 15, list_view_rect.height() + 25));
         page_->move(QPoint(list_view_rect.x() + 3, 0));
 
         if (enable_page_) {
@@ -337,10 +337,6 @@ AlbumView::AlbumView(QWidget* parent)
 
     (void)QObject::connect(page_, &AlbumViewPage::leaveAlbumView, [this]() {
         verticalScrollBar()->show();
-        });
-
-    (void)QObject::connect(verticalScrollBar(), &QScrollBar::valueChanged, [this](auto) {
-        hideWidget();
         });
 
     setContextMenuPolicy(Qt::CustomContextMenu);
@@ -377,12 +373,6 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         }
     };
 
-    auto* remove_all_album_act = action_map.addAction(tr("Remove all album"), [=]() {
-        removeAlbum();
-        styled_delegate_->clearImageCache();
-        });
-    remove_all_album_act->setIcon(qTheme.iconFromFont(IconCode::ICON_RemoveAll));
-
     auto* load_file_act = action_map.addAction(tr("Load local file"), [this]() {
         const auto file_name = QFileDialog::getOpenFileName(this,
             tr("Open file"),
@@ -407,6 +397,12 @@ void AlbumView::showAlbumViewMenu(const QPoint& pt) {
         append(dir_name);
         });
     load_dir_act->setIcon(qTheme.iconFromFont(IconCode::ICON_Folder));
+    action_map.addSeparator();
+    auto* remove_all_album_act = action_map.addAction(tr("Remove all album"), [=]() {
+        removeAlbum();
+        styled_delegate_->clearImageCache();
+        });
+    remove_all_album_act->setIcon(qTheme.iconFromFont(IconCode::ICON_RemoveAll));
 
     action_map.exec(pt);
 }

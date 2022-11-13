@@ -17,6 +17,7 @@
 #include <widget/ui_utilts.h>
 #include <widget/read_utiltis.h>
 #include <widget/appsettings.h>
+#include <widget/widget_shared.h>
 #include <widget/backgroundworker.h>
 
 struct PlayListRGResult {
@@ -147,7 +148,7 @@ void BackgroundWorker::onReadReplayGain(bool, const Vector<PlayListEntity>& item
     double process_time = 0;
 
     for (const auto &item : items) {
-        replay_gain_tasks.push_back(pool_->Spawn([scan_mode, item, &process_time, this](auto ) ->AlignPtr<PlayListRGResult> {
+        replay_gain_tasks.push_back(Executor::Spawn(*pool_, [scan_mode, item, &process_time, this](auto ) ->AlignPtr<PlayListRGResult> {
             auto progress = [scan_mode](auto p) {
                 if (scan_mode == ReplayGainScanMode::RG_SCAN_MODE_FAST && p > 50) {
                     return false;

@@ -216,7 +216,7 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
         dirs.emplace(path);
     };
 
-    ScanFolder(file_path.toStdWString(), is_accept, walk, walk_end, true);
+    ScanFolder(file_path.toStdWString(), is_accept, walk, walk_end, false);
     dialog->setMaximum(dirs.size());
 
     ExtractAdapterProxy proxy(adapter);

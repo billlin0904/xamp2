@@ -16,6 +16,7 @@
 #include <base/stopwatch.h>
 #include <base/lrucache.h>
 #include <base/stl.h>
+#include <base/ppl.h>
 #include <base/dsdsampleformat.h>
 #include <base/vmmemlock.h>
 #include <base/str_utilts.h>

@@ -576,8 +576,8 @@ void ThemeManager::setTextSeparator(QFrame *frame) {
 }
 
 int32_t ThemeManager::fontSize() const {
-    return 10;
-    // return 8;
+    //return 10;
+    return 8;
 }
 
 void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {
