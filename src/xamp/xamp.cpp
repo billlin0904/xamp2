@@ -1146,7 +1146,7 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
         );
 
     PlaybackFormat playback_format;
-
+    
     try {
 	    uint32_t target_sample_rate = 0;
         QMap<QString, QVariant> soxr_settings;
@@ -1250,6 +1250,8 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
             playback_format = playbackFormat(player_.get());
         }
 
+        playback_format.bitrate = item.bitrate;
+
         if (resampler_type == kR8Brain) {
             player_->SetReadSampleSize(kR8brainBufferSize);
         }
@@ -1269,6 +1271,7 @@ void Xamp::playAlbumEntity(const AlbumEntity& item) {
     catch (...) {
         Toast::showTip(tr("unknown error"), this);
     }
+
     updateUI(item, playback_format, open_done);
 }
 
@@ -1291,7 +1294,6 @@ void Xamp::updateUI(const AlbumEntity& item, const PlaybackFormat& playback_form
             ui_.volumeSlider->setDisabled(true);
         }
 
-        //ui_.seekSlider->setRange(0, static_cast<int64_t>(player_->GetDuration() * 1000));
         ui_.seekSlider->setRange(0, Round(player_->GetDuration()));
         ui_.endPosLabel->setText(streamTimeToString(player_->GetDuration()));
         cur_page->format()->setText(format2String(playback_format, item.file_ext));

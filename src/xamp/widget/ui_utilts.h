@@ -19,6 +19,7 @@ struct PlaybackFormat {
     bool is_dsd_file{ false };
     bool enable_sample_rate_convert{ false };
     uint32_t dsd_speed{ 0 };
+    uint32_t bitrate{ 0 };
     DsdModes dsd_mode{ DsdModes::DSD_MODE_PCM };
     AudioFormat file_format;
     AudioFormat output_format;

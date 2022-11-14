@@ -1,5 +1,9 @@
 #include <widget/albumentity.h>
 
+QVariant getIndexValue(const QModelIndex& index, const QModelIndex& src, int i) {
+    return index.model()->data(index.model()->index(src.row(), i));
+}
+
 QVariant getIndexValue(const QModelIndex& index, int i) {
     return index.model()->data(index.model()->index(index.row(), i));
 }
@@ -44,5 +48,6 @@ AlbumEntity toAlbumEntity(const PlayListEntity& item) {
     music_entity.artist = item.artist;
     music_entity.file_ext = item.file_ext;
     music_entity.file_path = item.file_path;
+    music_entity.bitrate = item.bitrate;
     return music_entity;
 }

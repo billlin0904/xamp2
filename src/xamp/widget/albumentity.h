@@ -17,6 +17,7 @@ struct AlbumEntity final {
     int32_t album_id{ 0 };
     int32_t artist_id{ 0 };
     int32_t music_id{ 0 };
+    uint32_t bitrate{ 0 };
     double album_replay_gain{ 0 };
     double track_replay_gain{ 0 };
     QString album;
@@ -30,6 +31,7 @@ struct AlbumEntity final {
 // for QVariantÂà´«¨Ï¥Î
 Q_DECLARE_METATYPE(AlbumEntity)
 
+QVariant getIndexValue(const QModelIndex& index, const QModelIndex& src, int i);
 QVariant getIndexValue(const QModelIndex& index, int i);
 AlbumEntity getAlbumEntity(const QModelIndex& index);
 AlbumEntity toAlbumEntity(const PlayListEntity& item);

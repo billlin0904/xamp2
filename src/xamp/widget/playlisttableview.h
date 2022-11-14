@@ -70,8 +70,6 @@ public:
 
 	void append(const QString& file_name, bool show_progress_dialog = true, bool is_recursive = true);
 
-    PlayListEntity nomapItem(const QModelIndex& index);
-
 	QModelIndex hoverIndex() const {
 		return model()->index(hover_row_, hover_column_);
 	}
@@ -103,7 +101,7 @@ public slots:
 		double track_rg_gain,
 		double track_peak);
 private:
-    PlayListEntity item(const QModelIndex& index);
+	PlayListEntity item(const QModelIndex& index);
 
 	void playItem(const QModelIndex& index);
 

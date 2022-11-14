@@ -71,7 +71,8 @@ QString format2String(const PlaybackFormat& playback_format, const QString& file
         + bit_format
         + Q_TEXT("/")
         + output_format_str
-        + Q_TEXT(" | ") + dsd_mode;
+        + Q_TEXT(" | ") + dsd_mode
+        + Q_TEXT(" |") + bitRate2String(playback_format.bitrate);
 }
 
 QScopedPointer<QProgressDialog> makeProgressDialog(QString const& title, QString const& text, QString const& cancel) {

@@ -56,9 +56,9 @@ public:
         const int32_t min = (std::numeric_limits<int8_t>::min)(),
         const int32_t max = (std::numeric_limits<int8_t>::max)()) {
         Vector<int8_t> output(size);
-        for (size_t i = 0; i < size; ++i) {
-            output[i] = static_cast<int8_t>((*this)(min, max));
-        }
+        std::generate(output.begin(), output.end(), [this, min, max]() noexcept {
+            return static_cast<int8_t>((*this)(min, max));
+            });
         return output;
     }
 
@@ -67,9 +67,9 @@ public:
 		const T min = (std::numeric_limits<T>::min)(),
 		const T max = (std::numeric_limits<T>::max)()) {
         Vector<T> output(size);
-        for (size_t i = 0; i < size; ++i) {
-			output[i] = static_cast<T>((*this)(min, max));
-		}
+        std::generate(output.begin(), output.end(), [this, min, max]() noexcept {
+            return static_cast<T>((*this)(min, max));
+            });
 		return output;
 	}
 

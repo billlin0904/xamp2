@@ -125,6 +125,7 @@ void AudioPlayer::Open(Path const& file_path, const Uuid& device_id) {
 
 void AudioPlayer::Open(Path const& file_path, const DeviceInfo& device_info, uint32_t target_sample_rate) {
     CloseDevice(true);
+    UpdateProgress();
     target_sample_rate_ = target_sample_rate;
     OpenStream(file_path, device_info);
     device_info_ = device_info;
@@ -491,8 +492,6 @@ void AudioPlayer::AllocateFifo() {
 }
 
 void AudioPlayer::CreateBuffer() {
-    UpdateProgress();
-
     uint32_t require_read_sample = 0;
 
     if (dsd_mode_ == DsdModes::DSD_MODE_NATIVE) {

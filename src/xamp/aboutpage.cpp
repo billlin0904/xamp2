@@ -1,8 +1,4 @@
-#include <QFile>
-
-#include <base/simd.h>
 #include <widget/str_utilts.h>
-#include "version.h"
 #include "thememanager.h"
 #include "aboutpage.h"
 

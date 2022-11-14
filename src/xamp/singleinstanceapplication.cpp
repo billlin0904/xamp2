@@ -43,6 +43,8 @@ bool SingleInstanceApplication::attach() const {
     }
     XAMP_LOG_DEBUG("My GUID: {}", name);
     return singular_.is_valid();
+#else
+    return true;
 #endif
 }
 
