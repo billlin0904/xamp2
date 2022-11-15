@@ -10,6 +10,7 @@
 #include <base/assert.h>
 #include <base/fastmutex.h>
 #include <base/ithreadpoolexecutor.h>
+#include <base/ppl.h>
 #include <base/stl.h>
 #include <base/stopwatch.h>
 
@@ -612,10 +613,10 @@ public:
 		split_num_ = (channel_size / data_size_) * dsd_times_;
 
 #ifdef NO_TEST_DSD_FILE
-		const auto lch_task= tp_->Spawn([this](auto index) {
+		const auto lch_task= Executor::Spawn(*tp_, [this](auto index) {
 			ProcessChannel(lch_src_, lch_ctx_, lch_out_);
 			});
-		const auto rch_task = tp_->Spawn([this](auto index) {
+		const auto rch_task = Executor::Spawn(*tp_, [this](auto index) {
 			ProcessChannel(rch_src_, rch_ctx_, rch_out_);
 			});
 

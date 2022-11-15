@@ -36,9 +36,6 @@ QString format2String(const PlaybackFormat& playback_format, const QString& file
         dsd_speed_format = Q_TEXT("(") + dsd_speed_format + Q_TEXT(") | ");
         bits = 1;
     }
-    else {
-        dsd_speed_format = Q_TEXT(" ");
-    }
 
     QString output_format_str;
     QString dsd_mode;
@@ -46,7 +43,6 @@ QString format2String(const PlaybackFormat& playback_format, const QString& file
     switch (playback_format.dsd_mode) {
     case DsdModes::DSD_MODE_PCM:
     case DsdModes::DSD_MODE_DSD2PCM:
-        dsd_mode = Q_TEXT("PCM");
         output_format_str = sampleRate2String(playback_format.file_format);
         if (playback_format.file_format.GetSampleRate() != playback_format.output_format.GetSampleRate()) {
             output_format_str += Q_TEXT("/") + sampleRate2String(playback_format.output_format);
@@ -66,13 +62,19 @@ QString format2String(const PlaybackFormat& playback_format, const QString& file
 
     const auto bit_format = QString::number(bits) + Q_TEXT("bit");
 
-    return ext
+    auto result = ext
+        + Q_TEXT(" | ")
         + dsd_speed_format
-        + bit_format
-        + Q_TEXT("/")
         + output_format_str
-        + Q_TEXT(" | ") + dsd_mode
-        + Q_TEXT(" |") + bitRate2String(playback_format.bitrate);
+        + Q_TEXT(" | ")
+        + bit_format;
+
+    if (!dsd_mode.isEmpty()) {
+        result += Q_TEXT(" | ") + dsd_mode;
+    }
+
+    result += Q_TEXT(" |") + bitRate2String(playback_format.bitrate);
+    return result;
 }
 
 QScopedPointer<QProgressDialog> makeProgressDialog(QString const& title, QString const& text, QString const& cancel) {

@@ -18,7 +18,7 @@ QString bitRate2String(uint32_t bitRate) {
     if (bitRate > 10000) {
         return QString::number(bitRate / 1000.0, 'f', 2).rightJustified(5) + Q_TEXT(" Mbps");
     }
-    return QString::number(bitRate).rightJustified(5) + Q_TEXT(" Kbps");
+    return QString::number(bitRate).rightJustified(5) + Q_TEXT(" kbps");
 }
 
 QString samplerate2String(uint32_t samplerate) {

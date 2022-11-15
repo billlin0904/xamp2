@@ -206,7 +206,7 @@ public:
 
     void setStandardButtonStyle(QToolButton* close_button, QToolButton* min_win_button, QToolButton* max_win_button) const;
 
-    QIcon iconFromFont(const QChar& code) const;
+    QIcon iconFromFont(const QChar& code, QVariantMap options = QVariantMap()) const;
 
     void setTextSeparator(QFrame* frame);
 

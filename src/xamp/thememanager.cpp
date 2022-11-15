@@ -1,6 +1,7 @@
 #include "ui_xamp.h"
 
 #include <widget/image_utiltis.h>
+#include <QDesktopWidget>
 #include <QGraphicsDropShadowEffect>
 #include <QScreen>
 #include <QResource>
@@ -9,6 +10,7 @@
 #include <QFontDatabase>
 #include <QTextStream>
 #include <QFileInfo>
+#include <utility>
 
 #if defined(Q_OS_WIN)
 #include <widget/win32/win32.h>
@@ -178,8 +180,8 @@ QIcon ThemeManager::volumeOff() const {
     return iconFromFont(IconCode::ICON_VolumeOff);
 }
 
-QIcon ThemeManager::iconFromFont(const QChar& code) const {
-    return qFontIcon.icon(code);
+QIcon ThemeManager::iconFromFont(const QChar& code, QVariantMap options) const {
+    return qFontIcon.icon(code, std::move(options));
 }
 
 QIcon ThemeManager::folderIcon() const {
@@ -576,8 +578,15 @@ void ThemeManager::setTextSeparator(QFrame *frame) {
 }
 
 int32_t ThemeManager::fontSize() const {
-    //return 10;
+#ifdef Q_OS_WIN
+	const auto dpi = qApp->desktop()->logicalDpiX();
+    if (dpi > 96) {
+        return 11;
+    }
+    return 10;
+#else
     return 8;
+#endif
 }
 
 void ThemeManager::setWidgetStyle(Ui::XampWindow& ui) {

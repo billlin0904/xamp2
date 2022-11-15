@@ -256,8 +256,14 @@ void HttpClient::HttpClientImpl::handleFinish(const HttpContext &context, QNetwo
 QString HttpClient::HttpClientImpl::readReply(QNetworkReply *reply, const QString &charset) {
     QTextStream in(reply);
 
+    const auto content_length_var = reply->header(QNetworkRequest::ContentLengthHeader);
+    auto content_length = 1024 * 1024;
+    if (content_length_var.isValid()) {
+        content_length = content_length_var.toInt();
+    }
+
     QString result;
-    result.reserve(4 * 1024 * 1024);
+    result.reserve(content_length);
     in.setCodec(charset.toUtf8());
 
     while (!in.atEnd()) {

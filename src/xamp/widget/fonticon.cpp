@@ -1,4 +1,5 @@
 #include <QFontDatabase>
+#include <utility>
 #include <widget/str_utilts.h>
 #include <widget/fonticonanimation.h>
 #include <widget/fonticon.h>
@@ -12,9 +13,9 @@ FontIconEngine::FontIconEngine(QVariantMap opt)
 void FontIconEngine::paint(QPainter* painter, const QRect& rect, QIcon::Mode mode, QIcon::State state) {
     Q_UNUSED(state)
 
+	auto paint_rect = rect;
+
     QFont font(font_family_);
-	int draw_size = qRound(rect.height() * 0.9);
-    font.setPixelSize(draw_size);
     font.setStyleStrategy(QFont::PreferAntialias);
 
     auto var = options_.value(Q_TEXT("animation"));
@@ -22,6 +23,13 @@ void FontIconEngine::paint(QPainter* painter, const QRect& rect, QIcon::Mode mod
         animation->setup(*painter, rect);
     }
 
+    var = options_.value(Q_TEXT("rect"));
+    if (var.isValid()) {
+        paint_rect = var.value<QRect>();
+    }
+
+    int draw_size = qRound(paint_rect.height() * 0.9);
+    font.setPixelSize(draw_size);
     painter->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
 
     QColor pen_color;
@@ -42,7 +50,7 @@ void FontIconEngine::paint(QPainter* painter, const QRect& rect, QIcon::Mode mod
     painter->save();
     painter->setPen(QPen(pen_color));
     painter->setFont(font);
-    painter->drawText(rect, Qt::AlignCenter | Qt::AlignVCenter, letter_);
+    painter->drawText(paint_rect, Qt::AlignHCenter | Qt::AlignVCenter, letter_);
     painter->restore();
 }
 
@@ -110,7 +118,7 @@ QIcon FontIcon::icon(const QChar& code, QVariantMap options, const QColor* color
         use_family = families().first();
     }
 
-    auto* engine = new FontIconEngine(options);
+    auto* engine = new FontIconEngine(std::move(options));
     engine->setFontFamily(use_family);
     engine->setLetter(code);
     if (!color) {

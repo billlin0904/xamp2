@@ -34,57 +34,12 @@
 #include <widget/fonticon.h>
 #include <widget/playlisttableview.h>
 
-class AlignCenterStyledItemDelegate : public QStyledItemDelegate {
-public:
-    using QStyledItemDelegate::QStyledItemDelegate;
-
-    explicit AlignCenterStyledItemDelegate(QObject* parent = nullptr)
-        : QStyledItemDelegate(parent) {
-    }
-
-protected:
-    void initStyleOption(QStyleOptionViewItem* option, const QModelIndex& index) const override {
-        QStyledItemDelegate::initStyleOption(option, index);
-        option->decorationAlignment = Qt::AlignVCenter | Qt::AlignRight;
-        option->decorationSize = QSize(12, 12);
-    }
-
-    void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override {
-        auto opt = option;
-        opt.decorationAlignment = Qt::AlignVCenter | Qt::AlignRight;
-        QStyledItemDelegate::paint(painter, opt, index);
-    }
-};
-
 class StyledItemDelegate final : public QStyledItemDelegate {
 public:
     using QStyledItemDelegate::QStyledItemDelegate;
 
     explicit StyledItemDelegate(QObject* parent = nullptr)
         : QStyledItemDelegate(parent) {
-    }
-
-    void initStyleOption(QStyleOptionViewItem* option, const QModelIndex& index) const override {
-        QStyledItemDelegate::initStyleOption(option, index);
-
-    	/*switch (index.column()) {
-        case PLAYLIST_TRACK:
-            option->decorationAlignment = Qt::AlignVCenter | Qt::AlignRight;
-            option->decorationSize = QSize(12, 12);
-            auto is_playing = index.model()->data(index.model()->index(index.row(), PLAYLIST_PLAYING));
-            auto playing_state = is_playing.toInt();
-            if (playing_state == PlayingState::PLAY_PLAYING) {
-                option->decorationSize = QSize(12, 12);
-                option->icon = qTheme.iconFromFont(IconCode::ICON_Play);
-            }
-            else if (playing_state == PlayingState::PLAY_PAUSE) {
-                option->icon = qTheme.iconFromFont(IconCode::ICON_Pause);            }
-            else {
-                option->font.setFamily(Q_TEXT("MonoFont"));
-                option->text = index.model()->data(index.model()->index(index.row(), PLAYLIST_TRACK)).toString();
-            }
-            break;
-        }*/
     }
 
     void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override {
@@ -124,24 +79,29 @@ public:
             break;
         }
 
+        opt.decorationSize = QSize(view->columnWidth(index.column()), view->verticalHeader()->defaultSectionSize());
+
         switch (index.column()) {
         case PLAYLIST_TRACK:
 	        {
+        		opt.rect.setX(8);
                 auto is_playing  = index.model()->data(index.model()->index(index.row(), PLAYLIST_PLAYING));
                 auto playing_state = is_playing.toInt();
                 if (playing_state == PlayingState::PLAY_PLAYING) {
                     opt.decorationSize = QSize(12, 12);
                     opt.icon = qTheme.iconFromFont(IconCode::ICON_Play);
                     opt.features = QStyleOptionViewItem::HasDecoration;
+                    opt.decorationAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
                 }
                 else if (playing_state == PlayingState::PLAY_PAUSE) {
                     opt.decorationSize = QSize(12, 12);
                     opt.icon = qTheme.iconFromFont(IconCode::ICON_Pause);
                     opt.features = QStyleOptionViewItem::HasDecoration;
+                    opt.decorationAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
                 } else {
                     opt.font.setFamily(Q_TEXT("MonoFont"));
                     opt.text = value.toString();
-                }
+                }                
 	        }
             break;
         case PLAYLIST_YEAR:
@@ -372,12 +332,8 @@ void PlayListTableView::initial() {
     setModel(proxy_model_);
 
     auto f = font();
-#ifdef Q_OS_WIN
+    f.setWeight(QFont::Weight::Normal);
     f.setPointSize(qTheme.fontSize());
-#else
-    f.setPointSize(14);
-#endif
-    f.setWeight(QFont::Weight::Light);
     setFont(f);
 
     setUpdatesEnabled(true);
