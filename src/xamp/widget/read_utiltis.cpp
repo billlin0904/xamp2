@@ -111,12 +111,12 @@ double readAll(Path const& file_path,
 std::tuple<double, double> readFileLUFS(Path const& file_path,
     std::function<bool(uint32_t)> const& progress,
     uint64_t max_duration) {
-	std::optional<Ebur128ReplayGainScanner> scanner;
+	std::optional<Ebur128Reader> scanner;
 
     readAll(file_path, progress,
 		[&scanner](AudioFormat const& input_format)
 		{
-			scanner = Ebur128ReplayGainScanner(input_format.GetSampleRate());
+			scanner = Ebur128Reader(input_format.GetSampleRate());
 		}, [&scanner](auto const* samples, auto sample_size)
 		{
 			scanner.value().Process(samples, sample_size);

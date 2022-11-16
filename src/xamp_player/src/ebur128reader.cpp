@@ -65,7 +65,7 @@ Ebur128Lib::Ebur128Lib()
 
 #define EBUR128_LIB Singleton<Ebur128Lib>::GetInstance()
 
-class Ebur128ReplayGainScanner::Ebur128ReplayGainScannerImpl {
+class Ebur128Reader::Ebur128ReplayGainScannerImpl {
 public:
 	explicit Ebur128ReplayGainScannerImpl(uint32_t sample_rate) {
 		state_.reset(EBUR128_LIB.ebur128_init(AudioFormat::kMaxChannel, sample_rate,
@@ -105,7 +105,7 @@ public:
         return state_.get();
     }
 
-    static double GetMultipleLoudness(Vector<Ebur128ReplayGainScanner> &scanners) {
+    static double GetMultipleLoudness(Vector<Ebur128Reader> &scanners) {
 		Vector<ebur128_state*> handles;
         handles.reserve(scanners.size());
         for (auto const &scanner : scanners) {
@@ -129,43 +129,43 @@ private:
 	UniqueHandle<ebur128_state*, Ebur128Deleter> state_;
 };
 
-Ebur128ReplayGainScanner::Ebur128ReplayGainScanner(uint32_t sample_rate)
+Ebur128Reader::Ebur128Reader(uint32_t sample_rate)
     : impl_(MakeAlign<Ebur128ReplayGainScannerImpl>(sample_rate)) {
 }
 
-XAMP_PIMPL_IMPL(Ebur128ReplayGainScanner)
+XAMP_PIMPL_IMPL(Ebur128Reader)
 
-void Ebur128ReplayGainScanner::Process(float const * samples, size_t num_sample) {
+void Ebur128Reader::Process(float const * samples, size_t num_sample) {
 	impl_->Process(samples, num_sample);
 }
 
-double Ebur128ReplayGainScanner::GetLoudness() const {
+double Ebur128Reader::GetLoudness() const {
 	return impl_->GetLoudness();
 }
 
-double Ebur128ReplayGainScanner::GetSamplePeak() const {
+double Ebur128Reader::GetSamplePeak() const {
     return impl_->GetSamplePeak();
 }
 
-double Ebur128ReplayGainScanner::GetTruePeek() const {
+double Ebur128Reader::GetTruePeek() const {
 	return impl_->GetTruePeek();
 }
 
-void* Ebur128ReplayGainScanner::GetNativeHandle() const {
+void* Ebur128Reader::GetNativeHandle() const {
     return impl_->GetNativeHandle();
 }
 
-double Ebur128ReplayGainScanner::GetMultipleLoudness(Vector<Ebur128ReplayGainScanner> &scanners) {
+double Ebur128Reader::GetMultipleLoudness(Vector<Ebur128Reader> &scanners) {
     return Ebur128ReplayGainScannerImpl::GetMultipleLoudness(scanners);
 }
 
-double Ebur128ReplayGainScanner::GetEbur128Gain(double loudness, double targetdb) {
+double Ebur128Reader::GetEbur128Gain(double loudness, double targetdb) {
 	// EBUR128 sets the target level to -23 LUFS = 84dB
 	// -23 - loudness = track gain to get to 84dB		
 	return (-23.0 - loudness + targetdb - kReferenceLoudness);
 }
 
-void Ebur128ReplayGainScanner::LoadEbur128Lib() {
+void Ebur128Reader::LoadEbur128Lib() {
 	Singleton<Ebur128Lib>::GetInstance();
 }
 	

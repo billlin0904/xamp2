@@ -21,12 +21,12 @@
 #include <widget/backgroundworker.h>
 
 struct PlayListRGResult {
-    PlayListRGResult(PlayListEntity item, std::optional<Ebur128ReplayGainScanner> scanner)
+    PlayListRGResult(PlayListEntity item, std::optional<Ebur128Reader> scanner)
         : item(std::move(item))
         , scanner(std::move(scanner)) {
     }
     PlayListEntity item;
-    std::optional<Ebur128ReplayGainScanner> scanner;
+    std::optional<Ebur128Reader> scanner;
 };
 
 BackgroundWorker::BackgroundWorker()
@@ -156,9 +156,9 @@ void BackgroundWorker::onReadReplayGain(bool, const Vector<PlayListEntity>& item
                 return true;
             };
 
-            std::optional<Ebur128ReplayGainScanner> scanner;
+            std::optional<Ebur128Reader> scanner;
             auto prepare = [&scanner](auto const& input_format) mutable {
-                scanner = Ebur128ReplayGainScanner(input_format.GetSampleRate());
+                scanner = Ebur128Reader(input_format.GetSampleRate());
             };
 
             auto dps_process = [&scanner, this](auto const* samples, auto sample_size) {
@@ -175,7 +175,7 @@ void BackgroundWorker::onReadReplayGain(bool, const Vector<PlayListEntity>& item
         }));
     }
 
-    Vector<Ebur128ReplayGainScanner> scanners;
+    Vector<Ebur128Reader> scanners;
     ReplayGainResult replay_gain;
 
     for (auto & task : replay_gain_tasks) {
@@ -207,8 +207,8 @@ void BackgroundWorker::onReadReplayGain(bool, const Vector<PlayListEntity>& item
     replay_gain.lufs.reserve(items.size());
     replay_gain.track_replay_gain.reserve(items.size());
 
-    replay_gain.album_replay_gain = Ebur128ReplayGainScanner::GetEbur128Gain(
-        Ebur128ReplayGainScanner::GetMultipleLoudness(scanners),
+    replay_gain.album_replay_gain = Ebur128Reader::GetEbur128Gain(
+        Ebur128Reader::GetMultipleLoudness(scanners),
         target_gain);
     
     replay_gain.album_peak = 100.0;
@@ -219,7 +219,7 @@ void BackgroundWorker::onReadReplayGain(bool, const Vector<PlayListEntity>& item
         const auto track_lufs = scanner.GetLoudness();
         replay_gain.lufs.push_back(track_lufs);
         replay_gain.track_replay_gain.push_back(
-            Ebur128ReplayGainScanner::GetEbur128Gain(track_lufs, target_gain));
+            Ebur128Reader::GetEbur128Gain(track_lufs, target_gain));
     }
 
     for (size_t i = 0; i < replay_gain_tasks.size(); ++i) {

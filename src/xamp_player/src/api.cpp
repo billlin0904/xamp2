@@ -64,7 +64,7 @@ void XampIniter::LoadLib() {
     XAMP_LOG_DEBUG("Load mbdiscid lib success.");
 #endif
 
-    Ebur128ReplayGainScanner::LoadEbur128Lib();
+    Ebur128Reader::LoadEbur128Lib();
     XAMP_LOG_DEBUG("Load ebur128 lib success.");
 }
 

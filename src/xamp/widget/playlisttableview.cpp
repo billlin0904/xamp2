@@ -119,8 +119,18 @@ public:
         case PLAYLIST_ALBUM_RG:
         case PLAYLIST_TRACK_PK:
         case PLAYLIST_TRACK_RG:
-            opt.decorationAlignment = Qt::AlignVCenter | Qt::AlignRight;
+            opt.decorationAlignment = Qt::AlignVCenter | Qt::AlignRight;      
             opt.text = QString::number(value.toFloat(), 'f', 2);
+            /*switch (index.column()) {
+            case PLAYLIST_ALBUM_PK:
+            case PLAYLIST_TRACK_PK:
+                opt.text += Q_TEXT(" dBTP");
+                break;
+            case PLAYLIST_ALBUM_RG:
+            case PLAYLIST_TRACK_RG:
+                opt.text += Q_TEXT(" LUFS");
+                break;
+            }*/
             break;
         case PLAYLIST_SAMPLE_RATE:
             opt.text = samplerate2String(value.toInt());
@@ -822,6 +832,9 @@ void PlayListTableView::resizeColumn() {
             header->resizeSection(column, 25);
             break;
         case PLAYLIST_TRACK:
+            header->setSectionResizeMode(column, QHeaderView::Fixed);
+            header->resizeSection(column, 35);
+            break;
         case PLAYLIST_ALBUM_RG:
         case PLAYLIST_ALBUM_PK:
         case PLAYLIST_TRACK_RG:
@@ -829,7 +842,7 @@ void PlayListTableView::resizeColumn() {
         case PLAYLIST_DURATION:
         case PLAYLIST_BIT_RATE:
             header->setSectionResizeMode(column, QHeaderView::Fixed);
-            header->resizeSection(column, 40);
+            header->resizeSection(column, 80);
             break;
         case PLAYLIST_TITLE:
             header->resizeSection(column,

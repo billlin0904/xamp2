@@ -22,17 +22,6 @@ namespace xamp::stream {
 
 #if defined(XAMP_OS_WIN) || defined(XAMP_OS_MAC)
 
-static uint8_t ReverseBits(uint8_t num) {
-	auto NO_OF_BITS = sizeof(num) * 8;
-	auto reverse_num = 0;
-
-	for (auto i = 0; i < NO_OF_BITS; i++) {
-		if ((num & (1 << i)))
-			reverse_num |= 1 << ((NO_OF_BITS - 1) - i);
-	}
-	return reverse_num;
-}
-
 class Double2DArray {
 public:
 	Double2DArray() noexcept
@@ -252,8 +241,7 @@ struct FFTWContext {
 	Vector<FFTWComplexArray> firfilter_fft;
 };
 
-#define NO_TEST_DSD_FILE 1
-
+// Ref: https://github.com/serieril/PCM-DSD_Converter
 class Pcm2DsdSampleWriter::Pcm2DsdSampleWriterImpl {
 public:
 	explicit Pcm2DsdSampleWriterImpl(DsdTimes dsd_times) {
@@ -309,16 +297,6 @@ public:
 
 		lch_ctx_.Init(log_times_, times_, fft_size_, section_1_, logger_);
 		rch_ctx_.Init(log_times_, times_, fft_size_, section_1_, logger_);
-
-#ifndef NO_TEST_DSD_FILE
-		lch_out_.open(R"(C:\Users\rdbill0452\Documents\Github\xamp2\src\xamp\test_dsd\Catch You Catch Me_tmpLDSD)", std::ios::in | std::ios::binary);
-		lch_out_.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-		lch_out_.seekg(12873984);
-
-		rch_out_.open(R"(C:\Users\rdbill0452\Documents\Github\xamp2\src\xamp\test_dsd\Catch You Catch Me_tmpRDSD)", std::ios::in | std::ios::binary);
-		rch_out_.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-		rch_out_.seekg(12873984);
-#endif
 	}
 
 	uint32_t GetDataSize() const {
@@ -389,7 +367,7 @@ public:
 		XAMP_LOG_D(logger_, "Split count:{}, data size:{}", split_num_, data_size_);
 
 		for (i = 0u; i < split_num_; ++i) {
-			MemoryCopy(buffer.data(), data, 8 * (data_size_ / dsd_times_));
+			MemoryCopy(buffer.data(), data, sizeof(double) * (data_size_ / dsd_times_));
 
 			for (t = 0u; t < log_times_; t++) {
 				q = 0;
@@ -400,7 +378,7 @@ public:
 					q++;
 				}
 
-				MemorySet(ctx.fftin[t].get() + q, 0, 8 * (ctx.nowfft_size[t] - q));
+				MemorySet(ctx.fftin[t].get() + q, 0, sizeof(double) * (ctx.nowfft_size[t] - q));
 				FFTW_LIB.fftw_execute(ctx.fft[t].get());
 
 				for (p = 0; p < ctx.realfft_size[t]; p++) {
@@ -447,7 +425,7 @@ public:
 			}
 
 			output_file.write(reinterpret_cast<const char*>(out.data()), data_size_);
-			data += 8 * (data_size_ / dsd_times_);
+			data += sizeof(double) * (data_size_ / dsd_times_);
 		}
 	}
 
@@ -495,7 +473,6 @@ public:
 
 		constexpr std::array<uint8_t, 2> kDoPMarker { 0x05, 0xFA };
 
-#ifdef NO_TEST_DSD_FILE
 		lch_out_.close();
 		rch_out_.close();
 
@@ -504,7 +481,6 @@ public:
 
 		rch_out_.open(rch_out_path_.native(), std::ios::in | std::ios::binary);
 		rch_out_.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-#endif
 		
 		Vector<uint8_t> tmpdataL(data_size_);
 		Vector<uint8_t> tmpdataR(data_size_);
@@ -589,14 +565,12 @@ public:
 				BufferOverFlowThrow(buffer.TryWrite(reinterpret_cast<int8_t*>(onebit.data()), onebit.size()));
 			}
 		}
-#ifdef NO_TEST_DSD_FILE
+
 		RemoveTempFile();
-#endif
 		return true;
 	}
 
 	bool Process(float const* samples, size_t num_samples, AudioBuffer<int8_t>& buffer) {
-#ifdef NO_TEST_DSD_FILE
 		try {
 			CreateTempFile();
 		}
@@ -607,12 +581,10 @@ public:
 		}
 
 		SplitChannel(samples, num_samples);
-#endif
 
 		auto channel_size = num_samples / AudioFormat::kMaxChannel;
 		split_num_ = (channel_size / data_size_) * dsd_times_;
 
-#ifdef NO_TEST_DSD_FILE
 		const auto lch_task= Executor::Spawn(*tp_, [this](auto index) {
 			ProcessChannel(lch_src_, lch_ctx_, lch_out_);
 			});
@@ -622,7 +594,6 @@ public:
 
 		lch_task.wait();
 		rch_task.wait();
-#endif
 		return MargeChannel(buffer);
 	}
 
