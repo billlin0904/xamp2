@@ -83,7 +83,7 @@ public:
 
     void addTablePlaylist(int32_t table_id, int32_t playlist_id);
 
-    int32_t addOrUpdateMusic(const Metadata& medata);
+    int32_t addOrUpdateMusic(const TrackInfo& medata);
 
     int32_t addOrUpdateArtist(const QString& artist);
 

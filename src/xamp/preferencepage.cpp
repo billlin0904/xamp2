@@ -224,6 +224,15 @@ PreferencePage::PreferencePage(QWidget *parent)
     : QFrame(parent) {
     ui_.setupUi(this);
 
+	qTheme.setMenuStyle(ui_.langCombo->view()->window());
+	qTheme.setMenuStyle(ui_.replayGainModeCombo->view()->window());
+	qTheme.setMenuStyle(ui_.selectResamplerComboBox->view()->window());
+	qTheme.setMenuStyle(ui_.soxrSettingCombo->view()->window());
+	qTheme.setMenuStyle(ui_.soxrTargetSampleRateComboBox->view()->window());
+	qTheme.setMenuStyle(ui_.soxrResampleQualityComboBox->view()->window());
+	qTheme.setMenuStyle(ui_.rollOffLevelComboBox->view()->window());
+	qTheme.setMenuStyle(ui_.r8brainTargetSampleRateComboBox->view()->window());
+
 	update();
 
 	initSoxResampler();
@@ -383,6 +392,7 @@ PreferencePage::PreferencePage(QWidget *parent)
 	ui_.soxrResamplerPage->setStyleSheet(Q_TEXT("background: transparent;"));
 	ui_.r8brainResamplerPage->setStyleSheet(Q_TEXT("background: transparent;"));
 	ui_.dspManagerPage->setStyleSheet(Q_TEXT("background: transparent;"));
+	ui_.pcm2dsdPage->setStyleSheet(Q_TEXT("background: transparent;"));
 
 	const QList<QWidget*> widgets {
 		ui_.darkRadioButton,

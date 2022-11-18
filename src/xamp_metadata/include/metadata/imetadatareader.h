@@ -9,7 +9,7 @@
 
 #include <base/fs.h>
 #include <base/stl.h>
-#include <base/metadata.h>
+#include <base/TrackInfo.h>
 
 #include <metadata/metadata.h>
 
@@ -19,7 +19,7 @@ class XAMP_METADATA_API XAMP_NO_VTABLE IMetadataReader {
 public:
     XAMP_BASE_CLASS(IMetadataReader)
 
-    virtual Metadata Extract(Path const &path) = 0;
+    virtual TrackInfo Extract(Path const &path) = 0;
 
     virtual std::optional<ReplayGain> GetReplayGain(const Path& path) = 0;
  

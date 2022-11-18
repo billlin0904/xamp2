@@ -1,8 +1,8 @@
-#include <base/metadata.h>
+#include <base/trackinfo.h>
 
 namespace xamp::base {
 
-Metadata::Metadata() noexcept
+TrackInfo::TrackInfo() noexcept
 	: track(0)
 	, bitrate(0)
 	, samplerate(0)

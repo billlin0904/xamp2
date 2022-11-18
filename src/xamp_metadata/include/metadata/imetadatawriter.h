@@ -6,7 +6,7 @@
 #pragma once
 
 #include <base/fs.h>
-#include <base/metadata.h>
+#include <base/TrackInfo.h>
 #include <metadata/metadata.h>
 
 namespace xamp::metadata {
@@ -17,7 +17,7 @@ public:
 
     [[nodiscard]] virtual bool IsFileReadOnly(Path const & path) const = 0;
     
-    virtual void Write(Path const &path, Metadata const& metadata) = 0;
+    virtual void Write(Path const &path, TrackInfo const& trackinfo) = 0;
 
     virtual void WriteReplayGain(Path const& path, const ReplayGain& replay_gain) = 0;
 

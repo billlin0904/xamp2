@@ -246,7 +246,7 @@ static bool GetFlacCover(File* file, Vector<uint8_t>& buffer) {
     return false;
 }
 
-static void SetFileInfo(Path const & path, Metadata& metadata) {
+static void SetFileInfo(Path const & path, TrackInfo& metadata) {
     metadata.file_path = path.wstring();
     metadata.file_name = path.filename().wstring();
     metadata.parent_path = path.parent_path().wstring();
@@ -255,7 +255,7 @@ static void SetFileInfo(Path const & path, Metadata& metadata) {
     metadata.file_size = Fs::file_size(path);
 }
 
-static void SetAudioProperties(AudioProperties* audio_properties, Metadata& metadata) {
+static void SetAudioProperties(AudioProperties* audio_properties, TrackInfo& metadata) {
     if (audio_properties != nullptr) {
         metadata.duration = audio_properties->lengthInMilliseconds() / 1000.0;
         metadata.bitrate = audio_properties->bitrate();
@@ -263,7 +263,7 @@ static void SetAudioProperties(AudioProperties* audio_properties, Metadata& meta
     }
 }
 
-static void ExtractTitleFromFileName(Metadata &metadata) {
+static void ExtractTitleFromFileName(TrackInfo &metadata) {
     auto start_pos = metadata.file_name_no_ext.find(L'.');
     if (start_pos != std::wstring::npos) {
         metadata.title = metadata.file_name_no_ext.substr(start_pos + 1);
@@ -283,7 +283,7 @@ static void ExtractTitleFromFileName(Metadata &metadata) {
 #endif
 }
 
-static void ExtractTag(Path const & path, Tag const * tag, AudioProperties*audio_properties, Metadata& metadata) {
+static void ExtractTag(Path const & path, Tag const * tag, AudioProperties*audio_properties, TrackInfo& metadata) {
     try {
         if (!tag->isEmpty()) {
             metadata.artist = tag->artist().toWString();
@@ -338,8 +338,8 @@ public:
 #endif
     }
 
-    [[nodiscard]] Metadata Extract(const Path& path) const {
-        Metadata metadata;
+    [[nodiscard]] TrackInfo Extract(const Path& path) const {
+        TrackInfo metadata;
 
         try {
             // note: taglib會獨佔file, 所以要讀取LastWriteTime必須要在之前.
@@ -444,7 +444,7 @@ TaglibMetadataReader::TaglibMetadataReader()
     : reader_(MakeAlign<TaglibMetadataReaderImpl>()) {
 }
 
-Metadata TaglibMetadataReader::Extract(const Path& path) {
+TrackInfo TaglibMetadataReader::Extract(const Path& path) {
     return reader_->Extract(path);
 }
 

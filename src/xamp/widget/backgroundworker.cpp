@@ -60,7 +60,7 @@ void BackgroundWorker::onFetchCdInfo(const DriveInfo& drive) {
         return;
     }
 
-    ForwardList<Metadata> metadatas;
+    ForwardList<TrackInfo> metadatas;
 
     try {
         auto cd = OpenCD(drive.driver_letter);

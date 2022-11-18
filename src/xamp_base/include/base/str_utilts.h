@@ -35,6 +35,8 @@ XAMP_ALWAYS_INLINE std::string AsStdString(const std::string_view& s) {
 
 XAMP_BASE_API bool IsStringsEqual(std::wstring const& str1, std::wstring const& str2);
 
+XAMP_BASE_API std::string LocaleStringToUTF8(const std::string& str);
+
 template <typename CharType>
 std::basic_string<CharType> ToUpper(std::basic_string<CharType> s) {
 	std::transform(s.begin(), s.end(), s.begin(), ::toupper);

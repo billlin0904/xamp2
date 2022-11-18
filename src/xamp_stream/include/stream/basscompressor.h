@@ -12,8 +12,6 @@
 
 namespace xamp::stream {
 
-inline constexpr double kMaxTruePeak = -1.0;
-
 class XAMP_STREAM_API BassCompressor final : public IAudioProcessor {
 public:
     constexpr static auto Id = std::string_view("263079D0-FDD4-46DF-9BB3-71821AF95EDB");    

@@ -2,6 +2,7 @@
 #include <base/memory.h>
 #include <base/buffer.h>
 #include <base/logger_impl.h>
+#include <stream/bass_utiltis.h>
 #include <stream/basscompressor.h>
 
 namespace xamp::stream {
@@ -45,24 +46,7 @@ public:
     }
 
     bool Process(float const * samples, uint32_t num_samples, BufferRef<float>& out) {
-        if (out.size() != num_samples) {
-            out.maybe_resize(num_samples);
-    	}        
-        MemoryCopy(out.data(), samples, num_samples * sizeof(float));
-
-        const auto bytes_read = 
-            BASS.BASS_ChannelGetData(stream_.get(),
-                out.data(),
-                num_samples * sizeof(float));
-        if (bytes_read == kBassError) {
-            return false;
-        }
-        if (bytes_read == 0) {
-            return false;
-        }
-        const auto frames = bytes_read / sizeof(float);
-        out.maybe_resize(frames);
-        return true;
+        return BassUtiltis::Process(stream_, samples, num_samples, out);
     }
 
 private:

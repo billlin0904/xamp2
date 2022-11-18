@@ -225,7 +225,7 @@ void PlayListTableView::excuteQuery() {
     WHERE
     playlistMusics.playlistId = %1
 	ORDER BY
-	playlistMusics.playlistMusicsId, musics.path;
+	playlistMusics.playlistMusicsId, musics.path, albums.album;
     )");
     QSqlQuery query(s.arg(playlist_id_));
     model_->setQuery(query);
@@ -739,7 +739,7 @@ void PlayListTableView::append(const QString& file_name, bool show_progress_dial
    ::MetadataExtractAdapter::readFileMetadata(adapter, file_name, show_progress_dialog, is_recursive);
 }
 
-void PlayListTableView::processMeatadata(int64_t dir_last_write_time, const ForwardList<Metadata>& medata) {
+void PlayListTableView::processMeatadata(int64_t dir_last_write_time, const ForwardList<TrackInfo>& medata) {
     ::MetadataExtractAdapter::processMetadata(medata, this, dir_last_write_time);
     resizeColumn();
     excuteQuery();

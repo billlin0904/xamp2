@@ -26,19 +26,8 @@ ExceptionClassName::ExceptionClassName()\
 #endif
 
 #ifdef XAMP_OS_WIN
-static std::string LocaleStringToUTF8(const std::string &str) {
-    std::vector<wchar_t> buf(str.length() + 1);
-    ::MultiByteToWideChar(CP_ACP,
-        0,
-        str.c_str(),
-        -1, 
-        buf.data(),
-        static_cast<int>(str.length()));
-    return String::ToUtf8String(buf.data());
-}
-
 std::string GetPlatformErrorMessage(int32_t err) {
-    return LocaleStringToUTF8(std::system_category().message(err));
+    return String::LocaleStringToUTF8(std::system_category().message(err));
 }
 std::string GetLastErrorMessage() {
     return GetPlatformErrorMessage(::GetLastError());

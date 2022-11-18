@@ -32,8 +32,8 @@ public:
 
 	static void LoadEbur128Lib();
 private:
-	class Ebur128ReplayGainScannerImpl;
-	AlignPtr<Ebur128ReplayGainScannerImpl> impl_;
+	class Ebur128ReaderImpl;
+	AlignPtr<Ebur128ReaderImpl> impl_;
 };
 
 }

@@ -239,6 +239,22 @@ void ExclusiveWasapiDevice::OpenStream(const AudioFormat& output_format) {
 	}	
     data_convert_ = MakeConvert(output_format, valid_output_format, buffer_frames_);
 	XAMP_LOG_D(log_, "WASAPI internal buffer: {}.", String::FormatBytes(buffer_.GetByteSize()));
+
+	CComPtr<IAudioEndpointVolume> endpoint_volume;
+	HrIfFailledThrow(device_->Activate(__uuidof(IAudioEndpointVolume),
+		CLSCTX_INPROC_SERVER,
+		nullptr,
+		reinterpret_cast<void**>(&endpoint_volume)
+	));
+	float min_volume = 0;
+	float max_volume = 0;
+	float volume_increment = 0;
+	HrIfFailledThrow(endpoint_volume->GetVolumeRange(&min_volume, &max_volume, &volume_increment));	
+	XAMP_LOG_D(log_, "min_volume: {:.2f} dBFS, max_volume:{:.2f} dBFS, volume_increnment:{:.2f} dBFS, volume leve:{:.2f}.",
+		min_volume,
+		max_volume,
+		volume_increment,
+		(max_volume - min_volume) / volume_increment);
 }
 
 void ExclusiveWasapiDevice::SetSchedulerService(std::wstring const &mmcss_name, MmcssThreadPriority thread_priority) {

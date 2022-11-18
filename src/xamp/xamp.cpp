@@ -370,6 +370,8 @@ void Xamp::initialUI() {
     f.setPointSize(qTheme.fontSize());
     ui_.artistLabel->setFont(f);
 
+    QToolTip::setFont(QFont(Q_TEXT("FormatFont")));
+
     if (qTheme.useNativeWindow()) {
         ui_.closeButton->hide();
         ui_.maxWinButton->hide();
@@ -646,7 +648,6 @@ void Xamp::initialController() {
     }    
 
     (void)QObject::connect(ui_.volumeSlider, &QSlider::valueChanged, [this](auto volume) {
-        QToolTip::showText(QCursor::pos(), tr("Volume : ") + QString::number(volume) + Q_TEXT("%"));
         setVolume(volume);
     });
 
@@ -939,6 +940,14 @@ void Xamp::setVolume(uint32_t volume) {
         }
 
         player_->SetVolume(volume);
+
+        auto level = (device_info_.max_volume - device_info_.min_volume) / device_info_.volume_increment;
+        auto volume_dbfs = (level * (static_cast<double>(volume) / 100.0)) * device_info_.volume_increment;
+        auto volume_dbfs_str = tr("Volume : ") + QString::number(volume) + Q_TEXT("%");
+    	QToolTip::showText(QCursor::pos(),
+            volume_dbfs_str +
+            Q_TEXT("(") + QString::number(volume_dbfs, 'f', 2).rightJustified(2) + Q_TEXT("dbFS)")
+            );
     }
     catch (const Exception& e) {
         player_->Stop(false);
@@ -1079,7 +1088,7 @@ void Xamp::resetSeekPosValue() {
     ui_.startPosLabel->setText(streamTimeToString(0));
 }
 
-void Xamp::processMeatadata(int64_t dir_last_write_time, const ForwardList<Metadata>& medata) const {
+void Xamp::processMeatadata(int64_t dir_last_write_time, const ForwardList<TrackInfo>& medata) const {
     MetadataExtractAdapter::processMetadata(medata, nullptr, dir_last_write_time);
     album_page_->album()->refreshOnece();
 }
@@ -1367,7 +1376,7 @@ void Xamp::onUpdateDiscCover(const QString& disc_id, const QString& cover_id) {
     setCover(cover_id, cd_page_->playlistPage());
 }
 
-void Xamp::onUpdateCdMetadata(const QString& disc_id, const ForwardList<Metadata>& metadatas) {
+void Xamp::onUpdateCdMetadata(const QString& disc_id, const ForwardList<TrackInfo>& metadatas) {
     const auto album_id = qDatabase.getAlbumIdByDiscId(disc_id);
     qDatabase.removeAlbum(album_id);
 
@@ -1782,7 +1791,7 @@ void Xamp::encodeAACFile(const PlayListEntity& item, const EncodingProfile& prof
 
     QScopedPointer<MaskWidget> mask_widget(new MaskWidget(this));
 
-    Metadata metadata;
+    TrackInfo metadata;
     metadata.album = item.album.toStdWString();
     metadata.artist = item.artist.toStdWString();
     metadata.title = item.title.toStdWString();
@@ -1836,7 +1845,7 @@ void Xamp::encodeWavFile(const PlayListEntity& item) {
         tr("Export '") + item.title + tr("' to wav file"),
         tr("Cancel"));
 
-    Metadata metadata;
+    TrackInfo metadata;
     metadata.album = item.album.toStdWString();
     metadata.artist = item.artist.toStdWString();
     metadata.title = item.title.toStdWString();
@@ -1884,7 +1893,7 @@ void Xamp::encodeFlacFile(const PlayListEntity& item) {
          tr("Export '") + item.title + tr("' to flac file"),
          tr("Cancel"));
 
-    Metadata metadata;
+    TrackInfo metadata;
     metadata.album = item.album.toStdWString();
     metadata.artist = item.artist.toStdWString();
     metadata.title = item.title.toStdWString();

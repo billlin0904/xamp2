@@ -534,7 +534,7 @@ void AlbumView::append(const QString& file_name) {
     MetadataExtractAdapter::readFileMetadata(adapter, file_name);
 }
 
-void AlbumView::processMeatadata(int64_t dir_last_write_time, const ForwardList<Metadata> &medata) {
+void AlbumView::processMeatadata(int64_t dir_last_write_time, const ForwardList<TrackInfo> &medata) {
     MetadataExtractAdapter::processMetadata(medata, nullptr, dir_last_write_time);
     emit loadCompleted();
 }

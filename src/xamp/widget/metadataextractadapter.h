@@ -10,7 +10,7 @@
 
 class PlayListTableView;
 
-Metadata getMetadata(QString const& file_path);
+TrackInfo getMetadata(QString const& file_path);
 
 class MetadataExtractAdapter final
 	: public QObject {
@@ -21,11 +21,11 @@ public:
     static void readFileMetadata(const QSharedPointer<MetadataExtractAdapter>& adapter, QString const& file_path, bool show_progress_dialog = true, bool is_recursive = true);
 
 signals:
-	void readCompleted(int64_t dir_last_write_time, const ForwardList<Metadata> &entity);
+	void readCompleted(int64_t dir_last_write_time, const ForwardList<TrackInfo> &entity);
 
 public:
-    static void processMetadata(const ForwardList<Metadata>& result, PlayListTableView *playlist = nullptr, int64_t dir_last_write_time = -1);
+    static void processMetadata(const ForwardList<TrackInfo>& result, PlayListTableView *playlist = nullptr, int64_t dir_last_write_time = -1);
 
-	static void addMetadata(const ForwardList<Metadata>& result, PlayListTableView* playlist, int64_t dir_last_write_time, bool is_podcast);
+	static void addMetadata(const ForwardList<TrackInfo>& result, PlayListTableView* playlist, int64_t dir_last_write_time, bool is_podcast);
 };
 

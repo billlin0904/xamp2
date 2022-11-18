@@ -7,9 +7,9 @@
 #include <base/exception.h>
 #include <base/math.h>
 #include <base/audioformat.h>
-#include <base/metadata.h>
 #include <base/dll.h>
 #include <player/ebur128reader.h>
+#include <base/trackinfo.h>
 
 namespace xamp::player {
 
@@ -65,9 +65,9 @@ Ebur128Lib::Ebur128Lib()
 
 #define EBUR128_LIB Singleton<Ebur128Lib>::GetInstance()
 
-class Ebur128Reader::Ebur128ReplayGainScannerImpl {
+class Ebur128Reader::Ebur128ReaderImpl {
 public:
-	explicit Ebur128ReplayGainScannerImpl(uint32_t sample_rate) {
+	explicit Ebur128ReaderImpl(uint32_t sample_rate) {
 		state_.reset(EBUR128_LIB.ebur128_init(AudioFormat::kMaxChannel, sample_rate,
 		                                      EBUR128_MODE_I | EBUR128_MODE_TRUE_PEAK | EBUR128_MODE_SAMPLE_PEAK));
 		IfFailThrow(EBUR128_LIB.ebur128_set_channel(state_.get(), 0, EBUR128_LEFT));
@@ -130,7 +130,7 @@ private:
 };
 
 Ebur128Reader::Ebur128Reader(uint32_t sample_rate)
-    : impl_(MakeAlign<Ebur128ReplayGainScannerImpl>(sample_rate)) {
+    : impl_(MakeAlign<Ebur128ReaderImpl>(sample_rate)) {
 }
 
 XAMP_PIMPL_IMPL(Ebur128Reader)
@@ -156,7 +156,7 @@ void* Ebur128Reader::GetNativeHandle() const {
 }
 
 double Ebur128Reader::GetMultipleLoudness(Vector<Ebur128Reader> &scanners) {
-    return Ebur128ReplayGainScannerImpl::GetMultipleLoudness(scanners);
+    return Ebur128ReaderImpl::GetMultipleLoudness(scanners);
 }
 
 double Ebur128Reader::GetEbur128Gain(double loudness, double targetdb) {

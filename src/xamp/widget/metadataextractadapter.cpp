@@ -39,7 +39,7 @@ public:
         : cover_reader_(MakeMetadataReader()) {
     }
 
-    QPixmap getEmbeddedCover(const Metadata& metadata) const;
+    QPixmap getEmbeddedCover(const TrackInfo& metadata) const;
 
     std::tuple<int32_t, int32_t, QString> addOrGetAlbumAndArtistId(int64_t dir_last_write_time,
         const QString& album,
@@ -47,7 +47,7 @@ public:
         bool is_podcast,
         const QString& disc_id) const;
 
-    QString addCoverCache(int32_t album_id, const QString& album, const Metadata& metadata, bool is_unknown_album) const;
+    QString addCoverCache(int32_t album_id, const QString& album, const TrackInfo& metadata, bool is_unknown_album) const;
 
 private:
     mutable LruCache<int32_t, QString> cover_id_cache_;
@@ -57,7 +57,7 @@ private:
     AlignPtr<IMetadataReader> cover_reader_;
 };
 
-QPixmap DatabaseIdCache::getEmbeddedCover(const Metadata& metadata) const {
+QPixmap DatabaseIdCache::getEmbeddedCover(const TrackInfo& metadata) const {
     QPixmap pixmap;
     const auto& buffer = cover_reader_->GetEmbeddedCover(metadata.file_path);
     if (!buffer.empty()) {
@@ -67,7 +67,7 @@ QPixmap DatabaseIdCache::getEmbeddedCover(const Metadata& metadata) const {
     return pixmap;
 }
 
-QString DatabaseIdCache::addCoverCache(int32_t album_id, const QString& album, const Metadata& metadata, bool is_unknown_album) const {
+QString DatabaseIdCache::addCoverCache(int32_t album_id, const QString& album, const TrackInfo& metadata, bool is_unknown_album) const {
     auto cover_id = qDatabase.getAlbumCoverId(album_id);
     if (!cover_id.isEmpty()) {
     	return cover_id;
@@ -157,7 +157,7 @@ public:
         qApp->processEvents();
     }
 
-    void OnWalk(const Path&, Metadata metadata) override {
+    void OnWalk(const Path&, TrackInfo metadata) override {
         /*if (metadata.file_ext == kCueFileExt) {
             std::wifstream file(metadata.file_path, std::ios::binary);
             ImbueFileFromBom(file);
@@ -174,7 +174,7 @@ public:
         if (metadatas_.empty()) {
             return;
         }
-        metadatas_.sort([](const auto& first, const auto& last) {
+        metadatas_.sort([](const auto& first, const auto& last) {            
             return first.track < last.track;
             });
         emit adapter_->readCompleted(ToTime_t(dir_entry.last_write_time()), metadatas_);
@@ -183,7 +183,7 @@ public:
 	
 private:
     QSharedPointer<::MetadataExtractAdapter> adapter_;
-    ForwardList<Metadata> metadatas_;
+    ForwardList<TrackInfo> metadatas_;
 };
 
 ::MetadataExtractAdapter::MetadataExtractAdapter(QObject* parent)
@@ -245,7 +245,7 @@ void ::MetadataExtractAdapter::readFileMetadata(const QSharedPointer<MetadataExt
     }
 }
 
-void ::MetadataExtractAdapter::addMetadata(const ForwardList<Metadata>& result, PlayListTableView* playlist, int64_t dir_last_write_time, bool is_podcast) {
+void ::MetadataExtractAdapter::addMetadata(const ForwardList<TrackInfo>& result, PlayListTableView* playlist, int64_t dir_last_write_time, bool is_podcast) {
 	auto playlist_id = -1;
 	if (playlist != nullptr) {
 		playlist_id = playlist->playlistId();
@@ -311,7 +311,7 @@ void ::MetadataExtractAdapter::addMetadata(const ForwardList<Metadata>& result, 
 	}
 }
 
-void ::MetadataExtractAdapter::processMetadata(const ForwardList<Metadata>& result, PlayListTableView* playlist, int64_t dir_last_write_time) {
+void ::MetadataExtractAdapter::processMetadata(const ForwardList<TrackInfo>& result, PlayListTableView* playlist, int64_t dir_last_write_time) {
     if (dir_last_write_time == -1) {
         dir_last_write_time = QDateTime::currentSecsSinceEpoch();
     }
@@ -329,7 +329,7 @@ void ::MetadataExtractAdapter::processMetadata(const ForwardList<Metadata>& resu
     }
 }
 
-Metadata getMetadata(QString const& file_path) {
+TrackInfo getMetadata(QString const& file_path) {
     const Path path(file_path.toStdWString());
     auto reader = MakeMetadataReader();
     return reader->Extract(path);

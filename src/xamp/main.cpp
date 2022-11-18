@@ -264,7 +264,7 @@ static void registerMetaType() {
 
     qRegisterMetaTypeStreamOperators<AppEQSettings>("AppEQSettings");
     qRegisterMetaType<AppEQSettings>("AppEQSettings");
-    qRegisterMetaType<Vector<Metadata>>("Vector<Metadata>");
+    qRegisterMetaType<Vector<TrackInfo>>("Vector<TrackInfo>");
     qRegisterMetaType<DeviceState>("DeviceState");
     qRegisterMetaType<PlayerState>("PlayerState");
     qRegisterMetaType<PlayListEntity>("PlayListEntity");
@@ -274,7 +274,7 @@ static void registerMetaType() {
     qRegisterMetaType<size_t>("size_t");
     qRegisterMetaType<int32_t>("int32_t");
     qRegisterMetaType<ComplexValarray>("ComplexValarray");
-    qRegisterMetaType<ForwardList<Metadata>>("ForwardList<Metadata>");
+    qRegisterMetaType<ForwardList<TrackInfo>>("ForwardList<TrackInfo>");
     qRegisterMetaType<DriveInfo>("DriveInfo");
     qRegisterMetaType<EncodingProfile>("EncodingProfile");
 }

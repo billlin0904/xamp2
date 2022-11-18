@@ -19,6 +19,21 @@ std::wstring ToStdWString(std::string const & utf8) {
 	return utf16;
 }
 
+std::string LocaleStringToUTF8(const std::string& str) {
+#ifdef XAMP_OS_WIN
+	std::vector<wchar_t> buf(str.length() + 1);
+	::MultiByteToWideChar(CP_ACP,
+		0,
+		str.c_str(),
+		-1,
+		buf.data(),
+		static_cast<int>(str.length()));
+	return String::ToUtf8String(buf.data());
+#else
+	return str;
+#endif
+}
+
 std::string ToUtf8String(std::wstring const & utf16) {
 	std::string utf8;
 	try {

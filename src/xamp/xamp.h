@@ -71,7 +71,7 @@ public slots:
 
 	void onArtistIdChanged(const QString& artist, const QString& cover_id, int32_t artist_id);
 
-	void processMeatadata(int64_t dir_last_write_time, const ForwardList<Metadata>& medata) const;
+	void processMeatadata(int64_t dir_last_write_time, const ForwardList<TrackInfo>& medata) const;
 
 	void onActivated(QSystemTrayIcon::ActivationReason reason);
 
@@ -81,7 +81,7 @@ public slots:
 
 	void onClickedAlbum(const QString& album, int32_t album_id, const QString& cover_id);
 
-	void onUpdateCdMetadata(const QString& disc_id, const ForwardList<Metadata>& metadatas);
+	void onUpdateCdMetadata(const QString& disc_id, const ForwardList<TrackInfo>& metadatas);
 
 	void onUpdateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info);
 

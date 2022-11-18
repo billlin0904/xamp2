@@ -713,7 +713,7 @@ QString Database::getAlbumCoverId(const QString& album) const {
 	return Qt::EmptyString;
 }
 
-int32_t Database::addOrUpdateMusic(const Metadata& metadata) {
+int32_t Database::addOrUpdateMusic(const TrackInfo& trackinfo) {
 	QSqlQuery query;
 
 	query.prepare(Q_TEXT(R"(
@@ -723,24 +723,24 @@ int32_t Database::addOrUpdateMusic(const Metadata& metadata) {
     )")
 	);
 
-	query.bindValue(Q_TEXT(":title"), QString::fromStdWString(metadata.title));
-	query.bindValue(Q_TEXT(":track"), metadata.track);
-	query.bindValue(Q_TEXT(":path"), QString::fromStdWString(metadata.file_path));
-	query.bindValue(Q_TEXT(":fileExt"), QString::fromStdWString(metadata.file_ext));
-	query.bindValue(Q_TEXT(":fileName"), QString::fromStdWString(metadata.file_name));
-	query.bindValue(Q_TEXT(":parentPath"), QString::fromStdWString(metadata.parent_path));
-	query.bindValue(Q_TEXT(":duration"), metadata.duration);
-	query.bindValue(Q_TEXT(":durationStr"), streamTimeToString(metadata.duration));
-	query.bindValue(Q_TEXT(":bitrate"), metadata.bitrate);
-	query.bindValue(Q_TEXT(":samplerate"), metadata.samplerate);
-	query.bindValue(Q_TEXT(":offset"), metadata.offset);
-	query.bindValue(Q_TEXT(":fileSize"), metadata.file_size);
+	query.bindValue(Q_TEXT(":title"), QString::fromStdWString(trackinfo.title));
+	query.bindValue(Q_TEXT(":track"), trackinfo.track);
+	query.bindValue(Q_TEXT(":path"), QString::fromStdWString(trackinfo.file_path));
+	query.bindValue(Q_TEXT(":fileExt"), QString::fromStdWString(trackinfo.file_ext));
+	query.bindValue(Q_TEXT(":fileName"), QString::fromStdWString(trackinfo.file_name));
+	query.bindValue(Q_TEXT(":parentPath"), QString::fromStdWString(trackinfo.parent_path));
+	query.bindValue(Q_TEXT(":duration"), trackinfo.duration);
+	query.bindValue(Q_TEXT(":durationStr"), streamTimeToString(trackinfo.duration));
+	query.bindValue(Q_TEXT(":bitrate"), trackinfo.bitrate);
+	query.bindValue(Q_TEXT(":samplerate"), trackinfo.samplerate);
+	query.bindValue(Q_TEXT(":offset"), trackinfo.offset);
+	query.bindValue(Q_TEXT(":fileSize"), trackinfo.file_size);
 
-	if (metadata.replay_gain) {
-		query.bindValue(Q_TEXT(":album_replay_gain"), metadata.replay_gain.value().album_gain);
-		query.bindValue(Q_TEXT(":track_replay_gain"), metadata.replay_gain.value().track_gain);
-		query.bindValue(Q_TEXT(":album_peak"), metadata.replay_gain.value().album_peak);
-		query.bindValue(Q_TEXT(":track_peak"), metadata.replay_gain.value().track_peak);
+	if (trackinfo.replay_gain) {
+		query.bindValue(Q_TEXT(":album_replay_gain"), trackinfo.replay_gain.value().album_gain);
+		query.bindValue(Q_TEXT(":track_replay_gain"), trackinfo.replay_gain.value().track_gain);
+		query.bindValue(Q_TEXT(":album_peak"), trackinfo.replay_gain.value().album_peak);
+		query.bindValue(Q_TEXT(":track_peak"), trackinfo.replay_gain.value().track_peak);
 	}
 	else {
 		query.bindValue(Q_TEXT(":album_replay_gain"), 0);
@@ -749,16 +749,16 @@ int32_t Database::addOrUpdateMusic(const Metadata& metadata) {
 		query.bindValue(Q_TEXT(":track_peak"), 0);
 	}
 
-	if (metadata.last_write_time == 0) {
+	if (trackinfo.last_write_time == 0) {
 		query.bindValue(Q_TEXT(":dateTime"), QDateTime::currentSecsSinceEpoch());
 	}
 	else {
-		query.bindValue(Q_TEXT(":dateTime"), metadata.last_write_time);
+		query.bindValue(Q_TEXT(":dateTime"), trackinfo.last_write_time);
 	}
 
-	query.bindValue(Q_TEXT(":genre"), QString::fromStdWString(metadata.genre));
-	query.bindValue(Q_TEXT(":comment"), QString::fromStdWString(metadata.comment));
-	query.bindValue(Q_TEXT(":year"), metadata.year);
+	query.bindValue(Q_TEXT(":genre"), QString::fromStdWString(trackinfo.genre));
+	query.bindValue(Q_TEXT(":comment"), QString::fromStdWString(trackinfo.comment));
+	query.bindValue(Q_TEXT(":year"), trackinfo.year);
 
 	if (!query.exec()) {
 		XAMP_LOG_D(logger_, "{}", query.lastError().text().toStdString());

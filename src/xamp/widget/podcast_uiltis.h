@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 #include <base/stl.h>
-#include <base/metadata.h>
+#include <base/TrackInfo.h>
 
 #include <widget/str_utilts.h>
 
@@ -29,9 +29,9 @@ struct MbDiscIdInfo {
 
 Q_DECLARE_METATYPE(MbDiscIdInfo)
 
-Vector<Metadata> parseJson(QString const& json);
+Vector<TrackInfo> parseJson(QString const& json);
 
-std::pair<std::string, ForwardList<Metadata>> parsePodcastXML(QString const& src);
+std::pair<std::string, ForwardList<TrackInfo>> parsePodcastXML(QString const& src);
 
 std::pair<std::string, MbDiscIdInfo> parseMbDiscIdXML(QString const& src);
 

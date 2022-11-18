@@ -25,7 +25,7 @@ void PlaylistPage::initial() {
 	auto* child_layout = new QHBoxLayout();
 	child_layout->setSpacing(0);
 	child_layout->setObjectName(QString::fromUtf8("horizontalLayout_7"));
-	child_layout->setContentsMargins(20, -1, 20, -1);
+	child_layout->setContentsMargins(20, 0, 0, 0);
 	auto* left_space_layout = new QVBoxLayout();
 	left_space_layout->setSpacing(0);
 	left_space_layout->setObjectName(QString::fromUtf8("verticalLayout_3"));

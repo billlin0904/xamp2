@@ -101,7 +101,7 @@ Vector<DeviceInfo> ExclusiveWasapiDeviceType::GetDeviceInfoList() const {
 		CComPtr<IAudioEndpointVolume> endpoint_volume;
 		HrIfFailledThrow(device->Activate(__uuidof(IAudioEndpointVolume),
 			CLSCTX_INPROC_SERVER,
-			NULL,
+			nullptr,
 			reinterpret_cast<void**>(&endpoint_volume)
 		));
 

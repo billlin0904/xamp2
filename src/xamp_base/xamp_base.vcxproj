@@ -208,7 +208,7 @@
     <ClInclude Include="include\base\uuid.h" />
     <ClInclude Include="include\base\logger.h" />
     <ClInclude Include="include\base\memory.h" />
-    <ClInclude Include="include\base\metadata.h" />
+    <ClInclude Include="include\base\trackinfo.h" />
     <ClInclude Include="include\base\rng.h" />
     <ClInclude Include="include\base\timer.h" />
     <ClInclude Include="include\base\str_utilts.h" />
@@ -241,7 +241,7 @@
     <ClCompile Include="src\uuid.cpp" />
     <ClCompile Include="src\logger_impl.cpp" />
     <ClCompile Include="src\memory.cpp" />
-    <ClCompile Include="src\metadata.cpp" />
+    <ClCompile Include="src\trackinfo.cpp" />
     <ClCompile Include="src\platform.cpp" />
     <ClCompile Include="src\rng.cpp" />
     <ClCompile Include="src\stacktrace.cpp" />

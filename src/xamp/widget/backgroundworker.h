@@ -38,7 +38,7 @@ signals:
 
     void updateBlurImage(const QImage& image);
 
-    void updateCdMetadata(const QString& disc_id, const ForwardList<Metadata>& metadatas);
+    void updateCdMetadata(const QString& disc_id, const ForwardList<TrackInfo>& metadatas);
 
     void updateMbDiscInfo(const MbDiscIdInfo& mb_disc_id_info);
 

@@ -12,6 +12,7 @@
 namespace xamp::output_device::win32 {
 
 SharedWasapiDeviceType::SharedWasapiDeviceType() noexcept {
+	log_ = LoggerManager::GetInstance().GetLogger(kSharedWasapiDeviceLoggerName);
 	ScanNewDevice();
 }
 
@@ -86,6 +87,8 @@ Vector<DeviceInfo> SharedWasapiDeviceType::GetDeviceInfoList() const {
 		default_device_name = default_device_info.value().name;
 	}
 
+	XAMP_LOG_D(log_, "Load all devices");
+
 	for (UINT i = 0; i < count; ++i) {
 		CComPtr<IMMDevice> device;
 
@@ -105,7 +108,7 @@ Vector<DeviceInfo> SharedWasapiDeviceType::GetDeviceInfoList() const {
 		CComPtr<IAudioEndpointVolume> endpoint_volume;
 		HrIfFailledThrow(device->Activate(__uuidof(IAudioEndpointVolume),
 			CLSCTX_INPROC_SERVER,
-			NULL,
+			nullptr,
 			reinterpret_cast<void**>(&endpoint_volume)
 		));
 		float min_volume = 0;
@@ -115,6 +118,13 @@ Vector<DeviceInfo> SharedWasapiDeviceType::GetDeviceInfoList() const {
 		info.min_volume = min_volume;
 		info.max_volume = max_volume;
 		info.volume_increment = volume_increment;
+
+		XAMP_LOG_D(log_, "{} min_volume: {:.2f} dBFS, max_volume:{:.2f} dBFS, volume_increnment:{:.2f} dBFS, volume leve:{:.2f}.",
+			info.device_id,
+			info.min_volume,
+			info.max_volume,
+			info.volume_increment,
+			(info.max_volume - info.min_volume) / info.volume_increment);
 
 		info.is_hardware_control_volume = true;
 

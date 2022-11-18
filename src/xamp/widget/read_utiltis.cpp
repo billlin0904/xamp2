@@ -131,7 +131,7 @@ void encodeFile(Path const& file_path,
 	AlignPtr<IFileEncoder>& encoder,
     std::wstring const& command,
     std::function<bool(uint32_t)> const& progress,
-    Metadata const& metadata) {
+    TrackInfo const& metadata) {
     ExceptedFile excepted(output_file_path);
     if (excepted.Try([&](auto const& dest_file_path) {
         encoder->Start(file_path, dest_file_path, command);

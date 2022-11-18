@@ -11,6 +11,9 @@
 #include <widget/str_utilts.h>
 #include <widget/lrcpage.h>
 
+#include "appsettingnames.h"
+#include "appsettings.h"
+
 LrcPage::LrcPage(QWidget* parent)
 	: QFrame(parent) {
 	setObjectName(Q_TEXT("lrcPage"));
@@ -106,11 +109,13 @@ void LrcPage::initial() {
 	cover_label_->setStyleSheet(Q_TEXT("background-color: transparent"));
 	cover_label_->setAttribute(Qt::WA_StaticContents);
 
-	auto* effect = new QGraphicsDropShadowEffect(this);
-	effect->setOffset(15, 15);
-	effect->setColor(qTheme.coverShadownColor());
-	effect->setBlurRadius(50);
-	cover_label_->setGraphicsEffect(effect);
+	if (AppSettings::getValueAsBool(kEnableBlurCover)) {
+		auto* effect = new QGraphicsDropShadowEffect(this);
+		effect->setOffset(15, 15);
+		effect->setColor(qTheme.coverShadownColor());
+		effect->setBlurRadius(50);
+		cover_label_->setGraphicsEffect(effect);
+	}
 
     vertical_layout_3->addWidget(cover_label_);
 	vertical_layout_3->setContentsMargins(0, 20, 0, 0);

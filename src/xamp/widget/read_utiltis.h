@@ -11,12 +11,12 @@
 #include <utility>
 
 #include <base/align_ptr.h>
-#include <base/metadata.h>
+#include <base/TrackInfo.h>
 #include <base/audioformat.h>
 #include <stream/ifileencoder.h>
 
 using xamp::base::AlignPtr;
-using xamp::base::Metadata;
+using xamp::base::TrackInfo;
 using xamp::base::AudioFormat;
 using xamp::base::Path;
 using xamp::stream::IFileEncoder;
@@ -38,6 +38,6 @@ void encodeFile(Path const& file_path,
     AlignPtr<IFileEncoder>& encoder,
     std::wstring const& command,
     std::function<bool(uint32_t)> const& progress,
-    Metadata const& metadata);
+    TrackInfo const& metadata);
 
 }

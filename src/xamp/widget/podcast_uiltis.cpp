@@ -16,9 +16,9 @@ std::wstring parseCDATA(rapidxml::xml_node<Ch>* node) {
     return String::ToString(cddata);
 }
 
-Vector<Metadata> parseJson(QString const& json) {
+Vector<TrackInfo> parseJson(QString const& json) {
     QJsonParseError error;
-    Vector<Metadata> metadatas;
+    Vector<TrackInfo> metadatas;
 
     const auto doc = QJsonDocument::fromJson(json.toUtf8(), &error);
     if (error.error == QJsonParseError::NoError) {
@@ -29,7 +29,7 @@ Vector<Metadata> parseJson(QString const& json) {
             auto url = object.value(Q_TEXT("url")).toString();
             auto title = object.value(Q_TEXT("title")).toString();
             auto performer = object.value(Q_TEXT("performer")).toString();
-            Metadata metadata;
+            TrackInfo metadata;
             metadata.file_path = url.toStdWString();
             metadata.title = title.toStdWString();
             metadata.artist = performer.toStdWString();
@@ -39,10 +39,10 @@ Vector<Metadata> parseJson(QString const& json) {
     return metadatas;
 }
 
-std::pair<std::string, ForwardList<Metadata>> parsePodcastXML(QString const& src) {
+std::pair<std::string, ForwardList<TrackInfo>> parsePodcastXML(QString const& src) {
     auto str = src.toStdString();
 
-    ForwardList<Metadata> metadatas;
+    ForwardList<TrackInfo> metadatas;
     xml_document<> doc;
     doc.parse<0>(str.data());
 
@@ -67,7 +67,7 @@ std::pair<std::string, ForwardList<Metadata>> parsePodcastXML(QString const& src
     }
     size_t i = 1;
     for (auto* item = channel->first_node("item"); item; item = item->next_sibling("item")) {
-        Metadata metadata;
+        TrackInfo metadata;
         for (auto* node = item->first_node(); node; node = node->next_sibling()) {
             std::string name(node->name(), node->name_size());
             std::string value(node->value(), node->value_size());

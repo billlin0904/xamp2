@@ -68,8 +68,8 @@ public:
 		return (Fs::status(path).permissions() & Fs::perms::owner_read) != Fs::perms::none;		
 	}
 
-    void Write(Path const &path, Metadata const &metadata) const {
-        Write(path, [&metadata = std::as_const(metadata)](auto, auto tag) {
+    void Write(Path const &path, TrackInfo const &trackinfo) const {
+        Write(path, [&metadata = std::as_const(trackinfo)](auto, auto tag) {
 			tag->setAlbum(metadata.album);
 			tag->setArtist(metadata.artist);
 			tag->setTrack(metadata.track);
@@ -249,8 +249,8 @@ void TaglibMetadataWriter::WriteTitle(Path const & path, std::wstring const & ti
     writer_->WriteTitle(path, title);
 }
 
-void TaglibMetadataWriter::Write(Path const & path, Metadata const& metadata) {
-    writer_->Write(path, metadata);
+void TaglibMetadataWriter::Write(Path const & path, TrackInfo const& trackinfo) {
+    writer_->Write(path, trackinfo);
 }
 
 void TaglibMetadataWriter::WriteArtist(Path const & path, std::wstring const & artist) const {

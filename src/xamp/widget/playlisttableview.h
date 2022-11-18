@@ -89,7 +89,7 @@ signals:
 	void addPlaylistItemFinished();
 
 public slots:
-	void processMeatadata(int64_t dir_last_write_time, const ForwardList<Metadata> &medata);
+	void processMeatadata(int64_t dir_last_write_time, const ForwardList<TrackInfo> &medata);
 
 	void search(const QString& sort_str, Qt::CaseSensitivity case_sensitivity, QRegExp::PatternSyntax pattern_syntax);
 

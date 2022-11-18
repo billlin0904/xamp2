@@ -21,8 +21,8 @@ struct XAMP_BASE_API ReplayGain {
     double ref_loudness{ 0 };
 };
 
-struct XAMP_BASE_API Metadata final {
-    Metadata() noexcept;
+struct XAMP_BASE_API TrackInfo final {
+    TrackInfo() noexcept;
     uint32_t track;
     uint32_t bitrate;
     uint32_t samplerate;

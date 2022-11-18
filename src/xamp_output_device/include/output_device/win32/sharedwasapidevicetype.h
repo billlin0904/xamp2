@@ -10,6 +10,7 @@
 #ifdef XAMP_OS_WIN
 
 #include <base/align_ptr.h>
+#include <base/logger.h>
 #include <output_device/win32/wasapi.h>
 #include <output_device/idevicetype.h>
 
@@ -45,6 +46,7 @@ private:
 
 	[[nodiscard]] CComPtr<IMMDevice> GetDeviceById(const std::wstring& device_id) const;
 
+	std::shared_ptr<Logger> log_;
 	Vector<DeviceInfo> device_list_;
 	CComPtr<IMMDeviceEnumerator> enumerator_;
 };

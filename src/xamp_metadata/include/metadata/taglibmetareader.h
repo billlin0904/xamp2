@@ -19,7 +19,7 @@ public:
 
 	std::optional<ReplayGain> GetReplayGain(const Path& path) override;
     
-    Metadata Extract(Path const &path) override;
+    TrackInfo Extract(Path const &path) override;
 
     const Vector<uint8_t>& GetEmbeddedCover(Path const &path) override;
 
